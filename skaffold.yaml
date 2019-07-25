@@ -1,0 +1,11 @@
+apiVersion: skaffold/v1beta13
+kind: Config
+build:
+  artifacts:
+    - image: replicated/aka
+      context: "./"
+      docker:
+        dockerfile: ./web/Dockerfile
+deploy:
+  kustomize:
+    path: "./web/kustomize"

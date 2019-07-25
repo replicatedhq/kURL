@@ -1,0 +1,7 @@
+boto3==1.7.25
+Flask==0.12.3
+pytest==3.0.6
+pytest-mock==1.5.0
+PyYAML==4.2b4
+-e git://github.com/divolgin/python-semver.git@0b833b5050f6a48bb54cec5625d9f65af261454a#egg=semver
+uWSGI==2.0.17

@@ -1,0 +1,240 @@
+version: 2
+
+defaults: &defaults
+  docker:
+  - image: replicated/gitops-builder:node8-go11
+  working_directory: ~/repo
+  environment: &environment
+    PROJECT_NAME: install-scripts
+    ECR_REPO: 923411875752.dkr.ecr.us-east-1.amazonaws.com
+    OVERLAY_PATH: kustomize/overlays/staging
+    GITOPS_BRANCH: master
+    DOCKERFILE: deploy/Dockerfile.prod
+
+jobs:
+  is_upstream:
+    docker:
+      - image: circleci/python:3
+    steps:
+      - run: |
+          set -veuo pipefail
+          if [ "${CIRCLE_PROJECT_USERNAME}" != "replicatedhq" ]; then
+            echo "refusing to build fork \"${CIRCLE_PROJECT_USERNAME}\""
+            exit 1
+          fi
+
+  test:
+    <<: *defaults
+    steps:
+      - checkout
+      - run: sudo apt-get update; sudo apt-get install shunit2
+      - run: sudo pip install pytest # todo cache these
+      - run: sudo make deps # todo cache these
+      - run: make test
+
+  build_k8s_bundles:
+    <<: *defaults
+    steps:
+      - checkout
+      - setup_remote_docker:
+          docker_layer_caching: true
+      - run: docker login -u $DOCKER_USER -p $DOCKER_PASS quay.io
+      - run:
+          name: make
+          command: |
+            cd bundles/k8s-containers
+            make deps
+            make update_k8s_manifest_${K8S_VERSION} build_${K8S_VERSION} push_${K8S_VERSION}
+
+  build_ubuntu1604_docker_package:
+    <<: *defaults
+    steps:
+      - checkout
+      - setup_remote_docker:
+          docker_layer_caching: true
+      - run: docker login -u $DOCKER_USER -p $DOCKER_PASS quay.io
+      - run:
+          name: build & push
+          command: |
+            cd bundles/docker-ubuntu1604
+            make build push
+
+  build_ubuntu1804_docker_package:
+    <<: *defaults
+    steps:
+      - checkout
+      - setup_remote_docker:
+          docker_layer_caching: true
+      - run: docker login -u $DOCKER_USER -p $DOCKER_PASS quay.io
+      - run:
+          name: build & push
+          command: |
+            cd bundles/docker-ubuntu1804
+            make build push
+
+  build_ubuntu_k8s_packages:
+    <<: *defaults
+    steps:
+      - checkout
+      - setup_remote_docker:
+          docker_layer_caching: true
+      - run: docker login -u $DOCKER_USER -p $DOCKER_PASS quay.io
+      - run:
+          name: build & push
+          command: |
+            cd bundles/k8s-ubuntu1604
+            make $K8S_VERSION
+
+  build_k8s_cni:
+    <<: *defaults
+    steps:
+      - checkout
+      - setup_remote_docker:
+          docker_layer_caching: true
+      - run: docker login -u $DOCKER_USER -p $DOCKER_PASS quay.io
+      - run:
+          name: build & push
+          command: |
+            cd bundles/k8s-cni-v0.6.0
+            make build push
+
+  build_rhel_docker_package:
+    <<: *defaults
+    steps:
+      - checkout
+      - setup_remote_docker:
+          docker_layer_caching: true
+      - run: docker login -u $DOCKER_USER -p $DOCKER_PASS quay.io
+      - run:
+          name: build & push
+          command: |
+            cd bundles/docker-rhel7
+            make build push
+
+  build_rhel_k8s_packages:
+    <<: *defaults
+    steps:
+      - checkout
+      - setup_remote_docker:
+          docker_layer_caching: true
+      - run: docker login -u $DOCKER_USER -p $DOCKER_PASS quay.io
+      - run:
+          name: build & push
+          command: |
+            cd bundles/k8s-rhel7
+            make $K8S_VERSION
+
+  build_staging_docker_image:
+    <<: *defaults
+    steps:
+      - checkout
+      - setup_remote_docker:
+          version: 17.06.0-ce
+      - run: |
+          export WORKDIR=`pwd`
+          export CIRCLE_PROJECT_REPONAME=$PROJECT_NAME
+          build-docker
+      - deploy:
+          name: push image
+          command: |
+            export AWS_ACCESS_KEY_ID=$STAGING_AWS_ACCESS_KEY_ID
+            export AWS_SECRET_ACCESS_KEY=$STAGING_AWS_SECRET_ACCESS_KEY
+            export CIRCLE_PROJECT_REPONAME=$PROJECT_NAME
+            push-docker
+
+  build_production_docker_image:
+    <<: *defaults
+    environment:
+      <<: *environment
+      ECR_REPO: 799720048698.dkr.ecr.us-east-1.amazonaws.com
+    steps:
+      - checkout
+      - setup_remote_docker:
+          version: 17.06.0-ce
+      - run: |
+          export WORKDIR=`pwd`
+          export CIRCLE_PROJECT_REPONAME=$PROJECT_NAME
+          build-docker
+      - deploy:
+          name: push image
+          command: |
+            export AWS_ACCESS_KEY_ID=$PRODUCTION_AWS_ACCESS_KEY_ID
+            export AWS_SECRET_ACCESS_KEY=$PRODUCTION_AWS_SECRET_ACCESS_KEY
+            export CIRCLE_PROJECT_REPONAME=$PROJECT_NAME
+            push-docker
+
+  deploy_staging_eks:
+    <<: *defaults
+    steps:
+      - checkout
+      - add_ssh_keys:
+          fingerprints:
+          - "25:51:68:66:6d:12:c7:84:f4:18:97:6a:7c:2e:f8:3d"
+      - deploy:
+          name: Maybe deploy staging to eks
+          command: |
+            export WORKDIR=`pwd`
+            export CIRCLE_PROJECT_REPONAME=$PROJECT_NAME
+            deploy
+
+  deploy_production_eks:
+    <<: *defaults
+    environment:
+      <<: *environment
+      ECR_REPO: 799720048698.dkr.ecr.us-east-1.amazonaws.com
+      OVERLAY_PATH: kustomize/overlays/production
+      GITOPS_BRANCH: release
+    steps:
+      - checkout
+      - add_ssh_keys:
+          fingerprints:
+          - "25:51:68:66:6d:12:c7:84:f4:18:97:6a:7c:2e:f8:3d"
+      - deploy:
+          name: Maybe deploy production to eks
+          command: |
+            export WORKDIR=`pwd`
+            export CIRCLE_PROJECT_REPONAME=$PROJECT_NAME
+            deploy
+
+
+workflows:
+  version: 2
+
+  pull-request:
+    jobs:
+      - test:
+          filters:
+            branches:
+              ignore: master
+
+  master:
+    jobs:
+      - is_upstream:
+          filters:
+            branches:
+              only: master
+
+      - test:
+          requires:
+            - is_upstream
+      - build_staging_docker_image:
+          requires:
+            - is_upstream
+      - build_production_docker_image:
+          requires:
+            - is_upstream
+
+      - deploy_staging_eks:
+          requires:
+            - test
+            - build_staging_docker_image
+
+      - hold:
+          type: approval
+          requires:
+            - deploy_staging_eks
+
+      - deploy_production_eks:
+          requires:
+            - build_production_docker_image
+            - hold
