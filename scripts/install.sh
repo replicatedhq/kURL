@@ -60,4 +60,5 @@ function main() {
     contour
 }
 
-main "$@"
+# main "$@"
+touch hello.txt

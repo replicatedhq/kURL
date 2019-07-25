@@ -27,9 +27,33 @@ resource "google_compute_instance" "aka_test" {
     ssh-keys = "aka:${file("/.ssh/id_rsa.pub")}"
   }
 
+  provisioner "file" {
+		source = "/scripts/"
+		destination = "/home/aka"
+
+    connection {
+      type        = "ssh"
+			host = "${google_compute_instance.aka_test.network_interface.0.access_config.0.nat_ip}"
+      user        = "aka"
+      private_key = "${file("/.ssh/id_rsa")}"
+    }
+	}
+
+  provisioner "file" {
+		source = "/yaml"
+		destination = "/home/aka"
+
+    connection {
+      type        = "ssh"
+			host = "${google_compute_instance.aka_test.network_interface.0.access_config.0.nat_ip}"
+      user        = "aka"
+      private_key = "${file("/.ssh/id_rsa")}"
+    }
+	}
+
   # Wait for machine to be SSH-able:
   provisioner "remote-exec" {
-    inline = ["touch hello.txt"]
+    inline = ["cat install.sh | sudo bash"]
 
     connection {
       type        = "ssh"
