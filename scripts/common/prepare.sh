@@ -260,12 +260,9 @@ installKubernetesComponents() {
             modprobe rbd
             echo 'rbd' > /etc/modules-load.d/replicated-rook.conf
 
-            # tabs in heredoc stripped
-            cat <<-EOF >  /etc/sysctl.d/k8s.conf
-            net.bridge.bridge-nf-call-ip6tables = 1
-            net.bridge.bridge-nf-call-iptables = 1
-            net.ipv4.conf.all.forwarding = 1
-            EOF
+            echo "net.bridge.bridge-nf-call-ip6tables = 1" > /etc/sysctl.d/k8s.conf
+            echo "net.bridge.bridge-nf-call-iptables = 1" >> /etc/sysctl.d/k8s.conf
+            echo "net.ipv4.conf.all.forwarding = 1" >> /etc/sysctl.d/k8s.conf
 
             sysctl --system
 
@@ -299,23 +296,3 @@ prepareK8sPackageArchives() {
       -v $PWD:/out \
       "quay.io/replicated/k8s-packages:${pkgTag}"
 }
-
-UBUNTU_1604_K8S_9=ubuntu-1604-v1.9.3-20181112
-UBUNTU_1604_K8S_10=ubuntu-1604-v1.10.6-20181112
-UBUNTU_1604_K8S_11=ubuntu-1604-v1.11.5-20181204
-UBUNTU_1604_K8S_12=ubuntu-1604-v1.12.3-20181211
-UBUNTU_1604_K8S_13=ubuntu-1604-v1.13.5-20190411
-UBUNTU_1604_K8S_14=ubuntu-1604-v1.14.3-20190702
-UBUNTU_1604_K8S_15=ubuntu-1604-v1.15.0-20190627
-
-UBUNTU_1804_K8S_13=ubuntu-1804-v1.13.5-20190411
-UBUNTU_1804_K8S_14=ubuntu-1804-v1.14.3-20190702
-UBUNTU_1804_K8S_15=ubuntu-1804-v1.15.0-20190627
-
-RHEL7_K8S_9=rhel7-v1.9.3-20180806
-RHEL7_K8S_10=rhel7-v1.10.6-20180806
-RHEL7_K8S_11=rhel7-v1.11.5-20181204
-RHEL7_K8S_12=rhel7-v1.12.3-20181211
-RHEL7_K8S_13=rhel7-v1.13.5-20190411
-RHEL7_K8S_14=rhel7-v1.14.3-20190702
-RHEL7_K8S_15=rhel7-v1.15.0-20190627
