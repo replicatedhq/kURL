@@ -117,3 +117,7 @@ dist/aka-ubuntu-1804.tar.gz: clean build/ubuntu-18.04
 dist/aka-rhel-7.tar.gz: clean build/rhel-7
 	mkdir -p dist
 	tar cf aka-rhel7.tar -C build .
+
+watchrsync:
+	rsync -r build/ ${USER}@${HOST}:aka
+	bin/watchrsync.js

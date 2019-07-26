@@ -120,3 +120,18 @@ The `yaml` directory holds the yaml that will be applied to the cluster or passe
 The `scripts` directory contains the top-level and helper scripts to prepare the host, run kubeadm, and apply the yaml for addons.
 
 The `web` directory holds a Flask/Nginx app for serving the install scripts.
+
+## Contributing
+
+To hack on the installer for Ubuntu 18.04, you'd spin up an instance then run:
+
+```
+make build/ubuntu-18.04
+HOST=<ip or hostname> USER=<me> make watchrsync
+```
+
+That will place the installer in your HOME's aka directory and sync any changes you make locally to the scripts/ or yaml/ directories.
+If you rebuild the OS packages, you'll need to manually run `rsync -r build/ ${USER}@${HOST}:aka` to push those changes.
+The `make watchrsync` command requires Node with the `gaze-run-interrupt` package available globally.
+
+On the remote instance run `sudo bash aka/scripts/install.sh` to test your changes.
