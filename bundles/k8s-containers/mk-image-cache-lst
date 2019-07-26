@@ -11,7 +11,7 @@
 set -e
 
 repo=k8s.gcr.io
-kubernetes_version=v1.15.0
+kubernetes_version=v1.15.1
 pause_version=3.1
 etcd_version=3.3.10
 coredns_version=1.3.1
@@ -21,26 +21,18 @@ envoy_version=v1.10.0
 contour_version=v0.13.0
 rook_version=v1.0.3
 ceph_version=v14.2.0-20190410
-replicated_hostpath_provisioner_version=cd1d272
 
 common="
-	$repo/kube-proxy-amd64:$kubernetes_version
 	$repo/pause:$pause_version
 	coredns/coredns:$coredns_version
 	weaveworks/weave-kube:$weave_version
 	weaveworks/weave-npc:$weave_version
 	weaveworks/weaveexec:$weave_version
-	docker.io/registry:$registry_version
 	docker.io/envoyproxy/envoy-alpine:$envoy_version
 	gcr.io/heptio-images/contour:$contour_version
 	rook/ceph:$rook_version
 	ceph/ceph:$ceph_version
-	quay.io/replicated/replicated-hostpath-provisioner:$replicated_hostpath_provisioner_version"
-
-control="
-	$repo/kube-apiserver-amd64:$kubernetes_version
-	$repo/kube-controller-manager-amd64:$kubernetes_version
-	$repo/kube-scheduler-amd64:$kubernetes_version
+    gcr.io/google-containers/hyperkube:$kubernetes_version
 	$repo/etcd-amd64:$etcd_version"
 
 oi() {
@@ -75,7 +67,7 @@ case $1 in
 esac
 
 for i in $pkgs ; do
-	docker image pull "$i" 1>&2
+    docker image pull "$i" 1>&2
 done
 
 case $2 in
