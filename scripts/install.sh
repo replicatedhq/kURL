@@ -7,15 +7,19 @@ YAML_DIR=../yaml
 KUBEADM_CONF_DIR=/opt/replicated
 KUBEADM_CONF_FILE="$KUBEADM_CONF_DIR/kubeadm.conf"
 
+. "$DIR/common/common.sh"
 . "$DIR/common/contour.sh"
 . "$DIR/common/discover.sh"
 . "$DIR/common/flags.sh"
 . "$DIR/common/preflights.sh"
 . "$DIR/common/prepare.sh"
+. "$DIR/common/prompts.sh"
 . "$DIR/common/yaml.sh"
 
 function init() {
     logStep "Initialize Kubernetes"
+
+    maybeGenerateBootstrapToken
 
     if [ "$LOAD_BALANCER_ADDRESS_CHANGED" = "1" ]; then
         handleLoadBalancerAddressChangedPreInit
@@ -60,5 +64,4 @@ function main() {
     contour
 }
 
-# main "$@"
-touch hello.txt
+main "$@"

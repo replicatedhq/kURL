@@ -6,6 +6,7 @@ function preflights() {
     checkDockerK8sVersion
     checkFirewalld
     must_disable_selinux
+    require_docker
 
     return 0
 }
@@ -114,4 +115,44 @@ must_disable_selinux() {
             bail "\nDisable SELinux with 'setenforce 0' before re-running install script"
         fi
     fi
+}
+
+swapEnabled() {
+   swapon --summary | grep --quiet " " # todo this could be more specific, swapon -s returns nothing if its off
+}
+
+swapConfigured() {
+	    cat /etc/fstab | grep --quiet --ignore-case --extended-regexp '^[^#]+swap'
+}
+
+function require_docker() {
+	if commandExists docker ; then
+		return 0
+	fi
+
+  if [ "$LSB_DIST" = "rhel" ]; then
+      if [ -n "$NO_CE_ON_EE" ]; then
+	  printf "${RED}Enterprise Linux distributions require Docker Enterprise Edition. Please install Docker before running this installation script.${NC}\n" 1>&2
+	  return 0
+      fi
+  fi
+
+  if [ "$SKIP_DOCKER_INSTALL" = "0" ]; then
+	  bail "Docker is required"
+	fi
+
+  return 0
+}
+
+selinux_enabled() {
+    if commandExists "selinuxenabled"; then
+        selinuxenabled
+        return
+    elif commandExists "sestatus"; then
+        ENABLED=$(sestatus | grep 'SELinux status' | awk '{ print $3 }')
+        echo "$ENABLED" | grep --quiet --ignore-case enabled
+        return
+    fi
+
+    return 1
 }
