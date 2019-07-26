@@ -1,4 +1,5 @@
 FROM ubuntu:18.04
+ARG DOCKER_VERSION
 RUN apt-get -y update
 RUN apt-get -y upgrade
 RUN apt-get -y install apt-utils apt-transport-https ca-certificates curl software-properties-common
@@ -7,7 +8,6 @@ RUN add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubunt
 RUN apt-get -y update
 
 RUN mkdir -p /packages/archives
-RUN apt-get -d -y install docker-ce=5:18.09.7~3-0~ubuntu-bionic -oDebug::NoLocking=1 -o=dir::cache=/packages/
+RUN apt-get -d -y install docker-ce=$(apt-cache madison 'docker-ce' | grep ${DOCKER_VERSION} | head -1 | cut -d' ' -f 4) -oDebug::NoLocking=1 -o=dir::cache=/packages/
 
-FROM scratch
-COPY --from=0 /packages /
+CMD cp -r /packages/archives/* /out/
