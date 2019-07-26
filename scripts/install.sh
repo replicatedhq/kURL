@@ -50,6 +50,15 @@ function init() {
     logSuccess "Cluster Initialized"
 }
 
+maybeGenerateBootstrapToken() {
+    if [ -z "$BOOTSTRAP_TOKEN" ]; then
+        logStep "generate kubernetes bootstrap token"
+        BOOTSTRAP_TOKEN=$(kubeadm token generate)
+    fi
+    echo "Kubernetes bootstrap token: ${BOOTSTRAP_TOKEN}"
+    echo "This token will expire in 24 hours"
+}
+
 function main() {
     export KUBECONFIG=/etc/kubernetes/admin.conf
     requireRootUser

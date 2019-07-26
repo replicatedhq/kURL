@@ -34,8 +34,6 @@ function prepare() {
 
     installKubernetesComponents "$KUBERNETES_VERSION"
 
-    installCNIPlugins
-
     return 0
 }
 
@@ -247,12 +245,14 @@ installKubernetesComponents() {
         return
     fi
 
-    prepareK8sPackageArchives $k8sVersion
-
     case "$LSB_DIST$DIST_VERSION" in
-        ubuntu16.04|ubuntu18.04)
+        ubuntu16.04)
             export DEBIAN_FRONTEND=noninteractive
-            dpkg -i --force-depends-version archives/*.deb
+            dpkg -i --force-depends-version ../ubuntu-16.04/packages/k8s/*.deb
+            ;;
+        ubuntu18.04)
+            export DEBIAN_FRONTEND=noninteractive
+            dpkg -i --force-depends-version ../ubuntu-18.04/packages/k8s/*.deb
             ;;
 
         centos7.4|centos7.5|centos7.6|rhel7.4|rhel7.5|rhel7.6)
@@ -266,7 +266,7 @@ installKubernetesComponents() {
 
             sysctl --system
 
-            rpm --upgrade --force --nodeps archives/*.rpm
+            rpm --upgrade --force --nodeps ../rhel-7/packages/k8s/*.rpm
             service docker restart
             ;;
 
@@ -285,14 +285,19 @@ installKubernetesComponents() {
     logSuccess "Kubernetes components installed"
 }
 
-prepareK8sPackageArchives() {
-    k8sVersion=$1
-    pkgTag=$(k8sPackageTag $k8sVersion)
-
-    if [ "$AIRGAP" = "1" ]; then
-        docker load < packages-kubernetes-${pkgTag}.tar
+kubernetesHostCommandsOK() {
+    if ! commandExists kubelet; then
+        printf "kubelet command missing - will install host components\n"
+        return 1
     fi
-    docker run \
-      -v $PWD:/out \
-      "quay.io/replicated/k8s-packages:${pkgTag}"
+    if ! commandExists kubeadm; then
+        printf "kubeadm command missing - will install host components\n"
+        return 1
+    fi
+    if ! commandExists kubectl; then
+        printf "kubectl command missing - will install host components\n"
+        return 1
+    fi
+
+    return 0
 }
