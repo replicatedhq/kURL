@@ -17,3 +17,4 @@ apiServer:
     service-node-port-range: "80-60000"
   certSANs:
   - "$PRIVATE_ADDRESS"
+useHyperKubeImage: true

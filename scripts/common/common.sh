@@ -54,3 +54,15 @@ bail() {
     logFail "$@"
     exit 1
 }
+
+waitForNodes() {
+    n=0
+    while ! kubectl get nodes >/dev/null 2>&1; do
+        n="$(( $n + 1 ))"
+        if [ "$n" -ge "120" ]; then
+            # this should exit script on non-zero exit code and print error message
+            kubectl get nodes 1>/dev/null
+        fi
+        sleep 2
+    done
+}

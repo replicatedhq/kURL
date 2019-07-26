@@ -2,19 +2,22 @@
 
 set -e
 
-DIR=.
-YAML_DIR=../yaml
+DIR=..
+YAML_DIR="$DIR/yaml"
 KUBEADM_CONF_DIR=/opt/replicated
 KUBEADM_CONF_FILE="$KUBEADM_CONF_DIR/kubeadm.conf"
 
-. "$DIR/common/common.sh"
-. "$DIR/common/contour.sh"
-. "$DIR/common/discover.sh"
-. "$DIR/common/flags.sh"
-. "$DIR/common/preflights.sh"
-. "$DIR/common/prepare.sh"
-. "$DIR/common/prompts.sh"
-. "$DIR/common/yaml.sh"
+. "$DIR/Manifest"
+. "$DIR/scripts/common/common.sh"
+. "$DIR/scripts/common/contour.sh"
+. "$DIR/scripts/common/discover.sh"
+. "$DIR/scripts/common/flags.sh"
+. "$DIR/scripts/common/preflights.sh"
+. "$DIR/scripts/common/prepare.sh"
+. "$DIR/scripts/common/prompts.sh"
+. "$DIR/scripts/common/rook.sh"
+. "$DIR/scripts/common/weave.sh"
+. "$DIR/scripts/common/yaml.sh"
 
 function init() {
     logStep "Initialize Kubernetes"
@@ -57,6 +60,16 @@ maybeGenerateBootstrapToken() {
     fi
     echo "Kubernetes bootstrap token: ${BOOTSTRAP_TOKEN}"
     echo "This token will expire in 24 hours"
+}
+
+exportKubeconfig() {
+    cp /etc/kubernetes/admin.conf $HOME/admin.conf
+    chown $SUDO_USER:$SUDO_GID $HOME/admin.conf
+    chmod 444 /etc/kubernetes/admin.conf
+    if ! grep -q "kubectl completion bash" /etc/profile; then
+        echo 'export KUBECONFIG=/etc/kubernetes/admin.conf' >> /etc/profile
+        echo "source <(kubectl completion bash)" >> /etc/profile
+    fi
 }
 
 function main() {

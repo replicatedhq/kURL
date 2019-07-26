@@ -1,4 +1,4 @@
-.PHONY: clean deps
+.PHONY: clean deps code
 
 DOCKER_VERSION=18.09.8
 KUBERNETES_VERSION=1.15.1
@@ -10,13 +10,15 @@ deps:
 	go get github.com/linuxkit/linuxkit/src/cmd/linuxkit
 	go get github.com/linuxkit/kubernetes || :
 
-build: build/scripts build/yaml build/ubuntu-16.04 build/ubuntu-18.04 build/rhel-7
+code: build/Manifest build/scripts build/yaml
 
-build/ubuntu-16.04: build/scripts build/yaml build/ubuntu-16.04/packages/docker build/ubuntu-16.04/packages/k8s
+build: code build/ubuntu-16.04 build/ubuntu-18.04 build/rhel-7
 
-build/ubuntu-18.04: build/scripts build/yaml build/ubuntu-18.04/packages/docker build/ubuntu-18.04/packages/k8s
+build/ubuntu-16.04: code build/ubuntu-16.04/packages/docker build/ubuntu-16.04/packages/k8s
 
-build/rhel-7: build/scripts build/yaml build/rhel-7/packages/docker build/rhel-7/packages/k8s
+build/ubuntu-18.04: code build/ubuntu-18.04/packages/docker build/ubuntu-18.04/packages/k8s
+
+build/rhel-7: code build/rhel-7/packages/docker build/rhel-7/packages/k8s
 
 build/ubuntu-16.04/packages/docker:
 	docker build \
@@ -92,6 +94,10 @@ build/k8s-images.tar: tmp/kubernetes/pkg/kubernetes-docker-image-cache-common/im
 	echo ${k8s_images_image}
 	docker tag ${k8s_images_image} quay.io/replicated/k8s-images
 	docker save quay.io/replicated/k8s-images > build/k8s-images.tar
+
+build/Manifest:
+	mkdir -p build
+	cp Manifest build/
 
 build/scripts:
 	mkdir -p build

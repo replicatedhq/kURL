@@ -8,10 +8,14 @@ if (!process.env.HOST || !process.env.USER) {
 }
 
 gri([
+  'Manifest',
   'scripts/**/*',
   'yaml/**/*',
 ], [
   {
+    command: 'rsync',
+    args: ['Manifest', `${process.env.USER}@${process.env.HOST}:aka`],
+  },{
     command: 'rsync',
     args: ['-r', 'scripts', `${process.env.USER}@${process.env.HOST}:aka`],
   },{

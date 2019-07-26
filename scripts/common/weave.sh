@@ -28,7 +28,20 @@ function weave() {
         fi
     fi
 
-    sh /tmp/kubernetes-yml-generate.sh $YAML_GENERATE_OPTS weave_yaml=1 weave_secret=$secret > /tmp/weave.yml
+    WEAVE_PASSWORD=$(< /dev/urandom tr -dc A-Za-z0-9 | head -c9)
+    WEAVE_PASSWD_ENV=
+    if [ "$ENCRYPT_NETWORK" != "0" ]; then
+        WEAVE_PASSWD_ENV=$(cat <<-EOF
+                - name: WEAVE_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: weave-passwd
+                      key: weave-passwd
+EOF
+        )
+    fi
+
+    render_yaml weave.yml > /tmp/weave.yml
 
     kubectl apply -f /tmp/weave.yml -n kube-system
     logSuccess "weave network deployed"
