@@ -135,3 +135,11 @@ If you rebuild the OS packages, you'll need to manually run `rsync -r build/ ${U
 The `make watchrsync` command requires Node with the `gaze-run-interrupt` package available globally.
 
 On the remote instance run `cd ~/aka/scripts && sudo bash install.sh` to test your changes.
+
+### Airgap Builds
+
+Run `make dist/aka.tar.gz` to create an airgap bundle with packages for all supported operating systems.
+
+Run `make dist/aka-ubuntu-1804.tar.gz` to create an airgap bundle without Ubuntu 16 or RHEL7 packages, roughly 165MB vs 475MB for the full bundle.
+
+Copy the bundle to the airgapped instance, untar and run `cd ~/scripts && sudo bash install.sh`.
