@@ -114,15 +114,18 @@ dist/aka.tar.gz: build
 
 dist/aka-ubuntu-1604.tar.gz: clean build/ubuntu-16.04
 	mkdir -p dist
-	tar cf aka-ubuntu-1604.tar -C build .
+	tar cf dist/aka-ubuntu-1604.tar -C build .
+	gzip dist/aka-ubuntu-1604.tar -C build .
 
 dist/aka-ubuntu-1804.tar.gz: clean build/ubuntu-18.04
 	mkdir -p dist
-	tar cf aka-ubuntu-1804.tar -C build .
+	tar cf dist/aka-ubuntu-1804.tar -C build .
+	gzip dist/aka-ubuntu-1804.tar
 
 dist/aka-rhel-7.tar.gz: clean build/rhel-7
 	mkdir -p dist
-	tar cf aka-rhel7.tar -C build .
+	tar cf dist/aka-rhel7.tar -C build .
+	gzip dist/aka-rhel7.tar
 
 watchrsync:
 	rsync -r build/ ${USER}@${HOST}:aka

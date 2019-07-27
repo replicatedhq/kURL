@@ -1,3 +1,5 @@
+STORAGE_PROVISIONER=rook
+
 commandExists() {
 	command -v "$@" > /dev/null 2>&1
 }
@@ -65,4 +67,20 @@ waitForNodes() {
         fi
         sleep 2
     done
+}
+
+spinnerPodRunning() {
+    namespace=$1
+    podPrefix=$2
+
+    local delay=0.75
+    local spinstr='|/-\'
+    while ! kubectl -n "$namespace" get pods 2>/dev/null | grep "^$podPrefix" | awk '{ print $3}' | grep '^Running$' > /dev/null ; do
+        local temp=${spinstr#?}
+        printf " [%c]  " "$spinstr"
+        local spinstr=$temp${spinstr%"$temp"}
+        sleep $delay
+        printf "\b\b\b\b\b\b"
+    done
+    printf "    \b\b\b\b"
 }

@@ -1,0 +1,11 @@
+---
+apiVersion: ceph.rook.io/v1
+kind: CephBlockPool
+metadata:
+  name: replicapool
+  namespace: rook-ceph
+spec:
+  failureDomain: host
+  replicated:
+    # the AKA operator will scale this up to 3 as nodes join the cluster
+    size: 1
