@@ -1,0 +1,26 @@
+# https://raw.githubusercontent.com/heptio/contour/v0.14.0/examples/common/service.yaml
+# Changed type to NodePort and removed AWS annotation
+---
+apiVersion: v1
+kind: Service
+metadata:
+ name: contour
+ namespace: heptio-contour
+ annotations:
+  # Scrape metrics for the contour container
+  # The envoy container is scraped by annotations on the pod spec
+  prometheus.io/port: "8000"
+  prometheus.io/scrape: "true"
+spec:
+ ports:
+ - port: 80
+   name: http
+   protocol: TCP
+   targetPort: 8080
+ - port: 443
+   name: https
+   protocol: TCP
+   targetPort: 8443
+ selector:
+   app: contour
+ type: NodePort

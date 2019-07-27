@@ -120,7 +120,7 @@ items:
                 - name: IPALLOC_RANGE
                   value: $IP_ALLOC_RANGE
 $WEAVE_PASSWORD_ENV
-              image: weaveworks/weave-kube:2.5.2
+              image: weaveworks/weave-kube:${WEAVE_VERSION}
               livenessProbe:
                 httpGet:
                   host: 127.0.0.1
@@ -155,7 +155,7 @@ $WEAVE_PASSWORD_ENV
                     fieldRef:
                       apiVersion: v1
                       fieldPath: spec.nodeName
-              image: weaveworks/weave-npc:2.5.2
+              image: weaveworks/weave-npc:${WEAVE_VERSION}
               resources:
                 requests:
                   cpu: 10m
