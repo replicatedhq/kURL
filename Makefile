@@ -86,7 +86,7 @@ tmp/kubernetes/pkg/kubernetes-docker-image-cache-common/images.lst:
 	cp -r $(shell echo ${GOPATH} | cut -d ':' -f 1)/src/github.com/linuxkit/kubernetes/pkg ./tmp/kubernetes/
 	cp -r $(shell echo ${GOPATH} | cut -d ':' -f 1)/src/github.com/linuxkit/kubernetes/.git ./tmp/kubernetes/
 	rm tmp/kubernetes/pkg/kubernetes-docker-image-cache-common/images.lst
-	KUBERNETES_VERSION=1.15.1 PAUSE_VERSION=3.1 ETCD_VERSION=3.3.10 COREDNS_VERSION=1.3.1 WEAVE_VERSION=2.5.2 ROOK_VERSION=1.0.4 CEPH_VERSION=14.2.0-20190410 CONTOUR_VERSION=0.14.0 ENVOY_VERSION=1.10.0 ./bundles/k8s-containers/mk-image-cache-lst common > tmp/kubernetes/pkg/kubernetes-docker-image-cache-common/images.lst
+	KUBERNETES_VERSION=${KUBERNETES_VERSION} PAUSE_VERSION=${PAUSE_VERSION} ETCD_VERSION=${ETCD_VERSION} COREDNS_VERSION=${COREDNS_VERSION} WEAVE_VERSION=${WEAVE_VERSION} ROOK_VERSION=${ROOK_VERSION} CEPH_VERSION=${CEPH_VERSION} CONTOUR_VERSION=${CONTOUR_VERSION} ENVOY_VERSION=${ENVOY_VERSION} ./bundles/k8s-containers/mk-image-cache-lst common > tmp/kubernetes/pkg/kubernetes-docker-image-cache-common/images.lst
 
 build/k8s-images.tar: tmp/kubernetes/pkg/kubernetes-docker-image-cache-common/images.lst
 	mkdir -p build
