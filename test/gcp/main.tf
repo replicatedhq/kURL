@@ -5,7 +5,7 @@ provider "google" {
 }
 
 resource "google_compute_instance" "aka_test" {
-  name         = "aka"
+  name         = "${var.name}"
   machine_type = "n1-standard-2"
   zone         = "us-central1-f"
 
@@ -28,8 +28,8 @@ resource "google_compute_instance" "aka_test" {
   }
 
   provisioner "file" {
-		source = "/scripts/"
-		destination = "/home/aka"
+		source = "/dist/aka-ubuntu-1804.tar.gz"
+		destination = "/home/aka/aka-ubuntu-1804.tar.gz"
 
     connection {
       type        = "ssh"
@@ -39,21 +39,11 @@ resource "google_compute_instance" "aka_test" {
     }
 	}
 
-  provisioner "file" {
-		source = "/yaml"
-		destination = "/home/aka"
-
-    connection {
-      type        = "ssh"
-			host = "${google_compute_instance.aka_test.network_interface.0.access_config.0.nat_ip}"
-      user        = "aka"
-      private_key = "${file("/.ssh/id_rsa")}"
-    }
-	}
-
-  # Wait for machine to be SSH-able:
   provisioner "remote-exec" {
-    inline = ["cat install.sh | sudo bash"]
+    inline = [
+			"tar xvf aka-ubuntu-1804.tar.gz",
+			"cd scripts && cat install.sh | sudo bash",
+		]
 
     connection {
       type        = "ssh"
