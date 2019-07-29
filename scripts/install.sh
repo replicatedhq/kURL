@@ -72,11 +72,52 @@ exportKubeconfig() {
     fi
 }
 
+outro() {
+    echo
+    if [ -z "$PUBLIC_ADDRESS" ]; then
+      if [ -z "$PRIVATE_ADDRESS" ]; then
+        PUBLIC_ADDRESS="<this_server_address>"
+        PRIVATE_ADDRESS="<this_server_address>"
+      else
+        PUBLIC_ADDRESS="$PRIVATE_ADDRESS"
+      fi
+    fi
+
+    KUBEADM_TOKEN_CA_HASH=$(cat /tmp/kubeadm-init | grep 'kubeadm join' | awk '{ print $(NF) }')
+
+    printf "\n"
+    printf "\t\t${GREEN}Installation${NC}\n"
+    printf "\t\t${GREEN}  Complete ✔${NC}\n"
+    printf "\n"
+    printf "To access the cluster with kubectl, reload your shell:\n"
+    printf "\n"
+    printf "${GREEN}    bash -l${NC}\n"
+    printf "\n"
+    if [ "$AIRGAP" -eq "1" ]; then
+        printf "\n"
+        printf "To add nodes to this installation, copy and unpack this bundle on your other nodes, and run the following:"
+        printf "\n"
+        printf "\n"
+        printf "${GREEN}    cat ./kubernetes-node-join.sh | sudo bash -s airgap kubernetes-master-address=${PRIVATE_ADDRESS} kubeadm-token=${BOOTSTRAP_TOKEN} kubeadm-token-ca-hash=$KUBEADM_TOKEN_CA_HASH kubernetes-version=$KUBERNETES_VERSION \n"
+        printf "${NC}"
+        printf "\n"
+        printf "\n"
+    else
+        printf "\n"
+        printf "To add nodes to this installation, run the following script on your other nodes"
+        printf "\n"
+        printf "${GREEN}    curl {{ replicated_install_url }}/{{ kubernetes_node_join_path }} | sudo bash -s kubernetes-master-address=${PRIVATE_ADDRESS} kubeadm-token=${BOOTSTRAP_TOKEN} kubeadm-token-ca-hash=$KUBEADM_TOKEN_CA_HASH kubernetes-version=$KUBERNETES_VERSION \n"
+        printf "${NC}"
+        printf "\n"
+        printf "\n"
+    fi
+}
+
 function main() {
     export KUBECONFIG=/etc/kubernetes/admin.conf
     requireRootUser
     discover
-    flags
+    flags "$@"
     preflights
     prompts
     prepare

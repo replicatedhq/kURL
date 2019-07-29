@@ -12,13 +12,13 @@ deps:
 
 code: build/Manifest build/scripts build/yaml
 
-build: code build/ubuntu-16.04 build/ubuntu-18.04 build/rhel-7
+build: code build/ubuntu-16.04 build/ubuntu-18.04 build/rhel-7 build/k8s-images.tar
 
-build/ubuntu-16.04: code build/ubuntu-16.04/packages/docker build/ubuntu-16.04/packages/k8s
+build/ubuntu-16.04: code build/ubuntu-16.04/packages/docker build/ubuntu-16.04/packages/k8s build/k8s-images.tar
 
-build/ubuntu-18.04: code build/ubuntu-18.04/packages/docker build/ubuntu-18.04/packages/k8s
+build/ubuntu-18.04: code build/ubuntu-18.04/packages/docker build/ubuntu-18.04/packages/k8s build/k8s-images.tar
 
-build/rhel-7: code build/rhel-7/packages/docker build/rhel-7/packages/k8s
+build/rhel-7: code build/rhel-7/packages/docker build/rhel-7/packages/k8s build/k8s-images.tar
 
 build/ubuntu-16.04/packages/docker:
 	docker build \
@@ -91,9 +91,8 @@ tmp/kubernetes/pkg/kubernetes-docker-image-cache-common/images.lst:
 build/k8s-images.tar: tmp/kubernetes/pkg/kubernetes-docker-image-cache-common/images.lst
 	mkdir -p build
 	$(eval k8s_images_image = $(shell linuxkit pkg build ./tmp/kubernetes/pkg/kubernetes-docker-image-cache-common | grep 'Tagging linuxkit/kubernetes-docker-image-cache' | awk '{print $$2}'))
-	echo ${k8s_images_image}
-	docker tag ${k8s_images_image} quay.io/replicated/k8s-images
-	docker save quay.io/replicated/k8s-images > build/k8s-images.tar
+	docker tag ${k8s_images_image} aka/k8s-images:${KUBERNETES_VERSION}
+	docker save aka/k8s-images:${KUBERNETES_VERSION} > build/k8s-images.tar
 
 build/Manifest:
 	mkdir -p build
@@ -112,21 +111,21 @@ dist/aka.tar.gz: build
 	tar cf dist/aka.tar -C build .
 	gzip dist/aka.tar
 
-dist/aka-ubuntu-1604.tar.gz: clean build/ubuntu-16.04
+dist/aka-ubuntu-1604.tar.gz: build/ubuntu-16.04
 	mkdir -p dist
 	tar cf dist/aka-ubuntu-1604.tar -C build .
 	gzip dist/aka-ubuntu-1604.tar -C build .
 
-dist/aka-ubuntu-1804.tar.gz: clean build/ubuntu-18.04
+dist/aka-ubuntu-1804.tar.gz: build/ubuntu-18.04
 	mkdir -p dist
 	tar cf dist/aka-ubuntu-1804.tar -C build .
 	gzip dist/aka-ubuntu-1804.tar
 
-dist/aka-rhel-7.tar.gz: clean build/rhel-7
+dist/aka-rhel-7.tar.gz: build/rhel-7
 	mkdir -p dist
 	tar cf dist/aka-rhel7.tar -C build .
 	gzip dist/aka-rhel7.tar
 
 watchrsync:
-	rsync -r build/ ${USER}@${HOST}:aka
+	rsync -r build/ubuntu-18.04 ${USER}@${HOST}:aka
 	bin/watchrsync.js

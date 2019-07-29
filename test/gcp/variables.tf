@@ -8,7 +8,7 @@ variable "project" {
   default     = "replicated-qa"
 }
 
-variable "name" {
-	description = "GCP testing instance name"
+variable "id" {
+	description = "Added to instance names"
 	default= "aka"
 }

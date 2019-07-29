@@ -8,14 +8,16 @@ function prepare() {
 
     if [ "$SKIP_DOCKER_INSTALL" != "1" ]; then
         if [ "$OFFLINE_DOCKER_INSTALL" != "1" ]; then
-            installDocker "$PINNED_DOCKER_VERSION" "$MIN_DOCKER_VERSION"
+            installDockerOnline "$DOCKER_VERSION" "$MIN_DOCKER_VERSION"
 
-            semverParse "$PINNED_DOCKER_VERSION"
+            semverParse "$DOCKER_VERSION"
             if [ "$major" -ge "17" ]; then
                 lockPackageVersion docker-ce
             fi
         else
             installDockerOffline
+            systemctl enable docker
+            systemctl start docker
         fi
         checkDockerStorageDriver "$HARD_FAIL_ON_LOOPBACK"
     fi
@@ -33,6 +35,10 @@ function prepare() {
     fi
 
     installKubernetesComponents "$KUBERNETES_VERSION"
+
+    if [ "$AIRGAP" = "1" ]; then
+        airgapLoadKubernetesImages
+    fi
 
     return 0
 }
@@ -76,7 +82,7 @@ exportProxy() {
     fi
 }
 
-installDocker() {
+installDockerOnline() {
     _docker_install_url="https://get.replicated.com/docker-install.sh"
     curl "$_docker_install_url?docker_version=${1}&lsb_dist=${LSB_DIST}&dist_version=${DIST_VERSION_MAJOR}" > /tmp/docker_install.sh
     # When this script is piped into bash as stdin, apt-get will eat the remaining parts of this script,
@@ -97,6 +103,30 @@ installDocker() {
     fi
 
     DID_INSTALL_DOCKER=1
+}
+
+installDockerOffline() {
+    case "$LSB_DIST$DIST_VERSION" in
+        ubuntu16.04)
+            dpkg -i --force-depends-version ../ubuntu-16.04/packages/docker/*.deb
+            DID_INSTALL_DOCKER=1
+            return
+            ;;
+        ubuntu18.04)
+            dpkg -i --force-depends-version ../ubuntu-18.04/packages/docker/*.deb
+            DID_INSTALL_DOCKER=1
+            return
+            ;;
+        rhel7.4|rhel7.5|rhel7.6|centos7.4|centos7.5|centos7.6)
+            rpm --upgrade --force --nodeps ../rhel-7/packages/k8s/*.rpm
+            DID_INSTALL_DOCKER=1
+            return
+            ;;
+        *)
+   esac
+
+   printf "Offline Docker install is not supported on ${LSB_DIST} ${DIST_MAJOR}"
+   exit 1
 }
 
 _maybeRequireRhelDevicemapper() {
@@ -300,4 +330,38 @@ kubernetesHostCommandsOK() {
     fi
 
     return 0
+}
+
+lockPackageVersion() {
+    case $LSB_DIST in
+        rhel|centos)
+            yum install -y yum-plugin-versionlock
+            yum versionlock ${1}-*
+            ;;
+        ubuntu)
+            apt-mark hold $1
+            ;;
+    esac
+}
+
+airgapLoadKubernetesImages() {
+    docker load < $DIR/k8s-images.tar
+    docker run \
+        -v /var/run/docker.sock:/var/run/docker.sock \
+	    "aka/k8s-images:${KUBERNETES_VERSION}"
+
+    (
+        set -x
+        docker tag $HYPERKUBE_IMAGE_ID k8s.gcr.io/hyperkube:v${KUBERNETES_VERSION}
+        docker tag $ETCD_IMAGE_ID k8s.gcr.io/etcd:${ETCD_VERSION}
+        docker tag $PAUSE_IMAGE_ID k8s.gcr.io/pause:${PAUSE_VERSION}
+        docker tag $COREDNS_IMAGE_ID k8s.gcr.io/coredns:${COREDNS_VERSION}
+        docker tag $WEAVE_KUBE_IMAGE_ID docker.io/weaveworks/weave-kube:${WEAVE_VERSION}
+        docker tag $WEAVE_NPC_IMAGE_ID docker.io/weaveworks/weave-npc:${WEAVE_VERSION}
+        docker tag $WEAVE_EXEC_IMAGE_ID docker.io/weaveworks/weaveexec:${WEAVE_VERSION}
+        docker tag $ENVOY_IMAGE_ID docker.io/envoyproxy/envoy-alpine:v${ENVOY_VERSION}
+        docker tag $CONTOUR_IMAGE_ID gcr.io/heptio-images/contour:v${CONTOUR_VERSION}
+        docker tag $ROOK_IMAGE_ID docker.io/rook/ceph:v${ROOK_VERSION}
+        docker tag $CEPH_IMAGE_ID docker.io/ceph/ceph:v${CEPH_VERSION}
+    )
 }

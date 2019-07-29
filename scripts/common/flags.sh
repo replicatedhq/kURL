@@ -7,6 +7,7 @@ function flags() {
             airgap)
                 # airgap implies "offline docker"
                 AIRGAP=1
+                NO_PROXY=1
                 OFFLINE_DOCKER_INSTALL=1
                 ;;
             bypass-storagedriver-warnings|bypass_storagedriver_warnings)
@@ -19,7 +20,7 @@ function flags() {
                 BOOTSTRAP_TOKEN_TTL="$_value"
                 ;;
             docker-version|docker_version)
-                PINNED_DOCKER_VERSION="$_value"
+                DOCKER_VERSION="$_value"
                 ;;
             ha)
                 HA_CLUSTER=1
