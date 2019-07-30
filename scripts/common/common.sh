@@ -94,6 +94,80 @@ spinnerPodRunning() {
     printf "    \b\b\b\b"
 }
 
+COMPARE_DOCKER_VERSIONS_RESULT=
+compareDockerVersions() {
+    # reset
+    COMPARE_DOCKER_VERSIONS_RESULT=
+    compareDockerVersionsIgnorePatch "$1" "$2"
+    if [ "$COMPARE_DOCKER_VERSIONS_RESULT" -ne "0" ]; then
+        return
+    fi
+    parseDockerVersion "$1"
+    _a_patch="$DOCKER_VERSION_PATCH"
+    parseDockerVersion "$2"
+    _b_patch="$DOCKER_VERSION_PATCH"
+    if [ "$_a_patch" -lt "$_b_patch" ]; then
+        COMPARE_DOCKER_VERSIONS_RESULT=-1
+        return
+    fi
+    if [ "$_a_patch" -gt "$_b_patch" ]; then
+        COMPARE_DOCKER_VERSIONS_RESULT=1
+        return
+    fi
+    COMPARE_DOCKER_VERSIONS_RESULT=0
+}
+
+COMPARE_DOCKER_VERSIONS_RESULT=
+compareDockerVersionsIgnorePatch() {
+    # reset
+    COMPARE_DOCKER_VERSIONS_RESULT=
+    parseDockerVersion "$1"
+    _a_major="$DOCKER_VERSION_MAJOR"
+    _a_minor="$DOCKER_VERSION_MINOR"
+    parseDockerVersion "$2"
+    _b_major="$DOCKER_VERSION_MAJOR"
+    _b_minor="$DOCKER_VERSION_MINOR"
+    if [ "$_a_major" -lt "$_b_major" ]; then
+        COMPARE_DOCKER_VERSIONS_RESULT=-1
+        return
+    fi
+    if [ "$_a_major" -gt "$_b_major" ]; then
+        COMPARE_DOCKER_VERSIONS_RESULT=1
+        return
+    fi
+    if [ "$_a_minor" -lt "$_b_minor" ]; then
+        COMPARE_DOCKER_VERSIONS_RESULT=-1
+        return
+    fi
+    if [ "$_a_minor" -gt "$_b_minor" ]; then
+        COMPARE_DOCKER_VERSIONS_RESULT=1
+        return
+    fi
+    COMPARE_DOCKER_VERSIONS_RESULT=0
+}
+
+DOCKER_VERSION_MAJOR=
+DOCKER_VERSION_MINOR=
+DOCKER_VERSION_PATCH=
+DOCKER_VERSION_RELEASE=
+parseDockerVersion() {
+    # reset
+    DOCKER_VERSION_MAJOR=
+    DOCKER_VERSION_MINOR=
+    DOCKER_VERSION_PATCH=
+    DOCKER_VERSION_RELEASE=
+    if [ -z "$1" ]; then
+        return
+    fi
+
+    OLD_IFS="$IFS" && IFS=. && set -- $1 && IFS="$OLD_IFS"
+    DOCKER_VERSION_MAJOR=$1
+    DOCKER_VERSION_MINOR=$2
+    OLD_IFS="$IFS" && IFS=- && set -- $3 && IFS="$OLD_IFS"
+    DOCKER_VERSION_PATCH=$1
+    DOCKER_VERSION_RELEASE=$2
+}
+
 splitHostPort() {
     oIFS="$IFS"; IFS=":" read -r HOST PORT <<< "$1"; IFS="$oIFS"
 }

@@ -83,6 +83,43 @@ exportProxy() {
 }
 
 installDockerOnline() {
+    compareDockerVersions "17.06.0" "$DOCKER_VERSION"
+    if { [ "$LSB_DIST" = "rhel" ] || [ "$LSB_DIST" = "ol" ] ; } && [ "$COMPARE_DOCKER_VERSIONS_RESULT" -le "0" ]; then
+        if yum list installed "container-selinux" >/dev/null 2>&1; then
+            # container-selinux installed
+            printf "Skipping install of container-selinux as a version of it was already present\n"
+        else
+            # Install container-selinux from official source, ignoring errors
+            yum install -y -q container-selinux 2> /dev/null || true
+            # verify installation success
+            if yum list installed "container-selinux" >/dev/null 2>&1; then
+                printf "{$GREEN}Installed container-selinux from existing sources{$NC}\n"
+            else
+                if [ "$DIST_VERSION" = "7.6" ]; then
+                    # Install container-selinux from mirror.centos.org
+                    yum install -y -q "http://mirror.centos.org/centos/7/extras/x86_64/Packages/container-selinux-2.99-1.el7_6.noarch.rpm" || \
+                        yum install -y -q "http://mirror.centos.org/centos/7/extras/x86_64/Packages/container-selinux-2.95-2.el7_6.noarch.rpm"
+                    if yum list installed "container-selinux" >/dev/null 2>&1; then
+                        printf "${YELLOW}Installed package required by docker container-selinux from fallback source of mirror.centos.org${NC}\n"
+                    else
+                        printf "${RED}Failed to install container-selinux package, required by Docker CE. Please install the container-selinux package or Docker before running this installation script.${NC}\n"
+                        exit 1
+                    fi
+                else
+                    # Install container-selinux from mirror.centos.org
+                    yum install -y -q "http://mirror.centos.org/centos/7/extras/x86_64/Packages/container-selinux-2.74-1.el7.noarch.rpm" || \
+                        yum install -y -q "http://mirror.centos.org/centos/7/extras/x86_64/Packages/container-selinux-2.68-1.el7.noarch.rpm"
+                    if yum list installed "container-selinux" >/dev/null 2>&1; then
+                        printf "${YELLOW}Installed package required by docker container-selinux from fallback source of mirror.centos.org${NC}\n"
+                    else
+                        printf "${RED}Failed to install container-selinux package, required by Docker CE. Please install the container-selinux package or Docker before running this installation script.${NC}\n"
+                        exit 1
+                    fi
+                fi
+            fi
+        fi
+    fi
+
     _docker_install_url="https://get.replicated.com/docker-install.sh"
     curl "$_docker_install_url?docker_version=${1}&lsb_dist=${LSB_DIST}&dist_version=${DIST_VERSION_MAJOR}" > /tmp/docker_install.sh
     # When this script is piped into bash as stdin, apt-get will eat the remaining parts of this script,
