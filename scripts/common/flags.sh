@@ -122,6 +122,12 @@ function flags() {
                     bail "This script installs $KUBERNETES_VERSION"
                 fi
                 ;;
+            control-plane|control_plane)
+                MASTER=1
+                ;;
+            cert-key|cert_key)
+                CERT_KEY="$_value"
+                ;;
             *)
                 echo >&2 "Error: unknown parameter \"$_param\""
                 exit 1

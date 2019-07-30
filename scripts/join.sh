@@ -35,9 +35,11 @@ function join() {
         logStep "Join Kubernetes node"
     fi
 
-	render_yaml kubeadm-join-config-v1beta2.yaml > "$KUBEADM_CONF_FILE"
+    mkdir -p "$KUBEADM_CONF_DIR"
+    render_yaml kubeadm-join-config-v1beta2.yaml > "$KUBEADM_CONF_FILE"
     if [ "$MASTER" = "1" ]; then
-        echo "controlPlane: {}" >> $KUBEADM_CONF_FILE
+        echo "controlPlane:" >> "$KUBEADM_CONF_FILE"
+        echo "  certificateKey: $CERT_KEY" >> "$KUBEADM_CONF_FILE"
     fi
 
     set +e

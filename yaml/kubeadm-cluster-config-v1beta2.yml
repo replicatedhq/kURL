@@ -5,6 +5,7 @@ kubernetesVersion: v$KUBERNETES_VERSION
 certificatesDir: /etc/kubernetes/pki
 clusterName: kubernetes
 controllerManager: {}
+useHyperKubeImage: true
 dns:
   type: CoreDNS
 etcd:
@@ -17,4 +18,3 @@ apiServer:
     service-node-port-range: "80-60000"
   certSANs:
   - "$PRIVATE_ADDRESS"
-useHyperKubeImage: true
