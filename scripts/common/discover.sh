@@ -9,9 +9,10 @@ function discover() {
     fi
 
     if [ "$NO_PROXY" != "1" ] && [ -z "$PROXY_ADDRESS" ]; then
-            discoverProxy
-        fi
+        discoverProxy
+    fi
  
+    discoverCephPoolReplicas
     return 0
 }
  
@@ -158,4 +159,21 @@ discoverProxy() {
     if curl --noproxy "*" --silent --connect-timeout 2 --fail https://api.replicated.com/market/v1/echo/ip > /dev/null ; then
         NO_PROXY=1
     fi
+}
+
+# CEPH_POOL_REPLICAS has the default value of 1 when this function is called.
+# If the replicapool cephbockpool CR in the rook-ceph namespace is found, set CEPH_POOL_REPLICAS to that.
+# Then increase up to 3 based on the number of ready nodes found.
+# The ceph-pool-replicas flag will override any value set here.
+function discoverCephPoolReplicas() {
+    set +e
+    local discoveredCephPoolReplicas=$(kubectl -n rook-ceph get cephblockpool replicapool -o jsonpath="{.spec.replicated.size}" 2>/dev/null)
+    if [ -n "$discoveredCephPoolReplicas" ]; then
+        CEPH_POOL_REPLICAS="$discoveredCephPoolReplicas"
+    fi
+    local readyNodeCount=$(kubectl get nodes 2>/dev/null | grep Ready | wc -l)
+    if [ "$readyNodeCount" -gt "$CEPH_POOL_REPLICAS" ] && [ "$readyNodeCount" -le "3" ]; then
+        CEPH_POOL_REPLICAS="$readyNodeCount"
+    fi
+    set -e
 }

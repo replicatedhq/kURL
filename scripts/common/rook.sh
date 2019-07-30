@@ -1,4 +1,5 @@
 STORAGE_CLASS=default
+CEPH_POOL_REPLICAS=1
 
 function rook() {
     case "$STORAGE_PROVISIONER" in

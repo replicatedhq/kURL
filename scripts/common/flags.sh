@@ -22,6 +22,9 @@ function flags() {
             docker-version|docker_version)
                 DOCKER_VERSION="$_value"
                 ;;
+            ceph-pool-replicas|ceph_pool_replicas)
+                CEPH_POOL_REPLICAS="$_value"
+                ;;
             ha)
                 HA_CLUSTER=1
                 ;;

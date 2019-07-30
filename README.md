@@ -56,6 +56,7 @@ All the AKA install scripts are idempotent. Re-run the scripts with different fl
 | bypass-storagedriver-warnings    | Bypass all Docker storagedriver warnings                                                           |
 | bootstrap-token                  | Authentication token used by kubernetes when adding additional nodes                               |
 | bootstrap-token-ttl              | TTL of the `bootstrap-token`                                                                       |
+| ceph-pool-replicas               | Replication factor of ceph pools. Default is based on number of ready nodes if unset.              |
 | disable-contour                  | If present, disables the deployment of the Contour ingress controller                              |
 | disable-rook                     | Do not deploy the Rook add-on                                                                      |
 | encrypt-network                  | Disable network encryption with `encrypt-network=0`                                                |
