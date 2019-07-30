@@ -102,6 +102,26 @@ function flags() {
             kubernetes-upgrade-patch-version|kubernetes_upgrade_patch_version)
                 K8S_UPGRADE_PATCH_VERSION=1
                 ;;
+            kubernetes-master-address|kubernetes_master_address)
+                KUBERNETES_MASTER_ADDR="$_value"
+                ;;
+            api-service-address|api_service_address)
+                API_SERVICE_ADDRESS="$_value"
+                ;;
+            insecure)
+                INSECURE=1
+                ;;
+            kubeadm-token|kubeadm_token)
+                KUBEADM_TOKEN="$_value"
+                ;;
+            kubeadm-token-ca-hash|kubeadm_token_ca_hash)
+                KUBEADM_TOKEN_CA_HASH="$_value"
+                ;;
+            kubernetes-version|kubernetes_version)
+                if [ "$_value" != "$KUBERNETES_VERSION" ]; then
+                    bail "This script installs $KUBERNETES_VERSION"
+                fi
+                ;;
             *)
                 echo >&2 "Error: unknown parameter \"$_param\""
                 exit 1

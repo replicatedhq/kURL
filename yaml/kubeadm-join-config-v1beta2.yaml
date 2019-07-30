@@ -1,0 +1,13 @@
+---
+kind: JoinConfiguration
+apiVersion: kubeadm.k8s.io/v1beta2
+nodeRegistration:
+  taints: []
+  kubeletExtraArgs:
+    node-ip: $PRIVATE_ADDRESS
+discovery:
+  bootstrapToken:
+    token: $KUBEADM_TOKEN
+    apiServerEndpoint: $API_SERVICE_ADDRESS
+    caCertHashes:
+    - $KUBEADM_TOKEN_CA_HASH

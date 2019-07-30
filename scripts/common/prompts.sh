@@ -79,6 +79,82 @@ prompt() {
     set -e
 }
 
+function joinPrompts() {
+    if [ -n "$API_SERVICE_ADDRESS" ]; then
+        splitHostPort "$API_SERVICE_ADDRESS"
+        if [ -z "$PORT" ]; then
+            PORT="6443"
+        fi
+        KUBERNETES_MASTER_ADDR="$HOST"
+        KUBERNETES_MASTER_PORT="$PORT"
+        LOAD_BALANCER_ADDRESS="$HOST"
+        LOAD_BALANCER_PORT="$PORT"
+    else
+        promptForMasterAddress
+        splitHostPort "$KUBERNETES_MASTER_ADDR"
+        if [ -n "$PORT" ]; then
+            KUBERNETES_MASTER_ADDR="$HOST"
+            KUBERNETES_MASTER_PORT="$PORT"
+        else
+            KUBERNETES_MASTER_PORT="6443"
+        fi 
+        LOAD_BALANCER_ADDRESS="$KUBERNETES_MASTER_ADDR"
+        LOAD_BALANCER_PORT="$KUBERNETES_MASTER_PORT"
+        API_SERVICE_ADDRESS="${KUBERNETES_MASTER_ADDR}:${KUBERNETES_MASTER_PORT}"
+    fi
+    promptForToken
+    promptForTokenCAHash
+}
+
+promptForToken() {
+    if [ -n "$KUBEADM_TOKEN" ]; then
+        return
+    fi
+
+    printf "Please enter the kubernetes discovery token.\n"
+    while true; do
+        printf "Kubernetes join token: "
+        prompt
+        if [ -n "$PROMPT_RESULT" ]; then
+            KUBEADM_TOKEN="$PROMPT_RESULT"
+            return
+        fi
+    done
+}
+
+promptForTokenCAHash() {
+    if [ -n "$KUBEADM_TOKEN_CA_HASH" ]; then
+        return
+    fi
+
+    printf "Please enter the discovery token CA's hash.\n"
+    while true; do
+        printf "Kubernetes discovery token CA hash: "
+        prompt
+        if [ -n "$PROMPT_RESULT" ]; then
+            KUBEADM_TOKEN_CA_HASH="$PROMPT_RESULT"
+            return
+        fi
+    done
+}
+
+promptForMasterAddress() {
+    if [ -n "$KUBERNETES_MASTER_ADDR" ]; then
+        return
+    fi
+
+    printf "Please enter the Kubernetes master address.\n"
+    printf "e.g. 10.128.0.4\n"
+    while true; do
+        printf "Kubernetes master address: "
+        prompt
+        if [ -n "$PROMPT_RESULT" ]; then
+            KUBERNETES_MASTER_ADDR="$PROMPT_RESULT"
+            return
+        fi
+    done
+}
+
 promptForPrivateIp() {
     _count=0
     _regex="^[[:digit:]]+: ([^[:space:]]+)[[:space:]]+[[:alnum:]]+ ([[:digit:].]+)"

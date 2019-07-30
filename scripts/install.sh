@@ -83,7 +83,7 @@ outro() {
       fi
     fi
 
-    KUBEADM_TOKEN_CA_HASH=$(cat /tmp/kubeadm-init | grep 'kubeadm join' | awk '{ print $(NF) }')
+    KUBEADM_TOKEN_CA_HASH=$(cat /tmp/kubeadm-init | grep 'discovery-token-ca-cert-hash' | awk '{ print $(NF) }')
 
     printf "\n"
     printf "\t\t${GREEN}Installation${NC}\n"
@@ -125,6 +125,7 @@ function main() {
     weave
     rook
     contour
+    outro
 }
 
 main "$@"

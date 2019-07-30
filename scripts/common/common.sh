@@ -1,4 +1,13 @@
+
 STORAGE_PROVISIONER=rook
+
+GREEN='\033[0;32m'
+BLUE='\033[0;94m'
+LIGHT_BLUE='\033[0;34m'
+YELLOW='\033[0;33m'
+RED='\033[0;31m'
+NC='\033[0m' # No Color
+
 
 commandExists() {
 	command -v "$@" > /dev/null 2>&1
@@ -83,4 +92,8 @@ spinnerPodRunning() {
         printf "\b\b\b\b\b\b"
     done
     printf "    \b\b\b\b"
+}
+
+splitHostPort() {
+    oIFS="$IFS"; IFS=":" read -r HOST PORT <<< "$1"; IFS="$oIFS"
 }

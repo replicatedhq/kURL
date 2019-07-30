@@ -2,62 +2,85 @@
 
 set -e
 
-DIR=.
-YAML_DIR=../yaml
+DIR=..
+YAML_DIR="$DIR/yaml"
 KUBEADM_CONF_DIR=/opt/replicated
 KUBEADM_CONF_FILE="$KUBEADM_CONF_DIR/kubeadm.conf"
 
-. "$DIR/common/contour.sh"
-. "$DIR/common/discover.sh"
-. "$DIR/common/flags.sh"
-. "$DIR/common/preflights.sh"
-. "$DIR/common/prepare.sh"
-. "$DIR/common/yaml.sh"
+. "$DIR/Manifest"
+. "$DIR/scripts/common/common.sh"
+. "$DIR/scripts/common/contour.sh"
+. "$DIR/scripts/common/discover.sh"
+. "$DIR/scripts/common/flags.sh"
+. "$DIR/scripts/common/preflights.sh"
+. "$DIR/scripts/common/prepare.sh"
+. "$DIR/scripts/common/prompts.sh"
+. "$DIR/scripts/common/rook.sh"
+. "$DIR/scripts/common/weave.sh"
+. "$DIR/scripts/common/yaml.sh"
 
-function init() {
-    logStep "Initialize Kubernetes"
+function join() {
+    if [ "$MASTER" = "1" ]; then
+        logStep "Join Kubernetes master node"
 
-    if [ "$LOAD_BALANCER_ADDRESS_CHANGED" = "1" ]; then
-        handleLoadBalancerAddressChangedPreInit
+        # this will stop all the control plane pods except etcd
+        rm -f /etc/kubernetes/manifests/kube-*
+        while docker ps | grep -q kube-apiserver ; do
+            sleep 2
+        done
+        # delete files that need to be regenerated in case of load balancer address change
+        rm -f /etc/kubernetes/*.conf
+        rm -f /etc/kubernetes/pki/apiserver.crt /etc/kubernetes/pki/apiserver.key
+    else
+        logStep "Join Kubernetes node"
     fi
 
-	mkdir -p "$KUBEADM_CONF_DIR"
-	render_yaml kubeadm-init-config-v1beta2.yml > "$KUBEADM_CONF_FILE"
-	render_yaml kubeadm-cluster-config-v1beta2.yml >> "$KUBEADM_CONF_FILE"
-    render_yaml kubeproxy-config-v1alpha1.yml >> "$KUBEADM_CONF_FILE"
-
-    kubeadm init \
-        --ignore-preflight-errors=all \
-        --config /opt/replicated/kubeadm.conf \
-        | tee /tmp/kubeadm-init
-
-    exportKubeconfig
-
-    waitForNodes
-
-    DID_INIT_KUBERNETES=1
-    logSuccess "Kubernetes Master Initialized"
-
-    if [ "$LOAD_BALANCER_ADDRESS_CHANGED" = "1" ]; then
-        handleLoadBalancerAddressChangedPostInit
+	render_yaml kubeadm-join-config-v1beta2.yaml > "$KUBEADM_CONF_FILE"
+    if [ "$MASTER" = "1" ]; then
+        echo "controlPlane: {}" >> $KUBEADM_CONF_FILE
     fi
 
-    kubectl cluster-info
-    logSuccess "Cluster Initialized"
+    set +e
+    (set -x; kubeadm join --config /opt/replicated/kubeadm.conf --ignore-preflight-errors=all)
+    _status=$?
+    set -e
+
+    if [ "$_status" -ne "0" ]; then
+        printf "${RED}Failed to join the kubernetes cluster.${NC}\n" 1>&2
+        exit $_status
+    fi
+
+    if [ "$MASTER" = "1" ]; then
+        logStep "Master node joined successfully"
+    else
+        logStep "Node joined successfully"
+    fi
+}
+
+outro() {
+    printf "\n"
+    printf "\t\t${GREEN}Installation${NC}\n"
+    printf "\t\t${GREEN}  Complete ✔${NC}\n"
+    if [ "$MASTER" = "1" ]; then
+        printf "\n"
+        printf "To access the cluster with kubectl, reload your shell:\n"
+        printf "\n"
+        printf "${GREEN}    bash -l${NC}\n"
+    fi
+    printf "\n"
 }
 
 function main() {
     export KUBECONFIG=/etc/kubernetes/admin.conf
     requireRootUser
     discover
-    flags
+    flags "$@"
     preflights
+    joinPrompts
     prompts
     prepare
-    init
-    weave
-    rook
-    contour
+    join
+    outro
 }
 
 main "$@"
