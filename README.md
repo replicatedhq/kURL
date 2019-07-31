@@ -120,7 +120,7 @@ The `yaml` directory holds the yaml that will be applied to the cluster or passe
 
 The `scripts` directory contains the top-level and helper scripts to prepare the host, run kubeadm, and apply the yaml for addons.
 
-The `web` directory holds a Flask/Nginx app for serving the install scripts.
+The `web` directory holds a Golang app for serving the install scripts.
 
 ## Contributing
 
