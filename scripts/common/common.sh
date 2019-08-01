@@ -171,6 +171,16 @@ parseDockerVersion() {
     DOCKER_VERSION_RELEASE=$2
 }
 
+exportKubeconfig() {
+    cp /etc/kubernetes/admin.conf $HOME/admin.conf
+    chown $SUDO_USER:$SUDO_GID $HOME/admin.conf
+    chmod 444 /etc/kubernetes/admin.conf
+    if ! grep -q "kubectl completion bash" /etc/profile; then
+        echo 'export KUBECONFIG=/etc/kubernetes/admin.conf' >> /etc/profile
+        echo "source <(kubectl completion bash)" >> /etc/profile
+    fi
+}
+
 splitHostPort() {
     oIFS="$IFS"; IFS=":" read -r HOST PORT <<< "$1"; IFS="$oIFS"
 }

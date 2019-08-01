@@ -51,6 +51,7 @@ function join() {
     fi
 
     if [ "$MASTER" = "1" ]; then
+        exportKubeconfig
         logStep "Master node joined successfully"
     else
         logStep "Node joined successfully"
