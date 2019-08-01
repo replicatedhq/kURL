@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kurl
+spec:
+  selector:
+    matchLabels:
+      app: kurl
+  template:
+    metadata:
+      labels:
+        app: kurl
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 2
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - kurl
+              topologyKey: "kubernetes.io/hostname"
+      containers:
+      - name: kurl
+        image: replicated/kurl
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: kurl
+          containerPort: 3000

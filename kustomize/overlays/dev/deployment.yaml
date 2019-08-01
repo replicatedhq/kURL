@@ -1,0 +1,13 @@
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kurl
+spec:
+  template:
+    spec:
+      containers:
+      - name: kurl
+        env:
+        - name: INSTALL_URL
+          value: http://localhost:8092

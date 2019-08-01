@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: kurl
+  labels:
+    app: kurl
+spec:
+  type: LoadBalancer
+  ports:
+    - name: kurl
+      port: 8090
+      targetPort: kurl
+  selector:
+    app: kurl

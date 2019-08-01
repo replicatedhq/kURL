@@ -1,0 +1,9 @@
+
+bases:
+  - ../../base
+
+resources:
+  - ./loadbalancer.yaml
+
+patches:
+  - ./deployment.yaml
