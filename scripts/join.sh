@@ -2,22 +2,20 @@
 
 set -e
 
-DIR=..
-YAML_DIR="$DIR/yaml"
-KUBEADM_CONF_DIR=/opt/replicated
-KUBEADM_CONF_FILE="$KUBEADM_CONF_DIR/kubeadm.conf"
+DIR=.
 
-. "$DIR/Manifest"
-. "$DIR/scripts/common/common.sh"
-. "$DIR/scripts/common/contour.sh"
-. "$DIR/scripts/common/discover.sh"
-. "$DIR/scripts/common/flags.sh"
-. "$DIR/scripts/common/preflights.sh"
-. "$DIR/scripts/common/prepare.sh"
-. "$DIR/scripts/common/prompts.sh"
-. "$DIR/scripts/common/rook.sh"
-. "$DIR/scripts/common/weave.sh"
-. "$DIR/scripts/common/yaml.sh"
+# The prefix '. $DIR/' is a magic string that allows these to be assembled into a single file
+. $DIR/Manifest
+. $DIR/scripts/common/common.sh
+. $DIR/scripts/common/contour.sh
+. $DIR/scripts/common/discover.sh
+. $DIR/scripts/common/flags.sh
+. $DIR/scripts/common/preflights.sh
+. $DIR/scripts/common/prepare.sh
+. $DIR/scripts/common/prompts.sh
+. $DIR/scripts/common/rook.sh
+. $DIR/scripts/common/weave.sh
+. $DIR/scripts/common/yaml.sh
 
 function join() {
     if [ "$MASTER" = "1" ]; then

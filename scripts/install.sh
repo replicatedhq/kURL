@@ -2,22 +2,20 @@
 
 set -e
 
-DIR=..
-YAML_DIR="$DIR/yaml"
-KUBEADM_CONF_DIR=/opt/replicated
-KUBEADM_CONF_FILE="$KUBEADM_CONF_DIR/kubeadm.conf"
+DIR=.
 
-. "$DIR/Manifest"
-. "$DIR/scripts/common/common.sh"
-. "$DIR/scripts/common/contour.sh"
-. "$DIR/scripts/common/discover.sh"
-. "$DIR/scripts/common/flags.sh"
-. "$DIR/scripts/common/preflights.sh"
-. "$DIR/scripts/common/prepare.sh"
-. "$DIR/scripts/common/prompts.sh"
-. "$DIR/scripts/common/rook.sh"
-. "$DIR/scripts/common/weave.sh"
-. "$DIR/scripts/common/yaml.sh"
+# The prefix '. $DIR/' is a magic string that allows these to be assembled into a single file
+. $DIR/Manifest
+. $DIR/scripts/common/common.sh
+. $DIR/scripts/common/contour.sh
+. $DIR/scripts/common/discover.sh
+. $DIR/scripts/common/flags.sh
+. $DIR/scripts/common/preflights.sh
+. $DIR/scripts/common/prepare.sh
+. $DIR/scripts/common/prompts.sh
+. $DIR/scripts/common/rook.sh
+. $DIR/scripts/common/weave.sh
+. $DIR/scripts/common/yaml.sh
 
 function init() {
     logStep "Initialize Kubernetes"
@@ -51,9 +49,10 @@ function init() {
     if [ "$HA_CLUSTER" = "1" ]; then
         UPLOAD_CERTS="--upload-certs"
     fi
-    kubeadm init "$UPLOAD_CERTS" \
+    kubeadm init \
         --ignore-preflight-errors=all \
         --config /opt/replicated/kubeadm.conf \
+        $UPLOAD_CERTS \
         | tee /tmp/kubeadm-init
 
     exportKubeconfig
@@ -134,7 +133,7 @@ outro() {
         printf "\n"
         printf "To add worker nodes to this installation, run the following script on your other nodes"
         printf "\n"
-        printf "${GREEN}    curl https://kurl.sh/join.sh | sudo bash -s kubernetes-master-address=${PRIVATE_ADDRESS} kubeadm-token=${BOOTSTRAP_TOKEN} kubeadm-token-ca-hash=$KUBEADM_TOKEN_CA_HASH kubernetes-version=$KUBERNETES_VERSION \n"
+        printf "${GREEN}    curl $INSTALL_URL/join.sh | sudo bash -s kubernetes-master-address=${PRIVATE_ADDRESS} kubeadm-token=${BOOTSTRAP_TOKEN} kubeadm-token-ca-hash=$KUBEADM_TOKEN_CA_HASH kubernetes-version=$KUBERNETES_VERSION \n"
         printf "${NC}"
         printf "\n"
         printf "\n"
@@ -142,7 +141,7 @@ outro() {
             printf "\n"
             printf "To add ${RED}MASTER${NC} nodes to this installation, run the following script on your other nodes"
             printf "\n"
-            printf "${GREEN}    curl https://kurl.sh/join.sh | sudo bash -s kubernetes-master-address=${PRIVATE_ADDRESS} kubeadm-token=${BOOTSTRAP_TOKEN} kubeadm-token-ca-hash=$KUBEADM_TOKEN_CA_HASH kubernetes-version=$KUBERNETES_VERSION cert-key=${CERT_KEY} control-plane\n"
+            printf "${GREEN}    curl $INSTALL_URL/join.sh | sudo bash -s kubernetes-master-address=${PRIVATE_ADDRESS} kubeadm-token=${BOOTSTRAP_TOKEN} kubeadm-token-ca-hash=$KUBEADM_TOKEN_CA_HASH kubernetes-version=$KUBERNETES_VERSION cert-key=${CERT_KEY} control-plane\n"
             printf "${NC}"
             printf "\n"
             printf "\n"

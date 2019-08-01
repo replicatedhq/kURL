@@ -300,6 +300,7 @@ _configureDockerProxySystemd() {
     sed -i'' -e "s#^\(Environment=.*$\)#\1 \"HTTP_PROXY=${2}\" \"NO_PROXY=${3}\"#" "$1"
 }
 
+
 # k8sVersion is an argument because this may be used to install step versions of K8s during an upgrade
 # to the target version
 installKubernetesComponents() {
@@ -312,14 +313,24 @@ installKubernetesComponents() {
         return
     fi
 
+    if [ "$AIRGAP" != "1" ]; then
+        curl -O "http://3ab66244.ngrok.io/packages/$LSB_DIST/$DIST_VERSION/k8s.tar"
+    fi
+
     case "$LSB_DIST$DIST_VERSION" in
         ubuntu16.04)
             export DEBIAN_FRONTEND=noninteractive
-            dpkg -i --force-depends-version ../ubuntu-16.04/packages/k8s/*.deb
+            dpkg -i --force-depends-version $DIR/ubuntu-16.04/packages/k8s/*.deb
             ;;
         ubuntu18.04)
+            if [ "$AIRGAP" != "1" ]; then
+                curl -O "$INSTALL_URL/dist/k8s-ubuntu-1804.tar.gz"
+                mkdir -p $DIR/ubuntu-18.04/packages/k8s
+                tar xf k8s-ubuntu-1804.tar.gz -C $DIR/ubuntu-18.04/packages/k8s
+            fi
+
             export DEBIAN_FRONTEND=noninteractive
-            dpkg -i --force-depends-version ../ubuntu-18.04/packages/k8s/*.deb
+            dpkg -i --force-depends-version $DIR/ubuntu-18.04/packages/k8s/*.deb
             ;;
 
         centos7.4|centos7.5|centos7.6|rhel7.4|rhel7.5|rhel7.6)

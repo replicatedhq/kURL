@@ -8,6 +8,9 @@ YELLOW='\033[0;33m'
 RED='\033[0;31m'
 NC='\033[0m' # No Color
 
+YAML_DIR="$DIR/yaml"
+KUBEADM_CONF_DIR=/opt/replicated
+KUBEADM_CONF_FILE="$KUBEADM_CONF_DIR/kubeadm.conf"
 
 commandExists() {
 	command -v "$@" > /dev/null 2>&1

@@ -126,6 +126,25 @@ dist/aka-rhel-7.tar.gz: build/rhel-7
 	tar cf dist/aka-rhel7.tar -C build .
 	gzip dist/aka-rhel7.tar
 
+dist/k8s-ubuntu-1604.tar.gz: build/ubuntu-16.04/packages/k8s
+	mkdir -p dist
+	tar cf dist/k8s-ubuntu-1604.tar -C build/ubuntu-16.04/packages/k8s .
+	gzip dist/k8s-ubuntu-1604.tar
+
+dist/k8s-ubuntu-1804.tar.gz: build/ubuntu-18.04/packages/k8s
+	mkdir -p dist
+	tar cf dist/k8s-ubuntu-1804.tar -C build/ubuntu-18.04/packages/k8s .
+	gzip dist/k8s-ubuntu-1804.tar
+
+dist/k8s-rhel-7.tar.gz: build/rhel-7/packages/k8s
+	mkdir -p dist
+	tar cf dist/k8s-rhel-7.tar -C build/rhel-7/packages/k8s .
+	gzip dist/k8s-rhel-7.tar
+
+dist/yaml:
+	mkdir -p dist
+	cp -r yaml dist/
+
 watchrsync:
 	rsync -r build/ubuntu-18.04 ${USER}@${HOST}:aka
 	bin/watchrsync.js
