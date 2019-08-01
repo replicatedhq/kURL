@@ -38,7 +38,7 @@ jobs:
       - checkout
       - setup_remote_docker:
           docker_layer_caching: true
-      - make build/ubuntu-16.04/packages/docker
+      - run: make build/ubuntu-16.04/packages/docker
 
   build_ubuntu18_docker:
     <<: *defaults
@@ -46,7 +46,7 @@ jobs:
       - checkout
       - setup_remote_docker:
           docker_layer_caching: true
-      - make build/ubuntu-18.04/packages/docker
+      - run: make build/ubuntu-18.04/packages/docker
 
   build_rhel7_docker:
     <<: *defaults
@@ -54,7 +54,7 @@ jobs:
       - checkout
       - setup_remote_docker:
           docker_layer_caching: true
-      - make build/rhel-7/packages/docker
+      - run: make build/rhel-7/packages/docker
 
   build_ubuntu16_k8s:
     <<: *defaults
@@ -62,7 +62,7 @@ jobs:
       - checkout
       - setup_remote_docker:
           docker_layer_caching: true
-      - make build/ubuntu-16.04/packages/k8s
+      - run: make build/ubuntu-16.04/packages/k8s
 
   build_ubuntu18_k8s:
     <<: *defaults
@@ -70,7 +70,7 @@ jobs:
       - checkout
       - setup_remote_docker:
           docker_layer_caching: true
-      - make build/ubuntu-18.04/packages/k8s
+      - run: make build/ubuntu-18.04/packages/k8s
 
   build_rhel7_k8s:
     <<: *defaults
@@ -78,7 +78,7 @@ jobs:
       - checkout
       - setup_remote_docker:
           docker_layer_caching: true
-      - make build/rhel-7/packages/k8s
+      - run: make build/rhel-7/packages/k8s
 
   build_k8s_images:
     <<: *defaults
@@ -86,7 +86,7 @@ jobs:
       - checkout
       - setup_remote_docker:
           docker_layer_caching: true
-      - make build/k8s-images.tar
+      - run: make build/k8s-images.tar
 
   build_staging_docker_image:
     <<: *defaults
