@@ -2,10 +2,10 @@ version: 2
 
 defaults: &defaults
   docker:
-  - image: replicated/gitops-builder:node8-go11
+  - image: replicated/gitops-builder:node8-go12
   working_directory: ~/repo
   environment: &environment
-    PROJECT_NAME: install-scripts
+    PROJECT_NAME: kurl
     ECR_REPO: 923411875752.dkr.ecr.us-east-1.amazonaws.com
     OVERLAY_PATH: kustomize/overlays/staging
     GITOPS_BRANCH: master
@@ -32,97 +32,61 @@ jobs:
       - run: sudo make deps # todo cache these
       - run: make test
 
-  build_k8s_bundles:
+  build_ubuntu16_docker:
     <<: *defaults
     steps:
       - checkout
       - setup_remote_docker:
           docker_layer_caching: true
-      - run: docker login -u $DOCKER_USER -p $DOCKER_PASS quay.io
-      - run:
-          name: make
-          command: |
-            cd bundles/k8s-containers
-            make deps
-            make update_k8s_manifest_${K8S_VERSION} build_${K8S_VERSION} push_${K8S_VERSION}
+      - make build/ubuntu-16.04/packages/docker
 
-  build_ubuntu1604_docker_package:
+  build_ubuntu18_docker:
     <<: *defaults
     steps:
       - checkout
       - setup_remote_docker:
           docker_layer_caching: true
-      - run: docker login -u $DOCKER_USER -p $DOCKER_PASS quay.io
-      - run:
-          name: build & push
-          command: |
-            cd bundles/docker-ubuntu1604
-            make build push
+      - make build/ubuntu-18.04/packages/docker
 
-  build_ubuntu1804_docker_package:
+  build_rhel7_docker:
     <<: *defaults
     steps:
       - checkout
       - setup_remote_docker:
           docker_layer_caching: true
-      - run: docker login -u $DOCKER_USER -p $DOCKER_PASS quay.io
-      - run:
-          name: build & push
-          command: |
-            cd bundles/docker-ubuntu1804
-            make build push
+      - make build/rhel-7/packages/docker
 
-  build_ubuntu_k8s_packages:
+  build_ubuntu16_k8s:
     <<: *defaults
     steps:
       - checkout
       - setup_remote_docker:
           docker_layer_caching: true
-      - run: docker login -u $DOCKER_USER -p $DOCKER_PASS quay.io
-      - run:
-          name: build & push
-          command: |
-            cd bundles/k8s-ubuntu1604
-            make $K8S_VERSION
+      - make build/ubuntu-16.04/packages/k8s
 
-  build_k8s_cni:
+  build_ubuntu18_k8s:
     <<: *defaults
     steps:
       - checkout
       - setup_remote_docker:
           docker_layer_caching: true
-      - run: docker login -u $DOCKER_USER -p $DOCKER_PASS quay.io
-      - run:
-          name: build & push
-          command: |
-            cd bundles/k8s-cni-v0.6.0
-            make build push
+      - make build/ubuntu-18.04/packages/k8s
 
-  build_rhel_docker_package:
+  build_rhel7_k8s:
     <<: *defaults
     steps:
       - checkout
       - setup_remote_docker:
           docker_layer_caching: true
-      - run: docker login -u $DOCKER_USER -p $DOCKER_PASS quay.io
-      - run:
-          name: build & push
-          command: |
-            cd bundles/docker-rhel7
-            make build push
+      - make build/rhel-7/packages/k8s
 
-  build_rhel_k8s_packages:
+  build_k8s_images:
     <<: *defaults
     steps:
       - checkout
       - setup_remote_docker:
           docker_layer_caching: true
-      - run: docker login -u $DOCKER_USER -p $DOCKER_PASS quay.io
-      - run:
-          name: build & push
-          command: |
-            cd bundles/k8s-rhel7
-            make $K8S_VERSION
+      - make build/k8s-images.tar
 
   build_staging_docker_image:
     <<: *defaults
@@ -214,27 +178,24 @@ workflows:
             branches:
               only: master
 
-      - test:
+      - build_ubuntu16_docker:
           requires:
             - is_upstream
-      - build_staging_docker_image:
+      - build_ubuntu18_docker:
           requires:
             - is_upstream
-      - build_production_docker_image:
+      - build_rhel7_docker:
           requires:
             - is_upstream
-
-      - deploy_staging_eks:
+      - build_ubuntu16_k8s:
           requires:
-            - test
-            - build_staging_docker_image
-
-      - hold:
-          type: approval
+            - is_upstream
+      - build_ubuntu18_k8s:
           requires:
-            - deploy_staging_eks
-
-      - deploy_production_eks:
+            - is_upstream
+      - build_rhel7_k8s:
           requires:
-            - build_production_docker_image
-            - hold
+            - is_upstream
+      - build_k8s_images:
+          requires:
+            - is_upstream

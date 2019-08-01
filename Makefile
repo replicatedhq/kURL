@@ -26,9 +26,11 @@ build/ubuntu-16.04/packages/docker:
 		-t kurl/ubuntu-1604-docker:${DOCKER_VERSION} \
 		-f bundles/docker-ubuntu1604/Dockerfile \
 		bundles/docker-ubuntu1604
-	source Manifest && docker run --rm \
-		-v ${PWD}/build/ubuntu-16.04/packages/docker:/out \
-		kurl/ubuntu-1604-docker:${DOCKER_VERSION}
+	-docker rm -f docker-ubuntu1604
+	docker create --name docker-ubuntu1604 kurl/ubuntu-1604-docker:${DOCKER_VERSION}
+	mkdir -p build/ubuntu-16.04/packages/docker
+	docker cp docker-ubuntu1604:/packages/archives/. build/ubuntu-16.04/packages/docker/
+	docker rm docker-ubuntu1604
 
 build/ubuntu-18.04/packages/docker:
 	docker build \
@@ -36,9 +38,11 @@ build/ubuntu-18.04/packages/docker:
 		-t kurl/ubuntu-1804-docker:${DOCKER_VERSION} \
 		-f bundles/docker-ubuntu1804/Dockerfile \
 		bundles/docker-ubuntu1804
-	docker run --rm \
-		-v ${PWD}/build/ubuntu-18.04/packages/docker:/out \
-		kurl/ubuntu-1804-docker:${DOCKER_VERSION}
+	-docker rm -f docker-ubuntu1804
+	docker create --name docker-ubuntu1804 kurl/ubuntu-1804-docker:${DOCKER_VERSION}
+	mkdir -p build/ubuntu-18.04/packages/docker
+	docker cp docker-ubuntu1604:/packages/archives/. build/ubuntu-16.04/packages/docker/
+	docker rm docker-ubuntu1804
 
 build/rhel-7/packages/docker:
 	docker build \
@@ -46,9 +50,11 @@ build/rhel-7/packages/docker:
 		-t kurl/rhel-7-docker:${DOCKER_VERSION} \
 		-f bundles/docker-rhel7/Dockerfile \
 		bundles/docker-rhel7
-	docker run --rm \
-		-v ${PWD}/build/rhel-7/packages/docker:/out \
-		kurl/rhel-7-docker:${DOCKER_VERSION} \
+	-docker rm -f docker-rhel7
+	docker create --name docker-rhel7 kurl/rhel-7-docker:${DOCKER_VERSION}
+	mkdir -p build/rhel-7/packages/docker
+	docker cp docker-rhel7:/packages/archives/. build/rhel-7/packages/docker/
+	docker rm docker-rhel7
 
 build/ubuntu-16.04/packages/k8s:
 	docker build \
@@ -56,9 +62,11 @@ build/ubuntu-16.04/packages/k8s:
 		-t kurl/ubuntu-1604-k8s:${KUBERNETES_VERSION} \
 		-f bundles/k8s-ubuntu1604/Dockerfile \
 		bundles/k8s-ubuntu1604
-	docker run --rm \
-		-v ${PWD}/build/ubuntu-16.04/packages/k8s:/out \
-		kurl/ubuntu-1604-k8s:${KUBERNETES_VERSION}
+	-docker rm -f k8s-ubuntu1604
+	docker create --name k8s-ubuntu1604 kurl/ubuntu-1604-k8s:${KUBERNETES_VERSION}
+	mkdir -p build/ubuntu-16.04/packages/k8s
+	docker cp k8s-ubuntu1604:/packages/archives/. build/ubuntu-16.04/packages/k8s/
+	docker rm k8s-ubuntu1604
 
 build/ubuntu-18.04/packages/k8s:
 	docker build \
@@ -66,9 +74,11 @@ build/ubuntu-18.04/packages/k8s:
 		-t kurl/ubuntu-1804-k8s:${KUBERNETES_VERSION} \
 		-f bundles/k8s-ubuntu1804/Dockerfile \
 		bundles/k8s-ubuntu1804
-	docker run --rm \
-		-v ${PWD}/build/ubuntu-18.04/packages/k8s:/out \
-		kurl/ubuntu-1804-k8s:${KUBERNETES_VERSION}
+	-docker rm -f k8s-ubuntu1804
+	docker create --name k8s-ubuntu1804 kurl/ubuntu-1804-k8s:${KUBERNETES_VERSION}
+	mkdir -p build/ubuntu-18.04/packages/k8s
+	docker cp k8s-ubuntu1804:/packages/archives/. build/ubuntu-18.04/packages/k8s/
+	docker rm k8s-ubuntu1804
 
 build/rhel-7/packages/k8s:
 	docker build \
@@ -76,11 +86,13 @@ build/rhel-7/packages/k8s:
 		-t kurl/rhel-7-k8s:${KUBERNETES_VERSION} \
 		-f bundles/k8s-rhel7/Dockerfile \
 		bundles/k8s-rhel7
-	docker run --rm \
-		-v ${PWD}/build/rhel-7/packages/k8s:/out \
-		kurl/rhel-7-k8s:${KUBERNETES_VERSION}
+	-docker rm -f k8s-rhel7
+	docker create --name k8s-rhel7 kurl/rhel-7-k8s:${KUBERNETES_VERSION}
+	mkdir -p build/rhel-7/packages/k8s
+	docker cp k8s-rhel7:/packages/archives/. build/rhel-7/packages/k8s/
+	docker rm k8s-rhel7
 
-tmp/kubernetes/pkg/kubernetes-docker-image-cache-common/images.lst:
+tmp/kubernetes/pkg/kubernetes-docker-image-cache-common/images.lst: deps
 	mkdir -p tmp/kubernetes
 	# CircleCI GOPATH is two paths separated by :
 	cp -r $(shell echo ${GOPATH} | cut -d ':' -f 1)/src/github.com/linuxkit/kubernetes/pkg ./tmp/kubernetes/
@@ -106,25 +118,10 @@ build/yaml:
 	mkdir -p build
 	cp -r yaml build/
 
-dist/kurl.tar.gz: build
+dist/airgap.tar.gz: build
 	mkdir -p dist
 	tar cf dist/kurl.tar -C build .
 	gzip dist/kurl.tar
-
-dist/kurl-ubuntu-1604.tar.gz: build/ubuntu-16.04
-	mkdir -p dist
-	tar cf dist/kurl-ubuntu-1604.tar -C build .
-	gzip dist/kurl-ubuntu-1604.tar -C build .
-
-dist/kurl-ubuntu-1804.tar.gz: build/ubuntu-18.04
-	mkdir -p dist
-	tar cf dist/kurl-ubuntu-1804.tar -C build .
-	gzip dist/kurl-ubuntu-1804.tar
-
-dist/kurl-rhel-7.tar.gz: build/rhel-7
-	mkdir -p dist
-	tar cf dist/kurl-rhel7.tar -C build .
-	gzip dist/kurl-rhel7.tar
 
 dist/k8s-ubuntu-1604.tar.gz: build/ubuntu-16.04/packages/k8s
 	mkdir -p dist
