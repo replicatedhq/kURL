@@ -26,7 +26,7 @@ build/ubuntu-16.04/packages/docker:
 		-t kurl/ubuntu-1604-docker:${DOCKER_VERSION} \
 		-f bundles/docker-ubuntu1604/Dockerfile \
 		bundles/docker-ubuntu1604
-	-docker rm -f docker-ubuntu1604
+	-docker rm -f docker-ubuntu1604 2>/dev/null
 	docker create --name docker-ubuntu1604 kurl/ubuntu-1604-docker:${DOCKER_VERSION}
 	mkdir -p build/ubuntu-16.04/packages/docker
 	docker cp docker-ubuntu1604:/packages/archives/. build/ubuntu-16.04/packages/docker/
@@ -38,7 +38,7 @@ build/ubuntu-18.04/packages/docker:
 		-t kurl/ubuntu-1804-docker:${DOCKER_VERSION} \
 		-f bundles/docker-ubuntu1804/Dockerfile \
 		bundles/docker-ubuntu1804
-	-docker rm -f docker-ubuntu1804
+	-docker rm -f docker-ubuntu1804 2>/dev/null
 	docker create --name docker-ubuntu1804 kurl/ubuntu-1804-docker:${DOCKER_VERSION}
 	mkdir -p build/ubuntu-18.04/packages/docker
 	docker cp docker-ubuntu1604:/packages/archives/. build/ubuntu-16.04/packages/docker/
@@ -50,7 +50,7 @@ build/rhel-7/packages/docker:
 		-t kurl/rhel-7-docker:${DOCKER_VERSION} \
 		-f bundles/docker-rhel7/Dockerfile \
 		bundles/docker-rhel7
-	-docker rm -f docker-rhel7
+	-docker rm -f docker-rhel7 2>/dev/null
 	docker create --name docker-rhel7 kurl/rhel-7-docker:${DOCKER_VERSION}
 	mkdir -p build/rhel-7/packages/docker
 	docker cp docker-rhel7:/packages/archives/. build/rhel-7/packages/docker/
@@ -62,7 +62,7 @@ build/ubuntu-16.04/packages/k8s:
 		-t kurl/ubuntu-1604-k8s:${KUBERNETES_VERSION} \
 		-f bundles/k8s-ubuntu1604/Dockerfile \
 		bundles/k8s-ubuntu1604
-	-docker rm -f k8s-ubuntu1604
+	-docker rm -f k8s-ubuntu1604 2>/dev/null
 	docker create --name k8s-ubuntu1604 kurl/ubuntu-1604-k8s:${KUBERNETES_VERSION}
 	mkdir -p build/ubuntu-16.04/packages/k8s
 	docker cp k8s-ubuntu1604:/packages/archives/. build/ubuntu-16.04/packages/k8s/
@@ -74,7 +74,7 @@ build/ubuntu-18.04/packages/k8s:
 		-t kurl/ubuntu-1804-k8s:${KUBERNETES_VERSION} \
 		-f bundles/k8s-ubuntu1804/Dockerfile \
 		bundles/k8s-ubuntu1804
-	-docker rm -f k8s-ubuntu1804
+	-docker rm -f k8s-ubuntu1804 2>/dev/null
 	docker create --name k8s-ubuntu1804 kurl/ubuntu-1804-k8s:${KUBERNETES_VERSION}
 	mkdir -p build/ubuntu-18.04/packages/k8s
 	docker cp k8s-ubuntu1804:/packages/archives/. build/ubuntu-18.04/packages/k8s/
@@ -86,7 +86,7 @@ build/rhel-7/packages/k8s:
 		-t kurl/rhel-7-k8s:${KUBERNETES_VERSION} \
 		-f bundles/k8s-rhel7/Dockerfile \
 		bundles/k8s-rhel7
-	-docker rm -f k8s-rhel7
+	-docker rm -f k8s-rhel7 2>/dev/null
 	docker create --name k8s-rhel7 kurl/rhel-7-k8s:${KUBERNETES_VERSION}
 	mkdir -p build/rhel-7/packages/k8s
 	docker cp k8s-rhel7:/packages/archives/. build/rhel-7/packages/k8s/
