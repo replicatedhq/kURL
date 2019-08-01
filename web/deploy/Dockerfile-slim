@@ -1,0 +1,12 @@
+FROM node:8-slim
+
+ARG version=unknown
+ENV VERSION=$version
+
+ADD . /src
+WORKDIR /src
+
+RUN chmod +x /src/bin/id
+
+EXPOSE 3000
+CMD ["node", "--no-deprecation", "bin/id", "serve"]
