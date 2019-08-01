@@ -1,40 +1,41 @@
-Airgapped Kubernetes Appliance (AKA)
+Kurl.sh
 ====================================
 
-AKA is a Kubernetes installer for airgapped and online clusters.
+Kurl is a Kubernetes installer for airgapped and online clusters.
 
-AKA relies on `kubeadm` to bring up the Kubernetes control plane, but there are a variety of tasks a system administrator must perform both before and after running kubeadm init in order to have a production-ready Kubernetes cluster, such as installing Docker, configuring Pod networking, or installing kubeadm itself.
+Kurl relies on `kubeadm` to bring up the Kubernetes control plane, but there are a variety of tasks a system administrator must perform both before and after running kubeadm init in order to have a production-ready Kubernetes cluster, such as installing Docker, configuring Pod networking, or installing kubeadm itself.
 The purpose of this AKA installer is to automate those tasks so that any user can deploy a Kubernetes cluster with a single script.
 
 ## Online Usage
 
 To run the latest stable version of the AKA install script:
 ```
-curl -O https://aka.replicated.com/init.sh | sudo bash
+curl https://kurl.sh | sudo bash
 ```
 
 Beta:
 ```
-curl -O https://aka.replicated.com/beta/init.sh | sudo bash
+curl https://kurl.sh/beta | sudo bash
 ```
 
 Unstable:
 ```
-curl -O https://aka.replicated.com/unstable/init.sh | sudo bash
+curl https://kurl.sh/unstable | sudo bash
 ```
 
 ## Airgapped Usage
 
 To use AKA in an airgapped environment, first fetch the desired channel installer archive from one of these URLs:
 
-* `curl -O https://s3.amazonaws.com/replicated-aka/aka-stable.tar.gz`
-* `curl -O https://s3.amazonaws.com/replicated-aka/aka-beta.tar.gz`
-* `curl -O https://s3.amazonaws.com/replicated-aka/aka-unstable.tar.gz`
+* `curl -O https://kurl.sh/dist/kurl.tar.gz`
+* `curl -O https://kurl.sh/dist/kurl-beta.tar.gz`
+* `curl -O https://kurl.sh/dist/kurl-unstable.tar.gz`
 
 After copying the archive to your host, untar it and run the install script:
 
 ```
-tar xvf aka-stable.tar.gz
+tar xvf kurl.tar.gz
+tar xvf kurl-stable.tar.gz
 cat install.sh | sudo bash
 ```
 
@@ -131,16 +132,14 @@ make build/ubuntu-18.04
 HOST=<ip or hostname> USER=<me> make watchrsync
 ```
 
-That will place the installer in your HOME's aka directory and sync any changes you make locally to the scripts/ or yaml/ directories.
-If you rebuild the OS packages, you'll need to manually run `rsync -r build/ ${USER}@${HOST}:aka` to push those changes.
+That will place the installer in your HOME's kurl directory and sync any changes you make locally to the scripts/ or yaml/ directories.
+If you rebuild the OS packages, you'll need to manually run `rsync -r build/ ${USER}@${HOST}:kurl` to push those changes.
 The `make watchrsync` command requires Node with the `gaze-run-interrupt` package available globally.
 
-On the remote instance run `cd ~/aka/scripts && sudo bash install.sh` to test your changes.
+On the remote instance run `cd ~/kurl/scripts && sudo bash install.sh` to test your changes.
 
 ### Airgap Builds
 
-Run `make dist/aka.tar.gz` to create an airgap bundle with packages for all supported operating systems.
-
-Run `make dist/aka-ubuntu-1804.tar.gz` to create an airgap bundle without Ubuntu 16 or RHEL7 packages.
+Run `make dist/kurl.tar.gz` to create an airgap bundle with packages for all supported operating systems.
 
 Copy the bundle to the airgapped instance, untar and run `cd ~/scripts && sudo bash install.sh`.
