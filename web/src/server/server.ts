@@ -11,7 +11,6 @@ import * as cors from "cors";
 import { $log } from "ts-log-debug";
 import * as path from "path";
 import * as Express from "express";
-import { LogIncomingRequestMiddleware } from "ts-express-decorators/lib/mvc/components/LogIncomingRequestMiddleware";
 import { ErrorMiddleware } from "./errors";
 import * as RateLimit from "express-rate-limit";
 import { TSEDVerboseLogging } from "../logger";
@@ -29,6 +28,9 @@ import { consoleReporter } from "replicated-lint/dist/cmdutil/reporters";
     "${rootDir}/**/**.js",
   ],
   debug: false,
+  statics: {
+    "/": "${rootDir}/../../../dist",
+  },
 })
 
 export class Server extends ServerLoader {
@@ -96,6 +98,7 @@ export class Server extends ServerLoader {
 
 const verboseLogging = TSEDVerboseLogging;
 
+/*
 @OverrideMiddleware(LogIncomingRequestMiddleware)
 export class CustomLogIncomingRequestMiddleware extends LogIncomingRequestMiddleware {
 
@@ -165,3 +168,4 @@ export class CustomLogIncomingRequestMiddleware extends LogIncomingRequestMiddle
     return super.onLogEnd(request, response);
   }
 }
+*/

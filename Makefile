@@ -10,15 +10,38 @@ deps:
 	go get github.com/linuxkit/linuxkit/src/cmd/linuxkit
 	go get github.com/linuxkit/kubernetes || :
 
-code: build/Manifest build/scripts build/yaml
 
 build: code build/ubuntu-16.04 build/ubuntu-18.04 build/rhel-7 build/k8s-images.tar
 
-build/ubuntu-16.04: code build/ubuntu-16.04/packages/docker build/ubuntu-16.04/packages/k8s build/k8s-images.tar
+code: build/install.sh build/join.sh build/yaml
 
-build/ubuntu-18.04: code build/ubuntu-18.04/packages/docker build/ubuntu-18.04/packages/k8s build/k8s-images.tar
+build/install.sh:
+	mkdir -p tmp build
+	sed '/# Magic begin/q' scripts/install.sh | sed '$$d' > tmp/install.sh
+	for script in $(shell cat scripts/install.sh | grep '. $$DIR/' | sed 's/. $$DIR\///'); do \
+		cat $$script >> tmp/install.sh ; \
+	done
+	sed -n '/# Magic end/,$$p' scripts/install.sh | sed '1d' >> tmp/install.sh
+	mv tmp/install.sh build/install.sh
 
-build/rhel-7: code build/rhel-7/packages/docker build/rhel-7/packages/k8s build/k8s-images.tar
+build/join.sh:
+	mkdir -p tmp build
+	sed '/# Magic begin/q' scripts/join.sh | sed '$$d' > tmp/join.sh
+	for script in $(shell cat scripts/join.sh | grep '. $$DIR/' | sed 's/. $$DIR\///'); do \
+		cat $$script >> tmp/join.sh ; \
+	done
+	sed -n '/# Magic end/,$$p' scripts/join.sh | sed '1d' >> tmp/join.sh
+	mv tmp/join.sh build/join.sh
+
+build/yaml:
+	mkdir -p build
+	cp -r yaml build/
+
+build/ubuntu-16.04: build/ubuntu-16.04/packages/docker build/ubuntu-16.04/packages/k8s
+
+build/ubuntu-18.04: build/ubuntu-18.04/packages/docker build/ubuntu-18.04/packages/k8s
+
+build/rhel-7: build/rhel-7/packages/docker build/rhel-7/packages/k8s
 
 build/ubuntu-16.04/packages/docker:
 	docker build \
@@ -41,7 +64,7 @@ build/ubuntu-18.04/packages/docker:
 	-docker rm -f docker-ubuntu1804 2>/dev/null
 	docker create --name docker-ubuntu1804 kurl/ubuntu-1804-docker:${DOCKER_VERSION}
 	mkdir -p build/ubuntu-18.04/packages/docker
-	docker cp docker-ubuntu1604:/packages/archives/. build/ubuntu-16.04/packages/docker/
+	docker cp docker-ubuntu1804:/packages/archives/. build/ubuntu-18.04/packages/docker/
 	docker rm docker-ubuntu1804
 
 build/rhel-7/packages/docker:
@@ -106,22 +129,12 @@ build/k8s-images.tar: tmp/kubernetes/pkg/kubernetes-docker-image-cache-common/im
 	docker tag ${k8s_images_image} kurl/k8s-images:${KUBERNETES_VERSION}
 	docker save kurl/k8s-images:${KUBERNETES_VERSION} > build/k8s-images.tar
 
-build/Manifest:
-	mkdir -p build
-	cp Manifest build/
-
-build/scripts:
-	mkdir -p build
-	cp -r scripts build/
-
-build/yaml:
-	mkdir -p build
-	cp -r yaml build/
+dist: dist/airgap.tar.gz dist/k8s-ubuntu-1604.tar.gz dist/k8s-ubuntu-1804.tar.gz dist/k8s-rhel-7.tar.gz dist/yaml dist/install.sh dist/join.sh
 
 dist/airgap.tar.gz: build
 	mkdir -p dist
-	tar cf dist/kurl.tar -C build .
-	gzip dist/kurl.tar
+	tar cf dist/airgap.tar -C build .
+	gzip dist/airgap.tar
 
 dist/k8s-ubuntu-1604.tar.gz: build/ubuntu-16.04/packages/k8s
 	mkdir -p dist
@@ -141,6 +154,14 @@ dist/k8s-rhel-7.tar.gz: build/rhel-7/packages/k8s
 dist/yaml:
 	mkdir -p dist
 	cp -r yaml dist/
+
+dist/install.sh: build/install.sh
+	mkdir -p dist
+	cp build/install.sh dist/
+
+dist/join.sh: build/join.sh
+	mkdir -p dist
+	cp build/join.sh dist/
 
 watchrsync:
 	rsync -r build/ubuntu-18.04 ${USER}@${HOST}:kurl

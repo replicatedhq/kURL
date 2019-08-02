@@ -4,7 +4,7 @@ set -e
 
 DIR=.
 
-# The prefix '. $DIR/' is a magic string that allows these to be assembled into a single file
+# Magic begin: scripts are inlined for distribution. See "make build/install.sh"
 . $DIR/Manifest
 . $DIR/scripts/common/common.sh
 . $DIR/scripts/common/contour.sh
@@ -16,6 +16,7 @@ DIR=.
 . $DIR/scripts/common/rook.sh
 . $DIR/scripts/common/weave.sh
 . $DIR/scripts/common/yaml.sh
+# Magic end
 
 function init() {
     logStep "Initialize Kubernetes"

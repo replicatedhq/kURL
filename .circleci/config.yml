@@ -88,6 +88,14 @@ jobs:
           docker_layer_caching: true
       - run: make build/k8s-images.tar
 
+  build_dist:
+    <<: *defaults
+    steps:
+      - checkout
+      - setup_remote_docker:
+          docker_layer_caching: true
+      - run: make dist
+
   build_staging_docker_image:
     <<: *defaults
     steps:
@@ -199,3 +207,12 @@ workflows:
       - build_k8s_images:
           requires:
             - is_upstream
+      - build_dist:
+          requires:
+            - build_ubuntu16_docker
+            - build_ubuntu18_docker
+            - build_rhel7_docker
+            - build_ubuntu16_k8s
+            - build_ubuntu18_k8s
+            - build_rhel7_k8s
+            - build_k8s_images

@@ -18,7 +18,7 @@
     "request-promise": "^4.2.2",
     "sigsci-module-nodejs": "https://dl.signalsciences.net/sigsci-module-nodejs/1.4.8/sigsci-module-nodejs-1.4.8.tgz",
     "statsd-client": "^0.4.2",
-    "ts-express-decorators": "^2.14.2"
+    "ts-express-decorators": "^5.24.1"
   },
   "devDependencies": {
     "@pact-foundation/pact": "^8.2.0",
