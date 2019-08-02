@@ -163,7 +163,7 @@ jobs:
           at: build
       - run: make code
       - run: make dist
-      - run: make staging
+      - run: make prod
       - run: |
           export WORKDIR=`pwd`
           export CIRCLE_PROJECT_REPONAME=$PROJECT_NAME

@@ -164,13 +164,13 @@ dist/join.sh: build/join.sh
 	cp build/join.sh dist/
 
 staging:
-	$(MAKE) -C web build
+	$(MAKE) -C web deps build
 	sed -i.bak 's/INSTALL_URL=.*/INSTALL_URL=https:\/\/staging.kurl.sh/' "dist/install.sh" && rm dist/install.sh.bak
 	cp dist/install.sh dist/latest
 	cp dist/install.sh dist/unstable
 
 prod:
-	$(MAKE) -C web build
+	$(MAKE) -C web deps build
 	sed -i.bak 's/INSTALL_URL=.*/INSTALL_URL=https:\/\/kurl.sh/' "dist/install.sh" && rm dist/install.sh.bak
 	cp dist/install.sh dist/latest
 	cp dist/install.sh dist/unstable
