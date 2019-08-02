@@ -132,7 +132,7 @@ installDockerOnline() {
     systemctl start docker
 
     # i guess the second arg means to skip this?
-    if [ "$2" -eq "1" ]; then
+    if [ "$2" = "1" ]; then
         # set +e because df --output='fstype' doesn't exist on older versions of rhel and centos
         set +e
         _maybeRequireRhelDevicemapper
@@ -145,17 +145,17 @@ installDockerOnline() {
 installDockerOffline() {
     case "$LSB_DIST$DIST_VERSION" in
         ubuntu16.04)
-            dpkg -i --force-depends-version ../ubuntu-16.04/packages/docker/*.deb
+            dpkg -i --force-depends-version $DIR/ubuntu-16.04/packages/docker/*.deb
             DID_INSTALL_DOCKER=1
             return
             ;;
         ubuntu18.04)
-            dpkg -i --force-depends-version ../ubuntu-18.04/packages/docker/*.deb
+            dpkg -i --force-depends-version $DIR/ubuntu-18.04/packages/docker/*.deb
             DID_INSTALL_DOCKER=1
             return
             ;;
         rhel7.4|rhel7.5|rhel7.6|centos7.4|centos7.5|centos7.6)
-            rpm --upgrade --force --nodeps ../rhel-7/packages/k8s/*.rpm
+            rpm --upgrade --force --nodeps $DIR/rhel-7/packages/k8s/*.rpm
             DID_INSTALL_DOCKER=1
             return
             ;;
@@ -313,10 +313,6 @@ installKubernetesComponents() {
         return
     fi
 
-    if [ "$AIRGAP" != "1" ]; then
-        curl -O "http://3ab66244.ngrok.io/packages/$LSB_DIST/$DIST_VERSION/k8s.tar"
-    fi
-
     case "$LSB_DIST$DIST_VERSION" in
         ubuntu16.04)
             export DEBIAN_FRONTEND=noninteractive
@@ -344,7 +340,7 @@ installKubernetesComponents() {
 
             sysctl --system
 
-            rpm --upgrade --force --nodeps ../rhel-7/packages/k8s/*.rpm
+            rpm --upgrade --force --nodeps $DIR/rhel-7/packages/k8s/*.rpm
             service docker restart
             ;;
 
@@ -396,7 +392,7 @@ airgapLoadKubernetesImages() {
     docker load < $DIR/k8s-images.tar
     docker run \
         -v /var/run/docker.sock:/var/run/docker.sock \
-	    "aka/k8s-images:${KUBERNETES_VERSION}"
+	    "kurl/k8s-images:${KUBERNETES_VERSION}"
 
     (
         set -x

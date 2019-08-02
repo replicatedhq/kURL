@@ -9,7 +9,7 @@ defaults: &defaults
     ECR_REPO: 923411875752.dkr.ecr.us-east-1.amazonaws.com
     OVERLAY_PATH: kustomize/overlays/staging
     GITOPS_BRANCH: master
-    DOCKERFILE: deploy/Dockerfile.prod
+    DOCKERFILE: deploy/Dockerfile-slim
 
 jobs:
   is_upstream:
@@ -63,7 +63,6 @@ jobs:
       - setup_remote_docker:
           docker_layer_caching: true
       - run: make build/rhel-7/packages/docker
-      - run: ls build
       - persist_to_workspace:
           root: build
           paths:
@@ -125,7 +124,7 @@ jobs:
           docker_layer_caching: true
       - attach_workspace:
           at: build
-      - run: ls build
+      - run: make code
       - run: make dist
 
   build_staging_docker_image:
@@ -134,6 +133,11 @@ jobs:
       - checkout
       - setup_remote_docker:
           version: 17.06.0-ce
+      - attach_workspace:
+          at: build
+      - run: make code
+      - run: make dist
+      - run: make staging
       - run: |
           export WORKDIR=`pwd`
           export CIRCLE_PROJECT_REPONAME=$PROJECT_NAME
@@ -155,6 +159,11 @@ jobs:
       - checkout
       - setup_remote_docker:
           version: 17.06.0-ce
+      - attach_workspace:
+          at: build
+      - run: make code
+      - run: make dist
+      - run: make staging
       - run: |
           export WORKDIR=`pwd`
           export CIRCLE_PROJECT_REPONAME=$PROJECT_NAME
@@ -239,7 +248,7 @@ workflows:
       - build_k8s_images:
           requires:
             - is_upstream
-      - build_dist:
+      - build_staging_docker_image:
           requires:
             - build_ubuntu16_docker
             - build_ubuntu18_docker
@@ -248,3 +257,6 @@ workflows:
             - build_ubuntu18_k8s
             - build_rhel7_k8s
             - build_k8s_images
+      - deploy_staging_eks:
+          requires:
+            - build_staging_docker_image

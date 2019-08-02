@@ -29,7 +29,8 @@ import { consoleReporter } from "replicated-lint/dist/cmdutil/reporters";
   ],
   debug: false,
   statics: {
-    "/": "${rootDir}/../../../dist",
+    "/": "/dist",
+    "/dist": "/dist",
   },
 })
 

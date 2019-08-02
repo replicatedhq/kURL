@@ -131,7 +131,7 @@ build/k8s-images.tar: tmp/kubernetes/pkg/kubernetes-docker-image-cache-common/im
 
 dist: dist/airgap.tar.gz dist/k8s-ubuntu-1604.tar.gz dist/k8s-ubuntu-1804.tar.gz dist/k8s-rhel-7.tar.gz dist/yaml dist/install.sh dist/join.sh
 
-dist/airgap.tar.gz: build
+dist/airgap.tar.gz:
 	mkdir -p dist
 	tar cf dist/airgap.tar -C build .
 	gzip dist/airgap.tar
@@ -162,6 +162,18 @@ dist/install.sh: build/install.sh
 dist/join.sh: build/join.sh
 	mkdir -p dist
 	cp build/join.sh dist/
+
+staging:
+	$(MAKE) -C web build
+	sed -i.bak 's/INSTALL_URL=.*/INSTALL_URL=https:\/\/staging.kurl.sh/' "dist/install.sh" && rm dist/install.sh.bak
+	cp dist/install.sh dist/latest
+	cp dist/install.sh dist/unstable
+
+prod:
+	$(MAKE) -C web build
+	sed -i.bak 's/INSTALL_URL=.*/INSTALL_URL=https:\/\/kurl.sh/' "dist/install.sh" && rm dist/install.sh.bak
+	cp dist/install.sh dist/latest
+	cp dist/install.sh dist/unstable
 
 watchrsync:
 	rsync -r build/ubuntu-18.04 ${USER}@${HOST}:kurl
