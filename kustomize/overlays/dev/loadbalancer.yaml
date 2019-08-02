@@ -8,7 +8,7 @@ spec:
   type: LoadBalancer
   ports:
     - name: kurl
-      port: 8090
+      port: 8092
       targetPort: kurl
   selector:
     app: kurl

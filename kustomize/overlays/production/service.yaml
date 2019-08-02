@@ -8,7 +8,7 @@ spec:
   type: NodePort
   ports:
     - name: kurl
-      nodePort: 30090
+      nodePort: 30092
       port: 3000
       targetPort: kurl
   selector:
