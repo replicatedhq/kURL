@@ -257,6 +257,23 @@ workflows:
             - build_ubuntu18_k8s
             - build_rhel7_k8s
             - build_k8s_images
+      - build_production_docker_image:
+          requires:
+            - build_ubuntu16_docker
+            - build_ubuntu18_docker
+            - build_rhel7_docker
+            - build_ubuntu16_k8s
+            - build_ubuntu18_k8s
+            - build_rhel7_k8s
+            - build_k8s_images
       - deploy_staging_eks:
           requires:
             - build_staging_docker_image
+      - hold:
+          type: approval
+          requires:
+            - deploy_staging_eks
+      - deploy_production_eks:
+          requires:
+            - build_production_docker_image
+            - hold
