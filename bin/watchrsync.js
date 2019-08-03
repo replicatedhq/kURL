@@ -14,12 +14,12 @@ gri([
 ], [
   {
     command: 'rsync',
-    args: ['Manifest', `${process.env.USER}@${process.env.HOST}:aka`],
+    args: ['Manifest', `${process.env.USER}@${process.env.HOST}:kurl`],
   },{
     command: 'rsync',
-    args: ['-r', 'scripts', `${process.env.USER}@${process.env.HOST}:aka`],
+    args: ['-r', 'scripts', `${process.env.USER}@${process.env.HOST}:kurl`],
   },{
     command: 'rsync',
-    args: ['-r', 'yaml', `${process.env.USER}@${process.env.HOST}:aka`],
+    args: ['-r', 'yaml', `${process.env.USER}@${process.env.HOST}:kurl`],
   }
 ]);

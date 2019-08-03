@@ -4,7 +4,7 @@ Kurl.sh
 Kurl is a Kubernetes installer for airgapped and online clusters.
 
 Kurl relies on `kubeadm` to bring up the Kubernetes control plane, but there are a variety of tasks a system administrator must perform both before and after running kubeadm init in order to have a production-ready Kubernetes cluster, such as installing Docker, configuring Pod networking, or installing kubeadm itself.
-The purpose of this AKA installer is to automate those tasks so that any user can deploy a Kubernetes cluster with a single script.
+The purpose of this installer is to automate those tasks so that any user can deploy a Kubernetes cluster with a single script.
 
 ## Online Usage
 
@@ -20,22 +20,21 @@ curl https://kurl.sh/beta | sudo bash
 
 Unstable:
 ```
-curl https://kurl.sh/unstable | sudo bash
+curl https://kurl.sh/latest | sudo bash
 ```
 
 ## Airgapped Usage
 
 To use AKA in an airgapped environment, first fetch the desired channel installer archive from one of these URLs:
 
-* `curl -O https://kurl.sh/dist/kurl.tar.gz`
-* `curl -O https://kurl.sh/dist/kurl-beta.tar.gz`
-* `curl -O https://kurl.sh/dist/kurl-unstable.tar.gz`
+* `curl -O https://kurl.sh/dist/airgap.tar.gz`
+* `curl -O https://kurl.sh/dist/airgap-beta.tar.gz`
+* `curl -O https://kurl.sh/dist/airgap-unstable.tar.gz`
 
 After copying the archive to your host, untar it and run the install script:
 
 ```
-tar xvf kurl.tar.gz
-tar xvf kurl-stable.tar.gz
+tar xvf airgap.tar.gz
 cat install.sh | sudo bash
 ```
 
@@ -77,28 +76,27 @@ All the AKA install scripts are idempotent. Re-run the scripts with different fl
 
 ## Joining Nodes
 
-The install.sh script will print the command that can be run on worker nodes to join them to your new cluster.
-This command will be valid for 24 hours.
-To get a new command to join worker nodes, re-run the install.sh script on the master node.
+The install script will print the command that can be run on worker nodes to join them to your new cluster.
+This command will be valid for 2 hours.
+To get a new command to join worker nodes, re-run the install script on the master node.
 
-For HA clusters, the install.sh script will print out separate commands for joining workers and joining masters.
+For HA clusters, the install script will print out separate commands for joining workers and joining masters.
 
 ## What It Does
 
 ### Kubeadm Pre-Init
 
-AKA will perform the following steps on the host prior to delegating to `kubeadm init`.
+Kurl will perform the following steps on the host prior to delegating to `kubeadm init`.
 
 * Check OS compatibility
 * Check Docker compatiblity if pre-installed
 * Disable swap
 * Check SELinux
 * Install Docker
-* Install Kubeadm, Kubelet, and Kubectl packages
-* Install CNI plugin binaries
+* Install Kubeadm, Kubelet, Kubectl and CNI packages
 * Generate Kubeadm config files from flags passed to the script
 * Load kernel modules required for running Kube-proxy in IPVS mode
-* Configure Docker and Kubeadm to work behind a proxy if detected
+* Configure Docker and Kubernetes to work behind a proxy if detected
 
 ### Add-Ons
 
@@ -121,7 +119,7 @@ The `yaml` directory holds the yaml that will be applied to the cluster or passe
 
 The `scripts` directory contains the top-level and helper scripts to prepare the host, run kubeadm, and apply the yaml for addons.
 
-The `web` directory holds a Golang app for serving the install scripts.
+The `web` directory holds an Express app for serving the install scripts.
 
 ## Contributing
 
@@ -136,7 +134,7 @@ That will place the installer in your HOME's kurl directory and sync any changes
 If you rebuild the OS packages, you'll need to manually run `rsync -r build/ ${USER}@${HOST}:kurl` to push those changes.
 The `make watchrsync` command requires Node with the `gaze-run-interrupt` package available globally.
 
-On the remote instance run `cd ~/kurl/scripts && sudo bash install.sh` to test your changes.
+On the remote instance run `cd ~/kurl && sudo bash scripts/install.sh` to test your changes.
 
 ### Airgap Builds
 
