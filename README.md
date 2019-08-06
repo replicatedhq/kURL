@@ -8,28 +8,24 @@ The purpose of this installer is to automate those tasks so that any user can de
 
 ## Online Usage
 
-To run the latest stable version of the AKA install script:
-```
-curl https://kurl.sh | sudo bash
-```
+To run the latest version of the install script:
 
-Beta:
-```
-curl https://kurl.sh/beta | sudo bash
-```
-
-Unstable:
 ```
 curl https://kurl.sh/latest | sudo bash
 ```
 
+HA
+```
+curl https://kurl.sh/latest | sudo bash -s ha
+```
+
 ## Airgapped Usage
 
-To use AKA in an airgapped environment, first fetch the desired channel installer archive from one of these URLs:
+To install Kubernetes in an airgapped environment, first fetch the installer archive:
 
-* `curl -O https://kurl.sh/dist/airgap.tar.gz`
-* `curl -O https://kurl.sh/dist/airgap-beta.tar.gz`
-* `curl -O https://kurl.sh/dist/airgap-unstable.tar.gz`
+```
+curl -O https://kurl.sh/airgap.tar.gz
+```
 
 After copying the archive to your host, untar it and run the install script:
 
@@ -138,6 +134,6 @@ On the remote instance run `cd ~/kurl && sudo bash scripts/install.sh` to test y
 
 ### Airgap Builds
 
-Run `make dist/kurl.tar.gz` to create an airgap bundle with packages for all supported operating systems.
+Run `make dist/airgap.tar.gz` to create an airgap bundle with packages for all supported operating systems.
 
 Copy the bundle to the airgapped instance, untar and run `cd ~/scripts && sudo bash install.sh`.
