@@ -24,7 +24,7 @@ function weave_resource_secret() {
     insert_resources "$DIR/kustomize/weave/kustomization.yaml" secret.yaml
 
     WEAVE_PASSWORD=$(< /dev/urandom tr -dc A-Za-z0-9 | head -c9)
-    render_yaml_file "$DIR/addons/weave/2.5.2/secret.yaml" > "$DIR/kustomize/weave/secret.yaml"
+    render_yaml_file "$DIR/addons/weave/2.5.2/tmpl-secret.yaml" > "$DIR/kustomize/weave/secret.yaml"
 }
 
 function weave_patch_encrypt() {
@@ -34,7 +34,7 @@ function weave_patch_encrypt() {
 
 function weave_patch_ip_alloc_range() {
     insert_patches_strategic_merge "$DIR/kustomize/weave/kustomization.yaml" ip-alloc-range.yaml
-    render_yaml_file "$DIR/addons/weave/2.5.2/ip-alloc-range.yaml" > "$DIR/kustomize/weave/ip-alloc-range.yaml"
+    render_yaml_file "$DIR/addons/weave/2.5.2/tmpl-ip-alloc-range.yaml" > "$DIR/kustomize/weave/ip-alloc-range.yaml"
 }
 
 function weave_warn_if_sleeve() {

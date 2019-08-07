@@ -1,6 +1,4 @@
-# https://github.com/heptio/contour/tree/v0.14.0/deployment/deployment-grpc-v2
-
----
+# https://raw.githubusercontent.com/heptio/contour/v0.14.0/examples/common/common.yaml
 apiVersion: v1
 kind: Namespace
 metadata:

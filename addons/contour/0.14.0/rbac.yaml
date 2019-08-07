@@ -1,7 +1,4 @@
 # https://raw.githubusercontent.com/heptio/contour/v0.14.0/examples/common/rbac.yaml
-# Modifications:
-# - changed "" to '""'
----
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRoleBinding
 metadata:
@@ -21,7 +18,7 @@ metadata:
   name: contour
 rules:
 - apiGroups:
-  - '""'
+  - ""
   resources:
   - configmaps
   - endpoints
@@ -32,13 +29,13 @@ rules:
   - list
   - watch
 - apiGroups:
-  - '""'
+  - ""
   resources:
   - nodes
   verbs:
   - get
 - apiGroups:
-  - '""'
+  - ""
   resources:
   - services
   verbs:
@@ -62,3 +59,4 @@ rules:
   - put
   - post
   - patch
+---

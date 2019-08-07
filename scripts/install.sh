@@ -8,7 +8,6 @@ DIR=.
 . $DIR/Manifest
 . $DIR/scripts/common/addon.sh
 . $DIR/scripts/common/common.sh
-. $DIR/scripts/common/contour.sh
 . $DIR/scripts/common/discover.sh
 . $DIR/scripts/common/flags.sh
 . $DIR/scripts/common/preflights.sh
@@ -154,9 +153,8 @@ function main() {
     prepare
     # init
     # addon weave "$WEAVE_VERSION"
-    addon rook "$ROOK_VERSION"
-    # rook
-    # contour
+    # addon rook "$ROOK_VERSION"
+    addon contour "$CONTOUR_VERSION"
     outro
 }
 

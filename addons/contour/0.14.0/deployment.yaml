@@ -1,10 +1,3 @@
-# adapted from https://github.com/heptio/contour/tree/v0.14.0/deployment/deployment-grpc-v2
-# imagePullPolicy changed from Always to IfNotPresent
-# envoy image changed to envoy-alpine
-# image tags changed to variables from Manifest
-# changed '"true"' to ''"true"'' and "0" to '"0"'
-
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -22,16 +15,16 @@ spec:
       labels:
         app: contour
       annotations:
-        prometheus.io/scrape: '"true"'
-        prometheus.io/port: '"8002"'
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8002"
         prometheus.io/path: "/stats/prometheus"
     spec:
       containers:
-      - image: gcr.io/heptio-images/contour:v${CONTOUR_VERSION}
-        imagePullPolicy: IfNotPresent
+      - image: gcr.io/heptio-images/contour:v0.14.0
+        imagePullPolicy: Always
         name: contour
         command: ["contour"]
-        args: ["serve", "--incluster", "--envoy-service-http-port", '"8080"', "--envoy-service-https-port", '"8443"']
+        args: ["serve", "--incluster", "--envoy-service-http-port", "8080", "--envoy-service-https-port", "8443"]
         livenessProbe:
           httpGet:
             path: /healthz
@@ -40,7 +33,7 @@ spec:
           httpGet:
             path: /healthz
             port: 8000
-      - image: docker.io/envoyproxy/envoy-alpine:v${ENVOY_VERSION}
+      - image: docker.io/envoyproxy/envoy:v1.10.0
         name: envoy
         ports:
         - containerPort: 8080
@@ -67,7 +60,7 @@ spec:
             exec:
               command: ["wget", "-qO-", "--post-data=''", "http://localhost:9001/healthcheck/fail"] 
       initContainers:
-      - image: gcr.io/heptio-images/contour:v${CONTOUR_VERSION}
+      - image: gcr.io/heptio-images/contour:v0.14.0
         imagePullPolicy: Always
         name: envoy-initconfig
         command: ["contour"]
@@ -99,3 +92,4 @@ spec:
                 matchLabels:
                   app: contour
               topologyKey: kubernetes.io/hostname
+---

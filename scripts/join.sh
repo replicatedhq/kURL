@@ -8,14 +8,12 @@ DIR=.
 . $DIR/Manifest
 . $DIR/scripts/common/addon.sh
 . $DIR/scripts/common/common.sh
-. $DIR/scripts/common/contour.sh
 . $DIR/scripts/common/discover.sh
 . $DIR/scripts/common/flags.sh
 . $DIR/scripts/common/preflights.sh
 . $DIR/scripts/common/prepare.sh
 . $DIR/scripts/common/prompts.sh
 . $DIR/scripts/common/rook.sh
-. $DIR/scripts/common/weave.sh
 . $DIR/scripts/common/yaml.sh
 # Magic end
 
