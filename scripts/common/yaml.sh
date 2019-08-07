@@ -6,3 +6,18 @@ function render_yaml() {
     fi
 	eval "echo \"$(cat $YAML_DIR/$1)\""
 }
+
+function render_yaml_file() {
+	eval "echo \"$(cat $1)\""
+}
+
+function insert_patches_strategic_merge() {
+    local kustomization_file="$1"
+    local patch_file="$2"
+
+    if ! grep -q "patchesStrategicMerge" "$kustomization_file"; then
+        echo "patchesStrategicMerge:" >> "$kustomization_file"
+    fi
+
+    sed '/patchesStrategicMerge.*/a "- $patch_file"' "$kustomization_file"
+}

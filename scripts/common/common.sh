@@ -181,6 +181,14 @@ exportKubeconfig() {
     fi
 }
 
+function kubernetes_resource_exists() {
+    local namespace=$1
+    local kind=$2
+    local name=$3
+
+    kubectl -n "$namespace" get "$kind" "$name" &>/dev/null
+}
+
 splitHostPort() {
     oIFS="$IFS"; IFS=":" read -r HOST PORT <<< "$1"; IFS="$oIFS"
 }

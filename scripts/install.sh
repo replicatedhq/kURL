@@ -149,7 +149,7 @@ function main() {
     prompts
     prepare
     init
-    weave
+    addon weave "$WEAVE_VERSION"
     rook
     contour
     outro

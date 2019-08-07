@@ -1,0 +1,4 @@
+# the weave install script may append more resources and may add patches
+resources:
+- rbac.yaml
+- daemonset.yaml
