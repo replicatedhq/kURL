@@ -102,7 +102,7 @@ After `kubeadm init` has brought up the Kubernetes control plane, AKA will insta
 * [Rook](https://rook.io/)
 * [Contour](https://projectcontour.io/)
 
-Addons
+Kustomize is used to deploy addons to the cluster. After running the install script there will be a kustomize/<addon> directory for each addon that was installed.
 
 ## How It Works
 
@@ -114,9 +114,10 @@ There is also a bundle of Docker images required to run in the Kubernetes cluste
 
 The `scripts` directory contains the top-level and helper scripts to prepare the host, run kubeadm, and install addons.
 
-The `addons` directory holds all available versions of all addons. The directory structure is addons/<name>/<version> and it must hold at least an install.sh script.
+The `addons` directory holds all available versions of all addons. The directory structure is addons/<name>/<version> and must have an install.sh script.
 The install.sh script will be sourced dynamically and must provide a function <name> that will be called to install the addon.
 For example, the file `addons/weave/2.5.2/install.sh` contains a function named `weave` that will prepare and apply the yaml for weave 2.5.2.
+
 For airgapped installs the addons directory will hold all addon versions configured for the channel.
 For dev environments with rsync (see Contributing) the addons directory will have all addons with all versions.
 For online installs the version of the addon configured for the channel will be downloaded at runtime and extracted to the addons directory.
