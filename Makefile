@@ -177,6 +177,6 @@ prod:
 	cp dist/install.sh dist/unstable
 	sed -i.bak 's/INSTALL_URL=.*/INSTALL_URL=https:\/\/kurl.sh/' "dist/join.sh" && rm dist/join.sh.bak
 
-watchrsync:
+watchrsync: dist/k8s-ubuntu-1804.tar.gz
 	rsync -r build/ubuntu-18.04 ${USER}@${HOST}:kurl
 	bin/watchrsync.js

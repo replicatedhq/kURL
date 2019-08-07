@@ -11,6 +11,7 @@ gri([
   'Manifest',
   'scripts/**/*',
   'yaml/**/*',
+  'addons/**/*',
 ], [
   {
     command: 'rsync',
@@ -21,5 +22,8 @@ gri([
   },{
     command: 'rsync',
     args: ['-r', 'yaml', `${process.env.USER}@${process.env.HOST}:kurl`],
+  },{
+    command: 'rsync',
+    args: ['-r', 'addons', `${process.env.USER}@${process.env.HOST}:kurl`],
   }
 ]);

@@ -19,5 +19,16 @@ function insert_patches_strategic_merge() {
         echo "patchesStrategicMerge:" >> "$kustomization_file"
     fi
 
-    sed '/patchesStrategicMerge.*/a "- $patch_file"' "$kustomization_file"
+    sed -i "/patchesStrategicMerge.*/a - $patch_file" "$kustomization_file"
+}
+
+function insert_resources() {
+    local kustomization_file="$1"
+    local resource_file="$2"
+
+    if ! grep -q "resources" "$kustomization_file"; then
+        echo "resources:" >> "$kustomization_file"
+    fi
+
+    sed -i "/resources.*/a - $resource_file" "$kustomization_file"
 }

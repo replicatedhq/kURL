@@ -6,6 +6,7 @@ DIR=.
 
 # Magic begin: scripts are inlined for distribution. See "make build/install.sh"
 . $DIR/Manifest
+. $DIR/scripts/common/addon.sh
 . $DIR/scripts/common/common.sh
 . $DIR/scripts/common/contour.sh
 . $DIR/scripts/common/discover.sh
@@ -14,7 +15,6 @@ DIR=.
 . $DIR/scripts/common/prepare.sh
 . $DIR/scripts/common/prompts.sh
 . $DIR/scripts/common/rook.sh
-. $DIR/scripts/common/weave.sh
 . $DIR/scripts/common/yaml.sh
 # Magic end
 
@@ -148,10 +148,10 @@ function main() {
     preflights
     prompts
     prepare
-    init
+    # init
     addon weave "$WEAVE_VERSION"
-    rook
-    contour
+    # rook
+    # contour
     outro
 }
 

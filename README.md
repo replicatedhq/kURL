@@ -102,6 +102,7 @@ After `kubeadm init` has brought up the Kubernetes control plane, AKA will insta
 * [Rook](https://rook.io/)
 * [Contour](https://projectcontour.io/)
 
+Addons
 
 ## How It Works
 
@@ -111,9 +112,14 @@ The docker bundle runs an image for the target OS and uses its package manager t
 The k8s bundle does the same for kubelet, kubectl, kubeadm, and kubernetes-cni packages.
 There is also a bundle of Docker images required to run in the Kubernetes cluster that is not host-specific.
 
-The `yaml` directory holds the yaml that will be applied to the cluster or passed to kubeadm as config files.
+The `scripts` directory contains the top-level and helper scripts to prepare the host, run kubeadm, and install addons.
 
-The `scripts` directory contains the top-level and helper scripts to prepare the host, run kubeadm, and apply the yaml for addons.
+The `addons` directory holds all available versions of all addons. The directory structure is addons/<name>/<version> and it must hold at least an install.sh script.
+The install.sh script will be sourced dynamically and must provide a function <name> that will be called to install the addon.
+For example, the file `addons/weave/2.5.2/install.sh` contains a function named `weave` that will prepare and apply the yaml for weave 2.5.2.
+For airgapped installs the addons directory will hold all addon versions configured for the channel.
+For dev environments with rsync (see Contributing) the addons directory will have all addons with all versions.
+For online installs the version of the addon configured for the channel will be downloaded at runtime and extracted to the addons directory.
 
 The `web` directory holds an Express app for serving the install scripts.
 
@@ -122,7 +128,6 @@ The `web` directory holds an Express app for serving the install scripts.
 To hack on the installer for Ubuntu 18.04, you'd spin up an instance then run:
 
 ```
-make build/ubuntu-18.04
 HOST=<ip or hostname> USER=<me> make watchrsync
 ```
 

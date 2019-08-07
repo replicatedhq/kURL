@@ -1,16 +1,11 @@
 
 function weave() {
-    rm -rf $DIR/kustomize/weave
-    mkdir -p $DIR/kustomize/weave
-
-    cp $DIR/addons/weave/2.5.2/kustomization.yaml $DIR/kustomize/weave/kustomization.yaml
-    cp $DIR/addons/weave/2.5.2/rbac.yaml $DIR/kustomize/weave/rbac.yaml
-    cp $DIR/addons/weave/2.5.2/daemonset.yaml $DIR/kustomize/weave/daemonset.yaml
-
+    cp "$DIR/addons/weave/2.5.2/kustomization.yaml" "$DIR/kustomize/weave/kustomization.yaml"
+    cp "$DIR/addons/weave/2.5.2/rbac.yaml" "$DIR/kustomize/weave/rbac.yaml"
+    cp "$DIR/addons/weave/2.5.2/daemonset.yaml" "$DIR/kustomize/weave/daemonset.yaml"
 
     if [ "$ENCRYPT_NETWORK" != "0" ]; then
-        # if the secret already exists do not change it because pods that start after the change will
-        # have a different value
+        # don't change existing secrets because pods that start after will have a different value
         if ! kubernetes_resource_exists kube-system secret weave-passwd; then
             weave_resource_secret
         fi
@@ -18,26 +13,28 @@ function weave() {
         weave_warn_if_sleeve
     fi
 
-    if [ "$IPALLOC_RANGE" != "0" ]; then
+    if [ -n "$IPALLOC_RANGE" ]; then
         weave_patch_ip_alloc_range
     fi
+
+    kubectl apply -k "$DIR/kustomize/weave/"
 }
 
 function weave_resource_secret() {
-    echo "- secret.yaml" >> $DIR/kustomize/weave/kustomization.yaml
+    insert_resources "$DIR/kustomize/weave/kustomization.yaml" secret.yaml
 
     WEAVE_PASSWORD=$(< /dev/urandom tr -dc A-Za-z0-9 | head -c9)
-    render_yaml_file $DIR/kustomize/addons/weave/2.5.2/secret.yaml > $DIR/kustomize/weave/secret.yaml
+    render_yaml_file "$DIR/addons/weave/2.5.2/secret.yaml" > "$DIR/kustomize/weave/secret.yaml"
 }
 
 function weave_patch_encrypt() {
-    insert_patches_strategic_merge "$DIR/kustomize/weave/kustomization.yaml" "encrypt.yaml"
-    cp $DIR/addons/weave/2.5.2/encrypt.yaml $DIR/kustomize/weave/encrypt.yaml
+    insert_patches_strategic_merge "$DIR/kustomize/weave/kustomization.yaml" encrypt.yaml
+    cp "$DIR/addons/weave/2.5.2/encrypt.yaml" "$DIR/kustomize/weave/encrypt.yaml"
 }
 
 function weave_patch_ip_alloc_range() {
-    insert_patches_strategic_merge "$DIR/kustomize/weave/kustomization.yaml" "ip-alloc-range.yaml"
-    render_yaml_file $DIR/addons/weave/2.5.2/ip-alloc-range.yaml > $DIR/kustomize/weave/ip-alloc-range.yaml
+    insert_patches_strategic_merge "$DIR/kustomize/weave/kustomization.yaml" ip-alloc-range.yaml
+    render_yaml_file "$DIR/addons/weave/2.5.2/ip-alloc-range.yaml" > "$DIR/kustomize/weave/ip-alloc-range.yaml"
 }
 
 function weave_warn_if_sleeve() {
