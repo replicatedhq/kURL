@@ -151,9 +151,9 @@ function main() {
     preflights
     prompts
     prepare
-    # init
-    # addon weave "$WEAVE_VERSION"
-    # addon rook "$ROOK_VERSION"
+    init
+    addon weave "$WEAVE_VERSION"
+    addon rook "$ROOK_VERSION"
     addon contour "$CONTOUR_VERSION"
     outro
 }

@@ -13,7 +13,7 @@ deps:
 
 build: code build/ubuntu-16.04 build/ubuntu-18.04 build/rhel-7 build/k8s-images.tar
 
-code: build/install.sh build/join.sh build/yaml
+code: build/install.sh build/join.sh build/yaml build/addons
 
 build/install.sh:
 	mkdir -p tmp build
@@ -32,6 +32,10 @@ build/join.sh:
 	done
 	sed -n '/# Magic end/,$$p' scripts/join.sh | sed '1d' >> tmp/join.sh
 	mv tmp/join.sh build/join.sh
+
+build/addons:
+	mkdir -p build
+	cp -r addons build/
 
 build/yaml:
 	mkdir -p build
@@ -129,7 +133,16 @@ build/k8s-images.tar: tmp/kubernetes/pkg/kubernetes-docker-image-cache-common/im
 	docker tag ${k8s_images_image} kurl/k8s-images:${KUBERNETES_VERSION}
 	docker save kurl/k8s-images:${KUBERNETES_VERSION} > build/k8s-images.tar
 
-dist: dist/airgap.tar.gz dist/k8s-ubuntu-1604.tar.gz dist/k8s-ubuntu-1804.tar.gz dist/k8s-rhel-7.tar.gz dist/yaml dist/install.sh dist/join.sh
+dist: dist/airgap.tar.gz dist/k8s-ubuntu-1604.tar.gz dist/k8s-ubuntu-1804.tar.gz dist/k8s-rhel-7.tar.gz dist/yaml dist/install.sh dist/join.sh dist/addons
+
+dist/addons:
+	mkdir -p dist/addons
+	tar cf dist/addons/weave-2.5.2.tar -C addons/weave/2.5.2 .
+	gzip dist/addons/weave-2.5.2.tar
+	tar cf dist/addons/rook-1.0.4.tar -C addons/rook/1.0.4 .
+	gzip dist/addons/rook-1.0.4.tar
+	tar cf dist/addons/contour-0.14.0.tar -C addons/contour/0.14.0 .
+	gzip dist/addons/contour-0.14.0.tar
 
 dist/airgap.tar.gz:
 	mkdir -p dist

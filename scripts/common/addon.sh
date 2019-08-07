@@ -12,6 +12,7 @@ function addon() {
         curl -O "$INSTALL_URL/dist/addons/$name-$version.tar.gz"
         mkdir -p $DIR/addons/$name/$version
         tar xf $name-$version.tar.gz -C $DIR/addons/$name/$version
+        rm $name-$version.tar.gz
     fi
 
     . $DIR/addons/$name/$version/install.sh

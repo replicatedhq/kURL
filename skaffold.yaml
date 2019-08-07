@@ -2,7 +2,7 @@ apiVersion: skaffold/v1beta13
 kind: Config
 build:
   artifacts:
-    - image: replicated/aka
+    - image: replicated/kurl
       context: "./"
       docker:
         dockerfile: ./web/Dockerfile
