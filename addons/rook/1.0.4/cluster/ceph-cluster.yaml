@@ -1,9 +1,4 @@
 # https://raw.githubusercontent.com/rook/rook/v1.0.4/cluster/examples/kubernetes/ceph/cluster.yaml
-# Modifications:
-# - Changed the ceph image tag to a variable from the Manifest
-# - Changed mon.count to 1 and mon.preferredCount to 3
-# - Changed storage.useAllDevices to false
-# - Enabled storage.directories = "$PV_BASE_PATH"
 
 #################################################################################################################
 # Define the settings for the rook-ceph cluster with common settings for a production cluster.
@@ -27,7 +22,7 @@ spec:
     # v12 is luminous, v13 is mimic, and v14 is nautilus.
     # RECOMMENDATION: In production, use a specific version tag instead of the general v14 flag, which pulls the latest release and could result in different
     # versions running within the cluster. See tags available at https://hub.docker.com/r/ceph/ceph/tags/.
-    image: ceph/ceph:v${CEPH_VERSION}
+    image: ceph/ceph:v14.2.1-20190430
     # Whether to allow unsupported versions of Ceph. Currently luminous, mimic and nautilus are supported, with the recommendation to upgrade to nautilus.
     # Do not set to true in production.
     allowUnsupported: false
@@ -37,8 +32,7 @@ spec:
   dataDirHostPath: /var/lib/rook
   # set the amount of mons to be started
   mon:
-    count: 1
-    preferredCount: 3
+    count: 3
     allowMultiplePerNode: false
   # enable the ceph dashboard for viewing cluster status
   dashboard:
@@ -98,7 +92,7 @@ spec:
 #    osd:
   storage: # cluster level storage configuration and selection
     useAllNodes: true
-    useAllDevices: false
+    useAllDevices: true
     deviceFilter:
     location:
     config:
@@ -111,8 +105,8 @@ spec:
       # osdsPerDevice: "1" # this value can be overridden at the node or device level
       # encryptedDevice: "true" # the default value for this option is "false"
 # Cluster level list of directories to use for filestore-based OSD storage. If uncommented, this example would create an OSD under the dataDirHostPath.
-    directories:
-    - path: "$PV_BASE_PATH"
+    #directories:
+    #- path: /var/lib/rook
 # Individual nodes and their config can be specified as well, but 'useAllNodes' above must be set to false. Then, only the named
 # nodes below will be used as storage resources.  Each node's 'name' field should match their 'kubernetes.io/hostname' label.
 #    nodes:

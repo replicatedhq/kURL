@@ -50,6 +50,9 @@ function init() {
     if [ "$HA_CLUSTER" = "1" ]; then
         UPLOAD_CERTS="--upload-certs"
     fi
+    # kubeadm init temporarily taints this node which causes rook to move any mons on it and may
+    # lead to a loss of quorum
+    disable_rook_ceph_operator
     kubeadm init \
         --ignore-preflight-errors=all \
         --config /opt/replicated/kubeadm.conf \
@@ -59,6 +62,7 @@ function init() {
     exportKubeconfig
 
     waitForNodes
+    enable_rook_ceph_operator
 
     DID_INIT_KUBERNETES=1
     logSuccess "Kubernetes Master Initialized"
@@ -149,7 +153,8 @@ function main() {
     prompts
     prepare
     # init
-    addon weave "$WEAVE_VERSION"
+    # addon weave "$WEAVE_VERSION"
+    addon rook "$ROOK_VERSION"
     # rook
     # contour
     outro

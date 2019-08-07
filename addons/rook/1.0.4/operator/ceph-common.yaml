@@ -1,8 +1,4 @@
 # https://raw.githubusercontent.com/rook/rook/v1.0.4/cluster/examples/kubernetes/ceph/common.yaml
-# Modifications:
-# - changed "true" to '"true"' since bash strips them out
-# - changed "" to ''""''
-# - change '"*"' to ''"*"''
 
 ###################################################################################################################
 # Create the common resources that are necessary to start the operator and the ceph cluster.
@@ -215,7 +211,7 @@ metadata:
 aggregationRule:
   clusterRoleSelectors:
   - matchLabels:
-      rbac.ceph.rook.io/aggregate-to-rook-ceph-cluster-mgmt: '"true"'
+      rbac.ceph.rook.io/aggregate-to-rook-ceph-cluster-mgmt: "true"
 rules: []
 ---
 apiVersion: rbac.authorization.k8s.io/v1beta1
@@ -225,10 +221,10 @@ metadata:
   labels:
     operator: rook
     storage-backend: ceph
-    rbac.ceph.rook.io/aggregate-to-rook-ceph-cluster-mgmt: '"true"'
+    rbac.ceph.rook.io/aggregate-to-rook-ceph-cluster-mgmt: "true"
 rules:
 - apiGroups:
-  - '""'
+  - ""
   resources:
   - secrets
   - pods
@@ -267,7 +263,7 @@ metadata:
     storage-backend: ceph
 rules:
 - apiGroups:
-  - '""'
+  - ""
   resources:
   - pods
   - configmaps
@@ -304,7 +300,7 @@ metadata:
 aggregationRule:
   clusterRoleSelectors:
   - matchLabels:
-      rbac.ceph.rook.io/aggregate-to-rook-ceph-global: '"true"'
+      rbac.ceph.rook.io/aggregate-to-rook-ceph-global: "true"
 rules: []
 ---
 apiVersion: rbac.authorization.k8s.io/v1beta1
@@ -314,10 +310,10 @@ metadata:
   labels:
     operator: rook
     storage-backend: ceph
-    rbac.ceph.rook.io/aggregate-to-rook-ceph-global: '"true"'
+    rbac.ceph.rook.io/aggregate-to-rook-ceph-global: "true"
 rules:
 - apiGroups:
-  - '""'
+  - ""
   resources:
   # Pod access is needed for fencing
   - pods
@@ -329,7 +325,7 @@ rules:
   - list
   - watch
 - apiGroups:
-  - '""'
+  - ""
   resources:
   - events
     # PVs and PVCs are managed by the Rook provisioner
@@ -366,15 +362,15 @@ rules:
 - apiGroups:
   - ceph.rook.io
   resources:
-  - '"*"'
+  - "*"
   verbs:
-  - '"*"'
+  - "*"
 - apiGroups:
   - rook.io
   resources:
-  - '"*"'
+  - "*"
   verbs:
-  - '"*"'
+  - "*"
 ---
 # Aspects of ceph-mgr that require cluster-wide access
 kind: ClusterRole
@@ -387,7 +383,7 @@ metadata:
 aggregationRule:
   clusterRoleSelectors:
   - matchLabels:
-      rbac.ceph.rook.io/aggregate-to-rook-ceph-mgr-cluster: '"true"'
+      rbac.ceph.rook.io/aggregate-to-rook-ceph-mgr-cluster: "true"
 rules: []
 ---
 kind: ClusterRole
@@ -397,10 +393,10 @@ metadata:
   labels:
     operator: rook
     storage-backend: ceph
-    rbac.ceph.rook.io/aggregate-to-rook-ceph-mgr-cluster: '"true"'
+    rbac.ceph.rook.io/aggregate-to-rook-ceph-mgr-cluster: "true"
 rules:
 - apiGroups:
-  - '""'
+  - ""
   resources:
   - configmaps
   - nodes
@@ -481,7 +477,7 @@ metadata:
   name: rook-ceph-osd
   namespace: rook-ceph
 rules:
-- apiGroups: ['""']
+- apiGroups: [""]
   resources: ["configmaps"]
   verbs: [ "get", "list", "watch", "create", "update", "delete" ]
 ---
@@ -494,7 +490,7 @@ metadata:
 aggregationRule:
   clusterRoleSelectors:
   - matchLabels:
-      rbac.ceph.rook.io/aggregate-to-rook-ceph-mgr-system: '"true"'
+      rbac.ceph.rook.io/aggregate-to-rook-ceph-mgr-system: "true"
 rules: []
 ---
 kind: ClusterRole
@@ -503,10 +499,10 @@ metadata:
   name: rook-ceph-mgr-system-rules
   namespace: rook-ceph
   labels:
-      rbac.ceph.rook.io/aggregate-to-rook-ceph-mgr-system: '"true"'
+      rbac.ceph.rook.io/aggregate-to-rook-ceph-mgr-system: "true"
 rules:
 - apiGroups:
-  - '""'
+  - ""
   resources:
   - configmaps
   verbs:
@@ -522,7 +518,7 @@ metadata:
   namespace: rook-ceph
 rules:
 - apiGroups:
-  - '""'
+  - ""
   resources:
   - pods
   - services
@@ -544,9 +540,9 @@ rules:
 - apiGroups:
   - ceph.rook.io
   resources:
-  - '"*"'
+  - "*"
   verbs:
-  - '"*"'
+  - "*"
 ---
   # Allow the operator to create resources in this cluster's namespace
 kind: RoleBinding

@@ -59,9 +59,6 @@ function flags() {
             kubernetes-namespace|kubernetes_namespace)
                 KUBERNETES_NAMESPACE="$_value"
                 ;;
-            storage-provisioner|storage_provisioner)
-                STORAGE_PROVISIONER="$_value"
-                ;;
             storage-class|storage_class)
                 STORAGE_CLASS="$_value"
                 ;;
