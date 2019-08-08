@@ -79,10 +79,6 @@ checkFirewalld() {
     if [ "$BYPASS_FIREWALLD_WARNING" = "1" ]; then
         return
     fi
-    # firewalld is only available on RHEL 7+ so other init systems can be ignored
-    if [ "$INIT_SYSTEM" != "systemd" ]; then
-        return
-    fi
     if ! systemctl -q is-active firewalld ; then
         return
     fi
@@ -151,6 +147,20 @@ selinux_enabled() {
     elif commandExists "sestatus"; then
         ENABLED=$(sestatus | grep 'SELinux status' | awk '{ print $3 }')
         echo "$ENABLED" | grep --quiet --ignore-case enabled
+        return
+    fi
+
+    return 1
+}
+
+selinux_enforced() {
+    if commandExists "getenforce"; then
+        ENFORCED=$(getenforce)
+        echo $(getenforce) | grep --quiet --ignore-case enforcing
+        return
+    elif commandExists "sestatus"; then
+        ENFORCED=$(sestatus | grep 'SELinux mode' | awk '{ print $3 }')
+        echo "$ENFORCED" | grep --quiet --ignore-case enforcing
         return
     fi
 

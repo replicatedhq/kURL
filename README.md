@@ -126,7 +126,7 @@ The `web` directory holds an Express app for serving the install scripts.
 
 ## Contributing
 
-To hack on the installer for Ubuntu 18.04, you'd spin up an instance then run:
+Spin up an instance for the target OS then run:
 
 ```
 HOST=<ip or hostname> USER=<me> make watchrsync

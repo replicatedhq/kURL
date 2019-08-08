@@ -155,7 +155,7 @@ installDockerOffline() {
             return
             ;;
         rhel7.4|rhel7.5|rhel7.6|centos7.4|centos7.5|centos7.6)
-            rpm --upgrade --force --nodeps $DIR/rhel-7/packages/k8s/*.rpm
+            rpm --upgrade --force --nodeps $DIR/rhel-7/packages/docker/*.rpm
             DID_INSTALL_DOCKER=1
             return
             ;;
