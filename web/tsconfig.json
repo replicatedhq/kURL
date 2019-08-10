@@ -18,11 +18,11 @@
     },
     "include": [
         "src/**/*.js",
-        "src/**/*.ts"
+        "src/**/*.ts",
+				"client/**/*.ts"
     ],
     "exclude": [
         "node_modules",
-        "src/**/*_test.ts",
         "src/test/**/*.ts"
     ]
 }
