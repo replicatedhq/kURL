@@ -14,4 +14,30 @@ export class KurlClient {
 
     return resp.text;
   }
+
+  public async putInstaller(jwt: string, name: string, yaml: string): Promise<string> {
+    const resp = await request
+      .put(`${this.kurlURL}/installer/${name}`)
+      .set("Content-Type", "text/yaml")
+      .set("Authorization", `Bearer ${jwt}`)
+      .send(yaml)
+
+    return resp.text;
+  }
+
+  public async getInstallScript(installerID: string): Promise<string> {
+    const resp = await request
+      .get(`${this.kurlURL}/${installerID}`)
+      .send()
+
+    return resp.text;
+  }
+
+  public async getJoinScript(installerID: string): Promise<string> {
+    const resp = await request
+      .get(`${this.kurlURL}/${installerID}/join.sh`)
+      .send()
+
+    return resp.text;
+  }
 }

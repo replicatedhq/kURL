@@ -33,11 +33,11 @@ build/install.sh:
 
 build/templates/install.tmpl: build/install.sh
 	mkdir -p build/templates
-	sed 's/^KUBERNETES_VERSION=.*/KUBERNETES_VERSION={{= KUBERNETES_VERSION }}/' "build/install.sh" | \
-		sed 's/^KURL_URL=.*/KURL_URL={{= KURL_URL }}/' | \
-		sed 's/^WEAVE_VERSION=.*/WEAVE_VERSION={{= WEAVE_VERSION }}/' | \
-		sed 's/^ROOK_VERSION=.*/ROOK_VERSION={{= ROOK_VERSION }}/' | \
-		sed 's/^CONTOUR_VERSION=.*/CONTOUR_VERSION={{= CONTOUR_VERSION }}/' > build/templates/install.tmpl
+	sed 's/^KUBERNETES_VERSION=.*/KUBERNETES_VERSION="{{= KUBERNETES_VERSION }}"/' "build/install.sh" | \
+		sed 's/^KURL_URL=.*/KURL_URL="{{= KURL_URL }}"/' | \
+		sed 's/^WEAVE_VERSION=.*/WEAVE_VERSION="{{= WEAVE_VERSION }}"/' | \
+		sed 's/^ROOK_VERSION=.*/ROOK_VERSION="{{= ROOK_VERSION }}"/' | \
+		sed 's/^CONTOUR_VERSION=.*/CONTOUR_VERSION="{{= CONTOUR_VERSION }}"/' > build/templates/install.tmpl
 
 build/join.sh:
 	mkdir -p tmp build
@@ -50,11 +50,11 @@ build/join.sh:
 
 build/templates/join.tmpl: build/join.sh
 	mkdir -p build/templates
-	sed 's/^KUBERNETES_VERSION=.*/KUBERNETES_VERSION={{= KUBERNETES_VERSION }}/' "build/join.sh" | \
-		sed 's/^KURL_URL=.*/KURL_URL={{= KURL_URL }}/' | \
-		sed 's/^WEAVE_VERSION=.*/WEAVE_VERSIOIN={{= WEAVE_VERSION }}/' | \
-		sed 's/^ROOK_VERSION=.*/ROOK_VERSION={{= ROOK_VERSION }}/' | \
-		sed 's/^CONTOUR_VERSION=.*/CONTOUR_VERSION={{= CONTOUR_VERSION }}/' > build/templates/join.tmpl
+	sed 's/^KUBERNETES_VERSION=.*/KUBERNETES_VERSION="{{= KUBERNETES_VERSION }}"/' "build/join.sh" | \
+		sed 's/^KURL_URL=.*/KURL_URL="{{= KURL_URL }}"/' | \
+		sed 's/^WEAVE_VERSION=.*/WEAVE_VERSION="{{= WEAVE_VERSION }}"/' | \
+		sed 's/^ROOK_VERSION=.*/ROOK_VERSION="{{= ROOK_VERSION }}"/' | \
+		sed 's/^CONTOUR_VERSION=.*/CONTOUR_VERSION="{{= CONTOUR_VERSION }}"/' > build/templates/join.tmpl
 
 build/addons:
 	mkdir -p build

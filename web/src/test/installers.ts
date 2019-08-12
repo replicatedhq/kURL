@@ -193,4 +193,25 @@ spec:
 `);
     });
   });
+
+  describe("Installer.isSHA", () => {
+    [
+      { id: "d3a9234", answer: true },
+      { id: "6898644", answer: true },
+      { id: "0000000", answer: true},
+      { id: "abcdefa", answer: true},
+      { id: "68986440", answer: false },
+      { id: "d3a923", answer: false },
+      { id: "latest", answer: false },
+      { id: "f3a9g34", answer: false },
+      { id: "replicated-beta", answer: false },
+      { id: "replicated d3a9234", answer: true },
+    ].forEach((test) => {
+      it(`${test.id} => ${test.answer}`, () => {
+        const output = Installer.isSHA(test.id);
+
+        expect(Installer.isSHA(test.id)).to.equal(test.answer);
+      });
+    });
+  });
 });

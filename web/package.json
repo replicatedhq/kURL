@@ -12,6 +12,7 @@
     "express": "^4.14.0",
     "express-rate-limit": "^2.11.0",
     "js-yaml": "^3.13.1",
+    "jsonwebtoken": "^8.5.1",
     "monkit": "^0.4.0",
     "newrelic": "^5.7.0",
     "pino": "^4.10.4",

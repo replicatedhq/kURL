@@ -31,7 +31,9 @@ export class Installer {
   public rook: RookConfig;
   public contour: ContourConfig;
 
-  constructor() {
+  constructor(
+    public readonly teamID?: string,
+  ) {
     this.kubernetes = { version: "" };
     this.weave = { version: "" };
     this.rook = { version: "" };
@@ -71,10 +73,10 @@ export class Installer {
     return _.get(this, "contour.version", "");
   }
 
-  static parse(doc: string): Installer {
+  static parse(doc: string, teamID?: string): Installer {
     const parsed = yaml.safeLoad(doc);
 
-    const i = new Installer()
+    const i = new Installer(teamID)
     i.id = _.get(parsed, "metadata.name", "");
     i.kubernetes = { version: _.get(parsed, "spec.kubernetes.version", "") };
     i.weave = { version: _.get(parsed, "spec.weave.version", "") };
@@ -196,6 +198,10 @@ spec:
       this.rookVersion() === "latest" &&
       this.contourVersion() === "latest";
   }
+
+  static isSHA(id: string): boolean {
+    return /^[0-9a-f]{7}$/.test(id); 
+  }
 }
 
 @Service()
@@ -213,7 +219,7 @@ export class InstallerStore {
     }
 
     try {
-      const q = "SELECT yaml FROM kurl_installers WHERE kurl_installer_id = ?"
+      const q = "SELECT yaml, team_id FROM kurl_installer WHERE kurl_installer_id = ?"
       const v = [installerID];
       const results = await this.pool.query(q, v);
 
@@ -221,7 +227,7 @@ export class InstallerStore {
         return;
       }
 
-      const i = Installer.parse(results[0].yaml);
+      const i = Installer.parse(results[0].yaml, results[0].team_id);
       i.id = installerID;
       return i;
     } catch (error) {
@@ -230,16 +236,36 @@ export class InstallerStore {
     }
   }
 
+  /*
+   * @returns boolean - true if new row was inserted
+   */
   @instrumented
-  public async saveInstaller(installer: Installer): Promise<undefined> {
+  public async saveAnonymousInstaller(installer: Installer): Promise<boolean> {
     try {
-      const q = "INSERT INTO kurl_installers (kurl_installer_id, yaml) VALUES (?, ?) ON DUPLICATE KEY UPDATE yaml=VALUES(yaml)";
+      const q = "INSERT IGNORE INTO kurl_installer (kurl_installer_id, yaml) VALUES (?, ?)";
       const v = [installer.id, installer.toYAML()];
 
       const results = await this.pool.query(q, v);
+      return results.rowsAffected === 1;
     } catch (error) {
       logger.error(error);
-      return;
+      return false;
+    }
+  }
+
+  /*
+   * @returns boolean - true if new row was inserted or the yaml was updated
+   */
+  public async saveTeamInstaller(installer: Installer): Promise<boolean> {
+    try {
+      const q = "INSERT INTO kurl_installer (kurl_installer_id, yaml, team_id) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE yaml=VALUES(yaml)";
+      const v = [installer.id, installer.toYAML(), installer.teamID];
+
+      const results = await this.pool.query(q, v);
+      return results.rowsAffected === 1;
+    } catch (error) {
+      logger.error(error);
+      return false;
     }
   }
 }

@@ -28,3 +28,5 @@ spec:
           value: "3306"
         - name: MYSQL_DATABASE
           value: replicated
+        - name: JWT_SIGNING_KEY
+          value: jwt-signing-key
