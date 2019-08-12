@@ -205,12 +205,42 @@ spec:
       { id: "latest", answer: false },
       { id: "f3a9g34", answer: false },
       { id: "replicated-beta", answer: false },
-      { id: "replicated d3a9234", answer: true },
+      { id: "replicated d3a9234", answer: false },
     ].forEach((test) => {
       it(`${test.id} => ${test.answer}`, () => {
         const output = Installer.isSHA(test.id);
 
         expect(Installer.isSHA(test.id)).to.equal(test.answer);
+      });
+    });
+  });
+
+  describe("isEqual", () => {
+    describe("equal", () => {
+      it("=> true", () => {
+        const a = Installer.parse(typeMetaStable);
+        const b = Installer.parse(noName);
+        const c = Installer.parse(disordered);
+
+        expect(a.specIsEqual(a)).to.equal(true);
+        expect(a.specIsEqual(b)).to.equal(true);
+        expect(a.specIsEqual(c)).to.equal(true);
+        expect(b.specIsEqual(a)).to.equal(true);
+        expect(b.specIsEqual(b)).to.equal(true);
+        expect(b.specIsEqual(c)).to.equal(true);
+        expect(c.specIsEqual(a)).to.equal(true);
+        expect(c.specIsEqual(b)).to.equal(true);
+        expect(c.specIsEqual(c)).to.equal(true);
+      });
+    });
+
+    describe("inequal", () => {
+      it("=> false", () => {
+        const a = Installer.parse(typeMetaStable);
+        const b = Installer.parse(k8s14);
+
+        expect(a.specIsEqual(b)).to.equal(false);
+        expect(b.specIsEqual(a)).to.equal(false);
       });
     });
   });

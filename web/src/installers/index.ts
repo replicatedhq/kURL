@@ -6,6 +6,7 @@ import { Service } from "ts-express-decorators";
 import { MysqlWrapper } from "../util/services/mysql";
 import { instrumented } from "monkit";
 import { logger } from "../logger";
+import { Forbidden } from "../server/errors";
 
 export interface KubernetesConfig {
   version: string;
@@ -21,6 +22,10 @@ export interface RookConfig {
 
 export interface ContourConfig {
   version: string;
+}
+
+interface ErrorResponse {
+  error: any;
 }
 
 export class Installer {
@@ -87,6 +92,7 @@ export class Installer {
   }
 
   public toYAML(): string {
+    // Do not include team ID. May be returned to unauthenticated requests.
     return `apiVersion: kurl.sh/v1beta1
 kind: Installer
 metadata:
@@ -171,24 +177,26 @@ spec:
     return null;
   }
 
-  public validate(): Error|undefined {
+  public validate(): ErrorResponse|undefined {
     const k8sVersion = Installer.resolveKubernetesVersion(this.kubernetesVersion());
 
     if (!k8sVersion) {
-      // TODO static errors
-      return new Error("Kubernetes version is required");
+      return { error: { message: "Kubernetes version is required" } };
+    }
+    if (!Installer.resolveKubernetesVersion(this.kubernetesVersion())) {
+      return { error: { message: `Kubernetes version ${_.escape(this.kubernetesVersion())} is not supported` } };
     }
 
     if (this.weaveVersion() && !Installer.resolveWeaveVersion(this.weaveVersion())) {
-      return new Error("Weave version is invalid");
+      return { error: { message: `Weave version "${_.escape(this.weaveVersion())}" is not supported` } };
     }
 
     if (this.rookVersion() && !Installer.resolveRookVersion(this.rookVersion())) {
-      return new Error("Rook version is invalid");
+      return { error: { message: `Rook version "${_.escape(this.rookVersion())}" is not supported` } };
     }
 
     if (this.contourVersion() && !Installer.resolveContourVersion(this.contourVersion())) {
-      return new Error("Contour version is invalid");
+      return { error: { message: `Contour version "${_.escape(this.contourVersion())}" is not supported` } };
     }
   }
 
@@ -201,6 +209,13 @@ spec:
 
   static isSHA(id: string): boolean {
     return /^[0-9a-f]{7}$/.test(id); 
+  }
+
+  public specIsEqual(i: Installer): boolean {
+    return this.kubernetesVersion() === i.kubernetesVersion() &&
+      this.weaveVersion() === i.weaveVersion() &&
+      this.rookVersion() == i.rookVersion() &&
+      this.contourVersion() === i.contourVersion();
   }
 }
 
@@ -237,35 +252,78 @@ export class InstallerStore {
   }
 
   /*
-   * @returns boolean - true if new row was inserted
+   * @returns boolean - true if new row was inserted. Used to trigger airgap build.
    */
   @instrumented
   public async saveAnonymousInstaller(installer: Installer): Promise<boolean> {
-    try {
-      const q = "INSERT IGNORE INTO kurl_installer (kurl_installer_id, yaml) VALUES (?, ?)";
-      const v = [installer.id, installer.toYAML()];
-
-      const results = await this.pool.query(q, v);
-      return results.rowsAffected === 1;
-    } catch (error) {
-      logger.error(error);
-      return false;
+    if (!installer.id) {
+      throw new Error("Installer ID is required");
     }
+    if (installer.teamID) {
+      throw new Error("Anonymous installers must not have team ID");
+    }
+    if (!Installer.isSHA(installer.id)) {
+      throw new Error("Anonymous installers must have generated ID");
+    }
+
+    const q = "INSERT IGNORE INTO kurl_installer (kurl_installer_id, yaml) VALUES (?, ?)";
+    const v = [installer.id, installer.toYAML()];
+
+    const results = await this.pool.query(q, v);
+    return results.rowsAffected === 1;
   }
 
   /*
-   * @returns boolean - true if new row was inserted or the yaml was updated
+   * @returns boolean - true if new row was inserted or the yaml spec changes. Used to trigger airgap build.
    */
-  public async saveTeamInstaller(installer: Installer): Promise<boolean> {
-    try {
-      const q = "INSERT INTO kurl_installer (kurl_installer_id, yaml, team_id) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE yaml=VALUES(yaml)";
-      const v = [installer.id, installer.toYAML(), installer.teamID];
+  public async saveTeamInstaller(installer: Installer): Promise<boolean|ErrorResponse> {
+    if (!installer.id) {
+      throw new Error("Installer ID is required");
+    }
+    if (!installer.teamID) {
+      throw new Error("Team installers must have team ID");
+    }
+    if (Installer.isSHA(installer.id)) {
+      throw new Error("Team installers must not have generated ID");
+    }
 
-      const results = await this.pool.query(q, v);
-      return results.rowsAffected === 1;
-    } catch (error) {
-      logger.error(error);
+    const qInsert = "INSERT IGNORE INTO kurl_installer (kurl_installer_id, yaml, team_id) VALUES (?, ?, ?)";
+    const vInsert = [installer.id, installer.toYAML(), installer.teamID];
+
+    const resultsInsert = await this.pool.query(qInsert, vInsert);
+
+    if (resultsInsert.rowsAffected) {
+      return true;
+    }
+
+    // The row already exists. Need to verify team ID and determine whether the spec has changed.
+    const conn = await this.pool.getConnection();
+    await conn.beginTransaction({sql: "", timeout: 10000});
+
+    const qSelect = "SELECT yaml FROM kurl_installer WHERE kurl_installer_id=? AND team_id=? FOR UPDATE";
+    const vSelect = [installer.id, installer.teamID];
+
+    const resultsSelect = await conn.query(qSelect, vSelect);
+
+    if (resultsSelect.length === 0) {
+      await conn.commit();
+      conn.release();
+      throw new Forbidden();
+    }
+
+    const old = Installer.parse(resultsSelect[0].yaml, resultsSelect[0].team_id);
+    if (old.specIsEqual(installer)) {
+      await conn.commit();
+      conn.release();
       return false;
     }
+
+    const qUpdate = "UPDATE kurl_installer SET yaml=? WHERE kurl_installer_id=? AND team_id=?";
+    const vUpdate = [installer.toYAML(), installer.id, installer.teamID];
+
+    await conn.query(qUpdate, vUpdate);
+    await conn.commit();
+    conn.release();
+    return true
   }
 }

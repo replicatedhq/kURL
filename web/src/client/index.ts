@@ -20,7 +20,7 @@ export class KurlClient {
       .put(`${this.kurlURL}/installer/${name}`)
       .set("Content-Type", "text/yaml")
       .set("Authorization", `Bearer ${jwt}`)
-      .send(yaml)
+      .send(yaml);
 
     return resp.text;
   }
@@ -28,7 +28,7 @@ export class KurlClient {
   public async getInstallScript(installerID: string): Promise<string> {
     const resp = await request
       .get(`${this.kurlURL}/${installerID}`)
-      .send()
+      .send();
 
     return resp.text;
   }
@@ -36,7 +36,15 @@ export class KurlClient {
   public async getJoinScript(installerID: string): Promise<string> {
     const resp = await request
       .get(`${this.kurlURL}/${installerID}/join.sh`)
-      .send()
+      .send();
+
+    return resp.text;
+  }
+
+  public async getInstallerYAML(installerID: string): Promise<string> {
+    const resp = await request
+      .get(`${this.kurlURL}/installer/${installerID}`)
+      .send();
 
     return resp.text;
   }

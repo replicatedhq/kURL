@@ -12,7 +12,7 @@ const latest = `
 apiVersion: kurl.sh/v1beta1
 kind: Installer
 metadata:
-  name: ignored
+  name: ""
 spec:
   kubernetes:
     version: latest
@@ -33,7 +33,7 @@ spec:
   rook:
     version: 1.0.4
   contour:
-    version: 0.14.0`
+    version: 0.14.0`;
 
 const d3a9234Canonical = `apiVersion: kurl.sh/v1beta1
 kind: Installer
@@ -47,12 +47,17 @@ spec:
   rook:
     version: "1.0.4"
   contour:
-    version: "0.14.0"`
+    version: "0.14.0"`;
 
 const min = `
 spec:
   kubernetes:
-    version: 1.15.1`
+    version: 1.15.1`;
+
+const badK8sVersion = `
+spec:
+  kubernetes:
+    version: 1.14.99`;
 
 describe("POST /installer", () => {
   describe("latest", () => {
@@ -78,6 +83,34 @@ describe("POST /installer", () => {
       expect(url).to.equal(`${kurlURL}/6898644`);
     });
   });
+
+  describe("empty", () => {
+    it("400", async () => {
+      let err;
+
+      try {
+        await client.postInstaller("");
+      } catch (error) {
+        err = error;
+      }
+
+      expect(err).to.have.property("status", 400);
+    });
+  });
+
+  describe("unsupported Kubernetes version", () => {
+    it("400", async () => {
+      let err;
+
+      try {
+        await client.postInstaller(badK8sVersion);
+      } catch (error) {
+        err = error;
+      }
+
+      expect(err).to.have.property("status", 400);
+    });
+  });
 });
 
 describe("PUT /installer/<id>", () => {
@@ -93,15 +126,35 @@ describe("PUT /installer/<id>", () => {
 
   describe("unauthenticated", () => {
     it("401", async () => {
-      let errored = false;
+      let err;
 
       try {
-        await client.putInstaller("Bearer xxx", "beta", d3a9234)
+        await client.putInstaller("Bearer xxx", "kurl-beta", d3a9234)
       } catch(error) {
-        errored = true
+        err = error;
       }
 
-      expect(errored).to.equal(true);
+      expect(err).to.have.property("status", 401);
+    });
+  });
+
+  describe("forbidden", () => {
+    before(async () => {
+      const tkn = jwt.sign({team_id: "team1"}, "jwt-signing-key");
+      await client.putInstaller(tkn, "kurl-beta", d3a9234);
+    });
+
+    it("403", async () => {
+      let err;
+
+      try {
+        const tkn = jwt.sign({team_id: "team2"}, "jwt-signing-key");
+        await client.putInstaller(tkn, "kurl-beta", d3a9234);
+      } catch (error) {
+        err = error;
+      }
+
+      expect(err).to.have.property("status", 403);
     });
   });
 });
@@ -162,6 +215,31 @@ describe("GET /<installerID>/join.sh", () => {
       expect(script).to.match(new RegExp(`WEAVE_VERSION=""`));
       expect(script).to.match(new RegExp(`ROOK_VERSION=""`));
       expect(script).to.match(new RegExp(`CONTOUR_VERSION=""`));
+    });
+  });
+
+  describe("GET /installer/<installerID>", () => {
+    before(async () => {
+      await client.postInstaller(min);
+    })
+
+    it("returns installer yaml", async() => {
+      const yaml = await client.getInstallerYAML("6898644");
+
+			expect(yaml).to.equal(`apiVersion: kurl.sh/v1beta1
+kind: Installer
+metadata:
+  name: "6898644"
+spec:
+  kubernetes:
+    version: "1.15.1"
+  weave:
+    version: ""
+  rook:
+    version: ""
+  contour:
+    version: ""
+`);
     });
   });
 })

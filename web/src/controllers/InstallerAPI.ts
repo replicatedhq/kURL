@@ -1,7 +1,4 @@
 import * as Express from "express";
-import * as fs from "fs";
-import * as path from "path";
-import * as _ from "lodash";
 import {
   Controller,
   Get,
@@ -13,10 +10,35 @@ import {
 import { instrumented } from "monkit";
 import { Installer, InstallerStore } from "../installers";
 import decode from "../util/jwt";
+import { Forbidden } from "../server/errors";
 
 interface ErrorResponse {
   error: any;
 }
+
+const anonymousWithID = {
+  error: {
+    message: "Name cannot be specified with anonymous installers.",
+  },
+};
+
+const teamWithGeneratedIDResponse = {
+  error: {
+    message: "Name is indistinguishable from a generated ID."
+  },
+}
+
+const idNameMismatchResponse = {
+  error: {
+    message: "URL path ID must match installer name in yaml if provided",
+  },
+};
+
+const nameGeneratedResponse = {
+  error: {
+    message: "Anonymous installers cannot have a name",
+  },
+};
 
 const notFoundResponse = {
   error: {
@@ -36,9 +58,9 @@ const forbiddenResponse = {
   },
 };
 
-const invalidNameResponse = {
+const internalServerErrorResponse = {
   error: {
-    message: "That installer id is invalid",
+    message: "Internal Server Error",
   },
 };
 
@@ -73,16 +95,22 @@ export class Installers {
       response.status(400);
       return { error };
     }
-    const err = i.validate();
-    if (err) {
-      throw err;
+    if (i.id !== "") {
+      return nameGeneratedResponse;
     }
+
     if (i.isLatest()) {
       response.contentType("text/plain");
       response.status(201);
       return `${this.kurlURL}/latest`;
     }
     i.id = i.hash();
+
+    const err = i.validate();
+    if (err) {
+      response.status(400);
+      return { error: { message: err } };
+    }
 
     this.installerStore.saveAnonymousInstaller(i);
 
@@ -125,23 +153,63 @@ export class Installers {
 
     if (Installer.isSHA(id)) {
       response.status(400);
-      return invalidNameResponse;
+      return teamWithGeneratedIDResponse;
     }
 
     let i: Installer;
     try {
       i = Installer.parse(request.body, teamID);
-      i.id = id;
     } catch(error) {
       response.status(400);
       return { error };
     }
+    if (i.id !== "" && i.id !== id) {
+      return idNameMismatchResponse;
+    }
+    i.id = id;
+    const err = i.validate();
+    if (err) {
+      return err;
+    }
 
-    this.installerStore.saveTeamInstaller(i);
+    try {
+      await this.installerStore.saveTeamInstaller(i);
+    } catch (error) {
+      if (error instanceof Forbidden) {
+        response.status(403);
+        return forbiddenResponse;
+      }
+      return internalServerErrorResponse;
+    }
+
 
     response.contentType("text/plain");
     response.status(201);
     return `${this.kurlURL}/${i.id}`;
     return "";
+  }
+
+  /**
+   * Get installer yaml
+   * @param request
+   * @param response
+   * @param id
+   * @returns string
+   */
+  @Get("/:id")
+  public async getInstaller(
+    @Res() response: Express.Response,
+    @Req() request: Express.Request,
+    @PathParams("id") id: string,
+  ): Promise<string | ErrorResponse> {
+    const i = await this.installerStore.getInstaller(id);
+    if (!i) {
+      response.status(404);
+      return notFoundResponse;
+    }
+
+    response.contentType("text/yaml");
+    response.status(200);
+    return i.toYAML();
   }
 }
