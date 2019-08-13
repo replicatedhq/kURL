@@ -233,26 +233,21 @@ export class InstallerStore {
       return Installer.latest();
     }
 
-    try {
-      const q = "SELECT yaml, team_id FROM kurl_installer WHERE kurl_installer_id = ?"
-      const v = [installerID];
-      const results = await this.pool.query(q, v);
+    const q = "SELECT yaml, team_id FROM kurl_installer WHERE kurl_installer_id = ?";
+    const v = [installerID];
+    const results = await this.pool.query(q, v);
 
-      if (results.length === 0) {
-        return;
-      }
-
-      const i = Installer.parse(results[0].yaml, results[0].team_id);
-      i.id = installerID;
-      return i;
-    } catch (error) {
-      logger.error(error);
+    if (results.length === 0) {
       return;
     }
+
+    const i = Installer.parse(results[0].yaml, results[0].team_id);
+    i.id = installerID;
+    return i;
   }
 
   /*
-   * @returns boolean - true if new row was inserted. Used to trigger airgap build.
+   * @returns boolean - true if new row was inserted. Used to trigger airgap build (TODO).
    */
   @instrumented
   public async saveAnonymousInstaller(installer: Installer): Promise<boolean> {
@@ -274,8 +269,9 @@ export class InstallerStore {
   }
 
   /*
-   * @returns boolean - true if new row was inserted or the yaml spec changes. Used to trigger airgap build.
+   * @returns boolean - true if new row was inserted or the yaml spec changes. Used to trigger airgap build (TODO).
    */
+  @instrumented
   public async saveTeamInstaller(installer: Installer): Promise<boolean|ErrorResponse> {
     if (!installer.id) {
       throw new Error("Installer ID is required");
