@@ -211,6 +211,10 @@ spec:
     return /^[0-9a-f]{7}$/.test(id); 
   }
 
+  static isValidSlug(id: string): boolean {
+    return /^[0-9a-zA-Z-_]+$/.test(id);
+  }
+
   public specIsEqual(i: Installer): boolean {
     return this.kubernetesVersion() === i.kubernetesVersion() &&
       this.weaveVersion() === i.weaveVersion() &&

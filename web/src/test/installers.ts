@@ -215,6 +215,21 @@ spec:
     });
   });
 
+  describe("Installer.isValidSlug", () => {
+    [
+      { slug: "ok", answer: true },
+      { slug: "", answer: false},
+      { slug: " ", answer: false},
+      { slug: "big-bank-beta", answer: true},
+    ].forEach((test) => {
+      it(`"${test.slug}" => ${test.answer}`, () => {
+        const output = Installer.isValidSlug(test.slug);
+
+        expect(Installer.isValidSlug(test.slug)).to.equal(test.answer);
+      });
+    });
+  });
+
   describe("isEqual", () => {
     describe("equal", () => {
       it("=> true", () => {

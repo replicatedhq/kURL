@@ -40,6 +40,12 @@ const nameGeneratedResponse = {
   },
 };
 
+const slugCharactersResponse = {
+  error: {
+    message: "Only base64 URL characters may be used for custom named installers",
+  },
+};
+
 const notFoundResponse = {
   error: {
     message: "The requested installer does not exist",
@@ -155,6 +161,10 @@ export class Installers {
     if (Installer.isSHA(id)) {
       response.status(400);
       return teamWithGeneratedIDResponse;
+    }
+    if (!Installer.isValidSlug(id)) {
+      response.status(400);
+      return slugCharactersResponse;
     }
 
     let i: Installer;

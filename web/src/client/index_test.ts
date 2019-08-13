@@ -137,6 +137,21 @@ describe("PUT /installer/<id>", () => {
     });
   });
 
+  describe("invalid name", () => {
+    it("400", async() => {
+      let err;
+
+      try {
+        const tkn = jwt.sign({team_id: "team1"}, "jwt-signing-key");
+        await client.putInstaller(tkn, "invalid name", d3a9234);
+      } catch(error) {
+        err = error
+      }
+
+      expect(err).to.have.property("status", 400);
+    });
+  });
+
   describe("unauthenticated", () => {
     it("401", async () => {
       let err;
