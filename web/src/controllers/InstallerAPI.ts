@@ -22,12 +22,6 @@ const invalidYAMLResponse = {
   },
 };
 
-const anonymousWithIDResponse = {
-  error: {
-    message: "Name cannot be specified with anonymous installers.",
-  },
-};
-
 const teamWithGeneratedIDResponse = {
   error: {
     message: "Name is indistinguishable from a generated ID."

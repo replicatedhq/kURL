@@ -6,13 +6,9 @@ import {
   Controller,
   Get,
   PathParams,
-  Post,
-  Put,
-  Req,
   Res } from "ts-express-decorators";
 import { instrumented } from "monkit";
 import { Installer, InstallerStore } from "../installers";
-import decode from "../util/jwt";
 
 interface ErrorResponse {
   error: any;
@@ -21,24 +17,6 @@ interface ErrorResponse {
 const notFoundResponse = {
   error: {
     message: "The requested installer does not exist",
-  },
-};
-
-const unauthenticatedResponse = {
-  error: {
-    message: "Authentication required",
-  },
-};
-
-const forbiddenResponse = {
-  error: {
-    message: "Forbidden",
-  },
-};
-
-const invalidNameResponse = {
-  error: {
-    message: "That installer id is invalid",
   },
 };
 
@@ -75,19 +53,26 @@ export class Installers {
    * @returns string
    */
   @Get("/:installerID")
+  @instrumented
   public async getInstaller(
     @Res() response: Express.Response,
     @PathParams("installerID") installerID: string,
   ): Promise<string | ErrorResponse> {
-    const i = await this.installerStore.getInstaller(installerID);
+    let installer: Installer;
 
-    if (!i) {
-      response.status(404);
-      return notFoundResponse;
+    try {
+      const i = await this.installerStore.getInstaller(installerID);
+      if (!i) {
+        response.status(404);
+        return notFoundResponse;
+      }
+      installer = i;
+    } catch (error) {
+      return { error };
     }
 
     response.status(200);
-    return this.installTmpl(manifestFromInstaller(i, this.kurlURL));
+    return this.installTmpl(manifestFromInstaller(installer, this.kurlURL));
   }
 
   /**
@@ -97,19 +82,26 @@ export class Installers {
    * @param installerID
    */
   @Get("/:installerID/join.sh")
+  @instrumented
   public async getJoin(
     @Res() response: Express.Response,
     @PathParams("installerID") installerID: string,
   ): Promise<string | ErrorResponse> {
-    const i = await this.installerStore.getInstaller(installerID);
+    let installer: Installer;
 
-    if (!i) {
-      response.status(404);
-      return notFoundResponse;
+    try {
+      const i = await this.installerStore.getInstaller(installerID);
+      if (!i) {
+        response.status(404);
+        return notFoundResponse;
+      }
+      installer = i;
+    } catch(error) {
+      return { error };
     }
 
     response.status(200);
-    return this.joinTmpl(manifestFromInstaller(i, this.kurlURL));
+    return this.joinTmpl(manifestFromInstaller(installer, this.kurlURL));
   }
 }
 
