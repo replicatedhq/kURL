@@ -111,6 +111,19 @@ describe("POST /installer", () => {
       expect(err).to.have.property("status", 400);
     });
   });
+
+  describe("invalid YAML", () => {
+    it("400", async() => {
+      let err;
+
+      try {
+        await client.postInstaller("{{");
+      } catch (error) {
+        err = error;
+      }
+      expect(err).to.have.property("status", 400);
+    });
+  });
 });
 
 describe("PUT /installer/<id>", () => {
