@@ -16,7 +16,13 @@ interface ErrorResponse {
   error: any;
 }
 
-const anonymousWithID = {
+const invalidYAMLResponse = {
+  error: {
+    message: "YAML could not be parsed",
+  },
+};
+
+const anonymousWithIDResponse = {
   error: {
     message: "Name cannot be specified with anonymous installers.",
   },
@@ -58,12 +64,6 @@ const forbiddenResponse = {
   },
 };
 
-const internalServerErrorResponse = {
-  error: {
-    message: "Internal Server Error",
-  },
-};
-
 @Controller("/installer")
 export class Installers {
 
@@ -76,7 +76,9 @@ export class Installers {
   }
 
   /**
-   * /installer handler
+   * /installer handler for custom configurations by unauthenticated users. Equivalent configs
+   * should return identical URLs, which generally part of the SHA of the spec. "latest" is a
+   * special case that applies when every component version is specified as "latest".
    *
    * @param response
    * @param request
@@ -93,9 +95,10 @@ export class Installers {
       i = Installer.parse(request.body);
     } catch(error) {
       response.status(400);
-      return { error };
+      return invalidYAMLResponse;
     }
     if (i.id !== "") {
+      response.status(400);
       return nameGeneratedResponse;
     }
 
@@ -112,7 +115,11 @@ export class Installers {
       return { error: { message: err } };
     }
 
-    this.installerStore.saveAnonymousInstaller(i);
+    try {
+      this.installerStore.saveAnonymousInstaller(i);
+    } catch (error) {
+      return { error };
+    }
 
     response.contentType("text/plain");
     response.status(201);
@@ -179,7 +186,7 @@ export class Installers {
         response.status(403);
         return forbiddenResponse;
       }
-      return internalServerErrorResponse;
+      return { error };
     }
 
 
@@ -202,14 +209,20 @@ export class Installers {
     @Req() request: Express.Request,
     @PathParams("id") id: string,
   ): Promise<string | ErrorResponse> {
-    const i = await this.installerStore.getInstaller(id);
-    if (!i) {
-      response.status(404);
-      return notFoundResponse;
+    let installer: Installer;
+    try {
+      const i = await this.installerStore.getInstaller(id);
+      if (!i) {
+        response.status(404);
+        return notFoundResponse;
+      }
+      installer = i;
+    } catch (error) {
+      return { error };
     }
 
     response.contentType("text/yaml");
     response.status(200);
-    return i.toYAML();
+    return installer.toYAML();
   }
 }
