@@ -1,6 +1,7 @@
 import {describe, it} from "mocha";
 import {expect} from "chai";
 import { Installer } from "../installers";
+import * as _ from "lodash";
 
 const typeMetaStable = `
 apiVersion: kurl.sh/v1beta1
@@ -221,6 +222,8 @@ spec:
       { slug: "", answer: false},
       { slug: " ", answer: false},
       { slug: "big-bank-beta", answer: true},
+      { slug: _.range(0,255).map((x) => "a").join(""), answer: true },
+      { slug: _.range(0,256).map((x) => "a").join(""), answer: false },
     ].forEach((test) => {
       it(`"${test.slug}" => ${test.answer}`, () => {
         const output = Installer.isValidSlug(test.slug);
