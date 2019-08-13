@@ -1,4 +1,3 @@
-
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -9,5 +8,25 @@ spec:
       containers:
       - name: kurl
         env:
-        - name: INSTALL_URL
+        - name: KURL_URL
           value: http://localhost:8092
+        - name: TSED_SUPPRESS_ACCESSLOG
+          value: "1"
+        - name: PINO_LOG_PRETTY
+          value: "1"
+        - name: PINO_LOG_LEVEL
+          value: debug
+        - name: NODE_ENV
+          value: development
+        - name: MYSQL_HOST
+          value: mysql
+        - name: MYSQL_USER
+          value: replicated
+        - name: MYSQL_PASSWORD
+          value: password
+        - name: MYSQL_PORT
+          value: "3306"
+        - name: MYSQL_DATABASE
+          value: replicated
+        - name: JWT_SIGNING_KEY
+          value: jwt-signing-key
