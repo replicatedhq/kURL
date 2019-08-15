@@ -33,7 +33,7 @@ import { initMysqlPool } from "../util/persistence/mysql";
   ],
   debug: false,
   statics: {
-    "/dist": "${rootDir}/../../dist",
+    "/dist": "${rootDir}/../../../dist",
   },
 })
 
