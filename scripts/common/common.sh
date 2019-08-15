@@ -189,6 +189,10 @@ function kubernetes_resource_exists() {
     kubectl -n "$namespace" get "$kind" "$name" &>/dev/null
 }
 
+function load_images() {
+    find "$dir" -type f | xargs -I {} bash -c "docker load < {}"
+}
+
 splitHostPort() {
     oIFS="$IFS"; IFS=":" read -r HOST PORT <<< "$1"; IFS="$oIFS"
 }

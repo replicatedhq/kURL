@@ -32,100 +32,22 @@ jobs:
       - run: sudo make deps # todo cache these
       - run: make test
 
-  build_ubuntu16_docker:
+  upload_staging_packages:
     <<: *defaults
     steps:
       - checkout
       - setup_remote_docker:
-          docker_layer_caching: true
-      - run: make build/ubuntu-16.04/packages/docker
-      - persist_to_workspace:
-          root: build
-          paths:
-            - ubuntu-16.04/packages/docker
-
-  build_ubuntu18_docker:
-    <<: *defaults
-    steps:
-      - checkout
-      - setup_remote_docker:
-          docker_layer_caching: true
-      - run: make build/ubuntu-18.04/packages/docker
-      - persist_to_workspace:
-          root: build
-          paths:
-            - ubuntu-18.04/packages/docker
-
-  build_rhel7_docker:
-    <<: *defaults
-    steps:
-      - checkout
-      - setup_remote_docker:
-          docker_layer_caching: true
-      - run: make build/rhel-7/packages/docker
-      - persist_to_workspace:
-          root: build
-          paths:
-            - rhel-7/packages/docker
-
-  build_ubuntu16_k8s:
-    <<: *defaults
-    steps:
-      - checkout
-      - setup_remote_docker:
-          docker_layer_caching: true
-      - run: make build/ubuntu-16.04/packages/k8s
-      - persist_to_workspace:
-          root: build
-          paths:
-            - ubuntu-16.04/packages/k8s
-
-  build_ubuntu18_k8s:
-    <<: *defaults
-    steps:
-      - checkout
-      - setup_remote_docker:
-          docker_layer_caching: true
-      - run: make build/ubuntu-18.04/packages/k8s
-      - persist_to_workspace:
-          root: build
-          paths:
-            - ubuntu-18.04/packages/k8s
-
-  build_rhel7_k8s:
-    <<: *defaults
-    steps:
-      - checkout
-      - setup_remote_docker:
-          docker_layer_caching: true
-      - run: make build/rhel-7/packages/k8s
-      - persist_to_workspace:
-          root: build
-          paths:
-            - rhel-7/packages/k8s
-
-  build_k8s_images:
-    <<: *defaults
-    steps:
-      - checkout
-      - setup_remote_docker:
-          docker_layer_caching: true
-      - run: make build/k8s-images.tar
-      - persist_to_workspace:
-          root: build
-          paths:
-            - k8s-images.tar
-
-  build_dist:
-    <<: *defaults
-    steps:
-      - checkout
-      - setup_remote_docker:
-          docker_layer_caching: true
+          version: 17.06.0-ce
       - attach_workspace:
           at: build
       - run: make code
       - run: make dist
+      - deploy:
+          name: upload packages
+          command: |
+            export AWS_ACCESS_KEY_ID=$STAGING_AWS_ACCESS_KEY_ID
+            export AWS_SECRET_ACCESS_KEY=$STAGING_AWS_SECRET_ACCESS_KEY
+            aws s3 cp dist/ s3://kurl_staging/packages
 
   build_staging_docker_image:
     <<: *defaults

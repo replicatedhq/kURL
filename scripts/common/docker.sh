@@ -1,11 +1,5 @@
 
-function prepare() {
-    loadIPVSKubeProxyModules
-
-    exportProxy
-    # kubeadm requires this in the environment to reach the K8s API server
-    export no_proxy="$NO_PROXY_ADDRESSES"
-
+function install_docker() {
     if [ "$SKIP_DOCKER_INSTALL" != "1" ]; then
         if [ "$OFFLINE_DOCKER_INSTALL" != "1" ]; then
             installDockerOnline "$DOCKER_VERSION" "$MIN_DOCKER_VERSION"
@@ -32,53 +26,6 @@ function prepare() {
 
     if [ "$NO_PROXY" != "1" ] && [ -n "$PROXY_ADDRESS" ]; then
         checkDockerProxyConfig
-    fi
-
-    installKubernetesComponents "$KUBERNETES_VERSION"
-
-    if [ "$AIRGAP" = "1" ]; then
-        airgapLoadKubernetesImages
-    fi
-
-    return 0
-}
-
-loadIPVSKubeProxyModules() {
-    if [ "$IPVS" != "1" ]; then
-        return
-    fi
-    if lsmod | grep -q ip_vs ; then
-        return
-    fi
-
-    modprobe nf_conntrack_ipv4
-    modprobe ip_vs
-    modprobe ip_vs_rr
-    modprobe ip_vs_wrr
-    modprobe ip_vs_sh
-
-    echo 'nf_conntrack_ipv4' > /etc/modules-load.d/replicated-ipvs.conf
-    echo 'ip_vs' >> /etc/modules-load.d/replicated-ipvs.conf
-    echo 'ip_vs_rr' >> /etc/modules-load.d/replicated-ipvs.conf
-    echo 'ip_vs_wrr' >> /etc/modules-load.d/replicated-ipvs.conf
-    echo 'ip_vs_sh' >> /etc/modules-load.d/replicated-ipvs.conf
-}
-
-exportProxy() {
-    if [ -z "$PROXY_ADDRESS" ]; then
-        return
-    fi
-    if [ -z "$http_proxy" ]; then
-       export http_proxy=$PROXY_ADDRESS
-    fi
-    if [ -z "$https_proxy" ]; then
-       export https_proxy=$PROXY_ADDRESS
-    fi
-    if [ -z "$HTTP_PROXY" ]; then
-       export HTTP_PROXY=$PROXY_ADDRESS
-    fi
-    if [ -z "$HTTPS_PROXY" ]; then
-       export HTTPS_PROXY=$PROXY_ADDRESS
     fi
 }
 
@@ -300,92 +247,6 @@ _configureDockerProxySystemd() {
     sed -i'' -e "s#^\(Environment=.*$\)#\1 \"HTTP_PROXY=${2}\" \"NO_PROXY=${3}\"#" "$1"
 }
 
-
-# k8sVersion is an argument because this may be used to install step versions of K8s during an upgrade
-# to the target version
-installKubernetesComponents() {
-    k8sVersion=$1
-
-    logStep "Install kubelet, kubeadm, kubectl and cni binaries"
-
-    if kubernetesHostCommandsOK; then
-        logSuccess "Kubernetes components already installed"
-        return
-    fi
-
-    case "$LSB_DIST$DIST_VERSION" in
-        ubuntu16.04)
-            if [ "$AIRGAP" != "1" ] && [ -n "$KURL_URL" ]; then
-                curl -O "$KURL_URL/dist/k8s-ubuntu-1604.tar.gz"
-                mkdir -p $DIR/ubuntu-16.04/packages/k8s
-                tar xf k8s-ubuntu-1604.tar.gz -C $DIR/ubuntu-18.04/packages/k8s
-            fi
-            export DEBIAN_FRONTEND=noninteractive
-            dpkg -i --force-depends-version $DIR/ubuntu-16.04/packages/k8s/*.deb
-            ;;
-        ubuntu18.04)
-            if [ "$AIRGAP" != "1" ] && [ -n "$KURL_URL" ]; then
-                curl -O "$KURL_URL/dist/k8s-ubuntu-1804.tar.gz"
-                mkdir -p $DIR/ubuntu-18.04/packages/k8s
-                tar xf k8s-ubuntu-1804.tar.gz -C $DIR/ubuntu-18.04/packages/k8s
-            fi
-
-            export DEBIAN_FRONTEND=noninteractive
-            dpkg -i --force-depends-version $DIR/ubuntu-18.04/packages/k8s/*.deb
-            ;;
-
-        centos7.4|centos7.5|centos7.6|rhel7.4|rhel7.5|rhel7.6)
-            # This needs to be run on Linux 3.x nodes for Rook
-            modprobe rbd
-            echo 'rbd' > /etc/modules-load.d/replicated-rook.conf
-
-            echo "net.bridge.bridge-nf-call-ip6tables = 1" > /etc/sysctl.d/k8s.conf
-            echo "net.bridge.bridge-nf-call-iptables = 1" >> /etc/sysctl.d/k8s.conf
-            echo "net.ipv4.conf.all.forwarding = 1" >> /etc/sysctl.d/k8s.conf
-
-            sysctl --system
-
-            if [ "$AIRGAP" != "1" ] && [ -n "$KURL_URL" ]; then
-                curl -O "$KURL_URL/dist/k8s-rhel-7.tar.gz"
-                mkdir -p $DIR/rhel-7/packages/k8s
-                tar xf k8s-rhel-7.tar.gz -C $DIR/rhel-7/packages/k8s
-            fi
-            rpm --upgrade --force --nodeps $DIR/rhel-7/packages/k8s/*.rpm
-            service docker restart
-            ;;
-
-        *)
-            bail "Kubernetes install is not supported on ${LSB_DIST} ${DIST_VERSION}"
-            ;;
-    esac
-
-    rm -rf archives
-
-    if [ "$CLUSTER_DNS" != "$DEFAULT_CLUSTER_DNS" ]; then
-        sed -i "s/$DEFAULT_CLUSTER_DNS/$CLUSTER_DNS/g" /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
-    fi
-    systemctl enable kubelet && systemctl start kubelet
-
-    logSuccess "Kubernetes components installed"
-}
-
-kubernetesHostCommandsOK() {
-    if ! commandExists kubelet; then
-        printf "kubelet command missing - will install host components\n"
-        return 1
-    fi
-    if ! commandExists kubeadm; then
-        printf "kubeadm command missing - will install host components\n"
-        return 1
-    fi
-    if ! commandExists kubectl; then
-        printf "kubectl command missing - will install host components\n"
-        return 1
-    fi
-
-    return 0
-}
-
 lockPackageVersion() {
     case $LSB_DIST in
         rhel|centos)
@@ -396,26 +257,4 @@ lockPackageVersion() {
             apt-mark hold $1
             ;;
     esac
-}
-
-airgapLoadKubernetesImages() {
-    docker load < $DIR/k8s-images.tar
-    docker run \
-        -v /var/run/docker.sock:/var/run/docker.sock \
-	    "kurl/k8s-images:${KUBERNETES_VERSION}"
-
-    (
-        set -x
-        docker tag $HYPERKUBE_IMAGE_ID k8s.gcr.io/hyperkube:v${KUBERNETES_VERSION}
-        docker tag $ETCD_IMAGE_ID k8s.gcr.io/etcd:${ETCD_VERSION}
-        docker tag $PAUSE_IMAGE_ID k8s.gcr.io/pause:${PAUSE_VERSION}
-        docker tag $COREDNS_IMAGE_ID k8s.gcr.io/coredns:${COREDNS_VERSION}
-        docker tag $WEAVE_KUBE_IMAGE_ID docker.io/weaveworks/weave-kube:${WEAVE_VERSION}
-        docker tag $WEAVE_NPC_IMAGE_ID docker.io/weaveworks/weave-npc:${WEAVE_VERSION}
-        docker tag $WEAVE_EXEC_IMAGE_ID docker.io/weaveworks/weaveexec:${WEAVE_VERSION}
-        docker tag $ENVOY_IMAGE_ID docker.io/envoyproxy/envoy-alpine:v${ENVOY_VERSION}
-        docker tag $CONTOUR_IMAGE_ID gcr.io/heptio-images/contour:v${CONTOUR_VERSION}
-        docker tag $ROOK_IMAGE_ID docker.io/rook/ceph:v${ROOK_VERSION}
-        docker tag $CEPH_IMAGE_ID docker.io/ceph/ceph:v${CEPH_VERSION}
-    )
 }

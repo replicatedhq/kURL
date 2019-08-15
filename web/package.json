@@ -5,7 +5,7 @@
   "main": "./build/index.js",
   "license": "Apache License 2.0",
   "dependencies": {
-    "aws-sdk": "^2.506.0",
+    "aws-sdk": "^2.510.0",
     "body-parser": "^1.18.2",
     "bugsnag": "^2.0.1",
     "cors": "^2.8.1",

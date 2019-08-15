@@ -5,7 +5,7 @@ set -e
 DIR=.
 
 # Magic begin: scripts are inlined for distribution. See "make build/join.sh"
-. $DIR/Manifest
+. $DIR/scripts/Manifest
 . $DIR/scripts/common/addon.sh
 . $DIR/scripts/common/common.sh
 . $DIR/scripts/common/discover.sh
