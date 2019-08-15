@@ -8,8 +8,6 @@ ADD yarn.lock .
 RUN make deps
 
 ADD . .
-RUN mv dist /dist
-RUN mv templates /templates
 RUN make build
 
 EXPOSE 3000

@@ -39,31 +39,11 @@ export class ServerError extends HTTPError {
   }
 }
 
-export class Invalid extends HTTPError {
-  constructor(msg: string) {
-    super(400, {
-      error: {
-        message: msg,
-      },
-    });
-  }
-}
-
 export class Unauthorized extends HTTPError {
   constructor() {
     super(401, {
       error: {
         message: "Unauthorized",
-      },
-    });
-  }
-}
-
-export class Forbidden extends HTTPError {
-  constructor() {
-    super(403, {
-      error: {
-        message: "Forbidden",
       },
     });
   }

@@ -13,14 +13,7 @@ deps:
 
 build: code build/ubuntu-16.04 build/ubuntu-18.04 build/rhel-7 build/k8s-images.tar
 
-code: build/templates/install.tmpl build/templates/join.tmpl build/yaml build/addons
-
-.PHONY: web
-web: code dist/yaml dist/addons
-	mkdir -p web/dist web/templates
-	cp -r build/templates web/
-	cp -r dist/yaml web/dist/
-	cp -r dist/addons web/dist/
+code: build/install.sh build/join.sh build/yaml build/addons
 
 build/install.sh:
 	mkdir -p tmp build
@@ -31,14 +24,6 @@ build/install.sh:
 	sed -n '/# Magic end/,$$p' scripts/install.sh | sed '1d' >> tmp/install.sh
 	mv tmp/install.sh build/install.sh
 
-build/templates/install.tmpl: build/install.sh
-	mkdir -p build/templates
-	sed 's/^KUBERNETES_VERSION=.*/KUBERNETES_VERSION="{{= KUBERNETES_VERSION }}"/' "build/install.sh" | \
-		sed 's/^KURL_URL=.*/KURL_URL="{{= KURL_URL }}"/' | \
-		sed 's/^WEAVE_VERSION=.*/WEAVE_VERSION="{{= WEAVE_VERSION }}"/' | \
-		sed 's/^ROOK_VERSION=.*/ROOK_VERSION="{{= ROOK_VERSION }}"/' | \
-		sed 's/^CONTOUR_VERSION=.*/CONTOUR_VERSION="{{= CONTOUR_VERSION }}"/' > build/templates/install.tmpl
-
 build/join.sh:
 	mkdir -p tmp build
 	sed '/# Magic begin/q' scripts/join.sh | sed '$$d' > tmp/join.sh
@@ -47,14 +32,6 @@ build/join.sh:
 	done
 	sed -n '/# Magic end/,$$p' scripts/join.sh | sed '1d' >> tmp/join.sh
 	mv tmp/join.sh build/join.sh
-
-build/templates/join.tmpl: build/join.sh
-	mkdir -p build/templates
-	sed 's/^KUBERNETES_VERSION=.*/KUBERNETES_VERSION="{{= KUBERNETES_VERSION }}"/' "build/join.sh" | \
-		sed 's/^KURL_URL=.*/KURL_URL="{{= KURL_URL }}"/' | \
-		sed 's/^WEAVE_VERSION=.*/WEAVE_VERSION="{{= WEAVE_VERSION }}"/' | \
-		sed 's/^ROOK_VERSION=.*/ROOK_VERSION="{{= ROOK_VERSION }}"/' | \
-		sed 's/^CONTOUR_VERSION=.*/CONTOUR_VERSION="{{= CONTOUR_VERSION }}"/' > build/templates/join.tmpl
 
 build/addons:
 	mkdir -p build

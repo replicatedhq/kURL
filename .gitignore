@@ -2,4 +2,3 @@ install_scripts/
 build/
 dist/
 tmp/
-web/templates

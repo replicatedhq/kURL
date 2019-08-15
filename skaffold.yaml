@@ -3,9 +3,9 @@ kind: Config
 build:
   artifacts:
     - image: replicated/kurl
-      context: "./web"
+      context: "./"
       docker:
-        dockerfile: ./Dockerfile.skaffold
+        dockerfile: ./web/Dockerfile
 deploy:
   kustomize:
-    path: "./kustomize/overlays/dev/"
+    path: "./web/kustomize"

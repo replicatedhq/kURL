@@ -1,6 +1,5 @@
 import * as Sigsci from "sigsci-module-nodejs";
 import {
-  InjectorService,
   OverrideMiddleware,
   Req,
   Res,
@@ -16,7 +15,6 @@ import { ErrorMiddleware } from "./errors";
 import * as RateLimit from "express-rate-limit";
 import { TSEDVerboseLogging } from "../logger";
 import { consoleReporter } from "replicated-lint/dist/cmdutil/reporters";
-import { initMysqlPool } from "../util/persistence/mysql";
 
 @ServerSettings({
   rootDir: path.resolve(__dirname),
@@ -27,13 +25,12 @@ import { initMysqlPool } from "../util/persistence/mysql";
   port: 3000,
   httpsPort: 0,
   componentsScan: [
-    "${rootDir}/../util/services/**/**.js",
-    "${rootDir}/../installers/**/**.js",
     "${rootDir}/**/**.js",
   ],
   debug: false,
   statics: {
-    "/dist": "${rootDir}/../../dist",
+    "/": "${rootDir}/../../../dist",
+    "/dist": "${rootDir}/../../../dist",
   },
 })
 
@@ -44,10 +41,6 @@ export class Server extends ServerLoader {
     private readonly bugsnagKey: string,
   ) {
     super();
-  }
-
-  public async $onInit(): Promise<void> {
-    await initMysqlPool();
   }
 
   /**
@@ -67,9 +60,6 @@ export class Server extends ServerLoader {
     this.use(bodyParser.urlencoded({
       type: "application/x-www-form-urlencoded",
       extended: false,
-    }));
-    this.use(bodyParser.text({
-      type: ["text/plain", "text/yaml", "text/x-yaml", "application/x-yaml"],
     }));
 
     this.use(cors());

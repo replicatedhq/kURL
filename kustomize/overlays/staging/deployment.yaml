@@ -18,5 +18,5 @@ spec:
             value: "kurl"
           - name: USE_EC2_PARAMETERS
             value: "1"
-          - name: KURL_URL
+          - name: INSTALL_URL
             value: https://staging.kurl.sh
