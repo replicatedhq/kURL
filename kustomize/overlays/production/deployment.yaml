@@ -18,5 +18,5 @@ spec:
             value: "kurl"
           - name: USE_EC2_PARAMETERS
             value: "1"
-          - name: INSTALL_URL
+          - name: KURL_URL
             value: https://kurl.sh

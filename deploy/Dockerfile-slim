@@ -5,6 +5,8 @@ ENV VERSION=$version
 
 ADD web /src
 ADD dist /dist
+ADD build/templates /templates
+
 WORKDIR /src
 
 RUN chmod +x /src/bin/kurl

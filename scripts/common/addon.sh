@@ -3,6 +3,10 @@ function addon() {
     local name=$1
     local version=$2
 
+    if [ -z "$version" ]; then
+        return 0
+    fi
+
     logStep "Addon $name $version"
 
     rm -rf $DIR/kustomize/$name
