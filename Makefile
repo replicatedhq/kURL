@@ -201,17 +201,17 @@ dist/join.sh: build/join.sh
 
 staging:
 	$(MAKE) -C web deps build
-	sed -i.bak 's/INSTALL_URL=.*/INSTALL_URL=https:\/\/staging.kurl.sh/' "dist/install.sh" && rm dist/install.sh.bak
+	sed -i.bak 's/KURL_URL=.*/KURL_URL=https:\/\/staging.kurl.sh/' "dist/install.sh" && rm dist/install.sh.bak
 	cp dist/install.sh dist/latest
 	cp dist/install.sh dist/unstable
-	sed -i.bak 's/INSTALL_URL=.*/INSTALL_URL=https:\/\/staging.kurl.sh/' "dist/join.sh" && rm dist/join.sh.bak
+	sed -i.bak 's/KURL_URL=.*/KURL_URL=https:\/\/staging.kurl.sh/' "dist/join.sh" && rm dist/join.sh.bak
 
 prod:
 	$(MAKE) -C web deps build
-	sed -i.bak 's/INSTALL_URL=.*/INSTALL_URL=https:\/\/kurl.sh/' "dist/install.sh" && rm dist/install.sh.bak
+	sed -i.bak 's/KURL_URL=.*/KURL_URL=https:\/\/kurl.sh/' "dist/install.sh" && rm dist/install.sh.bak
 	cp dist/install.sh dist/latest
 	cp dist/install.sh dist/unstable
-	sed -i.bak 's/INSTALL_URL=.*/INSTALL_URL=https:\/\/kurl.sh/' "dist/join.sh" && rm dist/join.sh.bak
+	sed -i.bak 's/KURL_URL=.*/KURL_URL=https:\/\/kurl.sh/' "dist/join.sh" && rm dist/join.sh.bak
 
 watchrsync: dist/k8s-ubuntu-1804.tar.gz dist/k8s-rhel-7.tar.gz
 	rsync -r build/ubuntu-18.04 ${USER}@${HOST}:kurl

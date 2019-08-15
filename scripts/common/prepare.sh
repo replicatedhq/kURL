@@ -315,8 +315,8 @@ installKubernetesComponents() {
 
     case "$LSB_DIST$DIST_VERSION" in
         ubuntu16.04)
-            if [ "$AIRGAP" != "1" ] && [ -n "$INSTALL_URL" ]; then
-                curl -O "$INSTALL_URL/dist/k8s-ubuntu-1604.tar.gz"
+            if [ "$AIRGAP" != "1" ] && [ -n "$KURL_URL" ]; then
+                curl -O "$KURL_URL/dist/k8s-ubuntu-1604.tar.gz"
                 mkdir -p $DIR/ubuntu-16.04/packages/k8s
                 tar xf k8s-ubuntu-1604.tar.gz -C $DIR/ubuntu-18.04/packages/k8s
             fi
@@ -324,8 +324,8 @@ installKubernetesComponents() {
             dpkg -i --force-depends-version $DIR/ubuntu-16.04/packages/k8s/*.deb
             ;;
         ubuntu18.04)
-            if [ "$AIRGAP" != "1" ] && [ -n "$INSTALL_URL" ]; then
-                curl -O "$INSTALL_URL/dist/k8s-ubuntu-1804.tar.gz"
+            if [ "$AIRGAP" != "1" ] && [ -n "$KURL_URL" ]; then
+                curl -O "$KURL_URL/dist/k8s-ubuntu-1804.tar.gz"
                 mkdir -p $DIR/ubuntu-18.04/packages/k8s
                 tar xf k8s-ubuntu-1804.tar.gz -C $DIR/ubuntu-18.04/packages/k8s
             fi
@@ -345,8 +345,8 @@ installKubernetesComponents() {
 
             sysctl --system
 
-            if [ "$AIRGAP" != "1" ] && [ -n "$INSTALL_URL" ]; then
-                curl -O "$INSTALL_URL/dist/k8s-rhel-7.tar.gz"
+            if [ "$AIRGAP" != "1" ] && [ -n "$KURL_URL" ]; then
+                curl -O "$KURL_URL/dist/k8s-rhel-7.tar.gz"
                 mkdir -p $DIR/rhel-7/packages/k8s
                 tar xf k8s-rhel-7.tar.gz -C $DIR/rhel-7/packages/k8s
             fi
