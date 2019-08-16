@@ -34,12 +34,6 @@ const idNameMismatchResponse = {
   },
 };
 
-const nameGeneratedResponse = {
-  error: {
-    message: "Anonymous installers cannot have a name",
-  },
-};
-
 const slugCharactersResponse = {
   error: {
     message: "Only base64 URL characters may be used for custom named installers",
@@ -93,13 +87,10 @@ export class Installers {
     let i: Installer;
     try {
       i = Installer.parse(request.body);
+      i.id = "" // ignore any provided name
     } catch(error) {
       response.status(400);
       return invalidYAMLResponse;
-    }
-    if (i.id !== "") {
-      response.status(400);
-      return nameGeneratedResponse;
     }
 
     if (i.isLatest()) {

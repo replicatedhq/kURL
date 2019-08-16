@@ -128,7 +128,7 @@ spec:
   static latest(): Installer {
     const i = new Installer();
 
-    i.id = "latest";
+    i.id = "";
     i.kubernetes.version = "1.15.1";
     i.weave.version = "2.5.2";
     i.rook.version = "1.0.4";
