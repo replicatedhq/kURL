@@ -16,7 +16,7 @@ function enable_rook_ceph_operator() {
     kubectl -n rook-ceph scale deployment rook-ceph-operator --replicas=1
 }
 
-function if_rook_1() {
+function is_rook_1() {
     kubectl -n rook-ceph get cephblockpools replicapool &>/dev/null
 }
 

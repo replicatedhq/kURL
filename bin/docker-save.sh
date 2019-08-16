@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 MANIFEST_PATH=$1
 OUT_DIR=$2
 

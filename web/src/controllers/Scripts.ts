@@ -107,6 +107,7 @@ export class Installers {
 
 interface Manifest {
   KURL_URL: string;
+  INSTALLER_ID: string;
   KUBERNETES_VERSION: string;
   WEAVE_VERSION: string;
   ROOK_VERSION: string;
@@ -116,6 +117,7 @@ interface Manifest {
 function manifestFromInstaller(i: Installer, kurlURL: string): Manifest {
   return {
     KURL_URL: kurlURL,
+    INSTALLER_ID: i.id,
     KUBERNETES_VERSION: i.kubernetesVersion(),
     WEAVE_VERSION: i.weaveVersion(),
     ROOK_VERSION: i.rookVersion(),

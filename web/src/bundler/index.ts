@@ -23,15 +23,11 @@ export class Bundler {
   }
 
   public async build(installer: Installer) {
-    // TODO add this bucket and param to terraform
     const bucket = await param("KURL_S3_BUCKET", "/kurl/s3_bucket");
 
-    this.s3.getObject(
     // GET the bucket param
     // Download and extract the component tarballs
     // Bundle it all up
     // Upload to S3
   }
-
-  private async download(
 }

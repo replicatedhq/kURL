@@ -40,14 +40,29 @@ jobs:
           version: 17.06.0-ce
       - attach_workspace:
           at: build
-      - run: make code
       - run: make dist
       - deploy:
           name: upload packages
           command: |
             export AWS_ACCESS_KEY_ID=$STAGING_AWS_ACCESS_KEY_ID
             export AWS_SECRET_ACCESS_KEY=$STAGING_AWS_SECRET_ACCESS_KEY
-            aws s3 cp dist/ s3://kurl_staging/packages
+            bin/upload-dist.sh kurl-sh-staging
+
+  upload_production_packages:
+    <<: *defaults
+    steps:
+      - checkout
+      - setup_remote_docker:
+          version: 17.06.0-ce
+      - attach_workspace:
+          at: build
+      - run: make dist
+      - deploy:
+          name: upload packages
+          command: |
+            export AWS_ACCESS_KEY_ID=$PRODUCTION_AWS_ACCESS_KEY_ID
+            export AWS_SECRET_ACCESS_KEY=$PRODUCTION_AWS_SECRET_ACCESS_KEY
+            bin/upload-dist.sh kurl-sh
 
   build_staging_docker_image:
     <<: *defaults
@@ -57,9 +72,7 @@ jobs:
           version: 17.06.0-ce
       - attach_workspace:
           at: build
-      - run: make code
-      - run: make dist
-      - run: make staging
+      - run: make web
       - run: |
           export WORKDIR=`pwd`
           export CIRCLE_PROJECT_REPONAME=$PROJECT_NAME
@@ -83,9 +96,7 @@ jobs:
           version: 17.06.0-ce
       - attach_workspace:
           at: build
-      - run: make code
-      - run: make dist
-      - run: make prod
+      - run: make web
       - run: |
           export WORKDIR=`pwd`
           export CIRCLE_PROJECT_REPONAME=$PROJECT_NAME
@@ -149,53 +160,28 @@ workflows:
             branches:
               only: master
 
-      - build_ubuntu16_docker:
-          requires:
-            - is_upstream
-      - build_ubuntu18_docker:
-          requires:
-            - is_upstream
-      - build_rhel7_docker:
-          requires:
-            - is_upstream
-      - build_ubuntu16_k8s:
-          requires:
-            - is_upstream
-      - build_ubuntu18_k8s:
-          requires:
-            - is_upstream
-      - build_rhel7_k8s:
-          requires:
-            - is_upstream
-      - build_k8s_images:
+      - upload_staging_packages:
           requires:
             - is_upstream
       - build_staging_docker_image:
           requires:
-            - build_ubuntu16_docker
-            - build_ubuntu18_docker
-            - build_rhel7_docker
-            - build_ubuntu16_k8s
-            - build_ubuntu18_k8s
-            - build_rhel7_k8s
-            - build_k8s_images
-      - build_production_docker_image:
-          requires:
-            - build_ubuntu16_docker
-            - build_ubuntu18_docker
-            - build_rhel7_docker
-            - build_ubuntu16_k8s
-            - build_ubuntu18_k8s
-            - build_rhel7_k8s
-            - build_k8s_images
+            - is_upstream
       - deploy_staging_eks:
           requires:
             - build_staging_docker_image
+            - upload_staging_packages
+      - build_production_docker_image:
+          requires:
+            - is_upstream
       - hold:
           type: approval
           requires:
             - deploy_staging_eks
+      - upload_production_packages:
+          requires:
+            - hold
       - deploy_production_eks:
           requires:
+            - upload_production_packages
             - build_production_docker_image
             - hold

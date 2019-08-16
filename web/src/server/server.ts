@@ -32,9 +32,6 @@ import { initMysqlPool } from "../util/persistence/mysql";
     "${rootDir}/**/**.js",
   ],
   debug: false,
-  statics: {
-    "/dist": "${rootDir}/../../../dist",
-  },
 })
 
 export class Server extends ServerLoader {

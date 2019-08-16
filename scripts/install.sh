@@ -22,6 +22,8 @@ DIR=.
 function init() {
     logStep "Initialize Kubernetes"
 
+    get_yaml
+
     kubernetes_maybe_generate_bootstrap_token
 
     if [ "$HA_CLUSTER" = "1" ]; then
@@ -129,7 +131,7 @@ function outro() {
         printf "\n"
         printf "To add worker nodes to this installation, run the following script on your other nodes"
         printf "\n"
-        printf "${GREEN}    curl $KURL_URL/join.sh | sudo bash -s kubernetes-master-address=${PRIVATE_ADDRESS} kubeadm-token=${BOOTSTRAP_TOKEN} kubeadm-token-ca-hash=$KUBEADM_TOKEN_CA_HASH kubernetes-version=$KUBERNETES_VERSION \n"
+        printf "${GREEN}    curl $KURL_URL/$INSTALLER_ID/join.sh | sudo bash -s kubernetes-master-address=${PRIVATE_ADDRESS} kubeadm-token=${BOOTSTRAP_TOKEN} kubeadm-token-ca-hash=$KUBEADM_TOKEN_CA_HASH kubernetes-version=$KUBERNETES_VERSION \n"
         printf "${NC}"
         printf "\n"
         printf "\n"
@@ -137,7 +139,7 @@ function outro() {
             printf "\n"
             printf "To add ${RED}MASTER${NC} nodes to this installation, run the following script on your other nodes"
             printf "\n"
-            printf "${GREEN}    curl $KURL_URL/join.sh | sudo bash -s kubernetes-master-address=${PRIVATE_ADDRESS} kubeadm-token=${BOOTSTRAP_TOKEN} kubeadm-token-ca-hash=$KUBEADM_TOKEN_CA_HASH kubernetes-version=$KUBERNETES_VERSION cert-key=${CERT_KEY} control-plane\n"
+            printf "${GREEN}    curl $KURL_URL/$INSTALLER_ID/join.sh | sudo bash -s kubernetes-master-address=${PRIVATE_ADDRESS} kubeadm-token=${BOOTSTRAP_TOKEN} kubeadm-token-ca-hash=$KUBEADM_TOKEN_CA_HASH kubernetes-version=$KUBERNETES_VERSION cert-key=${CERT_KEY} control-plane\n"
             printf "${NC}"
             printf "\n"
             printf "\n"

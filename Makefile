@@ -1,6 +1,6 @@
-.PHONY: clean deps code
 SHELL := /bin/bash
 
+.PHONY: clean
 clean:
 	rm -rf build tmp dist
 
@@ -8,27 +8,40 @@ dist:
 	${MAKE} dist/kubernetes-1.15.0.tar.gz
 	${MAKE} dist/kubernetes-1.15.1.tar.gz
 	${MAKE} dist/kubernetes-1.15.2.tar.gz
+	${MAKE} dist/docker-18.09.8.tar.gz
 	${MAKE} dist/weave-2.5.2.tar.gz
 	${MAKE} dist/rook-1.0.4.tar.gz
 	${MAKE} dist/contour-0.14.0.tar.gz
+	${MAKE} dist/common.tar.gz
+
+dist/common.tar.gz: build/yaml
+	mkdir -p dist
+	tar cf - -C build yaml | gzip > dist/common.tar.gz
 
 dist/weave-%.tar.gz: build/addons
 	mkdir -p build/addons/weave/$*/images
 	bin/docker-save.sh addons/weave/$*/Manifest build/addons/weave/$*/images
 	mkdir -p dist
-	tar cf - -C build addons/weave/$* | gzip > dist/weave-$*.tar.gz
+	tar cf - -C build/addons/weave/$* . | gzip > dist/weave-$*.tar.gz
 
 dist/rook-%.tar.gz: build/addons
 	mkdir -p build/addons/rook/$*/images
 	bin/docker-save.sh addons/rook/$*/Manifest build/addons/rook/$*/images
 	mkdir -p dist
-	tar cf - -C build addons/rook/$* | gzip > dist/rook-$*.tar.gz
+	tar cf - -C build/addons/rook/$* . | gzip > dist/rook-$*.tar.gz
 
-dist/contour-$.tar.gz: build/addons
+dist/contour-%.tar.gz: build/addons
 	mkdir -p build/addons/contour/$*/images
 	bin/docker-save.sh addons/contour/$*/Manifest build/addons/contour/$*/images
 	mkdir -p dist
-	tar cf - -C build addons/contour/$* | gzip > dist/contour-$*.tar.gz
+	tar cf - -C build/addons/contour/$* . | gzip > dist/contour-$*.tar.gz
+
+dist/docker-%.tar.gz:
+	${MAKE} build/packages/docker/$*/ubuntu-16.04
+	${MAKE} build/packages/docker/$*/ubuntu-18.04
+	${MAKE} build/packages/docker/$*/rhel-7
+	mkdir -p dist
+	tar cf - -C build/packages/docker/$* . | gzip > dist/docker-$*.tar.gz
 
 dist/kubernetes-%.tar.gz:
 	${MAKE} build/packages/kubernetes/$*/images
@@ -36,22 +49,11 @@ dist/kubernetes-%.tar.gz:
 	${MAKE} build/packages/kubernetes/$*/ubuntu-18.04
 	${MAKE} build/packages/kubernetes/$*/rhel-7
 	mkdir -p dist
-	tar cf - -C build packages/kubernetes/$* | gzip > dist/kubernetes-$*.tar.gz
+	tar cf - -C build/packages/kubernetes/$* . | gzip > dist/kubernetes-$*.tar.gz
 
 build/packages/kubernetes/%/images:
 	mkdir -p build/packages/kubernetes/$*/images
 	bin/docker-save.sh packages/kubernetes/$*/Manifest build/packages/kubernetes/$*/images
-
-build: code
-
-code: build/templates/install.tmpl build/templates/join.tmpl build/yaml build/addons
-
-.PHONY: web
-web: code dist/yaml dist/addons
-	mkdir -p web/dist web/templates
-	cp -r build/templates web/
-	cp -r dist/yaml web/dist/
-	cp -r dist/addons web/dist/
 
 build/install.sh:
 	mkdir -p tmp build
@@ -66,9 +68,11 @@ build/templates/install.tmpl: build/install.sh
 	mkdir -p build/templates
 	sed 's/^KUBERNETES_VERSION=.*/KUBERNETES_VERSION="{{= KUBERNETES_VERSION }}"/' "build/install.sh" | \
 		sed 's/^KURL_URL=.*/KURL_URL="{{= KURL_URL }}"/' | \
+		sed 's/^INSTALLER_ID=.*/INSTALLER_ID="{{= INSTALLER_ID }}"/' | \
 		sed 's/^WEAVE_VERSION=.*/WEAVE_VERSION="{{= WEAVE_VERSION }}"/' | \
 		sed 's/^ROOK_VERSION=.*/ROOK_VERSION="{{= ROOK_VERSION }}"/' | \
 		sed 's/^CONTOUR_VERSION=.*/CONTOUR_VERSION="{{= CONTOUR_VERSION }}"/' > build/templates/install.tmpl
+	
 
 build/join.sh:
 	mkdir -p tmp build
@@ -83,6 +87,7 @@ build/templates/join.tmpl: build/join.sh
 	mkdir -p build/templates
 	sed 's/^KUBERNETES_VERSION=.*/KUBERNETES_VERSION="{{= KUBERNETES_VERSION }}"/' "build/join.sh" | \
 		sed 's/^KURL_URL=.*/KURL_URL="{{= KURL_URL }}"/' | \
+		sed 's/^INSTALLER_ID=.*/INSTALLER_ID="{{= INSTALLER_ID }}"/' | \
 		sed 's/^WEAVE_VERSION=.*/WEAVE_VERSION="{{= WEAVE_VERSION }}"/' | \
 		sed 's/^ROOK_VERSION=.*/ROOK_VERSION="{{= ROOK_VERSION }}"/' | \
 		sed 's/^CONTOUR_VERSION=.*/CONTOUR_VERSION="{{= CONTOUR_VERSION }}"/' > build/templates/join.tmpl
@@ -119,7 +124,7 @@ build/packages/docker/%/ubuntu-18.04:
 	docker cp docker-ubuntu1804-$*:/packages/archives/. build/packages/docker/$*/ubuntu-18.04
 	docker rm docker-ubuntu1804-$*
 
-build/packages/docker/$*/rhel-7:
+build/packages/docker/%/rhel-7:
 	docker build \
 		--build-arg DOCKER_VERSION=$* \
 		-t kurl/rhel-7-docker:$* \
@@ -166,6 +171,15 @@ build/packages/kubernetes/%/rhel-7:
 	mkdir -p build/packages/kubernetes/$*/rhel-7
 	docker cp k8s-rhel7-$*:/packages/archives/. build/packages/kubernetes/$*/rhel-7/
 	docker rm k8s-rhel7-$*
+
+build/templates: build/templates/install.tmpl build/templates/join.tmpl
+
+.PHONY: code
+code: build/templates build/yaml build/addons
+
+.PHONY: web
+web: build/templates
+	cp -r build/templates web/
 
 watchrsync:
 	rsync -r build/ ${USER}@${HOST}:kurl
