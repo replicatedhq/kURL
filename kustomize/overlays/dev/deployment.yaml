@@ -32,3 +32,5 @@ spec:
           value: replicated
         - name: JWT_SIGNING_KEY
           value: jwt-signing-key
+        - name: AIRGAP_BUNDLING_DISABLED
+          value: ""

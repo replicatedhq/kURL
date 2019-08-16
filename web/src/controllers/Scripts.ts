@@ -1,7 +1,4 @@
 import * as Express from "express";
-import * as fs from "fs";
-import * as path from "path";
-import * as _ from "lodash";
 import {
   Controller,
   Get,
@@ -9,6 +6,7 @@ import {
   Res } from "ts-express-decorators";
 import { instrumented } from "monkit";
 import { Installer, InstallerStore } from "../installers";
+import { Templates } from "../util/services/templates";
 
 interface ErrorResponse {
   error: any;
@@ -23,27 +21,10 @@ const notFoundResponse = {
 @Controller("/")
 export class Installers {
 
-  private kurlURL: string;
-  private installTmpl: (any) => string;
-  private joinTmpl: (any) => string;
-
   constructor (
     private readonly installerStore: InstallerStore,
-  ) {
-    this.kurlURL = process.env["KURL_URL"] || "https://kurl.sh";
-
-    const tmplDir = path.join(__dirname, "../../../templates");
-    const installTmplPath = path.join(tmplDir, "install.tmpl");
-    const joinTmplPath = path.join(tmplDir, "join.tmpl");
-
-    const opts = {
-      escape: /{{-([\s\S]+?)}}/g,
-      evaluate: /{{([\s\S]+?)}}/g,
-      interpolate: /{{=([\s\S]+?)}}/g,
-    };
-    this.installTmpl = _.template(fs.readFileSync(installTmplPath, "utf8"), opts);
-    this.joinTmpl = _.template(fs.readFileSync(joinTmplPath, "utf8"), opts);
-  }
+    private readonly templates: Templates,
+  ) {}
 
   /**
    * /<installerID> handler
@@ -72,7 +53,7 @@ export class Installers {
     }
 
     response.status(200);
-    return this.installTmpl(manifestFromInstaller(installer, this.kurlURL));
+    return this.templates.renderInstallScript(installer);
   }
 
   /**
@@ -101,27 +82,6 @@ export class Installers {
     }
 
     response.status(200);
-    return this.joinTmpl(manifestFromInstaller(installer, this.kurlURL));
+    return this.templates.renderJoinScript(installer);
   }
 }
-
-interface Manifest {
-  KURL_URL: string;
-  INSTALLER_ID: string;
-  KUBERNETES_VERSION: string;
-  WEAVE_VERSION: string;
-  ROOK_VERSION: string;
-  CONTOUR_VERSION: string;
-}
-
-function manifestFromInstaller(i: Installer, kurlURL: string): Manifest {
-  return {
-    KURL_URL: kurlURL,
-    INSTALLER_ID: i.id,
-    KUBERNETES_VERSION: i.kubernetesVersion(),
-    WEAVE_VERSION: i.weaveVersion(),
-    ROOK_VERSION: i.rookVersion(),
-    CONTOUR_VERSION: i.contourVersion(),
-  };
-}
-

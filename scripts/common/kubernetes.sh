@@ -106,8 +106,7 @@ function kubernetes_get_host_packages_online() {
 
     if [ "$AIRGAP" != "1" ] && [ -n "$KURL_URL" ]; then
         curl -sSLO "$KURL_URL/dist/kubernetes-${k8sVersion}.tar.gz"
-        mkdir -p $DIR/packages/kubernetes/${k8sVersion}
-        tar xf kubernetes-${k8sVersion}.tar.gz -C $DIR/packages/kubernetes/${k8sVersion}
+        tar xf kubernetes-${k8sVersion}.tar.gz
         rm kubernetes-${k8sVersion}.tar.gz
     fi
 }

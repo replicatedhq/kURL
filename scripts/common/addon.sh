@@ -14,8 +14,7 @@ function addon() {
 
     if [ "$AIRGAP" != "1" ] && [ -n "$KURL_URL" ]; then
         curl -sSLO "$KURL_URL/dist/$name-$version.tar.gz"
-        mkdir -p $DIR/addons/$name/$version
-        tar xf $name-$version.tar.gz -C $DIR/addons/$name/$version
+        tar xf $name-$version.tar.gz
         rm $name-$version.tar.gz
     fi
 

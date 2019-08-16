@@ -78,6 +78,10 @@ export class Installer {
     return _.get(this, "contour.version", "");
   }
 
+  public dockerVersion(): string {
+    return "18.09.8";
+  }
+
   static parse(doc: string, teamID?: string): Installer {
     const parsed = yaml.safeLoad(doc);
 
@@ -110,7 +114,9 @@ spec:
   }
 
   static kubernetesVersions = [
+    "1.15.2",
     "1.15.1",
+    "1.15.0",
   ];
 
   static weaveVersions = [
@@ -128,8 +134,8 @@ spec:
   static latest(): Installer {
     const i = new Installer();
 
-    i.id = "";
-    i.kubernetes.version = "1.15.1";
+    i.id = "latest";
+    i.kubernetes.version = "1.15.2";
     i.weave.version = "2.5.2";
     i.rook.version = "1.0.4";
     i.contour.version = "0.14.0";
