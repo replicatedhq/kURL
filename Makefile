@@ -22,26 +22,26 @@ dist/weave-%.tar.gz: build/addons
 	mkdir -p build/addons/weave/$*/images
 	bin/docker-save.sh addons/weave/$*/Manifest build/addons/weave/$*/images
 	mkdir -p dist
-	tar cf - -C build addons/weave/$* . | gzip > dist/weave-$*.tar.gz
+	tar cf - -C build addons/weave/$* | gzip > dist/weave-$*.tar.gz
 
 dist/rook-%.tar.gz: build/addons
 	mkdir -p build/addons/rook/$*/images
 	bin/docker-save.sh addons/rook/$*/Manifest build/addons/rook/$*/images
 	mkdir -p dist
-	tar cf - -C build addons/rook/$* . | gzip > dist/rook-$*.tar.gz
+	tar cf - -C build addons/rook/$* | gzip > dist/rook-$*.tar.gz
 
 dist/contour-%.tar.gz: build/addons
 	mkdir -p build/addons/contour/$*/images
 	bin/docker-save.sh addons/contour/$*/Manifest build/addons/contour/$*/images
 	mkdir -p dist
-	tar cf - -C build addons/contour/$* . | gzip > dist/contour-$*.tar.gz
+	tar cf - -C build addons/contour/$* | gzip > dist/contour-$*.tar.gz
 
 dist/docker-%.tar.gz:
 	${MAKE} build/packages/docker/$*/ubuntu-16.04
 	${MAKE} build/packages/docker/$*/ubuntu-18.04
 	${MAKE} build/packages/docker/$*/rhel-7
 	mkdir -p dist
-	tar cf - -C build packages/docker/$* . | gzip > dist/docker-$*.tar.gz
+	tar cf - -C build packages/docker/$* | gzip > dist/docker-$*.tar.gz
 
 dist/kubernetes-%.tar.gz:
 	${MAKE} build/packages/kubernetes/$*/images
@@ -49,7 +49,7 @@ dist/kubernetes-%.tar.gz:
 	${MAKE} build/packages/kubernetes/$*/ubuntu-18.04
 	${MAKE} build/packages/kubernetes/$*/rhel-7
 	mkdir -p dist
-	tar cf - -C build packages/kubernetes/$* . | gzip > dist/kubernetes-$*.tar.gz
+	tar cf - -C build packages/kubernetes/$* | gzip > dist/kubernetes-$*.tar.gz
 
 build/packages/kubernetes/%/images:
 	mkdir -p build/packages/kubernetes/$*/images
@@ -180,8 +180,8 @@ code: build/templates build/yaml build/addons
 .PHONY: web
 web: build/templates
 	mkdir -p web/build
-	cp -r build/templates web/build
-	cp bin/create-bundle-alpine.sh web/build/templates
+	cp -r build/templates web
+	cp bin/create-bundle-alpine.sh web/templates
 
 watchrsync:
 	rsync -r build/ ${USER}@${HOST}:kurl

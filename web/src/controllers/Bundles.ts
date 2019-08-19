@@ -5,8 +5,8 @@ import {
   PathParams,
   Res } from "ts-express-decorators";
 
-@Controller("/dist")
-export class Dist {
+@Controller("/bundle")
+export class Bundle {
   private distOrigin: string;
 
   constructor() {
@@ -14,7 +14,7 @@ export class Dist {
   }
 
   /**
-   * /dist/ handler
+   * /bundle/ handler
    *
    * @param response
    * @returns {{id: any, name: string}}
@@ -24,7 +24,7 @@ export class Dist {
     @Res() response: Express.Response,
     @PathParams("pkg") pkg: string,
   ): Promise<void> {
-    const location = `${this.distOrigin}/dist/${pkg}`
+    const location = `${this.distOrigin}/bundle/${pkg}`
 
     response.redirect(307, location);
   }

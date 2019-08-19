@@ -16,7 +16,7 @@ export class Templates {
   constructor () {
     this.kurlURL = process.env["KURL_URL"] || "https://kurl.sh";
 
-    const tmplDir = path.join(__dirname, "../../../templates");
+    const tmplDir = path.join(__dirname, "../../../../templates");
     const installTmplPath = path.join(tmplDir, "install.tmpl");
     const joinTmplPath = path.join(tmplDir, "join.tmpl");
     const createBundlePath = path.join(tmplDir, "create-bundle-alpine.sh");

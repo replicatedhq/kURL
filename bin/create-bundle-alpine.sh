@@ -1,6 +1,6 @@
 #!/bin/sh
 
-set -eo pipefail
+set -e
 
 apk add curl
 
@@ -10,16 +10,15 @@ shift
 mkdir -p /tmp/work
 cd /tmp/work
 
+cp /scripts/install.sh /tmp/work/install.sh
+cp /scripts/join.sh /tmp/work/join.sh
+
 while [ -n "$1" ]; do
     echo "Downloading and extracting $1"
     curl -L "$1" | tar zxf -
     shift
 done
 
-# TODO redact
-echo "Uploading $SIGNED_PUT_URL"
-tar cf - . | gzip | curl -X POST -d @- "$SIGNED_PUT_URL"
-
-# TODO remove sleep
-sleep 3600
-exit 0
+cd /tmp
+tar czf bundle.tar.gz -C work .
+curl --upload-file bundle.tar.gz -H 'Content-Type: application/gzip' "$SIGNED_PUT_URL"

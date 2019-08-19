@@ -85,6 +85,9 @@ function main() {
     prompts
     configure_proxy
     install_docker
+    addon_load weave "$WEAVE_VERSION"
+    addon_load rook "$ROOK_VERSION"
+    addon_load contour "$CONTOUR_VERSION"
     kubernetes_host
     join
     outro

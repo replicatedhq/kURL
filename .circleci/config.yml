@@ -38,8 +38,6 @@ jobs:
       - checkout
       - setup_remote_docker:
           version: 17.06.0-ce
-      - attach_workspace:
-          at: build
       - run: make dist
       - deploy:
           name: upload packages
@@ -48,14 +46,36 @@ jobs:
             export AWS_SECRET_ACCESS_KEY=$STAGING_AWS_SECRET_ACCESS_KEY
             bin/upload-dist.sh kurl-sh-staging
 
+  upload_staging_latest:
+    <<: *defaults
+    steps:
+      - checkout
+      - deploy:
+          name: upload latest bundle
+          command: |
+            export AWS_ACCESS_KEY_ID=$STAGING_AWS_ACCESS_KEY_ID
+            export AWS_SECRET_ACCESS_KEY=$STAGING_AWS_SECRET_ACCESS_KEY
+            export S3_BUCKET kurl-sh-staging
+            bin/upload-latest-bundle.sh
+
+  upload_production_latest:
+    <<: *defaults
+    steps:
+      - checkout
+      - deploy:
+          name: upload latest bundle
+          command: |
+            export AWS_ACCESS_KEY_ID=$PRODUCTION_AWS_ACCESS_KEY_ID
+            export AWS_SECRET_ACCESS_KEY=$PRODUCTION_AWS_SECRET_ACCESS_KEY
+            export S3_BUCKET kurl-sh
+            bin/upload-latest-bundle.sh
+
   upload_production_packages:
     <<: *defaults
     steps:
       - checkout
       - setup_remote_docker:
           version: 17.06.0-ce
-      - attach_workspace:
-          at: build
       - run: make dist
       - deploy:
           name: upload packages
@@ -70,8 +90,6 @@ jobs:
       - checkout
       - setup_remote_docker:
           version: 17.06.0-ce
-      - attach_workspace:
-          at: build
       - run: make web
       - run: |
           export WORKDIR=`pwd`
@@ -94,8 +112,6 @@ jobs:
       - checkout
       - setup_remote_docker:
           version: 17.06.0-ce
-      - attach_workspace:
-          at: build
       - run: make web
       - run: |
           export WORKDIR=`pwd`
@@ -170,6 +186,9 @@ workflows:
           requires:
             - build_staging_docker_image
             - upload_staging_packages
+      - upload_staging_latest:
+          requires:
+            - upload_staging_packages:
       - build_production_docker_image:
           requires:
             - is_upstream
@@ -181,6 +200,11 @@ workflows:
           requires:
             - hold
       - deploy_production_eks:
+          requires:
+            - upload_production_packages
+            - build_production_docker_image
+            - hold
+      - upload_production_latest:
           requires:
             - upload_production_packages
             - build_production_docker_image

@@ -6,9 +6,7 @@ function kubernetes_host() {
 
     kubernetes_install_host_packages "$KUBERNETES_VERSION"
 
-    if [ "$AIRGAP" = "1" ]; then
-        load_images $DIR/
-    fi
+    load_images $DIR/packages/kubernetes/$KUBERNETES_VERSION/images
 }
 
 function kubernetes_load_ipvs_modules() {

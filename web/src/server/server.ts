@@ -17,6 +17,7 @@ import * as RateLimit from "express-rate-limit";
 import { TSEDVerboseLogging } from "../logger";
 import { consoleReporter } from "replicated-lint/dist/cmdutil/reporters";
 import { initMysqlPool } from "../util/persistence/mysql";
+import { Installer } from "../installers";
 
 @ServerSettings({
   rootDir: path.resolve(__dirname),
@@ -95,9 +96,11 @@ export class Server extends ServerLoader {
     }
   }
 
+  /*
   public $afterRoutesInit() {
     this.use(ErrorMiddleware);
   }
+  */
 
   public $onServerInitError(err) {
     $log.error(err);

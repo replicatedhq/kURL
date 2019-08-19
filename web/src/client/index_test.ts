@@ -3,6 +3,8 @@ import {expect} from "chai";
 import { KurlClient } from "./";
 import { Installer } from "../installers";
 import * as jwt from "jsonwebtoken";
+import * as url from "url";
+import * as _ from "lodash";
 
 
 const kurlURL = process.env.KURL_URL || "http://localhost:8092";
@@ -58,6 +60,22 @@ const badK8sVersion = `
 spec:
   kubernetes:
     version: 1.14.99`;
+
+const mixedLatest = `
+apiVersion: kurl.sh/v1beta1
+kind: Installer
+metadata:
+  name: ""
+spec:
+  kubernetes:
+    version: latest
+  weave:
+    version: latest
+  rook:
+    version: 1.0.4
+  contour:
+    version: latest
+`;
 
 describe("POST /installer", () => {
   describe("latest", () => {
@@ -152,6 +170,21 @@ describe("PUT /installer/<id>", () => {
     });
   });
 
+  describe("reserved name", () => {
+    it("400", async() => {
+      let err;
+
+      try {
+        const tkn = jwt.sign({team_id: "team1"}, "jwt-signing-key");
+        await client.putInstaller(tkn, "BETA", d3a9234);
+      } catch(error) {
+        err = error;
+      }
+
+      expect(err).to.have.property("status", 400);
+    });
+  });
+
   describe("unauthenticated", () => {
     it("401", async () => {
       let err;
@@ -198,6 +231,7 @@ describe("GET /<installerID>", () => {
       expect(script).to.match(new RegExp(`WEAVE_VERSION="${latest.weaveVersion()}"`));
       expect(script).to.match(new RegExp(`ROOK_VERSION="${latest.rookVersion()}"`));
       expect(script).to.match(new RegExp(`CONTOUR_VERSION="${latest.contourVersion()}"`));
+      expect(script).to.match(/INSTALLER_ID="latest"/);
     });
   });
 
@@ -215,7 +249,25 @@ describe("GET /<installerID>", () => {
       expect(script).to.match(new RegExp(`CONTOUR_VERSION=""`));
     });
   });
-})
+
+  describe("mixed latest", () => {
+    let id: string;
+
+    before(async () => {
+      const installer = await client.postInstaller(mixedLatest);
+      id = _.trim(url.parse(installer).path, "/");
+    });
+
+    it("resolves all versions", async() => {
+      const script = await client.getInstallScript(id);
+
+      expect(script).to.match(new RegExp(`KUBERNETES_VERSION="1.\\d+.\\d+"`));
+      expect(script).to.match(new RegExp(`WEAVE_VERSION="\\d+.\\d+.\\d+"`));
+      expect(script).to.match(new RegExp(`ROOK_VERSION="\\d+.\\d+.\\d+"`));
+      expect(script).to.match(new RegExp(`CONTOUR_VERSION="\\d+.\\d+.\\d+"`));
+    });
+  });
+});
 
 describe("GET /<installerID>/join.sh", () => {
   describe("/latest/join.sh", () => {
@@ -245,16 +297,17 @@ describe("GET /<installerID>/join.sh", () => {
       expect(script).to.match(new RegExp(`CONTOUR_VERSION=""`));
     });
   });
+})
 
-  describe("GET /installer/<installerID>", () => {
-    before(async () => {
-      await client.postInstaller(min);
-    })
+describe("GET /installer/<installerID>", () => {
+  before(async () => {
+    await client.postInstaller(min);
+  })
 
-    it("returns installer yaml", async() => {
-      const yaml = await client.getInstallerYAML("6898644");
+  it("returns installer yaml", async() => {
+    const yaml = await client.getInstallerYAML("6898644");
 
-			expect(yaml).to.equal(`apiVersion: kurl.sh/v1beta1
+    expect(yaml).to.equal(`apiVersion: kurl.sh/v1beta1
 kind: Installer
 metadata:
   name: "6898644"
@@ -268,6 +321,29 @@ spec:
   contour:
     version: ""
 `);
+  });
+
+  describe("/installer/latest?resolve=true", () => {
+    before(async () => {
+      await client.postInstaller(latest);
+    });
+
+    it("returns yaml with version", async () => {
+      const yaml = await client.getInstallerYAML("latest", true);
+
+      expect(yaml).to.match(/version: "latest"/);
     });
   });
-})
+
+  describe("/installer/latest", () => {
+    before(async () => {
+      await client.postInstaller(latest);
+    });
+
+    it(`returns yaml with "latest"`, async () => {
+      const yaml = await client.getInstallerYAML("latest");
+
+      expect(yaml).to.match(/version: "latest"/);
+    });
+  });
+});

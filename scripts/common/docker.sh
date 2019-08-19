@@ -90,24 +90,18 @@ installDockerOnline() {
 }
 
 installDockerOffline() {
-    case "$LSB_DIST$DIST_VERSION" in
-        ubuntu16.04)
-            dpkg -i --force-depends-version $DIR/ubuntu-16.04/packages/docker/*.deb
+   case "$LSB_DIST" in
+        ubuntu)
+            export DEBIAN_FRONTEND=noninteractive
+            dpkg --install --force-depends-version $DIR/packages/docker/${DOCKER_VERSION}/ubuntu-${DIST_VERSION}/*.deb
             DID_INSTALL_DOCKER=1
-            return
             ;;
-        ubuntu18.04)
-            dpkg -i --force-depends-version $DIR/ubuntu-18.04/packages/docker/*.deb
+
+        centos|rhel)
+            rpm --upgrade --force --nodeps $DIR/packages/docker/${DOCKER_VERSION}/rhel-7/*.rpm
             DID_INSTALL_DOCKER=1
-            return
             ;;
-        rhel7.4|rhel7.5|rhel7.6|centos7.4|centos7.5|centos7.6)
-            rpm --upgrade --force --nodeps $DIR/rhel-7/packages/docker/*.rpm
-            DID_INSTALL_DOCKER=1
-            return
-            ;;
-        *)
-   esac
+    esac
 
    printf "Offline Docker install is not supported on ${LSB_DIST} ${DIST_MAJOR}"
    exit 1

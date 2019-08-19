@@ -4,8 +4,8 @@ ARG version=unknown
 ENV VERSION=$version
 
 ADD web /src
-ADD dist /dist
 ADD build/templates /templates
+ADD bin/create-bundle-alpine.sh /templates/create-bundle-alpine.sh
 
 WORKDIR /src
 

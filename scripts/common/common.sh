@@ -189,7 +189,7 @@ function kubernetes_resource_exists() {
 }
 
 function load_images() {
-    find "$dir" -type f | xargs -I {} bash -c "docker load < {}"
+    find "$1" -type f | xargs -I {} bash -c "docker load < {}"
 }
 
 splitHostPort() {

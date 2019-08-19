@@ -20,5 +20,5 @@ spec:
           value: "1"
         - name: KURL_URL
           value: https://kurl.sh
-        - name: KURL_DIST_ORIGIN
-          value: https://kurl-sh.s3.amazonaws.com
+        - name: KURL_BUCKET
+          value: kurl-sh

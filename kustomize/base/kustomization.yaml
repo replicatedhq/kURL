@@ -1,7 +1,4 @@
 
 resources:
   - ./deployment.yaml
-
-configMapGenerator:
-- name: create-bundle
-  files: ../../bin/create-bundle-alpine.sh
+  - ./namespace.yaml
