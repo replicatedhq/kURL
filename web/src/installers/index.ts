@@ -366,15 +366,29 @@ export class InstallerStore {
     const qSelect = "SELECT yaml FROM kurl_installer WHERE kurl_installer_id=? AND team_id=? FOR UPDATE";
     const vSelect = [installer.id, installer.teamID];
 
-    const resultsSelect = await conn.query(qSelect, vSelect);
+    let resultsSelect;
 
+    try {
+      resultsSelect = await conn.query(qSelect, vSelect);
+    } catch(error) {
+      await conn.rollback();
+      conn.release();
+      throw error;
+    }
     if (resultsSelect.length === 0) {
-      await conn.commit();
+      await conn.rollback();
       conn.release();
       throw new Forbidden();
     }
 
-    const old = Installer.parse(resultsSelect[0].yaml, resultsSelect[0].team_id);
+    let old;
+    try {
+      old = Installer.parse(resultsSelect[0].yaml, resultsSelect[0].team_id);
+    } catch(error) {
+      await conn.rollback();
+      conn.release();
+      throw error;
+    }
     if (old.specIsEqual(installer)) {
       await conn.commit();
       conn.release();
@@ -384,7 +398,13 @@ export class InstallerStore {
     const qUpdate = "UPDATE kurl_installer SET yaml=? WHERE kurl_installer_id=? AND team_id=?";
     const vUpdate = [installer.toYAML(), installer.id, installer.teamID];
 
-    await conn.query(qUpdate, vUpdate);
+    try {
+      await conn.query(qUpdate, vUpdate);
+    } catch(error) {
+      await conn.rollback();
+      conn.release();
+      throw error;
+    }
     await conn.commit();
     conn.release();
     return true
