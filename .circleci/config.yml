@@ -188,7 +188,7 @@ workflows:
             - upload_staging_packages
       - upload_staging_latest:
           requires:
-            - upload_staging_packages:
+            - upload_staging_packages
       - build_production_docker_image:
           requires:
             - is_upstream
