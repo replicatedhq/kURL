@@ -350,43 +350,47 @@ export class InstallerStore {
       throw new Error("Team installers must not have generated ID");
     }
 
-    const qInsert = "INSERT IGNORE INTO kurl_installer (kurl_installer_id, yaml, team_id) VALUES (?, ?, ?)";
-    const vInsert = [installer.id, installer.toYAML(), installer.teamID];
-
-    const resultsInsert = await this.pool.query(qInsert, vInsert);
-
-    if (resultsInsert.affectedRows) {
-      return true;
-    }
-
-    // The row already exists. Need to verify team ID and determine whether the spec has changed.
     const conn = await this.pool.getConnection();
     await conn.beginTransaction({sql: "", timeout: 10000});
 
-    const qSelect = "SELECT yaml FROM kurl_installer WHERE kurl_installer_id=? AND team_id=? FOR UPDATE";
-    const vSelect = [installer.id, installer.teamID];
+    try {
+      const qInsert = "INSERT IGNORE INTO kurl_installer (kurl_installer_id, yaml, team_id) VALUES (?, ?, ?)";
+      const vInsert = [installer.id, installer.toYAML(), installer.teamID];
 
-    const resultsSelect = await conn.query(qSelect, vSelect);
+      const resultsInsert = await conn.query(qInsert, vInsert);
 
-    if (resultsSelect.length === 0) {
+      if (resultsInsert.rowsAffected) {
+        await conn.commit();
+        return true;
+      }
+
+      // The row already exists. Need to verify team ID and determine whether the spec has changed.
+      const qSelect = "SELECT yaml FROM kurl_installer WHERE kurl_installer_id=? AND team_id=? FOR UPDATE";
+      const vSelect = [installer.id, installer.teamID];
+
+      const resultsSelect = await conn.query(qSelect, vSelect);
+      if (resultsSelect.length === 0) {
+        throw new Forbidden();
+      }
+
+      const old = Installer.parse(resultsSelect[0].yaml, resultsSelect[0].team_id);
+      if (old.specIsEqual(installer)) {
+        await conn.commit();
+        return false;
+      }
+
+      const qUpdate = "UPDATE kurl_installer SET yaml=? WHERE kurl_installer_id=? AND team_id=?";
+      const vUpdate = [installer.toYAML(), installer.id, installer.teamID];
+
+      await conn.query(qUpdate, vUpdate);
+
       await conn.commit();
+      return true
+    } catch(error) {
+      await conn.rollback();
+      throw error;
+    } finally {
       conn.release();
-      throw new Forbidden();
     }
-
-    const old = Installer.parse(resultsSelect[0].yaml, resultsSelect[0].team_id);
-    if (old.specIsEqual(installer)) {
-      await conn.commit();
-      conn.release();
-      return false;
-    }
-
-    const qUpdate = "UPDATE kurl_installer SET yaml=? WHERE kurl_installer_id=? AND team_id=?";
-    const vUpdate = [installer.toYAML(), installer.id, installer.teamID];
-
-    await conn.query(qUpdate, vUpdate);
-    await conn.commit();
-    conn.release();
-    return true
   }
 }
