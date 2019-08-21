@@ -78,6 +78,10 @@ export class Installer {
     return _.get(this, "contour.version", "");
   }
 
+  public dockerVersion(): string {
+    return "18.09.8";
+  }
+
   static parse(doc: string, teamID?: string): Installer {
     const parsed = yaml.safeLoad(doc);
 
@@ -110,7 +114,9 @@ spec:
   }
 
   static kubernetesVersions = [
+    "1.15.2",
     "1.15.1",
+    "1.15.0",
   ];
 
   static weaveVersions = [
@@ -128,11 +134,23 @@ spec:
   static latest(): Installer {
     const i = new Installer();
 
-    i.id = "";
-    i.kubernetes.version = "1.15.1";
+    i.id = "latest";
+    i.kubernetes.version = "1.15.2";
     i.weave.version = "2.5.2";
     i.rook.version = "1.0.4";
     i.contour.version = "0.14.0";
+
+    return i;
+  }
+
+  static latestUnresolved(): Installer {
+    const i = new Installer();
+
+    i.id = "latest";
+    i.kubernetes.version = "latest";
+    i.weave.version = "latest";
+    i.rook.version = "latest";
+    i.contour.version = "latest";
 
     return i;
   }
@@ -177,6 +195,18 @@ spec:
     return null;
   }
 
+  public resolve(): Installer {
+    const i = new Installer();
+
+    i.id = this.id;
+    i.kubernetes.version = Installer.resolveKubernetesVersion(this.kubernetesVersion()) || "";
+    i.weave.version = Installer.resolveWeaveVersion(this.weaveVersion()) || "";
+    i.rook.version = Installer.resolveRookVersion(this.rookVersion()) || "";
+    i.contour.version = Installer.resolveContourVersion(this.contourVersion()) || "";
+
+    return i;
+  }
+
   public validate(): ErrorResponse|undefined {
     const k8sVersion = Installer.resolveKubernetesVersion(this.kubernetesVersion());
 
@@ -200,6 +230,27 @@ spec:
     }
   }
 
+  public packages(): Array<string> {
+    const i = this.resolve();
+
+    const pkgs = [
+      `common`,
+      `kubernetes-${i.kubernetesVersion()}`,
+      `docker-${i.dockerVersion()}`,
+    ];
+    if (i.weaveVersion()) {
+      pkgs.push(`weave-${i.weaveVersion()}`);
+    }
+    if (i.rookVersion()) {
+      pkgs.push(`rook-${i.rookVersion()}`);
+    }
+    if (this.contourVersion()) {
+      pkgs.push(`contour-${i.contourVersion()}`);
+    }
+
+    return pkgs;
+  }
+
   public isLatest(): boolean {
     return this.kubernetesVersion() === "latest" &&
       this.weaveVersion() === "latest" &&
@@ -213,6 +264,18 @@ spec:
 
   static isValidSlug(id: string): boolean {
     return /^[0-9a-zA-Z-_]{1,255}$/.test(id);
+  }
+
+  static slugIsReserved(id: string): boolean {
+    return _.includes([
+      "latest",
+      "beta",
+      "stable",
+      "unstable",
+      "healthz",
+      "dist",
+      "installer",
+    ], _.lowerCase(id));
   }
 
   public specIsEqual(i: Installer): boolean {
@@ -234,7 +297,7 @@ export class InstallerStore {
   @instrumented
   public async getInstaller(installerID: string): Promise<Installer|undefined> {
     if (installerID === "latest") {
-      return Installer.latest();
+      return Installer.latestUnresolved();
     }
 
     const q = "SELECT yaml, team_id FROM kurl_installer WHERE kurl_installer_id = ?";
@@ -251,7 +314,7 @@ export class InstallerStore {
   }
 
   /*
-   * @returns boolean - true if new row was inserted. Used to trigger airgap build (TODO).
+   * @returns boolean - true if new row was inserted. Used to trigger airgap build.
    */
   @instrumented
   public async saveAnonymousInstaller(installer: Installer): Promise<boolean> {
@@ -269,14 +332,14 @@ export class InstallerStore {
     const v = [installer.id, installer.toYAML()];
 
     const results = await this.pool.query(q, v);
-    return results.rowsAffected === 1;
+    return results.affectedRows === 1;
   }
 
   /*
-   * @returns boolean - true if new row was inserted or the yaml spec changes. Used to trigger airgap build (TODO).
+   * @returns boolean - true if new row was inserted or the yaml spec changes. Used to trigger airgap build.
    */
   @instrumented
-  public async saveTeamInstaller(installer: Installer): Promise<boolean|ErrorResponse> {
+  public async saveTeamInstaller(installer: Installer): Promise<boolean> {
     if (!installer.id) {
       throw new Error("Installer ID is required");
     }
@@ -292,7 +355,7 @@ export class InstallerStore {
 
     const resultsInsert = await this.pool.query(qInsert, vInsert);
 
-    if (resultsInsert.rowsAffected) {
+    if (resultsInsert.affectedRows) {
       return true;
     }
 

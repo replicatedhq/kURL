@@ -3,8 +3,9 @@ import * as util from "util";
 import {
   Err,
   IMiddlewareError,
-  MiddlewareError,
+  GlobalErrorHandlerMiddleware,
   Next,
+  OverrideProvider,
   Request,
   Response,
 } from "ts-express-decorators";
@@ -74,7 +75,7 @@ export class Errors {
   public static ServerError = ServerError;
 }
 
-@MiddlewareError()
+@OverrideProvider(GlobalErrorHandlerMiddleware)
 export class ErrorMiddleware implements IMiddlewareError {
 
   public use(

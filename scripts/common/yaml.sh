@@ -1,10 +1,14 @@
 
-function render_yaml() {
+function get_yaml() {
     if [ "$AIRGAP" != "1" ] && [ -n "$KURL_URL" ]; then
-        mkdir -p $YAML_DIR
-        curl $KURL_URL/dist/yaml/$1 > $YAML_DIR/$1
+        curl -sSOL $KURL_URL/dist/common.tar.gz 
+        tar xf common.tar.gz
+        rm common.tar.gz
     fi
-	eval "echo \"$(cat $YAML_DIR/$1)\""
+}
+
+function render_yaml() {
+	eval "echo \"$(cat $DIR/yaml/$1)\""
 }
 
 function render_yaml_file() {

@@ -9,14 +9,16 @@ spec:
       nodeSelector:
         replicated/node-pool: privileged
       containers:
-        - name: kurl
-          image: 923411875752.dkr.ecr.us-east-1.amazonaws.com/kurl
-          env:
-          - name: AWS_REGION
-            value: us-east-1
-          - name: PROJECT_NAME
-            value: "kurl"
-          - name: USE_EC2_PARAMETERS
-            value: "1"
-          - name: KURL_URL
-            value: https://staging.kurl.sh
+      - name: kurl
+        image: 923411875752.dkr.ecr.us-east-1.amazonaws.com/kurl
+        env:
+        - name: AWS_REGION
+          value: us-east-1
+        - name: PROJECT_NAME
+          value: "kurl"
+        - name: USE_EC2_PARAMETERS
+          value: "1"
+        - name: KURL_URL
+          value: https://staging.kurl.sh
+        - name: KURL_BUCKET
+          value: kurl-sh-staging

@@ -5,19 +5,23 @@ set -e
 DIR=.
 
 # Magic begin: scripts are inlined for distribution. See "make build/join.sh"
-. $DIR/Manifest
+. $DIR/scripts/Manifest
 . $DIR/scripts/common/addon.sh
 . $DIR/scripts/common/common.sh
 . $DIR/scripts/common/discover.sh
+. $DIR/scripts/common/docker.sh
 . $DIR/scripts/common/flags.sh
+. $DIR/scripts/common/kubernetes.sh
 . $DIR/scripts/common/preflights.sh
-. $DIR/scripts/common/prepare.sh
 . $DIR/scripts/common/prompts.sh
+. $DIR/scripts/common/proxy.sh
 . $DIR/scripts/common/rook.sh
 . $DIR/scripts/common/yaml.sh
 # Magic end
 
 function join() {
+    get_yaml
+
     if [ "$MASTER" = "1" ]; then
         logStep "Join Kubernetes master node"
 
@@ -79,7 +83,12 @@ function main() {
     preflights
     joinPrompts
     prompts
-    prepare
+    configure_proxy
+    install_docker
+    addon_load weave "$WEAVE_VERSION"
+    addon_load rook "$ROOK_VERSION"
+    addon_load contour "$CONTOUR_VERSION"
+    kubernetes_host
     join
     outro
 }

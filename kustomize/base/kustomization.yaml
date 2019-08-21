@@ -1,3 +1,4 @@
 
 resources:
   - ./deployment.yaml
+  - ./namespace.yaml

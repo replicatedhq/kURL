@@ -5,12 +5,14 @@ import {
   PathParams,
   Post,
   Put,
+  QueryParams,
   Req,
   Res } from "ts-express-decorators";
 import { instrumented } from "monkit";
 import { Installer, InstallerStore } from "../installers";
 import decode from "../util/jwt";
 import { Forbidden } from "../server/errors";
+import { Kubernetes } from "../kubernetes";
 
 interface ErrorResponse {
   error: any;
@@ -34,9 +36,21 @@ const idNameMismatchResponse = {
   },
 };
 
+const nameGeneratedResponse = {
+  error: {
+    message: "Anonymous installers cannot have a name",
+  },
+};
+
 const slugCharactersResponse = {
   error: {
     message: "Only base64 URL characters may be used for custom named installers",
+  },
+};
+
+const slugReservedResponse = {
+  error: {
+    message: "The requested custom installer name is reserved",
   },
 };
 
@@ -65,6 +79,7 @@ export class Installers {
 
   constructor (
     private readonly installerStore: InstallerStore,
+    private readonly kubernetes: Kubernetes,
   ) {
     this.kurlURL = process.env["KURL_URL"] || "https://kurl.sh";
   }
@@ -87,10 +102,13 @@ export class Installers {
     let i: Installer;
     try {
       i = Installer.parse(request.body);
-      i.id = "" // ignore any provided name
     } catch(error) {
       response.status(400);
       return invalidYAMLResponse;
+    }
+    if (i.id !== "") {
+      response.status(400);
+      return nameGeneratedResponse;
     }
 
     if (i.isLatest()) {
@@ -106,10 +124,10 @@ export class Installers {
       return { error: { message: err } };
     }
 
-    try {
-      this.installerStore.saveAnonymousInstaller(i);
-    } catch (error) {
-      return { error };
+    const created = await this.installerStore.saveAnonymousInstaller(i);
+
+    if (created) {
+      await this.kubernetes.runCreateAirgapBundleJob(i);
     }
 
     response.contentType("text/plain");
@@ -157,6 +175,10 @@ export class Installers {
       response.status(400);
       return slugCharactersResponse;
     }
+    if (Installer.slugIsReserved(id)) {
+      response.status(400);
+      return slugReservedResponse;
+    }
 
     let i: Installer;
     try {
@@ -174,14 +196,9 @@ export class Installers {
       return err;
     }
 
-    try {
-      await this.installerStore.saveTeamInstaller(i);
-    } catch (error) {
-      if (error instanceof Forbidden) {
-        response.status(403);
-        return forbiddenResponse;
-      }
-      return { error };
+    const newOrChanged = await this.installerStore.saveTeamInstaller(i);
+    if (newOrChanged) {
+      await this.kubernetes.runCreateAirgapBundleJob(i);
     }
 
 
@@ -203,17 +220,21 @@ export class Installers {
     @Res() response: Express.Response,
     @Req() request: Express.Request,
     @PathParams("id") id: string,
+    @QueryParams("resolve") resolve: string,
   ): Promise<string | ErrorResponse> {
     let installer: Installer;
-    try {
-      const i = await this.installerStore.getInstaller(id);
-      if (!i) {
-        response.status(404);
-        return notFoundResponse;
-      }
-      installer = i;
-    } catch (error) {
-      return { error };
+
+    const i = await this.installerStore.getInstaller(id);
+    if (!i) {
+      response.status(404);
+      return notFoundResponse;
+    }
+    installer = i;
+    if (resolve) {
+      installer = installer.resolve();
+    }
+    if (i.id === "latest") {
+      i.id = "";
     }
 
     response.contentType("text/yaml");

@@ -1,5 +1,6 @@
 STORAGE_CLASS=default
 CEPH_POOL_REPLICAS=1
+CEPH_VERSION=14.2.0-20190410
 
 function rook() {
     rook_operator_deploy
@@ -97,4 +98,21 @@ function rook_set_ceph_pool_replicas() {
         CEPH_POOL_REPLICAS="$readyNodeCount"
     fi
     set -e
+}
+
+# TODO detect linux version
+function rook_configure_linux_3() {
+    case "$LSB_DIST$DIST_VERSION" in
+        centos7.4|centos7.5|centos7.6|rhel7.4|rhel7.5|rhel7.6)
+            # This needs to be run on Linux 3.x nodes for Rook
+            modprobe rbd
+            echo 'rbd' > /etc/modules-load.d/replicated-rook.conf
+
+            echo "net.bridge.bridge-nf-call-ip6tables = 1" > /etc/sysctl.d/k8s.conf
+            echo "net.bridge.bridge-nf-call-iptables = 1" >> /etc/sysctl.d/k8s.conf
+            echo "net.ipv4.conf.all.forwarding = 1" >> /etc/sysctl.d/k8s.conf
+
+            sysctl --system
+            ;;
+    esac
 }

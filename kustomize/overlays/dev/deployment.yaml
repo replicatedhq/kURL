@@ -10,6 +10,8 @@ spec:
         env:
         - name: KURL_URL
           value: http://localhost:8092
+        - name: KURL_BUCKET
+          value: "kurl-dev"
         - name: TSED_SUPPRESS_ACCESSLOG
           value: "1"
         - name: PINO_LOG_PRETTY
@@ -30,3 +32,5 @@ spec:
           value: replicated
         - name: JWT_SIGNING_KEY
           value: jwt-signing-key
+        - name: AIRGAP_BUNDLING_DISABLED
+          value: "1"

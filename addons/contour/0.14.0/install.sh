@@ -1,3 +1,4 @@
+ENVOY_VERSION=1.10.0
 
 function contour() {
     local src="$DIR/addons/contour/0.14.0"

@@ -5,14 +5,16 @@ set -e
 DIR=.
 
 # Magic begin: scripts are inlined for distribution. See "make build/install.sh"
-. $DIR/Manifest
+. $DIR/scripts/Manifest
 . $DIR/scripts/common/addon.sh
 . $DIR/scripts/common/common.sh
 . $DIR/scripts/common/discover.sh
+. $DIR/scripts/common/docker.sh
 . $DIR/scripts/common/flags.sh
+. $DIR/scripts/common/kubernetes.sh
 . $DIR/scripts/common/preflights.sh
-. $DIR/scripts/common/prepare.sh
 . $DIR/scripts/common/prompts.sh
+. $DIR/scripts/common/proxy.sh
 . $DIR/scripts/common/rook.sh
 . $DIR/scripts/common/yaml.sh
 # Magic end
@@ -20,7 +22,9 @@ DIR=.
 function init() {
     logStep "Initialize Kubernetes"
 
-    maybeGenerateBootstrapToken
+    get_yaml
+
+    kubernetes_maybe_generate_bootstrap_token
 
     if [ "$HA_CLUSTER" = "1" ]; then
         promptForLoadBalancerAddress
@@ -74,7 +78,7 @@ function init() {
     logSuccess "Cluster Initialized"
 }
 
-maybeGenerateBootstrapToken() {
+function kubernetes_maybe_generate_bootstrap_token() {
     if [ -z "$BOOTSTRAP_TOKEN" ]; then
         logStep "generate kubernetes bootstrap token"
         BOOTSTRAP_TOKEN=$(kubeadm token generate)
@@ -83,7 +87,7 @@ maybeGenerateBootstrapToken() {
     echo "This token will expire in 24 hours"
 }
 
-outro() {
+function outro() {
     echo
     if [ -z "$PUBLIC_ADDRESS" ]; then
       if [ -z "$PRIVATE_ADDRESS" ]; then
@@ -127,7 +131,7 @@ outro() {
         printf "\n"
         printf "To add worker nodes to this installation, run the following script on your other nodes"
         printf "\n"
-        printf "${GREEN}    curl $KURL_URL/join.sh | sudo bash -s kubernetes-master-address=${PRIVATE_ADDRESS} kubeadm-token=${BOOTSTRAP_TOKEN} kubeadm-token-ca-hash=$KUBEADM_TOKEN_CA_HASH kubernetes-version=$KUBERNETES_VERSION \n"
+        printf "${GREEN}    curl $KURL_URL/$INSTALLER_ID/join.sh | sudo bash -s kubernetes-master-address=${PRIVATE_ADDRESS} kubeadm-token=${BOOTSTRAP_TOKEN} kubeadm-token-ca-hash=$KUBEADM_TOKEN_CA_HASH kubernetes-version=$KUBERNETES_VERSION \n"
         printf "${NC}"
         printf "\n"
         printf "\n"
@@ -135,7 +139,7 @@ outro() {
             printf "\n"
             printf "To add ${RED}MASTER${NC} nodes to this installation, run the following script on your other nodes"
             printf "\n"
-            printf "${GREEN}    curl $KURL_URL/join.sh | sudo bash -s kubernetes-master-address=${PRIVATE_ADDRESS} kubeadm-token=${BOOTSTRAP_TOKEN} kubeadm-token-ca-hash=$KUBEADM_TOKEN_CA_HASH kubernetes-version=$KUBERNETES_VERSION cert-key=${CERT_KEY} control-plane\n"
+            printf "${GREEN}    curl $KURL_URL/$INSTALLER_ID/join.sh | sudo bash -s kubernetes-master-address=${PRIVATE_ADDRESS} kubeadm-token=${BOOTSTRAP_TOKEN} kubeadm-token-ca-hash=$KUBEADM_TOKEN_CA_HASH kubernetes-version=$KUBERNETES_VERSION cert-key=${CERT_KEY} control-plane\n"
             printf "${NC}"
             printf "\n"
             printf "\n"
@@ -150,7 +154,9 @@ function main() {
     flags "$@"
     preflights
     prompts
-    prepare
+    configure_proxy
+    install_docker
+    kubernetes_host
     init
     addon weave "$WEAVE_VERSION"
     addon rook "$ROOK_VERSION"

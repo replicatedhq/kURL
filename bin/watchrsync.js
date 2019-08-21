@@ -8,22 +8,17 @@ if (!process.env.HOST || !process.env.USER) {
 }
 
 gri([
-  'Manifest',
   'scripts/**/*',
-  'yaml/**/*',
   'addons/**/*',
 ], [
   {
-    command: 'rsync',
-    args: ['Manifest', `${process.env.USER}@${process.env.HOST}:kurl`],
+    command: 'rm',
+    args: ['-rf', 'build/install.sh', 'build/join.sh', 'build/yaml', 'build/addons'],
+  },{
+    command: 'make',
+    args: ['build/install.sh', 'build/join.sh', 'build/yaml', 'build/addons'],
   },{
     command: 'rsync',
-    args: ['-r', 'scripts', `${process.env.USER}@${process.env.HOST}:kurl`],
-  },{
-    command: 'rsync',
-    args: ['-r', 'yaml', `${process.env.USER}@${process.env.HOST}:kurl`],
-  },{
-    command: 'rsync',
-    args: ['-r', 'addons', `${process.env.USER}@${process.env.HOST}:kurl`],
+    args: ['-r', 'build/', `${process.env.USER}@${process.env.HOST}:kurl`],
   }
 ]);

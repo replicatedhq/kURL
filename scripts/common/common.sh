@@ -8,7 +8,6 @@ YELLOW='\033[0;33m'
 RED='\033[0;31m'
 NC='\033[0m' # No Color
 
-YAML_DIR="$DIR/yaml"
 KUBEADM_CONF_DIR=/opt/replicated
 KUBEADM_CONF_FILE="$KUBEADM_CONF_DIR/kubeadm.conf"
 
@@ -187,6 +186,10 @@ function kubernetes_resource_exists() {
     local name=$3
 
     kubectl -n "$namespace" get "$kind" "$name" &>/dev/null
+}
+
+function load_images() {
+    find "$1" -type f | xargs -I {} bash -c "docker load < {}"
 }
 
 splitHostPort() {
