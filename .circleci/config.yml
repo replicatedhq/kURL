@@ -11,6 +11,7 @@ defaults: &defaults
     GITOPS_BRANCH: master
     DOCKERFILE: deploy/Dockerfile-slim
 
+
 jobs:
   is_upstream:
     docker:
@@ -23,28 +24,20 @@ jobs:
             exit 1
           fi
 
-  test:
-    <<: *defaults
-    steps:
-      - checkout
-      - run: sudo apt-get update; sudo apt-get install shunit2
-      - run: sudo pip install pytest # todo cache these
-      - run: sudo make deps # todo cache these
-      - run: make test
-
   upload_staging_packages:
     <<: *defaults
+    parallelism: 4
     steps:
       - checkout
       - setup_remote_docker:
           version: 17.06.0-ce
-      - run: make dist
-      - deploy:
+      - run:
           name: upload packages
           command: |
             export AWS_ACCESS_KEY_ID=$STAGING_AWS_ACCESS_KEY_ID
             export AWS_SECRET_ACCESS_KEY=$STAGING_AWS_SECRET_ACCESS_KEY
-            bin/upload-dist.sh kurl-sh-staging
+            export S3_BUCKET=kurl-sh-staging
+            bin/upload-dist.sh
 
   upload_staging_latest:
     <<: *defaults
@@ -55,7 +48,7 @@ jobs:
           command: |
             export AWS_ACCESS_KEY_ID=$STAGING_AWS_ACCESS_KEY_ID
             export AWS_SECRET_ACCESS_KEY=$STAGING_AWS_SECRET_ACCESS_KEY
-            export S3_BUCKET kurl-sh-staging
+            export S3_BUCKET=kurl-sh-staging
             bin/upload-latest-bundle.sh
 
   upload_production_latest:
@@ -67,22 +60,23 @@ jobs:
           command: |
             export AWS_ACCESS_KEY_ID=$PRODUCTION_AWS_ACCESS_KEY_ID
             export AWS_SECRET_ACCESS_KEY=$PRODUCTION_AWS_SECRET_ACCESS_KEY
-            export S3_BUCKET kurl-sh
+            export S3_BUCKET=kurl-sh
             bin/upload-latest-bundle.sh
 
   upload_production_packages:
     <<: *defaults
+    parallelism: 4
     steps:
       - checkout
       - setup_remote_docker:
           version: 17.06.0-ce
-      - run: make dist
-      - deploy:
+      - run:
           name: upload packages
           command: |
             export AWS_ACCESS_KEY_ID=$PRODUCTION_AWS_ACCESS_KEY_ID
             export AWS_SECRET_ACCESS_KEY=$PRODUCTION_AWS_SECRET_ACCESS_KEY
-            bin/upload-dist.sh kurl-sh
+            export S3_BUCKET=kurl-sh
+            bin/upload-dist.sh
 
   build_staging_docker_image:
     <<: *defaults
@@ -90,6 +84,7 @@ jobs:
       - checkout
       - setup_remote_docker:
           version: 17.06.0-ce
+      - run: make -C web deps build
       - run: make web
       - run: |
           export WORKDIR=`pwd`
@@ -112,6 +107,7 @@ jobs:
       - checkout
       - setup_remote_docker:
           version: 17.06.0-ce
+      - run: make -C web deps build
       - run: make web
       - run: |
           export WORKDIR=`pwd`
@@ -174,7 +170,8 @@ workflows:
       - is_upstream:
           filters:
             branches:
-              only: master
+              only:
+                - master
 
       - upload_staging_packages:
           requires:
