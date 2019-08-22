@@ -24,15 +24,6 @@ jobs:
             exit 1
           fi
 
-  test:
-    <<: *defaults
-    steps:
-      - checkout
-      - run: sudo apt-get update; sudo apt-get install shunit2
-      - run: sudo pip install pytest # todo cache these
-      - run: sudo make deps # todo cache these
-      - run: make test
-
   upload_staging_packages:
     <<: *defaults
     parallelism: 4
