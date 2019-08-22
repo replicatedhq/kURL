@@ -40,7 +40,7 @@ jobs:
       - checkout
       - setup_remote_docker:
           version: 17.06.0-ce
-      - deploy:
+      - run:
           name: upload packages
           command: |
             export AWS_ACCESS_KEY_ID=$STAGING_AWS_ACCESS_KEY_ID
@@ -79,7 +79,7 @@ jobs:
       - checkout
       - setup_remote_docker:
           version: 17.06.0-ce
-      - deploy:
+      - run:
           name: upload packages
           command: |
             export AWS_ACCESS_KEY_ID=$PRODUCTION_AWS_ACCESS_KEY_ID
