@@ -181,7 +181,6 @@ workflows:
             branches:
               only:
                 - master
-                - ci-debug
 
       - upload_staging_packages:
           requires:
