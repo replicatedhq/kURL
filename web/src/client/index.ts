@@ -42,8 +42,14 @@ export class KurlClient {
   }
 
   public async getInstallerYAML(installerID: string, resolve?: boolean): Promise<string> {
+    let url = `${this.kurlURL}/installer/${installerID}`;
+
+    if (resolve) {
+      url += "?resolve=true";
+    }
+
     const resp = await request
-      .get(`${this.kurlURL}/installer/${installerID}`)
+      .get(url)
       .send();
 
     return resp.text;

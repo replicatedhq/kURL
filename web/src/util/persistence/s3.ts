@@ -57,32 +57,5 @@ export class S3Signer {
       });
     });
   }
-
-  public signGetRequest(params: GetParams): Promise<SignedUrl> {
-    return new Promise((resolve, reject) => {
-      s3().getSignedUrl("getObject", params, (err, uri) => {
-        if (err) {
-          reject(err);
-          return;
-        }
-
-        resolve({
-          url: this.baseURL(params),
-          signedUrl: uri,
-        });
-      });
-    });
-  }
-
-  public baseURL(params: GetParams): string {
-    return `https://${params.Bucket}.s3.amazonaws.com/${params.Key}`;
-  }
-
-  public parse(url: string): GetParams {
-    const parsed = new URL(url);
-    const Bucket = parsed.host.split(".")[0];
-    const Key = parsed.pathname.replace(/\//, "");
-    return { Key, Bucket };
-  }
 }
 

@@ -36,12 +36,6 @@ const idNameMismatchResponse = {
   },
 };
 
-const nameGeneratedResponse = {
-  error: {
-    message: "Anonymous installers cannot have a name",
-  },
-};
-
 const slugCharactersResponse = {
   error: {
     message: "Only base64 URL characters may be used for custom named installers",
@@ -105,10 +99,6 @@ export class Installers {
     } catch(error) {
       response.status(400);
       return invalidYAMLResponse;
-    }
-    if (i.id !== "") {
-      response.status(400);
-      return nameGeneratedResponse;
     }
 
     if (i.isLatest()) {
@@ -222,19 +212,16 @@ export class Installers {
     @PathParams("id") id: string,
     @QueryParams("resolve") resolve: string,
   ): Promise<string | ErrorResponse> {
-    let installer: Installer;
-
-    const i = await this.installerStore.getInstaller(id);
-    if (!i) {
+    let installer = await this.installerStore.getInstaller(id);
+    if (!installer) {
       response.status(404);
       return notFoundResponse;
     }
-    installer = i;
     if (resolve) {
       installer = installer.resolve();
     }
-    if (i.id === "latest") {
-      i.id = "";
+    if (installer.id === "latest") {
+      installer.id = "";
     }
 
     response.contentType("text/yaml");
