@@ -4,16 +4,6 @@ SHELL := /bin/bash
 clean:
 	rm -rf build tmp dist
 
-dist:
-	${MAKE} dist/kubernetes-1.15.0.tar.gz
-	${MAKE} dist/kubernetes-1.15.1.tar.gz
-	${MAKE} dist/kubernetes-1.15.2.tar.gz
-	${MAKE} dist/docker-18.09.8.tar.gz
-	${MAKE} dist/weave-2.5.2.tar.gz
-	${MAKE} dist/rook-1.0.4.tar.gz
-	${MAKE} dist/contour-0.14.0.tar.gz
-	${MAKE} dist/common.tar.gz
-
 dist/common.tar.gz: build/yaml
 	mkdir -p dist
 	tar cf - -C build yaml | gzip > dist/common.tar.gz
