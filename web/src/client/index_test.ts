@@ -77,12 +77,32 @@ spec:
     version: latest
 `;
 
+const badName = `apiVersion: kurl.sh/v1beta1
+kind: Installer
+metadata:
+  name: "latest"
+spec:
+  kubernetes:
+    version: "1.15.1"
+  weave:
+    version: ""
+  rook:
+    version: "1.0.4"
+  contour:
+    version: "0.14.0"`;
+
 describe("POST /installer", () => {
   describe("latest", () => {
     it(`should return 201 "https://kurl.sh/latest"`, async () => {
       const url = await client.postInstaller(latest);
 
       expect(url).to.equal(`${kurlURL}/latest`);
+    });
+  });
+
+  describe("incorrect name", () => {
+    it("should be ignored", async () => {
+      await client.postInstaller(badName);
     });
   });
 
@@ -332,6 +352,12 @@ spec:
       const yaml = await client.getInstallerYAML("latest", true);
 
       expect(yaml).not.to.match(/version: "latest"/);
+    });
+
+    it("does not return a name", async() => {
+      const yaml = await client.getInstallerYAML("latest", true);
+
+      expect(yaml).to.match(/name: ""/);
     });
   });
 
