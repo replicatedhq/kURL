@@ -55,4 +55,4 @@ The [render_yaml_file](https://github.com/replicatedhq/kurl/blob/5e6c9549ad6410d
 render_yaml_file "$DIR/addons/weave/2.5.2/tmpl-secret.yaml" > "$DIR/kustomize/weave/secret.yaml"
 ```
 
-After the kustomize directory has been prepared with resources and patches and the kustomization.yaml file has been updated, the addon should call`kubectl apply -k`.
+After the kustomize directory has been prepared with resources and patches and the kustomization.yaml file has been updated, the addon should call `kubectl apply -k`.
