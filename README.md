@@ -41,6 +41,12 @@ cat install.sh | sudo bash
 * CentOS 7.4, 7.5, 7.6
 * RHEL 7.4, 7.5, 7.6
 
+## Minimum System Requirements
+
+* 2 CPUs or more
+* 4 GB or more of RAM per machine
+* TCP ports 6443 and 6783 open
+* UDP ports 6783 and 6784 open
 
 ## Options
 
@@ -96,22 +102,19 @@ Kurl will perform the following steps on the host prior to delegating to `kubead
 
 ### Add-Ons
 
-After `kubeadm init` has brought up the Kubernetes control plane, Kurl will install these components into the cluster:
+After `kubeadm init` has brought up the Kubernetes control plane, Kurl will install addons into the cluster.
+The available addons are:
 
 * [Weave](https://www.weave.works/oss/net/)
 * [Rook](https://rook.io/)
 * [Contour](https://projectcontour.io/)
 
-Kustomize is used to deploy addons to the cluster. After running the install script there will be a kustomize/<addon> directory for each addon that was installed.
-
 ## How It Works
 
-The `bundles` directory contains scripts to download and package all required assets, including host commands and Docker images.
-There are two bundle directories for each supported OS: docker and k8s.
-The docker bundle runs an image for the target OS and uses its package manager to download the docker .dep or .rpm files and all dependencies.
-The k8s bundle does the same for kubelet, kubectl, kubeadm, and kubernetes-cni packages.
+The `bundles` directory holds Dockerfiles used to download the Kubernetes and Docker host packages required for each supported OS.
+Make tasks use these Dockerfiles to run an image for the target OS and download .dep or .rpm files and all required dependencies.
 
-The `scripts` directory contains the top-level and helper scripts to prepare the host, run kubeadm, and install addons.
+The `scripts` directory contains the top-level `install.sh` and `join.sh` scripts along with helper scripts.
 
 The `web` directory holds an Express app for serving the install scripts.
 
@@ -125,4 +128,4 @@ That will place the installer in your HOME's kurl directory and sync any changes
 If you rebuild the OS packages, you'll need to manually run `rsync -r build/ ${USER}@${HOST}:kurl` to push those changes.
 The `make watchrsync` command requires Node with the `gaze-run-interrupt` package available globally.
 
-On the remote instance run `cd ~/kurl && sudo bash scripts/install.sh` to test your changes.
+On the remote instance run `cd ~/kurl && sudo bash install.sh` to test your changes.

@@ -31,3 +31,28 @@ addon weave 2.5.2
 That would fetch the package https://kurl-sh.s3.amazonaws.com/dist/weave-2.5.2.tar.gz and extract it to the Kurl install directory.
 The Kurl `addon` function would then load the images in `<KURL_ROOT>/addons/weave/2.5.2/images` into docker, create the directory `<KURL_ROOT>/kustomize/weave`, source `<KURL_ROOT>/addons/weave/2.5.2/install.sh` and call `weave`.
 The `weave` function should generate yaml and patches and place them in the directory `<KURL_ROOT>/kustomize/weave` and apply them with `kubectl apply -k`.
+
+## Developing Addons
+
+The `DIR` env var will be defined to the install root.
+Any yaml that is ready to be applied unmodified should be copied from the addon directory to the kustomize directory.
+```
+cp "$DIR/addons/weave/2.5.2/kustomization.yaml" "$DIR/kustomize/weave/kustomization.yaml"
+```
+
+The [insert_resources](https://github.com/replicatedhq/kurl/blob/5e6c9549ad6410df1f385444b83eabaf42a7e244/scripts/common/yaml.sh#L29) function can be used to add an item to the resources object of a kustomization.yaml:
+```
+insert_resources "$DIR/kustomize/weave/kustomization.yaml" secret.yaml
+```
+
+The [insert_patches_strategic_merge](https://github.com/replicatedhq/kurl/blob/5e6c9549ad6410df1f385444b83eabaf42a7e244/scripts/common/yaml.sh#L18) function can be used to add an item to the `patchesStrategiMerge` object of a kustomization.yaml:
+```
+insert_patches_strategic_merge "$DIR/kustomize/weave/kustomization.yaml" ip-alloc-range.yaml
+```
+
+The [render_yaml_file](https://github.com/replicatedhq/kurl/blob/5e6c9549ad6410df1f385444b83eabaf42a7e244/scripts/common/yaml.sh#L18) function can be used to substitute env vars in a yaml file at runtime:
+```
+render_yaml_file "$DIR/addons/weave/2.5.2/tmpl-secret.yaml" > "$DIR/kustomize/weave/secret.yaml"
+```
+
+After the kustomize directory has been prepared with resources and patches and the kustomization.yaml file has been updated, the addon should call`kubectl apply -k`.
