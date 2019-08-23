@@ -39,7 +39,7 @@ function list_all_packages() {
     docker_pkg
 }
 
-for package in $(list_all_packages | awk "NR % $CIRCLE_NODE_TOTAL == $CIRCLE_NODE_INDEX")
+for package in $(list_all_packages | sort | awk "NR % $CIRCLE_NODE_TOTAL == $CIRCLE_NODE_INDEX")
 do
     echo "Making $package"
     make dist/$package
