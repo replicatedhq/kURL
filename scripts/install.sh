@@ -109,7 +109,7 @@ function outro() {
     printf "\n"
     printf "${GREEN}    bash -l${NC}\n"
     printf "\n"
-    if [ "$AIRGAP" = "1" ]; then
+    if [ "$AIRGAP" = "1" ] || [ -z "$KURL_URL" ]; then
         printf "\n"
         printf "To add worker nodes to this installation, copy and unpack this bundle on your other nodes, and run the following:"
         printf "\n"

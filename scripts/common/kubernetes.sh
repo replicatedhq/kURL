@@ -174,6 +174,16 @@ function kubernetes_any_remote_master_unupgraded() {
     return 1
 }
 
+function kubernetes_any_worker_unupgraded() {
+    while read -r worker; do
+        local name=$(echo $worker | awk '{ print $1 }')
+        if ! kubernetes_node_has_version "$name" "$KUBERNETES_VERSION"; then
+            return 0
+        fi
+    done < <(kubernetes_workers)
+    return 1
+}
+
 function kubelet_version() {
     kubelet --version | cut -d ' ' -f 2 | sed 's/v//'
 }

@@ -132,6 +132,11 @@ discoverCurrentKubernetesVersion() {
             KUBERNETES_UPGRADE=1
             KUBERNETES_UPGRADE_REMOTE_MASTERS_PATCH=1
         fi
+
+        if kubernetes_any_worker_unupgraded; then
+            KUBERNETES_UPGRADE=1
+            KUBERNETES_UPGRADE_WORKERS_PATCH=1
+        fi
     fi
 
     local _ifs="$IFS"

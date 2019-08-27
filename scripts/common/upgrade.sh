@@ -9,6 +9,10 @@ function upgrade_kubernetes_patch() {
     if [ "$KUBERNETES_UPGRADE_REMOTE_MASTERS_PATCH" == "1" ]; then
         upgrade_kubernetes_remote_masters_patch "$KUBERNETES_VERSION"
     fi
+    if [ "$KUBERNETES_UPGRADE_WORKERS_PATCH" == "1" ]; then
+        upgrade_kubernetes_workers_patch "$KUBERNETES_VERSION"
+    fi
+
     DID_UPGRADE_KUBERNETES=1
 }
 
@@ -64,39 +68,51 @@ function upgrade_kubernetes_remote_masters_patch() {
 
     semverParse "$k8sVersion"
     local upgradeMajor="$major"
-    local upgradeMinor="$minor"
-    local upgradePatch="$patch"
+    local KUBERNETES_TARGET_VERSION_MINOR="$minor"
+    local KUBERNETES_TARGET_VERSION_PATCH="$patch"
 
-    while read -r node; do
-        nodeName=$(echo "$node" | awk '{ print $1 }')
-        nodeVersion="$(echo "$node" | awk '{ print $5 }' | sed 's/v//' )"
-        semverParse "$nodeVersion"
-        nodeMinor="$minor"
-        nodePatch="$patch"
-        if [ "$nodeMinor" -gt "$upgradeMinor" ]; then
-            continue
-        fi
-        if [ "$nodeMinor" -eq "$upgradeMinor" ] && [ "$nodePatch" -ge "$upgradePatch" ]; then
-            continue
-        fi
-
-        printf "${YELLOW}Drain master node $nodeName to prepare for upgrade? ${NC}"
-        confirmY
-        kubernetes_drain "$nodeName"
-
-        printf "\n\n\tRun the upgrade script on remote master node to proceed: ${GREEN}$nodeName${NC}\n\n"
-
-        if [ "$AIRGAP" = "1" ] || [ -z "$KURL_URL" ]; then
-            printf "\t${GREEN}cat upgrade.sh | sudo bash -s airgap hostname-check=${nodeName} kubernetes-version=${k8sVersion}${NC}\n\n"
-        else
-            printf "\t${GREEN}curl $KURL_URL/node-upgrade | sudo bash -s hostname-check=${nodeName} kubernetes-version=${k8sVersion}${NC}\n\n"
-        fi
-
-        spinner_until -1 kubernetes_node_has_version "$nodeName" "$k8sVersion"
-        logSuccess "Kubernetes $k8sVersion detected on $nodeName"
-
-        kubectl uncordon "$nodeName"
+    while read -r master; do
+        upgrade_kubernetes_remote_node_patch "$master"
     done < <(try_1m kubernetes_remote_masters)
 
     # spinnerNodesReady
+}
+
+function upgrade_kubernetes_workers_patch() {
+    while read -r worker; do
+        upgrade_kubernetes_remote_node_patch "$worker"
+    done < <(try_1m kubernetes_workers)
+}
+
+function upgrade_kubernetes_remote_node_patch() {
+    # one line of output from `kubectl get nodes`
+    local node="$1"
+    nodeName=$(echo "$node" | awk '{ print $1 }')
+    nodeVersion="$(echo "$node" | awk '{ print $5 }' | sed 's/v//' )"
+    semverParse "$nodeVersion"
+    nodeMinor="$minor"
+    nodePatch="$patch"
+    if [ "$nodeMinor" -gt "$KUBERNETES_TARGET_VERSION_MINOR" ]; then
+        continue
+    fi
+    if [ "$nodeMinor" -eq "$KUBERNETES_TARGET_VERSION_MINOR" ] && [ "$nodePatch" -ge "$KUBERNETES_TARGET_VERSION_PATCH" ]; then
+        continue
+    fi
+
+    printf "${YELLOW}Drain worker node $nodeName to prepare for upgrade? ${NC}"
+    confirmY
+    kubernetes_drain "$nodeName"
+
+    printf "\n\n\tRun the upgrade script on remote node to proceed: ${GREEN}$nodeName${NC}\n\n"
+
+    if [ "$AIRGAP" = "1" ] || [ -z "$KURL_URL" ]; then
+        printf "\t${GREEN}cat upgrade.sh | sudo bash -s airgap hostname-check=${nodeName} kubernetes-version=${KUBERNETES_VERSION}${NC}\n\n"
+    else
+        printf "\t${GREEN}curl $KURL_URL/node-upgrade | sudo bash -s hostname-check=${nodeName} kubernetes-version=${KUBERNETES_VERSION}${NC}\n\n"
+    fi
+
+    spinner_until -1 kubernetes_node_has_version "$nodeName" "$KUBERNETES_VERSION"
+    logSuccess "Kubernetes $KUBERNETES_VERSION detected on $nodeName"
+
+    kubectl uncordon "$nodeName"
 }
