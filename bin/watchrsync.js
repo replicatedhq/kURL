@@ -2,23 +2,29 @@
 
 const gri = require('gaze-run-interrupt');
 
-if (!process.env.HOST || !process.env.USER) {
-  console.log("USER and HOST required");
+if (!process.env.REMOTES) {
+  console.log("Usage: `REMOTES='user@h1.1.1.1,user@1.1.1.2' ./watchrsync.js`");
   process.exit(1);
 }
+
+const commands = [
+  {
+    command: 'rm',
+    args: ['-rf', 'build/install.sh', 'build/join.sh', 'build/upgrade.sh', 'build/yaml', 'build/addons'],
+  },{
+    command: 'make',
+    args: ['build/install.sh', 'build/join.sh', 'build/upgrade.sh', 'build/yaml', 'build/addons'],
+  }
+];
+
+process.env.REMOTES.split(",").forEach(function(remote) {
+  commands.push({
+    command: 'rsync',
+    args: ['-r', 'build/', `${remote}:kurl`],
+  });
+});
 
 gri([
   'scripts/**/*',
   'addons/**/*',
-], [
-  {
-    command: 'rm',
-    args: ['-rf', 'build/install.sh', 'build/join.sh', 'build/yaml', 'build/addons'],
-  },{
-    command: 'make',
-    args: ['build/install.sh', 'build/join.sh', 'build/yaml', 'build/addons'],
-  },{
-    command: 'rsync',
-    args: ['-r', 'build/', `${process.env.USER}@${process.env.HOST}:kurl`],
-  }
-]);
+], commands);

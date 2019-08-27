@@ -25,6 +25,9 @@ function flags() {
             ceph-pool-replicas|ceph_pool_replicas)
                 CEPH_POOL_REPLICAS="$_value"
                 ;;
+            hostname-check)
+                HOSTNAME_CHECK="$_value"
+                ;;
             ha)
                 HA_CLUSTER=1
                 ;;
@@ -118,7 +121,7 @@ function flags() {
                 KUBEADM_TOKEN_CA_HASH="$_value"
                 ;;
             kubernetes-version|kubernetes_version)
-                if [ "$_value" != "$KUBERNETES_VERSION" ]; then
+                if [ -n "$KUBERNETES_VERSION" ] && [ "$_value" != "$KUBERNETES_VERSION" ]; then
                     bail "This script installs $KUBERNETES_VERSION"
                 fi
                 ;;
@@ -136,7 +139,7 @@ function flags() {
         shift
     done
 
-    # parseKubernetesTargetVersion
+    parseKubernetesTargetVersion
 }
 
 parseKubernetesTargetVersion() {

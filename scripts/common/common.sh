@@ -192,6 +192,51 @@ function load_images() {
     find "$1" -type f | xargs -I {} bash -c "docker load < {}"
 }
 
+# try a command every 2 seconds until it succeeds, up to 30 tries max; useful for kubectl commands
+# where the Kubernetes API could be restarting
+function try_1m() {
+    local fn="$1"
+    local args=${@:2}
+
+    n=0
+    while ! $fn $args 2>/dev/null ; do
+        n="$(( $n + 1 ))"
+        if [ "$n" -ge "30" ]; then
+            # for the final try print the error and let it exit
+            fn $args
+            exit 1 # in case we're in a `set +e` state
+        fi
+        sleep 2
+    done
+}
+
+# Run a test every second with a spinner until it succeeds
+function spinner_until() {
+    local timeoutSeconds="$1"
+    local cmd="$2"
+    local args=${@:3}
+
+    if [ -z "$timeoutSeconds" ]; then
+        timeoutSeconds=-1
+    fi
+
+    local delay=1
+    local elapsed=0
+    local spinstr='|/-\'
+
+    while ! $cmd $args; do
+        elapsed=$(($elapsed + $delay))
+        if [ "$timeoutSeconds" -ge 0 ] && [ "$elapsed" -gt "$timeoutSeconds" ]; then
+            return 1
+        fi
+        local temp=${spinstr#?}
+        printf " [%c]  " "$spinstr"
+        local spinstr=$temp${spinstr%"$temp"}
+        sleep $delay
+        printf "\b\b\b\b\b\b"
+    done
+}
+
 splitHostPort() {
     oIFS="$IFS"; IFS=":" read -r HOST PORT <<< "$1"; IFS="$oIFS"
 }

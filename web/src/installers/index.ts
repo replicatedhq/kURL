@@ -114,6 +114,7 @@ spec:
   }
 
   static kubernetesVersions = [
+    "1.15.3",
     "1.15.2",
     "1.15.1",
     "1.15.0",
@@ -135,7 +136,7 @@ spec:
     const i = new Installer();
 
     i.id = "latest";
-    i.kubernetes.version = "1.15.2";
+    i.kubernetes.version = "1.15.3";
     i.weave.version = "2.5.2";
     i.rook.version = "1.0.4";
     i.contour.version = "0.14.0";

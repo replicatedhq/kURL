@@ -6,5 +6,5 @@ metadata:
 spec:
   storage:
     useAllDevices: "'false'"
-  directories:
-  - path: "$PV_BASE_PATH"
+    directories:
+    - path: "$PV_BASE_PATH"

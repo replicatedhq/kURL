@@ -16,6 +16,7 @@ DIR=.
 . $DIR/scripts/common/prompts.sh
 . $DIR/scripts/common/proxy.sh
 . $DIR/scripts/common/rook.sh
+. $DIR/scripts/common/upgrade.sh
 . $DIR/scripts/common/yaml.sh
 # Magic end
 
@@ -156,6 +157,7 @@ function main() {
     prompts
     configure_proxy
     install_docker
+    upgrade_kubernetes_patch
     kubernetes_host
     init
     addon weave "$WEAVE_VERSION"

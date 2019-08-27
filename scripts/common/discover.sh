@@ -118,7 +118,42 @@ discoverCurrentKubernetesVersion() {
         KUBERNETES_CURRENT_VERSION_MAJOR="$major"
         KUBERNETES_CURRENT_VERSION_MINOR="$minor"
         KUBERNETES_CURRENT_VERSION_PATCH="$patch"
+
+        semverParse "$KUBERNETES_VERSION"
+        if [ "$KUBERNETES_CURRENT_VERSION_MINOR" -lt "$minor" ]; then
+            KUBERNETES_UPGRADE=1
+            KUBERNETES_UPGRADE_LOCAL_MASTER_MINOR=1
+        elif [ "$KUBERNETES_CURRENT_VERSION_PATCH" -lt "$patch" ]; then
+            KUBERNETES_UPGRADE=1
+            KUBERNETES_UPGRADE_LOCAL_MASTER_PATCH=1
+        fi
+
+        if kubernetes_any_remote_master_unupgraded; then
+            KUBERNETES_UPGRADE=1
+            KUBERNETES_UPGRADE_REMOTE_MASTERS_PATCH=1
+        fi
     fi
+
+    local _ifs="$IFS"
+}
+
+allNodesUpgraded() {
+    while read -r node; do
+        local nodeVersion="$(echo "$node" | awk '{ print $5 }' | sed 's/v//' )"
+        semverParse "$nodeVersion"
+        local nodeMajor="$major"
+        local nodeMinor="$minor"
+        local nodePatch="$patch"
+
+        if [ "$nodeMajor" -eq "$KUBERNETES_TARGET_VERSION_MAJOR" ] &&  [ "$nodeMinor" -lt "$KUBERNETES_TARGET_VERSION_MINOR" ]; then
+            return 1
+        fi
+        if [ "$nodeMajor" -eq "$KUBERNETES_TARGET_VERSION_MAJOR" ] && [ "$nodeMinor" -eq "$KUBERNETES_TARGET_VERSION_MINOR" ] && [ "$nodePatch" -lt "$KUBERNETES_TARGET_VERSION_PATCH" ] && [ "$K8S_UPGRADE_PATCH_VERSION" = "1" ]; then
+            return 1
+        fi
+    done <<< "$(listNodes)"
+
+    return 0
 }
 
 getDockerVersion() {

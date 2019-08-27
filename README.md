@@ -121,8 +121,9 @@ The `web` directory holds an Express app for serving the install scripts.
 ## Contributing
 
 1. Spin up an instance for the target OS, e.g. Ubuntu 18.04.
-1. Build the Kubernetes host packages for your desired version of Kubernetes. For K8s 1.15.2 on Ubuntu 18.04 you'd use `make build/packages/kubernetes/1.15.2/ubuntu-18.04`.
+1. Build the Kubernetes host packages for your desired version of Kubernetes. For K8s 1.15.2 on Ubuntu 18.04 you'd use `make build/packages/kubernetes/1.15.2/ubuntu-18.04`. (For packages that have already been released, you can save time by running `curl -L https://kurl.sh/dist/kubernetes-1.15.2.tar.gz | tar xzvf -` on your server.)
 1. Run the task to watch for code changes and copy them to your server: `HOST=<ip or hostname> USER=<me> make watchrsync`
+1. Edit scripts/Manifest to configure Kubernetes and addons.
 
 That will place the installer in your HOME's kurl directory and sync any changes you make locally to the scripts/ or yaml/ directories.
 If you rebuild the OS packages, you'll need to manually run `rsync -r build/ ${USER}@${HOST}:kurl` to push those changes.
