@@ -187,3 +187,10 @@ function kubernetes_any_worker_unupgraded() {
 function kubelet_version() {
     kubelet --version | cut -d ' ' -f 2 | sed 's/v//'
 }
+
+function kubernetes_nodes_ready() {
+    if try_1m kubectl get nodes --no-headers | awk '{ print $1 }' | grep -q "NotReady"; then
+        return 1
+    fi
+    return 0
+}

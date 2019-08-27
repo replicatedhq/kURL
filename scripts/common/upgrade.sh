@@ -32,7 +32,6 @@ function upgrade_kubernetes_local_master_patch() {
  
     spinner_kubernetes_api_healthy
     kubeadm upgrade apply "v$k8sVersion" --yes --config /opt/replicated/kubeadm.conf --force
-    # waitForNodes
     sed -i "s/kubernetesVersion:.*/kubernetesVersion: v${k8sVersion}/" /opt/replicated/kubeadm.conf
 
     kubernetes_install_host_packages "$k8sVersion"
@@ -41,9 +40,8 @@ function upgrade_kubernetes_local_master_patch() {
     kubectl uncordon "$node"
     enable_rook_ceph_operator
 
-    # waitForNodes
-    # spinnerNodeVersion "$node" "$k8sVersion"
-    # spinnerNodesReady
+    spinner_until kubernetes_node_has_version "$node", "$k8sVersion"
+    spinner_until kubernetes_nodes_ready
 }
 
 function upgrade_kubeadm() {
@@ -75,7 +73,7 @@ function upgrade_kubernetes_remote_masters_patch() {
         upgrade_kubernetes_remote_node_patch "$master"
     done < <(try_1m kubernetes_remote_masters)
 
-    # spinnerNodesReady
+    spinner_until kubernetes_nodes_ready
 }
 
 function upgrade_kubernetes_workers_patch() {
