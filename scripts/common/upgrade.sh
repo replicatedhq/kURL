@@ -62,13 +62,6 @@ function upgrade_kubeadm() {
 }
 
 function upgrade_kubernetes_remote_masters_patch() {
-    k8sVersion="$1"
-
-    semverParse "$k8sVersion"
-    local upgradeMajor="$major"
-    local KUBERNETES_TARGET_VERSION_MINOR="$minor"
-    local KUBERNETES_TARGET_VERSION_PATCH="$patch"
-
     while read -r master; do
         upgrade_kubernetes_remote_node_patch "$master"
     done < <(try_1m kubernetes_remote_masters)

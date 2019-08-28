@@ -142,25 +142,6 @@ discoverCurrentKubernetesVersion() {
     local _ifs="$IFS"
 }
 
-allNodesUpgraded() {
-    while read -r node; do
-        local nodeVersion="$(echo "$node" | awk '{ print $5 }' | sed 's/v//' )"
-        semverParse "$nodeVersion"
-        local nodeMajor="$major"
-        local nodeMinor="$minor"
-        local nodePatch="$patch"
-
-        if [ "$nodeMajor" -eq "$KUBERNETES_TARGET_VERSION_MAJOR" ] &&  [ "$nodeMinor" -lt "$KUBERNETES_TARGET_VERSION_MINOR" ]; then
-            return 1
-        fi
-        if [ "$nodeMajor" -eq "$KUBERNETES_TARGET_VERSION_MAJOR" ] && [ "$nodeMinor" -eq "$KUBERNETES_TARGET_VERSION_MINOR" ] && [ "$nodePatch" -lt "$KUBERNETES_TARGET_VERSION_PATCH" ] && [ "$K8S_UPGRADE_PATCH_VERSION" = "1" ]; then
-            return 1
-        fi
-    done <<< "$(listNodes)"
-
-    return 0
-}
-
 getDockerVersion() {
 	if ! commandExists "docker"; then
 		return
