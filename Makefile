@@ -191,5 +191,4 @@ web: build/templates
 	cp bin/create-bundle-alpine.sh web/templates
 
 watchrsync:
-	rsync -r build/ ${USER}@${HOST}:kurl
 	bin/watchrsync.js

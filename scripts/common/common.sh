@@ -203,7 +203,7 @@ function try_1m() {
         n="$(( $n + 1 ))"
         if [ "$n" -ge "30" ]; then
             # for the final try print the error and let it exit
-            fn $args
+            $fn $args
             exit 1 # in case we're in a `set +e` state
         fi
         sleep 2

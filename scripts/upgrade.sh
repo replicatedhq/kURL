@@ -28,6 +28,12 @@ maybe_upgrade() {
     local kubeletMinor="$minor"
     local kubeletPatch="$patch"
 
+    if [ -n "$HOSTNAME_CHECK" ]; then
+        if [ "$HOSTNAME_CHECK" != "$(hostname)" ]; then
+            bail "this script should be executed on host $HOSTNAME_CHECK"
+        fi
+    fi
+
     if [ "$kubeletMajor" -ne "$KUBERNETES_TARGET_VERSION_MAJOR" ]; then
         printf "Cannot upgrade from %s to %s\n" "$kubeletVersion" "$KUBERNETES_VERSION"
         return 1

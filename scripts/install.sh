@@ -109,7 +109,7 @@ function outro() {
     printf "\n"
     printf "${GREEN}    bash -l${NC}\n"
     printf "\n"
-    if [ "$AIRGAP" = "1" ] || [ -z "$KURL_URL" ]; then
+    if [ "$AIRGAP" = "1" ]; then
         printf "\n"
         printf "To add worker nodes to this installation, copy and unpack this bundle on your other nodes, and run the following:"
         printf "\n"
@@ -129,18 +129,22 @@ function outro() {
             printf "\n"
         fi
     else
+        local prefix="curl KURL_URL/$INSTALLER_ID/"
+        if [ -z "$KURL_URL" ]; then
+            prefix="cat "
+        fi
         printf "\n"
         printf "To add worker nodes to this installation, run the following script on your other nodes"
         printf "\n"
-        printf "${GREEN}    curl $KURL_URL/$INSTALLER_ID/join.sh | sudo bash -s kubernetes-master-address=${PRIVATE_ADDRESS} kubeadm-token=${BOOTSTRAP_TOKEN} kubeadm-token-ca-hash=$KUBEADM_TOKEN_CA_HASH kubernetes-version=$KUBERNETES_VERSION \n"
+        printf "${GREEN}    ${prefix}join.sh | sudo bash -s kubernetes-master-address=${PRIVATE_ADDRESS} kubeadm-token=${BOOTSTRAP_TOKEN} kubeadm-token-ca-hash=$KUBEADM_TOKEN_CA_HASH kubernetes-version=$KUBERNETES_VERSION \n"
         printf "${NC}"
         printf "\n"
         printf "\n"
         if [ "$HA_CLUSTER" = "1" ]; then
             printf "\n"
-            printf "To add ${RED}MASTER${NC} nodes to this installation, run the following script on your other nodes"
+            printf "To add ${GREEN}MASTER${NC} nodes to this installation, run the following script on your other nodes"
             printf "\n"
-            printf "${GREEN}    curl $KURL_URL/$INSTALLER_ID/join.sh | sudo bash -s kubernetes-master-address=${PRIVATE_ADDRESS} kubeadm-token=${BOOTSTRAP_TOKEN} kubeadm-token-ca-hash=$KUBEADM_TOKEN_CA_HASH kubernetes-version=$KUBERNETES_VERSION cert-key=${CERT_KEY} control-plane\n"
+            printf "${GREEN}    ${prefix}join.sh | sudo bash -s kubernetes-master-address=${PRIVATE_ADDRESS} kubeadm-token=${BOOTSTRAP_TOKEN} kubeadm-token-ca-hash=$KUBEADM_TOKEN_CA_HASH kubernetes-version=$KUBERNETES_VERSION cert-key=${CERT_KEY} control-plane\n"
             printf "${NC}"
             printf "\n"
             printf "\n"

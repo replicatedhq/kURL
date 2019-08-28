@@ -114,11 +114,11 @@ function kubernetes_masters() {
 }
 
 function kubernetes_remote_masters() {
-    kubectl get nodes --no-headers --selector="node-role.kubernetes.io/master,kubernetes.io/hostname!=$(hostname)"
+    kubectl get nodes --no-headers --selector="node-role.kubernetes.io/master,kubernetes.io/hostname!=$(hostname)" 2>/dev/null
 }
 
 function kubernetes_workers() {
-    kubectl get nodes --no-headers --selector="!node-role.kubernetes.io/master"
+    kubectl get nodes --no-headers --selector="!node-role.kubernetes.io/master" 2>/dev/null
 }
 
 function kubernetes_api_address() {

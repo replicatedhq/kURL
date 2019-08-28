@@ -40,8 +40,8 @@ function upgrade_kubernetes_local_master_patch() {
     kubectl uncordon "$node"
     enable_rook_ceph_operator
 
-    spinner_until kubernetes_node_has_version "$node", "$k8sVersion"
-    spinner_until kubernetes_nodes_ready
+    spinner_until 120 kubernetes_node_has_version "$node" "$k8sVersion"
+    spinner_until 120 kubernetes_nodes_ready
 }
 
 function upgrade_kubeadm() {
@@ -73,7 +73,7 @@ function upgrade_kubernetes_remote_masters_patch() {
         upgrade_kubernetes_remote_node_patch "$master"
     done < <(try_1m kubernetes_remote_masters)
 
-    spinner_until kubernetes_nodes_ready
+    spinner_until 120 kubernetes_nodes_ready
 }
 
 function upgrade_kubernetes_workers_patch() {
@@ -106,7 +106,11 @@ function upgrade_kubernetes_remote_node_patch() {
     if [ "$AIRGAP" = "1" ] || [ -z "$KURL_URL" ]; then
         printf "\t${GREEN}cat upgrade.sh | sudo bash -s airgap hostname-check=${nodeName} kubernetes-version=${KUBERNETES_VERSION}${NC}\n\n"
     else
-        printf "\t${GREEN}curl $KURL_URL/node-upgrade | sudo bash -s hostname-check=${nodeName} kubernetes-version=${KUBERNETES_VERSION}${NC}\n\n"
+        local prefix="curl $KURL_URL/$INSTALLER_ID/"
+        if [ -z "$KURL_URL" ]; then
+            prefix="cat "
+        fi
+        printf "\t${GREEN} ${prefix}upgrade.sh | sudo bash -s hostname-check=${nodeName} kubernetes-version=${KUBERNETES_VERSION}${NC}\n\n"
     fi
 
     spinner_until -1 kubernetes_node_has_version "$nodeName" "$KUBERNETES_VERSION"
