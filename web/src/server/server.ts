@@ -2,6 +2,7 @@ import * as Sigsci from "sigsci-module-nodejs";
 import {
   InjectorService,
   OverrideMiddleware,
+  LogIncomingRequestMiddleware,
   Req,
   Res,
   ServerLoader,
@@ -32,7 +33,9 @@ import { Installer } from "../installers";
     "${rootDir}/../installers/**/**.js",
     "${rootDir}/**/**.js",
   ],
-  debug: false,
+  logger: {
+    level: "info",
+  },
 })
 
 export class Server extends ServerLoader {
@@ -96,12 +99,6 @@ export class Server extends ServerLoader {
     }
   }
 
-  /*
-  public $afterRoutesInit() {
-    this.use(ErrorMiddleware);
-  }
-  */
-
   public $onServerInitError(err) {
     $log.error(err);
   }
@@ -109,14 +106,14 @@ export class Server extends ServerLoader {
 
 const verboseLogging = TSEDVerboseLogging;
 
-/*
 @OverrideMiddleware(LogIncomingRequestMiddleware)
 export class CustomLogIncomingRequestMiddleware extends LogIncomingRequestMiddleware {
 
-  public use(@Req() request: any, @Res() response: any) {
+  public use(@Req() request): void {
     // you can set a custom ID with another lib
     request.id = require("uuid").v4();
-    return super.use(request, response); // required
+    request.start = new Date().getTime();
+    return super.use(request); // required
   }
 
   // pretty much copy-pasted, but hooked into verboseLogging from above to control multiline logging
@@ -166,17 +163,16 @@ export class CustomLogIncomingRequestMiddleware extends LogIncomingRequestMiddle
         reqId: request.id,
         method: request.method,
         url: request.originalUrl || request.url,
-        duration: new Date().getTime() - request.tsedReqStart.getTime(),
+        duration: new Date().getTime() - request.start,
       };
     }
   }
 
   protected onLogEnd(request, response) {
     if (this.requestToObject(request).url === "/healthz") {
-      this.cleanRequest(request);
+      delete request.log;
       return;
     }
     return super.onLogEnd(request, response);
   }
 }
-*/
