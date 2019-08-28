@@ -118,7 +118,28 @@ discoverCurrentKubernetesVersion() {
         KUBERNETES_CURRENT_VERSION_MAJOR="$major"
         KUBERNETES_CURRENT_VERSION_MINOR="$minor"
         KUBERNETES_CURRENT_VERSION_PATCH="$patch"
+
+        semverParse "$KUBERNETES_VERSION"
+        if [ "$KUBERNETES_CURRENT_VERSION_MINOR" -lt "$minor" ]; then
+            KUBERNETES_UPGRADE=1
+            KUBERNETES_UPGRADE_LOCAL_MASTER_MINOR=1
+        elif [ "$KUBERNETES_CURRENT_VERSION_PATCH" -lt "$patch" ]; then
+            KUBERNETES_UPGRADE=1
+            KUBERNETES_UPGRADE_LOCAL_MASTER_PATCH=1
+        fi
+
+        if kubernetes_any_remote_master_unupgraded; then
+            KUBERNETES_UPGRADE=1
+            KUBERNETES_UPGRADE_REMOTE_MASTERS_PATCH=1
+        fi
+
+        if kubernetes_any_worker_unupgraded; then
+            KUBERNETES_UPGRADE=1
+            KUBERNETES_UPGRADE_WORKERS_PATCH=1
+        fi
     fi
+
+    local _ifs="$IFS"
 }
 
 getDockerVersion() {

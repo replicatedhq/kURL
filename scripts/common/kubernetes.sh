@@ -50,7 +50,7 @@ function kubernetes_install_host_packages() {
 
     logStep "Install kubelet, kubeadm, kubectl and cni host packages"
 
-    if kubernetes_host_commands_ok; then
+    if kubernetes_host_commands_ok "$k8sVersion"; then
         logSuccess "Kubernetes host packages already installed"
         return
     fi
@@ -81,8 +81,8 @@ function kubernetes_install_host_packages() {
     logSuccess "Kubernetes host packages installed"
 }
 
-# This does not check versions
 kubernetes_host_commands_ok() {
+    local k8sVersion=$1
     if ! commandExists kubelet; then
         printf "kubelet command missing - will install host components\n"
         return 1
@@ -96,7 +96,7 @@ kubernetes_host_commands_ok() {
         return 1
     fi
 
-    return 0
+    kubelet --version | grep -q "$k8sVersion"
 }
 
 function kubernetes_get_host_packages_online() {
@@ -107,4 +107,90 @@ function kubernetes_get_host_packages_online() {
         tar xf kubernetes-${k8sVersion}.tar.gz
         rm kubernetes-${k8sVersion}.tar.gz
     fi
+}
+
+function kubernetes_masters() {
+    kubectl get nodes --no-headers --selector="node-role.kubernetes.io/master"
+}
+
+function kubernetes_remote_masters() {
+    kubectl get nodes --no-headers --selector="node-role.kubernetes.io/master,kubernetes.io/hostname!=$(hostname)" 2>/dev/null
+}
+
+function kubernetes_workers() {
+    kubectl get nodes --no-headers --selector="!node-role.kubernetes.io/master" 2>/dev/null
+}
+
+function kubernetes_api_address() {
+    if [ -n "$LOAD_BALANCER_ADDRESS" ]; then
+        echo "${LOAD_BALANCER_ADDRESS}:${LOAD_BALANCER_PORT}"
+        return
+    fi
+    echo "${PRIVATE_ADDRESS}:6443"
+}
+
+function kubernetes_api_is_healthy() {
+    curl --noproxy "*" --fail --silent --insecure "https://$(kubernetes_api_address)/healthz"
+}
+
+function spinner_kubernetes_api_healthy() {
+    if ! spinner_until 120 kubernetes_api_is_healthy; then
+        bail "Kubernetes API failed to report healthy"
+    fi
+}
+
+function kubernetes_drain() {
+    kubectl drain "$1" \
+        --delete-local-data \
+        --ignore-daemonsets \
+        --force \
+        --grace-period=30 \
+        --timeout=300s \
+        --pod-selector 'app notin (rook-ceph-mon,rook-ceph-osd,rook-ceph-osd-prepare,rook-ceph-operator,rook-ceph-agent),k8s-app!=kube-dns' || true
+}
+
+function kubernetes_node_has_version() {
+    local name="$1"
+    local version="$2"
+
+    local actual_version="$(try_1m kubernetes_node_kubelet_version $name)"
+
+    [ "$actual_version" = "v${version}" ]
+}
+
+function kubernetes_node_kubelet_version() {
+    local name="$1"
+
+    kubectl get node "$name" -o=jsonpath='{@.status.nodeInfo.kubeletVersion}'
+}
+
+function kubernetes_any_remote_master_unupgraded() {
+    while read -r master; do
+        local name=$(echo $master | awk '{ print $1 }')
+        if ! kubernetes_node_has_version "$name" "$KUBERNETES_VERSION"; then
+            return 0
+        fi
+    done < <(kubernetes_remote_masters)
+    return 1
+}
+
+function kubernetes_any_worker_unupgraded() {
+    while read -r worker; do
+        local name=$(echo $worker | awk '{ print $1 }')
+        if ! kubernetes_node_has_version "$name" "$KUBERNETES_VERSION"; then
+            return 0
+        fi
+    done < <(kubernetes_workers)
+    return 1
+}
+
+function kubelet_version() {
+    kubelet --version | cut -d ' ' -f 2 | sed 's/v//'
+}
+
+function kubernetes_nodes_ready() {
+    if try_1m kubectl get nodes --no-headers | awk '{ print $1 }' | grep -q "NotReady"; then
+        return 1
+    fi
+    return 0
 }

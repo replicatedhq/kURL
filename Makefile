@@ -62,7 +62,6 @@ build/templates/install.tmpl: build/install.sh
 		sed 's/^WEAVE_VERSION=.*/WEAVE_VERSION="{{= WEAVE_VERSION }}"/' | \
 		sed 's/^ROOK_VERSION=.*/ROOK_VERSION="{{= ROOK_VERSION }}"/' | \
 		sed 's/^CONTOUR_VERSION=.*/CONTOUR_VERSION="{{= CONTOUR_VERSION }}"/' > build/templates/install.tmpl
-	
 
 build/join.sh:
 	mkdir -p tmp build
@@ -81,6 +80,24 @@ build/templates/join.tmpl: build/join.sh
 		sed 's/^WEAVE_VERSION=.*/WEAVE_VERSION="{{= WEAVE_VERSION }}"/' | \
 		sed 's/^ROOK_VERSION=.*/ROOK_VERSION="{{= ROOK_VERSION }}"/' | \
 		sed 's/^CONTOUR_VERSION=.*/CONTOUR_VERSION="{{= CONTOUR_VERSION }}"/' > build/templates/join.tmpl
+
+build/upgrade.sh:
+	mkdir -p tmp build
+	sed '/# Magic begin/q' scripts/upgrade.sh | sed '$$d' > tmp/upgrade.sh
+	for script in $(shell cat scripts/upgrade.sh | grep '. $$DIR/' | sed 's/. $$DIR\///'); do \
+		cat $$script >> tmp/upgrade.sh ; \
+	done
+	sed -n '/# Magic end/,$$p' scripts/upgrade.sh | sed '1d' >> tmp/upgrade.sh
+	mv tmp/upgrade.sh build/upgrade.sh
+
+build/templates/upgrade.tmpl: build/upgrade.sh
+	mkdir -p build/templates
+	sed 's/^KUBERNETES_VERSION=.*/KUBERNETES_VERSION="{{= KUBERNETES_VERSION }}"/' "build/upgrade.sh" | \
+		sed 's/^KURL_URL=.*/KURL_URL="{{= KURL_URL }}"/' | \
+		sed 's/^INSTALLER_ID=.*/INSTALLER_ID="{{= INSTALLER_ID }}"/' | \
+		sed 's/^WEAVE_VERSION=.*/WEAVE_VERSION="{{= WEAVE_VERSION }}"/' | \
+		sed 's/^ROOK_VERSION=.*/ROOK_VERSION="{{= ROOK_VERSION }}"/' | \
+		sed 's/^CONTOUR_VERSION=.*/CONTOUR_VERSION="{{= CONTOUR_VERSION }}"/' > build/templates/upgrade.tmpl
 
 build/addons:
 	mkdir -p build
@@ -162,7 +179,7 @@ build/packages/kubernetes/%/rhel-7:
 	docker cp k8s-rhel7-$*:/packages/archives/. build/packages/kubernetes/$*/rhel-7/
 	docker rm k8s-rhel7-$*
 
-build/templates: build/templates/install.tmpl build/templates/join.tmpl
+build/templates: build/templates/install.tmpl build/templates/join.tmpl build/templates/upgrade.tmpl
 
 .PHONY: code
 code: build/templates build/yaml build/addons
@@ -174,5 +191,4 @@ web: build/templates
 	cp bin/create-bundle-alpine.sh web/templates
 
 watchrsync:
-	rsync -r build/ ${USER}@${HOST}:kurl
 	bin/watchrsync.js

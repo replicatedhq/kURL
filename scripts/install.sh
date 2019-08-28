@@ -16,6 +16,7 @@ DIR=.
 . $DIR/scripts/common/prompts.sh
 . $DIR/scripts/common/proxy.sh
 . $DIR/scripts/common/rook.sh
+. $DIR/scripts/common/upgrade.sh
 . $DIR/scripts/common/yaml.sh
 # Magic end
 
@@ -128,18 +129,22 @@ function outro() {
             printf "\n"
         fi
     else
+        local prefix="curl KURL_URL/$INSTALLER_ID/"
+        if [ -z "$KURL_URL" ]; then
+            prefix="cat "
+        fi
         printf "\n"
         printf "To add worker nodes to this installation, run the following script on your other nodes"
         printf "\n"
-        printf "${GREEN}    curl $KURL_URL/$INSTALLER_ID/join.sh | sudo bash -s kubernetes-master-address=${PRIVATE_ADDRESS} kubeadm-token=${BOOTSTRAP_TOKEN} kubeadm-token-ca-hash=$KUBEADM_TOKEN_CA_HASH kubernetes-version=$KUBERNETES_VERSION \n"
+        printf "${GREEN}    ${prefix}join.sh | sudo bash -s kubernetes-master-address=${PRIVATE_ADDRESS} kubeadm-token=${BOOTSTRAP_TOKEN} kubeadm-token-ca-hash=$KUBEADM_TOKEN_CA_HASH kubernetes-version=$KUBERNETES_VERSION \n"
         printf "${NC}"
         printf "\n"
         printf "\n"
         if [ "$HA_CLUSTER" = "1" ]; then
             printf "\n"
-            printf "To add ${RED}MASTER${NC} nodes to this installation, run the following script on your other nodes"
+            printf "To add ${GREEN}MASTER${NC} nodes to this installation, run the following script on your other nodes"
             printf "\n"
-            printf "${GREEN}    curl $KURL_URL/$INSTALLER_ID/join.sh | sudo bash -s kubernetes-master-address=${PRIVATE_ADDRESS} kubeadm-token=${BOOTSTRAP_TOKEN} kubeadm-token-ca-hash=$KUBEADM_TOKEN_CA_HASH kubernetes-version=$KUBERNETES_VERSION cert-key=${CERT_KEY} control-plane\n"
+            printf "${GREEN}    ${prefix}join.sh | sudo bash -s kubernetes-master-address=${PRIVATE_ADDRESS} kubeadm-token=${BOOTSTRAP_TOKEN} kubeadm-token-ca-hash=$KUBEADM_TOKEN_CA_HASH kubernetes-version=$KUBERNETES_VERSION cert-key=${CERT_KEY} control-plane\n"
             printf "${NC}"
             printf "\n"
             printf "\n"
@@ -156,6 +161,7 @@ function main() {
     prompts
     configure_proxy
     install_docker
+    upgrade_kubernetes_patch
     kubernetes_host
     init
     addon weave "$WEAVE_VERSION"
