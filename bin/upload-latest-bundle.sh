@@ -27,6 +27,7 @@ cp build/join.sh tmp/work/
 
 cd tmp/work
 
+curl -L "${DIST_ORIGIN}/dist/common.tar.gz" | tar zxf -
 curl -L "${DIST_ORIGIN}/dist/kubernetes-${KUBERNETES_VERSION}.tar.gz" | tar zxf -
 curl -L "${DIST_ORIGIN}/dist/docker-${DOCKER_VERSION}.tar.gz"         | tar zxf -
 curl -L "${DIST_ORIGIN}/dist/weave-${WEAVE_VERSION}.tar.gz"           | tar zxf -
