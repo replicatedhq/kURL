@@ -17,10 +17,11 @@ DIST_ORIGIN=https://${S3_BUCKET}.s3.amazonaws.com
 
 mkdir -p tmp/work
 
-make build/install.sh build/join.sh
+make build/install.sh build/join.sh build/upgrade.sh
 
 cp build/install.sh tmp/work/
 cp build/join.sh tmp/work/
+cp build/upgrade.sh tmp/work/
 
 # get latest versions
 . scripts/Manifest

@@ -12,6 +12,7 @@ cd /tmp/work
 
 cp /scripts/install.sh /tmp/work/install.sh
 cp /scripts/join.sh /tmp/work/join.sh
+cp /scripts/upgrade.sh /tmp/work/upgrade.sh
 
 while [ -n "$1" ]; do
     echo "Downloading and extracting $1"
