@@ -22,3 +22,5 @@ spec:
           value: https://kurl.sh
         - name: KURL_BUCKET
           value: kurl-sh
+        - name: NODE_ENV
+          value: production
