@@ -22,3 +22,5 @@ spec:
           value: https://staging.kurl.sh
         - name: KURL_BUCKET
           value: kurl-sh-staging
+        - name: NODE_ENV
+          value: staging

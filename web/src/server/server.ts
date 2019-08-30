@@ -152,7 +152,7 @@ export class CustomLogIncomingRequestMiddleware extends LogIncomingRequestMiddle
         reqId: request.id,
         method: request.method,
         url: request.originalUrl || request.url,
-        duration: new Date().getTime() - request.tsedReqStart.getTime(),
+        duration: new Date().getTime() - request.start,
         headers: request.headers,
         body: request.body,
         query: request.query,
