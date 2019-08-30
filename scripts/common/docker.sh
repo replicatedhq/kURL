@@ -95,11 +95,13 @@ installDockerOffline() {
             export DEBIAN_FRONTEND=noninteractive
             dpkg --install --force-depends-version $DIR/packages/docker/${DOCKER_VERSION}/ubuntu-${DIST_VERSION}/*.deb
             DID_INSTALL_DOCKER=1
+            return 0
             ;;
 
         centos|rhel)
             rpm --upgrade --force --nodeps $DIR/packages/docker/${DOCKER_VERSION}/rhel-7/*.rpm
             DID_INSTALL_DOCKER=1
+            return 0
             ;;
     esac
 

@@ -30,3 +30,4 @@ spec:
         ports:
         - name: kurl
           containerPort: 3000
+      serviceAccountName: kurl-web-server
