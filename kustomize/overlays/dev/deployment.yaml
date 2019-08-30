@@ -13,7 +13,7 @@ spec:
         - name: KURL_BUCKET
           value: "kurl-dev"
         - name: TSED_SUPPRESS_ACCESSLOG
-          value: ""
+          value: "1"
         - name: PINO_LOG_PRETTY
           value: "1"
         - name: PINO_LOG_LEVEL
