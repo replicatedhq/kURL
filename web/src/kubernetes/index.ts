@@ -4,10 +4,12 @@ import {
   CoreV1Api,
   V1ConfigMap,
   V1Job} from "@kubernetes/client-node";
+import * as _ from "lodash";
 import {Service} from "ts-express-decorators";
 import { Installer } from "../installers";
 import { Templates } from "../util/services/templates";
 import { S3Signer } from "../util/persistence/s3";
+import { logger } from "../logger";
 
 @Service()
 export class Kubernetes {
@@ -25,6 +27,31 @@ export class Kubernetes {
     this.disabled = !!process.env["AIRGAP_BUNDLING_DISABLED"];
     this.s3Signer = new S3Signer();
     this.bucket = process.env["KURL_BUCKET"] || "kurl-dev";
+  }
+
+  // schedule the Job unless there is one already active
+  public async maybeRunCreateAirgapBundleJob(i: Installer) {
+    if (this.disabled) {
+      return;
+    }
+    const kc = new KubeConfig();
+    kc.loadFromDefault();
+    const batchV1Client: BatchV1Api = kc.makeApiClient(BatchV1Api);
+
+    const labelSelector = `installer=${i.id}`;
+
+    const { body } = await batchV1Client.listNamespacedJob(this.ns, false, "", "", "", labelSelector);
+
+    const active = _.some(body.items, (job: V1Job) => {
+      return _.get(job, "status.active");
+    });
+
+    if (active) {
+      logger.info(`Skipping airgap build already active for: ${i.id}`);
+      return;
+    }
+
+    await this.runCreateAirgapBundleJob(i);
   }
 
   public async runCreateAirgapBundleJob(i: Installer) {
@@ -48,6 +75,7 @@ export class Kubernetes {
       data: {
         "install.sh": this.templates.renderInstallScript(i),
         "join.sh": this.templates.renderJoinScript(i),
+        "upgrade.sh": this.templates.renderUpgradeScript(i),
         "create-bundle-alpine.sh": this.templates.renderCreateBundleScript(i),
       },
     };
@@ -68,6 +96,9 @@ export class Kubernetes {
       metadata: {
         name: name,
         namespace: this.ns,
+        labels: {
+          "installer": i.id,
+        },
       },
       spec: {
         activeDeadlineSeconds: 600,
