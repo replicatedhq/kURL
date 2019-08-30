@@ -12,7 +12,7 @@ rules:
 - apiGroups: [""]
   resources: ["configmaps"]
   verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
-- apiGroups: ["batch/v1"]
+- apiGroups: ["batch"]
   resources: ["jobs"]
   verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
 ---
