@@ -131,6 +131,9 @@ function flags() {
             cert-key|cert_key)
                 CERT_KEY="$_value"
                 ;;
+            task)
+                TASK="$_value"
+                ;;
             *)
                 echo >&2 "Error: unknown parameter \"$_param\""
                 exit 1
