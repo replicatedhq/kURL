@@ -120,7 +120,7 @@ function outro() {
         printf "\n"
         if [ "$HA_CLUSTER" = "1" ]; then
             printf "\n"
-            printf "To add ${RED}MASTER${NC} nodes to this installation, copy and unpack this bundle on your other nodes, and run the following:"
+            printf "To add ${GREEN}MASTER${NC} nodes to this installation, copy and unpack this bundle on your other nodes, and run the following:"
             printf "\n"
             printf "\n"
             printf "${GREEN}    cat ./join.sh | sudo bash -s airgap kubernetes-master-address=${PRIVATE_ADDRESS} kubeadm-token=${BOOTSTRAP_TOKEN} kubeadm-token-ca-hash=$KUBEADM_TOKEN_CA_HASH kubernetes-version=$KUBERNETES_VERSION cert-key=${CERT_KEY} control-plane\n"
