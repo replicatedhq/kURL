@@ -16,6 +16,7 @@ DIR=.
 . $DIR/scripts/common/prompts.sh
 . $DIR/scripts/common/proxy.sh
 . $DIR/scripts/common/rook.sh
+. $DIR/scripts/common/tasks.sh
 . $DIR/scripts/common/upgrade.sh
 . $DIR/scripts/common/yaml.sh
 # Magic end
@@ -157,6 +158,7 @@ function main() {
     requireRootUser
     discover
     flags "$@"
+    tasks
     preflights
     prompts
     configure_proxy

@@ -121,6 +121,21 @@ function kubernetes_workers() {
     kubectl get nodes --no-headers --selector="!node-role.kubernetes.io/master" 2>/dev/null
 }
 
+# exit 0 if there are any remote workers or masters
+function kubernetes_has_remotes() {
+    if ! kubernetes_api_is_healthy; then
+        # assume this is a new install
+        return 1
+    fi
+
+    local count=$(kubectl get nodes --no-headers --selector="kubernetes.io/hostname!=$(hostname)" 2>/dev/null | wc -l)
+    if [ "$count" -gt "0" ]; then
+        return 0
+    fi
+
+    return 1
+}
+
 function kubernetes_api_address() {
     if [ -n "$LOAD_BALANCER_ADDRESS" ]; then
         echo "${LOAD_BALANCER_ADDRESS}:${LOAD_BALANCER_PORT}"

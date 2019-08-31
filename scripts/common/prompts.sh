@@ -20,7 +20,8 @@ function prompts() {
             getNoProxyAddresses "$PRIVATE_ADDRESS" "$SERVICE_CIDR"
         fi
     fi
-    return 0
+
+    prompt_airgap_preload_images
 }
 
 promptForProxy() {
@@ -202,6 +203,33 @@ promptForLoadBalancerAddress() {
     if [ -z "$LOAD_BALANCER_PORT" ]; then
         LOAD_BALANCER_PORT=6443
     fi
+}
+
+# if remote nodes are in the cluster and this is an airgap install, prompt the user to run the
+# load-images task on all remotes before proceeding because remaining steps may cause pods to
+# be scheduled on those nodes with new images.
+function prompt_airgap_preload_images() {
+    if [ "$AIRGAP" != "1" ]; then
+        return 0
+    fi
+
+    if ! kubernetes_has_remotes; then
+        return 0
+    fi
+
+    printf "\n"
+    printf "\n"
+    printf "Run this script on all remote airgapped nodes to load required images before proceeding:\n"
+    printf "\n"
+    printf "${GREEN}\tcat ./install.sh | sudo bash -s task=load-images${NC}"
+    printf "\n"
+    while true; do
+        echo ""
+        printf "Have images been loaded on all remote nodes? "
+        if confirmY " "; then
+            break
+        fi
+    done
 }
 
 promptForPrivateIp() {
