@@ -54,6 +54,8 @@ maybe_upgrade() {
                 fi
 
                 kubernetes_host
+                systemctl daemon-reload
+                systemctl restart kubelet
 
                 logSuccess "Kubernetes node upgraded to $KUBERNETES_VERSION"
                 return
