@@ -20,6 +20,7 @@ function upgrade_kubernetes_local_master_patch() {
     local k8sVersion=$1
     local node=$(hostname)
 
+    load_images $DIR/packages/kubernetes/$k8sVersion/images
     upgrade_kubeadm "$k8sVersion"
     kubeadm config migrate --old-config /opt/replicated/kubeadm.conf --new-config /opt/replicated/kubeadm.conf
 
@@ -36,7 +37,8 @@ function upgrade_kubernetes_local_master_patch() {
 
     kubernetes_install_host_packages "$k8sVersion"
     systemctl daemon-reload
-    systemctl start kubelet
+    systemctl restart kubelet
+    spinner_kubernetes_api_healthy
     kubectl uncordon "$node"
     enable_rook_ceph_operator
 
@@ -55,7 +57,7 @@ function upgrade_kubeadm() {
             cp $DIR/packages/kubernetes/${k8sVersion}/ubuntu-${DIST_VERSION}/kubeadm /usr/bin/kubeadm
             ;;
         centos|rhel)
-            cp $DIR/packages/kubernetes/${k8sVersion}rhel-7/kubeadm /usr/bin/kubeadm
+            cp $DIR/packages/kubernetes/${k8sVersion}/rhel-7/kubeadm /usr/bin/kubeadm
             ;;
     esac
     chmod a+rx /usr/bin/kubeadm
@@ -90,7 +92,7 @@ function upgrade_kubernetes_remote_node_patch() {
         continue
     fi
 
-    printf "${YELLOW}Drain worker node $nodeName to prepare for upgrade? ${NC}"
+    printf "${YELLOW}Drain node $nodeName to prepare for upgrade? ${NC}"
     confirmY
     kubernetes_drain "$nodeName"
 
