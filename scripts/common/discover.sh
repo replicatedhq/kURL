@@ -11,6 +11,8 @@ function discover() {
     if [ "$NO_PROXY" != "1" ] && [ -z "$PROXY_ADDRESS" ]; then
         discoverProxy
     fi
+
+    discoverPublicIp
 }
  
 LSB_DIST=
@@ -176,5 +178,27 @@ discoverProxy() {
 
     if curl --noproxy "*" --silent --connect-timeout 2 --fail https://api.replicated.com/market/v1/echo/ip > /dev/null ; then
         NO_PROXY=1
+    fi
+}
+
+discoverPublicIp() {
+    set +e
+    _out=$(curl --noproxy "*" --max-time 5 --connect-timeout 2 -qSfs -H 'Metadata-Flavor: Google' http://169.254.169.254/computeMetadata/v1/instance/network-interfaces/0/access-configs/0/external-ip 2>/dev/null)
+    _status=$?
+    set -e
+
+    if [ "$_status" -eq "0" ] && [ -n "$_out" ]; then
+        PUBLIC_ADDRESS=$_out
+        return
+    fi
+
+    # ec2
+    set +e
+    _out=$(curl --noproxy "*" --max-time 5 --connect-timeout 2 -qSfs http://169.254.169.254/latest/meta-data/public-ipv4 2>/dev/null)
+    _status=$?
+    set -e
+    if [ "$_status" -eq "0" ] && [ -n "$_out" ]; then
+        PUBLIC_ADDRESS=$_out
+        return
     fi
 }

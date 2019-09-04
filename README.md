@@ -84,6 +84,17 @@ To get a new command to join worker nodes, re-run the install script on the mast
 
 For HA clusters, the install script will print out separate commands for joining workers and joining masters.
 
+## Connecting Remotely
+
+You can generate a kubeconfig to use from your local machine with:
+
+```
+sudo bash install.sh task=generate-admin-user
+```
+
+This will use the load balancer or public address for the Kubernetes API server and generate a new user with full admin privileges.
+Be sure to open TCP port 6443 to allow traffic from your local machine.
+
 ## What It Does
 
 ### Kubeadm Pre-Init
