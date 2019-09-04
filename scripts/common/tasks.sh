@@ -33,7 +33,7 @@ function generate_admin_user() {
     local username="${SUDO_USER}"
 
     openssl req -newkey rsa:2048 -nodes -keyout "${username}.key" -out "${username}.csr" -subj="/CN=${username}/O=system:masters"
-    openssl x509 -req -days 365 -sha256 -in "${username}.csr" -CA /etc/kubernetes/pki/ca.crt -CAkey /etc/kubernetes/pki/ca.key -set_serial 2 -out "${username}.crt"
+    openssl x509 -req -days 365 -sha256 -in "${username}.csr" -CA /etc/kubernetes/pki/ca.crt -CAkey /etc/kubernetes/pki/ca.key -set_serial 1 -out "${username}.crt"
 
     # kubectl will create the conf file
     kubectl --kubeconfig="${username}.conf" config set-credentials "${username}" --client-certificate="${username}.crt" --client-key="${username}.key" --embed-certs=true
