@@ -254,7 +254,3 @@ lockPackageVersion() {
             ;;
     esac
 }
-
-function docker_image_exists() {
-    [[ "$(docker images -q "$@" 2> /dev/null)" != "" ]];
-}
