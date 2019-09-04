@@ -189,7 +189,6 @@ discoverPublicIp() {
 
     if [ "$_status" -eq "0" ] && [ -n "$_out" ]; then
         PUBLIC_ADDRESS=$_out
-        printf "The installer will use public address '%s' (discovered from GCE metadata service)\n" "$PUBLIC_ADDRESS"
         return
     fi
 
@@ -200,7 +199,6 @@ discoverPublicIp() {
     set -e
     if [ "$_status" -eq "0" ] && [ -n "$_out" ]; then
         PUBLIC_ADDRESS=$_out
-        printf "The installer will use public address '%s' (discovered from EC2 metadata service)\n" "$PUBLIC_ADDRESS"
         return
     fi
 }
