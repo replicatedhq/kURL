@@ -232,6 +232,35 @@ function prompt_airgap_preload_images() {
     done
 }
 
+promptForPublicIp() {
+    if [ -n "$PUBLIC_ADDRESS" ]; then
+        return 0;
+    fi
+
+    while true; do
+        printf "Public IP address: "
+        promptTimeout "-t 120"
+        if [ -n "$PROMPT_RESULT" ]; then
+            if isValidIpv4 "$PROMPT_RESULT"; then
+                PUBLIC_ADDRESS=$PROMPT_RESULT
+                break
+            else
+                printf "%s is not a valid ip address.\n" "$PROMPT_RESULT"
+            fi
+        else
+            break
+        fi
+    done
+}
+
+isValidIpv4() {
+    if echo "$1" | grep -qs '^[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*$'; then
+        return 0
+    else
+        return 1
+    fi
+}
+
 promptForPrivateIp() {
     _count=0
     _regex="^[[:digit:]]+: ([^[:space:]]+)[[:space:]]+[[:alnum:]]+ ([[:digit:].]+)"
