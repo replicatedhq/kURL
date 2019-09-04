@@ -78,7 +78,10 @@ function flags() {
                 HARD_FAIL_ON_FIREWALLD=1
                 ;;
             disable-contour|disable_contour)
-                DISABLE_CONTOUR=1
+                CONTOUR_VERSION=""
+                ;;
+            disable-rook|disable_rook)
+                ROOK_VERSION=""
                 ;;
             reset)
                 RESET=1
