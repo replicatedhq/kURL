@@ -169,6 +169,7 @@ function main() {
     addon weave "$WEAVE_VERSION"
     addon rook "$ROOK_VERSION"
     addon contour "$CONTOUR_VERSION"
+    addon registry "$REGISTRY_VERSION"
     outro
 }
 
