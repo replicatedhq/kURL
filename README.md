@@ -68,6 +68,7 @@ The install scripts are idempotent. Re-run the scripts with different flags to c
 | ip-alloc-range                   | Customize the range of IPs assigned to pods                                                        |
 | load-balancer-address            | IP:port of a load balancer for the K8s API servers in ha mode                                      |
 | service-cidr                     | Customize the range of virtual IPs assigned to services                                            |
+| nodeless                         | Create a nodeless setup (see [section below](#Nodeless))                                                       |
 | no-docker                        | Skip docker installation                                                                           |
 | no-proxy                         | If present, do not use a proxy                                                                     |
 | public-address                   | The public IP address                                                                              |
@@ -120,6 +121,112 @@ The available addons are:
 * [Rook](https://rook.io/)
 * [Contour](https://projectcontour.io/)
 * [Docker Registry](https://docs.docker.com/registry/)
+
+## Nodeless
+
+When a nodeless setup is created, pods annotated with "kubernetes.io/target-runtime":"kiyot" will be scheduled to run on EC2 instances, started and terminated on demand. For example, to run nginx:
+
+    kubectl run nginx --image=nginx --replicas=5 --overrides='{"apiVersion":"apps/v1", "spec": {"template": {"metadata": {"annotations": {"kubernetes.io/target-runtime":"kiyot"}}}}}'
+
+To create a nodeless cluster, use:
+
+    sudo bash install.sh nodeless
+
+Nodeless currently only works on AWS. When you create an EC2 instance for running the install script, it needs to be tagged with:
+
+    "kubernetes.io/cluster/<cluster-name>" = "owned"
+
+The IAM policy for the instance:
+
+```
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "autoscaling:DescribeAutoScalingGroups",
+        "autoscaling:DescribeLaunchConfigurations",
+        "autoscaling:DescribeTags",
+        "ec2:AttachVolume",
+        "ec2:AuthorizeSecurityGroupIngress",
+        "ec2:CreateRoute",
+        "ec2:CreateSecurityGroup",
+        "ec2:CreateTags",
+        "ec2:CreateVolume",
+        "ec2:DeleteRoute",
+        "ec2:DeleteSecurityGroup",
+        "ec2:DeleteVolume",
+        "ec2:DescribeAddresses",
+        "ec2:DescribeElasticGpus",
+        "ec2:DescribeImages",
+        "ec2:DescribeInstances",
+        "ec2:DescribeRegions",
+        "ec2:DescribeRouteTables",
+        "ec2:DescribeSecurityGroups",
+        "ec2:DescribeSpotPriceHistory",
+        "ec2:DescribeSubnets",
+        "ec2:DescribeTags",
+        "ec2:DescribeVolumes",
+        "ec2:DescribeVpcAttribute",
+        "ec2:DescribeVpcs",
+        "ec2:DetachVolume",
+        "ec2:ModifyInstanceAttribute",
+        "ec2:ModifyInstanceCreditSpecification",
+        "ec2:ModifyVolume",
+        "ec2:ModifyVpcAttribute",
+        "ec2:RequestSpotInstances",
+        "ec2:RevokeSecurityGroupIngress",
+        "ec2:RunInstances",
+        "ec2:TerminateInstances",
+        "ecr:BatchGetImage",
+        "ecr:GetAuthorizationToken",
+        "ecr:GetDownloadUrlForLayer",
+        "elasticloadbalancing:AddTags",
+        "elasticloadbalancing:AttachLoadBalancerToSubnets",
+        "elasticloadbalancing:ApplySecurityGroupsToLoadBalancer",
+        "elasticloadbalancing:CreateLoadBalancer",
+        "elasticloadbalancing:CreateLoadBalancerPolicy",
+        "elasticloadbalancing:CreateLoadBalancerListeners",
+        "elasticloadbalancing:ConfigureHealthCheck",
+        "elasticloadbalancing:DeleteLoadBalancer",
+        "elasticloadbalancing:DeleteLoadBalancerListeners",
+        "elasticloadbalancing:DescribeLoadBalancers",
+        "elasticloadbalancing:DescribeLoadBalancerAttributes",
+        "elasticloadbalancing:DetachLoadBalancerFromSubnets",
+        "elasticloadbalancing:DeregisterInstancesFromLoadBalancer",
+        "elasticloadbalancing:ModifyLoadBalancerAttributes",
+        "elasticloadbalancing:RegisterInstancesWithLoadBalancer",
+        "elasticloadbalancing:SetLoadBalancerPoliciesForBackendServer",
+        "elasticloadbalancing:AddTags",
+        "elasticloadbalancing:CreateListener",
+        "elasticloadbalancing:CreateTargetGroup",
+        "elasticloadbalancing:DeleteListener",
+        "elasticloadbalancing:DeleteTargetGroup",
+        "elasticloadbalancing:DescribeListeners",
+        "elasticloadbalancing:DescribeLoadBalancerPolicies",
+        "elasticloadbalancing:DescribeTargetGroups",
+        "elasticloadbalancing:DescribeTargetHealth",
+        "elasticloadbalancing:ModifyListener",
+        "elasticloadbalancing:ModifyTargetGroup",
+        "elasticloadbalancing:RegisterTargets",
+        "elasticloadbalancing:SetLoadBalancerPoliciesOfListener",
+        "iam:CreateServiceLinkedRole",
+        "kms:DescribeKey"
+      ],
+      "Resource": [
+        "*"
+      ]
+    }
+  ]
+}
+```
+
+If nodeless is chosen, the kubenet network plugin will be used instead of Weave, and EBS for persistent volumes instead of Rook.
+
+HA works with nodeless, but currently only one nodeless worker instance per cluster is supported.
+
+More information: https://www.elotl.co/
 
 ## How It Works
 
