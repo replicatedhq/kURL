@@ -9,11 +9,11 @@ function registry() {
 
     kubectl apply -k "$DIR/kustomize/registry"
 
-    DOCKER_REGISTRY_ADDRESS=$(kubectl -n kurl get service registry -o=jsonpath='{@.spec.clusterIP}')
+    DOCKER_REGISTRY_IP=$(kubectl -n kurl get service registry -o=jsonpath='{@.spec.clusterIP}')
 
     registry_cred_secrets
 
-    registry_pki_secret
+    registry_pki_secret "$DOCKER_REGISTRY_IP"
 
     registry_docker_ca
 }
@@ -47,25 +47,25 @@ function registry_cred_secrets() {
     local user=kurl
     local password=$(< /dev/urandom tr -dc A-Za-z0-9 | head -c9)
 
-    docker run \
+    docker run --rm \
         --entrypoint htpasswd \
         registry:2.7.1 -Bbn "$user" "$password" > htpasswd
     kubectl -n kurl create secret generic registry-htpasswd --from-file=htpasswd
     rm htpasswd
 
     kubectl -n default create secret docker-registry registry-creds \
-        --docker-server="$DOCKER_REGISTRY_ADDRESS" \
+        --docker-server="$DOCKER_REGISTRY_IP" \
         --docker-username="$user" \
         --docker-password="$password"
 }
 
 function registry_docker_ca() {
-    if [ -z "$DOCKER_REGISTRY_ADDRESS" ]; then
+    if [ -z "$DOCKER_REGISTRY_IP" ]; then
         bail "Docker registry address required"
     fi
 
-    mkdir -p /etc/docker/certs.d/$DOCKER_REGISTRY_ADDRESS
-    ln -s --force /etc/kubernetes/pki/ca.crt /etc/docker/certs.d/$DOCKER_REGISTRY_ADDRESS/ca.crt
+    mkdir -p /etc/docker/certs.d/$DOCKER_REGISTRY_IP
+    ln -s --force /etc/kubernetes/pki/ca.crt /etc/docker/certs.d/$DOCKER_REGISTRY_IP/ca.crt
 }
 
 function registry_pki_secret() {
@@ -73,12 +73,50 @@ function registry_pki_secret() {
         return 0
     fi
 
-    local clusterIP="$1"
+    if [ -z "$DOCKER_REGISTRY_IP" ]; then
+        bail "Docker registry address required"
+    fi
 
-    openssl req -newkey rsa:2048 -nodes -keyout registry.key -out registry.csr -subj="/CN=$clusterIP"
-    openssl x509 -req -days 365 -sha256 -in registry.csr -CA /etc/kubernetes/pki/ca.crt -CAkey /etc/kubernetes/pki/ca.key -set_serial 1 -out registry.crt
+    local tmp="$DIR/addons/registry/2.7.1/tmp"
+    rm -rf "$tmp"
+    mkdir -p "$tmp"
+    pushd "$tmp"
+
+    cat > registry.cnf <<EOF
+[ req ]
+default_bits = 2048
+prompt = no
+default_md = sha256
+req_extensions = req_ext
+distinguished_name = dn
+
+[ dn ]
+CN = registry.kurl.svc.cluster.local
+
+[ req_ext ]
+subjectAltName = @alt_names
+
+[ alt_names ]
+DNS.1 = registry
+DNS.2 = registry.kurl
+DNS.3 = registry.kurl.svc
+DNS.4 = registry.kurl.svc.cluster
+DNS.5 = registry.kurl.svc.cluster.local
+IP.1 = $DOCKER_REGISTRY_IP
+
+[ v3_ext ]
+authorityKeyIdentifier=keyid,issuer:always
+basicConstraints=CA:FALSE
+keyUsage=keyEncipherment,dataEncipherment
+extendedKeyUsage=serverAuth
+subjectAltName=@alt_names
+EOF
+
+    openssl req -newkey rsa:2048 -nodes -keyout registry.key -out registry.csr -config registry.cnf
+    openssl x509 -req -days 365 -in registry.csr -CA /etc/kubernetes/pki/ca.crt -CAkey /etc/kubernetes/pki/ca.key -CAcreateserial -out registry.crt -extensions v3_ext -extfile registry.cnf
 
     kubectl -n kurl create secret generic registry-pki --from-file=registry.key --from-file=registry.crt
 
-    rm registry.key registry.csr registry.crt
+	popd
+    rm -r "$tmp"
 }
