@@ -69,10 +69,6 @@ function registry_docker_ca() {
 }
 
 function registry_pki_secret() {
-    if kubernetes_resource_exists kurl secret registry-pki; then
-        return 0
-    fi
-
     if [ -z "$DOCKER_REGISTRY_IP" ]; then
         bail "Docker registry address required"
     fi
@@ -115,8 +111,11 @@ EOF
     openssl req -newkey rsa:2048 -nodes -keyout registry.key -out registry.csr -config registry.cnf
     openssl x509 -req -days 365 -in registry.csr -CA /etc/kubernetes/pki/ca.crt -CAkey /etc/kubernetes/pki/ca.key -CAcreateserial -out registry.crt -extensions v3_ext -extfile registry.cnf
 
+    # rotate the cert and restart the pod every time
+    kubectl -n kurl delete secret registry-pki &>/dev/null || true
     kubectl -n kurl create secret generic registry-pki --from-file=registry.key --from-file=registry.crt
+    kubectl -n kurl delete pod -l app=registry &>/dev/null || true
 
-	popd
+    popd
     rm -r "$tmp"
 }
