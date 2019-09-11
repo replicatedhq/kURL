@@ -19,6 +19,7 @@ DIR=.
 . $DIR/scripts/common/tasks.sh
 . $DIR/scripts/common/upgrade.sh
 . $DIR/scripts/common/yaml.sh
+. $DIR/scripts/common/nodeless.sh
 # Magic end
 
 function init() {
@@ -36,14 +37,14 @@ function init() {
         fi
     fi
 
-	mkdir -p "$KUBEADM_CONF_DIR"
-	render_yaml kubeadm-init-config-v1beta2.yml > "$KUBEADM_CONF_FILE"
+    mkdir -p "$KUBEADM_CONF_DIR"
+    render_yaml kubeadm-init-config-v1beta2${NODELESS_SUFFIX}.yml > "$KUBEADM_CONF_FILE"
     if [ "$HA_CLUSTER" = "1" ]; then
         CERT_KEY=$(< /dev/urandom tr -dc a-f0-9 | head -c64)
         echo "certificateKey: $CERT_KEY" >> "$KUBEADM_CONF_FILE"
     fi
-    render_yaml kubeproxy-config-v1alpha1.yml >> "$KUBEADM_CONF_FILE"
-	render_yaml kubeadm-cluster-config-v1beta2.yml >> "$KUBEADM_CONF_FILE"
+    render_yaml kubeproxy-config-v1alpha1${NODELESS_SUFFIX}.yml >> "$KUBEADM_CONF_FILE"
+    render_yaml kubeadm-cluster-config-v1beta2${NODELESS_SUFFIX}.yml >> "$KUBEADM_CONF_FILE"
     if [ -n "$PUBLIC_ADDRESS" ]; then
         echo "  - $PUBLIC_ADDRESS" >> "$KUBEADM_CONF_FILE"
     fi
@@ -167,12 +168,20 @@ function main() {
     preflights
     prompts
     configure_proxy
+    check_nodeless
     install_docker
+    if [ "$NODELESS" = "1" ]; then
+        replace_cri
+    fi
     upgrade_kubernetes_patch
     kubernetes_host
     init
-    addon weave "$WEAVE_VERSION"
-    addon rook "$ROOK_VERSION"
+    if [ "$NODELESS" = "1" ]; then
+        install_milpa
+    else
+        addon weave "$WEAVE_VERSION"
+        addon rook "$ROOK_VERSION"
+    fi
     addon contour "$CONTOUR_VERSION"
     addon registry "$REGISTRY_VERSION"
     outro

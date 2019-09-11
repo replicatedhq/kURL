@@ -140,6 +140,18 @@ function flags() {
             docker-registry-ip|docker_registry_ip)
                 DOCKER_REGISTRY_IP="$_value"
                 ;;
+            nodeless)
+                NODELESS=1
+                if [ -z "$POD_CIDR" ]; then
+                    POD_CIDR="172.20.0.0/16"
+                fi
+                if [ -z "$SERVICE_CIDR" ]; then
+                    SERVICE_CIDR="10.96.0.0/12"
+                fi
+                ;;
+            pod-cidr|pod_cidr)
+                POD_CIDR="$_value"
+                ;;
             *)
                 echo >&2 "Error: unknown parameter \"$_param\""
                 exit 1

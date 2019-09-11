@@ -1,0 +1,23 @@
+---
+apiVersion: kubeadm.k8s.io/v1beta2
+kind: InitConfiguration
+bootstrapTokens:
+- groups:
+  - system:bootstrappers:kubeadm:default-node-token
+  token: $BOOTSTRAP_TOKEN
+  ttl: $BOOTSTRAP_TOKEN_TTL
+  usages:
+  - signing
+  - authentication
+localAPIEndpoint:
+  advertiseAddress: $PRIVATE_ADDRESS
+nodeRegistration:
+  taints: [] # prevent the default master taint
+  name: $NODE_NAME
+  criSocket: unix://$CRI_SOCKET
+  kubeletExtraArgs:
+    cloud-provider: aws
+    network-plugin: kubenet
+    non-masquerade-cidr: 0.0.0.0/0
+    node-ip: $PRIVATE_ADDRESS
+    max-pods: \"1000\"

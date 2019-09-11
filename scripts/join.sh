@@ -17,6 +17,7 @@ DIR=.
 . $DIR/scripts/common/proxy.sh
 . $DIR/scripts/common/rook.sh
 . $DIR/scripts/common/yaml.sh
+. $DIR/scripts/common/nodeless.sh
 # Magic end
 
 function join() {
@@ -38,7 +39,7 @@ function join() {
     fi
 
     mkdir -p "$KUBEADM_CONF_DIR"
-    render_yaml kubeadm-join-config-v1beta2.yaml > "$KUBEADM_CONF_FILE"
+    render_yaml kubeadm-join-config-v1beta2${NODELESS_SUFFIX}.yaml > "$KUBEADM_CONF_FILE"
     if [ "$MASTER" = "1" ]; then
         echo "controlPlane:" >> "$KUBEADM_CONF_FILE"
         echo "  certificateKey: $CERT_KEY" >> "$KUBEADM_CONF_FILE"
@@ -84,14 +85,23 @@ function main() {
     joinPrompts
     prompts
     configure_proxy
+    check_nodeless
     install_docker
-    addon_join weave "$WEAVE_VERSION"
-    addon_join rook "$ROOK_VERSION"
-    addon_join contour "$CONTOUR_VERSION"
+    addon_load weave "$WEAVE_VERSION"
+    addon_load rook "$ROOK_VERSION"
+    if [ "$NODELESS" = "1" ]; then
+        replace_cri
+    fi
+    if [ "$NODELESS" = "1" ]; then
+        install_milpa
+    else
+        addon_load weave "$WEAVE_VERSION"
+        addon_load rook "$ROOK_VERSION"
+    fi
+    addon_load contour "$CONTOUR_VERSION"
     addon_join registry "$REGISTRY_VERSION"
     kubernetes_host
     join
-    outro
 }
 
 main "$@"
