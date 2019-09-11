@@ -119,6 +119,7 @@ The available addons are:
 * [Weave](https://www.weave.works/oss/net/)
 * [Rook](https://rook.io/)
 * [Contour](https://projectcontour.io/)
+* [Docker Registry](https://docs.docker.com/registry/)
 
 ## How It Works
 

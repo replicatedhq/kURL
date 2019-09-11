@@ -12,11 +12,24 @@ function addon() {
     rm -rf $DIR/kustomize/$name
     mkdir -p $DIR/kustomize/$name
 
-    addon_load $name $version
+    addon_load "$name" "$version"
 
     . $DIR/addons/$name/$version/install.sh
 
     $name
+}
+
+function addon_join() {
+    local name=$1
+    local version=$2
+
+    addon_load "$name" "$version"
+
+    . $DIR/addons/$name/$version/install.sh
+
+    if commandExists ${name}_join; then
+        ${name}_join
+    fi
 }
 
 function addon_load() {

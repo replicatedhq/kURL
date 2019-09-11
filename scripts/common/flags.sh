@@ -137,6 +137,9 @@ function flags() {
             task)
                 TASK="$_value"
                 ;;
+            docker-registry-ip|docker_registry_ip)
+                DOCKER_REGISTRY_IP="$_value"
+                ;;
             *)
                 echo >&2 "Error: unknown parameter \"$_param\""
                 exit 1
