@@ -41,6 +41,8 @@ data:
       fields:
         service: registry
     storage:
+      filesystem:
+        rootdirectory: /var/lib/registry
       cache:
         blobdescriptor: inmemory
     version: 0.1
@@ -89,8 +91,6 @@ spec:
             secretKeyRef:
               key: haSharedSecret
               name: registry-session-secret
-        - name: REGISTRY_STORAGE_FILESYSTEM_ROOTDIRECTORY
-          value: /var/lib/registry
       volumes:
       - name: registry-data
         persistentVolumeClaim:
