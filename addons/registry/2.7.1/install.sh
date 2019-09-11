@@ -46,6 +46,7 @@ function registry_cred_secrets() {
     local user=kurl
     local password=$(< /dev/urandom tr -dc A-Za-z0-9 | head -c9)
 
+    # if the registry pod is already running it will pick up changes to the secret without restart
     docker run --rm \
         --entrypoint htpasswd \
         registry:2.7.1 -Bbn "$user" "$password" > htpasswd

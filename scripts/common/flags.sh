@@ -134,7 +134,7 @@ function flags() {
             task)
                 TASK="$_value"
                 ;;
-            docker-registry-ip|docker_registry_idp)
+            docker-registry-ip|docker_registry_ip)
                 DOCKER_REGISTRY_IP="$_value"
                 ;;
             *)
