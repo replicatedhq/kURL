@@ -43,7 +43,6 @@ function registry_cred_secrets() {
     kubectl -n kurl delete secret registry-htpasswd &>/dev/null || true
     kubectl -n default delete secret registry-creds &>/dev/null || true
 
-    local address="$1"
     local user=kurl
     local password=$(< /dev/urandom tr -dc A-Za-z0-9 | head -c9)
 
