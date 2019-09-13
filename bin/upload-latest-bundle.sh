@@ -34,6 +34,7 @@ curl -L "${DIST_ORIGIN}/dist/docker-${DOCKER_VERSION}.tar.gz"         | tar zxf 
 curl -L "${DIST_ORIGIN}/dist/weave-${WEAVE_VERSION}.tar.gz"           | tar zxf -
 curl -L "${DIST_ORIGIN}/dist/rook-${ROOK_VERSION}.tar.gz"             | tar zxf -
 curl -L "${DIST_ORIGIN}/dist/contour-${CONTOUR_VERSION}.tar.gz"       | tar zxf -
+curl -L "${DIST_ORIGIN}/dist/registry-${REGISTRY_VERSION}.tar.gz"     | tar zxf -
 
 cd ..
 tar czf latest.tar.gz -C work .
