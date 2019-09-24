@@ -24,6 +24,10 @@ export interface ContourConfig {
   version: string;
 }
 
+export interface RegistryConfig {
+  version: string;
+}
+
 interface ErrorResponse {
   error: any;
 }
@@ -35,6 +39,7 @@ export class Installer {
   public weave: WeaveConfig;
   public rook: RookConfig;
   public contour: ContourConfig;
+  public registry: RegistryConfig;
 
   constructor(
     public readonly teamID?: string,
@@ -43,6 +48,7 @@ export class Installer {
     this.weave = { version: "" };
     this.rook = { version: "" };
     this.contour = { version: "" };
+    this.registry = { version: "" };
   }
 
   public hash(): string {
@@ -59,6 +65,9 @@ export class Installer {
     }
     if (this.contour && this.contour.version) {
       h.update(`contour_version=${this.contour.version}`);
+    }
+    if (this.registry && this.registry.version) {
+      h.update(`registry_version=${this.registry.version}`);
     }
 
     return h.digest('hex').substring(0,7);
@@ -77,6 +86,9 @@ export class Installer {
   public contourVersion(): string {
     return _.get(this, "contour.version", "");
   }
+  public registryVersion(): string {
+    return _.get(this, "registry.version", "");
+  }
 
   public dockerVersion(): string {
     return "18.09.8";
@@ -91,6 +103,7 @@ export class Installer {
     i.weave = { version: _.get(parsed, "spec.weave.version", "") };
     i.rook = { version: _.get(parsed, "spec.rook.version", "") };
     i.contour = { version: _.get(parsed, "spec.contour.version", "") };
+    i.registry = { version: _.get(parsed, "spec.registry.version", "") };
 
     return i;
   }
@@ -110,6 +123,8 @@ spec:
     version: "${this.rookVersion()}"
   contour:
     version: "${this.contourVersion()}"
+  registry:
+    version: "${this.registryVersion()}"
 `;
   }
 
@@ -132,6 +147,10 @@ spec:
     "0.14.0",
   ];
 
+  static registryVersions = [
+    "2.7.1",
+  ];
+
   static latest(): Installer {
     const i = new Installer();
 
@@ -140,6 +159,7 @@ spec:
     i.weave.version = "2.5.2";
     i.rook.version = "1.0.4";
     i.contour.version = "0.14.0";
+    i.registry.version = "2.7.1";
 
     return i;
   }
@@ -152,6 +172,7 @@ spec:
     i.weave.version = "latest";
     i.rook.version = "latest";
     i.contour.version = "latest";
+    i.registry.version = "latest";
 
     return i;
   }
@@ -196,6 +217,16 @@ spec:
     return null;
   }
 
+  static resolveRegistryVersion(version: string): string|null {
+    if (version === "latest") {
+      return Installer.latest().registryVersion();
+    }
+    if (_.includes(Installer.registryVersions, version)) {
+      return version;
+    }
+    return null;
+  }
+
   public resolve(): Installer {
     const i = new Installer();
 
@@ -204,6 +235,7 @@ spec:
     i.weave.version = Installer.resolveWeaveVersion(this.weaveVersion()) || "";
     i.rook.version = Installer.resolveRookVersion(this.rookVersion()) || "";
     i.contour.version = Installer.resolveContourVersion(this.contourVersion()) || "";
+    i.registry.version = Installer.resolveRegistryVersion(this.registryVersion()) || "";
 
     return i;
   }
@@ -229,6 +261,10 @@ spec:
     if (this.contourVersion() && !Installer.resolveContourVersion(this.contourVersion())) {
       return { error: { message: `Contour version "${_.escape(this.contourVersion())}" is not supported` } };
     }
+
+    if (this.registryVersion() && !Installer.resolveRegistryVersion(this.registryVersion())) {
+      return { error: { message: `Registry version "${_.escape(this.registryVersion())}" is not supported` } };
+    }
   }
 
   public packages(): Array<string> {
@@ -248,6 +284,9 @@ spec:
     if (this.contourVersion()) {
       pkgs.push(`contour-${i.contourVersion()}`);
     }
+    if (this.registryVersion()) {
+      pkgs.push(`registry-${i.registryVersion()}`);
+    }
 
     return pkgs;
   }
@@ -256,7 +295,8 @@ spec:
     return this.kubernetesVersion() === "latest" &&
       this.weaveVersion() === "latest" &&
       this.rookVersion() === "latest" &&
-      this.contourVersion() === "latest";
+      this.contourVersion() === "latest" &&
+      this.registryVersion() === "latest";
   }
 
   static isSHA(id: string): boolean {
@@ -276,6 +316,7 @@ spec:
       "healthz",
       "dist",
       "installer",
+      "bundle",
     ], _.lowerCase(id));
   }
 
@@ -283,7 +324,8 @@ spec:
     return this.kubernetesVersion() === i.kubernetesVersion() &&
       this.weaveVersion() === i.weaveVersion() &&
       this.rookVersion() == i.rookVersion() &&
-      this.contourVersion() === i.contourVersion();
+      this.contourVersion() === i.contourVersion() &&
+      this.registryVersion() === i.registryVersion();
   }
 }
 

@@ -17,6 +17,8 @@ spec:
     version: 1.0.4
   contour:
     version: 0.14.0
+  registry:
+    version: 2.7.1
 `;
 
 const stable = `
@@ -31,6 +33,8 @@ spec:
     version: 1.0.4
   contour:
     version: 0.14.0
+  registry:
+    version: 2.7.1
 `;
 
 const noName = `
@@ -43,6 +47,8 @@ spec:
     version: 1.0.4
   contour:
     version: 0.14.0
+  registry:
+    version: 2.7.1
 `;
 
 const disordered = `
@@ -53,6 +59,8 @@ spec:
     version: 2.5.2
   kubernetes:
     version: 1.15.2
+  registry:
+    version: 2.7.1
   rook:
     version: 1.0.4
 `;
@@ -67,29 +75,39 @@ spec:
     version: 1.0.4
   contour:
     version: 0.14.0
+  registry:
+    version: 2.7.1
+`;
+
+const min = `
+spec:
+  kubernetes:
+    version: 1.15.1
 `;
 
 const empty = "";
 
 describe("Installer", () => {
-	describe("parse", () => {
-		it("parses yaml with type meta and name", () => {
-			const i = Installer.parse(typeMetaStable);
+  describe("parse", () => {
+    it("parses yaml with type meta and name", () => {
+      const i = Installer.parse(typeMetaStable);
       expect(i).to.have.property("id", "stable");
       expect(i.kubernetes).to.have.property("version", "1.15.2");
       expect(i.weave).to.have.property("version", "2.5.2");
       expect(i.rook).to.have.property("version", "1.0.4");
       expect(i.contour).to.have.property("version", "0.14.0");
-		});
+      expect(i.registry).to.have.property("version", "2.7.1");
+    });
 
-		it("parses yaml with name and no type meta", () => {
-			const i = Installer.parse(stable);
+    it("parses yaml with name and no type meta", () => {
+      const i = Installer.parse(stable);
       expect(i).to.have.property("id", "stable");
       expect(i.kubernetes).to.have.property("version", "1.15.2");
       expect(i.weave).to.have.property("version", "2.5.2");
       expect(i.rook).to.have.property("version", "1.0.4");
       expect(i.contour).to.have.property("version", "0.14.0");
-		});
+      expect(i.registry).to.have.property("version", "2.7.1");
+    });
 
     it("parses yaml with only a spec", () => {
       const i = Installer.parse(noName);
@@ -98,6 +116,7 @@ describe("Installer", () => {
       expect(i.weave).to.have.property("version", "2.5.2");
       expect(i.rook).to.have.property("version", "1.0.4");
       expect(i.contour).to.have.property("version", "0.14.0");
+      expect(i.registry).to.have.property("version", "2.7.1");
     });
 
     it("parses yaml spec in different order", () => {
@@ -107,8 +126,19 @@ describe("Installer", () => {
       expect(i.weave).to.have.property("version", "2.5.2");
       expect(i.rook).to.have.property("version", "1.0.4");
       expect(i.contour).to.have.property("version", "0.14.0");
+      expect(i.registry).to.have.property("version", "2.7.1");
     });
-	});
+
+    it("parses yaml spec with empty versions", () => {
+      const i = Installer.parse(min);
+      expect(i).to.have.property("id", "");
+      expect(i.kubernetes).to.have.property("version", "1.15.1");
+      expect(i.weave).to.have.property("version", "");
+      expect(i.rook).to.have.property("version", "");
+      expect(i.contour).to.have.property("version", "");
+      expect(i.registry).to.have.property("version", "");
+    });
+  });
 
   describe("hash", () => {
     it("hashes same specs to the same string", () => {
@@ -159,6 +189,8 @@ spec:
     version: "1.0.4"
   contour:
     version: "0.14.0"
+  registry:
+    version: "2.7.1"
 `);
       expect(b).to.equal(a);
 
@@ -175,10 +207,12 @@ spec:
     version: "1.0.4"
   contour:
     version: "0.14.0"
+  registry:
+    version: "2.7.1"
 `);
       expect(d).to.equal(c);
 
-			expect(e).to.equal(`apiVersion: kurl.sh/v1beta1
+      expect(e).to.equal(`apiVersion: kurl.sh/v1beta1
 kind: Installer
 metadata:
   name: ""
@@ -190,6 +224,8 @@ spec:
   rook:
     version: ""
   contour:
+    version: ""
+  registry:
     version: ""
 `);
     });
