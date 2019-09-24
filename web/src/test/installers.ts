@@ -79,6 +79,12 @@ spec:
     version: 2.7.1
 `;
 
+const min = `
+spec:
+  kubernetes:
+    version: 1.15.1
+`;
+
 const empty = "";
 
 describe("Installer", () => {
@@ -121,6 +127,16 @@ describe("Installer", () => {
       expect(i.rook).to.have.property("version", "1.0.4");
       expect(i.contour).to.have.property("version", "0.14.0");
       expect(i.registry).to.have.property("version", "2.7.1");
+    });
+
+    it("parses yaml spec with empty versions", () => {
+      const i = Installer.parse(min);
+      expect(i).to.have.property("id", "");
+      expect(i.kubernetes).to.have.property("version", "1.15.1");
+      expect(i.weave).to.have.property("version", "");
+      expect(i.rook).to.have.property("version", "");
+      expect(i.contour).to.have.property("version", "");
+      expect(i.registry).to.have.property("version", "");
     });
   });
 

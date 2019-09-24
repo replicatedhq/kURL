@@ -302,6 +302,7 @@ describe("GET /<installerID>/join.sh", () => {
       expect(script).to.match(new RegExp(`WEAVE_VERSION="${latest.weaveVersion()}"`));
       expect(script).to.match(new RegExp(`ROOK_VERSION="${latest.rookVersion()}"`));
       expect(script).to.match(new RegExp(`CONTOUR_VERSION="${latest.contourVersion()}"`));
+      expect(script).to.match(new RegExp(`REGISTRY_VERSION="${latest.registryVersion()}"`));
     });
   });
 
@@ -317,6 +318,7 @@ describe("GET /<installerID>/join.sh", () => {
       expect(script).to.match(new RegExp(`WEAVE_VERSION=""`));
       expect(script).to.match(new RegExp(`ROOK_VERSION=""`));
       expect(script).to.match(new RegExp(`CONTOUR_VERSION=""`));
+      expect(script).to.match(new RegExp(`REGISTRY_VERSION=""`));
     });
   });
 })

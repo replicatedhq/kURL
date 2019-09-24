@@ -58,6 +58,7 @@ interface Manifest {
   WEAVE_VERSION: string;
   ROOK_VERSION: string;
   CONTOUR_VERSION: string;
+  REGISTRY_VERSION: string;
 }
 
 function manifestFromInstaller(i: Installer, kurlURL: string): Manifest {
@@ -68,6 +69,7 @@ function manifestFromInstaller(i: Installer, kurlURL: string): Manifest {
     WEAVE_VERSION: i.weaveVersion(),
     ROOK_VERSION: i.rookVersion(),
     CONTOUR_VERSION: i.contourVersion(),
+    REGISTRY_VERSION: i.registryVersion(),
   };
 }
 
