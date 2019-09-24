@@ -24,6 +24,8 @@ spec:
     version: latest
   contour:
     version: latest
+  registry:
+    version: latest
 `;
 
 const d3a9234 = `
@@ -339,6 +341,8 @@ spec:
   rook:
     version: ""
   contour:
+    version: ""
+  registry:
     version: ""
 `);
   });
