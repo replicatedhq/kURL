@@ -170,11 +170,14 @@ function main() {
     install_docker
     upgrade_kubernetes_patch
     kubernetes_host
+    addon kotsadm "$KOTSADM_VERSION"
+    exit 0
     init
     addon weave "$WEAVE_VERSION"
     addon rook "$ROOK_VERSION"
     addon contour "$CONTOUR_VERSION"
     addon registry "$REGISTRY_VERSION"
+    addon kotsadm "$KOTSADM_VERSION"
     outro
 }
 

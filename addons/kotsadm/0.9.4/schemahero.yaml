@@ -1,0 +1,17 @@
+# TODO use a generated name with timestamp
+apiVersion: v1
+kind: Pod
+metadata:
+  name: kotsadm-migrations
+spec:
+  restartPolicy: OnFailure
+  containers:
+  - name: kotsadm-migrations
+    image: kotsadm/kotsadm-migrations:v0.9.4
+    env:
+    - name: SCHEMAHERO_DRIVER
+      value: postgres
+    - name: SCHEMAHERO_SPEC_FILE
+      value: /tables
+    - name: SCHEMAHERO_URI
+      value: postgresql://kotsadm:%s@kotsadm-postgres/kotsadm?connect_timeout=10&sslmode=disable
