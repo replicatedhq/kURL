@@ -241,12 +241,13 @@ spec:
   }
 
   public validate(): ErrorResponse|undefined {
+    if (!this.kubernetesVersion()) {
+        return { error: { message: "Kubernetes version is required" } };
+    }
+
     const k8sVersion = Installer.resolveKubernetesVersion(this.kubernetesVersion());
 
     if (!k8sVersion) {
-      return { error: { message: "Kubernetes version is required" } };
-    }
-    if (!Installer.resolveKubernetesVersion(this.kubernetesVersion())) {
       return { error: { message: `Kubernetes version ${_.escape(this.kubernetesVersion())} is not supported` } };
     }
 
