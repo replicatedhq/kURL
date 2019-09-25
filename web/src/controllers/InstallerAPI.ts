@@ -124,7 +124,7 @@ export class Installers {
     const err = i.validate();
     if (err) {
       response.status(400);
-      return { error: { message: err } };
+      return err;
     }
 
     const created = await this.installerStore.saveAnonymousInstaller(i);

@@ -298,4 +298,38 @@ spec:
       });
     });
   });
+
+  describe("validate", () => {
+    describe("valid", () => {
+      it("=> void", () => {
+        [
+          typeMetaStable,
+        ].forEach((yaml) => {
+          const out = Installer.parse(yaml).validate();
+          
+          expect(out).to.be.undefined;
+        });
+      });
+    });
+
+    describe("invalid", () => {
+      it("=> ErrorResponse", () => {
+        const noK8s = `
+spec:
+  kubernetes:
+    version: ""
+`
+        const noK8sOut = Installer.parse(noK8s).validate();
+        expect(noK8sOut).to.deep.equal({ error: { message: "Kubernetes version is required" } });
+
+        const badK8s = `
+spec:
+  kubernetes:
+    version: "0.15.3"
+`
+        const badK8sOut = Installer.parse(badK8s).validate();
+        expect(badK8sOut).to.deep.equal({ error: { message: "Kubernetes version 0.15.3 is not supported" } });
+      });
+    });
+  });
 });
