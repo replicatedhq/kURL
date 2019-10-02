@@ -2,7 +2,7 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: kotsadm-postgres-pvc
+  name: kotsadm-postgres
   labels:
     app: kotsadm-postgres
 spec:
@@ -17,6 +17,9 @@ kind: Deployment
 metadata:
   name: kotsadm-postgres
 spec:
+  replicas: 1
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: kotsadm-postgres
@@ -44,7 +47,10 @@ spec:
         - name: POSTGRES_USER
           value: kotsadm
         - name: POSTGRES_PASSWORD
-          value: "TODO" #TODO
+          valueFrom:
+            secretKeyRef:
+              name: kotsadm-postgres
+              key: password
         - name: POSTGRES_DB
           value: kotsadm
         livenessProbe:

@@ -35,6 +35,7 @@ kind: Deployment
 metadata:
   name: kotsadm-api
 spec:
+  replicas: 1
   selector:
     matchLabels:
       app: kotsadm-api
@@ -69,19 +70,31 @@ spec:
         - name: AUTO_CREATE_CLUSTER_NAME
           value: "1"
         - name: AUTO_CREATE_CLUSTER_TOKEN
-          value: "TODO" #TODO
+          valueFrom:
+            secretKeyRef:
+              name: kotsadm-auto-create-cluster-token
+              key: token
         - name: SHIP_API_ENDPOINT
           value: http://kotsadm-api.default.svc.cluster.local:3000
         - name: SHIP_API_ADVERTISE_ENDPOINT
-          value: "http://localhost:8800" #TODO
+          value: "http://localhost:8800"
         - name: S3_ENDPOINT
-          value: "" #TODO
+          valueFrom:
+            secretKeyRef:
+              name: kotsadm-s3
+              key: endpoint
         - name: S3_BUCKET_NAME
-          value: "" #TODO
+          value: "kotsadm"
         - name: S3_ACCESS_KEY_ID
-          value: "TODO" #TODO
+          valueFrom:
+            secretKeyRef:
+              name: kotsadm-s3
+              key: access-key-id
         - name: S3_SECRET_ACCESS_KEY
-          value: "TODO" #TODO
+          valueFrom:
+            secretKeyRef:
+              name: kotsadm-s3
+              key: secret-access-key
         - name: S3_BUCKET_ENDPOINT
           value: "true"
         - name: SESSION_KEY

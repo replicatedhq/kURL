@@ -48,3 +48,11 @@ function addon_load() {
 
     load_images $DIR/addons/$name/$version/images
 }
+
+function addon_outro() {
+    while read -r name; do
+        if commandExists ${name}_outro; then
+            ${name}_outro
+        fi
+    done < <(find addons/ -mindepth 1 -maxdepth 1 -type d -printf '%f\n')
+}

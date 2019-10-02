@@ -209,3 +209,23 @@ function kubernetes_nodes_ready() {
     fi
     return 0
 }
+
+function kubernetes_scale_down() {
+    local ns="$1"
+    local kind="$2"
+    local name="$3"
+
+    if ! kubernetes_resource_exists "$ns" "$kind" "$name"; then
+        return 0
+    fi
+
+    kubectl -n "$ns" scale "$kind" "$name" --replicas=0
+}
+
+function kubernetes_secret_value() {
+    local ns="$1"
+    local name="$2"
+    local key="$3"
+
+    kubectl -n "$ns" get secret "$name" -ojsonpath="{ .data.$key }" 2>/dev/null | base64 --decode
+}

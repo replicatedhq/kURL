@@ -23,10 +23,12 @@ spec:
    name: http
    protocol: TCP
    targetPort: 8080
+   nodePort: 80
  - port: 443
    name: https
    protocol: TCP
    targetPort: 8443
+   nodePort: 443
  selector:
    app: contour
  type: LoadBalancer

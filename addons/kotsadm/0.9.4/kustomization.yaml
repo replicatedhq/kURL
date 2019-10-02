@@ -1,12 +1,8 @@
 resources:
 - api.yaml
-- application-metadata.yaml
 - operator.yaml
 - postgres.yaml
 - schemahero.yaml
-- secrets.yaml
 - web.yaml
-configMapGenerator:
-- name: kotsadm-web-scripts
-  files:
-  - start-kotsadm-web.sh
+- kotsadm-web-scripts.yaml
+- kotsadm-application-metadata.yaml

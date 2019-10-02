@@ -29,7 +29,7 @@ function load_all_images() {
 
 function generate_admin_user() {
     # get the last IP address from the SANs because that will be load balancer if defined, else public address if defined, else local
-    local ip=$(echo "Q" | openssl s_client -connect=10.128.0.53:6443 | openssl x509 -noout -text | grep DNS | awk '{ print $NF }' | awk -F ':' '{ print $2 }')
+    local ip=$(echo "Q" | openssl s_client -connect=${PRIVATE_ADDRESS}:6443 | openssl x509 -noout -text | grep DNS | awk '{ print $NF }' | awk -F ':' '{ print $2 }')
 
     if ! isValidIpv4 "$ip"; then
         bail "Failed to parse IP from Kubernetes API Server SANs"

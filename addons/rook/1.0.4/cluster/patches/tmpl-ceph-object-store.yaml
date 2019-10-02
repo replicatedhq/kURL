@@ -1,0 +1,14 @@
+apiVersion: ceph.rook.io/v1
+kind: CephObjectStore
+metadata:
+  name: rook-ceph-store
+  namespace: rook-ceph
+spec:
+  metadataPool:
+    replicated:
+      size: ${CEPH_POOL_REPLICAS}
+  dataPool:
+    replicated:
+      size: ${CEPH_POOL_REPLICAS}
+  gateway:
+    instances: ${CEPH_POOL_REPLICAS}

@@ -110,6 +110,7 @@ function outro() {
     printf "\n"
     printf "\t\t${GREEN}Installation${NC}\n"
     printf "\t\t${GREEN}  Complete ✔${NC}\n"
+    addon_outro
     printf "\n"
     printf "To access the cluster with kubectl, reload your shell:\n"
     printf "\n"
@@ -166,17 +167,15 @@ function main() {
     tasks
     preflights
     prompts
-    configure_proxy
-    install_docker
-    upgrade_kubernetes_patch
-    kubernetes_host
-    addon kotsadm "$KOTSADM_VERSION"
-    exit 0
+    #configure_proxy
+    #install_docker
+    #upgrade_kubernetes_patch
+    #kubernetes_host
     init
-    addon weave "$WEAVE_VERSION"
+    #addon weave "$WEAVE_VERSION"
     addon rook "$ROOK_VERSION"
-    addon contour "$CONTOUR_VERSION"
-    addon registry "$REGISTRY_VERSION"
+    #addon contour "$CONTOUR_VERSION"
+    #addon registry "$REGISTRY_VERSION"
     addon kotsadm "$KOTSADM_VERSION"
     outro
 }
