@@ -97,7 +97,7 @@ export class Installer {
   static parse(doc: string, teamID?: string): Installer {
     const parsed = yaml.safeLoad(doc);
 
-    const i = new Installer(teamID)
+    const i = new Installer(teamID);
     i.id = _.get(parsed, "metadata.name", "");
     i.kubernetes = { version: _.get(parsed, "spec.kubernetes.version", "") };
     i.weave = { version: _.get(parsed, "spec.weave.version", "") };
