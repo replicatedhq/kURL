@@ -12,7 +12,6 @@ import { instrumented } from "monkit";
 import { Installer, InstallerStore } from "../installers";
 import decode from "../util/jwt";
 import { Forbidden } from "../server/errors";
-import { S3Wrapper } from "../util/services/s3";
 import { logger } from "../logger";
 
 interface ErrorResponse {
@@ -74,19 +73,8 @@ export class Installers {
 
   constructor (
     private readonly installerStore: InstallerStore,
-    private readonly s3: S3Wrapper,
   ) {
     this.kurlURL = process.env["KURL_URL"] || "https://kurl.sh";
-  }
-
-  private async airgapBundleOK(i: Installer): Promise<boolean> {
-    try {
-      return await this.s3.objectExists(`bundle/${i.id}.tar.gz`);
-    } catch(error) {
-      logger.error(error);
-      // don't trigger a new airgap build based on a failed call to S3
-      return true;
-    }
   }
 
   /**
