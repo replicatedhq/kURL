@@ -54,4 +54,14 @@ export class KurlClient {
 
     return resp.text;
   }
+
+  public async getVersions(): Promise<any> {
+    let url = `${this.kurlURL}/installer`;
+
+    const resp = await request
+      .get(url)
+      .send();
+
+    return resp.body;
+  }
 }

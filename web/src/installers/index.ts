@@ -389,6 +389,7 @@ spec:
       "dist",
       "installer",
       "bundle",
+      "versions",
     ], _.lowerCase(id));
   }
 

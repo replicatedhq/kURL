@@ -1,4 +1,5 @@
 import * as Express from "express";
+import * as _ from "lodash";
 import {
   Controller,
   Get,
@@ -118,6 +119,21 @@ export class Installers {
     response.contentType("text/plain");
     response.status(201);
     return `${this.kurlURL}/${i.id}`;
+  }
+
+  @Get("/")
+  public getInstallerVersions(
+    @Res() response: Express.Response,
+  ): any {
+    response.type("application/json");
+    return {
+      kubernetes: _.concat(["latest"], Installer.kubernetesVersions),
+      weave: _.concat(["latest"], Installer.weaveVersions),
+      rook: _.concat(["latest"], Installer.rookVersions),
+      contour: _.concat(["latest"], Installer.contourVersions),
+      registry: _.concat(["latest"], Installer.registryVersions),
+      kotsadm: _.concat(["latest"], Installer.kotsadmVersions),
+    };
   }
 
   /**

@@ -425,3 +425,23 @@ spec:
     });
   });
 });
+
+describe("GET /installer", () => {
+  it.only("returns all available package and addon versions", async() => {
+    const versions = await client.getVersions();
+
+    expect(versions.kubernetes).to.be.an.instanceof(Array);
+    expect(versions.kubernetes).to.contain("1.15.3");
+    expect(versions.kubernetes).to.contain("latest");
+    expect(versions.kubernetes).to.contain("1.15.0");
+    expect(versions.rook).to.contain("1.0.4");
+    expect(versions.rook).to.contain("latest");
+    expect(versions.contour).to.contain("0.14.0");
+    expect(versions.contour).to.contain("latest");
+    expect(versions.registry).to.contain("latest");
+    expect(versions.registry).to.contain("2.7.1");
+    expect(versions.weave).to.contain("2.5.2");
+    expect(versions.weave).to.contain("latest");
+    expect(versions.kotsadm).to.contain("0.9.4");
+  });
+});
