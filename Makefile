@@ -203,7 +203,6 @@ code: build/templates build/yaml build/addons
 web: build/templates
 	mkdir -p web/build
 	cp -r build/templates web
-	cp bin/create-bundle-alpine.sh web/templates
 
 watchrsync:
 	bin/watchrsync.js

@@ -58,15 +58,15 @@ export class Bundle {
 
     pack.pipe(response);
 
-    pack.entry({ name: "install.sh" }, this.templates.renderInstallScript(installer));
-    pack.entry({ name: "join.sh" }, this.templates.renderJoinScript(installer));
-    pack.entry({ name: "upgrade.sh" }, this.templates.renderUpgradeScript(installer));
-
     const packages = installer.packages().map((pkg) => `${this.distOrigin}/dist/${pkg}.tar.gz`);
 
     for (let i = 0; i < packages.length; i++) {
       await copy(packages[i], pack);
     }
+
+    pack.entry({ name: "install.sh" }, this.templates.renderInstallScript(installer));
+    pack.entry({ name: "join.sh" }, this.templates.renderJoinScript(installer));
+    pack.entry({ name: "upgrade.sh" }, this.templates.renderUpgradeScript(installer));
 
     pack.finalize();
 

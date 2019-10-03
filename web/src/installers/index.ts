@@ -340,6 +340,7 @@ spec:
     const i = this.resolve();
 
     const pkgs = [
+      `common`,
       `kubernetes-${i.kubernetesVersion()}`,
       `docker-${i.dockerVersion()}`,
     ];
@@ -354,6 +355,9 @@ spec:
     }
     if (this.registryVersion()) {
       pkgs.push(`registry-${i.registryVersion()}`);
+    }
+    if (this.kotsadmVersion()) {
+      pkgs.push(`kotsadm-${i.kotsadmVersion()}`);
     }
 
     return pkgs;

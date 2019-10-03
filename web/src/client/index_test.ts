@@ -269,6 +269,8 @@ describe("GET /<installerID>", () => {
       expect(script).to.match(new RegExp(`ROOK_VERSION="${latest.rookVersion()}"`));
       expect(script).to.match(new RegExp(`CONTOUR_VERSION="${latest.contourVersion()}"`));
       expect(script).to.match(/INSTALLER_ID="latest"/);
+      expect(script).to.match(/KOTSADM_VERSION=""/);
+      expect(script).to.match(/KOTSADM_APPLICATION_SLUG=""/);
     });
   });
 
@@ -284,6 +286,8 @@ describe("GET /<installerID>", () => {
       expect(script).to.match(new RegExp(`WEAVE_VERSION=""`));
       expect(script).to.match(new RegExp(`ROOK_VERSION=""`));
       expect(script).to.match(new RegExp(`CONTOUR_VERSION=""`));
+      expect(script).to.match(new RegExp(`KOTSADM_VERSION=""`));
+      expect(script).to.match(new RegExp(`KOTSADM_APPLICATION_SLUG=""`));
     });
   });
 
@@ -302,6 +306,8 @@ describe("GET /<installerID>", () => {
       expect(script).to.match(new RegExp(`WEAVE_VERSION="\\d+.\\d+.\\d+"`));
       expect(script).to.match(new RegExp(`ROOK_VERSION="\\d+.\\d+.\\d+"`));
       expect(script).to.match(new RegExp(`CONTOUR_VERSION="\\d+.\\d+.\\d+"`));
+      expect(script).to.match(new RegExp(`KOTSADM_VERSION=""`));
+      expect(script).to.match(new RegExp(`KOTSADM_APPLICATION_SLUG=""`));
     });
   });
 });
@@ -311,13 +317,15 @@ describe("GET /<installerID>/join.sh", () => {
     const latest = Installer.latest();
 
     it(`injects k8s ${latest.kubernetesVersion()}, weave ${latest.weaveVersion()}, rook ${latest.rookVersion()}, contour ${latest.contourVersion()}`, async () => {
-      const script = await client.getInstallScript("latest");
+      const script = await client.getJoinScript("latest");
 
       expect(script).to.match(new RegExp(`KUBERNETES_VERSION="${latest.kubernetesVersion()}"`));
       expect(script).to.match(new RegExp(`WEAVE_VERSION="${latest.weaveVersion()}"`));
       expect(script).to.match(new RegExp(`ROOK_VERSION="${latest.rookVersion()}"`));
       expect(script).to.match(new RegExp(`CONTOUR_VERSION="${latest.contourVersion()}"`));
       expect(script).to.match(new RegExp(`REGISTRY_VERSION="${latest.registryVersion()}"`));
+      expect(script).to.match(new RegExp(`KOTSADM_VERSION=""`));
+      expect(script).to.match(new RegExp(`KOTSADM_APPLICATION_SLUG=""`));
     });
   });
 
@@ -334,14 +342,34 @@ describe("GET /<installerID>/join.sh", () => {
       expect(script).to.match(new RegExp(`ROOK_VERSION=""`));
       expect(script).to.match(new RegExp(`CONTOUR_VERSION=""`));
       expect(script).to.match(new RegExp(`REGISTRY_VERSION=""`));
+      expect(script).to.match(new RegExp(`KOTSADM_VERSION=""`));
+      expect(script).to.match(new RegExp(`KOTSADM_APPLICATION_SLUG=""`));
     });
   });
-})
+
+  describe("kots (/56fd544)", () => {
+    before(async () => {
+      await client.postInstaller(kots);
+    });
+
+    it("injests KOTSADM_VERSION and KOTSADM_APPLICATION_SLUG", async() => {
+      const script = await client.getInstallScript("56fd544");
+
+      expect(script).to.match(new RegExp(`KUBERNETES_VERSION="1.15.3"`));
+      expect(script).to.match(new RegExp(`WEAVE_VERSION=""`));
+      expect(script).to.match(new RegExp(`ROOK_VERSION=""`));
+      expect(script).to.match(new RegExp(`CONTOUR_VERSION=""`));
+      expect(script).to.match(new RegExp(`REGISTRY_VERSION=""`));
+      expect(script).to.match(new RegExp(`KOTSADM_VERSION="0.9.4"`));
+      expect(script).to.match(new RegExp(`KOTSADM_APPLICATION_SLUG="sentry-enterprise"`));
+    });
+  });
+});
 
 describe("GET /installer/<installerID>", () => {
   before(async () => {
     await client.postInstaller(min);
-  })
+  });
 
   it("returns installer yaml", async() => {
     const yaml = await client.getInstallerYAML("6898644");
