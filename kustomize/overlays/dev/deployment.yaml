@@ -9,7 +9,7 @@ spec:
       - name: kurl
         env:
         - name: KURL_URL
-          value: http://localhost:8092
+          value: http://localhost:30092
         - name: KURL_BUCKET
           value: "kurl-dev"
         - name: TSED_SUPPRESS_ACCESSLOG

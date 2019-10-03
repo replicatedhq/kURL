@@ -107,7 +107,7 @@ export class Installers {
     }
     i.id = i.hash();
 
-    const err = i.validate();
+    const err = await i.validate();
     if (err) {
       response.status(400);
       return err;
@@ -176,7 +176,7 @@ export class Installers {
       return idNameMismatchResponse;
     }
     i.id = id;
-    const err = i.validate();
+    const err = await i.validate();
     if (err) {
       return err;
     }

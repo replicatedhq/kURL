@@ -7,7 +7,7 @@ import * as url from "url";
 import * as _ from "lodash";
 
 
-const kurlURL = process.env.KURL_URL || "http://localhost:8092";
+const kurlURL = process.env.KURL_URL || "http://localhost:30092";
 const client = new KurlClient(kurlURL);
 
 const latest = `
@@ -93,12 +93,21 @@ spec:
   contour:
     version: "0.14.0"`;
 
+const kots = `
+spec:
+  kubernetes:
+    version: latest
+  kotsadm:
+    version: 0.9.4
+    applicationSlug: sentry-enterprise
+`;
+
 describe("POST /installer", () => {
   describe("latest", () => {
     it(`should return 201 "https://kurl.sh/latest"`, async () => {
       const url = await client.postInstaller(latest);
 
-      expect(url).to.equal(`${kurlURL}/latest`);
+      expect(url).to.match(/latest$/);
     });
   });
 
@@ -112,7 +121,7 @@ describe("POST /installer", () => {
     it(`should return 201 "https://kurl.sh/d3a9234"`, async () => {
       const url = await client.postInstaller(d3a9234);
 
-      expect(url).to.equal(`${kurlURL}/d3a9234`);
+      expect(url).to.match(/d3a9234$/);
     });
   });
 
@@ -120,7 +129,15 @@ describe("POST /installer", () => {
     it(`should return 201 "https://kurl.sh/6898644"`, async () => {
       const url = await client.postInstaller(min);
 
-      expect(url).to.equal(`${kurlURL}/6898644`);
+      expect(url).to.match(/6898644$/);
+    });
+  });
+
+  describe("kots", () => {
+    it(`should return 201 "https://kurl.sh/56fd544"`, async () => {
+      const url = await client.postInstaller(kots);
+
+      expect(url).to.match(/56fd544/);
     });
   });
 
@@ -169,11 +186,9 @@ describe("POST /installer", () => {
 describe("PUT /installer/<id>", () => {
   describe("valid", () => {
     it("201", async() => {
-      const tkn = jwt.sign({team_id: "team1"}, "jwt-signing-key");
+      const tkn = jwt.sign({team_id: "team1"}, "jwt-signing-key"); const url = await client.putInstaller(tkn, "kurl-beta", d3a9234);
 
-      const url = await client.putInstaller(tkn, "kurl-beta", d3a9234);
-
-      expect(url).to.equal(`${kurlURL}/kurl-beta`);
+      expect(url).to.match(/kurl-beta/);
     });
   });
 
@@ -346,6 +361,9 @@ spec:
     version: ""
   registry:
     version: ""
+  kotsadm:
+    version: ""
+    applicationSlug: ""
 `);
   });
 
