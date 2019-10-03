@@ -12,7 +12,6 @@ import { instrumented } from "monkit";
 import { Installer, InstallerStore } from "../installers";
 import decode from "../util/jwt";
 import { Forbidden } from "../server/errors";
-import { Kubernetes } from "../kubernetes";
 import { S3Wrapper } from "../util/services/s3";
 import { logger } from "../logger";
 
@@ -75,7 +74,6 @@ export class Installers {
 
   constructor (
     private readonly installerStore: InstallerStore,
-    private readonly kubernetes: Kubernetes,
     private readonly s3: S3Wrapper,
   ) {
     this.kurlURL = process.env["KURL_URL"] || "https://kurl.sh";
@@ -127,15 +125,7 @@ export class Installers {
       return err;
     }
 
-    const created = await this.installerStore.saveAnonymousInstaller(i);
-
-    if (created) {
-      logger.info(`Building new airgap bundle: ${i.id}`);
-      await this.kubernetes.runCreateAirgapBundleJob(i);
-    } else if (!(await this.airgapBundleOK(i))) {
-      logger.info(`Rebuilding missing airgap bundle: ${i.id}`);
-      await this.kubernetes.maybeRunCreateAirgapBundleJob(i); 
-    }
+    await this.installerStore.saveAnonymousInstaller(i);
 
     response.contentType("text/plain");
     response.status(201);
@@ -203,14 +193,7 @@ export class Installers {
       return err;
     }
 
-    const newOrChanged = await this.installerStore.saveTeamInstaller(i);
-    if (newOrChanged) {
-      logger.info(`Building new/updated airgap bundle: ${i.id}`);
-      await this.kubernetes.runCreateAirgapBundleJob(i);
-    } else if (!(await this.airgapBundleOK(i))) {
-      logger.info(`Rebuilding missing airgap bundle: ${i.id}`);
-      await this.kubernetes.maybeRunCreateAirgapBundleJob(i); 
-    }
+    await this.installerStore.saveTeamInstaller(i);
 
     response.contentType("text/plain");
     response.status(201);

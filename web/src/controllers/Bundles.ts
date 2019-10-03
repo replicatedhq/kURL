@@ -1,6 +1,8 @@
 import * as path from "path";
 import * as Express from "express";
 import * as tar from "tar-stream";
+import * as request from "request";
+import * as gunzip from "gunzip-maybe";
 import {
   Controller,
   Get,
@@ -43,9 +45,6 @@ export class Bundle {
   ): Promise<void|ErrorResponse> {
 
     const installerID = path.basename(pkg, ".tar.gz");
-    // TODO remove
-    console.log(`Looking up installer ${installerID}`);
-
     const installer = await this.installers.getInstaller(installerID);
 
     if (!installer) {
@@ -55,12 +54,40 @@ export class Bundle {
 
     const pack = tar.pack();
 
+    response.type("application/gzip");
+
     pack.pipe(response);
 
     pack.entry({ name: "install.sh" }, this.templates.renderInstallScript(installer));
     pack.entry({ name: "join.sh" }, this.templates.renderJoinScript(installer));
     pack.entry({ name: "upgrade.sh" }, this.templates.renderUpgradeScript(installer));
 
+    const packages = installer.packages().map((pkg) => `${this.distOrigin}/dist/${pkg}.tar.gz`);
+
+    for (let i = 0; i < packages.length; i++) {
+      await copy(packages[i], pack);
+    }
+
     pack.finalize();
+
+    await new Promise((resolve, reject) => {
+      pack.on("end", resolve);
+      pack.on("error", reject);
+    });
   }
 }
+
+const copy = async(url: string, dst: any) => {
+  return new Promise((resolve, reject) => {
+    const extract = tar.extract();
+
+    request(url).pipe(gunzip()).pipe(extract);
+
+    extract.on("entry", (header, stream, done) => {
+      stream.pipe(dst.entry(header, done));
+    });
+
+    extract.on("finish", resolve);
+    extract.on("error", reject);
+  });
+};

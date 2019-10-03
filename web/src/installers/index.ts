@@ -272,7 +272,6 @@ spec:
     const i = this.resolve();
 
     const pkgs = [
-      `common`,
       `kubernetes-${i.kubernetesVersion()}`,
       `docker-${i.dockerVersion()}`,
     ];
