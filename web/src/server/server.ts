@@ -10,6 +10,7 @@ import {
 } from "ts-express-decorators";
 import * as bugsnag from "bugsnag";
 import * as cors from "cors";
+import * as compression from "compression";
 import { $log } from "ts-log-debug";
 import * as path from "path";
 import * as Express from "express";
@@ -73,6 +74,7 @@ export class Server extends ServerLoader {
       type: ["text/plain", "text/yaml", "text/x-yaml", "application/x-yaml"],
     }));
 
+    this.use(compression());
     this.use(cors());
 
     if (!process.env["SIGSCI_RPC_ADDRESS"]) {
