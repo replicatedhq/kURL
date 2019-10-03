@@ -427,7 +427,7 @@ spec:
 });
 
 describe("GET /installer", () => {
-  it.only("returns all available package and addon versions", async() => {
+  it("returns all available package and addon versions", async() => {
     const versions = await client.getVersions();
 
     expect(versions.kubernetes).to.be.an.instanceof(Array);

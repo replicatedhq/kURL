@@ -1,4 +1,5 @@
 import * as path from "path";
+import * as zlib from "zlib";
 import * as Express from "express";
 import * as tar from "tar-stream";
 import * as request from "request";
@@ -55,8 +56,9 @@ export class Bundle {
     const pack = tar.pack();
 
     response.type("application/gzip");
+    response.set("Content-Encoding", "gzip");
 
-    pack.pipe(response);
+    pack.pipe(zlib.createGzip()).pipe(response);
 
     const packages = installer.packages().map((pkg) => `${this.distOrigin}/dist/${pkg}.tar.gz`);
 
@@ -64,9 +66,10 @@ export class Bundle {
       await copy(packages[i], pack);
     }
 
-    pack.entry({ name: "install.sh" }, this.templates.renderInstallScript(installer));
     pack.entry({ name: "join.sh" }, this.templates.renderJoinScript(installer));
     pack.entry({ name: "upgrade.sh" }, this.templates.renderUpgradeScript(installer));
+    // send last to protect against interrupted downloads
+    pack.entry({ name: "install.sh" }, this.templates.renderInstallScript(installer));
 
     pack.finalize();
 
