@@ -89,6 +89,7 @@ function main() {
     addon_join rook "$ROOK_VERSION"
     addon_join contour "$CONTOUR_VERSION"
     addon_join registry "$REGISTRY_VERSION"
+    addon_join kotsadm "$KOTSADM_VERSION"
     kubernetes_host
     join
     outro

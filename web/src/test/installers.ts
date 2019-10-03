@@ -87,6 +87,31 @@ spec:
 
 const empty = "";
 
+const kots = `
+spec:
+  kubernetes:
+    version: latest
+  kotsadm:
+    version: 0.9.4
+    applicationSlug: sentry-enterprise
+`;
+
+const kotsNoSlug = `
+spec:
+  kubernetes:
+    version: latest
+  kotsadm:
+    version: 0.9.4
+`;
+
+const kotsNoVersion = `
+spec:
+  kubernetes:
+    version: latest
+  kotsadm:
+    applicationSlug: sentry-enterprise
+`;
+
 describe("Installer", () => {
   describe("parse", () => {
     it("parses yaml with type meta and name", () => {
@@ -191,6 +216,9 @@ spec:
     version: "0.14.0"
   registry:
     version: "2.7.1"
+  kotsadm:
+    version: ""
+    applicationSlug: ""
 `);
       expect(b).to.equal(a);
 
@@ -209,6 +237,9 @@ spec:
     version: "0.14.0"
   registry:
     version: "2.7.1"
+  kotsadm:
+    version: ""
+    applicationSlug: ""
 `);
       expect(d).to.equal(c);
 
@@ -227,6 +258,9 @@ spec:
     version: ""
   registry:
     version: ""
+  kotsadm:
+    version: ""
+    applicationSlug: ""
 `);
     });
   });
@@ -301,25 +335,33 @@ spec:
 
   describe("validate", () => {
     describe("valid", () => {
-      it("=> void", () => {
+      it("=> void", async () => {
         [
           typeMetaStable,
-        ].forEach((yaml) => {
-          const out = Installer.parse(yaml).validate();
+        ].forEach(async (yaml) => {
+          const out = await Installer.parse(yaml).validate();
           
+          expect(out).to.be.undefined;
+        });
+      });
+
+      describe("application slug exists", () => {
+        it("=> void", async () => {
+          const out = await Installer.parse(kots).validate();
+
           expect(out).to.be.undefined;
         });
       });
     });
 
     describe("invalid", () => {
-      it("=> ErrorResponse", () => {
+      it("=> ErrorResponse", async () => {
         const noK8s = `
 spec:
   kubernetes:
     version: ""
 `
-        const noK8sOut = Installer.parse(noK8s).validate();
+        const noK8sOut = await Installer.parse(noK8s).validate();
         expect(noK8sOut).to.deep.equal({ error: { message: "Kubernetes version is required" } });
 
         const badK8s = `
@@ -327,8 +369,36 @@ spec:
   kubernetes:
     version: "0.15.3"
 `
-        const badK8sOut = Installer.parse(badK8s).validate();
+        const badK8sOut = await Installer.parse(badK8s).validate();
         expect(badK8sOut).to.deep.equal({ error: { message: "Kubernetes version 0.15.3 is not supported" } });
+      });
+    });
+
+    describe("kots version missing", () => {
+      it("=> ErrorResponse", async () => {
+        const out = await Installer.parse(kotsNoVersion).validate();
+
+        expect(out).to.deep.equal({ error: { message: "Kotsadm version is required when application slug is set" }});
+      });
+    });
+
+    describe("kots application slug missing", () => {
+      it("=> ErrorResponse", async () => {
+        const out = await Installer.parse(kotsNoSlug).validate();
+
+        expect(out).to.deep.equal({ error: { message: "Kotsadm application slug is required when version is set" }});
+      });
+    });
+
+    describe("kots application does not exist", () => {
+      it("=> ErrorResponse", async () => {
+        const parsed = Installer.parse(kots);
+
+        parsed.kotsadm.applicationSlug = "this-app-does-not-exist";
+
+        const out = await parsed.validate();
+
+        expect(out).to.deep.equal({ error: { message: "Kotsadm application 'this-app-does-not-exist' not found" }});
       });
     });
   });

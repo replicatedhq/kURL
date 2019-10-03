@@ -167,15 +167,15 @@ function main() {
     tasks
     preflights
     prompts
-    #configure_proxy
-    #install_docker
-    #upgrade_kubernetes_patch
-    #kubernetes_host
+    configure_proxy
+    install_docker
+    upgrade_kubernetes_patch
+    kubernetes_host
     init
-    #addon weave "$WEAVE_VERSION"
+    addon weave "$WEAVE_VERSION"
     addon rook "$ROOK_VERSION"
-    #addon contour "$CONTOUR_VERSION"
-    #addon registry "$REGISTRY_VERSION"
+    addon contour "$CONTOUR_VERSION"
+    addon registry "$REGISTRY_VERSION"
     addon kotsadm "$KOTSADM_VERSION"
     outro
 }

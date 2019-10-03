@@ -3,6 +3,7 @@ import * as yaml from "js-yaml";
 import * as _ from "lodash";
 import * as mysql from "promise-mysql";
 import { Service } from "ts-express-decorators";
+import * as request from "request-promise";
 import { MysqlWrapper } from "../util/services/mysql";
 import { instrumented } from "monkit";
 import { logger } from "../logger";
@@ -28,6 +29,11 @@ export interface RegistryConfig {
   version: string;
 }
 
+export interface KotsadmConfig {
+  version: string;
+  applicationSlug: string;
+}
+
 interface ErrorResponse {
   error: any;
 }
@@ -40,6 +46,7 @@ export class Installer {
   public rook: RookConfig;
   public contour: ContourConfig;
   public registry: RegistryConfig;
+  public kotsadm: KotsadmConfig;
 
   constructor(
     public readonly teamID?: string,
@@ -49,6 +56,7 @@ export class Installer {
     this.rook = { version: "" };
     this.contour = { version: "" };
     this.registry = { version: "" };
+    this.kotsadm = { version: "", applicationSlug: "" };
   }
 
   public hash(): string {
@@ -68,6 +76,12 @@ export class Installer {
     }
     if (this.registry && this.registry.version) {
       h.update(`registry_version=${this.registry.version}`);
+    }
+    if (this.kotsadm && this.kotsadm.version) {
+      h.update(`kotsadm_version=${this.kotsadm.version}`);
+    }
+    if (this.kotsadm && this.kotsadm.applicationSlug) {
+      h.update(`kotsadm_applicationSlug=${this.kotsadm.applicationSlug}`);
     }
 
     return h.digest('hex').substring(0,7);
@@ -89,6 +103,12 @@ export class Installer {
   public registryVersion(): string {
     return _.get(this, "registry.version", "");
   }
+  public kotsadmVersion(): string {
+    return _.get(this, "kotsadm.version", "");
+  }
+  public kotsadmApplicationSlug(): string {
+    return _.get(this, "kotsadm.applicationSlug", "");
+  }
 
   public dockerVersion(): string {
     return "18.09.8";
@@ -104,6 +124,10 @@ export class Installer {
     i.rook = { version: _.get(parsed, "spec.rook.version", "") };
     i.contour = { version: _.get(parsed, "spec.contour.version", "") };
     i.registry = { version: _.get(parsed, "spec.registry.version", "") };
+    i.kotsadm = {
+      version: _.get(parsed, "spec.kotsadm.version", ""),
+      applicationSlug: _.get(parsed, "spec.kotsadm.applicationSlug", ""),
+    };
 
     return i;
   }
@@ -125,6 +149,9 @@ spec:
     version: "${this.contourVersion()}"
   registry:
     version: "${this.registryVersion()}"
+  kotsadm:
+    version: "${this.kotsadmVersion()}"
+    applicationSlug: "${this.kotsadmApplicationSlug()}"
 `;
   }
 
@@ -149,6 +176,11 @@ spec:
 
   static registryVersions = [
     "2.7.1",
+  ];
+
+  // First is "latest" version since kotsadm is not included in default "latest" installer.
+  static kotsadmVersions = [
+    "0.9.4",
   ];
 
   static latest(): Installer {
@@ -227,6 +259,16 @@ spec:
     return null;
   }
 
+  static resolveKotsadmVersion(version: string): string|null {
+    if (version === "latest") {
+      return Installer.kotsadmVersions[0];
+    }
+    if (_.includes(Installer.kotsadmVersions, version)) {
+      return version;
+    }
+    return null;
+  }
+
   public resolve(): Installer {
     const i = new Installer();
 
@@ -236,11 +278,13 @@ spec:
     i.rook.version = Installer.resolveRookVersion(this.rookVersion()) || "";
     i.contour.version = Installer.resolveContourVersion(this.contourVersion()) || "";
     i.registry.version = Installer.resolveRegistryVersion(this.registryVersion()) || "";
+    i.kotsadm.version = Installer.resolveKotsadmVersion(this.kotsadmVersion()) || "";
+    i.kotsadm.applicationSlug = this.kotsadmApplicationSlug();
 
     return i;
   }
 
-  public validate(): ErrorResponse|undefined {
+  public async validate(): Promise<ErrorResponse|undefined> {
     if (!this.kubernetesVersion()) {
         return { error: { message: "Kubernetes version is required" } };
     }
@@ -265,6 +309,30 @@ spec:
 
     if (this.registryVersion() && !Installer.resolveRegistryVersion(this.registryVersion())) {
       return { error: { message: `Registry version "${_.escape(this.registryVersion())}" is not supported` } };
+    }
+
+    if (this.kotsadmVersion() && !Installer.resolveKotsadmVersion(this.kotsadmVersion())) {
+      return { error: { message: `Kotsadm version "${_.escape(this.kotsadmVersion())}" is not supported` } };
+    }
+
+    if (this.kotsadmVersion() && !this.kotsadmApplicationSlug()) {
+      return { error: { message: `Kotsadm application slug is required when version is set` } };
+    }
+
+    if (this.kotsadmApplicationSlug() && !this.kotsadmVersion()) {
+      return { error: { message: `Kotsadm version is required when application slug is set` } };
+    }
+
+    if (this.kotsadmApplicationSlug()) {
+      // Don't fail validation because replicated.app is unavailable. Only 404 fails validation.
+      try {
+        await request(`https://replicated.app/metadata/${this.kotsadmApplicationSlug()}`);
+      } catch(error) {
+        if (error.statusCode === 404) {
+          return { error: { message: `Kotsadm application '${_.escape(this.kotsadmApplicationSlug())}' not found` } };
+        }
+        console.log(`Failed to validate kotsadm application slug: ${error.message}`);
+      }
     }
   }
 
