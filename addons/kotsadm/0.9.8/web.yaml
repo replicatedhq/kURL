@@ -18,7 +18,7 @@ spec:
           defaultMode: 484
           name: kotsadm-web-scripts
       containers:
-      - image: kotsadm/kotsadm-web:v0.9.4
+      - image: kotsadm/kotsadm-web:v0.9.8
         name: kotsadm-web
         args:
         - "/scripts/start-kotsadm-web.sh"

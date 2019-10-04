@@ -67,7 +67,7 @@ export class Bundle {
 
     if (installer.kotsadmApplicationSlug()) {
       const metadata = await request(`https://replicated.app/metadata/${installer.kotsadmApplicationSlug()}`)
-      pack.entry({ name: "kustomize/kotsadm/application.yaml" }, metadata)
+      pack.entry({ name: `addons/kotsadm/${installer.kotsadmVersion()}/application.yaml` }, metadata)
     }
     pack.entry({ name: "join.sh" }, this.templates.renderJoinScript(installer));
     pack.entry({ name: "upgrade.sh" }, this.templates.renderUpgradeScript(installer));
