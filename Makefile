@@ -32,6 +32,12 @@ dist/registry-%.tar.gz: build/addons
 	mkdir -p dist
 	tar cf - -C build addons/registry/$* | gzip > dist/registry-$*.tar.gz
 
+dist/kotsadm-%.tar.gz: build/addons
+	mkdir -p build/addons/kotsadm/$*/images
+	bin/docker-save.sh addons/kotsadm/$*/Manifest build/addons/kotsadm/$*/images
+	mkdir -p dist
+	tar cf - -C build addons/kotsadm/$* | gzip > dist/kotsadm-$*.tar.gz
+
 dist/docker-%.tar.gz:
 	${MAKE} build/packages/docker/$*/ubuntu-16.04
 	${MAKE} build/packages/docker/$*/ubuntu-18.04
