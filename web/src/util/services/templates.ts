@@ -12,7 +12,6 @@ export class Templates {
   private installTmpl: (any) => string;
   private joinTmpl: (any) => string;
   private upgradeTmpl: (any) => string;
-  private createBundleScript: string;
 
   constructor () {
     this.kurlURL = process.env["KURL_URL"] || "https://kurl.sh";
@@ -21,7 +20,6 @@ export class Templates {
     const installTmplPath = path.join(tmplDir, "install.tmpl");
     const joinTmplPath = path.join(tmplDir, "join.tmpl");
     const upgradeTmplPath = path.join(tmplDir, "upgrade.tmpl");
-    const createBundlePath = path.join(tmplDir, "create-bundle-alpine.sh");
 
     const opts = {
       escape: /{{-([\s\S]+?)}}/g,
@@ -31,7 +29,6 @@ export class Templates {
     this.installTmpl = _.template(fs.readFileSync(installTmplPath, "utf8"), opts);
     this.joinTmpl = _.template(fs.readFileSync(joinTmplPath, "utf8"), opts);
     this.upgradeTmpl = _.template(fs.readFileSync(upgradeTmplPath, "utf8"), opts);
-    this.createBundleScript = fs.readFileSync(createBundlePath, "utf8");
   }
 
   public renderInstallScript(i: Installer): string {
@@ -44,10 +41,6 @@ export class Templates {
 
   public renderUpgradeScript(i: Installer): string {
     return this.upgradeTmpl(manifestFromInstaller(i, this.kurlURL));
-  }
-
-  public renderCreateBundleScript(i: Installer): string {
-    return this.createBundleScript;
   }
 }
 
