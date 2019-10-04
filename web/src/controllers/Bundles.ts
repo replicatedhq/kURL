@@ -45,12 +45,13 @@ export class Bundle {
   ): Promise<void|ErrorResponse> {
 
     const installerID = path.basename(pkg, ".tar.gz");
-    const installer = await this.installers.getInstaller(installerID);
+    let installer = await this.installers.getInstaller(installerID);
 
     if (!installer) {
       response.status(404);
       return notFoundResponse;
     }
+    installer = installer.resolve();
 
     const pack = tar.pack();
 
