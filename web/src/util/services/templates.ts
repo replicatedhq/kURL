@@ -59,6 +59,8 @@ interface Manifest {
   ROOK_VERSION: string;
   CONTOUR_VERSION: string;
   REGISTRY_VERSION: string;
+  KOTSADM_VERSION: string;
+  KOTSADM_APPLICATION_SLUG: string;
 }
 
 function manifestFromInstaller(i: Installer, kurlURL: string): Manifest {
@@ -70,6 +72,8 @@ function manifestFromInstaller(i: Installer, kurlURL: string): Manifest {
     ROOK_VERSION: i.rookVersion(),
     CONTOUR_VERSION: i.contourVersion(),
     REGISTRY_VERSION: i.registryVersion(),
+    KOTSADM_VERSION: i.kotsadmVersion(),
+    KOTSADM_APPLICATION_SLUG: i.kotsadmApplicationSlug(),
   };
 }
 

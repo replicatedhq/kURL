@@ -2,9 +2,11 @@ resources:
 - ceph-cluster.yaml
 - ceph-block-pool.yaml
 - ceph-storage-class.yaml
+- ceph-object-store.yaml
 
 patchesStrategicMerge:
 - ceph-cluster-mons.yaml
 - ceph-cluster-image.yaml
 - ceph-cluster-storage.yaml
 - ceph-block-pool-replicas.yaml
+- ceph-object-store-replicas.yaml

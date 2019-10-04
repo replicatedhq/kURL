@@ -16,6 +16,10 @@ function rook() {
         CEPH_DASHBOARD_USER=admin
         CEPH_DASHBOARD_PASSWORD="$cephDashboardPassword"
     fi
+
+    spinnerPodRunning rook-ceph rook-ceph-rgw-rook-ceph-store
+    kubectl apply -f "$DIR/addons/rook/1.0.4/cluster/object-user.yaml"
+    rook_object_store_output
 }
 
 function rook_operator_deploy() {
@@ -36,6 +40,7 @@ function rook_cluster_deploy() {
     # resources
     cp "$src/ceph-cluster.yaml" "$dst/"
     cp "$src/ceph-block-pool.yaml" "$dst/"
+    cp "$src/ceph-object-store.yaml" "$dst/"
     render_yaml_file "$src/tmpl-ceph-storage-class.yaml" > "$dst/ceph-storage-class.yaml"
 
     # patches
@@ -43,6 +48,7 @@ function rook_cluster_deploy() {
     render_yaml_file "$src/patches/tmpl-ceph-cluster-image.yaml" > "$dst/ceph-cluster-image.yaml"
     render_yaml_file "$src/patches/tmpl-ceph-cluster-storage.yaml" > "$dst/ceph-cluster-storage.yaml"
     render_yaml_file "$src/patches/tmpl-ceph-block-pool-replicas.yaml" > "$dst/ceph-block-pool-replicas.yaml"
+    render_yaml_file "$src/patches/tmpl-ceph-object-store.yaml" > "$dst/ceph-object-store-replicas.yaml"
 
     kubectl apply -k "$dst/"
 }
@@ -115,4 +121,31 @@ function rook_configure_linux_3() {
             sysctl --system
             ;;
     esac
+}
+
+function rook_object_store_output() {
+    # Rook operator creates this secret from the user CRD just applied
+    while ! kubectl -n rook-ceph get secret rook-ceph-object-user-rook-ceph-store-kurl 2>/dev/null; do
+        sleep 2
+    done
+
+    # create the docker-registry bucket through the S3 API
+    OBJECT_STORE_ACCESS_KEY=$(kubectl -n rook-ceph get secret rook-ceph-object-user-rook-ceph-store-kurl -o yaml | grep AccessKey | awk '{print $2}' | base64 --decode)
+    OBJECT_STORE_SECRET_KEY=$(kubectl -n rook-ceph get secret rook-ceph-object-user-rook-ceph-store-kurl -o yaml | grep SecretKey | awk '{print $2}' | base64 --decode)
+    OBJECT_STORE_CLUSTER_IP=$(kubectl -n rook-ceph get service rook-ceph-rgw-rook-ceph-store | tail -n1 | awk '{ print $3}')
+}
+
+function rook_create_bucket() {
+    local bucket=$1
+    local acl="x-amz-acl:private"
+    local d=$(date +"%a, %d %b %Y %T %z")
+    local string="PUT\n\n\n${d}\n${acl}\n/$bucket"
+    local sig=$(echo -en "${string}" | openssl sha1 -hmac "${OBJECT_STORE_SECRET_KEY}" -binary | base64)
+
+    curl -X PUT  \
+        -H "Host: $OBJECT_STORE_CLUSTER_IP" \
+        -H "Date: $d" \
+        -H "$acl" \
+        -H "Authorization: AWS $OBJECT_STORE_ACCESS_KEY:$sig" \
+        "http://$OBJECT_STORE_CLUSTER_IP/$bucket" >/dev/null
 }

@@ -7,7 +7,7 @@ import * as url from "url";
 import * as _ from "lodash";
 
 
-const kurlURL = process.env.KURL_URL || "http://localhost:8092";
+const kurlURL = process.env.KURL_URL || "http://localhost:30092";
 const client = new KurlClient(kurlURL);
 
 const latest = `
@@ -93,12 +93,21 @@ spec:
   contour:
     version: "0.14.0"`;
 
+const kots = `
+spec:
+  kubernetes:
+    version: latest
+  kotsadm:
+    version: 0.9.4
+    applicationSlug: sentry-enterprise
+`;
+
 describe("POST /installer", () => {
   describe("latest", () => {
     it(`should return 201 "https://kurl.sh/latest"`, async () => {
       const url = await client.postInstaller(latest);
 
-      expect(url).to.equal(`${kurlURL}/latest`);
+      expect(url).to.match(/latest$/);
     });
   });
 
@@ -112,7 +121,7 @@ describe("POST /installer", () => {
     it(`should return 201 "https://kurl.sh/d3a9234"`, async () => {
       const url = await client.postInstaller(d3a9234);
 
-      expect(url).to.equal(`${kurlURL}/d3a9234`);
+      expect(url).to.match(/d3a9234$/);
     });
   });
 
@@ -120,7 +129,15 @@ describe("POST /installer", () => {
     it(`should return 201 "https://kurl.sh/6898644"`, async () => {
       const url = await client.postInstaller(min);
 
-      expect(url).to.equal(`${kurlURL}/6898644`);
+      expect(url).to.match(/6898644$/);
+    });
+  });
+
+  describe("kots", () => {
+    it(`should return 201 "https://kurl.sh/56fd544"`, async () => {
+      const url = await client.postInstaller(kots);
+
+      expect(url).to.match(/56fd544/);
     });
   });
 
@@ -169,11 +186,9 @@ describe("POST /installer", () => {
 describe("PUT /installer/<id>", () => {
   describe("valid", () => {
     it("201", async() => {
-      const tkn = jwt.sign({team_id: "team1"}, "jwt-signing-key");
+      const tkn = jwt.sign({team_id: "team1"}, "jwt-signing-key"); const url = await client.putInstaller(tkn, "kurl-beta", d3a9234);
 
-      const url = await client.putInstaller(tkn, "kurl-beta", d3a9234);
-
-      expect(url).to.equal(`${kurlURL}/kurl-beta`);
+      expect(url).to.match(/kurl-beta/);
     });
   });
 
@@ -254,6 +269,8 @@ describe("GET /<installerID>", () => {
       expect(script).to.match(new RegExp(`ROOK_VERSION="${latest.rookVersion()}"`));
       expect(script).to.match(new RegExp(`CONTOUR_VERSION="${latest.contourVersion()}"`));
       expect(script).to.match(/INSTALLER_ID="latest"/);
+      expect(script).to.match(/KOTSADM_VERSION=""/);
+      expect(script).to.match(/KOTSADM_APPLICATION_SLUG=""/);
     });
   });
 
@@ -269,6 +286,8 @@ describe("GET /<installerID>", () => {
       expect(script).to.match(new RegExp(`WEAVE_VERSION=""`));
       expect(script).to.match(new RegExp(`ROOK_VERSION=""`));
       expect(script).to.match(new RegExp(`CONTOUR_VERSION=""`));
+      expect(script).to.match(new RegExp(`KOTSADM_VERSION=""`));
+      expect(script).to.match(new RegExp(`KOTSADM_APPLICATION_SLUG=""`));
     });
   });
 
@@ -287,6 +306,8 @@ describe("GET /<installerID>", () => {
       expect(script).to.match(new RegExp(`WEAVE_VERSION="\\d+.\\d+.\\d+"`));
       expect(script).to.match(new RegExp(`ROOK_VERSION="\\d+.\\d+.\\d+"`));
       expect(script).to.match(new RegExp(`CONTOUR_VERSION="\\d+.\\d+.\\d+"`));
+      expect(script).to.match(new RegExp(`KOTSADM_VERSION=""`));
+      expect(script).to.match(new RegExp(`KOTSADM_APPLICATION_SLUG=""`));
     });
   });
 });
@@ -296,13 +317,15 @@ describe("GET /<installerID>/join.sh", () => {
     const latest = Installer.latest();
 
     it(`injects k8s ${latest.kubernetesVersion()}, weave ${latest.weaveVersion()}, rook ${latest.rookVersion()}, contour ${latest.contourVersion()}`, async () => {
-      const script = await client.getInstallScript("latest");
+      const script = await client.getJoinScript("latest");
 
       expect(script).to.match(new RegExp(`KUBERNETES_VERSION="${latest.kubernetesVersion()}"`));
       expect(script).to.match(new RegExp(`WEAVE_VERSION="${latest.weaveVersion()}"`));
       expect(script).to.match(new RegExp(`ROOK_VERSION="${latest.rookVersion()}"`));
       expect(script).to.match(new RegExp(`CONTOUR_VERSION="${latest.contourVersion()}"`));
       expect(script).to.match(new RegExp(`REGISTRY_VERSION="${latest.registryVersion()}"`));
+      expect(script).to.match(new RegExp(`KOTSADM_VERSION=""`));
+      expect(script).to.match(new RegExp(`KOTSADM_APPLICATION_SLUG=""`));
     });
   });
 
@@ -319,14 +342,34 @@ describe("GET /<installerID>/join.sh", () => {
       expect(script).to.match(new RegExp(`ROOK_VERSION=""`));
       expect(script).to.match(new RegExp(`CONTOUR_VERSION=""`));
       expect(script).to.match(new RegExp(`REGISTRY_VERSION=""`));
+      expect(script).to.match(new RegExp(`KOTSADM_VERSION=""`));
+      expect(script).to.match(new RegExp(`KOTSADM_APPLICATION_SLUG=""`));
     });
   });
-})
+
+  describe("kots (/56fd544)", () => {
+    before(async () => {
+      await client.postInstaller(kots);
+    });
+
+    it("injests KOTSADM_VERSION and KOTSADM_APPLICATION_SLUG", async() => {
+      const script = await client.getInstallScript("56fd544");
+
+      expect(script).to.match(new RegExp(`KUBERNETES_VERSION="1.15.3"`));
+      expect(script).to.match(new RegExp(`WEAVE_VERSION=""`));
+      expect(script).to.match(new RegExp(`ROOK_VERSION=""`));
+      expect(script).to.match(new RegExp(`CONTOUR_VERSION=""`));
+      expect(script).to.match(new RegExp(`REGISTRY_VERSION=""`));
+      expect(script).to.match(new RegExp(`KOTSADM_VERSION="0.9.4"`));
+      expect(script).to.match(new RegExp(`KOTSADM_APPLICATION_SLUG="sentry-enterprise"`));
+    });
+  });
+});
 
 describe("GET /installer/<installerID>", () => {
   before(async () => {
     await client.postInstaller(min);
-  })
+  });
 
   it("returns installer yaml", async() => {
     const yaml = await client.getInstallerYAML("6898644");
@@ -346,6 +389,9 @@ spec:
     version: ""
   registry:
     version: ""
+  kotsadm:
+    version: ""
+    applicationSlug: ""
 `);
   });
 
@@ -377,5 +423,25 @@ spec:
 
       expect(yaml).to.match(/version: "latest"/);
     });
+  });
+});
+
+describe("GET /installer", () => {
+  it("returns all available package and addon versions", async() => {
+    const versions = await client.getVersions();
+
+    expect(versions.kubernetes).to.be.an.instanceof(Array);
+    expect(versions.kubernetes).to.contain("1.15.3");
+    expect(versions.kubernetes).to.contain("latest");
+    expect(versions.kubernetes).to.contain("1.15.0");
+    expect(versions.rook).to.contain("1.0.4");
+    expect(versions.rook).to.contain("latest");
+    expect(versions.contour).to.contain("0.14.0");
+    expect(versions.contour).to.contain("latest");
+    expect(versions.registry).to.contain("latest");
+    expect(versions.registry).to.contain("2.7.1");
+    expect(versions.weave).to.contain("2.5.2");
+    expect(versions.weave).to.contain("latest");
+    expect(versions.kotsadm).to.contain("0.9.4");
   });
 });

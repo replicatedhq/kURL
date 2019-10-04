@@ -32,6 +32,12 @@ dist/registry-%.tar.gz: build/addons
 	mkdir -p dist
 	tar cf - -C build addons/registry/$* | gzip > dist/registry-$*.tar.gz
 
+dist/kotsadm-%.tar.gz: build/addons
+	mkdir -p build/addons/kotsadm/$*/images
+	bin/docker-save.sh addons/kotsadm/$*/Manifest build/addons/kotsadm/$*/images
+	mkdir -p dist
+	tar cf - -C build addons/kotsadm/$* | gzip > dist/kotsadm-$*.tar.gz
+
 dist/docker-%.tar.gz:
 	${MAKE} build/packages/docker/$*/ubuntu-16.04
 	${MAKE} build/packages/docker/$*/ubuntu-18.04
@@ -68,6 +74,8 @@ build/templates/install.tmpl: build/install.sh
 		sed 's/^WEAVE_VERSION=.*/WEAVE_VERSION="{{= WEAVE_VERSION }}"/' | \
 		sed 's/^ROOK_VERSION=.*/ROOK_VERSION="{{= ROOK_VERSION }}"/' | \
 		sed 's/^REGISTRY_VERSION=.*/REGISTRY_VERSION="{{= REGISTRY_VERSION }}"/' | \
+		sed 's/^KOTSADM_VERSION=.*/KOTSADM_VERSION="{{= KOTSADM_VERSION }}"/' | \
+		sed 's/^KOTSADM_APPLICATION_SLUG=.*/KOTSADM_APPLICATION_SLUG="{{= KOTSADM_APPLICATION_SLUG }}"/' | \
 		sed 's/^CONTOUR_VERSION=.*/CONTOUR_VERSION="{{= CONTOUR_VERSION }}"/' > build/templates/install.tmpl
 
 build/join.sh:
@@ -87,6 +95,8 @@ build/templates/join.tmpl: build/join.sh
 		sed 's/^WEAVE_VERSION=.*/WEAVE_VERSION="{{= WEAVE_VERSION }}"/' | \
 		sed 's/^ROOK_VERSION=.*/ROOK_VERSION="{{= ROOK_VERSION }}"/' | \
 		sed 's/^REGISTRY_VERSION=.*/REGISTRY_VERSION="{{= REGISTRY_VERSION }}"/' | \
+		sed 's/^KOTSADM_VERSION=.*/KOTSADM_VERSION="{{= KOTSADM_VERSION }}"/' | \
+		sed 's/^KOTSADM_APPLICATION_SLUG=.*/KOTSADM_APPLICATION_SLUG="{{= KOTSADM_APPLICATION_SLUG }}"/' | \
 		sed 's/^CONTOUR_VERSION=.*/CONTOUR_VERSION="{{= CONTOUR_VERSION }}"/' > build/templates/join.tmpl
 
 build/upgrade.sh:
@@ -106,6 +116,8 @@ build/templates/upgrade.tmpl: build/upgrade.sh
 		sed 's/^WEAVE_VERSION=.*/WEAVE_VERSION="{{= WEAVE_VERSION }}"/' | \
 		sed 's/^ROOK_VERSION=.*/ROOK_VERSION="{{= ROOK_VERSION }}"/' | \
 		sed 's/^REGISTRY_VERSION=.*/REGISTRY_VERSION="{{= REGISTRY_VERSION }}"/' | \
+		sed 's/^KOTSADM_VERSION=.*/KOTSADM_VERSION="{{= KOTSADM_VERSION }}"/' | \
+		sed 's/^KOTSADM_APPLICATION_SLUG=.*/KOTSADM_APPLICATION_SLUG="{{= KOTSADM_APPLICATION_SLUG }}"/' | \
 		sed 's/^CONTOUR_VERSION=.*/CONTOUR_VERSION="{{= CONTOUR_VERSION }}"/' > build/templates/upgrade.tmpl
 
 build/addons:
@@ -197,7 +209,6 @@ code: build/templates build/yaml build/addons
 web: build/templates
 	mkdir -p web/build
 	cp -r build/templates web
-	cp bin/create-bundle-alpine.sh web/templates
 
 watchrsync:
 	bin/watchrsync.js

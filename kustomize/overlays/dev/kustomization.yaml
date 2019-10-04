@@ -3,7 +3,7 @@ bases:
   - ../../base
 
 resources:
-  - ./loadbalancer.yaml
+  - ./nodeport.yaml
 
 patches:
   - ./deployment.yaml

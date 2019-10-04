@@ -30,4 +30,10 @@ spec:
         ports:
         - name: kurl
           containerPort: 3000
-      serviceAccountName: kurl-web-server
+        resources:
+          requests:
+            memory: 2Gi
+            cpu: 1
+          limits:
+            memory: 4Gi
+            cpu: 2

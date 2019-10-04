@@ -1,6 +1,3 @@
 
 resources:
   - ./deployment.yaml
-  - ./namespace.yaml
-  - ./rbac.yaml
-  - ./resourcequota.yaml

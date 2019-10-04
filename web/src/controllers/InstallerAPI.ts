@@ -1,4 +1,5 @@
 import * as Express from "express";
+import * as _ from "lodash";
 import {
   Controller,
   Get,
@@ -12,8 +13,6 @@ import { instrumented } from "monkit";
 import { Installer, InstallerStore } from "../installers";
 import decode from "../util/jwt";
 import { Forbidden } from "../server/errors";
-import { Kubernetes } from "../kubernetes";
-import { S3Wrapper } from "../util/services/s3";
 import { logger } from "../logger";
 
 interface ErrorResponse {
@@ -75,20 +74,8 @@ export class Installers {
 
   constructor (
     private readonly installerStore: InstallerStore,
-    private readonly kubernetes: Kubernetes,
-    private readonly s3: S3Wrapper,
   ) {
     this.kurlURL = process.env["KURL_URL"] || "https://kurl.sh";
-  }
-
-  private async airgapBundleOK(i: Installer): Promise<boolean> {
-    try {
-      return await this.s3.objectExists(`bundle/${i.id}.tar.gz`);
-    } catch(error) {
-      logger.error(error);
-      // don't trigger a new airgap build based on a failed call to S3
-      return true;
-    }
   }
 
   /**
@@ -121,25 +108,32 @@ export class Installers {
     }
     i.id = i.hash();
 
-    const err = i.validate();
+    const err = await i.validate();
     if (err) {
       response.status(400);
       return err;
     }
 
-    const created = await this.installerStore.saveAnonymousInstaller(i);
-
-    if (created) {
-      logger.info(`Building new airgap bundle: ${i.id}`);
-      await this.kubernetes.runCreateAirgapBundleJob(i);
-    } else if (!(await this.airgapBundleOK(i))) {
-      logger.info(`Rebuilding missing airgap bundle: ${i.id}`);
-      await this.kubernetes.maybeRunCreateAirgapBundleJob(i); 
-    }
+    await this.installerStore.saveAnonymousInstaller(i);
 
     response.contentType("text/plain");
     response.status(201);
     return `${this.kurlURL}/${i.id}`;
+  }
+
+  @Get("/")
+  public getInstallerVersions(
+    @Res() response: Express.Response,
+  ): any {
+    response.type("application/json");
+    return {
+      kubernetes: _.concat(["latest"], Installer.kubernetesVersions),
+      weave: _.concat(["latest"], Installer.weaveVersions),
+      rook: _.concat(["latest"], Installer.rookVersions),
+      contour: _.concat(["latest"], Installer.contourVersions),
+      registry: _.concat(["latest"], Installer.registryVersions),
+      kotsadm: _.concat(["latest"], Installer.kotsadmVersions),
+    };
   }
 
   /**
@@ -198,19 +192,12 @@ export class Installers {
       return idNameMismatchResponse;
     }
     i.id = id;
-    const err = i.validate();
+    const err = await i.validate();
     if (err) {
       return err;
     }
 
-    const newOrChanged = await this.installerStore.saveTeamInstaller(i);
-    if (newOrChanged) {
-      logger.info(`Building new/updated airgap bundle: ${i.id}`);
-      await this.kubernetes.runCreateAirgapBundleJob(i);
-    } else if (!(await this.airgapBundleOK(i))) {
-      logger.info(`Rebuilding missing airgap bundle: ${i.id}`);
-      await this.kubernetes.maybeRunCreateAirgapBundleJob(i); 
-    }
+    await this.installerStore.saveTeamInstaller(i);
 
     response.contentType("text/plain");
     response.status(201);
