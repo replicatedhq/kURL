@@ -1,6 +1,6 @@
 
 function kotsadm() {
-    local src="$DIR/addons/kotsadm/0.9.4"
+    local src="$DIR/addons/kotsadm/0.9.8"
     local dst="$DIR/kustomize/kotsadm"
 
     rook_create_bucket kotsadm
@@ -21,8 +21,9 @@ function kotsadm() {
 
 
     if [ "$AIRGAP" != "1" ]; then
-        curl https://replicated.app/metadata/$KOTSADM_APPLICATION_SLUG > "$dst/application.yaml"
+        curl https://replicated.app/metadata/$KOTSADM_APPLICATION_SLUG > "$src/application.yaml"
     fi
+    cp "$src/application.yaml" "$dst/"
     kubectl create configmap kotsadm-application-metadata --from-file="$dst/application.yaml" --dry-run -oyaml > "$dst/kotsadm-application-metadata.yaml"
 
     cat "$src/tmpl-start-kotsadm-web.sh" | sed "s/###_HOSTNAME_###/localhost:8800/g" > "$dst/start-kotsadm-web.sh"
@@ -68,7 +69,7 @@ function kotsadm_secret_auto_create_cluster_token() {
 
     AUTO_CREATE_CLUSTER_TOKEN=$(< /dev/urandom tr -dc A-Za-z0-9 | head -c16)
 
-    render_yaml_file "$DIR/addons/kotsadm/0.9.4/tmpl-secret-auto-create-cluster-token.yaml" > "$DIR/kustomize/kotsadm/secret-auto-create-cluster-token.yaml"
+    render_yaml_file "$DIR/addons/kotsadm/0.9.8/tmpl-secret-auto-create-cluster-token.yaml" > "$DIR/kustomize/kotsadm/secret-auto-create-cluster-token.yaml"
     insert_resources "$DIR/kustomize/kotsadm/kustomization.yaml" secret-auto-create-cluster-token.yaml
 
     # ensure all pods that consume the secret will be restarted
@@ -88,7 +89,7 @@ function kotsadm_secret_password() {
     # TODO kurl-util
     BCRYPT_PASSWORD=$(docker run --rm epicsoft/bcrypt:latest hash "$KOTSADM_PASSWORD" 14)
 
-    render_yaml_file "$DIR/addons/kotsadm/0.9.4/tmpl-secret-password.yaml" > "$DIR/kustomize/kotsadm/secret-password.yaml"
+    render_yaml_file "$DIR/addons/kotsadm/0.9.8/tmpl-secret-password.yaml" > "$DIR/kustomize/kotsadm/secret-password.yaml"
     insert_resources "$DIR/kustomize/kotsadm/kustomization.yaml" secret-password.yaml
 
     kubernetes_scale_down default deployment kotsadm-api
@@ -103,7 +104,7 @@ function kotsadm_secret_postgres() {
 
     POSTGRES_PASSWORD=$(< /dev/urandom tr -dc A-Za-z0-9 | head -c16)
 
-    render_yaml_file "$DIR/addons/kotsadm/0.9.4/tmpl-secret-postgres.yaml" > "$DIR/kustomize/kotsadm/secret-postgres.yaml"
+    render_yaml_file "$DIR/addons/kotsadm/0.9.8/tmpl-secret-postgres.yaml" > "$DIR/kustomize/kotsadm/secret-postgres.yaml"
     insert_resources "$DIR/kustomize/kotsadm/kustomization.yaml" secret-postgres.yaml
 
     kubernetes_scale_down default deployment kotsadm-api
@@ -112,7 +113,7 @@ function kotsadm_secret_postgres() {
 }
 
 function kotsadm_secret_s3() {
-    render_yaml_file "$DIR/addons/kotsadm/0.9.4/tmpl-secret-s3.yaml" > "$DIR/kustomize/kotsadm/secret-s3.yaml"
+    render_yaml_file "$DIR/addons/kotsadm/0.9.8/tmpl-secret-s3.yaml" > "$DIR/kustomize/kotsadm/secret-s3.yaml"
     insert_resources "$DIR/kustomize/kotsadm/kustomization.yaml" secret-s3.yaml
 }
 
@@ -125,7 +126,7 @@ function kotsadm_secret_session() {
 
     JWT_SECRET=$(< /dev/urandom tr -dc A-Za-z0-9 | head -c16)
 
-    render_yaml_file "$DIR/addons/kotsadm/0.9.4/tmpl-secret-session.yaml" > "$DIR/kustomize/kotsadm/secret-session.yaml"
+    render_yaml_file "$DIR/addons/kotsadm/0.9.8/tmpl-secret-session.yaml" > "$DIR/kustomize/kotsadm/secret-session.yaml"
     insert_resources "$DIR/kustomize/kotsadm/kustomization.yaml" secret-session.yaml
 
     kubernetes_scale_down default deployment kotsadm-api

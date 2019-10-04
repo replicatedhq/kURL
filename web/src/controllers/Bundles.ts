@@ -45,12 +45,13 @@ export class Bundle {
   ): Promise<void|ErrorResponse> {
 
     const installerID = path.basename(pkg, ".tar.gz");
-    const installer = await this.installers.getInstaller(installerID);
+    let installer = await this.installers.getInstaller(installerID);
 
     if (!installer) {
       response.status(404);
       return notFoundResponse;
     }
+    installer = installer.resolve();
 
     const pack = tar.pack();
 
@@ -66,7 +67,7 @@ export class Bundle {
 
     if (installer.kotsadmApplicationSlug()) {
       const metadata = await request(`https://replicated.app/metadata/${installer.kotsadmApplicationSlug()}`)
-      pack.entry({ name: "kustomize/kotsadm/application.yaml" }, metadata)
+      pack.entry({ name: `addons/kotsadm/${installer.kotsadmVersion()}/application.yaml` }, metadata)
     }
     pack.entry({ name: "join.sh" }, this.templates.renderJoinScript(installer));
     pack.entry({ name: "upgrade.sh" }, this.templates.renderUpgradeScript(installer));
