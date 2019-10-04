@@ -1,4 +1,4 @@
-FROM node:8-slim
+FROM node:12-slim
 
 ARG version=unknown
 ENV VERSION=$version
@@ -12,4 +12,4 @@ WORKDIR /src
 RUN chmod +x /src/bin/kurl
 
 EXPOSE 3000
-CMD ["node", "--no-deprecation", "bin/kurl", "serve"]
+CMD ["node", "--max-old-space-size=4096", "--no-deprecation", "bin/kurl", "serve"]

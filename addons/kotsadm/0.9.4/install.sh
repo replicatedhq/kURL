@@ -20,16 +20,17 @@ function kotsadm() {
     kotsadm_secret_session
 
 
-   # TODO airgap
-   curl https://replicated.app/metadata/$KOTSADM_APPLICATION_SLUG > "$dst/application.yaml"
-   kubectl create configmap kotsadm-application-metadata --from-file="$dst/application.yaml" --dry-run -oyaml > "$dst/kotsadm-application-metadata.yaml"
+    if [ "$AIRGAP" != "1" ]; then
+        curl https://replicated.app/metadata/$KOTSADM_APPLICATION_SLUG > "$dst/application.yaml"
+    fi
+    kubectl create configmap kotsadm-application-metadata --from-file="$dst/application.yaml" --dry-run -oyaml > "$dst/kotsadm-application-metadata.yaml"
 
-   cat "$src/tmpl-start-kotsadm-web.sh" | sed "s/###_HOSTNAME_###/localhost:8800/g" > "$dst/start-kotsadm-web.sh"
-   kubectl create configmap kotsadm-web-scripts --from-file="$dst/start-kotsadm-web.sh" --dry-run -oyaml > "$dst/kotsadm-web-scripts.yaml"
+    cat "$src/tmpl-start-kotsadm-web.sh" | sed "s/###_HOSTNAME_###/localhost:8800/g" > "$dst/start-kotsadm-web.sh"
+    kubectl create configmap kotsadm-web-scripts --from-file="$dst/start-kotsadm-web.sh" --dry-run -oyaml > "$dst/kotsadm-web-scripts.yaml"
 
-   kubectl delete pod kotsadm-migrations || true;
+    kubectl delete pod kotsadm-migrations || true;
 
-   kubectl apply -k "$dst/"
+    kubectl apply -k "$dst/"
 }
 
 function kotsadm_outro() {

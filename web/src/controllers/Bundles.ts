@@ -1,8 +1,7 @@
 import * as path from "path";
-import * as zlib from "zlib";
 import * as Express from "express";
 import * as tar from "tar-stream";
-import * as request from "request";
+import * as request from "request-promise";
 import * as gunzip from "gunzip-maybe";
 import {
   Controller,
@@ -55,10 +54,9 @@ export class Bundle {
 
     const pack = tar.pack();
 
-    response.type("application/gzip");
-    response.set("Content-Encoding", "gzip");
+    response.type("binary/octet-stream");
 
-    pack.pipe(zlib.createGzip()).pipe(response);
+    pack.pipe(response);
 
     const packages = installer.packages().map((pkg) => `${this.distOrigin}/dist/${pkg}.tar.gz`);
 
@@ -66,6 +64,10 @@ export class Bundle {
       await copy(packages[i], pack);
     }
 
+    if (installer.kotsadmApplicationSlug()) {
+      const metadata = await request(`https://replicated.app/metadata/${installer.kotsadmApplicationSlug()}`)
+      pack.entry({ name: "kustomize/kotsadm/application.yaml" }, metadata)
+    }
     pack.entry({ name: "join.sh" }, this.templates.renderJoinScript(installer));
     pack.entry({ name: "upgrade.sh" }, this.templates.renderUpgradeScript(installer));
     // send last to protect against interrupted downloads
