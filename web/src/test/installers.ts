@@ -352,6 +352,14 @@ spec:
           expect(out).to.be.undefined;
         });
       });
+
+      describe("kots application slug missing", () => {
+        it("=> ErrorResponse", async () => {
+          const out = await Installer.parse(kotsNoSlug).validate();
+
+          expect(out).to.be.undefined;
+        });
+      });
     });
 
     describe("invalid", () => {
@@ -379,14 +387,6 @@ spec:
         const out = await Installer.parse(kotsNoVersion).validate();
 
         expect(out).to.deep.equal({ error: { message: "Kotsadm version is required when application slug is set" }});
-      });
-    });
-
-    describe("kots application slug missing", () => {
-      it("=> ErrorResponse", async () => {
-        const out = await Installer.parse(kotsNoSlug).validate();
-
-        expect(out).to.deep.equal({ error: { message: "Kotsadm application slug is required when version is set" }});
       });
     });
 
