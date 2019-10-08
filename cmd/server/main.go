@@ -84,6 +84,15 @@ func bundle(w http.ResponseWriter, r *http.Request) {
 
 	wz := gzip.NewWriter(w)
 	archive := tar.NewWriter(wz)
+	defer func() {
+		if err := archive.Close(); err != nil {
+			log.Printf("Error closing archive for installer %s: %v", installerID, err)
+		}
+
+		if err := wz.Close(); err != nil {
+			log.Printf("Error closing gzip stream for installer %s: %v", installerID, err)
+		}
+	}()
 
 	for _, layerURL := range bundle.Layers {
 		if err := pipe(archive, layerURL); err != nil {
@@ -106,14 +115,6 @@ func bundle(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if err := archive.Close(); err != nil {
-		log.Printf("Error closing archive for installer %s: %v", installerID, err)
-		return
-	}
-
-	if err := wz.Close(); err != nil {
-		log.Printf("Error closing gzip stream for installer %s: %v", installerID, err)
-	}
 }
 
 func pipe(dst *tar.Writer, srcURL string) error {
