@@ -5,6 +5,7 @@ ENV VERSION=$version
 
 ADD web /src
 ADD build/templates /templates
+ADD build/bin/server /bin
 
 WORKDIR /src
 

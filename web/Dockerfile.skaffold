@@ -9,6 +9,7 @@ RUN make deps
 
 ADD . .
 RUN mv templates /templates
+RUN mv bin/server /bin
 RUN make build
 
 EXPOSE 3000

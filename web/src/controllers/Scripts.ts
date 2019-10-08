@@ -34,6 +34,7 @@ export class Installers {
    * @returns string
    */
   @Get("/:installerID")
+  @Get("/:installerID/install.sh")
   @instrumented
   public async getInstaller(
     @Res() response: Express.Response,

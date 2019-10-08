@@ -1,8 +1,6 @@
 import * as path from "path";
 import * as Express from "express";
-import * as tar from "tar-stream";
 import * as request from "request-promise";
-import * as gunzip from "gunzip-maybe";
 import {
   Controller,
   Get,
@@ -19,6 +17,16 @@ const notFoundResponse = {
   error: {
     message: "The requested installer does not exist",
   },
+};
+
+interface FilepathContentsMap {
+  [filepath: string]: string;
+}
+
+// Manifest for building an airgap bundle.
+interface BundleManifest {
+  layers: Array<string>;
+  files: FilepathContentsMap;
 };
 
 @Controller("/bundle")
@@ -38,13 +46,12 @@ export class Bundle {
    * @param response
    * @returns {{id: any, name: string}}
    */
-  @Get("/:pkg")
+  @Get("/:installerID")
   public async redirect(
     @Res() response: Express.Response,
-    @PathParams("pkg") pkg: string,
-  ): Promise<void|ErrorResponse> {
+    @PathParams("installerID") installerID: string,
+  ): Promise<BundleManifest|ErrorResponse> {
 
-    const installerID = path.basename(pkg, ".tar.gz");
     let installer = await this.installers.getInstaller(installerID);
 
     if (!installer) {
@@ -53,47 +60,22 @@ export class Bundle {
     }
     installer = installer.resolve();
 
-    const pack = tar.pack();
+    response.type("application/json");
 
-    response.type("binary/octet-stream");
-
-    pack.pipe(response);
-
-    const packages = installer.packages().map((pkg) => `${this.distOrigin}/dist/${pkg}.tar.gz`);
-
-    for (let i = 0; i < packages.length; i++) {
-      await copy(packages[i], pack);
-    }
+    const ret: BundleManifest = {layers: [], files: {}};
+    ret.layers = installer.packages().map((pkg) => `${this.distOrigin}/dist/${pkg}.tar.gz`);
 
     if (installer.kotsadmApplicationSlug()) {
-      const metadata = await request(`https://replicated.app/metadata/${installer.kotsadmApplicationSlug()}`)
-      pack.entry({ name: `addons/kotsadm/${installer.kotsadmVersion()}/application.yaml` }, metadata)
+      const appMetadata = await request(`https://replicated.app/metadata/${installer.kotsadmApplicationSlug()}`);
+      const key = `addons/kotsadm/${installer.kotsadmVersion()}/application.yaml`;
+
+      ret.files[key] = appMetadata;
     }
-    pack.entry({ name: "join.sh" }, this.templates.renderJoinScript(installer));
-    pack.entry({ name: "upgrade.sh" }, this.templates.renderUpgradeScript(installer));
-    // send last to protect against interrupted downloads
-    pack.entry({ name: "install.sh" }, this.templates.renderInstallScript(installer));
 
-    pack.finalize();
+    ret.files["install.sh"] = this.templates.renderInstallScript(installer);
+    ret.files["join.sh"] = this.templates.renderJoinScript(installer);
+    ret.files["upgrade.sh"] = this.templates.renderUpgradeScript(installer);
 
-    await new Promise((resolve, reject) => {
-      pack.on("end", resolve);
-      pack.on("error", reject);
-    });
+    return ret;
   }
 }
-
-const copy = async(url: string, dst: any) => {
-  return new Promise((resolve, reject) => {
-    const extract = tar.extract();
-
-    request(url).pipe(gunzip()).pipe(extract);
-
-    extract.on("entry", (header, stream, done) => {
-      stream.pipe(dst.entry(header, done));
-    });
-
-    extract.on("finish", resolve);
-    extract.on("error", reject);
-  });
-};
