@@ -14,6 +14,7 @@ import (
 	"os"
 	"path"
 	"strings"
+	"time"
 )
 
 const upstream = "http://localhost:3000"
@@ -93,9 +94,10 @@ func bundle(w http.ResponseWriter, r *http.Request) {
 
 	for filepath, contents := range bundle.Files {
 		archive.WriteHeader(&tar.Header{
-			Name: filepath,
-			Size: int64(len(contents)),
-			Mode: 0644,
+			Name:    filepath,
+			Size:    int64(len(contents)),
+			Mode:    0644,
+			ModTime: time.Now(),
 		})
 		_, err := archive.Write([]byte(contents))
 		if err != nil {
