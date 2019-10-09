@@ -31,12 +31,12 @@ spec:
         ports:
         - name: server
           containerPort: 3001
+        resources:
+          limits:
+            cpu: 2
       - name: kurl
         image: replicated/kurl
         imagePullPolicy: IfNotPresent
         ports:
         - name: kurl
           containerPort: 3000
-        resources:
-          limits:
-            cpu: 2
