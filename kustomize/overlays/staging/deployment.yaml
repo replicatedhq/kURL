@@ -13,6 +13,11 @@ spec:
         env:
         - name: KURL_BUCKET
           value: kurl-sh-staging
+        resources:
+          requests:
+            cpu: 100m
+          limits:
+            cpu: 1
       - name: kurl
         image: 923411875752.dkr.ecr.us-east-1.amazonaws.com/kurl
         env:
