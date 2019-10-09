@@ -315,10 +315,6 @@ spec:
       return { error: { message: `Kotsadm version "${_.escape(this.kotsadmVersion())}" is not supported` } };
     }
 
-    if (this.kotsadmVersion() && !this.kotsadmApplicationSlug()) {
-      return { error: { message: `Kotsadm application slug is required when version is set` } };
-    }
-
     if (this.kotsadmApplicationSlug() && !this.kotsadmVersion()) {
       return { error: { message: `Kotsadm version is required when application slug is set` } };
     }
