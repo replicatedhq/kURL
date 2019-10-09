@@ -38,9 +38,5 @@ spec:
         - name: kurl
           containerPort: 3000
         resources:
-          requests:
-            memory: 2Gi
-            cpu: 1
           limits:
-            memory: 4Gi
             cpu: 2
