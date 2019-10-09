@@ -98,7 +98,7 @@ spec:
   kubernetes:
     version: latest
   kotsadm:
-    version: 0.9.8
+    version: latest
     applicationSlug: sentry-enterprise
 `;
 
@@ -134,10 +134,10 @@ describe("POST /installer", () => {
   });
 
   describe("kots", () => {
-    it(`should return 201 "https://kurl.sh/56fd544"`, async () => {
+    it(`should return 201 "https://kurl.sh/4a39417"`, async () => {
       const url = await client.postInstaller(kots);
 
-      expect(url).to.match(/56fd544/);
+      expect(url).to.match(/4a39417/);
     });
   });
 
@@ -347,13 +347,13 @@ describe("GET /<installerID>/join.sh", () => {
     });
   });
 
-  describe("kots (/56fd544)", () => {
+  describe("kots (/4a39417)", () => {
     before(async () => {
       await client.postInstaller(kots);
     });
 
     it("injests KOTSADM_VERSION and KOTSADM_APPLICATION_SLUG", async() => {
-      const script = await client.getInstallScript("56fd544");
+      const script = await client.getInstallScript("4a39417");
 
       expect(script).to.match(new RegExp(`KUBERNETES_VERSION="1.15.3"`));
       expect(script).to.match(new RegExp(`WEAVE_VERSION=""`));
