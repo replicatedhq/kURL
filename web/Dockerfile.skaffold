@@ -14,4 +14,4 @@ RUN make build
 
 EXPOSE 3000
 
-ENTRYPOINT ["node", "--max-old-space-size=4096", "--no-deprecation", "bin/kurl", "serve"]
+ENTRYPOINT ["node", "--no-deprecation", "bin/kurl", "serve"]

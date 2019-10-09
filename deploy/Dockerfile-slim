@@ -12,4 +12,4 @@ WORKDIR /src
 RUN chmod +x /src/bin/kurl
 
 EXPOSE 3000
-CMD ["node", "--max-old-space-size=4096", "--no-deprecation", "bin/kurl", "serve"]
+CMD ["node", "--no-deprecation", "bin/kurl", "serve"]
