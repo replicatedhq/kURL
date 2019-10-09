@@ -6,6 +6,10 @@ spec:
   template:
     spec:
       containers:
+      - name: server
+        env:
+        - name: KURL_BUCKET
+          value: "kurl-dev"
       - name: kurl
         env:
         - name: KURL_URL

@@ -7,9 +7,9 @@ metadata:
 spec:
   type: NodePort
   ports:
-    - name: kurl
+    - name: server
       port: 8092
-      targetPort: kurl
+      targetPort: server
       nodePort: 30092
   selector:
     app: kurl

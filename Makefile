@@ -205,10 +205,14 @@ build/templates: build/templates/install.tmpl build/templates/join.tmpl build/te
 .PHONY: code
 code: build/templates build/yaml build/addons
 
+build/bin/server:
+	go build -o build/bin/server cmd/server/main.go
+
 .PHONY: web
-web: build/templates
+web: build/templates build/bin/server
 	mkdir -p web/build
 	cp -r build/templates web
+	cp -r build/bin web
 
 watchrsync:
 	bin/watchrsync.js

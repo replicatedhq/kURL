@@ -24,6 +24,13 @@ spec:
                   - kurl
               topologyKey: "kubernetes.io/hostname"
       containers:
+      - name: server
+        image: replicated/kurl
+        imagePullPolicy: IfNotPresent
+        command: ["/bin/server"]
+        ports:
+        - name: server
+          containerPort: 3001
       - name: kurl
         image: replicated/kurl
         imagePullPolicy: IfNotPresent
