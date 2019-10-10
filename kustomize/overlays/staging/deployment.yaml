@@ -10,6 +10,7 @@ spec:
         replicated/node-pool: privileged
       containers:
       - name: server
+        image: 923411875752.dkr.ecr.us-east-1.amazonaws.com/kurl
         env:
         - name: KURL_BUCKET
           value: kurl-sh-staging
