@@ -34,3 +34,5 @@ spec:
           value: kurl-sh-staging
         - name: NODE_ENV
           value: staging
+        - name: REPLICATED_APP_URL
+          value: https://staging.replicated.app

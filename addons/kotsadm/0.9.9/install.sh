@@ -21,7 +21,7 @@ function kotsadm() {
 
 
     if [ "$AIRGAP" != "1" ]; then
-        curl https://replicated.app/metadata/$KOTSADM_APPLICATION_SLUG > "$src/application.yaml"
+        curl $REPLICATED_APP_URL/metadata/$KOTSADM_APPLICATION_SLUG > "$src/application.yaml"
     fi
     cp "$src/application.yaml" "$dst/"
     kubectl create configmap kotsadm-application-metadata --from-file="$dst/application.yaml" --dry-run -oyaml > "$dst/kotsadm-application-metadata.yaml"

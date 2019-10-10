@@ -32,12 +32,14 @@ interface BundleManifest {
 @Controller("/bundle")
 export class Bundle {
   private distOrigin: string;
+  private replicatedAppURL: string;
 
   constructor(
     private readonly templates: Templates,
     private readonly installers: InstallerStore,
   ) {
     this.distOrigin = `https://${process.env["KURL_BUCKET"]}.s3.amazonaws.com`;
+    this.replicatedAppURL = process.env["REPLICATED_APP_URL"] || "https://replicated.app";
   }
 
   /**
@@ -66,7 +68,7 @@ export class Bundle {
     ret.layers = installer.packages().map((pkg) => `${this.distOrigin}/dist/${pkg}.tar.gz`);
 
     if (installer.kotsadmApplicationSlug()) {
-      const appMetadata = await request(`https://replicated.app/metadata/${installer.kotsadmApplicationSlug()}`);
+      const appMetadata = await request(`${this.replicatedAppURL}/metadata/${installer.kotsadmApplicationSlug()}`);
       const key = `addons/kotsadm/${installer.kotsadmVersion()}/application.yaml`;
 
       ret.files[key] = appMetadata;
