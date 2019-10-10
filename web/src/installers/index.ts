@@ -38,6 +38,26 @@ interface ErrorResponse {
   error: any;
 }
 
+export interface ObjectMeta {
+  name: string
+}
+
+export interface InstallerSpec {
+  kubernetes: KubernetesConfig;
+  weave: WeaveConfig;
+  rook: RookConfig;
+  contour: ContourConfig;
+  registry: RegistryConfig;
+  kotsadm: KotsadmConfig;
+}
+
+export interface InstallerObject {
+  apiVersion: string;
+  kind: string;
+  metadata: ObjectMeta;
+  spec: InstallerSpec;
+}
+
 export class Installer {
 
   public id: string;
@@ -153,6 +173,37 @@ spec:
     version: "${this.kotsadmVersion()}"
     applicationSlug: "${this.kotsadmApplicationSlug()}"
 `;
+  }
+
+  public toObject(): InstallerObject {
+    return {
+      apiVersion: "kurl.sh/v1beta1",
+      kind: "Installer",
+      metadata: {
+        name: `${this.id}`,
+      },
+      spec: {
+        kubernetes: {
+          version: this.kubernetesVersion(),
+        },
+        weave: {
+          version: this.weaveVersion(),
+        },
+        rook: {
+          version: this.rookVersion(),
+        },
+        contour: {
+          version: this.contourVersion(),
+        },
+        registry: {
+          version: this.registryVersion(),
+        },
+        kotsadm: {
+          version: this.kotsadmVersion(),
+          applicationSlug: this.kotsadmApplicationSlug(),
+        },
+      },
+    };
   }
 
   static kubernetesVersions = [

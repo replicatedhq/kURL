@@ -10,7 +10,7 @@ import {
   Req,
   Res } from "ts-express-decorators";
 import { instrumented } from "monkit";
-import { Installer, InstallerStore } from "../installers";
+import { Installer, InstallerObject, InstallerStore } from "../installers";
 import decode from "../util/jwt";
 import { Forbidden } from "../server/errors";
 import { logger } from "../logger";
@@ -218,7 +218,7 @@ export class Installers {
     @Req() request: Express.Request,
     @PathParams("id") id: string,
     @QueryParams("resolve") resolve: string,
-  ): Promise<string | ErrorResponse> {
+  ): Promise<string | InstallerObject | ErrorResponse> {
     let installer = await this.installerStore.getInstaller(id);
     if (!installer) {
       response.status(404);
@@ -231,8 +231,14 @@ export class Installers {
       installer.id = "";
     }
 
-    response.contentType("text/yaml");
     response.status(200);
+
+    if (request.accepts("application/json")) {
+      response.contentType("application/json");
+      return installer.toObject();
+    }
+
+    response.contentType("text/yaml");
     return installer.toYAML();
   }
 }

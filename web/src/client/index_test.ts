@@ -423,6 +423,14 @@ spec:
 
       expect(yaml).to.match(/version: "latest"/);
     });
+
+    describe.only("Accpet: application/json", () => {
+      it("returns json", async() => {
+        const obj = await client.getInstallerJSON("latest");
+
+        expect(obj.spec.kubernetes).to.have.property("version", "latest");
+      });
+    });
   });
 });
 
