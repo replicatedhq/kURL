@@ -231,7 +231,7 @@ spec:
 
   // First is "latest" version since kotsadm is not included in default "latest" installer.
   static kotsadmVersions = [
-    "0.9.8",
+    "0.9.9",
   ];
 
   static latest(): Installer {
