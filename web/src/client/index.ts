@@ -50,9 +50,25 @@ export class KurlClient {
 
     const resp = await request
       .get(url)
+      .set("Accept", "text/yaml")
       .send();
 
     return resp.text;
+  }
+
+  public async getInstallerJSON(installerID: string, resolve?: boolean): Promise<any> {
+    let url = `${this.kurlURL}/installer/${installerID}`;
+
+    if (resolve) {
+      url += "?resolve=true";
+    }
+
+    const resp = await request
+      .get(url)
+      .set("Accept", "application/json")
+      .send();
+
+    return resp.body;
   }
 
   public async getVersions(): Promise<any> {
