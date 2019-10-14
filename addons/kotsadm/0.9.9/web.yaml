@@ -18,7 +18,7 @@ spec:
           defaultMode: 484
           name: kotsadm-web-scripts
       containers:
-      - image: kotsadm/kotsadm-web:v0.9.8
+      - image: kotsadm/kotsadm-web:v0.9.9
         name: kotsadm-web
         args:
         - "/scripts/start-kotsadm-web.sh"
@@ -47,8 +47,9 @@ metadata:
 spec:
   selector:
     app: kotsadm-web
-  type: ClusterIP
+  type: NodePort
   ports:
   - name: http
     port: 3000
     targetPort: http
+    nodePort: 8800

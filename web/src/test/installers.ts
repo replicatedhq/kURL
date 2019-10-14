@@ -92,7 +92,7 @@ spec:
   kubernetes:
     version: latest
   kotsadm:
-    version: 0.9.8
+    version: 0.9.9
     applicationSlug: sentry-enterprise
 `;
 
@@ -101,7 +101,7 @@ spec:
   kubernetes:
     version: latest
   kotsadm:
-    version: 0.9.8
+    version: 0.9.9
 `;
 
 const kotsNoVersion = `

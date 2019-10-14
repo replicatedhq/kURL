@@ -67,6 +67,7 @@ export class Installer {
   public contour: ContourConfig;
   public registry: RegistryConfig;
   public kotsadm: KotsadmConfig;
+  private readonly replicatedAppURL: string;
 
   constructor(
     public readonly teamID?: string,
@@ -77,6 +78,7 @@ export class Installer {
     this.contour = { version: "" };
     this.registry = { version: "" };
     this.kotsadm = { version: "", applicationSlug: "" };
+    this.replicatedAppURL = process.env["REPLICATED_APP_URL"] || "https://replicated.app";
   }
 
   public hash(): string {
@@ -231,7 +233,7 @@ spec:
 
   // First is "latest" version since kotsadm is not included in default "latest" installer.
   static kotsadmVersions = [
-    "0.9.8",
+    "0.9.9",
   ];
 
   static latest(): Installer {
@@ -373,7 +375,7 @@ spec:
     if (this.kotsadmApplicationSlug()) {
       // Don't fail validation because replicated.app is unavailable. Only 404 fails validation.
       try {
-        await request(`https://replicated.app/metadata/${this.kotsadmApplicationSlug()}`);
+        await request(`${this.replicatedAppURL}/metadata/${this.kotsadmApplicationSlug()}`);
       } catch(error) {
         if (error.statusCode === 404) {
           return { error: { message: `Kotsadm application '${_.escape(this.kotsadmApplicationSlug())}' not found` } };

@@ -9,12 +9,14 @@ import { Installer } from "../../installers";
 export class Templates {
 
   private kurlURL: string;
+  private replicatedAppURL: string;
   private installTmpl: (any) => string;
   private joinTmpl: (any) => string;
   private upgradeTmpl: (any) => string;
 
   constructor () {
     this.kurlURL = process.env["KURL_URL"] || "https://kurl.sh";
+    this.replicatedAppURL = process.env["REPLICATED_APP_URL"] || "https://replicated.app";
 
     const tmplDir = path.join(__dirname, "../../../../templates");
     const installTmplPath = path.join(tmplDir, "install.tmpl");
@@ -32,15 +34,15 @@ export class Templates {
   }
 
   public renderInstallScript(i: Installer): string {
-    return this.installTmpl(manifestFromInstaller(i, this.kurlURL));
+    return this.installTmpl(manifestFromInstaller(i, this.kurlURL, this.replicatedAppURL));
   }
 
   public renderJoinScript(i: Installer): string {
-    return this.joinTmpl(manifestFromInstaller(i, this.kurlURL));
+    return this.joinTmpl(manifestFromInstaller(i, this.kurlURL, this.replicatedAppURL));
   }
 
   public renderUpgradeScript(i: Installer): string {
-    return this.upgradeTmpl(manifestFromInstaller(i, this.kurlURL));
+    return this.upgradeTmpl(manifestFromInstaller(i, this.kurlURL, this.replicatedAppURL));
   }
 }
 
@@ -54,9 +56,10 @@ interface Manifest {
   REGISTRY_VERSION: string;
   KOTSADM_VERSION: string;
   KOTSADM_APPLICATION_SLUG: string;
+  REPLICATED_APP_URL: string;
 }
 
-function manifestFromInstaller(i: Installer, kurlURL: string): Manifest {
+function manifestFromInstaller(i: Installer, kurlURL: string, replicatedAppURL: string): Manifest {
   return {
     KURL_URL: kurlURL,
     INSTALLER_ID: i.id,
@@ -67,6 +70,7 @@ function manifestFromInstaller(i: Installer, kurlURL: string): Manifest {
     REGISTRY_VERSION: i.registryVersion(),
     KOTSADM_VERSION: i.kotsadmVersion(),
     KOTSADM_APPLICATION_SLUG: i.kotsadmApplicationSlug(),
+    REPLICATED_APP_URL: replicatedAppURL,
   };
 }
 

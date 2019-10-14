@@ -42,3 +42,6 @@ spec:
         ports:
         - name: kurl
           containerPort: 3000
+        env:
+        - name: REPLICATED_APP_URL
+          value: https://replicated.app

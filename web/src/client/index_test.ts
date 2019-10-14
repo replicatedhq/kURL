@@ -360,7 +360,7 @@ describe("GET /<installerID>/join.sh", () => {
       expect(script).to.match(new RegExp(`ROOK_VERSION=""`));
       expect(script).to.match(new RegExp(`CONTOUR_VERSION=""`));
       expect(script).to.match(new RegExp(`REGISTRY_VERSION=""`));
-      expect(script).to.match(new RegExp(`KOTSADM_VERSION="0.9.8"`));
+      expect(script).to.match(new RegExp(`KOTSADM_VERSION="0.9.9"`));
       expect(script).to.match(new RegExp(`KOTSADM_APPLICATION_SLUG="sentry-enterprise"`));
     });
   });
@@ -450,6 +450,6 @@ describe("GET /installer", () => {
     expect(versions.registry).to.contain("2.7.1");
     expect(versions.weave).to.contain("2.5.2");
     expect(versions.weave).to.contain("latest");
-    expect(versions.kotsadm).to.contain("0.9.8");
+    expect(versions.kotsadm).to.contain("0.9.9");
   });
 });
