@@ -140,6 +140,9 @@ function flags() {
             docker-registry-ip|docker_registry_ip)
                 DOCKER_REGISTRY_IP="$_value"
                 ;;
+            kotsadm-hostname|kotsadm_hostname)
+                KOTSADM_HOSTNAME="$_value"
+                ;;
             *)
                 echo >&2 "Error: unknown parameter \"$_param\""
                 exit 1

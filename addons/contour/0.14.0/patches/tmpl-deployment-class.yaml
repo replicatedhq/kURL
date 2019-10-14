@@ -1,0 +1,11 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: contour
+  namespace: heptio-contour
+spec:
+  template:
+    spec:
+      containers:
+      - name: contour
+        args: ["serve", "--incluster", "--envoy-service-http-port", \"8080\", "--envoy-service-https-port", \"8443\", "--ingress-class-name", "$CONTOUR_CLASS"]

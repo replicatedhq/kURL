@@ -11,6 +11,7 @@ function kotsadm() {
     cp "$src/postgres.yaml" "$dst/"
     cp "$src/schemahero.yaml" "$dst/"
     cp "$src/web.yaml" "$dst/"
+    cp "$src/ingress.yaml" "$dst/"
 
 
     kotsadm_secret_auto_create_cluster_token
@@ -26,12 +27,22 @@ function kotsadm() {
     cp "$src/application.yaml" "$dst/"
     kubectl create configmap kotsadm-application-metadata --from-file="$dst/application.yaml" --dry-run -oyaml > "$dst/kotsadm-application-metadata.yaml"
 
-    cat "$src/tmpl-start-kotsadm-web.sh" | sed "s/###_HOSTNAME_###/localhost:8800/g" > "$dst/start-kotsadm-web.sh"
+    local hostname="$KOTSADM_HOSTNAME"
+    if [ -z "$hostname" ]; then
+        hostname="$PUBLIC_ADDRESS"
+    fi
+    if [ -z "$hostname" ]; then
+        hostname="$PRIVATE_ADDRESS"
+    fi
+    cat "$src/tmpl-start-kotsadm-web.sh" | sed "s/###_HOSTNAME_###/$hostname:8800/g" > "$dst/start-kotsadm-web.sh"
     kubectl create configmap kotsadm-web-scripts --from-file="$dst/start-kotsadm-web.sh" --dry-run -oyaml > "$dst/kotsadm-web-scripts.yaml"
 
     kubectl delete pod kotsadm-migrations || true;
 
     kubectl apply -k "$dst/"
+
+    mkdir -p "$dst/contour"
+    contour_add "$dst/contour" default "8800" "8443" "kotsadm-ingress"
 }
 
 function kotsadm_outro() {
