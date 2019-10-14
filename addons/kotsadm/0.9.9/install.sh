@@ -52,13 +52,12 @@ function kotsadm_outro() {
 
     printf "\n"
     printf "\n"
-    printf "Kotsadm:\n"
-    printf "\t${GREEN}http://$KOTSADM_HOSTNAME:8800${NC}\n"
+    printf "Kotsadm: ${GREEN}http://$KOTSADM_HOSTNAME:8800${NC}\n"
 
     if [ -n "$KOTSADM_PASSWORD" ]; then
-        printf "\tLogin with password (will not be shown again): ${GREEN}$KOTSADM_PASSWORD${NC}\n"
+        printf "Login with password (will not be shown again): ${GREEN}$KOTSADM_PASSWORD${NC}\n"
     else
-        printf "\tKotsadm password not regenerated. Delete the kotsadm-password secret and re-run installer to force re-generation.\n"
+        printf "Password not regenerated. Delete the kotsadm-password secret and re-run installer to force re-generation.\n"
     fi
     printf "\n"
     printf "\n"
