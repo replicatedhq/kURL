@@ -47,8 +47,9 @@ metadata:
 spec:
   selector:
     app: kotsadm-web
-  type: ClusterIP
+  type: NodePort
   ports:
   - name: http
     port: 3000
     targetPort: http
+    nodePort: 8800

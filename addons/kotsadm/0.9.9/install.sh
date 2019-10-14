@@ -11,7 +11,6 @@ function kotsadm() {
     cp "$src/postgres.yaml" "$dst/"
     cp "$src/schemahero.yaml" "$dst/"
     cp "$src/web.yaml" "$dst/"
-    cp "$src/ingress.yaml" "$dst/"
 
 
     kotsadm_secret_auto_create_cluster_token
@@ -27,22 +26,18 @@ function kotsadm() {
     cp "$src/application.yaml" "$dst/"
     kubectl create configmap kotsadm-application-metadata --from-file="$dst/application.yaml" --dry-run -oyaml > "$dst/kotsadm-application-metadata.yaml"
 
-    local hostname="$KOTSADM_HOSTNAME"
-    if [ -z "$hostname" ]; then
-        hostname="$PUBLIC_ADDRESS"
+    if [ -z "$KOTSADM_HOSTNAME" ]; then
+        KOTSADM_HOSTNAME="$PUBLIC_ADDRESS"
     fi
-    if [ -z "$hostname" ]; then
-        hostname="$PRIVATE_ADDRESS"
+    if [ -z "$KOTSADM_HOSTNAME" ]; then
+        KOTSADM_HOSTNAME="$PRIVATE_ADDRESS"
     fi
-    cat "$src/tmpl-start-kotsadm-web.sh" | sed "s/###_HOSTNAME_###/$hostname:8800/g" > "$dst/start-kotsadm-web.sh"
+    cat "$src/tmpl-start-kotsadm-web.sh" | sed "s/###_HOSTNAME_###/$KOTSADM_HOSTNAME:8800/g" > "$dst/start-kotsadm-web.sh"
     kubectl create configmap kotsadm-web-scripts --from-file="$dst/start-kotsadm-web.sh" --dry-run -oyaml > "$dst/kotsadm-web-scripts.yaml"
 
     kubectl delete pod kotsadm-migrations || true;
 
     kubectl apply -k "$dst/"
-
-    mkdir -p "$dst/contour"
-    contour_add "$dst/contour" default "8800" "8443" "kotsadm-ingress"
 }
 
 function kotsadm_outro() {
@@ -58,12 +53,10 @@ function kotsadm_outro() {
     printf "\n"
     printf "\n"
     printf "Kotsadm:\n"
-    printf "\t1. ${GREEN}kubectl port-forward $apiPod 8800:3000${NC}\n"
-    printf "\t2. ${GREEN}kubectl port-forward $webPod 8801:3000${NC}\n"
-    printf "\t3. Point your browser to http://localhost:8801\n"
+    printf "\t${GREEN}http://$KOTSADM_HOSTNAME:8800${NC}\n"
 
     if [ -n "$KOTSADM_PASSWORD" ]; then
-        printf "\t4. Login with password (will not be shown again): ${GREEN}$KOTSADM_PASSWORD${NC}\n"
+        printf "\tLogin with password (will not be shown again): ${GREEN}$KOTSADM_PASSWORD${NC}\n"
     else
         printf "\tKotsadm password not regenerated. Delete the kotsadm-password secret and re-run installer to force re-generation.\n"
     fi

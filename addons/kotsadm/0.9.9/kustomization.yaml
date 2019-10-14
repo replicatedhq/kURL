@@ -6,4 +6,3 @@ resources:
 - web.yaml
 - kotsadm-web-scripts.yaml
 - kotsadm-application-metadata.yaml
-- ingress.yaml
