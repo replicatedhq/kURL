@@ -36,3 +36,5 @@ spec:
           value: replicated
         - name: JWT_SIGNING_KEY
           value: jwt-signing-key
+        - name: REPLICATED_APP_URL
+          value: http://replicated-app:3000

@@ -31,12 +31,6 @@ const teamWithGeneratedIDResponse = {
   },
 }
 
-const idNameMismatchResponse = {
-  error: {
-    message: "URL path ID must match installer name in yaml if provided",
-  },
-};
-
 const slugCharactersResponse = {
   error: {
     message: "Only base64 URL characters may be used for custom named installers",
@@ -188,12 +182,10 @@ export class Installers {
       response.status(400);
       return { error };
     }
-    if (i.id !== "" && i.id !== id) {
-      return idNameMismatchResponse;
-    }
     i.id = id;
     const err = await i.validate();
     if (err) {
+      response.status(400);
       return err;
     }
 
