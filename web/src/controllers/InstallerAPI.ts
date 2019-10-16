@@ -102,7 +102,7 @@ export class Installers {
     }
     i.id = i.hash();
 
-    const err = i.validate();
+    const err = await i.validate();
     if (err) {
       response.status(400);
       return err;
@@ -120,15 +120,13 @@ export class Installers {
     @Res() response: Express.Response,
   ): any {
     response.type("application/json");
-    return {
-      kubernetes: _.concat(["latest"], Installer.kubernetesVersions),
-      weave: _.concat(["latest"], Installer.weaveVersions),
-      rook: _.concat(["latest"], Installer.rookVersions),
-      contour: _.concat(["latest"], Installer.contourVersions),
-      registry: _.concat(["latest"], Installer.registryVersions),
-      prometheus: _.concat(["latest"], Installer.prometheusVersions),
-      kotsadm: _.concat(["latest"], Installer.kotsadmVersions),
-    };
+
+    const resp = _.reduce(Installer.versions, (accm, value, key) => {
+      accm[key] = _.concat(["latest"], value);
+      return accm;
+    }, {});
+
+    return resp;
   }
 
   /**
@@ -184,7 +182,7 @@ export class Installers {
       return { error };
     }
     i.id = id;
-    const err = i.validate();
+    const err = await i.validate();
     if (err) {
       response.status(400);
       return err;

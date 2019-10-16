@@ -4,56 +4,167 @@ import * as _ from "lodash";
 import * as mysql from "promise-mysql";
 import { Service } from "ts-express-decorators";
 import * as request from "request-promise";
+import * as AJV from "ajv";
 import { MysqlWrapper } from "../util/services/mysql";
 import { instrumented } from "monkit";
 import { logger } from "../logger";
 import { Forbidden } from "../server/errors";
 
+interface ErrorResponse {
+  error: any;
+}
+
 export interface KubernetesConfig {
   version: string;
+  serviceCIDR?: string;
 }
+
+const kubernetesConfigSchema = {
+  type: "object",
+  properties: {
+    version: { type: "string" },
+    serviceCIDR: { type: "string" },
+  },
+  required: [ "version" ],
+  additionalProperties: false,
+};
+
+export interface DockerConfig {
+  version: string;
+  bypassStorageDriverWarnings?: boolean;
+  hardFailOnLoopback?: boolean;
+  noCEOnEE?: boolean;
+}
+
+const dockerConfigSchema = {
+  type: "object",
+  properties: {
+    version: { type: "string" },
+    bypassStorageDriverWarnings: { type: "boolean" },
+    hardFailOnLoopback: { type: "boolean" },
+    noCEOnEE: { type: "boolean" },
+  },
+  required: [ "version" ],
+  additionalProperites: false,
+};
 
 export interface WeaveConfig {
   version: string;
+  IPAllocRange?: string;
+  encryptNetwork?: boolean;
+}
+
+const weaveConfigSchema = {
+  type: "object",
+  properties: {
+    version: { type: "string" },
+    IPAllocRange: { type: "string" },
+    encryptNetwork: { type: "boolean" },
+  },
+  required: [ "version" ],
+  additionalProperites: false,
 }
 
 export interface RookConfig {
   version: string;
+  storageClass?: string;
+  cephPoolReplicas?: number;
 }
+
+const rookConfigSchema = {
+  type: "object",
+  properties: {
+    version: { type: "string" },
+    storageClass: { type: "string" },
+    cephPoolReplicas: { type: "number" },
+  },
+  required: [ "version" ],
+  additionalProperites: false,
+};
 
 export interface ContourConfig {
   version: string;
 }
 
+const contourConfigSchema = {
+  type: "object",
+  properties: {
+    version: { type: "string" },
+  },
+  required: ["version"],
+  additionalProperties: false,
+};
+
 export interface RegistryConfig {
   version: string;
 }
+
+const registryConfigSchema = {
+  type: "object",
+  properties: {
+    version: { type: "string" },
+  },
+  required: ["version"],
+  additionalProperties: false,
+};
 
 export interface PrometheusConfig {
   version: string;
 }
 
+const prometheusConfigSchema = {
+  type: "object",
+  properties: {
+    version: { type: "string" },
+  },
+  required: ["version"],
+  additionalProperties: false,
+};
+
 export interface KotsadmConfig {
   version: string;
-  applicationSlug: string;
+  applicationSlug?: string;
+  uiBindPort?: number;
 }
 
-interface ErrorResponse {
-  error: any;
-}
-
-export interface ObjectMeta {
-  name: string
-}
+const kotsadmConfigSchema = {
+  type: "object",
+  properties: {
+    version: { type: "string" },
+    applicationSlug: { type: "string" },
+    uiBindPort: { type: "number" },
+  },
+  required: ["version"],
+  additionalProperties: false,
+};
 
 export interface InstallerSpec {
   kubernetes: KubernetesConfig;
-  weave: WeaveConfig;
-  rook: RookConfig;
-  contour: ContourConfig;
-  registry: RegistryConfig;
-  prometheus: PrometheusConfig;
-  kotsadm: KotsadmConfig;
+  weave?: WeaveConfig;
+  rook?: RookConfig;
+  contour?: ContourConfig;
+  registry?: RegistryConfig;
+  prometheus?: PrometheusConfig;
+  kotsadm?: KotsadmConfig;
+}
+
+const specSchema = {
+  type: "object",
+  properties: {
+    kubernetes: kubernetesConfigSchema,
+    docker: dockerConfigSchema,
+    weave: weaveConfigSchema,
+    rook: rookConfigSchema,
+    contour: contourConfigSchema,
+    registry: registryConfigSchema,
+    kotsadm: kotsadmConfigSchema,
+  },
+  required: ["kubernetes"],
+  additionalProperites: false,
+};
+
+export interface ObjectMeta {
+  name: string
 }
 
 export interface InstallerObject {
@@ -66,129 +177,164 @@ export interface InstallerObject {
 export class Installer {
 
   public id: string;
-  public kubernetes: KubernetesConfig;
-  public weave: WeaveConfig;
-  public rook: RookConfig;
-  public contour: ContourConfig;
-  public registry: RegistryConfig;
-  public prometheus: PrometheusConfig;
-  public kotsadm: KotsadmConfig;
+  public spec: InstallerSpec;
 
   constructor(
     public readonly teamID?: string,
   ) {
-    this.kubernetes = { version: "" };
-    this.weave = { version: "" };
-    this.rook = { version: "" };
-    this.contour = { version: "" };
-    this.registry = { version: "" };
-    this.prometheus = { version: "" };
-    this.kotsadm = { version: "", applicationSlug: "" };
+    this.spec = {
+      kubernetes: { version: "" },
+    };
   }
 
+  public clone(): Installer {
+    const i = new Installer();
+
+    i.id = this.id;
+    i.spec = _.cloneDeep(this.spec);
+
+    return i;
+  }
+
+  // Going forward new fields are automatically included in the hash after being sorted
+  // alphabetically but the arbitrary order must be preserved for legacy fields.
   public hash(): string {
     const h = crypto.createHash('sha256');
 
-    if (this.kubernetes && this.kubernetes.version) {
-      h.update(`kubernetes_version=${this.kubernetes.version}`);
+    if (this.spec.kubernetes && this.spec.kubernetes.version) {
+      h.update(`kubernetes_version=${this.spec.kubernetes.version}`);
     }
-    if (this.weave && this.weave.version) {
-      h.update(`weave_version=${this.weave.version}`);
+    if (this.spec.weave && this.spec.weave.version) {
+      h.update(`weave_version=${this.spec.weave.version}`);
     }
-    if (this.rook && this.rook.version) {
-      h.update(`rook_version=${this.rook.version}`);
+    if (this.spec.rook && this.spec.rook.version) {
+      h.update(`rook_version=${this.spec.rook.version}`);
     }
-    if (this.contour && this.contour.version) {
-      h.update(`contour_version=${this.contour.version}`);
+    if (this.spec.contour && this.spec.contour.version) {
+      h.update(`contour_version=${this.spec.contour.version}`);
     }
-    if (this.registry && this.registry.version) {
-      h.update(`registry_version=${this.registry.version}`);
+    if (this.spec.registry && this.spec.registry.version) {
+      h.update(`registry_version=${this.spec.registry.version}`);
     }
-    if (this.prometheus && this.prometheus.version) {
-      h.update(`prometheus_version=${this.prometheus.version}`);
+    if (this.spec.kotsadm && this.spec.kotsadm.version) {
+      h.update(`kotsadm_version=${this.spec.kotsadm.version}`);
     }
-    if (this.kotsadm && this.kotsadm.version) {
-      h.update(`kotsadm_version=${this.kotsadm.version}`);
+    if (this.spec.kotsadm && this.spec.kotsadm.applicationSlug) {
+      h.update(`kotsadm_applicationSlug=${this.spec.kotsadm.applicationSlug}`);
     }
-    if (this.kotsadm && this.kotsadm.applicationSlug) {
-      h.update(`kotsadm_applicationSlug=${this.kotsadm.applicationSlug}`);
-    }
+
+    const legacy = {
+      kubernetes_version: true,
+      weave_version: true,
+      rook_version: true,
+      contour_version: true,
+      registry_version: true,
+      kotsadm_version: true,
+      kotsadm_applicationSlug: true,
+    };
+    const fields: Array<string> = [];
+    _.each(_.keys(this.spec), (config) => {
+      _.each(_.keys(this.spec[config]), (field) => {
+        const val = this.spec[config][field];
+        const fieldKey = `${config}_${field}`;
+
+        if (_.isUndefined(val)) {
+          return;
+        }
+        if (legacy[fieldKey]) {
+          return;
+        }
+
+        fields.push(`${fieldKey}=${val}`);
+      });
+    });
+
+    _.each(fields.sort(), (field) => {
+      h.update(field);
+    });
 
     return h.digest('hex').substring(0,7);
   }
 
-  // I don't trust the type system
-  public kubernetesVersion(): string {
-    return _.get(this, "kubernetes.version", "");
-  }
-  public weaveVersion(): string {
-    return _.get(this, "weave.version", "");
-  }
-  public rookVersion(): string {
-    return _.get(this, "rook.version", "");
-  }
-  public contourVersion(): string {
-    return _.get(this, "contour.version", "");
-  }
-  public registryVersion(): string {
-    return _.get(this, "registry.version", "");
-  }
-  public prometheusVersion(): string {
-    return _.get(this, "prometheus.version", "");
-  }
-  public kotsadmVersion(): string {
-    return _.get(this, "kotsadm.version", "");
-  }
-  public kotsadmApplicationSlug(): string {
-    return _.get(this, "kotsadm.applicationSlug", "");
+  // Return an ordered list of all addon fields in the spec.
+  static specPaths(): Array<string> {
+    const paths: Array<string> = [];
+
+    _.each(specSchema.properties, (configSchema, configName) => {
+      _.each(configSchema.properties, (val, field) => {
+        paths.push(`${configName}.${field}`);
+      });
+    });
+
+    return paths;
   }
 
-  public dockerVersion(): string {
-    return "18.09.8";
-  }
-
+  // returned installer must be validated before use
   static parse(doc: string, teamID?: string): Installer {
     const parsed = yaml.safeLoad(doc);
 
     const i = new Installer(teamID);
     i.id = _.get(parsed, "metadata.name", "");
-    i.kubernetes = { version: _.get(parsed, "spec.kubernetes.version", "") };
-    i.weave = { version: _.get(parsed, "spec.weave.version", "") };
-    i.rook = { version: _.get(parsed, "spec.rook.version", "") };
-    i.contour = { version: _.get(parsed, "spec.contour.version", "") };
-    i.registry = { version: _.get(parsed, "spec.registry.version", "") };
-    i.prometheus = { version: _.get(parsed, "spec.prometheus.version", "") };
-    i.kotsadm = {
-      version: _.get(parsed, "spec.kotsadm.version", ""),
-      applicationSlug: _.get(parsed, "spec.kotsadm.applicationSlug", ""),
-    };
+
+    if (!_.isPlainObject(parsed) || !parsed.spec || !_.isPlainObject(parsed.spec)) {
+      return i;
+    }
+    // ensure that items are added to spec in fixed order so rendered yaml is ordered
+    _.each(Installer.specPaths(), (path) => {
+      const val = _.get(parsed.spec, path);
+
+      if (_.isUndefined(val)) {
+        return;
+      }
+
+      _.set(i.spec, path, val);
+    });
+
+    return i;
+  }
+
+  static parseV1Beta1(doc: string, teamID?: string): Installer {
+    const parsed = yaml.safeLoad(doc);
+
+    const i = new Installer(teamID);
+    i.id = _.get(parsed, "metadata.name", "");
+
+    if (!_.isPlainObject(parsed)) {
+      return i;
+    }
+    i.spec.kubernetes.version = _.get(parsed, "kubernetes.version", "");
+
+    const weaveVersion = _.get(parsed, "weave.version");
+    const rookVersion = _.get(parsed, "rook.version");
+    const contourVersion = _.get(parsed, "contour.version");
+    const registryVersion = _.get(parsed, "registry.version");
+    const kotsadmVersion = _.get(parsed, "kotsadm.version");
+    const kotsadmApplicationSlug = _.get(parsed, "kotsadm.applicationSlug");
+
+    if (weaveVersion) {
+      i.spec.weave = { version: weaveVersion };
+    }
+    if (rookVersion) {
+      i.spec.rook = { version: rookVersion };
+    }
+    if (contourVersion) {
+      i.spec.rook = { version: contourVersion };
+    }
+    if (registryVersion) {
+      i.spec.rook = { version: registryVersion };
+    }
+    if (kotsadmVersion) {
+      i.spec.kotsadm = { version: kotsadmVersion };
+      if (kotsadmApplicationSlug) {
+        i.spec.kotsadm.applicationSlug = kotsadmApplicationSlug;
+      }
+    }
 
     return i;
   }
 
   public toYAML(): string {
-    // Do not include team ID. May be returned to unauthenticated requests.
-    return `apiVersion: kurl.sh/v1beta1
-kind: Installer
-metadata:
-  name: "${this.id}"
-spec:
-  kubernetes:
-    version: "${this.kubernetesVersion()}"
-  weave:
-    version: "${this.weaveVersion()}"
-  rook:
-    version: "${this.rookVersion()}"
-  contour:
-    version: "${this.contourVersion()}"
-  registry:
-    version: "${this.registryVersion()}"
-  prometheus:
-    version: "${this.prometheusVersion()}"
-  kotsadm:
-    version: "${this.kotsadmVersion()}"
-    applicationSlug: "${this.kotsadmApplicationSlug()}"
-`;
+    return yaml.safeDump(this.toObject());
   }
 
   public toObject(): InstallerObject {
@@ -198,256 +344,135 @@ spec:
       metadata: {
         name: `${this.id}`,
       },
-      spec: {
-        kubernetes: {
-          version: this.kubernetesVersion(),
-        },
-        weave: {
-          version: this.weaveVersion(),
-        },
-        rook: {
-          version: this.rookVersion(),
-        },
-        contour: {
-          version: this.contourVersion(),
-        },
-        registry: {
-          version: this.registryVersion(),
-        },
-        prometheus: {
-          version: this.prometheusVersion(),
-        },
-        kotsadm: {
-          version: this.kotsadmVersion(),
-          applicationSlug: this.kotsadmApplicationSlug(),
-        },
-      },
+      spec: _.cloneDeep(this.spec),
     };
   }
 
-  static kubernetesVersions = [
-    "1.15.3",
-    "1.15.2",
-    "1.15.1",
-    "1.15.0",
-  ];
-
-  static weaveVersions = [
-    "2.5.2",
-  ];
-
-  static rookVersions = [
-    "1.0.4",
-  ];
-
-  static contourVersions = [
-    "0.14.0",
-  ];
-
-  static registryVersions = [
-    "2.7.1",
-  ];
-
-  static prometheusVersions = [
-    "0.33.0",
-  ];
-
-  // First is "latest" version since kotsadm is not included in default "latest" installer.
-  static kotsadmVersions = [
-    "0.9.9",
-  ];
+  // first version of each is "latest"
+  static versions = {
+    kubernetes: [
+      "1.15.3",
+      "1.15.2",
+      "1.15.1",
+      "1.15.0",
+    ],
+    docker: [
+      "18.09.8",
+    ],
+    weave: [
+      "2.5.2",
+    ],
+    rook: [
+      "1.0.4",
+    ],
+    contour: [
+      "0.14.0",
+    ],
+    registry: [
+      "2.7.1",
+    ],
+    prometheus: [
+      "0.33.0",
+    ],
+    kotsadm: [
+      "0.9.9",
+    ],
+  }
 
   static latest(): Installer {
     const i = new Installer();
 
     i.id = "latest";
-    i.kubernetes.version = "1.15.3";
-    i.weave.version = "2.5.2";
-    i.rook.version = "1.0.4";
-    i.contour.version = "0.14.0";
-    i.registry.version = "2.7.1";
-    i.prometheus.version = "0.33.0";
+    i.spec.kubernetes = { version: "latest" };
+    i.spec.weave = { version: "latest" };
+    i.spec.rook = { version: "latest" };
+    i.spec.contour = { version: "latest" };
+    i.spec.registry = { version: "latest" };
+    i.spec.prometheus = { version: "latest" };
 
     return i;
-  }
-
-  static latestUnresolved(): Installer {
-    const i = new Installer();
-
-    i.id = "latest";
-    i.kubernetes.version = "latest";
-    i.weave.version = "latest";
-    i.rook.version = "latest";
-    i.contour.version = "latest";
-    i.registry.version = "latest";
-    i.prometheus.version = "latest";
-
-    return i;
-  }
-
-  static resolveKubernetesVersion(version: string): string|null {
-    if (version === "latest") {
-      return Installer.latest().kubernetesVersion();
-    }
-    if (_.includes(Installer.kubernetesVersions, version)) {
-      return version;
-    }
-    return null;
-  }
-
-  static resolveWeaveVersion(version: string): string|null {
-    if (version === "latest") {
-      return Installer.latest().weaveVersion();
-    }
-    if (_.includes(Installer.weaveVersions, version)) {
-      return version;
-    }
-    return null;
-  }
-
-  static resolveRookVersion(version: string): string|null {
-    if (version === "latest") {
-      return Installer.latest().rookVersion();
-    }
-    if (_.includes(Installer.rookVersions, version)) {
-      return version;
-    }
-    return null;
-  }
-
-  static resolveContourVersion(version: string): string|null {
-    if (version === "latest") {
-      return Installer.latest().contourVersion();
-    }
-    if (_.includes(Installer.contourVersions, version)) {
-      return version;
-    }
-    return null;
-  }
-
-  static resolveRegistryVersion(version: string): string|null {
-    if (version === "latest") {
-      return Installer.latest().registryVersion();
-    }
-    if (_.includes(Installer.registryVersions, version)) {
-      return version;
-    }
-    return null;
-  }
-
-  static resolvePrometheusVersion(version: string): string|null {
-    if (version === "latest") {
-      return Installer.latest().prometheusVersion();
-    }
-    if (_.includes(Installer.prometheusVersions, version)) {
-      return version;
-    }
-    return null;
-  }
-
-  static resolveKotsadmVersion(version: string): string|null {
-    if (version === "latest") {
-      return Installer.kotsadmVersions[0];
-    }
-    if (_.includes(Installer.kotsadmVersions, version)) {
-      return version;
-    }
-    return null;
   }
 
   public resolve(): Installer {
-    const i = new Installer();
+    const i = this.clone();
 
-    i.id = this.id;
-    i.kubernetes.version = Installer.resolveKubernetesVersion(this.kubernetesVersion()) || "";
-    i.weave.version = Installer.resolveWeaveVersion(this.weaveVersion()) || "";
-    i.rook.version = Installer.resolveRookVersion(this.rookVersion()) || "";
-    i.contour.version = Installer.resolveContourVersion(this.contourVersion()) || "";
-    i.registry.version = Installer.resolveRegistryVersion(this.registryVersion()) || "";
-    i.prometheus.version = Installer.resolvePrometheusVersion(this.prometheusVersion()) || "";
-    i.kotsadm.version = Installer.resolveKotsadmVersion(this.kotsadmVersion()) || "";
-    i.kotsadm.applicationSlug = this.kotsadmApplicationSlug();
+    _.each(_.keys(i.spec), (config) => {
+      if (i.spec[config].version === "latest") {
+        i.spec[config].version = _.first(Installer.versions[config]);
+      }
+    });
 
     return i;
   }
 
-  public validate(): ErrorResponse|undefined {
-    if (!this.kubernetesVersion()) {
+  static hasVersion(config: string, version: string): boolean {
+    if (version === "latest") {
+      return true;
+    }
+    if (_.includes(Installer.versions[config], version)) {
+      return true;
+    }
+    return false;
+  }
+
+  public async validate(): Promise<ErrorResponse|undefined> {
+    if (!this.spec || !this.spec.kubernetes || !this.spec.kubernetes.version) {
         return { error: { message: "Kubernetes version is required" } };
     }
 
-    const k8sVersion = Installer.resolveKubernetesVersion(this.kubernetesVersion());
+    const ajv = new AJV();
+    const validate = ajv.compile(specSchema);
+    const valid = validate(this.spec);
 
-    if (!k8sVersion) {
-      return { error: { message: `Kubernetes version ${_.escape(this.kubernetesVersion())} is not supported` } };
+    if (!valid && validate.errors && validate.errors.length) {
+      const err = validate.errors[0];
+      const message = `spec${err.dataPath} ${err.message}`;
+      return { error: { message } };
     }
 
-    if (this.weaveVersion() && !Installer.resolveWeaveVersion(this.weaveVersion())) {
-      return { error: { message: `Weave version "${_.escape(this.weaveVersion())}" is not supported` } };
+    if (!Installer.hasVersion("kubernetes", this.spec.kubernetes.version)) {
+      return { error: { message: `Kubernetes version ${_.escape(this.spec.kubernetes.version)} is not supported` } };
     }
-
-    if (this.rookVersion() && !Installer.resolveRookVersion(this.rookVersion())) {
-      return { error: { message: `Rook version "${_.escape(this.rookVersion())}" is not supported` } };
+    if (this.spec.weave && !Installer.hasVersion("weave", this.spec.weave.version)) {
+      return { error: { message: `Weave version "${_.escape(this.spec.weave.version)}" is not supported` } };
     }
-
-    if (this.contourVersion() && !Installer.resolveContourVersion(this.contourVersion())) {
-      return { error: { message: `Contour version "${_.escape(this.contourVersion())}" is not supported` } };
+    if (this.spec.rook && !Installer.hasVersion("rook", this.spec.rook.version)) {
+      return { error: { message: `Rook version "${_.escape(this.spec.rook.version)}" is not supported` } };
     }
-
-    if (this.registryVersion() && !Installer.resolveRegistryVersion(this.registryVersion())) {
-      return { error: { message: `Registry version "${_.escape(this.registryVersion())}" is not supported` } };
+    if (this.spec.contour && !Installer.hasVersion("contour", this.spec.contour.version)) {
+      return { error: { message: `Contour version "${_.escape(this.spec.contour.version)}" is not supported` } };
     }
-
-    if (this.prometheusVersion() && !Installer.resolvePrometheusVersion(this.prometheusVersion())) {
-      return { error: { message: `Prometheus version "${_.escape(this.prometheusVersion())}" is not supported` } };
+    if (this.spec.registry && !Installer.hasVersion("registry", this.spec.registry.version)) {
+      return { error: { message: `Registry version "${_.escape(this.spec.registry.version)}" is not supported` } };
     }
-
-    if (this.kotsadmVersion() && !Installer.resolveKotsadmVersion(this.kotsadmVersion())) {
-      return { error: { message: `Kotsadm version "${_.escape(this.kotsadmVersion())}" is not supported` } };
-    }
-
-    if (this.kotsadmApplicationSlug() && !this.kotsadmVersion()) {
-      return { error: { message: `Kotsadm version is required when application slug is set` } };
+    if (this.spec.kotsadm) {
+      if (!Installer.hasVersion("kotsadm", this.spec.kotsadm.version)) {
+        return { error: { message: `Kotsadm version "${_.escape(this.spec.kotsadm.version)}" is not supported` } };
+      }
     }
   }
 
   public packages(): Array<string> {
     const i = this.resolve();
 
-    const pkgs = [
-      `common`,
-      `kubernetes-${i.kubernetesVersion()}`,
-      `docker-${i.dockerVersion()}`,
-    ];
-    if (i.weaveVersion()) {
-      pkgs.push(`weave-${i.weaveVersion()}`);
-    }
-    if (i.rookVersion()) {
-      pkgs.push(`rook-${i.rookVersion()}`);
-    }
-    if (this.contourVersion()) {
-      pkgs.push(`contour-${i.contourVersion()}`);
-    }
-    if (this.registryVersion()) {
-      pkgs.push(`registry-${i.registryVersion()}`);
-    }
-    if (this.prometheusVersion()) {
-      pkgs.push(`prometheus-${i.prometheusVersion()}`);
-    }
-    if (this.kotsadmVersion()) {
-      pkgs.push(`kotsadm-${i.kotsadmVersion()}`);
-    }
+    const pkgs = [ "common" ];
+
+    _.each(_.keys(this.spec), (config: string) => {
+      pkgs.push(`${config}-${this.spec[config].version}`);
+    });
 
     return pkgs;
   }
 
+  // TODO should return false if kotsadm.version is set?
+  // If so it should be more programmatic.
   public isLatest(): boolean {
-    return this.kubernetesVersion() === "latest" &&
-      this.weaveVersion() === "latest" &&
-      this.rookVersion() === "latest" &&
-      this.contourVersion() === "latest" &&
-      this.registryVersion() === "latest" &&
-      this.prometheusVersion() === "latest";
+    return this.spec.kubernetes.version === "latest" &&
+      _.get(this.spec, "weave.version") === "latest" &&
+      _.get(this.spec, "rook.version") === "latest" &&
+      _.get(this.spec, "contour.version") === "latest" &&
+      _.get(this.spec, "registry.version") === "latest" &&
+      _.get(this.spec, "prometheus.version") == "latest";
   }
 
   static isSHA(id: string): boolean {
@@ -471,15 +496,6 @@ spec:
       "versions",
     ], _.lowerCase(id));
   }
-
-  public specIsEqual(i: Installer): boolean {
-    return this.kubernetesVersion() === i.kubernetesVersion() &&
-      this.weaveVersion() === i.weaveVersion() &&
-      this.rookVersion() == i.rookVersion() &&
-      this.contourVersion() === i.contourVersion() &&
-      this.registryVersion() === i.registryVersion() &&
-      this.prometheusVersion() === i.prometheusVersion();
-  }
 }
 
 @Service()
@@ -493,7 +509,7 @@ export class InstallerStore {
   @instrumented
   public async getInstaller(installerID: string): Promise<Installer|undefined> {
     if (installerID === "latest") {
-      return Installer.latestUnresolved();
+      return Installer.latest();
     }
 
     const q = "SELECT yaml, team_id FROM kurl_installer WHERE kurl_installer_id = ?";
@@ -504,16 +520,20 @@ export class InstallerStore {
       return;
     }
 
-    const i = Installer.parse(results[0].yaml, results[0].team_id);
+    let i = Installer.parse(results[0].yaml, results[0].team_id);
+
+    // TODO use version
+    if (_.isEqual(i.spec, new Installer().spec)) {
+      i = Installer.parseV1Beta1(results[0].yaml, results[0].team_id);
+      // TODO save updated version
+    }
+
     i.id = installerID;
     return i;
   }
 
-  /*
-   * @returns boolean - true if new row was inserted. Used to trigger airgap build.
-   */
   @instrumented
-  public async saveAnonymousInstaller(installer: Installer): Promise<boolean> {
+  public async saveAnonymousInstaller(installer: Installer): Promise<void> {
     if (!installer.id) {
       throw new Error("Installer ID is required");
     }
@@ -527,15 +547,11 @@ export class InstallerStore {
     const q = "INSERT IGNORE INTO kurl_installer (kurl_installer_id, yaml) VALUES (?, ?)";
     const v = [installer.id, installer.toYAML()];
 
-    const results = await this.pool.query(q, v);
-    return results.affectedRows === 1;
+    await this.pool.query(q, v);
   }
 
-  /*
-   * @returns boolean - true if new row was inserted or the yaml spec changes. Used to trigger airgap build.
-   */
   @instrumented
-  public async saveTeamInstaller(installer: Installer): Promise<boolean> {
+  public async saveTeamInstaller(installer: Installer): Promise<void> {
     if (!installer.id) {
       throw new Error("Installer ID is required");
     }
@@ -557,10 +573,10 @@ export class InstallerStore {
 
       if (resultsInsert.rowsAffected) {
         await conn.commit();
-        return true;
+        return;
       }
 
-      // The row already exists. Need to verify team ID and determine whether the spec has changed.
+      // The row already exists. Need to verify team ID.
       const qSelect = "SELECT yaml FROM kurl_installer WHERE kurl_installer_id=? AND team_id=? FOR UPDATE";
       const vSelect = [installer.id, installer.teamID];
 
@@ -569,19 +585,12 @@ export class InstallerStore {
         throw new Forbidden();
       }
 
-      const old = Installer.parse(resultsSelect[0].yaml, resultsSelect[0].team_id);
-      if (old.specIsEqual(installer)) {
-        await conn.commit();
-        return false;
-      }
-
       const qUpdate = "UPDATE kurl_installer SET yaml=? WHERE kurl_installer_id=? AND team_id=?";
       const vUpdate = [installer.toYAML(), installer.id, installer.teamID];
 
       await conn.query(qUpdate, vUpdate);
 
       await conn.commit();
-      return true
     } catch(error) {
       await conn.rollback();
       throw error;

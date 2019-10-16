@@ -64,14 +64,14 @@ function manifestFromInstaller(i: Installer, kurlURL: string, replicatedAppURL: 
   return {
     KURL_URL: kurlURL,
     INSTALLER_ID: i.id,
-    KUBERNETES_VERSION: i.kubernetesVersion(),
-    WEAVE_VERSION: i.weaveVersion(),
-    ROOK_VERSION: i.rookVersion(),
-    CONTOUR_VERSION: i.contourVersion(),
-    REGISTRY_VERSION: i.registryVersion(),
-    PROMETHEUS_VERSION: i.prometheusVersion(),
-    KOTSADM_VERSION: i.kotsadmVersion(),
-    KOTSADM_APPLICATION_SLUG: i.kotsadmApplicationSlug(),
+    KUBERNETES_VERSION: i.spec.kubernetes.version,
+    WEAVE_VERSION: _.get(i.spec, "weave.version", ""),
+    ROOK_VERSION: _.get(i.spec, "rook.version", ""),
+    CONTOUR_VERSION: _.get(i.spec, "contour.version", ""),
+    REGISTRY_VERSION: _.get(i.spec, "registry.version", ""),
+    PROMETHEUS_VERSION: _.get(i.spec, "prometheus.version", ""),
+    KOTSADM_VERSION: _.get(i.spec, "kotsadm.version", ""),
+    KOTSADM_APPLICATION_SLUG: _.get(i.spec, "kotsadm.applicationSlug", ""),
     REPLICATED_APP_URL: replicatedAppURL,
   };
 }
