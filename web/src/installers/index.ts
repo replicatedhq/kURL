@@ -67,7 +67,6 @@ export class Installer {
   public contour: ContourConfig;
   public registry: RegistryConfig;
   public kotsadm: KotsadmConfig;
-  private readonly replicatedAppURL: string;
 
   constructor(
     public readonly teamID?: string,
@@ -78,7 +77,6 @@ export class Installer {
     this.contour = { version: "" };
     this.registry = { version: "" };
     this.kotsadm = { version: "", applicationSlug: "" };
-    this.replicatedAppURL = process.env["REPLICATED_APP_URL"] || "https://replicated.app";
   }
 
   public hash(): string {
@@ -337,7 +335,7 @@ spec:
     return i;
   }
 
-  public async validate(): Promise<ErrorResponse|undefined> {
+  public validate(): ErrorResponse|undefined {
     if (!this.kubernetesVersion()) {
         return { error: { message: "Kubernetes version is required" } };
     }
@@ -370,18 +368,6 @@ spec:
 
     if (this.kotsadmApplicationSlug() && !this.kotsadmVersion()) {
       return { error: { message: `Kotsadm version is required when application slug is set` } };
-    }
-
-    if (this.kotsadmApplicationSlug()) {
-      // Don't fail validation because replicated.app is unavailable. Only 404 fails validation.
-      try {
-        await request(`${this.replicatedAppURL}/metadata/${this.kotsadmApplicationSlug()}`);
-      } catch(error) {
-        if (error.statusCode === 404) {
-          return { error: { message: `Kotsadm application '${_.escape(this.kotsadmApplicationSlug())}' not found` } };
-        }
-        console.log(`Failed to validate kotsadm application slug: ${error.message}`);
-      }
     }
   }
 

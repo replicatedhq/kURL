@@ -335,27 +335,27 @@ spec:
 
   describe("validate", () => {
     describe("valid", () => {
-      it("=> void", async () => {
+      it("=> void", () => {
         [
           typeMetaStable,
         ].forEach(async (yaml) => {
-          const out = await Installer.parse(yaml).validate();
+          const out = Installer.parse(yaml).validate();
           
           expect(out).to.be.undefined;
         });
       });
 
       describe("application slug exists", () => {
-        it("=> void", async () => {
-          const out = await Installer.parse(kots).validate();
+        it("=> void", () => {
+          const out = Installer.parse(kots).validate();
 
           expect(out).to.be.undefined;
         });
       });
 
       describe("kots application slug missing", () => {
-        it("=> ErrorResponse", async () => {
-          const out = await Installer.parse(kotsNoSlug).validate();
+        it("=> ErrorResponse", () => {
+          const out = Installer.parse(kotsNoSlug).validate();
 
           expect(out).to.be.undefined;
         });
@@ -387,18 +387,6 @@ spec:
         const out = await Installer.parse(kotsNoVersion).validate();
 
         expect(out).to.deep.equal({ error: { message: "Kotsadm version is required when application slug is set" }});
-      });
-    });
-
-    describe("kots application does not exist", () => {
-      it("=> ErrorResponse", async () => {
-        const parsed = Installer.parse(kots);
-
-        parsed.kotsadm.applicationSlug = "this-app-does-not-exist";
-
-        const out = await parsed.validate();
-
-        expect(out).to.deep.equal({ error: { message: "Kotsadm application 'this-app-does-not-exist' not found" }});
       });
     });
   });
