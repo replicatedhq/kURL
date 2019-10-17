@@ -102,7 +102,7 @@ export class Installers {
     }
     i.id = i.hash();
 
-    const err = await i.validate();
+    const err = i.validate();
     if (err) {
       response.status(400);
       return err;
@@ -183,7 +183,7 @@ export class Installers {
       return { error };
     }
     i.id = id;
-    const err = await i.validate();
+    const err = i.validate();
     if (err) {
       response.status(400);
       return err;
