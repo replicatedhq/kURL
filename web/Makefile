@@ -5,6 +5,11 @@ PROJECT_NAME ?= kurl
 deps:
 	yarn --silent --frozen-lockfile
 
+.PHONY: test
+test: deps
+	yarn run --cwd=web test
+	# missing api-tests, pact tests
+
 .PHONY: prebuild
 prebuild:
 	rm -rf build

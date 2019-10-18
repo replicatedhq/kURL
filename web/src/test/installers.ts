@@ -19,6 +19,8 @@ spec:
     version: 0.14.0
   registry:
     version: 2.7.1
+  prometheus:
+    version: 0.33.0
 `;
 
 const stable = `
@@ -35,6 +37,8 @@ spec:
     version: 0.14.0
   registry:
     version: 2.7.1
+  prometheus:
+    version: 0.33.0
 `;
 
 const noName = `
@@ -49,6 +53,8 @@ spec:
     version: 0.14.0
   registry:
     version: 2.7.1
+  prometheus:
+    version: 0.33.0
 `;
 
 const disordered = `
@@ -57,6 +63,8 @@ spec:
     version: 0.14.0
   weave:
     version: 2.5.2
+  prometheus:
+    version: 0.33.0
   kubernetes:
     version: 1.15.2
   registry:
@@ -77,6 +85,8 @@ spec:
     version: 0.14.0
   registry:
     version: 2.7.1
+  prometheus:
+    version: 0.33.0
 `;
 
 const min = `
@@ -122,6 +132,7 @@ describe("Installer", () => {
       expect(i.rook).to.have.property("version", "1.0.4");
       expect(i.contour).to.have.property("version", "0.14.0");
       expect(i.registry).to.have.property("version", "2.7.1");
+      expect(i.prometheus).to.have.property("version", "0.33.0");
     });
 
     it("parses yaml with name and no type meta", () => {
@@ -132,6 +143,7 @@ describe("Installer", () => {
       expect(i.rook).to.have.property("version", "1.0.4");
       expect(i.contour).to.have.property("version", "0.14.0");
       expect(i.registry).to.have.property("version", "2.7.1");
+      expect(i.prometheus).to.have.property("version", "0.33.0");
     });
 
     it("parses yaml with only a spec", () => {
@@ -142,6 +154,7 @@ describe("Installer", () => {
       expect(i.rook).to.have.property("version", "1.0.4");
       expect(i.contour).to.have.property("version", "0.14.0");
       expect(i.registry).to.have.property("version", "2.7.1");
+      expect(i.prometheus).to.have.property("version", "0.33.0");
     });
 
     it("parses yaml spec in different order", () => {
@@ -152,6 +165,7 @@ describe("Installer", () => {
       expect(i.rook).to.have.property("version", "1.0.4");
       expect(i.contour).to.have.property("version", "0.14.0");
       expect(i.registry).to.have.property("version", "2.7.1");
+      expect(i.prometheus).to.have.property("version", "0.33.0");
     });
 
     it("parses yaml spec with empty versions", () => {
@@ -162,6 +176,7 @@ describe("Installer", () => {
       expect(i.rook).to.have.property("version", "");
       expect(i.contour).to.have.property("version", "");
       expect(i.registry).to.have.property("version", "");
+      expect(i.prometheus).to.have.property("version", "");
     });
   });
 
@@ -216,6 +231,8 @@ spec:
     version: "0.14.0"
   registry:
     version: "2.7.1"
+  prometheus:
+    version: "0.33.0"
   kotsadm:
     version: ""
     applicationSlug: ""
@@ -237,6 +254,8 @@ spec:
     version: "0.14.0"
   registry:
     version: "2.7.1"
+  prometheus:
+    version: "0.33.0"
   kotsadm:
     version: ""
     applicationSlug: ""
@@ -257,6 +276,8 @@ spec:
   contour:
     version: ""
   registry:
+    version: ""
+  prometheus:
     version: ""
   kotsadm:
     version: ""

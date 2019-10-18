@@ -1,0 +1,11 @@
+resources:
+- grafana-dashboardDatasources.yaml
+- grafana-deployment.yaml
+- grafana-serviceMonitor.yaml
+- grafana-dashboardDefinitions.yaml
+- grafana-service.yaml
+- grafana-dashboardSources.yaml
+- grafana-serviceAccount.yaml
+
+patchesStrategicMerge:
+- patches/deployment-admin-user.yaml

@@ -1,6 +1,7 @@
-install_scripts/
-build/
-dist/
-tmp/
-web/templates
-bin/
+/install_scripts/
+/build/
+/dist/
+/tmp/
+/web/templates
+/bin/
+node_modules/

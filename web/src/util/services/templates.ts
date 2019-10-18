@@ -54,6 +54,7 @@ interface Manifest {
   ROOK_VERSION: string;
   CONTOUR_VERSION: string;
   REGISTRY_VERSION: string;
+  PROMETHEUS_VERSION: string;
   KOTSADM_VERSION: string;
   KOTSADM_APPLICATION_SLUG: string;
   REPLICATED_APP_URL: string;
@@ -68,6 +69,7 @@ function manifestFromInstaller(i: Installer, kurlURL: string, replicatedAppURL: 
     ROOK_VERSION: i.rookVersion(),
     CONTOUR_VERSION: i.contourVersion(),
     REGISTRY_VERSION: i.registryVersion(),
+    PROMETHEUS_VERSION: i.prometheusVersion(),
     KOTSADM_VERSION: i.kotsadmVersion(),
     KOTSADM_APPLICATION_SLUG: i.kotsadmApplicationSlug(),
     REPLICATED_APP_URL: replicatedAppURL,

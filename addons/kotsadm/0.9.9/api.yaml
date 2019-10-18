@@ -43,6 +43,10 @@ spec:
     metadata:
       labels:
         app: kotsadm-api
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "3000"
+        prometheus.io/path: "/metricz"
     spec:
       serviceAccountName: kotsadm-api
       containers:

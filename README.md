@@ -60,6 +60,7 @@ The install scripts are idempotent. Re-run the scripts with different flags to c
 | bootstrap-token-ttl              | TTL of the `bootstrap-token`                                                                       |
 | ceph-pool-replicas               | Replication factor of ceph pools. Default is based on number of ready nodes if unset.              |
 | disable-contour                  | If present, disables the deployment of the Contour ingress controller                              |
+| disable-prometheus               | If present, disables the deployment of Prometheus monitoring components                            |
 | disable-rook                     | Do not deploy the Rook add-on                                                                      |
 | encrypt-network                  | Disable network encryption with `encrypt-network=0`                                                |
 | ha                               | Install in multi-master mode                                                                       |
@@ -120,6 +121,7 @@ The available addons are:
 * [Rook](https://rook.io/)
 * [Contour](https://projectcontour.io/)
 * [Docker Registry](https://docs.docker.com/registry/)
+* [Prometheus](https://prometheus.io/)
 
 ## How It Works
 

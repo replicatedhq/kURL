@@ -26,6 +26,8 @@ spec:
     version: latest
   registry:
     version: latest
+  prometheus:
+    version: latest
 `;
 
 const d3a9234 = `
@@ -261,13 +263,15 @@ describe("GET /<installerID>", () => {
   describe("/latest", () => {
     const latest = Installer.latest();
 
-    it(`injects k8s ${latest.kubernetesVersion()}, weave ${latest.weaveVersion()}, rook ${latest.rookVersion()}, contour ${latest.contourVersion()}`, async () => {
+    it(`injects k8s ${latest.kubernetesVersion()}, weave ${latest.weaveVersion()}, rook ${latest.rookVersion()}, contour ${latest.contourVersion()}, registry ${latest.registryVersion()}, prometheus ${latest.prometheusVersion()}`, async () => {
       const script = await client.getInstallScript("latest");
 
       expect(script).to.match(new RegExp(`KUBERNETES_VERSION="${latest.kubernetesVersion()}"`));
       expect(script).to.match(new RegExp(`WEAVE_VERSION="${latest.weaveVersion()}"`));
       expect(script).to.match(new RegExp(`ROOK_VERSION="${latest.rookVersion()}"`));
       expect(script).to.match(new RegExp(`CONTOUR_VERSION="${latest.contourVersion()}"`));
+      expect(script).to.match(new RegExp(`REGISTRY_VERSION="${latest.registryVersion()}"`));
+      expect(script).to.match(new RegExp(`PROMETHEUS_VERSION="${latest.prometheusVersion()}"`));
       expect(script).to.match(/INSTALLER_ID="latest"/);
       expect(script).to.match(/KOTSADM_VERSION=""/);
       expect(script).to.match(/KOTSADM_APPLICATION_SLUG=""/);
@@ -316,7 +320,7 @@ describe("GET /<installerID>/join.sh", () => {
   describe("/latest/join.sh", () => {
     const latest = Installer.latest();
 
-    it(`injects k8s ${latest.kubernetesVersion()}, weave ${latest.weaveVersion()}, rook ${latest.rookVersion()}, contour ${latest.contourVersion()}`, async () => {
+    it(`injects k8s ${latest.kubernetesVersion()}, weave ${latest.weaveVersion()}, rook ${latest.rookVersion()}, contour ${latest.contourVersion()}, registry ${latest.registryVersion()}, prometheus ${latest.prometheusVersion()}`, async () => {
       const script = await client.getJoinScript("latest");
 
       expect(script).to.match(new RegExp(`KUBERNETES_VERSION="${latest.kubernetesVersion()}"`));
@@ -324,6 +328,7 @@ describe("GET /<installerID>/join.sh", () => {
       expect(script).to.match(new RegExp(`ROOK_VERSION="${latest.rookVersion()}"`));
       expect(script).to.match(new RegExp(`CONTOUR_VERSION="${latest.contourVersion()}"`));
       expect(script).to.match(new RegExp(`REGISTRY_VERSION="${latest.registryVersion()}"`));
+      expect(script).to.match(new RegExp(`PROMETHEUS_VERSION="${latest.prometheusVersion()}"`));
       expect(script).to.match(new RegExp(`KOTSADM_VERSION=""`));
       expect(script).to.match(new RegExp(`KOTSADM_APPLICATION_SLUG=""`));
     });
@@ -342,6 +347,7 @@ describe("GET /<installerID>/join.sh", () => {
       expect(script).to.match(new RegExp(`ROOK_VERSION=""`));
       expect(script).to.match(new RegExp(`CONTOUR_VERSION=""`));
       expect(script).to.match(new RegExp(`REGISTRY_VERSION=""`));
+      expect(script).to.match(new RegExp(`PROMETHEUS_VERSION=""`));
       expect(script).to.match(new RegExp(`KOTSADM_VERSION=""`));
       expect(script).to.match(new RegExp(`KOTSADM_APPLICATION_SLUG=""`));
     });
@@ -360,6 +366,7 @@ describe("GET /<installerID>/join.sh", () => {
       expect(script).to.match(new RegExp(`ROOK_VERSION=""`));
       expect(script).to.match(new RegExp(`CONTOUR_VERSION=""`));
       expect(script).to.match(new RegExp(`REGISTRY_VERSION=""`));
+      expect(script).to.match(new RegExp(`PROMETHEUS_VERSION=""`));
       expect(script).to.match(new RegExp(`KOTSADM_VERSION="0.9.9"`));
       expect(script).to.match(new RegExp(`KOTSADM_APPLICATION_SLUG="sentry-enterprise"`));
     });
@@ -388,6 +395,8 @@ spec:
   contour:
     version: ""
   registry:
+    version: ""
+  prometheus:
     version: ""
   kotsadm:
     version: ""
@@ -442,14 +451,16 @@ describe("GET /installer", () => {
     expect(versions.kubernetes).to.contain("1.15.3");
     expect(versions.kubernetes).to.contain("latest");
     expect(versions.kubernetes).to.contain("1.15.0");
+    expect(versions.weave).to.contain("2.5.2");
+    expect(versions.weave).to.contain("latest");
     expect(versions.rook).to.contain("1.0.4");
     expect(versions.rook).to.contain("latest");
     expect(versions.contour).to.contain("0.14.0");
     expect(versions.contour).to.contain("latest");
     expect(versions.registry).to.contain("latest");
     expect(versions.registry).to.contain("2.7.1");
-    expect(versions.weave).to.contain("2.5.2");
-    expect(versions.weave).to.contain("latest");
+    expect(versions.prometheus).to.contain("latest");
+    expect(versions.prometheus).to.contain("0.33.0");
     expect(versions.kotsadm).to.contain("0.9.9");
   });
 });

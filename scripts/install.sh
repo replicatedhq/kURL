@@ -176,6 +176,7 @@ function main() {
     addon rook "$ROOK_VERSION"
     addon contour "$CONTOUR_VERSION"
     addon registry "$REGISTRY_VERSION"
+    addon prometheus "$PROMETHEUS_VERSION"
     addon kotsadm "$KOTSADM_VERSION"
     outro
 }

@@ -29,6 +29,10 @@ export interface RegistryConfig {
   version: string;
 }
 
+export interface PrometheusConfig {
+  version: string;
+}
+
 export interface KotsadmConfig {
   version: string;
   applicationSlug: string;
@@ -48,6 +52,7 @@ export interface InstallerSpec {
   rook: RookConfig;
   contour: ContourConfig;
   registry: RegistryConfig;
+  prometheus: PrometheusConfig;
   kotsadm: KotsadmConfig;
 }
 
@@ -66,6 +71,7 @@ export class Installer {
   public rook: RookConfig;
   public contour: ContourConfig;
   public registry: RegistryConfig;
+  public prometheus: PrometheusConfig;
   public kotsadm: KotsadmConfig;
 
   constructor(
@@ -76,6 +82,7 @@ export class Installer {
     this.rook = { version: "" };
     this.contour = { version: "" };
     this.registry = { version: "" };
+    this.prometheus = { version: "" };
     this.kotsadm = { version: "", applicationSlug: "" };
   }
 
@@ -96,6 +103,9 @@ export class Installer {
     }
     if (this.registry && this.registry.version) {
       h.update(`registry_version=${this.registry.version}`);
+    }
+    if (this.prometheus && this.prometheus.version) {
+      h.update(`prometheus_version=${this.prometheus.version}`);
     }
     if (this.kotsadm && this.kotsadm.version) {
       h.update(`kotsadm_version=${this.kotsadm.version}`);
@@ -123,6 +133,9 @@ export class Installer {
   public registryVersion(): string {
     return _.get(this, "registry.version", "");
   }
+  public prometheusVersion(): string {
+    return _.get(this, "prometheus.version", "");
+  }
   public kotsadmVersion(): string {
     return _.get(this, "kotsadm.version", "");
   }
@@ -144,6 +157,7 @@ export class Installer {
     i.rook = { version: _.get(parsed, "spec.rook.version", "") };
     i.contour = { version: _.get(parsed, "spec.contour.version", "") };
     i.registry = { version: _.get(parsed, "spec.registry.version", "") };
+    i.prometheus = { version: _.get(parsed, "spec.prometheus.version", "") };
     i.kotsadm = {
       version: _.get(parsed, "spec.kotsadm.version", ""),
       applicationSlug: _.get(parsed, "spec.kotsadm.applicationSlug", ""),
@@ -169,6 +183,8 @@ spec:
     version: "${this.contourVersion()}"
   registry:
     version: "${this.registryVersion()}"
+  prometheus:
+    version: "${this.prometheusVersion()}"
   kotsadm:
     version: "${this.kotsadmVersion()}"
     applicationSlug: "${this.kotsadmApplicationSlug()}"
@@ -197,6 +213,9 @@ spec:
         },
         registry: {
           version: this.registryVersion(),
+        },
+        prometheus: {
+          version: this.prometheusVersion(),
         },
         kotsadm: {
           version: this.kotsadmVersion(),
@@ -229,6 +248,10 @@ spec:
     "2.7.1",
   ];
 
+  static prometheusVersions = [
+    "0.33.0",
+  ];
+
   // First is "latest" version since kotsadm is not included in default "latest" installer.
   static kotsadmVersions = [
     "0.9.9",
@@ -243,6 +266,7 @@ spec:
     i.rook.version = "1.0.4";
     i.contour.version = "0.14.0";
     i.registry.version = "2.7.1";
+    i.prometheus.version = "0.33.0";
 
     return i;
   }
@@ -256,6 +280,7 @@ spec:
     i.rook.version = "latest";
     i.contour.version = "latest";
     i.registry.version = "latest";
+    i.prometheus.version = "latest";
 
     return i;
   }
@@ -310,6 +335,16 @@ spec:
     return null;
   }
 
+  static resolvePrometheusVersion(version: string): string|null {
+    if (version === "latest") {
+      return Installer.latest().prometheusVersion();
+    }
+    if (_.includes(Installer.prometheusVersions, version)) {
+      return version;
+    }
+    return null;
+  }
+
   static resolveKotsadmVersion(version: string): string|null {
     if (version === "latest") {
       return Installer.kotsadmVersions[0];
@@ -329,6 +364,7 @@ spec:
     i.rook.version = Installer.resolveRookVersion(this.rookVersion()) || "";
     i.contour.version = Installer.resolveContourVersion(this.contourVersion()) || "";
     i.registry.version = Installer.resolveRegistryVersion(this.registryVersion()) || "";
+    i.prometheus.version = Installer.resolvePrometheusVersion(this.prometheusVersion()) || "";
     i.kotsadm.version = Installer.resolveKotsadmVersion(this.kotsadmVersion()) || "";
     i.kotsadm.applicationSlug = this.kotsadmApplicationSlug();
 
@@ -362,6 +398,10 @@ spec:
       return { error: { message: `Registry version "${_.escape(this.registryVersion())}" is not supported` } };
     }
 
+    if (this.prometheusVersion() && !Installer.resolvePrometheusVersion(this.prometheusVersion())) {
+      return { error: { message: `Prometheus version "${_.escape(this.prometheusVersion())}" is not supported` } };
+    }
+
     if (this.kotsadmVersion() && !Installer.resolveKotsadmVersion(this.kotsadmVersion())) {
       return { error: { message: `Kotsadm version "${_.escape(this.kotsadmVersion())}" is not supported` } };
     }
@@ -391,6 +431,9 @@ spec:
     if (this.registryVersion()) {
       pkgs.push(`registry-${i.registryVersion()}`);
     }
+    if (this.prometheusVersion()) {
+      pkgs.push(`prometheus-${i.prometheusVersion()}`);
+    }
     if (this.kotsadmVersion()) {
       pkgs.push(`kotsadm-${i.kotsadmVersion()}`);
     }
@@ -403,7 +446,8 @@ spec:
       this.weaveVersion() === "latest" &&
       this.rookVersion() === "latest" &&
       this.contourVersion() === "latest" &&
-      this.registryVersion() === "latest";
+      this.registryVersion() === "latest" &&
+      this.prometheusVersion() === "latest";
   }
 
   static isSHA(id: string): boolean {
@@ -433,7 +477,8 @@ spec:
       this.weaveVersion() === i.weaveVersion() &&
       this.rookVersion() == i.rookVersion() &&
       this.contourVersion() === i.contourVersion() &&
-      this.registryVersion() === i.registryVersion();
+      this.registryVersion() === i.registryVersion() &&
+      this.prometheusVersion() === i.prometheusVersion();
   }
 }
 

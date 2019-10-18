@@ -1,0 +1,8 @@
+grafana grafana/grafana:6.2.2
+alertmanager quay.io/prometheus/alertmanager
+kube-rbac-proxy quay.io/coreos/kube-rbac-proxy:v0.4.1
+kube-state-metrics quay.io/coreos/kube-state-metrics:v1.7.2
+node-exporter quay.io/prometheus/node-exporter:v0.18.1
+k8s-prometheus-adapter-amd64 quay.io/coreos/k8s-prometheus-adapter-amd64:v0.4.1
+prometheus quay.io/prometheus/prometheus
+prometheus-operator quay.io/coreos/prometheus-operator:v0.33.0

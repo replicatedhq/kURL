@@ -126,6 +126,7 @@ export class Installers {
       rook: _.concat(["latest"], Installer.rookVersions),
       contour: _.concat(["latest"], Installer.contourVersions),
       registry: _.concat(["latest"], Installer.registryVersions),
+      prometheus: _.concat(["latest"], Installer.prometheusVersions),
       kotsadm: _.concat(["latest"], Installer.kotsadmVersions),
     };
   }
