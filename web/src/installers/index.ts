@@ -289,16 +289,7 @@ export class Installer {
     if (!parsed.spec || !_.isPlainObject(parsed.spec)) {
       return i;
     }
-    // ensure that items are added to spec in fixed order so rendered yaml is ordered
-    _.each(Installer.specPaths(), (path) => {
-      const val = _.get(parsed.spec, path);
-
-      if (_.isUndefined(val)) {
-        return;
-      }
-
-      _.set(i.spec, path, val);
-    });
+    i.spec = parsed.spec;
 
     return i;
   }

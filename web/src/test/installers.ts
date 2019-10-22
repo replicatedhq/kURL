@@ -3,6 +3,34 @@ import {expect} from "chai";
 import { Installer } from "../installers";
 import * as _ from "lodash";
 
+const everyOption = `apiVersion: kurl.sh/v1beta2
+spec:
+  kubernetes:
+    version: latest
+    serviceCIDR: 10.96.0.0/12
+  docker:
+    version: latest
+    bypassStorageDriverWarnings: false
+    hardFailOnLoopback: false
+    noCEOnEE: false
+  weave:
+    version: latest
+    encryptNetwork: true
+    ipAllocRange: 10.32.0.0/12
+  contour:
+    version: latest
+  rook:
+    version: latest
+    storageClass: default
+    cephPoolReplicas: 1
+  registry:
+    version: latest
+  kotsadm:
+    version: latest
+    applicationSlug: sentry
+    uiBindPort: 8800
+`;
+
 const typeMetaStableV1Beta1 = `
 apiVersion: kurl.sh/v1beta1
 kind: Installer
@@ -401,6 +429,14 @@ spec:
           expect(out).to.be.undefined;
         });
       });
+
+      describe("every option", () => {
+        it("=> void", () => {
+          const out = Installer.parse(everyOption).validate();
+
+          expect(out).to.be.undefined;
+        });
+      });
     });
 
     describe("invalid", () => {
@@ -410,7 +446,7 @@ spec:
   kubernetes:
     version: ""
 `
-        const noK8sOut = await Installer.parse(noK8s).validate();
+        const noK8sOut = Installer.parse(noK8s).validate();
         expect(noK8sOut).to.deep.equal({ error: { message: "Kubernetes version is required" } });
 
         const badK8s = `
@@ -418,16 +454,43 @@ spec:
   kubernetes:
     version: "0.15.3"
 `
-        const badK8sOut = await Installer.parse(badK8s).validate();
+        const badK8sOut = Installer.parse(badK8s).validate();
         expect(badK8sOut).to.deep.equal({ error: { message: "Kubernetes version 0.15.3 is not supported" } });
       });
     });
 
     describe("kots version missing", () => {
       it("=> ErrorResponse", async () => {
-        const out = await Installer.parse(kotsNoVersion).validate();
+        const out = Installer.parse(kotsNoVersion).validate();
 
         expect(out).to.deep.equal({ error: { message: "spec.kotsadm should have required property 'version'" }});
+      });
+    });
+
+    describe("docker version is a boolean", () => {
+      const yaml = `
+spec:
+  kubernetes:
+    version: latest
+  docker:
+    version: true`;
+      const i = Installer.parse(yaml);
+      const out = i.validate();
+
+      expect(out).to.deep.equal({ error: { message: "spec.docker.version should be string" } });
+    });
+
+    describe("extra options", () => {
+      it("=> ErrorResponse", async () => {
+        const yaml = `
+spec:
+  kubernetes:
+    version: latest
+    seLinux: true`;
+        const i = Installer.parse(yaml);
+        const out = i.validate();
+
+        expect(out).to.deep.equal({ error: { message: "spec.kubernetes should NOT have additional properties" } });
       });
     });
   });
