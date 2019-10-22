@@ -11,4 +11,4 @@ spec:
   - name: http
     port: 3000
     targetPort: http
-    nodePort: ${KOTSADM_UI_BIND_PORT}
+    nodePort: ${KOTSADM_UI_BIND_PORT:-8800}

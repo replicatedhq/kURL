@@ -2,14 +2,8 @@ CEPH_VERSION=14.2.0-20190410
 
 function rook() {
     rook_operator_deploy
-
     rook_set_ceph_pool_replicas
-    if [ -z "$STORAGE_CLASS" ]; then
-        STORAGE_CLASS=default
-    fi
-
     rook_ready_spinner # creating the cluster before the operator is ready fails
-
     rook_cluster_deploy
 
     rook_dashboard_ready_spinner

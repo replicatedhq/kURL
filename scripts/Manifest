@@ -11,4 +11,4 @@ KOTSADM_APPLICATION_SLUG=sentry-enterprise
 KURL_URL=
 INSTALLER_ID=
 REPLICATED_APP_URL=https://replicated.app
-FLAGS="kotsadm-ui-bind-port=4800"
+FLAGS=""
