@@ -75,6 +75,7 @@ function main() {
     export KUBECONFIG=/etc/kubernetes/admin.conf
     requireRootUser
     discover
+    flags $FLAGS
     flags "$@"
     preflights
     maybe_upgrade

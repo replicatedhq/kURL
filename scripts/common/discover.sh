@@ -13,6 +13,9 @@ function discover() {
     fi
 
     discoverPublicIp
+
+    KERNEL_MAJOR=$(uname -r | cut -d'.' -f1)
+    KERNEL_MINOR=$(uname -r | cut -d'.' -f2)
 }
  
 LSB_DIST=

@@ -17,7 +17,12 @@ function kubernetes_load_ipvs_modules() {
         return
     fi
 
-    modprobe nf_conntrack_ipv4
+    if [ "$KERNEL_MAJOR" -lt "4" ] || ([ "$KERNEL_MAJOR" -eq "4" ] && [ "$KERNEL_MINOR" -lt "19" ]); then
+        modprobe nf_conntrack_ipv4
+    else
+        modprobe nf_conntrack
+    fi
+
     modprobe ip_vs
     modprobe ip_vs_rr
     modprobe ip_vs_wrr

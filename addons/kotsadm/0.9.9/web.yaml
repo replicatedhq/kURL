@@ -39,17 +39,3 @@ spec:
         - name: kotsadm-web-scripts
           mountPath: /scripts/start-kotsadm-web.sh
           subPath: start-kotsadm-web.sh
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: kotsadm-web
-spec:
-  selector:
-    app: kotsadm-web
-  type: NodePort
-  ports:
-  - name: http
-    port: 3000
-    targetPort: http
-    nodePort: 8800

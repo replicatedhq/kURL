@@ -132,7 +132,7 @@ const kotsadmConfigSchema = {
   properties: {
     version: { type: "string" },
     applicationSlug: { type: "string" },
-    uiBindPort: { type: "number", flag: "ui-bind-port" },
+    uiBindPort: { type: "number", flag: "kotsadm-ui-bind-port" },
   },
   required: ["version"],
   additionalProperties: false,

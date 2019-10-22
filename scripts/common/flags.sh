@@ -146,6 +146,9 @@ function flags() {
             kotsadm-hostname|kotsadm_hostname)
                 KOTSADM_HOSTNAME="$_value"
                 ;;
+            kotsadm-ui-bind-port|kotsadm_ui_bind_port)
+                KOTSADM_UI_BIND_PORT="$_value"
+                ;;
             *)
                 echo >&2 "Error: unknown parameter \"$_param\""
                 exit 1

@@ -1,11 +1,15 @@
-STORAGE_CLASS=default
-CEPH_POOL_REPLICAS=1
 CEPH_VERSION=14.2.0-20190410
 
 function rook() {
     rook_operator_deploy
+
     rook_set_ceph_pool_replicas
+    if [ -z "$STORAGE_CLASS" ]; then
+        STORAGE_CLASS=default
+    fi
+
     rook_ready_spinner # creating the cluster before the operator is ready fails
+
     rook_cluster_deploy
 
     rook_dashboard_ready_spinner
@@ -89,11 +93,16 @@ function rook_is_1() {
     kubectl -n rook-ceph get cephblockpools replicapool &>/dev/null
 }
 
-# CEPH_POOL_REPLICAS has the default value of 1 when this function is called.
-# If the replicapool cephbockpool CR in the rook-ceph namespace is found, set CEPH_POOL_REPLICAS to that.
+# CEPH_POOL_REPLICAS is undefined when this function is called unless set explicitly with a flag.
+# If set by flag use that value.
+# Else if the replicapool cephbockpool CR in the rook-ceph namespace is found, set CEPH_POOL_REPLICAS to that.
 # Then increase up to 3 based on the number of ready nodes found.
 # The ceph-pool-replicas flag will override any value set here.
 function rook_set_ceph_pool_replicas() {
+    if [ -n "$CEPH_POOL_REPLICAS" ]; then
+        return 0
+    fi
+    CEPH_POOL_REPLICAS=1
     set +e
     local discoveredCephPoolReplicas=$(kubectl -n rook-ceph get cephblockpool replicapool -o jsonpath="{.spec.replicated.size}" 2>/dev/null)
     if [ -n "$discoveredCephPoolReplicas" ]; then
@@ -106,21 +115,17 @@ function rook_set_ceph_pool_replicas() {
     set -e
 }
 
-# TODO detect linux version
 function rook_configure_linux_3() {
-    case "$LSB_DIST$DIST_VERSION" in
-        centos7.4|centos7.5|centos7.6|rhel7.4|rhel7.5|rhel7.6)
-            # This needs to be run on Linux 3.x nodes for Rook
-            modprobe rbd
-            echo 'rbd' > /etc/modules-load.d/replicated-rook.conf
+    if [ "$KERNEL_MAJOR" -eq "3" ]; then
+        modprobe rbd
+        echo 'rbd' > /etc/modules-load.d/replicated-rook.conf
 
-            echo "net.bridge.bridge-nf-call-ip6tables = 1" > /etc/sysctl.d/k8s.conf
-            echo "net.bridge.bridge-nf-call-iptables = 1" >> /etc/sysctl.d/k8s.conf
-            echo "net.ipv4.conf.all.forwarding = 1" >> /etc/sysctl.d/k8s.conf
+        echo "net.bridge.bridge-nf-call-ip6tables = 1" > /etc/sysctl.d/k8s.conf
+        echo "net.bridge.bridge-nf-call-iptables = 1" >> /etc/sysctl.d/k8s.conf
+        echo "net.ipv4.conf.all.forwarding = 1" >> /etc/sysctl.d/k8s.conf
 
-            sysctl --system
-            ;;
-    esac
+        sysctl --system
+    fi
 }
 
 function rook_object_store_output() {
