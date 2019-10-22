@@ -23,7 +23,7 @@ const kubernetesConfigSchema = {
   type: "object",
   properties: {
     version: { type: "string" },
-    serviceCIDR: { type: "string" },
+    serviceCIDR: { type: "string", flag: "service-cidr" },
   },
   required: [ "version" ],
   additionalProperties: false,
@@ -40,9 +40,9 @@ const dockerConfigSchema = {
   type: "object",
   properties: {
     version: { type: "string" },
-    bypassStorageDriverWarnings: { type: "boolean" },
-    hardFailOnLoopback: { type: "boolean" },
-    noCEOnEE: { type: "boolean" },
+    bypassStorageDriverWarnings: { type: "boolean" , flag: "bypass-storagedriver-warnings" },
+    hardFailOnLoopback: { type: "boolean", flag: "hard-fail-on-loopback" },
+    noCEOnEE: { type: "boolean", flag: "no-ce-on-ee" },
   },
   required: [ "version" ],
   additionalProperites: false,
@@ -58,8 +58,8 @@ const weaveConfigSchema = {
   type: "object",
   properties: {
     version: { type: "string" },
-    IPAllocRange: { type: "string" },
-    encryptNetwork: { type: "boolean" },
+    IPAllocRange: { type: "string", flag: "ip-alloc-range" },
+    encryptNetwork: { type: "boolean", flag: "encrypt-network" },
   },
   required: [ "version" ],
   additionalProperites: false,
@@ -75,8 +75,8 @@ const rookConfigSchema = {
   type: "object",
   properties: {
     version: { type: "string" },
-    storageClass: { type: "string" },
-    cephPoolReplicas: { type: "number" },
+    storageClass: { type: "string", flag: "storage-class" },
+    cephPoolReplicas: { type: "number", flag: "ceph-pool-replicas" },
   },
   required: [ "version" ],
   additionalProperites: false,
@@ -132,7 +132,7 @@ const kotsadmConfigSchema = {
   properties: {
     version: { type: "string" },
     applicationSlug: { type: "string" },
-    uiBindPort: { type: "number" },
+    uiBindPort: { type: "number", flag: "ui-bind-port" },
   },
   required: ["version"],
   additionalProperties: false,
@@ -514,6 +514,30 @@ export class Installer {
       "bundle",
       "versions",
     ], _.lowerCase(id));
+  }
+
+  public flags(): string {
+    const flags: Array<string> = [];
+
+    _.each(specSchema.properties, (configSchema, configKey) => {
+      _.each(configSchema.properties, (schema, fieldKey) => {
+        const flag = _.get(schema, "flag");
+
+        if (flag && _.has(this.spec, `${configKey}.${fieldKey}`)) {
+          switch (schema.type) {
+          case "number": // fallthrough
+          case "string":
+            flags.push(`${flag}=${this.spec[configKey][fieldKey]}`);
+            break;
+          case "boolean":
+            flags.push(`${flag}=${this.spec[configKey][fieldKey] ? 1 : 0}`);
+            break;
+          }
+        }
+      });
+    });
+
+    return flags.join(" ");
   }
 }
 

@@ -341,6 +341,26 @@ describe("GET /<installerID>", () => {
       expect(script).to.match(new RegExp(`KOTSADM_APPLICATION_SLUG=""`));
     });
   });
+
+  describe("flags", () => {
+    let id: string;
+    const yaml = `
+spec:
+  kubernetes:
+    version: latest
+    serviceCIDR: 10.0.0.0/12`;
+
+    before(async () => {
+      const installer = await client.postInstaller(yaml);
+      id = _.trim(url.parse(installer).path, "/");
+    });
+
+    it("injects flags for advanced options", async () => {
+      const script = await client.getInstallScript(id);
+
+      expect(script).to.match(new RegExp(`FLAGS="service-cidr=10.0.0.0/12"`));
+    });
+  });
 });
 
 describe("GET /<installerID>/join.sh", () => {

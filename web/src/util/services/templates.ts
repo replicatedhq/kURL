@@ -58,6 +58,7 @@ interface Manifest {
   KOTSADM_VERSION: string;
   KOTSADM_APPLICATION_SLUG: string;
   REPLICATED_APP_URL: string;
+  FLAGS: string;
 }
 
 function manifestFromInstaller(i: Installer, kurlURL: string, replicatedAppURL: string): Manifest {
@@ -73,6 +74,7 @@ function manifestFromInstaller(i: Installer, kurlURL: string, replicatedAppURL: 
     KOTSADM_VERSION: _.get(i.spec, "kotsadm.version", ""),
     KOTSADM_APPLICATION_SLUG: _.get(i.spec, "kotsadm.applicationSlug", ""),
     REPLICATED_APP_URL: replicatedAppURL,
+    FLAGS: i.flags(),
   };
 }
 

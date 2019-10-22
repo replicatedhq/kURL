@@ -86,6 +86,7 @@ build/templates/install.tmpl: build/install.sh
 		sed 's/^PROMETHEUS_VERSION=.*/PROMETHEUS_VERSION="{{= PROMETHEUS_VERSION }}"/' | \
 		sed 's/^KOTSADM_VERSION=.*/KOTSADM_VERSION="{{= KOTSADM_VERSION }}"/' | \
 		sed 's/^KOTSADM_APPLICATION_SLUG=.*/KOTSADM_APPLICATION_SLUG="{{= KOTSADM_APPLICATION_SLUG }}"/' \
+		sed 's/^FLAGS=.*/FLAGS="{{= FLAGS }}"/' | \
 		> build/templates/install.tmpl
 
 build/join.sh:
@@ -111,6 +112,7 @@ build/templates/join.tmpl: build/join.sh
 		sed 's/^PROMETHEUS_VERSION=.*/PROMETHEUS_VERSION="{{= PROMETHEUS_VERSION }}"/' | \
 		sed 's/^KOTSADM_VERSION=.*/KOTSADM_VERSION="{{= KOTSADM_VERSION }}"/' | \
 		sed 's/^KOTSADM_APPLICATION_SLUG=.*/KOTSADM_APPLICATION_SLUG="{{= KOTSADM_APPLICATION_SLUG }}"/' \
+		sed 's/^FLAGS=.*/FLAGS="{{= FLAGS }}"/' | \
 		> build/templates/join.tmpl
 
 build/upgrade.sh:
@@ -135,6 +137,7 @@ build/templates/upgrade.tmpl: build/upgrade.sh
 		sed 's/^REGISTRY_VERSION=.*/REGISTRY_VERSION="{{= REGISTRY_VERSION }}"/' | \
 		sed 's/^PROMETHEUS_VERSION=.*/PROMETHEUS_VERSION="{{= PROMETHEUS_VERSION }}"/' | \
 		sed 's/^KOTSADM_VERSION=.*/KOTSADM_VERSION="{{= KOTSADM_VERSION }}"/' | \
+		sed 's/^FLAGS=.*/FLAGS="{{= FLAGS }}"/' | \
 		sed 's/^KOTSADM_APPLICATION_SLUG=.*/KOTSADM_APPLICATION_SLUG="{{= KOTSADM_APPLICATION_SLUG }}"/' \
 		> build/templates/upgrade.tmpl
 
