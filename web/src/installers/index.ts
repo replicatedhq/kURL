@@ -282,63 +282,42 @@ export class Installer {
       return i;
     }
 
-    if (parsed.apiVersion === "kurl.sh/v1beta1") {
-      return Installer.parseV1Beta1(doc, teamID);
-    }
 
     if (!parsed.spec || !_.isPlainObject(parsed.spec)) {
       return i;
     }
     i.spec = parsed.spec;
 
-    return i;
-  }
-
-  static parseV1Beta1(doc: string, teamID?: string): Installer {
-    const parsed = yaml.safeLoad(doc);
-
-    const i = new Installer(teamID);
-    i.id = _.get(parsed, "metadata.name", "");
-
-    if (!_.isPlainObject(parsed)) {
+    if (parsed.apiVersion === "kurl.sh/v1beta1") {
       return i.migrateV1Beta1ToV1Beta2();
     }
-    i.spec.kubernetes.version = _.get(parsed.spec, "kubernetes.version", "");
 
-    const weaveVersion = _.get(parsed.spec, "weave.version");
-    const rookVersion = _.get(parsed.spec, "rook.version");
-    const contourVersion = _.get(parsed.spec, "contour.version");
-    const registryVersion = _.get(parsed.spec, "registry.version");
-    const kotsadmVersion = _.get(parsed.spec, "kotsadm.version");
-    const kotsadmApplicationSlug = _.get(parsed.spec, "kotsadm.applicationSlug");
-
-    if (weaveVersion) {
-      i.spec.weave = { version: weaveVersion };
-    }
-    if (rookVersion) {
-      i.spec.rook = { version: rookVersion };
-    }
-    if (contourVersion) {
-      i.spec.contour = { version: contourVersion };
-    }
-    if (registryVersion) {
-      i.spec.registry = { version: registryVersion };
-    }
-    if (kotsadmVersion) {
-      i.spec.kotsadm = { version: kotsadmVersion };
-      if (kotsadmApplicationSlug) {
-        i.spec.kotsadm.applicationSlug = kotsadmApplicationSlug;
-      }
-    }
-
-    return i.migrateV1Beta1ToV1Beta2();
+    return i;
   }
 
   // v1beta1 had no config for Docker because it was always included
   // Note this causes the hash to change.
+  // Also v1beta1 disabled configs with empty version but in v1beta2 the config
+  // objects should not exist if disabled.
   public migrateV1Beta1ToV1Beta2(): Installer {
     const i = this.clone();
     i.spec.docker = { version: "latest" };
+
+    if (!_.get(i.spec, "weave.version")) {
+      delete i.spec.weave;
+    }
+    if (!_.get(i.spec, "rook.version")) {
+      delete i.spec.rook;
+    }
+    if (!_.get(i.spec, "contour.version")) {
+      delete i.spec.contour;
+    }
+    if (!_.get(i.spec, "registry.version")) {
+      delete i.spec.registry;
+    }
+    if (!_.get(i.spec, "kotsadm.version")) {
+      delete i.spec.kotsadm;
+    }
 
     return i;
   }
