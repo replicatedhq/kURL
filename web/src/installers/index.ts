@@ -140,6 +140,7 @@ const kotsadmConfigSchema = {
 
 export interface InstallerSpec {
   kubernetes: KubernetesConfig;
+  docker?: DockerConfig;
   weave?: WeaveConfig;
   rook?: RookConfig;
   contour?: ContourConfig;
@@ -151,6 +152,7 @@ export interface InstallerSpec {
 const specSchema = {
   type: "object",
   properties: {
+    // order here determines order in rendered yaml
     kubernetes: kubernetesConfigSchema,
     docker: dockerConfigSchema,
     weave: weaveConfigSchema,
@@ -276,7 +278,15 @@ export class Installer {
     const i = new Installer(teamID);
     i.id = _.get(parsed, "metadata.name", "");
 
-    if (!_.isPlainObject(parsed) || !parsed.spec || !_.isPlainObject(parsed.spec)) {
+    if (!_.isPlainObject(parsed)) {
+      return i;
+    }
+
+    if (parsed.apiVersion === "kurl.sh/v1beta1") {
+      return Installer.parseV1Beta1(doc, teamID);
+    }
+
+    if (!parsed.spec || !_.isPlainObject(parsed.spec)) {
       return i;
     }
     // ensure that items are added to spec in fixed order so rendered yaml is ordered
@@ -300,16 +310,16 @@ export class Installer {
     i.id = _.get(parsed, "metadata.name", "");
 
     if (!_.isPlainObject(parsed)) {
-      return i;
+      return i.migrateV1Beta1ToV1Beta2();
     }
-    i.spec.kubernetes.version = _.get(parsed, "kubernetes.version", "");
+    i.spec.kubernetes.version = _.get(parsed.spec, "kubernetes.version", "");
 
-    const weaveVersion = _.get(parsed, "weave.version");
-    const rookVersion = _.get(parsed, "rook.version");
-    const contourVersion = _.get(parsed, "contour.version");
-    const registryVersion = _.get(parsed, "registry.version");
-    const kotsadmVersion = _.get(parsed, "kotsadm.version");
-    const kotsadmApplicationSlug = _.get(parsed, "kotsadm.applicationSlug");
+    const weaveVersion = _.get(parsed.spec, "weave.version");
+    const rookVersion = _.get(parsed.spec, "rook.version");
+    const contourVersion = _.get(parsed.spec, "contour.version");
+    const registryVersion = _.get(parsed.spec, "registry.version");
+    const kotsadmVersion = _.get(parsed.spec, "kotsadm.version");
+    const kotsadmApplicationSlug = _.get(parsed.spec, "kotsadm.applicationSlug");
 
     if (weaveVersion) {
       i.spec.weave = { version: weaveVersion };
@@ -318,10 +328,10 @@ export class Installer {
       i.spec.rook = { version: rookVersion };
     }
     if (contourVersion) {
-      i.spec.rook = { version: contourVersion };
+      i.spec.contour = { version: contourVersion };
     }
     if (registryVersion) {
-      i.spec.rook = { version: registryVersion };
+      i.spec.registry = { version: registryVersion };
     }
     if (kotsadmVersion) {
       i.spec.kotsadm = { version: kotsadmVersion };
@@ -329,6 +339,15 @@ export class Installer {
         i.spec.kotsadm.applicationSlug = kotsadmApplicationSlug;
       }
     }
+
+    return i.migrateV1Beta1ToV1Beta2();
+  }
+
+  // v1beta1 had no config for Docker because it was always included
+  // Note this causes the hash to change.
+  public migrateV1Beta1ToV1Beta2(): Installer {
+    const i = this.clone();
+    i.spec.docker = { version: "latest" };
 
     return i;
   }
@@ -338,14 +357,23 @@ export class Installer {
   }
 
   public toObject(): InstallerObject {
-    return {
-      apiVersion: "kurl.sh/v1beta1",
+    const obj = {
+      apiVersion: "kurl.sh/v1beta2",
       kind: "Installer",
       metadata: {
         name: `${this.id}`,
       },
-      spec: _.cloneDeep(this.spec),
+      spec: { kubernetes: _.cloneDeep(this.spec.kubernetes) },
     };
+
+    // add spec properties in order they should be rendered in yaml
+    _.each(specSchema.properties, (val, key) => {
+      if (this.spec[key]) {
+        obj.spec[key] = _.cloneDeep(this.spec[key]);
+      }
+    });
+
+    return obj;
   }
 
   // first version of each is "latest"
@@ -415,7 +443,7 @@ export class Installer {
     return false;
   }
 
-  public async validate(): Promise<ErrorResponse|undefined> {
+  public validate(): ErrorResponse|undefined {
     if (!this.spec || !this.spec.kubernetes || !this.spec.kubernetes.version) {
         return { error: { message: "Kubernetes version is required" } };
     }
@@ -464,15 +492,15 @@ export class Installer {
     return pkgs;
   }
 
-  // TODO should return false if kotsadm.version is set?
-  // If so it should be more programmatic.
   public isLatest(): boolean {
-    return this.spec.kubernetes.version === "latest" &&
-      _.get(this.spec, "weave.version") === "latest" &&
-      _.get(this.spec, "rook.version") === "latest" &&
-      _.get(this.spec, "contour.version") === "latest" &&
-      _.get(this.spec, "registry.version") === "latest" &&
-      _.get(this.spec, "prometheus.version") == "latest";
+    return _.isEqual(this.spec, {
+      kubernetes: { version: "latest" },
+      docker: { version: "latest" },
+      weave: { version: "latest" },
+      rook: { version: "latest" },
+      contour: { version: "latest" },
+      registry: { version: "latest" },
+    });
   }
 
   static isSHA(id: string): boolean {
@@ -521,12 +549,6 @@ export class InstallerStore {
     }
 
     let i = Installer.parse(results[0].yaml, results[0].team_id);
-
-    // TODO use version
-    if (_.isEqual(i.spec, new Installer().spec)) {
-      i = Installer.parseV1Beta1(results[0].yaml, results[0].team_id);
-      // TODO save updated version
-    }
 
     i.id = installerID;
     return i;

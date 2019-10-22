@@ -1,3 +1,4 @@
+import * as path from "path";
 import {describe, it} from "mocha";
 import {expect} from "chai";
 import { KurlClient } from "./";
@@ -11,7 +12,7 @@ const kurlURL = process.env.KURL_URL || "http://localhost:30092";
 const client = new KurlClient(kurlURL);
 
 const latest = `
-apiVersion: kurl.sh/v1beta1
+apiVersion: kurl.sh/v1beta2
 kind: Installer
 metadata:
   name: ""
@@ -30,6 +31,24 @@ spec:
     version: latest
 `;
 
+const latestV1Beta1 = `
+apiVersion: kurl.sh/v1beta1
+kind: Installer
+metadata:
+  name: ""
+spec:
+  kubernetes:
+    version: latest
+  weave:
+    version: latest
+  rook:
+    version: latest
+  contour:
+    version: latest
+  registry:
+    version: latest
+`;
+
 const d3a9234 = `
 spec:
   kubernetes:
@@ -40,20 +59,6 @@ spec:
     version: 1.0.4
   contour:
     version: 0.14.0`;
-
-const d3a9234Canonical = `apiVersion: kurl.sh/v1beta1
-kind: Installer
-metadata:
-  name: "d3a9234"
-spec:
-  kubernetes:
-    version: "1.15.1"
-  weave:
-    version: "2.5.2"
-  rook:
-    version: "1.0.4"
-  contour:
-    version: "0.14.0"`;
 
 const min = `
 spec:
@@ -103,11 +108,35 @@ spec:
 `;
 
 describe("POST /installer", () => {
-  describe("latest", () => {
+  describe("latestV1Beta", () => {
     it(`should return 201 "https://kurl.sh/latest"`, async () => {
-      const url = await client.postInstaller(latest);
+      const url = await client.postInstaller(latestV1Beta1);
 
       expect(url).to.match(/latest$/);
+    });
+  });
+
+  describe("v1beta1", () => {
+    it("always includes docker", async () => {
+      const yaml = `
+apiVersion: kurl.sh/v1beta1
+kind: Installer
+spec:
+  kubernetes:
+    version: 1.15.3`;
+      const url = await client.postInstaller(yaml);
+      const sha = path.basename(url);
+      const v1beta2 = await client.getInstallerYAML(sha);
+      expect(v1beta2).to.equal(`apiVersion: kurl.sh/v1beta2
+kind: Installer
+metadata:
+  name: '77191e9'
+spec:
+  kubernetes:
+    version: 1.15.3
+  docker:
+    version: latest
+`);
     });
   });
 
@@ -373,32 +402,21 @@ describe("GET /<installerID>/join.sh", () => {
 
 describe("GET /installer/<installerID>", () => {
   before(async () => {
-    await client.postInstaller(min);
+    const url = await client.postInstaller(min);
   });
 
   it("returns installer yaml", async() => {
     const yaml = await client.getInstallerYAML("6898644");
 
-    expect(yaml).to.equal(`apiVersion: kurl.sh/v1beta1
+    expect(yaml).to.equal(`apiVersion: kurl.sh/v1beta2
 kind: Installer
 metadata:
   name: '6898644'
 spec:
   kubernetes:
     version: 1.15.1
-  weave:
-    version: ''
-  rook:
-    version: ''
-  contour:
-    version: ''
-  registry:
-    version: ''
-  prometheus:
-    version: ''
-  kotsadm:
-    version: ''
-    applicationSlug: ''
+  docker:
+    version: latest
 `);
   });
 
