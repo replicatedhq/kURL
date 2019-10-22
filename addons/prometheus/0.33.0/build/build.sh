@@ -16,11 +16,11 @@ jb update
 # We would like to generate yaml, not json
 jsonnet -J vendor -m manifests prometheus.jsonnet | xargs -I{} sh -c 'cat {} | gojsontoyaml > {}.yaml; rm -f {}' -- {}
 
-find ../operator/ ! -name 'kustomization.yaml' -type f -exec rm -f {} +
+find ../operator/ ! -name 'kustomization.yaml' -maxdepth 1 -type f -exec rm -f {} +
 mv manifests/0* ../operator/
-find ../grafana/ ! -name 'kustomization.yaml' -type f -exec rm -f {} +
+find ../grafana/ ! -name 'kustomization.yaml' -maxdepth 1 -type f -exec rm -f {} +
 mv manifests/grafana-* ../grafana/
-find ../monitors/ ! -name 'kustomization.yaml' -type f -exec rm -f {} +
+find ../monitors/ ! -name 'kustomization.yaml' -maxdepth 1 -type f -exec rm -f {} +
 mv manifests/* ../monitors/
 
 rm -rf manifests

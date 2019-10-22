@@ -1,3 +1,10 @@
+// Reference info: documentation for https://github.com/ksonnet/ksonnet-lib can be found at http://g.bryan.dev.hepti.center
+//
+local k = import 'ksonnet/ksonnet.beta.3/k.libsonnet';  // https://github.com/ksonnet/ksonnet-lib/blob/master/ksonnet.beta.3/k.libsonnet - imports k8s.libsonnet
+// * https://github.com/ksonnet/ksonnet-lib/blob/master/ksonnet.beta.3/k8s.libsonnet defines things such as "persistentVolumeClaim:: {"
+//
+local pvc = k.core.v1.persistentVolumeClaim;  // https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.11/#persistentvolumeclaim-v1-core (defines variable named 'spec' of type 'PersistentVolumeClaimSpec')
+
 local kp =
   (import 'kube-prometheus/kube-prometheus.libsonnet') +
   (import 'kube-prometheus/kube-prometheus-kubeadm.libsonnet') +
@@ -15,6 +22,22 @@ local kp =
         namespaces+: ['heptio-contour', 'rook-ceph', 'kurl'],
       },
     },
+
+    prometheus+:: {
+      prometheus+: {
+        spec+: {
+          retention: '15d',
+
+          storage: {
+            volumeClaimTemplate:
+              pvc.new() +
+              pvc.mixin.spec.withAccessModes('ReadWriteOnce') +
+              pvc.mixin.spec.resources.withRequests({ storage: '10Gi' }),
+          },  // storage
+        },  // spec
+      },  // prometheus
+    },  // prometheus
+
   };
 
 { ['00namespace-' + name]: kp.kubePrometheus[name] for name in std.objectFields(kp.kubePrometheus) } +
