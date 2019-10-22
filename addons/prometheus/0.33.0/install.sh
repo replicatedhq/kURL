@@ -20,7 +20,7 @@ function prometheus() {
 
     kubectl apply -k "$operatordst/"
 
-    prometheus_crd_ready_spinner
+    spinner_until -1 prometheus_crd_ready
 
     kubectl apply -k "$monitorsdst/"
     kubectl apply -k "$grafanadst/"
@@ -54,18 +54,6 @@ function prometheus_outro() {
     fi
     printf "\n"
     printf "\n"
-}
-
-function prometheus_crd_ready_spinner() {
-    local delay=0.75
-    local spinstr='|/-\'
-    while ! prometheus_crd_ready; do
-        local temp=${spinstr#?}
-        printf " [%c]  " "$spinstr"
-        local spinstr=$temp${spinstr%"$temp"}
-        sleep $delay
-        printf "\b\b\b\b\b\b"
-    done
 }
 
 function prometheus_crd_ready() {
