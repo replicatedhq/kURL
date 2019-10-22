@@ -159,6 +159,7 @@ const specSchema = {
     rook: rookConfigSchema,
     contour: contourConfigSchema,
     registry: registryConfigSchema,
+    prometheus: prometheusConfigSchema,
     kotsadm: kotsadmConfigSchema,
   },
   required: ["kubernetes"],

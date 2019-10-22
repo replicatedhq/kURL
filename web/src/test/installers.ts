@@ -67,6 +67,8 @@ spec:
     version: 0.14.0
   registry:
     version: 2.7.1
+  prometheus:
+    version: 0.33.0
 `;
 
 const stable = `
@@ -283,6 +285,8 @@ spec:
     version: 0.14.0
   registry:
     version: 2.7.1
+  prometheus:
+    version: 0.33.0
 `);
       });
     });
@@ -326,9 +330,6 @@ spec:
     version: 2.7.1
   prometheus:
     version: 0.33.0
-  kotsadm:
-    version: ""
-    applicationSlug: ""
 `);
       });
 
