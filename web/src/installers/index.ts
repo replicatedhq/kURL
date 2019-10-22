@@ -190,7 +190,7 @@ export class Installer {
   }
 
   public clone(): Installer {
-    const i = new Installer();
+    const i = new Installer(this.teamID);
 
     i.id = this.id;
     i.spec = _.cloneDeep(this.spec);
