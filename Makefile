@@ -32,6 +32,12 @@ dist/registry-%.tar.gz: build/addons
 	mkdir -p dist
 	tar cf - -C build addons/registry/$* | gzip > dist/registry-$*.tar.gz
 
+dist/prometheus-%.tar.gz: build/addons
+	mkdir -p build/addons/prometheus/$*/images
+	bin/docker-save.sh addons/prometheus/$*/Manifest build/addons/prometheus/$*/images
+	mkdir -p dist
+	tar cf - -C build addons/prometheus/$* | gzip > dist/prometheus-$*.tar.gz
+
 dist/kotsadm-%.tar.gz: build/addons
 	mkdir -p build/addons/kotsadm/$*/images
 	bin/docker-save.sh addons/kotsadm/$*/Manifest build/addons/kotsadm/$*/images
@@ -65,6 +71,7 @@ build/install.sh:
 	done
 	sed -n '/# Magic end/,$$p' scripts/install.sh | sed '1d' >> tmp/install.sh
 	mv tmp/install.sh build/install.sh
+	chmod +x build/install.sh
 
 build/templates/install.tmpl: build/install.sh
 	mkdir -p build/templates
@@ -74,10 +81,12 @@ build/templates/install.tmpl: build/install.sh
 		sed 's/^REPLICATED_APP_URL=.*/REPLICATED_APP_URL="{{= REPLICATED_APP_URL }}"/' | \
 		sed 's/^WEAVE_VERSION=.*/WEAVE_VERSION="{{= WEAVE_VERSION }}"/' | \
 		sed 's/^ROOK_VERSION=.*/ROOK_VERSION="{{= ROOK_VERSION }}"/' | \
+		sed 's/^CONTOUR_VERSION=.*/CONTOUR_VERSION="{{= CONTOUR_VERSION }}"/' | \
 		sed 's/^REGISTRY_VERSION=.*/REGISTRY_VERSION="{{= REGISTRY_VERSION }}"/' | \
+		sed 's/^PROMETHEUS_VERSION=.*/PROMETHEUS_VERSION="{{= PROMETHEUS_VERSION }}"/' | \
 		sed 's/^KOTSADM_VERSION=.*/KOTSADM_VERSION="{{= KOTSADM_VERSION }}"/' | \
-		sed 's/^KOTSADM_APPLICATION_SLUG=.*/KOTSADM_APPLICATION_SLUG="{{= KOTSADM_APPLICATION_SLUG }}"/' | \
-		sed 's/^CONTOUR_VERSION=.*/CONTOUR_VERSION="{{= CONTOUR_VERSION }}"/' > build/templates/install.tmpl
+		sed 's/^KOTSADM_APPLICATION_SLUG=.*/KOTSADM_APPLICATION_SLUG="{{= KOTSADM_APPLICATION_SLUG }}"/' \
+		> build/templates/install.tmpl
 
 build/join.sh:
 	mkdir -p tmp build
@@ -87,6 +96,7 @@ build/join.sh:
 	done
 	sed -n '/# Magic end/,$$p' scripts/join.sh | sed '1d' >> tmp/join.sh
 	mv tmp/join.sh build/join.sh
+	chmod +x build/join.sh
 
 build/templates/join.tmpl: build/join.sh
 	mkdir -p build/templates
@@ -96,10 +106,12 @@ build/templates/join.tmpl: build/join.sh
 		sed 's/^REPLICATED_APP_URL=.*/REPLICATED_APP_URL="{{= REPLICATED_APP_URL }}"/' | \
 		sed 's/^WEAVE_VERSION=.*/WEAVE_VERSION="{{= WEAVE_VERSION }}"/' | \
 		sed 's/^ROOK_VERSION=.*/ROOK_VERSION="{{= ROOK_VERSION }}"/' | \
+		sed 's/^CONTOUR_VERSION=.*/CONTOUR_VERSION="{{= CONTOUR_VERSION }}"/' | \
 		sed 's/^REGISTRY_VERSION=.*/REGISTRY_VERSION="{{= REGISTRY_VERSION }}"/' | \
+		sed 's/^PROMETHEUS_VERSION=.*/PROMETHEUS_VERSION="{{= PROMETHEUS_VERSION }}"/' | \
 		sed 's/^KOTSADM_VERSION=.*/KOTSADM_VERSION="{{= KOTSADM_VERSION }}"/' | \
-		sed 's/^KOTSADM_APPLICATION_SLUG=.*/KOTSADM_APPLICATION_SLUG="{{= KOTSADM_APPLICATION_SLUG }}"/' | \
-		sed 's/^CONTOUR_VERSION=.*/CONTOUR_VERSION="{{= CONTOUR_VERSION }}"/' > build/templates/join.tmpl
+		sed 's/^KOTSADM_APPLICATION_SLUG=.*/KOTSADM_APPLICATION_SLUG="{{= KOTSADM_APPLICATION_SLUG }}"/' \
+		> build/templates/join.tmpl
 
 build/upgrade.sh:
 	mkdir -p tmp build
@@ -109,7 +121,8 @@ build/upgrade.sh:
 	done
 	sed -n '/# Magic end/,$$p' scripts/upgrade.sh | sed '1d' >> tmp/upgrade.sh
 	mv tmp/upgrade.sh build/upgrade.sh
-
+	chmod +x ./build/upgrade.sh
+	
 build/templates/upgrade.tmpl: build/upgrade.sh
 	mkdir -p build/templates
 	sed 's/^KUBERNETES_VERSION=.*/KUBERNETES_VERSION="{{= KUBERNETES_VERSION }}"/' "build/upgrade.sh" | \
@@ -118,10 +131,12 @@ build/templates/upgrade.tmpl: build/upgrade.sh
 		sed 's/^REPLICATED_APP_URL=.*/REPLICATED_APP_URL="{{= REPLICATED_APP_URL }}"/' | \
 		sed 's/^WEAVE_VERSION=.*/WEAVE_VERSION="{{= WEAVE_VERSION }}"/' | \
 		sed 's/^ROOK_VERSION=.*/ROOK_VERSION="{{= ROOK_VERSION }}"/' | \
+		sed 's/^CONTOUR_VERSION=.*/CONTOUR_VERSION="{{= CONTOUR_VERSION }}"/' | \
 		sed 's/^REGISTRY_VERSION=.*/REGISTRY_VERSION="{{= REGISTRY_VERSION }}"/' | \
+		sed 's/^PROMETHEUS_VERSION=.*/PROMETHEUS_VERSION="{{= PROMETHEUS_VERSION }}"/' | \
 		sed 's/^KOTSADM_VERSION=.*/KOTSADM_VERSION="{{= KOTSADM_VERSION }}"/' | \
-		sed 's/^KOTSADM_APPLICATION_SLUG=.*/KOTSADM_APPLICATION_SLUG="{{= KOTSADM_APPLICATION_SLUG }}"/' | \
-		sed 's/^CONTOUR_VERSION=.*/CONTOUR_VERSION="{{= CONTOUR_VERSION }}"/' > build/templates/upgrade.tmpl
+		sed 's/^KOTSADM_APPLICATION_SLUG=.*/KOTSADM_APPLICATION_SLUG="{{= KOTSADM_APPLICATION_SLUG }}"/' \
+		> build/templates/upgrade.tmpl
 
 build/addons:
 	mkdir -p build

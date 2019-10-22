@@ -45,7 +45,7 @@ The [insert_resources](https://github.com/replicatedhq/kurl/blob/5e6c9549ad6410d
 insert_resources "$DIR/kustomize/weave/kustomization.yaml" secret.yaml
 ```
 
-The [insert_patches_strategic_merge](https://github.com/replicatedhq/kurl/blob/5e6c9549ad6410df1f385444b83eabaf42a7e244/scripts/common/yaml.sh#L18) function can be used to add an item to the `patchesStrategiMerge` object of a kustomization.yaml:
+The [insert_patches_strategic_merge](https://github.com/replicatedhq/kurl/blob/5e6c9549ad6410df1f385444b83eabaf42a7e244/scripts/common/yaml.sh#L18) function can be used to add an item to the `patchesStrategicMerge` object of a kustomization.yaml:
 ```
 insert_patches_strategic_merge "$DIR/kustomize/weave/kustomization.yaml" ip-alloc-range.yaml
 ```

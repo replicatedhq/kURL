@@ -23,6 +23,10 @@ testDockerReplaceRegistryAddress()
     REPO_TAG=
     dockerReplaceRegistryAddress "replicated/studio" "localhost:31500"
     assertEquals "latest tag" "localhost:31500/replicated/studio" "$REPO_TAG"
+
+    REPO_TAG=
+    dockerReplaceRegistryAddress "quay.io/coreos/prometheus-operator:v0.33.0" "localhost:31500"
+    assertEquals "official registry" "localhost:31500/coreos/prometheus-operator:v0.33.0" "$REPO_TAG"
 }
 
 . shunit2

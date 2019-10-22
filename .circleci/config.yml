@@ -23,6 +23,12 @@ jobs:
             echo "refusing to build fork \"${CIRCLE_PROJECT_USERNAME}\""
             exit 1
           fi
+  
+  test:
+    <<: *defaults
+    steps:
+      - checkout
+      - run: make -C web test
 
   upload_staging_packages:
     <<: *defaults

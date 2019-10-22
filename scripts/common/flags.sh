@@ -80,6 +80,9 @@ function flags() {
             disable-contour|disable_contour)
                 CONTOUR_VERSION=""
                 ;;
+            disable-prometheus|disable_prometheus)
+                PROMETHEUS_VERSION=""
+                ;;
             disable-rook|disable_rook)
                 ROOK_VERSION=""
                 ;;
