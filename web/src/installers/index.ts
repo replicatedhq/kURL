@@ -390,6 +390,7 @@ export class Installer {
 
     i.id = "latest";
     i.spec.kubernetes = { version: "latest" };
+    i.spec.docker = { version: "latest" };
     i.spec.weave = { version: "latest" };
     i.spec.rook = { version: "latest" };
     i.spec.contour = { version: "latest" };
@@ -474,15 +475,7 @@ export class Installer {
   }
 
   public isLatest(): boolean {
-    return _.isEqual(this.spec, {
-      kubernetes: { version: "latest" },
-      docker: { version: "latest" },
-      weave: { version: "latest" },
-      rook: { version: "latest" },
-      contour: { version: "latest" },
-      registry: { version: "latest" },
-      prometheus: { version: "latest" },
-    });
+    return _.isEqual(this.spec, Installer.latest().spec);
   }
 
   static isSHA(id: string): boolean {

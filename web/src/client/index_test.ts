@@ -19,6 +19,8 @@ metadata:
 spec:
   kubernetes:
     version: latest
+  docker:
+    version: latest
   weave:
     version: latest
   rook:
@@ -113,6 +115,14 @@ describe("POST /installer", () => {
   describe("latestV1Beta1", () => {
     it(`should return 201 "https://kurl.sh/latest"`, async () => {
       const url = await client.postInstaller(latestV1Beta1);
+
+      expect(url).to.match(/latest$/);
+    });
+  });
+
+  describe("latest V1Beta2", () => {
+    it(`should return 201 "https://kurl.sh/latest"`, async () => {
+      const url = await client.postInstaller(latest);
 
       expect(url).to.match(/latest$/);
     });
