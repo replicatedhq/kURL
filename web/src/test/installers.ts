@@ -440,8 +440,8 @@ spec:
       });
     });
 
-    describe("invalid", () => {
-      it("=> ErrorResponse", async () => {
+    describe("invalid Kubernetes versions", () => {
+      it("=> ErrorResponse", () => {
         const noK8s = `
 spec:
   kubernetes:
@@ -460,8 +460,23 @@ spec:
       });
     });
 
+    describe("invalid Prometheus version", () => {
+      it("=> ErrorResponse", () => {
+        const yaml = `
+spec:
+  kubernetes:
+    version: latest
+  prometheus:
+    version: 0.32.0
+`;
+        const out = Installer.parse(yaml).validate();
+
+        expect(out).to.deep.equal({ error: { message: `Prometheus version "0.32.0" is not supported` } });
+      });
+    });
+
     describe("kots version missing", () => {
-      it("=> ErrorResponse", async () => {
+      it("=> ErrorResponse", () => {
         const out = Installer.parse(kotsNoVersion).validate();
 
         expect(out).to.deep.equal({ error: { message: "spec.kotsadm should have required property 'version'" }});
@@ -482,7 +497,7 @@ spec:
     });
 
     describe("extra options", () => {
-      it("=> ErrorResponse", async () => {
+      it("=> ErrorResponse", () => {
         const yaml = `
 spec:
   kubernetes:

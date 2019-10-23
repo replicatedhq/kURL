@@ -444,6 +444,9 @@ export class Installer {
     if (this.spec.registry && !Installer.hasVersion("registry", this.spec.registry.version)) {
       return { error: { message: `Registry version "${_.escape(this.spec.registry.version)}" is not supported` } };
     }
+    if (this.spec.prometheus && !Installer.hasVersion("prometheus", this.spec.prometheus.version)) {
+      return { error: { message: `Prometheus version "${_.escape(this.spec.prometheus.version)}" is not supported` } };
+    }
     if (this.spec.kotsadm) {
       if (!Installer.hasVersion("kotsadm", this.spec.kotsadm.version)) {
         return { error: { message: `Kotsadm version "${_.escape(this.spec.kotsadm.version)}" is not supported` } };
