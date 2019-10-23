@@ -12,6 +12,8 @@ function kotsadm() {
     cp "$src/schemahero.yaml" "$dst/"
     cp "$src/web.yaml" "$dst/"
 
+    render_yaml_file "$src/tmpl-web-node-port.yaml" > "$dst/web-service.yaml"
+    insert_resources "$dst/kustomization.yaml" web-service.yaml
 
     kotsadm_secret_auto_create_cluster_token
     kotsadm_secret_password

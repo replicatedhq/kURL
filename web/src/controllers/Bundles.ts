@@ -1,6 +1,7 @@
 import * as path from "path";
 import * as Express from "express";
 import * as request from "request-promise";
+import * as _ from "lodash";
 import {
   Controller,
   Get,
@@ -67,9 +68,10 @@ export class Bundle {
     const ret: BundleManifest = {layers: [], files: {}};
     ret.layers = installer.packages().map((pkg) => `${this.distOrigin}/dist/${pkg}.tar.gz`);
 
-    if (installer.kotsadmApplicationSlug()) {
-      const appMetadata = await request(`${this.replicatedAppURL}/metadata/${installer.kotsadmApplicationSlug()}`);
-      const key = `addons/kotsadm/${installer.kotsadmVersion()}/application.yaml`;
+    const kotsadmApplicationSlug = _.get(installer.spec, "kotsadm.applicationSlug");
+    if (kotsadmApplicationSlug) {
+      const appMetadata = await request(`${this.replicatedAppURL}/metadata/${kotsadmApplicationSlug}`);
+      const key = `addons/kotsadm/${_.get(installer.spec, "kotsadm.version")}}/application.yaml`;
 
       ret.files[key] = appMetadata;
     }

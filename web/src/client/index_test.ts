@@ -1,3 +1,4 @@
+import * as path from "path";
 import {describe, it} from "mocha";
 import {expect} from "chai";
 import { KurlClient } from "./";
@@ -11,6 +12,26 @@ const kurlURL = process.env.KURL_URL || "http://localhost:30092";
 const client = new KurlClient(kurlURL);
 
 const latest = `
+apiVersion: kurl.sh/v1beta2
+kind: Installer
+metadata:
+  name: ""
+spec:
+  kubernetes:
+    version: latest
+  weave:
+    version: latest
+  rook:
+    version: latest
+  contour:
+    version: latest
+  registry:
+    version: latest
+  prometheus:
+    version: latest
+`;
+
+const latestV1Beta1 = `
 apiVersion: kurl.sh/v1beta1
 kind: Installer
 metadata:
@@ -40,20 +61,6 @@ spec:
     version: 1.0.4
   contour:
     version: 0.14.0`;
-
-const d3a9234Canonical = `apiVersion: kurl.sh/v1beta1
-kind: Installer
-metadata:
-  name: "d3a9234"
-spec:
-  kubernetes:
-    version: "1.15.1"
-  weave:
-    version: "2.5.2"
-  rook:
-    version: "1.0.4"
-  contour:
-    version: "0.14.0"`;
 
 const min = `
 spec:
@@ -88,8 +95,6 @@ metadata:
 spec:
   kubernetes:
     version: "1.15.1"
-  weave:
-    version: ""
   rook:
     version: "1.0.4"
   contour:
@@ -105,11 +110,35 @@ spec:
 `;
 
 describe("POST /installer", () => {
-  describe("latest", () => {
+  describe("latestV1Beta1", () => {
     it(`should return 201 "https://kurl.sh/latest"`, async () => {
-      const url = await client.postInstaller(latest);
+      const url = await client.postInstaller(latestV1Beta1);
 
       expect(url).to.match(/latest$/);
+    });
+  });
+
+  describe("v1beta1", () => {
+    it("always includes docker", async () => {
+      const yaml = `
+apiVersion: kurl.sh/v1beta1
+kind: Installer
+spec:
+  kubernetes:
+    version: 1.15.3`;
+      const url = await client.postInstaller(yaml);
+      const sha = path.basename(url);
+      const v1beta2 = await client.getInstallerYAML(sha);
+      expect(v1beta2).to.equal(`apiVersion: kurl.sh/v1beta2
+kind: Installer
+metadata:
+  name: '77191e9'
+spec:
+  kubernetes:
+    version: 1.15.3
+  docker:
+    version: latest
+`);
     });
   });
 
@@ -261,17 +290,17 @@ describe("PUT /installer/<id>", () => {
 
 describe("GET /<installerID>", () => {
   describe("/latest", () => {
-    const latest = Installer.latest();
+    const latest = Installer.latest().resolve();
 
-    it(`injects k8s ${latest.kubernetesVersion()}, weave ${latest.weaveVersion()}, rook ${latest.rookVersion()}, contour ${latest.contourVersion()}, registry ${latest.registryVersion()}, prometheus ${latest.prometheusVersion()}`, async () => {
+    it(`injects k8s ${latest.spec.kubernetes.version}, weave ${latest.spec.weave!.version}, rook ${latest.spec.rook!.version}, contour ${latest.spec.contour!.version}, registry ${latest.spec.registry}, prometheus ${latest.spec.prometheus!.version}`, async () => {
       const script = await client.getInstallScript("latest");
 
-      expect(script).to.match(new RegExp(`KUBERNETES_VERSION="${latest.kubernetesVersion()}"`));
-      expect(script).to.match(new RegExp(`WEAVE_VERSION="${latest.weaveVersion()}"`));
-      expect(script).to.match(new RegExp(`ROOK_VERSION="${latest.rookVersion()}"`));
-      expect(script).to.match(new RegExp(`CONTOUR_VERSION="${latest.contourVersion()}"`));
-      expect(script).to.match(new RegExp(`REGISTRY_VERSION="${latest.registryVersion()}"`));
-      expect(script).to.match(new RegExp(`PROMETHEUS_VERSION="${latest.prometheusVersion()}"`));
+      expect(script).to.match(new RegExp(`KUBERNETES_VERSION="${latest.spec.kubernetes.version}"`));
+      expect(script).to.match(new RegExp(`WEAVE_VERSION="${latest.spec.weave!.version}"`));
+      expect(script).to.match(new RegExp(`ROOK_VERSION="${latest.spec.rook!.version}"`));
+      expect(script).to.match(new RegExp(`CONTOUR_VERSION="${latest.spec.contour!.version}"`));
+      expect(script).to.match(new RegExp(`REGISTRY_VERSION="${latest.spec.registry!.version}"`));
+      expect(script).to.match(new RegExp(`PROMETHEUS_VERSION="${latest.spec.prometheus!.version}"`));
       expect(script).to.match(/INSTALLER_ID="latest"/);
       expect(script).to.match(/KOTSADM_VERSION=""/);
       expect(script).to.match(/KOTSADM_APPLICATION_SLUG=""/);
@@ -314,21 +343,41 @@ describe("GET /<installerID>", () => {
       expect(script).to.match(new RegExp(`KOTSADM_APPLICATION_SLUG=""`));
     });
   });
+
+  describe("flags", () => {
+    let id: string;
+    const yaml = `
+spec:
+  kubernetes:
+    version: latest
+    serviceCIDR: 10.0.0.0/12`;
+
+    before(async () => {
+      const installer = await client.postInstaller(yaml);
+      id = _.trim(url.parse(installer).path, "/");
+    });
+
+    it("injects flags for advanced options", async () => {
+      const script = await client.getInstallScript(id);
+
+      expect(script).to.match(new RegExp(`FLAGS="service-cidr=10.0.0.0/12"`));
+    });
+  });
 });
 
 describe("GET /<installerID>/join.sh", () => {
   describe("/latest/join.sh", () => {
-    const latest = Installer.latest();
+    const latest = Installer.latest().resolve();
 
-    it(`injects k8s ${latest.kubernetesVersion()}, weave ${latest.weaveVersion()}, rook ${latest.rookVersion()}, contour ${latest.contourVersion()}, registry ${latest.registryVersion()}, prometheus ${latest.prometheusVersion()}`, async () => {
+    it(`injects k8s ${latest.spec.kubernetes.version}, weave ${latest.spec.weave!.version}, rook ${latest.spec.rook!.version}, contour ${latest.spec.contour!.version}, registry ${latest.spec.registry!.version}, prometheus ${latest.spec.prometheus!.version}`, async () => {
       const script = await client.getJoinScript("latest");
 
-      expect(script).to.match(new RegExp(`KUBERNETES_VERSION="${latest.kubernetesVersion()}"`));
-      expect(script).to.match(new RegExp(`WEAVE_VERSION="${latest.weaveVersion()}"`));
-      expect(script).to.match(new RegExp(`ROOK_VERSION="${latest.rookVersion()}"`));
-      expect(script).to.match(new RegExp(`CONTOUR_VERSION="${latest.contourVersion()}"`));
-      expect(script).to.match(new RegExp(`REGISTRY_VERSION="${latest.registryVersion()}"`));
-      expect(script).to.match(new RegExp(`PROMETHEUS_VERSION="${latest.prometheusVersion()}"`));
+      expect(script).to.match(new RegExp(`KUBERNETES_VERSION="${latest.spec.kubernetes.version}"`));
+      expect(script).to.match(new RegExp(`WEAVE_VERSION="${latest.spec.weave!.version}"`));
+      expect(script).to.match(new RegExp(`ROOK_VERSION="${latest.spec.rook!.version}"`));
+      expect(script).to.match(new RegExp(`CONTOUR_VERSION="${latest.spec.contour!.version}"`));
+      expect(script).to.match(new RegExp(`REGISTRY_VERSION="${latest.spec.registry!.version}"`));
+      expect(script).to.match(new RegExp(`PROMETHEUS_VERSION="${latest.spec.prometheus!.version}"`));
       expect(script).to.match(new RegExp(`KOTSADM_VERSION=""`));
       expect(script).to.match(new RegExp(`KOTSADM_APPLICATION_SLUG=""`));
     });
@@ -375,32 +424,21 @@ describe("GET /<installerID>/join.sh", () => {
 
 describe("GET /installer/<installerID>", () => {
   before(async () => {
-    await client.postInstaller(min);
+    const url = await client.postInstaller(min);
   });
 
   it("returns installer yaml", async() => {
     const yaml = await client.getInstallerYAML("6898644");
 
-    expect(yaml).to.equal(`apiVersion: kurl.sh/v1beta1
+    expect(yaml).to.equal(`apiVersion: kurl.sh/v1beta2
 kind: Installer
 metadata:
-  name: "6898644"
+  name: '6898644'
 spec:
   kubernetes:
-    version: "1.15.1"
-  weave:
-    version: ""
-  rook:
-    version: ""
-  contour:
-    version: ""
-  registry:
-    version: ""
-  prometheus:
-    version: ""
-  kotsadm:
-    version: ""
-    applicationSlug: ""
+    version: 1.15.1
+  docker:
+    version: latest
 `);
   });
 
@@ -412,13 +450,13 @@ spec:
     it("returns yaml with version", async () => {
       const yaml = await client.getInstallerYAML("latest", true);
 
-      expect(yaml).not.to.match(/version: "latest"/);
+      expect(yaml).not.to.match(/version: latest/);
     });
 
     it("does not return a name", async() => {
       const yaml = await client.getInstallerYAML("latest", true);
 
-      expect(yaml).to.match(/name: ""/);
+      expect(yaml).to.match(/name: ''/);
     });
   });
 
@@ -430,7 +468,7 @@ spec:
     it(`returns yaml with "latest"`, async () => {
       const yaml = await client.getInstallerYAML("latest");
 
-      expect(yaml).to.match(/version: "latest"/);
+      expect(yaml).to.match(/version: latest/);
     });
 
     describe("Accpet: application/json", () => {
