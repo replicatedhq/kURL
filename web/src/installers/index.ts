@@ -294,20 +294,18 @@ export class Installer {
     i.spec = parsed.spec;
 
     if (parsed.apiVersion === "kurl.sh/v1beta1") {
-      return i.migrateV1Beta1ToV1Beta2();
+      return i.migrateV1Beta1();
     }
 
     return i;
   }
 
-  // v1beta1 had no config for Docker because it was always included
-  // Note this causes the hash to change.
-  // Also v1beta1 disabled configs with empty version but in v1beta2 the config
-  // objects should not exist if disabled.
-  public migrateV1Beta1ToV1Beta2(): Installer {
+  public migrateV1Beta1(): Installer {
     const i = this.clone();
-    i.spec.docker = { version: "latest" };
 
+    if (!_.get(i.spec, "docker.version")) {
+      delete i.spec.docker;
+    }
     if (!_.get(i.spec, "weave.version")) {
       delete i.spec.weave;
     }
@@ -336,7 +334,7 @@ export class Installer {
 
   public toObject(): InstallerObject {
     const obj = {
-      apiVersion: "kurl.sh/v1beta2",
+      apiVersion: "kurl.sh/v1beta1",
       kind: "Installer",
       metadata: {
         name: `${this.id}`,

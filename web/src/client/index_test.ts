@@ -12,7 +12,7 @@ const kurlURL = process.env.KURL_URL || "http://localhost:30092";
 const client = new KurlClient(kurlURL);
 
 const latest = `
-apiVersion: kurl.sh/v1beta2
+apiVersion: kurl.sh/v1beta1
 kind: Installer
 metadata:
   name: ""
@@ -40,6 +40,8 @@ metadata:
   name: ""
 spec:
   kubernetes:
+    version: latest
+  docker:
     version: latest
   weave:
     version: latest
@@ -117,38 +119,6 @@ describe("POST /installer", () => {
       const url = await client.postInstaller(latestV1Beta1);
 
       expect(url).to.match(/latest$/);
-    });
-  });
-
-  describe("latest V1Beta2", () => {
-    it(`should return 201 "https://kurl.sh/latest"`, async () => {
-      const url = await client.postInstaller(latest);
-
-      expect(url).to.match(/latest$/);
-    });
-  });
-
-  describe("v1beta1", () => {
-    it("always includes docker", async () => {
-      const yaml = `
-apiVersion: kurl.sh/v1beta1
-kind: Installer
-spec:
-  kubernetes:
-    version: 1.15.3`;
-      const url = await client.postInstaller(yaml);
-      const sha = path.basename(url);
-      const v1beta2 = await client.getInstallerYAML(sha);
-      expect(v1beta2).to.equal(`apiVersion: kurl.sh/v1beta2
-kind: Installer
-metadata:
-  name: '77191e9'
-spec:
-  kubernetes:
-    version: 1.15.3
-  docker:
-    version: latest
-`);
     });
   });
 
@@ -440,15 +410,13 @@ describe("GET /installer/<installerID>", () => {
   it("returns installer yaml", async() => {
     const yaml = await client.getInstallerYAML("6898644");
 
-    expect(yaml).to.equal(`apiVersion: kurl.sh/v1beta2
+    expect(yaml).to.equal(`apiVersion: kurl.sh/v1beta1
 kind: Installer
 metadata:
   name: '6898644'
 spec:
   kubernetes:
     version: 1.15.1
-  docker:
-    version: latest
 `);
   });
 
