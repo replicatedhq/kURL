@@ -3,7 +3,7 @@ import {expect} from "chai";
 import { Installer } from "../installers";
 import * as _ from "lodash";
 
-const everyOption = `apiVersion: kurl.sh/v1beta2
+const everyOption = `apiVersion: kurl.sh/v1beta1
 spec:
   kubernetes:
     version: latest
@@ -35,26 +35,6 @@ spec:
 
 const typeMetaStableV1Beta1 = `
 apiVersion: kurl.sh/v1beta1
-kind: Installer
-metadata:
-  name: stable
-spec:
-  kubernetes:
-    version: 1.15.2
-  weave:
-    version: 2.5.2
-  rook:
-    version: 1.0.4
-  contour:
-    version: 0.14.0
-  registry:
-    version: 2.7.1
-  prometheus:
-    version: 0.33.0
-`;
-
-const typeMetaStable = `
-apiVersion: kurl.sh/v1beta2
 kind: Installer
 metadata:
   name: stable
@@ -234,7 +214,7 @@ describe("Installer", () => {
 
   describe("hash", () => {
     it("hashes same specs to the same string", () => {
-      const a = Installer.parse(typeMetaStable).hash();
+      const a = Installer.parse(typeMetaStableV1Beta1).hash();
       const b = Installer.parse(stable).hash();
       const c = Installer.parse(noName).hash();
       const d = Installer.parse(disordered).hash();
@@ -252,7 +232,7 @@ describe("Installer", () => {
     });
 
     it("hashes to a 7 character hex string", () => {
-      const a = Installer.parse(typeMetaStable).hash();
+      const a = Installer.parse(typeMetaStableV1Beta1).hash();
       const b = Installer.parse(k8s14).hash();
 
       expect(a).to.match(/[0-9a-f]{7}/);
@@ -266,80 +246,11 @@ describe("Installer", () => {
 
   describe("toYAML", () => {
     describe("v1beta1", () => {
-      it("adds docker and updates version", () => {
-        const parsed = Installer.parse(typeMetaStableV1Beta1);
-        const yaml = parsed.toYAML();
-
-        expect(yaml).to.equal(`apiVersion: kurl.sh/v1beta2
-kind: Installer
-metadata:
-  name: stable
-spec:
-  kubernetes:
-    version: 1.15.2
-  docker:
-    version: latest
-  weave:
-    version: 2.5.2
-  rook:
-    version: 1.0.4
-  contour:
-    version: 0.14.0
-  registry:
-    version: 2.7.1
-  prometheus:
-    version: 0.33.0
-`);
-      });
-    });
-
-    describe("v1beta2", () => {
-      it("adds version, does not add docker", () => {
-        const v1Beta1 = `apiVersion: kurl.sh/v1beta1
-spec:
-  kubernetes:
-    version: latest`;
-        const v1Beta2 = `apiVersion: kurl.sh/v1beta2
-spec:
-  kubernetes:
-    version: latest
-  docker:
-    version: latest`;
-        const parsedV1Beta1 = Installer.parse(v1Beta1);
-        const parsedV1Beta2 = Installer.parse(v1Beta2);
-
-        expect(parsedV1Beta1.hash()).to.equal(parsedV1Beta2.hash());
-      });
-
-      it("adds apiVersion", () => {
-        const parsed = Installer.parse(stable);
-        const yaml = parsed.toYAML();
-
-        expect(yaml).to.equal(`apiVersion: kurl.sh/v1beta2
-kind: Installer
-metadata:
-  name: stable
-spec:
-  kubernetes:
-    version: 1.15.2
-  weave:
-    version: 2.5.2
-  rook:
-    version: 1.0.4
-  contour:
-    version: 0.14.0
-  registry:
-    version: 2.7.1
-  prometheus:
-    version: 0.33.0
-`);
-      });
-
       it("leaves missing names empty", () => {
         const parsed = Installer.parse(noName);
         const yaml = parsed.toYAML();
 
-        expect(yaml).to.equal(`apiVersion: kurl.sh/v1beta2
+        expect(yaml).to.equal(`apiVersion: kurl.sh/v1beta1
 kind: Installer
 metadata:
   name: ''
@@ -363,7 +274,7 @@ spec:
         const parsed = Installer.parse(empty);
         const yaml = parsed.toYAML();
 
-        expect(yaml).to.equal(`apiVersion: kurl.sh/v1beta2
+        expect(yaml).to.equal(`apiVersion: kurl.sh/v1beta1
 kind: Installer
 metadata:
   name: ''
