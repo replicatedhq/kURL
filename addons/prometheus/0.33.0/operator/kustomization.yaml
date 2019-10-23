@@ -10,4 +10,3 @@ resources:
 - 0prometheus-operator-deployment.yaml
 - 0prometheus-operator-service.yaml
 - 0prometheus-operator-serviceAccount.yaml
-- 0prometheus-operator-serviceMonitor.yaml

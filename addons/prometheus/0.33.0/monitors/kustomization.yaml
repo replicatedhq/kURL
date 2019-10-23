@@ -1,4 +1,5 @@
 resources:
+- 0prometheus-operator-serviceMonitor.yaml
 - alertmanager-alertmanager.yaml
 - alertmanager-secret.yaml
 - alertmanager-service.yaml

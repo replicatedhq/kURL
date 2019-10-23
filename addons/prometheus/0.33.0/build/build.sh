@@ -22,5 +22,6 @@ find ../grafana/ ! -name 'kustomization.yaml' -maxdepth 1 -type f -exec rm -f {}
 mv manifests/grafana-* ../grafana/
 find ../monitors/ ! -name 'kustomization.yaml' -maxdepth 1 -type f -exec rm -f {} +
 mv manifests/* ../monitors/
+cp ../operator/0prometheus-operator-serviceMonitor.yaml ../monitors/
 
 rm -rf manifests
