@@ -292,7 +292,7 @@ describe("GET /<installerID>", () => {
   describe("/latest", () => {
     const latest = Installer.latest().resolve();
 
-    it(`injects k8s ${latest.spec.kubernetes.version}, weave ${latest.spec.weave!.version}, rook ${latest.spec.rook!.version}, contour ${latest.spec.contour!.version}, registry ${latest.spec.registry}, prometheus ${latest.spec.prometheus}`, async () => {
+    it(`injects k8s ${latest.spec.kubernetes.version}, weave ${latest.spec.weave!.version}, rook ${latest.spec.rook!.version}, contour ${latest.spec.contour!.version}, registry ${latest.spec.registry}, prometheus ${latest.spec.prometheus!.version}`, async () => {
       const script = await client.getInstallScript("latest");
 
       expect(script).to.match(new RegExp(`KUBERNETES_VERSION="${latest.spec.kubernetes.version}"`));
@@ -369,7 +369,7 @@ describe("GET /<installerID>/join.sh", () => {
   describe("/latest/join.sh", () => {
     const latest = Installer.latest().resolve();
 
-    it(`injects k8s ${latest.spec.kubernetes.version}, weave ${latest.spec.weave!.version}, rook ${latest.spec.rook!.version}, contour ${latest.spec.contour!.version}`, async () => {
+    it(`injects k8s ${latest.spec.kubernetes.version}, weave ${latest.spec.weave!.version}, rook ${latest.spec.rook!.version}, contour ${latest.spec.contour!.version}, registry ${latest.spec.registry!.version}, prometheus ${latest.spec.prometheus!.version}`, async () => {
       const script = await client.getJoinScript("latest");
 
       expect(script).to.match(new RegExp(`KUBERNETES_VERSION="${latest.spec.kubernetes.version}"`));
