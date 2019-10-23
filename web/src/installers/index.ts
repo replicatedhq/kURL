@@ -219,6 +219,9 @@ export class Installer {
     if (this.spec.registry && this.spec.registry.version) {
       h.update(`registry_version=${this.spec.registry.version}`);
     }
+    if (this.spec.prometheus && this.spec.prometheus.version) {
+      h.update(`prometheus_version=${this.spec.prometheus.version}`);
+    }
     if (this.spec.kotsadm && this.spec.kotsadm.version) {
       h.update(`kotsadm_version=${this.spec.kotsadm.version}`);
     }
@@ -232,6 +235,7 @@ export class Installer {
       rook_version: true,
       contour_version: true,
       registry_version: true,
+      prometheus_version: true,
       kotsadm_version: true,
       kotsadm_applicationSlug: true,
     };
@@ -315,6 +319,9 @@ export class Installer {
     }
     if (!_.get(i.spec, "registry.version")) {
       delete i.spec.registry;
+    }
+    if (!_.get(i.spec, "prometheus.version")) {
+      delete i.spec.prometheus;
     }
     if (!_.get(i.spec, "kotsadm.version")) {
       delete i.spec.kotsadm;
@@ -474,6 +481,7 @@ export class Installer {
       rook: { version: "latest" },
       contour: { version: "latest" },
       registry: { version: "latest" },
+      prometheus: { version: "latest" },
     });
   }
 

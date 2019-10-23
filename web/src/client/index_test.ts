@@ -47,6 +47,8 @@ spec:
     version: latest
   registry:
     version: latest
+  prometheus:
+    version: latest
 `;
 
 const d3a9234 = `
@@ -108,7 +110,7 @@ spec:
 `;
 
 describe("POST /installer", () => {
-  describe("latestV1Beta", () => {
+  describe("latestV1Beta1", () => {
     it(`should return 201 "https://kurl.sh/latest"`, async () => {
       const url = await client.postInstaller(latestV1Beta1);
 
@@ -290,7 +292,7 @@ describe("GET /<installerID>", () => {
   describe("/latest", () => {
     const latest = Installer.latest().resolve();
 
-    it(`injects k8s ${latest.spec.kubernetes.version}, weave ${latest.spec.weave!.version}, rook ${latest.spec.rook!.version}, contour ${latest.spec.contour!.version}`, async () => {
+    it(`injects k8s ${latest.spec.kubernetes.version}, weave ${latest.spec.weave!.version}, rook ${latest.spec.rook!.version}, contour ${latest.spec.contour!.version}, registry ${latest.spec.registry}, prometheus ${latest.spec.prometheus}`, async () => {
       const script = await client.getInstallScript("latest");
 
       expect(script).to.match(new RegExp(`KUBERNETES_VERSION="${latest.spec.kubernetes.version}"`));

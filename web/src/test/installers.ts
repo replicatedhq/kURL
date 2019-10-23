@@ -25,6 +25,8 @@ spec:
     cephPoolReplicas: 1
   registry:
     version: latest
+  prometheus:
+    version: latest
   kotsadm:
     version: latest
     applicationSlug: sentry
