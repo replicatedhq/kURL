@@ -1,0 +1,65 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: kotsadm-operator-role
+rules:
+- apiGroups:
+  - "*"
+  resources:
+  - "*"
+  verbs:
+  - "*"
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: kotsadm-operator-rolebinding
+subjects:
+- kind: ServiceAccount
+  name: kotsadm-operator
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: kotsadm-operator-role
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: kotsadm-operator
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kotsadm-operator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kotsadm-operator
+  template:
+    metadata:
+      labels:
+        app: kotsadm-operator
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "3000"
+        prometheus.io/path: "/metricz"
+    spec:
+      serviceAccountName: kotsadm-operator
+      restartPolicy: Always
+      containers:
+      - image: kotsadm/kotsadm-operator:v0.9.11
+        name: kotsadm-operator
+        env:
+        - name: KOTSADM_API_ENDPOINT
+          value: http://kotsadm-api:3000
+        - name: KOTSADM_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: kotsadm-auto-create-cluster-token
+              key: token
+        - name: AUTO_CREATE_CLUSTER_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: kotsadm-auto-create-cluster-token
+              key: token
