@@ -379,7 +379,7 @@ export class Installer {
       "0.33.0",
     ],
     kotsadm: [
-      "0.9.9",
+      "0.9.11",
     ],
   }
 
@@ -477,7 +477,7 @@ export class Installer {
   }
 
   static isSHA(id: string): boolean {
-    return /^[0-9a-f]{7}$/.test(id); 
+    return /^[0-9a-f]{7}$/.test(id);
   }
 
   static isValidSlug(id: string): boolean {
