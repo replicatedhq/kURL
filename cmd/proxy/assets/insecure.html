@@ -1,0 +1,106 @@
+</html>
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="description" content="Replicated App Manager">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Replicated App Manager</title>
+    <link rel="stylesheet" href="/assets/insecure.css" />
+    <script>
+      //defaults to chrome example
+      var firefoxText = "On the next screen, click \"I Understand the Risks\", then click \"Add Exception\". Finally, click \"Confirm Security Exception\" to proceed to the Admin Console.";
+      var ieText = "On the next screen, click \"Continue to this website\" to proceed to the Admin Console.";
+      var safariText = "On the next screen, click \"Continue\" when prompted to proceed to the Admin Console.";
+      var chromeText = "On the next screen, click \"Advanced\", then click \"Proceed\" to continue to the Admin Console.";
+
+      var browserPlainText = "Chrome";
+      var browserBodyText = chromeText;
+      if (typeof InstallTrigger !== 'undefined'){
+        browserPlainText = "Firefox";
+        browserBodyText = chromeText;
+      } else if (Object.prototype.toString.call(window.HTMLElement).indexOf('Constructor') > 0) {
+        browserPlainText = "Safari";
+        browserBodyText = safariText;
+      } else if (/*@cc_on!@*/false || !!document.documentMode || !!window.StyleMedia) {
+        //grouping Edge + IE 6 - 11 in this one
+        browserPlainText = "Internet Explorer";
+        browserBodyText = ieText;
+      }
+
+      var rawLink = window.location.href.substring(window.location.protocol.length).replace(/\/$/,'') + "/tls";
+      var httpsLink = "https:" + rawLink;
+      var opensslLink = rawLink.substring(2).replace("/tls", "");
+    </script>
+  </head>
+  <body>
+    <div class="container">
+      <h1 class="page-title">Bypass Browser TLS Warning</h1>
+      <div style="height:30px;" class="col-xs-12"></div>
+      <div class="row">
+        <p class="lead text-center">
+          We use a self-signed SSL/TLS Certificate to secure the communication
+          between your local machine and the Admin Console during setup.
+          You'll see a warning about this in your browser, but you can be
+          confident that this is secure.
+        </p>
+      </div>
+      <div class="row">
+        <div class="panel panel-default" style="background-color: #777777; overflow: auto; margin-top: 20px;">
+          <div style="display: table; table-layout: fixed; width: 100%;">
+            <div style="display: table-row;">
+              <div style="display: table-cell; vertical-align: top; width: 300px;">
+                <script>document.write(
+                  '<img src="/assets/images/' + browserPlainText.toLowerCase().replace(" ", "") + '-insecure.png" width="100%" />'
+                )</script>
+              </div>
+              <div style="display: table-cell; vertical-align: top;">
+                <div style="padding: 20px 30px;">
+                  <h3>
+                    <script>document.write(browserPlainText)</script>
+                  </h3>
+                  <h4 style="line-height: 1.3;">
+                    <script>document.write(browserBodyText)</script>
+                  </h4>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="row panel panel-default" style="padding: 18px;">
+        <div style="padding: 0 20px 20px; border-radius: 10px; border: 2px solid #777777;">
+          <div style="display: table; table-layout: fixed; width: 100%;">
+            <div style="display: table-row;">
+              <div style="display: table-cell; vertical-align: top; width: 55px;">
+                <h3><i class="fa fa-lock" style="font-size: 50px"></i></h3>
+              </div>
+              <div style="display: table-cell; vertical-align: top;">
+                <h3>Verifying the certificate's authenticity</h3>
+                <script>document.write(
+                  '<pre style="width: 100%;">$ echo | openssl s_client -servername local -connect ' + opensslLink + ' 2>/dev/null | openssl x509 -noout -fingerprint</pre>'
+                )</script>
+                SHA1 Fingerprint=<span>{{ .fingerprintSHA1 }}</span>
+            </div>
+            </div>
+          </div>
+        </div>
+        <hr />
+        <div class="text-center">
+          <p>
+            <button type="submit" class="btn-save btn btn-lg btn-success" onclick="location.href=httpsLink;">Continue to Setup</button>
+          </p>
+          <p class="text-muted" style="padding-top: 15px;">
+            <script>document.write(
+              'or visit <a href="' + httpsLink + '">' + httpsLink + '</a> to proceed'
+            )</script>
+          </p>
+        </div>
+      </div>
+      <div class="row">
+      </div>
+    </div>
+  </body>
+</html>
+~

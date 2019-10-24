@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="description" content="Form to upload TLS certificate and key">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>TLS Certificate and Key Upload</title>
+    <link rel="stylesheet" href="/tls/assets/tls.css" />
+</head>
+<body>
+    {{if .Error }}
+    <div class="error">
+        <p>The certficate and key pair you uploaded was invalid</p>
+    </div>
+    {{end}}
+    {{if .Success }}
+    <div class="success">
+        <p>Waiting for server to restart with new certificate</p>
+        <script>setTimeout(function() {location.href = "/"}, 2000);</script>
+    </div>
+    {{end}}
+    {{if .Enabled}}
+    <form class="upload" action="" method="post" enctype="multipart/form-data">
+        <div>
+            <label for="cert">Certificate</label>
+            <input id="cert" type="file" name="cert">
+        </div>
+
+        <div>
+            <label for="key">Key</label>
+            <input id="key" type="file" name="key">
+        </div>
+
+        <input type="submit">
+    </form>
+    {{end}}
+    {{if .Help}}
+    <div class="help">
+        <p>Anonymous uploads have been disabled. Set acceptAnonymousUploads to 1 in the {{ .Secret }} secret to re-enable.</p>
+    </div>
+    {{end}}
+</body>
+</html>

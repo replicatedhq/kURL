@@ -136,3 +136,48 @@ function kotsadm_secret_session() {
 
     kubernetes_scale_down default deployment kotsadm-api
 }
+
+function kotsadm_tls_secret() {
+#    if kubernetes_resource_exists default secret kotsadm-tls; then
+#        return 0
+#    fi
+
+    cat > kotsadm.cnf <<EOF
+[ req ]
+default_bits = 2048
+prompt = no
+default_md = sha256
+req_extensions = req_ext
+distinguished_name = dn
+
+[ dn ]
+CN = kotsadm-web.default.svc.cluster.local
+
+[ req_ext ]
+subjectAltName = @alt_names
+
+[ v3_ext ]
+authorityKeyIdentifier=keyid,issuer:always
+basicConstraints=CA:FALSE
+keyUsage=keyEncipherment,dataEncipherment
+extendedKeyUsage=serverAuth
+subjectAltName=@alt_names
+
+[ alt_names ]
+DNS.1 = kotsadm-web
+DNS.2 = kotsadm-web.default
+DNS.3 = kotsadm-web.default.svc
+DNS.4 = kotsadm-web.default.svc.cluster
+DNS.5 = kotsadm-web.default.svc.cluster.local
+IP.1 = $PRIVATE_ADDRESS
+EOF
+    if [ -n "$PUBLIC_ADDRESS" ]; then
+        echo "IP.2 = $PUBLIC_ADDRESS" >> kotsadm.cnf
+    fi
+
+    openssl req -newkey rsa:2048 -nodes -keyout kotsadm.key -config kotsadm.cnf -x509 -days 365 -out kotsadm.crt
+
+    kubectl -n default create secret generic kotsadm-tls --from-file=tls.key=kotsadm.key --from-file=tls.crt=kotsadm.crt --from-literal=acceptAnonymousUploads=1
+
+    rm kotsadm.cnf kotsadm.key kotsadm.crt
+}
