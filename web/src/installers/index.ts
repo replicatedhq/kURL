@@ -379,6 +379,8 @@ export class Installer {
       "0.33.0",
     ],
     kotsadm: [
+      "0.9.9",
+      "0.9.10",
       "0.9.11",
     ],
   }
