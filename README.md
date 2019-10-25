@@ -137,6 +137,7 @@ The `web` directory holds an Express app for serving the install scripts.
 1. Spin up an instance for the target OS, e.g. Ubuntu 18.04.
 1. Build the Kubernetes host packages for your desired version of Kubernetes. For K8s 1.15.2 on Ubuntu 18.04 you'd use `make build/packages/kubernetes/1.15.2/ubuntu-18.04`. (For packages that have already been released, you can save time by running `curl -L https://kurl.sh/dist/kubernetes-1.15.2.tar.gz | tar xzvf -` on your server.)
 1. Airgap only - build the Docker package: `make build/packages/docker/18.09.8/ubuntu-18.04`
+1. OPTIONAL - when developing the kurl-util image `export SYNC_KURL_UTIL_IMAGE=1`
 1. Run the task to watch for code changes and copy them to your server: `REMOTES=<user>@<hostname>,<user>@<hostname2> make watchrsync`
 1. Edit scripts/Manifest to configure Kubernetes and addons.
 

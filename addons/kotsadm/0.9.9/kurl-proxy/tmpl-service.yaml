@@ -1,12 +1,12 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: kurl-proxy
+  name: kurl-proxy-kotsadm
 spec:
   type: NodePort
   selector:
-    app: kurl-proxy
+    app: kurl-proxy-kotsadm
   ports:
   - port: 8800
     targetPort: 8800
-    nodePort: 8800
+    nodePort: ${KOTSADM_UI_BIND_PORT:-8800}

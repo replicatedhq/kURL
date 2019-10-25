@@ -7,13 +7,18 @@ if (!process.env.REMOTES) {
   process.exit(1);
 }
 
+const list = ['build/install.sh', 'build/join.sh', 'build/upgrade.sh', 'build/yaml', 'build/addons'];
+if (process.env.SYNC_KURL_UTIL_IMAGE) {
+  list.push('build/shared');
+}
+
 const commands = [
   {
     command: 'rm',
-    args: ['-rf', 'build/install.sh', 'build/join.sh', 'build/upgrade.sh', 'build/yaml', 'build/addons'],
+    args: ['-rf'].concat(list),
   },{
     command: 'make',
-    args: ['build/install.sh', 'build/join.sh', 'build/upgrade.sh', 'build/yaml', 'build/addons'],
+    args: list,
   }
 ];
 

@@ -29,9 +29,10 @@
         browserBodyText = ieText;
       }
 
-      var rawLink = window.location.href.substring(window.location.protocol.length).replace(/\/$/,'') + "/tls";
+      var rawLink = window.location.href.substring(window.location.protocol.length).replace(/\/$/,'');
       var httpsLink = "https:" + rawLink;
-      var opensslLink = rawLink.substring(2).replace("/tls", "");
+      var opensslLink = rawLink.substring(2).replace("/", "");
+      var tlsManagementLink = httpsLink + "/tls";
     </script>
   </head>
   <body>
@@ -89,11 +90,11 @@
         <hr />
         <div class="text-center">
           <p>
-            <button type="submit" class="btn-save btn btn-lg btn-success" onclick="location.href=httpsLink;">Continue to Setup</button>
+            <button type="submit" class="btn-save btn btn-lg btn-success" onclick="location.href=tlsManagementLink;">Continue to Setup</button>
           </p>
           <p class="text-muted" style="padding-top: 15px;">
             <script>document.write(
-              'or visit <a href="' + httpsLink + '">' + httpsLink + '</a> to proceed'
+              'or visit <a href="' + httpsLink + '">' + httpsLink + '</a> to proceed to application'
             )</script>
           </p>
         </div>

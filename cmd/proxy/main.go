@@ -213,9 +213,10 @@ func getHttpsServer(upstream *url.URL, tlsSecretName string, secrets corev1.Secr
 			return
 		}
 
-		c.Redirect(http.StatusFound, "/tls?success=1")
+		c.Redirect(http.StatusSeeOther, "/tls?success=1")
 
 		go func() {
+			time.Sleep(time.Millisecond * 100)
 			secret.Data["tls.crt"] = certData
 			secret.Data["tls.key"] = keyData
 			delete(secret.Data, "acceptAnonymousUploads")

@@ -12,9 +12,6 @@ function kotsadm() {
     cp "$src/schemahero.yaml" "$dst/"
     cp "$src/web.yaml" "$dst/"
 
-    render_yaml_file "$src/tmpl-web-node-port.yaml" > "$dst/web-service.yaml"
-    insert_resources "$dst/kustomization.yaml" web-service.yaml
-
     kotsadm_secret_auto_create_cluster_token
     kotsadm_secret_password
     kotsadm_secret_postgres
@@ -40,6 +37,8 @@ function kotsadm() {
     kubectl delete pod kotsadm-migrations || true;
 
     kubectl apply -k "$dst/"
+
+    kotsadm_kurl_proxy $src $dst
 }
 
 function kotsadm_outro() {
@@ -137,10 +136,28 @@ function kotsadm_secret_session() {
     kubernetes_scale_down default deployment kotsadm-api
 }
 
+function kotsadm_kurl_proxy() {
+    local src="$1/kurl-proxy"
+    local dst="$2/kurl-proxy"
+
+    mkdir -p "$dst"
+
+    cp "$src/kustomization.yaml" "$dst/"
+    cp "$src/deployment.yaml" "$dst/"
+    cp "$src/rbac.yaml" "$dst/"
+
+    render_yaml_file "$src/tmpl-service.yaml" > "$dst/service.yaml"
+    insert_resources "$dst/kustomization.yaml" service.yaml
+
+    kotsadm_tls_secret
+
+    kubectl apply -k "$dst/"
+}
+
 function kotsadm_tls_secret() {
-#    if kubernetes_resource_exists default secret kotsadm-tls; then
-#        return 0
-#    fi
+    if kubernetes_resource_exists default secret kotsadm-tls; then
+        return 0
+    fi
 
     cat > kotsadm.cnf <<EOF
 [ req ]

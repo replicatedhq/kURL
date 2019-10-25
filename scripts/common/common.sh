@@ -237,6 +237,17 @@ function spinner_until() {
     done
 }
 
+function get_shared() {
+    if [ "$AIRGAP" != "1" ] && [ -n "$KURL_URL" ]; then
+        curl -sSOL $KURL_URL/dist/common.tar.gz 
+        tar xf common.tar.gz
+        rm common.tar.gz
+    fi
+    if [ -f shared/kurl-util.tar ]; then
+        docker load < shared/kurl-util.tar
+    fi
+}
+
 splitHostPort() {
     oIFS="$IFS"; IFS=":" read -r HOST PORT <<< "$1"; IFS="$oIFS"
 }

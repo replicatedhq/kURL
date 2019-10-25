@@ -1,12 +1,4 @@
 
-function get_yaml() {
-    if [ "$AIRGAP" != "1" ] && [ -n "$KURL_URL" ]; then
-        curl -sSOL $KURL_URL/dist/common.tar.gz 
-        tar xf common.tar.gz
-        rm common.tar.gz
-    fi
-}
-
 function render_yaml() {
 	eval "echo \"$(cat $DIR/yaml/$1)\""
 }
