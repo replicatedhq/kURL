@@ -1,0 +1,6 @@
+FROM golang:1.13-buster
+
+WORKDIR /go/src/github.com/replicatedhq/kurl
+COPY . .
+
+RUN go build cmd/proxy/main.go

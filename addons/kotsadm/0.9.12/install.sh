@@ -12,9 +12,6 @@ function kotsadm() {
     cp "$src/schemahero.yaml" "$dst/"
     cp "$src/web.yaml" "$dst/"
 
-    render_yaml_file "$src/tmpl-web-node-port.yaml" > "$dst/web-service.yaml"
-    insert_resources "$dst/kustomization.yaml" web-service.yaml
-
     kotsadm_secret_auto_create_cluster_token
     kotsadm_secret_password
     kotsadm_secret_postgres
@@ -40,6 +37,8 @@ function kotsadm() {
     kubectl delete pod kotsadm-migrations || true;
 
     kubectl apply -k "$dst/"
+
+    kotsadm_kurl_proxy $src $dst
 }
 
 function kotsadm_outro() {
@@ -135,4 +134,67 @@ function kotsadm_secret_session() {
     insert_resources "$DIR/kustomize/kotsadm/kustomization.yaml" secret-session.yaml
 
     kubernetes_scale_down default deployment kotsadm-api
+}
+
+function kotsadm_kurl_proxy() {
+    local src="$1/kurl-proxy"
+    local dst="$2/kurl-proxy"
+
+    mkdir -p "$dst"
+
+    cp "$src/kustomization.yaml" "$dst/"
+    cp "$src/deployment.yaml" "$dst/"
+    cp "$src/rbac.yaml" "$dst/"
+
+    render_yaml_file "$src/tmpl-service.yaml" > "$dst/service.yaml"
+    insert_resources "$dst/kustomization.yaml" service.yaml
+
+    kotsadm_tls_secret
+
+    kubectl apply -k "$dst/"
+}
+
+function kotsadm_tls_secret() {
+    if kubernetes_resource_exists default secret kotsadm-tls; then
+        return 0
+    fi
+
+    cat > kotsadm.cnf <<EOF
+[ req ]
+default_bits = 2048
+prompt = no
+default_md = sha256
+req_extensions = req_ext
+distinguished_name = dn
+
+[ dn ]
+CN = kotsadm-web.default.svc.cluster.local
+
+[ req_ext ]
+subjectAltName = @alt_names
+
+[ v3_ext ]
+authorityKeyIdentifier=keyid,issuer:always
+basicConstraints=CA:FALSE
+keyUsage=keyEncipherment,dataEncipherment
+extendedKeyUsage=serverAuth
+subjectAltName=@alt_names
+
+[ alt_names ]
+DNS.1 = kotsadm-web
+DNS.2 = kotsadm-web.default
+DNS.3 = kotsadm-web.default.svc
+DNS.4 = kotsadm-web.default.svc.cluster
+DNS.5 = kotsadm-web.default.svc.cluster.local
+IP.1 = $PRIVATE_ADDRESS
+EOF
+    if [ -n "$PUBLIC_ADDRESS" ]; then
+        echo "IP.2 = $PUBLIC_ADDRESS" >> kotsadm.cnf
+    fi
+
+    openssl req -newkey rsa:2048 -nodes -keyout kotsadm.key -config kotsadm.cnf -x509 -days 365 -out kotsadm.crt
+
+    kubectl -n default create secret generic kotsadm-tls --from-file=tls.key=kotsadm.key --from-file=tls.crt=kotsadm.crt --from-literal=acceptAnonymousUploads=1
+
+    rm kotsadm.cnf kotsadm.key kotsadm.crt
 }

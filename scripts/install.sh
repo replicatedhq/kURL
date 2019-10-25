@@ -24,7 +24,7 @@ DIR=.
 function init() {
     logStep "Initialize Kubernetes"
 
-    get_yaml
+    get_shared
 
     kubernetes_maybe_generate_bootstrap_token
 

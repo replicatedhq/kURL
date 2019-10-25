@@ -1,12 +1,15 @@
 SHELL := /bin/bash
+KURL_UTIL_IMAGE := replicated/kurl-util:latest
 
 .PHONY: clean
 clean:
 	rm -rf build tmp dist
 
-dist/common.tar.gz: build/yaml
+dist/common.tar.gz: build/yaml build/shared
 	mkdir -p dist
-	tar cf - -C build yaml | gzip > dist/common.tar.gz
+	tar cf dist/common.tar -C build yaml
+	tar rf dist/common.tar -C build shared
+	gzip dist/common.tar
 
 dist/weave-%.tar.gz: build/addons
 	mkdir -p build/addons/weave/$*/images
@@ -149,6 +152,10 @@ build/yaml:
 	mkdir -p build
 	cp -r scripts/yaml build/
 
+build/shared: kurl-util-image
+	mkdir -p build/shared
+	docker save $(KURL_UTIL_IMAGE) > build/shared/kurl-util.tar
+
 build/packages/docker/%/ubuntu-16.04:
 	docker build \
 		--build-arg DOCKER_VERSION=$* \
@@ -237,3 +244,7 @@ web: build/templates build/bin/server
 
 watchrsync:
 	bin/watchrsync.js
+
+.PHONY: kurl-util-image
+kurl-util-image:
+	docker build -t replicated/kurl-util -f deploy/kurl-util/Dockerfile .

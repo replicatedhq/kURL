@@ -1,0 +1,7 @@
+FROM kurl/util-cache:latest
+
+COPY assets/ /assets
+
+COPY main.go cmd/proxy/main.go
+
+CMD ["go", "run", "cmd/proxy/main.go"]

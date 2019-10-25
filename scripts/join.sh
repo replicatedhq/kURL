@@ -20,7 +20,7 @@ DIR=.
 # Magic end
 
 function join() {
-    get_yaml
+    get_shared
 
     if [ "$MASTER" = "1" ]; then
         logStep "Join Kubernetes master node"
