@@ -130,11 +130,13 @@ func watchSecret(certs chan cert, name string, secrets corev1.SecretInterface) {
 
 			derBlock, _ := pem.Decode(certData)
 			if derBlock == nil {
-				log.Panic("No PEM data was found in certificate.")
+				log.Printf("Ignoring secret %s: no PEM data found in certificate", name)
+				break
 			}
 			x509Cert, err := x509.ParseCertificate(derBlock.Bytes)
 			if err != nil {
-				log.Panic(err)
+				log.Printf("Ignoring secret %s: parse certificate: %v", name, err)
+				break
 			}
 			//sha1 fingerprint is the hash of the certificate in DER form
 			fingerprint := strings.ToUpper(strings.Replace(fmt.Sprintf("% x", sha1.Sum(x509Cert.Raw)), " ", ":", -1))
