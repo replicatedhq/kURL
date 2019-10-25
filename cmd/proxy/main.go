@@ -39,6 +39,7 @@ func main() {
 	upstreamOrigin := os.Getenv("UPSTREAM_ORIGIN")
 	tlsSecretName := os.Getenv("TLS_SECRET_NAME")
 	namespace := os.Getenv("NAMESPACE")
+	nodePort := os.Getenv("NODE_PORT")
 
 	gin.SetMode(gin.ReleaseMode)
 
@@ -84,7 +85,7 @@ func main() {
 
 		m := cmux.New(listener)
 
-		httpsServer = getHttpsServer(upstream, tlsSecretName, secrets, cert.acceptAnonymousUploads)
+		httpsServer = getHttpsServer(upstream, tlsSecretName, secrets, cert.acceptAnonymousUploads, nodePort)
 		tlsConfig := &tls.Config{
 			Certificates: []tls.Certificate{cert.tlsCert},
 		}
@@ -93,7 +94,10 @@ func main() {
 		httpServer = getHttpServer(cert.fingerprint)
 		go httpServer.Serve(m.Match(cmux.Any()))
 
-		log.Printf("Kurl Proxy listening on :8800 with upstream %s\n and cert %s", upstreamOrigin, cert.fingerprint)
+		log.Println("Kurl Proxy listening on :8800")
+		log.Printf("\tupstream: %s\n", upstreamOrigin)
+		log.Printf("\tcert: %s\n", cert.fingerprint)
+		log.Printf("\tanonymous uploads enabled: %t\n", cert.acceptAnonymousUploads)
 
 		go func() {
 			err := m.Serve()
@@ -173,7 +177,7 @@ func getHttpServer(fingerprint string) *http.Server {
 	}
 }
 
-func getHttpsServer(upstream *url.URL, tlsSecretName string, secrets corev1.SecretInterface, acceptAnonymousUploads bool) *http.Server {
+func getHttpsServer(upstream *url.URL, tlsSecretName string, secrets corev1.SecretInterface, acceptAnonymousUploads bool, nodePort string) *http.Server {
 	mux := http.NewServeMux()
 
 	r := gin.Default()
@@ -214,7 +218,11 @@ func getHttpsServer(upstream *url.URL, tlsSecretName string, secrets corev1.Secr
 			return
 		}
 
-		c.Redirect(http.StatusSeeOther, "/tls?success=1")
+		location := fmt.Sprintf("https://%s:%s/tls?success=1", c.PostForm("hostname"), nodePort)
+		if c.PostForm("hostname") == "" {
+			location = "/tls?success=1"
+		}
+		c.Redirect(http.StatusSeeOther, location)
 
 		go func() {
 			time.Sleep(time.Millisecond * 100)

@@ -17,8 +17,8 @@ spec:
       - name: proxy
         image: kurl/proxy
         env:
-        - name: BIND_ADDR
-          value: ":8800"
+        - name: NODE_PORT
+          value: "8800"
         - name: UPSTREAM_ORIGIN
           value: http://127.0.0.1:8800
         - name: TLS_SECRET_NAME

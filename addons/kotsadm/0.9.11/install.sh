@@ -147,7 +147,7 @@ function kotsadm_kurl_proxy() {
     cp "$src/rbac.yaml" "$dst/"
 
     render_yaml_file "$src/tmpl-service.yaml" > "$dst/service.yaml"
-    insert_resources "$dst/kustomization.yaml" service.yaml
+    render_yaml_file "$src/tmpl-deployment.yaml" > "$dst/deployment.yaml"
 
     kotsadm_tls_secret
 
