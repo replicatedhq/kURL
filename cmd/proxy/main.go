@@ -36,7 +36,6 @@ type cert struct {
 }
 
 func main() {
-	bindAddr := os.Getenv("BIND_ADDR")
 	upstreamOrigin := os.Getenv("UPSTREAM_ORIGIN")
 	tlsSecretName := os.Getenv("TLS_SECRET_NAME")
 	namespace := os.Getenv("NAMESPACE")
@@ -77,7 +76,7 @@ func main() {
 			listener.Close()
 		}
 
-		l, err := net.Listen("tcp", bindAddr)
+		l, err := net.Listen("tcp", ":8800")
 		if err != nil {
 			log.Panic(err)
 		}
@@ -94,7 +93,7 @@ func main() {
 		httpServer = getHttpServer(cert.fingerprint)
 		go httpServer.Serve(m.Match(cmux.Any()))
 
-		log.Printf("Kurl Proxy listening on %s with upstream %s\n and cert %s", bindAddr, upstreamOrigin, cert.fingerprint)
+		log.Printf("Kurl Proxy listening on :8800 with upstream %s\n and cert %s", upstreamOrigin, cert.fingerprint)
 
 		go func() {
 			err := m.Serve()
