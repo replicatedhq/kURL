@@ -155,6 +155,48 @@ code {
   background-color: #F5F8FC;
 }
 
+.form-input {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  border: 1px solid #DFDFDF;
+  border-radius: 4px;
+  outline: 0;
+  font-size: 12px;
+  font-weight: normal;
+  line-height: normal;
+  color: #323232;
+  padding: 7px 12px 8px;
+  transition: border .2s;
+  height: 38px;
+}
+
+.form-input:active,
+.form-input:focus {
+  border-color: #326DE6;
+}
+
+.form-input.larger {
+  padding: 11px 12px 12px;
+}
+
+.form-input.has-error,
+.form-input.has-error:focus,
+.form-input.has-error:active {
+  border-color: #EE5042;
+}
+.form-input.is-disabled {
+  user-select: none;
+  cursor: not-allowed;
+  background-color: #F8F8F8;
+  border-color: #DFDFDF;
+  color: #717171;
+}
+
+.form-input::placeholder {
+  color: #C4C7CA;
+}
+
 .btn {
   cursor: pointer;
   padding: 7px 12px 8px;

@@ -39,6 +39,11 @@
                 <p class="tls-section-sub">Files will be uploaded directly to the mangement server & will never leave.</p>
             </div>
             <form class="flex-column" action="" method="post" enctype="multipart/form-data">
+                <div>
+                    <p class="tls-section-header">Hostname</p>
+                    <p class="tls-section-sub">Ensure this domain name is routable on your network.</p>
+                    <input class="form-input larger" type="text" name="hostname" placeholder="app.yourdomain.com" style="width: 200px; margin-bottom: 20px;" />
+                </div>
                 <div class="flex upload-form">
                     <div class="u-position--relative flex-column flex-auto u-marginRight--15">
                         <label class="tls-section-header" for="cert">Upload SSL certificate</label>
