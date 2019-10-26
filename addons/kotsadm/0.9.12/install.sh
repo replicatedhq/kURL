@@ -143,7 +143,6 @@ function kotsadm_kurl_proxy() {
     mkdir -p "$dst"
 
     cp "$src/kustomization.yaml" "$dst/"
-    cp "$src/deployment.yaml" "$dst/"
     cp "$src/rbac.yaml" "$dst/"
 
     render_yaml_file "$src/tmpl-service.yaml" > "$dst/service.yaml"
