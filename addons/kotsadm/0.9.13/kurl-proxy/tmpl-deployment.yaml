@@ -20,6 +20,8 @@ spec:
         - proxy
         imagePullPolicy: IfNotPresent
         env:
+        - name: NODE_PORT
+          value: \"8800\"
         - name: UPSTREAM_ORIGIN
           value: http://kotsadm-web:3000
         - name: TLS_SECRET_NAME
