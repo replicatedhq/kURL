@@ -68,7 +68,7 @@ jobs:
           version: 17.06.0-ce
       - run: |
           docker build -t replicated/kurl-util -f deploy/kurl-util/Dockerfile .
-          docker login -u="$DOCKERHUB_DOCKER_USER" -p="$DOCKERHUB_DOCKER_PASS"¬
+          docker login -u="$DOCKERHUB_DOCKER_USER" -p="$DOCKERHUB_DOCKER_PASS"
           docker push replicated/kurl-util
 
   build_staging_docker_image:
