@@ -153,11 +153,7 @@ workflows:
 
   pull-request:
     jobs:
-      - push_util_image:
-          filters:
-            branches:
-              only:
-                - build
+      - push_util_image
       - test:
           filters:
             branches:
