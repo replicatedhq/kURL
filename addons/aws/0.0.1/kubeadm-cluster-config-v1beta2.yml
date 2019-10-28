@@ -1,0 +1,17 @@
+---
+apiVersion: kubeadm.k8s.io/v1beta2
+kind: ClusterConfiguration
+metadata:
+  name: kubeadm-cluster-configuration
+networking:
+  podSubnet: $POD_CIDR
+  serviceSubnet: $SERVICE_CIDR
+apiServer:
+  extraArgs:
+    cloud-provider: aws
+    enable-admission-plugins: DefaultStorageClass
+controllerManager:
+  extraArgs:
+    cloud-provider: aws
+    configure-cloud-routes: '"true"'
+    address: 0.0.0.0

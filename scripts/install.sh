@@ -218,6 +218,7 @@ function main() {
     upgrade_kubernetes_patch
     kubernetes_host
     setup_kubeadm_kustomize
+    addon_pre_init aws "$AWS_VERSION"
     addon_pre_init weave "$WEAVE_VERSION"
     addon_pre_init rook "$ROOK_VERSION"
     addon_pre_init contour "$CONTOUR_VERSION"
@@ -225,6 +226,7 @@ function main() {
     addon_pre_init prometheus "$PROMETHEUS_VERSION"
     addon_pre_init kotsadm "$KOTSADM_VERSION"
     init
+    addon aws "$AWS_VERSION"
     addon weave "$WEAVE_VERSION"
     addon rook "$ROOK_VERSION"
     addon contour "$CONTOUR_VERSION"
