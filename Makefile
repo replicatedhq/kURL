@@ -5,9 +5,9 @@ KURL_UTIL_IMAGE := replicated/kurl-util:latest
 clean:
 	rm -rf build tmp dist
 
-dist/common.tar.gz: build/yaml build/shared
+dist/common.tar.gz: build/kustomize build/shared
 	mkdir -p dist
-	tar cf dist/common.tar -C build yaml
+	tar cf dist/common.tar -C build kustomize
 	tar rf dist/common.tar -C build shared
 	gzip dist/common.tar
 
@@ -148,9 +148,9 @@ build/addons:
 	mkdir -p build
 	cp -r addons build/
 
-build/yaml:
+build/kustomize:
 	mkdir -p build
-	cp -r scripts/yaml build/
+	cp -r kustomize build/
 
 build/shared: kurl-util-image
 	mkdir -p build/shared
@@ -231,7 +231,7 @@ build/packages/kubernetes/%/rhel-7:
 build/templates: build/templates/install.tmpl build/templates/join.tmpl build/templates/upgrade.tmpl
 
 .PHONY: code
-code: build/templates build/yaml build/addons
+code: build/templates build/kustomize build/addons
 
 build/bin/server:
 	go build -o build/bin/server cmd/server/main.go

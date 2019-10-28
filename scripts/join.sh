@@ -37,12 +37,23 @@ function join() {
         logStep "Join Kubernetes node"
     fi
 
-    mkdir -p "$KUBEADM_CONF_DIR"
-    render_yaml kubeadm-join-config-v1beta2.yaml > "$KUBEADM_CONF_FILE"
+    kustomize_kubeadm_join=./kustomize/kubeadm/join
     if [ "$MASTER" = "1" ]; then
-        echo "controlPlane:" >> "$KUBEADM_CONF_FILE"
-        echo "  certificateKey: $CERT_KEY" >> "$KUBEADM_CONF_FILE"
+        insert_patches_strategic_merge \
+            $kustomize_kubeadm_join/kustomization.yaml \
+            patch-certificate-key.yaml
     fi
+    # Add kubeadm join patches from addons.
+    for patch in $(ls -1 ${kustomize_kubeadm_join}-patches/* 2>/dev/null || echo); do
+        patch_basename="$(basename $patch)"
+        cp $patch $kustomize_kubeadm_join/$patch_basename
+        insert_patches_strategic_merge \
+            $kustomize_kubeadm_join/kustomization.yaml \
+            $patch_basename
+    done
+    mkdir -p "$KUBEADM_CONF_DIR"
+    kustomize build $kustomize_kubeadm_join > $KUBEADM_CONF_DIR/kubeadm-join-raw.yaml
+    render_yaml_file $KUBEADM_CONF_DIR/kubeadm-join-raw.yaml > $KUBEADM_CONF_FILE
 
     set +e
     (set -x; kubeadm join --config /opt/replicated/kubeadm.conf --ignore-preflight-errors=all)
@@ -86,6 +97,7 @@ function main() {
     prompts
     configure_proxy
     install_docker
+    setup_kubeadm_kustomize
     addon_join weave "$WEAVE_VERSION"
     addon_join rook "$ROOK_VERSION"
     addon_join contour "$CONTOUR_VERSION"

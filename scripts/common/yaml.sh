@@ -28,3 +28,16 @@ function insert_resources() {
 
     sed -i "/resources.*/a - $resource_file" "$kustomization_file"
 }
+
+function setup_kubeadm_kustomize() {
+    # Clean up the source directories for the kubeadm kustomize resources and
+    # patches.
+    rm -rf $DIR/kustomize/kubeadm/init
+    cp -rf $DIR/kustomize/kubeadm/init-orig $DIR/kustomize/kubeadm/init
+    rm -rf $DIR/kustomize/kubeadm/join
+    cp -rf $DIR/kustomize/kubeadm/join-orig $DIR/kustomize/kubeadm/join
+    rm -rf $DIR/kustomize/kubeadm/init-patches
+    mkdir -p $DIR/kustomize/kubeadm/init-patches
+    rm -rf $DIR/kustomize/kubeadm/join-patches
+    mkdir -p $DIR/kustomize/kubeadm/join-patches
+}

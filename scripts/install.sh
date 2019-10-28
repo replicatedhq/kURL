@@ -40,24 +40,37 @@ function init() {
         API_SERVICE_ADDRESS="$LOAD_BALANCER_ADDRESS:$LOAD_BALANCER_PORT"
     fi
 
-    mkdir -p "$KUBEADM_CONF_DIR"
-    render_yaml kubeadm-init-config-v1beta2.yml > "$KUBEADM_CONF_FILE"
+    kustomize_kubeadm_init=./kustomize/kubeadm/init
     CERT_KEY=
     CERT_KEY_EXPIRY=
     if [ "$HA_CLUSTER" = "1" ]; then
         CERT_KEY=$(< /dev/urandom tr -dc a-f0-9 | head -c64)
         CERT_KEY_EXPIRY=$(date -d "+2 hour" --rfc-3339=second | sed 's/ /T/')
-        echo "certificateKey: $CERT_KEY" >> "$KUBEADM_CONF_FILE"
+        insert_patches_strategic_merge \
+            $kustomize_kubeadm_init/kustomization.yaml \
+            patch-certificate-key.yaml
     fi
-    render_yaml kubeproxy-config-v1alpha1.yml >> "$KUBEADM_CONF_FILE"
-    render_yaml kubeadm-cluster-config-v1beta2.yml >> "$KUBEADM_CONF_FILE"
     if [ -n "$PUBLIC_ADDRESS" ]; then
-        echo "  - $PUBLIC_ADDRESS" >> "$KUBEADM_CONF_FILE"
+        insert_patches_strategic_merge \
+            $kustomize_kubeadm_init/kustomization.yaml \
+            patch-public-address.yaml
     fi
     if [ -n "$LOAD_BALANCER_ADDRESS" ]; then
-        echo "  - $LOAD_BALANCER_ADDRESS" >> "$KUBEADM_CONF_FILE"
-        echo "controlPlaneEndpoint: $LOAD_BALANCER_ADDRESS:$LOAD_BALANCER_PORT" >> "$KUBEADM_CONF_FILE"
+        insert_patches_strategic_merge \
+            $kustomize_kubeadm_init/kustomization.yaml \
+            patch-load-balancer-address.yaml
     fi
+    # Add kubeadm init patches from addons.
+    for patch in $(ls -1 ${kustomize_kubeadm_init}-patches/* 2>/dev/null || echo); do
+        patch_basename="$(basename $patch)"
+        cp $patch $kustomize_kubeadm_init/$patch_basename
+        insert_patches_strategic_merge \
+            $kustomize_kubeadm_init/kustomization.yaml \
+            $patch_basename
+    done
+    mkdir -p "$KUBEADM_CONF_DIR"
+    kustomize build $kustomize_kubeadm_init > $KUBEADM_CONF_DIR/kubeadm-init-raw.yaml
+    render_yaml_file $KUBEADM_CONF_DIR/kubeadm-init-raw.yaml > $KUBEADM_CONF_FILE
 
     if [ "$HA_CLUSTER" = "1" ]; then
         UPLOAD_CERTS="--upload-certs"
@@ -67,7 +80,7 @@ function init() {
     disable_rook_ceph_operator
     kubeadm init \
         --ignore-preflight-errors=all \
-        --config /opt/replicated/kubeadm.conf \
+        --config $KUBEADM_CONF_FILE \
         $UPLOAD_CERTS \
         | tee /tmp/kubeadm-init
 
@@ -204,6 +217,13 @@ function main() {
     install_docker
     upgrade_kubernetes_patch
     kubernetes_host
+    setup_kubeadm_kustomize
+    addon_pre_init weave "$WEAVE_VERSION"
+    addon_pre_init rook "$ROOK_VERSION"
+    addon_pre_init contour "$CONTOUR_VERSION"
+    addon_pre_init registry "$REGISTRY_VERSION"
+    addon_pre_init prometheus "$PROMETHEUS_VERSION"
+    addon_pre_init kotsadm "$KOTSADM_VERSION"
     init
     addon weave "$WEAVE_VERSION"
     addon rook "$ROOK_VERSION"

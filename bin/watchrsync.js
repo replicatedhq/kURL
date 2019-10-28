@@ -7,7 +7,7 @@ if (!process.env.REMOTES) {
   process.exit(1);
 }
 
-const list = ['build/install.sh', 'build/join.sh', 'build/upgrade.sh', 'build/yaml', 'build/addons'];
+const list = ['build/install.sh', 'build/join.sh', 'build/upgrade.sh', 'build/kustomize', 'build/addons'];
 if (process.env.SYNC_KURL_UTIL_IMAGE) {
   list.push('build/shared');
 }

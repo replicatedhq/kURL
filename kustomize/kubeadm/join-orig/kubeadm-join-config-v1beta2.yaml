@@ -1,6 +1,8 @@
 ---
 kind: JoinConfiguration
 apiVersion: kubeadm.k8s.io/v1beta2
+metadata:
+  name: kubeadm-join-configuration
 nodeRegistration:
   taints: []
   kubeletExtraArgs:

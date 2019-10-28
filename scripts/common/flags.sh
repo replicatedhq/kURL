@@ -1,5 +1,7 @@
 
 function flags() {
+    POD_CIDR="172.20.0.0/16"
+    SERVICE_CIDR="10.96.0.0/12"
     while [ "$1" != "" ]; do
         _param="$(echo "$1" | cut -d= -f1)"
         _value="$(echo "$1" | grep '=' | cut -d= -f2-)"
@@ -148,6 +150,12 @@ function flags() {
                 ;;
             kotsadm-ui-bind-port|kotsadm_ui_bind_port)
                 KOTSADM_UI_BIND_PORT="$_value"
+                ;;
+            pod-cidr|pod_cidr)
+                POD_CIDR="$_value"
+                ;;
+            service-cidr|service_cidr)
+                SERVICE_CIDR="$_value"
                 ;;
             *)
                 echo >&2 "Error: unknown parameter \"$_param\""
