@@ -1,0 +1,4 @@
+steps:
+  - label: "test"
+    commands:
+      - make -C web test
