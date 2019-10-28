@@ -1,0 +1,4 @@
+calico/cni:v3.9.1
+calico/kube-controllers:v3.9.1
+calico/node:v3.9.1
+calico/pod2daemon-flexvol:v3.9.1
