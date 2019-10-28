@@ -54,15 +54,12 @@
                     </div>
                 </div>
     
-                <div class="button-wrapper">
+                <div class="button-wrapper flex alignItems--center">
                     <button class="btn primary" type="submit">Upload &amp; continue</button>
-                </div>
-            </form>
-
-            <form class="flex-column" action="" method="post" enctyp="multipart/form-data">
-                <input type="hidden" name="skip" value="true">
-                <div class="button-wrapper">
-                    <button class="btn secondary" type="submit">Skip &amp; continue</button>
+                    <div class="flex-column justifyContent--center">
+                        <input type="hidden" name="skip" value="true">
+                        <button class="text-button" type="submit">Skip &amp; continue</button>
+                    </div>
                 </div>
             </form>
         </div>

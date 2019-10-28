@@ -244,6 +244,22 @@ code {
   color: #9B9B9B;
 }
 
+button.text-button {
+  border: none;
+  background-color: inherit;
+  padding: 0;
+  cursor: pointer;
+  display: inline-block;
+  color: #326DE6;
+  margin-left: 15px;
+  font-weight: 500;
+  font-size: 12px;
+}
+
+button.text-button:hover {
+  text-decoration: underline;
+}
+
 .flex {
 	display: flex;
 	flex-direction: row;
