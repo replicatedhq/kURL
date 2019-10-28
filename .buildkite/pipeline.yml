@@ -2,7 +2,7 @@ steps:
   - label: "test"
     commands:
       - make -C web test
-    plugins:¬
+    plugins:
       - docker#v3.0.1:
           always-pull: true
           image: replicated/gitops-builder:buildkite
