@@ -153,7 +153,6 @@ workflows:
 
   pull-request:
     jobs:
-      - push_util_image
       - test:
           filters:
             branches:
@@ -185,6 +184,9 @@ workflows:
           requires:
             - deploy_staging_eks
       - upload_production_packages:
+          requires:
+            - hold
+      - push_util_image:
           requires:
             - hold
       - deploy_production_eks:
