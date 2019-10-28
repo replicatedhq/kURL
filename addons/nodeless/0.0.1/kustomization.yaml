@@ -1,0 +1,6 @@
+resources:
+- ip-masq-agent.yaml
+- kiyot-device-plugin.yaml
+- kiyot-kube-proxy.yaml
+- kiyot-webhook.yaml
+- kiyot.yaml

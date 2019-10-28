@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: kiyot-device-plugin
+  namespace: kube-system
+spec:
+  selector:
+    matchLabels:
+      name: kiyot-device-plugin
+  updateStrategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        name: kiyot-device-plugin
+    spec:
+      priorityClassName: "system-node-critical"
+      nodeSelector:
+        elotl.co/milpa-worker: \"\"
+      containers:
+      - image: elotl/kiyot-device-plugin:latest
+        name: kiyot-device-plugin
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop: ["ALL"]
+        volumeMounts:
+          - name: device-plugin
+            mountPath: /var/lib/kubelet/device-plugins
+      volumes:
+        - name: device-plugin
+          hostPath:
+            path: /var/lib/kubelet/device-plugins

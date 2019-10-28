@@ -1,0 +1,70 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kiyot-webhook
+  namespace: kube-system
+  labels:
+    app: kiyot-webhook
+spec:
+  selector:
+    matchLabels:
+      app: kiyot-webhook
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: kiyot-webhook
+    spec:
+      containers:
+        - name: kiyot-webhook
+          image: elotl/kiyot-webhook
+          imagePullPolicy: Always
+          args:
+            - -tlsCertFile=/etc/webhook/certs/cert.pem
+            - -tlsKeyFile=/etc/webhook/certs/key.pem
+            - -alsologtostderr
+            - -v=4
+            - 2>&1
+          volumeMounts:
+            - name: webhook-certs
+              mountPath: /etc/webhook/certs
+              readOnly: true
+      volumes:
+        - name: webhook-certs
+          secret:
+            secretName: kiyot-webhook-certs
+---
+apiVersion: admissionregistration.k8s.io/v1beta1
+kind: MutatingWebhookConfiguration
+metadata:
+  name: kiyot-webhook-cfg
+  labels:
+    app: kiyot-webhook
+webhooks:
+  - name: kiyot-webhook.elotl.co
+    clientConfig:
+      service:
+        name: kiyot-webhook-svc
+        namespace: kube-system
+        path: "/mutate"
+      caBundle: "${CA_BUNDLE}"
+    rules:
+      - operations: [ "CREATE" ]
+        apiGroups: [\"\"]
+        apiVersions: ["v1"]
+        resources: ["pods"]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kiyot-webhook-svc
+  namespace: kube-system
+  labels:
+    app: kiyot-webhook
+spec:
+  ports:
+  - port: 443
+    targetPort: 443
+  selector:
+    app: kiyot-webhook
