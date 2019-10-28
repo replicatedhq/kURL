@@ -199,27 +199,32 @@ func getHttpsServer(upstream *url.URL, tlsSecretName string, secrets corev1.Secr
 		})
 	})
 
-	r.POST("/tls", func(c *gin.Context) {
+	r.POST("/tls/skip", func(c *gin.Context) {
 		if !acceptAnonymousUploads {
 			c.AbortWithStatus(403)
 			return
 		}
 
-		if c.PostForm("skip") == "true" {
-			secret, err := secrets.Get(tlsSecretName, metav1.GetOptions{})
-			if err != nil {
-				log.Print(err)
-				c.AbortWithStatus(http.StatusInternalServerError)
-				return
-			}
-			delete(secret.Data, "acceptAnonymousUploads")
-			_, err = secrets.Update(secret)
-			if err != nil {
-				log.Print(err)
-				c.AbortWithStatus(http.StatusInternalServerError)
-				return
-			}
-			c.Redirect(http.StatusSeeOther, "/")
+		secret, err := secrets.Get(tlsSecretName, metav1.GetOptions{})
+		if err != nil {
+			log.Print(err)
+			c.AbortWithStatus(http.StatusInternalServerError)
+			return
+		}
+		delete(secret.Data, "acceptAnonymousUploads")
+		_, err = secrets.Update(secret)
+		if err != nil {
+			log.Printf("POST /tls/skip: %v", err)
+			c.AbortWithStatus(http.StatusInternalServerError)
+			return
+		}
+
+		c.Redirect(http.StatusSeeOther, "/")
+	})
+
+	r.POST("/tls", func(c *gin.Context) {
+		if !acceptAnonymousUploads {
+			c.AbortWithStatus(403)
 			return
 		}
 
@@ -257,6 +262,7 @@ func getHttpsServer(upstream *url.URL, tlsSecretName string, secrets corev1.Secr
 		}()
 	})
 	mux.Handle("/tls", r)
+	mux.Handle("/tls/skip", r)
 
 	mux.Handle("/", httputil.NewSingleHostReverseProxy(upstream))
 
