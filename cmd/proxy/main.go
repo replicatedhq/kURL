@@ -204,6 +204,25 @@ func getHttpsServer(upstream *url.URL, tlsSecretName string, secrets corev1.Secr
 			c.AbortWithStatus(403)
 			return
 		}
+
+		if c.PostForm("skip") == "true" {
+			secret, err := secrets.Get(tlsSecretName, metav1.GetOptions{})
+			if err != nil {
+				log.Print(err)
+				c.AbortWithStatus(http.StatusInternalServerError)
+				return
+			}
+			delete(secret.Data, "acceptAnonymousUploads")
+			_, err = secrets.Update(secret)
+			if err != nil {
+				log.Print(err)
+				c.AbortWithStatus(http.StatusInternalServerError)
+				return
+			}
+			c.Redirect(http.StatusSeeOther, "/")
+			return
+		}
+
 		certData, keyData, err := getUploadedCerts(c)
 		if err != nil {
 			log.Printf("POST /tls: %v", err)
