@@ -32,7 +32,6 @@ jobs:
 
   upload_staging_packages:
     <<: *defaults
-    parallelism: 8
     steps:
       - checkout
       - setup_remote_docker:
@@ -47,7 +46,6 @@ jobs:
 
   upload_production_packages:
     <<: *defaults
-    parallelism: 8
     steps:
       - checkout
       - setup_remote_docker:
