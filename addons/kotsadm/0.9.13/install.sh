@@ -17,6 +17,9 @@ function kotsadm() {
     kotsadm_secret_postgres
     kotsadm_secret_s3
     kotsadm_secret_session
+    if [ -n "$PROMETHEUS_VERSION" ]; then
+        kotsadm_api_patch_prometheus
+    fi
 
 
     if [ "$AIRGAP" != "1" ]; then
@@ -134,6 +137,11 @@ function kotsadm_secret_session() {
     insert_resources "$DIR/kustomize/kotsadm/kustomization.yaml" secret-session.yaml
 
     kubernetes_scale_down default deployment kotsadm-api
+}
+
+function kotsadm_api_patch_prometheus() {
+    insert_patches_strategic_merge "$DIR/kustomize/kotsadm/kustomization.yaml" api-prometheus.yaml
+    cp "$DIR/addons/kotsadm/0.9.13/patches/api-prometheus.yaml" "$DIR/kustomize/kotsadm/api-prometheus.yaml"
 }
 
 function kotsadm_kurl_proxy() {
