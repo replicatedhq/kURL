@@ -15,6 +15,15 @@ rules:
 - apiGroups:
   - ""
   resources:
+  - configmaps
+  resourceNames:
+  - kubeadm-config
+  verbs:
+  - get
+  - update
+- apiGroups:
+  - ""
+  resources:
   - secrets
   resourceNames:
   - registry-creds
@@ -39,8 +48,16 @@ rules:
   - ""
   resources:
   - pods/eviction
+  - pods/exec
   verbs:
   - create
+- apiGroups:
+  - "apps"
+  resources:
+  - deployments
+  verbs:
+  - list
+  - delete
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -151,6 +168,14 @@ spec:
           value: "0"
         - name: ENABLE_KURL
           value: "1"
+        volumeMounts:
+        - name: etcd-client-cert
+          readOnly: true
+          mountPath: /etc/kubernetes/pki/etcd
+      volumes:
+      - name: etcd-client-cert
+        secret:
+          secretName: etcd-client-cert
 ---
 apiVersion: v1
 kind: Service

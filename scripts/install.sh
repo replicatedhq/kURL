@@ -105,7 +105,7 @@ function outro() {
         dockerRegistryIP=" docker-registry-ip=$DOCKER_REGISTRY_IP"
     fi
 
-    KUBEADM_TOKEN_CA_HASH=$(cat /tmp/kubeadm-init | grep 'discovery-token-ca-cert-hash' | awk '{ print $(NF) }')
+    KUBEADM_TOKEN_CA_HASH=$(cat /tmp/kubeadm-init | grep 'discovery-token-ca-cert-hash' | awk '{ print $2 }' | head -1)
 
     printf "\n"
     printf "\t\t${GREEN}Installation${NC}\n"
