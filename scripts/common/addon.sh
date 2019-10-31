@@ -23,6 +23,10 @@ function addon_join() {
     local name=$1
     local version=$2
 
+    if [ -z "$version" ]; then
+        return 0
+    fi
+
     addon_load "$name" "$version"
 
     . $DIR/addons/$name/$version/install.sh

@@ -21,6 +21,7 @@ function kotsadm() {
         kotsadm_api_patch_prometheus
     fi
 
+    kotsadm_etcd_client_secret
 
     if [ "$AIRGAP" != "1" ]; then
         curl $REPLICATED_APP_URL/metadata/$KOTSADM_APPLICATION_SLUG > "$src/application.yaml"
@@ -161,6 +162,7 @@ function kotsadm_kurl_proxy() {
     kubectl apply -k "$dst/"
 }
 
+# TODO rotate without overwriting uploaded certs
 function kotsadm_tls_secret() {
     if kubernetes_resource_exists default secret kotsadm-tls; then
         return 0
@@ -204,4 +206,16 @@ EOF
     kubectl -n default create secret generic kotsadm-tls --from-file=tls.key=kotsadm.key --from-file=tls.crt=kotsadm.crt --from-literal=acceptAnonymousUploads=1
 
     rm kotsadm.cnf kotsadm.key kotsadm.crt
+}
+
+# TODO rotate
+function kotsadm_etcd_client_secret() {
+    if kubernetes_resource_exists default secret etcd-client-cert; then
+        return 0
+    fi
+
+    kubectl -n default create secret generic etcd-client-cert \
+        --from-file=client.crt=/etc/kubernetes/pki/etcd/healthcheck-client.crt \
+        --from-file=client.key=/etc/kubernetes/pki/etcd/healthcheck-client.key \
+        --from-file=/etc/kubernetes/pki/etcd/ca.crt
 }
