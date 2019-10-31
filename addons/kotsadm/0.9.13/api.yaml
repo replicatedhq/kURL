@@ -48,9 +48,16 @@ rules:
   - ""
   resources:
   - pods/eviction
-  - pods/exec
   verbs:
   - create
+- apiGroups:
+  - ""
+  resources:
+  - pods/exec
+  - pods/logs
+  verbs:
+  - get
+  - list
 - apiGroups:
   - "apps"
   resources:
