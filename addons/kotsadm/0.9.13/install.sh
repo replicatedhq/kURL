@@ -18,7 +18,7 @@ function kotsadm() {
     kotsadm_secret_s3
     kotsadm_secret_session
 
-	kotsadm_etcd_client_secret
+    kotsadm_etcd_client_secret
 
     if [ "$AIRGAP" != "1" ]; then
         curl $REPLICATED_APP_URL/metadata/$KOTSADM_APPLICATION_SLUG > "$src/application.yaml"
@@ -203,8 +203,8 @@ EOF
 # TODO rotate
 function kotsadm_etcd_client_secret() {
     if kubernetes_resource_exists default secret etcd-client-cert; then
-		return 0
-	fi
+        return 0
+    fi
 
     kubectl -n default create secret generic etcd-client-cert \
         --from-file=client.crt=/etc/kubernetes/pki/etcd/healthcheck-client.crt \
