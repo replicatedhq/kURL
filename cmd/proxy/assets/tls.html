@@ -9,6 +9,14 @@
     <link rel="stylesheet" href="/tls/assets/tls-custom.css" />
 </head>
 <body>
+    <div style="display: none">
+        {{if .AppIcon }}
+        <img src="{{ .AppIcon }}" />
+        {{end}}
+        {{ if .AppTitle }}
+        <h1>{{ .AppTitle }}</h1>
+        {{end}}
+    </div>
     {{if .Error }}
     <div class="tlsContent--wrapper">
         <div class="notification is-warning">
