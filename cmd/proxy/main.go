@@ -20,6 +20,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
 	"github.com/soheilhy/cmux"
+	"gopkg.in/yaml.v2"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/fields"
@@ -186,16 +187,22 @@ func getHttpsServer(upstream *url.URL, tlsSecretName string, secrets corev1.Secr
 	r.LoadHTMLGlob("/assets/*.html")
 
 	r.GET("/tls", func(c *gin.Context) {
-		err := c.Query("error") != ""
+		isErr := c.Query("error") != ""
 		success := c.Query("success") != ""
 		enabled := !success && acceptAnonymousUploads
-		help := !err && !success && !acceptAnonymousUploads
+		help := !isErr && !success && !acceptAnonymousUploads
+		app, err := kotsadmApplication()
+		if err != nil {
+			log.Printf("No kotsadm application metadata: %v", err)
+		}
 		c.HTML(http.StatusOK, "tls.html", gin.H{
-			"Error":   err,
-			"Success": success,
-			"Enabled": enabled,
-			"Help":    help,
-			"Secret":  tlsSecretName,
+			"Error":    isErr,
+			"Success":  success,
+			"Enabled":  enabled,
+			"Help":     help,
+			"Secret":   tlsSecretName,
+			"AppIcon":  app.Spec.Icon,
+			"AppTitle": app.Spec.Title,
 		})
 	})
 
@@ -307,4 +314,26 @@ func getUploadedCerts(c *gin.Context) ([]byte, []byte, error) {
 	}
 
 	return certData, keyData, nil
+}
+
+type kotsadmAppSpec struct {
+	Title string `yaml:"title"`
+	Icon  string `yaml:"icon"`
+}
+type kotsadmApp struct {
+	Spec kotsadmAppSpec `yaml:"spec"`
+}
+
+func kotsadmApplication() (kotsadmApp, error) {
+	app := kotsadmApp{}
+
+	data, err := ioutil.ReadFile("/etc/kotsadm/application.yaml")
+	if err != nil {
+		return app, errors.Wrap(err, "read file /etc/kotsadm/application.yaml")
+	}
+	err = yaml.Unmarshal(data, &app)
+	if err != nil {
+		return app, errors.Wrap(err, "unmarshal /etc/kotsadm/application.yaml")
+	}
+	return app, nil
 }

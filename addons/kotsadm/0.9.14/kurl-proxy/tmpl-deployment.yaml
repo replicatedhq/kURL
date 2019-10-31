@@ -30,4 +30,12 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
+        volumeMounts:
+        - name: kotsadm-config
+          mountPath: /etc/kotsadm
       serviceAccount: kurl-proxy
+      volumes:
+      - name: kotsadm-config
+        configMap:
+          name: kotsadm-application-metadata
+          optional: true
