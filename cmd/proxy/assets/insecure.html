@@ -53,9 +53,11 @@
                 <div class="CodeSnippet-content">
                   <p>Verifying the certificate's authenticity</p>
                   <pre>
-                    <script>document.write(
-                      '$ echo | openssl s_client -servername local -connect ' + opensslLink + ' 2>/dev/null | openssl x509 -noout -fingerprint'
-                    )</script>
+                    <code>
+                      <script>document.write(
+                        '$ echo | openssl s_client -servername local -connect ' + opensslLink + ' 2>/dev/null | openssl x509 -noout -fingerprint'
+                      )</script>
+                    </code>
                   </pre>
                 </div>
               </div>
