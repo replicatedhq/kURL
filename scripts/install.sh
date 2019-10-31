@@ -101,11 +101,15 @@ function kurl_config() {
     kubectl -n kube-system create configmap kurl-config \
         --from-literal=kurl_url=$KURL_URL \
         --from-literal=installer_id=$INSTALLER_ID \
-        --from-literal=ha=$HA_CLUSTER \
-        --from-literal=airgap=$AIRGAP \
+        --from-literal=ha="$HA_CLUSTER" \
+        --from-literal=airgap="$AIRGAP" \
         --from-literal=ca_hash=$KUBEADM_TOKEN_CA_HASH \
         --from-literal=docker_registry_ip=$DOCKER_REGISTRY_IP \
-        --from-literal=kubernetes_api_address=$API_SERVICE_ADDRESS
+        --from-literal=kubernetes_api_address=$API_SERVICE_ADDRESS \
+        --from-literal=bootstrap_token=$BOOTSTRAP_TOKEN \
+        --from-literal=bootstrap_token_expiration=TODO_24_HOURS \
+        --from-literal=cert_key="$CERT_KEY" \
+        --from-literal=upload_certs_expiration=TODO_2_HOURS
 }
 
 function outro() {

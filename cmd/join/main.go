@@ -14,10 +14,32 @@ import (
 	tokenphase "k8s.io/kubernetes/cmd/kubeadm/app/phases/bootstraptoken/node"
 )
 
+const configMapName = "kurl-config"
+const configMapNamespace = "kube-system"
+const bootstrapTokenKey = "bootstrap_token"
+
 func main() {
 	client := clientsetOrDie()
 
-	GenerateBootstrapToken(client, nil)
+	ti, err := GenerateBootstrapToken(client, nil)
+	if err != nil {
+		log.Panic(err)
+	}
+
+	// TODO kubeadm init phase upload-certs for HA
+
+	// TODO rbac Get ConfigMap in kube-system namespace
+	cm, err := client.CoreV1().ConfigMaps(configMapNamespace).Get(configMapName, metav1.GetOptions{})
+	if err != nil {
+		log.Panic(err)
+	}
+
+	cm.Data[bootstrapTokenKey] = ti.Token
+
+	_, err = client.CoreV1().ConfigMaps(configMapNamespace).Update(cm)
+	if err != nil {
+		log.Panic(err)
+	}
 }
 
 type TokenInfo struct {
@@ -45,6 +67,7 @@ func GenerateBootstrapToken(client kubernetes.Interface, ttl *time.Duration) (*T
 		duration = &metav1.Duration{Duration: *ttl}
 	}
 
+	// TODO rbac - Update, Create Secrets in kube-system namespace
 	if err := tokenphase.UpdateOrCreateTokens(client, false, []kubeadm.BootstrapToken{
 		{
 			Token:  bts,
@@ -58,7 +81,8 @@ func GenerateBootstrapToken(client kubernetes.Interface, ttl *time.Duration) (*T
 
 	tokenInfo.Token = token
 
-	// kurl-config should hae the ca cert hash already
+	// kurl-config should have the ca cert hash already
+	// this function could just return a string
 
 	/*
 		rootCAFile := "/var/run/secrets/kubernetes.io/serviceaccount/" + v1.ServiceAccountRootCAKey
