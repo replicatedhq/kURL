@@ -107,9 +107,9 @@ function kurl_config() {
         --from-literal=docker_registry_ip=$DOCKER_REGISTRY_IP \
         --from-literal=kubernetes_api_address=$API_SERVICE_ADDRESS \
         --from-literal=bootstrap_token=$BOOTSTRAP_TOKEN \
-        --from-literal=bootstrap_token_expiration=TODO_24_HOURS \
+        --from-literal=bootstrap_token_expiration=$(date -d "+1 hour" --rfc-3339=second | sed 's/ /T/') \
         --from-literal=cert_key="$CERT_KEY" \
-        --from-literal=upload_certs_expiration=TODO_2_HOURS
+        --from-literal=upload_certs_expiration=$(date -d "+1 hour" --rfc-3339=second | sed 's/ /T/')
 }
 
 function outro() {
