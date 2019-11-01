@@ -31,19 +31,20 @@ function init() {
     if [ "$HA_CLUSTER" = "1" ]; then
         promptForLoadBalancerAddress
 
+        # TODO not implemented
         if [ "$LOAD_BALANCER_ADDRESS_CHANGED" = "1" ]; then
             handleLoadBalancerAddressChangedPreInit
         fi
     fi
 
-	mkdir -p "$KUBEADM_CONF_DIR"
-	render_yaml kubeadm-init-config-v1beta2.yml > "$KUBEADM_CONF_FILE"
+    mkdir -p "$KUBEADM_CONF_DIR"
+    render_yaml kubeadm-init-config-v1beta2.yml > "$KUBEADM_CONF_FILE"
     if [ "$HA_CLUSTER" = "1" ]; then
         CERT_KEY=$(< /dev/urandom tr -dc a-f0-9 | head -c64)
         echo "certificateKey: $CERT_KEY" >> "$KUBEADM_CONF_FILE"
     fi
     render_yaml kubeproxy-config-v1alpha1.yml >> "$KUBEADM_CONF_FILE"
-	render_yaml kubeadm-cluster-config-v1beta2.yml >> "$KUBEADM_CONF_FILE"
+    render_yaml kubeadm-cluster-config-v1beta2.yml >> "$KUBEADM_CONF_FILE"
     if [ -n "$PUBLIC_ADDRESS" ]; then
         echo "  - $PUBLIC_ADDRESS" >> "$KUBEADM_CONF_FILE"
     fi
@@ -65,6 +66,7 @@ function init() {
         | tee /tmp/kubeadm-init
 
     exportKubeconfig
+    KUBEADM_TOKEN_CA_HASH=$(cat /tmp/kubeadm-init | grep 'discovery-token-ca-cert-hash' | awk '{ print $2 }' | head -1)
 
     waitForNodes
     enable_rook_ceph_operator
@@ -72,9 +74,12 @@ function init() {
     DID_INIT_KUBERNETES=1
     logSuccess "Kubernetes Master Initialized"
 
+    # TODO not implemented
     if [ "$LOAD_BALANCER_ADDRESS_CHANGED" = "1" ]; then
         handleLoadBalancerAddressChangedPostInit
     fi
+
+    kurl_config
 
     kubectl cluster-info
     logSuccess "Cluster Initialized"
@@ -87,6 +92,24 @@ function kubernetes_maybe_generate_bootstrap_token() {
     fi
     echo "Kubernetes bootstrap token: ${BOOTSTRAP_TOKEN}"
     echo "This token will expire in 24 hours"
+}
+
+function kurl_config() {
+    if kubernetes_resource_exists kube-system configmap kurl-config; then
+        kubectl -n kube-systm delete configmap kurl-config
+    fi
+    kubectl -n kube-system create configmap kurl-config \
+        --from-literal=kurl_url=$KURL_URL \
+        --from-literal=installer_id=$INSTALLER_ID \
+        --from-literal=ha="$HA_CLUSTER" \
+        --from-literal=airgap="$AIRGAP" \
+        --from-literal=ca_hash=$KUBEADM_TOKEN_CA_HASH \
+        --from-literal=docker_registry_ip=$DOCKER_REGISTRY_IP \
+        --from-literal=kubernetes_api_address=$API_SERVICE_ADDRESS \
+        --from-literal=bootstrap_token=$BOOTSTRAP_TOKEN \
+        --from-literal=bootstrap_token_expiration=$(date -d "+1 hour" --rfc-3339=second | sed 's/ /T/') \
+        --from-literal=cert_key="$CERT_KEY" \
+        --from-literal=upload_certs_expiration=$(date -d "+1 hour" --rfc-3339=second | sed 's/ /T/')
 }
 
 function outro() {
@@ -130,7 +153,7 @@ function outro() {
             printf "To add ${GREEN}MASTER${NC} nodes to this installation, copy and unpack this bundle on your other nodes, and run the following:"
             printf "\n"
             printf "\n"
-            printf "${GREEN}    cat ./join.sh | sudo bash -s airgap kubernetes-master-address=${PRIVATE_ADDRESS} kubeadm-token=${BOOTSTRAP_TOKEN} kubeadm-token-ca-hash=$KUBEADM_TOKEN_CA_HASH kubernetes-version=$KUBERNETES_VERSION cert-key=${CERT_KEY} control-plane ${dockerRegistryIP}\n"
+            printf "${GREEN}    cat ./join.sh | sudo bash -s airgap kubernetes-master-address=${KUBERNETES_API_ADDRESS} kubeadm-token=${BOOTSTRAP_TOKEN} kubeadm-token-ca-hash=$KUBEADM_TOKEN_CA_HASH kubernetes-version=$KUBERNETES_VERSION cert-key=${CERT_KEY} control-plane ${dockerRegistryIP}\n"
             printf "${NC}"
             printf "\n"
             printf "\n"
@@ -143,7 +166,7 @@ function outro() {
         printf "\n"
         printf "To add worker nodes to this installation, run the following script on your other nodes"
         printf "\n"
-        printf "${GREEN}    ${prefix}join.sh | sudo bash -s kubernetes-master-address=${PRIVATE_ADDRESS} kubeadm-token=${BOOTSTRAP_TOKEN} kubeadm-token-ca-hash=$KUBEADM_TOKEN_CA_HASH kubernetes-version=$KUBERNETES_VERSION ${dockerRegistryIP}\n"
+        printf "${GREEN}    ${prefix}join.sh | sudo bash -s kubernetes-master-address=${KUBERNETES_API_ADDRESS} kubeadm-token=${BOOTSTRAP_TOKEN} kubeadm-token-ca-hash=$KUBEADM_TOKEN_CA_HASH kubernetes-version=$KUBERNETES_VERSION ${dockerRegistryIP}\n"
         printf "${NC}"
         printf "\n"
         printf "\n"
