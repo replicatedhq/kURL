@@ -168,7 +168,7 @@ function outro() {
             printf "\n"
         fi
     else
-        local prefix="curl $KURL_URL/$INSTALLER_ID/"
+        local prefix="curl -sSL $KURL_URL/$INSTALLER_ID/"
         if [ -z "$KURL_URL" ]; then
             prefix="cat "
         fi
