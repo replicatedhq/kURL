@@ -90,15 +90,15 @@ function init() {
 }
 
 function post_init() {
+    BOOTSTRAP_TOKEN_EXPIRY=$(kubeadm token list | grep $BOOTSTRAP_TOKEN | awk '{print $3}')
     kurl_config
 }
 
 function kubernetes_maybe_generate_bootstrap_token() {
     if [ -z "$BOOTSTRAP_TOKEN" ]; then
         logStep "generate kubernetes bootstrap token"
-        BOOTSTRAP_TOKEN=$(kubeadm token create)
+        BOOTSTRAP_TOKEN=$(kubeadm token generate)
     fi
-    BOOTSTRAP_TOKEN_EXPIRY=$(kubeadm token list | grep $BOOTSTRAP_TOKEN | awk '{print $3}')
     echo "Kubernetes bootstrap token: ${BOOTSTRAP_TOKEN}"
     echo "This token will expire in 24 hours"
 }
