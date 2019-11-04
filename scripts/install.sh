@@ -58,6 +58,7 @@ function init() {
         echo "  - $LOAD_BALANCER_ADDRESS" >> "$KUBEADM_CONF_FILE"
         echo "controlPlaneEndpoint: $LOAD_BALANCER_ADDRESS:$LOAD_BALANCER_PORT" >> "$KUBEADM_CONF_FILE"
     fi
+    render_yaml kubelet-config-v1beta1.yml >> "$KUBEADM_CONF_FILE"
 
     if [ "$HA_CLUSTER" = "1" ]; then
         UPLOAD_CERTS="--upload-certs"
@@ -90,15 +91,15 @@ function init() {
 }
 
 function post_init() {
+    BOOTSTRAP_TOKEN_EXPIRY=$(kubeadm token list | grep $BOOTSTRAP_TOKEN | awk '{print $3}')
     kurl_config
 }
 
 function kubernetes_maybe_generate_bootstrap_token() {
     if [ -z "$BOOTSTRAP_TOKEN" ]; then
         logStep "generate kubernetes bootstrap token"
-        BOOTSTRAP_TOKEN=$(kubeadm token create)
+        BOOTSTRAP_TOKEN=$(kubeadm token generate)
     fi
-    BOOTSTRAP_TOKEN_EXPIRY=$(kubeadm token list | grep $BOOTSTRAP_TOKEN | awk '{print $3}')
     echo "Kubernetes bootstrap token: ${BOOTSTRAP_TOKEN}"
     echo "This token will expire in 24 hours"
 }
