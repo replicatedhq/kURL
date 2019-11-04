@@ -5,30 +5,48 @@ metadata:
 rules:
 - apiGroups:
   - ""
-  resources:
-  - configmaps
   resourceNames:
   - kotsadm-application-metadata
+  resources:
+  - configmaps
   verbs:
   - get
   - delete
 - apiGroups:
   - ""
+  resourceNames:
+  - kurl-config
   resources:
   - configmaps
+  verbs:
+  - get
+- apiGroups:
+  - ""
   resourceNames:
   - kubeadm-config
+  resources:
+  - configmaps
   verbs:
   - get
   - update
 - apiGroups:
   - ""
-  resources:
-  - secrets
   resourceNames:
   - registry-creds
+  resources:
+  - secrets
   verbs:
   - get
+- apiGroups:
+  - ""
+  resources:
+  - secrets
+  verbs:
+  - get
+  - list
+  - create
+  - update
+  - delete
 - apiGroups:
   - ""
   resources:
@@ -59,11 +77,29 @@ rules:
   - get
   - list
 - apiGroups:
-  - "apps"
+  - apps
   resources:
   - deployments
   verbs:
   - list
+  - delete
+- apiGroups:
+  - batch
+  resources:
+  - jobs
+  - jobs/status
+  verbs:
+  - create
+  - get
+  - list
+  - delete
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  verbs:
+  - create
+  - update
   - delete
 ---
 apiVersion: rbac.authorization.k8s.io/v1
