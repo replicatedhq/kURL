@@ -22,6 +22,7 @@ function kotsadm() {
     fi
 
     kotsadm_etcd_client_secret
+    kotsadm_kubelet_client_secret
 
     if [ "$AIRGAP" != "1" ]; then
         curl $REPLICATED_APP_URL/metadata/$KOTSADM_APPLICATION_SLUG > "$src/application.yaml"
@@ -218,4 +219,16 @@ function kotsadm_etcd_client_secret() {
         --from-file=client.crt=/etc/kubernetes/pki/etcd/healthcheck-client.crt \
         --from-file=client.key=/etc/kubernetes/pki/etcd/healthcheck-client.key \
         --from-file=/etc/kubernetes/pki/etcd/ca.crt
+}
+
+# TODO rotate
+function kotsadm_kubelet_client_secret() {
+    if kubernetes_resource_exists default secret kubelet-client-cert; then
+        return 0
+    fi
+
+    kubectl -n default create secret generic kubelet-client-cert \
+        --from-file=client.crt=/etc/kubernetes/pki/apiserver-kubelet-client.crt \
+        --from-file=client.key=/etc/kubernetes/pki/apiserver-kubelet-client.key \
+        --from-file=/etc/kubernetes/pki/ca.crt
 }

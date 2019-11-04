@@ -179,10 +179,16 @@ spec:
         - name: etcd-client-cert
           readOnly: true
           mountPath: /etc/kubernetes/pki/etcd
+        - name: kubelet-client-cert
+          readOnly: true
+          mountPath: /etc/kubernetes/pki/kubelet
       volumes:
       - name: etcd-client-cert
         secret:
           secretName: etcd-client-cert
+      - name: kubelet-client-cert
+        secret:
+          secretName: kubelet-client-cert
 ---
 apiVersion: v1
 kind: Service
