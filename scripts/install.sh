@@ -58,7 +58,6 @@ function init() {
         echo "  - $LOAD_BALANCER_ADDRESS" >> "$KUBEADM_CONF_FILE"
         echo "controlPlaneEndpoint: $LOAD_BALANCER_ADDRESS:$LOAD_BALANCER_PORT" >> "$KUBEADM_CONF_FILE"
     fi
-    render_yaml kubelet-config-v1beta1.yml >> "$KUBEADM_CONF_FILE"
 
     if [ "$HA_CLUSTER" = "1" ]; then
         UPLOAD_CERTS="--upload-certs"
