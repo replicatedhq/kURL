@@ -58,6 +58,10 @@ spec:
             secretKeyRef:
               name: kotsadm-auto-create-cluster-token
               key: token
+        - name: KOTSADM_TARGET_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
         - name: AUTO_CREATE_CLUSTER_TOKEN
           valueFrom:
             secretKeyRef:
