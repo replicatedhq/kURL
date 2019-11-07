@@ -175,7 +175,7 @@ subjectAltName = @alt_names
 [ v3_ext ]
 authorityKeyIdentifier=keyid,issuer:always
 basicConstraints=CA:FALSE
-keyUsage=keyEncipherment,dataEncipherment
+keyUsage=nonRepudiation,digitalSignature,keyEncipherment
 extendedKeyUsage=serverAuth
 subjectAltName=@alt_names
 
