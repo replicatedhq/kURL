@@ -67,13 +67,14 @@ func main() {
 
 	log.Printf("Waiting for TLS credentials from secret %s", tlsSecretName)
 	for cert := range certs {
-		ctx, _ := context.WithTimeout(context.Background(), time.Minute)
+		ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
 		if httpServer != nil {
 			httpServer.Shutdown(ctx)
 		}
 		if httpsServer != nil {
 			httpsServer.Shutdown(ctx)
 		}
+		cancel()
 		if listener != nil {
 			listener.Close()
 		}
