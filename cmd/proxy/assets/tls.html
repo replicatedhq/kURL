@@ -8,6 +8,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>TLS Certificate and Key Upload</title>
   <link rel="stylesheet" href="/tls/assets/tls-custom.css" />
+  <script src="/tls/assets/tls.js"></script>
 </head>
 
 <body>
@@ -17,7 +18,7 @@
       <div class="flex flex-column justifyContent--center alignItems--center">
         <div class="borderWrapper flex-column flex">
           <div class="flex u-marginBottom--8">
-            <img class="appIcon flex flex-auto" src="{{ .AppIcon }}" />
+            {{if .AppIcon }}<img class="appIcon flex flex-auto" src="{{ .AppIcon }}" />{{end}}
             <div class="flex-column flex1 justifyContent--center">
               <p class="tls-header">HTTPS for {{ .AppTitle }} admin console</p>
             </div>
@@ -30,11 +31,11 @@
             <p class="tls-section-header">Private key & certificate</p>
             <p class="tls-section-sub">Files will be uploaded directly to the mangement server & will never leave.</p>
           </div>
-          <form class="flex-column" action="" method="post" enctype="multipart/form-data">
+          <form id="upload-form" class="flex-column" action="" method="post" enctype="multipart/form-data">
             <div>
               <p class="tls-section-header2">Hostname</p>
               <p class="tls-section-sub-sub">Ensure this domain is routable on your network.</p>
-              <input class="form-input larger" type="text" name="hostname" placeholder="app.yourdomain.com"
+              <input id="hostname" class="form-input larger" type="text" name="hostname" placeholder="app.yourdomain.com"
                 style="width: 250px; margin-bottom: 20px;" />
             </div>
             <div class="flex upload-form">
@@ -54,7 +55,7 @@
               </div>
             </div>
 
-            <div id="error">
+            <div id="error" style="display: none">
               <div class="notification is-warning">
                 <p>The certficate and key pair you uploaded are invalid</p>
               </div>
@@ -63,7 +64,7 @@
             <div class="button-wrapper flex alignItems--center">
               <button class="btn primary" type="submit">Upload &amp; continue</button>
               <div class="flex-column justifyContent--center">
-                <button class="text-button" type="submit" formaction="/tls/skip">Skip &amp;
+                <button id="skip-button" class="text-button" type="submit" formaction="/tls/skip">Skip &amp;
                   continue</button>
               </div>
             </div>
