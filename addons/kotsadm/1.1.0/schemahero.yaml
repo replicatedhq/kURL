@@ -3,6 +3,9 @@ kind: Pod
 metadata:
   name: kotsadm-migrations
 spec:
+  securityContext:
+    runAsUser: 1001
+    fsGroup: 1001
   restartPolicy: OnFailure
   containers:
   - name: kotsadm-migrations

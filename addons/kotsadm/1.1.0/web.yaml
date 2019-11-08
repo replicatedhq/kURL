@@ -12,10 +12,13 @@ spec:
       labels:
         app: kotsadm-web
     spec:
+      securityContext:
+        runAsUser: 101
+        fsGroup: 101
       volumes:
       - name: kotsadm-web-scripts
         configMap:
-          defaultMode: 484
+          defaultMode: 511 # hex 777
           name: kotsadm-web-scripts
       containers:
       - image: kotsadm/kotsadm-web:v1.1.0

@@ -45,6 +45,8 @@ spec:
         prometheus.io/port: "3000"
         prometheus.io/path: "/metricz"
     spec:
+      securityContext:
+        runAsUser: 1001
       serviceAccountName: kotsadm-operator
       restartPolicy: Always
       containers:
