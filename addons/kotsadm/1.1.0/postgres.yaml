@@ -28,6 +28,8 @@ spec:
       labels:
         app: kotsadm-postgres
     spec:
+      securityContext:
+        runAsUser: 999
       volumes:
       - name: kotsadm-postgres
         persistentVolumeClaim:
