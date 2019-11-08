@@ -231,6 +231,8 @@ function kubernetes_secret_value() {
     local ns="$1"
     local name="$2"
     local key="$3"
+    # tls.crt -> tls\.crt
+    local key=$(echo $3 | sed s/\\./\\\\\./g)
 
     kubectl -n "$ns" get secret "$name" -ojsonpath="{ .data.$key }" 2>/dev/null | base64 --decode
 }
