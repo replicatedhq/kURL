@@ -60,15 +60,12 @@ function skipAndWait(e) {
 
   var xhr = new XMLHttpRequest();
 
-  xhr.onerror = function() {
-    // TODO internal server error
-  };
-
   xhr.onloadend = function() {
     if (xhr.status === 200) {
       redirectAfterRestart(hostnameInput.value, 10);
       return;
     }
+    console.log("POST /tls/skip returned status code ", xhr.status);
   };
 
   xhr.open("POST", "/tls/skip");
