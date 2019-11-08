@@ -19,14 +19,14 @@ function ready() {
 function uploadAndWait(e) {
   e.preventDefault();
 
-	var formData = new FormData();
+  var formData = new FormData();
 
-	var certInput = document.getElementById("cert");
-	var keyInput = document.getElementById("key");
-	var hostnameInput = document.getElementById("hostname");
+  var certInput = document.getElementById("cert");
+  var keyInput = document.getElementById("key");
+  var hostnameInput = document.getElementById("hostname");
 
-	formData.append("cert", certInput.files[0]);
-	formData.append("key", keyInput.files[0]);
+  formData.append("cert", certInput.files[0]);
+  formData.append("key", keyInput.files[0]);
 
   var xhr = new XMLHttpRequest();
 
@@ -34,7 +34,7 @@ function uploadAndWait(e) {
   xhr.onerror = function() {
     showError();
     enableForm();
-	}
+  }
 
   xhr.onloadend = function() {
     if (xhr.status === 200) {
@@ -56,7 +56,7 @@ function skipAndWait(e) {
   e.stopPropagation();
   e.preventDefault();
 
-	var hostnameInput = document.getElementById("hostname");
+  var hostnameInput = document.getElementById("hostname");
 
   var xhr = new XMLHttpRequest();
 
