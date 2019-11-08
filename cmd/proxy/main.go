@@ -67,13 +67,14 @@ func main() {
 
 	log.Printf("Waiting for TLS credentials from secret %s", tlsSecretName)
 	for cert := range certs {
-		ctx, _ := context.WithTimeout(context.Background(), time.Minute)
+		ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
 		if httpServer != nil {
 			httpServer.Shutdown(ctx)
 		}
 		if httpsServer != nil {
 			httpsServer.Shutdown(ctx)
 		}
+		cancel()
 		if listener != nil {
 			listener.Close()
 		}
@@ -133,18 +134,11 @@ func watchSecret(certs chan cert, name string, secrets corev1.SecretInterface) {
 				break
 			}
 
-			derBlock, _ := pem.Decode(certData)
-			if derBlock == nil {
-				log.Printf("Ignoring secret %s: no PEM data found in certificate", name)
-				break
-			}
-			x509Cert, err := x509.ParseCertificate(derBlock.Bytes)
+			fingerprint, err := getFingerprint(certData)
 			if err != nil {
-				log.Printf("Ignoring secret %s: parse certificate: %v", name, err)
+				log.Printf("Ignoring secret %s: %v", name, err)
 				break
 			}
-			//sha1 fingerprint is the hash of the certificate in DER form
-			fingerprint := strings.ToUpper(strings.Replace(fmt.Sprintf("% x", sha1.Sum(x509Cert.Raw)), " ", ":", -1))
 
 			acceptAnonymousUploads := false
 			acceptAnonymousUploadsVal, ok := secret.Data["acceptAnonymousUploads"]
@@ -159,6 +153,19 @@ func watchSecret(certs chan cert, name string, secrets corev1.SecretInterface) {
 			}
 		}
 	}
+}
+
+func getFingerprint(certData []byte) (string, error) {
+	derBlock, _ := pem.Decode(certData)
+	if derBlock == nil {
+		return "", errors.New("no PEM data found in certificate")
+	}
+	x509Cert, err := x509.ParseCertificate(derBlock.Bytes)
+	if err != nil {
+		return "", err
+	}
+	//sha1 fingerprint is the hash of the certificate in DER form
+	return strings.ToUpper(strings.Replace(fmt.Sprintf("% x", sha1.Sum(x509Cert.Raw)), " ", ":", -1)), nil
 }
 
 func getHttpServer(fingerprint string) *http.Server {
@@ -187,19 +194,12 @@ func getHttpsServer(upstream *url.URL, tlsSecretName string, secrets corev1.Secr
 	r.LoadHTMLGlob("/assets/*.html")
 
 	r.GET("/tls", func(c *gin.Context) {
-		isErr := c.Query("error") != ""
-		success := c.Query("success") != ""
-		enabled := !success && acceptAnonymousUploads
-		help := !isErr && !success && !acceptAnonymousUploads
 		app, err := kotsadmApplication()
 		if err != nil {
-			log.Printf("No kotsadm application metadata: %v", err)
+			log.Printf("No kotsadm application metadata: %v", err) // continue
 		}
 		c.HTML(http.StatusOK, "tls.html", gin.H{
-			"Error":    isErr,
-			"Success":  success,
-			"Enabled":  enabled,
-			"Help":     help,
+			"Enabled":  acceptAnonymousUploads,
 			"Secret":   tlsSecretName,
 			"AppIcon":  app.Spec.Icon,
 			"AppTitle": app.Spec.Title,
@@ -218,15 +218,24 @@ func getHttpsServer(upstream *url.URL, tlsSecretName string, secrets corev1.Secr
 			c.AbortWithStatus(http.StatusInternalServerError)
 			return
 		}
-		delete(secret.Data, "acceptAnonymousUploads")
-		_, err = secrets.Update(secret)
-		if err != nil {
-			log.Printf("POST /tls/skip: %v", err)
-			c.AbortWithStatus(http.StatusInternalServerError)
-			return
-		}
 
-		c.Redirect(http.StatusSeeOther, "/")
+		go func() {
+			<-c.Request.Context().Done()
+			delete(secret.Data, "acceptAnonymousUploads")
+			_, err = secrets.Update(secret)
+			if err != nil {
+				log.Printf("POST /tls/skip: %v", err)
+				c.AbortWithStatus(http.StatusInternalServerError)
+				return
+			}
+		}()
+	})
+
+	r.GET("/tls/meta", func(c *gin.Context) {
+		data := map[string]interface{}{
+			"acceptAnonymousUploads": acceptAnonymousUploads,
+		}
+		c.JSON(http.StatusOK, data)
 	})
 
 	r.POST("/tls", func(c *gin.Context) {
@@ -238,7 +247,7 @@ func getHttpsServer(upstream *url.URL, tlsSecretName string, secrets corev1.Secr
 		certData, keyData, err := getUploadedCerts(c)
 		if err != nil {
 			log.Printf("POST /tls: %v", err)
-			c.Redirect(http.StatusFound, "/tls?error=1")
+			c.AbortWithStatus(http.StatusBadRequest)
 			return
 		}
 
@@ -249,14 +258,8 @@ func getHttpsServer(upstream *url.URL, tlsSecretName string, secrets corev1.Secr
 			return
 		}
 
-		location := fmt.Sprintf("https://%s:%s/tls?success=1", c.PostForm("hostname"), nodePort)
-		if c.PostForm("hostname") == "" {
-			location = "/tls?success=1"
-		}
-		c.Redirect(http.StatusSeeOther, location)
-
 		go func() {
-			time.Sleep(time.Millisecond * 100)
+			<-c.Request.Context().Done()
 			secret.Data["tls.crt"] = certData
 			secret.Data["tls.key"] = keyData
 			delete(secret.Data, "acceptAnonymousUploads")
@@ -269,7 +272,7 @@ func getHttpsServer(upstream *url.URL, tlsSecretName string, secrets corev1.Secr
 		}()
 	})
 	mux.Handle("/tls", r)
-	mux.Handle("/tls/skip", r)
+	mux.Handle("/tls/", r)
 
 	mux.Handle("/", httputil.NewSingleHostReverseProxy(upstream))
 

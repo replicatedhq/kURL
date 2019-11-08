@@ -14,6 +14,9 @@ function tasks() {
         reset)
             reset
             ;;
+        kotsadm-accept-tls-uploads|kotsadm_accept_tls_uploads)
+            kotsadm_accept_tls_uploads
+            ;;
         *)
             bail "Unknown task: $TASK"
             ;;
@@ -157,4 +160,8 @@ function weave_reset() {
     for LOCAL_IFNAME in $(ip link show | grep v${CONTAINER_IFNAME}pl | cut -d ' ' -f 2 | tr -d ':') ; do
         ip link del ${LOCAL_IFNAME%@*} >/dev/null 2>&1 || true
     done
+}
+
+function kotsadm_accept_tls_uploads() {
+    kubectl patch secret kotsadm-tls -p '{"stringData":{"acceptAnonymousUploads":"1"}}'
 }

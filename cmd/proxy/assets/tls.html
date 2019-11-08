@@ -84,13 +84,12 @@
       </div>
     </div>
   </div>
-  {{end}}
+  {{else}}
 
-  {{if .Help}}
   <div class="tlsContent--wrapper">
     <div class="notification is-info">
-      <p>Anonymous uploads have been disabled. Set acceptAnonymousUploads to 1 in the {{ .Secret }} secret to
-        re-enable.</p>
+      <p>Anonymous uploads have been disabled. Set acceptAnonymousUploads to 1 in the {{ .Secret }} secret to re-enable.
+      </p>
     </div>
   </div>
   {{end}}
