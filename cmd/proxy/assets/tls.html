@@ -54,23 +54,11 @@
               </div>
             </div>
 
-
-            {{if .Success }}
-            <div>
-              <div class="notification is-success">
-                <p>Waiting for server to restart with new certificate</p>
-              </div>
-            </div>
-            <script>setTimeout(function () { location.href = "/" }, 2000);</script>
-            {{end}}
-
-            {{if .Error }}
-            <div>
+            <div id="error">
               <div class="notification is-warning">
                 <p>The certficate and key pair you uploaded are invalid</p>
               </div>
             </div>
-            {{end}}
 
             <div class="button-wrapper flex alignItems--center">
               <button class="btn primary" type="submit">Upload &amp; continue</button>
