@@ -7,32 +7,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>TLS Certificate and Key Upload</title>
     <link rel="stylesheet" href="/tls/assets/tls-custom.css" />
+    <script src="/tls/assets/tls.js"></script>
 </head>
 <body>
     <div style="display: none">
         {{if .AppIcon }}
         <img src="{{ .AppIcon }}" />
         {{end}}
-        {{ if .AppTitle }}
+        {{if .AppTitle }}
         <h1>{{ .AppTitle }}</h1>
         {{end}}
     </div>
-    {{if .Error }}
-    <div class="tlsContent--wrapper">
+
+    <div id="error" class="tlsContent--wrapper" style="display: none">
         <div class="notification is-warning">
             <p>The certficate and key pair you uploaded was invalid</p>
         </div>
     </div>
-    {{end}}
-
-    {{if .Success }}
-    <div class="tlsContent--wrapper">
-        <div class="notification is-success">
-            <p>Waiting for server to restart with new certificate</p>
-        </div>
-    </div>
-    <script>setTimeout(function() {location.href = "/"}, 2000);</script>
-    {{end}}
 
     {{if .Enabled}}
     <div class="flex-column flex1">
@@ -45,11 +36,11 @@
                 <p class="tls-section-header">Private key & certificate</p>
                 <p class="tls-section-sub">Files will be uploaded directly to the new cluster and stored in a volume. The files you upload here will not leave your network.</p>
             </div>
-            <form class="flex-column" action="" method="post" enctype="multipart/form-data">
+            <form id="upload-form" class="flex-column" action="" method="post" enctype="multipart/form-data">
                 <div>
                     <p class="tls-section-header">Hostname</p>
                     <p class="tls-section-sub">Ensure this domain name is routable on your network.</p>
-                    <input class="form-input larger" type="text" name="hostname" placeholder="app.yourdomain.com" style="width: 200px; margin-bottom: 20px;" />
+                    <input id="hostname" class="form-input larger" type="text" name="hostname" placeholder="app.yourdomain.com" style="width: 200px; margin-bottom: 20px;" />
                 </div>
                 <div class="flex upload-form">
                     <div class="u-position--relative flex-column flex-auto u-marginRight--15">
@@ -61,19 +52,19 @@
                         <input class="" id="key" type="file" name="key">
                     </div>
                 </div>
-    
+ 
                 <div class="button-wrapper flex alignItems--center">
                     <button class="btn primary" type="submit">Upload &amp; continue</button>
                     <div class="flex-column justifyContent--center">
-                        <button class="text-button" type="submit" formaction="/tls/skip">Skip &amp; continue</button>
+                        <button id="skip-button" class="text-button" type="submit" formaction="/tls/skip">Skip &amp; continue</button>
                     </div>
                 </div>
             </form>
         </div>
     </div>
-    {{end}}
 
-    {{if .Help}}
+    {{else}}
+
     <div class="tlsContent--wrapper">
         <div class="notification is-info">
             <p>Anonymous uploads have been disabled. Set acceptAnonymousUploads to 1 in the {{ .Secret }} secret to re-enable.</p>
