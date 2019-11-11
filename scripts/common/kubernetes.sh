@@ -6,36 +6,7 @@ function kubernetes_host() {
 
     kubernetes_install_host_packages "$KUBERNETES_VERSION"
 
-    kubernetes_install_kustomize
-
     load_images $DIR/packages/kubernetes/$KUBERNETES_VERSION/images
-}
-
-kubernetes_kustomize_ok() {
-    if ! commandExists kustomize; then
-        printf "kustomize command missing - will install it\n"
-        return 1
-    fi
-}
-
-function kubernetes_install_kustomize() {
-    logStep "Install kustomize"
-
-    if kubernetes_kustomize_ok; then
-        logSuccess "Kustomize already installed"
-        return
-    fi
-
-    case "$LSB_DIST" in
-        ubuntu)
-            install -m 0755 $DIR/packages/kubernetes/${KUBERNETES_VERSION}/ubuntu-${DIST_VERSION}/kustomize /usr/local/bin/
-            ;;
-        centos|rhel)
-            install -m 0755 $DIR/packages/kubernetes/${KUBERNETES_VERSION}/rhel-7/kustomize /usr/local/bin/
-            ;;
-    esac
-
-    logSuccess "Kustomize installed"
 }
 
 function kubernetes_load_ipvs_modules() {
@@ -97,14 +68,12 @@ function kubernetes_install_host_packages() {
         ubuntu)
             export DEBIAN_FRONTEND=noninteractive
             dpkg --install --force-depends-version $DIR/packages/kubernetes/${k8sVersion}/ubuntu-${DIST_VERSION}/*.deb
-            commandExists kustomize || install -m 0755 DIR/packages/kubernetes/${k8sVersion}/ubuntu-${DIST_VERSION}/kustomize /usr/local/bin/
             ;;
 
         centos|rhel)
             rpm --upgrade --force --nodeps $DIR/packages/kubernetes/${k8sVersion}/rhel-7/*.rpm
             # TODO still required on 1.15+, and only CentOS/RHEL?
             service docker restart
-            commandExists kustomize || install -m 0755 DIR/packages/kubernetes/${k8sVersion}/rhel-7/kustomize /usr/local/bin/
             ;;
     esac
 

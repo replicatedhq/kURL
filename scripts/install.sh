@@ -69,7 +69,7 @@ function init() {
             $patch_basename
     done
     mkdir -p "$KUBEADM_CONF_DIR"
-    kustomize build $kustomize_kubeadm_init > $KUBEADM_CONF_DIR/kubeadm-init-raw.yaml
+    kubectl kustomize $kustomize_kubeadm_init > $KUBEADM_CONF_DIR/kubeadm-init-raw.yaml
     render_yaml_file $KUBEADM_CONF_DIR/kubeadm-init-raw.yaml > $KUBEADM_CONF_FILE
 
     if [ "$HA_CLUSTER" = "1" ]; then

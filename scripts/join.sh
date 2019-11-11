@@ -52,7 +52,7 @@ function join() {
             $patch_basename
     done
     mkdir -p "$KUBEADM_CONF_DIR"
-    kustomize build $kustomize_kubeadm_join > $KUBEADM_CONF_DIR/kubeadm-join-raw.yaml
+    kubectl kustomize $kustomize_kubeadm_join > $KUBEADM_CONF_DIR/kubeadm-join-raw.yaml
     render_yaml_file $KUBEADM_CONF_DIR/kubeadm-join-raw.yaml > $KUBEADM_CONF_FILE
 
     set +e
