@@ -1,6 +1,6 @@
 
 function flags() {
-    POD_CIDR="172.20.0.0/16"
+    POD_CIDR="10.32.0.0/12"
     SERVICE_CIDR="10.96.0.0/12"
     while [ "$1" != "" ]; do
         _param="$(echo "$1" | cut -d= -f1)"
