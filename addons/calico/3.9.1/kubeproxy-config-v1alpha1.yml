@@ -4,5 +4,3 @@ kind: KubeProxyConfiguration
 metadata:
   name: kube-proxy-configuration
 mode: iptables
-iptables:
-  masqueradeAll: true
