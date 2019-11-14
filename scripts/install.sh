@@ -24,8 +24,6 @@ DIR=.
 function init() {
     logStep "Initialize Kubernetes"
 
-    get_shared
-
     kubernetes_maybe_generate_bootstrap_token
 
     API_SERVICE_ADDRESS="$PRIVATE_ADDRESS:6443"
