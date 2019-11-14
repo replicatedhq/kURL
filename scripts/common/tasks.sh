@@ -173,7 +173,7 @@ function print_registry_login() {
     local passwd=$(kubectl get secret registry-creds -o=jsonpath='{ .data.\.dockerconfigjson }' | base64 --decode | grep -oE '"password":"\w+"' | awk -F\" '{ print $4 }')
     local clusterIP=$(kubectl -n kurl get service registry -o=jsonpath='{ .spec.clusterIP }')
 
-    printf "From this host:\n"
+    printf "${BLUE}Local:${NC}\n"
     printf "${GREEN}docker login --username=kurl --password=$passwd $clusterIP ${NC}\n"
 
     if kubectl -n kurl get service registry | grep -q NodePort; then
@@ -182,7 +182,7 @@ function print_registry_login() {
         local nodePort=$(kubectl -n kurl get service registry -ojsonpath='{ .spec.ports[0].nodePort }')
 
         printf "\n"
-        printf "From remote host:\n"
+        printf "${BLUE}Remote:${NC}\n"
         printf "${GREEN}mkdir -p /etc/docker/certs.d/$hostIP:$nodePort\n"
         printf "cat > /etc/docker/certs.d/$hostIP:$nodePort/ca.crt <<EOF\n"
         cat /etc/kubernetes/pki/ca.crt
