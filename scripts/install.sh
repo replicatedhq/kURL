@@ -48,16 +48,23 @@ function init() {
             $kustomize_kubeadm_init/kustomization.yaml \
             patch-certificate-key.yaml
     fi
-    if [ -n "$PUBLIC_ADDRESS" ]; then
+
+    # kustomize can merge multiple list patches in some cases but it is not working for me on the
+    # ClusterConfiguration.apiServer.certSANs list
+    if [ -n "$PUBLIC_ADDRESS" ] && [ -n "$LOAD_BALANCER_ADDRESS" ]; then
+        insert_patches_strategic_merge \
+            $kustomize_kubeadm_init/kustomization.yaml \
+            patch-public-and-load-balancer-address.yaml
+    elif [ -n "$PUBLIC_ADDRESS" ]; then
         insert_patches_strategic_merge \
             $kustomize_kubeadm_init/kustomization.yaml \
             patch-public-address.yaml
-    fi
-    if [ -n "$LOAD_BALANCER_ADDRESS" ]; then
+    elif [ -n "$LOAD_BALANCER_ADDRESS" ]; then
         insert_patches_strategic_merge \
             $kustomize_kubeadm_init/kustomization.yaml \
             patch-load-balancer-address.yaml
     fi
+
     # Add kubeadm init patches from addons.
     for patch in $(ls -1 ${kustomize_kubeadm_init}-patches/* 2>/dev/null || echo); do
         patch_basename="$(basename $patch)"
