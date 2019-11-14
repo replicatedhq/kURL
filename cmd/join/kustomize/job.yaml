@@ -1,0 +1,21 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: kurl-join
+spec:
+  template:
+    spec:
+      serviceAccountName: kurl-join
+      restartPolicy: Never
+      containers:
+      - name: join
+        image: replicated/kurl-util:latest
+        command: ["/usr/local/bin/join", "--bootstrap-token", "--upload-certs"]
+        imagePullPolicy: IfNotPresent
+        volumeMounts:
+        - name: pki
+          mountPath: /etc/kubernetes/pki
+      volumes:
+      - name: pki
+        hostPath:
+          path: /etc/kubernetes/pki

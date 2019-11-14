@@ -7,6 +7,11 @@ function registry() {
 
     registry_session_secret
 
+    if [ -n "$REGISTRY_PUBLISH_PORT" ]; then
+        render_yaml_file "$DIR/addons/registry/2.7.1/tmpl-node-port.yaml" > "$DIR/kustomize/registry/node-port.yaml" 
+        insert_patches_strategic_merge "$DIR/kustomize/registry/kustomization.yaml" node-port.yaml
+    fi
+
     kubectl apply -k "$DIR/kustomize/registry"
 
     DOCKER_REGISTRY_IP=$(kubectl -n kurl get service registry -o=jsonpath='{@.spec.clusterIP}')
@@ -92,6 +97,13 @@ CN = registry.kurl.svc.cluster.local
 [ req_ext ]
 subjectAltName = @alt_names
 
+[ v3_ext ]
+authorityKeyIdentifier=keyid,issuer:always
+basicConstraints=CA:FALSE
+keyUsage=nonRepudiation,digitalSignature,keyEncipherment
+extendedKeyUsage=serverAuth
+subjectAltName=@alt_names
+
 [ alt_names ]
 DNS.1 = registry
 DNS.2 = registry.kurl
@@ -99,14 +111,15 @@ DNS.3 = registry.kurl.svc
 DNS.4 = registry.kurl.svc.cluster
 DNS.5 = registry.kurl.svc.cluster.local
 IP.1 = $DOCKER_REGISTRY_IP
-
-[ v3_ext ]
-authorityKeyIdentifier=keyid,issuer:always
-basicConstraints=CA:FALSE
-keyUsage=nonRepudiation,digitalSignature,keyEncipherment
-extendedKeyUsage=serverAuth
-subjectAltName=@alt_names
 EOF
+
+    if [ -n "$REGISTRY_PUBLISH_PORT" ]; then
+		echo "IP.2 = $PRIVATE_ADDRESS" >> registry.cnf
+
+        if [ -n "$PUBLIC_ADDRESS" ]; then
+            echo "IP.3 = $PUBLIC_ADDRESS" >> registry.cnf
+        fi
+	fi
 
     openssl req -newkey rsa:2048 -nodes -keyout registry.key -out registry.csr -config registry.cnf
     openssl x509 -req -days 365 -in registry.csr -CA /etc/kubernetes/pki/ca.crt -CAkey /etc/kubernetes/pki/ca.key -CAcreateserial -out registry.crt -extensions v3_ext -extfile registry.cnf

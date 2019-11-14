@@ -14,3 +14,8 @@ The service IP is from the Service of type ClusterIP that is created along with 
 All access to the registry requires authentication with [basic auth](https://docs.docker.com/registry/deploying/#native-basic-auth).
 A new user/password is generated and placed in a secret in the default namespace to be used as an imagePullSecret by Pods.
 The user has push/pull access to all repos in the registry.
+
+## Options
+
+By default it is not possible to push to the registry from remote hosts.
+Use the `registry-publish-port=<port>` flag to configure the registry to listen on a NodePort.

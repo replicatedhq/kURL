@@ -17,6 +17,9 @@ function tasks() {
         kotsadm-accept-tls-uploads|kotsadm_accept_tls_uploads)
             kotsadm_accept_tls_uploads
             ;;
+        print-registry-login|print_registry_login)
+            print_registry_login
+            ;;
         *)
             bail "Unknown task: $TASK"
             ;;
@@ -164,4 +167,26 @@ function weave_reset() {
 
 function kotsadm_accept_tls_uploads() {
     kubectl patch secret kotsadm-tls -p '{"stringData":{"acceptAnonymousUploads":"1"}}'
+}
+
+function print_registry_login() {
+    local passwd=$(kubectl get secret registry-creds -o=jsonpath='{ .data.\.dockerconfigjson }' | base64 --decode | grep -oE '"password":"\w+"' | awk -F\" '{ print $4 }')
+    local clusterIP=$(kubectl -n kurl get service registry -o=jsonpath='{ .spec.clusterIP }')
+
+    printf "From this host:\n"
+    printf "${GREEN}docker login --username=kurl --password=$passwd $clusterIP ${NC}\n"
+
+    if kubectl -n kurl get service registry | grep -q NodePort; then
+        # last IP in SANs will be public address if known else private address
+        local hostIP=$(echo q | openssl s_client -connect $clusterIP:443 2>/dev/null | openssl x509 -noout -text | grep 'IP Address' | awk -F':' '{ print $NF }')
+        local nodePort=$(kubectl -n kurl get service registry -ojsonpath='{ .spec.ports[0].nodePort }')
+
+        printf "\n"
+        printf "From remote host:\n"
+        printf "${GREEN}mkdir -p /etc/docker/certs.d/$hostIP:$nodePort\n"
+        printf "cat > /etc/docker/certs.d/$hostIP:$nodePort/ca.crt <<EOF\n"
+        cat /etc/kubernetes/pki/ca.crt
+        printf "EOF\n"
+        printf "docker login --username=kurl --password=$passwd $hostIP:$nodePort ${NC}\n"
+    fi
 }

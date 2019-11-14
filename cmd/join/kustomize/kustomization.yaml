@@ -1,0 +1,3 @@
+resources:
+- job.yaml
+- rbac.yaml
