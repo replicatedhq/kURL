@@ -1,0 +1,9 @@
+apiVersion: kubeadm.k8s.io/v1beta2
+kind: ClusterConfiguration
+metadata:
+  name: kubeadm-cluster-configuration
+apiServer:
+  certSANs:
+  - "$PUBLIC_ADDRESS"
+  - "$LOAD_BALANCER_ADDRESS"
+controlPlaneEndpoint: "$LOAD_BALANCER_ADDRESS:$LOAD_BALANCER_PORT"

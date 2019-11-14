@@ -12,8 +12,6 @@ function addon() {
     rm -rf $DIR/kustomize/$name
     mkdir -p $DIR/kustomize/$name
 
-    addon_load "$name" "$version"
-
     . $DIR/addons/$name/$version/install.sh
 
     $name
@@ -26,6 +24,8 @@ function addon_pre_init() {
     if [ -z "$version" ]; then
         return 0
     fi
+
+    addon_load "$name" "$version"
 
     . $DIR/addons/$name/$version/install.sh
 
