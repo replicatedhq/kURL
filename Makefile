@@ -11,6 +11,11 @@ dist/common.tar.gz: build/kustomize build/shared
 	tar rf dist/common.tar -C build shared
 	gzip dist/common.tar
 
+dist/aws-%.tar.gz: build/addons
+	mkdir -p dist
+	bin/docker-save.sh addons/aws/$*/Manifest build/addons/aws/$*/images
+	tar cf - -C build addons/aws/$* | gzip > dist/aws-$*.tar.gz
+
 dist/weave-%.tar.gz: build/addons
 	mkdir -p build/addons/weave/$*/images
 	bin/docker-save.sh addons/weave/$*/Manifest build/addons/weave/$*/images
