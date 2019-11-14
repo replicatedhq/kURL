@@ -19,6 +19,21 @@ function addon() {
     $name
 }
 
+function addon_pre_init() {
+    local name=$1
+    local version=$2
+
+    if [ -z "$version" ]; then
+        return 0
+    fi
+
+    . $DIR/addons/$name/$version/install.sh
+
+    if commandExists ${name}_pre_init; then
+        ${name}_pre_init
+    fi
+}
+
 function addon_join() {
     local name=$1
     local version=$2

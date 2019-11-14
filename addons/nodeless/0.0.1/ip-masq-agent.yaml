@@ -1,0 +1,53 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ip-masq-agent
+  namespace: kube-system
+data:
+  # Set the environment variable non_masquerade_cidrs to a comma-delimited list
+  # of strings, for example:
+  # 10.0.1.0/24, 192.168.0.0/16
+  config: |
+    nonMasqueradeCIDRs: [10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16]
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: ip-masq-agent
+  namespace: kube-system
+spec:
+  selector:
+    matchLabels:
+      k8s-app: ip-masq-agent
+  template:
+    metadata:
+      labels:
+        k8s-app: ip-masq-agent
+    spec:
+      # Enable to run on master nodes. A default kubeadm setup will create a
+      # coredns deployment that is allowed to run on master nodes.
+      tolerations:
+      - effect: NoSchedule
+        key: node-role.kubernetes.io/master
+      hostNetwork: true
+      containers:
+      - name: ip-masq-agent
+        image: gcr.io/google-containers/ip-masq-agent-amd64:v2.0.0
+        securityContext:
+          privileged: false
+          capabilities:
+            add: ["NET_ADMIN", "NET_RAW"]
+        volumeMounts:
+          - name: config
+            mountPath: /etc/config
+      volumes:
+        - name: config
+          configMap:
+            # Note this ConfigMap must be created in the same namespace as the daemon pods - this spec uses kube-system
+            name: ip-masq-agent
+            optional: true
+            items:
+              # The daemon looks for its config in a YAML file at /etc/config/ip-masq-agent
+              - key: config
+                path: ip-masq-agent

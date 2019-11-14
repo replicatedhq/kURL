@@ -1,0 +1,10 @@
+---
+kind: JoinConfiguration
+apiVersion: kubeadm.k8s.io/v1beta2
+metadata:
+  name: kubeadm-join-configuration
+nodeRegistration:
+  criSocket: unix://$CRI_SOCKET
+  kubeletExtraArgs:
+    max-pods: '"1000"'
+    node-labels: elotl.co/milpa-worker=""
