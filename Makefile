@@ -16,6 +16,16 @@ dist/aws-%.tar.gz: build/addons
 	bin/docker-save.sh addons/aws/$*/Manifest build/addons/aws/$*/images
 	tar cf - -C build addons/aws/$* | gzip > dist/aws-$*.tar.gz
 
+dist/nodeless-%.tar.gz: build/addons
+	mkdir -p dist
+	bin/docker-save.sh addons/nodeless/$*/Manifest build/addons/nodeless/$*/images
+	tar cf - -C build addons/nodeless/$* | gzip > dist/nodeless-$*.tar.gz
+
+dist/calico-%.tar.gz: build/addons
+	mkdir -p dist
+	bin/docker-save.sh addons/calico/$*/Manifest build/addons/calico/$*/images
+	tar cf - -C build addons/calico/$* | gzip > dist/calico-$*.tar.gz
+
 dist/weave-%.tar.gz: build/addons
 	mkdir -p build/addons/weave/$*/images
 	bin/docker-save.sh addons/weave/$*/Manifest build/addons/weave/$*/images
