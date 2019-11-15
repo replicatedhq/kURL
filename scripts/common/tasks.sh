@@ -20,6 +20,9 @@ function tasks() {
         print-registry-login|print_registry_login)
             print_registry_login
             ;;
+        kotsadm-change-password|kotsadm_change_password)
+            kotsadm_change_password
+            ;;
         *)
             bail "Unknown task: $TASK"
             ;;
@@ -175,6 +178,8 @@ function print_registry_login() {
 
     printf "${BLUE}Local:${NC}\n"
     printf "${GREEN}docker login --username=kurl --password=$passwd $clusterIP ${NC}\n"
+    printf "${BLUE}Secret:${NC}\n"
+    printf "${GREEN}kubectl create secret docker-registry kurl-registry --docker-username=kurl --docker-password=$passwd --docker-server=$clusterIP ${NC}\n"
 
     if kubectl -n kurl get service registry | grep -q NodePort; then
         # last IP in SANs will be public address if known else private address
@@ -188,5 +193,19 @@ function print_registry_login() {
         cat /etc/kubernetes/pki/ca.crt
         printf "EOF\n"
         printf "docker login --username=kurl --password=$passwd $hostIP:$nodePort ${NC}\n"
+        printf "${BLUE}Secret:${NC}\n"
+        printf "${GREEN}kubectl create secret docker-registry kurl-registry --docker-username=kurl --docker-password=$passwd --docker-server=$hostIP:$nodePort ${NC}\n"
     fi
+}
+
+function kotsadm_change_password() {
+    KOTSADM_PASSWORD=$(< /dev/urandom tr -dc A-Za-z0-9 | head -c9)
+    BCRYPT_PASSWORD=$(docker run --rm epicsoft/bcrypt:latest hash "$KOTSADM_PASSWORD" 14)
+
+    kubectl delete secret kotsadm-password
+    kubectl create secret generic kotsadm-password --from-literal=passwordBcrypt=$BCRYPT_PASSWORD
+
+    printf "password: ${GREEN}${KOTSADM_PASSWORD}${NC}\n"
+
+    kubectl delete pod --selector=app=kotsadm-api
 }
