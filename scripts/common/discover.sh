@@ -185,11 +185,11 @@ discoverProxy() {
 }
 
 discoverPublicIp() {
+    # gce
     set +e
     _out=$(curl --noproxy "*" --max-time 5 --connect-timeout 2 -qSfs -H 'Metadata-Flavor: Google' http://169.254.169.254/computeMetadata/v1/instance/network-interfaces/0/access-configs/0/external-ip 2>/dev/null)
     _status=$?
     set -e
-
     if [ "$_status" -eq "0" ] && [ -n "$_out" ]; then
         PUBLIC_ADDRESS=$_out
         return
@@ -198,6 +198,16 @@ discoverPublicIp() {
     # ec2
     set +e
     _out=$(curl --noproxy "*" --max-time 5 --connect-timeout 2 -qSfs http://169.254.169.254/latest/meta-data/public-ipv4 2>/dev/null)
+    _status=$?
+    set -e
+    if [ "$_status" -eq "0" ] && [ -n "$_out" ]; then
+        PUBLIC_ADDRESS=$_out
+        return
+    fi
+
+    # azure
+    set +e
+    _out=$(curl --noproxy "*" --max-time 5 --connect-timeout 2 -qSfs -H Metadata:true "http://169.254.169.254/metadata/instance/network/interface/0/ipv4/ipAddress/0/publicIpAddress?api-version=2017-08-01&format=text" 2>/dev/null)
     _status=$?
     set -e
     if [ "$_status" -eq "0" ] && [ -n "$_out" ]; then
