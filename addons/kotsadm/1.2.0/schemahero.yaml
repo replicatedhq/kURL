@@ -9,7 +9,7 @@ spec:
   restartPolicy: OnFailure
   containers:
   - name: kotsadm-migrations
-    image: kotsadm/kotsadm-migrations:v1.1.0
+    image: kotsadm/kotsadm-migrations:v1.2.0
     env:
     - name: SCHEMAHERO_DRIVER
       value: postgres
