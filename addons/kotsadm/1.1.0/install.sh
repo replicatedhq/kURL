@@ -63,7 +63,7 @@ function kotsadm_outro() {
     if [ -n "$KOTSADM_PASSWORD" ]; then
         printf "Login with password (will not be shown again): ${GREEN}$KOTSADM_PASSWORD${NC}\n"
     else
-        printf "Password not regenerated. Delete the kotsadm-password secret and re-run installer to force re-generation.\n"
+        printf "Password not regenerated. Run ${GREEN}bash ${INSTALLER_ID:-install.sh} task=kotsadm-change-password${NC} to reset it\n"
     fi
     printf "\n"
     printf "\n"

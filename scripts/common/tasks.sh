@@ -17,6 +17,12 @@ function tasks() {
         kotsadm-accept-tls-uploads|kotsadm_accept_tls_uploads)
             kotsadm_accept_tls_uploads
             ;;
+        print-registry-login|print_registry_login)
+            print_registry_login
+            ;;
+        kotsadm-change-password|kotsadm_change_password)
+            kotsadm_change_password
+            ;;
         *)
             bail "Unknown task: $TASK"
             ;;
@@ -164,4 +170,42 @@ function weave_reset() {
 
 function kotsadm_accept_tls_uploads() {
     kubectl patch secret kotsadm-tls -p '{"stringData":{"acceptAnonymousUploads":"1"}}'
+}
+
+function print_registry_login() {
+    local passwd=$(kubectl get secret registry-creds -o=jsonpath='{ .data.\.dockerconfigjson }' | base64 --decode | grep -oE '"password":"\w+"' | awk -F\" '{ print $4 }')
+    local clusterIP=$(kubectl -n kurl get service registry -o=jsonpath='{ .spec.clusterIP }')
+
+    printf "${BLUE}Local:${NC}\n"
+    printf "${GREEN}docker login --username=kurl --password=$passwd $clusterIP ${NC}\n"
+    printf "${BLUE}Secret:${NC}\n"
+    printf "${GREEN}kubectl create secret docker-registry kurl-registry --docker-username=kurl --docker-password=$passwd --docker-server=$clusterIP ${NC}\n"
+
+    if kubectl -n kurl get service registry | grep -q NodePort; then
+        # last IP in SANs will be public address if known else private address
+        local hostIP=$(echo q | openssl s_client -connect $clusterIP:443 2>/dev/null | openssl x509 -noout -text | grep 'IP Address' | awk -F':' '{ print $NF }')
+        local nodePort=$(kubectl -n kurl get service registry -ojsonpath='{ .spec.ports[0].nodePort }')
+
+        printf "\n"
+        printf "${BLUE}Remote:${NC}\n"
+        printf "${GREEN}mkdir -p /etc/docker/certs.d/$hostIP:$nodePort\n"
+        printf "cat > /etc/docker/certs.d/$hostIP:$nodePort/ca.crt <<EOF\n"
+        cat /etc/kubernetes/pki/ca.crt
+        printf "EOF\n"
+        printf "docker login --username=kurl --password=$passwd $hostIP:$nodePort ${NC}\n"
+        printf "${BLUE}Secret:${NC}\n"
+        printf "${GREEN}kubectl create secret docker-registry kurl-registry --docker-username=kurl --docker-password=$passwd --docker-server=$hostIP:$nodePort ${NC}\n"
+    fi
+}
+
+function kotsadm_change_password() {
+    KOTSADM_PASSWORD=$(< /dev/urandom tr -dc A-Za-z0-9 | head -c9)
+    BCRYPT_PASSWORD=$(docker run --rm epicsoft/bcrypt:latest hash "$KOTSADM_PASSWORD" 14)
+
+    kubectl delete secret kotsadm-password
+    kubectl create secret generic kotsadm-password --from-literal=passwordBcrypt=$BCRYPT_PASSWORD
+
+    printf "password: ${GREEN}${KOTSADM_PASSWORD}${NC}\n"
+
+    kubectl delete pod --selector=app=kotsadm-api
 }

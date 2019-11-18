@@ -157,6 +157,9 @@ function flags() {
             service-cidr|service_cidr)
                 SERVICE_CIDR="$_value"
                 ;;
+            registry-publish-port|registry_publish_port)
+                REGISTRY_PUBLISH_PORT="$_value"
+                ;;
             *)
                 echo >&2 "Error: unknown parameter \"$_param\""
                 exit 1

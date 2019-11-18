@@ -29,6 +29,11 @@ process.env.REMOTES.split(",").forEach(function(remote) {
   });
 });
 
+commands.push({
+  command: "echo",
+  args: ["synced"],
+});
+
 gri([
   'scripts/**/*',
   'addons/**/*',
