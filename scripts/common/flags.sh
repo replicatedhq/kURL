@@ -129,7 +129,8 @@ function flags() {
                 KUBEADM_TOKEN_CA_HASH="$_value"
                 ;;
             kubernetes-version|kubernetes_version)
-                if [ -n "$KUBERNETES_VERSION" ] && [ "$_value" != "$KUBERNETES_VERSION" ]; then
+                local k8sversion=$(echo "$_value" | sed 's/v//')
+                if [ -n "$KUBERNETES_VERSION" ] && [ "$k8sversion" != "$KUBERNETES_VERSION" ]; then
                     bail "This script installs $KUBERNETES_VERSION"
                 fi
                 ;;
