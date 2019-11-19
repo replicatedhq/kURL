@@ -37,6 +37,12 @@ func main() {
 		log.Panic(err)
 	}
 
+	// To be backwards compatible with kotsadm 1.1.0 and 1.2.0, if neither the bootstrap token nor
+	// the upload certs flags are set then generate a token for a worker node
+	if !*uploadCerts {
+		*bootstrapToken = true
+	}
+
 	if *bootstrapToken {
 		bootstrapTokenDuration := time.Hour * 24
 		bootstrapTokenExpiration := time.Now().Add(bootstrapTokenDuration)
