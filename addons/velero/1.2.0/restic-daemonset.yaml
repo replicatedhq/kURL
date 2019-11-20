@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: restic
+  labels:
+    app.kubernetes.io/name: restic
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: restic
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: restic
+    spec:
+      serviceAccountName: velero
+      securityContext:
+        runAsUser: 0
+      volumes:
+        - name: cloud-credentials
+          secret:
+            secretName: cloud-credentials
+        - name: host-pods
+          hostPath:
+            path: /var/lib/kubelet/pods
+        - name: scratch
+          emptyDir: {}
+      containers:
+        - name: velero
+          image: velero/velero:v1.2.0
+          command:
+            - /velero
+          args:
+            - restic
+            - server
+          volumeMounts:
+            - name: cloud-credentials
+              mountPath: /credentials
+            - name: host-pods
+              mountPath: /host_pods
+              mountPropagation: HostToContainer
+            - name: scratch
+              mountPath: /scratch
+          envFrom:
+            - secretRef:
+                name: velero
+          env:
+            - name: VELERO_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            - name: VELERO_SCRATCH_DIR
+              value: /scratch
+            - name: AWS_SHARED_CREDENTIALS_FILE
+              value: /credentials/cloud
+            - name: GOOGLE_APPLICATION_CREDENTIALS
+              value: /credentials/cloud

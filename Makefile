@@ -27,6 +27,12 @@ dist/calico-%.tar.gz: build/addons
 	bin/save-manifest-assets.sh addons/calico/$*/Manifest build/addons/calico/$*
 	tar cf - -C build addons/calico/$* | gzip > dist/calico-$*.tar.gz
 
+dist/velero-%.tar.gz: build/addons
+	mkdir -p build/addons/velero/$*/images
+	bin/docker-save.sh addons/velero/$*/Manifest build/addons/velero/$*/images
+	mkdir -p dist
+	tar cf - -C build addons/velero/$* | gzip > dist/velero-$*.tar.gz
+
 dist/weave-%.tar.gz: build/addons
 	mkdir -p build/addons/weave/$*/images
 	bin/save-manifest-assets.sh addons/weave/$*/Manifest build/addons/weave/$*
@@ -103,6 +109,7 @@ build/templates/install.tmpl: build/install.sh
 		sed 's/^CONTOUR_VERSION=.*/CONTOUR_VERSION="{{= CONTOUR_VERSION }}"/' | \
 		sed 's/^REGISTRY_VERSION=.*/REGISTRY_VERSION="{{= REGISTRY_VERSION }}"/' | \
 		sed 's/^PROMETHEUS_VERSION=.*/PROMETHEUS_VERSION="{{= PROMETHEUS_VERSION }}"/' | \
+		sed 's/^VELERO_VERSION=.*/VELERO_VERSION="{{= VELERO_VERSION }}"/' | \
 		sed 's/^KOTSADM_VERSION=.*/KOTSADM_VERSION="{{= KOTSADM_VERSION }}"/' | \
 		sed 's/^KOTSADM_APPLICATION_SLUG=.*/KOTSADM_APPLICATION_SLUG="{{= KOTSADM_APPLICATION_SLUG }}"/' | \
 		sed 's/^FLAGS=.*/FLAGS="{{= FLAGS }}"/' \
@@ -129,6 +136,7 @@ build/templates/join.tmpl: build/join.sh
 		sed 's/^CONTOUR_VERSION=.*/CONTOUR_VERSION="{{= CONTOUR_VERSION }}"/' | \
 		sed 's/^REGISTRY_VERSION=.*/REGISTRY_VERSION="{{= REGISTRY_VERSION }}"/' | \
 		sed 's/^PROMETHEUS_VERSION=.*/PROMETHEUS_VERSION="{{= PROMETHEUS_VERSION }}"/' | \
+		sed 's/^VELERO_VERSION=.*/VELERO_VERSION="{{= VELERO_VERSION }}"/' | \
 		sed 's/^KOTSADM_VERSION=.*/KOTSADM_VERSION="{{= KOTSADM_VERSION }}"/' | \
 		sed 's/^KOTSADM_APPLICATION_SLUG=.*/KOTSADM_APPLICATION_SLUG="{{= KOTSADM_APPLICATION_SLUG }}"/' | \
 		sed 's/^FLAGS=.*/FLAGS="{{= FLAGS }}"/' \
@@ -155,6 +163,7 @@ build/templates/upgrade.tmpl: build/upgrade.sh
 		sed 's/^CONTOUR_VERSION=.*/CONTOUR_VERSION="{{= CONTOUR_VERSION }}"/' | \
 		sed 's/^REGISTRY_VERSION=.*/REGISTRY_VERSION="{{= REGISTRY_VERSION }}"/' | \
 		sed 's/^PROMETHEUS_VERSION=.*/PROMETHEUS_VERSION="{{= PROMETHEUS_VERSION }}"/' | \
+		sed 's/^VELERO_VERSION=.*/VELERO_VERSION="{{= VELERO_VERSION }}"/' | \
 		sed 's/^KOTSADM_VERSION=.*/KOTSADM_VERSION="{{= KOTSADM_VERSION }}"/' | \
 		sed 's/^KOTSADM_APPLICATION_SLUG=.*/KOTSADM_APPLICATION_SLUG="{{= KOTSADM_APPLICATION_SLUG }}"/' | \
 		sed 's/^FLAGS=.*/FLAGS="{{= FLAGS }}"/' \

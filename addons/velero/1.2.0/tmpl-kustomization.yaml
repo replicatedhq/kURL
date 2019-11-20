@@ -1,0 +1,8 @@
+namespace: ${VELERO_NAMESPACE:-velero}
+
+resources:
+- namespace.yaml
+- deployment.yaml
+- rbac.yaml
+- restic-daemonset.yaml
+- service.yaml

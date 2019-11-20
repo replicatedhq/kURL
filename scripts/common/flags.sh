@@ -164,6 +164,9 @@ function flags() {
             kotsadm-application-namespaces|kotsadm_application_namespaces)
                 KOTSADM_APPLICATION_NAMESPACES="$_value"
                 ;;
+            velero-namespace|velero_namespace)
+                VELERO_NAMESPACE="$_value"
+                ;;
             *)
                 echo >&2 "Error: unknown parameter \"$_param\""
                 exit 1

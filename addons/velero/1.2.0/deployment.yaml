@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: velero
+  labels:
+    app.kubernetes.io/name: velero
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: velero
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: velero
+    spec:
+      restartPolicy: Always
+      serviceAccountName: velero
+      containers:
+        - name: velero
+          image: velero/velero:v1.2.0
+          ports:
+            - name: monitoring
+              containerPort: 8085
+          command:
+            - /velero
+          args:
+            - server
+          volumeMounts:
+            - name: plugins
+              mountPath: /plugins
+            - name: cloud-credentials
+              mountPath: /credentials
+            - name: scratch
+              mountPath: /scratch
+          env:
+            - name: VELERO_SCRATCH_DIR
+              value: /scratch
+            - name: VELERO_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: metadata.namespace
+            - name: AWS_SHARED_CREDENTIALS_FILE
+              value: /credentials/cloud
+            - name: GOOGLE_APPLICATION_CREDENTIALS
+              value: /credentials/cloud
+            - name: AZURE_CREDENTIALS_FILE
+              value: /credentials/cloud
+      volumes:
+        - name: cloud-credentials
+          secret:
+            secretName: cloud-credentials
+            optional: true
+        - name: plugins
+          emptyDir: {}
+        - name: scratch
+          emptyDir: {}
