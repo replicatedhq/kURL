@@ -16,6 +16,16 @@ spec:
     spec:
       restartPolicy: Always
       serviceAccountName: velero
+      initContainers:
+      - image: velero/velero-plugin-for-aws:v1.0.0
+        imagePullPolicy: IfNotPresent
+        name: velero-plugin-for-aws
+        resources: {}
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /target
+          name: plugins
       containers:
         - name: velero
           image: velero/velero:v1.2.0
@@ -42,10 +52,6 @@ spec:
                   apiVersion: v1
                   fieldPath: metadata.namespace
             - name: AWS_SHARED_CREDENTIALS_FILE
-              value: /credentials/cloud
-            - name: GOOGLE_APPLICATION_CREDENTIALS
-              value: /credentials/cloud
-            - name: AZURE_CREDENTIALS_FILE
               value: /credentials/cloud
       volumes:
         - name: cloud-credentials

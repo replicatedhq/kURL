@@ -1,0 +1,3 @@
+velero velero/velero:v1.2.0
+velero-aws velero/velero-plugin-for-aws:v1.0.0
+restic-restore velero/velero-restic-restore-helper:v1.2.0

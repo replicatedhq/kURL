@@ -20,6 +20,7 @@ spec:
         - name: cloud-credentials
           secret:
             secretName: cloud-credentials
+            optional: true
         - name: host-pods
           hostPath:
             path: /var/lib/kubelet/pods
@@ -41,9 +42,6 @@ spec:
               mountPropagation: HostToContainer
             - name: scratch
               mountPath: /scratch
-          envFrom:
-            - secretRef:
-                name: velero
           env:
             - name: VELERO_NAMESPACE
               valueFrom:
@@ -56,6 +54,4 @@ spec:
             - name: VELERO_SCRATCH_DIR
               value: /scratch
             - name: AWS_SHARED_CREDENTIALS_FILE
-              value: /credentials/cloud
-            - name: GOOGLE_APPLICATION_CREDENTIALS
               value: /credentials/cloud

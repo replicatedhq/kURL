@@ -29,6 +29,7 @@ function velero() {
 function velero_binary() {
     local id=$(docker create velero/velero:v1.2.0)
     docker cp ${id}:/velero velero
+    docker rm ${id}
     chmod a+x velero
     mv velero /usr/local/bin/velero
 }

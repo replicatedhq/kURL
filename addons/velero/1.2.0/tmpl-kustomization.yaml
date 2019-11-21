@@ -1,4 +1,4 @@
-namespace: ${VELERO_NAMESPACE:-velero}
+namespace: $VELERO_NAMESPACE
 
 resources:
 - namespace.yaml
