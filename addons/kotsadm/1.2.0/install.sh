@@ -41,6 +41,8 @@ function kotsadm() {
 
     kubectl delete pod kotsadm-migrations || true;
 
+    kotsadm_namespaces "$src" "$dst"
+
     kubectl apply -k "$dst/"
 
     kotsadm_kurl_proxy $src $dst
@@ -231,4 +233,16 @@ function kotsadm_kubelet_client_secret() {
         --from-file=client.crt=/etc/kubernetes/pki/apiserver-kubelet-client.crt \
         --from-file=client.key=/etc/kubernetes/pki/apiserver-kubelet-client.key \
         --from-file=/etc/kubernetes/pki/ca.crt
+}
+
+function kotsadm_namespaces() {
+    local src="$1"
+    local dst="$2"
+
+    IFS=',' read -ra KOTSADM_APPLICATION_NAMESPACES_ARRAY <<< "$KOTSADM_APPLICATION_NAMESPACES"
+    for NAMESPACE in "${KOTSADM_APPLICATION_NAMESPACES_ARRAY[@]}"; do
+        kubectl create ns "$NAMESPACE" 2>/dev/null || true
+        render_yaml_file "$src/tmpl-operator-cluster-rbac.yaml" > "$dst/operator-cluster-rbac-$NAMESPACE.yaml"
+        insert_resources "$dst/kustomization.yaml" "operator-cluster-rbac-$NAMESPACE.yaml"
+    done
 }

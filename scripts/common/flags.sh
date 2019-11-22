@@ -161,6 +161,9 @@ function flags() {
             registry-publish-port|registry_publish_port)
                 REGISTRY_PUBLISH_PORT="$_value"
                 ;;
+            kotsadm-application-namespaces|kotsadm_application_namespaces)
+                KOTSADM_APPLICATION_NAMESPACES="$_value"
+                ;;
             *)
                 echo >&2 "Error: unknown parameter \"$_param\""
                 exit 1
