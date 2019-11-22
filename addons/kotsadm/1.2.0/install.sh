@@ -239,11 +239,12 @@ function kotsadm_namespaces() {
     local src="$1"
     local dst="$2"
 
-    cp "$src/operator-cluster-rbac.yaml" "$dst/"
-    insert_resources "$dst/kustomization.yaml" operator-cluster-rbac.yaml
-
     IFS=',' read -ra KOTSADM_APPLICATION_NAMESPACES_ARRAY <<< "$KOTSADM_APPLICATION_NAMESPACE"
-    for ns in "${KOTSADM_APPLICATION_NAMESPACES_ARRAY[@]}"; do
-        kubectl create ns "$ns"
+    for NAMESPACE in "${KOTSADM_APPLICATION_NAMESPACES_ARRAY[@]}"; do
+        if [ -n "$NAMESPACE"]; then
+            kubectl create ns "$NAMESPACE"
+            render_yaml_file "$src/tmpl-operator-cluster-role.yaml" > "$dst/operator-cluster-rbac-$NAMESPACE.yaml"
+            insert_resources "$dst/kustomization.yaml" "operator-cluster-rbac-$NAMESPACE.yaml"
+        fi
     done
 }
