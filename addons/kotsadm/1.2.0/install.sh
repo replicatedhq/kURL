@@ -5,6 +5,8 @@ function kotsadm() {
 
     rook_create_bucket kotsadm
 
+    kotsadm_namespaces "$src" "$dst"
+
     cp "$src/kustomization.yaml" "$dst/"
     cp "$src/api.yaml" "$dst/"
     cp "$src/operator.yaml" "$dst/"
@@ -231,4 +233,17 @@ function kotsadm_kubelet_client_secret() {
         --from-file=client.crt=/etc/kubernetes/pki/apiserver-kubelet-client.crt \
         --from-file=client.key=/etc/kubernetes/pki/apiserver-kubelet-client.key \
         --from-file=/etc/kubernetes/pki/ca.crt
+}
+
+function kotsadm_namespaces() {
+    local src="$1"
+    local dst="$2"
+
+    cp "$src/operator-cluster-rbac.yaml" "$dst/"
+    insert_resources "$dst/kustomization.yaml" operator-cluster-rbac.yaml
+
+    IFS=',' read -ra KOTSADM_APPLICATION_NAMESPACES_ARRAY <<< "$KOTSADM_APPLICATION_NAMESPACE"
+    for ns in "${KOTSADM_APPLICATION_NAMESPACES_ARRAY[@]}"; do
+        kubectl create ns "$ns"
+    done
 }
