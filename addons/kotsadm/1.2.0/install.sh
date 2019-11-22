@@ -5,8 +5,6 @@ function kotsadm() {
 
     rook_create_bucket kotsadm
 
-    kotsadm_namespaces "$src" "$dst"
-
     cp "$src/kustomization.yaml" "$dst/"
     cp "$src/api.yaml" "$dst/"
     cp "$src/operator.yaml" "$dst/"
@@ -42,6 +40,8 @@ function kotsadm() {
     kubectl create configmap kotsadm-web-scripts --from-file="$dst/start-kotsadm-web.sh" --dry-run -oyaml > "$dst/kotsadm-web-scripts.yaml"
 
     kubectl delete pod kotsadm-migrations || true;
+
+    kotsadm_namespaces "$src" "$dst"
 
     kubectl apply -k "$dst/"
 
@@ -239,12 +239,10 @@ function kotsadm_namespaces() {
     local src="$1"
     local dst="$2"
 
-    IFS=',' read -ra KOTSADM_APPLICATION_NAMESPACES_ARRAY <<< "$KOTSADM_APPLICATION_NAMESPACE"
+    IFS=',' read -ra KOTSADM_APPLICATION_NAMESPACES_ARRAY <<< "$KOTSADM_APPLICATION_NAMESPACES"
     for NAMESPACE in "${KOTSADM_APPLICATION_NAMESPACES_ARRAY[@]}"; do
-        if [ -n "$NAMESPACE"]; then
-            kubectl create ns "$NAMESPACE"
-            render_yaml_file "$src/tmpl-operator-cluster-role.yaml" > "$dst/operator-cluster-rbac-$NAMESPACE.yaml"
-            insert_resources "$dst/kustomization.yaml" "operator-cluster-rbac-$NAMESPACE.yaml"
-        fi
+        kubectl create ns "$NAMESPACE" 2>/dev/null || true
+        render_yaml_file "$src/tmpl-operator-cluster-rbac.yaml" > "$dst/operator-cluster-rbac-$NAMESPACE.yaml"
+        insert_resources "$dst/kustomization.yaml" "operator-cluster-rbac-$NAMESPACE.yaml"
     done
 }
