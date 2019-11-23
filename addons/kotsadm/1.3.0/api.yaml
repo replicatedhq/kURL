@@ -161,6 +161,11 @@ spec:
             secretKeyRef:
               name: kotsadm-password
               key: passwordBcrypt
+        - name: API_ENCRYPTION_KEY
+          valueFrom:
+            secretKeyRef:
+              name: kotsadm-encryption
+              key: encryptionKey
         - name: AUTO_CREATE_CLUSTER
           value: "1"
         - name: AUTO_CREATE_CLUSTER_NAME

@@ -17,6 +17,7 @@ function kotsadm() {
     kotsadm_secret_postgres
     kotsadm_secret_s3
     kotsadm_secret_session
+    kotsadm_api_encryption_key
     if [ -n "$PROMETHEUS_VERSION" ]; then
         kotsadm_api_patch_prometheus
     fi
@@ -139,6 +140,21 @@ function kotsadm_secret_session() {
 
     render_yaml_file "$DIR/addons/kotsadm/1.3.0/tmpl-secret-session.yaml" > "$DIR/kustomize/kotsadm/secret-session.yaml"
     insert_resources "$DIR/kustomize/kotsadm/kustomization.yaml" secret-session.yaml
+
+    kubernetes_scale_down default deployment kotsadm-api
+}
+
+function kotsadm_api_encryption_key() {
+    local API_ENCRYPTION=$(kubernetes_secret_value default kotsadm-encryption encryptionKey)
+
+    if [ -n "$API_ENCRYPTION" ]; then
+        return 0
+    fi
+
+    API_ENCRYPTION=$(< /dev/urandom tr -dc A-Za-z0-9 | head -c9)
+
+    render_yaml_file "$DIR/addons/kotsadm/1.3.0/tmpl-secret-api-encryption.yaml" > "$DIR/kustomize/kotsadm/secret-api-encryption.yaml"
+    insert_resources "$DIR/kustomize/kotsadm/kustomization.yaml" secret-api-encryption.yaml
 
     kubernetes_scale_down default deployment kotsadm-api
 }
