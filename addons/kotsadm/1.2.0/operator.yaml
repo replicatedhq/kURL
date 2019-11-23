@@ -1,7 +1,7 @@
 apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
+kind: ClusterRole
 metadata:
-  name: kotsadm-operator-role
+  name: kotsadm-operator-clusterrole
 rules:
 - apiGroups:
   - "*"
@@ -11,16 +11,17 @@ rules:
   - "*"
 ---
 apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
+kind: ClusterRoleBinding
 metadata:
-  name: kotsadm-operator-rolebinding
+  name: kotsadm-operator-clusterrolebinding
 subjects:
 - kind: ServiceAccount
   name: kotsadm-operator
+  namespace: default
 roleRef:
   apiGroup: rbac.authorization.k8s.io
-  kind: Role
-  name: kotsadm-operator-role
+  kind: ClusterRole
+  name: kotsadm-operator-clusterrole
 ---
 apiVersion: v1
 kind: ServiceAccount
