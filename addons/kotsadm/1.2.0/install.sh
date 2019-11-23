@@ -242,7 +242,5 @@ function kotsadm_namespaces() {
     IFS=',' read -ra KOTSADM_APPLICATION_NAMESPACES_ARRAY <<< "$KOTSADM_APPLICATION_NAMESPACES"
     for NAMESPACE in "${KOTSADM_APPLICATION_NAMESPACES_ARRAY[@]}"; do
         kubectl create ns "$NAMESPACE" 2>/dev/null || true
-        render_yaml_file "$src/tmpl-operator-cluster-rbac.yaml" > "$dst/operator-cluster-rbac-$NAMESPACE.yaml"
-        insert_resources "$dst/kustomization.yaml" "operator-cluster-rbac-$NAMESPACE.yaml"
     done
 }

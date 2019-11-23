@@ -125,7 +125,6 @@ export interface KotsadmConfig {
   version: string;
   applicationSlug?: string;
   uiBindPort?: number;
-  applicationNamespaces?: string;
 }
 
 const kotsadmConfigSchema = {
@@ -134,7 +133,6 @@ const kotsadmConfigSchema = {
     version: { type: "string" },
     applicationSlug: { type: "string" },
     uiBindPort: { type: "number", flag: "kotsadm-ui-bind-port" },
-    applicationNamespaces: { type: "string", flag: "kotsadm-application-namespaces"  },
   },
   required: ["version"],
   additionalProperties: false,
