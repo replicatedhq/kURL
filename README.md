@@ -154,9 +154,9 @@ Enable the aws, nodeless and calico plugins, and disable prometheus, weave, rook
     +#CONTOUR_VERSION=0.14.0
      REGISTRY_VERSION=2.7.1
     -PROMETHEUS_VERSION=0.33.0
-    -KOTSADM_VERSION=1.2.0
+    -KOTSADM_VERSION=1.3.0
     +#PROMETHEUS_VERSION=0.33.0
-    +#KOTSADM_VERSION=1.2.0
+    +#KOTSADM_VERSION=1.3.0
      KOTSADM_APPLICATION_SLUG=sentry-enterprise
     +AWS_VERSION=0.0.1
     +NODELESS_VERSION=0.0.1
