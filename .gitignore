@@ -3,6 +3,5 @@
 /dist/
 /tmp/
 /web/templates
-/bin/
 node_modules/
 *DS_Store
