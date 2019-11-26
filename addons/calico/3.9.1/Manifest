@@ -1,4 +1,4 @@
-cni calico/cni:v3.9.1
-kube-controllers calico/kube-controllers:v3.9.1
-node calico/node:v3.9.1
-pod2daemon-flexvol calico/pod2daemon-flexvol:v3.9.1
+image cni calico/cni:v3.9.1
+image kube-controllers calico/kube-controllers:v3.9.1
+image node calico/node:v3.9.1
+image pod2daemon-flexvol calico/pod2daemon-flexvol:v3.9.1

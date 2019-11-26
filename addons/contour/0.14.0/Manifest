@@ -1,2 +1,2 @@
-contour gcr.io/heptio-images/contour:v0.14.0
-envoy docker.io/envoyproxy/envoy-alpine:v1.10.0
+image contour gcr.io/heptio-images/contour:v0.14.0
+image envoy docker.io/envoyproxy/envoy-alpine:v1.10.0
