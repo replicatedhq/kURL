@@ -47,11 +47,11 @@ function kotsadm() {
 
     kotsadm_kurl_proxy $src $dst
 
-    kotsadm_cli
+    kotsadm_cli "$src"
 }
 
 function kotsadm_join() {
-    kotsadm_cli
+    kotsadm_cli "$DIR/addons/kotsadm/1.2.0"
 }
 
 function kotsadm_outro() {
@@ -254,6 +254,11 @@ function kotsadm_cli() {
     tar xf "kots.tar.gz"
     mv kots "$KUBECTL_PLUGINS_PATH/kubectl-kots"
     popd
+
+    # https://github.com/replicatedhq/kots/issues/149
+    if [ ! -e /usr/lib64/libdevmapper.so.1.02.1 ] && [ -e /usr/lib64/libdevmapper.so.1.02 ]; then
+        ln -s /usr/lib64/libdevmapper.so.1.02 /usr/lib64/libdevmapper.so.1.02.1
+    fi
 }
 
 function kotsadm_namespaces() {
