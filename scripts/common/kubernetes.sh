@@ -238,6 +238,9 @@ function kubernetes_secret_value() {
 }
 
 function install_krew() {
+    if ! kubernetes_is_master; then
+        return 0
+    fi
     export KREW_ROOT=/opt/replicated/krew
     export KUBECTL_PLUGINS_PATH=${KREW_ROOT}/bin
 
@@ -260,5 +263,13 @@ function install_krew() {
     if ! grep -q KUBECTL_PLUGINS_PATH /etc/profile; then
         echo 'export KUBECTL_PLUGINS_PATH=$KREW_ROOT/bin' >> /etc/profile
         echo 'export PATH=$KUBECTL_PLUGINS_PATH:$PATH' >> /etc/profile
+    fi
+}
+
+function kubernetes_is_master() {
+    if [ -f /etc/kubernetes/manifests/kube-apiserver.yaml ]; then
+        return 0
+    else
+        return 1
     fi
 }

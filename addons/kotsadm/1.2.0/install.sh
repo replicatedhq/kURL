@@ -242,6 +242,9 @@ function kotsadm_kubelet_client_secret() {
 }
 
 function kotsadm_cli() {
+    if ! kubernetes_is_master; then
+        return 0
+    fi
     if [ ! -f "$src/assets/kots.tar.gz" ] && [ "$AIRGAP" != "1" ]; then
         mkdir -p "$src/assets"
         curl -L "https://github.com/replicatedhq/kots/releases/download/v1.2.0/kots_linux_amd64.tar.gz" > "$src/assets/kots.tar.gz"
