@@ -1,6 +1,8 @@
-kotsadm-api docker.io/kotsadm/kotsadm-api:v1.2.0
-kotsadm-migrations docker.io/kotsadm/kotsadm-migrations:v1.2.0
-kotsadm-operator docker.io/kotsadm/kotsadm-operator:v1.2.0
-kotsadm-web docker.io/kotsadm/kotsadm-web:v1.2.0
-postgres postgres:10.7
-bcrypt docker.io/epicsoft/bcrypt:latest
+image kotsadm-api docker.io/kotsadm/kotsadm-api:v1.2.0
+image kotsadm-migrations docker.io/kotsadm/kotsadm-migrations:v1.2.0
+image kotsadm-operator docker.io/kotsadm/kotsadm-operator:v1.2.0
+image kotsadm-web docker.io/kotsadm/kotsadm-web:v1.2.0
+image postgres postgres:10.7
+image bcrypt docker.io/epicsoft/bcrypt:latest
+
+asset kots https://github.com/replicatedhq/kots/releases/download/v1.2.0/kots_linux_amd64.tar.gz

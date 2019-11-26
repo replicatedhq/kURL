@@ -1,6 +1,6 @@
-kotsadm-api docker.io/kotsadm/kotsadm-api:v0.9.9
-kotsadm-migrations docker.io/kotsadm/kotsadm-migrations:v0.9.9
-kotsadm-operator docker.io/kotsadm/kotsadm-operator:v0.9.9
-kotsadm-web docker.io/kotsadm/kotsadm-web:v0.9.9
-postgres postgres:10.7
-bcrypt docker.io/epicsoft/bcrypt:latest
+image kotsadm-api docker.io/kotsadm/kotsadm-api:v0.9.9
+image kotsadm-migrations docker.io/kotsadm/kotsadm-migrations:v0.9.9
+image kotsadm-operator docker.io/kotsadm/kotsadm-operator:v0.9.9
+image kotsadm-web docker.io/kotsadm/kotsadm-web:v0.9.9
+image postgres postgres:10.7
+image bcrypt docker.io/epicsoft/bcrypt:latest

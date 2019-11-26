@@ -1,11 +1,11 @@
-grafana grafana/grafana:6.2.2
-alertmanager quay.io/prometheus/alertmanager:v0.18.0
-kube-rbac-proxy quay.io/coreos/kube-rbac-proxy:v0.4.1
-kube-state-metrics quay.io/coreos/kube-state-metrics:v1.7.2
-addon-resizer k8s.gcr.io/addon-resizer:1.8.4
-node-exporter quay.io/prometheus/node-exporter:v0.18.1
-k8s-prometheus-adapter-amd64 quay.io/coreos/k8s-prometheus-adapter-amd64:v0.4.1
-prometheus quay.io/prometheus/prometheus:v2.11.0
-prometheus-operator quay.io/coreos/prometheus-operator:v0.33.0
-configmap-reload quay.io/coreos/configmap-reload:v0.0.1
-prometheus-config-reloader quay.io/coreos/prometheus-config-reloader:v0.33.0
+image grafana grafana/grafana:6.2.2
+image alertmanager quay.io/prometheus/alertmanager:v0.18.0
+image kube-rbac-proxy quay.io/coreos/kube-rbac-proxy:v0.4.1
+image kube-state-metrics quay.io/coreos/kube-state-metrics:v1.7.2
+image addon-resizer k8s.gcr.io/addon-resizer:1.8.4
+image node-exporter quay.io/prometheus/node-exporter:v0.18.1
+image k8s-prometheus-adapter-amd64 quay.io/coreos/k8s-prometheus-adapter-amd64:v0.4.1
+image prometheus quay.io/prometheus/prometheus:v2.11.0
+image prometheus-operator quay.io/coreos/prometheus-operator:v0.33.0
+image configmap-reload quay.io/coreos/configmap-reload:v0.0.1
+image prometheus-config-reloader quay.io/coreos/prometheus-config-reloader:v0.33.0

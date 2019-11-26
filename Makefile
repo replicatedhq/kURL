@@ -14,52 +14,52 @@ dist/common.tar.gz: build/kustomize build/shared build/krew
 
 dist/aws-%.tar.gz: build/addons
 	mkdir -p dist
-	bin/docker-save.sh addons/aws/$*/Manifest build/addons/aws/$*/images
+	bin/save-manifest-assets.sh addons/aws/$*/Manifest build/addons/aws/$*
 	tar cf - -C build addons/aws/$* | gzip > dist/aws-$*.tar.gz
 
 dist/nodeless-%.tar.gz: build/addons
 	mkdir -p dist
-	bin/docker-save.sh addons/nodeless/$*/Manifest build/addons/nodeless/$*/images
+	bin/save-manifest-assets.sh addons/nodeless/$*/Manifest build/addons/nodeless/$*
 	tar cf - -C build addons/nodeless/$* | gzip > dist/nodeless-$*.tar.gz
 
 dist/calico-%.tar.gz: build/addons
 	mkdir -p dist
-	bin/docker-save.sh addons/calico/$*/Manifest build/addons/calico/$*/images
+	bin/save-manifest-assets.sh addons/calico/$*/Manifest build/addons/calico/$*
 	tar cf - -C build addons/calico/$* | gzip > dist/calico-$*.tar.gz
 
 dist/weave-%.tar.gz: build/addons
 	mkdir -p build/addons/weave/$*/images
-	bin/docker-save.sh addons/weave/$*/Manifest build/addons/weave/$*/images
+	bin/save-manifest-assets.sh addons/weave/$*/Manifest build/addons/weave/$*
 	mkdir -p dist
 	tar cf - -C build addons/weave/$* | gzip > dist/weave-$*.tar.gz
 
 dist/rook-%.tar.gz: build/addons
 	mkdir -p build/addons/rook/$*/images
-	bin/docker-save.sh addons/rook/$*/Manifest build/addons/rook/$*/images
+	bin/save-manifest-assets.sh addons/rook/$*/Manifest build/addons/rook/$*
 	mkdir -p dist
 	tar cf - -C build addons/rook/$* | gzip > dist/rook-$*.tar.gz
 
 dist/contour-%.tar.gz: build/addons
 	mkdir -p build/addons/contour/$*/images
-	bin/docker-save.sh addons/contour/$*/Manifest build/addons/contour/$*/images
+	bin/save-manifest-assets.sh addons/contour/$*/Manifest build/addons/contour/$*
 	mkdir -p dist
 	tar cf - -C build addons/contour/$* | gzip > dist/contour-$*.tar.gz
 
 dist/registry-%.tar.gz: build/addons
 	mkdir -p build/addons/registry/$*/images
-	bin/docker-save.sh addons/registry/$*/Manifest build/addons/registry/$*/images
+	bin/save-manifest-assets.sh addons/registry/$*/Manifest build/addons/registry/$*
 	mkdir -p dist
 	tar cf - -C build addons/registry/$* | gzip > dist/registry-$*.tar.gz
 
 dist/prometheus-%.tar.gz: build/addons
 	mkdir -p build/addons/prometheus/$*/images
-	bin/docker-save.sh addons/prometheus/$*/Manifest build/addons/prometheus/$*/images
+	bin/save-manifest-assets.sh addons/prometheus/$*/Manifest build/addons/prometheus/$*
 	mkdir -p dist
 	tar cf - -C build addons/prometheus/$* | gzip > dist/prometheus-$*.tar.gz
 
 dist/kotsadm-%.tar.gz: build/addons
 	mkdir -p build/addons/kotsadm/$*/images
-	bin/docker-save.sh addons/kotsadm/$*/Manifest build/addons/kotsadm/$*/images
+	bin/save-manifest-assets.sh addons/kotsadm/$*/Manifest build/addons/kotsadm/$*
 	mkdir -p dist
 	tar cf - -C build addons/kotsadm/$* | gzip > dist/kotsadm-$*.tar.gz
 
@@ -80,7 +80,7 @@ dist/kubernetes-%.tar.gz:
 
 build/packages/kubernetes/%/images:
 	mkdir -p build/packages/kubernetes/$*/images
-	bin/docker-save.sh packages/kubernetes/$*/Manifest build/packages/kubernetes/$*/images
+	bin/save-manifest-assets.sh packages/kubernetes/$*/Manifest build/packages/kubernetes/$*
 
 build/install.sh:
 	mkdir -p tmp build

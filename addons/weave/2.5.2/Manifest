@@ -1,3 +1,3 @@
-weave-kube weaveworks/weave-kube:2.5.2
-weave-npc weaveworks/weave-npc:2.5.2
-weaveexec weaveworks/weaveexec:2.5.2
+image weave-kube weaveworks/weave-kube:2.5.2
+image weave-npc weaveworks/weave-npc:2.5.2
+image weaveexec weaveworks/weaveexec:2.5.2
