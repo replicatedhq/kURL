@@ -1,12 +1,6 @@
 FROM ubuntu:18.04
 RUN apt-get update
-RUN apt-get upgrade -y
 RUN apt-get -y install curl apt-transport-https gnupg git
-RUN  curl -sSL https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add
-COPY ./kubernetes.list /etc/apt/sources.list.d/kubernetes.list
-RUN apt-get update
-
-RUN apt install kubectl
 
 RUN mkdir -p /krew
 WORKDIR /krew

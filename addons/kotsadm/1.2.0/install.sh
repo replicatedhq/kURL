@@ -47,15 +47,11 @@ function kotsadm() {
 
     kotsadm_kurl_proxy $src $dst
 
-    if [ ! -f "$src/assets/kots.tar.gz" ] && [ "$AIRGAP" != "1" ]; then
-        mkdir -p "$src/assets"
-        curl -L "https://github.com/replicatedhq/kots/releases/download/v1.2.0/kots_linux_amd64.tar.gz" > "$src/assets/kots.tar.gz"
-    fi
+    kotsadm_cli
+}
 
-    pushd "$src/assets"
-    tar xf "kots.tar.gz"
-    mv kots "$KUBECTL_PLUGINS_PATH/kubectl-kots"
-    popd
+function kotsadm_join() {
+    kotsadm_cli
 }
 
 function kotsadm_outro() {
@@ -243,6 +239,18 @@ function kotsadm_kubelet_client_secret() {
         --from-file=client.crt=/etc/kubernetes/pki/apiserver-kubelet-client.crt \
         --from-file=client.key=/etc/kubernetes/pki/apiserver-kubelet-client.key \
         --from-file=/etc/kubernetes/pki/ca.crt
+}
+
+function kotsadm_cli() {
+    if [ ! -f "$src/assets/kots.tar.gz" ] && [ "$AIRGAP" != "1" ]; then
+        mkdir -p "$src/assets"
+        curl -L "https://github.com/replicatedhq/kots/releases/download/v1.2.0/kots_linux_amd64.tar.gz" > "$src/assets/kots.tar.gz"
+    fi
+
+    pushd "$src/assets"
+    tar xf "kots.tar.gz"
+    mv kots "$KUBECTL_PLUGINS_PATH/kubectl-kots"
+    popd
 }
 
 function kotsadm_namespaces() {
