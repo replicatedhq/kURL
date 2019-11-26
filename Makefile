@@ -5,10 +5,11 @@ KURL_UTIL_IMAGE := replicated/kurl-util:latest
 clean:
 	rm -rf build tmp dist
 
-dist/common.tar.gz: build/kustomize build/shared
+dist/common.tar.gz: build/kustomize build/shared build/krew
 	mkdir -p dist
 	tar cf dist/common.tar -C build kustomize
 	tar rf dist/common.tar -C build shared
+	tar rf dist/common.tar -C build krew
 	gzip dist/common.tar
 
 dist/aws-%.tar.gz: build/addons
@@ -163,6 +164,14 @@ build/addons:
 	mkdir -p build
 	cp -r addons build/
 
+build/krew:
+	mkdir -p build/krew
+	docker build -t krew -f bundles/krew/Dockerfile bundles/krew
+	- docker rm -f krew 2>/dev/null
+	docker create --name krew krew:latest
+	docker cp krew:/krew build/
+	docker rm krew
+
 build/kustomize:
 	mkdir -p build
 	cp -r scripts/kustomize build/
@@ -229,6 +238,8 @@ build/packages/kubernetes/%/ubuntu-18.04:
 	docker create --name k8s-ubuntu1804-$* kurl/ubuntu-1804-k8s:$*
 	mkdir -p build/packages/kubernetes/$*/ubuntu-18.04
 	docker cp k8s-ubuntu1804-$*:/packages/archives/. build/packages/kubernetes/$*/ubuntu-18.04/
+	docker cp k8s-ubuntu1804-$*:/root/.krew build/krew
+	docker cp k8s-ubuntu1804-$*:/krew-install build/krew-install
 	docker rm k8s-ubuntu1804-$*
 
 build/packages/kubernetes/%/rhel-7:
