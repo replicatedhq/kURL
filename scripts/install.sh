@@ -2,6 +2,7 @@
 
 set -e
 
+MASTER=1
 DIR=.
 
 # Magic begin: scripts are inlined for distribution. See "make build/install.sh"
