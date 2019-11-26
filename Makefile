@@ -238,8 +238,6 @@ build/packages/kubernetes/%/ubuntu-18.04:
 	docker create --name k8s-ubuntu1804-$* kurl/ubuntu-1804-k8s:$*
 	mkdir -p build/packages/kubernetes/$*/ubuntu-18.04
 	docker cp k8s-ubuntu1804-$*:/packages/archives/. build/packages/kubernetes/$*/ubuntu-18.04/
-	docker cp k8s-ubuntu1804-$*:/root/.krew build/krew
-	docker cp k8s-ubuntu1804-$*:/krew-install build/krew-install
 	docker rm k8s-ubuntu1804-$*
 
 build/packages/kubernetes/%/rhel-7:
