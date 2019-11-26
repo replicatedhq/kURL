@@ -8,6 +8,9 @@ OUT_DIR=$2
 mkdir -p "$OUT_DIR"
 
 while read -r line; do
+    if [ -z "$line" ]; then
+        continue
+    fi
     kind=$(echo $line | awk '{ print $1 }')
 
     case "$kind" in
@@ -21,6 +24,8 @@ while read -r line; do
         asset)
             mkdir -p $OUT_DIR/assets
             filename=$(echo $line | awk '{ print $2 }')
+            url=$(echo $line | awk '{ print $3 }')
+            curl -L "$url" > "$OUT_DIR/assets/$filename"
             ;;
         *)
             echo "Unknown kind $kind in line: $line"
