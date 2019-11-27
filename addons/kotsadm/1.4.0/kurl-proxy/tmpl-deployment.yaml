@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kurl-proxy-kotsadm
+  labels:
+    app: kurl-proxy-kotsadm
+spec:
+  selector:
+    matchLabels:
+      app: kurl-proxy-kotsadm
+  template:
+    metadata:
+      labels:
+        app: kurl-proxy-kotsadm
+    spec:
+      containers:
+      - name: proxy
+        image: replicated/kurl-util:latest
+        command:
+        - proxy
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: NODE_PORT
+          value: \"8800\"
+        - name: UPSTREAM_ORIGIN
+          value: http://kotsadm-web:3000
+        - name: TLS_SECRET_NAME
+          value: kotsadm-tls
+        - name: NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+      serviceAccount: kurl-proxy
