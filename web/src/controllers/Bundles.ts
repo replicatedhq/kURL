@@ -71,7 +71,7 @@ export class Bundle {
     const kotsadmApplicationSlug = _.get(installer.spec, "kotsadm.applicationSlug");
     if (kotsadmApplicationSlug) {
       const appMetadata = await request(`${this.replicatedAppURL}/metadata/${kotsadmApplicationSlug}`);
-      const key = `addons/kotsadm/${_.get(installer.spec, "kotsadm.version")}}/application.yaml`;
+      const key = `addons/kotsadm/${_.get(installer.spec, "kotsadm.version")}/application.yaml`;
 
       ret.files[key] = appMetadata;
     }
