@@ -252,6 +252,8 @@ spec:
         volumeMounts:
         - name: backups
           mountPath: /backups
+        - name: backup-scripts
+          mountPath: /scripts
       volumes:
       - name: etcd-client-cert
         secret:

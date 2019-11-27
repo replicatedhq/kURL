@@ -6,6 +6,6 @@ if [ ! -f /backups/db.dump ]; then
     exit 0
 fi
 
-pg_restore --dbname "$POSTGRES_URI"
+psgl "$POSTGRES_URI" < /backups/db.dump
 
 rm /backups/db.dump
