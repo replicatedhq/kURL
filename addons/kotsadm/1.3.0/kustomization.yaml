@@ -6,3 +6,4 @@ resources:
 - web.yaml
 - kotsadm-web-scripts.yaml
 - kotsadm-application-metadata.yaml
+- backup-scripts.yaml

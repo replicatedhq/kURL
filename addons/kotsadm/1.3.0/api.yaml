@@ -141,6 +141,21 @@ spec:
       securityContext:
         runAsUser: 1001
       serviceAccountName: kotsadm-api
+      initContainers:
+      - name: restore
+        image: postgres:10.7
+        command:
+        - /scripts/restore.sh
+        env:
+        - name: POSTGRES_URI
+          valueFrom:
+            secretKeyRef:
+              name: kotsadm-postgres
+              key: uri
+        volumeMounts:
+        - name: backup-scripts
+          mountPath: /scripts/restore.sh
+          subPath: restore.sh
       containers:
       - image: kotsadm/kotsadm-api:v1.3.0
         name: kotsadm-api
@@ -225,6 +240,18 @@ spec:
         - name: kubelet-client-cert
           readOnly: true
           mountPath: /etc/kubernetes/pki/kubelet
+      - image: postgres:10.7
+        name: backup
+        command: ["/bin/bash", "-c", "sleep infinity"]
+        env:
+        - name: POSTGRES_URI
+          valueFrom:
+            secretKeyRef:
+              name: kotsadm-postgres
+              key: uri
+        volumeMounts:
+        - name: backups
+          mountPath: /backups
       volumes:
       - name: etcd-client-cert
         secret:
@@ -232,6 +259,12 @@ spec:
       - name: kubelet-client-cert
         secret:
           secretName: kubelet-client-cert
+      - name: backups
+        emptyDir: {}
+      - name: backup-scripts
+        configMap:
+          defaultMode: 511 # hex 777
+          name: backup-scripts
 ---
 apiVersion: v1
 kind: Service

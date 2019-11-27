@@ -34,11 +34,11 @@ spec:
       - pods
       labelSelector:
         matchLabels:
-          app: kotsadm-postgres
+          app: kotsadm-api
       pre:
       - exec:
-          container: kotsadm-postgres
+          container: backup
           command:
-          - pg_dump
+          - pg_dump --dbname $POSTGRES_URI > /backup/db.dump
           onError: Fail
-          timeout: 30s
+          timeout: 300s
