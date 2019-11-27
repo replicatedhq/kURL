@@ -1,23 +1,23 @@
 
-Addons
+Add-ons
 ======
 
 ## Structure
 
-Each available addon has a directory with subdirectories for each available version of the addon.
+Each available add-on has a directory with subdirectories for each available version of the add-on.
 Each subdirectory must have two files: `install.sh` and `Manifest`.
 
-The Manifest file specifies a list of images required for the addon.
+The Manifest file specifies a list of images required for the add-on.
 These will be pulled during CI and saved to the directory <addon>/<version>/images/.
 
-The install.sh script must provide a function <name> matching the addon that should install the addon by generating yaml in `kustomize/addon` and applying it.
+The install.sh script must provide a function <name> matching the add-on that should install the add-on by generating yaml in `kustomize/addon` and applying it.
 
-Any other files in the <addon>/<version> subdirectory will be included in the package built for the addon.
+Any other files in the <addon>/<version> subdirectory will be included in the package built for the add-on.
 The package will be built and uploaded to s3://kurl-sh/dist/<addon>-<version>.tar.gz during CI.
 
 ## Runtime
 
-The [addon](https://github.com/replicatedhq/kurl/blob/master/scripts/common/addon.sh) function in Kurl will first load all images from the addon's `images/` directory and create the directory `<KURL_ROOT>/kustomize/<addon>`.
+The [addon](https://github.com/replicatedhq/kurl/blob/master/scripts/common/addon.sh) function in Kurl will first load all images from the add-on's `images/` directory and create the directory `<KURL_ROOT>/kustomize/<addon>`.
 It will then dynamically source the `install.sh` script and execute the function named <addon>.
 
 ## Example for Weave 2.5.2
@@ -32,7 +32,7 @@ That would fetch the package https://kurl-sh.s3.amazonaws.com/dist/weave-2.5.2.t
 The Kurl `addon` function would then load the images in `<KURL_ROOT>/addons/weave/2.5.2/images` into docker, create the directory `<KURL_ROOT>/kustomize/weave`, source `<KURL_ROOT>/addons/weave/2.5.2/install.sh` and call `weave`.
 The `weave` function should generate yaml and patches and place them in the directory `<KURL_ROOT>/kustomize/weave` and apply them with `kubectl apply -k`.
 
-## Developing Addons
+## Developing Add-ons
 
 The `DIR` env var will be defined to the install root.
 Any yaml that is ready to be applied unmodified should be copied from the addon directory to the kustomize directory.
@@ -55,4 +55,4 @@ The [render_yaml_file](https://github.com/replicatedhq/kurl/blob/5e6c9549ad6410d
 render_yaml_file "$DIR/addons/weave/2.5.2/tmpl-secret.yaml" > "$DIR/kustomize/weave/secret.yaml"
 ```
 
-After the kustomize directory has been prepared with resources and patches and the kustomization.yaml file has been updated, the addon should call `kubectl apply -k`.
+After the kustomize directory has been prepared with resources and patches and the kustomization.yaml file has been updated, the add-on should call `kubectl apply -k`.
