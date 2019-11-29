@@ -1,5 +1,3 @@
-export KREW_ROOT=/opt/replicated/krew
-export KUBECTL_PLUGINS_PATH=${KREW_ROOT}/bin
 
 function kubernetes_host() {
     kubernetes_load_ipvs_modules
@@ -243,6 +241,8 @@ function install_krew() {
     if ! kubernetes_is_master; then
         return 0
     fi
+    export KREW_ROOT=/opt/replicated/krew
+    export KUBECTL_PLUGINS_PATH=${KREW_ROOT}/bin
 
     mkdir -p $KREW_ROOT
 
@@ -267,7 +267,7 @@ function install_krew() {
 }
 
 function kubernetes_is_master() {
-    if [ "$MASTER" = "1" ]; then
+    if [ -f /etc/kubernetes/manifests/kube-apiserver.yaml ]; then
         return 0
     else
         return 1
