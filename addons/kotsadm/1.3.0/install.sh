@@ -270,7 +270,6 @@ function kotsadm_cli() {
 
     pushd "$src/assets"
     tar xf "kots.tar.gz"
-    mkdir -p "$KUBECTL_PLUGINS_PATH"
     mv kots "$KUBECTL_PLUGINS_PATH/kubectl-kots"
     popd
 
