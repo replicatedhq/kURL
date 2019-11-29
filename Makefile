@@ -5,61 +5,60 @@ KURL_UTIL_IMAGE := replicated/kurl-util:latest
 clean:
 	rm -rf build tmp dist
 
-dist/common.tar.gz: build/kustomize build/shared build/krew
+dist/common.tar.gz: build/kustomize build/shared
 	mkdir -p dist
 	tar cf dist/common.tar -C build kustomize
 	tar rf dist/common.tar -C build shared
-	tar rf dist/common.tar -C build krew
 	gzip dist/common.tar
 
 dist/aws-%.tar.gz: build/addons
 	mkdir -p dist
-	bin/save-manifest-assets.sh addons/aws/$*/Manifest build/addons/aws/$*
+	bin/docker-save.sh addons/aws/$*/Manifest build/addons/aws/$*/images
 	tar cf - -C build addons/aws/$* | gzip > dist/aws-$*.tar.gz
 
 dist/nodeless-%.tar.gz: build/addons
 	mkdir -p dist
-	bin/save-manifest-assets.sh addons/nodeless/$*/Manifest build/addons/nodeless/$*
+	bin/docker-save.sh addons/nodeless/$*/Manifest build/addons/nodeless/$*/images
 	tar cf - -C build addons/nodeless/$* | gzip > dist/nodeless-$*.tar.gz
 
 dist/calico-%.tar.gz: build/addons
 	mkdir -p dist
-	bin/save-manifest-assets.sh addons/calico/$*/Manifest build/addons/calico/$*
+	bin/docker-save.sh addons/calico/$*/Manifest build/addons/calico/$*/images
 	tar cf - -C build addons/calico/$* | gzip > dist/calico-$*.tar.gz
 
 dist/weave-%.tar.gz: build/addons
 	mkdir -p build/addons/weave/$*/images
-	bin/save-manifest-assets.sh addons/weave/$*/Manifest build/addons/weave/$*
+	bin/docker-save.sh addons/weave/$*/Manifest build/addons/weave/$*/images
 	mkdir -p dist
 	tar cf - -C build addons/weave/$* | gzip > dist/weave-$*.tar.gz
 
 dist/rook-%.tar.gz: build/addons
 	mkdir -p build/addons/rook/$*/images
-	bin/save-manifest-assets.sh addons/rook/$*/Manifest build/addons/rook/$*
+	bin/docker-save.sh addons/rook/$*/Manifest build/addons/rook/$*/images
 	mkdir -p dist
 	tar cf - -C build addons/rook/$* | gzip > dist/rook-$*.tar.gz
 
 dist/contour-%.tar.gz: build/addons
 	mkdir -p build/addons/contour/$*/images
-	bin/save-manifest-assets.sh addons/contour/$*/Manifest build/addons/contour/$*
+	bin/docker-save.sh addons/contour/$*/Manifest build/addons/contour/$*/images
 	mkdir -p dist
 	tar cf - -C build addons/contour/$* | gzip > dist/contour-$*.tar.gz
 
 dist/registry-%.tar.gz: build/addons
 	mkdir -p build/addons/registry/$*/images
-	bin/save-manifest-assets.sh addons/registry/$*/Manifest build/addons/registry/$*
+	bin/docker-save.sh addons/registry/$*/Manifest build/addons/registry/$*/images
 	mkdir -p dist
 	tar cf - -C build addons/registry/$* | gzip > dist/registry-$*.tar.gz
 
 dist/prometheus-%.tar.gz: build/addons
 	mkdir -p build/addons/prometheus/$*/images
-	bin/save-manifest-assets.sh addons/prometheus/$*/Manifest build/addons/prometheus/$*
+	bin/docker-save.sh addons/prometheus/$*/Manifest build/addons/prometheus/$*/images
 	mkdir -p dist
 	tar cf - -C build addons/prometheus/$* | gzip > dist/prometheus-$*.tar.gz
 
 dist/kotsadm-%.tar.gz: build/addons
 	mkdir -p build/addons/kotsadm/$*/images
-	bin/save-manifest-assets.sh addons/kotsadm/$*/Manifest build/addons/kotsadm/$*
+	bin/docker-save.sh addons/kotsadm/$*/Manifest build/addons/kotsadm/$*/images
 	mkdir -p dist
 	tar cf - -C build addons/kotsadm/$* | gzip > dist/kotsadm-$*.tar.gz
 
@@ -80,7 +79,7 @@ dist/kubernetes-%.tar.gz:
 
 build/packages/kubernetes/%/images:
 	mkdir -p build/packages/kubernetes/$*/images
-	bin/save-manifest-assets.sh packages/kubernetes/$*/Manifest build/packages/kubernetes/$*
+	bin/docker-save.sh packages/kubernetes/$*/Manifest build/packages/kubernetes/$*/images
 
 build/install.sh:
 	mkdir -p tmp build
@@ -164,14 +163,6 @@ build/addons:
 	mkdir -p build
 	cp -r addons build/
 
-build/krew:
-	mkdir -p build/krew
-	docker build -t krew -f bundles/krew/Dockerfile bundles/krew
-	- docker rm -f krew 2>/dev/null
-	docker create --name krew krew:latest
-	docker cp krew:/krew build/
-	docker rm krew
-
 build/kustomize:
 	mkdir -p build
 	cp -r scripts/kustomize build/
@@ -238,8 +229,6 @@ build/packages/kubernetes/%/ubuntu-18.04:
 	docker create --name k8s-ubuntu1804-$* kurl/ubuntu-1804-k8s:$*
 	mkdir -p build/packages/kubernetes/$*/ubuntu-18.04
 	docker cp k8s-ubuntu1804-$*:/packages/archives/. build/packages/kubernetes/$*/ubuntu-18.04/
-	docker cp k8s-ubuntu1804-$*:/root/.krew build/krew
-	docker cp k8s-ubuntu1804-$*:/krew-install build/krew-install
 	docker rm k8s-ubuntu1804-$*
 
 build/packages/kubernetes/%/rhel-7:
