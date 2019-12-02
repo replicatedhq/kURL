@@ -221,6 +221,7 @@ function main() {
     prompts
     configure_proxy
     install_docker
+    get_shared
     upgrade_kubernetes_patch
     kubernetes_host
     setup_kubeadm_kustomize

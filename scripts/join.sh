@@ -95,6 +95,7 @@ function main() {
     prompts
     configure_proxy
     install_docker
+    get_shared
     setup_kubeadm_kustomize
     addon_join aws "$AWS_VERSION"
     addon_join nodeless "$NODELESS_VERSION"

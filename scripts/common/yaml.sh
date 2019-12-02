@@ -30,8 +30,6 @@ function insert_resources() {
 }
 
 function setup_kubeadm_kustomize() {
-    get_shared
-
     # Clean up the source directories for the kubeadm kustomize resources and
     # patches.
     rm -rf $DIR/kustomize/kubeadm/init
