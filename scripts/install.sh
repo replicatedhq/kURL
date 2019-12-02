@@ -222,6 +222,7 @@ function main() {
     configure_proxy
     install_docker
     upgrade_kubernetes_patch
+    get_shared
     kubernetes_host
     setup_kubeadm_kustomize
     addon_pre_init aws "$AWS_VERSION"
