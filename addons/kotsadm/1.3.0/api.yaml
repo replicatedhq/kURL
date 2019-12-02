@@ -143,7 +143,7 @@ spec:
       serviceAccountName: kotsadm-api
       initContainers:
       - name: restore
-        image: postgres:10.7
+        image: kotsadm/kotsadm-api:v1.3.0
         command:
         - /scripts/restore.sh
         env:
@@ -157,7 +157,7 @@ spec:
           mountPath: /scripts/restore.sh
           subPath: restore.sh
       containers:
-      - image: kotsadm/kotsadm-api:v1.3.0
+      - image: kotsadm/kotsadm-api:1.3.0
         name: kotsadm-api
         ports:
         - name: http
@@ -240,16 +240,6 @@ spec:
         - name: kubelet-client-cert
           readOnly: true
           mountPath: /etc/kubernetes/pki/kubelet
-      - image: postgres:10.7
-        name: backup
-        command: ["/bin/bash", "-c", "sleep infinity"]
-        env:
-        - name: POSTGRES_URI
-          valueFrom:
-            secretKeyRef:
-              name: kotsadm-postgres
-              key: uri
-        volumeMounts:
         - name: backups
           mountPath: /backups
         - name: backup-scripts
