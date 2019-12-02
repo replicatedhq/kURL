@@ -10,7 +10,7 @@ function kubernetes_host() {
 
     load_images $DIR/packages/kubernetes/$KUBERNETES_VERSION/images
 
-    # install_krew
+    install_krew
 }
 
 function kubernetes_load_ipvs_modules() {
