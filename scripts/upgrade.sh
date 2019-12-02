@@ -78,6 +78,7 @@ function main() {
     flags $FLAGS
     flags "$@"
     preflights
+    get_shared
     maybe_upgrade
     outro
 }
