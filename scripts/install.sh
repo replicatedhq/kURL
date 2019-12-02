@@ -219,9 +219,9 @@ function main() {
     tasks
     preflights
     prompts
-    get_shared
     configure_proxy
     install_docker
+    get_shared
     upgrade_kubernetes_patch
     kubernetes_host
     setup_kubeadm_kustomize
