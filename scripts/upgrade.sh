@@ -49,7 +49,7 @@ maybe_upgrade() {
 
                 # correctly sets the --resolv-conf flag when systemd-resolver is running (Ubuntu 18)
                 # https://github.com/kubernetes/kubeadm/issues/273
-                if isMasterNode; then
+                if kubernetes_is_master; then
                     kubeadm init phase kubelet-start
                 fi
 

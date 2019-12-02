@@ -269,6 +269,8 @@ function install_krew() {
 function kubernetes_is_master() {
     if [ "$MASTER" = "1" ]; then
         return 0
+    elif [ -f /etc/kubernetes/manifests/kube-apiserver.yaml ]; then
+        return 0
     else
         return 1
     fi
