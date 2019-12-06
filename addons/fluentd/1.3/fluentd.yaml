@@ -15,18 +15,12 @@ data:
       time_format %Y-%m-%dT%H:%M:%S.%NZ
       tag kubernetes.*
       format json
-      read_from_head true
+      read_from_head false
     </source>
     <filter kubernetes.**>
       @type kubernetes_metadata
     </filter>
     <match kubernetes.var.log.containers.**fluentd**.log>
-      @type null
-    </match>
-    <match kubernetes.var.log.containers.**kube-system**.log>
-      @type null
-    </match>
-    <match kubernetes.var.log.containers.rook**.log>
       @type null
     </match>
     <match kubernetes.**>
