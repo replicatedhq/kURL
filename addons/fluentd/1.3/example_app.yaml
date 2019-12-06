@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: example
+spec:
+  containers:
+  - name: example
+    image: busybox
+    args: [/bin/sh, -c, 'while true; do echo $(date); sleep 1; done']

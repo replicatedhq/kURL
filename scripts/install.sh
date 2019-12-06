@@ -234,7 +234,9 @@ function main() {
     addon_pre_init registry "$REGISTRY_VERSION"
     addon_pre_init prometheus "$PROMETHEUS_VERSION"
     addon_pre_init kotsadm "$KOTSADM_VERSION"
+    addon_pre_init fluentd "$FLUENTD_VERSION"
     init
+    addon fluentd "$FLUENTD_VERSION"
     addon aws "$AWS_VERSION"
     addon nodeless "$NODELESS_VERSION"
     addon calico "$CALICO_VERSION"
