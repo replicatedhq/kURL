@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kotsadm-web
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kotsadm-web
+  template:
+    metadata:
+      labels:
+        app: kotsadm-web
+    spec:
+      securityContext:
+        runAsUser: 101
+        fsGroup: 101
+      volumes:
+      - name: kotsadm-web-scripts
+        configMap:
+          defaultMode: 511 # hex 777
+          name: kotsadm-web-scripts
+      containers:
+      - image: kotsadm/kotsadm-web:v1.5.0
+        name: kotsadm-web
+        args:
+        - "/scripts/start-kotsadm-web.sh"
+        ports:
+        - name: http
+          containerPort: 3000
+        readinessProbe:
+          failureThreshold: 3
+          initialDelaySeconds: 2
+          periodSeconds: 2
+          successThreshold: 1
+          timeoutSeconds: 1
+          httpGet:
+            path: /healthz
+            port: 3000
+            scheme: HTTP
+        volumeMounts:
+        - name: kotsadm-web-scripts
+          mountPath: /scripts/start-kotsadm-web.sh
+          subPath: start-kotsadm-web.sh
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kotsadm-web
+spec:
+  type: ClusterIP
+  selector:
+    app: kotsadm-web
+  ports:
+  - name: http
+    port: 3000
+    targetPort: "http"
