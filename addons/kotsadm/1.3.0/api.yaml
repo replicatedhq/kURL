@@ -134,6 +134,7 @@ spec:
       labels:
         app: kotsadm-api
       annotations:
+        backup.velero.io/backup-volumes: backups
         prometheus.io/scrape: "true"
         prometheus.io/port: "3000"
         prometheus.io/path: "/metricz"
@@ -154,8 +155,9 @@ spec:
               key: uri
         volumeMounts:
         - name: backup-scripts
-          mountPath: /scripts/restore.sh
-          subPath: restore.sh
+          mountPath: /scripts
+        - name: backups
+          mountPath: /backups
       containers:
       - image: kotsadm/kotsadm-api:1.3.0
         name: kotsadm-api

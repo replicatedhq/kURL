@@ -37,13 +37,13 @@ spec:
           app: kotsadm-api
       pre:
       - exec:
-          container: backup
+          container: kotsadm-api
           command:
           - /scripts/pre-backup.sh
           onError: Fail
           timeout: 300s
       post:
       - exec:
-          container: backup
+          container: kotsadm-api
           command:
           - /scripts/post-backup.sh
