@@ -159,7 +159,7 @@ function kotsadm_api_encryption_key() {
 
     # 24 byte key + 12 byte nonce, base64 encoded. This is separate from the base64 encoding used
     # in secrets with kubectl. Kotsadm expects the value to be encoded when read as an env var.
-    API_ENCRYPTION=$(< /dev/urandom tr -dc A-Za-z0-9 | head -c36 | base64)
+    API_ENCRYPTION=$(< /dev/urandom cat | head -c36 | base64)
 
     render_yaml_file "$DIR/addons/kotsadm/1.5.0/tmpl-secret-api-encryption.yaml" > "$DIR/kustomize/kotsadm/secret-api-encryption.yaml"
     insert_resources "$DIR/kustomize/kotsadm/kustomization.yaml" secret-api-encryption.yaml
