@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: kotsadm-migrations
+spec:
+  securityContext:
+    runAsUser: 1001
+    fsGroup: 1001
+  restartPolicy: OnFailure
+  containers:
+  - name: kotsadm-migrations
+    image: kotsadm/kotsadm-migrations:v1.6.0
+    env:
+    - name: SCHEMAHERO_DRIVER
+      value: postgres
+    - name: SCHEMAHERO_SPEC_FILE
+      value: /tables
+    - name: SCHEMAHERO_URI
+      valueFrom:
+        secretKeyRef:
+          name: kotsadm-postgres
+          key: uri
