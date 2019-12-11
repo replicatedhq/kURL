@@ -1,0 +1,247 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: kotsadm-api-role
+rules:
+- apiGroups:
+  - ""
+  resourceNames:
+  - kotsadm-application-metadata
+  resources:
+  - configmaps
+  verbs:
+  - get
+  - delete
+- apiGroups:
+  - ""
+  resourceNames:
+  - kurl-config
+  resources:
+  - configmaps
+  verbs:
+  - get
+- apiGroups:
+  - ""
+  resourceNames:
+  - kubeadm-config
+  resources:
+  - configmaps
+  verbs:
+  - get
+  - update
+- apiGroups:
+  - ""
+  resourceNames:
+  - registry-creds
+  resources:
+  - secrets
+  verbs:
+  - get
+- apiGroups:
+  - ""
+  resources:
+  - secrets
+  verbs:
+  - get
+  - list
+  - create
+  - update
+  - delete
+- apiGroups:
+  - ""
+  resources:
+  - nodes
+  verbs:
+  - get
+  - delete
+  - list
+  - update
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  verbs:
+  - list
+- apiGroups:
+  - ""
+  resources:
+  - pods/eviction
+  verbs:
+  - create
+- apiGroups:
+  - ""
+  resources:
+  - pods/exec
+  - pods/logs
+  verbs:
+  - get
+  - list
+- apiGroups:
+  - apps
+  resources:
+  - deployments
+  verbs:
+  - list
+  - delete
+- apiGroups:
+  - batch
+  resources:
+  - jobs
+  - jobs/status
+  verbs:
+  - create
+  - get
+  - list
+  - delete
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  verbs:
+  - create
+  - update
+  - delete
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: kotsadm-api-rolebinding
+subjects:
+- kind: ServiceAccount
+  name: kotsadm-api
+  namespace: default
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: kotsadm-api-role
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: kotsadm-api
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kotsadm-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kotsadm-api
+  template:
+    metadata:
+      labels:
+        app: kotsadm-api
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "3000"
+        prometheus.io/path: "/metricz"
+    spec:
+      securityContext:
+        runAsUser: 1001
+      serviceAccountName: kotsadm-api
+      containers:
+      - image: kotsadm/kotsadm-api:v1.6.0
+        name: kotsadm-api
+        ports:
+        - name: http
+          containerPort: 3000
+        readinessProbe:
+          failureThreshold: 3
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          httpGet:
+            path: /healthz
+            port: 3000
+            scheme: HTTP
+        env:
+        - name: SHARED_PASSWORD_BCRYPT
+          valueFrom:
+            secretKeyRef:
+              name: kotsadm-password
+              key: passwordBcrypt
+        - name: API_ENCRYPTION_KEY
+          valueFrom:
+            secretKeyRef:
+              name: kotsadm-encryption
+              key: encryptionKey
+        - name: AUTO_CREATE_CLUSTER
+          value: "1"
+        - name: AUTO_CREATE_CLUSTER_NAME
+          value: "this-cluster"
+        - name: AUTO_CREATE_CLUSTER_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: kotsadm-auto-create-cluster-token
+              key: token
+        - name: SHIP_API_ENDPOINT
+          value: http://kotsadm-api.default.svc.cluster.local:3000
+        - name: SHIP_API_ADVERTISE_ENDPOINT
+          value: "http://localhost:8800"
+        - name: S3_ENDPOINT
+          valueFrom:
+            secretKeyRef:
+              name: kotsadm-s3
+              key: endpoint
+        - name: S3_BUCKET_NAME
+          value: "kotsadm"
+        - name: S3_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              name: kotsadm-s3
+              key: access-key-id
+        - name: S3_SECRET_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: kotsadm-s3
+              key: secret-access-key
+        - name: S3_BUCKET_ENDPOINT
+          value: "true"
+        - name: SESSION_KEY
+          valueFrom:
+            secretKeyRef:
+              name: kotsadm-session
+              key: key
+        - name: POSTGRES_URI
+          valueFrom:
+            secretKeyRef:
+              name: kotsadm-postgres
+              key: uri
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: ENABLE_KOTS
+          value: "1"
+        - name: ENABLE_SHIP
+          value: "0"
+        - name: ENABLE_KURL
+          value: "1"
+        volumeMounts:
+        - name: etcd-client-cert
+          readOnly: true
+          mountPath: /etc/kubernetes/pki/etcd
+        - name: kubelet-client-cert
+          readOnly: true
+          mountPath: /etc/kubernetes/pki/kubelet
+      volumes:
+      - name: etcd-client-cert
+        secret:
+          secretName: etcd-client-cert
+      - name: kubelet-client-cert
+        secret:
+          secretName: kubelet-client-cert
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kotsadm-api
+spec:
+  type: ClusterIP
+  selector:
+    app: kotsadm-api
+  ports:
+  - name: http
+    port: 3000
+    targetPort: "http"
