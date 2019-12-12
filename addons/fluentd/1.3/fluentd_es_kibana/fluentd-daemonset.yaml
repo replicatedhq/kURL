@@ -23,19 +23,6 @@ spec:
       tolerations:
       - key: node-role.kubernetes.io/master
         effect: NoSchedule
-      # initContainers:
-      # - name: config-fluentd
-      #   image: busybox
-      #   imagePullPolicy: IfNotPresent
-      #   command: ["/bin/sh","-c"]
-      #   args:
-      #   - cp /fluentd/etc2/fluent.conf /fluentd/etc/fluent.conf;
-      #     # cp /fluentd/etc2/kubernetes.conf /fluentd/etc/kubernetes.conf;
-      #   volumeMounts:
-      #   - name: fluentd-path
-      #     mountPath: /fluentd/etc
-      #   - name: fluentconfig
-      #     mountPath: /fluentd/etc2
       containers:
       - name: fluentd
         image: fluent/fluentd-kubernetes-daemonset:v1.7.4-debian-elasticsearch7-1.0
@@ -76,5 +63,3 @@ spec:
       - name: varlibdockercontainers
         hostPath:
           path: /var/lib/docker/containers
-      # - name: fluentd-path
-      #   emptyDir: {}
