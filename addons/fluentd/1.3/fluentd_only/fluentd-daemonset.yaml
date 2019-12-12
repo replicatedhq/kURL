@@ -4,17 +4,17 @@ metadata:
   name: fluentd
   namespace: logging
   labels:
-    k8s-app: fluentd-logging
+    app: fluentd
     version: v1
     kubernetes.io/cluster-service: "true"
 spec:
   selector:
     matchLabels:
-      k8s-app: fluentd-logging
+      app: fluentd
   template:
     metadata:
       labels:
-        k8s-app: fluentd-logging
+        app: fluentd
         version: v1
         kubernetes.io/cluster-service: "true"
     spec:
