@@ -17,9 +17,17 @@ spec:
       securityContext:
         runAsUser: 0
       volumes:
-        - name: cloud-credentials
+        - name: aws-credentials
           secret:
-            secretName: cloud-credentials
+            secretName: aws-credentials
+            optional: true
+        - name: google-credentials
+          secret:
+            secretName: google-credentials
+            optional: true
+        - name: azure-credentials
+          secret:
+            secretName: azure-credentials
             optional: true
         - name: host-pods
           hostPath:
@@ -35,8 +43,12 @@ spec:
             - restic
             - server
           volumeMounts:
-            - name: cloud-credentials
-              mountPath: /credentials
+            - name: aws-credentials
+              mountPath: /credentials/aws
+            - name: google-credentials
+              mountPath: /credentials/google
+            - name: azure-credentials
+              mountPath: /credentials/azure
             - name: host-pods
               mountPath: /host_pods
               mountPropagation: HostToContainer
@@ -54,4 +66,8 @@ spec:
             - name: VELERO_SCRATCH_DIR
               value: /scratch
             - name: AWS_SHARED_CREDENTIALS_FILE
-              value: /credentials/cloud
+              value: /credentials/aws/cloud
+            - name: GOOGLE_APPLICATION_CREDENTIALS
+              value: /credentials/google/cloud
+            - name: AZURE_CREDENTIALS_FILE
+              value: /credentials/azure/cloud

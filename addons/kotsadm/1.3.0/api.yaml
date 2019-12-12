@@ -159,7 +159,7 @@ spec:
         - name: backups
           mountPath: /backups
       containers:
-      - image: kotsadm/kotsadm-api:1.3.0
+      - image: kotsadm/kotsadm-api:v1.3.0
         name: kotsadm-api
         ports:
         - name: http

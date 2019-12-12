@@ -18,11 +18,17 @@ spec:
       serviceAccountName: velero
       initContainers:
       - image: velero/velero-plugin-for-aws:v1.0.0
-        imagePullPolicy: IfNotPresent
         name: velero-plugin-for-aws
-        resources: {}
-        terminationMessagePath: /dev/termination-log
-        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /target
+          name: plugins
+      - image: velero/velero-plugin-for-gcp:v1.0.0
+        name: velero-plugin-for-gcp
+        volumeMounts:
+        - mountPath: /target
+          name: plugins
+      - image: velero/velero-plugin-for-microsoft-azure:v1.0.0
+        name: velero-plugin-for-azure
         volumeMounts:
         - mountPath: /target
           name: plugins
@@ -39,8 +45,12 @@ spec:
           volumeMounts:
             - name: plugins
               mountPath: /plugins
-            - name: cloud-credentials
-              mountPath: /credentials
+            - name: aws-credentials
+              mountPath: /credentials/aws
+            - name: google-credentials
+              mountPath: /credentials/google
+            - name: azure-credentials
+              mountPath: /credentials/azure
             - name: scratch
               mountPath: /scratch
           env:
@@ -52,11 +62,23 @@ spec:
                   apiVersion: v1
                   fieldPath: metadata.namespace
             - name: AWS_SHARED_CREDENTIALS_FILE
-              value: /credentials/cloud
+              value: /credentials/aws/cloud
+            - name: GOOGLE_APPLICATION_CREDENTIALS
+              value: /credentials/google/cloud
+            - name: AZURE_CREDENTIALS_FILE
+              value: /credentials/azure/cloud
       volumes:
-        - name: cloud-credentials
+        - name: aws-credentials
           secret:
-            secretName: cloud-credentials
+            secretName: aws-credentials
+            optional: true
+        - name: google-credentials
+          secret:
+            secretName: google-credentials
+            optional: true
+        - name: azure-credentials
+          secret:
+            secretName: azure-credentials
             optional: true
         - name: plugins
           emptyDir: {}
