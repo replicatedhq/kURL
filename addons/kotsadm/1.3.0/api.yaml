@@ -134,7 +134,6 @@ spec:
       labels:
         app: kotsadm-api
       annotations:
-        backup.velero.io/backup-volumes: backups
         prometheus.io/scrape: "true"
         prometheus.io/port: "3000"
         prometheus.io/path: "/metricz"
@@ -142,22 +141,6 @@ spec:
       securityContext:
         runAsUser: 1001
       serviceAccountName: kotsadm-api
-      initContainers:
-      - name: restore
-        image: kotsadm/kotsadm-api:v1.3.0
-        command:
-        - /scripts/restore.sh
-        env:
-        - name: POSTGRES_URI
-          valueFrom:
-            secretKeyRef:
-              name: kotsadm-postgres
-              key: uri
-        volumeMounts:
-        - name: backup-scripts
-          mountPath: /scripts
-        - name: backups
-          mountPath: /backups
       containers:
       - image: kotsadm/kotsadm-api:v1.3.0
         name: kotsadm-api
@@ -242,10 +225,6 @@ spec:
         - name: kubelet-client-cert
           readOnly: true
           mountPath: /etc/kubernetes/pki/kubelet
-        - name: backups
-          mountPath: /backups
-        - name: backup-scripts
-          mountPath: /scripts
       volumes:
       - name: etcd-client-cert
         secret:
@@ -253,12 +232,6 @@ spec:
       - name: kubelet-client-cert
         secret:
           secretName: kubelet-client-cert
-      - name: backups
-        emptyDir: {}
-      - name: backup-scripts
-        configMap:
-          defaultMode: 511 # hex 777
-          name: backup-scripts
 ---
 apiVersion: v1
 kind: Service

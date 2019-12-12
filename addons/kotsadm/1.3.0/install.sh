@@ -40,8 +40,6 @@ function kotsadm() {
     cat "$src/tmpl-start-kotsadm-web.sh" | sed "s/###_HOSTNAME_###/$KOTSADM_HOSTNAME:8800/g" > "$dst/start-kotsadm-web.sh"
     kubectl create configmap kotsadm-web-scripts --from-file="$dst/start-kotsadm-web.sh" --dry-run -oyaml > "$dst/kotsadm-web-scripts.yaml"
 
-    kubectl create configmap backup-scripts --from-file="$src/restore.sh" --from-file="$src/pre-backup.sh" --from-file="$src/post-backup.sh" --dry-run -oyaml > "$dst/backup-scripts.yaml"
-
     kubectl delete pod kotsadm-migrations || true;
 
     kotsadm_namespaces "$src" "$dst"
