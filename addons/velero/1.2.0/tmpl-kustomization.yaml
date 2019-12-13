@@ -4,5 +4,4 @@ resources:
 - namespace.yaml
 - deployment.yaml
 - rbac.yaml
-- restic-daemonset.yaml
 - service.yaml

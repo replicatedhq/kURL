@@ -3,7 +3,7 @@ function velero_pre_init() {
     if [ -z "$VELERO_NAMESPACE" ]; then
         VELERO_NAMESPACE=velero
     fi
-    if [ -z "$VELERO_BUCKET" ]; then
+    if [ -z "$VELERO_LOCAL_BUCKET" ]; then
         VELERO_LOCAL_BUCKET=velero
     fi
 }
@@ -17,9 +17,13 @@ function velero() {
 
     cp "$src/deployment.yaml" \
         "$src/rbac.yaml" \
-        "$src/restic-daemonset.yaml" \
         "$src/service.yaml" \
         "$dst/"
+
+    if [ "$VELERO_NO_RESTIC" != "1" ]; then
+        cp "$src/restic-daemonset.yaml" "$dst/"
+        insert_resources "$dst/kustomization.yaml" restic-damonset.yaml
+    fi
 
     render_yaml_file "$src/tmpl-kustomization.yaml" > "$dst/kustomization.yaml"
     render_yaml_file "$src/tmpl-namespace.yaml" > "$dst/namespace.yaml"
@@ -34,6 +38,9 @@ function velero() {
 }
 
 function velero_binary() {
+    if [ "$VELERO_NO_CLI" = "1" ]; then
+        return 0
+    fi
     local id=$(docker create velero/velero:v1.2.0)
     docker cp ${id}:/velero velero
     docker rm ${id}
