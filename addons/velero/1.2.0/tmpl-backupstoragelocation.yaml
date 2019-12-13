@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: aws-credentials
+stringData:
+  cloud: |
+    [default]
+    aws_access_key_id=${OBJECT_STORE_ACCESS_KEY}
+    aws_secret_access_key=${OBJECT_STORE_SECRET_KEY}
+---
+apiVersion: velero.io/v1
+kind: BackupStorageLocation
+metadata:
+  name: local-ceph-rgw
+  annotations:
+    "kurl.sh/local-ceph-rgw": \"\"
+spec:
+  backupSyncPeriod: 2m0s
+  provider: aws
+  objectStorage:
+    bucket: ${VELERO_LOCAL_BUCKET}
+  config:
+    s3Url: "http://rook-ceph-rgw-rook-ceph-store.rook-ceph"
+    publicUrl: "http://${OBJECT_STORE_CLUSTER_IP}"
+    region: us-east-1
+    s3ForcePathStyle: \"true\"
