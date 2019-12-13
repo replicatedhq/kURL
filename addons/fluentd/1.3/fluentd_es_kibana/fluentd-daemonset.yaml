@@ -46,17 +46,17 @@ spec:
         - name: FLUENT_UID
           value: "0"
         volumeMounts:
-        # - name: fluentconfig
-        #   mountPath: /fluentd/etc/
+        - name: fluentconfig
+          mountPath: /fluentd/etc/
         - name: varlog
           mountPath: /var/log
         - name: varlibdockercontainers
           mountPath: /var/lib/docker/containers
           readOnly: true
       volumes:
-      # - name: fluentconfig
-      #   configMap:
-      #     name: fluentdconf
+      - name: fluentconfig
+        configMap:
+          name: fluentdconf
       - name: varlog
         hostPath:
           path: /var/log
