@@ -31,6 +31,11 @@ spec:
     version: latest
     applicationSlug: sentry
     uiBindPort: 8800
+  velero:
+    version: latest
+    namespace: velero
+    installCLI: true
+    useRestic: false
 `;
 
 const typeMetaStableV1Beta1 = `
@@ -429,7 +434,7 @@ spec:
       it(`=> no-ce-on-ee=1`, () => {
         const i = Installer.parse(everyOption);
 
-        expect(i.flags()).to.equal(`service-cidr=10.96.0.0/12 bypass-storagedriver-warnings=0 hard-fail-on-loopback=0 no-ce-on-ee=0 ip-alloc-range=10.32.0.0/12 encrypt-network=1 storage-class=default ceph-pool-replicas=1 kotsadm-ui-bind-port=8800`);
+        expect(i.flags()).to.equal(`service-cidr=10.96.0.0/12 bypass-storagedriver-warnings=0 hard-fail-on-loopback=0 no-ce-on-ee=0 ip-alloc-range=10.32.0.0/12 encrypt-network=1 storage-class=default ceph-pool-replicas=1 kotsadm-ui-bind-port=8800 velero-namespace=velero velero-install-cli=1 velero-use-restic=0`);
       });
     });
   });

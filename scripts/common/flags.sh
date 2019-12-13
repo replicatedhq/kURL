@@ -170,11 +170,11 @@ function flags() {
             velero-local-bucket|velero_local_bucket)
                 VELERO_LOCAL_BUCKET="$_value"
                 ;;
-            velero-no-cli|velero_no_cli)
-                VELERO_NO_CLI="1"
+            velero-install-cli|velero_install_cli)
+                VELERO_INSTALL_CLI="$_value"
                 ;;
-            velero-no-restic|velero_no_restic)
-                VELERO_NO_RESTIC="1"
+            velero-use-restic|velero_use_restic)
+                VELERO_USE_RESTIC="$_value"
                 ;;
             *)
                 echo >&2 "Error: unknown parameter \"$_param\""
