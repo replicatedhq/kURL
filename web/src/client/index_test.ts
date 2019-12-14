@@ -113,6 +113,17 @@ spec:
     applicationSlug: sentry-enterprise
 `;
 
+const velero = `
+spec:
+  kubernetes:
+    version: latest
+  velero:
+    version: latest
+    namespace: velero
+    installCLI: true
+    useRestic: true
+`;
+
 describe("POST /installer", () => {
   describe("latestV1Beta1", () => {
     it(`should return 201 "https://kurl.sh/latest"`, async () => {
@@ -149,6 +160,14 @@ describe("POST /installer", () => {
       const url = await client.postInstaller(kots);
 
       expect(url).to.match(/4a39417/);
+    });
+  });
+
+  describe("velero", () => {
+    it(`should return 201 "htps://kurl.sh/afe854c"`, async () => {
+      const url = await client.postInstaller(velero);
+
+      expect(url).to.match(/afe854c/);
     });
   });
 
@@ -343,6 +362,22 @@ spec:
       expect(script).to.match(new RegExp(`FLAGS="service-cidr=10.0.0.0/12"`));
     });
   });
+
+  describe("velero (/afe854c)", () => {
+    const id = "afe854c";
+    before(async () => {
+      const url = await client.postInstaller(velero);
+      expect(url).to.match(/afe854c/);
+    });
+
+    it("injects velero version and flags", async () => {
+      const i = Installer.parse(velero);
+      const script = await client.getInstallScript(id);
+
+      expect(script).to.match(new RegExp(`VELERO_VERSION="${i.resolve().spec.velero!.version}"`));
+      expect(script).to.match(new RegExp(`FLAGS="velero-namespace=velero velero-install-cli=1 velero-use-restic=1"`));
+    });
+  });
 });
 
 describe("GET /<installerID>/join.sh", () => {
@@ -396,7 +431,7 @@ describe("GET /<installerID>/join.sh", () => {
       expect(script).to.match(new RegExp(`CONTOUR_VERSION=""`));
       expect(script).to.match(new RegExp(`REGISTRY_VERSION=""`));
       expect(script).to.match(new RegExp(`PROMETHEUS_VERSION=""`));
-      expect(script).to.match(new RegExp(`KOTSADM_VERSION="0.9.9"`));
+      expect(script).to.match(new RegExp(`KOTSADM_VERSION="\\d+.\\d+.\\d+"`));
       expect(script).to.match(new RegExp(`KOTSADM_APPLICATION_SLUG="sentry-enterprise"`));
     });
   });
