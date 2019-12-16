@@ -29,7 +29,7 @@ dist/calico-%.tar.gz: build/addons
 
 dist/velero-%.tar.gz: build/addons
 	mkdir -p build/addons/velero/$*/images
-	bin/docker-save.sh addons/velero/$*/Manifest build/addons/velero/$*/images
+	bin/save-manifest-assets.sh addons/velero/$*/Manifest build/addons/velero/$*
 	mkdir -p dist
 	tar cf - -C build addons/velero/$* | gzip > dist/velero-$*.tar.gz
 
