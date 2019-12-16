@@ -150,8 +150,8 @@ const veleroConfigSchema = {
   properties: {
     version: { type: "string" },
     namespace: { type: "string", flag: "velero-namespace" },
-    installCLI: { type: "boolean", flag: "velero-install-cli" },
-    useRestic: { type: "boolean", flag: "velero-use-restic" },
+    installCLI: { type: "boolean", flag: "velero-disable-cli", flagFalseOnlyNoArg: true},
+    useRestic: { type: "boolean", flag: "velero-disable-restic", flagFalseOnlyNoArg: true },
   },
   required: ["version"],
   additionalProperties: false,
@@ -546,6 +546,7 @@ export class Installer {
     _.each(specSchema.properties, (configSchema, configKey) => {
       _.each(configSchema.properties, (schema, fieldKey) => {
         const flag = _.get(schema, "flag");
+        const flagFalseOnlyNoArg = _.get(schema, "flagFalseOnlyNoArg");
 
         if (flag && _.has(this.spec, `${configKey}.${fieldKey}`)) {
           switch (schema.type) {
@@ -554,7 +555,16 @@ export class Installer {
             flags.push(`${flag}=${this.spec[configKey][fieldKey]}`);
             break;
           case "boolean":
-            flags.push(`${flag}=${this.spec[configKey][fieldKey] ? 1 : 0}`);
+            // This converts advanced options with default true to disable-style bash flags that
+            // do not take an arg. i.e. only `velero.installCLI: false` should set the flag
+            // velero-disable-cli
+            if (flagFalseOnlyNoArg) {
+              if (this.spec[configKey][fieldKey] === false) {
+                flags.push(flag);
+              }
+            } else {
+              flags.push(`${flag}=${this.spec[configKey][fieldKey] ? 1 : 0}`);
+            }
             break;
           }
         }

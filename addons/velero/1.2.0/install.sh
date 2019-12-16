@@ -6,12 +6,6 @@ function velero_pre_init() {
     if [ -z "$VELERO_LOCAL_BUCKET" ]; then
         VELERO_LOCAL_BUCKET=velero
     fi
-    if [ -z "VELERO_INSTALL_CLI" ]; then
-        VELERO_INSTALL_CLI="1"
-    fi
-    if [ -z "VELERO_USE_RESTIC" ]; then
-        VELERO_USE_RESTIC="1"
-    fi
 }
 
 function velero() {
@@ -26,15 +20,15 @@ function velero() {
         "$src/service.yaml" \
         "$dst/"
 
-    if [ "$VELERO_USE_RESTIC" != "0" ]; then
-        cp "$src/restic-daemonset.yaml" "$dst/"
-        insert_resources "$dst/kustomization.yaml" restic-damonset.yaml
-    fi
-
     render_yaml_file "$src/tmpl-kustomization.yaml" > "$dst/kustomization.yaml"
     render_yaml_file "$src/tmpl-namespace.yaml" > "$dst/namespace.yaml"
 
     kubectl create namespace "$VELERO_NAMESPACE" 2>/dev/null || true
+
+    if [ "$VELERO_DISABLE_RESTIC" != "1" ]; then
+        cp "$src/restic-daemonset.yaml" "$dst/"
+        insert_resources "$dst/kustomization.yaml" restic-daemonset.yaml
+    fi
 
     velero_local_rgw_store
 
@@ -44,7 +38,7 @@ function velero() {
 }
 
 function velero_binary() {
-    if [ "$VELERO_INSTALL_CLI" = "0" ]; then
+    if [ "$VELERO_DISABLE_CLI" = "1" ]; then
         return 0
     fi
     local id=$(docker create velero/velero:v1.2.0)
