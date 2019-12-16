@@ -90,6 +90,7 @@ For HA clusters, the install script will print out separate commands for joining
 You can generate a kubeconfig to use from your local machine with:
 
 ```
+curl -o install.sh https://kurl.sh
 sudo bash install.sh task=generate-admin-user
 ```
 
