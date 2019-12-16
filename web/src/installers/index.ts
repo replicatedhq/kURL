@@ -138,6 +138,25 @@ const kotsadmConfigSchema = {
   additionalProperties: false,
 };
 
+export interface VeleroConfig {
+  version: string;
+  namespace: string;
+  installCLI: boolean;
+  useRestic: boolean;
+}
+
+const veleroConfigSchema = {
+  type: "object",
+  properties: {
+    version: { type: "string" },
+    namespace: { type: "string", flag: "velero-namespace" },
+    installCLI: { type: "boolean", flag: "velero-disable-cli", flagFalseOnlyNoArg: true},
+    useRestic: { type: "boolean", flag: "velero-disable-restic", flagFalseOnlyNoArg: true },
+  },
+  required: ["version"],
+  additionalProperties: false,
+};
+
 export interface InstallerSpec {
   kubernetes: KubernetesConfig;
   docker?: DockerConfig;
@@ -147,6 +166,7 @@ export interface InstallerSpec {
   registry?: RegistryConfig;
   prometheus?: PrometheusConfig;
   kotsadm?: KotsadmConfig;
+  velero?: VeleroConfig;
 }
 
 const specSchema = {
@@ -161,6 +181,7 @@ const specSchema = {
     registry: registryConfigSchema,
     prometheus: prometheusConfigSchema,
     kotsadm: kotsadmConfigSchema,
+    velero: veleroConfigSchema,
   },
   required: ["kubernetes"],
   additionalProperites: false,
@@ -300,6 +321,10 @@ export class Installer {
     return i;
   }
 
+  // kurl.sh/v1beta1 originally had the addon name with an empty version to indicate the addon was
+  // disabled. Now a disabled addon does not appear at all in the yaml spec. We changed this without
+  // changing the apiVersion but we can detect the old style of config with no version and delete
+  // the whole addon config. This is not necessary for new addons added after kotsadm.
   public migrateV1Beta1(): Installer {
     const i = this.clone();
 
@@ -396,6 +421,9 @@ export class Installer {
       "0.9.10",
       "0.9.9",
     ],
+    velero: [
+      "1.2.0",
+    ],
   }
 
   static latest(): Installer {
@@ -473,6 +501,9 @@ export class Installer {
         return { error: { message: `Kotsadm version "${_.escape(this.spec.kotsadm.version)}" is not supported` } };
       }
     }
+    if (this.spec.velero && !Installer.hasVersion("velero", this.spec.velero.version)) {
+      return { error: { message: `Velero version "${_.escape(this.spec.velero.version)}" is not supported` } };
+    }
   }
 
   public packages(): Array<string> {
@@ -519,6 +550,7 @@ export class Installer {
     _.each(specSchema.properties, (configSchema, configKey) => {
       _.each(configSchema.properties, (schema, fieldKey) => {
         const flag = _.get(schema, "flag");
+        const flagFalseOnlyNoArg = _.get(schema, "flagFalseOnlyNoArg");
 
         if (flag && _.has(this.spec, `${configKey}.${fieldKey}`)) {
           switch (schema.type) {
@@ -527,7 +559,16 @@ export class Installer {
             flags.push(`${flag}=${this.spec[configKey][fieldKey]}`);
             break;
           case "boolean":
-            flags.push(`${flag}=${this.spec[configKey][fieldKey] ? 1 : 0}`);
+            // This converts advanced options with default true to disable-style bash flags that
+            // do not take an arg. i.e. only `velero.installCLI: false` should set the flag
+            // velero-disable-cli
+            if (flagFalseOnlyNoArg) {
+              if (this.spec[configKey][fieldKey] === false) {
+                flags.push(flag);
+              }
+            } else {
+              flags.push(`${flag}=${this.spec[configKey][fieldKey] ? 1 : 0}`);
+            }
             break;
           }
         }

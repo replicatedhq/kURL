@@ -31,6 +31,11 @@ spec:
     version: latest
     applicationSlug: sentry
     uiBindPort: 8800
+  velero:
+    version: latest
+    namespace: velero
+    installCLI: false
+    useRestic: false
 `;
 
 const typeMetaStableV1Beta1 = `
@@ -152,6 +157,30 @@ spec:
     applicationSlug: sentry-enterprise
 `;
 
+const velero = `
+spec:
+  velero:
+    version: latest
+    namespace: not-velero
+    installCLI: false
+    useRestic: false
+`;
+
+const veleroMin = `
+spec:
+  velero:
+    version: latest
+`;
+
+const veleroDefaults = `
+spec:
+  velero:
+    version: latest
+    namespace: velero
+    installCLI: true
+    useRestic: true
+`;
+
 describe("Installer", () => {
   describe("parse", () => {
     it("parses yaml with type meta and name", () => {
@@ -209,6 +238,7 @@ describe("Installer", () => {
       expect(i.spec).not.to.have.property("kotsadm");
       expect(i.spec).not.to.have.property("docker");
       expect(i.spec).not.to.have.property("prometheus");
+      expect(i.spec).not.to.have.property("velero");
     });
   });
 
@@ -429,8 +459,37 @@ spec:
       it(`=> no-ce-on-ee=1`, () => {
         const i = Installer.parse(everyOption);
 
-        expect(i.flags()).to.equal(`service-cidr=10.96.0.0/12 bypass-storagedriver-warnings=0 hard-fail-on-loopback=0 no-ce-on-ee=0 ip-alloc-range=10.32.0.0/12 encrypt-network=1 storage-class=default ceph-pool-replicas=1 kotsadm-ui-bind-port=8800`);
+        expect(i.flags()).to.equal(`service-cidr=10.96.0.0/12 bypass-storagedriver-warnings=0 hard-fail-on-loopback=0 no-ce-on-ee=0 ip-alloc-range=10.32.0.0/12 encrypt-network=1 storage-class=default ceph-pool-replicas=1 kotsadm-ui-bind-port=8800 velero-namespace=velero velero-disable-cli velero-disable-restic`);
       });
+    });
+  });
+
+  describe("velero", () => {
+    it("should parse", () => {
+      const i = Installer.parse(velero);
+
+      expect(i.spec.velero).to.deep.equal({
+        version: "latest",
+        namespace: "not-velero",
+        installCLI: false,
+        useRestic: false,
+      });
+    });
+  });
+
+  describe("velero minimum spec flags", () => {
+    it("should not generate any flags", () => {
+      const i = Installer.parse(veleroMin);
+
+      expect(i.flags()).to.equal(``);
+    });
+  });
+
+  describe("velero defaults", () => {
+    it("should generate only the velero-namespace flag", () => {
+      const i = Installer.parse(veleroDefaults);
+
+      expect(i.flags()).to.equal(`velero-namespace=velero`);
     });
   });
 });

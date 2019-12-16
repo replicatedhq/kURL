@@ -164,6 +164,18 @@ function flags() {
             kotsadm-application-namespaces|kotsadm_application_namespaces)
                 KOTSADM_APPLICATION_NAMESPACES="$_value"
                 ;;
+            velero-namespace|velero_namespace)
+                VELERO_NAMESPACE="$_value"
+                ;;
+            velero-local-bucket|velero_local_bucket)
+                VELERO_LOCAL_BUCKET="$_value"
+                ;;
+            velero-disable-cli|velero_disable_cli)
+                VELERO_DISABLE_CLI=1
+                ;;
+            velero-disable-restic|velero_disable_restic)
+                VELERO_DISABLE_RESTIC=1
+                ;;
             *)
                 echo >&2 "Error: unknown parameter \"$_param\""
                 exit 1
