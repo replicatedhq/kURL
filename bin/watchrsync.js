@@ -30,6 +30,11 @@ process.env.REMOTES.split(",").forEach(function(remote) {
 });
 
 commands.push({
+  command: "date",
+  args: [],
+});
+
+commands.push({
   command: "echo",
   args: ["synced"],
 });
