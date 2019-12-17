@@ -1,0 +1,4 @@
+resources:
+- fluentd-efk-configmap.yaml
+- fluentd-efk-daemonset.yaml
+- fluentd-efk-rbac.yaml

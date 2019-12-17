@@ -1,0 +1,3 @@
+resources:
+- kibana.yaml
+- kibana-svc.yaml

@@ -1,0 +1,2 @@
+resources:
+- create-logging-ns.yaml
