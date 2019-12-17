@@ -37,8 +37,15 @@ function velero() {
     velero_binary
 }
 
+function velero_join() {
+    velero_binary
+}
+
 function velero_binary() {
     if [ "$VELERO_DISABLE_CLI" = "1" ]; then
+        return 0
+    fi
+    if ! kubernetes_is_master; then
         return 0
     fi
     local id=$(docker create velero/velero:v1.2.0)
