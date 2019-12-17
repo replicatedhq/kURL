@@ -1,0 +1,3 @@
+resources:
+- elasticsearch-statefulset.yaml
+- elasticsearch-svc.yaml

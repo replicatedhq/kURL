@@ -234,10 +234,10 @@ function main() {
     addon_pre_init registry "$REGISTRY_VERSION"
     addon_pre_init prometheus "$PROMETHEUS_VERSION"
     addon_pre_init velero "$VELERO_VERSION"
-    addon_pre_init kotsadm "$KOTSADM_VERSION"
     addon_pre_init fluentd "$FLUENTD_VERSION"
+    addon_pre_init kotsadm "$KOTSADM_VERSION"
+    addon_pre_init kotsadm "$KOTSADM_VERSION"
     init
-    addon fluentd "$FLUENTD_VERSION"
     addon aws "$AWS_VERSION"
     addon nodeless "$NODELESS_VERSION"
     addon calico "$CALICO_VERSION"
@@ -247,6 +247,7 @@ function main() {
     addon registry "$REGISTRY_VERSION"
     addon prometheus "$PROMETHEUS_VERSION"
     addon velero "$VELERO_VERSION"
+    addon fluentd "$FLUENTD_VERSION"
     addon kotsadm "$KOTSADM_VERSION"
     post_init
     outro
