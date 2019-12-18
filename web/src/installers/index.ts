@@ -121,6 +121,21 @@ const prometheusConfigSchema = {
   additionalProperties: false,
 };
 
+export interface FluentdConfig {
+  version: string;
+  efkStack: boolean;
+}
+
+const fluentdConfigSchema = {
+  type: "object",
+  properties: {
+    version: { type: "string" },
+    efkStack : { type: "boolean", flag: "fluentd-full-efk-stack" },
+  },
+  required: ["version"],
+  additionalProperties: false,
+};
+
 export interface KotsadmConfig {
   version: string;
   applicationSlug?: string;
@@ -165,6 +180,7 @@ export interface InstallerSpec {
   contour?: ContourConfig;
   registry?: RegistryConfig;
   prometheus?: PrometheusConfig;
+  fluentd?: FluentdConfig;
   kotsadm?: KotsadmConfig;
   velero?: VeleroConfig;
 }
@@ -180,6 +196,7 @@ const specSchema = {
     contour: contourConfigSchema,
     registry: registryConfigSchema,
     prometheus: prometheusConfigSchema,
+    fluentd: fluentdConfigSchema,
     kotsadm: kotsadmConfigSchema,
     velero: veleroConfigSchema,
   },
@@ -403,6 +420,9 @@ export class Installer {
     prometheus: [
       "0.33.0",
     ],
+    fluentd: [
+      "1.3",
+    ],
     kotsadm: [
       "1.6.0",
       "1.5.0",
@@ -495,6 +515,9 @@ export class Installer {
     }
     if (this.spec.prometheus && !Installer.hasVersion("prometheus", this.spec.prometheus.version)) {
       return { error: { message: `Prometheus version "${_.escape(this.spec.prometheus.version)}" is not supported` } };
+    }
+    if (this.spec.fluentd && !Installer.hasVersion("fluentd", this.spec.fluentd.version)) {
+      return { error: { message: `Fluentd version "${_.escape(this.spec.fluentd.version)}" is not supported` } };
     }
     if (this.spec.kotsadm) {
       if (!Installer.hasVersion("kotsadm", this.spec.kotsadm.version)) {

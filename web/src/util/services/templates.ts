@@ -55,6 +55,7 @@ interface Manifest {
   CONTOUR_VERSION: string;
   REGISTRY_VERSION: string;
   PROMETHEUS_VERSION: string;
+  FLUENTD_VERSION: string;
   KOTSADM_VERSION: string;
   KOTSADM_APPLICATION_SLUG: string;
   REPLICATED_APP_URL: string;
@@ -72,6 +73,7 @@ function manifestFromInstaller(i: Installer, kurlURL: string, replicatedAppURL: 
     CONTOUR_VERSION: _.get(i.spec, "contour.version", ""),
     REGISTRY_VERSION: _.get(i.spec, "registry.version", ""),
     PROMETHEUS_VERSION: _.get(i.spec, "prometheus.version", ""),
+    FLUENTD_VERSION: _.get(i.spec, "fluentd.version", ""),
     KOTSADM_VERSION: _.get(i.spec, "kotsadm.version", ""),
     KOTSADM_APPLICATION_SLUG: _.get(i.spec, "kotsadm.applicationSlug", ""),
     REPLICATED_APP_URL: replicatedAppURL,
