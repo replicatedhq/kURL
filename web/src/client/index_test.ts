@@ -124,6 +124,15 @@ spec:
     useRestic: true
 `;
 
+const fluentd = `
+spec:
+  kubernetes:
+    version: latest
+  fluentd:
+    version: latest
+    efkStack: true
+`;
+
 describe("POST /installer", () => {
   describe("latestV1Beta1", () => {
     it(`should return 201 "https://kurl.sh/latest"`, async () => {
@@ -156,6 +165,14 @@ describe("POST /installer", () => {
   });
 
   describe("kots", () => {
+    it(`should return 201 "https://kurl.sh/4723751"`, async () => {
+      const url = await client.postInstaller(kots);
+
+      expect(url).to.match(/4723751/);
+    });
+  });
+
+  describe("fluentd", () => {
     it(`should return 201 "https://kurl.sh/4a39417"`, async () => {
       const url = await client.postInstaller(kots);
 
