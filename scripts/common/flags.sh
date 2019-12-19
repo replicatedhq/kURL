@@ -88,6 +88,9 @@ function flags() {
             disable-rook|disable_rook)
                 ROOK_VERSION=""
                 ;;
+            fluentd-full-efk-stack|fluentd_full_efk_stack)
+                FLUENTD_FULL_EFK_STACK=1
+                ;;
             reset)
                 RESET=1
                 ;;
