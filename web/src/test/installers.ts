@@ -27,10 +27,14 @@ spec:
     version: latest
   prometheus:
     version: latest
+  fluentd:
+    version: latest
+    efkStack: true
   kotsadm:
     version: latest
     applicationSlug: sentry
     uiBindPort: 8800
+
 `;
 
 const typeMetaStableV1Beta1 = `
@@ -152,6 +156,19 @@ spec:
     applicationSlug: sentry-enterprise
 `;
 
+const fluentd = `
+spec:
+  fluentd:
+    version: latest
+    efkStack: true
+`;
+
+const fluentdMin = `
+spec:
+  fluentd:
+    version: latest
+`;
+
 describe("Installer", () => {
   describe("parse", () => {
     it("parses yaml with type meta and name", () => {
@@ -209,6 +226,7 @@ describe("Installer", () => {
       expect(i.spec).not.to.have.property("kotsadm");
       expect(i.spec).not.to.have.property("docker");
       expect(i.spec).not.to.have.property("prometheus");
+      expect(i.spec).not.to.have.property("fluentd");
     });
   });
 
@@ -429,8 +447,27 @@ spec:
       it(`=> no-ce-on-ee=1`, () => {
         const i = Installer.parse(everyOption);
 
-        expect(i.flags()).to.equal(`service-cidr=10.96.0.0/12 bypass-storagedriver-warnings=0 hard-fail-on-loopback=0 no-ce-on-ee=0 ip-alloc-range=10.32.0.0/12 encrypt-network=1 storage-class=default ceph-pool-replicas=1 kotsadm-ui-bind-port=8800`);
+        expect(i.flags()).to.equal(`service-cidr=10.96.0.0/12 bypass-storagedriver-warnings=0 hard-fail-on-loopback=0 no-ce-on-ee=0 ip-alloc-range=10.32.0.0/12 encrypt-network=1 storage-class=default ceph-pool-replicas=1 fluentd-full-efk-stack=1 kotsadm-ui-bind-port=8800`);
       });
+    });
+  });
+
+  describe("fluentd", () => {
+    it("should parse", () => {
+      const i = Installer.parse(fluentd);
+
+      expect(i.spec.fluentd).to.deep.equal({
+        version: "latest",
+        efkStack: true,
+      });
+    });
+  });
+
+  describe("fluentd minimum spec flags", () => {
+    it("should not generate any flags", () => {
+      const i = Installer.parse(fluentdMin);
+
+      expect(i.flags()).to.equal(``);
     });
   });
 });
