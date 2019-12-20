@@ -476,7 +476,7 @@ spec:
       it(`=> no-ce-on-ee=1`, () => {
         const i = Installer.parse(everyOption);
 
-        expect(i.flags()).to.equal(`service-cidr=10.96.0.0/12 bypass-storagedriver-warnings=0 hard-fail-on-loopback=0 no-ce-on-ee=0 ip-alloc-range=10.32.0.0/12 encrypt-network=1 storage-class=default ceph-pool-replicas=1 fluentd-full-efk-stack=1 kotsadm-ui-bind-port=8800 velero-namespace=velero velero-disable-cli velero-disable-restic`));
+        expect(i.flags()).to.equal(`service-cidr=10.96.0.0/12 bypass-storagedriver-warnings=0 hard-fail-on-loopback=0 no-ce-on-ee=0 ip-alloc-range=10.32.0.0/12 encrypt-network=1 storage-class=default ceph-pool-replicas=1 fluentd-full-efk-stack=1 kotsadm-ui-bind-port=8800 velero-namespace=velero velero-disable-cli velero-disable-restic`);
       });
     });
   });
@@ -501,6 +501,7 @@ spec:
       expect(i.spec.fluentd).to.deep.equal({
         version: "latest",
         efkStack: true,
+
       });
     });
   });
@@ -508,9 +509,6 @@ spec:
   describe("velero minimum spec flags", () => {
     it("should not generate any flags", () => {
       const i = Installer.parse(veleroMin);
-  describe("fluentd minimum spec flags", () => {
-    it("should not generate any flags", () => {
-      const i = Installer.parse(fluentdMin);
 
       expect(i.flags()).to.equal(``);
     });
@@ -521,6 +519,34 @@ spec:
       const i = Installer.parse(veleroDefaults);
 
       expect(i.flags()).to.equal(`velero-namespace=velero`);
+    });
+  });
+        
+  describe("fluentd minimum spec flags", () => {
+    it("should not generate any flags", () => {
+
+        const i = Installer.parse(fluentdMin);
+
+      expect(i.flags()).to.equal(``);
+    });
+  });
+
+  describe("fluentd", () => {
+    it("should parse", () => {
+      const i = Installer.parse(fluentd);
+
+      expect(i.spec.fluentd).to.deep.equal({
+        version: "latest",
+        efkStack: true,
+      });
+    });
+  });
+
+  describe("fluentd minimum spec flags", () => {
+    it("should not generate any flags", () => {
+      const i = Installer.parse(fluentdMin);
+
+      expect(i.flags()).to.equal(``);
     });
   });
 });

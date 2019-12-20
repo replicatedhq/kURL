@@ -143,11 +143,8 @@ build/templates/join.tmpl: build/join.sh
 		sed 's/^CONTOUR_VERSION=.*/CONTOUR_VERSION="{{= CONTOUR_VERSION }}"/' | \
 		sed 's/^REGISTRY_VERSION=.*/REGISTRY_VERSION="{{= REGISTRY_VERSION }}"/' | \
 		sed 's/^PROMETHEUS_VERSION=.*/PROMETHEUS_VERSION="{{= PROMETHEUS_VERSION }}"/' | \
-<<<<<<< HEAD
 		sed 's/^VELERO_VERSION=.*/VELERO_VERSION="{{= VELERO_VERSION }}"/' | \
-=======
 		sed 's/^FLUENTD_VERSION=.*/FLUENTD_VERSION="{{= FLUENTD_VERSION }}"/' | \
->>>>>>> f9bdfd4... ADD web integration for fluentd
 		sed 's/^KOTSADM_VERSION=.*/KOTSADM_VERSION="{{= KOTSADM_VERSION }}"/' | \
 		sed 's/^KOTSADM_APPLICATION_SLUG=.*/KOTSADM_APPLICATION_SLUG="{{= KOTSADM_APPLICATION_SLUG }}"/' | \
 		sed 's/^FLAGS=.*/FLAGS="{{= FLAGS }}"/' \
@@ -174,11 +171,8 @@ build/templates/upgrade.tmpl: build/upgrade.sh
 		sed 's/^CONTOUR_VERSION=.*/CONTOUR_VERSION="{{= CONTOUR_VERSION }}"/' | \
 		sed 's/^REGISTRY_VERSION=.*/REGISTRY_VERSION="{{= REGISTRY_VERSION }}"/' | \
 		sed 's/^PROMETHEUS_VERSION=.*/PROMETHEUS_VERSION="{{= PROMETHEUS_VERSION }}"/' | \
-<<<<<<< HEAD
 		sed 's/^VELERO_VERSION=.*/VELERO_VERSION="{{= VELERO_VERSION }}"/' | \
-=======
 		sed 's/^FLUENTD_VERSION=.*/FLUENTD_VERSION="{{= FLUENTD_VERSION }}"/' | \
->>>>>>> f9bdfd4... ADD web integration for fluentd
 		sed 's/^KOTSADM_VERSION=.*/KOTSADM_VERSION="{{= KOTSADM_VERSION }}"/' | \
 		sed 's/^KOTSADM_APPLICATION_SLUG=.*/KOTSADM_APPLICATION_SLUG="{{= KOTSADM_APPLICATION_SLUG }}"/' | \
 		sed 's/^FLAGS=.*/FLAGS="{{= FLAGS }}"/' \
