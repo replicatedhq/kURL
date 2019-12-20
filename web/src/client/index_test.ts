@@ -375,7 +375,7 @@ spec:
       const script = await client.getInstallScript(id);
 
       expect(script).to.match(new RegExp(`VELERO_VERSION="${i.resolve().spec.velero!.version}"`));
-      expect(script).to.match(new RegExp(`FLAGS="velero-namespace=velero velero-install-cli=1 velero-use-restic=1"`));
+      expect(script).to.match(new RegExp(`FLAGS="velero-namespace=velero"`));
     });
   });
 });
