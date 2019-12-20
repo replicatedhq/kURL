@@ -494,18 +494,6 @@ spec:
     });
   });
 
-  describe("fluentd", () => {
-    it("should parse", () => {
-      const i = Installer.parse(fluentd);
-
-      expect(i.spec.fluentd).to.deep.equal({
-        version: "latest",
-        efkStack: true,
-
-      });
-    });
-  });
-
   describe("velero minimum spec flags", () => {
     it("should not generate any flags", () => {
       const i = Installer.parse(veleroMin);
@@ -522,15 +510,6 @@ spec:
     });
   });
         
-  describe("fluentd minimum spec flags", () => {
-    it("should not generate any flags", () => {
-
-        const i = Installer.parse(fluentdMin);
-
-      expect(i.flags()).to.equal(``);
-    });
-  });
-
   describe("fluentd", () => {
     it("should parse", () => {
       const i = Installer.parse(fluentd);
