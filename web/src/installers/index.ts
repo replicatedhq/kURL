@@ -421,7 +421,7 @@ export class Installer {
       "0.33.0",
     ],
     fluentd: [
-      "1.3",
+      "1.7.4",
     ],
     kotsadm: [
       "1.6.0",
