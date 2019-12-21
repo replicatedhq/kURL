@@ -22,7 +22,6 @@ fluentd() {
     local kibana_src="$src/kibana"
     local kibana_dst="$dst/kibana"
 
-    FLUENTD_FULL_EFK_STACK=1
     if [ "$FLUENTD_FULL_EFK_STACK" == 1 ]; then
         cp -r "$logging_src/" "$logging_dst/"
         cp -r "$fluentd_src/" "$fluentd_dst/"
