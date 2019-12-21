@@ -164,15 +164,15 @@ describe("POST /installer", () => {
     });
   });
 
-  describe("kots", () => {
+  describe("fluentd", () => {
     it(`should return 201 "https://kurl.sh/4723751"`, async () => {
-      const url = await client.postInstaller(kots);
+      const url = await client.postInstaller(fluentd);
 
       expect(url).to.match(/4723751/);
     });
   });
 
-  describe("fluentd", () => {
+  describe("kots", () => {
     it(`should return 201 "https://kurl.sh/4a39417"`, async () => {
       const url = await client.postInstaller(kots);
 
@@ -392,7 +392,7 @@ spec:
       const script = await client.getInstallScript(id);
 
       expect(script).to.match(new RegExp(`VELERO_VERSION="${i.resolve().spec.velero!.version}"`));
-      expect(script).to.match(new RegExp(`FLAGS="velero-namespace=velero velero-install-cli=1 velero-use-restic=1"`));
+      expect(script).to.match(new RegExp(`FLAGS="velero-namespace=velero"`));
     });
   });
 });

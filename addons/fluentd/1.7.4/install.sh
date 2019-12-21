@@ -22,6 +22,7 @@ fluentd() {
     local kibana_src="$src/kibana"
     local kibana_dst="$dst/kibana"
 
+    FLUENTD_FULL_EFK_STACK=1
     if [ "$FLUENTD_FULL_EFK_STACK" == 1 ]; then
         cp -r "$logging_src/" "$logging_dst/"
         cp -r "$fluentd_src/" "$fluentd_dst/"
@@ -43,9 +44,11 @@ fluentd() {
 }
 
 fluentd_outro() {
-    printf "\n"
-    printf "\n"
-    printf "The UI of Kibana has been exposed on NodePort ${GREEN}30887${NC}\n"
-    printf "\n"
-    printf "\n"
+    if [ "$FLUENTD_FULL_EFK_STACK" == 1 ]; then
+        printf "\n"
+        printf "\n"
+        printf "The UI of Kibana has been exposed on NodePort ${GREEN}30887${NC}\n"
+        printf "\n"
+        printf "\n"
+    fi
 }

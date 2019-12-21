@@ -1,3 +1,5 @@
+# used to test for fluentd collecting stdout
+
 apiVersion: v1
 kind: Pod
 metadata:
@@ -5,5 +7,5 @@ metadata:
 spec:
   containers:
   - name: example
-    image: busybox
+    image: replicated/kurl-util:latest
     args: [/bin/sh, -c, 'while true; do echo $(date); sleep 1; done']
