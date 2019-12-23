@@ -107,7 +107,7 @@ function main() {
     addon_join prometheus "$PROMETHEUS_VERSION"
     addon_join kotsadm "$KOTSADM_VERSION"
     addon_join velero "$VELERO_VERSION"
-    addon_join velero "$FLUENTD_VERSION"
+    addon_join fluentd "$FLUENTD_VERSION"
     kubernetes_host
     join
     outro
