@@ -63,6 +63,12 @@ dist/prometheus-%.tar.gz: build/addons
 	mkdir -p dist
 	tar cf - -C build addons/prometheus/$* | gzip > dist/prometheus-$*.tar.gz
 
+dist/fluentd-%.tar.gz: build/addons
+	mkdir -p build/addons/fluentd/$*/images
+	bin/save-manifest-assets.sh addons/fluentd/$*/Manifest build/addons/fluentd/$*
+	mkdir -p dist
+	tar cf - -C build addons/fluentd/$* | gzip > dist/fluentd-$*.tar.gz
+
 dist/kotsadm-%.tar.gz: build/addons
 	mkdir -p build/addons/kotsadm/$*/images
 	bin/save-manifest-assets.sh addons/kotsadm/$*/Manifest build/addons/kotsadm/$*
@@ -110,6 +116,7 @@ build/templates/install.tmpl: build/install.sh
 		sed 's/^REGISTRY_VERSION=.*/REGISTRY_VERSION="{{= REGISTRY_VERSION }}"/' | \
 		sed 's/^PROMETHEUS_VERSION=.*/PROMETHEUS_VERSION="{{= PROMETHEUS_VERSION }}"/' | \
 		sed 's/^VELERO_VERSION=.*/VELERO_VERSION="{{= VELERO_VERSION }}"/' | \
+		sed 's/^FLUENTD_VERSION=.*/FLUENTD_VERSION="{{= FLUENTD_VERSION }}"/' | \
 		sed 's/^KOTSADM_VERSION=.*/KOTSADM_VERSION="{{= KOTSADM_VERSION }}"/' | \
 		sed 's/^KOTSADM_APPLICATION_SLUG=.*/KOTSADM_APPLICATION_SLUG="{{= KOTSADM_APPLICATION_SLUG }}"/' | \
 		sed 's/^FLAGS=.*/FLAGS="{{= FLAGS }}"/' \
@@ -137,6 +144,7 @@ build/templates/join.tmpl: build/join.sh
 		sed 's/^REGISTRY_VERSION=.*/REGISTRY_VERSION="{{= REGISTRY_VERSION }}"/' | \
 		sed 's/^PROMETHEUS_VERSION=.*/PROMETHEUS_VERSION="{{= PROMETHEUS_VERSION }}"/' | \
 		sed 's/^VELERO_VERSION=.*/VELERO_VERSION="{{= VELERO_VERSION }}"/' | \
+		sed 's/^FLUENTD_VERSION=.*/FLUENTD_VERSION="{{= FLUENTD_VERSION }}"/' | \
 		sed 's/^KOTSADM_VERSION=.*/KOTSADM_VERSION="{{= KOTSADM_VERSION }}"/' | \
 		sed 's/^KOTSADM_APPLICATION_SLUG=.*/KOTSADM_APPLICATION_SLUG="{{= KOTSADM_APPLICATION_SLUG }}"/' | \
 		sed 's/^FLAGS=.*/FLAGS="{{= FLAGS }}"/' \
@@ -151,7 +159,7 @@ build/upgrade.sh:
 	sed -n '/# Magic end/,$$p' scripts/upgrade.sh | sed '1d' >> tmp/upgrade.sh
 	mv tmp/upgrade.sh build/upgrade.sh
 	chmod +x ./build/upgrade.sh
-	
+
 build/templates/upgrade.tmpl: build/upgrade.sh
 	mkdir -p build/templates
 	sed 's/^KUBERNETES_VERSION=.*/KUBERNETES_VERSION="{{= KUBERNETES_VERSION }}"/' "build/upgrade.sh" | \
@@ -164,6 +172,7 @@ build/templates/upgrade.tmpl: build/upgrade.sh
 		sed 's/^REGISTRY_VERSION=.*/REGISTRY_VERSION="{{= REGISTRY_VERSION }}"/' | \
 		sed 's/^PROMETHEUS_VERSION=.*/PROMETHEUS_VERSION="{{= PROMETHEUS_VERSION }}"/' | \
 		sed 's/^VELERO_VERSION=.*/VELERO_VERSION="{{= VELERO_VERSION }}"/' | \
+		sed 's/^FLUENTD_VERSION=.*/FLUENTD_VERSION="{{= FLUENTD_VERSION }}"/' | \
 		sed 's/^KOTSADM_VERSION=.*/KOTSADM_VERSION="{{= KOTSADM_VERSION }}"/' | \
 		sed 's/^KOTSADM_APPLICATION_SLUG=.*/KOTSADM_APPLICATION_SLUG="{{= KOTSADM_APPLICATION_SLUG }}"/' | \
 		sed 's/^FLAGS=.*/FLAGS="{{= FLAGS }}"/' \

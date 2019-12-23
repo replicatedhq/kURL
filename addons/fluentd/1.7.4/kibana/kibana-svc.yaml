@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: kibana
+  name: kibana
+  namespace: logging
+spec:
+  ports:
+  - name: http
+    nodePort: 30887
+    port: 5601
+    targetPort: 5601
+  selector:
+    app: kibana
+  type: NodePort

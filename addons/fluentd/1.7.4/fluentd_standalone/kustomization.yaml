@@ -1,0 +1,4 @@
+resources:
+- fluentd-fd-only-configmap.yaml
+- fluentd-fd-only-daemonset.yaml
+- fluentd-fd-only-rbac.yaml
