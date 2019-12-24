@@ -88,6 +88,13 @@ checkFirewalld() {
         exit 1
     fi
 
+    printf "${YELLOW}Firewalld is active, please press Y to disable ${NC}"
+    if confirmY ; then
+        systemctl stop firewalld
+        systemctl disable firewalld
+        return
+    fi
+
     printf "${YELLOW}Continue with firewalld active? ${NC}"
     if confirmY ; then
         BYPASS_FIREWALLD_WARNING=1

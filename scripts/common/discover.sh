@@ -119,28 +119,54 @@ discoverCurrentKubernetesVersion() {
     set -e
 
     if [ -n "$CURRENT_KUBERNETES_VERSION" ]; then
+
         semverParse $CURRENT_KUBERNETES_VERSION
         KUBERNETES_CURRENT_VERSION_MAJOR="$major"
         KUBERNETES_CURRENT_VERSION_MINOR="$minor"
         KUBERNETES_CURRENT_VERSION_PATCH="$patch"
 
         semverParse "$KUBERNETES_VERSION"
+
+        if [ "$KUBERNETES_CURRENT_VERSION_MINOR" -gt "$minor" ]; then
+            printf "The currently installed kubernetes version is ${CURRENT_KUBERNETES_VERSION}"
+            printf "The requested install version is ${KUBERNETES_VERSION}"
+            printf "Since the current version is newer than the requested version, no action will be taken"
+            bail
+        fi
+
+        NEXT_UPGRADEABLE_VERSION_MINOR="$(($KUBERNETES_CURRENT_VERSION_MINOR + 1))"
+
+        if [ "$NEXT_UPGRADEABLE_VERSION_MINOR" -lt $minor ]; then
+            printf "The currently installed kubernetes version is ${CURRENT_KUBERNETES_VERSION}"
+            printf "The requested install version is ${KUBERNETES_VERSION}"
+            printf "kURL can only be upgrade one minor version at at time. Please install ${major}.${NEXT_UPGRADEABLE_VERSION_MINOR}.X. first."
+            bail
+        fi
+
         if [ "$KUBERNETES_CURRENT_VERSION_MINOR" -lt "$minor" ]; then
             KUBERNETES_UPGRADE=1
             KUBERNETES_UPGRADE_LOCAL_MASTER_MINOR=1
+            if kubernetes_any_remote_master_unupgraded; then
+                KUBERNETES_UPGRADE=1
+                KUBERNETES_UPGRADE_REMOTE_MASTERS_MINOR=1
+            fi
+
+            if kubernetes_any_worker_unupgraded; then
+                KUBERNETES_UPGRADE=1
+                KUBERNETES_UPGRADE_WORKERS_MINOR=1
+            fi
         elif [ "$KUBERNETES_CURRENT_VERSION_PATCH" -lt "$patch" ]; then
             KUBERNETES_UPGRADE=1
             KUBERNETES_UPGRADE_LOCAL_MASTER_PATCH=1
-        fi
+            if kubernetes_any_remote_master_unupgraded; then
+                KUBERNETES_UPGRADE=1
+                KUBERNETES_UPGRADE_REMOTE_MASTERS_PATCH=1
+            fi
 
-        if kubernetes_any_remote_master_unupgraded; then
-            KUBERNETES_UPGRADE=1
-            KUBERNETES_UPGRADE_REMOTE_MASTERS_PATCH=1
-        fi
-
-        if kubernetes_any_worker_unupgraded; then
-            KUBERNETES_UPGRADE=1
-            KUBERNETES_UPGRADE_WORKERS_PATCH=1
+            if kubernetes_any_worker_unupgraded; then
+                KUBERNETES_UPGRADE=1
+                KUBERNETES_UPGRADE_WORKERS_PATCH=1
+            fi
         fi
     fi
 

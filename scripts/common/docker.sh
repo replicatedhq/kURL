@@ -1,4 +1,46 @@
 
+function change_cgroup_driver_to_systemd() {
+    # Docker uses cgroupfs by defualt to manage cgroup. On distributions using systemd,
+    # i.e. RHEL and Ubuntu, this causes issues because there are now 2 seperate ways
+    # to manage resources. For more info see the link below.
+    # https://github.com/kubernetes/kubeadm/issues/1394#issuecomment-462878219
+
+    case $LSB_DIST in
+        ubuntu)
+            cat > /etc/docker/daemon.json <<EOF
+{
+    "exec-opts": ["native.cgroupdriver=systemd"],
+    "log-driver": "json-file",
+    "log-opts": {
+        "max-size": "100m"
+    },
+    "storage-driver": "overlay2"
+}
+EOF
+            ;;
+        rhel|centos)
+            cat > /etc/docker/daemon.json <<EOF
+{
+    "exec-opts": ["native.cgroupdriver=systemd"],
+    "log-driver": "json-file",
+    "log-opts": {
+        "max-size": "100m"
+    },
+    "storage-driver": "overlay2",
+    "storage-opts": [
+        "overlay2.override_kernel_check=true"
+    ]
+}
+EOF
+            ;;
+    esac
+
+    mkdir -p /etc/systemd/system/docker.service.d
+
+    systemctl daemon-reload
+    systemctl restart docker
+}
+
 function install_docker() {
     if [ "$SKIP_DOCKER_INSTALL" != "1" ]; then
         if [ "$OFFLINE_DOCKER_INSTALL" != "1" ]; then
@@ -26,6 +68,12 @@ function install_docker() {
 
     if [ "$NO_PROXY" != "1" ] && [ -n "$PROXY_ADDRESS" ]; then
         checkDockerProxyConfig
+    fi
+
+    if [ ! -f /var/lib/kubelet/kubeadm-flags.env ]; then
+        change_cgroup_driver_to_systemd
+    elif [ -n "$(grep cgroup-driver=cgroupfs /var/lib/kubelet/kubeadm-flags.env)" ]; then
+          echo "Note that newer versions of kURL use systemd as a cgroup driver instead of cgroupfs, but it is inadvisable to update an existing cluster"
     fi
 }
 

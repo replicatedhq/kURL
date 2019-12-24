@@ -19,4 +19,3 @@ function enable_rook_ceph_operator() {
 function is_rook_1() {
     kubectl -n rook-ceph get cephblockpools replicapool &>/dev/null
 }
-

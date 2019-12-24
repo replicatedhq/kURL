@@ -25,7 +25,6 @@ func readFile (path string) []byte {
 		log.Fatal(err)
 	}
 
-	return configuration
 }
 
 func removeField(path, field string) {
@@ -37,6 +36,7 @@ func removeField(path, field string) {
 	resources := bytes.Split(configuration, []byte("---"))
 
 	for _, config :=  range resources {
+
 		var parsed interface{}
 
 		err := yaml.Unmarshal(config, &parsed)
