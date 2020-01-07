@@ -1,0 +1,8 @@
+resources:
+- common.yaml
+- deployment.yaml
+- service.yaml
+- rbac.yaml
+
+patchesStrategicMerge:
+- service-patch.yaml
