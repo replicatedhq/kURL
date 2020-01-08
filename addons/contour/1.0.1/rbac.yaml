@@ -3,13 +3,11 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: contour-certgen
-  namespace: projectcontour
 ---
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: RoleBinding
 metadata:
   name: contour
-  namespace: projectcontour
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
@@ -17,13 +15,11 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: contour-certgen
-  namespace: projectcontour
 ---
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: Role
 metadata:
   name: contour-certgen
-  namespace: projectcontour
 rules:
 - apiGroups:
   - ""
@@ -42,7 +38,6 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: contour-certgen
-  namespace: projectcontour
 spec:
   template:
     metadata:
@@ -75,7 +70,6 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: contour
-  namespace: projectcontour
 ---
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRole
@@ -146,7 +140,6 @@ apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: Role
 metadata:
   name: contour-leaderelection
-  namespace: projectcontour
 rules:
 - apiGroups:
   - ""
@@ -171,7 +164,6 @@ apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: RoleBinding
 metadata:
   name: contour-leaderelection
-  namespace: projectcontour
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
@@ -179,4 +171,3 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: contour
-  namespace: projectcontour

@@ -1,4 +1,9 @@
-ENVOY_VERSION=1.12.2
+
+function contour_pre_init() {
+    if [ -z "$CONTOUR_NAMESPACE" ]; then
+        CONTOUR_NAMESPACE=projectcontour
+    fi
+}
 
 function contour() {
     local src="$DIR/addons/contour/1.0.1"
@@ -11,6 +16,11 @@ function contour() {
     cp "$src/rbac.yaml" "$dst/"
 
     cp "$src/patches/service-patch.yaml" "$dst/"
+
+    render_yaml_file "$src/tmpl-kustomization.yaml" > "$dst/kustomization.yaml"
+    render_yaml_file "$src/tmpl-namespace.yaml" > "$dst/namespace.yaml"
+
+    kubectl create namespace "$CONTOUR_NAMESPACE" 2>/dev/null || true
 
     kubectl apply -k "$dst/"
 }
