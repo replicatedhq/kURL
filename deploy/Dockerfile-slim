@@ -1,5 +1,9 @@
 FROM node:12-slim
 
+RUN DEBIAN_FRONTEND=noninteractive apt-get update -qq \
+  && apt-get install --no-install-recommends -y ca-certificates \
+  && update-ca-certificates
+
 ARG version=unknown
 ENV VERSION=$version
 
