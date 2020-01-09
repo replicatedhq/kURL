@@ -39,7 +39,8 @@ export class Bundle {
     private readonly templates: Templates,
     private readonly installers: InstallerStore,
   ) {
-    this.distOrigin = `https://${process.env["KURL_BUCKET"]}.s3.amazonaws.com`;
+    // this.distOrigin = `https://${process.env["KURL_BUCKET"]}.s3.amazonaws.com`;
+    this.distOrigin = `https://s3.amazonaws.com/${process.env["KURL_BUCKET"]}`;
     this.replicatedAppURL = process.env["REPLICATED_APP_URL"] || "https://replicated.app";
   }
 
