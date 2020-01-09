@@ -44,15 +44,7 @@ type BundleManifest struct {
 }
 
 func bundle(w http.ResponseWriter, r *http.Request) {
-	if r.Method == "OPTIONS" {
-		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Access-Control-Allow-Methods", "GET")
-		w.Header().Set("Access-Control-Allow-Headers", "Access-Control-Allow-Origin, Content-Type")
-		w.Header().Set("Access-Control-Max-Age", "86400")
-		w.WriteHeader(http.StatusNoContent)
-		return
-	}
-	if r.Method != "GET" && r.Method != "HEAD" {
+	if r.Method != "GET" {
 		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
 		return
 	}
@@ -86,15 +78,9 @@ func bundle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "binary/octet-stream")
 	w.Header().Set("Content-Encoding", "gzip")
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Content-Disposition", "attachment")
-	w.Header().Set("Transfer-Encoding", "chunked")
-
-	if r.Method == "HEAD" {
-		return
-	}
 
 	wz := gzip.NewWriter(w)
 	archive := tar.NewWriter(wz)
