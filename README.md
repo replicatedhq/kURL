@@ -13,3 +13,8 @@ The purpose of this installer is to automate those tasks so that any user can de
 
 ## Getting Started
 For more information please see [kurl.sh/docs/](https://kurl.sh/docs/)
+
+# Community
+
+For questions about using kURL, there's a [Replicated Community](https://help.replicated.com/community) forum, and a [#kurl channel in Kubernetes Slack](https://kubernetes.slack.com/channels/kurl).
+
