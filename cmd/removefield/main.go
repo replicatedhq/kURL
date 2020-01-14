@@ -39,7 +39,7 @@ func removeField(path, field string) {
 	for _, config :=  range resources {
 		var parsed interface{}
 
-		err := yaml.Unmarshal(config, &t)
+		err := yaml.Unmarshal(config, &parsed)
 
 		if err != nil {
 			log.Fatalf("error: %v", err)
