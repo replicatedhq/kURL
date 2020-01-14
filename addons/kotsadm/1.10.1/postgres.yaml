@@ -1,0 +1,91 @@
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: kotsadm-postgres
+  labels:
+    app: kotsadm-postgres
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kotsadm-postgres
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: kotsadm-postgres
+  template:
+    metadata:
+      labels:
+        app: kotsadm-postgres
+    spec:
+      securityContext:
+        runAsUser: 999
+        fsGroup: 999
+      volumes:
+      - name: kotsadm-postgres
+        persistentVolumeClaim:
+          claimName: kotsadm-postgres
+      containers:
+      - image: postgres:10.7
+        name: kotsadm-postgres
+        ports:
+        - name: postgres
+          containerPort: 5432
+        volumeMounts:
+        - name: kotsadm-postgres
+          mountPath: /var/lib/postgresql/data
+        env:
+        - name: PGDATA
+          value: /var/lib/postgresql/data/pgdata
+        - name: POSTGRES_USER
+          value: kotsadm
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: kotsadm-postgres
+              key: password
+        - name: POSTGRES_DB
+          value: kotsadm
+        livenessProbe:
+          initialDelaySeconds: 30
+          timeoutSeconds: 5
+          failureThreshold: 3
+          exec:
+            command:
+            - "/bin/sh"
+            - "-i"
+            - "-c"
+            - "pg_isready -U kotsadm -h 127.0.0.1 -p 5432"
+        readinessProbe:
+          initialDelaySeconds: 1
+          periodSeconds: 1
+          timeoutSeconds: 1
+          exec:
+            command:
+            - "/bin/sh"
+            - "-i"
+            - "-c"
+            - "pg_isready -U kotsadm -h 127.0.0.1 -p 5432"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kotsadm-postgres
+spec:
+  selector:
+    app: kotsadm-postgres
+  type: ClusterIP
+  ports:
+  - name: postgres
+    port: 5432
+    targetPort: postgres
