@@ -16,14 +16,19 @@ func readFile (path string) []byte {
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	defer file.Close()
 
 	configuration, err := ioutil.ReadAll(file)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	return configuration
 }
 
 func removeField(path, field string) {
-	var t interface{}
 
 	var buffer []byte
 
@@ -32,16 +37,17 @@ func removeField(path, field string) {
 	resources := bytes.Split(configuration, []byte("---"))
 
 	for _, config :=  range resources {
+		var parsed interface{}
 
-		err := yaml.Unmarshal(config, &t)
+		err := yaml.Unmarshal(config, &parsed)
 
 		if err != nil {
 			log.Fatalf("error: %v", err)
 		}
 
-		delete(t.(map[interface {}]interface{}), field)
+		delete(parsed.(map[interface {}]interface{}), field)
 
-		b, err := yaml.Marshal(&t)
+		b, err := yaml.Marshal(&parsed)
 
 		if err != nil {
 			log.Fatal(err)
@@ -61,7 +67,7 @@ func removeField(path, field string) {
 func main() {
 
 	if len(os.Args) != 3 {
-		log.Fatalf("Usage: ./remove_field filename")
+		log.Fatalf("Usage: ./remove_field filename field")
 	}
 
 	filePath := os.Args[1]
