@@ -37,7 +37,7 @@ func removeField(path, field string) {
 	resources := bytes.Split(configuration, []byte("---"))
 
 	for _, config :=  range resources {
-		var t interface{}
+		var parsed interface{}
 
 		err := yaml.Unmarshal(config, &t)
 
@@ -45,9 +45,9 @@ func removeField(path, field string) {
 			log.Fatalf("error: %v", err)
 		}
 
-		delete(t.(map[interface {}]interface{}), field)
+		delete(parsed.(map[interface {}]interface{}), field)
 
-		b, err := yaml.Marshal(&t)
+		b, err := yaml.Marshal(&parsed)
 
 		if err != nil {
 			log.Fatal(err)
