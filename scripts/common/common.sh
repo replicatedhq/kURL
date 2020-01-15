@@ -80,6 +80,13 @@ waitForNodes() {
     done
 }
 
+# Label nodes as provisioned by kurl installation
+labelNodes() {
+	for NODE in $(kubectl get nodes --no-headers | awk '{print $1}');do
+	    kubectl label node --overwrite $NODE kurl.sh/cluster=true;
+	done 
+}
+
 spinnerPodRunning() {
     namespace=$1
     podPrefix=$2
