@@ -159,10 +159,12 @@ EOF
 
     kubeadm upgrade plan "v${k8sVersion}"
     printf "${YELLOW}Drain local node and apply upgrade? ${NC}"
-    confirmY
+    confirmY " "
 
     disable_rook_ceph_operator
-    if [ "$HA_CLUSTER" != "1" ]; then
+    
+    local nodeNumber=$(($(kubectl get nodes | wc -l) - "1"))
+    if [ "$nodeNumber" != "1" ]; then
         disable_coredns
     fi
 
@@ -180,7 +182,7 @@ EOF
     # force deleting the cache because the api server will use the stale API versions after kubeadm upgrade
     rm -rf $HOME/.kube
 
-    if [ "$HA_CLUSTER" != "1" ]; then
+    if [ "$nodeNumber" != "1" ]; then
         enable_coredns
     fi
     enable_rook_ceph_operator
