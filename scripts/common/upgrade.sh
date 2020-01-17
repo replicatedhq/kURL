@@ -58,6 +58,7 @@ function upgrade_kubernetes_local_master_patch() {
     confirmY
  
     disable_rook_ceph_operator
+
     kubernetes_drain "$node"
  
     spinner_kubernetes_api_healthy
@@ -164,8 +165,9 @@ EOF
     confirmY
 
     disable_rook_ceph_operator
-    #kubernetes_drain "$node"
-    kubernetes_drain_single_node "$node"
+    if [ "$HA_CLUSTER" != "1" ]; then
+        disable_coredns
+    fi
 
     spinner_kubernetes_api_healthy
     kubeadm upgrade apply "v$k8sVersion" --yes --config /opt/replicated/kubeadm.conf --force
@@ -181,6 +183,9 @@ EOF
     # force deleting the cache because the api server will use the stale API versions after kubeadm upgrade
     rm -rf $HOME/.kube
 
+    if [ "$HA_CLUSTER" != "1" ]; then
+        enable_coredns
+    fi
     enable_rook_ceph_operator
 
     spinner_until 120 kubernetes_node_has_version "$node" "$k8sVersion"

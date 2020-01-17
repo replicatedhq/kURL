@@ -20,6 +20,7 @@ DIR=.
 . $DIR/scripts/common/tasks.sh
 . $DIR/scripts/common/upgrade.sh
 . $DIR/scripts/common/yaml.sh
+. $DIR/scripts/common/coredns.sh
 # Magic end
 
 function init() {
@@ -229,8 +230,7 @@ function main() {
     configure_proxy
     install_docker
     get_shared
-    upgrade_kubernetes_minor
-    upgrade_kubernetes_patch
+    upgrade_kubernetes
     kubernetes_host
     setup_kubeadm_kustomize
     addon_pre_init aws "$AWS_VERSION"

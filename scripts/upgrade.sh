@@ -19,6 +19,7 @@ DIR=.
 . $DIR/scripts/common/proxy.sh
 . $DIR/scripts/common/rook.sh
 . $DIR/scripts/common/yaml.sh
+. $DIR/scripts/common/coredns.sh
 # Magic end
 
 maybe_upgrade() {
