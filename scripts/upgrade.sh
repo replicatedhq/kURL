@@ -49,10 +49,6 @@ maybe_upgrade() {
 
         upgrade_kubeadm "$KUBERNETES_VERSION"
 
-        echo "$KUBERNETES_VERSION"
-
-        echo "$KUBERNETES_TARGET_VERSION_MINOR"
-
         case "$KUBERNETES_TARGET_VERSION_MINOR" in
             15 | 16)
                 kubeadm upgrade node
