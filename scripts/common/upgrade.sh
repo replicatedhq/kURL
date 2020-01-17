@@ -3,9 +3,6 @@ function upgrade_kubernetes() {
     if [ "$KUBERNETES_UPGRADE" != "1" ]; then
         return
     fi
-    if [ "$DID_UPGRADE_KUBERNETES" == 1 ]; then
-        return
-    fi
 
     upgrade_kubernetes_minor
 
