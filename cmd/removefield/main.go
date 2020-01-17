@@ -25,6 +25,7 @@ func readFile (path string) []byte {
 		log.Fatal(err)
 	}
 
+	return configuration
 }
 
 func removeField(path, field string) {
