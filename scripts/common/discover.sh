@@ -119,7 +119,6 @@ discoverCurrentKubernetesVersion() {
     set -e
 
     if [ -n "$CURRENT_KUBERNETES_VERSION" ]; then
-
         semverParse $CURRENT_KUBERNETES_VERSION
         KUBERNETES_CURRENT_VERSION_MAJOR="$major"
         KUBERNETES_CURRENT_VERSION_MINOR="$minor"

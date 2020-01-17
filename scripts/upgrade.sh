@@ -55,7 +55,6 @@ maybe_upgrade() {
 
         case "$KUBERNETES_TARGET_VERSION_MINOR" in
             15 | 16)
-
                 kubeadm upgrade node
 
                 # correctly sets the --resolv-conf flag when systemd-resolver is running (Ubuntu 18)

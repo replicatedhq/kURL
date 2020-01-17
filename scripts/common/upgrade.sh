@@ -58,7 +58,6 @@ function upgrade_kubernetes_local_master_patch() {
     confirmY
  
     disable_rook_ceph_operator
-
     kubernetes_drain "$node"
  
     spinner_kubernetes_api_healthy
@@ -98,6 +97,7 @@ function upgrade_kubernetes_remote_masters_patch() {
     while read -r master; do
         upgrade_kubernetes_remote_node_patch "$master"
     done < <(try_1m kubernetes_remote_masters)
+
     spinner_until 120 kubernetes_nodes_ready
 }
 

@@ -10,7 +10,6 @@ import (
 )
 
 func readFile (path string) []byte {
-
 	file, err := os.Open(path)
 
 	if err != nil {
@@ -29,7 +28,6 @@ func readFile (path string) []byte {
 }
 
 func removeField(path, field string) {
-
 	var buffer []byte
 
 	configuration := readFile(path)
@@ -66,7 +64,6 @@ func removeField(path, field string) {
 }
 
 func main() {
-
 	if len(os.Args) != 3 {
 		log.Fatalf("Usage: ./remove_field filename field")
 	}

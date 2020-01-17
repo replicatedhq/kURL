@@ -173,17 +173,6 @@ function kubernetes_drain() {
         --pod-selector 'app notin (rook-ceph-mon,rook-ceph-osd,rook-ceph-osd-prepare,rook-ceph-operator,rook-ceph-agent),k8s-app!=kube-dns' || true
 }
 
-function kubernetes_drain_single_node() {
-    echo "single node drain"
-    kubectl drain "$1" \
-        --delete-local-data \
-        --ignore-daemonsets \
-        --force \
-        --grace-period=30 \
-        --timeout=300s \
-        --pod-selector 'app notin (rook-ceph-mon,rook-ceph-osd,rook-ceph-osd-prepare,rook-ceph-operator,rook-ceph-agent,coredns),k8s-app!=kube-dns' || true
-}
-
 function kubernetes_node_has_version() {
     local name="$1"
     local version="$2"
