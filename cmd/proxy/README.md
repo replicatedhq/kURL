@@ -3,7 +3,7 @@ The Dockerfiles, skaffold.yaml, Makefile, and kustomize/ subdirectory in this di
 The kotsadm addon has the deployment yaml that will be installed on a kurl cluster.
 
 The proxy requires a secret with a cert and key to start. The kotsadm addon will generate this secret when installed.
-That secret will have the flag `acceptAnonymousUploads` which allows anybody to upload a new cert at /tls.
+That secret will have the annotation `acceptAnonymousUploads` which allows anybody to upload a new cert at /tls.
 After the first upload that flag will be turned off and the cert/key in the secret will be replaced with the uploaded pair.
 Navigating to /tls after that will show a warning rather than an upload form.
 Manually add the flag back to the secret to re-enable uploads.
