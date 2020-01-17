@@ -230,8 +230,7 @@ EOF
 
     openssl req -newkey rsa:2048 -nodes -keyout kotsadm.key -config kotsadm.cnf -x509 -days 365 -out kotsadm.crt -extensions v3_ext
 
-    kubectl -n default create secret tls kotsadm-tls --key=kotsadm.key --cert=kotsadm.crt
-    kubectl -n default annotate secret kotsadm-tls acceptAnonymousUploads=1
+    kubectl -n default create secret generic kotsadm-tls --from-file=tls.key=kotsadm.key --from-file=tls.crt=kotsadm.crt --from-literal=acceptAnonymousUploads=1
 
     rm kotsadm.cnf kotsadm.key kotsadm.crt
 }
