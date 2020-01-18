@@ -63,14 +63,45 @@ func removeField(path, field string) {
 	}
 }
 
-func main() {
-	if len(os.Args) != 3 {
-		log.Fatalf("Usage: ./remove_field filename field")
+func retrieveField(filePath, yamlPath, outPath string) {
+	configuration := readFile(filePath)
+
+	var parsed interface{}
+
+	err := yaml.Unmarshal(configuration, &parsed)
+
+	if err != nil {
+		log.Fatalf("error: %v", err)
 	}
 
+	fields := strings.Split(yamlPath, "_")
+
+	if len(fields) != 2 {
+		log.Fatalf("Yaml path must be of 2 length")
+	}
+
+	concrete := parsed.(map[interface {}]interface{})
+	data := concrete[fields[0]]
+
+	concrete = data.(map[interface {}]interface {})
+	data = concrete[fields[1]]
+
+	err = ioutil.WriteFile(outPath, []byte(data.(string)), 0644)
+
+	if err != nil {
+		log.Fatalf("error: %v", err)
+	}
+}
+
+func main() {
 	filePath := os.Args[1]
 
 	field := os.Args[2]
 
-	removeField(filePath, field)
+	if len(os.Args) == 3 {
+		removeField(filePath, field)
+	} else {
+		outPath := os.Args[3]
+		retrieveField(filePath, field, outPath)
+	}
 }
