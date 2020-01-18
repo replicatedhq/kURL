@@ -152,10 +152,16 @@ function upgrade_kubernetes_local_master_minor() {
 
     cat >> /opt/replicated/kubeadm.conf <<EOF
 ---
-apiVersion: kubeproxy.config.k8s.io/v1alpha1
-kind: KubeProxyConfiguration
-mode: ipvs
 EOF
+
+    kubectl -n kube-system get configmaps kube-proxy -o yaml > /tmp/temp.yaml
+    docker run -i --rm -v /tmp:/home/ --entrypoint /bin/bash replicated/kurl-util -c "/usr/local/bin/removefield /home/temp.yaml metadata"
+    docker run -i --rm -v /tmp:/home/ --entrypoint /bin/bash replicated/kurl-util -c "/usr/local/bin/removefield /home/temp.yaml data_config.conf /home/parsed.yaml"
+
+    cat /home/parsed.yaml >> /opt/replicated/kubeadm.conf
+
+    rm /tmp/temp.yaml
+    rm /tmp/parsed.yaml
 
     kubeadm upgrade plan "v${k8sVersion}"
     printf "${YELLOW}Drain local node and apply upgrade? ${NC}"
