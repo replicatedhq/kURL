@@ -2,6 +2,8 @@ apiVersion: v1
 kind: Pod
 metadata:
   name: kotsadm-migrations
+  labels:
+    kots.io/kotsadm: "true"
 spec:
   securityContext:
     runAsUser: 1001

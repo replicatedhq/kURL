@@ -3,6 +3,8 @@ apiVersion: v1
 kind: Service
 metadata:
   name: kotsadm-web
+  labels:
+    kots.io/kotsadm: "true"
 spec:
   selector:
     app: kotsadm-web
