@@ -9,11 +9,35 @@ function change_cgroup_driver_to_systemd() {
     	return
     fi
 
+    case $LSB_DIST in
+        ubuntu)
             cat > /etc/docker/daemon.json <<EOF
 {
     "exec-opts": ["native.cgroupdriver=systemd"],
+    "log-driver": "json-file",
+    "log-opts": {
+        "max-size": "100m"
+    },
+    "storage-driver": "overlay2"
 }
 EOF
+            ;;
+        rhel|centos)
+            cat > /etc/docker/daemon.json <<EOF
+{
+    "exec-opts": ["native.cgroupdriver=systemd"],
+    "log-driver": "json-file",
+    "log-opts": {
+        "max-size": "100m"
+    },
+    "storage-driver": "overlay2",
+    "storage-opts": [
+        "overlay2.override_kernel_check=true"
+    ]
+}
+EOF
+            ;;
+    esac
 
     mkdir -p /etc/systemd/system/docker.service.d
 
