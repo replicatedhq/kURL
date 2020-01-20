@@ -37,6 +37,8 @@ type cert struct {
 }
 
 func main() {
+	log.Printf("Commit %s\n", os.Getenv("COMMIT"))
+
 	upstreamOrigin := os.Getenv("UPSTREAM_ORIGIN")
 	tlsSecretName := os.Getenv("TLS_SECRET_NAME")
 	namespace := os.Getenv("NAMESPACE")

@@ -22,6 +22,8 @@ const upstream = "http://localhost:3000"
 var distOrigin = fmt.Sprintf("https://%s.s3.amazonaws.com", os.Getenv("KURL_BUCKET"))
 
 func main() {
+	log.Printf("Commit %s\n", os.Getenv("COMMIT"))
+
 	http.Handle("/bundle/", http.HandlerFunc(bundle))
 
 	upstreamURL, err := url.Parse(upstream)
