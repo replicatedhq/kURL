@@ -20,5 +20,5 @@ COPY --from=0 /go/src/github.com/replicatedhq/kurl/yamlutil /usr/local/bin
 
 COPY --from=0 /go/src/github.com/replicatedhq/kurl/cmd/join/join /usr/local/bin
 
-ARG version=unknown
-ENV VERSION=$version
+ARG commit=unknown
+ENV COMMIT=$commit
