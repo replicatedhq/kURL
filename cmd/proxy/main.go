@@ -294,10 +294,10 @@ func getHttpsServer(upstream *url.URL, tlsSecretName string, secrets corev1.Secr
 	mux.Handle("/tls", r)
 	mux.Handle("/tls/", r)
 
-	mux.Handle("/api/v1/kots/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		log.Println("Kots REST API not proxied.")
-		http.Error(w, "Not found", http.StatusNotFound)
-	}))
+	// mux.Handle("/api/v1/kots/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	// 	log.Println("Kots REST API not proxied.")
+	// 	http.Error(w, "Not found", http.StatusNotFound)
+	// }))
 
 	mux.Handle("/", httputil.NewSingleHostReverseProxy(upstream))
 
