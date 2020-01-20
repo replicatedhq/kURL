@@ -127,7 +127,7 @@ function kubernetes_remote_masters() {
 }
 
 function kubernetes_workers() {
-    kubectl get node --no-headers --selector='!node-role.kubernetes.io/master' 2>/dev/null
+    kubectl get nodes --no-headers --selector="!node-role.kubernetes.io/master" 2>/dev/null
 }
 
 # exit 0 if there are any remote workers or masters
@@ -248,11 +248,11 @@ function install_krew() {
 
     pushd "$DIR/krew"
     tar xzf krew.tar.gz
-    ./krew-linux_amd64 install --manifest=krew.yaml --archive=krew.tar.gz > /dev/null 2>&1
+    ./krew-linux_amd64 install --manifest=krew.yaml --archive=krew.tar.gz
     tar xf index.tar -C $KREW_ROOT
-    ./krew-linux_amd64 install --manifest=outdated.yaml --archive=outdated.tar.gz > /dev/null 2>&1
-    ./krew-linux_amd64 install --manifest=preflight.yaml --archive=preflight.tar.gz > /dev/null 2>&1
-    ./krew-linux_amd64 install --manifest=support-bundle.yaml --archive=support-bundle.tar.gz > /dev/null 2>&1
+    ./krew-linux_amd64 install --manifest=outdated.yaml --archive=outdated.tar.gz
+    ./krew-linux_amd64 install --manifest=preflight.yaml --archive=preflight.tar.gz
+    ./krew-linux_amd64 install --manifest=support-bundle.yaml --archive=support-bundle.tar.gz
     popd
 
     chmod -R 0755 /opt/replicated/krew/store

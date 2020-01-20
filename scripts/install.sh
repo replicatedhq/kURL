@@ -20,7 +20,6 @@ DIR=.
 . $DIR/scripts/common/tasks.sh
 . $DIR/scripts/common/upgrade.sh
 . $DIR/scripts/common/yaml.sh
-. $DIR/scripts/common/coredns.sh
 # Magic end
 
 function init() {
@@ -78,14 +77,6 @@ function init() {
     mkdir -p "$KUBEADM_CONF_DIR"
     kubectl kustomize $kustomize_kubeadm_init > $KUBEADM_CONF_DIR/kubeadm-init-raw.yaml
     render_yaml_file $KUBEADM_CONF_DIR/kubeadm-init-raw.yaml > $KUBEADM_CONF_FILE
-
-    # kustomize requires assests have a metadata field while kubeadm config will reject yaml containing it
-    # this uses a go binary found in kurl/cmd/yamlutil to strip the metadata field from the yaml
-    #
-    cp $KUBEADM_CONF_FILE $KUBEADM_CONF_DIR/kubeadm_conf_copy_in
-    docker run -i --rm -v $KUBEADM_CONF_DIR:/home/ --entrypoint /bin/bash replicated/kurl-util \
-        -c "/usr/local/bin/yamlutil -r -fp /home/kubeadm_conf_copy_in -yf metadata"
-    mv $KUBEADM_CONF_DIR/kubeadm_conf_copy_in $KUBEADM_CONF_FILE
 
     if [ "$HA_CLUSTER" = "1" ]; then
         UPLOAD_CERTS="--upload-certs"
@@ -231,7 +222,7 @@ function main() {
     configure_proxy
     install_docker
     get_shared
-    upgrade_kubernetes
+    upgrade_kubernetes_patch
     kubernetes_host
     setup_kubeadm_kustomize
     addon_pre_init aws "$AWS_VERSION"

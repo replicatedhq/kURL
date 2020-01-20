@@ -1,4 +1,0 @@
-image kubernetes k8s.gcr.io/hyperkube:v1.16.4
-image pause k8s.gcr.io/pause:3.1
-image coredns k8s.gcr.io/coredns:1.6.2
-image etcd k8s.gcr.io/etcd:3.3.17

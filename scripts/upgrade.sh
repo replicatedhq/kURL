@@ -19,7 +19,6 @@ DIR=.
 . $DIR/scripts/common/proxy.sh
 . $DIR/scripts/common/rook.sh
 . $DIR/scripts/common/yaml.sh
-. $DIR/scripts/common/coredns.sh
 # Magic end
 
 maybe_upgrade() {
@@ -28,18 +27,13 @@ maybe_upgrade() {
     local kubeletMajor="$major"
     local kubeletMinor="$minor"
     local kubeletPatch="$patch"
-    local minorVersionDifference=$(($KUBERNETES_TARGET_VERSION_MINOR - $kubeletMinor))
-    local patchVersionDifference=$(($KUBERNETES_TARGET_VERSION_PATCH - $kubeletPatch))
 
     if [ -n "$HOSTNAME_CHECK" ]; then
         if [ "$HOSTNAME_CHECK" != "$(hostname)" ]; then
             bail "this script should be executed on host $HOSTNAME_CHECK"
         fi
     fi
-    if [ "$kubeletVersion" == "$KUBENETES_VERSION" ]; then
-        echo "Current installed kublet version is same as requested upgrade, bailing"
-        bail
-    fi
+
     if [ "$kubeletMajor" -ne "$KUBERNETES_TARGET_VERSION_MAJOR" ]; then
         printf "Cannot upgrade from %s to %s\n" "$kubeletVersion" "$KUBERNETES_VERSION"
         return 1
@@ -50,7 +44,7 @@ maybe_upgrade() {
         upgrade_kubeadm "$KUBERNETES_VERSION"
 
         case "$KUBERNETES_TARGET_VERSION_MINOR" in
-            15 | 16)
+            15)
                 kubeadm upgrade node
 
                 # correctly sets the --resolv-conf flag when systemd-resolver is running (Ubuntu 18)
@@ -64,9 +58,6 @@ maybe_upgrade() {
                 systemctl restart kubelet
 
                 logSuccess "Kubernetes node upgraded to $KUBERNETES_VERSION"
-
-                rm -rf $HOME/.kube
-
                 return
                 ;;
         esac
