@@ -2,6 +2,8 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: kotsadm-web
+  labels:
+    kots.io/kotsadm: "true"
 spec:
   replicas: 1
   selector:
@@ -11,6 +13,7 @@ spec:
     metadata:
       labels:
         app: kotsadm-web
+        kots.io/kotsadm: "true"
     spec:
       securityContext:
         runAsUser: 101
@@ -47,6 +50,8 @@ apiVersion: v1
 kind: Service
 metadata:
   name: kotsadm-web
+  labels:
+    kots.io/kotsadm: "true"
 spec:
   type: ClusterIP
   selector:

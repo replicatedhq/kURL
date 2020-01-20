@@ -2,6 +2,8 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: kotsadm-api-role
+  labels:
+    kots.io/kotsadm: "true"
 rules:
 - apiGroups:
   - ""
@@ -101,11 +103,28 @@ rules:
   - create
   - update
   - delete
+- apiGroups:
+  - "velero.io"
+  resources:
+  - backups
+  - podvolumebackups
+  - downloadrequests
+  - backupstoragelocations
+  - deletebackuprequests
+  - restores
+  verbs:
+  - create
+  - list
+  - get
+  - update
+  - delete
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
   name: kotsadm-api-rolebinding
+  labels:
+    kots.io/kotsadm: "true"
 subjects:
 - kind: ServiceAccount
   name: kotsadm-api
@@ -119,11 +138,15 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: kotsadm-api
+  labels:
+    kots.io/kotsadm: "true"
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: kotsadm-api
+  labels:
+    kots.io/kotsadm: "true"
 spec:
   replicas: 1
   selector:
@@ -133,6 +156,7 @@ spec:
     metadata:
       labels:
         app: kotsadm-api
+        kots.io/kotsadm: "true"
       annotations:
         prometheus.io/scrape: "true"
         prometheus.io/port: "3000"
@@ -237,6 +261,8 @@ apiVersion: v1
 kind: Service
 metadata:
   name: kotsadm-api
+  labels:
+    kots.io/kotsadm: "true"
 spec:
   type: ClusterIP
   selector:

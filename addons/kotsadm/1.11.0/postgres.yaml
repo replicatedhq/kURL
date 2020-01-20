@@ -5,6 +5,7 @@ metadata:
   name: kotsadm-postgres
   labels:
     app: kotsadm-postgres
+    kots.io/kotsadm: "true"
 spec:
   accessModes:
   - ReadWriteOnce
@@ -16,6 +17,8 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: kotsadm-postgres
+  labels:
+    kots.io/kotsadm: "true"
 spec:
   replicas: 1
   strategy:
@@ -27,6 +30,7 @@ spec:
     metadata:
       labels:
         app: kotsadm-postgres
+        kots.io/kotsadm: "true"
     spec:
       securityContext:
         runAsUser: 999
@@ -81,6 +85,8 @@ apiVersion: v1
 kind: Service
 metadata:
   name: kotsadm-postgres
+  labels:
+    kots.io/kotsadm: "true"
 spec:
   selector:
     app: kotsadm-postgres
