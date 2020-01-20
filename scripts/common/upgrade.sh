@@ -150,17 +150,16 @@ function upgrade_kubernetes_local_master_minor() {
 
     kubeadm config migrate --old-config /opt/replicated/kubeadm.conf --new-config /opt/replicated/kubeadm.conf
 
+    kubectl -n kube-system get configmaps kube-proxy -o yaml > /tmp/temp.yaml
+    docker run -i --rm -v /tmp/:/home/ --entrypoint /bin/bash replicated/kurl-util -c \
+        "/usr/local/bin/yamlutil -p -fp /home/temp.yaml -yp data_config.conf"
+
     cat >> /opt/replicated/kubeadm.conf <<EOF
 ---
 EOF
-
-    kubectl -n kube-system get configmaps kube-proxy -o yaml > /tmp/temp.yaml
-    docker run -i --rm -v /tmp/:/home/ --entrypoint /bin/bash replicated/kurl-util -c "/usr/local/bin/removefield /home/temp.yaml data_config.conf /home/parsed.yaml"
-
-    cat /tmp/parsed.yaml >> /opt/replicated/kubeadm.conf
+    cat /tmp/temp.yaml >> /opt/replicated/kubeadm.conf
 
     rm /tmp/temp.yaml
-    rm /tmp/parsed.yaml
 
     kubeadm upgrade plan "v${k8sVersion}"
     printf "${YELLOW}Drain local node and apply upgrade? ${NC}"

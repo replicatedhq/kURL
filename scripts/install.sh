@@ -80,10 +80,11 @@ function init() {
     render_yaml_file $KUBEADM_CONF_DIR/kubeadm-init-raw.yaml > $KUBEADM_CONF_FILE
 
     # kustomize requires assests have a metadata field while kubeadm config will reject yaml containing it
-    # this uses a go binary found in kurl/cmd/removefield to strip the metadata field from the yaml
+    # this uses a go binary found in kurl/cmd/yamlutil to strip the metadata field from the yaml
     #
     cp $KUBEADM_CONF_FILE $KUBEADM_CONF_DIR/kubeadm_conf_copy_in
-    docker run -i --rm -v $KUBEADM_CONF_DIR:/home/ --entrypoint /bin/bash replicated/kurl-util -c "/usr/local/bin/removefield /home/kubeadm_conf_copy_in metadata"
+    docker run -i --rm -v $KUBEADM_CONF_DIR:/home/ --entrypoint /bin/bash replicated/kurl-util \
+        -c "/usr/local/bin/yamlutil -r -fp /home/kubeadm_conf_copy_in -yf metadata"
     mv $KUBEADM_CONF_DIR/kubeadm_conf_copy_in $KUBEADM_CONF_FILE
 
     if [ "$HA_CLUSTER" = "1" ]; then
