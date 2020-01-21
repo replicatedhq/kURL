@@ -80,6 +80,20 @@ waitForNodes() {
     done
 }
 
+# Label nodes as provisioned by kurl installation
+# (these labels should have been added by kurl installation.
+#  See kubeadm-init and kubeadm-join yamk files.
+#  This bit will ensure the labels are added for pre-existing cluster
+#  during a kurl upgrade.)
+labelNodes() {
+    for NODE in $(kubectl get nodes --no-headers | awk '{print $1}');do
+        kurl_label=$(kubectl describe nodes $NODE | grep "kurl.sh\/cluster=true") || true
+        if [[ -z $kurl_label ]];then
+            kubectl label node --overwrite $NODE kurl.sh/cluster=true;
+        fi
+    done
+}
+
 spinnerPodRunning() {
     namespace=$1
     podPrefix=$2

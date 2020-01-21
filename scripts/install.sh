@@ -113,6 +113,7 @@ function init() {
         handleLoadBalancerAddressChangedPostInit
     fi
 
+    labelNodes
     kubectl cluster-info
     logSuccess "Cluster Initialized"
 }
