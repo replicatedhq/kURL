@@ -75,9 +75,6 @@ function install_docker() {
     fi
 
     change_cgroup_driver_to_systemd
-    elif [ -n "$(grep cgroup-driver=cgroupfs /var/lib/kubelet/kubeadm-flags.env)" ]; then
-          echo "Note that newer versions of kURL use systemd as a cgroup driver instead of cgroupfs, but it is inadvisable to update an existing cluster"
-    fi
 }
 
 installDockerOnline() {
