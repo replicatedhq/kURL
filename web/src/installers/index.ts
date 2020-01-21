@@ -414,6 +414,8 @@ export class Installer {
     ],
     contour: [
       "0.14.0",
+      // Before making 1.0.1 latest need
+      // to test if upgrading from previous version works.
       "1.0.1",
     ],
     registry: [
