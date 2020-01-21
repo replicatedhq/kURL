@@ -1,0 +1,11 @@
+namespace: $CONTOUR_NAMESPACE
+
+resources:
+- namespace.yaml
+- common.yaml
+- deployment.yaml
+- service.yaml
+- rbac.yaml
+
+patchesStrategicMerge:
+- service-patch.yaml
