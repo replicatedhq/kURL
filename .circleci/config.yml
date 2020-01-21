@@ -67,7 +67,7 @@ jobs:
       - setup_remote_docker:
           version: 17.06.0-ce
       - run: |
-          docker build -t replicated/kurl-util -f deploy/kurl-util/Dockerfile .
+          docker build -t replicated/kurl-util -f deploy/kurl-util/Dockerfile --build-arg commit="$CIRCLE_SHA1" .
           docker login -u="$DOCKERHUB_DOCKER_USER" -p="$DOCKERHUB_DOCKER_PASS"
           docker push replicated/kurl-util
 
@@ -176,21 +176,26 @@ workflows:
           requires:
             - build_staging_docker_image
             - upload_staging_packages
+
+  tag:
+    jobs:
+      - is_upstream:
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              ignore: /.*/
+
       - build_production_docker_image:
           requires:
             - is_upstream
-      - hold:
-          type: approval
-          requires:
-            - deploy_staging_eks
       - upload_production_packages:
           requires:
-            - hold
+            - is_upstream
       - push_util_image:
           requires:
-            - hold
+            - is_upstream
       - deploy_production_eks:
           requires:
             - upload_production_packages
             - build_production_docker_image
-            - hold

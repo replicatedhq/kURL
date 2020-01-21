@@ -37,6 +37,8 @@ type cert struct {
 }
 
 func main() {
+	log.Printf("Commit %s\n", os.Getenv("COMMIT"))
+
 	upstreamOrigin := os.Getenv("UPSTREAM_ORIGIN")
 	tlsSecretName := os.Getenv("TLS_SECRET_NAME")
 	namespace := os.Getenv("NAMESPACE")
@@ -141,9 +143,19 @@ func watchSecret(certs chan cert, name string, secrets corev1.SecretInterface) {
 			}
 
 			acceptAnonymousUploads := false
-			acceptAnonymousUploadsVal, ok := secret.Data["acceptAnonymousUploads"]
-			if ok && string(acceptAnonymousUploadsVal) == "1" {
-				acceptAnonymousUploads = true
+			if secret.Type == "Opaque" {
+				// Old version version of secret was type 'Opaque' and the
+				// the flag was stored in the Data field.  The new flag is stored as
+				// an annotation.
+				acceptAnonymousUploadsVal, ok := secret.Data["acceptAnonymousUploads"]
+				if ok && string(acceptAnonymousUploadsVal) == "1" {
+					acceptAnonymousUploads = true
+				}
+			} else {
+				acceptAnonymousUploadsVal, ok := secret.Annotations["acceptAnonymousUploads"]
+				if ok && acceptAnonymousUploadsVal == "1" {
+					acceptAnonymousUploads = true
+				}
 			}
 
 			certs <- cert{
@@ -221,7 +233,12 @@ func getHttpsServer(upstream *url.URL, tlsSecretName string, secrets corev1.Secr
 
 		go func() {
 			<-c.Request.Context().Done()
-			delete(secret.Data, "acceptAnonymousUploads")
+			if secret.Type == "Opaque" {
+				// Old version version of secret was type 'Opaque'
+				delete(secret.Data, "acceptAnonymousUploads")
+			} else {
+				delete(secret.Annotations, "acceptAnonymousUploads")
+			}
 			_, err = secrets.Update(secret)
 			if err != nil {
 				log.Printf("POST /tls/skip: %v", err)
@@ -262,7 +279,12 @@ func getHttpsServer(upstream *url.URL, tlsSecretName string, secrets corev1.Secr
 			<-c.Request.Context().Done()
 			secret.Data["tls.crt"] = certData
 			secret.Data["tls.key"] = keyData
-			delete(secret.Data, "acceptAnonymousUploads")
+			if secret.Type == "Opaque" {
+				// Old version version of secret was type 'Opaque'
+				delete(secret.Data, "acceptAnonymousUploads")
+			} else {
+				delete(secret.Annotations, "acceptAnonymousUploads")
+			}
 			_, err = secrets.Update(secret)
 			if err != nil {
 				log.Print(err)
@@ -273,6 +295,11 @@ func getHttpsServer(upstream *url.URL, tlsSecretName string, secrets corev1.Secr
 	})
 	mux.Handle("/tls", r)
 	mux.Handle("/tls/", r)
+
+	// mux.Handle("/api/v1/kots/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	// 	log.Println("Kots REST API not proxied.")
+	// 	http.Error(w, "Not found", http.StatusNotFound)
+	// }))
 
 	mux.Handle("/", httputil.NewSingleHostReverseProxy(upstream))
 

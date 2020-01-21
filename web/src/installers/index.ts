@@ -397,6 +397,7 @@ export class Installer {
   // first version of each is "latest"
   static versions = {
     kubernetes: [
+      "1.16.4",
       "1.15.3",
       "1.15.2",
       "1.15.1",
@@ -425,6 +426,12 @@ export class Installer {
       "1.7.4",
     ],
     kotsadm: [
+      "1.10.3",
+      "1.10.2",
+      "1.10.1",
+      "1.10.0",
+      "1.9.1",
+      "1.9.0",
       "1.8.0",
       "1.7.0",
       "1.6.0",

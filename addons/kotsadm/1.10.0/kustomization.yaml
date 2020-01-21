@@ -1,0 +1,8 @@
+resources:
+- api.yaml
+- operator.yaml
+- postgres.yaml
+- schemahero.yaml
+- web.yaml
+- kotsadm-web-scripts.yaml
+- kotsadm-application-metadata.yaml

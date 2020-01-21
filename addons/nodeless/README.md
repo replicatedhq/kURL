@@ -7,7 +7,7 @@ Enable the aws, nodeless and calico plugins, and disable prometheus, weave, rook
     --- a/scripts/Manifest
     +++ b/scripts/Manifest
     @@ -1,12 +1,15 @@
-     KUBERNETES_VERSION=1.15.3
+     KUBERNETES_VERSION=1.16.4
      DOCKER_VERSION=18.09.8
     -WEAVE_VERSION=2.5.2
     -ROOK_VERSION=1.0.4
@@ -17,9 +17,9 @@ Enable the aws, nodeless and calico plugins, and disable prometheus, weave, rook
     +#CONTOUR_VERSION=1.0.1
      REGISTRY_VERSION=2.7.1
     -PROMETHEUS_VERSION=0.33.0
-    -KOTSADM_VERSION=1.8.0
+    -KOTSADM_VERSION=1.10.3
     +#PROMETHEUS_VERSION=0.33.0
-    +#KOTSADM_VERSION=1.8.0
+    +#KOTSADM_VERSION=1.10.3
      KOTSADM_APPLICATION_SLUG=sentry-enterprise
     +AWS_VERSION=0.0.1
     +NODELESS_VERSION=0.0.1

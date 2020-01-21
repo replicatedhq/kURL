@@ -1,6 +1,23 @@
 SHELL := /bin/bash
 KURL_UTIL_IMAGE := replicated/kurl-util:latest
 
+GIT_TREE = $(shell git rev-parse --is-inside-work-tree 2>/dev/null)
+ifneq "$(GIT_TREE)" ""
+define GIT_UPDATE_INDEX_CMD
+git update-index --assume-unchanged
+endef
+define GIT_SHA
+`git rev-parse HEAD`
+endef
+else
+define GIT_UPDATE_INDEX_CMD
+echo "Not a git repo, skipping git update-index"
+endef
+define GIT_SHA
+""
+endef
+endif
+
 .PHONY: clean
 clean:
 	rm -rf build tmp dist
@@ -289,4 +306,4 @@ watchrsync:
 
 .PHONY: kurl-util-image
 kurl-util-image:
-	docker build -t replicated/kurl-util -f deploy/kurl-util/Dockerfile .
+	docker build -t replicated/kurl-util -f deploy/kurl-util/Dockerfile --build-arg commit="${GIT_SHA}" .
