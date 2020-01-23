@@ -39,6 +39,8 @@ function kotsadm() {
     fi
 
     kubectl delete pod kotsadm-migrations || true;
+    kubectl delete deployment kotsadm-web || true; # replaced by 'kotsadm' deployment in 1.11.0
+    kubectl delete service kotsadm-api || true; # replaced by 'kotsadm-api-node' service in 1.11.0
 
     kotsadm_namespaces "$src" "$dst"
 
@@ -108,6 +110,7 @@ function kotsadm_secret_password() {
     render_yaml_file "$DIR/addons/kotsadm/1.11.0/tmpl-secret-password.yaml" > "$DIR/kustomize/kotsadm/secret-password.yaml"
     insert_resources "$DIR/kustomize/kotsadm/kustomization.yaml" secret-password.yaml
 
+    kubernetes_scale_down default deployment kotsadm
     kubernetes_scale_down default deployment kotsadm-api
 }
 
@@ -123,6 +126,7 @@ function kotsadm_secret_postgres() {
     render_yaml_file "$DIR/addons/kotsadm/1.11.0/tmpl-secret-postgres.yaml" > "$DIR/kustomize/kotsadm/secret-postgres.yaml"
     insert_resources "$DIR/kustomize/kotsadm/kustomization.yaml" secret-postgres.yaml
 
+    kubernetes_scale_down default deployment kotsadm
     kubernetes_scale_down default deployment kotsadm-api
     kubernetes_scale_down default deployment kotsadm-postgres
     kubernetes_scale_down default deployment kotsadm-migrations
@@ -145,6 +149,7 @@ function kotsadm_secret_session() {
     render_yaml_file "$DIR/addons/kotsadm/1.11.0/tmpl-secret-session.yaml" > "$DIR/kustomize/kotsadm/secret-session.yaml"
     insert_resources "$DIR/kustomize/kotsadm/kustomization.yaml" secret-session.yaml
 
+    kubernetes_scale_down default deployment kotsadm
     kubernetes_scale_down default deployment kotsadm-api
 }
 
