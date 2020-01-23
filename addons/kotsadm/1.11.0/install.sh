@@ -37,8 +37,6 @@ function kotsadm() {
     if [ -z "$KOTSADM_HOSTNAME" ]; then
         KOTSADM_HOSTNAME="$PRIVATE_ADDRESS"
     fi
-    cat "$src/tmpl-start-kotsadm-web.sh" | sed "s/###_HOSTNAME_###/$KOTSADM_HOSTNAME:8800/g" > "$dst/start-kotsadm-web.sh"
-    kubectl create configmap kotsadm-web-scripts --from-file="$dst/start-kotsadm-web.sh" --dry-run -oyaml > "$dst/kotsadm-web-scripts.yaml"
 
     kubectl delete pod kotsadm-migrations || true;
 
