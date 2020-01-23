@@ -10,7 +10,7 @@ function kotsadm() {
     cp "$src/operator.yaml" "$dst/"
     cp "$src/postgres.yaml" "$dst/"
     cp "$src/schemahero.yaml" "$dst/"
-    cp "$src/web.yaml" "$dst/"
+    cp "$src/kotsadm.yaml" "$dst/"
 
     kotsadm_secret_auto_create_cluster_token
     kotsadm_secret_password
@@ -60,9 +60,9 @@ function kotsadm_outro() {
     if [ -z "$apiPod" ]; then
         apiPod="<api-pod>"
     fi
-    local webPod=$(kubectl get pods --selector app=kotsadm-web --no-headers | grep -E '(ContainerCreating|Running)' | head -1 | awk '{ print $1 }')
-    if [ -z "$webPod" ]; then
-        webPod="<web-pod>"
+    local mainPod=$(kubectl get pods --selector app=kotsadm --no-headers | grep -E '(ContainerCreating|Running)' | head -1 | awk '{ print $1 }')
+    if [ -z "$mainPod" ]; then
+        mainPod="<main-pod>"
     fi
 
     printf "\n"
@@ -204,7 +204,7 @@ req_extensions = req_ext
 distinguished_name = dn
 
 [ dn ]
-CN = kotsadm-web.default.svc.cluster.local
+CN = kotsadm.default.svc.cluster.local
 
 [ req_ext ]
 subjectAltName = @alt_names
@@ -217,11 +217,11 @@ extendedKeyUsage=serverAuth
 subjectAltName=@alt_names
 
 [ alt_names ]
-DNS.1 = kotsadm-web
-DNS.2 = kotsadm-web.default
-DNS.3 = kotsadm-web.default.svc
-DNS.4 = kotsadm-web.default.svc.cluster
-DNS.5 = kotsadm-web.default.svc.cluster.local
+DNS.1 = kotsadm
+DNS.2 = kotsadm.default
+DNS.3 = kotsadm.default.svc
+DNS.4 = kotsadm.default.svc.cluster
+DNS.5 = kotsadm.default.svc.cluster.local
 IP.1 = $PRIVATE_ADDRESS
 EOF
     if [ -n "$PUBLIC_ADDRESS" ]; then

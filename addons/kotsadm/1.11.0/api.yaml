@@ -260,7 +260,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: kotsadm-api
+  name: kotsadm-api-node
   labels:
     kots.io/kotsadm: "true"
 spec:

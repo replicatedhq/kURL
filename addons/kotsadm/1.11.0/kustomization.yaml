@@ -3,6 +3,6 @@ resources:
 - operator.yaml
 - postgres.yaml
 - schemahero.yaml
-- web.yaml
+- kotsadm.yaml
 - kotsadm-web-scripts.yaml
 - kotsadm-application-metadata.yaml
