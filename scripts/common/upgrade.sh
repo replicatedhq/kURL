@@ -167,7 +167,7 @@ EOF
 
     disable_rook_ceph_operator
     
-    local nodeNumber=$(($(kubectl get nodes | wc -l) - "1"))
+    local nodeNumber=$(($(kubectl get nodes | wc -l) - 1))
     if [ "$nodeNumber" != "1" ]; then
         disable_coredns
     fi
