@@ -4,5 +4,4 @@ resources:
 - postgres.yaml
 - schemahero.yaml
 - kotsadm.yaml
-- kotsadm-web-scripts.yaml
 - kotsadm-application-metadata.yaml
