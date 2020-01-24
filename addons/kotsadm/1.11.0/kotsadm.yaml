@@ -96,7 +96,7 @@ spec:
           httpGet:
             path: /healthz
             port: 3000
-            scheme: http
+            scheme: HTTP
         env:
           - name: SHARED_PASSWORD_BCRYPT
             valueFrom:
@@ -107,7 +107,7 @@ spec:
             valueFrom:
               secretKeyRef:
                 name: kotsadm-session
-                key: passwordBcrypt
+                key: key
           - name: POSTGRES_URI
             valueFrom:
               secretKeyRef:
