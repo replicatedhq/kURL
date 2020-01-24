@@ -1,5 +1,5 @@
 apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
+kind: ClusterRole
 metadata:
   name: kotsadm-role
   labels:
@@ -38,9 +38,17 @@ rules:
   - secrets
   verbs:
   - create
+- apiGroups:
+  - ""
+  resourceNames:
+  - kurl-config
+  resources:
+  - configmaps
+  verbs:
+  - get
 ---
 apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
+kind: ClusterRoleBinding
 metadata:
   name: kotsadm-rolebinding
   labels:
@@ -51,7 +59,7 @@ subjects:
   namespace: default
 roleRef:
   apiGroup: rbac.authorization.k8s.io
-  kind: Role
+  kind: ClusterRole
   name: kotsadm-role
 ---
 apiVersion: v1
