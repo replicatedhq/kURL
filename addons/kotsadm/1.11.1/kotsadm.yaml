@@ -89,6 +89,7 @@ spec:
       containers:
       - image: kotsadm/kotsadm:v1.11.1
         name: kotsadm
+        command: ["bash"]
         args:
         - "/scripts/start-kotsadm-web.sh"
         ports:
