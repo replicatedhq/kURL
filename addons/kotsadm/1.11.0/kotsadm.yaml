@@ -81,9 +81,16 @@ spec:
       securityContext:
         runAsUser: 1001
       serviceAccountName: kotsadm
+      volumes:
+      - name: kotsadm-web-scripts
+        configMap:
+          defaultMode: 511 # hex 777
+          name: kotsadm-web-scripts
       containers:
       - image: kotsadm/kotsadm:v1.11.0
         name: kotsadm
+        args:
+        - "/scripts/start-kotsadm-web.sh"
         ports:
         - name: http
           containerPort: 3000
@@ -117,6 +124,10 @@ spec:
             valueFrom:
               fieldRef:
                 fieldPath: metadata.namespace
+        volumeMounts:
+          - name: kotsadm-web-scripts
+            mountPath: /scripts/start-kotsadm-web.sh
+            subPath: start-kotsadm-web.sh
 ---
 apiVersion: v1
 kind: Service
