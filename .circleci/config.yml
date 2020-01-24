@@ -187,15 +187,35 @@ workflows:
               ignore: /.*/
 
       - build_production_docker_image:
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              ignore: /.*/
           requires:
             - is_upstream
       - upload_production_packages:
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              ignore: /.*/
           requires:
             - is_upstream
       - push_util_image:
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              ignore: /.*/
           requires:
             - is_upstream
       - deploy_production_eks:
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              ignore: /.*/
           requires:
             - upload_production_packages
             - build_production_docker_image
