@@ -1,0 +1,12 @@
+{
+  "name": "kurl",
+  "version": "1.0.0",
+  "main": "bin/watchrsync.js",
+  "repository": "git@github.com:replicatedhq/kurl.git",
+  "author": "Replicated",
+  "license": "MIT",
+  "private": true,
+  "dependencies": {
+    "gaze-run-interrupt": "^1.0.1"
+  }
+}
