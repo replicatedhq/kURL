@@ -23,7 +23,7 @@ spec:
         - name: NODE_PORT
           value: \"8800\"
         - name: UPSTREAM_ORIGIN
-          value: http://kotsadm-web:3000
+          value: http://kotsadm:3000
         - name: TLS_SECRET_NAME
           value: kotsadm-tls
         - name: NAMESPACE

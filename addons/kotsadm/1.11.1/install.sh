@@ -1,6 +1,6 @@
 
 function kotsadm() {
-    local src="$DIR/addons/kotsadm/1.11.0"
+    local src="$DIR/addons/kotsadm/1.11.1"
     local dst="$DIR/kustomize/kotsadm"
 
     rook_create_bucket kotsadm
@@ -10,7 +10,7 @@ function kotsadm() {
     cp "$src/operator.yaml" "$dst/"
     cp "$src/postgres.yaml" "$dst/"
     cp "$src/schemahero.yaml" "$dst/"
-    cp "$src/web.yaml" "$dst/"
+    cp "$src/kotsadm.yaml" "$dst/"
 
     kotsadm_secret_auto_create_cluster_token
     kotsadm_secret_password
@@ -37,10 +37,13 @@ function kotsadm() {
     if [ -z "$KOTSADM_HOSTNAME" ]; then
         KOTSADM_HOSTNAME="$PRIVATE_ADDRESS"
     fi
+
     cat "$src/tmpl-start-kotsadm-web.sh" | sed "s/###_HOSTNAME_###/$KOTSADM_HOSTNAME:8800/g" > "$dst/start-kotsadm-web.sh"
     kubectl create configmap kotsadm-web-scripts --from-file="$dst/start-kotsadm-web.sh" --dry-run -oyaml > "$dst/kotsadm-web-scripts.yaml"
 
     kubectl delete pod kotsadm-migrations || true;
+    kubectl delete deployment kotsadm-web || true; # replaced by 'kotsadm' deployment in 1.11.1
+    kubectl delete service kotsadm-api || true; # replaced by 'kotsadm-api-node' service in 1.11.1
 
     kotsadm_namespaces "$src" "$dst"
 
@@ -52,7 +55,7 @@ function kotsadm() {
 }
 
 function kotsadm_join() {
-    kotsadm_cli "$DIR/addons/kotsadm/1.11.0"
+    kotsadm_cli "$DIR/addons/kotsadm/1.11.1"
 }
 
 function kotsadm_outro() {
@@ -60,9 +63,9 @@ function kotsadm_outro() {
     if [ -z "$apiPod" ]; then
         apiPod="<api-pod>"
     fi
-    local webPod=$(kubectl get pods --selector app=kotsadm-web --no-headers | grep -E '(ContainerCreating|Running)' | head -1 | awk '{ print $1 }')
-    if [ -z "$webPod" ]; then
-        webPod="<web-pod>"
+    local mainPod=$(kubectl get pods --selector app=kotsadm --no-headers | grep -E '(ContainerCreating|Running)' | head -1 | awk '{ print $1 }')
+    if [ -z "$mainPod" ]; then
+        mainPod="<main-pod>"
     fi
 
     printf "\n"
@@ -87,7 +90,7 @@ function kotsadm_secret_auto_create_cluster_token() {
 
     AUTO_CREATE_CLUSTER_TOKEN=$(< /dev/urandom tr -dc A-Za-z0-9 | head -c16)
 
-    render_yaml_file "$DIR/addons/kotsadm/1.11.0/tmpl-secret-auto-create-cluster-token.yaml" > "$DIR/kustomize/kotsadm/secret-auto-create-cluster-token.yaml"
+    render_yaml_file "$DIR/addons/kotsadm/1.11.1/tmpl-secret-auto-create-cluster-token.yaml" > "$DIR/kustomize/kotsadm/secret-auto-create-cluster-token.yaml"
     insert_resources "$DIR/kustomize/kotsadm/kustomization.yaml" secret-auto-create-cluster-token.yaml
 
     # ensure all pods that consume the secret will be restarted
@@ -107,9 +110,10 @@ function kotsadm_secret_password() {
     # TODO kurl-util
     BCRYPT_PASSWORD=$(docker run --rm epicsoft/bcrypt:latest hash "$KOTSADM_PASSWORD" 14)
 
-    render_yaml_file "$DIR/addons/kotsadm/1.11.0/tmpl-secret-password.yaml" > "$DIR/kustomize/kotsadm/secret-password.yaml"
+    render_yaml_file "$DIR/addons/kotsadm/1.11.1/tmpl-secret-password.yaml" > "$DIR/kustomize/kotsadm/secret-password.yaml"
     insert_resources "$DIR/kustomize/kotsadm/kustomization.yaml" secret-password.yaml
 
+    kubernetes_scale_down default deployment kotsadm
     kubernetes_scale_down default deployment kotsadm-api
 }
 
@@ -122,16 +126,17 @@ function kotsadm_secret_postgres() {
 
     POSTGRES_PASSWORD=$(< /dev/urandom tr -dc A-Za-z0-9 | head -c16)
 
-    render_yaml_file "$DIR/addons/kotsadm/1.11.0/tmpl-secret-postgres.yaml" > "$DIR/kustomize/kotsadm/secret-postgres.yaml"
+    render_yaml_file "$DIR/addons/kotsadm/1.11.1/tmpl-secret-postgres.yaml" > "$DIR/kustomize/kotsadm/secret-postgres.yaml"
     insert_resources "$DIR/kustomize/kotsadm/kustomization.yaml" secret-postgres.yaml
 
+    kubernetes_scale_down default deployment kotsadm
     kubernetes_scale_down default deployment kotsadm-api
     kubernetes_scale_down default deployment kotsadm-postgres
     kubernetes_scale_down default deployment kotsadm-migrations
 }
 
 function kotsadm_secret_s3() {
-    render_yaml_file "$DIR/addons/kotsadm/1.11.0/tmpl-secret-s3.yaml" > "$DIR/kustomize/kotsadm/secret-s3.yaml"
+    render_yaml_file "$DIR/addons/kotsadm/1.11.1/tmpl-secret-s3.yaml" > "$DIR/kustomize/kotsadm/secret-s3.yaml"
     insert_resources "$DIR/kustomize/kotsadm/kustomization.yaml" secret-s3.yaml
 }
 
@@ -144,9 +149,10 @@ function kotsadm_secret_session() {
 
     JWT_SECRET=$(< /dev/urandom tr -dc A-Za-z0-9 | head -c16)
 
-    render_yaml_file "$DIR/addons/kotsadm/1.11.0/tmpl-secret-session.yaml" > "$DIR/kustomize/kotsadm/secret-session.yaml"
+    render_yaml_file "$DIR/addons/kotsadm/1.11.1/tmpl-secret-session.yaml" > "$DIR/kustomize/kotsadm/secret-session.yaml"
     insert_resources "$DIR/kustomize/kotsadm/kustomization.yaml" secret-session.yaml
 
+    kubernetes_scale_down default deployment kotsadm
     kubernetes_scale_down default deployment kotsadm-api
 }
 
@@ -161,7 +167,7 @@ function kotsadm_api_encryption_key() {
     # in secrets with kubectl. Kotsadm expects the value to be encoded when read as an env var.
     API_ENCRYPTION=$(< /dev/urandom cat | head -c36 | base64)
 
-    render_yaml_file "$DIR/addons/kotsadm/1.11.0/tmpl-secret-api-encryption.yaml" > "$DIR/kustomize/kotsadm/secret-api-encryption.yaml"
+    render_yaml_file "$DIR/addons/kotsadm/1.11.1/tmpl-secret-api-encryption.yaml" > "$DIR/kustomize/kotsadm/secret-api-encryption.yaml"
     insert_resources "$DIR/kustomize/kotsadm/kustomization.yaml" secret-api-encryption.yaml
 
     kubernetes_scale_down default deployment kotsadm-api
@@ -169,7 +175,7 @@ function kotsadm_api_encryption_key() {
 
 function kotsadm_api_patch_prometheus() {
     insert_patches_strategic_merge "$DIR/kustomize/kotsadm/kustomization.yaml" api-prometheus.yaml
-    cp "$DIR/addons/kotsadm/1.11.0/patches/api-prometheus.yaml" "$DIR/kustomize/kotsadm/api-prometheus.yaml"
+    cp "$DIR/addons/kotsadm/1.11.1/patches/api-prometheus.yaml" "$DIR/kustomize/kotsadm/api-prometheus.yaml"
 }
 
 function kotsadm_kurl_proxy() {
@@ -204,7 +210,7 @@ req_extensions = req_ext
 distinguished_name = dn
 
 [ dn ]
-CN = kotsadm-web.default.svc.cluster.local
+CN = kotsadm.default.svc.cluster.local
 
 [ req_ext ]
 subjectAltName = @alt_names
@@ -217,11 +223,11 @@ extendedKeyUsage=serverAuth
 subjectAltName=@alt_names
 
 [ alt_names ]
-DNS.1 = kotsadm-web
-DNS.2 = kotsadm-web.default
-DNS.3 = kotsadm-web.default.svc
-DNS.4 = kotsadm-web.default.svc.cluster
-DNS.5 = kotsadm-web.default.svc.cluster.local
+DNS.1 = kotsadm
+DNS.2 = kotsadm.default
+DNS.3 = kotsadm.default.svc
+DNS.4 = kotsadm.default.svc.cluster
+DNS.5 = kotsadm.default.svc.cluster.local
 IP.1 = $PRIVATE_ADDRESS
 EOF
     if [ -n "$PUBLIC_ADDRESS" ]; then
@@ -268,7 +274,7 @@ function kotsadm_cli() {
     fi
     if [ ! -f "$src/assets/kots.tar.gz" ] && [ "$AIRGAP" != "1" ]; then
         mkdir -p "$src/assets"
-        curl -L "https://github.com/replicatedhq/kots/releases/download/v1.11.0/kots_linux_amd64.tar.gz" > "$src/assets/kots.tar.gz"
+        curl -L "https://github.com/replicatedhq/kots/releases/download/v1.11.1/kots_linux_amd64.tar.gz" > "$src/assets/kots.tar.gz"
     fi
 
     pushd "$src/assets"
