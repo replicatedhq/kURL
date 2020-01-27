@@ -54,6 +54,11 @@ function join() {
     kubectl kustomize $kustomize_kubeadm_join > $KUBEADM_CONF_DIR/kubeadm-join-raw.yaml
     render_yaml_file $KUBEADM_CONF_DIR/kubeadm-join-raw.yaml > $KUBEADM_CONF_FILE
 
+    cp $KUBEADM_CONF_FILE $KUBEADM_CONF_DIR/kubeadm_conf_copy_in
+    docker run -i --rm -v $KUBEADM_CONF_DIR:/home/ --entrypoint /bin/bash replicated/kurl-util \
+        -c "/usr/local/bin/yamlutil -r -fp /home/kubeadm_conf_copy_in -yf metadata"
+    mv $KUBEADM_CONF_DIR/kubeadm_conf_copy_in $KUBEADM_CONF_FILE
+
     set +e
     (set -x; kubeadm join --config /opt/replicated/kubeadm.conf --ignore-preflight-errors=all)
     _status=$?
