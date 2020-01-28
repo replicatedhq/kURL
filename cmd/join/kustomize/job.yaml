@@ -9,7 +9,7 @@ spec:
       restartPolicy: Never
       containers:
       - name: join
-        image: replicated/kurl-util:latest
+        image: replicated/kurl-util:TODO
         command: ["/usr/local/bin/join", "--bootstrap-token", "--upload-certs"]
         imagePullPolicy: IfNotPresent
         volumeMounts:

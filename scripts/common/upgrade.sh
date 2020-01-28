@@ -151,7 +151,7 @@ function upgrade_kubernetes_local_master_minor() {
     kubeadm config migrate --old-config /opt/replicated/kubeadm.conf --new-config /opt/replicated/kubeadm.conf
 
     kubectl -n kube-system get configmaps kube-proxy -o yaml > /tmp/temp.yaml
-    docker run -i --rm -v /tmp/:/home/ --entrypoint /bin/bash replicated/kurl-util -c \
+    docker run -i --rm -v /tmp/:/home/ --entrypoint /bin/bash replicated/kurl-util:TODO -c \
         "/usr/local/bin/yamlutil -p -fp /home/temp.yaml -yp data_config.conf"
 
     cat >> /opt/replicated/kubeadm.conf <<EOF
