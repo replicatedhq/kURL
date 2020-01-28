@@ -12,7 +12,7 @@ KUBEADM_CONF_DIR=/opt/replicated
 KUBEADM_CONF_FILE="$KUBEADM_CONF_DIR/kubeadm.conf"
 
 commandExists() {
-	command -v "$@" > /dev/null 2>&1
+    command -v "$@" > /dev/null 2>&1
 }
 
 insertOrReplaceJsonParam() {

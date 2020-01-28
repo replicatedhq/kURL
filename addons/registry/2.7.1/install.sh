@@ -2,10 +2,20 @@
 function registry() {
     cp "$DIR/addons/registry/2.7.1/kustomization.yaml" "$DIR/kustomize/registry/kustomization.yaml"
     cp "$DIR/addons/registry/2.7.1/namespace.yaml" "$DIR/kustomize/registry/namespace.yaml"
-    cp "$DIR/addons/registry/2.7.1/deployment-pvc.yaml" "$DIR/kustomize/registry/deployment-pvc.yaml"
     cp "$DIR/addons/registry/2.7.1/service.yaml" "$DIR/kustomize/registry/service.yaml"
 
     registry_session_secret
+
+    # Only create registry deployment with object store if rook exists and the registry pvc
+    # doesn't already exist.
+    if ! registry_pvc_exists && rook_object_store_exists; then
+        registry_rook_object_store_bucket
+        render_yaml_file "$DIR/addons/registry/2.7.1/tmpl-deployment-objectstore.yaml" > "$DIR/kustomize/registry/deployment-objectstore.yaml"
+        insert_resources "$DIR/kustomize/registry/kustomization.yaml" deployment-objectstore.yaml
+    else
+        cp "$DIR/addons/registry/2.7.1/deployment-pvc.yaml" "$DIR/kustomize/registry/deployment-pvc.yaml"
+        insert_resources "$DIR/kustomize/registry/kustomization.yaml" deployment-pvc.yaml
+    fi
 
     if [ -n "$REGISTRY_PUBLISH_PORT" ]; then
         render_yaml_file "$DIR/addons/registry/2.7.1/tmpl-node-port.yaml" > "$DIR/kustomize/registry/node-port.yaml" 
@@ -114,12 +124,12 @@ IP.1 = $DOCKER_REGISTRY_IP
 EOF
 
     if [ -n "$REGISTRY_PUBLISH_PORT" ]; then
-		echo "IP.2 = $PRIVATE_ADDRESS" >> registry.cnf
+        echo "IP.2 = $PRIVATE_ADDRESS" >> registry.cnf
 
         if [ -n "$PUBLIC_ADDRESS" ]; then
             echo "IP.3 = $PUBLIC_ADDRESS" >> registry.cnf
         fi
-	fi
+    fi
 
     openssl req -newkey rsa:2048 -nodes -keyout registry.key -out registry.csr -config registry.cnf
     openssl x509 -req -days 365 -in registry.csr -CA /etc/kubernetes/pki/ca.crt -CAkey /etc/kubernetes/pki/ca.key -CAcreateserial -out registry.crt -extensions v3_ext -extfile registry.cnf
@@ -131,4 +141,22 @@ EOF
 
     popd
     rm -r "$tmp"
+}
+
+function registry_rook_object_store_bucket() {
+    rook_create_bucket "docker-registry"
+}
+
+function registry_pvc_exists() {
+    kubectl -n kurl get pvc registry-pvc &>/dev/null
+}
+
+function rook_object_store_exists() {
+    if [ -n "$OBJECT_STORE_ACCESS_KEY" ] && \
+        [ -n "$OBJECT_STORE_SECRET_KEY" ] && \
+        [ -n "$OBJECT_STORE_CLUSTER_IP" ]; then
+        return 0
+    else
+        return 1
+    fi
 }
