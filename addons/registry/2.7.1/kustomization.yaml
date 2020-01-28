@@ -2,5 +2,4 @@ namespace: kurl
 
 resources:
 - namespace.yaml
-- deployment-pvc.yaml 
 - service.yaml
