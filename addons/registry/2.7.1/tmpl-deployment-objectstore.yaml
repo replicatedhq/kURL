@@ -32,11 +32,20 @@ data:
         region: "us-east-1"
         regionendpoint: http://$OBJECT_STORE_CLUSTER_IP
         bucket: docker-registry
-        accesskey: $OBJECT_STORE_ACCESS_KEY
-        secretkey: $OBJECT_STORE_SECRET_KEY
       cache:
         blobdescriptor: inmemory
     version: 0.1
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: registry-s3-secret
+  labels:
+    app: registry
+type: Opaque
+stringData:
+  access-key-id: ${OBJECT_STORE_ACCESS_KEY}
+  secret-access-key: ${OBJECT_STORE_SECRET_KEY}
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -80,6 +89,16 @@ spec:
             secretKeyRef:
               key: haSharedSecret
               name: registry-session-secret
+        - name: AWS_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              key: access-key-id
+              name: registry-s3-secret
+        - name: AWS_SECRET_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              key: secret-access-key
+              name: registry-s3-secret
       volumes:
       - name: registry-config
         configMap:
