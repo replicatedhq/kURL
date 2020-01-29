@@ -27,6 +27,8 @@ rules:
   resourceNames:
   - kotsadm-encryption
   - kotsadm-gitops
+  - kotsadm-authstring
+  - kotsadm-password
   resources:
   - secrets
   verbs:
