@@ -1,5 +1,5 @@
 SHELL := /bin/bash
-KURL_UTIL_IMAGE := replicated/kurl-util:TODO
+KURL_UTIL_IMAGE := replicated/kurl-util:v2020.01.29-0
 
 GIT_TREE = $(shell git rev-parse --is-inside-work-tree 2>/dev/null)
 ifneq "$(GIT_TREE)" ""
@@ -306,4 +306,4 @@ watchrsync:
 
 .PHONY: kurl-util-image
 kurl-util-image:
-	docker build -t $(KURL_UTIL_IMAGE) -f deploy/kurl-util/Dockerfile --build-arg commit="${GIT_SHA}" .
+	docker pull $(KURL_UTIL_IMAGE)
