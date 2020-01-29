@@ -5,7 +5,6 @@ COPY go.mod go.mod
 COPY go.sum go.sum
 COPY cmd cmd
 
-RUN go build -o proxy cmd/proxy/main.go
 RUN go build -o yamlutil cmd/yamlutil/main.go
 
 WORKDIR /go/src/github.com/replicatedhq/kurl/cmd/join
