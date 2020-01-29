@@ -55,7 +55,7 @@ spec:
   selector:
     matchLabels:
       app: registry
-  replicas: 1
+  replicas: 2
   strategy:
     type:
       Recreate
