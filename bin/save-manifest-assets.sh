@@ -11,6 +11,10 @@ while read -r line; do
     if [ -z "$line" ]; then
         continue
     fi
+    # support for comments in manifest files
+    if [ "$(echo $line | cut -c1-1)" = "#" ]; then
+        continue
+    fi
     kind=$(echo $line | awk '{ print $1 }')
 
     case "$kind" in

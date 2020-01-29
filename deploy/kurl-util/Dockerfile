@@ -13,9 +13,6 @@ RUN go build -o join main.go
 
 FROM debian:buster-slim
 
-COPY --from=0 /go/src/github.com/replicatedhq/kurl/proxy /usr/local/bin
-COPY cmd/proxy/assets /assets
-
 COPY --from=0 /go/src/github.com/replicatedhq/kurl/yamlutil /usr/local/bin
 
 COPY --from=0 /go/src/github.com/replicatedhq/kurl/cmd/join/join /usr/local/bin
