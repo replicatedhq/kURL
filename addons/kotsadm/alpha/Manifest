@@ -1,0 +1,10 @@
+image kotsadm-api docker.io/kotsadm/kotsadm-api:alpha
+image kotsadm-migrations docker.io/kotsadm/kotsadm-migrations:alpha
+image kotsadm-operator docker.io/kotsadm/kotsadm-operator:alpha
+image kotsadm docker.io/kotsadm/kotsadm:alpha
+image kurl-proxy docker.io/kotsadm/kurl-proxy:alpha
+image postgres postgres:10.7
+image bcrypt docker.io/epicsoft/bcrypt:latest
+image kurl-util docker.io/replicated/kurl-util:v2020.01.29-0
+
+asset kots.tar.gz https://github.com/replicatedhq/kots/releases/download/v1.11.4/kots_linux_amd64.tar.gz
