@@ -75,7 +75,7 @@ function kotsadm_outro() {
     if [ -n "$KOTSADM_PASSWORD" ]; then
         printf "Login with password (will not be shown again): ${GREEN}$KOTSADM_PASSWORD${NC}\n"
     else
-        printf "Password not regenerated. Run ${GREEN}curl https://kurl.sh/${INSTALLER_ID:-latest} | bash -s task=kotsadm-change-password${NC} to reset it\n"
+        printf "Password not regenerated. Run ${GREEN}kubectl kots reset-password default${NC} to reset it\n"
     fi
     printf "\n"
     printf "\n"
