@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: proxy
-        image: replicated/kurl-util:latest
+        image: replicated/kurl-util:v2020.01.29-0
         command:
         - proxy
         imagePullPolicy: IfNotPresent

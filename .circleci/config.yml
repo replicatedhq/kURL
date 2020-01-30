@@ -60,17 +60,6 @@ jobs:
             export S3_BUCKET=kurl-sh
             bin/upload-dist.sh
 
-  push_util_image:
-    <<: *defaults
-    steps:
-      - checkout
-      - setup_remote_docker:
-          version: 17.06.0-ce
-      - run: |
-          docker build -t replicated/kurl-util -f deploy/kurl-util/Dockerfile --build-arg commit="$CIRCLE_SHA1" .
-          docker login -u="$DOCKERHUB_DOCKER_USER" -p="$DOCKERHUB_DOCKER_PASS"
-          docker push replicated/kurl-util
-
   build_staging_docker_image:
     <<: *defaults
     steps:
@@ -195,14 +184,6 @@ workflows:
           requires:
             - is_upstream
       - upload_production_packages:
-          filters:
-            tags:
-              only: /^v.*/
-            branches:
-              ignore: /.*/
-          requires:
-            - is_upstream
-      - push_util_image:
           filters:
             tags:
               only: /^v.*/
