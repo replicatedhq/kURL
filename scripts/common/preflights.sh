@@ -7,6 +7,7 @@ function preflights() {
     checkFirewalld
     must_disable_selinux
     require_docker
+    kotsadm_prerelease
 
     return 0
 }
@@ -172,4 +173,13 @@ selinux_enforced() {
     fi
 
     return 1
+}
+
+function kotsadm_prerelease() {
+    if [ "$KOTSADM_VERSION" = "alpha" ]; then
+        printf "\n${YELLOW}This is a prerelease version of kotsadm and should not be run in production. Press Y to continue.${NC} "
+        if ! confirmN; then
+            bail "\nWill not install prerelease version of kotsadm."
+        fi
+    fi
 }

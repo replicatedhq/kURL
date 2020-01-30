@@ -179,6 +179,9 @@ function flags() {
             velero-disable-restic|velero_disable_restic)
                 VELERO_DISABLE_RESTIC=1
                 ;;
+            kotsadm-alpha|kotsadm_alpha)
+                KOTSADM_VERSION=alpha
+                ;;
             *)
                 echo >&2 "Error: unknown parameter \"$_param\""
                 exit 1
