@@ -8,7 +8,7 @@ export class KurlClient {
 
   public async postInstaller(yaml: string): Promise<string> {
     const resp = await request
-      .post(`${this.kurlURL}/installer`)   
+      .post(`${this.kurlURL}/installer`)
       .set("Content-Type", "text/yaml")
       .send(yaml);
 
@@ -72,7 +72,7 @@ export class KurlClient {
   }
 
   public async getVersions(): Promise<any> {
-    let url = `${this.kurlURL}/installer`;
+    const url = `${this.kurlURL}/installer`;
 
     const resp = await request
       .get(url)

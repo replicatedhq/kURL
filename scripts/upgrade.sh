@@ -14,6 +14,7 @@ DIR=.
 . $DIR/scripts/common/flags.sh
 . $DIR/scripts/common/kubernetes.sh
 . $DIR/scripts/common/upgrade.sh
+. $DIR/scripts/common/object_store.sh
 . $DIR/scripts/common/preflights.sh
 . $DIR/scripts/common/prompts.sh
 . $DIR/scripts/common/proxy.sh

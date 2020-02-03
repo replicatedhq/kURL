@@ -7,7 +7,6 @@ import * as jwt from "jsonwebtoken";
 import * as url from "url";
 import * as _ from "lodash";
 
-
 const kurlURL = process.env.KURL_URL || "http://localhost:30092";
 const client = new KurlClient(kurlURL);
 
@@ -133,12 +132,21 @@ spec:
     efkStack: true
 `;
 
+const minio = `
+spec:
+  kubernetes:
+    version: latest
+  minio:
+    version: latest
+    namespace: minio
+`;
+
 describe("POST /installer", () => {
   describe("latestV1Beta1", () => {
     it(`should return 201 "https://kurl.sh/latest"`, async () => {
-      const url = await client.postInstaller(latestV1Beta1);
+      const uri = await client.postInstaller(latestV1Beta1);
 
-      expect(url).to.match(/latest$/);
+      expect(uri).to.match(/latest$/);
     });
   });
 
@@ -148,43 +156,51 @@ describe("POST /installer", () => {
     });
   });
 
-	describe("d3a9234", () => {
+  describe("d3a9234", () => {
     it(`should return 201 "https://kurl.sh/d3a9234"`, async () => {
-      const url = await client.postInstaller(d3a9234);
+      const uri = await client.postInstaller(d3a9234);
 
-      expect(url).to.match(/d3a9234$/);
+      expect(uri).to.match(/d3a9234$/);
     });
   });
 
   describe("min", () => {
     it(`should return 201 "https://kurl.sh/6898644"`, async () => {
-      const url = await client.postInstaller(min);
+      const uri = await client.postInstaller(min);
 
-      expect(url).to.match(/6898644$/);
+      expect(uri).to.match(/6898644$/);
     });
   });
 
   describe("fluentd", () => {
     it(`should return 201 "https://kurl.sh/4723751"`, async () => {
-      const url = await client.postInstaller(fluentd);
+      const uri = await client.postInstaller(fluentd);
 
-      expect(url).to.match(/4723751/);
+      expect(uri).to.match(/4723751/);
     });
   });
 
   describe("kots", () => {
     it(`should return 201 "https://kurl.sh/4a39417"`, async () => {
-      const url = await client.postInstaller(kots);
+      const uri = await client.postInstaller(kots);
 
-      expect(url).to.match(/4a39417/);
+      expect(uri).to.match(/4a39417/);
     });
   });
 
   describe("velero", () => {
     it(`should return 201 "htps://kurl.sh/afe854c"`, async () => {
-      const url = await client.postInstaller(velero);
+      const uri = await client.postInstaller(velero);
 
-      expect(url).to.match(/afe854c/);
+      expect(uri).to.match(/afe854c/);
+    });
+  });
+
+  describe("minio", () => {
+    it(`should return 201 "https://kurl.sh/d2de354"`, async () => {
+      const uri = await client.postInstaller(minio);
+
+      expect(uri).to.match(/d2de354/);
     });
   });
 
@@ -217,7 +233,7 @@ describe("POST /installer", () => {
   });
 
   describe("invalid YAML", () => {
-    it("400", async() => {
+    it("400", async () => {
       let err;
 
       try {
@@ -232,22 +248,23 @@ describe("POST /installer", () => {
 
 describe("PUT /installer/<id>", () => {
   describe("valid", () => {
-    it("201", async() => {
-      const tkn = jwt.sign({team_id: "team1"}, "jwt-signing-key"); const url = await client.putInstaller(tkn, "kurl-beta", d3a9234);
+    it("201", async () => {
+      const tkn = jwt.sign({team_id: "team1"}, "jwt-signing-key");
+      const uri = await client.putInstaller(tkn, "kurl-beta", d3a9234);
 
-      expect(url).to.match(/kurl-beta/);
+      expect(uri).to.match(/kurl-beta/);
     });
   });
 
   describe("invalid name", () => {
-    it("400", async() => {
+    it("400", async () => {
       let err;
 
       try {
         const tkn = jwt.sign({team_id: "team1"}, "jwt-signing-key");
         await client.putInstaller(tkn, "invalid name", d3a9234);
-      } catch(error) {
-        err = error
+      } catch (error) {
+        err = error;
       }
 
       expect(err).to.have.property("status", 400);
@@ -255,13 +272,13 @@ describe("PUT /installer/<id>", () => {
   });
 
   describe("reserved name", () => {
-    it("400", async() => {
+    it("400", async () => {
       let err;
 
       try {
         const tkn = jwt.sign({team_id: "team1"}, "jwt-signing-key");
         await client.putInstaller(tkn, "BETA", d3a9234);
-      } catch(error) {
+      } catch (error) {
         err = error;
       }
 
@@ -274,8 +291,8 @@ describe("PUT /installer/<id>", () => {
       let err;
 
       try {
-        await client.putInstaller("Bearer xxx", "kurl-beta", d3a9234)
-      } catch(error) {
+        await client.putInstaller("Bearer xxx", "kurl-beta", d3a9234);
+      } catch (error) {
         err = error;
       }
 
@@ -306,20 +323,21 @@ describe("PUT /installer/<id>", () => {
 
 describe("GET /<installerID>", () => {
   describe("/latest", () => {
-    const latest = Installer.latest().resolve();
+    const latestResolve = Installer.latest().resolve();
 
-    it(`injects k8s ${latest.spec.kubernetes.version}, weave ${latest.spec.weave!.version}, rook ${latest.spec.rook!.version}, contour ${latest.spec.contour!.version}, registry ${latest.spec.registry}, prometheus ${latest.spec.prometheus!.version}`, async () => {
+    it(`injects k8s ${latestResolve.spec.kubernetes.version}, weave ${latestResolve.spec.weave!.version}, rook ${latestResolve.spec.rook!.version}, contour ${latestResolve.spec.contour!.version}, registry ${latestResolve.spec.registry!.version}, prometheus ${latestResolve.spec.prometheus!.version}`, async () => {
       const script = await client.getInstallScript("latest");
 
-      expect(script).to.match(new RegExp(`KUBERNETES_VERSION="${latest.spec.kubernetes.version}"`));
-      expect(script).to.match(new RegExp(`WEAVE_VERSION="${latest.spec.weave!.version}"`));
-      expect(script).to.match(new RegExp(`ROOK_VERSION="${latest.spec.rook!.version}"`));
-      expect(script).to.match(new RegExp(`CONTOUR_VERSION="${latest.spec.contour!.version}"`));
-      expect(script).to.match(new RegExp(`REGISTRY_VERSION="${latest.spec.registry!.version}"`));
-      expect(script).to.match(new RegExp(`PROMETHEUS_VERSION="${latest.spec.prometheus!.version}"`));
+      expect(script).to.match(new RegExp(`KUBERNETES_VERSION="${latestResolve.spec.kubernetes.version}"`));
+      expect(script).to.match(new RegExp(`WEAVE_VERSION="${latestResolve.spec.weave!.version}"`));
+      expect(script).to.match(new RegExp(`ROOK_VERSION="${latestResolve.spec.rook!.version}"`));
+      expect(script).to.match(new RegExp(`CONTOUR_VERSION="${latestResolve.spec.contour!.version}"`));
+      expect(script).to.match(new RegExp(`REGISTRY_VERSION="${latestResolve.spec.registry!.version}"`));
+      expect(script).to.match(new RegExp(`PROMETHEUS_VERSION="${latestResolve.spec.prometheus!.version}"`));
       expect(script).to.match(/INSTALLER_ID="latest"/);
       expect(script).to.match(/KOTSADM_VERSION=""/);
       expect(script).to.match(/KOTSADM_APPLICATION_SLUG=""/);
+      expect(script).to.match(/MINIO_VERSION=""/);
     });
   });
 
@@ -328,7 +346,7 @@ describe("GET /<installerID>", () => {
       await client.postInstaller(min);
     });
 
-    it("injects k8s 1.15.1 only", async() => {
+    it("injects k8s 1.15.1 only", async () => {
       const script = await client.getInstallScript("6898644");
 
       expect(script).to.match(new RegExp(`KUBERNETES_VERSION="1.15.1"`));
@@ -337,6 +355,7 @@ describe("GET /<installerID>", () => {
       expect(script).to.match(new RegExp(`CONTOUR_VERSION=""`));
       expect(script).to.match(new RegExp(`KOTSADM_VERSION=""`));
       expect(script).to.match(new RegExp(`KOTSADM_APPLICATION_SLUG=""`));
+      expect(script).to.match(/MINIO_VERSION=""/);
     });
   });
 
@@ -348,7 +367,7 @@ describe("GET /<installerID>", () => {
       id = _.trim(url.parse(installer).path, "/");
     });
 
-    it("resolves all versions", async() => {
+    it("resolves all versions", async () => {
       const script = await client.getInstallScript(id);
 
       expect(script).to.match(new RegExp(`KUBERNETES_VERSION="1.\\d+.\\d+"`));
@@ -357,6 +376,7 @@ describe("GET /<installerID>", () => {
       expect(script).to.match(new RegExp(`CONTOUR_VERSION="\\d+.\\d+.\\d+"`));
       expect(script).to.match(new RegExp(`KOTSADM_VERSION=""`));
       expect(script).to.match(new RegExp(`KOTSADM_APPLICATION_SLUG=""`));
+      expect(script).to.match(/MINIO_VERSION=""/);
     });
   });
 
@@ -383,8 +403,8 @@ spec:
   describe("velero (/afe854c)", () => {
     const id = "afe854c";
     before(async () => {
-      const url = await client.postInstaller(velero);
-      expect(url).to.match(/afe854c/);
+      const uri = await client.postInstaller(velero);
+      expect(uri).to.match(/afe854c/);
     });
 
     it("injects velero version and flags", async () => {
@@ -395,23 +415,41 @@ spec:
       expect(script).to.match(new RegExp(`FLAGS="velero-namespace=velero"`));
     });
   });
+
+  describe("minio (/d2de354)", () => {
+    const id = "d2de354";
+
+    before(async () => {
+      const uri = await client.postInstaller(minio);
+      expect(uri).to.match(/d2de354/);
+    });
+
+    it("injects minio version and flags", async () => {
+      const i = Installer.parse(minio);
+      const script = await client.getInstallScript(id);
+
+      expect(script).to.match(new RegExp(`MINIO_VERSION="${i.resolve().spec.minio!.version}"`));
+      expect(script).to.match(new RegExp(`FLAGS="minio-namespace=minio"`));
+    });
+  });
 });
 
 describe("GET /<installerID>/join.sh", () => {
   describe("/latest/join.sh", () => {
-    const latest = Installer.latest().resolve();
+    const latestResolve = Installer.latest().resolve();
 
-    it(`injects k8s ${latest.spec.kubernetes.version}, weave ${latest.spec.weave!.version}, rook ${latest.spec.rook!.version}, contour ${latest.spec.contour!.version}, registry ${latest.spec.registry!.version}, prometheus ${latest.spec.prometheus!.version}`, async () => {
+    it(`injects k8s ${latestResolve.spec.kubernetes.version}, weave ${latestResolve.spec.weave!.version}, rook ${latestResolve.spec.rook!.version}, contour ${latestResolve.spec.contour!.version}, registry ${latestResolve.spec.registry!.version}, prometheus ${latestResolve.spec.prometheus!.version}`, async () => {
       const script = await client.getJoinScript("latest");
 
-      expect(script).to.match(new RegExp(`KUBERNETES_VERSION="${latest.spec.kubernetes.version}"`));
-      expect(script).to.match(new RegExp(`WEAVE_VERSION="${latest.spec.weave!.version}"`));
-      expect(script).to.match(new RegExp(`ROOK_VERSION="${latest.spec.rook!.version}"`));
-      expect(script).to.match(new RegExp(`CONTOUR_VERSION="${latest.spec.contour!.version}"`));
-      expect(script).to.match(new RegExp(`REGISTRY_VERSION="${latest.spec.registry!.version}"`));
-      expect(script).to.match(new RegExp(`PROMETHEUS_VERSION="${latest.spec.prometheus!.version}"`));
+      expect(script).to.match(new RegExp(`KUBERNETES_VERSION="${latestResolve.spec.kubernetes.version}"`));
+      expect(script).to.match(new RegExp(`WEAVE_VERSION="${latestResolve.spec.weave!.version}"`));
+      expect(script).to.match(new RegExp(`ROOK_VERSION="${latestResolve.spec.rook!.version}"`));
+      expect(script).to.match(new RegExp(`CONTOUR_VERSION="${latestResolve.spec.contour!.version}"`));
+      expect(script).to.match(new RegExp(`REGISTRY_VERSION="${latestResolve.spec.registry!.version}"`));
+      expect(script).to.match(new RegExp(`PROMETHEUS_VERSION="${latestResolve.spec.prometheus!.version}"`));
       expect(script).to.match(new RegExp(`KOTSADM_VERSION=""`));
       expect(script).to.match(new RegExp(`KOTSADM_APPLICATION_SLUG=""`));
+      expect(script).to.match(/MINIO_VERSION=""/);
     });
   });
 
@@ -420,7 +458,7 @@ describe("GET /<installerID>/join.sh", () => {
       await client.postInstaller(min);
     });
 
-    it("injects k8s 1.15.1 only", async() => {
+    it("injects k8s 1.15.1 only", async () => {
       const script = await client.getJoinScript("6898644");
 
       expect(script).to.match(new RegExp(`KUBERNETES_VERSION="1.15.1"`));
@@ -439,10 +477,10 @@ describe("GET /<installerID>/join.sh", () => {
       await client.postInstaller(kots);
     });
 
-    it("injests KOTSADM_VERSION and KOTSADM_APPLICATION_SLUG", async() => {
+    it("injests KOTSADM_VERSION and KOTSADM_APPLICATION_SLUG", async () => {
       const script = await client.getInstallScript("4a39417");
 
-      expect(script).to.match(new RegExp(`KUBERNETES_VERSION="1.15.3"`));
+      expect(script).to.match(new RegExp(`KUBERNETES_VERSION="\\d+.\\d+.\\d+"`));
       expect(script).to.match(new RegExp(`WEAVE_VERSION=""`));
       expect(script).to.match(new RegExp(`ROOK_VERSION=""`));
       expect(script).to.match(new RegExp(`CONTOUR_VERSION=""`));
@@ -456,10 +494,10 @@ describe("GET /<installerID>/join.sh", () => {
 
 describe("GET /installer/<installerID>", () => {
   before(async () => {
-    const url = await client.postInstaller(min);
+    const uri = await client.postInstaller(min);
   });
 
-  it("returns installer yaml", async() => {
+  it("returns installer yaml", async () => {
     const yaml = await client.getInstallerYAML("6898644");
 
     expect(yaml).to.equal(`apiVersion: kurl.sh/v1beta1
@@ -483,7 +521,7 @@ spec:
       expect(yaml).not.to.match(/version: latest/);
     });
 
-    it("does not return a name", async() => {
+    it("does not return a name", async () => {
       const yaml = await client.getInstallerYAML("latest", true);
 
       expect(yaml).to.match(/name: ''/);
@@ -502,7 +540,7 @@ spec:
     });
 
     describe("Accpet: application/json", () => {
-      it("returns json", async() => {
+      it("returns json", async () => {
         const obj = await client.getInstallerJSON("latest");
 
         expect(obj.spec.kubernetes).to.have.property("version", "latest");
@@ -512,7 +550,7 @@ spec:
 });
 
 describe("GET /installer", () => {
-  it("returns all available package and addon versions", async() => {
+  it("returns all available package and addon versions", async () => {
     const versions = await client.getVersions();
 
     expect(versions.kubernetes).to.be.an.instanceof(Array);

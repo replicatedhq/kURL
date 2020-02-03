@@ -65,27 +65,12 @@ function velero_local_rgw_store() {
         return 0
     fi
 
-    OBJECT_STORE_ACCESS_KEY=$(kubectl -n rook-ceph get secret rook-ceph-object-user-rook-ceph-store-kurl -o yaml | grep AccessKey | awk '{print $2}' | base64 --decode)
-    OBJECT_STORE_SECRET_KEY=$(kubectl -n rook-ceph get secret rook-ceph-object-user-rook-ceph-store-kurl -o yaml | grep SecretKey | awk '{print $2}' | base64 --decode)
-    OBJECT_STORE_CLUSTER_IP=$(kubectl -n rook-ceph get service rook-ceph-rgw-rook-ceph-store | tail -n1 | awk '{ print $3}')
-
     if [ -z "$OBJECT_STORE_ACCESS_KEY" ] || [ -z "$OBJECT_STORE_SECRET_KEY" ] || [ -z "$OBJECT_STORE_CLUSTER_IP" ]; then
         echo "Local RGW store not configured. Skipping creation of new local RWG backend for Velero"
         return 0
     fi
 
-    # create the velero bucket
-    local acl="x-amz-acl:private"
-    local d=$(date +"%a, %d %b %Y %T %z")
-    local string="PUT\n\n\n${d}\n${acl}\n/$VELERO_LOCAL_BUCKET"
-    local sig=$(echo -en "${string}" | openssl sha1 -hmac "${OBJECT_STORE_SECRET_KEY}" -binary | base64)
-    curl -X PUT  \
-        -H "Host: $OBJECT_STORE_CLUSTER_IP" \
-        -H "Date: $d" \
-        -H "$acl" \
-        -H "Authorization: AWS $OBJECT_STORE_ACCESS_KEY:$sig" \
-        "http://$OBJECT_STORE_CLUSTER_IP/$VELERO_LOCAL_BUCKET" >/dev/null
-    echo "Created bucket $VELERO_LOCAL_BUCKET"
+    try_1m object_store_create_bucket "$VELERO_LOCAL_BUCKET"
 
     render_yaml_file "$src/tmpl-backupstoragelocation.yaml" > "$dst/backupstoragelocation.yaml"
     insert_resources "$dst/kustomization.yaml" backupstoragelocation.yaml

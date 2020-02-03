@@ -182,6 +182,9 @@ function flags() {
             kotsadm-alpha|kotsadm_alpha)
                 KOTSADM_VERSION=alpha
                 ;;
+            minio-namespace|minio_namespace)
+                MINIO_NAMESPACE="$_value"
+                ;;
             *)
                 echo >&2 "Error: unknown parameter \"$_param\""
                 exit 1

@@ -66,3 +66,44 @@ function prometheus_crd_ready() {
     fi
     return 0
 }
+
+function prometheus_rook_ceph() {
+    local dst="$1"
+
+    if kubectl get ns | grep rook-ceph; then
+        cat <<EOF >> "$dst/monitors/prometheus-roleBindingSpecificNamespaces.yaml"
+- apiVersion: rbac.authorization.k8s.io/v1
+  kind: RoleBinding
+  metadata:
+    name: prometheus-k8s
+    namespace: rook-ceph
+  roleRef:
+    apiGroup: rbac.authorization.k8s.io
+    kind: Role
+    name: prometheus-k8s
+  subjects:
+  - kind: ServiceAccount
+    name: prometheus-k8s
+    namespace: monitoring
+EOF
+
+        cat <<EOF >> "$dst/monitors/prometheus-roleSpecificNamespaces.yaml"
+- apiVersion: rbac.authorization.k8s.io/v1
+  kind: Role
+  metadata:
+    name: prometheus-k8s
+    namespace: rook-ceph
+  rules:
+  - apiGroups:
+    - ""
+    resources:
+    - services
+    - endpoints
+    - pods
+    verbs:
+    - get
+    - list
+    - watch
+EOF
+    fi
+}

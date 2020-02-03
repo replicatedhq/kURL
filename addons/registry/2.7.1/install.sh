@@ -6,10 +6,10 @@ function registry() {
 
     registry_session_secret
 
-    # Only create registry deployment with object store if rook exists and the registry pvc
+    # Only create registry deployment with object store if rook or minio exists and the registry pvc
     # doesn't already exist.
-    if ! registry_pvc_exists && rook_object_store_exists; then
-        registry_rook_object_store_bucket
+    if ! registry_pvc_exists && object_store_exists; then
+        registry_object_store_bucket
         render_yaml_file "$DIR/addons/registry/2.7.1/tmpl-deployment-objectstore.yaml" > "$DIR/kustomize/registry/deployment-objectstore.yaml"
         insert_resources "$DIR/kustomize/registry/kustomization.yaml" deployment-objectstore.yaml
     else
@@ -143,20 +143,10 @@ EOF
     rm -r "$tmp"
 }
 
-function registry_rook_object_store_bucket() {
-    rook_create_bucket "docker-registry"
+function registry_object_store_bucket() {
+    object_store_create_bucket "docker-registry"
 }
 
 function registry_pvc_exists() {
     kubectl -n kurl get pvc registry-pvc &>/dev/null
-}
-
-function rook_object_store_exists() {
-    if [ -n "$OBJECT_STORE_ACCESS_KEY" ] && \
-        [ -n "$OBJECT_STORE_SECRET_KEY" ] && \
-        [ -n "$OBJECT_STORE_CLUSTER_IP" ]; then
-        return 0
-    else
-        return 1
-    fi
 }
