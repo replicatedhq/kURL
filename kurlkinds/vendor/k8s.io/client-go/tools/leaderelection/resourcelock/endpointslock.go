@@ -36,23 +36,22 @@ type EndpointsLock struct {
 }
 
 // Get returns the election record from a Endpoints Annotation
-func (el *EndpointsLock) Get() (*LeaderElectionRecord, []byte, error) {
+func (el *EndpointsLock) Get() (*LeaderElectionRecord, error) {
 	var record LeaderElectionRecord
 	var err error
 	el.e, err = el.Client.Endpoints(el.EndpointsMeta.Namespace).Get(el.EndpointsMeta.Name, metav1.GetOptions{})
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 	if el.e.Annotations == nil {
 		el.e.Annotations = make(map[string]string)
 	}
-	recordBytes, found := el.e.Annotations[LeaderElectionRecordAnnotationKey]
-	if found {
+	if recordBytes, found := el.e.Annotations[LeaderElectionRecordAnnotationKey]; found {
 		if err := json.Unmarshal([]byte(recordBytes), &record); err != nil {
-			return nil, nil, err
+			return nil, err
 		}
 	}
-	return &record, []byte(recordBytes), nil
+	return &record, nil
 }
 
 // Create attempts to create a LeaderElectionRecord annotation
@@ -82,9 +81,6 @@ func (el *EndpointsLock) Update(ler LeaderElectionRecord) error {
 	if err != nil {
 		return err
 	}
-	if el.e.Annotations == nil {
-		el.e.Annotations = make(map[string]string)
-	}
 	el.e.Annotations[LeaderElectionRecordAnnotationKey] = string(recordBytes)
 	el.e, err = el.Client.Endpoints(el.EndpointsMeta.Namespace).Update(el.e)
 	return err
@@ -105,7 +101,7 @@ func (el *EndpointsLock) Describe() string {
 	return fmt.Sprintf("%v/%v", el.EndpointsMeta.Namespace, el.EndpointsMeta.Name)
 }
 
-// Identity returns the Identity of the lock
+// returns the Identity of the lock
 func (el *EndpointsLock) Identity() string {
 	return el.LockConfig.Identity
 }
