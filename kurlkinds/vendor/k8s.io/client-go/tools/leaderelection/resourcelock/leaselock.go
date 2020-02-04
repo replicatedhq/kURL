@@ -17,7 +17,6 @@ limitations under the License.
 package resourcelock
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 
@@ -37,18 +36,13 @@ type LeaseLock struct {
 }
 
 // Get returns the election record from a Lease spec
-func (ll *LeaseLock) Get() (*LeaderElectionRecord, []byte, error) {
+func (ll *LeaseLock) Get() (*LeaderElectionRecord, error) {
 	var err error
 	ll.lease, err = ll.Client.Leases(ll.LeaseMeta.Namespace).Get(ll.LeaseMeta.Name, metav1.GetOptions{})
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
-	record := LeaseSpecToLeaderElectionRecord(&ll.lease.Spec)
-	recordByte, err := json.Marshal(*record)
-	if err != nil {
-		return nil, nil, err
-	}
-	return record, recordByte, nil
+	return LeaseSpecToLeaderElectionRecord(&ll.lease.Spec), nil
 }
 
 // Create attempts to create a Lease
@@ -90,30 +84,31 @@ func (ll *LeaseLock) Describe() string {
 	return fmt.Sprintf("%v/%v", ll.LeaseMeta.Namespace, ll.LeaseMeta.Name)
 }
 
-// Identity returns the Identity of the lock
+// returns the Identity of the lock
 func (ll *LeaseLock) Identity() string {
 	return ll.LockConfig.Identity
 }
 
 func LeaseSpecToLeaderElectionRecord(spec *coordinationv1.LeaseSpec) *LeaderElectionRecord {
-	var r LeaderElectionRecord
+	holderIdentity := ""
 	if spec.HolderIdentity != nil {
-		r.HolderIdentity = *spec.HolderIdentity
+		holderIdentity = *spec.HolderIdentity
 	}
+	leaseDurationSeconds := 0
 	if spec.LeaseDurationSeconds != nil {
-		r.LeaseDurationSeconds = int(*spec.LeaseDurationSeconds)
+		leaseDurationSeconds = int(*spec.LeaseDurationSeconds)
 	}
+	leaseTransitions := 0
 	if spec.LeaseTransitions != nil {
-		r.LeaderTransitions = int(*spec.LeaseTransitions)
+		leaseTransitions = int(*spec.LeaseTransitions)
 	}
-	if spec.AcquireTime != nil {
-		r.AcquireTime = metav1.Time{spec.AcquireTime.Time}
+	return &LeaderElectionRecord{
+		HolderIdentity:       holderIdentity,
+		LeaseDurationSeconds: leaseDurationSeconds,
+		AcquireTime:          metav1.Time{spec.AcquireTime.Time},
+		RenewTime:            metav1.Time{spec.RenewTime.Time},
+		LeaderTransitions:    leaseTransitions,
 	}
-	if spec.RenewTime != nil {
-		r.RenewTime = metav1.Time{spec.RenewTime.Time}
-	}
-	return &r
-
 }
 
 func LeaderElectionRecordToLeaseSpec(ler *LeaderElectionRecord) coordinationv1.LeaseSpec {
