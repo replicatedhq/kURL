@@ -1,0 +1,12 @@
+language: go
+sudo: false
+go:
+  - 1.11.x
+  - 1.12.x
+go_import_path: go.uber.org/tools
+matrix:
+  fast_finish: true
+install:
+  - make testdeps
+script:
+  - make test
