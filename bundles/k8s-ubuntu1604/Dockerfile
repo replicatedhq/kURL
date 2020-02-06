@@ -13,6 +13,7 @@ RUN apt-get install -d -y \
 	kubelet=$(apt-cache madison kubeadm | grep ${KUBERNETES_VERSION} | awk '{ print $3 }') \
 	kubectl=$(apt-cache madison kubeadm | grep ${KUBERNETES_VERSION} | awk '{ print $3 }') \
 	kubernetes-cni \
+	git \	
 	-oDebug::NoLocking=1 -o=dir::cache=/packages/
 
 # First upgrade step requires upgraded kubeadm binary before kubeadm package is upgraded

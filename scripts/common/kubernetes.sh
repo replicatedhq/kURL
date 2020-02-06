@@ -255,7 +255,9 @@ function install_krew() {
     ./krew-linux_amd64 install --manifest=support-bundle.yaml --archive=support-bundle.tar.gz > /dev/null 2>&1
     popd
 
-    chmod -R 0755 /opt/replicated/krew/store
+    # Fixes permission issues with 'kubectl krew'
+    chmod -R 0777 /opt/replicated/krew
+    chmod -R 0777 /tmp/krew-downloads
 
     if ! grep -q KREW_ROOT /etc/profile; then
         echo "export KREW_ROOT=$KREW_ROOT" >> /etc/profile
