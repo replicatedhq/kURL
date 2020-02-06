@@ -257,7 +257,7 @@ function install_krew() {
 
     # Fixes permission issues with 'kubectl krew'
     chmod -R 0777 /opt/replicated/krew
-	chmod -R 0777 /tmp/krew-downloads
+    chmod -R 0777 /tmp/krew-downloads
 
     if ! grep -q KREW_ROOT /etc/profile; then
         echo "export KREW_ROOT=$KREW_ROOT" >> /etc/profile
