@@ -197,8 +197,8 @@ spec:
         - name: AUTO_CREATE_CLUSTER_TOKEN
           valueFrom:
             secretKeyRef:
-              name: kotsadm-auto-create-cluster-token
-              key: token
+              name: kotsadm-cluster-token
+              key: kotsadm-cluster-token
         - name: SHIP_API_ENDPOINT
           value: http://kotsadm.default.svc.cluster.local:3000
         - name: SHIP_API_ADVERTISE_ENDPOINT

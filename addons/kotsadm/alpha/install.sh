@@ -4,6 +4,7 @@ function kotsadm() {
     local dst="$DIR/kustomize/kotsadm"
 
     rook_create_bucket kotsadm
+    kotsadm_rename_postgres_pvc_1-12-2 "$src"
 
     cp "$src/kustomization.yaml" "$dst/"
     cp "$src/api.yaml" "$dst/"
@@ -12,7 +13,7 @@ function kotsadm() {
     cp "$src/schemahero.yaml" "$dst/"
     cp "$src/kotsadm.yaml" "$dst/"
 
-    kotsadm_secret_auto_create_cluster_token
+    kotsadm_secret_cluster_token
     kotsadm_secret_password
     kotsadm_secret_postgres
     kotsadm_secret_s3
@@ -81,17 +82,24 @@ function kotsadm_outro() {
     printf "\n"
 }
 
-function kotsadm_secret_auto_create_cluster_token() {
-    local AUTO_CREATE_CLUSTER_TOKEN=$(kubernetes_secret_value default kotsadm-auto-create-cluster-token token)
+function kotsadm_secret_cluster_token() {
+    local CLUSTER_TOKEN=$(kubernetes_secret_value default kotsadm-cluster-token kotsadm-cluster-token)
 
-    if [ -n "$AUTO_CREATE_CLUSTER_TOKEN" ]; then
+    if [ -n "$CLUSTER_TOKEN" ]; then
         return 0
     fi
 
-    AUTO_CREATE_CLUSTER_TOKEN=$(< /dev/urandom tr -dc A-Za-z0-9 | head -c16)
+    # check under old name
+    CLUSTER_TOKEN=$(kubernetes_secret_value default kotsadm-auto-create-cluster-token token)
 
-    render_yaml_file "$DIR/addons/kotsadm/alpha/tmpl-secret-auto-create-cluster-token.yaml" > "$DIR/kustomize/kotsadm/secret-auto-create-cluster-token.yaml"
-    insert_resources "$DIR/kustomize/kotsadm/kustomization.yaml" secret-auto-create-cluster-token.yaml
+    if [ -n "$CLUSTER_TOKEN" ]; then
+        kubectl delete secret kotsadm-auto-create-cluster-token
+    else
+        CLUSTER_TOKEN=$(< /dev/urandom tr -dc A-Za-z0-9 | head -c16)
+    fi
+
+    render_yaml_file "$DIR/addons/kotsadm/alpha/tmpl-secret-cluster-token.yaml" > "$DIR/kustomize/kotsadm/secret-cluster-token.yaml"
+    insert_resources "$DIR/kustomize/kotsadm/kustomization.yaml" secret-cluster-token.yaml
 
     # ensure all pods that consume the secret will be restarted
     kubernetes_scale_down default deployment kotsadm-api
@@ -289,6 +297,29 @@ function kotsadm_cli() {
     fi
 }
 
+# copy pgdata from pvc named kotsadm-postgres to new pvc named kotsadm-postgres-kotsadm-postgres-0
+# used by StatefulSet in 1.12.2+
+function kotsadm_rename_postgres_pvc_1-12-2() {
+    local src="$1"
+
+    if kubernetes_resource_exists default deployment kotsadm-postgres; then
+        kubectl delete deployment kotsadm-postgres
+    fi
+    if ! kubernetes_resource_exists default pvc kotsadm-postgres; then
+        return 0
+    fi
+    printf "${YELLOW}Renaming PVC kotsadm-postgres to kotsadm-postgres-kotsadm-postgres-0${NC}\n"
+    kubectl apply -f "$src/kotsadm-postgres-rename-pvc.yaml"
+    spinner_until -1 kotsadm_postgres_pvc_renamed
+    kubectl delete pod kotsadm-postgres-rename-pvc
+    kubectl delete pvc kotsadm-postgres
+}
+
+function kotsadm_postgres_pvc_renamed {
+    local status=$(kubectl get pod kotsadm-postgres-rename-pvc -ojsonpath='{ .status.containerStatuses[0].state.terminated.reason }')
+    [ "$status" = "Completed" ]
+}
+
 function kotsadm_namespaces() {
     local src="$1"
     local dst="$2"
@@ -298,3 +329,4 @@ function kotsadm_namespaces() {
         kubectl create ns "$NAMESPACE" 2>/dev/null || true
     done
 }
+

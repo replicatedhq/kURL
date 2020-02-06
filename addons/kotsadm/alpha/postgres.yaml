@@ -1,31 +1,26 @@
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: kotsadm-postgres
-  labels:
-    app: kotsadm-postgres
-    kots.io/kotsadm: "true"
-spec:
-  accessModes:
-  - ReadWriteOnce
-  resources:
-    requests:
-      storage: 1Gi
----
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: kotsadm-postgres
   labels:
     kots.io/kotsadm: "true"
 spec:
   replicas: 1
-  strategy:
-    type: Recreate
+  serviceName: kotsadm-postgres
   selector:
     matchLabels:
       app: kotsadm-postgres
+  volumeClaimTemplates:
+  - metadata:
+      name: kotsadm-postgres
+      labels:
+        kots.io/kotsadm: "true"
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: 1Gi
   template:
     metadata:
       labels:

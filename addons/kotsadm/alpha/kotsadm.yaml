@@ -91,6 +91,7 @@ spec:
       securityContext:
         runAsUser: 1001
       serviceAccountName: kotsadm
+      restartPolicy: Always
       volumes:
       - name: kotsadm-web-scripts
         configMap:
