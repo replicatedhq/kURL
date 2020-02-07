@@ -50,6 +50,12 @@ dist/velero-%.tar.gz: build/addons
 	mkdir -p dist
 	tar cf - -C build addons/velero/$* | gzip > dist/velero-$*.tar.gz
 
+dist/openebs-%.tar.gz: build/addons
+	mkdir -p build/addons/openebs/$*/images
+	bin/save-manifest-assets.sh addons/openebs/$*/Manifest build/addons/openebs/$*
+	mkdir -p dist
+	tar cf - -C build addons/openebs/$* | gzip > dist/openebs-$*.tar.gz
+
 dist/minio-%.tar.gz: build/addons
 	mkdir -p build/addons/minio/$*/images
 	bin/save-manifest-assets.sh addons/minio/$*/Manifest build/addons/minio/$*
@@ -135,6 +141,7 @@ build/templates/install.tmpl: build/install.sh
 		sed 's/^REPLICATED_APP_URL=.*/REPLICATED_APP_URL="{{= REPLICATED_APP_URL }}"/' | \
 		sed 's/^WEAVE_VERSION=.*/WEAVE_VERSION="{{= WEAVE_VERSION }}"/' | \
 		sed 's/^ROOK_VERSION=.*/ROOK_VERSION="{{= ROOK_VERSION }}"/' | \
+		sed 's/^OPENEBS_VERSION=.*/OPENEBS_VERSION="{{= OPENEBS_VERSION }}"/' | \
 		sed 's/^MINIO_VERSION=.*/MINIO_VERSION="{{= MINIO_VERSION }}"/' | \
 		sed 's/^CONTOUR_VERSION=.*/CONTOUR_VERSION="{{= CONTOUR_VERSION }}"/' | \
 		sed 's/^REGISTRY_VERSION=.*/REGISTRY_VERSION="{{= REGISTRY_VERSION }}"/' | \
@@ -164,6 +171,7 @@ build/templates/join.tmpl: build/join.sh
 		sed 's/^REPLICATED_APP_URL=.*/REPLICATED_APP_URL="{{= REPLICATED_APP_URL }}"/' | \
 		sed 's/^WEAVE_VERSION=.*/WEAVE_VERSION="{{= WEAVE_VERSION }}"/' | \
 		sed 's/^ROOK_VERSION=.*/ROOK_VERSION="{{= ROOK_VERSION }}"/' | \
+		sed 's/^OPENEBS_VERSION=.*/OPENEBS_VERSION="{{= OPENEBS_VERSION }}"/' | \
 		sed 's/^MINIO_VERSION=.*/MINIO_VERSION="{{= MINIO_VERSION }}"/' | \
 		sed 's/^CONTOUR_VERSION=.*/CONTOUR_VERSION="{{= CONTOUR_VERSION }}"/' | \
 		sed 's/^REGISTRY_VERSION=.*/REGISTRY_VERSION="{{= REGISTRY_VERSION }}"/' | \
@@ -193,6 +201,7 @@ build/templates/upgrade.tmpl: build/upgrade.sh
 		sed 's/^REPLICATED_APP_URL=.*/REPLICATED_APP_URL="{{= REPLICATED_APP_URL }}"/' | \
 		sed 's/^WEAVE_VERSION=.*/WEAVE_VERSION="{{= WEAVE_VERSION }}"/' | \
 		sed 's/^ROOK_VERSION=.*/ROOK_VERSION="{{= ROOK_VERSION }}"/' | \
+		sed 's/^OPENEBS_VERSION=.*/OPENEBS_VERSION="{{= OPENEBS_VERSION }}"/' | \
 		sed 's/^MINIO_VERSION=.*/MINIO_VERSION="{{= MINIO_VERSION }}"/' | \
 		sed 's/^CONTOUR_VERSION=.*/CONTOUR_VERSION="{{= CONTOUR_VERSION }}"/' | \
 		sed 's/^REGISTRY_VERSION=.*/REGISTRY_VERSION="{{= REGISTRY_VERSION }}"/' | \

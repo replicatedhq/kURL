@@ -109,6 +109,7 @@ function main() {
     addon_join calico "$CALICO_VERSION"
     addon_join weave "$WEAVE_VERSION"
     addon_join rook "$ROOK_VERSION"
+    addon_join openebs "$OPENEBS_VERSION"
     addon_join minio "$MINIO_VERSION"
     addon_join contour "$CONTOUR_VERSION"
     addon_join registry "$REGISTRY_VERSION"

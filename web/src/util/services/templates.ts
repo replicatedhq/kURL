@@ -51,6 +51,7 @@ interface Manifest {
   KUBERNETES_VERSION: string;
   WEAVE_VERSION: string;
   ROOK_VERSION: string;
+  OPENEBS_VERSION: string;
   MINIO_VERSION: string;
   CONTOUR_VERSION: string;
   REGISTRY_VERSION: string;
@@ -70,6 +71,7 @@ function manifestFromInstaller(i: Installer, kurlURL: string, replicatedAppURL: 
     KUBERNETES_VERSION: i.spec.kubernetes.version,
     WEAVE_VERSION: _.get(i.spec, "weave.version", ""),
     ROOK_VERSION: _.get(i.spec, "rook.version", ""),
+    OPENEBS_VERSION: _.get(i.spec, "openebs.version", ""),
     MINIO_VERSION: _.get(i.spec, "minio.version", ""),
     CONTOUR_VERSION: _.get(i.spec, "contour.version", ""),
     REGISTRY_VERSION: _.get(i.spec, "registry.version", ""),

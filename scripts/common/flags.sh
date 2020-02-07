@@ -185,6 +185,15 @@ function flags() {
             minio-namespace|minio_namespace)
                 MINIO_NAMESPACE="$_value"
                 ;;
+            openebs-namespace|openebs_namespace)
+                OPENEBS_NAMESPACE="$_value"
+                ;;
+            openebs-localpv|openebs_localpv)
+                OPENEBS_LOCALPV=1
+                ;;
+            openebs-localpv-storage-class|openebs_localpv_storage_class)
+                OPENEBS_LOCALPV_STORAGE_CLASS="$_value"
+                ;;
             *)
                 echo >&2 "Error: unknown parameter \"$_param\""
                 exit 1
