@@ -63,7 +63,7 @@ const weaveConfigSchema = {
   },
   required: [ "version" ],
   additionalProperites: false,
-}
+};
 
 export interface RookConfig {
   version: string;
@@ -80,6 +80,21 @@ const rookConfigSchema = {
   },
   required: [ "version" ],
   additionalProperites: false,
+};
+
+export interface MinioConfig {
+  version: string;
+  namespace: string;
+}
+
+const minioConfigSchema = {
+  type: "object",
+  properties: {
+    version: { type: "string" },
+    namespace: { type: "string", flag: "minio-namespace" },
+  },
+  required: ["version"],
+  additionalProperties: false,
 };
 
 export interface ContourConfig {
@@ -177,6 +192,7 @@ export interface InstallerSpec {
   docker?: DockerConfig;
   weave?: WeaveConfig;
   rook?: RookConfig;
+  minio?: MinioConfig;
   contour?: ContourConfig;
   registry?: RegistryConfig;
   prometheus?: PrometheusConfig;
@@ -193,6 +209,7 @@ const specSchema = {
     docker: dockerConfigSchema,
     weave: weaveConfigSchema,
     rook: rookConfigSchema,
+    minio: minioConfigSchema,
     contour: contourConfigSchema,
     registry: registryConfigSchema,
     prometheus: prometheusConfigSchema,
@@ -205,7 +222,7 @@ const specSchema = {
 };
 
 export interface ObjectMeta {
-  name: string
+  name: string;
 }
 
 export interface InstallerObject {
@@ -216,6 +233,161 @@ export interface InstallerObject {
 }
 
 export class Installer {
+  // first version of each is "latest"
+  public static versions = {
+    kubernetes: [
+      "1.16.4",
+      "1.15.3",
+      "1.15.2",
+      "1.15.1",
+      "1.15.0",
+    ],
+    docker: [
+      "18.09.8",
+    ],
+    weave: [
+      "2.5.2",
+    ],
+    rook: [
+      "1.0.4",
+    ],
+    contour: [
+      "0.14.0",
+      // Before making 1.0.1 latest need
+      // to test if upgrading from previous version works.
+      "1.0.1",
+    ],
+    registry: [
+      "2.7.1",
+    ],
+    prometheus: [
+      "0.33.0",
+    ],
+    fluentd: [
+      "1.7.4",
+    ],
+    kotsadm: [
+      "1.12.1",
+      "1.12.0",
+      "1.11.4",
+      "1.11.3",
+      "1.11.2",
+      "1.11.1",
+      "1.10.3",
+      "1.10.2",
+      "1.10.1",
+      "1.10.0",
+      "1.9.1",
+      "1.9.0",
+      "1.8.0",
+      "1.7.0",
+      "1.6.0",
+      "1.5.0",
+      "1.4.1",
+      "1.4.0",
+      "1.3.0",
+      "1.2.0",
+      "1.1.0",
+      "1.0.1",
+      "1.0.0",
+      "0.9.15",
+      "0.9.14",
+      "0.9.13",
+      "0.9.12",
+      "0.9.11",
+      "0.9.10",
+      "0.9.9",
+    ],
+    velero: [
+      "1.2.0",
+    ],
+    minio: [
+      "2020-01-25T02-50-51Z",
+    ],
+  };
+
+  public static latest(): Installer {
+    const i = new Installer();
+
+    i.id = "latest";
+    i.spec.kubernetes = { version: "latest" };
+    i.spec.docker = { version: "latest" };
+    i.spec.weave = { version: "latest" };
+    i.spec.rook = { version: "latest" };
+    i.spec.contour = { version: "latest" };
+    i.spec.registry = { version: "latest" };
+    i.spec.prometheus = { version: "latest" };
+
+    return i;
+  }
+
+  // Return an ordered list of all addon fields in the spec.
+  public static specPaths(): string[] {
+    const paths: string[] = [];
+
+    _.each(specSchema.properties, (configSchema, configName) => {
+      _.each(configSchema.properties, (val, field) => {
+        paths.push(`${configName}.${field}`);
+      });
+    });
+
+    return paths;
+  }
+
+  // returned installer must be validated before use
+  public static parse(doc: string, teamID?: string): Installer {
+    const parsed = yaml.safeLoad(doc);
+
+    const i = new Installer(teamID);
+    i.id = _.get(parsed, "metadata.name", "");
+
+    if (!_.isPlainObject(parsed)) {
+      return i;
+    }
+
+    if (!parsed.spec || !_.isPlainObject(parsed.spec)) {
+      return i;
+    }
+    i.spec = parsed.spec;
+
+    if (parsed.apiVersion === "kurl.sh/v1beta1") {
+      return i.migrateV1Beta1();
+    }
+
+    return i;
+  }
+
+  public static hasVersion(config: string, version: string): boolean {
+    if (version === "latest") {
+      return true;
+    }
+    if (_.includes(Installer.versions[config], version)) {
+      return true;
+    }
+    return false;
+  }
+
+  public static isSHA(id: string): boolean {
+    return /^[0-9a-f]{7}$/.test(id);
+  }
+
+  public static isValidSlug(id: string): boolean {
+    return /^[0-9a-zA-Z-_]{1,255}$/.test(id);
+  }
+
+  public static slugIsReserved(id: string): boolean {
+    return _.includes([
+      "latest",
+      "beta",
+      "stable",
+      "unstable",
+      "healthz",
+      "dist",
+      "installer",
+      "bundle",
+      "versions",
+    ], _.lowerCase(id));
+  }
 
   public id: string;
   public spec: InstallerSpec;
@@ -240,7 +412,7 @@ export class Installer {
   // Going forward new fields are automatically included in the hash after being sorted
   // alphabetically but the arbitrary order must be preserved for legacy fields.
   public hash(): string {
-    const h = crypto.createHash('sha256');
+    const h = crypto.createHash("sha256");
 
     if (this.spec.kubernetes && this.spec.kubernetes.version) {
       h.update(`kubernetes_version=${this.spec.kubernetes.version}`);
@@ -277,7 +449,7 @@ export class Installer {
       kotsadm_version: true,
       kotsadm_applicationSlug: true,
     };
-    const fields: Array<string> = [];
+    const fields: string[] = [];
     _.each(_.keys(this.spec), (config) => {
       _.each(_.keys(this.spec[config]), (field) => {
         const val = this.spec[config][field];
@@ -298,44 +470,7 @@ export class Installer {
       h.update(field);
     });
 
-    return h.digest('hex').substring(0,7);
-  }
-
-  // Return an ordered list of all addon fields in the spec.
-  static specPaths(): Array<string> {
-    const paths: Array<string> = [];
-
-    _.each(specSchema.properties, (configSchema, configName) => {
-      _.each(configSchema.properties, (val, field) => {
-        paths.push(`${configName}.${field}`);
-      });
-    });
-
-    return paths;
-  }
-
-  // returned installer must be validated before use
-  static parse(doc: string, teamID?: string): Installer {
-    const parsed = yaml.safeLoad(doc);
-
-    const i = new Installer(teamID);
-    i.id = _.get(parsed, "metadata.name", "");
-
-    if (!_.isPlainObject(parsed)) {
-      return i;
-    }
-
-
-    if (!parsed.spec || !_.isPlainObject(parsed.spec)) {
-      return i;
-    }
-    i.spec = parsed.spec;
-
-    if (parsed.apiVersion === "kurl.sh/v1beta1") {
-      return i.migrateV1Beta1();
-    }
-
-    return i;
+    return h.digest("hex").substring(0, 7);
   }
 
   // kurl.sh/v1beta1 originally had the addon name with an empty version to indicate the addon was
@@ -394,92 +529,6 @@ export class Installer {
     return obj;
   }
 
-  // first version of each is "latest"
-  static versions = {
-    kubernetes: [
-      "1.16.4",
-      "1.15.3",
-      "1.15.2",
-      "1.15.1",
-      "1.15.0",
-    ],
-    docker: [
-      "18.09.8",
-    ],
-    weave: [
-      "2.5.2",
-    ],
-    rook: [
-      "1.0.4",
-    ],
-    contour: [
-      "0.14.0",
-      // Before making 1.0.1 latest need
-      // to test if upgrading from previous version works.
-      "1.0.1",
-    ],
-    registry: [
-      "2.7.1",
-    ],
-    prometheus: [
-      "0.33.0",
-    ],
-    fluentd: [
-      "1.7.4",
-    ],
-    kotsadm: [
-      "1.12.2",
-      "1.12.1",
-      "1.12.0",
-      "1.11.4",
-      "1.11.3",
-      "1.11.2",
-      "1.11.1",
-      "1.10.3",
-      "1.10.2",
-      "1.10.1",
-      "1.10.0",
-      "1.9.1",
-      "1.9.0",
-      "1.8.0",
-      "1.7.0",
-      "1.6.0",
-      "1.5.0",
-      "1.4.1",
-      "1.4.0",
-      "1.3.0",
-      "1.2.0",
-      "1.1.0",
-      "1.0.1",
-      "1.0.0",
-      "0.9.15",
-      "0.9.14",
-      "0.9.13",
-      "0.9.12",
-      "0.9.11",
-      "0.9.10",
-      "0.9.9",
-    ],
-    velero: [
-      "1.2.0",
-    ],
-  }
-
-  static latest(): Installer {
-    const i = new Installer();
-
-    i.id = "latest";
-    i.spec.kubernetes = { version: "latest" };
-    i.spec.docker = { version: "latest" };
-    i.spec.weave = { version: "latest" };
-    i.spec.rook = { version: "latest" };
-    i.spec.contour = { version: "latest" };
-    i.spec.registry = { version: "latest" };
-    i.spec.prometheus = { version: "latest" };
-
-    return i;
-  }
-
   public resolve(): Installer {
     const i = this.clone();
 
@@ -490,16 +539,6 @@ export class Installer {
     });
 
     return i;
-  }
-
-  static hasVersion(config: string, version: string): boolean {
-    if (version === "latest") {
-      return true;
-    }
-    if (_.includes(Installer.versions[config], version)) {
-      return true;
-    }
-    return false;
   }
 
   public validate(): ErrorResponse|undefined {
@@ -546,9 +585,12 @@ export class Installer {
     if (this.spec.velero && !Installer.hasVersion("velero", this.spec.velero.version)) {
       return { error: { message: `Velero version "${_.escape(this.spec.velero.version)}" is not supported` } };
     }
+    if (this.spec.minio && !Installer.hasVersion("minio", this.spec.minio.version)) {
+      return { error: { message: `Minio version "${_.escape(this.spec.minio.version)}" is not supported` } };
+    }
   }
 
-  public packages(): Array<string> {
+  public packages(): string[] {
     const i = this.resolve();
 
     const pkgs = [ "common" ];
@@ -564,59 +606,44 @@ export class Installer {
     return _.isEqual(this.spec, Installer.latest().spec);
   }
 
-  static isSHA(id: string): boolean {
-    return /^[0-9a-f]{7}$/.test(id);
-  }
-
-  static isValidSlug(id: string): boolean {
-    return /^[0-9a-zA-Z-_]{1,255}$/.test(id);
-  }
-
-  static slugIsReserved(id: string): boolean {
-    return _.includes([
-      "latest",
-      "beta",
-      "stable",
-      "unstable",
-      "healthz",
-      "dist",
-      "installer",
-      "bundle",
-      "versions",
-    ], _.lowerCase(id));
-  }
-
   public flags(): string {
-    const flags: Array<string> = [];
-
-    _.each(specSchema.properties, (configSchema, configKey) => {
-      _.each(configSchema.properties, (schema, fieldKey) => {
-        const flag = _.get(schema, "flag");
-        const flagFalseOnlyNoArg = _.get(schema, "flagFalseOnlyNoArg");
-
-        if (flag && _.has(this.spec, `${configKey}.${fieldKey}`)) {
-          switch (schema.type) {
-          case "number": // fallthrough
-          case "string":
-            flags.push(`${flag}=${this.spec[configKey][fieldKey]}`);
-            break;
-          case "boolean":
-            // This converts advanced options with default true to disable-style bash flags that
-            // do not take an arg. i.e. only `velero.installCLI: false` should set the flag
-            // velero-disable-cli
-            if (flagFalseOnlyNoArg) {
-              if (this.spec[configKey][fieldKey] === false) {
-                flags.push(flag);
-              }
-            } else {
-              flags.push(`${flag}=${this.spec[configKey][fieldKey] ? 1 : 0}`);
+    const flags: string[] = [];
+    function getFlags(properties, spec) {
+      _.each(properties, (propertySchema, propertyName) => {
+        if (!_.has(spec, propertyName)) {
+          return;
+        }
+        if (propertySchema.type === "object") {
+          getFlags(propertySchema.properties, spec[propertyName]);
+          return;
+        }
+        const flag = propertySchema.flag;
+        if (!flag) {
+          return;
+        }
+        switch (propertySchema.type) {
+        case "number": // fallthrough
+        case "string":
+          flags.push(`${flag}=${spec[propertyName]}`);
+          break;
+        case "boolean":
+          // This converts advanced options with default true to disable-style bash flags that
+          // do not take an arg. i.e. only `velero.installCLI: false` should set the flag
+          // velero-disable-cli
+          const flagFalseOnlyNoArg = _.get(propertySchema, "flagFalseOnlyNoArg");
+          if (flagFalseOnlyNoArg) {
+            if (spec[propertyName] === false) {
+              flags.push(flag);
             }
-            break;
+          } else {
+            flags.push(`${flag}=${spec[propertyName] ? 1 : 0}`);
           }
+          break;
         }
       });
-    });
+    }
 
+    getFlags(specSchema.properties, this.spec);
     return flags.join(" ");
   }
 }
@@ -643,7 +670,7 @@ export class InstallerStore {
       return;
     }
 
-    let i = Installer.parse(results[0].yaml, results[0].team_id);
+    const i = Installer.parse(results[0].yaml, results[0].team_id);
 
     i.id = installerID;
     return i;
@@ -708,7 +735,7 @@ export class InstallerStore {
       await conn.query(qUpdate, vUpdate);
 
       await conn.commit();
-    } catch(error) {
+    } catch (error) {
       await conn.rollback();
       throw error;
     } finally {

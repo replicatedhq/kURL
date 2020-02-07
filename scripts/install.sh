@@ -13,6 +13,7 @@ DIR=.
 . $DIR/scripts/common/docker.sh
 . $DIR/scripts/common/flags.sh
 . $DIR/scripts/common/kubernetes.sh
+. $DIR/scripts/common/object_store.sh
 . $DIR/scripts/common/preflights.sh
 . $DIR/scripts/common/prompts.sh
 . $DIR/scripts/common/proxy.sh
@@ -240,6 +241,7 @@ function main() {
     addon_pre_init calico "$CALICO_VERSION"
     addon_pre_init weave "$WEAVE_VERSION"
     addon_pre_init rook "$ROOK_VERSION"
+    addon_pre_init minio "$MINIO_VERSION"
     addon_pre_init contour "$CONTOUR_VERSION"
     addon_pre_init registry "$REGISTRY_VERSION"
     addon_pre_init prometheus "$PROMETHEUS_VERSION"
@@ -252,6 +254,7 @@ function main() {
     addon calico "$CALICO_VERSION"
     addon weave "$WEAVE_VERSION"
     addon rook "$ROOK_VERSION"
+    addon minio "$MINIO_VERSION"
     addon contour "$CONTOUR_VERSION"
     addon registry "$REGISTRY_VERSION"
     addon prometheus "$PROMETHEUS_VERSION"

@@ -12,6 +12,7 @@ DIR=.
 . $DIR/scripts/common/docker.sh
 . $DIR/scripts/common/flags.sh
 . $DIR/scripts/common/kubernetes.sh
+. $DIR/scripts/common/object_store.sh
 . $DIR/scripts/common/preflights.sh
 . $DIR/scripts/common/prompts.sh
 . $DIR/scripts/common/proxy.sh
@@ -108,6 +109,7 @@ function main() {
     addon_join calico "$CALICO_VERSION"
     addon_join weave "$WEAVE_VERSION"
     addon_join rook "$ROOK_VERSION"
+    addon_join minio "$MINIO_VERSION"
     addon_join contour "$CONTOUR_VERSION"
     addon_join registry "$REGISTRY_VERSION"
     addon_join prometheus "$PROMETHEUS_VERSION"

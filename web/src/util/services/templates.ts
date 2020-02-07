@@ -4,17 +4,16 @@ import * as _ from "lodash";
 import {Service} from "ts-express-decorators";
 import { Installer } from "../../installers";
 
-
 @Service()
 export class Templates {
 
   private kurlURL: string;
   private replicatedAppURL: string;
-  private installTmpl: (any) => string;
-  private joinTmpl: (any) => string;
-  private upgradeTmpl: (any) => string;
+  private installTmpl: (obj: any) => string;
+  private joinTmpl: (obj: any) => string;
+  private upgradeTmpl: (obj: any) => string;
 
-  constructor () {
+  constructor() {
     this.kurlURL = process.env["KURL_URL"] || "https://kurl.sh";
     this.replicatedAppURL = process.env["REPLICATED_APP_URL"] || "https://replicated.app";
 
@@ -52,6 +51,7 @@ interface Manifest {
   KUBERNETES_VERSION: string;
   WEAVE_VERSION: string;
   ROOK_VERSION: string;
+  MINIO_VERSION: string;
   CONTOUR_VERSION: string;
   REGISTRY_VERSION: string;
   PROMETHEUS_VERSION: string;
@@ -70,6 +70,7 @@ function manifestFromInstaller(i: Installer, kurlURL: string, replicatedAppURL: 
     KUBERNETES_VERSION: i.spec.kubernetes.version,
     WEAVE_VERSION: _.get(i.spec, "weave.version", ""),
     ROOK_VERSION: _.get(i.spec, "rook.version", ""),
+    MINIO_VERSION: _.get(i.spec, "minio.version", ""),
     CONTOUR_VERSION: _.get(i.spec, "contour.version", ""),
     REGISTRY_VERSION: _.get(i.spec, "registry.version", ""),
     PROMETHEUS_VERSION: _.get(i.spec, "prometheus.version", ""),
@@ -81,4 +82,3 @@ function manifestFromInstaller(i: Installer, kurlURL: string, replicatedAppURL: 
     FLAGS: i.flags(),
   };
 }
-

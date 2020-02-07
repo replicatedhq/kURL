@@ -1,3 +1,4 @@
+kind: RoleBindingList
 apiVersion: rbac.authorization.k8s.io/v1
 items:
 - apiVersion: rbac.authorization.k8s.io/v1
@@ -56,19 +57,6 @@ items:
   kind: RoleBinding
   metadata:
     name: prometheus-k8s
-    namespace: rook-ceph
-  roleRef:
-    apiGroup: rbac.authorization.k8s.io
-    kind: Role
-    name: prometheus-k8s
-  subjects:
-  - kind: ServiceAccount
-    name: prometheus-k8s
-    namespace: monitoring
-- apiVersion: rbac.authorization.k8s.io/v1
-  kind: RoleBinding
-  metadata:
-    name: prometheus-k8s
     namespace: kurl
   roleRef:
     apiGroup: rbac.authorization.k8s.io
@@ -78,4 +66,3 @@ items:
   - kind: ServiceAccount
     name: prometheus-k8s
     namespace: monitoring
-kind: RoleBindingList

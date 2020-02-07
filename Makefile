@@ -50,6 +50,12 @@ dist/velero-%.tar.gz: build/addons
 	mkdir -p dist
 	tar cf - -C build addons/velero/$* | gzip > dist/velero-$*.tar.gz
 
+dist/minio-%.tar.gz: build/addons
+	mkdir -p build/addons/minio/$*/images
+	bin/save-manifest-assets.sh addons/minio/$*/Manifest build/addons/minio/$*
+	mkdir -p dist
+	tar cf - -C build addons/minio/$* | gzip > dist/minio-$*.tar.gz
+
 dist/weave-%.tar.gz: build/addons
 	mkdir -p build/addons/weave/$*/images
 	bin/save-manifest-assets.sh addons/weave/$*/Manifest build/addons/weave/$*
@@ -129,6 +135,7 @@ build/templates/install.tmpl: build/install.sh
 		sed 's/^REPLICATED_APP_URL=.*/REPLICATED_APP_URL="{{= REPLICATED_APP_URL }}"/' | \
 		sed 's/^WEAVE_VERSION=.*/WEAVE_VERSION="{{= WEAVE_VERSION }}"/' | \
 		sed 's/^ROOK_VERSION=.*/ROOK_VERSION="{{= ROOK_VERSION }}"/' | \
+		sed 's/^MINIO_VERSION=.*/MINIO_VERSION="{{= MINIO_VERSION }}"/' | \
 		sed 's/^CONTOUR_VERSION=.*/CONTOUR_VERSION="{{= CONTOUR_VERSION }}"/' | \
 		sed 's/^REGISTRY_VERSION=.*/REGISTRY_VERSION="{{= REGISTRY_VERSION }}"/' | \
 		sed 's/^PROMETHEUS_VERSION=.*/PROMETHEUS_VERSION="{{= PROMETHEUS_VERSION }}"/' | \
@@ -157,6 +164,7 @@ build/templates/join.tmpl: build/join.sh
 		sed 's/^REPLICATED_APP_URL=.*/REPLICATED_APP_URL="{{= REPLICATED_APP_URL }}"/' | \
 		sed 's/^WEAVE_VERSION=.*/WEAVE_VERSION="{{= WEAVE_VERSION }}"/' | \
 		sed 's/^ROOK_VERSION=.*/ROOK_VERSION="{{= ROOK_VERSION }}"/' | \
+		sed 's/^MINIO_VERSION=.*/MINIO_VERSION="{{= MINIO_VERSION }}"/' | \
 		sed 's/^CONTOUR_VERSION=.*/CONTOUR_VERSION="{{= CONTOUR_VERSION }}"/' | \
 		sed 's/^REGISTRY_VERSION=.*/REGISTRY_VERSION="{{= REGISTRY_VERSION }}"/' | \
 		sed 's/^PROMETHEUS_VERSION=.*/PROMETHEUS_VERSION="{{= PROMETHEUS_VERSION }}"/' | \
@@ -185,6 +193,7 @@ build/templates/upgrade.tmpl: build/upgrade.sh
 		sed 's/^REPLICATED_APP_URL=.*/REPLICATED_APP_URL="{{= REPLICATED_APP_URL }}"/' | \
 		sed 's/^WEAVE_VERSION=.*/WEAVE_VERSION="{{= WEAVE_VERSION }}"/' | \
 		sed 's/^ROOK_VERSION=.*/ROOK_VERSION="{{= ROOK_VERSION }}"/' | \
+		sed 's/^MINIO_VERSION=.*/MINIO_VERSION="{{= MINIO_VERSION }}"/' | \
 		sed 's/^CONTOUR_VERSION=.*/CONTOUR_VERSION="{{= CONTOUR_VERSION }}"/' | \
 		sed 's/^REGISTRY_VERSION=.*/REGISTRY_VERSION="{{= REGISTRY_VERSION }}"/' | \
 		sed 's/^PROMETHEUS_VERSION=.*/PROMETHEUS_VERSION="{{= PROMETHEUS_VERSION }}"/' | \

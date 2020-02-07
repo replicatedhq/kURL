@@ -23,6 +23,9 @@ spec:
     version: latest
     storageClass: default
     cephPoolReplicas: 1
+  minio:
+    version: latest
+    namespace: minio
   registry:
     version: latest
   prometheus:
@@ -360,8 +363,8 @@ spec:
       { slug: "", answer: false},
       { slug: " ", answer: false},
       { slug: "big-bank-beta", answer: true},
-      { slug: _.range(0,255).map((x) => "a").join(""), answer: true },
-      { slug: _.range(0,256).map((x) => "a").join(""), answer: false },
+      { slug: _.range(0, 255).map((x) => "a").join(""), answer: true },
+      { slug: _.range(0, 256).map((x) => "a").join(""), answer: false },
     ].forEach((test) => {
       it(`"${test.slug}" => ${test.answer}`, () => {
         const output = Installer.isValidSlug(test.slug);
@@ -378,8 +381,8 @@ spec:
           typeMetaStableV1Beta1,
         ].forEach(async (yaml) => {
           const out = Installer.parse(yaml).validate();
-          
-          expect(out).to.be.undefined;
+
+          expect(out).to.equal(undefined);
         });
       });
 
@@ -387,7 +390,7 @@ spec:
         it("=> void", () => {
           const out = Installer.parse(kots).validate();
 
-          expect(out).to.be.undefined;
+          expect(out).to.equal(undefined);
         });
       });
 
@@ -395,7 +398,7 @@ spec:
         it("=> void", () => {
           const out = Installer.parse(everyOption).validate();
 
-          expect(out).to.be.undefined;
+          expect(out).to.equal(undefined);
         });
       });
     });
@@ -406,7 +409,7 @@ spec:
 spec:
   kubernetes:
     version: ""
-`
+`;
         const noK8sOut = Installer.parse(noK8s).validate();
         expect(noK8sOut).to.deep.equal({ error: { message: "Kubernetes version is required" } });
 
@@ -414,7 +417,7 @@ spec:
 spec:
   kubernetes:
     version: "0.15.3"
-`
+`;
         const badK8sOut = Installer.parse(badK8s).validate();
         expect(badK8sOut).to.deep.equal({ error: { message: "Kubernetes version 0.15.3 is not supported" } });
       });
@@ -473,10 +476,10 @@ spec:
 
   describe("flags", () => {
     describe("every option", () => {
-      it(`=> no-ce-on-ee=1`, () => {
+      it(`=> service-cidr=10.96.0.0/12 ...`, () => {
         const i = Installer.parse(everyOption);
 
-        expect(i.flags()).to.equal(`service-cidr=10.96.0.0/12 bypass-storagedriver-warnings=0 hard-fail-on-loopback=0 no-ce-on-ee=0 ip-alloc-range=10.32.0.0/12 encrypt-network=1 storage-class=default ceph-pool-replicas=1 fluentd-full-efk-stack=1 kotsadm-ui-bind-port=8800 velero-namespace=velero velero-disable-cli velero-disable-restic`);
+        expect(i.flags()).to.equal(`service-cidr=10.96.0.0/12 bypass-storagedriver-warnings=0 hard-fail-on-loopback=0 no-ce-on-ee=0 ip-alloc-range=10.32.0.0/12 encrypt-network=1 storage-class=default ceph-pool-replicas=1 minio-namespace=minio fluentd-full-efk-stack=1 kotsadm-ui-bind-port=8800 velero-namespace=velero velero-disable-cli velero-disable-restic`);
       });
     });
   });
@@ -509,7 +512,7 @@ spec:
       expect(i.flags()).to.equal(`velero-namespace=velero`);
     });
   });
-        
+
   describe("fluentd", () => {
     it("should parse", () => {
       const i = Installer.parse(fluentd);
