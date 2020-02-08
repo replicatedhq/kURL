@@ -67,8 +67,6 @@ interface Manifest {
 }
 
 function readCRDFromYAML(): string {
-    // const CRDDir = path.join(__dirname, "../../../../templates");
-    // const CRDDir = path.join(__dirname, "../../../../crds");
     const CRDPath = path.join("/src/crds", "cluster_v1beta1_installer.yaml");
 
     let installerCRD = fs.readFileSync(CRDPath, "base64");
