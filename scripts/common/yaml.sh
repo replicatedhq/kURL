@@ -41,3 +41,25 @@ function setup_kubeadm_kustomize() {
     rm -rf $DIR/kustomize/kubeadm/join-patches
     mkdir -p $DIR/kustomize/kubeadm/join-patches
 }
+
+function setup_installer_crd() {
+    CREATE_INSTALLER_CRD_YAML="/tmp/installer_crd.yaml"
+    INSTALLER_BASE_YAML_FILE="/tmp/kurl_installer.yaml"
+
+    echo $INSTALLER_CRD | base64 --decode > $CREATE_INSTALLER_CRD_YAML
+
+    kubectl apply -f $CREATE_INSTALLER_CRD_YAML
+
+    cat > $INSTALLER_BASE_YAML_FILE << EOF
+$INSTALLER_YAML
+EOF
+
+    sed -i 's/kurl.sh/cluster.kurl.sh/g' $INSTALLER_BASE_YAML_FILE
+
+    kubectl apply -f $INSTALLER_BASE_YAML_FILE
+
+    rm $CREATE_INSTALLER_CRD_YAML
+    rm $INSTALLER_BASE_YAML_FILE
+
+    bail
+}

@@ -150,6 +150,8 @@ build/templates/install.tmpl: build/install.sh
 		sed 's/^FLUENTD_VERSION=.*/FLUENTD_VERSION="{{= FLUENTD_VERSION }}"/' | \
 		sed 's/^KOTSADM_VERSION=.*/KOTSADM_VERSION="{{= KOTSADM_VERSION }}"/' | \
 		sed 's/^KOTSADM_APPLICATION_SLUG=.*/KOTSADM_APPLICATION_SLUG="{{= KOTSADM_APPLICATION_SLUG }}"/' | \
+		sed 's/^INSTALLER_YAML=.*/INSTALLER_YAML="{{= INSTALLER_YAML }}"/' | \
+		sed 's/^INSTALLER_CRD=.*/INSTALLER_CRD="{{= INSTALLER_CRD }}"/' | \
 		sed 's/^FLAGS=.*/FLAGS="{{= FLAGS }}"/' \
 		> build/templates/install.tmpl
 
@@ -180,6 +182,8 @@ build/templates/join.tmpl: build/join.sh
 		sed 's/^FLUENTD_VERSION=.*/FLUENTD_VERSION="{{= FLUENTD_VERSION }}"/' | \
 		sed 's/^KOTSADM_VERSION=.*/KOTSADM_VERSION="{{= KOTSADM_VERSION }}"/' | \
 		sed 's/^KOTSADM_APPLICATION_SLUG=.*/KOTSADM_APPLICATION_SLUG="{{= KOTSADM_APPLICATION_SLUG }}"/' | \
+		sed 's/^INSTALLER_YAML=.*/INSTALLER_YAML="{{= INSTALLER_YAML }}"/' | \
+		sed 's/^INSTALLER_CRD=.*/INSTALLER_CRD="{{= INSTALLER_CRD }}"/' | \
 		sed 's/^FLAGS=.*/FLAGS="{{= FLAGS }}"/' \
 		> build/templates/join.tmpl
 
@@ -210,6 +214,8 @@ build/templates/upgrade.tmpl: build/upgrade.sh
 		sed 's/^FLUENTD_VERSION=.*/FLUENTD_VERSION="{{= FLUENTD_VERSION }}"/' | \
 		sed 's/^KOTSADM_VERSION=.*/KOTSADM_VERSION="{{= KOTSADM_VERSION }}"/' | \
 		sed 's/^KOTSADM_APPLICATION_SLUG=.*/KOTSADM_APPLICATION_SLUG="{{= KOTSADM_APPLICATION_SLUG }}"/' | \
+		sed 's/^INSTALLER_YAML=.*/INSTALLER_YAML="{{= INSTALLER_YAML }}"/' | \
+		sed 's/^INSTALLER_CRD=.*/INSTALLER_CRD="{{= INSTALLER_CRD }}"/' | \
 		sed 's/^FLAGS=.*/FLAGS="{{= FLAGS }}"/' \
 		> build/templates/upgrade.tmpl
 
