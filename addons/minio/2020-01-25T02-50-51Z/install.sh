@@ -38,6 +38,10 @@ function minio_creds() {
 }
 
 function minio_object_store_output() {
+    # don't overwrite rook if also running
+    if object_store_exists; then
+        return 0;
+    fi
     # create the docker-registry bucket through the S3 API
     OBJECT_STORE_ACCESS_KEY=$(kubectl -n ${MINIO_NAMESPACE} get secret minio-credentials -o yaml | grep MINIO_ACCESS_KEY | awk '{print $2}' | base64 --decode)
     OBJECT_STORE_SECRET_KEY=$(kubectl -n ${MINIO_NAMESPACE} get secret minio-credentials -o yaml | grep MINIO_SECRET_KEY | awk '{print $2}' | base64 --decode)
