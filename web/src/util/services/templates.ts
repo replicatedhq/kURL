@@ -94,5 +94,5 @@ function manifestFromInstaller(i: Installer, kurlURL: string, replicatedAppURL: 
     FLAGS: i.flags(),
     INSTALLER_YAML: i.toYAML(),
     INSTALLER_CRD : readCRDFromYAML(),
-  }
+  };
 }
