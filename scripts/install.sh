@@ -122,7 +122,6 @@ function init() {
 function post_init() {
     BOOTSTRAP_TOKEN_EXPIRY=$(kubeadm token list | grep $BOOTSTRAP_TOKEN | awk '{print $3}')
     kurl_config
-
 }
 
 function kubernetes_maybe_generate_bootstrap_token() {
