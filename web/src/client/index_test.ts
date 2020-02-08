@@ -141,6 +141,18 @@ spec:
     namespace: minio
 `;
 
+const openebs = `
+spec:
+  kubernetes:
+    version: latest
+  openebs:
+    version: latest
+    namespace: openebs
+    localPV:
+      enabled: true
+      storageClass: default
+`;
+
 describe("POST /installer", () => {
   describe("latestV1Beta1", () => {
     it(`should return 201 "https://kurl.sh/latest"`, async () => {
@@ -201,6 +213,14 @@ describe("POST /installer", () => {
       const uri = await client.postInstaller(minio);
 
       expect(uri).to.match(/d2de354/);
+    });
+  });
+
+  describe("openebs", () => {
+    it(`should return 201 "https://kurl.sh/6f4223e"`, async () => {
+      const uri = await client.postInstaller(openebs);
+
+      expect(uri).to.match(/6f4223e/);
     });
   });
 
@@ -338,6 +358,7 @@ describe("GET /<installerID>", () => {
       expect(script).to.match(/KOTSADM_VERSION=""/);
       expect(script).to.match(/KOTSADM_APPLICATION_SLUG=""/);
       expect(script).to.match(/MINIO_VERSION=""/);
+      expect(script).to.match(/OPENEBS_VERSION=""/);
     });
   });
 
@@ -356,6 +377,7 @@ describe("GET /<installerID>", () => {
       expect(script).to.match(new RegExp(`KOTSADM_VERSION=""`));
       expect(script).to.match(new RegExp(`KOTSADM_APPLICATION_SLUG=""`));
       expect(script).to.match(/MINIO_VERSION=""/);
+      expect(script).to.match(/OPENEBS_VERSION=""/);
     });
   });
 
@@ -377,6 +399,7 @@ describe("GET /<installerID>", () => {
       expect(script).to.match(new RegExp(`KOTSADM_VERSION=""`));
       expect(script).to.match(new RegExp(`KOTSADM_APPLICATION_SLUG=""`));
       expect(script).to.match(/MINIO_VERSION=""/);
+      expect(script).to.match(/OPENEBS_VERSION=""/);
     });
   });
 
@@ -429,7 +452,25 @@ spec:
       const script = await client.getInstallScript(id);
 
       expect(script).to.match(new RegExp(`MINIO_VERSION="${i.resolve().spec.minio!.version}"`));
+      expect(script).to.match(/OPENEBS_VERSION=""/);
       expect(script).to.match(new RegExp(`FLAGS="minio-namespace=minio"`));
+    });
+  });
+
+  describe("openebs (/6f4223e)", () => {
+    const id = "6f4223e";
+
+    before(async () => {
+      const uri = await client.postInstaller(openebs);
+      expect(uri).to.match(/6f4223e/);
+    });
+
+    it("injects openebs version and flags", async () => {
+      const i = Installer.parse(openebs);
+      const script = await client.getInstallScript(id);
+
+      expect(script).to.match(new RegExp(`OPENEBS_VERSION="${i.resolve().spec.openebs!.version}"`));
+      expect(script).to.match(new RegExp(`FLAGS="openebs-namespace=openebs openebs-localpv=1 openebs-localpv-storage-class=default"`));
     });
   });
 });
@@ -450,6 +491,7 @@ describe("GET /<installerID>/join.sh", () => {
       expect(script).to.match(new RegExp(`KOTSADM_VERSION=""`));
       expect(script).to.match(new RegExp(`KOTSADM_APPLICATION_SLUG=""`));
       expect(script).to.match(/MINIO_VERSION=""/);
+      expect(script).to.match(/OPENEBS_VERSION=""/);
     });
   });
 

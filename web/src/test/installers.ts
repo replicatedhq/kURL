@@ -23,6 +23,12 @@ spec:
     version: latest
     storageClass: default
     cephPoolReplicas: 1
+  openebs:
+    version: latest
+    namespace: openebs
+    localPV:
+      enabled: true
+      storageClass: default
   minio:
     version: latest
     namespace: minio
@@ -479,7 +485,7 @@ spec:
       it(`=> service-cidr=10.96.0.0/12 ...`, () => {
         const i = Installer.parse(everyOption);
 
-        expect(i.flags()).to.equal(`service-cidr=10.96.0.0/12 bypass-storagedriver-warnings=0 hard-fail-on-loopback=0 no-ce-on-ee=0 ip-alloc-range=10.32.0.0/12 encrypt-network=1 storage-class=default ceph-pool-replicas=1 minio-namespace=minio fluentd-full-efk-stack=1 kotsadm-ui-bind-port=8800 velero-namespace=velero velero-disable-cli velero-disable-restic`);
+        expect(i.flags()).to.equal(`service-cidr=10.96.0.0/12 bypass-storagedriver-warnings=0 hard-fail-on-loopback=0 no-ce-on-ee=0 ip-alloc-range=10.32.0.0/12 encrypt-network=1 storage-class=default ceph-pool-replicas=1 openebs-namespace=openebs openebs-localpv=1 openebs-localpv-storage-class=default minio-namespace=minio fluentd-full-efk-stack=1 kotsadm-ui-bind-port=8800 velero-namespace=velero velero-disable-cli velero-disable-restic`);
       });
     });
   });
@@ -529,6 +535,14 @@ spec:
       const i = Installer.parse(fluentdMin);
 
       expect(i.flags()).to.equal(``);
+    });
+  });
+
+  describe("openebs", () => {
+    it("should parse", () => {
+      const i = Installer.parse(everyOption);
+
+      expect(i.spec.openebs.namespace).to.equal("openebs");
     });
   });
 });

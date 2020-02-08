@@ -82,6 +82,38 @@ const rookConfigSchema = {
   additionalProperites: false,
 };
 
+export interface OpenEBSStoreConfig {
+  enabled: boolean;
+  storageClass: string;
+}
+
+export interface OpenEBSConfig {
+  version: string;
+  namespace: string;
+  localPV?: OpenEBSStoreConfig;
+}
+
+const openEBSLocalPVSchema = {
+  type: "object",
+  properties: {
+    enabled: { type: "boolean", flag: "openebs-localpv" },
+    storageClass: { type: "string", flag: "openebs-localpv-storage-class" },
+  },
+  required: ["enabled"],
+  additionalProperties: false,
+};
+
+const openEBSConfigSchema = {
+  type: "object",
+  properties: {
+    version: { type: "string" },
+    namespace: { type: "string", flag: "openebs-namespace" },
+    localPV: openEBSLocalPVSchema,
+  },
+  required: ["version"],
+  additionalProperties: false,
+};
+
 export interface MinioConfig {
   version: string;
   namespace: string;
@@ -192,6 +224,7 @@ export interface InstallerSpec {
   docker?: DockerConfig;
   weave?: WeaveConfig;
   rook?: RookConfig;
+  openebs?: OpenEBSConfig;
   minio?: MinioConfig;
   contour?: ContourConfig;
   registry?: RegistryConfig;
@@ -209,6 +242,7 @@ const specSchema = {
     docker: dockerConfigSchema,
     weave: weaveConfigSchema,
     rook: rookConfigSchema,
+    openebs: openEBSConfigSchema,
     minio: minioConfigSchema,
     contour: contourConfigSchema,
     registry: registryConfigSchema,
@@ -300,6 +334,9 @@ export class Installer {
     ],
     velero: [
       "1.2.0",
+    ],
+    openebs: [
+      "1.6.0",
     ],
     minio: [
       "2020-01-25T02-50-51Z",
@@ -584,6 +621,9 @@ export class Installer {
     }
     if (this.spec.velero && !Installer.hasVersion("velero", this.spec.velero.version)) {
       return { error: { message: `Velero version "${_.escape(this.spec.velero.version)}" is not supported` } };
+    }
+    if (this.spec.openebs && !Installer.hasVersion("openebs", this.spec.openebs.version)) {
+      return { error: { message: `OpenEBS version "${_.escape(this.spec.openebs.version)}" is not supported` } };
     }
     if (this.spec.minio && !Installer.hasVersion("minio", this.spec.minio.version)) {
       return { error: { message: `Minio version "${_.escape(this.spec.minio.version)}" is not supported` } };
