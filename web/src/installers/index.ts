@@ -549,7 +549,7 @@ export class Installer {
 
   public toObject(): InstallerObject {
     const obj = {
-      apiVersion: "kurl.sh/v1beta1",
+      apiVersion: "cluster.kurl.sh/v1beta1",
       kind: "Installer",
       metadata: {
         name: `${this.id}`,

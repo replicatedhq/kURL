@@ -52,8 +52,6 @@ function setup_installer_crd() {
 $INSTALLER_YAML
 EOF
 
-    sed -i 's/kurl.sh/cluster.kurl.sh/g' $INSTALLER_BASE_YAML_FILE
-
     kubectl apply -f $INSTALLER_BASE_YAML_FILE
 
     rm $INSTALLER_BASE_YAML_FILE
