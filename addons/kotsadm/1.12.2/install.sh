@@ -26,11 +26,14 @@ function kotsadm() {
     kotsadm_etcd_client_secret
     kotsadm_kubelet_client_secret
 
-    if [ "$AIRGAP" != "1" ]; then
+    if [ "$AIRGAP" != "1" ] && [ -n "$KOTSADM_APPLICATION_SLUG" ]; then
         curl $REPLICATED_APP_URL/metadata/$KOTSADM_APPLICATION_SLUG > "$src/application.yaml"
     fi
-    cp "$src/application.yaml" "$dst/"
-    kubectl create configmap kotsadm-application-metadata --from-file="$dst/application.yaml" --dry-run -oyaml > "$dst/kotsadm-application-metadata.yaml"
+    if test -f "$src/application.yaml"; then
+        echo "- kotsadm-application-metadata.yaml" >> "$dst/kustomization.yaml"
+        cp "$src/application.yaml" "$dst/"
+        kubectl create configmap kotsadm-application-metadata --from-file="$dst/application.yaml" --dry-run -oyaml > "$dst/kotsadm-application-metadata.yaml"
+    fi
 
     if [ -z "$KOTSADM_HOSTNAME" ]; then
         KOTSADM_HOSTNAME="$PUBLIC_ADDRESS"
@@ -329,4 +332,3 @@ function kotsadm_namespaces() {
         kubectl create ns "$NAMESPACE" 2>/dev/null || true
     done
 }
-
