@@ -63,15 +63,6 @@ interface Manifest {
   VELERO_VERSION: string;
   FLAGS: string;
   INSTALLER_YAML: string;
-  INSTALLER_CRD: string;
-}
-
-function readCRDFromYAML(): string {
-    const CRDPath = path.join("/src/crds", "cluster_v1beta1_installer.yaml");
-
-    let installerCRD = fs.readFileSync(CRDPath, "base64");
-
-    return installerCRD;
 }
 
 function manifestFromInstaller(i: Installer, kurlURL: string, replicatedAppURL: string): Manifest {
@@ -93,6 +84,5 @@ function manifestFromInstaller(i: Installer, kurlURL: string, replicatedAppURL: 
     VELERO_VERSION: _.get(i.spec, "velero.version", ""),
     FLAGS: i.flags(),
     INSTALLER_YAML: i.toYAML(),
-    INSTALLER_CRD : readCRDFromYAML(),
   };
 }
