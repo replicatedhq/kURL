@@ -182,6 +182,12 @@ function flags() {
             openebs-localpv-storage-class|openebs_localpv_storage_class)
                 OPENEBS_LOCALPV_STORAGE_CLASS="$_value"
                 ;;
+            openebs-cstor|openebs_cstor)
+                OPENEBS_CSTOR=1
+                ;;
+            openebs-cstor-storage-class|openebs_cstor_storage_class)
+                OPENEBS_CSTOR_STORAGE_CLASS="$_value"
+                ;;
             ekco-node-unreachable-toleration-duration|ekco_node_unreachable_toleration_duration)
                 EKCO_NODE_UNREACHABLE_TOLERATION_DURATION="$_value"
                 ;;
