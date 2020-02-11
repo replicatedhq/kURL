@@ -16,14 +16,16 @@ interface ErrorResponse {
 
 export interface KubernetesConfig {
   version: string;
-  serviceCIDR?: string;
+  serviceCidrRange?: string;
+  serviceCIDR?: string; // use serviceCidrRange instead
 }
 
 const kubernetesConfigSchema = {
   type: "object",
   properties: {
     version: { type: "string" },
-    serviceCIDR: { type: "string", flag: "service-cidr" },
+    serviceCidrRange: { type: "string", flag: "service-cidr-range" },
+    serviceCIDR: { type: "string", flag: "service-cidr" }, // use serviceCidrRange instead
   },
   required: [ "version" ],
   additionalProperties: false,
@@ -50,7 +52,8 @@ const dockerConfigSchema = {
 
 export interface WeaveConfig {
   version: string;
-  IPAllocRange?: string;
+  podCidrRange?: string;
+  IPAllocRange?: string; // use podCidrRange instead
   encryptNetwork?: boolean;
 }
 
@@ -58,7 +61,8 @@ const weaveConfigSchema = {
   type: "object",
   properties: {
     version: { type: "string" },
-    IPAllocRange: { type: "string", flag: "ip-alloc-range" },
+    podCidrRange: { type: "string", flag: "pod-cidr-range" },
+    IPAllocRange: { type: "string", flag: "ip-alloc-range" }, // use podCidrRange instead
     encryptNetwork: { type: "boolean", flag: "encrypt-network" },
   },
   required: [ "version" ],
@@ -427,6 +431,11 @@ export class Installer {
     ], _.lowerCase(id));
   }
 
+  public static isValidCidrRange(range: string): boolean {
+    const i = parseInt(range.replace(/^\//, ""));
+    return !isNaN(i) && i > 0 && i <= 32;
+  }
+
   public id: string;
   public spec: InstallerSpec;
 
@@ -597,8 +606,14 @@ export class Installer {
     if (!Installer.hasVersion("kubernetes", this.spec.kubernetes.version)) {
       return { error: { message: `Kubernetes version ${_.escape(this.spec.kubernetes.version)} is not supported` } };
     }
+    if (this.spec.kubernetes.serviceCidrRange && !Installer.isValidCidrRange(this.spec.kubernetes.serviceCidrRange)) {
+      return { error: { message: `Kubernetes serviceCidrRange "${_.escape(this.spec.kubernetes.serviceCidrRange)}" is invalid` } };
+    }
     if (this.spec.weave && !Installer.hasVersion("weave", this.spec.weave.version)) {
       return { error: { message: `Weave version "${_.escape(this.spec.weave.version)}" is not supported` } };
+    }
+    if (this.spec.weave && this.spec.weave.podCidrRange && !Installer.isValidCidrRange(this.spec.weave.podCidrRange)) {
+      return { error: { message: `Weave podCidrRange "${_.escape(this.spec.weave.podCidrRange)}" is invalid` } };
     }
     if (this.spec.rook && !Installer.hasVersion("rook", this.spec.rook.version)) {
       return { error: { message: `Rook version "${_.escape(this.spec.rook.version)}" is not supported` } };
