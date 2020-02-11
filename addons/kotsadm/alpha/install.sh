@@ -26,11 +26,7 @@ function kotsadm() {
     kotsadm_etcd_client_secret
     kotsadm_kubelet_client_secret
 
-    if [ "$AIRGAP" != "1" ]; then
-        curl $REPLICATED_APP_URL/metadata/$KOTSADM_APPLICATION_SLUG > "$src/application.yaml"
-    fi
-    cp "$src/application.yaml" "$dst/"
-    kubectl create configmap kotsadm-application-metadata --from-file="$dst/application.yaml" --dry-run -oyaml > "$dst/kotsadm-application-metadata.yaml"
+    kotsadm_metadata_configmap $src $dst
 
     if [ -z "$KOTSADM_HOSTNAME" ]; then
         KOTSADM_HOSTNAME="$PUBLIC_ADDRESS"
@@ -184,6 +180,25 @@ function kotsadm_api_encryption_key() {
 function kotsadm_api_patch_prometheus() {
     insert_patches_strategic_merge "$DIR/kustomize/kotsadm/kustomization.yaml" api-prometheus.yaml
     cp "$DIR/addons/kotsadm/alpha/patches/api-prometheus.yaml" "$DIR/kustomize/kotsadm/api-prometheus.yaml"
+}
+
+function kotsadm_metadata_configmap() {
+    local src="$1"
+    local dst="$2"
+
+    # Create an empty application-metadata.yaml to keep kustomization happy
+    # There's a case where a slug is not specified, and thus no application metadata.
+    # In that case we won't create the ConfigMap for the metadata.
+    touch $dst/kotsadm-application-metadata.yaml
+
+    if [ "$AIRGAP" != "1" ] && [ -n "$KOTSADM_APPLICATION_SLUG" ]; then
+        # If slug exists, but there's no branding, then replicated.app will return nothing.
+        # (application.yaml will remain empty)
+        echo "Retrieving app metadata: url=$REPLICATED_APP_URL, slug=$KOTSADM_APPLICATION_SLUG"
+        curl $REPLICATED_APP_URL/metadata/$KOTSADM_APPLICATION_SLUG > "$src/application.yaml"
+        cp "$src/application.yaml" "$dst/"
+        kubectl create configmap kotsadm-application-metadata --from-file="$dst/application.yaml" --dry-run -oyaml > "$dst/kotsadm-application-metadata.yaml"
+    fi
 }
 
 function kotsadm_kurl_proxy() {
