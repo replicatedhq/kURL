@@ -7,7 +7,7 @@ const everyOption = `apiVersion: kurl.sh/v1beta1
 spec:
   kubernetes:
     version: latest
-    serviceCIDR: 10.96.0.0/12
+    serviceSubnetSize: /12
   docker:
     version: latest
     bypassStorageDriverWarnings: false
@@ -16,7 +16,7 @@ spec:
   weave:
     version: latest
     encryptNetwork: true
-    IPAllocRange: 10.32.0.0/12
+    podSubnetSize: /12
   contour:
     version: latest
   rook:
@@ -482,10 +482,10 @@ spec:
 
   describe("flags", () => {
     describe("every option", () => {
-      it(`=> service-cidr=10.96.0.0/12 ...`, () => {
+      it(`=> service-subnet-size=/12 ...`, () => {
         const i = Installer.parse(everyOption);
 
-        expect(i.flags()).to.equal(`service-cidr=10.96.0.0/12 bypass-storagedriver-warnings=0 hard-fail-on-loopback=0 no-ce-on-ee=0 ip-alloc-range=10.32.0.0/12 encrypt-network=1 storage-class=default ceph-pool-replicas=1 openebs-namespace=openebs openebs-localpv=1 openebs-localpv-storage-class=default minio-namespace=minio fluentd-full-efk-stack=1 kotsadm-ui-bind-port=8800 velero-namespace=velero velero-disable-cli velero-disable-restic`);
+        expect(i.flags()).to.equal(`service-subnet-size=/12 bypass-storagedriver-warnings=0 hard-fail-on-loopback=0 no-ce-on-ee=0 pod-subnet-size=/12 encrypt-network=1 storage-class=default ceph-pool-replicas=1 openebs-namespace=openebs openebs-localpv=1 openebs-localpv-storage-class=default minio-namespace=minio fluentd-full-efk-stack=1 kotsadm-ui-bind-port=8800 velero-namespace=velero velero-disable-cli velero-disable-restic`);
       });
     });
   });

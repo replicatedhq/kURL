@@ -16,14 +16,16 @@ interface ErrorResponse {
 
 export interface KubernetesConfig {
   version: string;
-  serviceCIDR?: string;
+  serviceSubnetSize?: string;
+  serviceCIDR?: string; // use serviceSubnetSize instead
 }
 
 const kubernetesConfigSchema = {
   type: "object",
   properties: {
     version: { type: "string" },
-    serviceCIDR: { type: "string", flag: "service-cidr" },
+    serviceSubnetSize: { type: "string", flag: "service-subnet-size" },
+    serviceCIDR: { type: "string", flag: "service-cidr" }, // use serviceSubnetSize instead
   },
   required: [ "version" ],
   additionalProperties: false,
@@ -50,7 +52,8 @@ const dockerConfigSchema = {
 
 export interface WeaveConfig {
   version: string;
-  IPAllocRange?: string;
+  podSubnetSize?: string;
+  IPAllocRange?: string; // use podSubnetSize instead
   encryptNetwork?: boolean;
 }
 
@@ -58,7 +61,8 @@ const weaveConfigSchema = {
   type: "object",
   properties: {
     version: { type: "string" },
-    IPAllocRange: { type: "string", flag: "ip-alloc-range" },
+    podSubnetSize: { type: "string", flag: "pod-subnet-size" },
+    IPAllocRange: { type: "string", flag: "ip-alloc-range" }, // use podSubnetSize instead
     encryptNetwork: { type: "boolean", flag: "encrypt-network" },
   },
   required: [ "version" ],
