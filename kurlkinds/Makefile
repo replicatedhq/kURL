@@ -16,19 +16,6 @@ manager: generate fmt vet
 run: generate fmt vet
 	go run ./cmd/manager/main.go
 
-# Install CRDs into a cluster
-install: manifests
-	kubectl apply -f config/crds
-
-# Deploy controller in the configured Kubernetes cluster in ~/.kube/config
-deploy: manifests
-	kubectl apply -f config/crds
-	kustomize build config/default | kubectl apply -f -
-
-# Generate manifests e.g. CRD, RBAC etc.
-manifests:
-	go run vendor/sigs.k8s.io/controller-tools/cmd/controller-gen/main.go all
-
 # Run go fmt against code
 fmt:
 	go fmt ./pkg/... ./cmd/...
@@ -44,16 +31,6 @@ ifndef GOPATH
 endif
 	go generate ./pkg/... ./cmd/...
 
-# Build the docker image
-docker-build: test
-	docker build . -t ${IMG}
-	@echo "updating kustomize image patch file for manager resource"
-	sed -i'' -e 's@image: .*@image: '"${IMG}"'@' ./config/default/manager_image_patch.yaml
-
-# Push the docker image
-docker-push:
-	docker push ${IMG}
-
 controller-gen:
 	controller-gen \
 		object:headerFile=./hack/boilerplate.go.txt paths=./pkg/apis/
@@ -65,3 +42,7 @@ client-gen:
 		--input-base github.com/replicatedhq/kurl/kurlkinds/pkg/apis \
 		--input cluster/v1beta1 \
 		-h ./hack/boilerplate.go.txt
+
+manifests:
+	controller-gen \
+		rbac:roleName=manager-role webhook output:crd:dir=./config/crds/v1beta1 crd paths=./pkg/apis/... output:stdout
