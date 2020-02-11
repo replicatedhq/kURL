@@ -102,8 +102,9 @@ type Flags struct {
 }
 
 type Kubernetes struct {
-	Version     string `json:"version"`
-	ServiceCIDR string `json:"serviceCIDR,omitempty"`
+	Version           string `json:"version"`
+	ServiceCIDR       string `json:"serviceCIDR,omitempty"`
+	ServiceSubnetSize string `json:"serviceSubnetSize,omitempty"`
 }
 
 type Docker struct {
@@ -117,6 +118,7 @@ type Weave struct {
 	Version        string `json:"version"`
 	EncryptNetwork bool   `json:"encryptNetwork,omitempty"`
 	IPAllocRange   string `json:"IPAllocRange,omitempty"`
+	PodSubnetRange string `json:"podSubnetRange,omitempty"`
 }
 
 type Contour struct {

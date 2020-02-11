@@ -44,5 +44,4 @@ client-gen:
 		-h ./hack/boilerplate.go.txt
 
 manifests:
-	controller-gen \
-		rbac:roleName=manager-role webhook output:crd:dir=./config/crds/v1beta1 crd paths=./pkg/apis/... output:stdout
+	go run vendor/sigs.k8s.io/controller-tools/cmd/controller-gen/main.go all
