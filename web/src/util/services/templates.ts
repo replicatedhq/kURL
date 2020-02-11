@@ -62,6 +62,7 @@ interface Manifest {
   REPLICATED_APP_URL: string;
   VELERO_VERSION: string;
   FLAGS: string;
+  INSTALLER_YAML: string;
 }
 
 function manifestFromInstaller(i: Installer, kurlURL: string, replicatedAppURL: string): Manifest {
@@ -82,5 +83,6 @@ function manifestFromInstaller(i: Installer, kurlURL: string, replicatedAppURL: 
     REPLICATED_APP_URL: replicatedAppURL,
     VELERO_VERSION: _.get(i.spec, "velero.version", ""),
     FLAGS: i.flags(),
+    INSTALLER_YAML: i.toYAML(),
   };
 }

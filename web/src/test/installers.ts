@@ -306,7 +306,7 @@ describe("Installer", () => {
         const parsed = Installer.parse(noName);
         const yaml = parsed.toYAML();
 
-        expect(yaml).to.equal(`apiVersion: kurl.sh/v1beta1
+        expect(yaml).to.equal(`apiVersion: cluster.kurl.sh/v1beta1
 kind: Installer
 metadata:
   name: ''
@@ -330,7 +330,7 @@ spec:
         const parsed = Installer.parse(empty);
         const yaml = parsed.toYAML();
 
-        expect(yaml).to.equal(`apiVersion: kurl.sh/v1beta1
+        expect(yaml).to.equal(`apiVersion: cluster.kurl.sh/v1beta1
 kind: Installer
 metadata:
   name: ''

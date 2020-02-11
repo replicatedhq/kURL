@@ -22,11 +22,12 @@ endif
 clean:
 	rm -rf build tmp dist
 
-dist/common.tar.gz: build/kustomize build/shared build/krew
+dist/common.tar.gz: build/kustomize build/shared build/krew build/kurlkinds
 	mkdir -p dist
 	tar cf dist/common.tar -C build kustomize
 	tar rf dist/common.tar -C build shared
 	tar rf dist/common.tar -C build krew
+	tar rf dist/common.tar -C build crd
 	gzip dist/common.tar
 
 dist/aws-%.tar.gz: build/addons
@@ -150,6 +151,7 @@ build/templates/install.tmpl: build/install.sh
 		sed 's/^FLUENTD_VERSION=.*/FLUENTD_VERSION="{{= FLUENTD_VERSION }}"/' | \
 		sed 's/^KOTSADM_VERSION=.*/KOTSADM_VERSION="{{= KOTSADM_VERSION }}"/' | \
 		sed 's/^KOTSADM_APPLICATION_SLUG=.*/KOTSADM_APPLICATION_SLUG="{{= KOTSADM_APPLICATION_SLUG }}"/' | \
+		sed 's/^INSTALLER_YAML=.*/INSTALLER_YAML="{{= INSTALLER_YAML }}"/' | \
 		sed 's/^FLAGS=.*/FLAGS="{{= FLAGS }}"/' \
 		> build/templates/install.tmpl
 
@@ -180,6 +182,7 @@ build/templates/join.tmpl: build/join.sh
 		sed 's/^FLUENTD_VERSION=.*/FLUENTD_VERSION="{{= FLUENTD_VERSION }}"/' | \
 		sed 's/^KOTSADM_VERSION=.*/KOTSADM_VERSION="{{= KOTSADM_VERSION }}"/' | \
 		sed 's/^KOTSADM_APPLICATION_SLUG=.*/KOTSADM_APPLICATION_SLUG="{{= KOTSADM_APPLICATION_SLUG }}"/' | \
+		sed 's/^INSTALLER_YAML=.*/INSTALLER_YAML="{{= INSTALLER_YAML }}"/' | \
 		sed 's/^FLAGS=.*/FLAGS="{{= FLAGS }}"/' \
 		> build/templates/join.tmpl
 
@@ -210,6 +213,7 @@ build/templates/upgrade.tmpl: build/upgrade.sh
 		sed 's/^FLUENTD_VERSION=.*/FLUENTD_VERSION="{{= FLUENTD_VERSION }}"/' | \
 		sed 's/^KOTSADM_VERSION=.*/KOTSADM_VERSION="{{= KOTSADM_VERSION }}"/' | \
 		sed 's/^KOTSADM_APPLICATION_SLUG=.*/KOTSADM_APPLICATION_SLUG="{{= KOTSADM_APPLICATION_SLUG }}"/' | \
+		sed 's/^INSTALLER_YAML=.*/INSTALLER_YAML="{{= INSTALLER_YAML }}"/' | \
 		sed 's/^FLAGS=.*/FLAGS="{{= FLAGS }}"/' \
 		> build/templates/upgrade.tmpl
 
@@ -228,6 +232,10 @@ build/krew:
 build/kustomize:
 	mkdir -p build
 	cp -r scripts/kustomize build/
+
+build/kurlkinds:
+	mkdir -p build/
+	cp -r kurlkinds/config/crd/ build/
 
 build/shared: kurl-util-image
 	mkdir -p build/shared

@@ -11,7 +11,7 @@ const kurlURL = process.env.KURL_URL || "http://localhost:30092";
 const client = new KurlClient(kurlURL);
 
 const latest = `
-apiVersion: kurl.sh/v1beta1
+apiVersion: cluster.kurl.sh/v1beta1
 kind: Installer
 metadata:
   name: ""
@@ -33,7 +33,7 @@ spec:
 `;
 
 const latestV1Beta1 = `
-apiVersion: kurl.sh/v1beta1
+apiVersion: cluster.kurl.sh/v1beta1
 kind: Installer
 metadata:
   name: ""
@@ -542,7 +542,7 @@ describe("GET /installer/<installerID>", () => {
   it("returns installer yaml", async () => {
     const yaml = await client.getInstallerYAML("6898644");
 
-    expect(yaml).to.equal(`apiVersion: kurl.sh/v1beta1
+    expect(yaml).to.equal(`apiVersion: cluster.kurl.sh/v1beta1
 kind: Installer
 metadata:
   name: '6898644'

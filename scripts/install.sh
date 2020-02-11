@@ -250,6 +250,7 @@ function main() {
     addon_pre_init fluentd "$FLUENTD_VERSION"
     addon_pre_init kotsadm "$KOTSADM_VERSION"
     init
+    setup_installer_crd
     addon aws "$AWS_VERSION"
     addon nodeless "$NODELESS_VERSION"
     addon calico "$CALICO_VERSION"
