@@ -380,6 +380,21 @@ spec:
     });
   });
 
+  describe("Installer.isValidSubnetSize", () => {
+    [
+      { subnetSize: "/12", answer: true },
+      { subnetSize: "12", answer: true},
+      { subnetSize: " ", answer: false},
+      { subnetSize: "abc", answer: false},
+    ].forEach((test) => {
+      it(`"${test.subnetSize}" => ${test.answer}`, () => {
+        const output = Installer.isValidSubnetSize(test.subnetSize);
+
+        expect(Installer.isValidSubnetSize(test.subnetSize)).to.equal(test.answer);
+      });
+    });
+  });
+
   describe("validate", () => {
     describe("valid", () => {
       it("=> void", () => {
@@ -463,6 +478,32 @@ spec:
       const out = i.validate();
 
       expect(out).to.deep.equal({ error: { message: "spec.docker.version should be string" } });
+    });
+
+    describe("invalid podSubnetSize", () => {
+      const yaml = `
+spec:
+  kubernetes:
+    version: latest
+  weave:
+    version: latest
+    podSubnetSize: abc`;
+      const i = Installer.parse(yaml);
+      const out = i.validate();
+
+      expect(out).to.deep.equal({ error: { message: "Weave podSubnetSize \"abc\" is invalid" } });
+    });
+
+    describe("invalid serviceSubnetSize", () => {
+      const yaml = `
+spec:
+  kubernetes:
+    version: latest
+    serviceSubnetSize: abc`;
+      const i = Installer.parse(yaml);
+      const out = i.validate();
+
+      expect(out).to.deep.equal({ error: { message: "Kubernetes serviceSubnetSize \"abc\" is invalid" } });
     });
 
     describe("extra options", () => {

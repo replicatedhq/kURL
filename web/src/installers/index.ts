@@ -431,6 +431,11 @@ export class Installer {
     ], _.lowerCase(id));
   }
 
+  public static isValidSubnetSize(subnetSize: string): boolean {
+    const size = parseInt(subnetSize.replace(/^\//, ""));
+    return !isNaN(size) && size > 0 && size <= 32;
+  }
+
   public id: string;
   public spec: InstallerSpec;
 
@@ -601,8 +606,14 @@ export class Installer {
     if (!Installer.hasVersion("kubernetes", this.spec.kubernetes.version)) {
       return { error: { message: `Kubernetes version ${_.escape(this.spec.kubernetes.version)} is not supported` } };
     }
+    if (this.spec.kubernetes.serviceSubnetSize && !Installer.isValidSubnetSize(this.spec.kubernetes.serviceSubnetSize)) {
+      return { error: { message: `Kubernetes serviceSubnetSize "${_.escape(this.spec.kubernetes.serviceSubnetSize)}" is invalid` } };
+    }
     if (this.spec.weave && !Installer.hasVersion("weave", this.spec.weave.version)) {
       return { error: { message: `Weave version "${_.escape(this.spec.weave.version)}" is not supported` } };
+    }
+    if (this.spec.weave && this.spec.weave.podSubnetSize && !Installer.isValidSubnetSize(this.spec.weave.podSubnetSize)) {
+      return { error: { message: `Weave podSubnetSize "${_.escape(this.spec.weave.podSubnetSize)}" is invalid` } };
     }
     if (this.spec.rook && !Installer.hasVersion("rook", this.spec.rook.version)) {
       return { error: { message: `Rook version "${_.escape(this.spec.rook.version)}" is not supported` } };
