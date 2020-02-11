@@ -7,7 +7,7 @@ const everyOption = `apiVersion: kurl.sh/v1beta1
 spec:
   kubernetes:
     version: latest
-    serviceSubnetSize: /12
+    serviceCidrRange: /12
   docker:
     version: latest
     bypassStorageDriverWarnings: false
@@ -16,7 +16,7 @@ spec:
   weave:
     version: latest
     encryptNetwork: true
-    podSubnetSize: /12
+    podCidrRange: /12
   contour:
     version: latest
   rook:
@@ -380,17 +380,17 @@ spec:
     });
   });
 
-  describe("Installer.isValidSubnetSize", () => {
+  describe("Installer.isValidCidrRange", () => {
     [
-      { subnetSize: "/12", answer: true },
-      { subnetSize: "12", answer: true},
-      { subnetSize: " ", answer: false},
-      { subnetSize: "abc", answer: false},
+      { cidrRange: "/12", answer: true },
+      { cidrRange: "12", answer: true},
+      { cidrRange: " ", answer: false},
+      { cidrRange: "abc", answer: false},
     ].forEach((test) => {
-      it(`"${test.subnetSize}" => ${test.answer}`, () => {
-        const output = Installer.isValidSubnetSize(test.subnetSize);
+      it(`"${test.cidrRange}" => ${test.answer}`, () => {
+        const output = Installer.isValidCidrRange(test.cidrRange);
 
-        expect(Installer.isValidSubnetSize(test.subnetSize)).to.equal(test.answer);
+        expect(Installer.isValidCidrRange(test.cidrRange)).to.equal(test.answer);
       });
     });
   });
@@ -480,30 +480,30 @@ spec:
       expect(out).to.deep.equal({ error: { message: "spec.docker.version should be string" } });
     });
 
-    describe("invalid podSubnetSize", () => {
+    describe("invalid podCidrRange", () => {
       const yaml = `
 spec:
   kubernetes:
     version: latest
   weave:
     version: latest
-    podSubnetSize: abc`;
+    podCidrRange: abc`;
       const i = Installer.parse(yaml);
       const out = i.validate();
 
-      expect(out).to.deep.equal({ error: { message: "Weave podSubnetSize \"abc\" is invalid" } });
+      expect(out).to.deep.equal({ error: { message: "Weave podCidrRange \"abc\" is invalid" } });
     });
 
-    describe("invalid serviceSubnetSize", () => {
+    describe("invalid serviceCidrRange", () => {
       const yaml = `
 spec:
   kubernetes:
     version: latest
-    serviceSubnetSize: abc`;
+    serviceCidrRange: abc`;
       const i = Installer.parse(yaml);
       const out = i.validate();
 
-      expect(out).to.deep.equal({ error: { message: "Kubernetes serviceSubnetSize \"abc\" is invalid" } });
+      expect(out).to.deep.equal({ error: { message: "Kubernetes serviceCidrRange \"abc\" is invalid" } });
     });
 
     describe("extra options", () => {
@@ -523,10 +523,10 @@ spec:
 
   describe("flags", () => {
     describe("every option", () => {
-      it(`=> service-subnet-size=/12 ...`, () => {
+      it(`=> service-cidr-range=/12 ...`, () => {
         const i = Installer.parse(everyOption);
 
-        expect(i.flags()).to.equal(`service-subnet-size=/12 bypass-storagedriver-warnings=0 hard-fail-on-loopback=0 no-ce-on-ee=0 pod-subnet-size=/12 encrypt-network=1 storage-class=default ceph-pool-replicas=1 openebs-namespace=openebs openebs-localpv=1 openebs-localpv-storage-class=default minio-namespace=minio fluentd-full-efk-stack=1 kotsadm-ui-bind-port=8800 velero-namespace=velero velero-disable-cli velero-disable-restic`);
+        expect(i.flags()).to.equal(`service-cidr-range=/12 bypass-storagedriver-warnings=0 hard-fail-on-loopback=0 no-ce-on-ee=0 pod-cidr-range=/12 encrypt-network=1 storage-class=default ceph-pool-replicas=1 openebs-namespace=openebs openebs-localpv=1 openebs-localpv-storage-class=default minio-namespace=minio fluentd-full-efk-stack=1 kotsadm-ui-bind-port=8800 velero-namespace=velero velero-disable-cli velero-disable-restic`);
       });
     });
   });

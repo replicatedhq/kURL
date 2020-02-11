@@ -16,16 +16,16 @@ interface ErrorResponse {
 
 export interface KubernetesConfig {
   version: string;
-  serviceSubnetSize?: string;
-  serviceCIDR?: string; // use serviceSubnetSize instead
+  serviceCidrRange?: string;
+  serviceCIDR?: string; // use serviceCidrRange instead
 }
 
 const kubernetesConfigSchema = {
   type: "object",
   properties: {
     version: { type: "string" },
-    serviceSubnetSize: { type: "string", flag: "service-subnet-size" },
-    serviceCIDR: { type: "string", flag: "service-cidr" }, // use serviceSubnetSize instead
+    serviceCidrRange: { type: "string", flag: "service-cidr-range" },
+    serviceCIDR: { type: "string", flag: "service-cidr" }, // use serviceCidrRange instead
   },
   required: [ "version" ],
   additionalProperties: false,
@@ -52,8 +52,8 @@ const dockerConfigSchema = {
 
 export interface WeaveConfig {
   version: string;
-  podSubnetSize?: string;
-  IPAllocRange?: string; // use podSubnetSize instead
+  podCidrRange?: string;
+  IPAllocRange?: string; // use podCidrRange instead
   encryptNetwork?: boolean;
 }
 
@@ -61,8 +61,8 @@ const weaveConfigSchema = {
   type: "object",
   properties: {
     version: { type: "string" },
-    podSubnetSize: { type: "string", flag: "pod-subnet-size" },
-    IPAllocRange: { type: "string", flag: "ip-alloc-range" }, // use podSubnetSize instead
+    podCidrRange: { type: "string", flag: "pod-cidr-range" },
+    IPAllocRange: { type: "string", flag: "ip-alloc-range" }, // use podCidrRange instead
     encryptNetwork: { type: "boolean", flag: "encrypt-network" },
   },
   required: [ "version" ],
@@ -431,9 +431,9 @@ export class Installer {
     ], _.lowerCase(id));
   }
 
-  public static isValidSubnetSize(subnetSize: string): boolean {
-    const size = parseInt(subnetSize.replace(/^\//, ""));
-    return !isNaN(size) && size > 0 && size <= 32;
+  public static isValidCidrRange(range: string): boolean {
+    const i = parseInt(range.replace(/^\//, ""));
+    return !isNaN(i) && i > 0 && i <= 32;
   }
 
   public id: string;
@@ -606,14 +606,14 @@ export class Installer {
     if (!Installer.hasVersion("kubernetes", this.spec.kubernetes.version)) {
       return { error: { message: `Kubernetes version ${_.escape(this.spec.kubernetes.version)} is not supported` } };
     }
-    if (this.spec.kubernetes.serviceSubnetSize && !Installer.isValidSubnetSize(this.spec.kubernetes.serviceSubnetSize)) {
-      return { error: { message: `Kubernetes serviceSubnetSize "${_.escape(this.spec.kubernetes.serviceSubnetSize)}" is invalid` } };
+    if (this.spec.kubernetes.serviceCidrRange && !Installer.isValidCidrRange(this.spec.kubernetes.serviceCidrRange)) {
+      return { error: { message: `Kubernetes serviceCidrRange "${_.escape(this.spec.kubernetes.serviceCidrRange)}" is invalid` } };
     }
     if (this.spec.weave && !Installer.hasVersion("weave", this.spec.weave.version)) {
       return { error: { message: `Weave version "${_.escape(this.spec.weave.version)}" is not supported` } };
     }
-    if (this.spec.weave && this.spec.weave.podSubnetSize && !Installer.isValidSubnetSize(this.spec.weave.podSubnetSize)) {
-      return { error: { message: `Weave podSubnetSize "${_.escape(this.spec.weave.podSubnetSize)}" is invalid` } };
+    if (this.spec.weave && this.spec.weave.podCidrRange && !Installer.isValidCidrRange(this.spec.weave.podCidrRange)) {
+      return { error: { message: `Weave podCidrRange "${_.escape(this.spec.weave.podCidrRange)}" is invalid` } };
     }
     if (this.spec.rook && !Installer.hasVersion("rook", this.spec.rook.version)) {
       return { error: { message: `Rook version "${_.escape(this.spec.rook.version)}" is not supported` } };
