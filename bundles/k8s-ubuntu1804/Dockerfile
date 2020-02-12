@@ -9,9 +9,9 @@ RUN apt-get update
 
 RUN mkdir -p /packages/archives
 RUN apt-get install -d -y \
-	kubeadm=$(apt-cache madison kubeadm | grep ${KUBERNETES_VERSION} | awk '{ print $3 }') \
-	kubelet=$(apt-cache madison kubeadm | grep ${KUBERNETES_VERSION} | awk '{ print $3 }') \
-	kubectl=$(apt-cache madison kubeadm | grep ${KUBERNETES_VERSION} | awk '{ print $3 }') \
+	kubeadm=$(apt-cache madison kubeadm | grep ${KUBERNETES_VERSION}- | awk '{ print $3 }') \
+	kubelet=$(apt-cache madison kubeadm | grep ${KUBERNETES_VERSION}- | awk '{ print $3 }') \
+	kubectl=$(apt-cache madison kubeadm | grep ${KUBERNETES_VERSION}- | awk '{ print $3 }') \
 	kubernetes-cni \
 	git \
 	-oDebug::NoLocking=1 -o=dir::cache=/packages/
