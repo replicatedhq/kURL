@@ -58,7 +58,7 @@ spec:
     disablePrometheus: false
     disableRook: false
     dockerRegistryIP: 127.0.0.1
-    encryptNetwork: true
+    encryptNetwork: value
     fullEFKStack: false
     hardFailOnFirewalld: true
     hardFailOnLoopback: true

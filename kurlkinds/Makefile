@@ -26,10 +26,7 @@ vet:
 
 # Generate code
 generate:
-ifndef GOPATH
-	$(error GOPATH not defined, please define GOPATH. Run "go help gopath" to learn more about GOPATH)
-endif
-	go generate ./pkg/... ./cmd/...
+	controller-gen client-gen
 
 controller-gen:
 	controller-gen \
@@ -45,5 +42,4 @@ client-gen:
 
 manifests:
 	controller-gen \
-		rbac:roleName=manager-role webhook crd:crdVersions=v1beta1 output:crd:artifacts:config=config/crds/v1beta1 paths=./pkg/apis/
-
+		rbac:roleName=manager-role webhook crd output:crd:artifacts:config=config/crds/v1beta1 paths=./pkg/apis/...
