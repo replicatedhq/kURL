@@ -22,12 +22,11 @@ endif
 clean:
 	rm -rf build tmp dist
 
-dist/common.tar.gz: build/kustomize build/shared build/krew build/kurlkinds
+dist/common.tar.gz: build/kustomize build/shared build/krew 
 	mkdir -p dist
 	tar cf dist/common.tar -C build kustomize
 	tar rf dist/common.tar -C build shared
 	tar rf dist/common.tar -C build krew
-	tar rf dist/common.tar -C build crd
 	gzip dist/common.tar
 
 dist/aws-%.tar.gz: build/addons
@@ -232,10 +231,6 @@ build/krew:
 build/kustomize:
 	mkdir -p build
 	cp -r scripts/kustomize build/
-
-build/kurlkinds:
-	mkdir -p build/
-	cp -r kurlkinds/config/crd/ build/
 
 build/shared: kurl-util-image
 	mkdir -p build/shared
