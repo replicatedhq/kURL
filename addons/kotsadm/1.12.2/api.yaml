@@ -9,7 +9,6 @@ rules:
   - ""
   resourceNames:
   - kotsadm-application-metadata
-  - kotsadm-gitops
   resources:
   - configmaps
   verbs:
