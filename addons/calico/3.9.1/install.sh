@@ -11,13 +11,4 @@ function calico() {
 function calico_pre_init() {
     cp "$DIR/addons/calico/3.9.1/kubeadm-cluster-config-v1beta2.yml" "$DIR/kustomize/kubeadm/init-patches/calico-kubeadm-cluster-config-v1beta2.yml"
     cp "$DIR/addons/calico/3.9.1/kubeproxy-config-v1alpha1.yml" "$DIR/kustomize/kubeadm/init-patches/calico-kubeproxy-config-v1alpha1.yml"
-
-    calico_existing_pod_cidr
-}
-
-function calico_existing_pod_cidr() {
-    if [ ! -e /opt/replicated/kubeadm.conf ]; then
-        return 0
-    fi
-    EXISTING_POD_CIDR=$(cat /opt/replicated/kubeadm.conf | grep cluster-cidr | awk '{print $2}')
 }
