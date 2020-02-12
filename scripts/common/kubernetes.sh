@@ -280,6 +280,11 @@ function kubernetes_is_master() {
 }
 
 function discover_pod_subnet() {
+    local excluded=""
+    if ! ip route show src "$PRIVATE_ADDRESS" | awk '{ print $1 }' | grep -q '/'; then
+        excluded="--exclude-subnet=${PRIVATE_ADDRESS}/16"
+    fi
+
     if [ -n "$POD_CIDR" ]; then
         local podCidrSize=$(echo $POD_CIDR | awk -F'/' '{ print $2 }')
 
@@ -293,9 +298,11 @@ function discover_pod_subnet() {
         # if pod cidr flag matches existing weave pod cidr don't validate
         if [ "$POD_CIDR" = "$EXISTING_POD_CIDR" ]; then
             return 0
+        elif [ -n "$EXISTING_POD_CIDR" ]; then
+            bail "Pod cidr cannot be changed to $POD_CIDR because existing cidr is $EXISTING_POD_CIDR"
         fi
 
-        if docker run --rm --net=host replicated/kurl-util:v2020.02.11-0 subnet --subnet-alloc-range "$POD_CIDR" --cidr-range "$podCidrSize" 1>/dev/null; then
+        if docker run --rm --net=host replicated/kurl-util:v2020.02.11-0 subnet --subnet-alloc-range "$POD_CIDR" --cidr-range "$podCidrSize" "$excluded" 1>/dev/null; then
             return 0
         fi
 
@@ -316,14 +323,14 @@ function discover_pod_subnet() {
         size="22"
     fi
     # find a network for the Pods, preferring start at 10.32.0.0 
-    if podnet=$(docker run --rm --net=host replicated/kurl-util:v2020.02.11-0 subnet --subnet-alloc-range "10.32.0.0/16" --cidr-range "$size"); then
+    if podnet=$(docker run --rm --net=host replicated/kurl-util:v2020.02.11-0 subnet --subnet-alloc-range "10.32.0.0/16" --cidr-range "$size" "$excluded"); then
         echo "Found pod network: $podnet"
         POD_CIDR="$podnet"
         IP_ALLOC_RANGE="$podnet"
         return 0
     fi
 
-    if podnet=$(docker run --rm --net=host replicated/kurl-util:v2020.02.11-0 subnet --subnet-alloc-range "10.0.0.0/8" --cidr-range "$size"); then
+    if podnet=$(docker run --rm --net=host replicated/kurl-util:v2020.02.11-0 subnet --subnet-alloc-range "10.0.0.0/8" --cidr-range "$size" "$excluded"); then
         echo "Found pod network: $podnet"
         POD_CIDR="$podnet"
         IP_ALLOC_RANGE="$podnet"
@@ -335,6 +342,11 @@ function discover_pod_subnet() {
 
 # This must run after discover_pod_subnet since it excludes the pod cidr
 function discover_service_subnet() {
+    local excluded="--exclude-subnet=$POD_CIDR"
+    if ! ip route show src "$PRIVATE_ADDRESS" | awk '{ print $1 }' | grep -q '/'; then
+        excluded="$excluded,${PRIVATE_ADDRESS}/16"
+    fi
+
     EXISTING_SERVICE_CIDR=$(kubeadm config view 2>/dev/null | grep serviceSubnet | awk '{ print $2 }')
 
     if [ -n "$SERVICE_CIDR" ]; then
@@ -350,9 +362,11 @@ function discover_service_subnet() {
         # if service-cidr flag matches existing service cidr don't validate
         if [ "$SERVICE_CIDR" = "$EXISTING_SERVICE_CIDR" ]; then
             return 0
+        elif [ -n "$EXISTING_SERVICE_CIDR" ]; then
+            bail "Service cidr cannot be changed to $SERVICE_CIDR because existing cidr is $EXISTING_SERVICE_CIDR"
         fi
 
-        if docker run --rm --net=host replicated/kurl-util:v2020.02.11-0 subnet --subnet-alloc-range "$SERVICE_CIDR" --cidr-range "$serviceCidrSize" --exclude-subnet "$POD_CIDR" 1>/dev/null; then
+        if docker run --rm --net=host replicated/kurl-util:v2020.02.11-0 subnet --subnet-alloc-range "$SERVICE_CIDR" --cidr-range "$serviceCidrSize" "$excluded" 1>/dev/null; then
             return 0
         fi
 
@@ -375,13 +389,13 @@ function discover_service_subnet() {
     fi
 
     # find a network for the services, preferring start at 10.96.0.0 
-    if servicenet=$(docker run --rm --net=host replicated/kurl-util:v2020.02.11-0 subnet --subnet-alloc-range "10.96.0.0/16" --cidr-range "$size" --exclude-subnet "$POD_CIDR"); then
+    if servicenet=$(docker run --rm --net=host replicated/kurl-util:v2020.02.11-0 subnet --subnet-alloc-range "10.96.0.0/16" --cidr-range "$size" "$excluded"); then
         echo "Found service network: $servicenet"
         SERVICE_CIDR="$servicenet"
         return 0
     fi
 
-    if servicenet=$(docker run --rm --net=host replicated/kurl-util:v2020.02.11-0 subnet --subnet-alloc-range "10.0.0.0/8" --cidr-range "$size" --exclude-subnet "$POD_CIDR"); then
+    if servicenet=$(docker run --rm --net=host replicated/kurl-util:v2020.02.11-0 subnet --subnet-alloc-range "10.0.0.0/8" --cidr-range "$size" "$excluded"); then
         echo "Found service network: $servicenet"
         SERVICE_CIDR="$servicenet"
         return 0
