@@ -1,4 +1,8 @@
 
+function weave_pre_init() {
+    weave_use_existing_network
+}
+
 function weave() {
     cp "$DIR/addons/weave/2.5.2/kustomization.yaml" "$DIR/kustomize/weave/kustomization.yaml"
     cp "$DIR/addons/weave/2.5.2/rbac.yaml" "$DIR/kustomize/weave/rbac.yaml"
@@ -42,5 +46,12 @@ function weave_warn_if_sleeve() {
     local kernel_minor=$(uname -r | cut -d'.' -f2)
     if [ "$kernel_major" -lt "4" ] || ([ "$kernel_major" -lt "5" ] && [ "$kernel_minor" -lt "3" ]); then
         printf "${YELLOW}This host will not be able to establish optimized network connections with other peers in the Kubernetes cluster.\nRefer to the Replicated networking guide for help.\n\nhttp://help.replicated.com/docs/kubernetes/customer-installations/networking/${NC}\n"
+    fi
+}
+
+function weave_use_existing_network() {
+    if weaveDev=$(ip route show dev weave 2>/dev/null); then
+        EXISTING_POD_CIDR=$(echo $weaveDev | awk '{ print $1 }')
+        echo "Using existing weave network: $EXISTING_POD_CIDR"
     fi
 }
