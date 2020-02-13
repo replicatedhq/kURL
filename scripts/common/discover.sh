@@ -13,6 +13,7 @@ function discover() {
     fi
 
     discoverPublicIp
+    discover_private_ip
 
     KERNEL_MAJOR=$(uname -r | cut -d'.' -f1)
     KERNEL_MINOR=$(uname -r | cut -d'.' -f2)
@@ -239,4 +240,11 @@ discoverPublicIp() {
         PUBLIC_ADDRESS=$_out
         return
     fi
+}
+
+function discover_private_ip() {
+    if [ -n "$PRIVATE_ADDRESS" ]; then
+        return 0
+    fi
+    PRIVATE_ADDRESS=$(cat /etc/kubernetes/manifests/kube-apiserver.yaml | grep advertise-address | awk -F'=' '{ print $2 }')
 }
