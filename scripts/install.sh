@@ -94,11 +94,13 @@ function init() {
     # kubeadm init temporarily taints this node which causes rook to move any mons on it and may
     # lead to a loss of quorum
     disable_rook_ceph_operator
+    set -o pipefail
     kubeadm init \
         --ignore-preflight-errors=all \
         --config $KUBEADM_CONF_FILE \
         $UPLOAD_CERTS \
         | tee /tmp/kubeadm-init
+    set +o pipefail
 
     exportKubeconfig
     KUBEADM_TOKEN_CA_HASH=$(cat /tmp/kubeadm-init | grep 'discovery-token-ca-cert-hash' | awk '{ print $2 }' | head -1)
