@@ -7,24 +7,40 @@ spec:
     version: 1.16.4
     serviceCIDR: 10.96.0.0/12
     serviceSubnetSize: "/32"
+    bootstrapToken: 12xsr3d
+    bootstrapTokenTTL: 89f9d88df9
+    HACluster: true
+    loadBalancerAddress: "1.232"
+    kubernetesUpgradePatchVersion: true
+    kubernetesMasterAddress: 192.13.4.3
+    apiServiceAddress: 192.168.1.1
+    kubeadmTokenCAHash: dfljfgdl
+    controlPlane: true
+    certKey: "secret"
   docker:
     version: latest
     bypassStorageDriverWarnings: false
     hardFailOnLoopback: false
     noCEOnEE: false
+    noDocker: false
+    additionalNoProxy: 2.3.1.3/32
+    dockerRegistryIP: 127.0.0.1
   weave:
     version: latest
     encryptNetwork: true
-    podSubnetSize: "/32"
     IPAllocRange: 10.32.0.0/12
+    podCIDRRange: "/32"
+    podCIDR: "1.1.1.1"
   contour:
     version: latest
+    disableCountour: true
   rook:
     version: latest
     storageClass: default
     cephPoolReplicas: 1
   registry:
     version: latest
+    registryPublishPort: "2323"
   prometheus:
     version: latest
   fluentd:
@@ -34,64 +50,31 @@ spec:
     version: latest
     applicationSlug: sentry
     uiBindPort: 8800
+    kotsadmApplicationNamepsaces: "best"
+    kotsadmHostname: 192.168.2.2
+    kotsadmAlpha: "alpha"
   velero:
     version: latest
     namespace: velero
     installCLI: false
     useRestic: false
-  flags:
-    HACluster: true
-    HTTPProxy: 192.168.1.1
-    IPAllocRange: 39.124.134.12
-    additionalNoProxy: 2.3.1.3/32
-    airgap: true
-    apiServiceAddress: 192.168.1.1
-    bootstrapToken: 12xsr3d
-    bootstrapTokenTTL: 89f9d88df9
-    bypassFirewalldWarning: false
-    bypassStorageDriverWarnings: false
-    cephPoolReplicas: 4
-    certKey: "secret"
-    clusterDNS: 127.0.0.1
-    controlPlane: true
-    disableContour: false
-    disablePrometheus: false
-    disableRook: false
-    dockerRegistryIP: 127.0.0.1
-    encryptNetwork: true
-    fullEFKStack: false
-    hardFailOnFirewalld: true
-    hardFailOnLoopback: true
-    hostnameCheck: "test"
-    insecure: false
-    isKurl: true
-    kotsadmAlpha: "alpha"
-    kotsadmApplicationNamepsaces: "best"
-    kotsadmHostname: 192.168.2.2
-    kotsadmUIBindPort: 192.168.1.1
-    kubeadmTokenCAHash: dfljfgdl
-    kubernetesMasterAddress: 192.13.4.3
-    kubernetesNamespace: "k8s"
-    kubernetesUpgradePatchVersion: true
-    kubernetesVersion: "1.23"
-    loadBalancerAddress: "1.232"
-    logLevel: "high"
+    LocalBucket: false
+  minio:
+    version: "latest"
     minioNamespace: "minio"
-    noCEOnEE: true
-    noDocker: false
-    noProxy: false
+  openEBS:
+    version: "latest"
     openEBSLocalPV: "strongpv"
     openEBSLocalPVStorageClass: "gym"
     openEBSNamespace: "openebs"
-    podCIDR: 191.29.3.1
-    privateAddress: 10.32.45.5
+  flags:
+    isKurl: True
+    airgap: true
+    hostnameCheck: "test"
+    HTTPProxy: "1.1.1."
+    noProxy: false
     publicAddress: 38.3.5.3
-    registryPublishPort: 443a
-    serviceCIDR: 98.3.42.3
-    skipPull: true
-    storageClass: "openebs"
-    task: "important"
-    veleroDisableCLI: false
-    veleroDisableRestic: false
-    veleroLocalBucket: "bigvelero"
-    veleroNamespace: "velero"
+    privateAddress: 10.32.45.5
+    hardFailOnFirewalld: true
+    bypassFirewalldWarning: false
+    Task: "important"

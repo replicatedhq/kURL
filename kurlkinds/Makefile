@@ -1,4 +1,6 @@
 
+export GO111MODULE=on
+
 # Image URL to use all building/pushing image targets
 IMG ?= controller:latest
 
@@ -25,8 +27,7 @@ vet:
 	go vet ./pkg/... ./cmd/...
 
 # Generate code
-generate:
-	controller-gen client-gen
+generate: controller-gen client-gen manifests
 
 controller-gen:
 	controller-gen \
