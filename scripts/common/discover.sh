@@ -246,5 +246,5 @@ function discover_private_ip() {
     if [ -n "$PRIVATE_ADDRESS" ]; then
         return 0
     fi
-    PRIVATE_ADDRESS=$(cat /etc/kubernetes/manifests/kube-apiserver.yaml | grep advertise-address | awk -F'=' '{ print $2 }')
+    PRIVATE_ADDRESS=$(cat /etc/kubernetes/manifests/kube-apiserver.yaml 2>/dev/null | grep advertise-address | awk -F'=' '{ print $2 }')
 }
