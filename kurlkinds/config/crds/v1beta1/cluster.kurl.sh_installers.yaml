@@ -43,11 +43,19 @@ spec:
               type: object
             docker:
               properties:
+                additionalNoProxy:
+                  type: string
                 bypassStorageDriverWarning:
                   type: boolean
+                dockerRegistryIP:
+                  type: string
                 hardFailOnLoopBack:
                   type: boolean
                 noCEOnEE:
+                  type: boolean
+                noDocker:
+                  type: boolean
+                skipDockerPull:
                   type: boolean
                 version:
                   type: string
@@ -56,117 +64,23 @@ spec:
               type: object
             flags:
               properties:
-                HACluster:
-                  type: boolean
                 HTTPProxy:
-                  type: string
-                IPAllocRange:
-                  type: string
-                additionalNoProxy:
                   type: string
                 airgap:
                   type: boolean
-                apiServiceAddress:
-                  type: string
-                bootstrapToken:
-                  type: string
-                bootstrapTokenTTL:
-                  type: string
-                bypassFirewalldWarning:
+                bypassFirewallDWarning:
                   type: boolean
-                bypassStorageDriverWarnings:
-                  type: boolean
-                cephPoolReplicas:
-                  type: integer
-                certKey:
-                  type: string
-                clusterDNS:
-                  type: string
-                controlPlane:
-                  type: boolean
-                disableContour:
-                  type: boolean
-                disablePrometheus:
-                  type: boolean
-                disableRook:
-                  type: boolean
-                dockerRegistryIP:
-                  type: string
-                encryptNetwork:
-                  type: string
-                forceReset:
-                  type: boolean
-                fullEFKStack:
-                  type: boolean
-                hardFailOnFirewalld:
-                  type: boolean
-                hardFailOnLoopback:
+                hardFailOnFirewallD:
                   type: boolean
                 hostnameCheck:
                   type: string
-                insecure:
-                  type: boolean
-                isKurl:
-                  type: boolean
-                kotsadmAlpha:
-                  type: string
-                kotsadmApplicationNamepsaces:
-                  type: string
-                kotsadmHostname:
-                  type: string
-                kotsadmUIBindPort:
-                  type: string
-                kubeadmTokenCAHash:
-                  type: string
-                kubernetesMasterAddress:
-                  type: string
-                kubernetesNamespace:
-                  type: string
-                kubernetesUpgradePatchVersion:
-                  type: boolean
-                kubernetesVersion:
-                  type: string
-                loadBalancerAddress:
-                  type: string
-                logLevel:
-                  type: string
-                minioNamespace:
-                  type: string
-                noCEOnEE:
-                  type: boolean
-                noDocker:
-                  type: boolean
                 noProxy:
                   type: boolean
-                openEBSLocalPV:
-                  type: string
-                openEBSLocalPVStorageClass:
-                  type: string
-                openEBSNamespace:
-                  type: string
-                podCIDR:
-                  type: string
                 privateAddress:
                   type: string
                 publicAddress:
                   type: string
-                registryPublishPort:
-                  type: string
-                serviceCIDR:
-                  type: string
-                skipPull:
-                  type: boolean
-                storageClass:
-                  type: string
                 task:
-                  type: string
-                veleroDisableCLI:
-                  type: boolean
-                veleroDisableRestic:
-                  type: boolean
-                veleroLocalBucket:
-                  type: string
-                veleroNamespace:
                   type: string
               type: object
             fluentd:
@@ -182,6 +96,12 @@ spec:
               properties:
                 applicationSlug:
                   type: string
+                kotsadmAlpha:
+                  type: string
+                kotsadmApplicationNamepsaces:
+                  type: string
+                kotsadmHostname:
+                  type: string
                 uiBindPort:
                   type: integer
                 version:
@@ -191,9 +111,51 @@ spec:
               type: object
             kubernetes:
               properties:
+                HACluster:
+                  type: boolean
+                apiServiceAddress:
+                  type: string
+                bootstrapToken:
+                  type: string
+                bootstrapTokenTTL:
+                  type: string
+                certKey:
+                  type: string
+                controlPlane:
+                  type: boolean
+                kubeadmTokenCAHash:
+                  type: string
+                kubernetesMasterAddress:
+                  type: string
+                kubernetesUpgradePatchVersion:
+                  type: boolean
+                loadBalancerAddress:
+                  type: string
                 serviceCIDR:
                   type: string
-                serviceSubnetSize:
+                serviceCIDRRange:
+                  type: string
+                version:
+                  type: string
+              required:
+              - version
+              type: object
+            minio:
+              properties:
+                minioNamespace:
+                  type: string
+                version:
+                  type: string
+              required:
+              - version
+              type: object
+            openEBS:
+              properties:
+                openEBSLocalPV:
+                  type: string
+                openEBSLocalPVStorageClass:
+                  type: string
+                openEBSNamespace:
                   type: string
                 version:
                   type: string
@@ -209,6 +171,8 @@ spec:
               type: object
             registry:
               properties:
+                registryPublishPort:
+                  type: string
                 version:
                   type: string
               required:
@@ -229,6 +193,8 @@ spec:
               properties:
                 installCLI:
                   type: boolean
+                localBucket:
+                  type: boolean
                 namespace:
                   type: string
                 useREstic:
@@ -244,7 +210,9 @@ spec:
                   type: string
                 encryptNetwork:
                   type: boolean
-                podSubnetRange:
+                podCIDR:
+                  type: string
+                podCIDRRange:
                   type: string
                 version:
                   type: string

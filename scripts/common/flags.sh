@@ -43,9 +43,6 @@ function flags() {
                 LOAD_BALANCER_ADDRESS="$_value"
                 HA_CLUSTER=1
                 ;;
-            log-level|log_level)
-                LOG_LEVEL="$_value"
-                ;;
             no-docker|no_docker)
                 SKIP_DOCKER_INSTALL=1
                 ;;
@@ -58,11 +55,8 @@ function flags() {
             private-address|private_address)
                 PRIVATE_ADDRESS="$_value"
                 ;;
-            skip-pull|skip_pull)
+            skip-pull|skip_pull) check
                 SKIP_DOCKER_PULL=1
-                ;;
-            kubernetes-namespace|kubernetes_namespace)
-                KUBERNETES_NAMESPACE="$_value"
                 ;;
             storage-class|storage_class)
                 STORAGE_CLASS="$_value"
@@ -91,17 +85,8 @@ function flags() {
             fluentd-full-efk-stack|fluentd_full_efk_stack)
                 FLUENTD_FULL_EFK_STACK=1
                 ;;
-            reset)
-                RESET=1
-                ;;
-            force-reset|force_reset)
-                FORCE_RESET=1
-                ;;
             service-cidr|service_cidr)
                 SERVICE_CIDR="$_value"
-                ;;
-            cluster-dns|cluster_dns)
-                CLUSTER_DNS="$_value"
                 ;;
             encrypt-network|encrypt_network)
                 ENCRYPT_NETWORK="$_value"
@@ -121,9 +106,6 @@ function flags() {
                 ;;
             api-service-address|api_service_address)
                 API_SERVICE_ADDRESS="$_value"
-                ;;
-            insecure)
-                INSECURE=1
                 ;;
             kubeadm-token|kubeadm_token)
                 KUBEADM_TOKEN="$_value"

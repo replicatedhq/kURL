@@ -1,0 +1,78 @@
+apiVersion: cluster.kurl.sh/v1beta1
+kind: Installer
+metadata:
+  name: "base"
+spec:
+  kubernetes:
+    version: {{ KubernetesVersion }}
+    serviceCIDR: {{ ServiceCIDR }}
+    serviceCIDRRange: {{ ServiceCIDRRange }}
+    bootstrapToken: {{ BootstrapToken }}
+    bootstrapTokenTTL: {{ BootstrapTokenTTL }}
+    HACluster: {{ HA_Cluster }}
+    loadBalancerAddress: {{ LoadBalancerAddress }}
+    kubernetesUpgradePatchVersion: {{ KubernetesUpgradePatchVersion }}
+    kubernetesMasterAddress: {{ KubernetesMasterAddress }}
+    apiServiceAddress: {{ APIServiceAddress }}
+    kubeadmTokenCAHash: {{ KubeadmTokenCAHash }}
+    controlPlane: {{ ControlPlane }}
+    certKey: {{ CertKey}}
+  docker:
+    version: {{ DockerVersion }}
+    bypassStorageDriverWarnings: {{ BypassStoragedriverWarning }}
+    hardFailOnLoopback: {{ HardFailOnLoopback }}
+    noCEOnEE: {{ NoCEOnEE }}
+    noDocker: {{ NoDocker }}
+    additionalNoProxy: {{ AdditonalNoProxy }}
+    dockerRegistryIP: {{ DockerRegistryIp }}
+  weave:
+    version: {{ WeaveVersion }}
+    encryptNetwork: {{ EncryptNetwork }}
+    IPAllocRange: {{ IPAllocRange }}
+    podCIDRRange: {{ PodCIDRRange }}
+    podCIDR: {{ PodCIDR }}
+  contour:
+    version: {{ ContourVersion }}
+  rook:
+    version: {{ RookVersion }}
+    storageClass: {{ StorageClass }}
+    cephPoolReplicas: {{ CephPoolReplicas }}
+  registry:
+    version: {{ RegistryVersion }}
+    registryPublishPort: {{ RegistryPublishPort }}
+  prometheus:
+    version: {{ PrometheusVersion  }}
+  fluentd:
+    version: {{ FluentdVersion }}
+    efkStack: {{ EfkStack }}
+  kotsadm:
+    version: {{ KotsadmVersion }}
+    applicationSlug: {{ ApplicationSlug }}
+    uiBindPort: {{ KotsadmUIBindPort }}
+    kotsadmApplicationNamepsaces: {{ KotsadmApplicationNamepsaces }}
+    kotsadmHostname: {{ KotsadmHostname }}
+    kotsadmAlpha: {{ KotsadmApplicationSlug }}
+  velero:
+    version: {{ VeleroVersion }}
+    namespace: {{ VeleroNamespace }}
+    installCLI: {{ InstallCLI }}
+    useRestic: {{ UseRestic }}
+    localBucket: {{ LocalBucket }}
+  minio:
+    version: {{ MinioVersion }}
+    minioNamespace: {{ MinioNamespace }}
+  openEBS:
+    version: {{ OpenEBSVersion }}
+    openEBSLocalPV: {{ OpenEBSLocalPV }}
+    openEBSLocalPVStorageClass: {{ OpenEBSLocalPVStorageClass }}
+    openEBSNamespace: {{ OpenEBSNamespace }}
+  flags:
+    airgap: {{ Airgap }}
+    hostnameCheck: {{ HostnameCheck }}
+    HTTPProxy: {{ HTTPProxy }}
+    noProxy: {{ NoProxy }}
+    publicAddress: {{ PublicAddress }}
+    privateAddress: {{ PrivateAddress }}
+    hardFailOnFirewallD: {{ HardFailOnFirewallD }}
+    bypassFirewallDdWarning: {{ BypassFirewallDWarning }}
+    Task: {{ Task }}
