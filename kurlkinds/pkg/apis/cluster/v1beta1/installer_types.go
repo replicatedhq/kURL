@@ -71,7 +71,7 @@ type Docker struct {
 
 type Weave struct {
 	Version        string `json:"version"`
-	EncryptNetwork bool   `json:"encryptNetwork,omitempty"`
+	EncryptNetwork string   `json:"encryptNetwork,omitempty"`
 	IPAllocRange   string `json:"IPAllocRange,omitempty"`
 	PodCIDR        string `json:"podCIDR,omitempty"`
 	PodCIDRRange        string `json:"podCIDRRange,omitempty"`

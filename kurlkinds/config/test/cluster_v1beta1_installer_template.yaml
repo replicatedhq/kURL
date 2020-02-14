@@ -1,7 +1,7 @@
 apiVersion: cluster.kurl.sh/v1beta1
 kind: Installer
 metadata:
-  name: "base"
+  name: "template"
 spec:
   kubernetes:
     version: {{ KubernetesVersion }}
@@ -9,14 +9,14 @@ spec:
     serviceCIDRRange: {{ ServiceCIDRRange }}
     bootstrapToken: {{ BootstrapToken }}
     bootstrapTokenTTL: {{ BootstrapTokenTTL }}
-    HACluster: {{ HA_Cluster }}
+    HACluster: {{ HACluster }}
     loadBalancerAddress: {{ LoadBalancerAddress }}
     kubernetesUpgradePatchVersion: {{ KubernetesUpgradePatchVersion }}
     kubernetesMasterAddress: {{ KubernetesMasterAddress }}
     apiServiceAddress: {{ APIServiceAddress }}
     kubeadmTokenCAHash: {{ KubeadmTokenCAHash }}
     controlPlane: {{ ControlPlane }}
-    certKey: {{ CertKey}}
+    certKey: {{ CertKey }}
   docker:
     version: {{ DockerVersion }}
     bypassStorageDriverWarnings: {{ BypassStoragedriverWarning }}
@@ -41,13 +41,13 @@ spec:
     version: {{ RegistryVersion }}
     registryPublishPort: {{ RegistryPublishPort }}
   prometheus:
-    version: {{ PrometheusVersion  }}
+    version: {{ PrometheusVersion }}
   fluentd:
     version: {{ FluentdVersion }}
     efkStack: {{ EfkStack }}
   kotsadm:
     version: {{ KotsadmVersion }}
-    applicationSlug: {{ ApplicationSlug }}
+    applicationSlug: {{ KotsadmApplicationSlug }}
     uiBindPort: {{ KotsadmUIBindPort }}
     kotsadmApplicationNamepsaces: {{ KotsadmApplicationNamepsaces }}
     kotsadmHostname: {{ KotsadmHostname }}
@@ -55,9 +55,9 @@ spec:
   velero:
     version: {{ VeleroVersion }}
     namespace: {{ VeleroNamespace }}
-    installCLI: {{ InstallCLI }}
-    useRestic: {{ UseRestic }}
-    localBucket: {{ LocalBucket }}
+    installCLI: {{ VeleroInstallCLI }}
+    useRestic: {{ VeleroUseRestic }}
+    localBucket: {{ VeleroLocalBucket }}
   minio:
     version: {{ MinioVersion }}
     minioNamespace: {{ MinioNamespace }}
