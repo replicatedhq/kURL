@@ -129,9 +129,9 @@ discoverCurrentKubernetesVersion() {
 
         if [ "$KUBERNETES_CURRENT_VERSION_MINOR" -gt "$minor" ]; then
             printf "%s %s %s" \
-              "The currently installed kubernetes version is ${CURRENT_KUBERNETES_VERSION}." \
-              "The requested version to upgrade to is ${KUBERNETES_VERSION}." \
-              "Since the currently installed version is newer than the requested version, no action will be taken."
+                   "The currently installed kubernetes version is ${CURRENT_KUBERNETES_VERSION}." \
+                   "The requested version to upgrade to is ${KUBERNETES_VERSION}." \
+                   "Since the currently installed version is newer than the requested version, no action will be taken."
             bail
         fi
 
@@ -139,9 +139,9 @@ discoverCurrentKubernetesVersion() {
 
         if [ "$NEXT_UPGRADEABLE_VERSION_MINOR" -lt $minor ]; then
             printf "%s %s %s" \
-              "The currently installed kubernetes version is ${CURRENT_KUBERNETES_VERSION}." \
-              "The requested version to upgrade to is ${KUBERNETES_VERSION}." \
-              "kURL can only be upgrade one minor version at at time. Please install ${major}.${NEXT_UPGRADEABLE_VERSION_MINOR}.X. first."
+                   "The currently installed kubernetes version is ${CURRENT_KUBERNETES_VERSION}." \
+                   "The requested version to upgrade to is ${KUBERNETES_VERSION}." \
+                   "kURL can only be upgrade one minor version at at time. Please install ${major}.${NEXT_UPGRADEABLE_VERSION_MINOR}.X. first."
             bail
         fi
 
