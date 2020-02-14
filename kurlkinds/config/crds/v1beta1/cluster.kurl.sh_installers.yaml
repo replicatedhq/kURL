@@ -209,7 +209,7 @@ spec:
                 IPAllocRange:
                   type: string
                 encryptNetwork:
-                  type: boolean
+                  type: string
                 podCIDR:
                   type: string
                 podCIDRRange:
