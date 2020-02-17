@@ -1,0 +1,47 @@
+apiVersion: cluster.kurl.sh/v1beta1
+kind: Installer
+metadata:
+  name: "template"
+spec:
+  kubernetes:
+    version: latest
+    HACluster: false
+    kubernetesUpgradePatchVersion: false
+    controlPlane: false
+  docker:
+    version: poop
+    bypassStorageDriverWarnings: false
+    hardFailOnLoopback: false
+    noCEOnEE: false
+    noDocker: true
+  weave:
+    version: latest
+  contour:
+    version: latest
+  rook:
+    version: latest
+    cephPoolReplicas: 0
+  registry:
+    version: latest
+  prometheus:
+    version: latest
+  fluentd:
+    version: latest
+    efkStack: false
+  kotsadm:
+    version: latest
+    uiBindPort: 0
+  velero:
+    version: latest
+    installCLI: false
+    useRestic: false
+    localBucket: false
+  minio:
+    version: latest
+  openEBS:
+    version: latest
+  flags:
+    airgap: false
+    noProxy: true
+    hardFailOnFirewallD: false
+    bypassFirewallDdWarning: false

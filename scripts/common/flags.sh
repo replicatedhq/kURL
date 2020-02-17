@@ -98,9 +98,6 @@ function flags() {
                     ADDITIONAL_NO_PROXY="$ADDITIONAL_NO_PROXY,$_value"
                 fi
                 ;;
-            kubernetes-upgrade-patch-version|kubernetes_upgrade_patch_version)
-                K8S_UPGRADE_PATCH_VERSION=1
-                ;;
             kubernetes-master-address|kubernetes_master_address)
                 KUBERNETES_MASTER_ADDR="$_value"
                 ;;

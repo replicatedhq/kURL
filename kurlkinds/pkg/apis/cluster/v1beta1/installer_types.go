@@ -20,10 +20,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
-// NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
-
-// InstallerSpec defines the desired state of Installer
 type InstallerSpec struct {
 	Kubernetes Kubernetes `json:"kubernetes,omitempty"`
 	Docker     Docker     `json:"docker,omitempty"`
@@ -38,8 +34,6 @@ type InstallerSpec struct {
 	Minio      Minio      `json:"minio,omitempty"`
 	OpenEBS    OpenEBS    `json:"openEBS,omitempty"`
 	Flags      Flags      `json:"flags,omitempty"`
-	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
 }
 
 type Kubernetes struct {
@@ -50,7 +44,6 @@ type Kubernetes struct {
 	BootstrapTokenTTL             string `json:"bootstrapTokenTTL,omitempty"`
 	HACluster                     bool   `json:"HACluster,omitempty"`
 	LoadBalancerAddress           string `json:"loadBalancerAddress,omitempty"`
-	KubernetesUpgradePatchVersion bool   `json:"kubernetesUpgradePatchVersion,omitempty"`
 	KubernetesMasterAddress       string `json:"kubernetesMasterAddress,omitempty"`
 	ApiServiceAddress             string `json:"apiServiceAddress,omitempty"`
 	KubeadmTokenCAHash            string `json:"kubeadmTokenCAHash,omitempty"`
