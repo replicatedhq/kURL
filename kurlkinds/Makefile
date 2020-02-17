@@ -36,8 +36,8 @@ controller-gen:
 client-gen:
 	client-gen \
 		--output-package=github.com/replicatedhq/kurl/kurlkinds/client \
-		--clientset-name kurlclientset \
-		--input-base github.com/replicatedhq/kurl/kurlkinds/pkg/apis \
+		--clientset-name kurlclientset \g.
+s		--input-base github.com/replicatedhq/kurl/kurlkinds/pkg/apis \
 		--input cluster/v1beta1 \
 		-h ./hack/boilerplate.go.txt
 
