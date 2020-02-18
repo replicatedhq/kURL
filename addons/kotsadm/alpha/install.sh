@@ -186,16 +186,16 @@ function kotsadm_metadata_configmap() {
     local src="$1"
     local dst="$2"
 
-    # Create an empty application-metadata.yaml to keep kustomization happy
-    # There's a case where a slug is not specified, and thus no application metadata.
-    # In that case we won't create the ConfigMap for the metadata.
-    touch $dst/kotsadm-application-metadata.yaml
-
+    # The application.yaml pre-exists from airgap bundle OR
+    # gets created below if user specified the app-slug and metadata exists.
     if [ "$AIRGAP" != "1" ] && [ -n "$KOTSADM_APPLICATION_SLUG" ]; then
         # If slug exists, but there's no branding, then replicated.app will return nothing.
         # (application.yaml will remain empty)
         echo "Retrieving app metadata: url=$REPLICATED_APP_URL, slug=$KOTSADM_APPLICATION_SLUG"
         curl $REPLICATED_APP_URL/metadata/$KOTSADM_APPLICATION_SLUG > "$src/application.yaml"
+    fi
+    if test -s "$src/application.yaml"; then
+        echo "- kotsadm-application-metadata.yaml" >> "$dst/kustomization.yaml"
         cp "$src/application.yaml" "$dst/"
         kubectl create configmap kotsadm-application-metadata --from-file="$dst/application.yaml" --dry-run -oyaml > "$dst/kotsadm-application-metadata.yaml"
     fi
