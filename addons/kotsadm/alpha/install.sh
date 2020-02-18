@@ -195,9 +195,9 @@ function kotsadm_metadata_configmap() {
         curl $REPLICATED_APP_URL/metadata/$KOTSADM_APPLICATION_SLUG > "$src/application.yaml"
     fi
     if test -s "$src/application.yaml"; then
-        echo "- kotsadm-application-metadata.yaml" >> "$dst/kustomization.yaml"
         cp "$src/application.yaml" "$dst/"
         kubectl create configmap kotsadm-application-metadata --from-file="$dst/application.yaml" --dry-run -oyaml > "$dst/kotsadm-application-metadata.yaml"
+        insert_resources $dst/kustomization.yaml kotsadm-application-metadata.yaml
     fi
 }
 
