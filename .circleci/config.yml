@@ -147,13 +147,14 @@ workflows:
             branches:
               ignore: master
 
-  master:
+  staging:
     jobs:
       - is_upstream:
           filters:
             branches:
               only:
                 - master
+                - beta
 
       - upload_staging_packages:
           requires:
