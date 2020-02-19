@@ -1,6 +1,5 @@
 export KREW_ROOT=/opt/replicated/krew
 export KUBECTL_PLUGINS_PATH=${KREW_ROOT}/bin
-export KUSTOMIZE_PATH=/opt/replicated/kustomize/bin
 
 function kubernetes_host() {
     kubernetes_load_ipvs_modules
@@ -12,7 +11,7 @@ function kubernetes_host() {
     load_images $DIR/packages/kubernetes/$KUBERNETES_VERSION/images
 
     install_krew
-    
+
     install_kustomize
 }
 
@@ -277,17 +276,27 @@ function install_kustomize() {
         return 0
     fi
 
-    mkdir -p $KUSTOMIZE_PATH
+    kustomize_dir=/usr/local/bin
 
-    pushd "$DIR/kustomize-bin"
-    tar xf kustomize.tar.gz -C $KUSTOMIZE_PATH
+    pushd "$DIR/packages/kubernetes/${k8sVersion}/assets"
+    for file in $(ls kustomize-*);do
+        if [ "${file: -6}" == "tar.gz" ];then
+            tar xf ${file}
+            chmod a+x kustomize
+            mv kustomize /usr/local/bin/${file%%.tar*}
+        else
+            # Earlier versions of kustomize weren't archived/compressed
+            chmod a+x ${file}
+            cp ${file} ${kustomize_dir}
+        fi
+    done
     popd
 
-    chmod -R a+x $KUSTOMIZE_PATH/kustomize
-    
-    if ! grep -q KUSTOMIZE_PATH /etc/profile; then
-        echo "export KUSTOMIZE_PATH=$KUSTOMIZE_PATH" >> /etc/profile
-        echo 'export PATH=${KUSTOMIZE_PATH}:$PATH' >> /etc/profile
+    if ls ${kustomize_dir}/kustomize-* 1>/dev/null 2>&1;then 
+        latest_binary=$(basename $(ls ${kustomize_dir}/kustomize-* | sort -V | tail -n 1))
+        
+        # Link to the latest version
+        ln -s ${kustomize_dir}/${latest_binary} ${kustomize_dir}/kustomize
     fi
 }
 
