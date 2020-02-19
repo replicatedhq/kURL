@@ -76,7 +76,7 @@ function upgrade_kubernetes_local_master_patch() {
 function upgrade_kubeadm() {
     local k8sVersion=$1
 
-    if [ "$AIRGAP" != "1" ] && [ -n "$KURL_URL" ]; then
+    if [ "$AIRGAP" != "1" ] && [ -n "$DIST_URL" ]; then
         kubernetes_get_host_packages_online "$k8sVersion"
     fi
     case "$LSB_DIST" in

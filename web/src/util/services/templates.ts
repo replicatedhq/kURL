@@ -8,6 +8,7 @@ import { Installer } from "../../installers";
 export class Templates {
 
   private kurlURL: string;
+  private distURL: string;
   private replicatedAppURL: string;
   private installTmpl: (obj: any) => string;
   private joinTmpl: (obj: any) => string;
@@ -15,6 +16,7 @@ export class Templates {
 
   constructor() {
     this.kurlURL = process.env["KURL_URL"] || "https://kurl.sh";
+    this.distURL = `https://${process.env["KURL_BUCKET"]}.s3.amazonaws.com`;
     this.replicatedAppURL = process.env["REPLICATED_APP_URL"] || "https://replicated.app";
 
     const tmplDir = path.join(__dirname, "../../../../templates");
@@ -33,20 +35,21 @@ export class Templates {
   }
 
   public renderInstallScript(i: Installer): string {
-    return this.installTmpl(manifestFromInstaller(i, this.kurlURL, this.replicatedAppURL));
+    return this.installTmpl(manifestFromInstaller(i, this.kurlURL, this.replicatedAppURL, this.distURL));
   }
 
   public renderJoinScript(i: Installer): string {
-    return this.joinTmpl(manifestFromInstaller(i, this.kurlURL, this.replicatedAppURL));
+    return this.joinTmpl(manifestFromInstaller(i, this.kurlURL, this.replicatedAppURL, this.distURL));
   }
 
   public renderUpgradeScript(i: Installer): string {
-    return this.upgradeTmpl(manifestFromInstaller(i, this.kurlURL, this.replicatedAppURL));
+    return this.upgradeTmpl(manifestFromInstaller(i, this.kurlURL, this.replicatedAppURL, this.distURL));
   }
 }
 
 interface Manifest {
   KURL_URL: string;
+  DIST_URL: string;
   INSTALLER_ID: string;
   KUBERNETES_VERSION: string;
   WEAVE_VERSION: string;
@@ -65,9 +68,10 @@ interface Manifest {
   INSTALLER_YAML: string;
 }
 
-function manifestFromInstaller(i: Installer, kurlURL: string, replicatedAppURL: string): Manifest {
+function manifestFromInstaller(i: Installer, kurlURL: string, replicatedAppURL: string, distURL: string): Manifest {
   return {
     KURL_URL: kurlURL,
+    DIST_URL: distURL,
     INSTALLER_ID: i.id,
     KUBERNETES_VERSION: i.spec.kubernetes.version,
     WEAVE_VERSION: _.get(i.spec, "weave.version", ""),
