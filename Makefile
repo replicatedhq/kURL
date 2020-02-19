@@ -22,7 +22,7 @@ endif
 clean:
 	rm -rf build tmp dist
 
-dist/common.tar.gz: build/kustomize build/shared build/krew 
+dist/common.tar.gz: build/kustomize build/kustomize-bin build/shared build/krew 
 	mkdir -p dist
 	tar cf dist/common.tar -C build kustomize
 	tar rf dist/common.tar -C build shared
@@ -230,6 +230,14 @@ build/krew:
 	docker create --name krew krew:latest
 	docker cp krew:/krew build/
 	docker rm krew
+
+build/kustomize-bin:
+	mkdir -p build/kustomize-bin
+	docker build -t kustomize-bin -f bundles/kustomize/Dockerfile bundles/kustomize
+	- docker rm -f kustomize-bin 2>/dev/null
+	docker create --name kustomize-bin kustomize-bin:latest
+	docker cp kustomize-bin:/kustomize/kustomize.tar.gz build/kustomize-bin
+	docker rm kustomize-bin
 
 build/kustomize:
 	mkdir -p build

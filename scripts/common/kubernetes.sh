@@ -1,5 +1,6 @@
 export KREW_ROOT=/opt/replicated/krew
 export KUBECTL_PLUGINS_PATH=${KREW_ROOT}/bin
+export KUSTOMIZE_PATH=/opt/replicated/kustomize/bin
 
 function kubernetes_host() {
     kubernetes_load_ipvs_modules
@@ -11,6 +12,8 @@ function kubernetes_host() {
     load_images $DIR/packages/kubernetes/$KUBERNETES_VERSION/images
 
     install_krew
+    
+    install_kustomize
 }
 
 function kubernetes_load_ipvs_modules() {
@@ -266,6 +269,25 @@ function install_krew() {
     if ! grep -q KUBECTL_PLUGINS_PATH /etc/profile; then
         echo 'export KUBECTL_PLUGINS_PATH=$KREW_ROOT/bin' >> /etc/profile
         echo 'export PATH=$KUBECTL_PLUGINS_PATH:$PATH' >> /etc/profile
+    fi
+}
+
+function install_kustomize() {
+    if ! kubernetes_is_master; then
+        return 0
+    fi
+
+    mkdir -p $KUSTOMIZE_PATH
+
+    pushd "$DIR/kustomize-bin"
+    tar xf kustomize.tar.gz -C $KUSTOMIZE_PATH
+    popd
+
+    chmod -R a+x $KUSTOMIZE_PATH/kustomize
+    
+    if ! grep -q KUSTOMIZE_PATH /etc/profile; then
+        echo "export KUSTOMIZE_PATH=$KUSTOMIZE_PATH" >> /etc/profile
+        echo 'export PATH=${KUSTOMIZE_PATH}:$PATH' >> /etc/profile
     fi
 }
 
