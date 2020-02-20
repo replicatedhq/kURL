@@ -22,6 +22,7 @@ function weave() {
     fi
 
     kubectl apply -k "$DIR/kustomize/weave/"
+    weave_ready_spinner
 }
 
 function weave_resource_secret() {
@@ -54,4 +55,8 @@ function weave_use_existing_network() {
         EXISTING_POD_CIDR=$(echo $weaveDev | awk '{ print $1 }')
         echo "Using existing weave network: $EXISTING_POD_CIDR"
     fi
+}
+
+function weave_ready_spinner() {
+    spinnerPodRunning kube-system weave-net
 }
