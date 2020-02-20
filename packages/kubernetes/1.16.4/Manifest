@@ -2,3 +2,6 @@ image kubernetes k8s.gcr.io/hyperkube:v1.16.4
 image pause k8s.gcr.io/pause:3.1
 image coredns k8s.gcr.io/coredns:1.6.2
 image etcd k8s.gcr.io/etcd:3.3.15-0
+
+asset kustomize-v2.0.3 https://github.com/kubernetes-sigs/kustomize/releases/download/v2.0.3/kustomize_2.0.3_linux_amd64
+asset kustomize-v3.5.4.tar.gz https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2Fv3.5.4/kustomize_v3.5.4_linux_amd64.tar.gz
