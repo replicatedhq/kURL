@@ -9,6 +9,7 @@ import {
   Res } from "ts-express-decorators";
 import { Templates } from "../util/services/templates";
 import { InstallerStore } from "../installers";
+import { logger } from "../logger";
 
 interface ErrorResponse {
   error: any;
@@ -70,10 +71,16 @@ export class Bundle {
 
     const kotsadmApplicationSlug = _.get(installer.spec, "kotsadm.applicationSlug");
     if (kotsadmApplicationSlug) {
-      const appMetadata = await request(`${this.replicatedAppURL}/metadata/${kotsadmApplicationSlug}`);
-      const key = `addons/kotsadm/${_.get(installer.spec, "kotsadm.version")}/application.yaml`;
-
-      ret.files[key] = appMetadata;
+      try {
+          logger.debug("URL:" + this.replicatedAppURL + ", SLUG:" + kotsadmApplicationSlug);
+          const appMetadata = await request(`${this.replicatedAppURL}/metadata/${kotsadmApplicationSlug}`);
+          const key = `addons/kotsadm/${_.get(installer.spec, "kotsadm.version")}/application.yaml`;
+          ret.files[key] = appMetadata;
+      } catch(err) {
+          // Log the error but continue bundle execution
+          // (branding metadata is optional even though user specified a app slug)
+          logger.debug("Failed to fetch metadata (non-fatal error): " + err);
+      }
     }
 
     ret.files["install.sh"] = this.templates.renderInstallScript(installer);

@@ -1,5 +1,5 @@
 SHELL := /bin/bash
-KURL_UTIL_IMAGE := replicated/kurl-util:v2020.01.29-0
+KURL_UTIL_IMAGE := replicated/kurl-util:v2020.02.11-0
 
 GIT_TREE = $(shell git rev-parse --is-inside-work-tree 2>/dev/null)
 ifneq "$(GIT_TREE)" ""

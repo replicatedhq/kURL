@@ -1,7 +1,5 @@
 
 function flags() {
-    POD_CIDR="10.32.0.0/12"
-    SERVICE_CIDR="10.96.0.0/12"
     while [ "$1" != "" ]; do
         _param="$(echo "$1" | cut -d= -f1)"
         _value="$(echo "$1" | grep '=' | cut -d= -f2-)"
@@ -38,6 +36,7 @@ function flags() {
                 ;;
             ip-alloc-range|ip_alloc_range)
                 IP_ALLOC_RANGE="$_value"
+                POD_CIDR="$_value"
                 ;;
             load-balancer-address|load_balancer_address)
                 LOAD_BALANCER_ADDRESS="$_value"
@@ -90,12 +89,6 @@ function flags() {
                 ;;
             fluentd-full-efk-stack|fluentd_full_efk_stack)
                 FLUENTD_FULL_EFK_STACK=1
-                ;;
-            reset)
-                RESET=1
-                ;;
-            force-reset|force_reset)
-                FORCE_RESET=1
                 ;;
             service-cidr|service_cidr)
                 SERVICE_CIDR="$_value"
@@ -157,6 +150,7 @@ function flags() {
                 ;;
             pod-cidr|pod_cidr)
                 POD_CIDR="$_value"
+                IP_ALLOC_RANGE="$_value"
                 ;;
             service-cidr|service_cidr)
                 SERVICE_CIDR="$_value"
@@ -193,6 +187,14 @@ function flags() {
                 ;;
             openebs-localpv-storage-class|openebs_localpv_storage_class)
                 OPENEBS_LOCALPV_STORAGE_CLASS="$_value"
+                ;;
+            pod-cidr-range|pod_cidr_range)
+                # allow either /16 or 16 for subnet size
+                POD_CIDR_RANGE=$(echo "$_value" | sed "s/\///")
+                ;;
+            service-cidr-range|service_cidr_range)
+                # allow either /16 or 16 for subnet size
+                SERVICE_CIDR_RANGE=$(echo "$_value" | sed "s/\///")
                 ;;
             *)
                 echo >&2 "Error: unknown parameter \"$_param\""

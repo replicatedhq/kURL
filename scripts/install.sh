@@ -84,7 +84,7 @@ function init() {
     # this uses a go binary found in kurl/cmd/yamlutil to strip the metadata field from the yaml
     #
     cp $KUBEADM_CONF_FILE $KUBEADM_CONF_DIR/kubeadm_conf_copy_in
-    docker run -i --rm -v $KUBEADM_CONF_DIR:/home/ --entrypoint /bin/bash replicated/kurl-util:v2020.01.29-0 \
+    docker run -i --rm -v $KUBEADM_CONF_DIR:/home/ --entrypoint /bin/bash replicated/kurl-util:v2020.02.11-0 \
         -c "/usr/local/bin/yamlutil -r -fp /home/kubeadm_conf_copy_in -yf metadata"
     mv $KUBEADM_CONF_DIR/kubeadm_conf_copy_in $KUBEADM_CONF_FILE
 
@@ -94,11 +94,13 @@ function init() {
     # kubeadm init temporarily taints this node which causes rook to move any mons on it and may
     # lead to a loss of quorum
     disable_rook_ceph_operator
+    set -o pipefail
     kubeadm init \
         --ignore-preflight-errors=all \
         --config $KUBEADM_CONF_FILE \
         $UPLOAD_CERTS \
         | tee /tmp/kubeadm-init
+    set +o pipefail
 
     exportKubeconfig
     KUBEADM_TOKEN_CA_HASH=$(cat /tmp/kubeadm-init | grep 'discovery-token-ca-cert-hash' | awk '{ print $2 }' | head -1)
@@ -249,6 +251,8 @@ function main() {
     addon_pre_init velero "$VELERO_VERSION"
     addon_pre_init fluentd "$FLUENTD_VERSION"
     addon_pre_init kotsadm "$KOTSADM_VERSION"
+    discover_pod_subnet
+    discover_service_subnet
     init
     addon aws "$AWS_VERSION"
     addon nodeless "$NODELESS_VERSION"
