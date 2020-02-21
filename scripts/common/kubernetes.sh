@@ -296,7 +296,7 @@ function install_kustomize() {
         latest_binary=$(basename $(ls ${kustomize_dir}/kustomize-* | sort -V | tail -n 1))
         
         # Link to the latest version
-        ln -s ${kustomize_dir}/${latest_binary} ${kustomize_dir}/kustomize
+        ln -s -f ${kustomize_dir}/${latest_binary} ${kustomize_dir}/kustomize
     fi
 }
 
