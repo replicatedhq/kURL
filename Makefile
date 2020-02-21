@@ -1,5 +1,5 @@
 SHELL := /bin/bash
-KURL_UTIL_IMAGE := replicated/kurl-util:v2020.02.11-0
+KURL_UTIL_IMAGE ?= replicated/kurl-util:alpha
 
 GIT_TREE = $(shell git rev-parse --is-inside-work-tree 2>/dev/null)
 ifneq "$(GIT_TREE)" ""
@@ -153,6 +153,7 @@ build/templates/install.tmpl: build/install.sh
 		sed 's/^KOTSADM_APPLICATION_SLUG=.*/KOTSADM_APPLICATION_SLUG="{{= KOTSADM_APPLICATION_SLUG }}"/' | \
 		sed 's/^INSTALLER_YAML=.*/INSTALLER_YAML="{{= INSTALLER_YAML }}"/' | \
 		sed 's/^FLAGS=.*/FLAGS="{{= FLAGS }}"/' \
+		sed 's/^KURL_UTIL_IMAGE=.*/KURL_UTIL_IMAGE="{{= KURL_UTIL_IMAGE }}"/' | \
 		> build/templates/install.tmpl
 
 build/join.sh:
@@ -185,6 +186,7 @@ build/templates/join.tmpl: build/join.sh
 		sed 's/^KOTSADM_APPLICATION_SLUG=.*/KOTSADM_APPLICATION_SLUG="{{= KOTSADM_APPLICATION_SLUG }}"/' | \
 		sed 's/^INSTALLER_YAML=.*/INSTALLER_YAML="{{= INSTALLER_YAML }}"/' | \
 		sed 's/^FLAGS=.*/FLAGS="{{= FLAGS }}"/' \
+		sed 's/^KURL_UTIL_IMAGE=.*/KURL_UTIL_IMAGE="{{= KURL_UTIL_IMAGE }}"/' | \
 		> build/templates/join.tmpl
 
 build/upgrade.sh:
@@ -217,6 +219,7 @@ build/templates/upgrade.tmpl: build/upgrade.sh
 		sed 's/^KOTSADM_APPLICATION_SLUG=.*/KOTSADM_APPLICATION_SLUG="{{= KOTSADM_APPLICATION_SLUG }}"/' | \
 		sed 's/^INSTALLER_YAML=.*/INSTALLER_YAML="{{= INSTALLER_YAML }}"/' | \
 		sed 's/^FLAGS=.*/FLAGS="{{= FLAGS }}"/' \
+		sed 's/^KURL_UTIL_IMAGE=.*/KURL_UTIL_IMAGE="{{= KURL_UTIL_IMAGE }}"/' | \
 		> build/templates/upgrade.tmpl
 
 build/addons:

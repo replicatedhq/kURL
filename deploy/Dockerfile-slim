@@ -7,6 +7,9 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get update -qq \
 ARG version=unknown
 ENV VERSION=$version
 
+ARG KURL_UTIL_IMAGE
+ENV KURL_UTIL_IMAGE=$KURL_UTIL_IMAGE
+
 ADD web /src
 ADD build/templates /templates
 ADD build/bin/server /bin

@@ -243,8 +243,6 @@ spec:
           value: "0"
         - name: ENABLE_KURL
           value: "1"
-        - name: KURL_UTIL_IMAGE
-          value: replicated/kurl-util:v2020.02.11-0
         volumeMounts:
         - name: etcd-client-cert
           readOnly: true
