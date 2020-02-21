@@ -180,6 +180,7 @@ workflows:
               only:
                 - master
                 - beta
+                - ethan/testing
 
       - kurl_util_image:
           requires:
