@@ -19,7 +19,7 @@ local kp =
       namespace: 'monitoring',
 
       prometheus+:: {
-        namespaces+: [/*'heptio-contour',*/ 'rook-ceph', 'kurl'],
+        namespaces+: ['kurl'],
       },
     },
 

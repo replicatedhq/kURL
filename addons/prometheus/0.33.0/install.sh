@@ -22,6 +22,8 @@ function prometheus() {
 
     spinner_until -1 prometheus_crd_ready
 
+    prometheus_rook_ceph "$dst"
+
     kubectl apply -k "$monitorsdst/"
     kubectl apply -k "$grafanadst/"
 }
@@ -70,7 +72,7 @@ function prometheus_crd_ready() {
 function prometheus_rook_ceph() {
     local dst="$1"
 
-    if kubectl get ns | grep rook-ceph; then
+    if kubectl get ns | grep -q rook-ceph; then
         cat <<EOF >> "$dst/monitors/prometheus-roleBindingSpecificNamespaces.yaml"
 - apiVersion: rbac.authorization.k8s.io/v1
   kind: RoleBinding
