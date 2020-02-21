@@ -9,7 +9,7 @@ function image_export() {
 
     set +u
 
-    local tag=alternate
+    local tag=alpha
     if [ -n "$CIRCLE_TAG" ]; then
         tag="$CIRCLE_TAG"
     elif [ "$CIRCLE_BRANCH" = "beta" ]; then
