@@ -288,21 +288,21 @@ function apply_flags_to_yaml() {
 }
 
 function setup_installer_crd() {
-    INSTALLER_CRD_DEFINITION="$DIR/crd/cluster.kurl.sh_installers.yaml"
-    INSTALLER_TEMPLATE_OBJECT="$DIR/crd/cluster.kurl.sh_template.yaml"
+    INSTALLER_CRD_DEFINITION="$DIR/kurlkinds/cluster.kurl.sh_installers.yaml"
+    INSTALLER_TEMPLATE_OBJECT="$DIR/kurlkinds/cluster.kurl.sh_template.yaml"
     INSTALLER_MODIFIED_OBJECT="/tmp/kurl_install.yaml"
 
     kubectl apply -f $INSTALLER_CRD_DEFINITION
 
     cp $INSTALLER_TEMPLATE_OBJECT $INSTALLER_MODIFIED_OBJECT
 
-    cat > $INSTALL_MODIFIED_OBJECT << EOF
+    cat > $INSTALLER_MODIFIED_OBJECT << EOF
 $INSTALLER_YAML
 EOF
 
-    apply_flags_to_installer_yaml $INSTALL_MODIFIED_OBJECT
+    apply_flags_to_installer_yaml $INSTALLER_MODIFIED_OBJECT
 
-    kubectl apply -f $INSTALL_MODIFIED_OBJECT
+    kubectl apply -f $INSTALLER_MODIFIED_OBJECT
 
     rm $INSTALLER_MODIFIED_OBJECT
 }

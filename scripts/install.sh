@@ -238,7 +238,6 @@ function main() {
     upgrade_kubernetes
     kubernetes_host
     setup_kubeadm_kustomize
-    setup_installer_crd
     addon_pre_init aws "$AWS_VERSION"
     addon_pre_init nodeless "$NODELESS_VERSION"
     addon_pre_init calico "$CALICO_VERSION"
@@ -255,6 +254,7 @@ function main() {
     discover_pod_subnet
     discover_service_subnet
     init
+    setup_installer_crd
     addon aws "$AWS_VERSION"
     addon nodeless "$NODELESS_VERSION"
     addon calico "$CALICO_VERSION"
