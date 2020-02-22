@@ -11,8 +11,6 @@ function kubernetes_host() {
     load_images $DIR/packages/kubernetes/$KUBERNETES_VERSION/images
 
     install_krew
-
-    install_kustomize
 }
 
 function kubernetes_load_ipvs_modules() {
@@ -66,7 +64,7 @@ function kubernetes_install_host_packages() {
         return
     fi
 
-    if [ "$AIRGAP" != "1" ] && [ -n "$DIST_URL" ]; then
+    if [ "$AIRGAP" != "1" ] && [ -n "$KURL_URL" ]; then
         kubernetes_get_host_packages_online "$k8sVersion"
     fi
 
@@ -113,8 +111,8 @@ kubernetes_host_commands_ok() {
 function kubernetes_get_host_packages_online() {
     local k8sVersion="$1"
 
-    if [ "$AIRGAP" != "1" ] && [ -n "$DIST_URL" ]; then
-        curl -sSLO "$DIST_URL/dist/kubernetes-${k8sVersion}.tar.gz"
+    if [ "$AIRGAP" != "1" ] && [ -n "$KURL_URL" ]; then
+        curl -sSLO "$KURL_URL/dist/kubernetes-${k8sVersion}.tar.gz"
         tar xf kubernetes-${k8sVersion}.tar.gz
         rm kubernetes-${k8sVersion}.tar.gz
     fi
@@ -271,35 +269,6 @@ function install_krew() {
     fi
 }
 
-function install_kustomize() {
-    if ! kubernetes_is_master; then
-        return 0
-    fi
-
-    kustomize_dir=/usr/local/bin
-
-    pushd "$DIR/packages/kubernetes/${k8sVersion}/assets"
-    for file in $(ls kustomize-*);do
-        if [ "${file: -6}" == "tar.gz" ];then
-            tar xf ${file}
-            chmod a+x kustomize
-            mv kustomize /usr/local/bin/${file%%.tar*}
-        else
-            # Earlier versions of kustomize weren't archived/compressed
-            chmod a+x ${file}
-            cp ${file} ${kustomize_dir}
-        fi
-    done
-    popd
-
-    if ls ${kustomize_dir}/kustomize-* 1>/dev/null 2>&1;then 
-        latest_binary=$(basename $(ls ${kustomize_dir}/kustomize-* | sort -V | tail -n 1))
-        
-        # Link to the latest version
-        ln -s -f ${kustomize_dir}/${latest_binary} ${kustomize_dir}/kustomize
-    fi
-}
-
 function kubernetes_is_master() {
     if [ "$MASTER" = "1" ]; then
         return 0
@@ -333,7 +302,7 @@ function discover_pod_subnet() {
             bail "Pod cidr cannot be changed to $POD_CIDR because existing cidr is $EXISTING_POD_CIDR"
         fi
 
-        if docker run --rm --net=host $KURL_UTIL_IMAGE subnet --subnet-alloc-range "$POD_CIDR" --cidr-range "$podCidrSize" "$excluded" 1>/dev/null; then
+        if docker run --rm --net=host replicated/kurl-util:v2020.02.11-0 subnet --subnet-alloc-range "$POD_CIDR" --cidr-range "$podCidrSize" "$excluded" 1>/dev/null; then
             return 0
         fi
 
@@ -354,14 +323,14 @@ function discover_pod_subnet() {
         size="22"
     fi
     # find a network for the Pods, preferring start at 10.32.0.0 
-    if podnet=$(docker run --rm --net=host $KURL_UTIL_IMAGE subnet --subnet-alloc-range "10.32.0.0/16" --cidr-range "$size" "$excluded"); then
+    if podnet=$(docker run --rm --net=host replicated/kurl-util:v2020.02.11-0 subnet --subnet-alloc-range "10.32.0.0/16" --cidr-range "$size" "$excluded"); then
         echo "Found pod network: $podnet"
         POD_CIDR="$podnet"
         IP_ALLOC_RANGE="$podnet"
         return 0
     fi
 
-    if podnet=$(docker run --rm --net=host $KURL_UTIL_IMAGE subnet --subnet-alloc-range "10.0.0.0/8" --cidr-range "$size" "$excluded"); then
+    if podnet=$(docker run --rm --net=host replicated/kurl-util:v2020.02.11-0 subnet --subnet-alloc-range "10.0.0.0/8" --cidr-range "$size" "$excluded"); then
         echo "Found pod network: $podnet"
         POD_CIDR="$podnet"
         IP_ALLOC_RANGE="$podnet"
@@ -397,7 +366,7 @@ function discover_service_subnet() {
             bail "Service cidr cannot be changed to $SERVICE_CIDR because existing cidr is $EXISTING_SERVICE_CIDR"
         fi
 
-        if docker run --rm --net=host $KURL_UTIL_IMAGE subnet --subnet-alloc-range "$SERVICE_CIDR" --cidr-range "$serviceCidrSize" "$excluded" 1>/dev/null; then
+        if docker run --rm --net=host replicated/kurl-util:v2020.02.11-0 subnet --subnet-alloc-range "$SERVICE_CIDR" --cidr-range "$serviceCidrSize" "$excluded" 1>/dev/null; then
             return 0
         fi
 
@@ -420,13 +389,13 @@ function discover_service_subnet() {
     fi
 
     # find a network for the services, preferring start at 10.96.0.0 
-    if servicenet=$(docker run --rm --net=host $KURL_UTIL_IMAGE subnet --subnet-alloc-range "10.96.0.0/16" --cidr-range "$size" "$excluded"); then
+    if servicenet=$(docker run --rm --net=host replicated/kurl-util:v2020.02.11-0 subnet --subnet-alloc-range "10.96.0.0/16" --cidr-range "$size" "$excluded"); then
         echo "Found service network: $servicenet"
         SERVICE_CIDR="$servicenet"
         return 0
     fi
 
-    if servicenet=$(docker run --rm --net=host $KURL_UTIL_IMAGE subnet --subnet-alloc-range "10.0.0.0/8" --cidr-range "$size" "$excluded"); then
+    if servicenet=$(docker run --rm --net=host replicated/kurl-util:v2020.02.11-0 subnet --subnet-alloc-range "10.0.0.0/8" --cidr-range "$size" "$excluded"); then
         echo "Found service network: $servicenet"
         SERVICE_CIDR="$servicenet"
         return 0

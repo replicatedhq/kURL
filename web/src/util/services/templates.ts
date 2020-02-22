@@ -8,18 +8,14 @@ import { Installer } from "../../installers";
 export class Templates {
 
   private kurlURL: string;
-  private distURL: string;
   private replicatedAppURL: string;
-  private kurlUtilImage: string;
   private installTmpl: (obj: any) => string;
   private joinTmpl: (obj: any) => string;
   private upgradeTmpl: (obj: any) => string;
 
   constructor() {
     this.kurlURL = process.env["KURL_URL"] || "https://kurl.sh";
-    this.distURL = `https://${process.env["KURL_BUCKET"]}.s3.amazonaws.com`;
     this.replicatedAppURL = process.env["REPLICATED_APP_URL"] || "https://replicated.app";
-    this.kurlUtilImage = process.env["KURL_UTIL_IMAGE"] || "replicated/kurl-util:alpha";
 
     const tmplDir = path.join(__dirname, "../../../../templates");
     const installTmplPath = path.join(tmplDir, "install.tmpl");
@@ -31,27 +27,27 @@ export class Templates {
       evaluate: /{{([\s\S]+?)}}/g,
       interpolate: /{{=([\s\S]+?)}}/g,
     };
+
     this.installTmpl = _.template(fs.readFileSync(installTmplPath, "utf8"), opts);
     this.joinTmpl = _.template(fs.readFileSync(joinTmplPath, "utf8"), opts);
     this.upgradeTmpl = _.template(fs.readFileSync(upgradeTmplPath, "utf8"), opts);
   }
 
   public renderInstallScript(i: Installer): string {
-    return this.installTmpl(manifestFromInstaller(i, this.kurlURL, this.replicatedAppURL, this.distURL, this.kurlUtilImage));
+    return this.installTmpl(manifestFromInstaller(i, this.kurlURL, this.replicatedAppURL));
   }
 
   public renderJoinScript(i: Installer): string {
-    return this.joinTmpl(manifestFromInstaller(i, this.kurlURL, this.replicatedAppURL, this.distURL, this.kurlUtilImage));
+    return this.joinTmpl(manifestFromInstaller(i, this.kurlURL, this.replicatedAppURL));
   }
 
   public renderUpgradeScript(i: Installer): string {
-    return this.upgradeTmpl(manifestFromInstaller(i, this.kurlURL, this.replicatedAppURL, this.distURL, this.kurlUtilImage));
+    return this.upgradeTmpl(manifestFromInstaller(i, this.kurlURL, this.replicatedAppURL));
   }
 }
 
 interface Manifest {
   KURL_URL: string;
-  DIST_URL: string;
   INSTALLER_ID: string;
   KUBERNETES_VERSION: string;
   WEAVE_VERSION: string;
@@ -67,14 +63,12 @@ interface Manifest {
   REPLICATED_APP_URL: string;
   VELERO_VERSION: string;
   FLAGS: string;
-  KURL_UTIL_IMAGE: string;
   INSTALLER_YAML: string;
 }
 
-function manifestFromInstaller(i: Installer, kurlURL: string, replicatedAppURL: string, distURL: string, kurlUtilImage: string): Manifest {
+function manifestFromInstaller(i: Installer, kurlURL: string, replicatedAppURL: string): Manifest {
   return {
     KURL_URL: kurlURL,
-    DIST_URL: distURL,
     INSTALLER_ID: i.id,
     KUBERNETES_VERSION: i.spec.kubernetes.version,
     WEAVE_VERSION: _.get(i.spec, "weave.version", ""),
@@ -90,7 +84,6 @@ function manifestFromInstaller(i: Installer, kurlURL: string, replicatedAppURL: 
     REPLICATED_APP_URL: replicatedAppURL,
     VELERO_VERSION: _.get(i.spec, "velero.version", ""),
     FLAGS: i.flags(),
-    KURL_UTIL_IMAGE: kurlUtilImage,
     INSTALLER_YAML: i.toYAML(),
   };
 }

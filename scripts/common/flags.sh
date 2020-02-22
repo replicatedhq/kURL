@@ -25,6 +25,9 @@ function flags() {
             ceph-pool-replicas|ceph_pool_replicas)
                 CEPH_POOL_REPLICAS="$_value"
                 ;;
+            ceph-replica-count|ceph_replica_count)
+                CEPH_POOL_REPLICAS="$_value"
+                ;;
             hostname-check)
                 HOSTNAME_CHECK="$_value"
                 ;;
@@ -42,9 +45,6 @@ function flags() {
                 LOAD_BALANCER_ADDRESS="$_value"
                 HA_CLUSTER=1
                 ;;
-            log-level|log_level)
-                LOG_LEVEL="$_value"
-                ;;
             no-docker|no_docker)
                 SKIP_DOCKER_INSTALL=1
                 ;;
@@ -57,13 +57,10 @@ function flags() {
             private-address|private_address)
                 PRIVATE_ADDRESS="$_value"
                 ;;
-            skip-pull|skip_pull)
-                SKIP_DOCKER_PULL=1
-                ;;
-            kubernetes-namespace|kubernetes_namespace)
-                KUBERNETES_NAMESPACE="$_value"
-                ;;
             storage-class|storage_class)
+                STORAGE_CLASS="$_value"
+                ;;
+            storage-class-name|storage_class_name)
                 STORAGE_CLASS="$_value"
                 ;;
             no-ce-on-ee|no_ce_on_ee)
@@ -93,11 +90,11 @@ function flags() {
             service-cidr|service_cidr)
                 SERVICE_CIDR="$_value"
                 ;;
-            cluster-dns|cluster_dns)
-                CLUSTER_DNS="$_value"
-                ;;
             encrypt-network|encrypt_network)
                 ENCRYPT_NETWORK="$_value"
+                ;;
+            disable-weave-encryption|disable_weave_encryption)
+                ENCRYPT_NETWORK="0"
                 ;;
             additional-no-proxy|additional_no_proxy)
                 if [ -z "$ADDITIONAL_NO_PROXY" ]; then
@@ -106,17 +103,11 @@ function flags() {
                     ADDITIONAL_NO_PROXY="$ADDITIONAL_NO_PROXY,$_value"
                 fi
                 ;;
-            kubernetes-upgrade-patch-version|kubernetes_upgrade_patch_version)
-                K8S_UPGRADE_PATCH_VERSION=1
-                ;;
             kubernetes-master-address|kubernetes_master_address)
                 KUBERNETES_MASTER_ADDR="$_value"
                 ;;
             api-service-address|api_service_address)
                 API_SERVICE_ADDRESS="$_value"
-                ;;
-            insecure)
-                INSECURE=1
                 ;;
             kubeadm-token|kubeadm_token)
                 KUBEADM_TOKEN="$_value"
@@ -144,6 +135,9 @@ function flags() {
                 ;;
             kotsadm-hostname|kotsadm_hostname)
                 KOTSADM_HOSTNAME="$_value"
+                ;;
+            kotsadm-application-slug|kotsadm_application_slug)
+                KOTSADM_APPLICATION_SLUG="$_value"
                 ;;
             kotsadm-ui-bind-port|kotsadm_ui_bind_port)
                 KOTSADM_UI_BIND_PORT="$_value"

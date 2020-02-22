@@ -57,7 +57,6 @@ export class Installers {
     @Res() response: Express.Response,
   ): Promise<string> {
     const installer = Installer.latest().resolve();
-
     response.status(200);
     return this.templates.renderInstallScript(installer);
   }

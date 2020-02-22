@@ -17,7 +17,16 @@ interface ErrorResponse {
 export interface KubernetesConfig {
   version: string;
   serviceCidrRange?: string;
-  serviceCIDR?: string; // use serviceCidrRange instead
+  serviceCIDR?: string;
+  haCluster?: boolean;
+  masterAddress?: string;
+  loadBalancerAddress?: string;
+  bootstrapToken?: string;
+  bootstrapTokenTTL?: string;
+  kubeadmTokenCAHash?: string;
+  controlPlane?: boolean;
+  certKey?: string;
+  apiServiceAddress?: string;
 }
 
 const kubernetesConfigSchema = {
@@ -25,7 +34,16 @@ const kubernetesConfigSchema = {
   properties: {
     version: { type: "string" },
     serviceCidrRange: { type: "string", flag: "service-cidr-range" },
-    serviceCIDR: { type: "string", flag: "service-cidr" }, // use serviceCidrRange instead
+    serviceCIDR: { type: "string", flag: "service-cidr" },
+    haCluster: { type: "boolean", flag: "ha" },
+    masterAddress: { type: "string", flag: "kuberenetes-master-address" },
+    loadBalancerAddress: { type: "string", flag: "load-balancer-address" },
+    bootstrapToken: { type: "string", flag: "bootstrap-token" },
+    bootstrapTokenTTL: { type: "string", flag: "bootstrap-token-ttl" },
+    kubeadmTokenCAHash: { type: "string", flag: "kubeadm-token-ca-hash" },
+    controlPlane: { type: "boolean", flag: "control-plane"},
+    certKey: { type: "string", flag: "cert-key" },
+    apiServiceAddress: { type: "string", flag: "api-service-address" },
   },
   required: [ "version" ],
   additionalProperties: false,
@@ -36,6 +54,9 @@ export interface DockerConfig {
   bypassStorageDriverWarnings?: boolean;
   hardFailOnLoopback?: boolean;
   noCEOnEE?: boolean;
+  dockerRegistryIP?: string;
+  additionalNoProxy?: string;
+  noDocker?: boolean;
 }
 
 const dockerConfigSchema = {
@@ -45,6 +66,9 @@ const dockerConfigSchema = {
     bypassStorageDriverWarnings: { type: "boolean" , flag: "bypass-storagedriver-warnings" },
     hardFailOnLoopback: { type: "boolean", flag: "hard-fail-on-loopback" },
     noCEOnEE: { type: "boolean", flag: "no-ce-on-ee" },
+    dockerRegistryIP: { type: "string", flag: "docker-registry-ip" },
+    additionalNoProxy: { type: "string", flag: "additional-no-proxy" },
+    noDocker: { type: "boolean", flag: "no-docker" },
   },
   required: [ "version" ],
   additionalProperites: false,
@@ -52,18 +76,20 @@ const dockerConfigSchema = {
 
 export interface WeaveConfig {
   version: string;
+  podCIDR?: string;
   podCidrRange?: string;
-  IPAllocRange?: string; // use podCidrRange instead
-  encryptNetwork?: boolean;
+  IPAllocRange?: string; // deprecated, will be converted to podCidrRange
+  encryptNetwork?: boolean; // deprectaed, will be converted to isEncryptionDisabled
+  isEncryptionDisabled?: boolean;
 }
 
 const weaveConfigSchema = {
   type: "object",
   properties: {
     version: { type: "string" },
+    podCIDR: { type: "string", flag: "pod-cidr" },
     podCidrRange: { type: "string", flag: "pod-cidr-range" },
-    IPAllocRange: { type: "string", flag: "ip-alloc-range" }, // use podCidrRange instead
-    encryptNetwork: { type: "boolean", flag: "encrypt-network" },
+    isEncryptionDisabled: { type: "boolean", flag: "disable-weave-encryption" },
   },
   required: [ "version" ],
   additionalProperites: false,
@@ -71,48 +97,37 @@ const weaveConfigSchema = {
 
 export interface RookConfig {
   version: string;
-  storageClass?: string;
-  cephPoolReplicas?: number;
+  storageClass?: string; // deprecated, will be converted to storageClassName
+  cephPoolReplicas?: number; // deprecated, will be converted to cephReplicaCount
+  cephReplicaCount?: number;
+  storageClassName?: string;
 }
 
 const rookConfigSchema = {
   type: "object",
   properties: {
     version: { type: "string" },
-    storageClass: { type: "string", flag: "storage-class" },
-    cephPoolReplicas: { type: "number", flag: "ceph-pool-replicas" },
+    storageClassName: { type: "string", flag: "storage-class-name" },
+    cephReplicaCount: { type: "number", flag: "ceph-replica-count" },
   },
   required: [ "version" ],
   additionalProperites: false,
 };
 
-export interface OpenEBSStoreConfig {
-  enabled: boolean;
-  storageClass: string;
-}
-
 export interface OpenEBSConfig {
   version: string;
-  namespace: string;
-  localPV?: OpenEBSStoreConfig;
+  namespace?: string;
+  localPV?: boolean;
+  localPVStorageClass?: string;
 }
-
-const openEBSLocalPVSchema = {
-  type: "object",
-  properties: {
-    enabled: { type: "boolean", flag: "openebs-localpv" },
-    storageClass: { type: "string", flag: "openebs-localpv-storage-class" },
-  },
-  required: ["enabled"],
-  additionalProperties: false,
-};
 
 const openEBSConfigSchema = {
   type: "object",
   properties: {
     version: { type: "string" },
     namespace: { type: "string", flag: "openebs-namespace" },
-    localPV: openEBSLocalPVSchema,
+    localPV: { type: "boolean", flag: "openebs-localpv" },
+    localPVStorageClass: { type: "string", flag: "openebs-localpv-storage-class" },
   },
   required: ["version"],
   additionalProperties: false,
@@ -120,7 +135,7 @@ const openEBSConfigSchema = {
 
 export interface MinioConfig {
   version: string;
-  namespace: string;
+  namespace?: string;
 }
 
 const minioConfigSchema = {
@@ -148,12 +163,14 @@ const contourConfigSchema = {
 
 export interface RegistryConfig {
   version: string;
+  publishPort?: number;
 }
 
 const registryConfigSchema = {
   type: "object",
   properties: {
     version: { type: "string" },
+    publishPort: { type: "number", flag: "registry-publish-port" },
   },
   required: ["version"],
   additionalProperties: false,
@@ -174,14 +191,14 @@ const prometheusConfigSchema = {
 
 export interface FluentdConfig {
   version: string;
-  efkStack: boolean;
+  fullEFKStack?: boolean;
 }
 
 const fluentdConfigSchema = {
   type: "object",
   properties: {
     version: { type: "string" },
-    efkStack : { type: "boolean", flag: "fluentd-full-efk-stack" },
+    fullEFKStack : { type: "boolean", flag: "fluentd-full-efk-stack" },
   },
   required: ["version"],
   additionalProperties: false,
@@ -191,14 +208,18 @@ export interface KotsadmConfig {
   version: string;
   applicationSlug?: string;
   uiBindPort?: number;
+  hostname?: string;
+  applicationNamespace?: string;
 }
 
 const kotsadmConfigSchema = {
   type: "object",
   properties: {
     version: { type: "string" },
-    applicationSlug: { type: "string" },
+    applicationSlug: { type: "string", flag: "kotsadm-application-slug" },
     uiBindPort: { type: "number", flag: "kotsadm-ui-bind-port" },
+    hostname: { type: "string", flag: "kotsadm-hostname" },
+    applicationNamespace: { type: "string", flag: "kotsadm-application-namespaces" },
   },
   required: ["version"],
   additionalProperties: false,
@@ -206,9 +227,10 @@ const kotsadmConfigSchema = {
 
 export interface VeleroConfig {
   version: string;
-  namespace: string;
-  installCLI: boolean;
-  useRestic: boolean;
+  namespace?: string;
+  disableCLI?: boolean;
+  disableRestic?: boolean;
+  localBucket?: string;
 }
 
 const veleroConfigSchema = {
@@ -216,10 +238,39 @@ const veleroConfigSchema = {
   properties: {
     version: { type: "string" },
     namespace: { type: "string", flag: "velero-namespace" },
-    installCLI: { type: "boolean", flag: "velero-disable-cli", flagFalseOnlyNoArg: true},
-    useRestic: { type: "boolean", flag: "velero-disable-restic", flagFalseOnlyNoArg: true },
+    localBucket: { type: "string", flag : "velero-local-bucket"},
+    disableCLI: { type: "boolean", flag: "velero-disable-cli" },
+    disableRestic: { type: "boolean", flag: "velero-disable-restic"},
   },
   required: ["version"],
+  additionalProperties: false,
+};
+
+export interface KurlConfig {
+  HTTPProxy?: string;
+  airgap?: boolean;
+  bypassFirewalldWarning?: boolean;
+  hardFailOnFirewalld?: boolean;
+  hostnameCheck?: string;
+  noProxy?: string;
+  privateAddress?: string;
+  publicAddress?: string;
+  task?: string;
+}
+
+const kurlConfigSchema = {
+  type: "object",
+  properties: {
+    HTTPProxy: { type: "string", flag: "http-proxy" },
+    airgap: { type: "boolean", flag: "airgap" },
+    bypassFirewalldWarning: { type: "boolean", flag: "bypass-firewalld-warning" },
+    hardFailOnFirewalld: { type: "boolean", flag: "hard-fail-on-firewalld" },
+    hostnameCheck: { type: "string", flag: "hostname-check" },
+    noProxy: { type: "boolean", flag: "no-proxy" },
+    privateAddress: { type: "string", flag: "private-address" },
+    publicAddress: { type: "string", flag: "public-address" },
+    task: { type: "string", flag: "task" },
+  },
   additionalProperties: false,
 };
 
@@ -236,6 +287,7 @@ export interface InstallerSpec {
   fluentd?: FluentdConfig;
   kotsadm?: KotsadmConfig;
   velero?: VeleroConfig;
+  kurl?: KurlConfig;
 }
 
 const specSchema = {
@@ -254,6 +306,7 @@ const specSchema = {
     fluentd: fluentdConfigSchema,
     kotsadm: kotsadmConfigSchema,
     velero: veleroConfigSchema,
+    kurl: kurlConfigSchema,
   },
   required: ["kubernetes"],
   additionalProperites: false,
@@ -336,7 +389,6 @@ export class Installer {
       "0.9.11",
       "0.9.10",
       "0.9.9",
-      "alpha",
     ],
     velero: [
       "1.2.0",
@@ -393,8 +445,59 @@ export class Installer {
     }
     i.spec = parsed.spec;
 
+    const modified = i.legacyFieldConversion();
+
     if (parsed.apiVersion === "kurl.sh/v1beta1") {
-      return i.migrateV1Beta1();
+      return modified.migrateV1Beta1();
+    }
+
+    return modified;
+  }
+
+  public legacyFieldConversion(): Installer {
+   // this function is to ensure that old flags get converted to new befoore the hash get computed
+   // and the installer object is stored. if both flags are present, the old is ignored and removed
+
+    const i = this.clone();
+
+    if (i.spec.weave !== undefined) {
+        if (i.spec.weave.encryptNetwork !== undefined && i.spec.weave.isEncryptionDisabled === undefined) {
+          if (i.spec.weave.encryptNetwork === true) {
+              i.spec.weave.isEncryptionDisabled = false;
+          } else {
+              i.spec.weave.isEncryptionDisabled = true;
+          }
+        }
+        if (i.spec.weave.encryptNetwork !== undefined){
+            delete i.spec.weave.encryptNetwork;
+        }
+    }
+
+    if (_.get(i.spec, "weave.IPAllocRange")) {
+        if (i.spec.weave) {
+          if (i.spec.weave.IPAllocRange && !i.spec.weave.podCidrRange) {
+              i.spec.weave.podCidrRange = i.spec.weave.IPAllocRange;
+          }
+          delete i.spec.weave.IPAllocRange;
+        }
+    }
+
+    if (_.get(i.spec, "rook.storageClass")) {
+        if (i.spec.rook) {
+          if (i.spec.rook.storageClass && !i.spec.rook.storageClassName) {
+              i.spec.rook.storageClassName = i.spec.rook.storageClass;
+          }
+          delete i.spec.rook.storageClass;
+        }
+    }
+
+    if (_.get(i.spec, "rook.cephPoolReplicas")) {
+        if (i.spec.rook) {
+          if (i.spec.rook.cephPoolReplicas && !i.spec.rook.cephReplicaCount) {
+              i.spec.rook.cephReplicaCount = i.spec.rook.cephPoolReplicas;
+          }
+          delete i.spec.rook.cephPoolReplicas;
+        }
     }
 
     return i;

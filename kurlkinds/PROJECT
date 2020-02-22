@@ -1,0 +1,3 @@
+version: "1"
+domain: kurl.sh
+repo: github.com/replicatedhq/kurl/kurlkinds
