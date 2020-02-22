@@ -144,6 +144,7 @@ build/templates/install.tmpl: build/install.sh
 	mkdir -p build/templates
 	sed 's/^KUBERNETES_VERSION=.*/KUBERNETES_VERSION="{{= KUBERNETES_VERSION }}"/' "build/install.sh" | \
 		sed 's/^KURL_URL=.*/KURL_URL="{{= KURL_URL }}"/' | \
+		sed 's/^DIST_URL=.*/DIST_URL="{{= DIST_URL }}"/' | \
 		sed 's/^INSTALLER_ID=.*/INSTALLER_ID="{{= INSTALLER_ID }}"/' | \
 		sed 's/^REPLICATED_APP_URL=.*/REPLICATED_APP_URL="{{= REPLICATED_APP_URL }}"/' | \
 		sed 's/^WEAVE_VERSION=.*/WEAVE_VERSION="{{= WEAVE_VERSION }}"/' | \
@@ -176,6 +177,7 @@ build/templates/join.tmpl: build/join.sh
 	mkdir -p build/templates
 	sed 's/^KUBERNETES_VERSION=.*/KUBERNETES_VERSION="{{= KUBERNETES_VERSION }}"/' "build/join.sh" | \
 		sed 's/^KURL_URL=.*/KURL_URL="{{= KURL_URL }}"/' | \
+		sed 's/^DIST_URL=.*/DIST_URL="{{= DIST_URL }}"/' | \
 		sed 's/^INSTALLER_ID=.*/INSTALLER_ID="{{= INSTALLER_ID }}"/' | \
 		sed 's/^REPLICATED_APP_URL=.*/REPLICATED_APP_URL="{{= REPLICATED_APP_URL }}"/' | \
 		sed 's/^WEAVE_VERSION=.*/WEAVE_VERSION="{{= WEAVE_VERSION }}"/' | \
@@ -208,6 +210,7 @@ build/templates/upgrade.tmpl: build/upgrade.sh
 	mkdir -p build/templates
 	sed 's/^KUBERNETES_VERSION=.*/KUBERNETES_VERSION="{{= KUBERNETES_VERSION }}"/' "build/upgrade.sh" | \
 		sed 's/^KURL_URL=.*/KURL_URL="{{= KURL_URL }}"/' | \
+		sed 's/^DIST_URL=.*/DIST_URL="{{= DIST_URL }}"/' | \
 		sed 's/^INSTALLER_ID=.*/INSTALLER_ID="{{= INSTALLER_ID }}"/' | \
 		sed 's/^REPLICATED_APP_URL=.*/REPLICATED_APP_URL="{{= REPLICATED_APP_URL }}"/' | \
 		sed 's/^WEAVE_VERSION=.*/WEAVE_VERSION="{{= WEAVE_VERSION }}"/' | \
