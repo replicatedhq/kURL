@@ -4,72 +4,72 @@ metadata:
   name: "base"
 spec:
   contour:
-    version: ^^ contourVersion ^^
+    version: __kurl__ contourVersion __kurl__
   docker:
-    additionalNoProxy: ^^ dockerAdditonalNoProxy ^^
-    bypassStorageDriverWarning: ^^ dockerBypassStoragedriverWarning ^^
-    dockerRegistryIP: ^^ dockerRegistryIP ^^
-    hardFailOnLoopback: ^^ dockerHardFailOnLoopback ^^
-    noCEOnEE: ^^ dockerNoCEOnEE ^^
-    version: ^^ dockerVersion ^^
-    noDocker: ^^ dockerNoDocker ^^
+    additionalNoProxy: __kurl__ dockerAdditonalNoProxy __kurl__
+    bypassStorageDriverWarning: __kurl__ dockerBypassStoragedriverWarning __kurl__
+    dockerRegistryIP: __kurl__ dockerRegistryIP __kurl__
+    hardFailOnLoopback: __kurl__ dockerHardFailOnLoopback __kurl__
+    noCEOnEE: __kurl__ dockerNoCEOnEE __kurl__
+    version: __kurl__ dockerVersion __kurl__
+    noDocker: __kurl__ dockerNoDocker __kurl__
   fluentd:
-    fullEFKStack: ^^ fluentdFullEFKStack ^^
-    version: ^^ fluentdVersion ^^
+    fullEFKStack: __kurl__ fluentdFullEFKStack __kurl__
+    version: __kurl__ fluentdVersion __kurl__
   kotsadm:
-    applicationNamespace: ^^ kotsadmApplicationNamespace ^^
-    applicationSlug: ^^ kotsadmApplicationSlug ^^
-    hostname: ^^ kotsadmHostname ^^
-    uiBindPort: ^^ kotsadmUIBindPort ^^
-    version: ^^ kotsadmVersion ^^
+    applicationNamespace: __kurl__ kotsadmApplicationNamespace __kurl__
+    applicationSlug: __kurl__ kotsadmApplicationSlug __kurl__
+    hostname: __kurl__ kotsadmHostname __kurl__
+    uiBindPort: __kurl__ kotsadmUIBindPort __kurl__
+    version: __kurl__ kotsadmVersion __kurl__
   kubernetes:
-    HACluster: ^^ kubernetesHACluster ^^
-    apiServiceAddress: ^^ kubernetesAPIServiceAddress ^^
-    bootstrapToken: ^^ kubernetesBootstrapToken ^^
-    bootstrapTokenTTL: ^^ kubernetesBootstrapTokenTTL ^^
-    certKey: ^^ kubernetesCertKey ^^
-    controlPlane: ^^ kubernetesControlPlane ^^
-    kubeadmTokenCAHash: ^^ kubernetesKubeadmTokenCAHash ^^
-    loadBalancerAddress: ^^ kubernetesLoadBalancerAddress ^^
-    masterAddress: ^^ kubernetesMasterAddress ^^
-    serviceCIDR: ^^ kubernetesServiceCIDR ^^
-    serviceCidrRange: ^^ kubernetesServiceCIDRRange ^^
-    version: ^^ kubernetesVersion ^^
+    HACluster: __kurl__ kubernetesHACluster __kurl__
+    apiServiceAddress: __kurl__ kubernetesAPIServiceAddress __kurl__
+    bootstrapToken: __kurl__ kubernetesBootstrapToken __kurl__
+    bootstrapTokenTTL: __kurl__ kubernetesBootstrapTokenTTL __kurl__
+    certKey: __kurl__ kubernetesCertKey __kurl__
+    controlPlane: __kurl__ kubernetesControlPlane __kurl__
+    kubeadmTokenCAHash: __kurl__ kubernetesKubeadmTokenCAHash __kurl__
+    loadBalancerAddress: __kurl__ kubernetesLoadBalancerAddress __kurl__
+    masterAddress: __kurl__ kubernetesMasterAddress __kurl__
+    serviceCIDR: __kurl__ kubernetesServiceCIDR __kurl__
+    serviceCidrRange: __kurl__ kubernetesServiceCIDRRange __kurl__
+    version: __kurl__ kubernetesVersion __kurl__
   kurl:
-    HTTPProxy: ^^ HTTPProxy ^^
-    airgap: ^^ Airgap ^^
-    bypassFirewalldWarning: ^^ BypassFirewalldWarning ^^
-    hardFailOnFirewalld: ^^ HardFailOnFirewalld ^^
-    hostnameCheck: ^^ HostnameCheck ^^
-    noProxy: ^^ NoProxy ^^
-    privateAddress: ^^ PrivateAddress ^^
-    publicAddress: ^^ PublicAddress ^^
-    task: ^^ Task ^^
+    HTTPProxy: __kurl__ HTTPProxy __kurl__
+    airgap: __kurl__ Airgap __kurl__
+    bypassFirewalldWarning: __kurl__ BypassFirewalldWarning __kurl__
+    hardFailOnFirewalld: __kurl__ HardFailOnFirewalld __kurl__
+    hostnameCheck: __kurl__ HostnameCheck __kurl__
+    noProxy: __kurl__ NoProxy __kurl__
+    privateAddress: __kurl__ PrivateAddress __kurl__
+    publicAddress: __kurl__ PublicAddress __kurl__
+    task: __kurl__ Task __kurl__
   minio:
-    namespace: ^^ minioNamespace ^^
-    version: ^^ minioVersion ^^
+    namespace: __kurl__ minioNamespace __kurl__
+    version: __kurl__ minioVersion __kurl__
   openEBS:
-    localPV: ^^ openEBSLocalPV ^^
-    localPVStorageClass: ^^ openEBSLocalPVStorageClass ^^
-    namespace: ^^ openEBSNamespace ^^
-    version: ^^ openEBSVersion ^^
+    localPV: __kurl__ openEBSLocalPV __kurl__
+    localPVStorageClass: __kurl__ openEBSLocalPVStorageClass __kurl__
+    namespace: __kurl__ openEBSNamespace __kurl__
+    version: __kurl__ openEBSVersion __kurl__
   prometheus:
-    version: ^^ prometheusVersion ^^
+    version: __kurl__ prometheusVersion __kurl__
   registry:
-    publishPort: ^^ registryPublishPort ^^
-    version: ^^ registryVersion ^^
+    publishPort: __kurl__ registryPublishPort __kurl__
+    version: __kurl__ registryVersion __kurl__
   rook:
-    cephReplicaCount: ^^ rookCephReplicaCount ^^
-    storageClassName: ^^ rookStorageClassName ^^
-    version: ^^ rookVersion ^^
+    cephReplicaCount: __kurl__ rookCephReplicaCount __kurl__
+    storageClassName: __kurl__ rookStorageClassName __kurl__
+    version: __kurl__ rookVersion __kurl__
   velero:
-    disableRestic: ^^ veleroDisableRestic ^^
-    disableCLI: ^^ veleroDisableCLI ^^
-    localBucket: ^^ veleroLocalBucket ^^
-    namespace: ^^ veleroNamespace ^^
-    version: ^^ veleroVersion ^^
+    disableRestic: __kurl__ veleroDisableRestic __kurl__
+    disableCLI: __kurl__ veleroDisableCLI __kurl__
+    localBucket: __kurl__ veleroLocalBucket __kurl__
+    namespace: __kurl__ veleroNamespace __kurl__
+    version: __kurl__ veleroVersion __kurl__
   weave:
-    isEncryptionDisabled: ^^ weaveisEncryptionDisabled ^^
-    podCIDR: ^^ weavePodCIDR ^^
-    podCidrRange: ^^ weavePodCIDRRange ^^
-    version: ^^ weaveVersion ^^
+    isEncryptionDisabled: __kurl__ weaveisEncryptionDisabled __kurl__
+    podCIDR: __kurl__ weavePodCIDR __kurl__
+    podCidrRange: __kurl__ weavePodCIDRRange __kurl__
+    version: __kurl__ weaveVersion __kurl__
