@@ -1,0 +1,75 @@
+apiVersion: cluster.kurl.sh/v1beta1
+kind: Installer
+metadata:
+  name: "base"
+spec:
+  contour:
+    version: ^^ contourVersion ^^
+  docker:
+    additionalNoProxy: ^^ dockerAdditonalNoProxy ^^
+    bypassStorageDriverWarning: ^^ dockerBypassStoragedriverWarning ^^
+    dockerRegistryIP: ^^ dockerRegistryIP ^^
+    hardFailOnLoopback: ^^ dockerHardFailOnLoopback ^^
+    noCEOnEE: ^^ dockerNoCEOnEE ^^
+    version: ^^ dockerVersion ^^
+    noDocker: ^^ dockerNoDocker ^^
+  fluentd:
+    fullEFKStack: ^^ fluentdFullEFKStack ^^
+    version: ^^ fluentdVersion ^^
+  kotsadm:
+    applicationNamespace: ^^ kotsadmApplicationNamespace ^^
+    applicationSlug: ^^ kotsadmApplicationSlug ^^
+    hostname: ^^ kotsadmHostname ^^
+    uiBindPort: ^^ kotsadmUIBindPort ^^
+    version: ^^ kotsadmVersion ^^
+  kubernetes:
+    HACluster: ^^ kubernetesHACluster ^^
+    apiServiceAddress: ^^ kubernetesAPIServiceAddress ^^
+    bootstrapToken: ^^ kubernetesBootstrapToken ^^
+    bootstrapTokenTTL: ^^ kubernetesBootstrapTokenTTL ^^
+    certKey: ^^ kubernetesCertKey ^^
+    controlPlane: ^^ kubernetesControlPlane ^^
+    kubeadmTokenCAHash: ^^ kubernetesKubeadmTokenCAHash ^^
+    loadBalancerAddress: ^^ kubernetesLoadBalancerAddress ^^
+    masterAddress: ^^ kubernetesMasterAddress ^^
+    serviceCIDR: ^^ kubernetesServiceCIDR ^^
+    serviceCidrRange: ^^ kubernetesServiceCIDRRange ^^
+    version: ^^ kubernetesVersion ^^
+  kurl:
+    HTTPProxy: ^^ HTTPProxy ^^
+    airgap: ^^ Airgap ^^
+    bypassFirewalldWarning: ^^ BypassFirewalldWarning ^^
+    hardFailOnFirewalld: ^^ HardFailOnFirewalld ^^
+    hostnameCheck: ^^ HostnameCheck ^^
+    noProxy: ^^ NoProxy ^^
+    privateAddress: ^^ PrivateAddress ^^
+    publicAddress: ^^ PublicAddress ^^
+    task: ^^ Task ^^
+  minio:
+    namespace: ^^ minioNamespace ^^
+    version: ^^ minioVersion ^^
+  openEBS:
+    localPV: ^^ openEBSLocalPV ^^
+    localPVStorageClass: ^^ openEBSLocalPVStorageClass ^^
+    namespace: ^^ openEBSNamespace ^^
+    version: ^^ openEBSVersion ^^
+  prometheus:
+    version: ^^ prometheusVersion ^^
+  registry:
+    publishPort: ^^ registryPublishPort ^^
+    version: ^^ registryVersion ^^
+  rook:
+    cephReplicaCount: ^^ rookCephReplicaCount ^^
+    storageClassName: ^^ rookStorageClassName ^^
+    version: ^^ rookVersion ^^
+  velero:
+    disableRestic: ^^ veleroDisableRestic ^^
+    disableCLI: ^^ veleroDisableCLI ^^
+    localBucket: ^^ veleroLocalBucket ^^
+    namespace: ^^ veleroNamespace ^^
+    version: ^^ veleroVersion ^^
+  weave:
+    isEncryptionDisabled: ^^ weaveisEncryptionDisabled ^^
+    podCIDR: ^^ weavePodCIDR ^^
+    podCidrRange: ^^ weavePodCIDRRange ^^
+    version: ^^ weaveVersion ^^

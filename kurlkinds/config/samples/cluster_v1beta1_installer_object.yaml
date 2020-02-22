@@ -1,0 +1,76 @@
+apiVersion: cluster.kurl.sh/v1beta1
+kind: Installer
+metadata:
+  name: "test"
+spec:
+  contour:
+    version: latest
+  docker:
+    additionalNoProxy: 1.1.1.1
+    bypassStorageDriverWarning: false
+    dockerRegistryIP: 1.1.1.1
+    hardFailOnLoopback: false
+    noCEOnEE: false
+    noDocker: false
+    version: latest
+  fluentd:
+    fullEFKStack: false
+    version: latest
+  kotsadm:
+    applicationNamespace: namespace
+    applicationSlug: slug
+    hostname: 1.1.1.1
+    uiBindPort: 80
+    version: latest
+  kubernetes:
+    HACluster: true
+    apiServiceAddress: 1.1.1.1
+    bootstrapToken: abc
+    bootstrapTokenTTL: long
+    certKey: medico
+    controlPlane: false
+    kubeadmTokenCAHash: rot13
+    loadBalancerAddress: 1.1.1.1
+    masterAddress: 1.1.1.1
+    serviceCIDR: 1.1.1.1
+    serviceCIDRRange: "/24"
+    version: latest
+  kurl:
+    HTTPProxy: 1.1.1.1
+    airgap: false
+    bypassFirewalldWarning: false
+    hardFailOnFirewalld: false
+    hostnameCheck: 1.1.1.1
+    noProxy: false
+    privateAddress: 1.1.1.1
+    publicAddress: 1.1.1.1
+    task: string
+  minio:
+    namespace: minio
+    version: latest
+  openEBS:
+    localPV: false
+    localPVStorageClass: default
+    namespace: openebs
+    version: latest
+  prometheus:
+    version: latest
+  registry:
+    registryPublishPort: 1.1.1.1
+    version: latest
+  rook:
+    cephReplicaCount: 9000
+    storageClassName: store
+    version: latest
+  velero:
+    installCLI: false
+    localBucket: name
+    namespace: velero
+    disableRestic: false
+    version: latest
+  weave:
+    IPAllocRange: 1.1.1.1
+    isEncryptionDisabled: false
+    podCIDR: 1.1.1.1
+    podCIDRRange: "/24"
+    version: latest

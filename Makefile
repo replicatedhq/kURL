@@ -1,5 +1,5 @@
 SHELL := /bin/bash
-KURL_UTIL_IMAGE ?= replicated/kurl-util:alpha
+KURL_UTIL_IMAGE := replicated/kurl-util:v2020.02.11-0
 
 GIT_TREE = $(shell git rev-parse --is-inside-work-tree 2>/dev/null)
 ifneq "$(GIT_TREE)" ""
@@ -22,11 +22,12 @@ endif
 clean:
 	rm -rf build tmp dist
 
-dist/common.tar.gz: build/kustomize build/shared build/krew 
+dist/common.tar.gz: build/kustomize build/shared build/krew build/kurlkinds
 	mkdir -p dist
 	tar cf dist/common.tar -C build kustomize
 	tar rf dist/common.tar -C build shared
 	tar rf dist/common.tar -C build krew
+	tar rf dist/common.tar -C build kurlkinds
 	gzip dist/common.tar
 
 dist/aws-%.tar.gz: build/addons
@@ -143,7 +144,6 @@ build/templates/install.tmpl: build/install.sh
 	mkdir -p build/templates
 	sed 's/^KUBERNETES_VERSION=.*/KUBERNETES_VERSION="{{= KUBERNETES_VERSION }}"/' "build/install.sh" | \
 		sed 's/^KURL_URL=.*/KURL_URL="{{= KURL_URL }}"/' | \
-		sed 's/^DIST_URL=.*/DIST_URL="{{= DIST_URL }}"/' | \
 		sed 's/^INSTALLER_ID=.*/INSTALLER_ID="{{= INSTALLER_ID }}"/' | \
 		sed 's/^REPLICATED_APP_URL=.*/REPLICATED_APP_URL="{{= REPLICATED_APP_URL }}"/' | \
 		sed 's/^WEAVE_VERSION=.*/WEAVE_VERSION="{{= WEAVE_VERSION }}"/' | \
@@ -159,7 +159,6 @@ build/templates/install.tmpl: build/install.sh
 		sed 's/^KOTSADM_VERSION=.*/KOTSADM_VERSION="{{= KOTSADM_VERSION }}"/' | \
 		sed 's/^KOTSADM_APPLICATION_SLUG=.*/KOTSADM_APPLICATION_SLUG="{{= KOTSADM_APPLICATION_SLUG }}"/' | \
 		sed 's/^INSTALLER_YAML=.*/INSTALLER_YAML="{{= INSTALLER_YAML }}"/' | \
-		sed 's/^KURL_UTIL_IMAGE=.*/KURL_UTIL_IMAGE="{{= KURL_UTIL_IMAGE }}"/' | \
 		sed 's/^FLAGS=.*/FLAGS="{{= FLAGS }}"/' \
 		> build/templates/install.tmpl
 
@@ -177,7 +176,6 @@ build/templates/join.tmpl: build/join.sh
 	mkdir -p build/templates
 	sed 's/^KUBERNETES_VERSION=.*/KUBERNETES_VERSION="{{= KUBERNETES_VERSION }}"/' "build/join.sh" | \
 		sed 's/^KURL_URL=.*/KURL_URL="{{= KURL_URL }}"/' | \
-		sed 's/^DIST_URL=.*/DIST_URL="{{= DIST_URL }}"/' | \
 		sed 's/^INSTALLER_ID=.*/INSTALLER_ID="{{= INSTALLER_ID }}"/' | \
 		sed 's/^REPLICATED_APP_URL=.*/REPLICATED_APP_URL="{{= REPLICATED_APP_URL }}"/' | \
 		sed 's/^WEAVE_VERSION=.*/WEAVE_VERSION="{{= WEAVE_VERSION }}"/' | \
@@ -193,7 +191,6 @@ build/templates/join.tmpl: build/join.sh
 		sed 's/^KOTSADM_VERSION=.*/KOTSADM_VERSION="{{= KOTSADM_VERSION }}"/' | \
 		sed 's/^KOTSADM_APPLICATION_SLUG=.*/KOTSADM_APPLICATION_SLUG="{{= KOTSADM_APPLICATION_SLUG }}"/' | \
 		sed 's/^INSTALLER_YAML=.*/INSTALLER_YAML="{{= INSTALLER_YAML }}"/' | \
-		sed 's/^KURL_UTIL_IMAGE=.*/KURL_UTIL_IMAGE="{{= KURL_UTIL_IMAGE }}"/' | \
 		sed 's/^FLAGS=.*/FLAGS="{{= FLAGS }}"/' \
 		> build/templates/join.tmpl
 
@@ -211,7 +208,6 @@ build/templates/upgrade.tmpl: build/upgrade.sh
 	mkdir -p build/templates
 	sed 's/^KUBERNETES_VERSION=.*/KUBERNETES_VERSION="{{= KUBERNETES_VERSION }}"/' "build/upgrade.sh" | \
 		sed 's/^KURL_URL=.*/KURL_URL="{{= KURL_URL }}"/' | \
-		sed 's/^DIST_URL=.*/DIST_URL="{{= DIST_URL }}"/' | \
 		sed 's/^INSTALLER_ID=.*/INSTALLER_ID="{{= INSTALLER_ID }}"/' | \
 		sed 's/^REPLICATED_APP_URL=.*/REPLICATED_APP_URL="{{= REPLICATED_APP_URL }}"/' | \
 		sed 's/^WEAVE_VERSION=.*/WEAVE_VERSION="{{= WEAVE_VERSION }}"/' | \
@@ -227,7 +223,6 @@ build/templates/upgrade.tmpl: build/upgrade.sh
 		sed 's/^KOTSADM_VERSION=.*/KOTSADM_VERSION="{{= KOTSADM_VERSION }}"/' | \
 		sed 's/^KOTSADM_APPLICATION_SLUG=.*/KOTSADM_APPLICATION_SLUG="{{= KOTSADM_APPLICATION_SLUG }}"/' | \
 		sed 's/^INSTALLER_YAML=.*/INSTALLER_YAML="{{= INSTALLER_YAML }}"/' | \
-		sed 's/^KURL_UTIL_IMAGE=.*/KURL_UTIL_IMAGE="{{= KURL_UTIL_IMAGE }}"/' | \
 		sed 's/^FLAGS=.*/FLAGS="{{= FLAGS }}"/' \
 		> build/templates/upgrade.tmpl
 
@@ -242,6 +237,11 @@ build/krew:
 	docker create --name krew krew:latest
 	docker cp krew:/krew build/
 	docker rm krew
+
+build/kurlkinds:
+	mkdir -p build/kurlkinds
+	cp kurlkinds/config/crds/v1beta1/cluster.kurl.sh_installers.yaml build/kurlkinds
+	cp kurlkinds/config/template/cluster.kurl.sh_template.yaml build/kurlkinds
 
 build/kustomize:
 	mkdir -p build
