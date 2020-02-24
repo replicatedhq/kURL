@@ -54,4 +54,4 @@ test-crd:
 	kubectl apply -f config/test/temp.yaml
 	rm config/test/temp.sh
 	rm config/test/temp.yaml
-	#kubectl delete crd installers.cluster.kurl.sh
+	kubectl delete crd installers.cluster.kurl.sh
