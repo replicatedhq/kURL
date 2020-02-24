@@ -81,4 +81,4 @@ WEAVE_POD_CIDR="1.1.1.1"
 WEAVE_POD_CIDR_RANGE="/24"
 WEAVE_VERSION="latest"
 
-apply_flags_to_yaml "$1"
+apply_flags_to_installer_yaml "$1"
