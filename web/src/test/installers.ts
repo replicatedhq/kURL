@@ -446,8 +446,6 @@ spec:
         it("=> void", () => {
           const out = Installer.parse(everyOption).validate();
 
-          console.log(out);
-
           expect(out).to.equal(undefined);
         });
       });
