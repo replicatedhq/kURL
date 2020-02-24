@@ -74,7 +74,7 @@ function contour_yaml() {
 
     if [ -z $CONTOUR_VERSION ]; then
         sed -i "/$addon_name/d" $filename
-        exit 1
+        return 0
     fi
 
     replace_with_variable_or_delete_line $filename "__kurl__ contourVersion __kurl__" "$CONTOUR_VERSION"
@@ -86,7 +86,7 @@ function docker_yaml() {
 
     if [ -z $DOCKER_VERSION ]; then
         sed -i "/$addon_name/d" $filename
-        exit 1
+        return 0
     fi
 
     replace_with_variable_or_delete_line $filename "__kurl__ dockerAdditonalNoProxy __kurl__" "$ADDITIONAL_NO_PROXY"
@@ -104,7 +104,7 @@ function fluentd_yaml() {
 
     if [ -z $FLUENTD_VERSION ]; then
         sed -i "/$addon_name/d" $filename
-        exit 1
+        return 0
     fi
 
     replace_with_true_or_false $filename "__kurl__ fluentdFullEFKStack __kurl__" "$FLUENTD_FULL_EFK_STACK"
@@ -117,7 +117,7 @@ function kotsadm_yaml() {
 
     if [ -z $KOTSADM_VERSION ]; then
         sed -i "/$addon_name/d" $filename
-        exit 1
+        return 0
     fi
 
     replace_with_variable_or_delete_line $filename "__kurl__ kotsadmApplicationNamespace __kurl__" "$KOTSADM_APPLICATION_NAMESPACE"
@@ -133,9 +133,10 @@ function kubernetes_yaml() {
 
     if [ -z $KUBERNETES_VERSION ]; then
         sed -i "/$addon_name/d" $filename
-        exit 1
+        return 0
     fi
 
+    replace_with_true_or_false $filename  "__kurl__ kubernetesHACluster __kurl__" "$HA_CLUSTER"
     replace_with_variable_or_delete_line $filename "__kurl__ kubernetesAPIServiceAddress __kurl__" "$API_SERVICE_ADDRESS"
     replace_with_variable_or_delete_line $filename "__kurl__ kubernetesBootstrapToken __kurl__" "$BOOTSTRAP_TOKEN"
     replace_with_variable_or_delete_line $filename "__kurl__ kubernetesBootstrapTokenTTL __kurl__" "$BOOTSTRAP_TOKEN_TTL"
@@ -179,7 +180,7 @@ function minio_yaml() {
 
     if [ -z $MINIO_VERSION ]; then
         sed -i "/$addon_name/d" $filename
-        exit 1
+        return 0
     fi
 
     replace_with_variable_or_delete_line $filename "__kurl__ minioNamespace __kurl__" "$MINIO_NAMESPACE"
@@ -192,7 +193,7 @@ function openebs_yaml() {
 
     if [ -z $OPENEBS_VERSION ]; then
         sed -i "/$addon_name/d" $filename
-        exit 1
+        return 0
     fi
 
     replace_with_variable_or_delete_line $filename "__kurl__ openEBSNamespace __kurl__" "$OPENEBS_NAMESPACE"
@@ -207,7 +208,7 @@ function prometheus_yaml() {
 
     if [ -z $PROMETHEUS_VERSION ]; then
         sed -i "/$addon_name/d" $filename
-        exit 1
+        return 0
     fi
 
     replace_with_variable_or_delete_line $filename "__kurl__ prometheusVersion __kurl__" "$PROMETHEUS_VERSION"
@@ -219,7 +220,7 @@ function registry_yaml() {
 
     if [ -z $REGISTRY_VERSION ]; then
         sed -i "/$addon_name/d" $filename
-        exit 1
+        return 0
     fi
 
     replace_with_variable_or_delete_line $filename "__kurl__ registryPublishPort __kurl__" "$REGISTRY_PUBLISH_PORT"
@@ -232,7 +233,7 @@ function rook_yaml() {
 
     if [ -z $ROOK_VERSION ]; then
         sed -i "/$addon_name/d" $filename
-        exit 1
+        return 0
     fi
 
     replace_with_variable_or_delete_line $filename "__kurl__ rookStorageClassName __kurl__" "$STORAGE_CLASS"
@@ -246,7 +247,7 @@ function velero_yaml() {
 
     if [ -z $VELERO_VERSION ]; then
         sed -i "/$addon_name/d" $filename
-        exit 1
+        return 0
     fi
 
     replace_with_true_or_false $filename "__kurl__ veleroDisableRestic __kurl__" "$VELERO_USE_RESTIC"
@@ -262,7 +263,7 @@ function weave_yaml() {
 
     if [ -z $WEAVE_VERSION ]; then
         sed -i "/$addon_name/d" $filename
-        exit 1
+        return 0
     fi
 
     replace_with_true_or_false $filename "__kurl__ weaveisEncryptionDisabled __kurl__" "$ENCRYPT_NETWORK"
@@ -271,7 +272,7 @@ function weave_yaml() {
     replace_with_variable_or_delete_line $filename "__kurl__ weaveVersion __kurl__" "$WEAVE_VERSION"
 }
 
-function apply_flags_to_yaml() {
+function apply_flags_to_installer_yaml() {
     contour_yaml "$1"
     docker_yaml "$1"
     fluentd_yaml "$1"
@@ -295,10 +296,6 @@ function setup_installer_crd() {
     kubectl apply -f $INSTALLER_CRD_DEFINITION
 
     cp $INSTALLER_TEMPLATE_OBJECT $INSTALLER_MODIFIED_OBJECT
-
-    cat > $INSTALLER_MODIFIED_OBJECT << EOF
-$INSTALLER_YAML
-EOF
 
     apply_flags_to_installer_yaml $INSTALLER_MODIFIED_OBJECT
 
