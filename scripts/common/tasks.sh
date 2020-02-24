@@ -106,6 +106,7 @@ function reset() {
     rm -rf /var/lib/etcd
     rm -f /usr/bin/kubeadm /usr/bin/kubelet /usr/bin/kubectl
     rm -rf /var/lib/kubelet
+    rm -f /usr/local/bin/kustomize*
 }
 
 function weave_reset() {
