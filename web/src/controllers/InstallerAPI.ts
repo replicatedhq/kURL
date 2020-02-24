@@ -102,8 +102,6 @@ export class Installers {
     }
     i.id = i.hash();
 
-    console.log(i.id);
-
     const err = await i.validate();
     if (err) {
       response.status(400);
