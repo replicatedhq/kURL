@@ -19,3 +19,4 @@ INSTALLER_ID=
 REPLICATED_APP_URL=https://replicated.app
 FLAGS=""
 INSTALLER_YAML=
+KURL_UTIL_IMAGE=replicated/kurl-util:alpha
