@@ -106,6 +106,10 @@ kubernetes_host_commands_ok() {
         printf "kubectl command missing - will install host components\n"
         return 1
     fi
+    if ! commandExists kustomize; then
+        printf "kustomize command missing - will install host components\n"
+        return 1
+    fi
 
     kubelet --version | grep -q "$k8sVersion"
 }
