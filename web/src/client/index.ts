@@ -15,11 +15,13 @@ export class KurlClient {
     return resp.text;
   }
 
-  public async putInstaller(jwt: string, name: string, yaml: string): Promise<string> {
+  public async putInstaller(token: string, name: string, yaml: string): Promise<string> {
+    const auth = `Bearer ${token}` || token;
+    
     const resp = await request
       .put(`${this.kurlURL}/installer/${name}`)
       .set("Content-Type", "text/yaml")
-      .set("Authorization", `Bearer ${jwt}`)
+      .set("Authorization", auth)
       .send(yaml);
 
     return resp.text;
