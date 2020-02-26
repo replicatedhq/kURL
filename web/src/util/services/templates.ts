@@ -66,6 +66,7 @@ interface Manifest {
   KOTSADM_APPLICATION_SLUG: string;
   REPLICATED_APP_URL: string;
   VELERO_VERSION: string;
+  EKCO_VERSION: string;
   FLAGS: string;
   KURL_UTIL_IMAGE: string;
   INSTALLER_YAML: string;
@@ -89,6 +90,7 @@ function manifestFromInstaller(i: Installer, kurlURL: string, replicatedAppURL: 
     KOTSADM_APPLICATION_SLUG: _.get(i.spec, "kotsadm.applicationSlug", ""),
     REPLICATED_APP_URL: replicatedAppURL,
     VELERO_VERSION: _.get(i.spec, "velero.version", ""),
+    EKCO_VERSION: _.get(i.spec, "ekco.version", ""),
     FLAGS: i.flags(),
     KURL_UTIL_IMAGE: kurlUtilImage,
     INSTALLER_YAML: i.toYAML(),

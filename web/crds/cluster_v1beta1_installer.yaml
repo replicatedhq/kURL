@@ -110,7 +110,7 @@ spec:
                   type: boolean
                 namespace:
                   type: string
-                useREstic:
+                useRestic:
                   type: boolean
                 version:
                   type: string
@@ -128,6 +128,24 @@ spec:
               required:
               - version
               type: object
+            ekco:
+              properties:
+                nodeUnreachableTolerationDuration:
+                  type: string
+                minReadyMasterNodeCount:
+                  type: integer
+                minReadyWorkerNodeCount:
+                  type: integer
+                rook:
+                  properties:
+                    shouldMaintainStorageNodes:
+                      type: boolean
+                  type: object
+                version:
+                  type: string
+              required:
+              - version
+              type: object
           type: object
         status:
           type: object
@@ -138,4 +156,3 @@ status:
     plural: ""
   conditions: []
   storedVersions: []
-

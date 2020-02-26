@@ -250,6 +250,7 @@ function main() {
     addon_pre_init prometheus "$PROMETHEUS_VERSION"
     addon_pre_init velero "$VELERO_VERSION"
     addon_pre_init fluentd "$FLUENTD_VERSION"
+    addon_pre_init ekco "$EKCO_VERSION"
     addon_pre_init kotsadm "$KOTSADM_VERSION"
     discover_pod_subnet
     discover_service_subnet
@@ -266,6 +267,7 @@ function main() {
     addon prometheus "$PROMETHEUS_VERSION"
     addon velero "$VELERO_VERSION"
     addon fluentd "$FLUENTD_VERSION"
+    addon ekco "$EKCO_VERSION"
     addon kotsadm "$KOTSADM_VERSION"
     post_init
     outro

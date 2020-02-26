@@ -223,6 +223,39 @@ const veleroConfigSchema = {
   additionalProperties: false,
 };
 
+export interface EkcoRookConfig {
+  shouldMaintainStorageNodes: boolean;
+}
+
+export interface EkcoConfig {
+  version: string;
+  nodeUnreachableTolerationDuration?: string;
+  minReadyMasterNodeCount?: number;
+  minReadyWorkerNodeCount?: number;
+  rook?: EkcoRookConfig;
+}
+
+const ekcoRookSchema = {
+  type: "object",
+  properties: {
+    shouldMaintainStorageNodes: { type: "boolean", flag: "ekco-disable-should-maintain-rook-storage-nodes", flagFalseOnlyNoArg: true},
+  },
+  additionalProperties: false,
+};
+
+const ekcoConfigSchema = {
+  type: "object",
+  properties: {
+    version: { type: "string" },
+    nodeUnreachableTolerationDuration: { type: "string", flag: "ekco-node-unreachable-toleration-duration" },
+    minReadyMasterNodeCount: { type: "number", flag: "ekco-min-ready-master-node-count" },
+    minReadyWorkerNodeCount: { type: "number", flag: "ekco-min-ready-worker-node-count" },
+    rook: ekcoRookSchema,
+  },
+  required: ["version"],
+  additionalProperties: false,
+};
+
 export interface InstallerSpec {
   kubernetes: KubernetesConfig;
   docker?: DockerConfig;
@@ -236,6 +269,7 @@ export interface InstallerSpec {
   fluentd?: FluentdConfig;
   kotsadm?: KotsadmConfig;
   velero?: VeleroConfig;
+  ekco?: EkcoConfig;
 }
 
 const specSchema = {
@@ -254,6 +288,7 @@ const specSchema = {
     fluentd: fluentdConfigSchema,
     kotsadm: kotsadmConfigSchema,
     velero: veleroConfigSchema,
+    ekco: ekcoConfigSchema,
   },
   required: ["kubernetes"],
   additionalProperites: false,
@@ -347,6 +382,9 @@ export class Installer {
     ],
     minio: [
       "2020-01-25T02-50-51Z",
+    ],
+    ekco: [
+      "0.1.0",
     ],
   };
 
@@ -645,6 +683,9 @@ export class Installer {
     }
     if (this.spec.minio && !Installer.hasVersion("minio", this.spec.minio.version)) {
       return { error: { message: `Minio version "${_.escape(this.spec.minio.version)}" is not supported` } };
+    }
+    if (this.spec.ekco && !Installer.hasVersion("ekco", this.spec.ekco.version)) {
+      return { error: { message: `Ekco version "${_.escape(this.spec.ekco.version)}" is not supported` } };
     }
   }
 

@@ -188,6 +188,18 @@ function flags() {
             openebs-localpv-storage-class|openebs_localpv_storage_class)
                 OPENEBS_LOCALPV_STORAGE_CLASS="$_value"
                 ;;
+            ekco-node-unreachable-toleration-duration|ekco_node_unreachable_toleration_duration)
+                EKCO_NODE_UNREACHABLE_TOLERATION_DURATION="$_value"
+                ;;
+            ekco-min-ready-master-node-count|ekco_min_ready_master_node_count)
+                EKCO_MIN_READY_MASTER_NODE_COUNT="$_value"
+                ;;
+            ekco-min-ready-worker-node-count|ekco_min_ready_worker_node_count)
+                EKCO_MIN_READY_WORKER_NODE_COUNT="$_value"
+                ;;
+            ekco-disable-should-maintain-rook-storage-nodes|ekco_disable_should_maintain_rook_storage_nodes)
+                EKCO_DISABLE_SHOULD_MAINTAIN_ROOK_STORAGE_NODES=1
+                ;;
             pod-cidr-range|pod_cidr_range)
                 # allow either /16 or 16 for subnet size
                 POD_CIDR_RANGE=$(echo "$_value" | sed "s/\///")

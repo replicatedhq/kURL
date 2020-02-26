@@ -117,6 +117,7 @@ function main() {
     addon_join kotsadm "$KOTSADM_VERSION"
     addon_join velero "$VELERO_VERSION"
     addon_join fluentd "$FLUENTD_VERSION"
+    addon_join ekco "$EKCO_VERSION"
     kubernetes_host
     join
     outro
