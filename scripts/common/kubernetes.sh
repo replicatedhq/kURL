@@ -280,6 +280,11 @@ function install_kustomize() {
         return 0
     fi
 
+    if [ ! -d $DIR/packages/kubernetes/${k8sVersion}/assets ];then
+        echo "Missing required assets to install kustomize"
+        return 0
+    fi
+
     kustomize_dir=/usr/local/bin
 
     pushd "$DIR/packages/kubernetes/${k8sVersion}/assets"
