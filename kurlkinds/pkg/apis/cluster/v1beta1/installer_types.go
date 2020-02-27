@@ -112,7 +112,7 @@ type Registry struct {
 }
 
 type Rook struct {
-	CephRplicaCount  int    `json:"cephReplicaCount,omitempty"`
+	CephReplicaCount  int    `json:"cephReplicaCount,omitempty"`
 	StorageClassName string `json:"storageClassName,omitempty"`
 	Version          string `json:"version"`
 }
