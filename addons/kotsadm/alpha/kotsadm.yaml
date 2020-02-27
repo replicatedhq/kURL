@@ -29,6 +29,7 @@ rules:
   - kotsadm-gitops
   - kotsadm-authstring
   - kotsadm-password
+  - registry-creds
   resources:
   - secrets
   verbs:
