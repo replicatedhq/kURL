@@ -64,7 +64,7 @@ function ekco_join() {
     fi
 
     # is rook disabled
-    if ! kubectl get ns | grep -q rook-ceph; then
+    if [ -z "$ROOK_VERSION" ]; then
         # disable reboot service for now as it only serves rook-ceph clusters
         EKCO_SHOULD_INSTALL_REBOOT_SERVICE=0
     fi
