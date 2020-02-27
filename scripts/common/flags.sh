@@ -200,6 +200,9 @@ function flags() {
             ekco-disable-should-maintain-rook-storage-nodes|ekco_disable_should_maintain_rook_storage_nodes)
                 EKCO_DISABLE_SHOULD_MAINTAIN_ROOK_STORAGE_NODES=1
                 ;;
+            ekco-disable-should-install-reboot-service|ekco_disable_should_install_reboot_service)
+                EKCO_DISABLE_SHOULD_INSTALL_REBOOT_SERVICE=1
+                ;;
             pod-cidr-range|pod_cidr_range)
                 # allow either /16 or 16 for subnet size
                 POD_CIDR_RANGE=$(echo "$_value" | sed "s/\///")

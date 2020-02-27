@@ -162,6 +162,7 @@ spec:
     nodeUnreachableTolerationDuration: 10m
     minReadyMasterNodeCount: 3
     minReadyWorkerNodeCount: 1
+    shouldInstallRebootService: false
     rook:
       shouldMaintainStorageNodes: false
 `;
@@ -238,10 +239,10 @@ describe("POST /installer", () => {
   });
 
   describe("ekco", () => {
-    it(`should return 201 "https://kurl.sh/e88eb61"`, async () => {
+    it(`should return 201 "https://kurl.sh/5fad6e6"`, async () => {
       const uri = await client.postInstaller(ekco);
 
-      expect(uri).to.match(/e88eb61/);
+      expect(uri).to.match(/5fad6e6/);
     });
   });
 
@@ -498,12 +499,12 @@ spec:
     });
   });
 
-  describe("ekco (/e88eb61)", () => {
-    const id = "e88eb61";
+  describe("ekco (/5fad6e6)", () => {
+    const id = "5fad6e6";
 
     before(async () => {
       const uri = await client.postInstaller(ekco);
-      expect(uri).to.match(/e88eb61/);
+      expect(uri).to.match(/5fad6e6/);
     });
 
     it("injects ekco version and flags", async () => {
@@ -511,7 +512,7 @@ spec:
       const script = await client.getInstallScript(id);
 
       expect(script).to.match(new RegExp(`EKCO_VERSION="${i.resolve().spec.ekco!.version}"`));
-      expect(script).to.match(new RegExp(`FLAGS="ekco-node-unreachable-toleration-duration=10m ekco-min-ready-master-node-count=3 ekco-min-ready-worker-node-count=1 ekco-disable-should-maintain-rook-storage-nodes"`));
+      expect(script).to.match(new RegExp(`FLAGS="ekco-node-unreachable-toleration-duration=10m ekco-min-ready-master-node-count=3 ekco-min-ready-worker-node-count=1 ekco-disable-should-install-reboot-service ekco-disable-should-maintain-rook-storage-nodes"`));
     });
   });
 });

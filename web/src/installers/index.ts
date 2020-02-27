@@ -232,6 +232,7 @@ export interface EkcoConfig {
   nodeUnreachableTolerationDuration?: string;
   minReadyMasterNodeCount?: number;
   minReadyWorkerNodeCount?: number;
+  shouldInstallRebootService?: boolean;
   rook?: EkcoRookConfig;
 }
 
@@ -250,6 +251,7 @@ const ekcoConfigSchema = {
     nodeUnreachableTolerationDuration: { type: "string", flag: "ekco-node-unreachable-toleration-duration" },
     minReadyMasterNodeCount: { type: "number", flag: "ekco-min-ready-master-node-count" },
     minReadyWorkerNodeCount: { type: "number", flag: "ekco-min-ready-worker-node-count" },
+    shouldInstallRebootService: { type: "boolean", flag: "ekco-disable-should-install-reboot-service", flagFalseOnlyNoArg: true},
     rook: ekcoRookSchema,
   },
   required: ["version"],
