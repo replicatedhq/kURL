@@ -153,6 +153,19 @@ spec:
       storageClass: default
 `;
 
+const ekco = `
+spec:
+  kubernetes:
+    version: latest
+  ekco:
+    version: latest
+    nodeUnreachableTolerationDuration: 10m
+    minReadyMasterNodeCount: 3
+    minReadyWorkerNodeCount: 1
+    rook:
+      shouldMaintainStorageNodes: false
+`;
+
 describe("POST /installer", () => {
   describe("latestV1Beta1", () => {
     it(`should return 201 "https://kurl.sh/latest"`, async () => {
@@ -221,6 +234,14 @@ describe("POST /installer", () => {
       const uri = await client.postInstaller(openebs);
 
       expect(uri).to.match(/6f4223e/);
+    });
+  });
+
+  describe("ekco", () => {
+    it(`should return 201 "https://kurl.sh/e88eb61"`, async () => {
+      const uri = await client.postInstaller(ekco);
+
+      expect(uri).to.match(/e88eb61/);
     });
   });
 
@@ -359,6 +380,7 @@ describe("GET /<installerID>", () => {
       expect(script).to.match(/KOTSADM_APPLICATION_SLUG=""/);
       expect(script).to.match(/MINIO_VERSION=""/);
       expect(script).to.match(/OPENEBS_VERSION=""/);
+      expect(script).to.match(/EKCO_VERSION=""/);
     });
   });
 
@@ -378,6 +400,7 @@ describe("GET /<installerID>", () => {
       expect(script).to.match(new RegExp(`KOTSADM_APPLICATION_SLUG=""`));
       expect(script).to.match(/MINIO_VERSION=""/);
       expect(script).to.match(/OPENEBS_VERSION=""/);
+      expect(script).to.match(/EKCO_VERSION=""/);
     });
   });
 
@@ -400,6 +423,7 @@ describe("GET /<installerID>", () => {
       expect(script).to.match(new RegExp(`KOTSADM_APPLICATION_SLUG=""`));
       expect(script).to.match(/MINIO_VERSION=""/);
       expect(script).to.match(/OPENEBS_VERSION=""/);
+      expect(script).to.match(/EKCO_VERSION=""/);
     });
   });
 
@@ -473,6 +497,23 @@ spec:
       expect(script).to.match(new RegExp(`FLAGS="openebs-namespace=openebs openebs-localpv=1 openebs-localpv-storage-class=default"`));
     });
   });
+
+  describe("ekco (/e88eb61)", () => {
+    const id = "e88eb61";
+
+    before(async () => {
+      const uri = await client.postInstaller(ekco);
+      expect(uri).to.match(/e88eb61/);
+    });
+
+    it("injects ekco version and flags", async () => {
+      const i = Installer.parse(ekco);
+      const script = await client.getInstallScript(id);
+
+      expect(script).to.match(new RegExp(`EKCO_VERSION="${i.resolve().spec.ekco!.version}"`));
+      expect(script).to.match(new RegExp(`FLAGS="ekco-node-unreachable-toleration-duration=10m ekco-min-ready-master-node-count=3 ekco-min-ready-worker-node-count=1 ekco-disable-should-maintain-rook-storage-nodes"`));
+    });
+  });
 });
 
 describe("GET /<installerID>/join.sh", () => {
@@ -492,6 +533,7 @@ describe("GET /<installerID>/join.sh", () => {
       expect(script).to.match(new RegExp(`KOTSADM_APPLICATION_SLUG=""`));
       expect(script).to.match(/MINIO_VERSION=""/);
       expect(script).to.match(/OPENEBS_VERSION=""/);
+      expect(script).to.match(/EKCO_VERSION=""/);
     });
   });
 

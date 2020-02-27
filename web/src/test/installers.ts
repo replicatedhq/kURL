@@ -48,6 +48,13 @@ spec:
     namespace: velero
     installCLI: false
     useRestic: false
+  ekco:
+    version: latest
+    nodeUnreachableTolerationDuration: 10m
+    minReadyMasterNodeCount: 3
+    minReadyWorkerNodeCount: 1
+    rook:
+      shouldMaintainStorageNodes: false
 `;
 
 const typeMetaStableV1Beta1 = `
@@ -203,6 +210,23 @@ spec:
 const fluentdMin = `
 spec:
   fluentd:
+    version: latest
+`;
+
+const ekco = `
+spec:
+  ekco:
+    version: latest
+    nodeUnreachableTolerationDuration: 10m
+    minReadyMasterNodeCount: 3
+    minReadyWorkerNodeCount: 1
+    rook:
+      shouldMaintainStorageNodes: false
+`;
+
+const ekcoMin = `
+spec:
+  ekco:
     version: latest
 `;
 
@@ -526,7 +550,7 @@ spec:
       it(`=> service-cidr-range=/12 ...`, () => {
         const i = Installer.parse(everyOption);
 
-        expect(i.flags()).to.equal(`service-cidr-range=/12 bypass-storagedriver-warnings=0 hard-fail-on-loopback=0 no-ce-on-ee=0 pod-cidr-range=/12 encrypt-network=1 storage-class=default ceph-pool-replicas=1 openebs-namespace=openebs openebs-localpv=1 openebs-localpv-storage-class=default minio-namespace=minio fluentd-full-efk-stack=1 kotsadm-ui-bind-port=8800 velero-namespace=velero velero-disable-cli velero-disable-restic`);
+        expect(i.flags()).to.equal(`service-cidr-range=/12 bypass-storagedriver-warnings=0 hard-fail-on-loopback=0 no-ce-on-ee=0 pod-cidr-range=/12 encrypt-network=1 storage-class=default ceph-pool-replicas=1 openebs-namespace=openebs openebs-localpv=1 openebs-localpv-storage-class=default minio-namespace=minio fluentd-full-efk-stack=1 kotsadm-ui-bind-port=8800 velero-namespace=velero velero-disable-cli velero-disable-restic ekco-node-unreachable-toleration-duration=10m ekco-min-ready-master-node-count=3 ekco-min-ready-worker-node-count=1 ekco-disable-should-maintain-rook-storage-nodes`);
       });
     });
   });
@@ -584,6 +608,31 @@ spec:
       const i = Installer.parse(everyOption);
 
       expect(i.spec.openebs.namespace).to.equal("openebs");
+    });
+  });
+
+  describe("ekco", () => {
+    it("should parse", () => {
+      const i = Installer.parse(ekco);
+
+      expect(i.spec.ekco).to.deep.equal({
+        version: "latest",
+        nodeUnreachableTolerationDuration: "10m",
+        minReadyMasterNodeCount: 3,
+        minReadyWorkerNodeCount: 1,
+        rook: {
+          shouldMaintainStorageNodes: false,
+        },
+      });
+      expect(i.flags()).to.equal(`ekco-node-unreachable-toleration-duration=10m ekco-min-ready-master-node-count=3 ekco-min-ready-worker-node-count=1 ekco-disable-should-maintain-rook-storage-nodes`);
+    });
+  });
+
+  describe("ekco minimum spec flags", () => {
+    it("should not generate any flags", () => {
+      const i = Installer.parse(ekcoMin);
+
+      expect(i.flags()).to.equal(``);
     });
   });
 });

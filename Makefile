@@ -98,6 +98,12 @@ dist/fluentd-%.tar.gz: build/addons
 	mkdir -p dist
 	tar cf - -C build addons/fluentd/$* | gzip > dist/fluentd-$*.tar.gz
 
+dist/ekco-%.tar.gz: build/addons
+	mkdir -p build/addons/ekco/$*/images
+	bin/save-manifest-assets.sh addons/ekco/$*/Manifest build/addons/ekco/$*
+	mkdir -p dist
+	tar cf - -C build addons/ekco/$* | gzip > dist/ekco-$*.tar.gz
+
 dist/kotsadm-%.tar.gz: build/addons
 	mkdir -p build/addons/kotsadm/$*/images
 	bin/save-manifest-assets.sh addons/kotsadm/$*/Manifest build/addons/kotsadm/$*
@@ -149,6 +155,7 @@ build/templates/install.tmpl: build/install.sh
 		sed 's/^PROMETHEUS_VERSION=.*/PROMETHEUS_VERSION="{{= PROMETHEUS_VERSION }}"/' | \
 		sed 's/^VELERO_VERSION=.*/VELERO_VERSION="{{= VELERO_VERSION }}"/' | \
 		sed 's/^FLUENTD_VERSION=.*/FLUENTD_VERSION="{{= FLUENTD_VERSION }}"/' | \
+		sed 's/^EKCO_VERSION=.*/EKCO_VERSION="{{= EKCO_VERSION }}"/' | \
 		sed 's/^KOTSADM_VERSION=.*/KOTSADM_VERSION="{{= KOTSADM_VERSION }}"/' | \
 		sed 's/^KOTSADM_APPLICATION_SLUG=.*/KOTSADM_APPLICATION_SLUG="{{= KOTSADM_APPLICATION_SLUG }}"/' | \
 		sed 's/^INSTALLER_YAML=.*/INSTALLER_YAML="{{= INSTALLER_YAML }}"/' | \
@@ -182,6 +189,7 @@ build/templates/join.tmpl: build/join.sh
 		sed 's/^PROMETHEUS_VERSION=.*/PROMETHEUS_VERSION="{{= PROMETHEUS_VERSION }}"/' | \
 		sed 's/^VELERO_VERSION=.*/VELERO_VERSION="{{= VELERO_VERSION }}"/' | \
 		sed 's/^FLUENTD_VERSION=.*/FLUENTD_VERSION="{{= FLUENTD_VERSION }}"/' | \
+		sed 's/^EKCO_VERSION=.*/EKCO_VERSION="{{= EKCO_VERSION }}"/' | \
 		sed 's/^KOTSADM_VERSION=.*/KOTSADM_VERSION="{{= KOTSADM_VERSION }}"/' | \
 		sed 's/^KOTSADM_APPLICATION_SLUG=.*/KOTSADM_APPLICATION_SLUG="{{= KOTSADM_APPLICATION_SLUG }}"/' | \
 		sed 's/^INSTALLER_YAML=.*/INSTALLER_YAML="{{= INSTALLER_YAML }}"/' | \
@@ -215,6 +223,7 @@ build/templates/upgrade.tmpl: build/upgrade.sh
 		sed 's/^PROMETHEUS_VERSION=.*/PROMETHEUS_VERSION="{{= PROMETHEUS_VERSION }}"/' | \
 		sed 's/^VELERO_VERSION=.*/VELERO_VERSION="{{= VELERO_VERSION }}"/' | \
 		sed 's/^FLUENTD_VERSION=.*/FLUENTD_VERSION="{{= FLUENTD_VERSION }}"/' | \
+		sed 's/^EKCO_VERSION=.*/EKCO_VERSION="{{= EKCO_VERSION }}"/' | \
 		sed 's/^KOTSADM_VERSION=.*/KOTSADM_VERSION="{{= KOTSADM_VERSION }}"/' | \
 		sed 's/^KOTSADM_APPLICATION_SLUG=.*/KOTSADM_APPLICATION_SLUG="{{= KOTSADM_APPLICATION_SLUG }}"/' | \
 		sed 's/^INSTALLER_YAML=.*/INSTALLER_YAML="{{= INSTALLER_YAML }}"/' | \
