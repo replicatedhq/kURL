@@ -13,6 +13,10 @@ function ekco_pre_init() {
     if [ "$EKCO_DISABLE_SHOULD_MAINTAIN_ROOK_STORAGE_NODES" = "1" ]; then
         EKCO_SHOULD_MAINTAIN_ROOK_STORAGE_NODES=false
     fi
+    EKCO_SHOULD_INSTALL_REBOOT_SERVICE=1
+    if [ "$EKCO_DISABLE_SHOULD_INSTALL_REBOOT_SERVICE" = "1" ]; then
+        EKCO_SHOULD_INSTALL_REBOOT_SERVICE=0
+    fi
 }
 
 function ekco() {
@@ -32,6 +36,8 @@ function ekco() {
         cat "$src/rolebinding-rook.yaml" >> "$dst/rolebinding.yaml"
     else
         EKCO_SHOULD_MAINTAIN_ROOK_STORAGE_NODES=false
+        # disable reboot service for now as it only serves rook-ceph clusters
+        EKCO_SHOULD_INSTALL_REBOOT_SERVICE=0
     fi
 
     render_yaml_file "$src/tmpl-configmap.yaml" > "$dst/configmap.yaml"
@@ -43,4 +49,42 @@ function ekco() {
 
     # delete pod to re-read the config map
     kubectl -n kurl delete pod -l app=ekc-operator 2>/dev/null || true
+
+    if [ "$EKCO_SHOULD_INSTALL_REBOOT_SERVICE" = "1" ]; then
+        ekco_install_reboot_service "$src"
+    fi
+}
+
+function ekco_join() {
+    local src="$DIR/addons/ekco/0.1.0"
+
+    EKCO_SHOULD_INSTALL_REBOOT_SERVICE=1
+    if [ "$EKCO_DISABLE_SHOULD_INSTALL_REBOOT_SERVICE" = "1" ]; then
+        EKCO_SHOULD_INSTALL_REBOOT_SERVICE=0
+    fi
+
+    # is rook disabled
+    if [ -z "$ROOK_VERSION" ]; then
+        # disable reboot service for now as it only serves rook-ceph clusters
+        EKCO_SHOULD_INSTALL_REBOOT_SERVICE=0
+    fi
+
+    if [ "$EKCO_SHOULD_INSTALL_REBOOT_SERVICE" = "1" ]; then
+        ekco_install_reboot_service "$src"
+    fi
+}
+
+function ekco_install_reboot_service() {
+    local src="$1"
+
+    mkdir -p /opt/ekco
+    cp "$src/reboot/startup.sh" /opt/ekco/startup.sh
+    cp "$src/reboot/shutdown.sh" /opt/ekco/shutdown.sh
+    cp "$src/reboot/ekco-reboot.service" /etc/systemd/system/ekco-reboot.service
+    chmod u+x /opt/ekco/startup.sh
+    chmod u+x /opt/ekco/shutdown.sh
+
+    systemctl daemon-reload
+    systemctl enable ekco-reboot.service
+    systemctl start ekco-reboot.service
 }

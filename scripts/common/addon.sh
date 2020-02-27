@@ -47,6 +47,7 @@ function addon_join() {
     . $DIR/addons/$name/$version/install.sh
 
     if commandExists ${name}_join; then
+        logStep "Addon $name $version"
         ${name}_join
     fi
 }

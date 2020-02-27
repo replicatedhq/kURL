@@ -10,3 +10,4 @@ This addon deploys it to the `kurl` namespace.
 - `ekco-min-ready-worker-node-count`: Don't purge the node if it will result in less than this many ready workers
 - `ekco-disable-should-maintain-rook-storage-nodes`: Whether to maintain the list of nodes to use in the CephCluster config.
    This also enables control of the replication factor of ceph pools, scaling up and down with the number of nodes in the cluster.
+- `ekco-disable-should-install-reboot-service`: Whether to disable the reboot service, responsible for graceful node termination.

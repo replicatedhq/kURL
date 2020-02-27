@@ -53,6 +53,7 @@ spec:
     nodeUnreachableTolerationDuration: 10m
     minReadyMasterNodeCount: 3
     minReadyWorkerNodeCount: 1
+    shouldInstallRebootService: false
     rook:
       shouldMaintainStorageNodes: false
 `;
@@ -220,6 +221,7 @@ spec:
     nodeUnreachableTolerationDuration: 10m
     minReadyMasterNodeCount: 3
     minReadyWorkerNodeCount: 1
+    shouldInstallRebootService: false
     rook:
       shouldMaintainStorageNodes: false
 `;
@@ -550,7 +552,7 @@ spec:
       it(`=> service-cidr-range=/12 ...`, () => {
         const i = Installer.parse(everyOption);
 
-        expect(i.flags()).to.equal(`service-cidr-range=/12 bypass-storagedriver-warnings=0 hard-fail-on-loopback=0 no-ce-on-ee=0 pod-cidr-range=/12 encrypt-network=1 storage-class=default ceph-pool-replicas=1 openebs-namespace=openebs openebs-localpv=1 openebs-localpv-storage-class=default minio-namespace=minio fluentd-full-efk-stack=1 kotsadm-ui-bind-port=8800 velero-namespace=velero velero-disable-cli velero-disable-restic ekco-node-unreachable-toleration-duration=10m ekco-min-ready-master-node-count=3 ekco-min-ready-worker-node-count=1 ekco-disable-should-maintain-rook-storage-nodes`);
+        expect(i.flags()).to.equal(`service-cidr-range=/12 bypass-storagedriver-warnings=0 hard-fail-on-loopback=0 no-ce-on-ee=0 pod-cidr-range=/12 encrypt-network=1 storage-class=default ceph-pool-replicas=1 openebs-namespace=openebs openebs-localpv=1 openebs-localpv-storage-class=default minio-namespace=minio fluentd-full-efk-stack=1 kotsadm-ui-bind-port=8800 velero-namespace=velero velero-disable-cli velero-disable-restic ekco-node-unreachable-toleration-duration=10m ekco-min-ready-master-node-count=3 ekco-min-ready-worker-node-count=1 ekco-disable-should-install-reboot-service ekco-disable-should-maintain-rook-storage-nodes`);
       });
     });
   });
@@ -620,11 +622,12 @@ spec:
         nodeUnreachableTolerationDuration: "10m",
         minReadyMasterNodeCount: 3,
         minReadyWorkerNodeCount: 1,
+        shouldInstallRebootService: false,
         rook: {
           shouldMaintainStorageNodes: false,
         },
       });
-      expect(i.flags()).to.equal(`ekco-node-unreachable-toleration-duration=10m ekco-min-ready-master-node-count=3 ekco-min-ready-worker-node-count=1 ekco-disable-should-maintain-rook-storage-nodes`);
+      expect(i.flags()).to.equal(`ekco-node-unreachable-toleration-duration=10m ekco-min-ready-master-node-count=3 ekco-min-ready-worker-node-count=1 ekco-disable-should-install-reboot-service ekco-disable-should-maintain-rook-storage-nodes`);
     });
   });
 
