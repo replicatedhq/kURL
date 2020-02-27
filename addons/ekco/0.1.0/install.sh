@@ -55,6 +55,25 @@ function ekco() {
     fi
 }
 
+function ekco_join() {
+    local src="$DIR/addons/ekco/0.1.0"
+
+    EKCO_SHOULD_INSTALL_REBOOT_SERVICE=1
+    if [ "$EKCO_DISABLE_SHOULD_INSTALL_REBOOT_SERVICE" = "1" ]; then
+        EKCO_SHOULD_INSTALL_REBOOT_SERVICE=0
+    fi
+
+    # is rook disabled
+    if ! kubectl get ns | grep -q rook-ceph; then
+        # disable reboot service for now as it only serves rook-ceph clusters
+        EKCO_SHOULD_INSTALL_REBOOT_SERVICE=0
+    fi
+
+    if [ "$EKCO_SHOULD_INSTALL_REBOOT_SERVICE" = "1" ]; then
+        ekco_install_reboot_service "$src"
+    fi
+}
+
 function ekco_install_reboot_service() {
     local src="$1"
 
