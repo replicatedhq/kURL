@@ -58,11 +58,10 @@ function weave_use_existing_network() {
 }
 
 function weave_health_check() {
-    if [[ -z $(kubectl get pods -n kube-system -l name=weave-net -o jsonpath="{.items[*].status.conditions[?(@.status!='True')]}") ]]; then
-      return 0
-    else
+    if [[ -n $(kubectl get pods -n kube-system -l name=weave-net -o jsonpath="{range .items[*]}{range .status.conditions[*]}{ .type }={ .status }{'\n'}{end}{end}" | grep Ready=False) ]]; then
       return 1
     fi
+    return 0
 }
 
 function weave_ready_spinner() {
