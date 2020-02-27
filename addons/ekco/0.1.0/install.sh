@@ -25,10 +25,10 @@ function ekco() {
     cp "$src/rolebinding.yaml" "$dst/rolebinding.yaml"
     cp "$src/deployment.yaml" "$dst/deployment.yaml"
 
-    # is rook disabled
+    # is rook enabled
     if kubectl get ns | grep -q rook-ceph; then
         cp "$src/rbac-rook.yaml" "$dst/rbac-rook.yaml"
-        insert_resources "$dst/rbac-rook.yaml" rbac-rook.yaml
+        insert_resources "$dst/kustomization.yaml" rbac-rook.yaml
         cat "$src/rolebinding-rook.yaml" >> "$dst/rolebinding.yaml"
     else
         EKCO_SHOULD_MAINTAIN_ROOK_STORAGE_NODES=false
