@@ -20,7 +20,7 @@ spec:
       containers:
         - name: ekc-operator
           image: replicated/ekco:v0.1.0
-          imagePullPolicy: Always
+          imagePullPolicy: IfNotPresent
           command: [ /usr/bin/ekco, operator ]
           resources:
             requests:
