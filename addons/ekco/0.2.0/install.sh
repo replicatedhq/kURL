@@ -76,15 +76,6 @@ function ekco_join() {
     fi
 }
 
-function ekco_outro() {
-    printf "\n"
-    printf "The EKCO purge node command has been installed at ${GREEN}/usr/local/bin/ekco-purge-node${NC}\n"
-    printf "\n"
-    /usr/local/bin/ekco-purge-node || true
-    printf "\n"
-    printf "\n"
-}
-
 function ekco_install_reboot_service() {
     local src="$1"
 
