@@ -6,6 +6,13 @@ function kubernetes_host() {
 
     kubernetes_sysctl_config
 
+    # For online always download the kubernetes.tar.gz bundle.
+    # Regardless if host packages are already installed, we always inspect for newer versions
+    # and/or re-install any missing or corrupted packages.
+    if [ "$AIRGAP" != "1" ] && [ -n "$DIST_URL" ]; then
+        kubernetes_get_host_packages_online "$KUBERNETES_VERSION"
+    fi
+
     kubernetes_install_host_packages "$KUBERNETES_VERSION"
 
     load_images $DIR/packages/kubernetes/$KUBERNETES_VERSION/images
@@ -64,10 +71,6 @@ function kubernetes_install_host_packages() {
     if kubernetes_host_commands_ok "$k8sVersion"; then
         logSuccess "Kubernetes host packages already installed"
         return
-    fi
-
-    if [ "$AIRGAP" != "1" ] && [ -n "$DIST_URL" ]; then
-        kubernetes_get_host_packages_online "$k8sVersion"
     fi
 
     case "$LSB_DIST" in
