@@ -2,13 +2,6 @@
 
 set -e
 
-if [ -z "$1" ]; then
-    printf "[usage] ekco-purge-node [name]\n" 1>&2
-    exit 1
-fi
-
-set -u
-
 export KUBECONFIG="${KUBECONFIG:-/etc/kubernetes/admin.conf}"
 
 namespace=kurl
@@ -20,4 +13,4 @@ if [ -z "$pod" ]; then
     exit 1
 fi
 
-kubectl exec -n "$namespace" -it "$pod" ekco purge-node "$1"
+kubectl exec -n "$namespace" -it "$pod" ekco purge-node $1
