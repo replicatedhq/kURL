@@ -1,5 +1,10 @@
 #!/bin/bash
 
+# On first install on additional nodes the node is not yet joined to the cluster
+if [ ! -e /etc/kubernetes/kubelet.conf ]; then
+    exit 0
+fi
+
 export KUBECONFIG=/etc/kubernetes/kubelet.conf
 
 # wait for Kubernets API
