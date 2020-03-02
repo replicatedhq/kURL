@@ -216,20 +216,28 @@ function prompt_airgap_preload_images() {
     if ! kubernetes_has_remotes; then
         return 0
     fi
-
-    printf "\n"
-    printf "\n"
-    printf "Run this script on all remote airgapped nodes to load required images before proceeding:\n"
-    printf "\n"
-    printf "${GREEN}\tcat ./install.sh | sudo bash -s task=load-images${NC}"
-    printf "\n"
-    while true; do
-        echo ""
-        printf "Have images been loaded on all remote nodes? "
-        if confirmY " "; then
-            break
+ 
+    while read -r node; do
+        local nodeName=$(echo "$node" | awk '{ print $1 }')
+        if [ "$nodeName" = "$(hostname)" ]; then
+            continue
         fi
-    done
+        if kubernetes_node_has_all_images "$nodeName"; then
+            continue
+        fi
+        printf "\nRun this script on node ${GREEN}${nodeName}${NC} to load required images before proceeding:\n"
+        printf "\n"
+        printf "${GREEN}\tcat ./install.sh | sudo bash -s task=load-images${NC}"
+        printf "\n"
+
+        while true; do
+            echo ""
+            printf "Have images been loaded on node ${nodeName}? "
+            if confirmY " "; then
+                break
+            fi
+        done
+    done < <(kubectl get nodes --no-headers)
 }
 
 promptForPublicIp() {

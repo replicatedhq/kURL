@@ -7,5 +7,5 @@ metadata:
 spec:
   containers:
   - name: example
-    image: busybox
+    image: busybox:1.31.1
     args: [/bin/sh, -c, 'while true; do echo $(date); sleep 1; done']

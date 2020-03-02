@@ -441,3 +441,86 @@ function discover_service_subnet() {
 
     bail "Failed to find available subnet for service network. Use the service-cidr flag to set a service network"
 }
+
+function kubernetes_node_images() {
+    local nodeName="$1"
+
+    kubectl get node "$nodeName" -ojsonpath="{range .status.images[*]}{ range .names[*] }{ @ }{'\n'}{ end }{ end }"
+}
+
+function list_all_required_images() {
+    find packages/kubernetes/$KUBERNETES_VERSION -type f -name Manifest 2>/dev/null | xargs cat | grep -E '^image' | grep -v no_remote_load | awk '{ print $3 }'
+
+    if [ -n "$DOCKER_VERSION" ]; then
+        find packages/docker/$DOCKER_VERSION -type f -name Manifest 2>/dev/null | xargs cat | grep -E '^image' | grep -v no_remote_load | awk '{ print $3 }'
+    fi
+
+    if [ -n "$WEAVE_VERSION" ]; then
+        find addons/weave/$WEAVE_VERSION packages/ -type f -name Manifest 2>/dev/null | xargs cat | grep -E '^image' | grep -v no_remote_load | awk '{ print $3 }'
+    fi
+
+    if [ -n "$ROOK_VERSION" ]; then
+        find addons/rook/$ROOK_VERSION packages/ -type f -name Manifest 2>/dev/null | xargs cat | grep -E '^image' | grep -v no_remote_load | awk '{ print $3 }'
+    fi
+
+    if [ -n "$OPENEBS_VERSION" ]; then
+        find addons/openebs/$OPENEBS_VERSION packages/ -type f -name Manifest 2>/dev/null | xargs cat | grep -E '^image' | grep -v no_remote_load | awk '{ print $3 }'
+    fi
+
+    if [ -n "$MINIO_VERSION" ]; then
+        find addons/minio/$MINIO_VERSION packages/ -type f -name Manifest 2>/dev/null | xargs cat | grep -E '^image' | grep -v no_remote_load | awk '{ print $3 }'
+    fi
+
+    if [ -n "$CONTOUR_VERSION" ]; then
+        find addons/contour/$CONTOUR_VERSION packages/ -type f -name Manifest 2>/dev/null | xargs cat | grep -E '^image' | grep -v no_remote_load | awk '{ print $3 }'
+    fi
+
+    if [ -n "$REGISTRY_VERSION" ]; then
+        find addons/registry/$REGISTRY_VERSION packages/ -type f -name Manifest 2>/dev/null | xargs cat | grep -E '^image' | grep -v no_remote_load | awk '{ print $3 }'
+    fi
+
+    if [ -n "$PROMETHEUS_VERSION" ]; then
+        find addons/prometheus/$PROMETHEUS_VERSION packages/ -type f -name Manifest 2>/dev/null | xargs cat | grep -E '^image' | grep -v no_remote_load | awk '{ print $3 }'
+    fi
+
+    if [ -n "$KOTSADM_VERSION" ]; then
+        find addons/kotsadm/$KOTSADM_VERSION packages/ -type f -name Manifest 2>/dev/null | xargs cat | grep -E '^image' | grep -v no_remote_load | awk '{ print $3 }'
+    fi
+
+    if [ -n "$FLUENTD_VERSION" ]; then
+        find addons/fluentd/$FLUENTD_VERSION packages/ -type f -name Manifest 2>/dev/null | xargs cat | grep -E '^image' | grep -v no_remote_load | awk '{ print $3 }'
+    fi
+
+    if [ -n "$VELERO_VERSION" ]; then
+        find addons/velero/$VELERO_VERSION packages/ -type f -name Manifest 2>/dev/null | xargs cat | grep -E '^image' | grep -v no_remote_load | awk '{ print $3 }'
+    fi
+
+    if [ -n "$EKCO_VERSION" ]; then
+        find addons/ekco/$EKCO_VERSION packages/ -type f -name Manifest 2>/dev/null | xargs cat | grep -E '^image' | grep -v no_remote_load | awk '{ print $3 }'
+    fi
+}
+
+function kubernetes_node_has_all_images() {
+    local nodeName="$1"
+
+    while read -r image; do
+        if ! kubernetes_node_has_image "$nodeName" "$image"; then
+            printf "\n${YELLOW}Node $nodeName missing image $image${NC}\n"
+            return 1
+        fi
+    done < <(list_all_required_images)
+}
+
+function kubernetes_node_has_image() {
+    local nodeName="$1"
+    # docker.io/envoyproxy/envoy-alpine:v1.10.0 -> envoyproxy/envoy-alpine:v1.10.0
+    local image=$(echo $2 | sed 's/^docker.io\///')
+
+    while read -r nodeImage; do
+        if [ "$nodeImage" = "$image" ]; then
+            return 0
+        fi
+    done < <(kubernetes_node_images "$nodeName")
+
+    return 1
+}
