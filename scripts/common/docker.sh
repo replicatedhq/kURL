@@ -5,48 +5,23 @@ function change_cgroup_driver_to_systemd() {
     # to manage resources. For more info see the link below.
     # https://github.com/kubernetes/kubeadm/issues/1394#issuecomment-462878219
 
-    if [ -f /var/lib/kubelet/kubeadm-flags.env ]; then
+    if [ -f /var/lib/kubelet/kubeadm-flags.env ] || [ -f /etc/docker/daemon.json ]; then
     	return
     fi
 
-    case $LSB_DIST in
-        ubuntu)
-            cat > /etc/docker/daemon.json <<EOF
+    mkdir -p /etc/docker
+    cat > /etc/docker/daemon.json <<EOF
 {
-    "exec-opts": ["native.cgroupdriver=systemd"],
-    "log-driver": "json-file",
-    "log-opts": {
-        "max-size": "100m"
-    },
-    "storage-driver": "overlay2"
+    "exec-opts": ["native.cgroupdriver=systemd"]
 }
 EOF
-            ;;
-        rhel|centos)
-            cat > /etc/docker/daemon.json <<EOF
-{
-    "exec-opts": ["native.cgroupdriver=systemd"],
-    "log-driver": "json-file",
-    "log-opts": {
-        "max-size": "100m"
-    },
-    "storage-driver": "overlay2",
-    "storage-opts": [
-        "overlay2.override_kernel_check=true"
-    ]
-}
-EOF
-            ;;
-    esac
 
     mkdir -p /etc/systemd/system/docker.service.d
-
-    systemctl daemon-reload
-    systemctl restart docker
 }
 
 function install_docker() {
     if [ "$SKIP_DOCKER_INSTALL" != "1" ]; then
+        change_cgroup_driver_to_systemd
         if [ "$OFFLINE_DOCKER_INSTALL" != "1" ]; then
             installDockerOnline "$DOCKER_VERSION" "$MIN_DOCKER_VERSION"
 
@@ -73,8 +48,6 @@ function install_docker() {
     if [ "$NO_PROXY" != "1" ] && [ -n "$PROXY_ADDRESS" ]; then
         checkDockerProxyConfig
     fi
-
-    change_cgroup_driver_to_systemd
 }
 
 installDockerOnline() {
