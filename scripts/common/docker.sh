@@ -11,7 +11,7 @@ function change_cgroup_driver_to_systemd() {
 
             cat > /etc/docker/daemon.json <<EOF
 {
-    "exec-opts": ["native.cgroupdriver=systemd"],
+    "exec-opts": ["native.cgroupdriver=systemd"]
 }
 EOF
 
