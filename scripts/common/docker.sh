@@ -60,6 +60,7 @@ function install_docker() {
             systemctl start docker
         fi
         checkDockerStorageDriver "$HARD_FAIL_ON_LOOPBACK"
+        change_cgroup_driver_to_systemd
     fi
 
     if [ "$NO_PROXY" != "1" ] && [ -n "$PROXY_ADDRESS" ]; then
@@ -73,8 +74,6 @@ function install_docker() {
     if [ "$NO_PROXY" != "1" ] && [ -n "$PROXY_ADDRESS" ]; then
         checkDockerProxyConfig
     fi
-
-    change_cgroup_driver_to_systemd
 }
 
 installDockerOnline() {
