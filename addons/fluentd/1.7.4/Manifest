@@ -1,4 +1,4 @@
 image fluentd fluent/fluentd-kubernetes-daemonset:v1.7.4-debian-elasticsearch7-1.0
 image elasticsearch docker.elastic.co/elasticsearch/elasticsearch:7.5.0
 image kibana docker.elastic.co/kibana/kibana:7.5.0
-image busybox busybox
+image busybox busybox:1.31.1

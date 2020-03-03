@@ -4,6 +4,6 @@ image kotsadm-operator docker.io/kotsadm/kotsadm-operator:alpha
 image kotsadm docker.io/kotsadm/kotsadm:alpha
 image kurl-proxy docker.io/kotsadm/kurl-proxy:alpha
 image postgres postgres:10.7
-image bcrypt docker.io/epicsoft/bcrypt:latest
+image bcrypt docker.io/epicsoft/bcrypt:latest no_remote_load
 
 asset kots.tar.gz https://github.com/replicatedhq/kots/releases/download/v1.13.2/kots_linux_amd64.tar.gz
