@@ -5,24 +5,23 @@ function change_cgroup_driver_to_systemd() {
     # to manage resources. For more info see the link below.
     # https://github.com/kubernetes/kubeadm/issues/1394#issuecomment-462878219
 
-    if [ -f /var/lib/kubelet/kubeadm-flags.env ]; then
+    if [ -f /var/lib/kubelet/kubeadm-flags.env ] || [ -f /etc/docker/daemon.json ]; then
     	return
     fi
 
-            cat > /etc/docker/daemon.json <<EOF
+    mkdir -p /etc/docker
+    cat > /etc/docker/daemon.json <<EOF
 {
     "exec-opts": ["native.cgroupdriver=systemd"]
 }
 EOF
 
     mkdir -p /etc/systemd/system/docker.service.d
-
-    systemctl daemon-reload
-    systemctl restart docker
 }
 
 function install_docker() {
     if [ "$SKIP_DOCKER_INSTALL" != "1" ]; then
+        change_cgroup_driver_to_systemd
         if [ "$OFFLINE_DOCKER_INSTALL" != "1" ]; then
             installDockerOnline "$DOCKER_VERSION" "$MIN_DOCKER_VERSION"
 
@@ -36,7 +35,6 @@ function install_docker() {
             systemctl start docker
         fi
         checkDockerStorageDriver "$HARD_FAIL_ON_LOOPBACK"
-        change_cgroup_driver_to_systemd
     fi
 
     if [ "$NO_PROXY" != "1" ] && [ -n "$PROXY_ADDRESS" ]; then
