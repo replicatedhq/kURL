@@ -456,47 +456,47 @@ function list_all_required_images() {
     fi
 
     if [ -n "$WEAVE_VERSION" ]; then
-        find addons/weave/$WEAVE_VERSION packages/ -type f -name Manifest 2>/dev/null | xargs cat | grep -E '^image' | grep -v no_remote_load | awk '{ print $3 }'
+        find addons/weave/$WEAVE_VERSION -type f -name Manifest 2>/dev/null | xargs cat | grep -E '^image' | grep -v no_remote_load | awk '{ print $3 }'
     fi
 
     if [ -n "$ROOK_VERSION" ]; then
-        find addons/rook/$ROOK_VERSION packages/ -type f -name Manifest 2>/dev/null | xargs cat | grep -E '^image' | grep -v no_remote_load | awk '{ print $3 }'
+        find addons/rook/$ROOK_VERSION -type f -name Manifest 2>/dev/null | xargs cat | grep -E '^image' | grep -v no_remote_load | awk '{ print $3 }'
     fi
 
     if [ -n "$OPENEBS_VERSION" ]; then
-        find addons/openebs/$OPENEBS_VERSION packages/ -type f -name Manifest 2>/dev/null | xargs cat | grep -E '^image' | grep -v no_remote_load | awk '{ print $3 }'
+        find addons/openebs/$OPENEBS_VERSION -type f -name Manifest 2>/dev/null | xargs cat | grep -E '^image' | grep -v no_remote_load | awk '{ print $3 }'
     fi
 
     if [ -n "$MINIO_VERSION" ]; then
-        find addons/minio/$MINIO_VERSION packages/ -type f -name Manifest 2>/dev/null | xargs cat | grep -E '^image' | grep -v no_remote_load | awk '{ print $3 }'
+        find addons/minio/$MINIO_VERSION -type f -name Manifest 2>/dev/null | xargs cat | grep -E '^image' | grep -v no_remote_load | awk '{ print $3 }'
     fi
 
     if [ -n "$CONTOUR_VERSION" ]; then
-        find addons/contour/$CONTOUR_VERSION packages/ -type f -name Manifest 2>/dev/null | xargs cat | grep -E '^image' | grep -v no_remote_load | awk '{ print $3 }'
+        find addons/contour/$CONTOUR_VERSION -type f -name Manifest 2>/dev/null | xargs cat | grep -E '^image' | grep -v no_remote_load | awk '{ print $3 }'
     fi
 
     if [ -n "$REGISTRY_VERSION" ]; then
-        find addons/registry/$REGISTRY_VERSION packages/ -type f -name Manifest 2>/dev/null | xargs cat | grep -E '^image' | grep -v no_remote_load | awk '{ print $3 }'
+        find addons/registry/$REGISTRY_VERSION -type f -name Manifest 2>/dev/null | xargs cat | grep -E '^image' | grep -v no_remote_load | awk '{ print $3 }'
     fi
 
     if [ -n "$PROMETHEUS_VERSION" ]; then
-        find addons/prometheus/$PROMETHEUS_VERSION packages/ -type f -name Manifest 2>/dev/null | xargs cat | grep -E '^image' | grep -v no_remote_load | awk '{ print $3 }'
+        find addons/prometheus/$PROMETHEUS_VERSION -type f -name Manifest 2>/dev/null | xargs cat | grep -E '^image' | grep -v no_remote_load | awk '{ print $3 }'
     fi
 
     if [ -n "$KOTSADM_VERSION" ]; then
-        find addons/kotsadm/$KOTSADM_VERSION packages/ -type f -name Manifest 2>/dev/null | xargs cat | grep -E '^image' | grep -v no_remote_load | awk '{ print $3 }'
+        find addons/kotsadm/$KOTSADM_VERSION -type f -name Manifest 2>/dev/null | xargs cat | grep -E '^image' | grep -v no_remote_load | awk '{ print $3 }'
     fi
 
     if [ -n "$FLUENTD_VERSION" ]; then
-        find addons/fluentd/$FLUENTD_VERSION packages/ -type f -name Manifest 2>/dev/null | xargs cat | grep -E '^image' | grep -v no_remote_load | awk '{ print $3 }'
+        find addons/fluentd/$FLUENTD_VERSION -type f -name Manifest 2>/dev/null | xargs cat | grep -E '^image' | grep -v no_remote_load | awk '{ print $3 }'
     fi
 
     if [ -n "$VELERO_VERSION" ]; then
-        find addons/velero/$VELERO_VERSION packages/ -type f -name Manifest 2>/dev/null | xargs cat | grep -E '^image' | grep -v no_remote_load | awk '{ print $3 }'
+        find addons/velero/$VELERO_VERSION -type f -name Manifest 2>/dev/null | xargs cat | grep -E '^image' | grep -v no_remote_load | awk '{ print $3 }'
     fi
 
     if [ -n "$EKCO_VERSION" ]; then
-        find addons/ekco/$EKCO_VERSION packages/ -type f -name Manifest 2>/dev/null | xargs cat | grep -E '^image' | grep -v no_remote_load | awk '{ print $3 }'
+        find addons/ekco/$EKCO_VERSION -type f -name Manifest 2>/dev/null | xargs cat | grep -E '^image' | grep -v no_remote_load | awk '{ print $3 }'
     fi
 }
 
