@@ -92,8 +92,8 @@ installDockerOnline() {
             else
                 if [ "$DIST_VERSION" = "7.6" ]; then
                     # Install container-selinux from mirror.centos.org
-                    yum install -y -q "http://mirror.centos.org/centos/7/extras/x86_64/Packages/container-selinux-2.99-1.el7_6.noarch.rpm" || \
-                        yum install -y -q "http://mirror.centos.org/centos/7/extras/x86_64/Packages/container-selinux-2.95-2.el7_6.noarch.rpm"
+                    yum install -y -q "http://mirror.centos.org/centos/7/extras/x86_64/Packages/container-selinux-2.107-1.el7_6.noarch.rpm" || \
+                        yum install -y -q "http://mirror.centos.org/centos/7/extras/x86_64/Packages/container-selinux-2.107-3.el7.noarch.rpm"
                     if yum list installed "container-selinux" >/dev/null 2>&1; then
                         printf "${YELLOW}Installed package required by docker container-selinux from fallback source of mirror.centos.org${NC}\n"
                     else
