@@ -42,8 +42,10 @@ spec:
   openebs:
     version: latest
     namespace: openebs
-    localPV: false
-    localPVStorageClass: default
+    isLocalPVEnabled: true
+    localPVStorageClassName: default
+    isCstorEnabled: true
+    cstorStorageClassName: cstor
   minio:
     version: latest
     namespace: minio
