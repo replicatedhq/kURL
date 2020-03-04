@@ -57,6 +57,16 @@ function weave_use_existing_network() {
     fi
 }
 
+function weave_health_check() {
+    if [[ -n $(kubectl get pods -n kube-system -l name=weave-net -o jsonpath="{range .items[*]}{range .status.conditions[*]}{ .type }={ .status }{'\n'}{end}{end}" | grep Ready=False) ]]; then
+      return 1
+    fi
+    return 0
+}
+
 function weave_ready_spinner() {
-    spinnerPodRunning kube-system weave-net
+    if ! spinner_until 120 weave_health_check; then
+      kubectl logs -n kube-system -l name=weave-net --all-containers --tail 10
+      bail "The weave addon failed to deploy successfully."
+    fi
 }
