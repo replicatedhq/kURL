@@ -78,7 +78,7 @@ function openebs() {
             if [ "$OPENEBS_CSTOR_MAX_POOLS" = "1" ]; then
                 printf "${GREEN}Waiting for 1 disk${NC}\n"
             else
-                printf "${GREEN}Waiting for ${OPENEBS_CSTOR_MAX_POOLS} disk(s)${NC}\n"
+                printf "${GREEN}Waiting for ${OPENEBS_CSTOR_MAX_POOLS} disks${NC}\n"
             fi
             spinner_until -1 openebs_cstor_pool_count "$OPENEBS_CSTOR_MAX_POOLS"
         fi
