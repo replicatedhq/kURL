@@ -35,7 +35,7 @@ spec:
           requests:
             cpu: 100m
           limits:
-            cpu: 2
+            cpu: 500m
       - name: kurl
         image: replicated/kurl
         imagePullPolicy: IfNotPresent
