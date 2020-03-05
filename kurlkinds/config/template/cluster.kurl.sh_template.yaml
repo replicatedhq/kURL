@@ -49,10 +49,10 @@ spec:
     namespace: __kurl__ minioNamespace __kurl__
     version: __kurl__ minioVersion __kurl__
   openEBS:
-    isLocalPVEnabled: __kurl__ openEBSLocalPV __kurl__
-    localPVStorageClassName: __kurl__ openEBSLocalPVStorageClass __kurl__
-    isCstorEnabled: __kurl__ openEBSCstor __kurl__
-    cstorStorageClassName: __kurl__ cstorStorageClassName __kurl__
+    isLocalPVEnabled: __kurl__ openEBSIsLocalPVEnabled __kurl__
+    localPVStorageClassName: __kurl__ openEBSLocalPVStorageClassName __kurl__
+    isCstorEnabled: __kurl__ openEBSIsCstorEnabled __kurl__
+    cstorStorageClassName: __kurl__ openEBSCstorStorageClassName __kurl__
     namespace: __kurl__ openEBSNamespace __kurl__
     version: __kurl__ openEBSVersion __kurl__
   prometheus:

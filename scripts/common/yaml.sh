@@ -197,9 +197,11 @@ function openebs_yaml() {
     fi
 
     replace_with_variable_or_delete_line $filename "__kurl__ openEBSNamespace __kurl__" "$OPENEBS_NAMESPACE"
-    replace_with_true_or_false $filename "__kurl__ openEBSLocalPV __kurl__" "$OPENEBS_LOCALPV"
-    replace_with_variable_or_delete_line $filename "__kurl__ openEBSLocalPVStorageClass __kurl__" "$OPENEBS_LOCALPV_STORAGE_CLASS"
+    replace_with_true_or_false $filename "__kurl__ openEBSIsLocalPVEnabled __kurl__" "$OPENEBS_LOCALPV"
+    replace_with_variable_or_delete_line $filename "__kurl__ openEBSLocalPVStorageClassName __kurl__" "$OPENEBS_LOCALPV_STORAGE_CLASS"
     replace_with_variable_or_delete_line $filename "__kurl__ openEBSVersion __kurl__" "$OPENEBS_VERSION"
+    replace_with_true_or_false $filename "__kurl__ openEBSIsCstorEnabled __kurl__" "$OPENEBS_CSTOR"
+    replace_with_variable_or_delete_line $filename "__kurl__ openEBSCstorStorageClassName __kurl__" "$OPENEBS_CSTOR_STORAGE_CLASS"
 }
 
 function prometheus_yaml() {

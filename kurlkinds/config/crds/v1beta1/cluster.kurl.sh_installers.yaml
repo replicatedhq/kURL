@@ -144,15 +144,20 @@ spec:
               type: object
             openEBS:
               properties:
-                localPV:
+                cstorStorageClassName:
+                  type: string
+                isCstorEnabled:
                   type: boolean
-                localPVStorageClass:
+                isLocalPVEnabled:
+                  type: boolean
+                localPVStorageClassName:
                   type: string
                 namespace:
                   type: string
                 version:
                   type: string
               required:
+              - cstorStorageClassName
               - version
               type: object
             prometheus:
