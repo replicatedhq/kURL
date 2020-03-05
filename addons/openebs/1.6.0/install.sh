@@ -34,7 +34,6 @@ function openebs() {
         fi
 
         kubectl apply -k "$dst/"
-        return 0
     fi
 
     if [ "$OPENEBS_CSTOR" = "1" ]; then
