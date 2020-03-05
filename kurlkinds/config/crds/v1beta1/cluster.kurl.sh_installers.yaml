@@ -144,9 +144,13 @@ spec:
               type: object
             openEBS:
               properties:
-                localPV:
+                isLocalPVEnabled:
                   type: boolean
-                localPVStorageClass:
+                localPVStorageClassName:
+                  type: string
+                isCstorEnabled:
+                  type: boolean
+                cstorStorageClassName:
                   type: string
                 namespace:
                   type: string
