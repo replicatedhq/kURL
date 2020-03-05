@@ -96,10 +96,12 @@ type Minio struct {
 }
 
 type OpenEBS struct {
-	LocalPV             bool   `json:"localPV,omitempty"`
-	LocalPVStorageClass string `json:"localPVStorageClass,omitempty"`
-	Namespace           string `json:"namespace,omitempty"`
-	Version             string `json:"version"`
+	IsLocalPVEnabled        bool   `json:"isLocalPVEnabled,omitempty"`
+	LocalPVStorageClassName string `json:"localPVStorageClassName,omitempty"`
+	IsCstorEnabled          bool   `json:"isCstorEnabled,omitempty"`
+	CstorStorageClassName   string `json:"cstorStorageClassName"`
+	Namespace               string `json:"namespace,omitempty"`
+	Version                 string `json:"version"`
 }
 
 type Prometheus struct {
@@ -112,7 +114,7 @@ type Registry struct {
 }
 
 type Rook struct {
-	CephReplicaCount  int    `json:"cephReplicaCount,omitempty"`
+	CephReplicaCount int    `json:"cephReplicaCount,omitempty"`
 	StorageClassName string `json:"storageClassName,omitempty"`
 	Version          string `json:"version"`
 }
