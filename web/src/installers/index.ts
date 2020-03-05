@@ -255,8 +255,8 @@ const ekcoConfigSchema = {
     rook: ekcoRookSchema,
   },
   required: ["version"],
-  additionalProperties: false,
-};
+  // additionalProperties: false,
+}
 
 export interface InstallerSpec {
   kubernetes: KubernetesConfig;
