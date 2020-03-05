@@ -20,7 +20,7 @@ function ekco_pre_init() {
 }
 
 function ekco() {
-    local src="$DIR/addons/ekco/0.2.2"
+    local src="$DIR/addons/ekco/0.2.3"
     local dst="$DIR/kustomize/ekco"
 
     cp "$src/kustomization.yaml" "$dst/kustomization.yaml"
@@ -58,7 +58,7 @@ function ekco() {
 }
 
 function ekco_join() {
-    local src="$DIR/addons/ekco/0.2.2"
+    local src="$DIR/addons/ekco/0.2.3"
 
     EKCO_SHOULD_INSTALL_REBOOT_SERVICE=1
     if [ "$EKCO_SHOULD_DISABLE_REBOOT_SERVICE" = "1" ]; then
