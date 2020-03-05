@@ -157,7 +157,6 @@ spec:
                 version:
                   type: string
               required:
-              - cstorStorageClassName
               - version
               type: object
             prometheus:

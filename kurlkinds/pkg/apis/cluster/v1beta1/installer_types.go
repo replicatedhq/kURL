@@ -99,7 +99,7 @@ type OpenEBS struct {
 	IsLocalPVEnabled        bool   `json:"isLocalPVEnabled,omitempty"`
 	LocalPVStorageClassName string `json:"localPVStorageClassName,omitempty"`
 	IsCstorEnabled          bool   `json:"isCstorEnabled,omitempty"`
-	CstorStorageClassName   string `json:"cstorStorageClassName"`
+	CstorStorageClassName   string `json:"cstorStorageClassName,omitempty"`
 	Namespace               string `json:"namespace,omitempty"`
 	Version                 string `json:"version"`
 }

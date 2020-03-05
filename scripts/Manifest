@@ -17,6 +17,6 @@ KURL_URL=
 DIST_URL=
 INSTALLER_ID=
 REPLICATED_APP_URL=https://replicated.app
-FLAGS="openebs-localpv openebs-localpv-storage-class=default"
+FLAGS=""
 INSTALLER_YAML=
 KURL_UTIL_IMAGE=replicated/kurl-util:alpha
