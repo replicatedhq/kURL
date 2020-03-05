@@ -4,58 +4,86 @@ import { Installer } from "../installers";
 import * as _ from "lodash";
 
 const everyOption = `apiVersion: kurl.sh/v1beta1
+metadata:
+  name: everyOption
 spec:
   kubernetes:
     version: latest
     serviceCidrRange: /12
+    serviceCIDR: 100.1.1.1/12
+    haCluster: false
+    masterAddress: 192.168.1.1
+    loadBalancerAddress: 10.128.10.1
+    bootstrapToken: token
+    bootstrapTokenTTL: 10min
+    kubeadmTokenCAHash: hash
+    controlPlane: false
+    certKey: key
+    apiServiceAddress: 1.2.3.4
   docker:
     version: latest
     bypassStorageDriverWarnings: false
     hardFailOnLoopback: false
     noCEOnEE: false
+    dockerRegistryIP: 192.168.0.1
+    additionalNoProxy: 129.168.0.2
+    noDocker: false
   weave:
     version: latest
     encryptNetwork: true
     podCidrRange: /12
+    podCIDR: 39.1.2.3
   contour:
     version: latest
   rook:
     version: latest
-    storageClass: default
-    cephPoolReplicas: 1
+    storageClassName: default
+    cephReplicaCount: 1
   openebs:
     version: latest
     namespace: openebs
-    localPV:
-      enabled: true
-      storageClass: default
+    localPV: false
+    localPVStorageClass: default
   minio:
     version: latest
     namespace: minio
   registry:
     version: latest
+    publishPort: 20
   prometheus:
     version: latest
   fluentd:
     version: latest
-    efkStack: true
+    fullEFKStack: false
   kotsadm:
     version: latest
     applicationSlug: sentry
     uiBindPort: 8800
+    applicationNamespace: kots
+    hostname: 1.1.1.1
   velero:
     version: latest
     namespace: velero
-    installCLI: false
-    useRestic: false
+    disableCLI: false
+    disableRestic: false
+    localBucket: local
   ekco:
     version: latest
     nodeUnreachableTolerationDuration: 10m
     minReadyMasterNodeCount: 3
     minReadyWorkerNodeCount: 1
-    shouldInstallRebootService: false
-    rook:
-      shouldMaintainStorageNodes: false
+    shouldDisableRebootService: false
+    rookShouldUseAllNodes: false
+  kurl:
+    HTTPProxy: 1.1.1.1
+    airgap: false
+    bypassFirewalldWarning: false
+    hardFailOnFirewalld: false
+    hostnameCheck: 2.2.2.2
+    noProxy: false
+    privateAddress: 10.38.1.1
+    publicAddress: 101.38.1.1
+    task: important
 `;
 
 const typeMetaStableV1Beta1 = `
@@ -197,15 +225,13 @@ spec:
   velero:
     version: latest
     namespace: velero
-    installCLI: true
-    useRestic: true
 `;
 
 const fluentd = `
 spec:
   fluentd:
     version: latest
-    efkStack: true
+    fullEFKStack: true
 `;
 
 const fluentdMin = `
@@ -221,9 +247,8 @@ spec:
     nodeUnreachableTolerationDuration: 10m
     minReadyMasterNodeCount: 3
     minReadyWorkerNodeCount: 1
-    shouldInstallRebootService: false
-    rook:
-      shouldMaintainStorageNodes: false
+    shouldDisableRebootService: false
+    rookShouldUseAllNodes: false
 `;
 
 const ekcoMin = `
@@ -552,7 +577,7 @@ spec:
       it(`=> service-cidr-range=/12 ...`, () => {
         const i = Installer.parse(everyOption);
 
-        expect(i.flags()).to.equal(`service-cidr-range=/12 bypass-storagedriver-warnings=0 hard-fail-on-loopback=0 no-ce-on-ee=0 pod-cidr-range=/12 encrypt-network=1 storage-class=default ceph-pool-replicas=1 openebs-namespace=openebs openebs-localpv=1 openebs-localpv-storage-class=default minio-namespace=minio fluentd-full-efk-stack=1 kotsadm-ui-bind-port=8800 velero-namespace=velero velero-disable-cli velero-disable-restic ekco-node-unreachable-toleration-duration=10m ekco-min-ready-master-node-count=3 ekco-min-ready-worker-node-count=1 ekco-disable-should-install-reboot-service ekco-disable-should-maintain-rook-storage-nodes`);
+          expect(i.flags()).to.equal("service-cidr-range=/12 service-cidr=100.1.1.1/12 ha=0 kuberenetes-master-address=192.168.1.1 load-balancer-address=10.128.10.1 bootstrap-token=token bootstrap-token-ttl=10min kubeadm-token-ca-hash=hash control-plane=0 cert-key=key api-service-address=1.2.3.4 bypass-storagedriver-warnings=0 hard-fail-on-loopback=0 no-ce-on-ee=0 docker-registry-ip=192.168.0.1 additional-no-proxy=129.168.0.2 no-docker=0 pod-cidr=39.1.2.3 pod-cidr-range=/12 disable-weave-encryption=0 storage-class-name=default ceph-replica-count=1 openebs-namespace=openebs openebs-localpv=0 openebs-localpv-storage-class=default minio-namespace=minio registry-publish-port=20 fluentd-full-efk-stack=0 kotsadm-application-slug=sentry kotsadm-ui-bind-port=8800 kotsadm-hostname=1.1.1.1 kotsadm-application-namespaces=kots velero-namespace=velero velero-local-bucket=local velero-disable-cli=0 velero-disable-restic=0 ekco-node-unreachable-toleration-duration=10m ekco-min-ready-master-node-count=3 ekco-min-ready-worker-node-count=1 ekco-should-disable-reboot-service=0 ekco-rook-should-use-all-nodes=0 http-proxy=1.1.1.1 airgap=0 bypass-firewalld-warning=0 hard-fail-on-firewalld=0 hostname-check=2.2.2.2 no-proxy=0 private-address=10.38.1.1 public-address=101.38.1.1 task=important");
       });
     });
   });
@@ -592,7 +617,7 @@ spec:
 
       expect(i.spec.fluentd).to.deep.equal({
         version: "latest",
-        efkStack: true,
+        fullEFKStack: true,
       });
     });
   });
@@ -622,12 +647,10 @@ spec:
         nodeUnreachableTolerationDuration: "10m",
         minReadyMasterNodeCount: 3,
         minReadyWorkerNodeCount: 1,
-        shouldInstallRebootService: false,
-        rook: {
-          shouldMaintainStorageNodes: false,
-        },
+        shouldDisableRebootService: false,
+        rookShouldUseAllNodes: false,
       });
-      expect(i.flags()).to.equal(`ekco-node-unreachable-toleration-duration=10m ekco-min-ready-master-node-count=3 ekco-min-ready-worker-node-count=1 ekco-disable-should-install-reboot-service ekco-disable-should-maintain-rook-storage-nodes`);
+        expect(i.flags()).to.equal("ekco-node-unreachable-toleration-duration=10m ekco-min-ready-master-node-count=3 ekco-min-ready-worker-node-count=1 ekco-should-disable-reboot-service=0 ekco-rook-should-use-all-nodes=0")
     });
   });
 

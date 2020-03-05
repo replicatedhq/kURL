@@ -255,6 +255,7 @@ function main() {
     discover_pod_subnet
     discover_service_subnet
     init
+    setup_installer_crd
     addon aws "$AWS_VERSION"
     addon nodeless "$NODELESS_VERSION"
     addon calico "$CALICO_VERSION"
