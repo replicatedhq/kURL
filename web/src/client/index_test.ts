@@ -119,8 +119,9 @@ spec:
   velero:
     version: latest
     namespace: velero
-    installCLI: true
-    useRestic: true
+    localBucket: velero
+    disableCLI: false
+    disableRestic: false
 `;
 
 const fluentd = `
@@ -129,7 +130,7 @@ spec:
     version: latest
   fluentd:
     version: latest
-    efkStack: true
+    fullEFKStack: true
 `;
 
 const minio = `
@@ -148,9 +149,10 @@ spec:
   openebs:
     version: latest
     namespace: openebs
-    localPV:
-      enabled: true
-      storageClass: default
+    isLocalPVEnabled: true
+    localPVStorageClassName: default
+    isCstorEnabled: true
+    cstorStorageClassName: cstor
 `;
 
 const ekco = `
@@ -162,9 +164,8 @@ spec:
     nodeUnreachableTolerationDuration: 10m
     minReadyMasterNodeCount: 3
     minReadyWorkerNodeCount: 1
-    shouldInstallRebootService: false
-    rook:
-      shouldMaintainStorageNodes: false
+    shouldDisableRebootService: false
+    rookShouldUseAllNodes: false
 `;
 
 describe("POST /installer", () => {
@@ -199,10 +200,10 @@ describe("POST /installer", () => {
   });
 
   describe("fluentd", () => {
-    it(`should return 201 "https://kurl.sh/4723751"`, async () => {
+    it(`should return 201 "https://kurl.sh/472aa23"`, async () => {
       const uri = await client.postInstaller(fluentd);
 
-      expect(uri).to.match(/4723751/);
+      expect(uri).to.match(/472aa23/);
     });
   });
 
@@ -215,10 +216,10 @@ describe("POST /installer", () => {
   });
 
   describe("velero", () => {
-    it(`should return 201 "htps://kurl.sh/afe854c"`, async () => {
+    it(`should return 201 "htps://kurl.sh/b423f81"`, async () => {
       const uri = await client.postInstaller(velero);
 
-      expect(uri).to.match(/afe854c/);
+      expect(uri).to.match(/b423f81/);
     });
   });
 
@@ -231,18 +232,18 @@ describe("POST /installer", () => {
   });
 
   describe("openebs", () => {
-    it(`should return 201 "https://kurl.sh/6f4223e"`, async () => {
+    it(`should return 201 "https://kurl.sh/070e1fa"`, async () => {
       const uri = await client.postInstaller(openebs);
 
-      expect(uri).to.match(/6f4223e/);
+      expect(uri).to.match(/070e1fa/);
     });
   });
 
   describe("ekco", () => {
-    it(`should return 201 "https://kurl.sh/5fad6e6"`, async () => {
+    it(`should return 201 "https://kurl.sh/47c84b2"`, async () => {
       const uri = await client.postInstaller(ekco);
 
-      expect(uri).to.match(/5fad6e6/);
+      expect(uri).to.match(/47c84b2/);
     });
   });
 
@@ -256,7 +257,7 @@ describe("POST /installer", () => {
         err = error;
       }
 
-      expect(err).to.have.property("status", 400);
+      expect(err).to.have.property("message", "Kubernetes version is required");
     });
   });
 
@@ -270,7 +271,7 @@ describe("POST /installer", () => {
         err = error;
       }
 
-      expect(err).to.have.property("status", 400);
+      expect(err).to.have.property("message", "Kubernetes version 1.14.99 is not supported");
     });
   });
 
@@ -283,7 +284,7 @@ describe("POST /installer", () => {
       } catch (error) {
         err = error;
       }
-      expect(err).to.have.property("status", 400);
+      expect(err).to.have.property("message", "YAML could not be parsed");
     });
   });
 });
@@ -309,7 +310,7 @@ describe("PUT /installer/<id>", () => {
         err = error;
       }
 
-      expect(err).to.have.property("status", 400);
+      expect(err).to.have.property("message", "Only base64 URL characters may be used for custom named installers");
     });
   });
 
@@ -324,7 +325,7 @@ describe("PUT /installer/<id>", () => {
         err = error;
       }
 
-      expect(err).to.have.property("status", 400);
+      expect(err).to.have.property("message", "The requested custom installer name is reserved");
     });
   });
 
@@ -338,7 +339,7 @@ describe("PUT /installer/<id>", () => {
         err = error;
       }
 
-      expect(err).to.have.property("status", 401);
+      expect(err).to.have.property("message", "Authentication required");
     });
   });
 
@@ -448,11 +449,11 @@ spec:
     });
   });
 
-  describe("velero (/afe854c)", () => {
-    const id = "afe854c";
+  describe("velero (/b423f81)", () => {
+    const id = "b423f81";
     before(async () => {
       const uri = await client.postInstaller(velero);
-      expect(uri).to.match(/afe854c/);
+      expect(uri).to.match(/b423f81/);
     });
 
     it("injects velero version and flags", async () => {
@@ -460,7 +461,7 @@ spec:
       const script = await client.getInstallScript(id);
 
       expect(script).to.match(new RegExp(`VELERO_VERSION="${i.resolve().spec.velero!.version}"`));
-      expect(script).to.match(new RegExp(`FLAGS="velero-namespace=velero"`));
+      expect(script).to.match(new RegExp(`FLAGS="velero-namespace=velero velero-local-bucket=velero velero-disable-cli=0 velero-disable-restic=0"`));
     });
   });
 
@@ -482,12 +483,12 @@ spec:
     });
   });
 
-  describe("openebs (/6f4223e)", () => {
-    const id = "6f4223e";
+  describe("openebs (/070e1fa)", () => {
+    const id = "070e1fa";
 
     before(async () => {
       const uri = await client.postInstaller(openebs);
-      expect(uri).to.match(/6f4223e/);
+      expect(uri).to.match(/070e1fa/);
     });
 
     it("injects openebs version and flags", async () => {
@@ -495,16 +496,16 @@ spec:
       const script = await client.getInstallScript(id);
 
       expect(script).to.match(new RegExp(`OPENEBS_VERSION="${i.resolve().spec.openebs!.version}"`));
-      expect(script).to.match(new RegExp(`FLAGS="openebs-namespace=openebs openebs-localpv=1 openebs-localpv-storage-class=default"`));
+      expect(script).to.match(new RegExp(`FLAGS="openebs-namespace=openebs openebs-localpv-enabled=1 openebs-localpv-storage-class-name=default openebs-cstor-enabled=1 openebs-cstor-storage-class-name=cstor"`));
     });
   });
 
-  describe("ekco (/5fad6e6)", () => {
-    const id = "5fad6e6";
+  describe("ekco (/47c84b2)", () => {
+    const id = "47c84b2";
 
     before(async () => {
       const uri = await client.postInstaller(ekco);
-      expect(uri).to.match(/5fad6e6/);
+      expect(uri).to.match(/47c84b2/);
     });
 
     it("injects ekco version and flags", async () => {
@@ -512,7 +513,7 @@ spec:
       const script = await client.getInstallScript(id);
 
       expect(script).to.match(new RegExp(`EKCO_VERSION="${i.resolve().spec.ekco!.version}"`));
-      expect(script).to.match(new RegExp(`FLAGS="ekco-node-unreachable-toleration-duration=10m ekco-min-ready-master-node-count=3 ekco-min-ready-worker-node-count=1 ekco-disable-should-install-reboot-service ekco-disable-should-maintain-rook-storage-nodes"`));
+      expect(script).to.match(new RegExp(`FLAGS="ekco-node-unreachable-toleration-duration=10m ekco-min-ready-master-node-count=3 ekco-min-ready-worker-node-count=1 ekco-should-disable-reboot-service=0 ekco-rook-should-use-all-nodes=0"`));
     });
   });
 });

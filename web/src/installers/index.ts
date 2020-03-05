@@ -117,10 +117,10 @@ const rookConfigSchema = {
 export interface OpenEBSConfig {
   version: string;
   namespace?: string;
-  localPV?: boolean;
-  localPVStorageClass?: string;
-  isCstorEnabled: boolean;
-  cstorStorageClassName: string;
+  isLocalPVEnabled?: boolean;
+  localPVStorageClassName?: string;
+  isCstorEnabled?: boolean;
+  cstorStorageClassName?: string;
 }
 
 const openEBSConfigSchema = {
@@ -128,8 +128,8 @@ const openEBSConfigSchema = {
   properties: {
     version: { type: "string" },
     namespace: { type: "string", flag: "openebs-namespace" },
-    localPV: { type: "boolean", flag: "openebs-localpv" },
-    localPVStorageClass: { type: "string", flag: "openebs-localpv-storage-class" },
+    isLocalPVEnabled: { type: "boolean", flag: "openebs-localpv-enabled" },
+    localPVStorageClassName: { type: "string", flag: "openebs-localpv-storage-class-name" },
     isCstorEnabled: { type: "boolean", flag: "openebs-cstor-enabled" },
     cstorStorageClassName: { type: "string", flag: "openebs-cstor-storage-class-name" },
   },
