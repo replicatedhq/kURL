@@ -266,7 +266,7 @@ const ekcoConfigSchema = {
     rookShouldUseAllNodes: { type: "boolean", flag: "ekco-rook-should-use-all-nodes" },
   },
   required: ["version"],
-  additionalProperties: false,
+  // additionalProperties: false,
 }
 
 export interface KurlConfig {
