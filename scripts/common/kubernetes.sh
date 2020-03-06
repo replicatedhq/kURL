@@ -73,6 +73,10 @@ function kubernetes_install_host_packages() {
         return
     fi
 
+    if [ "$AIRGAP" != "1" ] && [ -n "$DIST_URL" ]; then
+        kubernetes_get_host_packages_online "$k8sVersion"
+    fi
+
     case "$LSB_DIST" in
         ubuntu)
             export DEBIAN_FRONTEND=noninteractive

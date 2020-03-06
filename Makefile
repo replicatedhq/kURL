@@ -22,11 +22,12 @@ endif
 clean:
 	rm -rf build tmp dist
 
-dist/common.tar.gz: build/kustomize build/shared build/krew 
+dist/common.tar.gz: build/kustomize build/shared build/krew build/kurlkinds
 	mkdir -p dist
 	tar cf dist/common.tar -C build kustomize
 	tar rf dist/common.tar -C build shared
 	tar rf dist/common.tar -C build krew
+	tar rf dist/common.tar -C build kurlkinds
 	gzip dist/common.tar
 
 dist/aws-%.tar.gz: build/addons
@@ -242,6 +243,11 @@ build/krew:
 	docker create --name krew krew:latest
 	docker cp krew:/krew build/
 	docker rm krew
+
+build/kurlkinds:
+	mkdir -p build/kurlkinds
+	cp kurlkinds/config/crds/v1beta1/cluster.kurl.sh_installers.yaml build/kurlkinds
+	cp kurlkinds/config/template/cluster.kurl.sh_template.yaml build/kurlkinds
 
 build/kustomize:
 	mkdir -p build

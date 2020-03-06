@@ -1,0 +1,75 @@
+apiVersion: cluster.kurl.sh/v1beta1
+kind: Installer
+metadata:
+  name: "base"
+spec:
+  contour:
+    version: __kurl__ contourVersion __kurl__
+  docker:
+    additionalNoProxy: __kurl__ dockerAdditonalNoProxy __kurl__
+    bypassStorageDriverWarning: __kurl__ dockerBypassStoragedriverWarning __kurl__
+    dockerRegistryIP: __kurl__ dockerRegistryIP __kurl__
+    hardFailOnLoopback: __kurl__ dockerHardFailOnLoopback __kurl__
+    noCEOnEE: __kurl__ dockerNoCEOnEE __kurl__
+    version: __kurl__ dockerVersion __kurl__
+    noDocker: __kurl__ dockerNoDocker __kurl__
+  fluentd:
+    fullEFKStack: __kurl__ fluentdFullEFKStack __kurl__
+    version: __kurl__ fluentdVersion __kurl__
+  kotsadm:
+    applicationNamespace: __kurl__ kotsadmApplicationNamespace __kurl__
+    applicationSlug: __kurl__ kotsadmApplicationSlug __kurl__
+    hostname: __kurl__ kotsadmHostname __kurl__
+    uiBindPort: __kurl__ kotsadmUIBindPort __kurl__
+    version: __kurl__ kotsadmVersion __kurl__
+  kubernetes:
+    HACluster: __kurl__ kubernetesHACluster __kurl__
+    apiServiceAddress: __kurl__ kubernetesAPIServiceAddress __kurl__
+    bootstrapToken: __kurl__ kubernetesBootstrapToken __kurl__
+    bootstrapTokenTTL: __kurl__ kubernetesBootstrapTokenTTL __kurl__
+    certKey: __kurl__ kubernetesCertKey __kurl__
+    controlPlane: __kurl__ kubernetesControlPlane __kurl__
+    kubeadmTokenCAHash: __kurl__ kubernetesKubeadmTokenCAHash __kurl__
+    loadBalancerAddress: __kurl__ kubernetesLoadBalancerAddress __kurl__
+    masterAddress: __kurl__ kubernetesMasterAddress __kurl__
+    serviceCIDR: __kurl__ kubernetesServiceCIDR __kurl__
+    serviceCidrRange: __kurl__ kubernetesServiceCIDRRange __kurl__
+    version: __kurl__ kubernetesVersion __kurl__
+  kurl:
+    HTTPProxy: __kurl__ HTTPProxy __kurl__
+    airgap: __kurl__ Airgap __kurl__
+    bypassFirewalldWarning: __kurl__ BypassFirewalldWarning __kurl__
+    hardFailOnFirewalld: __kurl__ HardFailOnFirewalld __kurl__
+    hostnameCheck: __kurl__ HostnameCheck __kurl__
+    noProxy: __kurl__ NoProxy __kurl__
+    privateAddress: __kurl__ PrivateAddress __kurl__
+    publicAddress: __kurl__ PublicAddress __kurl__
+    task: __kurl__ Task __kurl__
+  minio:
+    namespace: __kurl__ minioNamespace __kurl__
+    version: __kurl__ minioVersion __kurl__
+  openEBS:
+    localPV: __kurl__ openEBSLocalPV __kurl__
+    localPVStorageClass: __kurl__ openEBSLocalPVStorageClass __kurl__
+    namespace: __kurl__ openEBSNamespace __kurl__
+    version: __kurl__ openEBSVersion __kurl__
+  prometheus:
+    version: __kurl__ prometheusVersion __kurl__
+  registry:
+    publishPort: __kurl__ registryPublishPort __kurl__
+    version: __kurl__ registryVersion __kurl__
+  rook:
+    cephReplicaCount: __kurl__ rookCephReplicaCount __kurl__
+    storageClassName: __kurl__ rookStorageClassName __kurl__
+    version: __kurl__ rookVersion __kurl__
+  velero:
+    disableRestic: __kurl__ veleroDisableRestic __kurl__
+    disableCLI: __kurl__ veleroDisableCLI __kurl__
+    localBucket: __kurl__ veleroLocalBucket __kurl__
+    namespace: __kurl__ veleroNamespace __kurl__
+    version: __kurl__ veleroVersion __kurl__
+  weave:
+    isEncryptionDisabled: __kurl__ weaveisEncryptionDisabled __kurl__
+    podCIDR: __kurl__ weavePodCIDR __kurl__
+    podCidrRange: __kurl__ weavePodCIDRRange __kurl__
+    version: __kurl__ weaveVersion __kurl__

@@ -1,0 +1,228 @@
+
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.2.4
+  creationTimestamp: null
+  name: installers.cluster.kurl.sh
+spec:
+  group: cluster.kurl.sh
+  names:
+    kind: Installer
+    listKind: InstallerList
+    plural: installers
+    singular: installer
+  scope: Namespaced
+  validation:
+    openAPIV3Schema:
+      description: Installer is the Schema for the installers API
+      properties:
+        apiVersion:
+          description: 'APIVersion defines the versioned schema of this representation
+            of an object. Servers should convert recognized schemas to the latest
+            internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+          type: string
+        kind:
+          description: 'Kind is a string value representing the REST resource this
+            object represents. Servers may infer this from the endpoint the client
+            submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+          type: string
+        metadata:
+          type: object
+        spec:
+          properties:
+            contour:
+              properties:
+                version:
+                  type: string
+              required:
+              - version
+              type: object
+            docker:
+              properties:
+                additionalNoProxy:
+                  type: string
+                bypassStorageDriverWarning:
+                  type: boolean
+                dockerRegistryIP:
+                  type: string
+                hardFailOnLoopback:
+                  type: boolean
+                noCEOnEE:
+                  type: boolean
+                noDocker:
+                  type: boolean
+                version:
+                  type: string
+              required:
+              - version
+              type: object
+            fluentd:
+              properties:
+                fullEFKStack:
+                  type: boolean
+                version:
+                  type: string
+              required:
+              - version
+              type: object
+            kotsadm:
+              properties:
+                applicationNamespace:
+                  type: string
+                applicationSlug:
+                  type: string
+                hostname:
+                  type: string
+                uiBindPort:
+                  type: integer
+                version:
+                  type: string
+              required:
+              - version
+              type: object
+            kubernetes:
+              properties:
+                HACluster:
+                  type: boolean
+                apiServiceAddress:
+                  type: string
+                bootstrapToken:
+                  type: string
+                bootstrapTokenTTL:
+                  type: string
+                certKey:
+                  type: string
+                controlPlane:
+                  type: boolean
+                kubeadmTokenCAHash:
+                  type: string
+                loadBalancerAddress:
+                  type: string
+                masterAddress:
+                  type: string
+                serviceCIDR:
+                  type: string
+                serviceCidrRange:
+                  type: string
+                version:
+                  type: string
+              required:
+              - version
+              type: object
+            kurl:
+              properties:
+                HTTPProxy:
+                  type: string
+                airgap:
+                  type: boolean
+                bypassFirewalldWarning:
+                  type: boolean
+                hardFailOnFirewalld:
+                  type: boolean
+                hostnameCheck:
+                  type: string
+                noProxy:
+                  type: boolean
+                privateAddress:
+                  type: string
+                publicAddress:
+                  type: string
+                task:
+                  type: string
+              type: object
+            minio:
+              properties:
+                namespace:
+                  type: string
+                version:
+                  type: string
+              required:
+              - version
+              type: object
+            openEBS:
+              properties:
+                localPV:
+                  type: boolean
+                localPVStorageClass:
+                  type: string
+                namespace:
+                  type: string
+                version:
+                  type: string
+              required:
+              - version
+              type: object
+            prometheus:
+              properties:
+                version:
+                  type: string
+              required:
+              - version
+              type: object
+            registry:
+              properties:
+                publishPort:
+                  type: integer
+                version:
+                  type: string
+              required:
+              - version
+              type: object
+            rook:
+              properties:
+                cephReplicaCount:
+                  type: integer
+                storageClassName:
+                  type: string
+                version:
+                  type: string
+              required:
+              - version
+              type: object
+            velero:
+              properties:
+                disableCLI:
+                  type: boolean
+                disableRestic:
+                  type: boolean
+                localBucket:
+                  type: string
+                namespace:
+                  type: string
+                version:
+                  type: string
+              required:
+              - version
+              type: object
+            weave:
+              properties:
+                isEncryptionDisabled:
+                  type: boolean
+                podCIDR:
+                  type: string
+                podCidrRange:
+                  type: string
+                version:
+                  type: string
+              required:
+              - version
+              type: object
+          type: object
+        status:
+          description: InstallerStatus defines the observed state of Installer
+          type: object
+      type: object
+  version: v1beta1
+  versions:
+  - name: v1beta1
+    served: true
+    storage: true
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []
