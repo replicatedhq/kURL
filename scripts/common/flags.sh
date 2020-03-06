@@ -176,11 +176,17 @@ function flags() {
             openebs-namespace|openebs_namespace)
                 OPENEBS_NAMESPACE="$_value"
                 ;;
-            openebs-localpv|openebs_localpv)
+            openebs-localpv-enabled|openebs_localpv_enabled)
                 OPENEBS_LOCALPV=1
                 ;;
-            openebs-localpv-storage-class|openebs_localpv_storage_class)
+            openebs-localpv-storage-class-name|openebs_localpv_storage_class_name)
                 OPENEBS_LOCALPV_STORAGE_CLASS="$_value"
+                ;;
+            openebs-cstor-enabled|openebs_cstor_enabled)
+                OPENEBS_CSTOR=1
+                ;;
+            openebs-cstor-storage-class-name|openebs_cstor_storage_class_name)
+                OPENEBS_CSTOR_STORAGE_CLASS="$_value"
                 ;;
             ekco-node-unreachable-toleration-duration|ekco_node_unreachable_toleration_duration)
                 EKCO_NODE_UNREACHABLE_TOLERATION_DURATION="$_value"
