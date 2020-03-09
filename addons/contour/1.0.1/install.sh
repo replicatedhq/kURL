@@ -19,6 +19,11 @@ function contour() {
     render_yaml_file "$src/tmpl-kustomization.yaml" > "$dst/kustomization.yaml"
     render_yaml_file "$src/tmpl-namespace.yaml" > "$dst/namespace.yaml"
 
+    # NodePort services in old namespace conflict
+    if kubectl get namespace heptio-contour &>/dev/null && [ "$CONTOUR_NAMESPACE" != heptio-contour ]; then
+        kubectl delete namespace heptio-contour
+    fi
+
     kubectl create namespace "$CONTOUR_NAMESPACE" 2>/dev/null || true
 
     kubectl apply -k "$dst/"
