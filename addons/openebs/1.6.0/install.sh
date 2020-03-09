@@ -99,11 +99,11 @@ function openebs_iscsi() {
         case "$LSB_DIST" in
             ubuntu)
                 export DEBIAN_FRONTEND=noninteractive
-                dpkg --install --force-depends-version "${src}/ubuntu-${DIST_VERSION}/archives/*.deb"
+                dpkg --install --force-depends-version ${src}/ubuntu-${DIST_VERSION}/archives/*.deb
                 ;;
 
             centos|rhel)
-                rpm --upgrade --force --nodeps "${src}/rhel-7/archives/*.rpm"
+                rpm --upgrade --force --nodeps ${src}/rhel-7/archives/*.rpm
                 ;;
         esac
     fi
