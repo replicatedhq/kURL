@@ -35,36 +35,42 @@ while read -r line; do
             mkdir -p $OUT_DIR/ubuntu-18.04 $OUT_DIR/ubuntu-16.04
             package=$(echo $line | awk '{ print $2 }')
 
-            docker run --rm \
-                -v $OUT_DIR/ubuntu-18.04:/packages \
+            docker rm -f ubuntu-1804-${package} 2>/dev/null
+            docker run \
+                --name ubuntu-1804-${package} \
                 ubuntu:18.04 \
                 /bin/bash -c "\
                     mkdir -p /packages/archives && \
                     apt update -y \
                     && apt install -d -y $package \
                     -oDebug::NoLocking=1 -o=dir::cache=/packages/"
+            docker cp ubuntu-1804-${package}:/packages/archives $OUT_DIR/ubuntu-18.04
             sudo chown -R $UID $OUT_DIR/ubuntu-18.04
 
-            docker run --rm \
-                -v $OUT_DIR/ubuntu-16.04:/packages \
+            docker rm -f ubuntu-1604-${package} 2>/dev/null
+            docker run \
+                --name ubuntu-1604-${package} \
                 ubuntu:16.04 \
                 /bin/bash -c "\
                     mkdir -p /packages/archives && \
                     apt update -y \
                     && apt install -d -y $package \
                     -oDebug::NoLocking=1 -o=dir::cache=/packages/"
+            docker cp ubuntu-1604-${package}:/packages/archives $OUT_DIR/ubuntu-16.04
             sudo chown -R $UID $OUT_DIR/ubuntu-16.04
             ;;
         yum)
             mkdir -p $OUT_DIR/rhel-7
             package=$(echo $line | awk '{ print $2 }')
 
-            docker run --rm \
-                -v $OUT_DIR/rhel-7:/packages \
+            docker rm -f rhel-7-${package} 2>/dev/null
+            docker run \
+                --name rhel-7-${package} \
                 centos:7 \
                 /bin/bash -c "\
                     mkdir -p /packages/archives && \
                     yumdownloader --resolve --destdir=/packages/archives -y $package"
+            docker cp rhel-7-${package}:/packages/archives $OUT_DIR/rhel-7
             sudo chown -R $UID $OUT_DIR/rhel-7
             ;;
         *)
