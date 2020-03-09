@@ -35,7 +35,7 @@ while read -r line; do
             mkdir -p $OUT_DIR/ubuntu-18.04 $OUT_DIR/ubuntu-16.04
             package=$(echo $line | awk '{ print $2 }')
 
-            docker rm -f ubuntu-1804-${package} 2>/dev/null
+            docker rm -f ubuntu-1804-${package} 2>/dev/null || true
             docker run \
                 --name ubuntu-1804-${package} \
                 ubuntu:18.04 \
@@ -47,7 +47,7 @@ while read -r line; do
             docker cp ubuntu-1804-${package}:/packages/archives $OUT_DIR/ubuntu-18.04
             sudo chown -R $UID $OUT_DIR/ubuntu-18.04
 
-            docker rm -f ubuntu-1604-${package} 2>/dev/null
+            docker rm -f ubuntu-1604-${package} 2>/dev/null || true
             docker run \
                 --name ubuntu-1604-${package} \
                 ubuntu:16.04 \
@@ -63,7 +63,7 @@ while read -r line; do
             mkdir -p $OUT_DIR/rhel-7
             package=$(echo $line | awk '{ print $2 }')
 
-            docker rm -f rhel-7-${package} 2>/dev/null
+            docker rm -f rhel-7-${package} 2>/dev/null || true
             docker run \
                 --name rhel-7-${package} \
                 centos:7 \
