@@ -11,16 +11,16 @@ stringData:
 apiVersion: velero.io/v1
 kind: BackupStorageLocation
 metadata:
-  name: local-ceph-rgw
+  name: kotsadm-velero-backend
   annotations:
-    "kurl.sh/local-ceph-rgw": \"\"
+    "kurl.sh/velero-local-backend": \"\"
 spec:
   backupSyncPeriod: 2m0s
   provider: aws
   objectStorage:
     bucket: ${VELERO_LOCAL_BUCKET}
   config:
-    s3Url: "http://rook-ceph-rgw-rook-ceph-store.rook-ceph"
+    s3Url: "${OBJECT_STORE_CLUSTER_HOST}"
     publicUrl: "http://${OBJECT_STORE_CLUSTER_IP}"
     region: us-east-1
     s3ForcePathStyle: \"true\"

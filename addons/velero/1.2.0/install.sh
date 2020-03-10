@@ -30,7 +30,7 @@ function velero() {
         insert_resources "$dst/kustomization.yaml" restic-daemonset.yaml
     fi
 
-    velero_local_rgw_store
+    velero_kotsadm_local_backend
 
     kubectl apply -k "$dst"
 
@@ -55,23 +55,27 @@ function velero_binary() {
     mv velero /usr/local/bin/velero
 }
 
-function velero_local_rgw_store() {
+function velero_kotsadm_local_backend() {
     local src="$DIR/addons/velero/1.2.0"
     local dst="$DIR/kustomize/velero"
 
-    local backendCount=$(kubectl -n "$VELERO_NAMESPACE" get backupstoragelocations --no-headers | wc -l)
-    if [ "$backendCount" -gt 0 ]; then
-        echo "A backend storage location already exists. Skipping creation of new local RGW backend for Velero"
+    if [ -z "$KOTSADM_VERSION" ]; then
+        return 0
+    fi
+
+    if kubernetes_has_resource "$VELERO_NAMESPACE" backupstoragelocation kotsadm-velero-backend \
+        || kubernetes_has_resource "$VELERO_NAMESPACE" secret aws-credentials; then
+        echo "A backend storage location already exists. Skipping creation of new local backend for Velero"
         return 0
     fi
 
     if [ -z "$OBJECT_STORE_ACCESS_KEY" ] || [ -z "$OBJECT_STORE_SECRET_KEY" ] || [ -z "$OBJECT_STORE_CLUSTER_IP" ]; then
-        echo "Local RGW store not configured. Skipping creation of new local RWG backend for Velero"
+        echo "Local object store not configured. Skipping creation of new local backend for Velero"
         return 0
     fi
 
     try_1m object_store_create_bucket "$VELERO_LOCAL_BUCKET"
 
-    render_yaml_file "$src/tmpl-backupstoragelocation.yaml" > "$dst/backupstoragelocation.yaml"
-    insert_resources "$dst/kustomization.yaml" backupstoragelocation.yaml
+    render_yaml_file "$src/tmpl-kotsadm-local-backend.yaml" > "$dst/kotsadm-local-backend.yaml"
+    insert_resources "$dst/kustomization.yaml" kotsadm-local-backend.yaml
 }
