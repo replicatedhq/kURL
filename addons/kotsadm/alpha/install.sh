@@ -297,7 +297,7 @@ function kotsadm_cli() {
     fi
     if [ ! -f "$src/assets/kots.tar.gz" ] && [ "$AIRGAP" != "1" ]; then
         mkdir -p "$src/assets"
-        curl -L "https://github.com/replicatedhq/kots/releases/download/v1.13.7/kots_linux_amd64.tar.gz" > "$src/assets/kots.tar.gz"
+        curl -L "https://github.com/replicatedhq/kots/releases/download/v1.13.8/kots_linux_amd64.tar.gz" > "$src/assets/kots.tar.gz"
     fi
 
     pushd "$src/assets"
