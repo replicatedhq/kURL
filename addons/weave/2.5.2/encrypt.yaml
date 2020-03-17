@@ -10,7 +10,7 @@ spec:
       containers:
       - name: weave
         env:
-        - name: WEAVE_PASSWD
+        - name: WEAVE_PASSWORD
           valueFrom:
             secretKeyRef:
               name: weave-passwd
