@@ -29,21 +29,20 @@ export interface KubernetesConfig {
   apiServiceAddress?: string;
 }
 
-const kubernetesConfigSchema = {
+export const kubernetesConfigSchema = {
   type: "object",
   properties: {
     version: { type: "string" },
-    serviceCidrRange: { type: "string", flag: "service-cidr-range" },
-    serviceCIDR: { type: "string", flag: "service-cidr" },
-    haCluster: { type: "boolean", flag: "ha" },
-    masterAddress: { type: "string", flag: "kuberenetes-master-address" },
-    loadBalancerAddress: { type: "string", flag: "load-balancer-address" },
-    bootstrapToken: { type: "string", flag: "bootstrap-token" },
-    bootstrapTokenTTL: { type: "string", flag: "bootstrap-token-ttl" },
-    kubeadmTokenCAHash: { type: "string", flag: "kubeadm-token-ca-hash" },
-    controlPlane: { type: "boolean", flag: "control-plane"},
-    certKey: { type: "string", flag: "cert-key" },
-    apiServiceAddress: { type: "string", flag: "api-service-address" },
+    serviceCidrRange: { type: "string", flag: "service-cidr-range", description: "The size of the CIDR for Kubernetes (can be presented as just a number or with a preceding slash)" },
+    serviceCIDR: { type: "string", flag: "service-cidr", description: "This defines subnet for kubernetes" },
+    haCluster: { type: "boolean", flag: "ha", description: "Create the cluster as a high availability cluster (note that this needs a valid load balancer address and additional nodes to be a truly HA cluster)" },
+    masterAddress: { type: "string", flag: "kuberenetes-master-address", description: "The address of the internal Kubernetes API server, used during join scripts (read-only)" },
+    loadBalancerAddress: { type: "string", flag: "load-balancer-address", description: "Used for High Availability installs, indicates the address of the external load balancer" },
+    bootstrapToken: { type: "string", flag: "bootstrap-token", description: "A secret needed for new nodes to join an existing cluster (read-only)" },
+    bootstrapTokenTTL: { type: "string", flag: "bootstrap-token-ttl", description: "How long the bootstrap token is valid for" },
+    kubeadmTokenCAHash: { type: "string", flag: "kubeadm-token-ca-hash", description: "Generated during the install script, used for nodes joining (read-only)" },
+    controlPlane: { type: "boolean", flag: "control-plane", description: "Used during a join script to indicate that the node will be an additional master (read-only)" },
+    certKey: { type: "string", flag: "cert-key", description: "A secret needed for new master nodes to join an existing cluster (read-only)" },
   },
   required: [ "version" ],
   additionalProperties: false,
@@ -59,16 +58,16 @@ export interface DockerConfig {
   noDocker?: boolean;
 }
 
-const dockerConfigSchema = {
+export const dockerConfigSchema = {
   type: "object",
   properties: {
     version: { type: "string" },
-    bypassStorageDriverWarnings: { type: "boolean" , flag: "bypass-storagedriver-warnings" },
-    hardFailOnLoopback: { type: "boolean", flag: "hard-fail-on-loopback" },
-    noCEOnEE: { type: "boolean", flag: "no-ce-on-ee" },
-    dockerRegistryIP: { type: "string", flag: "docker-registry-ip" },
-    additionalNoProxy: { type: "string", flag: "additional-no-proxy" },
-    noDocker: { type: "boolean", flag: "no-docker" },
+    bypassStorageDriverWarnings: { type: "boolean" , flag: "bypass-storagedriver-warnings", description: "Force docker to ignore if using devicemapper storage driver in loopback mode" },
+    hardFailOnLoopback: { type: "boolean", flag: "hard-fail-on-loopback", description: "The install script stops and exits if it detects a loopback file storage configuration" },
+    noCEOnEE: { type: "boolean", flag: "no-ce-on-ee", description: "Do not install Docker-CE on RHEL" },
+    dockerRegistryIP: { type: "string", flag: "docker-registry-ip", description: "Used during join scripts, indicates the address of the docker registry (read only)" },
+    additionalNoProxy: { type: "string", flag: "additional-no-proxy", description: "This indicates addresses that should not be proxied in addition to the private IP (This can be a comma separated list of IPs or just 1 IP)" },
+    noDocker: { type: "boolean", flag: "no-docker", description: "Do not install Docker" },
   },
   required: [ "version" ],
   additionalProperites: false,
@@ -83,13 +82,13 @@ export interface WeaveConfig {
   isEncryptionDisabled?: boolean;
 }
 
-const weaveConfigSchema = {
+export const weaveConfigSchema = {
   type: "object",
   properties: {
     version: { type: "string" },
-    podCIDR: { type: "string", flag: "pod-cidr" },
-    podCidrRange: { type: "string", flag: "pod-cidr-range" },
-    isEncryptionDisabled: { type: "boolean", flag: "disable-weave-encryption" },
+    podCIDR: { type: "string", flag: "pod-cidr", description: "The subnet where pods will be found" },
+    podCidrRange: { type: "string", flag: "pod-cidr-range", description: "The size of the CIDR where pods can be found" },
+    isEncryptionDisabled: { type: "boolean", flag: "disable-weave-encryption", description: "Is encryption in the Weave CNI disabled" },
   },
   required: [ "version" ],
   additionalProperites: false,
@@ -103,12 +102,12 @@ export interface RookConfig {
   storageClassName?: string;
 }
 
-const rookConfigSchema = {
+export const rookConfigSchema = {
   type: "object",
   properties: {
     version: { type: "string" },
-    storageClassName: { type: "string", flag: "storage-class-name" },
-    cephReplicaCount: { type: "number", flag: "ceph-replica-count" },
+    storageClassName: { type: "string", flag: "storage-class-name", description: "The number of replicas in the Rook Ceph pool" },
+    cephReplicaCount: { type: "number", flag: "ceph-replica-count", description: "The name of the StorageClass used by rook" },
   },
   required: [ "version" ],
   additionalProperites: false,
@@ -123,15 +122,15 @@ export interface OpenEBSConfig {
   cstorStorageClassName?: string;
 }
 
-const openEBSConfigSchema = {
+export const openEBSConfigSchema = {
   type: "object",
   properties: {
     version: { type: "string" },
-    namespace: { type: "string", flag: "openebs-namespace" },
-    isLocalPVEnabled: { type: "boolean", flag: "openebs-localpv-enabled" },
-    localPVStorageClassName: { type: "string", flag: "openebs-localpv-storage-class-name" },
-    isCstorEnabled: { type: "boolean", flag: "openebs-cstor-enabled" },
-    cstorStorageClassName: { type: "string", flag: "openebs-cstor-storage-class-name" },
+    namespace: { type: "string", flag: "openebs-namespace", description: "The namespace Open EBS is installed to" },
+    isLocalPVEnabled: { type: "boolean", flag: "openebs-localpv-enabled", description: "Turn on localPV storage provisioning" },
+    localPVStorageClassName: { type: "string", flag: "openebs-localpv-storage-class-name", description: "StorageClass name for local PV provisioner (Name it “default” to make it the cluster’s default provisioner)" },
+    isCstorEnabled: { type: "boolean", flag: "openebs-cstor-enabled", description: "Turn on cstor storage provisioning" },
+    cstorStorageClassName: { type: "string", flag: "openebs-cstor-storage-class-name", description: "The StorageClass name for cstor provisioner (Name it “default” to make it the cluster’s default provisioner)" },
   },
   required: ["version"],
   additionalProperties: false,
@@ -142,11 +141,11 @@ export interface MinioConfig {
   namespace?: string;
 }
 
-const minioConfigSchema = {
+export const minioConfigSchema = {
   type: "object",
   properties: {
     version: { type: "string" },
-    namespace: { type: "string", flag: "minio-namespace" },
+    namespace: { type: "string", flag: "minio-namespace", description: "The namespace Minio is installed to" },
   },
   required: ["version"],
   additionalProperties: false,
@@ -156,7 +155,7 @@ export interface ContourConfig {
   version: string;
 }
 
-const contourConfigSchema = {
+export const contourConfigSchema = {
   type: "object",
   properties: {
     version: { type: "string" },
@@ -170,11 +169,11 @@ export interface RegistryConfig {
   publishPort?: number;
 }
 
-const registryConfigSchema = {
+export const registryConfigSchema = {
   type: "object",
   properties: {
     version: { type: "string" },
-    publishPort: { type: "number", flag: "registry-publish-port" },
+    publishPort: { type: "number", flag: "registry-publish-port", description: "add a NodePort service to the registry" },
   },
   required: ["version"],
   additionalProperties: false,
@@ -184,7 +183,7 @@ export interface PrometheusConfig {
   version: string;
 }
 
-const prometheusConfigSchema = {
+export const prometheusConfigSchema = {
   type: "object",
   properties: {
     version: { type: "string" },
@@ -198,11 +197,11 @@ export interface FluentdConfig {
   fullEFKStack?: boolean;
 }
 
-const fluentdConfigSchema = {
+export const fluentdConfigSchema = {
   type: "object",
   properties: {
     version: { type: "string" },
-    fullEFKStack : { type: "boolean", flag: "fluentd-full-efk-stack" },
+    fullEFKStack : { type: "boolean", flag: "fluentd-full-efk-stack", description: "Install ElasticSearch and Kibana in addition to Fluentd" },
   },
   required: ["version"],
   additionalProperties: false,
@@ -216,14 +215,14 @@ export interface KotsadmConfig {
   applicationNamespace?: string;
 }
 
-const kotsadmConfigSchema = {
+export const kotsadmConfigSchema = {
   type: "object",
   properties: {
     version: { type: "string" },
-    applicationSlug: { type: "string", flag: "kotsadm-application-slug" },
-    uiBindPort: { type: "number", flag: "kotsadm-ui-bind-port" },
-    hostname: { type: "string", flag: "kotsadm-hostname" },
-    applicationNamespace: { type: "string", flag: "kotsadm-application-namespaces" },
+    applicationSlug: { type: "string", flag: "kotsadm-application-slug", description: "The slug shown on the app settings page of vendor web" },
+    uiBindPort: { type: "number", flag: "kotsadm-ui-bind-port", description: "This is the port where the kots admin panel can be interacted with via browser" },
+    hostname: { type: "string", flag: "kotsadm-hostname", description: "The hostname that the admin console will be exposed on" },
+    applicationNamespace: { type: "string", flag: "kotsadm-application-namespaces", description: "An additional namespace that should be pre-created during the install (For applications that install to other namespaces outside of the one where kotsadm is running)" },
   },
   required: ["version"],
   additionalProperties: false,
@@ -237,14 +236,14 @@ export interface VeleroConfig {
   localBucket?: string;
 }
 
-const veleroConfigSchema = {
+export const veleroConfigSchema = {
   type: "object",
   properties: {
     version: { type: "string" },
-    namespace: { type: "string", flag: "velero-namespace" },
-    localBucket: { type: "string", flag : "velero-local-bucket"},
-    disableCLI: { type: "boolean", flag: "velero-disable-cli" },
-    disableRestic: { type: "boolean", flag: "velero-disable-restic"},
+    namespace: { type: "string", flag: "velero-namespace", description: "The namespace to install velero into if not using the default"},
+    localBucket: { type: "string", flag : "velero-local-bucket", description: "Name of the bucket to create snapshots in the local object store"},
+    disableCLI: { type: "boolean", flag: "velero-disable-cli", description: "Don't install the velero CLI on the host" },
+    disableRestic: { type: "boolean", flag: "velero-disable-restic", description: "Don’t install the velero integration" },
   },
   required: ["version"],
   additionalProperties: false,
@@ -259,19 +258,19 @@ export interface EkcoConfig {
   rookShouldUseAllNodes?: boolean;
 }
 
-const ekcoConfigSchema = {
+export const ekcoConfigSchema = {
   type: "object",
   properties: {
     version: { type: "string" },
-    nodeUnreachableTolerationDuration: { type: "string", flag: "ekco-node-unreachable-toleration-duration" },
-    minReadyMasterNodeCount: { type: "number", flag: "ekco-min-ready-master-node-count" },
-    minReadyWorkerNodeCount: { type: "number", flag: "ekco-min-ready-worker-node-count" },
-    shouldDisableRebootService: { type: "boolean", flag: "ekco-should-disable-reboot-service" },
-    rookShouldUseAllNodes: { type: "boolean", flag: "ekco-rook-should-use-all-nodes" },
+    nodeUnreachableTolerationDuration: { type: "string", flag: "ekco-node-unreachable-toleration-duration" , description: "How long a Node must have status unreachable before it’s purged" },
+    minReadyMasterNodeCount: { type: "number", flag: "ekco-min-ready-master-node-count" , description: "Ekco will not purge a master node if it would result in less than this many masters remaining" },
+    minReadyWorkerNodeCount: { type: "number", flag: "ekco-min-ready-worker-node-count" , description: "Ekco will not purge a worker node if it would result in less than this many workers remaining" },
+    shouldDisableRebootService: { type: "boolean", flag: "ekco-should-disable-reboot-service" , description: "Do not install the systemd shutdown service that cordons a node and deletes pods with PVC and Shared FS volumes mounted" },
+    rookShouldUseAllNodes: { type: "boolean", flag: "ekco-rook-should-use-all-nodes" , description: "This will disable management of nodes in the CephCluster resource. If false, ekco will add nodes to the storage list and remove them when a node is purged" },
   },
   required: ["version"],
   // additionalProperties: false,
-}
+};
 
 export interface KurlConfig {
   HTTPProxy?: string;
@@ -285,18 +284,18 @@ export interface KurlConfig {
   task?: string;
 }
 
-const kurlConfigSchema = {
+export const kurlConfigSchema = {
   type: "object",
   properties: {
-    HTTPProxy: { type: "string", flag: "http-proxy" },
-    airgap: { type: "boolean", flag: "airgap" },
-    bypassFirewalldWarning: { type: "boolean", flag: "bypass-firewalld-warning" },
-    hardFailOnFirewalld: { type: "boolean", flag: "hard-fail-on-firewalld" },
-    hostnameCheck: { type: "string", flag: "hostname-check" },
-    noProxy: { type: "boolean", flag: "no-proxy" },
-    privateAddress: { type: "string", flag: "private-address" },
-    publicAddress: { type: "string", flag: "public-address" },
-    task: { type: "string", flag: "task" },
+    HTTPProxy: { type: "string", flag: "http-proxy" , description: "The address of the proxy to use for outbound connections" },
+    airgap: { type: "boolean", flag: "airgap", description: "Indicates if this install is an airgap install" },
+    bypassFirewalldWarning: { type: "boolean", flag: "bypass-firewalld-warning" , description: "Continue installing even if the firewalld service is active" },
+    hardFailOnFirewalld: { type: "boolean", flag: "hard-fail-on-firewalld" , description: "Exit the install script if the firewalld service is active" },
+    hostnameCheck: { type: "string", flag: "hostname-check" , description: "Used as a check during an upgrade to ensure the script will run only on the given hostname" },
+    noProxy: { type: "boolean", flag: "no-proxy" , description: "Don’t detect or configure a proxy" },
+    privateAddress: { type: "string", flag: "private-address" , description: "The local address of the host (different for each host in the cluster)" },
+    publicAddress: { type: "string", flag: "public-address" , description: "The public address of the host (different for each host in the cluster), will be added as a CNAME to the k8s API server cert so you can use kubectl with this address" },
+    task: { type: "string", flag: "task" , description: "This option will run bash functions from tasks.sh with names that match the string parameter given" },
   },
   additionalProperties: false,
 };
