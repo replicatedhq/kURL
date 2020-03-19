@@ -24,7 +24,6 @@ spec:
     version: latest
   kubernetes:
     HACluster: true
-    apiServiceAddress: 1.1.1.1
     bootstrapToken: abc
     bootstrapTokenTTL: long
     certKey: medico

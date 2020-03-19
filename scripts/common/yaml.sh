@@ -137,7 +137,6 @@ function kubernetes_yaml() {
     fi
 
     replace_with_true_or_false $filename  "__kurl__ kubernetesHACluster __kurl__" "$HA_CLUSTER"
-    replace_with_variable_or_delete_line $filename "__kurl__ kubernetesAPIServiceAddress __kurl__" "$API_SERVICE_ADDRESS"
     replace_with_variable_or_delete_line $filename "__kurl__ kubernetesBootstrapToken __kurl__" "$BOOTSTRAP_TOKEN"
     replace_with_variable_or_delete_line $filename "__kurl__ kubernetesBootstrapTokenTTL __kurl__" "$BOOTSTRAP_TOKEN_TTL"
     replace_with_variable_or_delete_line $filename "__kurl__ kubernetesCertKey __kurl__" "$CERT_KEY"

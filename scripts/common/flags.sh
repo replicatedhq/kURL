@@ -106,9 +106,6 @@ function flags() {
             kubernetes-master-address|kubernetes_master_address)
                 KUBERNETES_MASTER_ADDR="$_value"
                 ;;
-            api-service-address|api_service_address)
-                API_SERVICE_ADDRESS="$_value"
-                ;;
             kubeadm-token|kubeadm_token)
                 KUBEADM_TOKEN="$_value"
                 ;;
