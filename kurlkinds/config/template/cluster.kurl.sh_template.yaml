@@ -24,7 +24,6 @@ spec:
     version: __kurl__ kotsadmVersion __kurl__
   kubernetes:
     HACluster: __kurl__ kubernetesHACluster __kurl__
-    apiServiceAddress: __kurl__ kubernetesAPIServiceAddress __kurl__
     bootstrapToken: __kurl__ kubernetesBootstrapToken __kurl__
     bootstrapTokenTTL: __kurl__ kubernetesBootstrapTokenTTL __kurl__
     certKey: __kurl__ kubernetesCertKey __kurl__

@@ -87,8 +87,6 @@ spec:
               properties:
                 HACluster:
                   type: boolean
-                apiServiceAddress:
-                  type: string
                 bootstrapToken:
                   type: string
                 bootstrapTokenTTL:

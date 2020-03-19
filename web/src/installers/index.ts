@@ -26,7 +26,6 @@ export interface KubernetesConfig {
   kubeadmTokenCAHash?: string;
   controlPlane?: boolean;
   certKey?: string;
-  apiServiceAddress?: string;
 }
 
 const kubernetesConfigSchema = {
@@ -43,7 +42,6 @@ const kubernetesConfigSchema = {
     kubeadmTokenCAHash: { type: "string", flag: "kubeadm-token-ca-hash" },
     controlPlane: { type: "boolean", flag: "control-plane"},
     certKey: { type: "string", flag: "cert-key" },
-    apiServiceAddress: { type: "string", flag: "api-service-address" },
   },
   required: [ "version" ],
   additionalProperties: false,
