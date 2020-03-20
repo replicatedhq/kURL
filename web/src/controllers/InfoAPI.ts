@@ -30,7 +30,7 @@ const invalidRequest = {
   },
 };
 
-@Controller("/app")
+@Controller("/internal-addon")
 export class InfoAPI {
 
   @Get("")
