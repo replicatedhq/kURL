@@ -105,8 +105,8 @@ export const rookConfigSchema = {
   type: "object",
   properties: {
     version: { type: "string" },
-    storageClassName: { type: "string", flag: "storage-class-name", description: "The number of replicas in the Rook Ceph pool" },
-    cephReplicaCount: { type: "number", flag: "ceph-replica-count", description: "The name of the StorageClass used by rook" },
+    storageClassName: { type: "string", flag: "storage-class-name", description: "The name of the StorageClass used by rook" },
+    cephReplicaCount: { type: "number", flag: "ceph-replica-count", description: "The number of replicas in the Rook Ceph pool" }, 
   },
   required: [ "version" ],
   additionalProperites: false,
