@@ -64,7 +64,6 @@ type Kotsadm struct {
 }
 
 type Kubernetes struct {
-	ApiServiceAddress   string `json:"apiServiceAddress,omitempty"`
 	BootstrapToken      string `json:"bootstrapToken,omitempty"`
 	BootstrapTokenTTL   string `json:"bootstrapTokenTTL,omitempty"`
 	CertKey             string `json:"certKey,omitempty"`

@@ -26,7 +26,6 @@ export interface KubernetesConfig {
   kubeadmTokenCAHash?: string;
   controlPlane?: boolean;
   certKey?: string;
-  apiServiceAddress?: string;
 }
 
 export const kubernetesConfigSchema = {
@@ -384,7 +383,8 @@ export class Installer {
       "1.7.4",
     ],
     kotsadm: [
-      "1.13.7",
+      "1.13.9",
+      "1.13.8",
       "1.13.6",
       "1.13.5",
       "1.13.4",
