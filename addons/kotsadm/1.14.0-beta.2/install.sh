@@ -48,6 +48,9 @@ function kotsadm() {
 
     kotsadm_kurl_proxy $src $dst
 
+    kotsadm_ready_spinner
+    kotsadm_api_ready_spinner
+
     kotsadm_cli $src
 }
 
@@ -343,4 +346,32 @@ function kotsadm_namespaces() {
     for NAMESPACE in "${KOTSADM_APPLICATION_NAMESPACES_ARRAY[@]}"; do
         kubectl create ns "$NAMESPACE" 2>/dev/null || true
     done
+}
+
+function kotsadm_health_check() {
+    if [[ -n $(kubectl get pods -l app=kotsadm -o jsonpath="{range .items[*]}{range .status.conditions[*]}{ .type }={ .status }{'\n'}{end}{end}" | grep Ready=False) ]]; then
+      return 1
+    fi
+    return 0
+}
+
+function kotsadm_ready_spinner() {
+    if ! spinner_until 120 kotsadm_health_check; then
+      kubectl logs -l app=kotsadm --all-containers --tail 10
+      bail "The kotsadm deployment in the kotsadm addon failed to deploy successfully."
+    fi
+}
+
+function kotsadm_api_health_check() {
+    if [[ -n $(kubectl get pods -l app=kotsadm-api -o jsonpath="{range .items[*]}{range .status.conditions[*]}{ .type }={ .status }{'\n'}{end}{end}" | grep Ready=False) ]]; then
+      return 1
+    fi
+    return 0
+}
+
+function kotsadm_api_ready_spinner() {
+    if ! spinner_until 120 kotsadm_api_health_check; then
+      kubectl logs -l app=kotsadm-api --all-containers --tail 10
+      bail "The kotsadm-api deployment in the kotsadm addon failed to deploy successfully."
+    fi
 }
