@@ -28,8 +28,8 @@ function pkgs() {
 }
 
 function docker_pkg() {
-    local version=$(grep DOCKER_VERSION scripts/Manifest | awk -F "=" '{ print $2 }')
-    echo "docker-${version}.tar.gz"
+    echo "docker-18.09.8.tar.gz"
+    echo "docker-19.03.4.tar.gz"
 }
 
 function list_all_packages() {

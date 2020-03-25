@@ -7,7 +7,7 @@ kubernetesVersion: v$KUBERNETES_VERSION
 certificatesDir: /etc/kubernetes/pki
 clusterName: kubernetes
 controllerManager: {}
-useHyperKubeImage: true
+useHyperKubeImage: false
 dns:
   type: CoreDNS
 etcd:

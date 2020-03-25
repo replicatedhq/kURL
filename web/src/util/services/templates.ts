@@ -69,6 +69,7 @@ interface Manifest {
   EKCO_VERSION: string;
   FLAGS: string;
   KURL_UTIL_IMAGE: string;
+  DOCKER_VERSION: string;
   INSTALLER_YAML: string;
 }
 
@@ -91,6 +92,7 @@ function manifestFromInstaller(i: Installer, kurlURL: string, replicatedAppURL: 
     REPLICATED_APP_URL: replicatedAppURL,
     VELERO_VERSION: _.get(i.spec, "velero.version", ""),
     EKCO_VERSION: _.get(i.spec, "ekco.version", ""),
+    DOCKER_VERSION: _.get(i.spec, "docker.version", ""),
     FLAGS: i.flags(),
     KURL_UTIL_IMAGE: kurlUtilImage,
     INSTALLER_YAML: i.toYAML(),

@@ -161,6 +161,7 @@ build/templates/install.tmpl: build/install.sh
 		sed 's/^KOTSADM_APPLICATION_SLUG=.*/KOTSADM_APPLICATION_SLUG="{{= KOTSADM_APPLICATION_SLUG }}"/' | \
 		sed 's/^INSTALLER_YAML=.*/INSTALLER_YAML="{{= INSTALLER_YAML }}"/' | \
 		sed 's/^KURL_UTIL_IMAGE=.*/KURL_UTIL_IMAGE="{{= KURL_UTIL_IMAGE }}"/' | \
+		sed 's/^DOCKER_VERSION=.*/DOCKER_VERSION="{{= DOCKER_VERSION }}"/' | \
 		sed 's/^FLAGS=.*/FLAGS="{{= FLAGS }}"/' \
 		> build/templates/install.tmpl
 
@@ -195,6 +196,7 @@ build/templates/join.tmpl: build/join.sh
 		sed 's/^KOTSADM_APPLICATION_SLUG=.*/KOTSADM_APPLICATION_SLUG="{{= KOTSADM_APPLICATION_SLUG }}"/' | \
 		sed 's/^INSTALLER_YAML=.*/INSTALLER_YAML="{{= INSTALLER_YAML }}"/' | \
 		sed 's/^KURL_UTIL_IMAGE=.*/KURL_UTIL_IMAGE="{{= KURL_UTIL_IMAGE }}"/' | \
+		sed 's/^DOCKER_VERSION=.*/DOCKER_VERSION="{{= DOCKER_VERSION }}"/' | \
 		sed 's/^FLAGS=.*/FLAGS="{{= FLAGS }}"/' \
 		> build/templates/join.tmpl
 
@@ -229,6 +231,7 @@ build/templates/upgrade.tmpl: build/upgrade.sh
 		sed 's/^KOTSADM_APPLICATION_SLUG=.*/KOTSADM_APPLICATION_SLUG="{{= KOTSADM_APPLICATION_SLUG }}"/' | \
 		sed 's/^INSTALLER_YAML=.*/INSTALLER_YAML="{{= INSTALLER_YAML }}"/' | \
 		sed 's/^KURL_UTIL_IMAGE=.*/KURL_UTIL_IMAGE="{{= KURL_UTIL_IMAGE }}"/' | \
+		sed 's/^DOCKER_VERSION=.*/DOCKER_VERSION="{{= DOCKER_VERSION }}"/' | \
 		sed 's/^FLAGS=.*/FLAGS="{{= FLAGS }}"/' \
 		> build/templates/upgrade.tmpl
 

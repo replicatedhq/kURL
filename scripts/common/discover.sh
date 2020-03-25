@@ -6,6 +6,7 @@ function discover() {
     # never upgrade docker underneath kubernetes
     if commandExists docker ; then
         SKIP_DOCKER_INSTALL=1
+        echo "Docker already exists on this machine so no docker install will be performed"
     fi
 
     if [ "$NO_PROXY" != "1" ] && [ -z "$PROXY_ADDRESS" ]; then
