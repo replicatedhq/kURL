@@ -383,6 +383,7 @@ export class Installer {
       "1.7.4",
     ],
     kotsadm: [
+      "1.14.0-beta.2",
       "1.13.9",
       "1.13.8",
       "1.13.6",
