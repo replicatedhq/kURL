@@ -60,7 +60,7 @@ spec:
       serviceAccountName: kotsadm-operator
       restartPolicy: Always
       containers:
-      - image: kotsadm/kotsadm-operator:v1.14.0-beta.2
+      - image: kotsadm/kotsadm-operator:v1.14.0-beta.4
         name: kotsadm-operator
         env:
         - name: KOTSADM_API_ENDPOINT

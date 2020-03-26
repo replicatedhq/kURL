@@ -106,7 +106,7 @@ export const rookConfigSchema = {
   properties: {
     version: { type: "string" },
     storageClassName: { type: "string", flag: "storage-class-name", description: "The name of the StorageClass used by rook" },
-    cephReplicaCount: { type: "number", flag: "ceph-replica-count", description: "The number of replicas in the Rook Ceph pool" }, 
+    cephReplicaCount: { type: "number", flag: "ceph-replica-count", description: "The number of replicas in the Rook Ceph pool" },
   },
   required: [ "version" ],
   additionalProperites: false,
@@ -383,7 +383,7 @@ export class Installer {
       "1.7.4",
     ],
     kotsadm: [
-      "1.14.0-beta.2",
+      "1.14.0-beta.4",
       "1.13.9",
       "1.13.8",
       "1.13.6",
