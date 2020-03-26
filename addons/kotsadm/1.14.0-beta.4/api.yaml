@@ -167,7 +167,7 @@ spec:
         runAsUser: 1001
       serviceAccountName: kotsadm-api
       containers:
-      - image: kotsadm/kotsadm-api:v1.14.0-beta.2
+      - image: kotsadm/kotsadm-api:v1.14.0-beta.4
         name: kotsadm-api
         ports:
         - name: http
