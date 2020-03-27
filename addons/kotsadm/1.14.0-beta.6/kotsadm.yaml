@@ -6,50 +6,11 @@ metadata:
     kots.io/kotsadm: "true"
 rules:
 - apiGroups:
-  - ""
-  resourceNames:
-  - kotsadm-application-metadata
-  - kotsadm-gitops
+  - "*"
   resources:
-  - configmaps
+  - "*"
   verbs:
-  - get
-  - delete
-  - update
-- apiGroups:
-  - ""
-  resources:
-  - configmaps
-  verbs:
-  - create
-- apiGroups:
-  - ""
-  resourceNames:
-  - kotsadm-encryption
-  - kotsadm-gitops
-  - kotsadm-authstring
-  - kotsadm-password
-  - registry-creds
-  resources:
-  - secrets
-  verbs:
-  - get
-  - update
-- apiGroups:
-  - ""
-  resources:
-  - secrets
-  verbs:
-  - create
-- apiGroups:
-  - ""
-  resourceNames:
-  - kurl-config
-  resources:
-  - configmaps
-  verbs:
-  - get
-  - update
+  - "*"
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
