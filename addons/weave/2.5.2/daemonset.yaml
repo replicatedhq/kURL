@@ -28,6 +28,8 @@ spec:
                 fieldRef:
                   apiVersion: v1
                   fieldPath: spec.nodeName
+            - name: EXTRA_ARGS
+              value: "--log-level=info" # default log level is debug
           image: weaveworks/weave-kube:2.5.2
           livenessProbe:
             httpGet:
@@ -56,7 +58,7 @@ spec:
             - name: xtables-lock
               mountPath: /run/xtables.lock
         - name: weave-npc
-          args: []
+          args: ["--log-level", "info"] # default log level is debug
           env:
             - name: HOSTNAME
               valueFrom:
