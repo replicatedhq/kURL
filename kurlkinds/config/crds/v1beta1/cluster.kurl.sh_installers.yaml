@@ -175,8 +175,12 @@ spec:
               type: object
             rook:
               properties:
+                blockDeviceFilter:
+                  type: string
                 cephReplicaCount:
                   type: integer
+                isBlockStorageEnabled:
+                  type: boolean
                 storageClassName:
                   type: string
                 version:

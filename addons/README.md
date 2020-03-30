@@ -56,3 +56,7 @@ render_yaml_file "$DIR/addons/weave/2.5.2/tmpl-secret.yaml" > "$DIR/kustomize/we
 ```
 
 After the kustomize directory has been prepared with resources and patches and the kustomization.yaml file has been updated, the add-on should call `kubectl apply -k`.
+
+## Modifying an add-on's spec
+
+1. web/src/installers/index.ts

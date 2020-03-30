@@ -168,6 +168,16 @@ spec:
     rookShouldUseAllNodes: false
 `;
 
+const rookBlock = `
+spec:
+  kubernetes:
+    version: latest
+  rook:
+    version: latest
+    isBlockStorageEnabled: true
+    blockDeviceFilter: sdb
+`;
+
 describe("POST /installer", () => {
   describe("latestV1Beta1", () => {
     it(`should return 201 "https://kurl.sh/latest"`, async () => {
@@ -515,6 +525,23 @@ spec:
 
       expect(script).to.match(new RegExp(`EKCO_VERSION="${i.resolve().spec.ekco!.version}"`));
       expect(script).to.match(new RegExp(`FLAGS="ekco-node-unreachable-toleration-duration=10m ekco-min-ready-master-node-count=3 ekco-min-ready-worker-node-count=1 ekco-should-disable-reboot-service=0 ekco-rook-should-use-all-nodes=0"`));
+    });
+  });
+
+  describe("rook with block storage (/1a1b590)", () => {
+    const id = "1a1b590";
+
+    before(async () => {
+      const uri = await client.postInstaller(rookBlock);
+      expect(uri).to.match(new RegExp(id));
+    });
+
+    it("injects rook block storage configuration flags", async () => {
+      const i = Installer.parse(rookBlock);
+      const script = await client.getInstallScript(id);
+
+      expect(script).to.match(new RegExp(`ROOK_VERSION="${i.resolve().spec.rook!.version}"`));
+      expect(script).to.match(new RegExp(`FLAGS="rook-block-storage-enabled=1 rook-block-device-filter=sdb"`));
     });
   });
 });

@@ -63,8 +63,8 @@ function velero_kotsadm_local_backend() {
         return 0
     fi
 
-    if kubernetes_has_resource "$VELERO_NAMESPACE" backupstoragelocation kotsadm-velero-backend \
-        || kubernetes_has_resource "$VELERO_NAMESPACE" secret aws-credentials; then
+    if kubernetes_resource_exists "$VELERO_NAMESPACE" backupstoragelocation kotsadm-velero-backend \
+        || kubernetes_resource_exists "$VELERO_NAMESPACE" secret aws-credentials; then
         echo "A backend storage location already exists. Skipping creation of new local backend for Velero"
         return 0
     fi

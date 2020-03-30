@@ -11,12 +11,12 @@ KOTSADM_VERSION=alpha
 KOTSADM_APPLICATION_SLUG=
 FLUENTD_VERSION=1.7.4
 VELERO_VERSION=1.2.0
-EKCO_VERSION=0.2.1
+EKCO_VERSION=
 
 KURL_URL=
 DIST_URL=
 INSTALLER_ID=
 REPLICATED_APP_URL=https://replicated.app
-FLAGS=""
+FLAGS="rook-enable-block-storage rook-cluster-block-device-filter=sdb"
 INSTALLER_YAML=
 KURL_UTIL_IMAGE=replicated/kurl-util:alpha

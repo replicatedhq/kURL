@@ -44,9 +44,14 @@ function rook_cluster_deploy() {
     # patches
     cp "$src/patches/ceph-cluster-mons.yaml" "$dst/"
     render_yaml_file "$src/patches/tmpl-ceph-cluster-image.yaml" > "$dst/ceph-cluster-image.yaml"
-    render_yaml_file "$src/patches/tmpl-ceph-cluster-storage.yaml" > "$dst/ceph-cluster-storage.yaml"
     render_yaml_file "$src/patches/tmpl-ceph-block-pool-replicas.yaml" > "$dst/ceph-block-pool-replicas.yaml"
     render_yaml_file "$src/patches/tmpl-ceph-object-store.yaml" > "$dst/ceph-object-store-replicas.yaml"
+
+    if [ "$ROOK_BLOCK_STORAGE_ENABLED" = "1" ]; then
+        render_yaml_file "$src/patches/tmpl-ceph-cluster-block-storage.yaml" > "$dst/ceph-cluster-storage.yaml"
+    else
+        render_yaml_file "$src/patches/tmpl-ceph-cluster-storage.yaml" > "$dst/ceph-cluster-storage.yaml"
+    fi
 
     kubectl apply -k "$dst/"
 }
