@@ -63,6 +63,8 @@ spec:
     cephReplicaCount: __kurl__ rookCephReplicaCount __kurl__
     storageClassName: __kurl__ rookStorageClassName __kurl__
     version: __kurl__ rookVersion __kurl__
+    isBlockStorageEnabled: __kurl__ rookIsBlockStorageEnabled __kurl__
+    blockDeviceFilter: __kurl__ rookBlockDeviceFilter __kurl__
   velero:
     disableRestic: __kurl__ veleroDisableRestic __kurl__
     disableCLI: __kurl__ veleroDisableCLI __kurl__

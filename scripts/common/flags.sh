@@ -28,6 +28,12 @@ function flags() {
             ceph-replica-count|ceph_replica_count)
                 CEPH_POOL_REPLICAS="$_value"
                 ;;
+            rook-block-storage-enabled|rook_block_storage_enabled)
+                ROOK_BLOCK_STORAGE_ENABLED="1"
+                ;;
+            rook-block-device-filter|rook_block_device_filter)
+                ROOK_BLOCK_DEVICE_FILTER="$_value"
+                ;;
             hostname-check)
                 HOSTNAME_CHECK="$_value"
                 ;;

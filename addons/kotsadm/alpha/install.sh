@@ -384,7 +384,7 @@ function kotsadm_api_health_check() {
 }
 
 function kotsadm_api_ready_spinner() {
-    if ! spinner_until 180 kotsadm_api_health_check; then
+    if ! spinner_until 240 kotsadm_api_health_check; then
       kubectl logs -l app=kotsadm-api --all-containers --tail 10
       bail "The kotsadm-api deployment in the kotsadm addon failed to deploy successfully."
     fi
