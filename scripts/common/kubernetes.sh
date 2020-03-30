@@ -23,9 +23,6 @@ function kubernetes_host() {
 }
 
 function kubernetes_load_ipvs_modules() {
-    if [ "$IPVS" != "1" ]; then
-        return
-    fi
     if lsmod | grep -q ip_vs ; then
         return
     fi
