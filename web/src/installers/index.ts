@@ -194,6 +194,7 @@ export const prometheusConfigSchema = {
 export interface FluentdConfig {
   version: string;
   fullEFKStack?: boolean;
+  efkStack?: boolean;
 }
 
 export const fluentdConfigSchema = {
@@ -515,6 +516,15 @@ export class Installer {
         }
         if (i.spec.weave.encryptNetwork !== undefined){
             delete i.spec.weave.encryptNetwork;
+        }
+    }
+
+    if (_.get(i.spec, "fluentd.efkStack")) {
+        if (i.spec.fluentd) {
+          if (i.spec.fluentd.efkStack && !i.spec.fluentd.fullEFKStack) {
+              i.spec.fluentd.fullEFKStack = i.spec.fluentd.efkStack;
+          }
+          delete i.spec.fluentd.efkStack;
         }
     }
 
