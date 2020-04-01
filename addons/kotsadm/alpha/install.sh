@@ -14,6 +14,7 @@ function kotsadm() {
     cp "$src/kotsadm.yaml" "$dst/"
 
     kotsadm_secret_cluster_token
+    kotsadm_secret_authstring
     kotsadm_secret_password
     kotsadm_secret_postgres
     kotsadm_secret_s3
@@ -103,6 +104,19 @@ function kotsadm_secret_cluster_token() {
     # ensure all pods that consume the secret will be restarted
     kubernetes_scale_down default deployment kotsadm-api
     kubernetes_scale_down default deployment kotsadm-operator
+}
+
+function kotsadm_secret_authstring() {
+    local AUTHSTRING=$(kubernetes_secret_value default kotsadm-authstring kotsadm-authstring)
+
+    if [ -n "$AUTHSTRING" ]; then
+        return 0
+    else
+        AUTHSTRING=$(< /dev/urandom tr -dc A-Za-z0-9 | head -c16)
+    fi
+
+    render_yaml_file "$DIR/addons/kotsadm/1.14.1/tmpl-secret-authstring.yaml" > "$DIR/kustomize/kotsadm/secret-authstring.yaml"
+    insert_resources "$DIR/kustomize/kotsadm/kustomization.yaml" secret-authstring.yaml
 }
 
 function kotsadm_secret_password() {
