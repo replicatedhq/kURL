@@ -7,8 +7,11 @@ import (
 	"log"
 	"os"
 	"strings"
+	"reflect"
+	"fmt"
 
 	"gopkg.in/yaml.v2"
+	kurlv1beta1 "github.com/replicatedhq/kurl/kurlkinds/pkg/apis/cluster/v1beta1"
 )
 
 func readFile(path string) []byte {
@@ -96,6 +99,42 @@ func retrieveField(filePath, yamlPath string) {
 
 	if err != nil {
 		log.Fatalf("error: %v", err)
+	}
+}
+
+func yamlToBash(yamlFilePath string) {
+	configuration := readFile(yamlFilePath)
+
+	var retrieved *kurlv1beta1.Installer
+
+	err := yaml.Unmarshal(configuration, &retrieved)
+
+	if err != nil {
+		log.Fatalf("error: %v", err)
+	}
+
+	lookup := make(map[string]interface{})
+
+	Spec := reflect.ValueOf(retrieved.Spec)
+
+	for i := 0; i < Spec.NumField(); i++ {
+		Category := reflect.ValueOf(Spec.Field(i).Interface())
+
+		TypeOfCategory := Category.Type()
+
+		RawCategoryName := Category.String()
+		TrimmedRight := strings.Split(RawCategoryName, ".")[1]
+		CategoryName := strings.Split(TrimmedRight, " ")[0]
+
+		for i := 0; i < Category.NumField(); i++ {
+			if Category.Field(i).CanInterface() {
+				lookup[CategoryName+"."+TypeOfCategory.Field(i).Name] = Category.Field(i).Interface()
+			}
+		}
+	}
+
+	for k, v := range lookup {
+		fmt.Println("key:", k, "=>", "value:", v)
 	}
 }
 
