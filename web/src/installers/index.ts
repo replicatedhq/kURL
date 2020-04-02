@@ -99,6 +99,8 @@ export interface RookConfig {
   cephPoolReplicas?: number; // deprecated, will be converted to cephReplicaCount
   cephReplicaCount?: number;
   storageClassName?: string;
+  isBlockStorageEnabled?: boolean;
+  blockDeviceFilter?: string;
 }
 
 export const rookConfigSchema = {
@@ -107,6 +109,8 @@ export const rookConfigSchema = {
     version: { type: "string" },
     storageClassName: { type: "string", flag: "storage-class-name", description: "The name of the StorageClass used by rook" },
     cephReplicaCount: { type: "number", flag: "ceph-replica-count", description: "The number of replicas in the Rook Ceph pool" },
+    isBlockStorageEnabled: { type: "boolean", flag: "rook-block-storage-enabled", description: "Use block devices instead of the filesystem for storage in the Ceph cluster" },
+    blockDeviceFilter: { type: "string", flag: "rook-block-device-filter", description: "Only use block devices matching this regex" },
   },
   required: [ "version" ],
   additionalProperites: false,

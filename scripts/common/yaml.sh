@@ -240,6 +240,8 @@ function rook_yaml() {
     replace_with_variable_or_delete_line $filename "__kurl__ rookStorageClassName __kurl__" "$STORAGE_CLASS"
     replace_with_variable_or_delete_line $filename "__kurl__ rookCephReplicaCount __kurl__" "$CEPH_POOL_REPLICAS"
     replace_with_variable_or_delete_line $filename "__kurl__ rookVersion __kurl__" "$ROOK_VERSION"
+    replace_with_true_or_false $filename "__kurl__ rookIsBlockStorageEnabled __kurl__" "$ROOK_BLOCK_STORAGE_ENABLED"
+    replace_with_variable_or_delete_line $filename "__kurl__ rookBlockDeviceFilter __kurl__" "$ROOK_BLOCK_DEVICE_FILTER"
 }
 
 function velero_yaml() {

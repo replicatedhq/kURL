@@ -113,9 +113,11 @@ type Registry struct {
 }
 
 type Rook struct {
-	CephReplicaCount int    `json:"cephReplicaCount,omitempty"`
-	StorageClassName string `json:"storageClassName,omitempty"`
-	Version          string `json:"version"`
+	CephReplicaCount      int    `json:"cephReplicaCount,omitempty"`
+	StorageClassName      string `json:"storageClassName,omitempty"`
+	Version               string `json:"version"`
+	IsBlockStorageEnabled bool   `json:"isBlockStorageEnabled,omitempty"`
+	BlockDeviceFilter     string `json:"blockDeviceFilter,omitempty"`
 }
 
 type Velero struct {
