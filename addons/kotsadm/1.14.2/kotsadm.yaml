@@ -1,0 +1,144 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: kotsadm-role
+  labels:
+    kots.io/kotsadm: "true"
+rules:
+- apiGroups:
+  - "*"
+  resources:
+  - "*"
+  verbs:
+  - "*"
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: kotsadm-rolebinding
+  labels:
+    kots.io/kotsadm: "true"
+subjects:
+- kind: ServiceAccount
+  name: kotsadm
+  namespace: default
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: kotsadm-role
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: kotsadm
+  labels:
+    kots.io/kotsadm: "true"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kotsadm
+  labels:
+    kots.io/kotsadm: "true"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kotsadm
+  template:
+    metadata:
+      labels:
+        app: kotsadm
+        kots.io/kotsadm: "true"
+    spec:
+      securityContext:
+        runAsUser: 1001
+      serviceAccountName: kotsadm
+      restartPolicy: Always
+      volumes:
+      - name: kotsadm-web-scripts
+        configMap:
+          defaultMode: 511 # hex 777
+          name: kotsadm-web-scripts
+      containers:
+      - image: kotsadm/kotsadm:v1.14.2
+        name: kotsadm
+        command: ["bash"]
+        args:
+        - "/scripts/start-kotsadm-web.sh"
+        ports:
+        - name: http
+          containerPort: 3000
+        readinessProbe:
+          failureThreshold: 3
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 1
+          httpGet:
+            path: /healthz
+            port: 3000
+            scheme: HTTP
+        env:
+          - name: SHARED_PASSWORD_BCRYPT
+            valueFrom:
+              secretKeyRef:
+                name: kotsadm-password
+                key: passwordBcrypt
+          - name: SESSION_KEY
+            valueFrom:
+              secretKeyRef:
+                name: kotsadm-session
+                key: key
+          - name: POSTGRES_URI
+            valueFrom:
+              secretKeyRef:
+                name: kotsadm-postgres
+                key: uri
+          - name: POD_NAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
+          - name: API_ENCRYPTION_KEY
+            valueFrom:
+              secretKeyRef:
+                name: kotsadm-encryption
+                key: encryptionKey
+          - name: S3_ENDPOINT
+            valueFrom:
+              secretKeyRef:
+                name: kotsadm-s3
+                key: endpoint
+          - name: S3_BUCKET_NAME
+            value: "kotsadm"
+          - name: S3_ACCESS_KEY_ID
+            valueFrom:
+              secretKeyRef:
+                name: kotsadm-s3
+                key: access-key-id
+          - name: S3_SECRET_ACCESS_KEY
+            valueFrom:
+              secretKeyRef:
+                name: kotsadm-s3
+                key: secret-access-key
+          - name: S3_BUCKET_ENDPOINT
+            value: "true"
+        volumeMounts:
+          - name: kotsadm-web-scripts
+            mountPath: /scripts/start-kotsadm-web.sh
+            subPath: start-kotsadm-web.sh
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kotsadm
+  labels:
+    kots.io/kotsadm: "true"
+spec:
+  type: ClusterIP
+  selector:
+    app: kotsadm
+  ports:
+  - name: http
+    port: 3000
+    targetPort: "http"
