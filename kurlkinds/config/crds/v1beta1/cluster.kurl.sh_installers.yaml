@@ -59,6 +59,141 @@ spec:
               required:
               - version
               type: object
+            dockerConfig:
+              properties:
+                allowNondistributableArtifacts:
+                  type: string
+                apiCorsHeader:
+                  type: string
+                authorizationPlugins:
+                  type: string
+                bip:
+                  type: string
+                bridge:
+                  type: string
+                cgroupParent:
+                  type: string
+                clusterAdvertise:
+                  type: string
+                clusterStore:
+                  type: string
+                clusterStoreOpts:
+                  type: string
+                dataRoot:
+                  type: string
+                debug:
+                  type: boolean
+                defaultAddressPools:
+                  type: string
+                defaultGateway:
+                  type: string
+                defaultGatewayV6:
+                  type: string
+                defaultRuntime:
+                  type: string
+                defaultShmSize:
+                  type: string
+                defaultUlimits:
+                  type: string
+                dns:
+                  type: string
+                dnsOpts:
+                  type: string
+                dnsSearch:
+                  type: string
+                execOpts:
+                  type: string
+                execRoot:
+                  type: string
+                experimental:
+                  type: boolean
+                features:
+                  type: string
+                fixedCidr:
+                  type: string
+                fixedCidrV6:
+                  type: string
+                group:
+                  type: string
+                hosts:
+                  type: string
+                icc:
+                  type: boolean
+                init:
+                  type: boolean
+                initPath:
+                  type: string
+                insecureRegistries:
+                  type: string
+                ip:
+                  type: string
+                ipForward:
+                  type: boolean
+                ipMasq:
+                  type: boolean
+                iptables:
+                  type: boolean
+                ipv6:
+                  type: boolean
+                labels:
+                  type: string
+                liveRestore:
+                  type: boolean
+                logDriver:
+                  type: string
+                logLevel:
+                  type: string
+                logOpts:
+                  type: string
+                maxConcurrentDownloads:
+                  type: integer
+                maxConcurrentUploads:
+                  type: integer
+                mtu:
+                  type: integer
+                noNewPrivileges:
+                  type: boolean
+                nodeGenericResources:
+                  type: string
+                oomScoreAdjust:
+                  type: integer
+                pidFile:
+                  type: string
+                rawLogs:
+                  type: boolean
+                registryMirrors:
+                  type: string
+                runtimes:
+                  type: string
+                seccompProfile:
+                  type: string
+                selinuxEnabled:
+                  type: boolean
+                shutdownTimeout:
+                  type: integer
+                storageDriver:
+                  type: string
+                storageOpts:
+                  type: string
+                swarmDefaultAdvertiseAddr:
+                  type: string
+                tls:
+                  type: boolean
+                tlsCaCert:
+                  type: string
+                tlsCert:
+                  type: string
+                tlsKey:
+                  type: string
+                tlsVerify:
+                  type: boolean
+                userlandProxy:
+                  type: boolean
+                userlandProxyPath:
+                  type: string
+                usernsRemap:
+                  type: string
+              type: object
             fluentd:
               properties:
                 fullEFKStack:
