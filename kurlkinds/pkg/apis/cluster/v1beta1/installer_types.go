@@ -21,20 +21,19 @@ import (
 )
 
 type InstallerSpec struct {
-	Kubernetes   Kubernetes   `json:"kubernetes,omitempty"`
-	Docker       Docker       `json:"docker,omitempty"`
-	Weave        Weave        `json:"weave,omitempty"`
-	Contour      Contour      `json:"contour,omitempty"`
-	Rook         Rook         `json:"rook,omitempty"`
-	Registry     Registry     `json:"registry,omitempty"`
-	Prometheus   Prometheus   `json:"prometheus,omitempty"`
-	Fluentd      Fluentd      `json:"fluentd,omitempty"`
-	Kotsadm      Kotsadm      `json:"kotsadm,omitempty"`
-	Velero       Velero       `json:"velero,omitempty"`
-	Minio        Minio        `json:"minio,omitempty"`
-	OpenEBS      OpenEBS      `json:"openEBS,omitempty"`
-	Kurl         Kurl         `json:"kurl,omitempty"`
-	DockerConfig DockerConfig `json:"dockerConfig,omitempty"`
+	Kubernetes Kubernetes `json:"kubernetes,omitempty"`
+	Docker     Docker     `json:"docker,omitempty"`
+	Weave      Weave      `json:"weave,omitempty"`
+	Contour    Contour    `json:"contour,omitempty"`
+	Rook       Rook       `json:"rook,omitempty"`
+	Registry   Registry   `json:"registry,omitempty"`
+	Prometheus Prometheus `json:"prometheus,omitempty"`
+	Fluentd    Fluentd    `json:"fluentd,omitempty"`
+	Kotsadm    Kotsadm    `json:"kotsadm,omitempty"`
+	Velero     Velero     `json:"velero,omitempty"`
+	Minio      Minio      `json:"minio,omitempty"`
+	OpenEBS    OpenEBS    `json:"openEBS,omitempty"`
+	Kurl       Kurl       `json:"kurl,omitempty"`
 }
 
 type Contour struct {
@@ -49,6 +48,7 @@ type Docker struct {
 	NoCEOnEE                   bool   `json:"noCEOnEE,omitempty"`
 	NoDocker                   bool   `json:"noDocker,omitempty"`
 	Version                    string `json:"version"`
+	DaemonConfig               string `json:"daemonConfig,omitempty"`
 }
 
 type Fluentd struct {
@@ -134,75 +134,6 @@ type Weave struct {
 	PodCIDR              string `json:"podCIDR,omitempty"`
 	PodCidrRange         string `json:"podCidrRange,omitempty"`
 	Version              string `json:"version"`
-}
-
-type DockerConfig struct {
-	AuthorizationPlugins           string `json:"authorizationPlugins,omitempty"`
-	DataRoot                       string `json:"dataRoot,omitempty"`
-	DNS                            string `json:"dns,omitempty"`
-	DNSOpts                        string `json:"dnsOpts,omitempty"`
-	DNSSearch                      string `json:"dnsSearch,omitempty"`
-	ExecOpts                       string `json:"execOpts,omitempty"`
-	ExecRoot                       string `json:"execRoot,omitempty"`
-	Experimental                   bool   `json:"experimental,omitempty"`
-	Features                       string `json:"features,omitempty"`
-	StorageDriver                  string `json:"storageDriver,omitempty"`
-	StorageOpts                    string `json:"storageOpts,omitempty"`
-	Labels                         string `json:"labels,omitempty"`
-	LiveRestore                    bool   `json:"liveRestore,omitempty"`
-	LogDriver                      string `json:"logDriver,omitempty"`
-	LogOpts                        string `json:"logOpts,omitempty"`
-	MTU                            int    `json:"mtu,omitempty"`
-	PIDFile                        string `json:"pidFile,omitempty"`
-	ClusterStore                   string `json:"clusterStore,omitempty"`
-	ClusterStoreOpts               string `json:"clusterStoreOpts,omitempty"`
-	ClusterAdvertise               string `json:"clusterAdvertise,omitempty"`
-	MaxConcurrentDownloads         int    `json:"maxConcurrentDownloads,omitempty"`
-	MaxConcurrentUploads           int    `json:"maxConcurrentUploads,omitempty"`
-	DefaultSHMSize                 string `json:"defaultShmSize,omitempty"`
-	ShutdownTimeout                int    `json:"shutdownTimeout,omitempty"`
-	Debug                          bool   `json:"debug,omitempty"`
-	Hosts                          string `json:"hosts,omitempty"`
-	LogLevel                       string `json:"logLevel,omitempty"`
-	TLS                            bool   `json:"tls,omitempty"`
-	TLSVerify                      bool   `json:"tlsVerify,omitempty"`
-	TLSCACert                      string `json:"tlsCaCert,omitempty"`
-	TLSCert                        string `json:"tlsCert,omitempty"`
-	TLSKey                         string `json:"tlsKey,omitempty"`
-	SwarmDefaultAdvertiseAddr      string `json:"swarmDefaultAdvertiseAddr,omitempty"`
-	APICORSHeader                  string `json:"apiCorsHeader,omitempty"`
-	SelinuxEnabled                 bool   `json:"selinuxEnabled,omitempty"`
-	UserNSRemap                    string `json:"usernsRemap,omitempty"`
-	Group                          string `json:"group,omitempty"`
-	CgroupParent                   string `json:"cgroupParent,omitempty"`
-	DefaultUlimits                 string `json:"defaultUlimits,omitempty"`
-	Init                           bool   `json:"init,omitempty"`
-	InitPath                       string `json:"initPath,omitempty"`
-	IPV6                           bool   `json:"ipv6,omitempty"`
-	IPTables                       bool   `json:"iptables,omitempty"`
-	IPForward                      bool   `json:"ipForward,omitempty"`
-	IPMasq                         bool   `json:"ipMasq,omitempty"`
-	UserlandProxy                  bool   `json:"userlandProxy,omitempty"`
-	UserlandProxyPath              string `json:"userlandProxyPath,omitempty"`
-	IP                             string `json:"ip,omitempty"`
-	Bridge                         string `json:"bridge,omitempty"`
-	BIP                            string `json:"bip,omitempty"`
-	FixedCIDR                      string `json:"fixedCidr,omitempty"`
-	FixedCIDRV6                    string `json:"fixedCidrV6,omitempty"`
-	DefaultGateway                 string `json:"defaultGateway,omitempty"`
-	DefaultGatewayV6               string `json:"defaultGatewayV6,omitempty"`
-	ICC                            bool   `json:"icc,omitempty"`
-	RawLogs                        bool   `json:"rawLogs,omitempty"`
-	AllowNondistributableArtifacts string `json:"allowNondistributableArtifacts,omitempty"`
-	RegistryMirrors                string `json:"registryMirrors,omitempty"`
-	SecCompProfile                 string `json:"seccompProfile,omitempty"`
-	InsecureRegistries             string `json:"insecureRegistries,omitempty"`
-	NoNewPrivileges                bool   `json:"noNewPrivileges,omitempty"`
-	DefaultRuntime                 string `json:"defaultRuntime,omitempty"`
-	OOMScoreAdjust                 int    `json:"oomScoreAdjust,omitempty"`
-	NodeGenericResources           string `json:"nodeGenericResources,omitempty"`
-	Runtimes                       string `json:"runtimes,omitempty"`
-	DefaultAddressPools            string `json:"defaultAddressPools,omitempty"`
 }
 
 // InstallerStatus defines the observed state of Installer

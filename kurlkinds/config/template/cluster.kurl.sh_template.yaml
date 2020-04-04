@@ -12,6 +12,7 @@ spec:
     hardFailOnLoopback: __kurl__ dockerHardFailOnLoopback __kurl__
     noCEOnEE: __kurl__ dockerNoCEOnEE __kurl__
     version: __kurl__ dockerVersion __kurl__
+    daemonConfig: __kurl__ daemonConfig __kurl__
     noDocker: __kurl__ dockerNoDocker __kurl__
   fluentd:
     fullEFKStack: __kurl__ fluentdFullEFKStack __kurl__
@@ -76,71 +77,3 @@ spec:
     podCIDR: __kurl__ weavePodCIDR __kurl__
     podCidrRange: __kurl__ weavePodCIDRRange __kurl__
     version: __kurl__ weaveVersion __kurl__
-  dockerConfig:
-    authorizationPlugins: __kurl__ authorizationPlugins __kurl__
-    dataRoot: __kurl__ dataRoot __kurl__
-    dns: __kurl__ dns __kurl__
-    dnsOpts: __kurl__ dnsOpts __kurl__
-    dnsSearch: __kurl__ dnsSearch __kurl__
-    execOpts: __kurl__ execOpts __kurl__
-    execRoot: __kurl__ execRoot __kurl__
-    experimental: __kurl__ experimental __kurl__
-    features: __kurl__ features __kurl__
-    storageDriver: __kurl__ storageDriver __kurl__
-    storageOpts: __kurl__ storageOpts __kurl__
-    labels: __kurl__ labels __kurl__
-    liveRestore: __kurl__ liveRestore __kurl__
-    logDriver: __kurl__ logDriver __kurl__
-    logOpts: __kurl__ logOpts __kurl__
-    mtu: __kurl__ mtu __kurl__
-    pidFile: __kurl__ pidFile __kurl__
-    clusterStore: __kurl__ clusterStore __kurl__
-    clusterStoreOpts: __kurl__ clusterStoreOpts __kurl__
-    clusterAdvertise: __kurl__ clusterAdvertise __kurl__
-    maxConcurrentDownloads: __kurl__ maxConcurrentDownloads __kurl__
-    maxConcurrentUploads: __kurl__ maxConcurrentUploads __kurl__
-    defaultShmSize: __kurl__ defaultShmSize __kurl__
-    shutdownTimeout: __kurl__ shutdownTimeout __kurl__
-    debug: __kurl__ debug __kurl__
-    hosts: __kurl__ hosts __kurl__
-    logLevel: __kurl__ logLevel __kurl__
-    tls: __kurl__ tls __kurl__
-    tlsVerify: __kurl__ tlsVerify __kurl__
-    tlsCaCert: __kurl__ tlsCaCert __kurl__
-    tlsCert: __kurl__ tlsCert __kurl__
-    tlsKey: __kurl__ tlsKey __kurl__
-    swarmDefaultAdvertiseAddr: __kurl__ swarmDefaultAdvertiseAddr __kurl__
-    apiCorsHeader: __kurl__ apiCorsHeader __kurl__
-    selinuxEnabled: __kurl__ selinuxEnabled __kurl__
-    usernsRemap: __kurl__ usernsRemap __kurl__
-    group: __kurl__ group __kurl__
-    cgroupParent: __kurl__ cgroupParent __kurl__
-    defaultUlimits: __kurl__ defaultUlimits __kurl__
-    init: __kurl__ init __kurl__
-    initPath: __kurl__ initPath __kurl__
-    ipv6: __kurl__ ipv6 __kurl__
-    iptables: __kurl__ iptables __kurl__
-    ipForward: __kurl__ ipForward __kurl__
-    ipMasq: __kurl__ ipMasq __kurl__
-    userlandProxy: __kurl__ userlandProxy __kurl__
-    userlandProxyPath: __kurl__ userlandProxyPath __kurl__
-    ip: __kurl__ ip __kurl__
-    bridge: __kurl__ bridge __kurl__
-    bip: __kurl__ bip __kurl__
-    fixedCidr: __kurl__ fixedCidr __kurl__
-    fixedCidrV6: __kurl__ fixedCidrV6 __kurl__
-    defaultGateway: __kurl__ defaultGateway __kurl__
-    defaultGatewayV6: __kurl__ defaultGatewayV6 __kurl__
-    icc: __kurl__ icc __kurl__
-    rawLogs: __kurl__ rawLogs __kurl__
-    allowNondistributableArtifacts: __kurl__ allowNondistributableArtifacts __kurl__
-    registryMirrors: __kurl__ registryMirrors __kurl__
-    seccompProfile: __kurl__ seccompProfile __kurl__
-    insecureRegistries: __kurl__ insecureRegistries __kurl__
-    noNewPrivileges: __kurl__ noNewPrivileges __kurl__
-    defaultRuntime: __kurl__ defaultRuntime __kurl__
-    oomScoreAdjust: __kurl__ oomScoreAdjust __kurl__
-    nodeGenericResources: __kurl__ nodeGenericResources __kurl__
-    runtimes: __kurl__ runtimes __kurl__
-    defaultAddressPools: __kurl__ defaultAddressPools __kurl__
-  
