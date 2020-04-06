@@ -2,10 +2,11 @@ name: deploy
 on:
   push:
     tags:
-    - "v*.*.*"
+      - "utils/*"
+      - "utils-*"
 
 jobs:
-  goreleaser:
+  release:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
@@ -18,16 +19,18 @@ jobs:
       with:
         go-version: "1.13"
 
-    - name: set previous release tag for goreleaser
-      shell: bash
+    - name: setup env
       run: |
-        echo ::set-env name=GORELEASER_PREVIOUS_TAG::$(curl --silent "https://api.github.com/repos/replicatedhq/kurl/releases/latest" | grep -Po '"tag_name": "\K.*?(?=")')
+        echo "::set-env name=GOPATH::$(go env GOPATH)"
+        echo "::add-path::$(go env GOPATH)/bin"
+      shell: bash
 
-    - name: Run GoReleaser
-      uses: goreleaser/goreleaser-action@v1
-      working-directory: ./kurl_util
+    - run: go get golang.org/x/lint/golint
+    - run: make -C kurl_util test build
+
+    - uses: meeDamian/github-release@2.0
       with:
-        version: latest
-        args: release --rm-dist --config deploy/.goreleaser.yaml
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        token: ${{ secrets.GITHUB_TOKEN }}
+        tag: ${{ env.RELEASE_TAG }}
+        files: kurl_util:./kurl_util/bin/
+        prerelease: true
