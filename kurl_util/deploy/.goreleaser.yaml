@@ -1,0 +1,31 @@
+project_name: kurl
+release:
+  github:
+    owner: replicatedhq
+    name: kurl
+  prerelease: "true"
+builds:
+  - id: kurl-utils-linux
+    goos:
+    - linux
+    goarch:
+    - amd64
+    dir: kurl_util
+    env:
+      - GO111MODULE=on
+    main: cmd/docker/main.go
+    ldflags: -s -w
+      -X github.com/replicatedhq/kurl/pkg/version.version={{.Version}}
+      -X github.com/replicatedhq/kurl/pkg/version.gitSHA={{.FullCommit}}
+      -X github.com/replicatedhq/kurl/pkg/version.buildTime={{.Date}}
+    flags:
+    binary: docker-config
+    hooks: {}
+
+archives:
+  - id: kurl-utils
+    builds:
+      - kurl-utils-linux
+    format: tar.gz
+    name_template: '{{ .Binary }}_{{ .Os }}_{{ .Arch }}'
+    files: [] # TODO: change log/license/readme
