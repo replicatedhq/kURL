@@ -11,20 +11,24 @@ import (
 	"github.com/pkg/errors"
 	kurlscheme "github.com/replicatedhq/kurl/kurlkinds/client/kurlclientset/scheme"
 	kurlv1beta1 "github.com/replicatedhq/kurl/kurlkinds/pkg/apis/cluster/v1beta1"
+	kurlversion "github.com/replicatedhq/kurl/pkg/version"
 	"k8s.io/client-go/kubernetes/scheme"
 )
 
 func main() {
 	kurlscheme.AddToScheme(scheme.Scheme)
 
+	version := flag.Bool("v", false, "Print version info")
 	merge := flag.Bool("m", false, "Merge docker config in the YAML file with the one on the system. Must be accompanied by -cp [config_path] -yp [yaml_path]")
 	replace := flag.Bool("r", false, "Replace docker config in the YAML file with the one on the system. Must be accompanied by -cp [config_path] -yp [yaml_path]")
-	configPath := flag.String("cp", "", "filepath")
-	yamlPath := flag.String("yp", "", "filepath")
+	configPath := flag.String("cp", "", "docker config file name")
+	yamlPath := flag.String("yp", "", "override yaml file name")
 
 	flag.Parse()
 
-	if *merge == true && *configPath != "" && *yamlPath != "" {
+	if *version == true {
+		kurlversion.Print()
+	} else if *merge == true && *configPath != "" && *yamlPath != "" {
 		if err := mergeConfig(*configPath, *yamlPath); err != nil {
 			log.Fatal(err)
 		}
@@ -33,7 +37,8 @@ func main() {
 			log.Fatal(err)
 		}
 	} else {
-		log.Fatalf("incorrect binary usage")
+		flag.PrintDefaults()
+		os.Exit(-1)
 	}
 }
 
