@@ -41,13 +41,16 @@ test: lint vet
 	go test ./cmd/...
 
 .PHONY: build
-build: bin/yamlutil bin/subnet
+build: bin/yamlutil bin/subnet bin/docker-config
 
 bin/yamlutil:
 	go build -o bin/yamlutil cmd/yamlutil/main.go
 
 bin/subnet:
 	go build -o bin/subnet cmd/subnet/main.go
+
+bin/docker-config:
+	go build -o bin/docker-config cmd/docker/main.go
 
 .PHONY: kurl-util-image
 kurl-util-image:
