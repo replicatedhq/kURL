@@ -143,7 +143,7 @@ function require_docker() {
 
   if [ "$SKIP_DOCKER_INSTALL" = "0" ]; then
 	  bail "Docker is required"
-	fi
+  fi
 
   return 0
 }
