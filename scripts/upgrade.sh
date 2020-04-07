@@ -14,6 +14,7 @@ DIR=.
 . $DIR/scripts/common/flags.sh
 . $DIR/scripts/common/kubernetes.sh
 . $DIR/scripts/common/upgrade.sh
+. $DIR/scripts/common/utilbinaries.sh
 . $DIR/scripts/common/object_store.sh
 . $DIR/scripts/common/preflights.sh
 . $DIR/scripts/common/prompts.sh
@@ -87,6 +88,7 @@ function main() {
     discover
     flags $FLAGS
     flags "$@"
+    download_util_binaries
     preflights
     get_shared
     maybe_upgrade
