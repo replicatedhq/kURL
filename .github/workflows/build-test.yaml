@@ -26,8 +26,3 @@ jobs:
 
       - run: go get golang.org/x/lint/golint
       - run: make -C kurl_util test build
-
-      - uses: actions/upload-artifact@v1
-        with:
-          name: docker-config
-          path: kurl_util/bin/docker-config
