@@ -21,19 +21,22 @@ import (
 )
 
 type InstallerSpec struct {
-	Kubernetes Kubernetes `json:"kubernetes,omitempty"`
-	Docker     Docker     `json:"docker,omitempty"`
-	Weave      Weave      `json:"weave,omitempty"`
-	Contour    Contour    `json:"contour,omitempty"`
-	Rook       Rook       `json:"rook,omitempty"`
-	Registry   Registry   `json:"registry,omitempty"`
-	Prometheus Prometheus `json:"prometheus,omitempty"`
-	Fluentd    Fluentd    `json:"fluentd,omitempty"`
-	Kotsadm    Kotsadm    `json:"kotsadm,omitempty"`
-	Velero     Velero     `json:"velero,omitempty"`
-	Minio      Minio      `json:"minio,omitempty"`
-	OpenEBS    OpenEBS    `json:"openEBS,omitempty"`
-	Kurl       Kurl       `json:"kurl,omitempty"`
+	Kubernetes      Kubernetes      `json:"kubernetes,omitempty"`
+	Docker          Docker          `json:"docker,omitempty"`
+	Weave           Weave           `json:"weave,omitempty"`
+	Contour         Contour         `json:"contour,omitempty"`
+	Rook            Rook            `json:"rook,omitempty"`
+	Registry        Registry        `json:"registry,omitempty"`
+	Prometheus      Prometheus      `json:"prometheus,omitempty"`
+	Fluentd         Fluentd         `json:"fluentd,omitempty"`
+	Kotsadm         Kotsadm         `json:"kotsadm,omitempty"`
+	Velero          Velero          `json:"velero,omitempty"`
+	Minio           Minio           `json:"minio,omitempty"`
+	OpenEBS         OpenEBS         `json:"openEBS,omitempty"`
+	Kurl            Kurl            `json:"kurl,omitempty"`
+	SelinuxConfig   SelinuxConfig   `json:"selinuxConfig,omitempty"`
+	IPTablesConfig  IPTablesConfig  `json:"ipTablesConfig,omitempty"`
+	FirewalldConfig FirewalldConfig `json:"firewalldConfig,omitempty"`
 }
 
 type Contour struct {
@@ -134,6 +137,22 @@ type Weave struct {
 	PodCIDR              string `json:"podCIDR,omitempty"`
 	PodCidrRange         string `json:"podCidrRange,omitempty"`
 	Version              string `json:"version"`
+}
+
+type SelinuxConfig struct {
+	Selinux      string     `json:"selinux,omitempty"`
+	Type         string     `json:"type,omitempty"`
+	SemanageCmds [][]string `json:"semanageCmds,omitempty"`
+	ChconCmds    [][]string `json:"chconCmds,omitempty"`
+}
+
+type IPTablesConfig struct {
+	IptablesCmds [][]string `json:"iptablesCmds,omitempty"`
+}
+
+type FirewalldConfig struct {
+	Enabled       bool       `json:"enabled,omitempty"`
+	FirewalldCmds [][]string `json:"firewalldCmds,omitempty"`
 }
 
 // InstallerStatus defines the observed state of Installer

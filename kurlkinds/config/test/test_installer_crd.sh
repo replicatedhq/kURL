@@ -9,6 +9,7 @@ DOCKER_REGISTRY_IP="1.1.1.1"
 HARD_FAIL_ON_LOOPBACK=1
 NO_CE_ON_EE=1
 SKIP_DOCKER_INSTA=1
+DOCKER_DAEMON_CONFIG=
 
 #fluentd flags
 FLUENTD_FULL_EFK_STACK=1
@@ -86,4 +87,19 @@ WEAVE_POD_CIDR="1.1.1.1"
 WEAVE_POD_CIDR_RANGE="/24"
 WEAVE_VERSION="latest"
 
+#selinux yaml
+SELINUX_MODE="permissive"
+SELINUX_TYPE="targeted"
+SEMANAGE_COMMANDS="[]"
+CHCON_COMMANDS="[]"
+
+
+#iptables yaml
+IPTABLES_COMMANDS="[]"
+
+#firewalld yaml
+FIREWALLD_ENABLED="false"
+FIREWALLD_COMMANDS="[]"
+
 apply_flags_to_installer_yaml "$1"
+

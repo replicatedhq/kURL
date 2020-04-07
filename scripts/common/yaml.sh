@@ -96,6 +96,7 @@ function docker_yaml() {
     replace_with_true_or_false $filename "__kurl__ dockerNoCEOnEE __kurl__" "$NO_CE_ON_EE"
     replace_with_true_or_false $filename "__kurl__ dockerNoDocker __kurl__" "$SKIP_DOCKER_INSTA"
     replace_with_variable_or_delete_line $filename "__kurl__ dockerVersion __kurl__" "$DOCKER_VERSION"
+    replace_with_variable_or_delete_line $filename "__kurl__ daemonConfig __kurl__" "$DOCKER_DAEMON_CONFIG"
 }
 
 function fluentd_yaml() {
@@ -275,6 +276,25 @@ function weave_yaml() {
     replace_with_variable_or_delete_line $filename "__kurl__ weaveVersion __kurl__" "$WEAVE_VERSION"
 }
 
+function selinuxConfig_yaml() {
+    local filename=$1
+    replace_with_variable_or_delete_line $filename "__kurl__ selinuxConfigSelinux __kurl__" "$SELINUX_MODE"
+    replace_with_variable_or_delete_line $filename "__kurl__ selinuxConfigType __kurl__" "$SELINUX_TYPE"
+    replace_with_variable_or_delete_line $filename "__kurl__ selinuxConfigSemanageCmds __kurl__" "$SEMANAGE_COMMANDS"
+    replace_with_variable_or_delete_line $filename "__kurl__ selinuxConfigchconCmds __kurl__" "$CHCON_COMMANDS"
+}
+
+function ipTablesConfig_yaml() {
+    local filename=$1
+    replace_with_variable_or_delete_line $filename "__kurl__ ipTablesConfigiptablesCmds __kurl__" "$IPTABLES_COMMANDS"
+}
+
+function firewalldConfig_yaml() {
+    local filename=$1
+    replace_with_variable_or_delete_line $filename "__kurl__ firewalldConfigEnabled __kurl__" "$FIREWALLD_ENABLED"
+    replace_with_variable_or_delete_line $filename "__kurl__ firewalldConfigfirewalldCmds __kurl__" "$FIREWALLD_COMMANDS"
+}
+
 function apply_flags_to_installer_yaml() {
     contour_yaml "$1"
     docker_yaml "$1"
@@ -289,6 +309,9 @@ function apply_flags_to_installer_yaml() {
     rook_yaml "$1"
     velero_yaml "$1"
     weave_yaml "$1"
+    selinuxConfig_yaml "$1"
+    ipTablesConfig_yaml "$1"
+    firewalldConfig_yaml "$1"
 }
 
 function setup_installer_crd() {

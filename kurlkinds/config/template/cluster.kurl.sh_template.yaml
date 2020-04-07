@@ -77,3 +77,13 @@ spec:
     podCIDR: __kurl__ weavePodCIDR __kurl__
     podCidrRange: __kurl__ weavePodCIDRRange __kurl__
     version: __kurl__ weaveVersion __kurl__
+  selinuxConfig:
+    selinux: __kurl__ selinuxConfigSelinux __kurl__
+    type: __kurl__ selinuxConfigType __kurl__
+    semanageCmds: __kurl__ selinuxConfigSemanageCmds __kurl__
+    chconCmds: __kurl__ selinuxConfigchconCmds __kurl__
+  ipTablesConfig:
+    iptablesCmds: __kurl__ ipTablesConfigiptablesCmds __kurl__
+  firewalldConfig:
+    enabled: __kurl__ firewalldConfigEnabled __kurl__
+    firewalldCmds: __kurl__ firewalldConfigfirewalldCmds __kurl__
