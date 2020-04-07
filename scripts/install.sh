@@ -20,6 +20,7 @@ DIR=.
 . $DIR/scripts/common/rook.sh
 . $DIR/scripts/common/tasks.sh
 . $DIR/scripts/common/upgrade.sh
+. $DIR/scripts/common/utilbinaries.sh
 . $DIR/scripts/common/yaml.sh
 . $DIR/scripts/common/coredns.sh
 # Magic end
@@ -230,6 +231,7 @@ function main() {
     flags $FLAGS
     flags "$@"
     tasks
+    download_util_binaries
     preflights
     prompts
     configure_proxy
