@@ -236,6 +236,7 @@ function main() {
     prompts
     configure_proxy
     install_docker
+    apply_docker_config
     get_shared
     upgrade_kubernetes
     kubernetes_host

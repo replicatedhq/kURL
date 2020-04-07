@@ -214,6 +214,12 @@ function flags() {
                 # allow either /16 or 16 for subnet size
                 SERVICE_CIDR_RANGE=$(echo "$_value" | sed "s/\///")
                 ;;
+            installer-spec-file|installer_spec_file)
+                INSTALLER_SPEC_FILE="$_value"
+                ;;
+            preserve-docker-config|preserve_docker_config)
+                PRESERVE_DOCKER_CONFIG=1
+                ;;
             *)
                 echo >&2 "Error: unknown parameter \"$_param\""
                 exit 1

@@ -90,6 +90,7 @@ function main() {
     flags "$@"
     download_util_binaries
     preflights
+    apply_docker_config
     get_shared
     maybe_upgrade
     outro

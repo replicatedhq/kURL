@@ -19,41 +19,39 @@ func main() {
 	kurlscheme.AddToScheme(scheme.Scheme)
 
 	version := flag.Bool("v", false, "Print version info")
-	merge := flag.Bool("m", false, "Merge docker config in the YAML file with the one on the system. Must be accompanied by -cp [config_path] -yp [yaml_path]")
-	replace := flag.Bool("r", false, "Replace docker config in the YAML file with the one on the system. Must be accompanied by -cp [config_path] -yp [yaml_path]")
-	configPath := flag.String("cp", "", "docker config file name")
-	yamlPath := flag.String("yp", "", "override yaml file name")
+	configPath := flag.String("c", "", "docker config file name")
+	baseYamlPath := flag.String("b", "", "base yaml file name")
+	overlayYamlPath := flag.String("o", "", "overlay yaml file name")
 
 	flag.Parse()
 
 	if *version == true {
 		kurlversion.Print()
-	} else if *merge == true && *configPath != "" && *yamlPath != "" {
-		if err := mergeConfig(*configPath, *yamlPath); err != nil {
-			log.Fatal(err)
-		}
-	} else if *replace == true && *configPath != "" && *yamlPath != "" {
-		if err := replaceConfig(*configPath, *yamlPath); err != nil {
-			log.Fatal(err)
-		}
-	} else {
+		return
+	}
+
+	if *configPath == "" || *baseYamlPath == "" || *overlayYamlPath == "" {
 		flag.PrintDefaults()
 		os.Exit(-1)
 	}
+
+	if err := mergeConfig(*configPath, *baseYamlPath, *overlayYamlPath); err != nil {
+		log.Fatal(err)
+	}
 }
 
-func mergeConfig(configPath string, yamlPath string) error {
-	oldConfig, err := ioutil.ReadFile(configPath)
-	if err != nil && !os.IsNotExist(err) {
-		return errors.Wrapf(err, "failed to read file %s", configPath)
-	}
-
-	newConfig, err := getDockerConfigFromYaml(yamlPath)
+func mergeConfig(configPath string, baseYamlPath string, overlayYamlPath string) error {
+	baseConfig, err := getDockerConfigFromYaml(baseYamlPath)
 	if err != nil {
-		return errors.Wrap(err, "failed to load docker config")
+		return errors.Wrap(err, "failed to load base config")
 	}
 
-	mergedConfig, err := mergeConfigData(oldConfig, newConfig)
+	overlayConfig, err := getDockerConfigFromYaml(overlayYamlPath)
+	if err != nil {
+		return errors.Wrap(err, "failed to load overlay config")
+	}
+
+	mergedConfig, err := mergeConfigData(baseConfig, overlayConfig)
 	if err != nil {
 		return errors.Wrap(err, "failed to merge configs")
 	}
@@ -159,24 +157,15 @@ func mergeKeys(config1 map[string]interface{}, config2 map[string]interface{}) [
 	return allKeys
 }
 
-func replaceConfig(configPath string, yamlPath string) error {
-	newConfig, err := getDockerConfigFromYaml(yamlPath)
-	if err != nil {
-		return errors.Wrap(err, "failed to load docker config")
-	}
-
-	// TODO: preserve permissions
-	if err := ioutil.WriteFile(configPath, newConfig, 0644); err != nil {
-		return errors.Wrapf(err, "failed to write file %s", configPath)
-	}
-
-	return nil
-}
-
 func getDockerConfigFromYaml(yamlPath string) ([]byte, error) {
 	yamlData, err := ioutil.ReadFile(yamlPath)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to load file %s", yamlPath)
+	}
+
+	yamlData = bytes.TrimSpace(yamlData)
+	if len(yamlData) == 0 {
+		return nil, nil
 	}
 
 	decode := scheme.Codecs.UniversalDeserializer().Decode
