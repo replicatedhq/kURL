@@ -1,0 +1,39 @@
+apiVersion: "cluster.kurl.sh/v1beta1"
+kind: "Installer"
+metadata: 
+  name: "base"
+spec: 
+  kubernetes: 
+    version: "latest"
+    serviceCIDR: ""
+  docker:
+    version: "latest"
+    bypassStorageDriverWarnings: true
+    hardFailOnLoopback: true
+    noCEOnEE: false
+    daemonConfig: >
+      {
+        "log-opts": {
+          "mike-test": "yo",
+          "max-size": "9000m"
+        },
+        "mtu": 2,
+        "max-concurrent-uploads": 5,
+        "shutdown-timeout": 15,
+        "debug": true,
+        "hosts": ["2", "3"],
+        "blah": "yo",
+        "oom-score-adjust": -500,
+        "runtimes": {
+          "runc": {
+          "path": "runc"
+          },
+          "custom": {
+          "path": "/usr/local/bin/mike",
+          "runtimeArgs": [
+          ]
+          }
+        }
+      }
+  fluentd:
+    fullEFKStack: true
