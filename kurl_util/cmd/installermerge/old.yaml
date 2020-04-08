@@ -1,0 +1,42 @@
+apiVersion: "cluster.kurl.sh/v1beta1"
+kind: "Installer"
+metadata: 
+  name: "old"
+spec: 
+  kubernetes: 
+    version: "latest"
+    serviceCIDR: ""
+  contour:
+    version: "1.0.1"
+  docker: 
+    version: "latest"
+    bypassStorageDriverWarnings: true
+    hardFailOnLoopback: true
+    noCEOnEE: true
+    daemonConfig: >
+      {
+        "log-opts": {
+          "max-size": "50m",
+          "max-file":"10",
+          "labels": "dmitriy-test",
+          "env": "os,customer"
+        },
+        "mtu": 0,
+        "max-concurrent-uploads": 5,
+        "shutdown-timeout": 15,
+        "debug": true,
+        "hosts": ["1"],
+        "tlscacert": "poop",
+        "oom-score-adjust": -500,
+        "runtimes": {
+          "runc": {
+          "path": "runc"
+          },
+          "custom": {
+          "path": "/usr/local/bin/my-runc-replacement",
+          "runtimeArgs": [
+            "--debug"
+          ]
+          }
+        }
+      }
