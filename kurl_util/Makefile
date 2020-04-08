@@ -52,7 +52,7 @@ test: lint vet
 	go test ./cmd/...
 
 .PHONY: build
-build: bin/yamlutil bin/subnet bin/docker-config
+build: bin/yamlutil bin/subnet bin/docker-config bin/config
 
 bin/yamlutil:
 	go build ${LDFLAGS} -o bin/yamlutil cmd/yamlutil/main.go
@@ -62,6 +62,9 @@ bin/subnet:
 
 bin/docker-config:
 	go build ${LDFLAGS} -o bin/docker-config cmd/docker/main.go
+
+bin/config:
+	go build ${LDFLAGS} -o bin/config cmd/config/main.go
 
 .PHONY: kurl-util-image
 kurl-util-image:
