@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 
@@ -69,8 +70,6 @@ func processConfig(configType string, yamlPath string, execCmds bool, generateSc
 	default:
 		return errors.Errorf("unknown config type: %s", configType)
 	}
-
-	return nil
 }
 
 func installerFromFile(yamlPath string) (*kurlv1beta1.Installer, error) {
@@ -138,7 +137,18 @@ func processSelinuxConfig(installer *kurlv1beta1.Installer, execCmds bool, gener
 	}
 
 	if execCmds {
-		return errors.New("execCmds not implemented")
+		for _, args := range installer.Spec.SelinuxConfig.ChconCmds {
+			err := runCommand("chcon", args)
+			if err != nil {
+				return errors.Wrapf(err, "failed to run chcon %v", args)
+			}
+		}
+		for _, args := range installer.Spec.SelinuxConfig.SemanageCmds {
+			err := runCommand("semanage", args)
+			if err != nil {
+				return errors.Wrapf(err, "failed to run semanage %v", args)
+			}
+		}
 	}
 
 	if deleteScript {
@@ -176,5 +186,15 @@ func writeScript(filename string, script string) error {
 		return errors.Wrap(err, "failed to write script file")
 	}
 
+	return nil
+}
+
+func runCommand(command string, args []string) error {
+	cmd := exec.Command(command, args...)
+	output, err := cmd.CombinedOutput()
+	log.Printf("%s", output)
+	if err != nil {
+		return errors.Wrap(err, "failed to execute command")
+	}
 	return nil
 }

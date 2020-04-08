@@ -31,7 +31,7 @@ function apply_selinux_config() {
 #    cat > /tmp/vendor_kurl_installer_spec_selinux.yaml <<EOL
 #${INSTALLER_YAML}
 #EOL
-    CONFIGURE_SELINUX_SCRIPT=$CONFIGURE_SELINUX_SCRIPT $BIN_SYSTEM_CONFIG -c selinux -g -y $INSTALLER_SPEC_FILE
+    CONFIGURE_SELINUX_SCRIPT=$CONFIGURE_SELINUX_SCRIPT $BIN_SYSTEM_CONFIG -c selinux -g -e -y $INSTALLER_SPEC_FILE
 
     if [ -f "$CONFIGURE_SELINUX_SCRIPT" ]; then
         . $CONFIGURE_SELINUX_SCRIPT
