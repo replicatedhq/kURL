@@ -6,6 +6,7 @@ function preflights() {
     checkDockerK8sVersion
     checkFirewalld
     must_disable_selinux
+    apply_iptables_config
     require_docker
     kotsadm_prerelease
 
@@ -77,6 +78,8 @@ checkDockerK8sVersion()
 }
 
 checkFirewalld() {
+    apply_firewalld_config
+
     if [ "$BYPASS_FIREWALLD_WARNING" = "1" ]; then
         return
     fi

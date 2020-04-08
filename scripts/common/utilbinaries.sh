@@ -8,6 +8,8 @@ function download_util_binaries() {
     BIN_SUBNET=/tmp/kurl_util/bin/subnet
 
     CONFIGURE_SELINUX_SCRIPT=/tmp/kurl_util/scripts/configure_selinux.sh
+    CONFIGURE_FIREWALLD_SCRIPT=/tmp/kurl_util/scripts/configure_firewalld.sh
+    CONFIGURE_IPTABLES_SCRIPT=/tmp/kurl_util/scripts/configure_iptables.sh
 }
 
 function apply_docker_config() {
@@ -27,14 +29,31 @@ EOL
 }
 
 function apply_selinux_config() {
-## TODO: this needs merged yaml
-#    cat > /tmp/vendor_kurl_installer_spec_selinux.yaml <<EOL
-#${INSTALLER_YAML}
-#EOL
-    CONFIGURE_SELINUX_SCRIPT=$CONFIGURE_SELINUX_SCRIPT $BIN_SYSTEM_CONFIG -c selinux -g -e -y $INSTALLER_SPEC_FILE
-
+    ## TODO: this needs merged yaml
+    CONFIGURE_SELINUX_SCRIPT=$CONFIGURE_SELINUX_SCRIPT $BIN_SYSTEM_CONFIG -c selinux -g -y $INSTALLER_SPEC_FILE
     if [ -f "$CONFIGURE_SELINUX_SCRIPT" ]; then
         . $CONFIGURE_SELINUX_SCRIPT
         configure_selinux
     fi
+    CONFIGURE_SELINUX_SCRIPT=$CONFIGURE_SELINUX_SCRIPT $BIN_SYSTEM_CONFIG -c selinux -e -y $INSTALLER_SPEC_FILE
+}
+
+function apply_firewalld_config() {
+    ## TODO: this needs merged yaml
+    CONFIGURE_FIREWALLD_SCRIPT=$CONFIGURE_FIREWALLD_SCRIPT $BIN_SYSTEM_CONFIG -c firewalld -g -y $INSTALLER_SPEC_FILE
+    if [ -f "$CONFIGURE_FIREWALLD_SCRIPT" ]; then
+        . $CONFIGURE_FIREWALLD_SCRIPT
+        configure_firewalld
+    fi
+    CONFIGURE_FIREWALLD_SCRIPT=$CONFIGURE_FIREWALLD_SCRIPT $BIN_SYSTEM_CONFIG -c firewalld -e -y $INSTALLER_SPEC_FILE
+}
+
+function apply_iptables_config() {
+    ## TODO: this needs merged yaml
+    CONFIGURE_IPTABLES_SCRIPT=$CONFIGURE_IPTABLES_SCRIPT $BIN_SYSTEM_CONFIG -c iptables -g -y $INSTALLER_SPEC_FILE
+    if [ -f "$CONFIGURE_IPTABLES_SCRIPT" ]; then
+        . $CONFIGURE_IPTABLES_SCRIPT
+        configure_iptables
+    fi
+    CONFIGURE_IPTABLES_SCRIPT=$CONFIGURE_IPTABLES_SCRIPT $BIN_SYSTEM_CONFIG -c iptables -e -y $INSTALLER_SPEC_FILE
 }
