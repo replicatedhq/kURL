@@ -3,11 +3,14 @@ package main
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
+	"flag"
 	"io/ioutil"
+	"log"
+	"os"
 
 	"github.com/pkg/errors"
 	kurlscheme "github.com/replicatedhq/kurl/kurlkinds/client/kurlclientset/scheme"
+	kurlversion "github.com/replicatedhq/kurl/pkg/version"
 	"gopkg.in/yaml.v2"
 	"k8s.io/client-go/kubernetes/scheme"
 )
@@ -222,12 +225,56 @@ func mergeYamlConfigData(oldconfigdata []byte, newconfigdata []byte) ([]byte, er
 	return mergedconfigdata, nil
 }
 
+func mergeConfig(mergedYAMLPath string, baseYamlPath string, overlayYamlPath string) error {
+	baseConfig, err := getInstallerConfigFromYaml(baseYamlPath)
+	if err != nil {
+		return errors.Wrap(err, "failed to load base config")
+	}
+
+	overlayConfig, err := getInstallerConfigFromYaml(overlayYamlPath)
+	if err != nil {
+		return errors.Wrap(err, "failed to load overlay config")
+	}
+
+	mergedConfig, err := mergeYamlConfigData(baseConfig, overlayConfig)
+	if err != nil {
+		return errors.Wrap(err, "failed to merge configs")
+	}
+
+	if len(mergedConfig) == 0 {
+		// don't mess with file's existence and permissions if both configs are empty
+		return nil
+	}
+
+	// TODO: preserve permissions
+	if err := ioutil.WriteFile(mergedYAMLPath, mergedConfig, 0644); err != nil {
+		return errors.Wrapf(err, "failed to write file %s", mergedYAMLPath)
+	}
+
+	return nil
+}
+
 func main() {
 	kurlscheme.AddToScheme(scheme.Scheme)
 
-	oldInstaller, _ := getInstallerConfigFromYaml("old.yaml")
-	newInstaller, _ := getInstallerConfigFromYaml("new.yaml")
+	version := flag.Bool("v", false, "Print version info")
+	mergedYAMLPath := flag.String("m", "", "combined file name")
+	baseYAMLPath := flag.String("b", "", "base YAML file name")
+	overlayYAMLPath := flag.String("o", "", "overlay YAML file name")
 
-	mergedConfigData, _ := mergeYamlConfigData(oldInstaller, newInstaller)
-	fmt.Println(string(mergedConfigData))
+	flag.Parse()
+
+	if *version == true {
+		kurlversion.Print()
+		return
+	}
+
+	if *mergedYAMLPath == "" || *baseYAMLPath == "" || *overlayYAMLPath == "" {
+		flag.PrintDefaults()
+		os.Exit(-1)
+	}
+
+	if err := mergeConfig(*mergedYAMLPath, *baseYAMLPath, *overlayYAMLPath); err != nil {
+		log.Fatal(err)
+	}
 }
