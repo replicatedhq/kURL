@@ -35,7 +35,7 @@ type InstallerSpec struct {
 	OpenEBS         OpenEBS         `json:"openEBS,omitempty"`
 	Kurl            Kurl            `json:"kurl,omitempty"`
 	SelinuxConfig   SelinuxConfig   `json:"selinuxConfig,omitempty"`
-	IPTablesConfig  IPTablesConfig  `json:"ipTablesConfig,omitempty"`
+	IptablesConfig  IptablesConfig  `json:"iptablesConfig,omitempty"`
 	FirewalldConfig FirewalldConfig `json:"firewalldConfig,omitempty"`
 }
 
@@ -146,12 +146,12 @@ type SelinuxConfig struct {
 	ChconCmds    [][]string `json:"chconCmds,omitempty"`
 }
 
-type IPTablesConfig struct {
+type IptablesConfig struct {
 	IptablesCmds [][]string `json:"iptablesCmds,omitempty"`
 }
 
 type FirewalldConfig struct {
-	Enabled       bool       `json:"enabled,omitempty"`
+	Firewalld     string     `json:"firewalld,omitempty"`
 	FirewalldCmds [][]string `json:"firewalldCmds,omitempty"`
 }
 
