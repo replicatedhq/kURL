@@ -4,6 +4,7 @@ go 1.13
 
 require (
 	github.com/apparentlymart/go-cidr v1.0.1
+	github.com/coreos/etcd v3.3.15+incompatible // indirect
 	github.com/pkg/errors v0.8.1
 	github.com/replicatedhq/kurl v0.0.0-20200407233409-d880dc9bdf1b
 	github.com/replicatedhq/kurl/kurlkinds v0.0.0-20200407233409-d880dc9bdf1b
