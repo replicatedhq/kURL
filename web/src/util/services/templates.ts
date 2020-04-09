@@ -17,9 +17,15 @@ export class Templates {
 
   constructor() {
     this.kurlURL = process.env["KURL_URL"] || "https://kurl.sh";
-    this.distURL = `https://${process.env["KURL_BUCKET"]}.s3.amazonaws.com`;
     this.replicatedAppURL = process.env["REPLICATED_APP_URL"] || "https://replicated.app";
     this.kurlUtilImage = process.env["KURL_UTIL_IMAGE"] || "replicated/kurl-util:alpha";
+
+    this.distURL = `https://${process.env["KURL_BUCKET"]}.s3.amazonaws.com`;
+		if (process.env["NODE_ENV"] === "production") {
+			this.distURL += "/dist";
+		} else {
+			this.distURL += "/staging";
+		}
 
     const tmplDir = path.join(__dirname, "../../../../templates");
     const installTmplPath = path.join(tmplDir, "install.tmpl");

@@ -7,10 +7,15 @@ import {
 
 @Controller("/dist")
 export class Dist {
-  private distOrigin: string;
+  private distURL: string;
 
   constructor() {
-    this.distOrigin = `https://${process.env["KURL_BUCKET"]}.s3.amazonaws.com`;
+    this.distURL = `https://${process.env["KURL_BUCKET"]}.s3.amazonaws.com`;
+    if (process.env["NODE_ENV"] === "production") {
+      this.distURL += "/dist";
+    } else {
+      this.distURL += "/staging";
+    }
   }
 
   /**
@@ -24,7 +29,7 @@ export class Dist {
     @Res() response: Express.Response,
     @PathParams("pkg") pkg: string,
   ): Promise<void> {
-    const location = `${this.distOrigin}/dist/${pkg}`
+    const location = `${this.distURL}/${pkg}`;
 
     response.redirect(307, location);
   }
