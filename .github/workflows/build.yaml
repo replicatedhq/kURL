@@ -105,7 +105,7 @@ jobs:
       run: |
         cd ~ && git clone --single-branch -b master git@github.com:replicatedcom/gitops-deploy
         mkdir -p ~/gitops-deploy/kurl
-        mv kustomize/overlays/staging/kurl.yaml gitops-deploy/kurl/kurl.yaml
+        mv ${GITHUB_WORKSPACE}/kustomize/overlays/staging/kurl.yaml gitops-deploy/kurl/kurl.yaml
         cd ~/gitops-deploy
         git config user.email "kurl-github-actions@replicated.com"
         git config user.name "kURL GitHub Actions"
