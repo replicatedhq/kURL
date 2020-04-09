@@ -52,6 +52,10 @@ function apply_docker_config() {
 }
 
 function apply_selinux_config() {
+    if [ -n "$PRESERVE_SELINUX_CONFIG" ]; then
+        return
+    fi
+
     if [ ! -f "$MERGED_YAML_SPEC" ]; then
         return
     fi
@@ -65,6 +69,10 @@ function apply_selinux_config() {
 }
 
 function apply_firewalld_config() {
+    if [ -n "$PRESERVE_FIREWALLD_CONFIG" ]; then
+        return
+    fi
+
     if [ ! -f "$MERGED_YAML_SPEC" ]; then
         return
     fi
@@ -78,6 +86,10 @@ function apply_firewalld_config() {
 }
 
 function apply_iptables_config() {
+    if [ -n "$PRESERVE_IPTABLES_CONFIG" ]; then
+        return
+    fi
+
     if [ ! -f "$MERGED_YAML_SPEC" ]; then
         return
     fi
