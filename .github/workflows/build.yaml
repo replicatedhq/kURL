@@ -55,7 +55,7 @@ jobs:
     - run: make web
 
     - run: |
-      docker build -f deploy/Dockerfile-slim \
-        --build-arg version=${GITHUB_SHA:0:7} \
-        -t kurl:${GITHUB_SHA:0:7} \
-        .
+        docker build -f deploy/Dockerfile-slim \
+          --build-arg version=${GITHUB_SHA:0:7} \
+          -t kurl:${GITHUB_SHA:0:7} \
+          .
