@@ -61,7 +61,7 @@ function addon_load() {
     fi
 
     if [ "$AIRGAP" != "1" ] && [ -n "$DIST_URL" ]; then
-        curl -sSLO "$DIST_URL/dist/$name-$version.tar.gz"
+        curl -sSLO "$DIST_URL/$name-$version.tar.gz"
         tar xf $name-$version.tar.gz
         rm $name-$version.tar.gz
     fi
