@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"path/filepath"
 
 	"github.com/pkg/errors"
 	kurlscheme "github.com/replicatedhq/kurl/kurlkinds/client/kurlclientset/scheme"
@@ -246,9 +247,28 @@ func mergeConfig(mergedYAMLPath string, baseYamlPath string, overlayYamlPath str
 		return nil
 	}
 
-	// TODO: preserve permissions
-	if err := ioutil.WriteFile(mergedYAMLPath, mergedConfig, 0644); err != nil {
+	if err := writeSpec(mergedYAMLPath, mergedConfig); err != nil {
 		return errors.Wrapf(err, "failed to write file %s", mergedYAMLPath)
+	}
+
+	return nil
+}
+
+func writeSpec(filename string, spec []byte) error {
+	err := os.MkdirAll(filepath.Dir(filename), 0755)
+	if err != nil {
+		return errors.Wrap(err, "failed to create script dir")
+	}
+
+	f, err := os.OpenFile(filename, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0644)
+	if err != nil {
+		return errors.Wrap(err, "failed to create script file")
+	}
+	defer f.Close()
+
+	_, err = f.Write(spec)
+	if err != nil {
+		return errors.Wrap(err, "failed to write script file")
 	}
 
 	return nil
