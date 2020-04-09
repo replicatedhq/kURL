@@ -6,6 +6,7 @@ function download_util_binaries() {
     BIN_YAMLUTIL=/tmp/kurl_util/bin/yamlutil
     BIN_DOCKER_CONFIG=/tmp/kurl_util/bin/docker-config
     BIN_SUBNET=/tmp/kurl_util/bin/subnet
+    BIN_INSTALLERMERGE=/tmp/kurl_util/bin/installermerge
 
     CONFIGURE_SELINUX_SCRIPT=/tmp/kurl_util/scripts/configure_selinux.sh
     CONFIGURE_FIREWALLD_SCRIPT=/tmp/kurl_util/scripts/configure_firewalld.sh
