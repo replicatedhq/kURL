@@ -33,11 +33,11 @@ function docker_pkg() {
 function list_all_packages() {
     pkgs addons
     pkgs packages
-    echo "common.tar.gz"
     docker_pkg
 }
 
-mkdir -p dist/
+# always build the common package
+make dist/common.tar.gz
 
 for package in $(list_all_packages)
 do
