@@ -1,5 +1,8 @@
 SHELL := /bin/bash
 KURL_UTIL_IMAGE ?= replicated/kurl-util:alpha
+VERSION_PACKAGE = github.com/replicatedhq/kurl/pkg/version
+VERSION ?= 0.0.1
+DATE=`date -u +"%Y-%m-%dT%H:%M:%SZ"`
 
 export GO111MODULE=on
 
@@ -19,6 +22,14 @@ define GIT_SHA
 ""
 endef
 endif
+
+define LDFLAGS
+-ldflags "\
+	-X ${VERSION_PACKAGE}.version=${VERSION} \
+	-X ${VERSION_PACKAGE}.gitSHA=${GIT_SHA} \
+	-X ${VERSION_PACKAGE}.buildTime=${DATE} \
+"
+endef
 
 .PHONY: clean
 clean:
@@ -41,13 +52,22 @@ test: lint vet
 	go test ./cmd/...
 
 .PHONY: build
-build: bin/yamlutil bin/subnet
+build: bin/yamlutil bin/subnet bin/docker-config bin/config bin/installermerge
 
 bin/yamlutil:
-	go build -o bin/yamlutil cmd/yamlutil/main.go
+	go build ${LDFLAGS} -o bin/yamlutil cmd/yamlutil/main.go
 
 bin/subnet:
-	go build -o bin/subnet cmd/subnet/main.go
+	go build ${LDFLAGS} -o bin/subnet cmd/subnet/main.go
+
+bin/docker-config:
+	go build ${LDFLAGS} -o bin/docker-config cmd/docker/main.go
+
+bin/config:
+	go build ${LDFLAGS} -o bin/config cmd/config/main.go
+
+bin/installermerge:
+	go build ${LDFLAGS} -o bin/installermerge cmd/installermerge/main.go
 
 .PHONY: kurl-util-image
 kurl-util-image:

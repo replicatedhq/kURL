@@ -46,6 +46,8 @@ spec:
                   type: string
                 bypassStorageDriverWarning:
                   type: boolean
+                daemonConfig:
+                  type: string
                 dockerRegistryIP:
                   type: string
                 hardFailOnLoopback:
@@ -59,6 +61,17 @@ spec:
               required:
               - version
               type: object
+            firewalldConfig:
+              properties:
+                enabled:
+                  type: boolean
+                firewalldCmds:
+                  items:
+                    items:
+                      type: string
+                    type: array
+                  type: array
+              type: object
             fluentd:
               properties:
                 fullEFKStack:
@@ -67,6 +80,15 @@ spec:
                   type: string
               required:
               - version
+              type: object
+            ipTablesConfig:
+              properties:
+                iptablesCmds:
+                  items:
+                    items:
+                      type: string
+                    type: array
+                  type: array
               type: object
             kotsadm:
               properties:
@@ -187,6 +209,25 @@ spec:
                   type: string
               required:
               - version
+              type: object
+            selinuxConfig:
+              properties:
+                chconCmds:
+                  items:
+                    items:
+                      type: string
+                    type: array
+                  type: array
+                selinux:
+                  type: string
+                semanageCmds:
+                  items:
+                    items:
+                      type: string
+                    type: array
+                  type: array
+                type:
+                  type: string
               type: object
             velero:
               properties:

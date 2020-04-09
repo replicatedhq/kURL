@@ -6,6 +6,7 @@ function preflights() {
     checkDockerK8sVersion
     checkFirewalld
     must_disable_selinux
+    apply_iptables_config
     require_docker
     kotsadm_prerelease
 
@@ -77,6 +78,8 @@ checkDockerK8sVersion()
 }
 
 checkFirewalld() {
+    apply_firewalld_config
+
     if [ "$BYPASS_FIREWALLD_WARNING" = "1" ]; then
         return
     fi
@@ -110,6 +113,13 @@ must_disable_selinux() {
     #    Disabling SELinux by running setenforce 0 is required to allow containers to
     #    access the host filesystem, which is required by pod networks for example.
     #    You have to do this until SELinux support is improved in the kubelet.
+
+    # Check and apply YAML overrides
+    apply_selinux_config
+    if [ -n "$BYPASS_SELINUX_PREFLIGHT" ]; then
+        return
+    fi
+
     if selinux_enabled && selinux_enforced ; then
         printf "\n${YELLOW}Kubernetes is incompatible with SELinux. Disable SELinux to continue?${NC} "
         if confirmY ; then
@@ -143,7 +153,7 @@ function require_docker() {
 
   if [ "$SKIP_DOCKER_INSTALL" = "0" ]; then
 	  bail "Docker is required"
-	fi
+  fi
 
   return 0
 }

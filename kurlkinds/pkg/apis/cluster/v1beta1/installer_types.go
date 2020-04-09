@@ -21,19 +21,22 @@ import (
 )
 
 type InstallerSpec struct {
-	Kubernetes Kubernetes `json:"kubernetes,omitempty"`
-	Docker     Docker     `json:"docker,omitempty"`
-	Weave      Weave      `json:"weave,omitempty"`
-	Contour    Contour    `json:"contour,omitempty"`
-	Rook       Rook       `json:"rook,omitempty"`
-	Registry   Registry   `json:"registry,omitempty"`
-	Prometheus Prometheus `json:"prometheus,omitempty"`
-	Fluentd    Fluentd    `json:"fluentd,omitempty"`
-	Kotsadm    Kotsadm    `json:"kotsadm,omitempty"`
-	Velero     Velero     `json:"velero,omitempty"`
-	Minio      Minio      `json:"minio,omitempty"`
-	OpenEBS    OpenEBS    `json:"openEBS,omitempty"`
-	Kurl       Kurl       `json:"kurl,omitempty"`
+	Kubernetes      Kubernetes      `json:"kubernetes,omitempty"`
+	Docker          Docker          `json:"docker,omitempty"`
+	Weave           Weave           `json:"weave,omitempty"`
+	Contour         Contour         `json:"contour,omitempty"`
+	Rook            Rook            `json:"rook,omitempty"`
+	Registry        Registry        `json:"registry,omitempty"`
+	Prometheus      Prometheus      `json:"prometheus,omitempty"`
+	Fluentd         Fluentd         `json:"fluentd,omitempty"`
+	Kotsadm         Kotsadm         `json:"kotsadm,omitempty"`
+	Velero          Velero          `json:"velero,omitempty"`
+	Minio           Minio           `json:"minio,omitempty"`
+	OpenEBS         OpenEBS         `json:"openEBS,omitempty"`
+	Kurl            Kurl            `json:"kurl,omitempty"`
+	SelinuxConfig   SelinuxConfig   `json:"selinuxConfig,omitempty"`
+	IptablesConfig  IptablesConfig  `json:"iptablesConfig,omitempty"`
+	FirewalldConfig FirewalldConfig `json:"firewalldConfig,omitempty"`
 }
 
 type Contour struct {
@@ -48,6 +51,7 @@ type Docker struct {
 	NoCEOnEE                   bool   `json:"noCEOnEE,omitempty"`
 	NoDocker                   bool   `json:"noDocker,omitempty"`
 	Version                    string `json:"version"`
+	DaemonConfig               string `json:"daemonConfig,omitempty"`
 }
 
 type Fluentd struct {
@@ -133,6 +137,22 @@ type Weave struct {
 	PodCIDR              string `json:"podCIDR,omitempty"`
 	PodCidrRange         string `json:"podCidrRange,omitempty"`
 	Version              string `json:"version"`
+}
+
+type SelinuxConfig struct {
+	Selinux      string     `json:"selinux,omitempty"`
+	Type         string     `json:"type,omitempty"`
+	SemanageCmds [][]string `json:"semanageCmds,omitempty"`
+	ChconCmds    [][]string `json:"chconCmds,omitempty"`
+}
+
+type IptablesConfig struct {
+	IptablesCmds [][]string `json:"iptablesCmds,omitempty"`
+}
+
+type FirewalldConfig struct {
+	Firewalld     string     `json:"firewalld,omitempty"`
+	FirewalldCmds [][]string `json:"firewalldCmds,omitempty"`
 }
 
 // InstallerStatus defines the observed state of Installer
