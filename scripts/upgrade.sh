@@ -89,6 +89,7 @@ function main() {
     flags $FLAGS
     flags "$@"
     download_util_binaries
+    merge_yaml_specs
     preflights
     apply_docker_config
     get_shared
