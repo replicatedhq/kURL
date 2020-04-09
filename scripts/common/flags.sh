@@ -220,6 +220,15 @@ function flags() {
             preserve-docker-config|preserve_docker_config)
                 PRESERVE_DOCKER_CONFIG=1
                 ;;
+            preserve-iptables-config|preserve_iptables_config)
+                PRESERVE_IPTABLES_CONFIG=1
+                ;;
+            preserve-firewalld-config|preserve_firewalld_config)
+                PRESERVE_FIREWALLD_CONFIG=1
+                ;;
+            preserve-selinux-config|preserve_selinux_config)
+                PRESERVE_SELINUX_CONFIG=1
+                ;;
             *)
                 echo >&2 "Error: unknown parameter \"$_param\""
                 exit 1
