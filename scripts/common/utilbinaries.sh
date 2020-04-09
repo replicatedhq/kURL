@@ -20,6 +20,18 @@ function merge_yaml_specs() {
         return
     fi
 
+    if [ -z "$INSTALLER_YAML" ]; then
+        cp -f $INSTALLER_SPEC_FILE $MERGED_YAML_SPEC
+        return
+    fi
+
+    if [ -z "$INSTALLER_SPEC_FILE" ]; then
+        cat > $MERGED_YAML_SPEC <<EOL
+${INSTALLER_YAML}
+EOL
+        return
+    fi
+
     cat > /tmp/vendor_kurl_installer_spec_docker.yaml <<EOL
 ${INSTALLER_YAML}
 EOL
@@ -53,6 +65,10 @@ function apply_selinux_config() {
 }
 
 function apply_firewalld_config() {
+    if [ ! -f "$MERGED_YAML_SPEC" ]; then
+        return
+    fi
+
     CONFIGURE_FIREWALLD_SCRIPT=$CONFIGURE_FIREWALLD_SCRIPT $BIN_SYSTEM_CONFIG -c firewalld -g -y $MERGED_YAML_SPEC
     if [ -f "$CONFIGURE_FIREWALLD_SCRIPT" ]; then
         . $CONFIGURE_FIREWALLD_SCRIPT
@@ -62,6 +78,10 @@ function apply_firewalld_config() {
 }
 
 function apply_iptables_config() {
+    if [ ! -f "$MERGED_YAML_SPEC" ]; then
+        return
+    fi
+
     CONFIGURE_IPTABLES_SCRIPT=$CONFIGURE_IPTABLES_SCRIPT $BIN_SYSTEM_CONFIG -c iptables -g -y $MERGED_YAML_SPEC
     if [ -f "$CONFIGURE_IPTABLES_SCRIPT" ]; then
         . $CONFIGURE_IPTABLES_SCRIPT
