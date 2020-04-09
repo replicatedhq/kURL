@@ -232,6 +232,7 @@ function main() {
     flags "$@"
     tasks
     download_util_binaries
+    merge_yaml_specs
     preflights
     prompts
     configure_proxy

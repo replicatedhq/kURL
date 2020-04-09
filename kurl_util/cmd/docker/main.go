@@ -2,11 +2,11 @@ package main
 
 import (
 	"bytes"
-	"encoding/json"
 	"flag"
 	"io/ioutil"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/pkg/errors"
 	kurlscheme "github.com/replicatedhq/kurl/kurlkinds/client/kurlclientset/scheme"
@@ -20,8 +20,7 @@ func main() {
 
 	version := flag.Bool("v", false, "Print version info")
 	configPath := flag.String("c", "", "docker config file name")
-	baseYamlPath := flag.String("b", "", "base yaml file name")
-	overlayYamlPath := flag.String("o", "", "overlay yaml file name")
+	yamlSpecPath := flag.String("s", "", "base yaml file name")
 
 	flag.Parse()
 
@@ -30,131 +29,33 @@ func main() {
 		return
 	}
 
-	if *configPath == "" || *baseYamlPath == "" || *overlayYamlPath == "" {
+	if *configPath == "" || *yamlSpecPath == "" {
 		flag.PrintDefaults()
 		os.Exit(-1)
 	}
 
-	if err := mergeConfig(*configPath, *baseYamlPath, *overlayYamlPath); err != nil {
+	if err := saveConfig(*configPath, *yamlSpecPath); err != nil {
 		log.Fatal(err)
 	}
 }
 
-func mergeConfig(configPath string, baseYamlPath string, overlayYamlPath string) error {
-	baseConfig, err := getDockerConfigFromYaml(baseYamlPath)
+func saveConfig(configPath string, yamlSpecPath string) error {
+	config, err := getDockerConfigFromYaml(yamlSpecPath)
 	if err != nil {
-		return errors.Wrap(err, "failed to load base config")
+		return errors.Wrap(err, "failed to load config")
 	}
 
-	overlayConfig, err := getDockerConfigFromYaml(overlayYamlPath)
-	if err != nil {
-		return errors.Wrap(err, "failed to load overlay config")
-	}
-
-	mergedConfig, err := mergeConfigData(baseConfig, overlayConfig)
-	if err != nil {
-		return errors.Wrap(err, "failed to merge configs")
-	}
-
-	if len(mergedConfig) == 0 {
+	if len(config) == 0 {
 		// don't mess with file's existence and permissions if both configs are empty
 		return nil
 	}
 
 	// TODO: preserve permissions
-	if err := ioutil.WriteFile(configPath, mergedConfig, 0644); err != nil {
+	if err := ioutil.WriteFile(configPath, config, 0644); err != nil {
 		return errors.Wrapf(err, "failed to write file %s", configPath)
 	}
 
 	return nil
-}
-
-func mergeConfigData(oldConfigData []byte, newConfigData []byte) ([]byte, error) {
-	oldConfigData = bytes.TrimSpace(oldConfigData)
-	newConfigData = bytes.TrimSpace(newConfigData)
-
-	if len(oldConfigData) == 0 && len(newConfigData) == 0 {
-		return nil, nil
-	}
-
-	if len(oldConfigData) == 0 {
-		return newConfigData, nil
-	}
-
-	if len(newConfigData) == 0 {
-		return oldConfigData, nil
-	}
-
-	oldConfig := make(map[string]interface{})
-	if err := json.Unmarshal(oldConfigData, &oldConfig); err != nil {
-		return nil, errors.Wrap(err, "failed to parse existing config")
-	}
-
-	newConfig := make(map[string]interface{})
-	if err := json.Unmarshal(newConfigData, &newConfig); err != nil {
-		return nil, errors.Wrap(err, "failed to parse new config")
-	}
-
-	mergedConfig := mergeMaps(oldConfig, newConfig)
-
-	mergedConfigData, err := json.MarshalIndent(mergedConfig, "", "  ")
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to marshal merged config")
-	}
-
-	return mergedConfigData, nil
-}
-
-func mergeMaps(oldConfig map[string]interface{}, newConfig map[string]interface{}) map[string]interface{} {
-	mergedConfig := make(map[string]interface{})
-
-	allKeys := mergeKeys(oldConfig, newConfig)
-	for _, key := range allKeys {
-		oldVal, oldOk := oldConfig[key]
-		newVal, newOk := newConfig[key]
-
-		if oldOk && !newOk {
-			mergedConfig[key] = oldVal
-			continue
-		}
-
-		if !oldOk && newOk {
-			mergedConfig[key] = newVal
-			continue
-		}
-
-		oldValMap, isOldMap := oldVal.(map[string]interface{})
-		if !isOldMap {
-			mergedConfig[key] = newVal
-			continue
-		}
-
-		newValMap, isNewMap := newVal.(map[string]interface{})
-		if !isNewMap {
-			mergedConfig[key] = newVal
-			continue
-		}
-
-		mergedConfig[key] = mergeMaps(oldValMap, newValMap)
-	}
-	return mergedConfig
-}
-
-func mergeKeys(config1 map[string]interface{}, config2 map[string]interface{}) []string {
-	mergedMap := make(map[string]struct{})
-	for key := range config1 {
-		mergedMap[key] = struct{}{}
-	}
-	for key := range config2 {
-		mergedMap[key] = struct{}{}
-	}
-
-	allKeys := make([]string, 0)
-	for key := range mergedMap {
-		allKeys = append(allKeys, key)
-	}
-
-	return allKeys
 }
 
 func getDockerConfigFromYaml(yamlPath string) ([]byte, error) {
@@ -180,5 +81,5 @@ func getDockerConfigFromYaml(yamlPath string) ([]byte, error) {
 
 	installer := obj.(*kurlv1beta1.Installer)
 
-	return []byte(installer.Spec.Docker.DaemonConfig), nil
+	return []byte(strings.TrimSpace(installer.Spec.Docker.DaemonConfig)), nil
 }
