@@ -1,30 +1,11 @@
-name: build
+name: deploy-staging
 
 on:
   push:
     branches:
-    - github-actions
+    - master
 
 jobs:
-  test:
-    runs-on: ubuntu-18.04
-    steps:
-    - uses: actions/setup-go@v1
-      with:
-        go-version: 1.12.17
-
-    - name: setup env
-      run: |
-        echo "::set-env name=GOPATH::$(go env GOPATH)"
-        echo "::add-path::$(go env GOPATH)/bin"
-      shell: bash
-
-    - uses: actions/checkout@v2
-
-    - run: make -C web test
-
-    - run: make -C kurl_util deps test
-
   build-upload-packages:
     runs-on: ubuntu-18.04
     steps:
@@ -38,7 +19,6 @@ jobs:
 
   staging-docker-image:
     runs-on: ubuntu-18.04
-    needs: test
     steps:
     - uses: actions/setup-go@v1
       with:

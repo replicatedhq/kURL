@@ -26,3 +26,5 @@ jobs:
 
       - run: go get golang.org/x/lint/golint
       - run: make -C kurl_util test build
+
+      - run: make -C web test
