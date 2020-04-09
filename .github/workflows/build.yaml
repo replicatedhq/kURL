@@ -68,6 +68,6 @@ jobs:
 
     - run: |
         docker tag kurl:${GITHUB_SHA:0:7} \
-      923411875752.dkr.ecr.us-east-1.amazonaws.com:${GITHUB_SHA:0:7}
+          923411875752.dkr.ecr.us-east-1.amazonaws.com:${GITHUB_SHA:0:7}
 
     - run: docker push 923411875752.dkr.ecr.us-east-1.amazonaws.com:${GITHUB_SHA:0:7}
