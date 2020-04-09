@@ -35,10 +35,10 @@ jobs:
         S3_BUCKET: kurl-sh-staging
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_STAGING_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_STAGING_SECRET_ACCESS_KEY }}
-        FORCE: 1
 
   staging-docker-image:
     runs-on: ubuntu-18.04
+    needs: test
     steps:
     - uses: actions/setup-go@v1
       with:
@@ -59,5 +59,15 @@ jobs:
     - run: |
         docker build -f deploy/Dockerfile-slim \
           --build-arg version=${GITHUB_SHA:0:7} \
-          -t kurl:${GITHUB_SHA:0:7} \
-          .
+          -t kurl:${GITHUB_SHA:0:7} .
+
+    - run: $(aws ecr get-login --no-include-email --region us-west-1)
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_STAGING_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_STAGING_SECRET_ACCESS_KEY }}
+
+    - run: |
+        docker tag kurl:${GITHUB_SHA:0:7} \
+      923411875752.dkr.ecr.us-east-1.amazonaws.com:${GITHUB_SHA:0:7}
+
+    - run: docker push 923411875752.dkr.ecr.us-east-1.amazonaws.com:${GITHUB_SHA:0:7}
