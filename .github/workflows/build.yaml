@@ -50,6 +50,8 @@ jobs:
         echo "::add-path::$(go env GOPATH)/bin"
       shell: bash
 
+    - uses: actions/checkout@v2
+
     - run: make -C web deps build
 
     - run: make web
