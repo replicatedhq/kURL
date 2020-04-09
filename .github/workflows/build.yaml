@@ -35,3 +35,4 @@ jobs:
         S3_BUCKET: kurl-sh-staging
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_STAGING_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_STAGING_SECRET_ACCESS_KEY }}
+        FORCE: 1
