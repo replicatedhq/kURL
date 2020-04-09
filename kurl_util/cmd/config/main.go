@@ -62,11 +62,13 @@ func processConfig(configType string, yamlPath string, execCmds bool, generateSc
 	switch configType {
 	case "selinux":
 		err := processSelinuxConfig(installer, execCmds, generateScript)
-		return errors.Wrap(err, "failed to create selinux script")
+		return errors.Wrap(err, "failed to process selinux config")
 	case "firewalld":
-		return processFirewalldConfig(installer, execCmds, generateScript)
+		err := processFirewalldConfig(installer, execCmds, generateScript)
+		return errors.Wrap(err, "failed to process firewalld config")
 	case "iptables":
-		return processIptablesConfig(installer, execCmds, generateScript)
+		err := processIptablesConfig(installer, execCmds, generateScript)
+		return errors.Wrap(err, "failed to process iptables config")
 	default:
 		return errors.Errorf("unknown config type: %s", configType)
 	}
@@ -119,6 +121,9 @@ func processSelinuxConfig(installer *kurlv1beta1.Installer, execCmds bool, gener
 		case "disabled":
 			scriptLines = append(scriptLines, "setenforce 0")
 			scriptLines = append(scriptLines, "sed -i s/^SELINUX=.*$/SELINUX=disabled/ /etc/selinux/config")
+		case "":
+		default:
+			return errors.Errorf("unknown selinux option: %s", installer.Spec.SelinuxConfig.Selinux)
 		}
 		if installer.Spec.SelinuxConfig.Type != "" {
 			line := fmt.Sprintf("sed -i s/^SELINUXTYPE=.*$/SELINUXTYPE=%s/ /etc/selinux/config", installer.Spec.SelinuxConfig.Type)
@@ -140,13 +145,13 @@ func processSelinuxConfig(installer *kurlv1beta1.Installer, execCmds bool, gener
 		for _, args := range installer.Spec.SelinuxConfig.ChconCmds {
 			err := runCommand("chcon", args)
 			if err != nil {
-				return errors.Wrapf(err, "failed to run chcon %v", args)
+				return errors.Wrap(err, "failed to run chcon")
 			}
 		}
 		for _, args := range installer.Spec.SelinuxConfig.SemanageCmds {
 			err := runCommand("semanage", args)
 			if err != nil {
-				return errors.Wrapf(err, "failed to run semanage %v", args)
+				return errors.Wrap(err, "failed to run semanage")
 			}
 		}
 	}
@@ -162,11 +167,64 @@ func processSelinuxConfig(installer *kurlv1beta1.Installer, execCmds bool, gener
 }
 
 func processFirewalldConfig(installer *kurlv1beta1.Installer, execCmds bool, generateScript bool) error {
-	return errors.New("processFirewalldConfig not implemented")
+	scriptFilename := os.Getenv("CONFIGURE_FIREWALLD_SCRIPT")
+	if scriptFilename == "" {
+		scriptFilename = "./configure_firewalld.sh" // for dev testing
+	}
+
+	deleteScript := true
+	if generateScript && installer.Spec.FirewalldConfig.Firewalld != "" {
+		scriptLines := []string{
+			"BYPASS_FIREWALLD_WARNING=1",
+		}
+
+		switch installer.Spec.FirewalldConfig.Firewalld {
+		case "enabled":
+			scriptLines = append(scriptLines, "systemctl start firewalld")
+			scriptLines = append(scriptLines, "systemctl enable firewalld")
+		case "disabled":
+			scriptLines = append(scriptLines, "systemctl stop firewalld")
+			scriptLines = append(scriptLines, "systemctl disable firewalld")
+		default:
+			return errors.Errorf("unknown firewalld option: %s", installer.Spec.FirewalldConfig.Firewalld)
+		}
+
+		script := fmt.Sprintf("configure_firewalld() {\n\t%s\n}", strings.Join(scriptLines, "\n\t"))
+		if err := writeScript(scriptFilename, script); err != nil {
+			return errors.Wrap(err, "faied to save script")
+		}
+		deleteScript = false
+	}
+
+	if execCmds {
+		for _, args := range installer.Spec.FirewalldConfig.FirewalldCmds {
+			err := runCommand("firewall-cmd", args)
+			if err != nil {
+				return errors.Wrap(err, "failed to run firewall-cmd")
+			}
+		}
+	}
+
+	if deleteScript {
+		err := os.RemoveAll(scriptFilename)
+		if err != nil && os.IsNotExist(err) {
+			log.Printf("Failed to delete %s: %v\n", scriptFilename, err)
+		}
+	}
+
+	return nil
 }
 
 func processIptablesConfig(installer *kurlv1beta1.Installer, execCmds bool, generateScript bool) error {
-	return errors.New("processIptablesConfig not implemented")
+	if execCmds {
+		for _, args := range installer.Spec.IptablesConfig.IptablesCmds {
+			err := runCommand("iptables", args)
+			if err != nil {
+				return errors.Wrap(err, "failed to run iptables")
+			}
+		}
+	}
+	return nil
 }
 
 func writeScript(filename string, script string) error {
@@ -190,11 +248,17 @@ func writeScript(filename string, script string) error {
 }
 
 func runCommand(command string, args []string) error {
+	log.Printf("Running %s %v", command, args)
 	cmd := exec.Command(command, args...)
+
 	output, err := cmd.CombinedOutput()
-	log.Printf("%s", output)
+	if len(output) > 0 {
+		log.Printf("%s", output)
+	}
+
 	if err != nil {
 		return errors.Wrap(err, "failed to execute command")
 	}
+
 	return nil
 }
