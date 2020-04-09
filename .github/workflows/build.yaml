@@ -36,3 +36,26 @@ jobs:
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_STAGING_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_STAGING_SECRET_ACCESS_KEY }}
         FORCE: 1
+
+  staging-docker-image:
+    runs-on: ubuntu-18.04
+    steps:
+    - uses: actions/setup-go@v1
+      with:
+        go-version: 1.12.17
+
+    - name: setup env
+      run: |
+        echo "::set-env name=GOPATH::$(go env GOPATH)"
+        echo "::add-path::$(go env GOPATH)/bin"
+      shell: bash
+
+    - run: make -C web deps build
+
+    - run: make web
+
+    - run: |
+      docker build -f deploy/Dockerfile-slim \
+        --build-arg version=${GITHUB_SHA:0:7} \
+        -t kurl:${GITHUB_SHA:0:7} \
+        .
