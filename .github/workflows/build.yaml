@@ -73,6 +73,7 @@ jobs:
 
   deploy-staging-eks:
     runs-on: ubuntu-18.04
+    needs: staging-docker-image
     steps:
     - uses: actions/checkout@v2
 
