@@ -36,6 +36,7 @@ function list_all_packages() {
 # always build the common package
 make dist/common.tar.gz
 aws s3 cp dist/common.tar.gz s3://$S3_BUCKET/staging/
+rm dist/common.tar.gz
 
 for package in $(list_all_packages)
 do
