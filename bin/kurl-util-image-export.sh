@@ -10,9 +10,16 @@ function image_export() {
     set +u
 
     local tag=alpha
+    # TODO remove once off circle
     if [ -n "$CIRCLE_TAG" ]; then
         tag="$CIRCLE_TAG"
     elif [ "$CIRCLE_BRANCH" = "beta" ]; then
+        tag="beta"
+    fi
+
+    if echo "$GITHUB_REF" | grep '^refs/tags'; then
+        tag=$(echo $GITHUB_REF | awk -F'/' '{ print $NF }')
+    elif [ "$GITHUB_REF" = "refs/heads/beta" ]; then
         tag="beta"
     fi
 

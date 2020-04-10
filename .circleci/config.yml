@@ -121,18 +121,6 @@ workflows:
             branches:
               ignore: master
 
-  staging:
-    jobs:
-      - is_upstream:
-          filters:
-            branches:
-              only:
-                - master
-                - beta
-      - kurl_util_image:
-          requires:
-            - is_upstream
-
   tag:
     jobs:
       - is_upstream:
