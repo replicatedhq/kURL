@@ -1,0 +1,94 @@
+name: deploy-staging
+
+on:
+  push:
+    branches:
+    - master
+
+jobs:
+  build-upload-packages:
+    runs-on: ubuntu-18.04
+    steps:
+    - uses: actions/checkout@v2
+
+    - run: bin/upload-dist.sh
+      env:
+        S3_BUCKET: kurl-sh-staging
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_STAGING_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_STAGING_SECRET_ACCESS_KEY }}
+
+  staging-docker-image:
+    runs-on: ubuntu-18.04
+    steps:
+    - uses: actions/setup-go@v1
+      with:
+        go-version: 1.12.17
+
+    - name: setup env
+      run: |
+        echo "::set-env name=GOPATH::$(go env GOPATH)"
+        echo "::add-path::$(go env GOPATH)/bin"
+      shell: bash
+
+    - uses: actions/checkout@v2
+
+    - run: make -C web deps build
+
+    - run: make web
+
+    - run: |
+        docker build -f deploy/Dockerfile-slim \
+          --build-arg version=${GITHUB_SHA:0:7} \
+          -t 923411875752.dkr.ecr.us-east-1.amazonaws.com/kurl:${GITHUB_SHA:0:7} .
+
+    - run: |
+        aws ecr get-login-password --region us-east-1 | docker login \
+          --username AWS \
+          --password-stdin 923411875752.dkr.ecr.us-east-1.amazonaws.com
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_STAGING_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_STAGING_SECRET_ACCESS_KEY }}
+
+    - run: docker push 923411875752.dkr.ecr.us-east-1.amazonaws.com/kurl:${GITHUB_SHA:0:7}
+
+  deploy-staging-eks:
+    runs-on: ubuntu-18.04
+    needs: staging-docker-image
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: kustomize
+      run: |
+        curl -s https://api.github.com/repos/kubernetes-sigs/kustomize/releases/tags/v2.0.0 | \
+          grep browser_download | \
+          grep linux | \
+          cut -d '"' -f 4 | \
+          xargs sudo curl -O -L && \
+          sudo mv kustomize_*_linux_amd64 /usr/local/bin/kustomize && \
+          sudo chmod +x /usr/local/bin/kustomize
+        pushd kustomize/overlays/staging
+        kustomize edit set image 923411875752.dkr.ecr.us-east-1.amazonaws.com/kurl:${GITHUB_SHA:0:7}
+        kustomize build . > kurl.yaml
+        popd
+
+    - name: ssh-key
+      env:
+        GITOPS_DEPLOY_KEY: ${{ secrets.GITOPS_DEPLOY_KEY }}
+      run: |
+        mkdir -p ~/.ssh
+        echo "$GITOPS_DEPLOY_KEY" > ~/.ssh/id_rsa
+        chmod 400 ~/.ssh/id_rsa
+        echo 'github.com ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAq2A7hRGmdnm9tUDbO9IDSwBK6TbQa+PXYPCPy6rbTrTtw7PHkccKrpp0yVhp5HdEIcKr6pLlVDBfOLX9QUsyCOV0wzfjIJNlGEYsdlLJizHhbn2mUjvSAHQqZETYP81eFzLQNnPHt4EVVUh7VfDESU84KezmD5QlWpXLmvU31/yMf+Se8xhHTvKSCZIFImWwoG6mbUoWf9nzpIoaSjB+weqqUUmpaaasXVal72J+UX2B+2RPW3RcT0eOzQgqlJL3RKrTJvdsjE3JEAvGq3lGHSZXy28G3skua2SmVi/w4yCE6gbODqnTWlg7+wC604ydGXA8VJiS5ap43JXiUFFAaQ==' \
+          >> ~/.ssh/known_hosts
+
+    - name: release
+      run: |
+        cd ~ && git clone --single-branch -b master git@github.com:replicatedcom/gitops-deploy
+        mkdir -p ~/gitops-deploy/kurl
+        mv ${GITHUB_WORKSPACE}/kustomize/overlays/staging/kurl.yaml gitops-deploy/kurl/kurl.yaml
+        cd ~/gitops-deploy
+        git config user.email "kurl-github-actions@replicated.com"
+        git config user.name "kURL GitHub Actions"
+        git add .
+        git commit --allow-empty -m "https://github.com/replicatedhq/kURL/actions/runs/${GITHUB_RUN_ID}" && \
+          git push origin master

@@ -51,22 +51,6 @@ jobs:
             echo "$DOCKERHUB_DOCKER_PASS" | docker login -u $DOCKERHUB_DOCKER_USER --password-stdin
             make -C kurl_util build-and-push-kurl-util-image
 
-  upload_staging_packages:
-    <<: *defaults
-    parallelism: 8
-    steps:
-      - checkout
-      - setup_remote_docker:
-          version: 17.06.0-ce
-      - run:
-          name: upload packages
-          command: |
-            export AWS_ACCESS_KEY_ID=$STAGING_AWS_ACCESS_KEY_ID
-            export AWS_SECRET_ACCESS_KEY=$STAGING_AWS_SECRET_ACCESS_KEY
-            export S3_BUCKET=kurl-sh-staging
-            source bin/kurl-util-image-export.sh
-            bin/upload-dist.sh
-
   upload_production_packages:
     <<: *defaults
     parallelism: 8
@@ -82,27 +66,6 @@ jobs:
             export S3_BUCKET=kurl-sh
             source bin/kurl-util-image-export.sh
             bin/upload-dist.sh
-
-  build_staging_docker_image:
-    <<: *defaults
-    steps:
-      - checkout
-      - setup_remote_docker:
-          version: 17.06.0-ce
-      - run: make -C web deps build
-      - run: make web
-      - run: |
-          export WORKDIR=`pwd`
-          export CIRCLE_PROJECT_REPONAME=$PROJECT_NAME
-          source bin/kurl-util-image-export.sh
-          bin/build-docker.sh
-      - deploy:
-          name: push image
-          command: |
-            export AWS_ACCESS_KEY_ID=$STAGING_AWS_ACCESS_KEY_ID
-            export AWS_SECRET_ACCESS_KEY=$STAGING_AWS_SECRET_ACCESS_KEY
-            export CIRCLE_PROJECT_REPONAME=$PROJECT_NAME
-            push-docker
 
   build_production_docker_image:
     <<: *defaults
@@ -127,20 +90,6 @@ jobs:
             export AWS_SECRET_ACCESS_KEY=$PRODUCTION_AWS_SECRET_ACCESS_KEY
             export CIRCLE_PROJECT_REPONAME=$PROJECT_NAME
             push-docker
-
-  deploy_staging_eks:
-    <<: *defaults
-    steps:
-      - checkout
-      - add_ssh_keys:
-          fingerprints:
-          - "25:51:68:66:6d:12:c7:84:f4:18:97:6a:7c:2e:f8:3d"
-      - deploy:
-          name: Maybe deploy staging to eks
-          command: |
-            export WORKDIR=`pwd`
-            export CIRCLE_PROJECT_REPONAME=$PROJECT_NAME
-            deploy
 
   deploy_production_eks:
     <<: *defaults
@@ -180,20 +129,9 @@ workflows:
               only:
                 - master
                 - beta
-
       - kurl_util_image:
           requires:
             - is_upstream
-      - upload_staging_packages:
-          requires:
-            - kurl_util_image
-      - build_staging_docker_image:
-          requires:
-            - kurl_util_image
-      - deploy_staging_eks:
-          requires:
-            - build_staging_docker_image
-            - upload_staging_packages
 
   tag:
     jobs:

@@ -14,8 +14,6 @@ function require() {
 
 require AWS_ACCESS_KEY_ID "${AWS_ACCESS_KEY_ID}"
 require AWS_SECRET_ACCESS_KEY "${AWS_SECRET_ACCESS_KEY}"
-require CIRCLE_NODE_TOTAL "${CIRCLE_NODE_TOTAL}"
-require CIRCLE_NODE_INDEX "${CIRCLE_NODE_INDEX}"
 require S3_BUCKET "${S3_BUCKET}"
 
 function pkgs() {
@@ -35,14 +33,19 @@ function docker_pkg() {
 function list_all_packages() {
     pkgs addons
     pkgs packages
-    echo "common.tar.gz"
     docker_pkg
 }
 
-for package in $(list_all_packages | sort | awk "NR % $CIRCLE_NODE_TOTAL == $CIRCLE_NODE_INDEX")
+# always build the common package
+make dist/common.tar.gz
+
+for package in $(list_all_packages)
 do
-    echo "Making $package"
-    make dist/$package
+    if ! aws s3api head-object --bucket=$S3_BUCKET --key=staging/$package &>/dev/null; then
+        make dist/$package
+    else
+        echo "s3://$S3_BUCKET/staging/$package already exists"
+    fi
 done
 
-aws s3 cp dist/ s3://$S3_BUCKET/dist --recursive
+aws s3 cp dist/ s3://$S3_BUCKET/staging --recursive

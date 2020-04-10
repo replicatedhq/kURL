@@ -33,15 +33,20 @@ interface BundleManifest {
 
 @Controller("/bundle")
 export class Bundle {
-  private distOrigin: string;
+  private distURL: string;
   private replicatedAppURL: string;
 
   constructor(
     private readonly templates: Templates,
     private readonly installers: InstallerStore,
   ) {
-    this.distOrigin = `https://${process.env["KURL_BUCKET"]}.s3.amazonaws.com`;
     this.replicatedAppURL = process.env["REPLICATED_APP_URL"] || "https://replicated.app";
+    this.distURL = `https://${process.env["KURL_BUCKET"]}.s3.amazonaws.com`;
+    if (process.env["NODE_ENV"] === "production") {
+      this.distURL += "/dist";
+    } else {
+      this.distURL += "/staging";
+    }
   }
 
   /**
@@ -67,7 +72,7 @@ export class Bundle {
     response.type("application/json");
 
     const ret: BundleManifest = {layers: [], files: {}};
-    ret.layers = installer.packages().map((pkg) => `${this.distOrigin}/dist/${pkg}.tar.gz`);
+    ret.layers = installer.packages().map((pkg) => `${this.distURL}/${pkg}.tar.gz`);
 
     const kotsadmApplicationSlug = _.get(installer.spec, "kotsadm.applicationSlug");
     if (kotsadmApplicationSlug) {

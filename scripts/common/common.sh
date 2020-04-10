@@ -253,7 +253,7 @@ function spinner_until() {
 
 function get_shared() {
     if [ "$AIRGAP" != "1" ] && [ -n "$DIST_URL" ]; then
-        curl -sSOL $DIST_URL/dist/common.tar.gz
+        curl -sSOL $DIST_URL/common.tar.gz
         tar xf common.tar.gz
         rm common.tar.gz
     fi
