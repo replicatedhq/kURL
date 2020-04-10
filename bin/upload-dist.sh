@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -euo pipefail
+set -eo pipefail
 
 function require() {
     if [ -z "$2" ]; then
@@ -33,17 +33,24 @@ function list_all_packages() {
     docker_pkg
 }
 
+function upload() {
+    local package="$1"
+
+    make dist/$package
+    aws s3 cp dist/$package s3://$S3_BUCKET/staging/
+    make clean
+    if [ -n "$DOCKER_PRUNE" ]; then
+        docker system prune --all --force
+    fi
+}
+
 # always build the common package
-make dist/common.tar.gz
-aws s3 cp dist/common.tar.gz s3://$S3_BUCKET/staging/
-make clean
+upload common.tar.gz
 
 for package in $(list_all_packages)
 do
     if ! aws s3api head-object --bucket=$S3_BUCKET --key=staging/$package &>/dev/null; then
-        make dist/$package
-        aws s3 cp dist/$package s3://$S3_BUCKET/staging/
-        make clean
+        upload $package
     else
         echo "s3://$S3_BUCKET/staging/$package already exists"
     fi
