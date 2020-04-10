@@ -1,23 +1,12 @@
-name: deploy-staging
+name: deploy-production
 
 on:
   push:
-    branches:
-    - master
+    tags:
+    - "v*.*.*"
 
 jobs:
-  build-upload-packages:
-    runs-on: ubuntu-18.04
-    steps:
-    - uses: actions/checkout@v2
-
-    - run: bin/upload-dist.sh
-      env:
-        S3_BUCKET: kurl-sh
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_PROD_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_PROD_SECRET_ACCESS_KEY }}
-
-  staging-docker-image:
+  production-docker-image:
     runs-on: ubuntu-18.04
     steps:
     - uses: actions/setup-go@v1
@@ -39,17 +28,17 @@ jobs:
     - run: |
         docker build -f deploy/Dockerfile-slim \
           --build-arg version=${GITHUB_SHA:0:7} \
-          -t 923411875752.dkr.ecr.us-east-1.amazonaws.com/kurl:${GITHUB_SHA:0:7} .
+          -t 799720048698.dkr.ecr.us-east-1.amazonaws.com/kurl:${GITHUB_SHA:0:7} .
 
     - run: |
         aws ecr get-login-password --region us-east-1 | docker login \
           --username AWS \
-          --password-stdin 923411875752.dkr.ecr.us-east-1.amazonaws.com
+          --password-stdin 799720048698.dkr.ecr.us-east-1.amazonaws.com
       env:
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_STAGING_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_STAGING_SECRET_ACCESS_KEY }}
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_PROD_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_PROD_SECRET_ACCESS_KEY }}
 
-    - run: docker push 923411875752.dkr.ecr.us-east-1.amazonaws.com/kurl:${GITHUB_SHA:0:7}
+    - run: docker push 799720048698.dkr.ecr.us-east-1.amazonaws.com/kurl:${GITHUB_SHA:0:7}
 
   kurl-util-image:
     runs-on: ubuntu-18.04
@@ -64,9 +53,25 @@ jobs:
         DOCKERHUB_DOCKER_PASS: ${{ secrets.DOCKERHUB_DOCKER_PASS }}
         DOCKERHUB_DOCKER_USER: ${{ secrets.DOCKERHUB_DOCKER_USER }}
 
-  deploy-staging-eks:
+  build-upload-packages:
     runs-on: ubuntu-18.04
-    needs: staging-docker-image
+    needs:
+    - production-docker-image
+    - kurl-util-image
+    steps:
+    - uses: actions/checkout@v2
+
+    - run: aws s3 sync s3://$S3_BUCKET/staging/ s3://$S3_BUCKET/dist/
+      env:
+        S3_BUCKET: kurl-sh
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_PROD_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_PROD_SECRET_ACCESS_KEY }}
+
+  deploy-production-eks:
+    runs-on: ubuntu-18.04
+    needs:
+    - production-docker-image
+    - kurl-util-image
     steps:
     - uses: actions/checkout@v2
 
@@ -79,8 +84,8 @@ jobs:
           xargs sudo curl -O -L && \
           sudo mv kustomize_*_linux_amd64 /usr/local/bin/kustomize && \
           sudo chmod +x /usr/local/bin/kustomize
-        pushd kustomize/overlays/staging
-        kustomize edit set image 923411875752.dkr.ecr.us-east-1.amazonaws.com/kurl:${GITHUB_SHA:0:7}
+        pushd kustomize/overlays/production
+        kustomize edit set image 799720048698.dkr.ecr.us-east-1.amazonaws.com/kurl:${GITHUB_SHA:0:7}
         kustomize build . > kurl.yaml
         popd
 
@@ -96,12 +101,12 @@ jobs:
 
     - name: release
       run: |
-        cd ~ && git clone --single-branch -b master git@github.com:replicatedcom/gitops-deploy
+        cd ~ && git clone --single-branch -b release git@github.com:replicatedcom/gitops-deploy
         mkdir -p ~/gitops-deploy/kurl
-        mv ${GITHUB_WORKSPACE}/kustomize/overlays/staging/kurl.yaml gitops-deploy/kurl/kurl.yaml
+        mv ${GITHUB_WORKSPACE}/kustomize/overlays/production/kurl.yaml gitops-deploy/kurl/kurl.yaml
         cd ~/gitops-deploy
         git config user.email "kurl-github-actions@replicated.com"
         git config user.name "kURL GitHub Actions"
         git add .
         git commit --allow-empty -m "https://github.com/replicatedhq/kURL/actions/runs/${GITHUB_RUN_ID}" && \
-          git push origin master
+          git push origin release
