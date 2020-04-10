@@ -1,8 +1,5 @@
 #!/bin/bash
 
-# Generate the list of all packages to be uploaded, then filter that based on CircleCI parallelism
-# environment variables.
-
 set -euo pipefail
 
 function require() {
