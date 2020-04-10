@@ -36,14 +36,14 @@ function list_all_packages() {
 # always build the common package
 make dist/common.tar.gz
 aws s3 cp dist/common.tar.gz s3://$S3_BUCKET/staging/
-rm dist/common.tar.gz
+make clean
 
 for package in $(list_all_packages)
 do
     if ! aws s3api head-object --bucket=$S3_BUCKET --key=staging/$package &>/dev/null; then
         make dist/$package
         aws s3 cp dist/$package s3://$S3_BUCKET/staging/
-        rm dist/$package
+        make clean
     else
         echo "s3://$S3_BUCKET/staging/$package already exists"
     fi
