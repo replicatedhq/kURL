@@ -21,11 +21,11 @@ export class Templates {
     this.kurlUtilImage = process.env["KURL_UTIL_IMAGE"] || "replicated/kurl-util:alpha";
 
     this.distURL = `https://${process.env["KURL_BUCKET"]}.s3.amazonaws.com`;
-		if (process.env["NODE_ENV"] === "production") {
-			this.distURL += "/dist";
-		} else {
-			this.distURL += "/staging";
-		}
+    if (process.env["NODE_ENV"] === "production") {
+      this.distURL += "/dist";
+    } else {
+      this.distURL += "/staging";
+    }
 
     const tmplDir = path.join(__dirname, "../../../../templates");
     const installTmplPath = path.join(tmplDir, "install.tmpl");
