@@ -42,8 +42,6 @@ spec:
               type: object
             docker:
               properties:
-                additionalNoProxy:
-                  type: string
                 bypassStorageDriverWarning:
                   type: boolean
                 daemonConfig:
@@ -54,23 +52,47 @@ spec:
                   type: boolean
                 noCEOnEE:
                   type: boolean
-                noDocker:
-                  type: boolean
+                preserveConfig:
+                  type: string
                 version:
                   type: string
               required:
               - version
               type: object
+            ekco:
+              properties:
+                minReadyMasterNodeCount:
+                  type: integer
+                minReadyWorkerNodeCount:
+                  type: integer
+                nodeUnreachableToleration:
+                  type: string
+                rookShouldUseAllNodes:
+                  type: boolean
+                shouldDisableRebootServices:
+                  type: string
+                version:
+                  type: string
+              required:
+              - minReadyMasterNodeCount
+              - minReadyWorkerNodeCount
+              - nodeUnreachableToleration
+              - rookShouldUseAllNodes
+              - shouldDisableRebootServices
+              - version
+              type: object
             firewalldConfig:
               properties:
-                enabled:
-                  type: boolean
+                firewalld:
+                  type: string
                 firewalldCmds:
                   items:
                     items:
                       type: string
                     type: array
                   type: array
+                preserveConfig:
+                  type: string
               type: object
             fluentd:
               properties:
@@ -81,7 +103,7 @@ spec:
               required:
               - version
               type: object
-            ipTablesConfig:
+            iptablesConfig:
               properties:
                 iptablesCmds:
                   items:
@@ -89,6 +111,8 @@ spec:
                       type: string
                     type: array
                   type: array
+                preserveConfig:
+                  type: string
               type: object
             kotsadm:
               properties:
@@ -218,6 +242,8 @@ spec:
                       type: string
                     type: array
                   type: array
+                preserveConfig:
+                  type: string
                 selinux:
                   type: string
                 semanageCmds:

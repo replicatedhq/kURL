@@ -17,7 +17,7 @@ function weave() {
         weave_warn_if_sleeve
     fi
 
-    if [ -n "$IP_ALLOC_RANGE" ]; then
+    if [ -n "$POD_CIDR" ]; then
         weave_patch_ip_alloc_range
     fi
 

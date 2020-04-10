@@ -214,6 +214,7 @@ function flags() {
                 # allow either /16 or 16 for subnet size
                 SERVICE_CIDR_RANGE=$(echo "$_value" | sed "s/\///")
                 ;;
+            # keep this
             installer-spec-file|installer_spec_file)
                 INSTALLER_SPEC_FILE="$_value"
                 ;;
