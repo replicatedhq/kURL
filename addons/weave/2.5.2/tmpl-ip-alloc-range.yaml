@@ -11,4 +11,4 @@ spec:
         - name: weave
           env:
           - name: IPALLOC_RANGE
-            value: $IP_ALLOC_RANGE
+            value: $POD_CIDR

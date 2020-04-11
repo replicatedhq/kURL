@@ -249,8 +249,12 @@ github.com/prometheus/procfs v0.0.2/go.mod h1:TjEm7ze935MbeOT/UhFTIMYKhuLP4wbCsT
 github.com/remyoudompheng/bigfft v0.0.0-20170806203942-52369c62f446/go.mod h1:uYEyJGbgTkfkS4+E/PavXkNJcbFIpEtjt2B0KDQ5+9M=
 github.com/replicatedhq/kurl v0.0.0-20200408215442-bdfa7f71f32f h1:8XpIOIcrMpuSReuTVbQI2TD+f4EuaYWJ756i4rKGyY4=
 github.com/replicatedhq/kurl v0.0.0-20200408215442-bdfa7f71f32f/go.mod h1:UuCug8Z5k9PVcsBLxjTN3BgBJFcvQXoc7lyR4VUUTTc=
+github.com/replicatedhq/kurl v0.0.0-20200410215757-9ff53d38521f h1:Xzh6/HrauDKTvl3/Aye7jqBudMlhkFczr6+AbJzBlHw=
 github.com/replicatedhq/kurl/kurlkinds v0.0.0-20200408215442-bdfa7f71f32f h1:q5qYWJGtbnhiNR++jYw6sCn3Sia2pXaO7CD3h3YzdeA=
 github.com/replicatedhq/kurl/kurlkinds v0.0.0-20200408215442-bdfa7f71f32f/go.mod h1:Vp5X4tM0KmahplYOvdRqs2NY2qy1amZ89zZBm9CDENw=
+github.com/replicatedhq/kurl/kurlkinds v0.0.0-20200410215757-9ff53d38521f h1:yFOf7lDMSKVUQBpNa8kKw0wleU+uAlclOCTLjqvlCkg=
+github.com/replicatedhq/kurl/kurlkinds v0.0.0-20200410224122-6dbdc289d39c h1:H3sgDEEcvmhhO8/wMF6c9H0AQbwsjmK/H18OiI0Zucg=
+github.com/replicatedhq/kurl/kurlkinds v0.0.0-20200410224122-6dbdc289d39c/go.mod h1:Vp5X4tM0KmahplYOvdRqs2NY2qy1amZ89zZBm9CDENw=
 github.com/rogpeppe/fastuuid v0.0.0-20150106093220-6724a57986af/go.mod h1:XWv6SoW27p1b0cqNHllgS5HIMJraePCO15w5zCzIWYg=
 github.com/russross/blackfriday v1.5.2/go.mod h1:JO/DiYxRf+HjHt06OyowR9PTA263kcR/rfWxYHBV53g=
 github.com/sergi/go-diff v1.0.0/go.mod h1:0CfEIISq7TuYL3j771MWULgwwjU+GofnZX9QAmXWZgo=

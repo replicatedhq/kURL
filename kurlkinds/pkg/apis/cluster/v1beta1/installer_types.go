@@ -50,7 +50,7 @@ type Docker struct {
 	DockerRegistryIP           string `json:"dockerRegistryIP,omitempty"`
 	HardFailOnLoopback         bool   `json:"hardFailOnLoopback,omitempty"`
 	NoCEOnEE                   bool   `json:"noCEOnEE,omitempty"`
-	PreserveConfig             string `json:"preserveConfig,omitempty"`
+	PreserveConfig             bool `json:"preserveConfig,omitempty"`
 	Version                    string `json:"version"`
 }
 
@@ -141,7 +141,7 @@ type Weave struct {
 
 type SelinuxConfig struct {
 	ChconCmds      [][]string `json:"chconCmds,omitempty"`
-	PreserveConfig string     `json:"preserveConfig,omitempty"`
+	PreserveConfig bool     `json:"preserveConfig,omitempty"`
 	Selinux        string     `json:"selinux,omitempty"`
 	SemanageCmds   [][]string `json:"semanageCmds,omitempty"`
 	Type           string     `json:"type,omitempty"`
@@ -149,13 +149,13 @@ type SelinuxConfig struct {
 
 type IptablesConfig struct {
 	IptablesCmds   [][]string `json:"iptablesCmds,omitempty"`
-	PreserveConfig string     `json:"preserveConfig,omitempty"`
+	PreserveConfig bool     `json:"preserveConfig,omitempty"`
 }
 
 type FirewalldConfig struct {
 	Firewalld      string     `json:"firewalld,omitempty"`
 	FirewalldCmds  [][]string `json:"firewalldCmds,omitempty"`
-	PreserveConfig string     `json:"preserveConfig,omitempty"`
+	PreserveConfig bool     `json:"preserveConfig,omitempty"`
 }
 
 type Ekco struct {

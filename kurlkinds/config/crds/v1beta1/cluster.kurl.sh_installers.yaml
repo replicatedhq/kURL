@@ -53,7 +53,7 @@ spec:
                 noCEOnEE:
                   type: boolean
                 preserveConfig:
-                  type: string
+                  type: boolean
                 version:
                   type: string
               required:
@@ -92,7 +92,7 @@ spec:
                     type: array
                   type: array
                 preserveConfig:
-                  type: string
+                  type: boolean
               type: object
             fluentd:
               properties:
@@ -112,7 +112,7 @@ spec:
                     type: array
                   type: array
                 preserveConfig:
-                  type: string
+                  type: boolean
               type: object
             kotsadm:
               properties:
@@ -243,7 +243,7 @@ spec:
                     type: array
                   type: array
                 preserveConfig:
-                  type: string
+                  type: boolean
                 selinux:
                   type: string
                 semanageCmds:

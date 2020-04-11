@@ -3,19 +3,19 @@ package main
 import (
 	"bytes"
 	"flag"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
-	"strings"
 	"reflect"
-	"fmt"
-	"strconv"
 	"sort"
+	"strconv"
+	"strings"
 
 	"github.com/pkg/errors"
 	kurlscheme "github.com/replicatedhq/kurl/kurlkinds/client/kurlclientset/scheme"
-	kurlversion "github.com/replicatedhq/kurl/pkg/version"
 	kurlv1beta1 "github.com/replicatedhq/kurl/kurlkinds/pkg/apis/cluster/v1beta1"
+	kurlversion "github.com/replicatedhq/kurl/pkg/version"
 	"k8s.io/client-go/kubernetes/scheme"
 )
 
@@ -69,78 +69,102 @@ func createMap(retrieved *kurlv1beta1.Installer) map[string]interface{} {
 	return dictionary
 }
 
+func checkIfSkippedVariable(yamlString string) bool {
+	skippedVariables := []string{
+		"Docker.DaemonConfig",
+		"Docker.PreserveConfig",
+		"FirewalldConfig.Firewalld",
+		"FirewalldConfig.FirewalldCmds",
+		"FirewalldConfig.PreserveConfig",
+		"IptablesConfig.IptablesCmds",
+		"IptablesConfig.PreserveConfig",
+		"SelinuxConfig.ChconCmds",
+		"SelinuxConfig.PreserveConfig",
+		"SelinuxConfig.Selinux",
+		"SelinuxConfig.SemanageCmds",
+		"SelinuxConfig.Type"}
+
+	for _, variable := range skippedVariables {
+		if variable == yamlString {
+			return true
+		}
+	}
+	return false
+}
+
 func convertToBash(kurlValues map[string]interface{}) (map[string]string, error) {
+	if kurlValues == nil{
+		return nil, errors.New("kurlValues map was nil")
+	}
+
 	bashLookup := map[string]string{
-		"Contour.Version" : "CONTOUR_VERSION",
+		"Contour.Version":                   "CONTOUR_VERSION",
 		"Docker.BypassStorageDriverWarning": "BYPASS_STORAGEDRIVER_WARNINGS",
-		"Docker.DockerRegistryIp": "DOCKER_REGISTRY_IP",
-		"Docker.HardFailOnLoopback": "HARD_FAIL_ON_LOOPBACK",
-		"Docker.NoCEOnEE": "NO_CE_ON_EE",
-		"Docker.NoDocker": "SKIP_DOCKER_INSTALL",
-		"Docker.Version": "DOCKER_VERSION",
-		"Ekco.MinReadyMasterNodeCount": "EKCO_MIN_READY_MASTER_NODE_COUNT",
-		"Ekco.MinReadyWorkerNodeCount": "EKCO_MIN_READY_WORKER_NODE_COUNT",
-		"Ekco.NodeUnreachableToleration": "EKCO_NODE_UNREACHABLE_TOLERATION_DURATION",
-		"Ekco.RookShouldUseAllNodes": "EKCO_ROOK_SHOULD_USE_ALL_NODES",
-		"Ekco.ShouldDisableRebootServices": "EKCO_SHOULD_DISABLE_REBOOT_SERVICE",
-		"Ekco.Version:" : "EKCO_VERSION",
-		"FirewalldConfig.Preserve": "PRESERVE_FIREWALLD_CONFIG",
-		"Fluentd.FullEFKStack": "FLUENTD_FULL_EFK_STACK",
-		"Fluentd.Version": "FLUENTD_VERSION",
-		"IptablesConfig.Preserve": "PRESERVE_IPTABLES_CONFIG",
-		"Kotsadm.ApplicationNamespace": "KOTSADM_APPLICATION_NAMESPACES",
-		"Kotsadm.ApplicationSlug": "KOTSADM_APPLICATION_SLUG",
-		"Kotsadm.Hostname": "KOTSADM_HOSTNAME",
-		"Kotsadm.UiBindPort": "KOTSADM_UI_BIND_PORT",
-		"Kotsadm.Version": "KOTSADM_VERSION",
-		"Kubernetes.BootstrapToken": "BOOTSTRAP_TOKEN",
-		"Kubernetes.BootstrapTokenTTL": "BOOTSTRAP_TOKEN_TTL",
-		"Kubernetes.CertKey": "CERT_KEY",
-		"Kubernetes.ControlPlane": "MASTER",
-		"Kubernetes.HACluster": "HA_CLUSTER",
-		"Kubernetes.KubeadmTokenCAHash": "KUBEADM_TOKEN",
-		//TODO deal with lba
+		"Docker.DockerRegistryIP":           "DOCKER_REGISTRY_IP",
+		"Docker.HardFailOnLoopback":         "HARD_FAIL_ON_LOOPBACK",
+		"Docker.NoCEOnEE":                   "NO_CE_ON_EE",
+		"Docker.Version":                    "DOCKER_VERSION",
+		"Ekco.MinReadyMasterNodeCount":      "EKCO_MIN_READY_MASTER_NODE_COUNT",
+		"Ekco.MinReadyWorkerNodeCount":      "EKCO_MIN_READY_WORKER_NODE_COUNT",
+		"Ekco.NodeUnreachableToleration":    "EKCO_NODE_UNREACHABLE_TOLERATION_DURATION",
+		"Ekco.RookShouldUseAllNodes":        "EKCO_ROOK_SHOULD_USE_ALL_NODES",
+		"Ekco.ShouldDisableRebootServices":  "EKCO_SHOULD_DISABLE_REBOOT_SERVICE",
+		"Ekco.Version":                      "EKCO_VERSION",
+		"FirewalldConfig.Preserve":          "PRESERVE_FIREWALLD_CONFIG",
+		"Fluentd.FullEFKStack":              "FLUENTD_FULL_EFK_STACK",
+		"Fluentd.Version":                   "FLUENTD_VERSION",
+		"IptablesConfig.Preserve":           "PRESERVE_IPTABLES_CONFIG",
+		"Kotsadm.ApplicationNamespace":      "KOTSADM_APPLICATION_NAMESPACES",
+		"Kotsadm.ApplicationSlug":           "KOTSADM_APPLICATION_SLUG",
+		"Kotsadm.Hostname":                  "KOTSADM_HOSTNAME",
+		"Kotsadm.UiBindPort":                "KOTSADM_UI_BIND_PORT",
+		"Kotsadm.Version":                   "KOTSADM_VERSION",
+		"Kubernetes.BootstrapToken":         "BOOTSTRAP_TOKEN",
+		"Kubernetes.BootstrapTokenTTL":      "BOOTSTRAP_TOKEN_TTL",
+		"Kubernetes.CertKey":                "CERT_KEY",
+		"Kubernetes.ControlPlane":           "MASTER",
+		"Kubernetes.HACluster":              "HA_CLUSTER",
+		"Kubernetes.KubeadmTokenCAHash":     "KUBEADM_TOKEN",
 		"Kubernetes.LoadBalancerAddress": "LOAD_BALANCER_ADDRESS",
-		"Kubernetes.MasterAddress": "KUBERNETES_MASTER_ADDR",
-		"Kubernetes.ServiceCIDR": "SERVICE_CIDR",
-		//TODO handle this sed
+		"Kubernetes.MasterAddress":       "KUBERNETES_MASTER_ADDR",
+		"Kubernetes.ServiceCIDR":         "SERVICE_CIDR",
 		"Kubernetes.ServiceCidrRange": "SERVICE_CIDR_RANGE",
-		"Kubernetes.Version": "KUBERNETES_VERSION",
-		//TODO deal multiple airgap
-		"Kurl.Airgap": "AIRGAP",
-		"Kurl.BypassFirewalldWarning": "BYPASS_FIREWALLD_WARNING",
-		"Kurl.HTTPProxy": "PROXY_ADDRESS",
-		"Kurl.HardFailOnFirewalld": "HARD_FAIL_ON_FIREWALLD",
-		"Kurl.HostnameCheck": "HOSTNAME_CHECK",
-		"Kurl.NoProxy": "NO_PROXY",
-		"Kurl.PrivateAddress": "PRIVATE_ADDRESS",
-		"Kurl.PublicAddress": "PUBLIC_ADDRESS",
-		"Kurl.Task": "TASK",
-		"Minio.Namespace": "MINIO_NAMESPACE",
-		"Minio.Version": "MINIO_VERSION",
-		"OpenEBS.CstorStorageClassName": "OPENEBS_CSTOR_STORAGE_CLASS",
-		"OpenEBS.IsCstorEnabled": "OPENEBS_CSTOR",
-		"OpenEBS.IsLocalPVEnabled": "OPENEBS_LOCALPV",
+		"Kubernetes.Version":          "KUBERNETES_VERSION",
+		"Kurl.Airgap":                     "AIRGAP",
+		"Kurl.BypassFirewalldWarning":     "BYPASS_FIREWALLD_WARNING",
+		"Kurl.HTTPProxy":                  "PROXY_ADDRESS",
+		"Kurl.HardFailOnFirewalld":        "HARD_FAIL_ON_FIREWALLD",
+		"Kurl.HostnameCheck":              "HOSTNAME_CHECK",
+		"Kurl.NoProxy":                    "NO_PROXY",
+		"Kurl.PrivateAddress":             "PRIVATE_ADDRESS",
+		"Kurl.PublicAddress":              "PUBLIC_ADDRESS",
+		"Kurl.Task":                       "TASK",
+		"Minio.Namespace":                 "MINIO_NAMESPACE",
+		"Minio.Version":                   "MINIO_VERSION",
+		"OpenEBS.CstorStorageClassName":   "OPENEBS_CSTOR_STORAGE_CLASS",
+		"OpenEBS.IsCstorEnabled":          "OPENEBS_CSTOR",
+		"OpenEBS.IsLocalPVEnabled":        "OPENEBS_LOCALPV",
 		"OpenEBS.LocalPVStorageClassName": "OPENEBS_LOCALPV_STORAGE_CLASS",
-		"OpenEBS.Namespace": "OPENEBS_VERSION",
-		"OpenEBS.Version": "OPENEBS_VERSION",
-		"Prometheus.Version": "PROMETHEUS_VERSION",
-		"Registry.Version": "REGISTRY_VERSION",
-		"Rook.BlockDeviceFilter": "ROOK_BLOCK_DEVICE_FILTER",
-		"Rook.CephReplicaCount": "CEPH_POOL_REPLICAS",
-		"Rook.IsBlockStorageEnabled": "ROOK_BLOCK_STORAGE_ENABLED",
-		"Rook.StorageClassName": "STORAGE_CLASS",
-		"Rook.Version": "ROOK_VERSION",
-		"SelinuxConfig.Preserve": "PRESERVE_SELINUX_CONFIG",
-		"Velero.DisableCLI": "VELERO_DISABLE_CLI",
-		"Velero.DisableRestic": "VELERO_DISABLE_RESTIC",
-		"Velero.LocalBucket": "VELERO_LOCAL_BUCKET",
-		"Velero.Namespace": "VELERO_LOCAL_BUCKET",
-		"Velero.Version": "VELERO_VERSION",
-		"Weave.PodCIDR": "POD_CIDR",
+		"OpenEBS.Namespace":               "OPENEBS_VERSION",
+		"OpenEBS.Version":                 "OPENEBS_VERSION",
+		"Prometheus.Version":              "PROMETHEUS_VERSION",
+		"Registry.Version":                "REGISTRY_VERSION",
+		"Rook.BlockDeviceFilter":          "ROOK_BLOCK_DEVICE_FILTER",
+		"Rook.CephReplicaCount":           "CEPH_POOL_REPLICAS",
+		"Rook.IsBlockStorageEnabled":      "ROOK_BLOCK_STORAGE_ENABLED",
+		"Rook.StorageClassName":           "STORAGE_CLASS",
+		"Rook.Version":                    "ROOK_VERSION",
+		"SelinuxConfig.Preserve":          "PRESERVE_SELINUX_CONFIG",
+		"Velero.DisableCLI":               "VELERO_DISABLE_CLI",
+		"Velero.DisableRestic":            "VELERO_DISABLE_RESTIC",
+		"Velero.LocalBucket":              "VELERO_LOCAL_BUCKET",
+		"Velero.Namespace":                "VELERO_LOCAL_BUCKET",
+		"Velero.Version":                  "VELERO_VERSION",
+		"Weave.PodCIDR":                   "POD_CIDR",
+		"Weave.IsEncryptionDisabled":      "ENCRYPT_NETWORK",
 		//TODO handle this sed
-		"Weave.PodCidrRange": "POD_CIDR_RANGE",
-		"Weave.Version": "WEAVE_VERSION",
+		"Weave.PodCidrRange":              "POD_CIDR_RANGE",
+		"Weave.Version":                   "WEAVE_VERSION",
 	}
 
 	finalDictionary := make(map[string]string)
@@ -148,12 +172,14 @@ func convertToBash(kurlValues map[string]interface{}) (map[string]string, error)
 	var bashVal string
 
 	for yamlKey, val := range kurlValues {
-
+		if checkIfSkippedVariable(yamlKey) == true {
+			//certain variables from the crd are handled by go binaries and not parsed into bash variables
+			continue
+		}
 
 		bashKey, ok := bashLookup[yamlKey]
-		if ok == false{
-			// return nil, fmt.Errorf("Install CRD does not have the kind %v, check spelling in lookup or update dependency", yamlKey)
-			continue
+		if ok == false {
+			return nil, fmt.Errorf("Installer CRD does not have the kind %v, check spelling in lookup or update dependency", yamlKey)
 		}
 
 		switch t := interface{}(val).(type) {
@@ -164,7 +190,7 @@ func convertToBash(kurlValues map[string]interface{}) (map[string]string, error)
 				bashVal = strconv.Itoa(t)
 			}
 		case string:
-			if t == ""{
+			if t == "" {
 				bashVal = ""
 			} else {
 				bashVal = "\"" + t + "\""
@@ -177,32 +203,45 @@ func convertToBash(kurlValues map[string]interface{}) (map[string]string, error)
 			}
 		}
 
+		if yamlKey == "Kubernetes.LoadBalancerAddress" && bashVal != "" {
+			finalDictionary["HA_CLUSTER"] = "1"
+		}
+
+		if yamlKey == "Kurl.Airgap" && bashVal != "" {
+			finalDictionary["NO_PROXY"] = "1"
+			finalDictionary["OFFLINE_DOCKER_INSTALL"] = "1"
+		}
+
+		if yamlKey == "Weave.PodCidrRange" || yamlKey == "Kubernetes.ServiceCidrRange" && bashVal != ""{
+			bashVal = strings.Replace(bashVal, "/", "", -1)
+		}
+
 		finalDictionary[bashKey] = bashVal
 	}
 
- 	//TODO account for aigrap getting multiple keys
+	//TODO account for aigrap getting multiple keys
 
-	return finalDictionary
+	return finalDictionary, nil
 }
 
 func writeDictionaryToFile(bashDictionary map[string]string, bashPath string) error {
 	var variables []string
 
 	for k, v := range bashDictionary {
-		variables = append(variables, k + "=" + v)
+		variables = append(variables, k+"="+v)
 	}
 
 	sort.Strings(variables)
 
-    f, err := os.Create(bashPath)
+	f, err := os.Create(bashPath)
 	if err != nil {
-        return errors.Wrap("failed to write bash variables to file")
-    }
-    defer f.Close()
+		return errors.Wrap(err, "failed to write bash variables to file")
+	}
+	defer f.Close()
 
-    for _, value := range variables {
-       fmt.Fprintln(f, value)  // print values to f, one per line
-    }
+	for _, value := range variables {
+		fmt.Fprintln(f, value) // print values to f, one per line
+	}
 
 	return nil
 }
@@ -217,7 +256,7 @@ func addBashVariablesFromYaml(yamlPath, bashPath string) error {
 
 	bashDictionary, err := convertToBash(yamlDictionary)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "failed to convert to bash")
 	}
 
 	err = writeDictionaryToFile(bashDictionary, bashPath)
@@ -233,7 +272,7 @@ func main() {
 
 	version := flag.Bool("v", false, "Print version info")
 	installerYAMLPath := flag.String("i", "", "installer YAML for kURL script")
-	bashVariablesPath := flag.String("b", "", "the path for the temp file of bash variables")
+	bashVariablesPath := flag.String("b", "", "the path for the out file of bash variables")
 
 	flag.Parse()
 
