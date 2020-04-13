@@ -6,6 +6,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-18.04
+    steps:
     - uses: actions/checkout@v2
 
     - env:
@@ -14,7 +15,7 @@ jobs:
         PKG: ${{ github.event.client_payload.package }}
       run: |
         git fetch --tags
-        tag=$(git tag | grep '^20' | sort | tail -1)
+        tag=$(git tag | grep '^v20' | sort | tail -1)
         git checkout $tag
         export KURL_UTIL_IMAGE=replicated/kurl-util:$tag
         make dist/$PKG
