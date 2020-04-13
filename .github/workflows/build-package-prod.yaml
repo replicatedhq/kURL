@@ -1,6 +1,7 @@
 name: build-package-prod
-on: repository_dispatch
-  types: [build-package-prod]
+on:
+  repository_dispatch:
+    types: [build-package-prod]
 
 jobs:
   build:
