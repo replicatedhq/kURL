@@ -1,6 +1,7 @@
 name: build-package-staging
-on: repository_dispatch
-  types: [build-package-staging]
+on:
+  repository_dispatch:
+    types: [build-package-staging]
 
 jobs:
   build:
