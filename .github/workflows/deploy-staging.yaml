@@ -6,8 +6,22 @@ on:
     - master
 
 jobs:
+  kurl-util-image:
+    runs-on: ubuntu-18.04
+    steps:
+    - uses: actions/checkout@v2
+    - run: |
+        set -veuo pipefail
+        source bin/kurl-util-image-export.sh
+        echo "$DOCKERHUB_DOCKER_PASS" | docker login -u $DOCKERHUB_DOCKER_USER --password-stdin
+        make -C kurl_util build-and-push-kurl-util-image
+      env:
+        DOCKERHUB_DOCKER_PASS: ${{ secrets.DOCKERHUB_DOCKER_PASS }}
+        DOCKERHUB_DOCKER_USER: ${{ secrets.DOCKERHUB_DOCKER_USER }}
+
   build-upload-packages:
     runs-on: ubuntu-18.04
+    needs: kurl-util-image
     steps:
     - uses: actions/checkout@v2
 
@@ -51,19 +65,6 @@ jobs:
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_STAGING_SECRET_ACCESS_KEY }}
 
     - run: docker push 923411875752.dkr.ecr.us-east-1.amazonaws.com/kurl:${GITHUB_SHA:0:7}
-
-  kurl-util-image:
-    runs-on: ubuntu-18.04
-    steps:
-    - uses: actions/checkout@v2
-    - run: |
-        set -veuo pipefail
-        source bin/kurl-util-image-export.sh
-        echo "$DOCKERHUB_DOCKER_PASS" | docker login -u $DOCKERHUB_DOCKER_USER --password-stdin
-        make -C kurl_util build-and-push-kurl-util-image
-      env:
-        DOCKERHUB_DOCKER_PASS: ${{ secrets.DOCKERHUB_DOCKER_PASS }}
-        DOCKERHUB_DOCKER_USER: ${{ secrets.DOCKERHUB_DOCKER_USER }}
 
   deploy-staging-eks:
     runs-on: ubuntu-18.04
