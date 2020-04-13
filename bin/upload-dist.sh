@@ -13,26 +13,6 @@ require AWS_ACCESS_KEY_ID "${AWS_ACCESS_KEY_ID}"
 require AWS_SECRET_ACCESS_KEY "${AWS_SECRET_ACCESS_KEY}"
 require S3_BUCKET "${S3_BUCKET}"
 
-function pkgs() {
-    for dir in $(find $1 -mindepth 2 -maxdepth 2 -type d)
-    do
-        local name=$(echo $dir | awk -F "/" '{print $2 }')
-        local version=$(echo $dir | awk -F "/" '{print $3 }')
-        echo "${name}-${version}.tar.gz"
-    done
-}
-
-function docker_pkg() {
-    echo "docker-18.09.8.tar.gz"
-    echo "docker-19.03.4.tar.gz"
-}
-
-function list_all_packages() {
-    pkgs addons
-    pkgs packages
-    docker_pkg
-}
-
 function upload() {
     local package="$1"
 
@@ -47,7 +27,7 @@ function upload() {
 # always build the common package
 upload common.tar.gz
 
-for package in $(list_all_packages)
+for package in $(bin/list-all-packages.sh)
 do
     if [ -n "$REPLACE_PACKAGES" ] || ! aws s3api head-object --bucket=$S3_BUCKET --key=staging/$package &>/dev/null; then
         upload $package
