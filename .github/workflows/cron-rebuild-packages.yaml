@@ -10,5 +10,5 @@ jobs:
     - uses: actions/checkout@v2
 
     - env:
-        GITHUB_PAT: ${{ secrets.GITHUB_PAT }}
+        GH_PAT: ${{ secrets.GH_PAT }}
       run: bin/trigger-package-rebuilds.sh

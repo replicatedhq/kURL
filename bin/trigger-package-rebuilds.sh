@@ -9,16 +9,16 @@ function require() {
     fi
 }
 
-require GITHUB_PAT "${GITHUB_PAT}"
+require GH_PAT "${GH_PAT}"
 
 for package in $(bin/list-all-packages.sh)
 do
-	curl -H "Authorization: token $GITHUB_PAT" \
+	curl -H "Authorization: token $GH_PAT" \
 		-H 'Accept: application/json' \
 		-d "{\"event_type\": \"build-package-prod\", \"client_payload\": {\"package\": \"${package}\"}}"
 		"https://api.github.com/repos/replicatedhq/kurl/dispatches"
 
-	curl -H "Authorization: token $GITHUB_PAT" \
+	curl -H "Authorization: token $GH_PAT" \
 		-H 'Accept: application/json' \
 		-d "{\"event_type\": \"build-package-staging\", \"client_payload\": {\"package\": \"${package}\"}}"
 		"https://api.github.com/repos/replicatedhq/kurl/dispatches"
