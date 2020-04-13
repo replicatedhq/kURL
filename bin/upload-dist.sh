@@ -29,7 +29,7 @@ upload common.tar.gz
 
 for package in $(bin/list-all-packages.sh)
 do
-    if [ -n "$REPLACE_PACKAGES" ] || ! aws s3api head-object --bucket=$S3_BUCKET --key=staging/$package &>/dev/null; then
+    if ! aws s3api head-object --bucket=$S3_BUCKET --key=staging/$package &>/dev/null; then
         upload $package
     else
         echo "s3://$S3_BUCKET/staging/$package already exists"
