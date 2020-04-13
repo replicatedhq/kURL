@@ -37,6 +37,7 @@ type InstallerSpec struct {
 	SelinuxConfig   SelinuxConfig   `json:"selinuxConfig,omitempty"`
 	IptablesConfig  IptablesConfig  `json:"iptablesConfig,omitempty"`
 	FirewalldConfig FirewalldConfig `json:"firewalldConfig,omitempty"`
+	Ekco            Ekco            `json:"ekco,omitempty"`
 }
 
 type Contour struct {
@@ -44,14 +45,13 @@ type Contour struct {
 }
 
 type Docker struct {
-	AdditionalNoProxy          string `json:"additionalNoProxy,omitempty"`
 	BypassStorageDriverWarning bool   `json:"bypassStorageDriverWarning,omitempty"`
+	DaemonConfig               string `json:"daemonConfig,omitempty"`
 	DockerRegistryIP           string `json:"dockerRegistryIP,omitempty"`
 	HardFailOnLoopback         bool   `json:"hardFailOnLoopback,omitempty"`
 	NoCEOnEE                   bool   `json:"noCEOnEE,omitempty"`
-	NoDocker                   bool   `json:"noDocker,omitempty"`
+	PreserveConfig             bool   `json:"preserveConfig,omitempty"`
 	Version                    string `json:"version"`
-	DaemonConfig               string `json:"daemonConfig,omitempty"`
 }
 
 type Fluentd struct {
@@ -99,10 +99,10 @@ type Minio struct {
 }
 
 type OpenEBS struct {
+	CstorStorageClassName   string `json:"cstorStorageClassName,omitempty"`
+	IsCstorEnabled          bool   `json:"isCstorEnabled,omitempty"`
 	IsLocalPVEnabled        bool   `json:"isLocalPVEnabled,omitempty"`
 	LocalPVStorageClassName string `json:"localPVStorageClassName,omitempty"`
-	IsCstorEnabled          bool   `json:"isCstorEnabled,omitempty"`
-	CstorStorageClassName   string `json:"cstorStorageClassName,omitempty"`
 	Namespace               string `json:"namespace,omitempty"`
 	Version                 string `json:"version"`
 }
@@ -117,42 +117,54 @@ type Registry struct {
 }
 
 type Rook struct {
+	BlockDeviceFilter     string `json:"blockDeviceFilter,omitempty"`
 	CephReplicaCount      int    `json:"cephReplicaCount,omitempty"`
+	IsBlockStorageEnabled bool   `json:"isBlockStorageEnabled,omitempty"`
 	StorageClassName      string `json:"storageClassName,omitempty"`
 	Version               string `json:"version"`
-	IsBlockStorageEnabled bool   `json:"isBlockStorageEnabled,omitempty"`
-	BlockDeviceFilter     string `json:"blockDeviceFilter,omitempty"`
 }
 
 type Velero struct {
-	DisableRestic bool   `json:"disableRestic,omitempty"`
 	DisableCLI    bool   `json:"disableCLI,omitempty"`
+	DisableRestic bool   `json:"disableRestic,omitempty"`
 	LocalBucket   string `json:"localBucket,omitempty"`
 	Namespace     string `json:"namespace,omitempty"`
 	Version       string `json:"version"`
 }
 
 type Weave struct {
-	isEncryptionDisabled bool   `json:"isEncryptionDisabled,omitempty"`
+	IsEncryptionDisabled bool   `json:"isEncryptionDisabled,omitempty"`
 	PodCIDR              string `json:"podCIDR,omitempty"`
 	PodCidrRange         string `json:"podCidrRange,omitempty"`
 	Version              string `json:"version"`
 }
 
 type SelinuxConfig struct {
-	Selinux      string     `json:"selinux,omitempty"`
-	Type         string     `json:"type,omitempty"`
-	SemanageCmds [][]string `json:"semanageCmds,omitempty"`
-	ChconCmds    [][]string `json:"chconCmds,omitempty"`
+	ChconCmds      [][]string `json:"chconCmds,omitempty"`
+	PreserveConfig bool       `json:"preserveConfig,omitempty"`
+	Selinux        string     `json:"selinux,omitempty"`
+	SemanageCmds   [][]string `json:"semanageCmds,omitempty"`
+	Type           string     `json:"type,omitempty"`
 }
 
 type IptablesConfig struct {
-	IptablesCmds [][]string `json:"iptablesCmds,omitempty"`
+	IptablesCmds   [][]string `json:"iptablesCmds,omitempty"`
+	PreserveConfig bool       `json:"preserveConfig,omitempty"`
 }
 
 type FirewalldConfig struct {
-	Firewalld     string     `json:"firewalld,omitempty"`
-	FirewalldCmds [][]string `json:"firewalldCmds,omitempty"`
+	Firewalld      string     `json:"firewalld,omitempty"`
+	FirewalldCmds  [][]string `json:"firewalldCmds,omitempty"`
+	PreserveConfig bool       `json:"preserveConfig,omitempty"`
+}
+
+type Ekco struct {
+	MinReadyMasterNodeCount     int    `json:"minReadyMasterNodeCount,omitEmpty"`
+	MinReadyWorkerNodeCount     int    `json:"minReadyWorkerNodeCount,omitEmpty"`
+	NodeUnreachableToleration   string `json:"nodeUnreachableToleration,omitEmpty"`
+	RookShouldUseAllNodes       bool   `json:"rookShouldUseAllNodes,omitEmpty"`
+	ShouldDisableRebootServices string `json:"shouldDisableRebootServices,omitEmpty"`
+	Version                     string `json:"version"`
 }
 
 // InstallerStatus defines the observed state of Installer
