@@ -72,14 +72,10 @@ func createMap(retrieved *kurlv1beta1.Installer) map[string]interface{} {
 func checkIfSkippedVariable(yamlString string) bool {
 	skippedVariables := []string{
 		"Docker.DaemonConfig",
-		"Docker.PreserveConfig",
 		"FirewalldConfig.Firewalld",
 		"FirewalldConfig.FirewalldCmds",
-		"FirewalldConfig.PreserveConfig",
 		"IptablesConfig.IptablesCmds",
-		"IptablesConfig.PreserveConfig",
 		"SelinuxConfig.ChconCmds",
-		"SelinuxConfig.PreserveConfig",
 		"SelinuxConfig.Selinux",
 		"SelinuxConfig.SemanageCmds",
 		"SelinuxConfig.Type"}
@@ -93,7 +89,7 @@ func checkIfSkippedVariable(yamlString string) bool {
 }
 
 func convertToBash(kurlValues map[string]interface{}) (map[string]string, error) {
-	if kurlValues == nil{
+	if kurlValues == nil {
 		return nil, errors.New("kurlValues map was nil")
 	}
 
@@ -103,6 +99,7 @@ func convertToBash(kurlValues map[string]interface{}) (map[string]string, error)
 		"Docker.DockerRegistryIP":           "DOCKER_REGISTRY_IP",
 		"Docker.HardFailOnLoopback":         "HARD_FAIL_ON_LOOPBACK",
 		"Docker.NoCEOnEE":                   "NO_CE_ON_EE",
+		"Docker.PreserveConfig":             "PRESERVE_DOCKER_CONFIG",
 		"Docker.Version":                    "DOCKER_VERSION",
 		"Ekco.MinReadyMasterNodeCount":      "EKCO_MIN_READY_MASTER_NODE_COUNT",
 		"Ekco.MinReadyWorkerNodeCount":      "EKCO_MIN_READY_WORKER_NODE_COUNT",
@@ -112,8 +109,9 @@ func convertToBash(kurlValues map[string]interface{}) (map[string]string, error)
 		"Ekco.Version":                      "EKCO_VERSION",
 		"FirewalldConfig.Preserve":          "PRESERVE_FIREWALLD_CONFIG",
 		"Fluentd.FullEFKStack":              "FLUENTD_FULL_EFK_STACK",
+		"FirewalldConfig.PreserveConfig":    "PRESERVE_FIREWALLD_CONFIG",
 		"Fluentd.Version":                   "FLUENTD_VERSION",
-		"IptablesConfig.Preserve":           "PRESERVE_IPTABLES_CONFIG",
+		"IptablesConfig.PreserveConfig":     "PRESERVE_IPTABLES_CONFIG",
 		"Kotsadm.ApplicationNamespace":      "KOTSADM_APPLICATION_NAMESPACES",
 		"Kotsadm.ApplicationSlug":           "KOTSADM_APPLICATION_SLUG",
 		"Kotsadm.Hostname":                  "KOTSADM_HOSTNAME",
@@ -125,46 +123,45 @@ func convertToBash(kurlValues map[string]interface{}) (map[string]string, error)
 		"Kubernetes.ControlPlane":           "MASTER",
 		"Kubernetes.HACluster":              "HA_CLUSTER",
 		"Kubernetes.KubeadmTokenCAHash":     "KUBEADM_TOKEN",
-		"Kubernetes.LoadBalancerAddress": "LOAD_BALANCER_ADDRESS",
-		"Kubernetes.MasterAddress":       "KUBERNETES_MASTER_ADDR",
-		"Kubernetes.ServiceCIDR":         "SERVICE_CIDR",
-		"Kubernetes.ServiceCidrRange": "SERVICE_CIDR_RANGE",
-		"Kubernetes.Version":          "KUBERNETES_VERSION",
-		"Kurl.Airgap":                     "AIRGAP",
-		"Kurl.BypassFirewalldWarning":     "BYPASS_FIREWALLD_WARNING",
-		"Kurl.HTTPProxy":                  "PROXY_ADDRESS",
-		"Kurl.HardFailOnFirewalld":        "HARD_FAIL_ON_FIREWALLD",
-		"Kurl.HostnameCheck":              "HOSTNAME_CHECK",
-		"Kurl.NoProxy":                    "NO_PROXY",
-		"Kurl.PrivateAddress":             "PRIVATE_ADDRESS",
-		"Kurl.PublicAddress":              "PUBLIC_ADDRESS",
-		"Kurl.Task":                       "TASK",
-		"Minio.Namespace":                 "MINIO_NAMESPACE",
-		"Minio.Version":                   "MINIO_VERSION",
-		"OpenEBS.CstorStorageClassName":   "OPENEBS_CSTOR_STORAGE_CLASS",
-		"OpenEBS.IsCstorEnabled":          "OPENEBS_CSTOR",
-		"OpenEBS.IsLocalPVEnabled":        "OPENEBS_LOCALPV",
-		"OpenEBS.LocalPVStorageClassName": "OPENEBS_LOCALPV_STORAGE_CLASS",
-		"OpenEBS.Namespace":               "OPENEBS_VERSION",
-		"OpenEBS.Version":                 "OPENEBS_VERSION",
-		"Prometheus.Version":              "PROMETHEUS_VERSION",
-		"Registry.Version":                "REGISTRY_VERSION",
-		"Rook.BlockDeviceFilter":          "ROOK_BLOCK_DEVICE_FILTER",
-		"Rook.CephReplicaCount":           "CEPH_POOL_REPLICAS",
-		"Rook.IsBlockStorageEnabled":      "ROOK_BLOCK_STORAGE_ENABLED",
-		"Rook.StorageClassName":           "STORAGE_CLASS",
-		"Rook.Version":                    "ROOK_VERSION",
-		"SelinuxConfig.Preserve":          "PRESERVE_SELINUX_CONFIG",
-		"Velero.DisableCLI":               "VELERO_DISABLE_CLI",
-		"Velero.DisableRestic":            "VELERO_DISABLE_RESTIC",
-		"Velero.LocalBucket":              "VELERO_LOCAL_BUCKET",
-		"Velero.Namespace":                "VELERO_LOCAL_BUCKET",
-		"Velero.Version":                  "VELERO_VERSION",
-		"Weave.PodCIDR":                   "POD_CIDR",
-		"Weave.IsEncryptionDisabled":      "ENCRYPT_NETWORK",
-		//TODO handle this sed
-		"Weave.PodCidrRange":              "POD_CIDR_RANGE",
-		"Weave.Version":                   "WEAVE_VERSION",
+		"Kubernetes.LoadBalancerAddress":    "LOAD_BALANCER_ADDRESS",
+		"Kubernetes.MasterAddress":          "KUBERNETES_MASTER_ADDR",
+		"Kubernetes.ServiceCIDR":            "SERVICE_CIDR",
+		"Kubernetes.ServiceCidrRange":       "SERVICE_CIDR_RANGE",
+		"Kubernetes.Version":                "KUBERNETES_VERSION",
+		"Kurl.Airgap":                       "AIRGAP",
+		"Kurl.BypassFirewalldWarning":       "BYPASS_FIREWALLD_WARNING",
+		"Kurl.HTTPProxy":                    "PROXY_ADDRESS",
+		"Kurl.HardFailOnFirewalld":          "HARD_FAIL_ON_FIREWALLD",
+		"Kurl.HostnameCheck":                "HOSTNAME_CHECK",
+		"Kurl.NoProxy":                      "NO_PROXY",
+		"Kurl.PrivateAddress":               "PRIVATE_ADDRESS",
+		"Kurl.PublicAddress":                "PUBLIC_ADDRESS",
+		"Kurl.Task":                         "TASK",
+		"Minio.Namespace":                   "MINIO_NAMESPACE",
+		"Minio.Version":                     "MINIO_VERSION",
+		"OpenEBS.CstorStorageClassName":     "OPENEBS_CSTOR_STORAGE_CLASS",
+		"OpenEBS.IsCstorEnabled":            "OPENEBS_CSTOR",
+		"OpenEBS.IsLocalPVEnabled":          "OPENEBS_LOCALPV",
+		"OpenEBS.LocalPVStorageClassName":   "OPENEBS_LOCALPV_STORAGE_CLASS",
+		"OpenEBS.Namespace":                 "OPENEBS_VERSION",
+		"OpenEBS.Version":                   "OPENEBS_VERSION",
+		"Prometheus.Version":                "PROMETHEUS_VERSION",
+		"Registry.Version":                  "REGISTRY_VERSION",
+		"Rook.BlockDeviceFilter":            "ROOK_BLOCK_DEVICE_FILTER",
+		"Rook.CephReplicaCount":             "CEPH_POOL_REPLICAS",
+		"Rook.IsBlockStorageEnabled":        "ROOK_BLOCK_STORAGE_ENABLED",
+		"Rook.StorageClassName":             "STORAGE_CLASS",
+		"Rook.Version":                      "ROOK_VERSION",
+		"SelinuxConfig.Preserve":            "PRESERVE_SELINUX_CONFIG",
+		"Velero.DisableCLI":                 "VELERO_DISABLE_CLI",
+		"Velero.DisableRestic":              "VELERO_DISABLE_RESTIC",
+		"Velero.LocalBucket":                "VELERO_LOCAL_BUCKET",
+		"Velero.Namespace":                  "VELERO_LOCAL_BUCKET",
+		"Velero.Version":                    "VELERO_VERSION",
+		"Weave.PodCIDR":                     "POD_CIDR",
+		"Weave.IsEncryptionDisabled":        "ENCRYPT_NETWORK",
+		"Weave.PodCidrRange":                "POD_CIDR_RANGE",
+		"Weave.Version":                     "WEAVE_VERSION",
 	}
 
 	finalDictionary := make(map[string]string)
@@ -212,7 +209,7 @@ func convertToBash(kurlValues map[string]interface{}) (map[string]string, error)
 			finalDictionary["OFFLINE_DOCKER_INSTALL"] = "1"
 		}
 
-		if yamlKey == "Weave.PodCidrRange" || yamlKey == "Kubernetes.ServiceCidrRange" && bashVal != ""{
+		if yamlKey == "Weave.PodCidrRange" || yamlKey == "Kubernetes.ServiceCidrRange" && bashVal != "" {
 			bashVal = strings.Replace(bashVal, "/", "", -1)
 		}
 
