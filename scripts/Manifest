@@ -20,4 +20,4 @@ REPLICATED_APP_URL=https://replicated.app
 FLAGS=""
 INSTALLER_YAML=
 KURL_UTIL_IMAGE=replicated/kurl-util:alpha
-KURL_UTIL_BINARIES=https://github.com/replicatedhq/kURL/releases/download/utils-alpha/kurl_util.tgz
+KURL_BIN_UTILS_FILE=staging/kurl-bin-utils-latest.tar.gz

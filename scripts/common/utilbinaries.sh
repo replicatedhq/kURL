@@ -1,19 +1,27 @@
+
 function download_util_binaries() {
-    curl -Ss -L $KURL_UTIL_BINARIES -o /tmp/kurl_util.tgz
-    tar zxf /tmp/kurl_util.tgz -C /tmp
+    if [ "$AIRGAP" != "1" ]; then
+        curl -Ss -L https://kurl-sh.s3.amazonaws.com/$KURL_BIN_UTILS_FILE -o /tmp/kurl-bin-utils.tgz
+        mkdir -p /tmp/kurl-bin-utils
+        tar zxf /tmp/kurl-bin-utils.tgz -C /tmp/kurl-bin-utils
+    else
+        tar zxf shared/$KURL_BIN_UTILS_FILE -C /tmp
+    fi
 
-    BIN_SYSTEM_CONFIG=/tmp/kurl_util/bin/config
-    BIN_YAMLUTIL=/tmp/kurl_util/bin/yamlutil
-    BIN_DOCKER_CONFIG=/tmp/kurl_util/bin/docker-config
-    BIN_SUBNET=/tmp/kurl_util/bin/subnet
-    BIN_INSTALLERMERGE=/tmp/kurl_util/bin/installermerge
-    BIN_YAMLTOBASH=/tmp/kurl_util/bin/yamltobash
+    BIN_SYSTEM_CONFIG=/tmp/kurl-bin-utils/bin/config
+    BIN_YAMLUTIL=/tmp/kurl-bin-utils/bin/yamlutil
+    BIN_DOCKER_CONFIG=/tmp/kurl-bin-utils/bin/docker-config
+    BIN_SUBNET=/tmp/kurl-bin-utils/bin/subnet
+    BIN_INSTALLERMERGE=/tmp/kurl-bin-utils/bin/installermerge
+    BIN_YAMLTOBASH=/tmp/kurl-bin-utils/bin/yamltobash
 
-    MERGED_YAML_SPEC=/tmp/kurl_util/specs/merged.yaml
+    mkdir -p /tmp/kurl-bin-utils/specs
+    MERGED_YAML_SPEC=/tmp/kurl-bin-utils/specs/merged.yaml
 
-    CONFIGURE_SELINUX_SCRIPT=/tmp/kurl_util/scripts/configure_selinux.sh
-    CONFIGURE_FIREWALLD_SCRIPT=/tmp/kurl_util/scripts/configure_firewalld.sh
-    CONFIGURE_IPTABLES_SCRIPT=/tmp/kurl_util/scripts/configure_iptables.sh
+    mkdir -p /tmp/kurl-bin-utils/scripts
+    CONFIGURE_SELINUX_SCRIPT=/tmp/kurl-bin-utils/scripts/configure_selinux.sh
+    CONFIGURE_FIREWALLD_SCRIPT=/tmp/kurl-bin-utils/scripts/configure_firewalld.sh
+    CONFIGURE_IPTABLES_SCRIPT=/tmp/kurl-bin-utils/scripts/configure_iptables.sh
 }
 
 function merge_yaml_specs() {
