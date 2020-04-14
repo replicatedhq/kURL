@@ -7,7 +7,6 @@ function download_util_binaries() {
     BIN_DOCKER_CONFIG=/tmp/kurl_util/bin/docker-config
     BIN_SUBNET=/tmp/kurl_util/bin/subnet
     BIN_INSTALLERMERGE=/tmp/kurl_util/bin/installermerge
-    BIN_YAMLTOBASH=/tmp/kurl_util/bin/yamltobash
 
     MERGED_YAML_SPEC=/tmp/kurl_util/specs/merged.yaml
 
