@@ -183,6 +183,9 @@ func processFirewalldConfig(installer *kurlv1beta1.Installer, execCmds bool, gen
 			scriptLines = append(scriptLines, "systemctl start firewalld")
 			scriptLines = append(scriptLines, "systemctl enable firewalld")
 		case "disabled":
+			scriptLines = append(scriptLines, "if ! systemctl -q is-active firewalld ; then")
+			scriptLines = append(scriptLines, "	return")
+			scriptLines = append(scriptLines, "fi")
 			scriptLines = append(scriptLines, "systemctl stop firewalld")
 			scriptLines = append(scriptLines, "systemctl disable firewalld")
 		default:

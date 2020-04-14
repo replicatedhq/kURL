@@ -14,15 +14,20 @@ jobs:
         go-version: 1.12.17
 
     - name: setup env
+      id: env
       run: |
         echo "::set-env name=GOPATH::$(go env GOPATH)"
         echo "::add-path::$(go env GOPATH)/bin"
+        echo "::set-output name=VERSION_TAG::${GITHUB_REF/refs\/tags\//}"
       shell: bash
 
     - uses: actions/checkout@v2
 
-    - run: make -C web deps build
+    - run: make -C kurl_util build
+      env:
+        VERSION_TAG: ${{ env.VERSION_TAG }}
 
+    - run: make -C web deps build
     - run: make web
 
     - run: |

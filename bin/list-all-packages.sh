@@ -15,6 +15,12 @@ function list_all_packages() {
     echo "docker-18.09.8.tar.gz"
     echo "docker-19.03.4.tar.gz"
     echo "common.tar.gz"
+    if [ -z "$VERSION_TAG" ]
+    then
+        echo "kurl-bin-utils-latest.tar.gz"
+    else
+        echo "kurl-bin-utils-${VERSION_TAG}.tar.gz"
+    fi
 }
 
 list_all_packages

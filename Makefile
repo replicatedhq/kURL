@@ -1,5 +1,6 @@
 SHELL := /bin/bash
 KURL_UTIL_IMAGE ?= replicated/kurl-util:alpha
+KURL_BIN_UTILS_FILE ?= staging/kurl-bin-utils-latest.tar.gz
 
 GIT_TREE = $(shell git rev-parse --is-inside-work-tree 2>/dev/null)
 ifneq "$(GIT_TREE)" ""
@@ -29,6 +30,11 @@ dist/common.tar.gz: build/kustomize build/shared build/krew build/kurlkinds
 	tar rf dist/common.tar -C build krew
 	tar rf dist/common.tar -C build kurlkinds
 	gzip dist/common.tar
+
+dist/kurl-bin-utils-%.tar.gz:
+	mkdir -p dist
+	make -C kurl_util build
+	tar -C ./kurl_util -czvf ./dist/kurl-bin-utils-$*.tar.gz bin
 
 dist/aws-%.tar.gz: build/addons
 	mkdir -p dist
