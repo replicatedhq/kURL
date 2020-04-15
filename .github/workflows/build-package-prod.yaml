@@ -18,7 +18,7 @@ jobs:
         tag=$(git tag | grep '^v20' | sort | tail -1)
         git checkout $tag
         export KURL_UTIL_IMAGE=replicated/kurl-util:$tag
-        export KURL_BIN_UTILS_FILE=staging/kurl-bin-utils-$tag.tar.gz
+        export KURL_BIN_UTILS_FILE=kurl-bin-utils-$tag.tar.gz
         make dist/kurl-bin-utils-$tag.tar.gz:
         make dist/$PKG
         aws s3 cp dist/$PKG s3://kurl-sh/test/

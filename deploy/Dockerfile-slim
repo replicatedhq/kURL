@@ -8,7 +8,7 @@ ARG version=unknown
 ENV VERSION=$version
 
 ARG version_tag="latest"
-ENV KURL_BIN_UTILS_FILE=staging/kurl-bin-utils-${version_tag}.tar.gz
+ENV KURL_BIN_UTILS_FILE=kurl-bin-utils-${version_tag}.tar.gz
 
 ARG KURL_UTIL_IMAGE
 ENV KURL_UTIL_IMAGE=$KURL_UTIL_IMAGE
