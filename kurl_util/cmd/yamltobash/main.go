@@ -152,7 +152,7 @@ func convertToBash(kurlValues map[string]interface{}) (map[string]string, error)
 		"Rook.IsBlockStorageEnabled":        "ROOK_BLOCK_STORAGE_ENABLED",
 		"Rook.StorageClassName":             "STORAGE_CLASS",
 		"Rook.Version":                      "ROOK_VERSION",
-		"SelinuxConfig.Preserve":            "PRESERVE_SELINUX_CONFIG",
+		"SelinuxConfig.PreserveConfig":      "PRESERVE_SELINUX_CONFIG",
 		"Velero.DisableCLI":                 "VELERO_DISABLE_CLI",
 		"Velero.DisableRestic":              "VELERO_DISABLE_RESTIC",
 		"Velero.LocalBucket":                "VELERO_LOCAL_BUCKET",
