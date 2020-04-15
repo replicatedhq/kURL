@@ -24,8 +24,9 @@ function upload() {
     fi
 }
 
-# always build the common package
+# always upload small packages that change often
 upload common.tar.gz
+upload kurl-bin-utils-latest.tar.gz
 
 for package in $(bin/list-all-packages.sh)
 do
