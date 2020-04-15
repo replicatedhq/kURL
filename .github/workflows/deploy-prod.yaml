@@ -33,7 +33,10 @@ jobs:
     - run: |
         docker build -f deploy/Dockerfile-slim \
           --build-arg version=${GITHUB_SHA:0:7} \
+          --build-arg version_tag=${VERSION_TAG} \
           -t 799720048698.dkr.ecr.us-east-1.amazonaws.com/kurl:${GITHUB_SHA:0:7} .
+      env:
+        VERSION_TAG: ${{ env.VERSION_TAG }}
 
     - run: |
         aws ecr get-login-password --region us-east-1 | docker login \
