@@ -1,27 +1,24 @@
 
 function download_util_binaries() {
     if [ "$AIRGAP" != "1" ]; then
-        curl -Ss -L https://kurl-sh.s3.amazonaws.com/$KURL_BIN_UTILS_FILE -o /tmp/kurl-bin-utils.tgz
-        mkdir -p /tmp/kurl-bin-utils
-        tar zxf /tmp/kurl-bin-utils.tgz -C /tmp/kurl-bin-utils
-    else
-        tar zxf shared/$KURL_BIN_UTILS_FILE -C /tmp
+        # creates ./bin directory
+        curl -Ss -L $DIST_URL/$KURL_BIN_UTILS_FILE | tar zx
     fi
 
-    BIN_SYSTEM_CONFIG=/tmp/kurl-bin-utils/bin/config
-    BIN_YAMLUTIL=/tmp/kurl-bin-utils/bin/yamlutil
-    BIN_DOCKER_CONFIG=/tmp/kurl-bin-utils/bin/docker-config
-    BIN_SUBNET=/tmp/kurl-bin-utils/bin/subnet
-    BIN_INSTALLERMERGE=/tmp/kurl-bin-utils/bin/installermerge
-    BIN_YAMLTOBASH=/tmp/kurl-bin-utils/bin/yamltobash
-
-    mkdir -p /tmp/kurl-bin-utils/specs
-    MERGED_YAML_SPEC=/tmp/kurl-bin-utils/specs/merged.yaml
+    BIN_SYSTEM_CONFIG=./bin/config
+    BIN_YAMLUTIL=./bin/yamlutil
+    BIN_DOCKER_CONFIG=./bin/docker-config
+    BIN_SUBNET=./bin/subnet
+    BIN_INSTALLERMERGE=./bin/installermerge
+    BIN_YAMLTOBASH=./bin/yamltobash
 
     mkdir -p /tmp/kurl-bin-utils/scripts
     CONFIGURE_SELINUX_SCRIPT=/tmp/kurl-bin-utils/scripts/configure_selinux.sh
     CONFIGURE_FIREWALLD_SCRIPT=/tmp/kurl-bin-utils/scripts/configure_firewalld.sh
     CONFIGURE_IPTABLES_SCRIPT=/tmp/kurl-bin-utils/scripts/configure_iptables.sh
+
+    mkdir -p /tmp/kurl-bin-utils/specs
+    MERGED_YAML_SPEC=/tmp/kurl-bin-utils/specs/merged.yaml
 }
 
 function merge_yaml_specs() {
