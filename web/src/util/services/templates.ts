@@ -20,7 +20,7 @@ export class Templates {
     this.kurlURL = process.env["KURL_URL"] || "https://kurl.sh";
     this.replicatedAppURL = process.env["REPLICATED_APP_URL"] || "https://replicated.app";
     this.kurlUtilImage = process.env["KURL_UTIL_IMAGE"] || "replicated/kurl-util:alpha";
-    this.kurlBinUtils = process.env["KURL_BIN_UTILS_FILE"] || "staging/kurl-bin-utils-latest.tar.gz";
+    this.kurlBinUtils = process.env["KURL_BIN_UTILS_FILE"] || "kurl-bin-utils-latest.tar.gz";
 
     this.distURL = `https://${process.env["KURL_BUCKET"]}.s3.amazonaws.com`;
     if (process.env["NODE_ENV"] === "production") {

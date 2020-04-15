@@ -816,7 +816,8 @@ export class Installer {
   public packages(): string[] {
     const i = this.resolve();
 
-    const pkgs = [ "common" ];
+    const binUtils = String(process.env["KURL_BIN_UTILS_FILE"]).slice(0, -7); // remove .tar.gz
+    const pkgs = [ "common", binUtils ];
 
     _.each(_.keys(this.spec), (config: string) => {
       pkgs.push(`${config}-${this.spec[config].version}`);
