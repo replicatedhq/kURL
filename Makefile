@@ -1,6 +1,6 @@
 SHELL := /bin/bash
 KURL_UTIL_IMAGE ?= replicated/kurl-util:alpha
-KURL_BIN_UTILS_FILE ?= staging/kurl-bin-utils-latest.tar.gz
+KURL_BIN_UTILS_FILE ?= kurl-bin-utils-latest.tar.gz
 
 GIT_TREE = $(shell git rev-parse --is-inside-work-tree 2>/dev/null)
 ifneq "$(GIT_TREE)" ""
