@@ -1,6 +1,6 @@
 
 function download_util_binaries() {
-    if [ "$AIRGAP" != "1" ]; then
+    if [ ! -d "./bin" ]; then
         # creates ./bin directory
         curl -Ss -L $DIST_URL/$KURL_BIN_UTILS_FILE | tar zx
     fi
