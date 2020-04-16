@@ -227,12 +227,12 @@ function outro() {
 function main() {
     export KUBECONFIG=/etc/kubernetes/admin.conf
     requireRootUser
-    discover
-    flags $FLAGS
-    flags "$@"
-    tasks
     download_util_binaries
     merge_yaml_specs
+    parse_yaml_into_bash_variables
+    discover
+    flags "$@"
+    tasks
     preflights
     prompts
     configure_proxy

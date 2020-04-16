@@ -82,15 +82,13 @@ type Kubernetes struct {
 }
 
 type Kurl struct {
-	Airgap                 bool   `json:"airgap,omitempty"`
-	HostnameCheck          string `json:"hostnameCheck,omitempty"`
-	HTTPProxy              string `json:"HTTPProxy,omitempty"`
-	NoProxy                bool   `json:"noProxy,omitempty"`
-	PublicAddress          string `json:"publicAddress,omitempty"`
-	PrivateAddress         string `json:"privateAddress,omitempty"`
-	HardFailOnFirewalld    bool   `json:"hardFailOnFirewalld,omitempty"`
-	BypassFirewalldWarning bool   `json:"bypassFirewalldWarning,omitempty"`
-	Task                   string `json:"task,omitempty"`
+	Airgap         bool   `json:"airgap,omitempty"`
+	HostnameCheck  string `json:"hostnameCheck,omitempty"`
+	HTTPProxy      string `json:"HTTPProxy,omitempty"`
+	NoProxy        bool   `json:"noProxy,omitempty"`
+	PublicAddress  string `json:"publicAddress,omitempty"`
+	PrivateAddress string `json:"privateAddress,omitempty"`
+	Task           string `json:"task,omitempty"`
 }
 
 type Minio struct {
@@ -141,6 +139,7 @@ type Weave struct {
 
 type SelinuxConfig struct {
 	ChconCmds      [][]string `json:"chconCmds,omitempty"`
+	DisableSelinux bool       `json:"disableSelinux,omitempty"`
 	PreserveConfig bool       `json:"preserveConfig,omitempty"`
 	Selinux        string     `json:"selinux,omitempty"`
 	SemanageCmds   [][]string `json:"semanageCmds,omitempty"`
@@ -153,9 +152,12 @@ type IptablesConfig struct {
 }
 
 type FirewalldConfig struct {
-	Firewalld      string     `json:"firewalld,omitempty"`
-	FirewalldCmds  [][]string `json:"firewalldCmds,omitempty"`
-	PreserveConfig bool       `json:"preserveConfig,omitempty"`
+	BypassFirewalldWarning bool       `json:"bypassFirewalldWarning,omitempty"`
+	DisableFirewalld       bool       `json:"disableFirewalld,omitempty"`
+	Firewalld              string     `json:"firewalld,omitempty"`
+	FirewalldCmds          [][]string `json:"firewalldCmds,omitempty"`
+	HardFailOnFirewalld    bool       `json:"hardFailOnFirewalld,omitempty"`
+	PreserveConfig         bool       `json:"preserveConfig,omitempty"`
 }
 
 type Ekco struct {

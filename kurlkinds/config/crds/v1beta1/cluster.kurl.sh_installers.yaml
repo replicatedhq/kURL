@@ -83,6 +83,10 @@ spec:
               type: object
             firewalldConfig:
               properties:
+                bypassFirewalldWarning:
+                  type: boolean
+                disableFirewalld:
+                  type: boolean
                 firewalld:
                   type: string
                 firewalldCmds:
@@ -91,6 +95,8 @@ spec:
                       type: string
                     type: array
                   type: array
+                hardFailOnFirewalld:
+                  type: boolean
                 preserveConfig:
                   type: boolean
               type: object
@@ -161,10 +167,6 @@ spec:
                 HTTPProxy:
                   type: string
                 airgap:
-                  type: boolean
-                bypassFirewalldWarning:
-                  type: boolean
-                hardFailOnFirewalld:
                   type: boolean
                 hostnameCheck:
                   type: string
@@ -242,6 +244,8 @@ spec:
                       type: string
                     type: array
                   type: array
+                disableSelinux:
+                  type: boolean
                 preserveConfig:
                   type: boolean
                 selinux:
