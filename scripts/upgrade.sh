@@ -85,11 +85,11 @@ function outro() {
 function main() {
     export KUBECONFIG=/etc/kubernetes/admin.conf
     requireRootUser
-    discover
-    flags $FLAGS
-    flags "$@"
     download_util_binaries
     merge_yaml_specs
+    parse_yaml_into_bash_variables
+    discover
+    flags "$@"
     preflights
     apply_docker_config
     get_shared

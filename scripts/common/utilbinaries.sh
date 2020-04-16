@@ -19,7 +19,17 @@ function download_util_binaries() {
 
     mkdir -p /tmp/kurl-bin-utils/specs
     MERGED_YAML_SPEC=/tmp/kurl-bin-utils/specs/merged.yaml
+
+    PARSED_YAML_SPEC=/tmp/kurl-bin-utils/scripts/variables.sh
 }
+
+function parse_yaml_into_bash_variables() {
+    $BIN_YAMLTOBASH -i $MERGED_YAML_SPEC -b $PARSED_YAML_SPEC
+
+    source $PARSED_YAML_SPEC
+    rm $PARSED_YAML_SPEC
+}
+
 
 function merge_yaml_specs() {
     if [ -z "$INSTALLER_SPEC_FILE" ] && [ -z "$INSTALLER_YAML" ]; then

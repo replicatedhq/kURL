@@ -17,6 +17,7 @@ DIR=.
 . $DIR/scripts/common/prompts.sh
 . $DIR/scripts/common/proxy.sh
 . $DIR/scripts/common/rook.sh
+. $DIR/scripts/common/utilbinaries.sh
 . $DIR/scripts/common/yaml.sh
 . $DIR/scripts/common/coredns.sh
 # Magic end
@@ -94,8 +95,10 @@ outro() {
 function main() {
     export KUBECONFIG=/etc/kubernetes/admin.conf
     requireRootUser
+    download_util_binaries
+    merge_yaml_specs
+    parse_yaml_into_bash_variables
     discover
-    flags $FLAGS
     flags "$@"
     preflights
     joinPrompts

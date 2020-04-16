@@ -92,6 +92,12 @@ checkFirewalld() {
         exit 1
     fi
 
+    if [ -n "$DISABLE_FIREWALLD" ]; then
+        systemctl stop firewalld
+        systemctl disable firewalld
+        return
+    fi
+   
     printf "${YELLOW}Firewalld is active, please press Y to disable ${NC}"
     if confirmY ; then
         systemctl stop firewalld
@@ -121,6 +127,12 @@ must_disable_selinux() {
     fi
 
     if selinux_enabled && selinux_enforced ; then
+        if [ -n "$DISABLE_SELINUX" ]; then
+            setenforce 0
+            sed -i s/^SELINUX=.*$/SELINUX=permissive/ /etc/selinux/config
+            return
+        fi
+       
         printf "\n${YELLOW}Kubernetes is incompatible with SELinux. Disable SELinux to continue?${NC} "
         if confirmY ; then
             setenforce 0
