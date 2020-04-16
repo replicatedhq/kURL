@@ -108,7 +108,7 @@ func convertToBash(kurlValues map[string]interface{}) (map[string]string, error)
 		"Ekco.ShouldDisableRebootServices":       "EKCO_SHOULD_DISABLE_REBOOT_SERVICE",
 		"Ekco.Version":                           "EKCO_VERSION",
 		"FirewalldConfig.BypassFirewalldWarning": "BYPASS_FIREWALLD_WARNING",
-		"FirewalldConfig.DisableFirewalld": "DISABLE_FIREWALLD",
+		"FirewalldConfig.DisableFirewalld":       "DISABLE_FIREWALLD",
 		"FirewalldConfig.HardFailOnFirewalld":    "HARD_FAIL_ON_FIREWALLD",
 		"FirewalldConfig.Preserve":               "PRESERVE_FIREWALLD_CONFIG",
 		"FirewalldConfig.PreserveConfig":         "PRESERVE_FIREWALLD_CONFIG",
