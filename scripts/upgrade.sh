@@ -76,6 +76,8 @@ maybe_upgrade() {
 }
 
 function outro() {
+    rm -rf $DIR/bin
+
     printf "\n"
     printf "\t\t${GREEN}Upgrade${NC}\n"
     printf "\t\t${GREEN}  Complete ✔${NC}\n"
