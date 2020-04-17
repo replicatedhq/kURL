@@ -155,7 +155,7 @@ function kurl_config() {
 }
 
 function outro() {
-    rm -rf $DIR/bin
+    rm -rf "./bin"
 
     echo
     if [ -z "$PUBLIC_ADDRESS" ]; then
