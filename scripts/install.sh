@@ -155,6 +155,8 @@ function kurl_config() {
 }
 
 function outro() {
+    rm -rf $DIR/bin
+
     echo
     if [ -z "$PUBLIC_ADDRESS" ]; then
       if [ -z "$PRIVATE_ADDRESS" ]; then

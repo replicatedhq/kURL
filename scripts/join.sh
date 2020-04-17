@@ -80,6 +80,8 @@ function join() {
 }
 
 outro() {
+    rm -rf $DIR/bin
+
     printf "\n"
     printf "\t\t${GREEN}Installation${NC}\n"
     printf "\t\t${GREEN}  Complete ✔${NC}\n"
