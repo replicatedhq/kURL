@@ -16,4 +16,4 @@ jobs:
         tag=$(git tag | grep '^v20' | sort | tail -1)
         export KURL_UTIL_IMAGE=replicated/kur-util:${tag}
         export KURL_BIN_UTILS_FILE=kurl-bin-utils-${tag}.tar.gz
-        bin/trigger-package-rebuilds.sh
+        bin/trigger-package-rebuilds-prod.sh

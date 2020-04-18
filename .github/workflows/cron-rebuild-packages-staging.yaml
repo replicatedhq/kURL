@@ -13,4 +13,4 @@ jobs:
         GH_PAT: ${{ secrets.GH_PAT }}
         KURL_UTIL_IMAGE: replicated/kurl-util:alpha
         KURL_BIN_UTILS_FILE: kurl-bin-utils-latest.tar.gz
-      run: bin/trigger-package-rebuilds.sh
+      run: bin/trigger-package-rebuilds-staging.sh
