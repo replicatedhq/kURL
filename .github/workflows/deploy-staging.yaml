@@ -40,7 +40,7 @@ jobs:
         set -veuo pipefail
         make -C kurl_util build
 
-    - run: bin/upload-dist.sh
+    - run: bin/upload-dist-staging.sh
       env:
         S3_BUCKET: kurl-sh
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_PROD_ACCESS_KEY_ID }}
