@@ -1,0 +1,19 @@
+name: cron-rebuild-packages-prod
+on:
+  schedule:
+  - cron: '0 18 * * 6'
+
+jobs:
+  build-upload-packages:
+    runs-on: ubuntu-18.04
+    steps:
+    - uses: actions/checkout@v2
+
+    - env:
+        GH_PAT: ${{ secrets.GH_PAT }}
+      run: |
+        git fetch --tags
+        tag=$(git tag | grep '^v20' | sort | tail -1)
+        export KURL_UTIL_IMAGE=replicated/kur-util:${tag}
+        export KURL_BIN_UTILS_FILE=kurl-bin-utils-${tag}.tar.gz
+        bin/trigger-package-rebuilds.sh

@@ -1,4 +1,4 @@
-name: cron-rebuild-packages
+name: cron-rebuild-packages-staging
 on:
   schedule:
   - cron: '0 16 * * 6'
@@ -11,4 +11,6 @@ jobs:
 
     - env:
         GH_PAT: ${{ secrets.GH_PAT }}
+        KURL_UTIL_IMAGE: replicated/kurl-util:alpha
+        KURL_BIN_UTILS_FILE: kurl-bin-utils-latest.tar.gz
       run: bin/trigger-package-rebuilds.sh

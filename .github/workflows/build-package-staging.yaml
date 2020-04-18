@@ -16,6 +16,5 @@ jobs:
         KURL_UTIL_IMAGE: replicated/kurl-util:alpha
         KURL_BIN_UTILS_FILE: kurl-bin-utils-latest.tar.gz
       run: |
-        make dist/kurl-bin-utils-latest.tar.gz:
         make dist/$PKG
         aws s3 cp dist/$PKG s3://kurl-sh/staging/

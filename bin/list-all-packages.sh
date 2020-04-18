@@ -1,5 +1,15 @@
 #!/bin/bash
 
+function require() {
+    if [ -z "$2" ]; then
+        echo "validation failed: $1 unset"
+        exit 1
+    fi
+}
+
+require KURL_UTIL_IMAGE "${KURL_UTIL_IMAGE}" # required for common package
+require KURL_BIN_UTILS_FILE "${KURL_BIN_UTILS_FILE}"
+
 function pkgs() {
     for dir in $(find $1 -mindepth 2 -maxdepth 2 -type d)
     do
@@ -15,12 +25,7 @@ function list_all_packages() {
     echo "docker-18.09.8.tar.gz"
     echo "docker-19.03.4.tar.gz"
     echo "common.tar.gz"
-    if [ -z "$VERSION_TAG" ]
-    then
-        echo "kurl-bin-utils-latest.tar.gz"
-    else
-        echo "kurl-bin-utils-${VERSION_TAG}.tar.gz"
-    fi
+    echo "$KURL_BIN_UTILS_FILE"
 }
 
 list_all_packages
