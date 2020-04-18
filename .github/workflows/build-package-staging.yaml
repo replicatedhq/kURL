@@ -16,7 +16,6 @@ jobs:
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_PROD_SECRET_ACCESS_KEY }}
         PKG: ${{ github.event.client_payload.package }}
         KURL_UTIL_IMAGE: replicated/kurl-util:alpha
-        KURL_BIN_UTILS_FILE: kurl-bin-utils-latest.tar.gz
       run: |
         make dist/$PKG
         aws s3 cp dist/$PKG s3://kurl-sh/staging/

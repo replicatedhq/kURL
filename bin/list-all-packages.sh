@@ -25,7 +25,8 @@ function list_all_packages() {
     echo "docker-18.09.8.tar.gz"
     echo "docker-19.03.4.tar.gz"
     echo "common.tar.gz"
-    echo "$KURL_BIN_UTILS_FILE"
+    # Uncomment when this can be built from the last tagged release
+    # echo "$KURL_BIN_UTILS_FILE"
 }
 
 list_all_packages
