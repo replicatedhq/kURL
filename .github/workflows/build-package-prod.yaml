@@ -19,6 +19,6 @@ jobs:
         git fetch --tags
         tag=$(git tag | grep '^v20' | sort | tail -1)
         git checkout $tag
-        export KURL_UTIL_IMAGE=replicated/kurl-util:$tag
+        export KURL_UTIL_IMAGE=replicated/kurl-util:$tag # required if this is the common package
         make dist/$PKG
         aws s3 cp dist/$PKG s3://kurl-sh/dist/
