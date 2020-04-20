@@ -1,0 +1,16 @@
+name: cron-rebuild-packages-staging
+on:
+  schedule:
+  - cron: '0 16 * * 6'
+
+jobs:
+  build-upload-packages:
+    runs-on: ubuntu-18.04
+    steps:
+    - uses: actions/checkout@v2
+
+    - env:
+        GH_PAT: ${{ secrets.GH_PAT }}
+        KURL_UTIL_IMAGE: replicated/kurl-util:alpha
+        KURL_BIN_UTILS_FILE: kurl-bin-utils-latest.tar.gz
+      run: bin/trigger-package-rebuilds-staging.sh
