@@ -147,6 +147,8 @@ spec:
                   type: string
                 controlPlane:
                   type: boolean
+                kubeadmToken:
+                  type: string
                 kubeadmTokenCAHash:
                   type: string
                 loadBalancerAddress:
