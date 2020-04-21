@@ -47,6 +47,7 @@ function get_patch_yaml() {
         esac
         shift
     done
+}
 
 function merge_yaml_specs() {
     get_patch_yaml

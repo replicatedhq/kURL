@@ -72,6 +72,9 @@ bin/installermerge:
 bin/yamltobash:
 	go build ${LDFLAGS} -o bin/yamltobash cmd/yamltobash/main.go
 
+bin/bashmerge:
+	go build ${LDFLAGS} -o bin/bashmerge cmd/bashmerge/main.go
+
 .PHONY: kurl-util-image
 kurl-util-image:
 	docker build -t $(KURL_UTIL_IMAGE) -f deploy/Dockerfile --build-arg commit="${GIT_SHA}" .
