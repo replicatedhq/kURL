@@ -30,10 +30,30 @@ function parse_yaml_into_bash_variables() {
     rm $PARSED_YAML_SPEC
 }
 
+function get_patch_yaml() {
+    while [ "$1" != "" ]; do
+        _param="$(echo "$1" | cut -d= -f1)"
+        _value="$(echo "$1" | grep '=' | cut -d= -f2-)"
+        case $_param in
+            installer-spec-file)
+                INSTALLER_SPEC_FILE="$_value"
+                ;;
+            airgap|cert-key|control-plane|docker-registry-ip|hai|kubeadm-token|kubeadm-token-ca-hash|kubernetes-master-address|kubernetes-version)
+                ;;
+            *)
+                echo >&2 "Error: unknown parameter \"$_param\""
+                exit 1
+                ;;
+        esac
+        shift
+    done
 
 function merge_yaml_specs() {
+    get_patch_yaml
+
     if [ -z "$INSTALLER_SPEC_FILE" ] && [ -z "$INSTALLER_YAML" ]; then
-        return
+        echo "no yaml spec found"
+        bail
     fi
 
     if [ -z "$INSTALLER_YAML" ]; then
