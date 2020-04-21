@@ -12,9 +12,8 @@ import (
 
 	"github.com/pkg/errors"
 	kurlscheme "github.com/replicatedhq/kurl/kurlkinds/client/kurlclientset/scheme"
-	serializer "k8s.io/apimachinery/pkg/runtime/serializer/json"
-	// kurlversion "github.cam/replicatedhq/kurl/pkg/version"
 	kurlv1beta1 "github.com/replicatedhq/kurl/kurlkinds/pkg/apis/cluster/v1beta1"
+	serializer "k8s.io/apimachinery/pkg/runtime/serializer/json"
 	"k8s.io/client-go/kubernetes/scheme"
 )
 
@@ -151,16 +150,10 @@ func writeSpec(filename string, spec []byte) error {
 func main() {
 	kurlscheme.AddToScheme(scheme.Scheme)
 
-	// version := flag.Bool("v", false, "Print version info")
 	currentYAMLPath := flag.String("c", "", "current yaml file")
 	bashFlags := flag.String("f", "", "bash flag overwrites")
 
 	flag.Parse()
-
-	// if *version == true {
-	// 	kurlversion.Print()
-	// 	return
-	// }
 
 	if *currentYAMLPath == "" || *bashFlags == "" {
 		flag.PrintDefaults()
