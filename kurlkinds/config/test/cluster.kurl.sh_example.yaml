@@ -1,0 +1,101 @@
+apiVersion: cluster.kurl.sh/v1beta1
+kind: Installer
+metadata:
+  name: "test"
+spec:
+  contour:
+    version: latest
+  docker:
+    bypassStorageDriverWarning: true
+    daemonConfig: "json config"
+    dockerRegistryIP: "1.1.1.1"
+    hardFailOnLoopback: true
+    noCEOnEE: true
+    preserveConfig: true
+    version: "19.03.4"
+  fluentd:
+    fullEFKStack: true
+    version: "0.7.0"
+  kotsadm:
+    applicationNamespace: "kots"
+    applicationSlug: "slug"
+    hostname: "hostname"
+    uiBindPort: 22
+    version: "latest"
+  kubernetes:
+    bootstrapToken: "token"
+    bootstrapTokenTTL: "hash"
+    certKey: "key"
+    controlPlane: true
+    HACluster: true
+    kubeadmToken: "token2"
+    kubeadmTokenCAHash: "hash2"
+    loadBalancerAddress: "1.1.1.1"
+    masterAddress: "1.1.1.1"
+    serviceCIDR: "1.1.1.1"
+    serviceCidrRange: "/24"
+    version: "1.17.3"
+  kurl:
+    airgap: true
+    hostnameCheck: "namespace"
+    HTTPProxy: "1.1.1.1"
+    noProxy: true
+    publicAddress: "1.1.1.1"
+    privateAddress: "tor"
+    task: "important"
+  minio:
+    namespace: "minio"
+    version: "latest"
+  openEBS:
+    cstorStorageClassName: "name"
+    isCstorEnabled: true
+    isLocalPVEnabled: true
+    localPVStorageClassName: "classname"
+    namespace: "space"
+    version: "latest"
+  prometheus:
+    version: "latest"
+  registry:
+    publishPort: 30000
+    version: "latest"
+  rook:
+    blockDeviceFilter: "filter"
+    cephReplicaCount: 24
+    isBlockStorageEnabled: true
+    storageClassName: "storage"
+    version: "here"
+  velero:
+    disableRestic: true
+    disableCLI: true
+    localBucket: "local"
+    namespace: "velero"
+    version: "latest"
+  weave:
+    isEncryptionDisabled: true
+    podCIDR: "1.1.1.1"
+    podCidrRange: "/16"
+    version: "latest"
+  selinuxConfig:
+    chconCmds: [[]]
+    disableSelinux: true
+    preserveConfig: true
+    selinux: "yes"
+    semanageCmds: [[]]
+    type: "type"
+  iptablesConfig:
+    iptablesCmds: [[]]
+    preserveConfig: true
+  firewalldConfig:
+    bypassFirewalldWarning: true
+    disableFirewalld: true
+    firewalld: "firewalld"
+    firewalldCmds: [[]]
+    hardFailOnFirewalld: true
+    preserveConfig: true
+  ekco:
+    minReadyMasterNodeCount: 2
+    minReadyWorkerNodeCount: 2
+    nodeUnreachableToleration: "20 min"
+    rookShouldUseAllNodes: true
+    shouldDisableRebootServices: true
+    version: "latest"

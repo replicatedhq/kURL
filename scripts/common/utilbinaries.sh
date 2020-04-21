@@ -11,6 +11,7 @@ function download_util_binaries() {
     BIN_SUBNET=./bin/subnet
     BIN_INSTALLERMERGE=./bin/installermerge
     BIN_YAMLTOBASH=./bin/yamltobash
+    BIN_BASHTOYAML=./bin/bashmerge
 
     mkdir -p /tmp/kurl-bin-utils/scripts
     CONFIGURE_SELINUX_SCRIPT=/tmp/kurl-bin-utils/scripts/configure_selinux.sh
@@ -23,11 +24,24 @@ function download_util_binaries() {
     PARSED_YAML_SPEC=/tmp/kurl-bin-utils/scripts/variables.sh
 }
 
+function apply_bash_flag_overrides() {
+    if [ -n "$1" ]; then
+       $BIN_BASHTOYAML -c $MERGED_YAML_SPEC -f "$1"
+    fi
+}
+
 function parse_yaml_into_bash_variables() {
     $BIN_YAMLTOBASH -i $MERGED_YAML_SPEC -b $PARSED_YAML_SPEC
 
     source $PARSED_YAML_SPEC
     rm $PARSED_YAML_SPEC
+}
+
+parse_kubernetes_target_version() {
+    semverParse "$KUBERNETES_VERSION"
+    KUBERNETES_TARGET_VERSION_MAJOR="$major"
+    KUBERNETES_TARGET_VERSION_MINOR="$minor"
+    KUBERNETES_TARGET_VERSION_PATCH="$patch"
 }
 
 function get_patch_yaml() {
@@ -38,7 +52,7 @@ function get_patch_yaml() {
             installer-spec-file)
                 INSTALLER_SPEC_FILE="$_value"
                 ;;
-            airgap|cert-key|control-plane|docker-registry-ip|hai|kubeadm-token|kubeadm-token-ca-hash|kubernetes-master-address|kubernetes-version)
+            airgap|cert-key|control-plane|docker-registry-ip|ha|kubeadm-token|kubeadm-token-ca-hash|kubernetes-master-address|kubernetes-version)
                 ;;
             *)
                 echo >&2 "Error: unknown parameter \"$_param\""
@@ -50,7 +64,7 @@ function get_patch_yaml() {
 }
 
 function merge_yaml_specs() {
-    get_patch_yaml
+    get_patch_yaml "$1"
 
     if [ -z "$INSTALLER_SPEC_FILE" ] && [ -z "$INSTALLER_YAML" ]; then
         echo "no yaml spec found"
@@ -59,6 +73,7 @@ function merge_yaml_specs() {
 
     if [ -z "$INSTALLER_YAML" ]; then
         cp -f $INSTALLER_SPEC_FILE $MERGED_YAML_SPEC
+        ONLY_APPLY_MERGED=1
         return
     fi
 
@@ -66,6 +81,7 @@ function merge_yaml_specs() {
         cat > $MERGED_YAML_SPEC <<EOL
 ${INSTALLER_YAML}
 EOL
+        ONLY_APPLY_MERGED=1
         return
     fi
 

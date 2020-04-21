@@ -230,10 +230,11 @@ function main() {
     export KUBECONFIG=/etc/kubernetes/admin.conf
     requireRootUser
     download_util_binaries
-    merge_yaml_specs
+    merge_yaml_specs "$@"
+    apply_bash_flag_overrides "$@"
     parse_yaml_into_bash_variables
+    parse_kubernetes_target_version
     discover
-    flags "$@"
     tasks
     preflights
     prompts
@@ -261,7 +262,7 @@ function main() {
     discover_pod_subnet
     discover_service_subnet
     init
-    setup_installer_crd
+    apply_installer_crd
     addon aws "$AWS_VERSION"
     addon nodeless "$NODELESS_VERSION"
     addon calico "$CALICO_VERSION"

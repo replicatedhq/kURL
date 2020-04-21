@@ -92,7 +92,7 @@ func mergeYAMLMaps(oldConfig map[string]interface{}, newConfig map[string]interf
 		}
 
 		if key == "name" {
-			mergedConfig[key] = "Merged"
+			mergedConfig[key] = "merged"
 			continue
 		}
 

@@ -166,7 +166,7 @@ type Ekco struct {
 	MinReadyWorkerNodeCount     int    `json:"minReadyWorkerNodeCount,omitEmpty"`
 	NodeUnreachableToleration   string `json:"nodeUnreachableToleration,omitEmpty"`
 	RookShouldUseAllNodes       bool   `json:"rookShouldUseAllNodes,omitEmpty"`
-	ShouldDisableRebootServices string `json:"shouldDisableRebootServices,omitEmpty"`
+	ShouldDisableRebootServices bool   `json:"shouldDisableRebootServices,omitEmpty"`
 	Version                     string `json:"version"`
 }
 

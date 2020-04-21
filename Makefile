@@ -259,7 +259,6 @@ build/krew:
 build/kurlkinds:
 	mkdir -p build/kurlkinds
 	cp kurlkinds/config/crds/v1beta1/cluster.kurl.sh_installers.yaml build/kurlkinds
-	cp kurlkinds/config/template/cluster.kurl.sh_template.yaml build/kurlkinds
 
 build/kustomize:
 	mkdir -p build

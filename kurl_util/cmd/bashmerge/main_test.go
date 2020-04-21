@@ -34,6 +34,13 @@ func Test_parseBashFlags(t *testing.T) {
 				Spec: kurlv1beta1.InstallerSpec{
 					Docker: kurlv1beta1.Docker{
 						DockerRegistryIP: "1.1.1.1",
+						PreserveConfig: true,
+					},
+					FirewalldConfig: kurlv1beta1.FirewalldConfig{
+						PreserveConfig: true,
+					},
+					IptablesConfig: kurlv1beta1.IptablesConfig{
+						PreserveConfig: true,
 					},
 					Kubernetes: kurlv1beta1.Kubernetes{
 						MasterAddress:      "1.1.1.1",
@@ -47,9 +54,25 @@ func Test_parseBashFlags(t *testing.T) {
 					Kurl: kurlv1beta1.Kurl{
 						Airgap: true,
 					},
+					SelinuxConfig: kurlv1beta1.SelinuxConfig{
+						PreserveConfig: true,
+					},
 				},
 			},
-			bashFlags: "airgap cert-key=secret control-plane docker-registry-ip=1.1.1.1 ha kubeadm-token=token kubeadm-token-ca-hash=hash kubernetes-master-address=1.1.1.1 kubernetes-version=1.18.1 installer-spec-file=in.yaml",
+			bashFlags: "airgap " +
+			"cert-key=secret " +
+			"control-plane " +
+			"docker-registry-ip=1.1.1.1 " +
+			"ha " +
+			"preserve-docker-config " +
+			"preserve-firewalld-config " +
+			"preserve-iptables-config " +
+			"preserve-selinux-config " +
+			"kubeadm-token=token " +
+			"kubeadm-token-ca-hash=hash " +
+			"kubernetes-master-address=1.1.1.1 " +
+			"kubernetes-version=1.18.1 " +
+			"installer-spec-file=in.yaml",
 			wantError: false,
 		},
 		{
@@ -85,6 +108,13 @@ func Test_parseBashFlags(t *testing.T) {
 				Spec: kurlv1beta1.InstallerSpec{
 					Docker: kurlv1beta1.Docker{
 						DockerRegistryIP: "1.1.1.1",
+						PreserveConfig: true,
+					},
+					FirewalldConfig: kurlv1beta1.FirewalldConfig{
+						PreserveConfig: true,
+					},
+					IptablesConfig: kurlv1beta1.IptablesConfig{
+						PreserveConfig: true,
 					},
 					Kubernetes: kurlv1beta1.Kubernetes{
 						MasterAddress:      "1.1.1.1",
@@ -98,9 +128,25 @@ func Test_parseBashFlags(t *testing.T) {
 					Kurl: kurlv1beta1.Kurl{
 						Airgap: true,
 					},
+					SelinuxConfig: kurlv1beta1.SelinuxConfig{
+						PreserveConfig: true,
+					},
 				},
 			},
-			bashFlags: "airgap cert-key=secret control-plane docker-registry-ip=1.1.1.1 ha kubeadm-token=token kubeadm-token-ca-hash=hash kubernetes-master-address=1.1.1.1 kubernetes-version=1.18.1 installer-spec-file=in.yaml",
+			bashFlags: "airgap " +
+			"cert-key=secret " +
+			"control-plane " +
+			"docker-registry-ip=1.1.1.1 " +
+			"ha " +
+			"preserve-docker-config " +
+			"preserve-firewalld-config " +
+			"preserve-iptables-config " +
+			"preserve-selinux-config " +
+			"kubeadm-token=token " +
+			"kubeadm-token-ca-hash=hash " +
+			"kubernetes-master-address=1.1.1.1 " +
+			"kubernetes-version=1.18.1 " +
+			"installer-spec-file=in.yaml",
 			wantError: false,
 		},
 		{
