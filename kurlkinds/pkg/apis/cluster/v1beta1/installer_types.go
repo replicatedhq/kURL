@@ -73,6 +73,7 @@ type Kubernetes struct {
 	CertKey             string `json:"certKey,omitempty"`
 	ControlPlane        bool   `json:"controlPlane,omitempty"`
 	HACluster           bool   `json:"HACluster,omitempty"`
+	KubeadmToken        string `json:"kubeadmToken,omitempty"`
 	KubeadmTokenCAHash  string `json:"kubeadmTokenCAHash,omitempty"`
 	LoadBalancerAddress string `json:"loadBalancerAddress,omitempty"`
 	MasterAddress       string `json:"masterAddress,omitempty"`
