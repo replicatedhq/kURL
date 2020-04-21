@@ -52,7 +52,7 @@ test: lint vet
 	go test ./cmd/...
 
 .PHONY: build
-build: bin/yamlutil bin/subnet bin/docker-config bin/config bin/installermerge bin/yamltobash
+build: bin/yamlutil bin/subnet bin/docker-config bin/config bin/installermerge bin/yamltobash bin/bashmerge
 
 bin/yamlutil:
 	go build ${LDFLAGS} -o bin/yamlutil cmd/yamlutil/main.go
