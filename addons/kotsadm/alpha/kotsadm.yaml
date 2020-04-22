@@ -123,6 +123,8 @@ spec:
                 key: secret-access-key
           - name: S3_BUCKET_ENDPOINT
             value: "true"
+          - name: API_ADVERTISE_ENDPOINT
+            value: "http://localhost:8800"
         volumeMounts:
           - name: kotsadm-web-scripts
             mountPath: /scripts/start-kotsadm-web.sh
