@@ -34,7 +34,7 @@ func Test_parseBashFlags(t *testing.T) {
 				Spec: kurlv1beta1.InstallerSpec{
 					Docker: kurlv1beta1.Docker{
 						DockerRegistryIP: "1.1.1.1",
-						PreserveConfig: true,
+						PreserveConfig:   true,
 					},
 					FirewalldConfig: kurlv1beta1.FirewalldConfig{
 						PreserveConfig: true,
@@ -60,19 +60,19 @@ func Test_parseBashFlags(t *testing.T) {
 				},
 			},
 			bashFlags: "airgap " +
-			"cert-key=secret " +
-			"control-plane " +
-			"docker-registry-ip=1.1.1.1 " +
-			"ha " +
-			"preserve-docker-config " +
-			"preserve-firewalld-config " +
-			"preserve-iptables-config " +
-			"preserve-selinux-config " +
-			"kubeadm-token=token " +
-			"kubeadm-token-ca-hash=hash " +
-			"kubernetes-master-address=1.1.1.1 " +
-			"kubernetes-version=1.18.1 " +
-			"installer-spec-file=in.yaml",
+				"cert-key=secret " +
+				"control-plane " +
+				"docker-registry-ip=1.1.1.1 " +
+				"ha " +
+				"preserve-docker-config " +
+				"preserve-firewalld-config " +
+				"preserve-iptables-config " +
+				"preserve-selinux-config " +
+				"kubeadm-token=token " +
+				"kubeadm-token-ca-hash=hash " +
+				"kubernetes-master-address=1.1.1.1 " +
+				"kubernetes-version=1.18.1 " +
+				"installer-spec-file=in.yaml",
 			wantError: false,
 		},
 		{
@@ -108,7 +108,7 @@ func Test_parseBashFlags(t *testing.T) {
 				Spec: kurlv1beta1.InstallerSpec{
 					Docker: kurlv1beta1.Docker{
 						DockerRegistryIP: "1.1.1.1",
-						PreserveConfig: true,
+						PreserveConfig:   true,
 					},
 					FirewalldConfig: kurlv1beta1.FirewalldConfig{
 						PreserveConfig: true,
@@ -134,19 +134,19 @@ func Test_parseBashFlags(t *testing.T) {
 				},
 			},
 			bashFlags: "airgap " +
-			"cert-key=secret " +
-			"control-plane " +
-			"docker-registry-ip=1.1.1.1 " +
-			"ha " +
-			"preserve-docker-config " +
-			"preserve-firewalld-config " +
-			"preserve-iptables-config " +
-			"preserve-selinux-config " +
-			"kubeadm-token=token " +
-			"kubeadm-token-ca-hash=hash " +
-			"kubernetes-master-address=1.1.1.1 " +
-			"kubernetes-version=1.18.1 " +
-			"installer-spec-file=in.yaml",
+				"cert-key=secret " +
+				"control-plane " +
+				"docker-registry-ip=1.1.1.1 " +
+				"ha " +
+				"preserve-docker-config " +
+				"preserve-firewalld-config " +
+				"preserve-iptables-config " +
+				"preserve-selinux-config " +
+				"kubeadm-token=token " +
+				"kubeadm-token-ca-hash=hash " +
+				"kubernetes-master-address=1.1.1.1 " +
+				"kubernetes-version=1.18.1 " +
+				"installer-spec-file=in.yaml",
 			wantError: false,
 		},
 		{

@@ -78,6 +78,10 @@ checkDockerK8sVersion()
 }
 
 checkFirewalld() {
+    if [ -n "$PRESERVE_DOCKER_CONFIG" ]; then
+        return
+    fi
+
     apply_firewalld_config
 
     if [ "$BYPASS_FIREWALLD_WARNING" = "1" ]; then
@@ -121,6 +125,10 @@ must_disable_selinux() {
     #    You have to do this until SELinux support is improved in the kubelet.
 
     # Check and apply YAML overrides
+    if [ -n "$PRESERVE_SELINUX_CONFIG" ]; then
+        return
+    fi
+
     apply_selinux_config
     if [ -n "$BYPASS_SELINUX_PREFLIGHT" ]; then
         return
@@ -163,7 +171,7 @@ function require_docker() {
       fi
   fi
 
-  if [ "$SKIP_DOCKER_INSTALL" = "0" ]; then
+  if [ "$SKIP_DOCKER_INSTALL" = "1" ]; then
 	  bail "Docker is required"
   fi
 

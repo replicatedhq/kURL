@@ -98,10 +98,11 @@ function main() {
     export KUBECONFIG=/etc/kubernetes/admin.conf
     requireRootUser
     download_util_binaries
-    merge_yaml_specs
+    merge_yaml_specs "$@"
+    apply_bash_flag_overrides "$@"
     parse_yaml_into_bash_variables
+    parse_kubernetes_target_version
     discover
-    flags "$@"
     preflights
     joinPrompts
     prompts
