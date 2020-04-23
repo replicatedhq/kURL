@@ -95,6 +95,14 @@ func parseBashFlags(installer *kurlv1beta1.Installer, bashFlags string) error {
 			installer.Spec.Kubernetes.Version = split[1]
 		case "installer-spec-file":
 			continue
+		case "preserve-docker-config":
+			installer.Spec.Docker.PreserveConfig = true
+		case "preserve-firewalld-config":
+			installer.Spec.FirewalldConfig.PreserveConfig = true
+		case "preserve-iptables-config":
+			installer.Spec.IptablesConfig.PreserveConfig = true
+		case "preserve-selinux-config":
+			installer.Spec.SelinuxConfig.PreserveConfig = true
 		default:
 			return errors.New(fmt.Sprintf("string %s is not a bash flag", split[0]))
 		}

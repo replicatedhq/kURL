@@ -47,11 +47,5 @@ manifests:
 
 test-crd:
 	kubectl apply -f config/crds/v1beta1/cluster.kurl.sh_installers.yaml
-	cp config/template/cluster.kurl.sh_template.yaml config/test/temp.yaml
-	cp ../scripts/common/yaml.sh config/test/temp.sh
-	cat config/test/test_installer_crd.sh >> config/test/temp.sh
-	bash config/test/temp.sh config/test/temp.yaml
-	kubectl apply -f config/test/temp.yaml
-	rm config/test/temp.sh
-	rm config/test/temp.yaml
+	kubectl apply -f config/test/cluster.kurl.sh_example.yaml
 	kubectl delete crd installers.cluster.kurl.sh

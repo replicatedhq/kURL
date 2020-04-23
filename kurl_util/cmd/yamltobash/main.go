@@ -110,7 +110,6 @@ func convertToBash(kurlValues map[string]interface{}) (map[string]string, error)
 		"FirewalldConfig.BypassFirewalldWarning": "BYPASS_FIREWALLD_WARNING",
 		"FirewalldConfig.DisableFirewalld":       "DISABLE_FIREWALLD",
 		"FirewalldConfig.HardFailOnFirewalld":    "HARD_FAIL_ON_FIREWALLD",
-		"FirewalldConfig.Preserve":               "PRESERVE_FIREWALLD_CONFIG",
 		"FirewalldConfig.PreserveConfig":         "PRESERVE_FIREWALLD_CONFIG",
 		"Fluentd.FullEFKStack":                   "FLUENTD_FULL_EFK_STACK",
 		"Fluentd.Version":                        "FLUENTD_VERSION",
@@ -219,7 +218,18 @@ func convertToBash(kurlValues map[string]interface{}) (map[string]string, error)
 		finalDictionary[bashKey] = bashVal
 	}
 
-	//TODO account for aigrap getting multiple keys
+	// If preserve and disable flags are set for selinux and firewalld preserve take precedence
+	val, _ := finalDictionary["PRESERVE_FIREWALLD_CONFIG"]
+
+	if val == "1" {
+		finalDictionary["DISABLE_FIREWALLD"] = ""
+	}
+
+	val, _ = finalDictionary["PRESERVE_SELINUX_CONFIG"]
+
+	if val == "1" {
+		finalDictionary["DISABLE_SELINUX"] = ""
+	}
 
 	return finalDictionary, nil
 }

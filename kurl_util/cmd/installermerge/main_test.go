@@ -178,7 +178,7 @@ spec:
 			want: []byte(`apiVersion: "cluster.kurl.sh/v1beta1"
 kind: "Installer"
 metadata:
-  name: "Merged"
+  name: "merged"
 spec:
   kubernetes:
     version: "latest"
@@ -275,7 +275,7 @@ spec:
 			want: []byte(`apiVersion: cluster.kurl.sh/v1beta1
 kind: Installer
 metadata:
-  name: Merged
+  name: merged
 spec:
   contour:
     version: 1.0.1

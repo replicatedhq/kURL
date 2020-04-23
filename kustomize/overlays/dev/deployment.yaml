@@ -9,13 +9,13 @@ spec:
       - name: server
         env:
         - name: KURL_BUCKET
-          value: "kurl-dev"
+          value: "kurl-sh"
       - name: kurl
         env:
         - name: KURL_URL
           value: http://localhost:30092
         - name: KURL_BUCKET
-          value: "kurl-dev"
+          value: "kurl-sh"
         - name: TSED_SUPPRESS_ACCESSLOG
           value: "1"
         - name: PINO_LOG_PRETTY

@@ -81,6 +81,22 @@ func Test_convertToBash(t *testing.T) {
 			},
 			wantError: false,
 		},
+		{
+			name: "SelinuxConfig.PreserveConfig and FirewalldConfig.PreserveConfig override SelinuxConfig.DisableSelinuxConfig and FirewalldConfig.DisableFirewalldConfig",
+			inputMap: map[string]interface{}{
+				"FirewalldConfig.DisableFirewalld":          true,
+				"FirewalldConfig.PreserveConfig":          true,
+				"SelinuxConfig.DisableSelinux":          true,
+				"SelinuxConfig.PreserveConfig":          true,
+			},
+			wantedMap: map[string]string{
+				"PRESERVE_FIREWALLD_CONFIG": "1",
+				"PRESERVE_SELINUX_CONFIG": "1",
+				"DISABLE_FIREWALLD": "",
+				"DISABLE_SELINUX": "",
+			},
+			wantError: false,
+		},
 	}
 
 	for _, test := range tests {
