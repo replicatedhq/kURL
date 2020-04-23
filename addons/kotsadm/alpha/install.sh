@@ -115,7 +115,7 @@ function kotsadm_secret_authstring() {
         AUTHSTRING=$(< /dev/urandom tr -dc A-Za-z0-9 | head -c16)
     fi
 
-    render_yaml_file "$DIR/addons/kotsadm/1.14.2/tmpl-secret-authstring.yaml" > "$DIR/kustomize/kotsadm/secret-authstring.yaml"
+    render_yaml_file "$DIR/addons/kotsadm/alpha/tmpl-secret-authstring.yaml" > "$DIR/kustomize/kotsadm/secret-authstring.yaml"
     insert_resources "$DIR/kustomize/kotsadm/kustomization.yaml" secret-authstring.yaml
 }
 
@@ -314,7 +314,7 @@ function kotsadm_cli() {
     fi
     if [ ! -f "$src/assets/kots.tar.gz" ] && [ "$AIRGAP" != "1" ]; then
         mkdir -p "$src/assets"
-        curl -L "https://github.com/replicatedhq/kots/releases/download/v1.14.2/kots_linux_amd64.tar.gz" > "$src/assets/kots.tar.gz"
+        curl -L "https://github.com/replicatedhq/kots/releases/download/v1.15.0-beta.2/kots_linux_amd64.tar.gz" > "$src/assets/kots.tar.gz"
     fi
 
     pushd "$src/assets"
