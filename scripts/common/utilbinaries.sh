@@ -52,7 +52,7 @@ function get_patch_yaml() {
             installer-spec-file)
                 INSTALLER_SPEC_FILE="$_value"
                 ;;
-            airgap|cert-key|control-plane|docker-registry-ip|ha|kubeadm-token|kubeadm-token-ca-hash|kubernetes-master-address|kubernetes-version)
+            airgap|cert-key|control-plane|docker-registry-ip|ha|kubeadm-token|kubeadm-token-ca-hash|kubernetes-master-address|kubernetes-version|preserve-docker-config|preserve-firewalld-config|preserve-iptables-config|preserve-selinux-config)
                 ;;
             *)
                 echo >&2 "Error: unknown parameter \"$_param\""
