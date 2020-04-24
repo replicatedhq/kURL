@@ -46,8 +46,8 @@ function apply_installer_crd() {
     INSTALLER_CRD_DEFINITION="$DIR/kurlkinds/cluster.kurl.sh_installers.yaml"
     kubectl apply -f "$INSTALLER_CRD_DEFINITION"
 
-    if [ -z "$ONLY_APPLY_MERGED" && -n "$INSTALLER_YAML" ]; then
-        ORIGINAL_INSTALLER_SPEC=/tmp/kurl-bin-utils/specs/merged.yaml
+    if [ -z "$ONLY_APPLY_MERGED" ] && [ -n "$INSTALLER_YAML" ]; then
+        ORIGINAL_INSTALLER_SPEC=/tmp/kurl-bin-utils/specs/original.yaml
         cat > $ORIGINAL_INSTALLER_SPEC <<EOL
 ${INSTALLER_YAML}
 EOL

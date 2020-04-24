@@ -1,7 +1,8 @@
 
 function download_util_binaries() {
-    if [ ! -d "./bin" ]; then
-        # creates ./bin directory
+    get_patch_yaml "$@"
+
+    if [ -z "$AIRGAP" ]; then
         curl -Ss -L $DIST_URL/$KURL_BIN_UTILS_FILE | tar zx
     fi
 
@@ -26,7 +27,8 @@ function download_util_binaries() {
 
 function apply_bash_flag_overrides() {
     if [ -n "$1" ]; then
-       $BIN_BASHTOYAML -c $MERGED_YAML_SPEC -f "$1"
+       temp_var="$@"
+       $BIN_BASHTOYAML -c $MERGED_YAML_SPEC -f "$temp_var"
     fi
 }
 
@@ -52,7 +54,10 @@ function get_patch_yaml() {
             installer-spec-file)
                 INSTALLER_SPEC_FILE="$_value"
                 ;;
-            airgap|cert-key|control-plane|docker-registry-ip|ha|kubeadm-token|kubeadm-token-ca-hash|kubernetes-master-address|kubernetes-version|preserve-docker-config|preserve-firewalld-config|preserve-iptables-config|preserve-selinux-config)
+            airgap)
+                AIRGAP="1"
+                ;;
+            cert-key|control-plane|docker-registry-ip|ha|kubeadm-token|kubeadm-token-ca-hash|kubernetes-master-address|kubernetes-version|preserve-docker-config|preserve-firewalld-config|preserve-iptables-config|preserve-selinux-config)
                 ;;
             *)
                 echo >&2 "Error: unknown parameter \"$_param\""
@@ -64,8 +69,6 @@ function get_patch_yaml() {
 }
 
 function merge_yaml_specs() {
-    get_patch_yaml "$1"
-
     if [ -z "$INSTALLER_SPEC_FILE" ] && [ -z "$INSTALLER_YAML" ]; then
         echo "no yaml spec found"
         bail
@@ -102,6 +105,13 @@ function apply_docker_config() {
     fi
 
     $BIN_DOCKER_CONFIG -c /etc/docker/daemon.json -s $MERGED_YAML_SPEC
+
+    if ! commandExists kubectl ; then
+        restart_docker
+        return
+    fi
+
+    OUTRO_NOTIFIY_TO_RESTART_DOCKER=1
 }
 
 function apply_selinux_config() {
