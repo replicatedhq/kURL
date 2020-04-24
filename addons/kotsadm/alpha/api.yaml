@@ -4,6 +4,7 @@ metadata:
   name: kotsadm-api-role
   labels:
     kots.io/kotsadm: "true"
+    velero.io/exclude-from-backup: "true"
 rules:
 - apiGroups:
   - "*"
@@ -18,6 +19,7 @@ metadata:
   name: kotsadm-api-rolebinding
   labels:
     kots.io/kotsadm: "true"
+    velero.io/exclude-from-backup: "true"
 subjects:
 - kind: ServiceAccount
   name: kotsadm-api
@@ -33,6 +35,7 @@ metadata:
   name: kotsadm-api
   labels:
     kots.io/kotsadm: "true"
+    velero.io/exclude-from-backup: "true"
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -40,6 +43,7 @@ metadata:
   name: kotsadm-api
   labels:
     kots.io/kotsadm: "true"
+    velero.io/exclude-from-backup: "true"
 spec:
   replicas: 1
   selector:
@@ -50,6 +54,7 @@ spec:
       labels:
         app: kotsadm-api
         kots.io/kotsadm: "true"
+        velero.io/exclude-from-backup: "true"
       annotations:
         prometheus.io/scrape: "true"
         prometheus.io/port: "3000"
@@ -156,6 +161,7 @@ metadata:
   name: kotsadm-api-node
   labels:
     kots.io/kotsadm: "true"
+    velero.io/exclude-from-backup: "true"
 spec:
   type: ClusterIP
   selector:
