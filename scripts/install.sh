@@ -173,13 +173,13 @@ function outro() {
     KUBEADM_TOKEN_CA_HASH=$(cat /tmp/kubeadm-init | grep 'discovery-token-ca-cert-hash' | awk '{ print $2 }' | head -1)
 
     printf "\n"
-    printf "\t\t${green}installation${nc}\n"
-    printf "\t\t${green}  complete ✔${nc}\n"
+    printf "\t\t${GREEN}Installation${NC}\n"
+    printf "\t\t${GREEN}  Complete ✔${NC}\n"
     addon_outro
     printf "\n"
-    printf "to access the cluster with kubectl, reload your shell:\n"
+    printf "To access the cluster with kubectl, reload your shell:\n"
     printf "\n"
-    printf "${green}    bash -l${nc}\n"
+    printf "${GREEN}    bash -l${NC}\n"
     printf "\n"
     if [ "$OUTRO_NOTIFIY_TO_RESTART_DOCKER" = "1" ]; then
         printf "\n"
