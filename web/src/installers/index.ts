@@ -434,6 +434,7 @@ export class Installer {
       "0.9.10",
       "0.9.9",
       "alpha",
+      "1.15.0-beta2",
     ],
     velero: [
       "1.2.0",
