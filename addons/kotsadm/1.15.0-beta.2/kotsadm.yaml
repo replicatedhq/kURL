@@ -61,7 +61,7 @@ spec:
           defaultMode: 511 # hex 777
           name: kotsadm-web-scripts
       containers:
-      - image: kotsadm/kotsadm:v1.15.0-beta2
+      - image: kotsadm/kotsadm:v1.15.0-beta.2
         name: kotsadm
         command: ["bash"]
         args:
