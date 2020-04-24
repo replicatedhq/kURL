@@ -80,8 +80,6 @@ function join() {
 }
 
 outro() {
-    rm -rf "./bin"
-
     printf "\n"
     printf "\t\t${GREEN}Installation${NC}\n"
     printf "\t\t${GREEN}  Complete ✔${NC}\n"
@@ -97,8 +95,8 @@ outro() {
 function main() {
     export KUBECONFIG=/etc/kubernetes/admin.conf
     requireRootUser
-    download_util_binaries
-    merge_yaml_specs "$@"
+    download_util_binaries "$@"
+    merge_yaml_specs
     apply_bash_flag_overrides "$@"
     parse_yaml_into_bash_variables
     parse_kubernetes_target_version

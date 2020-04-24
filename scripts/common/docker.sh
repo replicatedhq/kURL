@@ -50,6 +50,11 @@ function install_docker() {
     fi
 }
 
+function restart_docker() {
+    systemctl daemon-reload
+    systemctl restart docker
+}
+
 installDockerOnline() {
     compareDockerVersions "17.06.0" "$DOCKER_VERSION"
     if { [ "$LSB_DIST" = "rhel" ] || [ "$LSB_DIST" = "ol" ] ; } && [ "$COMPARE_DOCKER_VERSIONS_RESULT" -le "0" ]; then

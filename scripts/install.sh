@@ -155,8 +155,6 @@ function kurl_config() {
 }
 
 function outro() {
-    rm -rf "./bin"
-
     echo
     if [ -z "$PUBLIC_ADDRESS" ]; then
       if [ -z "$PRIVATE_ADDRESS" ]; then
@@ -175,14 +173,26 @@ function outro() {
     KUBEADM_TOKEN_CA_HASH=$(cat /tmp/kubeadm-init | grep 'discovery-token-ca-cert-hash' | awk '{ print $2 }' | head -1)
 
     printf "\n"
-    printf "\t\t${GREEN}Installation${NC}\n"
-    printf "\t\t${GREEN}  Complete ✔${NC}\n"
+    printf "\t\t${green}installation${nc}\n"
+    printf "\t\t${green}  complete ✔${nc}\n"
     addon_outro
     printf "\n"
-    printf "To access the cluster with kubectl, reload your shell:\n"
+    printf "to access the cluster with kubectl, reload your shell:\n"
     printf "\n"
-    printf "${GREEN}    bash -l${NC}\n"
+    printf "${green}    bash -l${nc}\n"
     printf "\n"
+    if [ "$OUTRO_NOTIFIY_TO_RESTART_DOCKER" = "1" ]; then
+        printf "\n"
+        printf "\n"
+        printf "The local /etc/docker/daemon.json has been merged with the spec from the installer, but has not been applied. To apply restart docker."
+        printf "\n"
+        printf "\n"
+        printf "${GREEN} systemctl daemon-reload${NC}\n"
+        printf "${GREEN} systemctl restart docker${NC}\n"
+        printf "\n"
+        printf "These settings will automatically be applied on the next restart."
+        printf "\n"
+    fi
     if [ "$AIRGAP" = "1" ]; then
         printf "\n"
         printf "To add worker nodes to this installation, copy and unpack this bundle on your other nodes, and run the following:"
@@ -229,8 +239,8 @@ function outro() {
 function main() {
     export KUBECONFIG=/etc/kubernetes/admin.conf
     requireRootUser
-    download_util_binaries
-    merge_yaml_specs "$@"
+    download_util_binaries "$@"
+    merge_yaml_specs
     apply_bash_flag_overrides "$@"
     parse_yaml_into_bash_variables
     parse_kubernetes_target_version
