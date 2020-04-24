@@ -4,7 +4,6 @@ metadata:
   name: kotsadm-postgres
   labels:
     kots.io/kotsadm: "true"
-    velero.io/exclude-from-backup: "true"
 spec:
   replicas: 1
   serviceName: kotsadm-postgres
@@ -16,7 +15,6 @@ spec:
       name: kotsadm-postgres
       labels:
         kots.io/kotsadm: "true"
-        velero.io/exclude-from-backup: "true"
     spec:
       accessModes:
       - ReadWriteOnce
@@ -28,7 +26,6 @@ spec:
       labels:
         app: kotsadm-postgres
         kots.io/kotsadm: "true"
-        velero.io/exclude-from-backup: "true"
     spec:
       securityContext:
         runAsUser: 999
@@ -85,7 +82,6 @@ metadata:
   name: kotsadm-postgres
   labels:
     kots.io/kotsadm: "true"
-    velero.io/exclude-from-backup: "true"
 spec:
   selector:
     app: kotsadm-postgres

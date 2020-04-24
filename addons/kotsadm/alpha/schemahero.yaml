@@ -4,7 +4,6 @@ metadata:
   name: kotsadm-migrations
   labels:
     kots.io/kotsadm: "true"
-    velero.io/exclude-from-backup: "true"
 spec:
   securityContext:
     runAsUser: 1001
