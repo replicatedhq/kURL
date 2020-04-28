@@ -1,4 +1,4 @@
-SHELL := /bin/bash
+lSHELL := /bin/bash
 KURL_UTIL_IMAGE ?= replicated/kurl-util:alpha
 KURL_BIN_UTILS_FILE ?= kurl-bin-utils-latest.tar.gz
 
@@ -341,6 +341,10 @@ build/packages/kubernetes/%/rhel-7:
 	docker rm k8s-rhel7-$*
 
 build/templates: build/templates/install.tmpl build/templates/join.tmpl build/templates/upgrade.tmpl
+
+build/bin:
+	${MAKE} -C kurl_util build
+	cp -r kurl_util/bin build
 
 .PHONY: code
 code: build/templates build/kustomize build/addons

@@ -2,7 +2,7 @@
 function download_util_binaries() {
     get_patch_yaml "$@"
 
-    if [ -z "$AIRGAP" ]; then
+    if [ -z "$AIRGAP" ] && [ -n "$DIST_URL" ]; then
         curl -Ss -L $DIST_URL/$KURL_BIN_UTILS_FILE | tar zx
     fi
 
