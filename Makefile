@@ -1,4 +1,4 @@
-lSHELL := /bin/bash
+SHELL := /bin/bash
 KURL_UTIL_IMAGE ?= replicated/kurl-util:alpha
 KURL_BIN_UTILS_FILE ?= kurl-bin-utils-latest.tar.gz
 
