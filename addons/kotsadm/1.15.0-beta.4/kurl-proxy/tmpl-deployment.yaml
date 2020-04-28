@@ -4,6 +4,8 @@ metadata:
   name: kurl-proxy-kotsadm
   labels:
     app: kurl-proxy-kotsadm
+    kots.io/kotsadm: \"true\"
+    velero.io/exclude-from-backup: \"true\"
 spec:
   selector:
     matchLabels:
@@ -12,6 +14,8 @@ spec:
     metadata:
       labels:
         app: kurl-proxy-kotsadm
+        kots.io/kotsadm: \"true\"
+        velero.io/exclude-from-backup: \"true\"
     spec:
       containers:
       - name: proxy

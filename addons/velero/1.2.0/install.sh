@@ -35,6 +35,8 @@ function velero() {
     kubectl apply -k "$dst"
 
     velero_binary
+
+    kubectl label -n default service/kubernetes velero.io/exclude-from-backup=true
 }
 
 function velero_join() {
