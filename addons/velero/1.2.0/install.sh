@@ -35,6 +35,8 @@ function velero() {
     kubectl apply -k "$dst"
 
     velero_binary
+
+    kubectl label -n default service/kubernetes velero.io/exclude-from-backup=true
 }
 
 function velero_join() {
@@ -63,7 +65,7 @@ function velero_kotsadm_local_backend() {
         return 0
     fi
 
-    if kubernetes_resource_exists "$VELERO_NAMESPACE" backupstoragelocation kotsadm-velero-backend \
+    if kubernetes_resource_exists "$VELERO_NAMESPACE" backupstoragelocation default \
         || kubernetes_resource_exists "$VELERO_NAMESPACE" secret aws-credentials; then
         echo "A backend storage location already exists. Skipping creation of new local backend for Velero"
         return 0

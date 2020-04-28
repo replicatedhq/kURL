@@ -11,7 +11,7 @@ stringData:
 apiVersion: velero.io/v1
 kind: BackupStorageLocation
 metadata:
-  name: kotsadm-velero-backend
+  name: default
   annotations:
     "kurl.sh/velero-local-backend": \"\"
 spec:
