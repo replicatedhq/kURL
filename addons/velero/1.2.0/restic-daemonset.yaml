@@ -4,6 +4,7 @@ metadata:
   name: restic
   labels:
     app.kubernetes.io/name: restic
+    component: velero
 spec:
   selector:
     matchLabels:
