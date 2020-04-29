@@ -40,7 +40,7 @@ spec:
     cephReplicaCount: 1
     isBlockStorageEnabled: true
     blockDeviceFilter: sd[a-z]
-  openebs:
+  openEBS:
     version: latest
     namespace: openebs
     isLocalPVEnabled: true
@@ -262,7 +262,7 @@ spec:
 
 const openebs = `
 spec:
-  openebs:
+  openEBS:
     version: latest
     isLocalPVEnabled: true
     localPVStorageClassName: default
@@ -647,7 +647,7 @@ spec:
     it("should parse", () => {
       const i = Installer.parse(everyOption);
 
-      expect(i.spec.openebs.namespace).to.equal("openebs");
+      expect(i.spec.openEBS.namespace).to.equal("openebs");
     });
   });
 
@@ -679,7 +679,7 @@ spec:
     it("should parse", () => {
       const i = Installer.parse(openebs);
 
-      expect(i.spec.openebs).to.deep.equal({
+      expect(i.spec.openEBS).to.deep.equal({
         version: "latest",
         isLocalPVEnabled: true,
         localPVStorageClassName: "default",

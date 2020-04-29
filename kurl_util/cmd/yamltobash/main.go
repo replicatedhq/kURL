@@ -144,7 +144,7 @@ func convertToBash(kurlValues map[string]interface{}) (map[string]string, error)
 		"OpenEBS.IsCstorEnabled":                 "OPENEBS_CSTOR",
 		"OpenEBS.IsLocalPVEnabled":               "OPENEBS_LOCALPV",
 		"OpenEBS.LocalPVStorageClassName":        "OPENEBS_LOCALPV_STORAGE_CLASS",
-		"OpenEBS.Namespace":                      "OPENEBS_VERSION",
+		"OpenEBS.Namespace":                      "OPENEBS_NAMESPACE",
 		"OpenEBS.Version":                        "OPENEBS_VERSION",
 		"Prometheus.Version":                     "PROMETHEUS_VERSION",
 		"Registry.Version":                       "REGISTRY_VERSION",
