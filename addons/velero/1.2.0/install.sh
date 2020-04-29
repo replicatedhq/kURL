@@ -36,7 +36,7 @@ function velero() {
 
     velero_binary
 
-    kubectl label -n default service/kubernetes velero.io/exclude-from-backup=true
+    kubectl label -n default --overwrite service/kubernetes velero.io/exclude-from-backup=true
 }
 
 function velero_join() {
