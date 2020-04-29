@@ -4,15 +4,18 @@ metadata:
   name: velero
   labels:
     app.kubernetes.io/name: velero
+    component: velero
 spec:
   replicas: 1
   selector:
     matchLabels:
       app.kubernetes.io/name: velero
+      component: velero
   template:
     metadata:
       labels:
         app.kubernetes.io/name: velero
+        component: velero
     spec:
       restartPolicy: Always
       serviceAccountName: velero
