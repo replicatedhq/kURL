@@ -32,7 +32,7 @@ type InstallerSpec struct {
 	Kotsadm         Kotsadm         `json:"kotsadm,omitempty"`
 	Velero          Velero          `json:"velero,omitempty"`
 	Minio           Minio           `json:"minio,omitempty"`
-	OpenEBS         OpenEBS         `json:"openEBS,omitempty"`
+	OpenEBS         OpenEBS         `json:"openebs,omitempty"`
 	Kurl            Kurl            `json:"kurl,omitempty"`
 	SelinuxConfig   SelinuxConfig   `json:"selinuxConfig,omitempty"`
 	IptablesConfig  IptablesConfig  `json:"iptablesConfig,omitempty"`

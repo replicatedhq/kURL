@@ -190,7 +190,7 @@ spec:
               required:
               - version
               type: object
-            openEBS:
+            openebs:
               properties:
                 cstorStorageClassName:
                   type: string
