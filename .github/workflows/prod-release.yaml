@@ -1,0 +1,26 @@
+name: prod-release-debug
+
+on:
+  push:
+    branches:
+    - master
+
+jobs:
+  build-upload-packages:
+    runs-on: ubuntu-18.04
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: setup env
+      id: env
+      run: |
+        echo "::set-output name=VERSION_TAG::test"
+      shell: bash
+
+    - run: echo $KURL_UTIL_IMAGE
+      env:
+        S3_BUCKET: kurl-sh
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_PROD_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_PROD_SECRET_ACCESS_KEY }}
+        KURL_UTIL_IMAGE: replicated/kurl-util:${{ env.VERSION_TAG }}
+        KURL_BIN_UTILS_FILE: kurl-bin-utils-${{ env.VERSION_TAG }}.tar.gz
