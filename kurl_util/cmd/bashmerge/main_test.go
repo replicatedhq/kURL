@@ -53,7 +53,8 @@ func Test_parseBashFlags(t *testing.T) {
 						CertKey:             "secret",
 					},
 					Kurl: kurlv1beta1.Kurl{
-						Airgap: true,
+						Airgap:        true,
+						PublicAddress: "1.1.1.1",
 					},
 					SelinuxConfig: kurlv1beta1.SelinuxConfig{
 						PreserveConfig: true,
@@ -74,7 +75,8 @@ func Test_parseBashFlags(t *testing.T) {
 				"kubernetes-master-address=1.1.1.1 " +
 				"kubernetes-version=1.18.1 " +
 				"installer-spec-file=in.yaml " +
-				"load-balancer-address=1.1.1.1",
+				"load-balancer-address=1.1.1.1 " +
+				"public-address=1.1.1.1",
 			wantError: false,
 		},
 		{
@@ -99,7 +101,8 @@ func Test_parseBashFlags(t *testing.T) {
 						CertKey:             "badsecret",
 					},
 					Kurl: kurlv1beta1.Kurl{
-						Airgap: false,
+						Airgap:        false,
+						PublicAddress: "2.2.2.2",
 					},
 				},
 			},
@@ -130,7 +133,8 @@ func Test_parseBashFlags(t *testing.T) {
 						CertKey:             "secret",
 					},
 					Kurl: kurlv1beta1.Kurl{
-						Airgap: true,
+						Airgap:        true,
+						PublicAddress: "1.1.1.1",
 					},
 					SelinuxConfig: kurlv1beta1.SelinuxConfig{
 						PreserveConfig: true,
@@ -151,7 +155,8 @@ func Test_parseBashFlags(t *testing.T) {
 				"kubernetes-master-address=1.1.1.1 " +
 				"kubernetes-version=1.18.1 " +
 				"installer-spec-file=in.yaml " +
-				"load-balancer-address=1.1.1.1",
+				"load-balancer-address=1.1.1.1 " +
+				"public-address=1.1.1.1",
 			wantError: false,
 		},
 		{

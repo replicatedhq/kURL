@@ -83,6 +83,8 @@ function get_patch_yaml() {
                 ;;
             preserve-selinux-config)
                 ;;
+            public-address)
+                ;;
             *)
                 echo >&2 "Error: unknown parameter \"$_param\""
                 exit 1
