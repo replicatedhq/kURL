@@ -51,7 +51,8 @@ func checkIfFlagHasValue(length int, flag string) bool {
 		"kubeadm-token-ca-hash",
 		"kubernetes-master-address",
 		"kubernetes-version",
-		"load-balancer-address"}
+		"load-balancer-address",
+		"public-address"}
 
 	for _, variable := range shouldHaveLengthTwo {
 		if variable == flag {
@@ -106,6 +107,8 @@ func parseBashFlags(installer *kurlv1beta1.Installer, bashFlags string) error {
 			installer.Spec.IptablesConfig.PreserveConfig = true
 		case "preserve-selinux-config":
 			installer.Spec.SelinuxConfig.PreserveConfig = true
+		case "public-address":
+			installer.Spec.Kurl.PublicAddress = split[1]
 		default:
 			return errors.New(fmt.Sprintf("string %s is not a bash flag", split[0]))
 		}
