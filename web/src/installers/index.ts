@@ -390,6 +390,7 @@ export class Installer {
       "1.7.4",
     ],
     kotsadm: [
+      "1.15.0",
       "1.14.2",
       "1.14.1",
       "1.14.0",
@@ -434,7 +435,6 @@ export class Installer {
       "0.9.10",
       "0.9.9",
       "alpha",
-      "1.15.0-beta.5",
     ],
     velero: [
       "1.2.0",
