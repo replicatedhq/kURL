@@ -3,7 +3,7 @@ name: prod-release-debug
 on:
   push:
     branches:
-    - master
+    - prod-release
 
 jobs:
   build-upload-packages:
