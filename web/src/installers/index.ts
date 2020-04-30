@@ -309,7 +309,7 @@ export interface InstallerSpec {
   docker?: DockerConfig;
   weave?: WeaveConfig;
   rook?: RookConfig;
-  openebs?: OpenEBSConfig;
+  openEBS?: OpenEBSConfig;
   minio?: MinioConfig;
   contour?: ContourConfig;
   registry?: RegistryConfig;
@@ -329,7 +329,7 @@ const specSchema = {
     docker: dockerConfigSchema,
     weave: weaveConfigSchema,
     rook: rookConfigSchema,
-    openebs: openEBSConfigSchema,
+    openEBS: openEBSConfigSchema,
     minio: minioConfigSchema,
     contour: contourConfigSchema,
     registry: registryConfigSchema,
@@ -439,7 +439,7 @@ export class Installer {
     velero: [
       "1.2.0",
     ],
-    openebs: [
+    openEBS: [
       "1.6.0",
     ],
     minio: [
@@ -803,8 +803,8 @@ export class Installer {
     if (this.spec.velero && !Installer.hasVersion("velero", this.spec.velero.version)) {
       return { error: { message: `Velero version "${_.escape(this.spec.velero.version)}" is not supported` } };
     }
-    if (this.spec.openebs && !Installer.hasVersion("openebs", this.spec.openebs.version)) {
-      return { error: { message: `OpenEBS version "${_.escape(this.spec.openebs.version)}" is not supported` } };
+    if (this.spec.openEBS && !Installer.hasVersion("openEBS", this.spec.openEBS.version)) {
+      return { error: { message: `OpenEBS version "${_.escape(this.spec.openEBS.version)}" is not supported` } };
     }
     if (this.spec.minio && !Installer.hasVersion("minio", this.spec.minio.version)) {
       return { error: { message: `Minio version "${_.escape(this.spec.minio.version)}" is not supported` } };

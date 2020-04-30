@@ -101,7 +101,7 @@ export class InfoAPI {
     return resp;
   }
 
-  @Get("/openebs")
+  @Get("/openEBS")
   public openEBSFields(
     @Res() response: Express.Response,
   ): {} {

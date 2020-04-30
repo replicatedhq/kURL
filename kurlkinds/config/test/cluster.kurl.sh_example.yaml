@@ -46,7 +46,7 @@ spec:
   minio:
     namespace: "minio"
     version: "latest"
-  openebs:
+  openEBS:
     cstorStorageClassName: "name"
     isCstorEnabled: true
     isLocalPVEnabled: true
