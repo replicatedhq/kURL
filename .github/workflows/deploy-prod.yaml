@@ -18,25 +18,23 @@ jobs:
       run: |
         echo "::set-env name=GOPATH::$(go env GOPATH)"
         echo "::add-path::$(go env GOPATH)/bin"
-        echo "::set-output name=VERSION_TAG::${GITHUB_REF/refs\/tags\//}"
       shell: bash
 
     - uses: actions/checkout@v2
 
-    - run: make -C kurl_util build
-      env:
-        VERSION_TAG: ${{ env.VERSION_TAG }}
+    - run: |
+        export VERSION_TAG=$(echo $GITHUB_REF | awk -F'/' '{ print $NF }')
+        make -C kurl_util build
 
     - run: make -C web deps build
     - run: make web
 
     - run: |
+        export VERSION_TAG=$(echo $GITHUB_REF | awk -F'/' '{ print $NF }')
         docker build -f deploy/Dockerfile-slim \
           --build-arg version=${GITHUB_SHA:0:7} \
           --build-arg version_tag=${VERSION_TAG} \
           -t 799720048698.dkr.ecr.us-east-1.amazonaws.com/kurl:${GITHUB_SHA:0:7} .
-      env:
-        VERSION_TAG: ${{ env.VERSION_TAG }}
 
     - run: |
         aws ecr get-login-password --region us-east-1 | docker login \
@@ -69,19 +67,15 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    - name: setup env
-      id: env
-      run: |
-        echo "::set-output name=VERSION_TAG::${GITHUB_REF/refs\/tags\//}"
-      shell: bash
-
-    - run: bin/upload-dist-prod.sh
+    - run: |
+        export VERSION_TAG=$(echo $GITHUB_REF | awk -F'/' '{ print $NF }')
+        export KURL_UTIL_IMAGE=replicated/kurl-util:${VERSION_TAG}
+        export KURL_BIN_UTILS_FILE=kurl-bin-utils-${VERSION_TAG}.tar.gz
+        bin/upload-dist-prod.sh
       env:
         S3_BUCKET: kurl-sh
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_PROD_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_PROD_SECRET_ACCESS_KEY }}
-        KURL_UTIL_IMAGE: replicated/kurl-util:${{ env.VERSION_TAG }}
-        KURL_BIN_UTILS_FILE: kurl-bin-utils-${{ env.VERSION_TAG }}
 
   deploy-production-eks:
     runs-on: ubuntu-18.04
