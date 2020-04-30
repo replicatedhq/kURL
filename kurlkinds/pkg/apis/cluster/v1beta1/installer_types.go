@@ -162,11 +162,11 @@ type FirewalldConfig struct {
 }
 
 type Ekco struct {
-	MinReadyMasterNodeCount     int    `json:"minReadyMasterNodeCount,omitEmpty"`
-	MinReadyWorkerNodeCount     int    `json:"minReadyWorkerNodeCount,omitEmpty"`
-	NodeUnreachableToleration   string `json:"nodeUnreachableToleration,omitEmpty"`
-	RookShouldUseAllNodes       bool   `json:"rookShouldUseAllNodes,omitEmpty"`
-	ShouldDisableRebootServices bool   `json:"shouldDisableRebootServices,omitEmpty"`
+	MinReadyMasterNodeCount     int    `json:"minReadyMasterNodeCount,omitempty"`
+	MinReadyWorkerNodeCount     int    `json:"minReadyWorkerNodeCount,omitempty"`
+	NodeUnreachableToleration   string `json:"nodeUnreachableToleration,omitempty"`
+	RookShouldUseAllNodes       bool   `json:"rookShouldUseAllNodes,omitempty"`
+	ShouldDisableRebootServices bool   `json:"shouldDisableRebootServices,omitempty"`
 	Version                     string `json:"version"`
 }
 
