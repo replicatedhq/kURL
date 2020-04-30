@@ -21,7 +21,7 @@ do
         # of the kurl-util image
         make dist/common.tar.gz
         aws s3 cp dist/common.tar.gz s3://$S3_BUCKET/dist/
-    elif echo "$package" | grep -q "kurl-util-bin"; then
+    elif echo "$package" | grep -q "kurl-bin-utils"; then
         # The kurl-utils-bin package must be built rather than copied from staging because the staging
         # version is latest and the prod version is tagged.
         make dist/$package
