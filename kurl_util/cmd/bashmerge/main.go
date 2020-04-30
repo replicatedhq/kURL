@@ -50,7 +50,8 @@ func checkIfFlagHasValue(length int, flag string) bool {
 		"kubeadm-token",
 		"kubeadm-token-ca-hash",
 		"kubernetes-master-address",
-		"kubernetes-version"}
+		"kubernetes-version",
+		"load-balancer-address"}
 
 	for _, variable := range shouldHaveLengthTwo {
 		if variable == flag {
@@ -89,6 +90,8 @@ func parseBashFlags(installer *kurlv1beta1.Installer, bashFlags string) error {
 			installer.Spec.Kubernetes.KubeadmToken = split[1]
 		case "kubeadm-token-ca-hash":
 			installer.Spec.Kubernetes.KubeadmTokenCAHash = split[1]
+		case "load-balancer-address":
+			installer.Spec.Kubernetes.LoadBalancerAddress = split[1]
 		case "kubernetes-master-address":
 			installer.Spec.Kubernetes.MasterAddress = split[1]
 		case "kubernetes-version":

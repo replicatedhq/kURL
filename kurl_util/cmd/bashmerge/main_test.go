@@ -43,13 +43,14 @@ func Test_parseBashFlags(t *testing.T) {
 						PreserveConfig: true,
 					},
 					Kubernetes: kurlv1beta1.Kubernetes{
-						MasterAddress:      "1.1.1.1",
-						HACluster:          true,
-						ControlPlane:       true,
-						KubeadmToken:       "token",
-						KubeadmTokenCAHash: "hash",
-						Version:            "1.18.1",
-						CertKey:            "secret",
+						MasterAddress:       "1.1.1.1",
+						HACluster:           true,
+						ControlPlane:        true,
+						KubeadmToken:        "token",
+						KubeadmTokenCAHash:  "hash",
+						LoadBalancerAddress: "1.1.1.1",
+						Version:             "1.18.1",
+						CertKey:             "secret",
 					},
 					Kurl: kurlv1beta1.Kurl{
 						Airgap: true,
@@ -72,7 +73,8 @@ func Test_parseBashFlags(t *testing.T) {
 				"kubeadm-token-ca-hash=hash " +
 				"kubernetes-master-address=1.1.1.1 " +
 				"kubernetes-version=1.18.1 " +
-				"installer-spec-file=in.yaml",
+				"installer-spec-file=in.yaml " +
+				"load-balancer-address=1.1.1.1",
 			wantError: false,
 		},
 		{
@@ -87,13 +89,14 @@ func Test_parseBashFlags(t *testing.T) {
 						DockerRegistryIP: "2.2.2.2",
 					},
 					Kubernetes: kurlv1beta1.Kubernetes{
-						MasterAddress:      "2.2.2.2",
-						HACluster:          false,
-						ControlPlane:       false,
-						KubeadmToken:       "badtoken",
-						KubeadmTokenCAHash: "badhash",
-						Version:            "1.15.0",
-						CertKey:            "badsecret",
+						MasterAddress:       "2.2.2.2",
+						HACluster:           false,
+						ControlPlane:        false,
+						KubeadmToken:        "badtoken",
+						KubeadmTokenCAHash:  "badhash",
+						LoadBalancerAddress: "2.2.2.2",
+						Version:             "1.15.0",
+						CertKey:             "badsecret",
 					},
 					Kurl: kurlv1beta1.Kurl{
 						Airgap: false,
@@ -117,13 +120,14 @@ func Test_parseBashFlags(t *testing.T) {
 						PreserveConfig: true,
 					},
 					Kubernetes: kurlv1beta1.Kubernetes{
-						MasterAddress:      "1.1.1.1",
-						HACluster:          true,
-						ControlPlane:       true,
-						KubeadmToken:       "token",
-						KubeadmTokenCAHash: "hash",
-						Version:            "1.18.1",
-						CertKey:            "secret",
+						MasterAddress:       "1.1.1.1",
+						HACluster:           true,
+						ControlPlane:        true,
+						KubeadmToken:        "token",
+						KubeadmTokenCAHash:  "hash",
+						LoadBalancerAddress: "1.1.1.1",
+						Version:             "1.18.1",
+						CertKey:             "secret",
 					},
 					Kurl: kurlv1beta1.Kurl{
 						Airgap: true,
@@ -146,7 +150,8 @@ func Test_parseBashFlags(t *testing.T) {
 				"kubeadm-token-ca-hash=hash " +
 				"kubernetes-master-address=1.1.1.1 " +
 				"kubernetes-version=1.18.1 " +
-				"installer-spec-file=in.yaml",
+				"installer-spec-file=in.yaml " +
+				"load-balancer-address=1.1.1.1",
 			wantError: false,
 		},
 		{

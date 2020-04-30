@@ -57,7 +57,31 @@ function get_patch_yaml() {
             airgap)
                 AIRGAP="1"
                 ;;
-            cert-key|control-plane|docker-registry-ip|ha|kubeadm-token|kubeadm-token-ca-hash|kubernetes-master-address|kubernetes-version|preserve-docker-config|preserve-firewalld-config|preserve-iptables-config|preserve-selinux-config)
+            cert-key)
+                ;;
+            control-plane)
+                ;;
+            docker-registry-ip)
+                ;;
+            ha)
+                ;;
+            kubeadm-token)
+                ;;
+            kubeadm-token-ca-hash)
+                ;;
+            kubernetes-master-address)
+                ;;
+            kubernetes-version)
+                ;;
+            load-balancer-address)
+                ;;
+            preserve-docker-config)
+                ;;
+            preserve-firewalld-config)
+                ;;
+            preserve-iptables-config)
+                ;;
+            preserve-selinux-config)
                 ;;
             *)
                 echo >&2 "Error: unknown parameter \"$_param\""
