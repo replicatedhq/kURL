@@ -146,7 +146,7 @@ const openebs = `
 spec:
   kubernetes:
     version: latest
-  openEBS:
+  openebs:
     version: latest
     namespace: openebs
     isLocalPVEnabled: true
@@ -242,10 +242,10 @@ describe("POST /installer", () => {
   });
 
   describe("openebs", () => {
-    it(`should return 201 "https://kurl.sh/e30bef8"`, async () => {
+    it(`should return 201 "https://kurl.sh/070e1fa"`, async () => {
       const uri = await client.postInstaller(openebs);
 
-      expect(uri).to.match(/e30bef8/);
+      expect(uri).to.match(/070e1fa/);
     });
   });
 
@@ -494,19 +494,19 @@ spec:
     });
   });
 
-  describe("openebs (/e30bef8)", () => {
-    const id = "e30bef8";
+  describe("openebs (/070e1fa)", () => {
+    const id = "070e1fa";
 
     before(async () => {
       const uri = await client.postInstaller(openebs);
-      expect(uri).to.match(/e30bef8/);
+      expect(uri).to.match(/070e1fa/);
     });
 
     it("injects openebs version and flags", async () => {
       const i = Installer.parse(openebs);
       const script = await client.getInstallScript(id);
 
-      expect(script).to.match(new RegExp(`OPENEBS_VERSION="${i.resolve().spec.openEBS!.version}"`));
+      expect(script).to.match(new RegExp(`OPENEBS_VERSION="${i.resolve().spec.openebs!.version}"`));
       expect(script).to.match(new RegExp(`FLAGS="openebs-namespace=openebs openebs-localpv-enabled=1 openebs-localpv-storage-class-name=default openebs-cstor-enabled=1 openebs-cstor-storage-class-name=cstor"`));
     });
   });
