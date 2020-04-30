@@ -254,6 +254,8 @@ github.com/replicatedhq/kurl v0.0.0-20200421172839-95bb70922dc2 h1:i0ILM7o7gYA+L
 github.com/replicatedhq/kurl v0.0.0-20200423165539-9b4c27f62d79 h1:NwC0RnId+sOOSDJWhi3shTLUTDq63po8BLUegVyML8g=
 github.com/replicatedhq/kurl v0.0.0-20200429202312-cc019e10abc0 h1:OJJ/dz51F1CUVlbIs80TzRYSm72aUiY1+/23RDcxhqM=
 github.com/replicatedhq/kurl v0.0.0-20200429202312-cc019e10abc0/go.mod h1:RwNwQF5Erm1R/xkN1yk+Kk/OYQ6ADj8+3Z6D+46cm2o=
+github.com/replicatedhq/kurl v0.0.0-20200430165742-b6df5d5ede7e h1:kE18+YpitKRsFN6X9ej0DXkso3EFk/bVfgWg5hlPlzo=
+github.com/replicatedhq/kurl v0.0.0-20200430165742-b6df5d5ede7e/go.mod h1:voMwY0gCmsqJyhY1WtIBNxHdY/071ZE7YhRijGJtlDw=
 github.com/replicatedhq/kurl/kurlkinds v0.0.0-20200410224122-6dbdc289d39c h1:H3sgDEEcvmhhO8/wMF6c9H0AQbwsjmK/H18OiI0Zucg=
 github.com/replicatedhq/kurl/kurlkinds v0.0.0-20200410224122-6dbdc289d39c/go.mod h1:Vp5X4tM0KmahplYOvdRqs2NY2qy1amZ89zZBm9CDENw=
 github.com/replicatedhq/kurl/kurlkinds v0.0.0-20200416200032-5ac05357ea35 h1:PNloXMiGpNOHN9mzllO3eCKmyQ0M2VAaNVjALJb75Vg=
@@ -266,6 +268,8 @@ github.com/replicatedhq/kurl/kurlkinds v0.0.0-20200423165539-9b4c27f62d79 h1:Ppx
 github.com/replicatedhq/kurl/kurlkinds v0.0.0-20200423165539-9b4c27f62d79/go.mod h1:Vp5X4tM0KmahplYOvdRqs2NY2qy1amZ89zZBm9CDENw=
 github.com/replicatedhq/kurl/kurlkinds v0.0.0-20200429202312-cc019e10abc0 h1:Oosp2r2wJ7A0lhewDtCJ8wPP8momL6nOOHeTerMAcks=
 github.com/replicatedhq/kurl/kurlkinds v0.0.0-20200429202312-cc019e10abc0/go.mod h1:Vp5X4tM0KmahplYOvdRqs2NY2qy1amZ89zZBm9CDENw=
+github.com/replicatedhq/kurl/kurlkinds v0.0.0-20200430165742-b6df5d5ede7e h1:rRoidWqQvix6LRmncF9SvA+FMVgwhtIQ6h1uilgNHm0=
+github.com/replicatedhq/kurl/kurlkinds v0.0.0-20200430165742-b6df5d5ede7e/go.mod h1:Vp5X4tM0KmahplYOvdRqs2NY2qy1amZ89zZBm9CDENw=
 github.com/rogpeppe/fastuuid v0.0.0-20150106093220-6724a57986af/go.mod h1:XWv6SoW27p1b0cqNHllgS5HIMJraePCO15w5zCzIWYg=
 github.com/russross/blackfriday v1.5.2/go.mod h1:JO/DiYxRf+HjHt06OyowR9PTA263kcR/rfWxYHBV53g=
 github.com/sergi/go-diff v1.0.0/go.mod h1:0CfEIISq7TuYL3j771MWULgwwjU+GofnZX9QAmXWZgo=
