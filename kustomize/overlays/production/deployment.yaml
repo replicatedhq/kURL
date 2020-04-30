@@ -26,3 +26,5 @@ spec:
           value: kurl-sh
         - name: NODE_ENV
           value: production
+        - name: KURL_UTIL_IMAGE
+          value: replicated/kurl-util:__VERSION_TAG__
