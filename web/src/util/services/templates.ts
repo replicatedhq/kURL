@@ -90,7 +90,7 @@ function manifestFromInstaller(i: Installer, kurlURL: string, replicatedAppURL: 
     KUBERNETES_VERSION: i.spec.kubernetes.version,
     WEAVE_VERSION: _.get(i.spec, "weave.version", ""),
     ROOK_VERSION: _.get(i.spec, "rook.version", ""),
-    OPENEBS_VERSION: _.get(i.spec, "openEBS.version", ""),
+    OPENEBS_VERSION: _.get(i.spec, "openebs.version", ""),
     MINIO_VERSION: _.get(i.spec, "minio.version", ""),
     CONTOUR_VERSION: _.get(i.spec, "contour.version", ""),
     REGISTRY_VERSION: _.get(i.spec, "registry.version", ""),
