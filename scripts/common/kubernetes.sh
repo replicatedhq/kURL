@@ -250,11 +250,6 @@ function kubernetes_secret_value() {
 }
 
 function install_krew() {
-    if ! kubernetes_is_master; then
-        echo 'not installing krew and plugins on non-master node'
-        return 0
-    fi
-
     mkdir -p $KREW_ROOT
 
     pushd "$DIR/krew"
