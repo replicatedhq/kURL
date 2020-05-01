@@ -684,3 +684,54 @@ describe("GET /installer", () => {
     expect(versions.kotsadm).to.contain("0.9.9");
   });
 });
+
+describe("POST /installer/validate", () => {
+  describe("latestV1Beta1", () => {
+    it(`should return 200 ""`, async () => {
+      const res = await client.validateInstaller(latestV1Beta1);
+
+      expect(res).to.equal("");
+    });
+  });
+
+  describe("empty", () => {
+    it("400", async () => {
+      let err;
+
+      try {
+        await client.validateInstaller("");
+      } catch (error) {
+        err = error;
+      }
+
+      expect(err).to.have.property("message", "Kubernetes version is required");
+    });
+  });
+
+  describe("unsupported Kubernetes version", () => {
+    it("400", async () => {
+      let err;
+
+      try {
+        await client.validateInstaller(badK8sVersion);
+      } catch (error) {
+        err = error;
+      }
+
+      expect(err).to.have.property("message", "Kubernetes version 1.14.99 is not supported");
+    });
+  });
+
+  describe("invalid YAML", () => {
+    it("400", async () => {
+      let err;
+
+      try {
+        await client.validateInstaller("{{");
+      } catch (error) {
+        err = error;
+      }
+      expect(err).to.have.property("message", "YAML could not be parsed");
+    });
+  });
+});

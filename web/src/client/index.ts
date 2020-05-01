@@ -131,4 +131,20 @@ export class KurlClient {
       throw e;
     }
   }
+
+  public async validateInstaller(yaml: string): Promise<string> {
+    try {
+      const resp = await request
+        .post(`${this.kurlURL}/installer/validate`)
+        .set("Content-Type", "text/yaml")
+        .send(yaml);
+
+      return resp.text;
+    } catch(e) {
+      if (e.response && e.response.body && e.response.body.error && e.response.body.error.message) {
+        throw new Error(e.response.body.error.message);
+      }
+      throw e;
+    }
+  }
 }
