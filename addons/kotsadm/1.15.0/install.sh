@@ -52,6 +52,8 @@ function kotsadm() {
     kotsadm_ready_spinner
     kotsadm_api_ready_spinner
 
+    kubectl label pvc kotsadm-postgres-kotsadm-postgres-0 velero.io/exclude-from-backup="true" --overwrite
+
     kotsadm_cli $src
 }
 

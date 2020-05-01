@@ -74,11 +74,6 @@ spec:
                 version:
                   type: string
               required:
-              - minReadyMasterNodeCount
-              - minReadyWorkerNodeCount
-              - nodeUnreachableToleration
-              - rookShouldUseAllNodes
-              - shouldDisableRebootServices
               - version
               type: object
             firewalldConfig:
