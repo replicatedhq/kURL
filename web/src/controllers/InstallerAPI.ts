@@ -12,8 +12,6 @@ import {
 import { instrumented } from "monkit";
 import { Installer, InstallerObject, InstallerStore } from "../installers";
 import decode from "../util/jwt";
-import { Forbidden } from "../server/errors";
-import { logger } from "../logger";
 
 interface ErrorResponse {
   error: any;
@@ -193,7 +191,6 @@ export class Installers {
     response.contentType("text/plain");
     response.status(201);
     return `${this.kurlURL}/${i.id}`;
-    return "";
   }
 
   /**
@@ -231,5 +228,36 @@ export class Installers {
 
     response.contentType("text/yaml");
     return installer.toYAML();
+  }
+
+  /**
+   * Validate installer yaml
+   *
+   * @param response
+   * @param request
+   * @returns string | ErrorResponse
+   */
+  @Post("/validate")
+  @instrumented
+  public async validateInstaller(
+    @Res() response: Express.Response,
+    @Req() request: Express.Request,
+  ): Promise<string | ErrorResponse> {
+    let i: Installer;
+    try {
+      i = Installer.parse(request.body);
+    } catch(error) {
+      response.status(400);
+      return invalidYAMLResponse;
+    }
+
+    const err = await i.validate();
+    if (err) {
+      response.status(400);
+      return err;
+    }
+
+    response.status(200);
+    return "";
   }
 }
