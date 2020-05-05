@@ -41,7 +41,7 @@ Add-ons belonging to the same category conflict with each other.
 
 ## Detailed Design
 
-Add a GET /add-ons endpoint that returns a list of add-ons along with their dependencies.
+Add a GET /add-ons endpoint that returns a list of add-ons along with their dependencies, what categories the add-on belongs to, and any other add-ons that are recommended to enable all features.
 Example response:
 
 ```
@@ -50,76 +50,77 @@ Example response:
 		name: "docker",
 		fulfills: ["Container Runtime"],
 		requires: [],
+		recommends: [],
 	},{
 		name: "containerd",
 		fulfilles: ["Container Runtime"],
 		requires: [],
+		recommends: [],
 	},{
 		name: "weave",
 		fulfills: ["CNI Plugin"],
 		requires: ["Container Runtime"],
+		recommends: [],
 	},{
 		name: "calico",
 		fulfills: ["CNI Plugin"],
 		requires: ["Container Runtime"],
+		recommends: [],
 	},{
 		name: "rook",
 		fulfills: ["PVC Provisioner", "Object Store"],
 		requires: ["CNI Plugin", "Container Runtime"],
+		recommends: ["ekco"],
 	},{
 		name: "openEBS",
 		fulfills: ["PVC Provisioner"],
 		requires: ["CNI Plugin", "Container Runtime"],
+		recommends: [],
 	},{
 		name: "minio",
 		fulfills: ["Object Store"],
 		requires: ["CNI Plugin", "Container Runtime"],
+		recommends: [],
 	},{
 		name: "contour",
 		fulfills: ["Ingress"],
 		requires: ["CNI Plugin", "Container Runtime"],
+		recommends: [],
 	},{
 		name: "fluentd",
 		fulfills: ["Logs"],
 		requires: ["CNI Plugin", "Container Runtime"],
+		recommends: [],
 	},{
 		name: "kotsadm",
 		fulfills: ["Application Management"],
-		requires: ["CNI Plugin", "Container Runtime", "PVC Provisioner", "Object Store", "Registry", "Snapshots"],
+		requires: ["CNI Plugin", "Container Runtime", "PVC Provisioner", "Object Store"],
+		recommends: ["registry", "velero"],
 	},{
 		name: "registry",
 		fulfills: ["Registry"],
 		requires: ["CNI Plugin", "Container Runtime","Object Store"],
+		recommends: [],
 	},{
 		name: "velero",
 		fulfills: ["Snapshots"],
 		requires: ["CNI Plugin", "Container Runtime", "Object Store"],
+		recommends: [],
 	},{
 		name: "prometheus",
 		fulfills: ["Metrics & Monitoring"],
 		requires: ["CNI Plugin", "Container Runtime", "PVC Provisioner"],
+		recommends: [],
 	},{
 		name: "ekco",
 		fulfills: ["Cluster Administration"],
 		requires: ["CNI Plugin", "Container Runtime"],
+		recommends: [],
 	}
 ]
 ```
 
 ## Alternatives Considered
-
-### Recommends
-
-Each add-on's `requires` list could be separated into `recommends` and `requires`.
-The kotsadm add-on, for example, would be:
-```
-{
-	name: "kotsadm",
-	fulfills: ["Application Management"],
-	requires: ["CNI Plugin", "Container Runtime", "PVC Provisioner", "Object Store"],
-	recommends: ["Registry", "Snapshots"],
-}
-```
 
 ### Detailed Conflicts
 
