@@ -1,6 +1,6 @@
 module github.com/replicatedhq/kurl/kurlkinds
 
-go 1.12
+go 1.14
 
 require (
 	github.com/onsi/gomega v1.9.0
