@@ -52,6 +52,7 @@ This endpoint will take a yaml file and do the steps similar to postInstaller En
 
 getBundle Endpoint:
 This is already served by a golang endpoint
+This calls the typescript API to get the scripts and the list of packages to push into the bundle and needs to be addressed
 
 ## Legacy Considerations
 
