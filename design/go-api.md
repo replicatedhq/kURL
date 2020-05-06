@@ -38,6 +38,7 @@ The function will take a yaml Installer and attempt to unmarshall it into an Ins
 If the unmarshalling fails, an error will be retuned. If the marshalling succeeds the version of an addon will be checked against existing versions.
 If the version is not found an error will be returned.
 Any version latest will be converted to the most recent version.
+There will also be other validation steps and can be more in the future, right now changing the CIDR range for serviceCIDR and podCIDR will be needed.
 
 putInstaller Endpoint
 This endpoint will take yaml installer, do the validation as done inpostInstaller, and update that installer in the db.
