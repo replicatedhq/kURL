@@ -21,6 +21,9 @@ EOF
 
 function install_docker() {
     if [ "$SKIP_DOCKER_INSTALL" != "1" ]; then
+        if [ -z "$DOCKER_VERSION" ]; then
+            printf "${RED}The installer did not specify a version of Docker to include, but is required by all kURL installation scripts currently. The latest supported version of Docker will be installed.${NC}\n"
+        fi
         change_cgroup_driver_to_systemd
         if [ "$OFFLINE_DOCKER_INSTALL" != "1" ]; then
             installDockerOnline "$DOCKER_VERSION" "$MIN_DOCKER_VERSION"
