@@ -120,6 +120,13 @@ Example response:
 ]
 ```
 
+Each addon root directory may have a categories.json file that defines an object representing the add-on.
+The addon/<version> directories do not have separate categories.json files.
+Add a Node script to bin/ that will read all the categories.json files, concatenate them into an array, and output the result as json.
+In the deploy-staging GitHub workflow, call the Node script, save the output to a tmp file, and upload the output to the S3 staging folder.
+Do the same for the prod script.
+Clients will then be able to GET the file from either https://kurl.sh/dist/add-ons.json or https://kurl-sh.s3.amazonaws.com/dist/add-ons.json.
+
 ## Alternatives Considered
 
 ### Detailed Conflicts
