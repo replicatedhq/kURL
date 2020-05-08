@@ -31,21 +31,26 @@ There are a few categories of ways in which Docker is used in the kURL installer
 
 Places to move functionality from kurl_util to go binaries:
 
-scripts/install.sh line 88
-scripts/join.sh line 60
-scripts/common/kubernetes.sh lines 340, 360, 366, 401, 424, 430
-scripts/common/upgrade.sh line 154
-scripts/common/common.sh 261
+https://github.com/replicatedhq/kURL/blob/master/scripts/install.sh#L88
+https://github.com/replicatedhq/kURL/blob/master/scripts/join.sh#L60
+https://github.com/replicatedhq/kURL/blob/master/scripts/common/kubernetes.sh#L340
+https://github.com/replicatedhq/kURL/blob/master/scripts/common/kubernetes.sh#L360
+https://github.com/replicatedhq/kURL/blob/master/scripts/common/kubernetes.sh#L366
+https://github.com/replicatedhq/kURL/blob/master/scripts/common/kubernetes.sh#L401
+https://github.com/replicatedhq/kURL/blob/master/scripts/common/kubernetes.sh#L424
+https://github.com/replicatedhq/kURL/blob/master/scripts/common/kubernetes.sh#L430
+https://github.com/replicatedhq/kURL/blob/master/scripts/common/upgrade.sh#L154
+https://github.com/replicatedhq/kURL/blob/master/scripts/common/common.sh#L261
 
 Places to use a bcrypt binary instead of an image:
 
-addons/registry/2.7.1/install.sh line 65
-scripts/common/tasks 204
-addons/kotsadm/MANY/install.sh
+https://github.com/replicatedhq/kURL/blob/master/addons/registry/2.7.1/install.sh#L65
+https://github.com/replicatedhq/kURL/blob/master/scripts/common/tasks.sh#L204
+https://github.com/replicatedhq/kURL/blob/master/addons/kotsadm/1.15.2/install.sh#L134
 
 Places to handle loading of images:
 
-scripts/common/common.sh 206
+https://github.com/replicatedhq/kURL/blob/master/scripts/common/common.sh#L206
 
 ## Security Considerations
 
