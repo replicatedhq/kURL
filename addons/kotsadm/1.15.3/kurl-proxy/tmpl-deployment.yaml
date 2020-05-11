@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kurl-proxy-kotsadm
+  labels:
+    app: kurl-proxy-kotsadm
+    kots.io/kotsadm: \"true\"
+    velero.io/exclude-from-backup: \"true\"
+spec:
+  selector:
+    matchLabels:
+      app: kurl-proxy-kotsadm
+  template:
+    metadata:
+      labels:
+        app: kurl-proxy-kotsadm
+        kots.io/kotsadm: \"true\"
+        velero.io/exclude-from-backup: \"true\"
+    spec:
+      containers:
+      - name: proxy
+        image: kotsadm/kurl-proxy:v1.15.3
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: NODE_PORT
+          value: \"8800\"
+        - name: UPSTREAM_ORIGIN
+          value: http://kotsadm:3000
+        - name: TLS_SECRET_NAME
+          value: kotsadm-tls
+        - name: NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        volumeMounts:
+        - name: kotsadm-config
+          mountPath: /etc/kotsadm
+      serviceAccount: kurl-proxy
+      volumes:
+      - name: kotsadm-config
+        configMap:
+          name: kotsadm-application-metadata
+          optional: true

@@ -1,6 +1,6 @@
 
 function kotsadm() {
-    local src="$DIR/addons/kotsadm/alpha"
+    local src="$DIR/addons/kotsadm/1.15.3"
     local dst="$DIR/kustomize/kotsadm"
 
     try_1m object_store_create_bucket kotsadm
@@ -52,11 +52,13 @@ function kotsadm() {
     kotsadm_ready_spinner
     kotsadm_api_ready_spinner
 
+    kubectl label pvc kotsadm-postgres-kotsadm-postgres-0 velero.io/exclude-from-backup="true" --overwrite
+
     kotsadm_cli $src
 }
 
 function kotsadm_join() {
-    kotsadm_cli "$DIR/addons/kotsadm/alpha"
+    kotsadm_cli "$DIR/addons/kotsadm/1.15.3"
 }
 
 function kotsadm_outro() {
@@ -98,7 +100,7 @@ function kotsadm_secret_cluster_token() {
         CLUSTER_TOKEN=$(< /dev/urandom tr -dc A-Za-z0-9 | head -c16)
     fi
 
-    render_yaml_file "$DIR/addons/kotsadm/alpha/tmpl-secret-cluster-token.yaml" > "$DIR/kustomize/kotsadm/secret-cluster-token.yaml"
+    render_yaml_file "$DIR/addons/kotsadm/1.15.3/tmpl-secret-cluster-token.yaml" > "$DIR/kustomize/kotsadm/secret-cluster-token.yaml"
     insert_resources "$DIR/kustomize/kotsadm/kustomization.yaml" secret-cluster-token.yaml
 
     # ensure all pods that consume the secret will be restarted
@@ -115,7 +117,7 @@ function kotsadm_secret_authstring() {
         AUTHSTRING=$(< /dev/urandom tr -dc A-Za-z0-9 | head -c16)
     fi
 
-    render_yaml_file "$DIR/addons/kotsadm/alpha/tmpl-secret-authstring.yaml" > "$DIR/kustomize/kotsadm/secret-authstring.yaml"
+    render_yaml_file "$DIR/addons/kotsadm/1.15.3/tmpl-secret-authstring.yaml" > "$DIR/kustomize/kotsadm/secret-authstring.yaml"
     insert_resources "$DIR/kustomize/kotsadm/kustomization.yaml" secret-authstring.yaml
 }
 
@@ -131,7 +133,7 @@ function kotsadm_secret_password() {
     # TODO kurl-util
     BCRYPT_PASSWORD=$(docker run --rm epicsoft/bcrypt:latest hash "$KOTSADM_PASSWORD" 14)
 
-    render_yaml_file "$DIR/addons/kotsadm/alpha/tmpl-secret-password.yaml" > "$DIR/kustomize/kotsadm/secret-password.yaml"
+    render_yaml_file "$DIR/addons/kotsadm/1.15.3/tmpl-secret-password.yaml" > "$DIR/kustomize/kotsadm/secret-password.yaml"
     insert_resources "$DIR/kustomize/kotsadm/kustomization.yaml" secret-password.yaml
 
     kubernetes_scale_down default deployment kotsadm
@@ -147,7 +149,7 @@ function kotsadm_secret_postgres() {
 
     POSTGRES_PASSWORD=$(< /dev/urandom tr -dc A-Za-z0-9 | head -c16)
 
-    render_yaml_file "$DIR/addons/kotsadm/alpha/tmpl-secret-postgres.yaml" > "$DIR/kustomize/kotsadm/secret-postgres.yaml"
+    render_yaml_file "$DIR/addons/kotsadm/1.15.3/tmpl-secret-postgres.yaml" > "$DIR/kustomize/kotsadm/secret-postgres.yaml"
     insert_resources "$DIR/kustomize/kotsadm/kustomization.yaml" secret-postgres.yaml
 
     kubernetes_scale_down default deployment kotsadm
@@ -157,7 +159,7 @@ function kotsadm_secret_postgres() {
 }
 
 function kotsadm_secret_s3() {
-    render_yaml_file "$DIR/addons/kotsadm/alpha/tmpl-secret-s3.yaml" > "$DIR/kustomize/kotsadm/secret-s3.yaml"
+    render_yaml_file "$DIR/addons/kotsadm/1.15.3/tmpl-secret-s3.yaml" > "$DIR/kustomize/kotsadm/secret-s3.yaml"
     insert_resources "$DIR/kustomize/kotsadm/kustomization.yaml" secret-s3.yaml
 }
 
@@ -170,7 +172,7 @@ function kotsadm_secret_session() {
 
     JWT_SECRET=$(< /dev/urandom tr -dc A-Za-z0-9 | head -c16)
 
-    render_yaml_file "$DIR/addons/kotsadm/alpha/tmpl-secret-session.yaml" > "$DIR/kustomize/kotsadm/secret-session.yaml"
+    render_yaml_file "$DIR/addons/kotsadm/1.15.3/tmpl-secret-session.yaml" > "$DIR/kustomize/kotsadm/secret-session.yaml"
     insert_resources "$DIR/kustomize/kotsadm/kustomization.yaml" secret-session.yaml
 
     kubernetes_scale_down default deployment kotsadm
@@ -188,7 +190,7 @@ function kotsadm_api_encryption_key() {
     # in secrets with kubectl. Kotsadm expects the value to be encoded when read as an env var.
     API_ENCRYPTION=$(< /dev/urandom cat | head -c36 | base64)
 
-    render_yaml_file "$DIR/addons/kotsadm/alpha/tmpl-secret-api-encryption.yaml" > "$DIR/kustomize/kotsadm/secret-api-encryption.yaml"
+    render_yaml_file "$DIR/addons/kotsadm/1.15.3/tmpl-secret-api-encryption.yaml" > "$DIR/kustomize/kotsadm/secret-api-encryption.yaml"
     insert_resources "$DIR/kustomize/kotsadm/kustomization.yaml" secret-api-encryption.yaml
 
     kubernetes_scale_down default deployment kotsadm-api
@@ -196,7 +198,7 @@ function kotsadm_api_encryption_key() {
 
 function kotsadm_api_patch_prometheus() {
     insert_patches_strategic_merge "$DIR/kustomize/kotsadm/kustomization.yaml" api-prometheus.yaml
-    cp "$DIR/addons/kotsadm/alpha/patches/api-prometheus.yaml" "$DIR/kustomize/kotsadm/api-prometheus.yaml"
+    cp "$DIR/addons/kotsadm/1.15.3/patches/api-prometheus.yaml" "$DIR/kustomize/kotsadm/api-prometheus.yaml"
 }
 
 function kotsadm_metadata_configmap() {
