@@ -197,6 +197,18 @@ func Test_parseBashFlags(t *testing.T) {
 			bashFlags: "BaD FlAgS",
 			wantError: true,
 		},
+		{
+			name:         "Kubernetes version with v",
+			oldInstaller: &kurlv1beta1.Installer{},
+			bashFlags:    "kubernetes-version=v1.17.3",
+			mergedInstaller: &kurlv1beta1.Installer{
+				Spec: kurlv1beta1.InstallerSpec{
+					Kubernetes: kurlv1beta1.Kubernetes{
+						Version: "1.17.3",
+					},
+				},
+			},
+		},
 	}
 
 	for _, test := range tests {
