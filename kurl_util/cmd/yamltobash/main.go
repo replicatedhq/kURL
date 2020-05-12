@@ -94,6 +94,7 @@ func convertToBash(kurlValues map[string]interface{}) (map[string]string, error)
 	}
 
 	bashLookup := map[string]string{
+		"Calico.Version":                         "CALICO_VERSION",
 		"Contour.Version":                        "CONTOUR_VERSION",
 		"Docker.BypassStorageDriverWarning":      "BYPASS_STORAGEDRIVER_WARNINGS",
 		"Docker.DockerRegistryIP":                "DOCKER_REGISTRY_IP",

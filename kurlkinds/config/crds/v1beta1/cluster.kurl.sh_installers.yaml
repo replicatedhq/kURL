@@ -33,6 +33,13 @@ spec:
           type: object
         spec:
           properties:
+            calico:
+              properties:
+                version:
+                  type: string
+              required:
+              - version
+              type: object
             contour:
               properties:
                 version:
