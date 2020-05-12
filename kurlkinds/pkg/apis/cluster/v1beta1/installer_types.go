@@ -24,7 +24,7 @@ type InstallerSpec struct {
 	Kubernetes      Kubernetes      `json:"kubernetes,omitempty"`
 	Docker          Docker          `json:"docker,omitempty"`
 	Weave           Weave           `json:"weave,omitempty"`
-	Calico           Calico           `json:"calico,omitempty"`
+	Calico          Calico          `json:"calico,omitempty"`
 	Contour         Contour         `json:"contour,omitempty"`
 	Rook            Rook            `json:"rook,omitempty"`
 	Registry        Registry        `json:"registry,omitempty"`
@@ -140,7 +140,7 @@ type Weave struct {
 }
 
 type Calico struct {
-	Version              string `json:"version"`
+	Version string `json:"version"`
 }
 
 type SelinuxConfig struct {

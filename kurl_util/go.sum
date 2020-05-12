@@ -256,6 +256,7 @@ github.com/replicatedhq/kurl v0.0.0-20200429202312-cc019e10abc0 h1:OJJ/dz51F1CUV
 github.com/replicatedhq/kurl v0.0.0-20200429202312-cc019e10abc0/go.mod h1:RwNwQF5Erm1R/xkN1yk+Kk/OYQ6ADj8+3Z6D+46cm2o=
 github.com/replicatedhq/kurl v0.0.0-20200430165742-b6df5d5ede7e h1:kE18+YpitKRsFN6X9ej0DXkso3EFk/bVfgWg5hlPlzo=
 github.com/replicatedhq/kurl v0.0.0-20200430165742-b6df5d5ede7e/go.mod h1:voMwY0gCmsqJyhY1WtIBNxHdY/071ZE7YhRijGJtlDw=
+github.com/replicatedhq/kurl v0.0.0-20200511234529-b6d84d2a573c h1:G1kVFvsGx/SzNIj23h5wegiXNFzUk2uUG7ORN6+6Yss=
 github.com/replicatedhq/kurl/kurlkinds v0.0.0-20200410224122-6dbdc289d39c h1:H3sgDEEcvmhhO8/wMF6c9H0AQbwsjmK/H18OiI0Zucg=
 github.com/replicatedhq/kurl/kurlkinds v0.0.0-20200410224122-6dbdc289d39c/go.mod h1:Vp5X4tM0KmahplYOvdRqs2NY2qy1amZ89zZBm9CDENw=
 github.com/replicatedhq/kurl/kurlkinds v0.0.0-20200416200032-5ac05357ea35 h1:PNloXMiGpNOHN9mzllO3eCKmyQ0M2VAaNVjALJb75Vg=
@@ -270,6 +271,9 @@ github.com/replicatedhq/kurl/kurlkinds v0.0.0-20200429202312-cc019e10abc0 h1:Oos
 github.com/replicatedhq/kurl/kurlkinds v0.0.0-20200429202312-cc019e10abc0/go.mod h1:Vp5X4tM0KmahplYOvdRqs2NY2qy1amZ89zZBm9CDENw=
 github.com/replicatedhq/kurl/kurlkinds v0.0.0-20200430165742-b6df5d5ede7e h1:rRoidWqQvix6LRmncF9SvA+FMVgwhtIQ6h1uilgNHm0=
 github.com/replicatedhq/kurl/kurlkinds v0.0.0-20200430165742-b6df5d5ede7e/go.mod h1:Vp5X4tM0KmahplYOvdRqs2NY2qy1amZ89zZBm9CDENw=
+github.com/replicatedhq/kurl/kurlkinds v0.0.0-20200511234529-b6d84d2a573c h1:YCE9OMXbkOSw2di36jjgcLSyx7KV+QndLWz2UfJ/ME8=
+github.com/replicatedhq/kurl/kurlkinds v0.0.0-20200512210812-0e26b9417ce0 h1:IF99xvoH4CsNLGvnfqUAFuXVEhd7lD8UPMczugzscN0=
+github.com/replicatedhq/kurl/kurlkinds v0.0.0-20200512210812-0e26b9417ce0/go.mod h1:Vp5X4tM0KmahplYOvdRqs2NY2qy1amZ89zZBm9CDENw=
 github.com/rogpeppe/fastuuid v0.0.0-20150106093220-6724a57986af/go.mod h1:XWv6SoW27p1b0cqNHllgS5HIMJraePCO15w5zCzIWYg=
 github.com/russross/blackfriday v1.5.2/go.mod h1:JO/DiYxRf+HjHt06OyowR9PTA263kcR/rfWxYHBV53g=
 github.com/sergi/go-diff v1.0.0/go.mod h1:0CfEIISq7TuYL3j771MWULgwwjU+GofnZX9QAmXWZgo=
