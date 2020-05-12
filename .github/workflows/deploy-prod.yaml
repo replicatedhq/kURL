@@ -81,7 +81,7 @@ jobs:
     runs-on: ubuntu-18.04
     steps:
     - uses: actions/checkout@v2
-
+    - run: npm install
     - run: make generate-addons
       env:
         S3_BUCKET: kurl-sh
