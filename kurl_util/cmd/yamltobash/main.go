@@ -148,6 +148,7 @@ func convertToBash(kurlValues map[string]interface{}) (map[string]string, error)
 		"OpenEBS.Namespace":                      "OPENEBS_NAMESPACE",
 		"OpenEBS.Version":                        "OPENEBS_VERSION",
 		"Prometheus.Version":                     "PROMETHEUS_VERSION",
+		"Registry.PublishPort":                   "REGISTRY_PUBLISH_PORT",
 		"Registry.Version":                       "REGISTRY_VERSION",
 		"Rook.BlockDeviceFilter":                 "ROOK_BLOCK_DEVICE_FILTER",
 		"Rook.CephReplicaCount":                  "CEPH_POOL_REPLICAS",
@@ -179,7 +180,7 @@ func convertToBash(kurlValues map[string]interface{}) (map[string]string, error)
 
 		bashKey, ok := bashLookup[yamlKey]
 		if ok == false {
-			return nil, fmt.Errorf("Installer CRD does not have the kind %v, check spelling in lookup or update dependency", yamlKey)
+			return nil, fmt.Errorf("%v not found in lookup table, it has not been added to the lookup table or is not in this version of kurlkinds", yamlKey)
 		}
 
 		switch t := interface{}(val).(type) {
