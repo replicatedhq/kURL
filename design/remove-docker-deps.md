@@ -52,6 +52,9 @@ Places to handle loading of images:
 
 https://github.com/replicatedhq/kURL/blob/master/scripts/common/common.sh#L206
 
+The kotsadm add-on has a runtime dependency on the kurl-util image, which has been provided by the common package until now.
+This image will continue to reside in the common package so that old versions of the kotsadm add-on do not need to be rebuilt.
+
 ## Security Considerations
 
 Currently we use the epicsoft/bcrypt:latest image to generate bcrypt passwords.
