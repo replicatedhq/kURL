@@ -1,0 +1,6 @@
+{
+  "name": "calico",
+  "fulfills": ["CNI Plugin"],
+  "requires": ["Container Runtime"],
+  "recommends": []
+}

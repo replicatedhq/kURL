@@ -1,0 +1,6 @@
+{
+  "name": "registry",
+  "fulfills": ["Registry"],
+  "requires": ["CNI Plugin", "Container Runtime","Object Store"],
+  "recommends": []
+}

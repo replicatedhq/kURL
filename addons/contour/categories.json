@@ -1,0 +1,6 @@
+{
+  "name": "contour",
+  "fulfills": ["Ingress"],
+  "requires": ["CNI Plugin", "Container Runtime"],
+  "recommends": []
+}

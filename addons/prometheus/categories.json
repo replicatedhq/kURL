@@ -1,0 +1,6 @@
+{
+  "name": "prometheus",
+  "fulfills": ["Metrics & Monitoring"],
+  "requires": ["CNI Plugin", "Container Runtime", "PVC Provisioner"],
+  "recommends": []
+}
