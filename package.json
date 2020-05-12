@@ -8,5 +8,9 @@
   "private": true,
   "dependencies": {
     "gaze-run-interrupt": "^1.0.1"
+  },
+  "devDependencies": {
+    "aws-sdk": "^2.675.0",
+    "semver": "^7.3.2"
   }
 }

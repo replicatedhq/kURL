@@ -1,0 +1,6 @@
+{
+  "name": "velero",
+  "fulfills": ["Snapshots"],
+  "requires": ["CNI Plugin", "Container Runtime", "Object Store"],
+  "recommends": []
+}

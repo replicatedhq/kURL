@@ -5,3 +5,5 @@
 /web/templates
 node_modules/
 *DS_Store
+supported-versions-gen.json
+addons-gen.json

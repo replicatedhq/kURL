@@ -1,0 +1,6 @@
+{
+  "name": "weave",
+  "fulfills": ["CNI Plugin"],
+  "requires": ["Container Runtime"],
+  "recommends": []
+}

@@ -48,6 +48,18 @@ jobs:
         DOCKER_PRUNE: '1'
         KURL_UTIL_IMAGE: replicated/kurl-util:alpha
         KURL_BIN_UTILS_FILE: kurl-bin-utils-latest.tar.gz
+  
+  build-addons:
+    runs-on: ubuntu-18.04
+    steps:
+    - uses: actions/checkout@v2
+
+    - run: make generate-addons
+      env:
+        S3_BUCKET: kurl-sh
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_PROD_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_PROD_SECRET_ACCESS_KEY }}
+        DIST_FOLDER: "staging"
 
   staging-docker-image:
     runs-on: ubuntu-18.04

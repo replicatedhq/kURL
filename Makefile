@@ -364,3 +364,7 @@ watchrsync:
 .PHONY: kurl-util-image
 kurl-util-image:
 	docker pull $(KURL_UTIL_IMAGE)
+
+.PHONY: generate-addons
+generate-addons:
+	node generate-addons.js

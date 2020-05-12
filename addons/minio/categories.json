@@ -1,0 +1,6 @@
+{
+  "name": "minio",
+  "fulfills": ["Object Store"],
+  "requires": ["CNI Plugin", "Container Runtime"],
+  "recommends": []
+}

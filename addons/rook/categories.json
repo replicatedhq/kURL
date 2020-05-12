@@ -1,0 +1,6 @@
+{
+  "name": "rook",
+  "fulfills": ["PVC Provisioner", "Object Store"],
+  "requires": ["CNI Plugin", "Container Runtime"],
+  "recommends": ["ekco"]
+}

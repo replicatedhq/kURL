@@ -1,0 +1,6 @@
+{
+  "name": "fluentd",
+  "fulfills": ["Logs"],
+  "requires": ["CNI Plugin", "Container Runtime"],
+  "recommends": []
+}
