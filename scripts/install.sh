@@ -85,8 +85,7 @@ function init() {
     # this uses a go binary found in kurl/cmd/yamlutil to strip the metadata field from the yaml
     #
     cp $KUBEADM_CONF_FILE $KUBEADM_CONF_DIR/kubeadm_conf_copy_in
-    docker run -i --rm -v $KUBEADM_CONF_DIR:/home/ --entrypoint /bin/bash $KURL_UTIL_IMAGE \
-        -c "/usr/local/bin/yamlutil -r -fp /home/kubeadm_conf_copy_in -yf metadata"
+    $DIR/bin/yamlutil -r -fp $KUBEADM_CONF_DIR/kubeadm_conf_copy_in -yf metadata
     mv $KUBEADM_CONF_DIR/kubeadm_conf_copy_in $KUBEADM_CONF_FILE
 
     if [ "$HA_CLUSTER" = "1" ]; then
