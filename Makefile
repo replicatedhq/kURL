@@ -139,7 +139,7 @@ build/packages/kubernetes/%/images:
 build/install.sh:
 	mkdir -p tmp build
 	sed '/# Magic begin/q' scripts/install.sh | sed '$$d' > tmp/install.sh
-	for script in $(shell cat scripts/install.sh | grep '. $$DIR/' | sed 's/. $$DIR\///'); do \
+	for script in $(shell cat scripts/install.sh | grep '\. $$DIR/' | sed 's/. $$DIR\///'); do \
 		cat $$script >> tmp/install.sh ; \
 	done
 	sed -n '/# Magic end/,$$p' scripts/install.sh | sed '1d' >> tmp/install.sh
@@ -175,7 +175,7 @@ build/templates/install.tmpl: build/install.sh
 build/join.sh:
 	mkdir -p tmp build
 	sed '/# Magic begin/q' scripts/join.sh | sed '$$d' > tmp/join.sh
-	for script in $(shell cat scripts/join.sh | grep '. $$DIR/' | sed 's/. $$DIR\///'); do \
+	for script in $(shell cat scripts/join.sh | grep '\. $$DIR/' | sed 's/. $$DIR\///'); do \
 		cat $$script >> tmp/join.sh ; \
 	done
 	sed -n '/# Magic end/,$$p' scripts/join.sh | sed '1d' >> tmp/join.sh
@@ -211,7 +211,7 @@ build/templates/join.tmpl: build/join.sh
 build/upgrade.sh:
 	mkdir -p tmp build
 	sed '/# Magic begin/q' scripts/upgrade.sh | sed '$$d' > tmp/upgrade.sh
-	for script in $(shell cat scripts/upgrade.sh | grep '. $$DIR/' | sed 's/. $$DIR\///'); do \
+	for script in $(shell cat scripts/upgrade.sh | grep '\. $$DIR/' | sed 's/. $$DIR\///'); do \
 		cat $$script >> tmp/upgrade.sh ; \
 	done
 	sed -n '/# Magic end/,$$p' scripts/upgrade.sh | sed '1d' >> tmp/upgrade.sh
