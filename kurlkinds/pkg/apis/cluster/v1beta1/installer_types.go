@@ -24,6 +24,7 @@ type InstallerSpec struct {
 	Kubernetes      Kubernetes      `json:"kubernetes,omitempty"`
 	Docker          Docker          `json:"docker,omitempty"`
 	Weave           Weave           `json:"weave,omitempty"`
+	Calico           Calico           `json:"calico,omitempty"`
 	Contour         Contour         `json:"contour,omitempty"`
 	Rook            Rook            `json:"rook,omitempty"`
 	Registry        Registry        `json:"registry,omitempty"`
@@ -135,6 +136,10 @@ type Weave struct {
 	IsEncryptionDisabled bool   `json:"isEncryptionDisabled,omitempty"`
 	PodCIDR              string `json:"podCIDR,omitempty"`
 	PodCidrRange         string `json:"podCidrRange,omitempty"`
+	Version              string `json:"version"`
+}
+
+type Calico struct {
 	Version              string `json:"version"`
 }
 
