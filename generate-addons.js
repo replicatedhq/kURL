@@ -29,7 +29,7 @@ const uploadFile = (file) => {
 }
 
 let addons = [];
-let supportedVersons = new Object();
+let supportedVersions = new Object();
 const specDir = "./addons";
 
 fs.readdir(specDir, (err, files) => {
@@ -65,7 +65,7 @@ fs.readdir(specDir, (err, files) => {
         sv.push("alpha");
       }
       sv.unshift("latest");
-      supportedVersons[file] = sv
+      supportedVersions[file] = sv
     }
   });
 
@@ -76,7 +76,7 @@ fs.readdir(specDir, (err, files) => {
   };
   const supportVersionsFile = {
     _comment: `This file is generated, do not change! Last generated on ${new Date()}. To regenerate run 'make generate-addons'`,
-    supportedVersons
+    supportedVersions
   }
 
   // Write finalized JSON files
