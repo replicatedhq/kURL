@@ -148,6 +148,7 @@ func convertToBash(kurlValues map[string]interface{}) (map[string]string, error)
 		"OpenEBS.Namespace":                      "OPENEBS_NAMESPACE",
 		"OpenEBS.Version":                        "OPENEBS_VERSION",
 		"Prometheus.Version":                     "PROMETHEUS_VERSION",
+		"Registry.PublishPort":                   "REGISTRY_PUBLISH_PORT",
 		"Registry.Version":                       "REGISTRY_VERSION",
 		"Rook.BlockDeviceFilter":                 "ROOK_BLOCK_DEVICE_FILTER",
 		"Rook.CephReplicaCount":                  "CEPH_POOL_REPLICAS",
