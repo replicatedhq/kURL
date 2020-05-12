@@ -24,6 +24,7 @@ type InstallerSpec struct {
 	Kubernetes      Kubernetes      `json:"kubernetes,omitempty"`
 	Docker          Docker          `json:"docker,omitempty"`
 	Weave           Weave           `json:"weave,omitempty"`
+	Calico          Calico          `json:"calico,omitempty"`
 	Contour         Contour         `json:"contour,omitempty"`
 	Rook            Rook            `json:"rook,omitempty"`
 	Registry        Registry        `json:"registry,omitempty"`
@@ -168,6 +169,10 @@ type Ekco struct {
 	RookShouldUseAllNodes       bool   `json:"rookShouldUseAllNodes,omitempty"`
 	ShouldDisableRebootServices bool   `json:"shouldDisableRebootServices,omitempty"`
 	Version                     string `json:"version"`
+}
+
+type Calico struct {
+	Version string `json:"version"`
 }
 
 // InstallerStatus defines the observed state of Installer
