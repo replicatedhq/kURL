@@ -1,5 +1,6 @@
 const fs = require("fs");
 const path = require("path");
+const isEmpty = require("lodash/isEmpty");
 const semverCompare = require('semver/functions/compare')
 const AWS = require('aws-sdk');
 
@@ -48,7 +49,9 @@ fs.readdir(specDir, (err, files) => {
           if (subFile === "categories.json") {
             const content = fs.readFileSync(filepath);
             const addonContent = JSON.parse(content);
-            addons.push(addonContent);
+            if (!isEmpty(addonContent)) {
+              addons.push(addonContent);
+            }
           }
         }
       });
