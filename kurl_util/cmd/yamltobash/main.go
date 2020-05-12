@@ -180,7 +180,7 @@ func convertToBash(kurlValues map[string]interface{}) (map[string]string, error)
 
 		bashKey, ok := bashLookup[yamlKey]
 		if ok == false {
-			return nil, fmt.Errorf("Installer CRD does not have the kind %v, check spelling in lookup or update dependency", yamlKey)
+			return nil, fmt.Errorf("%v not found in lookup table, it has not been added to the lookup table or is not in this version of kurlkinds", yamlKey)
 		}
 
 		switch t := interface{}(val).(type) {
