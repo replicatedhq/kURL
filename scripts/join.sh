@@ -10,7 +10,6 @@ DIR=.
 . $DIR/scripts/common/common.sh
 . $DIR/scripts/common/discover.sh
 . $DIR/scripts/common/docker.sh
-. $DIR/scripts/common/flags.sh
 . $DIR/scripts/common/kubernetes.sh
 . $DIR/scripts/common/object_store.sh
 . $DIR/scripts/common/preflights.sh
