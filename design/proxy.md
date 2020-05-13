@@ -52,7 +52,7 @@ The `proxyAddress` field is the URL of a proxy.
 This field already exists on the kurl spec.
 The installer will validate the proxy URL at runtime by making a proxied request to `https://api.replicated.com/market/v1/echo/ip` and will bail if the request fails.
 
-The `additionalNoProxy` field is new.
+The `additionalNoProxyAddresses` field is new.
 This field is ignored if `proxyAddress` is unset.
 It accepts a list of IPs and hostnames.
 Cluster administrators should add all node IPs to this field.
