@@ -148,28 +148,13 @@ build/install.sh:
 
 build/templates/install.tmpl: build/install.sh
 	mkdir -p build/templates
-	sed 's/^KUBERNETES_VERSION=.*/KUBERNETES_VERSION="{{= KUBERNETES_VERSION }}"/' "build/install.sh" | \
-		sed 's/^KURL_URL=.*/KURL_URL="{{= KURL_URL }}"/' | \
+	sed 's/^KURL_URL=.*/KURL_URL="{{= KURL_URL }}"/' "build/install.sh" | \
 		sed 's/^DIST_URL=.*/DIST_URL="{{= DIST_URL }}"/' | \
 		sed 's/^INSTALLER_ID=.*/INSTALLER_ID="{{= INSTALLER_ID }}"/' | \
 		sed 's/^REPLICATED_APP_URL=.*/REPLICATED_APP_URL="{{= REPLICATED_APP_URL }}"/' | \
-		sed 's/^WEAVE_VERSION=.*/WEAVE_VERSION="{{= WEAVE_VERSION }}"/' | \
-		sed 's/^ROOK_VERSION=.*/ROOK_VERSION="{{= ROOK_VERSION }}"/' | \
-		sed 's/^OPENEBS_VERSION=.*/OPENEBS_VERSION="{{= OPENEBS_VERSION }}"/' | \
-		sed 's/^MINIO_VERSION=.*/MINIO_VERSION="{{= MINIO_VERSION }}"/' | \
-		sed 's/^CONTOUR_VERSION=.*/CONTOUR_VERSION="{{= CONTOUR_VERSION }}"/' | \
-		sed 's/^REGISTRY_VERSION=.*/REGISTRY_VERSION="{{= REGISTRY_VERSION }}"/' | \
-		sed 's/^PROMETHEUS_VERSION=.*/PROMETHEUS_VERSION="{{= PROMETHEUS_VERSION }}"/' | \
-		sed 's/^VELERO_VERSION=.*/VELERO_VERSION="{{= VELERO_VERSION }}"/' | \
-		sed 's/^FLUENTD_VERSION=.*/FLUENTD_VERSION="{{= FLUENTD_VERSION }}"/' | \
-		sed 's/^EKCO_VERSION=.*/EKCO_VERSION="{{= EKCO_VERSION }}"/' | \
-		sed 's/^KOTSADM_VERSION=.*/KOTSADM_VERSION="{{= KOTSADM_VERSION }}"/' | \
-		sed 's/^KOTSADM_APPLICATION_SLUG=.*/KOTSADM_APPLICATION_SLUG="{{= KOTSADM_APPLICATION_SLUG }}"/' | \
 		sed 's/^INSTALLER_YAML=.*/INSTALLER_YAML="{{= INSTALLER_YAML }}"/' | \
 		sed 's/^KURL_UTIL_IMAGE=.*/KURL_UTIL_IMAGE="{{= KURL_UTIL_IMAGE }}"/' | \
-		sed 's/^KURL_BIN_UTILS_FILE=.*/KURL_BIN_UTILS_FILE="{{= KURL_BIN_UTILS_FILE }}"/' | \
-		sed 's/^DOCKER_VERSION=.*/DOCKER_VERSION="{{= DOCKER_VERSION }}"/' | \
-		sed 's/^FLAGS=.*/FLAGS="{{= FLAGS }}"/' \
+		sed 's/^KURL_BIN_UTILS_FILE=.*/KURL_BIN_UTILS_FILE="{{= KURL_BIN_UTILS_FILE }}"/' \
 		> build/templates/install.tmpl
 
 build/join.sh:
@@ -184,28 +169,13 @@ build/join.sh:
 
 build/templates/join.tmpl: build/join.sh
 	mkdir -p build/templates
-	sed 's/^KUBERNETES_VERSION=.*/KUBERNETES_VERSION="{{= KUBERNETES_VERSION }}"/' "build/join.sh" | \
-		sed 's/^KURL_URL=.*/KURL_URL="{{= KURL_URL }}"/' | \
+	sed 's/^KURL_URL=.*/KURL_URL="{{= KURL_URL }}"/' "build/join.sh" | \
 		sed 's/^DIST_URL=.*/DIST_URL="{{= DIST_URL }}"/' | \
 		sed 's/^INSTALLER_ID=.*/INSTALLER_ID="{{= INSTALLER_ID }}"/' | \
 		sed 's/^REPLICATED_APP_URL=.*/REPLICATED_APP_URL="{{= REPLICATED_APP_URL }}"/' | \
-		sed 's/^WEAVE_VERSION=.*/WEAVE_VERSION="{{= WEAVE_VERSION }}"/' | \
-		sed 's/^ROOK_VERSION=.*/ROOK_VERSION="{{= ROOK_VERSION }}"/' | \
-		sed 's/^OPENEBS_VERSION=.*/OPENEBS_VERSION="{{= OPENEBS_VERSION }}"/' | \
-		sed 's/^MINIO_VERSION=.*/MINIO_VERSION="{{= MINIO_VERSION }}"/' | \
-		sed 's/^CONTOUR_VERSION=.*/CONTOUR_VERSION="{{= CONTOUR_VERSION }}"/' | \
-		sed 's/^REGISTRY_VERSION=.*/REGISTRY_VERSION="{{= REGISTRY_VERSION }}"/' | \
-		sed 's/^PROMETHEUS_VERSION=.*/PROMETHEUS_VERSION="{{= PROMETHEUS_VERSION }}"/' | \
-		sed 's/^VELERO_VERSION=.*/VELERO_VERSION="{{= VELERO_VERSION }}"/' | \
-		sed 's/^FLUENTD_VERSION=.*/FLUENTD_VERSION="{{= FLUENTD_VERSION }}"/' | \
-		sed 's/^EKCO_VERSION=.*/EKCO_VERSION="{{= EKCO_VERSION }}"/' | \
-		sed 's/^KOTSADM_VERSION=.*/KOTSADM_VERSION="{{= KOTSADM_VERSION }}"/' | \
-		sed 's/^KOTSADM_APPLICATION_SLUG=.*/KOTSADM_APPLICATION_SLUG="{{= KOTSADM_APPLICATION_SLUG }}"/' | \
 		sed 's/^INSTALLER_YAML=.*/INSTALLER_YAML="{{= INSTALLER_YAML }}"/' | \
 		sed 's/^KURL_UTIL_IMAGE=.*/KURL_UTIL_IMAGE="{{= KURL_UTIL_IMAGE }}"/' | \
-		sed 's/^KURL_BIN_UTILS_FILE=.*/KURL_BIN_UTILS_FILE="{{= KURL_BIN_UTILS_FILE }}"/' | \
-		sed 's/^DOCKER_VERSION=.*/DOCKER_VERSION="{{= DOCKER_VERSION }}"/' | \
-		sed 's/^FLAGS=.*/FLAGS="{{= FLAGS }}"/' \
+		sed 's/^KURL_BIN_UTILS_FILE=.*/KURL_BIN_UTILS_FILE="{{= KURL_BIN_UTILS_FILE }}"/' \
 		> build/templates/join.tmpl
 
 build/upgrade.sh:
@@ -220,28 +190,13 @@ build/upgrade.sh:
 
 build/templates/upgrade.tmpl: build/upgrade.sh
 	mkdir -p build/templates
-	sed 's/^KUBERNETES_VERSION=.*/KUBERNETES_VERSION="{{= KUBERNETES_VERSION }}"/' "build/upgrade.sh" | \
-		sed 's/^KURL_URL=.*/KURL_URL="{{= KURL_URL }}"/' | \
+	sed 's/^KURL_URL=.*/KURL_URL="{{= KURL_URL }}"/' "build/upgrade.sh" | \
 		sed 's/^DIST_URL=.*/DIST_URL="{{= DIST_URL }}"/' | \
 		sed 's/^INSTALLER_ID=.*/INSTALLER_ID="{{= INSTALLER_ID }}"/' | \
 		sed 's/^REPLICATED_APP_URL=.*/REPLICATED_APP_URL="{{= REPLICATED_APP_URL }}"/' | \
-		sed 's/^WEAVE_VERSION=.*/WEAVE_VERSION="{{= WEAVE_VERSION }}"/' | \
-		sed 's/^ROOK_VERSION=.*/ROOK_VERSION="{{= ROOK_VERSION }}"/' | \
-		sed 's/^OPENEBS_VERSION=.*/OPENEBS_VERSION="{{= OPENEBS_VERSION }}"/' | \
-		sed 's/^MINIO_VERSION=.*/MINIO_VERSION="{{= MINIO_VERSION }}"/' | \
-		sed 's/^CONTOUR_VERSION=.*/CONTOUR_VERSION="{{= CONTOUR_VERSION }}"/' | \
-		sed 's/^REGISTRY_VERSION=.*/REGISTRY_VERSION="{{= REGISTRY_VERSION }}"/' | \
-		sed 's/^PROMETHEUS_VERSION=.*/PROMETHEUS_VERSION="{{= PROMETHEUS_VERSION }}"/' | \
-		sed 's/^VELERO_VERSION=.*/VELERO_VERSION="{{= VELERO_VERSION }}"/' | \
-		sed 's/^FLUENTD_VERSION=.*/FLUENTD_VERSION="{{= FLUENTD_VERSION }}"/' | \
-		sed 's/^EKCO_VERSION=.*/EKCO_VERSION="{{= EKCO_VERSION }}"/' | \
-		sed 's/^KOTSADM_VERSION=.*/KOTSADM_VERSION="{{= KOTSADM_VERSION }}"/' | \
-		sed 's/^KOTSADM_APPLICATION_SLUG=.*/KOTSADM_APPLICATION_SLUG="{{= KOTSADM_APPLICATION_SLUG }}"/' | \
 		sed 's/^INSTALLER_YAML=.*/INSTALLER_YAML="{{= INSTALLER_YAML }}"/' | \
 		sed 's/^KURL_UTIL_IMAGE=.*/KURL_UTIL_IMAGE="{{= KURL_UTIL_IMAGE }}"/' | \
-		sed 's/^KURL_BIN_UTILS_FILE=.*/KURL_BIN_UTILS_FILE="{{= KURL_BIN_UTILS_FILE }}"/' | \
-		sed 's/^DOCKER_VERSION=.*/DOCKER_VERSION="{{= DOCKER_VERSION }}"/' | \
-		sed 's/^FLAGS=.*/FLAGS="{{= FLAGS }}"/' \
+		sed 's/^KURL_BIN_UTILS_FILE=.*/KURL_BIN_UTILS_FILE="{{= KURL_BIN_UTILS_FILE }}"/' \
 		> build/templates/upgrade.tmpl
 
 build/addons:

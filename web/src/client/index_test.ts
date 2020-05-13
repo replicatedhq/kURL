@@ -381,19 +381,14 @@ describe("GET /<installerID>", () => {
     it(`injects k8s ${latestResolve.spec.kubernetes.version}, weave ${latestResolve.spec.weave!.version}, rook ${latestResolve.spec.rook!.version}, contour ${latestResolve.spec.contour!.version}, registry ${latestResolve.spec.registry!.version}, prometheus ${latestResolve.spec.prometheus!.version}, docker ${latestResolve.spec.docker!.version}`, async () => {
       const script = await client.getInstallScript("latest");
 
-      expect(script).to.match(new RegExp(`KUBERNETES_VERSION="${latestResolve.spec.kubernetes.version}"`));
-      expect(script).to.match(new RegExp(`WEAVE_VERSION="${latestResolve.spec.weave!.version}"`));
-      expect(script).to.match(new RegExp(`ROOK_VERSION="${latestResolve.spec.rook!.version}"`));
-      expect(script).to.match(new RegExp(`CONTOUR_VERSION="${latestResolve.spec.contour!.version}"`));
-      expect(script).to.match(new RegExp(`REGISTRY_VERSION="${latestResolve.spec.registry!.version}"`));
-      expect(script).to.match(new RegExp(`PROMETHEUS_VERSION="${latestResolve.spec.prometheus!.version}"`));
-      expect(script).to.match(new RegExp(`DOCKER_VERSION="${latestResolve.spec.docker!.version}"`));
+      expect(script).to.match(new RegExp(`version: ${latestResolve.spec.kubernetes.version}`));
+      expect(script).to.match(new RegExp(`version: ${latestResolve.spec.weave!.version}`));
+      expect(script).to.match(new RegExp(`version: ${latestResolve.spec.rook!.version}`));
+      expect(script).to.match(new RegExp(`version: ${latestResolve.spec.contour!.version}`));
+      expect(script).to.match(new RegExp(`version: ${latestResolve.spec.registry!.version}`));
+      expect(script).to.match(new RegExp(`version: ${latestResolve.spec.prometheus!.version}`));
+      expect(script).to.match(new RegExp(`version: ${latestResolve.spec.docker!.version}`));
       expect(script).to.match(/INSTALLER_ID="latest"/);
-      expect(script).to.match(/KOTSADM_VERSION=""/);
-      expect(script).to.match(/KOTSADM_APPLICATION_SLUG=""/);
-      expect(script).to.match(/MINIO_VERSION=""/);
-      expect(script).to.match(/OPENEBS_VERSION=""/);
-      expect(script).to.match(/EKCO_VERSION=""/);
     });
   });
 
@@ -405,15 +400,7 @@ describe("GET /<installerID>", () => {
     it("injects k8s 1.15.1 only", async () => {
       const script = await client.getInstallScript("6898644");
 
-      expect(script).to.match(new RegExp(`KUBERNETES_VERSION="1.15.1"`));
-      expect(script).to.match(new RegExp(`WEAVE_VERSION=""`));
-      expect(script).to.match(new RegExp(`ROOK_VERSION=""`));
-      expect(script).to.match(new RegExp(`CONTOUR_VERSION=""`));
-      expect(script).to.match(new RegExp(`KOTSADM_VERSION=""`));
-      expect(script).to.match(new RegExp(`KOTSADM_APPLICATION_SLUG=""`));
-      expect(script).to.match(/MINIO_VERSION=""/);
-      expect(script).to.match(/OPENEBS_VERSION=""/);
-      expect(script).to.match(/EKCO_VERSION=""/);
+      expect(script).to.match(new RegExp(`version: 1.15.1`));
     });
   });
 
@@ -428,35 +415,8 @@ describe("GET /<installerID>", () => {
     it("resolves all versions", async () => {
       const script = await client.getInstallScript(id);
 
-      expect(script).to.match(new RegExp(`KUBERNETES_VERSION="1.\\d+.\\d+"`));
-      expect(script).to.match(new RegExp(`WEAVE_VERSION="\\d+.\\d+.\\d+"`));
-      expect(script).to.match(new RegExp(`ROOK_VERSION="\\d+.\\d+.\\d+"`));
-      expect(script).to.match(new RegExp(`CONTOUR_VERSION="\\d+.\\d+.\\d+"`));
-      expect(script).to.match(new RegExp(`KOTSADM_VERSION=""`));
-      expect(script).to.match(new RegExp(`KOTSADM_APPLICATION_SLUG=""`));
-      expect(script).to.match(/MINIO_VERSION=""/);
-      expect(script).to.match(/OPENEBS_VERSION=""/);
-      expect(script).to.match(/EKCO_VERSION=""/);
-    });
-  });
-
-  describe("flags", () => {
-    let id: string;
-    const yaml = `
-spec:
-  kubernetes:
-    version: latest
-    serviceCIDR: 10.0.0.0/12`;
-
-    before(async () => {
-      const installer = await client.postInstaller(yaml);
-      id = _.trim(url.parse(installer).path, "/");
-    });
-
-    it("injects flags for advanced options", async () => {
-      const script = await client.getInstallScript(id);
-
-      expect(script).to.match(new RegExp(`FLAGS="service-cidr=10.0.0.0/12"`));
+      expect(script).to.match(new RegExp(`version: \\d+.\\d+.\\d+`));
+      expect(script).not.to.match(new RegExp(`version: latest`));
     });
   });
 
@@ -471,8 +431,7 @@ spec:
       const i = Installer.parse(velero);
       const script = await client.getInstallScript(id);
 
-      expect(script).to.match(new RegExp(`VELERO_VERSION="${i.resolve().spec.velero!.version}"`));
-      expect(script).to.match(new RegExp(`FLAGS="velero-namespace=velero velero-local-bucket=velero velero-disable-cli=0 velero-disable-restic=0"`));
+      expect(script).to.match(new RegExp(`version: ${i.resolve().spec.velero!.version}`));
     });
   });
 
@@ -488,9 +447,7 @@ spec:
       const i = Installer.parse(minio);
       const script = await client.getInstallScript(id);
 
-      expect(script).to.match(new RegExp(`MINIO_VERSION="${i.resolve().spec.minio!.version}"`));
-      expect(script).to.match(/OPENEBS_VERSION=""/);
-      expect(script).to.match(new RegExp(`FLAGS="minio-namespace=minio"`));
+      expect(script).to.match(new RegExp(`version: ${i.resolve().spec.minio!.version}`));
     });
   });
 
@@ -506,8 +463,7 @@ spec:
       const i = Installer.parse(openebs);
       const script = await client.getInstallScript(id);
 
-      expect(script).to.match(new RegExp(`OPENEBS_VERSION="${i.resolve().spec.openebs!.version}"`));
-      expect(script).to.match(new RegExp(`FLAGS="openebs-namespace=openebs openebs-localpv-enabled=1 openebs-localpv-storage-class-name=default openebs-cstor-enabled=1 openebs-cstor-storage-class-name=cstor"`));
+      expect(script).to.match(new RegExp(`version: ${i.resolve().spec.openebs!.version}`));
     });
   });
 
@@ -523,8 +479,7 @@ spec:
       const i = Installer.parse(ekco);
       const script = await client.getInstallScript(id);
 
-      expect(script).to.match(new RegExp(`EKCO_VERSION="${i.resolve().spec.ekco!.version}"`));
-      expect(script).to.match(new RegExp(`FLAGS="ekco-node-unreachable-toleration-duration=10m ekco-min-ready-master-node-count=3 ekco-min-ready-worker-node-count=1 ekco-should-disable-reboot-service=0 ekco-rook-should-use-all-nodes=0"`));
+      expect(script).to.match(new RegExp(`version: ${i.resolve().spec.ekco!.version}`));
     });
   });
 
@@ -540,8 +495,7 @@ spec:
       const i = Installer.parse(rookBlock);
       const script = await client.getInstallScript(id);
 
-      expect(script).to.match(new RegExp(`ROOK_VERSION="${i.resolve().spec.rook!.version}"`));
-      expect(script).to.match(new RegExp(`FLAGS="rook-block-storage-enabled=1 rook-block-device-filter=sdb"`));
+      expect(script).to.match(new RegExp(`version: ${i.resolve().spec.rook!.version}`));
     });
   });
 });
@@ -553,17 +507,12 @@ describe("GET /<installerID>/join.sh", () => {
     it(`injects k8s ${latestResolve.spec.kubernetes.version}, weave ${latestResolve.spec.weave!.version}, rook ${latestResolve.spec.rook!.version}, contour ${latestResolve.spec.contour!.version}, registry ${latestResolve.spec.registry!.version}, prometheus ${latestResolve.spec.prometheus!.version}`, async () => {
       const script = await client.getJoinScript("latest");
 
-      expect(script).to.match(new RegExp(`KUBERNETES_VERSION="${latestResolve.spec.kubernetes.version}"`));
-      expect(script).to.match(new RegExp(`WEAVE_VERSION="${latestResolve.spec.weave!.version}"`));
-      expect(script).to.match(new RegExp(`ROOK_VERSION="${latestResolve.spec.rook!.version}"`));
-      expect(script).to.match(new RegExp(`CONTOUR_VERSION="${latestResolve.spec.contour!.version}"`));
-      expect(script).to.match(new RegExp(`REGISTRY_VERSION="${latestResolve.spec.registry!.version}"`));
-      expect(script).to.match(new RegExp(`PROMETHEUS_VERSION="${latestResolve.spec.prometheus!.version}"`));
-      expect(script).to.match(new RegExp(`KOTSADM_VERSION=""`));
-      expect(script).to.match(new RegExp(`KOTSADM_APPLICATION_SLUG=""`));
-      expect(script).to.match(/MINIO_VERSION=""/);
-      expect(script).to.match(/OPENEBS_VERSION=""/);
-      expect(script).to.match(/EKCO_VERSION=""/);
+      expect(script).to.match(new RegExp(`version: ${latestResolve.spec.kubernetes.version}`));
+      expect(script).to.match(new RegExp(`version: ${latestResolve.spec.weave!.version}`));
+      expect(script).to.match(new RegExp(`version: ${latestResolve.spec.rook!.version}`));
+      expect(script).to.match(new RegExp(`version: ${latestResolve.spec.contour!.version}`));
+      expect(script).to.match(new RegExp(`version: ${latestResolve.spec.registry!.version}`));
+      expect(script).to.match(new RegExp(`version: ${latestResolve.spec.prometheus!.version}`));
     });
   });
 
@@ -575,14 +524,7 @@ describe("GET /<installerID>/join.sh", () => {
     it("injects k8s 1.15.1 only", async () => {
       const script = await client.getJoinScript("6898644");
 
-      expect(script).to.match(new RegExp(`KUBERNETES_VERSION="1.15.1"`));
-      expect(script).to.match(new RegExp(`WEAVE_VERSION=""`));
-      expect(script).to.match(new RegExp(`ROOK_VERSION=""`));
-      expect(script).to.match(new RegExp(`CONTOUR_VERSION=""`));
-      expect(script).to.match(new RegExp(`REGISTRY_VERSION=""`));
-      expect(script).to.match(new RegExp(`PROMETHEUS_VERSION=""`));
-      expect(script).to.match(new RegExp(`KOTSADM_VERSION=""`));
-      expect(script).to.match(new RegExp(`KOTSADM_APPLICATION_SLUG=""`));
+      expect(script).to.match(new RegExp(`version: 1.15.1`));
     });
   });
 
@@ -591,17 +533,10 @@ describe("GET /<installerID>/join.sh", () => {
       await client.postInstaller(kots);
     });
 
-    it("injests KOTSADM_VERSION and KOTSADM_APPLICATION_SLUG", async () => {
+    it("injests KOTSADM_APPLICATION_SLUG", async () => {
       const script = await client.getInstallScript("4a39417");
 
-      expect(script).to.match(new RegExp(`KUBERNETES_VERSION="\\d+.\\d+.\\d+"`));
-      expect(script).to.match(new RegExp(`WEAVE_VERSION=""`));
-      expect(script).to.match(new RegExp(`ROOK_VERSION=""`));
-      expect(script).to.match(new RegExp(`CONTOUR_VERSION=""`));
-      expect(script).to.match(new RegExp(`REGISTRY_VERSION=""`));
-      expect(script).to.match(new RegExp(`PROMETHEUS_VERSION=""`));
-      expect(script).to.match(new RegExp(`KOTSADM_VERSION="\\d+.\\d+.\\d+"`));
-      expect(script).to.match(new RegExp(`KOTSADM_APPLICATION_SLUG="sentry-enterprise"`));
+      expect(script).to.match(new RegExp(`applicationSlug: sentry-enterprise`));
     });
   });
 });
