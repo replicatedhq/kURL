@@ -11,6 +11,7 @@ The installer should work behind a proxy.
 
 - Automatically detect proxy from environment.
 - Validate kotsadm add-on works with a proxy.
+- Support docker versions below 19.03.
 
 ## Background
 
@@ -26,7 +27,7 @@ Add `HTTP_PROXY` and `NO_PROXY` environment variables to the kotsadm add-on.
 
 ### Spec
 
-Proxy configuration uses three fields under the kurl section of the install spec:
+Proxy configuration uses three fields under the kurl section of the installer spec:
 
 ```yaml
 apiVersion: cluster.kurl.sh/v1beta1
@@ -77,7 +78,12 @@ This would make automation harder.
 
 ### Automatically detect HTTP_PROXY and NO_PROXY in the environment
 
-This would create multiple sources of truth and add complexity.
+This would create multiple sources of truth and non-deterministic results.
+
+### Support older versions of Docker.
+
+Docker 18.09 does not support CIDR notation in the NO_PROXY env var.
+It's possible to add support for 18.09 by adding the registry cluster IP to docker's configuration.
 
 ## Security Considerations
 
