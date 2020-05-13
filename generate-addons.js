@@ -48,7 +48,7 @@ fs.readdir(specDir, (err, files) => {
           if (subFile === "categories.json") {
             const content = fs.readFileSync(filepath);
             const addonContent = JSON.parse(content);
-            if (typeof addonContent === "object" && Object.entries(addonContent).length === 0) {
+            if (typeof addonContent === "object" && Object.entries(addonContent).length !== 0) {
               addons.push(addonContent);
             }
           }
