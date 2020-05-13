@@ -36,7 +36,7 @@ metadata:
   name: proxy
 spec:
   kurl:
-    HTTPProxy: http://10.128.0.3:3128
+    proxyAddress: http://10.128.0.3:3128
     additionalNoProxy: 10.128.04,10.128.0.5,10.128.0.6
     noProxy: false
 ```
@@ -44,12 +44,12 @@ spec:
 If `noProxy` is set to `true` then the other proxy fields in the spec are ignored and the installer does not attempt to do any proxy configuration.
 This field already exists on the kurl spec.
 
-The `HTTPProxy` field is the URL of a proxy.
+The `proxyAddress` field is the URL of a proxy.
 This field already exists on the kurl spec.
 The installer will validate the proxy URL at runtime by making a proxied request to `https://api.replicated.com/market/v1/echo/ip` and will bail if the request fails.
 
 The `additionalNoProxy` field is new.
-This field is ignored if `HTTPProxy` is unset.
+This field is ignored if `proxyAddress` is unset.
 It accepts a comma separated list of IPs and hostnames.
 Cluster administrators should add all node IPs to this field.
 IP addresses may be in CIDR notation.
