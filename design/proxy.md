@@ -37,7 +37,11 @@ metadata:
 spec:
   kurl:
     proxyAddress: http://10.128.0.3:3128
-    additionalNoProxy: 10.128.04,10.128.0.5,10.128.0.6
+    additionalNoProxyAddresses:
+    - 10.128.0.4
+    - 10.128.0.5
+    - 10.128.0.6
+    - registry.internal
     noProxy: false
 ```
 
@@ -50,7 +54,7 @@ The installer will validate the proxy URL at runtime by making a proxied request
 
 The `additionalNoProxy` field is new.
 This field is ignored if `proxyAddress` is unset.
-It accepts a comma separated list of IPs and hostnames.
+It accepts a list of IPs and hostnames.
 Cluster administrators should add all node IPs to this field.
 IP addresses may be in CIDR notation.
 The default set of no proxy addresses is the private IP of the current machine, the pod CIDR, and the service CIDR.
