@@ -1,14 +1,17 @@
 
-# Need to peek at the yaml spec with bash to find if a proxy is needed to download the util binaries
 # DONE QA proxy from installer yaml
 # TODO QA from override spec file
 # TODO QA set in both yaml and local spec file
 # TODO QA with single quotes
 # TODO QA with double quotes
 function proxy_bootstrap() {
-    if [ "$NO_PROXY" = "1" ]; then
+    if [ "$AIRGAP" = "1" ]; then
         return
     fi
+    if curl --silent --connect-timeout 4 --fail https://api.replicated.com/market/v1/echo/ip > /dev/null ; then
+        return
+    fi
+    # Need to peek at the yaml spec to find if a proxy is needed to download the util binaries
     if [ -n "$INSTALLER_SPEC_FILE" ]; then
         local overrideProxy=$(grep "proxyAddress:" "$INSTALLER_SPEC_FILE" | grep -o "http[^'\" ]*")
         if [ -n "$overrideProxy" ]; then
@@ -23,12 +26,15 @@ function proxy_bootstrap() {
         echo "TODO REMOVE. Proxy address from installer yaml: $https_proxy"
         return
     fi
+
+    bail "Failed to make outbound https request and no proxy is configured."
 }
 
 # DONE QA validation fails
 # DONE QA validation succeeds
 function configure_proxy() {
     if [ "$NO_PROXY" = "1" ]; then
+        unset PROXY_ADDRESS
         return
     fi
 	if [ -z "$PROXY_ADDRESS" ]; then
