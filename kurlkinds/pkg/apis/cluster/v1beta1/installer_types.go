@@ -84,13 +84,14 @@ type Kubernetes struct {
 }
 
 type Kurl struct {
-	Airgap         bool   `json:"airgap,omitempty"`
-	HostnameCheck  string `json:"hostnameCheck,omitempty"`
-	HTTPProxy      string `json:"HTTPProxy,omitempty"`
-	NoProxy        bool   `json:"noProxy,omitempty"`
-	PublicAddress  string `json:"publicAddress,omitempty"`
-	PrivateAddress string `json:"privateAddress,omitempty"`
-	Task           string `json:"task,omitempty"`
+	Airgap                     bool     `json:"airgap,omitempty"`
+	HostnameCheck              string   `json:"hostnameCheck,omitempty"`
+	ProxyAddress               string   `json:"proxyAddress,omitempty"`
+	AdditionalNoProxyAddresses []string `json:"additionalNoProxyAddresses,omitempty"`
+	NoProxy                    bool     `json:"noProxy,omitempty"`
+	PublicAddress              string   `json:"publicAddress,omitempty"`
+	PrivateAddress             string   `json:"privateAddress,omitempty"`
+	Task                       string   `json:"task,omitempty"`
 }
 
 type Minio struct {

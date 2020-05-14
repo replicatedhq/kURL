@@ -168,8 +168,10 @@ spec:
               type: object
             kurl:
               properties:
-                HTTPProxy:
-                  type: string
+                additionalNoProxyAddresses:
+                  items:
+                    type: string
+                  type: array
                 airgap:
                   type: boolean
                 hostnameCheck:
@@ -177,6 +179,8 @@ spec:
                 noProxy:
                   type: boolean
                 privateAddress:
+                  type: string
+                proxyAddress:
                   type: string
                 publicAddress:
                   type: string
