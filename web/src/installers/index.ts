@@ -18,7 +18,7 @@ export interface KubernetesConfig {
   version: string;
   serviceCidrRange?: string;
   serviceCIDR?: string;
-  haCluster?: boolean;
+  HACluster?: boolean;
   masterAddress?: string;
   loadBalancerAddress?: string;
   bootstrapToken?: string;
@@ -34,7 +34,7 @@ export const kubernetesConfigSchema = {
     version: { type: "string" },
     serviceCidrRange: { type: "string", flag: "service-cidr-range", description: "The size of the CIDR for Kubernetes (can be presented as just a number or with a preceding slash)" },
     serviceCIDR: { type: "string", flag: "service-cidr", description: "This defines subnet for kubernetes" },
-    haCluster: { type: "boolean", flag: "ha", description: "Create the cluster as a high availability cluster (note that this needs a valid load balancer address and additional nodes to be a truly HA cluster)" },
+    HACluster: { type: "boolean", flag: "ha", description: "Create the cluster as a high availability cluster (note that this needs a valid load balancer address and additional nodes to be a truly HA cluster)" },
     masterAddress: { type: "string", flag: "kuberenetes-master-address", description: "The address of the internal Kubernetes API server, used during join scripts (read-only)" },
     loadBalancerAddress: { type: "string", flag: "load-balancer-address", description: "Used for High Availability installs, indicates the address of the external load balancer" },
     bootstrapToken: { type: "string", flag: "bootstrap-token", description: "A secret needed for new nodes to join an existing cluster" },
