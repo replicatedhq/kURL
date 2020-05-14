@@ -1,6 +1,6 @@
 const fs = require("fs");
 const path = require("path");
-const semverCompare = require('semver/functions/compare')
+const semverCompare = require('semver/functions/rcompare')
 const AWS = require('aws-sdk');
 
 const ID = process.env.AWS_ACCESS_KEY_ID;
