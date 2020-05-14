@@ -3,6 +3,8 @@
 # TODO QA proxy from installer yaml
 # TODO QA from override spec file
 # TODO QA set in both yaml and local spec file
+# TODO QA with single quotes
+# TODO QA with double quotes
 function proxy_bootstrap() {
     if [ "$NO_PROXY" = "1" ]; then
         return
@@ -23,6 +25,8 @@ function proxy_bootstrap() {
     fi
 }
 
+# TODO QA validation fails
+# TODO QA validation succeeds
 function configure_proxy() {
     if [ "$NO_PROXY" = "1" ]; then
         return
@@ -32,9 +36,12 @@ function configure_proxy() {
 	fi
 
 	# for curl to download packages
-	export http_proxy="$PROXY_ADDRESS"
+	export https_proxy="$PROXY_ADDRESS"
 
-    curl --silent --fail https://api.replicated.com/market/v1/echo/ip
+    if ! curl --silent --fail --connect-timeout 4 https://api.replicated.com/market/v1/echo/ip >/dev/null ; then
+        bail "Failed to make outbound request using proxy address $https_proxy"
+    fi
+    echo "TODO REMOVE: successfully validated proxy address $https_proxy"
 
     # kubeadm requires this in the environment to reach the K8s API server
     export no_proxy="$NO_PROXY_ADDRESSES"
