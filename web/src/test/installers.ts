@@ -11,7 +11,7 @@ spec:
     version: latest
     serviceCidrRange: /12
     serviceCIDR: 100.1.1.1/12
-    haCluster: false
+    HACluster: false
     masterAddress: 192.168.1.1
     loadBalancerAddress: 10.128.10.1
     bootstrapToken: token
