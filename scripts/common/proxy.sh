@@ -43,6 +43,27 @@ function configure_proxy() {
     fi
     echo "TODO REMOVE: successfully validated proxy address $https_proxy"
 
-    # kubeadm requires this in the environment to reach the K8s API server
-    export no_proxy="$NO_PROXY_ADDRESSES"
+    # kubeadm requires this in the environment to reach K8s masters
+    export_no_proxy
+    echo "TODO REMOVE: exported no_proxy: $no_proxy"
+}
+
+function export_no_proxy() {
+	local addresses="localhost,127.0.0.1"
+
+    if [ -n "$POD_CIDR" ]; then
+        addresses="${addresses},${POD_CIDR}"
+    fi
+    if [ -n "$SERVICE_CIDR" ]; then
+        addresses="${addresses},${SERVICE_CIDR}"
+    fi
+
+    if [ -n "$ADDITIONAL_NO_PROXY_ADDRESSES" ]; then
+        addresses="${addresses},${ADDITIONAL_NO_PROXY_ADDRESSES}"
+    fi
+
+    # filter duplicates
+    addresses=$(echo "$addresses" | sed 's/,/\n/g' | sort | uniq | paste -s --delimiters=",")
+
+    export no_proxy="$addresses"
 }
