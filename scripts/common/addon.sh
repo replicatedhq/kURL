@@ -1,5 +1,24 @@
 
-function addon() {
+function addon_for_each() {
+    local cmd="$1"
+
+    $cmd aws "$AWS_VERSION"
+    $cmd nodeless "$NODELESS_VERSION"
+    $cmd calico "$CALICO_VERSION"
+    $cmd weave "$WEAVE_VERSION"
+    $cmd rook "$ROOK_VERSION"
+    $cmd openebs "$OPENEBS_VERSION"
+    $cmd minio "$MINIO_VERSION"
+    $cmd contour "$CONTOUR_VERSION"
+    $cmd registry "$REGISTRY_VERSION"
+    $cmd prometheus "$PROMETHEUS_VERSION"
+    $cmd kotsadm "$KOTSADM_VERSION"
+    $cmd velero "$VELERO_VERSION"
+    $cmd fluentd "$FLUENTD_VERSION"
+    $cmd ekco "$EKCO_VERSION"
+}
+
+function addon_install() {
     local name=$1
     local version=$2
 

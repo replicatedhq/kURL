@@ -247,44 +247,20 @@ function main() {
     preflights
     prompts
     configure_proxy
+    addon_for_each addon_pre_init
+    discover_pod_subnet
+    discover_service_subnet
+    configure_no_proxy
     install_docker
     apply_docker_config
     get_shared
     upgrade_kubernetes
     kubernetes_host
     setup_kubeadm_kustomize
-    addon_pre_init aws "$AWS_VERSION"
-    addon_pre_init nodeless "$NODELESS_VERSION"
-    addon_pre_init calico "$CALICO_VERSION"
-    addon_pre_init weave "$WEAVE_VERSION"
-    addon_pre_init rook "$ROOK_VERSION"
-    addon_pre_init openebs "$OPENEBS_VERSION"
-    addon_pre_init minio "$MINIO_VERSION"
-    addon_pre_init contour "$CONTOUR_VERSION"
-    addon_pre_init registry "$REGISTRY_VERSION"
-    addon_pre_init prometheus "$PROMETHEUS_VERSION"
-    addon_pre_init velero "$VELERO_VERSION"
-    addon_pre_init fluentd "$FLUENTD_VERSION"
-    addon_pre_init ekco "$EKCO_VERSION"
-    addon_pre_init kotsadm "$KOTSADM_VERSION"
-    discover_pod_subnet
-    discover_service_subnet
+    addon_for_each addon_load
     init
     apply_installer_crd
-    addon aws "$AWS_VERSION"
-    addon nodeless "$NODELESS_VERSION"
-    addon calico "$CALICO_VERSION"
-    addon weave "$WEAVE_VERSION"
-    addon rook "$ROOK_VERSION"
-    addon openebs "$OPENEBS_VERSION"
-    addon minio "$MINIO_VERSION"
-    addon contour "$CONTOUR_VERSION"
-    addon registry "$REGISTRY_VERSION"
-    addon prometheus "$PROMETHEUS_VERSION"
-    addon velero "$VELERO_VERSION"
-    addon fluentd "$FLUENTD_VERSION"
-    addon ekco "$EKCO_VERSION"
-    addon kotsadm "$KOTSADM_VERSION"
+    addon_for_each addon_install
     post_init
     outro
 }

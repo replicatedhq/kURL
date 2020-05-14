@@ -9,10 +9,6 @@ function discover() {
         echo "Docker already exists on this machine so no docker install will be performed"
     fi
 
-    if [ "$NO_PROXY" != "1" ] && [ -z "$PROXY_ADDRESS" ]; then
-        discoverProxy
-    fi
-
     discoverPublicIp
     discover_private_ip
 

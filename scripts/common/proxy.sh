@@ -1,6 +1,6 @@
 
 # Need to peek at the yaml spec with bash to find if a proxy is needed to download the util binaries
-# TODO QA proxy from installer yaml
+# DONE QA proxy from installer yaml
 # TODO QA from override spec file
 # TODO QA set in both yaml and local spec file
 # TODO QA with single quotes
@@ -25,8 +25,8 @@ function proxy_bootstrap() {
     fi
 }
 
-# TODO QA validation fails
-# TODO QA validation succeeds
+# DONE QA validation fails
+# DONE QA validation succeeds
 function configure_proxy() {
     if [ "$NO_PROXY" = "1" ]; then
         return
@@ -42,13 +42,10 @@ function configure_proxy() {
         bail "Failed to make outbound request using proxy address $https_proxy"
     fi
     echo "TODO REMOVE: successfully validated proxy address $https_proxy"
-
-    # kubeadm requires this in the environment to reach K8s masters
-    export_no_proxy
-    echo "TODO REMOVE: exported no_proxy: $no_proxy"
 }
 
-function export_no_proxy() {
+# kubeadm requires this in the environment to reach K8s masters
+function configure_no_proxy() {
 	local addresses="localhost,127.0.0.1"
 
     if [ -n "$POD_CIDR" ]; then
@@ -66,4 +63,5 @@ function export_no_proxy() {
     addresses=$(echo "$addresses" | sed 's/,/\n/g' | sort | uniq | paste -s --delimiters=",")
 
     export no_proxy="$addresses"
+    echo "TODO REMOVE: exported no_proxy: $no_proxy"
 }
