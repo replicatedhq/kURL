@@ -2,7 +2,6 @@ KURL_URL=
 DIST_URL=
 INSTALLER_ID=
 REPLICATED_APP_URL=https://replicated.app
-FLAGS=""
 KURL_UTIL_IMAGE=replicated/kurl-util:alpha
 KURL_BIN_UTILS_FILE=
 INSTALLER_YAML="
@@ -19,4 +18,11 @@ spec:
     version: 2.5.2
   kurl:
     proxyAddress: http://10.128.0.46:3128
+    additionalNoProxyAddresses:
+    - registry.internal
+    - 10.128.0.0/16
+  kotsadm:
+    version: alpha
+  rook:
+    version: 1.0.4
 "

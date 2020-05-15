@@ -40,11 +40,10 @@ function install_docker() {
         checkDockerStorageDriver "$HARD_FAIL_ON_LOOPBACK"
     fi
 
-    # TODO QA preserve docker config
-    if [ -z "$PRESERVE_DOCKER_CONFIG" ] && [ "$NO_PROXY" != "1" ] && [ -n "$PROXY_ADDRESS" ]; then
+    # DONE QA preserve docker config
+    if [ -z "$PRESERVE_DOCKER_CONFIG" ] && [ -n "$PROXY_ADDRESS" ]; then
         docker_configure_proxy
-        restart_docker
-        local dockerProxy=$(docker info 2>/dev/null | grep -q -i "Http Proxy:")
+        local dockerProxy=$(docker info 2>/dev/null | grep -i "HTTP Proxy:")
         if ! echo "$dockerProxy" | grep -q "$PROXY_ADDRESS"; then
             bail "Docker proxy configuration failed"
         fi
@@ -191,12 +190,13 @@ information.\n\nhttps://help.replicated.com/docs/kb/developer-resources/devicema
     fi
 }
 
-# TODO QA no restart docker if no change
+# DONE QA no restart docker if no change
+# DONE QA change if already exists
 docker_configure_proxy() {
     # NOTE: this does not take into account if no proxy changed
-    local previous_proxy="$(docker info 2>/dev/null | grep -i 'Http Proxy:' | sed 's/Http Proxy: //I')"
-    local previous_no_proxy="$(docker info 2>/dev/null | grep -i 'No Proxy:' | sed 's/No Proxy: //I')"
-    if [ "$PROXY_ADDRESS" = "$previous_proxy" ] && [ "$ADDITIONAL_NO_PROXY_ADDRESSES" = "$previous_no_proxy" ]; then
+    local previous_proxy=$(docker info 2>/dev/null | grep -i 'Http Proxy:' | awk '{ print $NF }')
+    local previous_no_proxy=$(docker info 2>/dev/null | grep -i 'No Proxy:' | awk '{ print $NF }')
+    if [ "$PROXY_ADDRESS" = "$previous_proxy" ] && [ "$NO_PROXY_ADDRESSES" = "$previous_no_proxy" ]; then
         return
     fi
 
@@ -207,10 +207,12 @@ docker_configure_proxy() {
     echo "[Service]" >> $file
 
     if echo "$PROXY_ADDRESS" | grep -q "^https"; then
-        echo 'Environment="HTTPS_PROXY=${PROXY_ADDRESS}" "NO_PROXY=${ADDITIONAL_NO_PROXY_ADDRESSES}"'
+        echo "Environment=\"HTTPS_PROXY=${PROXY_ADDRESS}\" \"NO_PROXY=${NO_PROXY_ADDRESSES}\"" >> $file
     else
-        echo 'Environment="HTTP_PROXY=${PROXY_ADDRESS}" "NO_PROXY=${ADDITIONAL_NO_PROXY_ADDRESSES}"'
+        echo "Environment=\"HTTP_PROXY=${PROXY_ADDRESS}\" \"NO_PROXY=${NO_PROXY_ADDRESSES}\"" >> $file
     fi
+
+    restart_docker
 }
 
 lockPackageVersion() {

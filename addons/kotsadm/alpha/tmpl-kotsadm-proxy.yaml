@@ -8,7 +8,7 @@ spec:
       containers:
       - name: kotsadm
         env:
-        - name: HTTP_PROXY
+        - name: PROXY_ADDRESS
           value: ${PROXY_ADDRESS}
         - name: NO_PROXY
-          value: ${ADDITIONAL_NO_PROXY_ADDRESSES}
+          value: ${NO_PROXY_ADDRESSES}

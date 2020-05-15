@@ -1,7 +1,7 @@
 
 # DONE QA proxy from installer yaml
-# TODO QA from override spec file
-# TODO QA set in both yaml and local spec file
+# DONE QA from override spec file
+# DONE QA set in both yaml and local spec file
 # TODO QA with single quotes
 # TODO QA with double quotes
 function proxy_bootstrap() {
@@ -20,7 +20,7 @@ function proxy_bootstrap() {
             return
         fi
     fi
-    local proxy=$(cat "$INSTALLER_YAML" | grep -o "http[^'\" ]*")
+    local proxy=$(echo "$INSTALLER_YAML" | grep "proxyAddress:" | grep -o "http[^'\" ]*")
     if [ -n "$proxy" ]; then
         export https_proxy="$proxy"
         echo "TODO REMOVE. Proxy address from installer yaml: $https_proxy"
@@ -50,10 +50,19 @@ function configure_proxy() {
     echo "TODO REMOVE: successfully validated proxy address $https_proxy"
 }
 
-# kubeadm requires this in the environment to reach K8s masters
 function configure_no_proxy() {
+    if [ -z "$PROXY_ADDRESS" ]; then
+        return
+    fi
+
 	local addresses="localhost,127.0.0.1"
 
+    if [ -n "$PRIVATE_ADDRESS" ]; then
+        addresses="${addresses},${PRIVATE_ADDRESS}"
+    fi
+    if [ -n "$LOAD_BALANCER_ADDRESS" ]; then
+        addresses="${addresses},${LOAD_BALANCER_ADDRESS}"
+    fi
     if [ -n "$POD_CIDR" ]; then
         addresses="${addresses},${POD_CIDR}"
     fi
@@ -68,6 +77,8 @@ function configure_no_proxy() {
     # filter duplicates
     addresses=$(echo "$addresses" | sed 's/,/\n/g' | sort | uniq | paste -s --delimiters=",")
 
+    # kubeadm requires this in the environment to reach K8s masters
     export no_proxy="$addresses"
+    NO_PROXY_ADDRESSES="$addresses"
     echo "TODO REMOVE: exported no_proxy: $no_proxy"
 }

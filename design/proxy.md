@@ -21,7 +21,7 @@ The kURL spec has a field for an http proxy address, but the feature has not bee
 
 Use the proxy when downloading packages from S3.
 Configure docker to pull from remote registries with the proxy and the local registry without the proxy.
-Add `HTTP_PROXY` and `NO_PROXY` environment variables to the kotsadm add-on.
+Add `PROXY_ADDRESS` and `NO_PROXY` environment variables to the kotsadm add-on.
 
 ## Detailed Design
 
@@ -72,7 +72,8 @@ After making a change to proxy configuration in the spec, cluster adminstrators 
 
 ### Kotsadm add-on
 
-If a proxy is configured then the installer will add the environment variables `HTTP_PROXY` and `NO_PROXY` to the kotsadm deployment.
+If a proxy is configured then the installer will add the environment variables `PROXY_ADDRESS` and `NO_PROXY` to the kotsadm deployment.
+`PROXY_ADDRESS` is used because setting `HTTP_PROXY` breaks the kotsadm add-on.
 
 ## Alternatives Considered
 

@@ -94,10 +94,12 @@ function init() {
     # lead to a loss of quorum
     disable_rook_ceph_operator
     set -o pipefail
+    printenv | grep -i proxy
     kubeadm init \
         --ignore-preflight-errors=all \
         --config $KUBEADM_CONF_FILE \
         $UPLOAD_CERTS \
+        --v=5 \
         | tee /tmp/kubeadm-init
     set +o pipefail
 
