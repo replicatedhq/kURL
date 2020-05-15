@@ -30,12 +30,12 @@ function configure_proxy() {
         unset PROXY_ADDRESS
         return
     fi
-	if [ -z "$PROXY_ADDRESS" ]; then
-		return
-	fi
+    if [ -z "$PROXY_ADDRESS" ]; then
+        return
+    fi
 
-	# for curl to download packages
-	export https_proxy="$PROXY_ADDRESS"
+    # for curl to download packages
+    export https_proxy="$PROXY_ADDRESS"
 
     if ! curl --silent --fail --connect-timeout 4 https://api.replicated.com/market/v1/echo/ip >/dev/null ; then
         bail "Failed to make outbound request using proxy address $https_proxy"
@@ -47,7 +47,7 @@ function configure_no_proxy() {
         return
     fi
 
-	local addresses="localhost,127.0.0.1"
+    local addresses="localhost,127.0.0.1"
 
     if [ -n "$PRIVATE_ADDRESS" ]; then
         addresses="${addresses},${PRIVATE_ADDRESS}"

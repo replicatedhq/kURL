@@ -92,6 +92,8 @@ function main() {
     parse_kubernetes_target_version
     discover
     preflights
+    configure_proxy
+    configure_no_proxy
     apply_docker_config
     get_shared
     maybe_upgrade
