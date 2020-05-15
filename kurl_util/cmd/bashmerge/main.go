@@ -45,6 +45,7 @@ func getInstallerConfigFromYaml(yamlPath string) (*kurlv1beta1.Installer, error)
 
 func checkIfFlagHasValue(length int, flag string) bool {
 	shouldHaveLengthTwo := []string{
+		"additional-no-proxy-addresses",
 		"cert-key",
 		"docker-rgistry-ip",
 		"kubeadm-token",
@@ -77,6 +78,9 @@ func parseBashFlags(installer *kurlv1beta1.Installer, bashFlags string) error {
 
 		switch split[0] {
 
+		case "additional-no-proxy-addresses":
+			addresses := strings.Split(split[1], ",")
+			installer.Spec.Kurl.AdditionalNoProxyAddresses = append(installer.Spec.Kurl.AdditionalNoProxyAddresses, addresses...)
 		case "airgap":
 			installer.Spec.Kurl.Airgap = true
 		case "cert-key":

@@ -59,6 +59,7 @@ Cluster administrators should add all node IPs to this field.
 IP addresses may be in CIDR notation.
 The default set of no proxy addresses is the private IP of the current machine, the pod CIDR, and the service CIDR.
 Any other addresses specified in this field will be added to the default set to construct the NO_PROXY environment variable.
+The join script must accept the flag `additional-no-proxy-addresses` so that the service and pod CIDRs can be included in Docker's proxy configuration on the remote node.
 
 ### Docker add-on
 
@@ -69,6 +70,10 @@ If `docker.preserveConfig` is set to true in the spec then this file will never 
 
 The join.sh and upgrade.sh scripts will apply the same configuration to remote workers or masters.
 After making a change to proxy configuration in the spec, cluster adminstrators can re-run the upgrade.sh script on remote nodes to reconfigure docker.
+
+The online docker install will use the docker airgap packages stored on S3.
+Currently the online docker install script is fetched from `get.replicated.com` and then makes requests to fetch updates from yum or apt repositories.
+These requests to repositories have errors or fail when behind a proxy.
 
 ### Kotsadm add-on
 

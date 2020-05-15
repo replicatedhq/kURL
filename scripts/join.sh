@@ -104,6 +104,7 @@ function main() {
     joinPrompts
     prompts
     configure_proxy
+    configure_no_proxy
     install_docker
     get_shared
     setup_kubeadm_kustomize

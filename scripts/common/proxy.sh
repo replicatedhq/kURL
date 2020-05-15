@@ -63,13 +63,15 @@ function configure_no_proxy() {
     if [ -n "$LOAD_BALANCER_ADDRESS" ]; then
         addresses="${addresses},${LOAD_BALANCER_ADDRESS}"
     fi
+    if [ -n "$KUBERNETES_MASTER_ADDR" ]; then
+        addresses="${addresses},${LOAD_BALANCER_ADDRESS}"
+    fi
     if [ -n "$POD_CIDR" ]; then
         addresses="${addresses},${POD_CIDR}"
     fi
     if [ -n "$SERVICE_CIDR" ]; then
         addresses="${addresses},${SERVICE_CIDR}"
     fi
-
     if [ -n "$ADDITIONAL_NO_PROXY_ADDRESSES" ]; then
         addresses="${addresses},${ADDITIONAL_NO_PROXY_ADDRESSES}"
     fi

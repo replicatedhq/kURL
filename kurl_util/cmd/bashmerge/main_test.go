@@ -55,13 +55,18 @@ func Test_parseBashFlags(t *testing.T) {
 					Kurl: kurlv1beta1.Kurl{
 						Airgap:        true,
 						PublicAddress: "1.1.1.1",
+						AdditionalNoProxyAddresses: []string{
+							"10.96.0.0/22",
+							"10.32.0.0/22",
+						},
 					},
 					SelinuxConfig: kurlv1beta1.SelinuxConfig{
 						PreserveConfig: true,
 					},
 				},
 			},
-			bashFlags: "airgap " +
+			bashFlags: "additional-no-proxy-addresses=10.96.0.0/22,10.32.0.0/22 " +
+				"airgap " +
 				"cert-key=secret " +
 				"control-plane " +
 				"docker-registry-ip=1.1.1.1 " +
@@ -80,7 +85,7 @@ func Test_parseBashFlags(t *testing.T) {
 			wantError: false,
 		},
 		{
-			name: "All proper flags and values replace fields",
+			name: "All proper flags and values replace fields except additional-no-proxy-addresses appends",
 			oldInstaller: &kurlv1beta1.Installer{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "foo",
@@ -101,8 +106,9 @@ func Test_parseBashFlags(t *testing.T) {
 						CertKey:             "badsecret",
 					},
 					Kurl: kurlv1beta1.Kurl{
-						Airgap:        false,
-						PublicAddress: "2.2.2.2",
+						Airgap:                     false,
+						PublicAddress:              "2.2.2.2",
+						AdditionalNoProxyAddresses: []string{"registry.internal"},
 					},
 				},
 			},
@@ -135,13 +141,19 @@ func Test_parseBashFlags(t *testing.T) {
 					Kurl: kurlv1beta1.Kurl{
 						Airgap:        true,
 						PublicAddress: "1.1.1.1",
+						AdditionalNoProxyAddresses: []string{
+							"registry.internal",
+							"10.96.0.0/22",
+							"10.32.0.0/22",
+						},
 					},
 					SelinuxConfig: kurlv1beta1.SelinuxConfig{
 						PreserveConfig: true,
 					},
 				},
 			},
-			bashFlags: "airgap " +
+			bashFlags: "additional-no-proxy-addresses=10.96.0.0/22,10.32.0.0/22 " +
+				"airgap " +
 				"cert-key=secret " +
 				"control-plane " +
 				"docker-registry-ip=1.1.1.1 " +
