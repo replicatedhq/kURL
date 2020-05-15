@@ -93,6 +93,7 @@ outro() {
 function main() {
     export KUBECONFIG=/etc/kubernetes/admin.conf
     requireRootUser
+    proxy_bootstrap
     download_util_binaries "$@"
     merge_yaml_specs
     apply_bash_flag_overrides "$@"
@@ -103,23 +104,11 @@ function main() {
     joinPrompts
     prompts
     configure_proxy
+    configure_no_proxy
     install_docker
     get_shared
     setup_kubeadm_kustomize
-    addon_join aws "$AWS_VERSION"
-    addon_join nodeless "$NODELESS_VERSION"
-    addon_join calico "$CALICO_VERSION"
-    addon_join weave "$WEAVE_VERSION"
-    addon_join rook "$ROOK_VERSION"
-    addon_join openebs "$OPENEBS_VERSION"
-    addon_join minio "$MINIO_VERSION"
-    addon_join contour "$CONTOUR_VERSION"
-    addon_join registry "$REGISTRY_VERSION"
-    addon_join prometheus "$PROMETHEUS_VERSION"
-    addon_join kotsadm "$KOTSADM_VERSION"
-    addon_join velero "$VELERO_VERSION"
-    addon_join fluentd "$FLUENTD_VERSION"
-    addon_join ekco "$EKCO_VERSION"
+    addon_for_each addon_join
     kubernetes_host
     join
     outro

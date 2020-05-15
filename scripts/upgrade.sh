@@ -84,6 +84,7 @@ function outro() {
 function main() {
     export KUBECONFIG=/etc/kubernetes/admin.conf
     requireRootUser
+    proxy_bootstrap
     download_util_binaries "$@"
     merge_yaml_specs
     apply_bash_flag_overrides "$@"
@@ -91,6 +92,8 @@ function main() {
     parse_kubernetes_target_version
     discover
     preflights
+    configure_proxy
+    configure_no_proxy
     apply_docker_config
     get_shared
     maybe_upgrade

@@ -168,6 +168,11 @@ function outro() {
         dockerRegistryIP=" docker-registry-ip=$DOCKER_REGISTRY_IP"
     fi
 
+    local noProxyAddrs=""
+    if [ -n "$PROXY_ADDRESS" ]; then
+        noProxyAddrs=" additional-no-proxy-addresses=${SERVICE_CIDR},${POD_CIDR}"
+    fi
+
     KUBEADM_TOKEN_CA_HASH=$(cat /tmp/kubeadm-init | grep 'discovery-token-ca-cert-hash' | awk '{ print $2 }' | head -1)
 
     printf "\n"
@@ -196,7 +201,7 @@ function outro() {
         printf "To add worker nodes to this installation, copy and unpack this bundle on your other nodes, and run the following:"
         printf "\n"
         printf "\n"
-        printf "${GREEN}    cat ./join.sh | sudo bash -s airgap kubernetes-master-address=${API_SERVICE_ADDRESS} kubeadm-token=${BOOTSTRAP_TOKEN} kubeadm-token-ca-hash=${KUBEADM_TOKEN_CA_HASH} kubernetes-version=${KUBERNETES_VERSION}${dockerRegistryIP}\n"
+        printf "${GREEN}    cat ./join.sh | sudo bash -s airgap kubernetes-master-address=${API_SERVICE_ADDRESS} kubeadm-token=${BOOTSTRAP_TOKEN} kubeadm-token-ca-hash=${KUBEADM_TOKEN_CA_HASH} kubernetes-version=${KUBERNETES_VERSION}${dockerRegistryIP}${noProxyAddrs}\n"
         printf "${NC}"
         printf "\n"
         printf "\n"
@@ -205,7 +210,7 @@ function outro() {
             printf "To add ${GREEN}MASTER${NC} nodes to this installation, copy and unpack this bundle on your other nodes, and run the following:"
             printf "\n"
             printf "\n"
-            printf "${GREEN}    cat ./join.sh | sudo bash -s airgap kubernetes-master-address=${API_SERVICE_ADDRESS} kubeadm-token=${BOOTSTRAP_TOKEN} kubeadm-token-ca-hash=${KUBEADM_TOKEN_CA_HASH} kubernetes-version=${KUBERNETES_VERSION} cert-key=${CERT_KEY} control-plane${dockerRegistryIP}\n"
+            printf "${GREEN}    cat ./join.sh | sudo bash -s airgap kubernetes-master-address=${API_SERVICE_ADDRESS} kubeadm-token=${BOOTSTRAP_TOKEN} kubeadm-token-ca-hash=${KUBEADM_TOKEN_CA_HASH} kubernetes-version=${KUBERNETES_VERSION} cert-key=${CERT_KEY} control-plane${dockerRegistryIP}${noProxyAddrs}\n"
             printf "${NC}"
             printf "\n"
             printf "\n"
@@ -218,7 +223,7 @@ function outro() {
         printf "\n"
         printf "To add worker nodes to this installation, run the following script on your other nodes"
         printf "\n"
-        printf "${GREEN}    ${prefix}join.sh | sudo bash -s kubernetes-master-address=${API_SERVICE_ADDRESS} kubeadm-token=${BOOTSTRAP_TOKEN} kubeadm-token-ca-hash=${KUBEADM_TOKEN_CA_HASH} kubernetes-version=${KUBERNETES_VERSION}${dockerRegistryIP}\n"
+        printf "${GREEN}    ${prefix}join.sh | sudo bash -s kubernetes-master-address=${API_SERVICE_ADDRESS} kubeadm-token=${BOOTSTRAP_TOKEN} kubeadm-token-ca-hash=${KUBEADM_TOKEN_CA_HASH} kubernetes-version=${KUBERNETES_VERSION}${dockerRegistryIP}${noProxyAddrs}\n"
         printf "${NC}"
         printf "\n"
         printf "\n"
@@ -226,7 +231,7 @@ function outro() {
             printf "\n"
             printf "To add ${GREEN}MASTER${NC} nodes to this installation, run the following script on your other nodes"
             printf "\n"
-            printf "${GREEN}    ${prefix}join.sh | sudo bash -s kubernetes-master-address=${API_SERVICE_ADDRESS} kubeadm-token=${BOOTSTRAP_TOKEN} kubeadm-token-ca-hash=$KUBEADM_TOKEN_CA_HASH kubernetes-version=${KUBERNETES_VERSION} cert-key=${CERT_KEY} control-plane${dockerRegistryIP}\n"
+            printf "${GREEN}    ${prefix}join.sh | sudo bash -s kubernetes-master-address=${API_SERVICE_ADDRESS} kubeadm-token=${BOOTSTRAP_TOKEN} kubeadm-token-ca-hash=$KUBEADM_TOKEN_CA_HASH kubernetes-version=${KUBERNETES_VERSION} cert-key=${CERT_KEY} control-plane${dockerRegistryIP}${noProxyAddrs}\n"
             printf "${NC}"
             printf "\n"
             printf "\n"
@@ -237,6 +242,7 @@ function outro() {
 function main() {
     export KUBECONFIG=/etc/kubernetes/admin.conf
     requireRootUser
+    proxy_bootstrap
     download_util_binaries "$@"
     merge_yaml_specs
     apply_bash_flag_overrides "$@"
@@ -247,44 +253,20 @@ function main() {
     preflights
     prompts
     configure_proxy
+    addon_for_each addon_pre_init
+    discover_pod_subnet
+    discover_service_subnet
+    configure_no_proxy
     install_docker
     apply_docker_config
     get_shared
     upgrade_kubernetes
     kubernetes_host
     setup_kubeadm_kustomize
-    addon_pre_init aws "$AWS_VERSION"
-    addon_pre_init nodeless "$NODELESS_VERSION"
-    addon_pre_init calico "$CALICO_VERSION"
-    addon_pre_init weave "$WEAVE_VERSION"
-    addon_pre_init rook "$ROOK_VERSION"
-    addon_pre_init openebs "$OPENEBS_VERSION"
-    addon_pre_init minio "$MINIO_VERSION"
-    addon_pre_init contour "$CONTOUR_VERSION"
-    addon_pre_init registry "$REGISTRY_VERSION"
-    addon_pre_init prometheus "$PROMETHEUS_VERSION"
-    addon_pre_init velero "$VELERO_VERSION"
-    addon_pre_init fluentd "$FLUENTD_VERSION"
-    addon_pre_init ekco "$EKCO_VERSION"
-    addon_pre_init kotsadm "$KOTSADM_VERSION"
-    discover_pod_subnet
-    discover_service_subnet
+    addon_for_each addon_load
     init
     apply_installer_crd
-    addon aws "$AWS_VERSION"
-    addon nodeless "$NODELESS_VERSION"
-    addon calico "$CALICO_VERSION"
-    addon weave "$WEAVE_VERSION"
-    addon rook "$ROOK_VERSION"
-    addon openebs "$OPENEBS_VERSION"
-    addon minio "$MINIO_VERSION"
-    addon contour "$CONTOUR_VERSION"
-    addon registry "$REGISTRY_VERSION"
-    addon prometheus "$PROMETHEUS_VERSION"
-    addon velero "$VELERO_VERSION"
-    addon fluentd "$FLUENTD_VERSION"
-    addon ekco "$EKCO_VERSION"
-    addon kotsadm "$KOTSADM_VERSION"
+    addon_for_each addon_install
     post_init
     outro
 }

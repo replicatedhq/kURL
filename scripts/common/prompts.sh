@@ -7,39 +7,7 @@ function prompts() {
     fi
     # TODO public address? only required for adding SAN to K8s API server cert
 
-    if [ "$NO_PROXY" != "1" ]; then
-        if [ -z "$PROXY_ADDRESS" ]; then
-            discoverProxy
-        fi
-
-        if [ -z "$PROXY_ADDRESS" ] && [ "$AIRGAP" != "1" ]; then
-            promptForProxy
-        fi
-
-        if [ -n "$PROXY_ADDRESS" ]; then
-            getNoProxyAddresses "$PRIVATE_ADDRESS" "$SERVICE_CIDR"
-        fi
-    fi
-
     prompt_airgap_preload_images
-}
-
-promptForProxy() {
-    printf "Does this machine require a proxy to access the Internet? "
-    if ! confirmN; then
-        return
-    fi
-
-    printf "Enter desired HTTP proxy address: "
-    prompt
-    if [ -n "$PROMPT_RESULT" ]; then
-        if [ "${PROMPT_RESULT:0:7}" != "http://" ] && [ "${PROMPT_RESULT:0:8}" != "https://" ]; then
-            echo >&2 "Proxy address must have prefix \"http(s)://\""
-            exit 1
-        fi
-        PROXY_ADDRESS="$PROMPT_RESULT"
-        printf "The installer will use the proxy at '%s'\n" "$PROXY_ADDRESS"
-    fi
 }
 
 if [ -z "$READ_TIMEOUT" ]; then

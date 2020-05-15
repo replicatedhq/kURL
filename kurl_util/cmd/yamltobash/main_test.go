@@ -97,6 +97,16 @@ func Test_convertToBash(t *testing.T) {
 			},
 			wantError: false,
 		},
+		{
+			name: "Kurl.AdditionalNoProxyAddresses is joined with commas",
+			inputMap: map[string]interface{}{
+				"Kurl.AdditionalNoProxyAddresses": []string{"10.128.0.3", "10.128.0.4", "10.138.0.0/16", "registry.internal"},
+			},
+			wantedMap: map[string]string{
+				"ADDITIONAL_NO_PROXY_ADDRESSES": "10.128.0.3,10.128.0.4,10.138.0.0/16,registry.internal",
+			},
+			wantError: false,
+		},
 	}
 
 	for _, test := range tests {

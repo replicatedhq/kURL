@@ -4,6 +4,7 @@ go 1.14
 
 require (
 	github.com/onsi/gomega v1.9.0
+	github.com/replicatedhq/kurl v0.0.0-20200514170003-b9e4bf917dd9 // indirect
 	golang.org/x/net v0.0.0-20200202094626-16171245cfb2
 	k8s.io/api v0.17.2
 	k8s.io/apiextensions-apiserver v0.17.0 // indirect

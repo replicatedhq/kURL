@@ -23,6 +23,10 @@ function kotsadm() {
     if [ -n "$PROMETHEUS_VERSION" ]; then
         kotsadm_api_patch_prometheus
     fi
+    if [ -n "$PROXY_ADDRESS" ]; then
+        render_yaml_file "$DIR/addons/kotsadm/alpha/tmpl-kotsadm-proxy.yaml" > "$DIR/kustomize/kotsadm/kotsadm-proxy.yaml"
+        insert_patches_strategic_merge "$DIR/kustomize/kotsadm/kustomization.yaml" kotsadm-proxy.yaml
+    fi
 
     kotsadm_etcd_client_secret
     kotsadm_kubelet_client_secret

@@ -9,10 +9,6 @@ function discover() {
         echo "Docker already exists on this machine so no docker install will be performed"
     fi
 
-    if [ "$NO_PROXY" != "1" ] && [ -z "$PROXY_ADDRESS" ]; then
-        discoverProxy
-    fi
-
     discoverPublicIp
     discover_private_ip
 
@@ -181,36 +177,6 @@ getDockerVersion() {
 		return
 	fi
 	DOCKER_VERSION=$(docker -v | awk '{gsub(/,/, "", $3); print $3}')
-}
-
-discoverProxy() {
-    if [ -n "$REPLICATED_CONF_VALUE" ]; then
-        PROXY_ADDRESS="$REPLICATED_CONF_VALUE"
-        printf "The installer will use the proxy at '%s' (imported from /etc/replicated.conf 'HttpProxy')\n" "$PROXY_ADDRESS"
-        return
-    fi
-
-    if [ -n "$HTTP_PROXY" ]; then
-        PROXY_ADDRESS="$HTTP_PROXY"
-        printf "The installer will use the proxy at '%s' (imported from env var 'HTTP_PROXY')\n" "$PROXY_ADDRESS"
-        return
-    elif [ -n "$http_proxy" ]; then
-        PROXY_ADDRESS="$http_proxy"
-        printf "The installer will use the proxy at '%s' (imported from env var 'http_proxy')\n" "$PROXY_ADDRESS"
-        return
-    elif [ -n "$HTTPS_PROXY" ]; then
-        PROXY_ADDRESS="$HTTPS_PROXY"
-        printf "The installer will use the proxy at '%s' (imported from env var 'HTTPS_PROXY')\n" "$PROXY_ADDRESS"
-        return
-    elif [ -n "$https_proxy" ]; then
-        PROXY_ADDRESS="$https_proxy"
-        printf "The installer will use the proxy at '%s' (imported from env var 'https_proxy')\n" "$PROXY_ADDRESS"
-        return
-    fi
-
-    if curl --noproxy "*" --silent --connect-timeout 2 --fail https://api.replicated.com/market/v1/echo/ip > /dev/null ; then
-        NO_PROXY=1
-    fi
 }
 
 discoverPublicIp() {

@@ -133,7 +133,8 @@ func convertToBash(kurlValues map[string]interface{}) (map[string]string, error)
 		"Kubernetes.ServiceCidrRange":            "SERVICE_CIDR_RANGE",
 		"Kubernetes.Version":                     "KUBERNETES_VERSION",
 		"Kurl.Airgap":                            "AIRGAP",
-		"Kurl.HTTPProxy":                         "PROXY_ADDRESS",
+		"Kurl.ProxyAddress":                      "PROXY_ADDRESS",
+		"Kurl.AdditionalNoProxyAddresses":        "ADDITIONAL_NO_PROXY_ADDRESSES",
 		"Kurl.HostnameCheck":                     "HOSTNAME_CHECK",
 		"Kurl.NoProxy":                           "NO_PROXY",
 		"Kurl.PrivateAddress":                    "PRIVATE_ADDRESS",
@@ -201,6 +202,10 @@ func convertToBash(kurlValues map[string]interface{}) (map[string]string, error)
 				bashVal = "1"
 			} else {
 				bashVal = ""
+			}
+		case []string:
+			if len(t) > 0 {
+				bashVal = strings.Join(t, ",")
 			}
 		}
 

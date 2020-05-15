@@ -54,6 +54,8 @@ function get_patch_yaml() {
             installer-spec-file)
                 INSTALLER_SPEC_FILE="$_value"
                 ;;
+            additional-no-proxy-addresses)
+                ;;
             airgap)
                 AIRGAP="1"
                 ;;
