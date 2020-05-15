@@ -178,6 +178,22 @@ spec:
     blockDeviceFilter: sdb
 `;
 
+const proxy = `
+spec:
+  kubernetes:
+    version: latest
+  weave:
+    version: latest
+  docker:
+    version: latest
+  kurl:
+    proxyAddress: http://proxy.internal:3128
+    additionalNoProxyAddresses:
+    - registry.internal
+    - 10.128.0.44
+    noProxy: false
+`;
+
 describe("POST /installer", () => {
   describe("latestV1Beta1", () => {
     it(`should return 201 "https://kurl.sh/latest"`, async () => {
@@ -496,6 +512,25 @@ describe("GET /<installerID>", () => {
       const script = await client.getInstallScript(id);
 
       expect(script).to.match(new RegExp(`version: ${i.resolve().spec.rook!.version}`));
+    });
+  });
+
+  describe("proxy (/5797a35)", () => {
+    const id = "5797a35";
+
+    before(async () => {
+      const uri = await client.postInstaller(proxy);
+      expect(uri).to.match(new RegExp(id));
+    });
+
+    it("configures proxies", async () => {
+      const i = Installer.parse(proxy);
+
+      const script = await client.getInstallScript(id);
+      expect(script).to.have.string("proxyAddress: 'http://proxy.internal:3128'");
+      expect(script).to.have.string("registry.internal");
+      expect(script).to.have.string("10.128.0.44");
+      expect(script).to.have.string("noProxy: false");
     });
   });
 });

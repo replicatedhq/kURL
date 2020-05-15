@@ -277,7 +277,8 @@ export const ekcoConfigSchema = {
 };
 
 export interface KurlConfig {
-  HTTPProxy?: string;
+  proxyAddress?: string;
+  additionalNoProxyAddresses: string[];
   airgap?: boolean;
   bypassFirewalldWarning?: boolean;
   hardFailOnFirewalld?: boolean;
@@ -291,7 +292,8 @@ export interface KurlConfig {
 export const kurlConfigSchema = {
   type: "object",
   properties: {
-    HTTPProxy: { type: "string", flag: "http-proxy" , description: "The address of the proxy to use for outbound connections" },
+    proxyAddress: { type: "string", flag: "http-proxy" , description: "The address of the proxy to use for outbound connections" },
+    additionalNoProxyAddresses: { type: "array", items: { type: "string" }, description: "Addresses that can be reached without a proxy" },
     airgap: { type: "boolean", flag: "airgap", description: "Indicates if this install is an airgap install" },
     bypassFirewalldWarning: { type: "boolean", flag: "bypass-firewalld-warning" , description: "Continue installing even if the firewalld service is active" },
     hardFailOnFirewalld: { type: "boolean", flag: "hard-fail-on-firewalld" , description: "Exit the install script if the firewalld service is active" },
