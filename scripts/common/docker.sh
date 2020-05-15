@@ -92,7 +92,6 @@ information.\n\nhttps://help.replicated.com/docs/kb/developer-resources/devicema
 }
 
 docker_configure_proxy() {
-    # NOTE: this does not take into account if no proxy changed
     local previous_proxy=$(docker info 2>/dev/null | grep -i 'Http Proxy:' | awk '{ print $NF }')
     local previous_no_proxy=$(docker info 2>/dev/null | grep -i 'No Proxy:' | awk '{ print $NF }')
     if [ "$PROXY_ADDRESS" = "$previous_proxy" ] && [ "$NO_PROXY_ADDRESSES" = "$previous_no_proxy" ]; then
