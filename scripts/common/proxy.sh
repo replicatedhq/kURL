@@ -1,9 +1,4 @@
 
-# DONE QA proxy from installer yaml
-# DONE QA from override spec file
-# DONE QA set in both yaml and local spec file
-# TODO QA with single quotes
-# TODO QA with double quotes
 function proxy_bootstrap() {
     if [ "$AIRGAP" = "1" ]; then
         return
@@ -16,22 +11,20 @@ function proxy_bootstrap() {
         local overrideProxy=$(grep "proxyAddress:" "$INSTALLER_SPEC_FILE" | grep -o "http[^'\" ]*")
         if [ -n "$overrideProxy" ]; then
             export https_proxy="$overrideProxy"
-            echo "TODO REMOVE. Proxy address from installer spec file: $https_proxy"
+            echo "Bootstrapped proxy address from installer spec file: $https_proxy"
             return
         fi
     fi
     local proxy=$(echo "$INSTALLER_YAML" | grep "proxyAddress:" | grep -o "http[^'\" ]*")
     if [ -n "$proxy" ]; then
         export https_proxy="$proxy"
-        echo "TODO REMOVE. Proxy address from installer yaml: $https_proxy"
+        echo "Bootstrapped proxy address from installer yaml: $https_proxy"
         return
     fi
 
     bail "Failed to make outbound https request and no proxy is configured."
 }
 
-# DONE QA validation fails
-# DONE QA validation succeeds
 function configure_proxy() {
     if [ "$NO_PROXY" = "1" ]; then
         unset PROXY_ADDRESS
@@ -47,7 +40,6 @@ function configure_proxy() {
     if ! curl --silent --fail --connect-timeout 4 https://api.replicated.com/market/v1/echo/ip >/dev/null ; then
         bail "Failed to make outbound request using proxy address $https_proxy"
     fi
-    echo "TODO REMOVE: successfully validated proxy address $https_proxy"
 }
 
 function configure_no_proxy() {
@@ -82,5 +74,5 @@ function configure_no_proxy() {
     # kubeadm requires this in the environment to reach K8s masters
     export no_proxy="$addresses"
     NO_PROXY_ADDRESSES="$addresses"
-    echo "TODO REMOVE: exported no_proxy: $no_proxy"
+    echo "Exported no_proxy: $no_proxy"
 }

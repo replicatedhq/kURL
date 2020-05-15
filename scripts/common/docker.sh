@@ -33,7 +33,6 @@ function install_docker() {
         check_docker_storage_driver "$HARD_FAIL_ON_LOOPBACK"
     fi
 
-    # DONE QA preserve docker config
     if [ -z "$PRESERVE_DOCKER_CONFIG" ] && [ -n "$PROXY_ADDRESS" ]; then
         docker_configure_proxy
         local dockerProxy=$(docker info 2>/dev/null | grep -i "HTTP Proxy:")
@@ -92,8 +91,6 @@ information.\n\nhttps://help.replicated.com/docs/kb/developer-resources/devicema
     fi
 }
 
-# DONE QA no restart docker if no change
-# DONE QA change if already exists
 docker_configure_proxy() {
     # NOTE: this does not take into account if no proxy changed
     local previous_proxy=$(docker info 2>/dev/null | grep -i 'Http Proxy:' | awk '{ print $NF }')

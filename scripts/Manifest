@@ -4,25 +4,4 @@ INSTALLER_ID=
 REPLICATED_APP_URL=https://replicated.app
 KURL_UTIL_IMAGE=replicated/kurl-util:alpha
 KURL_BIN_UTILS_FILE=
-INSTALLER_YAML="
-apiVersion: cluster.kurl.sh/v1beta1
-kind: Installer
-metadata:
-  name: kurl
-spec:
-  kubernetes:
-    version: 1.17.3
-  docker:
-    version: 19.03.4
-  weave:
-    version: 2.5.2
-  kurl:
-    proxyAddress: http://10.128.0.46:3128
-    additionalNoProxyAddresses:
-    - 10.128.0.10
-    - 10.128.0.47
-  kotsadm:
-    version: alpha
-  rook:
-    version: 1.0.4
-"
+INSTALLER_YAML=
