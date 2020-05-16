@@ -44,7 +44,11 @@ function addon_pre_init() {
         return 0
     fi
 
-    addon_load "$name" "$version"
+    if [ "$AIRGAP" != "1" ] && [ -n "$DIST_URL" ]; then
+        curl -sSLO "$DIST_URL/$name-$version.tar.gz"
+        tar xf $name-$version.tar.gz
+        rm $name-$version.tar.gz
+    fi
 
     . $DIR/addons/$name/$version/install.sh
 

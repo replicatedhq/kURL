@@ -26,7 +26,7 @@ function install_docker() {
             DOCKER_VERSION="19.03.4"
         fi
         change_cgroup_driver_to_systemd
-        docker_get_host_packages_online
+        docker_get_host_packages_online "$DOCKER_VERSION"
         docker_install
         systemctl enable docker
         systemctl start docker
