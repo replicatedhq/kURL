@@ -78,7 +78,9 @@ spec:
     shouldDisableRebootService: false
     rookShouldUseAllNodes: false
   kurl:
-    HTTPProxy: 1.1.1.1
+    proxyAddress: 1.1.1.1
+    additionalNoProxyAddresses:
+    - 10.128.0.3
     airgap: false
     bypassFirewalldWarning: false
     hardFailOnFirewalld: false
