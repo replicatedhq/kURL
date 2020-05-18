@@ -104,6 +104,8 @@ spec:
               type: object
             fluentd:
               properties:
+                fluentdConfPath:
+                  type: string
                 fullEFKStack:
                   type: boolean
                 version:

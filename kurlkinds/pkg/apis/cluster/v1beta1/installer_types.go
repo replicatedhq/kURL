@@ -58,6 +58,7 @@ type Docker struct {
 type Fluentd struct {
 	FullEFKStack bool   `json:"fullEFKStack,omitempty"`
 	Version      string `json:"version"`
+	FluentdConfPath     string `json:"fluentdConfPath,omitempty"`
 }
 
 type Kotsadm struct {
