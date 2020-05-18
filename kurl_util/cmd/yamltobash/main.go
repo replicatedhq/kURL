@@ -113,6 +113,7 @@ func convertToBash(kurlValues map[string]interface{}) (map[string]string, error)
 		"FirewalldConfig.HardFailOnFirewalld":    "HARD_FAIL_ON_FIREWALLD",
 		"FirewalldConfig.PreserveConfig":         "PRESERVE_FIREWALLD_CONFIG",
 		"Fluentd.FullEFKStack":                   "FLUENTD_FULL_EFK_STACK",
+		"Fluentd.FluentdConfPath":                "FLUENTD_CONF_FILE",
 		"Fluentd.Version":                        "FLUENTD_VERSION",
 		"IptablesConfig.PreserveConfig":          "PRESERVE_IPTABLES_CONFIG",
 		"Kotsadm.ApplicationNamespace":           "KOTSADM_APPLICATION_NAMESPACES",
