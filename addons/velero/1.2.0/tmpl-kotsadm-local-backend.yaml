@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Secret
 metadata:
-  name: aws-credentials
+  name: cloud-credentials
 stringData:
   cloud: |
     [default]

@@ -2,36 +2,21 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: velero
-  labels:
-    app.kubernetes.io/name: velero
-    component: velero
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app.kubernetes.io/name: velero
-      component: velero
+      deploy: velero
   template:
     metadata:
       labels:
-        app.kubernetes.io/name: velero
-        component: velero
+        deploy: velero
     spec:
       restartPolicy: Always
       serviceAccountName: velero
       initContainers:
       - image: velero/velero-plugin-for-aws:v1.0.0
         name: velero-plugin-for-aws
-        volumeMounts:
-        - mountPath: /target
-          name: plugins
-      - image: velero/velero-plugin-for-gcp:v1.0.0
-        name: velero-plugin-for-gcp
-        volumeMounts:
-        - mountPath: /target
-          name: plugins
-      - image: velero/velero-plugin-for-microsoft-azure:v1.0.0
-        name: velero-plugin-for-azure
         volumeMounts:
         - mountPath: /target
           name: plugins
@@ -48,14 +33,10 @@ spec:
           volumeMounts:
             - name: plugins
               mountPath: /plugins
-            - name: aws-credentials
-              mountPath: /credentials/aws
-            - name: google-credentials
-              mountPath: /credentials/google
-            - name: azure-credentials
-              mountPath: /credentials/azure
             - name: scratch
               mountPath: /scratch
+            - name: cloud-credentials
+              mountPath: /credentials
           env:
             - name: VELERO_SCRATCH_DIR
               value: /scratch
@@ -64,26 +45,29 @@ spec:
                 fieldRef:
                   apiVersion: v1
                   fieldPath: metadata.namespace
+            - name: LD_LIBRARY_PATH
+              value: /plugins
             - name: AWS_SHARED_CREDENTIALS_FILE
-              value: /credentials/aws/cloud
+              value: /credentials/cloud
             - name: GOOGLE_APPLICATION_CREDENTIALS
-              value: /credentials/google/cloud
+              value: /credentials/cloud
             - name: AZURE_CREDENTIALS_FILE
-              value: /credentials/azure/cloud
+              value: /credentials/cloud
+            - name: ALIBABA_CLOUD_CREDENTIALS_FILE
+              value: /credentials/cloud
+          resources:
+            requests:
+              cpu: 500m
+              memory: 128Mi
+            limits:
+              cpu: 1000m
+              memory: 256Mi
+
       volumes:
-        - name: aws-credentials
-          secret:
-            secretName: aws-credentials
-            optional: true
-        - name: google-credentials
-          secret:
-            secretName: google-credentials
-            optional: true
-        - name: azure-credentials
-          secret:
-            secretName: azure-credentials
-            optional: true
         - name: plugins
           emptyDir: {}
         - name: scratch
           emptyDir: {}
+        - name: cloud-credentials
+          secret:
+            secretName: cloud-credentials

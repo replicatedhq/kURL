@@ -2,41 +2,28 @@ apiVersion: apps/v1
 kind: DaemonSet
 metadata:
   name: restic
-  labels:
-    app.kubernetes.io/name: restic
-    component: velero
 spec:
   selector:
     matchLabels:
-      app.kubernetes.io/name: restic
-      component: velero
+      name: restic
   template:
     metadata:
       labels:
-        app.kubernetes.io/name: restic
+        name: restic
         component: velero
     spec:
       serviceAccountName: velero
       securityContext:
         runAsUser: 0
       volumes:
-        - name: aws-credentials
-          secret:
-            secretName: aws-credentials
-            optional: true
-        - name: google-credentials
-          secret:
-            secretName: google-credentials
-            optional: true
-        - name: azure-credentials
-          secret:
-            secretName: azure-credentials
-            optional: true
         - name: host-pods
           hostPath:
             path: /var/lib/kubelet/pods
         - name: scratch
           emptyDir: {}
+        - name: cloud-credentials
+          secret:
+            secretName: cloud-credentials
       containers:
         - name: velero
           image: velero/velero:v1.2.0
@@ -46,17 +33,13 @@ spec:
             - restic
             - server
           volumeMounts:
-            - name: aws-credentials
-              mountPath: /credentials/aws
-            - name: google-credentials
-              mountPath: /credentials/google
-            - name: azure-credentials
-              mountPath: /credentials/azure
             - name: host-pods
               mountPath: /host_pods
               mountPropagation: HostToContainer
             - name: scratch
               mountPath: /scratch
+            - name: cloud-credentials
+              mountPath: /credentials
           env:
             - name: VELERO_NAMESPACE
               valueFrom:
@@ -68,9 +51,11 @@ spec:
                   fieldPath: spec.nodeName
             - name: VELERO_SCRATCH_DIR
               value: /scratch
-            - name: AWS_SHARED_CREDENTIALS_FILE
-              value: /credentials/aws/cloud
             - name: GOOGLE_APPLICATION_CREDENTIALS
-              value: /credentials/google/cloud
+              value: /credentials/cloud
+            - name: AWS_SHARED_CREDENTIALS_FILE
+              value: /credentials/cloud
             - name: AZURE_CREDENTIALS_FILE
-              value: /credentials/azure/cloud
+              value: /credentials/cloud
+            - name: ALIBABA_CLOUD_CREDENTIALS_FILE
+              value: /credentials/cloud
