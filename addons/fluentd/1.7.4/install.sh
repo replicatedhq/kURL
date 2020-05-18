@@ -28,6 +28,17 @@ fluentd() {
         cp -r "$elasticsearch_src/" "$elasticsearch_dst/"
         cp -r "$kibana_src/" "$kibana_dst/"
 
+        if [ -z "$FLUENTD_CONF_FILE" ]; then
+            FLUENTD_CONF_FILE="$fluentd_dst/fluentd.conf"
+            REMOVE_FLUENTD_CONF=1
+        fi
+
+        kubectl create configmap fluentdconf --from-file $FLUENTD_CONF_FILE --namespace logging -o yaml --dry-run=client > "$fluentd_dst/fluentd-ekf-configmap.yaml"
+
+        if [ -n "$REMOVE_FLUENTD_CONF" ]; then
+            rm FLUENTD_CONF_FILE
+        fi
+
         kubectl apply -k "$logging_dst/"
         kubectl apply -k "$elasticsearch_dst/"
         kubectl apply -k "$kibana_dst/"
@@ -35,6 +46,17 @@ fluentd() {
     else
         cp -r "$logging_src/" "$logging_dst/"
         cp -r "$fluentd_standalone_src/" "$fluentd_dst/"
+
+        if [ -z "$FLUENTD_CONF_FILE" ]; then
+            FLUENTD_CONF_FILE="$fluentd_dst/fluentd.conf"
+            REMOVE_FLUENTD_CONF=1
+        fi
+
+        kubectl create configmap fluentdconf --from-file $FLUENTD_CONF_FILE --namespace logging -o yaml --dry-run=client > "$fluentd_dst/fluentd-fd-only-configmap.yaml"
+
+        if [ -n "$REMOVE_FLUENTD_CONF" ]; then
+            rm FLUENTD_CONF_FILE
+        fi
 
         kubectl apply -k "$logging_dst/"
         kubectl apply -k "$fluentd_dst/"
