@@ -8,6 +8,10 @@ function prompts() {
     # TODO public address? only required for adding SAN to K8s API server cert
 
     prompt_airgap_preload_images
+
+    if [ "$HA_CLUSTER" = "1" ]; then
+        promptForLoadBalancerAddress
+    fi
 }
 
 if [ -z "$READ_TIMEOUT" ]; then

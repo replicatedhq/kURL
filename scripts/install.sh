@@ -31,8 +31,6 @@ function init() {
 
     API_SERVICE_ADDRESS="$PRIVATE_ADDRESS:6443"
     if [ "$HA_CLUSTER" = "1" ]; then
-        promptForLoadBalancerAddress
-
         # TODO not implemented
         if [ "$LOAD_BALANCER_ADDRESS_CHANGED" = "1" ]; then
             handleLoadBalancerAddressChangedPreInit
