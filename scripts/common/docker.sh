@@ -1,6 +1,6 @@
 
 function change_cgroup_driver_to_systemd() {
-    # Docker uses cgroupfs by defualt to manage cgroup. On distributions using systemd,
+    # Docker uses cgroupfs by default to manage cgroup. On distributions using systemd,
     # i.e. RHEL and Ubuntu, this causes issues because there are now 2 seperate ways
     # to manage resources. For more info see the link below.
     # https://github.com/kubernetes/kubeadm/issues/1394#issuecomment-462878219
