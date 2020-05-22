@@ -45,6 +45,7 @@ function addon_pre_init() {
     fi
 
     if [ "$AIRGAP" != "1" ] && [ -n "$DIST_URL" ]; then
+        echo "Fetching $name-$version.tar.gz"
         curl -sSLO "$DIST_URL/$name-$version.tar.gz"
         tar xf $name-$version.tar.gz
         rm $name-$version.tar.gz
@@ -65,6 +66,12 @@ function addon_join() {
         return 0
     fi
 
+    if [ "$AIRGAP" != "1" ] && [ -n "$DIST_URL" ]; then
+        curl -sSLO "$DIST_URL/$name-$version.tar.gz"
+        tar xf $name-$version.tar.gz
+        rm $name-$version.tar.gz
+    fi
+
     addon_load "$name" "$version"
 
     . $DIR/addons/$name/$version/install.sh
@@ -81,12 +88,6 @@ function addon_load() {
 
     if [ -z "$version" ]; then
         return 0
-    fi
-
-    if [ "$AIRGAP" != "1" ] && [ -n "$DIST_URL" ]; then
-        curl -sSLO "$DIST_URL/$name-$version.tar.gz"
-        tar xf $name-$version.tar.gz
-        rm $name-$version.tar.gz
     fi
 
     load_images $DIR/addons/$name/$version/images
