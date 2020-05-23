@@ -92,6 +92,7 @@ type Kurl struct {
 	NoProxy                    bool     `json:"noProxy,omitempty"`
 	PublicAddress              string   `json:"publicAddress,omitempty"`
 	PrivateAddress             string   `json:"privateAddress,omitempty"`
+	Task                       string   `json:"task,omitempty"`
 }
 
 type Minio struct {

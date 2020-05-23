@@ -199,16 +199,6 @@ build/templates/upgrade.tmpl: build/upgrade.sh
 		sed 's/^KURL_BIN_UTILS_FILE=.*/KURL_BIN_UTILS_FILE="{{= KURL_BIN_UTILS_FILE }}"/' \
 		> build/templates/upgrade.tmpl
 
-build/tasks.sh:
-	mkdir -p tmp build
-	cp scripts/common/tasks.sh tmp/tasks.sh
-	mv tmp/tasks.sh build/tasks.sh
-	chmod +x build/tasks.sh
-
-build/templates/tasks.tmpl: build/tasks.sh
-	mkdir -p build/templates
-	cp scripts/common/tasks.sh build/templates/tasks.tmpl
-
 build/addons:
 	mkdir -p build
 	cp -r addons build/
@@ -305,7 +295,7 @@ build/packages/kubernetes/%/rhel-7:
 	docker cp k8s-rhel7-$*:/packages/archives/. build/packages/kubernetes/$*/rhel-7/
 	docker rm k8s-rhel7-$*
 
-build/templates: build/templates/install.tmpl build/templates/join.tmpl build/templates/upgrade.tmpl build/templates/tasks.tmpl
+build/templates: build/templates/install.tmpl build/templates/join.tmpl build/templates/upgrade.tmpl
 
 build/bin:
 	${MAKE} -C kurl_util build

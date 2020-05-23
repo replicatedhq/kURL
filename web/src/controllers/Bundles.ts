@@ -91,7 +91,6 @@ export class Bundle {
     ret.files["install.sh"] = this.templates.renderInstallScript(installer);
     ret.files["join.sh"] = this.templates.renderJoinScript(installer);
     ret.files["upgrade.sh"] = this.templates.renderUpgradeScript(installer);
-    ret.files["tasks.sh"] = this.templates.renderTasksScript();
 
     return ret;
   }

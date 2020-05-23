@@ -15,7 +15,6 @@ export class Templates {
   private installTmpl: (obj: any) => string;
   private joinTmpl: (obj: any) => string;
   private upgradeTmpl: (obj: any) => string;
-  private tasksTmpl: () => string;
 
   constructor() {
     this.kurlURL = process.env["KURL_URL"] || "https://kurl.sh";
@@ -34,7 +33,6 @@ export class Templates {
     const installTmplPath = path.join(tmplDir, "install.tmpl");
     const joinTmplPath = path.join(tmplDir, "join.tmpl");
     const upgradeTmplPath = path.join(tmplDir, "upgrade.tmpl");
-    const tasksTmplPath = path.join(tmplDir, "tasks.tmpl");
 
     const opts = {
       escape: /{{-([\s\S]+?)}}/g,
@@ -44,7 +42,6 @@ export class Templates {
     this.installTmpl = _.template(fs.readFileSync(installTmplPath, "utf8"), opts);
     this.joinTmpl = _.template(fs.readFileSync(joinTmplPath, "utf8"), opts);
     this.upgradeTmpl = _.template(fs.readFileSync(upgradeTmplPath, "utf8"), opts);
-    this.tasksTmpl = _.template(fs.readFileSync(tasksTmplPath, "utf8"), opts);
   }
 
   public renderInstallScript(i: Installer): string {
@@ -57,10 +54,6 @@ export class Templates {
 
   public renderUpgradeScript(i: Installer): string {
     return this.upgradeTmpl(manifestFromInstaller(i, this.kurlURL, this.replicatedAppURL, this.distURL, this.kurlUtilImage, this.kurlBinUtils));
-  }
-
-  public renderTasksScript(): string {
-      return this.tasksTmpl();
   }
 }
 
