@@ -301,6 +301,7 @@ export const kurlConfigSchema = {
     noProxy: { type: "boolean", flag: "no-proxy" , description: "Don’t detect or configure a proxy" },
     privateAddress: { type: "string", flag: "private-address" , description: "The local address of the host (different for each host in the cluster)" },
     publicAddress: { type: "string", flag: "public-address" , description: "The public address of the host (different for each host in the cluster), will be added as a CNAME to the k8s API server cert so you can use kubectl with this address" },
+    task: { type: "string", flag: "task" , description: "This option will run bash functions from tasks.sh with names that match the string parameter given" },
   },
   additionalProperties: false,
 };

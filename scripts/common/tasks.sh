@@ -1,6 +1,10 @@
 
 function tasks() {
-    case "$1" in
+    if [ -z "$TASK" ]; then
+        return 0
+    fi
+
+    case "$TASK" in
         load-images|load_images)
             load_all_images
             ;;
@@ -17,7 +21,7 @@ function tasks() {
             print_registry_login
             ;;
         *)
-            bail "Unknown task: $1"
+            bail "Unknown task: $TASK"
             ;;
     esac
 
@@ -191,5 +195,3 @@ function print_registry_login() {
         printf "${GREEN}kubectl create secret docker-registry kurl-registry --docker-username=kurl --docker-password=$passwd --docker-server=$hostIP:$nodePort ${NC}\n"
     fi
 }
-
-tasks "$@"

@@ -17,6 +17,7 @@ DIR=.
 . $DIR/scripts/common/prompts.sh
 . $DIR/scripts/common/proxy.sh
 . $DIR/scripts/common/rook.sh
+. $DIR/scripts/common/tasks.sh
 . $DIR/scripts/common/upgrade.sh
 . $DIR/scripts/common/utilbinaries.sh
 . $DIR/scripts/common/yaml.sh
@@ -247,6 +248,7 @@ function main() {
     parse_yaml_into_bash_variables
     parse_kubernetes_target_version
     discover
+    tasks
     preflights
     prompts
     configure_proxy
