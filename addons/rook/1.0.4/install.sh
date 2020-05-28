@@ -18,6 +18,10 @@ function rook() {
     spinnerPodRunning rook-ceph rook-ceph-rgw-rook-ceph-store
     kubectl apply -f "$DIR/addons/rook/1.0.4/cluster/object-user.yaml"
     rook_object_store_output
+
+    if ! spinner_until 120 rook_rgw_is_healthy; then
+        bail "Failed to detect health Rook RGW"
+    fi
 }
 
 function rook_operator_deploy() {
@@ -149,9 +153,14 @@ function rook_create_bucket() {
     local sig=$(echo -en "${string}" | openssl sha1 -hmac "${OBJECT_STORE_SECRET_KEY}" -binary | base64)
 
     curl -X PUT  \
+        --noproxy "*" \
         -H "Host: $OBJECT_STORE_CLUSTER_IP" \
         -H "Date: $d" \
         -H "$acl" \
         -H "Authorization: AWS $OBJECT_STORE_ACCESS_KEY:$sig" \
         "http://$OBJECT_STORE_CLUSTER_IP/$bucket" >/dev/null
+}
+
+function rook_rgw_is_healthy() {
+    curl --noproxy "*" --fail --silent --insecure "http://${OBJECT_STORE_CLUSTER_IP}" > /dev/null
 }

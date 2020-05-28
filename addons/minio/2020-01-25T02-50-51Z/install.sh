@@ -54,5 +54,5 @@ function minio_object_store_output() {
 }
 
 function minio_ready() {
-    curl -s "http://$OBJECT_STORE_CLUSTER_IP/minio/health/ready"
+    curl --noproxy "*" -s "http://$OBJECT_STORE_CLUSTER_IP/minio/health/ready"
 }

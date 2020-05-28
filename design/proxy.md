@@ -21,7 +21,7 @@ The kURL spec has a field for an http proxy address, but the feature has not bee
 
 Use the proxy when downloading packages from S3.
 Configure docker to pull from remote registries with the proxy and the local registry without the proxy.
-Add `PROXY_ADDRESS` and `NO_PROXY` environment variables to the kotsadm add-on.
+Add `HTTP_PROXY` and `NO_PROXY` environment variables to the kotsadm add-on.
 
 ## Detailed Design
 
@@ -61,6 +61,10 @@ The default set of no proxy addresses is the private IP of the current machine, 
 Any other addresses specified in this field will be added to the default set to construct the NO_PROXY environment variable.
 The join script must accept the flag `additional-no-proxy-addresses` so that the service and pod CIDRs can be included in Docker's proxy configuration on the remote node.
 
+The default set of no-proxy addresses includes the private address of the node, the load balancer address (if set), localhost, the pod CIDR, the service CIDR, and the namespaces of any enabled add-ons.
+The `.svc` and `.local` search domains are also included in the no-proxy list to support all forms of resolvable in-cluster domains, such as `kubernetes.default.svc` and `kubernetes.default.svc.cluster.local`.
+
+
 ### Docker add-on
 
 If docker is enabled the installer will create the file /etc/systemd/system/docker.service.d/http-proxy.conf.
@@ -77,8 +81,8 @@ These requests to repositories have errors or fail when behind a proxy.
 
 ### Kotsadm add-on
 
-If a proxy is configured then the installer will add the environment variables `PROXY_ADDRESS` and `NO_PROXY` to the kotsadm deployment.
-`PROXY_ADDRESS` is used because setting `HTTP_PROXY` breaks the kotsadm add-on.
+If a proxy is configured then the installer will add the environment variables `HTTP_PROXY` and `NO_PROXY` to the kotsadm and kotsadm-api deployment.
+The kotsadm-api deployment also requires the object store cluster IP to download logs from velero backups since the Node client does not support CIDR notation.
 
 ## Alternatives Considered
 
