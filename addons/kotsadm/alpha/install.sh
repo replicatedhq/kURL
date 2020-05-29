@@ -26,6 +26,8 @@ function kotsadm() {
     if [ -n "$PROXY_ADDRESS" ]; then
         render_yaml_file "$DIR/addons/kotsadm/alpha/tmpl-kotsadm-proxy.yaml" > "$DIR/kustomize/kotsadm/kotsadm-proxy.yaml"
         insert_patches_strategic_merge "$DIR/kustomize/kotsadm/kustomization.yaml" kotsadm-proxy.yaml
+        render_yaml_file "$DIR/addons/kotsadm/alpha/tmpl-kotsadm-api-proxy.yaml" > "$DIR/kustomize/kotsadm/kotsadm-api-proxy.yaml"
+        insert_patches_strategic_merge "$DIR/kustomize/kotsadm/kustomization.yaml" kotsadm-api-proxy.yaml
     fi
 
     kotsadm_etcd_client_secret

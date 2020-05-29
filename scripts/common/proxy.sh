@@ -47,7 +47,29 @@ function configure_no_proxy() {
         return
     fi
 
-    local addresses="localhost,127.0.0.1"
+    local addresses="localhost,127.0.0.1,.svc,.local,.default,kubernetes"
+
+    if [ -n "$KOTSADM_VERSION" ]; then
+        addresses="${addresses},kotsadm-api-node"
+    fi
+    if [ -n "$ROOK_VERSION" ]; then
+        addresses="${addresses},.rook-ceph"
+    fi
+    if [ -n "$FLUENTD_VERSION" ]; then
+        addresses="${addresses},.logging"
+    fi
+    if [ -n "$REGISTRY_VERSION" ]; then
+        addresses="${addresses},.kurl"
+    fi
+    if [ -n "$PROMETHEUS_VERSION" ]; then
+        addresses="${addresses},.monitoring"
+    fi
+    if [ -n "$VELERO_VERSION" ]; then
+        addresses="${addresses},.${VELERO_NAMESPACE}"
+    fi
+    if [ -n "$MINIO_VERSION" ]; then
+        addresses="${addresses},.${MINIO_NAMESPACE}"
+    fi
 
     if [ -n "$PRIVATE_ADDRESS" ]; then
         addresses="${addresses},${PRIVATE_ADDRESS}"

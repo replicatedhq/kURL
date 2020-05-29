@@ -85,6 +85,16 @@ function init() {
     $DIR/bin/yamlutil -r -fp $KUBEADM_CONF_DIR/kubeadm_conf_copy_in -yf metadata
     mv $KUBEADM_CONF_DIR/kubeadm_conf_copy_in $KUBEADM_CONF_FILE
 
+    # When no_proxy changes kubeadm init rewrites the static manifests and fails because the api is
+    # restarting. Trigger the restart ahead of time and wait for it to be healthy.
+    if [ -f "/etc/kubernetes/manifests/kube-apiserver.yaml" ] && [ -n "$no_proxy" ] && ! cat /etc/kubernetes/manifests/kube-apiserver.yaml | grep -q "$no_proxy"; then
+        kubeadm init phase control-plane apiserver --config $KUBEADM_CONF_FILE
+        sleep 2
+        if ! spinner_until 60 kubernetes_api_is_healthy; then
+            echo "Failed to wait for kubernetes API restart after no_proxy change" # continue
+        fi
+    fi
+
     if [ "$HA_CLUSTER" = "1" ]; then
         UPLOAD_CERTS="--upload-certs"
     fi
