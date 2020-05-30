@@ -24,6 +24,7 @@ function kotsadm() {
         kotsadm_api_patch_prometheus
     fi
     if [ -n "$PROXY_ADDRESS" ]; then
+        KUBERNETES_CLUSTER_IP=$(kubectl get services kubernetes --no-headers | awk '{ print $3 }')
         render_yaml_file "$DIR/addons/kotsadm/alpha/tmpl-kotsadm-proxy.yaml" > "$DIR/kustomize/kotsadm/kotsadm-proxy.yaml"
         insert_patches_strategic_merge "$DIR/kustomize/kotsadm/kustomization.yaml" kotsadm-proxy.yaml
         render_yaml_file "$DIR/addons/kotsadm/alpha/tmpl-kotsadm-api-proxy.yaml" > "$DIR/kustomize/kotsadm/kotsadm-api-proxy.yaml"

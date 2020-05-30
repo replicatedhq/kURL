@@ -35,10 +35,6 @@ function install_docker() {
 
     if [ -z "$PRESERVE_DOCKER_CONFIG" ] && [ -n "$PROXY_ADDRESS" ]; then
         docker_configure_proxy
-        local dockerProxy=$(docker info 2>/dev/null | grep -i "HTTP Proxy:")
-        if ! echo "$dockerProxy" | grep -q "$PROXY_ADDRESS"; then
-            bail "Docker proxy configuration failed"
-        fi
     fi
 }
 

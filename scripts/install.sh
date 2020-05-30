@@ -176,8 +176,10 @@ function outro() {
         dockerRegistryIP=" docker-registry-ip=$DOCKER_REGISTRY_IP"
     fi
 
+    local proxyFlag=""
     local noProxyAddrs=""
     if [ -n "$PROXY_ADDRESS" ]; then
+        proxyFlag=" -x $PROXY_ADDRESS"
         noProxyAddrs=" additional-no-proxy-addresses=${SERVICE_CIDR},${POD_CIDR}"
     fi
 
@@ -224,7 +226,7 @@ function outro() {
             printf "\n"
         fi
     else
-        local prefix="curl -sSL $KURL_URL/$INSTALLER_ID/"
+        local prefix="curl -sSL${proxyFlag} $KURL_URL/$INSTALLER_ID/"
         if [ -z "$KURL_URL" ]; then
             prefix="cat "
         fi

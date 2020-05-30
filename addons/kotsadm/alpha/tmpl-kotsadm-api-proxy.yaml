@@ -11,4 +11,4 @@ spec:
         - name: HTTP_PROXY
           value: ${PROXY_ADDRESS}
         - name: NO_PROXY
-          value: ${NO_PROXY_ADDRESSES},${OBJECT_STORE_CLUSTER_IP}
+          value: ${NO_PROXY_ADDRESSES},${OBJECT_STORE_CLUSTER_IP},${KUBERNETES_CLUSTER_IP}
