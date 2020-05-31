@@ -64,10 +64,10 @@ function configure_no_proxy() {
     if [ -n "$PROMETHEUS_VERSION" ]; then
         addresses="${addresses},.monitoring"
     fi
-    if [ -n "$VELERO_VERSION" ]; then
+    if [ -n "$VELERO_VERSION" ] && [ -n "$VELERO_NAMESPACE" ]; then
         addresses="${addresses},.${VELERO_NAMESPACE}"
     fi
-    if [ -n "$MINIO_VERSION" ]; then
+    if [ -n "$MINIO_VERSION" ] && [ -n "$MINIO_NAMESPACE" ]; then
         addresses="${addresses},.${MINIO_NAMESPACE}"
     fi
 
