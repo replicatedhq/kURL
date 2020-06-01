@@ -829,7 +829,10 @@ export class Installer {
     const pkgs = [ "common", binUtils ];
 
     _.each(_.keys(this.spec), (config: string) => {
-      pkgs.push(`${config}-${this.spec[config].version}`);
+      const version = this.spec[config].version;
+      if (version) {
+        pkgs.push(`${config}-${this.spec[config].version}`);
+      }
     });
 
     return pkgs;

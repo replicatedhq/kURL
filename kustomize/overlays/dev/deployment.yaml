@@ -38,3 +38,5 @@ spec:
           value: jwt-signing-key
         - name: REPLICATED_APP_URL
           value: http://replicated-app:3000
+        - name: KURL_BIN_UTILS_FILE
+          value: kurl-bin-utils-latest.tar.gz
