@@ -17,7 +17,6 @@ DIR=.
 . $DIR/scripts/common/prompts.sh
 . $DIR/scripts/common/proxy.sh
 . $DIR/scripts/common/rook.sh
-. $DIR/scripts/common/tasks.sh
 . $DIR/scripts/common/upgrade.sh
 . $DIR/scripts/common/utilbinaries.sh
 . $DIR/scripts/common/yaml.sh
@@ -84,16 +83,6 @@ function init() {
     cp $KUBEADM_CONF_FILE $KUBEADM_CONF_DIR/kubeadm_conf_copy_in
     $DIR/bin/yamlutil -r -fp $KUBEADM_CONF_DIR/kubeadm_conf_copy_in -yf metadata
     mv $KUBEADM_CONF_DIR/kubeadm_conf_copy_in $KUBEADM_CONF_FILE
-
-    # When no_proxy changes kubeadm init rewrites the static manifests and fails because the api is
-    # restarting. Trigger the restart ahead of time and wait for it to be healthy.
-    if [ -f "/etc/kubernetes/manifests/kube-apiserver.yaml" ] && [ -n "$no_proxy" ] && ! cat /etc/kubernetes/manifests/kube-apiserver.yaml | grep -q "$no_proxy"; then
-        kubeadm init phase control-plane apiserver --config $KUBEADM_CONF_FILE
-        sleep 2
-        if ! spinner_until 60 kubernetes_api_is_healthy; then
-            echo "Failed to wait for kubernetes API restart after no_proxy change" # continue
-        fi
-    fi
 
     if [ "$HA_CLUSTER" = "1" ]; then
         UPLOAD_CERTS="--upload-certs"
@@ -176,10 +165,8 @@ function outro() {
         dockerRegistryIP=" docker-registry-ip=$DOCKER_REGISTRY_IP"
     fi
 
-    local proxyFlag=""
     local noProxyAddrs=""
     if [ -n "$PROXY_ADDRESS" ]; then
-        proxyFlag=" -x $PROXY_ADDRESS"
         noProxyAddrs=" additional-no-proxy-addresses=${SERVICE_CIDR},${POD_CIDR}"
     fi
 
@@ -226,7 +213,7 @@ function outro() {
             printf "\n"
         fi
     else
-        local prefix="curl -sSL${proxyFlag} $KURL_URL/$INSTALLER_ID/"
+        local prefix="curl -sSL $KURL_URL/$INSTALLER_ID/"
         if [ -z "$KURL_URL" ]; then
             prefix="cat "
         fi
@@ -260,7 +247,6 @@ function main() {
     parse_yaml_into_bash_variables
     parse_kubernetes_target_version
     discover
-    tasks
     preflights
     prompts
     configure_proxy
