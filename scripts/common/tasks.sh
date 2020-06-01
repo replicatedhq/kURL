@@ -102,6 +102,29 @@ function reset() {
     rm -f /usr/local/bin/kustomize*
 }
 
+function commandExists() {
+    command -v "$@" > /dev/null 2>&1
+}
+
+function confirmN() {
+    printf "(y/N) "
+    promptTimeout "$@"
+    if [ "$PROMPT_RESULT" = "y" ] || [ "$PROMPT_RESULT" = "Y" ]; then
+        return 0
+    fi
+    return 1
+}
+
+function promptTimeout() {
+    set +e
+    if [ -z "$FAST_TIMEOUTS" ]; then
+        read ${1:-$READ_TIMEOUT} PROMPT_RESULT < /dev/tty
+    else
+        read ${READ_TIMEOUT} PROMPT_RESULT < /dev/tty
+    fi
+    set -e
+}
+
 function weave_reset() {
     BRIDGE=weave
     DATAPATH=datapath
