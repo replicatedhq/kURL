@@ -186,8 +186,6 @@ spec:
                   type: string
                 publicAddress:
                   type: string
-                task:
-                  type: string
               type: object
             minio:
               properties:

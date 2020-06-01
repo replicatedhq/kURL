@@ -261,6 +261,9 @@ github.com/replicatedhq/kurl v0.0.0-20200514170003-b9e4bf917dd9 h1:RQvXCkkLW71/0
 github.com/replicatedhq/kurl v0.0.0-20200514170003-b9e4bf917dd9/go.mod h1:ORM8QYmmMuylJCxWXnclSOKO+N4kx7eLIw5593awx9Y=
 github.com/replicatedhq/kurl v0.0.0-20200515223250-74a326a5885f h1:2n1SWwm0FldJ4w3Euvzlw8lPoUYvaQRL27epYmI1a7w=
 github.com/replicatedhq/kurl v0.0.0-20200516010047-6173aca1c592 h1:RfjDsX4hc95BmvclomHYTP12l0+IRiG2eZFTGwBLOaM=
+github.com/replicatedhq/kurl v0.0.0-20200530183643-f0ee02843151 h1:kOV+gQPvbew8m9RROhcCRP3FLkEo4+w1zNj4urRVVrQ=
+github.com/replicatedhq/kurl v0.0.0-20200601155825-d22abde401f1 h1:9TlCY60HbNo9mXGNbqsTBKSL7Sn6u25lnUNpuPe2+OA=
+github.com/replicatedhq/kurl v0.0.0-20200601155825-d22abde401f1/go.mod h1:ORM8QYmmMuylJCxWXnclSOKO+N4kx7eLIw5593awx9Y=
 github.com/replicatedhq/kurl/kurlkinds v0.0.0-20200410224122-6dbdc289d39c h1:H3sgDEEcvmhhO8/wMF6c9H0AQbwsjmK/H18OiI0Zucg=
 github.com/replicatedhq/kurl/kurlkinds v0.0.0-20200410224122-6dbdc289d39c/go.mod h1:Vp5X4tM0KmahplYOvdRqs2NY2qy1amZ89zZBm9CDENw=
 github.com/replicatedhq/kurl/kurlkinds v0.0.0-20200416200032-5ac05357ea35 h1:PNloXMiGpNOHN9mzllO3eCKmyQ0M2VAaNVjALJb75Vg=
