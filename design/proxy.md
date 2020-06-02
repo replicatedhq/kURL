@@ -9,7 +9,6 @@ The installer should work behind a proxy.
 
 ## Non Goals
 
-- Automatically detect proxy from environment.
 - Validate kotsadm add-on works with a proxy.
 - Support docker versions below 19.03.
 
@@ -89,10 +88,6 @@ The kotsadm-api deployment also requires the object store cluster IP to download
 ### Prompt for a proxy if none is specified.
 
 This would make automation harder.
-
-### Automatically detect HTTP_PROXY and NO_PROXY in the environment
-
-This would create multiple sources of truth and non-deterministic results.
 
 ### Support older versions of Docker.
 

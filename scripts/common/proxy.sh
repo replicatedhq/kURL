@@ -3,6 +3,25 @@ function proxy_bootstrap() {
     if [ "$AIRGAP" = "1" ]; then
         return
     fi
+
+    if [ -n "$HTTP_PROXY" ]; then
+        PROXY_ADDRESS="$HTTP_PROXY"
+        printf "The installer will use the proxy at '%s' (imported from env var 'HTTP_PROXY')\n" "$PROXY_ADDRESS"
+    elif [ -n "$http_proxy" ]; then
+        PROXY_ADDRESS="$http_proxy"
+        printf "The installer will use the proxy at '%s' (imported from env var 'http_proxy')\n" "$PROXY_ADDRESS"
+    elif [ -n "$HTTPS_PROXY" ]; then
+        PROXY_ADDRESS="$HTTPS_PROXY"
+        printf "The installer will use the proxy at '%s' (imported from env var 'HTTPS_PROXY')\n" "$PROXY_ADDRESS"
+    elif [ -n "$https_proxy" ]; then
+        PROXY_ADDRESS="$https_proxy"
+        printf "The installer will use the proxy at '%s' (imported from env var 'https_proxy')\n" "$PROXY_ADDRESS"
+    fi
+    if [ -n "$PROXY_ADDRESS" ]; then
+        export https_proxy="$PROXY_ADDRESS"
+        return
+    fi
+
     if curl --silent --connect-timeout 4 --fail https://api.replicated.com/market/v1/echo/ip > /dev/null ; then
         return
     fi
@@ -49,6 +68,9 @@ function configure_no_proxy() {
 
     local addresses="localhost,127.0.0.1,.svc,.local,.default,kubernetes"
 
+    if [ -n "$NO_PROXY" ]; then
+        addresses="${addresses},${NO_PROXY}"
+    fi
     if [ -n "$KOTSADM_VERSION" ]; then
         addresses="${addresses},kotsadm-api-node"
     fi
