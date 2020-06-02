@@ -12,7 +12,7 @@ function object_store_exists() {
 function object_store_create_bucket() {
     local bucket=$1
     local acl="x-amz-acl:private"
-    local d=$(date +"%a, %d %b %Y %T %z")
+    local d=$(TZ="UTC" date +"%a, %d %b %Y %T %z")
     local string="PUT\n\n\n${d}\n${acl}\n/$bucket"
     local sig=$(echo -en "${string}" | openssl sha1 -hmac "${OBJECT_STORE_SECRET_KEY}" -binary | base64)
 
