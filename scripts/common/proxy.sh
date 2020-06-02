@@ -3,6 +3,21 @@ function proxy_bootstrap() {
     if [ "$AIRGAP" = "1" ]; then
         return
     fi
+
+    if [ -n "$HTTP_PROXY" ]; then
+        ENV_PROXY_ADDRESS="$HTTP_PROXY"
+        printf "The installer will use the proxy at '%s' (imported from env var 'HTTP_PROXY')\n" "$ENV_PROXY_ADDRESS"
+    elif [ -n "$http_proxy" ]; then
+        ENV_PROXY_ADDRESS="$http_proxy"
+        printf "The installer will use the proxy at '%s' (imported from env var 'http_proxy')\n" "$ENV_PROXY_ADDRESS"
+    elif [ -n "$HTTPS_PROXY" ]; then
+        ENV_PROXY_ADDRESS="$HTTPS_PROXY"
+        printf "The installer will use the proxy at '%s' (imported from env var 'HTTPS_PROXY')\n" "$ENV_PROXY_ADDRESS"
+    elif [ -n "$https_proxy" ]; then
+        ENV_PROXY_ADDRESS="$https_proxy"
+        printf "The installer will use the proxy at '%s' (imported from env var 'https_proxy')\n" "$ENV_PROXY_ADDRESS"
+    fi
+
     if curl --silent --connect-timeout 4 --fail https://api.replicated.com/market/v1/echo/ip > /dev/null ; then
         return
     fi
@@ -22,6 +37,11 @@ function proxy_bootstrap() {
         return
     fi
 
+    if [ -n "$ENV_PROXY_ADDRESS" ]; then
+        export https_proxy="$PROXY_ADDRESS"
+        return
+    fi
+
     bail "Failed to make outbound https request and no proxy is configured."
 }
 
@@ -30,11 +50,12 @@ function configure_proxy() {
         unset PROXY_ADDRESS
         return
     fi
-    if [ -z "$PROXY_ADDRESS" ]; then
+    if [ -z "$PROXY_ADDRESS" ] && [ -z "$ENV_PROXY_ADDRESS" ]; then
         return
     fi
-
-    # for curl to download packages
+    if [ -z "$PROXY_ADDRESS" ]; then
+        PROXY_ADDRESS="$ENV_PROXY_ADDRESS"
+    fi
     export https_proxy="$PROXY_ADDRESS"
 
     if ! curl --silent --fail --connect-timeout 4 https://api.replicated.com/market/v1/echo/ip >/dev/null ; then
@@ -49,6 +70,9 @@ function configure_no_proxy() {
 
     local addresses="localhost,127.0.0.1,.svc,.local,.default,kubernetes"
 
+    if [ -n "$NO_PROXY" ]; then
+        addresses="${addresses},${NO_PROXY}"
+    fi
     if [ -n "$KOTSADM_VERSION" ]; then
         addresses="${addresses},kotsadm-api-node"
     fi
