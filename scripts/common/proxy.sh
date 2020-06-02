@@ -5,21 +5,17 @@ function proxy_bootstrap() {
     fi
 
     if [ -n "$HTTP_PROXY" ]; then
-        PROXY_ADDRESS="$HTTP_PROXY"
-        printf "The installer will use the proxy at '%s' (imported from env var 'HTTP_PROXY')\n" "$PROXY_ADDRESS"
+        ENV_PROXY_ADDRESS="$HTTP_PROXY"
+        printf "The installer will use the proxy at '%s' (imported from env var 'HTTP_PROXY')\n" "$ENV_PROXY_ADDRESS"
     elif [ -n "$http_proxy" ]; then
-        PROXY_ADDRESS="$http_proxy"
-        printf "The installer will use the proxy at '%s' (imported from env var 'http_proxy')\n" "$PROXY_ADDRESS"
+        ENV_PROXY_ADDRESS="$http_proxy"
+        printf "The installer will use the proxy at '%s' (imported from env var 'http_proxy')\n" "$ENV_PROXY_ADDRESS"
     elif [ -n "$HTTPS_PROXY" ]; then
-        PROXY_ADDRESS="$HTTPS_PROXY"
-        printf "The installer will use the proxy at '%s' (imported from env var 'HTTPS_PROXY')\n" "$PROXY_ADDRESS"
+        ENV_PROXY_ADDRESS="$HTTPS_PROXY"
+        printf "The installer will use the proxy at '%s' (imported from env var 'HTTPS_PROXY')\n" "$ENV_PROXY_ADDRESS"
     elif [ -n "$https_proxy" ]; then
-        PROXY_ADDRESS="$https_proxy"
-        printf "The installer will use the proxy at '%s' (imported from env var 'https_proxy')\n" "$PROXY_ADDRESS"
-    fi
-    if [ -n "$PROXY_ADDRESS" ]; then
-        export https_proxy="$PROXY_ADDRESS"
-        return
+        ENV_PROXY_ADDRESS="$https_proxy"
+        printf "The installer will use the proxy at '%s' (imported from env var 'https_proxy')\n" "$ENV_PROXY_ADDRESS"
     fi
 
     if curl --silent --connect-timeout 4 --fail https://api.replicated.com/market/v1/echo/ip > /dev/null ; then
@@ -41,6 +37,11 @@ function proxy_bootstrap() {
         return
     fi
 
+    if [ -n "$ENV_PROXY_ADDRESS" ]; then
+        export https_proxy="$PROXY_ADDRESS"
+        return
+    fi
+
     bail "Failed to make outbound https request and no proxy is configured."
 }
 
@@ -49,12 +50,14 @@ function configure_proxy() {
         unset PROXY_ADDRESS
         return
     fi
-    if [ -z "$PROXY_ADDRESS" ]; then
+    if [ -z "$PROXY_ADDRESS" ] && [ -z "$ENV_PROXY_ADDRESS" ]; then
         return
     fi
-
-    # for curl to download packages
-    export https_proxy="$PROXY_ADDRESS"
+    if [ -n "$PROXY_ADDRESS" ]; then
+        export https_proxy="$PROXY_ADDRESS"
+    else
+        export https_proxy="$ENV_PROXY_ADDRESS"
+    fi
 
     if ! curl --silent --fail --connect-timeout 4 https://api.replicated.com/market/v1/echo/ip >/dev/null ; then
         bail "Failed to make outbound request using proxy address $https_proxy"
