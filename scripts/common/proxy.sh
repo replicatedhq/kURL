@@ -53,11 +53,10 @@ function configure_proxy() {
     if [ -z "$PROXY_ADDRESS" ] && [ -z "$ENV_PROXY_ADDRESS" ]; then
         return
     fi
-    if [ -n "$PROXY_ADDRESS" ]; then
-        export https_proxy="$PROXY_ADDRESS"
-    else
-        export https_proxy="$ENV_PROXY_ADDRESS"
+    if [ -z "$PROXY_ADDRESS" ]; then
+        PROXY_ADDRESS="$ENV_PROXY_ADDRESS"
     fi
+    export https_proxy="$PROXY_ADDRESS"
 
     if ! curl --silent --fail --connect-timeout 4 https://api.replicated.com/market/v1/echo/ip >/dev/null ; then
         bail "Failed to make outbound request using proxy address $https_proxy"
