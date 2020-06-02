@@ -18,6 +18,12 @@ function proxy_bootstrap() {
         printf "The installer will use the proxy at '%s' (imported from env var 'https_proxy')\n" "$ENV_PROXY_ADDRESS"
     fi
 
+    if [ -n "$NO_PROXY" ]; then
+        ENV_NO_PROXY="$NO_PROXY"
+    elif [ -n "$no_proxy" ]; then
+        ENV_NO_PROXY="$no_proxy"
+    fi
+
     if curl --silent --connect-timeout 4 --fail https://api.replicated.com/market/v1/echo/ip > /dev/null ; then
         return
     fi
@@ -70,8 +76,8 @@ function configure_no_proxy() {
 
     local addresses="localhost,127.0.0.1,.svc,.local,.default,kubernetes"
 
-    if [ -n "$NO_PROXY" ]; then
-        addresses="${addresses},${NO_PROXY}"
+    if [ -n "$ENV_NO_PROXY" ]; then
+        addresses="${addresses},${ENV_NO_PROXY}"
     fi
     if [ -n "$KOTSADM_VERSION" ]; then
         addresses="${addresses},kotsadm-api-node"
