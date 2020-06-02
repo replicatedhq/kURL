@@ -372,6 +372,7 @@ export class Installer {
       "18.09.8",
     ],
     weave: [
+      "2.6.4",
       "2.5.2",
     ],
     rook: [
