@@ -117,6 +117,12 @@ dist/kotsadm-%.tar.gz: build/addons
 	mkdir -p dist
 	tar cf - -C build addons/kotsadm/$* | gzip > dist/kotsadm-$*.tar.gz
 
+dist/kubevirt-%.tar.gz: build/addons
+	mkdir -p build/addons/kubevirt/$*/images
+	bin/save-manifest-assets.sh addons/kubevirt/$*/Manifest $(CURDIR)/build/addons/kubevirt/$*
+	mkdir -p dist
+	tar cf - -C build addons/kubevirt/$* | gzip > dist/kubevirt-$*.tar.gz
+
 dist/docker-%.tar.gz:
 	${MAKE} build/packages/docker/$*/ubuntu-16.04
 	${MAKE} build/packages/docker/$*/ubuntu-18.04
@@ -143,6 +149,7 @@ build/packages/kubernetes/%/images:
 	mkdir -p build/packages/kubernetes/$*/images
 	bin/save-manifest-assets.sh packages/kubernetes/$*/Manifest build/packages/kubernetes/$*
 
+.PHONY: build/install.sh
 build/install.sh:
 	mkdir -p tmp build
 	sed '/# Magic begin/q' scripts/install.sh | sed '$$d' > tmp/install.sh

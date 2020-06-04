@@ -1,0 +1,7 @@
+apiVersion: v1
+data:
+  debug.useEmulation: "true"
+kind: ConfigMap
+metadata:
+  name: kubevirt-config
+  namespace: kubevirt

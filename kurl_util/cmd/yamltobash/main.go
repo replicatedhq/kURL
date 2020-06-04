@@ -116,6 +116,7 @@ func convertToBash(kurlValues map[string]interface{}) (map[string]string, error)
 		"Fluentd.FullEFKStack":                   "FLUENTD_FULL_EFK_STACK",
 		"Fluentd.FluentdConfPath":                "FLUENTD_CONF_FILE",
 		"Fluentd.Version":                        "FLUENTD_VERSION",
+		"Kubevirt.Version":                       "KUBEVIRT_VERSION",
 		"IptablesConfig.PreserveConfig":          "PRESERVE_IPTABLES_CONFIG",
 		"Kotsadm.ApplicationNamespace":           "KOTSADM_APPLICATION_NAMESPACES",
 		"Kotsadm.ApplicationSlug":                "KOTSADM_APPLICATION_SLUG",

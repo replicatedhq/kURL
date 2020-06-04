@@ -41,6 +41,7 @@ type InstallerSpec struct {
 	Ekco            Ekco            `json:"ekco,omitempty"`
 	Containerd      Containerd      `json:"containerd,omitempty"`
 	Kubevirt        Kubevirt        `json:"kubevirt,omityempty"`
+	Kubevirt        Kubevirt        `json:"kubevirt,omitempty"`
 }
 
 type Contour struct {

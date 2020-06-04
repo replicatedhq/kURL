@@ -309,8 +309,6 @@ spec:
               required:
               - version
               type: object
-          required:
-          - kubevirt
           type: object
         status:
           description: InstallerStatus defines the observed state of Installer

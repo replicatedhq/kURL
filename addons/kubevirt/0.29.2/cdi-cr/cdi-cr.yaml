@@ -1,0 +1,6 @@
+apiVersion: cdi.kubevirt.io/v1alpha1
+kind: CDI
+metadata:
+  name: cdi
+spec:
+  imagePullPolicy: IfNotPresent

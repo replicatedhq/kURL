@@ -16,6 +16,7 @@ function addon_for_each() {
     $cmd velero "$VELERO_VERSION"
     $cmd fluentd "$FLUENTD_VERSION"
     $cmd ekco "$EKCO_VERSION"
+    $cmd kubevirt "$KUBEVIRT_VERSION"
 }
 
 function addon_install() {

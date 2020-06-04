@@ -1,0 +1,2 @@
+resources:
+  - ./kubevirt-operator.yaml
