@@ -18,6 +18,7 @@ limitations under the License.
 package v1beta1
 
 import (
+	"context"
 	"time"
 
 	scheme "github.com/replicatedhq/kurl/kurlkinds/client/kurlclientset/scheme"
@@ -36,15 +37,15 @@ type InstallersGetter interface {
 
 // InstallerInterface has methods to work with Installer resources.
 type InstallerInterface interface {
-	Create(*v1beta1.Installer) (*v1beta1.Installer, error)
-	Update(*v1beta1.Installer) (*v1beta1.Installer, error)
-	UpdateStatus(*v1beta1.Installer) (*v1beta1.Installer, error)
-	Delete(name string, options *v1.DeleteOptions) error
-	DeleteCollection(options *v1.DeleteOptions, listOptions v1.ListOptions) error
-	Get(name string, options v1.GetOptions) (*v1beta1.Installer, error)
-	List(opts v1.ListOptions) (*v1beta1.InstallerList, error)
-	Watch(opts v1.ListOptions) (watch.Interface, error)
-	Patch(name string, pt types.PatchType, data []byte, subresources ...string) (result *v1beta1.Installer, err error)
+	Create(ctx context.Context, installer *v1beta1.Installer, opts v1.CreateOptions) (*v1beta1.Installer, error)
+	Update(ctx context.Context, installer *v1beta1.Installer, opts v1.UpdateOptions) (*v1beta1.Installer, error)
+	UpdateStatus(ctx context.Context, installer *v1beta1.Installer, opts v1.UpdateOptions) (*v1beta1.Installer, error)
+	Delete(ctx context.Context, name string, opts v1.DeleteOptions) error
+	DeleteCollection(ctx context.Context, opts v1.DeleteOptions, listOpts v1.ListOptions) error
+	Get(ctx context.Context, name string, opts v1.GetOptions) (*v1beta1.Installer, error)
+	List(ctx context.Context, opts v1.ListOptions) (*v1beta1.InstallerList, error)
+	Watch(ctx context.Context, opts v1.ListOptions) (watch.Interface, error)
+	Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts v1.PatchOptions, subresources ...string) (result *v1beta1.Installer, err error)
 	InstallerExpansion
 }
 
@@ -63,20 +64,20 @@ func newInstallers(c *ClusterV1beta1Client, namespace string) *installers {
 }
 
 // Get takes name of the installer, and returns the corresponding installer object, and an error if there is any.
-func (c *installers) Get(name string, options v1.GetOptions) (result *v1beta1.Installer, err error) {
+func (c *installers) Get(ctx context.Context, name string, options v1.GetOptions) (result *v1beta1.Installer, err error) {
 	result = &v1beta1.Installer{}
 	err = c.client.Get().
 		Namespace(c.ns).
 		Resource("installers").
 		Name(name).
 		VersionedParams(&options, scheme.ParameterCodec).
-		Do().
+		Do(ctx).
 		Into(result)
 	return
 }
 
 // List takes label and field selectors, and returns the list of Installers that match those selectors.
-func (c *installers) List(opts v1.ListOptions) (result *v1beta1.InstallerList, err error) {
+func (c *installers) List(ctx context.Context, opts v1.ListOptions) (result *v1beta1.InstallerList, err error) {
 	var timeout time.Duration
 	if opts.TimeoutSeconds != nil {
 		timeout = time.Duration(*opts.TimeoutSeconds) * time.Second
@@ -87,13 +88,13 @@ func (c *installers) List(opts v1.ListOptions) (result *v1beta1.InstallerList, e
 		Resource("installers").
 		VersionedParams(&opts, scheme.ParameterCodec).
 		Timeout(timeout).
-		Do().
+		Do(ctx).
 		Into(result)
 	return
 }
 
 // Watch returns a watch.Interface that watches the requested installers.
-func (c *installers) Watch(opts v1.ListOptions) (watch.Interface, error) {
+func (c *installers) Watch(ctx context.Context, opts v1.ListOptions) (watch.Interface, error) {
 	var timeout time.Duration
 	if opts.TimeoutSeconds != nil {
 		timeout = time.Duration(*opts.TimeoutSeconds) * time.Second
@@ -104,87 +105,90 @@ func (c *installers) Watch(opts v1.ListOptions) (watch.Interface, error) {
 		Resource("installers").
 		VersionedParams(&opts, scheme.ParameterCodec).
 		Timeout(timeout).
-		Watch()
+		Watch(ctx)
 }
 
 // Create takes the representation of a installer and creates it.  Returns the server's representation of the installer, and an error, if there is any.
-func (c *installers) Create(installer *v1beta1.Installer) (result *v1beta1.Installer, err error) {
+func (c *installers) Create(ctx context.Context, installer *v1beta1.Installer, opts v1.CreateOptions) (result *v1beta1.Installer, err error) {
 	result = &v1beta1.Installer{}
 	err = c.client.Post().
 		Namespace(c.ns).
 		Resource("installers").
+		VersionedParams(&opts, scheme.ParameterCodec).
 		Body(installer).
-		Do().
+		Do(ctx).
 		Into(result)
 	return
 }
 
 // Update takes the representation of a installer and updates it. Returns the server's representation of the installer, and an error, if there is any.
-func (c *installers) Update(installer *v1beta1.Installer) (result *v1beta1.Installer, err error) {
+func (c *installers) Update(ctx context.Context, installer *v1beta1.Installer, opts v1.UpdateOptions) (result *v1beta1.Installer, err error) {
 	result = &v1beta1.Installer{}
 	err = c.client.Put().
 		Namespace(c.ns).
 		Resource("installers").
 		Name(installer.Name).
+		VersionedParams(&opts, scheme.ParameterCodec).
 		Body(installer).
-		Do().
+		Do(ctx).
 		Into(result)
 	return
 }
 
 // UpdateStatus was generated because the type contains a Status member.
 // Add a +genclient:noStatus comment above the type to avoid generating UpdateStatus().
-
-func (c *installers) UpdateStatus(installer *v1beta1.Installer) (result *v1beta1.Installer, err error) {
+func (c *installers) UpdateStatus(ctx context.Context, installer *v1beta1.Installer, opts v1.UpdateOptions) (result *v1beta1.Installer, err error) {
 	result = &v1beta1.Installer{}
 	err = c.client.Put().
 		Namespace(c.ns).
 		Resource("installers").
 		Name(installer.Name).
 		SubResource("status").
+		VersionedParams(&opts, scheme.ParameterCodec).
 		Body(installer).
-		Do().
+		Do(ctx).
 		Into(result)
 	return
 }
 
 // Delete takes name of the installer and deletes it. Returns an error if one occurs.
-func (c *installers) Delete(name string, options *v1.DeleteOptions) error {
+func (c *installers) Delete(ctx context.Context, name string, opts v1.DeleteOptions) error {
 	return c.client.Delete().
 		Namespace(c.ns).
 		Resource("installers").
 		Name(name).
-		Body(options).
-		Do().
+		Body(&opts).
+		Do(ctx).
 		Error()
 }
 
 // DeleteCollection deletes a collection of objects.
-func (c *installers) DeleteCollection(options *v1.DeleteOptions, listOptions v1.ListOptions) error {
+func (c *installers) DeleteCollection(ctx context.Context, opts v1.DeleteOptions, listOpts v1.ListOptions) error {
 	var timeout time.Duration
-	if listOptions.TimeoutSeconds != nil {
-		timeout = time.Duration(*listOptions.TimeoutSeconds) * time.Second
+	if listOpts.TimeoutSeconds != nil {
+		timeout = time.Duration(*listOpts.TimeoutSeconds) * time.Second
 	}
 	return c.client.Delete().
 		Namespace(c.ns).
 		Resource("installers").
-		VersionedParams(&listOptions, scheme.ParameterCodec).
+		VersionedParams(&listOpts, scheme.ParameterCodec).
 		Timeout(timeout).
-		Body(options).
-		Do().
+		Body(&opts).
+		Do(ctx).
 		Error()
 }
 
 // Patch applies the patch and returns the patched installer.
-func (c *installers) Patch(name string, pt types.PatchType, data []byte, subresources ...string) (result *v1beta1.Installer, err error) {
+func (c *installers) Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts v1.PatchOptions, subresources ...string) (result *v1beta1.Installer, err error) {
 	result = &v1beta1.Installer{}
 	err = c.client.Patch(pt).
 		Namespace(c.ns).
 		Resource("installers").
-		SubResource(subresources...).
 		Name(name).
+		SubResource(subresources...).
+		VersionedParams(&opts, scheme.ParameterCodec).
 		Body(data).
-		Do().
+		Do(ctx).
 		Into(result)
 	return
 }

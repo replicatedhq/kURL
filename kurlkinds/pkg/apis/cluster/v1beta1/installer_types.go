@@ -40,6 +40,7 @@ type InstallerSpec struct {
 	FirewalldConfig FirewalldConfig `json:"firewalldConfig,omitempty"`
 	Ekco            Ekco            `json:"ekco,omitempty"`
 	Containerd      Containerd      `json:"containerd,omitempty"`
+	Kubevirt        Kubevirt        `json:"kubevirt,omityempty"`
 }
 
 type Contour struct {
@@ -173,6 +174,10 @@ type Ekco struct {
 	Version                     string `json:"version"`
 }
 
+type Kubevirt struct {
+	Version string `json:"version"`
+}
+
 type Calico struct {
 	Version string `json:"version"`
 }
@@ -180,7 +185,6 @@ type Calico struct {
 type Containerd struct {
 	Version string `json:"version"`
 }
-
 
 // InstallerStatus defines the observed state of Installer
 type InstallerStatus struct {
