@@ -1,0 +1,13 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tgapi
+spec:
+  template:
+    spec:
+      containers:
+        - name: tgapi
+          env:
+            - name: DATABASE_URL
+              value: postgres://testgrid:password@postgres.default.svc.cluster.local:5432/testgrid?sslmode=disable
+

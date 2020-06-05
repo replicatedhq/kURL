@@ -1,0 +1,10 @@
+apiVersion: databases.schemahero.io/v1alpha4
+kind: Database
+metadata:
+  name: testgrid-postgres
+spec:
+  immediateDeploy: true
+  connection:
+    postgres:
+      uri:
+        value: postgres://testgrid:password@postgres.default.svc.cluster.local:5432/testgrid?sslmode=disable

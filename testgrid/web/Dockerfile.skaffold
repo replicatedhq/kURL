@@ -1,0 +1,15 @@
+FROM node:10.19.0
+EXPOSE 30880 9229
+
+RUN mkdir /src
+WORKDIR /src
+ADD Makefile /src
+ADD package.json /src
+RUN make deps
+
+ADD . /src/
+WORKDIR /src
+
+EXPOSE 30880
+ENTRYPOINT ["make", "serve"]
+

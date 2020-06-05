@@ -1,0 +1,44 @@
+apiVersion: skaffold/v2beta2
+kind: Config
+
+build:
+  local:
+    useBuildkit: true
+    concurrency: 0
+
+  artifacts:
+    - image: tgapi
+      context: "./tgapi"
+      docker:
+        dockerfile: ./Dockerfile.skaffold
+
+    - image: tgdb
+      context: "./migrations/fixtures"
+      docker:
+        dockerfile: ./deploy/Dockerfile
+
+    - image: tgweb
+      context: "./web"
+      sync:
+        manual:
+          - src: "src/**/*.js"
+            dest: "./"
+          - src: "src/**/*.jsx"
+            dest: "./"
+          - src: "src/**/*.png"
+            dest: "./"
+          - src: "src/**/*.svg"
+            dest: "./"
+          - src: "src/**/*.scss"
+            dest: "./"
+          - src: "src/**/*.css"
+            dest: "./"
+      docker:
+        dockerfile: ./Dockerfile.skaffold
+
+deploy:
+  kustomize:
+    paths: ["./kustomize/overlays/dev"]
+    flags:
+      apply:
+        - --validate=false

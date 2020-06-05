@@ -1,0 +1,17 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: testgrid-web
+spec:
+  selector:
+    matchLabels:
+      app: testgrid-web
+  template:
+    metadata:
+      labels:
+        app: testgrid-web
+    spec:
+      containers:
+        - name: testgrid-web
+          image: tgweb
+          imagePullPolicy: IfNotPresent

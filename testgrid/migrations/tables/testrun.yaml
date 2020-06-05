@@ -1,0 +1,15 @@
+apiVersion: schemas.schemahero.io/v1alpha4
+kind: Table
+metadata:
+  name: testrun
+spec:
+  database: testgrid-postgres
+  name: testrun
+  schema:
+    postgres:
+      primaryKey: [ref]
+      columns:
+        - name: ref
+          type: varchar(255)
+        - name: created_at
+          type: timestamp without timezone

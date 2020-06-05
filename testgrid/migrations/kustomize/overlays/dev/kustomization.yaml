@@ -1,0 +1,7 @@
+bases:
+  - ../../base
+
+resources:
+  - ./postgres.yaml
+  - ./testgrid-postgres.yaml
+
