@@ -40,13 +40,6 @@ spec:
               required:
               - version
               type: object
-            containerd:
-              properties:
-                version:
-                  type: string
-              required:
-              - version
-              type: object
             contour:
               properties:
                 version:
