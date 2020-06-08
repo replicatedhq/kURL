@@ -78,45 +78,17 @@ func parseBashFlags(installer *kurlv1beta1.Installer, bashFlags string) error {
 
 		switch split[0] {
 
-		case "additional-no-proxy-addresses", "airgap", "public-address":
-			if installer.Spec.Kurl == nil {
-				installer.Spec.Kurl = &kurlv1beta1.Kurl{}
-			}
-		case "cert-key", "control-plane", "ha", "kubeadm-token", "kubeadm-token-ca-hash", "load-balancer-address", "kubernetes-master-address", "kubernetes-version":
-			if installer.Spec.Kubernetes == nil {
-				installer.Spec.Kubernetes = &kurlv1beta1.Kubernetes{}
-			}
-		case "docker-registry-ip", "preserve-docker-config":
-			if installer.Spec.Docker == nil {
-				installer.Spec.Docker = &kurlv1beta1.Docker{}
-			}
-		case "preserve-firewalld-config":
-			if installer.Spec.FirewalldConfig == nil {
-				installer.Spec.FirewalldConfig = &kurlv1beta1.FirewalldConfig{}
-			}
-		case "preserve-selinux-config":
-			if installer.Spec.SelinuxConfig == nil {
-				installer.Spec.SelinuxConfig = &kurlv1beta1.SelinuxConfig{}
-			}
-		case "preserve-iptables-config":
-			if installer.Spec.IptablesConfig == nil {
-				installer.Spec.IptablesConfig = &kurlv1beta1.IptablesConfig{}
-			}
-		}
-
-		switch split[0] {
-
 		case "additional-no-proxy-addresses":
 			addresses := strings.Split(split[1], ",")
 			installer.Spec.Kurl.AdditionalNoProxyAddresses = append(installer.Spec.Kurl.AdditionalNoProxyAddresses, addresses...)
 		case "airgap":
 			installer.Spec.Kurl.Airgap = true
-		case "public-address":
-			installer.Spec.Kurl.PublicAddress = split[1]
 		case "cert-key":
 			installer.Spec.Kubernetes.CertKey = split[1]
 		case "control-plane":
 			installer.Spec.Kubernetes.ControlPlane = true
+		case "docker-registry-ip":
+			installer.Spec.Docker.DockerRegistryIP = split[1]
 		case "ha":
 			installer.Spec.Kubernetes.HACluster = true
 		case "kubeadm-token":
@@ -129,8 +101,8 @@ func parseBashFlags(installer *kurlv1beta1.Installer, bashFlags string) error {
 			installer.Spec.Kubernetes.MasterAddress = split[1]
 		case "kubernetes-version":
 			installer.Spec.Kubernetes.Version = strings.TrimLeft(split[1], "v")
-		case "docker-registry-ip":
-			installer.Spec.Docker.DockerRegistryIP = split[1]
+		case "installer-spec-file":
+			continue
 		case "preserve-docker-config":
 			installer.Spec.Docker.PreserveConfig = true
 		case "preserve-firewalld-config":
@@ -139,8 +111,8 @@ func parseBashFlags(installer *kurlv1beta1.Installer, bashFlags string) error {
 			installer.Spec.IptablesConfig.PreserveConfig = true
 		case "preserve-selinux-config":
 			installer.Spec.SelinuxConfig.PreserveConfig = true
-		case "installer-spec-file":
-			continue
+		case "public-address":
+			installer.Spec.Kurl.PublicAddress = split[1]
 		default:
 			return errors.New(fmt.Sprintf("string %s is not a bash flag", split[0]))
 		}

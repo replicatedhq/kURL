@@ -266,8 +266,6 @@ github.com/replicatedhq/kurl v0.0.0-20200601155825-d22abde401f1 h1:9TlCY60HbNo9m
 github.com/replicatedhq/kurl v0.0.0-20200601155825-d22abde401f1/go.mod h1:ORM8QYmmMuylJCxWXnclSOKO+N4kx7eLIw5593awx9Y=
 github.com/replicatedhq/kurl v0.0.0-20200601170456-4d9730fe4307 h1:kmqzUfOp1PTn0RgmW+pqwQdUgOgMg63SZJA9uOeDObs=
 github.com/replicatedhq/kurl v0.0.0-20200601170456-4d9730fe4307/go.mod h1:ORM8QYmmMuylJCxWXnclSOKO+N4kx7eLIw5593awx9Y=
-github.com/replicatedhq/kurl v0.0.0-20200603224716-d4526b9c8ad0 h1:z52ZH7DoGFBbI3f0mNHdO5bGXHD5GiTCIwps8q4VlHw=
-github.com/replicatedhq/kurl v0.0.0-20200608182450-1c5cafc133e5 h1:nA2LzvCXIwk8r5FS5r/8O+EwlHm5rqrAW/tvnO+oAAA=
 github.com/replicatedhq/kurl/kurlkinds v0.0.0-20200410224122-6dbdc289d39c h1:H3sgDEEcvmhhO8/wMF6c9H0AQbwsjmK/H18OiI0Zucg=
 github.com/replicatedhq/kurl/kurlkinds v0.0.0-20200410224122-6dbdc289d39c/go.mod h1:Vp5X4tM0KmahplYOvdRqs2NY2qy1amZ89zZBm9CDENw=
 github.com/replicatedhq/kurl/kurlkinds v0.0.0-20200416200032-5ac05357ea35 h1:PNloXMiGpNOHN9mzllO3eCKmyQ0M2VAaNVjALJb75Vg=
@@ -292,12 +290,6 @@ github.com/replicatedhq/kurl/kurlkinds v0.0.0-20200518171326-431e478d9232 h1:JS+
 github.com/replicatedhq/kurl/kurlkinds v0.0.0-20200518171326-431e478d9232/go.mod h1:swtN+H2q4iFze0pXAOhx0ZgX/Eej1lk9iI4cx13HcBU=
 github.com/replicatedhq/kurl/kurlkinds v0.0.0-20200601170456-4d9730fe4307 h1:H0CiST+UF9hNu/NFQbyVrf/SbXw2ubFMWtqt8auIS78=
 github.com/replicatedhq/kurl/kurlkinds v0.0.0-20200601170456-4d9730fe4307/go.mod h1:swtN+H2q4iFze0pXAOhx0ZgX/Eej1lk9iI4cx13HcBU=
-github.com/replicatedhq/kurl/kurlkinds v0.0.0-20200603224716-d4526b9c8ad0 h1:R2v+aaGhNepDk+rntF4pLtwdo02VyTQIFaPB/DoDLpA=
-github.com/replicatedhq/kurl/kurlkinds v0.0.0-20200604214056-7883f27eaec8 h1:I2dVOgcAiC/iYNsxbzPjAWMoMP3VyiB9g/pawobJ9qk=
-github.com/replicatedhq/kurl/kurlkinds v0.0.0-20200604214056-7883f27eaec8/go.mod h1:swtN+H2q4iFze0pXAOhx0ZgX/Eej1lk9iI4cx13HcBU=
-github.com/replicatedhq/kurl/kurlkinds v0.0.0-20200608182450-1c5cafc133e5 h1:q472jCKHb4eToL0lHtabp+V/7yR3DH/gLTE/iVMjoYE=
-github.com/replicatedhq/kurl/kurlkinds v0.0.0-20200608184213-db76d9753bd1 h1:f41BxhR6vj8zvWIN/sS6VGXv1DdrdFq7voWaLuWX9/s=
-github.com/replicatedhq/kurl/kurlkinds v0.0.0-20200608184213-db76d9753bd1/go.mod h1:swtN+H2q4iFze0pXAOhx0ZgX/Eej1lk9iI4cx13HcBU=
 github.com/rogpeppe/fastuuid v0.0.0-20150106093220-6724a57986af/go.mod h1:XWv6SoW27p1b0cqNHllgS5HIMJraePCO15w5zCzIWYg=
 github.com/russross/blackfriday v1.5.2/go.mod h1:JO/DiYxRf+HjHt06OyowR9PTA263kcR/rfWxYHBV53g=
 github.com/sergi/go-diff v1.0.0/go.mod h1:0CfEIISq7TuYL3j771MWULgwwjU+GofnZX9QAmXWZgo=
