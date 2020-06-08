@@ -39,6 +39,7 @@ type InstallerSpec struct {
 	IptablesConfig  IptablesConfig  `json:"iptablesConfig,omitempty"`
 	FirewalldConfig FirewalldConfig `json:"firewalldConfig,omitempty"`
 	Ekco            Ekco            `json:"ekco,omitempty"`
+	Containerd      Containerd      `json:"containerd,omitempty"`
 }
 
 type Contour struct {
@@ -175,6 +176,11 @@ type Ekco struct {
 type Calico struct {
 	Version string `json:"version"`
 }
+
+type Containerd struct {
+	Version string `json:"version"`
+}
+
 
 // InstallerStatus defines the observed state of Installer
 type InstallerStatus struct {
