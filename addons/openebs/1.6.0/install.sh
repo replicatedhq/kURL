@@ -102,7 +102,7 @@ function openebs_iscsi() {
                 dpkg --install --force-depends-version ${src}/ubuntu-${DIST_VERSION}/archives/*.deb
                 ;;
 
-            centos|rhel)
+            centos|rhel|amzn)
                 rpm --upgrade --force --nodeps ${src}/rhel-7/archives/*.rpm
                 ;;
         esac

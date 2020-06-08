@@ -26,7 +26,11 @@ function tasks() {
 }
 
 function load_all_images() {
-    find addons/ packages/ -type f -wholename '*/images/*.tar.gz' | xargs -I {} bash -c "docker load < {}"
+    if [ -n DOCKER_VERSION ]; then
+        find addons/ packages/ -type f -wholename '*/images/*.tar.gz' | xargs -I {} bash -c "docker load < {}"
+    else
+        find addons/ packages/ -type f -wholename '*/images/*.tar.gz' | xargs -I {} bash -c "ctr -n=k8s.io images import < {}"
+    fi
 }
 
 function generate_admin_user() {
