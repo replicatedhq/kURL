@@ -48,7 +48,7 @@ function kubernetes_load_ipvs_modules() {
 function kubernetes_sysctl_config() {
     case "$LSB_DIST" in
         # TODO I've only seen these disabled on centos/rhel but should be safe for ubuntu
-        centos|rhel)
+        centos|rhel|amzn)
             echo "net.bridge.bridge-nf-call-ip6tables = 1" > /etc/sysctl.d/k8s.conf
             echo "net.bridge.bridge-nf-call-iptables = 1" >> /etc/sysctl.d/k8s.conf
             echo "net.ipv4.conf.all.forwarding = 1" >> /etc/sysctl.d/k8s.conf
@@ -80,7 +80,7 @@ function kubernetes_install_host_packages() {
             dpkg --install --force-depends-version $DIR/packages/kubernetes/${k8sVersion}/ubuntu-${DIST_VERSION}/*.deb
             ;;
 
-        centos|rhel)
+        centos|rhel|amzn)
             rpm --upgrade --force --nodeps $DIR/packages/kubernetes/${k8sVersion}/rhel-7/*.rpm
             # TODO still required on 1.15+, and only CentOS/RHEL?
             service docker restart
