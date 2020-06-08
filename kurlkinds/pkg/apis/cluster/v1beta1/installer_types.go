@@ -21,25 +21,25 @@ import (
 )
 
 type InstallerSpec struct {
-	Kubernetes      *Kubernetes      `json:"kubernetes,omitempty"`
-	Docker          *Docker          `json:"docker,omitempty"`
-	Weave           *Weave           `json:"weave,omitempty"`
-	Calico          *Calico          `json:"calico,omitempty"`
-	Contour         *Contour         `json:"contour,omitempty"`
-	Rook            *Rook            `json:"rook,omitempty"`
-	Registry        *Registry        `json:"registry,omitempty"`
-	Prometheus      *Prometheus      `json:"prometheus,omitempty"`
-	Fluentd         *Fluentd         `json:"fluentd,omitempty"`
-	Kotsadm         *Kotsadm         `json:"kotsadm,omitempty"`
-	Velero          *Velero          `json:"velero,omitempty"`
-	Minio           *Minio           `json:"minio,omitempty"`
-	OpenEBS         *OpenEBS         `json:"openebs,omitempty"`
-	Kurl            *Kurl            `json:"kurl,omitempty"`
-	SelinuxConfig   *SelinuxConfig   `json:"selinuxConfig,omitempty"`
-	IptablesConfig  *IptablesConfig  `json:"iptablesConfig,omitempty"`
-	FirewalldConfig *FirewalldConfig `json:"firewalldConfig,omitempty"`
-	Ekco            *Ekco            `json:"ekco,omitempty"`
-	Containerd      *Containerd      `json:"containerd,omitempty"`
+	Kubernetes      Kubernetes      `json:"kubernetes,omitempty"`
+	Docker          Docker          `json:"docker,omitempty"`
+	Weave           Weave           `json:"weave,omitempty"`
+	Calico          Calico          `json:"calico,omitempty"`
+	Contour         Contour         `json:"contour,omitempty"`
+	Rook            Rook            `json:"rook,omitempty"`
+	Registry        Registry        `json:"registry,omitempty"`
+	Prometheus      Prometheus      `json:"prometheus,omitempty"`
+	Fluentd         Fluentd         `json:"fluentd,omitempty"`
+	Kotsadm         Kotsadm         `json:"kotsadm,omitempty"`
+	Velero          Velero          `json:"velero,omitempty"`
+	Minio           Minio           `json:"minio,omitempty"`
+	OpenEBS         OpenEBS         `json:"openebs,omitempty"`
+	Kurl            Kurl            `json:"kurl,omitempty"`
+	SelinuxConfig   SelinuxConfig   `json:"selinuxConfig,omitempty"`
+	IptablesConfig  IptablesConfig  `json:"iptablesConfig,omitempty"`
+	FirewalldConfig FirewalldConfig `json:"firewalldConfig,omitempty"`
+	Ekco            Ekco            `json:"ekco,omitempty"`
+	Containerd      Containerd      `json:"containerd,omitempty"`
 }
 
 type Contour struct {
