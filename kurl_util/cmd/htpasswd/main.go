@@ -17,7 +17,7 @@ func main() {
 
 	if *username == "" || *password == "" {
 		flag.PrintDefaults()
-		os.Exit(-1)
+		os.Exit(1)
 	}
 
 	if err := htpasswd.SetPassword(*filePath, *username, *password, htpasswd.HashBCrypt); err != nil {
