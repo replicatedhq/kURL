@@ -203,7 +203,16 @@ function kubernetes_resource_exists() {
 }
 
 function load_images() {
-    find "$1" -type f | xargs -I {} bash -c "docker load < {}"
+    if [ -n "$DOCKER_VERSION" ]; then
+        find "$1" -type f | xargs -I {} bash -c "docker load < {}"
+    else
+        TMP_CONTAINERD_TAR="/tmp/containerd_images/"
+        mkdir -p $TMP_CONTAINERD_TAR
+        find "$1" -type f | xargs -I {} bash -c "gunzip -k {}"
+        find "$1" -name "*.tar" | xargs -I {} bash -c "mv {} $TMP_CONTAINERD_TAR/"
+        find $TMP_CONTAINERD_TAR -type f | xargs -I {} bash -c "ctr -n=k8s.io images import {}"
+        rm -rf $TMP_CONTAINERD_TAR
+    fi
 }
 
 # try a command every 2 seconds until it succeeds, up to 30 tries max; useful for kubectl commands
@@ -258,7 +267,11 @@ function get_shared() {
         rm common.tar.gz
     fi
     if [ -f shared/kurl-util.tar ]; then
-        docker load < shared/kurl-util.tar
+        if [ -n "$DOCKER_VERSION" ]; then
+            docker load < shared/kurl-util.tar
+        else
+            ctr -n=k8s.io images import shared/kurl-util.tar
+        fi
     fi
 }
 

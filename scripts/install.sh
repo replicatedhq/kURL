@@ -21,6 +21,7 @@ DIR=.
 . $DIR/scripts/common/utilbinaries.sh
 . $DIR/scripts/common/yaml.sh
 . $DIR/scripts/common/coredns.sh
+. $DIR/scripts/common/containerd.sh
 # Magic end
 
 function init() {
@@ -84,6 +85,15 @@ function init() {
     $DIR/bin/yamlutil -r -fp $KUBEADM_CONF_DIR/kubeadm_conf_copy_in -yf metadata
     mv $KUBEADM_CONF_DIR/kubeadm_conf_copy_in $KUBEADM_CONF_FILE
 
+    cat << EOF >> $KUBEADM_CONF_FILE
+apiVersion: kubelet.config.k8s.io/v1beta1
+kind: KubeletConfiguration
+cgroupDriver: systemd
+---
+EOF
+
+    # echo $KUBLET_CONFIG >> $KUBEADM_CONF_FILE
+
     # When no_proxy changes kubeadm init rewrites the static manifests and fails because the api is
     # restarting. Trigger the restart ahead of time and wait for it to be healthy.
     if [ -f "/etc/kubernetes/manifests/kube-apiserver.yaml" ] && [ -n "$no_proxy" ] && ! cat /etc/kubernetes/manifests/kube-apiserver.yaml | grep -q "$no_proxy"; then
@@ -93,6 +103,9 @@ function init() {
             echo "Failed to wait for kubernetes API restart after no_proxy change" # continue
         fi
     fi
+
+    # kubeadm init phase certs ca
+    # kubeadm init phase kubelet phase kubelet-start --config $KUBEADM_CONF_FILE
 
     if [ "$HA_CLUSTER" = "1" ]; then
         UPLOAD_CERTS="--upload-certs"
@@ -107,6 +120,8 @@ function init() {
         $UPLOAD_CERTS \
         | tee /tmp/kubeadm-init
     set +o pipefail
+
+    confirmY
 
     exportKubeconfig
     KUBEADM_TOKEN_CA_HASH=$(cat /tmp/kubeadm-init | grep 'discovery-token-ca-cert-hash' | awk '{ print $2 }' | head -1)
@@ -267,8 +282,9 @@ function main() {
     discover_pod_subnet
     discover_service_subnet
     configure_no_proxy
-    install_docker
-    apply_docker_config
+    install_containerd
+    #install_docker
+    #apply_docker_config
     get_shared
     upgrade_kubernetes
     kubernetes_host
