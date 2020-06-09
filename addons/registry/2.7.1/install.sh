@@ -64,7 +64,6 @@ function registry_cred_secrets() {
     # if the registry pod is already running it will pick up changes to the secret without restart
     BIN_HTPASSWD=./bin/htpasswd
     $BIN_HTPASSWD -u "$user" -p "$password" -f htpasswd
-    
     kubectl -n kurl create secret generic registry-htpasswd --from-file=htpasswd
     rm htpasswd
 

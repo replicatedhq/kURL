@@ -121,6 +121,8 @@ EOF
         | tee /tmp/kubeadm-init
     set +o pipefail
 
+    confirmY
+
     exportKubeconfig
     KUBEADM_TOKEN_CA_HASH=$(cat /tmp/kubeadm-init | grep 'discovery-token-ca-cert-hash' | awk '{ print $2 }' | head -1)
 
