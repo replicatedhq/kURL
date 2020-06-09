@@ -4,7 +4,7 @@ function discover() {
     discoverCurrentKubernetesVersion
 
     # never upgrade docker underneath kubernetes
-    if commandExists docker ; then
+    if docker version >/dev/null 2>&1 ; then
         SKIP_DOCKER_INSTALL=1
         echo "Docker already exists on this machine so no docker install will be performed"
     fi
