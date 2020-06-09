@@ -52,7 +52,7 @@ test: lint vet
 	go test ./cmd/...
 
 .PHONY: build
-build: bin/yamlutil bin/subnet bin/docker-config bin/config bin/installermerge bin/yamltobash bin/bashmerge bin/bcrypt
+build: bin/yamlutil bin/subnet bin/docker-config bin/config bin/installermerge bin/yamltobash bin/bashmerge bin/bcrypt bin/htpasswd
 
 bin/yamlutil:
 	go build ${LDFLAGS} -o bin/yamlutil cmd/yamlutil/main.go
@@ -77,6 +77,9 @@ bin/bashmerge:
 
 bin/bcrypt:
 	go build ${LDFLAGS} -o bin/bcrypt cmd/bcrypt/main.go
+
+bin/htpasswd:
+	go build ${LDFLAGS} -o bin/htpasswd cmd/htpasswd/main.go
 
 .PHONY: kurl-util-image
 kurl-util-image:
