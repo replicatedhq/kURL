@@ -253,6 +253,7 @@ function main() {
     requireRootUser
     get_patch_yaml "$@"
     proxy_bootstrap
+    yaml_airgap
     download_util_binaries
     merge_yaml_specs
     apply_bash_flag_overrides "$@"

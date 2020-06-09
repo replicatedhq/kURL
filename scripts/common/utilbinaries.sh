@@ -44,6 +44,25 @@ parse_kubernetes_target_version() {
     KUBERNETES_TARGET_VERSION_PATCH="$patch"
 }
 
+
+function yaml_airgap() {
+    # this is needed because the parsing for yaml comes after the first occasion where the $AIRGAP flag is used
+    # we also account for if $INSTALLER_YAML spec has "$AIRGAP and "INSTALLER_SPEC_FILE spec turns it off"
+
+    if [[ "$INSTALLER_YAML" =~ "airgap: true" ]]; then
+        AIRGAP="1"
+    fi
+
+    if [ -n "$INSTALLER_SPEC_FILE" ]; then
+        if grep -q "airgap: true" $INSTALLER_SPEC_FILE; then
+            AIRGAP="1"
+        fi
+        if grep -q "airgap: false" $INSTALLER_SPEC_FILE; then
+            AIRGAP=""
+        fi
+    fi
+}
+
 function get_patch_yaml() {
     while [ "$1" != "" ]; do
         _param="$(echo "$1" | cut -d= -f1)"
