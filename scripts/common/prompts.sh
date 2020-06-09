@@ -199,7 +199,7 @@ function prompt_airgap_preload_images() {
         fi
         printf "\nRun this script on node ${GREEN}${nodeName}${NC} to load required images before proceeding:\n"
         printf "\n"
-        printf "${GREEN}\tcat ./install.sh | sudo bash -s task=load-images${NC}"
+        printf "${GREEN}\tcat ./tasks.sh | sudo bash -s load-images${NC}"
         printf "\n"
 
         while true; do
