@@ -7,7 +7,7 @@ function preflights() {
     checkFirewalld
     must_disable_selinux
     apply_iptables_config
-    require_docker
+    cri_preflights
     kotsadm_prerelease
 
     return 0
@@ -32,7 +32,7 @@ function require64Bit() {
 
 function bailIfUnsupportedOS() {
     case "$LSB_DIST$DIST_VERSION" in
-        ubuntu16.04|ubuntu18.04|rhel7.4|rhel7.5|rhel7.6|rhel7.7|rhel7.8|centos7.4|centos7.5|centos7.6|centos7.7|centos7.8|amzn2)
+        ubuntu16.04|ubuntu18.04|rhel7.4|rhel7.5|rhel7.6|rhel7.7|rhel7.8|centos7.4|centos7.5|centos7.6|centos7.7|centos7.8|centos8.0|centos8.1|amzn2)
             ;;
         *)
             bail "Kubernetes install is not supported on ${LSB_DIST} ${DIST_VERSION}"
@@ -159,8 +159,16 @@ swapConfigured() {
 	    cat /etc/fstab | grep --quiet --ignore-case --extended-regexp '^[^#]+swap'
 }
 
-function require_docker() {
+function cri_preflights() {
+    require_cri
+}
+
+function require_cri() {
 	if commandExists docker ; then
+		return 0
+	fi
+
+    if commandExists containerd ; then
 		return 0
 	fi
 

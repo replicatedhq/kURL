@@ -202,8 +202,21 @@ function kubernetes_resource_exists() {
     kubectl -n "$namespace" get "$kind" "$name" &>/dev/null
 }
 
+function install_cri() {
+    if [ -n "$DOCKER_VERSION" ]; then
+        install_docker
+        apply_docker_config
+    else
+        install_containerd
+    fi
+}
+
 function load_images() {
-    find "$1" -type f | xargs -I {} bash -c "docker load < {}"
+    if [ -n "$DOCKER_VERSION" ]; then
+        find "$1" -type f | xargs -I {} bash -c "docker load < {}"
+    else
+        find "$1" -type f | xargs -I {} bash -c "cat {} | gunzip | ctr images import -"
+    fi
 }
 
 # try a command every 2 seconds until it succeeds, up to 30 tries max; useful for kubectl commands
@@ -258,7 +271,11 @@ function get_shared() {
         rm common.tar.gz
     fi
     if [ -f shared/kurl-util.tar ]; then
-        docker load < shared/kurl-util.tar
+        if [ -n "$DOCKER_VERSION" ]; then
+            docker load < shared/kurl-util.tar
+        else
+            ctr images import shared/kurl-util.tar
+        fi
     fi
 }
 

@@ -21,6 +21,7 @@ DIR=.
 . $DIR/scripts/common/utilbinaries.sh
 . $DIR/scripts/common/yaml.sh
 . $DIR/scripts/common/coredns.sh
+. $DIR/scripts/common/containerd.sh
 # Magic end
 
 function init() {
@@ -83,6 +84,13 @@ function init() {
     cp $KUBEADM_CONF_FILE $KUBEADM_CONF_DIR/kubeadm_conf_copy_in
     $DIR/bin/yamlutil -r -fp $KUBEADM_CONF_DIR/kubeadm_conf_copy_in -yf metadata
     mv $KUBEADM_CONF_DIR/kubeadm_conf_copy_in $KUBEADM_CONF_FILE
+
+    cat << EOF >> $KUBEADM_CONF_FILE
+apiVersion: kubelet.config.k8s.io/v1beta1
+kind: KubeletConfiguration
+cgroupDriver: systemd
+---
+EOF
 
     # When no_proxy changes kubeadm init rewrites the static manifests and fails because the api is
     # restarting. Trigger the restart ahead of time and wait for it to be healthy.
@@ -267,8 +275,7 @@ function main() {
     discover_pod_subnet
     discover_service_subnet
     configure_no_proxy
-    install_docker
-    apply_docker_config
+    install_cri
     get_shared
     upgrade_kubernetes
     kubernetes_host
