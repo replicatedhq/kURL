@@ -1,0 +1,70 @@
+.InstanceTableContainer {
+  width: 100%;
+}
+
+table {
+  border-collapse: collapse;
+  width: 50%;
+}
+
+table, td, th {  
+  border: 1px solid #ddd;
+  text-align: left;
+}
+
+th, td {
+  padding: 15px;
+
+  &.passed {
+    background-color: #65A61D;
+  }
+
+  &.failed {
+    background-color: #BC4752;
+  }
+}
+
+.InstanceStatus-wrapper {
+  display: flex;
+  flex: 1;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.url {
+  color: #337AB7;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.InstanceModal {
+  height: 600px;
+  width: 100%;
+  max-width: 700px;
+  display: flex;
+  flex-direction: column;
+}
+
+.InstanceModal-body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.InstanceModal-actions {
+  margin-top: 20px;
+}
+
+.MonacoEditor-wrapper {
+  display: flex;
+  flex: 1;
+  border: 1px solid #CCCCCC;
+}
+
+.text-passed {
+  color: #65A61D;
+}
+
+.text-failed {
+  color: #BC4752;
+}

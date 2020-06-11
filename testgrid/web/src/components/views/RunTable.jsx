@@ -1,11 +1,14 @@
-import * as React from "react"
+import * as React from "react";
+import { Link } from "react-router-dom";
+
+import "../../assets/scss/components/RunTable.scss";
 
 export default class RunTable extends React.Component {
     render() {
         const rows = this.props.runs.map((run) => {
             return (
-                <tr key={run.id} style={{border: "1px solid #000", padding: "5px"}}>
-                    <td style={{minWidth: "200px"}}><a href={`/run/${run.id}`}>{run.id}</a></td>
+                <tr key={run.id}>
+                    <td><Link to={`/run/${run.id}`}>{run.id}</Link></td>
                     <td>{run.created_at}</td>
                 </tr>
             )

@@ -122,3 +122,17 @@ from testinstance where testrun_ref = $1 order by os_name, os_version, kurl_url`
 
 	return testInstances, nil
 }
+
+func GetLogs(id string) (string, error) {
+	db := persistence.MustGetPGSession()
+
+	query := `select output from testinstance where id = $1`
+	row := db.QueryRow(query, id)
+
+	var logs sql.NullString
+	if err := row.Scan(&logs); err != nil {
+		return "", errors.Wrap(err, "failed to scan")
+	}
+
+	return logs.String, nil
+}

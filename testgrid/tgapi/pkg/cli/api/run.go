@@ -27,6 +27,7 @@ func RunCmd() *cobra.Command {
 			r.HandleFunc("/api/v1/config", handlers.WebConfig).Methods("GET", "OPTIONS")
 			r.HandleFunc("/api/v1/runs", handlers.ListRuns).Methods("GET", "OPTIONS")
 			r.HandleFunc("/api/v1/run/{refId}", handlers.GetRun).Methods("GET", "OPTIONS")
+			r.HandleFunc("/api/v1/instance/{instanceId}/logs", handlers.GetInstanceLogs).Methods("GET", "OPTIONS")
 
 			r.HandleFunc("/v1/ref/{refId}/start", handlers.StartRef)
 

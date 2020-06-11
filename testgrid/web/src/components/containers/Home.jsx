@@ -1,6 +1,8 @@
 import * as React from "react";
-import "../../assets/css/components/Home.css";
 import RunTable from "../views/RunTable";
+import Loader from "../views/Loader";
+
+import "../../assets/scss/components/Home.scss";
 
 class Home extends React.Component {
   constructor(props) {
@@ -12,31 +14,36 @@ class Home extends React.Component {
   }
 
   componentDidMount() {
+    this.setState({ isLoading: true });
+
     fetch(`${window.env.API_ENDPOINT}/runs`)
-    .then((res) => {
-      return res.json()
-    })
-    .then((runs) => {
-      this.setState({
-        runs: runs.runs,
-        isLoading: false,
+      .then((res) => {
+        return res.json()
       })
-    })
-    .catch((err) => {
-      console.error(err);
-    })
+      .then((runs) => {
+        this.setState({
+          runs: runs.runs,
+          isLoading: false,
+        })
+      })
+      .catch((err) => {
+        console.error(err);
+        this.setState({ isLoading: false });
+      });
   }
 
   render() {
     if (this.state.isLoading) {
       return (
-        <div>loading...</div>
+        <div style={{ marginTop: 24 }}>
+          <Loader />
+        </div>
       );
     }
 
     return (
-      <div>
-        <h1>kURL Test Runs</h1>
+      <div className="HomeContainer">
+        <p className="title">kURL Test Runs</p>
         <RunTable runs={this.state.runs} />
       </div>
     );
