@@ -104,9 +104,6 @@ EOF
         fi
     fi
 
-    # kubeadm init phase certs ca
-    # kubeadm init phase kubelet phase kubelet-start --config $KUBEADM_CONF_FILE
-
     if [ "$HA_CLUSTER" = "1" ]; then
         UPLOAD_CERTS="--upload-certs"
     fi
