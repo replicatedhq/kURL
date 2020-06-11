@@ -274,7 +274,7 @@ function get_shared() {
         if [ -n "$DOCKER_VERSION" ]; then
             docker load < shared/kurl-util.tar
         else
-            ctr -n=k8s.io images import shared/kurl-util.tar
+            ctr images import shared/kurl-util.tar
         fi
     fi
 }
