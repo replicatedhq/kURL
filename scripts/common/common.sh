@@ -202,16 +202,20 @@ function kubernetes_resource_exists() {
     kubectl -n "$namespace" get "$kind" "$name" &>/dev/null
 }
 
+function install_cri() {
+    if [ -n "$DOCKER_VERSION" ]; then
+        install_docker
+        apply_docker_config
+    else
+        install_containerd
+    fi
+}
+
 function load_images() {
     if [ -n "$DOCKER_VERSION" ]; then
         find "$1" -type f | xargs -I {} bash -c "docker load < {}"
     else
-        TMP_CONTAINERD_TAR="/tmp/containerd_images/"
-        mkdir -p $TMP_CONTAINERD_TAR
-        find "$1" -type f | xargs -I {} bash -c "gunzip -k {}"
-        find "$1" -name "*.tar" | xargs -I {} bash -c "mv {} $TMP_CONTAINERD_TAR/"
-        find $TMP_CONTAINERD_TAR -type f | xargs -I {} bash -c "ctr -n=k8s.io images import {}"
-        rm -rf $TMP_CONTAINERD_TAR
+        find "$1" -type f | xargs -I {} bash -c "cat {} | gunzip | ctr images import -"
     fi
 }
 

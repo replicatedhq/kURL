@@ -83,7 +83,9 @@ function kubernetes_install_host_packages() {
         centos|rhel|amzn)
             rpm --upgrade --force --nodeps $DIR/packages/kubernetes/${k8sVersion}/rhel-7/*.rpm
             # TODO still required on 1.15+, and only CentOS/RHEL?
-            service docker restart
+            if [ -n "$DOCKER_VERSION" ]; then
+                service docker restart
+            fi
             ;;
     esac
 

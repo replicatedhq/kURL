@@ -121,8 +121,6 @@ EOF
         | tee /tmp/kubeadm-init
     set +o pipefail
 
-    confirmY
-
     exportKubeconfig
     KUBEADM_TOKEN_CA_HASH=$(cat /tmp/kubeadm-init | grep 'discovery-token-ca-cert-hash' | awk '{ print $2 }' | head -1)
 
@@ -282,9 +280,7 @@ function main() {
     discover_pod_subnet
     discover_service_subnet
     configure_no_proxy
-    install_containerd
-    #install_docker
-    #apply_docker_config
+    install_cri
     get_shared
     upgrade_kubernetes
     kubernetes_host
