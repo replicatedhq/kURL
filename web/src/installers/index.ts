@@ -305,6 +305,19 @@ export const kurlConfigSchema = {
   additionalProperties: false,
 };
 
+export interface ContainerdConfig {
+  version: string;
+}
+
+export const containerdConfigSchema = {
+  type: "object",
+  properties: {
+    version: { type: "string" },
+  },
+  required: ["version"],
+  additionalProperties: false,
+};
+
 export interface InstallerSpec {
   kubernetes: KubernetesConfig;
   docker?: DockerConfig;
@@ -320,6 +333,7 @@ export interface InstallerSpec {
   velero?: VeleroConfig;
   ekco?: EkcoConfig;
   kurl?: KurlConfig;
+  containerd?: ContainerdConfig;
 }
 
 const specSchema = {
@@ -340,6 +354,7 @@ const specSchema = {
     velero: veleroConfigSchema,
     ekco: ekcoConfigSchema,
     kurl: kurlConfigSchema,
+    containerd: containerdConfigSchema,
   },
   required: ["kubernetes"],
   additionalProperites: false,
@@ -370,6 +385,9 @@ export class Installer {
     docker: [
       "19.03.4",
       "18.09.8",
+    ],
+    containerd: [
+      "beta",
     ],
     weave: [
       "2.6.4",
@@ -821,6 +839,9 @@ export class Installer {
     }
     if (this.spec.ekco && !Installer.hasVersion("ekco", this.spec.ekco.version)) {
       return { error: { message: `Ekco version "${_.escape(this.spec.ekco.version)}" is not supported` } };
+    }
+    if (this.spec.containerd && !Installer.hasVersion("containerd", this.spec.containerd.version)) {
+      return { error: { message: `Containerd version "${_.escape(this.spec.containerd.version)}" is not supported` } };
     }
   }
 
