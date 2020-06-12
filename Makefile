@@ -129,7 +129,7 @@ dist/containerd-%.tar.gz:
 	${MAKE} build/packages/containerd/1.3.3/ubuntu-18.04
 	${MAKE} build/packages/containerd/1.2.13/rhel-7
 	mkdir -p dist
-	tar cf - -C build packages/containerd/$* | gzip > dist/containerd-$*.tar.gz
+	tar cf - -C build packages/containerd | gzip > dist/containerd-$*.tar.gz
 
 dist/kubernetes-%.tar.gz:
 	${MAKE} build/packages/kubernetes/$*/images
