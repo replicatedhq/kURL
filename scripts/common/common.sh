@@ -215,7 +215,7 @@ function load_images() {
     if [ -n "$DOCKER_VERSION" ]; then
         find "$1" -type f | xargs -I {} bash -c "docker load < {}"
     else
-        find "$1" -type f | xargs -I {} bash -c "cat {} | gunzip | ctr images import -"
+        find "$1" -type f | xargs -I {} bash -c "cat {} | gunzip | ctr -n=k8s.io images import -"
     fi
 }
 
@@ -274,7 +274,7 @@ function get_shared() {
         if [ -n "$DOCKER_VERSION" ]; then
             docker load < shared/kurl-util.tar
         else
-            ctr images import shared/kurl-util.tar
+            ctr -n=k8s.io images import shared/kurl-util.tar
         fi
     fi
 }
