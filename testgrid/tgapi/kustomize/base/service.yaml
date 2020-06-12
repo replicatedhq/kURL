@@ -5,9 +5,10 @@ metadata:
   labels:
     app: tgapi
 spec:
-  type: ClusterIP
+  type: NodePort
   ports:
   - name: http
     port: 3000
+    nodePort: 30110
   selector:
     app: tgapi
