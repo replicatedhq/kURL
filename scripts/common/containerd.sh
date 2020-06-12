@@ -1,4 +1,20 @@
+function containerd_get_host_packages_online() {
+    local version="$1"
+
+    if [ "$AIRGAP" != "1" ] && [ -n "$DIST_URL" ]; then
+        curl -sSLO "$DIST_URL/containerd-${version}.tar.gz"
+        tar xf containerd-${version}.tar.gz
+        rm containerd-${version}.tar.gz
+    fi
+}
+
+
+
+
+
 function install_containerd() {
+   containerd_get_host_packages_online "$CONTAINERD_VERSION"
+
    if [ "$SKIP_CONTAINERD_INSTALL" != "1" ]; then
      case "$LSB_DIST$DIST_VERSION" in
          # ubuntu16.04)
