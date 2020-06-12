@@ -74,12 +74,23 @@ where id = $2`
 	return nil
 }
 
-func List(refID string) ([]types.TestInstance, error) {
+func List(refID string, limit int, offset int) ([]types.TestInstance, error) {
 	db := persistence.MustGetPGSession()
 
 	query := `select id, kurl_yaml, kurl_url, os_name, os_version, os_image, started_at, finished_at, is_success
 from testinstance where testrun_ref = $1 order by os_name, os_version, kurl_url`
-	rows, err := db.Query(query, refID)
+
+	args := []interface{}{refID}
+	if limit > 0 {
+		query += ` limit $2`
+		args = append(args, limit)
+	}
+	if offset > 0 {
+		query += ` offset $3`
+		args = append(args, offset)
+	}
+
+	rows, err := db.Query(query, args...)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to query")
 	}
@@ -121,6 +132,20 @@ from testinstance where testrun_ref = $1 order by os_name, os_version, kurl_url`
 	}
 
 	return testInstances, nil
+}
+
+func Total(refID string) (int, error) {
+	db := persistence.MustGetPGSession()
+
+	query := `select count(1) as total from testinstance where testrun_ref = $1`
+	row := db.QueryRow(query, refID)
+
+	var total int
+	if err := row.Scan(&total); err != nil {
+		return -1, errors.Wrap(err, "failed to scan")
+	}
+
+	return total, nil
 }
 
 func GetLogs(id string) (string, error) {

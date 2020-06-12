@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -11,6 +12,7 @@ import (
 
 type GetRunResponse struct {
 	Instances []InstanceResponse `json:"instances"`
+	Total     int                `json:"total"`
 }
 
 type InstanceResponse struct {
@@ -33,7 +35,33 @@ func GetRun(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	instances, err := testinstance.List(mux.Vars(r)["refId"])
+	pSize := r.URL.Query().Get("pageSize")
+	cPage := r.URL.Query().Get("currentPage")
+
+	var pageSize int
+	if pSize != "" {
+		var err error
+		pageSize, err = strconv.Atoi(pSize)
+		if err != nil {
+			pageSize = 20
+		}
+	} else {
+		pageSize = 20
+	}
+
+	var currentPage int
+	if cPage != "" {
+		currentPage, _ = strconv.Atoi(cPage)
+	}
+
+	instances, err := testinstance.List(mux.Vars(r)["refId"], pageSize, currentPage*pageSize)
+	if err != nil {
+		logger.Error(err)
+		JSON(w, 500, nil)
+		return
+	}
+
+	total, err := testinstance.Total(mux.Vars(r)["refId"])
 	if err != nil {
 		logger.Error(err)
 		JSON(w, 500, nil)
@@ -59,6 +87,7 @@ func GetRun(w http.ResponseWriter, r *http.Request) {
 	}
 
 	getRunResponse.Instances = instanceResponses
+	getRunResponse.Total = total
 
 	JSON(w, 200, getRunResponse)
 }

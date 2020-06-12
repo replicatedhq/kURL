@@ -1,0 +1,11 @@
+.Pager {
+  padding: 20px 0;
+  .previous {
+    transform: rotate(90deg) translate(-1px, 0);
+    transition: transform .2s ease-in-out;
+  }
+  .next {
+    transform: rotate(-90deg) translate(1px, 0);
+    transition: transform .2s ease-in-out;
+  }
+}
