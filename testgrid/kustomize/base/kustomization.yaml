@@ -1,5 +1,0 @@
-bases:
-  - ../../tgapi/kustomize/overlays/dev
-  - ../../web/kustomize/overlays/dev
-  - ../../migrations/kustomize/overlays/dev
-
