@@ -1,21 +1,36 @@
-function install_containerd() {
-   if [ "$SKIP_CONTAINERD_INSTALL" != "1" ]; then
-      case "$LSB_DIST" in
-         ubuntu)
-               apt-get update && apt-get install -y apt-transport-https ca-certificates curl software-properties-common
-               curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -
-               add-apt-repository \
-                  "deb [arch=amd64] https://download.docker.com/linux/ubuntu \
-                  $(lsb_release -cs) \
-                  stable"
-               apt-get update && apt-get install -y containerd.io
-               ;;
+function containerd_get_host_packages_online() {
+    local version="$1"
 
-         centos|rhel|amzn)
-               yum install -y yum-utils device-mapper-persistent-data lvm2
-               yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
-               yum update -y && yum install -y containerd.io
-               ;;
+    if [ "$AIRGAP" != "1" ] && [ -n "$DIST_URL" ]; then
+        curl -sSLO "$DIST_URL/containerd-${version}.tar.gz"
+        tar xf containerd-${version}.tar.gz
+        rm containerd-${version}.tar.gz
+    fi
+}
+
+
+
+
+
+function install_containerd() {
+   containerd_get_host_packages_online "$CONTAINERD_VERSION"
+
+   if [ "$SKIP_CONTAINERD_INSTALL" != "1" ]; then
+     case "$LSB_DIST$DIST_VERSION" in
+         # ubuntu16.04)
+         #    export DEBIAN_FRONTEND=noninteractive
+         #    dpkg --install --force-depends-version $DIR/packages/containerd/1.2.6/ubuntu-${DIST_VERSION}/*.deb
+         #    ;;
+         # ubuntu18.04)
+         #    export DEBIAN_FRONTEND=noninteractive
+         #    dpkg --install --force-depends-version $DIR/packages/containerd/1.3.3/ubuntu-${DIST_VERSION}/*.deb
+         #    ;;
+         rhel7.7|rhel7.8|rhel8.0|rhel8.1|centos7.7|centos7.8|centos8.0|centos8.1|amzn2)
+            rpm --upgrade --force --nodeps $DIR/packages/containerd/1.2.13/rhel-7/*.rpm
+            ;;
+         *)
+            bail "kURL does not support containerd on ${LSB_DIST} ${DIST_VERSION}, please use docker instead"
+            ;;
       esac
 
       mkdir -p /etc/containerd

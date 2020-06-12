@@ -88,6 +88,8 @@ spec:
     noProxy: false
     privateAddress: 10.38.1.1
     publicAddress: 101.38.1.1
+  containerd:
+    version: beta
 `;
 
 const typeMetaStableV1Beta1 = `
