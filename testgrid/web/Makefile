@@ -9,3 +9,12 @@ deps:
 serve:
 	NODE_ENV=dev node --max-old-space-size=6144 `npm bin`/webpack-dev-server --config webpack.config.js --progress -w --color --debug --env development
 
+.PHONY: build-production
+build-production: deps
+build-production:
+	node \
+		--max_old_space_size=6144 \
+		./node_modules/webpack/bin/webpack.js \
+		--config webpack.config.js \
+		--env production \
+		--mode production
