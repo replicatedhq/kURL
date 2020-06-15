@@ -55,7 +55,7 @@ fluentd() {
         kubectl create configmap fluentdconf --from-file $FLUENTD_CONF_FILE --namespace logging -o yaml --dry-run > "$fluentd_dst/fluentd-fd-only-configmap.yaml"
 
         if [ -n "$REMOVE_FLUENTD_CONF" ]; then
-            rm FLUENTD_CONF_FILE
+            rm -f "$FLUENTD_CONF_FILE"
         fi
 
         kubectl apply -k "$logging_dst/"
