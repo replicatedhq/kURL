@@ -1,8 +1,8 @@
 package handlers
 
 import (
+	"encoding/json"
 	"net/http"
-	"strconv"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -10,9 +10,16 @@ import (
 	"github.com/replicatedhq/kurl/testgrid/tgapi/pkg/testinstance"
 )
 
+type GetRunRequest struct {
+	PageSize    int               `json:"pageSize"`
+	CurrentPage int               `json:"currentPage"`
+	Addons      map[string]string `json:"addons"`
+}
+
 type GetRunResponse struct {
 	Instances []InstanceResponse `json:"instances"`
 	Total     int                `json:"total"`
+	Addons    []string           `json:"addons"`
 }
 
 type InstanceResponse struct {
@@ -35,33 +42,31 @@ func GetRun(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	pSize := r.URL.Query().Get("pageSize")
-	cPage := r.URL.Query().Get("currentPage")
-
-	var pageSize int
-	if pSize != "" {
-		var err error
-		pageSize, err = strconv.Atoi(pSize)
-		if err != nil {
-			pageSize = 20
-		}
-	} else {
-		pageSize = 20
+	getRunRequest := GetRunRequest{}
+	if err := json.NewDecoder(r.Body).Decode(&getRunRequest); err != nil {
+		logger.Error(err)
+		JSON(w, 500, nil)
+		return
+	}
+	if getRunRequest.PageSize == 0 {
+		getRunRequest.PageSize = 20
 	}
 
-	var currentPage int
-	if cPage != "" {
-		currentPage, _ = strconv.Atoi(cPage)
-	}
-
-	instances, err := testinstance.List(mux.Vars(r)["refId"], pageSize, currentPage*pageSize)
+	instances, err := testinstance.List(mux.Vars(r)["refId"], getRunRequest.PageSize, getRunRequest.CurrentPage*getRunRequest.PageSize, getRunRequest.Addons)
 	if err != nil {
 		logger.Error(err)
 		JSON(w, 500, nil)
 		return
 	}
 
-	total, err := testinstance.Total(mux.Vars(r)["refId"])
+	total, err := testinstance.Total(mux.Vars(r)["refId"], getRunRequest.Addons)
+	if err != nil {
+		logger.Error(err)
+		JSON(w, 500, nil)
+		return
+	}
+
+	uniqueAddons, err := testinstance.GetUniqueAddons(mux.Vars(r)["refId"])
 	if err != nil {
 		logger.Error(err)
 		JSON(w, 500, nil)
@@ -88,6 +93,7 @@ func GetRun(w http.ResponseWriter, r *http.Request) {
 
 	getRunResponse.Instances = instanceResponses
 	getRunResponse.Total = total
+	getRunResponse.Addons = uniqueAddons
 
 	JSON(w, 200, getRunResponse)
 }

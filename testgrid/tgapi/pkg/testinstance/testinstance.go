@@ -2,12 +2,25 @@ package testinstance
 
 import (
 	"database/sql"
+	"fmt"
 	"time"
 
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/kurl/testgrid/tgapi/pkg/persistence"
 	"github.com/replicatedhq/kurl/testgrid/tgapi/pkg/testinstance/types"
+	"gopkg.in/yaml.v2"
 )
+
+type KurlInstaller struct {
+	APIVersion string                 `json:"apiVersion" yaml:"apiVersion"`
+	Kind       string                 `json:"kind" yaml:"kind"`
+	Metadata   KurlInstallerMetadata  `json:"metadata" yaml:"metadata"`
+	Spec       map[string]interface{} `json:"spec" yaml:"spec"`
+}
+
+type KurlInstallerMetadata struct {
+	Name string `json:"name" yaml:"name"`
+}
 
 func Create(id string, refID, kurlYAML string, kurlURL string, osName string, osVersion string, osImage string) error {
 	pg := persistence.MustGetPGSession()
@@ -74,12 +87,23 @@ where id = $2`
 	return nil
 }
 
-func List(refID string, limit int, offset int) ([]types.TestInstance, error) {
+func List(refID string, limit int, offset int, addons map[string]string) ([]types.TestInstance, error) {
 	db := persistence.MustGetPGSession()
 
 	query := `select id, kurl_yaml, kurl_url, os_name, os_version, os_image, started_at, finished_at, is_success
-from testinstance where testrun_ref = $1 order by os_name, os_version, kurl_url`
+from testinstance where testrun_ref = $1`
 
+	// filter addons
+	for addon, version := range addons {
+		if version == "" {
+			continue
+		}
+		query += fmt.Sprintf(` and kurl_yaml::jsonb @> '{"spec":{"%s":{"version": "%s"}}}'::jsonb`, addon, version)
+	}
+
+	query += ` order by os_name, os_version, kurl_url`
+
+	// pagination
 	args := []interface{}{refID}
 	if limit > 0 {
 		query += ` limit $2`
@@ -134,10 +158,19 @@ from testinstance where testrun_ref = $1 order by os_name, os_version, kurl_url`
 	return testInstances, nil
 }
 
-func Total(refID string) (int, error) {
+func Total(refID string, addons map[string]string) (int, error) {
 	db := persistence.MustGetPGSession()
 
 	query := `select count(1) as total from testinstance where testrun_ref = $1`
+
+	// filter addons
+	for addon, version := range addons {
+		if version == "" {
+			continue
+		}
+		query += fmt.Sprintf(` and kurl_yaml::jsonb @> '{"spec":{"%s":{"version": "%s"}}}'::jsonb`, addon, version)
+	}
+
 	row := db.QueryRow(query, refID)
 
 	var total int
@@ -160,4 +193,38 @@ func GetLogs(id string) (string, error) {
 	}
 
 	return logs.String, nil
+}
+
+func GetUniqueAddons(refID string) ([]string, error) {
+	db := persistence.MustGetPGSession()
+
+	query := `select kurl_yaml from testinstance where testrun_ref = $1`
+	rows, err := db.Query(query, refID)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to query")
+	}
+
+	uniqueAddons := make(map[string]interface{})
+	for rows.Next() {
+		var kurlYaml sql.NullString
+		if err := rows.Scan(&kurlYaml); err != nil {
+			return nil, errors.Wrap(err, "failed to scan")
+		}
+
+		var kurlInstaller KurlInstaller
+		if err := yaml.Unmarshal([]byte(kurlYaml.String), &kurlInstaller); err != nil {
+			return nil, errors.Wrap(err, "failed to unmarshal")
+		}
+
+		for k := range kurlInstaller.Spec {
+			uniqueAddons[k] = true
+		}
+	}
+
+	addons := []string{}
+	for addon := range uniqueAddons {
+		addons = append(addons, addon)
+	}
+
+	return addons, nil
 }

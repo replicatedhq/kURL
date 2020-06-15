@@ -1,12 +1,13 @@
 .Footer {
-  position: absolute;
+  position: fixed;
   bottom: 0px;
+  right: 0px;
   height: 42px;
-  background-color: #ffffff;
+  background-color: #fff;
   z-index: 400;
   display: flex;
-  padding-left: 13px;
-  margin-bottom: 8px;
+  padding-right: 16px;
+  padding-bottom: 8px;
   align-items: center;
 }
 
