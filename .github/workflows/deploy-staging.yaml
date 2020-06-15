@@ -188,4 +188,3 @@ jobs:
         git add .
         git commit --allow-empty -m "https://github.com/replicatedhq/kURL/actions/runs/${GITHUB_RUN_ID}" && \
           git push origin master
-  
