@@ -16,3 +16,8 @@ spec:
               value: "kurl"
             - name: USE_EC2_PARAMETERS
               value: "1"
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: testgrid-postgres
+                  key: uri
