@@ -1,0 +1,38 @@
+apiVersion: schemas.schemahero.io/v1alpha4
+kind: Table
+metadata:
+  name: testinstance
+spec:
+  database: testgrid-postgres
+  name: testinstance
+  schema:
+    postgres:
+      primaryKey: [id]
+      columns:
+        - name: id
+          type: varchar(255)
+        - name: testrun_ref
+          type: varchar(255)
+        - name: enqueued_at
+          type: timestamp without timezone
+        - name: dequeued_at
+          type: timestamp without timezone
+        - name: started_at
+          type: timestamp without timezone
+        - name: finished_at
+          type: timestamp without timezone
+        - name: is_success
+          type: boolean
+        - name: output
+          type: text
+        - name: kurl_yaml
+          type: text
+        - name: kurl_url
+          type: text
+        - name: os_name
+          type: text
+        - name: os_version
+          type: text
+        - name: os_image
+          type: text
+    

@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tgapi
+spec:
+  selector:
+    matchLabels:
+      app: tgapi
+  template:
+    metadata:
+      labels:
+        app: tgapi
+    spec:
+      restartPolicy: Always
+      containers:
+        - name: tgapi
+          image: tgapi
+          imagePullPolicy: IfNotPresent
+          command: ["/tgapi", "run"]
+          ports:
+            - name: http
+              containerPort: 3000

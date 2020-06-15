@@ -1,0 +1,94 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  labels:
+    app: postgres
+spec:
+  type: NodePort
+  ports:
+  - name: postgres
+    port: 5432
+    targetPort: postgres
+  selector:
+    app: postgres
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: testgrid-postgres
+  labels:
+    app: postgres
+type: Opaque
+data:
+  uri: "cG9zdGdyZXM6Ly90ZXN0Z3JpZDpwYXNzd29yZEBwb3N0Z3Jlcy5kZWZhdWx0LnN2Yy5jbHVzdGVyLmxvY2FsOjU0MzIvdGVzdGdyaWQ/c3NsbW9kZT1kaXNhYmxl"
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres
+spec:
+  selector:
+    matchLabels:
+      app: postgres
+  serviceName: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+      - name: postgres
+        image: tgdb
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: PGDATA
+          value: /var/lib/postgresql/data/pgdata
+        - name: POSTGRES_USER
+          value: testgrid
+        - name: POSTGRES_PASSWORD
+          value: password
+        - name: POSTGRES_DB
+          value: testgrid
+        ports:
+        - name: postgres
+          containerPort: 5432
+        livenessProbe:
+          exec:
+            command:
+            - /bin/sh
+            - -i
+            - -c
+            - pg_isready -U testgrid -h 127.0.0.1 -p 5432
+          initialDelaySeconds: 30
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          exec:
+            command:
+            - /bin/sh
+            - -i
+            - -c
+            - pg_isready -U testgrid -h 127.0.0.1 -p 5432
+          initialDelaySeconds: 5
+          timeoutSeconds: 1
+          periodSeconds: 10
+        volumeMounts:
+        - name: testgrid-datadir
+          mountPath: /var/lib/postgresql/data
+
+      volumes:
+      - name: testgrid-datadir
+        persistentVolumeClaim:
+          claimName: testgrid-datadir
+
+  volumeClaimTemplates:
+  - metadata:
+      name: testgrid-datadir
+    spec:
+      accessModes:
+      - "ReadWriteOnce"
+      resources:
+        requests:
+          storage: 1Gi
