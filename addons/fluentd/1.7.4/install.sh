@@ -29,7 +29,7 @@ fluentd() {
         cp -r "$kibana_src/" "$kibana_dst/"
 
         if [ -z "$FLUENTD_CONF_FILE" ]; then
-            FLUENTD_CONF_FILE="$fluentd_dst/fluentd.conf"
+            FLUENTD_CONF_FILE="$fluentd_dst/fluent.conf"
             REMOVE_FLUENTD_CONF=1
         fi
 
@@ -48,7 +48,7 @@ fluentd() {
         cp -r "$fluentd_standalone_src/" "$fluentd_dst/"
 
         if [ -z "$FLUENTD_CONF_FILE" ]; then
-            FLUENTD_CONF_FILE="$fluentd_dst/fluentd.conf"
+            FLUENTD_CONF_FILE="$fluentd_dst/fluent.conf"
             REMOVE_FLUENTD_CONF=1
         fi
 
