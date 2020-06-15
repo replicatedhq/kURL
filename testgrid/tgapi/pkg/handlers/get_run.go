@@ -19,7 +19,6 @@ type GetRunRequest struct {
 type GetRunResponse struct {
 	Instances []InstanceResponse `json:"instances"`
 	Total     int                `json:"total"`
-	Addons    []string           `json:"addons"`
 }
 
 type InstanceResponse struct {
@@ -66,13 +65,6 @@ func GetRun(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	uniqueAddons, err := testinstance.GetUniqueAddons(mux.Vars(r)["refId"])
-	if err != nil {
-		logger.Error(err)
-		JSON(w, 500, nil)
-		return
-	}
-
 	getRunResponse := GetRunResponse{}
 
 	instanceResponses := []InstanceResponse{}
@@ -93,7 +85,6 @@ func GetRun(w http.ResponseWriter, r *http.Request) {
 
 	getRunResponse.Instances = instanceResponses
 	getRunResponse.Total = total
-	getRunResponse.Addons = uniqueAddons
 
 	JSON(w, 200, getRunResponse)
 }

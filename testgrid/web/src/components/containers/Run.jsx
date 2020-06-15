@@ -19,8 +19,9 @@ class Run extends React.Component {
     }
   }
 
-  componentDidMount() {
-    this.loadRunInstances();
+  async componentDidMount() {
+    await this.loadRunInstances();
+    this.loadUniqueAddons();
   }
 
   onGotoPage = (page, event) => {
@@ -47,7 +48,6 @@ class Run extends React.Component {
       this.setState({
         instances: resJson.instances,
         totalCount: resJson.total,
-        addons: this.getAddonsMap(resJson.addons),
         isLoading: false,
       })
 
@@ -56,6 +56,23 @@ class Run extends React.Component {
       console.error(err);
       this.setState({ isLoading: false });
       return false;
+    }
+  }
+
+  loadUniqueAddons = async () => {
+    try {
+      this.setState({ isLoading: true });
+
+      const res = await fetch(`${window.env.API_ENDPOINT}/run/${this.props.match.params.runId}/addons`);
+      const resJson = await res.json();
+  
+      this.setState({
+        addons: this.getAddonsMap(resJson.addons),
+        isLoading: false,
+      })
+    } catch(err) {
+      console.error(err);
+      this.setState({ isLoading: false });
     }
   }
 
