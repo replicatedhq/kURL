@@ -134,9 +134,6 @@ module.exports = function(env) {
   } else if (env === "staging") {
     const staging = require("./webpack.config.staging");
     return webpackMerge(common, staging);
-  } else if (env === "kots" ) {
-    const kots = require("./webpack.config.kots");
-    return webpackMerge(common, kots);
   } else {
     const dev = require("./webpack.config.dev");
     return webpackMerge(common, dev);
