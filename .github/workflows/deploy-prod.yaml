@@ -171,7 +171,7 @@ jobs:
           xargs sudo curl -O -L && \
           sudo mv kustomize_*_linux_amd64 /usr/local/bin/kustomize && \
           sudo chmod +x /usr/local/bin/kustomize
-        pushd testgrid/kustomize/overlays/staging
+        pushd testgrid/kustomize/overlays/production
         kustomize edit set image 799720048698.dkr.ecr.us-east-1.amazonaws.com/tgapi:${GITHUB_SHA:0:7}
         kustomize build . > testgrid.yaml
         popd
