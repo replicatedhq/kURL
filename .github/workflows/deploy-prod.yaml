@@ -190,7 +190,7 @@ jobs:
       run: |
         cd ~ && git clone --single-branch -b release git@github.com:replicatedcom/gitops-deploy
         mkdir -p ~/gitops-deploy/testgrid
-        mv ${GITHUB_WORKSPACE}/testgrid/kustomize/overlays/production/testgrid.yaml gitops-deploy/production/testgrid.yaml
+        mv ${GITHUB_WORKSPACE}/testgrid/kustomize/overlays/production/testgrid.yaml gitops-deploy/testgrid/testgrid.yaml
         cd ~/gitops-deploy
         git config user.email "kurl-github-actions@replicated.com"
         git config user.name "kURL GitHub Actions"
