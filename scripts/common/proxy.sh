@@ -1,14 +1,12 @@
 
 function proxy_bootstrap() {
-    if [ "$AIRGAP" = "1" ]; then
-        return
-    fi
-
     if [ -n "$HTTP_PROXY" ]; then
         ENV_PROXY_ADDRESS="$HTTP_PROXY"
+        export https_proxy="$HTTP_PROXY"
         printf "The installer will use the proxy at '%s' (imported from env var 'HTTP_PROXY')\n" "$ENV_PROXY_ADDRESS"
     elif [ -n "$http_proxy" ]; then
         ENV_PROXY_ADDRESS="$http_proxy"
+        export https_proxy="$http_proxy"
         printf "The installer will use the proxy at '%s' (imported from env var 'http_proxy')\n" "$ENV_PROXY_ADDRESS"
     elif [ -n "$HTTPS_PROXY" ]; then
         ENV_PROXY_ADDRESS="$HTTPS_PROXY"
@@ -24,9 +22,6 @@ function proxy_bootstrap() {
         ENV_NO_PROXY="$no_proxy"
     fi
 
-    if curl --silent --connect-timeout 4 --fail https://api.replicated.com/market/v1/echo/ip > /dev/null ; then
-        return
-    fi
     # Need to peek at the yaml spec to find if a proxy is needed to download the util binaries
     if [ -n "$INSTALLER_SPEC_FILE" ]; then
         local overrideProxy=$(grep "proxyAddress:" "$INSTALLER_SPEC_FILE" | grep -o "http[^'\" ]*")
@@ -47,12 +42,11 @@ function proxy_bootstrap() {
         export https_proxy="$PROXY_ADDRESS"
         return
     fi
-
-    bail "Failed to make outbound https request and no proxy is configured."
 }
 
 function configure_proxy() {
     if [ "$NO_PROXY" = "1" ]; then
+        echo "Not using http proxy"
         unset PROXY_ADDRESS
         return
     fi
@@ -63,10 +57,7 @@ function configure_proxy() {
         PROXY_ADDRESS="$ENV_PROXY_ADDRESS"
     fi
     export https_proxy="$PROXY_ADDRESS"
-
-    if ! curl --silent --fail --connect-timeout 4 https://api.replicated.com/market/v1/echo/ip >/dev/null ; then
-        bail "Failed to make outbound request using proxy address $https_proxy"
-    fi
+    echo "Using proxy address $PROXY_ADDRESS"
 }
 
 function configure_no_proxy() {
