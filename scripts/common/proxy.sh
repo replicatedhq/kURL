@@ -6,7 +6,7 @@ function proxy_bootstrap() {
         printf "The installer will use the proxy at '%s' (imported from env var 'HTTP_PROXY')\n" "$ENV_PROXY_ADDRESS"
     elif [ -n "$http_proxy" ]; then
         ENV_PROXY_ADDRESS="$http_proxy"
-        export https_proxy="$HTTP_PROXY"
+        export https_proxy="$http_proxy"
         printf "The installer will use the proxy at '%s' (imported from env var 'http_proxy')\n" "$ENV_PROXY_ADDRESS"
     elif [ -n "$HTTPS_PROXY" ]; then
         ENV_PROXY_ADDRESS="$HTTPS_PROXY"
