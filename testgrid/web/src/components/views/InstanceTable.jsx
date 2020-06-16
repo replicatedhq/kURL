@@ -122,12 +122,12 @@ export default class InstanceTable extends React.Component {
           shouldReturnFocusAfterClose={false}
           contentLabel="View installer"
           ariaHideApp={false}
-          className="Modal InstanceModal"
+          className="Modal LargeSize flex-column u-height--threeQuarters"
         >
           <div className="Modal-header">
             <p>Installer for kURL URL: <a href={this.state.selectedInstance?.kurlURL} target="_blank">{this.state.selectedInstance?.kurlURL}</a></p>
           </div>
-          <div className="Modal-body InstanceModal-body">
+          <div className="Modal-body flex1 flex-column">
             <div className="MonacoEditor-wrapper">
               <MonacoEditor
                 language="json"
@@ -144,7 +144,7 @@ export default class InstanceTable extends React.Component {
                 }}
               />
             </div>
-            <div className="InstanceModal-actions">
+            <div className="u-marginTop--20">
               <button type="button" className="btn primary" onClick={this.hideInstallerModal}>Ok, got it!</button>
             </div>
           </div>
@@ -156,7 +156,7 @@ export default class InstanceTable extends React.Component {
           shouldReturnFocusAfterClose={false}
           contentLabel="View logs"
           ariaHideApp={false}
-          className="Modal InstanceModal"
+          className="Modal XLargeSize flex-column u-height--fourFifths"
         >
           <div className="Modal-header">
             <p>Logs for kURL URL: <a href={this.state.selectedInstance?.kurlURL} target="_blank">{this.state.selectedInstance?.kurlURL}</a> <span className={`${this.state.selectedInstance?.isSuccess ? "text-passed" : "text-failed"}`}>({this.state.selectedInstance?.isSuccess ? "Passed" : "Failed"})</span></p>
@@ -164,7 +164,7 @@ export default class InstanceTable extends React.Component {
           {this.state.loadingLogs ? 
             <Loader />
             :
-            <div className="Modal-body InstanceModal-body">
+            <div className="Modal-body flex1 flex-column">
               <div className="MonacoEditor-wrapper">
                 <MonacoEditor
                   language="json"
@@ -181,7 +181,7 @@ export default class InstanceTable extends React.Component {
                   }}
                 />
               </div>
-              <div className="InstanceModal-actions">
+              <div className="u-marginTop--20">
                 <button type="button" className="btn primary" onClick={this.hideLogsModal}>Ok, got it!</button>
               </div>
             </div>
