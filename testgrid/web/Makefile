@@ -18,6 +18,7 @@ build-staging:
 		--config webpack.config.js \
 		--env staging \
 		--mode production
+	cp _redirects dist-staging
 
 .PHONY: build-production
 build-production: deps
@@ -28,3 +29,4 @@ build-production:
 		--config webpack.config.js \
 		--env production \
 		--mode production
+	cp _redirects dist-prod
