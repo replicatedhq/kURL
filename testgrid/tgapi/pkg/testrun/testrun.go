@@ -62,11 +62,23 @@ func Create(id string) error {
 	return nil
 }
 
-func List() ([]types.TestRun, error) {
+func List(limit int, offset int, searchRef string) ([]types.TestRun, error) {
 	pg := persistence.MustGetPGSession()
 
-	query := `select ref, created_at from testrun order by created_at desc`
-	rows, err := pg.Query(query)
+	query := `select ref, created_at from testrun where lower(ref) like '%' || $1 || '%' order by created_at desc`
+
+	// pagination
+	args := []interface{}{searchRef}
+	if limit > 0 {
+		query += ` limit $2`
+		args = append(args, limit)
+	}
+	if offset > 0 {
+		query += ` offset $3`
+		args = append(args, offset)
+	}
+
+	rows, err := pg.Query(query, args...)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to list runs")
 	}
@@ -83,4 +95,18 @@ func List() ([]types.TestRun, error) {
 	}
 
 	return runs, nil
+}
+
+func Total(searchRef string) (int, error) {
+	db := persistence.MustGetPGSession()
+
+	query := `select count(1) as total from testrun where lower(ref) like '%' || $1 || '%'`
+	row := db.QueryRow(query, searchRef)
+
+	var total int
+	if err := row.Scan(&total); err != nil {
+		return -1, errors.Wrap(err, "failed to scan")
+	}
+
+	return total, nil
 }
