@@ -125,9 +125,9 @@ dist/docker-%.tar.gz:
 	tar cf - -C build packages/docker/$* | gzip > dist/docker-$*.tar.gz
 
 dist/containerd-%.tar.gz:
-	${MAKE} build/packages/containerd/1.2.6/ubuntu-16.04
-	${MAKE} build/packages/containerd/1.3.3/ubuntu-18.04
-	${MAKE} build/packages/containerd/1.2.13/rhel-7
+	${MAKE} build/packages/containerd/$*/ubuntu-16.04
+	${MAKE} build/packages/containerd/$*/ubuntu-18.04
+	${MAKE} build/packages/containerd/$*/rhel-7
 	mkdir -p dist
 	tar cf - -C build packages/containerd | gzip > dist/containerd-$*.tar.gz
 
@@ -294,7 +294,7 @@ build/packages/containerd/%/ubuntu-18.04:
 		-t kurl/ubuntu-1804-containerd:$* \
 		-f bundles/containerd-ubuntu1804/Dockerfile \
 		bundles/containerd-ubuntu1804
-	-docker rm -f containerd-ubuntu1804 2>/dev/null
+	-docker rm -f containerd-ubuntu1804-$* 2>/dev/null
 	docker create --name containerd-ubuntu1804-$* kurl/ubuntu-1804-containerd:$*
 	mkdir -p build/packages/containerd/$*/ubuntu-18.04
 	docker cp containerd-ubuntu1804-$*:/packages/archives/. build/packages/containerd/$*/ubuntu-18.04
@@ -306,7 +306,7 @@ build/packages/containerd/%/ubuntu-16.04:
 		-t kurl/ubuntu-1604-containerd:$* \
 		-f bundles/containerd-ubuntu1604/Dockerfile \
 		bundles/containerd-ubuntu1604
-	-docker rm -f containerd-ubuntu1604 2>/dev/null
+	-docker rm -f containerd-ubuntu1604-$* 2>/dev/null
 	docker create --name containerd-ubuntu1604-$* kurl/ubuntu-1604-containerd:$*
 	mkdir -p build/packages/containerd/$*/ubuntu-16.04
 	docker cp containerd-ubuntu1604-$*:/packages/archives/. build/packages/containerd/$*/ubuntu-16.04
