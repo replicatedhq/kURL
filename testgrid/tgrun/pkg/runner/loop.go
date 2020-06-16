@@ -1,6 +1,7 @@
 package runner
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -104,7 +105,7 @@ func getUploadProxyURL() (string, error) {
 		return "", errors.Wrap(err, "failed to get clientset")
 	}
 
-	svc, err := clientset.CoreV1().Services("cdi").Get("cdi-uploadproxy", metav1.GetOptions{})
+	svc, err := clientset.CoreV1().Services("cdi").Get(context.Background(), "cdi-uploadproxy", metav1.GetOptions{})
 	if err != nil {
 		return "", errors.Wrap(err, "failed to get upload proxy service")
 	}
