@@ -37,24 +37,6 @@ th, td {
   text-decoration: underline;
 }
 
-.InstanceModal {
-  height: 600px;
-  width: 100%;
-  max-width: 700px;
-  display: flex;
-  flex-direction: column;
-}
-
-.InstanceModal-body {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-}
-
-.InstanceModal-actions {
-  margin-top: 20px;
-}
-
 .MonacoEditor-wrapper {
   display: flex;
   flex: 1;
