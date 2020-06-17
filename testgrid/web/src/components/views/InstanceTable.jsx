@@ -1,6 +1,8 @@
 import * as React from "react";
 
 import * as Modal from "react-modal";
+import * as moment from "moment";
+
 import MonacoEditor from "react-monaco-editor";
 import Loader from "./Loader";
 
@@ -74,6 +76,21 @@ export default class InstanceTable extends React.Component {
     }
   }
 
+  getInstanceStatus = instance => {
+    if (instance.finishedAt) {
+      return instance.isSuccess ? "Passed" : "Failed";
+    }
+    if (instance.startedAt) {
+      return "Running";
+    }
+    if (instance.dequeuedAt) {
+      return "Dequeued";
+    }
+    if (instance.enqueuedAt) {
+      return "Enqueued";
+    }
+  }
+
   render() {
     const osArray = this.getOSArray();
     const rows = this.props.instances.map((instance) => {
@@ -82,20 +99,23 @@ export default class InstanceTable extends React.Component {
           <td><span className="url" onClick={() => this.viewInstanceInstaller(instance)}>{instance.kurlURL}</span></td>
           {osArray.map(key => {
             if (key == `${instance.osName}-${instance.osVersion}`) {
+              const status = this.getInstanceStatus(instance);
               return (
                 <td
                   key={`${instance.id}-${key}`}
-                  className={`${instance.isSuccess ? "passed" : "failed"}`}
+                  className={status}
                 >
                   <div className="InstanceStatus-wrapper">
-                    {instance.isSuccess ? "Passed" : "Failed"}
-                    <button type="button" className="btn secondary" onClick={() => this.viewInstanceLogs(instance)}>Logs</button>
+                    {status}
+                    {instance.finishedAt && <button type="button" className="btn secondary" onClick={() => this.viewInstanceLogs(instance)}>Logs</button>}
                   </div>
                 </td>
               );
             }
             return <td key={`${instance.id}-${key}`}>-</td>;
           })}
+          <td>{instance.startedAt ? moment(instance.startedAt).format("MMM D, YYYY h:mma") : "-"}</td>
+          <td>{instance.finishedAt ? moment(instance.finishedAt).format("MMM D, YYYY h:mma") : "-"}</td>
         </tr>
       )
     })
@@ -109,6 +129,8 @@ export default class InstanceTable extends React.Component {
               {osArray.map(key => (
                 <th key={key}>{key}</th>
               ))}
+              <th>Started At</th>
+              <th>Finished At</th>
             </tr>
           </thead>
           <tbody>

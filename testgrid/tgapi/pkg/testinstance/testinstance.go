@@ -90,7 +90,7 @@ where id = $2`
 func List(refID string, limit int, offset int, addons map[string]string) ([]types.TestInstance, error) {
 	db := persistence.MustGetPGSession()
 
-	query := `select id, kurl_yaml, kurl_url, os_name, os_version, os_image, started_at, finished_at, is_success
+	query := `select id, testrun_ref, kurl_yaml, kurl_url, os_name, os_version, os_image, enqueued_at, dequeued_at, started_at, finished_at, is_success
 from testinstance where testrun_ref = $1`
 
 	// filter addons
@@ -124,17 +124,22 @@ from testinstance where testrun_ref = $1`
 	for rows.Next() {
 		testInstance := types.TestInstance{}
 
+		var enqueuedAt sql.NullTime
+		var dequeuedAt sql.NullTime
 		var startedAt sql.NullTime
 		var finishedAt sql.NullTime
 		var isSuccess sql.NullBool
 
 		if err := rows.Scan(
 			&testInstance.ID,
+			&testInstance.RefID,
 			&testInstance.KurlYAML,
 			&testInstance.KurlURL,
 			&testInstance.OSName,
 			&testInstance.OSVersion,
 			&testInstance.OSImage,
+			&enqueuedAt,
+			&dequeuedAt,
 			&startedAt,
 			&finishedAt,
 			&isSuccess,
@@ -142,6 +147,12 @@ from testinstance where testrun_ref = $1`
 			return nil, errors.Wrap(err, "failed to scan")
 		}
 
+		if enqueuedAt.Valid {
+			testInstance.EnqueuedAt = &enqueuedAt.Time
+		}
+		if dequeuedAt.Valid {
+			testInstance.DequeuedAt = &dequeuedAt.Time
+		}
 		if startedAt.Valid {
 			testInstance.StartedAt = &startedAt.Time
 		}

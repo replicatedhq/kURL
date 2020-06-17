@@ -1,6 +1,6 @@
 table {
   border-collapse: collapse;
-  width: 50%;
+  min-width: 50%;
 }
 
 table, td, th {  
@@ -10,4 +10,5 @@ table, td, th {
 
 th, td {
   padding: 15px;
+  min-width: 150px;
 }

@@ -3,11 +3,11 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
-	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/replicatedhq/kurl/testgrid/tgapi/pkg/logger"
 	"github.com/replicatedhq/kurl/testgrid/tgapi/pkg/testinstance"
+	"github.com/replicatedhq/kurl/testgrid/tgapi/pkg/testinstance/types"
 )
 
 type GetRunRequest struct {
@@ -17,19 +17,8 @@ type GetRunRequest struct {
 }
 
 type GetRunResponse struct {
-	Instances []InstanceResponse `json:"instances"`
-	Total     int                `json:"total"`
-}
-
-type InstanceResponse struct {
-	ID         string     `json:"id"`
-	OSName     string     `json:"osName"`
-	OSVersion  string     `json:"osVersion"`
-	KurlYAML   string     `json:"kurlYaml"`
-	KurlURL    string     `json:"kurlURL"`
-	StartedAt  *time.Time `json:"startedAt"`
-	FinishedAt *time.Time `json:"finishedAt"`
-	IsSuccess  bool       `json:"isSuccess"`
+	Instances []types.TestInstance `json:"instances"`
+	Total     int                  `json:"total"`
 }
 
 func GetRun(w http.ResponseWriter, r *http.Request) {
@@ -66,24 +55,7 @@ func GetRun(w http.ResponseWriter, r *http.Request) {
 	}
 
 	getRunResponse := GetRunResponse{}
-
-	instanceResponses := []InstanceResponse{}
-	for _, instance := range instances {
-		instanceResponse := InstanceResponse{
-			ID:         instance.ID,
-			OSName:     instance.OSName,
-			OSVersion:  instance.OSVersion,
-			KurlYAML:   instance.KurlYAML,
-			KurlURL:    instance.KurlURL,
-			StartedAt:  instance.StartedAt,
-			FinishedAt: instance.FinishedAt,
-			IsSuccess:  instance.IsSuccess,
-		}
-
-		instanceResponses = append(instanceResponses, instanceResponse)
-	}
-
-	getRunResponse.Instances = instanceResponses
+	getRunResponse.Instances = instances
 	getRunResponse.Total = total
 
 	JSON(w, 200, getRunResponse)
