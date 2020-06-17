@@ -10,7 +10,7 @@ RUN mkdir -p /packages/archives
 
 ARG CONTAINERD_VERSION
 RUN apt-get -d -y install \
-  containerd=$(apt-cache madison 'containerd' | grep ${CONTAINERD_VERSION} | head -1 | awk '{$1=$1};1' | cut -d' ' -f 3) \
+  containerd.io=$(apt-cache madison 'containerd.io' | grep ${CONTAINERD_VERSION} | head -1 | awk '{$1=$1};1' | cut -d' ' -f 3) \
   -oDebug::NoLocking=1 -o=dir::cache=/packages/
 
 CMD cp -r /packages/archives/* /out/

@@ -159,31 +159,43 @@ swapConfigured() {
 	    cat /etc/fstab | grep --quiet --ignore-case --extended-regexp '^[^#]+swap'
 }
 
+function force_docker() {
+    DOCKER_VERSION="19.03.4"
+    echo "NO CRI version was listed in yaml or found on host OS, defaulting to online docker install"
+    echo "THIS FEATURE IS NOT SUPPORTED AND WILL BE DEPRECATED IN FUTURE KURL VERSIONS"
+}
+
 function cri_preflights() {
     require_cri
 }
 
 function require_cri() {
 	if commandExists docker ; then
+        SKIP_DOCKER_INSTALL=1
 		return 0
 	fi
 
-    if commandExists containerd ; then
+    if commandExists ctr ; then
+        SKIP_CONTAINERD_INSTALL=1
 		return 0
 	fi
 
-  if [ "$LSB_DIST" = "rhel" ]; then
-      if [ -n "$NO_CE_ON_EE" ]; then
-	  printf "${RED}Enterprise Linux distributions require Docker Enterprise Edition. Please install Docker before running this installation script.${NC}\n" 1>&2
-	  return 0
-      fi
-  fi
+    if [ "$LSB_DIST" = "rhel" ]; then
+        if [ -n "$NO_CE_ON_EE" ]; then
+            printf "${RED}Enterprise Linux distributions require Docker Enterprise Edition. Please install Docker before running this installation script.${NC}\n" 1>&2
+            return 0
+        fi
+    fi
 
-  if [ "$SKIP_DOCKER_INSTALL" = "1" ]; then
-	  bail "Docker is required"
-  fi
+    if [ "$SKIP_DOCKER_INSTALL" = "1" ]; then
+        bail "Docker is required"
+    fi
 
-  return 0
+    if [ -z "$DOCKER_VERSION" ] && [ -z "$CONTAINERD_VERSION" ]; then
+            force_docker
+    fi
+
+    return 0
 }
 
 selinux_enabled() {

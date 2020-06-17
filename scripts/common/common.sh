@@ -206,7 +206,7 @@ function install_cri() {
     if [ -n "$DOCKER_VERSION" ]; then
         install_docker
         apply_docker_config
-    else
+    elif [ -n "$CONTAINERD_VERSION" ]; then
         install_containerd
     fi
 }
