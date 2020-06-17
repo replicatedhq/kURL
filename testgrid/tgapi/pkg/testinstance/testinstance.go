@@ -74,13 +74,36 @@ func Start(id string) error {
 	return nil
 }
 
-func FinishWithLogs(id string, logs []byte) error {
+func SetInstanceLogs(id string, logs []byte) error {
 	db := persistence.MustGetPGSession()
 
-	query := `update testinstance set finished_at = now(), output = $1 
-where id = $2`
+	query := `update testinstance set output = $1 where id = $2`
 
 	if _, err := db.Exec(query, logs, id); err != nil {
+		return errors.Wrap(err, "failed to update")
+	}
+
+	return nil
+}
+
+func SetInstanceSonobuoyResults(id string, results []byte) error {
+	db := persistence.MustGetPGSession()
+
+	query := `update testinstance set sonobuoy_results = $1 where id = $2`
+
+	if _, err := db.Exec(query, results, id); err != nil {
+		return errors.Wrap(err, "failed to update")
+	}
+
+	return nil
+}
+
+func SetInstanceSuccess(id string, isSuccess bool) error {
+	db := persistence.MustGetPGSession()
+
+	query := `update testinstance set is_success = $1, finished_at = now() where id = $2`
+
+	if _, err := db.Exec(query, isSuccess, id); err != nil {
 		return errors.Wrap(err, "failed to update")
 	}
 

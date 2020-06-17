@@ -345,6 +345,8 @@ github.com/replicatedhq/kurl v0.0.0-20200514170003-b9e4bf917dd9 h1:RQvXCkkLW71/0
 github.com/replicatedhq/kurl v0.0.0-20200514170003-b9e4bf917dd9/go.mod h1:ORM8QYmmMuylJCxWXnclSOKO+N4kx7eLIw5593awx9Y=
 github.com/replicatedhq/kurl/kurlkinds v0.0.0-20200603224716-d4526b9c8ad0 h1:R2v+aaGhNepDk+rntF4pLtwdo02VyTQIFaPB/DoDLpA=
 github.com/replicatedhq/kurl/kurlkinds v0.0.0-20200603224716-d4526b9c8ad0/go.mod h1:swtN+H2q4iFze0pXAOhx0ZgX/Eej1lk9iI4cx13HcBU=
+github.com/replicatedhq/kurl/kurlkinds v0.0.0-20200616210543-a7ac91c8c90b h1:F59nl9KLyAbvY9wgWNIe9yc/O5O+mrNRrtU35GFpH2Q=
+github.com/replicatedhq/kurl/kurlkinds v0.0.0-20200616210543-a7ac91c8c90b/go.mod h1:swtN+H2q4iFze0pXAOhx0ZgX/Eej1lk9iI4cx13HcBU=
 github.com/replicatedhq/kurl/testgrid/tgapi v0.0.0-20200609141000-22fb64716037 h1:fPfmHsNTzOMtfmK9cxrFicfyhsFLYHmx5Ut4pceEPWU=
 github.com/replicatedhq/kurl/testgrid/tgapi v0.0.0-20200609141000-22fb64716037/go.mod h1:bUcIAf2qoQo18mXvZV4I6BoHNuMJ3O6MRmW9OdbxoOc=
 github.com/rogpeppe/fastuuid v0.0.0-20150106093220-6724a57986af/go.mod h1:XWv6SoW27p1b0cqNHllgS5HIMJraePCO15w5zCzIWYg=

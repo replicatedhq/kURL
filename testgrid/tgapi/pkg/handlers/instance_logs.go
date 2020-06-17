@@ -18,7 +18,7 @@ func InstanceLogs(w http.ResponseWriter, r *http.Request) {
 	}
 
 	instanceId := mux.Vars(r)["instanceId"]
-	if err := testinstance.FinishWithLogs(instanceId, logs); err != nil {
+	if err := testinstance.SetInstanceLogs(instanceId, logs); err != nil {
 		logger.Error(err)
 		JSON(w, 500, nil)
 		return
