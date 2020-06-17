@@ -40,7 +40,6 @@ type InstallerSpec struct {
 	FirewalldConfig FirewalldConfig `json:"firewalldConfig,omitempty"`
 	Ekco            Ekco            `json:"ekco,omitempty"`
 	Containerd      Containerd      `json:"containerd,omitempty"`
-	Kubevirt        Kubevirt        `json:"kubevirt,omityempty"`
 	Kubevirt        Kubevirt        `json:"kubevirt,omitempty"`
 }
 
