@@ -89,7 +89,7 @@ spec:
     privateAddress: 10.38.1.1
     publicAddress: 101.38.1.1
   containerd:
-    version: beta
+    version: 1.2.13
 `;
 
 const typeMetaStableV1Beta1 = `

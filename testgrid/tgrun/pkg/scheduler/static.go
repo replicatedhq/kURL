@@ -15,11 +15,11 @@ var operatingSystems = []types.OperatingSystemImage{
 }
 
 var testSpecs = []types.InstallerSpec{
-	latestRecommendedRook,
-	latestRecommendedOpenEBS,
+	latestRecommendedRookDocker,
+	latestRecommendedRookContainerd,
 }
 
-var latestRecommendedRook = types.InstallerSpec{
+var latestRecommendedRookDocker = types.InstallerSpec{
 	Kubernetes: kurlv1beta1.Kubernetes{
 		Version: "1.17.3",
 	},
@@ -49,21 +49,21 @@ var latestRecommendedRook = types.InstallerSpec{
 	},
 }
 
-var latestRecommendedOpenEBS = types.InstallerSpec{
+var latestRecommendedRookContainerd = types.InstallerSpec{
 	Kubernetes: kurlv1beta1.Kubernetes{
 		Version: "1.17.3",
 	},
 	Weave: &kurlv1beta1.Weave{
 		Version: "2.6.4",
 	},
-	OpenEBS: &kurlv1beta1.OpenEBS{
-		Version: "1.6.0",
+	Rook: &kurlv1beta1.Rook{
+		Version: "1.0.4",
 	},
 	Contour: &kurlv1beta1.Contour{
 		Version: "1.0.1",
 	},
-	Docker: &kurlv1beta1.Docker{
-		Version: "19.03.4",
+	Containerd: &kurlv1beta1.Containerd{
+		Version: "beta",
 	},
 	Prometheus: &kurlv1beta1.Prometheus{
 		Version: "0.33.0",

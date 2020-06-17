@@ -40,6 +40,7 @@ type Installer struct {
 type InstallerSpec struct {
 	Kubernetes      kurlv1beta1.Kubernetes       `json:"kubernetes,omitempty"`
 	Docker          *kurlv1beta1.Docker          `json:"docker,omitempty"`
+	Containerd      *kurlv1beta1.Containerd      `json:"containerd,omitempty"`
 	Weave           *kurlv1beta1.Weave           `json:"weave,omitempty"`
 	Calico          *kurlv1beta1.Calico          `json:"calico,omitempty"`
 	Contour         *kurlv1beta1.Contour         `json:"contour,omitempty"`

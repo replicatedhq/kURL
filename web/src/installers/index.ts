@@ -387,7 +387,7 @@ export class Installer {
       "18.09.8",
     ],
     containerd: [
-      "beta",
+      "1.2.13",
     ],
     weave: [
       "2.6.4",
