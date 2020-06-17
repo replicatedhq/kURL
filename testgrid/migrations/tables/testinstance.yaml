@@ -25,6 +25,8 @@ spec:
           type: boolean
         - name: output
           type: text
+        - name: sonobuoy_results
+          type: text
         - name: kurl_yaml
           type: text
         - name: kurl_url
