@@ -181,7 +181,6 @@ type Containerd struct {
 	Version string `json:"version"`
 }
 
-
 // InstallerStatus defines the observed state of Installer
 type InstallerStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
