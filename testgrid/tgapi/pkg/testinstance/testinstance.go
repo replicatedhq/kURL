@@ -113,7 +113,7 @@ func SetInstanceSuccess(id string, isSuccess bool) error {
 func List(refID string, limit int, offset int, addons map[string]string) ([]types.TestInstance, error) {
 	db := persistence.MustGetPGSession()
 
-	query := `select id, testrun_ref, kurl_yaml, kurl_url, os_name, os_version, os_image, enqueued_at, dequeued_at, started_at, finished_at, is_success
+	query := `select id, kurl_yaml, kurl_url, os_name, os_version, os_image, enqueued_at, dequeued_at, started_at, finished_at, is_success
 from testinstance where testrun_ref = $1`
 
 	// filter addons
@@ -155,7 +155,6 @@ from testinstance where testrun_ref = $1`
 
 		if err := rows.Scan(
 			&testInstance.ID,
-			&testInstance.RefID,
 			&testInstance.KurlYAML,
 			&testInstance.KurlURL,
 			&testInstance.OSName,
