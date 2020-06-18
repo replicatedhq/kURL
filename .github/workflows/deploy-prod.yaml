@@ -197,3 +197,24 @@ jobs:
         git add .
         git commit --allow-empty -m "https://github.com/replicatedhq/kURL/actions/runs/${GITHUB_RUN_ID}" && \
           git push origin release
+
+  deploy-production-netlify-tgweb:
+    runs-on: ubuntu-18.04
+    needs: deploy-production-eks-tgapi
+    steps:
+    - uses: actions/checkout@master
+
+    - uses: actions/setup-node@v1
+      with:
+        node-version: '10.x'
+
+    - name: build
+      run: make -C testgrid/web build-production
+
+    - name: deploy
+      uses: netlify/actions/cli@master
+      with:
+        args: deploy --dir=testgrid/web/dist-prod
+      env:
+        NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+        NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
