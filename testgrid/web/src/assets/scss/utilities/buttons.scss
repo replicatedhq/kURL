@@ -22,6 +22,11 @@
   outline: none;
   position: relative;
 
+  &.xsmall {
+    padding: 4px;
+    font-size: 11px;
+  }
+
   &.small {
     padding: 4px 12px 5px;
   }

@@ -1,7 +1,8 @@
 import * as React from "react";
 
 import * as Modal from "react-modal";
-import * as moment from "moment";
+import * as groupBy from "lodash/groupBy";
+import * as find from "lodash/find";
 
 import MonacoEditor from "react-monaco-editor";
 import Loader from "./Loader";
@@ -18,15 +19,19 @@ export default class InstanceTable extends React.Component {
       selectedInstance: null,
       instanceLogs: "",
       loadingLogs: false,
+      sonobuoyResults: "",
+      showSonobuoyResultsModal: false,
+      loadingSonobuoyResults: false,
     };
   }
 
-  getOSArray = () => {
+  getOSArray = instancesMap => {
     const osMap = {};
-    for (let i = 0; i < this.props.instances.length; i++) {
-      const instance = this.props.instances[i];
-      osMap[`${instance.osName}-${instance.osVersion}`] = true;
-    }
+    Object.keys(instancesMap).forEach(kurlURL => {
+      instancesMap[kurlURL].forEach(instance => {
+        osMap[`${instance.osName}-${instance.osVersion}`] = true;
+      });
+    });
     return Object.keys(osMap);
   }
 
@@ -43,6 +48,10 @@ export default class InstanceTable extends React.Component {
 
   hideLogsModal = () => {
     this.setState({ showLogsModal: false });
+  }
+
+  hideSonobuoyResultsModal = () => {
+    this.setState({ showSonobuoyResultsModal: false });
   }
 
   viewInstanceLogs = instance => {
@@ -64,6 +73,25 @@ export default class InstanceTable extends React.Component {
       });
   }
 
+  viewInstanceSonobuoyResults = instance => {
+    this.setState({ loadingSonobuoyResults: true, showSonobuoyResultsModal: true, selectedInstance: instance });
+
+    fetch(`${window.env.API_ENDPOINT}/instance/${instance.id}/sonobuoy`)
+      .then((res) => {
+        return res.json()
+      })
+      .then((responseJson) => {
+        this.setState({
+          sonobuoyResults: responseJson.results,
+          loadingSonobuoyResults: false,
+        })
+      })
+      .catch((err) => {
+        console.error(err);
+        this.setState({ loadingSonobuoyResults: false });
+      });
+  }
+
   prettifyJSON = value => {
     try {
       if (!value) {
@@ -77,6 +105,9 @@ export default class InstanceTable extends React.Component {
   }
 
   getInstanceStatus = instance => {
+    if (!instance) {
+      return "";
+    }
     if (instance.finishedAt) {
       return instance.isSuccess ? "Passed" : "Failed";
     }
@@ -92,33 +123,37 @@ export default class InstanceTable extends React.Component {
   }
 
   render() {
-    const osArray = this.getOSArray();
-    const rows = this.props.instances.map((instance) => {
+    const osArray = this.getOSArray(this.props.instancesMap);
+    const rows = Object.keys(this.props.instancesMap).map(kurlURL => {
       return (
-        <tr key={instance.id}>
-          <td><span className="url" onClick={() => this.viewInstanceInstaller(instance)}>{instance.kurlURL}</span></td>
-          {osArray.map(key => {
-            if (key == `${instance.osName}-${instance.osVersion}`) {
+        <tr key={kurlURL}>
+          <td><span className="url" onClick={() => this.viewInstanceInstaller(this.props.instancesMap[kurlURL][0])}>{kurlURL}</span></td>
+          {osArray.map(osKey => {
+            const instance = find(this.props.instancesMap[kurlURL], i => (osKey == `${i.osName}-${i.osVersion}`));
+            if (instance) {
               const status = this.getInstanceStatus(instance);
               return (
                 <td
-                  key={`${instance.id}-${key}`}
+                  key={`${kurlURL}-${osKey}-${instance.id}`}
                   className={status}
                 >
-                  <div className="InstanceStatus-wrapper">
-                    {status}
-                    {instance.finishedAt && <button type="button" className="btn secondary" onClick={() => this.viewInstanceLogs(instance)}>Logs</button>}
+                  <div className="flex flex1 alignItems--center">
+                    <span className={`status-text ${status} flex1`}>{status}</span>
+                    {instance.finishedAt && 
+                      <div className="flex-column flex1 alignItems--flexEnd">
+                        <button type="button" className="btn xsmall primary u-width--full u-marginBottom--5" onClick={() => this.viewInstanceLogs(instance)}>kURL Logs</button>
+                        <button type="button" className="btn xsmall secondary blue u-width--full" onClick={() => this.viewInstanceSonobuoyResults(instance)}>Sonobuoy</button>
+                      </div>
+                    }
                   </div>
                 </td>
               );
             }
-            return <td key={`${instance.id}-${key}`}>-</td>;
+            return <td key={`${kurlURL}-${osKey}`}>-</td>;
           })}
-          <td>{instance.startedAt ? moment(instance.startedAt).format("MMM D, YYYY h:mma") : "-"}</td>
-          <td>{instance.finishedAt ? moment(instance.finishedAt).format("MMM D, YYYY h:mma") : "-"}</td>
         </tr>
       )
-    })
+    });
 
     return (
       <div className="InstanceTableContainer">
@@ -129,8 +164,6 @@ export default class InstanceTable extends React.Component {
               {osArray.map(key => (
                 <th key={key}>{key}</th>
               ))}
-              <th>Started At</th>
-              <th>Finished At</th>
             </tr>
           </thead>
           <tbody>
@@ -147,7 +180,7 @@ export default class InstanceTable extends React.Component {
           className="Modal LargeSize flex-column u-height--threeQuarters"
         >
           <div className="Modal-header">
-            <p>Installer for kURL URL: <a href={this.state.selectedInstance?.kurlURL} target="_blank">{this.state.selectedInstance?.kurlURL}</a></p>
+              <p>Installer for kURL URL: <a href={this.state.selectedInstance?.kurlURL} target="_blank">{this.state.selectedInstance?.kurlURL}</a></p>
           </div>
           <div className="Modal-body flex1 flex-column">
             <div className="MonacoEditor-wrapper">
@@ -181,7 +214,7 @@ export default class InstanceTable extends React.Component {
           className="Modal XLargeSize flex-column u-height--fourFifths"
         >
           <div className="Modal-header">
-            <p>Logs for kURL URL: <a href={this.state.selectedInstance?.kurlURL} target="_blank">{this.state.selectedInstance?.kurlURL}</a> <span className={`${this.state.selectedInstance?.isSuccess ? "text-passed" : "text-failed"}`}>({this.state.selectedInstance?.isSuccess ? "Passed" : "Failed"})</span></p>
+              <p>Logs for: <a href={this.state.selectedInstance?.kurlURL} target="_blank">{this.state.selectedInstance?.kurlURL}</a> / {this.state.selectedInstance?.osName}-{this.state.selectedInstance?.osVersion} <span className={`status-text ${this.getInstanceStatus(this.state.selectedInstance)}`}>({this.getInstanceStatus(this.state.selectedInstance)})</span></p>
           </div>
           {this.state.loadingLogs ? 
             <Loader />
@@ -205,6 +238,44 @@ export default class InstanceTable extends React.Component {
               </div>
               <div className="u-marginTop--20">
                 <button type="button" className="btn primary" onClick={this.hideLogsModal}>Ok, got it!</button>
+              </div>
+            </div>
+          }
+        </Modal>
+
+        <Modal
+          isOpen={this.state.showSonobuoyResultsModal}
+          onRequestClose={this.hideSonobuoyResultsModal}
+          shouldReturnFocusAfterClose={false}
+          contentLabel="View logs"
+          ariaHideApp={false}
+          className="Modal XLargeSize flex-column u-height--fourFifths"
+        >
+          <div className="Modal-header">
+            <p>Sonobuoy Results for: <a href={this.state.selectedInstance?.kurlURL} target="_blank">{this.state.selectedInstance?.kurlURL}</a> / {this.state.selectedInstance?.osName}-{this.state.selectedInstance?.osVersion} <span className={`status-text ${this.getInstanceStatus(this.state.selectedInstance)}`}>({this.getInstanceStatus(this.state.selectedInstance)})</span></p>
+          </div>
+          {this.state.loadingSonobuoyResults ? 
+            <Loader />
+            :
+            <div className="Modal-body flex1 flex-column">
+              <div className="MonacoEditor-wrapper">
+                <MonacoEditor
+                  language="json"
+                  value={this.state.sonobuoyResults}
+                  height="100%"
+                  width="100%"
+                  options={{
+                    readOnly: true,
+                    contextmenu: false,
+                    minimap: {
+                      enabled: false
+                    },
+                    scrollBeyondLastLine: false,
+                  }}
+                />
+              </div>
+              <div className="u-marginTop--20">
+                <button type="button" className="btn primary" onClick={this.hideSonobuoyResultsModal}>Ok, got it!</button>
               </div>
             </div>
           }

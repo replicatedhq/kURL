@@ -13,27 +13,8 @@ table, td, th {
 }
 
 th, td {
-  padding: 15px;
+  padding: 12px;
   min-width: 150px;
-
-  &.Passed {
-    background-color: #65A61D;
-  }
-
-  &.Failed {
-    background-color: #BC4752;
-  }
-
-  &.Running {
-    background-color: #CCCCCC;
-  }
-}
-
-.InstanceStatus-wrapper {
-  display: flex;
-  flex: 1;
-  justify-content: space-between;
-  align-items: center;
 }
 
 .url {
@@ -48,10 +29,18 @@ th, td {
   border: 1px solid #CCCCCC;
 }
 
-.text-passed {
-  color: #65A61D;
-}
+.status-text {
+  font-weight: bold;
 
-.text-failed {
-  color: #BC4752;
+  &.Passed {
+    color: #65A61D;
+  }
+
+  &.Failed {
+    color: #BC4752;
+  }
+
+  &.Running {
+    color: #999999;
+  }
 }

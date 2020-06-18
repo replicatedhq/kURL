@@ -50,7 +50,7 @@ func GetRun(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if getRunRequest.PageSize == 0 {
-		getRunRequest.PageSize = 20
+		getRunRequest.PageSize = 500
 	}
 
 	instances, err := testinstance.List(mux.Vars(r)["refId"], getRunRequest.PageSize, getRunRequest.CurrentPage*getRunRequest.PageSize, getRunRequest.Addons)
