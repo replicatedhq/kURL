@@ -15,6 +15,8 @@ function configure_containerd() {
       sed -i 's/systemd_cgroup = false/systemd_cgroup = true/' /etc/containerd/config.toml
 
       systemctl restart containerd
+
+      sleep 1
 }
 
 
