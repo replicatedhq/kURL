@@ -843,6 +843,9 @@ export class Installer {
     if (this.spec.containerd && !Installer.hasVersion("containerd", this.spec.containerd.version)) {
       return { error: { message: `Containerd version "${_.escape(this.spec.containerd.version)}" is not supported` } };
     }
+    if (this.spec.containerd && this.spec.docker) {
+      return { error: { message: `This spec contains both docker and containerd, please specifiy only one CRI` } };
+    }
   }
 
   public packages(): string[] {
