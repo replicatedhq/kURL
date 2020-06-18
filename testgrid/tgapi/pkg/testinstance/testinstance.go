@@ -74,6 +74,18 @@ func Start(id string) error {
 	return nil
 }
 
+func Finish(id string) error {
+	db := persistence.MustGetPGSession()
+
+	query := `update testinstance set finished_at = now() where id = $1 and finished_at is null`
+
+	if _, err := db.Exec(query, id); err != nil {
+		return errors.Wrap(err, "failed to update")
+	}
+
+	return nil
+}
+
 func SetInstanceLogs(id string, logs []byte) error {
 	db := persistence.MustGetPGSession()
 

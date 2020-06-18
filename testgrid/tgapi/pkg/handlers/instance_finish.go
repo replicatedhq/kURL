@@ -10,20 +10,7 @@ import (
 	"go.uber.org/zap"
 )
 
-type StartInstanceRequest struct {
-	OSName    string `json:"osName"`
-	OSVersion string `json:"osVersion"`
-	OSImage   string `json:"osImage"`
-
-	Memory string `json:"memory"`
-	CPU    string `json:"cpu"`
-
-	KurlRef  string `json:"kurlRef"`
-	KurlSpec string `json:"kurlSpec"`
-	KurlURL  string `json:"kurlUrl"`
-}
-
-func StartInstance(w http.ResponseWriter, r *http.Request) {
+func FinishInstance(w http.ResponseWriter, r *http.Request) {
 	startInstanceRequest := StartInstanceRequest{}
 	if err := json.NewDecoder(r.Body).Decode(&startInstanceRequest); err != nil {
 		logger.Error(err)
@@ -33,10 +20,10 @@ func StartInstance(w http.ResponseWriter, r *http.Request) {
 
 	instanceID := mux.Vars(r)["instanceId"]
 
-	logger.Debug("startInstance",
+	logger.Debug("finishInstance",
 		zap.String("instanceId", instanceID))
 
-	if err := testinstance.Start(instanceID); err != nil {
+	if err := testinstance.Finish(instanceID); err != nil {
 		logger.Error(err)
 		JSON(w, 500, nil)
 		return

@@ -1,11 +1,12 @@
 package handlers
 
 import (
-	"fmt"
 	"io/ioutil"
 	"net/http"
 
+	"github.com/gorilla/mux"
 	"github.com/replicatedhq/kurl/testgrid/tgapi/pkg/logger"
+	"go.uber.org/zap"
 )
 
 func InstanceBundle(w http.ResponseWriter, r *http.Request) {
@@ -16,7 +17,11 @@ func InstanceBundle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Printf("bundle size = %d\n", len(bundle))
+	instanceID := mux.Vars(r)["instanceId"]
+
+	logger.Debug("instanceBundle",
+		zap.String("instanceId", instanceID),
+		zap.Int("bundleSize", len(bundle)))
 
 	JSON(w, 200, nil)
 }
