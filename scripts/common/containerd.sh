@@ -39,9 +39,7 @@ function install_containerd() {
             bail "kURL does not support containerd on ${LSB_DIST} ${DIST_VERSION}, please use docker instead"
             ;;
       esac
-   fi
 
-   if [ ! -f "/etc/containerd/config.toml" ]; then
-       configure_containerd
+      configure_containerd
    fi
 }
