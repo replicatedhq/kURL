@@ -5,6 +5,8 @@ import "time"
 type TestInstance struct {
 	ID         string
 	RefID      string
+	EnqueuedAt *time.Time
+	DequeuedAt *time.Time
 	StartedAt  *time.Time
 	FinishedAt *time.Time
 	IsSuccess  bool

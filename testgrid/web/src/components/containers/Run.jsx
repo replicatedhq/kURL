@@ -1,4 +1,6 @@
 import * as React from "react";
+import * as groupBy from "lodash/groupBy";
+
 import InstanceTable from "../views/InstanceTable";
 import Loader from "../views/Loader";
 import Pager from "../views/Pager";
@@ -10,10 +12,10 @@ class Run extends React.Component {
     super(props);
 
     this.state = {
-      instances: [],
+      instancesMap: {},
       isLoading: true,
       currentPage: 0,
-      pageSize: 20,
+      pageSize: 500,
       totalCount: 0,
       addons: {},
     }
@@ -30,7 +32,7 @@ class Run extends React.Component {
     this.loadRunInstances(page, this.state.pageSize);
   }
 
-  loadRunInstances = async (currentPage = 0, pageSize = 20) => {
+  loadRunInstances = async (currentPage = 0, pageSize = 500) => {
     try {
       this.setState({ isLoading: true });
 
@@ -46,7 +48,7 @@ class Run extends React.Component {
       const resJson = await res.json();
   
       this.setState({
-        instances: resJson.instances,
+        instancesMap: groupBy(resJson.instances, "kurlURL"),
         totalCount: resJson.total,
         isLoading: false,
       })
@@ -138,7 +140,7 @@ class Run extends React.Component {
         </div>
 
         <InstanceTable
-          instances={this.state.instances} 
+          instancesMap={this.state.instancesMap} 
         />
 
         <Pager
@@ -147,7 +149,7 @@ class Run extends React.Component {
           pageSize={this.state.pageSize}
           totalCount={this.state.totalCount}
           loading={false}
-          currentPageLength={this.state.instances.length}
+          currentPageLength={Object.keys(this.state.instancesMap).length}
           goToPage={this.onGotoPage}
         />
       </div>

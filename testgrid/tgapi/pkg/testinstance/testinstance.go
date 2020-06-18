@@ -110,32 +110,36 @@ func SetInstanceSuccess(id string, isSuccess bool) error {
 	return nil
 }
 
+// List returns a list of test instances.
+// Note: pagination (limit and offset) are applied to instances with distinct kurl URLs (instances with same kurl URL count as 1)
 func List(refID string, limit int, offset int, addons map[string]string) ([]types.TestInstance, error) {
 	db := persistence.MustGetPGSession()
 
-	query := `select id, kurl_yaml, kurl_url, os_name, os_version, os_image, started_at, finished_at, is_success
-from testinstance where testrun_ref = $1`
+	query := `SELECT ti.id, ti.kurl_yaml, ti.kurl_url, ti.os_name, ti.os_version, ti.os_image, ti.enqueued_at, ti.dequeued_at, ti.started_at, ti.finished_at, ti.is_success
+FROM testinstance ti
+LEFT JOIN (
+	SELECT kurl_url, row_number() OVER (ORDER BY kurl_url) row_num
+	FROM testinstance
+	GROUP BY kurl_url
+) AS x ON x.kurl_url = ti.kurl_url
+WHERE ti.testrun_ref = $1 AND x.row_num > $2`
+
+	// pagination
+	args := []interface{}{refID, offset}
+	if limit > 0 {
+		query += ` AND x.row_num <= $3`
+		args = append(args, offset+limit)
+	}
 
 	// filter addons
 	for addon, version := range addons {
 		if version == "" {
 			continue
 		}
-		query += fmt.Sprintf(` and kurl_yaml::jsonb @> '{"spec":{"%s":{"version": "%s"}}}'::jsonb`, addon, version)
+		query += fmt.Sprintf(` AND kurl_yaml::jsonb @> '{"spec":{"%s":{"version": "%s"}}}'::jsonb`, addon, version)
 	}
 
-	query += ` order by os_name, os_version, kurl_url`
-
-	// pagination
-	args := []interface{}{refID}
-	if limit > 0 {
-		query += ` limit $2`
-		args = append(args, limit)
-	}
-	if offset > 0 {
-		query += ` offset $3`
-		args = append(args, offset)
-	}
+	query += ` ORDER BY kurl_url, os_name, os_version`
 
 	rows, err := db.Query(query, args...)
 	if err != nil {
@@ -147,6 +151,8 @@ from testinstance where testrun_ref = $1`
 	for rows.Next() {
 		testInstance := types.TestInstance{}
 
+		var enqueuedAt sql.NullTime
+		var dequeuedAt sql.NullTime
 		var startedAt sql.NullTime
 		var finishedAt sql.NullTime
 		var isSuccess sql.NullBool
@@ -158,6 +164,8 @@ from testinstance where testrun_ref = $1`
 			&testInstance.OSName,
 			&testInstance.OSVersion,
 			&testInstance.OSImage,
+			&enqueuedAt,
+			&dequeuedAt,
 			&startedAt,
 			&finishedAt,
 			&isSuccess,
@@ -165,6 +173,12 @@ from testinstance where testrun_ref = $1`
 			return nil, errors.Wrap(err, "failed to scan")
 		}
 
+		if enqueuedAt.Valid {
+			testInstance.EnqueuedAt = &enqueuedAt.Time
+		}
+		if dequeuedAt.Valid {
+			testInstance.DequeuedAt = &dequeuedAt.Time
+		}
 		if startedAt.Valid {
 			testInstance.StartedAt = &startedAt.Time
 		}
@@ -184,7 +198,7 @@ from testinstance where testrun_ref = $1`
 func Total(refID string, addons map[string]string) (int, error) {
 	db := persistence.MustGetPGSession()
 
-	query := `select count(1) as total from testinstance where testrun_ref = $1`
+	query := `select count(DISTINCT kurl_url) as total from testinstance where testrun_ref = $1`
 
 	// filter addons
 	for addon, version := range addons {
@@ -216,6 +230,20 @@ func GetLogs(id string) (string, error) {
 	}
 
 	return logs.String, nil
+}
+
+func GetSonobuoyResults(id string) (string, error) {
+	db := persistence.MustGetPGSession()
+
+	query := `select sonobuoy_results from testinstance where id = $1`
+	row := db.QueryRow(query, id)
+
+	var results sql.NullString
+	if err := row.Scan(&results); err != nil {
+		return "", errors.Wrap(err, "failed to scan")
+	}
+
+	return results.String, nil
 }
 
 func GetUniqueAddons(refID string) ([]string, error) {

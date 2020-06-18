@@ -27,6 +27,8 @@ type InstanceResponse struct {
 	OSVersion  string     `json:"osVersion"`
 	KurlYAML   string     `json:"kurlYaml"`
 	KurlURL    string     `json:"kurlURL"`
+	EnqueuedAt *time.Time `json:"enqueuedAt"`
+	DequeuedAt *time.Time `json:"dequeuedAt"`
 	StartedAt  *time.Time `json:"startedAt"`
 	FinishedAt *time.Time `json:"finishedAt"`
 	IsSuccess  bool       `json:"isSuccess"`
@@ -48,7 +50,7 @@ func GetRun(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if getRunRequest.PageSize == 0 {
-		getRunRequest.PageSize = 20
+		getRunRequest.PageSize = 500
 	}
 
 	instances, err := testinstance.List(mux.Vars(r)["refId"], getRunRequest.PageSize, getRunRequest.CurrentPage*getRunRequest.PageSize, getRunRequest.Addons)
@@ -75,6 +77,8 @@ func GetRun(w http.ResponseWriter, r *http.Request) {
 			OSVersion:  instance.OSVersion,
 			KurlYAML:   instance.KurlYAML,
 			KurlURL:    instance.KurlURL,
+			EnqueuedAt: instance.EnqueuedAt,
+			DequeuedAt: instance.DequeuedAt,
 			StartedAt:  instance.StartedAt,
 			FinishedAt: instance.FinishedAt,
 			IsSuccess:  instance.IsSuccess,

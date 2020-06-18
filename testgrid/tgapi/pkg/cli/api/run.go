@@ -29,6 +29,7 @@ func RunCmd() *cobra.Command {
 			r.HandleFunc("/api/v1/run/{refId}", handlers.GetRun).Methods("POST", "OPTIONS")
 			r.HandleFunc("/api/v1/run/{refId}/addons", handlers.GetRunAddons).Methods("GET", "OPTIONS")
 			r.HandleFunc("/api/v1/instance/{instanceId}/logs", handlers.GetInstanceLogs).Methods("GET", "OPTIONS")
+			r.HandleFunc("/api/v1/instance/{instanceId}/sonobuoy", handlers.GetInstanceSonobuoyResults).Methods("GET", "OPTIONS")
 
 			r.HandleFunc("/v1/ref/{refId}/start", handlers.StartRef)
 
