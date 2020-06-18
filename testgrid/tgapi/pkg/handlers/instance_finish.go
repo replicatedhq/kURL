@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"encoding/json"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -11,13 +10,6 @@ import (
 )
 
 func FinishInstance(w http.ResponseWriter, r *http.Request) {
-	startInstanceRequest := StartInstanceRequest{}
-	if err := json.NewDecoder(r.Body).Decode(&startInstanceRequest); err != nil {
-		logger.Error(err)
-		JSON(w, 500, nil)
-		return
-	}
-
 	instanceID := mux.Vars(r)["instanceId"]
 
 	logger.Debug("finishInstance",
