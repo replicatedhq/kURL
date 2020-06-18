@@ -10,6 +10,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/replicatedhq/kurl/testgrid/tgapi/pkg/logger"
 	"github.com/replicatedhq/kurl/testgrid/tgapi/pkg/testinstance"
+	"go.uber.org/zap"
 )
 
 func InstanceSonobuoyResults(w http.ResponseWriter, r *http.Request) {
@@ -20,21 +21,16 @@ func InstanceSonobuoyResults(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	instanceId := mux.Vars(r)["instanceId"]
-	if err := testinstance.SetInstanceSonobuoyResults(instanceId, body); err != nil {
+	instanceID := mux.Vars(r)["instanceId"]
+
+	logger.Debug("instanceSonobuoyResults",
+		zap.String("instanceId", instanceID))
+
+	if err := testinstance.SetInstanceSonobuoyResults(instanceID, body); err != nil {
 		logger.Error(err)
 		JSON(w, 500, nil)
 		return
 	}
-
-	/*
-		Plugin: e2e
-		Status: passed
-		Total: 4843
-		Passed: 1
-		Failed: 0
-		Skipped: 4842
-	*/
 
 	isSuccess := false
 	scanner := bufio.NewScanner(bytes.NewReader(body))
@@ -43,10 +39,9 @@ func InstanceSonobuoyResults(w http.ResponseWriter, r *http.Request) {
 		if strings.HasPrefix(line, "Status:") {
 			isSuccess = strings.HasSuffix(line, "passed")
 		}
-
 	}
 
-	if err := testinstance.SetInstanceSuccess(instanceId, isSuccess); err != nil {
+	if err := testinstance.SetInstanceSuccess(instanceID, isSuccess); err != nil {
 		logger.Error(err)
 		JSON(w, 500, nil)
 		return

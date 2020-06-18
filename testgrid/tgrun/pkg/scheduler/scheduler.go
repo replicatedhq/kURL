@@ -11,6 +11,7 @@ import (
 
 	"github.com/pkg/errors"
 	tghandlers "github.com/replicatedhq/kurl/testgrid/tgapi/pkg/handlers"
+	"github.com/replicatedhq/kurl/testgrid/tgrun/pkg/instances"
 	"github.com/replicatedhq/kurl/testgrid/tgrun/pkg/scheduler/types"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -23,7 +24,7 @@ func Run(schedulerOptions types.SchedulerOptions) error {
 
 	plannedInstances := []tghandlers.PlannedInstance{}
 
-	for _, testSpec := range testSpecs {
+	for _, testSpec := range instances.Instances {
 		// post it to the API to get a sha / id back
 		installer := types.Installer{
 			TypeMeta: metav1.TypeMeta{

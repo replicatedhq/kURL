@@ -7,6 +7,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/replicatedhq/kurl/testgrid/tgapi/pkg/logger"
 	"github.com/replicatedhq/kurl/testgrid/tgapi/pkg/testinstance"
+	"go.uber.org/zap"
 )
 
 type StartInstanceRequest struct {
@@ -30,8 +31,12 @@ func StartInstance(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	instanceId := mux.Vars(r)["instanceId"]
-	if err := testinstance.Start(instanceId); err != nil {
+	instanceID := mux.Vars(r)["instanceId"]
+
+	logger.Debug("startInstance",
+		zap.String("instanceId", instanceID))
+
+	if err := testinstance.Start(instanceID); err != nil {
 		logger.Error(err)
 		JSON(w, 500, nil)
 		return
