@@ -181,7 +181,7 @@ runcmd:
   - [ bash, -c, 'cd /usr/local/bin && tar xzvf /run/sonobuoy/sonobuoy.tar.gz']
   - [ bash, -c, 'sonobuoy --kubeconfig /etc/kubernetes/admin.conf run --wait --mode quick']
   - [ bash, -c, 'results=$(sonobuoy retrieve --kubeconfig /etc/kubernetes/admin.conf) && sonobuoy results $results > /tmp/sonobuoy-results.txt && curl -X POST --data-binary "@/tmp/sonobuoy-results.txt" %s/v1/instance/%s/sonobuoy' ]
-  - [ bash, -c. 'curl -X POST %s/v1/instance/%s/finish']
+  - [ bash, -c, 'curl -X POST %s/v1/instance/%s/finish']
 power_state:
   mode: poweroff
   timeout: 1
