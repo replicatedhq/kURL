@@ -9,14 +9,14 @@ function containerd_get_host_packages_online() {
 }
 
 function configure_containerd() {
+      sleep 1
+
       mkdir -p /etc/containerd
       containerd config default > /etc/containerd/config.toml
 
       sed -i 's/systemd_cgroup = false/systemd_cgroup = true/' /etc/containerd/config.toml
 
       systemctl restart containerd
-
-      sleep 1
 }
 
 
