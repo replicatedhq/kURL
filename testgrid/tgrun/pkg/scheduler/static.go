@@ -17,6 +17,47 @@ var operatingSystems = []types.OperatingSystemImage{
 var testSpecs = []types.InstallerSpec{
 	latestRecommendedRookDocker,
 	latestRecommendedRookContainerd,
+
+	openEBS,
+}
+
+var openEBS = types.InstallerSpec{
+	Kubernetes: kurlv1beta1.Kubernetes{
+		Version: "1.17.3",
+	},
+	Weave: &kurlv1beta1.Weave{
+		Version: "2.5.2",
+	},
+	Contour: &kurlv1beta1.Contour{
+		Version: "1.0.1",
+	},
+	Docker: &kurlv1beta1.Docker{
+		Version: "19.03.4",
+	},
+	Prometheus: &kurlv1beta1.Prometheus{
+		Version: "0.33.0",
+	},
+	Registry: &kurlv1beta1.Registry{
+		Version: "2.7.1",
+	},
+	Velero: &kurlv1beta1.Velero{
+		Version: "1.2.0",
+	},
+	Kotsadm: &kurlv1beta1.Kotsadm{
+		Version: "1.16.1",
+	},
+	OpenEBS: &kurlv1beta1.OpenEBS{
+		Version:                 "latest",
+		Namespace:               "space",
+		IsLocalPVEnabled:        true,
+		LocalPVStorageClassName: "default",
+		IsCstorEnabled:          true,
+		CstorStorageClassName:   "cstore",
+	},
+	Minio: &kurlv1beta1.Minio{
+		Version:   "latest",
+		Namespace: "minio",
+	},
 }
 
 var latestRecommendedRookDocker = types.InstallerSpec{
