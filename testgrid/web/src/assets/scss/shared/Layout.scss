@@ -1,0 +1,35 @@
+.suite-banner {
+  background-color: #073551;
+  color: #ffffff;
+  position: fixed;
+  top: 0;
+  right: 0;
+  left: 0;
+  z-index: 100;
+  padding: 14px 30px;
+  
+  a {
+    font-size: 14px;
+    font-weight: 400;
+    text-decoration: none;
+    color: #ffffff;
+
+    .banner-arrow {
+      position: relative;
+      margin-left: 6px;
+      top: 4px;
+      right: 0;
+      width: 9px;
+      height: 16px;
+      background-image: url("../../images/banner-arrow.png");
+      background-repeat: no-repeat;
+      background-size: 100%;
+      display: inline-block;
+      transition: all 0.2s;
+    }
+
+    &:hover .banner-arrow {
+      right: -4px;
+    }
+  }
+}

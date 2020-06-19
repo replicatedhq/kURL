@@ -2,7 +2,7 @@ import * as React from "react";
 import * as PropTypes from "prop-types";
 import { formatNumber } from "accounting";
 
-import "../../assets/scss/components/Pager.scss";
+import "../../assets/scss/shared/Pager.scss";
 
 class Pager extends React.Component {
   pageCount() {

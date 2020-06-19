@@ -1,7 +1,7 @@
 import * as React from "react";
 import RunTable from "../views/RunTable";
-import Loader from "../views/Loader";
-import Pager from "../views/Pager";
+import Loader from "../shared/Loader";
+import Pager from "../shared/Pager";
 
 import "../../assets/scss/components/Home.scss";
 
@@ -68,7 +68,7 @@ class Home extends React.Component {
 
     return (
       <div className="HomeContainer">
-        <p className="title">kURL Test Runs</p>
+        <p className="u-fontSize--jumbo2 u-fontWeight--bold u-color--tuna u-borderBottom--gray u-paddingBottom--small">kURL Test Runs</p>
 
         <div className="flex alignItems--center u-marginBottom--20">
           <input

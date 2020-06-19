@@ -1,0 +1,113 @@
+/* Header */
+
+.NavBarWrapper {
+  width: 100%;
+  padding: 0;
+  background-color: #F5F8FC;
+  margin-bottom: 0;
+  min-height: 50px;
+  transition: height 0.3s;
+  overflow: hidden;
+  position: fixed;
+  top: 48px;
+  left: 0;
+  z-index: 100;
+  box-shadow: 0 1px 4px rgba(0,0,0,.16);
+}
+
+.NavBarWrapper.smaller {
+  height: 45px;
+}
+
+.KurlHeader {
+  padding: 0;
+  height: 80px;
+  background: url("../../images/kurl-header@2x.png");
+  background-repeat: repeat;
+  background-size: auto 80px;
+}
+
+.KurlHeader.smaller {
+  padding: 0;
+  height: auto !important;
+  background: url("../../images/kurl-header@2x.png");
+  background-repeat: repeat;
+  background-size: auto 50px;
+}
+
+.NavBarContainer {
+  width: 100%;
+  padding: 0 20px;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+/* Header Logo */
+
+.HeaderLogo-wrapper {
+  margin-right: 20px;
+}
+.HeaderLogo a {
+  display: flex;
+  flex-direction: row;
+}
+.HeaderLogo .logo {
+  background-image: url("../../images/kurl_logo@2x.png");
+  background-repeat: no-repeat;
+  background-size: 52px 50px;
+  width: 52px;
+  height: 50px;
+}
+
+.HeaderLogo.smaller .logo  {
+  background-image: url("../../images/kurl_logo_small@2x.png");
+  background-repeat: no-repeat;
+  background-size: 32px 30px;
+  width: 32px;
+  height: 30px;
+}
+.HeaderLogo .text {
+  font-size: 16px;
+  font-weight: 600;
+  color: #4A4A4A;
+  margin-left: 10px;
+}
+
+.HeaderText {
+  font-size: 26px;
+  color: #326DE6;
+  font-weight: 700;
+  align-self: center;
+}
+
+.HeaderText.smaller {
+  font-size: 16px;
+  color: #326DE6;
+  font-weight: 700;
+  align-self: center;
+}
+
+/* Nav Items */
+
+.NavItem,
+.NavItem a {
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  color: #4A4A4A;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 14px;
+  transition: color .15s;
+  user-select: none;
+
+  &:hover {
+    color: #323232;
+    text-decoration: none;
+  }
+}
+
+.left-items {
+  .NavItem {
+    padding: 0 15px;
+  }
+}

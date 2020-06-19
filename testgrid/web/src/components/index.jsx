@@ -6,10 +6,9 @@ import ErrorBoundary from "./containers/ErrorBoundary";
 import NotFound from "./shared/NotFound";
 import Home from "./containers/Home";
 import Run from "./containers/Run";
-import NavBar from "./views/NavBar";
+import Layout from "./shared/Layout";
 
 import "../assets/scss/index.scss";
-import Footer from "./views/Footer";
 
 class Root extends React.Component {
   constructor(props) {
@@ -21,13 +20,13 @@ class Root extends React.Component {
       <ReflexProvider>
         <BrowserRouter>
           <ErrorBoundary>
-            <NavBar />
-            <Switch>
-              <Route exact path="/" component={Home} />
-              <Route exact path="/run/:runId" component={Run} />
-              <Route path="*" component={NotFound} />
-            </Switch>
-            <Footer />
+            <Layout title={"kURL Test Grid"}>
+              <Switch>
+                <Route exact path="/" component={Home} />
+                <Route exact path="/run/:runId" component={Run} />
+                <Route path="*" component={NotFound} />
+              </Switch>
+            </Layout>
           </ErrorBoundary>
         </BrowserRouter>
       </ReflexProvider>

@@ -118,6 +118,7 @@ module.exports = function(env) {
           require("autoprefixer"),
         ],
       }),
+      new FaviconsWebpackPlugin("./src/assets/images/favicon-64.png"),
 			new webpack.ContextReplacementPlugin(
 				/graphql-language-service-interface[\\/]dist$/,
 				new RegExp(`^\\./.*\\.js$`)

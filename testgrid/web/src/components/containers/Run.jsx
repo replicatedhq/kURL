@@ -2,8 +2,8 @@ import * as React from "react";
 import * as groupBy from "lodash/groupBy";
 
 import InstanceTable from "../views/InstanceTable";
-import Loader from "../views/Loader";
-import Pager from "../views/Pager";
+import Loader from "../shared/Loader";
+import Pager from "../shared/Pager";
 
 import "../../assets/scss/components/Run.scss";
 
@@ -118,14 +118,20 @@ class Run extends React.Component {
 
     return (
       <div className="RunContainer">
-        <p className="title">kURL Test Run: {`${this.props.match.params.runId}`}</p>
+        <div className="flex alignItems--center u-borderBottom--gray u-marginBottom--20 u-paddingBottom--small">
+          <div className="u-marginRight--20 u-cursor--pointer" onClick={() => this.props.history.push("/")}>
+            <span className="arrow left u-marginRight--5"></span>
+            <span className="u-color--astral">Runs</span>
+          </div>
+          <span className="u-fontSize--jumbo2 u-fontWeight--bold u-color--tuna">kURL Test Run: {`${this.props.match.params.runId}`}</span>
+        </div>
         
         {/* Addons search */}
         <div className="u-width--threeQuarters u-marginBottom--20 u-borderAll--gray u-padding--row">
           <div className="flex flexWrap--wrap u-marginBottom--10" >
             {this.state.addons && Object.keys(this.state.addons).map(addon => (
               <div key={addon} className="flex u-marginBottom--10 alignItems--center u-width--fourth">
-                <span className="flex1 u-marginRight--10">{addon}</span>
+                <span className="flex1 u-marginRight--10 u-fontWeight--bold">{addon}</span>
                 <input
                   className="Input flex2 u-marginRight--20"
                   type="text"
