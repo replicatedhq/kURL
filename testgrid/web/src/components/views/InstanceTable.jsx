@@ -2,6 +2,7 @@ import * as React from "react";
 
 import * as Modal from "react-modal";
 import * as find from "lodash/find";
+import * as parseAnsi from "parse-ansi";
 
 import MonacoEditor from "react-monaco-editor";
 import Loader from "../shared/Loader";
@@ -221,8 +222,7 @@ export default class InstanceTable extends React.Component {
             <div className="Modal-body flex1 flex-column">
               <div className="MonacoEditor-wrapper">
                 <MonacoEditor
-                  language="json"
-                  value={this.state.instanceLogs}
+                  value={parseAnsi(this.state.instanceLogs).plainText}
                   height="100%"
                   width="100%"
                   options={{
@@ -259,7 +259,6 @@ export default class InstanceTable extends React.Component {
             <div className="Modal-body flex1 flex-column">
               <div className="MonacoEditor-wrapper">
                 <MonacoEditor
-                  language="json"
                   value={this.state.sonobuoyResults}
                   height="100%"
                   width="100%"
