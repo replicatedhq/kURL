@@ -1,0 +1,54 @@
+.Footer-wrapper {
+  position: fixed;
+  bottom: 0px;
+  background-color: #303030;
+}
+.FooterContent-wrapper {
+  padding: 12px 0;
+  margin: 0 auto;
+}
+.FooterItem-wrapper a:hover {
+  text-decoration: underline;
+}
+.FooterItem {
+  font-size: 12px;
+  padding: 0 10px;
+  position: relative;
+  color: #F5F8FC;
+  font-weight: 700;
+}
+
+.FooterItem a {
+  font-size: 12px;
+  position: relative;
+  color: #F5F8FC;
+  font-weight: 700;
+  text-decoration: underline;
+}
+
+.KurlFooter {
+  padding: 0;
+  min-height: 30px;
+  background: url("../../images/kurl-footer@2x.png");
+  background-repeat: repeat;
+  background-size: auto 30px;
+}
+
+.FooterItem-wrapper:first-child .FooterItem {
+  padding-left: 0;
+}
+.FooterItem-wrapper:last-child .FooterItem {
+  padding-right: 0;
+}
+
+.Footer-container {
+  padding: 0 30px;
+}
+
+.github {
+  background-image: url("../../images/github.png");
+  background-repeat: no-repeat;
+  background-size: 20px 20px;
+  width: 20px;
+  height: 20px;
+}

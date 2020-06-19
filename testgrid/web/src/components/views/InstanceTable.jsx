@@ -1,11 +1,10 @@
 import * as React from "react";
 
 import * as Modal from "react-modal";
-import * as groupBy from "lodash/groupBy";
 import * as find from "lodash/find";
 
 import MonacoEditor from "react-monaco-editor";
-import Loader from "./Loader";
+import Loader from "../shared/Loader";
 
 import "../../assets/scss/components/InstanceTable.scss";
 
