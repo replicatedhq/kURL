@@ -48,6 +48,10 @@ function configure_proxy() {
     if [ "$NO_PROXY" = "1" ]; then
         echo "Not using http proxy"
         unset PROXY_ADDRESS
+        unset http_proxy
+        unset HTTP_PROXY
+        unset https_proxy
+        unset HTTPS_PROXY
         return
     fi
     if [ -z "$PROXY_ADDRESS" ] && [ -z "$ENV_PROXY_ADDRESS" ]; then
