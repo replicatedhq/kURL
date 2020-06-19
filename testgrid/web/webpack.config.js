@@ -3,8 +3,9 @@ const webpack = require("webpack");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const FaviconsWebpackPlugin = require("favicons-webpack-plugin");
 const HtmlWebpackTemplate = require("html-webpack-template");
-const path = require("path");
 const MonacoWebpackPlugin = require("monaco-editor-webpack-plugin");
+
+const path = require("path");
 
 module.exports = function(env) {
   const appEnv = require("./env/" + (env || "development") + ".js");
@@ -124,7 +125,7 @@ module.exports = function(env) {
 				new RegExp(`^\\./.*\\.js$`)
       ),
       new MonacoWebpackPlugin({
-        languages: ["yaml"]
+        languages: ["yaml", "json"]
       }),
     ],
   };

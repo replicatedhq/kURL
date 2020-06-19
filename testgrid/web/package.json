@@ -83,6 +83,7 @@
     "lodash": "^4.17.11",
     "moment": "^2.24.0",
     "monaco-editor-webpack-plugin": "^1.9.0",
+    "parse-ansi": "^1.0.3",
     "prop-types": "^15.7.2",
     "react": "^16.8.3",
     "react-autobind": "^1.0.6",
