@@ -215,7 +215,6 @@ func convertToBash(kurlValues map[string]interface{}) (map[string]string, error)
 		}
 
 		if yamlKey == "Kurl.Airgap" && bashVal != "" {
-			finalDictionary["NO_PROXY"] = "1"
 			finalDictionary["OFFLINE_DOCKER_INSTALL"] = "1"
 		}
 

@@ -64,7 +64,6 @@ func Test_convertToBash(t *testing.T) {
 				"LOAD_BALANCER_ADDRESS":  "\"192.168.1.1\"",
 				"AIRGAP":                 "1",
 				"HA_CLUSTER":             "1",
-				"NO_PROXY":               "1",
 				"OFFLINE_DOCKER_INSTALL": "1",
 			},
 			wantError: false,
