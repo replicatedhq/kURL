@@ -4,6 +4,7 @@ bases:
 
 resources:
   - ./service.yaml
+  - ./disruptionbudget.yaml
 
 patchesStrategicMerge:
   - ./deployment.yaml
