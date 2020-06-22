@@ -4,7 +4,7 @@ metadata:
   name: kotsadm-postgres
   labels:
     kots.io/kotsadm: "true"
-    velero.io/exclude-from-backup: "true"
+    kots.io/backup-type: "admin-console"
 spec:
   replicas: 1
   serviceName: kotsadm-postgres
@@ -27,8 +27,8 @@ spec:
       labels:
         app: kotsadm-postgres
         kots.io/kotsadm: "true"
-        velero.io/exclude-from-backup: "true"
-    spec:
+        kots.io/backup-type: "admin-console"
+      spec:
       securityContext:
         runAsUser: 999
         fsGroup: 999
