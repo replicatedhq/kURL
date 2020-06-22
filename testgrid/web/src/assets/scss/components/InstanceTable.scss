@@ -29,6 +29,17 @@ th, td {
   border: 1px solid #CCCCCC;
 }
 
+.AceEditor-wrapper {
+  display: flex;
+  flex: 1;
+  border: 1px solid #CCCCCC;
+
+  .active-highlight {
+    background: #fffbdd;
+    position: absolute;
+  }
+}
+
 .status-text {
   font-weight: bold;
 
