@@ -1,5 +1,6 @@
 import * as React from "react";
 import * as groupBy from "lodash/groupBy";
+import * as queryString from "query-string";
 
 import InstanceTable from "../views/InstanceTable";
 import Loader from "../shared/Loader";
@@ -11,28 +12,76 @@ class Run extends React.Component {
   constructor(props) {
     super(props);
 
+    let currentPage = 0, pageSize = 500;
+    const params = queryString.parse(this.props.location.search);
+    if (params.currentPage) {
+      currentPage = parseInt(params.currentPage);
+    }
+    if (params.pageSize) {
+      pageSize = parseInt(params.pageSize);
+    }
+
     this.state = {
       instancesMap: {},
       isLoading: true,
-      currentPage: 0,
-      pageSize: 500,
+      currentPage,
+      pageSize,
       totalCount: 0,
       addons: {},
-    }
+    };
+
+    this.instancesTable = React.createRef();
   }
 
   async componentDidMount() {
     await this.loadRunInstances();
-    this.loadUniqueAddons();
+    await this.loadUniqueAddons();
+
+    const params = queryString.parse(this.props.location.search);
+    if (params.kurlLogsInstanceId) {
+      const instance = this.findInstanceInMap(params.kurlLogsInstanceId);
+      this.instancesTable?.current?.viewInstanceLogs(instance);
+    } else if (params.sonobuoyResultsInstanceId) {
+      const instance = this.findInstanceInMap(params.sonobuoyResultsInstanceId);
+      this.instancesTable?.current?.viewInstanceSonobuoyResults(instance);
+    }
+  }
+
+  findInstanceInMap = id => {
+    const kurlURLs = Object.keys(this.state.instancesMap);
+    for (let k = 0; k < kurlURLs.length; k++) {
+      const kurlURL = kurlURLs[k];
+      const kurlUrlInstances = this.state.instancesMap[kurlURL];
+      for (let i = 0; i < kurlUrlInstances.length; i++) {
+        const instance = kurlUrlInstances[i];
+        if (instance.id === id) {
+          return instance;
+        }
+      }
+    }
+    return null;
   }
 
   onGotoPage = (page, event) => {
     event.preventDefault();
+
+    const searchParams = queryString.parse(this.props.location.search);
+    if (page > 0) {
+      searchParams.currentPage = `${page}`;
+    } else if ("currentPage" in searchParams) {
+      delete searchParams["currentPage"];
+    }
+    
+    this.props.history.replace({
+      pathname: this.props.location.pathname,
+      search: queryString.stringify(searchParams),
+    });
+
     this.setState({ currentPage: page });
     this.loadRunInstances(page, this.state.pageSize);
   }
 
-  loadRunInstances = async (currentPage = 0, pageSize = 500) => {
+  loadRunInstances = async (currentPage = this.state.currentPage, pageSize = this.state.pageSize) => {
     try {
       this.setState({ isLoading: true });
 
@@ -146,7 +195,10 @@ class Run extends React.Component {
         </div>
 
         <InstanceTable
-          instancesMap={this.state.instancesMap} 
+          ref={this.instancesTable}
+          instancesMap={this.state.instancesMap}
+          history={this.props.history}
+          location={this.props.location}
         />
 
         <Pager

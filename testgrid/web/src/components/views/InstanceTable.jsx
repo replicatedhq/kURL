@@ -3,8 +3,11 @@ import * as React from "react";
 import * as Modal from "react-modal";
 import * as find from "lodash/find";
 import * as parseAnsi from "parse-ansi";
+import * as queryString from "query-string";
 
 import MonacoEditor from "react-monaco-editor";
+import AceEditor from "react-ace";
+
 import Loader from "../shared/Loader";
 
 import "../../assets/scss/components/InstanceTable.scss";
@@ -22,6 +25,7 @@ export default class InstanceTable extends React.Component {
       sonobuoyResults: "",
       showSonobuoyResultsModal: false,
       loadingSonobuoyResults: false,
+      activeMarkers: [],
     };
   }
 
@@ -47,14 +51,49 @@ export default class InstanceTable extends React.Component {
   }
 
   hideLogsModal = () => {
-    this.setState({ showLogsModal: false });
+    this.setState({ showLogsModal: false, activeMarkers: [] });
+
+    if (this.props.location) {
+      const searchParams = queryString.parse(this.props.location?.search);
+      if ("kurlLogsInstanceId" in searchParams) {
+        delete searchParams["kurlLogsInstanceId"];
+      }
+      this.props.history?.replace({
+        pathname: this.props.location?.pathname,
+        search: queryString.stringify(searchParams),
+        hash: "",
+      });
+    }
   }
 
   hideSonobuoyResultsModal = () => {
-    this.setState({ showSonobuoyResultsModal: false });
+    this.setState({ showSonobuoyResultsModal: false, activeMarkers: [] });
+    
+    if (this.props.location) {
+      const searchParams = queryString.parse(this.props.location?.search);
+      if ("sonobuoyResultsInstanceId" in searchParams) {
+        delete searchParams["sonobuoyResultsInstanceId"];
+      }
+      this.props.history?.replace({
+        pathname: this.props.location?.pathname,
+        search: queryString.stringify(searchParams),
+        hash: "",
+      });
+    }
   }
 
   viewInstanceLogs = instance => {
+    if (this.props.location) {
+      const searchParams = queryString.parse(this.props.location?.search);
+      searchParams.kurlLogsInstanceId = instance.id;
+
+      this.props.history?.replace({
+        pathname: this.props.location?.pathname,
+        search: queryString.stringify(searchParams),
+        hash: this.props.location?.hash,
+      });
+    }
+
     this.setState({ loadingLogs: true, showLogsModal: true, selectedInstance: instance });
 
     fetch(`${window.env.API_ENDPOINT}/instance/${instance.id}/logs`)
@@ -65,7 +104,14 @@ export default class InstanceTable extends React.Component {
         this.setState({
           instanceLogs: responseJson.logs,
           loadingLogs: false,
-        })
+        }, () => {
+          if (this.props.location?.hash !== "") {
+            setTimeout(() => {
+              const selectedLine = parseInt(this.props.location.hash.substring(2));
+              this.goToLineInEditor(this.logsAceEditor, selectedLine);
+            }, 200);
+          }
+        });
       })
       .catch((err) => {
         console.error(err);
@@ -74,6 +120,17 @@ export default class InstanceTable extends React.Component {
   }
 
   viewInstanceSonobuoyResults = instance => {
+    if (this.props.location) {
+      const searchParams = queryString.parse(this.props.location?.search);
+      searchParams.sonobuoyResultsInstanceId = instance.id;
+
+      this.props.history?.replace({
+        pathname: this.props.location?.pathname,
+        search: queryString.stringify(searchParams),
+        hash: this.props.location?.hash,
+      });
+    }
+
     this.setState({ loadingSonobuoyResults: true, showSonobuoyResultsModal: true, selectedInstance: instance });
 
     fetch(`${window.env.API_ENDPOINT}/instance/${instance.id}/sonobuoy`)
@@ -84,7 +141,7 @@ export default class InstanceTable extends React.Component {
         this.setState({
           sonobuoyResults: responseJson.results,
           loadingSonobuoyResults: false,
-        })
+        });
       })
       .catch((err) => {
         console.error(err);
@@ -119,6 +176,35 @@ export default class InstanceTable extends React.Component {
     }
     if (instance.enqueuedAt) {
       return "Enqueued";
+    }
+  }
+
+  goToLineInEditor = (editorRef, line) => {
+    editorRef?.editor?.gotoLine(line);
+    this.setState({ activeMarkers: [{
+      startRow: line - 1,
+      endRow: line,
+      className: "active-highlight",
+      type: "background"
+    }] });
+  }
+
+  onSelectionChange = editorRef => {
+    const column = editorRef?.editor?.selection?.anchor.column;
+    const row = editorRef?.editor?.selection?.anchor.row;
+    if (column === 0) {
+      const activeMarkers = [{
+        startRow: row - 1,
+        endRow: row,
+        className: "active-highlight",
+        type: "background"
+      }];
+      this.setState({ activeMarkers });
+      this.props.history?.replace({
+        pathname: this.props.location?.pathname,
+        search: this.props.location?.search,
+        hash: `#L${row}`,
+      });
     }
   }
 
@@ -220,18 +306,26 @@ export default class InstanceTable extends React.Component {
             <Loader />
             :
             <div className="Modal-body flex1 flex-column">
-              <div className="MonacoEditor-wrapper">
-                <MonacoEditor
+              <div className="AceEditor-wrapper">
+                <AceEditor
+                  ref={input => (this.logsAceEditor = input)}
+                  mode="text"
+                  theme="chrome"
+                  className="flex1 flex"
+                  readOnly={true}
                   value={parseAnsi(this.state.instanceLogs).plainText}
                   height="100%"
                   width="100%"
-                  options={{
-                    readOnly: true,
-                    contextmenu: false,
-                    minimap: {
-                      enabled: false
-                    },
-                    scrollBeyondLastLine: false,
+                  markers={this.state.activeMarkers}
+                  editorProps={{
+                    $blockScrolling: Infinity,
+                    useSoftTabs: true,
+                    tabSize: 2,
+                  }}
+                  onSelectionChange={() => this.onSelectionChange(this.logsAceEditor)}
+                  setOptions={{
+                    scrollPastEnd: false,
+                    showGutter: true,
                   }}
                 />
               </div>

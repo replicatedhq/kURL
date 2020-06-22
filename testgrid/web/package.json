@@ -86,6 +86,7 @@
     "parse-ansi": "^1.0.3",
     "prop-types": "^15.7.2",
     "react": "^16.8.3",
+    "react-ace": "^6.2.0",
     "react-autobind": "^1.0.6",
     "react-dom": "^16.8.3",
     "react-github-button": "^0.1.11",
