@@ -25,7 +25,7 @@
     "sigsci-module-nodejs": "https://dl.signalsciences.net/sigsci-module-nodejs/1.4.8/sigsci-module-nodejs-1.4.8.tgz",
     "statsd-client": "^0.4.2",
     "superagent": "^5.1.0",
-    "ts-express-decorators": "^5.24.1"
+    "ts-express-decorators": "^5.56.0"
   },
   "devDependencies": {
     "@pact-foundation/pact": "^8.2.0",
