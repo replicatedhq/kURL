@@ -7,7 +7,7 @@
   "dependencies": {
     "@kubernetes/client-node": "^0.10.2",
     "ajv": "^6.10.2",
-    "aws-sdk": "^2.510.0",
+    "aws-sdk": "^2.689.0",
     "body-parser": "^1.18.2",
     "bugsnag": "^2.0.1",
     "cors": "^2.8.1",
