@@ -2951,6 +2951,11 @@ hosted-git-info@^2.1.4, hosted-git-info@^2.7.1:
   resolved "https://registry.yarnpkg.com/hosted-git-info/-/hosted-git-info-2.7.1.tgz#97f236977bd6e125408930ff6de3eec6281ec047"
   integrity sha512-7T/BxH19zbcCTa8XkMlbK5lTo1WtgkFi3GvdWEyNuc4Vex7/9Dqbnpsf4JMydcfj9HCg4zUWFTL3Za6lapg5/w==
 
+hot-shots@^5.0.1:
+  version "5.9.2"
+  resolved "https://registry.yarnpkg.com/hot-shots/-/hot-shots-5.9.2.tgz#1cff097706f40ba2c1350d4806deebbd16a5e8c8"
+  integrity sha512-ruHZvHaxZRVUCoCleiwwCcjdr9A2/Y97C7oc9LpyMg9ae39blHvsJJQQ0QtMtxKX+i4lig/7/BqZBjUUZPUp3A==
+
 http-errors@1.7.2:
   version "1.7.2"
   resolved "https://registry.yarnpkg.com/http-errors/-/http-errors-1.7.2.tgz#4f5029cf13239f31036e5b2e55292bcfbcc85c8f"
@@ -4417,13 +4422,14 @@ moment@^2.10.6:
   resolved "https://registry.yarnpkg.com/moment/-/moment-2.24.0.tgz#0d055d53f5052aa653c9f6eb68bb5d12bf5c2b5b"
   integrity sha512-bV7f+6l2QigeBBZSM/6yTNq4P2fNpSWj/0e7jQcy87A8e7o2nAfP/34/2ky5Vw4B9S446EtIhodAzkFCcR4dQg==
 
-monkit@^0.4.0:
-  version "0.4.0"
-  resolved "https://registry.yarnpkg.com/monkit/-/monkit-0.4.0.tgz#7e1b95449458bd5fa1d7df9fabe9d1deb2aa35f0"
-  integrity sha1-fhuVRJRYvV+h19+fq+nR3rKqNfA=
+monkit@^0.5.0:
+  version "0.5.0"
+  resolved "https://registry.yarnpkg.com/monkit/-/monkit-0.5.0.tgz#e8f6b1d39f6f98389e7e97e7a3efdd71e3b96a17"
+  integrity sha1-6Pax059vmDiefpfno+/dceO5ahc=
   dependencies:
     "@types/statsd-client" "^0.1.30"
     form-urlencoded "^1.5.0"
+    hot-shots "^5.0.1"
     lodash "^4.17.4"
     metrics "^0.1.11"
     request "^2.81.0"
