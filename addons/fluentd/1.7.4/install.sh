@@ -33,7 +33,7 @@ fluentd() {
             REMOVE_FLUENTD_CONF=1
         fi
 
-        kubectl create configmap fluentdconf --from-file $FLUENTD_CONF_FILE --namespace logging -o yaml --dry-run > "$fluentd_dst/fluentd-ekf-configmap.yaml"
+        kubectl create configmap fluentdconf --from-file $FLUENTD_CONF_FILE --namespace logging -o yaml --dry-run > "$fluentd_dst/fluentd-efk-configmap.yaml"
 
         if [ -n "$REMOVE_FLUENTD_CONF" ]; then
             rm -f "$FLUENTD_CONF_FILE"
