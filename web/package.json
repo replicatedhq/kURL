@@ -19,7 +19,7 @@
     "newrelic": "^5.7.0",
     "pino": "^4.10.4",
     "promise-mysql": "^4.1.0",
-    "replicated-lint": "^0.13.3",
+    "replicated-lint": "^0.18.6",
     "request": "^2.88.0",
     "request-promise": "^4.2.2",
     "sigsci-module-nodejs": "https://dl.signalsciences.net/sigsci-module-nodejs/1.4.8/sigsci-module-nodejs-1.4.8.tgz",
