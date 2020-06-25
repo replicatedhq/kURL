@@ -12,13 +12,10 @@ require (
 	github.com/stretchr/testify v1.4.0
 	github.com/vishvananda/netlink v0.0.0-20171020171820-b2de5d10e38e
 	github.com/vishvananda/netns v0.0.0-20171111001504-be1fbeda1936 // indirect
-	golang.org/x/crypto v0.0.0-20200220183623-bac4c82f6975
+	golang.org/x/crypto v0.0.0-20200115085410-6d4e4cb37c7d
 	gopkg.in/yaml.v2 v2.2.8
-	k8s.io/apimachinery v0.18.3
-	k8s.io/client-go v0.18.3
-	sigs.k8s.io/structured-merge-diff v0.0.0-20190525122527-15d366b2352e // indirect
+	k8s.io/apimachinery v0.17.3
+	k8s.io/client-go v0.17.2
 )
 
-replace github.com/replicatedhq/kurl => ../
-
-replace github.com/replicatedhq/kurl/kurlkinds => ../kurlkinds
+replace github.com/replicatedhq/kurl/ => ../
