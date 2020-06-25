@@ -109,6 +109,11 @@ spec:
               secretKeyRef:
                 name: kotsadm-postgres
                 key: uri
+          - name: POSTGRES_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: kotsadm-postgres
+                key: password
           - name: POD_NAMESPACE
             valueFrom:
               fieldRef:
