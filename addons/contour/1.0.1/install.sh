@@ -16,6 +16,11 @@ function contour() {
 
     cp "$src/patches/service-patch.yaml" "$dst/"
 
+    if [ -z "$CONTOUR_TLS_MINIMUM_PROTOCOL_VERSION" ]; then
+        CONTOUR_TLS_MINIMUM_PROTOCOL_VERSION="1.2"
+    fi
+
+    render_yaml_file "$src/tmpl-configmap.yaml" > "$dst/configmap.yaml"
     render_yaml_file "$src/tmpl-kustomization.yaml" > "$dst/kustomization.yaml"
     render_yaml_file "$src/tmpl-namespace.yaml" > "$dst/namespace.yaml"
 

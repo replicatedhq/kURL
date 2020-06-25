@@ -43,7 +43,8 @@ type InstallerSpec struct {
 }
 
 type Contour struct {
-	Version string `json:"version"`
+	Version                   string `json:"version"`
+	TLSMinimumProtocolVersion string `json:"tlsMinimumProtocolVersion,omitempty"`
 }
 
 type Docker struct {

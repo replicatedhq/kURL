@@ -30,6 +30,8 @@ spec:
           properties:
             contour:
               properties:
+                tlsMinimumProtocolVersion:
+                  type: string
                 version:
                   type: string
               required:
