@@ -72,7 +72,7 @@ spec:
     localBucket: local
   ekco:
     version: latest
-    nodeUnreachableTolerationDuration: 10m
+    nodeUnreachableToleration: 10m
     minReadyMasterNodeCount: 3
     minReadyWorkerNodeCount: 1
     shouldDisableRebootService: false
@@ -248,7 +248,7 @@ const ekco = `
 spec:
   ekco:
     version: latest
-    nodeUnreachableTolerationDuration: 10m
+    nodeUnreachableToleration: 10m
     minReadyMasterNodeCount: 3
     minReadyWorkerNodeCount: 1
     shouldDisableRebootService: false
@@ -658,7 +658,7 @@ spec:
 
       expect(i.spec.ekco).to.deep.equal({
         version: "latest",
-        nodeUnreachableTolerationDuration: "10m",
+        nodeUnreachableToleration: "10m",
         minReadyMasterNodeCount: 3,
         minReadyWorkerNodeCount: 1,
         shouldDisableRebootService: false,

@@ -130,7 +130,7 @@ spec:
               type: object
             ekco:
               properties:
-                nodeUnreachableTolerationDuration:
+                nodeUnreachableToleration:
                   type: string
                 minReadyMasterNodeCount:
                   type: integer
