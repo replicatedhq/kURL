@@ -156,7 +156,7 @@ export const minioConfigSchema = {
 
 export interface ContourConfig {
   version: string;
-  tlsMinimumProtocolVersion: string;
+  tlsMinimumProtocolVersion?: string;
 }
 
 export const contourConfigSchema = {
