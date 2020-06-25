@@ -257,7 +257,7 @@ export const veleroConfigSchema = {
 
 export interface EkcoConfig {
   version: string;
-  nodeUnreachableTolerationDuration?: string;
+  nodeUnreachableToleration?: string;
   minReadyMasterNodeCount?: number;
   minReadyWorkerNodeCount?: number;
   shouldDisableRebootService?: boolean;
@@ -268,7 +268,7 @@ export const ekcoConfigSchema = {
   type: "object",
   properties: {
     version: { type: "string" },
-    nodeUnreachableTolerationDuration: { type: "string", flag: "ekco-node-unreachable-toleration-duration" , description: "How long a Node must have status unreachable before it’s purged" },
+    nodeUnreachableToleration: { type: "string", flag: "ekco-node-unreachable-toleration-duration" , description: "How long a Node must have status unreachable before it’s purged" },
     minReadyMasterNodeCount: { type: "number", flag: "ekco-min-ready-master-node-count" , description: "Ekco will not purge a master node if it would result in less than this many masters remaining" },
     minReadyWorkerNodeCount: { type: "number", flag: "ekco-min-ready-worker-node-count" , description: "Ekco will not purge a worker node if it would result in less than this many workers remaining" },
     shouldDisableRebootService: { type: "boolean", flag: "ekco-should-disable-reboot-service" , description: "Do not install the systemd shutdown service that cordons a node and deletes pods with PVC and Shared FS volumes mounted" },

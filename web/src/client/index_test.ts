@@ -161,7 +161,7 @@ spec:
     version: latest
   ekco:
     version: latest
-    nodeUnreachableTolerationDuration: 10m
+    nodeUnreachableToleration: 10m
     minReadyMasterNodeCount: 3
     minReadyWorkerNodeCount: 1
     shouldDisableRebootService: false
