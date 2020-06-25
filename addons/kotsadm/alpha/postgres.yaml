@@ -28,7 +28,7 @@ spec:
         app: kotsadm-postgres
         kots.io/kotsadm: "true"
         kots.io/backup-type: "admin-console"
-      spec:
+    spec:
       securityContext:
         runAsUser: 999
         fsGroup: 999
