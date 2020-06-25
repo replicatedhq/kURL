@@ -6,6 +6,7 @@ resources:
 - deployment.yaml
 - service.yaml
 - rbac.yaml
+- configmap.yaml
 
 patchesStrategicMerge:
 - service-patch.yaml

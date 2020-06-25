@@ -156,12 +156,14 @@ export const minioConfigSchema = {
 
 export interface ContourConfig {
   version: string;
+  tlsMinimumProtocolVersion: string;
 }
 
 export const contourConfigSchema = {
   type: "object",
   properties: {
     version: { type: "string" },
+    tlsMinimumProtocolVersion: { type: "string", flag: "contour-tls-minimum-protocol-version", description: "The minimum TLS protocol version that is allowed (default 1.2)." },
   },
   required: ["version"],
   additionalProperties: false,

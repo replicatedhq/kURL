@@ -5,6 +5,7 @@ metadata:
 spec:
   contour:
     version: latest
+    tlsMinimumProtocolVersion: "1.3"
   docker:
     bypassStorageDriverWarning: true
     daemonConfig: "json config"
