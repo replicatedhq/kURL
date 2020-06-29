@@ -348,6 +348,18 @@ build/packages/kubernetes/%/rhel-7:
 	docker cp k8s-rhel7-$*:/packages/archives/. build/packages/kubernetes/$*/rhel-7/
 	docker rm k8s-rhel7-$*
 
+build/packages/kubernetes/%/rhel-8:
+	docker build \
+		--build-arg KUBERNETES_VERSION=$* \
+		-t kurl/rhel-8-k8s:$* \
+		-f bundles/k8s-rhel8/Dockerfile \
+		bundles/k8s-rhel8
+	-docker rm -f k8s-rhel8-$* 2>/dev/null
+	docker create --name k8s-rhel8-$* kurl/rhel-8-k8s:$*
+	mkdir -p build/packages/kubernetes/$*/rhel-8
+	docker cp k8s-rhel8-$*:/packages/archives/. build/packages/kubernetes/$*/rhel-8/
+	docker rm k8s-rhel8-$*
+
 build/templates: build/templates/install.tmpl build/templates/join.tmpl build/templates/upgrade.tmpl build/templates/tasks.tmpl
 
 build/bin:
