@@ -34,7 +34,7 @@ function install_containerd() {
             export DEBIAN_FRONTEND=noninteractive
             dpkg --install --force-depends-version $DIR/packages/containerd/$CONTAINERD_VERSION/ubuntu-${DIST_VERSION}/*.deb
             ;;
-         rhel7.7|rhel7.8|rhel8.0|rhel8.1|centos7.7|centos7.8|centos8.0|centos8.1|amzn2)
+         rhel7.7|rhel7.8|rhel8.0|rhel8.1|centos7.7|centos7.8|centos8.0|centos8.1|centos8.2|amzn2)
             rpm --upgrade --force --nodeps $DIR/packages/containerd/$CONTAINERD_VERSION/rhel-7/*.rpm
             ;;
          *)
