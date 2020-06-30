@@ -60,7 +60,7 @@ while read -r line; do
             sudo chown -R $UID $OUT_DIR/ubuntu-16.04
             ;;
         yum)
-            mkdir -p $OUT_DIR/rhel-7
+            mkdir -p $OUT_DIR/rhel-7 $OUT_DIR/rhel-8
             package=$(echo $line | awk '{ print $2 }')
 
             docker rm -f rhel-7-${package} 2>/dev/null || true
@@ -72,9 +72,6 @@ while read -r line; do
                     yumdownloader --resolve --destdir=/packages/archives -y $package"
             docker cp rhel-7-${package}:/packages/archives $OUT_DIR/rhel-7
             sudo chown -R $UID $OUT_DIR/rhel-7
-
-            mkdir -p $OUT_DIR/rhel-8
-            package=$(echo $line | awk '{ print $2 }')
 
             docker rm -f rhel-8-${package} 2>/dev/null || true
             docker run \
