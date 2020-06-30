@@ -400,6 +400,7 @@ export class Installer {
     ],
     contour: [
       "1.0.1",
+      "1.6.0", // Do not make this default initially.
       "0.14.0",
     ],
     registry: [
