@@ -109,6 +109,8 @@ func convertToBash(kurlValues map[string]interface{}) (map[string]string, error)
 		"Ekco.NodeUnreachableToleration":         "EKCO_NODE_UNREACHABLE_TOLERATION_DURATION",
 		"Ekco.RookShouldUseAllNodes":             "EKCO_ROOK_SHOULD_USE_ALL_NODES",
 		"Ekco.ShouldDisableRebootServices":       "EKCO_SHOULD_DISABLE_REBOOT_SERVICE",
+		"Ekco.ShouldDisableClearNodes":           "EKCO_SHOULD_DISABLE_CLEAR_NODES",
+		"Ekco.ShouldEnablePurgeNodes":            "EKCO_SHOULD_ENABLE_PURGE_NODES",
 		"Ekco.Version":                           "EKCO_VERSION",
 		"FirewalldConfig.BypassFirewalldWarning": "BYPASS_FIREWALLD_WARNING",
 		"FirewalldConfig.DisableFirewalld":       "DISABLE_FIREWALLD",

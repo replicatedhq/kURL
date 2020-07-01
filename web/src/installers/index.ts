@@ -261,6 +261,8 @@ export interface EkcoConfig {
   minReadyMasterNodeCount?: number;
   minReadyWorkerNodeCount?: number;
   shouldDisableRebootService?: boolean;
+  shouldDisableClearNodes?: boolean;
+  shouldEnablePurgeNodes?: boolean;
   rookShouldUseAllNodes?: boolean;
 }
 
@@ -272,6 +274,8 @@ export const ekcoConfigSchema = {
     minReadyMasterNodeCount: { type: "number", flag: "ekco-min-ready-master-node-count" , description: "Ekco will not purge a master node if it would result in less than this many masters remaining" },
     minReadyWorkerNodeCount: { type: "number", flag: "ekco-min-ready-worker-node-count" , description: "Ekco will not purge a worker node if it would result in less than this many workers remaining" },
     shouldDisableRebootService: { type: "boolean", flag: "ekco-should-disable-reboot-service" , description: "Do not install the systemd shutdown service that cordons a node and deletes pods with PVC and Shared FS volumes mounted" },
+    shouldDisableClearNodes: { type: "boolean", description: "Do not watch for unreachable nodes and force delete pods on them stuck in the terminating state" },
+    shouldEnablePurgeNodes: { type: "boolean", description: "Watch for unreachable nodes and automatically remove them from the cluster" },
     rookShouldUseAllNodes: { type: "boolean", flag: "ekco-rook-should-use-all-nodes" , description: "This will disable management of nodes in the CephCluster resource. If false, ekco will add nodes to the storage list and remove them when a node is purged" },
   },
   required: ["version"],

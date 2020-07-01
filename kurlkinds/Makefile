@@ -26,6 +26,9 @@ fmt:
 vet:
 	go vet ./pkg/... ./cmd/...
 
+# Get binaries
+deps: update-controller-gen update-client-gen
+
 # Generate code
 generate: controller-gen client-gen manifests
 
@@ -54,3 +57,7 @@ test-crd:
 # get/update controller-gen
 update-controller-gen:
 	go get sigs.k8s.io/controller-tools/cmd/controller-gen@v0.3.0
+
+# get/update client-gen
+update-client-gen:
+	go get k8s.io/code-generator/cmd/client-gen@v0.18.5
