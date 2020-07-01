@@ -165,6 +165,8 @@ spec:
     minReadyMasterNodeCount: 3
     minReadyWorkerNodeCount: 1
     shouldDisableRebootService: false
+    shouldDisableClearNodes: false
+    shouldEnablePurgeNodes: false
     rookShouldUseAllNodes: false
 `;
 
@@ -266,10 +268,10 @@ describe("POST /installer", () => {
   });
 
   describe("ekco", () => {
-    it(`should return 201 "https://kurl.sh/47c84b2"`, async () => {
+    it(`should return 201 "https://kurl.sh/bf0b204"`, async () => {
       const uri = await client.postInstaller(ekco);
 
-      expect(uri).to.match(/47c84b2/);
+      expect(uri).to.match(/bf0b204/);
     });
   });
 
@@ -483,12 +485,12 @@ describe("GET /<installerID>", () => {
     });
   });
 
-  describe("ekco (/47c84b2)", () => {
-    const id = "47c84b2";
+  describe("ekco (/bf0b204)", () => {
+    const id = "bf0b204";
 
     before(async () => {
       const uri = await client.postInstaller(ekco);
-      expect(uri).to.match(/47c84b2/);
+      expect(uri).to.match(/bf0b204/);
     });
 
     it("injects ekco version and flags", async () => {

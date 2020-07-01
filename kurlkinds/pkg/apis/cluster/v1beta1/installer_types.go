@@ -171,6 +171,8 @@ type Ekco struct {
 	NodeUnreachableToleration   string `json:"nodeUnreachableToleration,omitempty"`
 	RookShouldUseAllNodes       bool   `json:"rookShouldUseAllNodes,omitempty"`
 	ShouldDisableRebootServices bool   `json:"shouldDisableRebootServices,omitempty"`
+	ShouldDisableClearNodes     bool   `json:"shouldDisableClearNodes,omitempty"`
+	ShouldEnablePurgeNodes      bool   `json:"shouldEnablePurgeNodes,omitempty"`
 	Version                     string `json:"version"`
 }
 

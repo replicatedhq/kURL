@@ -85,7 +85,11 @@ spec:
                   type: string
                 rookShouldUseAllNodes:
                   type: boolean
+                shouldDisableClearNodes:
+                  type: boolean
                 shouldDisableRebootServices:
+                  type: boolean
+                shouldEnablePurgeNodes:
                   type: boolean
                 version:
                   type: string

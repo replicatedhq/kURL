@@ -77,6 +77,8 @@ spec:
     minReadyMasterNodeCount: 3
     minReadyWorkerNodeCount: 1
     shouldDisableRebootService: false
+    shouldDisableClearNodes: false
+    shouldEnablePurgeNodes: false
     rookShouldUseAllNodes: false
   kurl:
     proxyAddress: 1.1.1.1
@@ -253,6 +255,8 @@ spec:
     minReadyMasterNodeCount: 3
     minReadyWorkerNodeCount: 1
     shouldDisableRebootService: false
+    shouldDisableClearNodes: false
+    shouldEnablePurgeNodes: false
     rookShouldUseAllNodes: false
 `;
 
@@ -670,6 +674,8 @@ spec:
         minReadyMasterNodeCount: 3,
         minReadyWorkerNodeCount: 1,
         shouldDisableRebootService: false,
+        shouldDisableClearNodes: false,
+        shouldEnablePurgeNodes: false,
         rookShouldUseAllNodes: false,
       });
         expect(i.flags()).to.equal("ekco-node-unreachable-toleration-duration=10m ekco-min-ready-master-node-count=3 ekco-min-ready-worker-node-count=1 ekco-should-disable-reboot-service=0 ekco-rook-should-use-all-nodes=0")
