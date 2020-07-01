@@ -49,3 +49,8 @@ test-crd:
 	kubectl apply -f config/crds/v1beta1/cluster.kurl.sh_installers.yaml
 	kubectl apply -f config/test/cluster.kurl.sh_example.yaml
 	kubectl delete crd installers.cluster.kurl.sh
+
+
+# get/update controller-gen
+update-controller-gen:
+	go get sigs.k8s.io/controller-tools/cmd/controller-gen@v0.3.0
