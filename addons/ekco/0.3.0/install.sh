@@ -82,6 +82,10 @@ function ekco_join() {
     if [ "$EKCO_SHOULD_INSTALL_REBOOT_SERVICE" = "1" ]; then
         ekco_install_reboot_service "$src"
     fi
+
+    if kubernetes_is_master; then
+        ekco_install_purge_node_command "$src"
+    fi
 }
 
 function ekco_install_reboot_service() {
