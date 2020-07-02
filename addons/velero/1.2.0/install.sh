@@ -50,11 +50,16 @@ function velero_binary() {
     if ! kubernetes_is_master; then
         return 0
     fi
-    local id=$(docker create velero/velero:v1.2.0)
-    docker cp ${id}:/velero velero
-    docker rm ${id}
-    chmod a+x velero
-    mv velero /usr/local/bin/velero
+
+    if [ ! -f "$src/assets/velero.tar.gz" ] && [ "$AIRGAP" != "1" ]; then
+        mkdir -p "$src/assets"
+        curl -L "https://github.com/vmware-tanzu/velero/releases/download/v1.2.0/velero-v1.2.0-linux-amd64.tar.gz" > "$src/assets/velero.tar.gz"
+    fi
+
+    pushd "$src/assets"
+    tar xf "velero.tar.gz"
+    mv velero-v1.2.0-linux-amd64/velero /usr/local/bin/velero
+    popd
 }
 
 function velero_kotsadm_local_backend() {
