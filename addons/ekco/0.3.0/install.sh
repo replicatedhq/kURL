@@ -18,11 +18,11 @@ function ekco_pre_init() {
         EKCO_SHOULD_INSTALL_REBOOT_SERVICE=0
     fi
     EKCO_PURGE_DEAD_NODES=false
-    if [ "$EKCO_ENABLE_PURGE_DEAD_NODES" = "1" ]; then
+    if [ "$EKCO_SHOULD_ENABLE_PURGE_NODES" = "1" ]; then
         EKCO_PURGE_DEAD_NODES=true
     fi
     EKCO_CLEAR_DEAD_NODES=true
-    if [ "$EKCO_DISABLE_CLEAR_DEAD_NODES" = "1" ]; then
+    if [ "$EKCO_SHOULD_DISABLE_CLEAR_NODES" = "1" ]; then
         EKCO_CLEAR_DEAD_NODES=false
     fi
 }
