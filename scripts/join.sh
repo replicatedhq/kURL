@@ -19,6 +19,7 @@ DIR=.
 . $DIR/scripts/common/utilbinaries.sh
 . $DIR/scripts/common/yaml.sh
 . $DIR/scripts/common/coredns.sh
+. $DIR/scripts/common/containerd.sh
 # Magic end
 
 function join() {
@@ -106,7 +107,7 @@ function main() {
     prompts
     configure_proxy
     configure_no_proxy
-    install_docker
+    install_cri
     get_shared
     setup_kubeadm_kustomize
     addon_for_each addon_join
