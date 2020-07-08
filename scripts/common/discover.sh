@@ -223,5 +223,5 @@ function discover_private_ip() {
     PRIVATE_ADDRESS=$(cat /etc/kubernetes/manifests/kube-apiserver.yaml 2>/dev/null | grep advertise-address | awk -F'=' '{ print $2 }')
 
     #This is needed on k8s 1.18.x as $PRIVATE_ADDRESS is found to have a newline
-    PRIVATE_ADDRESS=$(echo "$PRIVATE_ADDRESS" | tr '\n' ' ')
+    PRIVATE_ADDRESS=$(echo "$PRIVATE_ADDRESS" | tr -d '\n')
 }
