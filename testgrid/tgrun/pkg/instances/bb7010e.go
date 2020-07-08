@@ -22,7 +22,7 @@ func init() {
 				Version: "1.0.1",
 			},
 			Containerd: &kurlv1beta1.Containerd{
-				Version: "beta",
+				Version: "1.2.13",
 			},
 			Prometheus: &kurlv1beta1.Prometheus{
 				Version: "0.33.0",
