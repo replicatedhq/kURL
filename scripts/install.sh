@@ -39,9 +39,6 @@ function init() {
         API_SERVICE_ADDRESS="$LOAD_BALANCER_ADDRESS:$LOAD_BALANCER_PORT"
     fi
 
-    #This is needed on k8s 1.18.x as $PRIVATE_ADDRESS is found to have a newline
-    PRIVATE_ADDRESS=$(echo "$PRIVATE_ADDRESS" | tr '\n' ' ')
-
     kustomize_kubeadm_init=./kustomize/kubeadm/init
     CERT_KEY=
     CERT_KEY_EXPIRY=
