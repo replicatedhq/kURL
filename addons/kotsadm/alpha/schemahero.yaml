@@ -10,14 +10,43 @@ spec:
     runAsUser: 1001
     fsGroup: 1001
   restartPolicy: OnFailure
-  containers:
-  - name: kotsadm-migrations
+  volumes:
+    - name: migrations
+      emptyDir:
+        medium: Memory
+
+  initContainers:
+  - name: migrations-plan
     image: kotsadm/kotsadm-migrations:alpha
+    args: ["plan"]
+    volumeMounts:
+    - name: migrations
+      mountPath: /migrations
     env:
     - name: SCHEMAHERO_DRIVER
       value: postgres
     - name: SCHEMAHERO_SPEC_FILE
       value: /tables
+    - name: SCHEMAHERO_URI
+      valueFrom:
+        secretKeyRef:
+          name: kotsadm-postgres
+          key: uri
+    - name: SCHEMAHERO_OUT
+      value: /migrations/plan.yaml              
+
+  containers:
+  - name: kotsadm-migrations
+    image: kotsadm/kotsadm-migrations:alpha
+    args: ["apply"]
+    volumeMounts:
+      - name: migrations
+        mountPath: /migrations
+    env:
+    - name: SCHEMAHERO_DRIVER
+      value: postgres
+    - name: SCHEMAHERO_DDL
+      value: /migrations/plan.yaml
     - name: SCHEMAHERO_URI
       valueFrom:
         secretKeyRef:
