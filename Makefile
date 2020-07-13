@@ -120,6 +120,7 @@ dist/kotsadm-%.tar.gz: build/addons
 dist/docker-%.tar.gz:
 	${MAKE} build/packages/docker/$*/ubuntu-16.04
 	${MAKE} build/packages/docker/$*/ubuntu-18.04
+	${MAKE} build/packages/docker/$*/ubuntu-20.04
 	${MAKE} build/packages/docker/$*/rhel-7
 	mkdir -p dist
 	tar cf - -C build packages/docker/$* | gzip > dist/docker-$*.tar.gz
@@ -127,6 +128,7 @@ dist/docker-%.tar.gz:
 dist/containerd-%.tar.gz:
 	${MAKE} build/packages/containerd/$*/ubuntu-16.04
 	${MAKE} build/packages/containerd/$*/ubuntu-18.04
+	${MAKE} build/packages/containerd/$*/ubuntu-20.04
 	${MAKE} build/packages/containerd/$*/rhel-7
 	mkdir -p dist
 	tar cf - -C build packages/containerd | gzip > dist/containerd-$*.tar.gz
@@ -135,6 +137,7 @@ dist/kubernetes-%.tar.gz:
 	${MAKE} build/packages/kubernetes/$*/images
 	${MAKE} build/packages/kubernetes/$*/ubuntu-16.04
 	${MAKE} build/packages/kubernetes/$*/ubuntu-18.04
+	${MAKE} build/packages/kubernetes/$*/ubuntu-20.04
 	${MAKE} build/packages/kubernetes/$*/rhel-7
 	${MAKE} build/packages/kubernetes/$*/rhel-8
 	mkdir -p dist
@@ -265,6 +268,18 @@ build/packages/docker/%/ubuntu-18.04:
 	docker cp docker-ubuntu1804-$*:/packages/archives/. build/packages/docker/$*/ubuntu-18.04
 	docker rm docker-ubuntu1804-$*
 
+build/packages/docker/%/ubuntu-20.04:
+	docker build \
+		--build-arg DOCKER_VERSION=$* \
+		-t kurl/ubuntu-2004-docker:$* \
+		-f bundles/docker-ubuntu2004/Dockerfile \
+		bundles/docker-ubuntu2004
+	-docker rm -f docker-ubuntu2004-$* 2>/dev/null
+	docker create --name docker-ubuntu2004-$* kurl/ubuntu-2004-docker:$*
+	mkdir -p build/packages/docker/$*/ubuntu-20.04
+	docker cp docker-ubuntu2004-$*:/packages/archives/. build/packages/docker/$*/ubuntu-20.04
+	docker rm docker-ubuntu2004-$*
+
 build/packages/docker/%/rhel-7:
 	docker build \
 		--build-arg DOCKER_VERSION=$* \
@@ -288,6 +303,18 @@ build/packages/containerd/%/rhel-7:
 	mkdir -p build/packages/containerd/$*/rhel-7
 	docker cp containerd-rhel7-$*:/packages/archives/. build/packages/containerd/$*/rhel-7
 	docker rm containerd-rhel7-$*
+
+build/packages/containerd/%/ubuntu-20.04:
+	docker build \
+		--build-arg CONTAINERD_VERSION=$* \
+		-t kurl/ubuntu-2004-containerd:$* \
+		-f bundles/containerd-ubuntu2004/Dockerfile \
+		bundles/containerd-ubuntu2004
+	-docker rm -f containerd-ubuntu2004-$* 2>/dev/null
+	docker create --name containerd-ubuntu2004-$* kurl/ubuntu-2004-containerd:$*
+	mkdir -p build/packages/containerd/$*/ubuntu-20.04
+	docker cp containerd-ubuntu2004-$*:/packages/archives/. build/packages/containerd/$*/ubuntu-20.04
+	docker rm containerd-ubuntu2004-$*
 
 build/packages/containerd/%/ubuntu-18.04:
 	docker build \
@@ -336,6 +363,18 @@ build/packages/kubernetes/%/ubuntu-18.04:
 	mkdir -p build/packages/kubernetes/$*/ubuntu-18.04
 	docker cp k8s-ubuntu1804-$*:/packages/archives/. build/packages/kubernetes/$*/ubuntu-18.04/
 	docker rm k8s-ubuntu1804-$*
+
+build/packages/kubernetes/%/ubuntu-20.04:
+	docker build \
+		--build-arg KUBERNETES_VERSION=$* \
+		-t kurl/ubuntu-2004-k8s:$* \
+		-f bundles/k8s-ubuntu2004/Dockerfile \
+		bundles/k8s-ubuntu2004
+	-docker rm -f k8s-ubuntu2004-$* 2>/dev/null
+	docker create --name k8s-ubuntu2004-$* kurl/ubuntu-2004-k8s:$*
+	mkdir -p build/packages/kubernetes/$*/ubuntu-20.04
+	docker cp k8s-ubuntu2004-$*:/packages/archives/. build/packages/kubernetes/$*/ubuntu-20.04/
+	docker rm k8s-ubuntu2004-$*
 
 build/packages/kubernetes/%/rhel-7:
 	docker build \
