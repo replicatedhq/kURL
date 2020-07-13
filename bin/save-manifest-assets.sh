@@ -32,8 +32,20 @@ while read -r line; do
             curl -L "$url" > "$OUT_DIR/assets/$filename"
             ;;
         apt)
-            mkdir -p $OUT_DIR/ubuntu-18.04 $OUT_DIR/ubuntu-16.04
+            mkdir -p $OUT_DIR/ubuntu-20.04 $OUT_DIR/ubuntu-18.04 $OUT_DIR/ubuntu-16.04
             package=$(echo $line | awk '{ print $2 }')
+
+            docker rm -f ubuntu-2004-${package} 2>/dev/null || true
+            docker run \
+                --name ubuntu-2004-${package} \
+                ubuntu:20.04 \
+                /bin/bash -c "\
+                    mkdir -p /packages/archives && \
+                    apt update -y \
+                    && apt install -d -y $package \
+                    -oDebug::NoLocking=1 -o=dir::cache=/packages/"
+            docker cp ubuntu-2004-${package}:/packages/archives $OUT_DIR/ubuntu-20.04
+            sudo chown -R $UID $OUT_DIR/ubuntu-20.04
 
             docker rm -f ubuntu-1804-${package} 2>/dev/null || true
             docker run \
