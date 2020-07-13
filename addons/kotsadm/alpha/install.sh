@@ -31,6 +31,10 @@ function kotsadm() {
         insert_patches_strategic_merge "$DIR/kustomize/kotsadm/kustomization.yaml" kotsadm-api-proxy.yaml
     fi
 
+    if [ "$AIRGAP" == "1" ]; then
+        insert_patches_strategic_merge "$DIR/kustomize/kotsadm/kustomization.yaml" kotsadm-airgap.yaml
+    fi
+
     kotsadm_etcd_client_secret
     kotsadm_kubelet_client_secret
 
