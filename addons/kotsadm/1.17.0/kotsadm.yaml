@@ -4,7 +4,7 @@ metadata:
   name: kotsadm-role
   labels:
     kots.io/kotsadm: "true"
-    kots.io/backup-type: admin-console
+    velero.io/exclude-from-backup: "true"
 rules:
 - apiGroups:
   - "*"
@@ -19,7 +19,7 @@ metadata:
   name: kotsadm-rolebinding
   labels:
     kots.io/kotsadm: "true"
-    kots.io/backup-type: admin-console
+    velero.io/exclude-from-backup: "true"
 subjects:
 - kind: ServiceAccount
   name: kotsadm
@@ -35,7 +35,7 @@ metadata:
   name: kotsadm
   labels:
     kots.io/kotsadm: "true"
-    kots.io/backup-type: admin-console
+    velero.io/exclude-from-backup: "true"
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -43,7 +43,7 @@ metadata:
   name: kotsadm
   labels:
     kots.io/kotsadm: "true"
-    kots.io/backup-type: admin-console
+    velero.io/exclude-from-backup: "true"
 spec:
   replicas: 1
   selector:
@@ -51,15 +51,10 @@ spec:
       app: kotsadm
   template:
     metadata:
-      annotations:
-        backup.velero.io/backup-volumes: backup
-        kots.io/backup-type: admin-console
-        pre.hook.backup.velero.io/command: '["/backup.sh"]'
-        pre.hook.backup.velero.io/timeout: 10m
       labels:
         app: kotsadm
         kots.io/kotsadm: "true"
-        kots.io/backup-type: admin-console
+        velero.io/exclude-from-backup: "true"
     spec:
       securityContext:
         runAsUser: 1001
@@ -202,7 +197,7 @@ metadata:
   name: kotsadm
   labels:
     kots.io/kotsadm: "true"
-    kots.io/backup-type: admin-console
+    velero.io/exclude-from-backup: "true"
 spec:
   type: ClusterIP
   selector:
