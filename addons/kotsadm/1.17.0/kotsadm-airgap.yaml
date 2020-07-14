@@ -9,4 +9,4 @@ spec:
       - name: kotsadm
         env:
         - name: DISABLE_OUTBOUND_CONNECTIONS
-          value: true
+          value: "true"
