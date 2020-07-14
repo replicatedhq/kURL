@@ -4,7 +4,7 @@ metadata:
   name: kotsadm-operator-clusterrole
   labels:
     kots.io/kotsadm: "true"
-    kots.io/backup-type: "admin-console"
+    velero.io/exclude-from-backup: "true"
 rules:
 - apiGroups:
   - "*"
@@ -35,7 +35,7 @@ metadata:
   name: kotsadm-operator
   labels:
     kots.io/kotsadm: "true"
-    kots.io/backup-type: "admin-console"
+    velero.io/exclude-from-backup: "true"
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -43,7 +43,7 @@ metadata:
   name: kotsadm-operator
   labels:
     kots.io/kotsadm: "true"
-    kots.io/backup-type: "admin-console"
+    velero.io/exclude-from-backup: "true"
 spec:
   replicas: 1
   selector:
@@ -54,7 +54,7 @@ spec:
       labels:
         app: kotsadm-operator
         kots.io/kotsadm: "true"
-        kots.io/backup-type: "admin-console"
+        velero.io/exclude-from-backup: "true"
       annotations:
         prometheus.io/scrape: "true"
         prometheus.io/port: "3000"
