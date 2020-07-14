@@ -32,7 +32,7 @@ function kotsadm() {
     fi
 
     if [ "$AIRGAP" == "1" ]; then
-        cp "$DIR/addons/kotsadm/1.17.0/kotsadm-airgap.yaml" > "$DIR/kustomize/kotsadm/kotsadm-airgap.yaml"
+        cp "$DIR/addons/kotsadm/1.17.0/kotsadm-airgap.yaml" "$DIR/kustomize/kotsadm/kotsadm-airgap.yaml"
         insert_patches_strategic_merge "$DIR/kustomize/kotsadm/kustomization.yaml" kotsadm-airgap.yaml
     fi
 
