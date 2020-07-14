@@ -17,6 +17,7 @@ function velero() {
 
     cp "$src/deployment.yaml" \
         "$src/rbac.yaml" \
+        "$src/service.yaml" \
         "$dst/"
 
     render_yaml_file "$src/tmpl-kustomization.yaml" > "$dst/kustomization.yaml"
