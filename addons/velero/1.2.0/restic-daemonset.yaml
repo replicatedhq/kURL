@@ -2,8 +2,6 @@ apiVersion: apps/v1
 kind: DaemonSet
 metadata:
   name: restic
-  labels:
-    component: velero
 spec:
   selector:
     matchLabels:
