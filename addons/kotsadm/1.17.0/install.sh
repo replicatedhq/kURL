@@ -170,6 +170,9 @@ function kotsadm_secret_postgres() {
 }
 
 function kotsadm_secret_s3() {
+    if [ -z "$VELERO_LOCAL_BUCKET" ]; then
+        VELERO_LOCAL_BUCKET=velero
+    fi
     render_yaml_file "$DIR/addons/kotsadm/1.17.0/tmpl-secret-s3.yaml" > "$DIR/kustomize/kotsadm/secret-s3.yaml"
     insert_resources "$DIR/kustomize/kotsadm/kustomization.yaml" secret-s3.yaml
 }
