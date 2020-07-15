@@ -90,7 +90,7 @@ function kotsadm_outro() {
     if [ -n "$KOTSADM_PASSWORD" ]; then
         printf "Login with password (will not be shown again): ${GREEN}$KOTSADM_PASSWORD${NC}\n"
     else
-        printf "Password not regenerated. Run ${GREEN}kubectl kots reset-password default${NC} to reset it\n"
+        printf "The kotsadm password has not been regenerated. If you need to reset it, run ${GREEN}kubectl kots reset-password default${NC}"
     fi
     printf "\n"
     printf "\n"
