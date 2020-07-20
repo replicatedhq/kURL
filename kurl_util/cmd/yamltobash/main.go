@@ -136,6 +136,7 @@ func convertToBash(kurlValues map[string]interface{}) (map[string]string, error)
 		"Kubernetes.MasterAddress":               "KUBERNETES_MASTER_ADDR",
 		"Kubernetes.ServiceCIDR":                 "SERVICE_CIDR",
 		"Kubernetes.ServiceCidrRange":            "SERVICE_CIDR_RANGE",
+		"Kubernetes.UseStandardNodePortRange":    "USE_STANDARD_PORT_RANGE",
 		"Kubernetes.Version":                     "KUBERNETES_VERSION",
 		"Kurl.Airgap":                            "AIRGAP",
 		"Kurl.ProxyAddress":                      "PROXY_ADDRESS",

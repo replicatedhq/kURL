@@ -24,6 +24,7 @@ export interface KubernetesConfig {
   bootstrapToken?: string;
   bootstrapTokenTTL?: string;
   kubeadmTokenCAHash?: string;
+  useStandardNodePortRange?: boolean;
   controlPlane?: boolean;
   certKey?: string;
 }
@@ -40,6 +41,7 @@ export const kubernetesConfigSchema = {
     bootstrapToken: { type: "string", flag: "bootstrap-token", description: "A secret needed for new nodes to join an existing cluster" },
     bootstrapTokenTTL: { type: "string", flag: "bootstrap-token-ttl", description: "How long the bootstrap token is valid for" },
     kubeadmTokenCAHash: { type: "string", flag: "kubeadm-token-ca-hash", description: "Generated during the install script, used for nodes joining (read-only)" },
+    useStandardNodePortRange: { type: "boolean" },
     controlPlane: { type: "boolean", flag: "control-plane", description: "Used during a join script to indicate that the node will be an additional master (read-only)" },
     certKey: { type: "string", flag: "cert-key", description: "A secret needed for new master nodes to join an existing cluster (read-only)" },
   },
@@ -419,6 +421,7 @@ export class Installer {
       "1.7.4",
     ],
     kotsadm: [
+      "1.17.1",
       "1.17.0",
       "1.16.2",
       "1.16.1",

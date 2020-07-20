@@ -72,18 +72,19 @@ type Kotsadm struct {
 }
 
 type Kubernetes struct {
-	BootstrapToken      string `json:"bootstrapToken,omitempty"`
-	BootstrapTokenTTL   string `json:"bootstrapTokenTTL,omitempty"`
-	CertKey             string `json:"certKey,omitempty"`
-	ControlPlane        bool   `json:"controlPlane,omitempty"`
-	HACluster           bool   `json:"HACluster,omitempty"`
-	KubeadmToken        string `json:"kubeadmToken,omitempty"`
-	KubeadmTokenCAHash  string `json:"kubeadmTokenCAHash,omitempty"`
-	LoadBalancerAddress string `json:"loadBalancerAddress,omitempty"`
-	MasterAddress       string `json:"masterAddress,omitempty"`
-	ServiceCIDR         string `json:"serviceCIDR,omitempty"`
-	ServiceCidrRange    string `json:"serviceCidrRange,omitempty"`
-	Version             string `json:"version"`
+	BootstrapToken           string `json:"bootstrapToken,omitempty"`
+	BootstrapTokenTTL        string `json:"bootstrapTokenTTL,omitempty"`
+	CertKey                  string `json:"certKey,omitempty"`
+	ControlPlane             bool   `json:"controlPlane,omitempty"`
+	HACluster                bool   `json:"HACluster,omitempty"`
+	KubeadmToken             string `json:"kubeadmToken,omitempty"`
+	KubeadmTokenCAHash       string `json:"kubeadmTokenCAHash,omitempty"`
+	LoadBalancerAddress      string `json:"loadBalancerAddress,omitempty"`
+	MasterAddress            string `json:"masterAddress,omitempty"`
+	ServiceCIDR              string `json:"serviceCIDR,omitempty"`
+	ServiceCidrRange         string `json:"serviceCidrRange,omitempty"`
+	UseStandardNodePortRange bool   `json:"useStandardNodePortRange,omitempty"`
+	Version                  string `json:"version"`
 }
 
 type Kurl struct {

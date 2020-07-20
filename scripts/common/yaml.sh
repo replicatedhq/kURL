@@ -40,6 +40,10 @@ function setup_kubeadm_kustomize() {
     mkdir -p $DIR/kustomize/kubeadm/init-patches
     rm -rf $DIR/kustomize/kubeadm/join-patches
     mkdir -p $DIR/kustomize/kubeadm/join-patches
+
+    if [ -n "$USE_STANDARD_PORT_RANGE" ]; then
+        sed -i 's/80-60000/30000-32767/g'  $DIR/kustomize/kubeadm/init/kubeadm-cluster-config-v1beta2.yml
+    fi
 }
 
 function apply_installer_crd() {

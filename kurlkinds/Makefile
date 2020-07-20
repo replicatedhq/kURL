@@ -53,6 +53,8 @@ test-crd:
 	kubectl apply -f config/test/cluster.kurl.sh_example.yaml
 	kubectl delete crd installers.cluster.kurl.sh
 
+# update both controller-gen and client-gen
+update: update-controller-gen update-client-gen
 
 # get/update controller-gen
 update-controller-gen:
