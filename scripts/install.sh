@@ -133,6 +133,8 @@ EOF
     labelNodes
     kubectl cluster-info
     logSuccess "Cluster Initialized"
+
+    containerd_registry_init
 }
 
 function post_init() {
