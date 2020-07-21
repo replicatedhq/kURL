@@ -27,15 +27,7 @@ function install_containerd() {
      containerd_get_host_packages_online "$CONTAINERD_VERSION"
 
      case "$LSB_DIST$DIST_VERSION" in
-         ubuntu16.04)
-            export DEBIAN_FRONTEND=noninteractive
-            dpkg --install --force-depends-version $DIR/packages/containerd/$CONTAINERD_VERSION/ubuntu-${DIST_VERSION}/*.deb
-            ;;
-         ubuntu18.04)
-            export DEBIAN_FRONTEND=noninteractive
-            dpkg --install --force-depends-version $DIR/packages/containerd/$CONTAINERD_VERSION/ubuntu-${DIST_VERSION}/*.deb
-            ;;
-         ubuntu20.04)
+         ubuntu16.04|ubuntu18.04|ubuntu20.04)
             export DEBIAN_FRONTEND=noninteractive
             dpkg --install --force-depends-version $DIR/packages/containerd/$CONTAINERD_VERSION/ubuntu-${DIST_VERSION}/*.deb
             ;;
@@ -55,15 +47,17 @@ function add_registry_to_containerd_config() {
    local docker_registry_ip="$1"
 
    if ! grep -q "ca_file" /etc/containerd/config.toml; then
-    sed "/registry-1/a \        [plugins.cri.registry.mirrors."registry.kurl.svc.cluster.local"]\n          endpoint = ["$1:443"]\n      [plugins.cri.registry.configs]\n        [plugins.cri.registry.configs."registry.kurl.svc.cluster.local".tls]\n          ca_file = "/etc/kubernetes/pki/ca.crt"" /etc/containerd/config.toml
+      sed -i "/registry-1/a \        [plugins.cri.registry.mirrors."\""registry.kurl.svc.cluster.local""\"]\n          endpoint = [""\"$1:443""\"]\n      [plugins.cri.registry.configs]\n        [plugins.cri.registry.configs."\""registry.kurl.svc.cluster.local""\".tls]\n          ca_file = "\""/etc/kubernetes/pki/ca.crt"\""" /etc/containerd/config.toml
    fi
+
+   systemctl restart containerd
 }
 
 function containerd_registry_init() {
    if [ -n "$CONTAINERD_VERSION" ] && [ -n "$REGISTRY_VERSION" ]; then
-       if ! kubectl get -n kurl get service registry -o=jsonpath='{@.spec.clusterIP}'; then
+       if ! kubectl -n kurl get service registry -o=jsonpath='{@.spec.clusterIP}'; then
         kubectl apply -f "$DIR/addons/registry/2.7.1/namespace.yaml"
-        kubectl apply -f "$DIR/addons/registry/2.7.1/service.yaml"
+        kubectl -n kurl apply -f "$DIR/addons/registry/2.7.1/service.yaml"
         DOCKER_REGISTRY_IP=$(kubectl -n kurl get service registry -o=jsonpath='{@.spec.clusterIP}')
 
         add_registry_to_containerd_config "$DOCKER_REGISTRY_IP"
