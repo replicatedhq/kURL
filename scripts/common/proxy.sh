@@ -27,6 +27,7 @@ function proxy_bootstrap() {
         local overrideProxy=$(grep "proxyAddress:" "$INSTALLER_SPEC_FILE" | grep -o "http[^'\" ]*")
         if [ -n "$overrideProxy" ]; then
             export https_proxy="$overrideProxy"
+            kubectl_no_proxy
             echo "Bootstrapped proxy address from installer spec file: $https_proxy"
             return
         fi
@@ -34,13 +35,28 @@ function proxy_bootstrap() {
     local proxy=$(echo "$INSTALLER_YAML" | grep "proxyAddress:" | grep -o "http[^'\" ]*")
     if [ -n "$proxy" ]; then
         export https_proxy="$proxy"
+        kubectl_no_proxy
         echo "Bootstrapped proxy address from installer yaml: $https_proxy"
         return
     fi
 
     if [ -n "$ENV_PROXY_ADDRESS" ]; then
         export https_proxy="$PROXY_ADDRESS"
+        kubectl_no_proxy
         return
+    fi
+}
+
+function kubectl_no_proxy() {
+    if [ ! -f /etc/kubernetes/admin.conf ]; then
+        return
+    fi
+    kubectlEndpoint=$(cat /etc/kubernetes/admin.conf  | grep 'server:' | awk '{ print $NF }' | sed -E 's/https?:\/\///g')
+    splitHostPort "$kubectlEndpoint"
+    if [ -n "$no_proxy" ]; then
+        export no_proxy="$no_proxy,$HOST"
+    else
+        export no_proxy="$HOST"
     fi
 }
 
