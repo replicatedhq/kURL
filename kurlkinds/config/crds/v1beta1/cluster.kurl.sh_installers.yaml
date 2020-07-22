@@ -176,6 +176,8 @@ spec:
                   type: string
                 serviceCidrRange:
                   type: string
+                useStandardNodePortRange:
+                  type: boolean
                 version:
                   type: string
               required:
