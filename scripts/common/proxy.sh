@@ -41,7 +41,7 @@ function proxy_bootstrap() {
     fi
 
     if [ -n "$ENV_PROXY_ADDRESS" ]; then
-        export https_proxy="$PROXY_ADDRESS"
+        export https_proxy="$ENV_PROXY_ADDRESS"
         kubectl_no_proxy
         return
     fi
