@@ -228,16 +228,21 @@ function upgrade_kubernetes_remote_node_minor() {
     confirmY
     kubernetes_drain "$nodeName"
 
+    local noProxyAddrs=""
+    if [ -n "$NO_PROXY_ADDRESSES" ]; then
+        noProxyAddrs=" additional-no-proxy-addresses=${NO_PROXY_ADDRESSES}"
+    fi
+
     printf "\n\n\tRun the upgrade script on remote node to proceed: ${GREEN}$nodeName${NC}\n\n"
 
     if [ "$AIRGAP" = "1" ] || [ -z "$KURL_URL" ]; then
-        printf "\t${GREEN}cat upgrade.sh | sudo bash -s airgap hostname-check=${nodeName} kubernetes-version=${KUBERNETES_VERSION}${NC}\n\n"
+        printf "\t${GREEN}cat upgrade.sh | sudo bash -s airgap kubernetes-version=${KUBERNETES_VERSION}${noProxyAddrs}${NC}\n\n"
     else
         local prefix="curl $KURL_URL/$INSTALLER_ID/"
         if [ -z "$KURL_URL" ]; then
             prefix="cat "
         fi
-        printf "\t${GREEN} ${prefix}upgrade.sh | sudo bash -s hostname-check=${nodeName} kubernetes-version=${KUBERNETES_VERSION}${NC}\n\n"
+        printf "\t${GREEN} ${prefix}upgrade.sh | sudo bash -s kubernetes-version=${KUBERNETES_VERSION}${noProxyAddrs}${NC}\n\n"
     fi
 
     rm -rf $HOME/.kube
