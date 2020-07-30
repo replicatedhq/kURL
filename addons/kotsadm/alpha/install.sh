@@ -378,6 +378,10 @@ function kotsadm_namespaces() {
 }
 
 function kotsadm_health_check() {
+    if [ $(kubectl get pods -l app=kotsadm -o jsonpath="{range .items[*]}{range .status.conditions[*]}{ .type }={ .status }{'\n'}{end}{end}" | wc -l) -eq 0 ]; then
+        return 1
+    fi
+
     if [[ -n $(kubectl get pods -l app=kotsadm -o jsonpath="{range .items[*]}{range .status.conditions[*]}{ .type }={ .status }{'\n'}{end}{end}" | grep Ready=False) ]]; then
       return 1
     fi
@@ -392,6 +396,10 @@ function kotsadm_ready_spinner() {
 }
 
 function kotsadm_api_health_check() {
+    if [ $(kubectl get pods -l app=kotsadm-api -o jsonpath="{range .items[*]}{range .status.conditions[*]}{ .type }={ .status }{'\n'}{end}{end}" | wc -l) -eq 0 ]; then
+        return 1
+    fi
+
     if [[ -n $(kubectl get pods -l app=kotsadm-api -o jsonpath="{range .items[*]}{range .status.conditions[*]}{ .type }={ .status }{'\n'}{end}{end}" | grep Ready=False) ]]; then
       return 1
     fi
