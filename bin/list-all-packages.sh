@@ -26,7 +26,6 @@ function list_all_packages() {
     echo "docker-19.03.4.tar.gz"
     echo "docker-19.03.10.tar.gz"
     echo "common.tar.gz"
-    echo "containerd-1.2.13.tar.gz"
     echo "$KURL_BIN_UTILS_FILE"
 }
 
