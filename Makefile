@@ -126,12 +126,10 @@ dist/docker-%.tar.gz:
 	tar cf - -C build packages/docker/$* | gzip > dist/docker-$*.tar.gz
 
 dist/containerd-%.tar.gz:
-	${MAKE} build/packages/containerd/$*/ubuntu-16.04
-	${MAKE} build/packages/containerd/$*/ubuntu-18.04
-	${MAKE} build/packages/containerd/$*/ubuntu-20.04
-	${MAKE} build/packages/containerd/$*/rhel-7
+	mkdir -p build/addons/containerd/$*/assets
+	bin/save-manifest-assets.sh addons/containerd/$*/Manifest $(CURDIR)/build/addons/containerd/$*
 	mkdir -p dist
-	tar cf - -C build packages/containerd | gzip > dist/containerd-$*.tar.gz
+	tar cf - -C build addons/containerd/$* | gzip > dist/containerd-$*.tar.gz
 
 dist/kubernetes-%.tar.gz:
 	${MAKE} build/packages/kubernetes/$*/images
@@ -291,54 +289,6 @@ build/packages/docker/%/rhel-7:
 	mkdir -p build/packages/docker/$*/rhel-7
 	docker cp docker-rhel7-$*:/packages/archives/. build/packages/docker/$*/rhel-7
 	docker rm docker-rhel7-$*
-
-build/packages/containerd/%/rhel-7:
-	docker build \
-		--build-arg CONTAINERD_VERSION=$* \
-		-t kurl/rhel-7-containerd:$* \
-		-f bundles/containerd-rhel7/Dockerfile \
-		bundles/containerd-rhel7
-	-docker rm -f containerd-rhel7 2>/dev/null
-	docker create --name containerd-rhel7-$* kurl/rhel-7-containerd:$*
-	mkdir -p build/packages/containerd/$*/rhel-7
-	docker cp containerd-rhel7-$*:/packages/archives/. build/packages/containerd/$*/rhel-7
-	docker rm containerd-rhel7-$*
-
-build/packages/containerd/%/ubuntu-20.04:
-	docker build \
-		--build-arg CONTAINERD_VERSION=$* \
-		-t kurl/ubuntu-2004-containerd:$* \
-		-f bundles/containerd-ubuntu2004/Dockerfile \
-		bundles/containerd-ubuntu2004
-	-docker rm -f containerd-ubuntu2004-$* 2>/dev/null
-	docker create --name containerd-ubuntu2004-$* kurl/ubuntu-2004-containerd:$*
-	mkdir -p build/packages/containerd/$*/ubuntu-20.04
-	docker cp containerd-ubuntu2004-$*:/packages/archives/. build/packages/containerd/$*/ubuntu-20.04
-	docker rm containerd-ubuntu2004-$*
-
-build/packages/containerd/%/ubuntu-18.04:
-	docker build \
-		--build-arg CONTAINERD_VERSION=$* \
-		-t kurl/ubuntu-1804-containerd:$* \
-		-f bundles/containerd-ubuntu1804/Dockerfile \
-		bundles/containerd-ubuntu1804
-	-docker rm -f containerd-ubuntu1804-$* 2>/dev/null
-	docker create --name containerd-ubuntu1804-$* kurl/ubuntu-1804-containerd:$*
-	mkdir -p build/packages/containerd/$*/ubuntu-18.04
-	docker cp containerd-ubuntu1804-$*:/packages/archives/. build/packages/containerd/$*/ubuntu-18.04
-	docker rm containerd-ubuntu1804-$*
-
-build/packages/containerd/%/ubuntu-16.04:
-	docker build \
-		--build-arg CONTAINERD_VERSION=$* \
-		-t kurl/ubuntu-1604-containerd:$* \
-		-f bundles/containerd-ubuntu1604/Dockerfile \
-		bundles/containerd-ubuntu1604
-	-docker rm -f containerd-ubuntu1604-$* 2>/dev/null
-	docker create --name containerd-ubuntu1604-$* kurl/ubuntu-1604-containerd:$*
-	mkdir -p build/packages/containerd/$*/ubuntu-16.04
-	docker cp containerd-ubuntu1604-$*:/packages/archives/. build/packages/containerd/$*/ubuntu-16.04
-	docker rm containerd-ubuntu1604-$*
 
 build/packages/kubernetes/%/ubuntu-16.04:
 	docker build \
