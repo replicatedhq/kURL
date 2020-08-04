@@ -207,7 +207,8 @@ function install_cri() {
         install_docker
         apply_docker_config
     elif [ -n "$CONTAINERD_VERSION" ]; then
-        install_containerd
+        . $DIR/addons/containerd/$CONTAINERD_VERSION/install.sh
+        containerd_install
     fi
 }
 
