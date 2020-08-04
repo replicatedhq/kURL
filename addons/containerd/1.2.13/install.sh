@@ -48,8 +48,6 @@ function containerd_configure() {
         return 0
     fi
 
-    sleep 1
-
     mkdir -p /etc/containerd
     containerd config default > /etc/containerd/config.toml
 
