@@ -1,7 +1,7 @@
 
 
 function containerd_install() {
-    local src="$DIR/addons/containerd/1.3.6"
+    local src="$DIR/addons/containerd/1.3.7"
 
     if [ "$SKIP_CONTAINERD_INSTALL" = "1" ]; then
         return 0
@@ -17,7 +17,7 @@ function containerd_binaries() {
 
     if [ ! -f "$src/assets/containerd.tar.gz" ] && [ "$AIRGAP" != "1" ]; then
         mkdir -p "$src/assets"
-        curl -L https://github.com/containerd/containerd/releases/download/v1.3.6/containerd-1.3.6-linux-amd64.tar.gz > "$src/assets/containerd.tar.gz"
+        curl -L https://github.com/containerd/containerd/releases/download/v1.3.7/containerd-1.3.7-linux-amd64.tar.gz > "$src/assets/containerd.tar.gz"
     fi
     tar xzf "$src/assets/containerd.tar.gz" -C /usr
 
