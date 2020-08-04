@@ -9,7 +9,6 @@ function containerd_install() {
 
     containerd_binaries "$src"
     containerd_configure
-    containerd_registry
     containerd_service "$src"
 }
 
@@ -18,10 +17,15 @@ function containerd_binaries() {
 
     if [ ! -f "$src/assets/containerd.tar.gz" ] && [ "$AIRGAP" != "1" ]; then
         mkdir -p "$src/assets"
-        curl -L "https://github.com/containerd/containerd/releases/download/v1.2.13/containerd-1.2.13-linux-amd64.tar.gz" > "$src/assets/containerd.tar.gz"
+        curl -L https://github.com/containerd/containerd/releases/download/v1.2.13/containerd-1.2.13-linux-amd64.tar.gz > "$src/assets/containerd.tar.gz"
     fi
+    tar xzf "$src/assets/containerd.tar.gz" -C /usr
 
-    tar xzf "$src/assets/containerd.tar.gz" -C /usr/local
+    if [ ! -f "$src/assets/runc" ] && [ "$AIRGAP" != "1" ]; then
+		curl -L https://github.com/opencontainers/runc/releases/download/v1.0.0-rc91/runc.amd64 > "$src/assets/runc"
+	fi
+    chmod 0755 "$src/assets/runc"
+    mv "$src/assets/runc" /usr/bin
 }
 
 function containerd_service() {
@@ -40,7 +44,7 @@ function containerd_service() {
 }
 
 function containerd_configure() {
-    if [ -f "/etc/containerd/config.toml" ]; then
+    if [ -s "/etc/containerd/config.toml" ]; then
         return 0
     fi
 
@@ -50,7 +54,4 @@ function containerd_configure() {
     containerd config default > /etc/containerd/config.toml
 
     sed -i 's/systemd_cgroup = false/systemd_cgroup = true/' /etc/containerd/config.toml
-
-    systemctl restart containerd
-    systemctl enable containerd
 }
