@@ -1,4 +1,5 @@
 # https://raw.githubusercontent.com/containerd/containerd/v1.2.13/containerd.service
+# ExecStart changed from /usr/local/bin since that may not be on root PATH
 [Unit]
 Description=containerd container runtime
 Documentation=https://containerd.io
@@ -6,7 +7,7 @@ After=network.target local-fs.target
 
 [Service]
 ExecStartPre=-/sbin/modprobe overlay
-ExecStart=/usr/local/bin/containerd
+ExecStart=/usr/bin/containerd
 
 Delegate=yes
 KillMode=process

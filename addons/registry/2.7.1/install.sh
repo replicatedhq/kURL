@@ -78,8 +78,10 @@ function registry_docker_ca() {
         bail "Docker registry address required"
     fi
 
-    mkdir -p /etc/docker/certs.d/$DOCKER_REGISTRY_IP
-    ln -s --force /etc/kubernetes/pki/ca.crt /etc/docker/certs.d/$DOCKER_REGISTRY_IP/ca.crt
+    if [ -n "$DOCKER_VERSION" ]; then
+        mkdir -p /etc/docker/certs.d/$DOCKER_REGISTRY_IP
+        ln -s --force /etc/kubernetes/pki/ca.crt /etc/docker/certs.d/$DOCKER_REGISTRY_IP/ca.crt
+    fi
 }
 
 function registry_pki_secret() {

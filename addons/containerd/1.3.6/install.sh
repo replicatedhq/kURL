@@ -4,12 +4,12 @@ function containerd_install() {
     local src="$DIR/addons/containerd/1.3.6"
 
     if [ "$SKIP_CONTAINERD_INSTALL" = "1" ]; then
+        echo "SKIPPING"
         return 0
     fi
 
     containerd_binaries "$src"
     containerd_configure
-    containerd_registry
     containerd_service "$src"
 }
 
@@ -18,10 +18,15 @@ function containerd_binaries() {
 
     if [ ! -f "$src/assets/containerd.tar.gz" ] && [ "$AIRGAP" != "1" ]; then
         mkdir -p "$src/assets"
-        curl -L "https://github.com/containerd/containerd/releases/download/v1.3.6/containerd-1.3.6-linux-amd64.tar.gz" > "$src/assets/containerd.tar.gz"
+        curl -L https://github.com/containerd/containerd/releases/download/v1.3.6/containerd-1.3.6-linux-amd64.tar.gz > "$src/assets/containerd.tar.gz"
     fi
+    tar xzf "$src/assets/containerd.tar.gz" -C /usr
 
-    tar xzf "$src/assets/containerd.tar.gz" -C /usr/local
+    if [ ! -f "$src/assets/runc" ] && [ "$AIRGAP" != "1" ]; then
+		curl -L https://github.com/opencontainers/runc/releases/download/v1.0.0-rc91/runc.amd64 > "$src/assets/runc"
+	fi
+    chmod 0755 "$src/assets/runc"
+    mv "$src/assets/runc" /usr/bin
 }
 
 function containerd_service() {
@@ -29,9 +34,9 @@ function containerd_service() {
 
     local systemdVersion=$(systemctl --version | head -1 | awk '{ print $NF }')
     if [ $systemdVersion -ge 226 ]; then
-        cp "$src/containerd.service" /etc/systemd/service/containerd.service
+        cp "$src/containerd.service" /etc/systemd/system/containerd.service
     else
-        cat "$src/containerd.service" | sed '/TasksMax/s//# &/' > /etc/systemd/service/container.service
+        cat "$src/containerd.service" | sed '/TasksMax/s//# &/' > /etc/systemd/system/containerd.service
     fi
 
     systemctl daemon-reload
@@ -40,7 +45,7 @@ function containerd_service() {
 }
 
 function containerd_configure() {
-    if [ -f "/etc/containerd/config.toml" ]; then
+    if [ -s "/etc/containerd/config.toml" ]; then
         return 0
     fi
 
@@ -49,13 +54,21 @@ function containerd_configure() {
     mkdir -p /etc/containerd
     containerd config default > /etc/containerd/config.toml
 
-    sed -i 's/systemd_cgroup = false/systemd_cgroup = true/' /etc/containerd/config.toml
+    sed -i '/systemd_cgroup/d' /etc/containerd/config.toml
+    cat >> /etc/containerd/config.toml <<EOF
+[plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc.options]
+  systemd_cgroup = true
+EOF
 
-    systemctl restart containerd
-    systemctl enable containerd
+    # Always set for joining nodes since it's passed as a flag in the generated join script, but not
+    # usually set for the initial install
+    if [ -n "$DOCKER_REGISTRY_IP" ]; then
+        containerd_configure_registry "$DOCKER_REGISTRY_IP"
+    fi
+        
 }
 
-function containerd_registry() {
+function containerd_registry_init() {
     if [ -z "$REGISTRY_VERSION" ]; then
         return 0
     fi
@@ -67,26 +80,20 @@ function containerd_registry() {
         registryIP=$(kubectl -n kurl get service registry -o=jsonpath='{@.spec.clusterIP}')
     fi
 
-    #    This function will change the first configuration to the second in /etc/containerd/config.toml
+    containerd_configure_registry "$registryIP"
+    systemctl restart containerd
+}
 
-    #    [plugins.cri.registry]
-    #      [plugins.cri.registry.mirrors]
-    #        [plugins.cri.registry.mirrors."docker.io"]
-    #          endpoint = ["https://registry-1.docker.io"]
+function containerd_configure_registry() {
+    local registryIP="$1"
 
-    #    [plugins.cri.registry]
-    #      [plugins.cri.registry.mirrors]
-    #        [plugins.cri.registry.mirrors."docker.io"]
-    #          endpoint = ["https://registry-1.docker.io"]
-    #        [plugins.cri.registry.mirrors."registry.kurl.svc.cluster.local"]
-    #          endpoint = ["$SOME_IP:443"]
-    #      [plugins.cri.registry.configs]
-    #        [plugins.cri.registry.configs."registry.kurl.svc.cluster.local".tls]
-    #          ca_file = "/etc/kubernetes/pki/ca.crt"
+    if grep -q "plugins.\"io.containerd.grpc.v1.cri\".registry.configs.\"${registryIP}\".tls" /etc/containerd/config.toml; then
+        echo "Registry ${registryIP} TLS already configured for containerd"
+        return 0
+    fi
 
-   if ! grep -q "ca_file" /etc/containerd/config.toml; then
-      sed -i "/registry-1/a \        [plugins.cri.registry.mirrors."\""registry.kurl.svc.cluster.local""\"]\n          endpoint = [""\"$1:443""\"]\n      [plugins.cri.registry.configs]\n        [plugins.cri.registry.configs."\""registry.kurl.svc.cluster.local""\".tls]\n          ca_file = "\""/etc/kubernetes/pki/ca.crt"\""" /etc/containerd/config.toml
-   fi
-
-   systemctl restart containerd
+    cat >> /etc/containerd/config.toml <<EOF
+[plugins."io.containerd.grpc.v1.cri".registry.configs."${registryIP}".tls]
+  ca_file = "/etc/kubernetes/pki/ca.crt"
+EOF
 }

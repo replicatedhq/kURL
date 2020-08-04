@@ -21,7 +21,6 @@ DIR=.
 . $DIR/scripts/common/utilbinaries.sh
 . $DIR/scripts/common/yaml.sh
 . $DIR/scripts/common/coredns.sh
-. $DIR/scripts/common/containerd.sh
 # Magic end
 
 function init() {
@@ -134,7 +133,9 @@ EOF
     kubectl cluster-info
     logSuccess "Cluster Initialized"
 
-    containerd_registry_init
+    if commandExists containerd_registry_init; then
+        containerd_registry_init
+    fi
 }
 
 function post_init() {
