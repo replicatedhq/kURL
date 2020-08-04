@@ -4,7 +4,6 @@ function containerd_install() {
     local src="$DIR/addons/containerd/1.3.6"
 
     if [ "$SKIP_CONTAINERD_INSTALL" = "1" ]; then
-        echo "SKIPPING"
         return 0
     fi
 

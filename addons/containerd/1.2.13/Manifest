@@ -1,1 +1,1 @@
-asset containerd.tar.gz https://github.com/containerd/containerd/releases/download/v1.2.13/containerd-1.2.13-linux-amd64.tar.gz
+asset containerd.tar.gz https://github.com/containerd/containerd/releases/download/v1.2.13/containerd-1.2.13.linux-amd64.tar.gz
