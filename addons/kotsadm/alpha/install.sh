@@ -378,7 +378,10 @@ function kotsadm_namespaces() {
 }
 
 function kotsadm_health_check() {
-    if [ $(kubectl get pods -l app=kotsadm -o jsonpath="{range .items[*]}{range .status.conditions[*]}{ .type }={ .status }{'\n'}{end}{end}" | wc -l) -eq 0 ]; then
+    # Get pods below will initially return only 0 lines
+    # Then it will return 1 line: "PodScheduled=True"
+    # Finally, it will return 4 lines.  And this is when we want to grep for "Ready=False"
+    if [ $(kubectl get pods -l app=kotsadm -o jsonpath="{range .items[*]}{range .status.conditions[*]}{ .type }={ .status }{'\n'}{end}{end}" | wc -l) -lt 4 ]; then
         return 1
     fi
 
@@ -396,7 +399,10 @@ function kotsadm_ready_spinner() {
 }
 
 function kotsadm_api_health_check() {
-    if [ $(kubectl get pods -l app=kotsadm-api -o jsonpath="{range .items[*]}{range .status.conditions[*]}{ .type }={ .status }{'\n'}{end}{end}" | wc -l) -eq 0 ]; then
+    # Get pods below will initially return only 0 lines
+    # Then it will return 1 line: "PodScheduled=True"
+    # Finally, it will return 4 lines.  And this is when we want to grep for "Ready=False"
+    if [ $(kubectl get pods -l app=kotsadm-api -o jsonpath="{range .items[*]}{range .status.conditions[*]}{ .type }={ .status }{'\n'}{end}{end}" | wc -l) -lt 4 ]; then
         return 1
     fi
 
