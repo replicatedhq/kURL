@@ -398,6 +398,7 @@ export class Installer {
       "18.09.8",
     ],
     containerd: [
+      "1.3.7",
       "1.2.13",
     ],
     weave: [
