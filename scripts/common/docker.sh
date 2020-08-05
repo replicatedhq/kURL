@@ -118,3 +118,13 @@ function docker_get_host_packages_online() {
         rm docker-${version}.tar.gz
     fi
 }
+
+function containerd_get_host_packages_online() {
+    local version="$1"
+
+    if [ "$AIRGAP" != "1" ] && [ -n "$DIST_URL" ]; then
+        curl -sSLO "$DIST_URL/containerd-${version}.tar.gz"
+        tar xf containerd-${version}.tar.gz
+        rm containerd-${version}.tar.gz
+    fi
+}

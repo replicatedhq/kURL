@@ -125,7 +125,7 @@ dist/docker-%.tar.gz:
 	mkdir -p dist
 	tar cf - -C build packages/docker/$* | gzip > dist/docker-$*.tar.gz
 
-dist/containerd-%.tar.gz:
+dist/containerd-%.tar.gz: build/addons
 	mkdir -p build/addons/containerd/$*/assets
 	bin/save-manifest-assets.sh addons/containerd/$*/Manifest $(CURDIR)/build/addons/containerd/$*
 	mkdir -p dist
