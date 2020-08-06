@@ -31,7 +31,7 @@ function containerd_binaries() {
 function containerd_service() {
     local src="$1"
 
-    local systemdVersion=$(systemctl --version | head -1 | awk '{ print $NF }')
+    local systemdVersion=$(systemctl --version | head -1 | awk '{ print $2 }')
     if [ $systemdVersion -ge 226 ]; then
         cp "$src/containerd.service" /etc/systemd/system/containerd.service
     else
