@@ -264,29 +264,16 @@ function kubernetes_secret_value() {
 }
 
 function install_krew() {
-    mkdir -p $KREW_ROOT
-
     pushd "$DIR/krew"
-    tar xzf krew.tar.gz
-    ./krew-linux_amd64 install --manifest=krew.yaml --archive=krew.tar.gz > /dev/null 2>&1
-    tar xf index.tar -C $KREW_ROOT
-    ./krew-linux_amd64 install --manifest=outdated.yaml --archive=outdated.tar.gz > /dev/null 2>&1
-    ./krew-linux_amd64 install --manifest=preflight.yaml --archive=preflight.tar.gz > /dev/null 2>&1
-    ./krew-linux_amd64 install --manifest=support-bundle.yaml --archive=support-bundle.tar.gz > /dev/null 2>&1
+    tar xzvf outdated.tar.gz && mv outdated /usr/local/bin/kubectl-outdated
+    tar xzvf preflight.tar.gz && mv preflight /usr/local/bin/kubectl-preflight
+    tar xzvf support-bundle.tar.gz && mv support-bundle /usr/local/bin/kubectl-support-bundle
     popd
 
-    # Fixes permission issues with 'kubectl krew'
-    chmod -R 0777 /opt/replicated/krew/store
-    chmod -R a+rw /opt/replicated/krew
-    chmod -R a+rw /tmp/krew-downloads
-
-    if ! grep -q KREW_ROOT /etc/profile; then
-        echo "export KREW_ROOT=$KREW_ROOT" >> /etc/profile
-    fi
-    if ! grep -q KUBECTL_PLUGINS_PATH /etc/profile; then
-        echo 'export KUBECTL_PLUGINS_PATH=$KREW_ROOT/bin' >> /etc/profile
-        echo 'export PATH=$KUBECTL_PLUGINS_PATH:$PATH' >> /etc/profile
-    fi
+    # uninstall system-wide krew from old versions of kurl
+    rm -rf /opt/replicated/krew
+    sed -i '/^export KUBECTL_PLUGINS_PATH.*replicated/d' /etc/profile
+    sed -i '/^export KREW_ROOT.*replicated/d' /etc/profile
 }
 
 function install_kustomize() {
