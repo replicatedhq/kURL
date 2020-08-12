@@ -275,10 +275,20 @@ function install_krew() {
     ./krew-linux_amd64 install --manifest=support-bundle.yaml --archive=support-bundle.tar.gz > /dev/null 2>&1
     popd
 
-    # Fixes permission issues with 'kubectl krew'
-    chmod -R 0777 /opt/replicated/krew/store
-    chmod -R a+rw /opt/replicated/krew
-    chmod -R a+rw /tmp/krew-downloads
+    # The local krew store is owned by root so commands such as `kubectl krew update` that write to
+    # /opt/replicated/krew will fail, but `sudo kubectl krew update` also fails because
+    # /opt/replicated/krew/bin is not in the sudo path. This adds it to the sudo path if it's not
+    # already there
+    # CentOS/RHEL:
+    # Defaults    secure_path = /sbin:/bin:/usr/sbin:/usr/bin
+    # Ubuntu:
+    # Defaults        secure_path="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin"
+    if ! grep -q '^Defaults.*secure_path.*krew' /etc/sudoers; then
+        sed -i '/^Defaults.*secure_path/ s/\//\/opt\/replicated\/krew\/bin:\//' /etc/sudoers
+    fi
+
+    # Fix a bug where /opt/replicated/krew was world writable
+    chmod -R go-w /opt/replicated/krew/
 
     if ! grep -q KREW_ROOT /etc/profile; then
         echo "export KREW_ROOT=$KREW_ROOT" >> /etc/profile
