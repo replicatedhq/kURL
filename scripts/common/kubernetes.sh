@@ -287,8 +287,13 @@ function install_krew() {
         sed -i '/^Defaults.*secure_path/ s/\//\/opt\/replicated\/krew\/bin:\//' /etc/sudoers
     fi
 
+    # /opt/replicated/krew/bin/krew symlinks to /opt/replicated/krew/store/krew/v0.3.2 but krew uses
+    # 0700 for directories under store/.
+    find /opt/replicated/krew/store -type d | xargs chmod +rx
+
     # Fix a bug where /opt/replicated/krew was world writable
     chmod -R go-w /opt/replicated/krew/
+
 
     if ! grep -q KREW_ROOT /etc/profile; then
         echo "export KREW_ROOT=$KREW_ROOT" >> /etc/profile
