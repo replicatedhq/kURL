@@ -19,7 +19,6 @@ DIR=.
 . $DIR/scripts/common/utilbinaries.sh
 . $DIR/scripts/common/yaml.sh
 . $DIR/scripts/common/coredns.sh
-. $DIR/scripts/common/containerd.sh
 # Magic end
 
 function join() {

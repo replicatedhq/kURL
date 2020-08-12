@@ -32,6 +32,7 @@ function kotsadm() {
     fi
 
     if [ "$AIRGAP" == "1" ]; then
+        cp "$DIR/addons/kotsadm/alpha/kotsadm-airgap.yaml" "$DIR/kustomize/kotsadm/kotsadm-airgap.yaml"
         insert_patches_strategic_merge "$DIR/kustomize/kotsadm/kustomization.yaml" kotsadm-airgap.yaml
     fi
 
@@ -329,7 +330,7 @@ function kotsadm_cli() {
     fi
     if [ ! -f "$src/assets/kots.tar.gz" ] && [ "$AIRGAP" != "1" ]; then
         mkdir -p "$src/assets"
-        curl -L "https://github.com/replicatedhq/kots/releases/download/v1.17.0-beta.7/kots_linux_amd64.tar.gz" > "$src/assets/kots.tar.gz"
+        curl -L "https://github.com/replicatedhq/kots/releases/download/v1.18.0-beta.2/kots_linux_amd64.tar.gz" > "$src/assets/kots.tar.gz"
     fi
 
     pushd "$src/assets"
@@ -378,6 +379,13 @@ function kotsadm_namespaces() {
 }
 
 function kotsadm_health_check() {
+    # Get pods below will initially return only 0 lines
+    # Then it will return 1 line: "PodScheduled=True"
+    # Finally, it will return 4 lines.  And this is when we want to grep for "Ready=False"
+    if [ $(kubectl get pods -l app=kotsadm -o jsonpath="{range .items[*]}{range .status.conditions[*]}{ .type }={ .status }{'\n'}{end}{end}" | wc -l) -lt 4 ]; then
+        return 1
+    fi
+
     if [[ -n $(kubectl get pods -l app=kotsadm -o jsonpath="{range .items[*]}{range .status.conditions[*]}{ .type }={ .status }{'\n'}{end}{end}" | grep Ready=False) ]]; then
       return 1
     fi
@@ -392,6 +400,13 @@ function kotsadm_ready_spinner() {
 }
 
 function kotsadm_api_health_check() {
+    # Get pods below will initially return only 0 lines
+    # Then it will return 1 line: "PodScheduled=True"
+    # Finally, it will return 4 lines.  And this is when we want to grep for "Ready=False"
+    if [ $(kubectl get pods -l app=kotsadm-api -o jsonpath="{range .items[*]}{range .status.conditions[*]}{ .type }={ .status }{'\n'}{end}{end}" | wc -l) -lt 4 ]; then
+        return 1
+    fi
+
     if [[ -n $(kubectl get pods -l app=kotsadm-api -o jsonpath="{range .items[*]}{range .status.conditions[*]}{ .type }={ .status }{'\n'}{end}{end}" | grep Ready=False) ]]; then
       return 1
     fi

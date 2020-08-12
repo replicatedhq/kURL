@@ -1,0 +1,208 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: kotsadm-role
+  labels:
+    kots.io/kotsadm: "true"
+    velero.io/exclude-from-backup: "true"
+rules:
+- apiGroups:
+  - "*"
+  resources:
+  - "*"
+  verbs:
+  - "*"
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: kotsadm-rolebinding
+  labels:
+    kots.io/kotsadm: "true"
+    velero.io/exclude-from-backup: "true"
+subjects:
+- kind: ServiceAccount
+  name: kotsadm
+  namespace: default
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: kotsadm-role
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: kotsadm
+  labels:
+    kots.io/kotsadm: "true"
+    velero.io/exclude-from-backup: "true"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kotsadm
+  labels:
+    kots.io/kotsadm: "true"
+    velero.io/exclude-from-backup: "true"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kotsadm
+  template:
+    metadata:
+      labels:
+        app: kotsadm
+        kots.io/kotsadm: "true"
+        velero.io/exclude-from-backup: "true"
+    spec:
+      securityContext:
+        runAsUser: 1001
+      serviceAccountName: kotsadm
+      restartPolicy: Always
+      volumes:
+      - name: kotsadm-web-scripts
+        configMap:
+          defaultMode: 511 # hex 777
+          name: kotsadm-web-scripts
+      - name: backup
+        emptyDir:
+          medium: Memory
+          sizeLimit: 1Gi
+      containers:
+      - image: kotsadm/kotsadm:v1.18.0
+        name: kotsadm
+        command: ["bash"]
+        args:
+        - "/scripts/start-kotsadm-web.sh"
+        ports:
+        - name: http
+          containerPort: 3000
+        readinessProbe:
+          failureThreshold: 3
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 1
+          httpGet:
+            path: /healthz
+            port: 3000
+            scheme: HTTP
+        env:
+          - name: SHARED_PASSWORD_BCRYPT
+            valueFrom:
+              secretKeyRef:
+                name: kotsadm-password
+                key: passwordBcrypt
+          - name: SESSION_KEY
+            valueFrom:
+              secretKeyRef:
+                name: kotsadm-session
+                key: key
+          - name: POSTGRES_URI
+            valueFrom:
+              secretKeyRef:
+                name: kotsadm-postgres
+                key: uri
+          - name: POSTGRES_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: kotsadm-postgres
+                key: password
+          - name: POD_NAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
+          - name: API_ENCRYPTION_KEY
+            valueFrom:
+              secretKeyRef:
+                name: kotsadm-encryption
+                key: encryptionKey
+          - name: S3_ENDPOINT
+            valueFrom:
+              secretKeyRef:
+                name: kotsadm-s3
+                key: endpoint
+          - name: S3_BUCKET_NAME
+            value: "kotsadm"
+          - name: S3_ACCESS_KEY_ID
+            valueFrom:
+              secretKeyRef:
+                name: kotsadm-s3
+                key: access-key-id
+          - name: S3_SECRET_ACCESS_KEY
+            valueFrom:
+              secretKeyRef:
+                name: kotsadm-s3
+                key: secret-access-key
+          - name: S3_BUCKET_ENDPOINT
+            value: "true"
+          - name: API_ADVERTISE_ENDPOINT
+            value: "http://localhost:8800"
+        volumeMounts:
+          - name: kotsadm-web-scripts
+            mountPath: /scripts/start-kotsadm-web.sh
+            subPath: start-kotsadm-web.sh
+          - mountPath: /backup
+            name: backup
+ 
+      initContainers:
+      - name: restore-db
+        command:
+        - "/restore-db.sh"
+        env:
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: kotsadm-postgres
+        image: kotsadm/kotsadm:v1.18.0
+        imagePullPolicy: IfNotPresent
+        volumeMounts:
+        - mountPath: /backup
+          name: backup
+      - name: restore-s3
+        command:
+        - /restore-s3.sh
+        env:
+        - name: S3_ENDPOINT
+          valueFrom:
+            secretKeyRef:
+              key: endpoint
+              name: kotsadm-s3
+        - name: S3_BUCKET_NAME
+          value: kotsadm
+        - name: S3_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              key: access-key-id
+              name: kotsadm-s3
+        - name: S3_SECRET_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              key: secret-access-key
+              name: kotsadm-s3
+        - name: S3_BUCKET_ENDPOINT
+          value: "true"
+        image: kotsadm/kotsadm:v1.18.0
+        imagePullPolicy: IfNotPresent
+        volumeMounts:
+        - mountPath: /backup
+          name: backup
+        
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kotsadm
+  labels:
+    kots.io/kotsadm: "true"
+    velero.io/exclude-from-backup: "true"
+spec:
+  type: ClusterIP
+  selector:
+    app: kotsadm
+  ports:
+  - name: http
+    port: 3000
+    targetPort: "http"

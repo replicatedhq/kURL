@@ -1,4 +1,4 @@
-FROM ubuntu:16.04
+FROM ubuntu:20.04
 RUN apt-get -y update
 RUN apt-get -y upgrade
 RUN apt-get -y install apt-utils apt-transport-https ca-certificates curl software-properties-common
@@ -8,9 +8,10 @@ RUN apt-get -y update
 
 RUN mkdir -p /packages/archives
 
-ARG CONTAINERD_VERSION
+ARG DOCKER_VERSION
 RUN apt-get -d -y install \
-  containerd.io=$(apt-cache madison 'containerd.io' | grep ${CONTAINERD_VERSION} | head -1 | awk '{$1=$1};1' | cut -d' ' -f 3) \
+  docker-ce-cli=$(apt-cache madison 'docker-ce-cli' | grep ${DOCKER_VERSION} | head -1 | awk '{$1=$1};1' | cut -d' ' -f 3) \
+  docker-ce=$(apt-cache madison 'docker-ce' | grep ${DOCKER_VERSION} | head -1 | awk '{$1=$1};1' | cut -d' ' -f 3) \
   -oDebug::NoLocking=1 -o=dir::cache=/packages/
 
 CMD cp -r /packages/archives/* /out/

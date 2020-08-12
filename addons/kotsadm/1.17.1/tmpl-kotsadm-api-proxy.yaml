@@ -1,0 +1,14 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kotsadm-api
+spec:
+  template:
+    spec:
+      containers:
+      - name: kotsadm-api
+        env:
+        - name: HTTP_PROXY
+          value: ${PROXY_ADDRESS}
+        - name: NO_PROXY
+          value: ${NO_PROXY_ADDRESSES},${OBJECT_STORE_CLUSTER_IP},${KUBERNETES_CLUSTER_IP}
