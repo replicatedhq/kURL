@@ -43,7 +43,7 @@ function init() {
     CERT_KEY_EXPIRY=
     if [ "$HA_CLUSTER" = "1" ]; then
         CERT_KEY=$(< /dev/urandom tr -dc a-f0-9 | head -c64)
-        CERT_KEY_EXPIRY=$(date -d "+2 hour" --rfc-3339=second | sed 's/ /T/')
+        CERT_KEY_EXPIRY=$(TZ="UTC" date -d "+2 hour" --rfc-3339=second | sed 's/ /T/')
         insert_patches_strategic_merge \
             $kustomize_kubeadm_init/kustomization.yaml \
             patch-certificate-key.yaml
