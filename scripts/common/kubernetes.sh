@@ -1,5 +1,4 @@
-export KREW_ROOT=/opt/replicated/krew
-export KUBECTL_PLUGINS_PATH=${KREW_ROOT}/bin
+export KUBECTL_PLUGINS_PATH=/usr/local/bin
 
 function kubernetes_host() {
     kubernetes_load_ipvs_modules
