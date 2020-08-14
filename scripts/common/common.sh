@@ -283,9 +283,12 @@ function get_shared() {
 }
 
 function all_sudo_groups() {
-    # looking for a line like `%wheel ALL=(ALL) ALL` in any of the sudo config files
-    cat /etc/sudoers | grep -Eo '^%\S+' | sed 's/%//'
-    find /etc/sudoers.d/ -type f | xargs cat | grep -Eo '^%\S+' | sed 's/%//'
+    # examples of lines we're looking for in any sudo config files to find group with root privileges
+    # %wheel ALL = (ALL) ALL
+    # %google-sudoers ALL=(ALL:ALL) NOPASSWD:ALL
+    # %admin ALL=(ALL) ALL
+    cat /etc/sudoers | grep -Eo '^%\S+\s+ALL\s?=.*ALL\b' | awk '{print $1 }' | sed 's/%//'
+    find /etc/sudoers.d/ -type f | xargs cat | grep -Eo '^%\S+\s+ALL\s?=.*ALL\b' | awk '{print $1 }' | sed 's/%//'
 }
 
 # if the sudo group cannot be detected default to root
