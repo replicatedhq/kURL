@@ -187,7 +187,8 @@ parseDockerVersion() {
 exportKubeconfig() {
     cp /etc/kubernetes/admin.conf $HOME/admin.conf
     chown $SUDO_USER:$SUDO_GID $HOME/admin.conf
-    chmod 444 /etc/kubernetes/admin.conf
+    chown root:$(current_user_sudo_group) /etc/kubernetes/admin.conf
+    chmod 440 /etc/kubernetes/admin.conf
     if ! grep -q "kubectl completion bash" /etc/profile; then
         echo 'export KUBECONFIG=/etc/kubernetes/admin.conf' >> /etc/profile
         echo "source <(kubectl completion bash)" >> /etc/profile
@@ -279,6 +280,28 @@ function get_shared() {
             ctr -n=k8s.io images import shared/kurl-util.tar
         fi
     fi
+}
+
+function all_sudo_groups() {
+    # looking for a line like `%wheel ALL=(ALL) ALL` in any of the sudo config files
+    cat /etc/sudoers | grep -Eo '^%\S+' | sed 's/%//'
+    find /etc/sudoers.d/ -type f | xargs cat | grep -Eo '^%\S+' | sed 's/%//'
+}
+
+# if the sudo group cannot be detected default to root
+function current_user_sudo_group() {
+    if [ -z "$SUDO_UID" ]; then
+        echo "root"
+        return 0
+    fi
+    # return the first sudo group the current user belongs to
+    while read -r groupName; do
+        if id "$SUDO_UID" -Gn | grep -q "\b${groupName}\b"; then
+            echo "$groupName"
+            return 0
+        fi
+    done < <(all_sudo_groups)
+    echo "root"
 }
 
 splitHostPort() {
