@@ -17,7 +17,7 @@ spec:
 
   initContainers:
   - name: migrations-plan
-    image: kotsadm/kotsadm-migrations:v1.18.0
+    image: kotsadm/kotsadm-migrations:v1.18.1
     args: ["plan"]
     volumeMounts:
     - name: migrations
@@ -37,7 +37,7 @@ spec:
 
   containers:
   - name: kotsadm-migrations
-    image: kotsadm/kotsadm-migrations:v1.18.0
+    image: kotsadm/kotsadm-migrations:v1.18.1
     args: ["apply"]
     volumeMounts:
       - name: migrations
