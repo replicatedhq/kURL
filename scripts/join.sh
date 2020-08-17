@@ -83,9 +83,7 @@ outro() {
     printf "\t\t${GREEN}  Complete ✔${NC}\n"
     if [ "$MASTER" = "1" ]; then
         printf "\n"
-        printf "To access the cluster with kubectl, reload your shell:\n"
-        printf "\n"
-        printf "${GREEN}    bash -l${NC}\n"
+        kubeconfig_setup_outro
     fi
     printf "\n"
 }

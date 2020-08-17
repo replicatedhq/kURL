@@ -187,7 +187,10 @@ parseDockerVersion() {
 exportKubeconfig() {
     cp /etc/kubernetes/admin.conf $HOME/admin.conf
     chown $SUDO_USER:$SUDO_GID $HOME/admin.conf
-    chown root:$(current_user_sudo_group) /etc/kubernetes/admin.conf
+    current_user_sudo_group
+    if [ -n "$FOUND_SUDO_GROUP" ]; then
+        chown root:$FOUND_SUDO_GROUP /etc/kubernetes/admin.conf
+    fi
     chmod 440 /etc/kubernetes/admin.conf
     if ! grep -q "kubectl completion bash" /etc/profile; then
         echo 'export KUBECONFIG=/etc/kubernetes/admin.conf' >> /etc/profile
@@ -292,6 +295,7 @@ function all_sudo_groups() {
 }
 
 # if the sudo group cannot be detected default to root
+FOUND_SUDO_GROUP=
 function current_user_sudo_group() {
     if [ -z "$SUDO_UID" ]; then
         echo "root"
@@ -300,11 +304,30 @@ function current_user_sudo_group() {
     # return the first sudo group the current user belongs to
     while read -r groupName; do
         if id "$SUDO_UID" -Gn | grep -q "\b${groupName}\b"; then
-            echo "$groupName"
+            FOUND_SUDO_GROUP="$groupName"
             return 0
         fi
     done < <(all_sudo_groups)
     echo "root"
+}
+
+function kubeconfig_setup_outro() {
+    if [ -n "$FOUND_SUDO_GROUP" ]; then
+        printf "To access the cluster with kubectl, reload your shell:\n"
+        printf "\n"
+        printf "${GREEN}    bash -l${NC}\n"
+        return
+    fi
+    local owner="$SUDO_UID"
+    if [ -z "$owner" ]; then
+        owner="$USER"
+    fi
+    printf "To access the cluster with kubectl, copy kubeconfig to your home directory:\n"
+    printf "\n"
+    printf "${GREEN}    cp /etc/kubernetes/admin.conf ~/.kube/config${NC}\n"
+    printf "${GREEN}    chown -R ${owner} ~/.kube${NC}\n"
+    printf "${GREEN}    echo unset KUBECONFIG >> ~/.profile${NC}\n"
+    printf "${GREEN}    bash -l${NC}\n"
 }
 
 splitHostPort() {
