@@ -11,7 +11,7 @@ Enable the aws, nodeless and calico plugins, and disable prometheus, weave, rook
      DOCKER_VERSION=18.09.8
     -WEAVE_VERSION=2.5.2
     -ROOK_VERSION=1.0.4
-    -CONTOUR_VERSION=1.0.1
+    -CONTOUR_VERSION=1.7.0
     +#WEAVE_VERSION=2.5.2
     +#ROOK_VERSION=1.0.4
     +#CONTOUR_VERSION=1.0.1
