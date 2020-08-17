@@ -409,6 +409,7 @@ export class Installer {
       "1.0.4",
     ],
     contour: [
+      "1.7.0",
       "1.0.1",
       "0.14.0",
     ],
