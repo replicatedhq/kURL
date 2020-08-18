@@ -298,7 +298,6 @@ function all_sudo_groups() {
 FOUND_SUDO_GROUP=
 function current_user_sudo_group() {
     if [ -z "$SUDO_UID" ]; then
-        echo "root"
         return 0
     fi
     # return the first sudo group the current user belongs to
@@ -308,7 +307,6 @@ function current_user_sudo_group() {
             return 0
         fi
     done < <(all_sudo_groups)
-    echo "root"
 }
 
 function kubeconfig_setup_outro() {
