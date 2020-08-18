@@ -124,10 +124,16 @@ function kotsadm_secret_authstring() {
     local AUTHSTRING=$(kubernetes_secret_value default kotsadm-authstring kotsadm-authstring)
 
     if [ -n "$AUTHSTRING" ]; then
-        return 0
-    else
-        AUTHSTRING=$(< /dev/urandom tr -dc A-Za-z0-9 | head -c16)
+        # These are the only two valid formats.  Regenerating token in other cases to fix existing installs.
+        if [[ "$AUTHSTRING" =~ ^'Kots ' ]]; then
+            return 0
+        fi
+        if [[ "$AUTHSTRING" =~ ^'Bearer ' ]]; then
+            return 0
+        fi
     fi
+
+    AUTHSTRING="Kots $(< /dev/urandom tr -dc A-Za-z0-9 | head -c32)"
 
     render_yaml_file "$DIR/addons/kotsadm/1.18.1/tmpl-secret-authstring.yaml" > "$DIR/kustomize/kotsadm/secret-authstring.yaml"
     insert_resources "$DIR/kustomize/kotsadm/kustomization.yaml" secret-authstring.yaml
