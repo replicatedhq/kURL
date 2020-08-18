@@ -41,3 +41,10 @@ spec:
         configMap:
           name: kotsadm-application-metadata
           optional: true
+      resources:
+        limits:
+          cpu: 200m
+          memory: 200Mi
+        requests:
+          cpu: 50m
+          memory: 50Mi

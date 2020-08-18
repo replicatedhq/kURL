@@ -77,6 +77,13 @@ spec:
             - "-i"
             - "-c"
             - "pg_isready -U kotsadm -h 127.0.0.1 -p 5432"
+        resources:
+          limits:
+            cpu: 200m
+            memory: 200Mi
+          requests:
+            cpu: 100m
+            memory: 100Mi
 ---
 apiVersion: v1
 kind: Service
