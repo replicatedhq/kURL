@@ -154,6 +154,13 @@ spec:
       - name: kubelet-client-cert
         secret:
           secretName: kubelet-client-cert
+      resources:
+        limits:
+          cpu: 1000m
+          memory: 1000Mi
+        requests:
+          cpu: 200m
+          memory: 200Mi
 ---
 apiVersion: v1
 kind: Service

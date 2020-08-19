@@ -145,7 +145,14 @@ spec:
             subPath: start-kotsadm-web.sh
           - mountPath: /backup
             name: backup
- 
+        resources:
+          limits:
+            cpu: 500m
+            memory: 500Mi
+          requests:
+            cpu: 100m
+            memory: 100Mi
+
       initContainers:
       - name: restore-db
         command:
@@ -161,6 +168,14 @@ spec:
         volumeMounts:
         - mountPath: /backup
           name: backup
+        resources:
+          limits:
+            cpu: 500m
+            memory: 500Mi
+          requests:
+            cpu: 100m
+            memory: 100Mi
+
       - name: restore-s3
         command:
         - /restore-s3.sh
@@ -189,7 +204,14 @@ spec:
         volumeMounts:
         - mountPath: /backup
           name: backup
-        
+        resources:
+          limits:
+            cpu: 500m
+            memory: 500Mi
+          requests:
+            cpu: 100m
+            memory: 100Mi
+
 ---
 apiVersion: v1
 kind: Service
