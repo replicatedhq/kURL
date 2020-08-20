@@ -139,6 +139,8 @@ spec:
             value: "true"
           - name: API_ADVERTISE_ENDPOINT
             value: "http://localhost:8800"
+          - name: API_ENDPOINT
+            value: http://kotsadm.default.svc.cluster.local:3000
         volumeMounts:
           - name: kotsadm-web-scripts
             mountPath: /scripts/start-kotsadm-web.sh
