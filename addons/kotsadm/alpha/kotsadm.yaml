@@ -61,6 +61,12 @@ spec:
       serviceAccountName: kotsadm
       restartPolicy: Always
       volumes:
+      - name: etcd-client-cert
+        secret:
+          secretName: etcd-client-cert
+      - name: kubelet-client-cert
+        secret:
+          secretName: kubelet-client-cert
       - name: kotsadm-web-scripts
         configMap:
           defaultMode: 511 # hex 777
@@ -147,6 +153,12 @@ spec:
             subPath: start-kotsadm-web.sh
           - mountPath: /backup
             name: backup
+          - name: etcd-client-cert
+            readOnly: true
+            mountPath: /etc/kubernetes/pki/etcd
+          - name: kubelet-client-cert
+            readOnly: true
+            mountPath: /etc/kubernetes/pki/kubelet
         resources:
           limits:
             cpu: 500m
