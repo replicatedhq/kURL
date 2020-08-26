@@ -7,7 +7,6 @@ function kotsadm() {
     kotsadm_rename_postgres_pvc_1-12-2 "$src"
 
     cp "$src/kustomization.yaml" "$dst/"
-    cp "$src/api.yaml" "$dst/"
     cp "$src/operator.yaml" "$dst/"
     cp "$src/postgres.yaml" "$dst/"
     cp "$src/schemahero.yaml" "$dst/"
@@ -27,8 +26,6 @@ function kotsadm() {
         KUBERNETES_CLUSTER_IP=$(kubectl get services kubernetes --no-headers | awk '{ print $3 }')
         render_yaml_file "$DIR/addons/kotsadm/alpha/tmpl-kotsadm-proxy.yaml" > "$DIR/kustomize/kotsadm/kotsadm-proxy.yaml"
         insert_patches_strategic_merge "$DIR/kustomize/kotsadm/kustomization.yaml" kotsadm-proxy.yaml
-        render_yaml_file "$DIR/addons/kotsadm/alpha/tmpl-kotsadm-api-proxy.yaml" > "$DIR/kustomize/kotsadm/kotsadm-api-proxy.yaml"
-        insert_patches_strategic_merge "$DIR/kustomize/kotsadm/kustomization.yaml" kotsadm-api-proxy.yaml
     fi
 
     if [ "$AIRGAP" == "1" ]; then
@@ -55,6 +52,13 @@ function kotsadm() {
     kubectl delete deployment kotsadm-web || true; # replaced by 'kotsadm' deployment in 1.12.0
     kubectl delete service kotsadm-api || true; # replaced by 'kotsadm-api-node' service in 1.12.0
 
+    # removed in 1.19.0
+    kubectl delete deployment kotsadm-api || true
+    kubeclt delete service kotsadm-api-node || true
+    kubeclt delete serviceaccount kotsadm-api || true
+    kubeclt delete clusterrolebinding kotsadm-api-rolebinding || true
+    kubeclt delete clusterrole kotsadm-api-role || true
+
     kotsadm_namespaces "$src" "$dst"
 
     kubectl apply -k "$dst/"
@@ -62,7 +66,6 @@ function kotsadm() {
     kotsadm_kurl_proxy $src $dst
 
     kotsadm_ready_spinner
-    kotsadm_api_ready_spinner
 
     kubectl label pvc kotsadm-postgres-kotsadm-postgres-0 velero.io/exclude-from-backup="true" --overwrite
 
@@ -74,10 +77,6 @@ function kotsadm_join() {
 }
 
 function kotsadm_outro() {
-    local apiPod=$(kubectl get pods --selector app=kotsadm-api --no-headers | grep -E '(ContainerCreating|Running)' | head -1 | awk '{ print $1 }')
-    if [ -z "$apiPod" ]; then
-        apiPod="<api-pod>"
-    fi
     local mainPod=$(kubectl get pods --selector app=kotsadm --no-headers | grep -E '(ContainerCreating|Running)' | head -1 | awk '{ print $1 }')
     if [ -z "$mainPod" ]; then
         mainPod="<main-pod>"
@@ -116,7 +115,7 @@ function kotsadm_secret_cluster_token() {
     insert_resources "$DIR/kustomize/kotsadm/kustomization.yaml" secret-cluster-token.yaml
 
     # ensure all pods that consume the secret will be restarted
-    kubernetes_scale_down default deployment kotsadm-api
+    kubernetes_scale_down default deployment kotsadm
     kubernetes_scale_down default deployment kotsadm-operator
 }
 
@@ -154,7 +153,6 @@ function kotsadm_secret_password() {
     insert_resources "$DIR/kustomize/kotsadm/kustomization.yaml" secret-password.yaml
 
     kubernetes_scale_down default deployment kotsadm
-    kubernetes_scale_down default deployment kotsadm-api
 }
 
 function kotsadm_secret_postgres() {
@@ -170,7 +168,6 @@ function kotsadm_secret_postgres() {
     insert_resources "$DIR/kustomize/kotsadm/kustomization.yaml" secret-postgres.yaml
 
     kubernetes_scale_down default deployment kotsadm
-    kubernetes_scale_down default deployment kotsadm-api
     kubernetes_scale_down default deployment kotsadm-postgres
     kubernetes_scale_down default deployment kotsadm-migrations
 }
@@ -196,7 +193,6 @@ function kotsadm_secret_session() {
     insert_resources "$DIR/kustomize/kotsadm/kustomization.yaml" secret-session.yaml
 
     kubernetes_scale_down default deployment kotsadm
-    kubernetes_scale_down default deployment kotsadm-api
 }
 
 function kotsadm_api_encryption_key() {
@@ -213,7 +209,7 @@ function kotsadm_api_encryption_key() {
     render_yaml_file "$DIR/addons/kotsadm/alpha/tmpl-secret-api-encryption.yaml" > "$DIR/kustomize/kotsadm/secret-api-encryption.yaml"
     insert_resources "$DIR/kustomize/kotsadm/kustomization.yaml" secret-api-encryption.yaml
 
-    kubernetes_scale_down default deployment kotsadm-api
+    kubernetes_scale_down default deployment kotsadm
 }
 
 function kotsadm_api_patch_prometheus() {
@@ -402,26 +398,5 @@ function kotsadm_ready_spinner() {
     if ! spinner_until 120 kotsadm_health_check; then
       kubectl logs -l app=kotsadm --all-containers --tail 10
       bail "The kotsadm deployment in the kotsadm addon failed to deploy successfully."
-    fi
-}
-
-function kotsadm_api_health_check() {
-    # Get pods below will initially return only 0 lines
-    # Then it will return 1 line: "PodScheduled=True"
-    # Finally, it will return 4 lines.  And this is when we want to grep for "Ready=False"
-    if [ $(kubectl get pods -l app=kotsadm-api -o jsonpath="{range .items[*]}{range .status.conditions[*]}{ .type }={ .status }{'\n'}{end}{end}" | wc -l) -lt 4 ]; then
-        return 1
-    fi
-
-    if [[ -n $(kubectl get pods -l app=kotsadm-api -o jsonpath="{range .items[*]}{range .status.conditions[*]}{ .type }={ .status }{'\n'}{end}{end}" | grep Ready=False) ]]; then
-      return 1
-    fi
-    return 0
-}
-
-function kotsadm_api_ready_spinner() {
-    if ! spinner_until 240 kotsadm_api_health_check; then
-      kubectl logs -l app=kotsadm-api --all-containers --tail 10
-      bail "The kotsadm-api deployment in the kotsadm addon failed to deploy successfully."
     fi
 }
