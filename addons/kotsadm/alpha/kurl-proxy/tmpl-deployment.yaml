@@ -35,16 +35,16 @@ spec:
         volumeMounts:
         - name: kotsadm-config
           mountPath: /etc/kotsadm
+        resources:
+          limits:
+            cpu: 200m
+            memory: 200Mi
+          requests:
+            cpu: 50m
+            memory: 50Mi
       serviceAccount: kurl-proxy
       volumes:
       - name: kotsadm-config
         configMap:
           name: kotsadm-application-metadata
           optional: true
-      resources:
-        limits:
-          cpu: 200m
-          memory: 200Mi
-        requests:
-          cpu: 50m
-          memory: 50Mi
