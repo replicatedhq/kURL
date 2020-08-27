@@ -69,7 +69,7 @@ spec:
         name: kotsadm-operator
         env:
         - name: KOTSADM_API_ENDPOINT
-          value: http://kotsadm-api-node:3000
+          value: http://kotsadm:3000
         - name: KOTSADM_TOKEN
           valueFrom:
             secretKeyRef:
