@@ -54,10 +54,10 @@ function kotsadm() {
 
     # removed in 1.19.0
     kubectl delete deployment kotsadm-api || true
-    kubeclt delete service kotsadm-api-node || true
-    kubeclt delete serviceaccount kotsadm-api || true
-    kubeclt delete clusterrolebinding kotsadm-api-rolebinding || true
-    kubeclt delete clusterrole kotsadm-api-role || true
+    kubectl delete service kotsadm-api-node || true
+    kubectl delete serviceaccount kotsadm-api || true
+    kubectl delete clusterrolebinding kotsadm-api-rolebinding || true
+    kubectl delete clusterrole kotsadm-api-role || true
 
     kotsadm_namespaces "$src" "$dst"
 
