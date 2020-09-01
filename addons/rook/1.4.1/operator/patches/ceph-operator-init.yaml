@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rook-ceph-operator
+  namespace: rook-ceph
+spec:
+  template:
+    spec:
+      initContainers:
+        - name: config-init
+          image: rook/ceph:v1.4.1
+          command: [ "/usr/local/bin/toolbox.sh" ]
+          args: [ "--skip-watch" ]
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: ROOK_CEPH_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: rook-ceph-mon
+                  key: ceph-username
+            - name: ROOK_CEPH_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: rook-ceph-mon
+                  key: ceph-secret
+          volumeMounts:
+            - mountPath: /etc/ceph
+              name: default-config-dir
+            - name: mon-endpoint-volume
+              mountPath: /etc/rook
+      volumes:
+        - name: mon-endpoint-volume
+          configMap:
+            name: rook-ceph-mon-endpoints
+            items:
+              - key: data
+                path: mon-endpoints

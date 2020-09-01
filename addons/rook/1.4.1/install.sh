@@ -22,13 +22,24 @@ function rook() {
     if ! spinner_until 120 rook_rgw_is_healthy; then
         bail "Failed to detect health Rook RGW"
     fi
+
+    # Patch the rook-ceph operator to enable running ceph commands on it.
+    # Note that this patch mounts configMaps that are created after cluster is running. So, we have to patch the
+    # operator after cluster is deployed.
+    kubectl -n rook-ceph patch deployments.apps rook-ceph-operator -p "$(cat $DIR/addons/rook/1.4.1/operator/patches/ceph-operator-init.yaml)"
 }
 
 function rook_operator_deploy() {
     local src="$DIR/addons/rook/1.4.1/operator"
     local dst="$DIR/kustomize/rook/operator"
 
-    cp -r "$src" "$dst"
+    mkdir -p "$dst"
+    cp "$src/kustomization.yaml" "$dst/"
+
+    # resources
+    cp "$src/ceph-common.yaml" "$dst/"
+    cp "$src/ceph-operator.yaml" "$dst/"
+
     kubectl apply -k "$dst/"
 }
 
