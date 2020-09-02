@@ -39,6 +39,8 @@ function velero() {
 }
 
 function velero_join() {
+    local src="$DIR/addons/velero/1.2.0"
+
     velero_binary
 }
 
