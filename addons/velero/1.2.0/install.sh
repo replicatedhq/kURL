@@ -39,12 +39,12 @@ function velero() {
 }
 
 function velero_join() {
-    local src="$DIR/addons/velero/1.2.0"
-
     velero_binary
 }
 
 function velero_binary() {
+    local src="$DIR/addons/velero/1.2.0"
+
     if [ "$VELERO_DISABLE_CLI" = "1" ]; then
         return 0
     fi
