@@ -187,7 +187,7 @@ spec:
               key: password
               name: kotsadm-postgres
         image: kotsadm/kotsadm:v1.19.0
-        imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent
         volumeMounts:
         - mountPath: /backup
           name: backup
@@ -223,7 +223,7 @@ spec:
         - name: S3_BUCKET_ENDPOINT
           value: "true"
         image: kotsadm/kotsadm:v1.19.0
-        imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent
         volumeMounts:
         - mountPath: /backup
           name: backup
