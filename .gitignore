@@ -4,6 +4,7 @@
 /tmp/
 /web/templates
 node_modules/
+.idea
 *DS_Store
 supported-versions-gen.json
 addons-gen.json
