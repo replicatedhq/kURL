@@ -2,7 +2,7 @@ CEPH_VERSION=15.2.4-20200819
 
 function rook_pre_init() {
     local version=$(rook_version)
-    if [ "$version" != "1.4.3" ]; then
+    if [ -n "$version" ] && [ "$version" != "1.4.3" ]; then
         bail "Rook $version is already installed"
     fi
     if [ "$ROOK_BLOCK_STORAGE_ENABLED" != "1" ]; then
