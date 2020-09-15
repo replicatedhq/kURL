@@ -76,7 +76,7 @@ spec:
           medium: Memory
           sizeLimit: 1Gi
       containers:
-      - image: kotsadm/kotsadm:v1.19.0
+      - image: kotsadm/kotsadm:v1.19.1
         name: kotsadm
         command: ["bash"]
         args:
@@ -186,7 +186,7 @@ spec:
             secretKeyRef:
               key: password
               name: kotsadm-postgres
-        image: kotsadm/kotsadm:v1.19.0
+        image: kotsadm/kotsadm:v1.19.1
         imagePullPolicy: IfNotPresent
         volumeMounts:
         - mountPath: /backup
@@ -222,7 +222,7 @@ spec:
               name: kotsadm-s3
         - name: S3_BUCKET_ENDPOINT
           value: "true"
-        image: kotsadm/kotsadm:v1.19.0
+        image: kotsadm/kotsadm:v1.19.1
         imagePullPolicy: IfNotPresent
         volumeMounts:
         - mountPath: /backup
