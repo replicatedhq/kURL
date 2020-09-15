@@ -14,7 +14,7 @@ function openebs_pre_init() {
 }
 
 function openebs() {
-    local src="$DIR/addons/openebs/1.6.0"
+    local src="$DIR/addons/openebs/1.12.0"
     local dst="$DIR/kustomize/openebs"
 
     render_yaml_file "$src/tmpl-kustomization.yaml" > "$dst/kustomization.yaml"
@@ -92,7 +92,7 @@ function openebs_join() {
 }
 
 function openebs_iscsi() {
-    local src="$DIR/addons/openebs/1.6.0"
+    local src="$DIR/addons/openebs/1.12.0"
 
     if ! systemctl list-units | grep -q iscsid; then
         printf "${YELLOW}Installing iscsid service${NC}\n"
@@ -199,7 +199,7 @@ function openebs_cstor_add_replica() {
     local nodeName=$(kubectl -n "$OPENEBS_NAMESPACE" get cstorpools "$cstorPoolName" -ojsonpath='{ .metadata.labels.kubernetes\.io/hostname }')
     local cstorPoolUID=$(kubectl -n "$OPENEBS_NAMESPACE" get cstorpools "$cstorPoolName" -ojsonpath='{ .metadata.uid }')
     local pvName="pvc-$pvcUID"
-    local openebsVersion=1.6.0
+    local openebsVersion=1.12.0
     local newReplicaName="${pvName}-${cstorPoolName}"
     local targetIP=$(kubectl -n "$OPENEBS_NAMESPACE" get cstorvolumes "$pvName" -ojsonpath='{ .spec.targetIP }')
     local capacity=$(kubectl -n "$OPENEBS_NAMESPACE" get cstorvolumes "$pvName" -ojsonpath='{ .spec.capacity }')
