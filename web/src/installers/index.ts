@@ -490,6 +490,7 @@ export class Installer {
       "1.2.0",
     ],
     openebs: [
+      "1.12.0",
       "1.6.0",
     ],
     minio: [
