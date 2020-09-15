@@ -1,5 +1,15 @@
 CEPH_VERSION=15.2.4-20200819
 
+function rook_pre_init() {
+    local version=$(rook_version)
+    if [ "$version" != "1.4.3" ]; then
+        bail "Rook $version is already installed"
+    fi
+    if [ "$ROOK_BLOCK_STORAGE_ENABLED" != "1" ]; then
+        bail "Rook 1.4.3 requires enabling block storage"
+    fi
+}
+
 function rook() {
     rook_operator_deploy
     rook_set_ceph_pool_replicas
@@ -16,7 +26,7 @@ function rook() {
     fi
 
     spinnerPodRunning rook-ceph rook-ceph-rgw-rook-ceph-store
-    kubectl apply -f "$DIR/addons/rook/1.4.1/cluster/object-user.yaml"
+    kubectl apply -f "$DIR/addons/rook/1.4.3/cluster/object-user.yaml"
     rook_object_store_output
 
     if ! spinner_until 120 rook_rgw_is_healthy; then
@@ -25,7 +35,7 @@ function rook() {
 }
 
 function rook_operator_deploy() {
-    local src="$DIR/addons/rook/1.4.1/operator"
+    local src="$DIR/addons/rook/1.4.3/operator"
     local dst="$DIR/kustomize/rook/operator"
 
     cp -r "$src" "$dst"
@@ -33,7 +43,7 @@ function rook_operator_deploy() {
 }
 
 function rook_cluster_deploy() {
-    local src="$DIR/addons/rook/1.4.1/cluster"
+    local src="$DIR/addons/rook/1.4.3/cluster"
     local dst="$DIR/kustomize/rook/cluster"
 
     mkdir -p "$dst"
@@ -144,4 +154,11 @@ function rook_create_bucket() {
 
 function rook_rgw_is_healthy() {
     curl --noproxy "*" --fail --silent --insecure "http://${OBJECT_STORE_CLUSTER_IP}" > /dev/null
+}
+
+function rook_version() {
+    kubectl -n rook-ceph get deploy rook-ceph-operator -oyaml 2>/dev/null \
+        | grep ' image: ' \
+        | awk -F':' 'NR==1 { print $3 }' \
+        | sed 's/v\([^-]*\).*/\1/'
 }

@@ -1,4 +1,4 @@
-# https://raw.githubusercontent.com/rook/rook/v1.4.1/cluster/examples/kubernetes/ceph/pool.yaml
+# https://raw.githubusercontent.com/rook/rook/v1.4.3/cluster/examples/kubernetes/ceph/pool.yaml
 
 #################################################################################################################
 # Create a Ceph pool with settings for replication in production environments. A minimum of 3 OSDs on

@@ -1,2 +1,2 @@
-image rook rook/ceph:v1.4.1
+image rook rook/ceph:v1.4.3
 image ceph ceph/ceph:v15.2.4-20200819
