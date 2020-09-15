@@ -1,4 +1,4 @@
-# https://raw.githubusercontent.com/rook/rook/v1.4.1/cluster/examples/kubernetes/ceph/common.yaml
+# https://raw.githubusercontent.com/rook/rook/v1.4.3/cluster/examples/kubernetes/ceph/common.yaml
 
 ###################################################################################################################
 # Create the common resources that are necessary to start the operator and the ceph cluster.

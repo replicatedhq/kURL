@@ -1,4 +1,4 @@
-# https://raw.githubusercontent.com/rook/rook/v1.4.1/cluster/examples/kubernetes/ceph/toolbox.yaml
+# https://raw.githubusercontent.com/rook/rook/v1.4.3/cluster/examples/kubernetes/ceph/toolbox.yaml
 
 apiVersion: apps/v1
 kind: Deployment
@@ -20,7 +20,7 @@ spec:
       dnsPolicy: ClusterFirstWithHostNet
       containers:
         - name: rook-ceph-tools
-          image: rook/ceph:v1.4.1
+          image: rook/ceph:v1.4.3
           command: [ "/tini" ]
           args: [ "-g", "--", "/usr/local/bin/toolbox.sh" ]
           imagePullPolicy: IfNotPresent

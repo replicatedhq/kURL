@@ -1,4 +1,4 @@
-# https://raw.githubusercontent.com/rook/rook/v1.4.1/cluster/examples/kubernetes/ceph/cluster.yaml
+# https://raw.githubusercontent.com/rook/rook/v1.4.3/cluster/examples/kubernetes/ceph/cluster.yaml
 
 #################################################################################################################
 # Define the settings for the rook-ceph cluster with common settings for a production cluster.

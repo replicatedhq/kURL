@@ -408,7 +408,7 @@ export class Installer {
     ],
     rook: [
       "1.0.4",
-      "1.4.1",
+      "1.4.3",
     ],
     contour: [
       "1.7.0",
