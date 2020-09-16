@@ -87,9 +87,11 @@ function reset() {
 
     if commandExists "kubeadm"; then
         kubeadm reset --force
+        printf "kubeadm reset completed\n"
     fi
 
     weave_reset
+    printf "weave reset completed\n"
 
     rm -rf /var/lib/weave
     rm -rf /opt/replicated
