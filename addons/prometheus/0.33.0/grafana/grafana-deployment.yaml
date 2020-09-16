@@ -39,6 +39,9 @@ spec:
         - mountPath: /etc/grafana/provisioning/datasources
           name: grafana-datasources
           readOnly: false
+        - mountPath: /etc/grafana
+          name: graphana-config-ini
+          readOnly: false
         - mountPath: /etc/grafana/provisioning/dashboards
           name: grafana-dashboards
           readOnly: false
@@ -111,6 +114,9 @@ spec:
       - name: grafana-datasources
         secret:
           secretName: grafana-datasources
+      - configMap:
+          name: graphana-config-ini
+        name: graphana-config-ini
       - configMap:
           name: grafana-dashboards
         name: grafana-dashboards
