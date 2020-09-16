@@ -87,9 +87,11 @@ function reset() {
 
     if commandExists "kubeadm"; then
         kubeadm reset --force
+        printf "kubeadm reset completed\n"
     fi
 
     weave_reset
+    printf "weave reset completed\n"
 
     rm -rf /var/lib/weave
     rm -rf /opt/replicated
@@ -100,6 +102,8 @@ function reset() {
     rm -f /usr/bin/kubeadm /usr/bin/kubelet /usr/bin/kubectl
     rm -rf /var/lib/kubelet
     rm -f /usr/local/bin/kustomize*
+
+    printf "Reset script completed\n"
 }
 
 function commandExists() {
