@@ -5,6 +5,7 @@ resources:
 - grafana-dashboardDefinitions.yaml
 - grafana-service.yaml
 - grafana-dashboardSources.yaml
+- grafana-config.yaml
 - grafana-serviceAccount.yaml
 
 patchesStrategicMerge:
