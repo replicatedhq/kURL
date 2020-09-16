@@ -100,6 +100,8 @@ function reset() {
     rm -f /usr/bin/kubeadm /usr/bin/kubelet /usr/bin/kubectl
     rm -rf /var/lib/kubelet
     rm -f /usr/local/bin/kustomize*
+
+    printf "Reset script completed\n"
 }
 
 function commandExists() {
