@@ -278,6 +278,9 @@ function install_plugins() {
 function install_kustomize() {
     if ! kubernetes_is_master; then
         return 0
+    elif [ ! -d "$DIR/packages/kubernetes/${k8sVersion}/assets" ]; then
+        echo "Kustomize package is missing in your distribution. Skipping."
+        return 0
     fi
 
     kustomize_dir=/usr/local/bin
