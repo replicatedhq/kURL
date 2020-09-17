@@ -5,4 +5,4 @@ metadata:
   namespace: rook-ceph
 spec:
   mon:
-    allowMultiplePerNode: true
+    count: 1
