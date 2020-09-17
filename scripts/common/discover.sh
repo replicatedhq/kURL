@@ -185,6 +185,10 @@ getDockerVersion() {
 }
 
 discoverPublicIp() {
+    if [ "$AIRGAP" == "1" ]; then
+        return
+    fi
+
     # gce
     set +e
     _out=$(curl --noproxy "*" --max-time 5 --connect-timeout 2 -qSfs -H 'Metadata-Flavor: Google' http://169.254.169.254/computeMetadata/v1/instance/network-interfaces/0/access-configs/0/external-ip 2>/dev/null)
