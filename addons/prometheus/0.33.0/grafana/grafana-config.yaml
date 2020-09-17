@@ -480,7 +480,7 @@ data:
     #################################### Grafana.com integration  ##########################
     # Url used to import dashboards directly from Grafana.com
     [grafana_com]
-    ;url = https://grafana.com
+    url = 
     
     #################################### External image storage ##########################
     [external_image_storage]
