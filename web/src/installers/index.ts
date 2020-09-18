@@ -469,7 +469,7 @@ const specSchema = {
     kurl: kurlConfigSchema,
     containerd: containerdConfigSchema,
     firewalldConfig: firewalldConfigSchema,
-		iptablesConfig: iptablesConfigSchema,
+    iptablesConfig: iptablesConfigSchema,
     selinuxConfig: selinuxConfigSchema,
   },
   required: ["kubernetes"],
