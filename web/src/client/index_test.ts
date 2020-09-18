@@ -24,6 +24,8 @@ spec:
     version: latest
   rook:
     version: latest
+  ekco:
+    version: latest
   contour:
     version: latest
   registry:
@@ -45,6 +47,8 @@ spec:
   weave:
     version: latest
   rook:
+    version: latest
+  ekco:
     version: latest
   contour:
     version: latest
@@ -402,6 +406,7 @@ describe("GET /<installerID>", () => {
       expect(script).to.match(new RegExp(`version: ${latestResolve.spec.kubernetes.version}`));
       expect(script).to.match(new RegExp(`version: ${latestResolve.spec.weave!.version}`));
       expect(script).to.match(new RegExp(`version: ${latestResolve.spec.rook!.version}`));
+      expect(script).to.match(new RegExp(`version: ${latestResolve.spec.ekco!.version}`));
       expect(script).to.match(new RegExp(`version: ${latestResolve.spec.contour!.version}`));
       expect(script).to.match(new RegExp(`version: ${latestResolve.spec.registry!.version}`));
       expect(script).to.match(new RegExp(`version: ${latestResolve.spec.prometheus!.version}`));
@@ -547,6 +552,7 @@ describe("GET /<installerID>/join.sh", () => {
       expect(script).to.match(new RegExp(`version: ${latestResolve.spec.kubernetes.version}`));
       expect(script).to.match(new RegExp(`version: ${latestResolve.spec.weave!.version}`));
       expect(script).to.match(new RegExp(`version: ${latestResolve.spec.rook!.version}`));
+      expect(script).to.match(new RegExp(`version: ${latestResolve.spec.ekco!.version}`));
       expect(script).to.match(new RegExp(`version: ${latestResolve.spec.contour!.version}`));
       expect(script).to.match(new RegExp(`version: ${latestResolve.spec.registry!.version}`));
       expect(script).to.match(new RegExp(`version: ${latestResolve.spec.prometheus!.version}`));
@@ -647,6 +653,8 @@ describe("GET /installer", () => {
     expect(versions.weave).to.contain("latest");
     expect(versions.rook).to.contain("1.0.4");
     expect(versions.rook).to.contain("latest");
+    expect(versions.ekco).to.contain("0.3.0");
+    expect(versions.ekco).to.contain("latest");
     expect(versions.contour).to.contain("0.14.0");
     expect(versions.contour).to.contain("latest");
     expect(versions.registry).to.contain("latest");

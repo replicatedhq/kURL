@@ -516,6 +516,7 @@ export class Installer {
     i.spec.docker = { version: "latest" };
     i.spec.weave = { version: "latest" };
     i.spec.rook = { version: "latest" };
+    i.spec.ekco = { version: "latest" };
     i.spec.contour = { version: "latest" };
     i.spec.registry = { version: "latest" };
     i.spec.prometheus = { version: "latest" };
