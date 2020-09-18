@@ -33,21 +33,21 @@ We welcome contributions to kURL. We appreciate your time and help.
     INSTALLER_YAML="apiVersion: cluster.kurl.sh/v1beta1
     kind: Installer
     metadata:
-    name: latest
+      name: testing
     spec:
-    kubernetes:
+      kubernetes:
         version: 1.17.7
-    weave:
+      weave:
         version: 2.7.0
-    openebs:
+      openebs:
         version: 1.12.0
         isLocalPVEnabled: true
         localPVStorageClassName: default
-    docker:
+      docker:
         version: 19.03.10
-    prometheus:
+      prometheus:
         version: 0.33.0
-    registry:
+      registry:
         version: 2.7.1"
     ```
 1. Validate and run installation on test system
