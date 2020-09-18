@@ -216,7 +216,7 @@ function outro() {
     fi
     printf "\n"
     printf "\n"
-    printf "Node join commands expire after two hours. You can rerun this script on any master node to generate fresh node join commands.\n"
+    printf "Node join commands expire after two hours. You can rerun the kURL install script on any master node to generate fresh node join commands.\n"
     if [ "$AIRGAP" = "1" ]; then
         printf "\n"
         printf "To add worker nodes to this installation, copy and unpack this bundle on your other nodes, and run the following:"
