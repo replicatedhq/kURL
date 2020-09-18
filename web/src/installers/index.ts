@@ -95,6 +95,21 @@ export const weaveConfigSchema = {
   additionalProperites: false,
 };
 
+export const calicoConfigSchema = {
+  type: "object",
+  properties: {
+    version: { type: "string" },
+  },
+  required: ["version"],
+  additionalProperties: false,
+}
+
+export interface FluentdConfig {
+  version: string;
+  fullEFKStack?: boolean;
+  efkStack?: boolean;
+}
+
 export interface RookConfig {
   version: string;
   storageClass?: string; // deprecated, will be converted to storageClassName
@@ -199,10 +214,8 @@ export const prometheusConfigSchema = {
   additionalProperties: false,
 };
 
-export interface FluentdConfig {
+export interface CalicoConfig {
   version: string;
-  fullEFKStack?: boolean;
-  efkStack?: boolean;
 }
 
 export const fluentdConfigSchema = {
@@ -326,10 +339,98 @@ export const containerdConfigSchema = {
   additionalProperties: false,
 };
 
+export interface IptablesConfig {
+  iptablesCmds?: string[][];
+  preserveConfig?: boolean;
+}
+
+export const iptablesConfigSchema = {
+  type: "object",
+  properties: {
+    iptablesCmds: {
+      type: "array",
+      items: {
+        type: "array",
+        items: {
+          type: "string",
+        },
+      },
+    },
+    preserveConfig: { type: "boolean" },
+    additionalProperties: false,
+  },
+};
+
+export interface FirewalldConfig {
+  bypassFirewalldWarning?: boolean;
+  disableFirewalld?: boolean;
+  firewalld?: string;
+  firewalldCmds?: string[][];
+  hardFailOnFirewalld?: boolean;
+  preserveConfig?: boolean;
+}
+
+export const firewalldConfigSchema = {
+  type: "object",
+  properties: {
+    bypassFirewalldWarning: { type: "boolean" },
+    disableFirewalld: { type: "boolean" },
+    firewalld: { type: "string" },
+    firewalldCmds: {
+      type: "array",
+      items: {
+        type: "array",
+        items: {
+          type: "string",
+        },
+      },
+    },
+    hardFailOnFirewalld: { type: "boolean" },
+    preserveConfig: { type: "boolean" },
+  },
+};
+
+export interface SelinuxConfig {
+  chconCmds?: string[][];
+  disableSelinux?: boolean;
+  preserveConfig?: boolean;
+  selinux?: string;
+  semanageCmds?: string[][];
+  type?: string;
+}
+
+export const selinuxConfigSchema = {
+  type: "object",
+  properties: {
+    chconCmds: {
+      type: "array",
+      items: {
+        type: "array",
+        items: {
+          type: "string",
+        },
+      },
+    },
+    disableSelinux: { type: "boolean" },
+    preserveConfig: { type: "boolean" },
+    selinux: { type: "string" },
+    semanageCmds: {
+      type: "array",
+      items: {
+        type: "array",
+        items: {
+          type: "string",
+        },
+      },
+    },
+  },
+}
+
 export interface InstallerSpec {
   kubernetes: KubernetesConfig;
   docker?: DockerConfig;
   weave?: WeaveConfig;
+  calico?: CalicoConfig;
   rook?: RookConfig;
   openebs?: OpenEBSConfig;
   minio?: MinioConfig;
@@ -342,6 +443,9 @@ export interface InstallerSpec {
   ekco?: EkcoConfig;
   kurl?: KurlConfig;
   containerd?: ContainerdConfig;
+  iptablesConfig?: IptablesConfig;
+  firewalldConfig?: FirewalldConfig;
+  selinuxConfig?: SelinuxConfig;
 }
 
 const specSchema = {
@@ -351,6 +455,7 @@ const specSchema = {
     kubernetes: kubernetesConfigSchema,
     docker: dockerConfigSchema,
     weave: weaveConfigSchema,
+    calico: calicoConfigSchema,
     rook: rookConfigSchema,
     openebs: openEBSConfigSchema,
     minio: minioConfigSchema,
@@ -363,6 +468,9 @@ const specSchema = {
     ekco: ekcoConfigSchema,
     kurl: kurlConfigSchema,
     containerd: containerdConfigSchema,
+    firewalldConfig: firewalldConfigSchema,
+    iptablesConfig: iptablesConfigSchema,
+    selinuxConfig: selinuxConfigSchema,
   },
   required: ["kubernetes"],
   additionalProperites: false,
@@ -572,7 +680,7 @@ export class Installer {
               i.spec.weave.isEncryptionDisabled = true;
           }
         }
-        if (i.spec.weave.encryptNetwork !== undefined){
+        if (i.spec.weave.encryptNetwork !== undefined) {
             delete i.spec.weave.encryptNetwork;
         }
     }
