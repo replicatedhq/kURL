@@ -46,6 +46,12 @@ function rook_cluster_deploy() {
     local src="$DIR/addons/rook/1.4.3/cluster"
     local dst="$DIR/kustomize/rook/cluster"
 
+    # Don't redeploy cluster - ekco may have made changes based on num of nodes in cluster
+    if kubectl -n rook-ceph get cephcluster rook-ceph 2>/dev/null 1>/dev/null; then
+        echo "Cluster rook-ceph already deployed"
+        return 0
+    fi
+
     mkdir -p "$dst"
     cp "$src/kustomization.yaml" "$dst/"
 
@@ -53,6 +59,7 @@ function rook_cluster_deploy() {
     cp "$src/ceph-cluster.yaml" "$dst/"
     cp "$src/ceph-block-pool.yaml" "$dst/"
     cp "$src/ceph-object-store.yaml" "$dst/"
+    cp "$src/shared-fs.yaml" "$dst/"
     render_yaml_file "$src/tmpl-ceph-storage-class.yaml" > "$dst/ceph-storage-class.yaml"
 
     # patches
