@@ -21,6 +21,9 @@ function openebs() {
     render_yaml_file "$src/tmpl-namespace.yaml" > "$dst/namespace.yaml"
     cp "$src/operator.yaml" "$dst/"
 
+    # Identify if upgrade batch jobs are needed and apply them
+    openebs_upgrade
+
     if [ "$OPENEBS_LOCALPV" = "1" ]; then
         cp "$src/localpv-provisioner.yaml" "$dst/"
         insert_resources "$dst/kustomization.yaml" localpv-provisioner.yaml
@@ -255,4 +258,128 @@ function openebs_cstor_pool_count() {
     local target="$1"
     local actual=$(kubectl -n "$OPENEBS_NAMESPACE" get cstorpools -l openebs.io/storage-pool-claim=cstor-disk --no-headers 2>/dev/null | wc -l)
     [ $actual -ge $target ]
+}
+
+function openebs_upgrade() {
+    # TODO: handle namespace spec changes at the upgrade time
+    if [ "$OPENEBS_CSTOR" = "0" ]; then
+        # upgrades only required for cStor 
+        return 0
+    fi
+
+    # RE: https://github.com/openebs/openebs/tree/master/k8s/upgrades/1.x.0-1.12.x
+    # Upgrading a minor version of 1.x.x requires two jobs to update pools a volumes for cStor configurations.
+    local runningVer=$(kubectl -n $OPENEBS_NAMESPACE get deploy openebs-provisioner -o jsonpath='{.metadata.labels.openebs\.io/version}')
+
+    local semVerRunningList=( ${runningVer//./ } )
+    local semVerInstallList=( ${OPENEBS_VERSION//./ } )
+    
+    if [[ ${semVerInstallList[0]} -gt 1 ]]; then
+        bail "Only upgrades upto OpenEBS 1.12.0 are tested and supported."
+    fi
+
+    if [[ ${semVerInstallList[1]} -gt ${semVerRunningList[1]} ]]; then
+        logSubstep "As part of OpenEBS upgrade pools and volumes need to be upgraded."
+        logFail "It is highly recommended to schedule a downtime for the application using the OpenEBS PV while performing this upgrade. Also, make sure you have taken a backup of the data before starting the below upgrade procedure."
+        printf "Continue? "
+        if ! confirmN " "; then
+            bail "Will not upgrade OpenEBS. Modify your spec and re-run instllation."
+        fi
+        logSubstep "Upgrading OpenEBS pools and volumes from $runningVer to $OPENEBS_VERSION."
+        openebs_upgrade_pools $runningVer
+        openebs_upgrade_vols $runningVer
+    fi
+}
+
+function openebs_upgrade_pools() {
+    # NOTE: slightly different arguments to pass for pre and after 1.9.0.
+    # Since we only support 1.6.0 -> 1.12.0 using prefixs for pre 1.9.0.
+    local runVer=$1
+    local manifest="/tmp/openebs_pool_job.yaml"
+    local pools=$(kubectl get spc --template '{{range .items}}{{.metadata.name}}{{"\n"}}{{end}}')
+
+    # Bulk upgrade only supported for versions >=1.9.0.
+    # Have to create a job per pool.
+    for pool in pools; do
+        local out_file=/tmp/openebs-pool-$pool.yaml
+        cat <<UPGRADE_POOLS >$out_file
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: cstor-spc-$RANDOM
+  namespace: $OPENEBS_NAMESPACE
+spec:
+  backoffLimit: 4
+  template:
+    spec:
+      serviceAccountName: openebs-maya-operator
+      containers:
+      - name:  upgrade
+        args:
+        - "cstor-spc"
+        - "--from-version=$runVer"
+        - "--to-version=$OPENEBS_VERSION"
+        - "--spc-name=$pool"
+        - "--v=4"
+        env:
+        - name: OPENEBS_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        tty: true
+        image: quay.io/openebs/m-upgrade:$OPENEBS_VERSION
+        imagePullPolicy: Always
+      restartPolicy: OnFailure
+UPGRADE_POOLS
+
+        kubectl apply -f $out_file
+    done
+    logSubstep "OpenEBS batch job(s) to upgrade cStor pools added."
+    # TODO: Validation and user feedback of the successful completion of the jobs.
+    # The jobs migth take a while to run however, blocking at this point isn't necesseraly the best aproach.
+}
+
+function openebs_upgrade_vols() {
+    # NOTE: slightly different arguments to pass for pre and after 1.9.0.
+    # Since we only support 1.6.0 -> 1.12.0 using prefixs for pre 1.9.0.
+    local runVer=$1
+    local vols=$(kubectl get pods -l app=cstor-volume-manager -n $OPENEBS_NAMESPACE -o jsonpath='{.items[*].metadata.labels.openebs\.io/persistent-volume}')
+
+    # Bulk upgrade only supported for versions >=1.9.0.
+    # Have to create a job per pv.
+    for pv in $vols; do
+        local out_file=/tmp/openebs-vol-${pv##*-}.yaml
+        cat <<UPGRADE_VOLS >$out_file
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: cstor-vol-$RANDOM
+  namespace: $OPENEBS_NAMESPACE
+spec:
+  backoffLimit: 4
+  template:
+    spec:
+      serviceAccountName: openebs-maya-operator
+      containers:
+      - name:  upgrade
+        args:
+        - "cstor-volume"
+        - "--from-version=$runVer"
+        - "--to-version=$OPENEBS_VERSION"
+        - "--pv-name=$pv"
+        - "--v=4"
+        env:
+        - name: OPENEBS_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        tty: true
+        image: quay.io/openebs/m-upgrade:$OPENEBS_VERSION
+        imagePullPolicy: Always
+      restartPolicy: OnFailure
+UPGRADE_VOLS
+        kubectl apply -f $out_file
+    done
+
+    logSubstep "OpenEBS batch job(s) to upgrade cStor pvs added."
 }
