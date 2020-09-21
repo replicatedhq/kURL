@@ -27,6 +27,8 @@ data:
     log:
       fields:
         service: registry
+      accesslog:
+        disabled: true
     storage:
       redirect:
         disable: true

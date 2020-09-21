@@ -40,6 +40,8 @@ data:
     log:
       fields:
         service: registry
+      accesslog:
+        disabled: true
     storage:
       filesystem:
         rootdirectory: /var/lib/registry
