@@ -510,12 +510,14 @@ export class Installer {
       "1.2.13",
     ],
     weave: [
+      "2.7.0",
       "2.6.5",
       "2.6.4",
       "2.5.2",
     ],
     rook: [
       "1.0.4",
+      "1.4.3",
     ],
     contour: [
       "1.7.0",
@@ -600,12 +602,14 @@ export class Installer {
       "1.2.0",
     ],
     openebs: [
+      "1.12.0",
       "1.6.0",
     ],
     minio: [
       "2020-01-25T02-50-51Z",
     ],
     ekco: [
+      "0.4.0",
       "0.3.0",
       "0.2.4",
       "0.2.3",
@@ -623,6 +627,7 @@ export class Installer {
     i.spec.docker = { version: "latest" };
     i.spec.weave = { version: "latest" };
     i.spec.rook = { version: "latest" };
+    i.spec.ekco = { version: "latest" };
     i.spec.contour = { version: "latest" };
     i.spec.registry = { version: "latest" };
     i.spec.prometheus = { version: "latest" };

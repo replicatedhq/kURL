@@ -1,0 +1,15 @@
+# https://raw.githubusercontent.com/rook/rook/master/cluster/examples/kubernetes/ceph/object-user.yaml
+
+#################################################################################################################
+# Create an object store user for access to the s3 endpoint.
+#  kubectl create -f object-user.yaml
+#################################################################################################################
+
+apiVersion: ceph.rook.io/v1
+kind: CephObjectStoreUser
+metadata:
+  name: kurl
+  namespace: rook-ceph
+spec:
+  store: rook-ceph-store
+  displayName: "kurl"

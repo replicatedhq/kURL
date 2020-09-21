@@ -1,0 +1,5 @@
+resources:
+- ceph-common.yaml
+- ceph-operator.yaml
+- ceph-toolbox.yaml
+- config-override.yaml
