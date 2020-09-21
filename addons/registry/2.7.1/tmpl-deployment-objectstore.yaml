@@ -104,6 +104,16 @@ spec:
             secretKeyRef:
               key: secret-access-key
               name: registry-s3-secret
+        readinessProbe:
+          failureThreshold: 3
+          initialDelaySeconds: 10
+          periodSeconds: 1
+          successThreshold: 2
+          timeoutSeconds: 1
+          httpGet:
+            path: /
+            port: 443
+            scheme: HTTPS
       volumes:
       - name: registry-config
         configMap:
