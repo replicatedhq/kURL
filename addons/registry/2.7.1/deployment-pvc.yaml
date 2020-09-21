@@ -40,6 +40,8 @@ data:
     log:
       fields:
         service: registry
+      accesslog:
+        disabled: true
     storage:
       filesystem:
         rootdirectory: /var/lib/registry
@@ -91,6 +93,16 @@ spec:
             secretKeyRef:
               key: haSharedSecret
               name: registry-session-secret
+        readinessProbe:
+          failureThreshold: 3
+          initialDelaySeconds: 10
+          periodSeconds: 1
+          successThreshold: 2
+          timeoutSeconds: 1
+          httpGet:
+            path: /
+            port: 443
+            scheme: HTTPS
       volumes:
       - name: registry-data
         persistentVolumeClaim:
