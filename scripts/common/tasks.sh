@@ -149,7 +149,7 @@ function weave_reset() {
     CONTAINER_IFNAME=ethwe
 
     if [ -z "$WEAVE_TAG" ]; then
-        WEAVE_TAG=$(docker image ls | grep weaveworks/weave-npc | awk '{ print $2 }')
+        WEAVE_TAG=$(docker image ls | grep weaveworks/weave-npc | awk '{ print $2 }' | head -1)
         if [ -z "$WEAVE_TAG" ]; then
             # if we don't know the exact weave tag, use a sane default
             WEAVE_TAG="2.7.0"
