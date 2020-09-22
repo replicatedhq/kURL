@@ -338,7 +338,7 @@ UPGRADE_POOLS
     done
     logSubstep "OpenEBS batch job(s) to upgrade cStor pools added."
     # TODO: Validation and user feedback of the successful completion of the jobs.
-    # The jobs migth take a while to run however, blocking at this point isn't necesseraly the best aproach.
+    # The jobs might take a while to run however, blocking at this point isn't necessarily the best approach.
 }
 
 function openebs_upgrade_vols() {
