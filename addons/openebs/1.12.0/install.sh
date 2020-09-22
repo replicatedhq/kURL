@@ -21,7 +21,7 @@ function openebs() {
     render_yaml_file "$src/tmpl-namespace.yaml" > "$dst/namespace.yaml"
     cp "$src/operator.yaml" "$dst/"
 
-    # Identify if upgrade batch jobs are needed and apply them
+    # Identify if upgrade batch jobs are needed and apply them.
     openebs_upgrade
 
     if [ "$OPENEBS_LOCALPV" = "1" ]; then
@@ -278,29 +278,31 @@ function openebs_upgrade() {
         bail "Only upgrades upto OpenEBS 1.12.0 are tested and supported."
     fi
 
-    if [[ ${semVerInstallList[1]} -gt ${semVerRunningList[1]} ]]; then
-        logSubstep "As part of OpenEBS upgrade pools and volumes need to be upgraded."
+    logSubstep "Runnig upgrade checks..."
+    if [[ ${semVerInstallList[1]} -gt ${semVerRunningList[1]} || openebs_check_pools ]]; then
+        logSubstep "As part of OpenEBS upgrade pools and volumes need to be upgraded. At least some of the pools and(or) volumes require an update to match OpenEBS controll plane."
         logFail "It is highly recommended to schedule a downtime for the application using the OpenEBS PV while performing this upgrade. Also, make sure you have taken a backup of the data before starting the below upgrade procedure."
         printf "Continue? "
         if ! confirmN " "; then
             bail "Will not upgrade OpenEBS. Modify your spec and re-run instllation."
         fi
-        logSubstep "Upgrading OpenEBS pools and volumes from $runningVer to $OPENEBS_VERSION."
-        openebs_upgrade_pools $runningVer
-        openebs_upgrade_vols $runningVer
+
+        openebs_upgrade_pools
+        openebs_upgrade_vols
     fi
 }
 
 function openebs_upgrade_pools() {
     # NOTE: slightly different arguments to pass for pre and after 1.9.0.
     # Since we only support 1.6.0 -> 1.12.0 using prefixs for pre 1.9.0.
-    local runVer=$1
     local manifest="/tmp/openebs_pool_job.yaml"
     local pools=$(kubectl get spc --template '{{range .items}}{{.metadata.name}}{{"\n"}}{{end}}')
-
+    
     # Bulk upgrade only supported for versions >=1.9.0.
     # Have to create a job per pool.
-    for pool in pools; do
+    for pool in $pools; do
+        local spcCurrentVer=$(kubectl get spc $pool -o jsonpath='{.versionDetails.status.current}')
+        logSubstep "Upgrading $pool from $spcCurrentVer to $OPENEBS_VERSION"
         local out_file=/tmp/openebs-pool-$pool.yaml
         cat <<UPGRADE_POOLS >$out_file
 apiVersion: batch/v1
@@ -317,7 +319,7 @@ spec:
       - name:  upgrade
         args:
         - "cstor-spc"
-        - "--from-version=$runVer"
+        - "--from-version=$spcCurrentVer"
         - "--to-version=$OPENEBS_VERSION"
         - "--spc-name=$pool"
         - "--v=4"
@@ -342,7 +344,6 @@ UPGRADE_POOLS
 function openebs_upgrade_vols() {
     # NOTE: slightly different arguments to pass for pre and after 1.9.0.
     # Since we only support 1.6.0 -> 1.12.0 using prefixs for pre 1.9.0.
-    local runVer=$1
     local vols=$(kubectl get pods -l app=cstor-volume-manager -n $OPENEBS_NAMESPACE -o jsonpath='{.items[*].metadata.labels.openebs\.io/persistent-volume}')
 
     # Bulk upgrade only supported for versions >=1.9.0.
@@ -364,7 +365,7 @@ spec:
       - name:  upgrade
         args:
         - "cstor-volume"
-        - "--from-version=$runVer"
+        - "--from-version=1.6.0"
         - "--to-version=$OPENEBS_VERSION"
         - "--pv-name=$pv"
         - "--v=4"
@@ -382,4 +383,25 @@ UPGRADE_VOLS
     done
 
     logSubstep "OpenEBS batch job(s) to upgrade cStor pvs added."
+}
+
+function openebs_check_pools() {
+    local pools=$(kubectl get spc --template '{{range .items}}{{.metadata.name}}{{"\n"}}{{end}}')
+    for spc in $pools; do
+        local spcCurrentVer=$(kubectl get spc $spc -o jsonpath='{.versionDetails.status.current}')
+        logSubstep "Current $spc ver - $spcCurrentVer"
+        if [ $(kubectl get spc $spc -o jsonpath='{.versionDetails.status.dependentsUpgraded}') == "false" ]; then
+            # At least one dependant volume needs upgrade
+            logSubstep "Pool $spc needs upgrade"
+            return 1
+        fi
+
+        if [ $spcCurrentVer = $OPENEBS_VERSION ]; then
+            # Controll Plane and Poll versions are matching
+            continue
+        fi
+
+        # At least 1 pool needs upgrade
+        return 1
+    done
 }
