@@ -268,7 +268,7 @@ function openebs_upgrade() {
     fi
 
     # RE: https://github.com/openebs/openebs/tree/master/k8s/upgrades/1.x.0-1.12.x
-    # Upgrading a minor version of 1.x.x requires two jobs to update pools a volumes for cStor configurations.
+    # Upgrading a minor version of 1.x.x requires two jobs to update pools and volumes for cStor configurations.
     local runningVer=$(kubectl -n $OPENEBS_NAMESPACE get deploy openebs-provisioner -o jsonpath='{.metadata.labels.openebs\.io/version}')
 
     local semVerRunningList=( ${runningVer//./ } )
