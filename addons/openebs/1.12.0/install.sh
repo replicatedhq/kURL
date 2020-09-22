@@ -397,7 +397,7 @@ function openebs_check_pools() {
         fi
 
         if [ $spcCurrentVer = $OPENEBS_VERSION ]; then
-            # Controll Plane and Poll versions are matching
+            # Control Plane and Poll versions are matching
             continue
         fi
 
