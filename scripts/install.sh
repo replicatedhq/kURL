@@ -216,7 +216,30 @@ function outro() {
     fi
     printf "\n"
     printf "\n"
-    printf "Node join commands expire after two hours. You can rerun the kURL install script on any master node to generate fresh node join commands.\n"
+    
+    local prefix="curl -sSL${proxyFlag} $KURL_URL/$INSTALLER_ID/"
+    if [ -z "$KURL_URL" ]; then
+        prefix="cat "
+    fi
+
+    if [ "$HA_CLUSTER" = "1" ]; then
+        printf "Master node join commands expire after two hours, and worker node join commands expire after 24 hours.\n"
+        printf "\n"
+        if [ "$AIRGAP" = "1" ]; then
+            printf "To generate new node join commands, run ${GREEN}cat ./tasks.sh | sudo bash -s join_token ha airgap${NC} on an existing master node.\n"
+        else 
+            printf "To generate new node join commands, run ${GREEN}${prefix}tasks.sh | sudo bash -s join_token ha${NC} on an existing master node.\n"
+        fi
+    else
+        printf "Node join commands expire after 24 hours.\n"
+        printf "\n"
+        if [ "$AIRGAP" = "1" ]; then
+            printf "To generate new node join commands, run ${GREEN}cat ./tasks.sh | sudo bash -s join_token airgap${NC} on this node.\n"
+        else 
+            printf "To generate new node join commands, run ${GREEN}${prefix}tasks.sh | sudo bash -s join_token${NC} on this node.\n"
+        fi
+    fi
+
     if [ "$AIRGAP" = "1" ]; then
         printf "\n"
         printf "To add worker nodes to this installation, copy and unpack this bundle on your other nodes, and run the following:"
@@ -237,12 +260,8 @@ function outro() {
             printf "\n"
         fi
     else
-        local prefix="curl -sSL${proxyFlag} $KURL_URL/$INSTALLER_ID/"
-        if [ -z "$KURL_URL" ]; then
-            prefix="cat "
-        fi
         printf "\n"
-        printf "To add worker nodes to this installation, run the following script on your other nodes"
+        printf "To add worker nodes to this installation, run the following script on your other nodes:"
         printf "\n"
         printf "${GREEN}    ${prefix}join.sh | sudo bash -s kubernetes-master-address=${API_SERVICE_ADDRESS} kubeadm-token=${BOOTSTRAP_TOKEN} kubeadm-token-ca-hash=${KUBEADM_TOKEN_CA_HASH} kubernetes-version=${KUBERNETES_VERSION}${dockerRegistryIP}${noProxyAddrs}\n"
         printf "${NC}"
@@ -250,7 +269,7 @@ function outro() {
         printf "\n"
         if [ "$HA_CLUSTER" = "1" ]; then
             printf "\n"
-            printf "To add ${GREEN}MASTER${NC} nodes to this installation, run the following script on your other nodes"
+            printf "To add ${GREEN}MASTER${NC} nodes to this installation, run the following script on your other nodes:"
             printf "\n"
             printf "${GREEN}    ${prefix}join.sh | sudo bash -s kubernetes-master-address=${API_SERVICE_ADDRESS} kubeadm-token=${BOOTSTRAP_TOKEN} kubeadm-token-ca-hash=$KUBEADM_TOKEN_CA_HASH kubernetes-version=${KUBERNETES_VERSION} cert-key=${CERT_KEY} control-plane${dockerRegistryIP}${noProxyAddrs}\n"
             printf "${NC}"
