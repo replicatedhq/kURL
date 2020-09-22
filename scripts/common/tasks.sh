@@ -96,6 +96,9 @@ function reset() {
         fi
     fi
 
+    # get current weave tag before removing k8s
+    export WEAVE_TAG=$(KUBECONFIG=/etc/kubernetes/admin.conf kubectl get daemonset -n kube-system weave-net -o jsonpath="{..spec.containers[0].image}" | sed 's/^.*://')
+    
     if commandExists "kubeadm"; then
         kubeadm reset --force
         printf "kubeadm reset completed\n"
@@ -145,7 +148,12 @@ function weave_reset() {
     DATAPATH=datapath
     CONTAINER_IFNAME=ethwe
 
-    WEAVE_TAG=${WEAVE_VERSION}
+    if [ -z "$WEAVE_TAG" ]; then
+        # if we don't know the exact weave tag, use a sane default
+        export WEAVE_TAG="2.7.0"
+        printf "using default weave tag ${WEAVE_TAG}\n"
+    fi
+
     DOCKER_BRIDGE=docker0
 
     DOCKER_BRIDGE_IP=$(docker run --rm --pid host --net host --privileged -v /var/run/docker.sock:/var/run/docker.sock --entrypoint=/usr/bin/weaveutil weaveworks/weaveexec:$WEAVE_TAG bridge-ip $DOCKER_BRIDGE)
