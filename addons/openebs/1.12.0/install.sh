@@ -275,7 +275,7 @@ function openebs_upgrade() {
     local semVerInstallList=( ${OPENEBS_VERSION//./ } )
     
     if [[ ${semVerInstallList[0]} -gt 1 ]]; then
-        bail "Only upgrades upto OpenEBS 1.12.0 are tested and supported."
+        bail "Only upgrades up to OpenEBS 1.12.0 are tested and supported."
     fi
 
     logSubstep "Runnig upgrade checks..."
