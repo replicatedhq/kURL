@@ -264,6 +264,8 @@ function join_token() {
     kubectl get configmaps -n kube-system kurl-config -o yaml > /tmp/kurl-config
     local kurl_url=$(cat /tmp/kurl-config | grep kurl_url | awk '{ print $2 }')
     local installer_id=$(cat /tmp/kurl-config | grep installer_id | awk '{ print $2 }')
+    local service_cidr=$(cat /tmp/kurl-config | grep service_cidr | awk '{ print $2 }')
+    local pod_cidr=$(cat /tmp/kurl-config | grep pod_cidr | awk '{ print $2 }')
     rm /tmp/kurl-config
 
     # get the docker registry IP if present
@@ -284,6 +286,12 @@ function join_token() {
 
     # get the kubernetes version
     local kubernetes_version=$(kubectl version --short | grep -i server | awk '{ print $3 }' | sed 's/^v*//')
+
+    # build noProxyAddrs
+    local noProxyAddrs=""
+    if [ -n "$service_cidr" ] && [ -n "$pod_cidr" ]; then
+        noProxyAddrs=" additional-no-proxy-addresses=${service_cidr},${pod_cidr}"
+    fi
 
     # build the installer prefix
     local prefix="curl -sSL $kurl_url/$installer_id/"
@@ -314,7 +322,7 @@ function join_token() {
         printf "To add worker nodes to this installation, copy and unpack this bundle on your other nodes, and run the following:"
         printf "\n"
         printf "\n"
-        printf "${GREEN}    cat ./join.sh | sudo bash -s airgap kubernetes-master-address=${api_service_address} kubeadm-token=${bootstrap_token} kubeadm-token-ca-hash=${kubeadm_ca_hash} kubernetes-version=${kubernetes_version}${dockerRegistryIP}\n"
+        printf "${GREEN}    cat ./join.sh | sudo bash -s airgap kubernetes-master-address=${api_service_address} kubeadm-token=${bootstrap_token} kubeadm-token-ca-hash=${kubeadm_ca_hash} kubernetes-version=${kubernetes_version}${dockerRegistryIP}${noProxyAddrs}\n"
         printf "${NC}"
         printf "\n"
         printf "\n"
@@ -323,7 +331,7 @@ function join_token() {
             printf "To add ${GREEN}MASTER${NC} nodes to this installation, copy and unpack this bundle on your other nodes, and run the following:"
             printf "\n"
             printf "\n"
-            printf "${GREEN}    cat ./join.sh | sudo bash -s airgap kubernetes-master-address=${api_service_address} kubeadm-token=${bootstrap_token} kubeadm-token-ca-hash=${kubeadm_ca_hash} kubernetes-version=${kubernetes_version} cert-key=${cert_key} control-plane${dockerRegistryIP}\n"
+            printf "${GREEN}    cat ./join.sh | sudo bash -s airgap kubernetes-master-address=${api_service_address} kubeadm-token=${bootstrap_token} kubeadm-token-ca-hash=${kubeadm_ca_hash} kubernetes-version=${kubernetes_version} cert-key=${cert_key} control-plane${dockerRegistryIP}${noProxyAddrs}\n"
             printf "${NC}"
             printf "\n"
             printf "\n"
@@ -332,7 +340,7 @@ function join_token() {
         printf "\n"
         printf "To add worker nodes to this installation, run the following script on your other nodes:"
         printf "\n"
-        printf "${GREEN}    ${prefix}join.sh | sudo bash -s kubernetes-master-address=${api_service_address} kubeadm-token=${bootstrap_token} kubeadm-token-ca-hash=${kubeadm_ca_hash} kubernetes-version=${kubernetes_version}${dockerRegistryIP}\n"
+        printf "${GREEN}    ${prefix}join.sh | sudo bash -s kubernetes-master-address=${api_service_address} kubeadm-token=${bootstrap_token} kubeadm-token-ca-hash=${kubeadm_ca_hash} kubernetes-version=${kubernetes_version}${dockerRegistryIP}${noProxyAddrs}\n"
         printf "${NC}"
         printf "\n"
         printf "\n"
@@ -340,7 +348,7 @@ function join_token() {
             printf "\n"
             printf "To add ${GREEN}MASTER${NC} nodes to this installation, run the following script on your other nodes:"
             printf "\n"
-            printf "${GREEN}    ${prefix}join.sh | sudo bash -s kubernetes-master-address=${api_service_address} kubeadm-token=${bootstrap_token} kubeadm-token-ca-hash=$kubeadm_ca_hash kubernetes-version=${kubernetes_version} cert-key=${cert_key} control-plane${dockerRegistryIP}\n"
+            printf "${GREEN}    ${prefix}join.sh | sudo bash -s kubernetes-master-address=${api_service_address} kubeadm-token=${bootstrap_token} kubeadm-token-ca-hash=$kubeadm_ca_hash kubernetes-version=${kubernetes_version} cert-key=${cert_key} control-plane${dockerRegistryIP}${noProxyAddrs}\n"
             printf "${NC}"
             printf "\n"
             printf "\n"

@@ -167,7 +167,9 @@ function kurl_config() {
         --from-literal=bootstrap_token="$BOOTSTRAP_TOKEN" \
         --from-literal=bootstrap_token_expiration="$BOOTSTRAP_TOKEN_EXPIRY" \
         --from-literal=cert_key="$CERT_KEY" \
-        --from-literal=upload_certs_expiration="$CERT_KEY_EXPIRY"
+        --from-literal=upload_certs_expiration="$CERT_KEY_EXPIRY" \
+        --from-literal=service_cidr="$SERVICE_CIDR" \
+        --from-literal=pod_cidr="$POD_CIDR"
 }
 
 function outro() {
