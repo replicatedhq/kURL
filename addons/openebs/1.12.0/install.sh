@@ -284,7 +284,7 @@ function openebs_upgrade() {
         logFail "Applications using OpenEBS-backed persistent volumes may become nonresponsive during this upgrade. This upgrade may also in some failure modes result in data loss - please take a backup of any critical volumes before upgrading."
         printf "Continue? "
         if ! confirmN " "; then
-            bail "Will not upgrade OpenEBS. Modify your spec and re-run instllation."
+            bail "OpenEBS upgrade is aborted."
         fi
 
         openebs_upgrade_pools
@@ -329,7 +329,7 @@ spec:
             fieldRef:
               fieldPath: metadata.namespace
         tty: true
-        image: quay.io/openebs/m-upgrade:$OPENEBS_VERSION
+        image: openebs/m-upgrade:$OPENEBS_VERSION
         imagePullPolicy: Always
       restartPolicy: OnFailure
 UPGRADE_POOLS
@@ -375,7 +375,7 @@ spec:
             fieldRef:
               fieldPath: metadata.namespace
         tty: true
-        image: quay.io/openebs/m-upgrade:$OPENEBS_VERSION
+        image: openebs/m-upgrade:$OPENEBS_VERSION
         imagePullPolicy: Always
       restartPolicy: OnFailure
 UPGRADE_VOLS
