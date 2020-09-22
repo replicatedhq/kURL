@@ -294,7 +294,7 @@ function openebs_upgrade() {
 
 function openebs_upgrade_pools() {
     # NOTE: slightly different arguments to pass for pre and after 1.9.0.
-    # Since we only support 1.6.0 -> 1.12.0 using prefixs for pre 1.9.0.
+    # Since we only support 1.6.0 -> 1.12.0 using prefixes for pre 1.9.0.
     local manifest="/tmp/openebs_pool_job.yaml"
     local pools=$(kubectl get spc --template '{{range .items}}{{.metadata.name}}{{"\n"}}{{end}}')
     
