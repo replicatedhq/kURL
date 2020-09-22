@@ -343,7 +343,7 @@ UPGRADE_POOLS
 
 function openebs_upgrade_vols() {
     # NOTE: slightly different arguments to pass for pre and after 1.9.0.
-    # Since we only support 1.6.0 -> 1.12.0 using prefixs for pre 1.9.0.
+    # Since we only support 1.6.0 -> 1.12.0 using prefixes for pre 1.9.0.
     local vols=$(kubectl get pods -l app=cstor-volume-manager -n $OPENEBS_NAMESPACE -o jsonpath='{.items[*].metadata.labels.openebs\.io/persistent-volume}')
 
     # Bulk upgrade only supported for versions >=1.9.0.
