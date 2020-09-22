@@ -1,4 +1,12 @@
 
+# terminal color codes
+GREEN='\033[0;32m'
+BLUE='\033[0;94m'
+LIGHT_BLUE='\033[0;34m'
+YELLOW='\033[0;33m'
+RED='\033[0;31m'
+NC='\033[0m' # No Color
+
 function tasks() {
     case "$1" in
         load-images|load_images)
@@ -15,6 +23,9 @@ function tasks() {
             ;;
         print-registry-login|print_registry_login)
             print_registry_login
+            ;;
+        join-token|join_token)
+            join_token $@
             ;;
         *)
             bail "Unknown task: $1"
@@ -216,6 +227,132 @@ function print_registry_login() {
         printf "docker login --username=kurl --password=$passwd $hostIP:$nodePort ${NC}\n"
         printf "${BLUE}Secret:${NC}\n"
         printf "${GREEN}kubectl create secret docker-registry kurl-registry --docker-username=kurl --docker-password=$passwd --docker-server=$hostIP:$nodePort ${NC}\n"
+    fi
+}
+
+function join_token() {
+    # get params - specifically need ha and airgap, as they impact join scripts
+    shift # the first param is join_token/join-token
+    while [ "$1" != "" ]; do
+        _param="$(echo "$1" | cut -d= -f1)"
+        _value="$(echo "$1" | grep '=' | cut -d= -f2-)"
+        case $_param in
+            airgap)
+                AIRGAP="1"
+                ;;
+            ha)
+                HA_CLUSTER="1"
+                ;;
+            *)
+                echo >&2 "Error: unknown parameter \"$_param\""
+                exit 1
+                ;;
+        esac
+        shift
+    done
+
+    export KUBECONFIG=/etc/kubernetes/admin.conf
+
+    # get ca cert hash, bootstrap token and master address
+    local bootstrap_token=$(kubeadm token generate)
+    kubeadm token create --print-join-command 2>/dev/null > /tmp/kubeadm-token
+    local kubeadm_ca_hash=$(cat /tmp/kubeadm-token | grep -o 'sha256:[^ ]*')
+    local api_service_address=$(cat /tmp/kubeadm-token | awk '{ print $3 }')
+    rm /tmp/kubeadm-token
+
+    # get the kurl url and installer id from the kurl-config configmap
+    kubectl get configmaps -n kube-system kurl-config -o yaml > /tmp/kurl-config
+    local kurl_url=$(cat /tmp/kurl-config | grep kurl_url | awk '{ print $2 }')
+    local installer_id=$(cat /tmp/kurl-config | grep installer_id | awk '{ print $2 }')
+    local service_cidr=$(cat /tmp/kurl-config | grep service_cidr | awk '{ print $2 }')
+    local pod_cidr=$(cat /tmp/kurl-config | grep pod_cidr | awk '{ print $2 }')
+    rm /tmp/kurl-config
+
+    # get the docker registry IP if present
+    local docker_registry_ip=$(kubectl -n kurl get service registry -o=jsonpath='{@.spec.clusterIP}' 2>/dev/null || echo "")
+    local dockerRegistryIP=""
+    if [ -n "$docker_registry_ip" ]; then
+        dockerRegistryIP=" docker-registry-ip=$docker_registry_ip"
+    fi
+
+    # upload certs and get the key
+    local cert_key
+    if [ "$HA_CLUSTER" = "1" ]; then
+        # pipe to a file so that the cert key is written out
+        kubeadm init phase upload-certs --upload-certs 2>/dev/null > /tmp/kotsadm-cert-key
+        cert_key=$(cat /tmp/kotsadm-cert-key | grep -v 'upload-certs' )
+        rm /tmp/kotsadm-cert-key
+    fi
+
+    # get the kubernetes version
+    local kubernetes_version=$(kubectl version --short | grep -i server | awk '{ print $3 }' | sed 's/^v*//')
+
+    # build noProxyAddrs
+    local noProxyAddrs=""
+    if [ -n "$service_cidr" ] && [ -n "$pod_cidr" ]; then
+        noProxyAddrs=" additional-no-proxy-addresses=${service_cidr},${pod_cidr}"
+    fi
+
+    # build the installer prefix
+    local prefix="curl -sSL $kurl_url/$installer_id/"
+    if [ -z "$kurl_url" ]; then
+        prefix="cat "
+    fi
+
+    if [ "$HA_CLUSTER" = "1" ]; then
+        printf "Master node join commands expire after two hours, and worker node join commands expire after 24 hours.\n"
+        printf "\n"
+        if [ "$AIRGAP" = "1" ]; then
+            printf "To generate new node join commands, run ${GREEN}cat ./tasks.sh | sudo bash -s join_token ha airgap${NC} on an existing master node.\n"
+        else 
+            printf "To generate new node join commands, run ${GREEN}${prefix}tasks.sh | sudo bash -s join_token ha${NC} on an existing master node.\n"
+        fi
+    else
+        printf "Node join commands expire after 24 hours.\n"
+        printf "\n"
+        if [ "$AIRGAP" = "1" ]; then
+            printf "To generate new node join commands, run ${GREEN}cat ./tasks.sh | sudo bash -s join_token airgap${NC} on this node.\n"
+        else 
+            printf "To generate new node join commands, run ${GREEN}${prefix}tasks.sh | sudo bash -s join_token${NC} on this node.\n"
+        fi
+    fi
+
+    if [ "$AIRGAP" = "1" ]; then
+        printf "\n"
+        printf "To add worker nodes to this installation, copy and unpack this bundle on your other nodes, and run the following:"
+        printf "\n"
+        printf "\n"
+        printf "${GREEN}    cat ./join.sh | sudo bash -s airgap kubernetes-master-address=${api_service_address} kubeadm-token=${bootstrap_token} kubeadm-token-ca-hash=${kubeadm_ca_hash} kubernetes-version=${kubernetes_version}${dockerRegistryIP}${noProxyAddrs}\n"
+        printf "${NC}"
+        printf "\n"
+        printf "\n"
+        if [ "$HA_CLUSTER" = "1" ]; then
+            printf "\n"
+            printf "To add ${GREEN}MASTER${NC} nodes to this installation, copy and unpack this bundle on your other nodes, and run the following:"
+            printf "\n"
+            printf "\n"
+            printf "${GREEN}    cat ./join.sh | sudo bash -s airgap kubernetes-master-address=${api_service_address} kubeadm-token=${bootstrap_token} kubeadm-token-ca-hash=${kubeadm_ca_hash} kubernetes-version=${kubernetes_version} cert-key=${cert_key} control-plane${dockerRegistryIP}${noProxyAddrs}\n"
+            printf "${NC}"
+            printf "\n"
+            printf "\n"
+        fi
+    else
+        printf "\n"
+        printf "To add worker nodes to this installation, run the following script on your other nodes:"
+        printf "\n"
+        printf "${GREEN}    ${prefix}join.sh | sudo bash -s kubernetes-master-address=${api_service_address} kubeadm-token=${bootstrap_token} kubeadm-token-ca-hash=${kubeadm_ca_hash} kubernetes-version=${kubernetes_version}${dockerRegistryIP}${noProxyAddrs}\n"
+        printf "${NC}"
+        printf "\n"
+        printf "\n"
+        if [ "$HA_CLUSTER" = "1" ]; then
+            printf "\n"
+            printf "To add ${GREEN}MASTER${NC} nodes to this installation, run the following script on your other nodes:"
+            printf "\n"
+            printf "${GREEN}    ${prefix}join.sh | sudo bash -s kubernetes-master-address=${api_service_address} kubeadm-token=${bootstrap_token} kubeadm-token-ca-hash=$kubeadm_ca_hash kubernetes-version=${kubernetes_version} cert-key=${cert_key} control-plane${dockerRegistryIP}${noProxyAddrs}\n"
+            printf "${NC}"
+            printf "\n"
+            printf "\n"
+        fi
     fi
 }
 
