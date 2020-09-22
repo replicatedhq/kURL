@@ -330,7 +330,7 @@ spec:
               fieldPath: metadata.namespace
         tty: true
         image: openebs/m-upgrade:$OPENEBS_VERSION
-        imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent
       restartPolicy: OnFailure
 UPGRADE_POOLS
 
@@ -376,7 +376,7 @@ spec:
               fieldPath: metadata.namespace
         tty: true
         image: openebs/m-upgrade:$OPENEBS_VERSION
-        imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent
       restartPolicy: OnFailure
 UPGRADE_VOLS
         kubectl apply -f $out_file
