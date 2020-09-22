@@ -280,7 +280,7 @@ function openebs_upgrade() {
 
     logSubstep "Runnig upgrade checks..."
     if [[ ${semVerInstallList[1]} -gt ${semVerRunningList[1]} || openebs_check_pools ]]; then
-        logSubstep "As part of OpenEBS upgrade pools and volumes need to be upgraded. At least some of the pools and(or) volumes require an update to match OpenEBS controll plane."
+        logSubstep "As part of the OpenEBS upgrade, pools and volumes need to be upgraded. At least some of the existing pools or volumes require an update to match the OpenEBS control plane."
         logFail "It is highly recommended to schedule a downtime for the application using the OpenEBS PV while performing this upgrade. Also, make sure you have taken a backup of the data before starting the below upgrade procedure."
         printf "Continue? "
         if ! confirmN " "; then
