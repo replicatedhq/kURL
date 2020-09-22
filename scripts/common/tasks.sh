@@ -149,9 +149,12 @@ function weave_reset() {
     CONTAINER_IFNAME=ethwe
 
     if [ -z "$WEAVE_TAG" ]; then
-        # if we don't know the exact weave tag, use a sane default
-        export WEAVE_TAG="2.7.0"
-        printf "using default weave tag ${WEAVE_TAG}\n"
+        WEAVE_TAG=$(docker image ls | grep weaveworks/weave-npc | awk '{ print $2 }')
+        if [ -z "$WEAVE_TAG" ]; then
+            # if we don't know the exact weave tag, use a sane default
+            WEAVE_TAG="2.7.0"
+            printf "using default weave tag ${WEAVE_TAG}\n"
+        fi
     fi
 
     DOCKER_BRIDGE=docker0
