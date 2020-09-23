@@ -260,10 +260,10 @@ function openebs_cstor_pool_count() {
     [ $actual -ge $target ]
 }
 
-function openebs_upgrade() {
-    # TODO: handle namespace spec changes at the upgrade time
-    if [ "$OPENEBS_CSTOR" = "0" ]; then
-        # upgrades only required for cStor 
+function openebs_upgrade() { 
+    if [ "$OPENEBS_CSTOR" = "0" ] || [ ! "$(kubectl get ns $OPENEBS_NAMESPACE 2>/dev/null)" ]; then
+        # upgrades only required for cStor OR no existing install is found
+        # TODO: handle namespace spec changes at the upgrade time
         return 0
     fi
 
@@ -278,29 +278,40 @@ function openebs_upgrade() {
         bail "Only upgrades up to OpenEBS 1.12.0 are tested and supported."
     fi
 
-    logSubstep "Runnig upgrade checks..."
-    if [[ ${semVerInstallList[1]} -gt ${semVerRunningList[1]} || openebs_check_pools ]]; then
-        logSubstep "As part of the OpenEBS upgrade, pools and volumes need to be upgraded. At least some of the existing pools or volumes require an update to match the OpenEBS control plane."
-        logFail "Applications using OpenEBS-backed persistent volumes may become nonresponsive during this upgrade. This upgrade may also in some failure modes result in data loss - please take a backup of any critical volumes before upgrading."
+    upgradePools=$(openebs_check_pools)
+    if [ ${semVerInstallList[1]} -gt ${semVerRunningList[1]} ] || [ ! -z $upgradePools ]; then
+        local pools=$(kubectl get spc --template '{{range .items}}{{.metadata.name}}{{"\n"}}{{end}}')
+        local vols=$(kubectl get pods -l app=cstor-volume-manager -n $OPENEBS_NAMESPACE -o jsonpath='{.items[*].metadata.labels.openebs\.io/persistent-volume}')
+
+        logSubstep "As part of the OpenEBS upgrade, pools and volumes need to be upgraded."
+        logSubstep "Storage pool claims to be upgraded:"
+        logSubstep "    $pools"
+        logSubstep "Persistent volumes to be upgraded:"
+        for vol in $vols; do
+            local size=$(kubectl get pv -n $OPENEBS_NAMESPACE $vol -o jsonpath='{.spec.capacity.storage}')
+            local ns=$(kubectl get pv -n $OPENEBS_NAMESPACE $vol -o jsonpath='{.spec.claimRef.namespace}')
+            local claim=$(kubectl get pv -n $OPENEBS_NAMESPACE $vol -o jsonpath='{.spec.claimRef.name}')
+            logSubstep "    $vol | $size | $ns/$claim"
+        done
+
+        logFail "Applications using OpenEBS-backed persistent volumes may become nonresponsive during this upgrade." 
+        logFail "This upgrade may also in some failure modes result in data loss - please take a backup of any critical volumes before upgrading."
         printf "Continue? "
         if ! confirmN " "; then
             bail "OpenEBS upgrade is aborted."
         fi
 
-        openebs_upgrade_pools
-        openebs_upgrade_vols
+        openebs_upgrade_pools "$pools"
+        openebs_upgrade_vols "$vols"
     fi
 }
 
 function openebs_upgrade_pools() {
     # NOTE: slightly different arguments to pass for pre and after 1.9.0.
     # Since we only support 1.6.0 -> 1.12.0 using prefixes for pre 1.9.0.
-    local manifest="/tmp/openebs_pool_job.yaml"
-    local pools=$(kubectl get spc --template '{{range .items}}{{.metadata.name}}{{"\n"}}{{end}}')
     
-    # Bulk upgrade only supported for versions >=1.9.0.
-    # Have to create a job per pool.
-    for pool in $pools; do
+    # Bulk upgrade only supported for versions >=1.9.0. Have to create a job per pool.
+    for pool in $1; do
         local spcCurrentVer=$(kubectl get spc $pool -o jsonpath='{.versionDetails.status.current}')
         logSubstep "Upgrading $pool from $spcCurrentVer to $OPENEBS_VERSION"
         local out_file=/tmp/openebs-pool-$pool.yaml
@@ -337,18 +348,14 @@ UPGRADE_POOLS
         kubectl apply -f $out_file
     done
     logSubstep "OpenEBS batch job(s) to upgrade cStor pools added."
-    # TODO: Validation and user feedback of the successful completion of the jobs.
-    # The jobs might take a while to run however, blocking at this point isn't necessarily the best approach.
 }
 
 function openebs_upgrade_vols() {
     # NOTE: slightly different arguments to pass for pre and after 1.9.0.
     # Since we only support 1.6.0 -> 1.12.0 using prefixes for pre 1.9.0.
-    local vols=$(kubectl get pods -l app=cstor-volume-manager -n $OPENEBS_NAMESPACE -o jsonpath='{.items[*].metadata.labels.openebs\.io/persistent-volume}')
 
-    # Bulk upgrade only supported for versions >=1.9.0.
-    # Have to create a job per pv.
-    for pv in $vols; do
+    # Bulk upgrade only supported for versions >=1.9.0. Have to create a job per pv.
+    for pv in $1; do
         local out_file=/tmp/openebs-vol-${pv##*-}.yaml
         cat <<UPGRADE_VOLS >$out_file
 apiVersion: batch/v1
@@ -357,7 +364,7 @@ metadata:
   name: cstor-vol-$RANDOM
   namespace: $OPENEBS_NAMESPACE
 spec:
-  backoffLimit: 4
+  backoffLimit: 6
   template:
     spec:
       serviceAccountName: openebs-maya-operator
@@ -381,27 +388,27 @@ spec:
 UPGRADE_VOLS
         kubectl apply -f $out_file
     done
-
+    
+    # TODO: Validation and user feedback of the successful completion of the jobs.
+    # The jobs might take a while to run however, blocking at this point isn't necessarily the best approach.
     logSubstep "OpenEBS batch job(s) to upgrade cStor pvs added."
 }
 
 function openebs_check_pools() {
-    local pools=$(kubectl get spc --template '{{range .items}}{{.metadata.name}}{{"\n"}}{{end}}')
-    for spc in $pools; do
+    for spc in $(kubectl get spc --template '{{range .items}}{{.metadata.name}}{{"\n"}}{{end}}'); do
         local spcCurrentVer=$(kubectl get spc $spc -o jsonpath='{.versionDetails.status.current}')
-        logSubstep "Current $spc ver - $spcCurrentVer"
         if [ $(kubectl get spc $spc -o jsonpath='{.versionDetails.status.dependentsUpgraded}') == "false" ]; then
             # At least one dependant volume needs upgrade
             logSubstep "Pool $spc needs upgrade"
-            return 1
+            echo $spcCurrentVer
         fi
 
         if [ $spcCurrentVer = $OPENEBS_VERSION ]; then
-            # Control Plane and Poll versions are matching
+            # Control Plane and Pool versions are matching
             continue
         fi
 
         # At least 1 pool needs upgrade
-        return 1
+        echo $spcCurrentVer
     done
 }
