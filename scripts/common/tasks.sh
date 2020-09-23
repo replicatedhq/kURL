@@ -266,7 +266,7 @@ function join_token() {
 
     # get ca cert hash, bootstrap token and master address
     local bootstrap_token=$(kubeadm token generate)
-    kubeadm token create --print-join-command 2>/dev/null > /tmp/kubeadm-token
+    kubeadm token create "$bootstrap_token" --print-join-command 2>/dev/null > /tmp/kubeadm-token
     local kubeadm_ca_hash=$(cat /tmp/kubeadm-token | grep -o 'sha256:[^ ]*')
     local api_service_address=$(cat /tmp/kubeadm-token | awk '{ print $3 }')
     rm /tmp/kubeadm-token
