@@ -491,6 +491,9 @@ export class Installer {
   // first version of each is "latest"
   public static versions = {
     kubernetes: [
+      "1.19.2",
+      "1.18.9",
+      "1.18.4",
       "1.17.7",
       "1.17.3",
       "1.16.4",
@@ -498,7 +501,6 @@ export class Installer {
       "1.15.2",
       "1.15.1",
       "1.15.0",
-      "1.18.4",
     ],
     docker: [
       "19.03.10",
