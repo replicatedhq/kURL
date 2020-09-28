@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kotsadm-id
+  labels:
+    kots.io/kotsadm: 'true'
+stringData:
+  kotsadm-id: ${KOTSADM_ID}

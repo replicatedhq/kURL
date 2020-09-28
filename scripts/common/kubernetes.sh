@@ -262,6 +262,14 @@ function kubernetes_secret_value() {
     kubectl -n "$ns" get secret "$name" -ojsonpath="{ .data.$key }" 2>/dev/null | base64 --decode
 }
 
+function kubernetes_configmap_value() {
+    local ns="$1"
+    local name="$2"
+    local key="$3"
+
+    kubectl -n "$ns" get configmap "$name" -ojsonpath="{ .data.$key }" 2>/dev/null | base64 --decode
+}
+
 function install_plugins() {
     pushd "$DIR/krew"
     tar xzvf outdated.tar.gz && mv outdated /usr/local/bin/kubectl-outdated

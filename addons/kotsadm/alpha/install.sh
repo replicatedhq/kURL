@@ -12,6 +12,7 @@ function kotsadm() {
     cp "$src/schemahero.yaml" "$dst/"
     cp "$src/kotsadm.yaml" "$dst/"
 
+    kotsadm_id
     kotsadm_secret_cluster_token
     kotsadm_secret_authstring
     kotsadm_secret_password
@@ -19,6 +20,7 @@ function kotsadm() {
     kotsadm_secret_s3
     kotsadm_secret_session
     kotsadm_api_encryption_key
+
     if [ -n "$PROMETHEUS_VERSION" ]; then
         kotsadm_api_patch_prometheus
     fi
@@ -93,6 +95,19 @@ function kotsadm_outro() {
     fi
     printf "\n"
     printf "\n"
+}
+
+function kotsadm_id() {
+    local KOTSADM_ID=$(kubernetes_configmap_value default kotsadm-id kotsadm-id)
+
+    if [ -n "$KOTSADM_ID" ]; then
+        return 0
+    fi
+
+    KOTSADM_ID=$(< /dev/urandom cat | head -c36 | base64)
+
+    render_yaml_file "$DIR/addons/kotsadm/alpha/tmpl-kotsadm-id.yaml" > "$DIR/kustomize/kotsadm/kotsadm-id.yaml"
+    insert_resources "$DIR/kustomize/kotsadm/kustomization.yaml" kotsadm-id.yaml
 }
 
 function kotsadm_secret_cluster_token() {
