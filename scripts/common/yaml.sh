@@ -59,4 +59,10 @@ EOL
     fi
 
     kubectl apply -f "$MERGED_YAML_SPEC"
+
+    installer_label_velero_exclude_from_backup
+}
+
+function installer_label_velero_exclude_from_backup() {
+    kubectl label --overwrite=true installer/"$INSTALLER_ID" velero.io/exclude-from-backup=true
 }
