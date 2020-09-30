@@ -233,14 +233,6 @@ promptForPublicIp() {
     done
 }
 
-isValidIpv4() {
-    if echo "$1" | grep -qs '^[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*$'; then
-        return 0
-    else
-        return 1
-    fi
-}
-
 promptForPrivateIp() {
     _count=0
     _regex="^[[:digit:]]+: ([^[:space:]]+)[[:space:]]+[[:alnum:]]+ ([[:digit:].]+)"
