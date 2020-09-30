@@ -17,12 +17,6 @@ jobs:
           -t 923411875752.dkr.ecr.us-east-1.amazonaws.com/tgapi:${GITHUB_SHA:0:7} testgrid/tgapi
 
     - run: |
-        docker build -f testgrid/tgrun/Dockerfile \
-          --build-arg version=${GITHUB_SHA:0:7} \
-          -t 923411875752.dkr.ecr.us-east-1.amazonaws.com/tgrun:latest \
-          -t 923411875752.dkr.ecr.us-east-1.amazonaws.com/tgrun:${GITHUB_SHA:0:7} testgrid/tgrun
-
-    - run: |
         aws ecr get-login-password --region us-east-1 | docker login \
           --username AWS \
           --password-stdin 923411875752.dkr.ecr.us-east-1.amazonaws.com
@@ -32,8 +26,6 @@ jobs:
 
     - run: |
         docker push 923411875752.dkr.ecr.us-east-1.amazonaws.com/tgapi:${GITHUB_SHA:0:7}
-        docker push 923411875752.dkr.ecr.us-east-1.amazonaws.com/tgrun:${GITHUB_SHA:0:7}
-        docker push 923411875752.dkr.ecr.us-east-1.amazonaws.com/tgrun:latest
 
   deploy-staging-eks-tgapi:
     runs-on: ubuntu-18.04
@@ -88,12 +80,6 @@ jobs:
           -t 799720048698.dkr.ecr.us-east-1.amazonaws.com/tgapi:${GITHUB_SHA:0:7} testgrid/tgapi
 
     - run: |
-        docker build -f testgrid/tgrun/Dockerfile \
-          --build-arg version=${GITHUB_SHA:0:7} \
-          -t 799720048698.dkr.ecr.us-east-1.amazonaws.com/tgrun:latest \
-          -t 799720048698.dkr.ecr.us-east-1.amazonaws.com/tgrun:${GITHUB_SHA:0:7} testgrid/tgrun
-
-    - run: |
         aws ecr get-login-password --region us-east-1 | docker login \
           --username AWS \
           --password-stdin 799720048698.dkr.ecr.us-east-1.amazonaws.com
@@ -103,8 +89,24 @@ jobs:
 
     - run: |
         docker push 799720048698.dkr.ecr.us-east-1.amazonaws.com/tgapi:${GITHUB_SHA:0:7}
-        docker push 799720048698.dkr.ecr.us-east-1.amazonaws.com/tgrun:${GITHUB_SHA:0:7}
-        docker push 799720048698.dkr.ecr.us-east-1.amazonaws.com/tgrun:latest
+
+  tgrun-image:
+    runs-on: ubuntu-18.04
+    steps:
+      - uses: actions/checkout@v2
+      - name: tgrun-build
+        run: |
+          docker build -f testgrid/tgrun/Dockerfile \
+            -t replicated/tgrun:latest \
+            -t replicated/tgrun:${GITHUB_SHA:0:7} replicated/tgrun
+
+      - name: tgrun-push
+        env:
+          DOCKERHUB_DOCKER_PASS: ${{ secrets.DOCKERHUB_DOCKER_PASS }}
+          DOCKERHUB_DOCKER_USER: ${{ secrets.DOCKERHUB_DOCKER_USER }}
+        run: |
+           echo "$DOCKERHUB_DOCKER_PASS" | docker login -u $DOCKERHUB_DOCKER_USER --password-stdin
+           docker push replicated/tgrun
 
   deploy-production-eks-tgapi:
     runs-on: ubuntu-18.04
