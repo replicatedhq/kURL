@@ -14,7 +14,7 @@ function discover() {
         echo "Containerd already exists on this machine so no containerd install will be performed"
     fi
 
-    discoverPublicIp
+    discover_public_ip
     discover_private_ip
 
     KERNEL_MAJOR=$(uname -r | cut -d'.' -f1)
@@ -184,7 +184,7 @@ getDockerVersion() {
 	DOCKER_VERSION=$(docker -v | awk '{gsub(/,/, "", $3); print $3}')
 }
 
-discoverPublicIp() {
+discover_public_ip() {
     if [ "$AIRGAP" == "1" ]; then
         return
     fi
@@ -195,7 +195,9 @@ discoverPublicIp() {
     _status=$?
     set -e
     if [ "$_status" -eq "0" ] && [ -n "$_out" ]; then
-        PUBLIC_ADDRESS=$_out
+        if isValidIpv4 "$_out" || isValidIpv6 "$_out"; then
+            PUBLIC_ADDRESS=$_out
+        fi
         return
     fi
 
@@ -205,7 +207,9 @@ discoverPublicIp() {
     _status=$?
     set -e
     if [ "$_status" -eq "0" ] && [ -n "$_out" ]; then
-        PUBLIC_ADDRESS=$_out
+        if isValidIpv4 "$_out" || isValidIpv6 "$_out"; then
+            PUBLIC_ADDRESS=$_out
+        fi
         return
     fi
 
@@ -215,7 +219,9 @@ discoverPublicIp() {
     _status=$?
     set -e
     if [ "$_status" -eq "0" ] && [ -n "$_out" ]; then
-        PUBLIC_ADDRESS=$_out
+        if isValidIpv4 "$_out" || isValidIpv6 "$_out"; then
+            PUBLIC_ADDRESS=$_out
+        fi
         return
     fi
 }

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-. ./install_scripts/templates/common/ip-address.sh
+. ./scripts/common/common.sh
 
 testIsValidIpv6()
 {

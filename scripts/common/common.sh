@@ -331,3 +331,19 @@ function kubeconfig_setup_outro() {
 splitHostPort() {
     oIFS="$IFS"; IFS=":" read -r HOST PORT <<< "$1"; IFS="$oIFS"
 }
+
+isValidIpv4() {
+    if echo "$1" | grep -qs '^[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*$'; then
+        return 0
+    else
+        return 1
+    fi
+}
+
+isValidIpv6() {
+    if echo "$1" | grep -qs "^\([0-9a-fA-F]\{0,4\}:\)\{1,7\}[0-9a-fA-F]\{0,4\}$"; then
+        return 0
+    else
+        return 1
+    fi
+}
