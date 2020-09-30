@@ -20,7 +20,6 @@ DIR=.
 . $DIR/scripts/common/upgrade.sh
 . $DIR/scripts/common/utilbinaries.sh
 . $DIR/scripts/common/yaml.sh
-. $DIR/scripts/common/coredns.sh
 # Magic end
 
 function init() {

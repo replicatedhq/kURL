@@ -20,7 +20,6 @@ DIR=.
 . $DIR/scripts/common/proxy.sh
 . $DIR/scripts/common/rook.sh
 . $DIR/scripts/common/yaml.sh
-. $DIR/scripts/common/coredns.sh
 # Magic end
 
 maybe_upgrade() {
@@ -51,13 +50,14 @@ maybe_upgrade() {
         upgrade_kubeadm "$KUBERNETES_VERSION"
 
         case "$KUBERNETES_TARGET_VERSION_MINOR" in
-            15 | 16 | 17 | 18)
+            15 | 16 | 17 | 18 | 19)
                 kubeadm upgrade node
 
                 # correctly sets the --resolv-conf flag when systemd-resolver is running (Ubuntu 18)
                 # https://github.com/kubernetes/kubeadm/issues/273
                 if kubernetes_is_master; then
                     kubeadm init phase kubelet-start
+                    upgrade_etcd_image_18
                 fi
 
                 kubernetes_host
