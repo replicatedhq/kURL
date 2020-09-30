@@ -22,8 +22,8 @@ function containerd_binaries() {
     tar xzf "$src/assets/containerd.tar.gz" -C /usr
 
     if [ ! -f "$src/assets/runc" ] && [ "$AIRGAP" != "1" ]; then
-		curl -L https://github.com/opencontainers/runc/releases/download/v1.0.0-rc91/runc.amd64 > "$src/assets/runc"
-	fi
+        curl -L https://github.com/opencontainers/runc/releases/download/v1.0.0-rc91/runc.amd64 > "$src/assets/runc"
+    fi
     chmod 0755 "$src/assets/runc"
     mv "$src/assets/runc" /usr/bin
 }
