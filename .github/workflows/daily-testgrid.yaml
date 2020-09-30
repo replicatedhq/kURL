@@ -27,4 +27,4 @@ jobs:
         TESTGRID_API: "https://api.testgrid.staging.kurl.sh/"
       
       run: |
-        ./bin/tgrun queue --ref $(date "+%s") --testgrid-api $TESTGRID_API
+        ./bin/tgrun queue --ref ${GITHUB_SHA:0:7} --testgrid-api $TESTGRID_API
