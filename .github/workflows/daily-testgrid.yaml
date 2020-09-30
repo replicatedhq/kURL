@@ -14,12 +14,6 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v2
 
-    - name: kubeconfig
-      env:
-        KUBE_CONFIG_DATA: ${{ secrets.TESTGRID_KUBE_CONFIG_DATA }}
-      run: |
-        echo "$KUBE_CONFIG_DATA" | base64 --decode > /tmp/config
-
     - name: setup-go
       uses: actions/setup-go@v1
       with:
@@ -28,15 +22,8 @@ jobs:
     - name: tgrun-build
       run: make build
 
-    - name: testgrid-cleanup
-      env:
-        KUBECONFIG: "/tmp/config"
-      run:
-        kubectl delete vmi --all
-
     - name: testgrid-queue
       env:
-        KUBECONFIG: "/tmp/config"
         TESTGRID_API: "https://api.testgrid.staging.kurl.sh/"
       
       run: |
