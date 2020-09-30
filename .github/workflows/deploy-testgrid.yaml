@@ -6,7 +6,7 @@ on:
     - master
 
 jobs:
-  staging-docker-image-tgapi:
+  staging-docker-images:
     runs-on: ubuntu-18.04
     steps:
     - uses: actions/checkout@v2
@@ -17,6 +17,12 @@ jobs:
           -t 923411875752.dkr.ecr.us-east-1.amazonaws.com/tgapi:${GITHUB_SHA:0:7} testgrid/tgapi
 
     - run: |
+        docker build -f testgrid/tgrun/Dockerfile \
+          --build-arg version=${GITHUB_SHA:0:7} \
+          -t 923411875752.dkr.ecr.us-east-1.amazonaws.com/tgrun:latest \
+          -t 923411875752.dkr.ecr.us-east-1.amazonaws.com/tgrun:${GITHUB_SHA:0:7} testgrid/tgrun
+
+    - run: |
         aws ecr get-login-password --region us-east-1 | docker login \
           --username AWS \
           --password-stdin 923411875752.dkr.ecr.us-east-1.amazonaws.com
@@ -24,7 +30,10 @@ jobs:
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_STAGING_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_STAGING_SECRET_ACCESS_KEY }}
 
-    - run: docker push 923411875752.dkr.ecr.us-east-1.amazonaws.com/tgapi:${GITHUB_SHA:0:7}
+    - run: |
+        docker push 923411875752.dkr.ecr.us-east-1.amazonaws.com/tgapi:${GITHUB_SHA:0:7}
+        docker push 923411875752.dkr.ecr.us-east-1.amazonaws.com/tgrun:${GITHUB_SHA:0:7}
+        docker push 923411875752.dkr.ecr.us-east-1.amazonaws.com/tgrun:latest
 
   deploy-staging-eks-tgapi:
     runs-on: ubuntu-18.04
@@ -68,7 +77,7 @@ jobs:
         git commit --allow-empty -m "https://github.com/replicatedhq/kURL/actions/runs/${GITHUB_RUN_ID}" && \
           git push origin master
 
-  production-docker-image-tgapi:
+  production-docker-images:
     runs-on: ubuntu-18.04
     steps:
     - uses: actions/checkout@v2
@@ -79,6 +88,12 @@ jobs:
           -t 799720048698.dkr.ecr.us-east-1.amazonaws.com/tgapi:${GITHUB_SHA:0:7} testgrid/tgapi
 
     - run: |
+        docker build -f testgrid/tgrun/Dockerfile \
+          --build-arg version=${GITHUB_SHA:0:7} \
+          -t 799720048698.dkr.ecr.us-east-1.amazonaws.com/tgrun:latest \
+          -t 799720048698.dkr.ecr.us-east-1.amazonaws.com/tgrun:${GITHUB_SHA:0:7} testgrid/tgrun
+
+    - run: |
         aws ecr get-login-password --region us-east-1 | docker login \
           --username AWS \
           --password-stdin 799720048698.dkr.ecr.us-east-1.amazonaws.com
@@ -86,7 +101,10 @@ jobs:
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_PROD_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_PROD_SECRET_ACCESS_KEY }}
 
-    - run: docker push 799720048698.dkr.ecr.us-east-1.amazonaws.com/tgapi:${GITHUB_SHA:0:7}
+    - run: |
+        docker push 799720048698.dkr.ecr.us-east-1.amazonaws.com/tgapi:${GITHUB_SHA:0:7}
+        docker push 799720048698.dkr.ecr.us-east-1.amazonaws.com/tgrun:${GITHUB_SHA:0:7}
+        docker push 799720048698.dkr.ecr.us-east-1.amazonaws.com/tgrun:latest
 
   deploy-production-eks-tgapi:
     runs-on: ubuntu-18.04
