@@ -171,13 +171,9 @@ EOF
 
     disable_rook_ceph_operator
     
-    local nodeNumber=$(($(kubectl get nodes | wc -l) - 1))
-    if [ "$nodeNumber" != "1" ]; then
-        disable_coredns
-    fi
-
     spinner_kubernetes_api_healthy
     kubeadm upgrade apply "v$k8sVersion" --yes --config /opt/replicated/kubeadm.conf --force
+    upgrade_etcd_image_18
     sed -i "s/kubernetesVersion:.*/kubernetesVersion: v${k8sVersion}/" /opt/replicated/kubeadm.conf
 
     kubernetes_install_host_packages "$k8sVersion"
@@ -190,9 +186,6 @@ EOF
     # force deleting the cache because the api server will use the stale API versions after kubeadm upgrade
     rm -rf $HOME/.kube
 
-    if [ "$nodeNumber" != "1" ]; then
-        enable_coredns
-    fi
     enable_rook_ceph_operator
 
     spinner_until 120 kubernetes_node_has_version "$node" "$k8sVersion"
@@ -251,4 +244,17 @@ function upgrade_kubernetes_remote_node_minor() {
     logSuccess "Kubernetes $KUBERNETES_VERSION detected on $nodeName"
 
     kubectl uncordon "$nodeName"
+}
+
+# In k8s 1.18 the etcd image tag changed from 3.4.3 to 3.4.3-0 but kubeadm does not rewrite the
+# etcd manifest to use the new tag. When kubeadm init is run after the upgrade it switches to the
+# tag and etcd takes a few minutes to restart, which often results in kubeadm init failing. This
+# forces use of the updated tag so that the restart of etcd happens during upgrade when the node is
+# already drained
+function upgrade_etcd_image_18() {
+    if [ "$KUBERNETES_TARGET_VERSION_MINOR" != "18" ]; then
+        return 0
+    fi
+    local etcd_tag=$(kubeadm config images list 2>/dev/null | grep etcd | awk -F':' '{ print $NF }')
+    sed -i "s/image: k8s.gcr.io\/etcd:.*/image: k8s.gcr.io\/etcd:$etcd_tag/" /etc/kubernetes/manifests/etcd.yaml
 }

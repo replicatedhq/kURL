@@ -18,7 +18,6 @@ DIR=.
 . $DIR/scripts/common/rook.sh
 . $DIR/scripts/common/utilbinaries.sh
 . $DIR/scripts/common/yaml.sh
-. $DIR/scripts/common/coredns.sh
 # Magic end
 
 function join() {
