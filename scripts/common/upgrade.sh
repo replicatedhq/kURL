@@ -10,7 +10,7 @@ function upgrade_kubernetes() {
         return
     fi
 
-    spinner_kubernetes_api_healthy
+    upgrade_kubernetes_patch
 }
 
 function upgrade_kubernetes_minor() {
@@ -59,7 +59,6 @@ function upgrade_kubernetes_local_master_patch() {
  
     spinner_kubernetes_api_healthy
     kubeadm upgrade apply "v$k8sVersion" --yes --config /opt/replicated/kubeadm.conf --force
-    upgrade_etcd_image
     sed -i "s/kubernetesVersion:.*/kubernetesVersion: v${k8sVersion}/" /opt/replicated/kubeadm.conf
 
     kubernetes_install_host_packages "$k8sVersion"
@@ -252,7 +251,6 @@ function upgrade_kubernetes_remote_node_minor() {
 # tag and etcd takes a few minutes to restart, which often results in kubeadm init failing. This
 # forces use of the updated tag so that the restart of etcd happens during upgrade when the node is
 # already drained
-# [upgrade/etcd] Non fatal issue encountered during upgrade: the desired etcd version for this Kubernetes version "v1.18.9" is "3.4.3-0", but the current etcd version is "3.4.3". Won't downgrade etcd, instead just continue
 function upgrade_etcd_image_18() {
     if [ "$KUBERNETES_TARGET_VERSION_MINOR" != "18" ]; then
         return 0
