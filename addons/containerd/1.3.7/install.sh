@@ -9,7 +9,7 @@ function containerd_install() {
         containerd_service "$src"
     fi
 
-    containerd_configure_ctl
+    containerd_configure_ctl "$src"
 
     # NOTE: this will not remove the proxy
     if [ -n "$PROXY_ADDRESS" ]; then
@@ -70,14 +70,13 @@ EOF
 }
 
 function containerd_configure_ctl() {
+    local src="$1"
+
     if [ -e "/etc/crictl.yaml" ]; then
         return 0
     fi
 
-    cat > /etc/crictl.yaml <<EOF
-runtime-endpoint: /var/run/containerd/containerd.sock
-image-endpoint: /var/run/containerd/containerd.sock
-EOF
+    cp "$src/crictl.yaml" /etc/crictl.yaml
 }
 
 function containerd_registry_init() {
