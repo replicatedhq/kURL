@@ -1,5 +1,5 @@
 # adapted from https://openebs.github.io/charts/openebs-operator-1.6.0.yaml
-# 1. rbac.authorization.k8s.io/v1 -> rbac.authorization.k8s.io/v1
+# 1. rbac.authorization.k8s.io/v1beta1 -> rbac.authorization.k8s.io/v1
 # 2. remove namespace
 # 3. set OPENEBS_IO_JIVA_REPLICA_COUNT to 0
 # 4. set OPENEBS_IO_CREATE_DEFAULT_STORAGE_CONFIG to "false"
