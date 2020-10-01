@@ -9,6 +9,8 @@ function containerd_install() {
         containerd_service "$src"
     fi
 
+    containerd_configure_ctl
+
     # NOTE: this will not remove the proxy
     if [ -n "$PROXY_ADDRESS" ]; then
         containerd_configure_proxy
@@ -65,6 +67,17 @@ EOF
     if [ -n "$DOCKER_REGISTRY_IP" ]; then
         containerd_configure_registry "$DOCKER_REGISTRY_IP"
     fi
+}
+
+function containerd_configure_ctl() {
+    if [ -e "/etc/crictl.yaml" ]; then
+        return 0
+    fi
+
+    cat > /etc/crictl.yaml <<EOF
+runtime-endpoint: /var/run/containerd/containerd.sock
+image-endpoint: /var/run/containerd/containerd.sock
+EOF
 }
 
 function containerd_registry_init() {
