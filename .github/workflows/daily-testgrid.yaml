@@ -24,7 +24,7 @@ jobs:
 
     - name: testgrid-queue
       env:
-        TESTGRID_API: "https://api.testgrid.staging.kurl.sh/"
+        TESTGRID_API: "https://api.testgrid.kurl.sh/"
       
       run: |
         ./bin/tgrun queue --ref ${GITHUB_SHA:0:7} --testgrid-api $TESTGRID_API
