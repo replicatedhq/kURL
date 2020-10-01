@@ -384,11 +384,11 @@ function kotsadm_health_check() {
     # Get pods below will initially return only 0 lines
     # Then it will return 1 line: "PodScheduled=True"
     # Finally, it will return 4 lines.  And this is when we want to grep for "Ready=False"
-    if [ $(kubectl get pods -l app=kotsadm -o jsonpath="{range .items[*]}{range .status.conditions[*]}{ .type }={ .status }{'\n'}{end}{end}" | wc -l) -lt 4 ]; then
+    if [ $(kubectl get pods -l app=kotsadm -o jsonpath="{range .items[*]}{range .status.conditions[*]}{ .type }={ .status }{'\n'}{end}{end}" 2>/dev/null | wc -l) -lt 4 ]; then
         return 1
     fi
 
-    if [[ -n $(kubectl get pods -l app=kotsadm -o jsonpath="{range .items[*]}{range .status.conditions[*]}{ .type }={ .status }{'\n'}{end}{end}" | grep Ready=False) ]]; then
+    if [[ -n $(kubectl get pods -l app=kotsadm -o jsonpath="{range .items[*]}{range .status.conditions[*]}{ .type }={ .status }{'\n'}{end}{end}" 2>/dev/null | grep -q Ready=False) ]]; then
       return 1
     fi
     return 0
