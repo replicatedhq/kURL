@@ -1,0 +1,2 @@
+runtime-endpoint: /var/run/containerd/containerd.sock
+image-endpoint: /var/run/containerd/containerd.sock
