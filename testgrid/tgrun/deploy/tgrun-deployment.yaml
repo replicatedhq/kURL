@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tgrun
+spec:
+  selector:
+    matchLabels:
+      app: testgrid
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: testgrid
+    spec:
+      containers:
+      - name: tgrun
+        image: replicated/tgrun:latest # TODO: once regular image CI builds will be pushing images Git sha will be used
+        args: ["run", "--testgrid-api", "https://api.testgrid.kurl.sh"]
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "250m"
+      restartPolicy: OnFailure
