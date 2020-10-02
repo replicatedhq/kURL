@@ -310,6 +310,7 @@ function current_user_sudo_group() {
 }
 
 function kubeconfig_setup_outro() {
+    current_user_sudo_group
     if [ -n "$FOUND_SUDO_GROUP" ]; then
         printf "To access the cluster with kubectl, reload your shell:\n"
         printf "\n"
