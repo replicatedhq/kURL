@@ -17,7 +17,6 @@ build: fmt vet build-cli
 build-cli:
 	mkdir -p bin
 	go build \
-		-i \
 		-o ./bin/tgrun \
 		./cmd/run
 
