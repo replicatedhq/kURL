@@ -34,13 +34,13 @@ func init() {
 				Version: "1.2.0",
 			},
 			Kotsadm: &kurlv1beta1.Kotsadm{
-				Version: "1.16.1",
+				Version: "1.19.6",
 			},
 			OpenEBS: &kurlv1beta1.OpenEBS{
 				Version:                 "latest",
 				Namespace:               "space",
 				IsLocalPVEnabled:        true,
-				LocalPVStorageClassName: "default",
+				LocalPVStorageClassName: "openebs",
 				IsCstorEnabled:          true,
 				CstorStorageClassName:   "cstore",
 			},
