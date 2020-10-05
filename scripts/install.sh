@@ -106,6 +106,10 @@ EOF
     # kubeadm init temporarily taints this node which causes rook to move any mons on it and may
     # lead to a loss of quorum
     disable_rook_ceph_operator
+    # since K8s 1.19.1 kubeconfigs point to local API server even in HA setup. When upgrading from
+    # earlier versions and using a load balancer, kubeadm init will bail because the kubeconfigs
+    # already exist pointing to the load balancer
+    rm -f /etc/kubernetes/*.conf
     set -o pipefail
     kubeadm init \
         --ignore-preflight-errors=all \
