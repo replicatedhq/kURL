@@ -100,8 +100,8 @@ jobs:
             testgrid/tgrun
       - uses: azure/docker-login@v1
         with:
-          username: repldeploy2
-          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+          username: ${{ secrets.DOCKERHUB_DOCKER_USER }}
+          password: ${{ secrets.DOCKERHUB_DOCKER_PASS }}
 
       - name: tgrun-push
         run: |
