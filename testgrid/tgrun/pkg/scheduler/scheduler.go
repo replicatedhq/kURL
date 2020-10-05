@@ -43,6 +43,9 @@ func Run(schedulerOptions types.SchedulerOptions) error {
 		}
 
 		req, err := http.NewRequest("POST", "https://kurl.sh/installer", bytes.NewReader(b))
+		if err != nil {
+			return errors.Wrap(err, "failed to create request to submit installer spec")
+		}
 		req.Header.Set("Content-Type", "text/yaml")
 		resp, err := http.DefaultClient.Do(req)
 		if err != nil {
@@ -93,14 +96,21 @@ func reportStarted(schedulerOptions types.SchedulerOptions, plannedInstances []t
 	}
 
 	req, err := http.NewRequest("POST", fmt.Sprintf("%s/v1/ref/%s/start", schedulerOptions.APIEndpoint, schedulerOptions.Ref), bytes.NewReader(b))
+	if err != nil {
+		return errors.Wrap(err, "failed to create request to start run")
+	}
 	req.Header.Set("Content-Type", "application/json")
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return errors.Wrap(err, "failed to execute request")
+		return errors.Wrap(err, "failed to execute request to start run")
 	}
 
 	if resp.StatusCode == 419 {
 		return errors.New("ref already exists")
+	}
+
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("got unexpected error code starting run: %d", resp.StatusCode)
 	}
 
 	return nil
