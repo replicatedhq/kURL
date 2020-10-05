@@ -17,7 +17,6 @@ build: fmt vet build-api
 build-api:
 	mkdir -p bin
 	go build \
-		-i \
 		-o ./bin/tgapi \
 		./cmd/api
 
