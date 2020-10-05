@@ -310,6 +310,7 @@ function current_user_sudo_group() {
 }
 
 function kubeconfig_setup_outro() {
+    current_user_sudo_group
     if [ -n "$FOUND_SUDO_GROUP" ]; then
         printf "To access the cluster with kubectl, reload your shell:\n"
         printf "\n"
@@ -318,14 +319,33 @@ function kubeconfig_setup_outro() {
     fi
     local owner="$SUDO_UID"
     if [ -z "$owner" ]; then
+        # not currently running via sudo
         owner="$USER"
+    else
+        # running via sudo - automatically create ~/.kube/config if it does not exist
+        ownerdir=`eval echo "~$(id -un $owner)"`
+
+        if [ ! -f "$ownerdir/.kube/config" ]; then
+            mkdir -p $ownerdir/.kube
+            cp /etc/kubernetes/admin.conf $ownerdir/.kube/config
+            chown -R $owner $ownerdir/.kube
+
+            printf "To access the cluster with kubectl, ensure the KUBECONFIG environment variable is unset:\n"
+            printf "\n"
+            printf "${GREEN}    echo unset KUBECONFIG >> ~/.profile${NC}\n"
+            printf "${GREEN}    bash -l${NC}\n"
+            return
+        fi
     fi
+
     printf "To access the cluster with kubectl, copy kubeconfig to your home directory:\n"
     printf "\n"
     printf "${GREEN}    cp /etc/kubernetes/admin.conf ~/.kube/config${NC}\n"
     printf "${GREEN}    chown -R ${owner} ~/.kube${NC}\n"
     printf "${GREEN}    echo unset KUBECONFIG >> ~/.profile${NC}\n"
     printf "${GREEN}    bash -l${NC}\n"
+    printf "\n"
+    printf "You will likely need to use sudo to copy and chown admin.conf.\n"
 }
 
 splitHostPort() {
