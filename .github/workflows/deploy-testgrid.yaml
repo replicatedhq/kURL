@@ -88,6 +88,25 @@ jobs:
 
     - run: docker push 799720048698.dkr.ecr.us-east-1.amazonaws.com/tgapi:${GITHUB_SHA:0:7}
 
+  tgrun-image:
+    runs-on: ubuntu-18.04
+    steps:
+      - uses: actions/checkout@v2
+      - name: tgrun-build
+        run: |
+          docker build -f testgrid/tgrun/Dockerfile \
+            -t replicated/tgrun:latest \
+            -t replicated/tgrun:${GITHUB_SHA:0:7} replicated/tgrun
+      - uses: azure/docker-login@v1
+        with:
+          username: repldeploy2
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+
+      - name: tgrun-push
+        run: |
+          docker push replicated/tgrun:latest
+          docker push replicated/tgrun:${GITHUB_SHA:0:7}
+
   deploy-production-eks-tgapi:
     runs-on: ubuntu-18.04
     needs: production-docker-image-tgapi
