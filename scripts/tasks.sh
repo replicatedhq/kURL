@@ -1,11 +1,11 @@
+#!/bin/bash
 
-# terminal color codes
-GREEN='\033[0;32m'
-BLUE='\033[0;94m'
-LIGHT_BLUE='\033[0;34m'
-YELLOW='\033[0;33m'
-RED='\033[0;31m'
-NC='\033[0m' # No Color
+set -e
+
+# Magic begin: scripts are inlined for distribution. See "make build/tasks.sh"
+. $DIR/scripts/common/common.sh
+. $DIR/scripts/common/prompts.sh
+# Magic end
 
 function tasks() {
     DOCKER_VERSION="$(get_docker_version)"
@@ -28,6 +28,9 @@ function tasks() {
             ;;
         join-token|join_token)
             join_token $@
+            ;;
+        set-kubeconfig-server|set_kubeconfig_server)
+            set_kubeconfig_server $2
             ;;
         *)
             bail "Unknown task: $1"
@@ -127,29 +130,6 @@ function reset() {
     rm -f /usr/local/bin/kustomize*
 
     printf "Reset script completed\n"
-}
-
-function commandExists() {
-    command -v "$@" > /dev/null 2>&1
-}
-
-function confirmN() {
-    printf "(y/N) "
-    promptTimeout "$@"
-    if [ "$PROMPT_RESULT" = "y" ] || [ "$PROMPT_RESULT" = "Y" ]; then
-        return 0
-    fi
-    return 1
-}
-
-function promptTimeout() {
-    set +e
-    if [ -z "$FAST_TIMEOUTS" ]; then
-        read ${1:-$READ_TIMEOUT} PROMPT_RESULT < /dev/tty
-    else
-        read ${READ_TIMEOUT} PROMPT_RESULT < /dev/tty
-    fi
-    set -e
 }
 
 function weave_reset() {
@@ -405,6 +385,17 @@ function get_weave_version() {
         fi
     fi
     echo $weave_version
+}
+
+function set_kubeconfig_server() {
+    local server="$1"
+    if [ -z "$server" ]; then
+        bail "usage: cat tasks.sh | sudo bash -s set-kubeconfig-server <load-balancer-address>"
+    fi
+    while read -r cluster; do
+        kubectl --kubeconfig=/etc/kubernetes/kubelet.conf config set-cluster "$cluster" --server "$server"
+    done < <(kubectl --kubeconfig /etc/kubernetes/kubelet.conf config get-clusters | grep -v NAME)
+    systemctl restart kubelet
 }
 
 tasks "$@"

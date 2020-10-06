@@ -549,3 +549,7 @@ function kubernetes_get_secondaries() {
         KUBERNETES_SECONDARY_VERSIONS+=( $version )
     done < <(kubernetes_workers)
 }
+
+function kubernetes_load_balancer_address() {
+    kubeadm config view 2>/dev/null | grep 'controlPlaneEndpoint:' | sed 's/controlPlaneEndpoint: \|"//g'
+}

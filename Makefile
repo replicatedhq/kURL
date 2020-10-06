@@ -214,13 +214,17 @@ build/templates/upgrade.tmpl: build/upgrade.sh
 
 build/tasks.sh:
 	mkdir -p tmp build
-	cp scripts/common/tasks.sh tmp/tasks.sh
+	sed '/# Magic begin/q' scripts/tasks.sh | sed '$$d' > tmp/tasks.sh
+	for script in $(shell cat scripts/tasks.sh | grep '\. $$DIR/' | sed 's/. $$DIR\///'); do \
+		cat $$script >> tmp/tasks.sh ; \
+	done
+	sed -n '/# Magic end/,$$p' scripts/tasks.sh | sed '1d' >> tmp/tasks.sh
 	mv tmp/tasks.sh build/tasks.sh
 	chmod +x build/tasks.sh
 
 build/templates/tasks.tmpl: build/tasks.sh
 	mkdir -p build/templates
-	cp scripts/common/tasks.sh build/templates/tasks.tmpl
+	cp build/tasks.sh build/templates/tasks.tmpl
 
 build/addons:
 	mkdir -p build
