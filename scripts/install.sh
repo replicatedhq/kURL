@@ -103,13 +103,19 @@ EOF
     if [ "$HA_CLUSTER" = "1" ]; then
         UPLOAD_CERTS="--upload-certs"
     fi
+
     # kubeadm init temporarily taints this node which causes rook to move any mons on it and may
     # lead to a loss of quorum
     disable_rook_ceph_operator
+
     # since K8s 1.19.1 kubeconfigs point to local API server even in HA setup. When upgrading from
     # earlier versions and using a load balancer, kubeadm init will bail because the kubeconfigs
     # already exist pointing to the load balancer
     rm -f /etc/kubernetes/*.conf
+
+    # Regenerate api server cert in case load balancer address changed
+    rm -f /etc/kubernetes/pki/apiserver.crt /etc/kubernetes/pki/apiserver.key
+
     set -o pipefail
     kubeadm init \
         --ignore-preflight-errors=all \
