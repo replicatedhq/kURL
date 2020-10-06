@@ -27,4 +27,5 @@ jobs:
         TESTGRID_API: "https://api.testgrid.kurl.sh/"
       
       run: |
-        ./bin/tgrun queue --ref ${GITHUB_SHA:0:7} --testgrid-api $TESTGRID_API
+        ./bin/tgrun queue --ref "${GITHUB_SHA:0:7}"
+    
