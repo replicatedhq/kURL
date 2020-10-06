@@ -178,7 +178,7 @@ discoverCurrentKubernetesVersion() {
 }
 
 getDockerVersion() {
-	if ! commandExists "docker"; then
+	if ! commandExists "docker" ; then
 		return
 	fi
 	DOCKER_VERSION=$(docker -v | awk '{gsub(/,/, "", $3); print $3}')

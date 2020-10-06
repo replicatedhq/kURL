@@ -26,9 +26,15 @@ function join() {
 
         # this will stop all the control plane pods except etcd
         rm -f /etc/kubernetes/manifests/kube-*
-        while docker ps | grep -q kube-apiserver ; do
-            sleep 2
-        done
+        if commandExists docker ; then
+            while docker ps | grep -q kube-apiserver ; do
+                sleep 2
+            done
+        elif commandExists crictl ; then
+            while crictl ps | grep -q kube-apiserver ; do
+                sleep 2
+            done
+        fi
         # delete files that need to be regenerated in case of load balancer address change
         rm -f /etc/kubernetes/*.conf
         rm -f /etc/kubernetes/pki/apiserver.crt /etc/kubernetes/pki/apiserver.key
