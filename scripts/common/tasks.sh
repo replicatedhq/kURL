@@ -171,7 +171,7 @@ function weave_reset() {
                 else
                     # --pid host
                     local guid=$(< /dev/urandom tr -dc A-Za-z0-9 | head -c16)
-                    ctr -n=k8s.io image pull docker.io/weaveworks/weaveexec:2.6.5
+                    ctr -n=k8s.io image pull docker.io/weaveworks/weaveexec:$WEAVE_TAG
                     ctr -n=k8s.io run --rm --net-host --privileged docker.io/weaveworks/weaveexec:$WEAVE_TAG $guid /usr/bin/weaveutil delete-datapath $NETDEV
                 fi
             fi
