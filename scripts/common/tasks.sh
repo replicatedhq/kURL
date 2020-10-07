@@ -222,10 +222,14 @@ function weave_reset() {
 }
 
 function kotsadm_accept_tls_uploads() {
+    export KUBECONFIG=/etc/kubernetes/admin.conf
+
     kubectl patch secret kotsadm-tls -p '{"stringData":{"acceptAnonymousUploads":"1"}}'
 }
 
 function print_registry_login() {
+    export KUBECONFIG=/etc/kubernetes/admin.conf
+
     local passwd=$(kubectl get secret registry-creds -o=jsonpath='{ .data.\.dockerconfigjson }' | base64 --decode | grep -oE '"password":"\w+"' | awk -F\" '{ print $4 }')
     local clusterIP=$(kubectl -n kurl get service registry -o=jsonpath='{ .spec.clusterIP }')
 
