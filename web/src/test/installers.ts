@@ -715,4 +715,17 @@ spec:
       });
     });
   });
+
+  describe("latestMinors", () => {
+    it("should include lateset version indexed by minor", () => {
+      const out = Installer.latestMinors();
+
+      expect(out[0]).to.equal("0.0.0");
+      expect(out[14]).to.equal("0.0.0");
+      expect(out[15]).to.equal("1.15.3");
+      expect(out[16]).to.equal("1.16.4");
+      expect(out[17]).to.equal("1.17.7");
+      expect(out[18]).to.equal("1.18.9");
+    });
+  });
 });

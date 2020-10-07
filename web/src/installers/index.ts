@@ -5,6 +5,7 @@ import * as mysql from "promise-mysql";
 import { Service } from "ts-express-decorators";
 import * as request from "request-promise";
 import * as AJV from "ajv";
+import * as semver from "semver"
 import { MysqlWrapper } from "../util/services/mysql";
 import { instrumented } from "monkit";
 import { logger } from "../logger";
@@ -1004,10 +1005,32 @@ export class Installer {
       const version = this.spec[config].version;
       if (version) {
         pkgs.push(`${config}-${this.spec[config].version}`);
+
+        // include an extra version of kubernetes so they can upgrade 2 minor versions
+        if (config === "kubernetes") {
+          const prevMinor = semver.minor(version) - 1;
+          const step = Installer.latestMinors()[prevMinor];
+          pkgs.push(`${config}-${step}`);
+        }
       }
     });
 
     return pkgs;
+  }
+
+  public static latestMinors(): string[] {
+    const ret: string[] = _.fill(Array(15), "0.0.0");
+
+    Installer.versions.kubernetes.forEach((version: string) => {
+      const minor = semver.minor(version);
+      const latest = ret[minor];
+
+      if (!latest  || semver.gt(version, latest)) {
+        ret[minor] = version;
+      }
+    });
+
+    return ret;
   }
 
   public isLatest(): boolean {
