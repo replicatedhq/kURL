@@ -9,7 +9,6 @@ NC='\033[0m' # No Color
 
 function tasks() {
     DOCKER_VERSION="$(get_docker_version)"
-    CONTAINERD_VERSION="$(get_containerd_version)"
 
     case "$1" in
         load-images|load_images)
@@ -106,10 +105,10 @@ function reset() {
     WEAVE_TAG="$(get_weave_version)"
 
     if commandExists "kubeadm"; then
-        if [ -n "$CONTAINERD_VERSION" ]; then
-            kubeadm reset --force --cri-socket /var/run/containerd/containerd.sock
-        else
+        if [ -n "$DOCKER_VERSION" ]; then
             kubeadm reset --force
+        else
+            kubeadm reset --force --cri-socket /var/run/containerd/containerd.sock
         fi
         printf "kubeadm reset completed\n"
     fi
@@ -390,13 +389,6 @@ function get_docker_version() {
         return
     fi
     docker -v 2>/dev/null | awk '{gsub(/,/, "", $3); print $3}'
-}
-
-function get_containerd_version() {
-    if ! commandExists "ctr" ; then
-        return
-    fi
-    ctr -v 2>/dev/null | awk '{gsub(/,/, "", $3); print $3}'
 }
 
 function get_weave_version() {
