@@ -8,7 +8,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/kurl/testgrid/tgapi/pkg/persistence"
 	"github.com/replicatedhq/kurl/testgrid/tgapi/pkg/testinstance/types"
-	"gopkg.in/yaml.v2"
+	yaml "gopkg.in/yaml.v2"
 )
 
 type KurlInstaller struct {
@@ -74,18 +74,6 @@ func Start(id string) error {
 	return nil
 }
 
-func Finish(id string) error {
-	db := persistence.MustGetPGSession()
-
-	query := `update testinstance set finished_at = now() where id = $1 and finished_at is null`
-
-	if _, err := db.Exec(query, id); err != nil {
-		return errors.Wrap(err, "failed to update")
-	}
-
-	return nil
-}
-
 func SetInstanceLogs(id string, logs []byte) error {
 	db := persistence.MustGetPGSession()
 
@@ -110,10 +98,13 @@ func SetInstanceSonobuoyResults(id string, results []byte) error {
 	return nil
 }
 
-func SetInstanceSuccess(id string, isSuccess bool) error {
+// SetInstanceFinishedAndSuccess sets is_success and finished_at.
+// If finished_at is already set and is_success is false, neither is updated.
+// This allows failure to be 'sticky' - success can change to failure, but not failure to success.
+func SetInstanceFinishedAndSuccess(id string, isSuccess bool) error {
 	db := persistence.MustGetPGSession()
 
-	query := `update testinstance set is_success = $1, finished_at = now() where id = $2`
+	query := `update testinstance set is_success = $1, finished_at = now() where ( id = $2 ) AND ( ( finished_at is null ) OR ( is_success = true ) )`
 
 	if _, err := db.Exec(query, isSuccess, id); err != nil {
 		return errors.Wrap(err, "failed to update")
