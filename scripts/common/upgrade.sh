@@ -1,45 +1,55 @@
+
 function upgrade_kubernetes() {
 
     if [ "$KUBERNETES_UPGRADE" != "1" ]; then
+        enable_rook_ceph_operator
         return
     fi
 
+    disable_rook_ceph_operator
+
+    upgrade_kubernetes_step
     upgrade_kubernetes_minor
-
-    if [ "$DID_UPGRADE_KUBERNETES" == 1 ]; then
-        return
-    fi
-
     upgrade_kubernetes_patch
+
+    enable_rook_ceph_operator
+}
+
+function upgrade_kubernetes_step() {
+    if [ "$KUBERNETES_STEP_LOCAL_PRIMARY" == "1" ]; then
+        upgrade_kubernetes_local_master_minor "$STEP_VERSION"
+    fi
+    if [ "$KUBERNETES_STEP_REMOTE_PRIMARIES" == "1" ]; then
+        upgrade_kubernetes_remote_masters_minor "$STEP_VERSION"
+    fi
+    if [ "$KUBERNETES_STEP_SECONDARIES" == "1" ]; then
+        upgrade_kubernetes_workers_minor "$STEP_VERSION"
+    fi
 }
 
 function upgrade_kubernetes_minor() {
-    if [ "$KUBERNETES_UPGRADE_LOCAL_MASTER_MINOR" == "1" ]; then
+    if [ "$KUBERNETES_UPGRADE_LOCAL_PRIMARY_MINOR" == "1" ]; then
         upgrade_kubernetes_local_master_minor "$KUBERNETES_VERSION"
     fi
-    if [ "$KUBERNETES_UPGRADE_REMOTE_MASTERS_MINOR" == "1" ]; then
+    if [ "$KUBERNETES_UPGRADE_REMOTE_PRIMARIES_MINOR" == "1" ]; then
         upgrade_kubernetes_remote_masters_minor "$KUBERNETES_VERSION"
     fi
-    if [ "$KUBERNETES_UPGRADE_WORKERS_MINOR" == "1" ]; then
+    if [ "$KUBERNETES_UPGRADE_SECONDARIES_MINOR" == "1" ]; then
         upgrade_kubernetes_workers_minor "$KUBERNETES_VERSION"
     fi
-
-    DID_UPGRADE_KUBERNETES=1
 }
 
 
 function upgrade_kubernetes_patch() {
-    if [ "$KUBERNETES_UPGRADE_LOCAL_MASTER_PATCH" == "1" ]; then
+    if [ "$KUBERNETES_UPGRADE_LOCAL_PRIMARY_PATCH" == "1" ]; then
         upgrade_kubernetes_local_master_patch "$KUBERNETES_VERSION"
     fi
-    if [ "$KUBERNETES_UPGRADE_REMOTE_MASTERS_PATCH" == "1" ]; then
+    if [ "$KUBERNETES_UPGRADE_REMOTE_PRIMARIES_PATCH" == "1" ]; then
         upgrade_kubernetes_remote_masters_patch "$KUBERNETES_VERSION"
     fi
-    if [ "$KUBERNETES_UPGRADE_WORKERS_PATCH" == "1" ]; then
+    if [ "$KUBERNETES_UPGRADE_SECONDARIES_PATCH" == "1" ]; then
         upgrade_kubernetes_workers_patch "$KUBERNETES_VERSION"
     fi
-
-    DID_UPGRADE_KUBERNETES=1
 }
 
 function upgrade_kubernetes_local_master_patch() {
@@ -52,9 +62,8 @@ function upgrade_kubernetes_local_master_patch() {
 
     kubeadm upgrade plan "v${k8sVersion}"
     printf "${YELLOW}Drain local node and apply upgrade? ${NC}"
-    confirmY
+    confirmY " "
  
-    disable_rook_ceph_operator
     kubernetes_drain "$node"
  
     spinner_kubernetes_api_healthy
@@ -66,8 +75,6 @@ function upgrade_kubernetes_local_master_patch() {
     systemctl restart kubelet
     spinner_kubernetes_api_healthy
     kubectl uncordon "$node"
-
-    enable_rook_ceph_operator
 
     spinner_until 120 kubernetes_node_has_version "$node" "$k8sVersion"
     spinner_until 120 kubernetes_nodes_ready
@@ -120,7 +127,7 @@ function upgrade_kubernetes_remote_node_patch() {
     fi
 
     printf "${YELLOW}Drain node $nodeName to prepare for upgrade? ${NC}"
-    confirmY
+    confirmY " "
     kubernetes_drain "$nodeName"
 
     local noProxyAddrs=""
@@ -130,8 +137,10 @@ function upgrade_kubernetes_remote_node_patch() {
 
     printf "\n\n\tRun the upgrade script on remote node to proceed: ${GREEN}$nodeName${NC}\n\n"
 
-    if [ "$AIRGAP" = "1" ] || [ -z "$KURL_URL" ]; then
+    if [ "$AIRGAP" = "1" ]; then
         printf "\t${GREEN}cat upgrade.sh | sudo bash -s airgap kubernetes-version=${KUBERNETES_VERSION}${noProxyAddrs}${NC}\n\n"
+    elif [ -z "$KURL_URL" ]; then
+        printf "\t${GREEN}cat upgrade.sh | sudo bash -s kubernetes-version=${KUBERNETES_VERSION}${noProxyAddrs}${NC}\n\n"
     else
         local prefix="curl $KURL_URL/$INSTALLER_ID/"
         if [ -z "$KURL_URL" ]; then
@@ -169,11 +178,9 @@ EOF
     printf "${YELLOW}Drain local node and apply upgrade? ${NC}"
     confirmY " "
 
-    disable_rook_ceph_operator
-    
     spinner_kubernetes_api_healthy
     kubeadm upgrade apply "v$k8sVersion" --yes --config /opt/replicated/kubeadm.conf --force
-    upgrade_etcd_image_18
+    upgrade_etcd_image_18 "$k8sVersion"
     sed -i "s/kubernetesVersion:.*/kubernetesVersion: v${k8sVersion}/" /opt/replicated/kubeadm.conf
 
     kubernetes_install_host_packages "$k8sVersion"
@@ -186,39 +193,46 @@ EOF
     # force deleting the cache because the api server will use the stale API versions after kubeadm upgrade
     rm -rf $HOME/.kube
 
-    enable_rook_ceph_operator
-
     spinner_until 120 kubernetes_node_has_version "$node" "$k8sVersion"
     spinner_until 120 kubernetes_nodes_ready
 }
 
 function upgrade_kubernetes_remote_masters_minor() {
+    local k8sVersion="$1"
     while read -r master; do
-        upgrade_kubernetes_remote_node_minor "$master"
+        upgrade_kubernetes_remote_node_minor "$master" "$k8sVersion"
     done < <(try_1m kubernetes_remote_masters)
     spinner_until 120 kubernetes_nodes_ready
 }
 
 function upgrade_kubernetes_workers_minor() {
+    local k8sVersion="$1"
     while read -r worker; do
-        upgrade_kubernetes_remote_node_minor "$worker"
+        upgrade_kubernetes_remote_node_minor "$worker" "$k8sVersion"
     done < <(try_1m kubernetes_workers)
 }
 
 function upgrade_kubernetes_remote_node_minor() {
     # one line of output from `kubectl get nodes`
     local node="$1"
+    local targetK8sVersion="$2"
+
     nodeName=$(echo "$node" | awk '{ print $1 }')
     nodeVersion="$(echo "$node" | awk '{ print $5 }' | sed 's/v//' )"
     semverParse "$nodeVersion"
     nodeMinor="$minor"
     nodePatch="$patch"
-    if [ "$nodeMinor" -gt "$KUBERNETES_TARGET_VERSION_MINOR" ]; then
+
+    semverParse "$targetK8sVersion"
+    local targetMinor="$minor"
+    local targetPatch="$patch"
+
+    if [ "$nodeMinor" -ge "$targetMinor" ]; then
         continue
     fi
 
     printf "${YELLOW}Drain node $nodeName to prepare for upgrade? ${NC}"
-    confirmY
+    confirmY " "
     kubernetes_drain "$nodeName"
 
     local noProxyAddrs=""
@@ -228,22 +242,25 @@ function upgrade_kubernetes_remote_node_minor() {
 
     printf "\n\n\tRun the upgrade script on remote node to proceed: ${GREEN}$nodeName${NC}\n\n"
 
-    if [ "$AIRGAP" = "1" ] || [ -z "$KURL_URL" ]; then
-        printf "\t${GREEN}cat upgrade.sh | sudo bash -s airgap kubernetes-version=${KUBERNETES_VERSION}${noProxyAddrs}${NC}\n\n"
+    if [ "$AIRGAP" = "1" ]; then
+        printf "\t${GREEN}cat upgrade.sh | sudo bash -s airgap kubernetes-version=${targetK8sVersion}${noProxyAddrs}${NC}\n\n"
+    elif [ -z "$KURL_URL" ]; then
+        printf "\t${GREEN}cat upgrade.sh | sudo bash -s kubernetes-version=${targetK8sVersion}${noProxyAddrs}${NC}\n\n"
     else
         local prefix="curl $KURL_URL/$INSTALLER_ID/"
         if [ -z "$KURL_URL" ]; then
             prefix="cat "
         fi
-        printf "\t${GREEN} ${prefix}upgrade.sh | sudo bash -s kubernetes-version=${KUBERNETES_VERSION}${noProxyAddrs}${NC}\n\n"
+        printf "\t${GREEN} ${prefix}upgrade.sh | sudo bash -s kubernetes-version=${targetK8sVersion}${noProxyAddrs}${NC}\n\n"
     fi
 
     rm -rf $HOME/.kube
 
-    spinner_until -1 kubernetes_node_has_version "$nodeName" "$KUBERNETES_VERSION"
-    logSuccess "Kubernetes $KUBERNETES_VERSION detected on $nodeName"
+    spinner_until -1 kubernetes_node_has_version "$nodeName" "$targetK8sVersion"
+    logSuccess "Kubernetes $targetK8sVersion detected on $nodeName"
 
     kubectl uncordon "$nodeName"
+    spinner_until 120 kubernetes_nodes_ready
 }
 
 # In k8s 1.18 the etcd image tag changed from 3.4.3 to 3.4.3-0 but kubeadm does not rewrite the
@@ -252,7 +269,8 @@ function upgrade_kubernetes_remote_node_minor() {
 # forces use of the updated tag so that the restart of etcd happens during upgrade when the node is
 # already drained
 function upgrade_etcd_image_18() {
-    if [ "$KUBERNETES_TARGET_VERSION_MINOR" != "18" ]; then
+    semverParse "$1"
+    if [ "$minor" != "18" ]; then
         return 0
     fi
     local etcd_tag=$(kubeadm config images list 2>/dev/null | grep etcd | awk -F':' '{ print $NF }')
