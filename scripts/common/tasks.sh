@@ -8,6 +8,9 @@ RED='\033[0;31m'
 NC='\033[0m' # No Color
 
 function tasks() {
+    DOCKER_VERSION="$(get_docker_version)"
+    CONTAINERD_VERSION="$(get_containerd_version)"
+
     case "$1" in
         load-images|load_images)
             load_all_images
@@ -37,7 +40,11 @@ function tasks() {
 }
 
 function load_all_images() {
-    find addons/ packages/ -type f -wholename '*/images/*.tar.gz' | xargs -I {} bash -c "docker load < {}"
+    if [ -n "$DOCKER_VERSION" ]; then
+        find addons/ packages/ -type f -wholename '*/images/*.tar.gz' | xargs -I {} bash -c "docker load < {}"
+    else
+        find addons/ packages/ -type f -wholename '*/images/*.tar.gz' | xargs -I {} bash -c "cat {} | gunzip | ctr -n=k8s.io images import -"
+    fi
 }
 
 function generate_admin_user() {
@@ -96,11 +103,14 @@ function reset() {
         fi
     fi
 
-    # get current weave tag before removing k8s
-    export WEAVE_TAG=$(KUBECONFIG=/etc/kubernetes/admin.conf kubectl get daemonset -n kube-system weave-net -o jsonpath="{..spec.containers[0].image}" | sed 's/^.*://')
-    
+    WEAVE_TAG="$(get_weave_version)"
+
     if commandExists "kubeadm"; then
-        kubeadm reset --force
+        if [ -n "$CONTAINERD_VERSION" ]; then
+            kubeadm reset --force --cri-socket /var/run/containerd/containerd.sock
+        else
+            kubeadm reset --force
+        fi
         printf "kubeadm reset completed\n"
     fi
 
@@ -148,18 +158,7 @@ function weave_reset() {
     DATAPATH=datapath
     CONTAINER_IFNAME=ethwe
 
-    if [ -z "$WEAVE_TAG" ]; then
-        WEAVE_TAG=$(docker image ls | grep weaveworks/weave-npc | awk '{ print $2 }' | head -1)
-        if [ -z "$WEAVE_TAG" ]; then
-            # if we don't know the exact weave tag, use a sane default
-            WEAVE_TAG="2.7.0"
-            printf "using default weave tag ${WEAVE_TAG}\n"
-        fi
-    fi
-
     DOCKER_BRIDGE=docker0
-
-    DOCKER_BRIDGE_IP=$(docker run --rm --pid host --net host --privileged -v /var/run/docker.sock:/var/run/docker.sock --entrypoint=/usr/bin/weaveutil weaveworks/weaveexec:$WEAVE_TAG bridge-ip $DOCKER_BRIDGE)
 
     # https://github.com/weaveworks/weave/blob/05ab1139db615c61b99074c63184076ba72e2416/weave#L460
     for NETDEV in $BRIDGE $DATAPATH ; do
@@ -167,7 +166,14 @@ function weave_reset() {
             if [ -d /sys/class/net/$NETDEV/bridge ] ; then
                 ip link del $NETDEV
             else
-                docker run --rm --pid host --net host --privileged -v /var/run/docker.sock:/var/run/docker.sock --entrypoint=/usr/bin/weaveutil weaveworks/weaveexec:$WEAVE_TAG delete-datapath $NETDEV
+                if [ -n "$DOCKER_VERSION" ]; then
+                    docker run --rm --pid host --net host --privileged --entrypoint=/usr/bin/weaveutil weaveworks/weaveexec:$WEAVE_TAG delete-datapath $NETDEV
+                else
+                    # --pid host
+                    local guid=$(< /dev/urandom tr -dc A-Za-z0-9 | head -c16)
+                    ctr -n=k8s.io image pull docker.io/weaveworks/weaveexec:$WEAVE_TAG
+                    ctr -n=k8s.io run --rm --net-host --privileged docker.io/weaveworks/weaveexec:$WEAVE_TAG $guid /usr/bin/weaveutil delete-datapath $NETDEV
+                fi
             fi
         fi
     done
@@ -184,9 +190,13 @@ function weave_reset() {
     run_iptables -t filter -D INPUT -i $DOCKER_BRIDGE -p udp --dport 53  -j ACCEPT  >/dev/null 2>&1 || true
     run_iptables -t filter -D INPUT -i $DOCKER_BRIDGE -p tcp --dport 53  -j ACCEPT  >/dev/null 2>&1 || true
 
-    run_iptables -t filter -D INPUT -i $DOCKER_BRIDGE -p tcp --dst $DOCKER_BRIDGE_IP --dport $PORT          -j DROP >/dev/null 2>&1 || true
-    run_iptables -t filter -D INPUT -i $DOCKER_BRIDGE -p udp --dst $DOCKER_BRIDGE_IP --dport $PORT          -j DROP >/dev/null 2>&1 || true
-    run_iptables -t filter -D INPUT -i $DOCKER_BRIDGE -p udp --dst $DOCKER_BRIDGE_IP --dport $(($PORT + 1)) -j DROP >/dev/null 2>&1 || true
+    if [ -n "$DOCKER_VERSION" ]; then
+        DOCKER_BRIDGE_IP=$(docker run --rm --pid host --net host --privileged -v /var/run/docker.sock:/var/run/docker.sock --entrypoint=/usr/bin/weaveutil weaveworks/weaveexec:$WEAVE_TAG bridge-ip $DOCKER_BRIDGE)
+
+        run_iptables -t filter -D INPUT -i $DOCKER_BRIDGE -p tcp --dst $DOCKER_BRIDGE_IP --dport $PORT          -j DROP >/dev/null 2>&1 || true
+        run_iptables -t filter -D INPUT -i $DOCKER_BRIDGE -p udp --dst $DOCKER_BRIDGE_IP --dport $PORT          -j DROP >/dev/null 2>&1 || true
+        run_iptables -t filter -D INPUT -i $DOCKER_BRIDGE -p udp --dst $DOCKER_BRIDGE_IP --dport $(($PORT + 1)) -j DROP >/dev/null 2>&1 || true
+    fi
 
     run_iptables -t filter -D FORWARD -i $BRIDGE ! -o $BRIDGE -j ACCEPT 2>/dev/null || true
     run_iptables -t filter -D FORWARD -o $BRIDGE -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT 2>/dev/null || true
@@ -212,15 +222,21 @@ function weave_reset() {
 }
 
 function kotsadm_accept_tls_uploads() {
+    export KUBECONFIG=/etc/kubernetes/admin.conf
+
     kubectl patch secret kotsadm-tls -p '{"stringData":{"acceptAnonymousUploads":"1"}}'
 }
 
 function print_registry_login() {
+    export KUBECONFIG=/etc/kubernetes/admin.conf
+
     local passwd=$(kubectl get secret registry-creds -o=jsonpath='{ .data.\.dockerconfigjson }' | base64 --decode | grep -oE '"password":"\w+"' | awk -F\" '{ print $4 }')
     local clusterIP=$(kubectl -n kurl get service registry -o=jsonpath='{ .spec.clusterIP }')
 
-    printf "${BLUE}Local:${NC}\n"
-    printf "${GREEN}docker login --username=kurl --password=$passwd $clusterIP ${NC}\n"
+    if [ -n "$DOCKER_VERSION" ]; then
+        printf "${BLUE}Local:${NC}\n"
+        printf "${GREEN}docker login --username=kurl --password=$passwd $clusterIP ${NC}\n"
+    fi
     printf "${BLUE}Secret:${NC}\n"
     printf "${GREEN}kubectl create secret docker-registry kurl-registry --docker-username=kurl --docker-password=$passwd --docker-server=$clusterIP ${NC}\n"
 
@@ -230,12 +246,14 @@ function print_registry_login() {
         local nodePort=$(kubectl -n kurl get service registry -ojsonpath='{ .spec.ports[0].nodePort }')
 
         printf "\n"
-        printf "${BLUE}Remote:${NC}\n"
-        printf "${GREEN}mkdir -p /etc/docker/certs.d/$hostIP:$nodePort\n"
-        printf "cat > /etc/docker/certs.d/$hostIP:$nodePort/ca.crt <<EOF\n"
-        cat /etc/kubernetes/pki/ca.crt
-        printf "EOF\n"
-        printf "docker login --username=kurl --password=$passwd $hostIP:$nodePort ${NC}\n"
+        if [ -n "$DOCKER_VERSION" ]; then
+            printf "${BLUE}Remote:${NC}\n"
+            printf "${GREEN}mkdir -p /etc/docker/certs.d/$hostIP:$nodePort\n"
+            printf "cat > /etc/docker/certs.d/$hostIP:$nodePort/ca.crt <<EOF\n"
+            cat /etc/kubernetes/pki/ca.crt
+            printf "EOF\n"
+            printf "docker login --username=kurl --password=$passwd $hostIP:$nodePort ${NC}\n"
+        fi
         printf "${BLUE}Secret:${NC}\n"
         printf "${GREEN}kubectl create secret docker-registry kurl-registry --docker-username=kurl --docker-password=$passwd --docker-server=$hostIP:$nodePort ${NC}\n"
     fi
@@ -365,6 +383,36 @@ function join_token() {
             printf "\n"
         fi
     fi
+}
+
+function get_docker_version() {
+    if ! commandExists "docker" ; then
+        return
+    fi
+    docker -v 2>/dev/null | awk '{gsub(/,/, "", $3); print $3}'
+}
+
+function get_containerd_version() {
+    if ! commandExists "ctr" ; then
+        return
+    fi
+    ctr -v 2>/dev/null | awk '{gsub(/,/, "", $3); print $3}'
+}
+
+function get_weave_version() {
+    local weave_version=$(KUBECONFIG=/etc/kubernetes/admin.conf kubectl get daemonset -n kube-system weave-net -o jsonpath="{..spec.containers[0].image}" | sed 's/^.*://')
+    if [ -z "$weave_version" ]; then
+        if [ -n "$DOCKER_VERSION" ]; then
+            weave_version=$(docker image ls | grep weaveworks/weave-npc | awk '{ print $2 }' | head -1)
+        else
+            weave_version=$(crictl images list | grep weaveworks/weave-npc | awk '{ print $2 }' | head -1)
+        fi
+        if [ -z "$weave_version" ]; then
+            # if we don't know the exact weave tag, use a sane default
+            weave_version="2.7.0"
+        fi
+    fi
+    echo $weave_version
 }
 
 tasks "$@"
