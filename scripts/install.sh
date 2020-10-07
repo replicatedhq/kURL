@@ -29,13 +29,10 @@ function init() {
 
     API_SERVICE_ADDRESS="$PRIVATE_ADDRESS:6443"
     if [ "$HA_CLUSTER" = "1" ]; then
-        # TODO not implemented
-        if [ "$LOAD_BALANCER_ADDRESS_CHANGED" = "1" ]; then
-            handleLoadBalancerAddressChangedPreInit
-        fi
-
         API_SERVICE_ADDRESS="$LOAD_BALANCER_ADDRESS:$LOAD_BALANCER_PORT"
     fi
+
+    OLD_LOAD_BALANCER_ADDRESS=$(kubernetes_load_balancer_address)
 
     kustomize_kubeadm_init=./kustomize/kubeadm/init
     CERT_KEY=
@@ -133,9 +130,14 @@ EOF
     DID_INIT_KUBERNETES=1
     logSuccess "Kubernetes Master Initialized"
 
-    # TODO not implemented
-    if [ "$LOAD_BALANCER_ADDRESS_CHANGED" = "1" ]; then
-        handleLoadBalancerAddressChangedPostInit
+    local currentLoadBalancerAddress=$(kubernetes_load_balancer_address)
+    if kubernetesHasRemotes && [ "$currentLoadBalancerAddress" != "$oldLoadBalancerAddress" ]; then
+        printf "${YELLOW}The load balancer address has changed. Run the following on all remote nodes to use the new address{$NC}"
+        printf "\n"
+        printf "${GREEN}cat tasks | sudo bash -s set-kubeconfig-server $currentLoadBalancerAddress${NC}"
+        printf "\n"
+        printf "Continue? "
+        confirmY " "
     fi
 
     labelNodes
