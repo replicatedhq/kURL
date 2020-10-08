@@ -29,7 +29,6 @@ maybe_upgrade() {
     local kubeletMinor="$minor"
     local kubeletPatch="$patch"
     local minorVersionDifference=$(($KUBERNETES_TARGET_VERSION_MINOR - $kubeletMinor))
-    local patchVersionDifference=$(($KUBERNETES_TARGET_VERSION_PATCH - $kubeletPatch))
 
     if [ -n "$HOSTNAME_CHECK" ]; then
         if [ "$HOSTNAME_CHECK" != "$(hostname)" ]; then
@@ -37,7 +36,7 @@ maybe_upgrade() {
         fi
     fi
     if [ "$kubeletVersion" == "$KUBENETES_VERSION" ]; then
-        echo "Current installed kublet version is same as requested upgrade, bailing"
+        echo "Current installed kubelet version is same as requested upgrade, bailing"
         bail
     fi
     if [ "$kubeletMajor" -ne "$KUBERNETES_TARGET_VERSION_MAJOR" ]; then

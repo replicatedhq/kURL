@@ -236,7 +236,7 @@ function kubelet_version() {
 }
 
 function kubernetes_nodes_ready() {
-    if try_1m kubectl get nodes --no-headers | awk '{ print $1 }' | grep -q "NotReady"; then
+    if try_1m kubectl get nodes --no-headers | awk '{ print $2 }' | grep -q "NotReady"; then
         return 1
     fi
     return 0
@@ -520,4 +520,28 @@ function kubernetes_node_has_image() {
     done < <(kubernetes_node_images "$nodeName")
 
     return 1
+}
+
+KUBERNETES_REMOTE_PRIMARIES=()
+KUBERNETES_REMOTE_PRIMARY_VERSIONS=()
+function kubernetes_get_remote_primaries() {
+    while read -r primary; do
+        local name=$(echo $primary | awk '{ print $1 }')
+        local version="$(try_1m kubernetes_node_kubelet_version $name)"
+
+        KUBERNETES_REMOTE_PRIMARIES+=( $name )
+        KUBERNETES_REMOTE_PRIMARY_VERSIONS+=( $version )
+    done < <(kubernetes_remote_masters)
+}
+
+KUBERNETES_SECONDARIES=()
+KUBERNETES_SECONDARY_VERSIONS=()
+function kubernetes_get_secondaries() {
+    while read -r secondary; do
+        local name=$(echo $secondary | awk '{ print $1 }')
+        local version="$(try_1m kubernetes_node_kubelet_version $name)"
+
+        KUBERNETES_SECONDARIES+=( $name )
+        KUBERNETES_SECONDARY_VERSIONS+=( $version )
+    done < <(kubernetes_workers)
 }

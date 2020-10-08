@@ -64,5 +64,7 @@ EOL
 }
 
 function installer_label_velero_exclude_from_backup() {
-    kubectl label --overwrite=true installer/"$INSTALLER_ID" velero.io/exclude-from-backup=true
+    if [ -n "$INSTALLER_ID" ]; then
+        kubectl label --overwrite=true installer/"$INSTALLER_ID" velero.io/exclude-from-backup=true
+    fi
 }

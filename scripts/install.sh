@@ -295,7 +295,7 @@ function main() {
     apply_bash_flag_overrides "$@"
     parse_yaml_into_bash_variables
     parse_kubernetes_target_version
-    discover
+    discover full-cluster
     preflights
     prompts
     configure_proxy

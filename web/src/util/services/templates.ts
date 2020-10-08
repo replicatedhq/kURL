@@ -71,6 +71,7 @@ interface Manifest {
   REPLICATED_APP_URL: string;
   KURL_UTIL_IMAGE: string;
   KURL_BIN_UTILS_FILE: string;
+  STEP_VERSIONS: string;
   INSTALLER_YAML: string;
 }
 
@@ -82,6 +83,7 @@ function manifestFromInstaller(i: Installer, kurlURL: string, replicatedAppURL: 
     REPLICATED_APP_URL: replicatedAppURL,
     KURL_UTIL_IMAGE: kurlUtilImage,
     KURL_BIN_UTILS_FILE: kurlBinUtils,
+    STEP_VERSIONS: `(${Installer.latestMinors().join(" ")})`,
     INSTALLER_YAML: i.toYAML(),
   };
 }
