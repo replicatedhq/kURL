@@ -70,6 +70,7 @@ update testinstance
 set dequeued_at = now(), started_at = null where id in (
 select id from testinstance
 where finished_at is null
+AND running_at is null
 AND dequeued_at <  now() - INTERVAL '3 hours'
 AND dequeued_at >  now() - INTERVAL '24 hours'
 limit 1) returning id, dequeued_at, testrun_ref, kurl_yaml, kurl_url, os_name, os_version, os_image
@@ -96,6 +97,18 @@ func Start(id string) error {
 	db := persistence.MustGetPGSession()
 
 	query := `update testinstance set started_at = now() where id = $1`
+
+	if _, err := db.Exec(query, id); err != nil {
+		return errors.Wrap(err, "failed to update")
+	}
+
+	return nil
+}
+
+func Running(id string) error {
+	db := persistence.MustGetPGSession()
+
+	query := `update testinstance set running_at = now() where id = $1`
 
 	if _, err := db.Exec(query, id); err != nil {
 		return errors.Wrap(err, "failed to update")

@@ -33,7 +33,8 @@ func RunCmd() *cobra.Command {
 
 			r.HandleFunc("/v1/ref/{refId}/start", handlers.StartRef).Methods("POST")
 
-			r.HandleFunc("/v1/instance/{instanceId}/start", handlers.StartInstance).Methods("POST")
+			r.HandleFunc("/v1/instance/{instanceId}/start", handlers.StartInstance).Methods("POST")     // called when vm image has been loaded and k8s object created
+			r.HandleFunc("/v1/instance/{instanceId}/running", handlers.RunningInstance).Methods("POST") // called by script running within vm
 			r.HandleFunc("/v1/instance/{instanceId}/finish", handlers.FinishInstance).Methods("POST")
 
 			r.HandleFunc("/v1/instance/{instanceId}/logs", handlers.InstanceLogs).Methods("POST")

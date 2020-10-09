@@ -19,6 +19,8 @@ spec:
           type: timestamp without timezone
         - name: started_at
           type: timestamp without timezone
+        - name: running_at
+          type: timestamp without timezone
         - name: finished_at
           type: timestamp without timezone
         - name: is_success

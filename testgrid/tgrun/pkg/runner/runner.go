@@ -173,6 +173,7 @@ func execute(singleTest types.SingleRun, uploadProxyURL string) error {
 password: kurl
 chpasswd: { expire: False }
 runcmd:
+  - [ bash, -c, 'curl -X POST %s/v1/instance/%s/running']
   - [ bash, -c, 'curl %s | sudo timeout 15m bash; EXIT_STATUS=$?; if [ $EXIT_STATUS -eq 0 ]; then echo "completed kurl run"; else echo "failed kurl run with exit status $EXIT_STATUS"; curl -X POST -d "{\"success\": false}" %s/v1/instance/%s/finish; fi' ]
   - [ bash, -c, 'curl -X POST --data-binary "@/var/log/cloud-init-output.log" %s/v1/instance/%s/logs']
   - [ bash, -c, '/opt/replicated/krew/bin/kubectl-support_bundle --kubeconfig /etc/kubernetes/admin.conf https://kots.io' ]
@@ -187,6 +188,7 @@ power_state:
   timeout: 1
   condition: True
 `,
+								singleTest.TestGridAPIEndpoint, singleTest.ID,
 								singleTest.KurlURL, singleTest.TestGridAPIEndpoint, singleTest.ID,
 								singleTest.TestGridAPIEndpoint, singleTest.ID,
 								singleTest.TestGridAPIEndpoint, singleTest.ID,
