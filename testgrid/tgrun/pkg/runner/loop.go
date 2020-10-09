@@ -98,7 +98,7 @@ func canScheduleNewVM() (bool, error) {
 
 	pods, err := clientset.CoreV1().Pods("default").List(context.Background(), metav1.ListOptions{})
 	if err != nil {
-		return false, errors.Wrap(err, "failed to get upload proxy service")
+		return false, errors.Wrap(err, "failed to get pods in the default namespace")
 	}
 
 	// if there are pending pods, hold off until there are no longer pending pods
