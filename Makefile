@@ -138,6 +138,7 @@ dist/kubernetes-%.tar.gz:
 	${MAKE} build/packages/kubernetes/$*/ubuntu-20.04
 	${MAKE} build/packages/kubernetes/$*/rhel-7
 	${MAKE} build/packages/kubernetes/$*/rhel-8
+	cp packages/kubernetes/$*/Manifest build/packages/kubernetes/$*/
 	mkdir -p dist
 	tar cf - -C build packages/kubernetes/$* | gzip > dist/kubernetes-$*.tar.gz
 
