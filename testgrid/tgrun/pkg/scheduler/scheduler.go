@@ -74,8 +74,9 @@ func Run(schedulerOptions types.SchedulerOptions) error {
 
 			plannedInstances = append(plannedInstances, plannedInstance)
 		}
-
 	}
+
+	fmt.Printf("Testing %d configs across %d os images\n", len(instances.Instances), len(operatingSystems))
 
 	if err := reportStarted(schedulerOptions, plannedInstances); err != nil {
 		return errors.Wrap(err, "failed to report ref started")

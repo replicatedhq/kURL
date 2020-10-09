@@ -6,6 +6,12 @@ import (
 
 var operatingSystems = []types.OperatingSystemImage{
 	{
+		VMImageURI: "https://cloud-images.ubuntu.com/focal/current/focal-server-cloudimg-amd64.img",
+		Name:       "Ubuntu",
+		Version:    "20.04",
+		PVCPrefix:  "ubuntu-20-",
+	},
+	{
 		VMImageURI: "https://cloud-images.ubuntu.com/bionic/current/bionic-server-cloudimg-amd64.img",
 		Name:       "Ubuntu",
 		Version:    "18.04",
