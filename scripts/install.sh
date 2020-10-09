@@ -111,7 +111,12 @@ EOF
     rm -f /etc/kubernetes/*.conf
 
     # Regenerate api server cert in case load balancer address changed
-    rm -f /etc/kubernetes/pki/apiserver.crt /etc/kubernetes/pki/apiserver.key
+    if [ -f /etc/kubernetes/pki/apiserver.crt ]; then
+        mv -f /etc/kubernetes/pki/apiserver.crt /tmp/
+    fi
+    if [ -f /etc/kubernetes/pki/apiserver.key ]; then
+        mv -f /etc/kubernetes/pki/apiserver.key /tmp/
+    fi
 
     set -o pipefail
     kubeadm init \
