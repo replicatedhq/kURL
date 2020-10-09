@@ -132,9 +132,18 @@ EOF
 
     local currentLoadBalancerAddress=$(kubernetes_load_balancer_address)
     if kubernetesHasRemotes && [ "$currentLoadBalancerAddress" != "$oldLoadBalancerAddress" ]; then
+        local proxyFlag=""
+        if [ -n "$PROXY_ADDRESS" ]; then
+            proxyFlag=" -x $PROXY_ADDRESS"
+        fi
+        local prefix="curl -sSL${proxyFlag} $KURL_URL/$INSTALLER_ID/"
+        if [ -z "$KURL_URL" ]; then
+            prefix="cat "
+        fi
+
         printf "${YELLOW}The load balancer address has changed. Run the following on all remote nodes to use the new address{$NC}"
         printf "\n"
-        printf "${GREEN}cat tasks | sudo bash -s set-kubeconfig-server $currentLoadBalancerAddress${NC}"
+        printf "${GREEN}${prefix}tasks.sh | sudo bash -s set-kubeconfig-server $currentLoadBalancerAddress${NC}"
         printf "\n"
         printf "Continue? "
         confirmY " "

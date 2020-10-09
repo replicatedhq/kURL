@@ -387,7 +387,6 @@ function get_weave_version() {
     echo $weave_version
 }
 
-# usage: cat tasks.sh | sudo bash -s set-kubeconfig-server https://10.168.15.213:6443
 function set_kubeconfig_server() {
     local server="$1"
     if [ -z "$server" ]; then
