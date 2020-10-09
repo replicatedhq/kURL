@@ -13,6 +13,7 @@ import (
 	"github.com/pkg/errors"
 	tghandlers "github.com/replicatedhq/kurl/testgrid/tgapi/pkg/handlers"
 	"github.com/replicatedhq/kurl/testgrid/tgrun/pkg/runner/types"
+	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
@@ -90,11 +91,22 @@ func MainRunLoop(runnerOptions types.RunnerOptions) error {
 // the current cluster can handle scheduling another
 // test instance at this time
 func canScheduleNewVM() (bool, error) {
-	if lastScheduledInstance.Add(time.Minute).After(time.Now()) {
-		return false, nil
+	clientset, err := GetClientset()
+	if err != nil {
+		return false, errors.Wrap(err, "failed to get clientset")
 	}
 
-	// TODO check load and resource availability
+	pods, err := clientset.CoreV1().Pods("default").List(context.Background(), metav1.ListOptions{})
+	if err != nil {
+		return false, errors.Wrap(err, "failed to get pods in the default namespace")
+	}
+
+	// if there are pending pods, hold off until there are no longer pending pods
+	for _, pod := range pods.Items {
+		if pod.Status.Phase == v1.PodPending {
+			return false, nil
+		}
+	}
 
 	return true, nil
 }
