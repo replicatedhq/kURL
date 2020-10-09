@@ -21,8 +21,11 @@ type DequeueInstanceResponse struct {
 func DequeueInstance(w http.ResponseWriter, r *http.Request) {
 	testInstance, err := testinstance.GetNextEnqueued()
 	if err != nil {
-		JSON(w, 200, []DequeueInstanceResponse{})
-		return
+		testInstance, err = testinstance.GetOldEnqueued()
+		if err != nil {
+			JSON(w, 200, []DequeueInstanceResponse{})
+			return
+		}
 	}
 
 	dequeueInstanceResponse := DequeueInstanceResponse{
