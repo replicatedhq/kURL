@@ -62,6 +62,35 @@ limit 1) returning id, dequeued_at, testrun_ref, kurl_yaml, kurl_url, os_name, o
 	return &testInstance, nil
 }
 
+func GetOldEnqueued() (*types.TestInstance, error) {
+	db := persistence.MustGetPGSession()
+
+	query := `with updated as (
+update testinstance
+set dequeued_at = now(), started_at = null where id in (
+select id from testinstance
+where finished_at is null
+AND dequeued_at <  now() - INTERVAL '3 hours'
+limit 1) returning id, dequeued_at, testrun_ref, kurl_yaml, kurl_url, os_name, os_version, os_image
+) select id, testrun_ref, kurl_yaml, kurl_url, os_name, os_version, os_image from updated`
+
+	row := db.QueryRow(query)
+
+	testInstance := types.TestInstance{}
+	if err := row.Scan(&testInstance.ID,
+		&testInstance.RefID,
+		&testInstance.KurlYAML,
+		&testInstance.KurlURL,
+		&testInstance.OSName,
+		&testInstance.OSVersion,
+		&testInstance.OSImage,
+	); err != nil {
+		return nil, errors.Wrap(err, "failed to query test instance")
+	}
+
+	return &testInstance, nil
+}
+
 func Start(id string) error {
 	db := persistence.MustGetPGSession()
 
