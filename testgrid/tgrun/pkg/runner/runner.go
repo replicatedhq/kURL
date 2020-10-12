@@ -27,6 +27,10 @@ func Run(singleTest types.SingleRun, uploadProxyURL, tempDir string) error {
 	err := execute(singleTest, uploadProxyURL, tempDir)
 
 	if err != nil {
+		fmt.Println("execute failed")
+		fmt.Println("  ID:", singleTest.ID)
+		fmt.Println("  REF:", singleTest.KurlRef)
+		fmt.Println("  ERROR:", err)
 		if reportError := reportFailed(singleTest, err); reportError != nil {
 			return errors.Wrap(err, "failed to report test failed")
 		}
@@ -119,8 +123,11 @@ func execute(singleTest types.SingleRun, uploadProxyURL, tempDir string) error {
 	output, err := cmd.Output()
 	if err != nil {
 		fmt.Printf("image-upload output: %s\n", output)
-		return errors.Wrap(err, "command failed")
+		return errors.Wrap(err, "kubectl apply pvc failed")
 	}
+
+	fmt.Printf("   [pvc created]\n")
+	fmt.Printf("%s\n", output)
 
 	vmi := kubevirtv1.VirtualMachineInstance{
 		TypeMeta: metav1.TypeMeta{
@@ -129,6 +136,9 @@ func execute(singleTest types.SingleRun, uploadProxyURL, tempDir string) error {
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name: singleTest.ID,
+			Labels: map[string]string{
+				"kubevirt.io/domain": singleTest.ID,
+			},
 		},
 		Spec: kubevirtv1.VirtualMachineInstanceSpec{
 			Domain: kubevirtv1.DomainSpec{
@@ -233,9 +243,10 @@ power_state:
 	output, err = cmd.Output()
 	if err != nil {
 		fmt.Printf("%s\n", output)
-		return errors.Wrap(err, "command failed")
+		return errors.Wrap(err, "kubectl apply vmi failed")
 	}
 
+	fmt.Printf("   [vmi created]\n")
 	fmt.Printf("%s\n", output)
 
 	return nil
