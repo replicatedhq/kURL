@@ -142,7 +142,7 @@ EOF
             proxyFlag=" -x $PROXY_ADDRESS"
         fi
         local prefix="curl -sSL${proxyFlag} $KURL_URL/$INSTALLER_ID/"
-        if [ -z "$KURL_URL" ]; then
+        if [ "$AIRGAP" = "1" ] || [ -z "$KURL_URL" ]; then
             prefix="cat "
         fi
 
