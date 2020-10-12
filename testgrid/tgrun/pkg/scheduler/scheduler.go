@@ -74,7 +74,6 @@ func Run(schedulerOptions types.SchedulerOptions) error {
 
 			plannedInstances = append(plannedInstances, plannedInstance)
 		}
-
 	}
 
 	if err := reportStarted(schedulerOptions, plannedInstances); err != nil {
