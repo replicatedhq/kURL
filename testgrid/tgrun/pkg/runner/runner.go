@@ -243,10 +243,8 @@ chpasswd: { expire: False }
 ssh_pwauth: True
 
 runcmd:
-  - [ bash, -c, 'ls -ld /bin' ]
   - [ bash, -c, 'curl -X POST %s/v1/instance/%s/running' ]
   - [ bash, -c, 'curl %s | sudo timeout 15m bash; EXIT_STATUS=$?; if [ $EXIT_STATUS -eq 0 ]; then echo ""; echo "completed kurl run"; else echo ""; echo "failed kurl run with exit status $EXIT_STATUS"; curl -s -X POST -d "{\"success\": false}" %s/v1/instance/%s/finish; fi' ]
-  - [ bash, -c, 'ls -ld /bin' ]
   - [ bash, -c, 'if [ -f /var/log/cloud-init-output.log ]; then curl -X POST --data-binary "@/var/log/cloud-init-output.log" %s/v1/instance/%s/logs; fi' ]
   - [ bash, -c, 'if [ -f /var/log/cloud-init.log ]; then curl -X POST --data-binary "@/var/log/cloud-init.log" %s/v1/instance/%s/logs; fi' ]
   - [ bash, -c, '/opt/replicated/krew/bin/kubectl-support_bundle --kubeconfig /etc/kubernetes/admin.conf https://kots.io' ]
@@ -271,6 +269,7 @@ runcmd:
 	if err := ioutil.WriteFile(file, []byte(script), 0755); err != nil {
 		return errors.Wrap(err, "failed to write secret to file")
 	}
+	defer os.Remove(file)
 
 	cmd := exec.Command("kubectl", "create", "secret", "generic",
 		fmt.Sprintf("cloud-init-%s", singleTest.ID),
