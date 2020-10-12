@@ -69,7 +69,7 @@ function generate_admin_user() {
 
     kubectl --kubeconfig="${username}.conf" config set-cluster kurl --server="$address" --certificate-authority=/etc/kubernetes/pki/ca.crt --embed-certs=true
     kubectl --kubeconfig="${username}.conf" config set-context kurl --cluster=kurl --user="${username}"
-    kubectl --kubeconfig=a"${username}.conf" config use-context kurl
+    kubectl --kubeconfig="${username}.conf" config use-context kurl
 
     chown "${username}" "${username}.conf"
 
