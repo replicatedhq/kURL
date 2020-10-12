@@ -24,6 +24,12 @@ var lastScheduledInstance = time.Now().Add(-time.Minute)
 func MainRunLoop(runnerOptions types.RunnerOptions) error {
 	fmt.Println("beginning main run loop")
 
+	tempDir, err := ioutil.TempDir("", "")
+	if err != nil {
+		return errors.Wrap(err, "failed to create temp dir")
+	}
+	defer os.RemoveAll(tempDir)
+
 	for {
 		canSchedule, err := canScheduleNewVM()
 		if err != nil {
@@ -80,7 +86,7 @@ func MainRunLoop(runnerOptions types.RunnerOptions) error {
 				TestGridAPIEndpoint: runnerOptions.APIEndpoint,
 			}
 
-			if err := Run(singleTest, uploadProxyURL); err != nil {
+			if err := Run(singleTest, uploadProxyURL, tempDir); err != nil {
 				return errors.Wrap(err, "failed to run test")
 			}
 		}

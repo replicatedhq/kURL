@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 
 	"github.com/pkg/errors"
 	tghandlers "github.com/replicatedhq/kurl/testgrid/tgapi/pkg/handlers"
@@ -22,8 +23,8 @@ import (
 
 var zero = int64(0)
 
-func Run(singleTest types.SingleRun, uploadProxyURL string) error {
-	err := execute(singleTest, uploadProxyURL)
+func Run(singleTest types.SingleRun, uploadProxyURL, tempDir string) error {
+	err := execute(singleTest, uploadProxyURL, tempDir)
 
 	if err != nil {
 		if reportError := reportFailed(singleTest, err); reportError != nil {
@@ -67,36 +68,42 @@ func reportFailed(singleTest types.SingleRun, testErr error) error {
 	return nil
 }
 
-func execute(singleTest types.SingleRun, uploadProxyURL string) error {
-	// download the img (this should be cached)
-	tempDir, err := ioutil.TempDir("", "")
+// pathify OS image by removing non-alphanumeric characters
+func urlToPath(url string) string {
+	return regexp.MustCompile(`[^a-zA-Z0-9]`).ReplaceAllString(url, "")
+}
+
+func execute(singleTest types.SingleRun, uploadProxyURL, tempDir string) error {
+	osImagePath := urlToPath(singleTest.OperatingSystemImage)
+
+	_, err := os.Stat(filepath.Join(tempDir, osImagePath))
 	if err != nil {
-		return errors.Wrap(err, "failed to create temp dir")
+		fmt.Printf("  [downloading from %s]\n", singleTest.OperatingSystemImage)
+
+		// Download the img
+		resp, err := http.Get(singleTest.OperatingSystemImage)
+		if err != nil {
+			return errors.Wrap(err, "failed to get")
+		}
+		defer resp.Body.Close()
+
+		// Create the file
+		out, err := os.Create(filepath.Join(tempDir, osImagePath))
+		if err != nil {
+			return errors.Wrap(err, "failed to create image file")
+		}
+		defer out.Close()
+
+		// Write the body to file
+		_, err = io.Copy(out, resp.Body)
+		if err != nil {
+			return errors.Wrap(err, "failed to save vm image")
+		}
+
+		fmt.Printf("   [image downloaded]\n")
+	} else {
+		fmt.Printf("  [using existng image on disk at %s for %s]\n", filepath.Join(tempDir, osImagePath), singleTest.OperatingSystemImage)
 	}
-
-	fmt.Printf("  [downloading from %s]\n", singleTest.OperatingSystemImage)
-
-	// Download the img
-	resp, err := http.Get(singleTest.OperatingSystemImage)
-	if err != nil {
-		return errors.Wrap(err, "failed to get")
-	}
-	defer resp.Body.Close()
-
-	// Create the file
-	out, err := os.Create(filepath.Join(tempDir, "vmimage"))
-	if err != nil {
-		return errors.Wrap(err, "failed to create image file")
-	}
-	defer out.Close()
-
-	// Write the body to file
-	_, err = io.Copy(out, resp.Body)
-	if err != nil {
-		return errors.Wrap(err, "failed to save vm image")
-	}
-
-	fmt.Printf("   [image downloaded]\n")
 
 	cmd := exec.Command("kubectl",
 		"virt",
@@ -106,7 +113,7 @@ func execute(singleTest types.SingleRun, uploadProxyURL string) error {
 		"--pvc-name",
 		singleTest.PVCName,
 		"--pvc-size=100Gi",
-		fmt.Sprintf("--image-path=%s", filepath.Join(tempDir, "vmimage")),
+		fmt.Sprintf("--image-path=%s", filepath.Join(tempDir, osImagePath)),
 	)
 
 	output, err := cmd.Output()
