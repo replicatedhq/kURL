@@ -29,13 +29,10 @@ function init() {
 
     API_SERVICE_ADDRESS="$PRIVATE_ADDRESS:6443"
     if [ "$HA_CLUSTER" = "1" ]; then
-        # TODO not implemented
-        if [ "$LOAD_BALANCER_ADDRESS_CHANGED" = "1" ]; then
-            handleLoadBalancerAddressChangedPreInit
-        fi
-
         API_SERVICE_ADDRESS="$LOAD_BALANCER_ADDRESS:$LOAD_BALANCER_PORT"
     fi
+
+    OLD_LOAD_BALANCER_ADDRESS=$(kubernetes_load_balancer_address)
 
     kustomize_kubeadm_init=./kustomize/kubeadm/init
     CERT_KEY=
@@ -103,13 +100,24 @@ EOF
     if [ "$HA_CLUSTER" = "1" ]; then
         UPLOAD_CERTS="--upload-certs"
     fi
+
     # kubeadm init temporarily taints this node which causes rook to move any mons on it and may
     # lead to a loss of quorum
     disable_rook_ceph_operator
+
     # since K8s 1.19.1 kubeconfigs point to local API server even in HA setup. When upgrading from
     # earlier versions and using a load balancer, kubeadm init will bail because the kubeconfigs
     # already exist pointing to the load balancer
     rm -f /etc/kubernetes/*.conf
+
+    # Regenerate api server cert in case load balancer address changed
+    if [ -f /etc/kubernetes/pki/apiserver.crt ]; then
+        mv -f /etc/kubernetes/pki/apiserver.crt /tmp/
+    fi
+    if [ -f /etc/kubernetes/pki/apiserver.key ]; then
+        mv -f /etc/kubernetes/pki/apiserver.key /tmp/
+    fi
+
     set -o pipefail
     kubeadm init \
         --ignore-preflight-errors=all \
@@ -127,9 +135,23 @@ EOF
     DID_INIT_KUBERNETES=1
     logSuccess "Kubernetes Master Initialized"
 
-    # TODO not implemented
-    if [ "$LOAD_BALANCER_ADDRESS_CHANGED" = "1" ]; then
-        handleLoadBalancerAddressChangedPostInit
+    local currentLoadBalancerAddress=$(kubernetes_load_balancer_address)
+    if kubernetes_has_remotes && [ "$currentLoadBalancerAddress" != "$oldLoadBalancerAddress" ]; then
+        local proxyFlag=""
+        if [ -n "$PROXY_ADDRESS" ]; then
+            proxyFlag=" -x $PROXY_ADDRESS"
+        fi
+        local prefix="curl -sSL${proxyFlag} $KURL_URL/$INSTALLER_ID/"
+        if [ -z "$KURL_URL" ]; then
+            prefix="cat "
+        fi
+
+        printf "${YELLOW}\nThe load balancer address has changed. Run the following on all remote nodes to use the new address${NC}\n"
+        printf "\n"
+        printf "${GREEN}    ${prefix}tasks.sh | sudo bash -s set-kubeconfig-server https://${currentLoadBalancerAddress}${NC}\n"
+        printf "\n"
+        printf "Continue? "
+        confirmY " "
     fi
 
     labelNodes
