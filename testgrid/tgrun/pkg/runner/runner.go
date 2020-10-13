@@ -2,6 +2,7 @@ package runner
 
 import (
 	"bytes"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -236,6 +237,69 @@ func execute(singleTest types.SingleRun, uploadProxyURL, tempDir string) error {
 }
 
 func createSecret(singleTest types.SingleRun, tempDir string) error {
+	runcmd := fmt.Sprintf(`# runcmd.sh
+#!/bin/bash
+
+TESTGRID_APIENDPOINT=%s
+TEST_ID=%s
+KURL_URL=%s
+
+setenforce 0 || true
+
+curl -X POST $TESTGRID_APIENDPOINT/v1/instance/$TEST_ID/running
+
+echo "running kurl installer"
+
+curl $KURL_URL > install.sh
+cat install.sh | timeout 15m bash
+KURL_EXIT_STATUS=$?
+
+echo "";
+
+if [ $KURL_EXIT_STATUS -eq 0 ]; then
+    echo "completed kurl run"
+else
+    echo "failed kurl run with exit status $KURL_EXIT_STATUS"
+    curl -s -X POST -d "{\"success\": false}" $TESTGRID_APIENDPOINT/v1/instance/$TEST_ID/finish
+fi
+
+curl -X POST --data-binary "@/var/log/cloud-init-output.log" $TESTGRID_APIENDPOINT/v1/instance/$TEST_ID/logs
+
+echo "collecting support bundle"
+
+/usr/local/bin/kubectl-support_bundle --kubeconfig /etc/kubernetes/admin.conf https://kots.io
+SUPPORT_BUNDLE=$(ls -1 ./ | grep support-bundle-)
+if [ -n "$SUPPORT_BUNDLE" ]; then
+    echo "completed support bundle collection"
+    curl -X POST --data-binary "@./$SUPPORT_BUNDLE" $TESTGRID_APIENDPOINT/v1/instance/$TEST_ID/bundle
+else
+    echo "failed support bundle collection"
+fi
+
+if [ $KURL_EXIT_STATUS -ne 0 ]; then
+    exit 1
+fi
+
+echo "running sonobuoy"
+
+curl -L --output ./sonobuoy.tar.gz https://github.com/vmware-tanzu/sonobuoy/releases/download/v0.18.3/sonobuoy_0.18.3_linux_amd64.tar.gz
+cd /usr/local/bin && tar xzvf ./sonobuoy.tar.gz
+sonobuoy --kubeconfig /etc/kubernetes/admin.conf run --wait --mode quick
+RESULTS=$(sonobuoy retrieve --kubeconfig /etc/kubernetes/admin.conf)
+if [ -n "$RESULTS" ]; then
+    echo "completed sonobuoy run"
+    sonobuoy results $RESULTS > ./sonobuoy-results.txt
+    curl -X POST --data-binary "@./sonobuoy-results.txt" $TESTGRID_APIENDPOINT/v1/instance/$TEST_ID/sonobuoy
+else
+    echo "failed sonobuoy run"
+fi
+
+curl -X POST -d '{"success": true}' $TESTGRID_APIENDPOINT/v1/instance/$TEST_ID/finish
+`,
+		singleTest.TestGridAPIEndpoint, singleTest.ID, singleTest.KurlURL,
+	)
+	runcmdB64 := base64.StdEncoding.EncodeToString([]byte(runcmd))
+
 	script := fmt.Sprintf(`#cloud-config
 
 password: kurl
@@ -244,31 +308,16 @@ chpasswd: { expire: False }
 output: { all: "| tee -a /var/log/cloud-init-output.log" }
 
 runcmd:
-  - [ bash, -c, 'setenforce 0 || true' ]
-  - [ bash, -c, 'curl -X POST %s/v1/instance/%s/running' ]
-  - [ bash, -c, 'mkdir -p /opt/kurl-testgrid' ]
-  - [ bash, -c, 'curl %s > /opt/kurl-testgrid/install.sh' ]
-  - [ bash, -c, 'cd /opt/kurl-testgrid && cat install.sh | sudo timeout 15m bash; EXIT_STATUS=$?; if [ $EXIT_STATUS -eq 0 ]; then echo ""; echo "completed kurl run"; else echo ""; echo "failed kurl run with exit status $EXIT_STATUS"; curl -s -X POST -d "{\"success\": false}" %s/v1/instance/%s/finish; fi' ]
-  - [ bash, -c, 'curl -X POST --data-binary "@/var/log/cloud-init-output.log" %s/v1/instance/%s/logs' ]
-  - [ bash, -c, 'cd /opt/kurl-testgrid && /usr/local/bin/kubectl-support_bundle --kubeconfig /etc/kubernetes/admin.conf https://kots.io' ]
-  - [ bash, -c, 'ls -1 /opt/kurl-testgrid/ | grep support-bundle- | xargs -I{} curl -X POST --data-binary "@/opt/kurl-testgrid/{}" %s/v1/instance/%s/bundle' ]
-  - [ bash, -c, 'mkdir -p /run/sonobuoy && curl -L --output /run/sonobuoy/sonobuoy.tar.gz https://github.com/vmware-tanzu/sonobuoy/releases/download/v0.18.3/sonobuoy_0.18.3_linux_amd64.tar.gz']
-  - [ bash, -c, 'cd /usr/local/bin && tar xzvf /run/sonobuoy/sonobuoy.tar.gz']
-  - [ bash, -c, 'sonobuoy --kubeconfig /etc/kubernetes/admin.conf run --wait --mode quick']
-  - [ bash, -c, 'results=$(sonobuoy retrieve --kubeconfig /etc/kubernetes/admin.conf) && sonobuoy results $results > /opt/kurl-testgrid/sonobuoy-results.txt && curl -X POST --data-binary "@/opt/kurl-testgrid/sonobuoy-results.txt" %s/v1/instance/%s/sonobuoy' ]
-  - [ bash, -c, 'curl -X POST -d "{\"success\": true}" %s/v1/instance/%s/finish']
+  - [ bash, -c, 'sudo mkdir -p /opt/kurl-testgrid' ]
+  - [ bash, -c, 'echo %s | base64 -d > /opt/kurl-testgrid/runcmd.sh' ]
+  - [ bash, -c, 'cd /opt/kurl-testgrid && sudo bash runcmd.sh' ]
 
 power_state:
   mode: poweroff
   timeout: 1
   condition: True
 `,
-		singleTest.TestGridAPIEndpoint, singleTest.ID,
-		singleTest.KurlURL, singleTest.TestGridAPIEndpoint, singleTest.ID,
-		singleTest.TestGridAPIEndpoint, singleTest.ID,
-		singleTest.TestGridAPIEndpoint, singleTest.ID,
-		singleTest.TestGridAPIEndpoint, singleTest.ID,
-		singleTest.TestGridAPIEndpoint, singleTest.ID,
+		runcmdB64,
 	)
 
 	file := filepath.Join(tempDir, "startup-script.sh")
