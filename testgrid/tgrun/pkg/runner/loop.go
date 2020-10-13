@@ -1,7 +1,6 @@
 package runner
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -16,19 +15,18 @@ import (
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
+	restclient "k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
+	kubevirtv1 "kubevirt.io/client-go/api/v1"
+	"kubevirt.io/client-go/kubecli"
 )
 
 var lastScheduledInstance = time.Now().Add(-time.Minute)
 
+const Namespace = "default"
+
 func MainRunLoop(runnerOptions types.RunnerOptions) error {
 	fmt.Println("beginning main run loop")
-
-	fmt.Println("running cleanup tasks")
-	err := CleanUp()
-	if err != nil {
-		fmt.Println("PV clean up ERROR: ", err)
-	}
 
 	tempDir, err := ioutil.TempDir("", "")
 	if err != nil {
@@ -37,6 +35,13 @@ func MainRunLoop(runnerOptions types.RunnerOptions) error {
 	defer os.RemoveAll(tempDir)
 
 	for {
+		if err := CleanUpPVs(); err != nil {
+			fmt.Println("PV clean up ERROR: ", err)
+		}
+		if err := CleanUpVMIs(); err != nil {
+			fmt.Println("VMI clean up ERROR: ", err)
+		}
+
 		canSchedule, err := canScheduleNewVM()
 		if err != nil {
 			return errors.Wrap(err, "failed to check if can schedule")
@@ -108,7 +113,7 @@ func canScheduleNewVM() (bool, error) {
 		return false, errors.Wrap(err, "failed to get clientset")
 	}
 
-	pods, err := clientset.CoreV1().Pods("default").List(context.Background(), metav1.ListOptions{})
+	pods, err := clientset.CoreV1().Pods(Namespace).List(metav1.ListOptions{})
 	if err != nil {
 		return false, errors.Wrap(err, "failed to get pods in the default namespace")
 	}
@@ -129,7 +134,7 @@ func getUploadProxyURL() (string, error) {
 		return "", errors.Wrap(err, "failed to get clientset")
 	}
 
-	svc, err := clientset.CoreV1().Services("cdi").Get(context.Background(), "cdi-uploadproxy", metav1.GetOptions{})
+	svc, err := clientset.CoreV1().Services("cdi").Get("cdi-uploadproxy", metav1.GetOptions{})
 	if err != nil {
 		return "", errors.Wrap(err, "failed to get upload proxy service")
 	}
@@ -137,7 +142,7 @@ func getUploadProxyURL() (string, error) {
 	return fmt.Sprintf("https://%s", svc.Spec.ClusterIP), nil
 }
 
-func GetClientset() (*kubernetes.Clientset, error) {
+func GetRestConfig() (*restclient.Config, error) {
 	kubeconfig := filepath.Join(homeDir(), ".kube", "config")
 
 	if os.Getenv("KUBECONFIG") != "" {
@@ -149,6 +154,14 @@ func GetClientset() (*kubernetes.Clientset, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to build config")
 	}
+	return config, nil
+}
+
+func GetClientset() (kubernetes.Interface, error) {
+	config, err := GetRestConfig()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get restconfig")
+	}
 
 	clientset, err := kubernetes.NewForConfig(config)
 	if err != nil {
@@ -158,6 +171,20 @@ func GetClientset() (*kubernetes.Clientset, error) {
 	return clientset, nil
 }
 
+func GetKubevirtClientset() (kubecli.KubevirtClient, error) {
+	config, err := GetRestConfig()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get restconfig")
+	}
+
+	virtClient, err := kubecli.GetKubevirtClientFromRESTConfig(config)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to create kubevirt clientset")
+	}
+
+	return virtClient, nil
+}
+
 func homeDir() string {
 	if h := os.Getenv("HOME"); h != "" {
 		return h
@@ -165,11 +192,9 @@ func homeDir() string {
 	return os.Getenv("USERPROFILE") // windows
 }
 
-// CleanUp deletes finalizers on 'stack' in Terminating pvs
+// CleanUpPVs deletes finalizers on 'stack' in Terminating pvs
 // localPath is cleared as PV completes termination.
-func CleanUp() error {
-	var ctx = context.TODO
-
+func CleanUpPVs() error {
 	clientset, err := GetClientset()
 	if err != nil {
 		return errors.Wrap(err, "failed to get clientset")
@@ -177,7 +202,7 @@ func CleanUp() error {
 
 	// PV finalizer kubernetes.io/pv-protection fails to clean up pv/pvc
 	// Removing the finalizer on stale pvs
-	pvs, err := clientset.CoreV1().PersistentVolumes().List(ctx(), metav1.ListOptions{})
+	pvs, err := clientset.CoreV1().PersistentVolumes().List(metav1.ListOptions{})
 	if err != nil {
 		return errors.Wrap(err, "failed to get pv list")
 	}
@@ -186,9 +211,35 @@ func CleanUp() error {
 		// selecting persistent volumes marked for deletion over 1 hour ago.
 		if pv.ObjectMeta.DeletionTimestamp != nil && time.Since(pv.ObjectMeta.DeletionTimestamp.Time).Hours() > 1 {
 			pv.ObjectMeta.SetFinalizers(nil)
-			p, _ := clientset.CoreV1().PersistentVolumes().Update(ctx(), &pv, metav1.UpdateOptions{})
+			p, _ := clientset.CoreV1().PersistentVolumes().Update(&pv)
 
-			fmt.Printf("Removed finalizers on %s, loalPath: %s\n", p.Name, p.Spec.Local.Path)
+			fmt.Printf("Removed finalizers on %s, localPath: %s\n", p.Name, p.Spec.Local.Path)
+		}
+	}
+
+	return nil
+}
+
+// CleanUpVMIs deletes "Succeeded" VMIs
+func CleanUpVMIs() error {
+	virtClient, err := GetKubevirtClientset()
+	if err != nil {
+		return errors.Wrap(err, "failed to get clientset")
+	}
+
+	vmiList, err := virtClient.VirtualMachineInstance(Namespace).List(&metav1.ListOptions{})
+	if err != nil {
+		return errors.Wrap(err, "failed to list vmis")
+	}
+
+	for _, vmi := range vmiList.Items {
+		if vmi.Status.Phase == kubevirtv1.Succeeded {
+			err := virtClient.VirtualMachineInstance(Namespace).Delete(vmi.Name, &metav1.DeleteOptions{})
+			if err != nil {
+				fmt.Printf("Failed to delete vmi %s: %v\n", vmi.Name, err)
+			} else {
+				fmt.Printf("Delete vmi %s\n", vmi.Name)
+			}
 		}
 	}
 
