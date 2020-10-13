@@ -24,6 +24,12 @@ var lastScheduledInstance = time.Now().Add(-time.Minute)
 func MainRunLoop(runnerOptions types.RunnerOptions) error {
 	fmt.Println("beginning main run loop")
 
+	fmt.Println("running cleanup tasks")
+	err := CleanUp()
+	if err != nil {
+		fmt.Println("PV clean up ERROR: ", err)
+	}
+
 	tempDir, err := ioutil.TempDir("", "")
 	if err != nil {
 		return errors.Wrap(err, "failed to create temp dir")
@@ -157,4 +163,34 @@ func homeDir() string {
 		return h
 	}
 	return os.Getenv("USERPROFILE") // windows
+}
+
+// CleanUp deletes finalizers on 'stack' in Terminating pvs
+// localPath is cleared as PV completes termination.
+func CleanUp() error {
+	var ctx = context.TODO
+
+	clientset, err := GetClientset()
+	if err != nil {
+		return errors.Wrap(err, "failed to get clientset")
+	}
+
+	// PV finalizer kubernetes.io/pv-protection fails to clean up pv/pvc
+	// Removing the finalizer on stale pvs
+	pvs, err := clientset.CoreV1().PersistentVolumes().List(ctx(), metav1.ListOptions{})
+	if err != nil {
+		return errors.Wrap(err, "failed to get pv list")
+	}
+
+	for _, pv := range pvs.Items {
+		// selecting persistent volumes marked for deletion over 1 hour ago.
+		if pv.ObjectMeta.DeletionTimestamp != nil && time.Since(pv.ObjectMeta.DeletionTimestamp.Time).Hours() > 1 {
+			pv.ObjectMeta.SetFinalizers(nil)
+			p, _ := clientset.CoreV1().PersistentVolumes().Update(ctx(), &pv, metav1.UpdateOptions{})
+
+			fmt.Printf("Removed finalizers on %s, loalPath: %s\n", p.Name, p.Spec.Local.Path)
+		}
+	}
+
+	return nil
 }
