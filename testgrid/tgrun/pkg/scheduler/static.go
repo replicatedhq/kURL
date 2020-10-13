@@ -23,4 +23,10 @@ var operatingSystems = []types.OperatingSystemImage{
 		Version:    "7.8",
 		PVCPrefix:  "centos-78-",
 	},
+	{
+		VMImageURI: "https://cdn.amazonlinux.com/os-images/2.0.20200917.0/kvm/amzn2-kvm-2.0.20200917.0-x86_64.xfs.gpt.qcow2",
+		Name:       "Amazon Linux",
+		Version:    "2.0",
+		PVCPrefix:  "amzn-2-",
+	},
 }
