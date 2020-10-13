@@ -117,7 +117,7 @@ func execute(singleTest types.SingleRun, uploadProxyURL, tempDir string) error {
 		"--insecure",
 		"--pvc-name",
 		singleTest.PVCName,
-		"--pvc-size=100Gi",
+		"--pvc-size=60Gi",
 		fmt.Sprintf("--image-path=%s", filepath.Join(tempDir, osImagePath)),
 	)
 
