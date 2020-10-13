@@ -175,20 +175,30 @@ func CleanUp() error {
 		return errors.Wrap(err, "failed to get clientset")
 	}
 
-	// PV finalizer kubernetes.io/pv-protection fails to clean up pv/pvc
-	// Removing the finalizer on stale pvs
 	pvs, err := clientset.CoreV1().PersistentVolumes().List(ctx(), metav1.ListOptions{})
 	if err != nil {
 		return errors.Wrap(err, "failed to get pv list")
 	}
 
 	for _, pv := range pvs.Items {
-		// selecting persistent volumes marked for deletion over 1 hour ago.
+		// selecting persistent volumes marked for deletion over 1 hour ago
+		// Removing the finalizer on stale pvs
+		// PV finalizer kubernetes.io/pv-protection fails to clean up pv/pvc
 		if pv.ObjectMeta.DeletionTimestamp != nil && time.Since(pv.ObjectMeta.DeletionTimestamp.Time).Hours() > 1 {
 			pv.ObjectMeta.SetFinalizers(nil)
 			p, _ := clientset.CoreV1().PersistentVolumes().Update(ctx(), &pv, metav1.UpdateOptions{})
 
 			fmt.Printf("Removed finalizers on %s, loalPath: %s\n", p.Name, p.Spec.Local.Path)
+			continue
+		}
+
+		// Deleteing stale PVs that are older then 3 hours
+		if time.Since(pv.ObjectMeta.CreationTimestamp.Time).Hours() > 3 && pv.ObjectMeta.DeletionTimestamp == nil {
+			err = clientset.CoreV1().PersistentVolumes().Delete(ctx(), pv.Name, metav1.DeleteOptions{})
+			if err != nil {
+				fmt.Printf("Failed deleting PV %s\n", pv.Name)
+			}
+			fmt.Println("Deleting PV ", pv.Name)
 		}
 	}
 
