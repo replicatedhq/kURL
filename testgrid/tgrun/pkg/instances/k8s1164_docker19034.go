@@ -10,7 +10,7 @@ func init() {
 		Instances,
 		types.InstallerSpec{
 			Kubernetes: kurlv1beta1.Kubernetes{
-				Version: "1.18.4",
+				Version: "1.16.4",
 			},
 			Weave: &kurlv1beta1.Weave{
 				Version: "2.6.4",
@@ -22,7 +22,7 @@ func init() {
 				Version: "1.0.1",
 			},
 			Docker: &kurlv1beta1.Docker{
-				Version: "19.03.10",
+				Version: "19.03.4",
 			},
 			Prometheus: &kurlv1beta1.Prometheus{
 				Version: "0.33.0",
@@ -34,7 +34,7 @@ func init() {
 				Version: "1.2.0",
 			},
 			Kotsadm: &kurlv1beta1.Kotsadm{
-				Version: "1.18.1",
+				Version: "1.16.1",
 			},
 		},
 	)

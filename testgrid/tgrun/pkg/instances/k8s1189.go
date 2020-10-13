@@ -22,7 +22,7 @@ func init() {
 				Version: "1.0.1",
 			},
 			Docker: &kurlv1beta1.Docker{
-				Version: "19.03.4",
+				Version: "19.03.10",
 			},
 			Prometheus: &kurlv1beta1.Prometheus{
 				Version: "0.33.0",
