@@ -172,7 +172,7 @@ func CleanUp() error {
 
 	clientset, err := GetClientset()
 	if err != nil {
-		return errors.Wrap(err, "failed to get clientset during cleanup")
+		return errors.Wrap(err, "failed to get clientset")
 	}
 
 	// PV finalizer kubernetes.io/pv-protection fails to clean up pv/pvc
@@ -183,8 +183,8 @@ func CleanUp() error {
 	}
 
 	for _, pv := range pvs.Items {
-		// selecting persistent volumes marked for deletion over 12 hours ago.
-		if pv.ObjectMeta.DeletionTimestamp != nil && time.Since(pv.ObjectMeta.DeletionTimestamp.Time).Hours() > 12 {
+		// selecting persistent volumes marked for deletion over 1 hour ago.
+		if pv.ObjectMeta.DeletionTimestamp != nil && time.Since(pv.ObjectMeta.DeletionTimestamp.Time).Hours() > 1 {
 			pv.ObjectMeta.SetFinalizers(nil)
 			p, _ := clientset.CoreV1().PersistentVolumes().Update(ctx(), &pv, metav1.UpdateOptions{})
 
