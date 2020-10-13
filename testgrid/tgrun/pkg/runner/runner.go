@@ -244,7 +244,7 @@ TESTGRID_APIENDPOINT=%s
 TEST_ID=%s
 KURL_URL=%s
 
-setenforce 0 || true
+setenforce 0 || true # rhel variants
 
 curl -X POST $TESTGRID_APIENDPOINT/v1/instance/$TEST_ID/running
 
@@ -283,12 +283,12 @@ fi
 echo "running sonobuoy"
 
 curl -L --output ./sonobuoy.tar.gz https://github.com/vmware-tanzu/sonobuoy/releases/download/v0.18.3/sonobuoy_0.18.3_linux_amd64.tar.gz
-cd /usr/local/bin && tar xzvf ./sonobuoy.tar.gz
-sonobuoy --kubeconfig /etc/kubernetes/admin.conf run --wait --mode quick
-RESULTS=$(sonobuoy retrieve --kubeconfig /etc/kubernetes/admin.conf)
+tar xzvf ./sonobuoy.tar.gz
+./sonobuoy --kubeconfig /etc/kubernetes/admin.conf run --wait --mode quick
+RESULTS=$(./sonobuoy retrieve --kubeconfig /etc/kubernetes/admin.conf)
 if [ -n "$RESULTS" ]; then
     echo "completed sonobuoy run"
-    sonobuoy results $RESULTS > ./sonobuoy-results.txt
+    ./sonobuoy results $RESULTS > ./sonobuoy-results.txt
     curl -X POST --data-binary "@./sonobuoy-results.txt" $TESTGRID_APIENDPOINT/v1/instance/$TEST_ID/sonobuoy
 else
     echo "failed sonobuoy run"
