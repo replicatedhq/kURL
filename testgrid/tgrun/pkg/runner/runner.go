@@ -240,24 +240,31 @@ func createSecret(singleTest types.SingleRun, tempDir string) error {
 
 password: kurl
 chpasswd: { expire: False }
-ssh_pwauth: True
+
+output: { all: "| tee -a /var/log/cloud-init-output.log" }
 
 runcmd:
+  - [ bash, -c, 'setenforce 0 || true' ]
   - [ bash, -c, 'curl -X POST %s/v1/instance/%s/running' ]
-  - [ bash, -c, 'curl %s | sudo timeout 15m bash; EXIT_STATUS=$?; if [ $EXIT_STATUS -eq 0 ]; then echo ""; echo "completed kurl run"; else echo ""; echo "failed kurl run with exit status $EXIT_STATUS"; curl -s -X POST -d "{\"success\": false}" %s/v1/instance/%s/finish; fi' ]
-  - [ bash, -c, 'if [ -f /var/log/cloud-init-output.log ]; then curl -X POST --data-binary "@/var/log/cloud-init-output.log" %s/v1/instance/%s/logs; fi' ]
-  - [ bash, -c, 'if [ -f /var/log/cloud-init.log ]; then curl -X POST --data-binary "@/var/log/cloud-init.log" %s/v1/instance/%s/logs; fi' ]
-  - [ bash, -c, '/opt/replicated/krew/bin/kubectl-support_bundle --kubeconfig /etc/kubernetes/admin.conf https://kots.io' ]
-  - [ bash, -c, 'curl -X POST --data-binary "@/support-bundle.tar.gz" %s/v1/instance/%s/bundle' ]
+  - [ bash, -c, 'mkdir -p /opt/kurl-testgrid' ]
+  - [ bash, -c, 'curl %s > /opt/kurl-testgrid/install.sh' ]
+  - [ bash, -c, 'cd /opt/kurl-testgrid && cat install.sh | sudo timeout 15m bash; EXIT_STATUS=$?; if [ $EXIT_STATUS -eq 0 ]; then echo ""; echo "completed kurl run"; else echo ""; echo "failed kurl run with exit status $EXIT_STATUS"; curl -s -X POST -d "{\"success\": false}" %s/v1/instance/%s/finish; fi' ]
+  - [ bash, -c, 'curl -X POST --data-binary "@/var/log/cloud-init-output.log" %s/v1/instance/%s/logs' ]
+  - [ bash, -c, 'cd /opt/kurl-testgrid && /usr/local/bin/kubectl-support_bundle --kubeconfig /etc/kubernetes/admin.conf https://kots.io' ]
+  - [ bash, -c, 'ls -1 /opt/kurl-testgrid/ | grep support-bundle- | xargs -I{} curl -X POST --data-binary "@/opt/kurl-testgrid/{}" %s/v1/instance/%s/bundle' ]
   - [ bash, -c, 'mkdir -p /run/sonobuoy && curl -L --output /run/sonobuoy/sonobuoy.tar.gz https://github.com/vmware-tanzu/sonobuoy/releases/download/v0.18.3/sonobuoy_0.18.3_linux_amd64.tar.gz']
   - [ bash, -c, 'cd /usr/local/bin && tar xzvf /run/sonobuoy/sonobuoy.tar.gz']
   - [ bash, -c, 'sonobuoy --kubeconfig /etc/kubernetes/admin.conf run --wait --mode quick']
-  - [ bash, -c, 'results=$(sonobuoy retrieve --kubeconfig /etc/kubernetes/admin.conf) && sonobuoy results $results > /tmp/sonobuoy-results.txt && curl -X POST --data-binary "@/tmp/sonobuoy-results.txt" %s/v1/instance/%s/sonobuoy' ]
+  - [ bash, -c, 'results=$(sonobuoy retrieve --kubeconfig /etc/kubernetes/admin.conf) && sonobuoy results $results > /opt/kurl-testgrid/sonobuoy-results.txt && curl -X POST --data-binary "@/opt/kurl-testgrid/sonobuoy-results.txt" %s/v1/instance/%s/sonobuoy' ]
   - [ bash, -c, 'curl -X POST -d "{\"success\": true}" %s/v1/instance/%s/finish']
+
+power_state:
+  mode: poweroff
+  timeout: 1
+  condition: True
 `,
 		singleTest.TestGridAPIEndpoint, singleTest.ID,
 		singleTest.KurlURL, singleTest.TestGridAPIEndpoint, singleTest.ID,
-		singleTest.TestGridAPIEndpoint, singleTest.ID,
 		singleTest.TestGridAPIEndpoint, singleTest.ID,
 		singleTest.TestGridAPIEndpoint, singleTest.ID,
 		singleTest.TestGridAPIEndpoint, singleTest.ID,

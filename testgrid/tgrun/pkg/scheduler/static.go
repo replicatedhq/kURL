@@ -17,4 +17,10 @@ var operatingSystems = []types.OperatingSystemImage{
 		Version:    "16.04",
 		PVCPrefix:  "ubuntu-16-",
 	},
+	{
+		VMImageURI: "https://cloud.centos.org/centos/7/images/CentOS-7-x86_64-GenericCloud-2003.qcow2",
+		Name:       "CentOS",
+		Version:    "7.8",
+		PVCPrefix:  "centos-78-",
+	},
 }
