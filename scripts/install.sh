@@ -32,7 +32,7 @@ function init() {
         API_SERVICE_ADDRESS="$LOAD_BALANCER_ADDRESS:$LOAD_BALANCER_PORT"
     fi
 
-    OLD_LOAD_BALANCER_ADDRESS=$(kubernetes_load_balancer_address)
+    local oldLoadBalancerAddress=$(kubernetes_load_balancer_address)
 
     kustomize_kubeadm_init=./kustomize/kubeadm/init
     CERT_KEY=
