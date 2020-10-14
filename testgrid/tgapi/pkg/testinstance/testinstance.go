@@ -42,6 +42,7 @@ update testinstance
 set dequeued_at = now() where id in (
 select id from testinstance
 where dequeued_at is null
+order by enqueued_at asc
 limit 1) returning id, dequeued_at, testrun_ref, kurl_yaml, kurl_url, os_name, os_version, os_image
 ) select id, testrun_ref, kurl_yaml, kurl_url, os_name, os_version, os_image from updated`
 
@@ -72,6 +73,7 @@ select id from testinstance
 where finished_at is null
 AND dequeued_at <  now() - INTERVAL '3 hours'
 AND dequeued_at >  now() - INTERVAL '24 hours'
+order by enqueued_at asc
 limit 1) returning id, dequeued_at, testrun_ref, kurl_yaml, kurl_url, os_name, os_version, os_image
 ) select id, testrun_ref, kurl_yaml, kurl_url, os_name, os_version, os_image from updated`
 
