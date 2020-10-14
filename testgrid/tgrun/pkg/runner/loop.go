@@ -233,12 +233,23 @@ func CleanUpVMIs() error {
 	}
 
 	for _, vmi := range vmiList.Items {
+		// cleanup succeeded VMIs
 		if vmi.Status.Phase == kubevirtv1.Succeeded {
 			err := virtClient.VirtualMachineInstance(Namespace).Delete(vmi.Name, &metav1.DeleteOptions{})
 			if err != nil {
-				fmt.Printf("Failed to delete vmi %s: %v\n", vmi.Name, err)
+				fmt.Printf("Failed to delete successful vmi %s: %v\n", vmi.Name, err)
 			} else {
-				fmt.Printf("Delete vmi %s\n", vmi.Name)
+				fmt.Printf("Delete successful vmi %s\n", vmi.Name)
+			}
+		}
+
+		// cleanup VMIs that have been running for more than two hours
+		if vmi.Status.Phase == kubevirtv1.Running && time.Since(vmi.CreationTimestamp.Time).Minutes() > 120 {
+			err := virtClient.VirtualMachineInstance(Namespace).Delete(vmi.Name, &metav1.DeleteOptions{})
+			if err != nil {
+				fmt.Printf("Failed to delete long-running vmi %s: %v\n", vmi.Name, err)
+			} else {
+				fmt.Printf("Delete long-running vmi %s\n", vmi.Name)
 			}
 		}
 	}
