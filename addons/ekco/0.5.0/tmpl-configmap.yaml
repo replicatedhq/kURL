@@ -18,7 +18,7 @@ data:
     certificates_dir: /etc/kubernetes/pki
     reconcile_interval: 1m
     rook_version: $ROOK_VERSION
-    rotate_certs_image: replicated/ekco:$EKCO_VERSION
+    rotate_certs_image: replicated/ekco:v$EKCO_VERSION
     rotate_certs_namespace: kurl
     rotate_certs_ttl: 720h
     rotate_certs_check_interval: 24h
