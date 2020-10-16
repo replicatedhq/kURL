@@ -145,6 +145,11 @@ func execute(singleTest types.SingleRun, uploadProxyURL, tempDir string) error {
 			Labels: map[string]string{
 				"kubevirt.io/domain": singleTest.ID,
 			},
+			Annotations: map[string]string{
+				"testgrid.kurl.sh/osname":    singleTest.OperatingSystemName,
+				"testgrid.kurl.sh/osversion": singleTest.OperatingSystemVersion,
+				"testgrid.kurl.sh/osimage":   singleTest.OperatingSystemImage,
+			},
 		},
 		Spec: kubevirtv1.VirtualMachineInstanceSpec{
 			Domain: kubevirtv1.DomainSpec{
