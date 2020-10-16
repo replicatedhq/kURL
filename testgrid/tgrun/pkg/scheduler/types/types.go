@@ -38,6 +38,7 @@ type Installer struct {
 }
 
 type InstallerSpec struct {
+	IsStaging       bool                         `json:"-"`
 	Kubernetes      kurlv1beta1.Kubernetes       `json:"kubernetes,omitempty"`
 	Docker          *kurlv1beta1.Docker          `json:"docker,omitempty"`
 	Containerd      *kurlv1beta1.Containerd      `json:"containerd,omitempty"`
