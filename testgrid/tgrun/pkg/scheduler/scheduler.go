@@ -19,6 +19,12 @@ import (
 // hack
 var previouslyGeneratedNames = []string{}
 
+type kurlErrResp struct {
+	Error struct {
+		Message string `json:"message"`
+	} `json:"error"`
+}
+
 func Run(schedulerOptions types.SchedulerOptions) error {
 	rand.Seed(time.Now().UnixNano())
 
@@ -42,7 +48,12 @@ func Run(schedulerOptions types.SchedulerOptions) error {
 			return errors.Wrap(err, "failed to marshal json")
 		}
 
-		req, err := http.NewRequest("POST", "https://kurl.sh/installer", bytes.NewReader(b))
+		apiUrl := "https://kurl.sh/installer"
+		if testSpec.IsStaging {
+			apiUrl = "https://staging.kurl.sh/installer"
+		}
+
+		req, err := http.NewRequest("POST", apiUrl, bytes.NewReader(b))
 		if err != nil {
 			return errors.Wrap(err, "failed to create request to submit installer spec")
 		}
@@ -56,6 +67,13 @@ func Run(schedulerOptions types.SchedulerOptions) error {
 		installerURL, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
 			return errors.Wrap(err, "failed to read response body")
+		}
+
+		// attempt to unmarshal installerURL as a kurl error message - if this works, it's not a URL
+		var errMsg kurlErrResp
+		err = json.Unmarshal(installerURL, &errMsg)
+		if err == nil && errMsg.Error.Message != "" {
+			return fmt.Errorf("error getting kurl spec url: %s", errMsg.Error.Message)
 		}
 
 		for _, operatingSystem := range operatingSystems {
@@ -79,6 +97,8 @@ func Run(schedulerOptions types.SchedulerOptions) error {
 	if err := reportStarted(schedulerOptions, plannedInstances); err != nil {
 		return errors.Wrap(err, "failed to report ref started")
 	}
+
+	fmt.Printf("Started tests on %d specs across %d images\n", len(instances.Instances), len(operatingSystems))
 
 	return nil
 }
