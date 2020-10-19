@@ -8,11 +8,11 @@ We welcome contributions to kURL. We appreciate your time and help.
 1. Build packages for target OS: 
     ```bash
     # Local workstation
-    make build/packages/kubernetes/1.17.7/ubuntu-18.04
+    make build/packages/kubernetes/1.19.3/ubuntu-18.04
     make build/packages/docker/19.03.10/ubuntu-18.04
     ```
     *NOTE: if using `containerd` building docker packages is not necessary*<br>
-    *For packages that have already been released, you can save time by running `curl -L https://kurl.sh/dist/kubernetes-1.17.7.tar.gz | tar xzvf -` and `curl -L https://kurl.sh/dist/docker-19.03.10.tar.gz | tar xzvf -` on the test server.*
+    *For packages that have already been released, you can save time by running `curl -L https://kurl.sh/dist/kubernetes-1.19.3.tar.gz | tar xzvf -` and `curl -L https://kurl.sh/dist/docker-19.03.10.tar.gz | tar xzvf -` on the test server.*
 1. Rsync local packages to remote test server.
     ```bash
     # Local workstation
@@ -36,7 +36,7 @@ We welcome contributions to kURL. We appreciate your time and help.
       name: testing
     spec:
       kubernetes:
-        version: 1.17.7
+        version: 1.19.3
       weave:
         version: 2.7.0
       openebs:

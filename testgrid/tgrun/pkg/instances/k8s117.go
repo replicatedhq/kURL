@@ -10,10 +10,10 @@ func init() {
 		Instances,
 		types.InstallerSpec{
 			Kubernetes: kurlv1beta1.Kubernetes{
-				Version: "1.17.3",
+				Version: "1.17.13",
 			},
 			Weave: &kurlv1beta1.Weave{
-				Version: "2.5.2",
+				Version: "2.6.4",
 			},
 			Rook: &kurlv1beta1.Rook{
 				Version: "1.0.4",
@@ -34,19 +34,7 @@ func init() {
 				Version: "1.2.0",
 			},
 			Kotsadm: &kurlv1beta1.Kotsadm{
-				Version: "1.19.6",
-			},
-			OpenEBS: &kurlv1beta1.OpenEBS{
-				Version:                 "latest",
-				Namespace:               "space",
-				IsLocalPVEnabled:        true,
-				LocalPVStorageClassName: "openebs",
-				IsCstorEnabled:          true,
-				CstorStorageClassName:   "cstore",
-			},
-			Minio: &kurlv1beta1.Minio{
-				Version:   "latest",
-				Namespace: "minio",
+				Version: "1.16.1",
 			},
 		},
 	)
