@@ -238,6 +238,7 @@ discoverCurrentKubernetesVersion() {
         bail
     fi
     if [ $MIN_CLUSTER_NODE_MINOR_FOUND -lt $LOWEST_SUPPORTED_MINOR ]; then
+        MAX_UPGRADEABLE_VERSION_MINOR=$(($MIN_CLUSTER_NODE_MINOR_FOUND + 2))
         printf "%s %s %s" \
             "The currently installed kubernetes version is ${CURRENT_KUBERNETES_VERSION}." \
             "The requested version to upgrade to is ${KUBERNETES_VERSION}." \
