@@ -43,8 +43,8 @@ function minio_object_store_output() {
         return 0;
     fi
     # create the docker-registry bucket through the S3 API
-    OBJECT_STORE_ACCESS_KEY=$(kubectl -n ${MINIO_NAMESPACE} get secret minio-credentials -o yaml | grep MINIO_ACCESS_KEY | awk '{print $2}' | base64 --decode)
-    OBJECT_STORE_SECRET_KEY=$(kubectl -n ${MINIO_NAMESPACE} get secret minio-credentials -o yaml | grep MINIO_SECRET_KEY | awk '{print $2}' | base64 --decode)
+    OBJECT_STORE_ACCESS_KEY=$(kubectl -n ${MINIO_NAMESPACE} get secret minio-credentials -ojsonpath='{ .data.MINIO_ACCESS_KEY }' | base64 --decode)
+    OBJECT_STORE_SECRET_KEY=$(kubectl -n ${MINIO_NAMESPACE} get secret minio-credentials -ojsonpath='{ .data.MINIO_SECRET_KEY }' | base64 --decode)
     OBJECT_STORE_CLUSTER_IP=$(kubectl -n ${MINIO_NAMESPACE} get service minio | tail -n1 | awk '{ print $3}')
     OBJECT_STORE_CLUSTER_HOST="http://minio.${MINIO_NAMESPACE}"
 
