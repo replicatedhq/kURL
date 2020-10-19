@@ -275,16 +275,7 @@ build/packages/docker/%/ubuntu-18.04:
 	docker rm docker-ubuntu1804-$*
 
 build/packages/docker/%/ubuntu-20.04:
-	docker build \
-		--build-arg DOCKER_VERSION=$* \
-		-t kurl/ubuntu-2004-docker:$* \
-		-f bundles/docker-ubuntu2004/Dockerfile \
-		bundles/docker-ubuntu2004
-	-docker rm -f docker-ubuntu2004-$* 2>/dev/null
-	docker create --name docker-ubuntu2004-$* kurl/ubuntu-2004-docker:$*
-	mkdir -p build/packages/docker/$*/ubuntu-20.04
-	docker cp docker-ubuntu2004-$*:/packages/archives/. build/packages/docker/$*/ubuntu-20.04
-	docker rm docker-ubuntu2004-$*
+	./bundles/docker-ubuntu2004/build.sh $* `pwd`/build/packages/docker/$*/ubuntu-20.04
 
 build/packages/docker/%/rhel-7:
 	docker build \
