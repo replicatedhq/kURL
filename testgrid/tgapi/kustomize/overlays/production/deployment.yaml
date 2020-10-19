@@ -24,4 +24,4 @@ spec:
                   name: testgrid-postgres
                   key: uri
             - name: SUPPORT_BUNDLE_BUCKET
-              value: "testgrid-bundles"
+              value: "testgrid-bundles-production"
