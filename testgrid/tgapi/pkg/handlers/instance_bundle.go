@@ -1,27 +1,42 @@
 package handlers
 
 import (
-	"io/ioutil"
+	"fmt"
 	"net/http"
+	"os"
+	"time"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	"github.com/gorilla/mux"
+	"github.com/pkg/errors"
 	"github.com/replicatedhq/kurl/testgrid/tgapi/pkg/logger"
-	"go.uber.org/zap"
+	"github.com/replicatedhq/kurl/testgrid/tgapi/pkg/persistence"
 )
 
 func InstanceBundle(w http.ResponseWriter, r *http.Request) {
-	bundle, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		logger.Error(err)
-		JSON(w, 500, nil)
+	bucket := os.Getenv("SUPPORT_BUNDLE_BUCKET")
+	if bucket == "" {
+		w.WriteHeader(http.StatusNotImplemented)
 		return
 	}
 
 	instanceID := mux.Vars(r)["instanceId"]
 
-	logger.Debug("instanceBundle",
-		zap.String("instanceId", instanceID),
-		zap.Int("bundleSize", len(bundle)))
+	input := &s3manager.UploadInput{
+		Body:   aws.ReadSeekCloser(r.Body),
+		Bucket: aws.String(bucket),
+		Key:    aws.String(fmt.Sprintf("%s-%d/bundle.tgz", instanceID, time.Now().Unix())),
+	}
 
-	JSON(w, 200, nil)
+	s3Uploader := persistence.GetS3Uploader()
+	_, err := s3Uploader.UploadWithContext(r.Context(), input)
+	if err != nil {
+		logger.Error(errors.Errorf("Failed to upload bundle for instance %s; %v", instanceID, err))
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+	return
 }
