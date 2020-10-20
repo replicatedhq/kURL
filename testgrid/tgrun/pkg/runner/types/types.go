@@ -18,4 +18,8 @@ type SingleRun struct {
 	KurlRef  string
 
 	TestGridAPIEndpoint string
+
+	DockerUser  string
+	DockerPass  string
+	DockerEmail string
 }
