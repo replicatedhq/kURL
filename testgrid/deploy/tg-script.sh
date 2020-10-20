@@ -14,7 +14,9 @@ curl https://kurl.sh/f3dd2d4 > $INSTALL_SCRIPT
 sed -i 's/parse_yaml_into_bash_variables$/parse_yaml_into_bash_variables\n    PRIVATE_ADDRESS=$(\/sbin\/ifconfig bond0:0 | awk "\/inet \/ {print \\$2}")/' $INSTALL_SCRIPT 
 chmod +x $INSTALL_SCRIPT
 ./$INSTALL_SCRIPT
+[ -d /root/.kube ] || mkdir /root/.kube
 cp /etc/kubernetes/admin.conf /root/.kube/config
+export KUBECONFIG=/root/.kube/config
 
 echo "Instaling KubeVirt"
 kubectl create namespace kubevirt
@@ -25,8 +27,12 @@ kubectl create ns cdi
 kubectl apply -f https://github.com/kubevirt/containerized-data-importer/releases/download/v1.24.0/cdi-operator.yaml
 kubectl apply -f https://github.com/kubevirt/containerized-data-importer/releases/download/v1.24.0/cdi-cr.yaml
 
+echo "Installing krew KubeVirt plugin"
+export HOME=/root
+curl https://krew.sh/virt | bash
+
 echo "Setting up tgrun service"
-cat <<SERVICE_FILE >> /lib/systemd/system/tgrun.service
+cat <<-TGRUND > /lib/systemd/system/tgrun.service
 [Unit]
 Description=tgrun
 [Service]
@@ -39,7 +45,13 @@ SyslogIdentifier=tgrund
 Environment="KUBECONFIG=/etc/kubernetes/admin.conf"
 Environment="HOME=/root"
 Environment="PATH=/root/.krew/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
-ExecStart=/root/tgrun run
+ExecStart=/bin/bash -c 'source /root/.dockerhub-creds; /root/tgrun run'
 [Install]
 WantedBy=multi-user.target
-SERVICE_FILE 
+TGRUND
+
+cat <<-DHCREDS > /root/.dockerhub-creds
+export DOCKERHUB_PASS="${dh-pass}"
+export DOCKERHUB_USER="${dh-user}"
+export DOCKERHUB_EMAIL="${dh-email}"
+DHCREDS
