@@ -97,8 +97,8 @@ func MainRunLoop(runnerOptions types.RunnerOptions) error {
 				TestGridAPIEndpoint: runnerOptions.APIEndpoint,
 
 				DockerEmail: os.Getenv("DOCKERHUB_EMAIL"),
-				DockerUser: os.Getenv("DOCKERHUB_USER"),
-				DockerPass : os.Getenv("DOCKERHUB_PASS"),
+				DockerUser:  os.Getenv("DOCKERHUB_USER"),
+				DockerPass:  os.Getenv("DOCKERHUB_PASS"),
 			}
 
 			if err := Run(singleTest, uploadProxyURL, tempDir); err != nil {
