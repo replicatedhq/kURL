@@ -3,6 +3,19 @@ provider "packet" {
   auth_token = var.auth_token
 }
 
+provider "aws" {
+  version = "~> 2.52.0"
+  region  = "us-east-1"
+}
+
+terraform {
+  backend "s3" {
+    bucket = "terraform-testgrid"
+    key    = "testgrid-prod/terraform.tfstate"
+    region = "us-east-1"
+  }
+}
+
 data "template_file" "tg_setup" {
   template = file("./tg-script.sh")
 }
