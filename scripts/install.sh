@@ -143,25 +143,30 @@ EOF
     logSuccess "Kubernetes Master Initialized"
 
     local currentLoadBalancerAddress=$(kubernetes_load_balancer_address)
-    if kubernetes_has_remotes && [ "$currentLoadBalancerAddress" != "$oldLoadBalancerAddress" ]; then
-        local proxyFlag=""
-        if [ -n "$PROXY_ADDRESS" ]; then
-            proxyFlag=" -x $PROXY_ADDRESS"
-        fi
-        local prefix="curl -sSL${proxyFlag} $KURL_URL/$INSTALLER_ID/"
-        if [ "$AIRGAP" = "1" ] || [ -z "$KURL_URL" ]; then
-            prefix="cat "
-        fi
+    if [ "$currentLoadBalancerAddress" != "$oldLoadBalancerAddress" ]; then
+        # restart scheduler and controller-manager on this node so they use the new address
+        mv /etc/kubernetes/manifests/kube-scheduler.yaml /tmp/ && sleep 1 && mv /tmp/kube-scheduler.yaml /etc/kubernetes/manifests/
+        mv /etc/kubernetes/manifests/kube-controller-manager.yaml /tmp/ && sleep 1 && mv /tmp/kube-controller-manager.yaml /etc/kubernetes/manifests/
+        if kubernetes_has_remotes; then
+            local proxyFlag=""
+            if [ -n "$PROXY_ADDRESS" ]; then
+                proxyFlag=" -x $PROXY_ADDRESS"
+            fi
+            local prefix="curl -sSL${proxyFlag} $KURL_URL/$INSTALLER_ID/"
+            if [ "$AIRGAP" = "1" ] || [ -z "$KURL_URL" ]; then
+                prefix="cat "
+            fi
 
-        printf "${YELLOW}\nThe load balancer address has changed. Run the following on all remote nodes to use the new address${NC}\n"
-        printf "\n"
-        printf "${GREEN}    ${prefix}tasks.sh | sudo bash -s set-kubeconfig-server https://${currentLoadBalancerAddress}${NC}\n"
-        printf "\n"
-        printf "Continue? "
-        confirmY " "
+            printf "${YELLOW}\nThe load balancer address has changed. Run the following on all remote nodes to use the new address${NC}\n"
+            printf "\n"
+            printf "${GREEN}    ${prefix}tasks.sh | sudo bash -s set-kubeconfig-server https://${currentLoadBalancerAddress}${NC}\n"
+            printf "\n"
+            printf "Continue? "
+            confirmY " "
 
-        if commandExists ekco_handle_load_balancer_address_change_post_init; then
-            ekco_handle_load_balancer_address_change_post_init $oldLoadBalancerAddress $LOAD_BALANCER_ADDRESS
+            if commandExists ekco_handle_load_balancer_address_change_post_init; then
+                ekco_handle_load_balancer_address_change_post_init $oldLoadBalancerAddress $LOAD_BALANCER_ADDRESS
+            fi
         fi
     fi
 
