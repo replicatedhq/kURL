@@ -553,3 +553,31 @@ function kubernetes_get_secondaries() {
 function kubernetes_load_balancer_address() {
     kubeadm config view 2>/dev/null | grep 'controlPlaneEndpoint:' | sed 's/controlPlaneEndpoint: \|"//g'
 }
+
+function kubernetes_pod_started() {
+    name=$1
+    namespace=$2
+
+    phase=$(kubectl -n $namespace get pod $name -ojsonpath='{ .status.phase }')
+    case "$phase" in
+        Running|Failed|Succeeded)
+            return 0
+            ;;
+    esac
+
+    return 1
+}
+
+function kubernetes_pod_completed() {
+    name=$1
+    namespace=$2
+
+    phase=$(kubectl -n $namespace get pod $name -ojsonpath='{ .status.phase }')
+    case "$phase" in
+        Failed|Succeeded)
+            return 0
+            ;;
+    esac
+
+    return 1
+}

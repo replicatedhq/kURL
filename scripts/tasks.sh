@@ -392,10 +392,37 @@ function set_kubeconfig_server() {
     if [ -z "$server" ]; then
         bail "usage: cat tasks.sh | sudo bash -s set-kubeconfig-server <load-balancer-address>"
     fi
+
+    # on K8s 1.19+ the scheduler and controller-manager kubeconfigs point to the local API server even
+    # when a load balancer is being used
+    semverParse $(kubeadm version --output=short | sed 's/v//')
+    if [ $minor -lt 19 ]; then
+        if [ -f "/etc/kubernetes/scheduler.conf" ]; then
+            while read -r cluster; do
+                kubectl --kubeconfig=/etc/kubernetes/scheduler.conf config set-cluster "$cluster" --server "$server"
+            done < <(kubectl --kubeconfig /etc/kubernetes/scheduler.conf config get-clusters | grep -v NAME)
+            # restart
+            mv /etc/kubernetes/manifests/kube-scheduler.yaml /tmp/ && sleep 1 && mv /tmp/kube-scheduler.yaml /etc/kubernetes/manifests/
+        fi
+
+        if [ -f "/etc/kubernetes/controller-manager.conf" ]; then
+            while read -r cluster; do
+                kubectl --kubeconfig=/etc/kubernetes/controller-manager.conf config set-cluster "$cluster" --server "$server"
+            done < <(kubectl --kubeconfig /etc/kubernetes/controller-manager.conf config get-clusters | grep -v NAME)
+            mv /etc/kubernetes/manifests/kube-controller-manager.yaml /tmp/ && sleep 1 && mv /tmp/kube-controller-manager.yaml /etc/kubernetes/manifests/
+        fi
+    fi
+
     while read -r cluster; do
         kubectl --kubeconfig=/etc/kubernetes/kubelet.conf config set-cluster "$cluster" --server "$server"
     done < <(kubectl --kubeconfig /etc/kubernetes/kubelet.conf config get-clusters | grep -v NAME)
     systemctl restart kubelet
+
+    if [ -f "/etc/kubernetes/admin.conf" ]; then
+        while read -r cluster; do
+            kubectl --kubeconfig=/etc/kubernetes/admin.conf config set-cluster "$cluster" --server "$server"
+        done < <(kubectl --kubeconfig /etc/kubernetes/admin.conf config get-clusters | grep -v NAME)
+    fi
 }
 
 tasks "$@"

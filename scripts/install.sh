@@ -33,6 +33,9 @@ function init() {
     fi
 
     local oldLoadBalancerAddress=$(kubernetes_load_balancer_address)
+    if commandExists ekco_handle_load_balancer_address_change_pre_init; then
+        ekco_handle_load_balancer_address_change_pre_init $oldLoadBalancerAddress $LOAD_BALANCER_ADDRESS
+    fi
 
     kustomize_kubeadm_init=./kustomize/kubeadm/init
     CERT_KEY=
@@ -126,6 +129,10 @@ EOF
         | tee /tmp/kubeadm-init
     set +o pipefail
 
+    if [ -n "$LOAD_BALANCER_ADDRESS" ]; then
+        spinner_until 120 cert_has_san "$PRIVATE_ADDRESS:6443" "$LOAD_BALANCER_ADDRESS"
+    fi
+
     exportKubeconfig
     KUBEADM_TOKEN_CA_HASH=$(cat /tmp/kubeadm-init | grep 'discovery-token-ca-cert-hash' | awk '{ print $2 }' | head -1)
 
@@ -152,6 +159,10 @@ EOF
         printf "\n"
         printf "Continue? "
         confirmY " "
+
+        if commandExists ekco_handle_load_balancer_address_change_post_init; then
+            ekco_handle_load_balancer_address_change_post_init $oldLoadBalancerAddress $LOAD_BALANCER_ADDRESS
+        fi
     fi
 
     labelNodes

@@ -367,3 +367,10 @@ isValidIpv6() {
         return 1
     fi
 }
+
+function cert_has_san() {
+    local address=$1
+    local san=$2
+
+    echo "Q" | openssl s_client -connect "$address" 2>/dev/null | openssl x509 -noout -text 2>/dev/null | grep --after-context=1 'X509v3 Subject Alternative Name' | grep -q "$2"
+}
