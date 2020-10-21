@@ -1,6 +1,6 @@
 {
   "name": "minio",
   "fulfills": ["Object Store"],
-  "requires": ["CNI Plugin", "Container Runtime"],
+  "requires": ["CNI Plugin", "Container Runtime", "PVC Provisioner"],
   "recommends": []
 }
