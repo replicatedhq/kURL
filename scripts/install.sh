@@ -156,6 +156,10 @@ EOF
 
     labelNodes
     kubectl cluster-info
+
+    # create kurl namespace if it doesn't exist
+    kubectl get ns kurl 2>/dev/null 1>/dev/null || kubectl create ns kurl 1>/dev/null
+
     logSuccess "Cluster Initialized"
 
     if commandExists containerd_registry_init; then
