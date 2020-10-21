@@ -39,7 +39,7 @@ variable tg_os {
 variable dh_email {
   type        = string
   default     = "pavel@replicated.com"
-  description = "Primary email for replicatetestgrid DockerHUb account"
+  description = "Primary email for replicatedtestgrid DockerHub account"
 }
 
 variable dh_user {
