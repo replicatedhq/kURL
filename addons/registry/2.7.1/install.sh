@@ -1,7 +1,6 @@
 
 function registry() {
     cp "$DIR/addons/registry/2.7.1/kustomization.yaml" "$DIR/kustomize/registry/kustomization.yaml"
-    cp "$DIR/addons/registry/2.7.1/namespace.yaml" "$DIR/kustomize/registry/namespace.yaml"
     cp "$DIR/addons/registry/2.7.1/service.yaml" "$DIR/kustomize/registry/service.yaml"
 
     registry_session_secret
