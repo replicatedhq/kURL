@@ -1,0 +1,5 @@
+image quay.io/jetstack/cert-manager-cainjector:v1.0.3
+image quay.io/jetstack/cert-manager-controller:v1.0.3
+image quay.io/jetstack/cert-manager-webhook:v1.0.3
+
+

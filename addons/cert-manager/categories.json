@@ -1,0 +1,6 @@
+{
+  "name": "cert-manager",
+  "fulfills": ["x509 Certificates"],
+  "requires": ["Container Runtime"],
+  "recommends": []
+}
