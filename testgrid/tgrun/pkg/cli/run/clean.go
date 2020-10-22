@@ -19,11 +19,12 @@ func CleanCmd() *cobra.Command {
 }
 
 func runCleanUp() error {
-	if err := runner.CleanUpPVs(); err != nil {
-		fmt.Println("PV clean up ERROR: ", err)
-	}
+	// clean VMI before pv/pvc as it should take care of the pvc cleanup
 	if err := runner.CleanUpVMIs(); err != nil {
 		fmt.Println("VMI clean up ERROR: ", err)
+	}
+	if err := runner.CleanUpPVs(); err != nil {
+		fmt.Println("PV clean up ERROR: ", err)
 	}
 	return nil
 }
