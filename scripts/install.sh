@@ -147,6 +147,9 @@ EOF
         # restart scheduler and controller-manager on this node so they use the new address
         mv /etc/kubernetes/manifests/kube-scheduler.yaml /tmp/ && sleep 1 && mv /tmp/kube-scheduler.yaml /etc/kubernetes/manifests/
         mv /etc/kubernetes/manifests/kube-controller-manager.yaml /tmp/ && sleep 1 && mv /tmp/kube-controller-manager.yaml /etc/kubernetes/manifests/
+        # restart kube-proxies so they use the new address
+        kubectl -n kube-system delete pods --selector=k8s-app=kube-proxy
+
         if kubernetes_has_remotes; then
             local proxyFlag=""
             if [ -n "$PROXY_ADDRESS" ]; then
