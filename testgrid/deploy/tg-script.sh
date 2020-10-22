@@ -18,6 +18,9 @@ chmod +x $INSTALL_SCRIPT
 cp /etc/kubernetes/admin.conf /root/.kube/config
 export KUBECONFIG=/root/.kube/config
 
+echo "Removing OpenEbs webhook"
+kubectl delete deployment openebs-admission-server -n openebs
+
 echo "Instaling KubeVirt"
 kubectl create namespace kubevirt
 kubectl apply -f https://github.com/kubevirt/kubevirt/releases/download/v0.32.0/kubevirt-operator.yaml
