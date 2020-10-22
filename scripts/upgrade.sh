@@ -57,6 +57,20 @@ maybe_upgrade() {
                 if kubernetes_is_master; then
                     kubeadm init phase kubelet-start
                     upgrade_etcd_image_18
+
+                    # scheduler and controller-manager kubeconfigs point to local API server in 1.19
+                    # but only on new installs, not upgrades. Force regeneration of the kubeconfigs
+                    # so that all 1.19 installs are consistent. The set-kubeconfig-server task run
+                    # after a load balancer address change relies on this behavior.
+                    # https://github.com/kubernetes/kubernetes/pull/94398
+                    if [ "$KUBERNETES_TARGET_VERSION_MINOR" = "19" ]; then
+                        rm /etc/kubernetes/scheduler.conf
+                        kubeadm init phase kubeconfig scheduler
+                        mv /etc/kubernetes/manifests/kube-scheduler.yaml /tmp/ && sleep 1 && mv /tmp/kube-scheduler.yaml /etc/kubernetes/manifests/
+                        rm /etc/kubernetes/controller-manager.conf
+                        kubeadm init phase kubeconfig controller-manager
+                        mv /etc/kubernetes/manifests/kube-controller-manager.yaml /tmp/ && sleep 1 && mv /tmp/kube-controller-manager.yaml /etc/kubernetes/manifests/
+                    fi
                 fi
 
                 kubernetes_host
