@@ -1,0 +1,6 @@
+{
+  "name": "metrics-server",
+  "fulfills": ["Metrics"],
+  "requires": ["Container Runtime"],
+  "recommends": []
+}
