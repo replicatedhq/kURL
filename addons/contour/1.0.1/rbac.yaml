@@ -4,7 +4,7 @@ kind: ServiceAccount
 metadata:
   name: contour-certgen
 ---
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: contour
@@ -16,7 +16,7 @@ subjects:
 - kind: ServiceAccount
   name: contour-certgen
 ---
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: contour-certgen
@@ -59,7 +59,7 @@ spec:
   completions: 1
   backoffLimit: 1
 ---
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
   name: contour
@@ -71,7 +71,7 @@ subjects:
 - kind: ServiceAccount
   name: contour
 ---
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: contour
@@ -136,7 +136,7 @@ rules:
   - post
   - patch
 ---
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: contour-leaderelection
@@ -160,7 +160,7 @@ rules:
   - update
   - patch
 ---
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: contour-leaderelection
