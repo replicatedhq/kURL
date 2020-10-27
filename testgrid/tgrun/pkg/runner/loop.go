@@ -207,8 +207,8 @@ func CleanUpPVs() error {
 
 	// NOTE: OpenEbs webhook should be absent. For LocalPV volumes it has a bug preventing api calls, the webhook is only needed for cStor.
 	for _, pvc := range pvcs.Items {
-		// clean pvc older then 2 hours
-		if time.Since(pvc.CreationTimestamp.Time).Hours() > 2 {
+		// clean pvc older then 3 hours
+		if time.Since(pvc.CreationTimestamp.Time).Hours() > 3 {
 			pvc.ObjectMeta.SetFinalizers(nil)
 			p, _ := clientset.CoreV1().PersistentVolumeClaims(Namespace).Update(&pvc)
 			fmt.Printf("Removed finalizers on %s\n", p.Name)
@@ -225,8 +225,8 @@ func CleanUpPVs() error {
 	// finalizers might get pv in a stack state
 	for _, pv := range pvs.Items {
 		localPath := pv.Spec.Local.Path
-		// deleting PVs older then 3 hours
-		if time.Since(pv.CreationTimestamp.Time).Hours() > 3 && pv.ObjectMeta.DeletionTimestamp == nil {
+		// deleting PVs older then 4 hours
+		if time.Since(pv.CreationTimestamp.Time).Hours() > 4 && pv.ObjectMeta.DeletionTimestamp == nil {
 			clientset.CoreV1().PersistentVolumes().Delete(pv.Name, &metav1.DeleteOptions{})
 			fmt.Printf("Deleted pv %s\n", pv.Name)
 			// Image file gets deleted and the space is reclamed on pv deletion
@@ -260,7 +260,8 @@ func CleanUpVMIs() error {
 
 	for _, vmi := range vmiList.Items {
 		// cleanup succeeded VMIs
-		if vmi.Status.Phase == kubevirtv1.Succeeded {
+		// leaving them for a few hours for debug cases
+		if vmi.Status.Phase == kubevirtv1.Succeeded && time.Since(vmi.CreationTimestamp.Time).Hours() > 3 {
 			err := virtClient.VirtualMachineInstance(Namespace).Delete(vmi.Name, &metav1.DeleteOptions{})
 			if err != nil {
 				fmt.Printf("Failed to delete successful vmi %s: %v\n", vmi.Name, err)
