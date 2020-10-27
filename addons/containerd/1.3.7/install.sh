@@ -86,8 +86,7 @@ function containerd_registry_init() {
 
     local registryIP=$(kubectl -n kurl get service registry -o=jsonpath='{@.spec.clusterIP}' 2>/dev/null || true)
     if [ -z "$registryIP" ]; then
-        kubectl apply -f "$DIR/addons/registry/2.7.1/namespace.yaml"
-        kubectl -n kurl apply -f "$DIR/addons/registry/2.7.1/service.yaml"
+        kubectl -n kurl apply -f "$DIR/addons/registry/$REGISTRY_VERSION/service.yaml"
         registryIP=$(kubectl -n kurl get service registry -o=jsonpath='{@.spec.clusterIP}')
     fi
 
