@@ -788,6 +788,7 @@ export class Installer {
 
   public id: string;
   public spec: InstallerSpec;
+  public appSlug: string;
 
   constructor(
     public readonly teamID?: string,
