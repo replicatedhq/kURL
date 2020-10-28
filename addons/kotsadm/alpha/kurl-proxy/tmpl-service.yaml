@@ -4,7 +4,7 @@ metadata:
   name: kurl-proxy-kotsadm
   labels:
     kots.io/kotsadm: \"true\"
-    velero.io/exclude-from-backup: \"true\"
+    kots.io/backup: velero
 spec:
   type: NodePort
   selector:

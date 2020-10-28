@@ -4,7 +4,7 @@ metadata:
   name: kurl-join
   labels:
     kots.io/kotsadm: "true"
-    velero.io/exclude-from-backup: "true"
+    kots.io/backup: velero
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -12,7 +12,7 @@ metadata:
   name: kurl-join-kube-system
   labels:
     kots.io/kotsadm: "true"
-    velero.io/exclude-from-backup: "true"
+    kots.io/backup: velero
 rules:
 - apiGroups:
   - ""
@@ -45,7 +45,7 @@ metadata:
   namespace: kube-system
   labels:
     kots.io/kotsadm: "true"
-    velero.io/exclude-from-backup: "true"
+    kots.io/backup: velero
 subjects:
 - kind: ServiceAccount
   name: kurl-join
