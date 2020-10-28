@@ -245,12 +245,12 @@ func createSecret(singleTest types.SingleRun, tempDir string) error {
 	runcmd := fmt.Sprintf(`# runcmd.sh
 #!/bin/bash
 
-TESTGRID_APIENDPOINT=%s
-TEST_ID=%s
-KURL_URL=%s
-DOCKERHUB_USER=%s
-DOCKERHUB_EMAIL=%s
-DOCKERHUB_PASS=%s
+TESTGRID_APIENDPOINT='%s'
+TEST_ID='%s'
+KURL_URL='%s'
+DOCKERHUB_USER='%s'
+DOCKERHUB_EMAIL='%s'
+DOCKERHUB_PASS='%s'
 
 setenforce 0 || true # rhel variants
 
@@ -301,7 +301,7 @@ if [ -z $DOCKERHUB_USER ]; then
 	echo '{"ImagePullSecrets":"regcred"}' > secretconfig.json
 	./sonobuoy gen --config secretconfig.json --mode quick > test.yaml
 	echo "---" >> test.yaml
-	kubectl --kubeconfig /etc/kubernetes/admin.conf create secret --dry-run=client -n sonobuoy docker-registry regcred --docker-server=https://index.docker.io/v1/ --docker-username=$DOCKERHUB_USER --docker-password=$DOCKERHUB_PASS --docker-email=$DOCKERHUB_EMAIL -o yaml >> test.yaml
+	kubectl --kubeconfig /etc/kubernetes/admin.conf create secret --dry-run=client -n sonobuoy docker-registry regcred --docker-server=https://index.docker.io/v1/ --docker-username=$DOCKERHUB_USER --docker-password="$DOCKERHUB_PASS" --docker-email=$DOCKERHUB_EMAIL -o yaml >> test.yaml
 	./sonobuoy --kubeconfig /etc/kubernetes/admin.conf run --wait
 else
 	./sonobuoy --kubeconfig /etc/kubernetes/admin.conf run --wait --mode quick
@@ -318,7 +318,7 @@ fi
 
 curl -X POST -d '{"success": true}' $TESTGRID_APIENDPOINT/v1/instance/$TEST_ID/finish
 `,
-		singleTest.TestGridAPIEndpoint, singleTest.ID, singleTest.KurlURL,  singleTest.DockerUser, singleTest.DockerEmail, singleTest.DockerPass,
+		singleTest.TestGridAPIEndpoint, singleTest.ID, singleTest.KurlURL, singleTest.DockerUser, singleTest.DockerEmail, singleTest.DockerPass,
 	)
 	runcmdB64 := base64.StdEncoding.EncodeToString([]byte(runcmd))
 
