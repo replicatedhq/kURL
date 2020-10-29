@@ -141,7 +141,7 @@ export class Installers {
     @Req() request: Express.Request,
     @PathParams("id") id: string,
   ): Promise<string | ErrorResponse> {
-    return await doMakeInstaller(response, request, id, "");
+    return await this.doMakeInstaller(response, request, id, "");
   }
 
   /**
@@ -160,7 +160,7 @@ export class Installers {
     @PathParams("id") id: string,
     @PathParams("slug") slug: string,
   ): Promise<string | ErrorResponse> {
-    return await doMakeInstaller(response, request, id, slug);
+    return await this.doMakeInstaller(response, request, id, slug);
   }
 
   /**
@@ -230,65 +230,65 @@ export class Installers {
     response.status(200);
     return "";
   }
-}
 
-async function doMakeInstaller( response: Express.Response, request: Express.Request, id: string, slug: string) {
-  const auth = request.header("Authorization");
-  if (!auth) {
-    response.status(401);
-    return unauthenticatedResponse;
-  }
-
-  let teamID: string;
-  try {
-    teamID = await decode(auth);
-  } catch(error) {
-    response.status(401);
-    return unauthenticatedResponse;
-  }
-
-  if (!teamID) {
-    response.status(401);
-    return unauthenticatedResponse;
-  }
-
-  if (Installer.isSHA(id)) {
-    response.status(400);
-    return teamWithGeneratedIDResponse;
-  }
-  if (!Installer.isValidSlug(id)) {
-    response.status(400);
-    return slugCharactersResponse;
-  }
-  if (Installer.slugIsReserved(id)) {
-    response.status(400);
-    return slugReservedResponse;
-  }
-
-  let i: Installer;
-  try {
-    i = Installer.parse(request.body, teamID);
-  } catch(error) {
-    response.status(400);
-    return { error };
-  }
-  i.id = id;
-
-  if (i.spec.kotsadm && !i.spec.kotsadm.applicationSlug) {
-    if (slug != "") {
-      i.spec.kotsadm.applicationSlug = slug
+  async doMakeInstaller( response: Express.Response, request: Express.Request, id: string, slug: string) {
+    const auth = request.header("Authorization");
+    if (!auth) {
+      response.status(401);
+      return unauthenticatedResponse;
     }
+  
+    let teamID: string;
+    try {
+      teamID = await decode(auth);
+    } catch(error) {
+      response.status(401);
+      return unauthenticatedResponse;
+    }
+  
+    if (!teamID) {
+      response.status(401);
+      return unauthenticatedResponse;
+    }
+  
+    if (Installer.isSHA(id)) {
+      response.status(400);
+      return teamWithGeneratedIDResponse;
+    }
+    if (!Installer.isValidSlug(id)) {
+      response.status(400);
+      return slugCharactersResponse;
+    }
+    if (Installer.slugIsReserved(id)) {
+      response.status(400);
+      return slugReservedResponse;
+    }
+  
+    let i: Installer;
+    try {
+      i = Installer.parse(request.body, teamID);
+    } catch(error) {
+      response.status(400);
+      return { error };
+    }
+    i.id = id;
+  
+    if (i.spec.kotsadm && !i.spec.kotsadm.applicationSlug) {
+      if (slug != "") {
+        i.spec.kotsadm.applicationSlug = slug
+      }
+    }
+  
+    const err = await i.validate();
+    if (err) {
+      response.status(400);
+      return err;
+    }
+  
+    await this.installerStore.saveTeamInstaller(i);
+  
+    response.contentType("text/plain");
+    response.status(201);
+    return `${this.kurlURL}/${i.id}`;
   }
-
-  const err = await i.validate();
-  if (err) {
-    response.status(400);
-    return err;
-  }
-
-  await this.installerStore.saveTeamInstaller(i);
-
-  response.contentType("text/plain");
-  response.status(201);
-  return `${this.kurlURL}/${i.id}`;
 }
