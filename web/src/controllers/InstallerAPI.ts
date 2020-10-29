@@ -274,7 +274,7 @@ async function doMakeInstaller( response: Express.Response, request: Express.Req
   }
   i.id = id;
 
-  if (i.spec.kotsadm && (i.spec.kotsadm.applicationSlug == undefined || i.spec.kotsadm.applicationSlug == "")) {
+  if (i.spec.kotsadm && !i.spec.kotsadm.applicationSlug) {
     if (slug != "") {
       i.spec.kotsadm.applicationSlug = slug
     }
