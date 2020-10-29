@@ -79,8 +79,13 @@ func cleanupPVCs(clientset *kubernetes.Clientset) error {
 		// clean pvc older then 3 hours
 		if time.Since(pvc.CreationTimestamp.Time).Hours() > 3 {
 			pvc.ObjectMeta.SetFinalizers(nil)
-			p, _ := clientset.CoreV1().PersistentVolumeClaims(Namespace).Update(&pvc)
-			fmt.Printf("Removed finalizers on %s\n", p.Name)
+			p, err := clientset.CoreV1().PersistentVolumeClaims(Namespace).Update(&pvc)
+			if err != nil {
+				fmt.Printf("Failed removing finalizers for pvc %s; EROOR: %s\n", p.Name, err)
+			} else {
+				fmt.Printf("Removed finalizers on %s\n", p.Name)
+			}
+
 			clientset.CoreV1().PersistentVolumeClaims(Namespace).Delete(pvc.Name, &metav1.DeleteOptions{})
 			fmt.Printf("Deleted pvc %s\n", pvc.Name)
 		}
@@ -106,13 +111,17 @@ func cleanupPVs(clientset *kubernetes.Clientset) error {
 			// 523M    /var/openebs/local/pvc-xxx
 			err := os.RemoveAll(localPath)
 			if err != nil {
-				fmt.Printf("Failed to delete %s; ERROR: %s", localPath, err)
+				fmt.Printf("Failed to delete %s; ERROR: %s\n", localPath, err)
 			}
 		} else if pv.ObjectMeta.DeletionTimestamp != nil {
 			// cleaning pv stack in Terminating state
 			pv.ObjectMeta.SetFinalizers(nil)
-			p, _ := clientset.CoreV1().PersistentVolumes().Update(&pv)
-			fmt.Printf("Removed finalizers on %s, localPath: %s\n", p.Name, localPath)
+			p, err := clientset.CoreV1().PersistentVolumes().Update(&pv)
+			if err != nil {
+				fmt.Printf("Failed removing finalizers for pv %s; EROOR: %s\n", p.Name, err)
+			} else {
+				fmt.Printf("Removed finalizers on %s, localPath: %s\n", p.Name, localPath)
+			}
 		}
 	}
 	return nil
