@@ -259,7 +259,7 @@ curl -X POST $TESTGRID_APIENDPOINT/v1/instance/$TEST_ID/running
 echo "running kurl installer"
 
 if [ ! -c /dev/urandom ]; then
-	/bin/mknod -m 0666 /dev/urandom c 1 9 && /bin/chown root:root /dev/urandom
+    /bin/mknod -m 0666 /dev/urandom c 1 9 && /bin/chown root:root /dev/urandom
 fi
 
 curl $KURL_URL > install.sh
@@ -275,11 +275,13 @@ else
     curl -s -X POST -d "{\"success\": false}" $TESTGRID_APIENDPOINT/v1/instance/$TEST_ID/finish
 fi
 
+export KUBECONFIG=/etc/kubernetes/admin.conf
+
 curl -X POST --data-binary "@/var/log/cloud-init-output.log" $TESTGRID_APIENDPOINT/v1/instance/$TEST_ID/logs
 
 echo "collecting support bundle"
 
-/usr/local/bin/kubectl-support_bundle --kubeconfig /etc/kubernetes/admin.conf https://kots.io
+/usr/local/bin/kubectl-support_bundle https://kots.io
 SUPPORT_BUNDLE=$(ls -1 ./ | grep support-bundle-)
 if [ -n "$SUPPORT_BUNDLE" ]; then
     echo "completed support bundle collection"
@@ -296,18 +298,14 @@ echo "running sonobuoy"
 curl -L --output ./sonobuoy.tar.gz https://github.com/vmware-tanzu/sonobuoy/releases/download/v0.18.3/sonobuoy_0.18.3_linux_amd64.tar.gz
 tar xzvf ./sonobuoy.tar.gz
 
-if [ -z $DOCKERHUB_USER ]; then
-	# RE: https://sonobuoy.io/docs/v0.19.0/pullsecrets/
-	echo '{"ImagePullSecrets":"regcred"}' > secretconfig.json
-	./sonobuoy gen --config secretconfig.json --mode quick > test.yaml
-	echo "---" >> test.yaml
-	kubectl --kubeconfig /etc/kubernetes/admin.conf create secret --dry-run=client -n sonobuoy docker-registry regcred --docker-server=https://index.docker.io/v1/ --docker-username=$DOCKERHUB_USER --docker-password="$DOCKERHUB_PASS" --docker-email=$DOCKERHUB_EMAIL -o yaml >> test.yaml
-	./sonobuoy --kubeconfig /etc/kubernetes/admin.conf run --wait
-else
-	./sonobuoy --kubeconfig /etc/kubernetes/admin.conf run --wait --mode quick
+if [ -n "$DOCKERHUB_USER" ]; then
+    echo "$DOCKERHUB_PASS" | docker login --username=$DOCKERHUB_USER --password-stdin
+    ./sonobuoy images | grep '^sonobuoy/' | tr '\n' '\0' | xargs -0 -n1 sudo docker pull
 fi
 
-RESULTS=$(./sonobuoy retrieve --kubeconfig /etc/kubernetes/admin.conf)
+./sonobuoy run --wait --mode quick
+
+RESULTS=$(./sonobuoy retrieve)
 if [ -n "$RESULTS" ]; then
     echo "completed sonobuoy run"
     ./sonobuoy results $RESULTS > ./sonobuoy-results.txt
