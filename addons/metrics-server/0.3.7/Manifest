@@ -1,1 +1,1 @@
-image k8s.gcr.io/metrics-server/metrics-server:v0.3.7
+image metrics-server k8s.gcr.io/metrics-server/metrics-server:v0.3.7
