@@ -6,7 +6,7 @@ function collectd() {
         case "$LSB_DIST" in
         ubuntu)
             export DEBIAN_FRONTEND=noninteractive
-            dpkg --install --no-install-recommends --force-depends-version ${src}/ubuntu-${DIST_VERSION}/archives/*.deb
+            dpkg --install --force-depends-version ${src}/ubuntu-${DIST_VERSION}/archives/*.deb
             ;;
         centos|rhel|amzn)
             rpm --upgrade --force --nodeps ${src}/rhel-${DIST_VERSION}/archives/*.rpm
