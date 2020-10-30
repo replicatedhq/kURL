@@ -16,6 +16,7 @@ function collectd() {
             ;;
         esac
 
+        collectd_config $src
         collectd_service
     else
         printf "${YELLOW} Collectd is running, skipping installation\n"
@@ -30,6 +31,27 @@ function collectd_service() {
     if ! systemctl -q is-enabled collectd; then
         systemctl enable collectd
     fi
+}
+
+function collectd_config() {
+    local src="$1"
+
+    case "$LSB_DIST" in
+    ubuntu)
+        local conf_path="/etc/collectd"
+        ;;
+    centos|rhel|amzn)
+        local conf_path="/etc"
+        mkdir -p /var/lib/collectd/rrd > /dev/null 2>&1
+        ;;
+    esac
+
+    if [ -f "$conf_path/collectd.conf" ]; then
+        cp -fn "$conf_path/collectd.conf" "$conf_path/collectd.old"
+    fi
+
+    cp -fn "$src/collectd.conf" "$conf_path/collectd.conf"
+    systemctl restart collectd
 }
 
 function collectd_join() {

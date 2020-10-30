@@ -1,2 +1,3 @@
 apt collectd
 yum collectd
+yum collectd-rrdtool
