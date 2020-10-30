@@ -149,6 +149,7 @@ func execute(singleTest types.SingleRun, uploadProxyURL, tempDir string) error {
 				"testgrid.kurl.sh/osname":    singleTest.OperatingSystemName,
 				"testgrid.kurl.sh/osversion": singleTest.OperatingSystemVersion,
 				"testgrid.kurl.sh/osimage":   singleTest.OperatingSystemImage,
+				"testgrid.kurl.sh/kurlurl":   singleTest.KurlURL,
 			},
 		},
 		Spec: kubevirtv1.VirtualMachineInstanceSpec{
@@ -295,13 +296,8 @@ if [ $KURL_EXIT_STATUS -ne 0 ]; then
 fi
 
 echo "running sonobuoy"
-curl -L --output ./sonobuoy.tar.gz https://github.com/vmware-tanzu/sonobuoy/releases/download/v0.18.3/sonobuoy_0.18.3_linux_amd64.tar.gz
+curl -L --output ./sonobuoy.tar.gz https://github.com/vmware-tanzu/sonobuoy/releases/download/v0.19.0/sonobuoy_0.19.0_linux_amd64.tar.gz
 tar xzvf ./sonobuoy.tar.gz
-
-if [ -n "$DOCKERHUB_USER" ]; then
-    echo "$DOCKERHUB_PASS" | docker login --username=$DOCKERHUB_USER --password-stdin
-    ./sonobuoy images | grep '^sonobuoy/' | tr '\n' '\0' | xargs -0 -n1 sudo docker pull
-fi
 
 ./sonobuoy run --wait --mode quick
 
