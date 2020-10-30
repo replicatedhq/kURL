@@ -16,7 +16,6 @@ spec:
       name: kotsadm-postgres
       labels:
         kots.io/kotsadm: "true"
-        kots.io/backup: velero
     spec:
       accessModes:
       - ReadWriteOnce
