@@ -6,7 +6,7 @@ function collectd() {
         case "$LSB_DIST" in
         ubuntu)
             export DEBIAN_FRONTEND=noninteractive
-            dpkg --install --force-depends-version ${src}/ubuntu-${DIST_VERSION}/archives/*.deb
+            dpkg --install --no-install-recommends --force-depends-version ${src}/ubuntu-${DIST_VERSION}/archives/*.deb
             ;;
         centos|rhel|amzn)
             rpm --upgrade --force --nodeps ${src}/rhel-${DIST_VERSION}/archives/*.rpm
@@ -18,13 +18,11 @@ function collectd() {
 
         collectd_service
     else
-        printf "${YELLOW} Collectd is running, skeeing installation\n"
+        printf "${YELLOW} Collectd is running, skipping installation\n"
     fi
 }
 
 function collectd_service() {
-    systemctl daemon-reload
-
     if ! systemctl -q is-active collectd; then
         systemctl start collectd
     fi
@@ -32,4 +30,8 @@ function collectd_service() {
     if ! systemctl -q is-enabled collectd; then
         systemctl enable collectd
     fi
+}
+
+function collectd_join() {
+    collectd
 }

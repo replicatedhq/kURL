@@ -80,6 +80,7 @@ while read -r line; do
                 --name rhel-7-${package} \
                 centos:7 \
                 /bin/bash -c "\
+                    yum install -y epel-release && \
                     mkdir -p /packages/archives && \
                     yumdownloader --resolve --destdir=/packages/archives -y $package"
             docker cp rhel-7-${package}:/packages/archives $OUT_DIR/rhel-7
@@ -90,7 +91,7 @@ while read -r line; do
                 --name rhel-8-${package} \
                 centos:8 \
                 /bin/bash -c "\
-                    yum install -y yum-utils && \
+                    yum install -y yum-utils epel-release && \
                     mkdir -p /packages/archives && \
                     yumdownloader --resolve --destdir=/packages/archives -y $package"
             docker cp rhel-8-${package}:/packages/archives $OUT_DIR/rhel-8

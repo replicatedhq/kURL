@@ -1,4 +1,2 @@
-
 apt collectd
-yum epel-release
 yum collectd
