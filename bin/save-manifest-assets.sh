@@ -91,7 +91,7 @@ while read -r line; do
                 --name rhel-8-${package} \
                 centos:8 \
                 /bin/bash -c "\
-                    yum install -y yum-utils epel-release && \
+                    yum install -y yum-utils && \
                     mkdir -p /packages/archives && \
                     yumdownloader --resolve --destdir=/packages/archives -y $package"
             docker cp rhel-8-${package}:/packages/archives $OUT_DIR/rhel-8
