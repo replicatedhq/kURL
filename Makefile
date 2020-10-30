@@ -131,6 +131,18 @@ dist/containerd-%.tar.gz: build/addons
 	mkdir -p dist
 	tar cf - -C build addons/containerd/$* | gzip > dist/containerd-$*.tar.gz
 
+dist/cert-manager-%.tar.gz: build/addons
+	mkdir -p build/addons/cert-manager/$*/assets
+	bin/save-manifest-assets.sh addons/cert-manager/$*/Manifest $(CURDIR)/build/addons/cert-manager/$*
+	mkdir -p dist
+	tar cf - -C build addons/cert-manager/$* | gzip > dist/cert-manager-$*.tar.gz
+
+dist/metrics-server-%.tar.gz: build/addons
+	mkdir -p build/addons/metrics-server/$*/assets
+	bin/save-manifest-assets.sh addons/metrics-server/$*/Manifest $(CURDIR)/build/addons/metrics-server/$*
+	mkdir -p dist
+	tar cf - -C build addons/metrics-server/$* | gzip > dist/metrics-server-$*.tar.gz
+
 dist/kubernetes-%.tar.gz:
 	${MAKE} build/packages/kubernetes/$*/images
 	${MAKE} build/packages/kubernetes/$*/ubuntu-16.04
