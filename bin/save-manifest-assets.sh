@@ -42,7 +42,7 @@ while read -r line; do
                 /bin/bash -c "\
                     mkdir -p /packages/archives && \
                     apt update -y \
-                    && apt install -d -y $package \
+                    && apt install -d --no-install-recommends -y $package \
                     -oDebug::NoLocking=1 -o=dir::cache=/packages/"
             docker cp ubuntu-2004-${package}:/packages/archives $OUT_DIR/ubuntu-20.04
             sudo chown -R $UID $OUT_DIR/ubuntu-20.04
@@ -54,7 +54,7 @@ while read -r line; do
                 /bin/bash -c "\
                     mkdir -p /packages/archives && \
                     apt update -y \
-                    && apt install -d -y $package \
+                    && apt install -d --no-install-recommends -y $package \
                     -oDebug::NoLocking=1 -o=dir::cache=/packages/"
             docker cp ubuntu-1804-${package}:/packages/archives $OUT_DIR/ubuntu-18.04
             sudo chown -R $UID $OUT_DIR/ubuntu-18.04
@@ -66,7 +66,7 @@ while read -r line; do
                 /bin/bash -c "\
                     mkdir -p /packages/archives && \
                     apt update -y \
-                    && apt install -d -y $package \
+                    && apt install -d --no-install-recommends -y $package \
                     -oDebug::NoLocking=1 -o=dir::cache=/packages/"
             docker cp ubuntu-1604-${package}:/packages/archives $OUT_DIR/ubuntu-16.04
             sudo chown -R $UID $OUT_DIR/ubuntu-16.04
@@ -80,6 +80,7 @@ while read -r line; do
                 --name rhel-7-${package} \
                 centos:7 \
                 /bin/bash -c "\
+                    yum install -y epel-release && \
                     mkdir -p /packages/archives && \
                     yumdownloader --resolve --destdir=/packages/archives -y $package"
             docker cp rhel-7-${package}:/packages/archives $OUT_DIR/rhel-7

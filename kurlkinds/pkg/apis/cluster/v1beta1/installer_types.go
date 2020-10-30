@@ -40,6 +40,7 @@ type InstallerSpec struct {
 	FirewalldConfig FirewalldConfig `json:"firewalldConfig,omitempty"`
 	Ekco            Ekco            `json:"ekco,omitempty"`
 	Containerd      Containerd      `json:"containerd,omitempty"`
+	Collectd        Collectd        `json:"collectd,omitempty"`
 }
 
 type Contour struct {
@@ -182,6 +183,10 @@ type Calico struct {
 }
 
 type Containerd struct {
+	Version string `json:"version"`
+}
+
+type Collectd struct {
 	Version string `json:"version"`
 }
 

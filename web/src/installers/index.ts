@@ -340,6 +340,19 @@ export const containerdConfigSchema = {
   additionalProperties: false,
 };
 
+export interface CollectdConfig {
+  version: string;
+}
+
+export const collectdConfigSchema = {
+  type: "object",
+  properties: {
+    version: { type: "string" },
+  },
+  required: ["version"],
+  additionalProperties: false,
+};
+
 export interface IptablesConfig {
   iptablesCmds?: string[][];
   preserveConfig?: boolean;
@@ -444,6 +457,7 @@ export interface InstallerSpec {
   ekco?: EkcoConfig;
   kurl?: KurlConfig;
   containerd?: ContainerdConfig;
+  collectd?: CollectdConfig;
   iptablesConfig?: IptablesConfig;
   firewalldConfig?: FirewalldConfig;
   selinuxConfig?: SelinuxConfig;
@@ -469,6 +483,7 @@ const specSchema = {
     ekco: ekcoConfigSchema,
     kurl: kurlConfigSchema,
     containerd: containerdConfigSchema,
+    collectd: collectdConfigSchema,
     firewalldConfig: firewalldConfigSchema,
     iptablesConfig: iptablesConfigSchema,
     selinuxConfig: selinuxConfigSchema,
@@ -623,6 +638,9 @@ export class Installer {
     ],
     minio: [
       "2020-01-25T02-50-51Z",
+    ],
+    collectd: [
+      "0.0.1",
     ],
     ekco: [
       "0.6.0",
@@ -1004,6 +1022,9 @@ export class Installer {
     }
     if (this.spec.containerd && this.spec.docker) {
       return { error: { message: `This spec contains both docker and containerd, please specifiy only one CRI` } };
+    }
+    if (this.spec.collectd && !Installer.hasVersion("collectd", this.spec.collectd.version)) {
+      return { error: { message: `Collectd version "${_.escape(this.spec.collectd.version)}" is not supported` } };
     }
   }
 
