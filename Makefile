@@ -41,6 +41,11 @@ dist/aws-%.tar.gz: build/addons
 	bin/save-manifest-assets.sh addons/aws/$*/Manifest build/addons/aws/$*
 	tar cf - -C build addons/aws/$* | gzip > dist/aws-$*.tar.gz
 
+dist/collectd-%.tar.gz: build/addons
+	mkdir -p dist
+	bin/save-manifest-assets.sh addons/collectd/$*/Manifest build/addons/collectd/$*
+	tar cf - -C build addons/collectd/$* | gzip > dist/collectd-$*.tar.gz
+
 dist/nodeless-%.tar.gz: build/addons
 	mkdir -p dist
 	bin/save-manifest-assets.sh addons/nodeless/$*/Manifest $(CURDIR)/build/addons/nodeless/$*
