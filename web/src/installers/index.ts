@@ -358,6 +358,32 @@ export interface IptablesConfig {
   preserveConfig?: boolean;
 }
 
+export interface CertManagerConfig {
+  version: string;
+}
+
+export const certManagerSchema = {
+  type: "object",
+  properties: {
+    version: { type: "string" },
+  },
+  required: ["version"],
+  additionalProperties: false,
+};
+
+export interface MetricsServerConfig {
+  version: string;
+}
+
+export const metricsServerSchema = {
+  type: "object",
+  properties: {
+    version: { type: "string" },
+  },
+  required: ["version"],
+  additionalProperties: false,
+};
+
 export const iptablesConfigSchema = {
   type: "object",
   properties: {
@@ -458,6 +484,8 @@ export interface InstallerSpec {
   kurl?: KurlConfig;
   containerd?: ContainerdConfig;
   collectd?: CollectdConfig;
+  certManager?: CertManagerConfig;
+  metricsServer?: MetricsServerConfig;
   iptablesConfig?: IptablesConfig;
   firewalldConfig?: FirewalldConfig;
   selinuxConfig?: SelinuxConfig;
@@ -484,6 +512,8 @@ const specSchema = {
     kurl: kurlConfigSchema,
     containerd: containerdConfigSchema,
     collectd: collectdConfigSchema,
+    certManager: certManagerSchema,
+    metricsServer: metricsServerSchema,
     firewalldConfig: firewalldConfigSchema,
     iptablesConfig: iptablesConfigSchema,
     selinuxConfig: selinuxConfigSchema,
@@ -654,6 +684,12 @@ export class Installer {
       "0.2.1",
       "0.2.0",
       "0.1.0",
+    ],
+    certManager: [
+      "1.0.3",
+    ],
+    metricsServer: [
+      "0.3.7",
     ],
   };
 
@@ -1025,6 +1061,12 @@ export class Installer {
     }
     if (this.spec.collectd && !Installer.hasVersion("collectd", this.spec.collectd.version)) {
       return { error: { message: `Collectd version "${_.escape(this.spec.collectd.version)}" is not supported` } };
+    }
+    if (this.spec.certManager && !Installer.hasVersion("certManager", this.spec.certManager.version)) {
+      return { error: { message: `CertManager version "${_.escape(this.spec.certManager.version)}" is not supported` } };
+    }
+    if (this.spec.metricsServer && !Installer.hasVersion("metricsServer", this.spec.metricsServer.version)) {
+      return { error: { message: `MetricsServer version "${_.escape(this.spec.metricsServer.version)}" is not supported` } };
     }
   }
 
