@@ -175,6 +175,63 @@ spec:
             cpu: 100m
             memory: 100Mi
 
+      initContainers:
+      - name: restore-db
+        command:
+        - "/restore-db.sh"
+        env:
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: kotsadm-postgres
+        image: kotsadm/kotsadm:alpha
+        imagePullPolicy: IfNotPresent
+        volumeMounts:
+        - mountPath: /backup
+          name: backup
+        resources:
+          limits:
+            cpu: 500m
+          requests:
+            cpu: 100m
+            memory: 100Mi
+
+      - name: restore-s3
+        command:
+        - /restore-s3.sh
+        env:
+        - name: S3_ENDPOINT
+          valueFrom:
+            secretKeyRef:
+              key: endpoint
+              name: kotsadm-s3
+        - name: S3_BUCKET_NAME
+          value: kotsadm
+        - name: S3_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              key: access-key-id
+              name: kotsadm-s3
+        - name: S3_SECRET_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              key: secret-access-key
+              name: kotsadm-s3
+        - name: S3_BUCKET_ENDPOINT
+          value: "true"
+        image: kotsadm/kotsadm:alpha
+        imagePullPolicy: IfNotPresent
+        volumeMounts:
+        - mountPath: /backup
+          name: backup
+        resources:
+          limits:
+            cpu: 500m
+          requests:
+            cpu: 100m
+            memory: 100Mi
+
 ---
 apiVersion: v1
 kind: Service
