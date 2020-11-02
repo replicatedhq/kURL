@@ -106,6 +106,25 @@ func Test_convertToBash(t *testing.T) {
 			},
 			wantError: false,
 		},
+		{
+			name: "CertManager.Version sets CERT_MANAGER_VERSION",
+			inputMap: map[string]interface{}{
+				"CertManager.Version": "1.0.3",
+			},
+			wantedMap: map[string]string{
+				"CERT_MANAGER_VERSION": `"1.0.3"`,
+			},
+			wantError: false,
+		},
+		{
+			name: "MetricsServer.Version sets METRICS_SERVER_VERSION",
+			inputMap: map[string]interface{}{
+				"MetricsServer.Version": "0.3.7",
+			},
+			wantedMap: map[string]string{
+				"METRICS_SERVER_VERSION": `"0.3.7"`,
+			},
+		},
 	}
 
 	for _, test := range tests {
