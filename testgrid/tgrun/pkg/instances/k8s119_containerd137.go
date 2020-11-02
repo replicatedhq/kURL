@@ -6,8 +6,7 @@ import (
 )
 
 func init() {
-	Instances = append(
-		Instances,
+	RegisterInstance(
 		types.InstallerSpec{
 			Kubernetes: kurlv1beta1.Kubernetes{
 				Version: "1.19.3",
