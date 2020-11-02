@@ -17,6 +17,8 @@ function addon_for_each() {
     $cmd fluentd "$FLUENTD_VERSION"
     $cmd ekco "$EKCO_VERSION"
     $cmd collectd "$COLLECTD_VERSION"
+    $cmd cert-manager "$CERT_MANAGER_VERSION"
+    $cmd metrics-server "$METRICS_SERVER_VERSION"
 }
 
 function addon_install() {
