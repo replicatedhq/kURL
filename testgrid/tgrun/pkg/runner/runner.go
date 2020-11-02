@@ -259,7 +259,7 @@ curl -X POST $TESTGRID_APIENDPOINT/v1/instance/$TEST_ID/running
 echo "running kurl installer"
 
 if [ ! -c /dev/urandom ]; then
-	/bin/mknod -m 0666 /dev/urandom c 1 9 && /bin/chown root:root /dev/urandom
+    /bin/mknod -m 0666 /dev/urandom c 1 9 && /bin/chown root:root /dev/urandom
 fi
 
 curl $KURL_URL > install.sh
@@ -293,19 +293,10 @@ if [ $KURL_EXIT_STATUS -ne 0 ]; then
 fi
 
 echo "running sonobuoy"
-curl -L --output ./sonobuoy.tar.gz https://github.com/vmware-tanzu/sonobuoy/releases/download/v0.18.3/sonobuoy_0.18.3_linux_amd64.tar.gz
+curl -L --output ./sonobuoy.tar.gz https://github.com/vmware-tanzu/sonobuoy/releases/download/v0.19.0/sonobuoy_0.19.0_linux_amd64.tar.gz
 tar xzvf ./sonobuoy.tar.gz
 
-if [ -z $DOCKERHUB_USER ]; then
-	# RE: https://sonobuoy.io/docs/v0.19.0/pullsecrets/
-	echo '{"ImagePullSecrets":"regcred"}' > secretconfig.json
-	./sonobuoy gen --config secretconfig.json --mode quick > test.yaml
-	echo "---" >> test.yaml
-	kubectl --kubeconfig /etc/kubernetes/admin.conf create secret --dry-run=client -n sonobuoy docker-registry regcred --docker-server=https://index.docker.io/v1/ --docker-username=$DOCKERHUB_USER --docker-password="$DOCKERHUB_PASS" --docker-email=$DOCKERHUB_EMAIL -o yaml >> test.yaml
-	./sonobuoy --kubeconfig /etc/kubernetes/admin.conf run --wait
-else
-	./sonobuoy --kubeconfig /etc/kubernetes/admin.conf run --wait --mode quick
-fi
+./sonobuoy --kubeconfig /etc/kubernetes/admin.conf run --wait --mode quick
 
 RESULTS=$(./sonobuoy retrieve --kubeconfig /etc/kubernetes/admin.conf)
 if [ -n "$RESULTS" ]; then
