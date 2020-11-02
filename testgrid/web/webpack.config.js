@@ -125,7 +125,8 @@ module.exports = function(env) {
 				new RegExp(`^\\./.*\\.js$`)
       ),
       new MonacoWebpackPlugin({
-        languages: ["yaml", "json"]
+        languages: ["yaml", "json"],
+        features: ["!anchorSelect"]
       }),
     ],
   };
