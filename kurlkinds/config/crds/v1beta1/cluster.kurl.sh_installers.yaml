@@ -40,6 +40,13 @@ spec:
               required:
               - version
               type: object
+            certManager:
+              properties:
+                version:
+                  type: string
+              required:
+              - version
+              type: object
             collectd:
               properties:
                 version:
@@ -208,6 +215,13 @@ spec:
                   type: string
                 publicAddress:
                   type: string
+              type: object
+            metricsServer:
+              properties:
+                version:
+                  type: string
+              required:
+              - version
               type: object
             minio:
               properties:

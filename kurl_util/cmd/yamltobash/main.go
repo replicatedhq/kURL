@@ -96,6 +96,7 @@ func convertToBash(kurlValues map[string]interface{}) (map[string]string, error)
 	bashLookup := map[string]string{
 		"Calico.Version":                         "CALICO_VERSION",
 		"Collectd.Version":                       "COLLECTD_VERSION",
+		"CertManager.Version":                    "CERT_MANAGER_VERSION",
 		"Containerd.Version":                     "CONTAINERD_VERSION",
 		"Contour.TLSMinimumProtocolVersion":      "CONTOUR_TLS_MINIMUM_PROTOCOL_VERSION",
 		"Contour.Version":                        "CONTOUR_VERSION",
@@ -146,6 +147,7 @@ func convertToBash(kurlValues map[string]interface{}) (map[string]string, error)
 		"Kurl.NoProxy":                           "NO_PROXY",
 		"Kurl.PrivateAddress":                    "PRIVATE_ADDRESS",
 		"Kurl.PublicAddress":                     "PUBLIC_ADDRESS",
+		"MetricsServer.Version":                  "METRICS_SERVER_VERSION",
 		"Minio.Namespace":                        "MINIO_NAMESPACE",
 		"Minio.Version":                          "MINIO_VERSION",
 		"OpenEBS.CstorStorageClassName":          "OPENEBS_CSTOR_STORAGE_CLASS",

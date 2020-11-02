@@ -6,7 +6,7 @@ require (
 	github.com/apparentlymart/go-cidr v1.0.1
 	github.com/coreos/bbolt v1.3.1-coreos.6 // indirect
 	github.com/coreos/etcd v3.3.15+incompatible // indirect
-	github.com/foomo/htpasswd v0.0.0-20200116085101-e3a90e78da9c // indirect
+	github.com/foomo/htpasswd v0.0.0-20200116085101-e3a90e78da9c
 	github.com/pkg/errors v0.8.1
 	github.com/replicatedhq/kurl v0.0.0-20200601170456-4d9730fe4307
 	github.com/replicatedhq/kurl/kurlkinds v0.0.0-20201030214350-520884458640
@@ -23,3 +23,5 @@ require (
 )
 
 replace github.com/replicatedhq/kurl/ => ../
+
+replace github.com/replicatedhq/kurlkinds/ => ../kurlkinds/

@@ -41,6 +41,8 @@ type InstallerSpec struct {
 	Ekco            Ekco            `json:"ekco,omitempty"`
 	Containerd      Containerd      `json:"containerd,omitempty"`
 	Collectd        Collectd        `json:"collectd,omitempty"`
+	CertManager     CertManager     `json:"certManager,omitempty"`
+	MetricsServer   MetricsServer   `json:"metricsServer,omitempty"`
 }
 
 type Contour struct {
@@ -187,6 +189,14 @@ type Containerd struct {
 }
 
 type Collectd struct {
+	Version string `json:"version"`
+}
+
+type CertManager struct {
+	Version string `json:"version"`
+}
+
+type MetricsServer struct {
 	Version string `json:"version"`
 }
 

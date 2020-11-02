@@ -93,6 +93,10 @@ spec:
     publicAddress: 101.38.1.1
   collectd:
     version: 0.0.1
+  certManager:
+    version: 1.0.3
+  metricsServer:
+    version: 0.3.7
 `;
 
 const typeMetaStableV1Beta1 = `
@@ -737,6 +741,22 @@ spec:
       const i = Installer.parse(everyOption);
 
       expect(i.spec.collectd.version).to.equal("0.0.1");
+    });
+  });
+
+  describe("certManager", () => {
+    it("should parse the version", () => {
+      const i = Installer.parse(everyOption);
+
+      expect(i.spec.certManager.version).to.equal("1.0.3");
+    });
+  });
+
+  describe("metricsServer", () => {
+    it("should parse the version", () => {
+      const i = Installer.parse(everyOption);
+
+      expect(i.spec.metricsServer.version).to.equal("0.3.7");
     });
   });
 });
