@@ -91,6 +91,8 @@ spec:
     noProxy: false
     privateAddress: 10.38.1.1
     publicAddress: 101.38.1.1
+  collectd:
+    version: 0.0.1
 `;
 
 const typeMetaStableV1Beta1 = `
@@ -727,6 +729,14 @@ spec:
       expect(out[17]).to.equal("1.17.13");
       expect(out[18]).to.equal("1.18.10");
       expect(out[19]).to.equal("1.19.3");
+    });
+  });
+
+  describe("collectd", () => {
+    it("should parse", () => {
+      const i = Installer.parse(everyOption);
+
+      expect(i.spec.collectd.version).to.equal("0.0.1");
     });
   });
 });
