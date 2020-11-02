@@ -149,6 +149,7 @@ func execute(singleTest types.SingleRun, uploadProxyURL, tempDir string) error {
 				"testgrid.kurl.sh/osname":    singleTest.OperatingSystemName,
 				"testgrid.kurl.sh/osversion": singleTest.OperatingSystemVersion,
 				"testgrid.kurl.sh/osimage":   singleTest.OperatingSystemImage,
+				"testgrid.kurl.sh/kurlurl":   singleTest.KurlURL,
 			},
 		},
 		Spec: kubevirtv1.VirtualMachineInstanceSpec{
@@ -275,11 +276,13 @@ else
     curl -s -X POST -d "{\"success\": false}" $TESTGRID_APIENDPOINT/v1/instance/$TEST_ID/finish
 fi
 
+export KUBECONFIG=/etc/kubernetes/admin.conf
+
 curl -X POST --data-binary "@/var/log/cloud-init-output.log" $TESTGRID_APIENDPOINT/v1/instance/$TEST_ID/logs
 
 echo "collecting support bundle"
 
-/usr/local/bin/kubectl-support_bundle --kubeconfig /etc/kubernetes/admin.conf https://kots.io
+/usr/local/bin/kubectl-support_bundle https://kots.io
 SUPPORT_BUNDLE=$(ls -1 ./ | grep support-bundle-)
 if [ -n "$SUPPORT_BUNDLE" ]; then
     echo "completed support bundle collection"
@@ -296,9 +299,9 @@ echo "running sonobuoy"
 curl -L --output ./sonobuoy.tar.gz https://github.com/vmware-tanzu/sonobuoy/releases/download/v0.19.0/sonobuoy_0.19.0_linux_amd64.tar.gz
 tar xzvf ./sonobuoy.tar.gz
 
-./sonobuoy --kubeconfig /etc/kubernetes/admin.conf run --wait --mode quick
+./sonobuoy run --wait --mode quick
 
-RESULTS=$(./sonobuoy retrieve --kubeconfig /etc/kubernetes/admin.conf)
+RESULTS=$(./sonobuoy retrieve)
 if [ -n "$RESULTS" ]; then
     echo "completed sonobuoy run"
     ./sonobuoy results $RESULTS > ./sonobuoy-results.txt
