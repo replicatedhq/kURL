@@ -12,7 +12,7 @@ var operatingSystems = []types.OperatingSystemImage{
 		PVCPrefix:  "ubuntu-18-",
 	},
 	{
-		VMImageURI: "https://cloud-images.ubuntu.com/xenial/current/xenial-server-cloudimg-amd64-disk1.img",
+		VMImageURI: "https://testgrid-images.s3.amazonaws.com/ubuntu/16.04/ubuntu-16.04-kernel-4.15.0-122-generic.qcow2",
 		Name:       "Ubuntu",
 		Version:    "16.04",
 		PVCPrefix:  "ubuntu-16-",
