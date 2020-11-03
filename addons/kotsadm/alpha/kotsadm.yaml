@@ -55,6 +55,10 @@ spec:
         app: kotsadm
         kots.io/kotsadm: "true"
         kots.io/backup: velero
+      annotations:
+        backup.velero.io/backup-volumes: backup
+        pre.hook.backup.velero.io/command: '["/backup.sh"]'
+        pre.hook.backup.velero.io/timeout: 10m
     spec:
       securityContext:
         runAsUser: 1001
