@@ -43,6 +43,9 @@ func init() {
 				IsCstorEnabled:          true,
 				CstorStorageClassName:   "cstore",
 			},
+			Ekco: &kurlv1beta1.Ekco{
+				Version: "0.6.0",
+			},
 			Minio: &kurlv1beta1.Minio{
 				Version:   "latest",
 				Namespace: "minio",

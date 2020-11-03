@@ -17,6 +17,9 @@ func init() {
 			Rook: &kurlv1beta1.Rook{
 				Version: "1.0.4",
 			},
+			Ekco: &kurlv1beta1.Ekco{
+				Version: "0.6.0",
+			},
 			Contour: &kurlv1beta1.Contour{
 				Version: "1.0.1",
 			},
