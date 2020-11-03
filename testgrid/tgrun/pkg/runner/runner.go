@@ -327,10 +327,10 @@ runcmd:
   - [ bash, -c, 'sudo mkdir -p /opt/kurl-testgrid' ]
   - [ bash, -c, 'echo %s | base64 -d > /opt/kurl-testgrid/runcmd.sh' ]
   - [ bash, -c, 'cd /opt/kurl-testgrid && sudo bash runcmd.sh' ]
+  - [ bash, -c, 'sleep 10 && sudo poweroff' ]
 
 power_state:
   mode: poweroff
-  timeout: 1
   condition: True
 `,
 		runcmdB64,
