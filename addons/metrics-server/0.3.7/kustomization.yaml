@@ -1,2 +1,5 @@
 resources:
 - components.yaml
+
+patchesStrategicMerge:
+- kubelet-insecure-tls.yaml
