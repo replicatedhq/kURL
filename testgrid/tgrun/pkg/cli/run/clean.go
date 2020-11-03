@@ -23,7 +23,7 @@ func runCleanUp() error {
 	if err := runner.CleanUpVMIs(); err != nil {
 		fmt.Println("VMI clean up ERROR: ", err)
 	}
-	if err := runner.CleanUpPVs(); err != nil {
+	if err := runner.CleanUpData(); err != nil {
 		fmt.Println("PV clean up ERROR: ", err)
 	}
 	return nil
