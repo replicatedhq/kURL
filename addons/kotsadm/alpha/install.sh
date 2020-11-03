@@ -32,6 +32,7 @@ function kotsadm() {
         cp "$DIR/addons/kotsadm/alpha/kotsadm-airgap.yaml" "$DIR/kustomize/kotsadm/kotsadm-airgap.yaml"
         insert_patches_strategic_merge "$DIR/kustomize/kotsadm/kustomization.yaml" kotsadm-airgap.yaml
     fi
+    kotsadm_cacerts_file
 
     kotsadm_etcd_client_secret
     kotsadm_kubelet_client_secret
@@ -398,5 +399,35 @@ function kotsadm_ready_spinner() {
     if ! spinner_until 120 kotsadm_health_check; then
       kubectl logs -l app=kotsadm --all-containers --tail 10
       bail "The kotsadm deployment in the kotsadm addon failed to deploy successfully."
+    fi
+}
+
+function kotsadm_cacerts_file() {
+    # Find the cacerts bundle on the host
+    # if it exists, add a patch to add the volume mount to kotsadm
+
+    # See https://github.com/golang/go/blob/23173fc025f769aaa9e19f10aa0f69c851ca2f3b/src/crypto/x509/root_linux.go
+    # CentOS 6/7, RHEL 7
+    # Fedora/RHEL 6 (this is a link on Centos 6/7)
+    # OpenSUSE
+    # OpenELEC
+    # Debian/Ubuntu/Gentoo etc. This is where OpenSSL will look. It's moved to the bottom because this exists as a link on some other platforms
+    set \
+        "/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem" \
+        "/etc/pki/tls/certs/ca-bundle.crt" \
+        "/etc/ssl/ca-bundle.pem" \
+        "/etc/pki/tls/cacert.pem" \
+        "/etc/ssl/certs/ca-certificates.crt"
+
+    for cert_file do
+        if [ -f "$cert_file" ]; then
+            KOTSADM_TRUSTED_CERT_MOUNT="${cert_file}"
+            break
+        fi
+    done
+
+    if [ -n "$KOTSADM_TRUSTED_CERT_MOUNT" ]; then
+        render_yaml_file "$DIR/addons/kotsadm/alpha/tmpl-kotsadm-cacerts.yaml" > "$DIR/kustomize/kotsadm/kotsadm-cacerts.yaml"
+        insert_patches_strategic_merge "$DIR/kustomize/kotsadm/kustomization.yaml" kotsadm-cacerts.yaml
     fi
 }
