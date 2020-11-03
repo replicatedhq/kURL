@@ -14,9 +14,6 @@ func init() {
 			Weave: &kurlv1beta1.Weave{
 				Version: "2.5.2",
 			},
-			Rook: &kurlv1beta1.Rook{
-				Version: "1.0.4",
-			},
 			Contour: &kurlv1beta1.Contour{
 				Version: "1.0.1",
 			},
