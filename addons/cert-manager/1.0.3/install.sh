@@ -3,6 +3,7 @@ cert-manager() {
   local dst="$DIR/kustomize/cert-manager"
 
   cp "$src/cert-manager.yaml" "$dst"
+  cp "$src/kustomization.yaml" "$dst"
 
   kubectl apply -k  "$dst"
 }

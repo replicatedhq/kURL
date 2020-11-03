@@ -9,7 +9,7 @@ require (
 	github.com/foomo/htpasswd v0.0.0-20200116085101-e3a90e78da9c
 	github.com/pkg/errors v0.8.1
 	github.com/replicatedhq/kurl v0.0.0-20200601170456-4d9730fe4307
-	github.com/replicatedhq/kurl/kurlkinds v0.0.0-20201030214350-520884458640
+	github.com/replicatedhq/kurl/kurlkinds v0.0.0-20201102234114-f9eee5ce9bb6
 	github.com/stretchr/testify v1.4.0
 	github.com/vishvananda/netlink v0.0.0-20171020171820-b2de5d10e38e
 	github.com/vishvananda/netns v0.0.0-20171111001504-be1fbeda1936 // indirect
@@ -23,5 +23,3 @@ require (
 )
 
 replace github.com/replicatedhq/kurl/ => ../
-
-replace github.com/replicatedhq/kurlkinds/ => ../kurlkinds/
