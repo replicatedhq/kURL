@@ -3,6 +3,7 @@ metrics-server() {
   local dst="$DIR/kustomize/metrics-server"
 
   cp "$src/components.yaml" "$dst"
+  cp "$src/kustomization.yaml" "$dst"
 
   kubectl apply -k  "$dst"
 }
