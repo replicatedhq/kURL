@@ -759,4 +759,21 @@ spec:
       expect(i.spec.metricsServer.version).to.equal("0.3.7");
     });
   });
+
+  describe("packages", () => {
+    it("should convert camel case to kebab case", () => {
+      const i = Installer.parse(everyOption).resolve();
+      const pkgs = i.packages();
+
+      const hasCertManager = _.some(pkgs, (pkg) => {
+        return _.startsWith(pkg, "cert-manager");
+      });
+      const hasMetricsServer = _.some(pkgs, (pkg) => {
+        return _.startsWith(pkg, "metrics-server");
+      });
+
+      expect(hasCertManager).to.equal(true);
+      expect(hasMetricsServer).to.equal(true);
+    });
+  });
 });

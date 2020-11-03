@@ -1079,7 +1079,7 @@ export class Installer {
     _.each(_.keys(this.spec), (config: string) => {
       const version = this.spec[config].version;
       if (version) {
-        pkgs.push(`${config}-${this.spec[config].version}`);
+        pkgs.push(`${_.kebabCase(config)}-${this.spec[config].version}`);
 
         // include an extra version of kubernetes so they can upgrade 2 minor versions
         if (config === "kubernetes") {
