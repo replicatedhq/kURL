@@ -83,18 +83,10 @@ function kubernetes_install_host_packages() {
             case "$LSB_DIST$DIST_VERSION" in
                 rhel8.0|rhel8.1|rhel8.2|centos8.0|centos8.1|centos8.2)
                     rpm --upgrade --force --nodeps $DIR/packages/kubernetes/${k8sVersion}/rhel-8/*.rpm
-                    # TODO still required on 1.15+, and only CentOS/RHEL?
-                    if [ -n "$DOCKER_VERSION" ]; then
-                        service docker restart
-                    fi
                     ;;
 
                 *)
                     rpm --upgrade --force --nodeps $DIR/packages/kubernetes/${k8sVersion}/rhel-7/*.rpm
-                    # TODO still required on 1.15+, and only CentOS/RHEL?
-                    if [ -n "$DOCKER_VERSION" ]; then
-                        service docker restart
-                    fi
                     ;;
             esac
         ;;
