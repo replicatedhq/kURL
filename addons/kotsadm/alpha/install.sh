@@ -121,7 +121,11 @@ function kotsadm_secret_cluster_token() {
 function kotsadm_secret_authstring() {
     local AUTHSTRING=$(kubernetes_secret_value default kotsadm-authstring kotsadm-authstring)
 
-    if [[ -z "$AUTHSTRING" || (! "$AUTHSTRING" =~ ^'Kots ' && ! "$AUTHSTRING" =~ ^'Bearer ') ]]; then
+    if [ -z "$AUTHSTRING" ]; then
+        AUTHSTRING="Kots $(< /dev/urandom tr -dc A-Za-z0-9 | head -c32)"
+    fi
+
+    if [[ ! "$AUTHSTRING" =~ ^'Kots ' && ! "$AUTHSTRING" =~ ^'Bearer ' ]]; then
         AUTHSTRING="Kots $(< /dev/urandom tr -dc A-Za-z0-9 | head -c32)"
     fi
 
