@@ -107,6 +107,7 @@ function main() {
     preflights
     joinPrompts
     prompts
+    journald_persistent
     configure_proxy
     configure_no_proxy
     install_cri
