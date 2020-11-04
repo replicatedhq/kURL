@@ -106,6 +106,7 @@ function main() {
     parse_kubernetes_target_version
     discover
     preflights
+    journald_persistent
     configure_proxy
     configure_no_proxy
     apply_docker_config

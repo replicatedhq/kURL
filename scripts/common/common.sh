@@ -374,3 +374,15 @@ function cert_has_san() {
 
     echo "Q" | openssl s_client -connect "$address" 2>/dev/null | openssl x509 -noout -text 2>/dev/null | grep --after-context=1 'X509v3 Subject Alternative Name' | grep -q "$2"
 }
+
+# By default journald persists logs if the directory /var/log/journal exists so create it if it's
+# not found. Sysadmins may still disable persistent logging with /etc/systemd/journald.conf.
+function journald_persistent() {
+    if [ -d /var/log/journal ]; then
+        return 0
+    fi
+    mkdir -p /var/log/journal
+    systemd-tmpfiles --create --prefix /var/log/journal
+    systemctl restart systemd-journald
+    journalctl --flush
+}

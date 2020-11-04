@@ -343,6 +343,7 @@ function main() {
     discover full-cluster
     preflights
     prompts
+    journald_persistent
     configure_proxy
     addon_for_each addon_pre_init
     discover_pod_subnet
