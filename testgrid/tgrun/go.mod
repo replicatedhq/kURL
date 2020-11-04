@@ -17,6 +17,9 @@ require (
 )
 
 replace (
+	github.com/replicatedhq/kurl/kurlkinds => ../../kurlkinds
+	github.com/replicatedhq/kurl/testgrid/tgapi => ../tgapi
+
 	github.com/Azure/go-autorest => github.com/Azure/go-autorest v11.0.0+incompatible
 	github.com/go-kit/kit => github.com/go-kit/kit v0.3.0
 	github.com/googleapis/gnostic => github.com/googleapis/gnostic v0.3.1
