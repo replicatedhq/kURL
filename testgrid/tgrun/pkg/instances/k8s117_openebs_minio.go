@@ -33,12 +33,12 @@ func init() {
 				Version: "1.19.6",
 			},
 			OpenEBS: &kurlv1beta1.OpenEBS{
-				Version:                 "latest",
-				Namespace:               "space",
+				Version:                 "1.12.0",
+				Namespace:               "openebs",
 				IsLocalPVEnabled:        true,
 				LocalPVStorageClassName: "openebs",
 				IsCstorEnabled:          true,
-				CstorStorageClassName:   "cstore",
+				CstorStorageClassName:   "default",
 			},
 			Ekco: &kurlv1beta1.Ekco{
 				Version: "0.6.0",
