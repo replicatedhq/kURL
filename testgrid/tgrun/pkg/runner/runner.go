@@ -7,11 +7,13 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"math/rand"
 	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"regexp"
+	"time"
 
 	"github.com/pkg/errors"
 	tghandlers "github.com/replicatedhq/kurl/testgrid/tgapi/pkg/handlers"
@@ -176,11 +178,12 @@ func execute(singleTest types.SingleRun, uploadProxyURL, tempDir string) error {
 						{
 							Name: "cloudinitdisk",
 							DiskDevice: kubevirtv1.DiskDevice{
-								Disk: &kubevirtv1.DiskTarget{
-									Bus: "virtio",
+								CDRom: &kubevirtv1.CDRomTarget{
+									Bus: "sata",
 								},
 							},
 						},
+						getEmptyDisk("emptydisk1"),
 					},
 				},
 			},
@@ -204,6 +207,7 @@ func execute(singleTest types.SingleRun, uploadProxyURL, tempDir string) error {
 						},
 					},
 				},
+				getEmptyDiskVolume("emptydisk1", resource.MustParse("50Gi")),
 			},
 		},
 	}
@@ -355,4 +359,42 @@ power_state:
 	}
 
 	return nil
+}
+
+func getEmptyDisk(name string) kubevirtv1.Disk {
+	return kubevirtv1.Disk{
+		Name:   name,
+		Serial: randomStringWithCharset(serialLen, serialCharset),
+		DiskDevice: kubevirtv1.DiskDevice{
+			Disk: &kubevirtv1.DiskTarget{
+				Bus: "virtio",
+			},
+		},
+	}
+}
+
+func getEmptyDiskVolume(name string, capacity resource.Quantity) kubevirtv1.Volume {
+	return kubevirtv1.Volume{
+		Name: name,
+		VolumeSource: kubevirtv1.VolumeSource{
+			EmptyDisk: &kubevirtv1.EmptyDiskSource{
+				Capacity: capacity,
+			},
+		},
+	}
+}
+
+const (
+	serialLen     = 16
+	serialCharset = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+)
+
+var seededRand *rand.Rand = rand.New(rand.NewSource(time.Now().UnixNano()))
+
+func randomStringWithCharset(length int, charset string) string {
+	b := make([]byte, length)
+	for i := range b {
+		b[i] = charset[seededRand.Intn(len(charset))]
+	}
+	return string(b)
 }
