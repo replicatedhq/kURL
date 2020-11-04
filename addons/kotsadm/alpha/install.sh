@@ -99,17 +99,15 @@ function kotsadm_outro() {
 function kotsadm_secret_cluster_token() {
     local CLUSTER_TOKEN=$(kubernetes_secret_value default kotsadm-cluster-token kotsadm-cluster-token)
 
-    if [ -n "$CLUSTER_TOKEN" ]; then
-        return 0
-    fi
+    if [ -z "$CLUSTER_TOKEN" ]; then
+        # check under old name
+        CLUSTER_TOKEN=$(kubernetes_secret_value default kotsadm-auto-create-cluster-token token)
 
-    # check under old name
-    CLUSTER_TOKEN=$(kubernetes_secret_value default kotsadm-auto-create-cluster-token token)
-
-    if [ -n "$CLUSTER_TOKEN" ]; then
-        kubectl delete secret kotsadm-auto-create-cluster-token
-    else
-        CLUSTER_TOKEN=$(< /dev/urandom tr -dc A-Za-z0-9 | head -c16)
+        if [ -n "$CLUSTER_TOKEN" ]; then
+            kubectl delete secret kotsadm-auto-create-cluster-token
+        else
+            CLUSTER_TOKEN=$(< /dev/urandom tr -dc A-Za-z0-9 | head -c16)
+        fi
     fi
 
     render_yaml_file "$DIR/addons/kotsadm/alpha/tmpl-secret-cluster-token.yaml" > "$DIR/kustomize/kotsadm/secret-cluster-token.yaml"
@@ -123,17 +121,13 @@ function kotsadm_secret_cluster_token() {
 function kotsadm_secret_authstring() {
     local AUTHSTRING=$(kubernetes_secret_value default kotsadm-authstring kotsadm-authstring)
 
-    if [ -n "$AUTHSTRING" ]; then
-        # These are the only two valid formats.  Regenerating token in other cases to fix existing installs.
-        if [[ "$AUTHSTRING" =~ ^'Kots ' ]]; then
-            return 0
-        fi
-        if [[ "$AUTHSTRING" =~ ^'Bearer ' ]]; then
-            return 0
-        fi
+    if [ -z "$AUTHSTRING" ]; then
+        AUTHSTRING="Kots $(< /dev/urandom tr -dc A-Za-z0-9 | head -c32)"
     fi
 
-    AUTHSTRING="Kots $(< /dev/urandom tr -dc A-Za-z0-9 | head -c32)"
+    if [[ ! "$AUTHSTRING" =~ ^'Kots ' && ! "$AUTHSTRING" =~ ^'Bearer ' ]]; then
+        AUTHSTRING="Kots $(< /dev/urandom tr -dc A-Za-z0-9 | head -c32)"
+    fi
 
     render_yaml_file "$DIR/addons/kotsadm/alpha/tmpl-secret-authstring.yaml" > "$DIR/kustomize/kotsadm/secret-authstring.yaml"
     insert_resources "$DIR/kustomize/kotsadm/kustomization.yaml" secret-authstring.yaml
@@ -142,13 +136,11 @@ function kotsadm_secret_authstring() {
 function kotsadm_secret_password() {
     local BCRYPT_PASSWORD=$(kubernetes_secret_value default kotsadm-password passwordBcrypt)
 
-    if [ -n "$BCRYPT_PASSWORD" ]; then
-        return 0
+    if [ -z "$BCRYPT_PASSWORD" ]; then
+        # global, used in outro
+        KOTSADM_PASSWORD=$(< /dev/urandom tr -dc A-Za-z0-9 | head -c9)
+        BCRYPT_PASSWORD=$(echo "$KOTSADM_PASSWORD" | $DIR/bin/bcrypt --cost=14)
     fi
-
-    # global, used in outro
-    KOTSADM_PASSWORD=$(< /dev/urandom tr -dc A-Za-z0-9 | head -c9)
-    BCRYPT_PASSWORD=$(echo "$KOTSADM_PASSWORD" | $DIR/bin/bcrypt --cost=14)
 
     render_yaml_file "$DIR/addons/kotsadm/alpha/tmpl-secret-password.yaml" > "$DIR/kustomize/kotsadm/secret-password.yaml"
     insert_resources "$DIR/kustomize/kotsadm/kustomization.yaml" secret-password.yaml
@@ -159,11 +151,9 @@ function kotsadm_secret_password() {
 function kotsadm_secret_postgres() {
     local POSTGRES_PASSWORD=$(kubernetes_secret_value default kotsadm-postgres password)
 
-    if [ -n "$POSTGRES_PASSWORD" ]; then
-        return 0
+    if [ -z "$POSTGRES_PASSWORD" ]; then
+        POSTGRES_PASSWORD=$(< /dev/urandom tr -dc A-Za-z0-9 | head -c16)
     fi
-
-    POSTGRES_PASSWORD=$(< /dev/urandom tr -dc A-Za-z0-9 | head -c16)
 
     render_yaml_file "$DIR/addons/kotsadm/alpha/tmpl-secret-postgres.yaml" > "$DIR/kustomize/kotsadm/secret-postgres.yaml"
     insert_resources "$DIR/kustomize/kotsadm/kustomization.yaml" secret-postgres.yaml
@@ -184,11 +174,9 @@ function kotsadm_secret_s3() {
 function kotsadm_secret_session() {
     local JWT_SECRET=$(kubernetes_secret_value default kotsadm-session key)
 
-    if [ -n "$JWT_SECRET" ]; then
-        return 0
+    if [ -z "$JWT_SECRET" ]; then
+        JWT_SECRET=$(< /dev/urandom tr -dc A-Za-z0-9 | head -c16)
     fi
-
-    JWT_SECRET=$(< /dev/urandom tr -dc A-Za-z0-9 | head -c16)
 
     render_yaml_file "$DIR/addons/kotsadm/alpha/tmpl-secret-session.yaml" > "$DIR/kustomize/kotsadm/secret-session.yaml"
     insert_resources "$DIR/kustomize/kotsadm/kustomization.yaml" secret-session.yaml
@@ -199,13 +187,11 @@ function kotsadm_secret_session() {
 function kotsadm_api_encryption_key() {
     local API_ENCRYPTION=$(kubernetes_secret_value default kotsadm-encryption encryptionKey)
 
-    if [ -n "$API_ENCRYPTION" ]; then
-        return 0
+    if [ -z "$API_ENCRYPTION" ]; then
+        # 24 byte key + 12 byte nonce, base64 encoded. This is separate from the base64 encoding used
+        # in secrets with kubectl. Kotsadm expects the value to be encoded when read as an env var.
+        API_ENCRYPTION=$(< /dev/urandom cat | head -c36 | base64)
     fi
-
-    # 24 byte key + 12 byte nonce, base64 encoded. This is separate from the base64 encoding used
-    # in secrets with kubectl. Kotsadm expects the value to be encoded when read as an env var.
-    API_ENCRYPTION=$(< /dev/urandom cat | head -c36 | base64)
 
     render_yaml_file "$DIR/addons/kotsadm/alpha/tmpl-secret-api-encryption.yaml" > "$DIR/kustomize/kotsadm/secret-api-encryption.yaml"
     insert_resources "$DIR/kustomize/kotsadm/kustomization.yaml" secret-api-encryption.yaml
