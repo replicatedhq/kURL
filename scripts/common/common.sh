@@ -378,11 +378,11 @@ function cert_has_san() {
 # By default journald persists logs if the directory /var/log/journal exists so create it if it's
 # not found. Sysadmins may still disable persistent logging with /etc/systemd/journald.conf.
 function journald_persistent() {
-	if [ -d /var/log/journal ]; then
+    if [ -d /var/log/journal ]; then
         return 0
     fi
-	mkdir -p /var/log/journal
-	systemd-tmpfiles --create --prefix /var/log/journal
-	systemctl restart systemd-journald
+    mkdir -p /var/log/journal
+    systemd-tmpfiles --create --prefix /var/log/journal
+    systemctl restart systemd-journald
     journalctl --flush
 }
