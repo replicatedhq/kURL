@@ -269,12 +269,10 @@ function join_token() {
     rm /tmp/kubeadm-token
 
     # get the kurl url and installer id from the kurl-config configmap
-    kubectl get configmaps -n kube-system kurl-config -o yaml > /tmp/kurl-config
-    local kurl_url=$(cat /tmp/kurl-config | grep kurl_url | awk '{ print $2 }')
-    local installer_id=$(cat /tmp/kurl-config | grep installer_id | awk '{ print $2 }')
-    local service_cidr=$(cat /tmp/kurl-config | grep service_cidr | awk '{ print $2 }')
-    local pod_cidr=$(cat /tmp/kurl-config | grep pod_cidr | awk '{ print $2 }')
-    rm /tmp/kurl-config
+    local kurl_url=$(kubectl -n kube-system get cm kurl-config -ojsonpath='{ .data.kurl_url }')
+    local installer_id=$(kubectl -n kube-system get cm kurl-config -ojsonpath='{ .data.installer_id }')
+    local service_cidr=$(kubectl -n kube-system get cm kurl-config -ojsonpath='{ .data.service_cidr }')
+    local pod_cidr=$(kubectl -n kube-system get cm kurl-config -ojsonpath='{ .data.pod_cidry }')
 
     # get the docker registry IP if present
     local docker_registry_ip=$(kubectl -n kurl get service registry -o=jsonpath='{@.spec.clusterIP}' 2>/dev/null || echo "")
