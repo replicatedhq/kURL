@@ -1,4 +1,3 @@
-# WARNING - containerd add-on references this filename
 ---
 apiVersion: v1
 kind: Service
