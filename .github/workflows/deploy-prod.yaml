@@ -135,3 +135,50 @@ jobs:
         git commit --allow-empty -m "https://github.com/replicatedhq/kURL/actions/runs/${GITHUB_RUN_ID}" && \
           git push origin release
 
+  github-release:
+    runs-on: ubuntu-18.04
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Get the version
+      id: get_tag
+      shell: bash
+      run: echo ::set-output name=GIT_TAG::${GITHUB_REF/refs\/tags\//}
+
+    - name: Generate Changelog
+      run: |
+        git fetch --tags
+        lastTag=$(git tag | grep '^v20' | grep -v "$GIT_TAG" | sort | tail -1)
+        docker run --rm \
+          --env CHANGELOG_GITHUB_TOKEN \
+          -v `pwd`:/usr/local/src/your-app \
+          ferrarimarco/github-changelog-generator \
+          --user=replicatedhq \
+          --project=kurl \
+          --release-branch=master \
+          --since-tag="$lastTag" \
+          --no-issues \
+          --no-author
+        sed -i '/This Changelog was automatically generated/d' ./CHANGELOG.md
+      env:
+        CHANGELOG_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GIT_TAG: ${{ steps.get_tag.outputs.GIT_TAG }}
+
+    - name: Read Changelog
+      id: read-changelog
+      uses: juliangruber/read-file-action@v1
+      with:
+        path: ./CHANGELOG.md
+
+    - name: GitHub Release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GIT_TAG: ${{ steps.get_tag.outputs.GIT_TAG }}
+      with:
+        tag_name: ${{ env.GIT_TAG }}
+        release_name: Release ${{ env.GIT_TAG }}
+        body: ${{ steps.read-changelog.outputs.content }}
+        draft: false
+        prerelease: false
