@@ -26,6 +26,9 @@ jobs:
         export VERSION_TAG=$(echo $GITHUB_REF | awk -F'/' '{ print $NF }')
         make -C kurl_util build
 
+    - uses: actions/setup-node@v1
+      with:
+        node-version: '12'
     - run: make -C web deps build
     - run: make web
 
