@@ -3,7 +3,10 @@ FROM golang:1.15-alpine AS builder
 
 RUN apk update && apk add --no-cache git ca-certificates && update-ca-certificates
 
-COPY . /tgrun
+COPY ./testgrid/tgrun /tgrun
+COPY ./testgrid/tgapi /tgapi
+COPY ./kurlkinds /kurlkinds
+
 WORKDIR /tgrun
 
 RUN go mod download
