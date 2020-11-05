@@ -97,7 +97,7 @@ jobs:
           docker build -f testgrid/tgrun/Dockerfile \
             -t replicated/tgrun:latest \
             -t replicated/tgrun:${GITHUB_SHA:0:7} \
-            testgrid/tgrun
+            .
       - uses: azure/docker-login@v1
         with:
           username: ${{ secrets.DOCKERHUB_DOCKER_USER }}
