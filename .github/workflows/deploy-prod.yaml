@@ -151,7 +151,7 @@ jobs:
 
     - name: Generate Changelog
       run: |
-        git fetch --tags
+        git fetch --tags -f
         lastTag=$(git tag | grep '^v20' | grep -v "$GIT_TAG" | sort | tail -1)
         docker run --rm \
           --env CHANGELOG_GITHUB_TOKEN \
