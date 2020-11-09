@@ -337,6 +337,7 @@ function main() {
     proxy_bootstrap
     download_util_binaries
     merge_yaml_specs
+    is_ha
     apply_bash_flag_overrides "$@"
     parse_yaml_into_bash_variables
     parse_kubernetes_target_version
