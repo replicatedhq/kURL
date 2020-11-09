@@ -67,7 +67,7 @@ func checkIfFlagHasValue(length int, flag string) bool {
 }
 
 func parseBashFlags(installer *kurlv1beta1.Installer, bashFlags string) error {
-	s := strings.Split(bashFlags, " ")
+	s := strings.Split(strings.TrimSpace(bashFlags), " ")
 
 	for _, flag := range s {
 		split := strings.Split(flag, "=")
@@ -128,7 +128,7 @@ func mergeConfig(currentYAMLPath string, bashFlags string) error {
 	}
 
 	if err := parseBashFlags(currentConfig, bashFlags); err != nil {
-		return errors.Wrapf(err, "failed to parse flag string %s", bashFlags)
+		return errors.Wrapf(err, "failed to parse flag string %q", bashFlags)
 	}
 
 	s := serializer.NewYAMLSerializer(serializer.DefaultMetaFactory, scheme.Scheme, scheme.Scheme)
