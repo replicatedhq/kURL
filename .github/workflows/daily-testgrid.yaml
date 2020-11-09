@@ -25,7 +25,6 @@ jobs:
     - name: testgrid-queue
       env:
         TESTGRID_API: "https://api.testgrid.kurl.sh/"
-      
       run: |
         ./bin/tgrun queue --ref "${GITHUB_SHA:0:7}-$(date --utc +%FT%TZ)-daily"
-    
+      if: ${{ github.repository_owner == 'replicatedhq' }}
