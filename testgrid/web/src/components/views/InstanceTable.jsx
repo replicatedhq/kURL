@@ -228,7 +228,7 @@ export default class InstanceTable extends React.Component {
                 >
                   <div className="flex flex1 alignItems--center">
                     <span className={`status-text ${status} flex1`}>{status}</span>
-                    {instance.finishedAt && 
+                    {(instance.finishedAt && !instance.isUnsupported) && 
                       <div className="flex-column flex1 alignItems--flexEnd">
                         <button type="button" className="btn xsmall primary u-width--full u-marginBottom--5" onClick={() => this.viewInstanceLogs(instance)}>kURL Logs</button>
                         <button type="button" className="btn xsmall secondary blue u-width--full" onClick={() => this.viewInstanceSonobuoyResults(instance)}>Sonobuoy</button>
