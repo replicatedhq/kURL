@@ -166,6 +166,9 @@ export default class InstanceTable extends React.Component {
       return "";
     }
     if (instance.finishedAt) {
+      if (instance.isUnsupported) {
+        return "Unsupported";
+      }
       return instance.isSuccess ? "Passed" : "Failed";
     }
     if (instance.startedAt) {

@@ -157,6 +157,21 @@ func SetInstanceFinishedAndSuccess(id string, isSuccess bool) error {
 	return nil
 }
 
+func SetInstanceUnsupported(id string) error {
+	db := persistence.MustGetPGSession()
+
+	query := `
+update testinstance set
+is_success = false, is_unsupported = true,
+dequeued_at = now(), started_at = now(), running_at = now(), finished_at = now()
+where id = $1`
+	if _, err := db.Exec(query, id); err != nil {
+		return errors.Wrap(err, "failed to update")
+	}
+
+	return nil
+}
+
 // List returns a list of test instances.
 // Note: pagination (limit and offset) are applied to instances with distinct kurl URLs (instances with same kurl URL count as 1)
 func List(refID string, limit int, offset int, addons map[string]string) ([]types.TestInstance, error) {

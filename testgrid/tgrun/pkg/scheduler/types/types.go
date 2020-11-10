@@ -24,10 +24,15 @@ type TestRun struct {
 }
 
 type OperatingSystemImage struct {
-	VMImageURI string
+	ID         string
 	Name       string
 	Version    string
-	PVCPrefix  string
+	VMImageURI string
+}
+
+type Instance struct {
+	InstallerSpec    InstallerSpec
+	UnsupportedOSIDs []string
 }
 
 type Installer struct {

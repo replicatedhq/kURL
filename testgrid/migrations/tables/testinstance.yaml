@@ -25,6 +25,8 @@ spec:
           type: timestamp without timezone
         - name: is_success
           type: boolean
+        - name: is_unsupported
+          type: boolean
         - name: output
           type: text
         - name: sonobuoy_results

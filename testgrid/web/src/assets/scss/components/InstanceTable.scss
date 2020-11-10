@@ -54,4 +54,8 @@ th, td {
   &.Running {
     color: #999999;
   }
+
+  &.Unsupported {
+    color: #FFC300;
+  }
 }
