@@ -30,7 +30,9 @@ func Run(schedulerOptions types.SchedulerOptions) error {
 
 	plannedInstances := []tghandlers.PlannedInstance{}
 
-	for _, testSpec := range instances.Instances {
+	for _, instance := range instances.Instances {
+		testSpec := instance.InstallerSpec
+
 		// post it to the API to get a sha / id back
 		installer := types.Installer{
 			TypeMeta: metav1.TypeMeta{
@@ -79,6 +81,11 @@ func Run(schedulerOptions types.SchedulerOptions) error {
 		for _, operatingSystem := range operatingSystems {
 			testName := randSeq(6)
 
+			isUnsupported := false
+			if stringInSlice(operatingSystem.ID, instance.UnsupportedOSIDs) {
+				isUnsupported = true
+			}
+
 			plannedInstance := tghandlers.PlannedInstance{
 				ID: testName,
 
@@ -88,6 +95,8 @@ func Run(schedulerOptions types.SchedulerOptions) error {
 				OperatingSystemName:    operatingSystem.Name,
 				OperatingSystemVersion: operatingSystem.Version,
 				OperatingSystemImage:   operatingSystem.VMImageURI,
+
+				IsUnsupported: isUnsupported,
 			}
 
 			plannedInstances = append(plannedInstances, plannedInstance)
@@ -144,4 +153,13 @@ func randSeq(n int) string {
 		b[i] = letters[rand.Intn(len(letters))]
 	}
 	return string(b)
+}
+
+func stringInSlice(s string, slice []string) bool {
+	for _, v := range slice {
+		if s == v {
+			return true
+		}
+	}
+	return false
 }

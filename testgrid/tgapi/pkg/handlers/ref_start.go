@@ -29,6 +29,8 @@ type PlannedInstance struct {
 	OperatingSystemName    string
 	OperatingSystemVersion string
 	OperatingSystemImage   string
+
+	IsUnsupported bool
 }
 
 func StartRef(w http.ResponseWriter, r *http.Request) {
@@ -71,7 +73,7 @@ func StartRef(w http.ResponseWriter, r *http.Request) {
 	}
 
 	for _, plannedInstance := range startRefRequest.Instances {
-		if err := testinstance.Create(
+		err := testinstance.Create(
 			plannedInstance.ID,
 			refID,
 			plannedInstance.KurlYAML,
@@ -79,10 +81,19 @@ func StartRef(w http.ResponseWriter, r *http.Request) {
 			plannedInstance.OperatingSystemName,
 			plannedInstance.OperatingSystemVersion,
 			plannedInstance.OperatingSystemImage,
-		); err != nil {
+		)
+		if err != nil {
 			logger.Error(err)
 			JSON(w, 500, StartRefResponse{})
 			return
+		}
+		if plannedInstance.IsUnsupported {
+			err := testinstance.SetInstanceUnsupported(plannedInstance.ID)
+			if err != nil {
+				logger.Error(err)
+				JSON(w, 500, StartRefResponse{})
+				return
+			}
 		}
 	}
 
