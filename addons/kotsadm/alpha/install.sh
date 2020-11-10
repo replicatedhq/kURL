@@ -355,18 +355,26 @@ function kotsadm_namespaces() {
 function kotsadm_health_check() {
     # Get pods below will initially return only 0 lines
     # Then it will return 1 line: "PodScheduled=True"
-    # Finally, it will return 4 lines.  And this is when we want to grep for "Ready=False"
-    if [ $(kubectl get pods -l app=kotsadm -o jsonpath="{range .items[*]}{range .status.conditions[*]}{ .type }={ .status }{'\n'}{end}{end}" 2>/dev/null | wc -l) -lt 4 ]; then
+    # Finally, it will return 4 lines.  And this is when we want to grep until "Ready=False" is not shown, and '1/1 Running' is
+    if [ $(kubectl get pods -l app=kotsadm -o jsonpath="{range .items[*]}{range .status.conditions[*]}{ .type }={ .status }{'\n'}{end}{end}" 2>/dev/null | wc -l) -ne 4 ]; then
+        # if this returns more than 4 lines, there are multiple copies of the pod running, which is a failure
         return 1
     fi
 
-    if [[ -n $(kubectl get pods -l app=kotsadm -o jsonpath="{range .items[*]}{range .status.conditions[*]}{ .type }={ .status }{'\n'}{end}{end}" 2>/dev/null | grep -q Ready=False) ]]; then
-      return 1
+    if [[ -n $(kubectl get pods -l app=kotsadm --field-selector=status.phase=Running -o jsonpath="{range .items[*]}{range .status.conditions[*]}{ .type }={ .status }{'\n'}{end}{end}" 2>/dev/null | grep -q Ready=False) ]]; then
+        # if there is a pod with Ready=False, then kotsadm is not ready
+        return 1
+    fi
+
+    if [[ -z $(kubectl get pods -l app=kotsadm --field-selector=status.phase=Running 2>/dev/null | grep '1/1' | grep 'Running') ]]; then
+        # when kotsadm is ready, it will be '1/1 Running'
+        return 1
     fi
     return 0
 }
 
 function kotsadm_ready_spinner() {
+    sleep 1 # ensure that kubeadm has had time to begin applying and scheduling the kotsadm pods
     if ! spinner_until 120 kotsadm_health_check; then
       kubectl logs -l app=kotsadm --all-containers --tail 10
       bail "The kotsadm deployment in the kotsadm addon failed to deploy successfully."
