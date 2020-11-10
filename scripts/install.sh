@@ -173,6 +173,7 @@ EOF
         fi
     fi
 
+    spinner_kubernetes_api_healthy
     labelNodes
     kubectl cluster-info
 
