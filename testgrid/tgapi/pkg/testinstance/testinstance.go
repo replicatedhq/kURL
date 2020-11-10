@@ -177,7 +177,7 @@ where id = $1`
 func List(refID string, limit int, offset int, addons map[string]string) ([]types.TestInstance, error) {
 	db := persistence.MustGetPGSession()
 
-	query := `SELECT ti.id, ti.kurl_yaml, ti.kurl_url, ti.os_name, ti.os_version, ti.os_image, ti.enqueued_at, ti.dequeued_at, ti.started_at, ti.finished_at, ti.is_success
+	query := `SELECT ti.id, ti.kurl_yaml, ti.kurl_url, ti.os_name, ti.os_version, ti.os_image, ti.enqueued_at, ti.dequeued_at, ti.started_at, ti.finished_at, ti.is_success, ti.is_unsupported
 FROM testinstance ti
 LEFT JOIN (
 	SELECT kurl_url, row_number() OVER (ORDER BY kurl_url) row_num
@@ -217,7 +217,7 @@ WHERE ti.testrun_ref = $1 AND x.row_num > $2`
 		var dequeuedAt sql.NullTime
 		var startedAt sql.NullTime
 		var finishedAt sql.NullTime
-		var isSuccess sql.NullBool
+		var isSuccess, isUnsupported sql.NullBool
 
 		if err := rows.Scan(
 			&testInstance.ID,
@@ -231,6 +231,7 @@ WHERE ti.testrun_ref = $1 AND x.row_num > $2`
 			&startedAt,
 			&finishedAt,
 			&isSuccess,
+			&isUnsupported,
 		); err != nil {
 			return nil, errors.Wrap(err, "failed to scan")
 		}
@@ -249,6 +250,9 @@ WHERE ti.testrun_ref = $1 AND x.row_num > $2`
 		}
 		if isSuccess.Valid {
 			testInstance.IsSuccess = isSuccess.Bool
+		}
+		if isUnsupported.Valid {
+			testInstance.IsUnsupported = isUnsupported.Bool
 		}
 
 		testInstances = append(testInstances, testInstance)
