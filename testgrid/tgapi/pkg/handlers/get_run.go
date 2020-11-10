@@ -22,16 +22,17 @@ type GetRunResponse struct {
 }
 
 type InstanceResponse struct {
-	ID         string     `json:"id"`
-	OSName     string     `json:"osName"`
-	OSVersion  string     `json:"osVersion"`
-	KurlYAML   string     `json:"kurlYaml"`
-	KurlURL    string     `json:"kurlURL"`
-	EnqueuedAt *time.Time `json:"enqueuedAt"`
-	DequeuedAt *time.Time `json:"dequeuedAt"`
-	StartedAt  *time.Time `json:"startedAt"`
-	FinishedAt *time.Time `json:"finishedAt"`
-	IsSuccess  bool       `json:"isSuccess"`
+	ID            string     `json:"id"`
+	OSName        string     `json:"osName"`
+	OSVersion     string     `json:"osVersion"`
+	KurlYAML      string     `json:"kurlYaml"`
+	KurlURL       string     `json:"kurlURL"`
+	EnqueuedAt    *time.Time `json:"enqueuedAt"`
+	DequeuedAt    *time.Time `json:"dequeuedAt"`
+	StartedAt     *time.Time `json:"startedAt"`
+	FinishedAt    *time.Time `json:"finishedAt"`
+	IsSuccess     bool       `json:"isSuccess"`
+	IsUnsupported bool       `json:"isUnsupported"`
 }
 
 func GetRun(w http.ResponseWriter, r *http.Request) {
@@ -72,16 +73,17 @@ func GetRun(w http.ResponseWriter, r *http.Request) {
 	instanceResponses := []InstanceResponse{}
 	for _, instance := range instances {
 		instanceResponse := InstanceResponse{
-			ID:         instance.ID,
-			OSName:     instance.OSName,
-			OSVersion:  instance.OSVersion,
-			KurlYAML:   instance.KurlYAML,
-			KurlURL:    instance.KurlURL,
-			EnqueuedAt: instance.EnqueuedAt,
-			DequeuedAt: instance.DequeuedAt,
-			StartedAt:  instance.StartedAt,
-			FinishedAt: instance.FinishedAt,
-			IsSuccess:  instance.IsSuccess,
+			ID:            instance.ID,
+			OSName:        instance.OSName,
+			OSVersion:     instance.OSVersion,
+			KurlYAML:      instance.KurlYAML,
+			KurlURL:       instance.KurlURL,
+			EnqueuedAt:    instance.EnqueuedAt,
+			DequeuedAt:    instance.DequeuedAt,
+			StartedAt:     instance.StartedAt,
+			FinishedAt:    instance.FinishedAt,
+			IsSuccess:     instance.IsSuccess,
+			IsUnsupported: instance.IsUnsupported,
 		}
 
 		instanceResponses = append(instanceResponses, instanceResponse)
