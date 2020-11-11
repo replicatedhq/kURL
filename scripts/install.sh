@@ -133,6 +133,8 @@ EOF
         spinner_until 120 cert_has_san "$PRIVATE_ADDRESS:6443" "$LOAD_BALANCER_ADDRESS"
     fi
 
+    spinner_kubernetes_api_stable
+
     exportKubeconfig
     KUBEADM_TOKEN_CA_HASH=$(cat /tmp/kubeadm-init | grep 'discovery-token-ca-cert-hash' | awk '{ print $2 }' | head -1)
 
@@ -173,7 +175,6 @@ EOF
         fi
     fi
 
-    spinner_kubernetes_api_healthy
     labelNodes
     kubectl cluster-info
 

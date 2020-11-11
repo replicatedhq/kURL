@@ -66,14 +66,14 @@ function upgrade_kubernetes_local_master_patch() {
  
     kubernetes_drain "$node"
  
-    spinner_kubernetes_api_healthy
+    spinner_kubernetes_api_stable
     kubeadm upgrade apply "v$k8sVersion" --yes --config /opt/replicated/kubeadm.conf --force
     sed -i "s/kubernetesVersion:.*/kubernetesVersion: v${k8sVersion}/" /opt/replicated/kubeadm.conf
 
     kubernetes_install_host_packages "$k8sVersion"
     systemctl daemon-reload
     systemctl restart kubelet
-    spinner_kubernetes_api_healthy
+    spinner_kubernetes_api_stable
     kubectl uncordon "$node"
 
     spinner_until 120 kubernetes_node_has_version "$node" "$k8sVersion"
@@ -178,7 +178,7 @@ EOF
     printf "${YELLOW}Drain local node and apply upgrade? ${NC}"
     confirmY " "
 
-    spinner_kubernetes_api_healthy
+    spinner_kubernetes_api_stable
     kubeadm upgrade apply "v$k8sVersion" --yes --config /opt/replicated/kubeadm.conf --force
     upgrade_etcd_image_18 "$k8sVersion"
     sed -i "s/kubernetesVersion:.*/kubernetesVersion: v${k8sVersion}/" /opt/replicated/kubeadm.conf
@@ -187,7 +187,7 @@ EOF
     systemctl daemon-reload
     systemctl restart kubelet
 
-    spinner_kubernetes_api_healthy
+    spinner_kubernetes_api_stable
     kubectl uncordon "$node"
 
     # force deleting the cache because the api server will use the stale API versions after kubeadm upgrade
