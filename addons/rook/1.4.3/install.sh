@@ -3,15 +3,22 @@ CEPH_VERSION=15.2.4-20200819
 function rook_pre_init() {
     local version=$(rook_version)
     if [ -n "$version" ] && [ "$version" != "1.4.3" ]; then
-        bail "Rook $version is already installed"
-    fi
-    if [ "$ROOK_BLOCK_STORAGE_ENABLED" != "1" ]; then
+        printf "Rook $version is already installed, will not upgrade to 1.4.3\n"
+        export SKIP_ROOK_INSTALL='true'
+    elif [ "$ROOK_BLOCK_STORAGE_ENABLED" != "1" ]; then
         bail "Rook 1.4.3 requires enabling block storage"
     fi
 }
 
 function rook() {
     rook_lvm2
+
+    if [ -n "$SKIP_ROOK_INSTALL" ]; then
+        local version=$(rook_version)
+        printf "Rook $version is already installed, will not upgrade to 1.4.3\n"
+        return 0
+    fi
+
     rook_operator_deploy
     rook_set_ceph_pool_replicas
     rook_ready_spinner # creating the cluster before the operator is ready fails
