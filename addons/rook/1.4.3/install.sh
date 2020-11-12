@@ -16,6 +16,7 @@ function rook() {
     if [ -n "$SKIP_ROOK_INSTALL" ]; then
         local version=$(rook_version)
         printf "Rook $version is already installed, will not upgrade to 1.4.3\n"
+        rook_object_store_output
         return 0
     fi
 
