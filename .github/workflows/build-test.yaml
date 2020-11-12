@@ -31,3 +31,6 @@ jobs:
         with:
           node-version: '12'
       - run: make -C web test
+
+      - run: make -C testgrid/tgrun update-controller-gen update-client-gen test build
+      - run: make -C testgrid/tgapi test build
