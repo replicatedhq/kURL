@@ -9,18 +9,18 @@ function object_store_exists() {
     fi
 }
 
-function object_store_create_bucket_if_not_exists() {
+function object_store_create_bucket() {
     if object_store_bucket_exists "$1" ; then
         echo "object store bucket $1 exists"
         return 0
     fi
-    if ! object_store_create_bucket "$1" ; then
+    if ! _object_store_create_bucket "$1" ; then
         return 1
     fi
     echo "object store bucket $1 created"
 }
 
-function object_store_create_bucket() {
+function _object_store_create_bucket() {
     local bucket=$1
     local acl="x-amz-acl:private"
     local d=$(LC_TIME="en_US.UTF-8" TZ="UTC" date +"%a, %d %b %Y %T %z")

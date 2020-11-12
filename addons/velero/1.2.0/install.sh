@@ -78,7 +78,7 @@ function velero_kotsadm_local_backend() {
         return 0
     fi
 
-    try_1m object_store_create_bucket_if_not_exists "$VELERO_LOCAL_BUCKET"
+    try_1m object_store_create_bucket "$VELERO_LOCAL_BUCKET"
 
     render_yaml_file "$src/tmpl-kotsadm-local-backend.yaml" > "$dst/kotsadm-local-backend.yaml"
     insert_resources "$dst/kustomization.yaml" kotsadm-local-backend.yaml
