@@ -207,6 +207,8 @@ spec:
                   type: boolean
                 hostnameCheck:
                   type: string
+                nameserver:
+                  type: string
                 noProxy:
                   type: boolean
                 privateAddress:
