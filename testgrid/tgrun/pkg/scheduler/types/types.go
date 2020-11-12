@@ -9,6 +9,7 @@ type SchedulerOptions struct {
 	APIEndpoint  string
 	OverwriteRef bool
 	Ref          string
+	Staging      bool
 }
 
 type TestRun struct {

@@ -51,7 +51,7 @@ func Run(schedulerOptions types.SchedulerOptions) error {
 		}
 
 		apiUrl := "https://kurl.sh/installer"
-		if testSpec.IsStaging {
+		if testSpec.IsStaging || schedulerOptions.Staging {
 			apiUrl = "https://staging.kurl.sh/installer"
 		}
 
