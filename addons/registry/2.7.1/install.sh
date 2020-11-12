@@ -144,7 +144,7 @@ EOF
 }
 
 function registry_object_store_bucket() {
-    object_store_create_bucket "docker-registry"
+    try_1m object_store_create_bucket "docker-registry"
 }
 
 function registry_pvc_exists() {
