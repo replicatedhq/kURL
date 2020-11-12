@@ -260,8 +260,8 @@ function openebs_cstor_pool_count() {
     [ $actual -ge $target ]
 }
 
-function openebs_upgrade() { 
-    if [ "$OPENEBS_CSTOR" = "0" ] || [ ! "$(kubectl get ns $OPENEBS_NAMESPACE 2>/dev/null)" ]; then
+function openebs_upgrade() {
+    if [ "$OPENEBS_CSTOR" != "1" ] || [ ! "$(kubectl get ns $OPENEBS_NAMESPACE 2>/dev/null)" ]; then
         # upgrades only required for cStor OR no existing install is found
         # TODO: handle namespace spec changes at the upgrade time
         return 0
