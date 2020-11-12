@@ -134,7 +134,7 @@ discoverCurrentKubernetesVersion() {
     local fullCluster="$1"
 
     set +e
-    CURRENT_KUBERNETES_VERSION=$(cat /etc/kubernetes/manifests/kube-apiserver.yaml 2>/dev/null | grep image: | grep -oE '[0-9]+.[0-9]+.[0-9]')
+    CURRENT_KUBERNETES_VERSION=$(cat /etc/kubernetes/manifests/kube-apiserver.yaml 2>/dev/null | grep image: | grep -oE '[0-9]+.[0-9]+.[0-9]+')
     set -e
 
     if [ -z "$CURRENT_KUBERNETES_VERSION" ]; then
