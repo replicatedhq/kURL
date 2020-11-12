@@ -9,6 +9,7 @@ function preflights() {
     apply_iptables_config
     cri_preflights
     kotsadm_prerelease
+    host_nameservers_reachable
 
     return 0
 }
@@ -231,5 +232,14 @@ function kotsadm_prerelease() {
         if ! confirmN; then
             bail "\nWill not install prerelease version of kotsadm."
         fi
+    fi
+}
+
+function host_nameservers_reachable() {
+    if [ -n "$NAMESERVER" ] || [ "$AIRGAP" = "1" ]; then
+        return 0
+    fi
+    if ! discover_non_loopback_nameservers; then
+        bail "\nAt least one nameserver must be accessible on a non-loopback address. Use the \"nameserver\" flag in the installer spec to override the loopback nameservers discovered on the host: https://kurl.sh/docs/add-ons/kurl"
     fi
 }

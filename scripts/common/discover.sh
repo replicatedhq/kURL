@@ -309,3 +309,12 @@ function discover_private_ip() {
     #This is needed on k8s 1.18.x as $PRIVATE_ADDRESS is found to have a newline
     PRIVATE_ADDRESS=$(echo "$PRIVATE_ADDRESS" | tr -d '\n')
 }
+
+function discover_non_loopback_nameservers() {
+    local resolvConf=/etc/resolv.conf
+    # https://github.com/kubernetes/kubernetes/blob/v1.19.3/cmd/kubeadm/app/componentconfigs/kubelet.go#L211
+    if systemctl is-active -q systemd-resolved; then
+        resolvConf=/run/systemd/resolve/resolv.conf
+    fi
+    cat $resolvConf | grep -E '^nameserver\s+' | grep -Eqv '^nameserver\s+127'
+}

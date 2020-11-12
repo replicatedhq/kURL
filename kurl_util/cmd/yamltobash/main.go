@@ -147,6 +147,7 @@ func convertToBash(kurlValues map[string]interface{}) (map[string]string, error)
 		"Kurl.NoProxy":                           "NO_PROXY",
 		"Kurl.PrivateAddress":                    "PRIVATE_ADDRESS",
 		"Kurl.PublicAddress":                     "PUBLIC_ADDRESS",
+		"Kurl.Nameserver":                        "NAMESERVER",
 		"MetricsServer.Version":                  "METRICS_SERVER_VERSION",
 		"Minio.Namespace":                        "MINIO_NAMESPACE",
 		"Minio.Version":                          "MINIO_VERSION",
