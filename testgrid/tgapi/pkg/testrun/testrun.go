@@ -65,7 +65,24 @@ func Create(id string) error {
 func List(limit int, offset int, searchRef string) ([]types.TestRun, error) {
 	pg := persistence.MustGetPGSession()
 
-	query := `select ref, created_at from testrun where lower(ref) like '%' || $1 || '%' order by created_at desc`
+	query := `
+select 
+	ref,
+	created_at,
+	COUNT(id) as total,
+	COUNT(id) FILTER (WHERE is_success AND (NOT is_unsupported OR is_unsupported IS NULL)) AS successes,
+	COUNT(id) FILTER (WHERE NOT is_success AND (NOT is_unsupported OR is_unsupported IS NULL) AND finished_at IS NOT NULL) as failures,
+	MAX(finished_at) as latest_completion,
+	COUNT(id) FILTER (WHERE finished_at IS NULL) as pending_runs
+from testrun 
+	left join testinstance on testrun.ref=testinstance.testrun_ref
+where
+	lower(ref) like '%' || $1 || '%'
+group by 
+	ref 
+order by 
+	created_at desc
+`
 
 	// pagination
 	args := []interface{}{searchRef}
@@ -87,7 +104,7 @@ func List(limit int, offset int, searchRef string) ([]types.TestRun, error) {
 	for rows.Next() {
 		run := types.TestRun{}
 
-		if err := rows.Scan(&run.ID, &run.CreatedAt); err != nil {
+		if err := rows.Scan(&run.ID, &run.CreatedAt, &run.TotalRuns, &run.SuccessCount, &run.FailureCount, &run.LastResponse, &run.PendingRuns); err != nil {
 			return nil, errors.Wrap(err, "failed to scan run")
 		}
 
