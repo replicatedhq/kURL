@@ -3,20 +3,15 @@ package handlers
 import (
 	"net/http"
 	"strconv"
-	"time"
 
 	"github.com/replicatedhq/kurl/testgrid/tgapi/pkg/logger"
 	"github.com/replicatedhq/kurl/testgrid/tgapi/pkg/testrun"
+	"github.com/replicatedhq/kurl/testgrid/tgapi/pkg/testrun/types"
 )
 
 type ListRunsResponse struct {
-	Runs  []RunResponse `json:"runs"`
-	Total int           `json:"total"`
-}
-
-type RunResponse struct {
-	ID        string    `json:"id"`
-	CreatedAt time.Time `json:"created_at"`
+	Runs  []types.TestRun `json:"runs"`
+	Total int             `json:"total"`
 }
 
 func ListRuns(w http.ResponseWriter, r *http.Request) {
@@ -62,18 +57,8 @@ func ListRuns(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	runs := []RunResponse{}
-	for _, testRun := range testRuns {
-		run := RunResponse{
-			ID:        testRun.ID,
-			CreatedAt: testRun.CreatedAt,
-		}
-
-		runs = append(runs, run)
-	}
-
 	listRunsResponse := ListRunsResponse{
-		Runs:  runs,
+		Runs:  testRuns,
 		Total: total,
 	}
 
