@@ -1,7 +1,5 @@
 # Configure the Packet Provider. 
-provider "packet" {
-  auth_token = var.auth_token
-}
+provider "packet" {}
 
 provider "aws" {
   version = "~> 2.52.0"
