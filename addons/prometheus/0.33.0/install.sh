@@ -39,7 +39,7 @@ function grafana_admin_secret() {
     local grafanadst="$2"
 
     GRAFANA_ADMIN_USER=admin
-    GRAFANA_ADMIN_PASS=$(< /dev/urandom tr -dc A-Za-z0-9 | head -c9)
+    GRAFANA_ADMIN_PASS=$(generate_password)
 
     insert_resources "$grafanadst/kustomization.yaml" secret.yaml
 

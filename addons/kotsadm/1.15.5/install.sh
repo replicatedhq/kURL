@@ -97,7 +97,7 @@ function kotsadm_secret_cluster_token() {
     if [ -n "$CLUSTER_TOKEN" ]; then
         kubectl delete secret kotsadm-auto-create-cluster-token
     else
-        CLUSTER_TOKEN=$(< /dev/urandom tr -dc A-Za-z0-9 | head -c16)
+        CLUSTER_TOKEN=$(generate_password)
     fi
 
     render_yaml_file "$DIR/addons/kotsadm/1.15.5/tmpl-secret-cluster-token.yaml" > "$DIR/kustomize/kotsadm/secret-cluster-token.yaml"
@@ -114,7 +114,7 @@ function kotsadm_secret_authstring() {
     if [ -n "$AUTHSTRING" ]; then
         return 0
     else
-        AUTHSTRING=$(< /dev/urandom tr -dc A-Za-z0-9 | head -c16)
+        AUTHSTRING=$(generate_password)
     fi
 
     render_yaml_file "$DIR/addons/kotsadm/1.15.5/tmpl-secret-authstring.yaml" > "$DIR/kustomize/kotsadm/secret-authstring.yaml"
@@ -129,7 +129,7 @@ function kotsadm_secret_password() {
     fi
 
     # global, used in outro
-    KOTSADM_PASSWORD=$(< /dev/urandom tr -dc A-Za-z0-9 | head -c9)
+    KOTSADM_PASSWORD=$(generate_password)
     # TODO kurl-util
     BCRYPT_PASSWORD=$(docker run --rm epicsoft/bcrypt:latest hash "$KOTSADM_PASSWORD" 14)
 
@@ -147,7 +147,7 @@ function kotsadm_secret_postgres() {
         return 0
     fi
 
-    POSTGRES_PASSWORD=$(< /dev/urandom tr -dc A-Za-z0-9 | head -c16)
+    POSTGRES_PASSWORD=$(generate_password)
 
     render_yaml_file "$DIR/addons/kotsadm/1.15.5/tmpl-secret-postgres.yaml" > "$DIR/kustomize/kotsadm/secret-postgres.yaml"
     insert_resources "$DIR/kustomize/kotsadm/kustomization.yaml" secret-postgres.yaml
@@ -170,7 +170,7 @@ function kotsadm_secret_session() {
         return 0
     fi
 
-    JWT_SECRET=$(< /dev/urandom tr -dc A-Za-z0-9 | head -c16)
+    JWT_SECRET=$(generate_password)
 
     render_yaml_file "$DIR/addons/kotsadm/1.15.5/tmpl-secret-session.yaml" > "$DIR/kustomize/kotsadm/secret-session.yaml"
     insert_resources "$DIR/kustomize/kotsadm/kustomization.yaml" secret-session.yaml

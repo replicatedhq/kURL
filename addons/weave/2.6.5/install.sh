@@ -28,7 +28,7 @@ function weave() {
 function weave_resource_secret() {
     insert_resources "$DIR/kustomize/weave/kustomization.yaml" secret.yaml
 
-    WEAVE_PASSWORD=$(< /dev/urandom tr -dc A-Za-z0-9 | head -c9)
+    WEAVE_PASSWORD=$(generate_password)
     render_yaml_file "$DIR/addons/weave/2.6.5/tmpl-secret.yaml" > "$DIR/kustomize/weave/secret.yaml"
 }
 

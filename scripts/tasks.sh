@@ -149,7 +149,7 @@ function weave_reset() {
                     docker run --rm --pid host --net host --privileged --entrypoint=/usr/bin/weaveutil weaveworks/weaveexec:$WEAVE_TAG delete-datapath $NETDEV
                 else
                     # --pid host
-                    local guid=$(< /dev/urandom tr -dc A-Za-z0-9 | head -c16)
+                    local guid=$(generate_password)
                     ctr -n=k8s.io image pull docker.io/weaveworks/weaveexec:$WEAVE_TAG
                     ctr -n=k8s.io run --rm --net-host --privileged docker.io/weaveworks/weaveexec:$WEAVE_TAG $guid /usr/bin/weaveutil delete-datapath $NETDEV
                 fi

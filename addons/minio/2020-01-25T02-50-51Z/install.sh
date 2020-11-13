@@ -31,7 +31,7 @@ function minio_creds() {
     fi
 
     local MINIO_ACCESS_KEY=kurl
-    local MINIO_SECRET_KEY=$(< /dev/urandom tr -dc A-Za-z0-9 | head -c9)
+    local MINIO_SECRET_KEY=$(generate_password)
 
     render_yaml_file "$src/tmpl-creds-secret.yaml" > "$dst/creds-secret.yaml"
     insert_resources "$dst/kustomization.yaml" creds-secret.yaml

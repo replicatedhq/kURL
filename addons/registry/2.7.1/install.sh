@@ -43,7 +43,7 @@ function registry_session_secret() {
 
     insert_resources "$DIR/kustomize/registry/kustomization.yaml" secret.yaml
 
-    local HA_SHARED_SECRET=$(< /dev/urandom tr -dc A-Za-z0-9 | head -c9)
+    local HA_SHARED_SECRET=$(generate_password)
     render_yaml_file "$DIR/addons/registry/2.7.1/tmpl-secret.yaml" > "$DIR/kustomize/registry/secret.yaml"
 }
 
@@ -58,7 +58,7 @@ function registry_cred_secrets() {
     kubectl -n default delete secret registry-creds &>/dev/null || true
 
     local user=kurl
-    local password=$(< /dev/urandom tr -dc A-Za-z0-9 | head -c9)
+    local password=$(generate_password)
 
     # if the registry pod is already running it will pick up changes to the secret without restart
     BIN_HTPASSWD=./bin/htpasswd

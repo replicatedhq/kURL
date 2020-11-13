@@ -386,3 +386,22 @@ function journald_persistent() {
     systemctl restart systemd-journald
     journalctl --flush
 }
+
+function generate_password() {
+    # This will be 20 characters after base64 encoding
+    pass=$(openssl rand -base64 15 | tr -dc A-Za-z0-9)
+
+    # ensure it has at least 16 characters after tr
+    if ! echo "$pass" | grep -Eq ".{16}"; then
+        generate_password
+        return
+    fi
+
+    # ensure it has at least one letter to avoid breaking yaml strings
+    if ! echo "$pass" | grep -q "[[:alpha:]]"; then
+        generate_password
+        return
+    fi
+
+    echo -n "$pass"
+}

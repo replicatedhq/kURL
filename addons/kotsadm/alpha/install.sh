@@ -105,7 +105,7 @@ function kotsadm_secret_cluster_token() {
         if [ -n "$CLUSTER_TOKEN" ]; then
             kubectl delete secret kotsadm-auto-create-cluster-token
         else
-            CLUSTER_TOKEN=$(< /dev/urandom tr -dc A-Za-z0-9 | head -c16)
+            CLUSTER_TOKEN=$(generate_password)
         fi
     fi
 
@@ -137,7 +137,7 @@ function kotsadm_secret_password() {
 
     if [ -z "$BCRYPT_PASSWORD" ]; then
         # global, used in outro
-        KOTSADM_PASSWORD=$(< /dev/urandom tr -dc A-Za-z0-9 | head -c9)
+        KOTSADM_PASSWORD=$(generate_password)
         BCRYPT_PASSWORD=$(echo "$KOTSADM_PASSWORD" | $DIR/bin/bcrypt --cost=14)
     fi
 
@@ -151,7 +151,7 @@ function kotsadm_secret_postgres() {
     local POSTGRES_PASSWORD=$(kubernetes_secret_value default kotsadm-postgres password)
 
     if [ -z "$POSTGRES_PASSWORD" ]; then
-        POSTGRES_PASSWORD=$(< /dev/urandom tr -dc A-Za-z0-9 | head -c16)
+        POSTGRES_PASSWORD=$(generate_password)
     fi
 
     render_yaml_file "$DIR/addons/kotsadm/alpha/tmpl-secret-postgres.yaml" > "$DIR/kustomize/kotsadm/secret-postgres.yaml"
@@ -174,7 +174,7 @@ function kotsadm_secret_session() {
     local JWT_SECRET=$(kubernetes_secret_value default kotsadm-session key)
 
     if [ -z "$JWT_SECRET" ]; then
-        JWT_SECRET=$(< /dev/urandom tr -dc A-Za-z0-9 | head -c16)
+        JWT_SECRET=$(generate_password)
     fi
 
     render_yaml_file "$DIR/addons/kotsadm/alpha/tmpl-secret-session.yaml" > "$DIR/kustomize/kotsadm/secret-session.yaml"
