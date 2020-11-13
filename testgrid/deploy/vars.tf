@@ -31,6 +31,11 @@ variable tg_hostname {
     default   = "testgrid-spot"
 }
 
+variable tg_hostname_burst {
+  type      = string
+  default   = "testgrid-spot-burst"
+}
+
 variable tg_os {
   type        = string
   default     = "ubuntu_18_04"
