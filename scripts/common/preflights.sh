@@ -160,7 +160,7 @@ swapEnabled() {
 }
 
 swapConfigured() {
-	    cat /etc/fstab | grep --quiet --ignore-case --extended-regexp '^[^#]+swap'
+    cat /etc/fstab | grep --quiet --ignore-case --extended-regexp '^[^#]+swap'
 }
 
 function force_docker() {
@@ -174,15 +174,15 @@ function cri_preflights() {
 }
 
 function require_cri() {
-	if commandExists docker ; then
+    if commandExists docker ; then
         SKIP_DOCKER_INSTALL=1
-		return 0
-	fi
+        return 0
+    fi
 
     if commandExists ctr ; then
         SKIP_CONTAINERD_INSTALL=1
-		return 0
-	fi
+        return 0
+    fi
 
     if [ "$LSB_DIST" = "rhel" ]; then
         if [ -n "$NO_CE_ON_EE" ]; then

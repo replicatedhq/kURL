@@ -181,10 +181,10 @@ function spinner_kubernetes_api_healthy() {
 # With AWS NLB kubectl commands may fail to connect to the Kubernetes API immediately after a single
 # successful health check
 function spinner_kubernetes_api_stable() {
-	for i in {1..10}; do
-		sleep 1
-		spinner_kubernetes_api_healthy
-	done
+    for i in {1..10}; do
+        sleep 1
+        spinner_kubernetes_api_healthy
+    done
 }
 
 function kubernetes_drain() {
