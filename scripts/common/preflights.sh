@@ -3,7 +3,7 @@ function preflights() {
     require64Bit
     bailIfUnsupportedOS
     mustSwapoff
-    bailIfDockerUnsupportedOS
+    promptIfDockerUnsupportedOS
     checkDockerK8sVersion
     checkFirewalld
     must_disable_selinux
@@ -82,7 +82,7 @@ checkDockerK8sVersion()
     esac
 }
 
-bailIfDockerUnsupportedOS()
+promptIfDockerUnsupportedOS()
 {
     if [ -z "$DOCKER_VERSION" ]; then
         return
