@@ -58,3 +58,12 @@ export DOCKERHUB_PASS="${dh-pass}"
 export DOCKERHUB_USER="${dh-user}"
 export DOCKERHUB_EMAIL="${dh-email}"
 DHCREDS
+
+echo "pulling tgrun image and extracting binary"
+docker pull replicated/tgrun:latest
+
+docker create -ti --name dummy replicated/tgrun:latest bash
+docker cp dummy:/bin/tgrun /bin/tgrun
+docker rm -f dummy
+
+systemctl start tgrun
