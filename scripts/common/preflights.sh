@@ -13,8 +13,11 @@ function preflights() {
     return 0
 }
 
-function requireRootUser() {
-    return 0
+function require_root_user() {
+    local user="$(id -un 2>/dev/null || true)"
+    if [ "$user" != "root" ]; then
+        bail "Error: this installer needs the be run as root."
+    fi
 }
 
 
