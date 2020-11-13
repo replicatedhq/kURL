@@ -3,6 +3,7 @@ function preflights() {
     require64Bit
     bailIfUnsupportedOS
     mustSwapoff
+    bailIfDockerUnsupportedOS
     checkDockerK8sVersion
     checkFirewalld
     must_disable_selinux
@@ -78,6 +79,28 @@ checkDockerK8sVersion()
                 bail "Minimum Docker version for Kubernetes $KUBERNETES_VERSION is 1.13.1."
             fi
             ;;
+    esac
+}
+
+bailIfDockerUnsupportedOS()
+{
+    if [ -z "$DOCKER_VERSION" ]; then
+        return
+    fi
+
+    case "$LSB_DIST" in
+    centos|rhel)
+        if [[ "$DIST_VERSION" =~ ^8 ]]; then
+            logWarn "Docker is not supported on ${LSB_DIST} ${DIST_VERSION}."
+            logWarn "The containerd addon is recommended. https://kurl.sh/docs/add-ons/containerd"
+            if ! commandExists "docker" ; then
+                printf "${YELLOW}Continue? ${NC}" 1>&2
+                if ! confirmY "-t 30"; then
+                    exit 1
+                fi
+            fi
+        fi
+        ;;
     esac
 }
 
