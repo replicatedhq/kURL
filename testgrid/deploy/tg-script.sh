@@ -48,7 +48,7 @@ SyslogIdentifier=tgrund
 Environment="KUBECONFIG=/etc/kubernetes/admin.conf"
 Environment="HOME=/root"
 Environment="PATH=/root/.krew/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
-ExecStart=/bin/bash -c 'source /root/.dockerhub-creds; /root/tgrun run'
+ExecStart=/bin/bash -c 'source /root/.dockerhub-creds; /bin/tgrun run'
 [Install]
 WantedBy=multi-user.target
 TGRUND
