@@ -94,11 +94,11 @@ bailIfDockerUnsupportedOS()
             if commandExists "docker" ; then
                 # all bets are off if docker is already installed
                 logWarn "Docker is already installed but Docker install is not supported on ${LSB_DIST} ${DIST_VERSION}."
-                logWarn "Please use the containerd cri addon instead."
+                logWarn "Please install the containerd cri addon instead. https://kurl.sh/docs/add-ons/containerd"
                 return
             fi
             logFail "Docker install is not supported on ${LSB_DIST} ${DIST_VERSION}."
-            bail "Please use the containerd cri addon instead."
+            bail "Please install the containerd cri addon instead. https://kurl.sh/docs/add-ons/containerd"
         fi
         ;;
     esac
