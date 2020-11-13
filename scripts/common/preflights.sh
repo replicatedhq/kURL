@@ -91,14 +91,14 @@ bailIfDockerUnsupportedOS()
     case "$LSB_DIST" in
     centos|rhel)
         if [[ "$DIST_VERSION" =~ ^8 ]]; then
-            if commandExists "docker" ; then
-                # all bets are off if docker is already installed
-                logWarn "Docker is already installed but Docker install is not supported on ${LSB_DIST} ${DIST_VERSION}."
-                logWarn "Please install the containerd cri addon instead. https://kurl.sh/docs/add-ons/containerd"
-                return
+            logWarn "Docker is not supported on ${LSB_DIST} ${DIST_VERSION}."
+            logWarn "The containerd addon is recommended. https://kurl.sh/docs/add-ons/containerd"
+            if ! commandExists "docker" ; then
+                printf "${YELLOW}Continue? ${NC}" 1>&2
+                if ! confirmY "-t 30"; then
+                    exit 1
+                fi
             fi
-            logFail "Docker install is not supported on ${LSB_DIST} ${DIST_VERSION}."
-            bail "Please install the containerd cri addon instead. https://kurl.sh/docs/add-ons/containerd"
         fi
         ;;
     esac
