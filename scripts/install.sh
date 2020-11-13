@@ -350,7 +350,7 @@ function outro() {
 
 function main() {
     export KUBECONFIG=/etc/kubernetes/admin.conf
-    requireRootUser
+    require_root_user
     get_patch_yaml "$@"
     yaml_airgap
     proxy_bootstrap
