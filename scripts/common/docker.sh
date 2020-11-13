@@ -6,7 +6,7 @@ function change_cgroup_driver_to_systemd() {
     # https://github.com/kubernetes/kubeadm/issues/1394#issuecomment-462878219
 
     if [ -f /var/lib/kubelet/kubeadm-flags.env ] || [ -f /etc/docker/daemon.json ]; then
-    	return
+        return
     fi
 
     mkdir -p /etc/docker

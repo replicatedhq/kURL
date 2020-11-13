@@ -252,10 +252,10 @@ discoverCurrentKubernetesVersion() {
 }
 
 getDockerVersion() {
-	if ! commandExists "docker" ; then
-		return
-	fi
-	DOCKER_VERSION=$(docker -v | awk '{gsub(/,/, "", $3); print $3}')
+    if ! commandExists "docker" ; then
+        return
+    fi
+    DOCKER_VERSION=$(docker -v | awk '{gsub(/,/, "", $3); print $3}')
 }
 
 discover_public_ip() {
