@@ -1,6 +1,8 @@
 CEPH_VERSION=14.2.0-20190410
 
 function rook() {
+    rook_lvm2
+
     rook_operator_deploy
     rook_set_ceph_pool_replicas
     rook_ready_spinner # creating the cluster before the operator is ready fails
@@ -58,6 +60,10 @@ function rook_cluster_deploy() {
     fi
 
     kubectl apply -k "$dst/"
+}
+
+function rook_join() {
+    rook_lvm2
 }
 
 function rook_dashboard_ready_spinner() {
@@ -163,4 +169,26 @@ function rook_create_bucket() {
 
 function rook_rgw_is_healthy() {
     curl --noproxy "*" --fail --silent --insecure "http://${OBJECT_STORE_CLUSTER_IP}" > /dev/null
+}
+
+function rook_lvm2() {
+    local src="$DIR/addons/rook/$ROOK_VERSION"
+    if commandExists lvm; then
+        return
+    fi
+    echo "Installing lvm"
+
+    case "$LSB_DIST" in
+        ubuntu)
+            DEBIAN_FRONTEND=noninteractive dpkg --install --force-depends-version ${src}/ubuntu-${DIST_VERSION}/archives/*.deb
+            ;;
+
+        centos|rhel|amzn)
+            if [[ "$DIST_VERSION" =~ ^8 ]]; then
+                rpm --upgrade --force --nodeps ${src}/rhel-8/archives/*.rpm
+            else
+                rpm --upgrade --force --nodeps ${src}/rhel-7/archives/*.rpm
+            fi
+            ;;
+    esac
 }
