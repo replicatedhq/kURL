@@ -3,6 +3,7 @@ function preflights() {
     require64Bit
     bailIfUnsupportedOS
     mustSwapoff
+    bailIfDockerUnsupportedOS
     checkDockerK8sVersion
     checkFirewalld
     must_disable_selinux
@@ -78,6 +79,28 @@ checkDockerK8sVersion()
                 bail "Minimum Docker version for Kubernetes $KUBERNETES_VERSION is 1.13.1."
             fi
             ;;
+    esac
+}
+
+bailIfDockerUnsupportedOS()
+{
+    if [ -z "$DOCKER_VERSION" ]; then
+        return
+    fi
+
+    case "$LSB_DIST" in
+    centos|rhel)
+        if [[ "$DIST_VERSION" =~ ^8 ]]; then
+            if commandExists "docker" ; then
+                # all bets are off if docker is already installed
+                logWarn "Docker is already installed but Docker install is not supported on ${LSB_DIST} ${DIST_VERSION}."
+                logWarn "Please use the containerd cri addon instead."
+                return
+            fi
+            logFail "Docker install is not supported on ${LSB_DIST} ${DIST_VERSION}."
+            bail "Please use the containerd cri addon instead."
+        fi
+        ;;
     esac
 }
 

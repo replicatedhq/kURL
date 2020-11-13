@@ -63,6 +63,10 @@ logFail() {
     printf "${RED}$1${NC}\n" 1>&2
 }
 
+logWarn() {
+    printf "${YELLOW}$1${NC}\n" 1>&2
+}
+
 bail() {
     logFail "$@"
     exit 1
