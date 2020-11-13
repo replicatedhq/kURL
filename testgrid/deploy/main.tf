@@ -1,7 +1,5 @@
 # Configure the Packet Provider. 
-provider "packet" {
-  auth_token = var.auth_token
-}
+provider "packet" {}
 
 provider "aws" {
   version = "~> 2.52.0"
@@ -36,7 +34,7 @@ data "template_cloudinit_config" "config" {
   }
 }
 
-resource "packet_spot_market_request" "req" {
+resource "packet_spot_market_request" "base-request" {
   project_id    = var.project_id
   max_bid_price = var.max_bid
   facilities    = var.region
@@ -53,9 +51,32 @@ resource "packet_spot_market_request" "req" {
 }
 
 data "packet_spot_market_request" "dreq" {
-  request_id = packet_spot_market_request.req.id
+  request_id = packet_spot_market_request.base-request.id
 }
 
 output "ids" {
   value = data.packet_spot_market_request.dreq.device_ids
 }
+
+//resource "packet_spot_market_request" "burst-request" {
+//  project_id    = var.project_id
+//  max_bid_price = var.max_bid
+//  facilities    = var.region
+//  devices_min   = 1
+//  devices_max   = 4
+//
+//  instance_parameters {
+//    hostname         = var.tg_hostname_burst
+//    billing_cycle    = "hourly"
+//    operating_system = var.tg_os
+//    plan             = var.instance_type
+//    userdata         = data.template_cloudinit_config.config.rendered
+//  }
+//}
+//
+//data "packet_spot_market_request" "sreq" {
+//  request_id = packet_spot_market_request.burst-request.id
+//}
+//output "burst-ids" {
+//  value = data.packet_spot_market_request.sreq.device_ids
+//}

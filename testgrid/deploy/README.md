@@ -9,9 +9,9 @@
 > NOTE: If DockerHub credentials are not provided, Sonobuoy image pulls won't be authenticated, and will be subject to throttling. DockerHub account credentials are in 1Pass.
 
 ```bash
-export TF_VAR_auth_token=<token>
 export TF_VAR_dh_pass=<password>
 export AWS_PROFILE=replicated-production
+export PACKET_AUTH_TOKEN=<packet-auth-token>
 terrafrom plan
 terraform apply
 ```

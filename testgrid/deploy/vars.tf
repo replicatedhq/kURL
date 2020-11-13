@@ -4,10 +4,6 @@ variable instance_type {
   description = "packet instamce type"
 }
 
-variable auth_token {
-  type        = string
-}
-
 variable region {
   type        = list(string)
   default     = ["sv15"]
@@ -29,6 +25,11 @@ variable max_bid {
 variable tg_hostname {
     type      = string
     default   = "testgrid-spot"
+}
+
+variable tg_hostname_burst {
+  type      = string
+  default   = "testgrid-spot-burst"
 }
 
 variable tg_os {
