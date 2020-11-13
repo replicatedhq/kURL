@@ -139,7 +139,16 @@ func getUploadProxyURL() (string, error) {
 
 	svc, err := clientset.CoreV1().Services("cdi").Get("cdi-uploadproxy", metav1.GetOptions{})
 	if err != nil {
-		return "", errors.Wrap(err, "failed to get upload proxy service")
+		for i := 0; i < 5; i++ {
+			time.Sleep(time.Minute)
+			svc, err = clientset.CoreV1().Services("cdi").Get("cdi-uploadproxy", metav1.GetOptions{})
+			if err == nil {
+				break
+			}
+		}
+		if err != nil {
+			return "", errors.Wrap(err, "failed to get upload proxy service")
+		}
 	}
 
 	return fmt.Sprintf("https://%s", svc.Spec.ClusterIP), nil
