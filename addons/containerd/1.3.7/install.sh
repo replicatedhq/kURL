@@ -91,9 +91,13 @@ function containerd_registry_init() {
     fi
 
     containerd_configure_registry "$registryIP"
-    systemctl restart containerd
+    if [ "$CONTAINERD_REGISTRY_ADDED" = "1" ]; then
+        systemctl restart containerd
+        spinner_kubernetes_api_stable
+    fi
 }
 
+CONTAINERD_REGISTRY_ADDED=
 function containerd_configure_registry() {
     local registryIP="$1"
 
@@ -101,6 +105,8 @@ function containerd_configure_registry() {
         echo "Registry ${registryIP} TLS already configured for containerd"
         return 0
     fi
+
+    CONTAINERD_REGISTRY_ADDED=1
 
     cat >> /etc/containerd/config.toml <<EOF
 [plugins."io.containerd.grpc.v1.cri".registry.configs."${registryIP}".tls]
