@@ -47,10 +47,10 @@ function collectd_config() {
     esac
 
     if [ -f "$conf_path/collectd.conf" ]; then
-        cp -fn "$conf_path/collectd.conf" "$conf_path/collectd.old"
+        cp -f "$conf_path/collectd.conf" "$conf_path/collectd.old.$(date +%s)"
     fi
 
-    cp -fn "$src/collectd.conf" "$conf_path/collectd.conf"
+    cp -f "$src/collectd.conf" "$conf_path/collectd.conf"
     systemctl restart collectd
 }
 
