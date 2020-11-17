@@ -59,7 +59,7 @@ function containerd_configure() {
     sed -i '/systemd_cgroup/d' /etc/containerd/config.toml
     cat >> /etc/containerd/config.toml <<EOF
 [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc.options]
-  systemd_cgroup = true
+  SystemdCgroup = true
 EOF
 
     # Always set for joining nodes since it's passed as a flag in the generated join script, but not
