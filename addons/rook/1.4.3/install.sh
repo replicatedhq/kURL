@@ -192,14 +192,21 @@ function rook_lvm2() {
 
     case "$LSB_DIST" in
         ubuntu)
-            DEBIAN_FRONTEND=noninteractive dpkg --install --force-depends-version ${src}/ubuntu-${DIST_VERSION}/archives/*.deb
+            # Archives are not present in dev mode with rsync
+            if [ -d "$src/ubuntu-${DIST_VERSION}/archives" ]; then
+                DEBIAN_FRONTEND=noninteractive dpkg --install --force-depends-version ${src}/ubuntu-${DIST_VERSION}/archives/*.deb
+            fi
             ;;
 
         centos|rhel|amzn)
             if [[ "$DIST_VERSION" =~ ^8 ]]; then
-                rpm --upgrade --force --nodeps ${src}/rhel-8/archives/*.rpm
+                if [ -d "$src/rhel-8/archives" ]; then
+                    rpm --upgrade --force --nodeps ${src}/rhel-8/archives/*.rpm
+                fi
             else
-                rpm --upgrade --force --nodeps ${src}/rhel-7/archives/*.rpm
+                if [ -d "$src/rhel-7/archives" ]; then
+                    rpm --upgrade --force --nodeps ${src}/rhel-7/archives/*.rpm
+                fi
             fi
             ;;
     esac

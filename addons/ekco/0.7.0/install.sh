@@ -99,9 +99,13 @@ function ekco_install_reboot_service() {
     chmod u+x /opt/ekco/startup.sh
     chmod u+x /opt/ekco/shutdown.sh
 
-    systemctl daemon-reload
-    systemctl enable ekco-reboot.service
-    systemctl start ekco-reboot.service
+    # Running these commands on CentOS 7 with containerd 1.3.7 causes all containers to be restarted
+    # the next time a request is made to delete or run a pod
+    if ! systemctl -q is-active ekco-reboot; then
+        systemctl daemon-reload
+        systemctl enable ekco-reboot.service
+        systemctl start ekco-reboot.service
+    fi
 }
 
 function ekco_install_purge_node_command() {

@@ -96,7 +96,9 @@ function kubernetes_install_host_packages() {
         sed -i "s/$DEFAULT_CLUSTER_DNS/$CLUSTER_DNS/g" /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
     fi
 
-    systemctl enable kubelet && systemctl start kubelet
+    if ! systemctl is-active -q kubelet; then
+        systemctl enable kubelet && systemctl start kubelet
+    fi
 
     logSuccess "Kubernetes host packages installed"
 }
@@ -185,6 +187,15 @@ function spinner_kubernetes_api_stable() {
         sleep 1
         spinner_kubernetes_api_healthy
     done
+    # RHEL 7 with containerd 1.3.7 is unstable. Containerd restarts all containers when `kubeadm
+    # init` is run or `systemctl daemon-reload` followed by `kubectl apply`.
+    if [ -n "$CONTAINERD_VERSION" ] && [ "$DIST_VERSION_MAJOR" = "7" ] && echo "$LSB_DIST" | grep -Eq "(centos|rhel|amzn)"; then
+        echo "Waiting for extended period for control plane to stabilize"
+        for i in {1..100}; do
+            sleep 1
+            spinner_kubernetes_api_healthy
+        done
+    fi
 }
 
 function kubernetes_drain() {
