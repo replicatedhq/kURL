@@ -64,4 +64,5 @@ type InstallerSpec struct {
 	IptablesConfig  *kurlv1beta1.IptablesConfig  `json:"iptablesConfig,omitempty"`
 	FirewalldConfig *kurlv1beta1.FirewalldConfig `json:"firewalldConfig,omitempty"`
 	Ekco            *kurlv1beta1.Ekco            `json:"ekco,omitempty"`
+	Collectd        *kurlv1beta1.Collectd        `json:"collectd,omitempty"`
 }

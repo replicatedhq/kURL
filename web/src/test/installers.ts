@@ -741,7 +741,7 @@ spec:
     it("should parse", () => {
       const i = Installer.parse(everyOption);
 
-      expect(i.spec.collectd.version).to.equal("0.0.1");
+      expect(i.spec.collectd.version).to.equal("v5");
     });
   });
 
