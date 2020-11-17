@@ -679,6 +679,7 @@ export class Installer {
       "2020-01-25T02-50-51Z",
     ],
     collectd: [
+      "v5",
       "0.0.1",
     ],
     ekco: [
@@ -749,6 +750,10 @@ export class Installer {
     i.spec = parsed.spec;
 
     const modified = i.legacyFieldConversion();
+
+    if (modified.spec.collectd && modified.spec.collectd.version === "0.0.1") {
+      modified.spec.collectd.version = "v5";
+    }
 
     if (parsed.apiVersion === "kurl.sh/v1beta1") {
       return modified.migrateV1Beta1();

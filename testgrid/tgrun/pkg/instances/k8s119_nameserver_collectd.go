@@ -21,6 +21,9 @@ func init() {
 				Kurl: &kurlv1beta1.Kurl{
 					Nameserver: "8.8.8.8",
 				},
+				Collectd: &kurlv1beta1.Collectd{
+					Version: "v5",
+				},
 			},
 		},
 	)

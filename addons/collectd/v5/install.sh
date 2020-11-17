@@ -2,24 +2,24 @@ function collectd() {
     local src="$DIR/addons/collectd/$COLLECTD_VERSION"
     
     if ! systemctl list-units | grep -q collectd; then
-        printf "${YELLOW}Installing collectd\n"
+        printf "${YELLOW}Installing collectd${NC}\n"
         case "$LSB_DIST" in
         ubuntu)
             export DEBIAN_FRONTEND=noninteractive
             dpkg --install --force-depends-version ${src}/ubuntu-${DIST_VERSION}/archives/*.deb
             ;;
         centos|rhel|amzn)
-            rpm --upgrade --force --nodeps ${src}/rhel-${DIST_VERSION}/archives/*.rpm
+            rpm --upgrade --force --nodeps ${src}/rhel-${DIST_VERSION_MAJOR}/archives/*.rpm
             ;;
         *)
-            printf"${YELLOW}Unsupported OS for collectd installation\n"
+            printf"${YELLOW}Unsupported OS for collectd installation${NC}\n"
             ;;
         esac
 
         collectd_config $src
         collectd_service
     else
-        printf "${YELLOW} Collectd is running, skipping installation\n"
+        printf "${YELLOW} Collectd is running, skipping installation${NC}\n"
     fi
 }
 
