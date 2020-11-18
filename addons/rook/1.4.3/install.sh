@@ -39,7 +39,7 @@ function rook() {
     rook_object_store_output
 
     if ! spinner_until 120 rook_rgw_is_healthy; then
-        bail "Failed to detect health Rook RGW"
+        bail "Failed to detect healthy Rook RGW"
     fi
 }
 
