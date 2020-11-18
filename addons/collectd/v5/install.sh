@@ -8,8 +8,11 @@ function collectd() {
             export DEBIAN_FRONTEND=noninteractive
             dpkg --install --force-depends-version ${src}/ubuntu-${DIST_VERSION}/archives/*.deb
             ;;
-        centos|rhel|amzn)
+        centos|rhel)
             rpm --upgrade --force --nodeps ${src}/rhel-${DIST_VERSION_MAJOR}/archives/*.rpm
+            ;;
+        amzn)
+            rpm --upgrade --force --nodeps ${src}/rhel-7/archives/*.rpm
             ;;
         *)
             printf"${YELLOW}Unsupported OS for collectd installation${NC}\n"

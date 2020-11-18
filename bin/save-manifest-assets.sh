@@ -7,6 +7,20 @@ OUT_DIR=$2
 
 mkdir -p "$OUT_DIR"
 
+function build_rhel_8() {
+    local package="$1"
+    docker rm -f rhel-8-${package} 2>/dev/null || true
+    docker run \
+        --name rhel-8-${package} \
+        centos:8 \
+        /bin/bash -c "\
+        yum install -y yum-utils epel-release && \
+        mkdir -p /packages/archives && \
+        yumdownloader --resolve --destdir=/packages/archives -y $package"
+    docker cp rhel-8-${package}:/packages/archives $OUT_DIR/rhel-8
+    sudo chown -R $UID $OUT_DIR/rhel-8
+}
+
 while read -r line; do
     if [ -z "$line" ]; then
         continue
@@ -86,16 +100,14 @@ while read -r line; do
             docker cp rhel-7-${package}:/packages/archives $OUT_DIR/rhel-7
             sudo chown -R $UID $OUT_DIR/rhel-7
 
-            docker rm -f rhel-8-${package} 2>/dev/null || true
-            docker run \
-                --name rhel-8-${package} \
-                centos:8 \
-                /bin/bash -c "\
-                    yum install -y yum-utils epel-release && \
-                    mkdir -p /packages/archives && \
-                    yumdownloader --resolve --destdir=/packages/archives -y $package"
-            docker cp rhel-8-${package}:/packages/archives $OUT_DIR/rhel-8
-            sudo chown -R $UID $OUT_DIR/rhel-8
+            build_rhel_8 "$package"
+            ;;
+
+        yum8)
+            mkdir -p $OUT_DIR/rhel-8
+            package=$(echo $line | awk '{ print $2 }')
+
+            build_rhel_8 "$package"
             ;;
         *)
             echo "Unknown kind $kind in line: $line"
