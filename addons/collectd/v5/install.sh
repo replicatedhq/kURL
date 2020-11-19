@@ -3,6 +3,9 @@ function collectd() {
     
     if ! systemctl list-units | grep -q collectd; then
         printf "${YELLOW}Installing collectd${NC}\n"
+
+        collectd_ensure_hostname_resolves
+
         case "$LSB_DIST" in
         ubuntu)
             export DEBIAN_FRONTEND=noninteractive
@@ -59,4 +62,22 @@ function collectd_config() {
 
 function collectd_join() {
     collectd
+}
+
+function collectd_ensure_hostname_resolves() {
+    local host=$(hostname)
+
+    set +e
+    curl -s --max-time 1 http://${host} > /dev/null
+    local status=$?
+    set -e
+
+    if [ "$status" = "6" ]; then
+        printf "${YELLOW}Cannot resolve ${host}. The following line will be added to /etc/hosts:\n\n"
+        printf "\t${PRIVATE_ADDRESS}\t${host}${NC}\n\nAllow? "
+        if ! confirmY; then
+            bail "Collectd must be able to resolve ${host}"
+        fi
+        echo "${PRIVATE_ADDRESS}    ${host}" >> /etc/hosts
+    fi
 }
