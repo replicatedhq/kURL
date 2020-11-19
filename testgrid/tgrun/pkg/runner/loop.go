@@ -120,6 +120,7 @@ func canScheduleNewVM() (bool, error) {
 	// if there are pending pods, hold off until there are no longer pending pods
 	for _, pod := range pods.Items {
 		if pod.Status.Phase == v1.PodPending {
+			fmt.Printf("Pod %s in (%s namespace) is in pending state. New jobs won't be scheduled.", pod.Name, Namespace)
 			return false, nil
 		}
 	}
