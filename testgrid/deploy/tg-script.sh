@@ -1,6 +1,7 @@
 #!/bin/bash
 
-apt update && apt upgrade -y
+apt update
+DEBIAN_FRONTEND=noninteractive apt upgrade -y
 
 echo "Setting up RAID0 for openebs local storage."
 apt install -y btrbk
@@ -48,16 +49,10 @@ SyslogIdentifier=tgrund
 Environment="KUBECONFIG=/etc/kubernetes/admin.conf"
 Environment="HOME=/root"
 Environment="PATH=/root/.krew/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
-ExecStart=/bin/bash -c 'source /root/.dockerhub-creds; /bin/tgrun run'
+ExecStart=/bin/bash -c '/bin/tgrun run'
 [Install]
 WantedBy=multi-user.target
 TGRUND
-
-cat <<-DHCREDS > /root/.dockerhub-creds
-export DOCKERHUB_PASS="${dh-pass}"
-export DOCKERHUB_USER="${dh-user}"
-export DOCKERHUB_EMAIL="${dh-email}"
-DHCREDS
 
 echo "pulling tgrun image and extracting binary"
 docker pull replicated/tgrun:latest
