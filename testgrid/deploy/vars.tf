@@ -36,18 +36,3 @@ variable tg_os {
   type        = string
   default     = "ubuntu_18_04"
 }
-
-variable dh_email {
-  type        = string
-  default     = "pavel@replicated.com"
-  description = "Primary email for replicatedtestgrid DockerHub account"
-}
-
-variable dh_user {
-  type        = string
-  default     = "replicatedtestgrid"
-}
-
-variable dh_pass {
-  type        = string
-}
