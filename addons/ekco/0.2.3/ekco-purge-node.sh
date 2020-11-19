@@ -13,4 +13,4 @@ if [ -z "$pod" ]; then
     exit 1
 fi
 
-kubectl exec -n "$namespace" -it "$pod" ekco -- purge-node $@
+kubectl exec -n "$namespace" -it "$pod" -- ekco purge-node $@
