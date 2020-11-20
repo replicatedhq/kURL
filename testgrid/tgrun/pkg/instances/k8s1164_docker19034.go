@@ -13,31 +13,29 @@ func init() {
 					Version: "1.16.4",
 				},
 				Weave: &kurlv1beta1.Weave{
-					Version: "2.6.4",
+					Version: "2.6.5",
 				},
 				Rook: &kurlv1beta1.Rook{
-					Version: "1.0.4",
+					Version:               "1.4.3",
+					IsBlockStorageEnabled: true,
 				},
 				Ekco: &kurlv1beta1.Ekco{
-					Version: "0.6.0",
+					Version: "0.7.0",
 				},
 				Contour: &kurlv1beta1.Contour{
-					Version: "1.0.1",
+					Version: "1.7.0",
 				},
 				Docker: &kurlv1beta1.Docker{
 					Version: "19.03.4",
-				},
-				Prometheus: &kurlv1beta1.Prometheus{
-					Version: "0.33.0",
 				},
 				Registry: &kurlv1beta1.Registry{
 					Version: "2.7.1",
 				},
 				Velero: &kurlv1beta1.Velero{
-					Version: "1.2.0",
+					Version: "1.5.1",
 				},
 				Kotsadm: &kurlv1beta1.Kotsadm{
-					Version: "1.16.1",
+					Version: "1.23.1",
 				},
 			},
 			UnsupportedOSIDs: []string{
