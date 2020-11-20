@@ -13,7 +13,7 @@ func init() {
 					Version: "1.19.3",
 				},
 				Weave: &kurlv1beta1.Weave{
-					Version: "2.6.4",
+					Version: "2.6.5",
 				},
 				Docker: &kurlv1beta1.Docker{
 					Version: "19.03.10",
@@ -23,6 +23,16 @@ func init() {
 				},
 				Collectd: &kurlv1beta1.Collectd{
 					Version: "v5",
+				},
+				Rook: &kurlv1beta1.Rook{
+					Version:               "1.4.3",
+					IsBlockStorageEnabled: true,
+				},
+				Registry: &kurlv1beta1.Registry{
+					Version: "2.7.1",
+				},
+				Kotsadm: &kurlv1beta1.Kotsadm{
+					Version: "1.23.1",
 				},
 			},
 		},
