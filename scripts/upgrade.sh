@@ -109,9 +109,10 @@ function main() {
     journald_persistent
     configure_proxy
     configure_no_proxy
-    apply_docker_config
+    install_cri
     get_shared
     maybe_upgrade
+    addon_for_each addon_join
     outro
 }
 
