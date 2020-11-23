@@ -188,10 +188,16 @@ function spinner_kubernetes_api_stable() {
 }
 
 function kubernetes_drain() {
+    local evict=""
+    # Check whether existing tools support bypassing eviction protection
+    if [ "$KUBERNETES_CURRENT_VERSION_MINOR" -ge "18" ]; then
+        evict=--disable-eviction=true
+    fi
+
     kubectl drain "$1" \
         --delete-local-data \
         --ignore-daemonsets \
-        --force \
+        --force $evict \
         --grace-period=30 \
         --timeout=300s \
         --pod-selector 'app notin (rook-ceph-mon,rook-ceph-osd,rook-ceph-osd-prepare,rook-ceph-operator,rook-ceph-agent),k8s-app!=kube-dns' || true
