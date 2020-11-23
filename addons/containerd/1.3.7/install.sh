@@ -21,6 +21,8 @@ function containerd_install() {
             restart_containerd
         fi
     fi
+
+    load_images $src/images
 }
 
 function containerd_binaries() {
