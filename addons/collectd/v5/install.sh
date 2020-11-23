@@ -4,12 +4,15 @@ function collectd() {
     if ! systemctl list-units | grep -q collectd; then
         printf "${YELLOW}Installing collectd${NC}\n"
 
+        # collectd config needs to be created before service starts for the first time.
+        # otherwise over 100MB of extra rrd files will be created.
         collectd_ensure_hostname_resolves
+        collectd_config $src
 
         case "$LSB_DIST" in
         ubuntu)
             export DEBIAN_FRONTEND=noninteractive
-            dpkg --install --force-depends-version ${src}/ubuntu-${DIST_VERSION}/archives/*.deb
+            dpkg --install --force-depends-version -o Dpkg::Options::="--force-confold" ${src}/ubuntu-${DIST_VERSION}/archives/*.deb
             ;;
         centos|rhel)
             rpm --upgrade --force --nodeps ${src}/rhel-${DIST_VERSION_MAJOR}/archives/*.rpm
@@ -22,14 +25,14 @@ function collectd() {
             ;;
         esac
 
-        collectd_config $src
-        collectd_service
+        systemctl restart collectd
+        collectd_service_enable
     else
         printf "${YELLOW} Collectd is running, skipping installation${NC}\n"
     fi
 }
 
-function collectd_service() {
+function collectd_service_enable() {
     if ! systemctl -q is-active collectd; then
         systemctl start collectd
     fi
@@ -52,12 +55,12 @@ function collectd_config() {
         ;;
     esac
 
+    mkdir -p $conf_path
     if [ -f "$conf_path/collectd.conf" ]; then
         cp -f "$conf_path/collectd.conf" "$conf_path/collectd.old.$(date +%s)"
     fi
 
     cp -f "$src/collectd.conf" "$conf_path/collectd.conf"
-    systemctl restart collectd
 }
 
 function collectd_join() {
