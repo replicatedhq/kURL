@@ -1,5 +1,4 @@
 
-
 function containerd_install() {
     local src="$DIR/addons/containerd/1.3.7"
 
@@ -14,6 +13,13 @@ function containerd_install() {
     # NOTE: this will not remove the proxy
     if [ -n "$PROXY_ADDRESS" ]; then
         containerd_configure_proxy
+    fi
+
+    if [ -n "$DOCKER_REGISTRY_IP" ]; then
+        containerd_configure_registry "$DOCKER_REGISTRY_IP"
+        if [ "$CONTAINERD_REGISTRY_CA_ADDED" = "1" ]; then
+            restart_containerd
+        fi
     fi
 }
 
@@ -94,6 +100,7 @@ function containerd_registry_init() {
     systemctl restart containerd
 }
 
+CONTAINERD_REGISTRY_CA_ADDED=0
 function containerd_configure_registry() {
     local registryIP="$1"
 
@@ -106,6 +113,8 @@ function containerd_configure_registry() {
 [plugins."io.containerd.grpc.v1.cri".registry.configs."${registryIP}".tls]
   ca_file = "/etc/kubernetes/pki/ca.crt"
 EOF
+
+    CONTAINERD_REGISTRY_CA_ADDED=1
 }
 
 containerd_configure_proxy() {

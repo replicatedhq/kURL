@@ -500,6 +500,14 @@ function list_all_required_images() {
     if [ -n "$EKCO_VERSION" ]; then
         find addons/ekco/$EKCO_VERSION -type f -name Manifest 2>/dev/null | xargs cat | grep -E '^image' | grep -v no_remote_load | awk '{ print $3 }'
     fi
+
+    if [ -n "$CERT_MANAGER_VERSION" ]; then
+        find addons/cert-manager/$CERT_MANAGER_VERSION -type f -name Manifest 2>/dev/null | xargs cat | grep -E '^image' | grep -v no_remote_load | awk '{ print $3 }'
+    fi
+
+    if [ -n "$METRICS_SERVER_VERSION" ]; then
+        find addons/metrics-server/$METRICS_SERVER_VERSION -type f -name Manifest 2>/dev/null | xargs cat | grep -E '^image' | grep -v no_remote_load | awk '{ print $3 }'
+    fi
 }
 
 function kubernetes_node_has_all_images() {
