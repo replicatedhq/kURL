@@ -10,6 +10,7 @@ function containerd_install() {
     containerd_binaries "$src"
     containerd_configure
     containerd_service "$src"
+    load_images $src/images
 }
 
 function containerd_binaries() {
