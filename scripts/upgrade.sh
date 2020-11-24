@@ -64,7 +64,7 @@ maybe_upgrade() {
                     # after a load balancer address change relies on this behavior.
                     # https://github.com/kubernetes/kubernetes/pull/94398
                     if [ "$KUBERNETES_TARGET_VERSION_MINOR" = "19" ]; then
-                        rm /etc/kubernetes/scheduler.conf
+                        rm -rf /etc/kubernetes/scheduler.conf
                         kubeadm init phase kubeconfig scheduler
                         mv /etc/kubernetes/manifests/kube-scheduler.yaml /tmp/ && sleep 1 && mv /tmp/kube-scheduler.yaml /etc/kubernetes/manifests/
                         rm /etc/kubernetes/controller-manager.conf
