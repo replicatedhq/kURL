@@ -253,9 +253,6 @@ func createSecret(singleTest types.SingleRun, tempDir string) error {
 TESTGRID_APIENDPOINT='%s'
 TEST_ID='%s'
 KURL_URL='%s'
-DOCKERHUB_USER='%s'
-DOCKERHUB_EMAIL='%s'
-DOCKERHUB_PASS='%s'
 
 setenforce 0 || true # rhel variants
 
@@ -316,7 +313,7 @@ fi
 
 curl -X POST -d '{"success": true}' $TESTGRID_APIENDPOINT/v1/instance/$TEST_ID/finish
 `,
-		singleTest.TestGridAPIEndpoint, singleTest.ID, singleTest.KurlURL, singleTest.DockerUser, singleTest.DockerEmail, singleTest.DockerPass,
+		singleTest.TestGridAPIEndpoint, singleTest.ID, singleTest.KurlURL,
 	)
 	runcmdB64 := base64.StdEncoding.EncodeToString([]byte(runcmd))
 

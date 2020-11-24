@@ -1,6 +1,8 @@
 CEPH_VERSION=14.2.0-20190410
 
 function rook() {
+    rook_lvm2
+
     rook_operator_deploy
     rook_set_ceph_pool_replicas
     rook_ready_spinner # creating the cluster before the operator is ready fails
@@ -15,12 +17,14 @@ function rook() {
         CEPH_DASHBOARD_PASSWORD="$cephDashboardPassword"
     fi
 
+    printf "awaiting rook-ceph RGW pod\n"
     spinnerPodRunning rook-ceph rook-ceph-rgw-rook-ceph-store
     kubectl apply -f "$DIR/addons/rook/1.0.4/cluster/object-user.yaml"
     rook_object_store_output
 
+    printf "awaiting rook-ceph object store health\n"
     if ! spinner_until 120 rook_rgw_is_healthy; then
-        bail "Failed to detect health Rook RGW"
+        bail "Failed to detect healthy Rook RGW"
     fi
 }
 
@@ -60,8 +64,13 @@ function rook_cluster_deploy() {
     kubectl apply -k "$dst/"
 }
 
+function rook_join() {
+    rook_lvm2
+}
+
 function rook_dashboard_ready_spinner() {
     # wait for ceph dashboard password to be generated
+    printf "awaiting rook-ceph dashboard password\n"
     local delay=0.75
     local spinstr='|/-\'
     while ! kubectl -n rook-ceph get secret rook-ceph-dashboard-password &>/dev/null; do
@@ -74,9 +83,11 @@ function rook_dashboard_ready_spinner() {
 }
 
 function rook_ready_spinner() {
+    printf "awaiting rook-ceph pods\n"
     spinnerPodRunning rook-ceph rook-ceph-operator
     spinnerPodRunning rook-ceph rook-ceph-agent
     spinnerPodRunning rook-ceph rook-discover
+    printf "awaiting rook-ceph volume plugin\n"
     rook_flex_volume_plugin_ready_spinner
 }
 
@@ -163,4 +174,26 @@ function rook_create_bucket() {
 
 function rook_rgw_is_healthy() {
     curl --noproxy "*" --fail --silent --insecure "http://${OBJECT_STORE_CLUSTER_IP}" > /dev/null
+}
+
+function rook_lvm2() {
+    local src="$DIR/addons/rook/$ROOK_VERSION"
+    if commandExists lvm; then
+        return
+    fi
+    echo "Installing lvm"
+
+    case "$LSB_DIST" in
+        ubuntu)
+            DEBIAN_FRONTEND=noninteractive dpkg --install --force-depends-version ${src}/ubuntu-${DIST_VERSION}/archives/*.deb
+            ;;
+
+        centos|rhel|amzn)
+            if [[ "$DIST_VERSION" =~ ^8 ]]; then
+                rpm --upgrade --force --nodeps ${src}/rhel-8/archives/*.rpm
+            else
+                rpm --upgrade --force --nodeps ${src}/rhel-7/archives/*.rpm
+            fi
+            ;;
+    esac
 }

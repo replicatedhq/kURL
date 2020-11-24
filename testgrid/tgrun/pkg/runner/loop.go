@@ -94,10 +94,6 @@ func MainRunLoop(runnerOptions types.RunnerOptions) error {
 				KurlRef:  dequeuedInstance.KurlRef,
 
 				TestGridAPIEndpoint: runnerOptions.APIEndpoint,
-
-				DockerEmail: os.Getenv("DOCKERHUB_EMAIL"),
-				DockerUser:  os.Getenv("DOCKERHUB_USER"),
-				DockerPass:  os.Getenv("DOCKERHUB_PASS"),
 			}
 
 			if err := Run(singleTest, uploadProxyURL, tempDir); err != nil {
@@ -139,7 +135,16 @@ func getUploadProxyURL() (string, error) {
 
 	svc, err := clientset.CoreV1().Services("cdi").Get("cdi-uploadproxy", metav1.GetOptions{})
 	if err != nil {
-		return "", errors.Wrap(err, "failed to get upload proxy service")
+		for i := 0; i < 5; i++ {
+			time.Sleep(time.Minute)
+			svc, err = clientset.CoreV1().Services("cdi").Get("cdi-uploadproxy", metav1.GetOptions{})
+			if err == nil {
+				break
+			}
+		}
+		if err != nil {
+			return "", errors.Wrap(err, "failed to get upload proxy service")
+		}
 	}
 
 	return fmt.Sprintf("https://%s", svc.Spec.ClusterIP), nil

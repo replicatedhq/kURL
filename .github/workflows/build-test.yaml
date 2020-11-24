@@ -18,8 +18,8 @@ jobs:
 
       - name: setup env
         run: |
-          echo "::set-env name=GOPATH::$(go env GOPATH)"
-          echo "::add-path::$(go env GOPATH)/bin"
+          echo "GOPATH=$(go env GOPATH)" >> $GITHUB_ENV
+          echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
         shell: bash
 
       - uses: actions/checkout@v2
@@ -31,3 +31,21 @@ jobs:
         with:
           node-version: '12'
       - run: make -C web test
+
+
+  build-testgrid:
+    runs-on: ubuntu-18.04
+    steps:
+    - uses: actions/setup-go@v1
+      with:
+        go-version: "1.15.1"
+    - name: setup env
+      run: |
+        echo "GOPATH=$(go env GOPATH)" >> $GITHUB_ENV
+        echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
+      shell: bash
+
+    - uses: actions/checkout@v2
+
+    - run: make -C testgrid/tgrun test build
+    - run: make -C testgrid/tgapi test build

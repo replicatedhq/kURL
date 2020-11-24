@@ -3,15 +3,23 @@ CEPH_VERSION=15.2.4-20200819
 function rook_pre_init() {
     local version=$(rook_version)
     if [ -n "$version" ] && [ "$version" != "1.4.3" ]; then
-        bail "Rook $version is already installed"
-    fi
-    if [ "$ROOK_BLOCK_STORAGE_ENABLED" != "1" ]; then
+        printf "Rook $version is already installed, will not upgrade to 1.4.3\n"
+        export SKIP_ROOK_INSTALL='true'
+    elif [ "$ROOK_BLOCK_STORAGE_ENABLED" != "1" ]; then
         bail "Rook 1.4.3 requires enabling block storage"
     fi
 }
 
 function rook() {
     rook_lvm2
+
+    if [ -n "$SKIP_ROOK_INSTALL" ]; then
+        local version=$(rook_version)
+        printf "Rook $version is already installed, will not upgrade to 1.4.3\n"
+        rook_object_store_output
+        return 0
+    fi
+
     rook_operator_deploy
     rook_set_ceph_pool_replicas
     rook_ready_spinner # creating the cluster before the operator is ready fails
@@ -26,12 +34,14 @@ function rook() {
         CEPH_DASHBOARD_PASSWORD="$cephDashboardPassword"
     fi
 
+    printf "awaiting rook-ceph RGW pod\n"
     spinnerPodRunning rook-ceph rook-ceph-rgw-rook-ceph-store
     kubectl apply -f "$DIR/addons/rook/1.4.3/cluster/object-user.yaml"
     rook_object_store_output
 
+    printf "awaiting rook-ceph object store health\n"
     if ! spinner_until 120 rook_rgw_is_healthy; then
-        bail "Failed to detect health Rook RGW"
+        bail "Failed to detect healthy Rook RGW"
     fi
 }
 
@@ -79,6 +89,7 @@ function rook_cluster_deploy() {
 
 function rook_dashboard_ready_spinner() {
     # wait for ceph dashboard password to be generated
+    printf "awaiting rook-ceph dashboard password\n"
     local delay=0.75
     local spinstr='|/-\'
     while ! kubectl -n rook-ceph get secret rook-ceph-dashboard-password &>/dev/null; do
@@ -91,6 +102,7 @@ function rook_dashboard_ready_spinner() {
 }
 
 function rook_ready_spinner() {
+    printf "awaiting rook-ceph pods\n"
     spinnerPodRunning rook-ceph rook-ceph-operator
     spinnerPodRunning rook-ceph rook-discover
 }

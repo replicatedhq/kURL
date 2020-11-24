@@ -22,6 +22,21 @@ DIR=.
 . $DIR/scripts/common/yaml.sh
 # Magic end
 
+function configure_coredns() {
+    # Runs after kubeadm init which always resets the coredns configmap - no need to check for
+    # and revert a previously set nameserver
+    if [ -z "$NAMESERVER" ]; then
+        return 0
+    fi
+    kubectl -n kube-system get configmap coredns -oyaml > /tmp/Corefile
+    # Example lines to replace from k8s 1.17 and 1.19
+    # "forward . /etc/resolv.conf" => "forward . 8.8.8.8"
+    # "forward . /etc/resolv.conf {" => "forward . 8.8.8.8 {"
+    sed -i "s/forward \. \/etc\/resolv\.conf/forward \. ${NAMESERVER}/" /tmp/Corefile
+    kubectl -n kube-system replace configmap coredns -f /tmp/Corefile
+    kubectl -n kube-system rollout restart deployment/coredns
+}
+
 function init() {
     logStep "Initialize Kubernetes"
 
@@ -133,6 +148,8 @@ EOF
         spinner_until 120 cert_has_san "$PRIVATE_ADDRESS:6443" "$LOAD_BALANCER_ADDRESS"
     fi
 
+    spinner_kubernetes_api_stable
+
     exportKubeconfig
     KUBEADM_TOKEN_CA_HASH=$(cat /tmp/kubeadm-init | grep 'discovery-token-ca-cert-hash' | awk '{ print $2 }' | head -1)
 
@@ -180,6 +197,8 @@ EOF
     kubectl get ns kurl 2>/dev/null 1>/dev/null || kubectl create ns kurl 1>/dev/null
 
     logSuccess "Cluster Initialized"
+
+    configure_coredns
 
     if commandExists containerd_registry_init; then
         containerd_registry_init
@@ -331,7 +350,7 @@ function outro() {
 
 function main() {
     export KUBECONFIG=/etc/kubernetes/admin.conf
-    requireRootUser
+    require_root_user
     get_patch_yaml "$@"
     yaml_airgap
     proxy_bootstrap

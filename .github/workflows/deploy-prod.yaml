@@ -16,8 +16,8 @@ jobs:
     - name: setup env
       id: env
       run: |
-        echo "::set-env name=GOPATH::$(go env GOPATH)"
-        echo "::add-path::$(go env GOPATH)/bin"
+        echo "GOPATH=$(go env GOPATH)" >> $GITHUB_ENV
+        echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
       shell: bash
 
     - uses: actions/checkout@v2

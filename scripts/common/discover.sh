@@ -134,7 +134,7 @@ discoverCurrentKubernetesVersion() {
     local fullCluster="$1"
 
     set +e
-    CURRENT_KUBERNETES_VERSION=$(cat /etc/kubernetes/manifests/kube-apiserver.yaml 2>/dev/null | grep image: | grep -oE '[0-9]+.[0-9]+.[0-9]')
+    CURRENT_KUBERNETES_VERSION=$(cat /etc/kubernetes/manifests/kube-apiserver.yaml 2>/dev/null | grep image: | grep -oE '[0-9]+.[0-9]+.[0-9]+')
     set -e
 
     if [ -z "$CURRENT_KUBERNETES_VERSION" ]; then
@@ -252,10 +252,10 @@ discoverCurrentKubernetesVersion() {
 }
 
 getDockerVersion() {
-	if ! commandExists "docker" ; then
-		return
-	fi
-	DOCKER_VERSION=$(docker -v | awk '{gsub(/,/, "", $3); print $3}')
+    if ! commandExists "docker" ; then
+        return
+    fi
+    DOCKER_VERSION=$(docker -v | awk '{gsub(/,/, "", $3); print $3}')
 }
 
 discover_public_ip() {
@@ -308,4 +308,13 @@ function discover_private_ip() {
 
     #This is needed on k8s 1.18.x as $PRIVATE_ADDRESS is found to have a newline
     PRIVATE_ADDRESS=$(echo "$PRIVATE_ADDRESS" | tr -d '\n')
+}
+
+function discover_non_loopback_nameservers() {
+    local resolvConf=/etc/resolv.conf
+    # https://github.com/kubernetes/kubernetes/blob/v1.19.3/cmd/kubeadm/app/componentconfigs/kubelet.go#L211
+    if systemctl is-active -q systemd-resolved; then
+        resolvConf=/run/systemd/resolve/resolv.conf
+    fi
+    cat $resolvConf | grep -E '^nameserver\s+' | grep -Eqv '^nameserver\s+127'
 }

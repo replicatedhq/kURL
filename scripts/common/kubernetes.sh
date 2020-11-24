@@ -169,13 +169,22 @@ function kubernetes_api_address() {
 }
 
 function kubernetes_api_is_healthy() {
-    curl --noproxy "*" --fail --silent --insecure "https://$(kubernetes_api_address)/healthz"
+    curl --noproxy "*" --fail --silent --insecure "https://$(kubernetes_api_address)/healthz" >/dev/null
 }
 
 function spinner_kubernetes_api_healthy() {
     if ! spinner_until 120 kubernetes_api_is_healthy; then
         bail "Kubernetes API failed to report healthy"
     fi
+}
+
+# With AWS NLB kubectl commands may fail to connect to the Kubernetes API immediately after a single
+# successful health check
+function spinner_kubernetes_api_stable() {
+    for i in {1..10}; do
+        sleep 1
+        spinner_kubernetes_api_healthy
+    done
 }
 
 function kubernetes_drain() {
@@ -490,6 +499,14 @@ function list_all_required_images() {
 
     if [ -n "$EKCO_VERSION" ]; then
         find addons/ekco/$EKCO_VERSION -type f -name Manifest 2>/dev/null | xargs cat | grep -E '^image' | grep -v no_remote_load | awk '{ print $3 }'
+    fi
+
+    if [ -n "$CERT_MANAGER_VERSION" ]; then
+        find addons/cert-manager/$CERT_MANAGER_VERSION -type f -name Manifest 2>/dev/null | xargs cat | grep -E '^image' | grep -v no_remote_load | awk '{ print $3 }'
+    fi
+
+    if [ -n "$METRICS_SERVER_VERSION" ]; then
+        find addons/metrics-server/$METRICS_SERVER_VERSION -type f -name Manifest 2>/dev/null | xargs cat | grep -E '^image' | grep -v no_remote_load | awk '{ print $3 }'
     fi
 }
 

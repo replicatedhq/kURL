@@ -3,18 +3,23 @@ function preflights() {
     require64Bit
     bailIfUnsupportedOS
     mustSwapoff
+    promptIfDockerUnsupportedOS
     checkDockerK8sVersion
     checkFirewalld
     must_disable_selinux
     apply_iptables_config
     cri_preflights
     kotsadm_prerelease
+    host_nameservers_reachable
 
     return 0
 }
 
-function requireRootUser() {
-    return 0
+function require_root_user() {
+    local user="$(id -un 2>/dev/null || true)"
+    if [ "$user" != "root" ]; then
+        bail "Error: this installer needs to be run as root."
+    fi
 }
 
 
@@ -32,7 +37,7 @@ function require64Bit() {
 
 function bailIfUnsupportedOS() {
     case "$LSB_DIST$DIST_VERSION" in
-        ubuntu16.04|ubuntu18.04|ubuntu20.04|rhel7.4|rhel7.5|rhel7.6|rhel7.7|rhel7.8|rhel7.9|rhel8.0|rhel8.1|rhel8.2|centos7.4|centos7.5|centos7.6|centos7.7|centos7.8|centos8.0|centos8.1|centos8.2|amzn2)
+        ubuntu16.04|ubuntu18.04|ubuntu20.04|rhel7.4|rhel7.5|rhel7.6|rhel7.7|rhel7.8|rhel7.9|rhel8.0|rhel8.1|rhel8.2|centos7.4|centos7.5|centos7.6|centos7.7|centos7.8|centos7.9|centos8.0|centos8.1|centos8.2|amzn2)
             ;;
         *)
             bail "Kubernetes install is not supported on ${LSB_DIST} ${DIST_VERSION}"
@@ -74,6 +79,28 @@ checkDockerK8sVersion()
                 bail "Minimum Docker version for Kubernetes $KUBERNETES_VERSION is 1.13.1."
             fi
             ;;
+    esac
+}
+
+promptIfDockerUnsupportedOS()
+{
+    if [ -z "$DOCKER_VERSION" ]; then
+        return
+    fi
+
+    case "$LSB_DIST" in
+    centos|rhel)
+        if [[ "$DIST_VERSION" =~ ^8 ]]; then
+            logWarn "Docker is not supported on ${LSB_DIST} ${DIST_VERSION}."
+            logWarn "The containerd addon is recommended. https://kurl.sh/docs/add-ons/containerd"
+            if ! commandExists "docker" ; then
+                printf "${YELLOW}Continue? ${NC}" 1>&2
+                if ! confirmY "-t 30"; then
+                    exit 1
+                fi
+            fi
+        fi
+        ;;
     esac
 }
 
@@ -156,7 +183,7 @@ swapEnabled() {
 }
 
 swapConfigured() {
-	    cat /etc/fstab | grep --quiet --ignore-case --extended-regexp '^[^#]+swap'
+    cat /etc/fstab | grep --quiet --ignore-case --extended-regexp '^[^#]+swap'
 }
 
 function force_docker() {
@@ -170,15 +197,15 @@ function cri_preflights() {
 }
 
 function require_cri() {
-	if commandExists docker ; then
+    if commandExists docker ; then
         SKIP_DOCKER_INSTALL=1
-		return 0
-	fi
+        return 0
+    fi
 
     if commandExists ctr ; then
         SKIP_CONTAINERD_INSTALL=1
-		return 0
-	fi
+        return 0
+    fi
 
     if [ "$LSB_DIST" = "rhel" ]; then
         if [ -n "$NO_CE_ON_EE" ]; then
@@ -231,5 +258,14 @@ function kotsadm_prerelease() {
         if ! confirmN; then
             bail "\nWill not install prerelease version of kotsadm."
         fi
+    fi
+}
+
+function host_nameservers_reachable() {
+    if [ -n "$NAMESERVER" ] || [ "$AIRGAP" = "1" ]; then
+        return 0
+    fi
+    if ! discover_non_loopback_nameservers; then
+        bail "\nAt least one nameserver must be accessible on a non-loopback address. Use the \"nameserver\" flag in the installer spec to override the loopback nameservers discovered on the host: https://kurl.sh/docs/add-ons/kurl"
     fi
 }

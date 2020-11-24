@@ -309,6 +309,7 @@ export interface KurlConfig {
   privateAddress?: string;
   publicAddress?: string;
   task?: string;
+  nameserver?: string;
 }
 
 export const kurlConfigSchema = {
@@ -323,6 +324,7 @@ export const kurlConfigSchema = {
     noProxy: { type: "boolean", flag: "no-proxy" , description: "Don’t detect or configure a proxy" },
     privateAddress: { type: "string", flag: "private-address" , description: "The local address of the host (different for each host in the cluster)" },
     publicAddress: { type: "string", flag: "public-address" , description: "The public address of the host (different for each host in the cluster), will be added as a CNAME to the k8s API server cert so you can use kubectl with this address" },
+    nameserver: { type: "string" },
   },
   additionalProperties: false,
 };
@@ -585,6 +587,13 @@ export class Installer {
       "1.7.4",
     ],
     kotsadm: [
+      "1.24.0",
+      "1.23.1",
+      "1.23.0",
+      "1.22.4",
+      "1.22.3",
+      "1.22.2",
+      "1.22.1",
       "1.22.0",
       "1.21.3",
       "1.21.2",
@@ -672,6 +681,7 @@ export class Installer {
       "2020-01-25T02-50-51Z",
     ],
     collectd: [
+      "v5",
       "0.0.1",
     ],
     ekco: [
@@ -742,6 +752,10 @@ export class Installer {
     i.spec = parsed.spec;
 
     const modified = i.legacyFieldConversion();
+
+    if (modified.spec.collectd && modified.spec.collectd.version === "0.0.1") {
+      modified.spec.collectd.version = "v5";
+    }
 
     if (parsed.apiVersion === "kurl.sh/v1beta1") {
       return modified.migrateV1Beta1();

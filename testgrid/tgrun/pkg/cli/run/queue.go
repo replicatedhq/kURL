@@ -22,6 +22,7 @@ func QueueCmd() *cobra.Command {
 				APIEndpoint:  v.GetString("testgrid-api"),
 				OverwriteRef: v.GetBool("overwrite-ref"),
 				Ref:          v.GetString("ref"),
+				Staging:      v.GetBool("staging"),
 			}
 
 			if err := scheduler.Run(schedulerOptions); err != nil {
@@ -35,6 +36,7 @@ func QueueCmd() *cobra.Command {
 	cmd.Flags().String("ref", "", "ref to report to testgrid")
 	cmd.Flags().String("testgrid-api", "https://api.testgrid.kurl.sh", "set to change the location of the testgrid api")
 	cmd.Flags().Bool("overwrite-ref", false, "when set, overwrite the ref on the testgrid")
+	cmd.Flags().Bool("staging", false, "when set, run tests against staging.kurl.sh instead of kurl.sh")
 
 	cmd.MarkFlagRequired("ref")
 

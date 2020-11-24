@@ -95,7 +95,7 @@ outro() {
 
 function main() {
     export KUBECONFIG=/etc/kubernetes/admin.conf
-    requireRootUser
+    require_root_user
     get_patch_yaml "$@"
     proxy_bootstrap
     download_util_binaries

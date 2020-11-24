@@ -216,7 +216,7 @@ function apply_iptables_config() {
 }
 
 function is_ha() {
-    local master_count=$(kubectl get node --selector='node-role.kubernetes.io/master' | grep 'master' | wc -l) #get nodes with the 'master' role, and then search for 'master' to remove the column labels row
+    local master_count=$(kubectl get node --selector='node-role.kubernetes.io/master' 2>/dev/null | grep 'master' | wc -l) #get nodes with the 'master' role, and then search for 'master' to remove the column labels row
     if [ "$master_count" -gt 1 ]; then
         IS_CURRENTLY_HA="true"
     fi

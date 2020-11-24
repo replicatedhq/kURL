@@ -4,10 +4,6 @@ variable instance_type {
   description = "packet instamce type"
 }
 
-variable auth_token {
-  type        = string
-}
-
 variable region {
   type        = list(string)
   default     = ["sv15"]
@@ -31,22 +27,12 @@ variable tg_hostname {
     default   = "testgrid-spot"
 }
 
+variable tg_hostname_burst {
+  type      = string
+  default   = "testgrid-spot-burst"
+}
+
 variable tg_os {
   type        = string
   default     = "ubuntu_18_04"
-}
-
-variable dh_email {
-  type        = string
-  default     = "pavel@replicated.com"
-  description = "Primary email for replicatedtestgrid DockerHub account"
-}
-
-variable dh_user {
-  type        = string
-  default     = "replicatedtestgrid"
-}
-
-variable dh_pass {
-  type        = string
 }

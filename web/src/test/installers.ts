@@ -91,6 +91,7 @@ spec:
     noProxy: false
     privateAddress: 10.38.1.1
     publicAddress: 101.38.1.1
+    nameserver: 8.8.8.8
   collectd:
     version: 0.0.1
   certManager:
@@ -740,7 +741,7 @@ spec:
     it("should parse", () => {
       const i = Installer.parse(everyOption);
 
-      expect(i.spec.collectd.version).to.equal("0.0.1");
+      expect(i.spec.collectd.version).to.equal("v5");
     });
   });
 
@@ -774,6 +775,14 @@ spec:
 
       expect(hasCertManager).to.equal(true);
       expect(hasMetricsServer).to.equal(true);
+    });
+  });
+
+  describe("kurl.nameserver", () => {
+    it("should parse the nameserver", () => {
+      const i = Installer.parse(everyOption);
+
+      expect(i.spec.kurl.nameserver).to.equal("8.8.8.8");
     });
   });
 });

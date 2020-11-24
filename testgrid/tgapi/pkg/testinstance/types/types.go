@@ -3,20 +3,21 @@ package types
 import "time"
 
 type TestInstance struct {
-	ID         string
-	RefID      string
-	EnqueuedAt *time.Time
-	DequeuedAt *time.Time
-	StartedAt  *time.Time
-	FinishedAt *time.Time
-	IsSuccess  bool
+	ID            string     `json:"id"`
+	RefID         string     `json:"refID"`
+	EnqueuedAt    *time.Time `json:"enqueuedAt"`
+	DequeuedAt    *time.Time `json:"dequeuedAt"`
+	StartedAt     *time.Time `json:"startedAt"`
+	FinishedAt    *time.Time `json:"finishedAt"`
+	IsSuccess     bool       `json:"isSuccess"`
+	IsUnsupported bool       `json:"isUnsupported"`
 
-	KurlYAML string
-	KurlURL  string
+	KurlYAML string `json:"kurlYaml"`
+	KurlURL  string `json:"kurlURL"`
 
-	Output string
+	Output string `json:"-"`
 
-	OSName    string
-	OSVersion string
-	OSImage   string
+	OSName    string `json:"osName"`
+	OSVersion string `json:"osVersion"`
+	OSImage   string `json:"-"`
 }

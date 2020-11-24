@@ -64,7 +64,7 @@ maybe_upgrade() {
                     # after a load balancer address change relies on this behavior.
                     # https://github.com/kubernetes/kubernetes/pull/94398
                     if [ "$KUBERNETES_TARGET_VERSION_MINOR" = "19" ]; then
-                        rm /etc/kubernetes/scheduler.conf
+                        rm -rf /etc/kubernetes/scheduler.conf
                         kubeadm init phase kubeconfig scheduler --kubernetes-version "v${KUBERNETES_VERSION}"
                         mv /etc/kubernetes/manifests/kube-scheduler.yaml /tmp/ && sleep 1 && mv /tmp/kube-scheduler.yaml /etc/kubernetes/manifests/
                         rm /etc/kubernetes/controller-manager.conf
@@ -96,7 +96,7 @@ function outro() {
 
 function main() {
     export KUBECONFIG=/etc/kubernetes/admin.conf
-    requireRootUser
+    require_root_user
     get_patch_yaml "$@"
     proxy_bootstrap
     download_util_binaries
@@ -109,9 +109,10 @@ function main() {
     journald_persistent
     configure_proxy
     configure_no_proxy
-    apply_docker_config
+    install_cri
     get_shared
     maybe_upgrade
+    addon_for_each addon_join
     outro
 }
 

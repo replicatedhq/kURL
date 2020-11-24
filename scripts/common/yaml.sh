@@ -1,10 +1,10 @@
 
 function render_yaml() {
-	eval "echo \"$(cat $DIR/yaml/$1)\""
+    eval "echo \"$(cat $DIR/yaml/$1)\""
 }
 
 function render_yaml_file() {
-	eval "echo \"$(cat $1)\""
+    eval "echo \"$(cat $1)\""
 }
 
 function insert_patches_strategic_merge() {

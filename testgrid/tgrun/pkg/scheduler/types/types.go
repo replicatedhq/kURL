@@ -9,6 +9,7 @@ type SchedulerOptions struct {
 	APIEndpoint  string
 	OverwriteRef bool
 	Ref          string
+	Staging      bool
 }
 
 type TestRun struct {
@@ -24,10 +25,15 @@ type TestRun struct {
 }
 
 type OperatingSystemImage struct {
-	VMImageURI string
+	ID         string
 	Name       string
 	Version    string
-	PVCPrefix  string
+	VMImageURI string
+}
+
+type Instance struct {
+	InstallerSpec    InstallerSpec
+	UnsupportedOSIDs []string
 }
 
 type Installer struct {
@@ -58,4 +64,5 @@ type InstallerSpec struct {
 	IptablesConfig  *kurlv1beta1.IptablesConfig  `json:"iptablesConfig,omitempty"`
 	FirewalldConfig *kurlv1beta1.FirewalldConfig `json:"firewalldConfig,omitempty"`
 	Ekco            *kurlv1beta1.Ekco            `json:"ekco,omitempty"`
+	Collectd        *kurlv1beta1.Collectd        `json:"collectd,omitempty"`
 }

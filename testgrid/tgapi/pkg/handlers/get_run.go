@@ -8,6 +8,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/replicatedhq/kurl/testgrid/tgapi/pkg/logger"
 	"github.com/replicatedhq/kurl/testgrid/tgapi/pkg/testinstance"
+	"github.com/replicatedhq/kurl/testgrid/tgapi/pkg/testinstance/types"
 )
 
 type GetRunRequest struct {
@@ -17,21 +18,11 @@ type GetRunRequest struct {
 }
 
 type GetRunResponse struct {
-	Instances []InstanceResponse `json:"instances"`
-	Total     int                `json:"total"`
-}
-
-type InstanceResponse struct {
-	ID         string     `json:"id"`
-	OSName     string     `json:"osName"`
-	OSVersion  string     `json:"osVersion"`
-	KurlYAML   string     `json:"kurlYaml"`
-	KurlURL    string     `json:"kurlURL"`
-	EnqueuedAt *time.Time `json:"enqueuedAt"`
-	DequeuedAt *time.Time `json:"dequeuedAt"`
-	StartedAt  *time.Time `json:"startedAt"`
-	FinishedAt *time.Time `json:"finishedAt"`
-	IsSuccess  bool       `json:"isSuccess"`
+	Instances    []types.TestInstance `json:"instances"`
+	Total        int                  `json:"total"`
+	LastResponse *time.Time           `json:"last_response"`
+	SuccessCount int64                `json:"success_count"` // success_count plus failure_count will not always equal total due to unsupported instances
+	FailureCount int64                `json:"failure_count"`
 }
 
 func GetRun(w http.ResponseWriter, r *http.Request) {
@@ -69,26 +60,24 @@ func GetRun(w http.ResponseWriter, r *http.Request) {
 
 	getRunResponse := GetRunResponse{}
 
-	instanceResponses := []InstanceResponse{}
-	for _, instance := range instances {
-		instanceResponse := InstanceResponse{
-			ID:         instance.ID,
-			OSName:     instance.OSName,
-			OSVersion:  instance.OSVersion,
-			KurlYAML:   instance.KurlYAML,
-			KurlURL:    instance.KurlURL,
-			EnqueuedAt: instance.EnqueuedAt,
-			DequeuedAt: instance.DequeuedAt,
-			StartedAt:  instance.StartedAt,
-			FinishedAt: instance.FinishedAt,
-			IsSuccess:  instance.IsSuccess,
-		}
-
-		instanceResponses = append(instanceResponses, instanceResponse)
-	}
-
-	getRunResponse.Instances = instanceResponses
+	getRunResponse.Instances = instances
 	getRunResponse.Total = total
+
+	// calculate the last completed test run and the number of successes/failures
+	for _, instance := range instances {
+		if instance.FinishedAt != nil {
+			if getRunResponse.LastResponse == nil || getRunResponse.LastResponse.Before(*instance.FinishedAt) {
+				getRunResponse.LastResponse = instance.FinishedAt
+			}
+		}
+		if !instance.IsUnsupported && instance.FinishedAt != nil {
+			if instance.IsSuccess {
+				getRunResponse.SuccessCount++
+			} else {
+				getRunResponse.FailureCount++
+			}
+		}
+	}
 
 	JSON(w, 200, getRunResponse)
 }

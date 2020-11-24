@@ -21,6 +21,7 @@ function addon_for_each() {
     $cmd metrics-server "$METRICS_SERVER_VERSION"
 }
 
+ADDONS_HAVE_HOST_COMPONENTS=0
 function addon_install() {
     local name=$1
     local version=$2
@@ -37,6 +38,10 @@ function addon_install() {
     . $DIR/addons/$name/$version/install.sh
 
     $name
+
+    if commandExists ${name}_join; then
+        ADDONS_HAVE_HOST_COMPONENTS=1
+    fi
 }
 
 function addon_pre_init() {
@@ -97,6 +102,35 @@ function addon_load() {
 }
 
 function addon_outro() {
+    if [ -n "$PROXY_ADDRESS" ]; then
+        ADDONS_HAVE_HOST_COMPONENTS=1
+    fi
+
+    if [ "$ADDONS_HAVE_HOST_COMPONENTS" = "1" ] && kubernetes_has_remotes; then
+        local dockerRegistryIP=""
+        if [ -n "$DOCKER_REGISTRY_IP" ]; then
+            dockerRegistryIP=" docker-registry-ip=$DOCKER_REGISTRY_IP"
+        fi
+
+        local proxyFlag=""
+        local noProxyAddrs=""
+        if [ -n "$PROXY_ADDRESS" ]; then
+            proxyFlag=" -x $PROXY_ADDRESS"
+            noProxyAddrs=" additional-no-proxy-addresses=${SERVICE_CIDR},${POD_CIDR}"
+        fi
+
+        local prefix="curl -sSL${proxyFlag} $KURL_URL/$INSTALLER_ID/"
+        if [ "$AIRGAP" = "1" ] || [ -z "$KURL_URL" ]; then
+            prefix="cat "
+        fi
+
+        printf "\n${YELLOW}Run this script on all remote nodes to apply changes${NC}\n"
+        printf "\n\t${GREEN}${prefix}upgrade.sh | sudo bash -s${dockerRegistryIP}${noProxyAddrs}${NC}\n\n"
+        printf "Press enter to proceed\n"
+        prompt
+
+    fi
+
     while read -r name; do
         if commandExists ${name}_outro; then
             ${name}_outro

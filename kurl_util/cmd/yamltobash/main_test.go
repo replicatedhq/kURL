@@ -1,7 +1,9 @@
 package main
 
 import (
+	"reflect"
 	"testing"
+
 	// "reflect"
 
 	"github.com/stretchr/testify/assert"
@@ -12,6 +14,7 @@ func Test_convertToBash(t *testing.T) {
 	tests := []struct {
 		name      string
 		inputMap  map[string]interface{}
+		fieldsSet map[string]bool
 		wantedMap map[string]string
 		wantError bool
 	}{
@@ -125,13 +128,46 @@ func Test_convertToBash(t *testing.T) {
 				"METRICS_SERVER_VERSION": `"0.3.7"`,
 			},
 		},
+		{
+			name: "Docker.HardFailOnLoopback defaults to true",
+			inputMap: map[string]interface{}{
+				"Docker.HardFailOnLoopback": false,
+			},
+			wantedMap: map[string]string{
+				"HARD_FAIL_ON_LOOPBACK": "1",
+			},
+		},
+		{
+			name: "Docker.HardFailOnLoopback can be explicitly set to false",
+			inputMap: map[string]interface{}{
+				"Docker.HardFailOnLoopback": false,
+			},
+			fieldsSet: map[string]bool{
+				"Docker.HardFailOnLoopback": true,
+			},
+			wantedMap: map[string]string{
+				"HARD_FAIL_ON_LOOPBACK": "",
+			},
+		},
+		{
+			name: "Docker.HardFailOnLoopback can be explicitly set to true",
+			inputMap: map[string]interface{}{
+				"Docker.HardFailOnLoopback": true,
+			},
+			fieldsSet: map[string]bool{
+				"Docker.HardFailOnLoopback": true,
+			},
+			wantedMap: map[string]string{
+				"HARD_FAIL_ON_LOOPBACK": "1",
+			},
+		},
 	}
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			req := require.New(t)
 
-			outputMap, err := convertToBash(test.inputMap)
+			outputMap, err := convertToBash(test.inputMap, test.fieldsSet)
 			if test.wantError {
 				req.Error(err)
 			} else {
@@ -139,6 +175,47 @@ func Test_convertToBash(t *testing.T) {
 			}
 
 			assert.Equal(t, test.wantedMap, outputMap)
+		})
+	}
+}
+
+func TestGetFieldsSet(t *testing.T) {
+	tests := []struct {
+		name   string
+		yaml   string
+		expect map[string]bool
+	}{
+		{
+			name: "Docker.HardFailOnLoopback",
+			yaml: `apiVersion: cluster.kurl.sh/v1beta
+kind: Installer
+metadata:
+  name: kurl
+spec:
+  kubernetes:
+    version: 1.19.3
+  docker:
+    version: 19.03.10
+    hardFailOnLoopback: false
+  weave:
+    version: 2.6.5`,
+			expect: map[string]bool{
+				"Kubernetes.Version":        true,
+				"Docker.Version":            true,
+				"Docker.HardFailOnLoopback": true,
+				"Weave.Version":             true,
+			},
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			out, err := getFieldsSet([]byte(test.yaml))
+			if err != nil {
+				t.Fatal(err)
+			}
+			if !reflect.DeepEqual(out, test.expect) {
+				t.Errorf("Expected %+v\ngot %+v", test.expect, out)
+			}
 		})
 	}
 }

@@ -16,33 +16,75 @@ import (
 	kurlscheme "github.com/replicatedhq/kurl/kurlkinds/client/kurlclientset/scheme"
 	kurlv1beta1 "github.com/replicatedhq/kurl/kurlkinds/pkg/apis/cluster/v1beta1"
 	kurlversion "github.com/replicatedhq/kurl/pkg/version"
+	"gopkg.in/yaml.v1"
 	"k8s.io/client-go/kubernetes/scheme"
 )
 
-func getInstallerConfigFromYaml(yamlPath string) (*kurlv1beta1.Installer, error) {
+func getInstallerConfigFromYaml(yamlPath string) (*kurlv1beta1.Installer, map[string]bool, error) {
 	yamlData, err := ioutil.ReadFile(yamlPath)
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to load file %s", yamlPath)
+		return nil, nil, errors.Wrapf(err, "failed to load file %s", yamlPath)
 	}
 
 	yamlData = bytes.TrimSpace(yamlData)
 	if len(yamlData) == 0 {
-		return nil, nil
+		return nil, nil, nil
 	}
 
 	decode := scheme.Codecs.UniversalDeserializer().Decode
 
 	obj, gvk, err := decode(yamlData, nil, nil)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to decode installer yaml")
+		return nil, nil, errors.Wrap(err, "failed to decode installer yaml")
 	}
 
 	if gvk.Group != "cluster.kurl.sh" || gvk.Version != "v1beta1" || gvk.Kind != "Installer" {
-		return nil, errors.Errorf("installer yaml contained unepxected gvk: %s/%s/%s", gvk.Group, gvk.Version, gvk.Kind)
+		return nil, nil, errors.Errorf("installer yaml contained unepxected gvk: %s/%s/%s", gvk.Group, gvk.Version, gvk.Kind)
 	}
 	installer := obj.(*kurlv1beta1.Installer)
 
-	return installer, nil
+	fieldsSet, err := getFieldsSet(yamlData)
+	if err != nil {
+		return nil, nil, errors.Wrap(err, "failed to get fields set in yaml")
+	}
+
+	return installer, fieldsSet, nil
+}
+
+func getFieldsSet(yamlDoc []byte) (map[string]bool, error) {
+	tmp := map[string]interface{}{}
+	if err := yaml.Unmarshal(yamlDoc, tmp); err != nil {
+		return nil, err
+	}
+	specInterface, ok := tmp["spec"]
+	if !ok {
+		return nil, errors.New("No spec found in yaml")
+	}
+	specMap, ok := specInterface.(map[interface{}]interface{})
+	if !ok {
+		return nil, errors.New("Spec is not a map")
+	}
+	out := map[string]bool{}
+	for categoryKeyInterface, categoryInterface := range specMap {
+		categoryKey, ok := categoryKeyInterface.(string)
+		if !ok {
+			continue
+		}
+		categoryMap, ok := categoryInterface.(map[interface{}]interface{})
+		if !ok {
+			continue
+		}
+		for fieldKeyInterface := range categoryMap {
+			fieldKey, ok := fieldKeyInterface.(string)
+			if !ok {
+				continue
+			}
+			key := fmt.Sprintf("%s.%s", strings.Title(categoryKey), strings.Title(fieldKey))
+			out[key] = true
+		}
+	}
+
+	return out, nil
 }
 
 func createMap(retrieved *kurlv1beta1.Installer) map[string]interface{} {
@@ -88,7 +130,7 @@ func checkIfSkippedVariable(yamlString string) bool {
 	return false
 }
 
-func convertToBash(kurlValues map[string]interface{}) (map[string]string, error) {
+func convertToBash(kurlValues map[string]interface{}, fieldsSet map[string]bool) (map[string]string, error) {
 	if kurlValues == nil {
 		return nil, errors.New("kurlValues map was nil")
 	}
@@ -147,6 +189,7 @@ func convertToBash(kurlValues map[string]interface{}) (map[string]string, error)
 		"Kurl.NoProxy":                           "NO_PROXY",
 		"Kurl.PrivateAddress":                    "PRIVATE_ADDRESS",
 		"Kurl.PublicAddress":                     "PUBLIC_ADDRESS",
+		"Kurl.Nameserver":                        "NAMESERVER",
 		"MetricsServer.Version":                  "METRICS_SERVER_VERSION",
 		"Minio.Namespace":                        "MINIO_NAMESPACE",
 		"Minio.Version":                          "MINIO_VERSION",
@@ -229,6 +272,11 @@ func convertToBash(kurlValues map[string]interface{}) (map[string]string, error)
 			bashVal = strings.Replace(bashVal, "/", "", -1)
 		}
 
+		// HARD_FAIL_ON_LOOPBACK defaults to true
+		if yamlKey == "Docker.HardFailOnLoopback" && bashVal == "" && !fieldsSet[yamlKey] {
+			bashVal = "1"
+		}
+
 		finalDictionary[bashKey] = bashVal
 	}
 
@@ -271,14 +319,14 @@ func writeDictionaryToFile(bashDictionary map[string]string, bashPath string) er
 }
 
 func addBashVariablesFromYaml(yamlPath, bashPath string) error {
-	installerConfig, err := getInstallerConfigFromYaml(yamlPath)
+	installerConfig, fieldsSet, err := getInstallerConfigFromYaml(yamlPath)
 	if err != nil {
 		return errors.Wrap(err, "failed to load installer yaml")
 	}
 
 	yamlDictionary := createMap(installerConfig)
 
-	bashDictionary, err := convertToBash(yamlDictionary)
+	bashDictionary, err := convertToBash(yamlDictionary, fieldsSet)
 	if err != nil {
 		return errors.Wrap(err, "failed to convert to bash")
 	}
