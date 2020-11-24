@@ -65,10 +65,10 @@ maybe_upgrade() {
                     # https://github.com/kubernetes/kubernetes/pull/94398
                     if [ "$KUBERNETES_TARGET_VERSION_MINOR" = "19" ]; then
                         rm -rf /etc/kubernetes/scheduler.conf
-                        kubeadm init phase kubeconfig scheduler
+                        kubeadm init phase kubeconfig scheduler --kubernetes-version "v${KUBERNETES_VERSION}"
                         mv /etc/kubernetes/manifests/kube-scheduler.yaml /tmp/ && sleep 1 && mv /tmp/kube-scheduler.yaml /etc/kubernetes/manifests/
                         rm /etc/kubernetes/controller-manager.conf
-                        kubeadm init phase kubeconfig controller-manager
+                        kubeadm init phase kubeconfig controller-manager --kubernetes-version "v${KUBERNETES_VERSION}"
                         mv /etc/kubernetes/manifests/kube-controller-manager.yaml /tmp/ && sleep 1 && mv /tmp/kube-controller-manager.yaml /etc/kubernetes/manifests/
                     fi
                 fi
