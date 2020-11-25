@@ -32,6 +32,8 @@ function addon_install() {
 
     logStep "Addon $name $version"
 
+    report_addon_start "$name" "$version"
+
     rm -rf $DIR/kustomize/$name
     mkdir -p $DIR/kustomize/$name
 
@@ -42,6 +44,8 @@ function addon_install() {
     if commandExists ${name}_join; then
         ADDONS_HAVE_HOST_COMPONENTS=1
     fi
+
+    report_addon_success "$name" "$version"
 }
 
 function addon_pre_init() {

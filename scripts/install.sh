@@ -20,6 +20,7 @@ DIR=.
 . $DIR/scripts/common/upgrade.sh
 . $DIR/scripts/common/utilbinaries.sh
 . $DIR/scripts/common/yaml.sh
+. $DIR/scripts/common/reporting.sh
 # Magic end
 
 function configure_coredns() {
@@ -361,6 +362,7 @@ function main() {
     parse_yaml_into_bash_variables
     parse_kubernetes_target_version
     discover full-cluster
+    report_install_start
     preflights
     prompts
     journald_persistent
@@ -380,6 +382,7 @@ function main() {
     addon_for_each addon_install
     post_init
     outro
+    report_install_success
 }
 
 main "$@"
