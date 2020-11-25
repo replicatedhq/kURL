@@ -165,10 +165,10 @@ function kotsadm_secret_postgres() {
 }
 
 function kotsadm_secret_dex_postgres() {
-    local DEX_PG_PASSWORD=$(kubernetes_secret_value default kotsadm-dex-postgres password)
+    local DEX_PGPASSWORD=$(kubernetes_secret_value default kotsadm-dex-postgres password)
 
-    if [ -z "$DEX_PG_PASSWORD" ]; then
-        DEX_PG_PASSWORD=$(< /dev/urandom tr -dc A-Za-z0-9 | head -c32)
+    if [ -z "$DEX_PGPASSWORD" ]; then
+        DEX_PGPASSWORD=$(< /dev/urandom tr -dc A-Za-z0-9 | head -c32)
     fi
 
     render_yaml_file "$DIR/addons/kotsadm/alpha/tmpl-secret-dex-postgres.yaml" > "$DIR/kustomize/kotsadm/secret-dex-postgres.yaml"
