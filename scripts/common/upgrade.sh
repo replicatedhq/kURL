@@ -126,9 +126,16 @@ function upgrade_kubernetes_remote_node_patch() {
         continue
     fi
 
+    DOCKER_REGISTRY_IP=$(kubectl -n kurl get service registry -o=jsonpath='{@.spec.clusterIP}' 2>/dev/null || echo "")
+
     printf "${YELLOW}Drain node $nodeName to prepare for upgrade? ${NC}"
     confirmY " "
     kubernetes_drain "$nodeName"
+
+    local dockerRegistryIP=""
+    if [ -n "$DOCKER_REGISTRY_IP" ]; then
+        dockerRegistryIP=" docker-registry-ip=$DOCKER_REGISTRY_IP"
+    fi
 
     local noProxyAddrs=""
     if [ -n "$NO_PROXY_ADDRESSES" ]; then
@@ -138,9 +145,9 @@ function upgrade_kubernetes_remote_node_patch() {
     printf "\n\n\tRun the upgrade script on remote node to proceed: ${GREEN}$nodeName${NC}\n\n"
 
     if [ "$AIRGAP" = "1" ]; then
-        printf "\t${GREEN}cat upgrade.sh | sudo bash -s airgap kubernetes-version=${KUBERNETES_VERSION}${noProxyAddrs}${NC}\n\n"
+        printf "\t${GREEN}cat upgrade.sh | sudo bash -s airgap kubernetes-version=${KUBERNETES_VERSION}${noProxyAddrs}${dockerRegistryIP}${NC}\n\n"
     elif [ -z "$KURL_URL" ]; then
-        printf "\t${GREEN}cat upgrade.sh | sudo bash -s kubernetes-version=${KUBERNETES_VERSION}${noProxyAddrs}${NC}\n\n"
+        printf "\t${GREEN}cat upgrade.sh | sudo bash -s kubernetes-version=${KUBERNETES_VERSION}${noProxyAddrs}${dockerRegistryIP}${NC}\n\n"
     else
         local prefix="curl $KURL_URL/$INSTALLER_ID/"
         if [ -z "$KURL_URL" ]; then
@@ -231,9 +238,16 @@ function upgrade_kubernetes_remote_node_minor() {
         continue
     fi
 
+    DOCKER_REGISTRY_IP=$(kubectl -n kurl get service registry -o=jsonpath='{@.spec.clusterIP}' 2>/dev/null || echo "")
+
     printf "${YELLOW}Drain node $nodeName to prepare for upgrade? ${NC}"
     confirmY " "
     kubernetes_drain "$nodeName"
+
+    local dockerRegistryIP=""
+    if [ -n "$DOCKER_REGISTRY_IP" ]; then
+        dockerRegistryIP=" docker-registry-ip=$DOCKER_REGISTRY_IP"
+    fi
 
     local noProxyAddrs=""
     if [ -n "$NO_PROXY_ADDRESSES" ]; then
@@ -243,9 +257,9 @@ function upgrade_kubernetes_remote_node_minor() {
     printf "\n\n\tRun the upgrade script on remote node to proceed: ${GREEN}$nodeName${NC}\n\n"
 
     if [ "$AIRGAP" = "1" ]; then
-        printf "\t${GREEN}cat upgrade.sh | sudo bash -s airgap kubernetes-version=${targetK8sVersion}${noProxyAddrs}${NC}\n\n"
+        printf "\t${GREEN}cat upgrade.sh | sudo bash -s airgap kubernetes-version=${targetK8sVersion}${noProxyAddrs}${dockerRegistryIP}${NC}\n\n"
     elif [ -z "$KURL_URL" ]; then
-        printf "\t${GREEN}cat upgrade.sh | sudo bash -s kubernetes-version=${targetK8sVersion}${noProxyAddrs}${NC}\n\n"
+        printf "\t${GREEN}cat upgrade.sh | sudo bash -s kubernetes-version=${targetK8sVersion}${noProxyAddrs}${dockerRegistryIP}${NC}\n\n"
     else
         local prefix="curl $KURL_URL/$INSTALLER_ID/"
         if [ -z "$KURL_URL" ]; then

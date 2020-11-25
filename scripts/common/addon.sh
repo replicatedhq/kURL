@@ -125,7 +125,11 @@ function addon_outro() {
         fi
 
         printf "\n${YELLOW}Run this script on all remote nodes to apply changes${NC}\n"
-        printf "\n\t${GREEN}${prefix}upgrade.sh | sudo bash -s${dockerRegistryIP}${noProxyAddrs}${NC}\n\n"
+        if [ "$AIRGAP" = "1" ]; then
+            printf "\n\t${GREEN}${prefix}upgrade.sh | sudo bash -s airgap ${dockerRegistryIP}${noProxyAddrs}${NC}\n\n"
+        else
+            printf "\n\t${GREEN}${prefix}upgrade.sh | sudo bash -s${dockerRegistryIP}${noProxyAddrs}${NC}\n\n"
+        fi
         printf "Press enter to proceed\n"
         prompt
 
