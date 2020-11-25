@@ -6,15 +6,16 @@ function report_install_start() {
     # this includes the install ID, time, kurl URL, HA status, server CPU count and memory size, and linux distribution name + version.
 
     # if airgapped, don't create an installation ID and return early
-    if [ -z "$version" ]; then
+    if [ "$AIRGAP" == "1" ]; then
         return 0
     fi
 
-    INSTALLATION_ID=$(< /dev/urandom tr -dc A-Za-z0-9 | head -c16)
+    INSTALLATION_ID=$(< /dev/urandom tr -dc a-z0-9 | head -c16)
     local started=$(date -u +"%Y-%m-%dT%H:%M:%SZ") # rfc3339
 
-
-    local payload=#TODO
+    curl -s --output /dev/null -H 'Content-Type: application/json' --max-time 5 \
+        -d "{\"started\": \"$started\", \"os\": \"$LSB_DIST $DIST_VERSION_MAJOR.$DIST_VERSION\", \"kernel_version\": \"$KERNEL_MAJOR.$KERNEL_MINOR\", \"kurl_url\": \"$KURL_URL\", \"installer_id\": \"$INSTALLER_ID\"}" \
+        $REPLICATED_APP_URL/kurl_metrics/start_install/$INSTALLATION_ID
 }
 
 function report_install_success() {
@@ -26,6 +27,10 @@ function report_install_success() {
     fi
 
     local completed=$(date -u +"%Y-%m-%dT%H:%M:%SZ") # rfc3339
+
+    curl -s --output /dev/null -H 'Content-Type: application/json' --max-time 5 \
+        -d "{\"finished\": \"$completed\"}" \
+        $REPLICATED_APP_URL/kurl_metrics/finish_install/$INSTALLATION_ID
 }
 
 function report_addon_start() {
@@ -39,6 +44,10 @@ function report_addon_start() {
     fi
 
     local started=$(date -u +"%Y-%m-%dT%H:%M:%SZ") # rfc3339
+
+    curl -s --output /dev/null -H 'Content-Type: application/json' --max-time 5 \
+        -d "{\"started\": \"$started\", \"addon_name\": \"$name\", \"addon_version\": \"$version\"}" \
+        $REPLICATED_APP_URL/kurl_metrics/start_addon/$INSTALLATION_ID/$name
 }
 
 function report_addon_success() {
@@ -52,4 +61,8 @@ function report_addon_success() {
     fi
 
     local completed=$(date -u +"%Y-%m-%dT%H:%M:%SZ") # rfc3339
+
+    curl -s --output /dev/null -H 'Content-Type: application/json' --max-time 5 \
+        -d "{\"finished\": \"$completed\", \"addon_name\": \"$name\", \"addon_version\": \"$version\"}" \
+        $REPLICATED_APP_URL/kurl_metrics/finish_addon/$INSTALLATION_ID/$name
 }
