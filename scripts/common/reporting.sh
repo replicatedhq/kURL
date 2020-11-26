@@ -46,7 +46,7 @@ function report_addon_start() {
     local started=$(date -u +"%Y-%m-%dT%H:%M:%SZ") # rfc3339
 
     curl -s --output /dev/null -H 'Content-Type: application/json' --max-time 5 \
-        -d "{\"started\": \"$started\", \"addon_name\": \"$name\", \"addon_version\": \"$version\"}" \
+        -d "{\"started\": \"$started\", \"addon_version\": \"$version\"}" \
         $REPLICATED_APP_URL/kurl_metrics/start_addon/$INSTALLATION_ID/$name
 }
 
@@ -63,6 +63,6 @@ function report_addon_success() {
     local completed=$(date -u +"%Y-%m-%dT%H:%M:%SZ") # rfc3339
 
     curl -s --output /dev/null -H 'Content-Type: application/json' --max-time 5 \
-        -d "{\"finished\": \"$completed\", \"addon_name\": \"$name\", \"addon_version\": \"$version\"}" \
+        -d "{\"finished\": \"$completed\", \"addon_version\": \"$version\"}" \
         $REPLICATED_APP_URL/kurl_metrics/finish_addon/$INSTALLATION_ID/$name
 }
