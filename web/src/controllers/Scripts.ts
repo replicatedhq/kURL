@@ -3,10 +3,14 @@ import {
   Controller,
   Get,
   PathParams,
+  Req,
   Res } from "ts-express-decorators";
 import { instrumented } from "monkit";
 import { Installer, InstallerStore } from "../installers";
 import { Templates } from "../util/services/templates";
+import { MetricsStore } from "../util/services/metrics";
+import { logger } from "../logger";
+import * as requestIP from "request-ip";
 
 interface ErrorResponse {
   error: any;
@@ -24,6 +28,7 @@ export class Installers {
   constructor (
     private readonly installerStore: InstallerStore,
     private readonly templates: Templates,
+    private readonly metricsStore: MetricsStore,
   ) {}
 
   /**
@@ -38,6 +43,7 @@ export class Installers {
   @instrumented
   public async getInstaller(
     @Res() response: Express.Response,
+    @Req() request: Express.Request,
     @PathParams("installerID") installerID: string,
   ): Promise<string | ErrorResponse> {
 
@@ -47,6 +53,18 @@ export class Installers {
       return notFoundResponse;
     }
     installer = installer.resolve();
+
+    try {
+      await this.metricsStore.saveSaasScriptEvent({
+        installerID,
+        timestamp: new Date(),
+        isAirgap: false,
+        clientIP: requestIP.getClientIp(request),
+        userAgent: request.get("User-Agent"),
+      });
+    } catch (err) {
+      logger.error(`Failed to save saas script event: ${err.message}`);
+    }
 
     response.status(200);
     return this.templates.renderInstallScript(installer);

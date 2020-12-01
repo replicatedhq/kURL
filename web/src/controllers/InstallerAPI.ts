@@ -237,7 +237,7 @@ export class Installers {
       response.status(401);
       return unauthenticatedResponse;
     }
-  
+
     let teamID: string;
     try {
       teamID = await decode(auth);
@@ -245,12 +245,12 @@ export class Installers {
       response.status(401);
       return unauthenticatedResponse;
     }
-  
+
     if (!teamID) {
       response.status(401);
       return unauthenticatedResponse;
     }
-  
+
     if (Installer.isSHA(id)) {
       response.status(400);
       return teamWithGeneratedIDResponse;
@@ -263,7 +263,7 @@ export class Installers {
       response.status(400);
       return slugReservedResponse;
     }
-  
+
     let i: Installer;
     try {
       i = Installer.parse(request.body, teamID);
@@ -272,21 +272,21 @@ export class Installers {
       return { error };
     }
     i.id = id;
-  
+
     if (i.spec.kotsadm && !i.spec.kotsadm.applicationSlug) {
-      if (slug != "") {
+      if (slug !== "") {
         i.spec.kotsadm.applicationSlug = slug
       }
     }
-  
+
     const err = await i.validate();
     if (err) {
       response.status(400);
       return err;
     }
-  
+
     await this.installerStore.saveTeamInstaller(i);
-  
+
     response.contentType("text/plain");
     response.status(201);
     return `${this.kurlURL}/${i.id}`;
