@@ -6,10 +6,13 @@ import {
   Controller,
   Get,
   PathParams,
+  Req,
   Res } from "ts-express-decorators";
 import { Templates } from "../util/services/templates";
 import { InstallerStore } from "../installers";
 import { logger } from "../logger";
+import { MetricsStore } from "../util/services/metrics";
+import * as requestIP from "request-ip";
 
 interface ErrorResponse {
   error: any;
@@ -27,7 +30,7 @@ interface FilepathContentsMap {
 
 // Manifest for building an airgap bundle.
 interface BundleManifest {
-  layers: Array<string>;
+  layers: string[];
   files: FilepathContentsMap;
 };
 
@@ -39,6 +42,7 @@ export class Bundle {
   constructor(
     private readonly templates: Templates,
     private readonly installers: InstallerStore,
+    private readonly metricsStore: MetricsStore,
   ) {
     this.replicatedAppURL = process.env["REPLICATED_APP_URL"] || "https://replicated.app";
     this.distURL = `https://${process.env["KURL_BUCKET"]}.s3.amazonaws.com`;
@@ -58,6 +62,7 @@ export class Bundle {
   @Get("/:installerID")
   public async redirect(
     @Res() response: Express.Response,
+    @Req() req: Express.Request,
     @PathParams("installerID") installerID: string,
   ): Promise<BundleManifest|ErrorResponse> {
 
@@ -68,6 +73,18 @@ export class Bundle {
       return notFoundResponse;
     }
     installer = installer.resolve();
+
+    try {
+      await this.metricsStore.saveSaasScriptEvent({
+        installerID,
+        timestamp: new Date(),
+        isAirgap: true,
+        clientIP: requestIP.getClientIp(req),
+        userAgent: req.get("User-Agent"),
+      });
+    } catch (err) {
+      logger.error(`Failed to save saas script event: ${err.message}`);
+    }
 
     response.type("application/json");
 

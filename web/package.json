@@ -21,11 +21,13 @@
     "promise-mysql": "^4.1.0",
     "replicated-lint": "^0.13.3",
     "request": "^2.88.0",
+    "request-ip": "^2.1.3",
     "request-promise": "^4.2.2",
     "sigsci-module-nodejs": "https://dl.signalsciences.net/sigsci-module-nodejs/1.4.8/sigsci-module-nodejs-1.4.8.tgz",
     "statsd-client": "^0.4.2",
     "superagent": "^5.1.0",
-    "ts-express-decorators": "^5.24.1"
+    "ts-express-decorators": "^5.24.1",
+    "uuid": "^8.3.1"
   },
   "devDependencies": {
     "@pact-foundation/pact": "^8.2.0",

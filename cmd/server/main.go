@@ -8,6 +8,7 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
+	"net"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
@@ -61,7 +62,20 @@ func bundle(w http.ResponseWriter, r *http.Request) {
 	base := path.Base(r.URL.Path)
 	installerID := strings.TrimSuffix(base, ".tar.gz")
 	installerURL := fmt.Sprintf("%s/bundle/%s", upstream, installerID)
-	resp, err := http.Get(installerURL)
+	request, err := http.NewRequest("GET", installerURL, nil)
+	if err != nil {
+		log.Printf("Error building request for %s: %v", installerURL, err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+	// forward request headers for metrics
+	request.Header = r.Header
+	if request.Header.Get("X-Forwarded-For") == "" {
+		if host, _, _ := net.SplitHostPort(r.RemoteAddr); host != "" {
+			request.Header.Set("X-Forwarded-For", host)
+		}
+	}
+	resp, err := http.DefaultClient.Do(request)
 	if err != nil {
 		log.Printf("Error fetching %s: %v", installerURL, err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
