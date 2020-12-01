@@ -46,17 +46,19 @@ function bailIfUnsupportedOS() {
 }
  
 function mustSwapoff() {
-    if swapEnabled || swapConfigured ; then
+    if swap_is_on || swap_is_enabled; then
         printf "\n${YELLOW}This application is incompatible with memory swapping enabled. Disable swap to continue?${NC} "
         if confirmY ; then
             printf "=> Running swapoff --all\n"
             swapoff --all
-            if swapConfigured ; then
-              printf "=> Commenting swap entries in /etc/fstab \n"
-              sed --in-place=.bak '/\bswap\b/ s/^/#/' /etc/fstab
-              printf "=> A backup of /etc/fstab has been made at /etc/fstab.bak\n\n"
-              printf "\n${YELLOW}Changes have been made to /etc/fstab. We recommend reviewing them after completing this installation to ensure mounts are correctly configured.${NC}\n\n"
-              sleep 5 # for emphasis of the above ^
+            if swap_fstab_enabled; then
+                swap_fstab_disable
+            fi
+            if swap_service_enabled; then
+                swap_service_disable
+            fi
+            if swap_azure_linux_agent_enabled; then
+                swap_azure_linux_agent_disable
             fi
             logSuccess "Swap disabled.\n"
         else
@@ -64,6 +66,46 @@ function mustSwapoff() {
         fi
     fi
 }
+
+function swap_is_on() {
+   swapon --summary | grep --quiet " " # todo this could be more specific, swapon -s returns nothing if its off
+}
+
+function swap_is_enabled() {
+    swap_fstab_enabled || swap_service_enabled || swap_azure_linux_agent_enabled
+}
+
+function swap_fstab_enabled() {
+    cat /etc/fstab | grep --quiet --ignore-case --extended-regexp '^[^#]+swap'
+}
+
+function swap_fstab_disable() {
+    printf "=> Commenting swap entries in /etc/fstab \n"
+    sed --in-place=.bak '/\bswap\b/ s/^/#/' /etc/fstab
+    printf "=> A backup of /etc/fstab has been made at /etc/fstab.bak\n\n"
+    printf "\n${YELLOW}Changes have been made to /etc/fstab. We recommend reviewing them after completing this installation to ensure mounts are correctly configured.${NC}\n\n"
+    sleep 5 # for emphasis of the above ^
+}
+
+# This is a service on some Azure VMs that just enables swap
+function swap_service_enabled() {
+    systemctl -q is-enabled temp-disk-swapfile
+}
+
+function swap_service_disable() {
+    printf "=> Disabling temp-disk-swapfile service\n"
+    systemctl disable temp-disk-swapfile
+}
+
+function swap_azure_linux_agent_enabled() {
+    cat /etc/waagent.conf | grep -q 'ResourceDisk.EnableSwap=y'
+}
+
+function swap_azure_linux_agent_disable() {
+    printf "=> Disabling swap in Azure Linux Agent configuration file /etc/waagent.conf\n"
+    sed -i 's/ResourceDisk.EnableSwap=y/ResourceDisk.EnableSwap=n/g' /etc/waagent.conf
+}
+
 
 checkDockerK8sVersion()
 {
@@ -167,7 +209,7 @@ must_disable_selinux() {
             sed -i s/^SELINUX=.*$/SELINUX=permissive/ /etc/selinux/config
             return
         fi
-       
+
         printf "\n${YELLOW}Kubernetes is incompatible with SELinux. Disable SELinux to continue?${NC} "
         if confirmY ; then
             setenforce 0
@@ -176,14 +218,6 @@ must_disable_selinux() {
             bail "\nDisable SELinux with 'setenforce 0' before re-running install script"
         fi
     fi
-}
-
-swapEnabled() {
-   swapon --summary | grep --quiet " " # todo this could be more specific, swapon -s returns nothing if its off
-}
-
-swapConfigured() {
-    cat /etc/fstab | grep --quiet --ignore-case --extended-regexp '^[^#]+swap'
 }
 
 function force_docker() {
