@@ -193,7 +193,7 @@ function kubernetes_drain() {
         --ignore-daemonsets \
         --force \
         --grace-period=30 \
-        --timeout=300s \
+        --timeout=120s \
         --pod-selector 'app notin (rook-ceph-mon,rook-ceph-osd,rook-ceph-osd-prepare,rook-ceph-operator,rook-ceph-agent),k8s-app!=kube-dns' || true
 }
 
