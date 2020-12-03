@@ -67,7 +67,7 @@ maybe_upgrade() {
                         rm -rf /etc/kubernetes/scheduler.conf
                         kubeadm init phase kubeconfig scheduler --kubernetes-version "v${KUBERNETES_VERSION}"
                         mv /etc/kubernetes/manifests/kube-scheduler.yaml /tmp/ && sleep 1 && mv /tmp/kube-scheduler.yaml /etc/kubernetes/manifests/
-                        rm /etc/kubernetes/controller-manager.conf
+                        rm -rf /etc/kubernetes/controller-manager.conf
                         kubeadm init phase kubeconfig controller-manager --kubernetes-version "v${KUBERNETES_VERSION}"
                         mv /etc/kubernetes/manifests/kube-controller-manager.yaml /tmp/ && sleep 1 && mv /tmp/kube-controller-manager.yaml /etc/kubernetes/manifests/
                     fi
