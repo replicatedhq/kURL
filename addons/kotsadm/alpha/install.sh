@@ -16,9 +16,11 @@ function kotsadm() {
     kotsadm_secret_authstring
     kotsadm_secret_password
     kotsadm_secret_postgres
+    kotsadm_secret_dex_postgres
     kotsadm_secret_s3
     kotsadm_secret_session
     kotsadm_api_encryption_key
+
     if [ -n "$PROMETHEUS_VERSION" ]; then
         kotsadm_api_patch_prometheus
     fi
@@ -160,6 +162,19 @@ function kotsadm_secret_postgres() {
     kubernetes_scale_down default deployment kotsadm
     kubernetes_scale_down default deployment kotsadm-postgres
     kubernetes_scale_down default deployment kotsadm-migrations
+}
+
+function kotsadm_secret_dex_postgres() {
+    local DEX_PGPASSWORD=$(kubernetes_secret_value default kotsadm-dex-postgres password)
+
+    if [ -z "$DEX_PGPASSWORD" ]; then
+        DEX_PGPASSWORD=$(< /dev/urandom tr -dc A-Za-z0-9 | head -c32)
+    fi
+
+    render_yaml_file "$DIR/addons/kotsadm/alpha/tmpl-secret-dex-postgres.yaml" > "$DIR/kustomize/kotsadm/secret-dex-postgres.yaml"
+    insert_resources "$DIR/kustomize/kotsadm/kustomization.yaml" secret-dex-postgres.yaml
+
+    kubernetes_scale_down default deployment kotsadm
 }
 
 function kotsadm_secret_s3() {
