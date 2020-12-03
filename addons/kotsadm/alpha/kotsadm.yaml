@@ -68,6 +68,9 @@ spec:
       - name: kubelet-client-cert
         secret:
           secretName: kubelet-client-cert
+      - name: kurl-proxy-kotsadm-tls-cert
+        secret:
+          secretName: kotsadm-tls
       - name: kotsadm-web-scripts
         configMap:
           defaultMode: 511 # hex 777
@@ -157,6 +160,8 @@ spec:
             value: "http://localhost:8800"
           - name: API_ENDPOINT
             value: http://kotsadm.default.svc.cluster.local:3000
+          - name: KURL_PROXY_TLS_CERT_PATH
+            value: /etc/kurl-proxy/ca/tls.crt
         volumeMounts:
           - name: kotsadm-web-scripts
             mountPath: /scripts/start-kotsadm-web.sh
@@ -166,6 +171,9 @@ spec:
           - name: kubelet-client-cert
             readOnly: true
             mountPath: /etc/kubernetes/pki/kubelet
+          - name: kurl-proxy-kotsadm-tls-cert
+            readOnly: true
+            mountPath: /etc/kurl-proxy/ca
         resources:
           limits:
             cpu: 500m
