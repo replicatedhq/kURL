@@ -65,7 +65,7 @@ function kotsadm() {
 
     kubectl apply -k "$dst/"
 
-    kotsadm_kurl_proxy $src $dst
+    kotsadm_kurl_proxy "$src" "$dst"
 
     kotsadm_ready_spinner
 
@@ -275,8 +275,8 @@ subjectAltName = @alt_names
 
 [ v3_ext ]
 authorityKeyIdentifier=keyid,issuer:always
-basicConstraints=CA:FALSE
-keyUsage=nonRepudiation,digitalSignature,keyEncipherment
+basicConstraints=CA:TRUE,pathlen:0
+keyUsage=nonRepudiation,digitalSignature,keyEncipherment,keyCertSign
 extendedKeyUsage=serverAuth
 subjectAltName=@alt_names
 
