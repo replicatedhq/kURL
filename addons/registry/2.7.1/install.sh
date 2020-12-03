@@ -16,11 +16,6 @@ function registry() {
         insert_resources "$DIR/kustomize/registry/kustomization.yaml" deployment-pvc.yaml
     fi
 
-    if [ -n "$REGISTRY_PUBLISH_PORT" ]; then
-        render_yaml_file "$DIR/addons/registry/2.7.1/tmpl-node-port.yaml" > "$DIR/kustomize/registry/node-port.yaml" 
-        insert_patches_strategic_merge "$DIR/kustomize/registry/kustomization.yaml" node-port.yaml
-    fi
-
     kubectl apply -k "$DIR/kustomize/registry"
 
     DOCKER_REGISTRY_IP=$(kubectl -n kurl get service registry -o=jsonpath='{@.spec.clusterIP}')
@@ -30,6 +25,34 @@ function registry() {
     registry_pki_secret "$DOCKER_REGISTRY_IP"
 
     registry_docker_ca
+}
+
+function registry_pre_init() {
+    if [ -n "$KURL_REGISTRY_IP" ]; then
+        DOCKER_REGISTRY_IP=$(kubectl -n kurl get service registry -o=jsonpath='{@.spec.clusterIP}' 2>/dev/null || echo "")
+        if [ -n "$DOCKER_REGISTRY_IP" ] && [ "$DOCKER_REGISTRY_IP" != "$KURL_REGISTRY_IP" ]; then
+            bail "kurl-registry-ip is specified, however registry service is already assigned $DOCKER_REGISTRY_IP"
+        fi
+    fi
+}
+
+function create_registry_service() {
+    mkdir -p "$DIR/kustomize/registry"
+    cp "$DIR/addons/registry/2.7.1/kustomization.yaml" "$DIR/kustomize/registry/kustomization.yaml"
+    cp "$DIR/addons/registry/2.7.1/service.yaml" "$DIR/kustomize/registry/service.yaml"
+
+    DOCKER_REGISTRY_IP=$(kubectl -n kurl get service registry -o=jsonpath='{@.spec.clusterIP}')
+    if [ -n "$DOCKER_REGISTRY_IP" ] && [ -z "$KURL_REGISTRY_IP" ]; then
+        KURL_REGISTRY_IP=$DOCKER_REGISTRY_IP
+    fi
+
+    if [ -n "$REGISTRY_PUBLISH_PORT" ]; then
+        render_yaml_file "$DIR/addons/registry/2.7.1/tmpl-node-port.yaml" > "$DIR/kustomize/registry/service.yaml"
+    else
+        render_yaml_file "$DIR/addons/registry/2.7.1/tmpl-cluster-ip.yaml" > "$DIR/kustomize/registry/service.yaml"
+    fi
+    insert_resources "$DIR/kustomize/registry/kustomization.yaml" service.yaml
+    kubectl apply -k "$DIR/kustomize/registry"
 }
 
 function registry_join() {
@@ -64,12 +87,14 @@ function registry_cred_secrets() {
     BIN_HTPASSWD=./bin/htpasswd
     $BIN_HTPASSWD -u "$user" -p "$password" -f htpasswd
     kubectl -n kurl create secret generic registry-htpasswd --from-file=htpasswd
+    kubectl -n kurl patch secret registry-htpasswd -p '{"metadata":{"labels":{"kots.io/kotsadm":"true", "kots.io/backup":"velero"}}}'
     rm htpasswd
 
     kubectl -n default create secret docker-registry registry-creds \
         --docker-server="$DOCKER_REGISTRY_IP" \
         --docker-username="$user" \
         --docker-password="$password"
+    kubectl -n default patch secret registry-creds -p '{"metadata":{"labels":{"kots.io/kotsadm":"true", "kots.io/backup":"velero"}}}'
 }
 
 function registry_docker_ca() {

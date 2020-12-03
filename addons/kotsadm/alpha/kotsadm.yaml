@@ -76,9 +76,7 @@ spec:
           defaultMode: 511 # hex 777
           name: kotsadm-web-scripts
       - name: backup
-        emptyDir:
-          medium: Memory
-          sizeLimit: 1Gi
+        emptyDir: {}
       containers:
       - image: kotsadm/kotsadm:alpha
         name: kotsadm

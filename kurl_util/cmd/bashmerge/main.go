@@ -103,6 +103,8 @@ func parseBashFlags(installer *kurlv1beta1.Installer, bashFlags string) error {
 			installer.Spec.Kubernetes.Version = strings.TrimLeft(split[1], "v")
 		case "installer-spec-file":
 			continue
+		case "kurl-registry-ip":
+			continue
 		case "preserve-docker-config":
 			installer.Spec.Docker.PreserveConfig = true
 		case "preserve-firewalld-config":

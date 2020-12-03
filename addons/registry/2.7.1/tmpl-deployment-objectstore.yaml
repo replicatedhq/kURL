@@ -6,6 +6,36 @@ metadata:
   labels:
     app: registry
 data:
+  backup.sh: |-
+    #!/bin/sh
+    export S3_DIR=/backup/s3/
+    export S3_BUCKET_NAME=docker-registry
+    export S3_HOST=$OBJECT_STORE_CLUSTER_IP
+    rm -rf \$S3_DIR
+    mkdir -p \$S3_DIR
+    s3cmd --access_key=\$AWS_ACCESS_KEY_ID --secret_key=\$AWS_SECRET_ACCESS_KEY --host=\$S3_HOST --no-ssl --host-bucket=\$S3_BUCKET_NAME.\$S3_HOST sync s3://\$S3_BUCKET_NAME \$S3_DIR
+
+  restore.sh: |-
+    #!/bin/sh
+    export S3_DIR=/backup/s3/
+    export S3_BUCKET_NAME=docker-registry
+    export S3_HOST=$OBJECT_STORE_CLUSTER_IP
+
+    if [ ! -d $S3_DIR ]; then
+        exit 0
+    fi
+
+    export S3CMD_FLAGS=\"--access_key=\$AWS_ACCESS_KEY_ID --secret_key=\$AWS_SECRET_ACCESS_KEY --host=\$S3_HOST --no-ssl --host-bucket=\$S3_BUCKET_NAME.\$S3_HOST\"
+
+    if s3cmd \$S3CMD_FLAGS ls s3://\$S3_BUCKET_NAME 2>&1 | grep -q 'NoSuchBucket'
+    then
+        echo "bucket \$S3_BUCKET_NAME does not exist, creating ..."
+        s3cmd \$S3CMD_FLAGS mb s3://\$S3_BUCKET_NAME
+    fi
+
+    s3cmd \$S3CMD_FLAGS sync \$S3_DIR s3://\$S3_BUCKET_NAME
+    rm -rf \$S3_DIR
+
   config.yml: |-
     health:
       storagedriver:
@@ -58,6 +88,10 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: registry
+  labels:
+    app: registry
+    kots.io/kotsadm: 'true'
+    kots.io/backup: velero
 spec:
   selector:
     matchLabels:
@@ -70,11 +104,42 @@ spec:
     metadata:
       labels:
         app: registry
+        kots.io/kotsadm: 'true'
+        kots.io/backup: velero
+      annotations:
+        backup.velero.io/backup-volumes:   "backup"
+        pre.hook.backup.velero.io/command: '[\"/backup.sh\"]'
+        pre.hook.backup.velero.io/timeout: "30m"
     spec:
       terminationGracePeriodSeconds: 30
+
+      initContainers:
+      - name: restore
+        image: replicated/registry:2.7.1
+        imagePullPolicy: IfNotPresent
+        command:
+        - /restore.sh
+        volumeMounts:
+        - mountPath: /backup
+          name: backup
+        - name: registry-backup
+          mountPath: /restore.sh
+          subPath: restore.sh
+        env:
+        - name: AWS_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              key: access-key-id
+              name: registry-s3-secret
+        - name: AWS_SECRET_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              key: secret-access-key
+              name: registry-s3-secret
+
       containers:
       - name: registry
-        image: registry:2.7.1
+        image: replicated/registry:2.7.1
         imagePullPolicy: IfNotPresent
         command:
         - /bin/registry
@@ -85,11 +150,17 @@ spec:
           protocol: TCP
         volumeMounts:
         - name: registry-config
-          mountPath: /etc/docker/registry
+          mountPath: /etc/docker/registry/config.yml
+          subPath: config.yml
+        - name: registry-backup
+          mountPath: /backup.sh
+          subPath: backup.sh
         - name: registry-pki
           mountPath: /etc/pki
         - name: registry-htpasswd
           mountPath: /auth
+        - name: backup
+          mountPath: /backup
         env:
         - name: REGISTRY_HTTP_SECRET
           valueFrom:
@@ -116,13 +187,20 @@ spec:
             path: /
             port: 443
             scheme: HTTPS
+
       volumes:
       - name: registry-config
         configMap:
           name: registry-config
+      - name: registry-backup
+        configMap:
+          name: registry-config
+          defaultMode: 0777
       - name: registry-pki
         secret:
           secretName: registry-pki
       - name: registry-htpasswd
         secret:
           secretName: registry-htpasswd
+      - name: backup
+        emptyDir: {}

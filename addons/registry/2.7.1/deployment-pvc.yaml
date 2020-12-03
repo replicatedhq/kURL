@@ -69,7 +69,7 @@ spec:
       terminationGracePeriodSeconds: 30
       containers:
       - name: registry
-        image: registry:2.7.1
+        image: replicated/registry:2.7.1
         imagePullPolicy: IfNotPresent
         command:
         - /bin/registry

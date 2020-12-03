@@ -379,6 +379,7 @@ function main() {
     addon_for_each addon_load
     init
     apply_installer_crd
+    create_registry_service
     addon_for_each addon_install
     post_init
     outro
