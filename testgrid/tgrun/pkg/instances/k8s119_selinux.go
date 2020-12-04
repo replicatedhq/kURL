@@ -33,11 +33,5 @@ func init() {
 				PreserveConfig: false,
 			},
 		},
-		UnsupportedOSIDs: []string{
-			"amzn-20",
-			"ubuntu-1604",
-			"ubuntu-1804",
-			"ubuntu-2004",
-		},
 	})
 }

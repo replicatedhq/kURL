@@ -173,6 +173,12 @@ function apply_selinux_config() {
         return
     fi
 
+    # Always exists on RHEL/CentOS and will be added on Ubuntu if selinux has been installed
+    if [ ! -f "/etc/selinux/config" ]; then
+        echo "SELinux is not installed: no configuration will be applied"
+        return
+    fi
+
     CONFIGURE_SELINUX_SCRIPT=$CONFIGURE_SELINUX_SCRIPT $BIN_SYSTEM_CONFIG -c selinux -g -y $MERGED_YAML_SPEC
     if [ -f "$CONFIGURE_SELINUX_SCRIPT" ]; then
         . $CONFIGURE_SELINUX_SCRIPT
