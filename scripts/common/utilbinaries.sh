@@ -178,6 +178,10 @@ function apply_selinux_config() {
         echo "SELinux is not installed: no configuration will be applied"
         return
     fi
+    if [ $(getenforce) = "Disabled" ]; then
+        echo "SELinux is disabled: no configuration will be applied"
+        return
+    fi
 
     CONFIGURE_SELINUX_SCRIPT=$CONFIGURE_SELINUX_SCRIPT $BIN_SYSTEM_CONFIG -c selinux -g -y $MERGED_YAML_SPEC
     if [ -f "$CONFIGURE_SELINUX_SCRIPT" ]; then
