@@ -6,11 +6,10 @@ metadata:
   labels:
     app: registry
 spec:
-  type: NodePort
+  type: ClusterIP
   clusterIP: $KURL_REGISTRY_IP
   ports:
   - port: 443
-    nodePort: $REGISTRY_PUBLISH_PORT
     name: registry
     targetPort: 443
     protocol: TCP

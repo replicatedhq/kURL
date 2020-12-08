@@ -1,1 +1,1 @@
-image registry registry:2.7.1
+image registry replicated/registry:2.7.1

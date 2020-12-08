@@ -379,6 +379,7 @@ function main() {
     addon_for_each addon_load
     init
     apply_installer_crd
+    type create_registry_service &> /dev/null && create_registry_service # this function is in an optional addon and may be missing
     addon_for_each addon_install
     post_init
     outro

@@ -81,6 +81,9 @@ function get_patch_yaml() {
             airgap)
                 AIRGAP="1"
                 ;;
+            kurl-registry-ip)
+                KURL_REGISTRY_IP="$_value"
+                ;;
             cert-key)
                 ;;
             control-plane)
