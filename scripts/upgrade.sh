@@ -52,10 +52,7 @@ maybe_upgrade() {
             15 | 16 | 17 | 18 | 19)
                 kubeadm upgrade node
 
-                # correctly sets the --resolv-conf flag when systemd-resolver is running (Ubuntu 18)
-                # https://github.com/kubernetes/kubeadm/issues/273
                 if kubernetes_is_master; then
-                    kubeadm init phase kubelet-start
                     upgrade_etcd_image_18
 
                     # scheduler and controller-manager kubeconfigs point to local API server in 1.19
