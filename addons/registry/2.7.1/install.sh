@@ -41,7 +41,7 @@ function create_registry_service() {
     cp "$DIR/addons/registry/2.7.1/kustomization.yaml" "$DIR/kustomize/registry/kustomization.yaml"
     cp "$DIR/addons/registry/2.7.1/service.yaml" "$DIR/kustomize/registry/service.yaml"
 
-    DOCKER_REGISTRY_IP=$(kubectl -n kurl get service registry -o=jsonpath='{@.spec.clusterIP}')
+    DOCKER_REGISTRY_IP=$(kubectl -n kurl get service registry -o=jsonpath='{@.spec.clusterIP}' 2>/dev/null || echo "")
     if [ -n "$DOCKER_REGISTRY_IP" ] && [ -z "$KURL_REGISTRY_IP" ]; then
         KURL_REGISTRY_IP=$DOCKER_REGISTRY_IP
     fi
