@@ -14,7 +14,7 @@ function report_install_start() {
     local started=$(date -u +"%Y-%m-%dT%H:%M:%SZ") # rfc3339
 
     curl -s --output /dev/null -H 'Content-Type: application/json' --max-time 5 \
-        -d "{\"started\": \"$started\", \"os\": \"$LSB_DIST $DIST_VERSION_MAJOR.$DIST_VERSION\", \"kernel_version\": \"$KERNEL_MAJOR.$KERNEL_MINOR\", \"kurl_url\": \"$KURL_URL\", \"installer_id\": \"$INSTALLER_ID\"}" \
+        -d "{\"started\": \"$started\", \"os\": \"$LSB_DIST $DIST_VERSION\", \"kernel_version\": \"$KERNEL_MAJOR.$KERNEL_MINOR\", \"kurl_url\": \"$KURL_URL\", \"installer_id\": \"$INSTALLER_ID\", \"testgrid_id\": \"$TEST_ID\"}" \
         $REPLICATED_APP_URL/kurl_metrics/start_install/$INSTALLATION_ID
 }
 
