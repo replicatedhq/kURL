@@ -30,6 +30,10 @@ promptTimeout() {
 
 confirmY() {
     printf "(Y/n) "
+    if [ "$ASSUME_YES" = "1" ]; then
+        echo "Y"
+        return 0
+    fi
     promptTimeout "$@"
     if [ "$PROMPT_RESULT" = "n" ] || [ "$PROMPT_RESULT" = "N" ]; then
         return 1
@@ -39,6 +43,10 @@ confirmY() {
 
 confirmN() {
     printf "(y/N) "
+    if [ "$ASSUME_YES" = "1" ]; then
+        echo "Y"
+        return 0
+    fi
     promptTimeout "$@"
     if [ "$PROMPT_RESULT" = "y" ] || [ "$PROMPT_RESULT" = "Y" ]; then
         return 0
