@@ -55,6 +55,9 @@ confirmN() {
 }
 
 prompt() {
+    if [ "$ASSUME_YES" = "1" ]; then
+        return 0
+    fi
     set +e
     read PROMPT_RESULT < /dev/tty
     set -e
