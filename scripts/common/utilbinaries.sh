@@ -112,6 +112,9 @@ function get_patch_yaml() {
                 ;;
             public-address)
                 ;;
+            yes)
+                ASSUME_YES=1
+                ;;
             *)
                 echo >&2 "Error: unknown parameter \"$_param\""
                 exit 1

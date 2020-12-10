@@ -15,5 +15,8 @@ localAPIEndpoint:
   advertiseAddress: $PRIVATE_ADDRESS
 nodeRegistration:
   taints: [] # prevent the default master taint
+  name: $HOSTNAME
   kubeletExtraArgs:
     node-labels: "kurl.sh/cluster=true"
+    hostname-override: $HOSTNAME
+    node-ip: $PRIVATE_ADDRESS
