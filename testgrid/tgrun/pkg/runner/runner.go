@@ -260,6 +260,8 @@ curl -X POST $TESTGRID_APIENDPOINT/v1/instance/$TEST_ID/running
 
 echo "running kurl installer"
 
+echo "$TEST_ID" > /tmp/testgrid-id
+
 if [ ! -c /dev/urandom ]; then
     /bin/mknod -m 0666 /dev/urandom c 1 9 && /bin/chown root:root /dev/urandom
 fi
