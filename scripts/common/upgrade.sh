@@ -153,7 +153,7 @@ function upgrade_kubernetes_remote_node_patch() {
         if [ -z "$KURL_URL" ]; then
             prefix="cat "
         fi
-        printf "\t${GREEN} ${prefix}upgrade.sh | sudo bash -s kubernetes-version=${KUBERNETES_VERSION}${noProxyAddrs}${NC}\n\n"
+        printf "\t${GREEN} ${prefix}upgrade.sh | sudo bash -s kubernetes-version=${KUBERNETES_VERSION}${noProxyAddrs}${dockerRegistryIP}${NC}\n\n"
     fi
 
     spinner_until -1 kubernetes_node_has_version "$nodeName" "$KUBERNETES_VERSION"
@@ -255,7 +255,7 @@ function upgrade_kubernetes_remote_node_minor() {
         if [ -z "$KURL_URL" ]; then
             prefix="cat "
         fi
-        printf "\t${GREEN} ${prefix}upgrade.sh | sudo bash -s kubernetes-version=${targetK8sVersion}${noProxyAddrs}${NC}\n\n"
+        printf "\t${GREEN} ${prefix}upgrade.sh | sudo bash -s kubernetes-version=${targetK8sVersion}${noProxyAddrs}${dockerRegistryIP}${NC}\n\n"
     fi
 
     rm -rf $HOME/.kube
