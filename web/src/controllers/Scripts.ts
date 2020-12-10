@@ -66,6 +66,7 @@ export class Installers {
       logger.error(`Failed to save saas script event: ${err.message}`);
     }
 
+    response.set("X-Kurl-Hash", installer.hash());
     response.status(200);
     return this.templates.renderInstallScript(installer);
   }
@@ -76,6 +77,7 @@ export class Installers {
   ): Promise<string> {
     const installer = Installer.latest().resolve();
 
+    response.set("X-Kurl-Hash", installer.hash());
     response.status(200);
     return this.templates.renderInstallScript(installer);
   }
@@ -99,6 +101,7 @@ export class Installers {
     }
     installer = installer.resolve();
 
+    response.set("X-Kurl-Hash", installer.hash());
     response.status(200);
     return this.templates.renderJoinScript(installer);
   }
@@ -122,6 +125,7 @@ export class Installers {
     }
     installer = installer.resolve();
 
+    response.set("X-Kurl-Hash", installer.hash());
     response.status(200);
     return this.templates.renderUpgradeScript(installer);
   }
@@ -139,6 +143,7 @@ export class Installers {
     }
     installer = installer.resolve();
 
+    response.set("X-Kurl-Hash", installer.hash());
     response.status(200);
     return this.templates.renderTasksScript();
   }
