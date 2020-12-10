@@ -1,6 +1,7 @@
 
 
 INSTALLATION_ID=
+TESTGRID_ID=
 function report_install_start() {
     # report that the install started
     # this includes the install ID, time, kurl URL, HA status, server CPU count and memory size, and linux distribution name + version.
@@ -13,8 +14,12 @@ function report_install_start() {
     INSTALLATION_ID=$(< /dev/urandom tr -dc a-z0-9 | head -c16)
     local started=$(date -u +"%Y-%m-%dT%H:%M:%SZ") # rfc3339
 
+    if [ -f "/tmp/testgrid-id" ]; then
+        TESTGRID_ID=$(cat /tmp/testgrid-id)
+    fi
+
     curl -s --output /dev/null -H 'Content-Type: application/json' --max-time 5 \
-        -d "{\"started\": \"$started\", \"os\": \"$LSB_DIST $DIST_VERSION\", \"kernel_version\": \"$KERNEL_MAJOR.$KERNEL_MINOR\", \"kurl_url\": \"$KURL_URL\", \"installer_id\": \"$INSTALLER_ID\", \"testgrid_id\": \"$TEST_ID\"}" \
+        -d "{\"started\": \"$started\", \"os\": \"$LSB_DIST $DIST_VERSION\", \"kernel_version\": \"$KERNEL_MAJOR.$KERNEL_MINOR\", \"kurl_url\": \"$KURL_URL\", \"installer_id\": \"$INSTALLER_ID\", \"testgrid_id\": \"$TESTGRID_ID\"}" \
         $REPLICATED_APP_URL/kurl_metrics/start_install/$INSTALLATION_ID
 }
 
@@ -46,7 +51,7 @@ function report_addon_start() {
     local started=$(date -u +"%Y-%m-%dT%H:%M:%SZ") # rfc3339
 
     curl -s --output /dev/null -H 'Content-Type: application/json' --max-time 5 \
-        -d "{\"started\": \"$started\", \"addon_version\": \"$version\"}" \
+        -d "{\"started\": \"$started\", \"addon_version\": \"$version\", \"testgrid_id\": \"$TESTGRID_ID\"}" \
         $REPLICATED_APP_URL/kurl_metrics/start_addon/$INSTALLATION_ID/$name
 }
 
