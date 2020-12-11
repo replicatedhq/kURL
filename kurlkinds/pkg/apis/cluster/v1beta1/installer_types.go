@@ -179,6 +179,7 @@ type Ekco struct {
 	ShouldDisableClearNodes     bool   `json:"shouldDisableClearNodes,omitempty"`
 	ShouldEnablePurgeNodes      bool   `json:"shouldEnablePurgeNodes,omitempty"`
 	Version                     string `json:"version"`
+	AutoUpgradeSchedule         string `json:"autoUpgradeSchedule,omitempty"`
 }
 
 type Calico struct {

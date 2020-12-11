@@ -117,6 +117,8 @@ func parseBashFlags(installer *kurlv1beta1.Installer, bashFlags string) error {
 			installer.Spec.Kurl.PublicAddress = split[1]
 		case "yes":
 			continue
+		case "auto-upgrades-enabled":
+			continue
 		default:
 			return errors.New(fmt.Sprintf("string %s is not a bash flag", split[0]))
 		}

@@ -156,6 +156,7 @@ func convertToBash(kurlValues map[string]interface{}, fieldsSet map[string]bool)
 		"Ekco.ShouldDisableClearNodes":           "EKCO_SHOULD_DISABLE_CLEAR_NODES",
 		"Ekco.ShouldEnablePurgeNodes":            "EKCO_SHOULD_ENABLE_PURGE_NODES",
 		"Ekco.Version":                           "EKCO_VERSION",
+		"Ekco.AutoUpgradeSchedule":               "EKCO_AUTO_UPGRADE_SCHEDULE",
 		"FirewalldConfig.BypassFirewalldWarning": "BYPASS_FIREWALLD_WARNING",
 		"FirewalldConfig.DisableFirewalld":       "DISABLE_FIREWALLD",
 		"FirewalldConfig.HardFailOnFirewalld":    "HARD_FAIL_ON_FIREWALLD",

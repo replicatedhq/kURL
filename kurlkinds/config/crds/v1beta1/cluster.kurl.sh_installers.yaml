@@ -91,6 +91,8 @@ spec:
               type: object
             ekco:
               properties:
+                autoUpgradeSchedule:
+                  type: string
                 minReadyMasterNodeCount:
                   type: integer
                 minReadyWorkerNodeCount:

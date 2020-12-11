@@ -115,6 +115,9 @@ function get_patch_yaml() {
             yes)
                 ASSUME_YES=1
                 ;;
+            auto-upgrades-enabled)
+                AUTO_UPGRADES_ENABLED=1
+                ;;
             *)
                 echo >&2 "Error: unknown parameter \"$_param\""
                 exit 1
