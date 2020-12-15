@@ -18,6 +18,12 @@ var operatingSystems = []types.OperatingSystemImage{
 		ID:         "ubuntu-1604",
 	},
 	{
+		VMImageURI: "https://cloud.centos.org/centos/7/images/CentOS-7-x86_64-GenericCloud-1708.qcow2",
+		Name:       "CentOS",
+		Version:    "7.4",
+		ID:         "centos-74",
+	},
+	{
 		VMImageURI: "https://cloud.centos.org/centos/7/images/CentOS-7-x86_64-GenericCloud-2003.qcow2",
 		Name:       "CentOS",
 		Version:    "7.8",
