@@ -165,7 +165,7 @@ function kotsadm_secret_postgres() {
 }
 
 function kotsadm_secret_dex_postgres() {
-    local DEX_PGPASSWORD=$(kubernetes_secret_value default kotsadm-dex-postgres password)
+    local DEX_PGPASSWORD=$(kubernetes_secret_value default kotsadm-dex-postgres PGPASSWORD)
 
     if [ -z "$DEX_PGPASSWORD" ]; then
         DEX_PGPASSWORD=$(< /dev/urandom tr -dc A-Za-z0-9 | head -c32)
