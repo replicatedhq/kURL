@@ -364,8 +364,6 @@ build/packages/kubernetes/%/rhel-8:
 	docker create --name k8s-rhel8-$* kurl/rhel-8-k8s:$*
 	mkdir -p build/packages/kubernetes/$*/rhel-8
 	docker cp k8s-rhel8-$*:/packages/archives/. build/packages/kubernetes/$*/rhel-8/
-	find build/packages/kubernetes/$*/rhel-8 | grep kubelet | grep -v kubelet-$* | xargs rm
-	find build/packages/kubernetes/$*/rhel-8 | grep kubectl | grep -v kubectl-$* | xargs rm
 	docker rm k8s-rhel8-$*
 
 build/templates: build/templates/install.tmpl build/templates/join.tmpl build/templates/upgrade.tmpl build/templates/tasks.tmpl
