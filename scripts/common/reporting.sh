@@ -38,6 +38,22 @@ function report_install_success() {
         $REPLICATED_APP_URL/kurl_metrics/finish_install/$INSTALLATION_ID
 }
 
+function report_install_fail() {
+    # report that the install failed
+    local cause=$1
+
+    # if INSTALLATION_ID is empty reporting is disabled
+    if [ -z "$INSTALLATION_ID" ]; then
+        return 0
+    fi
+
+    local completed=$(date -u +"%Y-%m-%dT%H:%M:%SZ") # rfc3339
+
+    curl -s --output /dev/null -H 'Content-Type: application/json' --max-time 5 \
+        -d "{\"finished\": \"$completed\", \"cause\": \"$cause\"}" \
+        $REPLICATED_APP_URL/kurl_metrics/fail_install/$INSTALLATION_ID
+}
+
 function report_addon_start() {
     # report that an addon started installation
     local name=$1
@@ -78,6 +94,9 @@ function ctrl_c() {
     trap - SIGINT # reset SIGINT handler to default - someone should be able to ctrl+c the support bundle collector
 
     printf "${YELLOW}Trapped ctrl+c${NC}\n"
+
+    report_install_fail "trapped ctrl+c"
+
     collect_support_bundle
 
     exit 1 # exit with error
