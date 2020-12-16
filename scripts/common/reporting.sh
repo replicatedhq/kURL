@@ -110,7 +110,7 @@ function collect_support_bundle() {
     trap - SIGINT # reset SIGINT handler to default - someone should be able to ctrl+c the support bundle collector
 
     printf "${YELLOW}Would you like to provide a support bundle?${NC}\n"
-    if ! confirmY "-t 120"; then
+    if ! supportBundleConfirmN "-t 120"; then
         return 0
     fi
 
@@ -142,4 +142,6 @@ function collect_support_bundle() {
         -F "data={\"first_name\":\"kurl.sh\",\"last_name\":\"installer\",\"email_address\":\"${email_address}\",\"company\":\"\",\"description\":\"${issue_description}\"}" \
         -F "file=@${support_bundle_filename}" \
         --compressed
+
+    printf "\nSupport bundle uploaded!\n"
 }

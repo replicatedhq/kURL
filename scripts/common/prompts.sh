@@ -54,6 +54,20 @@ confirmN() {
     return 1
 }
 
+# even if someone has set ASSUME_YES, we shouldn't automatically upload a support bundle
+supportBundleConfirmN() {
+    printf "(y/N) "
+    if [ "$ASSUME_YES" = "1" ]; then
+        echo "N"
+        return 1
+    fi
+    promptTimeout "$@"
+    if [ "$PROMPT_RESULT" = "y" ] || [ "$PROMPT_RESULT" = "Y" ]; then
+        return 0
+    fi
+    return 1
+}
+
 prompt() {
     if [ "$ASSUME_YES" = "1" ]; then
         return 0
