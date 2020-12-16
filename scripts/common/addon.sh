@@ -37,9 +37,9 @@ function addon_install() {
     rm -rf $DIR/kustomize/$name
     mkdir -p $DIR/kustomize/$name
 
-    . $DIR/addons/$name/$version/install.sh
+    . $DIR/addons/$name/$version/install.sh || addon_install_fail "$name" "$version"
 
-    $name
+    $name || addon_install_fail "$name" "$version"
 
     if commandExists ${name}_join; then
         ADDONS_HAVE_HOST_COMPONENTS=1
