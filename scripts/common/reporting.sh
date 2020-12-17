@@ -88,8 +88,6 @@ function report_addon_success() {
         $REPLICATED_APP_URL/kurl_metrics/finish_addon/$INSTALLATION_ID/$name
 }
 
-# trap ctrl+c (SIGINT) and handle it by asking for a support bundle
-trap ctrl_c SIGINT
 function ctrl_c() {
     trap - SIGINT # reset SIGINT handler to default - someone should be able to ctrl+c the support bundle collector
 
@@ -128,12 +126,12 @@ function addon_install_fail() {
 function collect_support_bundle() {
     trap - SIGINT # reset SIGINT handler to default - someone should be able to ctrl+c the support bundle collector
 
-    printf "${YELLOW}Would you like to provide a support bundle?${NC}\n"
+    printf "${YELLOW}Would you like to provide a support bundle to aid us in avoiding similar errors in the future?${NC}\n"
     if ! supportBundleConfirmN "-t 120"; then
         return 0
     fi
 
-    printf "${YELLOW}Please provide an email address for us to reach you:${NC}\n"
+    printf "${YELLOW}Please provide an email address for our records (this is not a support ticket):${NC}\n"
     promptTimeout "-t 120"
     local email_address=""
     if [ -n "$PROMPT_RESULT" ]; then

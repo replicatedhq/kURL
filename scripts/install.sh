@@ -376,6 +376,7 @@ function main() {
     upgrade_kubernetes
     kubernetes_host
     setup_kubeadm_kustomize
+    trap ctrl_c SIGINT # trap ctrl+c (SIGINT) and handle it by asking for a support bundle - only do this after k8s is installed
     addon_for_each addon_load
     init
     apply_installer_crd
