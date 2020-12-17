@@ -81,7 +81,7 @@ function kubernetes_install_host_packages() {
 
         centos|rhel|amzn)
             case "$LSB_DIST$DIST_VERSION" in
-                rhel8.0|rhel8.1|rhel8.2|centos8.0|centos8.1|centos8.2)
+                rhel8.0|rhel8.1|rhel8.2|rhel8.3|centos8.0|centos8.1|centos8.2|centos8.3)
                     rpm --upgrade --force --nodeps $DIR/packages/kubernetes/${k8sVersion}/rhel-8/*.rpm
                     ;;
 
