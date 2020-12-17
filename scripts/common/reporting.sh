@@ -88,7 +88,7 @@ function report_addon_success() {
         $REPLICATED_APP_URL/kurl_metrics/finish_addon/$INSTALLATION_ID/$name
 }
 
-function ctrl_c() {
+function k8s_ctrl_c() {
     trap - SIGINT # reset SIGINT handler to default - someone should be able to ctrl+c the support bundle collector
 
     printf "${YELLOW}Trapped ctrl+c${NC}\n"
@@ -98,6 +98,14 @@ function ctrl_c() {
     collect_support_bundle
 
     exit 1 # exit with error
+}
+
+
+function prek8s_ctrl_c() {
+    trap - SIGINT # reset SIGINT handler to default, even though the remaining code should not hang
+
+    report_install_fail "trapped ctrl+c before completing k8s install"
+    exit 1
 }
 
 function addon_install_fail() {
