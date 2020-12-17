@@ -131,7 +131,7 @@ function collect_support_bundle() {
         return 0
     fi
 
-    printf "${YELLOW}Please provide an email address for our records (this is not a support ticket):${NC}\n"
+    printf "${YELLOW}Please provide your work email address for our records (this is not a support ticket):${NC}\n"
     promptTimeout "-t 120"
     local email_address=""
     if [ -n "$PROMPT_RESULT" ]; then
