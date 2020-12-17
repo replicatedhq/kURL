@@ -363,6 +363,7 @@ function main() {
     parse_kubernetes_target_version
     discover full-cluster
     report_install_start
+    trap prek8s_ctrl_c SIGINT # trap ctrl+c (SIGINT) and handle it by reporting that the user exited intentionally
     preflights
     prompts
     journald_persistent
@@ -376,7 +377,7 @@ function main() {
     upgrade_kubernetes
     kubernetes_host
     setup_kubeadm_kustomize
-    trap ctrl_c SIGINT # trap ctrl+c (SIGINT) and handle it by asking for a support bundle - only do this after k8s is installed
+    trap k8s_ctrl_c SIGINT # trap ctrl+c (SIGINT) and handle it by asking for a support bundle - only do this after k8s is installed
     addon_for_each addon_load
     init
     apply_installer_crd
