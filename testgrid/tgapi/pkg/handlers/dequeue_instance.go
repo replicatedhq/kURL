@@ -16,6 +16,8 @@ type DequeueInstanceResponse struct {
 	KurlYAML string `json:"kurlYaml"`
 	KurlURL  string `json:"kurlUrl"`
 	KurlRef  string `json:"kurlRef"`
+
+	TimeoutAfter string `json:"timeoutAfter"`
 }
 
 func DequeueInstance(w http.ResponseWriter, r *http.Request) {
@@ -38,6 +40,8 @@ func DequeueInstance(w http.ResponseWriter, r *http.Request) {
 		KurlYAML: testInstance.KurlYAML,
 		KurlURL:  testInstance.KurlURL,
 		KurlRef:  testInstance.RefID,
+
+		TimeoutAfter: testInstance.TimeoutAfter,
 	}
 
 	JSON(w, 200, []DequeueInstanceResponse{

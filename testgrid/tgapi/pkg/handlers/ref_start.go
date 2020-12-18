@@ -31,6 +31,8 @@ type PlannedInstance struct {
 	OperatingSystemImage   string
 
 	IsUnsupported bool
+
+	TimeoutAfter string
 }
 
 func StartRef(w http.ResponseWriter, r *http.Request) {
@@ -81,6 +83,7 @@ func StartRef(w http.ResponseWriter, r *http.Request) {
 			plannedInstance.OperatingSystemName,
 			plannedInstance.OperatingSystemVersion,
 			plannedInstance.OperatingSystemImage,
+			plannedInstance.TimeoutAfter,
 		)
 		if err != nil {
 			logger.Error(err)

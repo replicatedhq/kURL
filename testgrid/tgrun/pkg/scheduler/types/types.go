@@ -25,10 +25,11 @@ type TestRun struct {
 }
 
 type OperatingSystemImage struct {
-	ID         string
-	Name       string
-	Version    string
-	VMImageURI string
+	ID           string
+	Name         string
+	Version      string
+	VMImageURI   string
+	ExtraTimeout int64
 }
 
 type Instance struct {

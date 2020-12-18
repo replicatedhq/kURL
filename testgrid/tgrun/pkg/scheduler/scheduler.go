@@ -86,6 +86,8 @@ func Run(schedulerOptions types.SchedulerOptions) error {
 				isUnsupported = true
 			}
 
+			timeoutMinutes := 15 + operatingSystem.ExtraTimeout
+
 			plannedInstance := tghandlers.PlannedInstance{
 				ID: testName,
 
@@ -97,6 +99,8 @@ func Run(schedulerOptions types.SchedulerOptions) error {
 				OperatingSystemImage:   operatingSystem.VMImageURI,
 
 				IsUnsupported: isUnsupported,
+
+				TimeoutAfter: fmt.Sprintf("%dm", timeoutMinutes),
 			}
 
 			plannedInstances = append(plannedInstances, plannedInstance)

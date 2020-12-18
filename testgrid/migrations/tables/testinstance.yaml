@@ -41,4 +41,6 @@ spec:
           type: text
         - name: os_image
           type: text
+        - name: timeout_after
+          type: varchar(255)
     

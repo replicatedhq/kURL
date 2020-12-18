@@ -94,6 +94,8 @@ func MainRunLoop(runnerOptions types.RunnerOptions) error {
 				KurlRef:  dequeuedInstance.KurlRef,
 
 				TestGridAPIEndpoint: runnerOptions.APIEndpoint,
+
+				TimeoutAfter: dequeuedInstance.TimeoutAfter,
 			}
 
 			if err := Run(singleTest, uploadProxyURL, tempDir); err != nil {

@@ -253,6 +253,7 @@ func createSecret(singleTest types.SingleRun, tempDir string) error {
 TESTGRID_APIENDPOINT='%s'
 TEST_ID='%s'
 KURL_URL='%s'
+TIMEOUT_AFTER='%s'
 
 setenforce 0 || true # rhel variants
 
@@ -267,7 +268,7 @@ if [ ! -c /dev/urandom ]; then
 fi
 
 curl $KURL_URL > install.sh
-cat install.sh | timeout 15m bash
+cat install.sh | timeout $TIMEOUT_AFTER bash
 KURL_EXIT_STATUS=$?
 
 echo "";
@@ -315,7 +316,7 @@ fi
 
 curl -X POST -d '{"success": true}' $TESTGRID_APIENDPOINT/v1/instance/$TEST_ID/finish
 `,
-		singleTest.TestGridAPIEndpoint, singleTest.ID, singleTest.KurlURL,
+		singleTest.TestGridAPIEndpoint, singleTest.ID, singleTest.KurlURL, singleTest.TimeoutAfter,
 	)
 	runcmdB64 := base64.StdEncoding.EncodeToString([]byte(runcmd))
 

@@ -22,12 +22,12 @@ type KurlInstallerMetadata struct {
 	Name string `json:"name" yaml:"name"`
 }
 
-func Create(id string, refID, kurlYAML string, kurlURL string, osName string, osVersion string, osImage string) error {
+func Create(id string, refID, kurlYAML string, kurlURL string, osName string, osVersion string, osImage string, timeoutAfter string) error {
 	pg := persistence.MustGetPGSession()
 
-	query := `insert into testinstance (id, enqueued_at, testrun_ref, kurl_yaml, kurl_url, os_name, os_version, os_image)
-values ($1, $2, $3, $4, $5, $6, $7, $8)`
-	if _, err := pg.Exec(query, id, time.Now(), refID, kurlYAML, kurlURL, osName, osVersion, osImage); err != nil {
+	query := `insert into testinstance (id, enqueued_at, testrun_ref, kurl_yaml, kurl_url, os_name, os_version, os_image, timeout_after)
+values ($1, $2, $3, $4, $5, $6, $7, $8, $9)`
+	if _, err := pg.Exec(query, id, time.Now(), refID, kurlYAML, kurlURL, osName, osVersion, osImage, timeoutAfter); err != nil {
 		return errors.Wrap(err, "failed to insert")
 	}
 
@@ -43,10 +43,12 @@ set dequeued_at = now() where id in (
 select id from testinstance
 where dequeued_at is null
 order by enqueued_at asc
-limit 1) returning id, dequeued_at, testrun_ref, kurl_yaml, kurl_url, os_name, os_version, os_image
-) select id, testrun_ref, kurl_yaml, kurl_url, os_name, os_version, os_image from updated`
+limit 1) returning id, dequeued_at, testrun_ref, kurl_yaml, kurl_url, os_name, os_version, os_image, timeout_ater
+) select id, testrun_ref, kurl_yaml, kurl_url, os_name, os_version, os_image, timeout_ater from updated`
 
 	row := db.QueryRow(query)
+
+	var timeoutAfter sql.NullString
 
 	testInstance := types.TestInstance{}
 	if err := row.Scan(&testInstance.ID,
@@ -56,8 +58,15 @@ limit 1) returning id, dequeued_at, testrun_ref, kurl_yaml, kurl_url, os_name, o
 		&testInstance.OSName,
 		&testInstance.OSVersion,
 		&testInstance.OSImage,
+		&timeoutAfter,
 	); err != nil {
 		return nil, errors.Wrap(err, "failed to query test instance")
+	}
+
+	if timeoutAfter.Valid {
+		testInstance.TimeoutAfter = timeoutAfter.String
+	} else {
+		testInstance.TimeoutAfter = "15m"
 	}
 
 	return &testInstance, nil
@@ -74,10 +83,12 @@ where finished_at is null
 AND dequeued_at <  now() - INTERVAL '3 hours'
 AND dequeued_at >  now() - INTERVAL '24 hours'
 order by enqueued_at asc
-limit 1) returning id, dequeued_at, testrun_ref, kurl_yaml, kurl_url, os_name, os_version, os_image
-) select id, testrun_ref, kurl_yaml, kurl_url, os_name, os_version, os_image from updated`
+limit 1) returning id, dequeued_at, testrun_ref, kurl_yaml, kurl_url, os_name, os_version, os_image, timeout_ater
+) select id, testrun_ref, kurl_yaml, kurl_url, os_name, os_version, os_image, timeout_ater from updated`
 
 	row := db.QueryRow(query)
+
+	var timeoutAfter sql.NullString
 
 	testInstance := types.TestInstance{}
 	if err := row.Scan(&testInstance.ID,
@@ -87,8 +98,15 @@ limit 1) returning id, dequeued_at, testrun_ref, kurl_yaml, kurl_url, os_name, o
 		&testInstance.OSName,
 		&testInstance.OSVersion,
 		&testInstance.OSImage,
+		&timeoutAfter,
 	); err != nil {
 		return nil, errors.Wrap(err, "failed to query test instance")
+	}
+
+	if timeoutAfter.Valid {
+		testInstance.TimeoutAfter = timeoutAfter.String
+	} else {
+		testInstance.TimeoutAfter = "15m"
 	}
 
 	return &testInstance, nil
@@ -177,7 +195,21 @@ where id = $1`
 func List(refID string, limit int, offset int, addons map[string]string) ([]types.TestInstance, error) {
 	db := persistence.MustGetPGSession()
 
-	query := `SELECT ti.id, ti.kurl_yaml, ti.kurl_url, ti.os_name, ti.os_version, ti.os_image, ti.enqueued_at, ti.dequeued_at, ti.started_at, ti.finished_at, ti.is_success, ti.is_unsupported
+	query := `
+SELECT
+   ti.id,
+   ti.kurl_yaml,
+   ti.kurl_url,
+   ti.os_name,
+   ti.os_version,
+   ti.os_image,
+   ti.enqueued_at,
+   ti.dequeued_at,
+   ti.started_at,
+   ti.finished_at,
+   ti.is_success,
+   ti.is_unsupported,
+   ti.timeout_after
 FROM testinstance ti
 LEFT JOIN (
 	SELECT kurl_url, row_number() OVER (ORDER BY kurl_url) row_num
@@ -219,6 +251,8 @@ WHERE ti.testrun_ref = $1 AND x.row_num > $2`
 		var finishedAt sql.NullTime
 		var isSuccess, isUnsupported sql.NullBool
 
+		var timeoutAfter sql.NullString
+
 		if err := rows.Scan(
 			&testInstance.ID,
 			&testInstance.KurlYAML,
@@ -232,6 +266,7 @@ WHERE ti.testrun_ref = $1 AND x.row_num > $2`
 			&finishedAt,
 			&isSuccess,
 			&isUnsupported,
+			&timeoutAfter,
 		); err != nil {
 			return nil, errors.Wrap(err, "failed to scan")
 		}
@@ -253,6 +288,12 @@ WHERE ti.testrun_ref = $1 AND x.row_num > $2`
 		}
 		if isUnsupported.Valid {
 			testInstance.IsUnsupported = isUnsupported.Bool
+		}
+
+		if timeoutAfter.Valid {
+			testInstance.TimeoutAfter = timeoutAfter.String
+		} else {
+			testInstance.TimeoutAfter = "15m"
 		}
 
 		testInstances = append(testInstances, testInstance)

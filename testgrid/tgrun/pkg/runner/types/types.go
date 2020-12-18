@@ -18,4 +18,6 @@ type SingleRun struct {
 	KurlRef  string
 
 	TestGridAPIEndpoint string
+
+	TimeoutAfter string
 }

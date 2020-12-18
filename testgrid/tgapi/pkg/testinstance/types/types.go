@@ -20,4 +20,6 @@ type TestInstance struct {
 	OSName    string `json:"osName"`
 	OSVersion string `json:"osVersion"`
 	OSImage   string `json:"-"`
+
+	TimeoutAfter string `json:"timeoutAfter"`
 }
