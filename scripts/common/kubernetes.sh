@@ -26,10 +26,10 @@ function kubernetes_load_ipvs_modules() {
         return
     fi
 
-    if [ "$KERNEL_MAJOR" -lt "4" ] || ([ "$KERNEL_MAJOR" -eq "4" ] && [ "$KERNEL_MINOR" -lt "19" ]); then
-        modprobe nf_conntrack_ipv4
-    else
+    if [ "$KERNEL_MAJOR" -gt "4" ] || ([ "$KERNEL_MAJOR" -eq "4" ] && [ "$KERNEL_MINOR" -ge "19" ]) || ( ( [ "$LSB_DIST" -eq "rhel"] || [ "$LSB_DIST" -eq "centos" ] ) && [ "$DIST_VERSION" -ge "8.3" ] ); then
         modprobe nf_conntrack
+    else
+        modprobe nf_conntrack_ipv4
     fi
 
     modprobe ip_vs
@@ -80,8 +80,8 @@ function kubernetes_install_host_packages() {
             ;;
 
         centos|rhel|amzn)
-            case "$LSB_DIST$DIST_VERSION" in
-                rhel8.0|rhel8.1|rhel8.2|centos8.0|centos8.1|centos8.2)
+            case "$LSB_DIST$DIST_VERSION_MAJOR" in
+                rhel8|centos8)
                     rpm --upgrade --force --nodeps $DIR/packages/kubernetes/${k8sVersion}/rhel-8/*.rpm
                     ;;
 
