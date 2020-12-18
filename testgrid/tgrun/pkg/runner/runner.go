@@ -267,7 +267,7 @@ if [ ! -c /dev/urandom ]; then
 fi
 
 curl $KURL_URL > install.sh
-cat install.sh | timeout 15m bash
+cat install.sh | timeout 30m bash
 KURL_EXIT_STATUS=$?
 
 echo "";
