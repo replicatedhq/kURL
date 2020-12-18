@@ -42,6 +42,12 @@ var operatingSystems = []types.OperatingSystemImage{
 		ID:         "centos-82",
 	},
 	{
+		VMImageURI: "https://cloud.centos.org/centos/8/x86_64/images/CentOS-8-GenericCloud-8.3.2011-20201204.2.x86_64.qcow2",
+		Name:       "CentOS",
+		Version:    "8.3",
+		ID:         "centos-83",
+	},
+	{
 		VMImageURI: "https://cdn.amazonlinux.com/os-images/2.0.20200917.0/kvm/amzn2-kvm-2.0.20200917.0-x86_64.xfs.gpt.qcow2",
 		Name:       "Amazon Linux",
 		Version:    "2.0",
