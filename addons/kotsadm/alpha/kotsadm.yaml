@@ -180,36 +180,6 @@ spec:
             memory: 100Mi
 
       initContainers:
-      - name: init-dex-db
-        command:
-        - "psql"
-        args:
-        - "-h"
-        - "kotsadm-postgres"
-        - "-U"
-        - "kotsadm"
-        - "-c"
-        - "CREATE DATABASE dex;"
-        - "-c"
-        - "CREATE USER dex;"
-        - "-c"
-        - "ALTER USER dex WITH PASSWORD '$(DEX_PGPASSWORD)';"
-        - "-c"
-        - "GRANT ALL PRIVILEGES ON DATABASE dex TO dex;"
-        env:
-        - name: PGPASSWORD
-          valueFrom:
-            secretKeyRef:
-              key: password
-              name: kotsadm-postgres
-        - name: DEX_PGPASSWORD
-          valueFrom:
-            secretKeyRef:
-              key: PGPASSWORD
-              name: kotsadm-dex-postgres
-        image: kotsadm/kotsadm:alpha
-        imagePullPolicy: IfNotPresent
-
       - name: restore-db
         command:
         - "/restore-db.sh"
