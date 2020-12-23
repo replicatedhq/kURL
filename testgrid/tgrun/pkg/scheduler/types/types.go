@@ -65,4 +65,5 @@ type InstallerSpec struct {
 	FirewalldConfig *kurlv1beta1.FirewalldConfig `json:"firewalldConfig,omitempty"`
 	Ekco            *kurlv1beta1.Ekco            `json:"ekco,omitempty"`
 	Collectd        *kurlv1beta1.Collectd        `json:"collectd,omitempty"`
+	CertManager     *kurlv1beta1.CertManager     `json:"certManager,omitempty"`
 }
