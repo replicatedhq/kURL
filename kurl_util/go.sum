@@ -256,6 +256,8 @@ github.com/replicatedhq/kurl v0.0.0-20200601170456-4d9730fe4307 h1:kmqzUfOp1PTn0
 github.com/replicatedhq/kurl v0.0.0-20200601170456-4d9730fe4307/go.mod h1:ORM8QYmmMuylJCxWXnclSOKO+N4kx7eLIw5593awx9Y=
 github.com/replicatedhq/kurl/kurlkinds v0.0.0-20201112172719-21aad99cbc58 h1:5FAHpGEOgpIcrymRJgZM0lV7RdItRVTeWfmJjcBCh9o=
 github.com/replicatedhq/kurl/kurlkinds v0.0.0-20201112172719-21aad99cbc58/go.mod h1:CGQURLyceSGyAAvMk6xWorC4calSpnoygOAf4ASk1T0=
+github.com/replicatedhq/kurl/kurlkinds v0.0.0-20201228201742-70dbb411b59c h1:UDCeMNtWk2g5eqDIlR/C9I+97R0JnkWsNNoH5Sn+6UQ=
+github.com/replicatedhq/kurl/kurlkinds v0.0.0-20201228201742-70dbb411b59c/go.mod h1:CGQURLyceSGyAAvMk6xWorC4calSpnoygOAf4ASk1T0=
 github.com/rogpeppe/fastuuid v0.0.0-20150106093220-6724a57986af/go.mod h1:XWv6SoW27p1b0cqNHllgS5HIMJraePCO15w5zCzIWYg=
 github.com/russross/blackfriday v1.5.2/go.mod h1:JO/DiYxRf+HjHt06OyowR9PTA263kcR/rfWxYHBV53g=
 github.com/sergi/go-diff v1.0.0/go.mod h1:0CfEIISq7TuYL3j771MWULgwwjU+GofnZX9QAmXWZgo=
