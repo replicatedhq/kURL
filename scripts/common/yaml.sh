@@ -7,6 +7,10 @@ function render_yaml_file() {
     eval "echo \"$(cat $1)\""
 }
 
+function render_file() {
+    eval "echo \"$(cat $1)\""
+}
+
 function insert_patches_strategic_merge() {
     local kustomization_file="$1"
     local patch_file="$2"

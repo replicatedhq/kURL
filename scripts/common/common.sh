@@ -390,3 +390,9 @@ function journald_persistent() {
     systemctl restart systemd-journald
     journalctl --flush
 }
+
+function rm_file() {
+    if [ -f "$1" ]; then
+        rm $1
+    fi
+}
