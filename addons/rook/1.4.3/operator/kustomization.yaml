@@ -3,3 +3,4 @@ resources:
 - ceph-operator.yaml
 - ceph-toolbox.yaml
 - config-override.yaml
+- priorityclass.yaml

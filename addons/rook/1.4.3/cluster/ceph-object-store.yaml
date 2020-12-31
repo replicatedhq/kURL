@@ -80,7 +80,7 @@ spec:
       requests:
         cpu: "300m"
         memory: "1024Mi"
-    priorityClassName: system-cluster-critical
+    priorityClassName: rook-critical
     #zone:
     #name: zone-a
   # service endpoint healthcheck
