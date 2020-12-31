@@ -50,16 +50,16 @@ function kotsadm() {
     cat "$src/tmpl-start-kotsadm-web.sh" | sed "s/###_HOSTNAME_###/$KOTSADM_HOSTNAME:8800/g" > "$dst/start-kotsadm-web.sh"
     kubectl create configmap kotsadm-web-scripts --from-file="$dst/start-kotsadm-web.sh" --dry-run -oyaml > "$dst/kotsadm-web-scripts.yaml"
 
-    kubectl delete pod kotsadm-migrations || true;
-    kubectl delete deployment kotsadm-web || true; # replaced by 'kotsadm' deployment in 1.12.0
-    kubectl delete service kotsadm-api || true; # replaced by 'kotsadm-api-node' service in 1.12.0
+    kubectl delete pod kotsadm-migrations &> /dev/null || true;
+    kubectl delete deployment kotsadm-web &> /dev/null || true; # replaced by 'kotsadm' deployment in 1.12.0
+    kubectl delete service kotsadm-api &> /dev/null || true; # replaced by 'kotsadm-api-node' service in 1.12.0
 
     # removed in 1.19.0
-    kubectl delete deployment kotsadm-api || true
-    kubectl delete service kotsadm-api-node || true
-    kubectl delete serviceaccount kotsadm-api || true
-    kubectl delete clusterrolebinding kotsadm-api-rolebinding || true
-    kubectl delete clusterrole kotsadm-api-role || true
+    kubectl delete deployment kotsadm-api &> /dev/null || true
+    kubectl delete service kotsadm-api-node &> /dev/null || true
+    kubectl delete serviceaccount kotsadm-api &> /dev/null || true
+    kubectl delete clusterrolebinding kotsadm-api-rolebinding &> /dev/null || true
+    kubectl delete clusterrole kotsadm-api-role &> /dev/null || true
 
     kotsadm_namespaces "$src" "$dst"
 
