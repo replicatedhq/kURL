@@ -20,7 +20,7 @@ function report_install_start() {
 
     curl -s --output /dev/null -H 'Content-Type: application/json' --max-time 5 \
         -d "{\"started\": \"$started\", \"os\": \"$LSB_DIST $DIST_VERSION\", \"kernel_version\": \"$KERNEL_MAJOR.$KERNEL_MINOR\", \"kurl_url\": \"$KURL_URL\", \"installer_id\": \"$INSTALLER_ID\", \"testgrid_id\": \"$TESTGRID_ID\"}" \
-        $REPLICATED_APP_URL/kurl_metrics/start_install/$INSTALLATION_ID
+        $REPLICATED_APP_URL/kurl_metrics/start_install/$INSTALLATION_ID || true
 }
 
 function report_install_success() {
@@ -35,7 +35,7 @@ function report_install_success() {
 
     curl -s --output /dev/null -H 'Content-Type: application/json' --max-time 5 \
         -d "{\"finished\": \"$completed\"}" \
-        $REPLICATED_APP_URL/kurl_metrics/finish_install/$INSTALLATION_ID
+        $REPLICATED_APP_URL/kurl_metrics/finish_install/$INSTALLATION_ID || true
 }
 
 function report_install_fail() {
@@ -51,7 +51,7 @@ function report_install_fail() {
 
     curl -s --output /dev/null -H 'Content-Type: application/json' --max-time 5 \
         -d "{\"finished\": \"$completed\", \"cause\": \"$cause\"}" \
-        $REPLICATED_APP_URL/kurl_metrics/fail_install/$INSTALLATION_ID
+        $REPLICATED_APP_URL/kurl_metrics/fail_install/$INSTALLATION_ID || true
 }
 
 function report_addon_start() {
@@ -68,7 +68,7 @@ function report_addon_start() {
 
     curl -s --output /dev/null -H 'Content-Type: application/json' --max-time 5 \
         -d "{\"started\": \"$started\", \"addon_version\": \"$version\", \"testgrid_id\": \"$TESTGRID_ID\"}" \
-        $REPLICATED_APP_URL/kurl_metrics/start_addon/$INSTALLATION_ID/$name
+        $REPLICATED_APP_URL/kurl_metrics/start_addon/$INSTALLATION_ID/$name || true
 }
 
 function report_addon_success() {
@@ -85,7 +85,7 @@ function report_addon_success() {
 
     curl -s --output /dev/null -H 'Content-Type: application/json' --max-time 5 \
         -d "{\"finished\": \"$completed\"}" \
-        $REPLICATED_APP_URL/kurl_metrics/finish_addon/$INSTALLATION_ID/$name
+        $REPLICATED_APP_URL/kurl_metrics/finish_addon/$INSTALLATION_ID/$name || true
 }
 
 function k8s_ctrl_c() {
@@ -122,7 +122,7 @@ function addon_install_fail() {
 
     curl -s --output /dev/null -H 'Content-Type: application/json' --max-time 5 \
         -d "{\"finished\": \"$completed\"}" \
-        $REPLICATED_APP_URL/kurl_metrics/fail_addon/$INSTALLATION_ID/$name
+        $REPLICATED_APP_URL/kurl_metrics/fail_addon/$INSTALLATION_ID/$name || true
 
     # provide an option for a user to provide a support bundle
     printf "${YELLOW}Addon ${name} ${version} failed to install${NC}\n"
