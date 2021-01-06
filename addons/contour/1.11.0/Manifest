@@ -1,0 +1,2 @@
+image contour docker.io/projectcontour/contour:v1.11.0
+image envoy docker.io/envoyproxy/envoy:v1.16.2
