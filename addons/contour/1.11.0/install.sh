@@ -6,7 +6,7 @@ function contour_pre_init() {
 }
 
 function contour() {
-    local src="$DIR/addons/contour/1.10.1"
+    local src="$DIR/addons/contour/1.11.0"
     local dst="$DIR/kustomize/contour"
 
     cp "$src/contour.yaml" "$dst/"
