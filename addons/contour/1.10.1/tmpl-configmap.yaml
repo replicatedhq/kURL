@@ -1,4 +1,4 @@
----
+
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -6,6 +6,11 @@ metadata:
   namespace: projectcontour
 data:
   contour.yaml: |
+    #
+    # server:
+    #   determine which XDS Server implementation to utilize in Contour.
+    #   xds-server-type: contour
+    #
     # should contour expect to be running inside a k8s cluster
     # incluster: true
     #
@@ -22,6 +27,9 @@ data:
     # SNI defined for a vhost.
       fallback-certificate:
     #   name: fallback-secret-name
+    #   namespace: projectcontour
+      envoy-client-certificate:
+    #   name: envoy-client-cert-secret-name
     #   namespace: projectcontour
     # The following config shows the defaults for the leader election.
     # leaderelection:
@@ -70,3 +78,11 @@ data:
     #   stream-idle-timeout: 5m
     #   max-connection-duration: infinity
     #   connection-shutdown-grace-period: 5s
+    #
+    # Envoy cluster settings.
+    # cluster:
+    #   configure the cluster dns lookup family
+    #   valid options are: auto (default), v4, v6
+    #   dns-lookup-family: auto
+
+---
