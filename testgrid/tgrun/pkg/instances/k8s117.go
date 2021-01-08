@@ -37,7 +37,7 @@ func init() {
 					Version: "1.2.0",
 				},
 				Kotsadm: &kurlv1beta1.Kotsadm{
-					Version: "1.27.1",
+					Version: "1.28.0",
 				},
 			},
 		},

@@ -1,6 +1,6 @@
 
 function kotsadm() {
-    local src="$DIR/addons/kotsadm/alpha"
+    local src="$DIR/addons/kotsadm/1.28.0"
     local dst="$DIR/kustomize/kotsadm"
 
     try_1m object_store_create_bucket kotsadm
@@ -26,12 +26,12 @@ function kotsadm() {
     fi
     if [ -n "$PROXY_ADDRESS" ]; then
         KUBERNETES_CLUSTER_IP=$(kubectl get services kubernetes --no-headers | awk '{ print $3 }')
-        render_yaml_file "$DIR/addons/kotsadm/alpha/tmpl-kotsadm-proxy.yaml" > "$DIR/kustomize/kotsadm/kotsadm-proxy.yaml"
+        render_yaml_file "$DIR/addons/kotsadm/1.28.0/tmpl-kotsadm-proxy.yaml" > "$DIR/kustomize/kotsadm/kotsadm-proxy.yaml"
         insert_patches_strategic_merge "$DIR/kustomize/kotsadm/kustomization.yaml" kotsadm-proxy.yaml
     fi
 
     if [ "$AIRGAP" == "1" ]; then
-        cp "$DIR/addons/kotsadm/alpha/kotsadm-airgap.yaml" "$DIR/kustomize/kotsadm/kotsadm-airgap.yaml"
+        cp "$DIR/addons/kotsadm/1.28.0/kotsadm-airgap.yaml" "$DIR/kustomize/kotsadm/kotsadm-airgap.yaml"
         insert_patches_strategic_merge "$DIR/kustomize/kotsadm/kustomization.yaml" kotsadm-airgap.yaml
     fi
     kotsadm_cacerts_file
@@ -75,7 +75,7 @@ function kotsadm() {
 }
 
 function kotsadm_join() {
-    kotsadm_cli "$DIR/addons/kotsadm/alpha"
+    kotsadm_cli "$DIR/addons/kotsadm/1.28.0"
 }
 
 function kotsadm_outro() {
@@ -111,7 +111,7 @@ function kotsadm_secret_cluster_token() {
         fi
     fi
 
-    render_yaml_file "$DIR/addons/kotsadm/alpha/tmpl-secret-cluster-token.yaml" > "$DIR/kustomize/kotsadm/secret-cluster-token.yaml"
+    render_yaml_file "$DIR/addons/kotsadm/1.28.0/tmpl-secret-cluster-token.yaml" > "$DIR/kustomize/kotsadm/secret-cluster-token.yaml"
     insert_resources "$DIR/kustomize/kotsadm/kustomization.yaml" secret-cluster-token.yaml
 
     # ensure all pods that consume the secret will be restarted
@@ -130,7 +130,7 @@ function kotsadm_secret_authstring() {
         AUTHSTRING="Kots $(< /dev/urandom tr -dc A-Za-z0-9 | head -c32)"
     fi
 
-    render_yaml_file "$DIR/addons/kotsadm/alpha/tmpl-secret-authstring.yaml" > "$DIR/kustomize/kotsadm/secret-authstring.yaml"
+    render_yaml_file "$DIR/addons/kotsadm/1.28.0/tmpl-secret-authstring.yaml" > "$DIR/kustomize/kotsadm/secret-authstring.yaml"
     insert_resources "$DIR/kustomize/kotsadm/kustomization.yaml" secret-authstring.yaml
 }
 
@@ -143,7 +143,7 @@ function kotsadm_secret_password() {
         BCRYPT_PASSWORD=$(echo "$KOTSADM_PASSWORD" | $DIR/bin/bcrypt --cost=14)
     fi
 
-    render_yaml_file "$DIR/addons/kotsadm/alpha/tmpl-secret-password.yaml" > "$DIR/kustomize/kotsadm/secret-password.yaml"
+    render_yaml_file "$DIR/addons/kotsadm/1.28.0/tmpl-secret-password.yaml" > "$DIR/kustomize/kotsadm/secret-password.yaml"
     insert_resources "$DIR/kustomize/kotsadm/kustomization.yaml" secret-password.yaml
 
     kubernetes_scale_down default deployment kotsadm
@@ -156,7 +156,7 @@ function kotsadm_secret_postgres() {
         POSTGRES_PASSWORD=$(< /dev/urandom tr -dc A-Za-z0-9 | head -c16)
     fi
 
-    render_yaml_file "$DIR/addons/kotsadm/alpha/tmpl-secret-postgres.yaml" > "$DIR/kustomize/kotsadm/secret-postgres.yaml"
+    render_yaml_file "$DIR/addons/kotsadm/1.28.0/tmpl-secret-postgres.yaml" > "$DIR/kustomize/kotsadm/secret-postgres.yaml"
     insert_resources "$DIR/kustomize/kotsadm/kustomization.yaml" secret-postgres.yaml
 
     kubernetes_scale_down default deployment kotsadm
@@ -171,7 +171,7 @@ function kotsadm_secret_dex_postgres() {
         DEX_PGPASSWORD=$(< /dev/urandom tr -dc A-Za-z0-9 | head -c32)
     fi
 
-    render_yaml_file "$DIR/addons/kotsadm/alpha/tmpl-secret-dex-postgres.yaml" > "$DIR/kustomize/kotsadm/secret-dex-postgres.yaml"
+    render_yaml_file "$DIR/addons/kotsadm/1.28.0/tmpl-secret-dex-postgres.yaml" > "$DIR/kustomize/kotsadm/secret-dex-postgres.yaml"
     insert_resources "$DIR/kustomize/kotsadm/kustomization.yaml" secret-dex-postgres.yaml
 
     kubernetes_scale_down default deployment kotsadm
@@ -181,7 +181,7 @@ function kotsadm_secret_s3() {
     if [ -z "$VELERO_LOCAL_BUCKET" ]; then
         VELERO_LOCAL_BUCKET=velero
     fi
-    render_yaml_file "$DIR/addons/kotsadm/alpha/tmpl-secret-s3.yaml" > "$DIR/kustomize/kotsadm/secret-s3.yaml"
+    render_yaml_file "$DIR/addons/kotsadm/1.28.0/tmpl-secret-s3.yaml" > "$DIR/kustomize/kotsadm/secret-s3.yaml"
     insert_resources "$DIR/kustomize/kotsadm/kustomization.yaml" secret-s3.yaml
 }
 
@@ -192,7 +192,7 @@ function kotsadm_secret_session() {
         JWT_SECRET=$(< /dev/urandom tr -dc A-Za-z0-9 | head -c16)
     fi
 
-    render_yaml_file "$DIR/addons/kotsadm/alpha/tmpl-secret-session.yaml" > "$DIR/kustomize/kotsadm/secret-session.yaml"
+    render_yaml_file "$DIR/addons/kotsadm/1.28.0/tmpl-secret-session.yaml" > "$DIR/kustomize/kotsadm/secret-session.yaml"
     insert_resources "$DIR/kustomize/kotsadm/kustomization.yaml" secret-session.yaml
 
     kubernetes_scale_down default deployment kotsadm
@@ -207,7 +207,7 @@ function kotsadm_api_encryption_key() {
         API_ENCRYPTION=$(< /dev/urandom cat | head -c36 | base64)
     fi
 
-    render_yaml_file "$DIR/addons/kotsadm/alpha/tmpl-secret-api-encryption.yaml" > "$DIR/kustomize/kotsadm/secret-api-encryption.yaml"
+    render_yaml_file "$DIR/addons/kotsadm/1.28.0/tmpl-secret-api-encryption.yaml" > "$DIR/kustomize/kotsadm/secret-api-encryption.yaml"
     insert_resources "$DIR/kustomize/kotsadm/kustomization.yaml" secret-api-encryption.yaml
 
     kubernetes_scale_down default deployment kotsadm
@@ -215,7 +215,7 @@ function kotsadm_api_encryption_key() {
 
 function kotsadm_api_patch_prometheus() {
     insert_patches_strategic_merge "$DIR/kustomize/kotsadm/kustomization.yaml" api-prometheus.yaml
-    cp "$DIR/addons/kotsadm/alpha/patches/api-prometheus.yaml" "$DIR/kustomize/kotsadm/api-prometheus.yaml"
+    cp "$DIR/addons/kotsadm/1.28.0/patches/api-prometheus.yaml" "$DIR/kustomize/kotsadm/api-prometheus.yaml"
 }
 
 function kotsadm_metadata_configmap() {
@@ -421,7 +421,7 @@ function kotsadm_cacerts_file() {
     done
 
     if [ -n "$KOTSADM_TRUSTED_CERT_MOUNT" ]; then
-        render_yaml_file "$DIR/addons/kotsadm/alpha/tmpl-kotsadm-cacerts.yaml" > "$DIR/kustomize/kotsadm/kotsadm-cacerts.yaml"
+        render_yaml_file "$DIR/addons/kotsadm/1.28.0/tmpl-kotsadm-cacerts.yaml" > "$DIR/kustomize/kotsadm/kotsadm-cacerts.yaml"
         insert_patches_strategic_merge "$DIR/kustomize/kotsadm/kustomization.yaml" kotsadm-cacerts.yaml
     fi
 }
