@@ -7,3 +7,4 @@ resources:
 
 patchesStrategicMerge:
 - service-patch.yaml
+- job-image.yaml
