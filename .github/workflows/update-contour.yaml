@@ -30,6 +30,7 @@ jobs:
           automated-pr
           contour
         draft: false
+        base: "laverya/contour-1-10-and-1-11"
 
 
     - name: Check outputs
