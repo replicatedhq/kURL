@@ -1,0 +1,8 @@
+[Unit]
+Description=Auto-upgrades Kubernetes and kURL add-ons
+
+[Service]
+Type=oneshot
+ExecStart=/opt/ekco/upgrade.sh
+Environment=KURL_URL=$KURL_URL
+Environment=INSTALLER_ID=$INSTALLER_ID
