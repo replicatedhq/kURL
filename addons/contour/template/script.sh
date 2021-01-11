@@ -48,7 +48,7 @@ sed -i "s|__upstreamurl__|$UPSTREAM_URL|g" "../$CONTOUR_VERSION/contour.yaml"
 # remove namespace and config from contour.yaml
 
 # first, split file by `---`
-split -p '---' "$tmpdir"/contour.yaml "$tmpdir"/split
+csplit --prefix "$tmpdir"/split "$tmpdir"/contour.yaml "/---/" "{*}"
 
 # remove 'namespace' file, move 'config' file
 rm $(grep -Hl 'kind: Namespace' "$tmpdir"/split*)
