@@ -17,7 +17,7 @@ if [ "$last" = "$latest" ]; then
 fi
 
 cd /tmp
-curl -L $KURL_URL/$INSTALER_ID | sudo bash -s yes
+curl -L $KURL_URL/$INSTALLER_ID | sudo bash -s yes auto-upgrades-enabled
 echo "$(date -u +"%Y-%m-%dT%H:%M:%SZ") $latest" >> /opt/ekco/upgrades.txt
 
 echo "Kurl upgrade applied"
