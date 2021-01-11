@@ -1,0 +1,4 @@
+# From __upstreamurl__
+# - Moved ConfigMap into separate template
+# - Moved namespace into separate template
+# - Removed envoy container host ports

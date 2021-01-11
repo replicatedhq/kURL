@@ -1,0 +1,65 @@
+#!/bin/bash
+
+# this script assumes it is run within <kurl>/addons/contour/template
+
+# get the upstream url that the contour yaml can be found at permanently
+UPSTREAM_URL=$(curl -Ls -o /dev/null -w %{url_effective} https://projectcontour.io/quickstart/contour.yaml) # https://raw.githubusercontent.com/projectcontour/contour/release-1.11/examples/render/contour.yaml
+echo "upstream URL: $UPSTREAM_URL"
+
+# determine the short version (major.minor) from that URL
+upstreamShortVersionPattern='/release-([0-9]+\.[0-9]+)/'
+[[ "$UPSTREAM_URL" =~ $upstreamShortVersionPattern ]]
+SHORT_VERSION="${BASH_REMATCH[1]}" # 1.11
+echo "short version: $SHORT_VERSION"
+
+# make a temp directory to do work in
+tmpdir=$(mktemp -d -t contour-XXXXXXXXXX)
+
+# get a copy of the contour yaml for the current release
+curl -Ls -o "$tmpdir"/contour.yaml "$UPSTREAM_URL"
+
+# copy that contour yaml into an env var and determine the full contour and envoy versions (major.minor.patch)
+fileContents=$(cat "$tmpdir"/contour.yaml)
+upstreamContourVersionPattern='docker.io/projectcontour/contour:v([0-9]+\.[0-9]+\.[0-9]+)'
+[[ "$fileContents" =~ $upstreamContourVersionPattern ]]
+CONTOUR_VERSION="${BASH_REMATCH[1]}" # 1.11.0
+
+echo "contour version: $CONTOUR_VERSION"
+
+upstreamEnvoyVersionPattern='docker.io/envoyproxy/envoy:v([0-9]+\.[0-9]+\.[0-9]+)'
+[[ "$fileContents" =~ $upstreamEnvoyVersionPattern ]]
+ENVOY_VERSION="${BASH_REMATCH[1]}" # 1.16.2
+
+echo "envoy version: $ENVOY_VERSION"
+
+# create directory inside 'contour' as copy of 'base'
+mkdir -p "../$CONTOUR_VERSION"
+cp -r ./base/* "../$CONTOUR_VERSION"
+
+# template 'Manifest', 'install.sh' and 'job-image.yaml' with versions
+sed -i "s/__releasever__/$CONTOUR_VERSION/g" "../$CONTOUR_VERSION/Manifest"
+sed -i "s/__envoyver__/$ENVOY_VERSION/g" "../$CONTOUR_VERSION/Manifest"
+sed -i "s/__releasever__/$CONTOUR_VERSION/g" "../$CONTOUR_VERSION/install.sh"
+sed -i "s/__releasever__/$CONTOUR_VERSION/g" "../$CONTOUR_VERSION/patches/job-image.yaml"
+
+# insert upstream URL into contour.yaml header
+sed -i "s|__upstreamurl__|$UPSTREAM_URL|g" "../$CONTOUR_VERSION/contour.yaml"
+
+# remove namespace and config from contour.yaml
+
+# first, split file by `---`
+split -p '---' "$tmpdir"/contour.yaml "$tmpdir"/split
+
+# remove 'namespace' file, move 'config' file
+rm $(grep -Hl 'kind: Namespace' "$tmpdir"/split*)
+mv $(grep -Hl 'kind: ConfigMap' "$tmpdir"/split*) "../$CONTOUR_VERSION/tmpl-configmap.yaml"
+
+# rejoin files
+cat "$tmpdir"/split* >> "../$CONTOUR_VERSION/contour.yaml"
+
+# edit tmpl-configmap.yaml to include configurable CONTOUR_TLS_MINIMUM_PROTOCOL_VERSION
+sed -i 's/# minimum-protocol-version: "1.1"/  minimum-protocol-version: "$CONTOUR_TLS_MINIMUM_PROTOCOL_VERSION"/' "../$CONTOUR_VERSION/tmpl-configmap.yaml"
+
+# edit contour.yaml to remove `hostPort: 80` and `hostPort: 443`
+sed -i '/hostPort: 80/d' "../$CONTOUR_VERSION/contour.yaml"
+sed -i '/hostPort: 443/d' "../$CONTOUR_VERSION/contour.yaml"
