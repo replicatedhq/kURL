@@ -1,0 +1,36 @@
+name: cron-contour-update
+on:
+#  schedule:
+#  - cron: '0 4 * * *'
+  pull_request:
+    branches:
+    - master
+
+jobs:
+  build-pr-contour:
+    runs-on: ubuntu-18.04
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Create Contour Update
+      working-directory: ./addons/contour/template
+      run: ./script.sh
+
+    - name: Create Pull Request # creates a PR if there are differences
+      uses: peter-evans/create-pull-request@v3
+      id: cpr
+      with:
+        commit-message: Create new Contour version
+        title: 'Automated Contour version update'
+        branch: automation/update-contour
+        delete-branch: true
+        labels: |
+          automated-pr
+          contour
+        draft: false
+
+
+    - name: Check outputs
+      run: |
+        echo "Pull Request Number - ${{ steps.cpr.outputs.pull-request-number }}"
+        echo "Pull Request URL - ${{ steps.cpr.outputs.pull-request-url }}"
