@@ -43,7 +43,9 @@ fs.readdir(specDir, (err, files) => {
         const filepath = path.join(subDirPath, subFile);
         const sf = fs.statSync(filepath);
         if (sf.isDirectory()) {
-          sv.push(subFile)
+          if (subFile !== "template") {
+            sv.push(subFile)
+          }
         } else if (sf.isFile()) {
           if (subFile === "categories.json") {
             const content = fs.readFileSync(filepath);

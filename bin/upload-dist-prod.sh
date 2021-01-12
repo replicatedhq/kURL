@@ -15,6 +15,11 @@ require S3_BUCKET "${S3_BUCKET}"
 
 for package in $(bin/list-all-packages.sh)
 do
+    if [[ $package == *template.tar.gz ]]; then
+      echo "skipping package $package"
+      continue
+    fi
+
     if [ "$package" = "common.tar.gz" ]; then
         # Common must be built rather than copied from staging because the staging common.tar.gz
         # package includes the alpha kurl-util image but the prod common.tar.gz needs a tagged version
