@@ -28,7 +28,7 @@ jobs:
           contour
         draft: false
         base: "master"
-
+        body: "Automated changes by the [cron-contour-update](https://github.com/replicatedhq/kURL/blob/master/.github/workflows/update-contour.yaml) GitHub action"
 
     - name: Check outputs
       run: |
