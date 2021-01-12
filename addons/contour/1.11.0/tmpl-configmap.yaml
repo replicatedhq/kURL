@@ -1,4 +1,4 @@
-
+---
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -85,4 +85,3 @@ data:
     #   valid options are: auto (default), v4, v6
     #   dns-lookup-family: auto
 
----

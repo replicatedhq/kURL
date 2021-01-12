@@ -1627,12 +1627,12 @@ spec:
           initialDelaySeconds: 15
           periodSeconds: 10
         volumeMounts:
-        - name: contourcert
-          mountPath: /certs
-          readOnly: true
-        - name: contour-config
-          mountPath: /config
-          readOnly: true
+          - name: contourcert
+            mountPath: /certs
+            readOnly: true
+          - name: contour-config
+            mountPath: /config
+            readOnly: true
         env:
         - name: CONTOUR_NAMESPACE
           valueFrom:
@@ -1651,16 +1651,16 @@ spec:
         runAsUser: 65534
         runAsGroup: 65534
       volumes:
-      - name: contourcert
-        secret:
-          secretName: contourcert
-      - name: contour-config
-        configMap:
-          name: contour
-          defaultMode: 0644
-          items:
-          - key: contour.yaml
-            path: contour.yaml
+        - name: contourcert
+          secret:
+            secretName: contourcert
+        - name: contour-config
+          configMap:
+            name: contour
+            defaultMode: 0644
+            items:
+            - key: contour.yaml
+              path: contour.yaml
 
 ---
 apiVersion: apps/v1
@@ -1691,17 +1691,17 @@ spec:
       - command:
         - /bin/contour
         args:
-        - envoy
-        - shutdown-manager
+          - envoy
+          - shutdown-manager
         image: docker.io/projectcontour/contour:v1.11.0
         imagePullPolicy: IfNotPresent
         lifecycle:
           preStop:
             exec:
               command:
-              - /bin/contour
-              - envoy
-              - shutdown
+                - /bin/contour
+                - envoy
+                - shutdown
         livenessProbe:
           httpGet:
             path: /healthz
@@ -1745,10 +1745,10 @@ spec:
           initialDelaySeconds: 3
           periodSeconds: 4
         volumeMounts:
-        - name: envoy-config
-          mountPath: /config
-        - name: envoycert
-          mountPath: /certs
+          - name: envoy-config
+            mountPath: /config
+          - name: envoycert
+            mountPath: /certs
         lifecycle:
           preStop:
             httpGet:
@@ -1786,9 +1786,9 @@ spec:
       serviceAccountName: envoy
       terminationGracePeriodSeconds: 300
       volumes:
-      - name: envoy-config
-        emptyDir: {}
-      - name: envoycert
-        secret:
-          secretName: envoycert
+        - name: envoy-config
+          emptyDir: {}
+        - name: envoycert
+          secret:
+            secretName: envoycert
       restartPolicy: Always
