@@ -10,9 +10,11 @@ mkdir -p "$OUT_DIR"
 function build_rhel_8() {
     local package="$1"
     docker rm -f rhel-8-${package} 2>/dev/null || true
+    # Use the oldest OS minor version supported to ensure that updates required for outdated
+    # packages are included.
     docker run \
         --name rhel-8-${package} \
-        centos:8 \
+        centos:8.1.1911 \
         /bin/bash -c "\
         yum install -y yum-utils epel-release && \
         mkdir -p /packages/archives && \
@@ -90,9 +92,11 @@ while read -r line; do
             package=$(echo $line | awk '{ print $2 }')
 
             docker rm -f rhel-7-${package} 2>/dev/null || true
+            # Use the oldest OS minor version supported to ensure that updates required for outdated
+            # packages are included
             docker run \
                 --name rhel-7-${package} \
-                centos:7 \
+                centos:7.4.1708 \
                 /bin/bash -c "\
                     yum install -y epel-release && \
                     mkdir -p /packages/archives && \
@@ -109,6 +113,22 @@ while read -r line; do
 
             build_rhel_8 "$package"
             ;;
+
+        dockerout)
+            dstdir=$(echo $line | awk '{ print $2 }')
+            dockerfile=$(echo $line | awk '{ print $3 }')
+            version=$(echo $line | awk '{ print $4 }')
+
+            outdir="$OUT_DIR/$dstdir"
+            name=$(< /dev/urandom tr -dc a-z | head -c8)
+
+            mkdir -p $outdir
+
+            docker build --build-arg VERSION=$version -t "$name" - < "$dockerfile"
+            docker run --rm -v $outdir:/out $name
+            sudo chown -R $UID $outdir
+            ;;
+
         *)
             echo "Unknown kind $kind in line: $line"
             exit 1
