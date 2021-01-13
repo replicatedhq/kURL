@@ -17,6 +17,7 @@ interface ErrorResponse {
 
 export interface KubernetesConfig {
   version: string;
+  s3Override?: string; 
   serviceCidrRange?: string;
   serviceCIDR?: string;
   HACluster?: boolean;
@@ -34,6 +35,7 @@ export const kubernetesConfigSchema = {
   type: "object",
   properties: {
     version: { type: "string" },
+    s3Override: { type: "string", flag: "s3-override", description: "Override the download location for addon package distribution (used for CI/CD testing alpha addons)" },
     serviceCidrRange: { type: "string", flag: "service-cidr-range", description: "The size of the CIDR for Kubernetes (can be presented as just a number or with a preceding slash)" },
     serviceCIDR: { type: "string", flag: "service-cidr", description: "This defines subnet for kubernetes" },
     HACluster: { type: "boolean", flag: "ha", description: "Create the cluster as a high availability cluster (note that this needs a valid load balancer address and additional nodes to be a truly HA cluster)" },
@@ -52,6 +54,7 @@ export const kubernetesConfigSchema = {
 
 export interface DockerConfig {
   version: string;
+  s3Override?: string; 
   bypassStorageDriverWarnings?: boolean;
   hardFailOnLoopback?: boolean;
   noCEOnEE?: boolean;
@@ -64,6 +67,7 @@ export const dockerConfigSchema = {
   type: "object",
   properties: {
     version: { type: "string" },
+    s3Override: { type: "string", flag: "s3-override", description: "Override the download location for addon package distribution (used for CI/CD testing alpha addons)" },
     bypassStorageDriverWarnings: { type: "boolean" , flag: "bypass-storagedriver-warnings", description: "Force docker to ignore if using devicemapper storage driver in loopback mode" },
     hardFailOnLoopback: { type: "boolean", flag: "hard-fail-on-loopback", description: "The install script stops and exits if it detects a loopback file storage configuration" },
     noCEOnEE: { type: "boolean", flag: "no-ce-on-ee", description: "Do not install Docker-CE on RHEL" },
@@ -77,6 +81,7 @@ export const dockerConfigSchema = {
 
 export interface WeaveConfig {
   version: string;
+  s3Override?: string; 
   podCIDR?: string;
   podCidrRange?: string;
   IPAllocRange?: string; // deprecated, will be converted to podCidrRange
@@ -88,6 +93,7 @@ export const weaveConfigSchema = {
   type: "object",
   properties: {
     version: { type: "string" },
+    s3Override: { type: "string", flag: "s3-override", description: "Override the download location for addon package distribution (used for CI/CD testing alpha addons)" },
     podCIDR: { type: "string", flag: "pod-cidr", description: "The subnet where pods will be found" },
     podCidrRange: { type: "string", flag: "pod-cidr-range", description: "The size of the CIDR where pods can be found" },
     isEncryptionDisabled: { type: "boolean", flag: "disable-weave-encryption", description: "Is encryption in the Weave CNI disabled" },
@@ -100,6 +106,7 @@ export const calicoConfigSchema = {
   type: "object",
   properties: {
     version: { type: "string" },
+    s3Override: { type: "string", flag: "s3-override", description: "Override the download location for addon package distribution (used for CI/CD testing alpha addons)" },
   },
   required: ["version"],
   additionalProperties: false,
@@ -107,12 +114,14 @@ export const calicoConfigSchema = {
 
 export interface FluentdConfig {
   version: string;
+  s3Override?: string; 
   fullEFKStack?: boolean;
   efkStack?: boolean;
 }
 
 export interface RookConfig {
   version: string;
+  s3Override?: string; 
   storageClass?: string; // deprecated, will be converted to storageClassName
   cephPoolReplicas?: number; // deprecated, will be converted to cephReplicaCount
   cephReplicaCount?: number;
@@ -125,6 +134,7 @@ export const rookConfigSchema = {
   type: "object",
   properties: {
     version: { type: "string" },
+    s3Override: { type: "string", flag: "s3-override", description: "Override the download location for addon package distribution (used for CI/CD testing alpha addons)" },
     storageClassName: { type: "string", flag: "storage-class-name", description: "The name of the StorageClass used by rook" },
     cephReplicaCount: { type: "number", flag: "ceph-replica-count", description: "The number of replicas in the Rook Ceph pool" },
     isBlockStorageEnabled: { type: "boolean", flag: "rook-block-storage-enabled", description: "Use block devices instead of the filesystem for storage in the Ceph cluster" },
@@ -136,6 +146,7 @@ export const rookConfigSchema = {
 
 export interface OpenEBSConfig {
   version: string;
+  s3Override?: string; 
   namespace?: string;
   isLocalPVEnabled?: boolean;
   localPVStorageClassName?: string;
@@ -147,6 +158,7 @@ export const openEBSConfigSchema = {
   type: "object",
   properties: {
     version: { type: "string" },
+    s3Override: { type: "string", flag: "s3-override", description: "Override the download location for addon package distribution (used for CI/CD testing alpha addons)" },
     namespace: { type: "string", flag: "openebs-namespace", description: "The namespace Open EBS is installed to" },
     isLocalPVEnabled: { type: "boolean", flag: "openebs-localpv-enabled", description: "Turn on localPV storage provisioning" },
     localPVStorageClassName: { type: "string", flag: "openebs-localpv-storage-class-name", description: "StorageClass name for local PV provisioner (Name it “default” to make it the cluster’s default provisioner)" },
@@ -159,6 +171,7 @@ export const openEBSConfigSchema = {
 
 export interface MinioConfig {
   version: string;
+  s3Override?: string; 
   namespace?: string;
 }
 
@@ -166,6 +179,7 @@ export const minioConfigSchema = {
   type: "object",
   properties: {
     version: { type: "string" },
+    s3Override: { type: "string", flag: "s3-override", description: "Override the download location for addon package distribution (used for CI/CD testing alpha addons)" },
     namespace: { type: "string", flag: "minio-namespace", description: "The namespace Minio is installed to" },
   },
   required: ["version"],
@@ -174,6 +188,7 @@ export const minioConfigSchema = {
 
 export interface ContourConfig {
   version: string;
+  s3Override?: string; 
   tlsMinimumProtocolVersion?: string;
 }
 
@@ -181,6 +196,7 @@ export const contourConfigSchema = {
   type: "object",
   properties: {
     version: { type: "string" },
+    s3Override: { type: "string", flag: "s3-override", description: "Override the download location for addon package distribution (used for CI/CD testing alpha addons)" },
     tlsMinimumProtocolVersion: { type: "string", flag: "contour-tls-minimum-protocol-version", description: "The minimum TLS protocol version that is allowed (default 1.2)." },
   },
   required: ["version"],
@@ -189,6 +205,7 @@ export const contourConfigSchema = {
 
 export interface RegistryConfig {
   version: string;
+  s3Override?: string; 
   publishPort?: number;
 }
 
@@ -196,6 +213,7 @@ export const registryConfigSchema = {
   type: "object",
   properties: {
     version: { type: "string" },
+    s3Override: { type: "string", flag: "s3-override", description: "Override the download location for addon package distribution (used for CI/CD testing alpha addons)" },
     publishPort: { type: "number", flag: "registry-publish-port", description: "add a NodePort service to the registry" },
   },
   required: ["version"],
@@ -204,12 +222,14 @@ export const registryConfigSchema = {
 
 export interface PrometheusConfig {
   version: string;
+  s3Override?: string; 
 }
 
 export const prometheusConfigSchema = {
   type: "object",
   properties: {
     version: { type: "string" },
+    s3Override: { type: "string", flag: "s3-override", description: "Override the download location for addon package distribution (used for CI/CD testing alpha addons)" },
   },
   required: ["version"],
   additionalProperties: false,
@@ -217,12 +237,14 @@ export const prometheusConfigSchema = {
 
 export interface CalicoConfig {
   version: string;
+  s3Override?: string; 
 }
 
 export const fluentdConfigSchema = {
   type: "object",
   properties: {
     version: { type: "string" },
+    s3Override: { type: "string", flag: "s3-override", description: "Override the download location for addon package distribution (used for CI/CD testing alpha addons)" },
     fullEFKStack : { type: "boolean", flag: "fluentd-full-efk-stack", description: "Install ElasticSearch and Kibana in addition to Fluentd" },
   },
   required: ["version"],
@@ -231,6 +253,7 @@ export const fluentdConfigSchema = {
 
 export interface KotsadmConfig {
   version: string;
+  s3Override?: string; 
   applicationSlug?: string;
   uiBindPort?: number;
   hostname?: string;
@@ -241,6 +264,7 @@ export const kotsadmConfigSchema = {
   type: "object",
   properties: {
     version: { type: "string" },
+    s3Override: { type: "string", flag: "s3-override", description: "Override the download location for addon package distribution (used for CI/CD testing alpha addons)" },
     applicationSlug: { type: "string", flag: "kotsadm-application-slug", description: "The slug shown on the app settings page of vendor web" },
     uiBindPort: { type: "number", flag: "kotsadm-ui-bind-port", description: "This is the port where the kots admin panel can be interacted with via browser" },
     hostname: { type: "string", flag: "kotsadm-hostname", description: "The hostname that the admin console will be exposed on" },
@@ -252,6 +276,7 @@ export const kotsadmConfigSchema = {
 
 export interface VeleroConfig {
   version: string;
+  s3Override?: string; 
   namespace?: string;
   disableCLI?: boolean;
   disableRestic?: boolean;
@@ -262,6 +287,7 @@ export const veleroConfigSchema = {
   type: "object",
   properties: {
     version: { type: "string" },
+    s3Override: { type: "string", flag: "s3-override", description: "Override the download location for addon package distribution (used for CI/CD testing alpha addons)" },
     namespace: { type: "string", flag: "velero-namespace", description: "The namespace to install velero into if not using the default"},
     localBucket: { type: "string", flag : "velero-local-bucket", description: "Name of the bucket to create snapshots in the local object store"},
     disableCLI: { type: "boolean", flag: "velero-disable-cli", description: "Don't install the velero CLI on the host" },
@@ -273,6 +299,7 @@ export const veleroConfigSchema = {
 
 export interface EkcoConfig {
   version: string;
+  s3Override?: string; 
   nodeUnreachableToleration?: string;
   minReadyMasterNodeCount?: number;
   minReadyWorkerNodeCount?: number;
@@ -286,6 +313,7 @@ export const ekcoConfigSchema = {
   type: "object",
   properties: {
     version: { type: "string" },
+    s3Override: { type: "string", flag: "s3-override", description: "Override the download location for addon package distribution (used for CI/CD testing alpha addons)" },
     nodeUnreachableToleration: { type: "string", flag: "ekco-node-unreachable-toleration-duration" , description: "How long a Node must have status unreachable before it’s purged" },
     minReadyMasterNodeCount: { type: "number", flag: "ekco-min-ready-master-node-count" , description: "Ekco will not purge a master node if it would result in less than this many masters remaining" },
     minReadyWorkerNodeCount: { type: "number", flag: "ekco-min-ready-worker-node-count" , description: "Ekco will not purge a worker node if it would result in less than this many workers remaining" },
@@ -331,12 +359,14 @@ export const kurlConfigSchema = {
 
 export interface ContainerdConfig {
   version: string;
+  s3Override?: string; 
 }
 
 export const containerdConfigSchema = {
   type: "object",
   properties: {
     version: { type: "string" },
+    s3Override: { type: "string", flag: "s3-override", description: "Override the download location for addon package distribution (used for CI/CD testing alpha addons)" },
   },
   required: ["version"],
   additionalProperties: false,
@@ -344,12 +374,14 @@ export const containerdConfigSchema = {
 
 export interface CollectdConfig {
   version: string;
+  s3Override?: string; 
 }
 
 export const collectdConfigSchema = {
   type: "object",
   properties: {
     version: { type: "string" },
+    s3Override: { type: "string", flag: "s3-override", description: "Override the download location for addon package distribution (used for CI/CD testing alpha addons)" },
   },
   required: ["version"],
   additionalProperties: false,
@@ -362,12 +394,14 @@ export interface IptablesConfig {
 
 export interface CertManagerConfig {
   version: string;
+  s3Override?: string; 
 }
 
 export const certManagerSchema = {
   type: "object",
   properties: {
     version: { type: "string" },
+    s3Override: { type: "string", flag: "s3-override", description: "Override the download location for addon package distribution (used for CI/CD testing alpha addons)" },
   },
   required: ["version"],
   additionalProperties: false,
@@ -375,12 +409,14 @@ export const certManagerSchema = {
 
 export interface MetricsServerConfig {
   version: string;
+  s3Override?: string; 
 }
 
 export const metricsServerSchema = {
   type: "object",
   properties: {
     version: { type: "string" },
+    s3Override: { type: "string", flag: "s3-override", description: "Override the download location for addon package distribution (used for CI/CD testing alpha addons)" },
   },
   required: ["version"],
   additionalProperties: false,
@@ -1039,63 +1075,63 @@ export class Installer {
       return { error: { message } };
     }
 
-    if (!Installer.hasVersion("kubernetes", this.spec.kubernetes.version)) {
+    if (!Installer.hasVersion("kubernetes", this.spec.kubernetes.version) && !this.hasS3Override("kubernetes")) {
       return { error: { message: `Kubernetes version ${_.escape(this.spec.kubernetes.version)} is not supported` } };
     }
     if (this.spec.kubernetes.serviceCidrRange && !Installer.isValidCidrRange(this.spec.kubernetes.serviceCidrRange)) {
       return { error: { message: `Kubernetes serviceCidrRange "${_.escape(this.spec.kubernetes.serviceCidrRange)}" is invalid` } };
     }
-    if (this.spec.weave && !Installer.hasVersion("weave", this.spec.weave.version)) {
+    if (this.spec.weave && !Installer.hasVersion("weave", this.spec.weave.version) && !this.hasS3Override("weave")) {
       return { error: { message: `Weave version "${_.escape(this.spec.weave.version)}" is not supported` } };
     }
     if (this.spec.weave && this.spec.weave.podCidrRange && !Installer.isValidCidrRange(this.spec.weave.podCidrRange)) {
       return { error: { message: `Weave podCidrRange "${_.escape(this.spec.weave.podCidrRange)}" is invalid` } };
     }
-    if (this.spec.rook && !Installer.hasVersion("rook", this.spec.rook.version)) {
+    if (this.spec.rook && !Installer.hasVersion("rook", this.spec.rook.version) && !this.hasS3Override("rook")) {
       return { error: { message: `Rook version "${_.escape(this.spec.rook.version)}" is not supported` } };
     }
-    if (this.spec.contour && !Installer.hasVersion("contour", this.spec.contour.version)) {
+    if (this.spec.contour && !Installer.hasVersion("contour", this.spec.contour.version) && !this.hasS3Override("contour")) {
       return { error: { message: `Contour version "${_.escape(this.spec.contour.version)}" is not supported` } };
     }
-    if (this.spec.registry && !Installer.hasVersion("registry", this.spec.registry.version)) {
+    if (this.spec.registry && !Installer.hasVersion("registry", this.spec.registry.version) && !this.hasS3Override("registry")) {
       return { error: { message: `Registry version "${_.escape(this.spec.registry.version)}" is not supported` } };
     }
-    if (this.spec.prometheus && !Installer.hasVersion("prometheus", this.spec.prometheus.version)) {
+    if (this.spec.prometheus && !Installer.hasVersion("prometheus", this.spec.prometheus.version) && !this.hasS3Override("prometheus")) {
       return { error: { message: `Prometheus version "${_.escape(this.spec.prometheus.version)}" is not supported` } };
     }
-    if (this.spec.fluentd && !Installer.hasVersion("fluentd", this.spec.fluentd.version)) {
+    if (this.spec.fluentd && !Installer.hasVersion("fluentd", this.spec.fluentd.version) && !this.hasS3Override("fluentd")) {
       return { error: { message: `Fluentd version "${_.escape(this.spec.fluentd.version)}" is not supported` } };
     }
     if (this.spec.kotsadm) {
-      if (!Installer.hasVersion("kotsadm", this.spec.kotsadm.version)) {
+      if (!Installer.hasVersion("kotsadm", this.spec.kotsadm.version) && !this.hasS3Override("kotsadm")) {
         return { error: { message: `Kotsadm version "${_.escape(this.spec.kotsadm.version)}" is not supported` } };
       }
     }
-    if (this.spec.velero && !Installer.hasVersion("velero", this.spec.velero.version)) {
+    if (this.spec.velero && !Installer.hasVersion("velero", this.spec.velero.version) && !this.hasS3Override("velero")) {
       return { error: { message: `Velero version "${_.escape(this.spec.velero.version)}" is not supported` } };
     }
-    if (this.spec.openebs && !Installer.hasVersion("openebs", this.spec.openebs.version)) {
+    if (this.spec.openebs && !Installer.hasVersion("openebs", this.spec.openebs.version) && !this.hasS3Override("openebs")) {
       return { error: { message: `OpenEBS version "${_.escape(this.spec.openebs.version)}" is not supported` } };
     }
-    if (this.spec.minio && !Installer.hasVersion("minio", this.spec.minio.version)) {
+    if (this.spec.minio && !Installer.hasVersion("minio", this.spec.minio.version) && !this.hasS3Override("minio")) {
       return { error: { message: `Minio version "${_.escape(this.spec.minio.version)}" is not supported` } };
     }
-    if (this.spec.ekco && !Installer.hasVersion("ekco", this.spec.ekco.version)) {
+    if (this.spec.ekco && !Installer.hasVersion("ekco", this.spec.ekco.version) && !this.hasS3Override("ekco")) {
       return { error: { message: `Ekco version "${_.escape(this.spec.ekco.version)}" is not supported` } };
     }
-    if (this.spec.containerd && !Installer.hasVersion("containerd", this.spec.containerd.version)) {
+    if (this.spec.containerd && !Installer.hasVersion("containerd", this.spec.containerd.version) && !this.hasS3Override("containerd")) {
       return { error: { message: `Containerd version "${_.escape(this.spec.containerd.version)}" is not supported` } };
     }
     if (this.spec.containerd && this.spec.docker) {
       return { error: { message: `This spec contains both docker and containerd, please specifiy only one CRI` } };
     }
-    if (this.spec.collectd && !Installer.hasVersion("collectd", this.spec.collectd.version)) {
+    if (this.spec.collectd && !Installer.hasVersion("collectd", this.spec.collectd.version) && !this.hasS3Override("collectd")) {
       return { error: { message: `Collectd version "${_.escape(this.spec.collectd.version)}" is not supported` } };
     }
-    if (this.spec.certManager && !Installer.hasVersion("certManager", this.spec.certManager.version)) {
+    if (this.spec.certManager && !Installer.hasVersion("certManager", this.spec.certManager.version) && !this.hasS3Override("certManager")) {
       return { error: { message: `CertManager version "${_.escape(this.spec.certManager.version)}" is not supported` } };
     }
-    if (this.spec.metricsServer && !Installer.hasVersion("metricsServer", this.spec.metricsServer.version)) {
+    if (this.spec.metricsServer && !Installer.hasVersion("metricsServer", this.spec.metricsServer.version) && !this.hasS3Override("metricsServer")) {
       return { error: { message: `MetricsServer version "${_.escape(this.spec.metricsServer.version)}" is not supported` } };
     }
   }
@@ -1181,6 +1217,10 @@ export class Installer {
 
     getFlags(specSchema.properties, this.spec);
     return flags.join(" ");
+  }
+
+  public hasS3Override(config: string): boolean {
+    return _.has(this.spec, [config,'s3Override'])
   }
 }
 
