@@ -1,0 +1,8 @@
+image pause k8s.gcr.io/pause:3.1
+image pause k8s.gcr.io/pause:3.2
+
+dockerout rhel-7 addons/containerd/template/Dockerfile.centos7 1.4.3
+dockerout rhel-8 addons/containerd/template/Dockerfile.centos8 1.4.3
+dockerout ubuntu-16.04 addons/containerd/template/Dockerfile.ubuntu16 1.4.3
+dockerout ubuntu-18.04 addons/containerd/template/Dockerfile.ubuntu18 1.4.3
+dockerout ubuntu-20.04 addons/containerd/template/Dockerfile.ubuntu20 1.4.3
