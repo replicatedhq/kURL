@@ -35,6 +35,8 @@ spec:
           properties:
             calico:
               properties:
+                s3Override:
+                  type: string
                 version:
                   type: string
               required:
@@ -42,6 +44,8 @@ spec:
               type: object
             certManager:
               properties:
+                s3Override:
+                  type: string
                 version:
                   type: string
               required:
@@ -49,6 +53,8 @@ spec:
               type: object
             collectd:
               properties:
+                s3Override:
+                  type: string
                 version:
                   type: string
               required:
@@ -56,6 +62,8 @@ spec:
               type: object
             containerd:
               properties:
+                s3Override:
+                  type: string
                 version:
                   type: string
               required:
@@ -63,6 +71,8 @@ spec:
               type: object
             contour:
               properties:
+                s3Override:
+                  type: string
                 tlsMinimumProtocolVersion:
                   type: string
                 version:
@@ -84,6 +94,8 @@ spec:
                   type: boolean
                 preserveConfig:
                   type: boolean
+                s3Override:
+                  type: string
                 version:
                   type: string
               required:
@@ -101,6 +113,8 @@ spec:
                   type: string
                 rookShouldUseAllNodes:
                   type: boolean
+                s3Override:
+                  type: string
                 shouldDisableClearNodes:
                   type: boolean
                 shouldDisableRebootServices:
@@ -137,6 +151,8 @@ spec:
                   type: string
                 fullEFKStack:
                   type: boolean
+                s3Override:
+                  type: string
                 version:
                   type: string
               required:
@@ -160,6 +176,8 @@ spec:
                 applicationSlug:
                   type: string
                 hostname:
+                  type: string
+                s3Override:
                   type: string
                 uiBindPort:
                   type: integer
@@ -187,6 +205,8 @@ spec:
                 loadBalancerAddress:
                   type: string
                 masterAddress:
+                  type: string
+                s3Override:
                   type: string
                 serviceCIDR:
                   type: string
@@ -222,6 +242,8 @@ spec:
               type: object
             metricsServer:
               properties:
+                s3Override:
+                  type: string
                 version:
                   type: string
               required:
@@ -230,6 +252,8 @@ spec:
             minio:
               properties:
                 namespace:
+                  type: string
+                s3Override:
                   type: string
                 version:
                   type: string
@@ -248,6 +272,8 @@ spec:
                   type: string
                 namespace:
                   type: string
+                s3Override:
+                  type: string
                 version:
                   type: string
               required:
@@ -255,6 +281,8 @@ spec:
               type: object
             prometheus:
               properties:
+                s3Override:
+                  type: string
                 version:
                   type: string
               required:
@@ -264,6 +292,8 @@ spec:
               properties:
                 publishPort:
                   type: integer
+                s3Override:
+                  type: string
                 version:
                   type: string
               required:
@@ -277,6 +307,8 @@ spec:
                   type: integer
                 isBlockStorageEnabled:
                   type: boolean
+                s3Override:
+                  type: string
                 storageClassName:
                   type: string
                 version:
@@ -317,6 +349,8 @@ spec:
                   type: string
                 namespace:
                   type: string
+                s3Override:
+                  type: string
                 version:
                   type: string
               required:
@@ -329,6 +363,8 @@ spec:
                 podCIDR:
                   type: string
                 podCidrRange:
+                  type: string
+                s3Override:
                   type: string
                 version:
                   type: string
