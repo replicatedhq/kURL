@@ -1,0 +1,5 @@
+dockerout rhel-7 addons/containerd/template/Dockerfile.centos7 __version__
+dockerout rhel-8 addons/containerd/template/Dockerfile.centos8 __version__
+dockerout ubuntu-16.04 addons/containerd/template/Dockerfile.ubuntu16 __version__
+dockerout ubuntu-18.04 addons/containerd/template/Dockerfile.ubuntu18 __version__
+dockerout ubuntu-20.04 addons/containerd/template/Dockerfile.ubuntu20 __version__

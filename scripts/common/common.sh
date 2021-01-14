@@ -396,3 +396,21 @@ function rm_file() {
         rm $1
     fi
 }
+
+function install_host_packages() {
+    local dir=$1
+
+    case "$LSB_DIST" in
+        ubuntu)
+            DEBIAN_FRONTEND=noninteractive dpkg --install --force-depends-version ${dir}/ubuntu-${DIST_VERSION}/*.deb
+            ;;
+
+        centos|rhel|amzn)
+            if [[ "$DIST_VERSION" =~ ^8 ]]; then
+                rpm --upgrade --force --nodeps ${dir}/rhel-8/*.rpm
+            else
+                rpm --upgrade --force --nodeps ${dir}/rhel-7/*.rpm
+            fi
+            ;;
+    esac
+}

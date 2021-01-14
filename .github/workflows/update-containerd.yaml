@@ -1,0 +1,36 @@
+name: cron-containerd-update
+on:
+  schedule:
+  - cron: '0 4 * * *'
+
+jobs:
+  build-pr-containerd:
+    runs-on: ubuntu-18.04
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+
+    - name: Create Containerd Update
+      working-directory: ./addons/containerd/template
+      run: ./script.sh
+
+    - name: Create Pull Request # creates a PR if there are differences
+      uses: peter-evans/create-pull-request@v3
+      id: cpr
+      with:
+        commit-message: Create new Containerd version
+        title: 'Automated Containerd version update'
+        branch: automation/update-containerd
+        delete-branch: true
+        labels: |
+          automated-pr
+          containerd
+        draft: false
+        base: "master"
+        body: "Automated changes by the [cron-containerd-update](https://github.com/replicatedhq/kURL/blob/master/.github/workflows/update-containerd.yaml) GitHub action"
+
+    - name: Check outputs
+      run: |
+        echo "Pull Request Number - ${{ steps.cpr.outputs.pull-request-number }}"
+        echo "Pull Request URL - ${{ steps.cpr.outputs.pull-request-url }}"
