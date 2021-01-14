@@ -163,7 +163,14 @@ function apply_docker_config() {
         return
     fi
 
+    local previous_contents="$(cat /etc/docker/daemon.json 2>/dev/null | xargs)" # xargs trims whitespace
+
     $BIN_DOCKER_CONFIG -c /etc/docker/daemon.json -s $MERGED_YAML_SPEC
+
+    if [ "$previous_contents" = "$(cat /etc/docker/daemon.json 2>/dev/null | xargs)" ]; then
+        # if the spec has not changed do not restart docker
+        return
+    fi
 
     if ! commandExists kubectl ; then
         restart_docker
