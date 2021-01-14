@@ -200,6 +200,26 @@ spec:
     noProxy: false
 `;
 
+const overrideUnknownVersion = `
+spec:
+  kubernetes:
+    version: latest
+  contour:
+    version: 100.0.0
+    tlsMinimumProtocolVersion: "1.3"
+    s3Override: https://dummy.s3.us-east-1.amazonaws.com/pr/contour-100.0.0.tar.gz
+`;
+
+const overrideKnownVersion = `
+spec:
+  kubernetes:
+    version: latest
+  contour:
+    version: latest
+    tlsMinimumProtocolVersion: "1.3"
+    s3Override: https://dummy.s3.us-east-1.amazonaws.com/pr/contour-100.0.0.tar.gz
+`;
+
 describe("POST /installer", () => {
   describe("latestV1Beta1", () => {
     it(`should return 201 "https://kurl.sh/latest"`, async () => {
@@ -317,6 +337,22 @@ describe("POST /installer", () => {
         err = error;
       }
       expect(err).to.have.property("message", "YAML could not be parsed");
+    });
+  });
+
+  describe("unknown version with override", () => {
+    it(`should return 201 "https://kurl.sh/873e13e"`, async () => {
+      const uri = await client.postInstaller(overrideUnknownVersion);
+
+      expect(uri).to.match(/873e13e/);
+    });
+  });
+
+  describe("latest version with override", () => {
+    it(`should return 201 "https://kurl.sh/0ea78e6 instead of "latest"`, async () => {
+      const uri = await client.postInstaller(overrideKnownVersion);
+
+      expect(uri).to.match(/0ea78e6/);
     });
   });
 });
@@ -538,6 +574,18 @@ describe("GET /<installerID>", () => {
       expect(script).to.have.string("registry.internal");
       expect(script).to.have.string("10.128.0.44");
       expect(script).to.have.string("noProxy: false");
+    });
+  });
+
+  describe("known versions with override (/873e13e)", () => {
+    before(async () => {
+      await client.postInstaller(overrideUnknownVersion);
+    });
+
+    it("returns override", async () => {
+      const script = await client.getInstallScript("873e13e");
+
+      expect(script).to.match(new RegExp(`s3Override: 'https://dummy.s3.us-east-1.amazonaws.com/pr/contour-100.0.0.tar.gz'`));
     });
   });
 });

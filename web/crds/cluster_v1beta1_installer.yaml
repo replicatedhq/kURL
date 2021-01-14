@@ -34,6 +34,8 @@ spec:
                   type: string
                 version:
                   type: string
+                s3Override:
+                  type: string
               required:
               - version
               type: object
@@ -47,6 +49,8 @@ spec:
                   type: boolean
                 version:
                   type: string
+                s3Override:
+                  type: string
               required:
               - version
               type: object
@@ -55,6 +59,8 @@ spec:
                 efkStack:
                   type: boolean
                 version:
+                  type: string
+                s3Override:
                   type: string
               required:
               - version
@@ -68,6 +74,8 @@ spec:
                   type: integer
                 version:
                   type: string
+                s3Override:
+                  type: string
               required:
               - version
               type: object
@@ -77,6 +85,8 @@ spec:
                   type: string
                 version:
                   type: string
+                s3Override:
+                  type: string
               required:
               - version
               type: object
@@ -84,12 +94,16 @@ spec:
               properties:
                 version:
                   type: string
+                s3Override:
+                  type: string
               required:
               - version
               type: object
             registry:
               properties:
                 version:
+                  type: string
+                s3Override:
                   type: string
               required:
               - version
@@ -102,6 +116,8 @@ spec:
                 storageClass:
                   type: string
                 version:
+                  type: string
+                s3Override:
                   type: string
               required:
               - version
@@ -116,6 +132,8 @@ spec:
                   type: boolean
                 version:
                   type: string
+                s3Override:
+                  type: string
               required:
               - version
               type: object
@@ -126,6 +144,8 @@ spec:
                 encryptNetwork:
                   type: boolean
                 version:
+                  type: string
+                s3Override:
                   type: string
               required:
               - version
@@ -146,6 +166,8 @@ spec:
                       type: boolean
                   type: object
                 version:
+                  type: string
+                s3Override:
                   type: string
               required:
               - version

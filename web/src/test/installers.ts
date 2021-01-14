@@ -290,6 +290,24 @@ spec:
     cstorStorageClassName: cstor
 `;
 
+const overrideUnknownVersion = `
+spec:
+  kubernetes:
+    version: latest
+  contour:
+    version: 100.0.0
+    tlsMinimumProtocolVersion: "1.3"
+    s3Override: https://dummy.s3.us-east-1.amazonaws.com/pr/contour-100.0.0.tar.gz
+`;
+
+const overrideKnownVersion = `
+spec:
+  contour:
+    version: latest
+    tlsMinimumProtocolVersion: "1.3"
+    s3Override: https://dummy.s3.us-east-1.amazonaws.com/pr/contour-100.0.0.tar.gz
+`;
+
 describe("Installer", () => {
   describe("parse", () => {
     it("parses yaml with type meta and name", () => {
@@ -350,6 +368,13 @@ describe("Installer", () => {
       expect(i.spec).not.to.have.property("velero");
       expect(i.spec).not.to.have.property("fluentd");
     });
+
+    it("parses yaml spec with override s3 urls and unknown versions", () => {
+      const i = Installer.parse(overrideUnknownVersion);
+      expect(i).to.have.property("id", "");
+      expect(i.spec.contour).to.have.property("version", "100.0.0");
+      expect(i.spec.contour).to.have.property("s3Override", "https://dummy.s3.us-east-1.amazonaws.com/pr/contour-100.0.0.tar.gz");
+    });
   });
 
   describe("hash", () => {
@@ -381,6 +406,13 @@ describe("Installer", () => {
 
     it("hashes old versions to equivalent migrated version", () => {
       const parsedV1Beta1 = Installer.parse(typeMetaStableV1Beta1);
+    });
+
+    it("hashes specs with override to different strings", () => {
+      const a = Installer.parse(contour).hash();
+      const b = Installer.parse(overrideKnownVersion).hash();
+
+      expect(a).not.to.equal(b);
     });
   });
 
@@ -506,6 +538,13 @@ spec:
           expect(out).to.equal(undefined);
         });
       });
+
+      describe("unknown versions w/ overrides", () => {
+        it("=> void", () => {
+          const out = Installer.parse(overrideUnknownVersion).validate();
+          expect(out).to.equal(undefined);
+        });
+      });
     });
 
     describe("invalid Kubernetes versions", () => {
@@ -602,6 +641,18 @@ spec:
 
         expect(out).to.deep.equal({ error: { message: "spec.kubernetes should NOT have additional properties" } });
       });
+    });
+  });
+
+  describe("hasS3Override", () => {
+    it(`hasS3Override false for k8s in stable spec`, () => {
+      const i = Installer.parse(stable);
+      expect(i.hasS3Override("kubernetes")).to.be.false;
+    });
+
+    it(`hasS3Override true for contour with s3 override set`, () => {
+      const i = Installer.parse(overrideUnknownVersion);
+      expect(i.hasS3Override("contour")).to.be.true;
     });
   });
 
