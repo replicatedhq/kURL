@@ -46,6 +46,7 @@ type InstallerSpec struct {
 }
 
 type Contour struct {
+	S3Override                string `json:"s3Override,omitempty"`
 	Version                   string `json:"version"`
 	TLSMinimumProtocolVersion string `json:"tlsMinimumProtocolVersion,omitempty"`
 }
@@ -57,11 +58,13 @@ type Docker struct {
 	HardFailOnLoopback         bool   `json:"hardFailOnLoopback,omitempty"`
 	NoCEOnEE                   bool   `json:"noCEOnEE,omitempty"`
 	PreserveConfig             bool   `json:"preserveConfig,omitempty"`
+	S3Override                 string `json:"s3Override,omitempty"`
 	Version                    string `json:"version"`
 }
 
 type Fluentd struct {
 	FullEFKStack    bool   `json:"fullEFKStack,omitempty"`
+	S3Override      string `json:"s3Override,omitempty"`
 	Version         string `json:"version"`
 	FluentdConfPath string `json:"fluentdConfPath,omitempty"`
 }
@@ -70,6 +73,7 @@ type Kotsadm struct {
 	ApplicationNamespace string `json:"applicationNamespace,omitempty"`
 	ApplicationSlug      string `json:"applicationSlug,omitempty"`
 	Hostname             string `json:"hostname,omitempty"`
+	S3Override           string `json:"s3Override,omitempty"`
 	UiBindPort           int    `json:"uiBindPort,omitempty"`
 	Version              string `json:"version"`
 }
@@ -84,6 +88,7 @@ type Kubernetes struct {
 	KubeadmTokenCAHash       string `json:"kubeadmTokenCAHash,omitempty"`
 	LoadBalancerAddress      string `json:"loadBalancerAddress,omitempty"`
 	MasterAddress            string `json:"masterAddress,omitempty"`
+	S3Override               string `json:"s3Override,omitempty"`
 	ServiceCIDR              string `json:"serviceCIDR,omitempty"`
 	ServiceCidrRange         string `json:"serviceCidrRange,omitempty"`
 	UseStandardNodePortRange bool   `json:"useStandardNodePortRange,omitempty"`
@@ -102,8 +107,9 @@ type Kurl struct {
 }
 
 type Minio struct {
-	Namespace string `json:"namespace,omitempty"`
-	Version   string `json:"version"`
+	Namespace  string `json:"namespace,omitempty"`
+	S3Override string `json:"s3Override,omitempty"`
+	Version    string `json:"version"`
 }
 
 type OpenEBS struct {
@@ -112,15 +118,18 @@ type OpenEBS struct {
 	IsLocalPVEnabled        bool   `json:"isLocalPVEnabled,omitempty"`
 	LocalPVStorageClassName string `json:"localPVStorageClassName,omitempty"`
 	Namespace               string `json:"namespace,omitempty"`
+	S3Override              string `json:"s3Override,omitempty"`
 	Version                 string `json:"version"`
 }
 
 type Prometheus struct {
-	Version string `json:"version"`
+	S3Override string `json:"s3Override,omitempty"`
+	Version    string `json:"version"`
 }
 
 type Registry struct {
 	PublishPort int    `json:"publishPort,omitempty"`
+	S3Override  string `json:"s3Override,omitempty"`
 	Version     string `json:"version"`
 }
 
@@ -128,6 +137,7 @@ type Rook struct {
 	BlockDeviceFilter     string `json:"blockDeviceFilter,omitempty"`
 	CephReplicaCount      int    `json:"cephReplicaCount,omitempty"`
 	IsBlockStorageEnabled bool   `json:"isBlockStorageEnabled,omitempty"`
+	S3Override            string `json:"s3Override,omitempty"`
 	StorageClassName      string `json:"storageClassName,omitempty"`
 	Version               string `json:"version"`
 }
@@ -137,6 +147,7 @@ type Velero struct {
 	DisableRestic bool   `json:"disableRestic,omitempty"`
 	LocalBucket   string `json:"localBucket,omitempty"`
 	Namespace     string `json:"namespace,omitempty"`
+	S3Override    string `json:"s3Override,omitempty"`
 	Version       string `json:"version"`
 }
 
@@ -144,6 +155,7 @@ type Weave struct {
 	IsEncryptionDisabled bool   `json:"isEncryptionDisabled,omitempty"`
 	PodCIDR              string `json:"podCIDR,omitempty"`
 	PodCidrRange         string `json:"podCidrRange,omitempty"`
+	S3Override           string `json:"s3Override,omitempty"`
 	Version              string `json:"version"`
 }
 
@@ -175,6 +187,7 @@ type Ekco struct {
 	MinReadyWorkerNodeCount     int    `json:"minReadyWorkerNodeCount,omitempty"`
 	NodeUnreachableToleration   string `json:"nodeUnreachableToleration,omitempty"`
 	RookShouldUseAllNodes       bool   `json:"rookShouldUseAllNodes,omitempty"`
+	S3Override                  string `json:"s3Override,omitempty"`
 	ShouldDisableRebootServices bool   `json:"shouldDisableRebootServices,omitempty"`
 	ShouldDisableClearNodes     bool   `json:"shouldDisableClearNodes,omitempty"`
 	ShouldEnablePurgeNodes      bool   `json:"shouldEnablePurgeNodes,omitempty"`
@@ -183,23 +196,28 @@ type Ekco struct {
 }
 
 type Calico struct {
-	Version string `json:"version"`
+	S3Override string `json:"s3Override,omitempty"`
+	Version    string `json:"version"`
 }
 
 type Containerd struct {
-	Version string `json:"version"`
+	S3Override string `json:"s3Override,omitempty"`
+	Version    string `json:"version"`
 }
 
 type Collectd struct {
-	Version string `json:"version"`
+	S3Override string `json:"s3Override,omitempty"`
+	Version    string `json:"version"`
 }
 
 type CertManager struct {
-	Version string `json:"version"`
+	S3Override string `json:"s3Override,omitempty"`
+	Version    string `json:"version"`
 }
 
 type MetricsServer struct {
-	Version string `json:"version"`
+	S3Override string `json:"s3Override,omitempty"`
+	Version    string `json:"version"`
 }
 
 // InstallerStatus defines the observed state of Installer
