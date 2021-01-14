@@ -1,7 +1,7 @@
 name: cron-containerd-update
 on:
   schedule:
-  - cron: '0 4 * * *'
+  - cron: '10 21 * * *'
 
 jobs:
   build-pr-containerd:
