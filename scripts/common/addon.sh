@@ -4,21 +4,21 @@ function addon_for_each() {
 
     $cmd aws "$AWS_VERSION"
     $cmd nodeless "$NODELESS_VERSION"
-    $cmd calico "$CALICO_VERSION"
-    $cmd weave "$WEAVE_VERSION"
-    $cmd rook "$ROOK_VERSION"
-    $cmd openebs "$OPENEBS_VERSION"
-    $cmd minio "$MINIO_VERSION"
-    $cmd contour "$CONTOUR_VERSION"
-    $cmd registry "$REGISTRY_VERSION"
-    $cmd prometheus "$PROMETHEUS_VERSION"
-    $cmd kotsadm "$KOTSADM_VERSION"
-    $cmd velero "$VELERO_VERSION"
-    $cmd fluentd "$FLUENTD_VERSION"
-    $cmd ekco "$EKCO_VERSION"
-    $cmd collectd "$COLLECTD_VERSION"
-    $cmd cert-manager "$CERT_MANAGER_VERSION"
-    $cmd metrics-server "$METRICS_SERVER_VERSION"
+    $cmd calico "$CALICO_VERSION" "$CALICO_S3_OVERRIDE"
+    $cmd weave "$WEAVE_VERSION" "$WEAVE_S3_OVERRIDE"
+    $cmd rook "$ROOK_VERSION" "$ROOK_S3_OVERRIDE"
+    $cmd openebs "$OPENEBS_VERSION" "$OPENEBS_S3_OVERRIDE"
+    $cmd minio "$MINIO_VERSION" "$MINIO_S3_OVERRIDE"
+    $cmd contour "$CONTOUR_VERSION" "$CONTOUR_S3_OVERRIDE"
+    $cmd registry "$REGISTRY_VERSION" "$REGISTRY_S3_OVERRIDE"
+    $cmd prometheus "$PROMETHEUS_VERSION" "$PROMETHEUS_S3_OVERRIDE"
+    $cmd kotsadm "$KOTSADM_VERSION" "$KOTSADM_S3_OVERRIDE"
+    $cmd velero "$VELERO_VERSION" "$VELERO_S3_OVERRIDE"
+    $cmd fluentd "$FLUENTD_VERSION" "$FLUENTD_S3_OVERRIDE"
+    $cmd ekco "$EKCO_VERSION" "$EKCO_S3_OVERRIDE"
+    $cmd collectd "$COLLECTD_VERSION" "$COLLECTD_S3_OVERRIDE"
+    $cmd cert-manager "$CERT_MANAGER_VERSION" "$CERT_MANAGER_S3_OVERRIDE"
+    $cmd metrics-server "$METRICS_SERVER_VERSION" "$METRICS_SERVER_S3_OVERRIDE"
 }
 
 ADDONS_HAVE_HOST_COMPONENTS=0
@@ -51,16 +51,18 @@ function addon_install() {
 function addon_pre_init() {
     local name=$1
     local version=$2
+    local s3Override=$3
 
     if [ -z "$version" ]; then
         return 0
     fi
 
-    if [ "$AIRGAP" != "1" ] && [ -n "$DIST_URL" ]; then
-        echo "Fetching $name-$version.tar.gz"
-        curl -sSLO "$DIST_URL/$name-$version.tar.gz"
-        tar xf $name-$version.tar.gz
-        rm $name-$version.tar.gz
+    if [ "$AIRGAP" != "1" ]; then
+        if [ -n "$s3Override" ]; then
+            addon_fetch "$s3Override"
+        elif [ -n "$DIST_URL" ]; then
+            addon_fetch "$DIST_URL/$name-$version.tar.gz"
+        fi
     fi
 
     . $DIR/addons/$name/$version/install.sh
@@ -73,15 +75,18 @@ function addon_pre_init() {
 function addon_join() {
     local name=$1
     local version=$2
+    local s3Override=$3
 
     if [ -z "$version" ]; then
         return 0
     fi
 
-    if [ "$AIRGAP" != "1" ] && [ -n "$DIST_URL" ]; then
-        curl -sSLO "$DIST_URL/$name-$version.tar.gz"
-        tar xf $name-$version.tar.gz
-        rm $name-$version.tar.gz
+    if [ "$AIRGAP" != "1" ]; then
+        if [ -n "$s3Override" ]; then
+            addon_fetch "$s3Override"
+        elif [ -n "$DIST_URL" ]; then
+            addon_fetch "$DIST_URL/$name-$version.tar.gz"
+        fi
     fi
 
     addon_load "$name" "$version"
@@ -103,6 +108,17 @@ function addon_load() {
     fi
 
     load_images $DIR/addons/$name/$version/images
+}
+
+function addon_fetch() {
+    local url=$1
+
+    local archiveName=$(basename $url)
+
+    echo "Fetching $archiveName"   
+    curl -sSLO "$url"
+    tar xf $archiveName
+    rm $archiveName
 }
 
 function addon_outro() {
