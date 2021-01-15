@@ -21,7 +21,9 @@ spec:
       containers:
         - name: weave
           command:
-            - /home/weave/launch.sh
+            - /bin/sh
+            - -c
+            - sed '/ipset destroy weave-kube-test$/ i sleep 1' /home/weave/launch.sh | /bin/sh
           env:
             - name: HOSTNAME
               valueFrom:
