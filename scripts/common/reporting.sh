@@ -160,7 +160,7 @@ function collect_support_bundle() {
     kubectl support-bundle https://kots.io
 
     # find the support bundle filename
-    local support_bundle_filename=$(find . -type f -name "support-bundle-*.tar.gz")
+    local support_bundle_filename=$(find . -type f -name "support-bundle-*.tar.gz" | sort -r | head -n 1)
 
     curl 'https://support-bundle-secure-upload.replicated.com/v1/upload' \
         -H 'accept: application/json, text/plain, */*' \
