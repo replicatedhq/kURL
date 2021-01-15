@@ -153,6 +153,8 @@ function collect_support_bundle() {
         issue_description="$PROMPT_RESULT"
     fi
 
+    path_add "/usr/local/bin" #ensure /usr/local/bin/kubectl-support_bundle is in the path
+
     # collect support bundle
     printf "Collecting support bundle now:"
     kubectl support-bundle https://kots.io
