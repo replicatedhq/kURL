@@ -17,7 +17,7 @@ interface ErrorResponse {
 
 export interface KubernetesConfig {
   version: string;
-  s3Override?: string; 
+  s3Override?: string;
   serviceCidrRange?: string;
   serviceCIDR?: string;
   HACluster?: boolean;
@@ -54,7 +54,7 @@ export const kubernetesConfigSchema = {
 
 export interface DockerConfig {
   version: string;
-  s3Override?: string; 
+  s3Override?: string;
   bypassStorageDriverWarnings?: boolean;
   hardFailOnLoopback?: boolean;
   noCEOnEE?: boolean;
@@ -81,7 +81,7 @@ export const dockerConfigSchema = {
 
 export interface WeaveConfig {
   version: string;
-  s3Override?: string; 
+  s3Override?: string;
   podCIDR?: string;
   podCidrRange?: string;
   IPAllocRange?: string; // deprecated, will be converted to podCidrRange
@@ -114,14 +114,14 @@ export const calicoConfigSchema = {
 
 export interface FluentdConfig {
   version: string;
-  s3Override?: string; 
+  s3Override?: string;
   fullEFKStack?: boolean;
   efkStack?: boolean;
 }
 
 export interface RookConfig {
   version: string;
-  s3Override?: string; 
+  s3Override?: string;
   storageClass?: string; // deprecated, will be converted to storageClassName
   cephPoolReplicas?: number; // deprecated, will be converted to cephReplicaCount
   cephReplicaCount?: number;
@@ -146,7 +146,7 @@ export const rookConfigSchema = {
 
 export interface OpenEBSConfig {
   version: string;
-  s3Override?: string; 
+  s3Override?: string;
   namespace?: string;
   isLocalPVEnabled?: boolean;
   localPVStorageClassName?: string;
@@ -171,7 +171,7 @@ export const openEBSConfigSchema = {
 
 export interface MinioConfig {
   version: string;
-  s3Override?: string; 
+  s3Override?: string;
   namespace?: string;
 }
 
@@ -188,7 +188,7 @@ export const minioConfigSchema = {
 
 export interface ContourConfig {
   version: string;
-  s3Override?: string; 
+  s3Override?: string;
   tlsMinimumProtocolVersion?: string;
 }
 
@@ -205,7 +205,7 @@ export const contourConfigSchema = {
 
 export interface RegistryConfig {
   version: string;
-  s3Override?: string; 
+  s3Override?: string;
   publishPort?: number;
 }
 
@@ -222,7 +222,7 @@ export const registryConfigSchema = {
 
 export interface PrometheusConfig {
   version: string;
-  s3Override?: string; 
+  s3Override?: string;
 }
 
 export const prometheusConfigSchema = {
@@ -237,7 +237,7 @@ export const prometheusConfigSchema = {
 
 export interface CalicoConfig {
   version: string;
-  s3Override?: string; 
+  s3Override?: string;
 }
 
 export const fluentdConfigSchema = {
@@ -253,7 +253,7 @@ export const fluentdConfigSchema = {
 
 export interface KotsadmConfig {
   version: string;
-  s3Override?: string; 
+  s3Override?: string;
   applicationSlug?: string;
   uiBindPort?: number;
   hostname?: string;
@@ -276,7 +276,7 @@ export const kotsadmConfigSchema = {
 
 export interface VeleroConfig {
   version: string;
-  s3Override?: string; 
+  s3Override?: string;
   namespace?: string;
   disableCLI?: boolean;
   disableRestic?: boolean;
@@ -299,7 +299,7 @@ export const veleroConfigSchema = {
 
 export interface EkcoConfig {
   version: string;
-  s3Override?: string; 
+  s3Override?: string;
   nodeUnreachableToleration?: string;
   minReadyMasterNodeCount?: number;
   minReadyWorkerNodeCount?: number;
@@ -359,7 +359,7 @@ export const kurlConfigSchema = {
 
 export interface ContainerdConfig {
   version: string;
-  s3Override?: string; 
+  s3Override?: string;
 }
 
 export const containerdConfigSchema = {
@@ -374,7 +374,7 @@ export const containerdConfigSchema = {
 
 export interface CollectdConfig {
   version: string;
-  s3Override?: string; 
+  s3Override?: string;
 }
 
 export const collectdConfigSchema = {
@@ -394,7 +394,7 @@ export interface IptablesConfig {
 
 export interface CertManagerConfig {
   version: string;
-  s3Override?: string; 
+  s3Override?: string;
 }
 
 export const certManagerSchema = {
@@ -409,7 +409,7 @@ export const certManagerSchema = {
 
 export interface MetricsServerConfig {
   version: string;
-  s3Override?: string; 
+  s3Override?: string;
 }
 
 export const metricsServerSchema = {
@@ -594,10 +594,7 @@ export class Installer {
       "19.03.4",
       "18.09.8",
     ],
-    containerd: [
-      "1.3.7",
-      "1.2.13",
-    ],
+    containerd: [ "1.3.7", "1.2.13"], // cron-containerd-update
     weave: [
       "2.6.5",
       "2.6.4",

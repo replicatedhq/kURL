@@ -82,12 +82,22 @@ function generate_version() {
     fi
 }
 
+function update_available_versions() {
+    local v=""
+    for version in ${VERSIONS[@]}; do
+        v="${v}\"${version}\", "
+    done
+    sed -i "/cron-containerd-update/c\    containerd: [${v}\"1.2.13\"], \/\/ cron-containerd-update" ../../../web/src/installers/index.ts
+}
+
 function main() {
     find_common_versions
 
     for version in ${VERSIONS[*]}; do
         generate_version "$version"
     done
+
+    update_available_versions
 }
 
 main

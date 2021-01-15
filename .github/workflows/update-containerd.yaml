@@ -1,7 +1,8 @@
 name: cron-containerd-update
 on:
   schedule:
-  - cron: '10 21 * * *'
+  - cron: '0 4 * * *'
+  workflow_dispatch: {}
 
 jobs:
   build-pr-containerd:
