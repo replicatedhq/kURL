@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"math/rand"
 	"net/http"
@@ -30,7 +31,12 @@ func Run(schedulerOptions types.SchedulerOptions) error {
 
 	plannedInstances := []tghandlers.PlannedInstance{}
 
-	for _, instance := range instances.Instances {
+	kurlPlans, err := getKurlPlans(schedulerOptions)
+	if err != nil {
+		return err
+	}
+
+	for _, instance := range kurlPlans {
 		testSpec := instance.InstallerSpec
 
 		// post it to the API to get a sha / id back
@@ -107,9 +113,40 @@ func Run(schedulerOptions types.SchedulerOptions) error {
 		return errors.Wrap(err, "failed to report ref started")
 	}
 
-	fmt.Printf("Started tests on %d specs across %d images\n", len(instances.Instances), len(operatingSystems))
+	fmt.Printf("Started tests on %d specs across %d images\n", len(kurlPlans), len(operatingSystems))
 
 	return nil
+}
+
+func getKurlPlans(schedulerOptions types.SchedulerOptions) ([]types.Instance, error) {
+	var kurlPlans []types.Instance
+
+	// Custom Kurl Spec takes precedence
+	if schedulerOptions.Spec != "" {
+		installSpec := types.InstallerSpec{}
+		err := yaml.Unmarshal([]byte(schedulerOptions.Spec), &installSpec)
+		if err != nil {
+			return nil, err
+		}
+
+		// If kubernetes version isn't specified, use latest
+		if installSpec.Kubernetes.Version == "" {
+			installSpec.Kubernetes.Version = "latest"
+		}
+
+		kurlPlans = append(kurlPlans, types.Instance{
+			InstallerSpec: installSpec,
+		})
+
+		// Latest-only flag is set
+	} else if schedulerOptions.LatestOnly {
+		kurlPlans = instances.Latest
+
+		// Default Case: use pre-planned integration test suite
+	} else {
+		kurlPlans = instances.Instances
+	}
+	return kurlPlans, nil
 }
 
 func reportStarted(schedulerOptions types.SchedulerOptions, plannedInstances []tghandlers.PlannedInstance) error {

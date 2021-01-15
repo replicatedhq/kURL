@@ -46,180 +46,180 @@ type InstallerSpec struct {
 }
 
 type Contour struct {
-	S3Override                string `json:"s3Override,omitempty"`
-	Version                   string `json:"version"`
-	TLSMinimumProtocolVersion string `json:"tlsMinimumProtocolVersion,omitempty"`
+	S3Override                string `json:"s3Override,omitempty" yaml:"s3Override,omitempty"`
+	Version                   string `json:"version" yaml:"version"`
+	TLSMinimumProtocolVersion string `json:"tlsMinimumProtocolVersion,omitempty" yaml:"tlsMinimumProtocolVersion,omitempty"`
 	HTTPPort                  int    `json:"httpPort,omitempty" yaml:"httpPort,omitempty"`
 	HTTPSPort                 int    `json:"httpsPort,omitempty" yaml:"httpsPort,omitempty"`
 }
 
 type Docker struct {
-	BypassStorageDriverWarning bool   `json:"bypassStorageDriverWarning,omitempty"`
-	DaemonConfig               string `json:"daemonConfig,omitempty"`
-	DockerRegistryIP           string `json:"dockerRegistryIP,omitempty"`
-	HardFailOnLoopback         bool   `json:"hardFailOnLoopback,omitempty"`
-	NoCEOnEE                   bool   `json:"noCEOnEE,omitempty"`
-	PreserveConfig             bool   `json:"preserveConfig,omitempty"`
-	S3Override                 string `json:"s3Override,omitempty"`
-	Version                    string `json:"version"`
+	BypassStorageDriverWarning bool   `json:"bypassStorageDriverWarning,omitempty" yaml:"bypassStorageDriverWarning,omitempty"`
+	DaemonConfig               string `json:"daemonConfig,omitempty" yaml:"daemonConfig,omitempty"`
+	DockerRegistryIP           string `json:"dockerRegistryIP,omitempty" yaml:"dockerRegistryIP,omitempty"`
+	HardFailOnLoopback         bool   `json:"hardFailOnLoopback,omitempty" yaml:"hardFailOnLoopback,omitempty"`
+	NoCEOnEE                   bool   `json:"noCEOnEE,omitempty" yaml:"noCEOnEE,omitempty"`
+	PreserveConfig             bool   `json:"preserveConfig,omitempty" yaml:"preserveConfig,omitempty"`
+	S3Override                 string `json:"s3Override,omitempty" yaml:"s3Override,omitempty"`
+	Version                    string `json:"version" yaml:"version"`
 }
 
 type Fluentd struct {
-	FullEFKStack    bool   `json:"fullEFKStack,omitempty"`
-	S3Override      string `json:"s3Override,omitempty"`
-	Version         string `json:"version"`
-	FluentdConfPath string `json:"fluentdConfPath,omitempty"`
+	FullEFKStack    bool   `json:"fullEFKStack,omitempty" yaml:"fullEFKStack,omitempty"`
+	S3Override      string `json:"s3Override,omitempty" yaml:"s3Override,omitempty"`
+	Version         string `json:"version" yaml:"version"`
+	FluentdConfPath string `json:"fluentdConfPath,omitempty" yaml:"fluentdConfPath,omitempty"`
 }
 
 type Kotsadm struct {
-	ApplicationNamespace string `json:"applicationNamespace,omitempty"`
-	ApplicationSlug      string `json:"applicationSlug,omitempty"`
-	Hostname             string `json:"hostname,omitempty"`
-	S3Override           string `json:"s3Override,omitempty"`
-	UiBindPort           int    `json:"uiBindPort,omitempty"`
-	Version              string `json:"version"`
+	ApplicationNamespace string `json:"applicationNamespace,omitempty" yaml:"applicationNamespace,omitempty"`
+	ApplicationSlug      string `json:"applicationSlug,omitempty" yaml:"applicationSlug,omitempty"`
+	Hostname             string `json:"hostname,omitempty" yaml:"hostname,omitempty"`
+	S3Override           string `json:"s3Override,omitempty" yaml:"s3Override,omitempty"`
+	UiBindPort           int    `json:"uiBindPort,omitempty" yaml:"uiBindPort,omitempty"`
+	Version              string `json:"version" yaml:"version"`
 }
 
 type Kubernetes struct {
-	BootstrapToken           string `json:"bootstrapToken,omitempty"`
-	BootstrapTokenTTL        string `json:"bootstrapTokenTTL,omitempty"`
-	CertKey                  string `json:"certKey,omitempty"`
-	ControlPlane             bool   `json:"controlPlane,omitempty"`
-	HACluster                bool   `json:"HACluster,omitempty"`
-	KubeadmToken             string `json:"kubeadmToken,omitempty"`
-	KubeadmTokenCAHash       string `json:"kubeadmTokenCAHash,omitempty"`
-	LoadBalancerAddress      string `json:"loadBalancerAddress,omitempty"`
-	MasterAddress            string `json:"masterAddress,omitempty"`
-	S3Override               string `json:"s3Override,omitempty"`
-	ServiceCIDR              string `json:"serviceCIDR,omitempty"`
-	ServiceCidrRange         string `json:"serviceCidrRange,omitempty"`
-	UseStandardNodePortRange bool   `json:"useStandardNodePortRange,omitempty"`
-	Version                  string `json:"version"`
+	BootstrapToken           string `json:"bootstrapToken,omitempty" yaml:"bootstrapToken,omitempty"`
+	BootstrapTokenTTL        string `json:"bootstrapTokenTTL,omitempty" yaml:"bootstrapTokenTTL,omitempty"`
+	CertKey                  string `json:"certKey,omitempty" yaml:"certKey,omitempty"`
+	ControlPlane             bool   `json:"controlPlane,omitempty" yaml:"controlPlane,omitempty"`
+	HACluster                bool   `json:"HACluster,omitempty" yaml:"HACluster,omitempty"`
+	KubeadmToken             string `json:"kubeadmToken,omitempty" yaml:"kubeadmToken,omitempty"`
+	KubeadmTokenCAHash       string `json:"kubeadmTokenCAHash,omitempty" yaml:"kubeadmTokenCAHash,omitempty"`
+	LoadBalancerAddress      string `json:"loadBalancerAddress,omitempty" yaml:"loadBalancerAddress,omitempty"`
+	MasterAddress            string `json:"masterAddress,omitempty" yaml:"masterAddress,omitempty"`
+	S3Override               string `json:"s3Override,omitempty" yaml:"s3Override,omitempty"`
+	ServiceCIDR              string `json:"serviceCIDR,omitempty" yaml:"serviceCIDR,omitempty"`
+	ServiceCidrRange         string `json:"serviceCidrRange,omitempty" yaml:"serviceCidrRange,omitempty"`
+	UseStandardNodePortRange bool   `json:"useStandardNodePortRange,omitempty" yaml:"useStandardNodePortRange,omitempty"`
+	Version                  string `json:"version" yaml:"version"`
 }
 
 type Kurl struct {
-	Airgap                     bool     `json:"airgap,omitempty"`
-	HostnameCheck              string   `json:"hostnameCheck,omitempty"`
-	ProxyAddress               string   `json:"proxyAddress,omitempty"`
-	AdditionalNoProxyAddresses []string `json:"additionalNoProxyAddresses,omitempty"`
-	NoProxy                    bool     `json:"noProxy,omitempty"`
-	PublicAddress              string   `json:"publicAddress,omitempty"`
-	PrivateAddress             string   `json:"privateAddress,omitempty"`
-	Nameserver                 string   `json:"nameserver,omitempty"`
+	Airgap                     bool     `json:"airgap,omitempty" yaml:"airgap,omitempty"`
+	HostnameCheck              string   `json:"hostnameCheck,omitempty" yaml:"hostnameCheck,omitempty"`
+	ProxyAddress               string   `json:"proxyAddress,omitempty" yaml:"proxyAddress,omitempty"`
+	AdditionalNoProxyAddresses []string `json:"additionalNoProxyAddresses,omitempty" yaml:"proxyAddress,omitempty"`
+	NoProxy                    bool     `json:"noProxy,omitempty" yaml:"noProxy,omitempty"`
+	PublicAddress              string   `json:"publicAddress,omitempty" yaml:"publicAddress,omitempty"`
+	PrivateAddress             string   `json:"privateAddress,omitempty" yaml:"privateAddress,omitempty"`
+	Nameserver                 string   `json:"nameserver,omitempty" yaml:"nameserver,omitempty"`
 }
 
 type Minio struct {
-	Namespace  string `json:"namespace,omitempty"`
-	S3Override string `json:"s3Override,omitempty"`
-	Version    string `json:"version"`
+	Namespace  string `json:"namespace,omitempty" yaml:"namespace,omitempty"`
+	S3Override string `json:"s3Override,omitempty" yaml:"s3Override,omitempty"`
+	Version    string `json:"version" yaml:"version"`
 }
 
 type OpenEBS struct {
-	CstorStorageClassName   string `json:"cstorStorageClassName,omitempty"`
-	IsCstorEnabled          bool   `json:"isCstorEnabled,omitempty"`
-	IsLocalPVEnabled        bool   `json:"isLocalPVEnabled,omitempty"`
-	LocalPVStorageClassName string `json:"localPVStorageClassName,omitempty"`
-	Namespace               string `json:"namespace,omitempty"`
-	S3Override              string `json:"s3Override,omitempty"`
-	Version                 string `json:"version"`
+	CstorStorageClassName   string `json:"cstorStorageClassName,omitempty" yaml:"cstorStorageClassName,omitempty"`
+	IsCstorEnabled          bool   `json:"isCstorEnabled,omitempty" yaml:"isCstorEnabled,omitempty"`
+	IsLocalPVEnabled        bool   `json:"isLocalPVEnabled,omitempty" yaml:"isLocalPVEnabled,omitempty"`
+	LocalPVStorageClassName string `json:"localPVStorageClassName,omitempty" yaml:"localPVStorageClassName,omitempty"`
+	Namespace               string `json:"namespace,omitempty" yaml:"namespace,omitempty"`
+	S3Override              string `json:"s3Override,omitempty" yaml:"s3Override,omitempty"`
+	Version                 string `json:"version" yaml:"version"`
 }
 
 type Prometheus struct {
-	S3Override string `json:"s3Override,omitempty"`
-	Version    string `json:"version"`
+	S3Override string `json:"s3Override,omitempty" yaml:"s3Override,omitempty"`
+	Version    string `json:"version" yaml:"version"`
 }
 
 type Registry struct {
-	PublishPort int    `json:"publishPort,omitempty"`
-	S3Override  string `json:"s3Override,omitempty"`
-	Version     string `json:"version"`
+	PublishPort int    `json:"publishPort,omitempty" yaml:"publishPort,omitempty"`
+	S3Override  string `json:"s3Override,omitempty" yaml:"s3Override,omitempty"`
+	Version     string `json:"version" yaml:"version"`
 }
 
 type Rook struct {
-	BlockDeviceFilter     string `json:"blockDeviceFilter,omitempty"`
-	CephReplicaCount      int    `json:"cephReplicaCount,omitempty"`
-	IsBlockStorageEnabled bool   `json:"isBlockStorageEnabled,omitempty"`
-	S3Override            string `json:"s3Override,omitempty"`
-	StorageClassName      string `json:"storageClassName,omitempty"`
-	Version               string `json:"version"`
+	BlockDeviceFilter     string `json:"blockDeviceFilter,omitempty" yaml:"blockDeviceFilter,omitempty"`
+	CephReplicaCount      int    `json:"cephReplicaCount,omitempty" yaml:"cephReplicaCount,omitempty"`
+	IsBlockStorageEnabled bool   `json:"isBlockStorageEnabled,omitempty" yaml:"isBlockStorageEnabled,omitempty"`
+	S3Override            string `json:"s3Override,omitempty" yaml:"s3Override,omitempty"`
+	StorageClassName      string `json:"storageClassName,omitempty" yaml:"storageClassName,omitempty"`
+	Version               string `json:"version" yaml:"version"`
 }
 
 type Velero struct {
-	DisableCLI    bool   `json:"disableCLI,omitempty"`
-	DisableRestic bool   `json:"disableRestic,omitempty"`
-	LocalBucket   string `json:"localBucket,omitempty"`
-	Namespace     string `json:"namespace,omitempty"`
-	S3Override    string `json:"s3Override,omitempty"`
-	Version       string `json:"version"`
+	DisableCLI    bool   `json:"disableCLI,omitempty" yaml:"disableCLI,omitempty"`
+	DisableRestic bool   `json:"disableRestic,omitempty" yaml:"disableRestic,omitempty"`
+	LocalBucket   string `json:"localBucket,omitempty" yaml:"localBucket,omitempty"`
+	Namespace     string `json:"namespace,omitempty" yaml:"namespace,omitempty"`
+	S3Override    string `json:"s3Override,omitempty" yaml:"s3Override,omitempty"`
+	Version       string `json:"version" yaml:"version"`
 }
 
 type Weave struct {
-	IsEncryptionDisabled bool   `json:"isEncryptionDisabled,omitempty"`
-	PodCIDR              string `json:"podCIDR,omitempty"`
-	PodCidrRange         string `json:"podCidrRange,omitempty"`
-	S3Override           string `json:"s3Override,omitempty"`
-	Version              string `json:"version"`
+	IsEncryptionDisabled bool   `json:"isEncryptionDisabled,omitempty" yaml:"isEncryptionDisabled,omitempty"`
+	PodCIDR              string `json:"podCIDR,omitempty" yaml:"podCIDR,omitempty"`
+	PodCidrRange         string `json:"podCidrRange,omitempty" yaml:"podCidrRange,omitempty"`
+	S3Override           string `json:"s3Override,omitempty" yaml:"s3Override,omitempty"`
+	Version              string `json:"version" yaml:"version"`
 }
 
 type SelinuxConfig struct {
-	ChconCmds      [][]string `json:"chconCmds,omitempty"`
-	DisableSelinux bool       `json:"disableSelinux,omitempty"`
-	PreserveConfig bool       `json:"preserveConfig,omitempty"`
-	Selinux        string     `json:"selinux,omitempty"`
-	SemanageCmds   [][]string `json:"semanageCmds,omitempty"`
-	Type           string     `json:"type,omitempty"`
+	ChconCmds      [][]string `json:"chconCmds,omitempty" yaml:"chconCmds,omitempty"`
+	DisableSelinux bool       `json:"disableSelinux,omitempty" yaml:"disableSelinux,omitempty"`
+	PreserveConfig bool       `json:"preserveConfig,omitempty" yaml:"preserveConfig,omitempty"`
+	Selinux        string     `json:"selinux,omitempty" yaml:"selinux,omitempty"`
+	SemanageCmds   [][]string `json:"semanageCmds,omitempty" yaml:"semanageCmds,omitempty"`
+	Type           string     `json:"type,omitempty" yaml:"type,omitempty"`
 }
 
 type IptablesConfig struct {
-	IptablesCmds   [][]string `json:"iptablesCmds,omitempty"`
-	PreserveConfig bool       `json:"preserveConfig,omitempty"`
+	IptablesCmds   [][]string `json:"iptablesCmds,omitempty" yaml:"iptablesCmds,omitempty"`
+	PreserveConfig bool       `json:"preserveConfig,omitempty" yaml:"preserveConfig,omitempty"`
 }
 
 type FirewalldConfig struct {
-	BypassFirewalldWarning bool       `json:"bypassFirewalldWarning,omitempty"`
-	DisableFirewalld       bool       `json:"disableFirewalld,omitempty"`
-	Firewalld              string     `json:"firewalld,omitempty"`
-	FirewalldCmds          [][]string `json:"firewalldCmds,omitempty"`
-	HardFailOnFirewalld    bool       `json:"hardFailOnFirewalld,omitempty"`
-	PreserveConfig         bool       `json:"preserveConfig,omitempty"`
+	BypassFirewalldWarning bool       `json:"bypassFirewalldWarning,omitempty" yaml:"bypassFirewalldWarning,omitempty"`
+	DisableFirewalld       bool       `json:"disableFirewalld,omitempty" yaml:"disableFirewalld,omitempty"`
+	Firewalld              string     `json:"firewalld,omitempty" yaml:"firewalld,omitempty"`
+	FirewalldCmds          [][]string `json:"firewalldCmds,omitempty" yaml:"firewalldCmds,omitempty"`
+	HardFailOnFirewalld    bool       `json:"hardFailOnFirewalld,omitempty" yaml:"hardFailOnFirewalld,omitempty"`
+	PreserveConfig         bool       `json:"preserveConfig,omitempty" yaml:"preserveConfig,omitempty"`
 }
 
 type Ekco struct {
-	MinReadyMasterNodeCount     int    `json:"minReadyMasterNodeCount,omitempty"`
-	MinReadyWorkerNodeCount     int    `json:"minReadyWorkerNodeCount,omitempty"`
-	NodeUnreachableToleration   string `json:"nodeUnreachableToleration,omitempty"`
-	RookShouldUseAllNodes       bool   `json:"rookShouldUseAllNodes,omitempty"`
-	S3Override                  string `json:"s3Override,omitempty"`
-	ShouldDisableRebootServices bool   `json:"shouldDisableRebootServices,omitempty"`
-	ShouldDisableClearNodes     bool   `json:"shouldDisableClearNodes,omitempty"`
-	ShouldEnablePurgeNodes      bool   `json:"shouldEnablePurgeNodes,omitempty"`
-	Version                     string `json:"version"`
-	AutoUpgradeSchedule         string `json:"autoUpgradeSchedule,omitempty"`
+	MinReadyMasterNodeCount     int    `json:"minReadyMasterNodeCount,omitempty" yaml:"minReadyMasterNodeCount,omitempty"`
+	MinReadyWorkerNodeCount     int    `json:"minReadyWorkerNodeCount,omitempty" yaml:"minReadyWorkerNodeCount,omitempty"`
+	NodeUnreachableToleration   string `json:"nodeUnreachableToleration,omitempty" yaml:"nodeUnreachableToleration,omitempty"`
+	RookShouldUseAllNodes       bool   `json:"rookShouldUseAllNodes,omitempty" yaml:"rookShouldUseAllNodes,omitempty"`
+	S3Override                  string `json:"s3Override,omitempty" yaml:"s3Override,omitempty"`
+	ShouldDisableRebootServices bool   `json:"shouldDisableRebootServices,omitempty" yaml:"shouldDisableRebootServices,omitempty"`
+	ShouldDisableClearNodes     bool   `json:"shouldDisableClearNodes,omitempty" yaml:"shouldDisableClearNodes,omitempty"`
+	ShouldEnablePurgeNodes      bool   `json:"shouldEnablePurgeNodes,omitempty" yaml:"shouldEnablePurgeNodes,omitempty"`
+	Version                     string `json:"version" yaml:"version"`
+	AutoUpgradeSchedule         string `json:"autoUpgradeSchedule,omitempty" yaml:"autoUpgradeSchedule,omitempty"`
 }
 
 type Calico struct {
-	S3Override string `json:"s3Override,omitempty"`
-	Version    string `json:"version"`
+	S3Override string `json:"s3Override,omitempty" yaml:"s3Override,omitempty"`
+	Version    string `json:"version" yaml:"version"`
 }
 
 type Containerd struct {
-	S3Override string `json:"s3Override,omitempty"`
-	Version    string `json:"version"`
+	S3Override string `json:"s3Override,omitempty" yaml:"s3Override,omitempty"`
+	Version    string `json:"version" yaml:"version" yaml:"version" yaml:"version"`
 }
 
 type Collectd struct {
-	S3Override string `json:"s3Override,omitempty"`
-	Version    string `json:"version"`
+	S3Override string `json:"s3Override,omitempty" yaml:"s3Override,omitempty"`
+	Version    string `json:"version" yaml:"version"`
 }
 
 type CertManager struct {
-	S3Override string `json:"s3Override,omitempty"`
-	Version    string `json:"version"`
+	S3Override string `json:"s3Override,omitempty" yaml:"s3Override,omitempty"`
+	Version    string `json:"version" yaml:"version"`
 }
 
 type MetricsServer struct {
-	S3Override string `json:"s3Override,omitempty"`
-	Version    string `json:"version"`
+	S3Override string `json:"s3Override,omitempty" yaml:"s3Override,omitempty"`
+	Version    string `json:"version" yaml:"version"`
 }
 
 // InstallerStatus defines the observed state of Installer

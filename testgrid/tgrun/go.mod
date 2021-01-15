@@ -10,6 +10,7 @@ require (
 	github.com/spf13/viper v1.6.2
 	github.com/stretchr/testify v1.6.1
 	go.uber.org/zap v1.13.0
+	gopkg.in/yaml.v2 v2.3.0
 	k8s.io/api v0.19.0-rc.2
 	k8s.io/apimachinery v0.19.0-rc.2
 	k8s.io/client-go v12.0.0+incompatible
@@ -17,8 +18,6 @@ require (
 )
 
 replace (
-	github.com/replicatedhq/kurl/kurlkinds => ../../kurlkinds
-	github.com/replicatedhq/kurl/testgrid/tgapi => ../tgapi
 
 	github.com/Azure/go-autorest => github.com/Azure/go-autorest v11.0.0+incompatible
 	github.com/go-kit/kit => github.com/go-kit/kit v0.3.0
@@ -26,6 +25,8 @@ replace (
 	github.com/openshift/api => github.com/openshift/api v0.0.0-20191219222812-2987a591a72c
 	github.com/openshift/client-go => github.com/openshift/client-go v0.0.0-20191125132246-f6563a70e19a
 	github.com/operator-framework/operator-lifecycle-manager => github.com/operator-framework/operator-lifecycle-manager v0.0.0-20190128024246-5eb7ae5bdb7a
+	github.com/replicatedhq/kurl/kurlkinds => ../../kurlkinds
+	github.com/replicatedhq/kurl/testgrid/tgapi => ../tgapi
 	gopkg.in/yaml.v2 => gopkg.in/yaml.v2 v2.2.4
 
 	k8s.io/api => k8s.io/api v0.16.4
