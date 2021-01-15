@@ -63,3 +63,10 @@ sed -i 's/# minimum-protocol-version: "1.1"/  minimum-protocol-version: "$CONTOU
 # edit contour.yaml to remove `hostPort: 80` and `hostPort: 443`
 sed -i '/hostPort: 80/d' "../$CONTOUR_VERSION/contour.yaml"
 sed -i '/hostPort: 443/d' "../$CONTOUR_VERSION/contour.yaml"
+
+# get the current list of versions
+versions="$(ls .. | grep -e '[0-9]\+\.[0-9]\+\.[0-9]\+' | sort -r -V)"
+allversions="$(echo $versions | sed 's/ /", "/g')"
+
+# update the list of versions shown on kurl.sh
+sed -i "/cron-contour-update/c\    contour: [\"${allversions}\"], \/\/ cron-contour-update" ../../../web/src/installers/index.ts
