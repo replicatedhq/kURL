@@ -414,3 +414,11 @@ function install_host_packages() {
             ;;
     esac
 }
+
+# Checks if the provided param is in the current path, and if it is not adds it
+# this is useful for systems where /usr/local/bin is not in the path for root
+function path_add() {
+    if [ -d "$1" ] && [[ ":$PATH:" != *":$1:"* ]]; then
+        PATH="${PATH:+"$PATH:"}$1"
+    fi
+}
