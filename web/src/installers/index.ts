@@ -744,6 +744,7 @@ export class Installer {
     ],
     metricsServer: [
       "0.3.7",
+      "0.4.1",
     ],
   };
 
