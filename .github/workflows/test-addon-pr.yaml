@@ -26,10 +26,6 @@ jobs:
           S3_BUCKET: "kurl-sh"
         run: |
           bin/test-addon-pr.sh
-          MSG="Testgrid Run Executing @ https://testgrid.kurl.sh/run/pr-$(echo $GITHUB_REF | cut -d/ -f3)-${GITHUB_SHA:0:7}"
-          echo "::set-output name=installer_available::$INSTALLER_AVAILABLE"
-          echo "::set-output name=installer_spec::$INSTALLER_SPEC"
-          echo "::set-output name=msg::$MSG"
 
       - name: Setup Go
         uses: actions/setup-go@v1
@@ -44,12 +40,10 @@ jobs:
 
       - name: Tgrun Queue
         if: ${{ steps.installer.outputs.installer_available == 'true' }}
-        env:
-          INSTALLER_SPEC: ${{ steps.installer.outputs.installer_spec }}
         working-directory: ./testgrid/tgrun
         run: |
           PR_NUMBER=$(echo $GITHUB_REF | cut -d"/" -f3)
-          ./bin/tgrun queue --staging --ref "pr-${PR_NUMBER}-${GITHUB_SHA:0:7}" --spec "${INSTALLER_SPEC}"
+          ./bin/tgrun queue --staging --ref "pr-${PR_NUMBER}-${GITHUB_SHA:0:7}" --spec "$(cat ./hack/installer.yaml)"
 
       - name: Post TG URL
         uses: unsplash/comment-on-pr@master
