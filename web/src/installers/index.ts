@@ -190,6 +190,8 @@ export interface ContourConfig {
   version: string;
   s3Override?: string;
   tlsMinimumProtocolVersion?: string;
+  httpPort?: number;
+  httpsPort?: number;
 }
 
 export const contourConfigSchema = {
@@ -198,6 +200,8 @@ export const contourConfigSchema = {
     version: { type: "string" },
     s3Override: { type: "string", flag: "s3-override", description: "Override the download location for addon package distribution (used for CI/CD testing alpha addons)" },
     tlsMinimumProtocolVersion: { type: "string", flag: "contour-tls-minimum-protocol-version", description: "The minimum TLS protocol version that is allowed (default 1.2)." },
+    httpPort: { type: "number", flag: "contour-http-port", description: "Sets the NodePort used for http traffic on ingress routes." },
+    httpsPort: { type: "number", flag: "contour-https-port", description: "Sets the NodePort used for https (TLS) traffic on ingress routes." },
   },
   required: ["version"],
   additionalProperties: false,

@@ -1,7 +1,18 @@
-
 function contour_pre_init() {
     if [ -z "$CONTOUR_NAMESPACE" ]; then
         CONTOUR_NAMESPACE=projectcontour
+    fi
+
+    if [ -z "$CONTOUR_TLS_MINIMUM_PROTOCOL_VERSION" ]; then
+        CONTOUR_TLS_MINIMUM_PROTOCOL_VERSION="1.2"
+    fi
+
+    if [ -z "$CONTOUR_HTTP_PORT" ]; then
+        CONTOUR_HTTP_PORT="80"
+    fi
+
+    if [ -z "$CONTOUR_HTTPS_PORT" ]; then
+        CONTOUR_HTTPS_PORT="443"
     fi
 }
 
@@ -10,16 +21,12 @@ function contour() {
     local dst="$DIR/kustomize/contour"
 
     cp "$src/contour.yaml" "$dst/"
-    cp "$src/patches/service-patch.yaml" "$dst/"
     cp "$src/patches/job-image.yaml" "$dst/"
-
-    if [ -z "$CONTOUR_TLS_MINIMUM_PROTOCOL_VERSION" ]; then
-        CONTOUR_TLS_MINIMUM_PROTOCOL_VERSION="1.2"
-    fi
 
     render_yaml_file "$src/tmpl-configmap.yaml" > "$dst/configmap.yaml"
     render_yaml_file "$src/tmpl-kustomization.yaml" > "$dst/kustomization.yaml"
     render_yaml_file "$src/tmpl-namespace.yaml" > "$dst/namespace.yaml"
+    render_yaml_file "$src/tmpl-service-patch.yaml" > "$dst/service-patch.yaml"
 
     # NodePort services in old namespace conflict
     if kubectl get namespace heptio-contour &>/dev/null && [ "$CONTOUR_NAMESPACE" != heptio-contour ]; then

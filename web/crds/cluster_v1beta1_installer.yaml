@@ -36,6 +36,12 @@ spec:
                   type: string
                 s3Override:
                   type: string
+                httpPort:
+                  format: int64
+                  type: integer
+                httpsPort:
+                  format: int64
+                  type: integer
               required:
               - version
               type: object

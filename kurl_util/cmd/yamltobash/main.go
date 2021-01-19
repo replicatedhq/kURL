@@ -144,6 +144,8 @@ func convertToBash(kurlValues map[string]interface{}, fieldsSet map[string]bool)
 		"CertManager.Version":                    "CERT_MANAGER_VERSION",
 		"Containerd.S3Override":                  "CONTAINERD_S3_OVERRIDE",
 		"Containerd.Version":                     "CONTAINERD_VERSION",
+		"Contour.HTTPPort":                       "CONTOUR_HTTP_PORT",
+		"Contour.HTTPSPort":                      "CONTOUR_HTTPS_PORT",
 		"Contour.S3Override":                     "CONTOUR_S3_OVERRIDE",
 		"Contour.TLSMinimumProtocolVersion":      "CONTOUR_TLS_MINIMUM_PROTOCOL_VERSION",
 		"Contour.Version":                        "CONTOUR_VERSION",
