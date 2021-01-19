@@ -49,6 +49,8 @@ type Contour struct {
 	S3Override                string `json:"s3Override,omitempty"`
 	Version                   string `json:"version"`
 	TLSMinimumProtocolVersion string `json:"tlsMinimumProtocolVersion,omitempty"`
+	HTTPPort                  int    `json:"httpPort,omitempty" yaml:"httpPort,omitempty"`
+	HTTPSPort                 int    `json:"httpsPort,omitempty" yaml:"httpsPort,omitempty"`
 }
 
 type Docker struct {
