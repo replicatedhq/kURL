@@ -26,10 +26,6 @@ jobs:
           S3_BUCKET: "kurl-sh"
         run: |
           bin/test-addon-pr.sh
-          MSG="Testgrid Run Executing @ https://testgrid.kurl.sh/run/pr-$(echo $GITHUB_REF | cut -d/ -f3)-${GITHUB_SHA:0:7}"
-          echo "::set-output name=installer_available::$INSTALLER_AVAILABLE"
-          echo "::set-output name=installer_spec::$INSTALLER_SPEC"
-          echo "::set-output name=msg::$MSG"
 
       - name: Setup Go
         uses: actions/setup-go@v1
