@@ -71,6 +71,10 @@ spec:
               type: object
             contour:
               properties:
+                httpPort:
+                  type: integer
+                httpsPort:
+                  type: integer
                 s3Override:
                   type: string
                 tlsMinimumProtocolVersion:
