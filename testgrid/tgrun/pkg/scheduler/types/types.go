@@ -68,4 +68,5 @@ type InstallerSpec struct {
 	Ekco            *kurlv1beta1.Ekco            `json:"ekco,omitempty" json:"ekco,omitempty"`
 	Collectd        *kurlv1beta1.Collectd        `json:"collectd,omitempty" yaml:"collectd,omitempty"`
 	CertManager     *kurlv1beta1.CertManager     `json:"certManager,omitempty" yaml:"certManager,omitempty"`
+	MetricsServer   *kurlv1beta1.MetricsServer   `json:"metricsServer,omitempty" yaml:"metricsServer,omitempty"`
 }
