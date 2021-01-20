@@ -24,9 +24,11 @@ require S3_BUCKET "${S3_BUCKET}"
 
 PR_NUMBER=$(echo $GITHUB_REF | cut -d"/" -f3)
 
-INSTALLER_SPEC=
+INSTALLER_AVAILABLE=
 prepare_addon() {
   local name=$1
+
+  INSTALLER_AVAILABLE="true"
 
   # Get the version that's changed
   local version=$(git diff --dirstat=files,0 "origin/${GITHUB_BASE_REF}" -- "addons/${name}" "origin/${GITHUB_BASE_REF}" -- "addons/${name}" | sed 's/^[ 0-9.]\+% addons\///g' | grep -v template | cut -f2 -d"/" | uniq |  sort -r | head -n 1)
@@ -34,9 +36,9 @@ prepare_addon() {
   echo "Found Modified Addon: $name-$version"
 
   # Concat Spec
-  INSTALLER_SPEC=$(printf "${INSTALLER_SPEC}$(snakecase_to_camelcase $name):\n") 
-  INSTALLER_SPEC=$(printf "${INSTALLER_SPEC}  version: ${version}\n")  
-  INSTALLER_SPEC=$(printf "${INSTALLER_SPEC}  s3Override: s3://${S3_BUCKET}/pr/${PR_NUMBER}-${GITHUB_SHA:0:7}-${name}-${version}.tar.gz\n")
+  echo "$(snakecase_to_camelcase $name):" >> ./testgrid/tgrun/hack/installer.yaml
+  echo "  version: ${version}" >> ./testgrid/tgrun/hack/installer.yaml
+  echo "  s3Override: s3://${S3_BUCKET}/pr/${PR_NUMBER}-${GITHUB_SHA:0:7}-${name}-${version}.tar.gz" >> ./testgrid/tgrun/hack/installer.yaml
 
   # Push to S3
   echo "Building Package: $name-$version.tag.gz"
@@ -56,13 +58,8 @@ main() {
     prepare_addon $addon
   done
 
-  if [ -n "${INSTALLER_SPEC}" ]; then
+  if [ -n "${INSTALLER_AVAILABLE}" ]; then
     echo "Installer spec generated."
-    
-    # Save multi-line installer to GH ENV
-    echo "INSTALLER_SPEC<<EOF" >> $GITHUB_ENV
-    echo "${INSTALLER_SPEC}" >> $GITHUB_ENV
-    echo "EOF" >> $GITHUB_ENV
 
     MSG="Testgrid Run Executing @ https://testgrid.kurl.sh/run/pr-$(echo $GITHUB_REF | cut -d/ -f3)-${GITHUB_SHA:0:7}"
     echo "::set-output name=installer_available::true"
