@@ -4,13 +4,15 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"math/rand"
 	"net/http"
 	"time"
 
+	"gopkg.in/yaml.v2"
+
 	"github.com/pkg/errors"
+	kurlv1beta1 "github.com/replicatedhq/kurl/kurlkinds/pkg/apis/cluster/v1beta1"
 	tghandlers "github.com/replicatedhq/kurl/testgrid/tgapi/pkg/handlers"
 	"github.com/replicatedhq/kurl/testgrid/tgrun/pkg/instances"
 	"github.com/replicatedhq/kurl/testgrid/tgrun/pkg/scheduler/types"
@@ -132,6 +134,13 @@ func getKurlPlans(schedulerOptions types.SchedulerOptions) ([]types.Instance, er
 		// If kubernetes version isn't specified, use latest
 		if installSpec.Kubernetes.Version == "" {
 			installSpec.Kubernetes.Version = "latest"
+		}
+
+		// If OCI isn't specified, use latest docker
+		if installSpec.Docker == nil && installSpec.Containerd == nil {
+			installSpec.Docker = &kurlv1beta1.Docker{
+				Version: "latest",
+			}
 		}
 
 		kurlPlans = append(kurlPlans, types.Instance{
