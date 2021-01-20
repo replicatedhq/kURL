@@ -34,9 +34,9 @@ prepare_addon() {
   echo "Found Modified Addon: $name-$version"
 
   # Concat Spec
-  INSTALLER_SPEC=$(printf "${INSTALLER_SPEC}$(snakecase_to_camelcase $name):\n)") 
-  INSTALLER_SPEC=$(printf "${INSTALLER_SPEC}  version: ${version}:\n")  
-  INSTALLER_SPEC=$(printf "${INSTALLER_SPEC}  s3Override: s3://${S3_BUCKET}/pr/${PR_NUMBER}-${GITHUB_SHA:0:7}-${name}-${version}:\n")
+  INSTALLER_SPEC=$(printf "${INSTALLER_SPEC}$(snakecase_to_camelcase $name):\n") 
+  INSTALLER_SPEC=$(printf "${INSTALLER_SPEC}  version: ${version}\n")  
+  INSTALLER_SPEC=$(printf "${INSTALLER_SPEC}  s3Override: s3://${S3_BUCKET}/pr/${PR_NUMBER}-${GITHUB_SHA:0:7}-${name}-${version}.tar.gz\n")
 
   # Push to S3
   echo "Building Package: $name-$version.tag.gz"
@@ -66,7 +66,6 @@ main() {
 
     MSG="Testgrid Run Executing @ https://testgrid.kurl.sh/run/pr-$(echo $GITHUB_REF | cut -d/ -f3)-${GITHUB_SHA:0:7}"
     echo "::set-output name=installer_available::true"
-    # echo "::set-output name=installer_spec::$INSTALLER_SPEC"
     echo "::set-output name=msg::$MSG"
     
   else

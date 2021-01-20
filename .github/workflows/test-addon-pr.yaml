@@ -27,16 +27,16 @@ jobs:
         run: |
           bin/test-addon-pr.sh
 
-      - name: Setup Go
-        uses: actions/setup-go@v1
-        if: ${{ steps.installer.outputs.installer_available == 'true' }}
-        with:
-          go-version: 1.15.1
+      # - name: Setup Go
+      #   uses: actions/setup-go@v1
+      #   if: ${{ steps.installer.outputs.installer_available == 'true' }}
+      #   with:
+      #     go-version: 1.15.1
 
-      - name: Tgrun Build
-        if: ${{ steps.installer.outputs.installer_available == 'true' }}
-        working-directory: ./testgrid/tgrun
-        run: make build
+      # - name: Tgrun Build
+      #   if: ${{ steps.installer.outputs.installer_available == 'true' }}
+      #   working-directory: ./testgrid/tgrun
+      #   run: make build
 
       - name: Tgrun Queue
         if: ${{ steps.installer.outputs.installer_available == 'true' }}
