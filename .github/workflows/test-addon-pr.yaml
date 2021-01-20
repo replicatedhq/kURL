@@ -44,16 +44,15 @@ jobs:
           INSTALLER_SPEC: ${{ env.INSTALLER_SPEC }}
         working-directory: ./testgrid/tgrun
         run: |
-          echo "${INSTALLER_SPEC}" 
           PR_NUMBER=$(echo $GITHUB_REF | cut -d"/" -f3)
-          # ./bin/tgrun queue --staging --ref "pr-${PR_NUMBER}-${GITHUB_SHA:0:7}" --spec "${INSTALLER_SPEC}"
+          ./bin/tgrun queue --staging --ref "pr-${PR_NUMBER}-${GITHUB_SHA:0:7}" --spec "${INSTALLER_SPEC}"
 
-      - name: Post TG URL
-        uses: unsplash/comment-on-pr@master
-        if: ${{ steps.installer.outputs.installer_available == 'true' }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
-        with:
-          msg: ${{ steps.installer.outputs.msg }}
-          check_for_duplicate_msg: true 
+      # - name: Post TG URL
+      #   uses: unsplash/comment-on-pr@master
+      #   if: ${{ steps.installer.outputs.installer_available == 'true' }}
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GH_PAT }}
+      #   with:
+      #     msg: ${{ steps.installer.outputs.msg }}
+      #     check_for_duplicate_msg: true 
 

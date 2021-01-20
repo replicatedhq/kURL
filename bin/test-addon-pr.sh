@@ -61,7 +61,7 @@ main() {
     
     # Save multi-line installer to GH ENV
     echo "INSTALLER_SPEC<<EOF" >> $GITHUB_ENV
-    echo "$INSTALLER_SPEC" >> $GITHUB_ENV
+    echo "${INSTALLER_SPEC}" >> $GITHUB_ENV
     echo "EOF" >> $GITHUB_ENV
 
     MSG="Testgrid Run Executing @ https://testgrid.kurl.sh/run/pr-$(echo $GITHUB_REF | cut -d/ -f3)-${GITHUB_SHA:0:7}"
