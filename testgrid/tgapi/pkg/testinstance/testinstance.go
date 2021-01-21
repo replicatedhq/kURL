@@ -157,6 +157,25 @@ func SetInstanceFinishedAndSuccess(id string, isSuccess bool) error {
 	return nil
 }
 
+func GetInstanceDuration(id string) (time.Duration, error) {
+	db := persistence.MustGetPGSession()
+
+	query := `select started_at, finished_at from testinstance where id = $1`
+
+	row := db.QueryRow(query, id)
+
+	var startedAt, finishedAt sql.NullTime
+	if err := row.Scan(&startedAt, &finishedAt); err != nil {
+		return -1, errors.Wrap(err, "failed to scan")
+	}
+
+	if !finishedAt.Valid {
+		return -1, errors.New("completion time is not valid")
+	}
+
+	return finishedAt.Time.Sub(startedAt.Time), nil
+}
+
 func SetInstanceUnsupported(id string) error {
 	db := persistence.MustGetPGSession()
 
@@ -344,4 +363,25 @@ func GetUniqueAddons(refID string) ([]string, error) {
 	}
 
 	return addons, nil
+}
+
+// GetTestStats returns the current numbers of pending, running, and timed out tests
+func GetTestStats() (int64, int64, int64, error) {
+	db := persistence.MustGetPGSession()
+
+	query := `
+select 
+       count(1) FILTER (WHERE dequeued_at is null) as pending,
+       count(1) FILTER (where dequeued_at is not null AND finished_at is null AND dequeued_at > now() - INTERVAL '3 hours') as running,
+       count(1) FILTER (where dequeued_at is not null AND finished_at is null AND dequeued_at < now() - INTERVAL '3 hours' AND dequeued_at > now() - INTERVAL '24 hours') as timed_out
+from testinstance`
+
+	row := db.QueryRow(query)
+
+	var pendingRuns, running, timedOut int64
+	if err := row.Scan(&pendingRuns, &running, &timedOut); err != nil {
+		return -1, -1, -1, errors.Wrap(err, "failed to scan")
+	}
+
+	return pendingRuns, running, timedOut, nil
 }
