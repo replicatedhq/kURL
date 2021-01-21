@@ -2,10 +2,12 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/gorilla/mux"
 	"github.com/replicatedhq/kurl/testgrid/tgapi/pkg/logger"
+	"github.com/replicatedhq/kurl/testgrid/tgapi/pkg/persistence"
 	"github.com/replicatedhq/kurl/testgrid/tgapi/pkg/testinstance"
 	"go.uber.org/zap"
 )
@@ -32,6 +34,13 @@ func FinishInstance(w http.ResponseWriter, r *http.Request) {
 		JSON(w, 500, nil)
 		return
 	}
+
+	go func(id string) {
+		duration, err := testinstance.GetInstanceDuration(id)
+		if err == nil {
+			persistence.MaybeSendStatsdTiming("instance_completion", duration, []string{fmt.Sprintf("testid:%s", id)}, 1.0)
+		}
+	}(instanceID) // this reports the duration of completed tests
 
 	JSON(w, 200, nil)
 }

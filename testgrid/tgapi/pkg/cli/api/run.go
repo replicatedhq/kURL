@@ -8,6 +8,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/replicatedhq/kurl/testgrid/tgapi/pkg/handlers"
+	"github.com/replicatedhq/kurl/testgrid/tgapi/pkg/persistence"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -51,6 +52,13 @@ func RunCmd() *cobra.Command {
 			}
 
 			fmt.Printf("Starting tgapi on port %d...\n", 3000)
+
+			if _, err := persistence.InitStatsd(
+				"8125",
+				"kurl_testgrid_api.",
+			); err != nil {
+				log.Printf("Failed to initialize statsd client: %v", err)
+			}
 
 			log.Fatal(srv.ListenAndServe())
 
