@@ -38,7 +38,14 @@ func FinishInstance(w http.ResponseWriter, r *http.Request) {
 	go func(id string) {
 		duration, err := testinstance.GetInstanceDuration(id)
 		if err == nil {
-			persistence.MaybeSendStatsdTiming("instance_completion", duration, []string{fmt.Sprintf("testid:%s", id)}, 1.0)
+			persistence.MaybeSendStatsdTiming(
+				"instance_completion",
+				duration,
+				[]string{
+					fmt.Sprintf("testid:%s", id),
+					fmt.Sprintf("success:%t", finishInstanceRequest.Success),
+				},
+				1.0)
 		}
 	}(instanceID) // this reports the duration of completed tests
 
