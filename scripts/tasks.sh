@@ -45,6 +45,7 @@ function load_all_images() {
     if [ -n "$DOCKER_VERSION" ]; then
         find addons/ packages/ -type f -wholename '*/images/*.tar.gz' | xargs -I {} bash -c "docker load < {}"
     else
+        # TODO(ethan): rke2 containerd.sock path is incorrect
         find addons/ packages/ -type f -wholename '*/images/*.tar.gz' | xargs -I {} bash -c "cat {} | gunzip | ctr -n=k8s.io images import -"
     fi
 }
@@ -150,6 +151,7 @@ function weave_reset() {
                 else
                     # --pid host
                     local guid=$(< /dev/urandom tr -dc A-Za-z0-9 | head -c16)
+                    # TODO(ethan): rke2 containerd.sock path is incorrect
                     ctr -n=k8s.io image pull docker.io/weaveworks/weaveexec:$WEAVE_TAG
                     ctr -n=k8s.io run --rm --net-host --privileged docker.io/weaveworks/weaveexec:$WEAVE_TAG $guid /usr/bin/weaveutil delete-datapath $NETDEV
                 fi

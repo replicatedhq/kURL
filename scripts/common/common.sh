@@ -72,16 +72,26 @@ bail() {
     exit 1
 }
 
-waitForNodes() {
-    n=0
-    while ! kubectl get nodes >/dev/null 2>&1; do
-        n="$(( $n + 1 ))"
-        if [ "$n" -ge "120" ]; then
-            # this should exit script on non-zero exit code and print error message
-            kubectl get nodes 1>/dev/null
-        fi
-        sleep 2
-    done
+function wait_for_nodes() {
+    if ! spinner_until 120 get_nodes_succeeds ; then
+        # this should exit script on non-zero exit code and print error message
+        kubectl get nodes 1>/dev/null
+    fi
+}
+
+function get_nodes_succeeds() {
+    kubectl get nodes >/dev/null 2>&1
+}
+
+function wait_for_default_namespace() {
+    if ! spinner_until 120 has_default_namespace ; then
+        kubectl get ns
+        bail "No default namespace detected"
+    fi
+}
+
+function has_default_namespace() {
+    kubectl get ns | grep -q '^default' 2>/dev/null
 }
 
 # Label nodes as provisioned by kurl installation
@@ -189,15 +199,18 @@ parseDockerVersion() {
 }
 
 exportKubeconfig() {
-    cp /etc/kubernetes/admin.conf $HOME/admin.conf
+    local kubeconfig
+    kubeconfig="$(${K8S_DISTRO}_get_kubeconfig)"
+
+    cp ${kubeconfig} $HOME/admin.conf
     chown $SUDO_USER:$SUDO_GID $HOME/admin.conf
     current_user_sudo_group
     if [ -n "$FOUND_SUDO_GROUP" ]; then
-        chown root:$FOUND_SUDO_GROUP /etc/kubernetes/admin.conf
+        chown root:$FOUND_SUDO_GROUP ${kubeconfig}
     fi
-    chmod 440 /etc/kubernetes/admin.conf
+    chmod 440 ${kubeconfig}
     if ! grep -q "kubectl completion bash" /etc/profile; then
-        echo 'export KUBECONFIG=/etc/kubernetes/admin.conf' >> /etc/profile
+        echo "export KUBECONFIG=${kubeconfig}" >> /etc/profile
         echo "source <(kubectl completion bash)" >> /etc/profile
     fi
 }
@@ -225,7 +238,7 @@ function load_images() {
     if [ -n "$DOCKER_VERSION" ]; then
         find "$1" -type f | xargs -I {} bash -c "docker load < {}"
     else
-        find "$1" -type f | xargs -I {} bash -c "cat {} | gunzip | ctr -n=k8s.io images import -"
+        find "$1" -type f | xargs -I {} bash -c "cat {} | gunzip | ctr -a $(${K8S_DISTRO}_get_containerd_sock) -n=k8s.io images import -"
     fi
 }
 
@@ -284,7 +297,7 @@ function get_shared() {
         if [ -n "$DOCKER_VERSION" ]; then
             docker load < shared/kurl-util.tar
         else
-            ctr -n=k8s.io images import shared/kurl-util.tar
+            ctr -a "$(${K8S_DISTRO}_get_containerd_sock)" -n=k8s.io images import shared/kurl-util.tar
         fi
     fi
 }
@@ -331,7 +344,7 @@ function kubeconfig_setup_outro() {
 
         if [ ! -f "$ownerdir/.kube/config" ]; then
             mkdir -p $ownerdir/.kube
-            cp /etc/kubernetes/admin.conf $ownerdir/.kube/config
+            cp "$(${K8S_DISTRO}_get_kubeconfig)" $ownerdir/.kube/config
             chown -R $owner $ownerdir/.kube
 
             printf "To access the cluster with kubectl, ensure the KUBECONFIG environment variable is unset:\n"
@@ -344,12 +357,12 @@ function kubeconfig_setup_outro() {
 
     printf "To access the cluster with kubectl, copy kubeconfig to your home directory:\n"
     printf "\n"
-    printf "${GREEN}    cp /etc/kubernetes/admin.conf ~/.kube/config${NC}\n"
+    printf "${GREEN}    cp "$(${K8S_DISTRO}_get_kubeconfig)" ~/.kube/config${NC}\n"
     printf "${GREEN}    chown -R ${owner} ~/.kube${NC}\n"
     printf "${GREEN}    echo unset KUBECONFIG >> ~/.profile${NC}\n"
     printf "${GREEN}    bash -l${NC}\n"
     printf "\n"
-    printf "You will likely need to use sudo to copy and chown admin.conf.\n"
+    printf "You will likely need to use sudo to copy and chown "$(${K8S_DISTRO}_get_kubeconfig)".\n"
 }
 
 splitHostPort() {

@@ -55,6 +55,10 @@ function report_install_fail() {
 }
 
 function report_addon_start() {
+    if [ "${DISABLE_REPORTING}" = "1" ]; then
+        return
+    fi
+
     # report that an addon started installation
     local name=$1
     local version=$2
@@ -72,6 +76,10 @@ function report_addon_start() {
 }
 
 function report_addon_success() {
+    if [ "${DISABLE_REPORTING}" = "1" ]; then
+        return
+    fi
+
     # report that an addon installed successfully
     local name=$1
     local version=$2

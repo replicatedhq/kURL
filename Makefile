@@ -170,6 +170,7 @@ build/install.sh:
 		cat $$script >> tmp/install.sh ; \
 	done
 	sed -n '/# Magic end/,$$p' scripts/install.sh | sed '1d' >> tmp/install.sh
+	sed -i 's/^DISABLE_REPORTING=.*/DISABLE_REPORTING=1/' tmp/install.sh # disable reporting
 	mv tmp/install.sh build/install.sh
 	chmod +x build/install.sh
 
@@ -192,6 +193,7 @@ build/join.sh:
 		cat $$script >> tmp/join.sh ; \
 	done
 	sed -n '/# Magic end/,$$p' scripts/join.sh | sed '1d' >> tmp/join.sh
+	sed -i 's/^DISABLE_REPORTING=.*/DISABLE_REPORTING=1/' tmp/join.sh # disable reporting
 	mv tmp/join.sh build/join.sh
 	chmod +x build/join.sh
 
@@ -214,6 +216,7 @@ build/upgrade.sh:
 		cat $$script >> tmp/upgrade.sh ; \
 	done
 	sed -n '/# Magic end/,$$p' scripts/upgrade.sh | sed '1d' >> tmp/upgrade.sh
+	sed -i 's/^DISABLE_REPORTING=.*/DISABLE_REPORTING=1/' tmp/upgrade.sh # disable reporting
 	mv tmp/upgrade.sh build/upgrade.sh
 	chmod +x ./build/upgrade.sh
 
@@ -236,6 +239,7 @@ build/tasks.sh:
 		cat $$script >> tmp/tasks.sh ; \
 	done
 	sed -n '/# Magic end/,$$p' scripts/tasks.sh | sed '1d' >> tmp/tasks.sh
+	sed -i 's/^DISABLE_REPORTING=.*/DISABLE_REPORTING=1/' tmp/tasks.sh # disable reporting
 	mv tmp/tasks.sh build/tasks.sh
 	chmod +x build/tasks.sh
 
@@ -388,6 +392,13 @@ web: build/templates build/bin/server
 
 watchrsync:
 	bin/watchrsync.js
+
+.PHONY: test
+test:
+	# TODO:
+	#   - find tests
+	#   - add to ci
+	./scripts/distro/rke2/distro-test.sh
 
 .PHONY: kurl-util-image
 kurl-util-image:
