@@ -20,6 +20,7 @@ func Healthz(w http.ResponseWriter, r *http.Request) {
 	pending, running, timedOut, err := testinstance.GetTestStats()
 	if err != nil {
 		fmt.Printf("error getting test stats: %s", err)
+		JSON(w, 500, healthzResponse)
 		return // being unable to get test stats indicates unhealthiness
 	}
 
