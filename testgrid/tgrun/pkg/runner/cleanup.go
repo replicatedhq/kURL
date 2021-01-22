@@ -35,8 +35,8 @@ func CleanUpVMIs() error {
 			}
 		}
 
-		// cleanup VMIs that have been running for more than two hours
-		if vmi.Status.Phase == kubevirtv1.Running && time.Since(vmi.CreationTimestamp.Time).Minutes() > 120 {
+		// cleanup VMIs that have been running for more than one hour - the in-script timeout is 30m
+		if vmi.Status.Phase == kubevirtv1.Running && time.Since(vmi.CreationTimestamp.Time).Minutes() > 60 {
 			err := virtClient.VirtualMachineInstance(Namespace).Delete(vmi.Name, &metav1.DeleteOptions{})
 			if err != nil {
 				fmt.Printf("Failed to delete long-running vmi %s: %v\n", vmi.Name, err)
