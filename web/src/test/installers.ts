@@ -794,7 +794,6 @@ spec:
       expect(out[17]).to.equal("1.17.13");
       expect(out[18]).to.equal("1.18.10");
       expect(out[19]).to.equal("1.19.7");
-      expect(out[20]).to.equal("1.20.2");
     });
   });
 
