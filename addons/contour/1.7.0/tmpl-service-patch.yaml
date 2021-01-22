@@ -7,6 +7,6 @@ spec:
   type: NodePort
   ports:
   - port: 80
-    nodePort: 80
+    nodePort: $CONTOUR_HTTP_PORT
   - port: 443
-    nodePort: 443
+    nodePort: $CONTOUR_HTTPS_PORT

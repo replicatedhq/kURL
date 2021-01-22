@@ -16,7 +16,9 @@ func init() {
 					Version: "2.6.4",
 				},
 				Contour: &kurlv1beta1.Contour{
-					Version: "1.7.0",
+					Version:   "1.11.0",
+					HTTPPort:  8080,
+					HTTPSPort: 8443,
 				},
 				Containerd: &kurlv1beta1.Containerd{
 					Version: "1.3.7",

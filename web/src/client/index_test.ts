@@ -200,6 +200,16 @@ spec:
     noProxy: false
 `;
 
+const contour = `
+spec:
+  kubernetes:
+    version: latest
+  contour:
+    version: latest
+    httpPort: 3080
+    httpsPort: 3443
+`;
+
 const overrideUnknownVersion = `
 spec:
   kubernetes:
@@ -574,6 +584,14 @@ describe("GET /<installerID>", () => {
       expect(script).to.have.string("registry.internal");
       expect(script).to.have.string("10.128.0.44");
       expect(script).to.have.string("noProxy: false");
+    });
+  });
+
+  describe("contour", () => {
+    it(`should return 201 "https://kurl.sh/ee30416"`, async () => {
+      const uri = await client.postInstaller(contour);
+
+      expect(uri).to.match(/ee30416/);
     });
   });
 
