@@ -1,0 +1,9 @@
+GITHUB_BASE_REF=master
+GITHUB_REF=3/3/test
+GITHUB_SHA="1234567890"
+
+
+# From GH Action Defition
+AWS_ACCESS_KEY_ID="hello"
+AWS_SECRET_ACCESS_KEY="world"
+S3_BUCKET="test"

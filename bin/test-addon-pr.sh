@@ -3,7 +3,7 @@
 # - will only run the latest version of an addon if there are multiple version changes (latest is simple dictionary sort :/ )
 # - will each addon change as a separate testgrid run. Testing two addon updates simultaneously is not supported.
 
-set -eo pipefail
+# set -eo pipefail
 
 function require() {
    if [ -z "$2" ]; then
@@ -103,8 +103,8 @@ test_addon() {
 
   # Substitute
   local dist="https://${S3_BUCKET}.s3.amazonaws.com/pr/${PR_NUMBER}-${GITHUB_SHA:0:7}-${name}-${version}.tar.gz"
-  sed -i "s/__testver__/$version/g" $test_spec
-  sed -i "s/__testdist__/$dist/g" $test_spec
+  sed -i "s#__testver__#${version}#g" $test_spec
+  sed -i "s#__testdist__#${dist}#g" $test_spec
 
   # Run testgrid plan
   ./testgrid/tgrun/bin/tgrun queue --staging --ref "pr-${PR_NUMBER}-${GITHUB_SHA:0:7}-${name}-${version}" --spec "$(cat $test_spec)"
