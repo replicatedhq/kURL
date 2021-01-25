@@ -109,19 +109,23 @@ test_addon() {
   # Run testgrid plan
   ./testgrid/tgrun/bin/tgrun queue --staging --ref "pr-${PR_NUMBER}-${GITHUB_SHA:0:7}-${name}-${version}" --spec "$(cat $test_spec)"
   echo "Submitted TestGrid Ref pr-${PR_NUMBER}-${GITHUB_SHA:0:7}-${name}-${version}"
+  MSG="$MSG https://testgrid.kurl.sh/run/pr-${PR_NUMBER}-${GITHUB_SHA:0:7}-${name}-${version}"
 }
 
+MSG="Testgrid Run(s) Executing @ "
 run() {
   echo "Test PR#${PR_NUMBER}..."
 
   # Take the base branch and figure out which addons changed. Verify each.
   for addon in $(git diff --dirstat=files,0 "origin/${GITHUB_BASE_REF}" -- addons/ "origin/${GITHUB_BASE_REF}" -- addons/ | sed 's/^[ 0-9.]\+% addons\///g' | grep -v template | cut -f -1 -d"/" | uniq ) 
   do
-    if [ !" $ADDON_DENY_LIST " =~ .*\ $addon\ .*  ]; then
+    if ! [[ " $ADDON_DENY_LIST " =~ .*\ $addon\ .* ]]; then
       run_addon $addon
     fi
   done
 
+  
+  echo "::set-output name=msg::${MSG}"   
   echo "Run completed."
 }
 
