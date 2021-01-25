@@ -61,6 +61,7 @@ function addon_pre_init() {
         if [ -n "$s3Override" ]; then
             addon_fetch "$s3Override"
         elif [ -n "$DIST_URL" ]; then
+            rm -rf $DIR/addons/$name/$version                   # Cleanup broken/ incompatible addons from failed runs
             addon_fetch "$DIST_URL/$name-$version.tar.gz"
         fi
     fi
@@ -85,6 +86,7 @@ function addon_join() {
         if [ -n "$s3Override" ]; then
             addon_fetch "$s3Override"
         elif [ -n "$DIST_URL" ]; then
+            rm -rf $DIR/addons/$name/$version                   # Cleanup broken/ incompatible addons from failed runs
             addon_fetch "$DIST_URL/$name-$version.tar.gz"
         fi
     fi
