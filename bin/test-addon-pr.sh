@@ -38,7 +38,7 @@ check() {
   # Take the base branch and figure out which addons changed. Verify each.
   for addon in $(git diff --dirstat=files,0 "origin/${GITHUB_BASE_REF}" -- addons/ "origin/${GITHUB_BASE_REF}" -- addons/ | sed 's/^[ 0-9.]\+% addons\///g' | grep -v template | cut -f -1 -d"/" | uniq ) 
   do
-    if [ ! " $ADDON_DENY_LIST " =~ .*\ $addon\ .*  ]; then
+    if ! [[ " $ADDON_DENY_LIST " =~ .*\ $addon\ .* ]]; then
       check_addon $addon
     fi
   done
