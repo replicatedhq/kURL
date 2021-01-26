@@ -20,6 +20,9 @@ DIR=.
 . $DIR/scripts/common/proxy.sh
 . $DIR/scripts/common/rook.sh
 . $DIR/scripts/common/yaml.sh
+. $DIR/scripts/distro/interface.sh
+. $DIR/scripts/distro/kubeadm/distro.sh
+. $DIR/scripts/distro/rke2/distro.sh
 # Magic end
 
 maybe_upgrade() {
