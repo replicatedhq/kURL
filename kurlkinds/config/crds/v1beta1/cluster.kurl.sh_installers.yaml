@@ -303,6 +303,13 @@ spec:
               required:
               - version
               type: object
+            rke2:
+              properties:
+                version:
+                  type: string
+              required:
+              - version
+              type: object
             rook:
               properties:
                 blockDeviceFilter:
