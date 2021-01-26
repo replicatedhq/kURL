@@ -91,6 +91,8 @@ function outro() {
     printf "\n"
 }
 
+K8S_DISTRO=kubeadm
+
 function main() {
     export KUBECONFIG=/etc/kubernetes/admin.conf
     require_root_user
