@@ -20,6 +20,7 @@ function openebs() {
     render_yaml_file "$src/tmpl-kustomization.yaml" > "$dst/kustomization.yaml"
     render_yaml_file "$src/tmpl-namespace.yaml" > "$dst/namespace.yaml"
     cp "$src/operator.yaml" "$dst/"
+    cp "$src/snapshot-operator.yaml" "$dst/"
 
     # Identify if upgrade batch jobs are needed and apply them.
     openebs_upgrade

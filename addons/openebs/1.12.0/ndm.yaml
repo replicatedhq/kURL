@@ -64,9 +64,9 @@ spec:
       containers:
       - name: node-disk-manager
         image: openebs/node-disk-manager:0.7.0
+        imagePullPolicy: IfNotPresent
         args:
           - -v=4
-        imagePullPolicy: IfNotPresent
         securityContext:
           privileged: true
         volumeMounts:
