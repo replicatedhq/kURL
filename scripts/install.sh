@@ -353,24 +353,28 @@ function outro() {
     fi
 }
 
+K8S_DISTRO=kubeadm
+
 function main() {
-
-    # ALPHA FLAGS
-    if [ "$K8S_DISTRO" = "rke2" ]; then
-        rke_main "$@"
-        exit 0
-    fi
-
-    export KUBECONFIG=/etc/kubernetes/admin.conf
     require_root_user
     get_patch_yaml "$@"
     yaml_airgap
     proxy_bootstrap
     download_util_binaries
     merge_yaml_specs
-    is_ha
     apply_bash_flag_overrides "$@"
     parse_yaml_into_bash_variables
+
+    # ALPHA FLAGS
+    if [ -n "$RKE2_VERSION" ]; then
+        K8S_DISTRO=rke2
+        rke_main "$@"
+        exit 0
+    fi
+
+    export KUBECONFIG=/etc/kubernetes/admin.conf
+
+    is_ha
     parse_kubernetes_target_version
     discover full-cluster
     report_install_start

@@ -22,6 +22,7 @@ import (
 
 type InstallerSpec struct {
 	Kubernetes      Kubernetes      `json:"kubernetes,omitempty"`
+	RKE2            RKE2            `json:"rke2,omitempty"`
 	Docker          Docker          `json:"docker,omitempty"`
 	Weave           Weave           `json:"weave,omitempty"`
 	Calico          Calico          `json:"calico,omitempty"`
@@ -133,6 +134,10 @@ type Registry struct {
 	PublishPort int    `json:"publishPort,omitempty" yaml:"publishPort,omitempty"`
 	S3Override  string `json:"s3Override,omitempty" yaml:"s3Override,omitempty"`
 	Version     string `json:"version" yaml:"version"`
+}
+
+type RKE2 struct {
+	Version string `json:"version" yaml:"version"`
 }
 
 type Rook struct {

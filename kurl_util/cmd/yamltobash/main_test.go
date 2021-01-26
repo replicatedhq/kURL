@@ -161,6 +161,16 @@ func Test_convertToBash(t *testing.T) {
 				"HARD_FAIL_ON_LOOPBACK": "1",
 			},
 		},
+		{
+			name: "RKE2.Version",
+			inputMap: map[string]interface{}{
+				"RKE2.Version": "v1.19.7+rke2r1",
+			},
+			wantedMap: map[string]string{
+				"RKE2_VERSION": "\"v1.19.7+rke2r1\"",
+			},
+			wantError: false,
+		},
 	}
 
 	for _, test := range tests {
