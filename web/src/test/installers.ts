@@ -598,18 +598,6 @@ spec:
       });
     });
 
-    describe("invalid RKE2 versions", () => {
-      it("=> ErrorResponse", () => {
-        const badRKE2 = `
-spec:
-  rke2:
-    version: "0.15.3"
-`;
-        const badK8sOut = Installer.parse(badRKE2).validate();
-        expect(badK8sOut).to.deep.equal({ error: { message: "RKE2 version 0.15.3 is not supported" } });
-      });
-    });
-
     describe("both Kubernetes and RKE2", () => {
       it("=> ErrorResponse", () => {
         const bad = `
