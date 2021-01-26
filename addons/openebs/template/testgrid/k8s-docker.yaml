@@ -1,0 +1,11 @@
+kubernetes:
+  version: "latest"
+weave:
+  version: "latest"
+docker:
+  version: "latest"
+minio:
+  version: "latest"
+openebs:
+  version: "__testver__"
+  s3Override: "__testdist__"

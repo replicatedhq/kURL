@@ -1,0 +1,9 @@
+kubernetes:
+  version: "latest"
+weave:
+  version: "latest"
+docker:
+  version: "latest"
+collectd:
+  version: "__testver__"
+  s3Override: "__testdist__"
