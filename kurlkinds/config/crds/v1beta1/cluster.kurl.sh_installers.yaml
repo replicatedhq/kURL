@@ -255,6 +255,8 @@ spec:
               type: object
             minio:
               properties:
+                hostPath:
+                  type: string
                 namespace:
                   type: string
                 s3Override:

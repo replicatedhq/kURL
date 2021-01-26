@@ -184,6 +184,7 @@ export interface MinioConfig {
   version: string;
   s3Override?: string;
   namespace?: string;
+  hostPath?: string;
 }
 
 export const minioConfigSchema = {
@@ -192,6 +193,7 @@ export const minioConfigSchema = {
     version: { type: "string" },
     s3Override: { type: "string", flag: "s3-override", description: "Override the download location for addon package distribution (used for CI/CD testing alpha addons)" },
     namespace: { type: "string", flag: "minio-namespace", description: "The namespace Minio is installed to" },
+    hostPath: { type: "string", flag: "minio-hostpath", description: "Configure the minio deployment to use a local hostPath for storing data." },
   },
   required: ["version"],
   additionalProperties: false,
