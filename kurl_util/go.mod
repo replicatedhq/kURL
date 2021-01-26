@@ -20,5 +20,5 @@ require (
 
 replace (
 	github.com/replicatedhq/kurl/ => ../
-	github.com/replicatedhq/kurl/kurlkinds => ../kurlkinds/
+	github.com/replicatedhq/kurl/kurlkinds/ => ../kurlkinds/
 )
