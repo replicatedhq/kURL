@@ -672,6 +672,7 @@ function rke_outro() {
 }
 
 function rke_main() {
+    INSTALL_RKE2_VERSION="${RKE2_VERSION}"
 
     # Alpha Checks for RKE2
     if [ "$AIRGAP" = "1" ]; then
@@ -686,16 +687,8 @@ function rke_main() {
     rke_preamble  
 
     # RKE Begin
-    require_root_user
-    get_patch_yaml "$@"
-    yaml_airgap
-    proxy_bootstrap
-    download_util_binaries
-    merge_yaml_specs
-    is_ha                               # TODO(dan): Uses Kubectl
-    apply_bash_flag_overrides "$@"
-    parse_yaml_into_bash_variables
-    parse_kubernetes_target_version     # TODO(dan): Version only makes sense for kuberntees
+
+    # parse_kubernetes_target_version   # TODO(dan): Version only makes sense for kuberntees
     discover full-cluster               # TODO(dan): looks for docker and kubernetes, shouldn't hurt
     # report_install_start              # TODO(dan) remove reporting for now.
     # trap prek8s_ctrl_c SIGINT # trap ctrl+c (SIGINT) and handle it by reporting that the user exited intentionally # TODO(dan) remove reporting for now.

@@ -52,6 +52,17 @@ export const kubernetesConfigSchema = {
   additionalProperties: false,
 };
 
+export interface RKE2Config {
+  version: string;
+}
+
+export const rke2ConfigSchema = {
+  type: "object",
+  properties: {
+    version: { type: "string" },
+  },
+}
+
 export interface DockerConfig {
   version: string;
   s3Override?: string;
@@ -510,6 +521,7 @@ export const selinuxConfigSchema = {
 
 export interface InstallerSpec {
   kubernetes: KubernetesConfig;
+  rke2?: RKE2Config;
   docker?: DockerConfig;
   weave?: WeaveConfig;
   calico?: CalicoConfig;
@@ -538,6 +550,7 @@ const specSchema = {
   properties: {
     // order here determines order in rendered yaml
     kubernetes: kubernetesConfigSchema,
+    rke2: rke2ConfigSchema,
     docker: dockerConfigSchema,
     weave: weaveConfigSchema,
     calico: calicoConfigSchema,
@@ -560,7 +573,6 @@ const specSchema = {
     iptablesConfig: iptablesConfigSchema,
     selinuxConfig: selinuxConfigSchema,
   },
-  required: ["kubernetes"],
   additionalProperites: false,
 };
 
@@ -593,6 +605,9 @@ export class Installer {
       "1.15.2",
       "1.15.1",
       "1.15.0",
+    ],
+    rke2: [
+      "v1.19.7+rke2r1",
     ],
     docker: [
       "19.03.10",
@@ -1027,14 +1042,17 @@ export class Installer {
   }
 
   public toObject(): InstallerObject {
-    const obj = {
+    const obj: InstallerObject = {
       apiVersion: "cluster.kurl.sh/v1beta1",
       kind: "Installer",
       metadata: {
         name: `${this.id}`,
       },
-      spec: { kubernetes: _.cloneDeep(this.spec.kubernetes) },
+      spec: {} as InstallerSpec,
     };
+    if (this.spec.kubernetes) {
+      obj.spec.kubernetes = _.cloneDeep(this.spec.kubernetes);
+    }
 
     // add spec properties in order they should be rendered in yaml
     _.each(specSchema.properties, (val, key) => {
@@ -1059,8 +1077,13 @@ export class Installer {
   }
 
   public validate(): ErrorResponse|undefined {
-    if (!this.spec || !this.spec.kubernetes || !this.spec.kubernetes.version) {
-        return { error: { message: "Kubernetes version is required" } };
+    if (!this.spec ||
+      (
+        (!this.spec.kubernetes || !this.spec.kubernetes.version) &&
+        (!this.spec.rke2 || !this.spec.rke2.version)
+      )
+    ) {
+      return { error: { message: "Kubernetes version is required" } };
     }
 
     const ajv = new AJV();
@@ -1073,11 +1096,21 @@ export class Installer {
       return { error: { message } };
     }
 
-    if (!Installer.hasVersion("kubernetes", this.spec.kubernetes.version) && !this.hasS3Override("kubernetes")) {
-      return { error: { message: `Kubernetes version ${_.escape(this.spec.kubernetes.version)} is not supported` } };
+    if (this.spec.kubernetes) {
+      if (!Installer.hasVersion("kubernetes", this.spec.kubernetes.version) && !this.hasS3Override("kubernetes")) {
+        return { error: { message: `Kubernetes version ${_.escape(this.spec.kubernetes.version)} is not supported` } };
+      }
+      if (this.spec.kubernetes.serviceCidrRange && !Installer.isValidCidrRange(this.spec.kubernetes.serviceCidrRange)) {
+        return { error: { message: `Kubernetes serviceCidrRange "${_.escape(this.spec.kubernetes.serviceCidrRange)}" is invalid` } };
+      }
     }
-    if (this.spec.kubernetes.serviceCidrRange && !Installer.isValidCidrRange(this.spec.kubernetes.serviceCidrRange)) {
-      return { error: { message: `Kubernetes serviceCidrRange "${_.escape(this.spec.kubernetes.serviceCidrRange)}" is invalid` } };
+    if (this.spec.rke2) {
+      if (!Installer.hasVersion("rke2", this.spec.rke2.version) && !this.hasS3Override("rke2")) {
+        return { error: { message: `RKE2 version ${_.escape(this.spec.rke2.version)} is not supported` } };
+      }
+    }
+    if (this.spec.kubernetes && this.spec.rke2) {
+      return { error: { message: `This spec contains both kubeadm and rke2, please specifiy only one Kubernetes distribution` } };
     }
     if (this.spec.weave && !Installer.hasVersion("weave", this.spec.weave.version) && !this.hasS3Override("weave")) {
       return { error: { message: `Weave version "${_.escape(this.spec.weave.version)}" is not supported` } };
