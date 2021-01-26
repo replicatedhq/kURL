@@ -25,8 +25,7 @@ function download_util_binaries() {
 
 function apply_bash_flag_overrides() {
     if [ -n "$1" ]; then
-        temp_var="$@"
-        $BIN_BASHTOYAML -c $MERGED_YAML_SPEC -f "$temp_var"
+        $BIN_BASHTOYAML -c $MERGED_YAML_SPEC -f "$*"
     fi
 }
 
