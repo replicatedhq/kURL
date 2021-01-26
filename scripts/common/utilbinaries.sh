@@ -25,7 +25,7 @@ function download_util_binaries() {
 
 function apply_bash_flag_overrides() {
     if [ -n "$1" ]; then
-        $BIN_BASHTOYAML -c $MERGED_YAML_SPEC -f "$@"
+        $BIN_BASHTOYAML -c $MERGED_YAML_SPEC -f "$*"
     fi
 }
 
