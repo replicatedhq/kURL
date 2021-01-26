@@ -24,14 +24,8 @@ function download_util_binaries() {
 }
 
 function apply_bash_flag_overrides() {
-    if [ -n "$1" ] || [ -n "$IS_CURRENTLY_HA" ]; then
-        temp_var="$@"
-        
-        if [ -n "$IS_CURRENTLY_HA" ]; then
-            temp_var="$temp_var ha" #this might end up duplicating the 'ha' flag, but our parsing doesn't care about duplicates
-        fi
-
-        $BIN_BASHTOYAML -c $MERGED_YAML_SPEC -f "$temp_var"
+    if [ -n "$1" ]; then
+        $BIN_BASHTOYAML -c $MERGED_YAML_SPEC -f "$@"
     fi
 }
 
@@ -244,6 +238,6 @@ function apply_iptables_config() {
 function is_ha() {
     local master_count=$(kubectl get node --selector='node-role.kubernetes.io/master' 2>/dev/null | grep 'master' | wc -l) #get nodes with the 'master' role, and then search for 'master' to remove the column labels row
     if [ "$master_count" -gt 1 ]; then
-        IS_CURRENTLY_HA="true"
+        HA_CLUSTER=1
     fi
 }

@@ -17,10 +17,14 @@ DIR=.
 . $DIR/scripts/common/prompts.sh
 . $DIR/scripts/common/proxy.sh
 . $DIR/scripts/common/rook.sh
+. $DIR/scripts/common/rke2.sh
 . $DIR/scripts/common/upgrade.sh
 . $DIR/scripts/common/utilbinaries.sh
 . $DIR/scripts/common/yaml.sh
 . $DIR/scripts/common/reporting.sh
+. $DIR/scripts/distro/interface.sh
+. $DIR/scripts/distro/kubeadm/distro.sh
+. $DIR/scripts/distro/rke2/distro.sh
 # Magic end
 
 function configure_coredns() {
@@ -154,7 +158,7 @@ EOF
     exportKubeconfig
     KUBEADM_TOKEN_CA_HASH=$(cat /tmp/kubeadm-init | grep 'discovery-token-ca-cert-hash' | awk '{ print $2 }' | head -1)
 
-    waitForNodes
+    wait_for_nodes
     enable_rook_ceph_operator
 
     DID_INIT_KUBERNETES=1
@@ -349,17 +353,28 @@ function outro() {
     fi
 }
 
+K8S_DISTRO=kubeadm
+
 function main() {
-    export KUBECONFIG=/etc/kubernetes/admin.conf
     require_root_user
     get_patch_yaml "$@"
     yaml_airgap
     proxy_bootstrap
     download_util_binaries
     merge_yaml_specs
-    is_ha
     apply_bash_flag_overrides "$@"
     parse_yaml_into_bash_variables
+
+    # ALPHA FLAGS
+    if [ -n "$RKE2_VERSION" ]; then
+        K8S_DISTRO=rke2
+        rke_main "$@"
+        exit 0
+    fi
+
+    export KUBECONFIG=/etc/kubernetes/admin.conf
+
+    is_ha
     parse_kubernetes_target_version
     discover full-cluster
     report_install_start

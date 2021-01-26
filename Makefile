@@ -182,7 +182,8 @@ build/templates/install.tmpl: build/install.sh
 		sed 's/^STEP_VERSIONS=.*/STEP_VERSIONS={{= STEP_VERSIONS }}/' | \
 		sed 's/^INSTALLER_YAML=.*/INSTALLER_YAML="{{= INSTALLER_YAML }}"/' | \
 		sed 's/^KURL_UTIL_IMAGE=.*/KURL_UTIL_IMAGE="{{= KURL_UTIL_IMAGE }}"/' | \
-		sed 's/^KURL_BIN_UTILS_FILE=.*/KURL_BIN_UTILS_FILE="{{= KURL_BIN_UTILS_FILE }}"/' \
+		sed 's/^KURL_BIN_UTILS_FILE=.*/KURL_BIN_UTILS_FILE="{{= KURL_BIN_UTILS_FILE }}"/' | \
+		sed 's/^DISABLE_REPORTING=.*//' \
 		> build/templates/install.tmpl
 
 build/join.sh:
@@ -204,7 +205,8 @@ build/templates/join.tmpl: build/join.sh
 		sed 's/^STEP_VERSIONS=.*/STEP_VERSIONS={{= STEP_VERSIONS }}/' | \
 		sed 's/^INSTALLER_YAML=.*/INSTALLER_YAML="{{= INSTALLER_YAML }}"/' | \
 		sed 's/^KURL_UTIL_IMAGE=.*/KURL_UTIL_IMAGE="{{= KURL_UTIL_IMAGE }}"/' | \
-		sed 's/^KURL_BIN_UTILS_FILE=.*/KURL_BIN_UTILS_FILE="{{= KURL_BIN_UTILS_FILE }}"/' \
+		sed 's/^KURL_BIN_UTILS_FILE=.*/KURL_BIN_UTILS_FILE="{{= KURL_BIN_UTILS_FILE }}"/' | \
+		sed 's/^DISABLE_REPORTING=.*//' \
 		> build/templates/join.tmpl
 
 build/upgrade.sh:
@@ -226,7 +228,8 @@ build/templates/upgrade.tmpl: build/upgrade.sh
 		sed 's/^STEP_VERSIONS=.*/STEP_VERSIONS={{= STEP_VERSIONS }}/' | \
 		sed 's/^INSTALLER_YAML=.*/INSTALLER_YAML="{{= INSTALLER_YAML }}"/' | \
 		sed 's/^KURL_UTIL_IMAGE=.*/KURL_UTIL_IMAGE="{{= KURL_UTIL_IMAGE }}"/' | \
-		sed 's/^KURL_BIN_UTILS_FILE=.*/KURL_BIN_UTILS_FILE="{{= KURL_BIN_UTILS_FILE }}"/' \
+		sed 's/^KURL_BIN_UTILS_FILE=.*/KURL_BIN_UTILS_FILE="{{= KURL_BIN_UTILS_FILE }}"/' | \
+		sed 's/^DISABLE_REPORTING=.*//' \
 		> build/templates/upgrade.tmpl
 
 build/tasks.sh:
@@ -388,6 +391,13 @@ web: build/templates build/bin/server
 
 watchrsync:
 	bin/watchrsync.js
+
+.PHONY: test
+test:
+	# TODO:
+	#   - find tests
+	#   - add to ci
+	./scripts/distro/rke2/distro-test.sh
 
 .PHONY: kurl-util-image
 kurl-util-image:

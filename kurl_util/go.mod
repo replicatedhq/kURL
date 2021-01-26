@@ -18,4 +18,7 @@ require (
 	k8s.io/client-go v0.18.3
 )
 
-replace github.com/replicatedhq/kurl/ => ../
+replace (
+	github.com/replicatedhq/kurl/ => ../
+	github.com/replicatedhq/kurl/kurlkinds => ../kurlkinds/
+)

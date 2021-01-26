@@ -86,7 +86,7 @@ function kotsadm_outro() {
 
     printf "\n"
     printf "\n"
-    printf "Kotsadm: ${GREEN}http://$KOTSADM_HOSTNAME:8800${NC}\n"
+    printf "Kotsadm: ${GREEN}http://$KOTSADM_HOSTNAME:${KOTSADM_UI_BIND_PORT}${NC}\n"
 
     if [ -n "$KOTSADM_PASSWORD" ]; then
         printf "Login with password (will not be shown again): ${GREEN}$KOTSADM_PASSWORD${NC}\n"
@@ -306,9 +306,9 @@ function kotsadm_kubelet_client_secret() {
     fi
 
     kubectl -n default create secret generic kubelet-client-cert \
-        --from-file=client.crt=/etc/kubernetes/pki/apiserver-kubelet-client.crt \
-        --from-file=client.key=/etc/kubernetes/pki/apiserver-kubelet-client.key \
-        --from-file=/etc/kubernetes/pki/ca.crt
+        --from-file=client.crt="$(${K8S_DISTRO}_get_client_kube_apiserver_crt)" \
+        --from-file=client.key="$(${K8S_DISTRO}_get_client_kube_apiserver_key)" \
+        --from-file="$(${K8S_DISTRO}_get_server_ca)"
 }
 
 function kotsadm_cli() {
@@ -400,18 +400,15 @@ function kotsadm_cacerts_file() {
     # Find the cacerts bundle on the host
     # if it exists, add a patch to add the volume mount to kotsadm
 
-    # See https://github.com/golang/go/blob/23173fc025f769aaa9e19f10aa0f69c851ca2f3b/src/crypto/x509/root_linux.go
-    # CentOS 6/7, RHEL 7
-    # Fedora/RHEL 6 (this is a link on Centos 6/7)
-    # OpenSUSE
-    # OpenELEC
-    # Debian/Ubuntu/Gentoo etc. This is where OpenSSL will look. It's moved to the bottom because this exists as a link on some other platforms
+    # See https://github.com/golang/go/blob/ec4051763d439e7108bc673dd0b1bf1cbbc5dfc5/src/crypto/x509/root_linux.go
+    # TODO(dan): need to test this re-ordering
     set \
-        "/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem" \
-        "/etc/pki/tls/certs/ca-bundle.crt" \
-        "/etc/ssl/ca-bundle.pem" \
-        "/etc/pki/tls/cacert.pem" \
-        "/etc/ssl/certs/ca-certificates.crt"
+        "/etc/ssl/certs/ca-certificates.crt" \                  # Debian/Ubuntu/Gentoo etc.
+        "/etc/pki/tls/certs/ca-bundle.crt" \                    # Fedora/RHEL 6
+        "/etc/ssl/ca-bundle.pem" \                              # OpenSUSE
+        "/etc/pki/tls/cacert.pem" \                             # OpenELEC
+        "/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem" \   # CentOS/RHEL 7
+        "/etc/ssl/cert.pem"                                     # Alpine Linux
 
     for cert_file do
         if [ -f "$cert_file" ]; then
