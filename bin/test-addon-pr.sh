@@ -59,11 +59,13 @@ check_addon() {
   # Get the version that's changed (filter out templates)
   local version=$(git diff --dirstat=files,0 "origin/${GITHUB_BASE_REF}" -- "addons/${name}" "origin/${GITHUB_BASE_REF}" -- "addons/${name}" | sed 's/^[ 0-9.]\+% addons\///g' | grep -v template | cut -f2 -d"/" | uniq |  sort -r | head -n 1)
 
-  # check if there is a valid version (files in the root don't count)
-  if [ -n "${version}" ]; then
+  # check if there is a valid version (files in the root don't count) & template files 
+  shopt -s nullglob
+  if [ -n "${version}" ] && compgen -G "./addons/$name/template/testgrid/*.yaml" > /dev/null; then
     ADDON_AVAILBLE=true
     echo "Found Modified Addon: $name-$version"
-  fi
+  fi      
+  shopt -u nullglob     
 }
 
 run_addon() {
@@ -89,7 +91,8 @@ run_addon() {
     for test_spec in ./addons/$name/template/testgrid/*.yaml;
     do
       test_addon $name $version $test_spec
-    done     
+    done
+    shopt -u nullglob     
   fi
 }
 
