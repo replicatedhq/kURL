@@ -56,4 +56,6 @@ This can be done with
 
 6. Creation of PR
 
-???
+The `test-addon-pr` github action will initiate a testgrid run against the templated spec(s) in `./template/testgrid` when this addon version is updated or created. 
+This spec should use `__testver___` and `__testdist__` as substitution parameters for the this addon.
+Currently cross-addon PR testing is not supported.
