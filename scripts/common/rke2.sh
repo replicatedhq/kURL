@@ -458,10 +458,10 @@ function rke2_install_host_packages() {
 function rke2_get_host_packages_online() {
     local rke2_version="$1"
 
-    curl -sSLO "$DIST_URL/rke2-${rke2_version}.tar.gz"
+    curl -sSLO "$DIST_URL/rke-2-${rke2_version}.tar.gz"
     rm -rf $DIR/packages/rke2/${rke2_version} # Cleanup broken/incompatible packages from failed runs
-    tar xf rke2-${rke2_version}.tar.gz
-    rm rke2-${rke2_version}.tar.gz
+    tar xf rke-2-${rke2_version}.tar.gz
+    rm rke-2-${rke2_version}.tar.gz
 }
 
 function rke2_load_images() {

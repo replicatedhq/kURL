@@ -163,13 +163,13 @@ build/packages/kubernetes/%/images:
 	mkdir -p build/packages/kubernetes/$*/images
 	bin/save-manifest-assets.sh packages/kubernetes/$*/Manifest build/packages/kubernetes/$*
 
-dist/rke2-%.tar.gz:
+dist/rke-2-%.tar.gz:
 	${MAKE} build/packages/rke2/$*/images
 	${MAKE} build/packages/rke2/$*/rhel-7
 	${MAKE} build/packages/rke2/$*/rhel-8
 	cp packages/rke2/$*/Manifest build/packages/rke2/$*/
 	mkdir -p dist
-	tar cf - -C build packages/rke2/$* | gzip > dist/rke2-$*.tar.gz
+	tar cf - -C build packages/rke2/$* | gzip > dist/rke-2-$*.tar.gz
 
 build/packages/rke2/%/images:
 	mkdir -p build/packages/rke2/$*/images
