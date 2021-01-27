@@ -526,10 +526,10 @@ rke_install() {
     # https://github.com/kubernetes-sigs/cri-tools/blob/master/docs/crictl.md
     # VERSION="v1.20.0"
     # curl -L https://github.com/kubernetes-sigs/cri-tools/releases/download/$VERSION/crictl-${VERSION}-linux-amd64.tar.gz --output crictl-${VERSION}-linux-amd64.tar.gz
-    # sudo tar zxvf crictl-$VERSION-linux-amd64.tar.gz -C /usr/local/bin
+    # tar zxvf crictl-$VERSION-linux-amd64.tar.gz -C /usr/local/bin
     # rm -f crictl-$VERSION-linux-amd64.tar.gz
     #
-    # sudo tee -a /etc/crictl.yaml > /dev/null <<EOT
+    # tee -a /etc/crictl.yaml > /dev/null <<EOT
     # runtime-endpoint: unix:///run/k3s/containerd/containerd.sock
     # image-endpoint: unix:///run/k3s/containerd/containerd.sock
     # EOT
