@@ -436,11 +436,11 @@ function rke2_install_host_packages() {
         centos|rhel|amzn)
             case "$LSB_DIST$DIST_VERSION_MAJOR" in
                 rhel8|centos8)
-                    rpm --upgrade --force --nodeps $DIR/packages/rke2/${rke2_version}/rhel-8/*.rpm
+                    rpm --upgrade --force --nodeps $DIR/packages/rke-2/${rke2_version}/rhel-8/*.rpm
                     ;;
 
                 *)
-                    rpm --upgrade --force --nodeps $DIR/packages/rke2/${rke2_version}/rhel-7/*.rpm
+                    rpm --upgrade --force --nodeps $DIR/packages/rke-2/${rke2_version}/rhel-7/*.rpm
                     ;;
             esac
         ;;
@@ -459,7 +459,7 @@ function rke2_get_host_packages_online() {
     local rke2_version="$1"
 
     curl -sSLO "$DIST_URL/rke-2-${rke2_version}.tar.gz"
-    rm -rf $DIR/packages/rke2/${rke2_version} # Cleanup broken/incompatible packages from failed runs
+    rm -rf $DIR/packages/rke-2/${rke2_version} # Cleanup broken/incompatible packages from failed runs
     tar xf rke-2-${rke2_version}.tar.gz
     rm rke-2-${rke2_version}.tar.gz
 }
@@ -468,5 +468,5 @@ function rke2_load_images() {
     local rke2_version="$1"
 
     mkdir -p /var/lib/rancher/rke2/agent/images
-    tar xzf $DIR/packages/rke2/${rke2_version}/assets/rke2-images.linux-amd64.tar.gz -C /var/lib/rancher/rke2/agent/images/
+    tar xzf $DIR/packages/rke-2/${rke2_version}/assets/rke2-images.linux-amd64.tar.gz -C /var/lib/rancher/rke2/agent/images/
 }
