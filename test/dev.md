@@ -11,7 +11,7 @@ We welcome contributions to kURL. We appreciate your time and help.
     make build/packages/kubernetes/1.19.3/ubuntu-18.04
     make build/packages/docker/19.03.10/ubuntu-18.04
     ```
-    *For packages that have already been released, you can save time by running `curl -L https://kurl.sh/dist/kubernetes-1.19.3.tar.gz | tar xzvf -` and `curl -L https://kurl.sh/dist/docker-19.03.10.tar.gz | tar xzvf -` on the test server.*
+    *For packages that have already been released, you can save time by running `curl -L https://kurl.sh/dist/kubernetes-1.19.7.tar.gz | tar xzvf -` and `curl -L https://kurl.sh/dist/docker-19.03.10.tar.gz | tar xzvf -` on the test server.*
     *NOTE: if using `containerd` building docker packages is not necessary. Instead to build packages run `make dist/containerd-1.4.3.tar.gz && tar xzvf dist/containerd-1.4.3.tar.gz` or to download already built packages `curl -L https://k8s.kurl.sh/dist/containerd-1.4.3.tar.gz | tar xzvf -`*<br>
 1. Rsync local packages to remote test server.
     ```bash

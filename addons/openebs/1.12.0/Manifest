@@ -11,6 +11,8 @@ image node-disk-operator openebs/node-disk-operator:0.7.0
 image openebs-k8s-provisioner openebs/openebs-k8s-provisioner:1.12.0
 image provisioner-localpv openebs/provisioner-localpv:1.12.0
 image m-upgrade openebs/m-upgrade:1.12.0
+image snapshot-controller openebs/snapshot-controller:1.12.0
+image snapshot-provisioner openebs/snapshot-provisioner:1.12.0
 
 yum iscsi-initiator-utils
 apt open-iscsi
