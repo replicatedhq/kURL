@@ -507,13 +507,13 @@ rke_install() {
         sleep 2
     done
 
+    # For Kubectl and Rke2 binaries 
+    echo "export PATH=\$PATH:/var/lib/rancher/rke2/bin" | tee -a /etc/profile > /dev/null
+    export PATH=$PATH:/var/lib/rancher/rke2/bin
+    export KUBECONFIG=/etc/rancher/rke2/rke2.yaml   # TODO(dan): move this to exportKubeconfig?
+
     # TODO(dan): moved from init
     exportKubeconfig
-
-    # For Kubectl and Rke2 binaries 
-    echo "export PATH=\$PATH::/var/lib/rancher/rke2/bin/" | sudo tee -a /etc/profile > /dev/null
-    export PATH=$PATH:/var/lib/rancher/rke2/bin/
-    export KUBECONFIG=/etc/rancher/rke2/rke2.yaml   # TODO(dan): move this to exportKubeconfig?
 
     echo "Waiting for Kubernetes"
     wait_for_nodes
