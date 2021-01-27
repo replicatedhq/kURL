@@ -1,326 +1,6 @@
- # Alpha - 2021.01.22
- 
- ######################################################
- # This is a copy of the Rancher install script
- ######################################################
- # COPY BEGINS HERE 
- 
-#  set -e
-
-# if [ "${DEBUG}" = 1 ]; then
-#     set -x
-# fi
-
-# Usage:
-#   curl ... | ENV_VAR=... sh -
-#       or
-#   ENV_VAR=... ./install.sh
-
-
-# Environment variables:
-
-#   - INSTALL_RKE2_CHANNEL
-#     Channel to use for fetching rke2 download URL.
-#     Defaults to 'latest'.
-
-#   - INSTALL_RKE2_METHOD
-#     The installation method to use.
-#     Default is on RPM-based systems is "rpm", all else "tar".
-
-#   - INSTALL_RKE2_TYPE
-#     Type of rke2 service. Can be either "server" or "agent".
-#     Default is "server".
-
-#   - INSTALL_RKE2_VERSION
-#     Version of rke2 to download from github.
-
-#   - INSTALL_RKE2_RPM_RELEASE_VERSION
-#     Version of the rke2 RPM release to install.
-#     Format would be like "1.el7" or "2.el8"
-
-
-
-# info logs the given argument at info log level.
-info() {
-    echo "[INFO] " "$@"
-}
-
-# warn logs the given argument at warn log level.
-warn() {
-    echo "[WARN] " "$@" >&2
-}
-
-# fatal logs the given argument at fatal log level.
-fatal() {
-    echo "[ERROR] " "$@" >&2
-    if [ -n "${SUFFIX}" ]; then
-        echo "[ALT] Please visit 'https://github.com/rancher/rke2/releases' directly and download the latest rke2-installer.${SUFFIX}.run" >&2
-    fi
-    exit 1
-}
-
-# setup_env defines needed environment variables.
-setup_env() {
-    INSTALL_RKE2_GITHUB_URL="https://github.com/rancher/rke2"
-    # --- bail if we are not root ---
-    if [ ! $(id -u) -eq 0 ]; then
-        fatal "You need to be root to perform this install"
-    fi
-
-    # --- make sure install channel has a value
-    if [ -z "${INSTALL_RKE2_CHANNEL}" ]; then
-        INSTALL_RKE2_CHANNEL="stable"
-    fi
-
-    # --- make sure install type has a value
-    if [ -z "${INSTALL_RKE2_TYPE}" ]; then
-        INSTALL_RKE2_TYPE="server"
-    fi
-
-    # --- use yum install method if available by default
-    if [ -z "${INSTALL_RKE2_METHOD}" ] && command -v yum >/dev/null 2>&1; then
-        INSTALL_RKE2_METHOD=yum
-    fi
-}
-
-# setup_arch set arch and suffix,
-# fatal if architecture not supported.
-setup_arch() {
-    case ${ARCH:=$(uname -m)} in
-    amd64)
-        ARCH=amd64
-        SUFFIX=$(uname -s | tr '[:upper:]' '[:lower:]')-${ARCH}
-        ;;
-    x86_64)
-        ARCH=amd64
-        SUFFIX=$(uname -s | tr '[:upper:]' '[:lower:]')-${ARCH}
-        ;;
-    *)
-        fatal "unsupported architecture ${ARCH}"
-        ;;
-    esac
-}
-
-# verify_downloader verifies existence of
-# network downloader executable.
-verify_downloader() {
-    cmd="$(command -v "${1}")"
-    if [ -z "${cmd}" ]; then
-        return 1
-    fi
-    if [ ! -x "${cmd}" ]; then
-        return 1
-    fi
-
-    # Set verified executable as our downloader program and return success
-    DOWNLOADER=${cmd}
-    return 0
-}
-
-# setup_tmp creates a temporary directory
-# and cleans up when done.
-setup_tmp() {
-    TMP_DIR=$(mktemp -d -t rke2-install.XXXXXXXXXX)
-    TMP_CHECKSUMS=${TMP_DIR}/rke2.checksums
-    TMP_TARBALL=${TMP_DIR}/rke2.tarball
-    cleanup() {
-        code=$?
-        set +e
-        trap - EXIT
-        rm -rf "${TMP_DIR}"
-        exit $code
-    }
-    trap cleanup INT EXIT
-}
-
-# --- use desired rke2 version if defined or find version from channel ---
-get_release_version() {
-    if [ -n "${INSTALL_RKE2_COMMIT}" ]; then
-        version="commit ${INSTALL_RKE2_COMMIT}"
-    elif [ -n "${INSTALL_RKE2_VERSION}" ]; then
-        version=${INSTALL_RKE2_VERSION}
-    else
-        info "finding release for channel ${INSTALL_RKE2_CHANNEL}"
-        INSTALL_RKE2_CHANNEL_URL=${INSTALL_RKE2_CHANNEL_URL:-'https://update.rke2.io/v1-release/channels'}
-        version_url="${INSTALL_RKE2_CHANNEL_URL}/${INSTALL_RKE2_CHANNEL}"
-        case ${DOWNLOADER} in
-        *curl)
-            version=$(${DOWNLOADER} -w "%{url_effective}" -L -s -S ${version_url} -o /dev/null | sed -e 's|.*/||')
-            ;;
-        *wget)
-            version=$(${DOWNLOADER} -SqO /dev/null ${version_url} 2>&1 | grep -i Location | sed -e 's|.*/||')
-            ;;
-        *)
-            fatal "Unsupported downloader executable '${DOWNLOADER}'"
-            ;;
-        esac
-        INSTALL_RKE2_VERSION="${version}"
-    fi
-}
-
-# download downloads from github url.
-download() {
-    if [ $# -ne 2 ]; then
-        fatal "download needs exactly 2 arguments"
-    fi
-
-    case ${DOWNLOADER} in
-    *curl)
-        curl -o "$1" -fsSL "$2"
-        ;;
-    *wget)
-        wget -qO "$1" "$2"
-        ;;
-    *)
-        fatal "downloader executable not supported: '${DOWNLOADER}'"
-        ;;
-    esac
-
-    # Abort if download command failed
-    if [ $? -ne 0 ]; then
-        fatal "download failed"
-    fi
-}
-
-# download_checksums downloads hash from github url.
-download_checksums() {
-    if [ -n "${INSTALL_RKE2_COMMIT}" ]; then
-        fatal "downloading by commit is currently not supported"
-        # CHECKSUMS_URL=${STORAGE_URL}/rke2${SUFFIX}-${INSTALL_RKE2_COMMIT}.sha256sum
-    else
-        CHECKSUMS_URL=${INSTALL_RKE2_GITHUB_URL}/releases/download/${INSTALL_RKE2_VERSION}/sha256sum-${ARCH}.txt
-    fi
-    info "downloading checksums at ${CHECKSUMS_URL}"
-    download "${TMP_CHECKSUMS}" "${CHECKSUMS_URL}"
-    CHECKSUM_EXPECTED=$(grep "rke2.${SUFFIX}.tar.gz" "${TMP_CHECKSUMS}" | awk '{print $1}')
-}
-
-# download_tarball downloads binary from github url.
-download_tarball() {
-    if [ -n "${INSTALL_RKE2_COMMIT}" ]; then
-        fatal "downloading by commit is currently not supported"
-        # TARBALL_URL=${STORAGE_URL}/rke2-installer.${SUFFIX}-${INSTALL_RKE2_COMMIT}.run
-    else
-        TARBALL_URL=${INSTALL_RKE2_GITHUB_URL}/releases/download/${INSTALL_RKE2_VERSION}/rke2.${SUFFIX}.tar.gz
-    fi
-    info "downloading tarball at ${TARBALL_URL}"
-    download "${TMP_TARBALL}" "${TARBALL_URL}"
-}
-
-# verify_tarball verifies the downloaded installer checksum.
-verify_tarball() {
-    info "verifying installer"
-    CHECKSUM_ACTUAL=$(sha256sum "${TMP_TARBALL}" | awk '{print $1}')
-    if [ "${CHECKSUM_EXPECTED}" != "${CHECKSUM_ACTUAL}" ]; then
-        fatal "download sha256 does not match ${CHECKSUM_EXPECTED}, got ${CHECKSUM_ACTUAL}"
-    fi
-}
-unpack_tarball() {
-    info "unpacking tarball file"
-    mkdir -p /usr/local
-    tar xzf $TMP_TARBALL -C /usr/local
-}
-
-do_install_rpm() {
-    maj_ver="7"
-    if [ -r /etc/redhat-release ] || [ -r /etc/centos-release ] || [ -r /etc/oracle-release ]; then
-        dist_version="$(. /etc/os-release && echo "$VERSION_ID")"
-        maj_ver=$(echo "$dist_version" | sed -E -e "s/^([0-9]+)\.?[0-9]*$/\1/")
-        case ${maj_ver} in
-            7|8)
-                :
-                ;;
-            *) # In certain cases, like installing on Fedora, maj_ver will end up being something that is not 7 or 8
-                maj_ver="7"
-                ;;
-        esac
-    fi
-    case "${INSTALL_RKE2_CHANNEL}" in
-        v*.*)
-            # We are operating with a version-based channel, so we should parse our version out
-            rke2_majmin=$(echo "${INSTALL_RKE2_CHANNEL}" | sed -E -e "s/^v([0-9]+\.[0-9]+).*/\1/")
-            rke2_rpm_channel=$(echo "${INSTALL_RKE2_CHANNEL}" | sed -E -e "s/^v[0-9]+\.[0-9]+-(.*)/\1/")
-            # If our regex fails to capture a "sane" channel out of the specified channel, fall back to `stable`
-            if [ "${rke2_rpm_channel}" = ${INSTALL_RKE2_CHANNEL} ]; then
-                info "using stable RPM repositories"
-                rke2_rpm_channel="stable"
-            fi
-            ;;
-        *)
-            get_release_version
-            rke2_majmin=$(echo "${INSTALL_RKE2_VERSION}" | sed -E -e "s/^v([0-9]+\.[0-9]+).*/\1/")
-            rke2_rpm_channel=${1}
-            ;;
-    esac
-    info "using ${rke2_majmin} series from channel ${rke2_rpm_channel}"
-    rpm_site="rpm.rancher.io"
-    if [ "${rke2_rpm_channel}" = "testing" ]; then
-        rpm_site="rpm-${rke2_rpm_channel}.rancher.io"
-    fi
-    rm -f /etc/yum.repos.d/rancher-rke2*.repo
-    cat <<-EOF >"/etc/yum.repos.d/rancher-rke2.repo"
-[rancher-rke2-common-${rke2_rpm_channel}]
-name=Rancher RKE2 Common (${1})
-baseurl=https://${rpm_site}/rke2/${rke2_rpm_channel}/common/centos/${maj_ver}/noarch
-enabled=1
-gpgcheck=1
-gpgkey=https://${rpm_site}/public.key
-[rancher-rke2-${rke2_majmin}-${rke2_rpm_channel}]
-name=Rancher RKE2 ${rke2_majmin} (${1})
-baseurl=https://${rpm_site}/rke2/${rke2_rpm_channel}/${rke2_majmin}/centos/${maj_ver}/x86_64
-enabled=1
-gpgcheck=1
-gpgkey=https://${rpm_site}/public.key
-EOF
-    if [ -z ${INSTALL_RKE2_VERSION} ]; then
-        yum -y install "rke2-${INSTALL_RKE2_TYPE}"
-    else
-        rke2_rpm_version=$(echo "${INSTALL_RKE2_VERSION}" | sed -E -e "s/[\+-]/~/g" | sed -E -e "s/v(.*)/\1/")
-        if [ -n "${INSTALL_RKE2_RPM_RELEASE_VERSION}" ]; then
-            yum -y install "rke2-${INSTALL_RKE2_TYPE}-${rke2_rpm_version}-${INSTALL_RKE2_RPM_RELEASE_VERSION}"
-        else
-            yum -y install "rke2-${INSTALL_RKE2_TYPE}-${rke2_rpm_version}"
-        fi
-    fi
-}
-
-do_install_tar() {
-    setup_tmp
-    get_release_version
-    info "using ${INSTALL_RKE2_VERSION} as release"
-    download_checksums
-    download_tarball
-    verify_tarball
-    unpack_tarball
-}
-
-rke_online_install() {
-    setup_env
-    setup_arch
-    verify_downloader curl || verify_downloader wget || fatal "can not find curl or wget for downloading files"
-
-    case ${INSTALL_RKE2_METHOD} in
-    yum | rpm | dnf)
-        do_install_rpm "${INSTALL_RKE2_CHANNEL}"
-        ;;
-    tar | tarball)
-        do_install_tar "${INSTALL_RKE2_CHANNEL}"
-        ;;
-    *)
-        do_install_tar "${INSTALL_RKE2_CHANNEL}"
-        ;;
-    esac
-}
-
-# COPY ENDS HERE 
-######################################################
-# This is a copy of the Rancher install script
-######################################################
- 
-
 # Kurl Specific RKE Install
 
-function rke_init() {
+function rke2_init() {
 #     logStep "Initialize Kubernetes"
 
 #     kubernetes_maybe_generate_bootstrap_token
@@ -490,18 +170,39 @@ function rke_init() {
     # fi
 }
 
-rke_install() {
+rke2_install() {
+    local rke2_version="${RKE2_VERSION}"
+
     # TODO(ethan): this is a kurl dependency, not rke2
     yum install -y openssl
 
-    # Install RKE using RKE Script
-    # TODO(dan): Pull a specific version of RKE
-    # curl -sfL https://get.rke2.io -o rke_tmp_installer.sh
-    rke_online_install
+    # TODO(ethan): is this still necessary?
+    # kubernetes_load_ipvs_modules
 
-    # Enable service
-    systemctl enable rke2-server.service
-    systemctl start rke2-server.service
+    # TODO(ethan): is this still necessary?
+    # kubernetes_sysctl_config
+
+    # For online always download the rke2.tar.gz bundle.
+    # Regardless if host packages are already installed, we always inspect for newer versions
+    # and/or re-install any missing or corrupted packages.
+    if [ "$AIRGAP" != "1" ] && [ -n "$DIST_URL" ]; then
+        rke2_get_host_packages_online "${rke2_version}"
+    fi
+
+    logStep "Load RKE2 images"
+    rke2_load_images "${rke2_version}"
+    logSuccess "RKE2 images loaded"
+
+    logStep "Install RKE2 host packages"
+    rke2_install_host_packages "${rke2_version}"
+    logSuccess "RKE2 host packages installed"
+
+    logStep "Installing plugins"
+    install_plugins
+    logSuccess "Plugins installed"
+
+    # TODO(ethan)
+    # install_kustomize
 
     while [ ! -f /etc/rancher/rke2/rke2.yaml ]; do
         sleep 2
@@ -515,12 +216,10 @@ rke_install() {
     # TODO(dan): moved from init
     exportKubeconfig
 
-    echo "Waiting for Kubernetes"
+    logStep "Waiting for Kubernetes"
     wait_for_nodes
     wait_for_default_namespace
-
-    # Install Kustomize and KREW
-    # Not needed ATM....
+    logSuccess "Kubernetes ready"
 
     # TODO(dan): Probably need to install crictl since you can actually config the tool
     # https://github.com/kubernetes-sigs/cri-tools/blob/master/docs/crictl.md
@@ -538,7 +237,7 @@ rke_install() {
 
 }
 
-function rke_preamble() {
+function rke2_preamble() {
     printf "${RED}"
     cat << "EOF"
  (                 )               (      ____ 
@@ -558,7 +257,7 @@ EOF
     printf "${RED}\n\nCONTINUING AT YOUR OWN RISK....${NC}\n\n"
 }
 
-function rke_outro() {
+function rke2_outro() {
     echo
     if [ -z "$PUBLIC_ADDRESS" ]; then
       if [ -z "$PRIVATE_ADDRESS" ]; then
@@ -671,9 +370,7 @@ function rke_outro() {
     fi
 }
 
-function rke_main() {
-    INSTALL_RKE2_VERSION="${RKE2_VERSION}"
-
+function rke2_main() {
     # Alpha Checks for RKE2
     if [ "$AIRGAP" = "1" ]; then
         bail "Airgapped mode is not supported for RKE2."
@@ -684,7 +381,7 @@ function rke_main() {
         bail "Only Centos is currently supported for RKE2."
     fi
 
-    rke_preamble  
+    rke2_preamble  
 
     # RKE Begin
 
@@ -702,7 +399,7 @@ function rke_main() {
     configure_no_proxy
     # install_cri                       # TODO(dan): not needed for RKE2
 
-    rke_install
+    rke2_install
 
     get_shared                          # TODO(dan): Docker or CRI needs to be setup for this.
     # upgrade_kubernetes                # TODO(dan): uses kubectl operator
@@ -712,12 +409,64 @@ function rke_main() {
     # trap k8s_ctrl_c SIGINT # trap ctrl+c (SIGINT) and handle it by asking for a support bundle - only do this after k8s is installed
     addon_for_each addon_load
     # init                              # See next line
-    rke_init                            # TODO(dan): A mix of Kubeadm stuff and general setup.
+    rke2_init                            # TODO(dan): A mix of Kubeadm stuff and general setup.
     apply_installer_crd
     type create_registry_service &> /dev/null && create_registry_service # this function is in an optional addon and may be missing
     addon_for_each addon_install
     # post_init                          # TODO(dan): more kubeadm token setup
     # outro                              # See next line
-    rke_outro                            # TODO(dan): modified this to remove kubeadm stuff
+    rke2_outro                            # TODO(dan): modified this to remove kubeadm stuff
     # report_install_success # TODO(dan) remove reporting for now.
+}
+
+function rke2_install_host_packages() {
+    local rke2_version=$1
+
+    # TODO(ethan): is this still necessary?
+    # if kubernetes_host_commands_ok "$k8sVersion"; then
+    #     logSuccess "Kubernetes host packages already installed"
+    #     return
+    # fi
+
+    case "$LSB_DIST" in
+        ubuntu)
+            bail "RKE2 unsupported on $LSB_DIST Linux"
+            ;;
+
+        centos|rhel|amzn)
+            case "$LSB_DIST$DIST_VERSION_MAJOR" in
+                rhel8|centos8)
+                    rpm --upgrade --force --nodeps $DIR/packages/rke2/${rke2_version}/rhel-8/*.rpm
+                    ;;
+
+                *)
+                    rpm --upgrade --force --nodeps $DIR/packages/rke2/${rke2_version}/rhel-7/*.rpm
+                    ;;
+            esac
+        ;;
+    esac
+
+    # TODO(ethan): is this still necessary?
+    # if [ "$CLUSTER_DNS" != "$DEFAULT_CLUSTER_DNS" ]; then
+    #     sed -i "s/$DEFAULT_CLUSTER_DNS/$CLUSTER_DNS/g" /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
+    # fi
+
+    systemctl enable rke2-server.service
+    systemctl start rke2-server.service
+}
+
+function rke2_get_host_packages_online() {
+    local rke2_version="$1"
+
+    curl -sSLO "$DIST_URL/rke2-${rke2_version}.tar.gz"
+    rm -rf $DIR/packages/rke2/${rke2_version} # Cleanup broken/incompatible packages from failed runs
+    tar xf rke2-${rke2_version}.tar.gz
+    rm rke2-${rke2_version}.tar.gz
+}
+
+function rke2_load_images() {
+    local rke2_version="$1"
+
+    mkdir -p /var/lib/rancher/rke2/agent/images
+    tar xzf $DIR/packages/rke2/${rke2_version}/assets/rke2-images.linux-amd64.tar.gz -C /var/lib/rancher/rke2/agent/images/
 }

@@ -58,6 +58,7 @@ function upgrade_kubernetes_local_master_patch() {
 
     load_images $DIR/packages/kubernetes/$k8sVersion/images
     upgrade_kubeadm "$k8sVersion"
+
     kubeadm_config_migrate
 
     kubeadm upgrade plan "v${k8sVersion}"
@@ -73,6 +74,7 @@ function upgrade_kubernetes_local_master_patch() {
     kubernetes_install_host_packages "$k8sVersion"
     systemctl daemon-reload
     systemctl restart kubelet
+
     spinner_kubernetes_api_stable
     kubectl uncordon "$node"
 

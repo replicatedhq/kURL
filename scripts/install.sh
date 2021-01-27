@@ -11,6 +11,7 @@ DIR=.
 . $DIR/scripts/common/common.sh
 . $DIR/scripts/common/discover.sh
 . $DIR/scripts/common/docker.sh
+. $DIR/scripts/common/plugins.sh
 . $DIR/scripts/common/kubernetes.sh
 . $DIR/scripts/common/object_store.sh
 . $DIR/scripts/common/preflights.sh
@@ -368,7 +369,7 @@ function main() {
     # ALPHA FLAGS
     if [ -n "$RKE2_VERSION" ]; then
         K8S_DISTRO=rke2
-        rke_main "$@"
+        rke2_main "$@"
         exit 0
     fi
 

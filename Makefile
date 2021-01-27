@@ -163,6 +163,18 @@ build/packages/kubernetes/%/images:
 	mkdir -p build/packages/kubernetes/$*/images
 	bin/save-manifest-assets.sh packages/kubernetes/$*/Manifest build/packages/kubernetes/$*
 
+dist/rke2-%.tar.gz:
+	${MAKE} build/packages/rke2/$*/images
+	${MAKE} build/packages/rke2/$*/rhel-7
+	${MAKE} build/packages/rke2/$*/rhel-8
+	cp packages/rke2/$*/Manifest build/packages/rke2/$*/
+	mkdir -p dist
+	tar cf - -C build packages/rke2/$* | gzip > dist/rke2-$*.tar.gz
+
+build/packages/rke2/%/images:
+	mkdir -p build/packages/rke2/$*/images
+	bin/save-manifest-assets.sh packages/rke2/$*/Manifest build/packages/rke2/$*
+
 build/install.sh:
 	mkdir -p tmp build
 	sed '/# Magic begin/q' scripts/install.sh | sed '$$d' > tmp/install.sh
@@ -370,6 +382,32 @@ build/packages/kubernetes/%/rhel-8:
 	find build/packages/kubernetes/$*/rhel-8 | grep kubelet | grep -v kubelet-$* | xargs rm -v
 	find build/packages/kubernetes/$*/rhel-8 | grep kubectl | grep -v kubectl-$* | xargs rm -v
 	docker rm k8s-rhel8-$*
+
+build/packages/rke2/%/rhel-7: rke2_version_clean = $(shell echo "$*" | sed 's/+/-/')
+build/packages/rke2/%/rhel-7:
+	docker build \
+		--build-arg RKE2_VERSION=$* \
+		-t kurl/rhel-7-rke2:${rke2_version_clean} \
+		-f bundles/rke2-rhel7/Dockerfile \
+		bundles/rke2-rhel7
+	-docker rm -f rke2-rhel7-${rke2_version_clean} 2>/dev/null
+	docker create --name rke2-rhel7-${rke2_version_clean} kurl/rhel-7-rke2:${rke2_version_clean}
+	mkdir -p build/packages/rke2/$*/rhel-7
+	docker cp rke2-rhel7-${rke2_version_clean}:/packages/archives/. build/packages/rke2/$*/rhel-7/
+	docker rm rke2-rhel7-${rke2_version_clean}
+
+build/packages/rke2/%/rhel-8: rke2_version_clean = $(shell echo "$*" | sed 's/+/-/')
+build/packages/rke2/%/rhel-8:
+	docker build \
+		--build-arg RKE2_VERSION=$* \
+		-t kurl/rhel-8-rke2:${rke2_version_clean} \
+		-f bundles/rke2-rhel8/Dockerfile \
+		bundles/rke2-rhel8
+	-docker rm -f rke2-rhel8-${rke2_version_clean} 2>/dev/null
+	docker create --name rke2-rhel8-${rke2_version_clean} kurl/rhel-8-rke2:${rke2_version_clean}
+	mkdir -p build/packages/rke2/$*/rhel-8
+	docker cp rke2-rhel8-${rke2_version_clean}:/packages/archives/. build/packages/rke2/$*/rhel-8/
+	docker rm rke2-rhel8-${rke2_version_clean}
 
 build/templates: build/templates/install.tmpl build/templates/join.tmpl build/templates/upgrade.tmpl build/templates/tasks.tmpl
 
