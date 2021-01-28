@@ -98,7 +98,7 @@ function swap_service_disable() {
 }
 
 function swap_azure_linux_agent_enabled() {
-    cat /etc/waagent.conf | grep -q 'ResourceDisk.EnableSwap=y'
+    cat /etc/waagent.conf 2>/dev/null | grep -q 'ResourceDisk.EnableSwap=y'
 }
 
 function swap_azure_linux_agent_disable() {
