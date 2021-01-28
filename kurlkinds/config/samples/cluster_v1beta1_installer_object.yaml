@@ -62,6 +62,7 @@ spec:
   rook:
     cephReplicaCount: 9000
     storageClassName: store
+    hostpathRequiresPrivileged: true
     version: latest
   velero:
     installCLI: false
