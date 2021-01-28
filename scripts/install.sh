@@ -384,6 +384,7 @@ function main() {
     prompts
     journald_persistent
     configure_proxy
+    install_host_dependencies
     addon_for_each addon_pre_init
     discover_pod_subnet
     discover_service_subnet

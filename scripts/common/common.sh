@@ -435,3 +435,33 @@ function path_add() {
         PATH="${PATH:+"$PATH:"}$1"
     fi
 }
+
+function install_host_archives() {
+    local dir=$1
+
+    case "$LSB_DIST" in
+        ubuntu)
+            DEBIAN_FRONTEND=noninteractive dpkg --install --force-depends-version ${dir}/ubuntu-${DIST_VERSION}/archives/*.deb
+            ;;
+
+        centos|rhel|amzn)
+            if [[ "$DIST_VERSION" =~ ^8 ]]; then
+                rpm --upgrade --force --nodeps ${dir}/rhel-8/archives/*.rpm
+            else
+                rpm --upgrade --force --nodeps ${dir}/rhel-7/archives/*.rpm
+            fi
+            ;;
+    esac
+}
+
+function install_host_dependencies() {
+    if ! commandExists "openssl"; then
+        if [ "$AIRGAP" != "1" ] && [ -n "$DIST_URL" ]; then
+            curl -sSLO "$DIST_URL/host-openssl.tar.gz"
+            tar xf host-openssl.tar.gz
+            rm host-openssl.tar.gz
+        fi
+        install_host_archives "${DIR}/packages/host/openssl"
+    fi
+}
+
