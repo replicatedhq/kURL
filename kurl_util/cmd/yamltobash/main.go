@@ -207,6 +207,7 @@ func convertToBash(kurlValues map[string]interface{}, fieldsSet map[string]bool)
 		"MetricsServer.Version":                  "METRICS_SERVER_VERSION",
 		"Minio.Namespace":                        "MINIO_NAMESPACE",
 		"Minio.S3Override":                       "MINIO_S3_OVERRIDE",
+		"Minio.HostPath":                         "MINIO_HOSTPATH",
 		"Minio.Version":                          "MINIO_VERSION",
 		"OpenEBS.CstorStorageClassName":          "OPENEBS_CSTOR_STORAGE_CLASS",
 		"OpenEBS.IsCstorEnabled":                 "OPENEBS_CSTOR",

@@ -4,6 +4,7 @@ metadata:
   # This name uniquely identifies the Deployment
   name: minio
 spec:
+  replicas: 1
   selector:
     matchLabels:
       app: minio # has to match .spec.template.metadata.labels
@@ -17,13 +18,6 @@ spec:
         # This label is used as a selector in Service definition
         app: minio
     spec:
-      # Volumes used by this deployment
-      volumes:
-      - name: data
-        # This volume is based on PVC
-        persistentVolumeClaim:
-          # Name of the PVC created earlier
-          claimName: minio-pv-claim
       containers:
       - name: minio
         # Volume mounts for this container
