@@ -227,6 +227,7 @@ func convertToBash(kurlValues map[string]interface{}, fieldsSet map[string]bool)
 		"Rook.IsBlockStorageEnabled":             "ROOK_BLOCK_STORAGE_ENABLED",
 		"Rook.S3Override":                        "ROOK_S3_OVERRIDE",
 		"Rook.StorageClassName":                  "STORAGE_CLASS",
+		"Rook.HostpathRequiresPrivileged":        "ROOK_HOSTPATH_REQUIRES_PRIVILEGED",
 		"Rook.Version":                           "ROOK_VERSION",
 		"SelinuxConfig.DisableSelinux":           "DISABLE_SELINUX",
 		"SelinuxConfig.PreserveConfig":           "PRESERVE_SELINUX_CONFIG",

@@ -54,6 +54,18 @@ function rook_operator_deploy() {
     local dst="$DIR/kustomize/rook/operator"
 
     cp -r "$src" "$dst"
+
+    if [ "${K8S_DISTRO}" = "rke2" ]; then
+        ROOK_HOSTPATH_REQUIRES_PRIVILEGED=1
+        cp "$src/patches/ceph-operator-rke2.yaml" "$dst/"
+        insert_patches_strategic_merge "$dst/kustomization.yaml" ceph-operator-rke2.yaml
+    fi
+
+    if [ "$ROOK_HOSTPATH_REQUIRES_PRIVILEGED" = "1" ]; then
+        cp "$src/patches/ceph-operator-privileged.yaml" "$dst/"
+        insert_patches_strategic_merge "$dst/kustomization.yaml" ceph-operator-privileged.yaml
+    fi
+
     kubectl apply -k "$dst/"
 }
 

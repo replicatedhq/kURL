@@ -43,6 +43,7 @@ spec:
     cephReplicaCount: 1
     isBlockStorageEnabled: true
     blockDeviceFilter: sd[a-z]
+    hostpathRequiresPrivileged: true
   openebs:
     version: latest
     namespace: openebs

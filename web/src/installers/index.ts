@@ -139,6 +139,7 @@ export interface RookConfig {
   storageClassName?: string;
   isBlockStorageEnabled?: boolean;
   blockDeviceFilter?: string;
+  hostpathRequiresPrivileged?: boolean;
 }
 
 export const rookConfigSchema = {
@@ -150,6 +151,7 @@ export const rookConfigSchema = {
     cephReplicaCount: { type: "number", flag: "ceph-replica-count", description: "The number of replicas in the Rook Ceph pool" },
     isBlockStorageEnabled: { type: "boolean", flag: "rook-block-storage-enabled", description: "Use block devices instead of the filesystem for storage in the Ceph cluster" },
     blockDeviceFilter: { type: "string", flag: "rook-block-device-filter", description: "Only use block devices matching this regex" },
+    hostpathRequiresPrivileged: { type: "boolean", flag: "rook-hostpath-requires-privileged", description: "Runs Ceph Pods as privileged to be able to write to hostPaths in OpenShift with SELinux restrictions" },
   },
   required: [ "version" ],
   additionalProperites: false,
