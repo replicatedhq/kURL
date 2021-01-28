@@ -116,7 +116,7 @@ function main() {
     get_shared
     maybe_upgrade
     install_host_dependencies
-    addon_for_each addon_join
+    ${K8S_DISTRO}_addon_for_each addon_join
     outro
 }
 

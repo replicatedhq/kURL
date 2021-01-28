@@ -120,7 +120,7 @@ function main() {
     get_shared
     setup_kubeadm_kustomize
     install_host_dependencies
-    addon_for_each addon_join
+    ${K8S_DISTRO}_addon_for_each addon_join
     kubernetes_host
     join
     outro

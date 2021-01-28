@@ -22,3 +22,7 @@ function distro_get_client_kube_apiserver_key() {
 function distro_get_server_ca() {
     bail "distro_get_server_ca not implemented"
 }
+
+function distro_addon_for_each() {
+    bail "distro_addon_for_each not implemented"
+}

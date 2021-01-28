@@ -383,7 +383,7 @@ function rke2_main() {
     journald_persistent
     configure_proxy
     install_host_dependencies
-    addon_for_each addon_pre_init
+    ${K8S_DISTRO}_addon_for_each addon_pre_init
     discover_pod_subnet
     # discover_service_subnet           # TODO(dan): uses kubeadm
     configure_no_proxy
@@ -397,12 +397,12 @@ function rke2_main() {
     # kubernetes_host                   # TODO(dan): installs and sets up kubeadm, kubectl
     # setup_kubeadm_kustomize           # TODO(dan): self-explainatory
     # trap k8s_ctrl_c SIGINT # trap ctrl+c (SIGINT) and handle it by asking for a support bundle - only do this after k8s is installed
-    addon_for_each addon_load
+    ${K8S_DISTRO}_addon_for_each addon_load
     # init                              # See next line
     rke2_init                            # TODO(dan): A mix of Kubeadm stuff and general setup.
     apply_installer_crd
     type create_registry_service &> /dev/null && create_registry_service # this function is in an optional addon and may be missing
-    addon_for_each addon_install
+    ${K8S_DISTRO}_addon_for_each addon_install
     # post_init                          # TODO(dan): more kubeadm token setup
     # outro                              # See next line
     rke2_outro                            # TODO(dan): modified this to remove kubeadm stuff
