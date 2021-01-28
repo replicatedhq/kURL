@@ -99,9 +99,14 @@ function reset_minio_config() {
         return 0
     fi
 
-    printf "\n${YELLOW}The $MINIO_HOSTPATH directory will be re-configured to be used by this minio instance. Would you like to continue?${NC} "
+    printf "\n"
+    printf "\n"
+    printf "${RED}The $MINIO_HOSTPATH directory was previously configured by a different minio instance.\n"
+    printf "Proceeding will re-configure it to be used only by this new minio instance, and any other minio instance using this location will no longer have access.\n"
+    printf "If you are attempting to fully restore a prior installation, such as a disaster recovery scenario, this action is expected. Would you like to continue?${NC} "
+
     if ! confirmN "-t 120"; then
-        bail "\nWill not re-configure $MINIO_HOSTPATH."
+        bail "\n\nWill not re-configure $MINIO_HOSTPATH."
     fi
 
     rm -rf "$MINIO_CONFIG_PATH"
