@@ -173,9 +173,6 @@ function rke2_init() {
 rke2_install() {
     local rke2_version="$1"
 
-    # TODO(ethan): this is a kurl dependency, not rke2
-    yum install -y openssl
-
     # TODO(ethan): is this still necessary?
     # kubernetes_load_ipvs_modules
 
@@ -385,6 +382,7 @@ function rke2_main() {
     prompts                             # TODO(dan): shouldn't come into play for RKE2
     journald_persistent
     configure_proxy
+    install_host_dependencies
     addon_for_each addon_pre_init
     discover_pod_subnet
     # discover_service_subnet           # TODO(dan): uses kubeadm
@@ -460,5 +458,5 @@ function rke2_load_images() {
     local rke2_version="$1"
 
     mkdir -p /var/lib/rancher/rke2/agent/images
-    tar xzf $DIR/packages/rke-2/${rke2_version}/assets/rke2-images.linux-amd64.tar.gz -C /var/lib/rancher/rke2/agent/images/
+    gunzip -c $DIR/packages/rke-2/${rke2_version}/assets/rke2-images.linux-amd64.tar.gz > /var/lib/rancher/rke2/agent/images/rke2-images.linux-amd64.tar
 }
