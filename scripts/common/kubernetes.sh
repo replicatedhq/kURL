@@ -103,6 +103,7 @@ function kubernetes_install_host_packages() {
 
 kubernetes_host_commands_ok() {
     local k8sVersion=$1
+
     if ! commandExists kubelet; then
         printf "kubelet command missing - will install host components\n"
         return 1
@@ -115,7 +116,7 @@ kubernetes_host_commands_ok() {
         printf "kubectl command missing - will install host components\n"
         return 1
     fi
-    if ! commandExists kustomize; then
+    if ! ( PATH=$PATH:/usr/local/bin; commandExists kustomize ); then
         printf "kustomize command missing - will install host components\n"
         return 1
     fi
