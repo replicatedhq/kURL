@@ -1,26 +1,4 @@
 
-function addon_for_each() {
-    local cmd="$1"
-
-    $cmd aws "$AWS_VERSION"
-    $cmd nodeless "$NODELESS_VERSION"
-    $cmd calico "$CALICO_VERSION" "$CALICO_S3_OVERRIDE"
-    $cmd weave "$WEAVE_VERSION" "$WEAVE_S3_OVERRIDE"
-    $cmd rook "$ROOK_VERSION" "$ROOK_S3_OVERRIDE"
-    $cmd openebs "$OPENEBS_VERSION" "$OPENEBS_S3_OVERRIDE"
-    $cmd minio "$MINIO_VERSION" "$MINIO_S3_OVERRIDE"
-    $cmd contour "$CONTOUR_VERSION" "$CONTOUR_S3_OVERRIDE"
-    $cmd registry "$REGISTRY_VERSION" "$REGISTRY_S3_OVERRIDE"
-    $cmd prometheus "$PROMETHEUS_VERSION" "$PROMETHEUS_S3_OVERRIDE"
-    $cmd kotsadm "$KOTSADM_VERSION" "$KOTSADM_S3_OVERRIDE"
-    $cmd velero "$VELERO_VERSION" "$VELERO_S3_OVERRIDE"
-    $cmd fluentd "$FLUENTD_VERSION" "$FLUENTD_S3_OVERRIDE"
-    $cmd ekco "$EKCO_VERSION" "$EKCO_S3_OVERRIDE"
-    $cmd collectd "$COLLECTD_VERSION" "$COLLECTD_S3_OVERRIDE"
-    $cmd cert-manager "$CERT_MANAGER_VERSION" "$CERT_MANAGER_S3_OVERRIDE"
-    $cmd metrics-server "$METRICS_SERVER_VERSION" "$METRICS_SERVER_S3_OVERRIDE"
-}
-
 ADDONS_HAVE_HOST_COMPONENTS=0
 function addon_install() {
     local name=$1

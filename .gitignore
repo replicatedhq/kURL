@@ -9,4 +9,5 @@ node_modules/
 supported-versions-gen.json
 addons-gen.json
 package-lock.json
-
+/packages/host/*/*/
+/packages/rke-2/*/*/
