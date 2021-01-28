@@ -1,6 +1,6 @@
 
 function rke2_discover_private_ip() {
-    echo "$(cat /var/lib/rancher/rke2/agent/pod-manifests/etcd.yaml | grep initial-cluster | grep -o "${HOSTNAME}-[a-z0-9]*=https*://[^\",]*" | sed -n -e 's/.*https*:\/\/\(.*\):.*/\1/p')"
+    echo "$(cat /var/lib/rancher/rke2/agent/pod-manifests/etcd.yaml 2>/dev/null | grep initial-cluster | grep -o "${HOSTNAME}-[a-z0-9]*=https*://[^\",]*" | sed -n -e 's/.*https*:\/\/\(.*\):.*/\1/p')"
 }
 
 function rke2_get_kubeconfig() {

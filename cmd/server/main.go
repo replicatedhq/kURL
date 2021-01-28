@@ -157,7 +157,7 @@ func pipe(dst *tar.Writer, srcURL string) error {
 
 	zr, err := gzip.NewReader(resp.Body)
 	if err != nil {
-		return fmt.Errorf("gunzip response", resp.Body)
+		return fmt.Errorf("gunzip response %s", resp.Body)
 	}
 	defer zr.Close()
 	src := tar.NewReader(zr)
