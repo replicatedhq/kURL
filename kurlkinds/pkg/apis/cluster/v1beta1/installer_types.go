@@ -142,12 +142,13 @@ type RKE2 struct {
 }
 
 type Rook struct {
-	BlockDeviceFilter     string `json:"blockDeviceFilter,omitempty" yaml:"blockDeviceFilter,omitempty"`
-	CephReplicaCount      int    `json:"cephReplicaCount,omitempty" yaml:"cephReplicaCount,omitempty"`
-	IsBlockStorageEnabled bool   `json:"isBlockStorageEnabled,omitempty" yaml:"isBlockStorageEnabled,omitempty"`
-	S3Override            string `json:"s3Override,omitempty" yaml:"s3Override,omitempty"`
-	StorageClassName      string `json:"storageClassName,omitempty" yaml:"storageClassName,omitempty"`
-	Version               string `json:"version" yaml:"version"`
+	BlockDeviceFilter          string `json:"blockDeviceFilter,omitempty" yaml:"blockDeviceFilter,omitempty"`
+	CephReplicaCount           int    `json:"cephReplicaCount,omitempty" yaml:"cephReplicaCount,omitempty"`
+	IsBlockStorageEnabled      bool   `json:"isBlockStorageEnabled,omitempty" yaml:"isBlockStorageEnabled,omitempty"`
+	S3Override                 string `json:"s3Override,omitempty" yaml:"s3Override,omitempty"`
+	StorageClassName           string `json:"storageClassName,omitempty" yaml:"storageClassName,omitempty"`
+	HostpathRequiresPrivileged bool   `json:"hostpathRequiresPrivileged,omitempty" yaml:"hostpathRequiresPrivileged,omitempty"`
+	Version                    string `json:"version" yaml:"version"`
 }
 
 type Velero struct {

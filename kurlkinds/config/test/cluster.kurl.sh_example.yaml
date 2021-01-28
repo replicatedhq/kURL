@@ -64,6 +64,7 @@ spec:
     cephReplicaCount: 24
     isBlockStorageEnabled: true
     storageClassName: "storage"
+    hostpathRequiresPrivileged: true
     version: "here"
   velero:
     disableRestic: true

@@ -318,6 +318,8 @@ spec:
                   type: string
                 cephReplicaCount:
                   type: integer
+                hostpathRequiresPrivileged:
+                  type: boolean
                 isBlockStorageEnabled:
                   type: boolean
                 s3Override:
