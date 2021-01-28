@@ -8,7 +8,9 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  test-addons:
+    if: ${{ github.repository_owner == 'replicatedhq' }}
+
     runs-on: ubuntu-latest
 
     steps:
