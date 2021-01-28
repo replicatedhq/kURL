@@ -383,31 +383,29 @@ build/packages/kubernetes/%/rhel-8:
 	find build/packages/kubernetes/$*/rhel-8 | grep kubectl | grep -v kubectl-$* | xargs rm -v
 	docker rm k8s-rhel8-$*
 
-build/packages/rke-2/%/rhel-7: rke2_version_clean = $(shell echo "$*" | sed 's/+/-/')
 build/packages/rke-2/%/rhel-7:
 	docker build \
 		--build-arg RKE2_VERSION=$* \
-		-t kurl/rhel-7-rke2:${rke2_version_clean} \
+		-t kurl/rhel-7-rke2:$* \
 		-f bundles/rke2-rhel7/Dockerfile \
 		bundles/rke2-rhel7
-	-docker rm -f rke2-rhel7-${rke2_version_clean} 2>/dev/null
-	docker create --name rke2-rhel7-${rke2_version_clean} kurl/rhel-7-rke2:${rke2_version_clean}
+	-docker rm -f rke2-rhel7-$* 2>/dev/null
+	docker create --name rke2-rhel7-$* kurl/rhel-7-rke2:$*
 	mkdir -p build/packages/rke-2/$*/rhel-7
-	docker cp rke2-rhel7-${rke2_version_clean}:/packages/archives/. build/packages/rke-2/$*/rhel-7/
-	docker rm rke2-rhel7-${rke2_version_clean}
+	docker cp rke2-rhel7-$*:/packages/archives/. build/packages/rke-2/$*/rhel-7/
+	docker rm rke2-rhel7-$*
 
-build/packages/rke-2/%/rhel-8: rke2_version_clean = $(shell echo "$*" | sed 's/+/-/')
 build/packages/rke-2/%/rhel-8:
 	docker build \
 		--build-arg RKE2_VERSION=$* \
-		-t kurl/rhel-8-rke2:${rke2_version_clean} \
+		-t kurl/rhel-8-rke2:$* \
 		-f bundles/rke2-rhel8/Dockerfile \
 		bundles/rke2-rhel8
-	-docker rm -f rke2-rhel8-${rke2_version_clean} 2>/dev/null
-	docker create --name rke2-rhel8-${rke2_version_clean} kurl/rhel-8-rke2:${rke2_version_clean}
+	-docker rm -f rke2-rhel8-$* 2>/dev/null
+	docker create --name rke2-rhel8-$* kurl/rhel-8-rke2:$*
 	mkdir -p build/packages/rke-2/$*/rhel-8
-	docker cp rke2-rhel8-${rke2_version_clean}:/packages/archives/. build/packages/rke-2/$*/rhel-8/
-	docker rm rke2-rhel8-${rke2_version_clean}
+	docker cp rke2-rhel8-$*:/packages/archives/. build/packages/rke-2/$*/rhel-8/
+	docker rm rke2-rhel8-$*
 
 build/templates: build/templates/install.tmpl build/templates/join.tmpl build/templates/upgrade.tmpl build/templates/tasks.tmpl
 

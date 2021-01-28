@@ -236,6 +236,8 @@ github.com/peterbourgon/diskv v2.0.1+incompatible/go.mod h1:uqqh8zWWbv1HBMNONnaR
 github.com/pkg/errors v0.8.0/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
 github.com/pkg/errors v0.8.1 h1:iURUrRGxPUNPdy5/HRSm+Yj6okJ6UtLINN0Q9M4+h3I=
 github.com/pkg/errors v0.8.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
+github.com/pkg/errors v0.9.1 h1:FEBLx1zS214owpjy7qsBeixbURkuhQAwrK5UwLGTwt4=
+github.com/pkg/errors v0.9.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/pquerna/cachecontrol v0.0.0-20171018203845-0dec1b30a021/go.mod h1:prYjPmNq4d1NPVmpShWobRqXY3q7Vp+80DqgxxUrUIA=
@@ -254,6 +256,8 @@ github.com/prometheus/procfs v0.0.2 h1:6LJUbpNm42llc4HRCuvApCSWB/WfhuNo9K98Q9sNG
 github.com/prometheus/procfs v0.0.2/go.mod h1:TjEm7ze935MbeOT/UhFTIMYKhuLP4wbCsTZCD3I8kEA=
 github.com/replicatedhq/kurl v0.0.0-20200601170456-4d9730fe4307 h1:kmqzUfOp1PTn0RgmW+pqwQdUgOgMg63SZJA9uOeDObs=
 github.com/replicatedhq/kurl v0.0.0-20200601170456-4d9730fe4307/go.mod h1:ORM8QYmmMuylJCxWXnclSOKO+N4kx7eLIw5593awx9Y=
+github.com/replicatedhq/kurl v0.0.0-20210127235427-217658ebc1c1 h1:en4Tc3VxxV6Z1y/1mIj9oNzDGoMOAfG8RKuwJol3Zfk=
+github.com/replicatedhq/kurl v0.0.0-20210127235427-217658ebc1c1/go.mod h1:W9F0ML56Z5Jn7fU/gTPWxKj5DhYteNdHYfAZ1JsJEvU=
 github.com/replicatedhq/kurl/kurlkinds v0.0.0-20201112172719-21aad99cbc58 h1:5FAHpGEOgpIcrymRJgZM0lV7RdItRVTeWfmJjcBCh9o=
 github.com/replicatedhq/kurl/kurlkinds v0.0.0-20201112172719-21aad99cbc58/go.mod h1:CGQURLyceSGyAAvMk6xWorC4calSpnoygOAf4ASk1T0=
 github.com/replicatedhq/kurl/kurlkinds v0.0.0-20201228201742-70dbb411b59c h1:UDCeMNtWk2g5eqDIlR/C9I+97R0JnkWsNNoH5Sn+6UQ=
@@ -262,6 +266,8 @@ github.com/replicatedhq/kurl/kurlkinds v0.0.0-20210114230141-fd9aaedca3f8 h1:y5R
 github.com/replicatedhq/kurl/kurlkinds v0.0.0-20210114230141-fd9aaedca3f8/go.mod h1:CGQURLyceSGyAAvMk6xWorC4calSpnoygOAf4ASk1T0=
 github.com/replicatedhq/kurl/kurlkinds v0.0.0-20210119171049-df09cdd8c774 h1:jJo7nBw+i0jbNgZ3qndPntM7F2dZnFpa87QE/AIi6Aw=
 github.com/replicatedhq/kurl/kurlkinds v0.0.0-20210119171049-df09cdd8c774/go.mod h1:CGQURLyceSGyAAvMk6xWorC4calSpnoygOAf4ASk1T0=
+github.com/replicatedhq/kurl/kurlkinds v0.0.0-20210127235427-217658ebc1c1 h1:E5Ony87IJ2gkVro3SF4h9WjdAa/s/zW7XSODzZoKeUc=
+github.com/replicatedhq/kurl/kurlkinds v0.0.0-20210127235427-217658ebc1c1/go.mod h1:CGQURLyceSGyAAvMk6xWorC4calSpnoygOAf4ASk1T0=
 github.com/rogpeppe/fastuuid v0.0.0-20150106093220-6724a57986af/go.mod h1:XWv6SoW27p1b0cqNHllgS5HIMJraePCO15w5zCzIWYg=
 github.com/russross/blackfriday v1.5.2/go.mod h1:JO/DiYxRf+HjHt06OyowR9PTA263kcR/rfWxYHBV53g=
 github.com/sergi/go-diff v1.0.0/go.mod h1:0CfEIISq7TuYL3j771MWULgwwjU+GofnZX9QAmXWZgo=
@@ -463,6 +469,8 @@ k8s.io/apiextensions-apiserver v0.18.3/go.mod h1:TMsNGs7DYpMXd+8MOCX8KzPOCx8fnZM
 k8s.io/apimachinery v0.18.2/go.mod h1:9SnR/e11v5IbyPCGbvJViimtJ0SwHG4nfZFjU77ftcA=
 k8s.io/apimachinery v0.18.3 h1:pOGcbVAhxADgUYnjS08EFXs9QMl8qaH5U4fr5LGUrSk=
 k8s.io/apimachinery v0.18.3/go.mod h1:OaXp26zu/5J7p0f92ASynJa1pZo06YlV9fG7BoWbCko=
+k8s.io/apimachinery v0.18.6 h1:RtFHnfGNfd1N0LeSrKCUznz5xtUP1elRGvHJbL3Ntag=
+k8s.io/apimachinery v0.18.6/go.mod h1:OaXp26zu/5J7p0f92ASynJa1pZo06YlV9fG7BoWbCko=
 k8s.io/apiserver v0.18.2/go.mod h1:Xbh066NqrZO8cbsoenCwyDJ1OSi8Ag8I2lezeHxzwzw=
 k8s.io/apiserver v0.18.3/go.mod h1:tHQRmthRPLUtwqsOnJJMoI8SW3lnoReZeE861lH8vUw=
 k8s.io/client-go v0.18.2/go.mod h1:Xcm5wVGXX9HAA2JJ2sSBUn3tCJ+4SVlCbl2MNNv+CIU=
