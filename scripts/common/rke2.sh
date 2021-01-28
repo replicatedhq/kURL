@@ -171,7 +171,7 @@ function rke2_init() {
 }
 
 rke2_install() {
-    local rke2_version="${RKE2_VERSION}"
+    local rke2_version="$1"
 
     # TODO(ethan): this is a kurl dependency, not rke2
     yum install -y openssl
@@ -371,15 +371,7 @@ function rke2_outro() {
 }
 
 function rke2_main() {
-    # Alpha Checks for RKE2
-    if [ "$AIRGAP" = "1" ]; then
-        bail "Airgapped mode is not supported for RKE2."
-    fi
-
-    detectLsbDist   # This is redundant with the 'discover' function below
-    if [ "$LSB_DIST" != "centos" ]; then
-        bail "Only Centos is currently supported for RKE2."
-    fi
+    local rke2_version="$(echo "${RKE2_VERSION}" | sed 's/+/-/')"
 
     rke2_preamble  
 
@@ -399,7 +391,7 @@ function rke2_main() {
     configure_no_proxy
     # install_cri                       # TODO(dan): not needed for RKE2
 
-    rke2_install
+    rke2_install "${rke2_version}"
 
     get_shared                          # TODO(dan): Docker or CRI needs to be setup for this.
     # upgrade_kubernetes                # TODO(dan): uses kubectl operator
@@ -420,7 +412,7 @@ function rke2_main() {
 }
 
 function rke2_install_host_packages() {
-    local rke2_version=$1
+    local rke2_version="$1"
 
     # TODO(ethan): is this still necessary?
     # if kubernetes_host_commands_ok "$k8sVersion"; then
