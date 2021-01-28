@@ -1,18 +1,17 @@
-export KUBECTL_PLUGINS_PATH=/usr/local/bin
 
 function kubernetes_host() {
     kubernetes_load_ipvs_modules
 
     kubernetes_sysctl_config
 
+    kubernetes_install_host_packages "$KUBERNETES_VERSION"
+
     # For online always download the kubernetes.tar.gz bundle.
     # Regardless if host packages are already installed, we always inspect for newer versions
     # and/or re-install any missing or corrupted packages.
-    if [ "$AIRGAP" != "1" ] && [ -n "$DIST_URL" ]; then
+    if [ "$KUBERNETES_DID_GET_HOST_PACKAGES_ONLINE" != "1" ] && [ "$AIRGAP" != "1" ] && [ -n "$DIST_URL" ]; then
         kubernetes_get_host_packages_online "$KUBERNETES_VERSION"
     fi
-
-    kubernetes_install_host_packages "$KUBERNETES_VERSION"
 
     load_images $DIR/packages/kubernetes/$KUBERNETES_VERSION/images
 
@@ -123,6 +122,7 @@ kubernetes_host_commands_ok() {
     kubelet --version | grep -q "$k8sVersion"
 }
 
+KUBERNETES_DID_GET_HOST_PACKAGES_ONLINE=
 function kubernetes_get_host_packages_online() {
     local k8sVersion="$1"
 
@@ -131,6 +131,7 @@ function kubernetes_get_host_packages_online() {
         rm -rf $DIR/packages/kubernetes/${k8sVersion}               # Cleanup broken/ incompatible packages from failed runs
         tar xf kubernetes-${k8sVersion}.tar.gz
         rm kubernetes-${k8sVersion}.tar.gz
+        KUBERNETES_DID_GET_HOST_PACKAGES_ONLINE=1
     fi
 }
 
