@@ -1174,7 +1174,7 @@ export class Installer {
     const special = /[+]/g;
 
     const binUtils = String(process.env["KURL_BIN_UTILS_FILE"]).slice(0, -7); // remove .tar.gz
-    const pkgs = [ "common", binUtils ];
+    const pkgs = [ "common", binUtils, "host-openssl" ];
 
     _.each(_.keys(this.spec), (config: string) => {
       const version = this.spec[config].version;

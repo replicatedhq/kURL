@@ -148,6 +148,12 @@ dist/metrics-server-%.tar.gz: build/addons
 	mkdir -p dist
 	tar cf - -C build addons/metrics-server/$* | gzip > dist/metrics-server-$*.tar.gz
 
+dist/host-openssl.tar.gz:
+	mkdir -p build/packages/host/openssl
+	bin/save-manifest-assets.sh packages/host/openssl/Manifest $(CURDIR)/build/packages/host/openssl
+	mkdir -p dist
+	tar cf - -C build packages/host/openssl | gzip > dist/host-openssl.tar.gz
+
 dist/kubernetes-%.tar.gz:
 	${MAKE} build/packages/kubernetes/$*/images
 	${MAKE} build/packages/kubernetes/$*/ubuntu-16.04

@@ -115,6 +115,7 @@ function main() {
     install_cri
     get_shared
     maybe_upgrade
+    install_host_dependencies
     addon_for_each addon_join
     outro
 }

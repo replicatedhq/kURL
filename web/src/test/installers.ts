@@ -875,6 +875,20 @@ spec:
       expect(hasCertManager).to.equal(true);
       expect(hasMetricsServer).to.equal(true);
     });
+
+    it("should include defaults", () => {
+      const i = Installer.parse(min);
+      const pkgs = i.packages();
+
+      const hasCommon = _.some(pkgs, (pkg) => {
+        return pkg === "common";
+      });
+      expect(hasCommon).to.equal(true);
+
+      const hasOpenssl = _.some(pkgs, (pkg) => {
+        return pkg === "host-openssl";
+      });
+    });
   });
 
   describe("kurl.nameserver", () => {
