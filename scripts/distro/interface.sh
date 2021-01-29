@@ -26,3 +26,7 @@ function distro_get_server_ca() {
 function distro_addon_for_each() {
     bail "distro_addon_for_each not implemented"
 }
+
+function distro_reset() {
+    bail "distro_reset not implemented"
+}
