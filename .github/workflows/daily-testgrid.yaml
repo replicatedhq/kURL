@@ -8,7 +8,8 @@ defaults:
     working-directory: ./testgrid/tgrun
 
 jobs:
-  testgrid-init:
+  testgrid-daily:
+    if: ${{ github.repository_owner == 'replicatedhq' }}
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
@@ -22,9 +23,15 @@ jobs:
     - name: tgrun-build
       run: make build
 
-    - name: testgrid-queue
+    - name: testgrid-queue-prod
       env:
         TESTGRID_API: "https://api.testgrid.kurl.sh/"
       run: |
-        ./bin/tgrun queue --ref "${GITHUB_SHA:0:7}-$(date --utc +%FT%TZ)-daily"
-      if: ${{ github.repository_owner == 'replicatedhq' }}
+        ./bin/tgrun queue --ref "PROD-daily-$(date --utc +%FT%TZ)"
+
+    - name: testgrid-queue-staging
+      env:
+        TESTGRID_API: "https://api.testgrid.kurl.sh/"
+      run: |
+        ./bin/tgrun queue --staging --ref "STAGING-daily-$(date --utc +%FT%TZ)"
+    
