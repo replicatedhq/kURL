@@ -609,7 +609,7 @@ export class Installer {
       "1.15.2",
       "1.15.1",
       "1.15.0",
-      "1.20.2", // cron-kubernetes-update
+      "1.20.2", "1.20.1", "1.20.0", // cron-kubernetes-update
     ],
     rke2: [
       "v1.19.7+rke2r1",
