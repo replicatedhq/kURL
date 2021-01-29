@@ -111,10 +111,6 @@ function registry_docker_ca() {
 }
 
 function registry_containerd_init() {
-    if [ -z "$REGISTRY_VERSION" ]; then
-        return 0
-    fi
-
     local registry_ip=$(kubectl -n kurl get service registry -o=jsonpath='{@.spec.clusterIP}' 2>/dev/null || true)
     if [ -z "$registry_ip" ]; then
         kubectl -n kurl create service clusterip registry --tcp=443:443

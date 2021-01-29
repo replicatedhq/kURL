@@ -192,13 +192,14 @@ rke2_install() {
         rke2_get_host_packages_online "${rke2_version}"
     fi
 
-    logStep "Load RKE2 images"
-    rke2_load_images "${rke2_version}"
-    logSuccess "RKE2 images loaded"
-
     rke2_configure
 
     rke2_install_host_packages "${rke2_version}"
+
+    rke2_load_images "${rke2_version}"
+
+    systemctl enable rke2-server.service
+    systemctl start rke2-server.service
 
     logStep "Installing plugins"
     install_plugins
@@ -462,9 +463,6 @@ function rke2_install_host_packages() {
     #     sed -i "s/$DEFAULT_CLUSTER_DNS/$CLUSTER_DNS/g" /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
     # fi
 
-    systemctl enable rke2-server.service
-    systemctl start rke2-server.service
-
     logSuccess "RKE2 host packages installed"
 }
 
@@ -495,6 +493,10 @@ function rke2_get_host_packages_online() {
 function rke2_load_images() {
     local rke2_version="$1"
 
+    logStep "Load RKE2 images"
+
     mkdir -p /var/lib/rancher/rke2/agent/images
     gunzip -c $DIR/packages/rke-2/${rke2_version}/assets/rke2-images.linux-amd64.tar.gz > /var/lib/rancher/rke2/agent/images/rke2-images.linux-amd64.tar
+
+    logSuccess "RKE2 images loaded"
 }
