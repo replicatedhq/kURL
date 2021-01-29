@@ -86,7 +86,7 @@ function kotsadm_outro() {
 
     printf "\n"
     printf "\n"
-    printf "Kotsadm: ${GREEN}http://$KOTSADM_HOSTNAME:${KOTSADM_UI_BIND_PORT}${NC}\n"
+    printf "Kotsadm: ${GREEN}http://$KOTSADM_HOSTNAME:${KOTSADM_UI_BIND_PORT:-8800}${NC}\n"
 
     if [ -n "$KOTSADM_PASSWORD" ]; then
         printf "Login with password (will not be shown again): ${GREEN}$KOTSADM_PASSWORD${NC}\n"
