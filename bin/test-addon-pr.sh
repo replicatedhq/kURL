@@ -71,7 +71,7 @@ check_addon() {
   for version in $versions
   do
     shopt -s nullglob
-    if [ -n "${version}" ] && compgen -G "./addons/$name/template/testgrid/*.yaml" > /dev/null; then
+    if compgen -G "./addons/$name/template/testgrid/*.yaml" > /dev/null; then
       ADDON_AVAILBLE=true
 
       echo "Found Modified Addon: $name-$version"
@@ -88,26 +88,23 @@ run_addon() {
 
   for version in $versions
   do
-    # check if there is a valid version (files in the root don't count)
-    if [ -n "${version}" ]; then
-      echo "Testing Modified Addon: $name-$version"
+    echo "Testing Modified Addon: $name-$version"
 
-      # Build Packages
-      echo "Building Package: $name-$version.tag.gz"
+    # Build Packages
+    echo "Building Package: $name-$version.tag.gz"
 
-      make "dist/${name}-${version}.tar.gz"
-      aws s3 cp "dist/${name}-${version}.tar.gz" "s3://${S3_BUCKET}/pr/${PR_NUMBER}-${GITHUB_SHA:0:7}-${name}-${version}.tar.gz"
+    make "dist/${name}-${version}.tar.gz"
+    aws s3 cp "dist/${name}-${version}.tar.gz" "s3://${S3_BUCKET}/pr/${PR_NUMBER}-${GITHUB_SHA:0:7}-${name}-${version}.tar.gz"
 
-      echo "Package pushed to:  s3://${S3_BUCKET}/pr/${PR_NUMBER}-${GITHUB_SHA:0:7}-${name}-${version}.tar.gz"
+    echo "Package pushed to:  s3://${S3_BUCKET}/pr/${PR_NUMBER}-${GITHUB_SHA:0:7}-${name}-${version}.tar.gz"
 
-      # Run for each template (if available)
-      shopt -s nullglob
-      for test_spec in ./addons/$name/template/testgrid/*.yaml;
-      do
-        test_addon $name $version $test_spec
-      done
-      shopt -u nullglob
-    fi
+    # Run for each template (if available)
+    shopt -s nullglob
+    for test_spec in ./addons/$name/template/testgrid/*.yaml;
+    do
+      test_addon $name $version $test_spec
+    done
+    shopt -u nullglob
   done
 }
 
