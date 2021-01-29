@@ -287,6 +287,11 @@ selinux_enforced() {
 }
 
 function kotsadm_prerelease() {
+    if [ -f "/tmp/testgrid-id" ]; then
+        printf "\n${YELLOW}This is a prerelease version of kotsadm and should not be run in production. Continuing because this is testgrid.${NC} "
+        return 0
+    fi
+
     if [ "$KOTSADM_VERSION" = "alpha" ]; then
         printf "\n${YELLOW}This is a prerelease version of kotsadm and should not be run in production. Press Y to continue.${NC} "
         if ! confirmN; then

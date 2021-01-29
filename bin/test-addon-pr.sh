@@ -52,48 +52,63 @@ check() {
   fi
 }
 
+modified_versions() {
+  local name=$1
+
+  # Get the version that's changed (filter out templates)
+  local versions=$(git diff --dirstat=files,0 "origin/${GITHUB_BASE_REF}" -- "addons/${name}" "origin/${GITHUB_BASE_REF}" -- "addons/${name}" | sed 's/^[ 0-9.]\+% addons\///g' | grep -v template | cut -f2 -d"/" | uniq |  sort -r )
+
+  echo $versions
+}
 
 check_addon() {
   local name=$1
 
   # Get the version that's changed (filter out templates)
-  local version=$(git diff --dirstat=files,0 "origin/${GITHUB_BASE_REF}" -- "addons/${name}" "origin/${GITHUB_BASE_REF}" -- "addons/${name}" | sed 's/^[ 0-9.]\+% addons\///g' | grep -v template | cut -f2 -d"/" | uniq |  sort -r | head -n 1)
+  local versions=$(modified_versions $name)
 
   # check if there is a valid version (files in the root don't count) & template files 
-  shopt -s nullglob
-  if [ -n "${version}" ] && compgen -G "./addons/$name/template/testgrid/*.yaml" > /dev/null; then
-    ADDON_AVAILBLE=true
-    echo "Found Modified Addon: $name-$version"
-  fi      
-  shopt -u nullglob     
+  for version in $versions
+  do
+    shopt -s nullglob
+    if [ -n "${version}" ] && compgen -G "./addons/$name/template/testgrid/*.yaml" > /dev/null; then
+      ADDON_AVAILBLE=true
+
+      echo "Found Modified Addon: $name-$version"
+    fi
+    shopt -u nullglob
+  done
 }
 
 run_addon() {
   local name=$1
 
   # Get the version that's changed
-  local version=$(git diff --dirstat=files,0 "origin/${GITHUB_BASE_REF}" -- "addons/${name}" "origin/${GITHUB_BASE_REF}" -- "addons/${name}" | sed 's/^[ 0-9.]\+% addons\///g' | grep -v template | cut -f2 -d"/" | uniq |  sort -r | head -n 1)
+  local versions=$(modified_versions $name)
 
-  # check if there is a valid version (files in the root don't count)
-  if [ -n "${version}" ]; then
-    echo "Testing Modified Addon: $name-$version"
+  for version in $versions
+  do
+    # check if there is a valid version (files in the root don't count)
+    if [ -n "${version}" ]; then
+      echo "Testing Modified Addon: $name-$version"
 
-    # Build Packages
-    echo "Building Package: $name-$version.tag.gz"
-    
-    make "dist/${name}-${version}.tar.gz"
-    aws s3 cp "dist/${name}-${version}.tar.gz" "s3://${S3_BUCKET}/pr/${PR_NUMBER}-${GITHUB_SHA:0:7}-${name}-${version}.tar.gz"
+      # Build Packages
+      echo "Building Package: $name-$version.tag.gz"
 
-    echo "Package pushed to:  s3://${S3_BUCKET}/pr/${PR_NUMBER}-${GITHUB_SHA:0:7}-${name}-${version}.tar.gz"
+      make "dist/${name}-${version}.tar.gz"
+      aws s3 cp "dist/${name}-${version}.tar.gz" "s3://${S3_BUCKET}/pr/${PR_NUMBER}-${GITHUB_SHA:0:7}-${name}-${version}.tar.gz"
 
-    # Run for each template (if available)
-    shopt -s nullglob
-    for test_spec in ./addons/$name/template/testgrid/*.yaml;
-    do
-      test_addon $name $version $test_spec
-    done
-    shopt -u nullglob     
-  fi
+      echo "Package pushed to:  s3://${S3_BUCKET}/pr/${PR_NUMBER}-${GITHUB_SHA:0:7}-${name}-${version}.tar.gz"
+
+      # Run for each template (if available)
+      shopt -s nullglob
+      for test_spec in ./addons/$name/template/testgrid/*.yaml;
+      do
+        test_addon $name $version $test_spec
+      done
+      shopt -u nullglob
+    fi
+  done
 }
 
 test_addon() {
