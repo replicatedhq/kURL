@@ -1,0 +1,37 @@
+name: cron-kubernetes-update
+on:
+  schedule:
+  - cron: '0 4 * * *'
+  workflow_dispatch: {}
+
+jobs:
+  build-pr-kubernetes:
+    runs-on: ubuntu-18.04
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+
+    - name: Create Kubernetes Update
+      working-directory: ./packages/kubernetes/template
+      run: ./script.sh
+
+    - name: Create Pull Request # creates a PR if there are differences
+      uses: peter-evans/create-pull-request@v3
+      id: cpr
+      with:
+        commit-message: Create new Kubernetes version
+        title: 'Automated Kubernetes version update'
+        branch: automation/update-kubernetes
+        delete-branch: true
+        labels: |
+          automated-pr
+          kubernetes
+        draft: false
+        base: "master"
+        body: "Automated changes by the [cron-kubernetes-update](https://github.com/replicatedhq/kURL/blob/master/.github/workflows/update-kubernetes.yaml) GitHub action"
+
+    - name: Check outputs
+      run: |
+        echo "Pull Request Number - ${{ steps.cpr.outputs.pull-request-number }}"
+        echo "Pull Request URL - ${{ steps.cpr.outputs.pull-request-url }}"
