@@ -1,5 +1,7 @@
 # Kurl Specific RKE Install
 
+RKE2_SHOULD_RESTART=
+
 function rke2_init() {
 #     logStep "Initialize Kubernetes"
 
@@ -164,14 +166,17 @@ function rke2_init() {
     # TODO(dans): coredns is deployed through helm -> might need to go through values here
     # configure_coredns
 
-    # TODO(dans): need to figure out how to configute the embedded containerd in RKE2
-    # if commandExists containerd_registry_init; then
-    #     containerd_registry_init
-    # fi
+    if commandExists registry_containerd_init; then
+        registry_containerd_init
+    fi
 }
 
 rke2_install() {
     local rke2_version="$1"
+
+    export PATH=$PATH:/var/lib/rancher/rke2/bin
+    export KUBECONFIG=/etc/rancher/rke2/rke2.yaml
+    export CRI_CONFIG_FILE=/var/lib/rancher/rke2/agent/etc/crictl.yaml
 
     # TODO(ethan): is this still necessary?
     # kubernetes_load_ipvs_modules
@@ -182,6 +187,7 @@ rke2_install() {
     # For online always download the rke2.tar.gz bundle.
     # Regardless if host packages are already installed, we always inspect for newer versions
     # and/or re-install any missing or corrupted packages.
+    # TODO(ethan): is this comment correct?
     if [ "$AIRGAP" != "1" ] && [ -n "$DIST_URL" ]; then
         rke2_get_host_packages_online "${rke2_version}"
     fi
@@ -190,9 +196,9 @@ rke2_install() {
     rke2_load_images "${rke2_version}"
     logSuccess "RKE2 images loaded"
 
-    logStep "Install RKE2 host packages"
+    rke2_configure
+
     rke2_install_host_packages "${rke2_version}"
-    logSuccess "RKE2 host packages installed"
 
     logStep "Installing plugins"
     install_plugins
@@ -206,29 +212,20 @@ rke2_install() {
     done
 
     # For Kubectl and Rke2 binaries 
-    echo "export PATH=\$PATH:/var/lib/rancher/rke2/bin" | tee -a /etc/profile > /dev/null
-    export PATH=$PATH:/var/lib/rancher/rke2/bin
-    export KUBECONFIG=/etc/rancher/rke2/rke2.yaml   # TODO(dan): move this to exportKubeconfig?
+    # NOTE: this is still not in root's path
+    if ! grep -q "/var/lib/rancher/rke2/bin" /etc/profile ; then
+        echo "export PATH=\$PATH:/var/lib/rancher/rke2/bin" >> /etc/profile
+    fi
+    if ! grep -q "/var/lib/rancher/rke2/agent/etc/crictl.yaml" /etc/profile ; then
+        echo "export CRI_CONFIG_FILE=/var/lib/rancher/rke2/agent/etc/crictl.yaml" >> /etc/profile
+    fi
 
-    # TODO(dan): moved from init
     exportKubeconfig
 
     logStep "Waiting for Kubernetes"
     wait_for_nodes
     wait_for_default_namespace
     logSuccess "Kubernetes ready"
-
-    # TODO(dan): Probably need to install crictl since you can actually config the tool
-    # https://github.com/kubernetes-sigs/cri-tools/blob/master/docs/crictl.md
-    # VERSION="v1.20.0"
-    # curl -L https://github.com/kubernetes-sigs/cri-tools/releases/download/$VERSION/crictl-${VERSION}-linux-amd64.tar.gz --output crictl-${VERSION}-linux-amd64.tar.gz
-    # tar zxvf crictl-$VERSION-linux-amd64.tar.gz -C /usr/local/bin
-    # rm -f crictl-$VERSION-linux-amd64.tar.gz
-    #
-    # tee -a /etc/crictl.yaml > /dev/null <<EOT
-    # runtime-endpoint: unix:///run/k3s/containerd/containerd.sock
-    # image-endpoint: unix:///run/k3s/containerd/containerd.sock
-    # EOT
 
     # TODO(dan): Need to figure out how to let users run container tools as non-root
 
@@ -409,14 +406,36 @@ function rke2_main() {
     # report_install_success # TODO(dan) remove reporting for now.
 }
 
+function rke2_configure() {
+    # prevent permission denied error when running kubectl
+    if ! grep -qs "^write-kubeconfig-mode:" /etc/rancher/rke2/config.yaml ; then
+        mkdir -p /etc/rancher/rke2/
+        echo "write-kubeconfig-mode: 644" >> /etc/rancher/rke2/config.yaml
+        RKE2_SHOULD_RESTART=1
+    fi
+
+    # TODO(ethan): pod cidr
+    # TODO(ethan): service cidr
+}
+
+function rke2_restart() {
+    systemctl restart rke2-server.service # TODO(ethan): rke2-agent.service?
+}
+
 function rke2_install_host_packages() {
     local rke2_version="$1"
 
-    # TODO(ethan): is this still necessary?
-    # if kubernetes_host_commands_ok "$k8sVersion"; then
-    #     logSuccess "Kubernetes host packages already installed"
-    #     return
-    # fi
+    logStep "Install RKE2 host packages"
+
+    if rke2_host_packages_ok "${rke2_version}"; then
+        logSuccess "RKE2 host packages already installed"
+
+        if [ "${RKE2_SHOULD_RESTART}" = "1" ]; then
+            rke2_restart
+            RKE2_SHOULD_RESTART=0
+        fi
+        return
+    fi
 
     case "$LSB_DIST" in
         ubuntu)
@@ -443,6 +462,23 @@ function rke2_install_host_packages() {
 
     systemctl enable rke2-server.service
     systemctl start rke2-server.service
+
+    logSuccess "RKE2 host packages installed"
+}
+
+function rke2_host_packages_ok() {
+    local rke2_version="$1"
+
+    if ! commandExists kubelet; then
+        echo "kubelet command missing - will install host components"
+        return 1
+    fi
+    if ! commandExists kubectl; then
+        echo "kubectl command missing - will install host components"
+        return 1
+    fi
+
+    kubelet --version | grep -q "$(echo $rke2_version | sed "s/-/+/")"
 }
 
 function rke2_get_host_packages_online() {

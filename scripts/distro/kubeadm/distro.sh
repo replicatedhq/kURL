@@ -28,6 +28,10 @@ function kubeadm_get_server_ca() {
     echo "/etc/kubernetes/pki/ca.crt"
 }
 
+function kubeadm_get_server_ca_key() {
+    echo "/etc/kubernetes/pki/ca.key"
+}
+
 function kubeadm_addon_for_each() {
     local cmd="$1"
 
@@ -63,4 +67,25 @@ function kubeadm_reset() {
 
     weave_reset
     printf "weave reset completed\n"
+}
+
+function kubeadm_containerd_restart() {
+    systemctl restart containerd
+}
+
+REGISTRY_CONTAINERD_CA_ADDED=0
+function kubeadm_registry_containerd_configure() {
+    local registry_ip="$1"
+
+    if grep -q "plugins.\"io.containerd.grpc.v1.cri\".registry.configs.\"${registry_ip}\".tls" /etc/containerd/config.toml; then
+        echo "Registry ${registry_ip} TLS already configured for containerd"
+        return 0
+    fi
+
+    cat >> /etc/containerd/config.toml <<EOF
+[plugins."io.containerd.grpc.v1.cri".registry.configs."${registry_ip}".tls]
+  ca_file = "/etc/kubernetes/pki/ca.crt"
+EOF
+
+    REGISTRY_CONTAINERD_CA_ADDED=1
 }

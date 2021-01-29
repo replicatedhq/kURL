@@ -16,9 +16,9 @@ function containerd_install() {
         containerd_configure_proxy
     fi
 
-    if [ -n "$DOCKER_REGISTRY_IP" ]; then
-        containerd_configure_registry "$DOCKER_REGISTRY_IP"
-        if [ "$CONTAINERD_REGISTRY_CA_ADDED" = "1" ]; then
+    if commandExists registry_containerd_configure && [ -n "$DOCKER_REGISTRY_IP" ]; then
+        registry_containerd_configure "$DOCKER_REGISTRY_IP"
+        if [ "$REGISTRY_CONTAINERD_CA_ADDED" = "1" ]; then
             restart_containerd
         fi
     fi
@@ -39,9 +39,9 @@ EOF
 
     # Always set for joining nodes since it's passed as a flag in the generated join script, but not
     # usually set for the initial install. For initial installs the registry will be configured from
-    # containerd_registry_init.
-    if [ -n "$DOCKER_REGISTRY_IP" ]; then
-        containerd_configure_registry "$DOCKER_REGISTRY_IP"
+    # registry_containerd_init.
+    if commandExists registry_containerd_configure && [ -n "$DOCKER_REGISTRY_IP" ]; then
+        registry_containerd_configure "$DOCKER_REGISTRY_IP"
     fi
     systemctl restart containerd
 }
@@ -54,38 +54,6 @@ function containerd_configure_ctl() {
     fi
 
     cp "$src/crictl.yaml" /etc/crictl.yaml
-}
-
-function containerd_registry_init() {
-    if [ -z "$REGISTRY_VERSION" ]; then
-        return 0
-    fi
-
-    local registryIP=$(kubectl -n kurl get service registry -o=jsonpath='{@.spec.clusterIP}' 2>/dev/null || true)
-    if [ -z "$registryIP" ]; then
-        kubectl -n kurl create service clusterip registry --tcp=443:443
-        registryIP=$(kubectl -n kurl get service registry -o=jsonpath='{@.spec.clusterIP}')
-    fi
-
-    containerd_configure_registry "$registryIP"
-    systemctl restart containerd
-}
-
-CONTAINERD_REGISTRY_CA_ADDED=0
-function containerd_configure_registry() {
-    local registryIP="$1"
-
-    if grep -q "plugins.\"io.containerd.grpc.v1.cri\".registry.configs.\"${registryIP}\".tls" /etc/containerd/config.toml; then
-        echo "Registry ${registryIP} TLS already configured for containerd"
-        return 0
-    fi
-
-    cat >> /etc/containerd/config.toml <<EOF
-[plugins."io.containerd.grpc.v1.cri".registry.configs."${registryIP}".tls]
-  ca_file = "/etc/kubernetes/pki/ca.crt"
-EOF
-
-    CONTAINERD_REGISTRY_CA_ADDED=1
 }
 
 containerd_configure_proxy() {
