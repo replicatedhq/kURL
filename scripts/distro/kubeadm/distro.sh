@@ -49,3 +49,18 @@ function kubeadm_addon_for_each() {
     $cmd cert-manager "$CERT_MANAGER_VERSION" "$CERT_MANAGER_S3_OVERRIDE"
     $cmd metrics-server "$METRICS_SERVER_VERSION" "$METRICS_SERVER_S3_OVERRIDE"
 }
+
+function kubeadm_reset() {
+    
+    WEAVE_TAG="$(get_weave_version)"
+
+    if [ -n "$DOCKER_VERSION" ]; then
+        kubeadm reset --force
+    else
+        kubeadm reset --force --cri-socket /var/run/containerd/containerd.sock
+    fi
+    printf "kubeadm reset completed\n"
+
+    weave_reset
+    printf "weave reset completed\n"
+}

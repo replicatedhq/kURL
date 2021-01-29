@@ -48,3 +48,7 @@ function rke2_addon_for_each() {
     $cmd collectd "$COLLECTD_VERSION" "$COLLECTD_S3_OVERRIDE"
     $cmd cert-manager "$CERT_MANAGER_VERSION" "$CERT_MANAGER_S3_OVERRIDE"
 }
+
+function rke2_reset() {
+    . /usr/bin/rke2-uninstall.sh
+}
