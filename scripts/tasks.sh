@@ -5,6 +5,9 @@ set -e
 # Magic begin: scripts are inlined for distribution. See "make build/tasks.sh"
 . $DIR/scripts/common/common.sh
 . $DIR/scripts/common/prompts.sh
+. $DIR/scripts/distro/interface.sh
+. $DIR/scripts/distro/kubeadm/distro.sh
+. $DIR/scripts/distro/rke2/distro.sh
 # Magic end
 
 function tasks() {
@@ -106,29 +109,25 @@ function reset() {
         fi
     fi
 
-    WEAVE_TAG="$(get_weave_version)"
-
     if commandExists "kubeadm"; then
-        if [ -n "$DOCKER_VERSION" ]; then
-            kubeadm reset --force
-        else
-            kubeadm reset --force --cri-socket /var/run/containerd/containerd.sock
-        fi
-        printf "kubeadm reset completed\n"
-    fi
+        kubeadm_reset
+    fi 
 
-    weave_reset
-    printf "weave reset completed\n"
-
-    rm -rf /var/lib/weave
-    rm -rf /opt/replicated
-    rm -rf /opt/cni
+    if commandExists "rke2"; then
+        rke2_reset
+    fi   
+    
+    rm -rf /etc/cni
     rm -rf /etc/kubernetes
-    rm -rf /var/lib/rook
-    rm -rf /var/lib/etcd
+    rm -rf /opt/cni
+    rm -rf /opt/replicated
     rm -f /usr/bin/kubeadm /usr/bin/kubelet /usr/bin/kubectl
-    rm -rf /var/lib/kubelet
     rm -f /usr/local/bin/kustomize*
+    rm -rf /var/lib/calico
+    rm -rf /var/lib/etcd
+    rm -rf /var/lib/kubelet
+    rm -rf /var/lib/rook
+    rm -rf /var/lib/weave
 
     printf "Reset script completed\n"
 }
