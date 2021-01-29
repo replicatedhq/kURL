@@ -73,7 +73,6 @@ function kubeadm_containerd_restart() {
     systemctl restart containerd
 }
 
-REGISTRY_CONTAINERD_CA_ADDED=0
 function kubeadm_registry_containerd_configure() {
     local registry_ip="$1"
 

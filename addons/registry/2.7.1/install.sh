@@ -129,18 +129,6 @@ REGISTRY_CONTAINERD_CA_ADDED=0
 function registry_containerd_configure() {
     local registry_ip="$1"
     ${K8S_DISTRO}_registry_containerd_configure "${registry_ip}"
-
-    if grep -q "plugins.\"io.containerd.grpc.v1.cri\".registry.configs.\"${registry_ip}\".tls" /etc/containerd/config.toml; then
-        echo "Registry ${registry_ip} TLS already configured for containerd"
-        return 0
-    fi
-
-    cat >> /etc/containerd/config.toml <<EOF
-[plugins."io.containerd.grpc.v1.cri".registry.configs."${registry_ip}".tls]
-  ca_file = "/etc/kubernetes/pki/ca.crt"
-EOF
-
-    REGISTRY_CONTAINERD_CA_ADDED=1
 }
 
 function registry_pki_secret() {

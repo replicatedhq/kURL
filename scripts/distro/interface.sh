@@ -39,7 +39,6 @@ function distro_containerd_restart() {
     bail "distro_containerd_restart not implemented"
 }
 
-REGISTRY_CONTAINERD_CA_ADDED=0
 function distro_registry_containerd_configure() {
     bail "distro_registry_containerd_configure not implemented"
 }
