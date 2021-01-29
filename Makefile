@@ -385,8 +385,8 @@ build/packages/kubernetes/%/rhel-8:
 	docker create --name k8s-rhel8-$* kurl/rhel-8-k8s:$*
 	mkdir -p build/packages/kubernetes/$*/rhel-8
 	docker cp k8s-rhel8-$*:/packages/archives/. build/packages/kubernetes/$*/rhel-8/
-	find build/packages/kubernetes/$*/rhel-8 | grep kubelet | grep -v kubelet-$* | xargs rm -v
-	find build/packages/kubernetes/$*/rhel-8 | grep kubectl | grep -v kubectl-$* | xargs rm -v
+	find build/packages/kubernetes/$*/rhel-8 | grep kubelet | grep -v kubelet-$* | xargs rm -vf
+	find build/packages/kubernetes/$*/rhel-8 | grep kubectl | grep -v kubectl-$* | xargs rm -vf
 	docker rm k8s-rhel8-$*
 
 build/packages/rke-2/%/rhel-7:
