@@ -116,15 +116,17 @@ test_addon() {
   local version=$2
   local test_spec=$3
 
+  cp $test_spec /tmp/test-spec
+
   echo "Found test spec template $test_spec."
 
   # Substitute
   local dist="https://${S3_BUCKET}.s3.amazonaws.com/pr/${PR_NUMBER}-${GITHUB_SHA:0:7}-${name}-${version}.tar.gz"
-  sed -i "s#__testver__#${version}#g" $test_spec
-  sed -i "s#__testdist__#${dist}#g" $test_spec
+  sed -i "s#__testver__#${version}#g" /tmp/test-spec
+  sed -i "s#__testdist__#${dist}#g" /tmp/test-spec
 
   # Run testgrid plan
-  ./testgrid/tgrun/bin/tgrun queue --staging --ref "pr-${PR_NUMBER}-${GITHUB_SHA:0:7}-${name}-${version}" --spec "$(cat $test_spec)"
+  ./testgrid/tgrun/bin/tgrun queue --staging --ref "pr-${PR_NUMBER}-${GITHUB_SHA:0:7}-${name}-${version}" --spec "$(cat /tmp/test-spec)"
   echo "Submitted TestGrid Ref pr-${PR_NUMBER}-${GITHUB_SHA:0:7}-${name}-${version}"
   MSG="$MSG https://testgrid.kurl.sh/run/pr-${PR_NUMBER}-${GITHUB_SHA:0:7}-${name}-${version}"
 }
