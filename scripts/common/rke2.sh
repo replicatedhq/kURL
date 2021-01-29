@@ -416,6 +416,8 @@ function rke2_configure() {
 
     # TODO(ethan): pod cidr
     # TODO(ethan): service cidr
+    # TODO(ethan): http proxy
+    # TODO(ethan): load balancer
 }
 
 function rke2_restart() {
