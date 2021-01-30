@@ -60,3 +60,6 @@ build_and_push:
 	docker build -f deploy/Dockerfile-slim -t ${PROJECT_NAME}:$${CIRCLE_SHA1:0:7} .
 	docker tag ${PROJECT_NAME}:$${CIRCLE_SHA1:0:7} $(REGISTRY)/${PROJECT_NAME}:$${CIRCLE_SHA1:0:7}
 	docker push $(REGISTRY)/${PROJECT_NAME}:$${CIRCLE_SHA1:0:7}
+
+generate-versions:
+	`yarn bin`/ts-node generate-versions.ts

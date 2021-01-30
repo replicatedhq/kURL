@@ -447,4 +447,5 @@ kurl-util-image:
 
 .PHONY: generate-addons
 generate-addons:
+	make -C web generate-versions
 	node generate-addons.js
