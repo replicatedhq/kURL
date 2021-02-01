@@ -5,4 +5,5 @@ patchesStrategicMerge:
   - ./deployment.yaml
 
 resources:
+  - ./secret.yaml
   - ./disruptionbudget.yaml

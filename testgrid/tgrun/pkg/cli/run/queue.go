@@ -19,7 +19,8 @@ func QueueCmd() *cobra.Command {
 			v := viper.GetViper()
 
 			schedulerOptions := schedulertypes.SchedulerOptions{
-				APIEndpoint:  v.GetString("testgrid-api"),
+				APIEndpoint:  v.GetString("api-endpoint"),
+				APIToken:     v.GetString("api-token"),
 				OverwriteRef: v.GetBool("overwrite-ref"),
 				Ref:          v.GetString("ref"),
 				Staging:      v.GetBool("staging"),
@@ -36,7 +37,6 @@ func QueueCmd() *cobra.Command {
 	}
 
 	cmd.Flags().String("ref", "", "ref to report to testgrid")
-	cmd.Flags().String("testgrid-api", "https://api.testgrid.kurl.sh", "set to change the location of the testgrid api")
 	cmd.Flags().Bool("overwrite-ref", false, "when set, overwrite the ref on the testgrid")
 	cmd.Flags().Bool("staging", false, "when set, run tests against staging.kurl.sh instead of kurl.sh")
 	cmd.Flags().Bool("latest-only", false, "when set, run tests against the 'latest' kurl installer only instead of the standard suite")

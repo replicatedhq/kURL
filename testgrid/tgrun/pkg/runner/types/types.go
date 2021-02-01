@@ -2,6 +2,7 @@ package types
 
 type RunnerOptions struct {
 	APIEndpoint string
+	APIToken    string
 }
 
 type SingleRun struct {

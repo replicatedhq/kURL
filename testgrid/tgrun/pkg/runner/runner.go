@@ -62,6 +62,9 @@ func reportStarted(singleTest types.SingleRun) error {
 	}
 
 	req, err := http.NewRequest("POST", fmt.Sprintf("%s/v1/instance/%s/start", singleTest.TestGridAPIEndpoint, singleTest.ID), bytes.NewReader(b))
+	if err != nil {
+		return errors.Wrap(err, "failed to create request")
+	}
 	req.Header.Set("Content-Type", "application/json")
 	_, err = http.DefaultClient.Do(req)
 	if err != nil {

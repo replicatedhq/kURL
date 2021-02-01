@@ -19,7 +19,8 @@ func RunCmd() *cobra.Command {
 			v := viper.GetViper()
 
 			runnerOptions := runnertypes.RunnerOptions{
-				APIEndpoint: v.GetString("testgrid-api"),
+				APIEndpoint: v.GetString("api-endpoint"),
+				APIToken:    v.GetString("api-token"),
 			}
 
 			if err := runner.MainRunLoop(runnerOptions); err != nil {
@@ -29,8 +30,6 @@ func RunCmd() *cobra.Command {
 			return nil
 		},
 	}
-
-	cmd.Flags().String("testgrid-api", "https://api.testgrid.kurl.sh", "set to change the location of the testgrid api")
 
 	return cmd
 }

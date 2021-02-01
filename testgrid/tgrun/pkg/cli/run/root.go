@@ -21,6 +21,9 @@ func RootCmd() *cobra.Command {
 		},
 	}
 
+	cmd.Flags().String("api-endpoint", "https://api.testgrid.kurl.sh", "set to change the location of the testgrid api")
+	cmd.PersistentFlags().String("api-token", "", "API token for authentication")
+
 	cobra.OnInitialize(initConfig)
 
 	cmd.AddCommand(QueueCmd())

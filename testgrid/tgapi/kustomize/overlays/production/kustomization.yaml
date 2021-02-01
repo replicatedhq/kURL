@@ -6,3 +6,5 @@ patchesStrategicMerge:
 
 resources:
   - ./disruptionbudget.yaml
+  - ./secret.yaml
+
