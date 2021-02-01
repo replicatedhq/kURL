@@ -364,6 +364,8 @@ spec:
                   type: string
                 namespace:
                   type: string
+                resticRequiresPrivileged:
+                  type: boolean
                 s3Override:
                   type: string
                 version:

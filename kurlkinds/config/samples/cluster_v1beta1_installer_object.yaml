@@ -65,10 +65,11 @@ spec:
     hostpathRequiresPrivileged: true
     version: latest
   velero:
-    installCLI: false
+    disableCLI: false
+    disableRestic: false
     localBucket: name
     namespace: velero
-    disableRestic: false
+    resticRequiresPrivileged: true
     version: latest
   weave:
     IPAllocRange: 1.1.1.1
