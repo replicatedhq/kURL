@@ -23,10 +23,22 @@ function distro_get_server_ca() {
     bail "distro_get_server_ca not implemented"
 }
 
+function distro_get_server_ca_key() {
+    bail "distro_get_server_ca_key not implemented"
+}
+
 function distro_addon_for_each() {
     bail "distro_addon_for_each not implemented"
 }
 
 function distro_reset() {
     bail "distro_reset not implemented"
+}
+
+function distro_containerd_restart() {
+    bail "distro_containerd_restart not implemented"
+}
+
+function distro_registry_containerd_configure() {
+    bail "distro_registry_containerd_configure not implemented"
 }

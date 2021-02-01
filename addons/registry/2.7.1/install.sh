@@ -103,9 +103,28 @@ function registry_docker_ca() {
     fi
 
     if [ -n "$DOCKER_VERSION" ]; then
+        local ca_crt="$(${K8S_DISTRO}_get_server_ca)"
+
         mkdir -p /etc/docker/certs.d/$DOCKER_REGISTRY_IP
-        ln -s --force /etc/kubernetes/pki/ca.crt /etc/docker/certs.d/$DOCKER_REGISTRY_IP/ca.crt
+        ln -s --force "${ca_crt}" /etc/docker/certs.d/$DOCKER_REGISTRY_IP/ca.crt
     fi
+}
+
+function registry_containerd_init() {
+    local registry_ip=$(kubectl -n kurl get service registry -o=jsonpath='{@.spec.clusterIP}' 2>/dev/null || true)
+    if [ -z "$registry_ip" ]; then
+        kubectl -n kurl create service clusterip registry --tcp=443:443
+        registry_ip=$(kubectl -n kurl get service registry -o=jsonpath='{@.spec.clusterIP}')
+    fi
+
+    registry_containerd_configure "$registry_ip"
+    ${K8S_DISTRO}_containerd_restart
+}
+
+REGISTRY_CONTAINERD_CA_ADDED=0
+function registry_containerd_configure() {
+    local registry_ip="$1"
+    ${K8S_DISTRO}_registry_containerd_configure "${registry_ip}"
 }
 
 function registry_pki_secret() {
@@ -156,8 +175,11 @@ EOF
         fi
     fi
 
+    local ca_crt="$(${K8S_DISTRO}_get_server_ca)"
+    local ca_key="$(${K8S_DISTRO}_get_server_ca_key)"
+
     openssl req -newkey rsa:2048 -nodes -keyout registry.key -out registry.csr -config registry.cnf
-    openssl x509 -req -days 365 -in registry.csr -CA /etc/kubernetes/pki/ca.crt -CAkey /etc/kubernetes/pki/ca.key -CAcreateserial -out registry.crt -extensions v3_ext -extfile registry.cnf
+    openssl x509 -req -days 365 -in registry.csr -CA "${ca_crt}" -CAkey "${ca_key}" -CAcreateserial -out registry.crt -extensions v3_ext -extfile registry.cnf
 
     # rotate the cert and restart the pod every time
     kubectl -n kurl delete secret registry-pki &>/dev/null || true

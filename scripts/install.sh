@@ -206,8 +206,8 @@ EOF
 
     configure_coredns
 
-    if commandExists containerd_registry_init; then
-        containerd_registry_init
+    if commandExists registry_containerd_init && [ -n "$CONTAINERD_VERSION" ]; then
+        registry_containerd_init
     fi
 }
 

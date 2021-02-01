@@ -23,6 +23,10 @@ function rke2_get_server_ca() {
     echo "/var/lib/rancher/rke2/server/tls/server-ca.crt"
 }
 
+function rke2_get_server_ca_key() {
+    echo "/var/lib/rancher/rke2/server/tls/server-ca.key"
+}
+
 function rke2_addon_for_each() {
     local cmd="$1"
 
@@ -51,4 +55,31 @@ function rke2_addon_for_each() {
 
 function rke2_reset() {
     . /usr/bin/rke2-uninstall.sh
+}
+
+function rke2_containerd_restart() {
+    rke2_restart
+}
+
+function rke2_registry_containerd_configure() {
+    local registry_ip="$1"
+
+    if grep -qs ' "${registry_ip}":' /etc/rancher/rke2/registries.yaml; then
+        echo "Registry ${registry_ip} TLS already configured for containerd"
+        return 0
+    fi
+
+    mkdir -p /etc/rancher/rke2/
+
+    if [ ! -f /etc/rancher/rke2/registries.yaml ] || ! grep -qs '^configs:' /etc/rancher/rke2/registries.yaml ; then
+        echo "configs:" >> /etc/rancher/rke2/registries.yaml
+    fi
+
+    cat >> /etc/rancher/rke2/registries.yaml <<EOF
+  "${registry_ip}":
+    tls:
+      ca_file: "$(rke2_get_server_ca)"
+EOF
+
+    REGISTRY_CONTAINERD_CA_ADDED=1
 }
