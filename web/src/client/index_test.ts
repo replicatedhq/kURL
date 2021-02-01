@@ -123,9 +123,10 @@ spec:
   velero:
     version: latest
     namespace: velero
-    localBucket: velero
     disableCLI: false
     disableRestic: false
+    localBucket: velero
+    resticRequiresPrivileged: false
 `;
 
 const fluentd = `

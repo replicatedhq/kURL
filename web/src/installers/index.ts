@@ -300,6 +300,7 @@ export interface VeleroConfig {
   disableCLI?: boolean;
   disableRestic?: boolean;
   localBucket?: string;
+  resticRequiresPrivileged?: boolean;
 }
 
 export const veleroConfigSchema = {
@@ -308,9 +309,10 @@ export const veleroConfigSchema = {
     version: { type: "string" },
     s3Override: { type: "string", flag: "s3-override", description: "Override the download location for addon package distribution (used for CI/CD testing alpha addons)" },
     namespace: { type: "string", flag: "velero-namespace", description: "The namespace to install velero into if not using the default"},
-    localBucket: { type: "string", flag : "velero-local-bucket", description: "Name of the bucket to create snapshots in the local object store"},
     disableCLI: { type: "boolean", flag: "velero-disable-cli", description: "Don't install the velero CLI on the host" },
     disableRestic: { type: "boolean", flag: "velero-disable-restic", description: "Don’t install the restic integration" },
+    localBucket: { type: "string", flag : "velero-local-bucket", description: "Name of the bucket to create snapshots in the local object store"},
+    resticRequiresPrivileged: { type: "boolean", flag: "velero-restic-requires-privileged", description: "Runs Restic container in privileged mode" },
   },
   required: ["version"],
   additionalProperties: false,
