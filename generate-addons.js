@@ -28,6 +28,7 @@ const uploadFile = (file) => {
   });
 }
 
+const preferredVersions = JSON.parse(fs.readFileSync("./web/versions.json"));
 let addons = [];
 let supportedVersions = new Object();
 const specDir = "./addons";
@@ -68,10 +69,19 @@ fs.readdir(specDir, (err, files) => {
       if (hasAlphaVersion) {
         sv.push("alpha");
       }
+      if (preferredVersions[file]) {
+        sv = preferredVersions[file];
+      }
       sv.unshift("latest");
       supportedVersions[file] = sv
     }
   });
+
+  supportedVersions.kubernetes = preferredVersions.kubernetes;
+  supportedVersions.kubernetes.unshift("latest");
+
+  supportedVersions.docker = preferredVersions.docker;
+  supportedVersions.docker.unshift("latest");
 
   // Build JSON files
   const addonsFile = {

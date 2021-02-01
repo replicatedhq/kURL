@@ -6,6 +6,7 @@
 node_modules/
 .idea
 *DS_Store
+versions.json
 supported-versions-gen.json
 addons-gen.json
 package-lock.json
