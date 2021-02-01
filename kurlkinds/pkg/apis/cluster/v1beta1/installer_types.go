@@ -152,12 +152,13 @@ type Rook struct {
 }
 
 type Velero struct {
-	DisableCLI    bool   `json:"disableCLI,omitempty" yaml:"disableCLI,omitempty"`
-	DisableRestic bool   `json:"disableRestic,omitempty" yaml:"disableRestic,omitempty"`
-	LocalBucket   string `json:"localBucket,omitempty" yaml:"localBucket,omitempty"`
-	Namespace     string `json:"namespace,omitempty" yaml:"namespace,omitempty"`
-	S3Override    string `json:"s3Override,omitempty" yaml:"s3Override,omitempty"`
-	Version       string `json:"version" yaml:"version"`
+	S3Override               string `json:"s3Override,omitempty" yaml:"s3Override,omitempty"`
+	Namespace                string `json:"namespace,omitempty" yaml:"namespace,omitempty"`
+	DisableCLI               bool   `json:"disableCLI,omitempty" yaml:"disableCLI,omitempty"`
+	DisableRestic            bool   `json:"disableRestic,omitempty" yaml:"disableRestic,omitempty"`
+	LocalBucket              string `json:"localBucket,omitempty" yaml:"localBucket,omitempty"`
+	ResticRequiresPrivileged bool   `json:"resticRequiresPrivileged,omitempty" yaml:"resticRequiresPrivileged,omitempty"`
+	Version                  string `json:"version" yaml:"version"`
 }
 
 type Weave struct {

@@ -62,15 +62,16 @@ spec:
   rook:
     blockDeviceFilter: "filter"
     cephReplicaCount: 24
+    hostpathRequiresPrivileged: true
     isBlockStorageEnabled: true
     storageClassName: "storage"
-    hostpathRequiresPrivileged: true
     version: "here"
   velero:
-    disableRestic: true
     disableCLI: true
+    disableRestic: true
     localBucket: "local"
     namespace: "velero"
+    resticRequiresPrivileged: true
     version: "latest"
   weave:
     isEncryptionDisabled: true
