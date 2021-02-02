@@ -188,6 +188,7 @@ EOF
 
     popd
     rm -r "$tmp"
+
 }
 
 function registry_object_store_bucket() {
