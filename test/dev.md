@@ -58,7 +58,7 @@ We welcome contributions to kURL. We appreciate your time and help.
 cd kurl
 # validate your expected changes in install.sh|upgrade.sh and|or addons|packages
 # run installation
-sudo ./install.sh kurl-install-directory=.
+sudo ./install.sh
 ```
 *NOTE: `install.sh` runs are idempotent, consecutive runs on changed spec will update kURL installation.*
 
