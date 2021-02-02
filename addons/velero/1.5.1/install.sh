@@ -24,9 +24,18 @@ function velero() {
 
     kubectl create namespace "$VELERO_NAMESPACE" 2>/dev/null || true
 
+    if [ "${K8S_DISTRO}" = "rke2" ]; then
+        VELERO_RESTIC_REQUIRES_PRIVILEGED=1
+    fi
+
     if [ "$VELERO_DISABLE_RESTIC" != "1" ]; then
         cp "$src/restic-daemonset.yaml" "$dst/"
         insert_resources "$dst/kustomization.yaml" restic-daemonset.yaml
+
+        if [ "${VELERO_RESTIC_REQUIRES_PRIVILEGED}" = "1" ]; then
+            cp "$src/restic-daemonset-privileged.yaml" "$dst/"
+            insert_patches_strategic_merge "$dst/kustomization.yaml" restic-daemonset-privileged.yaml
+        fi
     fi
 
     velero_kotsadm_local_backend
