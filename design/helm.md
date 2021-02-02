@@ -24,15 +24,16 @@ By allowing Kurl users to specifify a chart and its values, we can allow customi
 
 Kurl will bundle the Helm binary into the common tools bundle already delivering krew and kubectl plugins. The install.sh script will perform the following in the online case:
 1. Unarchive Helm and move into the `$PATH` and `/usr/bin`
-1. For each release, check if the release exists. 
-1. If the release exists, perform a `helm upgrade`.
-1. If the release doesn't exist, perform a `helm install`
+1. For each release, add the corresponding helm repo: `helm repo add <repo>`
+1. Perform a `helm upgrade --install`
+
 
 For airgapped the chart and artifacts need to be packaged into a bundle. The builder should perform the following:
 1. `helm pull` the repo
 1. `helm template` to render the chart with the provided values
-1. Generate an adhoc `manifest` file by parsing `image` specs from the rendered yaml.
-1. Generate a bundle including the chart + containers
+1. Generate an adhoc `manifest` file by parsing `image` specs from the rendered yaml
+1. (Optional) download values file from specified `valuesUrl`
+1. Generate a unique bundle with hash including the chart + images + values
 
 In the airgapped case, install.sh will perform the following:
 1. Unpack the helm bundle on initialization
@@ -73,6 +74,17 @@ spec:
           hostname: dan-dot-com
         metrics: 
           enabled: true
+    # An operator with a indirect-dependency image
+    - release: redis-operator
+      chart:
+        name: charts/redisoperator
+        repo: https://github.com/spotahome/redis-operator
+      values: |
+        example: hello
+      additionalImages:
+       - additleominov/redis_sentinel_exporter:1.3.0
+       - oliver006/redis_exporter:v1.3.5-alpine
+       - redis:5.0-alpine
     # Option 2 (Using Mapstructure?)
     - release: postgres-web
       chart: 
@@ -81,18 +93,18 @@ spec:
       values:
         postgresqlUsername: dan
         postgresqlPassword: opensesame
-    # Option 3 (Config Url)
+    # Option 3 (Values Url)
     - release: postgres-auth
       chart: 
         name: bitnami/postgresql
         repo: https://charts.bitnami.com/bitnami 
-      values: https://gist.githubusercontent.com/DanStough/b4376b7a6aa5b73c6a647bff504212df/raw/829680f4a474720dc36b7a963d2d691305b8cdfb/postgres-auth.yaml
+      valuesUrl: https://gist.githubusercontent.com/DanStough/b4376b7a6aa5b73c6a647bff504212df/raw/829680f4a474720dc36b7a963d2d691305b8cdfb/postgres-auth.yaml
   ...
 ```
 
 ### Assumptions
 1. Authenticated Registries are NOT supported by Kurl
-1. The join and upgrade functionality of Kurl is transparent to Helm installs. 
+1. Kurl Upgrade functionality of Kurl is transparent to Helm installs. 
 
 ### Design Decisions
 1. Re-install a chart: chart installs are not idempotent, so this will be treated as an upgrade.
@@ -117,6 +129,7 @@ spec:
 
 #### Followup
 1. Add airgap support to airgap builder for helm
+  1. Join loads images on to new nodes.
 1. Update Kurl.sh with new components to display multiple helm releases, add values, lint yaml (Out of scope for this story)
 
 ## Testing
@@ -128,6 +141,7 @@ Ongoing maintance of the helm addons feature will be tested with daily TestGrid 
 
 ## Alternatives Considered
 
+1. Use the helmfile plugin (https://github.com/roboll/helmfile) and just provide configuration to it as a single "addon".
 1. Create a custom binary to manage Helm releases in kurl.
     1. Any custom binary seems like it would be a thin wrapper on the helm API. Using the helm binary directly seems like the path of least resistance for initial development.
     1. Discussion have begun to replace Kurl scripts with a CLI. Any work here would likely need to be refactored soon after.  
