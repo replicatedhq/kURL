@@ -18,6 +18,7 @@ func RunCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use: "run",
 		PreRun: func(cmd *cobra.Command, args []string) {
+			viper.BindPFlags(cmd.PersistentFlags())
 			viper.BindPFlags(cmd.Flags())
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
