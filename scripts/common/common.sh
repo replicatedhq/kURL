@@ -475,9 +475,9 @@ Please either change the directory permissions or override the
 installation directory with the flag \"kurl-install-directory\"."
     fi
     rm "${tmpfile}"
-    pushd "${KURL_INSTALL_DIRECTORY}"
+    pushd "${KURL_INSTALL_DIRECTORY}" 1>/dev/null
 }
 
 function popd_install_directory() {
-    popd
+    popd 1>/dev/null
 }
