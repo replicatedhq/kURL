@@ -103,6 +103,9 @@ function main() {
     export KUBECONFIG=/etc/kubernetes/admin.conf
     require_root_user
     get_patch_yaml "$@"
+
+    pushd_install_directory
+
     proxy_bootstrap
     download_util_binaries
     merge_yaml_specs
@@ -124,6 +127,8 @@ function main() {
     kubernetes_host
     join
     outro
+
+    popd_install_directory
 }
 
 main "$@"

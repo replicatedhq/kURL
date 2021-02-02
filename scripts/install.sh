@@ -359,6 +359,9 @@ K8S_DISTRO=kubeadm
 function main() {
     require_root_user
     get_patch_yaml "$@"
+
+    pushd_install_directory
+
     yaml_airgap
     proxy_bootstrap
     download_util_binaries
@@ -403,6 +406,9 @@ function main() {
     ${K8S_DISTRO}_addon_for_each addon_install
     post_init
     outro
+
+    popd_install_directory
+
     report_install_success
 }
 

@@ -68,7 +68,9 @@ function get_patch_yaml() {
         _value="$(echo "$1" | grep '=' | cut -d= -f2-)"
         case $_param in
             installer-spec-file)
-                INSTALLER_SPEC_FILE="$_value"
+                if [ -n "$_value" ]; then
+                    INSTALLER_SPEC_FILE="$(readlink -f "$_value")" # resolve relative paths before we pushd
+                fi
                 ;;
             additional-no-proxy-addresses)
                 ;;
@@ -93,6 +95,11 @@ function get_patch_yaml() {
             kubernetes-master-address)
                 ;;
             kubernetes-version)
+                ;;
+            kurl-install-directory)
+                if [ -n "$_value" ]; then
+                    KURL_INSTALL_DIRECTORY="$_value"
+                fi
                 ;;
             load-balancer-address)
                 ;;
