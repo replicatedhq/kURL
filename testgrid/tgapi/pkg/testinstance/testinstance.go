@@ -22,12 +22,12 @@ type KurlInstallerMetadata struct {
 	Name string `json:"name" yaml:"name"`
 }
 
-func Create(id string, refID, kurlYAML string, kurlURL string, osName string, osVersion string, osImage string) error {
+func Create(id, refID, kurlYAML, kurlURL, upgradeYAML, upgradeURL, osName, osVersion, osImage string) error {
 	pg := persistence.MustGetPGSession()
 
-	query := `insert into testinstance (id, enqueued_at, testrun_ref, kurl_yaml, kurl_url, os_name, os_version, os_image)
+	query := `insert into testinstance (id, enqueued_at, testrun_ref, kurl_yaml, kurl_url, upgrade_yaml, upgrade_url, os_name, os_version, os_image)
 values ($1, $2, $3, $4, $5, $6, $7, $8)`
-	if _, err := pg.Exec(query, id, time.Now(), refID, kurlYAML, kurlURL, osName, osVersion, osImage); err != nil {
+	if _, err := pg.Exec(query, id, time.Now(), refID, kurlYAML, kurlURL, upgradeYAML, upgradeURL, osName, osVersion, osImage); err != nil {
 		return errors.Wrap(err, "failed to insert")
 	}
 
@@ -43,8 +43,8 @@ set dequeued_at = now() where id in (
 select id from testinstance
 where dequeued_at is null
 order by enqueued_at asc
-limit 1) returning id, dequeued_at, testrun_ref, kurl_yaml, kurl_url, os_name, os_version, os_image
-) select id, testrun_ref, kurl_yaml, kurl_url, os_name, os_version, os_image from updated`
+limit 1) returning id, dequeued_at, testrun_ref, kurl_yaml, kurl_url, upgrade_yaml, upgrade_url, os_name, os_version, os_image
+) select id, testrun_ref, kurl_yaml, kurl_url, upgrade_yaml, upgrade_url, os_name, os_version, os_image from updated`
 
 	row := db.QueryRow(query)
 
@@ -53,6 +53,8 @@ limit 1) returning id, dequeued_at, testrun_ref, kurl_yaml, kurl_url, os_name, o
 		&testInstance.RefID,
 		&testInstance.KurlYAML,
 		&testInstance.KurlURL,
+		&testInstance.UpgradeYAML,
+		&testInstance.UpgradeURL,
 		&testInstance.OSName,
 		&testInstance.OSVersion,
 		&testInstance.OSImage,
@@ -75,8 +77,8 @@ AND dequeued_at <  now() - INTERVAL '12 hours'
 AND dequeued_at >  now() - INTERVAL '24 hours'
 AND enqueued_at >  now() - INTERVAL '24 hours'
 order by enqueued_at asc
-limit 1) returning id, dequeued_at, testrun_ref, kurl_yaml, kurl_url, os_name, os_version, os_image
-) select id, testrun_ref, kurl_yaml, kurl_url, os_name, os_version, os_image from updated`
+limit 1) returning id, dequeued_at, testrun_ref, kurl_yaml, kurl_url, upgrade_yaml, upgrade_url, os_name, os_version, os_image
+) select id, testrun_ref, kurl_yaml, kurl_url, upgrade_yaml, upgrade_url, os_name, os_version, os_image from updated`
 
 	row := db.QueryRow(query)
 
@@ -85,6 +87,8 @@ limit 1) returning id, dequeued_at, testrun_ref, kurl_yaml, kurl_url, os_name, o
 		&testInstance.RefID,
 		&testInstance.KurlYAML,
 		&testInstance.KurlURL,
+		&testInstance.UpgradeYAML,
+		&testInstance.UpgradeURL,
 		&testInstance.OSName,
 		&testInstance.OSVersion,
 		&testInstance.OSImage,
@@ -137,6 +141,18 @@ func SetInstanceSonobuoyResults(id string, results []byte) error {
 	query := `update testinstance set sonobuoy_results = $1 where id = $2`
 
 	if _, err := db.Exec(query, results, id); err != nil {
+		return errors.Wrap(err, "failed to update")
+	}
+
+	return nil
+}
+
+func SetInstanceUpgradeLogs(id string, logs []byte) error {
+	db := persistence.MustGetPGSession()
+
+	query := `update testinstance set upgrade_output = $1 where id = $2`
+
+	if _, err := db.Exec(query, logs, id); err != nil {
 		return errors.Wrap(err, "failed to update")
 	}
 
@@ -197,7 +213,7 @@ where id = $1`
 func List(refID string, limit int, offset int, addons map[string]string) ([]types.TestInstance, error) {
 	db := persistence.MustGetPGSession()
 
-	query := `SELECT ti.id, ti.kurl_yaml, ti.kurl_url, ti.os_name, ti.os_version, ti.os_image, ti.enqueued_at, ti.dequeued_at, ti.started_at, ti.finished_at, ti.is_success, ti.is_unsupported
+	query := `SELECT ti.id, ti.kurl_yaml, ti.kurl_url, ti.upgrade_url, ti.upgrade_yaml, ti.os_name, ti.os_version, ti.os_image, ti.enqueued_at, ti.dequeued_at, ti.started_at, ti.finished_at, ti.is_success, ti.is_unsupported
 FROM testinstance ti
 LEFT JOIN (
 	SELECT kurl_url, row_number() OVER (ORDER BY kurl_url) row_num
@@ -243,6 +259,8 @@ WHERE ti.testrun_ref = $1 AND x.row_num > $2`
 			&testInstance.ID,
 			&testInstance.KurlYAML,
 			&testInstance.KurlURL,
+			&testInstance.UpgradeYAML,
+			&testInstance.UpgradeURL,
 			&testInstance.OSName,
 			&testInstance.OSVersion,
 			&testInstance.OSImage,
@@ -304,18 +322,18 @@ func Total(refID string, addons map[string]string) (int, error) {
 	return total, nil
 }
 
-func GetLogs(id string) (string, error) {
+func GetLogs(id string) (string, string, error) {
 	db := persistence.MustGetPGSession()
 
-	query := `select output from testinstance where id = $1`
+	query := `select output, upgrade_output from testinstance where id = $1`
 	row := db.QueryRow(query, id)
 
-	var logs sql.NullString
-	if err := row.Scan(&logs); err != nil {
-		return "", errors.Wrap(err, "failed to scan")
+	var logs, upgradeLogs sql.NullString
+	if err := row.Scan(&logs, &upgradeLogs); err != nil {
+		return "", "", errors.Wrap(err, "failed to scan")
 	}
 
-	return logs.String, nil
+	return logs.String, upgradeLogs.String, nil
 }
 
 func GetSonobuoyResults(id string) (string, error) {

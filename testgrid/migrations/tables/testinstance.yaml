@@ -35,6 +35,12 @@ spec:
           type: text
         - name: kurl_url
           type: text
+        - name: upgrade_yaml
+          type: text
+        - name: upgrade_url
+          type: text
+        - name: upgrade_output
+          type: text
         - name: os_name
           type: text
         - name: os_version
