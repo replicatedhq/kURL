@@ -201,6 +201,8 @@ rke2_install() {
     systemctl enable rke2-server.service
     systemctl start rke2-server.service
 
+    get_shared
+
     logStep "Installing plugins"
     install_plugins
     logSuccess "Plugins installed"
@@ -389,7 +391,6 @@ function rke2_main() {
 
     rke2_install "${rke2_version}"
 
-    get_shared                          # TODO(dan): Docker or CRI needs to be setup for this.
     # upgrade_kubernetes                # TODO(dan): uses kubectl operator
     
     # kubernetes_host                   # TODO(dan): installs and sets up kubeadm, kubectl

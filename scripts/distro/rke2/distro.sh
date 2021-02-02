@@ -31,7 +31,7 @@ function rke2_addon_for_each() {
     local cmd="$1"
 
     if [ -n "$METRICS_SERVER_VERSION" ] && [ -z "$METRICS_SERVER_IGNORE" ]; then
-        logWarn "⚠️ Metrics Server is distributed as part of RKE2; the version specified in the installer will be ignored."
+        logWarn "⚠️  Metrics Server is distributed as part of RKE2; the version specified in the installer will be ignored."
         METRICS_SERVER_IGNORE=true
     fi
 
