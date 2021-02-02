@@ -162,6 +162,15 @@ spec:
               required:
               - version
               type: object
+            helm:
+              properties:
+                additionalImages:
+                  items:
+                    type: string
+                  type: array
+                helmfileSpec:
+                  type: string
+              type: object
             iptablesConfig:
               properties:
                 iptablesCmds:

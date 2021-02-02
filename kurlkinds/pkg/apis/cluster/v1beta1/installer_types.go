@@ -44,6 +44,7 @@ type InstallerSpec struct {
 	Collectd        Collectd        `json:"collectd,omitempty"`
 	CertManager     CertManager     `json:"certManager,omitempty"`
 	MetricsServer   MetricsServer   `json:"metricsServer,omitempty"`
+	Helm            Helm            `json:"helm,omitempty"`
 }
 
 type Contour struct {
@@ -228,6 +229,11 @@ type CertManager struct {
 type MetricsServer struct {
 	S3Override string `json:"s3Override,omitempty" yaml:"s3Override,omitempty"`
 	Version    string `json:"version" yaml:"version"`
+}
+
+type Helm struct {
+	HelmfileSpec     string   `json:"helmfileSpec,omitempty" yaml:"helmfileSpec,omitempty"`
+	AdditionalImages []string `json:"additionalImages,omitempty" yaml:"additionalImages,omitempty"`
 }
 
 // InstallerStatus defines the observed state of Installer
