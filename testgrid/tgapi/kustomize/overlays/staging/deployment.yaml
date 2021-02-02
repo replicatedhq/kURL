@@ -11,6 +11,9 @@ spec:
       containers:
         - name: tgapi
           image: 923411875752.dkr.ecr.us-east-1.amazonaws.com/tgapi
+          envFrom:
+            - secretRef:
+                name: tgapi
           env:
             - name: AWS_REGION
               value: us-east-1

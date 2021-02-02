@@ -13,6 +13,7 @@ func RootCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use: "tgrun",
 		PreRun: func(cmd *cobra.Command, args []string) {
+			viper.BindPFlags(cmd.PersistentFlags())
 			viper.BindPFlags(cmd.Flags())
 		},
 		Run: func(cmd *cobra.Command, args []string) {
@@ -21,7 +22,7 @@ func RootCmd() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().String("api-endpoint", "https://api.testgrid.kurl.sh", "set to change the location of the testgrid api")
+	cmd.PersistentFlags().String("api-endpoint", "https://api.testgrid.kurl.sh", "set to change the location of the testgrid api")
 	cmd.PersistentFlags().String("api-token", "", "API token for authentication")
 
 	cobra.OnInitialize(initConfig)
