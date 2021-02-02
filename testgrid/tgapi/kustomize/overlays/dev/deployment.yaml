@@ -7,7 +7,9 @@ spec:
     spec:
       containers:
         - name: tgapi
+          envFrom:
+            - secretRef:
+                name: tgapi
           env:
             - name: DATABASE_URL
               value: postgres://testgrid:password@postgres.default.svc.cluster.local:5432/testgrid?sslmode=disable
-

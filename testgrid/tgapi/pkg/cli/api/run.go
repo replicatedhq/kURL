@@ -8,6 +8,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/replicatedhq/kurl/testgrid/tgapi/pkg/handlers"
+	"github.com/replicatedhq/kurl/testgrid/tgapi/pkg/middleware"
 	"github.com/replicatedhq/kurl/testgrid/tgapi/pkg/persistence"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -23,6 +24,9 @@ func RunCmd() *cobra.Command {
 			r := mux.NewRouter()
 			r.Use(mux.CORSMethodMiddleware(r))
 
+			rAuth := r.NewRoute().Subrouter()
+			rAuth.Use(middleware.APITokenAuthentication(viper.GetString("api-token")))
+
 			r.HandleFunc("/healthz", handlers.Healthz).Methods("GET")
 
 			r.HandleFunc("/api/v1/config", handlers.WebConfig).Methods("GET", "OPTIONS")
@@ -32,7 +36,7 @@ func RunCmd() *cobra.Command {
 			r.HandleFunc("/api/v1/instance/{instanceId}/logs", handlers.GetInstanceLogs).Methods("GET", "OPTIONS")
 			r.HandleFunc("/api/v1/instance/{instanceId}/sonobuoy", handlers.GetInstanceSonobuoyResults).Methods("GET", "OPTIONS")
 
-			r.HandleFunc("/v1/ref/{refId}/start", handlers.StartRef).Methods("POST")
+			rAuth.HandleFunc("/v1/ref/{refId}/start", handlers.StartRef).Methods("POST")
 
 			r.HandleFunc("/v1/instance/{instanceId}/start", handlers.StartInstance).Methods("POST")     // called when vm image has been loaded and k8s object created
 			r.HandleFunc("/v1/instance/{instanceId}/running", handlers.RunningInstance).Methods("POST") // called by script running within vm
@@ -65,6 +69,8 @@ func RunCmd() *cobra.Command {
 			return nil
 		},
 	}
+
+	cmd.Flags().String("api-token", "", "API token for authentication")
 
 	return cmd
 }

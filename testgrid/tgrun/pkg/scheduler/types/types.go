@@ -7,6 +7,7 @@ import (
 
 type SchedulerOptions struct {
 	APIEndpoint  string
+	APIToken     string
 	OverwriteRef bool
 	Ref          string
 	Staging      bool

@@ -173,6 +173,7 @@ func reportStarted(schedulerOptions types.SchedulerOptions, plannedInstances []t
 	if err != nil {
 		return errors.Wrap(err, "failed to create request to start run")
 	}
+	req.SetBasicAuth("token", schedulerOptions.APIToken)
 	req.Header.Set("Content-Type", "application/json")
 	req.ContentLength = int64(len(b))
 	resp, err := http.DefaultClient.Do(req)

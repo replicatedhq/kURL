@@ -15,7 +15,7 @@ spec:
       containers:
       - name: tgrun
         image: replicated/tgrun:latest # TODO: once regular image CI builds will be pushing images Git sha will be used
-        args: ["run", "--testgrid-api", "https://api.testgrid.kurl.sh"]
+        args: ["run", "--api-endpoint", "https://api.testgrid.kurl.sh"]
         resources:
           requests:
             memory: "512Mi"
