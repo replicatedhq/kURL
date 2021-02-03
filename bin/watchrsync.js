@@ -18,7 +18,7 @@ const commands = [
     args: ['-rf'].concat(list),
   },{
     command: 'make',
-    args: list.concat('DEV=1'),
+    args: list,
   }
 ];
 
