@@ -202,8 +202,6 @@ exportKubeconfig() {
     local kubeconfig
     kubeconfig="$(${K8S_DISTRO}_get_kubeconfig)"
 
-    cp ${kubeconfig} $HOME/admin.conf
-    chown $SUDO_USER:$SUDO_GID $HOME/admin.conf
     current_user_sudo_group
     if [ -n "$FOUND_SUDO_GROUP" ]; then
         chown root:$FOUND_SUDO_GROUP ${kubeconfig}
