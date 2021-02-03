@@ -96,7 +96,7 @@ function addon_fetch() {
     local archiveName=$(basename $url)
 
     echo "Fetching $archiveName"
-    curl -SLO "$url"
+    curl -LO "$url"
     tar xf $archiveName
     rm $archiveName
 }

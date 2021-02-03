@@ -129,7 +129,7 @@ function kubernetes_get_host_packages_online() {
 
     if [ "$AIRGAP" != "1" ] && [ -n "$DIST_URL" ]; then
         echo "Fetching kubernetes-${k8sVersion}.tar.gz"
-        curl -SLO "$DIST_URL/kubernetes-${k8sVersion}.tar.gz"
+        curl -LO "$DIST_URL/kubernetes-${k8sVersion}.tar.gz"
         rm -rf $DIR/packages/kubernetes/${k8sVersion}               # Cleanup broken/ incompatible packages from failed runs
         tar xf kubernetes-${k8sVersion}.tar.gz
         rm kubernetes-${k8sVersion}.tar.gz

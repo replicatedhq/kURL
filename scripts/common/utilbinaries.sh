@@ -1,7 +1,7 @@
 
 function download_util_binaries() {
     if [ -z "$AIRGAP" ] && [ -n "$DIST_URL" ]; then
-        curl -sSL $DIST_URL/$KURL_BIN_UTILS_FILE | tar zx
+        curl -L $DIST_URL/$KURL_BIN_UTILS_FILE | tar zx
     fi
 
     BIN_SYSTEM_CONFIG=./bin/config

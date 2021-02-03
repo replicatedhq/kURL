@@ -458,7 +458,7 @@ function install_host_dependencies() {
     if ! commandExists "openssl"; then
         if [ "$AIRGAP" != "1" ] && [ -n "$DIST_URL" ]; then
             echo "Fetching host-openssl.tar.gz"
-            curl -SLO "$DIST_URL/host-openssl.tar.gz"
+            curl -LO "$DIST_URL/host-openssl.tar.gz"
             tar xf host-openssl.tar.gz
             rm host-openssl.tar.gz
         fi
