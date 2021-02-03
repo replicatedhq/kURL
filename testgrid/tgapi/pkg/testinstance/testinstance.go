@@ -250,13 +250,14 @@ WHERE ti.testrun_ref = $1 AND x.row_num > $2`
 		var startedAt sql.NullTime
 		var finishedAt sql.NullTime
 		var isSuccess, isUnsupported sql.NullBool
+		var upgradeYAML, upgradeURL sql.NullString
 
 		if err := rows.Scan(
 			&testInstance.ID,
 			&testInstance.KurlYAML,
 			&testInstance.KurlURL,
-			&testInstance.UpgradeYAML,
-			&testInstance.UpgradeURL,
+			&upgradeYAML,
+			&upgradeURL,
 			&testInstance.OSName,
 			&testInstance.OSVersion,
 			&testInstance.OSImage,
@@ -287,6 +288,12 @@ WHERE ti.testrun_ref = $1 AND x.row_num > $2`
 		}
 		if isUnsupported.Valid {
 			testInstance.IsUnsupported = isUnsupported.Bool
+		}
+		if upgradeYAML.Valid {
+			testInstance.UpgradeYAML = upgradeYAML.String
+		}
+		if upgradeURL.Valid {
+			testInstance.UpgradeURL = upgradeURL.String
 		}
 
 		testInstances = append(testInstances, testInstance)
