@@ -11,18 +11,19 @@ DIR=.
 . $DIR/scripts/common/common.sh
 . $DIR/scripts/common/discover.sh
 . $DIR/scripts/common/docker.sh
-. $DIR/scripts/common/plugins.sh
+. $DIR/scripts/common/helm.sh
 . $DIR/scripts/common/kubernetes.sh
 . $DIR/scripts/common/object_store.sh
+. $DIR/scripts/common/plugins.sh
 . $DIR/scripts/common/preflights.sh
 . $DIR/scripts/common/prompts.sh
 . $DIR/scripts/common/proxy.sh
+. $DIR/scripts/common/reporting.sh
 . $DIR/scripts/common/rook.sh
 . $DIR/scripts/common/rke2.sh
 . $DIR/scripts/common/upgrade.sh
 . $DIR/scripts/common/utilbinaries.sh
 . $DIR/scripts/common/yaml.sh
-. $DIR/scripts/common/reporting.sh
 . $DIR/scripts/distro/interface.sh
 . $DIR/scripts/distro/kubeadm/distro.sh
 . $DIR/scripts/distro/rke2/distro.sh
@@ -394,13 +395,16 @@ function main() {
     get_shared
     upgrade_kubernetes
     kubernetes_host
+    install_helm
     setup_kubeadm_kustomize
     trap k8s_ctrl_c SIGINT # trap ctrl+c (SIGINT) and handle it by asking for a support bundle - only do this after k8s is installed
     ${K8S_DISTRO}_addon_for_each addon_load
+    helm_load
     init
     apply_installer_crd
     type create_registry_service &> /dev/null && create_registry_service # this function is in an optional addon and may be missing
     ${K8S_DISTRO}_addon_for_each addon_install
+    helmfile_sync
     post_init
     outro
     report_install_success

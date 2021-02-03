@@ -10,9 +10,10 @@ DIR=.
 . $DIR/scripts/common/common.sh
 . $DIR/scripts/common/discover.sh
 . $DIR/scripts/common/docker.sh
-. $DIR/scripts/common/plugins.sh
+. $DIR/scripts/common/helm.sh
 . $DIR/scripts/common/kubernetes.sh
 . $DIR/scripts/common/object_store.sh
+. $DIR/scripts/common/plugins.sh
 . $DIR/scripts/common/preflights.sh
 . $DIR/scripts/common/prompts.sh
 . $DIR/scripts/common/proxy.sh
@@ -121,7 +122,9 @@ function main() {
     setup_kubeadm_kustomize
     install_host_dependencies
     ${K8S_DISTRO}_addon_for_each addon_join
+    helm_load
     kubernetes_host
+    install_helm
     join
     outro
 }

@@ -103,7 +103,43 @@ spec:
     version: 1.0.3
   metricsServer:
     version: 0.3.7
+  helm:
+    helmfileSpec: |
+      repositories:
+      - name: nginx-stable
+        url: https://helm.nginx.com/stable
+      releases:
+      - name: test-nginx-ingress
+        chart: nginx-stable/nginx-ingress
+        values:
+        - controller:
+            service:
+              type: NodePort
+              httpPort:
+                nodePort: 30080
+              httpsPort:
+                nodePort: 30443
+    additionalImages:
+    - postgres
 `;
+
+// Used for validation in all options test case
+const helmfileSpec=`repositories:
+- name: nginx-stable
+  url: https://helm.nginx.com/stable
+releases:
+- name: test-nginx-ingress
+  chart: nginx-stable/nginx-ingress
+  values:
+  - controller:
+      service:
+        type: NodePort
+        httpPort:
+          nodePort: 30080
+        httpsPort:
+          nodePort: 30443
+`
+
 
 const typeMetaStableV1Beta1 = `
 apiVersion: kurl.sh/v1beta1
@@ -431,6 +467,31 @@ describe("Installer", () => {
 
       expect(a).not.to.equal(b);
     });
+
+    it("hashes specs with helmfile values differently", () => {
+      const helm1 = `spec:
+  kubernetes:
+    version: latest
+  helm:
+    helmfileSpec: |
+      repositories
+      - name: nginx
+        repo: nginx.com`;
+
+        const helm2 = `spec:
+  kubernetes:
+    version: latest
+  helm:
+    helmfileSpec: |
+      repositories
+      - name: postgres
+        repo: postgres.com`;
+
+      const a = Installer.parse(helm1).hash();
+      const b = Installer.parse(helm2).hash();
+
+      expect(a).not.to.equal(b);
+    });
   });
 
   describe("toYAML", () => {
@@ -717,7 +778,7 @@ spec:
       it(`=> service-cidr-range=/12 ...`, () => {
         const i = Installer.parse(everyOption);
 
-          expect(i.flags()).to.equal("service-cidr-range=/12 service-cidr=100.1.1.1/12 ha=0 kuberenetes-master-address=192.168.1.1 load-balancer-address=10.128.10.1 bootstrap-token=token bootstrap-token-ttl=10min kubeadm-token-ca-hash=hash control-plane=0 cert-key=key bypass-storagedriver-warnings=0 hard-fail-on-loopback=0 no-ce-on-ee=0 docker-registry-ip=192.168.0.1 additional-no-proxy=129.168.0.2 no-docker=0 pod-cidr=39.1.2.3 pod-cidr-range=/12 disable-weave-encryption=0 storage-class-name=default ceph-replica-count=1 rook-block-storage-enabled=1 rook-block-device-filter=sd[a-z] rook-hostpath-requires-privileged=1 openebs-namespace=openebs openebs-localpv-enabled=1 openebs-localpv-storage-class-name=default openebs-cstor-enabled=1 openebs-cstor-storage-class-name=cstor minio-namespace=minio minio-hostpath=/sentry contour-tls-minimum-protocol-version=1.3 contour-http-port=3080 contour-https-port=3443 registry-publish-port=20 fluentd-full-efk-stack=0 kotsadm-application-slug=sentry kotsadm-ui-bind-port=8800 kotsadm-hostname=1.1.1.1 kotsadm-application-namespaces=kots velero-namespace=velero velero-disable-cli=0 velero-disable-restic=0 velero-local-bucket=local velero-restic-requires-privileged=0 ekco-node-unreachable-toleration-duration=10m ekco-min-ready-master-node-count=3 ekco-min-ready-worker-node-count=1 ekco-should-disable-reboot-service=0 ekco-rook-should-use-all-nodes=0 http-proxy=1.1.1.1 airgap=0 bypass-firewalld-warning=0 hard-fail-on-firewalld=0 hostname-check=2.2.2.2 no-proxy=0 private-address=10.38.1.1 public-address=101.38.1.1");
+          expect(i.flags()).to.equal(`service-cidr-range=/12 service-cidr=100.1.1.1/12 ha=0 kuberenetes-master-address=192.168.1.1 load-balancer-address=10.128.10.1 bootstrap-token=token bootstrap-token-ttl=10min kubeadm-token-ca-hash=hash control-plane=0 cert-key=key bypass-storagedriver-warnings=0 hard-fail-on-loopback=0 no-ce-on-ee=0 docker-registry-ip=192.168.0.1 additional-no-proxy=129.168.0.2 no-docker=0 pod-cidr=39.1.2.3 pod-cidr-range=/12 disable-weave-encryption=0 storage-class-name=default ceph-replica-count=1 rook-block-storage-enabled=1 rook-block-device-filter=sd[a-z] rook-hostpath-requires-privileged=1 openebs-namespace=openebs openebs-localpv-enabled=1 openebs-localpv-storage-class-name=default openebs-cstor-enabled=1 openebs-cstor-storage-class-name=cstor minio-namespace=minio minio-hostpath=/sentry contour-tls-minimum-protocol-version=1.3 contour-http-port=3080 contour-https-port=3443 registry-publish-port=20 fluentd-full-efk-stack=0 kotsadm-application-slug=sentry kotsadm-ui-bind-port=8800 kotsadm-hostname=1.1.1.1 kotsadm-application-namespaces=kots velero-namespace=velero velero-disable-cli=0 velero-disable-restic=0 velero-local-bucket=local velero-restic-requires-privileged=0 ekco-node-unreachable-toleration-duration=10m ekco-min-ready-master-node-count=3 ekco-min-ready-worker-node-count=1 ekco-should-disable-reboot-service=0 ekco-rook-should-use-all-nodes=0 http-proxy=1.1.1.1 airgap=0 bypass-firewalld-warning=0 hard-fail-on-firewalld=0 hostname-check=2.2.2.2 no-proxy=0 private-address=10.38.1.1 public-address=101.38.1.1 helmfile-spec=${helmfileSpec}`);
       });
     });
   });
@@ -882,6 +943,22 @@ spec:
       const i = Installer.parse(everyOption);
 
       expect(i.spec.metricsServer.version).to.equal("0.3.7");
+    });
+  });
+
+  describe("helm", () => {
+    it("should require helmfile", () => {
+      const yaml = `
+spec:
+  kubernetes:
+    version: latest
+  helm:
+    additionalImages:
+    - postgres`;
+      const i = Installer.parse(yaml);
+      const out = i.validate();
+
+      expect(out).to.deep.equal({ error: { message: "spec.helm should have required property 'helmfileSpec'" } });
     });
   });
 

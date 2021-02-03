@@ -232,7 +232,7 @@ type MetricsServer struct {
 }
 
 type Helm struct {
-	HelmfileSpec     string   `json:"helmfileSpec,omitempty" yaml:"helmfileSpec,omitempty"`
+	HelmfileSpec     string   `json:"helmfileSpec" yaml:"helmfileSpec"`
 	AdditionalImages []string `json:"additionalImages,omitempty" yaml:"additionalImages,omitempty"`
 }
 

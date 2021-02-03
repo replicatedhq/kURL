@@ -23,12 +23,13 @@ endif
 clean:
 	rm -rf build tmp dist
 
-dist/common.tar.gz: build/kustomize build/shared build/krew build/kurlkinds
+dist/common.tar.gz: build/kustomize build/shared build/krew build/kurlkinds build/helm
 	mkdir -p dist
 	tar cf dist/common.tar -C build kustomize
 	tar rf dist/common.tar -C build shared
 	tar rf dist/common.tar -C build krew
 	tar rf dist/common.tar -C build kurlkinds
+	tar rf dist/common.tar -C build helm
 	gzip dist/common.tar
 
 dist/kurl-bin-utils-%.tar.gz:
@@ -283,6 +284,14 @@ build/kurlkinds:
 build/kustomize:
 	mkdir -p build
 	cp -r scripts/kustomize build/
+
+build/helm:
+	mkdir -p build/helm
+	docker build -t helm -f bundles/helm/Dockerfile bundles/helm
+	- docker rm -f helm 2>/dev/null
+	docker create --name helm helm:latest
+	docker cp helm:/helm build/
+	docker rm helm
 
 build/shared: kurl-util-image
 	mkdir -p build/shared
