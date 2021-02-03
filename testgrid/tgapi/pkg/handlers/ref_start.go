@@ -26,6 +26,9 @@ type PlannedInstance struct {
 	KurlYAML string
 	KurlURL  string
 
+	UpgradeYAML string
+	UpgradeURL  string
+
 	OperatingSystemName    string
 	OperatingSystemVersion string
 	OperatingSystemImage   string
@@ -78,6 +81,8 @@ func StartRef(w http.ResponseWriter, r *http.Request) {
 			refID,
 			plannedInstance.KurlYAML,
 			plannedInstance.KurlURL,
+			plannedInstance.UpgradeYAML,
+			plannedInstance.UpgradeURL,
 			plannedInstance.OperatingSystemName,
 			plannedInstance.OperatingSystemVersion,
 			plannedInstance.OperatingSystemImage,

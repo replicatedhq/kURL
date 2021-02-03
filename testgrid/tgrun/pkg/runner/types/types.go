@@ -14,9 +14,10 @@ type SingleRun struct {
 
 	PVCName string
 
-	KurlYAML string
-	KurlURL  string
-	KurlRef  string
+	KurlYAML   string
+	KurlURL    string
+	UpgradeURL string
+	KurlRef    string
 
 	TestGridAPIEndpoint string
 }

@@ -250,6 +250,29 @@ func execute(singleTest types.SingleRun, uploadProxyURL, tempDir string) error {
 }
 
 func createSecret(singleTest types.SingleRun, tempDir string) error {
+	upgradeCmd := ""
+
+	if singleTest.UpgradeURL != "" {
+		upgradeCmd = fmt.Sprintf(`
+KURL_UPGRADE_URL='%s'
+
+echo "upgrading installation"
+
+curl $KURL_UPGRADE_URL > upgrade.sh
+cat upgrade.sh | timeout 30m bash
+KURL_EXIT_STATUS=$?
+
+echo "";
+
+if [ $KURL_EXIT_STATUS -eq 0 ]; then
+    echo "completed kurl upgrade"
+else
+    echo "failed kurl upgrade with exit status $KURL_EXIT_STATUS"
+    curl -s -X POST -d "{\"success\": false}" $TESTGRID_APIENDPOINT/v1/instance/$TEST_ID/finish
+fi
+`, singleTest.UpgradeURL)
+	}
+
 	runcmd := fmt.Sprintf(`# runcmd.sh
 #!/bin/bash
 
@@ -283,6 +306,8 @@ else
 fi
 
 export KUBECONFIG=/etc/kubernetes/admin.conf
+
+%s
 
 curl -X POST --data-binary "@/var/log/cloud-init-output.log" $TESTGRID_APIENDPOINT/v1/instance/$TEST_ID/logs
 
@@ -318,7 +343,7 @@ fi
 
 curl -X POST -d '{"success": true}' $TESTGRID_APIENDPOINT/v1/instance/$TEST_ID/finish
 `,
-		singleTest.TestGridAPIEndpoint, singleTest.ID, singleTest.KurlURL,
+		singleTest.TestGridAPIEndpoint, singleTest.ID, singleTest.KurlURL, upgradeCmd,
 	)
 	runcmdB64 := base64.StdEncoding.EncodeToString([]byte(runcmd))
 

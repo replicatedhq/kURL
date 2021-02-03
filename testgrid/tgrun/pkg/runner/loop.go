@@ -89,9 +89,10 @@ func MainRunLoop(runnerOptions types.RunnerOptions) error {
 
 				PVCName: fmt.Sprintf("%s-disk", dequeuedInstance.ID),
 
-				KurlYAML: dequeuedInstance.KurlYAML,
-				KurlURL:  dequeuedInstance.KurlURL,
-				KurlRef:  dequeuedInstance.KurlRef,
+				KurlYAML:   dequeuedInstance.KurlYAML,
+				KurlURL:    dequeuedInstance.KurlURL,
+				UpgradeURL: dequeuedInstance.UpgradeURL,
+				KurlRef:    dequeuedInstance.KurlRef,
 
 				TestGridAPIEndpoint: runnerOptions.APIEndpoint,
 			}
