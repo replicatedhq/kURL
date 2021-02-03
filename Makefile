@@ -181,6 +181,8 @@ build/packages/rke-2/%/images:
 	mkdir -p build/packages/rke-2/$*/images
 	bin/save-manifest-assets.sh packages/rke-2/$*/Manifest build/packages/rke-2/$*
 
+DEV := 0
+
 build/install.sh:
 	mkdir -p tmp build
 	sed '/# Magic begin/q' scripts/install.sh | sed '$$d' > tmp/install.sh
@@ -189,6 +191,9 @@ build/install.sh:
 	done
 	sed -n '/# Magic end/,$$p' scripts/install.sh | sed '1d' >> tmp/install.sh
 	mv tmp/install.sh build/install.sh
+	if [ "${DEV}" = "1" ]; then \
+		sed -i 's/^KURL_INSTALL_DIRECTORY=.*/KURL_INSTALL_DIRECTORY=\./' build/install.sh; \
+	fi
 	chmod +x build/install.sh
 
 build/templates/install.tmpl: build/install.sh
@@ -212,6 +217,9 @@ build/join.sh:
 	done
 	sed -n '/# Magic end/,$$p' scripts/join.sh | sed '1d' >> tmp/join.sh
 	mv tmp/join.sh build/join.sh
+	if [ "${DEV}" = "1" ]; then \
+		sed -i 's/^KURL_INSTALL_DIRECTORY=.*/KURL_INSTALL_DIRECTORY=\./' build/join.sh; \
+	fi
 	chmod +x build/join.sh
 
 build/templates/join.tmpl: build/join.sh
@@ -235,6 +243,9 @@ build/upgrade.sh:
 	done
 	sed -n '/# Magic end/,$$p' scripts/upgrade.sh | sed '1d' >> tmp/upgrade.sh
 	mv tmp/upgrade.sh build/upgrade.sh
+	if [ "${DEV}" = "1" ]; then \
+		sed -i 's/^KURL_INSTALL_DIRECTORY=.*/KURL_INSTALL_DIRECTORY=\./' build/upgrade.sh; \
+	fi
 	chmod +x ./build/upgrade.sh
 
 build/templates/upgrade.tmpl: build/upgrade.sh
@@ -258,6 +269,9 @@ build/tasks.sh:
 	done
 	sed -n '/# Magic end/,$$p' scripts/tasks.sh | sed '1d' >> tmp/tasks.sh
 	mv tmp/tasks.sh build/tasks.sh
+	if [ "${DEV}" = "1" ]; then \
+		sed -i 's/^KURL_INSTALL_DIRECTORY=.*/KURL_INSTALL_DIRECTORY=\./' build/tasks.sh; \
+	fi
 	chmod +x build/tasks.sh
 
 build/templates/tasks.tmpl: build/tasks.sh

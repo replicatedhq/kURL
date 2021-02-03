@@ -101,6 +101,8 @@ func parseBashFlags(installer *kurlv1beta1.Installer, bashFlags string) error {
 			installer.Spec.Kubernetes.MasterAddress = split[1]
 		case "kubernetes-version":
 			installer.Spec.Kubernetes.Version = strings.TrimLeft(split[1], "v")
+		case "kurl-install-directory":
+			continue
 		case "installer-spec-file":
 			continue
 		case "kurl-registry-ip":

@@ -464,3 +464,19 @@ function install_host_dependencies() {
     fi
 }
 
+KURL_INSTALL_DIRECTORY=/var/lib/kurl
+function pushd_install_directory() {
+    local tmpfile
+    tmpfile="${KURL_INSTALL_DIRECTORY}/tmpfile"
+    if ! mkdir -p "${KURL_INSTALL_DIRECTORY}" || ! touch "${tmpfile}" ; then
+        bail "Directory ${KURL_INSTALL_DIRECTORY} is not writeable by this script.
+Please either change the directory permissions or override the
+installation directory with the flag \"kurl-install-directory\"."
+    fi
+    rm "${tmpfile}"
+    pushd "${KURL_INSTALL_DIRECTORY}" 1>/dev/null
+}
+
+function popd_install_directory() {
+    popd 1>/dev/null
+}
