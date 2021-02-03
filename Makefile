@@ -192,7 +192,7 @@ build/install.sh:
 	sed -n '/# Magic end/,$$p' scripts/install.sh | sed '1d' >> tmp/install.sh
 	mv tmp/install.sh build/install.sh
 	if [ "${DEV}" = "1" ]; then \
-		sed -i 's/^KURL_INSTALL_DIRECTORY=.*/KURL_INSTALL_DIRECTORY=\./' build/install.sh; \
+		sed -i 's/^KURL_INSTALL_DIRECTORY=.*/KURL_INSTALL_DIRECTORY=\.\/kurl/' build/install.sh; \
 	fi
 	chmod +x build/install.sh
 
@@ -218,7 +218,7 @@ build/join.sh:
 	sed -n '/# Magic end/,$$p' scripts/join.sh | sed '1d' >> tmp/join.sh
 	mv tmp/join.sh build/join.sh
 	if [ "${DEV}" = "1" ]; then \
-		sed -i 's/^KURL_INSTALL_DIRECTORY=.*/KURL_INSTALL_DIRECTORY=\./' build/join.sh; \
+		sed -i 's/^KURL_INSTALL_DIRECTORY=.*/KURL_INSTALL_DIRECTORY=\.\/kurl/' build/join.sh; \
 	fi
 	chmod +x build/join.sh
 
@@ -244,7 +244,7 @@ build/upgrade.sh:
 	sed -n '/# Magic end/,$$p' scripts/upgrade.sh | sed '1d' >> tmp/upgrade.sh
 	mv tmp/upgrade.sh build/upgrade.sh
 	if [ "${DEV}" = "1" ]; then \
-		sed -i 's/^KURL_INSTALL_DIRECTORY=.*/KURL_INSTALL_DIRECTORY=\./' build/upgrade.sh; \
+		sed -i 's/^KURL_INSTALL_DIRECTORY=.*/KURL_INSTALL_DIRECTORY=\.\/kurl/' build/upgrade.sh; \
 	fi
 	chmod +x ./build/upgrade.sh
 
@@ -270,7 +270,7 @@ build/tasks.sh:
 	sed -n '/# Magic end/,$$p' scripts/tasks.sh | sed '1d' >> tmp/tasks.sh
 	mv tmp/tasks.sh build/tasks.sh
 	if [ "${DEV}" = "1" ]; then \
-		sed -i 's/^KURL_INSTALL_DIRECTORY=.*/KURL_INSTALL_DIRECTORY=\./' build/tasks.sh; \
+		sed -i 's/^KURL_INSTALL_DIRECTORY=.*/KURL_INSTALL_DIRECTORY=\.\/kurl/' build/tasks.sh; \
 	fi
 	chmod +x build/tasks.sh
 

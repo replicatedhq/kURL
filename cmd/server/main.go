@@ -14,6 +14,7 @@ import (
 	"net/url"
 	"os"
 	"path"
+	"path/filepath"
 	"strings"
 	"time"
 )
@@ -170,6 +171,7 @@ func pipe(dst *tar.Writer, srcURL string) error {
 		if err != nil {
 			return fmt.Errorf("next file: %v", err)
 		}
+		header.Name = filepath.Join("kurl", header.Name)
 		dst.WriteHeader(header)
 		_, err = io.Copy(dst, src)
 		if err != nil {

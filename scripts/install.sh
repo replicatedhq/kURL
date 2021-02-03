@@ -360,6 +360,9 @@ function main() {
     require_root_user
     get_patch_yaml "$@"
 
+    if [ "$AIRGAP" = "1" ]; then
+        move_airgap_assets
+    fi
     pushd_install_directory
 
     yaml_airgap

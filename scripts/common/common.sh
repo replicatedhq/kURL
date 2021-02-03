@@ -480,3 +480,21 @@ installation directory with the flag \"kurl-install-directory\"."
 function popd_install_directory() {
     popd 1>/dev/null
 }
+
+function move_airgap_assets() {
+    local cwd
+    cwd="$(pwd)"
+
+    if [ "${KURL_INSTALL_DIRECTORY}" = "${cwd}/kurl" ]; then
+        return
+    fi
+
+    pushd_install_directory # make sure we have access
+    popd_install_directory
+
+    # The airgap bundle will extract everything into ./kurl directory.
+    # Move all assets except the scripts into the $KURL_INSTALL_DIRECTORY to emulate the online install experience.
+    if [ "$(ls -A "${cwd}"/kurl)" ]; then
+        mv "${cwd}"/kurl/* "${KURL_INSTALL_DIRECTORY}"
+    fi
+}

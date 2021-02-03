@@ -25,6 +25,10 @@ const commands = [
 process.env.REMOTES.split(",").forEach(function(remote) {
   commands.push({
     command: 'rsync',
+    args: ['-r', 'build/install.sh', 'build/join.sh', 'build/upgrade.sh', 'build/tasks.sh', `${remote}:`],
+  });
+  commands.push({
+    command: 'rsync',
     args: ['-r', 'build/', `${remote}:kurl`],
   });
 });
