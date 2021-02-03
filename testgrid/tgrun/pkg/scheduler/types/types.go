@@ -36,6 +36,7 @@ type OperatingSystemImage struct {
 
 type Instance struct {
 	InstallerSpec    InstallerSpec
+	UpgradeSpec      *InstallerSpec
 	UnsupportedOSIDs []string
 }
 

@@ -53,7 +53,7 @@ func Run(schedulerOptions types.SchedulerOptions) error {
 			Spec: testSpec,
 		}
 
-		b, err := json.Marshal(installer)
+		installerYAML, err := json.Marshal(installer)
 		if err != nil {
 			return errors.Wrap(err, "failed to marshal json")
 		}
@@ -63,7 +63,7 @@ func Run(schedulerOptions types.SchedulerOptions) error {
 			apiUrl = "https://staging.kurl.sh/installer"
 		}
 
-		req, err := http.NewRequest("POST", apiUrl, bytes.NewReader(b))
+		req, err := http.NewRequest("POST", apiUrl, bytes.NewReader(installerYAML))
 		if err != nil {
 			return errors.Wrap(err, "failed to create request to submit installer spec")
 		}
@@ -77,6 +77,31 @@ func Run(schedulerOptions types.SchedulerOptions) error {
 		installerURL, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
 			return errors.Wrap(err, "failed to read response body")
+		}
+
+		var upgradeYAML, upgradeURL []byte
+		if instance.UpgradeSpec != nil {
+			installer.Spec = *instance.UpgradeSpec
+			upgradeYAML, err = json.Marshal(installer)
+			if err != nil {
+				return errors.Wrap(err, "failed to marshal upgrade json")
+			}
+
+			req, err := http.NewRequest("POST", apiUrl, bytes.NewReader(upgradeYAML))
+			if err != nil {
+				return errors.Wrap(err, "failed to create request to submit installer upgrade spec")
+			}
+			req.Header.Set("Content-Type", "text/yaml")
+			upgradeResp, err := http.DefaultClient.Do(req)
+			if err != nil {
+				return errors.Wrap(err, "failed to submit installer upgrade spec")
+			}
+			defer upgradeResp.Body.Close()
+
+			upgradeURL, err = ioutil.ReadAll(upgradeResp.Body)
+			if err != nil {
+				return errors.Wrap(err, "failed to read upgrade response body")
+			}
 		}
 
 		// attempt to unmarshal installerURL as a kurl error message - if this works, it's not a URL
@@ -97,8 +122,11 @@ func Run(schedulerOptions types.SchedulerOptions) error {
 			plannedInstance := tghandlers.PlannedInstance{
 				ID: testName,
 
-				KurlYAML: string(b),
+				KurlYAML: string(installerYAML),
 				KurlURL:  string(installerURL),
+
+				UpgradeYAML: string(upgradeYAML),
+				UpgradeURL:  string(upgradeURL),
 
 				OperatingSystemName:    operatingSystem.Name,
 				OperatingSystemVersion: operatingSystem.Version,

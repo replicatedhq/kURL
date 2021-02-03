@@ -147,18 +147,6 @@ func SetInstanceSonobuoyResults(id string, results []byte) error {
 	return nil
 }
 
-func SetInstanceUpgradeLogs(id string, logs []byte) error {
-	db := persistence.MustGetPGSession()
-
-	query := `update testinstance set upgrade_output = $1 where id = $2`
-
-	if _, err := db.Exec(query, logs, id); err != nil {
-		return errors.Wrap(err, "failed to update")
-	}
-
-	return nil
-}
-
 // SetInstanceFinishedAndSuccess sets is_success and finished_at.
 // If finished_at is already set and is_success is false, neither is updated.
 // This allows failure to be 'sticky' - success can change to failure, but not failure to success.
@@ -322,18 +310,18 @@ func Total(refID string, addons map[string]string) (int, error) {
 	return total, nil
 }
 
-func GetLogs(id string) (string, string, error) {
+func GetLogs(id string) (string, error) {
 	db := persistence.MustGetPGSession()
 
-	query := `select output, upgrade_output from testinstance where id = $1`
+	query := `select output from testinstance where id = $1`
 	row := db.QueryRow(query, id)
 
-	var logs, upgradeLogs sql.NullString
-	if err := row.Scan(&logs, &upgradeLogs); err != nil {
-		return "", "", errors.Wrap(err, "failed to scan")
+	var logs sql.NullString
+	if err := row.Scan(&logs); err != nil {
+		return "", errors.Wrap(err, "failed to scan")
 	}
 
-	return logs.String, upgradeLogs.String, nil
+	return logs.String, nil
 }
 
 func GetSonobuoyResults(id string) (string, error) {

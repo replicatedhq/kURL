@@ -9,8 +9,7 @@ import (
 )
 
 type GetInstanceLogsResponse struct {
-	Logs        string `json:"logs"`
-	UpgradeLogs string `json:"upgradeLogs"`
+	Logs string `json:"logs"`
 }
 
 func GetInstanceLogs(w http.ResponseWriter, r *http.Request) {
@@ -22,7 +21,7 @@ func GetInstanceLogs(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	logs, upgradeLogs, err := testinstance.GetLogs(mux.Vars(r)["instanceId"])
+	logs, err := testinstance.GetLogs(mux.Vars(r)["instanceId"])
 	if err != nil {
 		logger.Error(err)
 		JSON(w, 500, nil)
@@ -31,7 +30,6 @@ func GetInstanceLogs(w http.ResponseWriter, r *http.Request) {
 
 	getInstanceLogsResponse := GetInstanceLogsResponse{}
 	getInstanceLogsResponse.Logs = logs
-	getInstanceLogsResponse.UpgradeLogs = upgradeLogs
 
 	JSON(w, 200, getInstanceLogsResponse)
 }
