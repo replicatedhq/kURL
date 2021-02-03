@@ -26,6 +26,7 @@ export default class InstanceTable extends React.Component {
       showSonobuoyResultsModal: false,
       loadingSonobuoyResults: false,
       activeMarkers: [],
+      showUpgradeYaml: false,
     };
   }
 
@@ -47,6 +48,15 @@ export default class InstanceTable extends React.Component {
     this.setState({
       selectedInstance: instance,
       showInstallerModal: true,
+      showUpgradeYaml: false,
+    });
+  }
+
+  viewUpgradeInstaller = instance => {
+    this.setState({
+      selectedInstance: instance,
+      showInstallerModal: true,
+      showUpgradeYaml: true,
     });
   }
 
@@ -216,7 +226,15 @@ export default class InstanceTable extends React.Component {
     const rows = Object.keys(this.props.instancesMap).map(kurlURL => {
       return (
         <tr key={kurlURL}>
-          <td><span className="url" onClick={() => this.viewInstanceInstaller(this.props.instancesMap[kurlURL][0])}>{kurlURL}</span></td>
+          <td>
+            <span className="url" onClick={() => this.viewInstanceInstaller(this.props.instancesMap[kurlURL][0])}>{kurlURL}</span>
+            {(this.props.instancesMap[kurlURL][0].upgradeURL && this.props.instancesMap[kurlURL][0].upgradeURL !== "") &&
+              <div>
+                <span>{' -> '}</span>
+                <span className="url" onClick={() => this.viewUpgradeInstaller(this.props.instancesMap[kurlURL][0])}>{this.props.instancesMap[kurlURL][0].upgradeURL}</span>
+              </div>
+              }
+          </td>
           {osArray.map(osKey => {
             const instance = find(this.props.instancesMap[kurlURL], i => (osKey == `${i.osName}-${i.osVersion}`));
             if (instance) {
@@ -275,7 +293,7 @@ export default class InstanceTable extends React.Component {
             <div className="MonacoEditor-wrapper">
               <MonacoEditor
                 language="json"
-                value={this.prettifyJSON(this.state.selectedInstance?.kurlYaml)}
+                value={!this.state.showUpgradeYaml ? this.prettifyJSON(this.state.selectedInstance?.kurlYaml) : this.prettifyJSON(this.state.selectedInstance?.upgradeYaml)}
                 height="100%"
                 width="100%"
                 options={{
