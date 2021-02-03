@@ -13,6 +13,11 @@ set -e
 function tasks() {
     DOCKER_VERSION="$(get_docker_version)"
 
+    if [ "$AIRGAP" = "1" ]; then
+        move_airgap_assets
+    fi
+    pushd_install_directory
+
     case "$1" in
         load-images|load_images)
             load_all_images
@@ -40,8 +45,25 @@ function tasks() {
             ;;
     esac
 
+    popd_install_directory
+
     # terminate the script if a task was run
     exit 0
+}
+
+function tasks_flags() {
+    while [ "$1" != "" ]; do
+        _param="$(echo "$1" | cut -d= -f1)"
+        _value="$(echo "$1" | grep '=' | cut -d= -f2-)"
+        case $_param in
+            kurl-install-directory)
+                if [ -n "$_value" ]; then
+                    KURL_INSTALL_DIRECTORY="$(realpath ${_value})/kurl"
+                fi
+                ;;
+        esac
+        shift
+    done
 }
 
 function load_all_images() {
@@ -424,4 +446,9 @@ function set_kubeconfig_server() {
     fi
 }
 
-tasks "$@"
+function main() {
+    tasks_flags "$@"
+    tasks "$@"
+}
+
+main
