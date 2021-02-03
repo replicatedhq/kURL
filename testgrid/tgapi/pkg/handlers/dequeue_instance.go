@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"database/sql"
+	"fmt"
 	"net/http"
 
 	"github.com/replicatedhq/kurl/testgrid/tgapi/pkg/testinstance"
@@ -15,17 +17,29 @@ type DequeueInstanceResponse struct {
 
 	KurlYAML   string `json:"kurlYaml"`
 	KurlURL    string `json:"kurlUrl"`
-	UpgradeURL string `json:"upgradeURL"`
+	UpgradeURL string `json:"upgradeUrl"`
 	KurlRef    string `json:"kurlRef"`
 }
 
 func DequeueInstance(w http.ResponseWriter, r *http.Request) {
 	testInstance, err := testinstance.GetNextEnqueued()
 	if err != nil {
-		testInstance, err = testinstance.GetOldEnqueued()
-		if err != nil {
-			JSON(w, 200, []DequeueInstanceResponse{})
+		if err != sql.ErrNoRows {
+			JSON(w, 500, []DequeueInstanceResponse{})
+			fmt.Printf("error dequeing instance: %s\n", err.Error())
 			return
+		} else {
+			testInstance, err = testinstance.GetOldEnqueued()
+			if err != nil {
+				if err != sql.ErrNoRows {
+					JSON(w, 500, []DequeueInstanceResponse{})
+					fmt.Printf("error dequeing old instance: %s\n", err.Error())
+					return
+				} else {
+					JSON(w, 200, []DequeueInstanceResponse{})
+					return
+				}
+			}
 		}
 	}
 
