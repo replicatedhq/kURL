@@ -25,21 +25,20 @@ func DequeueInstance(w http.ResponseWriter, r *http.Request) {
 	testInstance, err := testinstance.GetNextEnqueued()
 	if err != nil {
 		if err != sql.ErrNoRows {
-			JSON(w, 500, []DequeueInstanceResponse{})
+			w.WriteHeader(500)
 			fmt.Printf("error dequeing instance: %s\n", err.Error())
 			return
-		} else {
-			testInstance, err = testinstance.GetOldEnqueued()
-			if err != nil {
-				if err != sql.ErrNoRows {
-					JSON(w, 500, []DequeueInstanceResponse{})
-					fmt.Printf("error dequeing old instance: %s\n", err.Error())
-					return
-				} else {
-					JSON(w, 200, []DequeueInstanceResponse{})
-					return
-				}
+		}
+
+		testInstance, err = testinstance.GetOldEnqueued()
+		if err != nil {
+			if err != sql.ErrNoRows {
+				w.WriteHeader(500)
+				fmt.Printf("error dequeing old instance: %s\n", err.Error())
+				return
 			}
+			JSON(w, 200, []DequeueInstanceResponse{})
+			return
 		}
 	}
 

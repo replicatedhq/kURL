@@ -228,7 +228,7 @@ export default class InstanceTable extends React.Component {
         <tr key={kurlURL}>
           <td>
             <span className="url" onClick={() => this.viewInstanceInstaller(this.props.instancesMap[kurlURL][0])}>{kurlURL}</span>
-            {(this.props.instancesMap[kurlURL][0].upgradeURL && this.props.instancesMap[kurlURL][0].upgradeURL !== "") &&
+            {(this.props.instancesMap[kurlURL][0].upgradeURL !== "") &&
               <div>
                 <span>{' -> '}</span>
                 <span className="url" onClick={() => this.viewUpgradeInstaller(this.props.instancesMap[kurlURL][0])}>{this.props.instancesMap[kurlURL][0].upgradeURL}</span>
