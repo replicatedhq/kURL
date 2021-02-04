@@ -64,7 +64,9 @@ func MainRunLoop(runnerOptions types.RunnerOptions) error {
 
 		dequeueInstanceResponse := []tghandlers.DequeueInstanceResponse{}
 		if err := json.Unmarshal(body, &dequeueInstanceResponse); err != nil {
-			return errors.Wrapf(err, "failed to unmarshal: %s", body)
+			fmt.Printf("failed to unmarshal %q: %s\n", string(body), err.Error())
+			time.Sleep(time.Minute * 5) // wait longer if there are errors with the API response
+			continue
 		}
 
 		if len(dequeueInstanceResponse) == 0 {
