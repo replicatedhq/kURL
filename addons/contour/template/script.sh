@@ -58,7 +58,7 @@ mv $(grep -Hl 'kind: ConfigMap' "$tmpdir"/split*) "../$CONTOUR_VERSION/tmpl-conf
 cat "$tmpdir"/split* >> "../$CONTOUR_VERSION/contour.yaml"
 
 # edit tmpl-configmap.yaml to include configurable CONTOUR_TLS_MINIMUM_PROTOCOL_VERSION
-sed -i 's/# minimum-protocol-version: "1.1"/  minimum-protocol-version: "$CONTOUR_TLS_MINIMUM_PROTOCOL_VERSION"/' "../$CONTOUR_VERSION/tmpl-configmap.yaml"
+sed -i 's/# minimum-protocol-version: "1.."/  minimum-protocol-version: "$CONTOUR_TLS_MINIMUM_PROTOCOL_VERSION"/' "../$CONTOUR_VERSION/tmpl-configmap.yaml"
 
 # edit contour.yaml to remove `hostPort: 80` and `hostPort: 443`
 sed -i '/hostPort: 80/d' "../$CONTOUR_VERSION/contour.yaml"
