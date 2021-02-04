@@ -174,6 +174,8 @@ func convertToBash(kurlValues map[string]interface{}, fieldsSet map[string]bool)
 		"Fluentd.FluentdConfPath":                "FLUENTD_CONF_FILE",
 		"Fluentd.S3Override":                     "FLUENTD_S3_OVERRIDE",
 		"Fluentd.Version":                        "FLUENTD_VERSION",
+		"Helm.AdditionalImages":                  "HELM_ADDITIONAL_IMAGES",
+		"Helm.HelmfileSpec":                      "HELM_HELMFILE_SPEC",
 		"IptablesConfig.PreserveConfig":          "PRESERVE_IPTABLES_CONFIG",
 		"Kotsadm.ApplicationNamespace":           "KOTSADM_APPLICATION_NAMESPACES",
 		"Kotsadm.ApplicationSlug":                "KOTSADM_APPLICATION_SLUG",

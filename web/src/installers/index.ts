@@ -525,6 +525,21 @@ export const selinuxConfigSchema = {
   },
 }
 
+export interface HelmConfig {
+  helmfileSpec: string;
+  additionalImages?: string[];
+}
+
+export const helmConfigSchema = {
+  type: "object",
+  properties: {
+    helmfileSpec: { type: "string", flag: "helmfile-spec", description: "Helmfile specification contents to be synced with the cluster"},
+    additionalImages: { type: "array", items: { type: "string" }, description: "Additional images to be included in the airgap bundle - useful for installing operators" },
+  },
+  required: ["helmfileSpec"],
+  additionalProperties: false,
+};
+
 export interface InstallerSpec {
   kubernetes: KubernetesConfig;
   rke2?: RKE2Config;
@@ -549,6 +564,7 @@ export interface InstallerSpec {
   iptablesConfig?: IptablesConfig;
   firewalldConfig?: FirewalldConfig;
   selinuxConfig?: SelinuxConfig;
+  helm?: HelmConfig;
 }
 
 const specSchema = {
@@ -578,6 +594,7 @@ const specSchema = {
     firewalldConfig: firewalldConfigSchema,
     iptablesConfig: iptablesConfigSchema,
     selinuxConfig: selinuxConfigSchema,
+    helm: helmConfigSchema,
   },
   additionalProperites: false,
 };

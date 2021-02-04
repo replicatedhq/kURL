@@ -231,6 +231,30 @@ spec:
     s3Override: https://dummy.s3.us-east-1.amazonaws.com/pr/contour-100.0.0.tar.gz
 `;
 
+const helm = `
+spec:
+  kubernetes:
+    version: latest
+  helm:
+    helmfileSpec: |
+      repositories:
+      - name: nginx-stable
+        url: https://helm.nginx.com/stable
+      releases:
+      - name: test-nginx-ingress
+        chart: nginx-stable/nginx-ingress
+        values:
+        - controller:
+            service:
+              type: NodePort
+              httpPort:
+                nodePort: 30080
+              httpsPort:
+                nodePort: 30443
+    additionalImages:
+    - postgres
+`;
+
 describe("POST /installer", () => {
   describe("latestV1Beta1", () => {
     it(`should return 201 "https://kurl.sh/latest"`, async () => {
@@ -279,10 +303,10 @@ describe("POST /installer", () => {
   });
 
   describe("velero", () => {
-    it(`should return 201 "htps://kurl.sh/b423f81"`, async () => {
+    it(`should return 201 "htps://kurl.sh/09e8b98"`, async () => {
       const uri = await client.postInstaller(velero);
 
-      expect(uri).to.match(/b423f81/);
+      expect(uri).to.match(/09e8b98/);
     });
   });
 
@@ -307,6 +331,23 @@ describe("POST /installer", () => {
       const uri = await client.postInstaller(ekco);
 
       expect(uri).to.match(/bf0b204/);
+    });
+  });
+
+  describe("contour", () => {
+    it(`should return 201 "https://kurl.sh/ee30416"`, async () => {
+      const uri = await client.postInstaller(contour);
+
+      expect(uri).to.match(/ee30416/);
+    });
+  });
+
+
+  describe("Helm with nginx (/4077ac3)", () => {
+    it(`should return 201 "https://kurl.sh/4077ac3"`, async () => {
+      const uri = await client.postInstaller(helm);
+
+      expect(uri).to.match(/4077ac3/);
     });
   });
 
@@ -490,11 +531,11 @@ describe("GET /<installerID>", () => {
     });
   });
 
-  describe("velero (/b423f81)", () => {
-    const id = "b423f81";
+  describe("velero (/09e8b98)", () => {
+    const id = "09e8b98";
     before(async () => {
       const uri = await client.postInstaller(velero);
-      expect(uri).to.match(/b423f81/);
+      expect(uri).to.match(/09e8b98/);
     });
 
     it("injects velero version and flags", async () => {
@@ -585,14 +626,6 @@ describe("GET /<installerID>", () => {
       expect(script).to.have.string("registry.internal");
       expect(script).to.have.string("10.128.0.44");
       expect(script).to.have.string("noProxy: false");
-    });
-  });
-
-  describe("contour", () => {
-    it(`should return 201 "https://kurl.sh/ee30416"`, async () => {
-      const uri = await client.postInstaller(contour);
-
-      expect(uri).to.match(/ee30416/);
     });
   });
 
