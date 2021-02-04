@@ -19,6 +19,7 @@ jobs:
       uses: peter-evans/create-pull-request@v3
       id: cpr
       with:
+        token: ${{ secrets.GH_PAT }}
         commit-message: Create new Contour version
         title: 'Automated Contour version update'
         branch: automation/update-contour
