@@ -454,6 +454,7 @@ test:
 	#   - find tests
 	#   - add to ci
 	./scripts/distro/rke2/distro-test.sh
+	./scripts/common/common-test.sh
 
 .PHONY: kurl-util-image
 kurl-util-image:

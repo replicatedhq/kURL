@@ -13,11 +13,6 @@ set -e
 function tasks() {
     DOCKER_VERSION="$(get_docker_version)"
 
-    if [ "$AIRGAP" = "1" ]; then
-        move_airgap_assets
-    fi
-    pushd_install_directory
-
     case "$1" in
         load-images|load_images)
             load_all_images
@@ -45,34 +40,38 @@ function tasks() {
             ;;
     esac
 
-    popd_install_directory
-
     # terminate the script if a task was run
     exit 0
 }
 
-function tasks_flags() {
+function load_all_images() {
     while [ "$1" != "" ]; do
         _param="$(echo "$1" | cut -d= -f1)"
         _value="$(echo "$1" | grep '=' | cut -d= -f2-)"
         case $_param in
             kurl-install-directory)
                 if [ -n "$_value" ]; then
+                    KURL_INSTALL_DIRECTORY_FLAG="${_value}"
                     KURL_INSTALL_DIRECTORY="$(realpath ${_value})/kurl"
                 fi
                 ;;
         esac
         shift
     done
-}
 
-function load_all_images() {
+    if [ "$AIRGAP" = "1" ]; then
+        move_airgap_assets
+    fi
+    pushd_install_directory
+
     if [ -n "$DOCKER_VERSION" ]; then
         find addons/ packages/ -type f -wholename '*/images/*.tar.gz' | xargs -I {} bash -c "docker load < {}"
     else
         # TODO(ethan): rke2 containerd.sock path is incorrect
         find addons/ packages/ -type f -wholename '*/images/*.tar.gz' | xargs -I {} bash -c "cat {} | gunzip | ctr -n=k8s.io images import -"
     fi
+
+    popd_install_directory
 }
 
 function generate_admin_user() {
@@ -274,6 +273,12 @@ function join_token() {
             ha)
                 HA_CLUSTER="1"
                 ;;
+            kurl-install-directory)
+                if [ -n "$_value" ]; then
+                    KURL_INSTALL_DIRECTORY_FLAG="${_value}"
+                    KURL_INSTALL_DIRECTORY="$(realpath ${_value})/kurl"
+                fi
+                ;;
             *)
                 echo >&2 "Error: unknown parameter \"$_param\""
                 exit 1
@@ -283,6 +288,11 @@ function join_token() {
     done
 
     export KUBECONFIG=/etc/kubernetes/admin.conf
+
+    if [ "$AIRGAP" = "1" ]; then
+        move_airgap_assets
+    fi
+    pushd_install_directory
 
     # get ca cert hash, bootstrap token and master address
     local bootstrap_token=$(kubeadm token generate)
@@ -294,15 +304,6 @@ function join_token() {
     # get the kurl url and installer id from the kurl-config configmap
     local kurl_url=$(kubectl -n kube-system get cm kurl-config -ojsonpath='{ .data.kurl_url }')
     local installer_id=$(kubectl -n kube-system get cm kurl-config -ojsonpath='{ .data.installer_id }')
-    local service_cidr=$(kubectl -n kube-system get cm kurl-config -ojsonpath='{ .data.service_cidr }')
-    local pod_cidr=$(kubectl -n kube-system get cm kurl-config -ojsonpath='{ .data.pod_cidry }')
-
-    # get the docker registry IP if present
-    local docker_registry_ip=$(kubectl -n kurl get service registry -o=jsonpath='{@.spec.clusterIP}' 2>/dev/null || echo "")
-    local dockerRegistryIP=""
-    if [ -n "$docker_registry_ip" ]; then
-        dockerRegistryIP=" docker-registry-ip=$docker_registry_ip"
-    fi
 
     # upload certs and get the key
     local cert_key
@@ -316,11 +317,15 @@ function join_token() {
     # get the kubernetes version
     local kubernetes_version=$(kubectl version --short | grep -i server | awk '{ print $3 }' | sed 's/^v*//')
 
-    # build noProxyAddrs
-    local noProxyAddrs=""
-    if [ -n "$service_cidr" ] && [ -n "$pod_cidr" ]; then
-        noProxyAddrs=" additional-no-proxy-addresses=${service_cidr},${pod_cidr}"
-    fi
+    local service_cidr=$(kubectl -n kube-system get cm kurl-config -ojsonpath='{ .data.service_cidr }')
+    local pod_cidr=$(kubectl -n kube-system get cm kurl-config -ojsonpath='{ .data.pod_cidr }')
+    local docker_registry_ip=$(kubectl -n kurl get service registry -o=jsonpath='{@.spec.clusterIP}' 2>/dev/null || echo "")
+
+    local common_flags
+    common_flags="${common_flags}$(get_docker_registry_ip_flag "${docker_registry_ip}")"
+    common_flags="${common_flags}$(get_additional_no_proxy_addresses_flag "1" "${service_cidr},${pod_cidr}")"
+    local kurl_install_directory_flag="$(get_kurl_install_directory_flag "${KURL_INSTALL_DIRECTORY_FLAG}")"
+    common_flags="${common_flags}${kurl_install_directory_flag}"
 
     # build the installer prefix
     local prefix="curl -sSL $kurl_url/$installer_id/"
@@ -332,17 +337,17 @@ function join_token() {
         printf "Master node join commands expire after two hours, and worker node join commands expire after 24 hours.\n"
         printf "\n"
         if [ "$AIRGAP" = "1" ]; then
-            printf "To generate new node join commands, run ${GREEN}cat ./tasks.sh | sudo bash -s join_token ha airgap${NC} on an existing master node.\n"
+            printf "To generate new node join commands, run ${GREEN}cat ./tasks.sh | sudo bash -s join_token ha airgap${kurl_install_directory_flag}${NC} on an existing master node.\n"
         else 
-            printf "To generate new node join commands, run ${GREEN}${prefix}tasks.sh | sudo bash -s join_token ha${NC} on an existing master node.\n"
+            printf "To generate new node join commands, run ${GREEN}${prefix}tasks.sh | sudo bash -s join_token ha${kurl_install_directory_flag}${NC} on an existing master node.\n"
         fi
     else
         printf "Node join commands expire after 24 hours.\n"
         printf "\n"
         if [ "$AIRGAP" = "1" ]; then
-            printf "To generate new node join commands, run ${GREEN}cat ./tasks.sh | sudo bash -s join_token airgap${NC} on this node.\n"
+            printf "To generate new node join commands, run ${GREEN}cat ./tasks.sh | sudo bash -s join_token airgap${kurl_install_directory_flag}${NC} on this node.\n"
         else 
-            printf "To generate new node join commands, run ${GREEN}${prefix}tasks.sh | sudo bash -s join_token${NC} on this node.\n"
+            printf "To generate new node join commands, run ${GREEN}${prefix}tasks.sh | sudo bash -s join_token${kurl_install_directory_flag}${NC} on this node.\n"
         fi
     fi
 
@@ -351,7 +356,7 @@ function join_token() {
         printf "To add worker nodes to this installation, copy and unpack this bundle on your other nodes, and run the following:"
         printf "\n"
         printf "\n"
-        printf "${GREEN}    cat ./join.sh | sudo bash -s airgap kubernetes-master-address=${api_service_address} kubeadm-token=${bootstrap_token} kubeadm-token-ca-hash=${kubeadm_ca_hash} kubernetes-version=${kubernetes_version}${dockerRegistryIP}${noProxyAddrs}\n"
+        printf "${GREEN}    cat ./join.sh | sudo bash -s airgap kubernetes-master-address=${api_service_address} kubeadm-token=${bootstrap_token} kubeadm-token-ca-hash=${kubeadm_ca_hash} kubernetes-version=${kubernetes_version}${common_flags}\n"
         printf "${NC}"
         printf "\n"
         printf "\n"
@@ -360,7 +365,7 @@ function join_token() {
             printf "To add ${GREEN}MASTER${NC} nodes to this installation, copy and unpack this bundle on your other nodes, and run the following:"
             printf "\n"
             printf "\n"
-            printf "${GREEN}    cat ./join.sh | sudo bash -s airgap kubernetes-master-address=${api_service_address} kubeadm-token=${bootstrap_token} kubeadm-token-ca-hash=${kubeadm_ca_hash} kubernetes-version=${kubernetes_version} cert-key=${cert_key} control-plane${dockerRegistryIP}${noProxyAddrs}\n"
+            printf "${GREEN}    cat ./join.sh | sudo bash -s airgap kubernetes-master-address=${api_service_address} kubeadm-token=${bootstrap_token} kubeadm-token-ca-hash=${kubeadm_ca_hash} kubernetes-version=${kubernetes_version} cert-key=${cert_key} control-plane${common_flags}\n"
             printf "${NC}"
             printf "\n"
             printf "\n"
@@ -369,7 +374,7 @@ function join_token() {
         printf "\n"
         printf "To add worker nodes to this installation, run the following script on your other nodes:"
         printf "\n"
-        printf "${GREEN}    ${prefix}join.sh | sudo bash -s kubernetes-master-address=${api_service_address} kubeadm-token=${bootstrap_token} kubeadm-token-ca-hash=${kubeadm_ca_hash} kubernetes-version=${kubernetes_version}${dockerRegistryIP}${noProxyAddrs}\n"
+        printf "${GREEN}    ${prefix}join.sh | sudo bash -s kubernetes-master-address=${api_service_address} kubeadm-token=${bootstrap_token} kubeadm-token-ca-hash=${kubeadm_ca_hash} kubernetes-version=${kubernetes_version}${common_flags}\n"
         printf "${NC}"
         printf "\n"
         printf "\n"
@@ -377,12 +382,14 @@ function join_token() {
             printf "\n"
             printf "To add ${GREEN}MASTER${NC} nodes to this installation, run the following script on your other nodes:"
             printf "\n"
-            printf "${GREEN}    ${prefix}join.sh | sudo bash -s kubernetes-master-address=${api_service_address} kubeadm-token=${bootstrap_token} kubeadm-token-ca-hash=$kubeadm_ca_hash kubernetes-version=${kubernetes_version} cert-key=${cert_key} control-plane${dockerRegistryIP}${noProxyAddrs}\n"
+            printf "${GREEN}    ${prefix}join.sh | sudo bash -s kubernetes-master-address=${api_service_address} kubeadm-token=${bootstrap_token} kubeadm-token-ca-hash=$kubeadm_ca_hash kubernetes-version=${kubernetes_version} cert-key=${cert_key} control-plane${common_flags}\n"
             printf "${NC}"
             printf "\n"
             printf "\n"
         fi
     fi
+
+    popd_install_directory
 }
 
 function get_docker_version() {
@@ -446,9 +453,4 @@ function set_kubeconfig_server() {
     fi
 }
 
-function main() {
-    tasks_flags "$@"
-    tasks "$@"
-}
-
-main
+tasks "$@"

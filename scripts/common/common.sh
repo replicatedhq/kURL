@@ -498,3 +498,28 @@ function move_airgap_assets() {
         mv "${cwd}"/kurl/* "${KURL_INSTALL_DIRECTORY}"
     fi
 }
+
+function get_docker_registry_ip_flag() {
+    local docker_registry_ip="$1"
+    if [ -z "${docker_registry_ip}" ]; then
+        return
+    fi
+    echo " docker-registry-ip=${docker_registry_ip}"
+}
+
+function get_additional_no_proxy_addresses_flag() {
+    local has_proxy="$1"
+    local no_proxy_addresses="$2"
+    if [ -z "${has_proxy}" ]; then
+        return
+    fi
+    echo " additional-no-proxy-addresses=${no_proxy_addresses}"
+}
+
+function get_kurl_install_directory_flag() {
+    local kurl_install_directory="$1"
+    if [ "${kurl_install_directory}" = "/var/lib/kurl" ]; then
+        return
+    fi
+    echo " kurl-install-directory=$(echo "${kurl_install_directory}")"
+}

@@ -222,9 +222,10 @@ function prompt_airgap_preload_images() {
         if kubernetes_node_has_all_images "$nodeName"; then
             continue
         fi
+        local kurl_install_directory_flag="$(get_kurl_install_directory_flag "${KURL_INSTALL_DIRECTORY_FLAG}")"
         printf "\nRun this script on node ${GREEN}${nodeName}${NC} to load required images before proceeding:\n"
         printf "\n"
-        printf "${GREEN}\tcat ./tasks.sh | sudo bash -s load-images${NC}"
+        printf "${GREEN}\tcat ./tasks.sh | sudo bash -s load-images${kurl_install_directory_flag}${NC}"
         printf "\n"
 
         while true; do

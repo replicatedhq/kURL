@@ -99,6 +99,7 @@ function get_patch_yaml() {
                 ;;
             kurl-install-directory)
                 if [ -n "$_value" ]; then
+                    KURL_INSTALL_DIRECTORY_FLAG="${_value}"
                     KURL_INSTALL_DIRECTORY="$(realpath ${_value})/kurl"
                 fi
                 ;;
