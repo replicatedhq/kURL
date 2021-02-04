@@ -518,7 +518,7 @@ function get_additional_no_proxy_addresses_flag() {
 
 function get_kurl_install_directory_flag() {
     local kurl_install_directory="$1"
-    if [ "${kurl_install_directory}" = "/var/lib/kurl" ]; then
+    if [ -z "${kurl_install_directory}" ] || [ "${kurl_install_directory}" = "/var/lib/kurl" ]; then
         return
     fi
     echo " kurl-install-directory=$(echo "${kurl_install_directory}")"

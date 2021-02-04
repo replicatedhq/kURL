@@ -242,7 +242,8 @@ function kurl_config() {
         --from-literal=cert_key="$CERT_KEY" \
         --from-literal=upload_certs_expiration="$CERT_KEY_EXPIRY" \
         --from-literal=service_cidr="$SERVICE_CIDR" \
-        --from-literal=pod_cidr="$POD_CIDR"
+        --from-literal=pod_cidr="$POD_CIDR" \
+        --from-literal=kurl_install_directory="$KURL_INSTALL_DIRECTORY_FLAG"
 }
 
 function outro() {
@@ -264,8 +265,7 @@ function outro() {
     local common_flags
     common_flags="${common_flags}$(get_docker_registry_ip_flag "${DOCKER_REGISTRY_IP}")"
     common_flags="${common_flags}$(get_additional_no_proxy_addresses_flag "${PROXY_ADDRESS}" "${SERVICE_CIDR},${POD_CIDR}")"
-    local kurl_install_directory_flag="$(get_kurl_install_directory_flag "${KURL_INSTALL_DIRECTORY_FLAG}")"
-    common_flags="${common_flags}${kurl_install_directory_flag}"
+    common_flags="${common_flags}$(get_kurl_install_directory_flag "${KURL_INSTALL_DIRECTORY_FLAG}")"
 
     KUBEADM_TOKEN_CA_HASH=$(cat /tmp/kubeadm-init | grep 'discovery-token-ca-cert-hash' | awk '{ print $2 }' | head -1)
 
@@ -300,17 +300,17 @@ function outro() {
         printf "Master node join commands expire after two hours, and worker node join commands expire after 24 hours.\n"
         printf "\n"
         if [ "$AIRGAP" = "1" ]; then
-            printf "To generate new node join commands, run ${GREEN}cat ./tasks.sh | sudo bash -s join_token ha airgap${kurl_install_directory_flag}${NC} on an existing master node.\n"
+            printf "To generate new node join commands, run ${GREEN}cat ./tasks.sh | sudo bash -s join_token ha airgap${NC} on an existing master node.\n"
         else 
-            printf "To generate new node join commands, run ${GREEN}${prefix}tasks.sh | sudo bash -s join_token ha${kurl_install_directory_flag}${NC} on an existing master node.\n"
+            printf "To generate new node join commands, run ${GREEN}${prefix}tasks.sh | sudo bash -s join_token ha${NC} on an existing master node.\n"
         fi
     else
         printf "Node join commands expire after 24 hours.\n"
         printf "\n"
         if [ "$AIRGAP" = "1" ]; then
-            printf "To generate new node join commands, run ${GREEN}cat ./tasks.sh | sudo bash -s join_token airgap${kurl_install_directory_flag}${NC} on this node.\n"
+            printf "To generate new node join commands, run ${GREEN}cat ./tasks.sh | sudo bash -s join_token airgap${NC} on this node.\n"
         else 
-            printf "To generate new node join commands, run ${GREEN}${prefix}tasks.sh | sudo bash -s join_token${kurl_install_directory_flag}${NC} on this node.\n"
+            printf "To generate new node join commands, run ${GREEN}${prefix}tasks.sh | sudo bash -s join_token${NC} on this node.\n"
         fi
     fi
 

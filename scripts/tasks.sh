@@ -273,12 +273,6 @@ function join_token() {
             ha)
                 HA_CLUSTER="1"
                 ;;
-            kurl-install-directory)
-                if [ -n "$_value" ]; then
-                    KURL_INSTALL_DIRECTORY_FLAG="${_value}"
-                    KURL_INSTALL_DIRECTORY="$(realpath ${_value})/kurl"
-                fi
-                ;;
             *)
                 echo >&2 "Error: unknown parameter \"$_param\""
                 exit 1
@@ -288,11 +282,6 @@ function join_token() {
     done
 
     export KUBECONFIG=/etc/kubernetes/admin.conf
-
-    if [ "$AIRGAP" = "1" ]; then
-        move_airgap_assets
-    fi
-    pushd_install_directory
 
     # get ca cert hash, bootstrap token and master address
     local bootstrap_token=$(kubeadm token generate)
@@ -319,6 +308,7 @@ function join_token() {
 
     local service_cidr=$(kubectl -n kube-system get cm kurl-config -ojsonpath='{ .data.service_cidr }')
     local pod_cidr=$(kubectl -n kube-system get cm kurl-config -ojsonpath='{ .data.pod_cidr }')
+    local kurl_install_directory=$(kubectl -n kube-system get cm kurl-config -ojsonpath='{ .data.kurl_install_directory }')
     local docker_registry_ip=$(kubectl -n kurl get service registry -o=jsonpath='{@.spec.clusterIP}' 2>/dev/null || echo "")
 
     local common_flags
@@ -326,8 +316,7 @@ function join_token() {
     if [ -n "$service_cidr" ] && [ -n "$pod_cidr" ]; then
         common_flags="${common_flags}$(get_additional_no_proxy_addresses_flag "1" "${service_cidr},${pod_cidr}")"
     fi
-    local kurl_install_directory_flag="$(get_kurl_install_directory_flag "${KURL_INSTALL_DIRECTORY_FLAG}")"
-    common_flags="${common_flags}${kurl_install_directory_flag}"
+    common_flags="${common_flags}$(get_kurl_install_directory_flag "${kurl_install_directory}")"
 
     # build the installer prefix
     local prefix="curl -sSL $kurl_url/$installer_id/"
@@ -339,17 +328,17 @@ function join_token() {
         printf "Master node join commands expire after two hours, and worker node join commands expire after 24 hours.\n"
         printf "\n"
         if [ "$AIRGAP" = "1" ]; then
-            printf "To generate new node join commands, run ${GREEN}cat ./tasks.sh | sudo bash -s join_token ha airgap${kurl_install_directory_flag}${NC} on an existing master node.\n"
+            printf "To generate new node join commands, run ${GREEN}cat ./tasks.sh | sudo bash -s join_token ha airgap${NC} on an existing master node.\n"
         else 
-            printf "To generate new node join commands, run ${GREEN}${prefix}tasks.sh | sudo bash -s join_token ha${kurl_install_directory_flag}${NC} on an existing master node.\n"
+            printf "To generate new node join commands, run ${GREEN}${prefix}tasks.sh | sudo bash -s join_token ha${NC} on an existing master node.\n"
         fi
     else
         printf "Node join commands expire after 24 hours.\n"
         printf "\n"
         if [ "$AIRGAP" = "1" ]; then
-            printf "To generate new node join commands, run ${GREEN}cat ./tasks.sh | sudo bash -s join_token airgap${kurl_install_directory_flag}${NC} on this node.\n"
+            printf "To generate new node join commands, run ${GREEN}cat ./tasks.sh | sudo bash -s join_token airgap${NC} on this node.\n"
         else 
-            printf "To generate new node join commands, run ${GREEN}${prefix}tasks.sh | sudo bash -s join_token${kurl_install_directory_flag}${NC} on this node.\n"
+            printf "To generate new node join commands, run ${GREEN}${prefix}tasks.sh | sudo bash -s join_token${NC} on this node.\n"
         fi
     fi
 
@@ -390,8 +379,6 @@ function join_token() {
             printf "\n"
         fi
     fi
-
-    popd_install_directory
 }
 
 function get_docker_version() {
