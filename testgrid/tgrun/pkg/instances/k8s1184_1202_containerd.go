@@ -18,8 +18,8 @@ func init() {
 				Contour: &kurlv1beta1.Contour{
 					Version: "1.0.1",
 				},
-				Docker: &kurlv1beta1.Docker{
-					Version: "19.03.10",
+				Containerd: &kurlv1beta1.Containerd{
+					Version: "1.4.3",
 				},
 			},
 			UpgradeSpec: &types.InstallerSpec{
@@ -32,8 +32,8 @@ func init() {
 				Contour: &kurlv1beta1.Contour{
 					Version: "latest",
 				},
-				Docker: &kurlv1beta1.Docker{
-					Version: "19.03.10",
+				Containerd: &kurlv1beta1.Containerd{
+					Version: "1.4.3",
 				},
 			},
 		},

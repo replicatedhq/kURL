@@ -266,6 +266,10 @@ echo "";
 
 if [ $KURL_EXIT_STATUS -eq 0 ]; then
     echo "completed kurl upgrade"
+    echo ""
+    echo "kubectl version:"
+    kubectl version
+    echo ""
 else
     echo "failed kurl upgrade with exit status $KURL_EXIT_STATUS"
     curl -s -X POST -d "{\"success\": false}" $TESTGRID_APIENDPOINT/v1/instance/$TEST_ID/finish
