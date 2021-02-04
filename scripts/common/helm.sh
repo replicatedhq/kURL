@@ -33,7 +33,7 @@ function helmfile_sync() {
 }
 
 function helm_load() {
-    if [ "$AIRGAP" = "1" ]; then
+    if [ "$AIRGAP" = "1" ] && [ -n "$HELM_HELMFILE_SPEC" ] ; then
         # TODO (dan): Implement airgapped loading after bundler is updated
         bail "Airgap Installation with Helm is currently not supported"
         #load_images $DIR/helm-bundle/images
