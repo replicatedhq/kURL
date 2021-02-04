@@ -27,3 +27,8 @@ Terraform v0.12.29
 + provider.packet v3.0.1
 + provider.template v2.2.0
 ```
+
+### Debugging
+On the server, you can run `kubectl get vmi` to view running VMs.
+You can exec into a VM with `kubectl virt console <vmi name>`, and the password will be `kurl`.
+(The username will vary based on OS - for example `ubuntu`, `root`, `ec2-user` and `centos`)
