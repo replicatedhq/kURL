@@ -39,17 +39,26 @@ echo "Setting up tgrun service"
 cat <<-TGRUND > /lib/systemd/system/tgrun.service
 [Unit]
 Description=tgrun
+
+StartLimitIntervalSec=500
+StartLimitBurst=5
+
 [Service]
 Type=simple
+
+Restart=on-failure
 RestartSec=5s
+
 StandardOutput=syslog
 StandardError=syslog
 WorkingDirectory=/root
 SyslogIdentifier=tgrund
+
 Environment="KUBECONFIG=/etc/kubernetes/admin.conf"
 Environment="HOME=/root"
 Environment="PATH=/root/.krew/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 ExecStart=/bin/bash -c '/bin/tgrun run'
+
 [Install]
 WantedBy=multi-user.target
 TGRUND
