@@ -552,6 +552,9 @@ function kubernetes_pod_completed() {
 
 function kubernetes_is_current_cluster() {
     local api_service_address="$1"
+    if cat /etc/kubernetes/kubelet.conf 2>/dev/null | grep -q "${api_service_address}"; then
+        return 0
+    fi
     if cat /opt/replicated/kubeadm.conf 2>/dev/null | grep -q "${api_service_address}"; then
         return 0
     fi
