@@ -549,3 +549,31 @@ function kubernetes_pod_completed() {
 
     return 1
 }
+
+function kubernetes_is_current_cluster() {
+    local api_service_address="$1"
+    if cat /opt/replicated/kubeadm.conf 2>/dev/null | grep -q "${api_service_address}"; then
+        return 0
+    fi
+    return 1
+}
+
+function kubernetes_is_join_node() {
+    if cat /opt/replicated/kubeadm.conf 2>/dev/null | grep -q 'kind: JoinConfiguration'; then
+        return 0
+    fi
+    return 1
+}
+
+function kubernetes_is_installed() {
+    if kubectl cluster-info >/dev/null 2>&1 ; then
+        return 0
+    fi
+    if ps aux | grep '[k]ubelet' ; then
+        return 0
+    fi
+    if commandExists kubelet ; then
+        return 0
+    fi
+    return 1
+}

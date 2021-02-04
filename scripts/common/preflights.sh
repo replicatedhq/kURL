@@ -15,6 +15,12 @@ function preflights() {
     return 0
 }
 
+function join_preflights() {
+    preflights_require_no_kubernetes_or_current_node
+
+    return 0
+}
+
 function require_root_user() {
     local user="$(id -un 2>/dev/null || true)"
     if [ "$user" != "root" ]; then
@@ -307,4 +313,25 @@ function host_nameservers_reachable() {
     if ! discover_non_loopback_nameservers; then
         bail "\nAt least one nameserver must be accessible on a non-loopback address. Use the \"nameserver\" flag in the installer spec to override the loopback nameservers discovered on the host: https://kurl.sh/docs/add-ons/kurl"
     fi
+}
+
+function preflights_require_no_kubernetes_or_current_node() {
+    if kubernetes_is_join_node ; then
+        if kubernetes_is_current_cluster "${API_SERVICE_ADDRESS}" ; then
+            return 0
+        fi
+
+        logWarn "Kubernetes is already installed on this Node but the api server endpoint is different."
+        printf "${YELLOW}Are you sure you want to proceed? ${NC}" 1>&2
+        if ! confirmN; then
+            exit 1
+        fi
+        return 0
+    fi
+
+    if kubernetes_is_installed ; then
+        bail "Kubernetes is already installed on this Node."
+    fi
+
+    return 0
 }
