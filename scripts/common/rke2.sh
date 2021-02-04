@@ -91,7 +91,7 @@ function rke2_init() {
 #     # since K8s 1.19.1 kubeconfigs point to local API server even in HA setup. When upgrading from
 #     # earlier versions and using a load balancer, kubeadm init will bail because the kubeconfigs
 #     # already exist pointing to the load balancer
-#     rm -f /etc/kubernetes/*.conf
+#     rm -rf /etc/kubernetes/*.conf
 
 #     # Regenerate api server cert in case load balancer address changed
 #     if [ -f /etc/kubernetes/pki/apiserver.crt ]; then
