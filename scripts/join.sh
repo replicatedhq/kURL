@@ -113,6 +113,7 @@ function main() {
     discover
     preflights
     joinPrompts
+    join_preflights # must come after joinPrompts as this function requires API_SERVICE_ADDRESS
     prompts
     journald_persistent
     configure_proxy
