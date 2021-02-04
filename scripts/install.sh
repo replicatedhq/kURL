@@ -358,6 +358,7 @@ K8S_DISTRO=kubeadm
 function main() {
     require_root_user
     get_patch_yaml "$@"
+    maybe_read_kurl_config_from_cluster
 
     if [ "$AIRGAP" = "1" ]; then
         move_airgap_assets

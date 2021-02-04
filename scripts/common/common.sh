@@ -464,6 +464,26 @@ function install_host_dependencies() {
     fi
 }
 
+function maybe_read_kurl_config_from_cluster() {
+    if [ -n "${KURL_INSTALL_DIRECTORY_FLAG}" ]; then
+        return
+    fi
+
+    local kurl_install_directory_flag
+    # we don't yet have KUBECONFIG when this is called from the top of install.sh
+    kurl_install_directory_flag="$(KUBECONFIG="$(kubeadm_get_kubeconfig)" kubectl -n kube-system get cm kurl-config -ojsonpath='{ .data.kurl_install_directory }' 2>/dev/null || echo "")"
+    if [ -z "${kurl_install_directory_flag}" ]; then
+        kurl_install_directory_flag="$(KUBECONFIG="$(rke2_get_kubeconfig)" kubectl -n kube-system get cm kurl-config -ojsonpath='{ .data.kurl_install_directory }' 2>/dev/null || echo "")"
+    fi
+    if [ -n "${kurl_install_directory_flag}" ]; then
+        KURL_INSTALL_DIRECTORY_FLAG="${kurl_install_directory_flag}"
+        KURL_INSTALL_DIRECTORY="$(realpath ${kurl_install_directory_flag})/kurl"
+    fi
+
+    # this function currently only sets KURL_INSTALL_DIRECTORY
+    # there are many other settings in kurl-config
+}
+
 KURL_INSTALL_DIRECTORY=/var/lib/kurl
 function pushd_install_directory() {
     local tmpfile
