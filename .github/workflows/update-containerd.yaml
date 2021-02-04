@@ -20,6 +20,7 @@ jobs:
       uses: peter-evans/create-pull-request@v3
       id: cpr
       with:
+        token: ${{ secrets.GH_PAT }}
         commit-message: Create new Containerd version
         title: 'Automated Containerd version update'
         branch: automation/update-containerd
