@@ -6,3 +6,4 @@ Type=oneshot
 ExecStart=/opt/ekco/upgrade.sh
 Environment=KURL_URL=$KURL_URL
 Environment=INSTALLER_ID=$INSTALLER_ID
+Environment=ADDITIONAL_FLAGS="\""$EKCO_UPGRADE_SERVICE_ADDITIONAL_FLAGS"\""

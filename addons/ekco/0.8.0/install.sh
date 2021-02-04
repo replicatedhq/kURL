@@ -119,6 +119,8 @@ function ekco_install_upgrade_service() {
         return 0
     fi
 
+    EKCO_UPGRADE_SERVICE_ADDITIONAL_FLAGS="${EKCO_UPGRADE_SERVICE_ADDITIONAL_FLAGS}$(get_kurl_install_directory_flag "${KURL_INSTALL_DIRECTORY_FLAG}")"
+
     mkdir -p /opt/ekco
     render_file "$src/upgrade/ekco-upgrade.service" > /etc/systemd/system/ekco-upgrade.service
     render_file "$src/upgrade/ekco-upgrade.timer" > /etc/systemd/system/ekco-upgrade.timer
