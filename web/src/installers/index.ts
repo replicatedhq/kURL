@@ -632,7 +632,7 @@ export class Installer {
       "1.0.4",
       "1.4.3",
     ],
-    contour: ["1.11.0", "1.10.1", "1.7.0", "1.0.1", "0.14.0"], // cron-contour-update
+    contour: ["1.12.0", "1.11.0", "1.10.1", "1.7.0", "1.0.1", "0.14.0"], // cron-contour-update
     registry: [
       "2.7.1",
     ],
