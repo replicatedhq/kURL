@@ -96,7 +96,7 @@ export class Bundle {
       try {
           logger.debug("URL:" + this.replicatedAppURL + ", SLUG:" + kotsadmApplicationSlug);
           const appMetadata = await request(`${this.replicatedAppURL}/metadata/${kotsadmApplicationSlug}`);
-          const key = `addons/kotsadm/${_.get(installer.spec, "kotsadm.version")}/application.yaml`;
+          const key = `kurl/addons/kotsadm/${_.get(installer.spec, "kotsadm.version")}/application.yaml`;
           ret.files[key] = appMetadata;
       } catch(err) {
           // Log the error but continue bundle execution

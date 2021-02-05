@@ -464,3 +464,82 @@ function install_host_dependencies() {
     fi
 }
 
+function maybe_read_kurl_config_from_cluster() {
+    if [ -n "${KURL_INSTALL_DIRECTORY_FLAG}" ]; then
+        return
+    fi
+
+    local kurl_install_directory_flag
+    # we don't yet have KUBECONFIG when this is called from the top of install.sh
+    kurl_install_directory_flag="$(KUBECONFIG="$(kubeadm_get_kubeconfig)" kubectl -n kube-system get cm kurl-config -ojsonpath='{ .data.kurl_install_directory }' 2>/dev/null || echo "")"
+    if [ -z "${kurl_install_directory_flag}" ]; then
+        kurl_install_directory_flag="$(KUBECONFIG="$(rke2_get_kubeconfig)" kubectl -n kube-system get cm kurl-config -ojsonpath='{ .data.kurl_install_directory }' 2>/dev/null || echo "")"
+    fi
+    if [ -n "${kurl_install_directory_flag}" ]; then
+        KURL_INSTALL_DIRECTORY_FLAG="${kurl_install_directory_flag}"
+        KURL_INSTALL_DIRECTORY="$(realpath ${kurl_install_directory_flag})/kurl"
+    fi
+
+    # this function currently only sets KURL_INSTALL_DIRECTORY
+    # there are many other settings in kurl-config
+}
+
+KURL_INSTALL_DIRECTORY=/var/lib/kurl
+function pushd_install_directory() {
+    local tmpfile
+    tmpfile="${KURL_INSTALL_DIRECTORY}/tmpfile"
+    if ! mkdir -p "${KURL_INSTALL_DIRECTORY}" || ! touch "${tmpfile}" ; then
+        bail "Directory ${KURL_INSTALL_DIRECTORY} is not writeable by this script.
+Please either change the directory permissions or override the
+installation directory with the flag \"kurl-install-directory\"."
+    fi
+    rm "${tmpfile}"
+    pushd "${KURL_INSTALL_DIRECTORY}" 1>/dev/null
+}
+
+function popd_install_directory() {
+    popd 1>/dev/null
+}
+
+function move_airgap_assets() {
+    local cwd
+    cwd="$(pwd)"
+
+    if [ "${KURL_INSTALL_DIRECTORY}" = "${cwd}/kurl" ]; then
+        return
+    fi
+
+    pushd_install_directory # make sure we have access
+    popd_install_directory
+
+    # The airgap bundle will extract everything into ./kurl directory.
+    # Move all assets except the scripts into the $KURL_INSTALL_DIRECTORY to emulate the online install experience.
+    if [ "$(ls -A "${cwd}"/kurl)" ]; then
+        mv "${cwd}"/kurl/* "${KURL_INSTALL_DIRECTORY}"
+    fi
+}
+
+function get_docker_registry_ip_flag() {
+    local docker_registry_ip="$1"
+    if [ -z "${docker_registry_ip}" ]; then
+        return
+    fi
+    echo " docker-registry-ip=${docker_registry_ip}"
+}
+
+function get_additional_no_proxy_addresses_flag() {
+    local has_proxy="$1"
+    local no_proxy_addresses="$2"
+    if [ -z "${has_proxy}" ]; then
+        return
+    fi
+    echo " additional-no-proxy-addresses=${no_proxy_addresses}"
+}
+
+function get_kurl_install_directory_flag() {
+    local kurl_install_directory="$1"
+    if [ -z "${kurl_install_directory}" ] || [ "${kurl_install_directory}" = "/var/lib/kurl" ]; then
+        return
+    fi
+    echo " kurl-install-directory=$(echo "${kurl_install_directory}")"
+}

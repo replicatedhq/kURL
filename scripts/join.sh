@@ -104,6 +104,13 @@ function main() {
     export KUBECONFIG=/etc/kubernetes/admin.conf
     require_root_user
     get_patch_yaml "$@"
+    maybe_read_kurl_config_from_cluster
+
+    if [ "$AIRGAP" = "1" ]; then
+        move_airgap_assets
+    fi
+    pushd_install_directory
+
     proxy_bootstrap
     download_util_binaries
     merge_yaml_specs
@@ -128,6 +135,8 @@ function main() {
     install_helm
     join
     outro
+
+    popd_install_directory
 }
 
 main "$@"

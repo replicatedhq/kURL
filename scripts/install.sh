@@ -243,7 +243,8 @@ function kurl_config() {
         --from-literal=cert_key="$CERT_KEY" \
         --from-literal=upload_certs_expiration="$CERT_KEY_EXPIRY" \
         --from-literal=service_cidr="$SERVICE_CIDR" \
-        --from-literal=pod_cidr="$POD_CIDR"
+        --from-literal=pod_cidr="$POD_CIDR" \
+        --from-literal=kurl_install_directory="$KURL_INSTALL_DIRECTORY_FLAG"
 }
 
 function outro() {
@@ -257,17 +258,15 @@ function outro() {
       fi
     fi
 
-    local dockerRegistryIP=""
-    if [ -n "$DOCKER_REGISTRY_IP" ]; then
-        dockerRegistryIP=" docker-registry-ip=$DOCKER_REGISTRY_IP"
-    fi
-
     local proxyFlag=""
-    local noProxyAddrs=""
     if [ -n "$PROXY_ADDRESS" ]; then
         proxyFlag=" -x $PROXY_ADDRESS"
-        noProxyAddrs=" additional-no-proxy-addresses=${SERVICE_CIDR},${POD_CIDR}"
     fi
+
+    local common_flags
+    common_flags="${common_flags}$(get_docker_registry_ip_flag "${DOCKER_REGISTRY_IP}")"
+    common_flags="${common_flags}$(get_additional_no_proxy_addresses_flag "${PROXY_ADDRESS}" "${SERVICE_CIDR},${POD_CIDR}")"
+    common_flags="${common_flags}$(get_kurl_install_directory_flag "${KURL_INSTALL_DIRECTORY_FLAG}")"
 
     KUBEADM_TOKEN_CA_HASH=$(cat /tmp/kubeadm-init | grep 'discovery-token-ca-cert-hash' | awk '{ print $2 }' | head -1)
 
@@ -321,7 +320,7 @@ function outro() {
         printf "To add worker nodes to this installation, copy and unpack this bundle on your other nodes, and run the following:"
         printf "\n"
         printf "\n"
-        printf "${GREEN}    cat ./join.sh | sudo bash -s airgap kubernetes-master-address=${API_SERVICE_ADDRESS} kubeadm-token=${BOOTSTRAP_TOKEN} kubeadm-token-ca-hash=${KUBEADM_TOKEN_CA_HASH} kubernetes-version=${KUBERNETES_VERSION}${dockerRegistryIP}${noProxyAddrs}\n"
+        printf "${GREEN}    cat ./join.sh | sudo bash -s airgap kubernetes-master-address=${API_SERVICE_ADDRESS} kubeadm-token=${BOOTSTRAP_TOKEN} kubeadm-token-ca-hash=${KUBEADM_TOKEN_CA_HASH} kubernetes-version=${KUBERNETES_VERSION}${common_flags}\n"
         printf "${NC}"
         printf "\n"
         printf "\n"
@@ -330,7 +329,7 @@ function outro() {
             printf "To add ${GREEN}MASTER${NC} nodes to this installation, copy and unpack this bundle on your other nodes, and run the following:"
             printf "\n"
             printf "\n"
-            printf "${GREEN}    cat ./join.sh | sudo bash -s airgap kubernetes-master-address=${API_SERVICE_ADDRESS} kubeadm-token=${BOOTSTRAP_TOKEN} kubeadm-token-ca-hash=${KUBEADM_TOKEN_CA_HASH} kubernetes-version=${KUBERNETES_VERSION} cert-key=${CERT_KEY} control-plane${dockerRegistryIP}${noProxyAddrs}\n"
+            printf "${GREEN}    cat ./join.sh | sudo bash -s airgap kubernetes-master-address=${API_SERVICE_ADDRESS} kubeadm-token=${BOOTSTRAP_TOKEN} kubeadm-token-ca-hash=${KUBEADM_TOKEN_CA_HASH} kubernetes-version=${KUBERNETES_VERSION} cert-key=${CERT_KEY} control-plane${common_flags}\n"
             printf "${NC}"
             printf "\n"
             printf "\n"
@@ -339,7 +338,7 @@ function outro() {
         printf "\n"
         printf "To add worker nodes to this installation, run the following script on your other nodes:"
         printf "\n"
-        printf "${GREEN}    ${prefix}join.sh | sudo bash -s kubernetes-master-address=${API_SERVICE_ADDRESS} kubeadm-token=${BOOTSTRAP_TOKEN} kubeadm-token-ca-hash=${KUBEADM_TOKEN_CA_HASH} kubernetes-version=${KUBERNETES_VERSION}${dockerRegistryIP}${noProxyAddrs}\n"
+        printf "${GREEN}    ${prefix}join.sh | sudo bash -s kubernetes-master-address=${API_SERVICE_ADDRESS} kubeadm-token=${BOOTSTRAP_TOKEN} kubeadm-token-ca-hash=${KUBEADM_TOKEN_CA_HASH} kubernetes-version=${KUBERNETES_VERSION}${common_flags}\n"
         printf "${NC}"
         printf "\n"
         printf "\n"
@@ -347,7 +346,7 @@ function outro() {
             printf "\n"
             printf "To add ${GREEN}MASTER${NC} nodes to this installation, run the following script on your other nodes:"
             printf "\n"
-            printf "${GREEN}    ${prefix}join.sh | sudo bash -s kubernetes-master-address=${API_SERVICE_ADDRESS} kubeadm-token=${BOOTSTRAP_TOKEN} kubeadm-token-ca-hash=$KUBEADM_TOKEN_CA_HASH kubernetes-version=${KUBERNETES_VERSION} cert-key=${CERT_KEY} control-plane${dockerRegistryIP}${noProxyAddrs}\n"
+            printf "${GREEN}    ${prefix}join.sh | sudo bash -s kubernetes-master-address=${API_SERVICE_ADDRESS} kubeadm-token=${BOOTSTRAP_TOKEN} kubeadm-token-ca-hash=$KUBEADM_TOKEN_CA_HASH kubernetes-version=${KUBERNETES_VERSION} cert-key=${CERT_KEY} control-plane${common_flags}\n"
             printf "${NC}"
             printf "\n"
             printf "\n"
@@ -360,6 +359,13 @@ K8S_DISTRO=kubeadm
 function main() {
     require_root_user
     get_patch_yaml "$@"
+    maybe_read_kurl_config_from_cluster
+
+    if [ "$AIRGAP" = "1" ]; then
+        move_airgap_assets
+    fi
+    pushd_install_directory
+
     yaml_airgap
     proxy_bootstrap
     download_util_binaries
@@ -407,6 +413,9 @@ function main() {
     helmfile_sync
     post_init
     outro
+
+    popd_install_directory
+
     report_install_success
 }
 
