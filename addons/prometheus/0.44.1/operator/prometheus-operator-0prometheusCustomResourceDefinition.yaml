@@ -6,6 +6,7 @@ metadata:
   creationTimestamp: null
   name: prometheuses.monitoring.coreos.com
 spec:
+  preserveUnknownFields: false
   group: monitoring.coreos.com
   names:
     kind: Prometheus
