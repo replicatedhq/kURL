@@ -1,8 +1,8 @@
 
 function install_helm() {
     if [ "$MASTER" = "1" ]; then
-        mv $DIR/helm/helm /usr/local/bin/
-        mv $DIR/helm/helmfile /usr/local/bin/
+        cp -f $DIR/helm/helm /usr/local/bin/
+        cp -f $DIR/helm/helmfile /usr/local/bin/
     fi
 }
 
