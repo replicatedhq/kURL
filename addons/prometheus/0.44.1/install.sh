@@ -25,8 +25,8 @@ function prometheus() {
     prometheus_rook_ceph "$dst"
 
     # remove deployments and daemonsets that had labelselectors change (as those are immutable)
-    kubectl delete deployment -n monitoring kube-state-metrics
-    kubectl delete daemonset -n monitoring node-exporter
+    kubectl delete deployment -n monitoring kube-state-metrics || true
+    kubectl delete daemonset -n monitoring node-exporter || true
 
     kubectl apply -k "$monitorsdst/"
     kubectl apply -k "$grafanadst/"
