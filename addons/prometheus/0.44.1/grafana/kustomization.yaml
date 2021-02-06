@@ -5,5 +5,4 @@ resources:
 - grafana-dashboardDatasources.yaml 
 - grafana-dashboardSources.yaml 
 - grafana-serviceAccount.yaml 
-- secret.yaml
 - grafana-serviceMonitor.yaml
