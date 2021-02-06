@@ -21,6 +21,9 @@ func init() {
 				Containerd: &kurlv1beta1.Containerd{
 					Version: "1.4.3",
 				},
+				Prometheus: &kurlv1beta1.Prometheus{
+					Version: "0.33.0",
+				},
 			},
 			UpgradeSpec: &types.InstallerSpec{
 				Kubernetes: kurlv1beta1.Kubernetes{
@@ -34,6 +37,9 @@ func init() {
 				},
 				Containerd: &kurlv1beta1.Containerd{
 					Version: "1.4.3",
+				},
+				Prometheus: &kurlv1beta1.Prometheus{
+					Version: "0.44.1",
 				},
 			},
 		},
