@@ -3,7 +3,8 @@ kubernetes:
 weave:
   version: "latest"
 rook:
-  version: "latest"
+  version: "1.4.3"
+  isBlockStorageEnabled: true
 docker:
   version: "latest"
 prometheus:

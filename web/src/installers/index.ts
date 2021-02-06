@@ -654,6 +654,7 @@ export class Installer {
       "2.7.1",
     ],
     prometheus: [
+      "0.44.1",
       "0.33.0",
     ],
     fluentd: [
