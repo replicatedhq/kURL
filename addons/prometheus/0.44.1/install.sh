@@ -45,6 +45,8 @@ function grafana_admin_secret() {
     GRAFANA_ADMIN_USER=admin
     GRAFANA_ADMIN_PASS=$(< /dev/urandom tr -dc A-Za-z0-9 | head -c9)
 
+    insert_resources "$grafanadst/kustomization.yaml" secret.yaml
+
     render_yaml_file "$src/tmpl-grafana-secret.yaml" > "$grafanadst/secret.yaml"
 }
 
