@@ -399,8 +399,8 @@ function main() {
     configure_no_proxy
     install_cri
     get_shared
-    upgrade_kubernetes
-    kubernetes_host
+    report_upgrade_kubernetes
+    report_kubernetes_host
     install_helm
     setup_kubeadm_kustomize
     trap k8s_ctrl_c SIGINT # trap ctrl+c (SIGINT) and handle it by asking for a support bundle - only do this after k8s is installed

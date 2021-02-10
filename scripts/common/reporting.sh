@@ -140,6 +140,25 @@ function addon_install_fail() {
     return 1 # return error because the addon in question did too
 }
 
+function addon_install_fail_nobundle() {
+    # report that an addon failed to install successfully
+    local name=$1
+    local version=$2
+
+    # if INSTALLATION_ID is empty reporting is disabled
+    if [ -z "$INSTALLATION_ID" ]; then
+        return 1 # return error because the addon in question did too
+    fi
+
+    local completed=$(date -u +"%Y-%m-%dT%H:%M:%SZ") # rfc3339
+
+    curl -s --output /dev/null -H 'Content-Type: application/json' --max-time 5 \
+        -d "{\"finished\": \"$completed\"}" \
+        $REPLICATED_APP_URL/kurl_metrics/fail_addon/$INSTALLATION_ID/$name || true
+
+    return 1 # return error because the addon in question did too
+}
+
 function collect_support_bundle() {
     trap - SIGINT # reset SIGINT handler to default - someone should be able to ctrl+c the support bundle collector
 
