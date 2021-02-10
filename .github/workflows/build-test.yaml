@@ -27,7 +27,7 @@ jobs:
       - run: go get golang.org/x/lint/golint
       - run: make -C kurl_util test build
 
-      - uses: actions/setup-node@v1
+      - uses: actions/setup-node@v2.1.4
         with:
           node-version: '12'
       - run: make -C web test
