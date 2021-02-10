@@ -3,7 +3,7 @@ module github.com/replicatedhq/kurl/kurl_util
 go 1.13
 
 require (
-	github.com/apparentlymart/go-cidr v1.0.1
+	github.com/apparentlymart/go-cidr v1.1.0
 	github.com/foomo/htpasswd v0.0.0-20200116085101-e3a90e78da9c
 	github.com/pkg/errors v0.9.1
 	github.com/replicatedhq/kurl v0.0.0-20210127235427-217658ebc1c1
