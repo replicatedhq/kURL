@@ -12,7 +12,7 @@ jobs:
   build-kurl-utils:
     runs-on: ubuntu-18.04
     steps:
-      - uses: actions/setup-go@v1
+      - uses: actions/setup-go@v2.1.3
         with:
           go-version: "1.14.2"
 
@@ -36,7 +36,7 @@ jobs:
   build-testgrid:
     runs-on: ubuntu-18.04
     steps:
-    - uses: actions/setup-go@v1
+    - uses: actions/setup-go@v2.1.3
       with:
         go-version: "1.15.1"
     - name: setup env
