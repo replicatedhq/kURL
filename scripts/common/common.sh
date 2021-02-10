@@ -223,21 +223,27 @@ function kubernetes_resource_exists() {
 
 function install_cri() {
     if [ -n "$DOCKER_VERSION" ]; then
-        report_addon_start "docker" "$DOCKER_VERSION"
-
-        install_docker
-        apply_docker_config
-
-        report_addon_success "docker" "$DOCKER_VERSION"
+        report_install_docker || addon_install_fail_nobundle "docker" "$DOCKER_VERSION"
     elif [ -n "$CONTAINERD_VERSION" ]; then
-        report_addon_start "containerd" "$CONTAINERD_VERSION"
-
-        containerd_get_host_packages_online "$CONTAINERD_VERSION"
-        . $DIR/addons/containerd/$CONTAINERD_VERSION/install.sh
-        containerd_install
-
-        report_addon_success "containerd" "$CONTAINERD_VERSION"
+        report_install_containerd || addon_install_fail_nobundle "containerd" "$CONTAINERD_VERSION"
     fi
+}
+
+function report_install_docker() {
+    report_addon_start "docker" "$DOCKER_VERSION"
+    install_docker
+    apply_docker_config
+    report_addon_success "docker" "$DOCKER_VERSION"
+}
+
+function report_install_containerd() {
+    report_addon_start "containerd" "$CONTAINERD_VERSION"
+
+    containerd_get_host_packages_online "$CONTAINERD_VERSION"
+    . $DIR/addons/containerd/$CONTAINERD_VERSION/install.sh
+    containerd_install
+
+    report_addon_success "containerd" "$CONTAINERD_VERSION"
 }
 
 function load_images() {

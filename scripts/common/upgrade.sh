@@ -15,6 +15,12 @@ function upgrade_kubernetes() {
     enable_rook_ceph_operator
 }
 
+function report_upgrade_kubernetes() {
+    report_addon_start "kubernetes_upgrade" "$KUBERNETES_VERSION"
+    upgrade_kubernetes || addon_install_fail_nobundle "kubernetes_upgrade" "$KUBERNETES_VERSION"
+    report_addon_success "kubernetes_upgrade" "$KUBERNETES_VERSION"
+}
+
 function upgrade_kubernetes_step() {
     if [ "$KUBERNETES_STEP_LOCAL_PRIMARY" == "1" ]; then
         upgrade_kubernetes_local_master_minor "$STEP_VERSION"
