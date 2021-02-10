@@ -19,6 +19,7 @@ DIR=.
 . $DIR/scripts/common/preflights.sh
 . $DIR/scripts/common/prompts.sh
 . $DIR/scripts/common/proxy.sh
+. $DIR/scripts/common/reporting.sh
 . $DIR/scripts/common/rook.sh
 . $DIR/scripts/common/yaml.sh
 . $DIR/scripts/distro/interface.sh

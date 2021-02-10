@@ -4,7 +4,8 @@ INSTALLATION_ID=
 TESTGRID_ID=
 function report_install_start() {
     # report that the install started
-    # this includes the install ID, time, kurl URL, HA status, server CPU count and memory size, and linux distribution name + version.
+    # this includes the install ID, time, kurl URL, and linux distribution name + version.
+    # TODO: HA status, server CPU count and memory size.
 
     # if airgapped, don't create an installation ID and return early
     if [ "$AIRGAP" == "1" ]; then
