@@ -1,6 +1,7 @@
 package runner
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"time"
@@ -69,7 +70,7 @@ func CleanUpData() error {
 }
 
 func cleanupPVCs(clientset *kubernetes.Clientset) error {
-	pvcs, err := clientset.CoreV1().PersistentVolumeClaims(Namespace).List(metav1.ListOptions{})
+	pvcs, err := clientset.CoreV1().PersistentVolumeClaims(Namespace).List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
 		return errors.Wrap(err, "failed to get pvc list")
 	}
@@ -79,14 +80,14 @@ func cleanupPVCs(clientset *kubernetes.Clientset) error {
 		// clean pvc older then 3 hours
 		if time.Since(pvc.CreationTimestamp.Time).Hours() > 3 {
 			pvc.ObjectMeta.SetFinalizers(nil)
-			p, err := clientset.CoreV1().PersistentVolumeClaims(Namespace).Update(&pvc)
+			p, err := clientset.CoreV1().PersistentVolumeClaims(Namespace).Update(context.TODO(), &pvc, metav1.UpdateOptions{})
 			if err != nil {
 				fmt.Printf("Failed removing finalizers for pvc %s; EROOR: %s\n", p.Name, err)
 			} else {
 				fmt.Printf("Removed finalizers on %s\n", p.Name)
 			}
 
-			clientset.CoreV1().PersistentVolumeClaims(Namespace).Delete(pvc.Name, &metav1.DeleteOptions{})
+			clientset.CoreV1().PersistentVolumeClaims(Namespace).Delete(context.TODO(), pvc.Name, metav1.DeleteOptions{})
 			fmt.Printf("Deleted pvc %s\n", pvc.Name)
 		}
 	}
@@ -94,7 +95,7 @@ func cleanupPVCs(clientset *kubernetes.Clientset) error {
 }
 
 func cleanupPVs(clientset *kubernetes.Clientset) error {
-	pvs, err := clientset.CoreV1().PersistentVolumes().List(metav1.ListOptions{})
+	pvs, err := clientset.CoreV1().PersistentVolumes().List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
 		return errors.Wrap(err, "failed to get pv list")
 	}
@@ -104,7 +105,7 @@ func cleanupPVs(clientset *kubernetes.Clientset) error {
 		localPath := pv.Spec.Local.Path
 		// deleting PVs older then 4 hours
 		if time.Since(pv.CreationTimestamp.Time).Hours() > 4 && pv.ObjectMeta.DeletionTimestamp == nil {
-			clientset.CoreV1().PersistentVolumes().Delete(pv.Name, &metav1.DeleteOptions{})
+			clientset.CoreV1().PersistentVolumes().Delete(context.TODO(), pv.Name, metav1.DeleteOptions{})
 			fmt.Printf("Deleted pv %s\n", pv.Name)
 			// Image file gets deleted and the space is reclamed on pv deletion
 			// However local directory is left with tmpimage file, removing
@@ -116,7 +117,7 @@ func cleanupPVs(clientset *kubernetes.Clientset) error {
 		} else if pv.ObjectMeta.DeletionTimestamp != nil {
 			// cleaning pv stack in Terminating state
 			pv.ObjectMeta.SetFinalizers(nil)
-			p, err := clientset.CoreV1().PersistentVolumes().Update(&pv)
+			p, err := clientset.CoreV1().PersistentVolumes().Update(context.TODO(), &pv, metav1.UpdateOptions{})
 			if err != nil {
 				fmt.Printf("Failed removing finalizers for pv %s; EROOR: %s\n", p.Name, err)
 			} else {
@@ -129,7 +130,7 @@ func cleanupPVs(clientset *kubernetes.Clientset) error {
 
 // CleanUpSecrets removes stale cloud-init configurations stored in secrets and prevents errors on interupted runs
 func cleanupSecrets(clientset *kubernetes.Clientset) error {
-	secrets, err := clientset.CoreV1().Secrets(Namespace).List(metav1.ListOptions{})
+	secrets, err := clientset.CoreV1().Secrets(Namespace).List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
 		return errors.Wrap(err, "failed to get secrets list")
 	}
@@ -137,7 +138,7 @@ func cleanupSecrets(clientset *kubernetes.Clientset) error {
 	for _, sec := range secrets.Items {
 		// Delete stale secrets older then 5 hours
 		if len(sec.Name) > 6 && sec.Name[:5] == "cloud" && time.Since(sec.CreationTimestamp.Time).Hours() > 5 {
-			clientset.CoreV1().Secrets(Namespace).Delete(sec.Name, &metav1.DeleteOptions{})
+			clientset.CoreV1().Secrets(Namespace).Delete(context.TODO(), sec.Name, metav1.DeleteOptions{})
 			fmt.Printf("Deleted stale secret %s\n", sec.Name)
 		}
 	}

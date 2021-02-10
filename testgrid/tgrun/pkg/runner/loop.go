@@ -1,6 +1,7 @@
 package runner
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -115,7 +116,7 @@ func canScheduleNewVM() (bool, error) {
 		return false, errors.Wrap(err, "failed to get clientset")
 	}
 
-	pods, err := clientset.CoreV1().Pods(Namespace).List(metav1.ListOptions{})
+	pods, err := clientset.CoreV1().Pods(Namespace).List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
 		return false, errors.Wrap(err, "failed to get pods in the default namespace")
 	}
@@ -136,11 +137,11 @@ func getUploadProxyURL() (string, error) {
 		return "", errors.Wrap(err, "failed to get clientset")
 	}
 
-	svc, err := clientset.CoreV1().Services("cdi").Get("cdi-uploadproxy", metav1.GetOptions{})
+	svc, err := clientset.CoreV1().Services("cdi").Get(context.TODO(), "cdi-uploadproxy", metav1.GetOptions{})
 	if err != nil {
 		for i := 0; i < 5; i++ {
 			time.Sleep(time.Minute)
-			svc, err = clientset.CoreV1().Services("cdi").Get("cdi-uploadproxy", metav1.GetOptions{})
+			svc, err = clientset.CoreV1().Services("cdi").Get(context.TODO(), "cdi-uploadproxy", metav1.GetOptions{})
 			if err == nil {
 				break
 			}
