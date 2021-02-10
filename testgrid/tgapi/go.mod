@@ -5,7 +5,7 @@ go 1.14
 require (
 	github.com/DataDog/datadog-go v4.3.1+incompatible
 	github.com/aws/aws-sdk-go v1.37.8
-	github.com/gorilla/mux v1.7.3
+	github.com/gorilla/mux v1.8.0
 	github.com/lib/pq v1.9.0
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/cobra v0.0.7
