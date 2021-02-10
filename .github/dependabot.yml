@@ -1,0 +1,28 @@
+---
+version: 2
+updates:
+  - package-ecosystem: "gomod"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "gomod"
+    directory: "/testgrid/tgrun"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "gomod"
+    directory: "/testgrid/tgapi"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "gomod"
+    directory: "/kurl_util"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "gomod"
+    directory: "/kurlkinds"
+    schedule:
+      interval: "weekly"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
