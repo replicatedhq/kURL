@@ -101,10 +101,6 @@ func bundle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if request.Header.Get("User-Agent") != "cloudflare-worker" {
-		w.Header().Set("Content-Encoding", "gzip")
-	}
-
 	w.Header().Set("Content-Type", "binary/octet-stream")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Content-Disposition", "attachment")
