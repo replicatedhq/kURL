@@ -20,12 +20,6 @@ function kubernetes_host() {
     install_kustomize
 }
 
-function report_kubernetes_host() {
-    report_addon_start "kubernetes" "$KUBERNETES_VERSION"
-    kubernetes_host || addon_install_fail_nobundle "kubernetes" "$KUBERNETES_VERSION"
-    report_addon_success "kubernetes" "$KUBERNETES_VERSION"
-}
-
 function kubernetes_load_ipvs_modules() {
     if lsmod | grep -q ip_vs ; then
         return

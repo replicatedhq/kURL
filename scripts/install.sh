@@ -354,6 +354,22 @@ function outro() {
     fi
 }
 
+function all_kubernetes_install() {
+    kubernetes_host
+    install_helm
+    setup_kubeadm_kustomize
+    ${K8S_DISTRO}_addon_for_each addon_load
+    helm_load
+    init
+    apply_installer_crd
+}
+
+function report_kubernetes_install() {
+    report_addon_start "kubernetes" "$KUBERNETES_VERSION"
+    all_kubernetes_install || addon_install_fail_nobundle "kubernetes" "$KUBERNETES_VERSION"
+    report_addon_success "kubernetes" "$KUBERNETES_VERSION"
+}
+
 K8S_DISTRO=kubeadm
 
 function main() {
@@ -400,14 +416,8 @@ function main() {
     install_cri
     get_shared
     report_upgrade_kubernetes
-    report_kubernetes_host
-    install_helm
-    setup_kubeadm_kustomize
+    report_kubernetes_install
     trap k8s_ctrl_c SIGINT # trap ctrl+c (SIGINT) and handle it by asking for a support bundle - only do this after k8s is installed
-    ${K8S_DISTRO}_addon_for_each addon_load
-    helm_load
-    init
-    apply_installer_crd
     type create_registry_service &> /dev/null && create_registry_service # this function is in an optional addon and may be missing
     ${K8S_DISTRO}_addon_for_each addon_install
     helmfile_sync
