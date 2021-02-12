@@ -53,8 +53,9 @@ func Test_parseBashFlags(t *testing.T) {
 						CertKey:             "secret",
 					},
 					Kurl: kurlv1beta1.Kurl{
-						Airgap:        true,
-						PublicAddress: "1.1.1.1",
+						Airgap:         true,
+						PublicAddress:  "1.1.1.1",
+						PrivateAddress: "1.2.3.4",
 						AdditionalNoProxyAddresses: []string{
 							"10.96.0.0/22",
 							"10.32.0.0/22",
@@ -81,7 +82,8 @@ func Test_parseBashFlags(t *testing.T) {
 				"kubernetes-version=1.18.1 " +
 				"installer-spec-file=in.yaml " +
 				"load-balancer-address=1.1.1.1 " +
-				"public-address=1.1.1.1",
+				"public-address=1.1.1.1 " +
+				"private-address=1.2.3.4 ",
 			wantError: false,
 		},
 		{

@@ -117,6 +117,8 @@ func parseBashFlags(installer *kurlv1beta1.Installer, bashFlags string) error {
 			installer.Spec.SelinuxConfig.PreserveConfig = true
 		case "public-address":
 			installer.Spec.Kurl.PublicAddress = split[1]
+		case "private-address":
+			installer.Spec.Kurl.PrivateAddress = split[1]
 		case "yes":
 			continue
 		case "auto-upgrades-enabled":

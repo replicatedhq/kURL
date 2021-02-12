@@ -270,7 +270,7 @@ export KUBECONFIG=/etc/kubernetes/admin.conf
 
 		# run the installer
 		tar -xzvf install.tar.gz
-		cat install.sh | timeout 30m bash -s airgap
+		cat install.sh | timeout 30m bash -s airgap private-address=1.2.3.4
 		KURL_EXIT_STATUS=$?
 
 		export KUBECONFIG=/etc/kubernetes/admin.conf
