@@ -59,9 +59,7 @@ function load_all_images() {
         shift
     done
 
-    if [ "$AIRGAP" = "1" ]; then
-        move_airgap_assets
-    fi
+    move_airgap_assets # this is always airgap
     pushd_install_directory
 
     if [ -n "$DOCKER_VERSION" ]; then
