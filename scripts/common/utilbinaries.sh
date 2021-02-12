@@ -115,6 +115,8 @@ function get_patch_yaml() {
                 ;;
             public-address)
                 ;;
+            private-address)
+                ;;
             yes)
                 ASSUME_YES=1
                 ;;

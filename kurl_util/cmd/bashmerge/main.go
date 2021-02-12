@@ -53,7 +53,9 @@ func checkIfFlagHasValue(length int, flag string) bool {
 		"kubernetes-master-address",
 		"kubernetes-version",
 		"load-balancer-address",
-		"public-address"}
+		"public-address",
+		"private-address",
+	}
 
 	for _, variable := range shouldHaveLengthTwo {
 		if variable == flag {
