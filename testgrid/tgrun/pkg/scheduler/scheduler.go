@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"math/rand"
 	"net/http"
+	"regexp"
 	"time"
 
 	"gopkg.in/yaml.v2"
@@ -21,6 +22,8 @@ import (
 
 // hack
 var previouslyGeneratedNames = []string{}
+
+var urlRegexp = regexp.MustCompile(`(https://[\w.]+)/([\w]+)`)
 
 type kurlErrResp struct {
 	Error struct {
@@ -109,6 +112,14 @@ func Run(schedulerOptions types.SchedulerOptions) error {
 		err = json.Unmarshal(installerURL, &errMsg)
 		if err == nil && errMsg.Error.Message != "" {
 			return fmt.Errorf("error getting kurl spec url: %s", errMsg.Error.Message)
+		}
+
+		if instance.InstallerSpec.RunAirgap {
+			installerURLString, err := bundleFromURL(string(installerURL))
+			if err != nil {
+				return errors.Wrapf(err, "generate airgap url from installer url %s", installerURL)
+			}
+			installerURL = []byte(installerURLString)
 		}
 
 		for _, operatingSystem := range operatingSystems {
@@ -237,4 +248,14 @@ func stringInSlice(s string, slice []string) bool {
 		}
 	}
 	return false
+}
+
+func bundleFromURL(url string) (string, error) {
+	matches := urlRegexp.FindStringSubmatch(url)
+
+	if len(matches) != 3 {
+		return "", fmt.Errorf("unable to parse url %q", url)
+	}
+
+	return fmt.Sprintf("%s/bundle/%s.tar.gz", matches[1], matches[2]), nil
 }

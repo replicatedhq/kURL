@@ -13,6 +13,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/pkg/errors"
@@ -250,6 +251,39 @@ func execute(singleTest types.SingleRun, uploadProxyURL, tempDir string) error {
 }
 
 func createSecret(singleTest types.SingleRun, tempDir string) error {
+	installCmd := `
+curl $KURL_URL > install.sh
+cat install.sh | timeout 30m bash
+KURL_EXIT_STATUS=$?
+
+export KUBECONFIG=/etc/kubernetes/admin.conf
+`
+
+	if strings.HasSuffix(singleTest.KurlURL, ".tar.gz") {
+		// this is an airgapped test
+		installCmd = `
+		# get the install bundle
+		curl -L -o install.tar.gz $KURL_URL
+
+		# disable internet by turning off the interface
+		ifdown eth0
+
+		# run the installer
+		tar -xzvf install.tar.gz
+		cat install.sh | timeout 30m bash -s airgap
+		KURL_EXIT_STATUS=$?
+
+		export KUBECONFIG=/etc/kubernetes/admin.conf
+
+		echo "running pods after completion:"
+		kubectl get pods -A
+		echo ""
+
+		# reenable internet
+		ifup eth0
+		`
+	}
+
 	upgradeCmd := ""
 
 	if singleTest.UpgradeURL != "" {
@@ -296,9 +330,7 @@ if [ ! -c /dev/urandom ]; then
     /bin/mknod -m 0666 /dev/urandom c 1 9 && /bin/chown root:root /dev/urandom
 fi
 
-curl $KURL_URL > install.sh
-cat install.sh | timeout 30m bash
-KURL_EXIT_STATUS=$?
+%s
 
 echo "";
 
@@ -308,8 +340,6 @@ else
     echo "failed kurl run with exit status $KURL_EXIT_STATUS"
     curl -s -X POST -d "{\"success\": false}" $TESTGRID_APIENDPOINT/v1/instance/$TEST_ID/finish
 fi
-
-export KUBECONFIG=/etc/kubernetes/admin.conf
 
 %s
 
@@ -347,7 +377,7 @@ fi
 
 curl -X POST -d '{"success": true}' $TESTGRID_APIENDPOINT/v1/instance/$TEST_ID/finish
 `,
-		singleTest.TestGridAPIEndpoint, singleTest.ID, singleTest.KurlURL, upgradeCmd,
+		singleTest.TestGridAPIEndpoint, singleTest.ID, singleTest.KurlURL, installCmd, upgradeCmd,
 	)
 	runcmdB64 := base64.StdEncoding.EncodeToString([]byte(runcmd))
 
