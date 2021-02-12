@@ -273,7 +273,7 @@ promptForPrivateIp() {
     if [ "$_count" -eq "0" ]; then
         echo >&2 "Error: The installer couldn't discover any valid network interfaces on this machine."
         echo >&2 "Check your network configuration and re-run this script again."
-        echo >&2 "If you want to skip this discovery process, pass the 'local-address' arg to this script, e.g. 'sudo ./install.sh local-address=1.2.3.4'"
+        echo >&2 "If you want to skip this discovery process, pass the 'private-address' arg to this script, e.g. 'sudo ./install.sh private-address=1.2.3.4'"
         exit 1
     elif [ "$_count" -eq "1" ]; then
         PRIVATE_ADDRESS=${_iface_addrs[0]}
