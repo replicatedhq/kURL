@@ -6,16 +6,10 @@ import (
 
 var operatingSystems = []types.OperatingSystemImage{
 	{
-		VMImageURI: "https://cloud-images.ubuntu.com/bionic/current/bionic-server-cloudimg-amd64.img",
-		Name:       "Ubuntu",
-		Version:    "18.04",
-		ID:         "ubuntu-1804",
-	},
-	{
-		VMImageURI: "https://testgrid-images.s3.amazonaws.com/ubuntu/16.04/ubuntu-16.04-kernel-4.15.0-122-generic.qcow2",
-		Name:       "Ubuntu",
-		Version:    "16.04",
-		ID:         "ubuntu-1604",
+		VMImageURI: "https://cdn.amazonlinux.com/os-images/2.0.20200917.0/kvm/amzn2-kvm-2.0.20200917.0-x86_64.xfs.gpt.qcow2",
+		Name:       "Amazon Linux",
+		Version:    "2.0",
+		ID:         "amzn-20",
 	},
 	{
 		VMImageURI: "https://cloud.centos.org/centos/7/images/CentOS-7-x86_64-GenericCloud-1708.qcow2",
@@ -54,10 +48,16 @@ var operatingSystems = []types.OperatingSystemImage{
 		ID:         "centos-83",
 	},
 	{
-		VMImageURI: "https://cdn.amazonlinux.com/os-images/2.0.20200917.0/kvm/amzn2-kvm-2.0.20200917.0-x86_64.xfs.gpt.qcow2",
-		Name:       "Amazon Linux",
-		Version:    "2.0",
-		ID:         "amzn-20",
+		VMImageURI: "https://testgrid-images.s3.amazonaws.com/ubuntu/16.04/ubuntu-16.04-kernel-4.15.0-122-generic.qcow2",
+		Name:       "Ubuntu",
+		Version:    "16.04",
+		ID:         "ubuntu-1604",
+	},
+	{
+		VMImageURI: "https://cloud-images.ubuntu.com/bionic/current/bionic-server-cloudimg-amd64.img",
+		Name:       "Ubuntu",
+		Version:    "18.04",
+		ID:         "ubuntu-1804",
 	},
 	{
 		VMImageURI: "https://cloud-images.ubuntu.com/focal/current/focal-server-cloudimg-amd64.img",
