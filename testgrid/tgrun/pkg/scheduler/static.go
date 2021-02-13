@@ -36,6 +36,12 @@ var operatingSystems = []types.OperatingSystemImage{
 		ID:         "centos-79",
 	},
 	{
+		VMImageURI: "https://cloud.centos.org/centos/8/x86_64/images/CentOS-8-GenericCloud-8.1.1911-20200113.3.x86_64.qcow2",
+		Name:       "CentOS",
+		Version:    "8.1",
+		ID:         "centos-81",
+	},
+	{
 		VMImageURI: "https://cloud.centos.org/centos/8/x86_64/images/CentOS-8-GenericCloud-8.2.2004-20200611.2.x86_64.qcow2",
 		Name:       "CentOS",
 		Version:    "8.2",
