@@ -3,6 +3,8 @@ function install_helm() {
     if [ "$MASTER" = "1" ]; then
         cp -f $DIR/helm/helm /usr/local/bin/
         cp -f $DIR/helm/helmfile /usr/local/bin/
+
+        path_add "/usr/local/bin"
     fi
 }
 
