@@ -262,26 +262,28 @@ export KUBECONFIG=/etc/kubernetes/admin.conf
 	if strings.HasSuffix(singleTest.KurlURL, ".tar.gz") {
 		// this is an airgapped test
 		installCmd = `
-		# get the install bundle
-		curl -L -o install.tar.gz $KURL_URL
+# get the install bundle
+curl -L -o install.tar.gz $KURL_URL
 
-		# disable internet by turning off the interface
-		ifdown eth0
+# disable internet by adding restrictive iptables rules
+iptables -A OUTPUT -p tcp -d 50.19.197.213 -j ACCEPT # accept comms to k8s.kurl.sh IPs
+iptables -A OUTPUT -p tcp -d 54.236.144.143 -j ACCEPT # accept comms to k8s.kurl.sh IPs
+iptables -A OUTPUT -p tcp -d 162.159.135.41 -j ACCEPT # accept comms to k8s.kurl.sh IPs
+iptables -A OUTPUT -p tcp -d 162.159.136.41 -j ACCEPT # accept comms to k8s.kurl.sh IPs
+iptables -A OUTPUT -p tcp -s 10.0.0.0/8 -j ACCEPT # accept comms to internal kubernetes IPs
+iptables -A OUTPUT -p tcp -j REJECT # reject comms to other IPs
 
-		# run the installer
-		tar -xzvf install.tar.gz
-		cat install.sh | timeout 30m bash -s airgap private-address=1.2.3.4
-		KURL_EXIT_STATUS=$?
+# run the installer
+tar -xzvf install.tar.gz
+cat install.sh | timeout 30m bash -s airgap
+KURL_EXIT_STATUS=$?
 
-		export KUBECONFIG=/etc/kubernetes/admin.conf
+export KUBECONFIG=/etc/kubernetes/admin.conf
 
-		echo "running pods after completion:"
-		kubectl get pods -A
-		echo ""
-
-		# reenable internet
-		ifup eth0
-		`
+echo "running pods after completion:"
+kubectl get pods -A
+echo ""
+`
 	}
 
 	upgradeCmd := ""
@@ -309,6 +311,48 @@ else
     curl -s -X POST -d "{\"success\": false}" $TESTGRID_APIENDPOINT/v1/instance/$TEST_ID/finish
 fi
 `, singleTest.UpgradeURL)
+
+		if strings.HasSuffix(singleTest.UpgradeURL, ".tar.gz") {
+			upgradeCmd = fmt.Sprintf(`
+KURL_UPGRADE_URL='%s'
+
+echo "upgrading installation"
+
+
+# get the upgrade bundle
+curl -L -o upgrade.tar.gz KURL_UPGRADE_URL
+
+
+# disable internet by adding restrictive iptables rules
+iptables -A OUTPUT -p tcp -d 50.19.197.213 -j ACCEPT # accept comms to k8s.kurl.sh IPs
+iptables -A OUTPUT -p tcp -d 54.236.144.143 -j ACCEPT # accept comms to k8s.kurl.sh IPs
+iptables -A OUTPUT -p tcp -d 162.159.135.41 -j ACCEPT # accept comms to k8s.kurl.sh IPs
+iptables -A OUTPUT -p tcp -d 162.159.136.41 -j ACCEPT # accept comms to k8s.kurl.sh IPs
+iptables -A OUTPUT -p tcp -s 10.0.0.0/8 -j ACCEPT # accept comms to internal kubernetes IPs
+iptables -A OUTPUT -p tcp -j REJECT # reject comms to other IPs
+
+# run the upgrade
+tar -xzvf upgrade.tar.gz
+cat install.sh | timeout 30m bash -s airgap
+KURL_EXIT_STATUS=$?
+
+echo "";
+echo "running pods after completion:";
+kubectl get pods -A
+echo "";
+
+if [ $KURL_EXIT_STATUS -eq 0 ]; then
+    echo "completed kurl upgrade"
+    echo ""
+    echo "kubectl version:"
+    kubectl version
+    echo ""
+else
+    echo "failed kurl upgrade with exit status $KURL_EXIT_STATUS"
+    curl -s -X POST -d "{\"success\": false}" $TESTGRID_APIENDPOINT/v1/instance/$TEST_ID/finish
+fi
+`, singleTest.UpgradeURL)
+		}
 	}
 
 	runcmd := fmt.Sprintf(`# runcmd.sh
