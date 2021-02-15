@@ -42,3 +42,7 @@ function distro_containerd_restart() {
 function distro_registry_containerd_configure() {
     bail "distro_registry_containerd_configure not implemented"
 }
+
+function distro_api_is_healthy() {
+    bail "distro_api_is_healthy not implemented"
+}

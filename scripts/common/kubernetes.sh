@@ -173,7 +173,7 @@ function kubernetes_api_address() {
 }
 
 function kubernetes_api_is_healthy() {
-    curl --noproxy "*" --fail --silent --insecure "https://$(kubernetes_api_address)/healthz" >/dev/null
+    ${K8S_DISTRO}_api_is_healthy
 }
 
 function spinner_kubernetes_api_healthy() {

@@ -83,3 +83,7 @@ EOF
 
     REGISTRY_CONTAINERD_CA_ADDED=1
 }
+
+function rke2_api_is_healthy() {
+    kubectl get --raw='/readyz' > /dev/null
+}
