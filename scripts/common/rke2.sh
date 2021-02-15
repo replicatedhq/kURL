@@ -250,7 +250,6 @@ EOF
     printf "${RED}YOU ARE NOW INSTALLING RKE2 WITH KURL. THIS FEATURE IS EXPERIMENTAL!${NC}\n"
     printf "${RED}\t- It can be removed at any point in the future.${NC}\n"
     printf "${RED}\t- There are zero guarantees regarding addon compatibility.${NC}\n"
-    printf "${RED}\t- There is no stability in RKE version installed.${NC}\n"
     printf "${RED}\n\nCONTINUING AT YOUR OWN RISK....${NC}\n\n"
 }
 
