@@ -632,7 +632,6 @@ export class Installer {
     ],
     rke2: [
       "v1.19.7+rke2r1",
-      "v1.18.13+rke2r1",
     ],
     docker: [
       "19.03.10",
