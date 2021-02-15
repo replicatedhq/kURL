@@ -6,7 +6,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/replicatedhq/kurl/kurlkinds v0.0.0-20210215140455-5a1c430f07b2
 	github.com/replicatedhq/kurl/testgrid/tgapi v0.0.0-20200609141000-22fb64716037
-	github.com/spf13/cobra v1.1.2
+	github.com/spf13/cobra v1.1.3
 	github.com/spf13/viper v1.7.1
 	github.com/stretchr/testify v1.7.0
 	go.uber.org/zap v1.16.0
@@ -18,15 +18,14 @@ require (
 )
 
 replace (
-	github.com/replicatedhq/kurl/kurlkinds => ../../kurlkinds
-	github.com/replicatedhq/kurl/testgrid/tgapi => ../tgapi
-
 	// replace section from https://github.com/kubevirt/client-go/blob/v0.38.1/go.mod
 	github.com/go-kit/kit => github.com/go-kit/kit v0.3.0
 	//github.com/googleapis/gnostic => github.com/googleapis/gnostic v0.3.1
 	github.com/openshift/api => github.com/openshift/api v0.0.0-20210105115604-44119421ec6b
 	github.com/openshift/client-go => github.com/openshift/client-go v0.0.0-20210112165513-ebc401615f47
 	github.com/operator-framework/operator-lifecycle-manager => github.com/operator-framework/operator-lifecycle-manager v0.0.0-20190128024246-5eb7ae5bdb7a
+	github.com/replicatedhq/kurl/kurlkinds => ../../kurlkinds
+	github.com/replicatedhq/kurl/testgrid/tgapi => ../tgapi
 	gopkg.in/yaml.v2 => gopkg.in/yaml.v2 v2.2.4
 
 	k8s.io/api => k8s.io/api v0.20.2
