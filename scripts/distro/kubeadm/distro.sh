@@ -88,3 +88,8 @@ EOF
 
     REGISTRY_CONTAINERD_CA_ADDED=1
 }
+
+function kubeadm_api_is_healthy() {
+    curl --noproxy "*" --fail --silent --insecure "https://$(kubernetes_api_address)/healthz" >/dev/null
+}
+    
