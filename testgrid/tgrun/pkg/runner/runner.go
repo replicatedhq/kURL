@@ -285,6 +285,10 @@ iptables -A OUTPUT -p tcp -s 172.16.0.0/12 -j ACCEPT # accept comms to internal 
 iptables -A OUTPUT -p tcp -s 192.168.0.0/16 -j ACCEPT # accept comms to internal IPs
 iptables -A OUTPUT -p tcp -j REJECT # reject comms to other IPs
 
+# test the lack of internet access
+echo "testing disabled internet"
+curl -v --connect-timeout 5 --max-time 5 "https://www.google.com"
+
 # run the installer
 tar -xzvf install.tar.gz
 cat install.sh | timeout 30m bash -s airgap
@@ -353,6 +357,10 @@ iptables -A OUTPUT -p tcp -s 10.0.0.0/8 -j ACCEPT # accept comms to internal IPs
 iptables -A OUTPUT -p tcp -s 172.16.0.0/12 -j ACCEPT # accept comms to internal IPs
 iptables -A OUTPUT -p tcp -s 192.168.0.0/16 -j ACCEPT # accept comms to internal IPs
 iptables -A OUTPUT -p tcp -j REJECT # reject comms to other IPs
+
+# test the lack of internet access
+echo "testing disabled internet"
+curl -v --connect-timeout 5 --max-time 5 "https://www.google.com"
 
 # run the upgrade
 tar -xzvf upgrade.tar.gz
