@@ -15,6 +15,71 @@ commandExists() {
     command -v "$@" > /dev/null 2>&1
 }
 
+function package_download() {
+    local package="$1"
+
+    if [ -z "${DIST_URL}" ]; then
+        logWarn "DIST_URL not set, will not download $1"
+        return
+    fi
+
+    mkdir -p assets
+    touch assets/Manifest
+
+    local etag="$(cat assets/Manifest | grep "${package}" | awk 'NR == 1 {print $2}')"
+    local checksum="$(cat assets/Manifest | grep "${package}" | awk 'NR == 1 {print $3}')"
+
+    if [ -n "${etag}" ] && ! package_matches_checksum "${package}" "${checksum}" ; then
+        etag=
+    fi
+
+    local newetag="$(curl -IfsSL "${DIST_URL}/${package}" | grep -i 'etag:' | sed -r 's/.*"(.*)".*/\1/')"
+    if [ -n "${etag}" ] && [ "${etag}" = "${newetag}" ]; then
+        echo "Package ${package} already exists, not downloading"
+        return
+    fi
+
+    sed -i "/^$(printf '%s' "${package}").*/d" assets/Manifest # remove from manifest
+
+    local filepath="$(package_filepath "${package}")"
+
+    echo "Downloading package ${package}"
+    curl -fL -o "${filepath}" "${DIST_URL}/${package}"
+
+    checksum="$(md5sum "${filepath}" | awk '{print $1}')"
+    echo "${package} ${newetag} ${checksum}" >> assets/Manifest
+}
+
+function package_filepath() {
+    local package="$1"
+    echo "assets/${package}"
+}
+
+function package_matches_checksum() {
+    local package="$1"
+    local checksum="$2"
+
+    local filepath="$(package_filepath "${package}")"
+
+    if [ -z "${checksum}" ]; then
+        return 1
+    elif [ ! -f "${filepath}" ] || [ ! -s "${filepath}" ]; then # if not exists or empty
+        return 1
+    elif ! md5sum "${filepath}" | grep -Fq "${checksum}" ; then
+        echo "Package ${package} checksum does not match"
+        return 1
+    fi
+    return 0
+}
+
+function package_cleanup() {
+    if [ -z "${DIST_URL}" ] || [ "${AIRGAP}" = "1" ]; then
+        return
+    fi
+    addon_cleanup
+    rm -rf "${DIR}/packages"
+}
+
 insertOrReplaceJsonParam() {
     if ! [ -f "$1" ]; then
         # If settings file does not exist
@@ -469,10 +534,10 @@ function install_host_archives() {
 function install_host_dependencies() {
     if ! commandExists "openssl"; then
         if [ "$AIRGAP" != "1" ] && [ -n "$DIST_URL" ]; then
-            echo "Fetching host-openssl.tar.gz"
-            curl -LO "$DIST_URL/host-openssl.tar.gz"
-            tar xf host-openssl.tar.gz
-            rm host-openssl.tar.gz
+            local package="host-openssl.tar.gz"
+            package_download "${package}"
+            tar xf "$(package_filepath "${package}")"
+            # rm host-openssl.tar.gz
         fi
         install_host_archives "${DIR}/packages/host/openssl"
     fi

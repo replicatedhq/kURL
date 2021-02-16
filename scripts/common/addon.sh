@@ -37,10 +37,11 @@ function addon_pre_init() {
 
     if [ "$AIRGAP" != "1" ]; then
         if [ -n "$s3Override" ]; then
-            addon_fetch "$s3Override"
+            rm -rf $DIR/addons/$name/$version # Cleanup broken/incompatible addons from failed runs
+            addon_fetch_no_cache "$s3Override"
         elif [ -n "$DIST_URL" ]; then
-            rm -rf $DIR/addons/$name/$version                   # Cleanup broken/ incompatible addons from failed runs
-            addon_fetch "$DIST_URL/$name-$version.tar.gz"
+            rm -rf $DIR/addons/$name/$version # Cleanup broken/incompatible addons from failed runs
+            addon_fetch "$name-$version.tar.gz"
         fi
     fi
 
@@ -62,10 +63,11 @@ function addon_join() {
 
     if [ "$AIRGAP" != "1" ]; then
         if [ -n "$s3Override" ]; then
-            addon_fetch "$s3Override"
+            rm -rf $DIR/addons/$name/$version # Cleanup broken/incompatible addons from failed runs
+            addon_fetch_no_cache "$s3Override"
         elif [ -n "$DIST_URL" ]; then
-            rm -rf $DIR/addons/$name/$version                   # Cleanup broken/ incompatible addons from failed runs
-            addon_fetch "$DIST_URL/$name-$version.tar.gz"
+            rm -rf $DIR/addons/$name/$version # Cleanup broken/incompatible addons from failed runs
+            addon_fetch "$name-$version.tar.gz"
         fi
     fi
 
@@ -90,7 +92,7 @@ function addon_load() {
     load_images $DIR/addons/$name/$version/images
 }
 
-function addon_fetch() {
+function addon_fetch_no_cache() {
     local url=$1
 
     local archiveName=$(basename $url)
@@ -99,6 +101,16 @@ function addon_fetch() {
     curl -LO "$url"
     tar xf $archiveName
     rm $archiveName
+}
+
+function addon_fetch() {
+    local package=$1
+
+    package_download "${package}"
+
+    tar xf "$(package_filepath "${package}")"
+
+    # rm $archiveName
 }
 
 function addon_outro() {
@@ -138,4 +150,8 @@ function addon_outro() {
             ${name}_outro
         fi
     done < <(find addons/ -mindepth 1 -maxdepth 1 -type d -printf '%f\n')
+}
+
+function addon_cleanup() {
+    rm -rf "${DIR}/addons"
 }
