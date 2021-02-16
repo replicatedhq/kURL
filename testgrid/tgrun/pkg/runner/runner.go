@@ -266,6 +266,7 @@ export KUBECONFIG=/etc/kubernetes/admin.conf
 curl -L -o install.tar.gz $KURL_URL
 
 # get the list of testgrid API IPs
+command -v dig >/dev/null 2>&1 || { yum -y install bind-utils; }
 TESTGRID_DOMAIN=$(echo "$TESTGRID_APIENDPOINT" | sed -e "s.^https://..")
 echo "testgrid API endpoint: $TESTGRID_APIENDPOINT domain: $TESTGRID_DOMAIN"
 APIENDPOINT_IPS=$(dig $TESTGRID_DOMAIN | grep 'IN A' | awk '{ print $5 }')
@@ -374,6 +375,7 @@ echo "upgrading installation"
 curl -L -o upgrade.tar.gz KURL_UPGRADE_URL
 
 # get the list of testgrid API IPs
+command -v dig >/dev/null 2>&1 || { yum -y install bind-utils; }
 TESTGRID_DOMAIN=$(echo "$TESTGRID_APIENDPOINT" | sed -e "s.^https://..")
 echo "testgrid API endpoint: $TESTGRID_APIENDPOINT domain: $TESTGRID_DOMAIN"
 APIENDPOINT_IPS=$(dig $TESTGRID_DOMAIN | grep 'IN A' | awk '{ print $5 }')
