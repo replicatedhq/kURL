@@ -267,8 +267,8 @@ curl -L -o install.tar.gz $KURL_URL
 
 # get the list of testgrid API IPs
 TESTGRID_DOMAIN=$(echo "$TESTGRID_APIENDPOINT" | sed -e "s.^https://..")
-echo "testgrid API endpint: $TESTGRID_APIENDPOINT domain: $TESTGRID_DOMAIN"
-APIENDPOINT_IPS=$(dig TESTGRID_DOMAIN | grep 'IN A' | awk '{ print $5 }')
+echo "testgrid API endpoint: $TESTGRID_APIENDPOINT domain: $TESTGRID_DOMAIN"
+APIENDPOINT_IPS=$(dig $TESTGRID_DOMAIN | grep 'IN A' | awk '{ print $5 }')
 # and allow access to them
 for i in $APIENDPOINT_IPS; do
 	echo "allowing access to $i"
@@ -281,9 +281,9 @@ iptables -A OUTPUT -p tcp -d 54.236.144.143 -j ACCEPT # accept comms to k8s.kurl
 iptables -A OUTPUT -p tcp -d 162.159.135.41 -j ACCEPT # accept comms to k8s.kurl.sh IPs
 iptables -A OUTPUT -p tcp -d 162.159.136.41 -j ACCEPT # accept comms to k8s.kurl.sh IPs
 iptables -A OUTPUT -p tcp -d 127.0.0.1 -j ACCEPT # accept comms to localhost
-iptables -A OUTPUT -p tcp -s 10.0.0.0/8 -j ACCEPT # accept comms to internal IPs
-iptables -A OUTPUT -p tcp -s 172.16.0.0/12 -j ACCEPT # accept comms to internal IPs
-iptables -A OUTPUT -p tcp -s 192.168.0.0/16 -j ACCEPT # accept comms to internal IPs
+iptables -A OUTPUT -p tcp -d 10.0.0.0/8 -j ACCEPT # accept comms to internal IPs
+iptables -A OUTPUT -p tcp -d 172.16.0.0/12 -j ACCEPT # accept comms to internal IPs
+iptables -A OUTPUT -p tcp -d 192.168.0.0/16 -j ACCEPT # accept comms to internal IPs
 iptables -A OUTPUT -p tcp -j REJECT # reject comms to other IPs
 
 iptables -L
@@ -294,6 +294,7 @@ curl -v --connect-timeout 5 --max-time 5 "http://www.google.com"
 CURL_EXIT_STATUS=$?
 if [ $CURL_EXIT_STATUS -eq 0 ]; then
     echo "successfully curled an external endpoint in airgap"
+    traceroute www.google.com
     curl -s -X POST -d "{\"success\": false}" $TESTGRID_APIENDPOINT/v1/instance/$TEST_ID/finish
     curl -X POST --data-binary "@/var/log/cloud-init-output.log" $TESTGRID_APIENDPOINT/v1/instance/$TEST_ID/logs
     exit 1
@@ -358,8 +359,8 @@ curl -L -o upgrade.tar.gz KURL_UPGRADE_URL
 
 # get the list of testgrid API IPs
 TESTGRID_DOMAIN=$(echo "$TESTGRID_APIENDPOINT" | sed -e "s.^https://..")
-echo "testgrid API endpint: $TESTGRID_APIENDPOINT domain: $TESTGRID_DOMAIN"
-APIENDPOINT_IPS=$(dig TESTGRID_DOMAIN | grep 'IN A' | awk '{ print $5 }')
+echo "testgrid API endpoint: $TESTGRID_APIENDPOINT domain: $TESTGRID_DOMAIN"
+APIENDPOINT_IPS=$(dig $TESTGRID_DOMAIN | grep 'IN A' | awk '{ print $5 }')
 # and allow access to them
 for i in $APIENDPOINT_IPS; do
 	echo "allowing access to $i"
@@ -372,9 +373,9 @@ iptables -A OUTPUT -p tcp -d 54.236.144.143 -j ACCEPT # accept comms to k8s.kurl
 iptables -A OUTPUT -p tcp -d 162.159.135.41 -j ACCEPT # accept comms to k8s.kurl.sh IPs
 iptables -A OUTPUT -p tcp -d 162.159.136.41 -j ACCEPT # accept comms to k8s.kurl.sh IPs
 iptables -A OUTPUT -p tcp -d 127.0.0.1 -j ACCEPT # accept comms to localhost
-iptables -A OUTPUT -p tcp -s 10.0.0.0/8 -j ACCEPT # accept comms to internal IPs
-iptables -A OUTPUT -p tcp -s 172.16.0.0/12 -j ACCEPT # accept comms to internal IPs
-iptables -A OUTPUT -p tcp -s 192.168.0.0/16 -j ACCEPT # accept comms to internal IPs
+iptables -A OUTPUT -p tcp -d 10.0.0.0/8 -j ACCEPT # accept comms to internal IPs
+iptables -A OUTPUT -p tcp -d 172.16.0.0/12 -j ACCEPT # accept comms to internal IPs
+iptables -A OUTPUT -p tcp -d 192.168.0.0/16 -j ACCEPT # accept comms to internal IPs
 iptables -A OUTPUT -p tcp -j REJECT # reject comms to other IPs
 
 iptables -L
@@ -385,6 +386,7 @@ curl -v --connect-timeout 5 --max-time 5 "http://www.google.com"
 CURL_EXIT_STATUS=$?
 if [ $CURL_EXIT_STATUS -eq 0 ]; then
     echo "successfully curled an external endpoint in airgap"
+    traceroute www.google.com
     curl -s -X POST -d "{\"success\": false}" $TESTGRID_APIENDPOINT/v1/instance/$TEST_ID/finish
     curl -X POST --data-binary "@/var/log/cloud-init-output.log" $TESTGRID_APIENDPOINT/v1/instance/$TEST_ID/logs
     exit 1
