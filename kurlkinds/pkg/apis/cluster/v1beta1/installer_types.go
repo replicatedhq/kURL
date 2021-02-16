@@ -23,6 +23,7 @@ import (
 type InstallerSpec struct {
 	Kubernetes      Kubernetes      `json:"kubernetes,omitempty"`
 	RKE2            RKE2            `json:"rke2,omitempty"`
+	K3S             K3S             `json:"k3s,omitempty"`
 	Docker          Docker          `json:"docker,omitempty"`
 	Weave           Weave           `json:"weave,omitempty"`
 	Calico          Calico          `json:"calico,omitempty"`
@@ -139,6 +140,10 @@ type Registry struct {
 }
 
 type RKE2 struct {
+	Version string `json:"version" yaml:"version"`
+}
+
+type K3S struct {
 	Version string `json:"version" yaml:"version"`
 }
 
