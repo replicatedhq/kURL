@@ -281,9 +281,9 @@ iptables -A OUTPUT -p tcp -d 54.236.144.143 -j ACCEPT # accept comms to k8s.kurl
 iptables -A OUTPUT -p tcp -d 162.159.135.41 -j ACCEPT # accept comms to k8s.kurl.sh IPs
 iptables -A OUTPUT -p tcp -d 162.159.136.41 -j ACCEPT # accept comms to k8s.kurl.sh IPs
 iptables -A OUTPUT -p tcp -d 127.0.0.1 -j ACCEPT # accept comms to localhost
-iptables -A OUTPUT -p tcp -s 10.0.0.0/8 -j ACCEPT # accept comms to internal IPs
-iptables -A OUTPUT -p tcp -s 172.16.0.0/12 -j ACCEPT # accept comms to internal IPs
-iptables -A OUTPUT -p tcp -s 192.168.0.0/16 -j ACCEPT # accept comms to internal IPs
+iptables -A OUTPUT -p tcp -d 10.0.0.0/8 -j ACCEPT # accept comms to internal IPs
+iptables -A OUTPUT -p tcp -d 172.16.0.0/12 -j ACCEPT # accept comms to internal IPs
+iptables -A OUTPUT -p tcp -d 192.168.0.0/16 -j ACCEPT # accept comms to internal IPs
 iptables -A OUTPUT -p tcp -j REJECT # reject comms to other IPs
 
 iptables -L
@@ -373,9 +373,9 @@ iptables -A OUTPUT -p tcp -d 54.236.144.143 -j ACCEPT # accept comms to k8s.kurl
 iptables -A OUTPUT -p tcp -d 162.159.135.41 -j ACCEPT # accept comms to k8s.kurl.sh IPs
 iptables -A OUTPUT -p tcp -d 162.159.136.41 -j ACCEPT # accept comms to k8s.kurl.sh IPs
 iptables -A OUTPUT -p tcp -d 127.0.0.1 -j ACCEPT # accept comms to localhost
-iptables -A OUTPUT -p tcp -s 10.0.0.0/8 -j ACCEPT # accept comms to internal IPs
-iptables -A OUTPUT -p tcp -s 172.16.0.0/12 -j ACCEPT # accept comms to internal IPs
-iptables -A OUTPUT -p tcp -s 192.168.0.0/16 -j ACCEPT # accept comms to internal IPs
+iptables -A OUTPUT -p tcp -d 10.0.0.0/8 -j ACCEPT # accept comms to internal IPs
+iptables -A OUTPUT -p tcp -d 172.16.0.0/12 -j ACCEPT # accept comms to internal IPs
+iptables -A OUTPUT -p tcp -d 192.168.0.0/16 -j ACCEPT # accept comms to internal IPs
 iptables -A OUTPUT -p tcp -j REJECT # reject comms to other IPs
 
 iptables -L
