@@ -294,6 +294,7 @@ curl -v --connect-timeout 5 --max-time 5 "http://www.google.com"
 CURL_EXIT_STATUS=$?
 if [ $CURL_EXIT_STATUS -eq 0 ]; then
     echo "successfully curled an external endpoint in airgap"
+    traceroute www.google.com
     curl -s -X POST -d "{\"success\": false}" $TESTGRID_APIENDPOINT/v1/instance/$TEST_ID/finish
     curl -X POST --data-binary "@/var/log/cloud-init-output.log" $TESTGRID_APIENDPOINT/v1/instance/$TEST_ID/logs
     exit 1
@@ -385,6 +386,7 @@ curl -v --connect-timeout 5 --max-time 5 "http://www.google.com"
 CURL_EXIT_STATUS=$?
 if [ $CURL_EXIT_STATUS -eq 0 ]; then
     echo "successfully curled an external endpoint in airgap"
+    traceroute www.google.com
     curl -s -X POST -d "{\"success\": false}" $TESTGRID_APIENDPOINT/v1/instance/$TEST_ID/finish
     curl -X POST --data-binary "@/var/log/cloud-init-output.log" $TESTGRID_APIENDPOINT/v1/instance/$TEST_ID/logs
     exit 1
