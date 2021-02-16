@@ -265,14 +265,29 @@ export KUBECONFIG=/etc/kubernetes/admin.conf
 # get the install bundle
 curl -L -o install.tar.gz $KURL_URL
 
+# get the list of testgrid API IPs
+TESTGRID_DOMAIN=$(echo "$TESTGRID_APIENDPOINT" | sed -e "s.^https://..")
+APIENDPOINT_IPS=$(dig TESTGRID_DOMAIN | grep 'IN A' | awk '{ print $5 }')
+# and allow access to them
+for i in $APIENDPOINT_IPS; do
+	echo "allowing access to $i"
+	iptables -A OUTPUT -p tcp -d $i -j ACCEPT # accept comms to testgrid API IPs
+done
+
 # disable internet by adding restrictive iptables rules
 iptables -A OUTPUT -p tcp -d 50.19.197.213 -j ACCEPT # accept comms to k8s.kurl.sh IPs
 iptables -A OUTPUT -p tcp -d 54.236.144.143 -j ACCEPT # accept comms to k8s.kurl.sh IPs
 iptables -A OUTPUT -p tcp -d 162.159.135.41 -j ACCEPT # accept comms to k8s.kurl.sh IPs
 iptables -A OUTPUT -p tcp -d 162.159.136.41 -j ACCEPT # accept comms to k8s.kurl.sh IPs
 iptables -A OUTPUT -p tcp -d 127.0.0.1 -j ACCEPT # accept comms to localhost
-iptables -A OUTPUT -p tcp -s 10.0.0.0/8 -j ACCEPT # accept comms to internal kubernetes IPs
+iptables -A OUTPUT -p tcp -s 10.0.0.0/8 -j ACCEPT # accept comms to internal IPs
+iptables -A OUTPUT -p tcp -s 172.16.0.0/12 -j ACCEPT # accept comms to internal IPs
+iptables -A OUTPUT -p tcp -s 192.168.0.0/16 -j ACCEPT # accept comms to internal IPs
 iptables -A OUTPUT -p tcp -j REJECT # reject comms to other IPs
+
+# test the lack of internet access
+echo "testing disabled internet"
+curl -v --connect-timeout 5 --max-time 5 "https://www.google.com"
 
 # run the installer
 tar -xzvf install.tar.gz
@@ -323,6 +338,14 @@ echo "upgrading installation"
 # get the upgrade bundle
 curl -L -o upgrade.tar.gz KURL_UPGRADE_URL
 
+# get the list of testgrid API IPs
+TESTGRID_DOMAIN=$(echo "$TESTGRID_APIENDPOINT" | sed -e "s.^https://..")
+APIENDPOINT_IPS=$(dig TESTGRID_DOMAIN | grep 'IN A' | awk '{ print $5 }')
+# and allow access to them
+for i in $APIENDPOINT_IPS; do
+	echo "allowing access to $i"
+	iptables -A OUTPUT -p tcp -d $i -j ACCEPT # accept comms to testgrid API IPs
+done
 
 # disable internet by adding restrictive iptables rules
 iptables -A OUTPUT -p tcp -d 50.19.197.213 -j ACCEPT # accept comms to k8s.kurl.sh IPs
@@ -330,8 +353,14 @@ iptables -A OUTPUT -p tcp -d 54.236.144.143 -j ACCEPT # accept comms to k8s.kurl
 iptables -A OUTPUT -p tcp -d 162.159.135.41 -j ACCEPT # accept comms to k8s.kurl.sh IPs
 iptables -A OUTPUT -p tcp -d 162.159.136.41 -j ACCEPT # accept comms to k8s.kurl.sh IPs
 iptables -A OUTPUT -p tcp -d 127.0.0.1 -j ACCEPT # accept comms to localhost
-iptables -A OUTPUT -p tcp -s 10.0.0.0/8 -j ACCEPT # accept comms to internal kubernetes IPs
+iptables -A OUTPUT -p tcp -s 10.0.0.0/8 -j ACCEPT # accept comms to internal IPs
+iptables -A OUTPUT -p tcp -s 172.16.0.0/12 -j ACCEPT # accept comms to internal IPs
+iptables -A OUTPUT -p tcp -s 192.168.0.0/16 -j ACCEPT # accept comms to internal IPs
 iptables -A OUTPUT -p tcp -j REJECT # reject comms to other IPs
+
+# test the lack of internet access
+echo "testing disabled internet"
+curl -v --connect-timeout 5 --max-time 5 "https://www.google.com"
 
 # run the upgrade
 tar -xzvf upgrade.tar.gz
