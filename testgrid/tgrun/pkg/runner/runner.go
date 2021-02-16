@@ -451,6 +451,14 @@ if [ $KURL_EXIT_STATUS -eq 0 ]; then
     echo "completed kurl run"
 else
     echo "failed kurl run with exit status $KURL_EXIT_STATUS"
+
+    echo "kubelet status"
+    systemctl status kubelet
+    echo "kubelet journalctl"
+    journalctl -xeu kubelet
+    echo "docker containers"
+    docker ps -a
+
     curl -s -X POST -d "{\"success\": false}" $TESTGRID_APIENDPOINT/v1/instance/$TEST_ID/finish
 fi
 
@@ -470,7 +478,6 @@ else
 fi
 
 if [ $KURL_EXIT_STATUS -ne 0 ]; then
-    curl -s -X POST -d "{\"success\": false}" $TESTGRID_APIENDPOINT/v1/instance/$TEST_ID/finish
     exit 1
 fi
 
