@@ -295,6 +295,7 @@ CURL_EXIT_STATUS=$?
 if [ $CURL_EXIT_STATUS -eq 0 ]; then
     echo "successfully curled an external endpoint in airgap"
     curl -s -X POST -d "{\"success\": false}" $TESTGRID_APIENDPOINT/v1/instance/$TEST_ID/finish
+    curl -X POST --data-binary "@/var/log/cloud-init-output.log" $TESTGRID_APIENDPOINT/v1/instance/$TEST_ID/logs
     exit 1
 fi
 
@@ -304,6 +305,7 @@ TAR_EXIT_STATUS=$?
 if [ $TAR_EXIT_STATUS -ne 0 ]; then
     echo "failed to unpack airgap file with status $TAR_EXIT_STATUS"
     curl -s -X POST -d "{\"success\": false}" $TESTGRID_APIENDPOINT/v1/instance/$TEST_ID/finish
+    curl -X POST --data-binary "@/var/log/cloud-init-output.log" $TESTGRID_APIENDPOINT/v1/instance/$TEST_ID/logs
     exit 1
 fi
 
@@ -384,6 +386,7 @@ CURL_EXIT_STATUS=$?
 if [ $CURL_EXIT_STATUS -eq 0 ]; then
     echo "successfully curled an external endpoint in airgap"
     curl -s -X POST -d "{\"success\": false}" $TESTGRID_APIENDPOINT/v1/instance/$TEST_ID/finish
+    curl -X POST --data-binary "@/var/log/cloud-init-output.log" $TESTGRID_APIENDPOINT/v1/instance/$TEST_ID/logs
     exit 1
 fi
 
@@ -393,6 +396,7 @@ TAR_EXIT_STATUS=$?
 if [ $TAR_EXIT_STATUS -ne 0 ]; then
     echo "failed to unpack airgap file with status $TAR_EXIT_STATUS"
     curl -s -X POST -d "{\"success\": false}" $TESTGRID_APIENDPOINT/v1/instance/$TEST_ID/finish
+    curl -X POST --data-binary "@/var/log/cloud-init-output.log" $TESTGRID_APIENDPOINT/v1/instance/$TEST_ID/logs
     exit 1
 fi
 
@@ -464,6 +468,7 @@ else
 fi
 
 if [ $KURL_EXIT_STATUS -ne 0 ]; then
+    curl -s -X POST -d "{\"success\": false}" $TESTGRID_APIENDPOINT/v1/instance/$TEST_ID/finish
     exit 1
 fi
 
