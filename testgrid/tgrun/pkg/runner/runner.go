@@ -270,6 +270,7 @@ iptables -A OUTPUT -p tcp -d 50.19.197.213 -j ACCEPT # accept comms to k8s.kurl.
 iptables -A OUTPUT -p tcp -d 54.236.144.143 -j ACCEPT # accept comms to k8s.kurl.sh IPs
 iptables -A OUTPUT -p tcp -d 162.159.135.41 -j ACCEPT # accept comms to k8s.kurl.sh IPs
 iptables -A OUTPUT -p tcp -d 162.159.136.41 -j ACCEPT # accept comms to k8s.kurl.sh IPs
+iptables -A OUTPUT -p tcp -d 127.0.0.1 -j ACCEPT # accept comms to localhost
 iptables -A OUTPUT -p tcp -s 10.0.0.0/8 -j ACCEPT # accept comms to internal kubernetes IPs
 iptables -A OUTPUT -p tcp -j REJECT # reject comms to other IPs
 
@@ -328,6 +329,7 @@ iptables -A OUTPUT -p tcp -d 50.19.197.213 -j ACCEPT # accept comms to k8s.kurl.
 iptables -A OUTPUT -p tcp -d 54.236.144.143 -j ACCEPT # accept comms to k8s.kurl.sh IPs
 iptables -A OUTPUT -p tcp -d 162.159.135.41 -j ACCEPT # accept comms to k8s.kurl.sh IPs
 iptables -A OUTPUT -p tcp -d 162.159.136.41 -j ACCEPT # accept comms to k8s.kurl.sh IPs
+iptables -A OUTPUT -p tcp -d 127.0.0.1 -j ACCEPT # accept comms to localhost
 iptables -A OUTPUT -p tcp -s 10.0.0.0/8 -j ACCEPT # accept comms to internal kubernetes IPs
 iptables -A OUTPUT -p tcp -j REJECT # reject comms to other IPs
 
