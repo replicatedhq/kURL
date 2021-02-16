@@ -275,6 +275,22 @@ for i in $APIENDPOINT_IPS; do
 	iptables -A OUTPUT -p tcp -d $i -j ACCEPT # accept comms to testgrid API IPs
 done
 
+# allow access to the local IP(s)
+_count=0
+_regex="^[[:digit:]]+: ([^[:space:]]+)[[:space:]]+[[:alnum:]]+ ([[:digit:].]+)"
+while read -r _line; do
+	[[ $_line =~ $_regex ]]
+	if [ "${BASH_REMATCH[1]}" != "lo" ] && [ "${BASH_REMATCH[1]}" != "kube-ipvs0" ] && [ "${BASH_REMATCH[1]}" != "docker0" ] && [ "${BASH_REMATCH[1]}" != "weave" ]; then
+		_iface_names[$((_count))]=${BASH_REMATCH[1]}
+		_iface_addrs[$((_count))]=${BASH_REMATCH[2]}
+		let "_count += 1"
+	fi
+done <<< "$(ip -4 -o addr)"
+for i in $_iface_addrs; do
+	echo "allowing access to local address $i"
+	iptables -A OUTPUT -p tcp -d $i -j ACCEPT # accept comms to testgrid API IPs
+done
+
 # disable internet by adding restrictive iptables rules
 iptables -A OUTPUT -p tcp -d 50.19.197.213 -j ACCEPT # accept comms to k8s.kurl.sh IPs
 iptables -A OUTPUT -p tcp -d 54.236.144.143 -j ACCEPT # accept comms to k8s.kurl.sh IPs
@@ -364,6 +380,22 @@ APIENDPOINT_IPS=$(dig $TESTGRID_DOMAIN | grep 'IN A' | awk '{ print $5 }')
 # and allow access to them
 for i in $APIENDPOINT_IPS; do
 	echo "allowing access to $i"
+	iptables -A OUTPUT -p tcp -d $i -j ACCEPT # accept comms to testgrid API IPs
+done
+
+# allow access to the local IP(s)
+_count=0
+_regex="^[[:digit:]]+: ([^[:space:]]+)[[:space:]]+[[:alnum:]]+ ([[:digit:].]+)"
+while read -r _line; do
+	[[ $_line =~ $_regex ]]
+	if [ "${BASH_REMATCH[1]}" != "lo" ] && [ "${BASH_REMATCH[1]}" != "kube-ipvs0" ] && [ "${BASH_REMATCH[1]}" != "docker0" ] && [ "${BASH_REMATCH[1]}" != "weave" ]; then
+		_iface_names[$((_count))]=${BASH_REMATCH[1]}
+		_iface_addrs[$((_count))]=${BASH_REMATCH[2]}
+		let "_count += 1"
+	fi
+done <<< "$(ip -4 -o addr)"
+for i in $_iface_addrs; do
+	echo "allowing access to local address $i"
 	iptables -A OUTPUT -p tcp -d $i -j ACCEPT # accept comms to testgrid API IPs
 done
 
