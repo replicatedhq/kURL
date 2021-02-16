@@ -287,10 +287,23 @@ iptables -A OUTPUT -p tcp -j REJECT # reject comms to other IPs
 
 # test the lack of internet access
 echo "testing disabled internet"
-curl -v --connect-timeout 5 --max-time 5 "https://www.google.com"
+curl -v --connect-timeout 5 --max-time 5 "http://www.google.com"
+CURL_EXIT_STATUS=$?
+if [ $TAR_EXIT_STATUS -eq 0 ]; then
+    echo "successfully curled an external endpoint in airgap"
+    curl -s -X POST -d "{\"success\": false}" $TESTGRID_APIENDPOINT/v1/instance/$TEST_ID/finish
+    exit 1
+fi
 
 # run the installer
 tar -xzvf install.tar.gz
+TAR_EXIT_STATUS=$?
+if [ $TAR_EXIT_STATUS -ne 0 ]; then
+    echo "failed to unpack airgap file with status $TAR_EXIT_STATUS"
+    curl -s -X POST -d "{\"success\": false}" $TESTGRID_APIENDPOINT/v1/instance/$TEST_ID/finish
+    exit 1
+fi
+
 cat install.sh | timeout 30m bash -s airgap
 KURL_EXIT_STATUS=$?
 
@@ -360,10 +373,23 @@ iptables -A OUTPUT -p tcp -j REJECT # reject comms to other IPs
 
 # test the lack of internet access
 echo "testing disabled internet"
-curl -v --connect-timeout 5 --max-time 5 "https://www.google.com"
+curl -v --connect-timeout 5 --max-time 5 "http://www.google.com"
+CURL_EXIT_STATUS=$?
+if [ $TAR_EXIT_STATUS -eq 0 ]; then
+    echo "successfully curled an external endpoint in airgap"
+    curl -s -X POST -d "{\"success\": false}" $TESTGRID_APIENDPOINT/v1/instance/$TEST_ID/finish
+    exit 1
+fi
 
 # run the upgrade
 tar -xzvf upgrade.tar.gz
+TAR_EXIT_STATUS=$?
+if [ $TAR_EXIT_STATUS -ne 0 ]; then
+    echo "failed to unpack airgap file with status $TAR_EXIT_STATUS"
+    curl -s -X POST -d "{\"success\": false}" $TESTGRID_APIENDPOINT/v1/instance/$TEST_ID/finish
+    exit 1
+fi
+
 cat install.sh | timeout 30m bash -s airgap
 KURL_EXIT_STATUS=$?
 
