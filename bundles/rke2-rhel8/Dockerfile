@@ -3,6 +3,8 @@ FROM centos:8
 RUN yum install -y gettext # envsubst
 RUN yum install -y yum-utils # yumdownloader
 
+RUN mkdir -p /packages/archives
+
 ADD ./rancher-rke2.repo.tmpl /tmp/
 
 ENV rpm_site=rpm.rancher.io
@@ -14,7 +16,6 @@ ARG RKE2_VERSION
 RUN echo "export rke2_majmin=$(echo "${RKE2_VERSION}" | sed -E -e 's/^v([0-9]+\.[0-9]+).*/\1/')" >> /tmp/env
 RUN echo "rke2_rpm_version=$(echo "${RKE2_VERSION}" | sed -E -e "s/[\+-]/~/g" | sed -E -e "s/v(.*)/\1/")" >> /tmp/env
 
-RUN mkdir -p /packages/archives
 RUN source /tmp/env; envsubst < /tmp/rancher-rke2.repo.tmpl > /etc/yum.repos.d/rancher-rke2.repo
 RUN source /tmp/env; yumdownloader --resolve --destdir=/packages/archives -y \
     rke2-server-${rke2_rpm_version} \

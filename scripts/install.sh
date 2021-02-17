@@ -12,6 +12,7 @@ DIR=.
 . $DIR/scripts/common/discover.sh
 . $DIR/scripts/common/docker.sh
 . $DIR/scripts/common/helm.sh
+. $DIR/scripts/common/k3s.sh
 . $DIR/scripts/common/kubernetes.sh
 . $DIR/scripts/common/object_store.sh
 . $DIR/scripts/common/plugins.sh
@@ -25,6 +26,7 @@ DIR=.
 . $DIR/scripts/common/utilbinaries.sh
 . $DIR/scripts/common/yaml.sh
 . $DIR/scripts/distro/interface.sh
+. $DIR/scripts/distro/k3s/distro.sh
 . $DIR/scripts/distro/kubeadm/distro.sh
 . $DIR/scripts/distro/rke2/distro.sh
 # Magic end
@@ -394,6 +396,10 @@ function main() {
     if [ -n "$RKE2_VERSION" ]; then
         K8S_DISTRO=rke2
         rke2_main "$@"
+        exit 0
+    elif [ -n "$K3S_VERSION" ]; then
+        K8S_DISTRO=k3s
+        k3s_main "$@"
         exit 0
     fi
 

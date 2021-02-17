@@ -3,7 +3,6 @@ FROM centos:7
 RUN yum install -y gettext
 
 RUN mkdir -p /packages/archives
-WORKDIR /packages/archives
 
 ADD ./rancher-rke2.repo.tmpl /tmp/
 

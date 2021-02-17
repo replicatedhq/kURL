@@ -1,0 +1,6 @@
+[rancher-k3s-common-${k3s_rpm_channel}]
+name=Rancher K3s Common (${k3s_rpm_channel})
+baseurl=https://${rpm_site}/k3s/${k3s_rpm_channel}/common/centos/${maj_ver}/noarch
+enabled=1
+gpgcheck=1
+gpgkey=https://${rpm_site}/public.key
