@@ -4,7 +4,7 @@ go 1.14
 
 require (
 	github.com/pkg/errors v0.9.1
-	github.com/replicatedhq/kurl/kurlkinds v0.0.0-20210215140455-5a1c430f07b2
+	github.com/replicatedhq/kurl/kurlkinds v0.0.0-20210217180730-2a5af0e23b74
 	github.com/replicatedhq/kurl/testgrid/tgapi v0.0.0-20200609141000-22fb64716037
 	github.com/spf13/cobra v1.1.3
 	github.com/spf13/viper v1.7.1
