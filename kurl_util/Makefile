@@ -83,7 +83,7 @@ bin/htpasswd:
 
 .PHONY: kurl-util-image
 kurl-util-image:
-	docker build -t $(KURL_UTIL_IMAGE) -f deploy/Dockerfile --build-arg commit="${GIT_SHA}" .
+	docker build -t $(KURL_UTIL_IMAGE) -f deploy/Dockerfile --build-arg commit="${GIT_SHA}" ../
 
 .PHONY: build-and-push-kurl-util-image
 build-and-push-kurl-util-image: kurl-util-image
