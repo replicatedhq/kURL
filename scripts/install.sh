@@ -422,8 +422,8 @@ function main() {
     ${K8S_DISTRO}_addon_for_each addon_install
     helmfile_sync
     post_init
-    package_cleanup
     outro
+    package_cleanup
 
     popd_install_directory
 

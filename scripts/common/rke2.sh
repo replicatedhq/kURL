@@ -400,9 +400,9 @@ function rke2_main() {
     type create_registry_service &> /dev/null && create_registry_service # this function is in an optional addon and may be missing
     ${K8S_DISTRO}_addon_for_each addon_install
     # post_init                          # TODO(dan): more kubeadm token setup
-    package_cleanup
     # outro                              # See next line
     rke2_outro                            # TODO(dan): modified this to remove kubeadm stuff
+    package_cleanup
     # report_install_success # TODO(dan) remove reporting for now.
 }
 
