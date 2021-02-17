@@ -135,6 +135,7 @@ function main() {
     kubernetes_host
     install_helm
     join
+    package_cleanup
     outro
 
     popd_install_directory

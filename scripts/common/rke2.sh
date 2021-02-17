@@ -400,6 +400,7 @@ function rke2_main() {
     type create_registry_service &> /dev/null && create_registry_service # this function is in an optional addon and may be missing
     ${K8S_DISTRO}_addon_for_each addon_install
     # post_init                          # TODO(dan): more kubeadm token setup
+    package_cleanup
     # outro                              # See next line
     rke2_outro                            # TODO(dan): modified this to remove kubeadm stuff
     # report_install_success # TODO(dan) remove reporting for now.
@@ -482,11 +483,12 @@ function rke2_host_packages_ok() {
 function rke2_get_host_packages_online() {
     local rke2_version="$1"
 
-    echo "Fetching rke-2-${rke2_version}.tar.gz"
-    curl -LO "$DIST_URL/rke-2-${rke2_version}.tar.gz"
     rm -rf $DIR/packages/rke-2/${rke2_version} # Cleanup broken/incompatible packages from failed runs
-    tar xf rke-2-${rke2_version}.tar.gz
-    rm rke-2-${rke2_version}.tar.gz
+
+    local package="rke-2-${rke2_version}.tar.gz"
+    package_download "${package}"
+    tar xf "$(package_filepath "${package}")"
+    # rm rke-2-${rke2_version}.tar.gz
 }
 
 function rke2_load_images() {

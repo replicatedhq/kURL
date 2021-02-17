@@ -114,11 +114,12 @@ function docker_get_host_packages_online() {
     local version="$1"
 
     if [ "$AIRGAP" != "1" ] && [ -n "$DIST_URL" ]; then
-        echo "Fetching docker-${version}.tar.gz"
-        curl -LO "$DIST_URL/docker-${version}.tar.gz"
-        rm -rf $DIR/packages/docker/${version}                      # Cleanup broken/ incompatible packages from failed runs
-        tar xf docker-${version}.tar.gz
-        rm docker-${version}.tar.gz
+        rm -rf $DIR/packages/docker/${version} # Cleanup broken/incompatible packages from failed runs
+
+        local package="docker-${version}.tar.gz"
+        package_download "${package}"
+        tar xf "$(package_filepath "${package}")"
+        # rm docker-${version}.tar.gz
     fi
 }
 
@@ -126,10 +127,11 @@ function containerd_get_host_packages_online() {
     local version="$1"
 
     if [ "$AIRGAP" != "1" ] && [ -n "$DIST_URL" ]; then
-        echo "Fetching containerd-${version}.tar.gz"
-        curl -LO "$DIST_URL/containerd-${version}.tar.gz"
-        rm -rf $DIR/packages/containerd/${version}                  # Cleanup broken/ incompatible packages from failed runs
-        tar xf containerd-${version}.tar.gz
-        rm containerd-${version}.tar.gz
+        rm -rf $DIR/packages/containerd/${version} # Cleanup broken/incompatible packages from failed runs
+
+        local package="containerd-${version}.tar.gz"
+        package_download "${package}"
+        tar xf "$(package_filepath "${package}")"
+        # rm containerd-${version}.tar.gz
     fi
 }
