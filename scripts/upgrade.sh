@@ -121,8 +121,8 @@ function main() {
     maybe_upgrade
     install_host_dependencies
     ${K8S_DISTRO}_addon_for_each addon_join
-    package_cleanup
     outro
+    package_cleanup
 
     popd_install_directory
 }
