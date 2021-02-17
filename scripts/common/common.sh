@@ -594,7 +594,10 @@ function move_airgap_assets() {
     # The airgap bundle will extract everything into ./kurl directory.
     # Move all assets except the scripts into the $KURL_INSTALL_DIRECTORY to emulate the online install experience.
     if [ "$(ls -A "${cwd}"/kurl)" ]; then
-        mv "${cwd}"/kurl/* "${KURL_INSTALL_DIRECTORY}"
+        for file in "${cwd}"/kurl/*; do
+            rm -rf "${KURL_INSTALL_DIRECTORY}/$(basename ${file})"
+            mv "${file}" "${KURL_INSTALL_DIRECTORY}/"
+        done
     fi
 }
 
