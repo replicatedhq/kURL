@@ -207,7 +207,7 @@ EOF
 
     configure_coredns
 
-    if commandExists registry_containerd_init && [ -n "$CONTAINERD_VERSION" ]; then
+    if commandExists registry_containerd_init && [ -n "$CONTAINERD_VERSION" ] && [ "$SKIP_DOCKER_INSTALL" != "1" ]; then
         registry_containerd_init
     fi
 }
