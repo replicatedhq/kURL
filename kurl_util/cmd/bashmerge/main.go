@@ -35,7 +35,7 @@ func getInstallerConfigFromYaml(yamlPath string) (*kurlv1beta1.Installer, error)
 	}
 
 	if gvk.Group != "cluster.kurl.sh" || gvk.Version != "v1beta1" || gvk.Kind != "Installer" {
-		return nil, errors.Errorf("installer yaml contained unepxected gvk: %s/%s/%s", gvk.Group, gvk.Version, gvk.Kind)
+		return nil, errors.Errorf("installer yaml contained unexpected gvk: %s/%s/%s", gvk.Group, gvk.Version, gvk.Kind)
 	}
 
 	installer := obj.(*kurlv1beta1.Installer)
