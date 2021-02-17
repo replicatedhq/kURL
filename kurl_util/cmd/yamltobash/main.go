@@ -177,6 +177,7 @@ func convertToBash(kurlValues map[string]interface{}, fieldsSet map[string]bool)
 		"Helm.AdditionalImages":                  "HELM_ADDITIONAL_IMAGES",
 		"Helm.HelmfileSpec":                      "HELM_HELMFILE_SPEC",
 		"IptablesConfig.PreserveConfig":          "PRESERVE_IPTABLES_CONFIG",
+		"K3S.Version":                            "K3S_VERSION",
 		"Kotsadm.ApplicationNamespace":           "KOTSADM_APPLICATION_NAMESPACES",
 		"Kotsadm.ApplicationSlug":                "KOTSADM_APPLICATION_SLUG",
 		"Kotsadm.Hostname":                       "KOTSADM_HOSTNAME",
