@@ -27,7 +27,7 @@ type InstallerSpec struct {
 	Docker          Docker          `json:"docker,omitempty" yaml:"docker,omitempty"`
 	Weave           Weave           `json:"weave,omitempty" yaml:"weave,omitempty"`
 	Calico          Calico          `json:"calico,omitempty" yaml:"calico,omitempty"`
-	Contour         Contour         `json:"contour,omitempty" jyaml"contour,omitempty"`
+	Contour         Contour         `json:"contour,omitempty" yaml:"contour,omitempty"`
 	Rook            Rook            `json:"rook,omitempty" yaml:"rook,omitempty"`
 	Registry        Registry        `json:"registry,omitempty" yaml:"registry,omitempty"`
 	Prometheus      Prometheus      `json:"prometheus,omitempty" yaml:"prometheus,omitempty"`
