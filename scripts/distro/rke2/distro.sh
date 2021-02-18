@@ -1,3 +1,4 @@
+# TODO (dan): consolidate this with the k3s distro
 
 function rke2_discover_private_ip() {
     echo "$(cat /var/lib/rancher/rke2/agent/pod-manifests/etcd.yaml 2>/dev/null | grep initial-cluster | grep -o "${HOSTNAME}-[a-z0-9]*=https*://[^\",]*" | sed -n -e 's/.*https*:\/\/\(.*\):.*/\1/p')"
@@ -85,5 +86,5 @@ EOF
 }
 
 function rke2_api_is_healthy() {
-    kubectl get --raw='/readyz' > /dev/null
+    kubectl get --raw="/readyz" &> /dev/null
 }

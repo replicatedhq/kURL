@@ -1,8 +1,8 @@
-# Kurl Specific RKE Install
+# Kurl Specific K3S Install
 
-RKE2_SHOULD_RESTART=
+K3S_SHOULD_RESTART=
 
-function rke2_init() {
+function k3s_init() {
 #     logStep "Initialize Kubernetes"
 
 #     kubernetes_maybe_generate_bootstrap_token
@@ -171,37 +171,34 @@ function rke2_init() {
     fi
 }
 
-function rke2_install() {
-    local rke2_version="$1"
-
-    export PATH=$PATH:/var/lib/rancher/rke2/bin
-    export KUBECONFIG=/etc/rancher/rke2/rke2.yaml
-    export CRI_CONFIG_FILE=/var/lib/rancher/rke2/agent/etc/crictl.yaml
-
-    # TODO(ethan): is this still necessary?
-    # kubernetes_load_ipvs_modules
+function k3s_install() {
+    local k3s_version="$1"
 
     # TODO(ethan): is this still necessary?
     # kubernetes_sysctl_config
 
-    # For online always download the rke2.tar.gz bundle.
+    # For online always download the k3s.tar.gz bundle.
     # Regardless if host packages are already installed, we always inspect for newer versions
     # and/or re-install any missing or corrupted packages.
     # TODO(ethan): is this comment correct?
     if [ "$AIRGAP" != "1" ] && [ -n "$DIST_URL" ]; then
-        rke2_get_host_packages_online "${rke2_version}"
+        k3s_get_host_packages_online "${k3s_version}"
     fi
 
-    rke2_configure
+    k3s_configure
+    k3s_install_host_packages "${k3s_version}"
+    k3s_load_images "${k3s_version}"
 
-    rke2_install_host_packages "${rke2_version}"
-
-    rke2_load_images "${rke2_version}"
-
-    systemctl enable rke2-server.service
-    systemctl start rke2-server.service
+    if [ "$MASTER" == "1" ]; then
+        k3s_server_setup_systemd_service
+    else 
+        # TOOD (dan): agent nodes not supported.
+        bail "Agent nodes for k3s are currently unsupported"
+    fi
 
     get_shared
+
+    k3s_create_symlinks
 
     logStep "Installing plugins"
     install_plugins
@@ -210,20 +207,30 @@ function rke2_install() {
     # TODO(ethan)
     # install_kustomize
 
-    while [ ! -f /etc/rancher/rke2/rke2.yaml ]; do
+    # TODO(dan) do I need this
+    while [ ! -f /etc/rancher/k3s/k3s.yaml ]; do
         sleep 2
     done
 
-    # For Kubectl and Rke2 binaries 
-    # NOTE: this is still not in root's path
-    if ! grep -q "/var/lib/rancher/rke2/bin" /etc/profile ; then
-        echo "export PATH=\$PATH:/var/lib/rancher/rke2/bin" >> /etc/profile
-    fi
-    if ! grep -q "/var/lib/rancher/rke2/agent/etc/crictl.yaml" /etc/profile ; then
-        echo "export CRI_CONFIG_FILE=/var/lib/rancher/rke2/agent/etc/crictl.yaml" >> /etc/profile
+    # For Kubectl and K3s binaries 
+    # NOTE: this is still not in the path for sudo
+    if [ ! -f "/etc/profile.d/k3s.sh" ]; then
+        tee /etc/profile.d/k3s.sh > /dev/null <<EOF
+export CRI_CONFIG_FILE=/var/lib/rancher/k3s/agent/etc/crictl.yaml
+export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
+
+if [ -f "/etc/centos-release" ] || [ -f "/etc/redhat-release" ]; then
+        pathmunge /usr/local/bin
+else
+        export PATH=$PATH:/usr/local/bin
+fi
+EOF
     fi
 
-    exportKubeconfig
+    source /etc/profile
+
+    # TODO (dan): technicall the k3s binary manages the kubeconfig, so this isn't needed
+    # exportKubeconfig
 
     logStep "Waiting for Kubernetes"
     wait_for_nodes
@@ -234,7 +241,7 @@ function rke2_install() {
 
 }
 
-function rke2_preamble() {
+function k3s_preamble() {
     printf "${RED}"
     cat << "EOF"
  (                 )               (      ____ 
@@ -247,13 +254,13 @@ function rke2_preamble() {
  |___/ /_/ \_\ |_|\_|   \___||___||_|_\((_)                                                   
 EOF
     printf "${NC}\n"
-    printf "${RED}YOU ARE NOW INSTALLING RKE2 WITH KURL. THIS FEATURE IS EXPERIMENTAL!${NC}\n"
+    printf "${RED}YOU ARE NOW INSTALLING K3S WITH KURL. THIS FEATURE IS EXPERIMENTAL!${NC}\n"
     printf "${RED}\t- It can be removed at any point in the future.${NC}\n"
     printf "${RED}\t- There are zero guarantees regarding addon compatibility.${NC}\n"
     printf "${RED}\n\nCONTINUING AT YOUR OWN RISK....${NC}\n\n"
 }
 
-function rke2_outro() {
+function k3s_outro() {
     echo
     # if [ -z "$PUBLIC_ADDRESS" ]; then
     #   if [ -z "$PRIVATE_ADDRESS" ]; then
@@ -348,19 +355,19 @@ function rke2_outro() {
     # fi
 }
 
-function rke2_main() {
-    local rke2_version="$(echo "${RKE2_VERSION}" | sed 's/+/-/')"
+function k3s_main() {
+    local k3s_version="$(echo "${K3S_VERSION}" | sed 's/+/-/')"
 
-    rke2_preamble  
+    k3s_preamble  
 
-    # RKE Begin
+    # K3S Begin
 
     # parse_kubernetes_target_version   # TODO(dan): Version only makes sense for kuberntees
     discover full-cluster               # TODO(dan): looks for docker and kubernetes, shouldn't hurt
     # report_install_start              # TODO(dan) remove reporting for now.
     # trap prek8s_ctrl_c SIGINT # trap ctrl+c (SIGINT) and handle it by reporting that the user exited intentionally # TODO(dan) remove reporting for now.
     # preflights                        # TODO(dan): mostly good, but disable for now
-    prompts                             # TODO(dan): shouldn't come into play for RKE2
+    prompts                             # TODO(dan): shouldn't come into play for K3S
     journald_persistent
     configure_proxy
     install_host_dependencies
@@ -369,7 +376,7 @@ function rke2_main() {
     # discover_service_subnet           # TODO(dan): uses kubeadm
     configure_no_proxy
 
-    rke2_install "${rke2_version}"
+    k3s_install "${k3s_version}"
 
     # upgrade_kubernetes                # TODO(dan): uses kubectl operator
     
@@ -378,22 +385,29 @@ function rke2_main() {
     # trap k8s_ctrl_c SIGINT # trap ctrl+c (SIGINT) and handle it by asking for a support bundle - only do this after k8s is installed
     ${K8S_DISTRO}_addon_for_each addon_load
     # init                              # See next line
-    rke2_init                            # TODO(dan): A mix of Kubeadm stuff and general setup.
+    k3s_init                            # TODO(dan): A mix of Kubeadm stuff and general setup.
     apply_installer_crd
     type create_registry_service &> /dev/null && create_registry_service # this function is in an optional addon and may be missing
     ${K8S_DISTRO}_addon_for_each addon_install
     # post_init                          # TODO(dan): more kubeadm token setup
-    rke2_outro                           
+    k3s_outro                            
     package_cleanup
     # report_install_success # TODO(dan) remove reporting for now.
 }
 
-function rke2_configure() {
+function k3s_configure() {
+
+    if ! grep -qs "^write-kubeconfig:" /etc/rancher/k3s/config.yaml ; then
+        mkdir -p /etc/rancher/k3s/
+        echo "write-kubeconfig: \"/etc/rancher/k3s/k3s.yaml\"" >> /etc/rancher/k3s/config.yaml        
+        K3S_SHOULD_RESTART=1
+    fi
+
     # prevent permission denied error when running kubectl
-    if ! grep -qs "^write-kubeconfig-mode:" /etc/rancher/rke2/config.yaml ; then
-        mkdir -p /etc/rancher/rke2/
-        echo "write-kubeconfig-mode: 644" >> /etc/rancher/rke2/config.yaml
-        RKE2_SHOULD_RESTART=1
+    if ! grep -qs "^write-kubeconfig-mode:" /etc/rancher/k3s/config.yaml ; then
+        mkdir -p /etc/rancher/k3s/
+        echo "write-kubeconfig-mode: 644" >> /etc/rancher/k3s/config.yaml
+        K3S_SHOULD_RESTART=1
     fi
 
     # TODO(ethan): pod cidr
@@ -402,83 +416,167 @@ function rke2_configure() {
     # TODO(ethan): load balancer
 }
 
-function rke2_restart() {
-    systemctl restart rke2-server.service # TODO(ethan): rke2-agent.service?
+function k3s_restart() {
+    systemctl restart k3s-server.service # TODO(ethan): k3s-agent.service?
 }
 
-function rke2_install_host_packages() {
-    local rke2_version="$1"
+function k3s_install_host_packages() {
+    local k3s_version="$1"
 
-    logStep "Install RKE2 host packages"
+    logStep "Install K3S host packages"
 
-    if rke2_host_packages_ok "${rke2_version}"; then
-        logSuccess "RKE2 host packages already installed"
+    if k3s_host_packages_ok "${k3s_version}"; then
+        logSuccess "K3S host packages already installed"
 
-        if [ "${RKE2_SHOULD_RESTART}" = "1" ]; then
-            rke2_restart
-            RKE2_SHOULD_RESTART=0
+        if [ "${K3S_SHOULD_RESTART}" = "1" ]; then
+            k3s_restart
+            K3S_SHOULD_RESTART=0
         fi
         return
     fi
 
-    case "$LSB_DIST" in
-        ubuntu)
-            bail "RKE2 unsupported on $LSB_DIST Linux"
+    # install the selinux policy
+    # TODO (dan): need to integrate this with SELinux settings in install.sh
+    if [ -n "$K3S_SELINUX_ENABLED" ]; then
+        case "$LSB_DIST" in
+            ubuntu)
+                bail "K3S unsupported on $LSB_DIST Linux"
+                ;;
+
+            centos|rhel|amzn)
+                case "$LSB_DIST$DIST_VERSION_MAJOR" in
+                    rhel8|centos8)
+                        rpm --upgrade --force --nodeps $DIR/packages/k3s/${k3s_version}/rhel-8/*.rpm
+                        ;;
+
+                    *)
+                        rpm --upgrade --force --nodeps $DIR/packages/k3s/${k3s_version}/rhel-7/*.rpm
+                        ;;
+                esac
             ;;
-
-        centos|rhel|amzn)
-            case "$LSB_DIST$DIST_VERSION_MAJOR" in
-                rhel8|centos8)
-                    rpm --upgrade --force --nodeps $DIR/packages/rke-2/${rke2_version}/rhel-8/*.rpm
-                    ;;
-
-                *)
-                    rpm --upgrade --force --nodeps $DIR/packages/rke-2/${rke2_version}/rhel-7/*.rpm
-                    ;;
-            esac
-        ;;
-    esac
+        esac
+    fi
+    
+    # installs the k3s binary
+    cp $DIR/packages/k3s/${k3s_version}/assets/k3s /usr/local/bin/
+    chmod 755 /usr/local/bin/k3s
 
     # TODO(ethan): is this still necessary?
     # if [ "$CLUSTER_DNS" != "$DEFAULT_CLUSTER_DNS" ]; then
     #     sed -i "s/$DEFAULT_CLUSTER_DNS/$CLUSTER_DNS/g" /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
     # fi
 
-    logSuccess "RKE2 host packages installed"
+    logSuccess "K3S host packages installed"
 }
 
-function rke2_host_packages_ok() {
-    local rke2_version="$1"
+function k3s_host_packages_ok() {
+    local k3s_version="$1"
 
-    if ! commandExists kubelet; then
-        echo "kubelet command missing - will install host components"
-        return 1
-    fi
-    if ! commandExists kubectl; then
-        echo "kubectl command missing - will install host components"
+    if ! commandExists k3s; then
+        echo "k3s command missing - will install host components"
         return 1
     fi
 
-    kubelet --version | grep -q "$(echo $rke2_version | sed "s/-/+/")"
+    kubelet --version | grep -q "$(echo $k3s_version | sed "s/-/+/")"
 }
 
-function rke2_get_host_packages_online() {
-    local rke2_version="$1"
+function k3s_get_host_packages_online() {
+    local k3s_version="$1"
 
-    rm -rf $DIR/packages/rke-2/${rke2_version} # Cleanup broken/incompatible packages from failed runs
+    rm -rf $DIR/packages/k3s/${k3s_version} # Cleanup broken/incompatible packages from failed runs
 
-    local package="rke-2-${rke2_version}.tar.gz"
+    package_download
+
+    local package="k3s-${k3s_version}.tar.gz" 
     package_download "${package}"
     tar xf "$(package_filepath "${package}")"
 }
 
-function rke2_load_images() {
-    local rke2_version="$1"
+function k3s_load_images() {
+    local k3s_version="$1"
 
-    logStep "Load RKE2 images"
+    logStep "Load K3S images"
 
-    mkdir -p /var/lib/rancher/rke2/agent/images
-    gunzip -c $DIR/packages/rke-2/${rke2_version}/assets/rke2-images.linux-amd64.tar.gz > /var/lib/rancher/rke2/agent/images/rke2-images.linux-amd64.tar
+    mkdir -p /var/lib/rancher/k3s/agent/images
+    gunzip -c $DIR/packages/k3s/${k3s_version}/assets/k3s-images.linux-amd64.tar.gz > /var/lib/rancher/k3s/agent/images/k3s-images.linux-amd64.tar
 
-    logSuccess "RKE2 images loaded"
+    logSuccess "K3S images loaded"
+}
+
+function k3s_server_setup_systemd_service() {
+
+    if [ -f "/etc/systemd/system/k3s-server.service" ]; then
+        logSubstep "Systemd service for the K3S Server already exists. Skipping."
+        return
+    fi 
+
+    logStep "Creating K3S Server Systemd Service"
+
+    k3s_create_env_file
+    # Created Systemd unit from https://get.k3s.io/
+    # TODO (dan): check if this should be a server or agent
+    tee /etc/systemd/system/k3s-server.service > /dev/null  <<EOF
+[Unit]
+Description=Lightweight Kubernetes
+Documentation=https://k3s.io
+Wants=network-online.target
+After=network-online.target
+
+[Install]
+WantedBy=multi-user.target
+
+[Service]
+Type=exec
+EnvironmentFile=/etc/systemd/system/k3s-server.env
+KillMode=process
+Delegate=yes
+# Having non-zero Limit*s causes performance problems due to accounting overhead
+# in the kernel. We recommend using cgroups to do container-local accounting.
+LimitNOFILE=1048576
+LimitNPROC=infinity
+LimitCORE=infinity
+TasksMax=infinity
+TimeoutStartSec=0
+Restart=always
+RestartSec=5s
+ExecStartPre=-/sbin/modprobe br_netfilter
+ExecStartPre=-/sbin/modprobe overlay
+ExecStart=/usr/local/bin/k3s \\
+    server
+
+EOF
+    
+    systemctl daemon-reload
+    systemctl start k3s-server.service 
+    systemctl enable k3s-server.service 
+
+    logSuccess "K3S Service created"
+}
+
+function k3s_create_env_file() {
+    local fileK3sEnv=/etc/systemd/system/k3s-server.env
+    echo "Creating environment file ${fileK3sEnv}"
+    UMASK=$(umask)
+    umask 0377
+    env | grep '^K3S_' | tee ${fileK3sEnv} >/dev/null
+    env | egrep -i '^(NO|HTTP|HTTPS)_PROXY' | tee -a ${fileK3sEnv} >/dev/null
+    umask $UMASK
+}
+
+function k3s_create_symlinks() {
+    local binDir=/usr/local/bin
+
+    for cmd in kubectl crictl ctr; do
+        if [ ! -e ${binDir}/${cmd} ] || [ "${INSTALL_K3S_SYMLINK}" = force ]; then
+            which_cmd=$(which ${cmd} 2>/dev/null || true)
+            if [ -z "${which_cmd}" ] || [ "${INSTALL_K3S_SYMLINK}" = force ]; then
+                echo "Creating ${binDir}/${cmd} symlink to k3s"
+                ln -sf k3s ${binDir}/${cmd}
+            else
+                echo "Skipping ${binDir}/${cmd} symlink to k3s, command exists in PATH at ${which_cmd}"
+            fi
+        else
+            echo "Skipping ${binDir}/${cmd} symlink to k3s, already exists"
+        fi
+    done
 }

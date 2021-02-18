@@ -1,0 +1,5 @@
+asset k3s-images.linux-amd64.tar https://github.com/k3s-io/k3s/releases/download/v1.19.7%2Bk3s1/k3s-airgap-images-amd64.tar
+asset k3s https://github.com/k3s-io/k3s/releases/download/v1.19.7%2Bk3s1/k3s
+
+asset kustomize-v2.0.3 https://github.com/kubernetes-sigs/kustomize/releases/download/v2.0.3/kustomize_2.0.3_linux_amd64
+asset kustomize-v3.5.4.tar.gz https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2Fv3.5.4/kustomize_v3.5.4_linux_amd64.tar.gz

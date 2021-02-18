@@ -170,13 +170,13 @@ func getKurlPlans(schedulerOptions types.SchedulerOptions) ([]types.Instance, er
 			return nil, err
 		}
 
-		// If kubernetes version isn't specified, use latest
-		if installSpec.Kubernetes.Version == "" {
+		isDistroDefined := installSpec.Kubernetes.Version != "" || installSpec.RKE2 != nil || installSpec.K3S != nil
+		if !isDistroDefined {
 			installSpec.Kubernetes.Version = "latest"
 		}
 
-		// If OCI isn't specified, use latest docker
-		if installSpec.Docker == nil && installSpec.Containerd == nil {
+		isDistroRancher := installSpec.RKE2 != nil || installSpec.K3S != nil
+		if installSpec.Docker == nil && installSpec.Containerd == nil && !isDistroRancher {
 			installSpec.Docker = &kurlv1beta1.Docker{
 				Version: "latest",
 			}
