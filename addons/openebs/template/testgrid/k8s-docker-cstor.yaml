@@ -11,8 +11,6 @@ kotsadm:
 openebs:
   cstorStorageClassName: default
   isCstorEnabled: true
-  isLocalPVEnabled: true
-  localPVStorageClassName: openebs
   namespace: openebs
   version: "__testver__"
   s3Override: "__testdist__"
