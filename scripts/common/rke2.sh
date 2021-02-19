@@ -201,6 +201,8 @@ function rke2_install() {
     systemctl enable rke2-server.service
     systemctl start rke2-server.service
 
+    spinner_containerd_is_healthy
+    
     get_shared
 
     logStep "Installing plugins"
@@ -226,7 +228,12 @@ function rke2_install() {
     exportKubeconfig
 
     logStep "Waiting for Kubernetes"
-    wait_for_nodes
+    # Extending timeout to 5 min based on performance on clean machines.
+    if ! spinner_until 300 get_nodes_succeeds ; then
+        # this should exit script on non-zero exit code and print error message
+        kubectl get nodes 1>/dev/null
+    fi
+
     wait_for_default_namespace
     logSuccess "Kubernetes ready"
 

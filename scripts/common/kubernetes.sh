@@ -178,9 +178,19 @@ function kubernetes_api_is_healthy() {
     ${K8S_DISTRO}_api_is_healthy
 }
 
+function containerd_is_healthy() {
+    ctr -a "$(${K8S_DISTRO}_get_containerd_sock)" images list &> /dev/null
+}
+
 function spinner_kubernetes_api_healthy() {
     if ! spinner_until 120 kubernetes_api_is_healthy; then
         bail "Kubernetes API failed to report healthy"
+    fi
+}
+
+function spinner_containerd_is_healthy() {
+    if ! spinner_until 120 containerd_is_healthy; then
+        bail "Containerd failed to restart"
     fi
 }
 
