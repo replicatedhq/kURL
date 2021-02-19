@@ -9,21 +9,7 @@ function collectd() {
         collectd_ensure_hostname_resolves
         collectd_config $src
 
-        case "$LSB_DIST" in
-        ubuntu)
-            export DEBIAN_FRONTEND=noninteractive
-            dpkg --install --force-depends-version -o Dpkg::Options::="--force-confold" ${src}/ubuntu-${DIST_VERSION}/archives/*.deb
-            ;;
-        centos|rhel)
-            rpm --upgrade --force --nodeps ${src}/rhel-${DIST_VERSION_MAJOR}/archives/*.rpm
-            ;;
-        amzn)
-            rpm --upgrade --force --nodeps ${src}/rhel-7/archives/*.rpm
-            ;;
-        *)
-            printf"${YELLOW}Unsupported OS for collectd installation${NC}\n"
-            ;;
-        esac
+        install_host_archives "$src"
 
         systemctl restart collectd
         collectd_service_enable

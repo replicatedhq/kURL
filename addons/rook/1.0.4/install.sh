@@ -183,17 +183,5 @@ function rook_lvm2() {
     fi
     echo "Installing lvm"
 
-    case "$LSB_DIST" in
-        ubuntu)
-            DEBIAN_FRONTEND=noninteractive dpkg --install --force-depends-version ${src}/ubuntu-${DIST_VERSION}/archives/*.deb
-            ;;
-
-        centos|rhel|amzn)
-            if [[ "$DIST_VERSION" =~ ^8 ]]; then
-                rpm --upgrade --force --nodeps ${src}/rhel-8/archives/*.rpm
-            else
-                rpm --upgrade --force --nodeps ${src}/rhel-7/archives/*.rpm
-            fi
-            ;;
-    esac
+    install_host_archives "$src"
 }
