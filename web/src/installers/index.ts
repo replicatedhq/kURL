@@ -63,6 +63,17 @@ export const rke2ConfigSchema = {
   },
 }
 
+export interface K3SConfig {
+  version: string;
+}
+
+export const k3sConfigSchema = {
+  type: "object",
+  properties: {
+    version: { type: "string" },
+  },
+}
+
 export interface DockerConfig {
   version: string;
   s3Override?: string;
@@ -543,6 +554,7 @@ export const helmConfigSchema = {
 export interface InstallerSpec {
   kubernetes: KubernetesConfig;
   rke2?: RKE2Config;
+  k3s?: K3SConfig;
   docker?: DockerConfig;
   weave?: WeaveConfig;
   calico?: CalicoConfig;
@@ -573,6 +585,7 @@ const specSchema = {
     // order here determines order in rendered yaml
     kubernetes: kubernetesConfigSchema,
     rke2: rke2ConfigSchema,
+    k3s: k3sConfigSchema,
     docker: dockerConfigSchema,
     weave: weaveConfigSchema,
     calico: calicoConfigSchema,
@@ -633,6 +646,9 @@ export class Installer {
     rke2: [
       "v1.19.7+rke2r1",
       "v1.18.13+rke2r1",
+    ],
+    k3s: [
+      "v1.19.7+k3s1",
     ],
     docker: [
       "19.03.10",
@@ -1111,7 +1127,8 @@ export class Installer {
     if (!this.spec ||
       (
         (!this.spec.kubernetes || !this.spec.kubernetes.version) &&
-        (!this.spec.rke2 || !this.spec.rke2.version)
+        (!this.spec.rke2 || !this.spec.rke2.version) &&
+        (!this.spec.k3s || !this.spec.k3s.version)
       )
     ) {
       return { error: { message: "Kubernetes version is required" } };
@@ -1142,6 +1159,14 @@ export class Installer {
     }
     if (this.spec.kubernetes && this.spec.rke2) {
       return { error: { message: `This spec contains both kubeadm and rke2, please specifiy only one Kubernetes distribution` } };
+    }
+    if (this.spec.k3s) {
+      if (!Installer.hasVersion("k3s", this.spec.k3s.version) && !this.hasS3Override("k3s")) {
+        return { error: { message: `K3S version ${_.escape(this.spec.k3s.version)} is not supported` } };
+      }
+    }
+    if (this.spec.kubernetes && this.spec.k3s) {
+      return { error: { message: `This spec contains both kubeadm and k3s, please specifiy only one Kubernetes distribution` } };
     }
     if (this.spec.weave && !Installer.hasVersion("weave", this.spec.weave.version) && !this.hasS3Override("weave")) {
       return { error: { message: `Weave version "${_.escape(this.spec.weave.version)}" is not supported` } };
