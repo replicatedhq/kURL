@@ -420,7 +420,7 @@ function k3s_configure() {
 }
 
 function k3s_restart() {
-    systemctl restart k3s-server.service # TODO(ethan): k3s-agent.service?
+    restart_systemd_and_wait "k3s-server.service"  # TODO(ethan): k3s-agent.service?
 }
 
 function k3s_install_host_packages() {
@@ -487,8 +487,6 @@ function k3s_get_host_packages_online() {
     local k3s_version="$1"
 
     rm -rf $DIR/packages/k3s/${k3s_version} # Cleanup broken/incompatible packages from failed runs
-
-    package_download
 
     local package="k3s-${k3s_version}.tar.gz" 
     package_download "${package}"
