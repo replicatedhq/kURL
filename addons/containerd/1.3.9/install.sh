@@ -3,7 +3,6 @@ function containerd_install() {
     local src="$DIR/addons/containerd/$CONTAINERD_VERSION"
 
     if [ "$SKIP_CONTAINERD_INSTALL" != "1" ]; then
-        install_host_archives "$src"
         install_host_packages "$src"
         containerd_configure
     fi
