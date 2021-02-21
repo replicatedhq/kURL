@@ -6,3 +6,6 @@ resources:
 - grafana-dashboardSources.yaml 
 - grafana-serviceAccount.yaml 
 - grafana-serviceMonitor.yaml
+
+patchesStrategicMerge:
+- patches/deployment-admin-user.yaml
