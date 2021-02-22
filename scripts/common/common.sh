@@ -626,3 +626,39 @@ function get_kurl_install_directory_flag() {
     fi
     echo " kurl-install-directory=$(echo "${kurl_install_directory}")"
 }
+
+function systemd_restart_succeeded() {
+    local oldPid=$1
+    local serviceName=$2
+
+    if ! systemctl is-active --quiet $serviceName; then
+        return 1
+    fi
+
+    local newPid="$(systemctl show --property MainPID $serviceName | cut -d = -f2)"
+    if [ "$newPid" = "$oldPid" ]; then
+        return 1
+    fi
+
+    if ps -p $oldPid; then
+        return 1
+    fi
+
+    return 0
+}
+
+function restart_systemd_and_wait() {
+    local serviceName=$1
+    
+    local pid="$(systemctl show --property MainPID $serviceName | cut -d = -f2)"
+
+    echo "Restarting $serviceName..."
+    systemctl restart $serviceName
+
+    if ! spinner_until 120 systemd_restart_succeeded $pid $serviceName; then
+        journalctl -xe
+        bail "Could not successfully restart systemd service $serviceName"
+    fi
+
+    echo "Service $serviceName restarted."
+}

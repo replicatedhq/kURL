@@ -410,7 +410,7 @@ function rke2_configure() {
 }
 
 function rke2_restart() {
-    systemctl restart rke2-server.service # TODO(ethan): rke2-agent.service?
+    restart_systemd_and_wait "rke2-server.service"  # TODO(ethan): rke2-agent.service?
 }
 
 function rke2_install_host_packages() {

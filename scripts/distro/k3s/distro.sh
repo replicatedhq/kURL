@@ -58,7 +58,6 @@ function k3s_reset() {
 }
 
 function k3s_containerd_restart() {
-    # TODO (dan) implement
     k3s_restart
 }
 
