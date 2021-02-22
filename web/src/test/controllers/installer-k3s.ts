@@ -1,6 +1,6 @@
 import {describe, it} from "mocha";
 import {expect} from "chai";
-import { Installer } from "../installers";
+import { Installer } from "../../installers";
 import * as _ from "lodash";
 
 describe("Installer (K3S)", () => {

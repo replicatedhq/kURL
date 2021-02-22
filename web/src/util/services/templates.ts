@@ -75,6 +75,10 @@ interface Manifest {
   INSTALLER_YAML: string;
 }
 
+export function bashStringEscape( unescaped :string): string {
+  return unescaped.replace(/[!"'\\]/g, "\\\$&");
+}
+
 function manifestFromInstaller(i: Installer, kurlURL: string, replicatedAppURL: string, distURL: string, kurlUtilImage: string, kurlBinUtils: string): Manifest {
   return {
     KURL_URL: kurlURL,
@@ -84,6 +88,6 @@ function manifestFromInstaller(i: Installer, kurlURL: string, replicatedAppURL: 
     KURL_UTIL_IMAGE: kurlUtilImage,
     KURL_BIN_UTILS_FILE: kurlBinUtils,
     STEP_VERSIONS: `(${Installer.latestMinors().join(" ")})`,
-    INSTALLER_YAML: i.toYAML(),
+    INSTALLER_YAML: bashStringEscape(i.toYAML()),
   };
 }
