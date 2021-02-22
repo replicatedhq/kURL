@@ -6,6 +6,13 @@ docker:
   version: "latest"
 minio:
   version: "latest"
+kotsadm:
+  version: "latest"
 openebs:
+  cstorStorageClassName: default
+  isCstorEnabled: true
+  isLocalPVEnabled: true
+  localPVStorageClassName: openebs
+  namespace: openebs
   version: "__testver__"
   s3Override: "__testdist__"

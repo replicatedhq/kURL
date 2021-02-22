@@ -98,6 +98,9 @@ run_addon() {
 
     echo "Package pushed to:  s3://${S3_BUCKET}/pr/${PR_NUMBER}-${GITHUB_SHA:0:7}-${name}-${version}.tar.gz"
 
+    # make clean to free up space
+    make clean
+
     # Run for each template (if available)
     shopt -s nullglob
     for test_spec in ./addons/$name/template/testgrid/*.yaml;

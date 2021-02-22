@@ -96,16 +96,7 @@ function openebs_iscsi() {
 
     if ! systemctl list-units | grep -q iscsid; then
         printf "${YELLOW}Installing iscsid service${NC}\n"
-        case "$LSB_DIST" in
-            ubuntu)
-                export DEBIAN_FRONTEND=noninteractive
-                dpkg --install --force-depends-version ${src}/ubuntu-${DIST_VERSION}/archives/*.deb
-                ;;
-
-            centos|rhel|amzn)
-                rpm --upgrade --force --nodeps ${src}/rhel-7/archives/*.rpm
-                ;;
-        esac
+        install_host_archives "$src"
     fi
 
     if ! systemctl -q is-active iscsid; then
