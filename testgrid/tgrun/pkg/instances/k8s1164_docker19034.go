@@ -39,7 +39,7 @@ func init() {
 					Version: "1.5.1",
 				},
 				Kotsadm: &kurlv1beta1.Kotsadm{
-					Version: "1.30.0",
+					Version: "1.31.0",
 				},
 			},
 			UnsupportedOSIDs: []string{
