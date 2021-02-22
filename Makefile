@@ -202,6 +202,7 @@ build/install.sh:
 	sed '/# Magic begin/q' scripts/install.sh | sed '$$d' > tmp/install.sh
 	for script in $(shell cat scripts/install.sh | grep '\. $$DIR/' | sed 's/. $$DIR\///'); do \
 		cat $$script >> tmp/install.sh ; \
+		echo "" >> tmp/install.sh ; \
 	done
 	sed -n '/# Magic end/,$$p' scripts/install.sh | sed '1d' >> tmp/install.sh
 	mv tmp/install.sh build/install.sh
@@ -228,6 +229,7 @@ build/join.sh:
 	sed '/# Magic begin/q' scripts/join.sh | sed '$$d' > tmp/join.sh
 	for script in $(shell cat scripts/join.sh | grep '\. $$DIR/' | sed 's/. $$DIR\///'); do \
 		cat $$script >> tmp/join.sh ; \
+		echo "" >> tmp/join.sh ; \
 	done
 	sed -n '/# Magic end/,$$p' scripts/join.sh | sed '1d' >> tmp/join.sh
 	mv tmp/join.sh build/join.sh
@@ -254,6 +256,7 @@ build/upgrade.sh:
 	sed '/# Magic begin/q' scripts/upgrade.sh | sed '$$d' > tmp/upgrade.sh
 	for script in $(shell cat scripts/upgrade.sh | grep '\. $$DIR/' | sed 's/. $$DIR\///'); do \
 		cat $$script >> tmp/upgrade.sh ; \
+		echo "" >> tmp/upgrade.sh ; \
 	done
 	sed -n '/# Magic end/,$$p' scripts/upgrade.sh | sed '1d' >> tmp/upgrade.sh
 	mv tmp/upgrade.sh build/upgrade.sh
@@ -280,6 +283,7 @@ build/tasks.sh:
 	sed '/# Magic begin/q' scripts/tasks.sh | sed '$$d' > tmp/tasks.sh
 	for script in $(shell cat scripts/tasks.sh | grep '\. $$DIR/' | sed 's/. $$DIR\///'); do \
 		cat $$script >> tmp/tasks.sh ; \
+		echo "" >> tmp/tasks.sh ; \
 	done
 	sed -n '/# Magic end/,$$p' scripts/tasks.sh | sed '1d' >> tmp/tasks.sh
 	mv tmp/tasks.sh build/tasks.sh
