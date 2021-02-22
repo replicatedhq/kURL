@@ -50,7 +50,7 @@ type Installer struct {
 type InstallerSpec struct {
 	IsStaging       bool                         `json:"-" yaml:"-"`
 	RunAirgap       bool                         `json:"-" yaml:"-"`
-	Kubernetes      kurlv1beta1.Kubernetes       `json:"kubernetes,omitempty" yaml:"kubernetes,omitempty"`
+	Kubernetes      *kurlv1beta1.Kubernetes      `json:"kubernetes,omitempty" yaml:"kubernetes,omitempty"`
 	RKE2            *kurlv1beta1.RKE2            `json:"rke2,omitempty" yaml:"rke2,omitempty"`
 	K3S             *kurlv1beta1.K3S             `json:"k3s,omitempty" yaml:"k3s,omitempty"`
 	Docker          *kurlv1beta1.Docker          `json:"docker,omitempty" yaml:"docker,omitempty"`

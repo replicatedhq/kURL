@@ -9,7 +9,7 @@ func init() {
 	RegisterInstance(
 		types.Instance{
 			InstallerSpec: types.InstallerSpec{
-				Kubernetes: kurlv1beta1.Kubernetes{
+				Kubernetes: &kurlv1beta1.Kubernetes{
 					Version: "1.17.13",
 				},
 				Weave: &kurlv1beta1.Weave{

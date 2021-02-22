@@ -9,7 +9,7 @@ func init() {
 	RegisterAirgapAndOnlineInstance(
 		types.Instance{
 			InstallerSpec: types.InstallerSpec{
-				Kubernetes: kurlv1beta1.Kubernetes{
+				Kubernetes: &kurlv1beta1.Kubernetes{
 					Version: "1.19.7",
 				},
 				Weave: &kurlv1beta1.Weave{
