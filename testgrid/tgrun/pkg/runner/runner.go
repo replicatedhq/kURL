@@ -257,6 +257,12 @@ cat install.sh | timeout 30m bash
 KURL_EXIT_STATUS=$?
 
 export KUBECONFIG=/etc/kubernetes/admin.conf
+
+echo "tasks.sh run:"
+curl "$KURL_URL/tasks.sh" > tasks.sh
+cat tasks.sh | timeout 5m bash -s join_token
+echo "tasks exit status: $?"
+echo ""
 `
 
 	if strings.HasSuffix(singleTest.KurlURL, ".tar.gz") {
@@ -335,6 +341,11 @@ export KUBECONFIG=/etc/kubernetes/admin.conf
 
 echo "running pods after completion:"
 kubectl get pods -A
+echo ""
+
+echo "tasks.sh run:"
+cat tasks.sh | timeout 5m bash -s join_token
+echo "tasks exit status: $?"
 echo ""
 `
 	}
