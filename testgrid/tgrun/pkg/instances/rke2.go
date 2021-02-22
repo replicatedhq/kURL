@@ -9,36 +9,33 @@ func init() {
 	RegisterAirgapAndOnlineInstance(
 		types.Instance{
 			InstallerSpec: types.InstallerSpec{
-				Kubernetes: &kurlv1beta1.Kubernetes{
-					Version: "1.19.3",
-				},
-				Weave: &kurlv1beta1.Weave{
-					Version: "2.6.4",
+				RKE2: &kurlv1beta1.RKE2{
+					Version: "latest",
 				},
 				Rook: &kurlv1beta1.Rook{
-					Version: "1.0.4",
-				},
-				Ekco: &kurlv1beta1.Ekco{
-					Version: "0.6.0",
-				},
-				Contour: &kurlv1beta1.Contour{
-					Version: "1.0.1",
-				},
-				Containerd: &kurlv1beta1.Containerd{
-					Version: "1.4.3",
+					Version:                    "1.0.4",
+					HostpathRequiresPrivileged: true,
+					StorageClassName:           "default",
 				},
 				Prometheus: &kurlv1beta1.Prometheus{
-					Version: "0.33.0",
+					Version: "latest",
 				},
 				Registry: &kurlv1beta1.Registry{
-					Version: "2.7.1",
+					Version: "latest",
 				},
 				Velero: &kurlv1beta1.Velero{
-					Version: "1.2.0",
+					Version:                  "latest",
+					ResticRequiresPrivileged: true,
 				},
 				Kotsadm: &kurlv1beta1.Kotsadm{
-					Version: "1.30.0",
+					Version:    "latest",
+					UiBindPort: 30880,
 				},
+			},
+			UnsupportedOSIDs: []string{
+				"ubuntu-1604",
+				"ubuntu-1804",
+				"ubuntu-2004",
 			},
 		},
 	)
