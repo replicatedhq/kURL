@@ -27,6 +27,10 @@ func init() {
 				},
 				Docker: &kurlv1beta1.Docker{
 					Version: "19.03.4",
+					DaemonConfig: `{
+	"exec-opts": ["native.cgroupdriver=systemd"],
+	"default-address-pools": [ {"base":"10.69.0.0/16","size":16} ]
+}`,
 				},
 				Registry: &kurlv1beta1.Registry{
 					Version: "2.7.1",
