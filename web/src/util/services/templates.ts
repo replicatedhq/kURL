@@ -76,7 +76,7 @@ interface Manifest {
 }
 
 export function bashStringEscape( unescaped :string): string {
-  return unescaped.replace(/[!"'\\]/g, "\\\$&");
+  return unescaped.replace(/[!"\\]/g, "\\\$&");
 }
 
 function manifestFromInstaller(i: Installer, kurlURL: string, replicatedAppURL: string, distURL: string, kurlUtilImage: string, kurlBinUtils: string): Manifest {
