@@ -31,7 +31,7 @@ func init() {
 					Version: "1.2.0",
 				},
 				Kotsadm: &kurlv1beta1.Kotsadm{
-					Version: "1.31.0",
+					Version: "1.31.1",
 				},
 				OpenEBS: &kurlv1beta1.OpenEBS{
 					Version:                 "1.12.0",
