@@ -182,18 +182,18 @@ build/packages/rke-2/%/images:
 	mkdir -p build/packages/rke-2/$*/images
 	bin/save-manifest-assets.sh packages/rke-2/$*/Manifest build/packages/rke-2/$*
 
-dist/k3s-%.tar.gz:
-	${MAKE} build/packages/k3s/$*/images
-	${MAKE} build/packages/k3s/$*/rhel-7
-	${MAKE} build/packages/k3s/$*/rhel-8
-	cp packages/k3s/$*/Manifest build/packages/k3s/$*/
+dist/k-3-s-%.tar.gz:
+	${MAKE} build/packages/k-3-s/$*/images
+	${MAKE} build/packages/k-3-s/$*/rhel-7
+	${MAKE} build/packages/k-3-s/$*/rhel-8
+	cp packages/k-3-s/$*/Manifest build/packages/k-3-s/$*/
 	mkdir -p dist
-	tar cf - -C build packages/k3s/$* | gzip > dist/k3s-$*.tar.gz
+	tar cf - -C build packages/k-3-s/$* | gzip > dist/k-3-s-$*.tar.gz
 
-build/packages/k3s/%/images:
-	mkdir -p build/packages/k3s/$*/images
-	bin/save-manifest-assets.sh packages/k3s/$*/Manifest build/packages/k3s/$*
-	gzip build/packages/k3s/$*/assets/k3s-images.linux-amd64.tar 
+build/packages/k-3-s/%/images:
+	mkdir -p build/packages/k-3-s/$*/images
+	bin/save-manifest-assets.sh packages/k-3-s/$*/Manifest build/packages/k-3-s/$*
+	gzip build/packages/k-3-s/$*/assets/k3s-images.linux-amd64.tar 
 
 DEV := 0
 
@@ -453,7 +453,7 @@ build/packages/rke-2/%/rhel-8:
 	docker cp rke2-rhel8-$*:/packages/archives/. build/packages/rke-2/$*/rhel-8/
 	docker rm rke2-rhel8-$*
 
-build/packages/k3s/%/rhel-7:
+build/packages/k-3-s/%/rhel-7:
 	docker build \
 		--build-arg K3S_VERSION=$* \
 		-t kurl/rhel-7-k3s:$* \
@@ -461,11 +461,11 @@ build/packages/k3s/%/rhel-7:
 		bundles/k3s-rhel7
 	-docker rm -f k3s-rhel7-$* 2>/dev/null
 	docker create --name k3s-rhel7-$* kurl/rhel-7-k3s:$*
-	mkdir -p build/packages/k3s/$*/rhel-7
-	docker cp k3s-rhel7-$*:/packages/archives/. build/packages/k3s/$*/rhel-7/
+	mkdir -p build/packages/k-3-s/$*/rhel-7
+	docker cp k3s-rhel7-$*:/packages/archives/. build/packages/k-3-s/$*/rhel-7/
 	docker rm k3s-rhel7-$*
 
-build/packages/k3s/%/rhel-8:
+build/packages/k-3-s/%/rhel-8:
 	docker build \
 		--build-arg K3S_VERSION=$* \
 		-t kurl/rhel-8-k3s:$* \
@@ -473,8 +473,8 @@ build/packages/k3s/%/rhel-8:
 		bundles/k3s-rhel8
 	-docker rm -f k3s-rhel8-$* 2>/dev/null
 	docker create --name k3s-rhel8-$* kurl/rhel-8-k3s:$*
-	mkdir -p build/packages/k3s/$*/rhel-8
-	docker cp k3s-rhel8-$*:/packages/archives/. build/packages/k3s/$*/rhel-8/
+	mkdir -p build/packages/k-3-s/$*/rhel-8
+	docker cp k3s-rhel8-$*:/packages/archives/. build/packages/k-3-s/$*/rhel-8/
 	docker rm k3s-rhel8-$*
 
 build/templates: build/templates/install.tmpl build/templates/join.tmpl build/templates/upgrade.tmpl build/templates/tasks.tmpl
