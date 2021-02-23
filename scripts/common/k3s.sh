@@ -197,6 +197,7 @@ function k3s_install() {
     fi
 
     k3s_create_symlinks
+    k3s_modify_profiled
     
     spinner_containerd_is_healthy
     
@@ -213,23 +214,6 @@ function k3s_install() {
     while [ ! -f /etc/rancher/k3s/k3s.yaml ]; do
         sleep 2
     done
-
-    # For Kubectl and K3s binaries 
-    # NOTE: this is still not in the path for sudo
-    if [ ! -f "/etc/profile.d/k3s.sh" ]; then
-        tee /etc/profile.d/k3s.sh > /dev/null <<EOF
-export CRI_CONFIG_FILE=/var/lib/rancher/k3s/agent/etc/crictl.yaml
-export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
-
-if [ -f "/etc/centos-release" ] || [ -f "/etc/redhat-release" ]; then
-        pathmunge /usr/local/bin
-else
-        export PATH=$PATH:/usr/local/bin
-fi
-EOF
-    fi
-
-    source /etc/profile
 
     logStep "Waiting for Kubernetes"
     # Extending timeout to 5 min based on performance on clean machines.
@@ -580,4 +564,23 @@ function k3s_create_symlinks() {
             echo "Skipping ${binDir}/${cmd} symlink to k3s, already exists"
         fi
     done
+}
+
+function k3s_modify_profiled() {
+
+    # NOTE: this is still not in the path for sudo
+    if [ ! -f "/etc/profile.d/k3s.sh" ]; then
+        tee /etc/profile.d/k3s.sh > /dev/null <<EOF
+export CRI_CONFIG_FILE=/var/lib/rancher/k3s/agent/etc/crictl.yaml
+export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
+
+if [ -f "/etc/centos-release" ] || [ -f "/etc/redhat-release" ]; then
+        pathmunge /usr/local/bin
+else
+        export PATH=$PATH:/usr/local/bin
+fi
+EOF
+    fi
+
+    source /etc/profile
 }
