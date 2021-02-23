@@ -445,7 +445,7 @@ function k3s_install_host_packages() {
     fi
     
     # installs the k3s binary
-    cp $DIR/packages/k3s/${k3s_version}/assets/k3s /usr/local/bin/
+    cp $DIR/packages/k-3-s/${k3s_version}/assets/k3s /usr/local/bin/
     chmod 755 /usr/local/bin/k3s
 
     # TODO(ethan): is this still necessary?
@@ -472,7 +472,7 @@ function k3s_get_host_packages_online() {
 
     rm -rf $DIR/packages/k3s/${k3s_version} # Cleanup broken/incompatible packages from failed runs
 
-    local package="k3s-${k3s_version}.tar.gz" 
+    local package="k-3-s-${k3s_version}.tar.gz" 
     package_download "${package}"
     tar xf "$(package_filepath "${package}")"
 }
@@ -483,7 +483,7 @@ function k3s_load_images() {
     logStep "Load K3S images"
 
     mkdir -p /var/lib/rancher/k3s/agent/images
-    gunzip -c $DIR/packages/k3s/${k3s_version}/assets/k3s-images.linux-amd64.tar.gz > /var/lib/rancher/k3s/agent/images/k3s-images.linux-amd64.tar
+    gunzip -c $DIR/packages/k-3-s/${k3s_version}/assets/k3s-images.linux-amd64.tar.gz > /var/lib/rancher/k3s/agent/images/k3s-images.linux-amd64.tar
 
     logSuccess "K3S images loaded"
 }
