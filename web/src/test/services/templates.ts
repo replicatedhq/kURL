@@ -3,20 +3,25 @@ import {expect} from "chai";
 import { bashStringEscape } from "../../util/services/templates";
 import * as _ from "lodash";
 
-const testConf= String.raw`
-daemonConfig: |
-  {
-      "double-quotes": ["\backslash"],
-      'singlequotes': [ {'exclaimation':'!'} ]
-  }
-`
 
 describe("Escape Bash Special Characters", () => {
 
   it("escapes select characters", () => {
-    const out = bashStringEscape(testConf);
-    expect(out).to.contain(String.raw`\"double-quotes\": [\"\\backslash\"],`);
-    expect(out).to.contain(String.raw`\'singlequotes\': [ {\'exclaimation\':\'\!\'} ]`);
+    const valid= String.raw`
+daemonConfig: |
+  {
+      "double-quotes": ["\backslash", {"exclaimation": "!"}],
+  }
+`
+    const out = bashStringEscape(valid);
+    expect(out).to.contain(String.raw`\"double-quotes\": [\"\\backslash\", {\"exclaimation\": \"\!\"}],`);
+  });
+
+  // js-yaml will add single quotes to numeric objects to make valid yaml
+  it("does not escape single quotes", () => {
+    const singleQuotes= String.raw`metadata: '12345678'`
+    const out = bashStringEscape(singleQuotes);
+    expect(out).to.equal(singleQuotes);
   });
 
 });
