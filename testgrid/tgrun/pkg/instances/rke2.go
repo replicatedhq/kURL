@@ -13,7 +13,7 @@ func init() {
 					Version: "latest",
 				},
 				Rook: &kurlv1beta1.Rook{
-					Version:                    "1.0.4",
+					Version:                    "1.4.3",
 					HostpathRequiresPrivileged: true,
 					StorageClassName:           "default",
 				},
