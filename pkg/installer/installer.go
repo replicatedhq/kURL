@@ -1,11 +1,10 @@
 package installer
 
 import (
-	"io/ioutil"
-
 	"github.com/pkg/errors"
 	kurlclientsetscheme "github.com/replicatedhq/kurl/kurlkinds/client/kurlclientset/scheme"
 	clusterv1beta1 "github.com/replicatedhq/kurl/kurlkinds/pkg/apis/cluster/v1beta1"
+	"github.com/spf13/afero"
 	"k8s.io/client-go/kubernetes/scheme"
 )
 
@@ -13,8 +12,8 @@ func init() {
 	kurlclientsetscheme.AddToScheme(scheme.Scheme)
 }
 
-func RetrieveSpec(filename string) (*clusterv1beta1.Installer, error) {
-	data, err := ioutil.ReadFile(filename)
+func RetrieveSpec(fs afero.Fs, filename string) (*clusterv1beta1.Installer, error) {
+	data, err := afero.ReadFile(fs, filename)
 	if err != nil {
 		return nil, errors.Wrap(err, "read file")
 	}

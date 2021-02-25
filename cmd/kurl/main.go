@@ -9,7 +9,8 @@ import (
 
 func main() {
 	ctx := context.Background()
-	err := cli.RootCmd().ExecuteContext(ctx)
+	kurlCLI := cli.NewKurlCLI()
+	err := cli.NewRootCmd(kurlCLI).ExecuteContext(ctx)
 	if err != nil {
 		os.Exit(1)
 	}

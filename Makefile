@@ -523,6 +523,11 @@ watchrsync:
 
 .PHONY: test
 test:
+	go test ./cmd/...
+	go test ./pkg/...
+
+.PHONY: test-shell
+test-shell:
 	# TODO:
 	#   - find tests
 	#   - add to ci

@@ -13,7 +13,7 @@ spec:
     - cpu:
         outcomes:
           - warn:
-              when: "count < 400"
+              when: "count < 4"
               message: At least 4 CPU cores are required
           - pass:
               message: This server has at least 4 CPU cores
@@ -27,17 +27,11 @@ spec:
     - diskUsage:
         collectorName: ephemeral
         outcomes:
-          - fail:
-              when: "total < 20Gi"
-              message: /var/lib/kubelet has less than 20Gi of total space
-          - fail:
-              when: "available < 10Gi"
-              message: /var/lib/kubelet has less than 10Gi of disk space available
-          - fail:
+          - warn:
               when: "used/total > 70%"
               message: /var/lib/kubelet is more than 70% full
-          - warn:
-              when: "total < 40Gi"
-              message: /var/lib/kubelet has less than 40Gi of total space
+          - fail:
+              when: "total < 30Gi"
+              message: /var/lib/kubelet has less than 30Gi of total space
           - pass:
-              message: /var/lib/kubelet has sufficient disk space available
+              message: /var/lib/kubelet has at least 30Gi disk space available

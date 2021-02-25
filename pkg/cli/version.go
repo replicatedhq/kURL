@@ -5,7 +5,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func VersionCmd() *cobra.Command {
+func NewVersionCmd(cli CLI) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "version",
 		Short: "Print the current version and exit",

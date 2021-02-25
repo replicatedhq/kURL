@@ -7,7 +7,7 @@ import (
 
 const rootCmdLong = ``
 
-func RootCmd() *cobra.Command {
+func NewRootCmd(cli CLI) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "kurl",
 		Short: "A CLI for the kURL custom Kubernetes distro creator",
@@ -20,8 +20,7 @@ func RootCmd() *cobra.Command {
 		},
 	}
 
-	cmd.AddCommand(VersionCmd())
-	cmd.AddCommand(PreflightCmd())
+	AddCommands(cmd, cli)
 
 	return cmd
 }

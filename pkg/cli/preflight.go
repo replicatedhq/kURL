@@ -1,11 +1,12 @@
 package cli
 
 import (
-	"context"
 	"fmt"
 	"io"
+	"io/ioutil"
+	"strings"
 
-	"github.com/manifoldco/promptui"
+	"github.com/chzyer/readline"
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/kurl/pkg/installer"
 	"github.com/replicatedhq/kurl/pkg/preflight"
@@ -14,7 +15,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-func PreflightCmd() *cobra.Command {
+func NewPreflightCmd(cli CLI) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:          "preflight [installer spec file]",
 		Short:        "Runs kURL preflight checks",
@@ -27,15 +28,23 @@ func PreflightCmd() *cobra.Command {
 			return viper.BindPFlags(cmd.Flags())
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			_, err := installer.RetrieveSpec(args[0])
+			_, err := installer.RetrieveSpec(cli.GetFS(), args[0])
 			if err != nil {
 				return errors.Wrap(err, "retrieve installer spec")
 			}
 
 			// TODO: use spec for conditional preflights
+			preflightSpec, err := preflight.Decode([]byte(preflight.Builtin()))
+			if err != nil {
+				return errors.Wrap(err, "decode spec")
+			}
 
 			// TODO: progress channel
-			results, err := preflight.Run(cmd.Context(), []byte(preflight.Builtin()))
+			progressChan := make(chan interface{})
+			defer close(progressChan)
+			go discardProgress(progressChan)
+
+			results, err := cli.GetPreflightRunner().Run(cmd.Context(), preflightSpec, progressChan)
 			if err != nil {
 				return errors.Wrap(err, "run preflight")
 			}
@@ -49,9 +58,10 @@ func PreflightCmd() *cobra.Command {
 				if viper.GetBool("ignore-warnings") {
 					fmt.Fprintln(cmd.ErrOrStderr(), "Warnings ignored by CLI flag \"ignore-warnings\"")
 				} else {
-					if !confirmPreflightIsWarn(cmd.Context()) {
-						return errors.New("preflights have warnings")
+					if cli.IsTerminal() && confirmPreflightIsWarn(cmd) {
+						return nil
 					}
+					return errors.New("preflights have warnings")
 				}
 			}
 			return nil
@@ -61,6 +71,11 @@ func PreflightCmd() *cobra.Command {
 	cmd.Flags().Bool("ignore-warnings", false, "ignore preflight warnings")
 
 	return cmd
+}
+
+func discardProgress(ch <-chan interface{}) {
+	for range ch {
+	}
 }
 
 func printPreflightResults(w io.Writer, results []*analyze.AnalyzeResult) {
@@ -80,18 +95,26 @@ func printPreflightResult(w io.Writer, result *analyze.AnalyzeResult) {
 	}
 }
 
-func confirmPreflightIsWarn(ctx context.Context) bool {
-	// NOTE: it would be nice to use cmd.InOrStdin() here
-	prompt := promptui.Prompt{
-		Label:     "Preflight has warnings. Do you want to proceed anyway? ",
-		Default:   "N",
-		IsConfirm: true,
-	}
-	_, err := prompt.Run()
+func confirmPreflightIsWarn(cmd *cobra.Command) bool {
+	rl, err := readline.NewEx(&readline.Config{
+		Stdin:  ioutil.NopCloser(cmd.InOrStdin()),
+		Stdout: cmd.OutOrStdout(),
+		Stderr: cmd.ErrOrStderr(),
+	})
 	if err != nil {
 		return false
 	}
-	return true
+	defer rl.Close()
+
+	rl.SetPrompt("Preflight has warnings. Do you want to proceed anyway? (y/N) ")
+
+	line, err := rl.Readline()
+	if err != nil {
+		return false
+	}
+
+	text := strings.ToLower(strings.TrimSpace(line))
+	return text == "y" || text == "yes"
 }
 
 func preflightIsFail(results []*analyze.AnalyzeResult) bool {

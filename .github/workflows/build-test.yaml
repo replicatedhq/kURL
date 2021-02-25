@@ -50,7 +50,7 @@ jobs:
 
       - run: go get golang.org/x/lint/golint
       - run: make build/bin/kurl
-      # TODO: tests
+      - run: make test
 
 
   build-testgrid:

@@ -15,11 +15,11 @@ func init() {
 	troubleshootclientsetscheme.AddToScheme(scheme.Scheme)
 }
 
-func Run(ctx context.Context, data []byte) ([]*analyze.AnalyzeResult, error) {
+func Decode(data []byte) (*troubleshootv1beta2.HostPreflight, error) {
 	decode := scheme.Codecs.UniversalDeserializer().Decode
 	obj, gvk, err := decode(data, nil, nil)
 	if err != nil {
-		return nil, errors.Wrap(err, "decode spec")
+		return nil, errors.Wrap(err, "decode")
 	}
 
 	if gvk.Group != "troubleshoot.sh" || gvk.Version != "v1beta2" || gvk.Kind != "HostPreflight" {
@@ -30,13 +30,20 @@ func Run(ctx context.Context, data []byte) ([]*analyze.AnalyzeResult, error) {
 	if !ok {
 		return nil, errors.Errorf("unexpected type %T", obj)
 	}
+	return spec, nil
+}
 
-	ch := make(chan interface{})
-	defer close(ch)
-	go discardProgress(ch)
+func Run(ctx context.Context, spec *troubleshootv1beta2.HostPreflight, progressChan chan interface{}) ([]*analyze.AnalyzeResult, error) {
+	collectResults, err := CollectResults(ctx, spec, progressChan)
+	if err != nil {
+		return nil, errors.Wrap(err, "collect results")
+	}
+	return collectResults.Analyze(), nil
+}
 
+func CollectResults(ctx context.Context, spec *troubleshootv1beta2.HostPreflight, progressChan chan interface{}) (preflight.CollectResult, error) {
 	collectOpts := preflight.CollectOpts{
-		ProgressChan: ch,
+		ProgressChan: progressChan,
 	}
 	collectResults, err := preflight.CollectHost(collectOpts, spec)
 	if err != nil {
@@ -45,10 +52,5 @@ func Run(ctx context.Context, data []byte) ([]*analyze.AnalyzeResult, error) {
 		return nil, errors.New("no results")
 	}
 
-	return collectResults.Analyze(), nil
-}
-
-func discardProgress(ch <-chan interface{}) {
-	for range ch {
-	}
+	return collectResults, nil
 }
