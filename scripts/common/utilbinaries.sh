@@ -105,6 +105,8 @@ function get_patch_yaml() {
                 ;;
             load-balancer-address)
                 ;;
+            preflight-ignore-warnings)
+                ;;
             preserve-docker-config)
                 ;;
             preserve-firewalld-config)

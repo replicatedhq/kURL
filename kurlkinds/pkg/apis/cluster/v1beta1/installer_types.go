@@ -102,14 +102,15 @@ type Kubernetes struct {
 }
 
 type Kurl struct {
+	AdditionalNoProxyAddresses []string `json:"additionalNoProxyAddresses,omitempty" yaml:"proxyAddress,omitempty"`
 	Airgap                     bool     `json:"airgap,omitempty" yaml:"airgap,omitempty"`
 	HostnameCheck              string   `json:"hostnameCheck,omitempty" yaml:"hostnameCheck,omitempty"`
-	ProxyAddress               string   `json:"proxyAddress,omitempty" yaml:"proxyAddress,omitempty"`
-	AdditionalNoProxyAddresses []string `json:"additionalNoProxyAddresses,omitempty" yaml:"proxyAddress,omitempty"`
-	NoProxy                    bool     `json:"noProxy,omitempty" yaml:"noProxy,omitempty"`
-	PublicAddress              string   `json:"publicAddress,omitempty" yaml:"publicAddress,omitempty"`
-	PrivateAddress             string   `json:"privateAddress,omitempty" yaml:"privateAddress,omitempty"`
 	Nameserver                 string   `json:"nameserver,omitempty" yaml:"nameserver,omitempty"`
+	NoProxy                    bool     `json:"noProxy,omitempty" yaml:"noProxy,omitempty"`
+	PreflightIgnoreWarnings    bool     `json:"preflightIgnoreWarnings,omitempty" yaml:"preflightIgnoreWarnings,omitempty"`
+	PrivateAddress             string   `json:"privateAddress,omitempty" yaml:"privateAddress,omitempty"`
+	ProxyAddress               string   `json:"proxyAddress,omitempty" yaml:"proxyAddress,omitempty"`
+	PublicAddress              string   `json:"publicAddress,omitempty" yaml:"publicAddress,omitempty"`
 }
 
 type Minio struct {

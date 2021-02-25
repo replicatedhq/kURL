@@ -12,6 +12,8 @@ function preflights() {
     kotsadm_prerelease
     host_nameservers_reachable
 
+    host_preflights
+
     return 0
 }
 
@@ -334,4 +336,15 @@ function preflights_require_no_kubernetes_or_current_node() {
     fi
 
     return 0
+}
+
+function host_preflights() {
+    local opts=
+    if [ "${PREFLIGHT_IGNORE_WARNINGS}" = "1" ]; then
+        opts="${opts} --ignore-warnings"
+    fi
+
+    logStep "Running host preflights"
+    "${DIR}"/bin/kurl preflight "${MERGED_YAML_SPEC}" ${opts} </dev/tty
+    logStep "Host preflights success"
 }

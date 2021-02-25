@@ -37,13 +37,17 @@ spec:
     serviceCidrRange: "/24"
     version: "1.17.3"
   kurl:
-    airgap: true
-    hostnameCheck: "namespace"
-    HTTPProxy: "1.1.1.1"
-    noProxy: true
-    publicAddress: "1.1.1.1"
-    privateAddress: "tor"
-    task: "important"
+    additionalNoProxyAddresses:
+      - 1.1.1.1
+      - 2.2.2.2
+    airgap: false
+    hostnameCheck: 1.1.1.1
+    nameserver: 1.1.1.1
+    noProxy: false
+    preflightIgnoreWarnings: false
+    privateAddress: 1.1.1.1
+    proxyAddress: 1.1.1.1
+    publicAddress: 1.1.1.1
   minio:
     namespace: "minio"
     version: "latest"

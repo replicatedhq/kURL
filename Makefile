@@ -1,6 +1,10 @@
 SHELL := /bin/bash
 KURL_UTIL_IMAGE ?= replicated/kurl-util:alpha
 KURL_BIN_UTILS_FILE ?= kurl-bin-utils-latest.tar.gz
+VERSION_PACKAGE = github.com/replicatedhq/kurl/pkg/version
+VERSION ?= 0.0.1
+DATE = `date -u +"%Y-%m-%dT%H:%M:%SZ"`
+BUILDFLAGS = 
 
 GIT_TREE = $(shell git rev-parse --is-inside-work-tree 2>/dev/null)
 ifneq "$(GIT_TREE)" ""
@@ -18,6 +22,15 @@ define GIT_SHA
 ""
 endef
 endif
+
+define LDFLAGS
+-ldflags "\
+	-s -w \
+	-X ${VERSION_PACKAGE}.version=${VERSION} \
+	-X ${VERSION_PACKAGE}.gitSHA=${GIT_SHA} \
+	-X ${VERSION_PACKAGE}.buildTime=${DATE} \
+"
+endef
 
 .PHONY: clean
 clean:
@@ -485,9 +498,12 @@ build/packages/k-3-s/%/rhel-8:
 
 build/templates: build/templates/install.tmpl build/templates/join.tmpl build/templates/upgrade.tmpl build/templates/tasks.tmpl
 
-build/bin:
+build/bin: build/bin/kurl
 	${MAKE} -C kurl_util build
 	cp -r kurl_util/bin build
+
+build/bin/kurl:
+	CGO_ENABLED=0 go build $(LDFLAGS) -o build/bin/kurl $(BUILDFLAGS) ./cmd/kurl
 
 .PHONY: code
 code: build/templates build/kustomize build/addons

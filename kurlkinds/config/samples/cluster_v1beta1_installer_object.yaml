@@ -13,6 +13,9 @@ spec:
     noCEOnEE: false
     noDocker: false
     version: latest
+  firewalldConfig:
+    bypassFirewalldWarning: false
+    hardFailOnFirewalld: false
   fluentd:
     fullEFKStack: false
     version: latest
@@ -35,15 +38,17 @@ spec:
     serviceCIDRRange: "/24"
     version: latest
   kurl:
-    HTTPProxy: 1.1.1.1
+    additionalNoProxyAddresses:
+      - 1.1.1.1
+      - 2.2.2.2
     airgap: false
-    bypassFirewalldWarning: false
-    hardFailOnFirewalld: false
     hostnameCheck: 1.1.1.1
+    nameserver: 1.1.1.1
     noProxy: false
+    preflightIgnoreWarnings: false
     privateAddress: 1.1.1.1
+    proxyAddress: 1.1.1.1
     publicAddress: 1.1.1.1
-    task: string
   minio:
     namespace: minio
     version: latest

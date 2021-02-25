@@ -86,17 +86,18 @@ spec:
     shouldEnablePurgeNodes: false
     rookShouldUseAllNodes: false
   kurl:
-    proxyAddress: 1.1.1.1
     additionalNoProxyAddresses:
     - 10.128.0.3
     airgap: false
+    hostnameCheck: 2.2.2.2
+    nameserver: 8.8.8.8
+    noProxy: false
+    preflightIgnoreWarnings: true
+    privateAddress: 10.38.1.1
+    proxyAddress: 1.1.1.1
+    publicAddress: 101.38.1.1
     bypassFirewalldWarning: false
     hardFailOnFirewalld: false
-    hostnameCheck: 2.2.2.2
-    noProxy: false
-    privateAddress: 10.38.1.1
-    publicAddress: 101.38.1.1
-    nameserver: 8.8.8.8
   collectd:
     version: 0.0.1
   certManager:

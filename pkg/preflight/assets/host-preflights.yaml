@@ -1,0 +1,43 @@
+apiVersion: troubleshoot.sh/v1beta2
+kind: HostPreflight
+metadata:
+  name: kurl-builtin
+spec:
+  collectors:
+    - cpu: {}
+    - memory: {}
+    - diskUsage:
+        collectorName: ephemeral
+        path: /var/lib/kubelet
+  analyzers:
+    - cpu:
+        outcomes:
+          - warn:
+              when: "count < 400"
+              message: At least 4 CPU cores are required
+          - pass:
+              message: This server has at least 4 CPU cores
+    - memory:
+        outcomes:
+          - fail:
+              when: "< 8Gi"
+              message: At least 8Gi of memory is required
+          - pass:
+              message: The system has at least 8Gi of memory
+    - diskUsage:
+        collectorName: ephemeral
+        outcomes:
+          - fail:
+              when: "total < 20Gi"
+              message: /var/lib/kubelet has less than 20Gi of total space
+          - fail:
+              when: "available < 10Gi"
+              message: /var/lib/kubelet has less than 10Gi of disk space available
+          - fail:
+              when: "used/total > 70%"
+              message: /var/lib/kubelet is more than 70% full
+          - warn:
+              when: "total < 40Gi"
+              message: /var/lib/kubelet has less than 40Gi of total space
+          - pass:
+              message: /var/lib/kubelet has sufficient disk space available

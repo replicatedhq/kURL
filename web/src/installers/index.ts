@@ -359,32 +359,34 @@ export const ekcoConfigSchema = {
 };
 
 export interface KurlConfig {
-  proxyAddress?: string;
   additionalNoProxyAddresses: string[];
   airgap?: boolean;
-  bypassFirewalldWarning?: boolean;
-  hardFailOnFirewalld?: boolean;
   hostnameCheck?: string;
+  nameserver?: string;
   noProxy?: string;
   privateAddress?: string;
+  preflightIgnoreWarnings?: boolean;
+  proxyAddress?: string;
   publicAddress?: string;
-  task?: string;
-  nameserver?: string;
+  bypassFirewalldWarning?: boolean; // this is not in the installer crd
+  hardFailOnFirewalld?: boolean; // this is not in the installer crd
+  task?: string; // this is not in the installer crd
 }
 
 export const kurlConfigSchema = {
   type: "object",
   properties: {
-    proxyAddress: { type: "string", flag: "http-proxy" , description: "The address of the proxy to use for outbound connections" },
     additionalNoProxyAddresses: { type: "array", items: { type: "string" }, description: "Addresses that can be reached without a proxy" },
     airgap: { type: "boolean", flag: "airgap", description: "Indicates if this install is an airgap install" },
+    hostnameCheck: { type: "string", flag: "hostname-check" , description: "Used as a check during an upgrade to ensure the script will run only on the given hostname" },
+    nameserver: { type: "string" },
+    noProxy: { type: "boolean", flag: "no-proxy" , description: "Don’t detect or configure a proxy" },
+    preflightIgnoreWarnings: { type: "boolean", flag: "preflight-ignore-warnings" , description: "Ignore preflight warnings" },
+    privateAddress: { type: "string", flag: "private-address" , description: "The local address of the host (different for each host in the cluster)" },
+    proxyAddress: { type: "string", flag: "http-proxy" , description: "The address of the proxy to use for outbound connections" },
+    publicAddress: { type: "string", flag: "public-address" , description: "The public address of the host (different for each host in the cluster), will be added as a CNAME to the k8s API server cert so you can use kubectl with this address" },
     bypassFirewalldWarning: { type: "boolean", flag: "bypass-firewalld-warning" , description: "Continue installing even if the firewalld service is active" },
     hardFailOnFirewalld: { type: "boolean", flag: "hard-fail-on-firewalld" , description: "Exit the install script if the firewalld service is active" },
-    hostnameCheck: { type: "string", flag: "hostname-check" , description: "Used as a check during an upgrade to ensure the script will run only on the given hostname" },
-    noProxy: { type: "boolean", flag: "no-proxy" , description: "Don’t detect or configure a proxy" },
-    privateAddress: { type: "string", flag: "private-address" , description: "The local address of the host (different for each host in the cluster)" },
-    publicAddress: { type: "string", flag: "public-address" , description: "The public address of the host (different for each host in the cluster), will be added as a CNAME to the k8s API server cert so you can use kubectl with this address" },
-    nameserver: { type: "string" },
   },
   additionalProperties: false,
 };
