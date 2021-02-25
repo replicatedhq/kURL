@@ -3,5 +3,5 @@ dockerout rhel-8 addons/containerd/template/Dockerfile.centos8 1.3.9
 dockerout ubuntu-16.04 addons/containerd/template/Dockerfile.ubuntu16 1.3.9
 dockerout ubuntu-18.04 addons/containerd/template/Dockerfile.ubuntu18 1.3.9
 dockerout ubuntu-20.04 addons/containerd/template/Dockerfile.ubuntu20 1.3.9
-image pause k8s.gcr.io/pause:3.1
 yum libzstd
+image pause k8s.gcr.io/pause:3.1

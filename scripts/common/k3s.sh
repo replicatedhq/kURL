@@ -197,6 +197,7 @@ function k3s_install() {
     fi
 
     k3s_create_symlinks
+    k3s_modify_profiled
     
     spinner_containerd_is_healthy
     
@@ -213,23 +214,6 @@ function k3s_install() {
     while [ ! -f /etc/rancher/k3s/k3s.yaml ]; do
         sleep 2
     done
-
-    # For Kubectl and K3s binaries 
-    # NOTE: this is still not in the path for sudo
-    if [ ! -f "/etc/profile.d/k3s.sh" ]; then
-        tee /etc/profile.d/k3s.sh > /dev/null <<EOF
-export CRI_CONFIG_FILE=/var/lib/rancher/k3s/agent/etc/crictl.yaml
-export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
-
-if [ -f "/etc/centos-release" ] || [ -f "/etc/redhat-release" ]; then
-        pathmunge /usr/local/bin
-else
-        export PATH=$PATH:/usr/local/bin
-fi
-EOF
-    fi
-
-    source /etc/profile
 
     logStep "Waiting for Kubernetes"
     # Extending timeout to 5 min based on performance on clean machines.
@@ -461,7 +445,7 @@ function k3s_install_host_packages() {
     fi
     
     # installs the k3s binary
-    cp $DIR/packages/k3s/${k3s_version}/assets/k3s /usr/local/bin/
+    cp $DIR/packages/k-3-s/${k3s_version}/assets/k3s /usr/local/bin/
     chmod 755 /usr/local/bin/k3s
 
     # TODO(ethan): is this still necessary?
@@ -488,7 +472,7 @@ function k3s_get_host_packages_online() {
 
     rm -rf $DIR/packages/k3s/${k3s_version} # Cleanup broken/incompatible packages from failed runs
 
-    local package="k3s-${k3s_version}.tar.gz" 
+    local package="k-3-s-${k3s_version}.tar.gz" 
     package_download "${package}"
     tar xf "$(package_filepath "${package}")"
 }
@@ -499,7 +483,7 @@ function k3s_load_images() {
     logStep "Load K3S images"
 
     mkdir -p /var/lib/rancher/k3s/agent/images
-    gunzip -c $DIR/packages/k3s/${k3s_version}/assets/k3s-images.linux-amd64.tar.gz > /var/lib/rancher/k3s/agent/images/k3s-images.linux-amd64.tar
+    gunzip -c $DIR/packages/k-3-s/${k3s_version}/assets/k3s-images.linux-amd64.tar.gz > /var/lib/rancher/k3s/agent/images/k3s-images.linux-amd64.tar
 
     logSuccess "K3S images loaded"
 }
@@ -580,4 +564,23 @@ function k3s_create_symlinks() {
             echo "Skipping ${binDir}/${cmd} symlink to k3s, already exists"
         fi
     done
+}
+
+function k3s_modify_profiled() {
+
+    # NOTE: this is still not in the path for sudo
+    if [ ! -f "/etc/profile.d/k3s.sh" ]; then
+        tee /etc/profile.d/k3s.sh > /dev/null <<EOF
+export CRI_CONFIG_FILE=/var/lib/rancher/k3s/agent/etc/crictl.yaml
+export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
+
+if [ -f "/etc/centos-release" ] || [ -f "/etc/redhat-release" ]; then
+        pathmunge /usr/local/bin
+else
+        export PATH=$PATH:/usr/local/bin
+fi
+EOF
+    fi
+
+    source /etc/profile
 }
