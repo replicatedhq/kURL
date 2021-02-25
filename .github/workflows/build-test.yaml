@@ -14,7 +14,7 @@ jobs:
     steps:
       - uses: actions/setup-go@v2.1.3
         with:
-          go-version: "1.14.2"
+          go-version: 1.14.2
 
       - name: setup env
         run: |
@@ -33,12 +33,32 @@ jobs:
       - run: make -C web test
 
 
+  build-bin-kurl:
+    runs-on: ubuntu-18.04
+    steps:
+      - uses: actions/setup-go@v2.1.3
+        with:
+          go-version: 1.16.0
+
+      - name: setup env
+        run: |
+          echo "GOPATH=$(go env GOPATH)" >> $GITHUB_ENV
+          echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
+        shell: bash
+
+      - uses: actions/checkout@v2
+
+      - run: go get golang.org/x/lint/golint
+      - run: make build/bin/kurl
+      # TODO: tests
+
+
   build-testgrid:
     runs-on: ubuntu-18.04
     steps:
     - uses: actions/setup-go@v2.1.3
       with:
-        go-version: "1.15.1"
+        go-version: 1.15.1
     - name: setup env
       run: |
         echo "GOPATH=$(go env GOPATH)" >> $GITHUB_ENV
