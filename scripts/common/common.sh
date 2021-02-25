@@ -662,3 +662,9 @@ function restart_systemd_and_wait() {
 
     echo "Service $serviceName restarted."
 }
+
+# waits for a job with the provided name to start and to be completed successfully
+# TODO implement
+function spinner_job_completed() {
+  return 0
+}
