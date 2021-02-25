@@ -7,6 +7,7 @@ package mock_cli
 import (
 	reflect "reflect"
 
+	readline "github.com/chzyer/readline"
 	gomock "github.com/golang/mock/gomock"
 	preflight "github.com/replicatedhq/kurl/pkg/preflight"
 	afero "github.com/spf13/afero"
@@ -63,16 +64,16 @@ func (mr *MockCLIMockRecorder) GetPreflightRunner() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPreflightRunner", reflect.TypeOf((*MockCLI)(nil).GetPreflightRunner))
 }
 
-// IsTerminal mocks base method.
-func (m *MockCLI) IsTerminal() bool {
+// GetReadline mocks base method.
+func (m *MockCLI) GetReadline() *readline.Instance {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "IsTerminal")
-	ret0, _ := ret[0].(bool)
+	ret := m.ctrl.Call(m, "GetReadline")
+	ret0, _ := ret[0].(*readline.Instance)
 	return ret0
 }
 
-// IsTerminal indicates an expected call of IsTerminal.
-func (mr *MockCLIMockRecorder) IsTerminal() *gomock.Call {
+// GetReadline indicates an expected call of GetReadline.
+func (mr *MockCLIMockRecorder) GetReadline() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsTerminal", reflect.TypeOf((*MockCLI)(nil).IsTerminal))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetReadline", reflect.TypeOf((*MockCLI)(nil).GetReadline))
 }

@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"testing"
 
+	"github.com/chzyer/readline"
 	"github.com/golang/mock/gomock"
 	mock_cli "github.com/replicatedhq/kurl/pkg/cli/mock"
 	mock_preflight "github.com/replicatedhq/kurl/pkg/preflight/mock"
@@ -118,9 +119,11 @@ func TestNewPreflightCmd(t *testing.T) {
 				Return(mockPreflightRunner).
 				Times(1)
 			if tt.isWarn && !tt.ignoreWarnings {
+				rl, err := readline.New("")
+				require.NoError(t, err)
 				mockCLI.EXPECT().
-					IsTerminal().
-					Return(false).
+					GetReadline().
+					Return(rl).
 					Times(1)
 			}
 

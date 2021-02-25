@@ -7,7 +7,7 @@ import (
 
 const rootCmdLong = ``
 
-func NewRootCmd(cli CLI) *cobra.Command {
+func NewKurlCmd(cli CLI) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "kurl",
 		Short: "A CLI for the kURL custom Kubernetes distro creator",

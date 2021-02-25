@@ -3,10 +3,8 @@ package cli
 import (
 	"fmt"
 	"io"
-	"io/ioutil"
 	"strings"
 
-	"github.com/chzyer/readline"
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/kurl/pkg/installer"
 	"github.com/replicatedhq/kurl/pkg/preflight"
@@ -33,13 +31,12 @@ func NewPreflightCmd(cli CLI) *cobra.Command {
 				return errors.Wrap(err, "retrieve installer spec")
 			}
 
-			// TODO: use spec for conditional preflights
+			// TODO(ethan): use spec for conditional preflights
 			preflightSpec, err := preflight.Decode([]byte(preflight.Builtin()))
 			if err != nil {
 				return errors.Wrap(err, "decode spec")
 			}
 
-			// TODO: progress channel
 			progressChan := make(chan interface{})
 			defer close(progressChan)
 			go discardProgress(progressChan)
@@ -58,7 +55,7 @@ func NewPreflightCmd(cli CLI) *cobra.Command {
 				if viper.GetBool("ignore-warnings") {
 					fmt.Fprintln(cmd.ErrOrStderr(), "Warnings ignored by CLI flag \"ignore-warnings\"")
 				} else {
-					if cli.IsTerminal() && confirmPreflightIsWarn(cmd) {
+					if confirmPreflightIsWarn(cli) {
 						return nil
 					}
 					return errors.New("preflights have warnings")
@@ -95,16 +92,8 @@ func printPreflightResult(w io.Writer, result *analyze.AnalyzeResult) {
 	}
 }
 
-func confirmPreflightIsWarn(cmd *cobra.Command) bool {
-	rl, err := readline.NewEx(&readline.Config{
-		Stdin:  ioutil.NopCloser(cmd.InOrStdin()),
-		Stdout: cmd.OutOrStdout(),
-		Stderr: cmd.ErrOrStderr(),
-	})
-	if err != nil {
-		return false
-	}
-	defer rl.Close()
+func confirmPreflightIsWarn(cli CLI) bool {
+	rl := cli.GetReadline()
 
 	rl.SetPrompt("Preflight has warnings. Do you want to proceed anyway? (y/N) ")
 

@@ -1,34 +1,44 @@
 package cli
 
 import (
-	"os"
-
-	isatty "github.com/mattn/go-isatty"
+	"github.com/chzyer/readline"
+	"github.com/pkg/errors"
 	"github.com/replicatedhq/kurl/pkg/preflight"
 	"github.com/spf13/afero"
 )
 
 type CLI interface {
 	GetFS() afero.Fs
-	IsTerminal() bool
+	GetReadline() *readline.Instance
 	GetPreflightRunner() preflight.Runner
 }
 
 type KurlCLI struct {
+	fs              afero.Fs
+	readline        *readline.Instance
+	preflightRunner *preflight.PreflightRunner
 }
 
 func (cli *KurlCLI) GetFS() afero.Fs {
-	return afero.NewOsFs()
+	return cli.fs
 }
 
-func (cli *KurlCLI) IsTerminal() bool {
-	return isatty.IsTerminal(os.Stdout.Fd())
+func (cli *KurlCLI) GetReadline() *readline.Instance {
+	return cli.readline
 }
 
 func (cli *KurlCLI) GetPreflightRunner() preflight.Runner {
-	return new(preflight.PreflightRunner)
+	return cli.preflightRunner
 }
 
-func NewKurlCLI() *KurlCLI {
-	return &KurlCLI{}
+func NewKurlCLI() (*KurlCLI, error) {
+	rl, err := readline.New("")
+	if err != nil {
+		return nil, errors.Wrap(err, "new readline")
+	}
+	return &KurlCLI{
+		fs:              afero.NewOsFs(),
+		readline:        rl,
+		preflightRunner: new(preflight.PreflightRunner),
+	}, nil
 }
