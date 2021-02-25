@@ -109,6 +109,8 @@ func parseBashFlags(installer *kurlv1beta1.Installer, bashFlags string) error {
 			continue
 		case "kurl-registry-ip":
 			continue
+		case "preflight-ignore":
+			installer.Spec.Kurl.PreflightIgnore = true
 		case "preflight-ignore-warnings":
 			installer.Spec.Kurl.PreflightIgnoreWarnings = true
 		case "preserve-docker-config":

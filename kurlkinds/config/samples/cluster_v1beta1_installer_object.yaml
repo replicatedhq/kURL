@@ -45,6 +45,7 @@ spec:
     hostnameCheck: 1.1.1.1
     nameserver: 1.1.1.1
     noProxy: false
+    preflightIgnore: false
     preflightIgnoreWarnings: false
     privateAddress: 1.1.1.1
     proxyAddress: 1.1.1.1

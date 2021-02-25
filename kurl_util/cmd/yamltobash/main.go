@@ -203,6 +203,7 @@ func convertToBash(kurlValues map[string]interface{}, fieldsSet map[string]bool)
 		"Kurl.HostnameCheck":                     "HOSTNAME_CHECK",
 		"Kurl.Nameserver":                        "NAMESERVER",
 		"Kurl.NoProxy":                           "NO_PROXY",
+		"Kurl.PreflightIgnore":                   "PREFLIGHT_IGNORE",
 		"Kurl.PreflightIgnoreWarnings":           "PREFLIGHT_IGNORE_WARNINGS",
 		"Kurl.PrivateAddress":                    "PRIVATE_ADDRESS",
 		"Kurl.ProxyAddress":                      "PROXY_ADDRESS",

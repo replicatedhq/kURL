@@ -365,6 +365,7 @@ export interface KurlConfig {
   nameserver?: string;
   noProxy?: string;
   privateAddress?: string;
+  preflightIgnore?: boolean;
   preflightIgnoreWarnings?: boolean;
   proxyAddress?: string;
   publicAddress?: string;
@@ -381,6 +382,7 @@ export const kurlConfigSchema = {
     hostnameCheck: { type: "string", flag: "hostname-check" , description: "Used as a check during an upgrade to ensure the script will run only on the given hostname" },
     nameserver: { type: "string" },
     noProxy: { type: "boolean", flag: "no-proxy" , description: "Don’t detect or configure a proxy" },
+    preflightIgnore: { type: "boolean", flag: "preflight-ignore" , description: "Ignore preflights" },
     preflightIgnoreWarnings: { type: "boolean", flag: "preflight-ignore-warnings" , description: "Ignore preflight warnings" },
     privateAddress: { type: "string", flag: "private-address" , description: "The local address of the host (different for each host in the cluster)" },
     proxyAddress: { type: "string", flag: "http-proxy" , description: "The address of the proxy to use for outbound connections" },

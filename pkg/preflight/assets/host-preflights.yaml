@@ -12,7 +12,7 @@ spec:
   analyzers:
     - cpu:
         outcomes:
-          - warn:
+          - fail:
               when: "count < 4"
               message: At least 4 CPU cores are required
           - pass:

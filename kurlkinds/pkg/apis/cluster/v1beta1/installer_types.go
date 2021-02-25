@@ -107,6 +107,7 @@ type Kurl struct {
 	HostnameCheck              string   `json:"hostnameCheck,omitempty" yaml:"hostnameCheck,omitempty"`
 	Nameserver                 string   `json:"nameserver,omitempty" yaml:"nameserver,omitempty"`
 	NoProxy                    bool     `json:"noProxy,omitempty" yaml:"noProxy,omitempty"`
+	PreflightIgnore            bool     `json:"preflightIgnore,omitempty" yaml:"preflightIgnore,omitempty"`
 	PreflightIgnoreWarnings    bool     `json:"preflightIgnoreWarnings,omitempty" yaml:"preflightIgnoreWarnings,omitempty"`
 	PrivateAddress             string   `json:"privateAddress,omitempty" yaml:"privateAddress,omitempty"`
 	ProxyAddress               string   `json:"proxyAddress,omitempty" yaml:"proxyAddress,omitempty"`
