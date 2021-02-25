@@ -1,0 +1,6 @@
+{
+  "name": "longhorn",
+  "fulfills": ["PVC Provisioner"],
+  "requires": ["CNI Plugin", "Container Runtime"],
+  "recommends": []
+}

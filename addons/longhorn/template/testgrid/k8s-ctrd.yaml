@@ -1,0 +1,13 @@
+kubernetes:
+  version: "latest"
+weave:
+  version: "latest"
+containerd:
+  version: "latest"
+minio:
+  version: "latest"
+kotsadm:
+  version: "latest"
+longhorn:
+  version: "__testver__"
+  s3Override: "__testdist__"

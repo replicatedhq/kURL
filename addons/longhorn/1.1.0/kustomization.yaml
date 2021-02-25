@@ -1,0 +1,11 @@
+resources:
+- namespace.yaml
+- crds.yaml
+- driver.yaml
+- manager.yaml
+- psp.yaml
+- rbac.yaml
+- settings-configmap.yaml
+- storageclass-configmap.yaml
+- ui-service.yaml
+- ui-deployment.yaml

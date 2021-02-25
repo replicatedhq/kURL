@@ -155,6 +155,12 @@ dist/host-openssl.tar.gz:
 	mkdir -p dist
 	tar cf - -C build packages/host/openssl | gzip > dist/host-openssl.tar.gz
 
+dist/longhorn-%.tar.gz: build/addons
+	mkdir -p build/addons/longhorn/$*/images
+	bin/save-manifest-assets.sh addons/longhorn/$*/Manifest $(CURDIR)/build/addons/longhorn/$*
+	mkdir -p dist
+	tar cf - -C build addons/longhorn/$* | gzip > dist/longhorn-$*.tar.gz
+
 dist/kubernetes-%.tar.gz:
 	${MAKE} build/packages/kubernetes/$*/images
 	${MAKE} build/packages/kubernetes/$*/ubuntu-16.04

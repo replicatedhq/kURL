@@ -75,4 +75,5 @@ type InstallerSpec struct {
 	CertManager     *kurlv1beta1.CertManager     `json:"certManager,omitempty" yaml:"certManager,omitempty"`
 	MetricsServer   *kurlv1beta1.MetricsServer   `json:"metricsServer,omitempty" yaml:"metricsServer,omitempty"`
 	Helm            *kurlv1beta1.Helm            `json:"helm,omitempty" yaml:"helm,omitempty"`
+	Longhorn        *kurlv1beta1.Longhorn        `json:"longhorn,omitempty" yaml:"longhorn,omitempty"`
 }

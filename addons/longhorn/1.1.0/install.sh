@@ -1,0 +1,92 @@
+function longhorn_pre_init() {
+    if [ -z "$LONGHORN_UI_BIND_PORT" ]; then
+        LONGHORN_UI_BIND_PORT="30880"
+    fi
+    if [ -z "$LONGHORN_UI_REPLICA_COUNT" ]; then
+        LONGHORN_UI_REPLICA_COUNT="0"
+    fi
+}
+
+function longhorn() {
+    local src="$DIR/addons/longhorn/$LONGHORN_VERSION"
+    local dst="$DIR/kustomize/longhorn"
+
+    if longhorn_has_default_storageclass && ! longhorn_is_default_storageclass ; then
+        printf "${YELLOW}Existing default storage class that is not Longhorn detected${NC}\n"
+        printf "${YELLOW}Longhorn will still be installed as the non-default storage class.${NC}\n"
+        cp "$src/storageclass-configmap.yaml" "$dst/"    
+    else
+        printf "Longhorn will be installed as the default storage class.\n"
+        cp "$src/storageclass-default-configmap.yaml" "$dst/storageclass-configmap.yaml"
+    fi
+
+    longhorn_host_init
+
+    cp "$src/crds.yaml" "$dst/"
+    cp "$src/driver.yaml" "$dst/"
+    cp "$src/manager.yaml" "$dst/"
+    cp "$src/namespace.yaml" "$dst/"
+    cp "$src/psp.yaml" "$dst/"
+    cp "$src/rbac.yaml" "$dst/"
+    cp "$src/settings-configmap.yaml" "$dst/"      # TODO (dan): Minio Addon integration
+    
+    cp "$src/kustomization.yaml" "$dst/"
+
+    render_yaml_file "$src/tmpl-ui-service.yaml" > "$dst/ui-service.yaml"
+    render_yaml_file "$src/tmpl-ui-deployment.yaml" > "$dst/ui-deployment.yaml"
+
+    kubectl apply -k "$dst/"
+
+    echo "Waiting for Longhorn Manager to create Storage Class"
+    spinner_until 120 kubernetes_resource_exists longhorn-system sc longhorn
+
+}
+
+function longhorn_is_default_storageclass() {
+    if kubectl get sc longhorn &> /dev/null && \
+    [ "$(kubectl get sc longhorn -o jsonpath='{.metadata.annotations.storageclass\.kubernetes\.io/is-default-class}')" = "true" ]; then
+        return 0
+    fi
+    return 1    
+}
+
+function longhorn_has_default_storageclass() {
+    local hasDefaultStorageClass
+    hasDefaultStorageClass=$(kubectl get sc -o jsonpath='{.items[*].metadata.annotations.storageclass\.kubernetes\.io/is-default-class}')
+        
+    if [ "$hasDefaultStorageClass" = "true" ] ; then
+        return 0
+    fi
+    return 1
+}
+
+function longhorn_join() {
+    longhorn_host_init
+}
+
+function longhorn_host_init() {
+    LONGHORN_HOST_PACKAGES_INSTALL="0"
+    longhorn_install_service_if_missing iscsid
+    longhorn_install_service_if_missing nfs-utils.service   
+}
+
+function longhorn_install_service_if_missing() {
+    local service=$1
+    local src="$DIR/addons/longhorn/$LONGHORN_VERSION"
+
+    if ! systemctl list-units | grep -q $service && [ "$LONGHORN_HOST_PACKAGES_INSTALL" = "0" ]; then
+        LONGHORN_HOST_PACKAGES_INSTALL="1"
+        install_host_archives "$src"
+        printf "${YELLOW}Host packages for Longhorn installed.${NC}\n"
+    fi
+
+    if ! systemctl -q is-active $service; then
+        printf "${YELLOW}$service service started${NC}\n"
+        systemctl start $service
+    fi
+
+    if ! systemctl -q is-enabled $service; then
+        printf "${YELLOW}$service service enabled${NC}\n"
+        systemctl enable $service
+    fi
+}

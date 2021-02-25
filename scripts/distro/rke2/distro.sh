@@ -42,6 +42,7 @@ function rke2_addon_for_each() {
     $cmd weave "$WEAVE_VERSION" "$WEAVE_S3_OVERRIDE"
     $cmd rook "$ROOK_VERSION" "$ROOK_S3_OVERRIDE"
     $cmd openebs "$OPENEBS_VERSION" "$OPENEBS_S3_OVERRIDE"
+    $cmd longhorn "$LONGHORN_VERSION" "$LONGHORN_S3_OVERRIDE"
     $cmd minio "$MINIO_VERSION" "$MINIO_S3_OVERRIDE"
     $cmd contour "$CONTOUR_VERSION" "$CONTOUR_S3_OVERRIDE"
     $cmd registry "$REGISTRY_VERSION" "$REGISTRY_S3_OVERRIDE"
