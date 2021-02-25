@@ -11,7 +11,6 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: openebs-maya-operator
-  namespace: ${OPENEBS_NAMESPACE}
 ---
 # Define Role that allows operations on K8s pods/deployments
 kind: ClusterRole
@@ -70,7 +69,6 @@ metadata:
 subjects:
 - kind: ServiceAccount
   name: openebs-maya-operator
-  namespace: ${OPENEBS_NAMESPACE}
 roleRef:
   kind: ClusterRole
   name: openebs-maya-operator
@@ -80,7 +78,6 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: maya-apiserver
-  namespace: ${OPENEBS_NAMESPACE}
   labels:
     name: maya-apiserver
     openebs.io/component-name: maya-apiserver
@@ -234,7 +231,6 @@ apiVersion: v1
 kind: Service
 metadata:
   name: maya-apiserver-service
-  namespace: ${OPENEBS_NAMESPACE}
   labels:
     openebs.io/component-name: maya-apiserver-svc
 spec:
@@ -251,7 +247,6 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: openebs-provisioner
-  namespace: ${OPENEBS_NAMESPACE}
   labels:
     name: openebs-provisioner
     openebs.io/component-name: openebs-provisioner
@@ -330,7 +325,6 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: openebs-snapshot-operator
-  namespace: ${OPENEBS_NAMESPACE}
   labels:
     name: openebs-snapshot-operator
     openebs.io/component-name: openebs-snapshot-operator
@@ -419,7 +413,6 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: openebs-ndm-config
-  namespace: ${OPENEBS_NAMESPACE}
   labels:
     openebs.io/component-name: ndm-config
 data:
@@ -457,7 +450,6 @@ apiVersion: apps/v1
 kind: DaemonSet
 metadata:
   name: openebs-ndm
-  namespace: ${OPENEBS_NAMESPACE}
   labels:
     name: openebs-ndm
     openebs.io/component-name: ndm
@@ -580,7 +572,6 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: openebs-ndm-operator
-  namespace: ${OPENEBS_NAMESPACE}
   labels:
     name: openebs-ndm-operator
     openebs.io/component-name: ndm-operator
@@ -654,7 +645,6 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: openebs-admission-server
-  namespace: ${OPENEBS_NAMESPACE}
   labels:
     app: admission-webhook
     openebs.io/component-name: admission-webhook
@@ -711,7 +701,6 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: openebs-localpv-provisioner
-  namespace: ${OPENEBS_NAMESPACE}
   labels:
     name: openebs-localpv-provisioner
     openebs.io/component-name: openebs-localpv-provisioner
