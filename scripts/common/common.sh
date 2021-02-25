@@ -663,8 +663,9 @@ function restart_systemd_and_wait() {
     echo "Service $serviceName restarted."
 }
 
-# waits for a job with the provided name to start and to be completed successfully
-# TODO implement
-function spinner_job_completed() {
-  return 0
+# returns true when a job has completed
+function job_is_completed() {
+  local namespace="$1"
+  local jobName="$2"
+  kubectl get jobs -n "$namespace" "$jobName" | grep -q '1/1'
 }

@@ -23,18 +23,6 @@ function openebs() {
 
     openebs_spc_cspc_migration
 
-    if [ "$OPENEBS_LOCALPV" = "1" ]; then
-        render_yaml_file "$src/tmpl-localpv-storage-class.yaml" > "$dst/localpv-storage-class.yaml"
-        insert_resources "$dst/kustomization.yaml" localpv-storage-class.yaml
-
-        if [ "$OPENEBS_LOCALPV_STORAGE_CLASS" = "default" ]; then
-            render_yaml_file "$src/tmpl-patch-localpv-default.yaml" > "$dst/patch-localpv-default.yaml"
-            insert_patches_strategic_merge "$dst/kustomization.yaml" patch-localpv-default.yaml
-        fi
-
-        kubectl apply -k "$dst/"
-    fi
-
     if [ "$OPENEBS_CSTOR" = "1" ]; then
         openebs_iscsi
 
@@ -86,6 +74,18 @@ function openebs() {
 
         # add replicas for pre-existing volumes if needed
         openebs_cstor_scale_volumes
+    fi
+
+    if [ "$OPENEBS_LOCALPV" = "1" ]; then
+        render_yaml_file "$src/tmpl-localpv-storage-class.yaml" > "$dst/localpv-storage-class.yaml"
+        insert_resources "$dst/kustomization.yaml" localpv-storage-class.yaml
+
+        if [ "$OPENEBS_LOCALPV_STORAGE_CLASS" = "default" ]; then
+            render_yaml_file "$src/tmpl-patch-localpv-default.yaml" > "$dst/patch-localpv-default.yaml"
+            insert_patches_strategic_merge "$dst/kustomization.yaml" patch-localpv-default.yaml
+        fi
+
+        kubectl apply -k "$dst/"
     fi
 }
 
@@ -259,9 +259,9 @@ function openebs_spc_cspc_migration() {
 
     local runningVer
     runningVer=$(kubectl -n $OPENEBS_NAMESPACE get deploy openebs-provisioner -o jsonpath='{.metadata.labels.openebs\.io/version}')
+    export PREVIOUS_OPENEBS_VERSION=$runningVer
 
     local semVerRunningList=( ${runningVer//./ } )
-    local semVerInstallList=( ${OPENEBS_VERSION//./ } )
 
     if [[ ${semVerRunningList[0]} -eq 2 ]] && [[ ${semVerRunningList[1]} -eq 6 ]]; then
       # this is already up to date
@@ -277,7 +277,7 @@ function openebs_spc_cspc_migration() {
 
 function openebs_cspc_upgrade() {
     # start upgrade process - see https://github.com/openebs/upgrade/blob/v2.6.0/docs/upgrade.md
-    kubectl delete csidriver cstor.csi.openebs.io
+    kubectl delete csidriver cstor.csi.openebs.io || true
 
     openebs_upgrade_pools
     return 0
@@ -286,9 +286,9 @@ function openebs_cspc_upgrade() {
 function openebs_cleanup_kubesystem() {
   # cleanup old kube-system statefulsets
   # https://github.com/openebs/upgrade/blob/v2.6.0/docs/upgrade.md#prerequisites-1
-  kubectl -n kube-system delete sts openebs-cstor-csi-controller
-  kubectl -n kube-system delete ds openebs-cstor-csi-node
-  kubectl -n kube-system delete sa openebs-cstor-csi-controller-sa,openebs-cstor-csi-node-sa
+  kubectl -n kube-system delete sts openebs-cstor-csi-controller || true
+  kubectl -n kube-system delete ds openebs-cstor-csi-node || true
+  kubectl -n kube-system delete sa openebs-cstor-csi-controller-sa,openebs-cstor-csi-node-sa || true
 }
 
 function openebs_spc_to_cspc() {
@@ -340,7 +340,8 @@ UPGRADE_POOLS
 
         kubectl apply -f $out_file
 
-        spinner_job_completed migrate-$pool
+        logSubstep "Waiting for SPC to CSPC job to complete for pool $pool"
+        spinner_until 240 job_is_completed "$OPENEBS_NAMESPACE" migrate-$pool
     done
     logSubstep "OpenEBS job(s) to upgrade from SPC to CSPC pools completed."
 }
@@ -348,18 +349,19 @@ UPGRADE_POOLS
 function openebs_upgrade_pools() {
     # upgrade job from https://github.com/openebs/upgrade/blob/v2.6.0/examples/upgrade/cstor-cspc.yaml
 
-    local runningVer
-    runningVer=$(kubectl -n $OPENEBS_NAMESPACE get deploy openebs-provisioner -o jsonpath='{.metadata.labels.openebs\.io/version}')
+    if [[ -z $PREVIOUS_OPENEBS_VERSION ]] || [[ "$PREVIOUS_OPENEBS_VERSION" == "2.6.0" ]]; then
+      return 0 # no upgrade needed
+    fi
 
     local pools
     pools=$(kubectl get cspc --template '{{range .items}}{{.metadata.name}}{{"\n"}}{{end}}')
 
-    local poolList
+    echo "" > /tmp/openebs-pool-upgrade.yaml.part
     for value in $pools; do
-      poolList+="        - \"$value\"\n"
+      echo "        - \"$value\"" >> /tmp/openebs-pool-upgrade.yaml.part
     done
 
-    logSubstep "Upgrading cspc pools $pools from $runningVer to $OPENEBS_VERSION"
+    logSubstep "Upgrading cspc pools $pools from $PREVIOUS_OPENEBS_VERSION to $OPENEBS_VERSION"
     local out_file=/tmp/openebs-pool-upgrade.yaml
     cat <<UPGRADE_POOLS >$out_file
 apiVersion: batch/v1
@@ -378,7 +380,7 @@ spec:
         - "cstor-cspc"
 
         # --from-version is the current version of the pool
-        - "--from-version=$runningVer"
+        - "--from-version=$PREVIOUS_OPENEBS_VERSION"
 
         # --to-version is the version desired upgrade version
         - "--to-version=2.6.0"
@@ -392,7 +394,7 @@ spec:
         #- "--to-version-image-tag=ci"
 
         # VERIFY that you have provided the correct list of CSPC Names
-$poolList
+$(cat /tmp/openebs-pool-upgrade.yaml.part)
 
         # Following are optional parameters
         # Log Level
@@ -412,7 +414,8 @@ $poolList
       restartPolicy: OnFailure
 UPGRADE_POOLS
     kubectl apply -f $out_file
-    spinner_job_completed "cstor-cspc-upgrade"
+    logSubstep "Waiting for cstor-cspc-upgrade job"
+    spinner_until 240 job_is_completed "$OPENEBS_NAMESPACE" "cstor-cspc-upgrade"
     logSubstep "OpenEBS batch job to upgrade cStor pools completed."
 }
 
@@ -420,18 +423,19 @@ UPGRADE_POOLS
 function openebs_upgrade_cstor() {
     # upgrade job from https://github.com/openebs/upgrade/blob/v2.6.0/examples/upgrade/cstor-volume.yaml
 
-    local runningVer
-    runningVer=$(kubectl -n $OPENEBS_NAMESPACE get deploy openebs-provisioner -o jsonpath='{.metadata.labels.openebs\.io/version}')
+    if [[ -z $PREVIOUS_OPENEBS_VERSION ]] || [[ "$PREVIOUS_OPENEBS_VERSION" == "2.6.0" ]]; then
+      return 0 # no upgrade needed
+    fi
 
     local pvs
     pvs=$(kubectl get pv --template '{{range .items}}{{.metadata.name}}{{"\n"}}{{end}}')
 
-    local pvList
-    for value in $pvs; do
-      pvList+="        - \"$value\"\n"
+    echo "" > /tmp/openebs-volume-upgrade.yaml.part
+    for value in $pools; do
+      echo "        - \"$value\"" >> /tmp/openebs-volume-upgrade.yaml.part
     done
 
-    logSubstep "Upgrading cstor volumes $pvs from $runningVer to $OPENEBS_VERSION"
+    logSubstep "Upgrading cstor volumes $pvs from $PREVIOUS_OPENEBS_VERSION to $OPENEBS_VERSION"
     local out_file=/tmp/openebs-volume-upgrade.yaml
     cat <<UPGRADE_VOLUME >$out_file
 apiVersion: batch/v1
@@ -450,7 +454,7 @@ spec:
         - "cstor-volume"
 
         # --from-version is the current version of the volume
-        - "--from-version=$runningVer"
+        - "--from-version=$PREVIOUS_OPENEBS_VERSION"
 
         # --to-version is the version desired upgrade version
         - "--to-version=2.6.0"
@@ -464,7 +468,7 @@ spec:
         #- "--to-version-image-tag=ci"
 
         # VERIFY that you have provided the correct list of volume Names
-$pvList
+$(cat /tmp/openebs-volume-upgrade.yaml.part)
 
         # Following are optional parameters
         # Log Level
@@ -484,7 +488,18 @@ $pvList
       restartPolicy: OnFailure
 UPGRADE_VOLUME
 
+    echo "cstor-volume-upgrade file:"
+
     kubectl apply -f $out_file
-    spinner_job_completed "cstor-volume-upgrade"
+    logSubstep "Waiting for cstor-volume-upgrade job"
+    spinner_until 240 job_is_completed "$OPENEBS_NAMESPACE" "cstor-volume-upgrade"
     logSubstep "OpenEBS batch job to upgrade cstor volumes completed."
+}
+
+# returns true when a job has completed
+# TODO: remove before merging
+function job_is_completed() {
+  local namespace="$1"
+  local jobName="$2"
+  kubectl get jobs -n "$namespace" "$jobName" | grep -q '1/1'
 }
