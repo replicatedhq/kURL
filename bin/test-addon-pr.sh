@@ -120,15 +120,17 @@ test_addon() {
 
   echo "Found test spec template $test_spec."
 
+  local specname=$(basename "$test_spec" ".yaml") # get the filename of the test spec, to be included in the test ref
+
   # Substitute
   local dist="https://${S3_BUCKET}.s3.amazonaws.com/pr/${PR_NUMBER}-${GITHUB_SHA:0:7}-${name}-${version}.tar.gz"
   sed -i "s#__testver__#${version}#g" /tmp/test-spec
   sed -i "s#__testdist__#${dist}#g" /tmp/test-spec
 
   # Run testgrid plan
-  ./testgrid/tgrun/bin/tgrun queue --staging --ref "pr-${PR_NUMBER}-${GITHUB_SHA:0:7}-${name}-${version}" --spec "$(cat /tmp/test-spec)"
-  echo "Submitted TestGrid Ref pr-${PR_NUMBER}-${GITHUB_SHA:0:7}-${name}-${version}"
-  MSG="$MSG https://testgrid.kurl.sh/run/pr-${PR_NUMBER}-${GITHUB_SHA:0:7}-${name}-${version}"
+  ./testgrid/tgrun/bin/tgrun queue --staging --ref "pr-${PR_NUMBER}-${GITHUB_SHA:0:7}-${name}-${version}-${specname}" --spec "$(cat /tmp/test-spec)"
+  echo "Submitted TestGrid Ref pr-${PR_NUMBER}-${GITHUB_SHA:0:7}-${name}-${version}-${specname}"
+  MSG="$MSG https://testgrid.kurl.sh/run/pr-${PR_NUMBER}-${GITHUB_SHA:0:7}-${name}-${version}-${specname}"
 }
 
 MSG="Testgrid Run(s) Executing @ "

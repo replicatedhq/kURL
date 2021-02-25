@@ -1,0 +1,18 @@
+image admission-server openebs/admission-server:2.6.0
+image cstor-istgt openebs/cstor-istgt:2.6.0
+image cstor-pool openebs/cstor-pool:2.6.0
+image cstor-pool-mgmt openebs/cstor-pool-mgmt:2.6.0
+image cstor-volume-mgmt openebs/cstor-volume-mgmt:2.6.0
+image linux-utils openebs/linux-utils:2.6.0
+image m-apiserver openebs/m-apiserver:2.6.0
+image m-exporter openebs/m-exporter:2.6.0
+image node-disk-manager openebs/node-disk-manager:1.2.0
+image node-disk-operator openebs/node-disk-operator:1.2.0
+image openebs-k8s-provisioner openebs/openebs-k8s-provisioner:2.6.0
+image provisioner-localpv openebs/provisioner-localpv:2.6.0
+image m-upgrade openebs/m-upgrade:2.6.0
+image snapshot-controller openebs/snapshot-controller:2.6.0
+image snapshot-provisioner openebs/snapshot-provisioner:2.6.0
+
+yum iscsi-initiator-utils
+apt open-iscsi

@@ -783,6 +783,7 @@ export class Installer {
     openebs: [
       "1.12.0",
       "1.6.0",
+      "2.6.0",
     ],
     minio: [
       "2020-01-25T02-50-51Z",
