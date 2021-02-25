@@ -258,6 +258,17 @@ spec:
                 publicAddress:
                   type: string
               type: object
+            longhorn:
+              properties:
+                s3Override:
+                  type: string
+                uiBindPort:
+                  type: integer
+                version:
+                  type: string
+              required:
+              - version
+              type: object
             metricsServer:
               properties:
                 s3Override:
