@@ -1,7 +1,8 @@
-kubernetes:
-  version: "latest"
-docker:
-  version: "latest"
-weave:
-  version: "__testver__"
-  s3Override: "__testdist__"
+- installerSpec:
+    kubernetes:
+      version: "latest"
+    docker:
+      version: "latest"
+    weave:
+      version: "__testver__"
+      s3Override: "__testdist__"

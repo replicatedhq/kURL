@@ -1,16 +1,84 @@
-kubernetes:
-  version: "latest"
-weave:
-  version: "latest"
-docker:
-  version: "latest"
-minio:
-  version: "latest"
-kotsadm:
-  version: "latest"
-openebs:
-  cstorStorageClassName: default
-  isCstorEnabled: true
-  namespace: openebs
-  version: "__testver__"
-  s3Override: "__testdist__"
+- installerSpec:
+    kubernetes:
+      version: "latest"
+    weave:
+      version: "latest"
+    docker:
+      version: "latest"
+    minio:
+      version: "latest"
+    kotsadm:
+      version: "latest"
+    openebs:
+      cstorStorageClassName: default
+      isCstorEnabled: true
+      namespace: openebs
+      version: "__testver__"
+      s3Override: "__testdist__"
+- installerSpec: # upgrade from 1.12.0 to the tested version
+    kubernetes:
+      version: "latest"
+    weave:
+      version: "latest"
+    docker:
+      version: "latest"
+    minio:
+      version: "latest"
+    kotsadm:
+      version: "latest"
+    openebs:
+      cstorStorageClassName: default
+      isCstorEnabled: true
+      namespace: openebs
+      version: "1.12.0"
+  upgradeSpec:
+    kubernetes:
+      version: "latest"
+    weave:
+      version: "latest"
+    docker:
+      version: "latest"
+    minio:
+      version: "latest"
+    kotsadm:
+      version: "latest"
+    openebs:
+      cstorStorageClassName: default
+      isCstorEnabled: true
+      namespace: openebs
+      version: "__testver__"
+      s3Override: "__testdist__"
+- installerSpec: # upgrade from the tested version to the tested version
+    kubernetes:
+      version: "latest"
+    weave:
+      version: "latest"
+    docker:
+      version: "latest"
+    minio:
+      version: "latest"
+    kotsadm:
+      version: "latest"
+    openebs:
+      cstorStorageClassName: default
+      isCstorEnabled: true
+      namespace: openebs
+      version: "__testver__"
+      s3Override: "__testdist__"
+  upgradeSpec:
+    kubernetes:
+      version: "latest"
+    weave:
+      version: "latest"
+    docker:
+      version: "latest"
+    minio:
+      version: "latest"
+    kotsadm:
+      version: "latest"
+    openebs:
+      cstorStorageClassName: default
+      isCstorEnabled: true
+      namespace: openebs
+      version: "__testver__"
+      s3Override: "__testdist__"
