@@ -16,6 +16,7 @@ func init() {
 					Version:                    "1.4.3",
 					HostpathRequiresPrivileged: true,
 					StorageClassName:           "default",
+					IsBlockStorageEnabled:      true,
 				},
 				Prometheus: &kurlv1beta1.Prometheus{
 					Version: "latest",
