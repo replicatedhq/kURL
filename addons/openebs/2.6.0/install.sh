@@ -19,7 +19,7 @@ function openebs() {
 
     render_yaml_file "$src/tmpl-kustomization.yaml" > "$dst/kustomization.yaml"
     render_yaml_file "$src/tmpl-namespace.yaml" > "$dst/namespace.yaml"
-    cp "$src/operator.yaml" "$dst/"
+    render_yaml_file "$src/tmpl-operator.yaml" > "$dst/operator.yaml"
 
     openebs_upgrade
 
@@ -38,7 +38,7 @@ function openebs() {
     if [ "$OPENEBS_CSTOR" = "1" ]; then
         openebs_iscsi
 
-        cp "$src/cstor-provisioner.yaml" "$dst/"
+        render_yaml_file "$src/tmpl-cstor-provisioner.yaml" > "$dst/cstor-provisioner.yaml"
         insert_resources "$dst/kustomization.yaml" cstor-provisioner.yaml
 
         kubectl apply -k "$dst/"

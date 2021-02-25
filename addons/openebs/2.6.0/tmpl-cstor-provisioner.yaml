@@ -59,7 +59,7 @@ metadata:
 subjects:
 - kind: ServiceAccount
   name: openebs-maya-operator
-  namespace: openebs
+  namespace: ${OPENEBS_NAMESPACE}
 roleRef:
   kind: ClusterRole
   name: openebs-cstor-operator
@@ -88,7 +88,7 @@ metadata:
 subjects:
 - kind: ServiceAccount
   name: openebs-maya-operator
-  namespace: openebs
+  namespace: ${OPENEBS_NAMESPACE}
 roleRef:
   kind: ClusterRole
   name: openebs-cstor-migration
@@ -897,7 +897,7 @@ metadata:
 subjects:
 - kind: ServiceAccount
   name: openebs-cstor-csi-controller-sa
-  namespace: openebs
+  namespace: ${OPENEBS_NAMESPACE}
 roleRef:
   kind: ClusterRole
   name: openebs-cstor-csi-snapshotter-role
@@ -958,7 +958,7 @@ kind: ServiceAccount
 apiVersion: v1
 metadata:
   name: openebs-cstor-csi-controller-sa
-  namespace: openebs
+  namespace: ${OPENEBS_NAMESPACE}
 
 ---
 kind: ClusterRole
@@ -1013,7 +1013,7 @@ metadata:
 subjects:
 - kind: ServiceAccount
   name: openebs-cstor-csi-controller-sa
-  namespace: openebs
+  namespace: ${OPENEBS_NAMESPACE}
 roleRef:
   kind: ClusterRole
   name: openebs-cstor-csi-provisioner-role
@@ -1024,7 +1024,7 @@ kind: StatefulSet
 apiVersion: apps/v1
 metadata:
   name: openebs-cstor-csi-controller
-  namespace: openebs
+  namespace: ${OPENEBS_NAMESPACE}
   labels:
     name: openebs-cstor-csi-controller
     openebs.io/component-name: openebs-cstor-csi-controller
@@ -1130,7 +1130,7 @@ spec:
         - name: OPENEBS_IO_INSTALLER_TYPE
           value: "cstor-operator"
         - name: OPENEBS_IO_ENABLE_ANALYTICS
-          value: "true"
+          value: "false"
         args :
         - "--endpoint=$(OPENEBS_CSI_ENDPOINT)"
         - "--url=$(OPENEBS_CSI_API_URL)"
@@ -1175,7 +1175,7 @@ metadata:
 subjects:
 - kind: ServiceAccount
   name: openebs-cstor-csi-controller-sa
-  namespace: openebs
+  namespace: ${OPENEBS_NAMESPACE}
 roleRef:
   kind: ClusterRole
   name: openebs-cstor-csi-attacher-role
@@ -1201,7 +1201,7 @@ metadata:
 subjects:
 - kind: ServiceAccount
   name: openebs-cstor-csi-controller-sa
-  namespace: openebs
+  namespace: ${OPENEBS_NAMESPACE}
 roleRef:
   kind: ClusterRole
   name: openebs-cstor-csi-cluster-registrar-role
@@ -1219,7 +1219,7 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: openebs-cstor-csi-node-sa
-  namespace: openebs
+  namespace: ${OPENEBS_NAMESPACE}
 
 ---
 
@@ -1247,7 +1247,7 @@ metadata:
 subjects:
 - kind: ServiceAccount
   name: openebs-cstor-csi-node-sa
-  namespace: openebs
+  namespace: ${OPENEBS_NAMESPACE}
 roleRef:
   kind: ClusterRole
   name: openebs-cstor-csi-registrar-role
@@ -1258,7 +1258,7 @@ kind: ConfigMap
 apiVersion: v1
 metadata:
   name: openebs-cstor-csi-iscsiadm
-  namespace: openebs
+  namespace: ${OPENEBS_NAMESPACE}
 data:
   iscsiadm: |
     #!/bin/sh
@@ -1279,7 +1279,7 @@ kind: DaemonSet
 apiVersion: apps/v1
 metadata:
   name: openebs-cstor-csi-node
-  namespace: openebs
+  namespace: ${OPENEBS_NAMESPACE}
   labels:
     app: openebs-cstor-csi-node
     name: openebs-cstor-csi-node
@@ -4632,7 +4632,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: cspc-operator
-  namespace: openebs
+  namespace: ${OPENEBS_NAMESPACE}
   labels:
     name: cspc-operator
     openebs.io/component-name: cspc-operator
@@ -4697,7 +4697,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: cvc-operator
-  namespace: openebs
+  namespace: ${OPENEBS_NAMESPACE}
   labels:
     name: cvc-operator
     openebs.io/component-name: cvc-operator
@@ -4754,7 +4754,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: cvc-operator-service
-  namespace: openebs
+  namespace: ${OPENEBS_NAMESPACE}
   labels:
     openebs.io/component-name: cvc-operator-svc
 spec:
@@ -4771,7 +4771,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: openebs-cstor-admission-server
-  namespace: openebs
+  namespace: ${OPENEBS_NAMESPACE}
   labels:
     app: cstor-admission-webhook
     openebs.io/component-name: cstor-admission-webhook
