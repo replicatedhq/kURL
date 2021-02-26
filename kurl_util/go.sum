@@ -340,6 +340,12 @@ github.com/prometheus/procfs v0.0.2 h1:6LJUbpNm42llc4HRCuvApCSWB/WfhuNo9K98Q9sNG
 github.com/prometheus/procfs v0.0.2/go.mod h1:TjEm7ze935MbeOT/UhFTIMYKhuLP4wbCsTZCD3I8kEA=
 github.com/replicatedhq/kurl/kurlkinds v0.0.0-20210217180730-2a5af0e23b74 h1:ke0kmA/ttLVujHQ9i4z7GQAnaWeBXbgh8MHhAPSqZI4=
 github.com/replicatedhq/kurl/kurlkinds v0.0.0-20210217180730-2a5af0e23b74/go.mod h1:lD3hLpsKiX/N6Pfl9zLBMw82r95I8YUGZe1pjsY9u0U=
+github.com/replicatedhq/kurl/kurlkinds v0.0.0-20210225180501-39bcbb383602 h1:RfTzPL9agKW3ueZi3kAytsztrbaI6S+1/70T2jkgdWQ=
+github.com/replicatedhq/kurl/kurlkinds v0.0.0-20210225180501-39bcbb383602/go.mod h1:LNkb/bMcnPPv8KLuTAKWkBzWFTo19ncFf+UzxGNwhNM=
+github.com/replicatedhq/kurl/kurlkinds v0.0.0-20210225230507-64207b406098 h1:1s9/BA+iNuzzu16Gd1RoCjN2euK4DHq1N8/nqVBT/sQ=
+github.com/replicatedhq/kurl/kurlkinds v0.0.0-20210225230507-64207b406098/go.mod h1:LNkb/bMcnPPv8KLuTAKWkBzWFTo19ncFf+UzxGNwhNM=
+github.com/replicatedhq/kurl/kurlkinds v0.0.0-20210226214210-f70611ccfbfc h1:FWxeCvz20Y9NUMPYtVzLu1nMTIVX1uYwsuBracoDxGI=
+github.com/replicatedhq/kurl/kurlkinds v0.0.0-20210226214210-f70611ccfbfc/go.mod h1:LNkb/bMcnPPv8KLuTAKWkBzWFTo19ncFf+UzxGNwhNM=
 github.com/rogpeppe/fastuuid v0.0.0-20150106093220-6724a57986af/go.mod h1:XWv6SoW27p1b0cqNHllgS5HIMJraePCO15w5zCzIWYg=
 github.com/rogpeppe/go-internal v1.3.0/go.mod h1:M8bDsm7K2OlrFYOpmOWEs/qY81heoFRclV5y23lUDJ4=
 github.com/russross/blackfriday v1.5.2/go.mod h1:JO/DiYxRf+HjHt06OyowR9PTA263kcR/rfWxYHBV53g=

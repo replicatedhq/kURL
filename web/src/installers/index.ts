@@ -551,6 +551,25 @@ export const helmConfigSchema = {
   additionalProperties: false,
 };
 
+export interface LonghornConfig {
+  s3Override?: string;
+  uiBindPort?: number;
+  uiReplicaCount?: number;
+  version: string;
+}
+
+export const LonghornSchema = {
+  type: "object",
+  properties: {
+    s3Override: { type: "string", flag: "s3-override", description: "Override the download location for addon package distribution (used for CI/CD testing alpha addons)" },
+    uiBindPort: { type: "number", flag: "longhorn-ui-bind-port", description: "This is the port where the Longhorn UI can be reached via the browser" },
+    uiReplicaCount: { type: "number", flag: "longhorn-ui-replica-count", description: "The number of pods to deploy for the Longhorn UI (default is 0)" },
+    version: { type: "string" },
+  },
+  required: ["version"],
+  additionalProperties: false,
+};
+
 export interface InstallerSpec {
   kubernetes: KubernetesConfig;
   rke2?: RKE2Config;
@@ -577,6 +596,7 @@ export interface InstallerSpec {
   firewalldConfig?: FirewalldConfig;
   selinuxConfig?: SelinuxConfig;
   helm?: HelmConfig;
+  longhorn: LonghornConfig;
 }
 
 const specSchema = {
@@ -608,6 +628,7 @@ const specSchema = {
     iptablesConfig: iptablesConfigSchema,
     selinuxConfig: selinuxConfigSchema,
     helm: helmConfigSchema,
+    longhorn: LonghornSchema,
   },
   additionalProperites: false,
 };
@@ -816,6 +837,9 @@ export class Installer {
     metricsServer: [
       "0.3.7",
       "0.4.1",
+    ],
+    longhorn: [
+      "1.1.0",
     ],
   };
 
@@ -1224,6 +1248,9 @@ export class Installer {
     }
     if (this.spec.metricsServer && !Installer.hasVersion("metricsServer", this.spec.metricsServer.version) && !this.hasS3Override("metricsServer")) {
       return { error: { message: `MetricsServer version "${_.escape(this.spec.metricsServer.version)}" is not supported` } };
+    }
+    if (this.spec.longhorn && !Installer.hasVersion("longhorn", this.spec.longhorn.version) && !this.hasS3Override("longhorn")) {
+      return { error: { message: `Longhorn version "${_.escape(this.spec.longhorn.version)}" is not supported` } };
     }
   }
 
