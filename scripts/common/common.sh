@@ -289,9 +289,13 @@ function kubernetes_resource_exists() {
 function install_cri() {
     # In the event someone changes the installer spec from docker to containerd, maintain backward capability with old installs
     if [ -n "$DOCKER_VERSION" ] || [ "$SKIP_DOCKER_INSTALL" = "1" ] ; then
-        report_install_docker || addon_install_fail_nobundle "docker" "$DOCKER_VERSION"
+#        trap 'addon_install_fail_nobundle "docker" "$DOCKER_VERSION"' ERR
+        report_install_docker
+#        trap - ERR
     elif [ -n "$CONTAINERD_VERSION" ]; then
-        report_install_containerd || addon_install_fail_nobundle "containerd" "$CONTAINERD_VERSION"
+#        trap 'addon_install_fail_nobundle "containerd" "$CONTAINERD_VERSION"' ERR
+        report_install_containerd
+#        trap - ERR
     fi
 }
 
