@@ -14,7 +14,7 @@ spec:
         collectorName: loadbalancer
         port: 6443
         address: {{ .Installer.Spec.Kubernetes.LoadBalancerAddress }}
-      exclude: '{{ and .IsPrimary (not .IsJoin) (not .Installer.Spec.Kubernetes.LoadBalancerAddress) }}'
+      exclude: '{{ and .Installer.Spec.Kubernetes.LoadBalancerAddress .IsPrimary (not .IsJoin) (not .IsUpgrade) | not }}'
   analyzers:
     - cpu:
         outcomes:
@@ -58,4 +58,4 @@ spec:
               message: Successfully connected to {{ .Installer.Spec.Kubernetes.LoadBalancerAddress }} via load balancer
           - warn:
               message: Unexpected port status
-      exclude: '{{ and .IsPrimary (not .IsJoin) (not .Installer.Spec.Kubernetes.LoadBalancerAddress) }}'
+      exclude: '{{ and .Installer.Spec.Kubernetes.LoadBalancerAddress .IsPrimary (not .IsJoin) (not .IsUpgrade) | not }}'
