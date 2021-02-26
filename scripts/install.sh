@@ -368,7 +368,9 @@ function all_kubernetes_install() {
 
 function report_kubernetes_install() {
     report_addon_start "kubernetes" "$KUBERNETES_VERSION"
-    all_kubernetes_install || addon_install_fail_nobundle "kubernetes" "$KUBERNETES_VERSION"
+    trap 'addon_install_fail_nobundle "kubernetes" "$KUBERNETES_VERSION"' ERR
+    all_kubernetes_install
+    trap - ERR
     report_addon_success "kubernetes" "$KUBERNETES_VERSION"
 }
 

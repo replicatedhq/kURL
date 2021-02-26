@@ -17,7 +17,9 @@ function upgrade_kubernetes() {
 
 function report_upgrade_kubernetes() {
     report_addon_start "kubernetes_upgrade" "$KUBERNETES_VERSION"
-    upgrade_kubernetes || addon_install_fail_nobundle "kubernetes_upgrade" "$KUBERNETES_VERSION"
+    trap 'addon_install_fail_nobundle "kubernetes_upgrade" "$KUBERNETES_VERSION"' ERR
+    upgrade_kubernetes
+    trap - ERR
     report_addon_success "kubernetes_upgrade" "$KUBERNETES_VERSION"
 }
 
