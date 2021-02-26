@@ -264,6 +264,8 @@ spec:
                   type: string
                 uiBindPort:
                   type: integer
+                uiReplicaCount:
+                  type: integer
                 version:
                   type: string
               required:
