@@ -23,7 +23,7 @@ func Decode(data []byte) (*troubleshootv1beta2.HostPreflight, error) {
 	}
 
 	if gvk.Group != "troubleshoot.sh" || gvk.Version != "v1beta2" || gvk.Kind != "HostPreflight" {
-		return nil, errors.Errorf("unexpected gvk %s", gvk)
+		return nil, errors.Errorf("unexpected gvk %q", gvk)
 	}
 
 	spec, ok := obj.(*troubleshootv1beta2.HostPreflight)

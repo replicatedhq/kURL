@@ -12,8 +12,6 @@ function preflights() {
     kotsadm_prerelease
     host_nameservers_reachable
 
-    host_preflights
-
     return 0
 }
 
@@ -339,9 +337,22 @@ function preflights_require_no_kubernetes_or_current_node() {
 }
 
 function host_preflights() {
+    local is_primary="$1"
+    local is_join="$2"
+    local is_upgrade="$3"
+
     local opts=
-    if [ "${PREFLIGHT_IGNORE_WARNINGS}" = "1" ]; then
+    if [ "${PREFLIGHT_IGNORE_WARNINGS}" = "1" ] || [ ! -t 1 ] ; then # if no tty
         opts="${opts} --ignore-warnings"
+    fi
+    if [ "${is_primary}" != "1" ]; then
+        opts="${opts} --is-primary=false"
+    fi
+    if [ "${is_join}" = "1" ]; then
+        opts="${opts} --is-join"
+    fi
+    if [ "${is_upgrade}" = "1" ]; then
+        opts="${opts} --is-upgrade"
     fi
 
     logStep "Running host preflights"

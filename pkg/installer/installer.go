@@ -25,7 +25,7 @@ func RetrieveSpec(fs afero.Fs, filename string) (*clusterv1beta1.Installer, erro
 	}
 
 	if gvk.Group != "cluster.kurl.sh" || gvk.Version != "v1beta1" || gvk.Kind != "Installer" {
-		return nil, errors.Errorf("unexpected gvk %s", gvk)
+		return nil, errors.Errorf("unexpected gvk %q", gvk)
 	}
 
 	spec, ok := obj.(*clusterv1beta1.Installer)

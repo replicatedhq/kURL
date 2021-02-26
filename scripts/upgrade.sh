@@ -116,6 +116,7 @@ function main() {
     journald_persistent
     configure_proxy
     configure_no_proxy
+    host_preflights "${MASTER:-0}" "1" "1"
     install_cri
     get_shared
     maybe_upgrade

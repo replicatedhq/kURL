@@ -26,13 +26,24 @@ func NewPreflightCmd(cli CLI) *cobra.Command {
 			return viper.BindPFlags(cmd.Flags())
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			_, err := installer.RetrieveSpec(cli.GetFS(), args[0])
+			installerSpec, err := installer.RetrieveSpec(cli.GetFS(), args[0])
 			if err != nil {
 				return errors.Wrap(err, "retrieve installer spec")
 			}
 
-			// TODO(ethan): use spec for conditional preflights
-			preflightSpec, err := preflight.Decode([]byte(preflight.Builtin()))
+			builtin := preflight.Builtin()
+			data := installer.TemplateData{
+				Installer: *installerSpec,
+				IsPrimary: viper.GetBool("is-primary"),
+				IsJoin:    viper.GetBool("is-join"),
+				IsUpgrade: viper.GetBool("is-upgrade"),
+			}
+			spec, err := installer.ExecuteTemplate("installerSpec", builtin, data)
+			if err != nil {
+				return errors.Wrap(err, "execute installer template")
+			}
+
+			preflightSpec, err := preflight.Decode(spec)
 			if err != nil {
 				return errors.Wrap(err, "decode spec")
 			}
@@ -66,6 +77,9 @@ func NewPreflightCmd(cli CLI) *cobra.Command {
 	}
 
 	cmd.Flags().Bool("ignore-warnings", false, "ignore preflight warnings")
+	cmd.Flags().Bool("is-primary", true, "set to true if this node is a primary")
+	cmd.Flags().Bool("is-join", false, "set to true if this node is joining an existing cluster (non-primary implies join)")
+	cmd.Flags().Bool("is-upgrade", false, "set to true if this is an upgrade")
 
 	return cmd
 }

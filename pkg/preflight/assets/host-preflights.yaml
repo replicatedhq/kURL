@@ -1,3 +1,4 @@
+# https://kurl.sh/docs/install-with-kurl/system-requirements
 apiVersion: troubleshoot.sh/v1beta2
 kind: HostPreflight
 metadata:
@@ -9,6 +10,11 @@ spec:
     - diskUsage:
         collectorName: ephemeral
         path: /var/lib/kubelet
+    - tcpLoadBalancer:
+        collectorName: loadbalancer
+        port: 6443
+        address: {{ .Installer.Spec.Kubernetes.LoadBalancerAddress }}
+      exclude: '{{ and .IsPrimary (not .IsJoin) (not .Installer.Spec.Kubernetes.LoadBalancerAddress) }}'
   analyzers:
     - cpu:
         outcomes:
@@ -35,3 +41,21 @@ spec:
               message: /var/lib/kubelet has less than 30Gi of total space
           - pass:
               message: /var/lib/kubelet has at least 30Gi disk space available
+    - tcpLoadBalancer:
+        collectorName: loadbalancer
+        outcomes:
+          - fail:
+              when: "connection-refused"
+              message: Connection to {{ .Installer.Spec.Kubernetes.LoadBalancerAddress }} via load balancer was refused.
+          - fail:
+              when: "connection-timeout"
+              message: Timed out connecting to {{ .Installer.Spec.Kubernetes.LoadBalancerAddress }} via load balancer. Check your firewall.
+          - fail:
+              when: "error"
+              message: Unexpected port status
+          - pass:
+              when: "connected"
+              message: Successfully connected to {{ .Installer.Spec.Kubernetes.LoadBalancerAddress }} via load balancer
+          - warn:
+              message: Unexpected port status
+      exclude: '{{ and .IsPrimary (not .IsJoin) (not .Installer.Spec.Kubernetes.LoadBalancerAddress) }}'
