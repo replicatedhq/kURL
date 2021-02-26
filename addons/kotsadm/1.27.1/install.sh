@@ -406,14 +406,17 @@ function kotsadm_cacerts_file() {
     # OpenSUSE
     # OpenELEC
     # Debian/Ubuntu/Gentoo etc. This is where OpenSSL will look. It's moved to the bottom because this exists as a link on some other platforms
-    set \
-        "/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem" \
-        "/etc/pki/tls/certs/ca-bundle.crt" \
-        "/etc/ssl/ca-bundle.pem" \
-        "/etc/pki/tls/cacert.pem" \
-        "/etc/ssl/certs/ca-certificates.crt"
+    local sslDirectories
+    sslDirectories=( \
+        "/etc/ssl/certs/ca-certificates.crt" \                  # Debian/Ubuntu/Gentoo etc.
+        "/etc/pki/tls/certs/ca-bundle.crt" \                    # Fedora/RHEL 6
+        "/etc/ssl/ca-bundle.pem" \                              # OpenSUSE
+        "/etc/pki/tls/cacert.pem" \                             # OpenELEC
+        "/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem" \   # CentOS/RHEL 7
+        "/etc/ssl/cert.pem" \                                   # Alpine Linux
+    )
 
-    for cert_file do
+    for cert_file in ${sslDirectories[@]};  do
         if [ -f "$cert_file" ]; then
             KOTSADM_TRUSTED_CERT_MOUNT="${cert_file}"
             break
