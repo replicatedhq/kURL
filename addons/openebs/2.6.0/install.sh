@@ -495,11 +495,3 @@ UPGRADE_VOLUME
     spinner_until 240 job_is_completed "$OPENEBS_NAMESPACE" "cstor-volume-upgrade"
     logSubstep "OpenEBS batch job to upgrade cstor volumes completed."
 }
-
-# returns true when a job has completed
-# TODO: remove before merging
-function job_is_completed() {
-  local namespace="$1"
-  local jobName="$2"
-  kubectl get jobs -n "$namespace" "$jobName" | grep -q '1/1'
-}
