@@ -35,9 +35,9 @@ type OperatingSystemImage struct {
 }
 
 type Instance struct {
-	InstallerSpec    InstallerSpec
-	UpgradeSpec      *InstallerSpec
-	UnsupportedOSIDs []string
+	InstallerSpec    InstallerSpec  `json:"installerSpec" yaml:"installerSpec"`
+	UpgradeSpec      *InstallerSpec `json:"upgradeSpec,omitempty" yaml:"upgradeSpec,omitempty"`
+	UnsupportedOSIDs []string       `json:"unsupportedOSIDs,omitempty" yaml:"unsupportedOSIDs,omitempty"`
 }
 
 type Installer struct {

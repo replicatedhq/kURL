@@ -1,11 +1,12 @@
-kubernetes:
-  version: "latest"
-weave:
-  version: "latest"
-rook:
-  version: "latest"
-docker:
-  version: "latest"
-velero:
-  version: "__testver__"
-  s3Override: "__testdist__"
+- installerSpec:
+    kubernetes:
+      version: "latest"
+    weave:
+      version: "latest"
+    rook:
+      version: "latest"
+    docker:
+      version: "latest"
+    velero:
+      version: "__testver__"
+      s3Override: "__testdist__"

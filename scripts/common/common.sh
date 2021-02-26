@@ -678,3 +678,10 @@ function restart_systemd_and_wait() {
 
     echo "Service $serviceName restarted."
 }
+
+# returns true when a job has completed
+function job_is_completed() {
+  local namespace="$1"
+  local jobName="$2"
+  kubectl get jobs -n "$namespace" "$jobName" | grep -q '1/1'
+}

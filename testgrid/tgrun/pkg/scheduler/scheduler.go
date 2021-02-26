@@ -164,27 +164,25 @@ func getKurlPlans(schedulerOptions types.SchedulerOptions) ([]types.Instance, er
 
 	// Custom Kurl Spec takes precedence
 	if schedulerOptions.Spec != "" {
-		installSpec := types.InstallerSpec{}
-		err := yaml.Unmarshal([]byte(schedulerOptions.Spec), &installSpec)
+		err := yaml.Unmarshal([]byte(schedulerOptions.Spec), &kurlPlans)
 		if err != nil {
 			return nil, err
 		}
 
-		isDistroDefined := installSpec.Kubernetes.Version != "" || installSpec.RKE2 != nil || installSpec.K3S != nil
-		if !isDistroDefined {
-			installSpec.Kubernetes.Version = "latest"
-		}
+		for idx, _ := range kurlPlans {
+			// ensure that installerSpec has a k8s and CRI version specified
+			isDistroDefined := kurlPlans[idx].InstallerSpec.Kubernetes.Version != "" || kurlPlans[idx].InstallerSpec.RKE2 != nil || kurlPlans[idx].InstallerSpec.K3S != nil
+			if !isDistroDefined {
+				kurlPlans[idx].InstallerSpec.Kubernetes.Version = "latest"
+			}
 
-		isDistroRancher := installSpec.RKE2 != nil || installSpec.K3S != nil
-		if installSpec.Docker == nil && installSpec.Containerd == nil && !isDistroRancher {
-			installSpec.Docker = &kurlv1beta1.Docker{
-				Version: "latest",
+			isDistroRancher := kurlPlans[idx].InstallerSpec.RKE2 != nil || kurlPlans[idx].InstallerSpec.K3S != nil
+			if kurlPlans[idx].InstallerSpec.Docker == nil && kurlPlans[idx].InstallerSpec.Containerd == nil && !isDistroRancher {
+				kurlPlans[idx].InstallerSpec.Docker = &kurlv1beta1.Docker{
+					Version: "latest",
+				}
 			}
 		}
-
-		kurlPlans = append(kurlPlans, types.Instance{
-			InstallerSpec: installSpec,
-		})
 
 		// Latest-only flag is set
 	} else if schedulerOptions.LatestOnly {
