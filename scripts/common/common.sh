@@ -497,14 +497,20 @@ function install_host_packages() {
 
     case "$LSB_DIST" in
         ubuntu)
-            DEBIAN_FRONTEND=noninteractive dpkg --install --force-depends-version ${dir}/ubuntu-${DIST_VERSION}/*.deb
+            if test -n "$(shopt -s nullglob; echo ${dir}/ubuntu-${DIST_VERSION}/*.deb )" ; then
+                DEBIAN_FRONTEND=noninteractive dpkg --install --force-depends-version ${dir}/ubuntu-${DIST_VERSION}/*.deb
+            fi
             ;;
 
         centos|rhel|amzn)
             if [[ "$DIST_VERSION" =~ ^8 ]]; then
-                rpm --upgrade --force --nodeps ${dir}/rhel-8/*.rpm
+                if test -n "$(shopt -s nullglob; echo ${dir}/rhel-8/*.rpm )" ; then
+                    rpm --upgrade --force --nodeps ${dir}/rhel-8/*.rpm
+                fi
             else
-                rpm --upgrade --force --nodeps ${dir}/rhel-7/*.rpm
+                if test -n "$(shopt -s nullglob; echo ${dir}/rhel-7/*.rpm )" ; then
+                    rpm --upgrade --force --nodeps ${dir}/rhel-7/*.rpm
+                fi
             fi
             ;;
     esac
@@ -523,14 +529,20 @@ function install_host_archives() {
 
     case "$LSB_DIST" in
         ubuntu)
-            DEBIAN_FRONTEND=noninteractive dpkg --install --force-depends-version ${dir}/ubuntu-${DIST_VERSION}/archives/*.deb
+            if test -n "$(shopt -s nullglob; echo ${dir}/ubuntu-${DIST_VERSION}/archives/*.deb )" ; then
+                DEBIAN_FRONTEND=noninteractive dpkg --install --force-depends-version ${dir}/ubuntu-${DIST_VERSION}/archives/*.deb
+            fi
             ;;
 
         centos|rhel|amzn)
             if [[ "$DIST_VERSION" =~ ^8 ]]; then
-                rpm --upgrade --force --nodeps ${dir}/rhel-8/archives/*.rpm
+                if test -n "$(shopt -s nullglob; echo ${dir}/rhel-8/archives/*.rpm )" ; then
+                    rpm --upgrade --force --nodeps ${dir}/rhel-8/archives/*.rpm
+                fi
             else
-                rpm --upgrade --force --nodeps ${dir}/rhel-7/archives/*.rpm
+                if test -n "$(shopt -s nullglob; echo ${dir}/rhel-7/archives/*.rpm )" ; then
+                    rpm --upgrade --force --nodeps ${dir}/rhel-7/archives/*.rpm
+                fi
             fi
             ;;
     esac
