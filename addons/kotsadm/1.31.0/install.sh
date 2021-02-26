@@ -402,15 +402,17 @@ function kotsadm_cacerts_file() {
 
     # See https://github.com/golang/go/blob/ec4051763d439e7108bc673dd0b1bf1cbbc5dfc5/src/crypto/x509/root_linux.go
     # TODO(dan): need to test this re-ordering
-    set \
+    local sslDirectories
+    sslDirectories=( \
         "/etc/ssl/certs/ca-certificates.crt" \                  # Debian/Ubuntu/Gentoo etc.
         "/etc/pki/tls/certs/ca-bundle.crt" \                    # Fedora/RHEL 6
         "/etc/ssl/ca-bundle.pem" \                              # OpenSUSE
         "/etc/pki/tls/cacert.pem" \                             # OpenELEC
         "/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem" \   # CentOS/RHEL 7
-        "/etc/ssl/cert.pem"                                     # Alpine Linux
+        "/etc/ssl/cert.pem" \                                   # Alpine Linux
+    )
 
-    for cert_file do
+    for cert_file in ${sslDirectories[@]};  do
         if [ -f "$cert_file" ]; then
             KOTSADM_TRUSTED_CERT_MOUNT="${cert_file}"
             break
