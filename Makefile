@@ -521,10 +521,21 @@ web: build/templates build/bin/server
 watchrsync:
 	bin/watchrsync.js
 
+.PHONY: deps
+deps:
+	go mod download golang.org/x/lint
+
+.PHONY: lint
+lint:
+	golint ./cmd/... ./pkg/... # TODO -set_exit_status
+
+.PHONY: vet
+vet:
+	go vet ./cmd/... ./pkg/...
+
 .PHONY: test
-test:
-	go test ./cmd/...
-	go test ./pkg/...
+test: lint vet
+	go test ./cmd/... ./pkg/...
 
 .PHONY: test-shell
 test-shell:

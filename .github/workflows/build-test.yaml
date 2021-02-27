@@ -24,8 +24,7 @@ jobs:
 
       - uses: actions/checkout@v2
 
-      - run: go get golang.org/x/lint/golint
-      - run: make -C kurl_util test build
+      - run: make -C kurl_util deps test build
 
       - uses: actions/setup-node@v2.1.5
         with:
@@ -48,9 +47,7 @@ jobs:
 
       - uses: actions/checkout@v2
 
-      - run: go get golang.org/x/lint/golint
-      - run: make build/bin/kurl
-      - run: make test
+      - run: make deps test build/bin/kurl
 
 
   build-testgrid:
