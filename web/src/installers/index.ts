@@ -596,7 +596,7 @@ export interface InstallerSpec {
   firewalldConfig?: FirewalldConfig;
   selinuxConfig?: SelinuxConfig;
   helm?: HelmConfig;
-  longhorn: LonghornConfig;
+  longhorn?: LonghornConfig;
 }
 
 const specSchema = {
