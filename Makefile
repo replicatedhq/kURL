@@ -523,7 +523,7 @@ watchrsync:
 
 .PHONY: deps
 deps:
-	go install golang.org/x/lint/golint
+	go get -u golang.org/x/lint/golint
 
 .PHONY: lint
 lint:
