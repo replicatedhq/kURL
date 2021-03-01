@@ -14,9 +14,10 @@ spec:
         collectorName: loadbalancer
         port: 6443
         address: {{ .Installer.Spec.Kubernetes.LoadBalancerAddress }}
-      exclude: '{{ and .Installer.Spec.Kubernetes.LoadBalancerAddress .IsPrimary (not .IsJoin) (not .IsUpgrade) | not }}'
+        exclude: '{{ and .Installer.Spec.Kubernetes.LoadBalancerAddress .IsPrimary (not .IsJoin) (not .IsUpgrade) | not }}'
   analyzers:
     - cpu:
+        checkName: "Number of CPUs"
         outcomes:
           - fail:
               when: "count < 4"
@@ -24,6 +25,7 @@ spec:
           - pass:
               message: This server has at least 4 CPU cores
     - memory:
+        checkName: "Amount of Memory"
         outcomes:
           - fail:
               when: "< 8Gi"
@@ -31,6 +33,7 @@ spec:
           - pass:
               message: The system has at least 8Gi of memory
     - diskUsage:
+        checkName: "Ephemeral Disk Usage"
         collectorName: ephemeral
         outcomes:
           - warn:
@@ -42,15 +45,17 @@ spec:
           - pass:
               message: /var/lib/kubelet has at least 30Gi disk space available
     - tcpLoadBalancer:
+        checkName: "Kubernetes API Server Load Balancer"
         collectorName: loadbalancer
+        exclude: '{{ and .Installer.Spec.Kubernetes.LoadBalancerAddress .IsPrimary (not .IsJoin) (not .IsUpgrade) | not }}'
         outcomes:
-          - fail:
+          - warn: # fail
               when: "connection-refused"
               message: Connection to {{ .Installer.Spec.Kubernetes.LoadBalancerAddress }} via load balancer was refused.
-          - fail:
+          - warn: # fail
               when: "connection-timeout"
               message: Timed out connecting to {{ .Installer.Spec.Kubernetes.LoadBalancerAddress }} via load balancer. Check your firewall.
-          - fail:
+          - warn: # fail
               when: "error"
               message: Unexpected port status
           - pass:
@@ -58,4 +63,3 @@ spec:
               message: Successfully connected to {{ .Installer.Spec.Kubernetes.LoadBalancerAddress }} via load balancer
           - warn:
               message: Unexpected port status
-      exclude: '{{ and .Installer.Spec.Kubernetes.LoadBalancerAddress .IsPrimary (not .IsJoin) (not .IsUpgrade) | not }}'

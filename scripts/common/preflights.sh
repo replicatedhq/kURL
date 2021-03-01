@@ -359,7 +359,9 @@ function host_preflights() {
     if [ "${PREFLIGHT_IGNORE}" = "1" ]; then
         "${DIR}"/bin/kurl preflight "${MERGED_YAML_SPEC}" ${opts} || true
     else
-        "${DIR}"/bin/kurl preflight "${MERGED_YAML_SPEC}" ${opts} </dev/tty
+        if ! "${DIR}"/bin/kurl preflight "${MERGED_YAML_SPEC}" ${opts} </dev/tty ; then
+            bail "Host preflights have failures. Use the \"preflight-ignore\" flag to proceed."
+        fi
     fi
     logStep "Host preflights success"
 }
