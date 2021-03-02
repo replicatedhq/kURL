@@ -40,6 +40,8 @@ function longhorn() {
     echo "Waiting for Longhorn Manager to create Storage Class"
     spinner_until 120 kubernetes_resource_exists longhorn-system sc longhorn
 
+    echo "Waiting for Longhorn Manager Daemonset to be ready"
+    spinner_until 180 longhorn_manager_daemonset_is_ready
 }
 
 function longhorn_is_default_storageclass() {
@@ -55,6 +57,16 @@ function longhorn_has_default_storageclass() {
     hasDefaultStorageClass=$(kubectl get sc -o jsonpath='{.items[*].metadata.annotations.storageclass\.kubernetes\.io/is-default-class}')
         
     if [ "$hasDefaultStorageClass" = "true" ] ; then
+        return 0
+    fi
+    return 1
+}
+
+function longhorn_manager_daemonset_is_ready() {
+    local desired=$(kubectl get daemonsets -n longhorn-system longhorn-manager --no-headers | tr -s ' ' | cut -d ' ' -f2)
+    local ready=$(kubectl get daemonsets -n longhorn-system longhorn-manager --no-headers | tr -s ' ' | cut -d ' ' -f4)
+        
+    if [ "$desired" = "$ready" ] ; then
         return 0
     fi
     return 1
