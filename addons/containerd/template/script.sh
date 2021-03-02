@@ -97,6 +97,8 @@ function main() {
         generate_version "$version"
     done
 
+    echo "::set-output name=containerd_version::$VERSIONS"    
+
     update_available_versions
 }
 

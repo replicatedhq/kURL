@@ -25,6 +25,7 @@ upstreamContourVersionPattern='docker.io/projectcontour/contour:v([0-9]+\.[0-9]+
 CONTOUR_VERSION="${BASH_REMATCH[1]}" # 1.11.0
 
 echo "contour version: $CONTOUR_VERSION"
+echo "::set-output name=contour_version::$CONTOUR_VERSION"    
 
 upstreamEnvoyVersionPattern='docker.io/envoyproxy/envoy:v([0-9]+\.[0-9]+\.[0-9]+)'
 [[ "$fileContents" =~ $upstreamEnvoyVersionPattern ]]

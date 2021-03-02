@@ -13,6 +13,7 @@ jobs:
         fetch-depth: 0
 
     - name: Create Containerd Update
+      id: update
       working-directory: ./addons/containerd/template
       run: ./script.sh
 
@@ -22,7 +23,7 @@ jobs:
       with:
         token: ${{ secrets.GH_PAT }}
         commit-message: Create new Containerd version
-        title: 'Automated Containerd version update'
+        title: 'Automated Containerd version update {{ steps.update.outputs.containerd_version }}'
         branch: automation/update-containerd
         delete-branch: true
         labels: |

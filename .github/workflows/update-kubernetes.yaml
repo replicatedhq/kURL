@@ -13,6 +13,7 @@ jobs:
         fetch-depth: 0
 
     - name: Create Kubernetes Update
+      id: update
       working-directory: ./packages/kubernetes/template
       run: ./script.sh
 
@@ -22,7 +23,7 @@ jobs:
       with:
         token: ${{ secrets.GH_PAT }}
         commit-message: Create new Kubernetes version
-        title: 'Automated Kubernetes version update'
+        title: 'Automated Kubernetes version update {{ steps.update.outputs.kubernetes_version }}'
         branch: automation/update-kubernetes
         delete-branch: true
         labels: |

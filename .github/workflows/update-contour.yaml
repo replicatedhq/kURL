@@ -12,6 +12,7 @@ jobs:
         fetch-depth: 0
 
     - name: Create Contour Update
+      id: update
       working-directory: ./addons/contour/template
       run: ./script.sh
 
@@ -21,7 +22,7 @@ jobs:
       with:
         token: ${{ secrets.GH_PAT }}
         commit-message: Create new Contour version
-        title: 'Automated Contour version update'
+        title: 'Automated Contour version update {{ steps.update.outputs.contour_version }}'
         branch: automation/update-contour
         delete-branch: true
         labels: |
