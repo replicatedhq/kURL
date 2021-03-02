@@ -42,6 +42,7 @@ function main() {
     for version in ${VERSIONS[*]}; do
         generate_version_directory "$version"
     done
+    echo "::set-output name=kubernetes_version::$VERSIONS"    
 
     update_available_versions
 }
