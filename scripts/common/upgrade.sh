@@ -67,8 +67,6 @@ function upgrade_kubernetes_local_master_patch() {
     load_images $DIR/packages/kubernetes/$k8sVersion/images
     upgrade_kubeadm "$k8sVersion"
 
-    kubeadm_config_migrate
-
     kubeadm upgrade plan "v${k8sVersion}"
     printf "${YELLOW}Drain local node and apply upgrade? ${NC}"
     confirmY " "
@@ -76,8 +74,7 @@ function upgrade_kubernetes_local_master_patch() {
     kubernetes_drain "$node"
  
     spinner_kubernetes_api_stable
-    kubeadm upgrade apply "v$k8sVersion" --yes --config /opt/replicated/kubeadm.conf --force
-    sed -i "s/kubernetesVersion:.*/kubernetesVersion: v${k8sVersion}/" /opt/replicated/kubeadm.conf
+    kubeadm upgrade apply "v$k8sVersion" --yes --force
 
     kubernetes_install_host_packages "$k8sVersion"
     systemctl daemon-reload
@@ -173,16 +170,13 @@ function upgrade_kubernetes_local_master_minor() {
     load_images $DIR/packages/kubernetes/$k8sVersion/images
     upgrade_kubeadm "$k8sVersion"
 
-    kubeadm_config_migrate
-
     kubeadm upgrade plan "v${k8sVersion}"
     printf "${YELLOW}Drain local node and apply upgrade? ${NC}"
     confirmY " "
 
     spinner_kubernetes_api_stable
-    kubeadm upgrade apply "v$k8sVersion" --yes --config /opt/replicated/kubeadm.conf --force
+    kubeadm upgrade apply "v$k8sVersion" --yes --force
     upgrade_etcd_image_18 "$k8sVersion"
-    sed -i "s/kubernetesVersion:.*/kubernetesVersion: v${k8sVersion}/" /opt/replicated/kubeadm.conf
 
     kubernetes_install_host_packages "$k8sVersion"
     systemctl daemon-reload
@@ -279,22 +273,4 @@ function upgrade_etcd_image_18() {
     fi
     local etcd_tag=$(kubeadm config images list 2>/dev/null | grep etcd | awk -F':' '{ print $NF }')
     sed -i "s/image: k8s.gcr.io\/etcd:.*/image: k8s.gcr.io\/etcd:$etcd_tag/" /etc/kubernetes/manifests/etcd.yaml
-}
-
-function kubeadm_config_migrate() {
-    # Does not migrate kube-proxy or kubelet configs
-    kubeadm config migrate --old-config $KUBEADM_CONF_FILE --new-config $KUBEADM_CONF_FILE
-
-    cat << EOF >> $KUBEADM_CONF_FILE
----
-apiVersion: kubelet.config.k8s.io/v1beta1
-kind: KubeletConfiguration
-cgroupDriver: systemd
----
-EOF
-
-    kubectl -n kube-system get configmaps kube-proxy -o yaml > /tmp/temp.yaml
-    $DIR/bin/yamlutil -p -fp /tmp/temp.yaml -yp data_config.conf
-    cat /tmp/temp.yaml >> /opt/replicated/kubeadm.conf
-    rm /tmp/temp.yaml
 }

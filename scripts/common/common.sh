@@ -685,3 +685,10 @@ function job_is_completed() {
   local jobName="$2"
   kubectl get jobs -n "$namespace" "$jobName" | grep -q '1/1'
 }
+
+function maybe() {
+    local cmd="$1"
+    local args=${@:2}
+
+    $cmd $args 2>/dev/null || true
+}
