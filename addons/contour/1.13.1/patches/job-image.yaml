@@ -1,0 +1,13 @@
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: contour-certgen-v1.13.1
+  namespace: projectcontour
+spec:
+  template:
+    spec:
+      containers:
+      - name: contour
+        image: docker.io/projectcontour/contour:v1.13.1
+        imagePullPolicy: IfNotPresent
