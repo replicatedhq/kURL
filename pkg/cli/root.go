@@ -20,6 +20,8 @@ func NewKurlCmd(cli CLI) *cobra.Command {
 		},
 	}
 
+	cmd.PersistentFlags().Bool("debug", false, "enable debug logging")
+
 	AddCommands(cmd, cli)
 
 	return cmd

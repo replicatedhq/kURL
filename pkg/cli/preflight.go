@@ -1,10 +1,16 @@
 package cli
 
 import (
+	"context"
 	"fmt"
 	"io"
+	"os"
+	"regexp"
 	"strings"
+	"time"
 
+	"github.com/briandowns/spinner"
+	"github.com/mattn/go-isatty"
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/kurl/pkg/installer"
 	"github.com/replicatedhq/kurl/pkg/preflight"
@@ -49,10 +55,14 @@ func NewPreflightCmd(cli CLI) *cobra.Command {
 			}
 
 			progressChan := make(chan interface{})
-			defer close(progressChan)
-			go discardProgress(progressChan)
+			progressContext, progressCancel := context.WithCancel(cmd.Context())
+			isTerminal := isatty.IsTerminal(os.Stderr.Fd())
+			go writeProgress(cmd.ErrOrStderr(), progressChan, progressCancel, isTerminal)
 
 			results, err := cli.GetPreflightRunner().Run(cmd.Context(), preflightSpec, progressChan)
+			close(progressChan)
+			<-progressContext.Done()
+
 			if err != nil {
 				return errors.Wrap(err, "run preflight")
 			}
@@ -84,9 +94,35 @@ func NewPreflightCmd(cli CLI) *cobra.Command {
 	return cmd
 }
 
-func discardProgress(ch <-chan interface{}) {
-	for range ch {
+var collectorStartRegexp = regexp.MustCompile(`^\[.+\] Running collector\.\.\.$`)
+
+func writeProgress(w io.Writer, ch <-chan interface{}, cancel func(), isTerminal bool) {
+	var sp *spinner.Spinner
+	for line := range ch {
+		s := fmt.Sprintf("%s", line)
+		if collectorStartRegexp.MatchString(s) {
+			if sp != nil {
+				sp.Stop()
+			}
+			fmt.Fprintln(w, s)
+			if isTerminal {
+				sp = spinner.New(
+					spinner.CharSets[9],
+					100*time.Millisecond,
+					spinner.WithWriter(w),
+					spinner.WithColor("reset"),
+					spinner.WithFinalMSG("✔ complete\n"),
+				)
+				sp.Start()
+			}
+		} else {
+			if sp != nil {
+				sp.Suffix = fmt.Sprintf(" %s", line)
+			}
+		}
 	}
+	sp.Stop()
+	cancel()
 }
 
 func printPreflightResults(w io.Writer, results []*analyze.AnalyzeResult) {

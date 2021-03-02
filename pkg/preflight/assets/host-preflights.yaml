@@ -8,12 +8,13 @@ spec:
     - cpu: {}
     - memory: {}
     - diskUsage:
-        collectorName: ephemeral
+        collectorName: "Ephemeral Disk Usage"
         path: /var/lib/kubelet
     - tcpLoadBalancer:
-        collectorName: loadbalancer
+        collectorName: "Kubernetes API Server Load Balancer"
         port: 6443
         address: {{ .Installer.Spec.Kubernetes.LoadBalancerAddress }}
+        timeout: 3m
         exclude: '{{ and .Installer.Spec.Kubernetes.LoadBalancerAddress .IsPrimary (not .IsJoin) (not .IsUpgrade) | not }}'
   analyzers:
     - cpu:
@@ -34,7 +35,7 @@ spec:
               message: The system has at least 8Gi of memory
     - diskUsage:
         checkName: "Ephemeral Disk Usage"
-        collectorName: ephemeral
+        collectorName: "Ephemeral Disk Usage"
         outcomes:
           - warn:
               when: "used/total > 70%"
@@ -46,7 +47,7 @@ spec:
               message: /var/lib/kubelet has at least 30Gi disk space available
     - tcpLoadBalancer:
         checkName: "Kubernetes API Server Load Balancer"
-        collectorName: loadbalancer
+        collectorName: "Kubernetes API Server Load Balancer"
         exclude: '{{ and .Installer.Spec.Kubernetes.LoadBalancerAddress .IsPrimary (not .IsJoin) (not .IsUpgrade) | not }}'
         outcomes:
           - warn: # fail
