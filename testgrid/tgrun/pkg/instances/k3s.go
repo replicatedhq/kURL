@@ -22,7 +22,8 @@ func init() {
 					Version: "latest",
 				},
 				Kotsadm: &kurlv1beta1.Kotsadm{
-					Version: "latest",
+					Version:    "latest",
+					UiBindPort: 30880,
 				},
 			},
 		},

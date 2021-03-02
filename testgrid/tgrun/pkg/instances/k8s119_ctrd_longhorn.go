@@ -20,7 +20,7 @@ func init() {
 				},
 				Longhorn: &kurlv1beta1.Longhorn{
 					Version:    "1.1.0",
-					UiBindPort: 30880,
+					UiBindPort: 30080,
 				},
 				Contour: &kurlv1beta1.Contour{
 					Version: "1.7.0",
@@ -38,8 +38,12 @@ func init() {
 				CertManager: &kurlv1beta1.CertManager{
 					Version: "1.0.3",
 				},
+				Minio: &kurlv1beta1.Minio{
+					Version: "latest",
+				},
 				Kotsadm: &kurlv1beta1.Kotsadm{
-					Version: "1.25.2",
+					Version:    "1.25.2",
+					UiBindPort: 30880,
 				},
 			},
 		},
