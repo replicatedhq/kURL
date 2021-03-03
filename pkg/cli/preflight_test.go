@@ -60,7 +60,7 @@ func TestNewPreflightCmd(t *testing.T) {
 			},
 			isWarn: true,
 			stdout: "[WARN] Number of CPUs: At least 4 CPU cores are required\n",
-			stderr: "Error: preflights have warnings\n",
+			stderr: "",
 		},
 		{
 			name:          "warn ignore",
@@ -139,9 +139,7 @@ func TestNewPreflightCmd(t *testing.T) {
 			cmd.SetArgs(args)
 
 			err = cmd.Execute()
-			if tt.isWarn && !tt.ignoreWarnings {
-				assert.EqualError(t, err, "preflights have warnings")
-			} else if tt.isFail {
+			if tt.isFail {
 				assert.EqualError(t, err, "preflights have failures")
 			} else if tt.wantErr {
 				require.Error(t, err)

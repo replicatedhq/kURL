@@ -147,15 +147,15 @@ func printPreflightResult(w io.Writer, result *analyze.AnalyzeResult) {
 func confirmPreflightIsWarn(cli CLI) bool {
 	rl := cli.GetReadline()
 
-	rl.SetPrompt("Preflight has warnings. Do you want to proceed anyway? (y/N) ")
+	rl.SetPrompt("Preflight has warnings. Do you want to proceed anyway? (Y/n) ")
 
 	line, err := rl.Readline()
 	if err != nil {
-		return false
+		return true
 	}
 
 	text := strings.ToLower(strings.TrimSpace(line))
-	return text == "y" || text == "yes"
+	return !(text == "n" || text == "no")
 }
 
 func preflightIsFail(results []*analyze.AnalyzeResult) bool {
