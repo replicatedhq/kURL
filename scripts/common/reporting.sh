@@ -3,6 +3,10 @@
 INSTALLATION_ID=
 TESTGRID_ID=
 function report_install_start() {
+    if [ "${DISABLE_REPORTING}" = "1" ]; then
+        return
+    fi
+
     # report that the install started
     # this includes the install ID, time, kurl URL, and linux distribution name + version.
     # TODO: HA status, server CPU count and memory size.
@@ -25,6 +29,10 @@ function report_install_start() {
 }
 
 function report_install_success() {
+    if [ "${DISABLE_REPORTING}" = "1" ]; then
+        return
+    fi
+
     # report that the install finished successfully
 
     # if INSTALLATION_ID is empty reporting is disabled
@@ -40,6 +48,10 @@ function report_install_success() {
 }
 
 function report_install_fail() {
+    if [ "${DISABLE_REPORTING}" = "1" ]; then
+        return
+    fi
+
     # report that the install failed
     local cause=$1
 
@@ -118,6 +130,10 @@ function prek8s_ctrl_c() {
 }
 
 function addon_install_fail() {
+    if [ "${DISABLE_REPORTING}" = "1" ]; then
+        return
+    fi
+
     # report that an addon failed to install successfully
     local name=$1
     local version=$2
@@ -141,6 +157,10 @@ function addon_install_fail() {
 }
 
 function addon_install_fail_nobundle() {
+    if [ "${DISABLE_REPORTING}" = "1" ]; then
+        return
+    fi
+
     # report that an addon failed to install successfully
     local name=$1
     local version=$2
