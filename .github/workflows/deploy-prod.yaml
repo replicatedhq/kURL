@@ -24,7 +24,7 @@ jobs:
 
     - run: |
         export VERSION_TAG=$(echo $GITHUB_REF | awk -F'/' '{ print $NF }')
-        make -C kurl_util build
+        make build/bin
 
     - uses: actions/setup-node@v2.1.5
       with:
