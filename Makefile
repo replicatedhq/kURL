@@ -45,10 +45,9 @@ dist/common.tar.gz: build/kustomize build/shared build/krew build/kurlkinds buil
 	tar rf dist/common.tar -C build helm
 	gzip dist/common.tar
 
-dist/kurl-bin-utils-%.tar.gz:
+dist/kurl-bin-utils-%.tar.gz: build/bin
 	mkdir -p dist
-	make -C kurl_util build
-	tar -C ./kurl_util -czvf ./dist/kurl-bin-utils-$*.tar.gz bin
+	tar -C ./build -czvf ./dist/kurl-bin-utils-$*.tar.gz bin
 
 dist/aws-%.tar.gz: build/addons
 	mkdir -p dist
