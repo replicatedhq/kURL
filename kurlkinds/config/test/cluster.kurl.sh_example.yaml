@@ -47,7 +47,7 @@ spec:
     preflightIgnore: false
     preflightIgnoreWarnings: false
     privateAddress: 1.1.1.1
-    proxyAddress: 1.1.1.1
+    proxyAddress: http://1.1.1.1:3128
     publicAddress: 1.1.1.1
   minio:
     namespace: "minio"
