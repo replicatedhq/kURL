@@ -121,7 +121,9 @@ func writeProgress(w io.Writer, ch <-chan interface{}, cancel func(), isTerminal
 			}
 		}
 	}
-	sp.Stop()
+	if sp != nil {
+		sp.Stop()
+	}
 	cancel()
 }
 

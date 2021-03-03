@@ -36,15 +36,17 @@ spec:
     - cpu: {}
     - memory: {}
     - diskUsage:
-        collectorName: ephemeral
+        collectorName: "Ephemeral Disk Usage"
         path: /var/lib/kubelet
     - tcpLoadBalancer:
-        collectorName: loadbalancer
+        collectorName: "Kubernetes API Server Load Balancer"
         port: 6443
         address: 
-      exclude: 'true'
+        timeout: 3m
+        exclude: 'true'
   analyzers:
     - cpu:
+        checkName: "Number of CPUs"
         outcomes:
           - fail:
               when: "count < 4"
@@ -52,6 +54,7 @@ spec:
           - pass:
               message: This server has at least 4 CPU cores
     - memory:
+        checkName: "Amount of Memory"
         outcomes:
           - fail:
               when: "< 8Gi"
@@ -59,7 +62,8 @@ spec:
           - pass:
               message: The system has at least 8Gi of memory
     - diskUsage:
-        collectorName: ephemeral
+        checkName: "Ephemeral Disk Usage"
+        collectorName: "Ephemeral Disk Usage"
         outcomes:
           - warn:
               when: "used/total > 70%"
@@ -70,15 +74,17 @@ spec:
           - pass:
               message: /var/lib/kubelet has at least 30Gi disk space available
     - tcpLoadBalancer:
-        collectorName: loadbalancer
+        checkName: "Kubernetes API Server Load Balancer"
+        collectorName: "Kubernetes API Server Load Balancer"
+        exclude: 'true'
         outcomes:
-          - fail:
+          - warn: # fail
               when: "connection-refused"
               message: Connection to  via load balancer was refused.
-          - fail:
+          - warn: # fail
               when: "connection-timeout"
               message: Timed out connecting to  via load balancer. Check your firewall.
-          - fail:
+          - warn: # fail
               when: "error"
               message: Unexpected port status
           - pass:
@@ -86,7 +92,6 @@ spec:
               message: Successfully connected to  via load balancer
           - warn:
               message: Unexpected port status
-      exclude: 'true'
 `,
 		},
 		{
@@ -109,15 +114,17 @@ spec:
     - cpu: {}
     - memory: {}
     - diskUsage:
-        collectorName: ephemeral
+        collectorName: "Ephemeral Disk Usage"
         path: /var/lib/kubelet
     - tcpLoadBalancer:
-        collectorName: loadbalancer
+        collectorName: "Kubernetes API Server Load Balancer"
         port: 6443
         address: 1.2.3.4:7443
-      exclude: 'false'
+        timeout: 3m
+        exclude: 'false'
   analyzers:
     - cpu:
+        checkName: "Number of CPUs"
         outcomes:
           - fail:
               when: "count < 4"
@@ -125,6 +132,7 @@ spec:
           - pass:
               message: This server has at least 4 CPU cores
     - memory:
+        checkName: "Amount of Memory"
         outcomes:
           - fail:
               when: "< 8Gi"
@@ -132,7 +140,8 @@ spec:
           - pass:
               message: The system has at least 8Gi of memory
     - diskUsage:
-        collectorName: ephemeral
+        checkName: "Ephemeral Disk Usage"
+        collectorName: "Ephemeral Disk Usage"
         outcomes:
           - warn:
               when: "used/total > 70%"
@@ -143,15 +152,17 @@ spec:
           - pass:
               message: /var/lib/kubelet has at least 30Gi disk space available
     - tcpLoadBalancer:
-        collectorName: loadbalancer
+        checkName: "Kubernetes API Server Load Balancer"
+        collectorName: "Kubernetes API Server Load Balancer"
+        exclude: 'false'
         outcomes:
-          - fail:
+          - warn: # fail
               when: "connection-refused"
               message: Connection to 1.2.3.4:7443 via load balancer was refused.
-          - fail:
+          - warn: # fail
               when: "connection-timeout"
               message: Timed out connecting to 1.2.3.4:7443 via load balancer. Check your firewall.
-          - fail:
+          - warn: # fail
               when: "error"
               message: Unexpected port status
           - pass:
@@ -159,7 +170,6 @@ spec:
               message: Successfully connected to 1.2.3.4:7443 via load balancer
           - warn:
               message: Unexpected port status
-      exclude: 'false'
 `,
 		},
 	}
