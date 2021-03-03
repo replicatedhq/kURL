@@ -86,17 +86,19 @@ spec:
     shouldEnablePurgeNodes: false
     rookShouldUseAllNodes: false
   kurl:
-    proxyAddress: 1.1.1.1
     additionalNoProxyAddresses:
     - 10.128.0.3
     airgap: false
+    hostnameCheck: 2.2.2.2
+    nameserver: 8.8.8.8
+    noProxy: false
+    preflightIgnore: true
+    preflightIgnoreWarnings: true
+    privateAddress: 10.38.1.1
+    proxyAddress: 1.1.1.1
+    publicAddress: 101.38.1.1
     bypassFirewalldWarning: false
     hardFailOnFirewalld: false
-    hostnameCheck: 2.2.2.2
-    noProxy: false
-    privateAddress: 10.38.1.1
-    publicAddress: 101.38.1.1
-    nameserver: 8.8.8.8
   collectd:
     version: 0.0.1
   certManager:
@@ -752,7 +754,7 @@ spec:
       it(`=> service-cidr-range=/12 ...`, () => {
         const i = Installer.parse(everyOption);
 
-          expect(i.flags()).to.equal(`service-cidr-range=/12 service-cidr=100.1.1.1/12 ha=0 kuberenetes-master-address=192.168.1.1 load-balancer-address=10.128.10.1 bootstrap-token=token bootstrap-token-ttl=10min kubeadm-token-ca-hash=hash control-plane=0 cert-key=key bypass-storagedriver-warnings=0 hard-fail-on-loopback=0 no-ce-on-ee=0 docker-registry-ip=192.168.0.1 additional-no-proxy=129.168.0.2 no-docker=0 pod-cidr=39.1.2.3 pod-cidr-range=/12 disable-weave-encryption=0 storage-class-name=default ceph-replica-count=1 rook-block-storage-enabled=1 rook-block-device-filter=sd[a-z] rook-hostpath-requires-privileged=1 openebs-namespace=openebs openebs-localpv-enabled=1 openebs-localpv-storage-class-name=default openebs-cstor-enabled=1 openebs-cstor-storage-class-name=cstor minio-namespace=minio minio-hostpath=/sentry contour-tls-minimum-protocol-version=1.3 contour-http-port=3080 contour-https-port=3443 registry-publish-port=20 fluentd-full-efk-stack=0 kotsadm-application-slug=sentry kotsadm-ui-bind-port=8800 kotsadm-hostname=1.1.1.1 kotsadm-application-namespaces=kots velero-namespace=velero velero-disable-cli=0 velero-disable-restic=0 velero-local-bucket=local velero-restic-requires-privileged=0 ekco-node-unreachable-toleration-duration=10m ekco-min-ready-master-node-count=3 ekco-min-ready-worker-node-count=1 ekco-should-disable-reboot-service=0 ekco-rook-should-use-all-nodes=0 http-proxy=1.1.1.1 airgap=0 bypass-firewalld-warning=0 hard-fail-on-firewalld=0 hostname-check=2.2.2.2 no-proxy=0 private-address=10.38.1.1 public-address=101.38.1.1 helmfile-spec=${helmfileSpec} longhorn-ui-bind-port=30880 longhorn-ui-replica-count=0`);
+          expect(i.flags()).to.equal(`service-cidr-range=/12 service-cidr=100.1.1.1/12 ha=0 kuberenetes-master-address=192.168.1.1 load-balancer-address=10.128.10.1 bootstrap-token=token bootstrap-token-ttl=10min kubeadm-token-ca-hash=hash control-plane=0 cert-key=key bypass-storagedriver-warnings=0 hard-fail-on-loopback=0 no-ce-on-ee=0 docker-registry-ip=192.168.0.1 additional-no-proxy=129.168.0.2 no-docker=0 pod-cidr=39.1.2.3 pod-cidr-range=/12 disable-weave-encryption=0 storage-class-name=default ceph-replica-count=1 rook-block-storage-enabled=1 rook-block-device-filter=sd[a-z] rook-hostpath-requires-privileged=1 openebs-namespace=openebs openebs-localpv-enabled=1 openebs-localpv-storage-class-name=default openebs-cstor-enabled=1 openebs-cstor-storage-class-name=cstor minio-namespace=minio minio-hostpath=/sentry contour-tls-minimum-protocol-version=1.3 contour-http-port=3080 contour-https-port=3443 registry-publish-port=20 fluentd-full-efk-stack=0 kotsadm-application-slug=sentry kotsadm-ui-bind-port=8800 kotsadm-hostname=1.1.1.1 kotsadm-application-namespaces=kots velero-namespace=velero velero-disable-cli=0 velero-disable-restic=0 velero-local-bucket=local velero-restic-requires-privileged=0 ekco-node-unreachable-toleration-duration=10m ekco-min-ready-master-node-count=3 ekco-min-ready-worker-node-count=1 ekco-should-disable-reboot-service=0 ekco-rook-should-use-all-nodes=0 airgap=0 hostname-check=2.2.2.2 no-proxy=0 preflight-ignore=1 preflight-ignore-warnings=1 private-address=10.38.1.1 http-proxy=1.1.1.1 public-address=101.38.1.1 bypass-firewalld-warning=0 hard-fail-on-firewalld=0 helmfile-spec=${helmfileSpec} longhorn-ui-bind-port=30880 longhorn-ui-replica-count=0`);
       });
     });
   });

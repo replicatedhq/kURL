@@ -1,6 +1,9 @@
 package version
 
-import "fmt"
+import (
+	"fmt"
+	"io"
+)
 
 // NOTE: these variables are injected at build time
 
@@ -10,4 +13,8 @@ var (
 
 func Print() {
 	fmt.Printf("version=%s\nsha=%s\ntime=%s\n", version, gitSHA, buildTime)
+}
+
+func Fprint(w io.Writer) {
+	fmt.Fprintf(w, "version=%s\nsha=%s\ntime=%s\n", version, gitSHA, buildTime)
 }

@@ -20,4 +20,4 @@ require (
 
 replace github.com/replicatedhq/kurl => ../
 
-replace github.com/replicatedhq/kurl/kurl_util => ../kurl_util
+replace github.com/replicatedhq/kurl/kurlkinds => ../kurlkinds/

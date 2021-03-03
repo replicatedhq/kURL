@@ -80,6 +80,35 @@ function configure_proxy() {
     echo "Using proxy address $PROXY_ADDRESS"
 }
 
+function configure_no_proxy_preinstall() {
+    if [ -z "$PROXY_ADDRESS" ]; then
+        return
+    fi
+
+    local addresses="localhost,127.0.0.1,.svc,.local,.default,kubernetes"
+
+    if [ -n "$ENV_NO_PROXY" ]; then
+        addresses="${addresses},${ENV_NO_PROXY}"
+    fi
+    if [ -n "$PRIVATE_ADDRESS" ]; then
+        addresses="${addresses},${PRIVATE_ADDRESS}"
+    fi
+    if [ -n "$LOAD_BALANCER_ADDRESS" ]; then
+        addresses="${addresses},${LOAD_BALANCER_ADDRESS}"
+    fi
+    if [ -n "$ADDITIONAL_NO_PROXY_ADDRESSES" ]; then
+        addresses="${addresses},${ADDITIONAL_NO_PROXY_ADDRESSES}"
+    fi
+
+    # filter duplicates
+    addresses=$(echo "$addresses" | sed 's/,/\n/g' | sort | uniq | paste -s --delimiters=",")
+
+    # kubeadm requires this in the environment to reach K8s masters
+    export no_proxy="$addresses"
+    NO_PROXY_ADDRESSES="$addresses"
+    echo "Exported no_proxy: $no_proxy"
+}
+
 function configure_no_proxy() {
     if [ -z "$PROXY_ADDRESS" ]; then
         return

@@ -200,6 +200,8 @@ promptForLoadBalancerAddress() {
     if [ -z "$LOAD_BALANCER_PORT" ]; then
         LOAD_BALANCER_PORT=6443
     fi
+
+    $BIN_BASHTOYAML -c $MERGED_YAML_SPEC -f "load-balancer-address=${LOAD_BALANCER_ADDRESS}:${LOAD_BALANCER_PORT}"
 }
 
 # if remote nodes are in the cluster and this is an airgap install, prompt the user to run the

@@ -549,15 +549,20 @@ function install_host_archives() {
 }
 
 function install_host_dependencies() {
-    if ! commandExists "openssl"; then
-        if [ "$AIRGAP" != "1" ] && [ -n "$DIST_URL" ]; then
-            local package="host-openssl.tar.gz"
-            package_download "${package}"
-            tar xf "$(package_filepath "${package}")"
-            # rm host-openssl.tar.gz
-        fi
-        install_host_archives "${DIR}/packages/host/openssl"
+    install_host_dependencies_openssl
+}
+
+function install_host_dependencies_openssl() {
+    if commandExists "openssl"; then
+        return
     fi
+
+    if [ "$AIRGAP" != "1" ] && [ -n "$DIST_URL" ]; then
+        local package="host-openssl.tar.gz"
+        package_download "${package}"
+        tar xf "$(package_filepath "${package}")"
+    fi
+    install_host_archives "${DIR}/packages/host/openssl"
 }
 
 function maybe_read_kurl_config_from_cluster() {

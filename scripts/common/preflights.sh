@@ -335,3 +335,36 @@ function preflights_require_no_kubernetes_or_current_node() {
 
     return 0
 }
+
+function host_preflights() {
+    local is_primary="$1"
+    local is_join="$2"
+    local is_upgrade="$3"
+
+    local opts=
+    if [ "${PREFLIGHT_IGNORE_WARNINGS}" = "1" ] || [ ! -t 1 ] ; then # if no tty
+        opts="${opts} --ignore-warnings"
+    fi
+    if [ "${is_primary}" != "1" ]; then
+        opts="${opts} --is-primary=false"
+    fi
+    if [ "${is_join}" = "1" ]; then
+        opts="${opts} --is-join"
+    fi
+    if [ "${is_upgrade}" = "1" ]; then
+        opts="${opts} --is-upgrade"
+    fi
+
+    logStep "Running host preflights"
+    if [ "${PREFLIGHT_IGNORE}" = "1" ]; then
+        "${DIR}"/bin/kurl preflight "${MERGED_YAML_SPEC}" ${opts} || true
+    else
+        if ! "${DIR}"/bin/kurl preflight "${MERGED_YAML_SPEC}" ${opts} </dev/tty ; then
+            printf "${RED}Host preflights have failures. Do you want to proceed anyway? ${NC} "
+            if ! confirmN "-t 30"; then
+                bail "Use the \"preflight-ignore\" flag to proceed."
+            fi
+        fi
+    fi
+    logStep "Host preflights success"
+}

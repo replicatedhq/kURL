@@ -126,6 +126,7 @@ function main() {
     journald_persistent
     configure_proxy
     configure_no_proxy
+    host_preflights "${MASTER:-0}" "1" "0"
     install_cri
     get_shared
     setup_kubeadm_kustomize
