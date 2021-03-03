@@ -65,28 +65,34 @@ spec:
         checkName: "Ephemeral Disk Usage"
         collectorName: "Ephemeral Disk Usage"
         outcomes:
-          - warn:
-              when: "used/total > 70%"
-              message: /var/lib/kubelet is more than 70% full
           - fail:
               when: "total < 30Gi"
-              message: /var/lib/kubelet has less than 30Gi of total space
+              message: The disk containing directory /var/lib/kubelet has less than 30Gi of total space
+          - fail:
+              when: "used/total > 80%"
+              message: The disk containing directory /var/lib/kubelet is more than 80% full
+          - warn:
+              when: "used/total > 60%"
+              message: The disk containing directory /var/lib/kubelet is more than 60% full
           - pass:
-              message: /var/lib/kubelet has at least 30Gi disk space available
+              message: The disk containing directory /var/lib/kubelet has at least 30Gi disk space available
     - tcpLoadBalancer:
         checkName: "Kubernetes API Server Load Balancer"
         collectorName: "Kubernetes API Server Load Balancer"
         exclude: 'true'
         outcomes:
-          - warn: # fail
+          - warn:
               when: "connection-refused"
               message: Connection to  via load balancer was refused.
-          - warn: # fail
+          - warn:
               when: "connection-timeout"
               message: Timed out connecting to  via load balancer. Check your firewall.
-          - warn: # fail
+          - warn:
               when: "error"
               message: Unexpected port status
+          - warn:
+              when: "address-in-use"
+              message: Port 6443 is unavailable
           - pass:
               when: "connected"
               message: Successfully connected to  via load balancer
@@ -143,28 +149,34 @@ spec:
         checkName: "Ephemeral Disk Usage"
         collectorName: "Ephemeral Disk Usage"
         outcomes:
-          - warn:
-              when: "used/total > 70%"
-              message: /var/lib/kubelet is more than 70% full
           - fail:
               when: "total < 30Gi"
-              message: /var/lib/kubelet has less than 30Gi of total space
+              message: The disk containing directory /var/lib/kubelet has less than 30Gi of total space
+          - fail:
+              when: "used/total > 80%"
+              message: The disk containing directory /var/lib/kubelet is more than 80% full
+          - warn:
+              when: "used/total > 60%"
+              message: The disk containing directory /var/lib/kubelet is more than 60% full
           - pass:
-              message: /var/lib/kubelet has at least 30Gi disk space available
+              message: The disk containing directory /var/lib/kubelet has at least 30Gi disk space available
     - tcpLoadBalancer:
         checkName: "Kubernetes API Server Load Balancer"
         collectorName: "Kubernetes API Server Load Balancer"
         exclude: 'false'
         outcomes:
-          - warn: # fail
+          - warn:
               when: "connection-refused"
               message: Connection to 1.2.3.4:7443 via load balancer was refused.
-          - warn: # fail
+          - warn:
               when: "connection-timeout"
               message: Timed out connecting to 1.2.3.4:7443 via load balancer. Check your firewall.
-          - warn: # fail
+          - warn:
               when: "error"
               message: Unexpected port status
+          - warn:
+              when: "address-in-use"
+              message: Port 6443 is unavailable
           - pass:
               when: "connected"
               message: Successfully connected to 1.2.3.4:7443 via load balancer
