@@ -62,6 +62,9 @@ spec:
           - warn: # fail
               when: "error"
               message: Unexpected port status
+          - warn:
+              when: "address-in-use"
+              message: Port 6443 is unavailable
           - pass:
               when: "connected"
               message: Successfully connected to {{ .Installer.Spec.Kubernetes.LoadBalancerAddress }} via load balancer
