@@ -6,6 +6,7 @@ require (
 	github.com/StackExchange/wmi v0.0.0-20190523213315-cbe66965904d // indirect
 	github.com/briandowns/spinner v1.12.0
 	github.com/chzyer/readline v0.0.0-20180603132655-2972be24d48e
+	github.com/denisbrodbeck/machineid v1.0.1
 	github.com/fatih/color v1.10.0
 	github.com/go-ole/go-ole v1.2.5 // indirect
 	github.com/golang/mock v1.5.0

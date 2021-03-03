@@ -697,3 +697,8 @@ function maybe() {
 
     $cmd $args 2>/dev/null || true
 }
+
+MACHINE_ID=
+function get_machine_id() {
+    MACHINE_ID="$("${DIR}"/bin/kurl machineid || true)"
+}

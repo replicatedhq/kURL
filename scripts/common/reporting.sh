@@ -20,7 +20,7 @@ function report_install_start() {
     fi
 
     curl -s --output /dev/null -H 'Content-Type: application/json' --max-time 5 \
-        -d "{\"started\": \"$started\", \"os\": \"$LSB_DIST $DIST_VERSION\", \"kernel_version\": \"$KERNEL_MAJOR.$KERNEL_MINOR\", \"kurl_url\": \"$KURL_URL\", \"installer_id\": \"$INSTALLER_ID\", \"testgrid_id\": \"$TESTGRID_ID\"}" \
+        -d "{\"started\": \"$started\", \"os\": \"$LSB_DIST $DIST_VERSION\", \"kernel_version\": \"$KERNEL_MAJOR.$KERNEL_MINOR\", \"kurl_url\": \"$KURL_URL\", \"installer_id\": \"$INSTALLER_ID\", \"testgrid_id\": \"$TESTGRID_ID\", \"machine_id\": \"$MACHINE_ID\"}" \
         $REPLICATED_APP_URL/kurl_metrics/start_install/$INSTALLATION_ID || true
 }
 
@@ -51,7 +51,7 @@ function report_install_fail() {
     local completed=$(date -u +"%Y-%m-%dT%H:%M:%SZ") # rfc3339
 
     curl -s --output /dev/null -H 'Content-Type: application/json' --max-time 5 \
-        -d "{\"finished\": \"$completed\", \"cause\": \"$cause\"}" \
+        -d "{\"finished\": \"$completed\", \"cause\": \"$cause\", \"machine_id\": \"$MACHINE_ID\"}" \
         $REPLICATED_APP_URL/kurl_metrics/fail_install/$INSTALLATION_ID || true
 }
 
@@ -72,7 +72,7 @@ function report_addon_start() {
     local started=$(date -u +"%Y-%m-%dT%H:%M:%SZ") # rfc3339
 
     curl -s --output /dev/null -H 'Content-Type: application/json' --max-time 5 \
-        -d "{\"started\": \"$started\", \"addon_version\": \"$version\", \"testgrid_id\": \"$TESTGRID_ID\"}" \
+        -d "{\"started\": \"$started\", \"addon_version\": \"$version\", \"testgrid_id\": \"$TESTGRID_ID\", \"machine_id\": \"$MACHINE_ID\"}" \
         $REPLICATED_APP_URL/kurl_metrics/start_addon/$INSTALLATION_ID/$name || true
 }
 
@@ -93,7 +93,7 @@ function report_addon_success() {
     local completed=$(date -u +"%Y-%m-%dT%H:%M:%SZ") # rfc3339
 
     curl -s --output /dev/null -H 'Content-Type: application/json' --max-time 5 \
-        -d "{\"finished\": \"$completed\"}" \
+        -d "{\"finished\": \"$completed\", \"machine_id\": \"$MACHINE_ID\"}" \
         $REPLICATED_APP_URL/kurl_metrics/finish_addon/$INSTALLATION_ID/$name || true
 }
 
@@ -130,7 +130,7 @@ function addon_install_fail() {
     local completed=$(date -u +"%Y-%m-%dT%H:%M:%SZ") # rfc3339
 
     curl -s --output /dev/null -H 'Content-Type: application/json' --max-time 5 \
-        -d "{\"finished\": \"$completed\"}" \
+        -d "{\"finished\": \"$completed\", \"machine_id\": \"$MACHINE_ID\"}" \
         $REPLICATED_APP_URL/kurl_metrics/fail_addon/$INSTALLATION_ID/$name || true
 
     # provide an option for a user to provide a support bundle
@@ -153,7 +153,7 @@ function addon_install_fail_nobundle() {
     local completed=$(date -u +"%Y-%m-%dT%H:%M:%SZ") # rfc3339
 
     curl -s --output /dev/null -H 'Content-Type: application/json' --max-time 5 \
-        -d "{\"finished\": \"$completed\"}" \
+        -d "{\"finished\": \"$completed\", \"machine_id\": \"$MACHINE_ID\"}" \
         $REPLICATED_APP_URL/kurl_metrics/fail_addon/$INSTALLATION_ID/$name || true
 
     return 1 # return error because the addon in question did too

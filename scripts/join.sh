@@ -114,6 +114,7 @@ function main() {
 
     proxy_bootstrap
     download_util_binaries
+    get_machine_id
     merge_yaml_specs
     apply_bash_flag_overrides "$@"
     parse_yaml_into_bash_variables
