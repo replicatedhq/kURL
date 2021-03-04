@@ -143,7 +143,7 @@ spec:
               message: At least 4 CPU cores are recommended
           - fail:
               when: "count < 2"
-              message: At least 2 CPU cores are required
+              message: At least 2 CPU cores are required, and 4 CPU cores are recommended
           - pass:
               message: This server has at least 4 CPU cores
     - memory:
@@ -154,7 +154,7 @@ spec:
               message: At least 8Gi of memory is recommended
           - fail:
               when: "< 4Gi"
-              message: At least 4Gi of memory is required
+              message: At least 4Gi of memory is required, and 8Gi of memory is recommended
           - pass:
               message: The system has at least 8Gi of memory
     - diskUsage:
