@@ -1,6 +1,5 @@
 FROM ubuntu:18.04
-RUN apt-get update
-RUN apt-get -y install curl
+RUN apt-get update && apt-get -y install curl
 
 RUN mkdir -p /helm
 WORKDIR /helm

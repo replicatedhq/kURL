@@ -66,7 +66,7 @@ function weave_health_check() {
 }
 
 function weave_ready_spinner() {
-    if ! spinner_until 120 weave_health_check; then
+    if ! spinner_until 180 weave_health_check; then
       kubectl logs -n kube-system -l name=weave-net --all-containers --tail 10
       bail "The weave addon failed to deploy successfully."
     fi

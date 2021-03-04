@@ -156,8 +156,8 @@ promptForMasterAddress() {
 promptForLoadBalancerAddress() {
     local lastLoadBalancerAddress=
 
-    if kubeadm config view >/dev/null 2>&1; then
-        lastLoadBalancerAddress="$(kubeadm config view | grep 'controlPlaneEndpoint:' | sed 's/controlPlaneEndpoint: \|"//g')"
+    if kubeadm_cluster_configuration >/dev/null 2>&1; then
+        lastLoadBalancerAddress="$(kubeadm_cluster_configuration | grep 'controlPlaneEndpoint:' | sed 's/controlPlaneEndpoint: \|"//g')"
         if [ -n "$lastLoadBalancerAddress" ]; then
             splitHostPort "$lastLoadBalancerAddress"
             if [ "$HOST" = "$lastLoadBalancerAddress" ]; then

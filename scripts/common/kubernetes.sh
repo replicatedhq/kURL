@@ -354,7 +354,7 @@ function discover_service_subnet() {
         excluded="$excluded,${PRIVATE_ADDRESS}/16"
     fi
 
-    EXISTING_SERVICE_CIDR=$(kubeadm config view 2>/dev/null | grep serviceSubnet | awk '{ print $2 }')
+    EXISTING_SERVICE_CIDR=$(maybe kubeadm_cluster_configuration | grep serviceSubnet | awk '{ print $2 }')
 
     if [ -n "$SERVICE_CIDR" ]; then
         local serviceCidrSize=$(echo $SERVICE_CIDR | awk -F'/' '{ print $2 }')
@@ -534,7 +534,7 @@ function kubernetes_get_secondaries() {
 }
 
 function kubernetes_load_balancer_address() {
-    kubeadm config view 2>/dev/null | grep 'controlPlaneEndpoint:' | sed 's/controlPlaneEndpoint: \|"//g'
+    maybe kubeadm_cluster_configuration | grep 'controlPlaneEndpoint:' | sed 's/controlPlaneEndpoint: \|"//g'
 }
 
 function kubernetes_pod_started() {
@@ -594,4 +594,12 @@ function kubernetes_is_installed() {
         return 0
     fi
     return 1
+}
+
+function kubeadm_cluster_configuration() {
+    kubectl get cm -o yaml -n kube-system kubeadm-config -ojsonpath='{ .data.ClusterConfiguration }'
+}
+
+function kubeadm_cluster_status() {
+    kubectl get cm -o yaml -n kube-system kubeadm-config -ojsonpath='{ .data.ClusterStatus }'
 }
