@@ -64,7 +64,7 @@ spec:
               message: At least 8Gi of memory is recommended
           - fail:
               when: "< 4Gi"
-              message: At least 4Gi of memory is required
+              message: At least 4Gi of memory is required, and 8Gi of memory is recommended
           - pass:
               message: The system has at least 8Gi of memory
     - diskUsage:
