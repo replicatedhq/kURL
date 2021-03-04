@@ -95,7 +95,7 @@ function swap_fstab_disable() {
 
 # This is a service on some Azure VMs that just enables swap
 function swap_service_enabled() {
-    systemctl -q is-enabled temp-disk-swapfile
+    systemctl -q is-enabled temp-disk-swapfile 2>/dev/null
 }
 
 function swap_service_disable() {
