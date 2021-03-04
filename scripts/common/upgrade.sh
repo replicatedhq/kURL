@@ -174,6 +174,8 @@ function upgrade_kubernetes_local_master_minor() {
     printf "${YELLOW}Drain local node and apply upgrade? ${NC}"
     confirmY " "
 
+    kubernetes_drain "$node"
+
     spinner_kubernetes_api_stable
     kubeadm upgrade apply "v$k8sVersion" --yes --force
     upgrade_etcd_image_18 "$k8sVersion"
