@@ -19,10 +19,10 @@ import (
 	"github.com/spf13/viper"
 )
 
-func NewPreflightCmd(cli CLI) *cobra.Command {
+func NewHostPreflightCmd(cli CLI) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:          "preflight [installer spec file]",
-		Short:        "Runs kURL preflight checks",
+		Short:        "Runs kURL host preflight checks",
 		SilenceUsage: true,
 		Args:         cobra.ExactArgs(1),
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {

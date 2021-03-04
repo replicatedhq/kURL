@@ -8,8 +8,7 @@ import (
 func NewVersionCmd(cli CLI) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "version",
-		Short: "Print the current version and exit",
-		Long:  `Print the current version and exit`,
+		Short: "Prints the kURL version",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			version.Fprint(cmd.OutOrStdout())
 			return nil
