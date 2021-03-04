@@ -135,3 +135,17 @@ function containerd_get_host_packages_online() {
         # rm containerd-${version}.tar.gz
     fi
 }
+
+function canonical_image_name() {
+    local image="$1"
+    if echo "$image" | grep -vq '/' ; then
+        image="library/$image"
+    fi
+    if echo "$image" | awk -F'/' '{print $1}' | grep -vq '\.' ; then
+        image="docker.io/$image"
+    fi
+    if echo "$image" | grep -vq ':' ; then
+        image="$image:latest"
+    fi
+    echo "$image"
+}
