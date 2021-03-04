@@ -9,5 +9,5 @@ spec:
     spec:
       containers:
       - name: contour
-        image: docker.io/projectcontour/contour:v__releasever__
+        image: projectcontour/contour:v__releasever__
         imagePullPolicy: IfNotPresent

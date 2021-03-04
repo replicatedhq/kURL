@@ -1503,45 +1503,6 @@ rules:
   verbs:
   - create
   - update
----
-apiVersion: batch/v1
-kind: Job
-metadata:
-  name: contour-certgen-v1.12.0
-  namespace: projectcontour
-spec:
-  ttlSecondsAfterFinished: 0
-  template:
-    metadata:
-      labels:
-        app: "contour-certgen"
-    spec:
-      containers:
-      - name: contour
-        image: docker.io/projectcontour/contour:v1.12.0
-        imagePullPolicy: Always
-        command:
-        - contour
-        - certgen
-        - --kube
-        - --incluster
-        - --overwrite
-        - --secrets-format=compact
-        - --namespace=$(CONTOUR_NAMESPACE)
-        env:
-        - name: CONTOUR_NAMESPACE
-          valueFrom:
-            fieldRef:
-              fieldPath: metadata.namespace
-      restartPolicy: Never
-      serviceAccountName: contour-certgen
-      securityContext:
-        runAsNonRoot: true
-        runAsUser: 65534
-        runAsGroup: 65534
-  parallelism: 1
-  completions: 1
-  backoffLimit: 1
 
 ---
 
@@ -1760,7 +1721,7 @@ spec:
         - --contour-key-file=/certs/tls.key
         - --config-path=/config/contour.yaml
         command: ["contour"]
-        image: docker.io/projectcontour/contour:v1.12.0
+        image: projectcontour/contour:v1.12.0
         imagePullPolicy: IfNotPresent
         name: contour
         ports:
@@ -1849,7 +1810,7 @@ spec:
         args:
           - envoy
           - shutdown-manager
-        image: docker.io/projectcontour/contour:v1.12.0
+        image: projectcontour/contour:v1.12.0
         imagePullPolicy: IfNotPresent
         lifecycle:
           preStop:
@@ -1873,7 +1834,7 @@ spec:
         - --log-level info
         command:
         - envoy
-        image: docker.io/envoyproxy/envoy:v1.17.0
+        image: envoyproxy/envoy:v1.17.0
         imagePullPolicy: IfNotPresent
         name: envoy
         env:
@@ -1926,7 +1887,7 @@ spec:
         - --envoy-key-file=/certs/tls.key
         command:
         - contour
-        image: docker.io/projectcontour/contour:v1.12.0
+        image: projectcontour/contour:v1.12.0
         imagePullPolicy: IfNotPresent
         name: envoy-initconfig
         volumeMounts:
