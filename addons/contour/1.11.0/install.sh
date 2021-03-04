@@ -22,7 +22,6 @@ function contour() {
     local dst="$DIR/kustomize/contour"
 
     cp "$src/contour.yaml" "$dst/"
-    cp "$src/patches/job-image.yaml" "$dst/"
 
     render_yaml_file "$src/tmpl-configmap.yaml" > "$dst/configmap.yaml"
     render_yaml_file "$src/tmpl-kustomization.yaml" > "$dst/kustomization.yaml"
@@ -32,6 +31,12 @@ function contour() {
     # NodePort services in old namespace conflict
     if kubectl get namespace heptio-contour &>/dev/null && [ "$CONTOUR_NAMESPACE" != heptio-contour ]; then
         kubectl delete namespace heptio-contour
+    fi
+
+     # Revised the job image; if it exists, don't attempt to re-run
+    if ! kubectl get -n "$CONTOUR_NAMESPACE" job/contour-certgen-v1.11.0 &>/dev/null ; then
+        cp "$src/batch.yaml" "$dst/"
+        sed -i '/- configmap.yaml/ a - batch.yaml' "$dst/kustomization.yaml"
     fi
 
     kubectl create namespace "$CONTOUR_NAMESPACE" 2>/dev/null || true

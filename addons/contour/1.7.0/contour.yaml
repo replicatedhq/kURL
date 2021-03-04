@@ -1370,49 +1370,6 @@ rules:
   verbs:
   - create
   - update
----
-apiVersion: batch/v1
-kind: Job
-metadata:
-  name: contour-certgen-v1.7.0
-  namespace: projectcontour
-spec:
-  ttlSecondsAfterFinished: 0
-  template:
-    metadata:
-      labels:
-        app: "contour-certgen"
-    spec:
-      containers:
-      - name: contour
-        # This version is set to latest because Job specs are immutable;
-        # if we change this on each version, you can no longer upgrade
-        # just by applying the deployment YAML.
-        # See #2423, #2395, #2150, and #2030 for earlier questions about this.
-        image: docker.io/projectcontour/contour:latest
-        imagePullPolicy: Always
-        command:
-        - contour
-        - certgen
-        - --kube
-        - --incluster
-        - --overwrite
-        - --secrets-format=compact
-        - --namespace=$(CONTOUR_NAMESPACE)
-        env:
-        - name: CONTOUR_NAMESPACE
-          valueFrom:
-            fieldRef:
-              fieldPath: metadata.namespace
-      restartPolicy: Never
-      serviceAccountName: contour-certgen
-      securityContext:
-        runAsNonRoot: true
-        runAsUser: 65534
-        runAsGroup: 65534
-  parallelism: 1
-  completions: 1
-  backoffLimit: 1
 
 ---
 
@@ -1609,7 +1566,7 @@ spec:
         - --contour-key-file=/certs/tls.key
         - --config-path=/config/contour.yaml
         command: ["contour"]
-        image: docker.io/projectcontour/contour:v1.7.0
+        image: projectcontour/contour:v1.7.0
         imagePullPolicy: IfNotPresent
         name: contour
         ports:
@@ -1695,7 +1652,7 @@ spec:
         args:
           - envoy
           - shutdown-manager
-        image: docker.io/projectcontour/contour:v1.7.0
+        image: projectcontour/contour:v1.7.0
         imagePullPolicy: IfNotPresent
         lifecycle:
           preStop:
@@ -1719,7 +1676,7 @@ spec:
         - --log-level info
         command:
         - envoy
-        image: docker.io/envoyproxy/envoy:v1.15.0
+        image: envoyproxy/envoy:v1.15.0
         imagePullPolicy: IfNotPresent
         name: envoy
         env:
@@ -1769,7 +1726,7 @@ spec:
         - --envoy-key-file=/certs/tls.key
         command:
         - contour
-        image: docker.io/projectcontour/contour:v1.7.0
+        image: projectcontour/contour:v1.7.0
         imagePullPolicy: IfNotPresent
         name: envoy-initconfig
         volumeMounts:

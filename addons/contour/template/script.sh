@@ -27,6 +27,13 @@ CONTOUR_VERSION="${BASH_REMATCH[1]}" # 1.11.0
 echo "contour version: $CONTOUR_VERSION"
 echo "::set-output name=contour_version::$CONTOUR_VERSION"    
 
+# Hack: backported images changes starting at 1.13.1 and don't carry forward
+# Remove this after the next version is released. 
+if [ "$CONTOUR_VERSION" = "1.13.1" ]; then
+    rm -rf $tmpdir
+    return 0
+fi
+
 upstreamEnvoyVersionPattern='docker.io/envoyproxy/envoy:v([0-9]+\.[0-9]+\.[0-9]+)'
 [[ "$fileContents" =~ $upstreamEnvoyVersionPattern ]]
 ENVOY_VERSION="${BASH_REMATCH[1]}" # 1.16.2
@@ -45,6 +52,9 @@ sed -i "s/__releasever__/$CONTOUR_VERSION/g" "../$CONTOUR_VERSION/patches/job-im
 
 # insert upstream URL into contour.yaml header
 sed -i "s|__upstreamurl__|$UPSTREAM_URL|g" "../$CONTOUR_VERSION/contour.yaml"
+
+# remove docker.io from all image name (supports docker ee)
+sed -i "s|docker.io/||g" $tmpdir/contour.yaml
 
 # remove namespace and config from contour.yaml
 
