@@ -23,7 +23,7 @@ spec:
   kubernetes:
     version: 1.18.10`
 
-func TestNewPreflightCmd(t *testing.T) {
+func TestNewHostPreflightCmd(t *testing.T) {
 	tests := []struct {
 		name           string
 		installerYAML  string
@@ -127,7 +127,7 @@ func TestNewPreflightCmd(t *testing.T) {
 					Times(1)
 			}
 
-			cmd := NewPreflightCmd(mockCLI)
+			cmd := NewHostPreflightCmd(mockCLI)
 
 			bOut, bErr := bytes.NewBufferString(""), bytes.NewBufferString("")
 			cmd.SetOut(bOut)

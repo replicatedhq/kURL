@@ -1,7 +1,7 @@
-package machineid
+package host
 
 import "github.com/denisbrodbeck/machineid"
 
-func ID() (string, error) {
+func ProtectedID() (string, error) {
 	return machineid.ProtectedID("replicated")
 }

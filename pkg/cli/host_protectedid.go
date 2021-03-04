@@ -3,16 +3,16 @@ package cli
 import (
 	"fmt"
 
-	"github.com/replicatedhq/kurl/pkg/machineid"
+	"github.com/replicatedhq/kurl/pkg/host"
 	"github.com/spf13/cobra"
 )
 
-func NewMachineidCmd(cli CLI) *cobra.Command {
+func NewHostProtectedidCmd(cli CLI) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "machineid",
-		Short: "Prints the kURL machine id",
+		Use:   "protectedid",
+		Short: "Prints the kURL host protected machine id",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			id, err := machineid.ID()
+			id, err := host.ProtectedID()
 			if err != nil {
 				return err
 			}
