@@ -700,5 +700,5 @@ function maybe() {
 
 MACHINE_ID=
 function get_machine_id() {
-    MACHINE_ID="$("${DIR}"/bin/kurl machineid || true)"
+    MACHINE_ID="$(${DIR}/bin/kurl host protectedid || true)"
 }
