@@ -43,7 +43,7 @@ function report_install_success() {
     local completed=$(date -u +"%Y-%m-%dT%H:%M:%SZ") # rfc3339
 
     curl -s --output /dev/null -H 'Content-Type: application/json' --max-time 5 \
-        -d "{\"finished\": \"$completed\"}" \
+        -d "{\"finished\": \"$completed\", \"machine_id\": \"$MACHINE_ID\"}" \
         $REPLICATED_APP_URL/kurl_metrics/finish_install/$INSTALLATION_ID || true
 }
 
