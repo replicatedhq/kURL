@@ -499,14 +499,9 @@ function kubernetes_node_has_all_images() {
 function kubernetes_node_has_image() {
     local node_name="$1"
     local image="$2"
-    # docker.io/envoyproxy/envoy-alpine:v1.10.0 -> envoyproxy/envoy-alpine:v1.10.0
-    local image_no_dockerio="$(echo $image | sed 's/^docker.io\///')"
-    # this may add an additional registry prefix but it shouldnt ever match if
-    # that is the case
-    local image_dockerio="docker.io/$image_no_dockerio"
 
     while read -r node_image; do
-        if [ "$node_image" = "$image_dockerio" ] || [ "$node_image" = "$image_no_dockerio" ]; then
+        if [ "$(canonical_image_name "$node_image")" = "$(canonical_image_name "$image")" ]; then
             return 0
         fi
     done < <(kubernetes_node_images "$node_name")
