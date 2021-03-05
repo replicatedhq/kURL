@@ -82,6 +82,7 @@
     "js-yaml": "^3.13.1",
     "lodash": "^4.17.20",
     "moment": "^2.24.0",
+    "monaco-editor": "^0.21.2",
     "monaco-editor-webpack-plugin": "^2.0.0",
     "parse-ansi": "^1.0.3",
     "prop-types": "^15.7.2",
