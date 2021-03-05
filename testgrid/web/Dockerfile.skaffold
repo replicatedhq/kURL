@@ -5,6 +5,7 @@ RUN mkdir /src
 WORKDIR /src
 ADD Makefile /src
 ADD package.json /src
+ADD package-lock.json /src
 RUN make deps
 
 ADD . /src/
