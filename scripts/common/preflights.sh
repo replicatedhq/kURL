@@ -361,7 +361,7 @@ function host_preflights() {
     else
         # interactive terminal
         if [ -t 0 ] ; then      
-            if ! "${DIR}"/bin/kurl preflight "${MERGED_YAML_SPEC}" ${opts} </dev/tty ; then
+            if ! "${DIR}"/bin/kurl host preflight "${MERGED_YAML_SPEC}" ${opts} </dev/tty ; then
                 printf "${RED}Host preflights have failures. Do you want to proceed anyway? ${NC} "
                 if ! confirmN "-t 30"; then
                     bail "Use the \"preflight-ignore\" flag to proceed."
@@ -369,7 +369,7 @@ function host_preflights() {
             fi
         # non-interactive terminal
         else                    
-            if ! "${DIR}"/bin/kurl preflight "${MERGED_YAML_SPEC}" ${opts}; then
+            if ! "${DIR}"/bin/kurl host preflight "${MERGED_YAML_SPEC}" ${opts}; then
                 bail "Use the \"preflight-ignore\" flag to proceed."
             fi
         fi
