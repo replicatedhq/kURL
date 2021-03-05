@@ -31,7 +31,7 @@ echo "::set-output name=contour_version::$CONTOUR_VERSION"
 # Remove this after the next version is released. 
 if [ "$CONTOUR_VERSION" = "1.13.1" ]; then
     rm -rf $tmpdir
-    return 0
+    exit 0
 fi
 
 upstreamEnvoyVersionPattern='docker.io/envoyproxy/envoy:v([0-9]+\.[0-9]+\.[0-9]+)'
