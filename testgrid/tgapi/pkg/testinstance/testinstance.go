@@ -211,15 +211,7 @@ func List(refID string, limit int, offset int, addons map[string]string) ([]type
 
 	query := `SELECT ti.id, ti.kurl_yaml, ti.kurl_url, ti.upgrade_yaml, ti.upgrade_url, ti.os_name, ti.os_version, ti.os_image, ti.enqueued_at, ti.dequeued_at, ti.started_at, ti.finished_at, ti.is_success, ti.is_unsupported
 FROM testinstance ti
-WHERE ti.testrun_ref = $1
-OFFSET $2`
-
-	// pagination
-	args := []interface{}{refID, offset}
-	if limit > 0 {
-		query += ` LIMIT $3`
-		args = append(args, limit)
-	}
+WHERE ti.testrun_ref = $1`
 
 	// filter addons
 	for addon, version := range addons {
@@ -230,6 +222,14 @@ OFFSET $2`
 	}
 
 	query += ` ORDER BY kurl_url, os_name, os_version`
+	query += ` OFFSET $2`
+
+	// pagination
+	args := []interface{}{refID, offset}
+	if limit > 0 {
+		query += ` LIMIT $3`
+		args = append(args, limit)
+	}
 
 	rows, err := db.Query(query, args...)
 	if err != nil {
