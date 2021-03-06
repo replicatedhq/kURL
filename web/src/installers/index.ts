@@ -804,6 +804,7 @@ export class Installer {
       "alpha",
     ],
     velero: [
+      // cron-velero-update
       "1.5.1",
       "1.2.0",
     ],
