@@ -18,9 +18,6 @@ func init() {
 					StorageClassName:           "default",
 					IsBlockStorageEnabled:      true,
 				},
-				Prometheus: &kurlv1beta1.Prometheus{
-					Version: "latest",
-				},
 				Registry: &kurlv1beta1.Registry{
 					Version: "latest",
 				},
