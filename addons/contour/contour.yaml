@@ -1,0 +1,4 @@
+# From https://projectcontour.io/quickstart/contour.yaml
+# - Moved ConfigMap into separate template
+# - Moved namespace into separate template
+# - Removed envoy container host ports

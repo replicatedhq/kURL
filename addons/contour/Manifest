@@ -1,0 +1,2 @@
+image contour docker.io/projectcontour/contour:v
+image envoy docker.io/envoyproxy/envoy:v
