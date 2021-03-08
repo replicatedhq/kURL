@@ -87,7 +87,7 @@ function kubeadm_registry_containerd_configure() {
   ca_file = "/etc/kubernetes/pki/ca.crt"
 EOF
 
-    REGISTRY_CONTAINERD_CA_ADDED=1
+    CONTAINERD_NEEDS_RESTART=1
 }
 
 function kubeadm_api_is_healthy() {
