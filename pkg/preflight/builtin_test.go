@@ -161,6 +161,170 @@ func TestBuiltinExecuteTemplate(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "join primary",
+			spec: clusterv1beta1.Installer{
+				Spec: clusterv1beta1.InstallerSpec{
+					Kubernetes: clusterv1beta1.Kubernetes{
+						Version:             "1.19.7",
+						LoadBalancerAddress: "1.2.3.4:7443",
+					},
+					Rook: clusterv1beta1.Rook{
+						Version:               "1.4.3",
+						IsBlockStorageEnabled: true,
+						BlockDeviceFilter:     "vd[b-z]",
+					},
+				},
+			},
+			isPrimary: true,
+			isJoin:    true,
+			want: []jsonquery{
+				{
+					query: ".spec.collectors[] | select(.tcpLoadBalancer != null) | .tcpLoadBalancer.exclude",
+					value: `"true"`,
+				},
+				{
+					query: ".spec.analyzers[] | select(.tcpLoadBalancer != null) | .tcpLoadBalancer.exclude",
+					value: `"true"`,
+				},
+				{
+					query: ".spec.collectors[] | select(.blockDevices != null) | .blockDevices.exclude",
+					value: `"false"`,
+				},
+				{
+					query: ".spec.analyzers[] | select(.blockDevices != null) | .blockDevices.exclude",
+					value: `"false"`,
+				},
+				{
+					query: ".spec.analyzers[] | select(.blockDevices != null) | .blockDevices.outcomes",
+					value: `- pass:
+    when: "vd[b-z] == 1"
+    message: One available block device
+- pass:
+    when: "vd[b-z] > 1"
+    message: Multiple available block devices
+- fail:
+    message: No available block devices`,
+				},
+			},
+		},
+		{
+			name: "join secondary",
+			spec: clusterv1beta1.Installer{
+				Spec: clusterv1beta1.InstallerSpec{
+					Kubernetes: clusterv1beta1.Kubernetes{
+						Version:             "1.19.7",
+						LoadBalancerAddress: "1.2.3.4:7443",
+					},
+					Rook: clusterv1beta1.Rook{
+						Version:               "1.4.3",
+						IsBlockStorageEnabled: true,
+						BlockDeviceFilter:     "vd[b-z]",
+					},
+				},
+			},
+			isJoin: true,
+			want: []jsonquery{
+				{
+					query: ".spec.collectors[] | select(.tcpLoadBalancer != null) | .tcpLoadBalancer.exclude",
+					value: `"true"`,
+				},
+				{
+					query: ".spec.analyzers[] | select(.tcpLoadBalancer != null) | .tcpLoadBalancer.exclude",
+					value: `"true"`,
+				},
+				{
+					query: ".spec.collectors[] | select(.blockDevices != null) | .blockDevices.exclude",
+					value: `"false"`,
+				},
+				{
+					query: ".spec.analyzers[] | select(.blockDevices != null) | .blockDevices.exclude",
+					value: `"false"`,
+				},
+				{
+					query: ".spec.analyzers[] | select(.blockDevices != null) | .blockDevices.outcomes",
+					value: `- pass:
+    when: "vd[b-z] == 1"
+    message: One available block device
+- pass:
+    when: "vd[b-z] > 1"
+    message: Multiple available block devices
+- fail:
+    message: No available block devices`,
+				},
+			},
+		},
+		{
+			name: "upgrade primary",
+			spec: clusterv1beta1.Installer{
+				Spec: clusterv1beta1.InstallerSpec{
+					Kubernetes: clusterv1beta1.Kubernetes{
+						Version:             "1.19.7",
+						LoadBalancerAddress: "1.2.3.4:7443",
+					},
+					Rook: clusterv1beta1.Rook{
+						Version:               "1.4.3",
+						IsBlockStorageEnabled: true,
+						BlockDeviceFilter:     "vd[b-z]",
+					},
+				},
+			},
+			isPrimary: true,
+			isUpgrade: true,
+			want: []jsonquery{
+				{
+					query: ".spec.collectors[] | select(.tcpLoadBalancer != null) | .tcpLoadBalancer.exclude",
+					value: `"true"`,
+				},
+				{
+					query: ".spec.analyzers[] | select(.tcpLoadBalancer != null) | .tcpLoadBalancer.exclude",
+					value: `"true"`,
+				},
+				{
+					query: ".spec.collectors[] | select(.blockDevices != null) | .blockDevices.exclude",
+					value: `"true"`,
+				},
+				{
+					query: ".spec.analyzers[] | select(.blockDevices != null) | .blockDevices.exclude",
+					value: `"true"`,
+				},
+			},
+		},
+		{
+			name: "upgrade secondary",
+			spec: clusterv1beta1.Installer{
+				Spec: clusterv1beta1.InstallerSpec{
+					Kubernetes: clusterv1beta1.Kubernetes{
+						Version:             "1.19.7",
+						LoadBalancerAddress: "1.2.3.4:7443",
+					},
+					Rook: clusterv1beta1.Rook{
+						Version:               "1.4.3",
+						IsBlockStorageEnabled: true,
+						BlockDeviceFilter:     "vd[b-z]",
+					},
+				},
+			},
+			isUpgrade: true,
+			want: []jsonquery{
+				{
+					query: ".spec.collectors[] | select(.tcpLoadBalancer != null) | .tcpLoadBalancer.exclude",
+					value: `"true"`,
+				},
+				{
+					query: ".spec.analyzers[] | select(.tcpLoadBalancer != null) | .tcpLoadBalancer.exclude",
+					value: `"true"`,
+				},
+				{
+					query: ".spec.collectors[] | select(.blockDevices != null) | .blockDevices.exclude",
+					value: `"true"`,
+				},
+				{
+					query: ".spec.analyzers[] | select(.blockDevices != null) | .blockDevices.exclude",
+					value: `"true"`,
+				},
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

@@ -15,9 +15,11 @@ spec:
         port: 6443
         address: {{ .Installer.Spec.Kubernetes.LoadBalancerAddress }}
         timeout: 3m
+        # ha and is first master (primary and not join) and not is upgrade
         exclude: '{{ and .Installer.Spec.Kubernetes.Version .Installer.Spec.Kubernetes.LoadBalancerAddress .IsPrimary (not .IsJoin) (not .IsUpgrade) | not }}'
     - blockDevices:
-        exclude: '{{ or (and .Installer.Spec.Rook.Version .Installer.Spec.Rook.IsBlockStorageEnabled) (and  .Installer.Spec.OpenEBS.Version .Installer.Spec.OpenEBS.IsCstorEnabled) | not }}'
+        # rook block storage or cstor is enabled and not upgrade
+        exclude: '{{ and (or (and .Installer.Spec.Rook.Version .Installer.Spec.Rook.IsBlockStorageEnabled) (and .Installer.Spec.OpenEBS.Version .Installer.Spec.OpenEBS.IsCstorEnabled)) (not .IsUpgrade) | not }}'
   analyzers:
     - cpu:
         checkName: "Number of CPUs"
@@ -59,6 +61,7 @@ spec:
     - tcpLoadBalancer:
         checkName: "Kubernetes API Server Load Balancer"
         collectorName: "Kubernetes API Server Load Balancer"
+        # ha and is first master (primary and not join) and not is upgrade
         exclude: '{{ and .Installer.Spec.Kubernetes.Version .Installer.Spec.Kubernetes.LoadBalancerAddress .IsPrimary (not .IsJoin) (not .IsUpgrade) | not }}'
         outcomes:
           - warn:
@@ -79,7 +82,8 @@ spec:
           - warn:
               message: Unexpected port status
     - blockDevices:
-        exclude: '{{ or (and .Installer.Spec.Rook.Version .Installer.Spec.Rook.IsBlockStorageEnabled) (and  .Installer.Spec.OpenEBS.Version .Installer.Spec.OpenEBS.IsCstorEnabled) | not }}'
+        # rook block storage or cstor is enabled and not upgrade
+        exclude: '{{ and (or (and .Installer.Spec.Rook.Version .Installer.Spec.Rook.IsBlockStorageEnabled) (and .Installer.Spec.OpenEBS.Version .Installer.Spec.OpenEBS.IsCstorEnabled)) (not .IsUpgrade) | not }}'
         outcomes:
           - pass:
               when: "{{ if (and .Installer.Spec.Rook.Version .Installer.Spec.Rook.BlockDeviceFilter) }}{{ .Installer.Spec.Rook.BlockDeviceFilter }}{{ else }}.*{{ end }} == 1"
