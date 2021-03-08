@@ -1,9 +1,10 @@
 #!/bin/bash
-
 # this script assumes it is run within <kurl>/addons/contour/template
 
+set -euo pipefail
+
 # get the upstream url that the contour yaml can be found at permanently
-UPSTREAM_URL=$(curl -Ls -o /dev/null -w %{url_effective} https://projectcontour.io/quickstart/contour.yaml) # https://raw.githubusercontent.com/projectcontour/contour/release-1.11/examples/render/contour.yaml
+UPSTREAM_URL=$(curl -Ls -m 60 -o /dev/null -w %{url_effective} https://projectcontour.io/quickstart/contour.yaml) # https://raw.githubusercontent.com/projectcontour/contour/release-1.11/examples/render/contour.yaml
 echo "upstream URL: $UPSTREAM_URL"
 
 # determine the short version (major.minor) from that URL
@@ -16,7 +17,7 @@ echo "short version: $SHORT_VERSION"
 tmpdir=$(mktemp -d -t contour-XXXXXXXXXX)
 
 # get a copy of the contour yaml for the current release
-curl -Ls -o "$tmpdir"/contour.yaml "$UPSTREAM_URL"
+curl -Ls -m 60 -o "$tmpdir"/contour.yaml "$UPSTREAM_URL"
 
 # copy that contour yaml into an env var and determine the full contour and envoy versions (major.minor.patch)
 fileContents=$(cat "$tmpdir"/contour.yaml)
