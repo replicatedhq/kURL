@@ -7,7 +7,7 @@ require (
 	github.com/Microsoft/go-winio v0.4.16 // indirect
 	github.com/aws/aws-sdk-go v1.37.25
 	github.com/gorilla/mux v1.8.0
-	github.com/lib/pq v1.9.0
+	github.com/lib/pq v1.10.0
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/cobra v0.0.7
 	github.com/spf13/viper v1.7.1
