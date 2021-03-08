@@ -35,7 +35,7 @@ jobs:
         uses: actions/setup-go@v2.1.3
         if: ${{ steps.check.outputs.addons_available == 'true' }}
         with:
-          go-version: 1.15.1
+          go-version: 1.16.0
 
       - name: Tgrun Build
         if: ${{ steps.check.outputs.addons_available == 'true' }}
