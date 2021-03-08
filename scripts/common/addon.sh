@@ -53,7 +53,7 @@ function addon_pre_init() {
     fi
 }
 
-function addon_join() {
+function addon_pre_join() {
     local name=$1
     local version=$2
     local s3Override=$3
@@ -72,9 +72,14 @@ function addon_join() {
         fi
     fi
 
-    addon_load "$name" "$version"
-
     . $DIR/addons/$name/$version/install.sh
+}
+
+function addon_join() {
+    local name=$1
+    local version=$2
+
+    addon_load "$name" "$version"
 
     if commandExists ${name}_join; then
         logStep "Addon $name $version"

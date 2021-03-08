@@ -1,4 +1,5 @@
 
+CONTAINERD_NEEDS_RESTART=0
 function containerd_install() {
     local src="$DIR/addons/containerd/$CONTAINERD_VERSION"
 
@@ -6,6 +7,7 @@ function containerd_install() {
         install_host_archives "$src"
         install_host_packages "$src"
         containerd_configure
+        systemctl daemon-reload
     fi
 
     systemctl enable containerd
@@ -19,9 +21,11 @@ function containerd_install() {
 
     if commandExists registry_containerd_configure && [ -n "$DOCKER_REGISTRY_IP" ]; then
         registry_containerd_configure "$DOCKER_REGISTRY_IP"
-        if [ "$REGISTRY_CONTAINERD_CA_ADDED" = "1" ]; then
-            restart_containerd
-        fi
+    fi
+
+    if [ "$CONTAINERD_NEEDS_RESTART" = "1" ]; then
+        restart_systemd_and_wait containerd
+        CONTAINERD_NEEDS_RESTART=0
     fi
 
     load_images $src/images
@@ -38,13 +42,7 @@ function containerd_configure() {
   SystemdCgroup = true
 EOF
 
-    # Always set for joining nodes since it's passed as a flag in the generated join script, but not
-    # usually set for the initial install. For initial installs the registry will be configured from
-    # registry_containerd_init.
-    if commandExists registry_containerd_configure && [ -n "$DOCKER_REGISTRY_IP" ]; then
-        registry_containerd_configure "$DOCKER_REGISTRY_IP"
-    fi
-    systemctl restart containerd
+    CONTAINERD_NEEDS_RESTART=1
 }
 
 function containerd_configure_ctl() {
@@ -76,10 +74,6 @@ containerd_configure_proxy() {
         echo "Environment=\"HTTP_PROXY=${PROXY_ADDRESS}\" \"NO_PROXY=${NO_PROXY_ADDRESSES}\"" >> $file
     fi
 
-    restart_containerd
+    CONTAINERD_NEEDS_RESTART=1
 }
 
-function restart_containerd() {
-    systemctl daemon-reload
-    systemctl restart containerd
-}

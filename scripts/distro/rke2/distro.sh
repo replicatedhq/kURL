@@ -83,7 +83,7 @@ function rke2_registry_containerd_configure() {
       ca_file: "$(rke2_get_server_ca)"
 EOF
 
-    REGISTRY_CONTAINERD_CA_ADDED=1
+    CONTAINERD_NEEDS_RESTART=1
 }
 
 function rke2_api_is_healthy() {

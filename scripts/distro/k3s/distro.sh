@@ -82,7 +82,7 @@ function k3s_registry_containerd_configure() {
       ca_file: "$(k3s_get_server_ca)"
 EOF
 
-    REGISTRY_CONTAINERD_CA_ADDED=1
+    CONTAINERD_NEEDS_RESTART=1
 }
 
 function k3s_api_is_healthy() {

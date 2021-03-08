@@ -128,6 +128,7 @@ function main() {
     configure_proxy
     configure_no_proxy
     host_preflights "${MASTER:-0}" "1" "0"
+    ${K8S_DISTRO}_addon_for_each addon_pre_join
     install_cri
     get_shared
     setup_kubeadm_kustomize

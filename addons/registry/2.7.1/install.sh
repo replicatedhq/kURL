@@ -122,7 +122,6 @@ function registry_containerd_init() {
     spinner_kubernetes_api_healthy
 }
 
-REGISTRY_CONTAINERD_CA_ADDED=0
 function registry_containerd_configure() {
     local registry_ip="$1"
     ${K8S_DISTRO}_registry_containerd_configure "${registry_ip}"
