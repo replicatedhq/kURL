@@ -15,7 +15,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/replicatedhq/kurl/kurlkinds v0.0.0-20210223231814-ca7e7b16afa0
 	github.com/replicatedhq/troubleshoot v0.10.8
-	github.com/spf13/afero v1.2.2
+	github.com/spf13/afero v1.5.1
 	github.com/spf13/cobra v1.1.3
 	github.com/spf13/viper v1.7.1
 	github.com/stretchr/testify v1.7.0
