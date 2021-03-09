@@ -358,18 +358,22 @@ function host_preflights() {
     logStep "Running host preflights"
     if [ "${PREFLIGHT_IGNORE}" = "1" ]; then
         "${DIR}"/bin/kurl host preflight "${MERGED_YAML_SPEC}" ${opts} || true
+        # TODO: report preflight fail
     else
         # interactive terminal
         if [ -t 0 ] ; then      
             if ! "${DIR}"/bin/kurl host preflight "${MERGED_YAML_SPEC}" ${opts} </dev/tty ; then
                 printf "${RED}Host preflights have failures. Do you want to proceed anyway? ${NC} "
                 if ! confirmN "-t 30"; then
+                    report_install_fail "preflight"
                     bail "Use the \"preflight-ignore\" flag to proceed."
                 fi
+                # TODO: report preflight fail
             fi
         # non-interactive terminal
         else                    
             if ! "${DIR}"/bin/kurl host preflight "${MERGED_YAML_SPEC}" ${opts}; then
+                report_install_fail "preflight"
                 bail "Use the \"preflight-ignore\" flag to proceed."
             fi
         fi
