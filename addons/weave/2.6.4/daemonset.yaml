@@ -81,6 +81,7 @@ spec:
       hostNetwork: true
       hostPID: true
       restartPolicy: Always
+      priorityClassName: system-node-critical
       securityContext:
         seLinuxOptions: {}
       serviceAccountName: weave-net
