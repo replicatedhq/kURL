@@ -90,7 +90,7 @@ function velero_patch_restic_privilege() {
 
     if [ "${K8S_DISTRO}" = "rke2" ] || [ "${VELERO_RESTIC_REQUIRES_PRIVILEGED}" = "1" ]; then
         render_yaml_file "$src/restic-daemonset-privileged.yaml" > "$dst/restic-daemonset-privileged.yaml"
-        inserpt_patches_strategic_merge "$dst/kustomization.yaml" restic-daemonset-privileged.yaml
+        insert_patches_strategic_merge "$dst/kustomization.yaml" restic-daemonset-privileged.yaml
     fi
 }
 
