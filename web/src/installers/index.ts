@@ -680,7 +680,7 @@ export class Installer {
       "19.03.4",
       "18.09.8",
     ],
-    containerd: ["1.4.3", "1.3.9", "1.3.7", "1.2.13"], // cron-containerd-update
+    containerd: ["1.4.4", "1.4.3", "1.3.9", "1.3.7", "1.2.13"], // cron-containerd-update
     weave: [
       "2.6.5",
       "2.6.4",
