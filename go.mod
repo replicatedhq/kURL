@@ -10,7 +10,7 @@ require (
 	github.com/fatih/color v1.10.0
 	github.com/go-ole/go-ole v1.2.5 // indirect
 	github.com/golang/mock v1.5.0
-	github.com/google/go-cmp v0.5.4 // indirect
+	github.com/itchyny/gojq v0.12.2
 	github.com/mattn/go-isatty v0.0.12
 	github.com/pkg/errors v0.9.1
 	github.com/replicatedhq/kurl/kurlkinds v0.0.0-20210223231814-ca7e7b16afa0
@@ -19,6 +19,7 @@ require (
 	github.com/spf13/cobra v1.1.3
 	github.com/spf13/viper v1.7.1
 	github.com/stretchr/testify v1.7.0
+	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
 	k8s.io/client-go v0.20.4
 )
 
