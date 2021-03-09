@@ -6,6 +6,8 @@ RUN apk update && apk add --no-cache git ca-certificates && update-ca-certificat
 COPY ./testgrid/tgrun /tgrun
 COPY ./testgrid/tgapi /tgapi
 COPY ./kurlkinds /kurlkinds
+COPY ./go.mod /go.mod
+COPY ./go.sum /go.sum
 
 WORKDIR /tgrun
 
