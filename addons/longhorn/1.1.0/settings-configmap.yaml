@@ -20,7 +20,7 @@ data:
     default-longhorn-static-storage-class:
     backupstore-poll-interval:
     taint-toleration:
-    priority-class:
+    priority-class: longhorn-critical
     auto-salvage:
     auto-delete-pod-when-volume-detached-unexpectedly:
     disable-scheduling-on-cordoned-node:
