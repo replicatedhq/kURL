@@ -1,6 +1,6 @@
 module github.com/replicatedhq/kurl/testgrid/tgapi
 
-go 1.14
+go 1.16
 
 require (
 	github.com/DataDog/datadog-go v4.4.0+incompatible

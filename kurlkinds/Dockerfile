@@ -1,5 +1,5 @@
 # Build the manager binary
-FROM golang:1.10.3 as builder
+FROM golang:1.16 AS builder
 
 # Copy in the go src
 WORKDIR /go/src/github.com/replicatedhq/kurl/kurlkinds

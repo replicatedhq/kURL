@@ -1,6 +1,6 @@
 module github.com/replicatedhq/kurl/testgrid/tgrun
 
-go 1.14
+go 1.16
 
 require (
 	github.com/pkg/errors v0.9.1

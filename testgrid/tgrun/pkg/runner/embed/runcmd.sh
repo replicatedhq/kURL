@@ -1,0 +1,288 @@
+#!/bin/bash
+
+###############################################################################
+# +++ GLOBALS +++
+#
+# TESTGRID_APIENDPOINT
+# TEST_ID
+# KURL_URL
+# KURL_UPGRADE_URL
+#
+# --- GLOBALS ---
+###############################################################################
+
+setenforce 0 || true # rhel variants
+
+curl -X POST "$TESTGRID_APIENDPOINT/v1/instance/$TEST_ID/running"
+
+echo "running kurl installer"
+
+echo "$TEST_ID" > /tmp/testgrid-id
+
+if [ ! -c /dev/urandom ]; then
+    /bin/mknod -m 0666 /dev/urandom c 1 9 && /bin/chown root:root /dev/urandom
+fi
+
+###############################################################################
+# +++ INSTALL +++
+###############################################################################
+
+AIRGAP=
+if echo "$KURL_URL" | grep -q "\.tar\.gz$" ; then
+    AIRGAP=1
+fi
+AIRGAP_FLAG=
+
+if [ "$AIRGAP" = "1" ]; then
+
+    AIRGAP_FLAG=airgap
+
+    # get the install bundle
+    curl -L -o install.tar.gz "$KURL_URL"
+
+    # get the list of testgrid API IPs
+    command -v dig >/dev/null 2>&1 || { yum -y install bind-utils; }
+    command -v iptables >/dev/null 2>&1 || { yum -y install iptables; }
+    TESTGRID_DOMAIN=$(echo "$TESTGRID_APIENDPOINT" | sed -e "s.^https://..")
+    echo "testgrid API endpoint: $TESTGRID_APIENDPOINT domain: $TESTGRID_DOMAIN"
+    APIENDPOINT_IPS=$(dig "$TESTGRID_DOMAIN" | grep 'IN A' | awk '{ print $5 }')
+    # and allow access to them
+    for i in $APIENDPOINT_IPS; do
+        echo "allowing access to $i"
+        iptables -A OUTPUT -p tcp -d $i -j ACCEPT # accept comms to testgrid API IPs
+    done
+
+    # allow access to the local IP(s)
+    _count=0
+    _regex="^[[:digit:]]+: ([^[:space:]]+)[[:space:]]+[[:alnum:]]+ ([[:digit:].]+)"
+    while read -r _line; do
+        [[ $_line =~ $_regex ]]
+        if [ "${BASH_REMATCH[1]}" != "lo" ] && [ "${BASH_REMATCH[1]}" != "kube-ipvs0" ] && [ "${BASH_REMATCH[1]}" != "docker0" ] && [ "${BASH_REMATCH[1]}" != "weave" ]; then
+            _iface_names[$((_count))]=${BASH_REMATCH[1]}
+            _iface_addrs[$((_count))]=${BASH_REMATCH[2]}
+            let "_count += 1"
+        fi
+    done <<< "$(ip -4 -o addr)"
+    for i in $_iface_addrs; do
+        echo "allowing access to local address $i"
+        iptables -A OUTPUT -p tcp -d $i -j ACCEPT # accept comms to testgrid API IPs
+    done
+
+    # disable internet by adding restrictive iptables rules
+    iptables -A OUTPUT -p tcp -d 50.19.197.213 -j ACCEPT # accept comms to k8s.kurl.sh IPs
+    iptables -A OUTPUT -p tcp -d 54.236.144.143 -j ACCEPT # accept comms to k8s.kurl.sh IPs
+    iptables -A OUTPUT -p tcp -d 162.159.135.41 -j ACCEPT # accept comms to k8s.kurl.sh IPs
+    iptables -A OUTPUT -p tcp -d 162.159.136.41 -j ACCEPT # accept comms to k8s.kurl.sh IPs
+    iptables -A OUTPUT -p tcp -d 127.0.0.1 -j ACCEPT # accept comms to localhost
+    iptables -A OUTPUT -p tcp -d 10.0.0.0/8 -j ACCEPT # accept comms to internal IPs
+    iptables -A OUTPUT -p tcp -d 172.16.0.0/12 -j ACCEPT # accept comms to internal IPs
+    iptables -A OUTPUT -p tcp -d 192.168.0.0/16 -j ACCEPT # accept comms to internal IPs
+    iptables -A OUTPUT -p tcp -j REJECT # reject comms to other IPs
+
+    iptables -L
+
+    # test the lack of internet access
+    echo "testing disabled internet"
+    curl -v --connect-timeout 5 --max-time 5 "http://www.google.com"
+    CURL_EXIT_STATUS=$?
+    if [ $CURL_EXIT_STATUS -eq 0 ]; then
+        echo "successfully curled an external endpoint in airgap"
+        traceroute www.google.com
+        curl -s -X POST -d "{\"success\": false}" "$TESTGRID_APIENDPOINT/v1/instance/$TEST_ID/finish"
+        curl -X POST --data-binary "@/var/log/cloud-init-output.log" "$TESTGRID_APIENDPOINT/v1/instance/$TEST_ID/logs"
+        exit 1
+    fi
+
+    # run the installer
+    tar -xzvf install.tar.gz
+    TAR_EXIT_STATUS=$?
+    if [ $TAR_EXIT_STATUS -ne 0 ]; then
+        echo "failed to unpack airgap file with status $TAR_EXIT_STATUS"
+        curl -s -X POST -d "{\"success\": false}" "$TESTGRID_APIENDPOINT/v1/instance/$TEST_ID/finish"
+        curl -X POST --data-binary "@/var/log/cloud-init-output.log" "$TESTGRID_APIENDPOINT/v1/instance/$TEST_ID/logs"
+        exit 1
+    fi
+
+else
+
+    curl "$KURL_URL" > install.sh
+    curl "$KURL_URL/tasks.sh" > tasks.sh
+
+fi
+
+cat install.sh | timeout 30m bash -s $AIRGAP_FLAG
+
+export KUBECONFIG=/etc/kubernetes/admin.conf
+
+echo "running pods after completion:"
+kubectl get pods -A
+echo ""
+
+echo "tasks.sh run:"
+cat tasks.sh | timeout 5m bash -s join_token $AIRGAP_FLAG
+echo "tasks exit status: $?"
+echo ""
+
+###############################################################################
+# - INSTALL -
+###############################################################################
+
+echo "";
+
+if [ "$KURL_EXIT_STATUS" -eq 0 ]; then
+    echo "completed kurl run"
+else
+    echo "failed kurl run with exit status $KURL_EXIT_STATUS"
+
+    echo "kubelet status"
+    systemctl status kubelet
+    echo "kubelet journalctl"
+    journalctl -xeu kubelet
+    echo "docker containers"
+    docker ps -a
+
+    curl -s -X POST -d "{\"success\": false}" "$TESTGRID_APIENDPOINT/v1/instance/$TEST_ID/finish"
+fi
+
+###############################################################################
+# +++ UPGRADE +++
+###############################################################################
+
+if [ "$KURL_UPGRADE_URL" != "" ]; then
+    echo "upgrading installation"
+
+    AIRGAP_UPGRADE=
+    if echo "$KURL_UPGRADE_URL" | grep -q "\.tar\.gz$" ; then
+        AIRGAP_UPGRADE=1
+    fi
+    AIRGAP_UPGRADE_FLAG=
+
+    if [ "$AIRGAP_UPGRADE" = "1" ]; then
+
+        AIRGAP_UPGRADE_FLAG=airgap
+
+        # get the upgrade bundle
+        curl -L -o upgrade.tar.gz KURL_UPGRADE_URL
+
+        # get the list of testgrid API IPs
+        command -v dig >/dev/null 2>&1 || { yum -y install bind-utils; }
+        command -v iptables >/dev/null 2>&1 || { yum -y install iptables; }
+        TESTGRID_DOMAIN=$(echo "$TESTGRID_APIENDPOINT" | sed -e "s.^https://..")
+        echo "testgrid API endpoint: $TESTGRID_APIENDPOINT domain: $TESTGRID_DOMAIN"
+        APIENDPOINT_IPS=$(dig "$TESTGRID_DOMAIN" | grep 'IN A' | awk '{ print $5 }')
+        # and allow access to them
+        for i in $APIENDPOINT_IPS; do
+            echo "allowing access to $i"
+            iptables -A OUTPUT -p tcp -d $i -j ACCEPT # accept comms to testgrid API IPs
+        done
+
+        # allow access to the local IP(s)
+        _count=0
+        _regex="^[[:digit:]]+: ([^[:space:]]+)[[:space:]]+[[:alnum:]]+ ([[:digit:].]+)"
+        while read -r _line; do
+            [[ $_line =~ $_regex ]]
+            if [ "${BASH_REMATCH[1]}" != "lo" ] && [ "${BASH_REMATCH[1]}" != "kube-ipvs0" ] && [ "${BASH_REMATCH[1]}" != "docker0" ] && [ "${BASH_REMATCH[1]}" != "weave" ]; then
+                _iface_names[$((_count))]=${BASH_REMATCH[1]}
+                _iface_addrs[$((_count))]=${BASH_REMATCH[2]}
+                let "_count += 1"
+            fi
+        done <<< "$(ip -4 -o addr)"
+        for i in $_iface_addrs; do
+            echo "allowing access to local address $i"
+            iptables -A OUTPUT -p tcp -d $i -j ACCEPT # accept comms to testgrid API IPs
+        done
+
+        # disable internet by adding restrictive iptables rules
+        iptables -A OUTPUT -p tcp -d 50.19.197.213 -j ACCEPT # accept comms to k8s.kurl.sh IPs
+        iptables -A OUTPUT -p tcp -d 54.236.144.143 -j ACCEPT # accept comms to k8s.kurl.sh IPs
+        iptables -A OUTPUT -p tcp -d 162.159.135.41 -j ACCEPT # accept comms to k8s.kurl.sh IPs
+        iptables -A OUTPUT -p tcp -d 162.159.136.41 -j ACCEPT # accept comms to k8s.kurl.sh IPs
+        iptables -A OUTPUT -p tcp -d 127.0.0.1 -j ACCEPT # accept comms to localhost
+        iptables -A OUTPUT -p tcp -d 10.0.0.0/8 -j ACCEPT # accept comms to internal IPs
+        iptables -A OUTPUT -p tcp -d 172.16.0.0/12 -j ACCEPT # accept comms to internal IPs
+        iptables -A OUTPUT -p tcp -d 192.168.0.0/16 -j ACCEPT # accept comms to internal IPs
+        iptables -A OUTPUT -p tcp -j REJECT # reject comms to other IPs
+
+        iptables -L
+
+        # test the lack of internet access
+        echo "testing disabled internet"
+        curl -v --connect-timeout 5 --max-time 5 "http://www.google.com"
+        CURL_EXIT_STATUS=$?
+        if [ $CURL_EXIT_STATUS -eq 0 ]; then
+            echo "successfully curled an external endpoint in airgap"
+            traceroute www.google.com
+            curl -s -X POST -d "{\"success\": false}" "$TESTGRID_APIENDPOINT/v1/instance/$TEST_ID/finish"
+            curl -X POST --data-binary "@/var/log/cloud-init-output.log" "$TESTGRID_APIENDPOINT/v1/instance/$TEST_ID/logs"
+            exit 1
+        fi
+
+        # run the upgrade
+        tar -xzvf upgrade.tar.gz
+        TAR_EXIT_STATUS=$?
+        if [ $TAR_EXIT_STATUS -ne 0 ]; then
+            echo "failed to unpack airgap file with status $TAR_EXIT_STATUS"
+            curl -s -X POST -d "{\"success\": false}" "$TESTGRID_APIENDPOINT/v1/instance/$TEST_ID/finish"
+            curl -X POST --data-binary "@/var/log/cloud-init-output.log" "$TESTGRID_APIENDPOINT/v1/instance/$TEST_ID/logs"
+            exit 1
+        fi
+    fi
+
+    cat install.sh | timeout 30m bash -s $AIRGAP_UPGRADE_FLAG
+    KURL_EXIT_STATUS=$?
+
+    echo "";
+    echo "running pods after completion:";
+    kubectl get pods -A
+    echo "";
+
+    if [ $KURL_EXIT_STATUS -eq 0 ]; then
+        echo "completed kurl upgrade"
+        echo ""
+        echo "kubectl version:"
+        kubectl version
+        echo ""
+    else
+        echo "failed kurl upgrade with exit status $KURL_EXIT_STATUS"
+        curl -s -X POST -d "{\"success\": false}" "$TESTGRID_APIENDPOINT/v1/instance/$TEST_ID/finish"
+    fi
+
+fi
+
+###############################################################################
+# - UPGRADE -
+###############################################################################
+
+curl -X POST --data-binary "@/var/log/cloud-init-output.log" "$TESTGRID_APIENDPOINT/v1/instance/$TEST_ID/logs"
+
+echo "collecting support bundle"
+
+/usr/local/bin/kubectl-support_bundle https://kots.io
+SUPPORT_BUNDLE=$(ls -1 ./ | grep support-bundle-)
+if [ -n "$SUPPORT_BUNDLE" ]; then
+    echo "completed support bundle collection"
+    curl -X POST --data-binary "@./$SUPPORT_BUNDLE" "$TESTGRID_APIENDPOINT/v1/instance/$TEST_ID/bundle"
+else
+    echo "failed support bundle collection"
+fi
+
+if [ $KURL_EXIT_STATUS -ne 0 ]; then
+    exit 1
+fi
+
+echo "running sonobuoy"
+curl -L --output ./sonobuoy.tar.gz https://github.com/vmware-tanzu/sonobuoy/releases/download/v0.19.0/sonobuoy_0.19.0_linux_amd64.tar.gz
+tar xzvf ./sonobuoy.tar.gz
+
+./sonobuoy run --wait --mode quick
+
+RESULTS=$(./sonobuoy retrieve)
+if [ -n "$RESULTS" ]; then
+    echo "completed sonobuoy run"
+    ./sonobuoy results $RESULTS > ./sonobuoy-results.txt
+    curl -X POST --data-binary "@./sonobuoy-results.txt" "$TESTGRID_APIENDPOINT/v1/instance/$TEST_ID/sonobuoy"
+else
+    echo "failed sonobuoy run"
+fi
+
+curl -X POST -d '{"success": true}' "$TESTGRID_APIENDPOINT/v1/instance/$TEST_ID/finish"
