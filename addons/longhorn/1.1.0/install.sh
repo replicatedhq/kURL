@@ -28,6 +28,7 @@ function longhorn() {
     cp "$src/namespace.yaml" "$dst/"
     cp "$src/psp.yaml" "$dst/"
     cp "$src/rbac.yaml" "$dst/"
+    cp "$src/priority-class.yaml" "$dst/"
     cp "$src/settings-configmap.yaml" "$dst/"      # TODO (dan): Minio Addon integration
     
     cp "$src/kustomization.yaml" "$dst/"

@@ -1,0 +1,7 @@
+apiVersion: scheduling.k8s.io/v1
+description: Used for longhorn-system critical pods that must not be moved from their current node.
+kind: PriorityClass
+metadata:
+  name: longhorn-critical
+preemptionPolicy: PreemptLowerPriority
+value: 1000000000
