@@ -1,0 +1,8 @@
+image cni calico/cni:v__CALICO_VERSION__
+image kube-controllers calico/kube-controllers:v__CALICO_VERSION__
+image node calico/node:v__CALICO_VERSION__
+image pod2daemon-flexvol calico/pod2daemon-flexvol:v__CALICO_VERSION__
+
+yum kmod-wireguard
+yum wireguard-tools
+apt wireguard
