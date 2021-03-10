@@ -15,9 +15,9 @@ func RegisterAirgapAndOnlineInstance(instance types.Instance) {
 	if instance.UpgradeSpec != nil {
 		duplicateUpgrade := *instance.UpgradeSpec
 		duplicate.UpgradeSpec = &duplicateUpgrade
-		duplicate.UpgradeSpec.RunAirgap = true
+		duplicate.RunAirgap = true
 	}
 
-	duplicate.InstallerSpec.RunAirgap = true
+	duplicate.RunAirgap = true
 	Instances = append(Instances, duplicate)
 }
