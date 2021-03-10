@@ -1,4 +1,3 @@
-import * as Sigsci from "sigsci-module-nodejs";
 import {
   InjectorService,
   OverrideMiddleware,
@@ -41,7 +40,6 @@ import { Installer } from "../installers";
 export class Server extends ServerLoader {
 
   constructor(
-    private readonly sigsciRPCAddress: string,
     private readonly bugsnagKey: string,
   ) {
     super();
@@ -74,15 +72,6 @@ export class Server extends ServerLoader {
     }));
 
     this.use(cors());
-
-    if (!process.env["SIGSCI_RPC_ADDRESS"]) {
-      $log.error("SIGSCI_RPC_ADDRESS not set, Signal Sciences module will not be installed");
-    } else {
-      const sigsci = new Sigsci({
-        path: process.env.SIGSCI_RPC_ADDRESS,
-      });
-      this.use(sigsci.express());
-    }
 
     if (process.env["BUGSNAG_KEY"]) {
       this.use(bugsnag.errorHandler);
