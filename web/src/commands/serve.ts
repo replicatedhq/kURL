@@ -9,10 +9,6 @@ exports.builder = {
     type: "string",
     demand: false,
   },
-  sigsciRPCAddress: {
-    type: "string",
-    demand: false,
-  },
 };
 
 exports.handler = (argv) => {
@@ -31,6 +27,5 @@ export async function main(argv: any): Promise<void> {
 
   await new Server(
     argv.bugsnagKey,
-    argv.sigsciRPCAddress,
   ).start();
 }
