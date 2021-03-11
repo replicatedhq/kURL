@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/pkg/errors"
 	"github.com/replicatedhq/kurl/testgrid/tgapi/pkg/testinstance"
 )
 
@@ -24,7 +25,7 @@ type DequeueInstanceResponse struct {
 func DequeueInstance(w http.ResponseWriter, r *http.Request) {
 	testInstance, err := testinstance.GetNextEnqueued()
 	if err != nil {
-		if err != sql.ErrNoRows {
+		if errors.Cause(err) != sql.ErrNoRows {
 			w.WriteHeader(500)
 			fmt.Printf("error dequeing instance: %s\n", err.Error())
 			return
@@ -32,7 +33,7 @@ func DequeueInstance(w http.ResponseWriter, r *http.Request) {
 
 		testInstance, err = testinstance.GetOldEnqueued()
 		if err != nil {
-			if err != sql.ErrNoRows {
+			if errors.Cause(err) != sql.ErrNoRows {
 				w.WriteHeader(500)
 				fmt.Printf("error dequeing old instance: %s\n", err.Error())
 				return
