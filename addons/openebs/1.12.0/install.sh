@@ -23,7 +23,7 @@ function openebs() {
     cp "$src/snapshot-operator.yaml" "$dst/"
 
     # Identify if upgrade batch jobs are needed and apply them.
-    openebs_upgrade
+    openebs_do_upgrade
 
     if [ "$OPENEBS_LOCALPV" = "1" ]; then
         cp "$src/localpv-provisioner.yaml" "$dst/"
@@ -252,7 +252,7 @@ function openebs_cstor_pool_count() {
     [ $actual -ge $target ]
 }
 
-function openebs_upgrade() {
+function openebs_do_upgrade() {
     if [ "$OPENEBS_CSTOR" != "1" ] || [ ! "$(kubectl get ns $OPENEBS_NAMESPACE 2>/dev/null)" ]; then
         # upgrades only required for cStor OR no existing install is found
         # TODO: handle namespace spec changes at the upgrade time
