@@ -155,7 +155,7 @@ function run_upgrade() {
         AIRGAP_UPGRADE_FLAG=airgap
 
         # get the upgrade bundle
-        curl -L -o upgrade.tar.gz KURL_UPGRADE_URL
+        curl -L -o upgrade.tar.gz "$KURL_UPGRADE_URL"
 
         # get the list of testgrid API IPs
         command -v dig >/dev/null 2>&1 || { yum -y install bind-utils; }
@@ -219,6 +219,9 @@ function run_upgrade() {
             curl -X POST --data-binary "@/var/log/cloud-init-output.log" "$TESTGRID_APIENDPOINT/v1/instance/$TEST_ID/logs"
             exit 1
         fi
+    else
+        curl "$KURL_UPGRADE_URL" > install.sh
+        curl "$KURL_UPGRADE_URL/tasks.sh" > tasks.sh
     fi
 
     cat install.sh | timeout 30m bash -s $AIRGAP_UPGRADE_FLAG
