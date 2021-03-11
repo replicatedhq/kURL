@@ -111,7 +111,6 @@ function report_addon_success() {
 }
 
 function ctrl_c() {
-    local parentFunc="$1"
     trap - SIGINT # reset SIGINT handler to default - someone should be able to ctrl+c the support bundle collector
     read line file <<<$(caller)
 
@@ -229,7 +228,6 @@ function collect_support_bundle() {
 }
 
 function trap_report_error {
-    local parentFunc="$1"
     trap - ERR # reset the error handler to default in case there are errors within this function
     read line file <<<$(caller)
     printf "${YELLOW}An error occurred on line $line${NC}\n"

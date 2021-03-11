@@ -413,8 +413,8 @@ function main() {
     parse_kubernetes_target_version
     discover full-cluster
     report_install_start
-    trap 'ctrl_c "${FUNCNAME-main context}"' SIGINT # trap ctrl+c (SIGINT) and handle it by reporting that the user exited intentionally (along with the line/version/etc)
-    trap 'trap_report_error "${FUNCNAME-main context}"' ERR # trap errors and handle it by reporting the error line and parent function
+    trap ctrl_c SIGINT # trap ctrl+c (SIGINT) and handle it by reporting that the user exited intentionally (along with the line/version/etc)
+    trap trap_report_error ERR # trap errors and handle it by reporting the error line and parent function
     preflights
     prompts
     journald_persistent
