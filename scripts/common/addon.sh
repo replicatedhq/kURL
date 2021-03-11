@@ -87,6 +87,18 @@ function addon_join() {
     fi
 }
 
+function addon_upgrade() {
+    local name=$1
+    local version=$2
+
+    addon_load "$name" "$version"
+
+    # if commandExists ${name}_upgrade; then
+    #     logStep "Addon $name $version"
+    #     ${name}_upgrade
+    # fi
+}
+
 function addon_load() {
     local name=$1
     local version=$2

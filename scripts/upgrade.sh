@@ -118,11 +118,12 @@ function main() {
     configure_proxy
     configure_no_proxy
     host_preflights "${MASTER:-0}" "1" "1"
+    ${K8S_DISTRO}_addon_for_each addon_pre_join
     install_cri
     get_shared
     maybe_upgrade
     install_host_dependencies
-    ${K8S_DISTRO}_addon_for_each addon_join
+    ${K8S_DISTRO}_addon_for_each addon_upgrade
     outro
     package_cleanup
 
