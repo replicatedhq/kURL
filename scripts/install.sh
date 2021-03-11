@@ -1,6 +1,7 @@
 #!/bin/bash
 
 set -e
+set -E # cause 'trap funcname ERR' to be inherited by child commands, see https://stackoverflow.com/questions/35800082/how-to-trap-err-when-using-set-e-in-bash
 
 MASTER=1
 DIR=.
@@ -368,9 +369,9 @@ function all_kubernetes_install() {
 
 function report_kubernetes_install() {
     report_addon_start "kubernetes" "$KUBERNETES_VERSION"
-#    trap 'addon_install_fail_nobundle "kubernetes" "$KUBERNETES_VERSION"' ERR
+    export REPORTING_CONTEXT_INFO="kubernetes $KUBERNETES_VERSION"
     all_kubernetes_install
-#    trap - ERR
+    export REPORTING_CONTEXT_INFO=""
     report_addon_success "kubernetes" "$KUBERNETES_VERSION"
 }
 
@@ -412,7 +413,8 @@ function main() {
     parse_kubernetes_target_version
     discover full-cluster
     report_install_start
-    trap prek8s_ctrl_c SIGINT # trap ctrl+c (SIGINT) and handle it by reporting that the user exited intentionally
+    trap 'ctrl_c "${FUNCNAME-main context}"' SIGINT # trap ctrl+c (SIGINT) and handle it by reporting that the user exited intentionally (along with the line/version/etc)
+    trap 'trap_report_error "${FUNCNAME-main context}"' ERR # trap errors and handle it by reporting the error line and parent function
     preflights
     prompts
     journald_persistent
@@ -432,7 +434,7 @@ function main() {
     get_shared
     report_upgrade_kubernetes
     report_kubernetes_install
-    trap k8s_ctrl_c SIGINT # trap ctrl+c (SIGINT) and handle it by asking for a support bundle - only do this after k8s is installed
+    export SUPPORT_BUNDLE_READY=1 # allow ctrl+c and ERR traps to collect support bundles now that k8s is installed
     type create_registry_service &> /dev/null && create_registry_service # this function is in an optional addon and may be missing
     ${K8S_DISTRO}_addon_for_each addon_install
     helmfile_sync
