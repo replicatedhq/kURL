@@ -123,7 +123,7 @@ function main() {
     get_shared
     maybe_upgrade
     install_host_dependencies
-    ${K8S_DISTRO}_addon_for_each addon_upgrade
+    ${K8S_DISTRO}_addon_for_each addon_join
     outro
     package_cleanup
 
