@@ -171,7 +171,8 @@ func getKurlPlans(schedulerOptions types.SchedulerOptions) ([]types.Instance, er
 
 		for idx, _ := range kurlPlans {
 			// ensure that installerSpec has a k8s and CRI version specified
-			isDistroDefined := kurlPlans[idx].InstallerSpec.Kubernetes.Version != "" || kurlPlans[idx].InstallerSpec.RKE2 != nil || kurlPlans[idx].InstallerSpec.K3S != nil
+			isDistroDefined := (kurlPlans[idx].InstallerSpec.Kubernetes != nil && kurlPlans[idx].InstallerSpec.Kubernetes.Version != "") ||
+				kurlPlans[idx].InstallerSpec.RKE2 != nil || kurlPlans[idx].InstallerSpec.K3S != nil
 			if !isDistroDefined {
 				kurlPlans[idx].InstallerSpec.Kubernetes.Version = "latest"
 			}
