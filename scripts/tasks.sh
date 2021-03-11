@@ -15,7 +15,7 @@ function tasks() {
 
     case "$1" in
         load-images|load_images)
-            load_all_images
+            load_all_images $@
             ;;
         generate-admin-user|generate_admin_user)
             generate_admin_user
@@ -45,6 +45,8 @@ function tasks() {
 }
 
 function load_all_images() {
+    # get params - specifically need kurl-install-directory, as they impact load images scripts
+    shift # the first param is load_images/load-images
     while [ "$1" != "" ]; do
         _param="$(echo "$1" | cut -d= -f1)"
         _value="$(echo "$1" | grep '=' | cut -d= -f2-)"
