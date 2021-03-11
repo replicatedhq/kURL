@@ -117,7 +117,10 @@ function ctrl_c() {
 
     printf "${YELLOW}Trapped ctrl+c on line $line${NC}\n"
 
-    local infoString="$line of $parentFunc in file $file - bin utils $KURL_BIN_UTILS_FILE - context $REPORTING_CONTEXT_INFO"
+    local totalStack
+    totalStack=$(stacktrace)
+
+    local infoString="with stack $totalStack - bin utils $KURL_BIN_UTILS_FILE - context $REPORTING_CONTEXT_INFO"
 
     if [ -z "$SUPPORT_BUNDLE_READY" ]; then
         report_install_fail "trapped ctrl+c before completing k8s install on $infoString"
@@ -231,11 +234,25 @@ function trap_report_error {
     read line file <<<$(caller)
     printf "${YELLOW}An error occurred on line $line${NC}\n"
 
-    report_install_fail "An error occurred on line $line of $parentFunc in file $file - bin utils $KURL_BIN_UTILS_FILE - context $REPORTING_CONTEXT_INFO"
+    local totalStack
+    totalStack=$(stacktrace)
+
+    report_install_fail "An error occurred with stack $totalStack - bin utils $KURL_BIN_UTILS_FILE - context $REPORTING_CONTEXT_INFO"
 
     if [ -n "$SUPPORT_BUNDLE_READY" ]; then
         collect_support_bundle
     fi
 
     exit 1
+}
+
+function stacktrace {
+    local i=1
+    local totalStack
+    while caller $i > /dev/null; do
+        read line func file <<<$(caller $i)
+        totalStack="$totalStack (file: $file func: $func line: $line)"
+        ((i++))
+    done
+    echo "$totalStack"
 }
