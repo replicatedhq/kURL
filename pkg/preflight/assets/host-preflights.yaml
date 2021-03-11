@@ -20,6 +20,35 @@ spec:
     - blockDevices:
         # rook block storage or cstor is enabled and not upgrade
         exclude: '{{ and (or (and .Installer.Spec.Rook.Version .Installer.Spec.Rook.IsBlockStorageEnabled) (and .Installer.Spec.OpenEBS.Version .Installer.Spec.OpenEBS.IsCstorEnabled)) (not .IsUpgrade) | not }}'
+    - tcpPortStatus:
+        collectorName: "Kubernetes API TCP Port Status"
+        port: 6443
+        exclude: '{{ and .IsPrimary (not .IsUpgrade) | not }}'
+    - tcpPortStatus:
+        collectorName: "ETCD Client API TCP Port Status"
+        port: 2379
+        exclude: '{{ and .IsPrimary (not .IsUpgrade) | not }}'
+    - tcpPortStatus:
+        collectorName: "ETCD Server API TCP Port Status"
+        port: 2380
+        exclude: '{{ and .IsPrimary (not .IsUpgrade) | not }}'
+    - tcpPortStatus:
+        collectorName: "Kubelet API TCP Port Status"
+        port: 10250
+        exclude: '{{ and (not .IsUpgrade) | not }}'
+    - tcpPortStatus:
+        collectorName: "Kube Scheduler TCP Port Status"
+        port: 10251
+        exclude: '{{ and .IsPrimary (not .IsUpgrade) | not }}'
+    - tcpPortStatus:
+        collectorName: "Kube Controller Manager TCP Port Status"
+        port: 10252
+        exclude: '{{ and .IsPrimary (not .IsUpgrade) | not }}'
+    - tcpPortStatus:
+        collectorName: "Weave Net Control TCP Port Status"
+        port: 6783
+        exclude: '{{ and .Installer.Spec.Weave.Version (not .IsUpgrade) | not }}'
+
   analyzers:
     - cpu:
         checkName: "Number of CPUs"
@@ -93,3 +122,157 @@ spec:
               message: Multiple available block devices
           - fail:
               message: No available block devices
+    - tcpPortStatus:
+        checkName: "Kubernetes API TCP Port Status"
+        collectorName: "Kubernetes API TCP Port Status"
+        exclude: '{{ and .IsPrimary (not .IsUpgrade) | not }}'
+        outcomes:
+          - fail:
+              when: "connection-refused"
+              message: Connection to port 6443 was refused. This is likely to be a routing problem since this preflight configures a test server to listen on this port.
+          - warn:
+              when: "address-in-use"
+              message: Another process was already listening on port 6443.
+          - fail:
+              when: "connection-timeout"
+              message: Timed out connecting to port 6443. Check your firewall.
+          - fail:
+              when: "error"
+              message: Unexpected port status
+          - pass:
+              when: "connected"
+              message: Port 6443 is open
+          - warn:
+              message: Unexpected port status
+    - tcpPortStatus:
+        checkName: "ETCD Client API TCP Port Status"
+        collectorName: "ETCD Client API TCP Port Status"
+        exclude: '{{ and .IsPrimary (not .IsUpgrade) | not }}'
+        outcomes:
+          - fail:
+              when: "connection-refused"
+              message: Connection to port 2379 was refused. This is likely to be a routing problem since this preflight configures a test server to listen on this port.
+          - warn:
+              when: "address-in-use"
+              message: Another process was already listening on port 2379.
+          - fail:
+              when: "connection-timeout"
+              message: Timed out connecting to port 2379. Check your firewall.
+          - fail:
+              when: "error"
+              message: Unexpected port status
+          - pass:
+              when: "connected"
+              message: Port 2379 is open
+          - warn:
+              message: Unexpected port status
+    - tcpPortStatus:
+        checkName: "ETCD Server API TCP Port Status"
+        collectorName: "ETCD Server API TCP Port Status"
+        exclude: '{{ and .IsPrimary (not .IsUpgrade) | not }}'
+        outcomes:
+          - fail:
+              when: "connection-refused"
+              message: Connection to port 2380 was refused. This is likely to be a routing problem since this preflight configures a test server to listen on this port.
+          - warn:
+              when: "address-in-use"
+              message: Another process was already listening on port 2380.
+          - fail:
+              when: "connection-timeout"
+              message: Timed out connecting to port 2380. Check your firewall.
+          - fail:
+              when: "error"
+              message: Unexpected port status
+          - pass:
+              when: "connected"
+              message: Port 2380 is open
+          - warn:
+              message: Unexpected port status
+    - tcpPortStatus:
+        checkName: "Kubelet API TCP Port Status"
+        collectorName: "Kubelet API TCP Port Status"
+        exclude: '{{ and (not .IsUpgrade) | not }}'
+        outcomes:
+          - fail:
+              when: "connection-refused"
+              message: Connection to port 10250 was refused. This is likely to be a routing problem since this preflight configures a test server to listen on this port.
+          - warn:
+              when: "address-in-use"
+              message: Another process was already listening on port 10250.
+          - fail:
+              when: "connection-timeout"
+              message: Timed out connecting to port 10250. Check your firewall.
+          - fail:
+              when: "error"
+              message: Unexpected port status
+          - pass:
+              when: "connected"
+              message: Port 10250 is open
+          - warn:
+              message: Unexpected port status
+    - tcpPortStatus:
+        checkName: "Kube Scheduler TCP Port Status"
+        collectorName: "Kube Scheduler TCP Port Status"
+        exclude: '{{ and .IsPrimary (not .IsUpgrade) | not }}'
+        outcomes:
+          - fail:
+              when: "connection-refused"
+              message: Connection to port 10251 was refused. This is likely to be a routing problem since this preflight configures a test server to listen on this port.
+          - warn:
+              when: "address-in-use"
+              message: Another process was already listening on port 10251.
+          - fail:
+              when: "connection-timeout"
+              message: Timed out connecting to port 10251. Check your firewall.
+          - fail:
+              when: "error"
+              message: Unexpected port status
+          - pass:
+              when: "connected"
+              message: Port 10251 is open
+          - warn:
+              message: Unexpected port status
+    - tcpPortStatus:
+        checkName: "Kube Controller Manager TCP Port Status"
+        collectorName: "Kube Controller Manager TCP Port Status"
+        exclude: '{{ and .IsPrimary (not .IsUpgrade) | not }}'
+        outcomes:
+          - fail:
+              when: "connection-refused"
+              message: Connection to port 10252 was refused. This is likely to be a routing problem since this preflight configures a test server to listen on this port.
+          - warn:
+              when: "address-in-use"
+              message: Another process was already listening on port 10252.
+          - fail:
+              when: "connection-timeout"
+              message: Timed out connecting to port 10252. Check your firewall.
+          - fail:
+              when: "error"
+              message: Unexpected port status
+          - pass:
+              when: "connected"
+              message: Port 10252 is open
+          - warn:
+              message: Unexpected port status
+    - tcpPortStatus:
+        checkName: "Weave Net Control TCP Port Status"
+        collectorName: "Weave Net Control TCP Port Status"
+        exclude: '{{ and .Installer.Spec.Weave.Version (not .IsUpgrade) | not }}'
+        outcomes:
+          - fail:
+              when: "connection-refused"
+              message: Connection to port 6783 was refused. This is likely to be a routing problem since this preflight configures a test server to listen on this port.
+          - warn:
+              when: "address-in-use"
+              message: Another process was already listening on port 6783.
+          - fail:
+              when: "connection-timeout"
+              message: Timed out connecting to port 6783. Check your firewall.
+          - fail:
+              when: "error"
+              message: Unexpected port status
+          - pass:
+              when: "connected"
+              message: Port 6783 is open
+          - warn:
+              message: Unexpected port status
