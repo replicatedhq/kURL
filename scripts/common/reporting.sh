@@ -1,4 +1,5 @@
 
+REPORTING_CONTEXT_INFO=""
 
 INSTALLATION_ID=
 TESTGRID_ID=
@@ -109,26 +110,30 @@ function report_addon_success() {
         $REPLICATED_APP_URL/kurl_metrics/finish_addon/$INSTALLATION_ID/$name || true
 }
 
-function k8s_ctrl_c() {
+function ctrl_c() {
     trap - SIGINT # reset SIGINT handler to default - someone should be able to ctrl+c the support bundle collector
+    read line file <<<$(caller)
 
-    printf "${YELLOW}Trapped ctrl+c${NC}\n"
+    printf "${YELLOW}Trapped ctrl+c on line $line${NC}\n"
 
-    report_install_fail "trapped ctrl+c"
+    local totalStack
+    totalStack=$(stacktrace)
+
+    local infoString="with stack $totalStack - bin utils $KURL_BIN_UTILS_FILE - context $REPORTING_CONTEXT_INFO"
+
+    if [ -z "$SUPPORT_BUNDLE_READY" ]; then
+        report_install_fail "trapped ctrl+c before completing k8s install on $infoString"
+        exit 1
+    fi
+
+    report_install_fail "trapped ctrl+c on $infoString"
 
     collect_support_bundle
 
     exit 1 # exit with error
 }
 
-
-function prek8s_ctrl_c() {
-    trap - SIGINT # reset SIGINT handler to default, even though the remaining code should not hang
-
-    report_install_fail "trapped ctrl+c before completing k8s install"
-    exit 1
-}
-
+# unused
 function addon_install_fail() {
     if [ "${DISABLE_REPORTING}" = "1" ]; then
         return
@@ -156,6 +161,7 @@ function addon_install_fail() {
     return 1 # return error because the addon in question did too
 }
 
+# unused
 function addon_install_fail_nobundle() {
     if [ "${DISABLE_REPORTING}" = "1" ]; then
         return
@@ -219,4 +225,32 @@ function collect_support_bundle() {
         --compressed
 
     printf "\nSupport bundle uploaded!\n"
+}
+
+function trap_report_error {
+    trap - ERR # reset the error handler to default in case there are errors within this function
+    read line file <<<$(caller)
+    printf "${YELLOW}An error occurred on line $line${NC}\n"
+
+    local totalStack
+    totalStack=$(stacktrace)
+
+    report_install_fail "An error occurred with stack $totalStack - bin utils $KURL_BIN_UTILS_FILE - context $REPORTING_CONTEXT_INFO"
+
+    if [ -n "$SUPPORT_BUNDLE_READY" ]; then
+        collect_support_bundle
+    fi
+
+    exit 1
+}
+
+function stacktrace {
+    local i=1
+    local totalStack
+    while caller $i > /dev/null; do
+        read line func file <<<$(caller $i)
+        totalStack="$totalStack (file: $file func: $func line: $line)"
+        ((i++))
+    done
+    echo "$totalStack"
 }
