@@ -122,11 +122,11 @@ function ctrl_c() {
     local infoString="with stack $totalStack - bin utils $KURL_BIN_UTILS_FILE - context $REPORTING_CONTEXT_INFO"
 
     if [ -z "$SUPPORT_BUNDLE_READY" ]; then
-        report_install_fail "trapped ctrl+c before completing k8s install on $infoString"
+        report_install_fail "trapped ctrl+c before completing k8s install $infoString"
         exit 1
     fi
 
-    report_install_fail "trapped ctrl+c on $infoString"
+    report_install_fail "trapped ctrl+c $infoString"
 
     collect_support_bundle
 
@@ -228,6 +228,10 @@ function collect_support_bundle() {
 }
 
 function trap_report_error {
+    if [[ ! $- =~ e ]]; then # if errexit is not set (set -e), don't report an error here
+        return 0
+    fi
+
     trap - ERR # reset the error handler to default in case there are errors within this function
     read line file <<<$(caller)
     printf "${YELLOW}An error occurred on line $line${NC}\n"
