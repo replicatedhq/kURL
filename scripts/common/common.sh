@@ -431,7 +431,7 @@ function kubeconfig_setup_outro() {
 
             printf "To access the cluster with kubectl, ensure the KUBECONFIG environment variable is unset:\n"
             printf "\n"
-            printf "${GREEN}    echo unset KUBECONFIG >> ~/.profile${NC}\n"
+            printf "${GREEN}    echo unset KUBECONFIG >> ~/.bash_profile${NC}\n"
             printf "${GREEN}    bash -l${NC}\n"
             return
         fi
@@ -441,7 +441,7 @@ function kubeconfig_setup_outro() {
     printf "\n"
     printf "${GREEN}    cp "$(${K8S_DISTRO}_get_kubeconfig)" ~/.kube/config${NC}\n"
     printf "${GREEN}    chown -R ${owner} ~/.kube${NC}\n"
-    printf "${GREEN}    echo unset KUBECONFIG >> ~/.profile${NC}\n"
+    printf "${GREEN}    echo unset KUBECONFIG >> ~/.bash_profile${NC}\n"
     printf "${GREEN}    bash -l${NC}\n"
     printf "\n"
     printf "You will likely need to use sudo to copy and chown "$(${K8S_DISTRO}_get_kubeconfig)".\n"
