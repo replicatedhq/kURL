@@ -9,11 +9,6 @@ spec:
         get:
           url: https://replicated.app
         exclude: '.Installer.Spec.Kurl.Airgap }}'
-    - http:
-        collectorName: Can Access Replicated Registry
-        get:
-          url: https://registry.replicated.com
-        exclude: '.Installer.Spec.Kurl.Airgap }}'
 
   analyzers:
     - http:
@@ -27,18 +22,5 @@ spec:
           - pass:
               when: "statusCode == 200"
               message: Connected to https://replicated.app
-          - fail:
-              message: "Unexpected response"
-    - http:
-        checkName: Can Access Replicated Registry
-        collectorName: Can Access Replicated Registry
-        exclude: '.Installer.Spec.Kurl.Airgap }}'
-        outcomes:
-          - fail:
-              when: "error"
-              message: Error connecting to https://registry.replicated.com
-          - pass:
-              when: "statusCode == 404"
-              message: Connected to https://registry.replicated.com
           - fail:
               message: "Unexpected response"
