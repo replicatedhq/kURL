@@ -1,17 +1,17 @@
 
 CALICO_DISABLE_ENCRYPTION=0 # setting from yaml spec
-CALICO_WIREGUARD=0 # may be false in dev workflow, even when encryption is enabled
+# Will remain 0 if disabled in the yaml spec and dev workflow in CentOS/RHEL
+# TODO
+CALICO_WIREGUARD=0
 
 function calico_pre_init() {
     EXISTING_POD_CIDR=$(kubectl -n kube-system get daemonset calico-node -ojsonpath='{ .spec.template.spec.containers[0].env[?(@.name=="CALICO_IPV4POOL_CIDR")].value}' 2>/dev/null)
-    echo "FOUND EXISTING POD CIDR $EXISTING_POD_CIDR"
 }
 
 function calico() {
     local src="$DIR/addons/calico/$CALICO_VERSION"
     local dst="$DIR/kustomize/calico"
 
-    # Cannot migrate from weave to calico
     if calico_weave_conflict; then
         printf "${YELLOW}Cannot migrate from weave to calico${NC}\n"
         return 0
@@ -39,7 +39,6 @@ function calico() {
 }
 
 function calico_join() {
-    # Cannot migrate from weave to calico
     if calico_weave_conflict; then
         printf "${YELLOW}Cannot migrate from weave to calico${NC}\n"
         return 0
