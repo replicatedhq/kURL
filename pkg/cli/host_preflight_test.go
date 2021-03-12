@@ -11,6 +11,7 @@ import (
 	mock_preflight "github.com/replicatedhq/kurl/pkg/preflight/mock"
 	analyze "github.com/replicatedhq/troubleshoot/pkg/analyze"
 	"github.com/spf13/afero"
+	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -109,7 +110,13 @@ func TestNewHostPreflightCmd(t *testing.T) {
 				Return(tt.analyzeResults, error(nil)).
 				Times(1)
 
+			v := viper.New()
+
 			mockCLI := mock_cli.NewMockCLI(mockCtrl)
+			mockCLI.EXPECT().
+				GetViper().
+				Return(v).
+				Times(3)
 			mockCLI.EXPECT().
 				GetFS().
 				Return(fs).

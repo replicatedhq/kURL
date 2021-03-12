@@ -34,6 +34,8 @@ func NewHostPreflightCmd(cli CLI) *cobra.Command {
 			return cli.GetViper().BindPFlags(cmd.Flags())
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
+			v := cli.GetViper()
+
 			installerSpec, err := installer.RetrieveSpec(cli.GetFS(), args[0])
 			if err != nil {
 				return errors.Wrap(err, "retrieve installer spec")
@@ -41,9 +43,9 @@ func NewHostPreflightCmd(cli CLI) *cobra.Command {
 
 			data := installer.TemplateData{
 				Installer: *installerSpec,
-				IsPrimary: cli.GetViper().GetBool("is-primary"),
-				IsJoin:    cli.GetViper().GetBool("is-join"),
-				IsUpgrade: cli.GetViper().GetBool("is-upgrade"),
+				IsPrimary: v.GetBool("is-primary"),
+				IsJoin:    v.GetBool("is-join"),
+				IsUpgrade: v.GetBool("is-upgrade"),
 			}
 
 			builtin := preflight.Builtin()
@@ -52,7 +54,7 @@ func NewHostPreflightCmd(cli CLI) *cobra.Command {
 				return errors.Wrap(err, "builtin")
 			}
 
-			for _, filename := range cli.GetViper().GetStringSlice("spec") {
+			for _, filename := range v.GetStringSlice("spec") {
 				spec, err := ioutil.ReadFile(filename)
 				if err != nil {
 					return errors.Wrapf(err, "read spec file %s", filename)
@@ -90,7 +92,7 @@ func NewHostPreflightCmd(cli CLI) *cobra.Command {
 			case preflightIsFail(results):
 				return errors.New("preflights have failures")
 			case preflightIsWarn(results):
-				if cli.GetViper().GetBool("ignore-warnings") {
+				if v.GetBool("ignore-warnings") {
 					fmt.Fprintln(cmd.ErrOrStderr(), "Warnings ignored by CLI flag \"ignore-warnings\"")
 				} else {
 					if confirmPreflightIsWarn(cli) {
