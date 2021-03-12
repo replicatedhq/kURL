@@ -1,0 +1,14 @@
+kind: DaemonSet
+apiVersion: apps/v1
+metadata:
+  name: calico-node
+  namespace: kube-system
+spec:
+  template:
+    spec:
+      containers:
+        - name: calico-node
+          env:
+            # Enable IPIP
+            - name: CALICO_IPV4POOL_IPIP
+              value: "Off"

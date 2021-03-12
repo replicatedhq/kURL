@@ -695,7 +695,7 @@ export class Installer {
     ],
     calico: [ 
       // cron-calico-update
-      "3.18.0",
+      "3.18.1",
     ],
     rook: [
       "1.0.4",
