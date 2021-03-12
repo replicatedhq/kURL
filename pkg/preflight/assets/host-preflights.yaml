@@ -292,11 +292,10 @@ spec:
               when: "connection-timeout"
               message: Timed out connecting to the Kubernetes API at address {{ .Installer.Spec.Kubernetes.MasterAddress }}
           - fail:
-              when: "bind-permission-denied"
-              message: Bind permission denied. Try running as root.
-          - fail:
               when: "error"
               message: Unexpected error connecting to the Kubernetes API at address {{ .Installer.Spec.Kubernetes.MasterAddress }}
           - pass:
               when: "connected"
               message: Successfully connected to the Kubernetes API at address {{ .Installer.Spec.Kubernetes.MasterAddress }}
+          - warn:
+              message: Unexpected TCP connection status
