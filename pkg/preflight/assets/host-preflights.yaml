@@ -17,9 +17,9 @@ spec:
         timeout: 3m
         # ha and is first master (primary and not join) and not is upgrade
         exclude: '{{ and .Installer.Spec.Kubernetes.Version .Installer.Spec.Kubernetes.LoadBalancerAddress .IsPrimary (not .IsJoin) (not .IsUpgrade) | not }}'
-    - blockDevices:
-        # rook block storage or cstor is enabled and not upgrade
-        exclude: '{{ and (or (and .Installer.Spec.Rook.Version .Installer.Spec.Rook.IsBlockStorageEnabled) (and .Installer.Spec.OpenEBS.Version .Installer.Spec.OpenEBS.IsCstorEnabled)) (not .IsUpgrade) | not }}'
+        #    - blockDevices:
+        #        # rook block storage or cstor is enabled and not upgrade
+        #        exclude: '{{ and (or (and .Installer.Spec.Rook.Version .Installer.Spec.Rook.IsBlockStorageEnabled) (and .Installer.Spec.OpenEBS.Version .Installer.Spec.OpenEBS.IsCstorEnabled)) (not .IsUpgrade) | not }}'
     - tcpPortStatus:
         collectorName: "Kubernetes API TCP Port Status"
         port: 6443
@@ -114,18 +114,18 @@ spec:
               message: Successfully connected to {{ .Installer.Spec.Kubernetes.LoadBalancerAddress }} via load balancer
           - warn:
               message: Unexpected port status
-    - blockDevices:
-        # rook block storage or cstor is enabled and not upgrade
-        exclude: '{{ and (or (and .Installer.Spec.Rook.Version .Installer.Spec.Rook.IsBlockStorageEnabled) (and .Installer.Spec.OpenEBS.Version .Installer.Spec.OpenEBS.IsCstorEnabled)) (not .IsUpgrade) | not }}'
-        outcomes:
-          - pass:
-              when: "{{ if (and .Installer.Spec.Rook.Version .Installer.Spec.Rook.BlockDeviceFilter) }}{{ .Installer.Spec.Rook.BlockDeviceFilter }}{{ else }}.*{{ end }} == 1"
-              message: One available block device
-          - pass:
-              when: "{{ if (and .Installer.Spec.Rook.Version .Installer.Spec.Rook.BlockDeviceFilter) }}{{ .Installer.Spec.Rook.BlockDeviceFilter }}{{ else }}.*{{ end }} > 1"
-              message: Multiple available block devices
-          - fail:
-              message: No available block devices
+              #    - blockDevices:
+              #        # rook block storage or cstor is enabled and not upgrade
+              #        exclude: '{{ and (or (and .Installer.Spec.Rook.Version .Installer.Spec.Rook.IsBlockStorageEnabled) (and .Installer.Spec.OpenEBS.Version .Installer.Spec.OpenEBS.IsCstorEnabled)) (not .IsUpgrade) | not }}'
+              #        outcomes:
+              #          - pass:
+              #              when: "{{ if (and .Installer.Spec.Rook.Version .Installer.Spec.Rook.BlockDeviceFilter) }}{{ .Installer.Spec.Rook.BlockDeviceFilter }}{{ else }}.*{{ end }} == 1"
+              #              message: One available block device
+              #          - pass:
+              #              when: "{{ if (and .Installer.Spec.Rook.Version .Installer.Spec.Rook.BlockDeviceFilter) }}{{ .Installer.Spec.Rook.BlockDeviceFilter }}{{ else }}.*{{ end }} > 1"
+              #              message: Multiple available block devices
+              #          - fail:
+              #              message: No available block devices
     - tcpPortStatus:
         checkName: "Kubernetes API TCP Port Status"
         collectorName: "Kubernetes API TCP Port Status"
