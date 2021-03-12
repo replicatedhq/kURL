@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"os"
 	"regexp"
 	"strings"
@@ -15,8 +16,9 @@ import (
 	"github.com/replicatedhq/kurl/pkg/installer"
 	"github.com/replicatedhq/kurl/pkg/preflight"
 	analyze "github.com/replicatedhq/troubleshoot/pkg/analyze"
+	troubleshootv1beta2 "github.com/replicatedhq/troubleshoot/pkg/apis/troubleshoot/v1beta2"
+	"github.com/replicatedhq/troubleshoot/pkg/collect"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
 func NewHostPreflightCmd(cli CLI) *cobra.Command {
@@ -26,10 +28,10 @@ func NewHostPreflightCmd(cli CLI) *cobra.Command {
 		SilenceUsage: true,
 		Args:         cobra.ExactArgs(1),
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
-			return viper.BindPFlags(cmd.PersistentFlags())
+			return cli.GetViper().BindPFlags(cmd.PersistentFlags())
 		},
 		PreRunE: func(cmd *cobra.Command, args []string) error {
-			return viper.BindPFlags(cmd.Flags())
+			return cli.GetViper().BindPFlags(cmd.Flags())
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			installerSpec, err := installer.RetrieveSpec(cli.GetFS(), args[0])
@@ -37,21 +39,36 @@ func NewHostPreflightCmd(cli CLI) *cobra.Command {
 				return errors.Wrap(err, "retrieve installer spec")
 			}
 
-			builtin := preflight.Builtin()
 			data := installer.TemplateData{
 				Installer: *installerSpec,
-				IsPrimary: viper.GetBool("is-primary"),
-				IsJoin:    viper.GetBool("is-join"),
-				IsUpgrade: viper.GetBool("is-upgrade"),
-			}
-			spec, err := installer.ExecuteTemplate("installerSpec", builtin, data)
-			if err != nil {
-				return errors.Wrap(err, "execute installer template")
+				IsPrimary: cli.GetViper().GetBool("is-primary"),
+				IsJoin:    cli.GetViper().GetBool("is-join"),
+				IsUpgrade: cli.GetViper().GetBool("is-upgrade"),
 			}
 
-			preflightSpec, err := preflight.Decode(spec)
+			builtin := preflight.Builtin()
+			preflightSpec, err := decodePreflightSpec(builtin, data)
 			if err != nil {
-				return errors.Wrap(err, "decode spec")
+				return errors.Wrap(err, "builtin")
+			}
+
+			for _, filename := range cli.GetViper().GetStringSlice("spec") {
+				spec, err := ioutil.ReadFile(filename)
+				if err != nil {
+					return errors.Wrapf(err, "read spec file %s", filename)
+				}
+
+				decoded, err := decodePreflightSpec(string(spec), data)
+				if err != nil {
+					return errors.Wrap(err, filename)
+				}
+
+				for _, collector := range decoded.Spec.Collectors {
+					preflightSpec.Spec.Collectors = maybeAppendPreflightCollector(preflightSpec.Spec.Collectors, collector)
+				}
+				for _, analyzer := range decoded.Spec.Analyzers {
+					preflightSpec.Spec.Analyzers = maybeAppendPreflightAnalyzer(preflightSpec.Spec.Analyzers, analyzer)
+				}
 			}
 
 			progressChan := make(chan interface{})
@@ -73,7 +90,7 @@ func NewHostPreflightCmd(cli CLI) *cobra.Command {
 			case preflightIsFail(results):
 				return errors.New("preflights have failures")
 			case preflightIsWarn(results):
-				if viper.GetBool("ignore-warnings") {
+				if cli.GetViper().GetBool("ignore-warnings") {
 					fmt.Fprintln(cmd.ErrOrStderr(), "Warnings ignored by CLI flag \"ignore-warnings\"")
 				} else {
 					if confirmPreflightIsWarn(cli) {
@@ -87,11 +104,56 @@ func NewHostPreflightCmd(cli CLI) *cobra.Command {
 	}
 
 	cmd.Flags().Bool("ignore-warnings", false, "ignore preflight warnings")
-	cmd.Flags().Bool("is-primary", true, "set to true if this node is a primary")
 	cmd.Flags().Bool("is-join", false, "set to true if this node is joining an existing cluster (non-primary implies join)")
+	cmd.Flags().Bool("is-primary", true, "set to true if this node is a primary")
 	cmd.Flags().Bool("is-upgrade", false, "set to true if this is an upgrade")
+	cmd.Flags().StringSlice("spec", nil, "preflight specs")
+	// cmd.MarkFlagRequired("spec")
+	cmd.MarkFlagFilename("spec", "yaml", "yml")
 
 	return cmd
+}
+
+func decodePreflightSpec(raw string, data installer.TemplateData) (*troubleshootv1beta2.HostPreflight, error) {
+	spec, err := installer.ExecuteTemplate("installerSpec", raw, data)
+	if err != nil {
+		return nil, errors.Wrapf(err, "execute installer template")
+	}
+
+	decoded, err := preflight.Decode(spec)
+	return decoded, errors.Wrap(err, "decode spec")
+}
+
+func maybeAppendPreflightCollector(collectors []*troubleshootv1beta2.HostCollect, collector *troubleshootv1beta2.HostCollect) []*troubleshootv1beta2.HostCollect {
+	hostCollector, _ := collect.GetHostCollector(collector)
+	if hostCollector == nil {
+		return collectors
+	}
+	for _, c := range collectors {
+		hc, _ := collect.GetHostCollector(c)
+		if hc == nil {
+			continue
+		} else if hostCollector.Title() == hc.Title() {
+			return collectors
+		}
+	}
+	return append(collectors, collector)
+}
+
+func maybeAppendPreflightAnalyzer(analyzers []*troubleshootv1beta2.HostAnalyze, analyzer *troubleshootv1beta2.HostAnalyze) []*troubleshootv1beta2.HostAnalyze {
+	hostAnalyzer, _ := analyze.GetHostAnalyzer(analyzer)
+	if hostAnalyzer == nil {
+		return analyzers
+	}
+	for _, c := range analyzers {
+		hc, _ := analyze.GetHostAnalyzer(c)
+		if hc == nil {
+			continue
+		} else if hostAnalyzer.Title() == hc.Title() {
+			return analyzers
+		}
+	}
+	return append(analyzers, analyzer)
 }
 
 var collectorStartRegexp = regexp.MustCompile(`^\[.+\] Running collector\.\.\.$`)

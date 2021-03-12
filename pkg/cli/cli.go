@@ -5,9 +5,11 @@ import (
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/kurl/pkg/preflight"
 	"github.com/spf13/afero"
+	"github.com/spf13/viper"
 )
 
 type CLI interface {
+	GetViper() *viper.Viper
 	GetFS() afero.Fs
 	GetReadline() *readline.Instance
 	GetPreflightRunner() preflight.Runner
@@ -17,6 +19,10 @@ type KurlCLI struct {
 	fs              afero.Fs
 	readline        *readline.Instance
 	preflightRunner *preflight.PreflightRunner
+}
+
+func (cli *KurlCLI) GetViper() *viper.Viper {
+	return viper.GetViper()
 }
 
 func (cli *KurlCLI) GetFS() afero.Fs {
