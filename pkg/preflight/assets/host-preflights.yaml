@@ -48,6 +48,10 @@ spec:
         collectorName: "Weave Net Control TCP Port Status"
         port: 6783
         exclude: '{{ and .Installer.Spec.Weave.Version (not .IsUpgrade) | not }}'
+    - tcpConnect:
+        collectorName: "Kubernetes API TCP Connection Status"
+        address: '{{ .Installer.Spec.Kubernetes.MasterAddress }}'
+        exclude: '{{ and .Installer.Spec.Kubernetes.Version .Installer.Spec.Kubernetes.MasterAddress .IsJoin | not }}'
 
   analyzers:
     - cpu:
@@ -276,3 +280,22 @@ spec:
               message: Port 6783 is open
           - warn:
               message: Unexpected port status
+    - tcpConnect:
+        checkName: "Kubernetes API TCP Connection Status"
+        collectorName: "Kubernetes API TCP Connection Status"
+        exclude: '{{ and .Installer.Spec.Kubernetes.Version .Installer.Spec.Kubernetes.MasterAddress .IsJoin | not }}'
+        outcomes:
+          - fail:
+              when: "connection-refused"
+              message: Connection to the Kubernetes API at address {{ .Installer.Spec.Kubernetes.MasterAddress }} was refused
+          - fail:
+              when: "connection-timeout"
+              message: Timed out connecting to the Kubernetes API at address {{ .Installer.Spec.Kubernetes.MasterAddress }}
+          - fail:
+              when: "error"
+              message: Unexpected error connecting to the Kubernetes API at address {{ .Installer.Spec.Kubernetes.MasterAddress }}
+          - pass:
+              when: "connected"
+              message: Successfully connected to the Kubernetes API at address {{ .Installer.Spec.Kubernetes.MasterAddress }}
+          - warn:
+              message: Unexpected TCP connection status
