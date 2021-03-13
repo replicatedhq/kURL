@@ -32,18 +32,24 @@ spec:
   ekco:
     version: 0.3.0
   calico:
-    version: 3.9.1
+    version: latest
+    isEncryptionDisabled: true
+    podCidrRange: /16
+    podCIDR: 172.19.0.0/16
 `;
 
 describe("script with calico config", () => {
 	it("200", async () => {
 		const uri = await client.postInstaller(calico);
 
-		expect(uri).to.match(/ccfc89b/);
+		expect(uri).to.match(/0bf637c/);
 
-		const script = await client.getInstallScript("ccfc89b");
+		const script = await client.getInstallScript("0bf637c");
 
 		expect(script).to.match(new RegExp(`calico:`));
-		expect(script).to.match(new RegExp(`version: 3.9.1`));
+		expect(script).to.match(new RegExp("version: "+Installer.versions.calico[0]));
+		expect(script).to.match(new RegExp(`isEncryptionDisabled: true`));
+		expect(script).to.match(new RegExp(`podCidrRange: /16`));
+		expect(script).to.match(new RegExp(`podCIDR: 172.19.0.0/16`));
 	});
 });
