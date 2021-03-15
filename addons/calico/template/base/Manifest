@@ -2,6 +2,7 @@ image cni calico/cni:v__CALICO_VERSION__
 image kube-controllers calico/kube-controllers:v__CALICO_VERSION__
 image node calico/node:v__CALICO_VERSION__
 image pod2daemon-flexvol calico/pod2daemon-flexvol:v__CALICO_VERSION__
+asset calicoctl https://github.com/projectcalico/calicoctl/releases/download/v__CALICO_VERSION__/calicoctl
 
 yum kmod-wireguard
 yum wireguard-tools

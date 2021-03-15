@@ -131,7 +131,7 @@ export const calicoConfigSchema = {
     s3Override: { type: "string", flag: "s3-override", description: "Override the download location for addon package distribution (used for CI/CD testing alpha addons)" },
     podCIDR: { type: "string", description: "The subnet where pods will be found" },
     podCidrRange: { type: "string", description: "The size of the CIDR where pods can be found" },
-    isEncryptionDisabled: { type: "boolean", description: "Is encryption in the Weave CNI disabled" },
+    isEncryptionDisabled: { type: "boolean", description: "Is encryption in the Calico CNI disabled" },
   },
   required: ["version"],
   additionalProperties: false,

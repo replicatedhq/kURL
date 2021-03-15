@@ -290,7 +290,7 @@ function kubernetes_cluster_resource_exists() {
     local kind=$1
     local name=$2
 
-    kubectl -n "$namespace" get "$kind" "$name" &>/dev/null
+    kubectl get "$kind" "$name" &>/dev/null
 }
 
 function install_cri() {

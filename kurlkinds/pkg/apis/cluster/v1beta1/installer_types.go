@@ -218,6 +218,8 @@ type Calico struct {
 	S3Override           string `json:"s3Override,omitempty" yaml:"s3Override,omitempty"`
 	Version              string `json:"version" yaml:"version"`
 	IsEncryptionDisabled bool   `json:"isEncryptionDisabled,omitempty" yaml:"isEncryptionDisabled,omitempty"`
+	PodCIDR              string `json:"podCIDR,omitempty" yaml:"podCIDR,omitempty"`
+	PodCidrRange         string `json:"podCidrRange,omitempty" yaml:"podCidrRange,omitempty"`
 }
 
 type Containerd struct {

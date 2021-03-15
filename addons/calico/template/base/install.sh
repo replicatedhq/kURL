@@ -53,7 +53,7 @@ function calico_cli() {
 
     if [ ! -f "$src/assets/calicoctl" ] && [ ! "$AIRGAP" = "1" ]; then
         mkdir -p "$src/assets"
-        curl -L https://github.com/projectcalico/calicoctl/releases/download/v3.18.0/calicoctl > "$src/assets/calicoctl"
+        curl -L https://github.com/projectcalico/calicoctl/releases/download/v${CALICO_VERSION}/calicoctl > "$src/assets/calicoctl"
     fi
 
     chmod +x "$src/assets/calicoctl"
