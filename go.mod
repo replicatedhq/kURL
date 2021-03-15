@@ -5,7 +5,7 @@ go 1.16
 require (
 	github.com/Masterminds/goutils v1.1.1 // indirect
 	github.com/Masterminds/semver v1.5.0 // indirect
-	github.com/Masterminds/sprig v2.22.0+incompatible // indirect
+	github.com/Masterminds/sprig v2.22.0+incompatible
 	github.com/StackExchange/wmi v0.0.0-20190523213315-cbe66965904d // indirect
 	github.com/apparentlymart/go-cidr v1.1.0
 	github.com/briandowns/spinner v1.12.0
@@ -21,7 +21,7 @@ require (
 	github.com/mitchellh/copystructure v1.1.1 // indirect
 	github.com/onsi/gomega v1.9.0
 	github.com/pkg/errors v0.9.1
-	github.com/replicatedhq/troubleshoot v0.10.8
+	github.com/replicatedhq/troubleshoot v0.10.10
 	github.com/spf13/afero v1.5.1
 	github.com/spf13/cobra v1.1.3
 	github.com/spf13/viper v1.7.1
