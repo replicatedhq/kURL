@@ -74,7 +74,7 @@ function calico_wireguard() {
         return 0
     fi
 
-    if [ -d $src/*/archives ]; then
+    if [ $(find addons/calico/$CALICO_VERSION/ -type d -name archives | wc -l) -gt 0 ]; then
         install_host_archives "$src"
         CALICO_WIREGUARD=1
         return 0
