@@ -37,6 +37,10 @@ spec:
               properties:
                 isEncryptionDisabled:
                   type: boolean
+                podCIDR:
+                  type: string
+                podCidrRange:
+                  type: string
                 s3Override:
                   type: string
                 version:
