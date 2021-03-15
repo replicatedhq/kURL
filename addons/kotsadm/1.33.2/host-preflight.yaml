@@ -8,13 +8,13 @@ spec:
         collectorName: Can Access Replicated API
         get:
           url: https://replicated.app
-        exclude: '.Installer.Spec.Kurl.Airgap }}'
+        exclude: '{{ .Installer.Spec.Kurl.Airgap }}'
 
   analyzers:
     - http:
         checkName: Can Access Replicated API
         collectorName: Can Access Replicated API
-        exclude: '.Installer.Spec.Kurl.Airgap }}'
+        exclude: '{{ .Installer.Spec.Kurl.Airgap }}'
         outcomes:
           - fail:
               when: "error"
