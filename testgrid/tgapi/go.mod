@@ -5,7 +5,7 @@ go 1.16
 require (
 	github.com/DataDog/datadog-go v4.4.0+incompatible
 	github.com/Microsoft/go-winio v0.4.16 // indirect
-	github.com/aws/aws-sdk-go v1.37.25
+	github.com/aws/aws-sdk-go v1.37.30
 	github.com/gorilla/mux v1.8.0
 	github.com/lib/pq v1.10.0
 	github.com/pkg/errors v0.9.1
