@@ -32,6 +32,11 @@ spec:
     encryptNetwork: true
     podCidrRange: /12
     podCIDR: 39.1.2.3
+  calico:
+    version: latest
+    isEncryptionDisabled: false
+    podCidrRange: /12
+    podCIDR: 39.1.2.3
   contour:
     version: latest
     tlsMinimumProtocolVersion: "1.3"
@@ -893,6 +898,19 @@ spec:
         uiBindPort: 30880,
         uiReplicaCount: 0,
         version: "latest",
+      });
+    });
+  });
+
+  describe("calico", () => {
+    it("should parse.", () => {
+      const i = Installer.parse(everyOption);
+
+      expect(i.spec.calico).to.deep.equal({
+        isEncryptionDisabled: false,
+        version: "latest",
+        podCidrRange: "/12",
+        podCIDR: "39.1.2.3",
       });
     });
   });

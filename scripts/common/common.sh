@@ -286,6 +286,13 @@ function kubernetes_resource_exists() {
     kubectl -n "$namespace" get "$kind" "$name" &>/dev/null
 }
 
+function kubernetes_cluster_resource_exists() {
+    local kind=$1
+    local name=$2
+
+    kubectl get "$kind" "$name" &>/dev/null
+}
+
 function install_cri() {
     # In the event someone changes the installer spec from docker to containerd, maintain backward capability with old installs
     if [ -n "$DOCKER_VERSION" ] || [ "$SKIP_DOCKER_INSTALL" = "1" ] ; then

@@ -129,6 +129,9 @@ export const calicoConfigSchema = {
   properties: {
     version: { type: "string" },
     s3Override: { type: "string", flag: "s3-override", description: "Override the download location for addon package distribution (used for CI/CD testing alpha addons)" },
+    podCIDR: { type: "string", description: "The subnet where pods will be found" },
+    podCidrRange: { type: "string", description: "The size of the CIDR where pods can be found" },
+    isEncryptionDisabled: { type: "boolean", description: "Is encryption in the Calico CNI disabled" },
   },
   required: ["version"],
   additionalProperties: false,
@@ -268,6 +271,9 @@ export const prometheusConfigSchema = {
 export interface CalicoConfig {
   version: string;
   s3Override?: string;
+  podCIDR?: string;
+  podCidrRange?: string;
+  isEncryptionDisabled?: boolean;
 }
 
 export const fluentdConfigSchema = {
@@ -686,6 +692,10 @@ export class Installer {
       "2.6.4",
       "2.5.2",
       "2.7.0",
+    ],
+    calico: [ 
+      // cron-calico-update
+      "3.18.1",
     ],
     rook: [
       "1.0.4",

@@ -12,8 +12,8 @@ func init() {
 				Kubernetes: &kurlv1beta1.Kubernetes{
 					Version: "1.19.7",
 				},
-				Weave: &kurlv1beta1.Weave{
-					Version: "2.7.0",
+				Calico: &kurlv1beta1.Calico{
+					Version: "3.18.1",
 				},
 				Containerd: &kurlv1beta1.Containerd{
 					Version: "1.4.3",

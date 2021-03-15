@@ -1,0 +1,9 @@
+image cni calico/cni:v3.18.1
+image kube-controllers calico/kube-controllers:v3.18.1
+image node calico/node:v3.18.1
+image pod2daemon-flexvol calico/pod2daemon-flexvol:v3.18.1
+asset calicoctl https://github.com/projectcalico/calicoctl/releases/download/v3.18.1/calicoctl
+
+yum kmod-wireguard
+yum wireguard-tools
+apt wireguard
