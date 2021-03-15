@@ -14,7 +14,7 @@ require (
 	k8s.io/api v0.20.4
 	k8s.io/apimachinery v0.20.4
 	k8s.io/client-go v12.0.0+incompatible
-	kubevirt.io/client-go v0.38.1
+	kubevirt.io/client-go v0.39.0
 )
 
 replace (
