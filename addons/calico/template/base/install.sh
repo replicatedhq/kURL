@@ -1,7 +1,6 @@
 
 CALICO_DISABLE_ENCRYPTION=0 # setting from yaml spec
 # Will remain 0 if disabled in the yaml spec and dev workflow in CentOS/RHEL
-# TODO
 CALICO_WIREGUARD=0
 
 function calico_pre_init() {
