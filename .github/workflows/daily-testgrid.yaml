@@ -2,6 +2,7 @@ name: testGrid-daily
 on:
   schedule:
   - cron: "0 8 * * *"
+  workflow_dispatch: {}
 
 defaults:
   run:
