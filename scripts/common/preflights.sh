@@ -366,15 +366,24 @@ function host_preflights() {
     else
         # interactive terminal
         if can_prompt; then
-            if ! "${DIR}"/bin/kurl host preflight "${MERGED_YAML_SPEC}" ${opts} </dev/tty ; then
-                printf "${RED}Host preflights have failures. Do you want to proceed anyway? ${NC} "
-                if ! confirmY "-t 10"; then
+            set +e
+            "${DIR}"/bin/kurl host preflight "${MERGED_YAML_SPEC}" </dev/tty
+            local kurl_exit_code=$?
+            set -e 
+            case $kurl_exit_code in
+                3)
                     report_install_fail "preflight"
-                    bail "Use the \"preflight-ignore\" flag to proceed."
-                fi
-                return 0
-                # TODO: report preflight fail
-            fi
+                    bail "Use the \"preflight-ignore-warnings\" flag to proceed."
+                    ;;  
+                1)
+                    printf "${RED}Host preflights have failures. Do you want to proceed anyway? ${NC} "
+                    if ! confirmY "-t 10"; then
+                        report_install_fail "preflight"
+                        bail "Use the \"preflight-ignore\" flag to proceed."
+                    fi
+                    return 0
+                    ;;
+            esac                                       
         # non-interactive terminal
         else
             if ! "${DIR}"/bin/kurl host preflight "${MERGED_YAML_SPEC}" ${opts}; then
