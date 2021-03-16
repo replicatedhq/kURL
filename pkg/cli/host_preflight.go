@@ -93,7 +93,7 @@ func NewHostPreflightCmd(cli CLI) *cobra.Command {
 					if confirmPreflightIsWarn(cli) {
 						return nil
 					}
-					return errors.New("preflights have warnings")
+					return ErrUserExit
 				}
 			}
 			return nil
