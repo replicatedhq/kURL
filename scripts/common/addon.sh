@@ -27,7 +27,7 @@ function addon_install() {
     report_addon_success "$name" "$version"
 }
 
-function addon_pre_init() {
+function addon_fetch() {
     local name=$1
     local version=$2
     local s3Override=$3
@@ -42,37 +42,27 @@ function addon_pre_init() {
             addon_fetch_no_cache "$s3Override"
         elif [ -n "$DIST_URL" ]; then
             rm -rf $DIR/addons/$name/$version # Cleanup broken/incompatible addons from failed runs
-            addon_fetch "$name-$version.tar.gz"
+            addon_fetch_cache "$name-$version.tar.gz"
         fi
     fi
 
     . $DIR/addons/$name/$version/install.sh
+}
+
+function addon_pre_init() {
+    local name=$1
 
     if commandExists ${name}_pre_init; then
         ${name}_pre_init
     fi
 }
 
-function addon_pre_join() {
+function addon_preflight() {
     local name=$1
-    local version=$2
-    local s3Override=$3
 
-    if [ -z "$version" ]; then
-        return 0
+    if commandExists ${name}_preflight; then
+        ${name}_preflight
     fi
-
-    if [ "$AIRGAP" != "1" ]; then
-        if [ -n "$s3Override" ]; then
-            rm -rf $DIR/addons/$name/$version # Cleanup broken/incompatible addons from failed runs
-            addon_fetch_no_cache "$s3Override"
-        elif [ -n "$DIST_URL" ]; then
-            rm -rf $DIR/addons/$name/$version # Cleanup broken/incompatible addons from failed runs
-            addon_fetch "$name-$version.tar.gz"
-        fi
-    fi
-
-    . $DIR/addons/$name/$version/install.sh
 }
 
 function addon_join() {
@@ -109,7 +99,7 @@ function addon_fetch_no_cache() {
     rm $archiveName
 }
 
-function addon_fetch() {
+function addon_fetch_cache() {
     local package=$1
 
     package_download "${package}"

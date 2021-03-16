@@ -9,7 +9,7 @@ image csi-resizer longhornio/csi-resizer:v0.5.1-lh1
 image csi-snapshotter longhornio/csi-snapshotter:v2.1.1-lh1
 image csi-node-driver-registrar longhornio/csi-node-driver-registrar:v1.2.0-lh1
 
-yum iscsi-initiator-utils 
+yum iscsi-initiator-utils
 yum nfs-utils
-apt open-iscsi 
+apt open-iscsi
 apt nfs-common

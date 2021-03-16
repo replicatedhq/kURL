@@ -355,13 +355,17 @@ function host_preflights() {
         opts="${opts} --is-upgrade"
     fi
 
+    for spec in $(${K8S_DISTRO}_addon_for_each addon_preflight); do
+        opts="${opts} --spec=${spec}"
+    done
+
     logStep "Running host preflights"
     if [ "${PREFLIGHT_IGNORE}" = "1" ]; then
         "${DIR}"/bin/kurl host preflight "${MERGED_YAML_SPEC}" ${opts} || true
         # TODO: report preflight fail
     else
         # interactive terminal
-        if [ -t 0 ] ; then      
+        if [ -t 0 ] ; then
             if ! "${DIR}"/bin/kurl host preflight "${MERGED_YAML_SPEC}" ${opts} </dev/tty ; then
                 printf "${RED}Host preflights have failures. Do you want to proceed anyway? ${NC} "
                 if ! confirmN "-t 30"; then

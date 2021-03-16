@@ -367,6 +367,7 @@ function rke2_main() {
     # report_install_start              # TODO(dan) remove reporting for now.
     # trap prek8s_ctrl_c SIGINT # trap ctrl+c (SIGINT) and handle it by reporting that the user exited intentionally # TODO(dan) remove reporting for now.
     # preflights                        # TODO(dan): mostly good, but disable for now
+    ${K8S_DISTRO}_addon_for_each addon_fetch
     # if [ -z "$CURRENT_KUBERNETES_VERSION" ]; then # TODO (ethan): support for CURRENT_KUBERNETES_VERSION
     #     host_preflights "1" "0" "0"
     # else

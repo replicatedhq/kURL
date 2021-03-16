@@ -420,6 +420,7 @@ function main() {
     journald_persistent
     configure_proxy
     configure_no_proxy_preinstall
+    ${K8S_DISTRO}_addon_for_each addon_fetch
     if [ -z "$CURRENT_KUBERNETES_VERSION" ]; then
         host_preflights "1" "0" "0"
     else

@@ -11,6 +11,7 @@ import (
 	gomock "github.com/golang/mock/gomock"
 	preflight "github.com/replicatedhq/kurl/pkg/preflight"
 	afero "github.com/spf13/afero"
+	viper "github.com/spf13/viper"
 )
 
 // MockCLI is a mock of CLI interface.
@@ -76,4 +77,18 @@ func (m *MockCLI) GetReadline() *readline.Instance {
 func (mr *MockCLIMockRecorder) GetReadline() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetReadline", reflect.TypeOf((*MockCLI)(nil).GetReadline))
+}
+
+// GetViper mocks base method.
+func (m *MockCLI) GetViper() *viper.Viper {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetViper")
+	ret0, _ := ret[0].(*viper.Viper)
+	return ret0
+}
+
+// GetViper indicates an expected call of GetViper.
+func (mr *MockCLIMockRecorder) GetViper() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetViper", reflect.TypeOf((*MockCLI)(nil).GetViper))
 }

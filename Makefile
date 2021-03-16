@@ -554,3 +554,8 @@ kurl-util-image:
 generate-addons:
 	make -C web generate-versions
 	node generate-addons.js
+
+.PHONY: generate-mocks
+generate-mocks:
+	mockgen -source=pkg/cli/cli.go -destination=pkg/cli/mock/mock_cli.go
+	mockgen -source=pkg/preflight/runner.go -destination=pkg/preflight/mock/mock_runner.go
