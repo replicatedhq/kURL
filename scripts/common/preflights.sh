@@ -342,7 +342,7 @@ function host_preflights() {
     local is_upgrade="$3"
 
     local opts=
-    if [ "${PREFLIGHT_IGNORE_WARNINGS}" = "1" ] || [ ! -t 0 ] ; then # if no tty
+    if [ "${PREFLIGHT_IGNORE_WARNINGS}" = "1" ] || ! can_prompt ; then
         opts="${opts} --ignore-warnings"
     fi
     if [ "${is_primary}" != "1" ]; then
@@ -365,7 +365,7 @@ function host_preflights() {
         # TODO: report preflight fail
     else
         # interactive terminal
-        if [ -t 0 ] ; then
+        if can_prompt; then
             if ! "${DIR}"/bin/kurl host preflight "${MERGED_YAML_SPEC}" ${opts} </dev/tty ; then
                 printf "${RED}Host preflights have failures. Do you want to proceed anyway? ${NC} "
                 if ! confirmY "-t 10"; then

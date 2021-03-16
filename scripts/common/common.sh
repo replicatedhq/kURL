@@ -1,6 +1,3 @@
-
-STORAGE_PROVISIONER=rook
-
 GREEN='\033[0;32m'
 BLUE='\033[0;94m'
 LIGHT_BLUE='\033[0;34m'
@@ -708,4 +705,13 @@ function maybe() {
 MACHINE_ID=
 function get_machine_id() {
     MACHINE_ID="$(${DIR}/bin/kurl host protectedid || true)"
+}
+
+function can_prompt() {
+    # Need the TTY to accept input and stdout to display
+    # Prompts when running the script through the terminal but not as a subshell
+    if [ -t 1 ] && [ -c /dev/tty ]; then
+        return 0
+    fi
+    return 1
 }
