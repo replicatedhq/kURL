@@ -36,14 +36,6 @@ spec:
         collectorName: "Kubelet API TCP Port Status"
         port: 10250
         exclude: '{{ and (not .IsUpgrade) | not }}'
-    - tcpPortStatus:
-        collectorName: "Kube Scheduler TCP Port Status"
-        port: 10251
-        exclude: '{{ and .IsPrimary (not .IsUpgrade) | not }}'
-    - tcpPortStatus:
-        collectorName: "Kube Controller Manager TCP Port Status"
-        port: 10252
-        exclude: '{{ and .IsPrimary (not .IsUpgrade) | not }}'
     - tcpConnect:
         collectorName: "Kubernetes API TCP Connection Status"
         address: '{{ .Installer.Spec.Kubernetes.MasterAddress }}'
@@ -208,50 +200,6 @@ spec:
           - pass:
               when: "connected"
               message: Port 10250 is open
-          - warn:
-              message: Unexpected port status
-    - tcpPortStatus:
-        checkName: "Kube Scheduler TCP Port Status"
-        collectorName: "Kube Scheduler TCP Port Status"
-        exclude: '{{ and .IsPrimary (not .IsUpgrade) | not }}'
-        outcomes:
-          - fail:
-              when: "connection-refused"
-              message: Connection to port 10251 was refused. This is likely to be a routing problem since this preflight configures a test server to listen on this port.
-          - warn:
-              when: "address-in-use"
-              message: Another process was already listening on port 10251.
-          - fail:
-              when: "connection-timeout"
-              message: Timed out connecting to port 10251. Check your firewall.
-          - fail:
-              when: "error"
-              message: Unexpected port status
-          - pass:
-              when: "connected"
-              message: Port 10251 is open
-          - warn:
-              message: Unexpected port status
-    - tcpPortStatus:
-        checkName: "Kube Controller Manager TCP Port Status"
-        collectorName: "Kube Controller Manager TCP Port Status"
-        exclude: '{{ and .IsPrimary (not .IsUpgrade) | not }}'
-        outcomes:
-          - fail:
-              when: "connection-refused"
-              message: Connection to port 10252 was refused. This is likely to be a routing problem since this preflight configures a test server to listen on this port.
-          - warn:
-              when: "address-in-use"
-              message: Another process was already listening on port 10252.
-          - fail:
-              when: "connection-timeout"
-              message: Timed out connecting to port 10252. Check your firewall.
-          - fail:
-              when: "error"
-              message: Unexpected port status
-          - pass:
-              when: "connected"
-              message: Port 10252 is open
           - warn:
               message: Unexpected port status
     - tcpConnect:
