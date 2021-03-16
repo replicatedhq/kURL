@@ -16,11 +16,11 @@ spec:
         collectorName: Can Access Replicated API
         exclude: '{{ .Installer.Spec.Kurl.Airgap }}'
         outcomes:
-          - fail:
+          - warn:
               when: "error"
               message: Error connecting to https://replicated.app
           - pass:
               when: "statusCode == 200"
               message: Connected to https://replicated.app
-          - fail:
+          - warn:
               message: "Unexpected response"
