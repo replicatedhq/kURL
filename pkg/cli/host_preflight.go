@@ -17,7 +17,6 @@ import (
 	"github.com/replicatedhq/kurl/pkg/preflight"
 	analyze "github.com/replicatedhq/troubleshoot/pkg/analyze"
 	troubleshootv1beta2 "github.com/replicatedhq/troubleshoot/pkg/apis/troubleshoot/v1beta2"
-	"github.com/replicatedhq/troubleshoot/pkg/collect"
 	"github.com/spf13/cobra"
 )
 
@@ -65,12 +64,8 @@ func NewHostPreflightCmd(cli CLI) *cobra.Command {
 					return errors.Wrap(err, filename)
 				}
 
-				for _, collector := range decoded.Spec.Collectors {
-					preflightSpec.Spec.Collectors = maybeAppendPreflightCollector(preflightSpec.Spec.Collectors, collector)
-				}
-				for _, analyzer := range decoded.Spec.Analyzers {
-					preflightSpec.Spec.Analyzers = maybeAppendPreflightAnalyzer(preflightSpec.Spec.Analyzers, analyzer)
-				}
+				preflightSpec.Spec.Collectors = append(preflightSpec.Spec.Collectors, decoded.Spec.Collectors...)
+				preflightSpec.Spec.Analyzers = append(preflightSpec.Spec.Analyzers, decoded.Spec.Analyzers...)
 			}
 
 			progressChan := make(chan interface{})
@@ -124,38 +119,6 @@ func decodePreflightSpec(raw string, data installer.TemplateData) (*troubleshoot
 
 	decoded, err := preflight.Decode(spec)
 	return decoded, errors.Wrap(err, "decode spec")
-}
-
-func maybeAppendPreflightCollector(collectors []*troubleshootv1beta2.HostCollect, collector *troubleshootv1beta2.HostCollect) []*troubleshootv1beta2.HostCollect {
-	hostCollector, _ := collect.GetHostCollector(collector)
-	if hostCollector == nil {
-		return collectors
-	}
-	for _, c := range collectors {
-		hc, _ := collect.GetHostCollector(c)
-		if hc == nil {
-			continue
-		} else if hostCollector.Title() == hc.Title() {
-			return collectors
-		}
-	}
-	return append(collectors, collector)
-}
-
-func maybeAppendPreflightAnalyzer(analyzers []*troubleshootv1beta2.HostAnalyze, analyzer *troubleshootv1beta2.HostAnalyze) []*troubleshootv1beta2.HostAnalyze {
-	hostAnalyzer, _ := analyze.GetHostAnalyzer(analyzer)
-	if hostAnalyzer == nil {
-		return analyzers
-	}
-	for _, c := range analyzers {
-		hc, _ := analyze.GetHostAnalyzer(c)
-		if hc == nil {
-			continue
-		} else if hostAnalyzer.Title() == hc.Title() {
-			return analyzers
-		}
-	}
-	return append(analyzers, analyzer)
 }
 
 var collectorStartRegexp = regexp.MustCompile(`^\[.+\] Running collector\.\.\.$`)
