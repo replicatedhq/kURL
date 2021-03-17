@@ -367,7 +367,7 @@ function host_preflights() {
         # interactive terminal
         if can_prompt; then
             set +e
-            "${DIR}"/bin/kurl host preflight "${MERGED_YAML_SPEC}" </dev/tty
+            "${DIR}"/bin/kurl host preflight "${MERGED_YAML_SPEC}" ${opts} </dev/tty
             local kurl_exit_code=$?
             set -e 
             case $kurl_exit_code in
