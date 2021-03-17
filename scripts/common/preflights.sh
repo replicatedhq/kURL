@@ -43,7 +43,15 @@ function require64Bit() {
 
 function bailIfUnsupportedOS() {
     case "$LSB_DIST$DIST_VERSION" in
-        ubuntu16.04|ubuntu18.04|ubuntu20.04|rhel7.4|rhel7.5|rhel7.6|rhel7.7|rhel7.8|rhel7.9|rhel8.0|rhel8.1|rhel8.2|rhel8.3|centos7.4|centos7.5|centos7.6|centos7.7|centos7.8|centos7.9|centos8.0|centos8.1|centos8.2|centos8.3|amzn2|ol8.1|ol8.2|ol8.3)
+        ubuntu16.04|ubuntu18.04|ubuntu20.04)
+            ;;
+        rhel7.4|rhel7.5|rhel7.6|rhel7.7|rhel7.8|rhel7.9|rhel8.0|rhel8.1|rhel8.2|rhel8.3)
+            ;;
+        centos7.4|centos7.5|centos7.6|centos7.7|centos7.8|centos7.9|centos8.0|centos8.1|centos8.2|centos8.3)
+            ;;
+        amzn2)
+            ;;
+        ol7.4|ol7.5|ol7.6|ol7.7|ol7.8|ol7.9|ol8.0|ol8.1|ol8.2|ol8.3)
             ;;
         *)
             bail "Kubernetes install is not supported on ${LSB_DIST} ${DIST_VERSION}"
