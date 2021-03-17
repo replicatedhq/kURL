@@ -9,10 +9,15 @@ RUN apt-get update
 
 RUN mkdir -p /packages/archives
 RUN apt-get install -d -y \
+	kubeadm=$(apt-cache madison kubeadm | grep ${KUBERNETES_VERSION}- | awk '{ print $3 }' | head -n 1) \
 	kubelet=$(apt-cache madison kubeadm | grep ${KUBERNETES_VERSION}- | awk '{ print $3 }' | head -n 1) \
 	kubectl=$(apt-cache madison kubeadm | grep ${KUBERNETES_VERSION}- | awk '{ print $3 }' | head -n 1) \
 	kubernetes-cni \
 	git \
 	-oDebug::NoLocking=1 -o=dir::cache=/packages/
+
+# First upgrade step requires upgraded kubeadm binary before kubeadm package is upgraded
+# https://kubernetes.io/docs/tasks/administer-cluster/kubeadm/kubeadm-upgrade-1-11/
+RUN curl -sSL https://dl.k8s.io/release/v${KUBERNETES_VERSION}/bin/linux/amd64/kubeadm > /packages/archives/kubeadm
 
 CMD cp -r /packages/archives/* /out/

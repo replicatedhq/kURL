@@ -61,7 +61,7 @@ function kubernetes_sysctl_config() {
 function kubernetes_install_host_packages() {
     k8sVersion=$1
 
-    logStep "Install kubelet, kubectl and cni host packages"
+    logStep "Install kubelet, kubeadm, kubectl and cni host packages"
 
     if kubernetes_host_commands_ok "$k8sVersion"; then
         logSuccess "Kubernetes host packages already installed"
@@ -72,23 +72,8 @@ function kubernetes_install_host_packages() {
         kubernetes_get_host_packages_online "$k8sVersion"
     fi
 
-    cat > "$DIR/tmp-kubeadm.conf" <<EOF
-# Note: This dropin only works with kubeadm and kubelet v1.11+
-[Service]
-Environment="KUBELET_KUBECONFIG_ARGS=--bootstrap-kubeconfig=/etc/kubernetes/bootstrap-kubelet.conf --kubeconfig=/etc/kubernetes/kubelet.conf"
-Environment="KUBELET_CONFIG_ARGS=--config=/var/lib/kubelet/config.yaml"
-# This is a file that "kubeadm init" and "kubeadm join" generates at runtime, populating the KUBELET_KUBEADM_ARGS variable dynamically
-EnvironmentFile=-/var/lib/kubelet/kubeadm-flags.env
-# This is a file that the user can use for overrides of the kubelet args as a last resort. Preferably, the user should use
-# the .NodeRegistration.KubeletExtraArgs object in the configuration files instead. KUBELET_EXTRA_ARGS should be sourced from this file.
-EnvironmentFile=-/etc/__ENV_LOCATION__/kubelet
-ExecStart=
-ExecStart=/usr/bin/kubelet \$KUBELET_KUBECONFIG_ARGS \$KUBELET_CONFIG_ARGS \$KUBELET_KUBEADM_ARGS \$KUBELET_EXTRA_ARGS
-EOF
-
     case "$LSB_DIST" in
         ubuntu)
-            sed "s:__ENV_LOCATION__:default:g" -i "$DIR/tmp-kubeadm.conf"
             export DEBIAN_FRONTEND=noninteractive
             dpkg --install --force-depends-version $DIR/packages/kubernetes/${k8sVersion}/ubuntu-${DIST_VERSION}/*.deb
             ;;
@@ -96,37 +81,21 @@ EOF
         centos|rhel|amzn)
             case "$LSB_DIST$DIST_VERSION_MAJOR" in
                 rhel8|centos8)
-                    sed "s:__ENV_LOCATION__:sysconfig:g" -i "$DIR/tmp-kubeadm.conf"
                     rpm --upgrade --force --nodeps $DIR/packages/kubernetes/${k8sVersion}/rhel-8/*.rpm
                     ;;
 
                 *)
-                    sed "s:__ENV_LOCATION__:sysconfig:g" -i "$DIR/tmp-kubeadm.conf"
                     rpm --upgrade --force --nodeps $DIR/packages/kubernetes/${k8sVersion}/rhel-7/*.rpm
                     ;;
             esac
         ;;
     esac
 
-    # Update crictl: https://listman.redhat.com/archives/rhsa-announce/2019-October/msg00038.html 
-    tar -C /usr/bin -xzf "$DIR/packages/kubernetes/${k8sVersion}/assets/crictl-linux-amd64.tar.gz"
-    chmod a+rx /usr/bin/crictl
-
-    # Install Kubeadm from binary (see kubernetes.io)
-    cp -f "$DIR/packages/kubernetes/${k8sVersion}/assets/kubeadm" /usr/bin/
-    chmod a+rx /usr/bin/kubeadm
-
-    mkdir -p /etc/systemd/system/kubelet.service.d
-    cp -f "$DIR/tmp-kubeadm.conf" /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
-    chmod 640 /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
-
     if [ "$CLUSTER_DNS" != "$DEFAULT_CLUSTER_DNS" ]; then
         sed -i "s/$DEFAULT_CLUSTER_DNS/$CLUSTER_DNS/g" /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
     fi
 
-    echo "Restarting Kubelet"
-    systemctl daemon-reload
-    systemctl enable kubelet && systemctl restart kubelet
+    systemctl enable kubelet && systemctl start kubelet
 
     logSuccess "Kubernetes host packages installed"
 }

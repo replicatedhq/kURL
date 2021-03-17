@@ -93,8 +93,14 @@ function upgrade_kubeadm() {
     if [ "$AIRGAP" != "1" ] && [ -n "$DIST_URL" ]; then
         kubernetes_get_host_packages_online "$k8sVersion"
     fi
-
-    cp -f "$DIR/packages/kubernetes/${k8sVersion}/assets/kubeadm" /usr/bin/
+    case "$LSB_DIST" in
+        ubuntu)
+            cp $DIR/packages/kubernetes/${k8sVersion}/ubuntu-${DIST_VERSION}/kubeadm /usr/bin/kubeadm
+            ;;
+        centos|rhel|amzn)
+            cp $DIR/packages/kubernetes/${k8sVersion}/rhel-7/kubeadm /usr/bin/kubeadm
+            ;;
+    esac
     chmod a+rx /usr/bin/kubeadm
 }
 
