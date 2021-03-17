@@ -13,5 +13,4 @@ package-lock.json
 .envrc
 /packages/host/*/*/
 /packages/rke-2/*/*/
-/packages/kubernetes/*/*/
 .github/workflows/payloads
