@@ -19,7 +19,7 @@ func init() {
 					Version: "1.0.1",
 				},
 				Docker: &kurlv1beta1.Docker{
-					Version: "19.03.10",
+					Version: "20.10.5",
 				},
 			},
 			UpgradeSpec: &types.InstallerSpec{
@@ -33,7 +33,7 @@ func init() {
 					Version: "latest",
 				},
 				Docker: &kurlv1beta1.Docker{
-					Version: "19.03.10",
+					Version: "20.10.5",
 				},
 			},
 		},
