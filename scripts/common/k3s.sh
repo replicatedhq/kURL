@@ -436,7 +436,7 @@ function k3s_install_host_packages() {
                 bail "K3S unsupported on $LSB_DIST Linux"
                 ;;
 
-            centos|rhel|amzn)
+            centos|rhel|amzn|ol)
                 case "$LSB_DIST$DIST_VERSION_MAJOR" in
                     rhel8|centos8)
                         rpm --upgrade --force --nodeps $DIR/packages/k3s/${k3s_version}/rhel-8/*.rpm
@@ -446,6 +446,10 @@ function k3s_install_host_packages() {
                         rpm --upgrade --force --nodeps $DIR/packages/k3s/${k3s_version}/rhel-7/*.rpm
                         ;;
                 esac
+            ;;
+
+            *)
+                bail "K3S install is not supported on ${LSB_DIST} ${DIST_MAJOR}"
             ;;
         esac
     fi

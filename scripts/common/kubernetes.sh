@@ -46,7 +46,7 @@ function kubernetes_load_ipvs_modules() {
 function kubernetes_sysctl_config() {
     case "$LSB_DIST" in
         # TODO I've only seen these disabled on centos/rhel but should be safe for ubuntu
-        centos|rhel|amzn)
+        centos|rhel|amzn|ol)
             echo "net.bridge.bridge-nf-call-ip6tables = 1" > /etc/sysctl.d/k8s.conf
             echo "net.bridge.bridge-nf-call-iptables = 1" >> /etc/sysctl.d/k8s.conf
             echo "net.ipv4.conf.all.forwarding = 1" >> /etc/sysctl.d/k8s.conf
@@ -78,7 +78,7 @@ function kubernetes_install_host_packages() {
             dpkg --install --force-depends-version $DIR/packages/kubernetes/${k8sVersion}/ubuntu-${DIST_VERSION}/*.deb
             ;;
 
-        centos|rhel|amzn)
+        centos|rhel|amzn|ol)
             case "$LSB_DIST$DIST_VERSION_MAJOR" in
                 rhel8|centos8)
                     rpm --upgrade --force --nodeps $DIR/packages/kubernetes/${k8sVersion}/rhel-8/*.rpm
@@ -88,6 +88,10 @@ function kubernetes_install_host_packages() {
                     rpm --upgrade --force --nodeps $DIR/packages/kubernetes/${k8sVersion}/rhel-7/*.rpm
                     ;;
             esac
+        ;;
+
+        *)
+            bail "Kubernetes host package install is not supported on ${LSB_DIST} ${DIST_MAJOR}"
         ;;
     esac
 

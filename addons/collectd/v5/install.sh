@@ -35,7 +35,7 @@ function collectd_config() {
     ubuntu)
         local conf_path="/etc/collectd"
         ;;
-    centos|rhel|amzn)
+    centos|rhel|amzn|ol)
         local conf_path="/etc"
         mkdir -p /var/lib/collectd/rrd > /dev/null 2>&1
         ;;
