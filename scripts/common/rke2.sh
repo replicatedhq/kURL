@@ -439,7 +439,7 @@ function rke2_install_host_packages() {
             bail "RKE2 unsupported on $LSB_DIST Linux"
             ;;
 
-        centos|rhel|amzn)
+        centos|rhel|amzn|ol)
             case "$LSB_DIST$DIST_VERSION_MAJOR" in
                 rhel8|centos8)
                     rpm --upgrade --force --nodeps $DIR/packages/rke-2/${rke2_version}/rhel-8/*.rpm
@@ -450,6 +450,10 @@ function rke2_install_host_packages() {
                     ;;
             esac
         ;;
+
+        *)
+            bail "RKE2 install is not supported on ${LSB_DIST} ${DIST_MAJOR}"
+            ;;
     esac
 
     # TODO(ethan): is this still necessary?

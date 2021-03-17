@@ -53,7 +53,7 @@ docker_install() {
             return 0
             ;;
 
-        centos|rhel|amzn)
+        centos|rhel|amzn|ol)
             rpm --upgrade --force --nodeps $DIR/packages/docker/${DOCKER_VERSION}/rhel-7/*.rpm
             DID_INSTALL_DOCKER=1
             return 0

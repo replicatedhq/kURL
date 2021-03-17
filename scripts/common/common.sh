@@ -506,7 +506,7 @@ function install_host_packages() {
             fi
             ;;
 
-        centos|rhel|amzn)
+        centos|rhel|amzn|ol)
             if [[ "$DIST_VERSION" =~ ^8 ]]; then
                 if test -n "$(shopt -s nullglob; echo ${dir}/rhel-8/*.rpm )" ; then
                     rpm --upgrade --force --nodeps ${dir}/rhel-8/*.rpm
@@ -516,6 +516,10 @@ function install_host_packages() {
                     rpm --upgrade --force --nodeps ${dir}/rhel-7/*.rpm
                 fi
             fi
+            ;;
+
+        *)
+            bail "Host package install is not supported on ${LSB_DIST} ${DIST_MAJOR}"
             ;;
     esac
 }
@@ -538,7 +542,7 @@ function install_host_archives() {
             fi
             ;;
 
-        centos|rhel|amzn)
+        centos|rhel|amzn|ol)
             if [[ "$DIST_VERSION" =~ ^8 ]]; then
                 if test -n "$(shopt -s nullglob; echo ${dir}/rhel-8/archives/*.rpm )" ; then
                     rpm --upgrade --force --nodeps ${dir}/rhel-8/archives/*.rpm
@@ -548,6 +552,10 @@ function install_host_archives() {
                     rpm --upgrade --force --nodeps ${dir}/rhel-7/archives/*.rpm
                 fi
             fi
+            ;;
+
+        *)
+            bail "Host archive install is not supported on ${LSB_DIST} ${DIST_MAJOR}"
             ;;
     esac
 }

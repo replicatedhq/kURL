@@ -97,7 +97,7 @@ function upgrade_kubeadm() {
         ubuntu)
             cp $DIR/packages/kubernetes/${k8sVersion}/ubuntu-${DIST_VERSION}/kubeadm /usr/bin/kubeadm
             ;;
-        centos|rhel|amzn)
+        centos|rhel|amzn|ol)
             cp $DIR/packages/kubernetes/${k8sVersion}/rhel-7/kubeadm /usr/bin/kubeadm
             ;;
     esac
