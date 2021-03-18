@@ -138,9 +138,6 @@ func convertToBash(kurlValues map[string]interface{}, fieldsSet map[string]bool)
 	bashLookup := map[string]string{
 		"Calico.S3Override":                      "CALICO_S3_OVERRIDE",
 		"Calico.Version":                         "CALICO_VERSION",
-		"Calico.IsEncryptionDisabled":            "CALICO_DISABLE_ENCRYPTION",
-		"Calico.PodCIDR":                         "POD_CIDR",
-		"Calico.PodCidrRange":                    "POD_CIDR_RANGE",
 		"Collectd.S3Override":                    "COLLECTD_S3_OVERRIDE",
 		"Collectd.Version":                       "COLLECTD_VERSION",
 		"CertManager.S3Override":                 "CERT_MANAGER_S3_OVERRIDE",
