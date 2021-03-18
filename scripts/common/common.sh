@@ -538,7 +538,7 @@ function install_host_archives() {
     case "$LSB_DIST" in
         ubuntu)
             if test -n "$(shopt -s nullglob; echo ${dir}/ubuntu-${DIST_VERSION}/archives/*.deb )" ; then
-                DEBIAN_FRONTEND=noninteractive dpkg --install --force-depends-version ${dir}/ubuntu-${DIST_VERSION}/archives/*.deb
+                DEBIAN_FRONTEND=noninteractive dpkg --install --force-depends-version --force-confold ${dir}/ubuntu-${DIST_VERSION}/archives/*.deb
             fi
             ;;
 
