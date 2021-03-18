@@ -4,9 +4,7 @@ CALICO_DISABLE_ENCRYPTION=0 # setting from yaml spec
 CALICO_WIREGUARD=0
 
 function calico_pre_init() {
-    if commandExists kubectl; then
-        EXISTING_POD_CIDR=$(kubectl -n kube-system get daemonset calico-node -ojsonpath='{ .spec.template.spec.containers[0].env[?(@.name=="CALICO_IPV4POOL_CIDR")].value}' 2>/dev/null || true)
-    fi
+    EXISTING_POD_CIDR=$(kubectl -n kube-system get daemonset calico-node -ojsonpath='{ .spec.template.spec.containers[0].env[?(@.name=="CALICO_IPV4POOL_CIDR")].value}' 2>/dev/null)
 }
 
 function calico() {
@@ -58,7 +56,7 @@ function calico_cli() {
     fi
 
     chmod +x "$src/assets/calicoctl"
-    cp "$src/assets/calicoctl" /usr/local/bin/
+    mv "$src/assets/calicoctl" /usr/local/bin/
 }
 
 function calico_wireguard() {
