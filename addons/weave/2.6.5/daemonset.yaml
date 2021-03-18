@@ -32,6 +32,8 @@ spec:
                   fieldPath: spec.nodeName
             - name: EXTRA_ARGS
               value: "--log-level=info" # default log level is debug
+            - name: CHECKPOINT_DISABLE
+              value: "1"
           image: weaveworks/weave-kube:2.6.5
           livenessProbe:
             httpGet:
