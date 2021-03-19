@@ -141,6 +141,8 @@ dist/docker-%.tar.gz:
 	${MAKE} build/packages/docker/$*/ubuntu-20.04
 	${MAKE} build/packages/docker/$*/rhel-7
 	mkdir -p dist
+	curl -L https://github.com/opencontainers/runc/releases/download/v1.0.0-rc92/runc.amd64 > build/packages/docker/$*/runc
+	chmod +x build/packages/docker/runc
 	tar cf - -C build packages/docker/$* | gzip > dist/docker-$*.tar.gz
 
 dist/containerd-%.tar.gz: build/addons
