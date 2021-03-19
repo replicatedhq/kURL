@@ -34,6 +34,10 @@ function kotsadm() {
         cp "$DIR/addons/kotsadm/alpha/kotsadm-airgap.yaml" "$DIR/kustomize/kotsadm/kotsadm-airgap.yaml"
         insert_patches_strategic_merge "$DIR/kustomize/kotsadm/kustomization.yaml" kotsadm-airgap.yaml
     fi
+    if [ -n "$INSTALLATION_ID" ]; then
+        render_yaml_file "$DIR/addons/kotsadm/alpha/tmpl-kotsadm-installation-id.yaml" > "$DIR/kustomize/kotsadm/kotsadm-installation-id.yaml"
+        insert_patches_strategic_merge "$DIR/kustomize/kotsadm/kustomization.yaml" kotsadm-installation-id.yaml
+    fi
     kotsadm_cacerts_file
 
     kotsadm_kubelet_client_secret
