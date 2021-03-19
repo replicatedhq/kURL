@@ -34,6 +34,10 @@ function kotsadm() {
         cp "$DIR/addons/kotsadm/alpha/kotsadm-airgap.yaml" "$DIR/kustomize/kotsadm/kotsadm-airgap.yaml"
         insert_patches_strategic_merge "$DIR/kustomize/kotsadm/kustomization.yaml" kotsadm-airgap.yaml
     fi
+    if [ -n "$INSTALLATION_ID" ]; then
+        cp "$DIR/addons/kotsadm/alpha/kotsadm-installation-id.yaml" "$DIR/kustomize/kotsadm/kotsadm-installation-id.yaml"
+        insert_patches_strategic_merge "$DIR/kustomize/kotsadm/kustomization.yaml" kotsadm-installation-id.yaml
+    fi
     kotsadm_cacerts_file
 
     kotsadm_kubelet_client_secret
@@ -216,6 +220,11 @@ function kotsadm_api_encryption_key() {
 function kotsadm_api_patch_prometheus() {
     insert_patches_strategic_merge "$DIR/kustomize/kotsadm/kustomization.yaml" api-prometheus.yaml
     cp "$DIR/addons/kotsadm/alpha/patches/api-prometheus.yaml" "$DIR/kustomize/kotsadm/api-prometheus.yaml"
+}
+
+function kotsadm_patch_deployment() {
+    insert_patches_strategic_merge "$DIR/kustomize/kotsadm/kustomization.yaml" kotsadm-deployment.yaml
+    cp "$DIR/addons/kotsadm/alpha/patches/kotsadm-deployment.yaml" "$DIR/kustomize/kotsadm/kotsadm-deployment.yaml"
 }
 
 function kotsadm_metadata_configmap() {
