@@ -222,11 +222,6 @@ function kotsadm_api_patch_prometheus() {
     cp "$DIR/addons/kotsadm/alpha/patches/api-prometheus.yaml" "$DIR/kustomize/kotsadm/api-prometheus.yaml"
 }
 
-function kotsadm_patch_deployment() {
-    insert_patches_strategic_merge "$DIR/kustomize/kotsadm/kustomization.yaml" kotsadm-deployment.yaml
-    cp "$DIR/addons/kotsadm/alpha/patches/kotsadm-deployment.yaml" "$DIR/kustomize/kotsadm/kotsadm-deployment.yaml"
-}
-
 function kotsadm_metadata_configmap() {
     local src="$1"
     local dst="$2"
