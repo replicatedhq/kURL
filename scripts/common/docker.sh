@@ -49,14 +49,14 @@ docker_install() {
         ubuntu)
             export DEBIAN_FRONTEND=noninteractive
             dpkg --install --force-depends-version $DIR/packages/docker/${DOCKER_VERSION}/ubuntu-${DIST_VERSION}/*.deb
-            cp $DIR/packages/docker/${DOCKER_VERSION}/runc /usr/bin/runc
+            cp $DIR/packages/docker/${DOCKER_VERSION}/runc $(which runc)
             DID_INSTALL_DOCKER=1
             return 0
             ;;
 
         centos|rhel|amzn|ol)
             rpm --upgrade --force --nodeps $DIR/packages/docker/${DOCKER_VERSION}/rhel-7/*.rpm
-            cp $DIR/packages/docker/${DOCKER_VERSION}/runc /usr/bin/runc
+            cp $DIR/packages/docker/${DOCKER_VERSION}/runc $(which runc)
             DID_INSTALL_DOCKER=1
             return 0
             ;;
