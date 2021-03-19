@@ -26,6 +26,7 @@ type InstallerSpec struct {
 	K3S             K3S             `json:"k3s,omitempty" yaml:"k3s,omitempty"`
 	Docker          Docker          `json:"docker,omitempty" yaml:"docker,omitempty"`
 	Weave           Weave           `json:"weave,omitempty" yaml:"weave,omitempty"`
+	Antrea          Antrea          `json:"antrea,omitempty" yaml:"antrea,omitempty"`
 	Calico          Calico          `json:"calico,omitempty" yaml:"calico,omitempty"`
 	Contour         Contour         `json:"contour,omitempty" yaml:"contour,omitempty"`
 	Rook            Rook            `json:"rook,omitempty" yaml:"rook,omitempty"`
@@ -171,6 +172,14 @@ type Velero struct {
 }
 
 type Weave struct {
+	IsEncryptionDisabled bool   `json:"isEncryptionDisabled,omitempty" yaml:"isEncryptionDisabled,omitempty"`
+	PodCIDR              string `json:"podCIDR,omitempty" yaml:"podCIDR,omitempty"`
+	PodCidrRange         string `json:"podCidrRange,omitempty" yaml:"podCidrRange,omitempty"`
+	S3Override           string `json:"s3Override,omitempty" yaml:"s3Override,omitempty"`
+	Version              string `json:"version" yaml:"version"`
+}
+
+type Antrea struct {
 	IsEncryptionDisabled bool   `json:"isEncryptionDisabled,omitempty" yaml:"isEncryptionDisabled,omitempty"`
 	PodCIDR              string `json:"podCIDR,omitempty" yaml:"podCIDR,omitempty"`
 	PodCidrRange         string `json:"podCidrRange,omitempty" yaml:"podCidrRange,omitempty"`

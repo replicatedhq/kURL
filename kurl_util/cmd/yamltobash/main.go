@@ -252,6 +252,11 @@ func convertToBash(kurlValues map[string]interface{}, fieldsSet map[string]bool)
 		"Weave.PodCidrRange":                     "POD_CIDR_RANGE",
 		"Weave.S3Override":                       "WEAVE_S3_OVERRIDE",
 		"Weave.Version":                          "WEAVE_VERSION",
+		"Antrea.IsEncryptionDisabled":            "ANTREA_DISABLE_ENCRYPTION",
+		"Antrea.PodCIDR":                         "POD_CIDR",
+		"Antrea.PodCidrRange":                    "POD_CIDR_RANGE",
+		"Antrea.S3Override":                      "ANTREA_S3_OVERRIDE",
+		"Antrea.Version":                         "ANTREA_VERSION",
 	}
 
 	finalDictionary := make(map[string]string)
@@ -302,7 +307,7 @@ func convertToBash(kurlValues map[string]interface{}, fieldsSet map[string]bool)
 			finalDictionary["OFFLINE_DOCKER_INSTALL"] = "1"
 		}
 
-		if yamlKey == "Weave.PodCidrRange" || yamlKey == "Kubernetes.ServiceCidrRange" && bashVal != "" {
+		if yamlKey == "Weave.PodCidrRange" || yamlKey == "Kubernetes.ServiceCidrRange" || yamlKey == "Antrea.PodCidrRange" && bashVal != "" {
 			bashVal = strings.Replace(bashVal, "/", "", -1)
 		}
 

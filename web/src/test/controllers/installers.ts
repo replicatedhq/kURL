@@ -32,6 +32,11 @@ spec:
     encryptNetwork: true
     podCidrRange: /12
     podCIDR: 39.1.2.3
+  antrea:
+    version: latest
+    isEncryptionDisabled: true
+    podCidrRange: /16
+    podCIDR: 172.19.0.0/16
   contour:
     version: latest
     tlsMinimumProtocolVersion: "1.3"
@@ -830,6 +835,19 @@ spec:
         rookShouldUseAllNodes: false,
       });
         expect(i.flags()).to.equal("ekco-node-unreachable-toleration-duration=10m ekco-min-ready-master-node-count=3 ekco-min-ready-worker-node-count=1 ekco-should-disable-reboot-service=0 ekco-rook-should-use-all-nodes=0")
+    });
+  });
+
+  describe("antrea", () => {
+    it("should parse", () => {
+      const i = Installer.parse(everyOption).resolve();
+
+      expect(i.spec.antrea).to.deep.equal({
+        version: Installer.versions.antrea[0],
+        isEncryptionDisabled: true,
+        podCIDR: "172.19.0.0/16",
+        podCidrRange: "/16",
+      });
     });
   });
 
