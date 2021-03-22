@@ -9,7 +9,7 @@ on:
 
 jobs:
   test-addons:
-    if: ${{ github.repository_owner == 'replicatedhq' }}
+    if: ${{ github.repository_owner == 'replicatedhq' && github.actor != 'dependabot' }}
 
     runs-on: ubuntu-latest
 
