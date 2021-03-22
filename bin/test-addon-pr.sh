@@ -1,6 +1,5 @@
 #!/bin/bash
 # assumptions
-# - will only run the latest version of an addon if there are multiple version changes (latest is simple dictionary sort :/ )
 # - will run each changed addon as a separate testgrid run. Testing two addon updates simultaneously in a TestGrid run is not supported.
 
 set -eo pipefail
