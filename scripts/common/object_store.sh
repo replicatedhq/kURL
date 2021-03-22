@@ -15,7 +15,10 @@ function object_store_create_bucket() {
         return 0
     fi
     if ! _object_store_create_bucket "$1" ; then
-        return 1
+        if object_store_exists; then
+          return 1
+        fi
+        bail "attempted to create bucket $1 but no object store configured"
     fi
     echo "object store bucket $1 created"
 }
