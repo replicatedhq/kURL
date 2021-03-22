@@ -36,6 +36,9 @@ func init() {
 				Velero: &kurlv1beta1.Velero{
 					Version: "1.5.3",
 				},
+				Minio: &kurlv1beta1.Minio{
+					Version: "latest",
+				},
 				Kotsadm: &kurlv1beta1.Kotsadm{
 					Version: "latest",
 				},
