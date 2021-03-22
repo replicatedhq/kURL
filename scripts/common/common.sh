@@ -335,7 +335,7 @@ function try_1m() {
             echo ""
             try_output="$($fn $args 2>&1)" || true
             echo "$try_output"
-            bail "spent 1m attempting to run $fn $args without success"
+            bail "spent 1m attempting to run \"$fn $args\" without success"
         fi
         sleep 2
     done
