@@ -18,6 +18,10 @@ function antrea() {
         return 0
     fi
 
+    if ! lsmod | grep ip_tables; then
+        modprobe ip_tables
+    fi
+
     cp "$src/kustomization.yaml" "$dst/"
 
     if [ "$ANTREA_DISABLE_ENCRYPTION" = "1" ]; then
@@ -41,6 +45,10 @@ function antrea() {
 }
 
 function antrea_join() {
+    if ! lsmod | grep ip_tables; then
+        modprobe ip_tables
+    fi
+
     if kubernetes_is_master; then
         antrea_cli
     fi
