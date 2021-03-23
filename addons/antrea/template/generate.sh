@@ -15,12 +15,11 @@ function add_as_latest() {
 
 function generate() {
     local dir="../${VERSION}"
-    # TODO
-    rm -rf "$dir"
     if [ -d "$dir" ]; then
         echo "Antrea ${VERSION} add-on already exists"
     fi
     mkdir -p "$dir"
+
     cp -r base/* "$dir/"
     sed -i "s/__ANTREA_VERSION__/$VERSION/g" "../$VERSION/Manifest"
 
@@ -31,10 +30,9 @@ function generate() {
 function main() {
     get_latest_version
 
-    # TODO
-    rm -rf "../$VERSION"
     if [ -d "../$VERSION" ]; then
         echo "Antrea ${VERSION} add-on already exists"
+        exit 0
     fi
 
     generate
