@@ -1,6 +1,4 @@
 
-ANTREA_DISABLE_ENCRYPTION=0 # setting from yaml spec
-
 function antrea_pre_init() {
     local src="$DIR/addons/antrea/$ANTREA_VERSION"
 
