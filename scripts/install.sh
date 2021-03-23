@@ -426,6 +426,7 @@ function main() {
         host_preflights "1" "0" "1"
     fi
     install_host_dependencies
+    get_common
     setup_kubeadm_kustomize
     ${K8S_DISTRO}_addon_for_each addon_pre_init
     discover_pod_subnet

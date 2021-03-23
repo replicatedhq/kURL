@@ -120,6 +120,7 @@ function main() {
     ${K8S_DISTRO}_addon_for_each addon_fetch
     host_preflights "${MASTER:-0}" "1" "1"
     install_cri
+    get_common
     get_shared
     maybe_upgrade
     install_host_dependencies

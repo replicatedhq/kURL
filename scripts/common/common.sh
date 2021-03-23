@@ -368,12 +368,15 @@ function spinner_until() {
     done
 }
 
-function get_shared() {
+function get_common() {
     if [ "$AIRGAP" != "1" ] && [ -n "$DIST_URL" ]; then
         curl -sSOL $DIST_URL/common.tar.gz
         tar xf common.tar.gz
         rm common.tar.gz
     fi
+}
+
+function get_shared() {
     if [ -f shared/kurl-util.tar ]; then
         if [ -n "$DOCKER_VERSION" ]; then
             docker load < shared/kurl-util.tar
