@@ -360,7 +360,6 @@ function outro() {
 function all_kubernetes_install() {
     kubernetes_host
     install_helm
-    setup_kubeadm_kustomize
     ${K8S_DISTRO}_addon_for_each addon_load
     helm_load
     init
@@ -427,6 +426,7 @@ function main() {
         host_preflights "1" "0" "1"
     fi
     install_host_dependencies
+    setup_kubeadm_kustomize
     ${K8S_DISTRO}_addon_for_each addon_pre_init
     discover_pod_subnet
     discover_service_subnet

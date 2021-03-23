@@ -93,6 +93,12 @@ dist/weave-%.tar.gz: build/addons
 	mkdir -p dist
 	tar cf - -C build addons/weave/$* | gzip > dist/weave-$*.tar.gz
 
+dist/antrea-%.tar.gz: build/addons
+	mkdir -p build/addons/antrea/$*/images
+	bin/save-manifest-assets.sh addons/antrea/$*/Manifest $(CURDIR)/build/addons/antrea/$*
+	mkdir -p dist
+	tar cf - -C build addons/antrea/$* | gzip > dist/antrea-$*.tar.gz
+
 dist/rook-%.tar.gz: build/addons
 	mkdir -p build/addons/rook/$*/images
 	bin/save-manifest-assets.sh addons/rook/$*/Manifest $(CURDIR)/build/addons/rook/$*

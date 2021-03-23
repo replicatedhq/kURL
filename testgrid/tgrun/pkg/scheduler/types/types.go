@@ -56,6 +56,7 @@ type InstallerSpec struct {
 	Docker          *kurlv1beta1.Docker          `json:"docker,omitempty" yaml:"docker,omitempty"`
 	Containerd      *kurlv1beta1.Containerd      `json:"containerd,omitempty" yaml:"containerd,omitempty"`
 	Weave           *kurlv1beta1.Weave           `json:"weave,omitempty" yaml:"weave,omitempty"`
+	Antrea          *kurlv1beta1.Antrea          `json:"antrea,omitempty" yaml:"antrea,omitempty"`
 	Calico          *kurlv1beta1.Calico          `json:"calico,omitempty" yaml:"calico,omitempty"`
 	Contour         *kurlv1beta1.Contour         `json:"contour,omitempty" yaml:"contour,omitempty"`
 	Rook            *kurlv1beta1.Rook            `json:"rook,omitempty" yaml:"rook,omitempty"`

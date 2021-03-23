@@ -1,0 +1,39 @@
+name: cron-antrea-update
+on:
+  schedule:
+  - cron: '0 4 * * *'
+  workflow_dispatch: {}
+
+jobs:
+  build-pr-antrea:
+    runs-on: ubuntu-20.04
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+
+    - name: Create Antrea Update
+      id: update
+      working-directory: ./addons/antrea/template
+      run: ./generate.sh
+
+    - name: Create Pull Request # creates a PR if there are differences
+      uses: peter-evans/create-pull-request@v3
+      id: cpr
+      with:
+        token: ${{ secrets.GH_PAT }}
+        commit-message: Create new Antrea version
+        title: 'Automated Antrea version update ${{ steps.update.outputs.antrea_version }}'
+        branch: automation/update-antrea
+        delete-branch: true
+        labels: |
+          automated-pr
+          antrea
+        draft: false
+        base: "master"
+        body: "Automated changes by the [cron-antrea-update](https://github.com/replicatedhq/kURL/blob/master/.github/workflows/update-antrea.yaml) GitHub action"
+
+    - name: Check outputs
+      run: |
+        echo "Pull Request Number - ${{ steps.cpr.outputs.pull-request-number }}"
+        echo "Pull Request URL - ${{ steps.cpr.outputs.pull-request-url }}"

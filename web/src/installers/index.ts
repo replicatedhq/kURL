@@ -124,6 +124,27 @@ export const weaveConfigSchema = {
   additionalProperites: false,
 };
 
+export interface AntreaConfig {
+  version: string;
+  s3Override?: string;
+  podCIDR?: string;
+  podCidrRange?: string;
+  isEncryptionDisabled?: boolean;
+}
+
+export const antreaConfigSchema = {
+  type: "object",
+  properties: {
+    version: { type: "string" },
+    s3Override: { type: "string", description: "Override the download location for addon package distribution (used for CI/CD testing alpha addons)" },
+    podCIDR: { type: "string", description: "The subnet where pods will be found" },
+    podCidrRange: { type: "string", description: "The size of the CIDR where pods can be found" },
+    isEncryptionDisabled: { type: "boolean", description: "Disable encryption between nodes" },
+  },
+  required: [ "version" ],
+  additionalProperites: false,
+};
+
 export const calicoConfigSchema = {
   type: "object",
   properties: {
@@ -580,6 +601,7 @@ export interface InstallerSpec {
   k3s?: K3SConfig;
   docker?: DockerConfig;
   weave?: WeaveConfig;
+  antrea?: AntreaConfig;
   calico?: CalicoConfig;
   rook?: RookConfig;
   openebs?: OpenEBSConfig;
@@ -612,6 +634,7 @@ const specSchema = {
     k3s: k3sConfigSchema,
     docker: dockerConfigSchema,
     weave: weaveConfigSchema,
+    antrea: antreaConfigSchema,
     calico: calicoConfigSchema,
     rook: rookConfigSchema,
     openebs: openEBSConfigSchema,
@@ -687,6 +710,10 @@ export class Installer {
       "2.6.4",
       "2.5.2",
       "2.7.0",
+    ],
+    antrea: [
+      // cron-antrea-update
+      "0.13.1",
     ],
     rook: [
       "1.0.4",
@@ -1213,6 +1240,12 @@ export class Installer {
     }
     if (this.spec.weave && this.spec.weave.podCidrRange && !Installer.isValidCidrRange(this.spec.weave.podCidrRange)) {
       return { error: { message: `Weave podCidrRange "${_.escape(this.spec.weave.podCidrRange)}" is invalid` } };
+    }
+    if (this.spec.antrea && !Installer.hasVersion("antrea", this.spec.antrea.version) && !this.hasS3Override("antrea")) {
+      return { error: { message: `Antrea version "${_.escape(this.spec.antrea.version)}" is not supported` } };
+    }
+    if (this.spec.antrea && this.spec.antrea.podCidrRange && !Installer.isValidCidrRange(this.spec.antrea.podCidrRange)) {
+      return { error: { message: `Antrea podCidrRange "${_.escape(this.spec.antrea.podCidrRange)}" is invalid` } };
     }
     if (this.spec.rook && !Installer.hasVersion("rook", this.spec.rook.version) && !this.hasS3Override("rook")) {
       return { error: { message: `Rook version "${_.escape(this.spec.rook.version)}" is not supported` } };
