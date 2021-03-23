@@ -714,6 +714,7 @@ export class Installer {
     antrea: [
       // cron-antrea-update
       "0.13.1",
+      "0.13.1",
     ],
     rook: [
       "1.0.4",
