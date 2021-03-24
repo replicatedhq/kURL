@@ -154,6 +154,16 @@ kubernetes_host_commands_ok() {
         printf "kustomize command missing - will install host components\n"
         return 1
     fi
+    if ! commandExists crictl; then
+        printf "crictl command missing - will install host components\n"
+        return 1
+    fi
+    local currentCrictlVersion=$(crictl --version | grep -Eo '[0-9]+\.[0-9]+\.[0-9]+')
+    semverCompare "$currentCrictlVersion" "$CRICTL_VERSION"
+    if [ "$SEMVER_COMPARE_RESULT" = "-1" ]; then
+        printf "crictl command upgrade available - will install host components\n"
+        return 1
+    fi
 
     kubelet --version | grep -q "$k8sVersion"
 }
