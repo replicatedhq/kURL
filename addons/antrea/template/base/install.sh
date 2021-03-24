@@ -2,6 +2,9 @@
 function antrea_pre_init() {
     local src="$DIR/addons/antrea/$ANTREA_VERSION"
 
+    POD_CIDR="$ANTREA_POD_CIDR"
+    POD_CIDR_RANGE="$ANTREA_POD_CIDR_RANGE"
+
     cp "$src/kubeadm.yaml" "$DIR/kustomize/kubeadm/init-patches/antrea.yaml"
 
     if commandExists kubectl; then
