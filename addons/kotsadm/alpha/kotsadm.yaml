@@ -179,7 +179,7 @@ spec:
             mountPath: /etc/kurl-proxy/ca
         resources:
           limits:
-            cpu: 500m
+            cpu: 1
           requests:
             cpu: 100m
             memory: 100Mi
@@ -201,7 +201,7 @@ spec:
           name: backup
         resources:
           limits:
-            cpu: 500m
+            cpu: 1
           requests:
             cpu: 100m
             memory: 100Mi
@@ -236,7 +236,7 @@ spec:
           name: backup
         resources:
           limits:
-            cpu: 500m
+            cpu: 1
           requests:
             cpu: 100m
             memory: 100Mi
