@@ -33,7 +33,6 @@ maybe_upgrade() {
     local kubeletMajor="$major"
     local kubeletMinor="$minor"
     local kubeletPatch="$patch"
-    local minorVersionDifference=$(($KUBERNETES_TARGET_VERSION_MINOR - $kubeletMinor))
 
     if [ -n "$HOSTNAME_CHECK" ]; then
         if [ "$HOSTNAME_CHECK" != "$(hostname)" ]; then
@@ -74,8 +73,6 @@ maybe_upgrade() {
         fi
 
         kubernetes_host
-        systemctl daemon-reload
-        systemctl restart kubelet
 
         logSuccess "Kubernetes node upgraded to $KUBERNETES_VERSION"
 
