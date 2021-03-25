@@ -1,4 +1,4 @@
 import * as fs from "fs";
-import { Installer } from "./src/installers";
+import { InstallerVersions } from "./src/installers/versions";
 
-fs.writeFileSync("./versions.json", JSON.stringify(Installer.versions));
+fs.writeFileSync("./versions.json", JSON.stringify(InstallerVersions));

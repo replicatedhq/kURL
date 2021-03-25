@@ -11,6 +11,7 @@ import {
   Res } from "ts-express-decorators";
 import { instrumented } from "monkit";
 import { Installer, InstallerObject, InstallerStore } from "../installers";
+import { InstallerVersions } from "../installers/versions";
 import decode from "../util/jwt";
 
 interface ErrorResponse {
@@ -119,7 +120,7 @@ export class Installers {
   ): any {
     response.type("application/json");
 
-    const resp = _.reduce(Installer.versions, (accm, value, key) => {
+    const resp = _.reduce(InstallerVersions, (accm, value, key) => {
       accm[key] = _.concat(["latest"], value);
       return accm;
     }, {});
