@@ -1,6 +1,5 @@
 resources:
 - operator.yaml
 - postgres.yaml
-- schemahero.yaml
 - kotsadm.yaml
 - kotsadm-web-scripts.yaml
