@@ -9,7 +9,6 @@ function kotsadm() {
     cp "$src/kustomization.yaml" "$dst/"
     cp "$src/operator.yaml" "$dst/"
     cp "$src/postgres.yaml" "$dst/"
-    cp "$src/schemahero.yaml" "$dst/"
     cp "$src/kotsadm.yaml" "$dst/"
 
     kotsadm_secret_cluster_token
