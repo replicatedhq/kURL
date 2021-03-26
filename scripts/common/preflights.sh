@@ -367,6 +367,13 @@ function host_preflights() {
         opts="${opts} --spec=${spec}"
     done
 
+    if [ -n "$PRIMARY_HOST" ]; then
+        opts="${opts} --primary-host=${PRIMARY_HOST}"
+    fi
+    if [ -n "$SECONDARY_HOST" ]; then
+        opts="${opts} --secondary-host=${SECONDARY_HOST}"
+    fi
+
     logStep "Running host preflights"
     if [ "${PREFLIGHT_IGNORE}" = "1" ]; then
         "${DIR}"/bin/kurl host preflight "${MERGED_YAML_SPEC}" ${opts} || true

@@ -16,7 +16,9 @@ import (
 	"github.com/replicatedhq/kurl/pkg/installer"
 	"github.com/replicatedhq/kurl/pkg/preflight"
 	analyze "github.com/replicatedhq/troubleshoot/pkg/analyze"
+	"github.com/replicatedhq/troubleshoot/pkg/apis/troubleshoot/v1beta2"
 	troubleshootv1beta2 "github.com/replicatedhq/troubleshoot/pkg/apis/troubleshoot/v1beta2"
+	"github.com/replicatedhq/troubleshoot/pkg/collect"
 	"github.com/spf13/cobra"
 )
 
@@ -40,11 +42,16 @@ func NewHostPreflightCmd(cli CLI) *cobra.Command {
 				return errors.Wrap(err, "retrieve installer spec")
 			}
 
+			remotes := append([]string{}, v.GetStringSlice("primary-host")...)
+			remotes = append(remotes, v.GetStringSlice("secondary-host")...)
 			data := installer.TemplateData{
-				Installer: *installerSpec,
-				IsPrimary: v.GetBool("is-primary"),
-				IsJoin:    v.GetBool("is-join"),
-				IsUpgrade: v.GetBool("is-upgrade"),
+				Installer:      *installerSpec,
+				IsPrimary:      v.GetBool("is-primary"),
+				IsJoin:         v.GetBool("is-join"),
+				IsUpgrade:      v.GetBool("is-upgrade"),
+				PrimaryHosts:   v.GetStringSlice("primary-host"),
+				SecondaryHosts: v.GetStringSlice("secondary-host"),
+				RemoteHosts:    remotes,
 			}
 
 			builtin := preflight.Builtin()
@@ -67,6 +74,139 @@ func NewHostPreflightCmd(cli CLI) *cobra.Command {
 				preflightSpec.Spec.Collectors = append(preflightSpec.Spec.Collectors, decoded.Spec.Collectors...)
 				preflightSpec.Spec.Analyzers = append(preflightSpec.Spec.Analyzers, decoded.Spec.Analyzers...)
 			}
+
+			if data.IsJoin && data.IsPrimary && !data.IsUpgrade {
+				// Check connection to kubelet on all remotes
+				for _, remote := range remotes {
+					name := fmt.Sprintf("kubelet %s", remote)
+
+					preflightSpec.Spec.Collectors = append(preflightSpec.Spec.Collectors, &v1beta2.HostCollect{
+						TCPConnect: &v1beta2.TCPConnect{
+							HostCollectorMeta: v1beta2.HostCollectorMeta{
+								CollectorName: name,
+							},
+							Address: fmt.Sprintf("%s:10250", remote),
+							Timeout: "5s",
+						},
+					})
+
+					preflightSpec.Spec.Analyzers = append(preflightSpec.Spec.Analyzers, &v1beta2.HostAnalyze{
+						TCPConnect: &v1beta2.TCPConnectAnalyze{
+							AnalyzeMeta: v1beta2.AnalyzeMeta{
+								CheckName: fmt.Sprintf("kubelet %s:10250 TCP connection status", remote),
+							},
+							CollectorName: name,
+							Outcomes: []*v1beta2.Outcome{
+								{
+									Warn: &v1beta2.SingleOutcome{
+										When:    collect.NetworkStatusConnectionRefused,
+										Message: fmt.Sprintf("Connection to kubelet %s:10250 was refused", remote),
+									},
+								},
+								{
+									Warn: &v1beta2.SingleOutcome{
+										When:    collect.NetworkStatusConnectionTimeout,
+										Message: fmt.Sprintf("Timed out connecting to kubelet %s:10250", remote),
+									},
+								},
+								{
+									Warn: &v1beta2.SingleOutcome{
+										When:    collect.NetworkStatusErrorOther,
+										Message: fmt.Sprintf("Unexpected error connecting to kubelet %s:10250", remote),
+									},
+								},
+								{
+									Pass: &v1beta2.SingleOutcome{
+										When:    collect.NetworkStatusConnected,
+										Message: fmt.Sprintf("Successfully connected to kubelet %s:10250", remote),
+									},
+								},
+								{
+									Warn: &v1beta2.SingleOutcome{
+										Message: fmt.Sprintf("Unexpected TCP connection status for kubelet %s:10250", remote),
+									},
+								},
+							},
+						},
+					})
+				}
+				// Check connection to etcd on all primaries
+				for _, primary := range data.PrimaryHosts {
+					name := fmt.Sprintf("etcd peer %s", primary)
+
+					preflightSpec.Spec.Collectors = append(preflightSpec.Spec.Collectors, &v1beta2.HostCollect{
+						TCPConnect: &v1beta2.TCPConnect{
+							HostCollectorMeta: v1beta2.HostCollectorMeta{
+								CollectorName: name,
+							},
+							Address: fmt.Sprintf("%s:2380", primary),
+							Timeout: "5s",
+						},
+					})
+
+					preflightSpec.Spec.Analyzers = append(preflightSpec.Spec.Analyzers, &v1beta2.HostAnalyze{
+						TCPConnect: &v1beta2.TCPConnectAnalyze{
+							AnalyzeMeta: v1beta2.AnalyzeMeta{
+								CheckName: fmt.Sprintf("etcd peer %s:2380 TCP connection status", primary),
+							},
+							CollectorName: name,
+							Outcomes: []*v1beta2.Outcome{
+								{
+									Warn: &v1beta2.SingleOutcome{
+										When:    collect.NetworkStatusConnectionRefused,
+										Message: fmt.Sprintf("Connection to etcd peer %s:2380 was refused", primary),
+									},
+								},
+								{
+									Warn: &v1beta2.SingleOutcome{
+										When:    collect.NetworkStatusConnectionTimeout,
+										Message: fmt.Sprintf("Timed out connecting to etcd peer %s:2380", primary),
+									},
+								},
+								{
+									Warn: &v1beta2.SingleOutcome{
+										When:    collect.NetworkStatusErrorOther,
+										Message: fmt.Sprintf("Unexpected error connecting to etcd peer %s:2380", primary),
+									},
+								},
+								{
+									Pass: &v1beta2.SingleOutcome{
+										When:    collect.NetworkStatusConnected,
+										Message: fmt.Sprintf("Successfully connected to etcd peer %s:2380", primary),
+									},
+								},
+								{
+									Warn: &v1beta2.SingleOutcome{
+										Message: fmt.Sprintf("Unexpected TCP connection status for etcd peer %s:2380", primary),
+									},
+								},
+							},
+						},
+					})
+				}
+			}
+			/*
+			       - tcpConnect:
+			           checkName: "kubelet {{ . }}:10250 TCP connection status"
+			           collectorName: "kubelet {{ . }}"
+			           outcomes:
+			             - warn:
+			                 when: "connection-refused"
+			                 message: Connection to kubelet {{ . }}:10250 was refused
+			             - warn:
+			                 when: "connection-timeout"
+			                 message: Timed out connecting to kubelet {{ . }}:10250
+			             - warn:
+			                 when: "error"
+			                 message: Unexpected error connecting to kubelet {{ . }}:10250
+			             - pass:
+			                 when: "connected"
+			                 message: Successfully connected to kubelet {{ . }}:10250
+			             - warn:
+			                 message: Unexpected TCP connection status for kubelet {{ . }}:10250
+			     {{- end}}
+			   {{- end}}
+			*/
 
 			progressChan := make(chan interface{})
 			progressContext, progressCancel := context.WithCancel(cmd.Context())
@@ -107,6 +247,8 @@ func NewHostPreflightCmd(cli CLI) *cobra.Command {
 	cmd.Flags().StringSlice("spec", nil, "preflight specs")
 	// cmd.MarkFlagRequired("spec")
 	cmd.MarkFlagFilename("spec", "yaml", "yml")
+	cmd.Flags().StringSlice("primary-host", nil, "host or IP of a control plane node running a Kubernetes API server and etcd peer")
+	cmd.Flags().StringSlice("secondary-host", nil, "host or IP of a secondary node running kubelet")
 
 	return cmd
 }

@@ -127,6 +127,20 @@ function get_patch_yaml() {
             auto-upgrades-enabled)
                 AUTO_UPGRADES_ENABLED=1
                 ;;
+            primary-host)
+				if [ -z "$PRIMARY_HOST" ]; then
+					PRIMARY_HOST="$_value"
+				else
+					PRIMARY_HOST="$PRIMARY_HOST,$_value"
+				fi
+				;;
+            secondary-host)
+				if [ -z "$SECONDARY_HOST" ]; then
+					SECONDARY_HOST="$_value"
+				else
+					SECONDARY_HOST="$SECONDARY_HOST,$_value"
+				fi
+				;;
             *)
                 echo >&2 "Error: unknown parameter \"$_param\""
                 exit 1

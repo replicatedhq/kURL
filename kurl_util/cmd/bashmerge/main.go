@@ -129,6 +129,10 @@ func parseBashFlags(installer *kurlv1beta1.Installer, bashFlags string) error {
 			continue
 		case "auto-upgrades-enabled":
 			continue
+		case "primary-host":
+			continue
+		case "secondary-host":
+			continue
 		default:
 			return errors.New(fmt.Sprintf("string %s is not a bash flag", split[0]))
 		}

@@ -695,6 +695,16 @@ function get_kurl_install_directory_flag() {
     echo " kurl-install-directory=$(echo "${kurl_install_directory}")"
 }
 
+function get_remotes_flags() {
+    while read -r primary; do
+        printf " primary-host=$primary"
+    done < <(kubectl get nodes --no-headers --selector="node-role.kubernetes.io/master" -owide | awk '{ print $6 }')
+
+    while read -r secondary; do
+        printf " secondary-host=$secondary"
+    done < <(kubectl get node --no-headers --selector='!node-role.kubernetes.io/master' -owide | awk '{ print $6 }')
+}
+
 function systemd_restart_succeeded() {
     local oldPid=$1
     local serviceName=$2
