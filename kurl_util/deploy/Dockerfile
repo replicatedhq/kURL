@@ -13,6 +13,10 @@ RUN make build/bin
 
 FROM debian:buster-slim
 
+RUN DEBIAN_FRONTEND=noninteractive apt-get update -qq && apt-get install -y --no-install-recommends \
+    libzstd1 \
+    && rm -rf /var/lib/apt/lists/*
+
 COPY --from=build /go/src/github.com/replicatedhq/kurl/build/bin/* /usr/local/bin/
 
 ARG commit=unknown
