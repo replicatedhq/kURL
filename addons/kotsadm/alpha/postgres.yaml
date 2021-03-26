@@ -37,7 +37,7 @@ spec:
         persistentVolumeClaim:
           claimName: kotsadm-postgres
       containers:
-      - image: postgres:10.7
+      - image: kotsadm/postgres:alpha
         name: kotsadm-postgres
         ports:
         - name: postgres
