@@ -182,6 +182,7 @@ module.exports.InstallerVersions = {
     "0.0.1",
   ],
   ekco: [
+    "0.10.1",
     "0.10.0",
     "0.9.0",
     "0.8.0",
