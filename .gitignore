@@ -9,7 +9,6 @@ node_modules/
 versions.json
 supported-versions-gen.json
 addons-gen.json
-package-lock.json
 .envrc
 /packages/host/*/*/
 /packages/rke-2/*/*/

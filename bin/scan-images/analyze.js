@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
-import * as fs from 'fs';
-import yargs from 'yargs'
-import { hideBin } from 'yargs/helpers';
+const fs = require('fs');
+const yargs = require('yargs');
+const { hideBin } = require('yargs/helpers');
 
 const Severities = {
     'negligible': 0,
@@ -12,7 +12,7 @@ const Severities = {
     'critical': 4,
 };
 
-var analyze = (vulnerabilitiesFilePath: string, severityThreshold: string) => {
+var analyze = (vulnerabilitiesFilePath, severityThreshold) => {
     const parsed = JSON.parse(fs.readFileSync(vulnerabilitiesFilePath, 'utf-8'));
     const vulnerabilities = [];
     parsed.matches.forEach(match => {
@@ -47,7 +47,7 @@ yargs(hideBin(process.argv))
                 default: './vulnerabilities.json'
             });
     }, (argv) => {
-        analyze(argv['path'] as string, argv['fail-on'] as string);
+        analyze(argv['path'], argv['fail-on']);
     })
     .option('fail-on', {
         type: 'string',

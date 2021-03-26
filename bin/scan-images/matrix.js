@@ -1,21 +1,14 @@
 #!/usr/bin/env node
 
-import * as fs from 'fs';
-import yargs from 'yargs'
-import { hideBin } from 'yargs/helpers';
-import { InstallerVersions } from '../../web/src/installers/versions';
+const fs = require('fs');
+const yargs = require('yargs');
+const { hideBin } = require('yargs/helpers');
+const { InstallerVersions } = require('../../web/src/installers/versions');
 
-const specDir = '../../addons';
+const specDir = './addons';
 
-export interface Image {
-    addon: string;
-    version: string;
-    name: string;
-    image: string;
-}
-
-var getImages = (): Image[] => {
-    const images: Image[] = [];
+var getImages = () => {
+    const images = [];
     fs.readdirSync(specDir).forEach((addon) => {
         const addonDir = `${specDir}/${addon}`;
         const stats = fs.statSync(addonDir);
@@ -37,7 +30,7 @@ var getImages = (): Image[] => {
                 if (parts[0] !== 'image') {
                     return;
                 }
-                const image: Image = {addon: addon, version: version, name: parts[1], image: parts[2]};
+                const image = {addon: addon, version: version, name: parts[1], image: parts[2]};
                 images.push(image);
             });
         });
@@ -45,8 +38,8 @@ var getImages = (): Image[] => {
     return images;
 };
 
-var findLatestAddonVersions = (): { [addon: string]: string } => {
-    const versions: { [addon: string]: string } = {};
+var findLatestAddonVersions = () => {
+    const versions = {};
     fs.readdirSync(specDir).forEach((addon) => {
         const addonDir = `${specDir}/${addon}`;
         const stats = fs.statSync(addonDir);

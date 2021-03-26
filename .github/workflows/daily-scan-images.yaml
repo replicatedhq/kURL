@@ -21,9 +21,8 @@ jobs:
         run: npm install
       - id: set-matrix
         name: Build image matrix
-        working-directory: ./bin/scan-images/
         run: |
-          OUTPUT=`./node_modules/.bin/ts-node matrix.ts`
+          OUTPUT=`./bin/scan-images/matrix.ts`
           echo "::set-output name=matrix::$OUTPUT"
 
   scan-image:
@@ -46,5 +45,4 @@ jobs:
         working-directory: ./bin/scan-images/
         run: npm install
       - name: "${{ matrix.addon }}:${{ matrix.version }} - ${{ matrix.name }} : Analyze vulnerabilities report"
-        working-directory: ./bin/scan-images/
-        run: ./node_modules/.bin/ts-node analyze.ts ../../${{ steps.scan.outputs.vulnerabilities }}
+        run: ./bin/scan-images/analyze.js ${{ steps.scan.outputs.vulnerabilities }}

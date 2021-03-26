@@ -1,6 +1,6 @@
 
 // first version of each is "latest"
-export const InstallerVersions = {
+module.exports.InstallerVersions = {
   kubernetes: [
     "1.19.7",
     "1.19.3",
