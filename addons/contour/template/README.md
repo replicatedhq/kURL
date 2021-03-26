@@ -48,7 +48,7 @@ This can be done with
 
 4. Insertion into index
 
-`/web/src/installers/index.ts` is edited to insert the new Contour version within the `Installer` class.
+`/web/src/installers/versions.js` is edited to insert the new Contour version within the InstallerVersions object.
 
 5. Insertion into tests
 

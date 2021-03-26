@@ -8,4 +8,4 @@ chmod +x kubeadm
 1. Run `kubeadm config images list`
 1. Create a new directory with the required images in the Manifest
 1. Run `make dist/kubernetes-1.19.3.tar.gz` to verify it builds.
-1. Add the new version to web/src/installers/index.ts
+1. Add the new version to web/src/installers/versions.js
