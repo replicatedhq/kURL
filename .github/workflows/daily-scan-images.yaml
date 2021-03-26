@@ -39,7 +39,6 @@ jobs:
       - name: "${{ matrix.addon }}:${{ matrix.version }} - ${{ matrix.name }} : Scan image"
         id: scan
         uses: anchore/scan-action@v2
-        working-directory: ./bin/scan-images/
         with:
           image: ${{ matrix.image }}
           fail-build: false
@@ -48,4 +47,4 @@ jobs:
         run: npm install
       - name: "${{ matrix.addon }}:${{ matrix.version }} - ${{ matrix.name }} : Analyze vulnerabilities report"
         working-directory: ./bin/scan-images/
-        run: ./node_modules/.bin/ts-node analyze.ts ${{ steps.scan.outputs.vulnerabilities }}
+        run: ./node_modules/.bin/ts-node analyze.ts ../../${{ steps.scan.outputs.vulnerabilities }}
