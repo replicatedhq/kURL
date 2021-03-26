@@ -39,6 +39,7 @@ jobs:
       - name: "${{ matrix.addon }}:${{ matrix.version }} - ${{ matrix.name }} : Scan image"
         id: scan
         uses: anchore/scan-action@v2
+        working-directory: ./bin/scan-images/
         with:
           image: ${{ matrix.image }}
           fail-build: false
