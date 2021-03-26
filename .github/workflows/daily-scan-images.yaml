@@ -22,7 +22,7 @@ jobs:
       - id: set-matrix
         name: Build image matrix
         run: |
-          OUTPUT=`./bin/scan-images/matrix.ts`
+          OUTPUT=`./bin/scan-images/matrix.js`
           echo "::set-output name=matrix::$OUTPUT"
 
   scan-image:
