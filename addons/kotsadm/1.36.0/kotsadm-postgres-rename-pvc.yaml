@@ -27,7 +27,7 @@ spec:
     runAsUser: 999
   containers:
   - name: kotsadm-postgres-rename-pvc
-    image: kotsadm/kotsadm-migrations:1.36.0
+    image: kotsadm/kotsadm-migrations:v1.36.0
     command:
     - /bin/sh
     - "-c"

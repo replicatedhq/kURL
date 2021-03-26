@@ -37,7 +37,7 @@ spec:
         persistentVolumeClaim:
           claimName: kotsadm-postgres
       containers:
-      - image: kotsadm/postgres:1.36.0
+      - image: kotsadm/postgres:v1.36.0
         name: kotsadm-postgres
         ports:
         - name: postgres

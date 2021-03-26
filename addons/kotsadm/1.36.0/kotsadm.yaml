@@ -81,7 +81,7 @@ spec:
         emptyDir:
           medium: Memory
       containers:
-      - image: kotsadm/kotsadm:1.36.0
+      - image: kotsadm/kotsadm:v1.36.0
         name: kotsadm
         command: ["bash"]
         args:
@@ -189,7 +189,7 @@ spec:
 
       initContainers:
       - name: schemahero-plan
-        image: kotsadm/kotsadm-migrations:1.36.0
+        image: kotsadm/kotsadm-migrations:v1.36.0
         args: ["plan"]
         volumeMounts:
         - name: migrations
@@ -215,7 +215,7 @@ spec:
             memory: 50Mi
 
       - name: schemahero-apply
-        image: kotsadm/kotsadm-migrations:1.36.0
+        image: kotsadm/kotsadm-migrations:v1.36.0
         args: ["apply"]
         volumeMounts:
           - name: migrations
@@ -247,7 +247,7 @@ spec:
             secretKeyRef:
               key: password
               name: kotsadm-postgres
-        image: kotsadm/kotsadm:1.36.0
+        image: kotsadm/kotsadm:v1.36.0
         imagePullPolicy: IfNotPresent
         volumeMounts:
         - mountPath: /backup
@@ -282,7 +282,7 @@ spec:
               name: kotsadm-s3
         - name: S3_BUCKET_ENDPOINT
           value: "true"
-        image: kotsadm/kotsadm:1.36.0
+        image: kotsadm/kotsadm:v1.36.0
         imagePullPolicy: IfNotPresent
         volumeMounts:
         - mountPath: /backup
