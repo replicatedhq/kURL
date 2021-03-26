@@ -81,4 +81,4 @@ versions="$(ls .. | grep -e '[0-9]\+\.[0-9]\+\.[0-9]\+' | sort -r -V)"
 allversions="$(echo $versions | sed 's/ /", "/g')"
 
 # update the list of versions shown on kurl.sh
-sed -i "/cron-contour-update/c\    contour: [\"${allversions}\"], \/\/ cron-contour-update" ../../../web/src/installers/index.ts
+sed -i "/cron-contour-update/c\    contour: [\"${allversions}\"], \/\/ cron-contour-update" ../../../web/src/installers/versions.js

@@ -33,7 +33,7 @@ function generate_version_directory() {
 }
 
 function update_available_versions() {
-    sed -i "/cron-kubernetes-update/c\      \"$(echo ${VERSIONS[*]} | sed 's/ /", "/g')\", \/\/ cron-kubernetes-update" ../../../web/src/installers/index.ts
+    sed -i "/cron-kubernetes-update/c\      \"$(echo ${VERSIONS[*]} | sed 's/ /", "/g')\", \/\/ cron-kubernetes-update" ../../../web/src/installers/versions.js
 }
 
 function main() {

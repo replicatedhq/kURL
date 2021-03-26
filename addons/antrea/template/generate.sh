@@ -10,7 +10,7 @@ function get_latest_version() {
 }
 
 function add_as_latest() {
-    sed -i "/cron-antrea-update/a\      \"${VERSION}\"\," ../../../web/src/installers/index.ts
+    sed -i "/cron-antrea-update/a\      \"${VERSION}\"\," ../../../web/src/installers/versions.js
 }
 
 function generate() {

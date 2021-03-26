@@ -1,6 +1,7 @@
 import {describe, it} from "mocha";
 import {expect} from "chai";
 import { Installer } from "../../installers";
+import { InstallerVersions } from "../../installers/versions";
 import * as _ from "lodash";
 
 const everyOption = `apiVersion: kurl.sh/v1beta1
@@ -843,7 +844,7 @@ spec:
       const i = Installer.parse(everyOption).resolve();
 
       expect(i.spec.antrea).to.deep.equal({
-        version: Installer.versions.antrea[0],
+        version: InstallerVersions.antrea[0],
         isEncryptionDisabled: true,
         podCIDR: "172.19.0.0/16",
         podCidrRange: "/16",
