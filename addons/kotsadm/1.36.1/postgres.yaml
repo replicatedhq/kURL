@@ -30,14 +30,14 @@ spec:
         kots.io/backup: velero
     spec:
       securityContext:
-        runAsUser: 70
-        fsGroup: 70
+        runAsUser: 999
+        fsGroup: 999
       volumes:
       - name: kotsadm-postgres
         persistentVolumeClaim:
           claimName: kotsadm-postgres
       containers:
-      - image: kotsadm/postgres:alpha
+      - image: kotsadm/postgres:v1.36.1
         name: kotsadm-postgres
         ports:
         - name: postgres
