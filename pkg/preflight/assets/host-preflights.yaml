@@ -227,6 +227,6 @@ spec:
     - hostServices:
         checkName: "Host UFW status"
         outcomes:
-        - fail:
+        - warn:
             when: "ufw = active"
             message: UFW is active
