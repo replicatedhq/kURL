@@ -8,6 +8,7 @@ metadata:
 data:
   backup.sh: |-
     #!/bin/sh
+    set -euo pipefail
     export S3_DIR=/backup/s3/
     export S3_BUCKET_NAME=docker-registry
     export S3_HOST=$OBJECT_STORE_CLUSTER_IP
@@ -17,11 +18,12 @@ data:
 
   restore.sh: |-
     #!/bin/sh
+    set -euo pipefail
     export S3_DIR=/backup/s3/
     export S3_BUCKET_NAME=docker-registry
     export S3_HOST=$OBJECT_STORE_CLUSTER_IP
 
-    if [ ! -d $S3_DIR ]; then
+    if [ ! -d \$S3_DIR ]; then
         exit 0
     fi
 
