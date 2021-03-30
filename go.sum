@@ -528,6 +528,8 @@ github.com/replicatedhq/troubleshoot v0.10.12 h1:2cjD7W/zwohYMVfaMf8jwT5+vViSn3g
 github.com/replicatedhq/troubleshoot v0.10.12/go.mod h1:szF/UQfsZWjshzJz3XylS1uEpkRDyGcNY2BZHcI+9DU=
 github.com/replicatedhq/troubleshoot v0.10.13 h1:3JL8BMRnJ9s0Zkfyhi+yenAFD7HHIH4vKIlLf9Py4q8=
 github.com/replicatedhq/troubleshoot v0.10.13/go.mod h1:szF/UQfsZWjshzJz3XylS1uEpkRDyGcNY2BZHcI+9DU=
+github.com/replicatedhq/troubleshoot v0.10.15 h1:5lIgAUnT+m1PhcoByk+AVBpHzSoG/ytHn+kmaTvqum4=
+github.com/replicatedhq/troubleshoot v0.10.15/go.mod h1:szF/UQfsZWjshzJz3XylS1uEpkRDyGcNY2BZHcI+9DU=
 github.com/rogpeppe/fastuuid v0.0.0-20150106093220-6724a57986af/go.mod h1:XWv6SoW27p1b0cqNHllgS5HIMJraePCO15w5zCzIWYg=
 github.com/rogpeppe/go-charset v0.0.0-20180617210344-2471d30d28b4/go.mod h1:qgYeAmZ5ZIpBWTGllZSQnw97Dj+woV0toclVaRGI8pc=
 github.com/rogpeppe/go-internal v1.3.0/go.mod h1:M8bDsm7K2OlrFYOpmOWEs/qY81heoFRclV5y23lUDJ4=
