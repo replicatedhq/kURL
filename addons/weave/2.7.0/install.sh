@@ -9,6 +9,7 @@ function weave() {
 
     cp "${src}/kustomization.yaml" "${dst}/kustomization.yaml"
     cp "${src}/weave-daemonset-k8s-1.11.yaml" "${dst}/weave-daemonset-k8s-1.11.yaml"
+    cp "${src}/patch-daemonset.yaml" "${dst}/patch-daemonset.yaml"
 
     if [ "$ENCRYPT_NETWORK" != "0" ]; then
         # don't change existing secrets because pods that start after will have a different value
