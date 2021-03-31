@@ -13,7 +13,7 @@ func init() {
 					Version: "1.18.10",
 				},
 				Weave: &kurlv1beta1.Weave{
-					Version: "2.6.4",
+					Version: "2.6.5",
 				},
 				Rook: &kurlv1beta1.Rook{
 					Version: "1.0.4",
