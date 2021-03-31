@@ -11,6 +11,11 @@ function registry() {
         registry_object_store_bucket
         render_yaml_file "$DIR/addons/registry/2.7.1/tmpl-deployment-objectstore.yaml" > "$DIR/kustomize/registry/deployment-objectstore.yaml"
         insert_resources "$DIR/kustomize/registry/kustomization.yaml" deployment-objectstore.yaml
+
+        cp "$DIR/addons/registry/2.7.1/patch-deployment-velero.yaml" "$DIR/kustomize/registry/patch-deployment-velero.yaml"
+        insert_patches_strategic_merge "$DIR/kustomize/registry/kustomization.yaml" patch-deployment-velero.yaml
+        render_yaml_file "$DIR/addons/registry/2.7.1/tmpl-configmap-velero.yaml" > "$DIR/kustomize/registry/configmap-velero.yaml"
+        insert_resources "$DIR/kustomize/registry/kustomization.yaml" configmap-velero.yaml
     else
         cp "$DIR/addons/registry/2.7.1/deployment-pvc.yaml" "$DIR/kustomize/registry/deployment-pvc.yaml"
         insert_resources "$DIR/kustomize/registry/kustomization.yaml" deployment-pvc.yaml
