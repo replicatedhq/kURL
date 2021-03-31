@@ -36,6 +36,7 @@ module.exports.InstallerVersions = {
     "2.6.5",
     "2.6.4",
     "2.5.2",
+    // cron-weave-update
     "2.7.0",
   ],
   antrea: [
