@@ -92,7 +92,9 @@ function openebs() {
 }
 
 function openebs_join() {
-    openebs_iscsi
+    if [ "$OPENEBS_CSTOR" = "1" ]; then
+        openebs_iscsi
+    fi
 }
 
 function openebs_iscsi() {
