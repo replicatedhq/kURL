@@ -1,0 +1,8 @@
+image name grafana/grafana:7.4.5
+image name k8s.gcr.io/kube-state-metrics/kube-state-metrics:v1.9.8
+image name quay.io/kiwigrid/k8s-sidecar:1.10.7
+image name quay.io/prometheus-operator/prometheus-operator:v0.46.0
+image name quay.io/prometheus/alertmanager:v0.21.0
+image name quay.io/prometheus/node-exporter:v1.1.2
+image name quay.io/prometheus/prometheus:v2.24.0
+image name directxman12/k8s-prometheus-adapter-amd64:v0.8.3
