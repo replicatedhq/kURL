@@ -71,7 +71,7 @@ type InstallerSpec struct {
 	SelinuxConfig   *kurlv1beta1.SelinuxConfig   `json:"selinuxConfig,omitempty" yaml:"selinuxConfig,omitempty"`
 	IptablesConfig  *kurlv1beta1.IptablesConfig  `json:"iptablesConfig,omitempty" yaml:"iptablesConfig,omitempty"`
 	FirewalldConfig *kurlv1beta1.FirewalldConfig `json:"firewalldConfig,omitempty" yaml:"firewalldConfig,omitempty"`
-	Ekco            *kurlv1beta1.Ekco            `json:"ekco,omitempty" json:"ekco,omitempty"`
+	Ekco            *kurlv1beta1.Ekco            `json:"ekco,omitempty" yaml:"ekco,omitempty"`
 	Collectd        *kurlv1beta1.Collectd        `json:"collectd,omitempty" yaml:"collectd,omitempty"`
 	CertManager     *kurlv1beta1.CertManager     `json:"certManager,omitempty" yaml:"certManager,omitempty"`
 	MetricsServer   *kurlv1beta1.MetricsServer   `json:"metricsServer,omitempty" yaml:"metricsServer,omitempty"`
