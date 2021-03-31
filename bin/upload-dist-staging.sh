@@ -30,11 +30,6 @@ upload kurl-bin-utils-latest.tar.gz
 
 for package in $(bin/list-all-packages.sh)
 do
-    if [[ $package == *template.tar.gz ]]; then
-      echo "skipping package $package"
-      continue
-    fi
-
     if ! aws s3api head-object --bucket=$S3_BUCKET --key=staging/$package &>/dev/null; then
         upload $package
     else
