@@ -1,3 +1,16 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  labels:
+    kots.io/backup: velero
+    kots.io/kotsadm: "true"
+  name: kotsadm-postgres
+data:
+  passwd: |-
+    root:x:0:0:root:/root:/bin/ash
+    postgres:x:999:999:Linux User,,,:/var/lib/postgresql:/bin/sh
+---
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -30,14 +43,21 @@ spec:
         kots.io/backup: velero
     spec:
       securityContext:
-        runAsUser: 70
-        fsGroup: 70
+        runAsUser: 999
+        fsGroup: 999
       volumes:
       - name: kotsadm-postgres
         persistentVolumeClaim:
           claimName: kotsadm-postgres
+      - name: etc-passwd
+        configMap:
+          name: kotsadm-postgres
+          items:
+          - key: passwd
+            mode: 420
+            path: passwd
       containers:
-      - image: kotsadm/postgres:alpha
+      - image: postgres:10.16-alpine
         name: kotsadm-postgres
         ports:
         - name: postgres
@@ -45,6 +65,9 @@ spec:
         volumeMounts:
         - name: kotsadm-postgres
           mountPath: /var/lib/postgresql/data
+        - mountPath: /etc/passwd
+          name: etc-passwd
+          subPath: passwd
         env:
         - name: PGDATA
           value: /var/lib/postgresql/data/pgdata
