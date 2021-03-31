@@ -175,6 +175,12 @@ dist/host-openssl.tar.gz:
 	mkdir -p dist
 	tar cf - -C build packages/host/openssl | gzip > dist/host-openssl.tar.gz
 
+dist/local-path-provisioner-%.tar.gz: build/addons
+	mkdir -p build/addons/local-path-provisioner/$*/images
+	bin/save-manifest-assets.sh addons/local-path-provisioner/$*/Manifest $(CURDIR)/build/addons/local-path-provisioner/$*
+	mkdir -p dist
+	tar cf - -C build addons/local-path-provisioner/$* | gzip > dist/local-path-provisioner-$*.tar.gz
+
 dist/longhorn-%.tar.gz: build/addons
 	mkdir -p build/addons/longhorn/$*/images
 	bin/save-manifest-assets.sh addons/longhorn/$*/Manifest $(CURDIR)/build/addons/longhorn/$*

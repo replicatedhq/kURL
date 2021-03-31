@@ -42,6 +42,7 @@ function kubeadm_addon_for_each() {
     $cmd antrea "$ANTREA_VERSION" "$ANTREA_S3_OVERRIDE"
     $cmd rook "$ROOK_VERSION" "$ROOK_S3_OVERRIDE"
     $cmd openebs "$OPENEBS_VERSION" "$OPENEBS_S3_OVERRIDE"
+    $cmd local-path-provisioner "$LOCAL_PATH_PROVISIONER_VERSION" "$LOCAL_PATH_PROVISIONER_S3_OVERRIDE"
     $cmd longhorn "$LONGHORN_VERSION" "$LONGHORN_S3_OVERRIDE"
     $cmd minio "$MINIO_VERSION" "$MINIO_S3_OVERRIDE"
     $cmd contour "$CONTOUR_VERSION" "$CONTOUR_S3_OVERRIDE"

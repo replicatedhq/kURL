@@ -220,4 +220,7 @@ module.exports.InstallerVersions = {
   longhorn: [
     "1.1.0",
   ],
+  localPathProvisioner: [
+    "0.0.19",
+  ]
 };

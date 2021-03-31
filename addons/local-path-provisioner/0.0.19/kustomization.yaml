@@ -1,0 +1,6 @@
+resources:
+- namespace.yaml
+- driver.yaml
+- rbac.yaml
+- settings-configmap.yaml
+- storageclass.yaml

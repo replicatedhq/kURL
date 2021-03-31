@@ -281,6 +281,15 @@ spec:
                 publicAddress:
                   type: string
               type: object
+            localPathProvisioner:
+              properties:
+                s3Override:
+                  type: string
+                version:
+                  type: string
+              required:
+              - version
+              type: object
             longhorn:
               properties:
                 s3Override:

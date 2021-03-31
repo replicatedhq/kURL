@@ -133,6 +133,8 @@ spec:
     uiBindPort: 30880
     uiReplicaCount: 0
     version: 1.1.0
+  localPathProvisioner:
+    version: 0.0.19
 `;
 
 // Used for validation in all options test case
@@ -900,6 +902,14 @@ spec:
         isCstorEnabled: true,
         cstorStorageClassName: "cstor",
       });
+    });
+  });
+
+  describe("localPathProvisioner", () => {
+    it("should parse the version", () => {
+      const i = Installer.parse(everyOption);
+
+      expect(i.spec.metricsServer.version).to.equal("0.0.19");
     });
   });
 

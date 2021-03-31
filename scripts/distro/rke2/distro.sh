@@ -36,6 +36,11 @@ function rke2_addon_for_each() {
         METRICS_SERVER_IGNORE=true
     fi
 
+    if [ -n "$LOCAL_PATH_PROVISIONER_VERSION" ] && [ -z "$LOCAL_PATH_PROVISIONER_IGNORE" ]; then
+        logWarn "⚠️  Local Path Provisioner is distributed as part of K3S; the version specified in the installer will be ignored."
+        LOCAL_PATH_PROVISIONER_IGNORE=true
+    fi
+
     $cmd aws "$AWS_VERSION"
     $cmd nodeless "$NODELESS_VERSION"
     $cmd calico "$CALICO_VERSION" "$CALICO_S3_OVERRIDE"
