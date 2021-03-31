@@ -179,7 +179,7 @@ Snapshot management requires VM t be powered off.
 
 Building images can be triggered with the "build-image" github action specifying the "image" var as follows:
 
-```
+```bash
 image=addons/rook/1.0.4/build-images/ceph
 curl -H "Authorization: token $GH_PAT" \
   -H 'Accept: application/json' \
