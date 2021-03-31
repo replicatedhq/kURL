@@ -23,8 +23,8 @@ metadata:
 spec:
   restartPolicy: OnFailure
   securityContext:
-    fsGroup: 70
-    runAsUser: 70
+    fsGroup: 999
+    runAsUser: 999
   containers:
   - name: kotsadm-postgres-rename-pvc
     image: kotsadm/kotsadm-migrations:alpha
