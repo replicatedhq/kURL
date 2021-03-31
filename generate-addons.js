@@ -44,7 +44,7 @@ fs.readdir(specDir, (err, files) => {
         const filepath = path.join(subDirPath, subFile);
         const sf = fs.statSync(filepath);
         if (sf.isDirectory()) {
-          if (subFile !== "template") {
+          if (subFile !== "template" && subFile !== "build-images") {
             sv.push(subFile)
           }
         } else if (sf.isFile()) {
