@@ -1,31 +1,31 @@
 - installerSpec:
-  kubernetes:
-    version: "latest"
-  weave:
-    version: "2.6.5"
-  rook:
-    version: "latest"
-  contour:
-    version: "latest"
-  docker:
-    version: "latest"
-  prometheus:
-    version: "latest"
-  registry:
-    version: "latest"
-  velero:
-    version: "latest"
-  kotsadm:
-    version: "latest"
-  ekco:
-    version: "latest"
-  fluentd:
-    version: "latest"
-  minio:
-    version: "latest"
-  collectd:
-    version: "latest"
-  metricsServer:
-    version: "latest"
-  certManager:
-    version: "latest"
+    kubernetes:
+      version: "latest"
+    weave:
+      version: "2.6.5"
+    rook:
+      version: "latest"
+    contour:
+      version: "latest"
+    docker:
+      version: "latest"
+    prometheus:
+      version: "latest"
+    registry:
+      version: "latest"
+    velero:
+      version: "latest"
+    kotsadm:
+      version: "latest"
+    ekco:
+      version: "latest"
+    fluentd:
+      version: "latest"
+    minio:
+      version: "latest"
+    collectd:
+      version: "latest"
+    metricsServer:
+      version: "latest"
+    certManager:
+      version: "latest"

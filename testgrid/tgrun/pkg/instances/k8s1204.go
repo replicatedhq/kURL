@@ -13,7 +13,7 @@ func init() {
 					Version: "1.20.4",
 				},
 				Weave: &kurlv1beta1.Weave{
-					Version: "2.7.0",
+					Version: "2.8.1",
 				},
 				Longhorn: &kurlv1beta1.Longhorn{
 					Version: "1.1.0",

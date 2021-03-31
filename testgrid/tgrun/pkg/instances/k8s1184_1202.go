@@ -13,7 +13,7 @@ func init() {
 					Version: "1.18.4",
 				},
 				Weave: &kurlv1beta1.Weave{
-					Version: "2.6.4",
+					Version: "2.6.5",
 				},
 				Contour: &kurlv1beta1.Contour{
 					Version: "1.0.1",
@@ -27,7 +27,7 @@ func init() {
 					Version: "1.20.2",
 				},
 				Weave: &kurlv1beta1.Weave{
-					Version: "2.6.5",
+					Version: "2.8.1",
 				},
 				Contour: &kurlv1beta1.Contour{
 					Version: "latest",
