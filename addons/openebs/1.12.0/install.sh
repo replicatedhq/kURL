@@ -22,6 +22,7 @@ function openebs() {
     cp "$src/operator.yaml" "$dst/"
     cp "$src/snapshot-operator.yaml" "$dst/"
 
+    secure_openebs
     # Identify if upgrade batch jobs are needed and apply them.
     openebs_do_upgrade
 
@@ -92,9 +93,16 @@ function openebs() {
 }
 
 function openebs_join() {
+    secure_openebs
+
     if [ "$OPENEBS_CSTOR" = "1" ]; then
         openebs_iscsi
     fi
+}
+
+function secure_openebs() {
+    mkdir -p /var/openebs
+    chmod 700 /var/openebs
 }
 
 function openebs_iscsi() {
