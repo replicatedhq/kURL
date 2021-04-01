@@ -53,4 +53,5 @@ function containerd_configure() {
     containerd config default > /etc/containerd/config.toml
 
     sed -i 's/systemd_cgroup = false/systemd_cgroup = true/' /etc/containerd/config.toml
+    sed -i 's/level = ""/level = "warn"/' /etc/containerd/config.toml
 }
