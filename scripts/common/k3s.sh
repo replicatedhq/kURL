@@ -364,6 +364,7 @@ function k3s_main() {
     journald_persistent
     configure_proxy
     install_host_dependencies
+    get_common
     ${K8S_DISTRO}_addon_for_each addon_pre_init
     discover_pod_subnet
     # discover_service_subnet           # TODO(dan): uses kubeadm
