@@ -1,0 +1,26 @@
+apiVersion: ceph.rook.io/v1
+kind: CephFilesystem
+metadata:
+  name: rook-shared-fs
+  namespace: rook-ceph
+spec:
+  metadataPool:
+    replicated:
+      size: 1
+      requireSafeReplicaSize: false
+  dataPools:
+    # strategic merge patch fails here
+    - failureDomain: host
+      replicated:
+        size: 1
+        requireSafeReplicaSize: false
+      parameters:
+        compression_mode: none
+  metadataServer:
+    resources:
+      limits:
+        cpu: "500m"
+        memory: "1024Mi"
+      requests:
+        cpu: "500m"
+        memory: "1024Mi"

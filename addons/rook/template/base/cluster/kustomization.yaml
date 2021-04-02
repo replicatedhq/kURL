@@ -1,0 +1,7 @@
+resources:
+- object-user.yaml
+
+patchesStrategicMerge:
+- patches/cluster.yaml
+- patches/object.yaml
+- patches/filesystem.yaml
