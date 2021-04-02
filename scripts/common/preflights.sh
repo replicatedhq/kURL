@@ -385,7 +385,7 @@ function host_preflights() {
                     ;;  
                 1)
                     printf "${RED}Host preflights have failures. Do you want to proceed anyway? ${NC} "
-                    if ! confirmY "-t 10"; then
+                    if ! confirmY "-t 100"; then
                         report_install_fail "preflight"
                         bail "Use the \"preflight-ignore\" flag to proceed."
                     fi
