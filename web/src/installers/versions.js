@@ -2,9 +2,13 @@
 // first version of each is "latest"
 module.exports.InstallerVersions = {
   kubernetes: [
+    // cron-kubernetes-update-119
+    "1.19.9",
     "1.19.7",
     "1.19.3",
     "1.19.2",
+    // cron-kubernetes-update-118
+    "1.18.17",
     "1.18.10",
     "1.18.9",
     "1.18.4",
@@ -16,7 +20,7 @@ module.exports.InstallerVersions = {
     "1.15.2",
     "1.15.1",
     "1.15.0",
-    "1.20.4", "1.20.2", "1.20.1", "1.20.0", // cron-kubernetes-update
+    "1.20.5", "1.20.4", "1.20.2", "1.20.1", "1.20.0", // cron-kubernetes-update-120
   ],
   rke2: [
     "v1.19.7+rke2r1",
@@ -36,6 +40,8 @@ module.exports.InstallerVersions = {
     "2.6.5",
     "2.6.4",
     "2.5.2",
+    // cron-weave-update
+    "2.8.1",
     "2.7.0",
   ],
   antrea: [
@@ -46,7 +52,7 @@ module.exports.InstallerVersions = {
     "1.0.4",
     "1.4.3",
   ],
-  contour: ["1.13.1", "1.13.0", "1.12.0", "1.11.0", "1.10.1", "1.7.0", "1.0.1", "0.14.0"], // cron-contour-update
+    contour: ["1.14.0", "1.13.1", "1.13.0", "1.12.0", "1.11.0", "1.10.1", "1.7.0", "1.0.1", "0.14.0"], // cron-contour-update
   registry: [
     "2.7.1",
   ],
@@ -168,6 +174,7 @@ module.exports.InstallerVersions = {
   ],
   velero: [
     // cron-velero-update
+      "1.5.4",
     "1.5.3",
     "1.5.1",
     "1.2.0",

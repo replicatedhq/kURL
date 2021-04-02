@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 const fs = require('fs');
+const semver = require('semver');
 const yargs = require('yargs');
 const { hideBin } = require('yargs/helpers');
 const { InstallerVersions } = require('../../web/src/installers/versions');
@@ -46,28 +47,43 @@ var findLatestAddonVersions = () => {
         if (!stats.isDirectory()) {
             return;
         }
+
+        versions[addon] = [];
+
+        let latestVersion = '';
         if (addon in InstallerVersions) {
             if (InstallerVersions[addon].includes('alpha')) {
-                versions[addon] = 'alpha';
-                return;
+                latestVersion = 'alpha';
+            } else {
+                latestVersion = InstallerVersions[addon][0];
             }
-            versions[addon] = InstallerVersions[addon][0];
-            return;
+            versions[addon].push(latestVersion);
         }
-        // this loop finds the last version directory
-        fs.readdirSync(addonDir).reverse().some((version) => {
+
+        // this loop finds the greatest version and adds it if it is not in the latest spec
+        let greatestVersion = '';
+        fs.readdirSync(addonDir).some((version) => {
             const versionDir = `${specDir}/${addon}/${version}`;
             const stats = fs.statSync(versionDir);
             if (!stats.isDirectory()) {
                 return false;
             }
             const manifestFile = `${specDir}/${addon}/${version}/Manifest`;
-            if (fs.existsSync(manifestFile)) {
-                versions[addon] = version;
-                return true;
+            if (!fs.existsSync(manifestFile)) {
+                return false;
             }
-            return false;
+            if (semver.valid(version)) {
+                if (!greatestVersion || semver.gte(version, greatestVersion)) {
+                    greatestVersion = version;
+                }
+            } else if (version > greatestVersion) {
+                greatestVersion = version;
+            }
         });
+
+        if (greatestVersion && latestVersion != greatestVersion) {
+            versions[addon].push(greatestVersion);
+        }
     });
     return versions;
 };
@@ -76,7 +92,9 @@ var matrix = () => {
     const images = getImages();
     const addonVersions = findLatestAddonVersions();
     const filteredImages = images.filter((image) => {
-        return addonVersions[image.addon] === image.version;
+        return addonVersions[image.addon].some((addonVersion) => {
+            return addonVersion === image.version;
+        });
     });
     console.log(JSON.stringify({include: filteredImages})); // format for git
 };

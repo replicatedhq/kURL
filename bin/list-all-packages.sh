@@ -15,6 +15,9 @@ function pkgs() {
     do
         local name=$(echo $dir | awk -F "/" '{print $2 }')
         local version=$(echo $dir | awk -F "/" '{print $3 }')
+        if [ "$version" = "template" ] || [ "$version" = "build-images" ]; then
+            continue
+        fi
         echo "${name}-${version}.tar.gz"
     done
 }

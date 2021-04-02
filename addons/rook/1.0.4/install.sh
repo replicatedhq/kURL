@@ -1,4 +1,3 @@
-CEPH_VERSION=14.2.0-20190410
 
 function rook() {
     rook_lvm2
