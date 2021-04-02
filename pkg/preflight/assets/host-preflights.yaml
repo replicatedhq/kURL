@@ -224,9 +224,9 @@ spec:
               message: Successfully connected to the Kubernetes API at address {{ .Installer.Spec.Kubernetes.MasterAddress }}
           - warn:
               message: Unexpected TCP connection status
-    - hostServices:
-        checkName: "Host UFW status"
-        outcomes:
-        - warn:
-            when: "ufw = active"
-            message: UFW is active
+#    - hostServices:
+#        checkName: "Host UFW status"
+#        outcomes:
+#        - warn:
+#            when: "ufw = active"
+#            message: UFW is active
