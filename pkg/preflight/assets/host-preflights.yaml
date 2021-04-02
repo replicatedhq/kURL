@@ -106,7 +106,8 @@ spec:
     - blockDevices:
         # rook block storage or cstor is enabled and not upgrade
         includeUnmountedPartitions: true
-        minimumAcceptableSize: 26843545600 # 1024 ^ 3 * 25, 25GiB
+#        minimumAcceptableSize: 26843545600 # 1024 ^ 3 * 25, 25GiB
+        minimumAcceptableSize: 10737418240 # 1024 ^ 3 * 10, 10GiB
         exclude: '{{ and (or (and .Installer.Spec.Rook.Version .Installer.Spec.Rook.IsBlockStorageEnabled) (and .Installer.Spec.OpenEBS.Version .Installer.Spec.OpenEBS.IsCstorEnabled)) (not .IsUpgrade) | not }}'
         outcomes:
           - pass:
