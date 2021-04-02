@@ -1,0 +1,41 @@
+name: cron-prometheus-update
+on:
+  schedule:
+  - cron: '0 4 * * *'
+  workflow_dispatch: {}
+
+jobs:
+  build-pr-prometheus:
+    runs-on: ubuntu-18.04
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+
+    - name: Create Prometheus Update
+      id: update
+      working-directory: ./addons/prometheus/template
+      run: |
+        curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
+        ./generate.sh
+
+    - name: Create Pull Request # creates a PR if there are differences
+      uses: peter-evans/create-pull-request@v3
+      id: cpr
+      with:
+        token: ${{ secrets.GH_PAT }}
+        commit-message: Create new Prometheus version
+        title: 'Automated Prometheus version update ${{ steps.update.outputs.prometheus_version }}'
+        branch: automation/update-prometheus
+        delete-branch: true
+        labels: |
+          automated-pr
+          prometheus
+        draft: false
+        base: "master"
+        body: "Automated changes by the [cron-prometheus-update](https://github.com/replicatedhq/kURL/blob/master/.github/workflows/update-prometheus.yaml) GitHub action"
+
+    - name: Check outputs
+      run: |
+        echo "Pull Request Number - ${{ steps.cpr.outputs.pull-request-number }}"
+        echo "Pull Request URL - ${{ steps.cpr.outputs.pull-request-url }}"
