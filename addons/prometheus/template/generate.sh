@@ -45,8 +45,15 @@ function generate() {
     sed -i "s/prometheus-prometheus/k8s/g" "../$VERSION/operator/default.yaml"
 
     # get images in files
-    grep 'image: '  "../$VERSION/operator/default.yaml" | sed 's/ *image: "*\(.*\)\/\(.*\):\([^"]*\)"*/image \2 \1\/\2:\3/' | sort | uniq >> "../$VERSION/Manifest"
-    grep 'image: '  "../$VERSION/operator/adapter.yaml" | sed 's/ *image: "*\(.*\)\/\(.*\):\([^"]*\)"*/image \2 \1\/\2:\3/' | sort | uniq >> "../$VERSION/Manifest"
+    grep 'image: '  "../$VERSION/operator/default.yaml" | sed 's/ *image: "*\(.*\)\/\(.*\):\([^"]*\)"*/image \2 \1\/\2:\3/' >> "../$VERSION/Manifest.tmp"
+    grep 'image: '  "../$VERSION/operator/adapter.yaml" | sed 's/ *image: "*\(.*\)\/\(.*\):\([^"]*\)"*/image \2 \1\/\2:\3/' >> "../$VERSION/Manifest.tmp"
+
+    # get prometheus-config-reloader image '            - --prometheus-config-reloader=quay.io/prometheus-operator/prometheus-config-reloader:v0.46.0'
+    grep 'prometheus-config-reloader=' "../$VERSION/operator/default.yaml" | sed 's/.*--prometheus-config-reloader=\(.*\)\/\(.*\):\([^"]*\)/image \2 \1\/\2:\3/' >> "../$VERSION/Manifest.tmp"
+
+    # deduplicate manifest
+    cat "../$VERSION/Manifest.tmp" | sort | uniq >> "../$VERSION/Manifest"
+    rm "../$VERSION/Manifest.tmp"
 }
 
 function add_as_latest() {
