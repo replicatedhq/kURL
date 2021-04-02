@@ -45,8 +45,11 @@ function generate() {
     sed -i "s/prometheus-prometheus/k8s/g" "../$VERSION/operator/default.yaml"
 
     # get images in files
-    grep 'image: '  "../$VERSION/operator/default.yaml" | sed 's/ *image: "*/image name /' | sed 's/"//' | sort | uniq > "../$VERSION/Manifest"
-    grep 'image: '  "../$VERSION/operator/adapter.yaml" | sed 's/ *image: "*/image name /' | sed 's/"//' | sort | uniq >> "../$VERSION/Manifest"
+    grep 'image: '  "../$VERSION/operator/default.yaml" | sed 's/ *image: "*/image name /' | sed 's/"//' | sort | uniq > "../$VERSION/Manifest.tmp"
+    grep 'image: '  "../$VERSION/operator/adapter.yaml" | sed 's/ *image: "*/image name /' | sed 's/"//' | sort | uniq >> "../$VERSION/Manifest.tmp"
+
+    cat "../$VERSION/Manifest.tmp" | awk '/image name/ { $2 = NR } { print $1 " prometheusimage" $2 " " $3 }' >> "../$VERSION/Manifest"
+    rm "../$VERSION/Manifest.tmp"
 }
 
 function add_as_latest() {
