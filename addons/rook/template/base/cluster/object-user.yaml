@@ -1,3 +1,5 @@
+# https://github.com/rook/rook/blob/v1.4.9/cluster/examples/kubernetes/ceph/object-user.yaml
+
 ---
 apiVersion: ceph.rook.io/v1
 kind: CephObjectStoreUser

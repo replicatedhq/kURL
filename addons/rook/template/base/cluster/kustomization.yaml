@@ -1,7 +1,6 @@
 resources:
-- object-user.yaml
-
-patchesStrategicMerge:
-- patches/cluster.yaml
-- patches/object.yaml
-- patches/filesystem.yaml
+- cephfs-storageclass.yaml
+- cluster.yaml
+- filesystem.yaml
+- object.yaml
+- rbd-storageclass.yaml

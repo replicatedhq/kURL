@@ -24,6 +24,7 @@ function generate() {
 
     # split operator files
     helm template replaceme rook-release/rook-ceph --version "${VERSION}" --values ./values.yaml -n monitoring --include-crds > "${dir}/operator/combined.yaml"
+    sed -i -E "s/(image: [^:]+):VERSION(\"*)/\1:v${VERSION}\2/" "${dir}/operator/combined.yaml"
     mkdir -p "${dir}/operator/tmp"
     csplit --quiet --prefix="${dir}/operator/tmp/out" -b ".%03d.yaml" "${dir}/operator/combined.yaml" "/^---$/+1" "{*}"
     for tmpfile in "${dir}"/operator/tmp/*.yaml ; do
@@ -46,49 +47,21 @@ function generate() {
     curl -fsSL -o "${dir}/operator/toolbox.yaml" "${github_content_url}/cluster/examples/kubernetes/ceph/toolbox.yaml"
     insert_resources "${dir}/operator/kustomization.yaml" "${dir}/operator/toolbox.yaml"
 
-    # download cluster resources
-    mkdir -p "${dir}/cluster"
-    curl -fsSL -o "${dir}/cluster/cluster.yaml" "${github_content_url}/cluster/examples/kubernetes/ceph/cluster.yaml"
-    insert_resources "${dir}/cluster/kustomization.yaml" "cluster.yaml"
-    curl -fsSL -o "${dir}/cluster/pool.yaml" "${github_content_url}/cluster/examples/kubernetes/ceph/pool.yaml"
-    insert_resources "${dir}/cluster/kustomization.yaml" "pool.yaml"
-    curl -fsSL -o "${dir}/cluster/tmpl-rbd-storageclass.yaml" "${github_content_url}/cluster/examples/kubernetes/ceph/csi/rbd/storageclass.yaml"
-    sed -i 's/^\s*  name: rook-ceph-block/  name: \$\{STORAGE_CLASS:-default\}/' "${dir}/cluster/tmpl-rbd-storageclass.yaml"
-    insert_resources "${dir}/cluster/kustomization.yaml" "tmpl-rbd-storageclass.yaml"
-    curl -fsSL -o "${dir}/cluster/object.yaml" "${github_content_url}/cluster/examples/kubernetes/ceph/object.yaml"
-    sed -i 's/^\s*  name: my-store/  name: rook-ceph-store/' "${dir}/cluster/object.yaml"
-    insert_resources "${dir}/cluster/kustomization.yaml" "object.yaml"
-    curl -fsSL -o "${dir}/cluster/filesystem.yaml" "${github_content_url}/cluster/examples/kubernetes/ceph/filesystem.yaml"
-    sed -i 's/^\s*  name: myfs/  name: rook-shared-fs/' "${dir}/cluster/filesystem.yaml"
-    insert_resources "${dir}/cluster/kustomization.yaml" "filesystem.yaml"
-    curl -fsSL -o "${dir}/cluster/cephfs-storageclass.yaml" "${github_content_url}/cluster/examples/kubernetes/ceph/csi/cephfs/storageclass.yaml"
-    sed -i 's/^\s*  fsName: myfs/  fsName: rook-shared-fs/' "${dir}/cluster/cephfs-storageclass.yaml"
-    sed -i 's/^\s*  pool: myfs-data0/  pool: rook-shared-fs-data0/' "${dir}/cluster/cephfs-storageclass.yaml"
-    insert_resources "${dir}/cluster/kustomization.yaml" "tmpl-cephfs-storageclass.yaml"
-    exit
-
-    # remove non-CRD yaml from crds
-    diff -U $(wc -l < "../$VERSION/crds/crds-all.yaml") "../$VERSION/crds/crds-all.yaml" "../$VERSION/operator/default.yaml" | sed '/^--- \.\.\//d' | sed -n 's/^-//p' > "../$VERSION/crds/crds.yaml" || true
-    rm "../$VERSION/crds/crds-all.yaml"
-
-    # fix names (replaceme-grafana -> grafana)
-    sed -i 's/replaceme-//g' "../$VERSION/operator/default.yaml"
-    sed -i 's/replaceme-//g' "../$VERSION/operator/adapter.yaml"
-
-    # fix replaceme everywhere else
-    sed -i "s/replaceme/v$VERSION/g" "../$VERSION/operator/default.yaml"
-    sed -i "s/replaceme/v$VERSION/g" "../$VERSION/operator/adapter.yaml"
-
-    # update version in install.sh
-    sed -i "s/__PROMETHEUS_VERSION__/$VERSION/g" "../$VERSION/install.sh"
+    local ceph_image=
+    ceph_image="$(curl -fsSL "${github_content_url}/cluster/examples/kubernetes/ceph/cluster.yaml" | grep ' image: ' | sed -E 's/ *image: "*([^" ]+).*/\1/')"
+    sed -i "s/__IMAGE__/$(echo "${ceph_image}" | sed -E 's/\//\\\//')/" "${dir}/cluster/cluster.yaml"
 
     # get images in files
-    grep 'image: '  "../$VERSION/operator/default.yaml" | sed 's/ *image: "*/image name /' | sed 's/"//' | sort | uniq > "../$VERSION/Manifest"
-    grep 'image: '  "../$VERSION/operator/adapter.yaml" | sed 's/ *image: "*/image name /' | sed 's/"//' | sort | uniq >> "../$VERSION/Manifest"
+    {   echo "image ceph-ceph ${ceph_image}" ; \
+        grep ' image: '  "${dir}/operator/deployment.yaml" | sed -E 's/ *image: "*([^\/]+\/)?([^\/]+)\/([^:]+):([^" ]+).*/image \2-\3 \1\2\/\3:\4/' ; \
+        curl -fsSL "${github_content_url}/cluster/examples/kubernetes/ceph/operator.yaml" | grep '_IMAGE: ' | sed -E 's/.*_IMAGE: "*([^\/]+\/)?([^\/]+)\/([^:]+):([^" ]+).*/image \2-\3 \1\2\/\3:\4/' ; \
+    } >> "${dir}/Manifest"
 }
 
 function add_as_latest() {
-    sed -i "/cron-rook-update/a\    \"${VERSION}\"\," ../../../web/src/installers/versions.js
+    if ! sed '0,/cron-rook-update/d' ../../../web/src/installers/versions.js | sed '/\],/,$d' | grep -q "${VERSION}" ; then
+        sed -i "/cron-rook-update/a\    \"${VERSION}\"\," ../../../web/src/installers/versions.js
+    fi
 }
 
 function insert_resources() {
