@@ -23,8 +23,7 @@ function generate() {
     helm repo update
 
     # split operator files
-    helm template replaceme rook-release/rook-ceph --version "${VERSION}" --values ./values.yaml -n monitoring --include-crds > "${dir}/operator/combined.yaml"
-    sed -i -E "s/(image: [^:]+):VERSION(\"*)/\1:v${VERSION}\2/" "${dir}/operator/combined.yaml"
+    helm template replaceme rook-release/rook-ceph --version "${VERSION}" --values ./values.yaml -n rook-ceph --include-crds > "${dir}/operator/combined.yaml"
     mkdir -p "${dir}/operator/tmp"
     csplit --quiet --prefix="${dir}/operator/tmp/out" -b ".%03d.yaml" "${dir}/operator/combined.yaml" "/^---$/+1" "{*}"
     for tmpfile in "${dir}"/operator/tmp/*.yaml ; do
@@ -45,15 +44,25 @@ function generate() {
 
     # download additional operator resources
     curl -fsSL -o "${dir}/operator/toolbox.yaml" "${github_content_url}/cluster/examples/kubernetes/ceph/toolbox.yaml"
-    insert_resources "${dir}/operator/kustomization.yaml" "${dir}/operator/toolbox.yaml"
+    insert_resources "${dir}/operator/kustomization.yaml" "toolbox.yaml"
 
-    local ceph_image=
-    ceph_image="$(curl -fsSL "${github_content_url}/cluster/examples/kubernetes/ceph/cluster.yaml" | grep ' image: ' | sed -E 's/ *image: "*([^" ]+).*/\1/')"
-    sed -i "s/__IMAGE__/$(echo "${ceph_image}" | sed -E 's/\//\\\//')/" "${dir}/cluster/cluster.yaml"
+    # download cluster resources
+    curl -fsSL -o "${dir}/cluster/cephfs-storageclass.yaml" "${github_content_url}/cluster/examples/kubernetes/ceph/csi/cephfs/storageclass.yaml"
+    insert_resources "${dir}/cluster/kustomization.yaml" "cephfs-storageclass.yaml"
+    curl -fsSL -o "${dir}/cluster/cluster.yaml" "${github_content_url}/cluster/examples/kubernetes/ceph/cluster.yaml"
+    insert_resources "${dir}/cluster/kustomization.yaml" "cluster.yaml"
+    curl -fsSL -o "${dir}/cluster/filesystem.yaml" "${github_content_url}/cluster/examples/kubernetes/ceph/filesystem.yaml"
+    insert_resources "${dir}/cluster/kustomization.yaml" "filesystem.yaml"
+    curl -fsSL -o "${dir}/cluster/object.yaml" "${github_content_url}/cluster/examples/kubernetes/ceph/object.yaml"
+    insert_resources "${dir}/cluster/kustomization.yaml" "object.yaml"
+    curl -fsSL -o "${dir}/cluster/tmpl-rbd-storageclass.yaml" "${github_content_url}/cluster/examples/kubernetes/ceph/csi/rbd/storageclass.yaml"
+    sed -i -E "s/^( *)name: rook-ceph-block/\1name: \"\$\{STORAGE_CLASS:-default\}\"/" "${dir}/cluster/tmpl-rbd-storageclass.yaml"
+
+    # '    image: ceph/ceph:v15.2.8'
 
     # get images in files
-    {   echo "image ceph-ceph ${ceph_image}" ; \
-        grep ' image: '  "${dir}/operator/deployment.yaml" | sed -E 's/ *image: "*([^\/]+\/)?([^\/]+)\/([^:]+):([^" ]+).*/image \2-\3 \1\2\/\3:\4/' ; \
+    {   grep ' image: '  "${dir}/operator/deployment.yaml" | sed -E 's/ *image: "*([^\/]+\/)?([^\/]+)\/([^:]+):([^" ]+).*/image \2-\3 \1\2\/\3:\4/' ; \
+        grep ' image: '  "${dir}/cluster/cluster.yaml" | sed -E 's/ *image: "*([^\/]+\/)?([^\/]+)\/([^:]+):([^" ]+).*/image \2-\3 \1\2\/\3:\4/' ; \
         curl -fsSL "${github_content_url}/cluster/examples/kubernetes/ceph/operator.yaml" | grep '_IMAGE: ' | sed -E 's/.*_IMAGE: "*([^\/]+\/)?([^\/]+)\/([^:]+):([^" ]+).*/image \2-\3 \1\2\/\3:\4/' ; \
     } >> "${dir}/Manifest"
 }
@@ -68,11 +77,11 @@ function insert_resources() {
     local kustomization_file="$1"
     local resource_file="$2"
 
-    if ! grep -q "resources" "$kustomization_file"; then
+    if ! grep -q "resources:" "$kustomization_file"; then
         echo "resources:" >> "$kustomization_file"
     fi
 
-    sed -i "/resources.*/a - $resource_file" "$kustomization_file"
+    sed -i "/resources:.*/a - $resource_file" "$kustomization_file"
 }
 
 function main() {

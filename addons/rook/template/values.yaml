@@ -4,8 +4,8 @@
 
 image:
   prefix: rook
-  repository: rook/ceph
-  tag: VERSION
+  # repository: rook/ceph
+  # tag: VERSION
   pullPolicy: IfNotPresent
 
 crds:

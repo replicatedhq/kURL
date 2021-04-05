@@ -1,11 +1,34 @@
 
 function rook_pre_init() {
-    local version
-    version=$(rook_version)
-    if [ -n "$version" ] && [ "$version" != "${ROOK_VERSION}" ]; then
-        echo "Rook $version is already installed, will not upgrade to ${ROOK_VERSION}"
-        export SKIP_ROOK_INSTALL='true'
-    elif [ "$ROOK_BLOCK_STORAGE_ENABLED" != "1" ]; then
+    local current_version='' current_version_minor='' current_version_patch=''
+    local next_version_minor='' next_version_patch=''
+
+    export SKIP_ROOK_INSTALL
+
+    current_version="$(rook_version)"
+    semverParse "${current_version}"
+    current_version_minor="${minor}"
+    current_version_patch="${patch}"
+
+    semverParse "${ROOK_VERSION}"
+    next_version_minor="${minor}"
+    next_version_patch="${patch}"
+
+    if [ -n "${version}" ]; then
+        if [ "${current_version_minor}" != "${next_version_minor}" ]; then
+            if [ "${current_version_minor}" -gt "${next_version_minor}" ]; then
+                echo "Rook ${version} is already installed, will not downgrade to ${ROOK_VERSION}"
+            else
+                echo "Rook ${version} is already installed, will not upgrade to ${ROOK_VERSION}"
+            fi
+            SKIP_ROOK_INSTALL=1
+        elif [ "${current_version_patch}" -gt "${next_version_patch}" ]; then
+            echo "Rook ${version} is already installed, will not downgrade to ${ROOK_VERSION}"
+            SKIP_ROOK_INSTALL=1
+        fi
+    fi
+    
+    if [ -z "${SKIP_ROOK_INSTALL}" ] && [ "${ROOK_BLOCK_STORAGE_ENABLED}" != "1" ]; then
         bail "Rook ${ROOK_VERSION} requires enabling block storage"
     fi
 }
@@ -57,19 +80,17 @@ function rook_operator_deploy() {
     local src="${DIR}/addons/rook/${ROOK_VERSION}/operator"
     local dst="${DIR}/kustomize/rook/operator"
 
-    mkdir -p "$dst"
-    # resources
-    cp "$src/*" "$dst/"
+    mkdir -p "${DIR}/kustomize/rook"
+    rm -rf "$dst"
+    cp -r "$src" "$dst"
 
     if [ "${K8S_DISTRO}" = "rke2" ]; then
         ROOK_HOSTPATH_REQUIRES_PRIVILEGED=1
-        cp "$src/patches/ceph-operator-rke2.yaml" "$dst"
-        insert_patches_strategic_merge "$dst/kustomization.yaml" ceph-operator-rke2.yaml
+        insert_patches_strategic_merge "$dst/kustomization.yaml" patches/deployment-rke2.yaml
     fi
 
     if [ "$ROOK_HOSTPATH_REQUIRES_PRIVILEGED" = "1" ]; then
-        cp "$src/patches/ceph-operator-privileged.yaml" "$dst"
-        insert_patches_strategic_merge "$dst/kustomization.yaml" ceph-operator-privileged.yaml
+        insert_patches_strategic_merge "$dst/kustomization.yaml" patches/deployment-privileged.yaml
     fi
 
     kubectl apply -k "$dst"
@@ -80,22 +101,27 @@ function rook_cluster_deploy() {
     local dst="${DIR}/kustomize/rook/cluster"
 
     # Don't redeploy cluster - ekco may have made changes based on num of nodes in cluster
+    # TODO (ethan) update image
     if kubectl -n rook-ceph get cephcluster rook-ceph 2>/dev/null 1>/dev/null; then
         echo "Cluster rook-ceph already deployed"
         return 0
     fi
 
-    mkdir -p "$dst"
+    mkdir -p "${DIR}/kustomize/rook"
+    rm -rf "$dst"
+    cp -r "$src" "$dst"
+
     # resources
-    cp "$src/*" "$dst/"
-    render_yaml_file "$src/tmpl-rdb-storageclass.yaml" > "$dst/rdb-storageclass.yaml"
+    render_yaml_file "$src/tmpl-rbd-storageclass.yaml" > "$dst/rbd-storageclass.yaml"
+    insert_resources "$dst/kustomization.yaml" rbd-storageclass.yaml
 
     # patches
-    # TODO (ethan)
-    render_yaml_file "$src/patches/tmpl-ceph-cluster-image.yaml" > "$dst/ceph-cluster-image.yaml"
-    render_yaml_file "$src/patches/tmpl-ceph-block-pool-replicas.yaml" > "$dst/ceph-block-pool-replicas.yaml"
-    render_yaml_file "$src/patches/tmpl-ceph-object-store.yaml" > "$dst/ceph-object-store-replicas.yaml"
-    render_yaml_file "$src/patches/tmpl-ceph-cluster-block-storage.yaml" > "$dst/ceph-cluster-storage.yaml"
+    render_yaml_file "$src/patches/tmpl-cluster.yaml" > "$dst/patches/cluster.yaml"
+    insert_patches_strategic_merge "$dst/kustomization.yaml" patches/cluster.yaml
+    render_yaml_file "$src/patches/tmpl-object.yaml" > "$dst/patches/object.yaml"
+    insert_patches_strategic_merge "$dst/kustomization.yaml" patches/object.yaml
+    render_yaml_file "$src/patches/tmpl-rbd-storageclass.yaml" > "$dst/patches/rbd-storageclass.yaml"
+    insert_patches_strategic_merge "$dst/kustomization.yaml" patches/rbd-storageclass.yaml
 
     kubectl apply -k "$dst/"
 }
