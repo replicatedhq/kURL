@@ -40,6 +40,12 @@ function generate_version_directory() {
         echo "image ${name} ${image}" >> "../$version/Manifest"
     done < <(/tmp/kubeadm config images list --kubernetes-version=${version})
 
+    local criToolsVersion=$(curl -Ls -m 60 -o /dev/null -w %{url_effective} https://github.com/kubernetes-sigs/cri-tools/releases/latest | xargs basename)
+
+    echo "" >> "../$version/Manifest"
+    echo "asset kubeadm https://storage.googleapis.com/kubernetes-release/release/v$version/bin/linux/amd64/kubeadm" >> "../$version/Manifest"
+    echo "asset crictl-linux-amd64.tar.gz https://github.com/kubernetes-sigs/cri-tools/releases/download/$criToolsVersion/crictl-$criToolsVersion-linux-amd64.tar.gz" >> "../$version/Manifest"
+
     echo "" >> "../$version/Manifest"
     echo "asset kustomize-v2.0.3 https://github.com/kubernetes-sigs/kustomize/releases/download/v2.0.3/kustomize_2.0.3_linux_amd64" >> "../$version/Manifest"
     echo "asset kustomize-v3.5.4.tar.gz https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2Fv3.5.4/kustomize_v3.5.4_linux_amd64.tar.gz" >> "../$version/Manifest"
