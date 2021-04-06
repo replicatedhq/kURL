@@ -181,14 +181,8 @@ function rook_ready_spinner() {
 function rook_ceph_healthy() {
     local tools_pod=
     tools_pod="$(kubectl -n rook-ceph get pod -l "app=rook-ceph-tools" -o jsonpath='{.items[0].metadata.name}')"
-    if kubectl -n rook-ceph exec "${tools_pod}" -- ceph status | grep -q HEALTH_OK ; then
+    if kubectl -n rook-ceph exec "${tools_pod}" -- ceph status | grep -qE '(HEALTH_OK|HEALTH_WARN)' ; then
         return 0
-    fi
-    if kubectl -n rook-ceph exec "${tools_pod}" -- ceph status | grep -q HEALTH_WARN ; then
-        # we allow unsafe replica size
-        if kubectl -n rook-ceph exec "${tools_pod}" -- ceph status | grep -q 'have no replicas configured' ; then
-            return 0
-        fi
     fi
     return 1
 }
