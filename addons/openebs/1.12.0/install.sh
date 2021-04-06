@@ -53,7 +53,13 @@ function openebs() {
         kubectl apply -k "$dst/"
 
         echo "Waiting for OpenEBS operator to apply CustomResourceDefinitions"
+        # wait for all crds we use in this function
         spinner_until 120 kubernetes_resource_exists default crd storagepoolclaims.openebs.io
+        spinner_until 120 kubernetes_resource_exists default crd cstorpools.openebs.io
+        spinner_until 120 kubernetes_resource_exists default crd blockdevices.openebs.io
+        spinner_until 120 kubernetes_resource_exists default crd cstorvolumes.openebs.io
+        spinner_until 120 kubernetes_resource_exists default crd cstorvolumereplicas.openebs.io
+        sleep 5 # wait a bit longer for all the crds to be ready
 
         dst="$dst/storage"
         mkdir -p "$dst"
