@@ -61,12 +61,12 @@ function rook() {
         export CEPH_DASHBOARD_PASSWORD="$cephDashboardPassword"
     fi
 
-    echo "awaiting rook-ceph RGW pod"
+    echo "Awaiting rook-ceph RGW pod"
     spinnerPodRunning rook-ceph rook-ceph-rgw-rook-ceph-store
     kubectl -n rook-ceph apply -f "$src/cluster/object-user.yaml"
     rook_object_store_output
 
-    echo "awaiting rook-ceph object store health"
+    echo "Awaiting rook-ceph object store health"
     if ! spinner_until 120 rook_rgw_is_healthy; then
         bail "Failed to detect healthy Rook RGW"
     fi
@@ -103,7 +103,7 @@ function rook_cluster_deploy() {
     # Don't redeploy cluster - ekco may have made changes based on num of nodes in cluster
     if kubectl -n rook-ceph get cephcluster rook-ceph >/dev/null 2>&1 ; then
         echo "Cluster rook-ceph already deployed"
-        rook_cluster_deploy_upgrade_patch
+        rook_cluster_deploy_upgrade
         return 0
     fi
 
@@ -126,7 +126,7 @@ function rook_cluster_deploy() {
     kubectl -n rook-ceph apply -k "$dst/"
 }
 
-function rook_cluster_deploy_upgrade_patch() {
+function rook_cluster_deploy_upgrade() {
     local ceph_image="__IMAGE__"
     local ceph_version=
     ceph_version="$(echo "${ceph_image}" | awk 'BEGIN { FS=":v" } ; {print $2}')"
@@ -135,6 +135,8 @@ function rook_cluster_deploy_upgrade_patch() {
         echo "Cluster rook-ceph up to date"
         return 0
     fi
+
+    logStep "Upgrading rook-ceph cluster"
 
     if ! rook_ceph_healthy ; then
         bail "Refusing to update cluster rook-ceph, Ceph is not healthy"
@@ -145,11 +147,13 @@ function rook_cluster_deploy_upgrade_patch() {
     if ! spinner_until 600 rook_ceph_version_deployed "${ceph_version}" ; then
         bail "New Ceph version failed to deploy"
     fi
+
+    logSuccess "Rook-ceph cluster upgraded"
 }
 
 function rook_dashboard_ready_spinner() {
     # wait for ceph dashboard password to be generated
-    echo "awaiting rook-ceph dashboard password"
+    echo "Awaiting rook-ceph dashboard password"
     local delay=0.75
     local spinstr='|/-\'
     while ! kubectl -n rook-ceph get secret rook-ceph-dashboard-password >/dev/null 2>&1 ; do
@@ -162,11 +166,13 @@ function rook_dashboard_ready_spinner() {
 }
 
 function rook_ready_spinner() {
-    echo "awaiting rook-ceph pods"
+    echo "Awaiting rook-ceph operator"
 
     if ! spinner_until 600 rook_version_deployed ; then
         logWarn "Detected multiple Rook versions"
     fi
+
+    echo "Awaiting rook-ceph pods"
 
     spinnerPodRunning rook-ceph rook-ceph-operator
     spinnerPodRunning rook-ceph rook-discover
