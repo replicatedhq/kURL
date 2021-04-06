@@ -63,7 +63,7 @@ function rook() {
 
     echo "awaiting rook-ceph RGW pod"
     spinnerPodRunning rook-ceph rook-ceph-rgw-rook-ceph-store
-    kubectl apply -f "$src/cluster/object-user.yaml"
+    kubectl -n rook-ceph apply -f "$src/cluster/object-user.yaml"
     rook_object_store_output
 
     echo "awaiting rook-ceph object store health"
@@ -93,7 +93,7 @@ function rook_operator_deploy() {
         insert_patches_strategic_merge "$dst/kustomization.yaml" patches/deployment-privileged.yaml
     fi
 
-    kubectl apply -k "$dst"
+    kubectl -n rook-ceph apply -k "$dst"
 }
 
 function rook_cluster_deploy() {
@@ -101,9 +101,9 @@ function rook_cluster_deploy() {
     local dst="${DIR}/kustomize/rook/cluster"
 
     # Don't redeploy cluster - ekco may have made changes based on num of nodes in cluster
-    # TODO (ethan) update image
-    if kubectl -n rook-ceph get cephcluster rook-ceph 2>/dev/null 1>/dev/null; then
+    if kubectl -n rook-ceph get cephcluster rook-ceph >/dev/null 2>&1 ; then
         echo "Cluster rook-ceph already deployed"
+        rook_cluster_deploy_upgrade_patch
         return 0
     fi
 
@@ -112,7 +112,7 @@ function rook_cluster_deploy() {
     cp -r "$src" "$dst"
 
     # resources
-    render_yaml_file "$src/tmpl-rbd-storageclass.yaml" > "$dst/rbd-storageclass.yaml"
+    render_yaml_file_2 "$dst/tmpl-rbd-storageclass.yaml" > "$dst/rbd-storageclass.yaml"
     insert_resources "$dst/kustomization.yaml" rbd-storageclass.yaml
 
     # patches
@@ -123,7 +123,12 @@ function rook_cluster_deploy() {
     render_yaml_file "$src/patches/tmpl-rbd-storageclass.yaml" > "$dst/patches/rbd-storageclass.yaml"
     insert_patches_strategic_merge "$dst/kustomization.yaml" patches/rbd-storageclass.yaml
 
-    kubectl apply -k "$dst/"
+    kubectl -n rook-ceph apply -k "$dst/"
+}
+
+function rook_cluster_deploy_upgrade_patch() {
+    local ceph_image="__IMAGE__"
+    kubectl -n rook-ceph patch cephcluster/rook-ceph --type='json' -p='[{"op": "replace", "path": "/spec/cephVersion/image", "value":"'"${ceph_image}"'"}]'
 }
 
 function rook_dashboard_ready_spinner() {
@@ -131,7 +136,7 @@ function rook_dashboard_ready_spinner() {
     echo "awaiting rook-ceph dashboard password"
     local delay=0.75
     local spinstr='|/-\'
-    while ! kubectl -n rook-ceph get secret rook-ceph-dashboard-password &>/dev/null; do
+    while ! kubectl -n rook-ceph get secret rook-ceph-dashboard-password >/dev/null 2>&1 ; do
         local temp=${spinstr#?}
         printf " [%c]  " "$spinstr"
         local spinstr=$temp${spinstr%"$temp"}
@@ -142,12 +147,22 @@ function rook_dashboard_ready_spinner() {
 
 function rook_ready_spinner() {
     echo "awaiting rook-ceph pods"
+
+    # check that there is only one rook-version reported across the cluster
+    if ! spinner_until 120 rook_version_deployed ; then
+        logWarn "Detected multiple Rook versions"
+    fi
+
     spinnerPodRunning rook-ceph rook-ceph-operator
     spinnerPodRunning rook-ceph rook-discover
 }
 
+function rook_version_deployed() {
+    [ "$(kubectl -n rook-ceph get deployment -l rook_cluster=rook-ceph -o jsonpath='{range .items[*]}{"rook-version="}{.metadata.labels.rook-version}{"\n"}{end}' | sort | uniq | wc -l)" = "1" ]
+}
+
 function rook_is_1() {
-    kubectl -n rook-ceph get cephblockpools replicapool &>/dev/null
+    kubectl -n rook-ceph get cephblockpools replicapool >/dev/null 2>&1
 }
 
 # CEPH_POOL_REPLICAS is undefined when this function is called unless set explicitly with a flag.
@@ -167,7 +182,7 @@ function rook_set_ceph_pool_replicas() {
         CEPH_POOL_REPLICAS="$discoveredCephPoolReplicas"
     fi
     local readyNodeCount
-    readyNodeCount=$(kubectl get nodes 2>/dev/null | grep -c Ready)
+    readyNodeCount=$(kubectl get nodes 2>/dev/null | grep -c ' Ready')
     if [ "$readyNodeCount" -gt "$CEPH_POOL_REPLICAS" ] && [ "$readyNodeCount" -le "3" ]; then
         CEPH_POOL_REPLICAS="$readyNodeCount"
     fi
@@ -189,7 +204,7 @@ function rook_configure_linux_3() {
 
 function rook_object_store_output() {
     # Rook operator creates this secret from the user CRD just applied
-    while ! kubectl -n rook-ceph get secret rook-ceph-object-user-rook-ceph-store-kurl 2>/dev/null; do
+    while ! kubectl -n rook-ceph get secret rook-ceph-object-user-rook-ceph-store-kurl >/dev/null 2>&1 ; do
         sleep 2
     done
 

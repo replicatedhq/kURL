@@ -7,6 +7,14 @@ function render_yaml_file() {
     eval "echo \"$(cat $1)\""
 }
 
+function render_yaml_file_2() {
+    local file="$1"
+    local data=$(< "$file")
+    local delimiter="__apply_shell_expansion_delimiter__"
+    local command="cat <<$delimiter"$'\n'"$data"$'\n'"$delimiter"
+    eval "$command"
+}
+
 function render_file() {
     eval "echo \"$(cat $1)\""
 }

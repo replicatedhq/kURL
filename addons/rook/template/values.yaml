@@ -281,7 +281,7 @@ csi:
   #rbdPodLabels: "key1=value1,key2=value2"
 
 enableFlexDriver: false
-enableDiscoveryDaemon: false
+enableDiscoveryDaemon: true # (replicated) chart default false
 
 # enable the ability to have multiple Ceph filesystems in the same cluster
 # WARNING: Experimental feature in Ceph Releases Octopus (v15) and Nautilus (v14)
@@ -298,7 +298,7 @@ allowMultipleFilesystems: false
 ## nodeAffinity: Set to labels of the node to match
 ## flexVolumeDirPath: The path where the Rook agent discovers the flex volume plugins
 ## libModulesDirPath: The path where the Rook agent can find kernel modules
-# agent:
+agent: # (replicated) uncommented
 #   toleration: NoSchedule
 #   tolerationKey: key
 #   tolerations:
@@ -311,6 +311,7 @@ allowMultipleFilesystems: false
 #   flexVolumeDirPath: /usr/libexec/kubernetes/kubelet-plugins/volume/exec/
 #   libModulesDirPath: /lib/modules
 #   mounts: mount1=/host/path:/container/path,/host/path2:/container/path2
+  priorityClassName: rook-critical # (replicated) added
 
 ## Rook Discover configuration
 ## toleration: NoSchedule, PreferNoSchedule or NoExecute
