@@ -8,6 +8,14 @@ spec:
         collectorName: "Weave Net Control TCP Port Status"
         port: 6783
         exclude: '{{ .IsUpgrade }}'
+{{- if and .IsJoin (not .IsUpgrade)}}
+  {{- range .RemoteHosts}}
+    - tcpConnect:
+        collectorName: "weave {{ . }}"
+        address: '{{ . }}:6783'
+        timeout: 5s
+  {{- end}}
+{{- end}}
 
   analyzers:
     - tcpPortStatus:
@@ -32,3 +40,25 @@ spec:
               message: Port 6783 is open
           - warn:
               message: Unexpected port status
+{{- if and .IsJoin (not .IsUpgrade)}}
+  {{- range .RemoteHosts}}
+    - tcpConnect:
+        checkName: "weave {{ . }}:6783 TCP connection status"
+        collectorName: "weave {{ . }}"
+        outcomes:
+          - warn:
+              when: "connection-refused"
+              message: Connection to weave {{ . }}:6783 was refused
+          - warn:
+              when: "connection-timeout"
+              message: Timed out connecting to weave {{ . }}:6783
+          - warn:
+              when: "error"
+              message: Unexpected error connecting to weave {{ . }}:6783
+          - pass:
+              when: "connected"
+              message: Successfully connected to weave {{ . }}:6783
+          - warn:
+              message: Unexpected TCP connection status for weave {{ . }}:6783
+  {{- end}}
+{{- end}}

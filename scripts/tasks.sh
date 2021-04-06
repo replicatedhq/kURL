@@ -317,6 +317,7 @@ function join_token() {
         common_flags="${common_flags}$(get_additional_no_proxy_addresses_flag "1" "${service_cidr},${pod_cidr}")"
     fi
     common_flags="${common_flags}$(get_kurl_install_directory_flag "${kurl_install_directory}")"
+    common_flags="${common_flags}$(get_remotes_flags)"
 
     # build the installer prefix
     local prefix="curl -sSL $kurl_url/$installer_id/"
