@@ -21,6 +21,8 @@ function openebs() {
     render_yaml_file "$src/tmpl-namespace.yaml" > "$dst/namespace.yaml"
     cp "$src/operator.yaml" "$dst/"
 
+    secure_openebs
+
     if [ "$OPENEBS_LOCALPV" = "1" ]; then
         cp "$src/localpv-provisioner.yaml" "$dst/"
         insert_resources "$dst/kustomization.yaml" localpv-provisioner.yaml
@@ -88,7 +90,16 @@ function openebs() {
 }
 
 function openebs_join() {
-    openebs_iscsi
+    secure_openebs
+
+    if [ "$OPENEBS_CSTOR" = "1" ]; then
+        openebs_iscsi
+    fi
+}
+
+function secure_openebs() {
+    mkdir -p /var/openebs
+    chmod 700 /var/openebs
 }
 
 function openebs_iscsi() {
