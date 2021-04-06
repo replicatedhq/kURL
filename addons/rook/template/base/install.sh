@@ -128,7 +128,23 @@ function rook_cluster_deploy() {
 
 function rook_cluster_deploy_upgrade_patch() {
     local ceph_image="__IMAGE__"
+    local ceph_version=
+    ceph_version="$(echo "${ceph_image}" | awk 'BEGIN { FS=":v" } ; {print $2}')"
+
+    if rook_ceph_version_deployed "${ceph_version}" ; then
+        echo "Cluster rook-ceph up to date"
+        return 0
+    fi
+
+    if ! rook_ceph_healthy ; then
+        bail "Refusing to update cluster rook-ceph, Ceph is not healthy"
+    fi
+
     kubectl -n rook-ceph patch cephcluster/rook-ceph --type='json' -p='[{"op": "replace", "path": "/spec/cephVersion/image", "value":"'"${ceph_image}"'"}]'
+
+    if ! spinner_until 600 rook_ceph_version_deployed "${ceph_version}" ; then
+        bail "New Ceph version failed to deploy"
+    fi
 }
 
 function rook_dashboard_ready_spinner() {
@@ -148,8 +164,7 @@ function rook_dashboard_ready_spinner() {
 function rook_ready_spinner() {
     echo "awaiting rook-ceph pods"
 
-    # check that there is only one rook-version reported across the cluster
-    if ! spinner_until 120 rook_version_deployed ; then
+    if ! spinner_until 600 rook_version_deployed ; then
         logWarn "Detected multiple Rook versions"
     fi
 
@@ -157,8 +172,42 @@ function rook_ready_spinner() {
     spinnerPodRunning rook-ceph rook-discover
 }
 
+function rook_ceph_healthy() {
+    local tools_pod=
+    tools_pod="$(kubectl -n rook-ceph get pod -l "app=rook-ceph-tools" -o jsonpath='{.items[0].metadata.name}')"
+    if kubectl -n rook-ceph exec "${tools_pod}" -- ceph status | grep -q HEALTH_OK ; then
+        return 0
+    fi
+    if kubectl -n rook-ceph exec "${tools_pod}" -- ceph status | grep -q HEALTH_WARN ; then
+        # we allow unsafe replica size
+        if kubectl -n rook-ceph exec "${tools_pod}" -- ceph status | grep -q 'have no replicas configured' ; then
+            return 0
+        fi
+    fi
+    return 1
+}
+
+# rook_version_deployed check that there is only one rook-version reported across the cluster
 function rook_version_deployed() {
-    [ "$(kubectl -n rook-ceph get deployment -l rook_cluster=rook-ceph -o jsonpath='{range .items[*]}{"rook-version="}{.metadata.labels.rook-version}{"\n"}{end}' | sort | uniq | wc -l)" = "1" ]
+    if [ "$(kubectl -n rook-ceph get deployment -l rook_cluster=rook-ceph -o jsonpath='{range .items[*]}{"rook-version="}{.metadata.labels.rook-version}{"\n"}{end}' | sort | uniq | wc -l)" != "1" ]; then
+        return 1
+    fi
+    if kubectl -n rook-ceph get deployment -l rook_cluster=rook-ceph -o jsonpath='{range .items[*]}{"rook-version="}{.metadata.labels.rook-version}{"\n"}{end}' | grep -q "${ROOK_VERSION}" ; then
+        return 0
+    fi
+    return 1
+}
+
+# rook_ceph_version_deployed check that there is only one ceph-version reported across the cluster
+function rook_ceph_version_deployed() {
+    local ceph_version="$1"
+    if [ "$(kubectl -n rook-ceph get deployment -l rook_cluster=rook-ceph -o jsonpath='{range .items[*]}{"ceph-version="}{.metadata.labels.ceph-version}{"\n"}{end}' | sort | uniq | wc -l)" != "1" ]; then
+        return 1
+    fi
+    if kubectl -n rook-ceph get deployment -l rook_cluster=rook-ceph -o jsonpath='{range .items[*]}{"ceph-version="}{.metadata.labels.ceph-version}{"\n"}{end}' | grep -q "${ceph_version}" ; then
+        return 0
+    fi
+    return 1
 }
 
 function rook_is_1() {
