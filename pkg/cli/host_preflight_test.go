@@ -5,7 +5,6 @@ import (
 	"io/ioutil"
 	"testing"
 
-	"github.com/chzyer/readline"
 	"github.com/golang/mock/gomock"
 	mock_cli "github.com/replicatedhq/kurl/pkg/cli/mock"
 	mock_preflight "github.com/replicatedhq/kurl/pkg/preflight/mock"
@@ -46,7 +45,7 @@ func TestNewHostPreflightCmd(t *testing.T) {
 					IsPass:  true,
 				},
 			},
-			stdout: "[PASS] Number of CPUs: At least 4 CPU cores are required\n",
+			stdout: green("[PASS]") + " Number of CPUs: At least 4 CPU cores are required\n",
 			stderr: "",
 		},
 		{
@@ -59,9 +58,10 @@ func TestNewHostPreflightCmd(t *testing.T) {
 					IsWarn:  true,
 				},
 			},
-			isWarn: true,
-			stdout: "[WARN] Number of CPUs: At least 4 CPU cores are required\n",
-			stderr: "",
+			isWarn:  true,
+			stdout:  yellow("[WARN]") + " Number of CPUs: At least 4 CPU cores are required\n",
+			stderr:  "Error: preflights have warnings\n",
+			wantErr: true,
 		},
 		{
 			name:          "warn ignore",
@@ -75,7 +75,7 @@ func TestNewHostPreflightCmd(t *testing.T) {
 			},
 			isWarn:         true,
 			ignoreWarnings: true,
-			stdout:         "[WARN] Number of CPUs: At least 4 CPU cores are required\n",
+			stdout:         yellow("[WARN]") + " Number of CPUs: At least 4 CPU cores are required\n",
 			stderr:         "",
 		},
 		{
@@ -89,7 +89,7 @@ func TestNewHostPreflightCmd(t *testing.T) {
 				},
 			},
 			isFail: true,
-			stdout: "[FAIL] Number of CPUs: At least 4 CPU cores are required\n",
+			stdout: red("[FAIL]") + " Number of CPUs: At least 4 CPU cores are required\n",
 			stderr: "Error: preflights have failures\n",
 		},
 	}
@@ -125,14 +125,6 @@ func TestNewHostPreflightCmd(t *testing.T) {
 				GetPreflightRunner().
 				Return(mockPreflightRunner).
 				Times(1)
-			if tt.isWarn && !tt.ignoreWarnings {
-				rl, err := readline.New("")
-				require.NoError(t, err)
-				mockCLI.EXPECT().
-					GetReadline().
-					Return(rl).
-					Times(1)
-			}
 
 			cmd := NewHostPreflightCmd(mockCLI)
 
