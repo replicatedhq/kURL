@@ -1,0 +1,4 @@
+resources:
+- namespace.yaml
+- priority-class.yaml
+- configmap-rook-config-override.yaml

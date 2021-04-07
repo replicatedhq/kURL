@@ -121,7 +121,7 @@ function rook_set_ceph_pool_replicas() {
     if [ -n "$discoveredCephPoolReplicas" ]; then
         CEPH_POOL_REPLICAS="$discoveredCephPoolReplicas"
     fi
-    local readyNodeCount=$(kubectl get nodes 2>/dev/null | grep Ready | wc -l)
+    local readyNodeCount=$(kubectl get nodes 2>/dev/null | grep ' Ready' | wc -l)
     if [ "$readyNodeCount" -gt "$CEPH_POOL_REPLICAS" ] && [ "$readyNodeCount" -le "3" ]; then
         CEPH_POOL_REPLICAS="$readyNodeCount"
     fi
