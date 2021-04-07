@@ -309,7 +309,7 @@ alertmanager:
     loadBalancerSourceRanges: []
     ## Service type
     ##
-    type: ClusterIP
+    type: NodePort # originally ClusterIP (replicated)
 
   ## Configuration for creating a separate Service for each statefulset Alertmanager replica
   ##
@@ -700,7 +700,12 @@ grafana:
 
   ## Passed to grafana subchart and used by servicemonitor below
   ##
+  #  added section (replicated)
   service:
+    type: NodePort
+    port: 80
+    nodePort: 30902
+    targetPort: 3000
     portName: service
 
   ## If true, create a serviceMonitor for grafana
@@ -1596,7 +1601,7 @@ prometheus:
     loadBalancerSourceRanges: []
     ## Service type
     ##
-    type: ClusterIP
+    type: NodePort # originally ClusterIP (replicated)
 
     sessionAffinity: ""
 
