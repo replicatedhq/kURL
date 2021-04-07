@@ -17,7 +17,7 @@ func main() {
 	}
 	err = cli.NewKurlCmd(kurlCLI).ExecuteContext(ctx)
 	if err != nil {
-		if errors.Is(err, cli.ErrUserExit) {
+		if errors.Is(err, cli.ErrWarn) {
 			os.Exit(3)
 		}
 		os.Exit(1)

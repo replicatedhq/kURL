@@ -7,7 +7,6 @@ import (
 	"io/ioutil"
 	"os"
 	"regexp"
-	"strings"
 	"time"
 
 	"github.com/briandowns/spinner"
@@ -185,28 +184,6 @@ func NewHostPreflightCmd(cli CLI) *cobra.Command {
 					})
 				}
 			}
-			/*
-			       - tcpConnect:
-			           checkName: "kubelet {{ . }}:10250 TCP connection status"
-			           collectorName: "kubelet {{ . }}"
-			           outcomes:
-			             - warn:
-			                 when: "connection-refused"
-			                 message: Connection to kubelet {{ . }}:10250 was refused
-			             - warn:
-			                 when: "connection-timeout"
-			                 message: Timed out connecting to kubelet {{ . }}:10250
-			             - warn:
-			                 when: "error"
-			                 message: Unexpected error connecting to kubelet {{ . }}:10250
-			             - pass:
-			                 when: "connected"
-			                 message: Successfully connected to kubelet {{ . }}:10250
-			             - warn:
-			                 message: Unexpected TCP connection status for kubelet {{ . }}:10250
-			     {{- end}}
-			   {{- end}}
-			*/
 
 			progressChan := make(chan interface{})
 			progressContext, progressCancel := context.WithCancel(cmd.Context())
@@ -230,10 +207,7 @@ func NewHostPreflightCmd(cli CLI) *cobra.Command {
 				if v.GetBool("ignore-warnings") {
 					fmt.Fprintln(cmd.ErrOrStderr(), "Warnings ignored by CLI flag \"ignore-warnings\"")
 				} else {
-					if confirmPreflightIsWarn(cli) {
-						return nil
-					}
-					return ErrUserExit
+					return ErrWarn
 				}
 			}
 			return nil
@@ -311,20 +285,6 @@ func printPreflightResult(w io.Writer, result *analyze.AnalyzeResult) {
 	case result.IsFail:
 		fmt.Fprintln(w, red("[FAIL]"), fmt.Sprintf("%s: %s", result.Title, result.Message))
 	}
-}
-
-func confirmPreflightIsWarn(cli CLI) bool {
-	rl := cli.GetReadline()
-
-	rl.SetPrompt("Preflight has warnings. Do you want to proceed anyway? (Y/n) ")
-
-	line, err := rl.Readline()
-	if err != nil {
-		return true
-	}
-
-	text := strings.ToLower(strings.TrimSpace(line))
-	return !(text == "n" || text == "no")
 }
 
 func preflightIsFail(results []*analyze.AnalyzeResult) bool {
