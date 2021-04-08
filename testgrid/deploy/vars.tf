@@ -6,7 +6,7 @@ variable instance_type {
 
 variable region {
   type        = list(string)
-  default     = ["sv15"]
+  default     = ["am6"]
   description = "Packet regions to deploy testgrid"
 }
 
