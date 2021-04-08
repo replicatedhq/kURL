@@ -1,5 +1,7 @@
 # Configure the Packet Provider. 
-provider "packet" {}
+provider "packet" {
+  version = "~> 3.1.0"
+}
 
 provider "aws" {
   version = "~> 2.52.0"
