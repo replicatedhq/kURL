@@ -34,9 +34,29 @@ spec:
         port: 2380
         exclude: '{{ and .IsPrimary (not .IsUpgrade) | not }}'
     - tcpPortStatus:
+        collectorName: "ETCD Health Server TCP Port Status"
+        port: 2381
+        exclude: '{{ and .IsPrimary (not .IsUpgrade) | not }}'
+        interface: lo
+    - tcpPortStatus:
+        collectorName: "Kubelet Health Server TCP Port Status"
+        port: 10248
+        exclude: '{{ and (not .IsUpgrade) | not }}'
+        interface: lo
+    - tcpPortStatus:
         collectorName: "Kubelet API TCP Port Status"
         port: 10250
         exclude: '{{ and (not .IsUpgrade) | not }}'
+    - tcpPortStatus:
+        collectorName: "Kube Controller Manager Health Server TCP Port Status"
+        port: 10257
+        exclude: '{{ and .IsPrimary (not .IsUpgrade) | not }}'
+        interface: lo
+    - tcpPortStatus:
+        collectorName: "Kube Scheduler Health Server TCP Port Status"
+        port: 10259
+        exclude: '{{ and .IsPrimary (not .IsUpgrade) | not }}'
+        interface: lo
     - tcpConnect:
         collectorName: "Kubernetes API TCP Connection Status"
         address: '{{ .Installer.Spec.Kubernetes.MasterAddress }}'
@@ -185,6 +205,50 @@ spec:
           - warn:
               message: Unexpected port status
     - tcpPortStatus:
+        checkName: "ETCD Health Server TCP Port Status"
+        collectorName: "ETCD Health Server TCP Port Status"
+        exclude: '{{ and .IsPrimary (not .IsUpgrade) | not }}'
+        outcomes:
+          - fail:
+              when: "connection-refused"
+              message: Connection to port 2381 was refused. This is likely to be a routing problem since this preflight configures a test server to listen on this port.
+          - warn:
+              when: "address-in-use"
+              message: Another process was already listening on port 2381.
+          - fail:
+              when: "connection-timeout"
+              message: Timed out connecting to port 2381. Check your firewall.
+          - fail:
+              when: "error"
+              message: Unexpected port status
+          - pass:
+              when: "connected"
+              message: Port 2381 is available
+          - warn:
+              message: Unexpected port status
+    - tcpPortStatus:
+        checkName: "Kubelet Health Server TCP Port Status"
+        collectorName: "Kubelet Health Server TCP Port Status"
+        exclude: '{{ and (not .IsUpgrade) | not }}'
+        outcomes:
+          - fail:
+              when: "connection-refused"
+              message: Connection to port 10248 was refused. This is likely to be a routing problem since this preflight configures a test server to listen on this port.
+          - warn:
+              when: "address-in-use"
+              message: Another process was already listening on port 10248.
+          - fail:
+              when: "connection-timeout"
+              message: Timed out connecting to port 10248. Check your firewall.
+          - fail:
+              when: "error"
+              message: Unexpected port status
+          - pass:
+              when: "connected"
+              message: Port 10248 is available
+          - warn:
+              message: Unexpected port status
+    - tcpPortStatus:
         checkName: "Kubelet API TCP Port Status"
         collectorName: "Kubelet API TCP Port Status"
         exclude: '{{ and (not .IsUpgrade) | not }}'
@@ -204,6 +268,50 @@ spec:
           - pass:
               when: "connected"
               message: Port 10250 is open
+          - warn:
+              message: Unexpected port status
+    - tcpPortStatus:
+        checkName: "Kube Controller Manager Health Server TCP Port Status"
+        collectorName: "Kube Controller Manager Health Server TCP Port Status"
+        exclude: '{{ and .IsPrimary (not .IsUpgrade) | not }}'
+        outcomes:
+          - fail:
+              when: "connection-refused"
+              message: Connection to port 10257 was refused. This is likely to be a routing problem since this preflight configures a test server to listen on this port.
+          - warn:
+              when: "address-in-use"
+              message: Another process was already listening on port 10257.
+          - fail:
+              when: "connection-timeout"
+              message: Timed out connecting to port 10257. Check your firewall.
+          - fail:
+              when: "error"
+              message: Unexpected port status
+          - pass:
+              when: "connected"
+              message: Port 10257 is available
+          - warn:
+              message: Unexpected port status
+    - tcpPortStatus:
+        checkName: "Kube Scheduler Health Server TCP Port Status"
+        collectorName: "Kube Scheduler Health Server TCP Port Status"
+        exclude: '{{ and .IsPrimary (not .IsUpgrade) | not }}'
+        outcomes:
+          - fail:
+              when: "connection-refused"
+              message: Connection to port 10259 was refused. This is likely to be a routing problem since this preflight configures a test server to listen on this port.
+          - warn:
+              when: "address-in-use"
+              message: Another process was already listening on port 10259.
+          - fail:
+              when: "connection-timeout"
+              message: Timed out connecting to port 10259. Check your firewall.
+          - fail:
+              when: "error"
+              message: Unexpected port status
+          - pass:
+              when: "connected"
+              message: Port 10259 is available
           - warn:
               message: Unexpected port status
     - tcpConnect:
