@@ -181,6 +181,12 @@ dist/longhorn-%.tar.gz: build/addons
 	mkdir -p dist
 	tar cf - -C build addons/longhorn/$* | gzip > dist/longhorn-$*.tar.gz
 
+dist/sonobuoy-%.tar.gz: build/addons
+	mkdir -p build/addons/sonobuoy/$*/images
+	bin/save-manifest-assets.sh addons/sonobuoy/$*/Manifest $(CURDIR)/build/addons/sonobuoy/$*
+	mkdir -p dist
+	tar cf - -C build addons/sonobuoy/$* | gzip > dist/sonobuoy-$*.tar.gz
+
 dist/kubernetes-%.tar.gz:
 	${MAKE} build/packages/kubernetes/$*/images
 	${MAKE} build/packages/kubernetes/$*/ubuntu-16.04
