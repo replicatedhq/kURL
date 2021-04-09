@@ -308,7 +308,16 @@ function main() {
     curl -L --output ./sonobuoy.tar.gz https://github.com/vmware-tanzu/sonobuoy/releases/download/v0.19.0/sonobuoy_0.19.0_linux_amd64.tar.gz
     tar xzvf ./sonobuoy.tar.gz
 
-    ./sonobuoy run --wait --mode quick
+    # Work around docker hub rate limiting
+    if [ -n "${DOCKERHUB_USERNAME}" ] && [ -n "${DOCKERHUB_PASSWORD}" ]; then
+        kubectl -n sonobuoy create secret docker-registry dockerhubregistrykey --docker-server=https://index.docker.io/v2/ \
+            --docker-username="${DOCKERHUB_USERNAME}" --docker-password="${DOCKERHUB_PASSWORD}"
+        echo '{"ImagePullSecrets":"dockerhubregistrykey"}' > secretconfig.json
+    else
+        echo '{}' > secretconfig.json
+    fi
+
+    ./sonobuoy run --config secretconfig.json --wait --mode quick
 
     RESULTS=$(./sonobuoy retrieve)
     if [ -n "$RESULTS" ]; then
