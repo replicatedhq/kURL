@@ -82,6 +82,13 @@ function run_install() {
     else
         curl "$KURL_URL" > install.sh
         curl "$KURL_URL/tasks.sh" > tasks.sh
+
+        # Work around docker hub rate limiting
+        if [ -n "${DOCKERHUB_USERNAME}" ] && [ -n "${DOCKERHUB_PASSWORD}" ]; then
+            kubectl create secret docker-registry dockerhubregistrykey --docker-server=https://index.docker.io/v2/ \
+                --docker-username="${DOCKERHUB_USERNAME}" --docker-password="${DOCKERHUB_PASSWORD}"
+            kubectl patch serviceaccount default -p '{"imagePullSecrets": [{"name": "dockerhubregistrykey"}]}'
+        fi
     fi
 
     cat install.sh | timeout 30m bash -s $AIRGAP_FLAG
@@ -307,15 +314,6 @@ function main() {
     echo "running sonobuoy"
     curl -L --output ./sonobuoy.tar.gz https://github.com/vmware-tanzu/sonobuoy/releases/download/v0.19.0/sonobuoy_0.19.0_linux_amd64.tar.gz
     tar xzvf ./sonobuoy.tar.gz
-
-    # Work around docker hub rate limiting
-    if [ -n "${DOCKERHUB_USERNAME}" ] && [ -n "${DOCKERHUB_PASSWORD}" ]; then
-        kubectl -n sonobuoy create secret docker-registry dockerhubregistrykey --docker-server=https://index.docker.io/v2/ \
-            --docker-username="${DOCKERHUB_USERNAME}" --docker-password="${DOCKERHUB_PASSWORD}"
-        echo '{"ImagePullSecrets":"dockerhubregistrykey"}' > secretconfig.json
-    else
-        echo '{}' > secretconfig.json
-    fi
 
     ./sonobuoy run --config secretconfig.json --wait --mode quick
 
