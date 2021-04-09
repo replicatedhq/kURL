@@ -528,6 +528,10 @@ function list_all_required_images() {
     if [ -n "$METRICS_SERVER_VERSION" ]; then
         find addons/metrics-server/$METRICS_SERVER_VERSION -type f -name Manifest 2>/dev/null | xargs cat | grep -E '^image' | grep -v no_remote_load | awk '{ print $3 }'
     fi
+
+    if [ -n "$SONOBUOY_VERSION" ]; then
+        find addons/sonobuoy/$SONOBUOY_VERSION -type f -name Manifest 2>/dev/null | xargs cat | grep -E '^image' | grep -v no_remote_load | awk '{ print $3 }'
+    fi
 }
 
 function kubernetes_node_has_all_images() {
