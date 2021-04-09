@@ -315,7 +315,7 @@ function main() {
     curl -L --output ./sonobuoy.tar.gz https://github.com/vmware-tanzu/sonobuoy/releases/download/v0.19.0/sonobuoy_0.19.0_linux_amd64.tar.gz
     tar xzvf ./sonobuoy.tar.gz
 
-    ./sonobuoy run --config secretconfig.json --wait --mode quick
+    ./sonobuoy run --wait --mode quick
 
     RESULTS=$(./sonobuoy retrieve)
     if [ -n "$RESULTS" ]; then
