@@ -48,6 +48,7 @@ type InstallerSpec struct {
 	MetricsServer   MetricsServer   `json:"metricsServer,omitempty" yaml:"metricsServer,omitempty"`
 	Helm            Helm            `json:"helm,omitempty" yaml:"helm,omitempty"`
 	Longhorn        Longhorn        `json:"longhorn,omitempty" yaml:"longhorn,omitempty"`
+	Sonobuoy        Sonobuoy        `json:"sonobuoy,omitempty" yaml:"sonobuoy,omitempty"`
 }
 
 type Contour struct {
@@ -258,6 +259,11 @@ type Longhorn struct {
 	Version        string `json:"version" yaml:"version"`
 	UiBindPort     int    `json:"uiBindPort,omitempty" yaml:"uiBindPort,omitempty"`
 	UiReplicaCount int    `json:"uiReplicaCount,omitempty" yaml:"uiReplicaCount,omitempty"`
+}
+
+type Sonobuoy struct {
+	S3Override string `json:"s3Override,omitempty" yaml:"s3Override,omitempty"`
+	Version    string `json:"version" yaml:"version"`
 }
 
 // InstallerStatus defines the observed state of Installer

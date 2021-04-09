@@ -17,7 +17,7 @@ function generate() {
 }
 
 function add_as_latest() {
-    sed -i "/cron-velero-update/a\      \"${VERSION}\"\," ../../../web/src/installers/versions.js
+    sed -i "/cron-velero-update/a\    \"${VERSION}\"\," ../../../web/src/installers/versions.js
 }
 
 function main() {

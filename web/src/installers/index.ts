@@ -596,6 +596,21 @@ export const LonghornSchema = {
   additionalProperties: false,
 };
 
+export interface SonobuoyConfig {
+  version: string;
+  s3Override?: string;
+}
+
+export const sonobuoySchema = {
+  type: "object",
+  properties: {
+    version: { type: "string" },
+    s3Override: { type: "string", flag: "s3-override", description: "Override the download location for addon package distribution (used for CI/CD testing alpha addons)" },
+  },
+  required: ["version"],
+  additionalProperties: false,
+};
+
 export interface InstallerSpec {
   kubernetes: KubernetesConfig;
   rke2?: RKE2Config;
@@ -624,6 +639,7 @@ export interface InstallerSpec {
   selinuxConfig?: SelinuxConfig;
   helm?: HelmConfig;
   longhorn?: LonghornConfig;
+  sonobuoy?: SonobuoyConfig;
 }
 
 const specSchema = {
@@ -657,6 +673,7 @@ const specSchema = {
     selinuxConfig: selinuxConfigSchema,
     helm: helmConfigSchema,
     longhorn: LonghornSchema,
+    sonobuoy: sonobuoySchema,
   },
   additionalProperites: false,
 };
@@ -1088,6 +1105,9 @@ export class Installer {
     }
     if (this.spec.longhorn && !Installer.hasVersion("longhorn", this.spec.longhorn.version) && !this.hasS3Override("longhorn")) {
       return { error: { message: `Longhorn version "${_.escape(this.spec.longhorn.version)}" is not supported` } };
+    }
+    if (this.spec.sonobuoy && !Installer.hasVersion("sonobuoy", this.spec.sonobuoy.version) && !this.hasS3Override("sonobuoy")) {
+      return { error: { message: `Sonobuoy version "${_.escape(this.spec.sonobuoy.version)}" is not supported` } };
     }
   }
 

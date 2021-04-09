@@ -7,7 +7,7 @@ deps:
 
 .PHONY: test
 test: deps
-	yarn run --cwd=web test
+	yarn run test
 	# missing api-tests, pact tests
 
 .PHONY: prebuild
