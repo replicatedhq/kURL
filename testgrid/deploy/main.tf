@@ -8,11 +8,31 @@ provider "aws" {
   region  = "us-east-1"
 }
 
+provider "sops" {}
+
 terraform {
   backend "s3" {
     bucket = "terraform-testgrid"
     key    = "testgrid-prod/terraform.tfstate"
     region = "us-east-1"
+  }
+}
+
+resource "aws_kms_key" "kurl_testgrid_sops_key" {
+  description             = "KMS Key for sops"
+  deletion_window_in_days = 7
+}
+
+data "sops_file" "secrets" {
+  source_file = "secrets.enc.yaml"
+}
+
+data "template_file" "tg_script" {
+  template = file("${path.module}/tg-script.sh.tpl")
+
+  vars = {
+    dockerhub_username = data.sops_file.secrets.data["dockerhub_username"]
+    dockerhub_password = data.sops_file.secrets.data["dockerhub_password"]
   }
 }
 
@@ -28,7 +48,7 @@ resource "packet_spot_market_request" "base-request" {
     billing_cycle    = "hourly"
     operating_system = var.tg_os
     plan             = var.instance_type
-    userdata         = file("${path.module}/tg-script.sh")
+    userdata         = data.template_file.tg_script.rendered
   }
 }
 
