@@ -317,7 +317,7 @@ function main() {
     curl -L --output ./sonobuoy.tar.gz https://github.com/vmware-tanzu/sonobuoy/releases/download/v0.19.0/sonobuoy_0.19.0_linux_amd64.tar.gz
     tar xzvf ./sonobuoy.tar.gz
 
-    ./sonobuoy run --wait --mode quick
+    ./sonobuoy run --wait=10 --mode quick # wait for 10 minutes for sonobuoy run to complete
 
     RESULTS=$(./sonobuoy retrieve)
     if [ -n "$RESULTS" ]; then
