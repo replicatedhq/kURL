@@ -40,6 +40,9 @@ function generate_version_directory() {
         echo "image ${name} ${image}" >> "../$version/Manifest"
     done < <(/tmp/kubeadm config images list --kubernetes-version=${version})
 
+    # add conformance image for sonobuoy to manifest
+    echo "image conformance k8s.gcr.io/conformance:v${version}" >> "../$version/Manifest"
+
     local criToolsVersion=$(curl -Ls -m 60 -o /dev/null -w %{url_effective} https://github.com/kubernetes-sigs/cri-tools/releases/latest | xargs basename)
 
     echo "" >> "../$version/Manifest"
