@@ -180,6 +180,24 @@ func Test_convertToBash(t *testing.T) {
 				"ANTREA_DISABLE_ENCRYPTION": "1",
 			},
 		},
+		{
+			name: "Sonobuoy.Version sets SONOBUOY_VERSION",
+			inputMap: map[string]interface{}{
+				"Sonobuoy.Version": "0.50.0",
+			},
+			wantedMap: map[string]string{
+				"SONOBUOY_VERSION": `"0.50.0"`,
+			},
+		},
+		{
+			name: "Sonobuoy.S3Override sets SONOBUOY_S3_OVERRIDE",
+			inputMap: map[string]interface{}{
+				"Sonobuoy.S3Override": "https://kurl-sh.s3.amazonaws.com/pr/2000-1111111-sonobuoy-0.50.0.tar.gz",
+			},
+			wantedMap: map[string]string{
+				"SONOBUOY_S3_OVERRIDE": `"https://kurl-sh.s3.amazonaws.com/pr/2000-1111111-sonobuoy-0.50.0.tar.gz"`,
+			},
+		},
 	}
 
 	for _, test := range tests {
