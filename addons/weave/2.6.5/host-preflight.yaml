@@ -5,6 +5,14 @@ metadata:
 spec:
   collectors:
     - tcpPortStatus:
+        collectorName: "Weave Network Policy Controller Metrics Server TCP Port Status"
+        port: 6781
+        exclude: '{{ .IsUpgrade }}'
+    - tcpPortStatus:
+        collectorName: "Weave Net Metrics Server TCP Port Status"
+        port: 6782
+        exclude: '{{ .IsUpgrade }}'
+    - tcpPortStatus:
         collectorName: "Weave Net Control TCP Port Status"
         port: 6783
         exclude: '{{ .IsUpgrade }}'
@@ -18,6 +26,50 @@ spec:
 {{- end}}
 
   analyzers:
+    - tcpPortStatus:
+        checkName: "Weave Network Policy Controller Metrics Server TCP Port Status"
+        collectorName: "Weave Net Metrics Server TCP Port Status"
+        exclude: '{{ .IsUpgrade }}'
+        outcomes:
+          - fail:
+              when: "connection-refused"
+              message: Connection to port 6781 was refused. This is likely to be a routing problem since this preflight configures a test server to listen on this port.
+          - warn:
+              when: "address-in-use"
+              message: Another process was already listening on port 6781.
+          - fail:
+              when: "connection-timeout"
+              message: Timed out connecting to port 6781. Check your firewall.
+          - fail:
+              when: "error"
+              message: Unexpected port status
+          - pass:
+              when: "connected"
+              message: Port 6781 is available
+          - warn:
+              message: Unexpected port status
+    - tcpPortStatus:
+        checkName: "Weave Net Metrics Server TCP Port Status"
+        collectorName: "Weave Net Metrics Server TCP Port Status"
+        exclude: '{{ .IsUpgrade }}'
+        outcomes:
+          - fail:
+              when: "connection-refused"
+              message: Connection to port 6782 was refused. This is likely to be a routing problem since this preflight configures a test server to listen on this port.
+          - warn:
+              when: "address-in-use"
+              message: Another process was already listening on port 6782.
+          - fail:
+              when: "connection-timeout"
+              message: Timed out connecting to port 6782. Check your firewall.
+          - fail:
+              when: "error"
+              message: Unexpected port status
+          - pass:
+              when: "connected"
+              message: Port 6782 is available
+          - warn:
+              message: Unexpected port status
     - tcpPortStatus:
         checkName: "Weave Net Control TCP Port Status"
         collectorName: "Weave Net Control TCP Port Status"
