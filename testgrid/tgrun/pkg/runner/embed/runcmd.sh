@@ -268,6 +268,44 @@ function run_tasks_join_token() {
     fi
 }
 
+function run_sonobuoy() {
+    # Work around docker hub rate limiting
+    if [ -n "${DOCKERHUB_USERNAME}" ] && [ -n "${DOCKERHUB_PASSWORD}" ]; then
+        kubectl create namespace sonobuoy
+        kubectl -n sonobuoy create secret docker-registry dockerhubregistrykey \
+            --docker-username="${DOCKERHUB_USERNAME}" --docker-password="${DOCKERHUB_PASSWORD}"
+        kubectl -n sonobuoy patch serviceaccount default -p '{"imagePullSecrets": [{"name": "dockerhubregistrykey"}]}'
+    fi
+
+    curl -L --output ./sonobuoy.tar.gz https://github.com/vmware-tanzu/sonobuoy/releases/download/v0.19.0/sonobuoy_0.19.0_linux_amd64.tar.gz
+    tar xzvf ./sonobuoy.tar.gz
+
+    # wait for 10 minutes for sonobuoy run to complete
+    # skip preflights for now cause we pre-create the namespace and preflights will fail if it exists
+    ./sonobuoy run \
+        --wait=10 \
+        --skip-preflight \
+        --image-pull-policy IfNotPresent \
+        --mode quick
+
+    SONOBUOY_EXIT_STATUS=$?
+    if [ $SONOBUOY_EXIT_STATUS -ne 0 ]; then
+        echo "failed sonobuoy run"
+        return 1
+    fi
+
+    RESULTS=$(./sonobuoy retrieve)
+    if [ -n "$RESULTS" ]; then
+        echo "completed sonobuoy run"
+        ./sonobuoy results $RESULTS > ./sonobuoy-results.txt
+        curl -X POST --data-binary "@./sonobuoy-results.txt" "$TESTGRID_APIENDPOINT/v1/instance/$TEST_ID/sonobuoy"
+        return 0
+    else
+        echo "failed sonobuoy run"
+        return 1
+    fi
+}
+
 function main() {
     setenforce 0 || true # rhel variants
 
@@ -306,29 +344,11 @@ function main() {
 
     echo "running sonobuoy"
 
-    # Work around docker hub rate limiting
-    if [ -n "${DOCKERHUB_USERNAME}" ] && [ -n "${DOCKERHUB_PASSWORD}" ]; then
-        kubectl create namespace sonobuoy
-        kubectl -n sonobuoy create secret docker-registry dockerhubregistrykey \
-            --docker-username="${DOCKERHUB_USERNAME}" --docker-password="${DOCKERHUB_PASSWORD}"
-        kubectl -n sonobuoy patch serviceaccount default -p '{"imagePullSecrets": [{"name": "dockerhubregistrykey"}]}'
-    fi
-
-    curl -L --output ./sonobuoy.tar.gz https://github.com/vmware-tanzu/sonobuoy/releases/download/v0.19.0/sonobuoy_0.19.0_linux_amd64.tar.gz
-    tar xzvf ./sonobuoy.tar.gz
-
-    ./sonobuoy run --wait --mode quick
-
-    RESULTS=$(./sonobuoy retrieve)
-    if [ -n "$RESULTS" ]; then
-        echo "completed sonobuoy run"
-        ./sonobuoy results $RESULTS > ./sonobuoy-results.txt
-        curl -X POST --data-binary "@./sonobuoy-results.txt" "$TESTGRID_APIENDPOINT/v1/instance/$TEST_ID/sonobuoy"
+    if run_sonobuoy ; then
+        curl -X POST -d '{"success": true}' "$TESTGRID_APIENDPOINT/v1/instance/$TEST_ID/finish"
     else
-        echo "failed sonobuoy run"
+        curl -X POST -d '{"success": false}' "$TESTGRID_APIENDPOINT/v1/instance/$TEST_ID/finish"
     fi
-
-    curl -X POST -d '{"success": true}' "$TESTGRID_APIENDPOINT/v1/instance/$TEST_ID/finish"
 }
 
 ###############################################################################
