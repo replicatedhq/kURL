@@ -43,11 +43,15 @@ function generate_version_directory() {
     # add conformance image for sonobuoy to manifest
     echo "image conformance k8s.gcr.io/conformance:v${version}" >> "../$version/Manifest"
 
-    local criToolsVersion=$(curl -Ls -m 60 -o /dev/null -w %{url_effective} https://github.com/kubernetes-sigs/cri-tools/releases/latest | xargs basename)
+    # hardcode to 1.20.0 for now since its tested
+    local criToolsVersion=$(curl -s https://api.github.com/repos/kubernetes-sigs/cri-tools/releases | \
+        grep '"tag_name": ' | \
+        grep -Eo "1\.20\.[0-9]+" | \
+        head -1)
 
     echo "" >> "../$version/Manifest"
     echo "asset kubeadm https://storage.googleapis.com/kubernetes-release/release/v$version/bin/linux/amd64/kubeadm" >> "../$version/Manifest"
-    echo "asset crictl-linux-amd64.tar.gz https://github.com/kubernetes-sigs/cri-tools/releases/download/$criToolsVersion/crictl-$criToolsVersion-linux-amd64.tar.gz" >> "../$version/Manifest"
+    echo "asset crictl-linux-amd64.tar.gz https://github.com/kubernetes-sigs/cri-tools/releases/download/v$criToolsVersion/crictl-v$criToolsVersion-linux-amd64.tar.gz" >> "../$version/Manifest"
 
     echo "" >> "../$version/Manifest"
     echo "asset kustomize-v2.0.3 https://github.com/kubernetes-sigs/kustomize/releases/download/v2.0.3/kustomize_2.0.3_linux_amd64" >> "../$version/Manifest"
