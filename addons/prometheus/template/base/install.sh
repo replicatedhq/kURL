@@ -33,6 +33,11 @@ function prometheus() {
     kubectl delete service -n monitoring kube-state-metrics || true
     kubectl delete service -n monitoring prometheus-operator || true
 
+    # remove nodeport services that had names change
+    kubectl delete service -n monitoring grafana || true
+    kubectl delete service -n monitoring alertmanager-main || true
+    kubectl delete service -n monitoring prometheus-k8s || true
+
     kubectl apply -k "$operatordst/"
 }
 
