@@ -240,6 +240,8 @@ func convertToBash(kurlValues map[string]interface{}, fieldsSet map[string]bool)
 		"Rook.Version":                           "ROOK_VERSION",
 		"SelinuxConfig.DisableSelinux":           "DISABLE_SELINUX",
 		"SelinuxConfig.PreserveConfig":           "PRESERVE_SELINUX_CONFIG",
+		"Sonobuoy.S3Override":                    "SONOBUOY_S3_OVERRIDE",
+		"Sonobuoy.Version":                       "SONOBUOY_VERSION",
 		"Velero.DisableCLI":                      "VELERO_DISABLE_CLI",
 		"Velero.DisableRestic":                   "VELERO_DISABLE_RESTIC",
 		"Velero.LocalBucket":                     "VELERO_LOCAL_BUCKET",
