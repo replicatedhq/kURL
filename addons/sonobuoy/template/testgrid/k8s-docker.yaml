@@ -1,0 +1,12 @@
+- installerSpec:
+    kubernetes:
+      version: "latest"
+    weave:
+      version: "latest"
+    rook:
+      version: "latest"
+    docker:
+      version: "latest"
+    sonobuoy:
+      version: "__testver__"
+      s3Override: "__testdist__"

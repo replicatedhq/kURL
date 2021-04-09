@@ -133,6 +133,8 @@ spec:
     uiBindPort: 30880
     uiReplicaCount: 0
     version: 1.1.0
+  sonobuoy:
+    version: 0.50.0
 `;
 
 // Used for validation in all options test case

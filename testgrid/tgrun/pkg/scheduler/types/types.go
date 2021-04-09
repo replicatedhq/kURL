@@ -77,4 +77,5 @@ type InstallerSpec struct {
 	MetricsServer   *kurlv1beta1.MetricsServer   `json:"metricsServer,omitempty" yaml:"metricsServer,omitempty"`
 	Helm            *kurlv1beta1.Helm            `json:"helm,omitempty" yaml:"helm,omitempty"`
 	Longhorn        *kurlv1beta1.Longhorn        `json:"longhorn,omitempty" yaml:"longhorn,omitempty"`
+	Sonobuoy        *kurlv1beta1.Sonobuoy        `json:"sonobuoy,omitempty" yaml:"sonobuoy,omitempty"`
 }
