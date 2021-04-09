@@ -305,6 +305,15 @@ function main() {
     fi
 
     echo "running sonobuoy"
+
+    # Work around docker hub rate limiting
+    if [ -n "${DOCKERHUB_USERNAME}" ] && [ -n "${DOCKERHUB_PASSWORD}" ]; then
+        kubectl create namespace sonobuoy
+        kubectl -n sonobuoy create secret docker-registry dockerhubregistrykey \
+            --docker-username="${DOCKERHUB_USERNAME}" --docker-password="${DOCKERHUB_PASSWORD}"
+        kubectl -n sonobuoy patch serviceaccount default -p '{"imagePullSecrets": [{"name": "dockerhubregistrykey"}]}'
+    fi
+
     curl -L --output ./sonobuoy.tar.gz https://github.com/vmware-tanzu/sonobuoy/releases/download/v0.19.0/sonobuoy_0.19.0_linux_amd64.tar.gz
     tar xzvf ./sonobuoy.tar.gz
 

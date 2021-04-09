@@ -257,8 +257,11 @@ export TESTGRID_APIENDPOINT='%s'
 export TEST_ID='%s'
 export KURL_URL='%s'
 export KURL_UPGRADE_URL='%s'
+export DOCKERHUB_USERNAME='%s'
+export DOCKERHUB_PASSWORD='%s'
 `,
-		singleTest.TestGridAPIEndpoint, singleTest.ID, singleTest.KurlURL, singleTest.UpgradeURL)
+		singleTest.TestGridAPIEndpoint, singleTest.ID, singleTest.KurlURL, singleTest.UpgradeURL,
+		os.Getenv("DOCKERHUB_USERNAME"), os.Getenv("DOCKERHUB_PASSWORD"))
 
 	varsB64 := base64.StdEncoding.EncodeToString([]byte(varsSh))
 
