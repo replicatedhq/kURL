@@ -5,7 +5,6 @@ image kube-proxy k8s.gcr.io/kube-proxy:v1.20.0
 image pause k8s.gcr.io/pause:3.2
 image etcd k8s.gcr.io/etcd:3.4.13-0
 image coredns k8s.gcr.io/coredns:1.7.0
-image conformance k8s.gcr.io/conformance:v1.20.0
 
 asset kubeadm https://storage.googleapis.com/kubernetes-release/release/v1.20.0/bin/linux/amd64/kubeadm
 asset crictl-linux-amd64.tar.gz https://github.com/kubernetes-sigs/cri-tools/releases/download/v1.20.0/crictl-v1.20.0-linux-amd64.tar.gz

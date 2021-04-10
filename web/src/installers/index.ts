@@ -1118,6 +1118,7 @@ export class Installer {
     const binUtils = String(process.env["KURL_BIN_UTILS_FILE"]).slice(0, -7); // remove .tar.gz
     const pkgs = [ "common", binUtils, "host-openssl" ];
 
+    let kuberentesVersion = "";
     _.each(_.keys(this.spec), (config: string) => {
       const version = this.spec[config].version;
       if (version) {
@@ -1125,12 +1126,19 @@ export class Installer {
 
         // include an extra version of kubernetes so they can upgrade 2 minor versions
         if (config === "kubernetes") {
+          kuberentesVersion = version;
           const prevMinor = semver.minor(version) - 1;
           const step = Installer.latestMinors()[prevMinor];
           pkgs.push(`${config}-${step}`);
         }
       }
     });
+
+    // include conformance package if sonobuoy and kubernetes
+    // TODO: rke2 and k3s
+    if (kuberentesVersion && _.get(this.spec, "sonobuoy.version")) {
+      pkgs.push(`kubernetes-conformance-${kuberentesVersion.replace(special, '-')}`);
+    }
 
     return pkgs;
   }

@@ -61,10 +61,19 @@ function upgrade_kubernetes_patch() {
 }
 
 function upgrade_kubernetes_local_master_patch() {
-    local k8sVersion=$1
-    local node=$(hostname)
+    local k8sVersion="$1"
+    local node="$(hostname)"
 
-    load_images $DIR/packages/kubernetes/$k8sVersion/images
+    if [ "$AIRGAP" != "1" ] && [ -n "$DIST_URL" ]; then
+        kubernetes_get_host_packages_online "$k8sVersion"
+        kubernetes_get_conformance_packages_online "$k8sVersion"
+    fi
+
+    load_images "$DIR/packages/kubernetes/$k8sVersion/images"
+    if [ -d "$DIR/packages/kubernetes-conformance/$k8sVersion/images" ]; then
+        load_images "$DIR/packages/kubernetes-conformance/$k8sVersion/images"
+    fi
+
     upgrade_kubeadm "$k8sVersion"
 
     kubeadm upgrade plan "v${k8sVersion}"
@@ -89,10 +98,6 @@ function upgrade_kubernetes_local_master_patch() {
 
 function upgrade_kubeadm() {
     local k8sVersion=$1
-
-    if [ "$AIRGAP" != "1" ] && [ -n "$DIST_URL" ]; then
-        kubernetes_get_host_packages_online "$k8sVersion"
-    fi
 
     cp -f "$DIR/packages/kubernetes/${k8sVersion}/assets/kubeadm" /usr/bin/
     chmod a+rx /usr/bin/kubeadm
@@ -158,10 +163,19 @@ function upgrade_kubernetes_remote_node_patch() {
 }
 
 function upgrade_kubernetes_local_master_minor() {
-    local k8sVersion=$1
-    local node=$(hostname)
+    local k8sVersion="$1"
+    local node="$(hostname)"
 
-    load_images $DIR/packages/kubernetes/$k8sVersion/images
+    if [ "$AIRGAP" != "1" ] && [ -n "$DIST_URL" ]; then
+        kubernetes_get_host_packages_online "$k8sVersion"
+        kubernetes_get_conformance_packages_online "$k8sVersion"
+    fi
+
+    load_images "$DIR/packages/kubernetes/$k8sVersion/images"
+    if [ -d "$DIR/packages/kubernetes-conformance/$k8sVersion/images" ]; then
+        load_images "$DIR/packages/kubernetes-conformance/$k8sVersion/images"
+    fi
+
     upgrade_kubeadm "$k8sVersion"
 
     kubeadm upgrade plan "v${k8sVersion}"

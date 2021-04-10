@@ -11,9 +11,13 @@ function kubernetes_host() {
     # and/or re-install any missing or corrupted packages.
     if [ "$KUBERNETES_DID_GET_HOST_PACKAGES_ONLINE" != "1" ] && [ "$AIRGAP" != "1" ] && [ -n "$DIST_URL" ]; then
         kubernetes_get_host_packages_online "$KUBERNETES_VERSION"
+        kubernetes_get_conformance_packages_online "$KUBERNETES_VERSION"
     fi
 
-    load_images $DIR/packages/kubernetes/$KUBERNETES_VERSION/images
+    load_images "$DIR/packages/kubernetes/$KUBERNETES_VERSION/images"
+    if [ -d "$DIR/packages/kubernetes-conformance/$KUBERNETES_VERSION/images" ]; then
+        load_images "$DIR/packages/kubernetes-conformance/$KUBERNETES_VERSION/images"
+    fi
 
     install_plugins
 
@@ -70,6 +74,7 @@ function kubernetes_install_host_packages() {
 
     if [ "$AIRGAP" != "1" ] && [ -n "$DIST_URL" ]; then
         kubernetes_get_host_packages_online "$k8sVersion"
+        kubernetes_get_conformance_packages_online "$k8sVersion"
     fi
 
     cat > "$DIR/tmp-kubeadm.conf" <<EOF
@@ -173,14 +178,30 @@ function kubernetes_get_host_packages_online() {
     local k8sVersion="$1"
 
     if [ "$AIRGAP" != "1" ] && [ -n "$DIST_URL" ]; then
-        rm -rf $DIR/packages/kubernetes/${k8sVersion} # Cleanup broken/incompatible packages from failed runs
+        rm -rf "$DIR/packages/kubernetes/${k8sVersion}" # Cleanup broken/incompatible packages from failed runs
 
         local package="kubernetes-${k8sVersion}.tar.gz"
         package_download "${package}"
         tar xf "$(package_filepath "${package}")"
-        # rm kubernetes-${k8sVersion}.tar.gz
+        # rm "${package}"
 
         KUBERNETES_DID_GET_HOST_PACKAGES_ONLINE=1
+    fi
+}
+function kubernetes_get_conformance_packages_online() {
+    local k8sVersion="$1"
+
+    if [ -z "$SONOBUOY_VERSION" ]; then
+        return
+    fi
+
+    if [ "$AIRGAP" != "1" ] && [ -n "$DIST_URL" ]; then
+        rm -rf "$DIR/packages/kubernetes-conformance/${k8sVersion}" # Cleanup broken/incompatible packages from failed runs
+
+        local package="kubernetes-conformance-${k8sVersion}.tar.gz"
+        package_download "${package}"
+        tar xf "$(package_filepath "${package}")"
+        # rm "${package}"
     fi
 }
 

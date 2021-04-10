@@ -187,7 +187,7 @@ dist/sonobuoy-%.tar.gz: build/addons
 	mkdir -p dist
 	tar cf - -C build addons/sonobuoy/$* | gzip > dist/sonobuoy-$*.tar.gz
 
-dist/kubernetes-%.tar.gz:
+dist/kubernetes-%.tar.gz: dist/kubernetes-conformance-%.tar.gz
 	${MAKE} build/packages/kubernetes/$*/images
 	${MAKE} build/packages/kubernetes/$*/ubuntu-16.04
 	${MAKE} build/packages/kubernetes/$*/ubuntu-18.04
@@ -201,6 +201,16 @@ dist/kubernetes-%.tar.gz:
 build/packages/kubernetes/%/images:
 	mkdir -p build/packages/kubernetes/$*/images
 	bin/save-manifest-assets.sh packages/kubernetes/$*/Manifest build/packages/kubernetes/$*
+
+dist/kubernetes-conformance-%.tar.gz:
+	${MAKE} build/packages/kubernetes-conformance/$*/images
+	cp packages/kubernetes/$*/conformance/Manifest build/packages/kubernetes-conformance/$*/
+	mkdir -p dist
+	tar cf - -C build packages/kubernetes-conformance/$* | gzip > dist/kubernetes-conformance-$*.tar.gz
+
+build/packages/kubernetes-conformance/%/images:
+	mkdir -p build/packages/kubernetes-conformance/$*/images
+	bin/save-manifest-assets.sh packages/kubernetes/$*/conformance/Manifest build/packages/kubernetes-conformance/$*
 
 dist/rke-2-%.tar.gz:
 	${MAKE} build/packages/rke-2/$*/images

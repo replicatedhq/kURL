@@ -14,7 +14,7 @@ function sonobuoy_binary() {
         return 0
     fi
 
-    if [ ! -f "${src}/assets/sonobuoy.tar.gz" ] && [ "${AIRGAP}" != "1" ]; then
+    if [ "${AIRGAP}" != "1" ]; then
         mkdir -p "${src}/assets"
         curl -L -o "${src}/assets/sonobuoy.tar.gz" "https://github.com/vmware-tanzu/sonobuoy/releases/download/v${SONOBUOY_VERSION}/sonobuoy_${SONOBUOY_VERSION}_linux_amd64.tar.gz"
     fi
