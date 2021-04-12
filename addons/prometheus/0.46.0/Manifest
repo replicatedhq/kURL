@@ -1,5 +1,5 @@
 image alertmanager quay.io/prometheus/alertmanager:v0.21.0
-image grafana grafana/grafana:7.4.5
+image grafana grafana/grafana:7.5.3
 image k8s-prometheus-adapter-amd64 directxman12/k8s-prometheus-adapter-amd64:v0.8.3
 image k8s-sidecar quay.io/kiwigrid/k8s-sidecar:1.10.7
 image kube-state-metrics k8s.gcr.io/kube-state-metrics/kube-state-metrics:v1.9.8

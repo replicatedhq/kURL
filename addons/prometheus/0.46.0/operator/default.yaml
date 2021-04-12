@@ -6,10 +6,10 @@ metadata:
   name: grafana
   namespace: monitoring
   labels:
-    helm.sh/chart: grafana-6.6.4
+    helm.sh/chart: grafana-6.7.3
     app.kubernetes.io/name: grafana
     app.kubernetes.io/instance: v0.46.0
-    app.kubernetes.io/version: "7.4.5"
+    app.kubernetes.io/version: "7.5.3"
     app.kubernetes.io/managed-by: Helm
   annotations:
     seccomp.security.alpha.kubernetes.io/allowedProfileNames: 'docker/default,runtime/default'
@@ -61,7 +61,7 @@ metadata:
   name: kube-state-metrics
   labels:
     app.kubernetes.io/name: kube-state-metrics
-    helm.sh/chart: kube-state-metrics-2.13.1
+    helm.sh/chart: kube-state-metrics-2.13.2
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/instance: v0.46.0
 spec:
@@ -152,7 +152,7 @@ metadata:
   labels:
     app: kube-prometheus-stack-alertmanager
     
-    chart: kube-prometheus-stack-14.5.0
+    chart: kube-prometheus-stack-14.6.2
     release: "v0.46.0"
     heritage: "Helm"
 spec:
@@ -202,7 +202,7 @@ metadata:
   labels:
     app: kube-prometheus-stack-operator
     
-    chart: kube-prometheus-stack-14.5.0
+    chart: kube-prometheus-stack-14.6.2
     release: "v0.46.0"
     heritage: "Helm"
 spec:
@@ -252,7 +252,7 @@ metadata:
   labels:
     app: kube-prometheus-stack-prometheus
     
-    chart: kube-prometheus-stack-14.5.0
+    chart: kube-prometheus-stack-14.6.2
     release: "v0.46.0"
     heritage: "Helm"
 spec:
@@ -299,10 +299,10 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   labels:
-    helm.sh/chart: grafana-6.6.4
+    helm.sh/chart: grafana-6.7.3
     app.kubernetes.io/name: grafana
     app.kubernetes.io/instance: v0.46.0
-    app.kubernetes.io/version: "7.4.5"
+    app.kubernetes.io/version: "7.5.3"
     app.kubernetes.io/managed-by: Helm
   name: grafana
   namespace: monitoring
@@ -313,7 +313,7 @@ kind: ServiceAccount
 metadata:
   labels:
     app.kubernetes.io/name: kube-state-metrics
-    helm.sh/chart: kube-state-metrics-2.13.1
+    helm.sh/chart: kube-state-metrics-2.13.2
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/instance: v0.46.0
   name: kube-state-metrics
@@ -346,7 +346,7 @@ metadata:
   labels:
     app: kube-prometheus-stack-alertmanager
     
-    chart: kube-prometheus-stack-14.5.0
+    chart: kube-prometheus-stack-14.6.2
     release: "v0.46.0"
     heritage: "Helm"
 imagePullSecrets:
@@ -361,7 +361,7 @@ metadata:
   labels:
     app: kube-prometheus-stack-operator
     
-    chart: kube-prometheus-stack-14.5.0
+    chart: kube-prometheus-stack-14.6.2
     release: "v0.46.0"
     heritage: "Helm"
 imagePullSecrets:
@@ -376,7 +376,7 @@ metadata:
   labels:
     app: kube-prometheus-stack-prometheus
     
-    chart: kube-prometheus-stack-14.5.0
+    chart: kube-prometheus-stack-14.6.2
     release: "v0.46.0"
     heritage: "Helm"
 imagePullSecrets:
@@ -391,7 +391,7 @@ metadata:
   labels:
     app: kube-prometheus-stack-alertmanager
     
-    chart: kube-prometheus-stack-14.5.0
+    chart: kube-prometheus-stack-14.6.2
     release: "v0.46.0"
     heritage: "Helm"
 data:
@@ -402,10 +402,10 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   labels:
-    helm.sh/chart: grafana-6.6.4
+    helm.sh/chart: grafana-6.7.3
     app.kubernetes.io/name: grafana
     app.kubernetes.io/instance: v0.46.0
-    app.kubernetes.io/version: "7.4.5"
+    app.kubernetes.io/version: "7.5.3"
     app.kubernetes.io/managed-by: Helm
   name: grafana-config-dashboards
   namespace: monitoring
@@ -431,10 +431,10 @@ metadata:
   name: grafana
   namespace: monitoring
   labels:
-    helm.sh/chart: grafana-6.6.4
+    helm.sh/chart: grafana-6.7.3
     app.kubernetes.io/name: grafana
     app.kubernetes.io/instance: v0.46.0
-    app.kubernetes.io/version: "7.4.5"
+    app.kubernetes.io/version: "7.5.3"
     app.kubernetes.io/managed-by: Helm
 data:
   grafana.ini: |
@@ -460,7 +460,7 @@ metadata:
     grafana_datasource: "1"
     app: kube-prometheus-stack-grafana
     
-    chart: kube-prometheus-stack-14.5.0
+    chart: kube-prometheus-stack-14.6.2
     release: "v0.46.0"
     heritage: "Helm"
 data:
@@ -487,7 +487,7 @@ metadata:
     grafana_dashboard: "1"
     app: kube-prometheus-stack-grafana
     
-    chart: kube-prometheus-stack-14.5.0
+    chart: kube-prometheus-stack-14.6.2
     release: "v0.46.0"
     heritage: "Helm"
 data:
@@ -2229,7 +2229,7 @@ metadata:
     grafana_dashboard: "1"
     app: kube-prometheus-stack-grafana
     
-    chart: kube-prometheus-stack-14.5.0
+    chart: kube-prometheus-stack-14.6.2
     release: "v0.46.0"
     heritage: "Helm"
 data:
@@ -4106,7 +4106,7 @@ metadata:
     grafana_dashboard: "1"
     app: kube-prometheus-stack-grafana
     
-    chart: kube-prometheus-stack-14.5.0
+    chart: kube-prometheus-stack-14.6.2
     release: "v0.46.0"
     heritage: "Helm"
 data:
@@ -5252,7 +5252,7 @@ metadata:
     grafana_dashboard: "1"
     app: kube-prometheus-stack-grafana
     
-    chart: kube-prometheus-stack-14.5.0
+    chart: kube-prometheus-stack-14.6.2
     release: "v0.46.0"
     heritage: "Helm"
 data:
@@ -6363,7 +6363,7 @@ metadata:
     grafana_dashboard: "1"
     app: kube-prometheus-stack-grafana
     
-    chart: kube-prometheus-stack-14.5.0
+    chart: kube-prometheus-stack-14.6.2
     release: "v0.46.0"
     heritage: "Helm"
 data:
@@ -7893,7 +7893,7 @@ metadata:
     grafana_dashboard: "1"
     app: kube-prometheus-stack-grafana
     
-    chart: kube-prometheus-stack-14.5.0
+    chart: kube-prometheus-stack-14.6.2
     release: "v0.46.0"
     heritage: "Helm"
 data:
@@ -10470,7 +10470,7 @@ metadata:
     grafana_dashboard: "1"
     app: kube-prometheus-stack-grafana
     
-    chart: kube-prometheus-stack-14.5.0
+    chart: kube-prometheus-stack-14.6.2
     release: "v0.46.0"
     heritage: "Helm"
 data:
@@ -12751,7 +12751,7 @@ metadata:
     grafana_dashboard: "1"
     app: kube-prometheus-stack-grafana
     
-    chart: kube-prometheus-stack-14.5.0
+    chart: kube-prometheus-stack-14.6.2
     release: "v0.46.0"
     heritage: "Helm"
 data:
@@ -13724,7 +13724,7 @@ metadata:
     grafana_dashboard: "1"
     app: kube-prometheus-stack-grafana
     
-    chart: kube-prometheus-stack-14.5.0
+    chart: kube-prometheus-stack-14.6.2
     release: "v0.46.0"
     heritage: "Helm"
 data:
@@ -15491,7 +15491,7 @@ metadata:
     grafana_dashboard: "1"
     app: kube-prometheus-stack-grafana
     
-    chart: kube-prometheus-stack-14.5.0
+    chart: kube-prometheus-stack-14.6.2
     release: "v0.46.0"
     heritage: "Helm"
 data:
@@ -17520,7 +17520,7 @@ metadata:
     grafana_dashboard: "1"
     app: kube-prometheus-stack-grafana
     
-    chart: kube-prometheus-stack-14.5.0
+    chart: kube-prometheus-stack-14.6.2
     release: "v0.46.0"
     heritage: "Helm"
 data:
@@ -19710,7 +19710,7 @@ metadata:
     grafana_dashboard: "1"
     app: kube-prometheus-stack-grafana
     
-    chart: kube-prometheus-stack-14.5.0
+    chart: kube-prometheus-stack-14.6.2
     release: "v0.46.0"
     heritage: "Helm"
 data:
@@ -22238,7 +22238,7 @@ metadata:
     grafana_dashboard: "1"
     app: kube-prometheus-stack-grafana
     
-    chart: kube-prometheus-stack-14.5.0
+    chart: kube-prometheus-stack-14.6.2
     release: "v0.46.0"
     heritage: "Helm"
 data:
@@ -23697,7 +23697,7 @@ metadata:
     grafana_dashboard: "1"
     app: kube-prometheus-stack-grafana
     
-    chart: kube-prometheus-stack-14.5.0
+    chart: kube-prometheus-stack-14.6.2
     release: "v0.46.0"
     heritage: "Helm"
 data:
@@ -25428,7 +25428,7 @@ metadata:
     grafana_dashboard: "1"
     app: kube-prometheus-stack-grafana
     
-    chart: kube-prometheus-stack-14.5.0
+    chart: kube-prometheus-stack-14.6.2
     release: "v0.46.0"
     heritage: "Helm"
 data:
@@ -26387,7 +26387,7 @@ metadata:
     grafana_dashboard: "1"
     app: kube-prometheus-stack-grafana
     
-    chart: kube-prometheus-stack-14.5.0
+    chart: kube-prometheus-stack-14.6.2
     release: "v0.46.0"
     heritage: "Helm"
 data:
@@ -27373,7 +27373,7 @@ metadata:
     grafana_dashboard: "1"
     app: kube-prometheus-stack-grafana
     
-    chart: kube-prometheus-stack-14.5.0
+    chart: kube-prometheus-stack-14.6.2
     release: "v0.46.0"
     heritage: "Helm"
 data:
@@ -28365,7 +28365,7 @@ metadata:
     grafana_dashboard: "1"
     app: kube-prometheus-stack-grafana
     
-    chart: kube-prometheus-stack-14.5.0
+    chart: kube-prometheus-stack-14.6.2
     release: "v0.46.0"
     heritage: "Helm"
 data:
@@ -28937,7 +28937,7 @@ metadata:
     grafana_dashboard: "1"
     app: kube-prometheus-stack-grafana
     
-    chart: kube-prometheus-stack-14.5.0
+    chart: kube-prometheus-stack-14.6.2
     release: "v0.46.0"
     heritage: "Helm"
 data:
@@ -30160,7 +30160,7 @@ metadata:
     grafana_dashboard: "1"
     app: kube-prometheus-stack-grafana
     
-    chart: kube-prometheus-stack-14.5.0
+    chart: kube-prometheus-stack-14.6.2
     release: "v0.46.0"
     heritage: "Helm"
 data:
@@ -31382,7 +31382,7 @@ metadata:
     grafana_dashboard: "1"
     app: kube-prometheus-stack-grafana
     
-    chart: kube-prometheus-stack-14.5.0
+    chart: kube-prometheus-stack-14.6.2
     release: "v0.46.0"
     heritage: "Helm"
 data:
@@ -32608,7 +32608,7 @@ metadata:
     grafana_dashboard: "1"
     app: kube-prometheus-stack-grafana
     
-    chart: kube-prometheus-stack-14.5.0
+    chart: kube-prometheus-stack-14.6.2
     release: "v0.46.0"
     heritage: "Helm"
 data:
@@ -33677,7 +33677,7 @@ metadata:
     grafana_dashboard: "1"
     app: kube-prometheus-stack-grafana
     
-    chart: kube-prometheus-stack-14.5.0
+    chart: kube-prometheus-stack-14.6.2
     release: "v0.46.0"
     heritage: "Helm"
 data:
@@ -34600,7 +34600,7 @@ metadata:
     grafana_dashboard: "1"
     app: kube-prometheus-stack-grafana
     
-    chart: kube-prometheus-stack-14.5.0
+    chart: kube-prometheus-stack-14.6.2
     release: "v0.46.0"
     heritage: "Helm"
 data:
@@ -36026,10 +36026,10 @@ kind: ClusterRole
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   labels:
-    helm.sh/chart: grafana-6.6.4
+    helm.sh/chart: grafana-6.7.3
     app.kubernetes.io/name: grafana
     app.kubernetes.io/instance: v0.46.0
-    app.kubernetes.io/version: "7.4.5"
+    app.kubernetes.io/version: "7.5.3"
     app.kubernetes.io/managed-by: Helm
   name: grafana-clusterrole
 rules:
@@ -36043,7 +36043,7 @@ kind: ClusterRole
 metadata:
   labels:
     app.kubernetes.io/name: kube-state-metrics
-    helm.sh/chart: kube-state-metrics-2.13.1
+    helm.sh/chart: kube-state-metrics-2.13.2
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/instance: v0.46.0
   name: psp-kube-state-metrics
@@ -36060,7 +36060,7 @@ kind: ClusterRole
 metadata:
   labels:
     app.kubernetes.io/name: kube-state-metrics
-    helm.sh/chart: kube-state-metrics-2.13.1
+    helm.sh/chart: kube-state-metrics-2.13.2
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/instance: v0.46.0
   name: kube-state-metrics
@@ -36227,7 +36227,7 @@ metadata:
   labels:
     app: kube-prometheus-stack-operator
     
-    chart: kube-prometheus-stack-14.5.0
+    chart: kube-prometheus-stack-14.6.2
     release: "v0.46.0"
     heritage: "Helm"
 rules:
@@ -36310,7 +36310,7 @@ metadata:
   labels:
     app: kube-prometheus-stack-operator
     
-    chart: kube-prometheus-stack-14.5.0
+    chart: kube-prometheus-stack-14.6.2
     release: "v0.46.0"
     heritage: "Helm"
 rules:
@@ -36328,7 +36328,7 @@ metadata:
   labels:
     app: kube-prometheus-stack-prometheus
     
-    chart: kube-prometheus-stack-14.5.0
+    chart: kube-prometheus-stack-14.6.2
     release: "v0.46.0"
     heritage: "Helm"
 rules:
@@ -36358,7 +36358,7 @@ metadata:
   labels:
     app: kube-prometheus-stack-prometheus
     
-    chart: kube-prometheus-stack-14.5.0
+    chart: kube-prometheus-stack-14.6.2
     release: "v0.46.0"
     heritage: "Helm"
 rules:
@@ -36374,10 +36374,10 @@ apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: grafana-clusterrolebinding
   labels:
-    helm.sh/chart: grafana-6.6.4
+    helm.sh/chart: grafana-6.7.3
     app.kubernetes.io/name: grafana
     app.kubernetes.io/instance: v0.46.0
-    app.kubernetes.io/version: "7.4.5"
+    app.kubernetes.io/version: "7.5.3"
     app.kubernetes.io/managed-by: Helm
 subjects:
   - kind: ServiceAccount
@@ -36394,7 +36394,7 @@ kind: ClusterRoleBinding
 metadata:
   labels:
     app.kubernetes.io/name: kube-state-metrics
-    helm.sh/chart: kube-state-metrics-2.13.1
+    helm.sh/chart: kube-state-metrics-2.13.2
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/instance: v0.46.0
   name: kube-state-metrics
@@ -36413,7 +36413,7 @@ kind: ClusterRoleBinding
 metadata:
   labels:
     app.kubernetes.io/name: kube-state-metrics
-    helm.sh/chart: kube-state-metrics-2.13.1
+    helm.sh/chart: kube-state-metrics-2.13.2
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/instance: v0.46.0
   name: psp-kube-state-metrics
@@ -36454,7 +36454,7 @@ metadata:
   labels:
     app: kube-prometheus-stack-operator
     
-    chart: kube-prometheus-stack-14.5.0
+    chart: kube-prometheus-stack-14.6.2
     release: "v0.46.0"
     heritage: "Helm"
 roleRef:
@@ -36474,7 +36474,7 @@ metadata:
   labels:
     app: kube-prometheus-stack-operator
     
-    chart: kube-prometheus-stack-14.5.0
+    chart: kube-prometheus-stack-14.6.2
     release: "v0.46.0"
     heritage: "Helm"
 roleRef:
@@ -36494,7 +36494,7 @@ metadata:
   labels:
     app: kube-prometheus-stack-prometheus
     
-    chart: kube-prometheus-stack-14.5.0
+    chart: kube-prometheus-stack-14.6.2
     release: "v0.46.0"
     heritage: "Helm"
 roleRef:
@@ -36514,7 +36514,7 @@ metadata:
   labels:
     app: kube-prometheus-stack-prometheus
     
-    chart: kube-prometheus-stack-14.5.0
+    chart: kube-prometheus-stack-14.6.2
     release: "v0.46.0"
     heritage: "Helm"
 roleRef:
@@ -36533,10 +36533,10 @@ metadata:
   name: grafana
   namespace: monitoring
   labels:
-    helm.sh/chart: grafana-6.6.4
+    helm.sh/chart: grafana-6.7.3
     app.kubernetes.io/name: grafana
     app.kubernetes.io/instance: v0.46.0
-    app.kubernetes.io/version: "7.4.5"
+    app.kubernetes.io/version: "7.5.3"
     app.kubernetes.io/managed-by: Helm
 rules:
 - apiGroups:      ['extensions']
@@ -36553,7 +36553,7 @@ metadata:
   labels:
     app: kube-prometheus-stack-alertmanager
     
-    chart: kube-prometheus-stack-14.5.0
+    chart: kube-prometheus-stack-14.6.2
     release: "v0.46.0"
     heritage: "Helm"
 rules:
@@ -36570,10 +36570,10 @@ metadata:
   name: grafana
   namespace: monitoring
   labels:
-    helm.sh/chart: grafana-6.6.4
+    helm.sh/chart: grafana-6.7.3
     app.kubernetes.io/name: grafana
     app.kubernetes.io/instance: v0.46.0
-    app.kubernetes.io/version: "7.4.5"
+    app.kubernetes.io/version: "7.5.3"
     app.kubernetes.io/managed-by: Helm
 roleRef:
   apiGroup: rbac.authorization.k8s.io
@@ -36593,7 +36593,7 @@ metadata:
   labels:
     app: kube-prometheus-stack-alertmanager
     
-    chart: kube-prometheus-stack-14.5.0
+    chart: kube-prometheus-stack-14.6.2
     release: "v0.46.0"
     heritage: "Helm"
 roleRef:
@@ -36612,10 +36612,10 @@ metadata:
   name: grafana
   namespace: monitoring
   labels:
-    helm.sh/chart: grafana-6.6.4
+    helm.sh/chart: grafana-6.7.3
     app.kubernetes.io/name: grafana
     app.kubernetes.io/instance: v0.46.0
-    app.kubernetes.io/version: "7.4.5"
+    app.kubernetes.io/version: "7.5.3"
     app.kubernetes.io/managed-by: Helm
 spec:
   type: NodePort
@@ -36639,7 +36639,7 @@ metadata:
   namespace: monitoring
   labels:
     app.kubernetes.io/name: kube-state-metrics
-    helm.sh/chart: "kube-state-metrics-2.13.1"
+    helm.sh/chart: "kube-state-metrics-2.13.2"
     app.kubernetes.io/instance: "v0.46.0"
     app.kubernetes.io/managed-by: "Helm"
   annotations:
@@ -36691,7 +36691,7 @@ metadata:
     app: kube-prometheus-stack-alertmanager
     self-monitor: "true"
     
-    chart: kube-prometheus-stack-14.5.0
+    chart: kube-prometheus-stack-14.6.2
     release: "v0.46.0"
     heritage: "Helm"
 spec:
@@ -36715,7 +36715,7 @@ metadata:
     app: kube-prometheus-stack-coredns
     jobLabel: coredns
     
-    chart: kube-prometheus-stack-14.5.0
+    chart: kube-prometheus-stack-14.6.2
     release: "v0.46.0"
     heritage: "Helm"
   namespace: kube-system
@@ -36738,7 +36738,7 @@ metadata:
     app: kube-prometheus-stack-kube-controller-manager
     jobLabel: kube-controller-manager
     
-    chart: kube-prometheus-stack-14.5.0
+    chart: kube-prometheus-stack-14.6.2
     release: "v0.46.0"
     heritage: "Helm"
   namespace: kube-system
@@ -36762,7 +36762,7 @@ metadata:
     app: kube-prometheus-stack-kube-etcd
     jobLabel: kube-etcd
     
-    chart: kube-prometheus-stack-14.5.0
+    chart: kube-prometheus-stack-14.6.2
     release: "v0.46.0"
     heritage: "Helm"
   namespace: kube-system
@@ -36786,7 +36786,7 @@ metadata:
     app: kube-prometheus-stack-kube-proxy
     jobLabel: kube-proxy
     
-    chart: kube-prometheus-stack-14.5.0
+    chart: kube-prometheus-stack-14.6.2
     release: "v0.46.0"
     heritage: "Helm"
   namespace: kube-system
@@ -36810,7 +36810,7 @@ metadata:
     app: kube-prometheus-stack-kube-scheduler
     jobLabel: kube-scheduler
     
-    chart: kube-prometheus-stack-14.5.0
+    chart: kube-prometheus-stack-14.6.2
     release: "v0.46.0"
     heritage: "Helm"
   namespace: kube-system
@@ -36834,7 +36834,7 @@ metadata:
   labels:
     app: kube-prometheus-stack-operator
     
-    chart: kube-prometheus-stack-14.5.0
+    chart: kube-prometheus-stack-14.6.2
     release: "v0.46.0"
     heritage: "Helm"
 spec:
@@ -36857,13 +36857,13 @@ metadata:
     app: kube-prometheus-stack-prometheus
     self-monitor: "true"
     
-    chart: kube-prometheus-stack-14.5.0
+    chart: kube-prometheus-stack-14.6.2
     release: "v0.46.0"
     heritage: "Helm"
 spec:
   ports:
   - name: web
-    nodePort: 30090
+    nodePort: 30900
     port: 9090
     targetPort: 9090
   selector:
@@ -36971,10 +36971,10 @@ metadata:
   name: grafana
   namespace: monitoring
   labels:
-    helm.sh/chart: grafana-6.6.4
+    helm.sh/chart: grafana-6.7.3
     app.kubernetes.io/name: grafana
     app.kubernetes.io/instance: v0.46.0
-    app.kubernetes.io/version: "7.4.5"
+    app.kubernetes.io/version: "7.5.3"
     app.kubernetes.io/managed-by: Helm
 spec:
   replicas: 1
@@ -36991,9 +36991,9 @@ spec:
         app.kubernetes.io/name: grafana
         app.kubernetes.io/instance: v0.46.0
       annotations:
-        checksum/config: 200909061d5dee3e5edda4a58b4161cd18d503e5a1ed8c119b4bed8ab570e297
+        checksum/config: d7de1c8241c4ee0f661d6ab74948f9f8fa2116d56bd2466f5d359f7ff283d89f
         checksum/dashboards-json-config: 01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b
-        checksum/sc-dashboard-provider-config: b07e252043b06dc09ccb7e8065720db1eb244e0dd2623859c8dffc1595c5a28f
+        checksum/sc-dashboard-provider-config: 3f06891efbcef4ecbe4b277b0b6b8909b8191d6034dba17841447812206cb7e8
     spec:
       
       serviceAccountName: grafana
@@ -37038,7 +37038,7 @@ spec:
             - name: sc-dashboard-volume
               mountPath: "/tmp/dashboards"
         - name: grafana
-          image: "grafana/grafana:7.4.5"
+          image: "grafana/grafana:7.5.3"
           imagePullPolicy: IfNotPresent
           volumeMounts:
             - name: config
@@ -37108,7 +37108,7 @@ metadata:
   namespace: monitoring
   labels:
     app.kubernetes.io/name: kube-state-metrics
-    helm.sh/chart: "kube-state-metrics-2.13.1"
+    helm.sh/chart: "kube-state-metrics-2.13.2"
     app.kubernetes.io/instance: "v0.46.0"
     app.kubernetes.io/managed-by: "Helm"
     app.kubernetes.io/version: "1.9.8"
@@ -37246,7 +37246,7 @@ metadata:
   labels:
     app: kube-prometheus-stack-operator
     
-    chart: kube-prometheus-stack-14.5.0
+    chart: kube-prometheus-stack-14.6.2
     release: "v0.46.0"
     heritage: "Helm"
 spec:
@@ -37260,7 +37260,7 @@ spec:
       labels:
         app: kube-prometheus-stack-operator
         
-        chart: kube-prometheus-stack-14.5.0
+        chart: kube-prometheus-stack-14.6.2
         release: "v0.46.0"
         heritage: "Helm"
     spec:
@@ -37298,7 +37298,7 @@ metadata:
   labels:
     app: kube-prometheus-stack-alertmanager
     
-    chart: kube-prometheus-stack-14.5.0
+    chart: kube-prometheus-stack-14.6.2
     release: "v0.46.0"
     heritage: "Helm"
 spec:
@@ -37341,7 +37341,7 @@ metadata:
   labels:
     app: kube-prometheus-stack-prometheus
     
-    chart: kube-prometheus-stack-14.5.0
+    chart: kube-prometheus-stack-14.6.2
     release: "v0.46.0"
     heritage: "Helm"
 spec:
@@ -37421,7 +37421,7 @@ metadata:
   labels:
     app: kube-prometheus-stack
     
-    chart: kube-prometheus-stack-14.5.0
+    chart: kube-prometheus-stack-14.6.2
     release: "v0.46.0"
     heritage: "Helm"
 spec:
@@ -37470,7 +37470,7 @@ metadata:
   labels:
     app: kube-prometheus-stack
     
-    chart: kube-prometheus-stack-14.5.0
+    chart: kube-prometheus-stack-14.6.2
     release: "v0.46.0"
     heritage: "Helm"
 spec:
@@ -37600,7 +37600,7 @@ metadata:
   labels:
     app: kube-prometheus-stack
     
-    chart: kube-prometheus-stack-14.5.0
+    chart: kube-prometheus-stack-14.6.2
     release: "v0.46.0"
     heritage: "Helm"
 spec:
@@ -37640,7 +37640,7 @@ metadata:
   labels:
     app: kube-prometheus-stack
     
-    chart: kube-prometheus-stack-14.5.0
+    chart: kube-prometheus-stack-14.6.2
     release: "v0.46.0"
     heritage: "Helm"
 spec:
@@ -37747,7 +37747,7 @@ metadata:
   labels:
     app: kube-prometheus-stack
     
-    chart: kube-prometheus-stack-14.5.0
+    chart: kube-prometheus-stack-14.6.2
     release: "v0.46.0"
     heritage: "Helm"
 spec:
@@ -37897,7 +37897,7 @@ metadata:
   labels:
     app: kube-prometheus-stack
     
-    chart: kube-prometheus-stack-14.5.0
+    chart: kube-prometheus-stack-14.6.2
     release: "v0.46.0"
     heritage: "Helm"
 spec:
@@ -37970,7 +37970,7 @@ metadata:
   labels:
     app: kube-prometheus-stack
     
-    chart: kube-prometheus-stack-14.5.0
+    chart: kube-prometheus-stack-14.6.2
     release: "v0.46.0"
     heritage: "Helm"
 spec:
@@ -38318,7 +38318,7 @@ metadata:
   labels:
     app: kube-prometheus-stack
     
-    chart: kube-prometheus-stack-14.5.0
+    chart: kube-prometheus-stack-14.6.2
     release: "v0.46.0"
     heritage: "Helm"
 spec:
@@ -38339,7 +38339,7 @@ metadata:
   labels:
     app: kube-prometheus-stack
     
-    chart: kube-prometheus-stack-14.5.0
+    chart: kube-prometheus-stack-14.6.2
     release: "v0.46.0"
     heritage: "Helm"
 spec:
@@ -38368,7 +38368,7 @@ metadata:
   labels:
     app: kube-prometheus-stack
     
-    chart: kube-prometheus-stack-14.5.0
+    chart: kube-prometheus-stack-14.6.2
     release: "v0.46.0"
     heritage: "Helm"
 spec:
@@ -38421,7 +38421,7 @@ metadata:
   labels:
     app: kube-prometheus-stack
     
-    chart: kube-prometheus-stack-14.5.0
+    chart: kube-prometheus-stack-14.6.2
     release: "v0.46.0"
     heritage: "Helm"
 spec:
@@ -38464,7 +38464,7 @@ metadata:
   labels:
     app: kube-prometheus-stack
     
-    chart: kube-prometheus-stack-14.5.0
+    chart: kube-prometheus-stack-14.6.2
     release: "v0.46.0"
     heritage: "Helm"
 spec:
@@ -38493,7 +38493,7 @@ metadata:
   labels:
     app: kube-prometheus-stack
     
-    chart: kube-prometheus-stack-14.5.0
+    chart: kube-prometheus-stack-14.6.2
     release: "v0.46.0"
     heritage: "Helm"
 spec:
@@ -38735,7 +38735,7 @@ metadata:
   labels:
     app: kube-prometheus-stack
     
-    chart: kube-prometheus-stack-14.5.0
+    chart: kube-prometheus-stack-14.6.2
     release: "v0.46.0"
     heritage: "Helm"
 spec:
@@ -38860,7 +38860,7 @@ metadata:
   labels:
     app: kube-prometheus-stack
     
-    chart: kube-prometheus-stack-14.5.0
+    chart: kube-prometheus-stack-14.6.2
     release: "v0.46.0"
     heritage: "Helm"
 spec:
@@ -38915,7 +38915,7 @@ metadata:
   labels:
     app: kube-prometheus-stack
     
-    chart: kube-prometheus-stack-14.5.0
+    chart: kube-prometheus-stack-14.6.2
     release: "v0.46.0"
     heritage: "Helm"
 spec:
@@ -38983,7 +38983,7 @@ metadata:
   labels:
     app: kube-prometheus-stack
     
-    chart: kube-prometheus-stack-14.5.0
+    chart: kube-prometheus-stack-14.6.2
     release: "v0.46.0"
     heritage: "Helm"
 spec:
@@ -39009,7 +39009,7 @@ metadata:
   labels:
     app: kube-prometheus-stack
     
-    chart: kube-prometheus-stack-14.5.0
+    chart: kube-prometheus-stack-14.6.2
     release: "v0.46.0"
     heritage: "Helm"
 spec:
@@ -39146,7 +39146,7 @@ metadata:
   labels:
     app: kube-prometheus-stack
     
-    chart: kube-prometheus-stack-14.5.0
+    chart: kube-prometheus-stack-14.6.2
     release: "v0.46.0"
     heritage: "Helm"
 spec:
@@ -39172,7 +39172,7 @@ metadata:
   labels:
     app: kube-prometheus-stack
     
-    chart: kube-prometheus-stack-14.5.0
+    chart: kube-prometheus-stack-14.6.2
     release: "v0.46.0"
     heritage: "Helm"
 spec:
@@ -39211,7 +39211,7 @@ metadata:
   labels:
     app: kube-prometheus-stack
     
-    chart: kube-prometheus-stack-14.5.0
+    chart: kube-prometheus-stack-14.6.2
     release: "v0.46.0"
     heritage: "Helm"
 spec:
@@ -39280,7 +39280,7 @@ metadata:
   labels:
     app: kube-prometheus-stack
     
-    chart: kube-prometheus-stack-14.5.0
+    chart: kube-prometheus-stack-14.6.2
     release: "v0.46.0"
     heritage: "Helm"
 spec:
@@ -39484,7 +39484,7 @@ metadata:
   labels:
     app: kube-prometheus-stack
     
-    chart: kube-prometheus-stack-14.5.0
+    chart: kube-prometheus-stack-14.6.2
     release: "v0.46.0"
     heritage: "Helm"
 spec:
@@ -39508,7 +39508,7 @@ metadata:
   labels:
     app: kube-prometheus-stack
     
-    chart: kube-prometheus-stack-14.5.0
+    chart: kube-prometheus-stack-14.6.2
     release: "v0.46.0"
     heritage: "Helm"
 spec:
@@ -39549,7 +39549,7 @@ metadata:
   labels:
     app: kube-prometheus-stack
     
-    chart: kube-prometheus-stack-14.5.0
+    chart: kube-prometheus-stack-14.6.2
     release: "v0.46.0"
     heritage: "Helm"
 spec:
@@ -39629,7 +39629,7 @@ metadata:
   labels:
     app: kube-prometheus-stack
     
-    chart: kube-prometheus-stack-14.5.0
+    chart: kube-prometheus-stack-14.6.2
     release: "v0.46.0"
     heritage: "Helm"
 spec:
@@ -39827,7 +39827,7 @@ metadata:
   labels:
     app: kube-prometheus-stack-alertmanager
     
-    chart: kube-prometheus-stack-14.5.0
+    chart: kube-prometheus-stack-14.6.2
     release: "v0.46.0"
     heritage: "Helm"
 spec:
@@ -39852,7 +39852,7 @@ metadata:
   labels:
     app: kube-prometheus-stack-coredns
     
-    chart: kube-prometheus-stack-14.5.0
+    chart: kube-prometheus-stack-14.6.2
     release: "v0.46.0"
     heritage: "Helm"
 spec:
@@ -39877,7 +39877,7 @@ metadata:
   labels:
     app: kube-prometheus-stack-apiserver
     
-    chart: kube-prometheus-stack-14.5.0
+    chart: kube-prometheus-stack-14.6.2
     release: "v0.46.0"
     heritage: "Helm"
 spec:
@@ -39907,7 +39907,7 @@ metadata:
   labels:
     app: kube-prometheus-stack-kube-controller-manager
     
-    chart: kube-prometheus-stack-14.5.0
+    chart: kube-prometheus-stack-14.6.2
     release: "v0.46.0"
     heritage: "Helm"
 spec:
@@ -39932,7 +39932,7 @@ metadata:
   labels:
     app: kube-prometheus-stack-kube-etcd
     
-    chart: kube-prometheus-stack-14.5.0
+    chart: kube-prometheus-stack-14.6.2
     release: "v0.46.0"
     heritage: "Helm"
 spec:
@@ -39957,7 +39957,7 @@ metadata:
   labels:
     app: kube-prometheus-stack-kube-proxy
     
-    chart: kube-prometheus-stack-14.5.0
+    chart: kube-prometheus-stack-14.6.2
     release: "v0.46.0"
     heritage: "Helm"
 spec:
@@ -39982,7 +39982,7 @@ metadata:
   labels:
     app: kube-prometheus-stack-kube-scheduler
     
-    chart: kube-prometheus-stack-14.5.0
+    chart: kube-prometheus-stack-14.6.2
     release: "v0.46.0"
     heritage: "Helm"
 spec:
@@ -40007,7 +40007,7 @@ metadata:
   labels:
     app: kube-prometheus-stack-kube-state-metrics
     
-    chart: kube-prometheus-stack-14.5.0
+    chart: kube-prometheus-stack-14.6.2
     release: "v0.46.0"
     heritage: "Helm"
 spec:
@@ -40028,7 +40028,7 @@ metadata:
   namespace: monitoring
   labels:
     app: kube-prometheus-stack-kubelet    
-    chart: kube-prometheus-stack-14.5.0
+    chart: kube-prometheus-stack-14.6.2
     release: "v0.46.0"
     heritage: "Helm"
 spec:
@@ -40085,7 +40085,7 @@ metadata:
   labels:
     app: kube-prometheus-stack-node-exporter
     
-    chart: kube-prometheus-stack-14.5.0
+    chart: kube-prometheus-stack-14.6.2
     release: "v0.46.0"
     heritage: "Helm"
 spec:
@@ -40106,7 +40106,7 @@ metadata:
   labels:
     app: kube-prometheus-stack-grafana
     
-    chart: kube-prometheus-stack-14.5.0
+    chart: kube-prometheus-stack-14.6.2
     release: "v0.46.0"
     heritage: "Helm"
 spec:
@@ -40130,7 +40130,7 @@ metadata:
   labels:
     app: kube-prometheus-stack-operator
     
-    chart: kube-prometheus-stack-14.5.0
+    chart: kube-prometheus-stack-14.6.2
     release: "v0.46.0"
     heritage: "Helm"
 spec:
@@ -40154,7 +40154,7 @@ metadata:
   labels:
     app: kube-prometheus-stack-prometheus
     
-    chart: kube-prometheus-stack-14.5.0
+    chart: kube-prometheus-stack-14.6.2
     release: "v0.46.0"
     heritage: "Helm"
 spec:
