@@ -40,15 +40,29 @@ function generate_version_directory() {
         echo "image ${name} ${image}" >> "../$version/Manifest"
     done < <(/tmp/kubeadm config images list --kubernetes-version=${version})
 
-    local criToolsVersion=$(curl -Ls -m 60 -o /dev/null -w %{url_effective} https://github.com/kubernetes-sigs/cri-tools/releases/latest | xargs basename)
+    # hardcode to 1.20.0 for now since its tested
+    local criToolsVersion=$(curl -s https://api.github.com/repos/kubernetes-sigs/cri-tools/releases | \
+        grep '"tag_name": ' | \
+        grep -Eo "1\.20\.[0-9]+" | \
+        head -1)
 
     echo "" >> "../$version/Manifest"
     echo "asset kubeadm https://storage.googleapis.com/kubernetes-release/release/v$version/bin/linux/amd64/kubeadm" >> "../$version/Manifest"
-    echo "asset crictl-linux-amd64.tar.gz https://github.com/kubernetes-sigs/cri-tools/releases/download/$criToolsVersion/crictl-$criToolsVersion-linux-amd64.tar.gz" >> "../$version/Manifest"
+    echo "asset crictl-linux-amd64.tar.gz https://github.com/kubernetes-sigs/cri-tools/releases/download/v$criToolsVersion/crictl-v$criToolsVersion-linux-amd64.tar.gz" >> "../$version/Manifest"
 
     echo "" >> "../$version/Manifest"
     echo "asset kustomize-v2.0.3 https://github.com/kubernetes-sigs/kustomize/releases/download/v2.0.3/kustomize_2.0.3_linux_amd64" >> "../$version/Manifest"
     echo "asset kustomize-v3.5.4.tar.gz https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2Fv3.5.4/kustomize_v3.5.4_linux_amd64.tar.gz" >> "../$version/Manifest"
+}
+
+function generate_conformance_package() {
+    local version="$1"
+
+    mkdir -p "../$version/conformance"
+    rm -f "../$version/conformance/Manifest"
+
+    # add conformance image for sonobuoy to manifest
+    echo "image conformance k8s.gcr.io/conformance:v${version}" > "../$version/conformance/Manifest"
 }
 
 function update_available_versions() {
@@ -70,7 +84,8 @@ function main() {
     find_available_versions
 
     for version in ${VERSIONS[*]}; do
-        generate_version_directory "$version"
+        generate_version_directory "${version}"
+        generate_conformance_package "${version}"
     done
     echo "::set-output name=kubernetes_version::${VERSIONS[*]}"
 

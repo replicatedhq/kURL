@@ -10,7 +10,4 @@ versions.json
 supported-versions-gen.json
 addons-gen.json
 .envrc
-/packages/host/*/*/
-/packages/rke-2/*/*/
-/packages/kubernetes/*/*/
 .github/workflows/payloads
