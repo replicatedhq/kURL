@@ -384,6 +384,22 @@ spec:
     s3Override: https://dummy.s3.us-east-1.amazonaws.com/pr/contour-100.0.0.tar.gz
 `;
 
+const conformance = `
+spec:
+  kubernetes:
+    version: 1.17.7
+  sonobuoy:
+    version: 0.50.0
+`;
+
+const noConformance = `
+spec:
+  kubernetes:
+    version: 1.15.3
+  sonobuoy:
+    version: 0.50.0
+`;
+
 describe("Installer", () => {
   describe("parse", () => {
     it("parses yaml with type meta and name", () => {
@@ -1001,6 +1017,46 @@ spec:
       const hasOpenssl = _.some(pkgs, (pkg) => {
         return pkg === "host-openssl";
       });
+    });
+
+    it("should include kubernetes conformance images", () => {
+      const i = Installer.parse(conformance);
+      const pkgs = i.packages();
+
+      const hasSonobuoy = _.some(pkgs, (pkg) => {
+        return pkg === "sonobuoy-0.50.0";
+      });
+      expect(hasSonobuoy).to.equal(true);
+
+      const hasKubernetes = _.some(pkgs, (pkg) => {
+        return pkg === "kubernetes-1.17.7";
+      });
+      expect(hasKubernetes).to.equal(true);
+
+      const hasConformance = _.some(pkgs, (pkg) => {
+        return pkg === "kubernetes-conformance-1.17.7";
+      });
+      expect(hasConformance).to.equal(true);
+    });
+
+    it("should not include kubernetes conformance images for versions < 1.17", () => {
+      const i = Installer.parse(noConformance);
+      const pkgs = i.packages();
+
+      const hasSonobuoy = _.some(pkgs, (pkg) => {
+        return pkg === "sonobuoy-0.50.0";
+      });
+      expect(hasSonobuoy).to.equal(true);
+
+      const hasKubernetes = _.some(pkgs, (pkg) => {
+        return pkg === "kubernetes-1.15.3";
+      });
+      expect(hasKubernetes).to.equal(true);
+
+      const hasConformance = _.some(pkgs, (pkg) => {
+        return pkg.startsWith("kubernetes-conformance");
+      });
+      expect(hasConformance).to.equal(false);
     });
   });
 

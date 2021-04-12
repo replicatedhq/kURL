@@ -1135,8 +1135,9 @@ export class Installer {
     });
 
     // include conformance package if sonobuoy and kubernetes
+    // we only build conformance packages for 1.17.0+
     // TODO: rke2 and k3s
-    if (kubernetesVersion && _.get(this.spec, "sonobuoy.version")) {
+    if (kubernetesVersion && semver.gte(kubernetesVersion, "1.17.0") && _.get(this.spec, "sonobuoy.version")) {
       pkgs.push(`kubernetes-conformance-${kubernetesVersion.replace(special, '-')}`);
     }
 
