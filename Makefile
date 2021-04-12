@@ -187,6 +187,7 @@ dist/sonobuoy-%.tar.gz: build/addons
 	mkdir -p dist
 	tar cf - -C build addons/sonobuoy/$* | gzip > dist/sonobuoy-$*.tar.gz
 
+.PRECIOUS: dist/kubernetes-conformance-%.tar.gz
 dist/kubernetes-%.tar.gz: dist/kubernetes-conformance-%.tar.gz
 	${MAKE} build/packages/kubernetes/$*/images
 	${MAKE} build/packages/kubernetes/$*/ubuntu-16.04

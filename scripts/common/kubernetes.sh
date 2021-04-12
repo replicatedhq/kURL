@@ -188,6 +188,7 @@ function kubernetes_get_host_packages_online() {
         KUBERNETES_DID_GET_HOST_PACKAGES_ONLINE=1
     fi
 }
+
 function kubernetes_get_conformance_packages_online() {
     local k8sVersion="$1"
 
