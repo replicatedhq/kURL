@@ -4,7 +4,7 @@ KURL_BIN_UTILS_FILE ?= kurl-bin-utils-latest.tar.gz
 VERSION_PACKAGE = github.com/replicatedhq/kurl/pkg/version
 VERSION ?= 0.0.1
 DATE = `date -u +"%Y-%m-%dT%H:%M:%SZ"`
-BUILDFLAGS = 
+BUILDFLAGS = -tags "netgo containers_image_ostree_stub exclude_graphdriver_devicemapper exclude_graphdriver_btrfs containers_image_openpgp" -installsuffix netgo
 
 GIT_TREE = $(shell git rev-parse --is-inside-work-tree 2>/dev/null)
 ifneq "$(GIT_TREE)" ""
@@ -31,6 +31,7 @@ define LDFLAGS
 	-X ${VERSION_PACKAGE}.buildTime=${DATE} \
 "
 endef
+
 
 .PHONY: clean
 clean:
@@ -555,11 +556,11 @@ lint:
 
 .PHONY: vet
 vet:
-	go vet ./cmd/... ./pkg/...
+	go vet ${BUILDFLAGS} ./cmd/... ./pkg/...
 
 .PHONY: test
 test: lint vet
-	go test ./cmd/... ./pkg/...
+	go test ${BUILDFLAGS} ./cmd/... ./pkg/...
 
 .PHONY: test-shell
 test-shell:
