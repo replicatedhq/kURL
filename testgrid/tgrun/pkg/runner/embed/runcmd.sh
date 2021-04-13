@@ -271,7 +271,7 @@ function run_tasks_join_token() {
 function run_sonobuoy() {
     # wait for 10 minutes for sonobuoy run to complete
     # skip preflights for now cause we pre-create the namespace and preflights will fail if it exists
-    ./sonobuoy run \
+    /usr/local/bin/sonobuoy run \
         --wait=10 \
         --image-pull-policy IfNotPresent \
         --mode quick
@@ -282,10 +282,10 @@ function run_sonobuoy() {
         return 1
     fi
 
-    RESULTS=$(./sonobuoy retrieve)
+    RESULTS=$(/usr/local/bin/sonobuoy retrieve)
     if [ -n "$RESULTS" ]; then
         echo "completed sonobuoy run"
-        ./sonobuoy results $RESULTS > ./sonobuoy-results.txt
+        /usr/local/bin/sonobuoy results $RESULTS > ./sonobuoy-results.txt
         curl -X POST --data-binary "@./sonobuoy-results.txt" "$TESTGRID_APIENDPOINT/v1/instance/$TEST_ID/sonobuoy"
         return 0
     else
