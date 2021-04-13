@@ -10,10 +10,6 @@ provider "aws" {
   region = "us-east-1"
 }
 
-data "sops_file" "secrets" {
-  source_file = "secrets.enc.yaml"
-}
-
 resource "packet_spot_market_request" "base-request" {
   project_id    = var.project_id
   max_bid_price = var.max_bid
