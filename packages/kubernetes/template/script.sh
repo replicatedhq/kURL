@@ -63,25 +63,50 @@ function generate_conformance_package() {
 
     # add conformance image for sonobuoy to manifest
     echo "image conformance k8s.gcr.io/conformance:v${version}" > "../$version/conformance/Manifest"
+
+    # image required for sonobuoy --mode=quick
+    echo "image nginx-1.14-alpine docker.io/library/nginx:1.14-alpine" > "../$version/conformance/Manifest"
+
+    # NOTE: full conformance suite images are not yet included in this package
+    # local tmpdir=
+    # tmpdir="$(mktemp -d)"
+    # curl -L -o "${tmpdir}/sonobuoy.tar.gz" https://github.com/vmware-tanzu/sonobuoy/releases/download/v${VERSION}/sonobuoy_${VERSION}_linux_amd64.tar.gz && \
+    #     tar xzvf "${tmpdir}/sonobuoy.tar.gz" -C "${tmpdir}"
+    # "${tmpdir}/sonobuoy" images pull --dry-run 2>&1 \
+    #     | grep 'Pulling image:' \
+    #     | sed 's/^.*Pulling image: \(.*\)"$/\1/' \
+    #     | grep -v authenticated \
+    #     | grep -v invalid \
+    #     | sed -E "s/^(.*)\/([^:]+):(.+)/image \2-\3 \1\/\2:\3/" >> "../${VERSION}/Manifest"
+    # rm -r "${tmpdir}"
 }
 
 function update_available_versions() {
     local versions120=( $( for i in "${VERSIONS[@]}" ; do echo $i ; done | grep '^1.2' ) )
-    sed -i "/cron-kubernetes-update-120/c\    \"$(echo ${versions120[*]} | sed 's/ /", "/g')\", \/\/ cron-kubernetes-update-120" ../../../web/src/installers/versions.js
+    if [ ${#versions120[@]} -gt 0 ]; then
+        sed -i "/cron-kubernetes-update-120/c\    \"$(echo ${versions120[*]} | sed 's/ /", "/g')\", \/\/ cron-kubernetes-update-120" ../../../web/src/installers/versions.js
+    fi
 
     local version119=( $( for i in "${VERSIONS[@]}" ; do echo $i ; done | grep '^1.19' ) )
-    if ! sed '0,/cron-kubernetes-update-119/d' ../../../web/src/installers/versions.js | sed '/\],/,$d' | grep -q "${version119}" ; then
-        sed -i "/cron-kubernetes-update-119/a\    \"${version119}\"\," ../../../web/src/installers/versions.js
+    if [ ${#version119[@]} -gt 0 ]; then
+        if ! sed '0,/cron-kubernetes-update-119/d' ../../../web/src/installers/versions.js | sed '/\],/,$d' | grep -q "${version119[0]}" ; then
+            sed -i "/cron-kubernetes-update-119/a\    \"${version119[0]}\"\," ../../../web/src/installers/versions.js
+        fi
     fi
 
     local version118=( $( for i in "${VERSIONS[@]}" ; do echo $i ; done | grep '^1.18' ) )
-    if ! sed '0,/cron-kubernetes-update-118/d' ../../../web/src/installers/versions.js | sed '/\],/,$d' | grep -q "${version118}" ; then
-        sed -i "/cron-kubernetes-update-118/a\    \"${version118}\"\," ../../../web/src/installers/versions.js
+    if [ ${#version118[@]} -gt 0 ]; then
+        if ! sed '0,/cron-kubernetes-update-118/d' ../../../web/src/installers/versions.js | sed '/\],/,$d' | grep -q "${version118[0]}" ; then
+            sed -i "/cron-kubernetes-update-118/a\    \"${version118[0]}\"\," ../../../web/src/installers/versions.js
+        fi
     fi
 }
 
 function main() {
-    find_available_versions
+    VERSIONS=("$@")
+    if [ ${#VERSIONS[@]} -eq 0 ]; then
+        find_available_versions
+    fi
 
     for version in ${VERSIONS[*]}; do
         generate_version_directory "${version}"
@@ -92,4 +117,4 @@ function main() {
     update_available_versions
 }
 
-main
+main "$@"
