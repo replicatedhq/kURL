@@ -65,7 +65,7 @@ function generate_conformance_package() {
     echo "image conformance k8s.gcr.io/conformance:v${version}" > "../$version/conformance/Manifest"
 
     # image required for sonobuoy --mode=quick
-    echo "image nginx-1.14-alpine docker.io/library/nginx:1.14-alpine" > "../$version/conformance/Manifest"
+    echo "image nginx-1.14-alpine docker.io/library/nginx:1.14-alpine" >> "../$version/conformance/Manifest"
 
     # NOTE: full conformance suite images are not yet included in this package
     # local tmpdir=
