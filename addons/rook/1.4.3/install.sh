@@ -5,8 +5,12 @@ function rook_pre_init() {
     if [ -n "$version" ] && [ "$version" != "1.4.3" ]; then
         printf "Rook $version is already installed, will not upgrade to 1.4.3\n"
         export SKIP_ROOK_INSTALL='true'
+        if [ "$version" = "1.0.4" ] && [ "$KUBERNETES_TARGET_VERSION_MINOR" -ge 20 ]; then
+            bail "Rook 1.0.4 is not compatible with Kubernetes 1.20+"
+        fi
     elif [ "$ROOK_BLOCK_STORAGE_ENABLED" != "1" ]; then
         bail "Rook 1.4.3 requires enabling block storage"
+
     fi
 }
 

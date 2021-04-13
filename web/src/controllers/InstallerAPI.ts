@@ -101,7 +101,7 @@ export class Installers {
     }
     i.id = i.hash();
 
-    const err = await i.validate();
+    const err = await i.resolve().validate();
     if (err) {
       response.status(400);
       return err;
@@ -222,7 +222,7 @@ export class Installers {
       return invalidYAMLResponse;
     }
 
-    const err = await i.validate();
+    const err = await i.resolve().validate();
     if (err) {
       response.status(400);
       return err;
@@ -280,7 +280,7 @@ export class Installers {
       }
     }
 
-    const err = await i.validate();
+    const err = await i.resolve().validate();
     if (err) {
       response.status(400);
       return err;
