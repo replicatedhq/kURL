@@ -33,6 +33,8 @@ while read -r line; do
     fi
     kind=$(echo $line | awk '{ print $1 }')
 
+    echo "LINE $line"
+
     case "$kind" in
         image)
             filename=$(echo $line | awk '{ print $2 }')
