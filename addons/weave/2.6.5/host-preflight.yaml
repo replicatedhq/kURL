@@ -7,29 +7,29 @@ spec:
     - tcpPortStatus:
         collectorName: "Weave Network Policy Controller Metrics Server TCP Port Status"
         port: 6781
-        exclude: '{{ .IsUpgrade }}'
+        exclude: '{{kurl .IsUpgrade }}'
     - tcpPortStatus:
         collectorName: "Weave Net Metrics Server TCP Port Status"
         port: 6782
-        exclude: '{{ .IsUpgrade }}'
+        exclude: '{{kurl .IsUpgrade }}'
     - tcpPortStatus:
         collectorName: "Weave Net Control TCP Port Status"
         port: 6783
-        exclude: '{{ .IsUpgrade }}'
-{{- if and .IsJoin (not .IsUpgrade)}}
-  {{- range .RemoteHosts}}
+        exclude: '{{kurl .IsUpgrade }}'
+{{kurl- if and .IsJoin (not .IsUpgrade)}}
+  {{kurl- range .RemoteHosts}}
     - tcpConnect:
-        collectorName: "weave {{ . }}"
-        address: '{{ . }}:6783'
+        collectorName: "weave {{kurl . }}"
+        address: '{{kurl . }}:6783'
         timeout: 5s
-  {{- end}}
-{{- end}}
+  {{kurl- end}}
+{{kurl- end}}
 
   analyzers:
     - tcpPortStatus:
         checkName: "Weave Network Policy Controller Metrics Server TCP Port Status"
         collectorName: "Weave Net Metrics Server TCP Port Status"
-        exclude: '{{ .IsUpgrade }}'
+        exclude: '{{kurl .IsUpgrade }}'
         outcomes:
           - fail:
               when: "connection-refused"
@@ -51,7 +51,7 @@ spec:
     - tcpPortStatus:
         checkName: "Weave Net Metrics Server TCP Port Status"
         collectorName: "Weave Net Metrics Server TCP Port Status"
-        exclude: '{{ .IsUpgrade }}'
+        exclude: '{{kurl .IsUpgrade }}'
         outcomes:
           - fail:
               when: "connection-refused"
@@ -73,7 +73,7 @@ spec:
     - tcpPortStatus:
         checkName: "Weave Net Control TCP Port Status"
         collectorName: "Weave Net Control TCP Port Status"
-        exclude: '{{ .IsUpgrade }}'
+        exclude: '{{kurl .IsUpgrade }}'
         outcomes:
           - fail:
               when: "connection-refused"
@@ -92,25 +92,25 @@ spec:
               message: Port 6783 is open
           - warn:
               message: Unexpected port status
-{{- if and .IsJoin (not .IsUpgrade)}}
-  {{- range .RemoteHosts}}
+{{kurl- if and .IsJoin (not .IsUpgrade)}}
+  {{kurl- range .RemoteHosts}}
     - tcpConnect:
-        checkName: "weave {{ . }}:6783 TCP connection status"
-        collectorName: "weave {{ . }}"
+        checkName: "weave {{kurl . }}:6783 TCP connection status"
+        collectorName: "weave {{kurl . }}"
         outcomes:
           - warn:
               when: "connection-refused"
-              message: Connection to weave {{ . }}:6783 was refused
+              message: Connection to weave {{kurl . }}:6783 was refused
           - warn:
               when: "connection-timeout"
-              message: Timed out connecting to weave {{ . }}:6783
+              message: Timed out connecting to weave {{kurl . }}:6783
           - warn:
               when: "error"
-              message: Unexpected error connecting to weave {{ . }}:6783
+              message: Unexpected error connecting to weave {{kurl . }}:6783
           - pass:
               when: "connected"
-              message: Successfully connected to weave {{ . }}:6783
+              message: Successfully connected to weave {{kurl . }}:6783
           - warn:
-              message: Unexpected TCP connection status for weave {{ . }}:6783
-  {{- end}}
-{{- end}}
+              message: Unexpected TCP connection status for weave {{kurl . }}:6783
+  {{kurl- end}}
+{{kurl- end}}

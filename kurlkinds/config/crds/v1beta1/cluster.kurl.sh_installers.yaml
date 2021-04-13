@@ -1,10 +1,10 @@
 
 ---
-apiVersion: apiextensions.k8s.io/v1beta1
+apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.3.0
+    controller-gen.kubebuilder.io/version: v0.5.0
   creationTimestamp: null
   name: installers.cluster.kurl.sh
 spec:
@@ -15,442 +15,445 @@ spec:
     plural: installers
     singular: installer
   scope: Namespaced
-  validation:
-    openAPIV3Schema:
-      description: Installer is the Schema for the installers API
-      properties:
-        apiVersion:
-          description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
-          type: string
-        kind:
-          description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
-          type: string
-        metadata:
-          type: object
-        spec:
-          properties:
-            antrea:
-              properties:
-                isEncryptionDisabled:
-                  type: boolean
-                podCIDR:
-                  type: string
-                podCidrRange:
-                  type: string
-                s3Override:
-                  type: string
-                version:
-                  type: string
-              required:
-              - version
-              type: object
-            calico:
-              properties:
-                s3Override:
-                  type: string
-                version:
-                  type: string
-              required:
-              - version
-              type: object
-            certManager:
-              properties:
-                s3Override:
-                  type: string
-                version:
-                  type: string
-              required:
-              - version
-              type: object
-            collectd:
-              properties:
-                s3Override:
-                  type: string
-                version:
-                  type: string
-              required:
-              - version
-              type: object
-            containerd:
-              properties:
-                s3Override:
-                  type: string
-                version:
-                  type: string
-              required:
-              - version
-              type: object
-            contour:
-              properties:
-                httpPort:
-                  type: integer
-                httpsPort:
-                  type: integer
-                s3Override:
-                  type: string
-                tlsMinimumProtocolVersion:
-                  type: string
-                version:
-                  type: string
-              required:
-              - version
-              type: object
-            docker:
-              properties:
-                bypassStorageDriverWarning:
-                  type: boolean
-                daemonConfig:
-                  type: string
-                dockerRegistryIP:
-                  type: string
-                hardFailOnLoopback:
-                  type: boolean
-                noCEOnEE:
-                  type: boolean
-                preserveConfig:
-                  type: boolean
-                s3Override:
-                  type: string
-                version:
-                  type: string
-              required:
-              - version
-              type: object
-            ekco:
-              properties:
-                autoUpgradeSchedule:
-                  type: string
-                minReadyMasterNodeCount:
-                  type: integer
-                minReadyWorkerNodeCount:
-                  type: integer
-                nodeUnreachableToleration:
-                  type: string
-                rookShouldUseAllNodes:
-                  type: boolean
-                s3Override:
-                  type: string
-                shouldDisableClearNodes:
-                  type: boolean
-                shouldDisableRebootServices:
-                  type: boolean
-                shouldEnablePurgeNodes:
-                  type: boolean
-                version:
-                  type: string
-              required:
-              - version
-              type: object
-            firewalldConfig:
-              properties:
-                bypassFirewalldWarning:
-                  type: boolean
-                disableFirewalld:
-                  type: boolean
-                firewalld:
-                  type: string
-                firewalldCmds:
-                  items:
-                    items:
-                      type: string
-                    type: array
-                  type: array
-                hardFailOnFirewalld:
-                  type: boolean
-                preserveConfig:
-                  type: boolean
-              type: object
-            fluentd:
-              properties:
-                fluentdConfPath:
-                  type: string
-                fullEFKStack:
-                  type: boolean
-                s3Override:
-                  type: string
-                version:
-                  type: string
-              required:
-              - version
-              type: object
-            helm:
-              properties:
-                additionalImages:
-                  items:
-                    type: string
-                  type: array
-                helmfileSpec:
-                  type: string
-              required:
-              - helmfileSpec
-              type: object
-            iptablesConfig:
-              properties:
-                iptablesCmds:
-                  items:
-                    items:
-                      type: string
-                    type: array
-                  type: array
-                preserveConfig:
-                  type: boolean
-              type: object
-            k3s:
-              properties:
-                version:
-                  type: string
-              required:
-              - version
-              type: object
-            kotsadm:
-              properties:
-                applicationNamespace:
-                  type: string
-                applicationSlug:
-                  type: string
-                hostname:
-                  type: string
-                s3Override:
-                  type: string
-                uiBindPort:
-                  type: integer
-                version:
-                  type: string
-              required:
-              - version
-              type: object
-            kubernetes:
-              properties:
-                HACluster:
-                  type: boolean
-                bootstrapToken:
-                  type: string
-                bootstrapTokenTTL:
-                  type: string
-                certKey:
-                  type: string
-                controlPlane:
-                  type: boolean
-                kubeadmToken:
-                  type: string
-                kubeadmTokenCAHash:
-                  type: string
-                loadBalancerAddress:
-                  type: string
-                masterAddress:
-                  type: string
-                s3Override:
-                  type: string
-                serviceCIDR:
-                  type: string
-                serviceCidrRange:
-                  type: string
-                useStandardNodePortRange:
-                  type: boolean
-                version:
-                  type: string
-              required:
-              - version
-              type: object
-            kurl:
-              properties:
-                additionalNoProxyAddresses:
-                  items:
-                    type: string
-                  type: array
-                airgap:
-                  type: boolean
-                hostnameCheck:
-                  type: string
-                nameserver:
-                  type: string
-                noProxy:
-                  type: boolean
-                preflightIgnore:
-                  type: boolean
-                preflightIgnoreWarnings:
-                  type: boolean
-                privateAddress:
-                  type: string
-                proxyAddress:
-                  type: string
-                publicAddress:
-                  type: string
-              type: object
-            longhorn:
-              properties:
-                s3Override:
-                  type: string
-                uiBindPort:
-                  type: integer
-                uiReplicaCount:
-                  type: integer
-                version:
-                  type: string
-              required:
-              - version
-              type: object
-            metricsServer:
-              properties:
-                s3Override:
-                  type: string
-                version:
-                  type: string
-              required:
-              - version
-              type: object
-            minio:
-              properties:
-                hostPath:
-                  type: string
-                namespace:
-                  type: string
-                s3Override:
-                  type: string
-                version:
-                  type: string
-              required:
-              - version
-              type: object
-            openebs:
-              properties:
-                cstorStorageClassName:
-                  type: string
-                isCstorEnabled:
-                  type: boolean
-                isLocalPVEnabled:
-                  type: boolean
-                localPVStorageClassName:
-                  type: string
-                namespace:
-                  type: string
-                s3Override:
-                  type: string
-                version:
-                  type: string
-              required:
-              - version
-              type: object
-            prometheus:
-              properties:
-                s3Override:
-                  type: string
-                version:
-                  type: string
-              required:
-              - version
-              type: object
-            registry:
-              properties:
-                publishPort:
-                  type: integer
-                s3Override:
-                  type: string
-                version:
-                  type: string
-              required:
-              - version
-              type: object
-            rke2:
-              properties:
-                version:
-                  type: string
-              required:
-              - version
-              type: object
-            rook:
-              properties:
-                blockDeviceFilter:
-                  type: string
-                cephReplicaCount:
-                  type: integer
-                hostpathRequiresPrivileged:
-                  type: boolean
-                isBlockStorageEnabled:
-                  type: boolean
-                s3Override:
-                  type: string
-                storageClassName:
-                  type: string
-                version:
-                  type: string
-              required:
-              - version
-              type: object
-            selinuxConfig:
-              properties:
-                chconCmds:
-                  items:
-                    items:
-                      type: string
-                    type: array
-                  type: array
-                disableSelinux:
-                  type: boolean
-                preserveConfig:
-                  type: boolean
-                selinux:
-                  type: string
-                semanageCmds:
-                  items:
-                    items:
-                      type: string
-                    type: array
-                  type: array
-                type:
-                  type: string
-              type: object
-            sonobuoy:
-              properties:
-                s3Override:
-                  type: string
-                version:
-                  type: string
-              required:
-              - version
-              type: object
-            velero:
-              properties:
-                disableCLI:
-                  type: boolean
-                disableRestic:
-                  type: boolean
-                localBucket:
-                  type: string
-                namespace:
-                  type: string
-                resticRequiresPrivileged:
-                  type: boolean
-                s3Override:
-                  type: string
-                version:
-                  type: string
-              required:
-              - version
-              type: object
-            weave:
-              properties:
-                isEncryptionDisabled:
-                  type: boolean
-                podCIDR:
-                  type: string
-                podCidrRange:
-                  type: string
-                s3Override:
-                  type: string
-                version:
-                  type: string
-              required:
-              - version
-              type: object
-          type: object
-        status:
-          description: InstallerStatus defines the observed state of Installer
-          type: object
-      type: object
-  version: v1beta1
   versions:
   - name: v1beta1
+    schema:
+      openAPIV3Schema:
+        description: Installer is the Schema for the installers API
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            properties:
+              antrea:
+                properties:
+                  isEncryptionDisabled:
+                    type: boolean
+                  podCIDR:
+                    type: string
+                  podCidrRange:
+                    type: string
+                  s3Override:
+                    type: string
+                  version:
+                    type: string
+                required:
+                - version
+                type: object
+              calico:
+                properties:
+                  s3Override:
+                    type: string
+                  version:
+                    type: string
+                required:
+                - version
+                type: object
+              certManager:
+                properties:
+                  s3Override:
+                    type: string
+                  version:
+                    type: string
+                required:
+                - version
+                type: object
+              collectd:
+                properties:
+                  s3Override:
+                    type: string
+                  version:
+                    type: string
+                required:
+                - version
+                type: object
+              containerd:
+                properties:
+                  s3Override:
+                    type: string
+                  version:
+                    type: string
+                required:
+                - version
+                type: object
+              contour:
+                properties:
+                  httpPort:
+                    type: integer
+                  httpsPort:
+                    type: integer
+                  s3Override:
+                    type: string
+                  tlsMinimumProtocolVersion:
+                    type: string
+                  version:
+                    type: string
+                required:
+                - version
+                type: object
+              docker:
+                properties:
+                  bypassStorageDriverWarning:
+                    type: boolean
+                  daemonConfig:
+                    type: string
+                  dockerRegistryIP:
+                    type: string
+                  hardFailOnLoopback:
+                    type: boolean
+                  noCEOnEE:
+                    type: boolean
+                  preserveConfig:
+                    type: boolean
+                  s3Override:
+                    type: string
+                  version:
+                    type: string
+                required:
+                - version
+                type: object
+              ekco:
+                properties:
+                  autoUpgradeSchedule:
+                    type: string
+                  minReadyMasterNodeCount:
+                    type: integer
+                  minReadyWorkerNodeCount:
+                    type: integer
+                  nodeUnreachableToleration:
+                    type: string
+                  rookShouldUseAllNodes:
+                    type: boolean
+                  s3Override:
+                    type: string
+                  shouldDisableClearNodes:
+                    type: boolean
+                  shouldDisableRebootServices:
+                    type: boolean
+                  shouldEnablePurgeNodes:
+                    type: boolean
+                  version:
+                    type: string
+                required:
+                - version
+                type: object
+              firewalldConfig:
+                properties:
+                  bypassFirewalldWarning:
+                    type: boolean
+                  disableFirewalld:
+                    type: boolean
+                  firewalld:
+                    type: string
+                  firewalldCmds:
+                    items:
+                      items:
+                        type: string
+                      type: array
+                    type: array
+                  hardFailOnFirewalld:
+                    type: boolean
+                  preserveConfig:
+                    type: boolean
+                type: object
+              fluentd:
+                properties:
+                  fluentdConfPath:
+                    type: string
+                  fullEFKStack:
+                    type: boolean
+                  s3Override:
+                    type: string
+                  version:
+                    type: string
+                required:
+                - version
+                type: object
+              helm:
+                properties:
+                  additionalImages:
+                    items:
+                      type: string
+                    type: array
+                  helmfileSpec:
+                    type: string
+                required:
+                - helmfileSpec
+                type: object
+              iptablesConfig:
+                properties:
+                  iptablesCmds:
+                    items:
+                      items:
+                        type: string
+                      type: array
+                    type: array
+                  preserveConfig:
+                    type: boolean
+                type: object
+              k3s:
+                properties:
+                  version:
+                    type: string
+                required:
+                - version
+                type: object
+              kotsadm:
+                properties:
+                  applicationNamespace:
+                    type: string
+                  applicationSlug:
+                    type: string
+                  hostname:
+                    type: string
+                  s3Override:
+                    type: string
+                  uiBindPort:
+                    type: integer
+                  version:
+                    type: string
+                required:
+                - version
+                type: object
+              kubernetes:
+                properties:
+                  HACluster:
+                    type: boolean
+                  bootstrapToken:
+                    type: string
+                  bootstrapTokenTTL:
+                    type: string
+                  certKey:
+                    type: string
+                  controlPlane:
+                    type: boolean
+                  kubeadmToken:
+                    type: string
+                  kubeadmTokenCAHash:
+                    type: string
+                  loadBalancerAddress:
+                    type: string
+                  masterAddress:
+                    type: string
+                  s3Override:
+                    type: string
+                  serviceCIDR:
+                    type: string
+                  serviceCidrRange:
+                    type: string
+                  useStandardNodePortRange:
+                    type: boolean
+                  version:
+                    type: string
+                required:
+                - version
+                type: object
+              kurl:
+                properties:
+                  additionalNoProxyAddresses:
+                    items:
+                      type: string
+                    type: array
+                  airgap:
+                    type: boolean
+                  hostnameCheck:
+                    type: string
+                  nameserver:
+                    type: string
+                  noProxy:
+                    type: boolean
+                  preflightIgnore:
+                    type: boolean
+                  preflightIgnoreWarnings:
+                    type: boolean
+                  privateAddress:
+                    type: string
+                  proxyAddress:
+                    type: string
+                  publicAddress:
+                    type: string
+                type: object
+              longhorn:
+                properties:
+                  s3Override:
+                    type: string
+                  uiBindPort:
+                    type: integer
+                  uiReplicaCount:
+                    type: integer
+                  version:
+                    type: string
+                required:
+                - version
+                type: object
+              metricsServer:
+                properties:
+                  s3Override:
+                    type: string
+                  version:
+                    type: string
+                required:
+                - version
+                type: object
+              minio:
+                properties:
+                  hostPath:
+                    type: string
+                  namespace:
+                    type: string
+                  s3Override:
+                    type: string
+                  version:
+                    type: string
+                required:
+                - version
+                type: object
+              openebs:
+                properties:
+                  cstorStorageClassName:
+                    type: string
+                  isCstorEnabled:
+                    type: boolean
+                  isLocalPVEnabled:
+                    type: boolean
+                  localPVStorageClassName:
+                    type: string
+                  namespace:
+                    type: string
+                  s3Override:
+                    type: string
+                  version:
+                    type: string
+                required:
+                - version
+                type: object
+              prometheus:
+                properties:
+                  s3Override:
+                    type: string
+                  version:
+                    type: string
+                required:
+                - version
+                type: object
+              registry:
+                properties:
+                  publishPort:
+                    type: integer
+                  s3Override:
+                    type: string
+                  version:
+                    type: string
+                required:
+                - version
+                type: object
+              rke2:
+                properties:
+                  version:
+                    type: string
+                required:
+                - version
+                type: object
+              rook:
+                properties:
+                  blockDeviceFilter:
+                    type: string
+                  cephReplicaCount:
+                    type: integer
+                  hostpathRequiresPrivileged:
+                    type: boolean
+                  isBlockStorageEnabled:
+                    type: boolean
+                  s3Override:
+                    type: string
+                  storageClassName:
+                    type: string
+                  version:
+                    type: string
+                required:
+                - version
+                type: object
+              selinuxConfig:
+                properties:
+                  chconCmds:
+                    items:
+                      items:
+                        type: string
+                      type: array
+                    type: array
+                  disableSelinux:
+                    type: boolean
+                  preserveConfig:
+                    type: boolean
+                  selinux:
+                    type: string
+                  semanageCmds:
+                    items:
+                      items:
+                        type: string
+                      type: array
+                    type: array
+                  type:
+                    type: string
+                type: object
+              sonobuoy:
+                properties:
+                  s3Override:
+                    type: string
+                  version:
+                    type: string
+                required:
+                - version
+                type: object
+              velero:
+                properties:
+                  disableCLI:
+                    type: boolean
+                  disableRestic:
+                    type: boolean
+                  localBucket:
+                    type: string
+                  namespace:
+                    type: string
+                  resticRequiresPrivileged:
+                    type: boolean
+                  s3Override:
+                    type: string
+                  version:
+                    type: string
+                required:
+                - version
+                type: object
+              weave:
+                properties:
+                  isEncryptionDisabled:
+                    type: boolean
+                  podCIDR:
+                    type: string
+                  podCidrRange:
+                    type: string
+                  s3Override:
+                    type: string
+                  version:
+                    type: string
+                required:
+                - version
+                type: object
+            type: object
+          status:
+            description: InstallerStatus defines the observed state of Installer
+            type: object
+        type: object
     served: true
     storage: true
 status:

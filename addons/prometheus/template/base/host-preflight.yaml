@@ -7,13 +7,13 @@ spec:
     - tcpPortStatus:
         collectorName: "Node Exporter Metrics Server TCP Port Status"
         port: 9100
-        exclude: '{{ .IsUpgrade }}'
+        exclude: '{{kurl .IsUpgrade }}'
 
   analyzers:
     - tcpPortStatus:
         checkName: "Node Exporter Metrics Server TCP Port Status"
         collectorName: "Node Exporter Metrics Server TCP Port Status"
-        exclude: '{{ .IsUpgrade }}'
+        exclude: '{{kurl .IsUpgrade }}'
         outcomes:
           - fail:
               when: "connection-refused"

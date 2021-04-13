@@ -56,8 +56,8 @@ test-crd:
 
 # get/update controller-gen
 update-controller-gen:
-	go get sigs.k8s.io/controller-tools/cmd/controller-gen@v0.3.0
+	go get sigs.k8s.io/controller-tools/cmd/controller-gen@v0.5.0
 
 # get/update client-gen
 update-client-gen:
-	go get k8s.io/code-generator/cmd/client-gen@v0.18.5
+	go get k8s.io/code-generator/cmd/client-gen@v0.21.0
