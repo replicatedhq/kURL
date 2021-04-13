@@ -43,6 +43,10 @@ func Run(schedulerOptions types.SchedulerOptions) error {
 
 	for _, instance := range kurlPlans {
 		testSpec := instance.InstallerSpec
+		// append sonobuoy for conformance testing
+		testSpec.Sonobuoy = &kurlv1beta1.Sonobuoy{
+			Version: "latest",
+		}
 
 		// post it to the API to get a sha / id back
 		installer := types.Installer{

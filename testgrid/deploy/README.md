@@ -2,17 +2,6 @@
 
 ## Terraform
 
-### Dependencies
-
-Terraform provider [sops](https://github.com/carlpett/terraform-provider-sops/blob/master/docs/legacy_usage.md)
-
-```bash
-mkdir -p ~/.terraform.d/plugins
-curl -LO https://github.com/carlpett/terraform-provider-sops/releases/download/v0.6.2/terraform-provider-sops_0.6.2_linux_amd64.zip
-unzip terraform-provider-sops_0.6.2_linux_amd64.zip -d ~/.terraform.d/plugins
-rm terraform-provider-sops_0.6.2_linux_amd64.zip
-```
-
 ### Provisioning
 
 > NOTE: Project based token doesn't have sufficient privileges for Spot instance create/destroy operations (*creation works with errors; destroy fails*). Personal token can be used to get sufficient privileges:
@@ -34,9 +23,10 @@ terraform destroy
 
 ### Tested versions
 ```bash
-Terraform v0.12.29
-+ provider.packet v3.0.1
-+ provider.template v2.2.0
+Terraform v0.14.10
++ provider registry.terraform.io/hashicorp/aws v2.52.0
++ provider registry.terraform.io/hashicorp/template v2.2.0
++ provider registry.terraform.io/packethost/packet v3.1.0
 ```
 
 ### Debugging
