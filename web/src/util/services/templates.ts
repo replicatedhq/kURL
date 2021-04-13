@@ -79,7 +79,7 @@ export function bashStringEscape( unescaped :string): string {
   return unescaped.replace(/[!"\\]/g, "\\\$&");
 }
 
-function manifestFromInstaller(i: Installer, kurlURL: string, replicatedAppURL: string, distURL: string, kurlUtilImage: string, kurlBinUtils: string): Manifest {
+export function manifestFromInstaller(i: Installer, kurlURL: string, replicatedAppURL: string, distURL: string, kurlUtilImage: string, kurlBinUtils: string): Manifest {
   return {
     KURL_URL: kurlURL,
     DIST_URL: distURL,

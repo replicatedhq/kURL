@@ -739,7 +739,7 @@ export class Installer {
 
   // returned installer must be validated before use
   public static parse(doc: string, teamID?: string): Installer {
-    const parsed = yaml.safeLoad(doc);
+    const parsed = yaml.load(doc);
 
     const i = new Installer(teamID);
     i.id = _.get(parsed, "metadata.name", "");
@@ -978,7 +978,7 @@ export class Installer {
   }
 
   public toYAML(): string {
-    return yaml.safeDump(this.toObject());
+    return yaml.dump(this.toObject());
   }
 
   public toObject(): InstallerObject {

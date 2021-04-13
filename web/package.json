@@ -13,7 +13,7 @@
     "cors": "^2.8.1",
     "express": "^4.14.0",
     "express-rate-limit": "^2.11.0",
-    "js-yaml": "^3.13.1",
+    "js-yaml": "^4.0.0",
     "jsonwebtoken": "^8.5.1",
     "monkit": "^0.4.0",
     "newrelic": "^5.7.0",
