@@ -51,6 +51,6 @@ spec:
     const installer = Installer.parse(yaml);
 
     const manifest = manifestFromInstaller(installer, "KURL_URL", "APP_URL", "DIST_URL", "UTIL_IMAGE", "BINUTILS_IMAGE");
-    expect(manifest.INSTALLER_YAML).to.equal(yaml);
+    expect(manifest.INSTALLER_YAML).to.contain(`name: '0668700'`);
   });
 });
