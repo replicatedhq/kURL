@@ -6,6 +6,7 @@ function preflights() {
     promptIfDockerUnsupportedOS
     checkDockerK8sVersion
     checkFirewalld
+    checkUFW
     must_disable_selinux
     apply_iptables_config
     cri_preflights
@@ -195,6 +196,50 @@ checkFirewalld() {
     printf "${YELLOW}Continue with firewalld active? ${NC}"
     if confirmY ; then
         BYPASS_FIREWALLD_WARNING=1
+        return
+    fi
+    exit 1
+}
+
+checkUFW() {
+    if [ -n "$PRESERVE_DOCKER_CONFIG" ]; then
+        return
+    fi
+
+    if [ "$BYPASS_UFW_WARNING" = "1" ]; then
+        return
+    fi
+
+    # check if UFW is enabled and installed in systemctl
+    if ! systemctl -q is-active ufw ; then
+        return
+    fi
+
+    # check if UFW is active/inactive
+    UFW_STATUS=$(ufw status | grep 'Status: ' | awk '{ print $2 }')
+    if [ "$UFW_STATUS" = "inactive" ]; then
+      return
+    fi
+
+    if [ "$HARD_FAIL_ON_UFW" = "1" ]; then
+        printf "${RED}UFW is active${NC}\n" 1>&2
+        exit 1
+    fi
+
+    if [ -n "$DISABLE_UFW" ]; then
+        ufw disable
+        return
+    fi
+
+    printf "${YELLOW}UFW is active, please press Y to disable ${NC}"
+    if confirmY ; then
+        ufw disable
+        return
+    fi
+
+    printf "${YELLOW}Continue with ufw active? ${NC}"
+    if confirmY ; then
+        BYPASS_UFW_WARNING=1
         return
     fi
     exit 1

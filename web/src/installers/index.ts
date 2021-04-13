@@ -611,6 +611,21 @@ export const sonobuoySchema = {
   additionalProperties: false,
 };
 
+export interface UFWConfig {
+  bypassUFWWarning?: boolean;
+  disableUFW?: boolean;
+  hardFailOnUFW?: boolean;
+}
+
+export const ufwConfigSchema = {
+  type: "object",
+  properties: {
+    bypassUFWWarning: { type: "boolean" },
+    disableUFW: { type: "boolean" },
+    hardFailOnUFW: { type: "boolean" },
+  },
+};
+
 export interface InstallerSpec {
   kubernetes: KubernetesConfig;
   rke2?: RKE2Config;
@@ -640,6 +655,7 @@ export interface InstallerSpec {
   helm?: HelmConfig;
   longhorn?: LonghornConfig;
   sonobuoy?: SonobuoyConfig;
+  ufw?: UFWConfig;
 }
 
 const specSchema = {
@@ -674,6 +690,7 @@ const specSchema = {
     helm: helmConfigSchema,
     longhorn: LonghornSchema,
     sonobuoy: sonobuoySchema,
+    ufw: ufwConfigSchema,
   },
   additionalProperites: false,
 };
