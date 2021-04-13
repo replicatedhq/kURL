@@ -57,8 +57,6 @@ SyslogIdentifier=tgrund
 Environment="KUBECONFIG=/etc/kubernetes/admin.conf"
 Environment="HOME=/root"
 Environment="PATH=/root/.krew/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
-Environment="DOCKERHUB_USERNAME=${dockerhub_username}"
-Environment="DOCKERHUB_PASSWORD=${dockerhub_password}"
 ExecStart=/bin/bash -c '/bin/tgrun run'
 
 [Install]

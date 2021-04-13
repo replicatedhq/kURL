@@ -10,22 +10,6 @@ provider "aws" {
   region = "us-east-1"
 }
 
-resource "aws_kms_key" "kurl_testgrid_sops_key" {
-  description             = "KMS Key for sops"
-  deletion_window_in_days = 7
-}
-
-data "sops_file" "secrets" {
-  source_file = "secrets.enc.yaml"
-}
-
-variable "sensitive_mask" {
-  description = "This is a hack to mask data.sops_file.secrets.data"
-  type        = string
-  sensitive   = true
-  default     = "thisissupersecret"
-}
-
 resource "packet_spot_market_request" "base-request" {
   project_id    = var.project_id
   max_bid_price = var.max_bid
@@ -38,11 +22,7 @@ resource "packet_spot_market_request" "base-request" {
     billing_cycle    = "hourly"
     operating_system = var.tg_os
     plan             = var.instance_type
-    userdata = templatefile("tg-script.sh.tpl", {
-      dockerhub_username = data.sops_file.secrets.data["dockerhub_username"]
-      dockerhub_password = data.sops_file.secrets.data["dockerhub_password"]
-      sensitive_mask     = var.sensitive_mask
-    })
+    userdata         = file("tg-script.sh")
   }
 }
 
@@ -66,11 +46,7 @@ resource "packet_spot_market_request" "burst-request" {
     billing_cycle    = "hourly"
     operating_system = var.tg_os
     plan             = var.instance_type
-    userdata = templatefile("tg-script.sh.tpl", {
-      dockerhub_username = data.sops_file.secrets.data["dockerhub_username"]
-      dockerhub_password = data.sops_file.secrets.data["dockerhub_password"]
-      sensitive_mask     = var.sensitive_mask
-    })
+    userdata         = file("tg-script.sh")
   }
 }
 
