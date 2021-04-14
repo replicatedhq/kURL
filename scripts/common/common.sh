@@ -378,6 +378,27 @@ function try_1m() {
     done
 }
 
+# try a command every 2 seconds until it succeeds, up to 30 tries max; useful for kubectl commands
+# where the Kubernetes API could be restarting
+# does not redirect stderr to /dev/null
+function try_1m_stderr() {
+    local fn="$1"
+    local args=${@:2}
+
+    n=0
+    while ! $fn $args ; do
+        n="$(( $n + 1 ))"
+        if [ "$n" -ge "30" ]; then
+            # for the final try print the error and let it exit
+            echo ""
+            try_output="$($fn $args 2>&1)" || true
+            echo "$try_output"
+            bail "spent 1m attempting to run \"$fn $args\" without success"
+        fi
+        sleep 2
+    done
+}
+
 # Run a test every second with a spinner until it succeeds
 function spinner_until() {
     local timeoutSeconds="$1"
@@ -718,7 +739,7 @@ function systemd_restart_succeeded() {
         return 1
     fi
 
-    if ps -p $oldPid; then
+    if ps -p $oldPid >/dev/null 2>&1; then
         return 1
     fi
 
@@ -727,7 +748,7 @@ function systemd_restart_succeeded() {
 
 function restart_systemd_and_wait() {
     local serviceName=$1
-    
+
     local pid="$(systemctl show --property MainPID $serviceName | cut -d = -f2)"
 
     echo "Restarting $serviceName..."

@@ -30,13 +30,13 @@ function _object_store_create_bucket() {
     local string="PUT\n\n\n${d}\n${acl}\n/$bucket"
     local sig=$(echo -en "${string}" | openssl sha1 -hmac "${OBJECT_STORE_SECRET_KEY}" -binary | base64)
 
-    curl -f -X PUT  \
+    curl -fsSL -X PUT  \
         --noproxy "*" \
         -H "Host: $OBJECT_STORE_CLUSTER_IP" \
         -H "Date: $d" \
         -H "$acl" \
         -H "Authorization: AWS $OBJECT_STORE_ACCESS_KEY:$sig" \
-        "http://$OBJECT_STORE_CLUSTER_IP/$bucket" >/dev/null
+        "http://$OBJECT_STORE_CLUSTER_IP/$bucket" >/dev/null 2>&1
 }
 
 function object_store_bucket_exists() {
@@ -46,11 +46,11 @@ function object_store_bucket_exists() {
     local string="HEAD\n\n\n${d}\n${acl}\n/$bucket"
     local sig=$(echo -en "${string}" | openssl sha1 -hmac "${OBJECT_STORE_SECRET_KEY}" -binary | base64)
 
-    curl -f -I \
+    curl -fsSL -I \
         --noproxy "*" \
         -H "Host: $OBJECT_STORE_CLUSTER_IP" \
         -H "Date: $d" \
         -H "$acl" \
         -H "Authorization: AWS $OBJECT_STORE_ACCESS_KEY:$sig" \
-        "http://$OBJECT_STORE_CLUSTER_IP/$bucket" &>/dev/null
+        "http://$OBJECT_STORE_CLUSTER_IP/$bucket" >/dev/null 2>&1
 }

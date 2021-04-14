@@ -3,7 +3,7 @@ function kotsadm() {
     local src="$DIR/addons/kotsadm/1.20.1"
     local dst="$DIR/kustomize/kotsadm"
 
-    try_1m object_store_create_bucket kotsadm
+    try_1m_stderr object_store_create_bucket kotsadm
     kotsadm_rename_postgres_pvc_1-12-2 "$src"
 
     cp "$src/kustomization.yaml" "$dst/"
