@@ -1147,13 +1147,16 @@ export class Installer {
           const prevMinor = semver.minor(version) - 1;
           const step = Installer.latestMinors()[prevMinor];
           pkgs.push(`${config}-${step}`);
+        } else if (config === "rke2") {
+          kubernetesVersion = version;
+        } else if (config === "k3s") {
+          kubernetesVersion = version;
         }
       }
     });
 
     // include conformance package if sonobuoy and kubernetes
     // we only build conformance packages for 1.17.0+
-    // TODO: rke2 and k3s
     if (kubernetesVersion && semver.gte(kubernetesVersion, "1.17.0") && _.get(this.spec, "sonobuoy.version")) {
       pkgs.push(`kubernetes-conformance-${kubernetesVersion.replace(special, '-')}`);
     }

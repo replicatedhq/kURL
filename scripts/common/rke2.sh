@@ -184,12 +184,16 @@ function rke2_install() {
     # TODO(ethan): is this still necessary?
     # kubernetes_sysctl_config
 
+    local k8s_semver=
+    k8s_semver="$(echo "${rke2_version}" | sed 's/^v\(.*\)-.*$/\1/')"
+
     # For online always download the rke2.tar.gz bundle.
     # Regardless if host packages are already installed, we always inspect for newer versions
     # and/or re-install any missing or corrupted packages.
     # TODO(ethan): is this comment correct?
     if [ "$AIRGAP" != "1" ] && [ -n "$DIST_URL" ]; then
         rke2_get_host_packages_online "${rke2_version}"
+        kubernetes_get_conformance_packages_online "${k8s_semver}"
     fi
 
     rke2_configure
@@ -202,7 +206,7 @@ function rke2_install() {
     systemctl start rke2-server.service
 
     spinner_containerd_is_healthy
-    
+
     get_shared
 
     logStep "Installing plugins"
@@ -215,6 +219,10 @@ function rke2_install() {
     while [ ! -f /etc/rancher/rke2/rke2.yaml ]; do
         sleep 2
     done
+
+    if [ -d "$DIR/packages/kubernetes-conformance/${k8s_semver}/images" ]; then
+        load_images "$DIR/packages/kubernetes-conformance/${k8s_semver}/images"
+    fi
 
     # For Kubectl and Rke2 binaries 
     # NOTE: this is still not in root's path
