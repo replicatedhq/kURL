@@ -739,7 +739,7 @@ function systemd_restart_succeeded() {
         return 1
     fi
 
-    if ps -p $oldPid; then
+    if ps -p $oldPid >/dev/null 2>&1; then
         return 1
     fi
 
@@ -748,7 +748,7 @@ function systemd_restart_succeeded() {
 
 function restart_systemd_and_wait() {
     local serviceName=$1
-    
+
     local pid="$(systemctl show --property MainPID $serviceName | cut -d = -f2)"
 
     echo "Restarting $serviceName..."
