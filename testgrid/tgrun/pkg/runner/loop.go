@@ -89,6 +89,7 @@ func MainRunLoop(runnerOptions types.RunnerOptions) error {
 				OperatingSystemName:    dequeuedInstance.OperatingSystemName,
 				OperatingSystemVersion: dequeuedInstance.OperatingSystemVersion,
 				OperatingSystemImage:   dequeuedInstance.OperatingSystemImage,
+				OperatingSystemPreInit: dequeuedInstance.OperatingSystemPreInit,
 
 				PVCName: fmt.Sprintf("%s-disk", dequeuedInstance.ID),
 

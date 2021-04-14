@@ -32,6 +32,7 @@ type PlannedInstance struct {
 	OperatingSystemName    string
 	OperatingSystemVersion string
 	OperatingSystemImage   string
+	OperatingSystemPreInit string
 
 	IsUnsupported bool
 }
@@ -86,6 +87,7 @@ func StartRef(w http.ResponseWriter, r *http.Request) {
 			plannedInstance.OperatingSystemName,
 			plannedInstance.OperatingSystemVersion,
 			plannedInstance.OperatingSystemImage,
+			plannedInstance.OperatingSystemPreInit,
 		)
 		if err != nil {
 			logger.Error(err)

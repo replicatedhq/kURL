@@ -23,4 +23,5 @@ type TestInstance struct {
 	OSName    string `json:"osName"`
 	OSVersion string `json:"osVersion"`
 	OSImage   string `json:"-"`
+	OSPreInit string `json:"-"`
 }

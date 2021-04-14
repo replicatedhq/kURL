@@ -148,6 +148,7 @@ func Run(schedulerOptions types.SchedulerOptions) error {
 				OperatingSystemName:    operatingSystem.Name,
 				OperatingSystemVersion: operatingSystem.Version,
 				OperatingSystemImage:   operatingSystem.VMImageURI,
+				OperatingSystemPreInit: operatingSystem.PreInit,
 
 				IsUnsupported: isUnsupported,
 			}
@@ -156,7 +157,7 @@ func Run(schedulerOptions types.SchedulerOptions) error {
 		}
 	}
 
-	if err := reportStarted(schedulerOptions, plannedInstances); err != nil {
+	if err := sendStartInstancesRequest(schedulerOptions, plannedInstances); err != nil {
 		return errors.Wrap(err, "failed to report ref started")
 	}
 
@@ -202,7 +203,7 @@ func getKurlPlans(schedulerOptions types.SchedulerOptions) ([]types.Instance, er
 	return kurlPlans, nil
 }
 
-func reportStarted(schedulerOptions types.SchedulerOptions, plannedInstances []tghandlers.PlannedInstance) error {
+func sendStartInstancesRequest(schedulerOptions types.SchedulerOptions, plannedInstances []tghandlers.PlannedInstance) error {
 	startRefRequest := tghandlers.StartRefRequest{
 		Overwrite: schedulerOptions.OverwriteRef,
 		Instances: plannedInstances,
