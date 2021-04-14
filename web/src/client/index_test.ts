@@ -58,10 +58,10 @@ spec:
     version: latest
 `;
 
-const d3a9234 = `
+const nineteen = `
 spec:
   kubernetes:
-    version: 1.15.1
+    version: 1.19.9
   weave:
     version: 2.5.2
   rook:
@@ -72,7 +72,7 @@ spec:
 const min = `
 spec:
   kubernetes:
-    version: 1.15.1`;
+    version: 1.19.9`;
 
 const badK8sVersion = `
 spec:
@@ -101,7 +101,7 @@ metadata:
   name: "latest"
 spec:
   kubernetes:
-    version: "1.15.1"
+    version: "1.19.9"
   rook:
     version: "1.0.4"
   contour:
@@ -270,19 +270,19 @@ describe("POST /installer", () => {
     });
   });
 
-  describe("d3a9234", () => {
-    it(`should return 201 "https://kurl.sh/d3a9234"`, async () => {
-      const uri = await client.postInstaller(d3a9234);
+  describe("3b657c6", () => {
+    it(`should return 201 "https://kurl.sh/3b657c6"`, async () => {
+      const uri = await client.postInstaller(nineteen);
 
-      expect(uri).to.match(/d3a9234$/);
+      expect(uri).to.match(/3b657c6/);
     });
   });
 
   describe("min", () => {
-    it(`should return 201 "https://kurl.sh/6898644"`, async () => {
+    it(`should return 201 "https://kurl.sh/d44632a"`, async () => {
       const uri = await client.postInstaller(min);
 
-      expect(uri).to.match(/6898644$/);
+      expect(uri).to.match(/d44632a/);
     });
   });
 
@@ -413,7 +413,7 @@ describe("PUT /installer/<id>", () => {
   describe("valid", () => {
     it("201", async () => {
       const tkn = jwt.sign({team_id: "team1"}, "jwt-signing-key");
-      const uri = await client.putInstaller(tkn, "kurl-beta", d3a9234);
+      const uri = await client.putInstaller(tkn, "kurl-beta", nineteen);
 
       expect(uri).to.match(/kurl-beta/);
     });
@@ -425,7 +425,7 @@ describe("PUT /installer/<id>", () => {
 
       try {
         const tkn = jwt.sign({team_id: "team1"}, "jwt-signing-key");
-        await client.putInstaller(tkn, "invalid name", d3a9234);
+        await client.putInstaller(tkn, "invalid name", nineteen);
       } catch (error) {
         err = error;
       }
@@ -440,7 +440,7 @@ describe("PUT /installer/<id>", () => {
 
       try {
         const tkn = jwt.sign({team_id: "team1"}, "jwt-signing-key");
-        await client.putInstaller(tkn, "BETA", d3a9234);
+        await client.putInstaller(tkn, "BETA", nineteen);
       } catch (error) {
         err = error;
       }
@@ -454,7 +454,7 @@ describe("PUT /installer/<id>", () => {
       let err;
 
       try {
-        await client.putInstaller("Bearer xxx", "kurl-beta", d3a9234);
+        await client.putInstaller("Bearer xxx", "kurl-beta", nineteen);
       } catch (error) {
         err = error;
       }
@@ -466,7 +466,7 @@ describe("PUT /installer/<id>", () => {
   describe("forbidden", () => {
     before(async () => {
       const tkn = jwt.sign({team_id: "team1"}, "jwt-signing-key");
-      await client.putInstaller(tkn, "kurl-beta", d3a9234);
+      await client.putInstaller(tkn, "kurl-beta", nineteen);
     });
 
     it("403", async () => {
@@ -474,7 +474,7 @@ describe("PUT /installer/<id>", () => {
 
       try {
         const tkn = jwt.sign({team_id: "team2"}, "jwt-signing-key");
-        await client.putInstaller(tkn, "kurl-beta", d3a9234);
+        await client.putInstaller(tkn, "kurl-beta", nineteen);
       } catch (error) {
         err = error;
       }
@@ -503,15 +503,15 @@ describe("GET /<installerID>", () => {
     });
   });
 
-  describe("min (/6898644)", () => {
+  describe("min (/d44632a)", () => {
     before(async () => {
       await client.postInstaller(min);
     });
 
-    it("injects k8s 1.15.1 only", async () => {
-      const script = await client.getInstallScript("6898644");
+    it("injects k8s 1.19.9 only", async () => {
+      const script = await client.getInstallScript("d44632a");
 
-      expect(script).to.match(new RegExp(`version: 1.15.1`));
+      expect(script).to.match(new RegExp(`version: 1.19.9`));
     });
   });
 
@@ -622,7 +622,7 @@ describe("GET /<installerID>", () => {
       const i = Installer.parse(proxy);
 
       const script = await client.getInstallScript(id);
-      expect(script).to.have.string("proxyAddress: 'http://proxy.internal:3128'");
+      expect(script).to.have.string("proxyAddress: http://proxy.internal:3128");
       expect(script).to.have.string("registry.internal");
       expect(script).to.have.string("10.128.0.44");
       expect(script).to.have.string("noProxy: false");
@@ -631,13 +631,14 @@ describe("GET /<installerID>", () => {
 
   describe("known versions with override (/873e13e)", () => {
     before(async () => {
-      await client.postInstaller(overrideUnknownVersion);
+      const url = await client.postInstaller(overrideUnknownVersion);
+      console.log(url);
     });
 
     it("returns override", async () => {
       const script = await client.getInstallScript("873e13e");
 
-      expect(script).to.match(new RegExp(`s3Override: 'https://dummy.s3.us-east-1.amazonaws.com/pr/contour-100.0.0.tar.gz'`));
+      expect(script).to.match(new RegExp(`s3Override: https://dummy.s3.us-east-1.amazonaws.com/pr/contour-100.0.0.tar.gz`));
     });
   });
 });
@@ -659,15 +660,15 @@ describe("GET /<installerID>/join.sh", () => {
     });
   });
 
-  describe("min (/6898644/join.sh)", () => {
+  describe("min (/d44632a/join.sh)", () => {
     before(async () => {
       await client.postInstaller(min);
     });
 
-    it("injects k8s 1.15.1 only", async () => {
-      const script = await client.getJoinScript("6898644");
+    it("injects k8s 1.19.9 only", async () => {
+      const script = await client.getJoinScript("d44632a");
 
-      expect(script).to.match(new RegExp(`version: 1.15.1`));
+      expect(script).to.match(new RegExp(`version: 1.19.9`));
     });
   });
 
@@ -690,15 +691,15 @@ describe("GET /installer/<installerID>", () => {
   });
 
   it("returns installer yaml", async () => {
-    const yaml = await client.getInstallerYAML("6898644");
+    const yaml = await client.getInstallerYAML("d44632a");
 
     expect(yaml).to.equal(`apiVersion: cluster.kurl.sh/v1beta1
 kind: Installer
 metadata:
-  name: '6898644'
+  name: d44632a
 spec:
   kubernetes:
-    version: 1.15.1
+    version: 1.19.9
 `);
   });
 
@@ -746,9 +747,9 @@ describe("GET /installer", () => {
     const versions = await client.getVersions();
 
     expect(versions.kubernetes).to.be.an.instanceof(Array);
-    expect(versions.kubernetes).to.contain("1.15.3");
+    expect(versions.kubernetes).to.contain("1.19.9");
     expect(versions.kubernetes).to.contain("latest");
-    expect(versions.kubernetes).to.contain("1.15.0");
+    expect(versions.kubernetes).to.contain("1.16.4");
     expect(versions.weave).to.contain("2.5.2");
     expect(versions.weave).to.contain("latest");
     expect(versions.rook).to.contain("1.0.4");

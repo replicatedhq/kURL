@@ -1162,7 +1162,7 @@ export class Installer {
   }
 
   public static latestMinors(): string[] {
-    const ret: string[] = _.fill(Array(15), "0.0.0");
+    const ret: string[] = _.fill(Array(16), "0.0.0");
 
     InstallerVersions.kubernetes.forEach((version: string) => {
       const minor = semver.minor(version);

@@ -3,10 +3,6 @@ package scheduler
 var kubernetesVersions = []string{
 	"1.17.3",
 	// "1.16.4",
-	// "1.15.3",
-	// "1.15.2",
-	// "1.15.1",
-	// "1.15.0",
 }
 
 var cri = map[string][]string{

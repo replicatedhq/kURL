@@ -162,7 +162,7 @@ metadata:
   name: stable
 spec:
   kubernetes:
-    version: 1.15.2
+    version: 1.19.9
   weave:
     version: 2.5.2
   rook:
@@ -180,7 +180,7 @@ metadata:
   name: stable
 spec:
   kubernetes:
-    version: 1.15.2
+    version: 1.19.9
   weave:
     version: 2.5.2
   rook:
@@ -196,7 +196,7 @@ spec:
 const noName = `
 spec:
   kubernetes:
-    version: 1.15.2
+    version: 1.19.9
   weave:
     version: 2.5.2
   rook:
@@ -218,7 +218,7 @@ spec:
   prometheus:
     version: 0.33.0
   kubernetes:
-    version: 1.15.2
+    version: 1.19.9
   registry:
     version: 2.7.1
   rook:
@@ -244,7 +244,7 @@ spec:
 const min = `
 spec:
   kubernetes:
-    version: 1.15.1
+    version: 1.19.9
 `;
 
 const empty = "";
@@ -395,7 +395,7 @@ spec:
 const noConformance = `
 spec:
   kubernetes:
-    version: 1.15.3
+    version: 1.16.4
   sonobuoy:
     version: 0.50.0
 `;
@@ -405,7 +405,7 @@ describe("Installer", () => {
     it("parses yaml with type meta and name", () => {
       const i = Installer.parse(typeMetaStableV1Beta1);
       expect(i).to.have.property("id", "stable");
-      expect(i.spec.kubernetes).to.have.property("version", "1.15.2");
+      expect(i.spec.kubernetes).to.have.property("version", "1.19.9");
       expect(i.spec.weave).to.have.property("version", "2.5.2");
       expect(i.spec.rook).to.have.property("version", "1.0.4");
       expect(i.spec.contour).to.have.property("version", "0.14.0");
@@ -416,7 +416,7 @@ describe("Installer", () => {
     it("parses yaml with name and no type meta", () => {
       const i = Installer.parse(stable);
       expect(i).to.have.property("id", "stable");
-      expect(i.spec.kubernetes).to.have.property("version", "1.15.2");
+      expect(i.spec.kubernetes).to.have.property("version", "1.19.9");
       expect(i.spec.weave).to.have.property("version", "2.5.2");
       expect(i.spec.rook).to.have.property("version", "1.0.4");
       expect(i.spec.contour).to.have.property("version", "0.14.0");
@@ -427,7 +427,7 @@ describe("Installer", () => {
     it("parses yaml with only a spec", () => {
       const i = Installer.parse(noName);
       expect(i).to.have.property("id", "");
-      expect(i.spec.kubernetes).to.have.property("version", "1.15.2");
+      expect(i.spec.kubernetes).to.have.property("version", "1.19.9");
       expect(i.spec.weave).to.have.property("version", "2.5.2");
       expect(i.spec.rook).to.have.property("version", "1.0.4");
       expect(i.spec.contour).to.have.property("version", "0.14.0");
@@ -438,7 +438,7 @@ describe("Installer", () => {
     it("parses yaml spec in different order", () => {
       const i = Installer.parse(disordered);
       expect(i).to.have.property("id", "");
-      expect(i.spec.kubernetes).to.have.property("version", "1.15.2");
+      expect(i.spec.kubernetes).to.have.property("version", "1.19.9");
       expect(i.spec.weave).to.have.property("version", "2.5.2");
       expect(i.spec.rook).to.have.property("version", "1.0.4");
       expect(i.spec.contour).to.have.property("version", "0.14.0");
@@ -449,7 +449,7 @@ describe("Installer", () => {
     it("parses yaml spec with empty versions", () => {
       const i = Installer.parse(min);
       expect(i).to.have.property("id", "");
-      expect(i.spec.kubernetes).to.have.property("version", "1.15.1");
+      expect(i.spec.kubernetes).to.have.property("version", "1.19.9");
       expect(i.spec).not.to.have.property("weave");
       expect(i.spec).not.to.have.property("rook");
       expect(i.spec).not.to.have.property("contour");
@@ -545,7 +545,7 @@ metadata:
   name: ''
 spec:
   kubernetes:
-    version: 1.15.2
+    version: 1.19.9
   weave:
     version: 2.5.2
   rook:
@@ -940,7 +940,7 @@ spec:
 
       expect(out[0]).to.equal("0.0.0");
       expect(out[14]).to.equal("0.0.0");
-      expect(out[15]).to.equal("1.15.3");
+      expect(out[15]).to.equal("0.0.0");
       expect(out[16]).to.equal("1.16.4");
       expect(out[17]).to.equal("1.17.13");
       expect(out[18]).to.equal("1.18.17");
@@ -1049,7 +1049,7 @@ spec:
       expect(hasSonobuoy).to.equal(true);
 
       const hasKubernetes = _.some(pkgs, (pkg) => {
-        return pkg === "kubernetes-1.15.3";
+        return pkg === "kubernetes-1.16.4";
       });
       expect(hasKubernetes).to.equal(true);
 
