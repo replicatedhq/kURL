@@ -188,8 +188,8 @@ dist/sonobuoy-%.tar.gz: build/addons
 	mkdir -p dist
 	tar cf - -C build addons/sonobuoy/$* | gzip > dist/sonobuoy-$*.tar.gz
 
-.PRECIOUS: dist/kubernetes-conformance-%.tar.gz
-dist/kubernetes-%.tar.gz: dist/kubernetes-conformance-%.tar.gz
+dist/kubernetes-%.tar.gz:
+	${MAKE} dist/kubernetes-conformance-$*.tar.gz
 	${MAKE} build/packages/kubernetes/$*/images
 	${MAKE} build/packages/kubernetes/$*/ubuntu-16.04
 	${MAKE} build/packages/kubernetes/$*/ubuntu-18.04
@@ -215,6 +215,7 @@ build/packages/kubernetes-conformance/%/images:
 	bin/save-manifest-assets.sh packages/kubernetes/$*/conformance/Manifest build/packages/kubernetes-conformance/$*
 
 dist/rke-2-%.tar.gz:
+	${MAKE} dist/kubernetes-conformance-$(shell echo "$*" | sed 's/^v\(.*\)-.*$$/\1/').tar.gz
 	${MAKE} build/packages/rke-2/$*/images
 	${MAKE} build/packages/rke-2/$*/rhel-7
 	${MAKE} build/packages/rke-2/$*/rhel-8
@@ -227,6 +228,7 @@ build/packages/rke-2/%/images:
 	bin/save-manifest-assets.sh packages/rke-2/$*/Manifest build/packages/rke-2/$*
 
 dist/k-3-s-%.tar.gz:
+	${MAKE} dist/kubernetes-conformance-$(shell echo "$*" | sed 's/^v\(.*\)-.*$$/\1/').tar.gz
 	${MAKE} build/packages/k-3-s/$*/images
 	${MAKE} build/packages/k-3-s/$*/rhel-7
 	${MAKE} build/packages/k-3-s/$*/rhel-8

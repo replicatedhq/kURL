@@ -177,12 +177,16 @@ function k3s_install() {
     # TODO(ethan): is this still necessary?
     # kubernetes_sysctl_config
 
+    local k8s_semver=
+    k8s_semver="$(echo "${k3s_version}" | sed 's/^v\(.*\)-.*$/\1/')"
+
     # For online always download the k3s.tar.gz bundle.
     # Regardless if host packages are already installed, we always inspect for newer versions
     # and/or re-install any missing or corrupted packages.
     # TODO(ethan): is this comment correct?
     if [ "$AIRGAP" != "1" ] && [ -n "$DIST_URL" ]; then
         k3s_get_host_packages_online "${k3s_version}"
+        kubernetes_get_conformance_packages_online "${k8s_semver}"
     fi
 
     k3s_configure
@@ -214,6 +218,10 @@ function k3s_install() {
     while [ ! -f /etc/rancher/k3s/k3s.yaml ]; do
         sleep 2
     done
+
+    if [ -d "$DIR/packages/kubernetes-conformance/${k8s_semver}/images" ]; then
+        load_images "$DIR/packages/kubernetes-conformance/${k8s_semver}/images"
+    fi
 
     logStep "Waiting for Kubernetes"
     # Extending timeout to 5 min based on performance on clean machines.

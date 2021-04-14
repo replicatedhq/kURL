@@ -91,6 +91,14 @@ func Run(schedulerOptions types.SchedulerOptions) error {
 		var upgradeYAML, upgradeURL []byte
 		if instance.UpgradeSpec != nil {
 			installer.Spec = *instance.UpgradeSpec
+
+			// append sonobuoy for conformance testing
+			if installer.Spec.Sonobuoy == nil {
+				installer.Spec.Sonobuoy = &kurlv1beta1.Sonobuoy{
+					Version: "latest",
+				}
+			}
+
 			upgradeYAML, err = json.Marshal(installer)
 			if err != nil {
 				return errors.Wrap(err, "failed to marshal upgrade json")
