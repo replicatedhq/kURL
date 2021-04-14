@@ -415,6 +415,15 @@ spec:
                 required:
                 - version
                 type: object
+              ufwConfig:
+                properties:
+                  bypassUFWWarning:
+                    type: boolean
+                  disableUFW:
+                    type: boolean
+                  hardFailOnUFW:
+                    type: boolean
+                type: object
               velero:
                 properties:
                   disableCLI:

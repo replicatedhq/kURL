@@ -26,10 +26,36 @@ jobs:
 
       - run: make -C kurl_util deps test build
 
+
+  build-web:
+    runs-on: ubuntu-18.04
+    steps:
+      - uses: actions/checkout@v2
+
       - uses: actions/setup-node@v2.1.5
         with:
           node-version: '12'
+
       - run: make -C web test
+
+
+  build-kurlkinds:
+    runs-on: ubuntu-18.04
+    steps:
+      - uses: actions/setup-go@v2.1.3
+        with:
+          go-version: 1.16.0
+
+      - name: setup env
+        run: |
+          echo "GOPATH=$(go env GOPATH)" >> $GITHUB_ENV
+          echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
+        shell: bash
+
+      - uses: actions/checkout@v2
+
+      - run: |
+          make -C kurlkinds deps test manager
 
 
   build-bin-kurl:
