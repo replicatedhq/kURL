@@ -99,10 +99,10 @@ type ReconcileInstaller struct {
 // +kubebuilder:rbac:groups=apps,resources=deployments/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=cluster.kurl.sh,resources=installers,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=cluster.kurl.sh,resources=installers/status,verbs=get;update;patch
-func (r *ReconcileInstaller) Reconcile(request reconcile.Request) (reconcile.Result, error) {
+func (r *ReconcileInstaller) Reconcile(ctx context.Context, request reconcile.Request) (reconcile.Result, error) {
 	// Fetch the Installer instance
 	instance := &clusterv1beta1.Installer{}
-	err := r.Get(context.TODO(), request.NamespacedName, instance)
+	err := r.Get(ctx, request.NamespacedName, instance)
 	if err != nil {
 		if errors.IsNotFound(err) {
 			// Object not found, return.  Created objects are automatically garbage collected.
@@ -144,10 +144,10 @@ func (r *ReconcileInstaller) Reconcile(request reconcile.Request) (reconcile.Res
 	// TODO(user): Change this for the object type created by your controller
 	// Check if the Deployment already exists
 	found := &appsv1.Deployment{}
-	err = r.Get(context.TODO(), types.NamespacedName{Name: deploy.Name, Namespace: deploy.Namespace}, found)
+	err = r.Get(ctx, types.NamespacedName{Name: deploy.Name, Namespace: deploy.Namespace}, found)
 	if err != nil && errors.IsNotFound(err) {
 		log.Info("Creating Deployment", "namespace", deploy.Namespace, "name", deploy.Name)
-		err = r.Create(context.TODO(), deploy)
+		err = r.Create(ctx, deploy)
 		return reconcile.Result{}, err
 	} else if err != nil {
 		return reconcile.Result{}, err
@@ -158,7 +158,7 @@ func (r *ReconcileInstaller) Reconcile(request reconcile.Request) (reconcile.Res
 	if !reflect.DeepEqual(deploy.Spec, found.Spec) {
 		found.Spec = deploy.Spec
 		log.Info("Updating Deployment", "namespace", deploy.Namespace, "name", deploy.Name)
-		err = r.Update(context.TODO(), found)
+		err = r.Update(ctx, found)
 		if err != nil {
 			return reconcile.Result{}, err
 		}

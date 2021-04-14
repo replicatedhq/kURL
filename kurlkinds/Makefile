@@ -60,4 +60,4 @@ update-controller-gen:
 
 # get/update client-gen
 update-client-gen:
-	go get k8s.io/code-generator/cmd/client-gen@v0.21.0
+	go get k8s.io/code-generator/cmd/client-gen@v0.20.4
