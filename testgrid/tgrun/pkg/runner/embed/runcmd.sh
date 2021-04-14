@@ -307,6 +307,10 @@ function main() {
         /bin/mknod -m 0666 /dev/urandom c 1 9 && /bin/chown root:root /dev/urandom
     fi
 
+    echo "OS INFO:"
+    cat /etc/*-release
+    echo ""
+
     run_install
 
     run_tasks_join_token
