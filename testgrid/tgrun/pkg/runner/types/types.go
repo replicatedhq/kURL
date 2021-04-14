@@ -11,6 +11,7 @@ type SingleRun struct {
 	OperatingSystemName    string
 	OperatingSystemVersion string
 	OperatingSystemImage   string
+	OperatingSystemPreInit string
 
 	PVCName string
 

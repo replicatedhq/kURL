@@ -271,8 +271,10 @@ output: { all: "| tee -a /var/log/cloud-init-output.log" }
 
 runcmd:
   - [ bash, -c, 'sudo mkdir -p /opt/kurl-testgrid' ]
+  - [ bash, -c, 'echo %s | base64 -d > /opt/kurl-testgrid/preinit.sh' ]
   - [ bash, -c, 'echo %s | base64 -d > /opt/kurl-testgrid/vars.sh' ]
   - [ bash, -c, 'echo %s | base64 -d > /opt/kurl-testgrid/runcmd.sh' ]
+  - [ bash, -c, 'sudo bash /opt/kurl-testgrid/preinit.sh' ]
   - [ bash, -c, 'sudo bash -c ". /opt/kurl-testgrid/vars.sh && bash /opt/kurl-testgrid/runcmd.sh"' ]
   - [ bash, -c, 'sleep 10 && sudo poweroff' ]
 
@@ -280,6 +282,7 @@ power_state:
   mode: poweroff
   condition: True
 `,
+		base64.StdEncoding.EncodeToString([]byte(singleTest.OperatingSystemPreInit)),
 		varsB64,
 		runcmdB64,
 	)

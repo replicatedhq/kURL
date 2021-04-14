@@ -45,4 +45,6 @@ spec:
           type: text
         - name: os_image
           type: text
+        - name: os_preinit
+          type: text
     

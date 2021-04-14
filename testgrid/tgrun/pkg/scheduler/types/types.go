@@ -32,6 +32,7 @@ type OperatingSystemImage struct {
 	Name       string
 	Version    string
 	VMImageURI string
+	PreInit    string // a script to run before the test - for instance, to convert to oracle linux
 }
 
 type Instance struct {
