@@ -196,6 +196,11 @@ function kubernetes_get_conformance_packages_online() {
         return
     fi
 
+    # we only build conformance packages for 1.17.0+
+    if [ "$KUBERNETES_TARGET_VERSION_MINOR" -lt "17" ]; then
+        return
+    fi
+
     if [ "$AIRGAP" != "1" ] && [ -n "$DIST_URL" ]; then
         rm -rf "$DIR/packages/kubernetes-conformance/${k8sVersion}" # Cleanup broken/incompatible packages from failed runs
 
