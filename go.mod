@@ -21,7 +21,7 @@ require (
 	github.com/mitchellh/copystructure v1.1.1 // indirect
 	github.com/onsi/gomega v1.11.0
 	github.com/pkg/errors v0.9.1
-	github.com/replicatedhq/troubleshoot v0.10.18
+	github.com/replicatedhq/troubleshoot v0.10.19
 	github.com/spf13/afero v1.6.0
 	github.com/spf13/cobra v1.1.3
 	github.com/spf13/viper v1.7.1
