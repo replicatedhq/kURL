@@ -108,12 +108,22 @@ function init() {
     $DIR/bin/yamlutil -r -fp $KUBEADM_CONF_DIR/kubeadm_conf_copy_in -yf metadata
     mv $KUBEADM_CONF_DIR/kubeadm_conf_copy_in $KUBEADM_CONF_FILE
 
-    cat << EOF >> $KUBEADM_CONF_FILE
+    if [ "$KUBERNETES_TARGET_VERSION_MINOR" -ge "20" ]; then
+        cat << EOF >> $KUBEADM_CONF_FILE
+apiVersion: kubelet.config.k8s.io/v1beta1
+kind: KubeletConfiguration
+shutdownGracePeriod: 30s
+shutdownGracePeriodCriticalPods: 10s
+---
+EOF
+    else
+        cat << EOF >> $KUBEADM_CONF_FILE
 apiVersion: kubelet.config.k8s.io/v1beta1
 kind: KubeletConfiguration
 cgroupDriver: systemd
 ---
 EOF
+    fi
 
     # When no_proxy changes kubeadm init rewrites the static manifests and fails because the api is
     # restarting. Trigger the restart ahead of time and wait for it to be healthy.

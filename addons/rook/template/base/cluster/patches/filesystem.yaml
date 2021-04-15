@@ -10,6 +10,7 @@ spec:
       size: 1
       requireSafeReplicaSize: false
   metadataServer:
+    priorityClassName: system-cluster-critical
     resources:
       value:
         limits:

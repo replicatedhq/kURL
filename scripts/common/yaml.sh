@@ -38,7 +38,7 @@ function insert_resources() {
         echo "resources:" >> "$kustomization_file"
     fi
 
-    sed -i "/resources.*/a - $resource_file" "$kustomization_file"
+    sed -i "/resources:.*/a - $resource_file" "$kustomization_file"
 }
 
 function setup_kubeadm_kustomize() {

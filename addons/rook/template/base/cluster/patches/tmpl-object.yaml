@@ -19,4 +19,4 @@ spec:
       requests:
         cpu: "300m"
         memory: "1024Mi"
-    priorityClassName: rook-critical
+    priorityClassName: system-cluster-critical

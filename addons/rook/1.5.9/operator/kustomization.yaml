@@ -9,5 +9,4 @@ resources:
 - serviceaccount.yaml
 - psp.yaml
 - namespace.yaml
-- priority-class.yaml
 - configmap-rook-config-override.yaml

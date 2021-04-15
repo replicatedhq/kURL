@@ -27,7 +27,7 @@ spec:
         - name: ROOK_CURRENT_NAMESPACE_ONLY
           value: "false"
         - name: AGENT_PRIORITY_CLASS_NAME
-          value: rook-critical
+          value: system-node-critical
         - name: ROOK_HOSTPATH_REQUIRES_PRIVILEGED
           value: "false"
         - name: ROOK_LOG_LEVEL
@@ -41,9 +41,9 @@ spec:
         - name: ROOK_CSI_ENABLE_CEPHFS
           value: "true"
         - name: CSI_PLUGIN_PRIORITY_CLASSNAME
-          value: "rook-critical"
+          value: "system-node-critical"
         - name: CSI_PROVISIONER_PRIORITY_CLASSNAME
-          value: "rook-critical"
+          value: "system-node-critical"
         - name: ROOK_CSI_ENABLE_GRPC_METRICS
           value: "true"
         - name: CSI_FORCE_CEPHFS_KERNEL_CLIENT

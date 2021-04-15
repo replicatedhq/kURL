@@ -61,10 +61,10 @@ csi:
   # set to false to disable deployment of snapshotter container in RBD provisioner pod.
   enableRBDSnapshotter: true
   # (Optional) set user created priorityclassName for csi plugin pods.
-  pluginPriorityClassName: rook-critical # (replicated) uncommented
+  pluginPriorityClassName: system-node-critical # (replicated) uncommented
 
   # (Optional) set user created priorityclassName for csi provisioner pods.
-  provisionerPriorityClassName: rook-critical # (replicated) uncommented
+  provisionerPriorityClassName: system-node-critical # (replicated) uncommented
 
   # (Optional) policy for modifying a volume's ownership or permissions when the RBD PVC is being mounted.
   # supported values are documented at https://kubernetes-csi.github.io/docs/support-fsgroup.html
@@ -311,7 +311,7 @@ agent: # (replicated) uncommented
 #   flexVolumeDirPath: /usr/libexec/kubernetes/kubelet-plugins/volume/exec/
 #   libModulesDirPath: /lib/modules
 #   mounts: mount1=/host/path:/container/path,/host/path2:/container/path2
-  priorityClassName: rook-critical # (replicated) added
+  priorityClassName: system-node-critical # (replicated) added
 
 ## Rook Discover configuration
 ## toleration: NoSchedule, PreferNoSchedule or NoExecute

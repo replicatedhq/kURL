@@ -1,7 +1,6 @@
 resources:
 - namespace.yaml
 - crds.yaml
-- priority-class.yaml
 - driver.yaml
 - manager.yaml
 - psp.yaml
