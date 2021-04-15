@@ -68,7 +68,13 @@ function main() {
     get_latest_release_version
 
     if [ -d "../${VERSION}" ]; then
-        rm -rf "../${VERSION}"
+        if [ $# -ge 1 ] && [ "$1" == "force" ]; then
+            echo "forcibly updating existing version of prometheus"
+            rm -rf "../${VERSION}"
+        else
+            echo "not updating existing version of prometheus"
+            return
+        fi
     else
         add_as_latest
     fi
