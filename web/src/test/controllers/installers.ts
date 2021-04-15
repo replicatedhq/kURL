@@ -1058,6 +1058,21 @@ spec:
       });
       expect(hasConformance).to.equal(false);
     });
+
+    it("should not include removed Kubernetes versions", () => {
+      const i = Installer.parse(noConformance);
+      const pkgs = i.packages();
+
+      const hasKubernetes16 = _.some(pkgs, (pkg) => {
+        return pkg === "kubernetes-1.16.4";
+      });
+      expect(hasKubernetes16).to.equal(true);
+
+      const hasKubernetes000 = _.some(pkgs, (pkg) => {
+        return pkg === "kubernetes-0.0.0";
+      });
+      expect(hasKubernetes000).to.equal(false);
+    });
   });
 
   describe("kurl.nameserver", () => {

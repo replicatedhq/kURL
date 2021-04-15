@@ -1146,7 +1146,9 @@ export class Installer {
           kubernetesVersion = version;
           const prevMinor = semver.minor(version) - 1;
           const step = Installer.latestMinors()[prevMinor];
-          pkgs.push(`${config}-${step}`);
+          if (step !== "0.0.0") {
+            pkgs.push(`${config}-${step}`);
+          }
         } else if (config === "rke2") {
           kubernetesVersion = version;
         } else if (config === "k3s") {
