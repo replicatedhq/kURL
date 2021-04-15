@@ -197,7 +197,8 @@ function kubernetes_get_conformance_packages_online() {
     fi
 
     # we only build conformance packages for 1.17.0+
-    if [ "$KUBERNETES_TARGET_VERSION_MINOR" -lt "17" ]; then
+    # this variable is not yet set for rke2 or k3s installs
+    if [ -n "$KUBERNETES_TARGET_VERSION_MINOR" ] && [ "$KUBERNETES_TARGET_VERSION_MINOR" -lt "17" ]; then
         return
     fi
 
