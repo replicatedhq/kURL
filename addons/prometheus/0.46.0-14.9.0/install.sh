@@ -24,7 +24,6 @@ function prometheus() {
     kubectl delete daemonset -n monitoring node-exporter || true
     kubectl delete deployment -n monitoring grafana || true
     kubectl delete deployment -n monitoring prometheus-adapter || true
-    kubectl delete deployment -n monitoring prometheus-operator || true
 
     # remove things that had names change during upgrades
     kubectl delete alertmanager -n monitoring main || true
@@ -37,6 +36,27 @@ function prometheus() {
     kubectl delete service -n monitoring grafana || true
     kubectl delete service -n monitoring alertmanager-main || true
     kubectl delete service -n monitoring prometheus-k8s || true
+
+    # if the prometheus-node-exporter daemonset exists and has a release labelSelector set, delete it
+    if kubernetes_resource_exists monitoring daemonset prometheus-node-exporter; then
+        local promNodeExporterLabelSelector=$(kubectl get daemonset -n monitoring prometheus-node-exporter --output="jsonpath={.spec.selector.matchLabels.release}")
+        if [ -n "$promNodeExporterLabelSelector" ]; then
+            kubectl delete daemonset -n monitoring prometheus-node-exporter || true
+        fi
+    fi
+
+    # if the prometheus-operator deployment exists and has the wrong labelSelectors set, delete it
+    if kubernetes_resource_exists monitoring deployment prometheus-operator; then
+        local promOperatorLabelSelector=$(kubectl get deployment -n monitoring prometheus-operator --output="jsonpath={.spec.selector.matchLabels.release}") || true
+        if [ -n "$promOperatorLabelSelector" ]; then
+            kubectl delete deployment -n monitoring prometheus-operator || true
+        fi
+
+        promOperatorLabelSelector=$(kubectl get deployment -n monitoring prometheus-operator --output="jsonpath={.spec.selector.matchLabels.app\.kubernetes\.io/component}") || true
+        if [ -n "$promOperatorLabelSelector" ]; then
+            kubectl delete deployment -n monitoring prometheus-operator || true
+        fi
+    fi
 
     kubectl apply -k "$operatordst/"
 }
