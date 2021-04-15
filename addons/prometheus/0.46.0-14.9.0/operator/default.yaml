@@ -37319,14 +37319,12 @@ spec:
     runAsUser: 1000
   affinity:
     podAntiAffinity:
-      preferredDuringSchedulingIgnoredDuringExecution:
-      - weight: 100
-        podAffinityTerm:
-          topologyKey: kubernetes.io/hostname
-          labelSelector:
-            matchExpressions:
-              - {key: app, operator: In, values: [alertmanager]}
-              - {key: prometheus, operator: In, values: [prometheus-alertmanager]}
+      requiredDuringSchedulingIgnoredDuringExecution:
+      - topologyKey: kubernetes.io/hostname
+        labelSelector:
+          matchExpressions:
+            - {key: app, operator: In, values: [alertmanager]}
+            - {key: prometheus, operator: In, values: [prometheus-alertmanager]}
   portName: web
 ---
 # Source: kube-prometheus-stack/templates/prometheus/prometheus.yaml
@@ -37399,14 +37397,12 @@ spec:
         storageClassName: default
   affinity:
     podAntiAffinity:
-      preferredDuringSchedulingIgnoredDuringExecution:
-      - weight: 100
-        podAffinityTerm:
-          topologyKey: kubernetes.io/hostname
-          labelSelector:
-            matchExpressions:
-              - {key: app, operator: In, values: [prometheus]}
-              - {key: prometheus, operator: In, values: [k8s]}
+      requiredDuringSchedulingIgnoredDuringExecution:
+      - topologyKey: kubernetes.io/hostname
+        labelSelector:
+          matchExpressions:
+            - {key: app, operator: In, values: [prometheus]}
+            - {key: prometheus, operator: In, values: [k8s]}
   portName: web
 ---
 # Source: kube-prometheus-stack/templates/prometheus/rules-1.14/alertmanager.rules.yaml
