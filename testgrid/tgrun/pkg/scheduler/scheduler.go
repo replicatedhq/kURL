@@ -128,7 +128,7 @@ func Run(schedulerOptions types.SchedulerOptions) error {
 			return fmt.Errorf("error getting kurl spec url: %s", errMsg.Error.Message)
 		}
 
-		if instance.InstallerSpec.RunAirgap {
+		if instance.InstallerSpec.RunAirgap || schedulerOptions.Airgap {
 			installerURLString, err := bundleFromURL(string(installerURL))
 			if err != nil {
 				return errors.Wrapf(err, "generate airgap url from installer url %s", installerURL)

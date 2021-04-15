@@ -11,6 +11,7 @@ type SchedulerOptions struct {
 	OverwriteRef bool
 	Ref          string
 	Staging      bool
+	Airgap       bool
 	LatestOnly   bool
 	Spec         string
 }

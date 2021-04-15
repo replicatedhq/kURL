@@ -25,6 +25,7 @@ func QueueCmd() *cobra.Command {
 				OverwriteRef: v.GetBool("overwrite-ref"),
 				Ref:          v.GetString("ref"),
 				Staging:      v.GetBool("staging"),
+				Airgap:       v.GetBool("airgap"),
 				LatestOnly:   v.GetBool("latest-only"),
 				Spec:         v.GetString("spec"),
 			}
@@ -40,6 +41,7 @@ func QueueCmd() *cobra.Command {
 	cmd.Flags().String("ref", "", "ref to report to testgrid")
 	cmd.Flags().Bool("overwrite-ref", false, "when set, overwrite the ref on the testgrid")
 	cmd.Flags().Bool("staging", false, "when set, run tests against staging.kurl.sh instead of kurl.sh")
+	cmd.Flags().Bool("airgap", false, "when set, run tests in airgapped mode")
 	cmd.Flags().Bool("latest-only", false, "when set, run tests against the 'latest' kurl installer only instead of the standard suite")
 	cmd.Flags().String("spec", "", "when set, runs test against the provided installer spec yaml")
 
