@@ -160,14 +160,18 @@ func SetInstanceSonobuoyResults(id string, results []byte) error {
 }
 
 // SetInstanceFinishedAndSuccess sets is_success, failure and finished_at.
-// Success can change to failure, but not failure to success.
 func SetInstanceFinishedAndSuccess(id string, isSuccess bool, failure string) error {
 	db := persistence.MustGetPGSession()
 
 	var query string
 	if isSuccess {
-		query = `update testinstance set is_success = $2, finished_at = now(), failure = $3 where ( id = $1 ) AND ( ( finished_at is null ) OR ( is_success = true ) )`
+		// Failure cannot change to success.
+		query = `update testinstance set is_success = $2, finished_at = now(), failure = $3 where id = $1 and finished_at is null`
+	} else if failure == "timeout" {
+		// Timeout cannot change success to failure.
+		query = `update testinstance set is_success = $2, finished_at = now(), failure = $3 where id = $1 and is_success != true`
 	} else {
+		// Success can change to failure unless timeout.
 		query = `update testinstance set is_success = $2, finished_at = now(), failure = $3 where id = $1`
 	}
 

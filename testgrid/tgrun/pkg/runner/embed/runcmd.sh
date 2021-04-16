@@ -38,8 +38,8 @@ function run_install() {
         local tar_exit_status="$?"
         if [ $tar_exit_status -ne 0 ]; then
             echo "failed to unpack airgap file with status $tar_exit_status"
-            report_failure "airgap_download"
             send_logs
+            report_failure "airgap_download"
             exit 1
         fi
     else
@@ -79,7 +79,6 @@ function run_install() {
     else
         echo ""
         echo "failed kurl install with exit status $KURL_EXIT_STATUS"
-        report_failure "kurl_install"
     fi
 
     collect_debug_info_after_kurl || :
@@ -107,8 +106,8 @@ function run_upgrade() {
         local tar_exit_status="$?"
         if [ $tar_exit_status -ne 0 ]; then
             echo "failed to unpack airgap file with status $tar_exit_status"
-            report_failure "airgap_download"
             send_logs
+            report_failure "airgap_download"
             exit 1
         fi
     else
@@ -128,7 +127,6 @@ function run_upgrade() {
     else
         echo ""
         echo "failed kurl upgrade with exit status $KURL_EXIT_STATUS"
-        report_failure "kurl_upgrade"
     fi
 
     collect_debug_info_after_kurl || :
@@ -162,6 +160,7 @@ function run_tasks_join_token() {
         echo "tasks.sh run:"
         cat tasks.sh | timeout 5m bash -s join_token $AIRGAP_FLAG
         echo "tasks exit status: $?"
+        # TODO: failure
         echo ""
     fi
 }
@@ -216,8 +215,8 @@ function disable_internet() {
     if [ $exit_status -eq 0 ]; then
         echo "successfully curled an external endpoint in airgap"
         traceroute www.google.com
-        report_failure "airgap_instance"
         send_logs
+        report_failure "airgap_instance"
         exit 1
     fi
 
@@ -238,8 +237,9 @@ function run_sonobuoy() {
     if [ $SONOBUOY_EXIT_STATUS -ne 0 ]; then
         echo "failed sonobuoy run"
         collect_debug_info_sonobuoy
+        send_logs
         report_failure "sonobuoy_run"
-        return 1
+        exit 1
     fi
 
     RESULTS=$(/usr/local/bin/sonobuoy retrieve)
@@ -251,8 +251,9 @@ function run_sonobuoy() {
     else
         echo "failed sonobuoy retrieve"
         collect_debug_info_sonobuoy
+        send_logs
         report_failure "sonobuoy_retrieve"
-        return 1
+        exit 1
     fi
 }
 
@@ -297,32 +298,33 @@ function main() {
 
     run_install
 
-    # if install succeeded, maybe upgrade
-    if [ $KURL_EXIT_STATUS -eq 0 ]; then
-        run_tasks_join_token
-
-        if [ "$KURL_UPGRADE_URL" != "" ]; then
-            run_upgrade
-        fi
+    if [ $KURL_EXIT_STATUS -ne 0 ]; then
+        send_logs
+        report_failure "kurl_install"
+        collect_support_bundle
+        exit 1
     fi
 
-    send_logs
+    run_tasks_join_token
+
+    if [ "$KURL_UPGRADE_URL" != "" ]; then
+        run_upgrade
+    fi
+
+    if [ $KURL_EXIT_STATUS -ne 0 ]; then
+        send_logs
+        report_failure "kurl_upgrade"
+        collect_support_bundle
+        exit 1
+    fi
 
     collect_support_bundle
 
-    # if install failed no need to 
-    if [ $KURL_EXIT_STATUS -ne 0 ]; then
-        send_logs
-        return 1
-    fi
-
-    if ! run_sonobuoy ; then
-        send_logs
-        return 1
-    fi
+    run_sonobuoy
 
     send_logs
     report_success
+    exit 0
 }
 
 ###############################################################################
