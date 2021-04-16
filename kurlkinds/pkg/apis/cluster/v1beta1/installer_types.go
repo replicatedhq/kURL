@@ -155,6 +155,7 @@ type K3S struct {
 
 type Rook struct {
 	BlockDeviceFilter          string `json:"blockDeviceFilter,omitempty" yaml:"blockDeviceFilter,omitempty"`
+	BypassUpgradeWarning       bool   `json:"bypassUpgradeWarning,omitempty" yaml:"bypassUpgradeWarning,omitempty"`
 	CephReplicaCount           int    `json:"cephReplicaCount,omitempty" yaml:"cephReplicaCount,omitempty"`
 	IsBlockStorageEnabled      bool   `json:"isBlockStorageEnabled,omitempty" yaml:"isBlockStorageEnabled,omitempty"`
 	S3Override                 string `json:"s3Override,omitempty" yaml:"s3Override,omitempty"`

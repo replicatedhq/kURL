@@ -36,3 +36,4 @@
       version: "__testver__"
       s3Override: "__testdist__"
       isBlockStorageEnabled: true
+      bypassUpgradeWarning: true

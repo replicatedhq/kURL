@@ -4,10 +4,10 @@ set -euo pipefail
 
 VERSION=
 function get_latest_version() {
-    # latest 1.4.x version
+    # latest 1.5.x version
     VERSION=$(curl -s https://api.github.com/repos/rook/rook/releases | \
         grep '"tag_name": ' | \
-        grep -Eo "1\.4\.[0-9]+" | \
+        grep -Eo "1\.5\.[0-9]+" | \
         head -1)
 }
 
