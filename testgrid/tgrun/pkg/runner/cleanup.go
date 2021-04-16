@@ -3,7 +3,9 @@ package runner
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/pkg/errors"
@@ -38,6 +40,17 @@ func CleanUpVMIs() error {
 
 		// cleanup VMIs that have been running for more than one hour - the in-script timeout is 30m
 		if vmi.Status.Phase == kubevirtv1.Running && time.Since(vmi.CreationTimestamp.Time).Minutes() > 60 {
+			if apiEndpoint := vmi.Annotations["testgrid.kurl.sh/apiendpoint"]; apiEndpoint != "" {
+				url := fmt.Sprintf("%s/v1/instance/%s/finish", apiEndpoint, vmi.Name)
+				data := `{"success": false, "failure": "timeout"}`
+				resp, err := http.Post(url, "application/json", strings.NewReader(data))
+				if err != nil {
+					fmt.Printf("Failed to post timeout failure to testgrid api for vmi %s: %v\n", vmi.Name, err)
+				} else {
+					resp.Body.Close()
+				}
+			}
+
 			err := virtClient.VirtualMachineInstance(Namespace).Delete(vmi.Name, &metav1.DeleteOptions{})
 			if err != nil {
 				fmt.Printf("Failed to delete long-running vmi %s: %v\n", vmi.Name, err)

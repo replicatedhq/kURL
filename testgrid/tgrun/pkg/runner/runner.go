@@ -151,10 +151,11 @@ func execute(singleTest types.SingleRun, uploadProxyURL, tempDir string) error {
 				"kubevirt.io/domain": singleTest.ID,
 			},
 			Annotations: map[string]string{
-				"testgrid.kurl.sh/osname":    singleTest.OperatingSystemName,
-				"testgrid.kurl.sh/osversion": singleTest.OperatingSystemVersion,
-				"testgrid.kurl.sh/osimage":   singleTest.OperatingSystemImage,
-				"testgrid.kurl.sh/kurlurl":   singleTest.KurlURL,
+				"testgrid.kurl.sh/osname":      singleTest.OperatingSystemName,
+				"testgrid.kurl.sh/osversion":   singleTest.OperatingSystemVersion,
+				"testgrid.kurl.sh/osimage":     singleTest.OperatingSystemImage,
+				"testgrid.kurl.sh/kurlurl":     singleTest.KurlURL,
+				"testgrid.kurl.sh/apiendpoint": singleTest.TestGridAPIEndpoint,
 			},
 		},
 		Spec: kubevirtv1.VirtualMachineInstanceSpec{
