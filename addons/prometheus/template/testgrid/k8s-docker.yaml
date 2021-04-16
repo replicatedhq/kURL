@@ -4,7 +4,7 @@
     weave:
       version: "latest"
     rook:
-      version: "1.4.3"
+      version: "1.5.9"
       isBlockStorageEnabled: true
     docker:
       version: "latest"
@@ -17,7 +17,7 @@
     weave:
       version: "latest"
     rook:
-      version: "1.4.3"
+      version: "1.5.9"
       isBlockStorageEnabled: true
     docker:
       version: "latest"
@@ -29,7 +29,7 @@
     weave:
       version: "latest"
     rook:
-      version: "1.4.3"
+      version: "1.5.9"
       isBlockStorageEnabled: true
     docker:
       version: "latest"
@@ -42,7 +42,7 @@
     weave:
       version: "latest"
     rook:
-      version: "1.4.3"
+      version: "1.5.9"
       isBlockStorageEnabled: true
     docker:
       version: "latest"
@@ -54,7 +54,7 @@
     weave:
       version: "latest"
     rook:
-      version: "1.4.3"
+      version: "1.5.9"
       isBlockStorageEnabled: true
     docker:
       version: "latest"

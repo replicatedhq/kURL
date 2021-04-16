@@ -19,7 +19,7 @@ func init() {
 					Version: "1.3.7",
 				},
 				Rook: &kurlv1beta1.Rook{
-					Version:               "1.4.3",
+					Version:               "1.4.9",
 					IsBlockStorageEnabled: true,
 				},
 				Contour: &kurlv1beta1.Contour{
