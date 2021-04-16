@@ -12,8 +12,8 @@ export default class RunTable extends React.Component {
                 <tr key={run.id}>
                     <td><Link to={`/run/${run.id}`}>{run.id}</Link></td>
                     <td>{moment(run.created_at).format("MMM D, YYYY h:mma")}</td>
-                    <td>{moment(run.last_start).format("MMM D, YYYY h:mma")}</td>
-                    <td>{moment(run.last_response).format("MMM D, YYYY h:mma")}</td>
+                    <td>{run.last_start && moment(run.last_start).format("MMM D, YYYY h:mma")}</td>
+                    <td>{run.last_response && moment(run.last_response).format("MMM D, YYYY h:mma")}</td>
                     <td>{`${run.success_count}`}</td>
                     <td>{`${run.failure_count}`}</td>
                     <td>{`${run.pending_runs}`}</td>
