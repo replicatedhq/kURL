@@ -14,22 +14,38 @@ function rook_pre_init() {
     next_version_minor="${minor}"
     next_version_patch="${patch}"
 
-    if [ -n "${version}" ]; then
+    if [ -n "${current_version}" ]; then
         if [ "${current_version_minor}" != "${next_version_minor}" ]; then
             if [ "${current_version_minor}" -gt "${next_version_minor}" ]; then
-                echo "Rook ${version} is already installed, will not downgrade to ${ROOK_VERSION}"
-            else
-                echo "Rook ${version} is already installed, will not upgrade to ${ROOK_VERSION}"
+                echo "Rook ${current_version} is already installed, will not downgrade to ${ROOK_VERSION}"
+                SKIP_ROOK_INSTALL=1
+            # upgrades from version 1.0.4 unsupported
+            elif [ "${current_version_minor}" = "0" ]; then
+                echo "Rook ${current_version} is already installed, will not upgrade to ${ROOK_VERSION}"
+                SKIP_ROOK_INSTALL=1
             fi
-            SKIP_ROOK_INSTALL=1
         elif [ "${current_version_patch}" -gt "${next_version_patch}" ]; then
-            echo "Rook ${version} is already installed, will not downgrade to ${ROOK_VERSION}"
+            echo "Rook ${current_version} is already installed, will not downgrade to ${ROOK_VERSION}"
             SKIP_ROOK_INSTALL=1
         fi
     fi
     
     if [ -z "${SKIP_ROOK_INSTALL}" ] && [ "${ROOK_BLOCK_STORAGE_ENABLED}" != "1" ]; then
         bail "Rook ${ROOK_VERSION} requires enabling block storage"
+    fi
+
+    if [ "${ROOK_BYPASS_UPGRADE_WARNING}" != "1" ]; then
+        if [ -z "${SKIP_ROOK_INSTALL}" ] && [ "${current_version}" != "${ROOK_VERSION}" ]; then
+            logWarn "WARNING: This installer will upgrade Rook to version ${ROOK_VERSION}."
+            logWarn "Upgrading a Rook cluster is not without risk, including data loss."
+            logWarn "The Rook cluster's storage may be unavailable for short periods during the upgrade process."
+            log ""
+            log "Would you like to continue? "
+            if ! confirmN " "; then
+                logWarn "Will not upgrade rook-ceph cluster"
+                SKIP_ROOK_INSTALL=1
+            fi
+        fi
     fi
 }
 
@@ -169,7 +185,12 @@ function rook_ready_spinner() {
     echo "Awaiting rook-ceph operator"
 
     if ! spinner_until 600 rook_version_deployed ; then
-        logWarn "Detected multiple Rook versions"
+        local rook_versions=
+        rook_versions="$(kubectl -n rook-ceph get deployment -l rook_cluster=rook-ceph -o jsonpath='{range .items[*]}{"rook-version="}{.metadata.labels.rook-version}{"\n"}{end}' | sort | uniq)"
+        if [ -n "${rook_versions}" ] && [ "$(echo "${rook_versions}" | wc -l)" -gt "1" ]; then
+            logWarn "Detected multiple Rook versions"
+            logWarn "${rook_versions}"
+        fi
     fi
 
     echo "Awaiting rook-ceph pods"

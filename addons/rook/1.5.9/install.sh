@@ -143,7 +143,7 @@ function rook_cluster_deploy() {
 }
 
 function rook_cluster_deploy_upgrade() {
-    local ceph_image="ceph/ceph:v15.2.8"
+    local ceph_image="ceph/ceph:v15.2.9"
     local ceph_version=
     ceph_version="$(echo "${ceph_image}" | awk 'BEGIN { FS=":v" } ; {print $2}')"
 

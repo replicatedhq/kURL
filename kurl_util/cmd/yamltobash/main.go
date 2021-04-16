@@ -232,6 +232,7 @@ func convertToBash(kurlValues map[string]interface{}, fieldsSet map[string]bool)
 		"Registry.Version":                       "REGISTRY_VERSION",
 		"RKE2.Version":                           "RKE2_VERSION",
 		"Rook.BlockDeviceFilter":                 "ROOK_BLOCK_DEVICE_FILTER",
+		"Rook.BypassUpgradeWarning":              "ROOK_BYPASS_UPGRADE_WARNING",
 		"Rook.CephReplicaCount":                  "CEPH_POOL_REPLICAS",
 		"Rook.HostpathRequiresPrivileged":        "ROOK_HOSTPATH_REQUIRES_PRIVILEGED",
 		"Rook.IsBlockStorageEnabled":             "ROOK_BLOCK_STORAGE_ENABLED",

@@ -146,6 +146,10 @@ semverCompare() {
     SEMVER_COMPARE_RESULT=0
 }
 
+log() {
+    printf "%s\n" "$1" 1>&2
+}
+
 logSuccess() {
     printf "${GREEN}✔ $1${NC}\n" 1>&2
 }
