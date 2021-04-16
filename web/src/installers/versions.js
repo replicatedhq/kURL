@@ -68,6 +68,7 @@ module.exports.InstallerVersions = {
     "1.7.4",
   ],
   kotsadm: [
+    "1.38.1",
     "1.38.0",
     "1.37.0",
     "1.36.1",
