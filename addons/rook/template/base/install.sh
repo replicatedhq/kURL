@@ -7,6 +7,7 @@ function rook_pre_init() {
 
     current_version="$(rook_version)"
     semverParse "${current_version}"
+    current_version_major="${major}"
     current_version_minor="${minor}"
     current_version_patch="${patch}"
 
@@ -20,7 +21,7 @@ function rook_pre_init() {
                 echo "Rook ${current_version} is already installed, will not downgrade to ${ROOK_VERSION}"
                 SKIP_ROOK_INSTALL=1
             # upgrades from version 1.0.4 unsupported
-            elif [ "${current_version_minor}" = "0" ]; then
+            elif [ "${current_version_major}" = "1" ] && [ "${current_version_minor}" = "0" ]; then
                 echo "Rook ${current_version} is already installed, will not upgrade to ${ROOK_VERSION}"
                 SKIP_ROOK_INSTALL=1
             fi
