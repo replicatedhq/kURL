@@ -297,6 +297,7 @@ function main() {
     setup_runner
 
     run_install
+    send_logs
 
     if [ $KURL_EXIT_STATUS -ne 0 ]; then
         send_logs
@@ -309,6 +310,7 @@ function main() {
 
     if [ "$KURL_UPGRADE_URL" != "" ]; then
         run_upgrade
+        send_logs
     fi
 
     if [ $KURL_EXIT_STATUS -ne 0 ]; then
