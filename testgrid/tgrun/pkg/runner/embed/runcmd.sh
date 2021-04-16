@@ -282,7 +282,7 @@ function report_success() {
 
 function report_failure() {
     local failure="$1"
-    curl -X POST -d "{\"success\": false, \"failure\": \"${failure}\"}" "$TESTGRID_APIENDPOINT/v1/instance/$TEST_ID/finish"
+    curl -X POST -d "{\"success\": false, \"failureReason\": \"${failure}\"}" "$TESTGRID_APIENDPOINT/v1/instance/$TEST_ID/finish"
 }
 
 function send_logs() {

@@ -13,8 +13,8 @@ import (
 )
 
 type FinishInstanceRequest struct {
-	Success bool   `json:"success"`
-	Failure string `json:"failure"`
+	Success       bool   `json:"success"`
+	FailureReason string `json:"failureReason"`
 }
 
 func FinishInstance(w http.ResponseWriter, r *http.Request) {
@@ -30,7 +30,7 @@ func FinishInstance(w http.ResponseWriter, r *http.Request) {
 	logger.Debug("finishInstance",
 		zap.String("instanceId", instanceID))
 
-	if err := testinstance.SetInstanceFinishedAndSuccess(instanceID, finishInstanceRequest.Success, finishInstanceRequest.Failure); err != nil {
+	if err := testinstance.SetInstanceFinishedAndSuccess(instanceID, finishInstanceRequest.Success, finishInstanceRequest.FailureReason); err != nil {
 		logger.Error(err)
 		JSON(w, 500, nil)
 		return
@@ -45,7 +45,7 @@ func FinishInstance(w http.ResponseWriter, r *http.Request) {
 				[]string{
 					fmt.Sprintf("testid:%s", id),
 					fmt.Sprintf("success:%t", finishInstanceRequest.Success),
-					fmt.Sprintf("failure:%s", finishInstanceRequest.Failure),
+					fmt.Sprintf("failure_reason:%s", finishInstanceRequest.FailureReason),
 				},
 				1.0)
 		}

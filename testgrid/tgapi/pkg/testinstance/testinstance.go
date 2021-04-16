@@ -159,23 +159,23 @@ func SetInstanceSonobuoyResults(id string, results []byte) error {
 	return nil
 }
 
-// SetInstanceFinishedAndSuccess sets is_success, failure and finished_at.
-func SetInstanceFinishedAndSuccess(id string, isSuccess bool, failure string) error {
+// SetInstanceFinishedAndSuccess sets is_success, failure_reason and finished_at.
+func SetInstanceFinishedAndSuccess(id string, isSuccess bool, failureReason string) error {
 	db := persistence.MustGetPGSession()
 
 	var query string
 	if isSuccess {
 		// Failure cannot change to success.
-		query = `update testinstance set is_success = $2, finished_at = now(), failure = $3 where id = $1 and finished_at is null`
-	} else if failure == "timeout" {
+		query = `update testinstance set is_success = $2, finished_at = now(), failure_reason = $3 where id = $1 and finished_at is null`
+	} else if failureReason == "timeout" {
 		// Timeout cannot change success to failure.
-		query = `update testinstance set is_success = $2, finished_at = now(), failure = $3 where id = $1 and is_success != true`
+		query = `update testinstance set is_success = $2, finished_at = now(), failure_reason = $3 where id = $1 and is_success != true`
 	} else {
 		// Success can change to failure unless timeout.
-		query = `update testinstance set is_success = $2, finished_at = now(), failure = $3 where id = $1`
+		query = `update testinstance set is_success = $2, finished_at = now(), failure_reason = $3 where id = $1`
 	}
 
-	if _, err := db.Exec(query, id, isSuccess, failure); err != nil {
+	if _, err := db.Exec(query, id, isSuccess, failureReason); err != nil {
 		return errors.Wrap(err, "failed to update")
 	}
 
@@ -221,7 +221,7 @@ where id = $1`
 func List(refID string, limit int, offset int, addons map[string]string) ([]types.TestInstance, error) {
 	db := persistence.MustGetPGSession()
 
-	query := `SELECT ti.id, ti.kurl_yaml, ti.kurl_url, ti.upgrade_yaml, ti.upgrade_url, ti.os_name, ti.os_version, ti.os_image, ti.enqueued_at, ti.dequeued_at, ti.started_at, ti.finished_at, ti.is_success, ti.failure, ti.is_unsupported
+	query := `SELECT ti.id, ti.kurl_yaml, ti.kurl_url, ti.upgrade_yaml, ti.upgrade_url, ti.os_name, ti.os_version, ti.os_image, ti.enqueued_at, ti.dequeued_at, ti.started_at, ti.finished_at, ti.is_success, ti.failure_reason, ti.is_unsupported
 FROM testinstance ti
 WHERE ti.testrun_ref = $1`
 
@@ -258,7 +258,7 @@ WHERE ti.testrun_ref = $1`
 		var startedAt sql.NullTime
 		var finishedAt sql.NullTime
 		var isSuccess, isUnsupported sql.NullBool
-		var upgradeYAML, upgradeURL, failure sql.NullString
+		var upgradeYAML, upgradeURL, failureReason sql.NullString
 
 		if err := rows.Scan(
 			&testInstance.ID,
@@ -274,7 +274,7 @@ WHERE ti.testrun_ref = $1`
 			&startedAt,
 			&finishedAt,
 			&isSuccess,
-			&failure,
+			&failureReason,
 			&isUnsupported,
 		); err != nil {
 			return nil, errors.Wrap(err, "failed to scan")
@@ -295,8 +295,8 @@ WHERE ti.testrun_ref = $1`
 		if isSuccess.Valid {
 			testInstance.IsSuccess = isSuccess.Bool
 		}
-		if failure.Valid {
-			testInstance.Failure = failure.String
+		if failureReason.Valid {
+			testInstance.FailureReason = failureReason.String
 		}
 		if isUnsupported.Valid {
 			testInstance.IsUnsupported = isUnsupported.Bool

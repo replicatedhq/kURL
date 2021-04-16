@@ -193,11 +193,11 @@ export default class InstanceTable extends React.Component {
     }
   }
 
-  getInstanceFailure = instance => {
-    if (!instance || !instance.failure) {
+  getInstanceFailureReason = instance => {
+    if (!instance || !instance.failureReason) {
       return "";
     }
-    return startCase(instance.failure);
+    return startCase(instance.failureReason);
   }
 
   goToLineInEditor = (editorRef, line) => {
@@ -247,14 +247,14 @@ export default class InstanceTable extends React.Component {
             const instance = find(this.props.instancesMap[kurlURL], i => (osKey == `${i.osName}-${i.osVersion}`));
             if (instance) {
               const status = this.getInstanceStatus(instance);
-              const failure = this.getInstanceFailure(instance);
+              const failureReason = this.getInstanceFailureReason(instance);
               return (
                 <td
                   key={`${kurlURL}-${osKey}-${instance.id}`}
                   className={status}
                 >
                   <div className="flex flex1 alignItems--center">
-                    <span className={`status-text ${status} flex1`}>{status}<br/><small>{failure}</small></span>
+                    <span className={`status-text ${status} flex1`}>{status}<br/><small>{failureReason}</small></span>
                     {(instance.finishedAt && !instance.isUnsupported) && 
                       <div className="flex-column flex1 alignItems--flexEnd">
                         <button type="button" className="btn xsmall primary u-width--full u-marginBottom--5" onClick={() => this.viewInstanceLogs(instance)}>kURL Logs</button>

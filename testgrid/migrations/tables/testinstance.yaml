@@ -25,7 +25,7 @@ spec:
           type: timestamp without timezone
         - name: is_success
           type: boolean
-        - name: failure
+        - name: failure_reason
           type: varchar(255)
         - name: is_unsupported
           type: boolean

@@ -42,7 +42,7 @@ func CleanUpVMIs() error {
 		if vmi.Status.Phase == kubevirtv1.Running && time.Since(vmi.CreationTimestamp.Time).Minutes() > 60 {
 			if apiEndpoint := vmi.Annotations["testgrid.kurl.sh/apiendpoint"]; apiEndpoint != "" {
 				url := fmt.Sprintf("%s/v1/instance/%s/finish", apiEndpoint, vmi.Name)
-				data := `{"success": false, "failure": "timeout"}`
+				data := `{"success": false, "failureReason": "timeout"}`
 				resp, err := http.Post(url, "application/json", strings.NewReader(data))
 				if err != nil {
 					fmt.Printf("Failed to post timeout failure to testgrid api for vmi %s: %v\n", vmi.Name, err)
