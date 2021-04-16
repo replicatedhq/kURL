@@ -10,29 +10,39 @@ func init() {
 		types.Instance{
 			InstallerSpec: types.InstallerSpec{
 				Kubernetes: &kurlv1beta1.Kubernetes{
-					Version: "1.19.3",
+					Version: "1.18.4",
+				},
+				Containerd: &kurlv1beta1.Containerd{
+					Version: "1.4.4",
 				},
 				Weave: &kurlv1beta1.Weave{
 					Version: "2.8.1",
 				},
-				Docker: &kurlv1beta1.Docker{
-					Version: "19.03.10",
+				Rook: &kurlv1beta1.Rook{
+					Version:               "1.4.3",
+					IsBlockStorageEnabled: true,
 				},
-				Kurl: &kurlv1beta1.Kurl{
-					Nameserver: "8.8.8.8",
+				Kotsadm: &kurlv1beta1.Kotsadm{
+					Version: "1.38.0",
 				},
-				Collectd: &kurlv1beta1.Collectd{
-					Version: "v5",
+			},
+			UpgradeSpec: &types.InstallerSpec{
+				Kubernetes: &kurlv1beta1.Kubernetes{
+					Version: "1.20.2",
+				},
+				Containerd: &kurlv1beta1.Containerd{
+					Version: "1.4.4",
+				},
+				Weave: &kurlv1beta1.Weave{
+					Version: "2.8.1",
 				},
 				Rook: &kurlv1beta1.Rook{
 					Version:               "1.5.9",
 					IsBlockStorageEnabled: true,
-				},
-				Registry: &kurlv1beta1.Registry{
-					Version: "2.7.1",
+					BypassUpgradeWarning:  true,
 				},
 				Kotsadm: &kurlv1beta1.Kotsadm{
-					Version: "latest",
+					Version: "1.38.0",
 				},
 			},
 		},
