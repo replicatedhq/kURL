@@ -833,6 +833,16 @@ export class Installer {
     if (_.includes(InstallerVersions[config], version)) {
       return true;
     }
+
+    // search through the "latestVersions" array for something that matches the prefix here
+    if (config === "kubernetes" && version.endsWith(".x")) {
+      const searchString = version.slice(0, -2) // remove the last two characters - ".x"
+      const k8sMinors = Installer.latestMinors()
+      const matches = k8sMinors.filter(s => s.startsWith(searchString))
+      if (matches.length > 0) {
+        return true
+      }
+    }
     return false;
   }
 
@@ -1009,9 +1019,19 @@ export class Installer {
   public resolve(): Installer {
     const i = this.clone();
 
-    _.each(_.keys(i.spec), (config) => {
+    _.each(_.keys(i.spec), (config: string) => {
       if (i.spec[config].version === "latest") {
         i.spec[config].version = _.first(InstallerVersions[config]);
+      }
+
+      // search through the "latestVersions" array for something that matches the prefix here
+      if (config === "kubernetes" && i.spec[config].version.endsWith(".x")) {
+        const searchString = i.spec[config].version.slice(0, -2) // remove the last two characters - ".x"
+        const k8sMinors = Installer.latestMinors()
+        const matches = k8sMinors.filter(s => s.startsWith(searchString))
+        if (matches.length > 0) {
+          i.spec[config].version = matches[0]
+        }
       }
     });
 

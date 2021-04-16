@@ -255,6 +255,16 @@ spec:
     - postgres
 `;
 
+const pinnedMinork8s = `
+apiVersion: kurl.sh/v1beta1
+kind: Installer
+metadata:
+  name: ""
+spec:
+  kubernetes:
+    version: 1.18.x
+`;
+
 describe("POST /installer", () => {
   describe("latestV1Beta1", () => {
     it(`should return 201 "https://kurl.sh/latest"`, async () => {
@@ -813,6 +823,24 @@ describe("POST /installer/validate", () => {
         err = error;
       }
       expect(err).to.have.property("message", "YAML could not be parsed");
+    });
+  });
+
+
+
+  describe("pinned minor k8s version", () => {
+    let id: string;
+
+    before(async () => {
+      const installer = await client.postInstaller(pinnedMinork8s);
+      id = _.trim(url.parse(installer).path, "/");
+    });
+
+    it("resolves all versions", async () => {
+      const script = await client.getInstallScript(id);
+
+      expect(script).to.match(new RegExp(`version: 1.18.\\d+`));
+      expect(script).not.to.match(new RegExp(`version: 1.18.x`));
     });
   });
 });
