@@ -5,7 +5,7 @@ function command_exists() {
 }
 
 function setup_runner() {
-    setenforce 0 || : # rhel variants
+    setenforce 0 || true # rhel variants
 
     echo "$TEST_ID" > /tmp/testgrid-id
 
@@ -81,7 +81,7 @@ function run_install() {
         echo "failed kurl install with exit status $KURL_EXIT_STATUS"
     fi
 
-    collect_debug_info_after_kurl || :
+    collect_debug_info_after_kurl || true
 }
 
 function run_upgrade() {
@@ -129,7 +129,7 @@ function run_upgrade() {
         echo "failed kurl upgrade with exit status $KURL_EXIT_STATUS"
     fi
 
-    collect_debug_info_after_kurl || :
+    collect_debug_info_after_kurl || true
 }
 
 function collect_debug_info_after_kurl() {
@@ -150,7 +150,7 @@ function collect_debug_info_after_kurl() {
 
     echo "";
     echo "running pods after completion:";
-    kubectl get pods -A || :
+    kubectl get pods -A || true
     echo "";
 }
 
@@ -259,8 +259,8 @@ function run_sonobuoy() {
 
 function collect_debug_info_sonobuoy() {
     kubectl -n sonobuoy get pods
-    kubectl -n sonobuoy describe pod sonobuoy || :
-    kubectl -n sonobuoy logs sonobuoy || :
+    kubectl -n sonobuoy describe pod sonobuoy || true
+    kubectl -n sonobuoy logs sonobuoy || true
 }
 
 function collect_support_bundle() {
