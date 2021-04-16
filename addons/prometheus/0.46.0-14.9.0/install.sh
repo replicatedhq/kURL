@@ -1,6 +1,6 @@
 
 function prometheus() {
-    local src="$DIR/addons/prometheus/__PROMETHEUS_VERSION__"
+    local src="$DIR/addons/prometheus/0.46.0-14.9.0"
     local dst="$DIR/kustomize/prometheus"
 
     local operatorsrc="$src/operator"
