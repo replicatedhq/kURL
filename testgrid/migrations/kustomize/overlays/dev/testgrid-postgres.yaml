@@ -7,4 +7,4 @@ spec:
   connection:
     postgres:
       uri:
-        value: postgres://testgrid:password@postgres.default.svc.cluster.local:5432/testgrid?sslmode=disable
+        value: postgres://testgrid:password@testgrid-postgres.default.svc.cluster.local:5432/testgrid?sslmode=disable
