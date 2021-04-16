@@ -36,7 +36,7 @@ function rook_pre_init() {
     fi
 
     if [ "${ROOK_BYPASS_UPGRADE_WARNING}" != "1" ]; then
-        if [ -z "${SKIP_ROOK_INSTALL}" ] && [ "${current_version}" != "${ROOK_VERSION}" ]; then
+        if [ -z "${SKIP_ROOK_INSTALL}" ] && [ -n "${current_version}" ] && [ "${current_version}" != "${ROOK_VERSION}" ]; then
             logWarn "WARNING: This installer will upgrade Rook to version ${ROOK_VERSION}."
             logWarn "Upgrading a Rook cluster is not without risk, including data loss."
             logWarn "The Rook cluster's storage may be unavailable for short periods during the upgrade process."
