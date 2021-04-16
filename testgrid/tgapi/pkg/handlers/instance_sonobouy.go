@@ -41,7 +41,12 @@ func InstanceSonobuoyResults(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if err := testinstance.SetInstanceFinishedAndSuccess(instanceID, isSuccess, "sonobuoy_results"); err != nil {
+	failureReason := ""
+	if !isSuccess {
+		failureReason = "sonobuoy_results"
+	}
+
+	if err := testinstance.SetInstanceFinishedAndSuccess(instanceID, isSuccess, failureReason); err != nil {
 		logger.Error(err)
 		JSON(w, 500, nil)
 		return
