@@ -153,6 +153,17 @@ function rook_cluster_deploy_upgrade() {
         return 0
     fi
 
+    echo "Awaiting rook-ceph operator"
+
+    if ! spinner_until 600 rook_version_deployed ; then
+        local rook_versions=
+        rook_versions="$(kubectl -n rook-ceph get deployment -l rook_cluster=rook-ceph -o jsonpath='{range .items[*]}{"rook-version="}{.metadata.labels.rook-version}{"\n"}{end}' | sort | uniq)"
+        if [ -n "${rook_versions}" ] && [ "$(echo "${rook_versions}" | wc -l)" -gt "1" ]; then
+            logWarn "Detected multiple Rook versions"
+            logWarn "${rook_versions}"
+        fi
+    fi
+
     logStep "Upgrading rook-ceph cluster"
 
     if ! rook_ceph_healthy ; then
@@ -183,17 +194,6 @@ function rook_dashboard_ready_spinner() {
 }
 
 function rook_ready_spinner() {
-    echo "Awaiting rook-ceph operator"
-
-    if ! spinner_until 600 rook_version_deployed ; then
-        local rook_versions=
-        rook_versions="$(kubectl -n rook-ceph get deployment -l rook_cluster=rook-ceph -o jsonpath='{range .items[*]}{"rook-version="}{.metadata.labels.rook-version}{"\n"}{end}' | sort | uniq)"
-        if [ -n "${rook_versions}" ] && [ "$(echo "${rook_versions}" | wc -l)" -gt "1" ]; then
-            logWarn "Detected multiple Rook versions"
-            logWarn "${rook_versions}"
-        fi
-    fi
-
     echo "Awaiting rook-ceph pods"
 
     spinnerPodRunning rook-ceph rook-ceph-operator
