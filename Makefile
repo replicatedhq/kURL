@@ -526,6 +526,7 @@ build/packages/k-3-s/%/rhel-8:
 build/templates: build/templates/install.tmpl build/templates/join.tmpl build/templates/upgrade.tmpl build/templates/tasks.tmpl
 
 build/bin: build/bin/kurl
+	rm -rf kurl_util/bin
 	${MAKE} -C kurl_util build
 	cp -r kurl_util/bin build
 
