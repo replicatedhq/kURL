@@ -3,12 +3,10 @@ import * as yaml from "js-yaml";
 import * as _ from "lodash";
 import * as mysql from "promise-mysql";
 import { Service } from "ts-express-decorators";
-import * as request from "request-promise";
 import * as AJV from "ajv";
-import * as semver from "semver"
+import * as semver from "semver";
 import { MysqlWrapper } from "../util/services/mysql";
 import { instrumented } from "monkit";
-import { logger } from "../logger";
 import { Forbidden } from "../server/errors";
 import { InstallerVersions } from "./versions";
 
@@ -62,7 +60,7 @@ export const rke2ConfigSchema = {
   properties: {
     version: { type: "string" },
   },
-}
+};
 
 export interface K3SConfig {
   version: string;
@@ -73,7 +71,7 @@ export const k3sConfigSchema = {
   properties: {
     version: { type: "string" },
   },
-}
+};
 
 export interface DockerConfig {
   version: string;
@@ -154,7 +152,7 @@ export const calicoConfigSchema = {
   },
   required: ["version"],
   additionalProperties: false,
-}
+};
 
 export interface FluentdConfig {
   version: string;
@@ -562,7 +560,7 @@ export const selinuxConfigSchema = {
       },
     },
   },
-}
+};
 
 export interface HelmConfig {
   helmfileSpec: string;
@@ -833,6 +831,16 @@ export class Installer {
     if (_.includes(InstallerVersions[config], version)) {
       return true;
     }
+
+    // search through the "latestVersions" array for something that matches the prefix here
+    if (config === "kubernetes" && version.endsWith(".x")) {
+      const searchString = version.slice(0, -2); // remove the last two characters - ".x"
+      const k8sMinors = Installer.latestMinors();
+      const matches = k8sMinors.filter((s) => s.startsWith(searchString));
+      if (matches.length > 0) {
+        return true;
+      }
+    }
     return false;
   }
 
@@ -1009,9 +1017,19 @@ export class Installer {
   public resolve(): Installer {
     const i = this.clone();
 
-    _.each(_.keys(i.spec), (config) => {
+    _.each(_.keys(i.spec), (config: string) => {
       if (i.spec[config].version === "latest") {
         i.spec[config].version = _.first(InstallerVersions[config]);
+      }
+
+      // search through the "latestVersions" array for something that matches the prefix here
+      if (config === "kubernetes" && i.spec[config].version.endsWith(".x")) {
+        const searchString = i.spec[config].version.slice(0, -2); // remove the last two characters - ".x"
+        const k8sMinors = Installer.latestMinors();
+        const matches = k8sMinors.filter((s) => s.startsWith(searchString));
+        if (matches.length > 0) {
+          i.spec[config].version = matches[0];
+        }
       }
     });
 
@@ -1141,7 +1159,7 @@ export class Installer {
     _.each(_.keys(this.spec), (config: string) => {
       const version = this.spec[config].version;
       if (version) {
-        pkgs.push(`${_.kebabCase(config)}-${this.spec[config].version.replace(special, '-')}`); // replace special characters
+        pkgs.push(`${_.kebabCase(config)}-${this.spec[config].version.replace(special, "-")}`); // replace special characters
 
         // include an extra version of kubernetes so they can upgrade 2 minor versions
         if (config === "kubernetes") {
@@ -1162,7 +1180,7 @@ export class Installer {
     // include conformance package if sonobuoy and kubernetes
     // we only build conformance packages for 1.17.0+
     if (kubernetesVersion && semver.gte(kubernetesVersion, "1.17.0") && _.get(this.spec, "sonobuoy.version")) {
-      pkgs.push(`kubernetes-conformance-${kubernetesVersion.replace(special, '-')}`);
+      pkgs.push(`kubernetes-conformance-${kubernetesVersion.replace(special, "-")}`);
     }
 
     return pkgs;
@@ -1229,7 +1247,7 @@ export class Installer {
   }
 
   public hasS3Override(config: string): boolean {
-    return _.has(this.spec, [config,'s3Override'])
+    return _.has(this.spec, [config, "s3Override"]);
   }
 }
 

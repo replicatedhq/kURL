@@ -1,4 +1,4 @@
-import * as path from "path";
+
 import * as Express from "express";
 import * as request from "request-promise";
 import * as _ from "lodash";
@@ -98,7 +98,7 @@ export class Bundle {
           const appMetadata = await request(`${this.replicatedAppURL}/metadata/${kotsadmApplicationSlug}`);
           const key = `kurl/addons/kotsadm/${_.get(installer.spec, "kotsadm.version")}/application.yaml`;
           ret.files[key] = appMetadata;
-      } catch(err) {
+      } catch (err) {
           // Log the error but continue bundle execution
           // (branding metadata is optional even though user specified a app slug)
           logger.debug("Failed to fetch metadata (non-fatal error): " + err);

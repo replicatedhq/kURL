@@ -26,9 +26,9 @@ const invalidYAMLResponse = {
 
 const teamWithGeneratedIDResponse = {
   error: {
-    message: "Name is indistinguishable from a generated ID."
+    message: "Name is indistinguishable from a generated ID.",
   },
-}
+};
 
 const slugCharactersResponse = {
   error: {
@@ -89,7 +89,7 @@ export class Installers {
     let i: Installer;
     try {
       i = Installer.parse(request.body);
-    } catch(error) {
+    } catch (error) {
       response.status(400);
       return invalidYAMLResponse;
     }
@@ -217,7 +217,7 @@ export class Installers {
     let i: Installer;
     try {
       i = Installer.parse(request.body);
-    } catch(error) {
+    } catch (error) {
       response.status(400);
       return invalidYAMLResponse;
     }
@@ -242,7 +242,7 @@ export class Installers {
     let teamID: string;
     try {
       teamID = await decode(auth);
-    } catch(error) {
+    } catch (error) {
       response.status(401);
       return unauthenticatedResponse;
     }
@@ -268,7 +268,7 @@ export class Installers {
     let i: Installer;
     try {
       i = Installer.parse(request.body, teamID);
-    } catch(error) {
+    } catch (error) {
       response.status(400);
       return { error };
     }
@@ -276,7 +276,7 @@ export class Installers {
 
     if (i.spec.kotsadm && !i.spec.kotsadm.applicationSlug) {
       if (slug !== "") {
-        i.spec.kotsadm.applicationSlug = slug
+        i.spec.kotsadm.applicationSlug = slug;
       }
     }
 

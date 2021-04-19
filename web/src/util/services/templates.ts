@@ -75,7 +75,7 @@ interface Manifest {
   INSTALLER_YAML: string;
 }
 
-export function bashStringEscape( unescaped :string): string {
+export function bashStringEscape( unescaped : string): string {
   return unescaped.replace(/[!"\\]/g, "\\\$&");
 }
 
