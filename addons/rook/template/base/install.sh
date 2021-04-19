@@ -153,6 +153,17 @@ function rook_cluster_deploy_upgrade() {
         return 0
     fi
 
+    echo "Awaiting rook-ceph operator"
+
+    if ! spinner_until 600 rook_version_deployed ; then
+        local rook_versions=
+        rook_versions="$(kubectl -n rook-ceph get deployment -l rook_cluster=rook-ceph -o jsonpath='{range .items[*]}{"rook-version="}{.metadata.labels.rook-version}{"\n"}{end}' | sort | uniq)"
+        if [ -n "${rook_versions}" ] && [ "$(echo "${rook_versions}" | wc -l)" -gt "1" ]; then
+            logWarn "Detected multiple Rook versions"
+            logWarn "${rook_versions}"
+        fi
+    fi
+
     logStep "Upgrading rook-ceph cluster"
 
     if ! rook_ceph_healthy ; then
@@ -183,17 +194,6 @@ function rook_dashboard_ready_spinner() {
 }
 
 function rook_ready_spinner() {
-    echo "Awaiting rook-ceph operator"
-
-    if ! spinner_until 600 rook_version_deployed ; then
-        local rook_versions=
-        rook_versions="$(kubectl -n rook-ceph get deployment -l rook_cluster=rook-ceph -o jsonpath='{range .items[*]}{"rook-version="}{.metadata.labels.rook-version}{"\n"}{end}' | sort | uniq)"
-        if [ -n "${rook_versions}" ] && [ "$(echo "${rook_versions}" | wc -l)" -gt "1" ]; then
-            logWarn "Detected multiple Rook versions"
-            logWarn "${rook_versions}"
-        fi
-    fi
-
     echo "Awaiting rook-ceph pods"
 
     spinnerPodRunning rook-ceph rook-ceph-operator
@@ -211,25 +211,37 @@ function rook_ceph_healthy() {
 
 # rook_version_deployed check that there is only one rook-version reported across the cluster
 function rook_version_deployed() {
+    # wait for our version to start reporting
+    if ! kubectl -n rook-ceph get deployment -l rook_cluster=rook-ceph -o jsonpath='{range .items[*]}{"rook-version="}{.metadata.labels.rook-version}{"\n"}{end}' | grep -q "${ROOK_VERSION}" ; then
+        return 1
+    fi
+    # wait for our version to be the only one reporting
     if [ "$(kubectl -n rook-ceph get deployment -l rook_cluster=rook-ceph -o jsonpath='{range .items[*]}{"rook-version="}{.metadata.labels.rook-version}{"\n"}{end}' | sort | uniq | wc -l)" != "1" ]; then
         return 1
     fi
-    if kubectl -n rook-ceph get deployment -l rook_cluster=rook-ceph -o jsonpath='{range .items[*]}{"rook-version="}{.metadata.labels.rook-version}{"\n"}{end}' | grep -q "${ROOK_VERSION}" ; then
-        return 0
+    # sanity check
+    if ! kubectl -n rook-ceph get deployment -l rook_cluster=rook-ceph -o jsonpath='{range .items[*]}{"rook-version="}{.metadata.labels.rook-version}{"\n"}{end}' | grep -q "${ROOK_VERSION}" ; then
+        return 1
     fi
-    return 1
+    return 0
 }
 
 # rook_ceph_version_deployed check that there is only one ceph-version reported across the cluster
 function rook_ceph_version_deployed() {
     local ceph_version="$1"
+    # wait for our version to start reporting
+    if ! kubectl -n rook-ceph get deployment -l rook_cluster=rook-ceph -o jsonpath='{range .items[*]}{"ceph-version="}{.metadata.labels.ceph-version}{"\n"}{end}' | grep -q "${ceph_version}" ; then
+        return 1
+    fi
+    # wait for our version to be the only one reporting
     if [ "$(kubectl -n rook-ceph get deployment -l rook_cluster=rook-ceph -o jsonpath='{range .items[*]}{"ceph-version="}{.metadata.labels.ceph-version}{"\n"}{end}' | sort | uniq | wc -l)" != "1" ]; then
         return 1
     fi
-    if kubectl -n rook-ceph get deployment -l rook_cluster=rook-ceph -o jsonpath='{range .items[*]}{"ceph-version="}{.metadata.labels.ceph-version}{"\n"}{end}' | grep -q "${ceph_version}" ; then
-        return 0
+    # sanity check
+    if ! kubectl -n rook-ceph get deployment -l rook_cluster=rook-ceph -o jsonpath='{range .items[*]}{"ceph-version="}{.metadata.labels.ceph-version}{"\n"}{end}' | grep -q "${ceph_version}" ; then
+        return 1
     fi
-    return 1
+    return 0
 }
 
 function rook_is_1() {

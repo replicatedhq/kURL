@@ -198,6 +198,15 @@ func Test_convertToBash(t *testing.T) {
 				"SONOBUOY_S3_OVERRIDE": `"https://kurl-sh.s3.amazonaws.com/pr/2000-1111111-sonobuoy-0.50.0.tar.gz"`,
 			},
 		},
+		{
+			name: "Rook.BypassUpgradeWarning sets ROOK_BYPASS_UPGRADE_WARNING",
+			inputMap: map[string]interface{}{
+				"Rook.BypassUpgradeWarning": true,
+			},
+			wantedMap: map[string]string{
+				"ROOK_BYPASS_UPGRADE_WARNING": `1`,
+			},
+		},
 	}
 
 	for _, test := range tests {

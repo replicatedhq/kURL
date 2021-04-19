@@ -368,6 +368,8 @@ spec:
                 properties:
                   blockDeviceFilter:
                     type: string
+                  bypassUpgradeWarning:
+                    type: boolean
                   cephReplicaCount:
                     type: integer
                   hostpathRequiresPrivileged:
