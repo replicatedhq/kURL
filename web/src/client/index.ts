@@ -14,7 +14,7 @@ export class KurlClient {
         .send(yaml);
 
       return resp.text;
-    } catch(e) {
+    } catch (e) {
       if (e.response && e.response.body && e.response.body.error && e.response.body.error.message) {
         throw new Error(e.response.body.error.message);
       }
@@ -140,7 +140,7 @@ export class KurlClient {
         .send(yaml);
 
       return resp.text;
-    } catch(e) {
+    } catch (e) {
       if (e.response && e.response.body && e.response.body.error && e.response.body.error.message) {
         throw new Error(e.response.body.error.message);
       }
