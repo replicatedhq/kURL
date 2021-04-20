@@ -50,6 +50,10 @@ maybe_upgrade() {
     if [ "$kubeletMinor" -lt "$KUBERNETES_TARGET_VERSION_MINOR" ] || ([ "$kubeletMinor" -eq "$KUBERNETES_TARGET_VERSION_MINOR" ] && [ "$kubeletPatch" -lt "$KUBERNETES_TARGET_VERSION_PATCH" ]); then
         logStep "Kubernetes version v$kubeletVersion detected, upgrading node to version v$KUBERNETES_VERSION"
 
+
+        if [ "$AIRGAP" != "1" ] && [ -n "$DIST_URL" ]; then
+            kubernetes_get_host_packages_online "$KUBERNETES_VERSION"
+        fi
         upgrade_kubeadm "$KUBERNETES_VERSION"
 
         kubeadm upgrade node

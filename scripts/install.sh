@@ -108,7 +108,7 @@ function init() {
     $DIR/bin/yamlutil -r -fp $KUBEADM_CONF_DIR/kubeadm_conf_copy_in -yf metadata
     mv $KUBEADM_CONF_DIR/kubeadm_conf_copy_in $KUBEADM_CONF_FILE
 
-    if [ "$KUBERNETES_TARGET_VERSION_MINOR" -ge "20" ]; then
+    if [ "$KUBERNETES_TARGET_VERSION_MINOR" -ge "21" ]; then
         cat << EOF >> $KUBEADM_CONF_FILE
 apiVersion: kubelet.config.k8s.io/v1beta1
 kind: KubeletConfiguration
