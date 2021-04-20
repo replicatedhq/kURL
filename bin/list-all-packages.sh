@@ -18,7 +18,10 @@ function pkgs() {
         if [ "$version" = "template" ] || [ "$version" = "build-images" ]; then
             continue
         fi
-        echo "${name}-${version}.tar.gz"
+        # HACK: allow for conformance packages to be built for rke2 and k3s for versions we do not support of kubeadm.
+        if [ -f "$dir/Manifest" ]; then
+            echo "${name}-${version}.tar.gz"
+        fi
         if [ "${name}" = "kubernetes" ] || [ "${name}" = "k-3-s" ] || [ "${name}" = "rke-2" ]; then
             local minor="$(echo "${version}" | sed -E 's/^v?[0-9]+\.([0-9]+).[0-9]+.*$/\1/')"
             if [ "${minor}" -ge 17 ]; then
