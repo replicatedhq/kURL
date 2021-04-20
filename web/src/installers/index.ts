@@ -1170,9 +1170,9 @@ export class Installer {
             pkgs.push(`${config}-${step}`);
           }
         } else if (config === "rke2") {
-          kubernetesVersion = version;
+          kubernetesVersion = version.replace(/^v?([^-\+]+).*$/, '$1');
         } else if (config === "k3s") {
-          kubernetesVersion = version;
+          kubernetesVersion = version.replace(/^v?([^-\+]+).*$/, '$1');
         }
       }
     });
@@ -1180,7 +1180,7 @@ export class Installer {
     // include conformance package if sonobuoy and kubernetes
     // we only build conformance packages for 1.17.0+
     if (kubernetesVersion && semver.gte(kubernetesVersion, "1.17.0") && _.get(this.spec, "sonobuoy.version")) {
-      pkgs.push(`kubernetes-conformance-${kubernetesVersion.replace(special, "-")}`);
+      pkgs.push(`kubernetes-conformance-${kubernetesVersion}`);
     }
 
     return pkgs;
