@@ -19,6 +19,12 @@ function pkgs() {
             continue
         fi
         echo "${name}-${version}.tar.gz"
+        if [ "${name}" = "kubernetes" ] || [ "${name}" = "k-3-s" ] || [ "${name}" = "rke-2" ]; then
+            local minor="$(echo "${version}" | sed -E 's/^v?[0-9]+\.([0-9]+).[0-9]+.*$/\1/')"
+            if [ "${minor}" -ge 17 ]; then
+                echo "kubernetes-conformance-$(echo "${version}" | sed -E 's/^v?([0-9]+\.[0-9]+.[0-9]+).*$/\1/').tar.gz"
+            fi
+        fi
     done
 }
 
