@@ -16,6 +16,7 @@ spec:
   metadataServer:
     activeCount: 1
     activeStandby: true
+    priorityClassName: rook-critical
     resources:
       limits:
         cpu: "500m"
