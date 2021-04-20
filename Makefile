@@ -189,7 +189,12 @@ dist/sonobuoy-%.tar.gz: build/addons
 	tar cf - -C build addons/sonobuoy/$* | gzip > dist/sonobuoy-$*.tar.gz
 
 dist/kubernetes-%.tar.gz:
-	${MAKE} dist/kubernetes-conformance-$*.tar.gz
+	# conformance packages do not exist for versions of k8s prior to 1.17
+	$(eval major = $(shell echo "$*" | sed -E 's/^v?([0-9]+)\.([0-9]+).*$$/\1/'))
+	$(eval minor = $(shell echo "$*" | sed -E 's/^v?([0-9]+)\.([0-9]+).*$$/\2/'))
+	[ "${major}" -eq "1" ] && [ "${minor}" -ge "17" ] && { \
+		${MAKE} dist/kubernetes-conformance-$*.tar.gz ; \
+	} || true ;
 	${MAKE} build/packages/kubernetes/$*/images
 	${MAKE} build/packages/kubernetes/$*/ubuntu-16.04
 	${MAKE} build/packages/kubernetes/$*/ubuntu-18.04
