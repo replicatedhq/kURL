@@ -40,11 +40,19 @@ function generate_version_directory() {
         echo "image ${name} ${image}" >> "../$version/Manifest"
     done < <(/tmp/kubeadm config images list --kubernetes-version=${version})
 
-    # hardcode to 1.20.0 for now since its tested
+    # hardcode existing versions to 1.20.0 since it's tested
     local criToolsVersion=$(curl -s https://api.github.com/repos/kubernetes-sigs/cri-tools/releases | \
         grep '"tag_name": ' | \
         grep -Eo "1\.20\.[0-9]+" | \
         head -1)
+    # Kubernetes 1.21+ gets latest crictl release with same minor
+    local minor=$(echo "$version" | awk -F'.' '{ print $2 }')
+    if [ "$minor" -ge 20 ]; then
+        criToolsVersion=$(curl -s https://api.github.com/repos/kubernetes-sigs/cri-tools/releases | \
+            grep '"tag_name": ' | \
+            grep -Eo "1\.${minor}\.[0-9]+" | \
+            head -1)
+    fi
 
     echo "" >> "../$version/Manifest"
     echo "asset kubeadm https://storage.googleapis.com/kubernetes-release/release/v$version/bin/linux/amd64/kubeadm" >> "../$version/Manifest"

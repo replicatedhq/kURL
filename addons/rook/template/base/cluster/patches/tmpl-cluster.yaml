@@ -21,6 +21,6 @@ spec:
         cpu: "300m"
         memory: "1024Mi"
   priorityClassNames:
-    all: rook-critical
+    all: system-cluster-critical
   storage:
     deviceFilter: "${ROOK_BLOCK_DEVICE_FILTER}"

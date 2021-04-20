@@ -944,9 +944,10 @@ spec:
       expect(out[15]).to.equal("0.0.0");
       expect(out[16]).to.equal("1.16.4");
       expect(out[17]).to.equal("1.17.13");
-      expect(out[18]).to.equal("1.18.17");
-      expect(out[19]).to.equal("1.19.9");
-      expect(out[20]).to.equal("1.20.5");
+      expect(out[18]).to.match(/1\.18\.\d+/);
+      expect(out[19]).to.match(/1\.19\.\d+/);
+      expect(out[20]).to.match(/1\.20\.\d+/);
+      expect(out[21]).to.match(/1\.21\.\d+/);
     });
   });
 

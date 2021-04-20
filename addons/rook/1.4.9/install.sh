@@ -110,6 +110,13 @@ function rook_operator_deploy() {
         insert_patches_strategic_merge "$dst/kustomization.yaml" patches/deployment-privileged.yaml
     fi
 
+    if [ "$KUBERNETES_TARGET_VERSION_MINOR" -lt "17" ]; then
+        insert_resources "$dst/kustomization.yaml" priority-class.yaml
+        insert_patches_strategic_merge "$dst/kustomization.yaml" patches/deployment-priority-class-16.yaml
+    else
+        insert_patches_strategic_merge "$dst/kustomization.yaml" patches/deployment-priority-class.yaml
+    fi
+
     kubectl -n rook-ceph apply -k "$dst"
 }
 
@@ -139,6 +146,10 @@ function rook_cluster_deploy() {
     insert_patches_strategic_merge "$dst/kustomization.yaml" patches/object.yaml
     render_yaml_file "$src/patches/tmpl-rbd-storageclass.yaml" > "$dst/patches/rbd-storageclass.yaml"
     insert_patches_strategic_merge "$dst/kustomization.yaml" patches/rbd-storageclass.yaml
+    insert_patches_strategic_merge "$dst/kustomization.yaml" patches/filesystem.yaml
+    if [ "$KUBERNETES_TARGET_VERSION_MINOR" -lt "17" ]; then
+        sed -i 's/system-cluster-critical/rook-critical/g' "$dst/patches/cluster.yaml" "$dst/patches/object.yaml" "$dst/patches/filesystem.yaml"
+    fi
 
     kubectl -n rook-ceph apply -k "$dst/"
 }
