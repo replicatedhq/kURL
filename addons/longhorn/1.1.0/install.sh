@@ -33,7 +33,7 @@ function longhorn() {
     if [ "$KUBERNETES_TARGET_VERSION_MINOR" -lt "17" ]; then
         sed -i "s/system-node-critical/longhorn-critical/g" "$dst/settings-configmap.yaml"
         cp "$src/priority-class.yaml" "$dst/"
-        insert_resources "$src/kustomization.yaml" priority-class.yaml
+        insert_resources "$dst/kustomization.yaml" priority-class.yaml
     fi
     
 
