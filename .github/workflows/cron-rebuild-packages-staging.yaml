@@ -10,9 +10,9 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-    - env:
-        KURL_UTIL_IMAGE: replicated/kurl-util:alpha
-        KURL_BIN_UTILS_FILE: kurl-bin-utils-latest.tar.gz
+      - env:
+          KURL_UTIL_IMAGE: replicated/kurl-util:alpha
+          KURL_BIN_UTILS_FILE: kurl-bin-utils-latest.tar.gz
 
       - id: set-matrix
         name: Build image matrix
