@@ -30,7 +30,7 @@ function pkgs() {
 
 function list_all_packages() {
     pkgs addons
-    pkgs packages
+    pkgs packages | sort | uniq
     echo "docker-18.09.8.tar.gz"
     echo "docker-19.03.4.tar.gz"
     echo "docker-19.03.10.tar.gz"
