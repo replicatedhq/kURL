@@ -826,8 +826,6 @@ describe("POST /installer/validate", () => {
     });
   });
 
-
-
   describe("pinned minor k8s version", () => {
     let id: string;
 
@@ -841,6 +839,25 @@ describe("POST /installer/validate", () => {
 
       expect(script).to.match(new RegExp(`version: 1.18.\\d+`));
       expect(script).not.to.match(new RegExp(`version: 1.18.x`));
+    });
+  });
+
+  describe("rook 1.0.4 with Kubernetes 1.20.0", () => {
+    it("400", async () => {
+      const spec = `
+      spec:
+        rook:
+          version: 1.0.4
+        kubernetes:
+          version: 1.20.0`;
+      let err;
+
+      try {
+        await client.validateInstaller(spec);
+      } catch (error) {
+        err = error;
+      }
+      expect(err).to.have.property("message", "Rook 1.0.4 is not compatible with Kubernetes 1.20+");
     });
   });
 });

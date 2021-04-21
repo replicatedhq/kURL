@@ -24,13 +24,20 @@ function rook_pre_init() {
             elif [ "${current_version_major}" = "1" ] && [ "${current_version_minor}" = "0" ]; then
                 echo "Rook ${current_version} is already installed, will not upgrade to ${ROOK_VERSION}"
                 SKIP_ROOK_INSTALL=1
+                if [ "$KUBERNETES_TARGET_VERSION_MINOR" -ge 20 ]; then
+                    KUBERNETES_UPGRADE="0"
+                    KUBERNETES_VERSION=$(kubectl version --short | grep -i server | awk '{ print $3 }' | sed 's/^v*//')
+                    parse_kubernetes_target_version
+                    # There's no guarantee the packages from this version of Kubernetes are still available
+                    SKIP_KUBERNETES_HOST=1
+                fi
             fi
         elif [ "${current_version_patch}" -gt "${next_version_patch}" ]; then
             echo "Rook ${current_version} is already installed, will not downgrade to ${ROOK_VERSION}"
             SKIP_ROOK_INSTALL=1
         fi
     fi
-    
+
     if [ -z "${SKIP_ROOK_INSTALL}" ] && [ "${ROOK_BLOCK_STORAGE_ENABLED}" != "1" ]; then
         bail "Rook ${ROOK_VERSION} requires enabling block storage"
     fi

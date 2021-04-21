@@ -1,5 +1,9 @@
 
 function kubernetes_host() {
+    if [ "$SKIP_KUBERNETES_HOST" = "1" ]; then
+        return 0
+    fi
+
     kubernetes_load_ipvs_modules
 
     kubernetes_sysctl_config

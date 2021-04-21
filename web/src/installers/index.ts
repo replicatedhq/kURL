@@ -1146,6 +1146,12 @@ export class Installer {
     if (this.spec.sonobuoy && !Installer.hasVersion("sonobuoy", this.spec.sonobuoy.version) && !this.hasS3Override("sonobuoy")) {
       return { error: { message: `Sonobuoy version "${_.escape(this.spec.sonobuoy.version)}" is not supported` } };
     }
+    // Rook 1.0.4. is incompatible with Kubernetes 1.20+
+    if (this.spec.rook && this.spec.rook.version === "1.0.4") {
+      if (this.spec.kubernetes && semver.gte(this.spec.kubernetes.version, "1.20.0")) {
+        return { error: { message: "Rook 1.0.4 is not compatible with Kubernetes 1.20+" } };
+      }
+    }
   }
 
   public packages(): string[] {

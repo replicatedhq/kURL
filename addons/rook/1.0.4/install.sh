@@ -1,4 +1,10 @@
 
+function rook_pre_init() {
+    if [ "$KUBERNETES_TARGET_VERSION_MINOR" -ge 20 ]; then
+        bail "Rook 1.0.4 is not compatible with Kubernetes 1.20+"
+    fi
+}
+
 function rook() {
     rook_lvm2
 
