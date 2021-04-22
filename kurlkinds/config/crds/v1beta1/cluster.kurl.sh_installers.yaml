@@ -376,6 +376,8 @@ spec:
                     type: boolean
                   isBlockStorageEnabled:
                     type: boolean
+                  isSharedFilesystemDisabled:
+                    type: boolean
                   s3Override:
                     type: string
                   storageClassName:

@@ -146,6 +146,15 @@ function rook_cluster_deploy() {
     render_yaml_file_2 "$dst/tmpl-rbd-storageclass.yaml" > "$dst/rbd-storageclass.yaml"
     insert_resources "$dst/kustomization.yaml" rbd-storageclass.yaml
 
+    # conditional cephfs
+    if [ "${ROOK_SHARED_FILESYSTEM_DISABLED}" != "1" ]; then
+        insert_resources "$dst/kustomization.yaml" cephfs-storageclass.yaml
+        insert_resources "$dst/kustomization.yaml" filesystem.yaml
+        insert_patches_strategic_merge "$dst/kustomization.yaml" patches/cephfs-storageclass.yaml
+        insert_patches_strategic_merge "$dst/kustomization.yaml" patches/filesystem.yaml
+        insert_patches_json_6902 "$dst/kustomization.yaml" patches/filesystem-Json6902.yaml ceph.rook.io v1 CephFilesystem myfs rook-ceph
+    fi
+
     # patches
     render_yaml_file "$src/patches/tmpl-cluster.yaml" > "$dst/patches/cluster.yaml"
     insert_patches_strategic_merge "$dst/kustomization.yaml" patches/cluster.yaml
@@ -153,7 +162,6 @@ function rook_cluster_deploy() {
     insert_patches_strategic_merge "$dst/kustomization.yaml" patches/object.yaml
     render_yaml_file "$src/patches/tmpl-rbd-storageclass.yaml" > "$dst/patches/rbd-storageclass.yaml"
     insert_patches_strategic_merge "$dst/kustomization.yaml" patches/rbd-storageclass.yaml
-    insert_patches_strategic_merge "$dst/kustomization.yaml" patches/filesystem.yaml
     if [ "$KUBERNETES_TARGET_VERSION_MINOR" -lt "17" ]; then
         sed -i 's/system-cluster-critical/rook-critical/g' "$dst/patches/cluster.yaml" "$dst/patches/object.yaml" "$dst/patches/filesystem.yaml"
     fi
