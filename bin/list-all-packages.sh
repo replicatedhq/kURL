@@ -20,26 +20,37 @@ function pkgs() {
         fi
         # HACK: allow for conformance packages to be built for rke2 and k3s for versions we do not support of kubeadm.
         if [ -f "$dir/Manifest" ]; then
-            echo "${name}-${version}.tar.gz"
+            echo "${name}-${version}.tar.gz ${name} ${version}"
         fi
         if [ "${name}" = "kubernetes" ] || [ "${name}" = "k-3-s" ] || [ "${name}" = "rke-2" ]; then
             local minor="$(echo "${version}" | sed -E 's/^v?[0-9]+\.([0-9]+).[0-9]+.*$/\1/')"
             if [ "${minor}" -ge 17 ]; then
-                echo "kubernetes-conformance-$(echo "${version}" | sed -E 's/^v?([0-9]+\.[0-9]+.[0-9]+).*$/\1/').tar.gz"
+                local conformance_version="$(echo "${version}" | sed -E 's/^v?([0-9]+\.[0-9]+.[0-9]+).*$/\1/')"
+                echo "kubernetes-conformance-${conformance_version}.tar.gz kubernetes-conformance ${conformance_version}"
             fi
         fi
     done
 }
 
-function list_all_packages() {
+function list_all_addons() {
     pkgs addons
+}
+
+function list_all_packages() {
     pkgs packages | sort | uniq
-    echo "docker-18.09.8.tar.gz"
-    echo "docker-19.03.4.tar.gz"
-    echo "docker-19.03.10.tar.gz"
-    echo "docker-20.10.5.tar.gz"
+}
+
+function list_other() {
+    echo "docker-18.09.8.tar.gz docker 18.09.8"
+    echo "docker-19.03.4.tar.gz docker 19.03.4"
+    echo "docker-19.03.10.tar.gz docker 19.03.10"
+    echo "docker-20.10.5.tar.gz docker 20.10.5"
     echo "common.tar.gz"
     echo "$KURL_BIN_UTILS_FILE"
 }
 
-list_all_packages
+function list_all() {
+    list_all_addons
+    list_all_packages
+    list_other
+}
