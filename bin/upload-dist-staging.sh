@@ -96,6 +96,8 @@ function deploy_other() {
 }
 
 function main() {
+    git fetch
+
     # always upload small packages that change often
     upload common.tar.gz
     upload kurl-bin-utils-latest.tar.gz
