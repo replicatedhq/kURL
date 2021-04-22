@@ -684,3 +684,71 @@ function kubeadm_cluster_configuration() {
 function kubeadm_cluster_status() {
     kubectl get cm -o yaml -n kube-system kubeadm-config -ojsonpath='{ .data.ClusterStatus }'
 }
+
+function check_network() {
+	logStep "Checking cluster networking"
+
+    kubectl delete pods kurlnet-client kurlnet-server --force --grace-period=0 &>/dev/null || true
+
+	cat <<EOF | kubectl apply -f -
+apiVersion: v1
+kind: Service
+metadata:
+  name: kurlnet
+spec:
+  selector:
+    app: kurlnet
+    component: server
+  ports:
+  - protocol: TCP
+    port: 8080
+    targetPort: 8080
+---
+apiVersion: v1
+kind: Pod
+metadata:
+ name: kurlnet-server
+ labels:
+   app: kurlnet
+   component: server
+spec:
+  restartPolicy: OnFailure
+  containers:
+  - name: pod
+    image: $KURL_UTIL_IMAGE
+    command: [/usr/local/bin/network, --server]
+---
+apiVersion: v1
+kind: Pod
+metadata:
+ name: kurlnet-client
+ labels:
+   app: kurlnet
+   component: client
+spec:
+  restartPolicy: OnFailure
+  containers:
+  containers:
+  - name: pod
+    image: $KURL_UTIL_IMAGE
+    command: [/usr/local/bin/network, --client, --address, http://kurlnet.default.svc.cluster.local:8080]
+EOF
+
+    # Wait up to 1 minute for the network check to succeed. If it's still failing print the client
+    # logs to help with troubleshooting. Then show the spinner indefinitely so that the script will
+    # proceed as soon as the problem is fixed.
+    if spinner_until 60 kubernetes_pod_completed kurlnet-client default; then
+        kubectl delete pods kurlnet-client kurlnet-server --force --grace-period=0
+        kubectl delete service kurlnet
+        return 0
+    fi
+
+    printf "${YELLOW}There appears to be a problem with cluster networking${NC}\n"
+    kubectl logs kurlnet-client
+
+    if spinner_until -1 kubernetes_pod_completed kurlnet-client default; then
+        kubectl delete pods kurlnet-client kurlnet-server --force --grace-period=0
+        kubectl delete service kurlnet
+        return 0
+    fi
+}

@@ -45,6 +45,8 @@ function antrea() {
     kubectl apply -k $dst
 
     antrea_cli
+
+    check_network
 }
 
 function antrea_join() {
