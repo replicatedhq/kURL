@@ -45,4 +45,9 @@ jobs:
           git checkout $tag
           export KURL_UTIL_IMAGE=replicated/kurl-util:$tag # required if this is the common package
           make dist/$PKG
-          aws s3 cp dist/$PKG s3://kurl-sh/dist/
+
+          MD5="$(openssl md5 -binary dist/$PKG | base64)"
+          GITSHA="$(git rev-parse HEAD)"
+          aws s3 cp dist/$PKG s3://kurl-sh/dist/${GITSHA}/$PKG \
+            --metadata md5="${MD5}",gitsha="${GITSHA}"
+          aws s3 cp s3://kurl-sh/dist/${GITSHA}/$PKG s3://kurl-sh/dist/$PKG
