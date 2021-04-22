@@ -2,6 +2,9 @@
 
 set -eo pipefail
 
+# shellcheck source=list-all-packages.sh
+source ./bin/list-all-packages.sh
+
 function require() {
     if [ -z "$2" ]; then
         echo "validation failed: $1 unset"
@@ -29,7 +32,7 @@ function upload_staging() {
 }
 
 # build and upload missing staging packages
-for package in $(bin/list-all-packages.sh)
+for package in $(list_all | awk '{print $1}')
 do
     if ! aws s3api head-object --bucket="${S3_BUCKET}" --key="staging/${GITSHA}/${package}" &>/dev/null; then
         upload_staging "${package}"
@@ -38,7 +41,7 @@ do
     fi
 done
 
-for package in $(bin/list-all-packages.sh)
+for package in $(list_all | awk '{print $1}')
 do
     if [ "$package" = "common.tar.gz" ] || echo "${package}" | grep -q "kurl-bin-utils" ; then
         # Common must be built rather than copied from staging because the staging common.tar.gz
