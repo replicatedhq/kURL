@@ -30,4 +30,5 @@ jobs:
           GITSHA="$(git rev-parse HEAD)"
           aws s3 cp dist/$PKG s3://kurl-sh/dist/${GITSHA}/$PKG \
             --metadata md5="${MD5}",gitsha="${GITSHA}"
-          aws s3 cp s3://kurl-sh/dist/${GITSHA}/$PKG s3://kurl-sh/dist/$PKG
+          aws s3 cp s3://kurl-sh/dist/${GITSHA}/$PKG s3://kurl-sh/dist/$PKG \
+            --metadata md5="${MD5}",gitsha="${GITSHA}"
