@@ -406,7 +406,7 @@ function discover_pod_subnet() {
     fi
     local size="$POD_CIDR_RANGE"
     if [ -z "$size" ]; then
-        size="22"
+        size="20"
     fi
     # find a network for the Pods, preferring start at 10.32.0.0 
     if podnet=$($DIR/bin/subnet --subnet-alloc-range "10.32.0.0/16" --cidr-range "$size" "$excluded"); then
