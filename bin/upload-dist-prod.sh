@@ -28,7 +28,7 @@ function upload_staging() {
     fi
 }
 
-# upload missing staging packages
+# build and upload missing staging packages
 for package in $(bin/list-all-packages.sh)
 do
     if ! aws s3api head-object --bucket="${S3_BUCKET}" --key="staging/${GITSHA}/${package}" &>/dev/null; then
@@ -54,6 +54,7 @@ do
             --metadata md5="${MD5}",gitsha="${GITSHA}"
         aws s3 cp "s3://${S3_BUCKET}/dist/${GITSHA}/${package}" "s3://${S3_BUCKET}/dist/${package}"
     else
+        # copy staging package to prod
         aws s3 cp "s3://${S3_BUCKET}/staging/${GITSHA}/${package}" "s3://${S3_BUCKET}/dist/${GITSHA}/${package}"
         aws s3 cp "s3://${S3_BUCKET}/staging/${GITSHA}/${package}" "s3://${S3_BUCKET}/dist/${package}"
     fi
