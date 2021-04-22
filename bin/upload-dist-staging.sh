@@ -22,7 +22,8 @@ function upload() {
     MD5="$(openssl md5 -binary "dist/${package}" | base64)"
     aws s3 cp "dist/${package}" "s3://${S3_BUCKET}/staging/${GITSHA}/$PKG" \
         --metadata md5="${MD5}",gitsha="${GITSHA}"
-    aws s3 cp "s3://${S3_BUCKET}/staging/${GITSHA}/${package}" "s3://${S3_BUCKET}/staging/$PKG"
+    aws s3 cp "s3://${S3_BUCKET}/staging/${GITSHA}/${package}" "s3://${S3_BUCKET}/staging/$PKG" \
+        --metadata md5="${MD5}",gitsha="${GITSHA}"
     make clean
     if [ -n "$DOCKER_PRUNE" ]; then
         docker system prune --all --force
@@ -39,6 +40,8 @@ do
         upload "${package}"
     else
         echo "s3://${S3_BUCKET}/staging/${GITSHA}/${package} already exists"
-        aws s3 cp "s3://${S3_BUCKET}/staging/${GITSHA}/${package}" "s3://${S3_BUCKET}/staging/$PKG"
+        MD5="$(aws s3api head-object --bucket "${S3_BUCKET}" --key "staging/${GITSHA}/${package}" | grep '"md5":' | sed 's/[",:]//g' | awk '{print $2}')"
+        aws s3 cp "s3://${S3_BUCKET}/staging/${GITSHA}/${package}" "s3://${S3_BUCKET}/staging/$PKG" \
+            --metadata md5="${MD5}",gitsha="${GITSHA}"
     fi
 done
