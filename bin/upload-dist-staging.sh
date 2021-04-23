@@ -61,11 +61,11 @@ function deploy() {
 
     # always upload small packages that change often
     if [ "$package" = "common.tar.gz" ] ; then
-        echo "s3://${S3_BUCKET}/${package} build and upload"
+        echo "s3://${S3_BUCKET}/staging/${package} build and upload"
         build_and_upload "${package}"
         return
     elif echo "${package}" | grep -q "kurl-bin-utils" ; then
-        echo "s3://${S3_BUCKET}/${package} build and upload"
+        echo "s3://${S3_BUCKET}/staging/${package} build and upload"
         build_and_upload "${package}"
         return
     fi
