@@ -688,6 +688,11 @@ function kubeadm_cluster_status() {
 function check_network() {
 	logStep "Checking cluster networking"
 
+    if ! kubernetes_any_node_ready; then
+        echo "Waiting for node to report Ready"
+        spinner_until 300 kubernetes_any_node_ready
+    fi
+
     kubectl delete pods kurlnet-client kurlnet-server --force --grace-period=0 &>/dev/null || true
 
 	cat <<EOF | kubectl apply -f -
@@ -751,4 +756,19 @@ EOF
         kubectl delete service kurlnet
         return 0
     fi
+}
+
+function kubernetes_default_service_account_exists() {
+    kubectl -n default get serviceaccount default &>/dev/null
+}
+
+function kubernetes_service_exists() {
+    kubectl -n default get service kubernetes &>/dev/null
+}
+
+function kubernetes_any_node_ready() {
+    if [ "$(kubectl get nodes --no-headers 2>/dev/null | awk '{ print $2 }')" = "Ready" ]; then
+        return 0
+    fi
+    return 1
 }
