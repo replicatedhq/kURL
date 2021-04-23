@@ -23,7 +23,7 @@ function upload_staging() {
 
     make "dist/${package}"
     MD5="$(openssl md5 -binary "dist/${package}" | base64)"
-    aws s3 cp "dist/${package}" "s3://${S3_BUCKET}/staging/${GITSHA}/$PKG" \
+    aws s3 cp "dist/${package}" "s3://${S3_BUCKET}/staging/${GITSHA}/${package}" \
         --metadata md5="${MD5}",gitsha="${GITSHA}"
     make clean
     if [ -n "$DOCKER_PRUNE" ]; then

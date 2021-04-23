@@ -44,9 +44,9 @@ function upload() {
 
     make "dist/${package}"
     MD5="$(openssl md5 -binary "dist/${package}" | base64)"
-    aws s3 cp "dist/${package}" "s3://${S3_BUCKET}/staging/${GITSHA}/$PKG" \
+    aws s3 cp "dist/${package}" "s3://${S3_BUCKET}/staging/${GITSHA}/${package}" \
         --metadata md5="${MD5}",gitsha="${GITSHA}"
-    aws s3 cp "s3://${S3_BUCKET}/staging/${GITSHA}/${package}" "s3://${S3_BUCKET}/staging/$PKG" \
+    aws s3 cp "s3://${S3_BUCKET}/staging/${GITSHA}/${package}" "s3://${S3_BUCKET}/staging/${package}" \
         --metadata md5="${MD5}",gitsha="${GITSHA}"
     make clean
     if [ -n "$DOCKER_PRUNE" ]; then
@@ -68,14 +68,14 @@ function deploy_package() {
             echo "s3://${S3_BUCKET}/staging/${package} no changes in package"
             local md5=
             md5="$(aws s3api head-object --bucket "${S3_BUCKET}" --key "staging/${package}" | grep '"md5":' | sed 's/[",:]//g' | awk '{print $2}')"
-            aws s3 cp "s3://${S3_BUCKET}/staging/${package}" "s3://${S3_BUCKET}/staging/${GITSHA}/$PKG" \
+            aws s3 cp "s3://${S3_BUCKET}/staging/${package}" "s3://${S3_BUCKET}/staging/${GITSHA}/${package}" \
                 --metadata md5="${md5}",gitsha="${GITSHA}"
         fi
     else
         echo "s3://${S3_BUCKET}/staging/${GITSHA}/${package} already exists"
         local md5=
         md5="$(aws s3api head-object --bucket "${S3_BUCKET}" --key "staging/${GITSHA}/${package}" | grep '"md5":' | sed 's/[",:]//g' | awk '{print $2}')"
-        aws s3 cp "s3://${S3_BUCKET}/staging/${GITSHA}/${package}" "s3://${S3_BUCKET}/staging/$PKG" \
+        aws s3 cp "s3://${S3_BUCKET}/staging/${GITSHA}/${package}" "s3://${S3_BUCKET}/staging/${package}" \
             --metadata md5="${md5}",gitsha="${GITSHA}"
     fi
 }
@@ -90,7 +90,7 @@ function deploy_other() {
         echo "s3://${S3_BUCKET}/staging/${GITSHA}/${package} already exists"
         local md5=
         md5="$(aws s3api head-object --bucket "${S3_BUCKET}" --key "staging/${GITSHA}/${package}" | grep '"md5":' | sed 's/[",:]//g' | awk '{print $2}')"
-        aws s3 cp "s3://${S3_BUCKET}/staging/${GITSHA}/${package}" "s3://${S3_BUCKET}/staging/$PKG" \
+        aws s3 cp "s3://${S3_BUCKET}/staging/${GITSHA}/${package}" "s3://${S3_BUCKET}/staging/${package}" \
             --metadata md5="${md5}",gitsha="${GITSHA}"
     fi
 }
