@@ -23,6 +23,7 @@ function weave() {
 
     kubectl apply -k "$DIR/kustomize/weave/"
     weave_ready_spinner
+    check_network
 }
 
 function weave_resource_secret() {

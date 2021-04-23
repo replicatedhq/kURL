@@ -26,6 +26,7 @@ function weave() {
 
     kubectl apply -k "${dst}/"
     weave_ready_spinner
+    check_network
 }
 
 function weave_resource_secret() {
