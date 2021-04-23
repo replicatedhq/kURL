@@ -1,0 +1,16 @@
+resources:
+- object.yaml
+- filesystem.yaml
+- cluster.yaml
+- cephfs-storageclass.yaml
+
+patchesStrategicMerge:
+
+patchesJson6902:
+- target:
+    group: ceph.rook.io
+    version: v1
+    kind: CephObjectStore
+    name: my-store
+    namespace: rook-ceph
+  path: patches/object-Json6902.yaml
