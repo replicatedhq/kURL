@@ -93,8 +93,13 @@ function rook_cluster_deploy() {
     cp "$src/ceph-cluster.yaml" "$dst/"
     cp "$src/ceph-block-pool.yaml" "$dst/"
     cp "$src/ceph-object-store.yaml" "$dst/"
-    cp "$src/shared-fs.yaml" "$dst/"
     render_yaml_file "$src/tmpl-ceph-storage-class.yaml" > "$dst/ceph-storage-class.yaml"
+
+    # conditional cephfs
+    if [ "${ROOK_SHARED_FILESYSTEM_DISABLED}" != "1" ]; then
+        cp "$src/shared-fs.yaml" "$dst/"
+        insert_resources "$dst/kustomization.yaml" shared-fs.yaml
+    fi
 
     # patches
     cp "$src/patches/ceph-cluster-mons.yaml" "$dst/"
