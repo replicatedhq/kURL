@@ -88,25 +88,14 @@ function main() {
     upload common.tar.gz
     upload kurl-bin-utils-latest.tar.gz
 
-    while read -r line
-    do
-        # shellcheck disable=SC2086
-        deploy "addon" ${line}
-    done < <(list_all_addons)
-
     # TODO: kubernetes changes do not yet take into account changes in bundles/
     # These need to manually be rebuilt when changing that path.
-    while read -r line
-    do
-        # shellcheck disable=SC2086
-        deploy "package" ${line}
-    done < <(list_all_packages)
 
     while read -r line
     do
         # shellcheck disable=SC2086
-        deploy "other" ${line}
-    done < <(list_other)
+        deploy ${line}
+    done < <(list_all)
 }
 
 main "$@"
