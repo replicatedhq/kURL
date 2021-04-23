@@ -26,7 +26,7 @@ function pkgs() {
             local minor="$(echo "${version}" | sed -E 's/^v?[0-9]+\.([0-9]+).[0-9]+.*$/\1/')"
             if [ "${minor}" -ge 17 ]; then
                 local conformance_version="$(echo "${version}" | sed -E 's/^v?([0-9]+\.[0-9]+.[0-9]+).*$/\1/')"
-                echo "kubernetes-conformance-${conformance_version}.tar.gz kubernetes-conformance ${conformance_version}"
+                echo "kubernetes-conformance-${conformance_version}.tar.gz kubernetes ${conformance_version}"
             fi
         fi
     done
