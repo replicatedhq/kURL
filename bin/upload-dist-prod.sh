@@ -69,6 +69,15 @@ function copy_package_staging() {
         --metadata md5="${md5}",gitsha="${GITSHA}"
 }
 
+function copy_package_dist() {
+    local package="$1"
+
+    local md5=
+    md5="$(aws s3api head-object --bucket "${S3_BUCKET}" --key "dist/${package}" | grep '"md5":' | sed 's/[",:]//g' | awk '{print $2}')"
+    aws s3 cp "s3://${S3_BUCKET}/dist/${package}" "s3://${S3_BUCKET}/dist/${VERSION_TAG}/${package}" \
+        --metadata md5="${md5}",gitsha="${GITSHA}"
+}
+
 function deploy() {
     local package="$1"
     local path="$2"
@@ -100,6 +109,7 @@ function deploy() {
         fi
     else
         echo "s3://${S3_BUCKET}/dist/${package} no changes in package"
+        copy_package_dist "${package}"
     fi
 }
 
