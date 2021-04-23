@@ -33,7 +33,7 @@ function pkgs() {
 }
 
 function list_all_addons() {
-    pkgs addons
+    pkgs addons | sort
 }
 
 function list_all_packages() {
