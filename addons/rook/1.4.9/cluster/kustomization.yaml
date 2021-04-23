@@ -1,21 +1,10 @@
 resources:
 - object.yaml
-- filesystem.yaml
 - cluster.yaml
-- cephfs-storageclass.yaml
 
 patchesStrategicMerge:
-- patches/cephfs-storageclass.yaml
-- patches/filesystem.yaml
 
 patchesJson6902:
-- target:
-    group: ceph.rook.io
-    version: v1
-    kind: CephFilesystem
-    name: myfs
-    namespace: rook-ceph
-  path: patches/filesystem-Json6902.yaml
 - target:
     group: ceph.rook.io
     version: v1

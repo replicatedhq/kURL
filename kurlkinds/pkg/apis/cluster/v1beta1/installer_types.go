@@ -158,6 +158,7 @@ type Rook struct {
 	BypassUpgradeWarning       bool   `json:"bypassUpgradeWarning,omitempty" yaml:"bypassUpgradeWarning,omitempty"`
 	CephReplicaCount           int    `json:"cephReplicaCount,omitempty" yaml:"cephReplicaCount,omitempty"`
 	IsBlockStorageEnabled      bool   `json:"isBlockStorageEnabled,omitempty" yaml:"isBlockStorageEnabled,omitempty"`
+	IsSharedFilesystemDisabled bool   `json:"isSharedFilesystemDisabled,omitempty" yaml:"isSharedFilesystemDisabled,omitempty"`
 	S3Override                 string `json:"s3Override,omitempty" yaml:"s3Override,omitempty"`
 	StorageClassName           string `json:"storageClassName,omitempty" yaml:"storageClassName,omitempty"`
 	HostpathRequiresPrivileged bool   `json:"hostpathRequiresPrivileged,omitempty" yaml:"hostpathRequiresPrivileged,omitempty"`

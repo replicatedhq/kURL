@@ -236,6 +236,7 @@ func convertToBash(kurlValues map[string]interface{}, fieldsSet map[string]bool)
 		"Rook.CephReplicaCount":                  "CEPH_POOL_REPLICAS",
 		"Rook.HostpathRequiresPrivileged":        "ROOK_HOSTPATH_REQUIRES_PRIVILEGED",
 		"Rook.IsBlockStorageEnabled":             "ROOK_BLOCK_STORAGE_ENABLED",
+		"Rook.IsSharedFilesystemDisabled":        "ROOK_SHARED_FILESYSTEM_DISABLED",
 		"Rook.S3Override":                        "ROOK_S3_OVERRIDE",
 		"Rook.StorageClassName":                  "STORAGE_CLASS",
 		"Rook.Version":                           "ROOK_VERSION",
