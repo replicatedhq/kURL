@@ -1,5 +1,6 @@
 image kotsadm-migrations docker.io/kotsadm/kotsadm-migrations:alpha
 image kotsadm-operator docker.io/kotsadm/kotsadm-operator:alpha
+image kotsadm-minio docker.io/kotsadm/minio:alpha
 image kotsadm docker.io/kotsadm/kotsadm:alpha
 image kurl-proxy docker.io/kotsadm/kurl-proxy:alpha
 image postgres postgres:10.16-alpine
