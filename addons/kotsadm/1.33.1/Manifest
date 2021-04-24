@@ -1,5 +1,6 @@
 image kotsadm-migrations docker.io/kotsadm/kotsadm-migrations:v1.33.1
 image kotsadm-operator docker.io/kotsadm/kotsadm-operator:v1.33.1
+image kotsadm-minio docker.io/kotsadm/minio:v1.33.1
 image kotsadm docker.io/kotsadm/kotsadm:v1.33.1
 image kurl-proxy docker.io/kotsadm/kurl-proxy:v1.33.1
 image postgres postgres:10.7
