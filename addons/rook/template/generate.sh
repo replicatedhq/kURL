@@ -48,11 +48,9 @@ function generate() {
 
     # download cluster resources
     curl -fsSL -o "${dir}/cluster/cephfs-storageclass.yaml" "${github_content_url}/cluster/examples/kubernetes/ceph/csi/cephfs/storageclass.yaml"
-    insert_resources "${dir}/cluster/kustomization.yaml" "cephfs-storageclass.yaml"
     curl -fsSL -o "${dir}/cluster/cluster.yaml" "${github_content_url}/cluster/examples/kubernetes/ceph/cluster.yaml"
     insert_resources "${dir}/cluster/kustomization.yaml" "cluster.yaml"
     curl -fsSL -o "${dir}/cluster/filesystem.yaml" "${github_content_url}/cluster/examples/kubernetes/ceph/filesystem.yaml"
-    insert_resources "${dir}/cluster/kustomization.yaml" "filesystem.yaml"
     curl -fsSL -o "${dir}/cluster/object.yaml" "${github_content_url}/cluster/examples/kubernetes/ceph/object.yaml"
     insert_resources "${dir}/cluster/kustomization.yaml" "object.yaml"
     curl -fsSL -o "${dir}/cluster/tmpl-rbd-storageclass.yaml" "${github_content_url}/cluster/examples/kubernetes/ceph/csi/rbd/storageclass.yaml"
