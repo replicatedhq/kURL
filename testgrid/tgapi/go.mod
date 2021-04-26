@@ -3,9 +3,9 @@ module github.com/replicatedhq/kurl/testgrid/tgapi
 go 1.16
 
 require (
-	github.com/DataDog/datadog-go v4.5.1+incompatible
+	github.com/DataDog/datadog-go v4.6.0+incompatible
 	github.com/Microsoft/go-winio v0.4.17 // indirect
-	github.com/aws/aws-sdk-go v1.38.20
+	github.com/aws/aws-sdk-go v1.38.26
 	github.com/gorilla/mux v1.8.0
 	github.com/kr/text v0.2.0 // indirect
 	github.com/lib/pq v1.10.1
