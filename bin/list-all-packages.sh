@@ -11,7 +11,9 @@ require KURL_UTIL_IMAGE "${KURL_UTIL_IMAGE}" # required for common package
 require KURL_BIN_UTILS_FILE "${KURL_BIN_UTILS_FILE}"
 
 function pkgs() {
-    for dir in $(find $1 -mindepth 2 -maxdepth 2 -type d)
+    local base="$1"
+
+    for dir in $(find "${base}" -mindepth 2 -maxdepth 2 -type d)
     do
         local name=$(echo $dir | awk -F "/" '{print $2 }')
         local version=$(echo $dir | awk -F "/" '{print $3 }')
@@ -20,13 +22,13 @@ function pkgs() {
         fi
         # HACK: allow for conformance packages to be built for rke2 and k3s for versions we do not support of kubeadm.
         if [ -f "$dir/Manifest" ]; then
-            echo "${name}-${version}.tar.gz ${dir}/${name}/${version}/"
+            echo "${name}-${version}.tar.gz ${dir}/"
         fi
         if [ "${name}" = "kubernetes" ] || [ "${name}" = "k-3-s" ] || [ "${name}" = "rke-2" ]; then
             local minor="$(echo "${version}" | sed -E 's/^v?[0-9]+\.([0-9]+).[0-9]+.*$/\1/')"
             if [ "${minor}" -ge 17 ]; then
                 local conformance_version="$(echo "${version}" | sed -E 's/^v?([0-9]+\.[0-9]+.[0-9]+).*$/\1/')"
-                echo "kubernetes-conformance-${conformance_version}.tar.gz ${dir}/kubernetes/${conformance_version}/"
+                echo "kubernetes-conformance-${conformance_version}.tar.gz ${base}/kubernetes/${conformance_version}/"
             fi
         fi
     done
