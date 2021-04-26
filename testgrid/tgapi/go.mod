@@ -8,7 +8,7 @@ require (
 	github.com/aws/aws-sdk-go v1.38.20
 	github.com/gorilla/mux v1.8.0
 	github.com/kr/text v0.2.0 // indirect
-	github.com/lib/pq v1.10.0
+	github.com/lib/pq v1.10.1
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/cobra v1.1.3
 	github.com/spf13/viper v1.7.1
