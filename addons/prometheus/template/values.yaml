@@ -381,10 +381,11 @@ alertmanager:
 
     ## Image of Alertmanager
     ##
-    image:
-      repository: quay.io/prometheus/alertmanager
-      tag: v0.21.0
-      sha: ""
+#   removed to allow autoupdates (replicated)
+#    image:
+#      repository: quay.io/prometheus/alertmanager
+#      tag: v0.21.0
+#      sha: ""
 
     ## If true then the user will be responsible to provide a secret with alertmanager configuration
     ## So when true the config part will be ignored (including templateFiles) and the one in the secret will be used
@@ -1500,11 +1501,12 @@ prometheusOperator:
 
   ## Prometheus-operator image
   ##
-  image:
-    repository: quay.io/prometheus-operator/prometheus-operator
-    tag: v0.46.0
-    sha: ""
-    pullPolicy: IfNotPresent
+#  removed to allow autoupdates (replicated)
+#  image:
+#    repository: quay.io/prometheus-operator/prometheus-operator
+#    tag: v0.46.0
+#    sha: ""
+#    pullPolicy: IfNotPresent
 
   ## Prometheus image to use for prometheuses managed by the operator
   ##
@@ -1516,10 +1518,11 @@ prometheusOperator:
 
   ## Prometheus-config-reloader image to use for config and rule reloading
   ##
-  prometheusConfigReloaderImage:
-    repository: quay.io/prometheus-operator/prometheus-config-reloader
-    tag: v0.46.0
-    sha: ""
+#  removed to allow autoupdates (replicated)
+#  prometheusConfigReloaderImage:
+#    repository: quay.io/prometheus-operator/prometheus-config-reloader
+#    tag: v0.46.0
+#    sha: ""
 
   ## Set the prometheus config reloader side-car CPU limit
   ##
@@ -1834,10 +1837,11 @@ prometheus:
 
     ## Image of Prometheus.
     ##
-    image:
-      repository: quay.io/prometheus/prometheus
-      tag: v2.24.0
-      sha: ""
+#  removed to allow autoupdates (replicated)
+#    image:
+#      repository: quay.io/prometheus/prometheus
+#      tag: v2.24.0
+#      sha: ""
 
     ## Tolerations for use with node taints
     ## ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/

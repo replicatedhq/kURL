@@ -37477,12 +37477,12 @@ spec:
     spec:
       containers:
         - name: kube-prometheus-stack
-          image: "quay.io/prometheus-operator/prometheus-operator:v0.46.0"
+          image: "quay.io/prometheus-operator/prometheus-operator:v0.47.0"
           imagePullPolicy: "IfNotPresent"
           args:
             - --kubelet-service=kube-system/prometheus-kubelet
             - --localhost=127.0.0.1
-            - --prometheus-config-reloader=quay.io/prometheus-operator/prometheus-config-reloader:v0.46.0
+            - --prometheus-config-reloader=quay.io/prometheus-operator/prometheus-config-reloader:v0.47.0
             - --config-reloader-cpu=100m
             - --config-reloader-memory=50Mi
           ports:
@@ -37569,8 +37569,8 @@ spec:
         port: web
         pathPrefix: "/"
         apiVersion: v2
-  image: quay.io/prometheus/prometheus:v2.24.0
-  version: v2.24.0
+  image: quay.io/prometheus/prometheus:v2.26.0
+  version: v2.26.0
   externalUrl: http://k8s.monitoring:9090
   paused: false
   replicas: 2
