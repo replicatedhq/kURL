@@ -10,6 +10,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/pkg/errors"
 	"gopkg.in/yaml.v2"
 )
 
@@ -31,7 +32,7 @@ func readFile(path string) []byte {
 	return configuration
 }
 
-func removeField(filePath, yamlField string) {
+func removeField(readFile func(string) []byte, filePath, yamlField string) {
 	var buffer []byte
 
 	configuration := readFile(filePath)
@@ -71,7 +72,7 @@ func removeField(filePath, yamlField string) {
 	}
 }
 
-func retrieveField(filePath, yamlPath string) {
+func retrieveField(readFile func(string) []byte, filePath, yamlPath string) {
 	configuration := readFile(filePath)
 
 	var parsed interface{}
@@ -101,7 +102,7 @@ func retrieveField(filePath, yamlPath string) {
 	}
 }
 
-func jsonField(filePath, jsonPath string) {
+func jsonField(readFile func(string) []byte, filePath, jsonPath string) (string, error) {
 	configuration := readFile(filePath)
 
 	var parsed interface{}
@@ -109,15 +110,21 @@ func jsonField(filePath, jsonPath string) {
 	err := yaml.Unmarshal(configuration, &parsed)
 
 	if err != nil {
-		log.Fatalf("error: %v", err)
+		return "", errors.Wrap(err, "unmarshal interface")
 	}
 
 	fields := strings.Split(jsonPath, ".")
 
 	// get the specified field
 	for _, field := range fields {
-		concrete := parsed.(map[interface{}]interface{})
-		parsed = concrete[field]
+		concrete, ok := parsed.(map[interface{}]interface{})
+		if !ok {
+			return "", fmt.Errorf("error: struct is not a map[interface]interface when looking for field %s", field)
+		}
+		parsed, ok = concrete[field]
+		if !ok {
+			return "", fmt.Errorf("error: field %s is not present", field)
+		}
 	}
 
 	if parsedInterface, ok := parsed.(map[interface{}]interface{}); ok {
@@ -127,9 +134,9 @@ func jsonField(filePath, jsonPath string) {
 	// convert the remaining object to json
 	jsonObj, err := json.Marshal(parsed)
 	if err != nil {
-		log.Fatalf("error: %v, parsed %+v", err, parsed)
+		return "", errors.Wrapf(err, "parsed %+v", parsed)
 	}
-	fmt.Printf("%s\n", jsonObj)
+	return string(jsonObj), nil
 }
 
 func convertToStringMaps(startMap map[interface{}]interface{}) map[string]interface{} {
@@ -161,11 +168,15 @@ func main() {
 	flag.Parse()
 
 	if *remove == true && *filePath != "" && *yamlField != "" {
-		removeField(*filePath, *yamlField)
+		removeField(readFile, *filePath, *yamlField)
 	} else if *parse == true && *filePath != "" && *yamlPath != "" {
-		retrieveField(*filePath, *yamlPath)
+		retrieveField(readFile, *filePath, *yamlPath)
 	} else if *json == true && *filePath != "" && *jsonPath != "" {
-		jsonField(*filePath, *jsonPath)
+		jsonObj, err := jsonField(readFile, *filePath, *jsonPath)
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+		fmt.Printf("%s\n", jsonObj)
 	} else {
 		log.Fatalf("incorrect binary usage")
 	}
