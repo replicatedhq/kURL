@@ -270,3 +270,9 @@ function is_ha() {
         HA_CLUSTER=1
     fi
 }
+
+function get_addon_config() {
+    addon_name=$1
+
+    $BIN_YAMLUTIL -j -fp $MERGED_YAML_SPEC -jf "spec.$addon_name"
+}
