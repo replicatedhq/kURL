@@ -767,7 +767,7 @@ function kubernetes_service_exists() {
 }
 
 function kubernetes_any_node_ready() {
-    if [ "$(kubectl get nodes --no-headers 2>/dev/null | awk '{ print $2 }')" = "Ready" ]; then
+    if kubectl get nodes --no-headers 2>/dev/null | awk '{ print $2 }' | grep -v 'NotReady' | grep -q 'Ready' ; then
         return 0
     fi
     return 1
