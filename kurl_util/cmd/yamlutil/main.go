@@ -2,12 +2,15 @@ package main
 
 import (
 	"bytes"
+	"encoding/json"
 	"flag"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
 	"strings"
 
+	"github.com/pkg/errors"
 	"gopkg.in/yaml.v2"
 )
 
@@ -29,7 +32,7 @@ func readFile(path string) []byte {
 	return configuration
 }
 
-func removeField(filePath, yamlField string) {
+func removeField(readFile func(string) []byte, filePath, yamlField string) {
 	var buffer []byte
 
 	configuration := readFile(filePath)
@@ -69,7 +72,7 @@ func removeField(filePath, yamlField string) {
 	}
 }
 
-func retrieveField(filePath, yamlPath string) {
+func retrieveField(readFile func(string) []byte, filePath, yamlPath string) {
 	configuration := readFile(filePath)
 
 	var parsed interface{}
@@ -99,20 +102,81 @@ func retrieveField(filePath, yamlPath string) {
 	}
 }
 
+func jsonField(readFile func(string) []byte, filePath, jsonPath string) (string, error) {
+	configuration := readFile(filePath)
+
+	var parsed interface{}
+
+	err := yaml.Unmarshal(configuration, &parsed)
+
+	if err != nil {
+		return "", errors.Wrap(err, "unmarshal interface")
+	}
+
+	fields := strings.Split(jsonPath, ".")
+
+	// get the specified field
+	for _, field := range fields {
+		concrete, ok := parsed.(map[interface{}]interface{})
+		if !ok {
+			return "", fmt.Errorf("error: struct is not a map[interface]interface when looking for field %s", field)
+		}
+		parsed, ok = concrete[field]
+		if !ok {
+			return "", fmt.Errorf("error: field %s is not present", field)
+		}
+	}
+
+	if parsedInterface, ok := parsed.(map[interface{}]interface{}); ok {
+		parsed = convertToStringMaps(parsedInterface)
+	}
+
+	// convert the remaining object to json
+	jsonObj, err := json.Marshal(parsed)
+	if err != nil {
+		return "", errors.Wrapf(err, "parsed %+v", parsed)
+	}
+	return string(jsonObj), nil
+}
+
+func convertToStringMaps(startMap map[interface{}]interface{}) map[string]interface{} {
+	converted := map[string]interface{}{}
+	for key, val := range startMap {
+		if valMap, ok := val.(map[interface{}]interface{}); ok { // this does not handle the case of map[interface]interface within arrays, but that is not needed yet
+			val = convertToStringMaps(valMap)
+		}
+		if keyString, ok := key.(string); ok {
+			converted[keyString] = val
+		} else {
+			strKey := fmt.Sprintf("%v", key)
+			converted[strKey] = val
+		}
+	}
+	return converted
+}
+
 func main() {
 
 	remove := flag.Bool("r", false, "Removes a yaml field and its children. Must be accompanied by -fp [file_path] -yf [yaml_field]")
 	parse := flag.Bool("p", false, "Parses a yaml tree given a path. Must be accompanied by -fp [file_path] -yp [yaml_path]. yaml_path is delineated by '_'")
+	json := flag.Bool("j", false, "Parses a yaml tree given a path. Must be accompanied by -fp [file_path] -jf [json_field]. json_field is delineated by '.'")
 	filePath := flag.String("fp", "", "filepath")
 	yamlPath := flag.String("yp", "", "filepath")
 	yamlField := flag.String("yf", "", "filepath")
+	jsonPath := flag.String("jf", "", "path to a field within a yaml object")
 
 	flag.Parse()
 
 	if *remove == true && *filePath != "" && *yamlField != "" {
-		removeField(*filePath, *yamlField)
+		removeField(readFile, *filePath, *yamlField)
 	} else if *parse == true && *filePath != "" && *yamlPath != "" {
-		retrieveField(*filePath, *yamlPath)
+		retrieveField(readFile, *filePath, *yamlPath)
+	} else if *json == true && *filePath != "" && *jsonPath != "" {
+		jsonObj, err := jsonField(readFile, *filePath, *jsonPath)
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+		fmt.Printf("%s\n", jsonObj)
 	} else {
 		log.Fatalf("incorrect binary usage")
 	}
