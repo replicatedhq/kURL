@@ -245,8 +245,12 @@ function run_sonobuoy() {
     RESULTS=$(/usr/local/bin/sonobuoy retrieve)
     if [ -n "$RESULTS" ]; then
         echo "completed sonobuoy run"
-        /usr/local/bin/sonobuoy results $RESULTS > ./sonobuoy-results.txt
+        /usr/local/bin/sonobuoy results "$RESULTS" > ./sonobuoy-results.txt
         curl -X POST --data-binary "@./sonobuoy-results.txt" "$TESTGRID_APIENDPOINT/v1/instance/$TEST_ID/sonobuoy"
+
+        # print detailed results to log
+        /usr/local/bin/sonobuoy results --mode=detailed "$RESULTS"
+
         return 0
     else
         echo "failed sonobuoy retrieve"
