@@ -93,7 +93,7 @@ export const dockerConfigSchema = {
     hardFailOnLoopback: { type: "boolean", flag: "hard-fail-on-loopback", description: "The install script stops and exits if it detects a loopback file storage configuration" },
     noCEOnEE: { type: "boolean", flag: "no-ce-on-ee", description: "Do not install Docker-CE on RHEL" },
     dockerRegistryIP: { type: "string", flag: "docker-registry-ip", description: "Used during join scripts, indicates the address of the docker registry (read only)" },
-    additionalNoProxy: { type: "string", flag: "additional-no-proxy", description: "This indicates addresses that should not be proxied in addition to the private IP (This can be a comma separated list of IPs or just 1 IP)" },
+    additionalNoProxy: { type: "string", flag: "additional-no-proxy", description: "This indicates addresses that should not be proxied in addition to the private IP. Multiple addresses can be specified as a comma separated list of IPs or a range of addresses in CIDR notation." },
     noDocker: { type: "boolean", flag: "no-docker", description: "Do not install Docker" },
   },
   required: [ "version" ],
