@@ -73,6 +73,10 @@ function rook_join() {
     rook_lvm2
 }
 
+function rook_already_applied() {
+    rook_object_store_output
+}
+
 function rook_dashboard_ready_spinner() {
     # wait for ceph dashboard password to be generated
     printf "awaiting rook-ceph dashboard password\n"

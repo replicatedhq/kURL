@@ -100,6 +100,10 @@ function rook_join() {
     rook_lvm2
 }
 
+function rook_already_applied() {
+    rook_object_store_output
+}
+
 function rook_operator_deploy() {
     local src="${DIR}/addons/rook/${ROOK_VERSION}/operator"
     local dst="${DIR}/kustomize/rook/operator"
