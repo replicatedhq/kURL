@@ -32,6 +32,10 @@ function minio() {
     minio_object_store_output
 }
 
+function minio_already_applied() {
+    minio_object_store_output
+}
+
 function minio_creds() {
     local src="$1"
     local dst="$2"

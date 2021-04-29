@@ -141,6 +141,9 @@ function get_patch_yaml() {
 					SECONDARY_HOST="$SECONDARY_HOST,$_value"
 				fi
 				;;
+            force-reapply-addons)
+                FORCE_REAPPLY_ADDONS=1
+                ;;
             *)
                 echo >&2 "Error: unknown parameter \"$_param\""
                 exit 1
@@ -269,4 +272,10 @@ function is_ha() {
     if [ "$master_count" -gt 1 ]; then
         HA_CLUSTER=1
     fi
+}
+
+function get_addon_config() {
+    addon_name=$1
+
+    $BIN_YAMLUTIL -j -fp $MERGED_YAML_SPEC -jf "spec.$addon_name"
 }
