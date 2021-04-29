@@ -15,8 +15,8 @@ function addon_install() {
     rm -rf $DIR/kustomize/$name
     mkdir -p $DIR/kustomize/$name
 
-    # TODO: add 'apply all after this' mechanism for if an addon changes later ones
-    if addon_has_been_applied $name; then
+    # if the addon has already been applied and addons are not being forcibly reapplied
+    if addon_has_been_applied $name && [ -z "$FORCE_REAPPLY_ADDONS" ]; then
         export REPORTING_CONTEXT_INFO="addon already applied $name $version"
         # shellcheck disable=SC1090
         . $DIR/addons/$name/$version/install.sh

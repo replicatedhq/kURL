@@ -141,6 +141,9 @@ function get_patch_yaml() {
 					SECONDARY_HOST="$SECONDARY_HOST,$_value"
 				fi
 				;;
+            force-reapply-addons)
+                FORCE_REAPPLY_ADDONS=1
+                ;;
             *)
                 echo >&2 "Error: unknown parameter \"$_param\""
                 exit 1
