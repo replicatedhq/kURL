@@ -6,6 +6,8 @@ function containerd_install() {
     if [ "$SKIP_CONTAINERD_INSTALL" != "1" ]; then
         install_host_archives "$src"
         install_host_packages "$src"
+        chmod +x ${DIR}/addons/containerd/${CONTAINERD_VERSION}/assets/runc
+        cp ${DIR}/addons/containerd/${CONTAINERD_VERSION}/assets/runc $(which runc)
         containerd_configure
         systemctl daemon-reload
     fi
