@@ -23,4 +23,6 @@ RUN yum install -y \
     python3-libs \
     samba-client-libs \
     sudo \
+    libldb \
+    nettle \
   && yum clean all

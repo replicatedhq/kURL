@@ -25,6 +25,7 @@ RUN yum install -y \
     python3-libs \
     samba-client-libs \
     sudo \
+    libldb \
   && yum clean all
 
 COPY --from=base /tini /tini
