@@ -1,0 +1,9 @@
+image kotsadm-migrations docker.io/kotsadm/kotsadm-migrations:v1.40.0
+image kotsadm-operator docker.io/kotsadm/kotsadm-operator:v1.40.0
+image kotsadm-minio minio/minio:RELEASE.2021-04-06T23-11-00Z
+image kotsadm docker.io/kotsadm/kotsadm:v1.40.0
+image kurl-proxy docker.io/kotsadm/kurl-proxy:v1.40.0
+image postgres postgres:10.16-alpine
+image dex docker.io/kotsadm/dex:v2.28.1
+
+asset kots.tar.gz https://github.com/replicatedhq/kots/releases/download/v1.40.0/kots_linux_amd64.tar.gz
