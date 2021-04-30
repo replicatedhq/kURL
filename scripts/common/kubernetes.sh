@@ -619,10 +619,10 @@ function kubernetes_load_balancer_address() {
 }
 
 function kubernetes_pod_started() {
-    name=$1
-    namespace=$2
+    local name=$1
+    local namespace=$2
 
-    phase=$(kubectl -n $namespace get pod $name -ojsonpath='{ .status.phase }')
+    local phase=$(kubectl -n $namespace get pod $name -ojsonpath='{ .status.phase }')
     case "$phase" in
         Running|Failed|Succeeded)
             return 0
@@ -633,10 +633,10 @@ function kubernetes_pod_started() {
 }
 
 function kubernetes_pod_completed() {
-    name=$1
-    namespace=$2
+    local name=$1
+    local namespace=$2
 
-    phase=$(kubectl -n $namespace get pod $name -ojsonpath='{ .status.phase }')
+    local phase=$(kubectl -n $namespace get pod $name -ojsonpath='{ .status.phase }')
     case "$phase" in
         Failed|Succeeded)
             return 0
@@ -733,11 +733,12 @@ metadata:
 spec:
   restartPolicy: OnFailure
   containers:
-  containers:
   - name: pod
     image: $KURL_UTIL_IMAGE
     command: [/usr/local/bin/network, --client, --address, http://kurlnet.default.svc.cluster.local:8080]
 EOF
+
+    spinner_until 120 kubernetes_pod_started kurlnet-client default
 
     # Wait up to 1 minute for the network check to succeed. If it's still failing print the client
     # logs to help with troubleshooting. Then show the spinner indefinitely so that the script will
