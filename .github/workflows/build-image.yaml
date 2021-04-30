@@ -1,8 +1,12 @@
 # This rebuilds a single image
 name: build-image
 on:
-  repository_dispatch:
-    types: [build-image]
+  workflow_dispatch:
+    inputs:
+      image:
+        description: path to a Makefile that builds the image
+        required: true
+        default: addons/rook/1.0.4/build-images/ceph
 
 jobs:
   build:
@@ -17,8 +21,8 @@ jobs:
       run: curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sudo sh -s -- -b /usr/local/bin
     - name: Install jq
       run: sudo apt-get install -y jq
-    - name: Build image ${{ github.event.client_payload.image }}
+    - name: Build image ${{ github.event.inputs.image }}
       env:
-        IMAGE: ${{ github.event.client_payload.image }}
+        IMAGE: ${{ github.event.inputs.image }}
       run: |
         make -C $IMAGE
