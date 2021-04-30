@@ -37139,7 +37139,12 @@ spec:
               path: /
               port: 9100
           resources:
-            {}
+            limits:
+              cpu: 100m
+              memory: 50Mi
+            requests:
+              cpu: 50m
+              memory: 30Mi
           volumeMounts:
             - name: proc
               mountPath: /host/proc
@@ -37288,7 +37293,12 @@ spec:
               path: /api/health
               port: 3000
           resources:
-            {}
+            limits:
+              cpu: 100m
+              memory: 128Mi
+            requests:
+              cpu: 100m
+              memory: 128Mi
       volumes:
         - name: config
           configMap:
@@ -37489,7 +37499,12 @@ spec:
             - containerPort: 8080
               name: http
           resources:
-            {}
+            limits:
+              cpu: 200m
+              memory: 200Mi
+            requests:
+              cpu: 100m
+              memory: 100Mi
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true
