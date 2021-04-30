@@ -26,6 +26,11 @@ RUN yum install -y \
     samba-client-libs \
     sudo \
     libldb \
+    nettle \
+    nss \
+    nss-sysinit \
+    nss-tools \
+    openldap \
   && yum clean all
 
 COPY --from=base /tini /tini
