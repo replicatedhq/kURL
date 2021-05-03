@@ -646,6 +646,14 @@ function kubernetes_pod_completed() {
     return 1
 }
 
+function kubernetes_pod_succeeded() {
+    local name="$1"
+    local namespace="$2"
+
+    local phase=$(kubectl -n $namespace get pod $name -ojsonpath='{ .status.phase }')
+    [ "$phase" = "Succeeded" ]
+}
+
 function kubernetes_is_current_cluster() {
     local api_service_address="$1"
     if cat /etc/kubernetes/kubelet.conf 2>/dev/null | grep -q "${api_service_address}"; then
@@ -738,24 +746,31 @@ spec:
     command: [/usr/local/bin/network, --client, --address, http://kurlnet.default.svc.cluster.local:8080]
 EOF
 
+    echo "Waiting for kurlnet-client pod to start"
     spinner_until 120 kubernetes_pod_started kurlnet-client default
 
     # Wait up to 1 minute for the network check to succeed. If it's still failing print the client
     # logs to help with troubleshooting. Then show the spinner indefinitely so that the script will
     # proceed as soon as the problem is fixed.
     if spinner_until 60 kubernetes_pod_completed kurlnet-client default; then
-        kubectl delete pods kurlnet-client kurlnet-server --force --grace-period=0
-        kubectl delete service kurlnet
-        return 0
+        if kubernetes_pod_succeeded kurlnet-client default; then
+            kubectl delete pods kurlnet-client kurlnet-server --force --grace-period=0
+            kubectl delete service kurlnet
+            return 0
+        fi
+        bail "kurlnet-client pod failed to validate cluster networking"
     fi
 
     printf "${YELLOW}There appears to be a problem with cluster networking${NC}\n"
     kubectl logs kurlnet-client
 
     if spinner_until -1 kubernetes_pod_completed kurlnet-client default; then
-        kubectl delete pods kurlnet-client kurlnet-server --force --grace-period=0
-        kubectl delete service kurlnet
-        return 0
+        if kubernetes_pod_succeeded kurlnet-client default; then
+            kubectl delete pods kurlnet-client kurlnet-server --force --grace-period=0
+            kubectl delete service kurlnet
+            return 0
+        fi
+        bail "kurlnet-client pod failed to validate cluster networking"
     fi
 }
 
