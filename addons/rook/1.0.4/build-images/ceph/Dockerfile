@@ -25,4 +25,8 @@ RUN yum install -y \
     sudo \
     libldb \
     nettle \
+    nss \
+    nss-sysinit \
+    nss-tools \
+    openldap \
   && yum clean all

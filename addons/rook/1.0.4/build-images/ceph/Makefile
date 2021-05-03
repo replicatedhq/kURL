@@ -1,7 +1,7 @@
 SHELL := /bin/bash
 
 IMAGE := kurlsh/ceph:v14.2.0
-WHITELIST := "(GHSA\-|perl\-Pod\-Escapes)"
+WHITELIST := "(GHSA\-|perl\-Pod\-Escapes|libldb,1\.5\.4\-2\.el7)"
 
 DATE := $(shell date '+%Y%m%d')
 
