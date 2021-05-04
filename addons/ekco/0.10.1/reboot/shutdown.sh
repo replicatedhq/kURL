@@ -6,6 +6,10 @@ kubectl cordon $(hostname | tr '[:upper:]' '[:lower:]')
 
 # delete local pods with PVCs
 while read -r uid; do
+        if [ -z "$uid" ]; then
+            # unmounted device
+            continue
+        fi
         pod=$(kubectl get pods --all-namespaces -ojsonpath='{ range .items[*]}{.metadata.name}{"\t"}{.metadata.uid}{"\t"}{.metadata.namespace}{"\n"}{end}' | grep $uid )
         kubectl delete pod $(echo $pod | awk '{ print $1 }') --namespace=$(echo $pod | awk '{ print $3 }') --wait=false
 done < <(lsblk | grep '^rbd[0-9]' | awk '{ print $7 }' | awk -F '/' '{ print $6 }')
@@ -16,7 +20,8 @@ while read -r uid; do
         kubectl delete pod $(echo $pod | awk '{ print $1 }') --namespace=$(echo $pod | awk '{ print $3 }') --wait=false
 done < <(cat /proc/mounts | grep ':6789:/' | grep -v globalmount | awk '{ print $2 }' | awk -F '/' '{ print $6 }')
 
-while $(lsblk | grep -q '^rbd[0-9]'); do
+# while there are still rbds mounted
+while [ -n "$(lsblk | grep '^rbd[0-9]' | awk '{print $7}' | awk NF)" ]; do
         echo "Waiting for Ceph block devices to unmount"
         sleep 1
 done
