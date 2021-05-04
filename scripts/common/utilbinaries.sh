@@ -276,14 +276,11 @@ function is_ha() {
 
 function get_addon_config() {
     local addon_name=$1
-
-    if [ "$addon_name" == "cert-manager" ]; then
-        addon_name="certManager"
-    fi
-
-    if [ "$addon_name" == "metrics-server" ]; then
-        addon_name="metricsServer"
-    fi
+    addon_name=$(kebab_to_camel "$addon_name")
 
     $BIN_YAMLUTIL -j -fp $MERGED_YAML_SPEC -jf "spec.$addon_name"
+}
+
+function kebab_to_camel() {
+    echo "$1" | sed -E 's/-(.)/\U\1/g'
 }
