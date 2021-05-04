@@ -57,6 +57,10 @@ function run_install() {
     export PATH=$PATH:/var/lib/rancher/rke2/bin
     if [ -f /etc/rancher/rke2/rke2.yaml ]; then
         export KUBECONFIG=/etc/rancher/rke2/rke2.yaml
+        # On testgrid the hostname doesn't resolve, so configure the apiserver to connect to kubelet
+        # by IP. Otherwise sonobuoy retrieve will fail execing into the sonobuoy pod. Kubeadm does
+        # this by default.
+        sed -i '/kubelet-client-key/a\    - --kubelet-preferred-address-types=InternalIP' /var/lib/rancher/rke2/agent/pod-manifests/kube-apiserver.yaml
     fi
     if [ -f /var/lib/rancher/rke2/agent/etc/crictl.yaml ]; then
         export CRI_CONFIG_FILE=/var/lib/rancher/rke2/agent/etc/crictl.yaml
