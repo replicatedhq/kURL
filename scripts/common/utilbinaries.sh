@@ -275,7 +275,15 @@ function is_ha() {
 }
 
 function get_addon_config() {
-    addon_name=$1
+    local addon_name=$1
+
+    if [ "$addon_name" == "cert-manager" ]; then
+        addon_name="certManager"
+    fi
+
+    if [ "$addon_name" == "metrics-server" ]; then
+        addon_name="metricsServer"
+    fi
 
     $BIN_YAMLUTIL -j -fp $MERGED_YAML_SPEC -jf "spec.$addon_name"
 }
