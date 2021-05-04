@@ -123,7 +123,14 @@ func jsonField(readFile func(string) []byte, filePath, jsonPath string) (string,
 		}
 		parsed, ok = concrete[field]
 		if !ok {
-			return "", fmt.Errorf("error: field %s is not present", field)
+			if field == "cert-manager" {
+				parsed, ok = concrete["certManager"]
+			} else if field == "metrics-server" {
+				parsed, ok = concrete["metricsServer"]
+			}
+			if !ok {
+				return "", fmt.Errorf("error: field %s is not present", field)
+			}
 		}
 	}
 

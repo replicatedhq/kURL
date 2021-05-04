@@ -25,3 +25,7 @@ spec:
     version: "latest"
   ekco:
     version: "latest"
+  certManager:
+    version: "1.0.3"
+  metricsServer:
+    version: "0.4.1"

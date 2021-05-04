@@ -40,6 +40,18 @@ func Test_jsonField(t *testing.T) {
 			jsonPath: "spec.docker",
 			want:     `{"daemonConfig":"this is a test file with newlines\nand quotes\"\nwithin it\n","version":"20.10.5"}`,
 		},
+		{
+			name:     "cert-manager rewrite",
+			filePath: "complex",
+			jsonPath: "spec.cert-manager",
+			want:     `{"version":"1.0.3"}`,
+		},
+		{
+			name:     "metrics-server rewrite",
+			filePath: "complex",
+			jsonPath: "spec.metrics-server",
+			want:     `{"version":"0.4.1"}`,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
