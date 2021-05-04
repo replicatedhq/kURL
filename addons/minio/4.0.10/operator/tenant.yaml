@@ -1,0 +1,43 @@
+# Source: minio-operator/templates/tenant.yaml
+apiVersion: minio.min.io/v2
+kind: Tenant
+metadata:
+  name: minio1
+  ## Optionally pass labels to be applied to the statefulset pods
+  labels:
+    app: minio
+  
+  
+spec:
+  image: minio/minio:RELEASE.2021-04-06T23-11-00Z
+  imagePullPolicy: IfNotPresent
+  ## Secret with credentials to be used by MinIO Tenant.
+  credsSecret:
+    name: minio1-secret
+  
+  pools:
+    - servers: 4
+      volumesPerServer: 4
+      volumeClaimTemplate:
+        metadata:
+          name: data
+        spec:
+          storageClassName: standard
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 10Gi
+  
+  mountPath: /export
+  subPath: /data
+  requestAutoCert: true
+  s3:
+    bucketDNS: false
+  podManagementPolicy: Parallel
+  
+  console:
+    image: minio/console:v0.6.8
+    replicas: 1
+    consoleSecret:
+      name: console-secret

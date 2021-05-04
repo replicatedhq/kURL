@@ -1,0 +1,4 @@
+
+namespace: ${MINIO_NAMESPACE}
+
+resources:

@@ -1,0 +1,22 @@
+# Source: minio-operator/templates/console-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: "console"
+  namespace: minio
+  labels:
+    helm.sh/chart: minio-operator-4.0.10
+    app.kubernetes.io/name: minio-operator
+    app.kubernetes.io/instance: minio
+    app.kubernetes.io/version: "v4.0.9"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  ports:
+  - name: http
+    port: 9090
+  - name: https
+    port: 9443
+  selector:
+    app.kubernetes.io/name: minio-operator
+    app.kubernetes.io/instance: minio-console
+---

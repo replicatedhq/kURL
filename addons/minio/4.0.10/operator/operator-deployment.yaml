@@ -1,0 +1,40 @@
+# Source: minio-operator/templates/operator-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: "minio-operator"
+  namespace: minio
+  labels:
+    helm.sh/chart: minio-operator-4.0.10
+    app.kubernetes.io/name: minio-operator
+    app.kubernetes.io/instance: minio
+    app.kubernetes.io/version: "v4.0.9"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: minio-operator
+      app.kubernetes.io/instance: minio
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: minio-operator
+        app.kubernetes.io/instance: minio
+    spec:
+      serviceAccountName: minio-operator
+      securityContext:
+        fsGroup: 1000
+        runAsGroup: 1000
+        runAsNonRoot: true
+        runAsUser: 1000
+      containers:
+        - name: minio-operator
+          image: "minio/operator:v4.0.9"
+          imagePullPolicy: IfNotPresent
+          resources:
+            requests:
+              cpu: 200m
+              ephemeral-storage: 500Mi
+              memory: 256Mi
+---

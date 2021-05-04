@@ -1,0 +1,3 @@
+image console minio/console:v0.6.8
+image minio minio/minio:RELEASE.2021-04-06T23-11-00Z
+image operator minio/operator:v4.0.9

@@ -199,6 +199,8 @@ module.exports.InstallerVersions = {
     "2.6.0",
   ],
   minio: [
+    // cron-minio-update
+    "4.0.10",
     "2020-01-25T02-50-51Z",
   ],
   collectd: [

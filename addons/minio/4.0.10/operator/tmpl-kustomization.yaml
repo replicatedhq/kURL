@@ -1,0 +1,14 @@
+
+namespace: ${MINIO_NAMESPACE}
+
+resources:
+- tenant.yaml
+- operator-deployment.yaml
+- console-deployment.yaml
+- operator-service.yaml
+- console-service.yaml
+- cluster-role-binding.yaml
+- cluster-role.yaml
+- console-secret.yaml
+- serviceaccount.yaml
+- console-ui.yaml
