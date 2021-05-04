@@ -793,3 +793,7 @@ function can_prompt() {
     fi
     return 1
 }
+
+function kebab_to_camel() {
+    echo "$1" | sed -E 's/-(.)/\U\1/g'
+}

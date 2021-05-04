@@ -275,7 +275,8 @@ function is_ha() {
 }
 
 function get_addon_config() {
-    addon_name=$1
+    local addon_name=$1
+    addon_name=$(kebab_to_camel "$addon_name")
 
     $BIN_YAMLUTIL -j -fp $MERGED_YAML_SPEC -jf "spec.$addon_name"
 }

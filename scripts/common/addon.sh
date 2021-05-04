@@ -182,7 +182,13 @@ function init_addon_cache() {
 function addon_has_been_applied() {
     local name=$1
     last_applied=$(kubectl get configmap -n kurl kurl-last-config -o jsonpath="{.data.addons-$name}")
-    current=$(get_addon_config $name | base64 -w 0)
+    current=$(get_addon_config "$name" | base64 -w 0)
+
+    if [[ "$current" == "" ]] ; then
+        # current should never be the empty string - it should at least contain the version - so this indicates an error
+        # it would be better to reinstall unnecessarily rather than skip installing, so we report that the addon has not been applied
+        return 1
+    fi
 
     if [[ "$last_applied" == "$current" ]] ; then
         return 0
@@ -193,6 +199,6 @@ function addon_has_been_applied() {
 
 function set_addon_has_been_applied() {
     local name=$1
-    current=$(get_addon_config $name | base64 -w 0)
+    current=$(get_addon_config "$name" | base64 -w 0)
     kubectl patch configmaps -n kurl  kurl-current-config --type merge -p "{\"data\":{\"addons-$name\":\"$current\"}}"
 }

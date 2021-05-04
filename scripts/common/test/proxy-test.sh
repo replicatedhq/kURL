@@ -1,6 +1,6 @@
 #!/bin/bash
 
-. ./install_scripts/templates/common/proxy.sh
+. ./scripts/common/proxy.sh
 
 test_configureDockerProxyUpstartNew()
 {

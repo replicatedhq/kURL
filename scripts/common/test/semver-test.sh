@@ -1,6 +1,6 @@
 #!/bin/bash
 
-. ./install_scripts/templates/common/common.sh
+. ./scripts/common/common.sh
 
 testParseSemver()
 {
