@@ -1,6 +1,6 @@
 #!/bin/bash
 
-. ./install_scripts/templates/common/docker.sh
+. ./scripts/common/docker.sh
 
 testDockerReplaceRegistryAddress()
 {

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-. ./install_scripts/templates/common/cli-script.sh
+. ./scripts/common/cli-script.sh
 
 testInstallCliFile()
 {
