@@ -797,3 +797,26 @@ function can_prompt() {
 function kebab_to_camel() {
     echo "$1" | sed -E 's/-(.)/\U\1/g'
 }
+
+function build_installer_prefix() {
+    local installer_id="$1"
+    local kurl_version="$2"
+    local kurl_url="$3"
+    local proxy_address="$4"
+
+    if [ -z "${kurl_url}" ]; then
+        echo "cat "
+        return
+    fi
+
+    local curl_flags=
+    if [ -n "${proxy_address}" ]; then
+        curl_flags=" -x ${proxy_address}"
+    fi
+
+    if [ -n "${kurl_version}" ]; then
+        echo "curl -fsSL${curl_flags} ${kurl_url}/version/${kurl_version}/${installer_id}/"
+    else
+        echo "curl -fsSL${curl_flags} ${kurl_url}/${installer_id}/"
+    fi
+}

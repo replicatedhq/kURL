@@ -60,11 +60,13 @@ function deploy() {
     local path="$2"
 
     # always upload small packages that change often
-    if [ "$package" = "common.tar.gz" ] ; then
-        echo "s3://${S3_BUCKET}/staging/${package} build and upload"
-        build_and_upload "${package}"
-        return
-    elif echo "${package}" | grep -q "kurl-bin-utils" ; then
+    if [ "$package" = "install.tmpl" ] \
+        || [ "$package" = "join.tmpl" ] \
+        || [ "$package" = "upgrade.tmpl" ] \
+        || [ "$package" = "tasks.tmpl" ] \
+        || [ "$package" = "common.tar.gz" ] \
+        || echo "${package}" | grep -q "kurl-bin-utils" ; then
+
         echo "s3://${S3_BUCKET}/staging/${package} build and upload"
         build_and_upload "${package}"
         return

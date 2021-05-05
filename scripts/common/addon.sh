@@ -130,16 +130,6 @@ function addon_outro() {
     fi
 
     if [ "$ADDONS_HAVE_HOST_COMPONENTS" = "1" ] && kubernetes_has_remotes; then
-        local proxyFlag=""
-        if [ -n "$PROXY_ADDRESS" ]; then
-            proxyFlag=" -x $PROXY_ADDRESS"
-        fi
-
-        local prefix="curl -sSL${proxyFlag} $KURL_URL/$INSTALLER_ID/"
-        if [ "$AIRGAP" = "1" ] || [ -z "$KURL_URL" ]; then
-            prefix="cat "
-        fi
-
         local common_flags
         common_flags="${common_flags}$(get_docker_registry_ip_flag "${DOCKER_REGISTRY_IP}")"
         common_flags="${common_flags}$(get_additional_no_proxy_addresses_flag "${PROXY_ADDRESS}" "${SERVICE_CIDR},${POD_CIDR}")"
@@ -147,8 +137,11 @@ function addon_outro() {
 
         printf "\n${YELLOW}Run this script on all remote nodes to apply changes${NC}\n"
         if [ "$AIRGAP" = "1" ]; then
-            printf "\n\t${GREEN}${prefix}upgrade.sh | sudo bash -s airgap${common_flags}${NC}\n\n"
+            printf "\n\t${GREEN}cat ./upgrade.sh | sudo bash -s airgap${common_flags}${NC}\n\n"
         else
+            local prefix=
+            prefix="$(build_installer_prefix "${INSTALLER_ID}" "${KURL_VERSION}" "${KURL_URL}" "${PROXY_ADDRESS}")"
+
             printf "\n\t${GREEN}${prefix}upgrade.sh | sudo bash -s${common_flags}${NC}\n\n"
         fi
         printf "Press enter to proceed\n"

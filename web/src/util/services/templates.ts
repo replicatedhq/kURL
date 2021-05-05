@@ -1,8 +1,8 @@
-import * as fs from "fs";
-import * as path from "path";
 import * as _ from "lodash";
-import {Service} from "ts-express-decorators";
+import fetch from "node-fetch";
+import { Service } from "ts-express-decorators";
 import { Installer } from "../../installers";
+import { HTTPError } from "../../server/errors";
 
 @Service()
 export class Templates {
@@ -12,10 +12,15 @@ export class Templates {
   private replicatedAppURL: string;
   private kurlUtilImage: string;
   private kurlBinUtils: string;
-  private installTmpl: (obj: any) => string;
-  private joinTmpl: (obj: any) => string;
-  private upgradeTmpl: (obj: any) => string;
-  private tasksTmpl: () => string;
+  private installTmplResolved: (data?: object) => string;
+  private joinTmplResolved: (data?: object) => string;
+  private upgradeTmplResolved: (data?: object) => string;
+  private tasksTmplResolved: (data?: object) => string;
+  private templateOpts = {
+    escape: /{{-([\s\S]+?)}}/g,
+    evaluate: /{{([\s\S]+?)}}/g,
+    interpolate: /{{=([\s\S]+?)}}/g,
+  };
 
   constructor() {
     this.kurlURL = process.env["KURL_URL"] || "https://kurl.sh";
@@ -23,44 +28,96 @@ export class Templates {
     this.kurlUtilImage = process.env["KURL_UTIL_IMAGE"] || "replicated/kurl-util:alpha";
     this.kurlBinUtils = process.env["KURL_BIN_UTILS_FILE"] || "kurl-bin-utils-latest.tar.gz";
 
-    this.distURL = `https://${process.env["KURL_BUCKET"]}.s3.amazonaws.com`;
-    if (process.env["NODE_ENV"] === "production") {
-      this.distURL += "/dist";
+    if (process.env["DIST_URL"]) {
+      this.distURL = process.env["DIST_URL"] as string;
     } else {
-      this.distURL += "/staging";
+      this.distURL = `https://${process.env["KURL_BUCKET"]}.s3.amazonaws.com`;
+      if (process.env["NODE_ENV"] === "production") {
+        this.distURL += "/dist";
+      } else {
+        this.distURL += "/staging";
+      }
     }
-
-    const tmplDir = path.join(__dirname, "../../../../templates");
-    const installTmplPath = path.join(tmplDir, "install.tmpl");
-    const joinTmplPath = path.join(tmplDir, "join.tmpl");
-    const upgradeTmplPath = path.join(tmplDir, "upgrade.tmpl");
-    const tasksTmplPath = path.join(tmplDir, "tasks.tmpl");
-
-    const opts = {
-      escape: /{{-([\s\S]+?)}}/g,
-      evaluate: /{{([\s\S]+?)}}/g,
-      interpolate: /{{=([\s\S]+?)}}/g,
-    };
-    this.installTmpl = _.template(fs.readFileSync(installTmplPath, "utf8"), opts);
-    this.joinTmpl = _.template(fs.readFileSync(joinTmplPath, "utf8"), opts);
-    this.upgradeTmpl = _.template(fs.readFileSync(upgradeTmplPath, "utf8"), opts);
-    this.tasksTmpl = _.template(fs.readFileSync(tasksTmplPath, "utf8"), opts);
   }
 
-  public renderInstallScript(i: Installer): string {
-    return this.installTmpl(manifestFromInstaller(i, this.kurlURL, this.replicatedAppURL, this.distURL, this.kurlUtilImage, this.kurlBinUtils));
+  private async installTmpl(): Promise<((data?: object) => string)> {
+    if (this.installTmplResolved) {
+      return this.installTmplResolved;
+    }
+    this.installTmplResolved = await this.tmplFromUpstream(undefined, "install.tmpl");
+    return this.installTmplResolved;
   }
 
-  public renderJoinScript(i: Installer): string {
-    return this.joinTmpl(manifestFromInstaller(i, this.kurlURL, this.replicatedAppURL, this.distURL, this.kurlUtilImage, this.kurlBinUtils));
+  private async joinTmpl(): Promise<((data?: object) => string)> {
+    if (this.joinTmplResolved) {
+      return this.joinTmplResolved;
+    }
+    this.joinTmplResolved = await this.tmplFromUpstream(undefined, "join.tmpl");
+    return this.joinTmplResolved;
   }
 
-  public renderUpgradeScript(i: Installer): string {
-    return this.upgradeTmpl(manifestFromInstaller(i, this.kurlURL, this.replicatedAppURL, this.distURL, this.kurlUtilImage, this.kurlBinUtils));
+  private async upgradeTmpl(): Promise<((data?: object) => string)> {
+    if (this.upgradeTmplResolved) {
+      return this.upgradeTmplResolved;
+    }
+    this.upgradeTmplResolved = await this.tmplFromUpstream(undefined, "upgrade.tmpl");
+    return this.upgradeTmplResolved;
   }
 
-  public renderTasksScript(): string {
-      return this.tasksTmpl();
+  private async tasksTmpl(): Promise<((data?: object) => string)> {
+    if (this.tasksTmplResolved) {
+      return this.tasksTmplResolved;
+    }
+    this.tasksTmplResolved = await this.tmplFromUpstream(undefined, "tasks.tmpl");
+    return this.tasksTmplResolved;
+  }
+
+  public async renderInstallScript(i: Installer, kurlVersion: string|void): Promise<string> {
+    if (!kurlVersion) {
+      return this.renderScriptFromTemplate(i, await this.installTmpl());
+    }
+    return await this.renderScriptFromUpstream(i, kurlVersion, "install.tmpl");
+  }
+
+  public async renderJoinScript(i: Installer, kurlVersion: string|void): Promise<string> {
+    if (!kurlVersion) {
+      return this.renderScriptFromTemplate(i, await this.joinTmpl());
+    }
+    return await this.renderScriptFromUpstream(i, kurlVersion, "join.tmpl");
+  }
+
+  public async renderUpgradeScript(i: Installer, kurlVersion: string|void): Promise<string> {
+    if (!kurlVersion) {
+      return this.renderScriptFromTemplate(i, await this.upgradeTmpl());
+    }
+    return await this.renderScriptFromUpstream(i, kurlVersion, "upgrade.tmpl");
+  }
+
+  public async renderTasksScript(i: Installer, kurlVersion: string|void): Promise<string> {
+    if (!kurlVersion) {
+      return this.renderScriptFromTemplate(i, await this.tasksTmpl());
+    }
+    return await this.renderScriptFromUpstream(i, kurlVersion, "tasks.tmpl");
+  }
+
+  public renderScriptFromTemplate(i: Installer, tmpl: (data?: object) => string): string {
+    return tmpl(manifestFromInstaller(i, this.kurlURL, this.replicatedAppURL, this.distURL, this.kurlUtilImage, this.kurlBinUtils, ""));
+  }
+
+  public async renderScriptFromUpstream(i: Installer, kurlVersion: string, script: string): Promise<string> {
+    const tmpl = await this.tmplFromUpstream(kurlVersion, script);
+    return tmpl(manifestFromInstaller(i, this.kurlURL, this.replicatedAppURL, this.distURL, this.kurlUtilImage, this.kurlBinUtils, kurlVersion));
+  }
+
+  public async tmplFromUpstream(kurlVersion: string|void, script: string): Promise<((data?: object) => string)> {
+    const res = await fetch(`${this.distURL}/${kurlVersion && `${kurlVersion}/`}${script}`);
+    if (res.status === 404) {
+      throw new HTTPError(404, "version not found");
+    } else if (res.status !== 200) {
+      throw new HTTPError(500, `unexpected http status ${res.statusText}`);
+    }
+    const body = await res.text();
+    return _.template(body, this.templateOpts);
   }
 }
 
@@ -68,6 +125,7 @@ interface Manifest {
   KURL_URL: string;
   DIST_URL: string;
   INSTALLER_ID: string;
+  KURL_VERSION: string;
   REPLICATED_APP_URL: string;
   KURL_UTIL_IMAGE: string;
   KURL_BIN_UTILS_FILE: string;
@@ -79,11 +137,12 @@ export function bashStringEscape( unescaped : string): string {
   return unescaped.replace(/[!"\\]/g, "\\\$&");
 }
 
-export function manifestFromInstaller(i: Installer, kurlURL: string, replicatedAppURL: string, distURL: string, kurlUtilImage: string, kurlBinUtils: string): Manifest {
+export function manifestFromInstaller(i: Installer, kurlURL: string, replicatedAppURL: string, distURL: string, kurlUtilImage: string, kurlBinUtils: string, kurlVersion: string): Manifest {
   return {
     KURL_URL: kurlURL,
     DIST_URL: distURL,
     INSTALLER_ID: i.id,
+    KURL_VERSION: kurlVersion,
     REPLICATED_APP_URL: replicatedAppURL,
     KURL_UTIL_IMAGE: kurlUtilImage,
     KURL_BIN_UTILS_FILE: kurlBinUtils,

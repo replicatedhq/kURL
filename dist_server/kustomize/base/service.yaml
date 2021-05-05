@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: kurl-dist-server
+  labels:
+    app: kurl-dist-server
+spec:
+  type: NodePort
+  ports:
+    - name: server
+      port: 80
+      targetPort: server
+      nodePort: 30881
+  selector:
+    app: kurl-dist-server

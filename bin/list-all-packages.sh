@@ -43,16 +43,20 @@ function list_all_packages() {
 }
 
 function list_other() {
+    echo "install.tmpl"
+    echo "join.tmpl"
+    echo "upgrade.tmpl"
+    echo "tasks.tmpl"
+    echo "common.tar.gz"
+    echo "$KURL_BIN_UTILS_FILE"
     echo "docker-18.09.8.tar.gz bundles/"
     echo "docker-19.03.4.tar.gz bundles/"
     echo "docker-19.03.10.tar.gz bundles/"
     echo "docker-20.10.5.tar.gz bundles/"
-    echo "common.tar.gz"
-    echo "$KURL_BIN_UTILS_FILE"
 }
 
 function list_all() {
+    list_other
     list_all_addons
     list_all_packages
-    list_other
 }

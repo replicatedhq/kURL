@@ -32,19 +32,111 @@ export class Installers {
   ) {}
 
   /**
+   * /<installerID>/join.sh handler
+   *
+   * @param response
+   * @param installerID
+   */
+  @Get("/version/:kurlVersion/:installerID/join.sh")
+  @Get("/:installerID/join.sh")
+  @instrumented
+  public async getJoin(
+    @Res() response: Express.Response,
+    @PathParams("installerID") installerID: string,
+    @PathParams("kurlVersion") kurlVersion: string|void,
+  ): Promise<string | ErrorResponse> {
+
+    let installer = await this.installerStore.getInstaller(installerID);
+    if (!installer) {
+      response.status(404);
+      return notFoundResponse;
+    }
+    installer = installer.resolve();
+
+    response.set("X-Kurl-Hash", installer.hash());
+    response.status(200);
+    return this.templates.renderJoinScript(installer, kurlVersion);
+  }
+
+  /**
+   * /<installerID>/upgrade.sh handler
+   *
+   * @param response
+   * @param installerID
+   */
+  @Get("/version/:kurlVersion/:installerID/upgrade.sh")
+  @Get("/:installerID/upgrade.sh")
+  @instrumented
+  public async getUpgrade(
+    @Res() response: Express.Response,
+    @PathParams("installerID") installerID: string,
+    @PathParams("kurlVersion") kurlVersion: string|void,
+  ): Promise<string | ErrorResponse> {
+
+    let installer = await this.installerStore.getInstaller(installerID);
+    if (!installer) {
+      response.status(404);
+      return notFoundResponse;
+    }
+    installer = installer.resolve();
+
+    response.set("X-Kurl-Hash", installer.hash());
+    response.status(200);
+    return this.templates.renderUpgradeScript(installer, kurlVersion);
+  }
+
+  @Get("/version/:kurlVersion/:installerID/tasks.sh")
+  @Get("/:installerID/tasks.sh")
+  @instrumented
+  public async getTasks(
+    @Res() response: Express.Response,
+    @PathParams("installerID") installerID: string,
+    @PathParams("kurlVersion") kurlVersion: string|void,
+  ): Promise<string | ErrorResponse> {
+
+    let installer = await this.installerStore.getInstaller(installerID);
+    if (!installer) {
+      response.status(404);
+      return notFoundResponse;
+    }
+    installer = installer.resolve();
+
+    response.set("X-Kurl-Hash", installer.hash());
+    response.status(200);
+    return this.templates.renderTasksScript(installer, kurlVersion);
+  }
+
+  @Get("/")
+  @Get("/version/:kurlVersion")
+  public async root(
+    @Res() response: Express.Response,
+    @PathParams("kurlVersion") kurlVersion: string|void,
+  ): Promise<string> {
+
+    const installer = Installer.latest().resolve();
+
+    response.set("X-Kurl-Hash", installer.hash());
+    response.status(200);
+    return this.templates.renderInstallScript(installer, kurlVersion);
+  }
+
+  /**
    * /<installerID> handler
    *
    * @param response
    * @param installerID
    * @returns string
    */
-  @Get("/:installerID")
+  @Get("/version/:kurlVersion/:installerID/install.sh")
   @Get("/:installerID/install.sh")
+  @Get("/version/:kurlVersion/:installerID")
+  @Get("/:installerID")
   @instrumented
   public async getInstaller(
     @Res() response: Express.Response,
     @Req() request: Express.Request,
     @PathParams("installerID") installerID: string,
+    @PathParams("kurlVersion") kurlVersion: string|void,
   ): Promise<string | ErrorResponse> {
 
     let installer = await this.installerStore.getInstaller(installerID);
@@ -68,83 +160,6 @@ export class Installers {
 
     response.set("X-Kurl-Hash", installer.hash());
     response.status(200);
-    return this.templates.renderInstallScript(installer);
-  }
-
-  @Get("/")
-  public async root(
-    @Res() response: Express.Response,
-  ): Promise<string> {
-    const installer = Installer.latest().resolve();
-
-    response.set("X-Kurl-Hash", installer.hash());
-    response.status(200);
-    return this.templates.renderInstallScript(installer);
-  }
-
-  /**
-   * /<installerID>/join.sh handler
-   *
-   * @param response
-   * @param installerID
-   */
-  @Get("/:installerID/join.sh")
-  @instrumented
-  public async getJoin(
-    @Res() response: Express.Response,
-    @PathParams("installerID") installerID: string,
-  ): Promise<string | ErrorResponse> {
-    let installer = await this.installerStore.getInstaller(installerID);
-    if (!installer) {
-      response.status(404);
-      return notFoundResponse;
-    }
-    installer = installer.resolve();
-
-    response.set("X-Kurl-Hash", installer.hash());
-    response.status(200);
-    return this.templates.renderJoinScript(installer);
-  }
-
-  /**
-   * /<installerID>/upgrade.sh handler
-   *
-   * @param response
-   * @param installerID
-   */
-  @Get("/:installerID/upgrade.sh")
-  @instrumented
-  public async getUpgrade(
-    @Res() response: Express.Response,
-    @PathParams("installerID") installerID: string,
-  ): Promise<string | ErrorResponse> {
-    let installer = await this.installerStore.getInstaller(installerID);
-    if (!installer) {
-      response.status(404);
-      return notFoundResponse;
-    }
-    installer = installer.resolve();
-
-    response.set("X-Kurl-Hash", installer.hash());
-    response.status(200);
-    return this.templates.renderUpgradeScript(installer);
-  }
-
-  @Get("/:installerID/tasks.sh")
-  @instrumented
-  public async getTasks(
-    @Res() response: Express.Response,
-    @PathParams("installerID") installerID: string,
-  ): Promise<string | ErrorResponse> {
-    let installer = await this.installerStore.getInstaller(installerID);
-    if (!installer) {
-      response.status(404);
-      return notFoundResponse;
-    }
-    installer = installer.resolve();
-
-    response.set("X-Kurl-Hash", installer.hash());
-    response.status(200);
-    return this.templates.renderTasksScript();
+    return this.templates.renderInstallScript(installer, kurlVersion);
   }
 }

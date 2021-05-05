@@ -188,18 +188,16 @@ EOF
         kubectl -n kube-system delete pods --selector=k8s-app=kube-proxy
 
         if kubernetes_has_remotes; then
-            local proxyFlag=""
-            if [ -n "$PROXY_ADDRESS" ]; then
-                proxyFlag=" -x $PROXY_ADDRESS"
-            fi
-            local prefix="curl -sSL${proxyFlag} $KURL_URL/$INSTALLER_ID/"
-            if [ "$AIRGAP" = "1" ] || [ -z "$KURL_URL" ]; then
-                prefix="cat "
-            fi
-
             printf "${YELLOW}\nThe load balancer address has changed. Run the following on all remote nodes to use the new address${NC}\n"
             printf "\n"
-            printf "${GREEN}    ${prefix}tasks.sh | sudo bash -s set-kubeconfig-server https://${currentLoadBalancerAddress}${NC}\n"
+            if [ "$AIRGAP" = "1" ]; then
+                printf "${GREEN}    cat ./tasks.sh | sudo bash -s set-kubeconfig-server https://${currentLoadBalancerAddress}${NC}\n"
+            else
+                local prefix=
+                prefix="$(build_installer_prefix "${INSTALLER_ID}" "${KURL_VERSION}" "${KURL_URL}" "${PROXY_ADDRESS}")"
+
+                printf "${GREEN}    ${prefix}tasks.sh | sudo bash -s set-kubeconfig-server https://${currentLoadBalancerAddress}${NC}\n"
+            fi
             printf "\n"
             printf "Continue? "
             confirmY " "
@@ -274,11 +272,6 @@ function outro() {
       fi
     fi
 
-    local proxyFlag=""
-    if [ -n "$PROXY_ADDRESS" ]; then
-        proxyFlag=" -x $PROXY_ADDRESS"
-    fi
-
     local common_flags
     common_flags="${common_flags}$(get_docker_registry_ip_flag "${DOCKER_REGISTRY_IP}")"
     common_flags="${common_flags}$(get_additional_no_proxy_addresses_flag "${PROXY_ADDRESS}" "${SERVICE_CIDR},${POD_CIDR}")"
@@ -308,11 +301,9 @@ function outro() {
     fi
     printf "\n"
     printf "\n"
-    
-    local prefix="curl -sSL${proxyFlag} $KURL_URL/$INSTALLER_ID/"
-    if [ -z "$KURL_URL" ]; then
-        prefix="cat "
-    fi
+
+    local prefix=
+    prefix="$(build_installer_prefix "${INSTALLER_ID}" "${KURL_VERSION}" "${KURL_URL}" "${PROXY_ADDRESS}")"
 
     if [ "$HA_CLUSTER" = "1" ]; then
         printf "Master node join commands expire after two hours, and worker node join commands expire after 24 hours.\n"

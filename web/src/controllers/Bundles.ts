@@ -45,11 +45,15 @@ export class Bundle {
     private readonly metricsStore: MetricsStore,
   ) {
     this.replicatedAppURL = process.env["REPLICATED_APP_URL"] || "https://replicated.app";
-    this.distURL = `https://${process.env["KURL_BUCKET"]}.s3.amazonaws.com`;
-    if (process.env["NODE_ENV"] === "production") {
-      this.distURL += "/dist";
+    if (process.env["DIST_URL"]) {
+      this.distURL = process.env["DIST_URL"] as string;
     } else {
-      this.distURL += "/staging";
+      this.distURL = `https://${process.env["KURL_BUCKET"]}.s3.amazonaws.com`;
+      if (process.env["NODE_ENV"] === "production") {
+        this.distURL += "/dist";
+      } else {
+        this.distURL += "/staging";
+      }
     }
   }
 
@@ -60,10 +64,12 @@ export class Bundle {
    * @returns {{id: any, name: string}}
    */
   @Get("/:installerID")
+  @Get("/:kurlVersion(^v.*\..*\..*)/:installerID")
   public async redirect(
     @Res() response: Express.Response,
     @Req() req: Express.Request,
     @PathParams("installerID") installerID: string,
+    @PathParams("kurlVersion") kurlVersion: string|void,
   ): Promise<BundleManifest|ErrorResponse> {
 
     let installer = await this.installers.getInstaller(installerID);
@@ -89,7 +95,7 @@ export class Bundle {
     response.type("application/json");
 
     const ret: BundleManifest = {layers: [], files: {}};
-    ret.layers = installer.packages().map((pkg) => `${this.distURL}/${pkg}.tar.gz`);
+    ret.layers = installer.packages().map((pkg) => `${this.distURL}/${kurlVersion && `${kurlVersion}/`}${pkg}.tar.gz`);
 
     const kotsadmApplicationSlug = _.get(installer.spec, "kotsadm.applicationSlug");
     if (kotsadmApplicationSlug) {
@@ -105,10 +111,10 @@ export class Bundle {
       }
     }
 
-    ret.files["install.sh"] = this.templates.renderInstallScript(installer);
-    ret.files["join.sh"] = this.templates.renderJoinScript(installer);
-    ret.files["upgrade.sh"] = this.templates.renderUpgradeScript(installer);
-    ret.files["tasks.sh"] = this.templates.renderTasksScript();
+    ret.files["install.sh"] = await this.templates.renderInstallScript(installer, kurlVersion);
+    ret.files["join.sh"] = await this.templates.renderJoinScript(installer, kurlVersion);
+    ret.files["upgrade.sh"] = await this.templates.renderUpgradeScript(installer, kurlVersion);
+    ret.files["tasks.sh"] = await this.templates.renderTasksScript(installer, kurlVersion);
 
     return ret;
   }

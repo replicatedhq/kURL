@@ -86,7 +86,7 @@ function deploy() {
     # package includes the alpha kurl-util image but the prod common.tar.gz needs a tagged version
     # of the kurl-util image
     if [ "$package" = "common.tar.gz" ] ; then
-        echo "s3://${S3_BUCKET}/${package} build and upload"
+        echo "s3://${S3_BUCKET}/dist/${package} build and upload"
         build_and_upload "${package}"
         return
     fi
@@ -94,17 +94,17 @@ function deploy() {
     # The kurl-utils-bin package must be built rather than copied from staging because the staging
     # version is latest and the prod version is tagged.
     if echo "${package}" | grep -q "kurl-bin-utils" ; then
-        echo "s3://${S3_BUCKET}/${package} build and upload"
+        echo "s3://${S3_BUCKET}/dist/${package} build and upload"
         build_and_upload "${package}"
         return
     fi
 
     if package_has_changes "dist/${package}" "${path}" ; then
         if package_has_changes "staging/${package}" "${path}" ; then
-            echo "s3://${S3_BUCKET}/${package} has changes"
+            echo "s3://${S3_BUCKET}/dist/${package} has changes"
             build_and_upload "${package}"
         else
-            echo "s3://${S3_BUCKET}/${package} no changes in staging package"
+            echo "s3://${S3_BUCKET}/dist/${package} no changes in staging package"
             copy_package_staging "${package}"
         fi
     else
