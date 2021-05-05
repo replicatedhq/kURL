@@ -34,10 +34,14 @@ function generate() {
     mv "../${VERSION}/yaml/AllResources.yaml" "../${VERSION}/AllResources.yaml"
     mv "../${VERSION}/yaml/CustomResourceDefinitions.yaml" "../${VERSION}/crds.yaml"
     rmdir "../${VERSION}/yaml"
+
+    # get the images for the release
+    curl --silent "https://raw.githubusercontent.com/longhorn/longhorn/v$VERSION/deploy/longhorn-images.txt" | sed 's/\(.*\)\/\(.*\):\([^"]*\)/image \2 \1\/\2:\3/' >> "../${VERSION}/Manifest"
+
 }
 
 function add_as_latest() {
-    gsed -i "/cron-longhorn-update/a\    \"${VERSION}\"\," ../../../web/src/installers/versions.js
+    sed -i "/cron-longhorn-update/a\    \"${VERSION}\"\," ../../../web/src/installers/versions.js
 }
 
 function main() {
