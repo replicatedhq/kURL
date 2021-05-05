@@ -3,6 +3,7 @@ import fetch from "node-fetch";
 import { Service } from "ts-express-decorators";
 import { Installer } from "../../installers";
 import { HTTPError } from "../../server/errors";
+import { getDistUrl } from "../version";
 
 @Service()
 export class Templates {
@@ -28,23 +29,14 @@ export class Templates {
     this.kurlUtilImage = process.env["KURL_UTIL_IMAGE"] || "replicated/kurl-util:alpha";
     this.kurlBinUtils = process.env["KURL_BIN_UTILS_FILE"] || "kurl-bin-utils-latest.tar.gz";
 
-    if (process.env["DIST_URL"]) {
-      this.distURL = process.env["DIST_URL"] as string;
-    } else {
-      this.distURL = `https://${process.env["KURL_BUCKET"]}.s3.amazonaws.com`;
-      if (process.env["NODE_ENV"] === "production") {
-        this.distURL += "/dist";
-      } else {
-        this.distURL += "/staging";
-      }
-    }
+    this.distURL = getDistUrl();
   }
 
   private async installTmpl(): Promise<((data?: object) => string)> {
     if (this.installTmplResolved) {
       return this.installTmplResolved;
     }
-    this.installTmplResolved = await this.tmplFromUpstream(undefined, "install.tmpl");
+    this.installTmplResolved = await this.tmplFromUpstream(process.env["KURL_VERSION"], "install.tmpl");
     return this.installTmplResolved;
   }
 
@@ -52,7 +44,7 @@ export class Templates {
     if (this.joinTmplResolved) {
       return this.joinTmplResolved;
     }
-    this.joinTmplResolved = await this.tmplFromUpstream(undefined, "join.tmpl");
+    this.joinTmplResolved = await this.tmplFromUpstream(process.env["KURL_VERSION"], "join.tmpl");
     return this.joinTmplResolved;
   }
 
@@ -60,7 +52,7 @@ export class Templates {
     if (this.upgradeTmplResolved) {
       return this.upgradeTmplResolved;
     }
-    this.upgradeTmplResolved = await this.tmplFromUpstream(undefined, "upgrade.tmpl");
+    this.upgradeTmplResolved = await this.tmplFromUpstream(process.env["KURL_VERSION"], "upgrade.tmpl");
     return this.upgradeTmplResolved;
   }
 
@@ -68,7 +60,7 @@ export class Templates {
     if (this.tasksTmplResolved) {
       return this.tasksTmplResolved;
     }
-    this.tasksTmplResolved = await this.tmplFromUpstream(undefined, "tasks.tmpl");
+    this.tasksTmplResolved = await this.tmplFromUpstream(process.env["KURL_VERSION"], "tasks.tmpl");
     return this.tasksTmplResolved;
   }
 

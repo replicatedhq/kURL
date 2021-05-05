@@ -4,22 +4,14 @@ import {
   Get,
   PathParams,
   Res } from "ts-express-decorators";
+import { getDistUrl } from "../util/version";
 
 @Controller("/dist")
 export class Dist {
   private distURL: string;
 
   constructor() {
-    if (process.env["DIST_URL"]) {
-      this.distURL = process.env["DIST_URL"] as string;
-    } else {
-      this.distURL = `https://${process.env["KURL_BUCKET"]}.s3.amazonaws.com`;
-      if (process.env["NODE_ENV"] === "production") {
-        this.distURL += "/dist";
-      } else {
-        this.distURL += "/staging";
-      }
-    }
+    this.distURL = getDistUrl();
   }
 
   /**

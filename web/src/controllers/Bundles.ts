@@ -13,6 +13,7 @@ import { InstallerStore } from "../installers";
 import { logger } from "../logger";
 import { MetricsStore } from "../util/services/metrics";
 import * as requestIP from "request-ip";
+import { getDistUrl } from "../util/version";
 
 interface ErrorResponse {
   error: any;
@@ -45,16 +46,7 @@ export class Bundle {
     private readonly metricsStore: MetricsStore,
   ) {
     this.replicatedAppURL = process.env["REPLICATED_APP_URL"] || "https://replicated.app";
-    if (process.env["DIST_URL"]) {
-      this.distURL = process.env["DIST_URL"] as string;
-    } else {
-      this.distURL = `https://${process.env["KURL_BUCKET"]}.s3.amazonaws.com`;
-      if (process.env["NODE_ENV"] === "production") {
-        this.distURL += "/dist";
-      } else {
-        this.distURL += "/staging";
-      }
-    }
+    this.distURL = getDistUrl();
   }
 
   /**
