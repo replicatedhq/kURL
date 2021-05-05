@@ -495,6 +495,8 @@ function kubernetes_node_images() {
 }
 
 function list_all_required_images() {
+    echo "$KURL_UTIL_IMAGE"
+
     find packages/kubernetes/$KUBERNETES_VERSION -type f -name Manifest 2>/dev/null | xargs cat | grep -E '^image' | grep -v no_remote_load | awk '{ print $3 }'
 
     if [ -n "$STEP_VERSION" ]; then
