@@ -16,7 +16,7 @@ spec:
         # if we change this on each version, you can no longer upgrade
         # just by applying the deployment YAML.
         # See #2423, #2395, #2150, and #2030 for earlier questions about this.
-        image: projectcontour/contour:latest
+        image: projectcontour/contour:v1.7.0
         imagePullPolicy: IfNotPresent
         command:
         - contour
