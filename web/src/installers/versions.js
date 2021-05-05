@@ -231,6 +231,8 @@ module.exports.InstallerVersions = {
     "0.4.1",
   ],
   longhorn: [
+    // cron-longhorn-update
+    "1.1.1",
     "1.1.0",
   ],
   sonobuoy: [
