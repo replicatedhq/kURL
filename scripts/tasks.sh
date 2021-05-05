@@ -66,9 +66,15 @@ function load_all_images() {
 
     if [ -n "$DOCKER_VERSION" ]; then
         find addons/ packages/ -type f -wholename '*/images/*.tar.gz' | xargs -I {} bash -c "docker load < {}"
+        if [ -f shared/kurl-util.tar ]; then
+            docker load < shared/kurl-util.tar
+        fi
     else
         # TODO(ethan): rke2 containerd.sock path is incorrect
         find addons/ packages/ -type f -wholename '*/images/*.tar.gz' | xargs -I {} bash -c "cat {} | gunzip | ctr -n=k8s.io images import -"
+        if [ -f shared/kurl-util.tar ]; then
+            ctr -n=k8s.io images import shared/kurl-util.tar
+        fi
     fi
 
     popd_install_directory
