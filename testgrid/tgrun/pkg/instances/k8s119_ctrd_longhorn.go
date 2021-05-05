@@ -6,7 +6,7 @@ import (
 )
 
 func init() {
-	RegisterInstance(
+	RegisterAirgapAndOnlineInstance(
 		types.Instance{
 			InstallerSpec: types.InstallerSpec{
 				Kubernetes: &kurlv1beta1.Kubernetes{
