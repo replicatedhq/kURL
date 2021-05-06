@@ -43,7 +43,7 @@ export class Installers {
   public async getJoin(
     @Res() response: Express.Response,
     @PathParams("installerID") installerID: string,
-    @PathParams("kurlVersion") kurlVersion: string|void,
+    @PathParams("kurlVersion") kurlVersion: string|undefined,
   ): Promise<string | ErrorResponse> {
 
     let installer = await this.installerStore.getInstaller(installerID);
@@ -70,7 +70,7 @@ export class Installers {
   public async getUpgrade(
     @Res() response: Express.Response,
     @PathParams("installerID") installerID: string,
-    @PathParams("kurlVersion") kurlVersion: string|void,
+    @PathParams("kurlVersion") kurlVersion: string|undefined,
   ): Promise<string | ErrorResponse> {
 
     let installer = await this.installerStore.getInstaller(installerID);
@@ -91,7 +91,7 @@ export class Installers {
   public async getTasks(
     @Res() response: Express.Response,
     @PathParams("installerID") installerID: string,
-    @PathParams("kurlVersion") kurlVersion: string|void,
+    @PathParams("kurlVersion") kurlVersion: string|undefined,
   ): Promise<string | ErrorResponse> {
 
     let installer = await this.installerStore.getInstaller(installerID);
@@ -110,7 +110,7 @@ export class Installers {
   @Get("/version/:kurlVersion")
   public async root(
     @Res() response: Express.Response,
-    @PathParams("kurlVersion") kurlVersion: string|void,
+    @PathParams("kurlVersion") kurlVersion: string|undefined,
   ): Promise<string> {
 
     const installer = Installer.latest().resolve();
@@ -136,7 +136,7 @@ export class Installers {
     @Res() response: Express.Response,
     @Req() request: Express.Request,
     @PathParams("installerID") installerID: string,
-    @PathParams("kurlVersion") kurlVersion: string|void,
+    @PathParams("kurlVersion") kurlVersion: string|undefined,
   ): Promise<string | ErrorResponse> {
 
     let installer = await this.installerStore.getInstaller(installerID);

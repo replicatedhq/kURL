@@ -3,7 +3,7 @@ import fetch from "node-fetch";
 import { Service } from "ts-express-decorators";
 import { Installer } from "../../installers";
 import { HTTPError } from "../../server/errors";
-import { getDistUrl } from "../version";
+import { getDistUrl, getPackageUrl, kurlVersionOrDefault } from "../package";
 
 @Service()
 export class Templates {
@@ -36,7 +36,7 @@ export class Templates {
     if (this.installTmplResolved) {
       return this.installTmplResolved;
     }
-    this.installTmplResolved = await this.tmplFromUpstream(process.env["KURL_VERSION"], "install.tmpl");
+    this.installTmplResolved = await this.tmplFromUpstream("", "install.tmpl");
     return this.installTmplResolved;
   }
 
@@ -44,7 +44,7 @@ export class Templates {
     if (this.joinTmplResolved) {
       return this.joinTmplResolved;
     }
-    this.joinTmplResolved = await this.tmplFromUpstream(process.env["KURL_VERSION"], "join.tmpl");
+    this.joinTmplResolved = await this.tmplFromUpstream("", "join.tmpl");
     return this.joinTmplResolved;
   }
 
@@ -52,7 +52,7 @@ export class Templates {
     if (this.upgradeTmplResolved) {
       return this.upgradeTmplResolved;
     }
-    this.upgradeTmplResolved = await this.tmplFromUpstream(process.env["KURL_VERSION"], "upgrade.tmpl");
+    this.upgradeTmplResolved = await this.tmplFromUpstream("", "upgrade.tmpl");
     return this.upgradeTmplResolved;
   }
 
@@ -60,40 +60,40 @@ export class Templates {
     if (this.tasksTmplResolved) {
       return this.tasksTmplResolved;
     }
-    this.tasksTmplResolved = await this.tmplFromUpstream(process.env["KURL_VERSION"], "tasks.tmpl");
+    this.tasksTmplResolved = await this.tmplFromUpstream("", "tasks.tmpl");
     return this.tasksTmplResolved;
   }
 
-  public async renderInstallScript(i: Installer, kurlVersion: string|void): Promise<string> {
+  public async renderInstallScript(i: Installer, kurlVersion: string|undefined): Promise<string> {
     if (!kurlVersion) {
-      return this.renderScriptFromTemplate(i, await this.installTmpl());
+      return this.renderScriptFromTemplate(i, "", await this.installTmpl());
     }
     return await this.renderScriptFromUpstream(i, kurlVersion, "install.tmpl");
   }
 
-  public async renderJoinScript(i: Installer, kurlVersion: string|void): Promise<string> {
+  public async renderJoinScript(i: Installer, kurlVersion: string|undefined): Promise<string> {
     if (!kurlVersion) {
-      return this.renderScriptFromTemplate(i, await this.joinTmpl());
+      return this.renderScriptFromTemplate(i, "", await this.joinTmpl());
     }
     return await this.renderScriptFromUpstream(i, kurlVersion, "join.tmpl");
   }
 
-  public async renderUpgradeScript(i: Installer, kurlVersion: string|void): Promise<string> {
+  public async renderUpgradeScript(i: Installer, kurlVersion: string|undefined): Promise<string> {
     if (!kurlVersion) {
-      return this.renderScriptFromTemplate(i, await this.upgradeTmpl());
+      return this.renderScriptFromTemplate(i, "", await this.upgradeTmpl());
     }
     return await this.renderScriptFromUpstream(i, kurlVersion, "upgrade.tmpl");
   }
 
-  public async renderTasksScript(i: Installer, kurlVersion: string|void): Promise<string> {
+  public async renderTasksScript(i: Installer, kurlVersion: string|undefined): Promise<string> {
     if (!kurlVersion) {
-      return this.renderScriptFromTemplate(i, await this.tasksTmpl());
+      return this.renderScriptFromTemplate(i, "", await this.tasksTmpl());
     }
     return await this.renderScriptFromUpstream(i, kurlVersion, "tasks.tmpl");
   }
 
-  public renderScriptFromTemplate(i: Installer, tmpl: (data?: object) => string): string {
-    return tmpl(manifestFromInstaller(i, this.kurlURL, this.replicatedAppURL, this.distURL, this.kurlUtilImage, this.kurlBinUtils, ""));
+  public renderScriptFromTemplate(i: Installer, kurlVersion: string, tmpl: (data?: object) => string): string {
+    return tmpl(manifestFromInstaller(i, this.kurlURL, this.replicatedAppURL, this.distURL, this.kurlUtilImage, this.kurlBinUtils, kurlVersion));
   }
 
   public async renderScriptFromUpstream(i: Installer, kurlVersion: string, script: string): Promise<string> {
@@ -101,8 +101,8 @@ export class Templates {
     return tmpl(manifestFromInstaller(i, this.kurlURL, this.replicatedAppURL, this.distURL, this.kurlUtilImage, this.kurlBinUtils, kurlVersion));
   }
 
-  public async tmplFromUpstream(kurlVersion: string|void, script: string): Promise<((data?: object) => string)> {
-    const res = await fetch(`${this.distURL}/${kurlVersion && `${kurlVersion}/`}${script}`);
+  public async tmplFromUpstream(kurlVersion: string, script: string): Promise<((data?: object) => string)> {
+    const res = await fetch(getPackageUrl(this.distURL, kurlVersion, script));
     if (res.status === 404) {
       throw new HTTPError(404, "version not found");
     } else if (res.status !== 200) {
@@ -134,7 +134,7 @@ export function manifestFromInstaller(i: Installer, kurlURL: string, replicatedA
     KURL_URL: kurlURL,
     DIST_URL: distURL,
     INSTALLER_ID: i.id,
-    KURL_VERSION: kurlVersion,
+    KURL_VERSION: kurlVersionOrDefault(kurlVersion),
     REPLICATED_APP_URL: replicatedAppURL,
     KURL_UTIL_IMAGE: kurlUtilImage,
     KURL_BIN_UTILS_FILE: kurlBinUtils,

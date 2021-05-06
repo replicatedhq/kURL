@@ -13,7 +13,7 @@ import { InstallerStore } from "../installers";
 import { logger } from "../logger";
 import { MetricsStore } from "../util/services/metrics";
 import * as requestIP from "request-ip";
-import { getDistUrl } from "../util/version";
+import { getDistUrl, getPackageUrl } from "../util/package";
 
 interface ErrorResponse {
   error: any;
@@ -61,7 +61,7 @@ export class Bundle {
     @Res() response: Express.Response,
     @Req() req: Express.Request,
     @PathParams("installerID") installerID: string,
-    @PathParams("kurlVersion") kurlVersion: string|void,
+    @PathParams("kurlVersion") kurlVersion: string|undefined,
   ): Promise<BundleManifest|ErrorResponse> {
 
     let installer = await this.installers.getInstaller(installerID);
@@ -87,7 +87,7 @@ export class Bundle {
     response.type("application/json");
 
     const ret: BundleManifest = {layers: [], files: {}};
-    ret.layers = installer.packages().map((pkg) => `${this.distURL}/${kurlVersion && `${kurlVersion}/`}${pkg}.tar.gz`);
+    ret.layers = installer.packages().map((pkg) => getPackageUrl(this.distURL, kurlVersion, `${pkg}.tar.gz`));
 
     const kotsadmApplicationSlug = _.get(installer.spec, "kotsadm.applicationSlug");
     if (kotsadmApplicationSlug) {

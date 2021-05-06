@@ -4,7 +4,7 @@ import {
   Get,
   PathParams,
   Res } from "ts-express-decorators";
-import { getDistUrl } from "../util/version";
+import { getDistUrl, getPackageUrl } from "../util/package";
 
 @Controller("/dist")
 export class Dist {
@@ -25,7 +25,7 @@ export class Dist {
     @Res() response: Express.Response,
     @PathParams("pkg") pkg: string,
   ): Promise<void> {
-    const location = `${this.distURL}/${pkg}`;
+    const location = getPackageUrl(this.distURL, "", pkg);
 
     response.redirect(307, location);
   }
