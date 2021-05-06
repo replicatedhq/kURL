@@ -1,6 +1,7 @@
 
 bases:
   - ../../base
+  - ../../../dist_server/kustomize/base
 
 resources:
   - ./nodeport.yaml

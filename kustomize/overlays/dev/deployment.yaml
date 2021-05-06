@@ -40,3 +40,5 @@ spec:
           value: http://replicated-app:3000
         - name: KURL_BIN_UTILS_FILE
           value: kurl-bin-utils-latest.tar.gz
+        - name: DIST_URL
+          value: http://kurl-dist-server

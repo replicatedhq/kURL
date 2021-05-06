@@ -267,6 +267,7 @@ build/templates/install.tmpl: build/install.sh
 	sed 's/^KURL_URL=.*/KURL_URL="{{= KURL_URL }}"/' "build/install.sh" | \
 		sed 's/^DIST_URL=.*/DIST_URL="{{= DIST_URL }}"/' | \
 		sed 's/^INSTALLER_ID=.*/INSTALLER_ID="{{= INSTALLER_ID }}"/' | \
+		sed 's/^KURL_VERSION=.*/KURL_VERSION="{{= KURL_VERSION }}"/' | \
 		sed 's/^REPLICATED_APP_URL=.*/REPLICATED_APP_URL="{{= REPLICATED_APP_URL }}"/' | \
 		sed 's/^STEP_VERSIONS=.*/STEP_VERSIONS={{= STEP_VERSIONS }}/' | \
 		sed 's/^INSTALLER_YAML=.*/INSTALLER_YAML="{{= INSTALLER_YAML }}"/' | \
@@ -274,6 +275,10 @@ build/templates/install.tmpl: build/install.sh
 		sed 's/^KURL_BIN_UTILS_FILE=.*/KURL_BIN_UTILS_FILE="{{= KURL_BIN_UTILS_FILE }}"/' | \
 		sed 's/^DISABLE_REPORTING=.*//' \
 		> build/templates/install.tmpl
+
+dist/install.tmpl: build/templates/install.tmpl
+	mkdir -p dist
+	cp build/templates/install.tmpl dist/install.tmpl
 
 build/join.sh:
 	mkdir -p tmp build
@@ -294,6 +299,7 @@ build/templates/join.tmpl: build/join.sh
 	sed 's/^KURL_URL=.*/KURL_URL="{{= KURL_URL }}"/' "build/join.sh" | \
 		sed 's/^DIST_URL=.*/DIST_URL="{{= DIST_URL }}"/' | \
 		sed 's/^INSTALLER_ID=.*/INSTALLER_ID="{{= INSTALLER_ID }}"/' | \
+		sed 's/^KURL_VERSION=.*/KURL_VERSION="{{= KURL_VERSION }}"/' | \
 		sed 's/^REPLICATED_APP_URL=.*/REPLICATED_APP_URL="{{= REPLICATED_APP_URL }}"/' | \
 		sed 's/^STEP_VERSIONS=.*/STEP_VERSIONS={{= STEP_VERSIONS }}/' | \
 		sed 's/^INSTALLER_YAML=.*/INSTALLER_YAML="{{= INSTALLER_YAML }}"/' | \
@@ -301,6 +307,10 @@ build/templates/join.tmpl: build/join.sh
 		sed 's/^KURL_BIN_UTILS_FILE=.*/KURL_BIN_UTILS_FILE="{{= KURL_BIN_UTILS_FILE }}"/' | \
 		sed 's/^DISABLE_REPORTING=.*//' \
 		> build/templates/join.tmpl
+
+dist/join.tmpl: build/templates/join.tmpl
+	mkdir -p dist
+	cp build/templates/join.tmpl dist/join.tmpl
 
 build/upgrade.sh:
 	mkdir -p tmp build
@@ -321,6 +331,7 @@ build/templates/upgrade.tmpl: build/upgrade.sh
 	sed 's/^KURL_URL=.*/KURL_URL="{{= KURL_URL }}"/' "build/upgrade.sh" | \
 		sed 's/^DIST_URL=.*/DIST_URL="{{= DIST_URL }}"/' | \
 		sed 's/^INSTALLER_ID=.*/INSTALLER_ID="{{= INSTALLER_ID }}"/' | \
+		sed 's/^KURL_VERSION=.*/KURL_VERSION="{{= KURL_VERSION }}"/' | \
 		sed 's/^REPLICATED_APP_URL=.*/REPLICATED_APP_URL="{{= REPLICATED_APP_URL }}"/' | \
 		sed 's/^STEP_VERSIONS=.*/STEP_VERSIONS={{= STEP_VERSIONS }}/' | \
 		sed 's/^INSTALLER_YAML=.*/INSTALLER_YAML="{{= INSTALLER_YAML }}"/' | \
@@ -328,6 +339,10 @@ build/templates/upgrade.tmpl: build/upgrade.sh
 		sed 's/^KURL_BIN_UTILS_FILE=.*/KURL_BIN_UTILS_FILE="{{= KURL_BIN_UTILS_FILE }}"/' | \
 		sed 's/^DISABLE_REPORTING=.*//' \
 		> build/templates/upgrade.tmpl
+
+dist/upgrade.tmpl: build/templates/upgrade.tmpl
+	mkdir -p dist
+	cp build/templates/upgrade.tmpl dist/upgrade.tmpl
 
 build/tasks.sh:
 	mkdir -p tmp build
@@ -345,7 +360,21 @@ build/tasks.sh:
 
 build/templates/tasks.tmpl: build/tasks.sh
 	mkdir -p build/templates
-	cp build/tasks.sh build/templates/tasks.tmpl
+	sed 's/^KURL_URL=.*/KURL_URL="{{= KURL_URL }}"/' "build/tasks.sh" | \
+		sed 's/^DIST_URL=.*/DIST_URL="{{= DIST_URL }}"/' | \
+		sed 's/^INSTALLER_ID=.*/INSTALLER_ID="{{= INSTALLER_ID }}"/' | \
+		sed 's/^KURL_VERSION=.*/KURL_VERSION="{{= KURL_VERSION }}"/' | \
+		sed 's/^REPLICATED_APP_URL=.*/REPLICATED_APP_URL="{{= REPLICATED_APP_URL }}"/' | \
+		sed 's/^STEP_VERSIONS=.*/STEP_VERSIONS={{= STEP_VERSIONS }}/' | \
+		sed 's/^INSTALLER_YAML=.*/INSTALLER_YAML="{{= INSTALLER_YAML }}"/' | \
+		sed 's/^KURL_UTIL_IMAGE=.*/KURL_UTIL_IMAGE="{{= KURL_UTIL_IMAGE }}"/' | \
+		sed 's/^KURL_BIN_UTILS_FILE=.*/KURL_BIN_UTILS_FILE="{{= KURL_BIN_UTILS_FILE }}"/' | \
+		sed 's/^DISABLE_REPORTING=.*//' \
+		> build/templates/tasks.tmpl
+
+dist/tasks.tmpl: build/templates/tasks.tmpl
+	mkdir -p dist
+	cp build/templates/tasks.tmpl dist/tasks.tmpl
 
 build/addons:
 	mkdir -p build
@@ -540,15 +569,14 @@ build/bin/kurl:
 	ldd build/bin/kurl | grep -q "not a dynamic executable" # confirm that there are no linked libs
 
 .PHONY: code
-code: build/templates build/kustomize build/addons
+code: build/kustomize build/addons
 
 build/bin/server:
 	go build -o build/bin/server cmd/server/main.go
 
 .PHONY: web
-web: build/templates build/bin/server
+web: build/bin/server
 	mkdir -p web/build
-	cp -r build/templates web
 	cp -r build/bin web
 
 watchrsync:

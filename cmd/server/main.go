@@ -13,10 +13,11 @@ import (
 	"net/http/httputil"
 	"net/url"
 	"os"
-	"path"
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/gorilla/mux"
 )
 
 const upstream = "http://localhost:3000"
@@ -24,14 +25,19 @@ const upstream = "http://localhost:3000"
 func main() {
 	log.Printf("Commit %s\n", os.Getenv("COMMIT"))
 
-	http.Handle("/bundle/", http.HandlerFunc(bundle))
+	r := mux.NewRouter()
+
+	r.HandleFunc("/bundle/{installerID}", http.HandlerFunc(bundle))
+	r.HandleFunc("/bundle/version/{kurlVersion}/{installerID}", http.HandlerFunc(bundle))
 
 	upstreamURL, err := url.Parse(upstream)
 	if err != nil {
 		log.Panic(err)
 	}
 	proxy := httputil.NewSingleHostReverseProxy(upstreamURL)
-	http.Handle("/", proxy)
+	r.PathPrefix("/").Handler(proxy)
+
+	http.Handle("/", r)
 
 	log.Println("Listening on :3001")
 	err = http.ListenAndServe(":3001", nil)
@@ -60,9 +66,16 @@ func bundle(w http.ResponseWriter, r *http.Request) {
 	}
 	log.Printf("GET %s", r.URL.Path)
 
-	base := path.Base(r.URL.Path)
-	installerID := strings.TrimSuffix(base, ".tar.gz")
-	installerURL := fmt.Sprintf("%s/bundle/%s", upstream, installerID)
+	vars := mux.Vars(r)
+
+	kurlVersion := vars["kurlVersion"]
+	installerID := strings.TrimSuffix(vars["installerID"], ".tar.gz")
+	var installerURL string
+	if kurlVersion != "" {
+		installerURL = fmt.Sprintf("%s/bundle/version/%s/%s", upstream, kurlVersion, installerID)
+	} else {
+		installerURL = fmt.Sprintf("%s/bundle/%s", upstream, installerID)
+	}
 	request, err := http.NewRequest("GET", installerURL, nil)
 	if err != nil {
 		log.Printf("Error building request for %s: %v", installerURL, err)
@@ -113,6 +126,8 @@ func bundle(w http.ResponseWriter, r *http.Request) {
 	wz := gzip.NewWriter(w)
 	archive := tar.NewWriter(wz)
 	defer func() {
+		// TODO: it would be better to somehow make this archive invalid if there is an error so
+		// it's not just missing a package
 		if err := archive.Close(); err != nil {
 			log.Printf("Error closing archive for installer %s: %v", installerID, err)
 		}

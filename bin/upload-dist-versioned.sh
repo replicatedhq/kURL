@@ -19,6 +19,8 @@ require VERSION_TAG "${VERSION_TAG}"
 
 GITSHA="$(git rev-parse HEAD)"
 
+PACKAGE_PREFIX="${PACKAGE_PREFIX:-dist}"
+
 function package_has_changes() {
     local key="$1"
     local path="$2"
@@ -48,9 +50,9 @@ function build_and_upload() {
 
     make "dist/${package}"
     MD5="$(openssl md5 -binary "dist/${package}" | base64)"
-    aws s3 cp "dist/${package}" "s3://${S3_BUCKET}/dist/${VERSION_TAG}/${package}" \
+    aws s3 cp "dist/${package}" "s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${VERSION_TAG}/${package}" \
         --metadata md5="${MD5}",gitsha="${VERSION_TAG}"
-    aws s3 cp "s3://${S3_BUCKET}/dist/${VERSION_TAG}/${package}" "s3://${S3_BUCKET}/dist/${package}" \
+    aws s3 cp "s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${VERSION_TAG}/${package}" "s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${package}" \
         --metadata md5="${MD5}",gitsha="${GITSHA}"
     make clean
     if [ -n "$DOCKER_PRUNE" ]; then
@@ -63,9 +65,9 @@ function copy_package_staging() {
 
     local md5=
     md5="$(aws s3api head-object --bucket "${S3_BUCKET}" --key "staging/${package}" | grep '"md5":' | sed 's/[",:]//g' | awk '{print $2}')"
-    aws s3 cp "s3://${S3_BUCKET}/staging/${package}" "s3://${S3_BUCKET}/dist/${VERSION_TAG}/${package}" \
+    aws s3 cp "s3://${S3_BUCKET}/staging/${package}" "s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${VERSION_TAG}/${package}" \
         --metadata md5="${md5}",gitsha="${GITSHA}"
-    aws s3 cp "s3://${S3_BUCKET}/staging/${package}" "s3://${S3_BUCKET}/dist/${package}" \
+    aws s3 cp "s3://${S3_BUCKET}/staging/${package}" "s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${package}" \
         --metadata md5="${md5}",gitsha="${GITSHA}"
 }
 
@@ -73,8 +75,8 @@ function copy_package_dist() {
     local package="$1"
 
     local md5=
-    md5="$(aws s3api head-object --bucket "${S3_BUCKET}" --key "dist/${package}" | grep '"md5":' | sed 's/[",:]//g' | awk '{print $2}')"
-    aws s3 cp "s3://${S3_BUCKET}/dist/${package}" "s3://${S3_BUCKET}/dist/${VERSION_TAG}/${package}" \
+    md5="$(aws s3api head-object --bucket "${S3_BUCKET}" --key "${PACKAGE_PREFIX}/${package}" | grep '"md5":' | sed 's/[",:]//g' | awk '{print $2}')"
+    aws s3 cp "s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${package}" "s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${VERSION_TAG}/${package}" \
         --metadata md5="${md5}",gitsha="${GITSHA}"
 }
 
@@ -86,7 +88,7 @@ function deploy() {
     # package includes the alpha kurl-util image but the prod common.tar.gz needs a tagged version
     # of the kurl-util image
     if [ "$package" = "common.tar.gz" ] ; then
-        echo "s3://${S3_BUCKET}/${package} build and upload"
+        echo "s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${package} build and upload"
         build_and_upload "${package}"
         return
     fi
@@ -94,21 +96,21 @@ function deploy() {
     # The kurl-utils-bin package must be built rather than copied from staging because the staging
     # version is latest and the prod version is tagged.
     if echo "${package}" | grep -q "kurl-bin-utils" ; then
-        echo "s3://${S3_BUCKET}/${package} build and upload"
+        echo "s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${package} build and upload"
         build_and_upload "${package}"
         return
     fi
 
-    if package_has_changes "dist/${package}" "${path}" ; then
+    if package_has_changes "${PACKAGE_PREFIX}/${package}" "${path}" ; then
         if package_has_changes "staging/${package}" "${path}" ; then
-            echo "s3://${S3_BUCKET}/${package} has changes"
+            echo "s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${package} has changes"
             build_and_upload "${package}"
         else
-            echo "s3://${S3_BUCKET}/${package} no changes in staging package"
+            echo "s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${package} no changes in staging package"
             copy_package_staging "${package}"
         fi
     else
-        echo "s3://${S3_BUCKET}/dist/${package} no changes in package"
+        echo "s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${package} no changes in package"
         copy_package_dist "${package}"
     fi
 }

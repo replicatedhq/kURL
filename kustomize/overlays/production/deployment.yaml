@@ -28,3 +28,5 @@ spec:
           value: production
         - name: KURL_UTIL_IMAGE
           value: replicated/kurl-util:__VERSION_TAG__
+        - name: KURL_VERSION
+          value: __VERSION_TAG__

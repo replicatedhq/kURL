@@ -7,6 +7,7 @@ DIR=.
 
 # Magic begin: scripts are inlined for distribution. See "make build/upgrade.sh"
 . $DIR/scripts/Manifest
+. $DIR/scripts/common/kurl.sh
 . $DIR/scripts/common/addon.sh
 . $DIR/scripts/common/common.sh
 . $DIR/scripts/common/discover.sh

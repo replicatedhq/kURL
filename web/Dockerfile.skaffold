@@ -8,7 +8,6 @@ ADD yarn.lock .
 RUN make deps
 
 ADD . .
-RUN mv templates /templates
 RUN mv bin/server /bin
 RUN make build
 

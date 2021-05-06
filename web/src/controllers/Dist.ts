@@ -4,18 +4,14 @@ import {
   Get,
   PathParams,
   Res } from "ts-express-decorators";
+import { getDistUrl, getPackageUrl } from "../util/package";
 
 @Controller("/dist")
 export class Dist {
   private distURL: string;
 
   constructor() {
-    this.distURL = `https://${process.env["KURL_BUCKET"]}.s3.amazonaws.com`;
-    if (process.env["NODE_ENV"] === "production") {
-      this.distURL += "/dist";
-    } else {
-      this.distURL += "/staging";
-    }
+    this.distURL = getDistUrl();
   }
 
   /**
@@ -29,7 +25,7 @@ export class Dist {
     @Res() response: Express.Response,
     @PathParams("pkg") pkg: string,
   ): Promise<void> {
-    const location = `${this.distURL}/${pkg}`;
+    const location = getPackageUrl(this.distURL, "", pkg);
 
     response.redirect(307, location);
   }

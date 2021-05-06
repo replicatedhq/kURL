@@ -33,7 +33,7 @@ function addon_install() {
         export REPORTING_CONTEXT_INFO=""
     fi
 
-    set_addon_has_been_applied $name
+    addon_set_has_been_applied $name
 
     if commandExists ${name}_join; then
         ADDONS_HAVE_HOST_COMPONENTS=1
@@ -130,16 +130,6 @@ function addon_outro() {
     fi
 
     if [ "$ADDONS_HAVE_HOST_COMPONENTS" = "1" ] && kubernetes_has_remotes; then
-        local proxyFlag=""
-        if [ -n "$PROXY_ADDRESS" ]; then
-            proxyFlag=" -x $PROXY_ADDRESS"
-        fi
-
-        local prefix="curl -sSL${proxyFlag} $KURL_URL/$INSTALLER_ID/"
-        if [ "$AIRGAP" = "1" ] || [ -z "$KURL_URL" ]; then
-            prefix="cat "
-        fi
-
         local common_flags
         common_flags="${common_flags}$(get_docker_registry_ip_flag "${DOCKER_REGISTRY_IP}")"
         common_flags="${common_flags}$(get_additional_no_proxy_addresses_flag "${PROXY_ADDRESS}" "${SERVICE_CIDR},${POD_CIDR}")"
@@ -147,8 +137,11 @@ function addon_outro() {
 
         printf "\n${YELLOW}Run this script on all remote nodes to apply changes${NC}\n"
         if [ "$AIRGAP" = "1" ]; then
-            printf "\n\t${GREEN}${prefix}upgrade.sh | sudo bash -s airgap${common_flags}${NC}\n\n"
+            printf "\n\t${GREEN}cat ./upgrade.sh | sudo bash -s airgap${common_flags}${NC}\n\n"
         else
+            local prefix=
+            prefix="$(build_installer_prefix "${INSTALLER_ID}" "${KURL_VERSION}" "${KURL_URL}" "${PROXY_ADDRESS}")"
+
             printf "\n\t${GREEN}${prefix}upgrade.sh | sudo bash -s${common_flags}${NC}\n\n"
         fi
         printf "Press enter to proceed\n"
@@ -165,18 +158,6 @@ function addon_outro() {
 
 function addon_cleanup() {
     rm -rf "${DIR}/addons"
-}
-
-function init_addon_cache() {
-    if kubernetes_resource_exists kurl configmap kurl-current-config; then
-        kubectl delete configmap -n kurl kurl-last-config || true
-        kubectl get configmap -n kurl -o json kurl-current-config | sed 's/kurl-current-config/kurl-last-config/g' | kubectl apply -f -
-        kubectl delete configmap -n kurl kurl-current-config || true
-    else
-        kubectl create configmap -n kurl kurl-last-config
-    fi
-
-    kubectl create configmap -n kurl kurl-current-config
 }
 
 function addon_has_been_applied() {
@@ -197,8 +178,8 @@ function addon_has_been_applied() {
     return 1
 }
 
-function set_addon_has_been_applied() {
+function addon_set_has_been_applied() {
     local name=$1
     current=$(get_addon_config "$name" | base64 -w 0)
-    kubectl patch configmaps -n kurl  kurl-current-config --type merge -p "{\"data\":{\"addons-$name\":\"$current\"}}"
+    kubectl patch configmaps -n kurl kurl-current-config --type merge -p "{\"data\":{\"addons-$name\":\"$current\"}}"
 }

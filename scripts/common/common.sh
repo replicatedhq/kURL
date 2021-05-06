@@ -12,6 +12,14 @@ commandExists() {
     command -v "$@" > /dev/null 2>&1
 }
 
+function get_dist_url() {
+    if [ -n "${KURL_VERSION}" ]; then
+        echo "${DIST_URL}/${KURL_VERSION}"
+    else
+        echo "${DIST_URL}"
+    fi
+}
+
 function package_download() {
     local package="$1"
 
@@ -30,7 +38,7 @@ function package_download() {
         etag=
     fi
 
-    local newetag="$(curl -IfsSL "${DIST_URL}/${package}" | grep -i 'etag:' | sed -r 's/.*"(.*)".*/\1/')"
+    local newetag="$(curl -IfsSL "$(get_dist_url)/${package}" | grep -i 'etag:' | sed -r 's/.*"(.*)".*/\1/')"
     if [ -n "${etag}" ] && [ "${etag}" = "${newetag}" ]; then
         echo "Package ${package} already exists, not downloading"
         return
@@ -41,7 +49,7 @@ function package_download() {
     local filepath="$(package_filepath "${package}")"
 
     echo "Downloading package ${package}"
-    curl -fL -o "${filepath}" "${DIST_URL}/${package}"
+    curl -fL -o "${filepath}" "$(get_dist_url)/${package}"
 
     checksum="$(md5sum "${filepath}" | awk '{print $1}')"
     echo "${package} ${newetag} ${checksum}" >> assets/Manifest
@@ -432,7 +440,7 @@ function spinner_until() {
 
 function get_common() {
     if [ "$AIRGAP" != "1" ] && [ -n "$DIST_URL" ]; then
-        curl -sSOL $DIST_URL/common.tar.gz
+        curl -sSOL "$(get_dist_url)/common.tar.gz"
         tar xf common.tar.gz
         rm common.tar.gz
     fi
@@ -796,4 +804,27 @@ function can_prompt() {
 
 function kebab_to_camel() {
     echo "$1" | sed -E 's/-(.)/\U\1/g'
+}
+
+function build_installer_prefix() {
+    local installer_id="$1"
+    local kurl_version="$2"
+    local kurl_url="$3"
+    local proxy_address="$4"
+
+    if [ -z "${kurl_url}" ]; then
+        echo "cat "
+        return
+    fi
+
+    local curl_flags=
+    if [ -n "${proxy_address}" ]; then
+        curl_flags=" -x ${proxy_address}"
+    fi
+
+    if [ -n "${kurl_version}" ]; then
+        echo "curl -fsSL${curl_flags} ${kurl_url}/version/${kurl_version}/${installer_id}/"
+    else
+        echo "curl -fsSL${curl_flags} ${kurl_url}/${installer_id}/"
+    fi
 }

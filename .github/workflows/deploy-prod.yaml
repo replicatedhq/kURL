@@ -72,7 +72,7 @@ jobs:
         export VERSION_TAG=$(echo $GITHUB_REF | awk -F'/' '{ print $NF }')
         export KURL_UTIL_IMAGE=replicated/kurl-util:${VERSION_TAG}
         export KURL_BIN_UTILS_FILE=kurl-bin-utils-${VERSION_TAG}.tar.gz
-        bin/upload-dist-prod.sh
+        bin/upload-dist-versioned.sh
       env:
         S3_BUCKET: kurl-sh
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_PROD_ACCESS_KEY_ID }}
@@ -115,7 +115,7 @@ jobs:
           sudo chmod +x /usr/local/bin/kustomize
         pushd kustomize/overlays/production
         kustomize edit set image 799720048698.dkr.ecr.us-east-1.amazonaws.com/kurl:${GITHUB_SHA:0:7}
-        kustomize build . | sed "s/__VERSION_TAG__/${VERSION_TAG}/" > kurl.yaml
+        kustomize build . | sed "s/__VERSION_TAG__/${VERSION_TAG}/g" > kurl.yaml
         popd
 
     - name: ssh-key

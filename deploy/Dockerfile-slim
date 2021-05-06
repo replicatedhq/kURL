@@ -14,7 +14,6 @@ ARG KURL_UTIL_IMAGE
 ENV KURL_UTIL_IMAGE=$KURL_UTIL_IMAGE
 
 ADD web /src
-ADD build/templates /templates
 ADD build/bin/server /bin
 
 WORKDIR /src

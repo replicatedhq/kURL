@@ -6,6 +6,13 @@ build:
       context: "./web"
       docker:
         dockerfile: ./Dockerfile.skaffold
+    - image: replicated/kurl-dist-server
+      context: "."
+      docker:
+        dockerfile: ./Dockerfile.skaffold
+      sync:
+        infer:
+          - "dist/**/*"
 deploy:
   kustomize:
     path: "./kustomize/overlays/dev/"

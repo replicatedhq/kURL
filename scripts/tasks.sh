@@ -325,11 +325,8 @@ function join_token() {
     common_flags="${common_flags}$(get_kurl_install_directory_flag "${kurl_install_directory}")"
     common_flags="${common_flags}$(get_remotes_flags)"
 
-    # build the installer prefix
-    local prefix="curl -sSL $kurl_url/$installer_id/"
-    if [ -z "$kurl_url" ]; then
-        prefix="cat "
-    fi
+    local prefix=
+    prefix="$(build_installer_prefix "${installer_id}" "${KURL_VERSION}" "${kurl_url}" "")"
 
     if [ "$HA_CLUSTER" = "1" ]; then
         printf "Master node join commands expire after two hours, and worker node join commands expire after 24 hours.\n"

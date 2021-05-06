@@ -145,14 +145,11 @@ function upgrade_kubernetes_remote_node_patch() {
     printf "\n\n\tRun the upgrade script on remote node to proceed: ${GREEN}$nodeName${NC}\n\n"
 
     if [ "$AIRGAP" = "1" ]; then
-        printf "\t${GREEN}cat upgrade.sh | sudo bash -s airgap kubernetes-version=${KUBERNETES_VERSION}${common_flags}${NC}\n\n"
-    elif [ -z "$KURL_URL" ]; then
-        printf "\t${GREEN}cat upgrade.sh | sudo bash -s kubernetes-version=${KUBERNETES_VERSION}${common_flags}${NC}\n\n"
+        printf "\t${GREEN}cat ./upgrade.sh | sudo bash -s airgap kubernetes-version=${KUBERNETES_VERSION}${common_flags}${NC}\n\n"
     else
-        local prefix="curl $KURL_URL/$INSTALLER_ID/"
-        if [ -z "$KURL_URL" ]; then
-            prefix="cat "
-        fi
+        local prefix=
+        prefix="$(build_installer_prefix "${INSTALLER_ID}" "${KURL_VERSION}" "${KURL_URL}" "${PROXY_ADDRESS}")"
+
         printf "\t${GREEN} ${prefix}upgrade.sh | sudo bash -s kubernetes-version=${KUBERNETES_VERSION}${common_flags}${NC}\n\n"
     fi
 
@@ -251,14 +248,11 @@ function upgrade_kubernetes_remote_node_minor() {
     printf "\n\n\tRun the upgrade script on remote node to proceed: ${GREEN}$nodeName${NC}\n\n"
 
     if [ "$AIRGAP" = "1" ]; then
-        printf "\t${GREEN}cat upgrade.sh | sudo bash -s airgap kubernetes-version=${targetK8sVersion}${common_flags}${NC}\n\n"
-    elif [ -z "$KURL_URL" ]; then
-        printf "\t${GREEN}cat upgrade.sh | sudo bash -s kubernetes-version=${targetK8sVersion}${common_flags}${NC}\n\n"
+        printf "\t${GREEN}cat ./upgrade.sh | sudo bash -s airgap kubernetes-version=${targetK8sVersion}${common_flags}${NC}\n\n"
     else
-        local prefix="curl $KURL_URL/$INSTALLER_ID/"
-        if [ -z "$KURL_URL" ]; then
-            prefix="cat "
-        fi
+        local prefix=
+        prefix="$(build_installer_prefix "${INSTALLER_ID}" "${KURL_VERSION}" "${KURL_URL}" "${PROXY_ADDRESS}")"
+
         printf "\t${GREEN} ${prefix}upgrade.sh | sudo bash -s kubernetes-version=${targetK8sVersion}${common_flags}${NC}\n\n"
     fi
 
