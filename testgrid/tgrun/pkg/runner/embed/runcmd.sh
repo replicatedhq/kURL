@@ -30,6 +30,9 @@ function run_install() {
 
         # get the install bundle
         curl -L -o install.tar.gz "$KURL_URL"
+        if [ -n "$KURL_UPGRADE_URL" ]; then
+            curl -L -o upgrade.tar.gz "$KURL_UPGRADE_URL"
+        fi
 
         disable_internet
 
@@ -100,11 +103,6 @@ function run_upgrade() {
     if [ "$AIRGAP_UPGRADE" = "1" ]; then
         AIRGAP_UPGRADE_FLAG=airgap
 
-        # get the upgrade bundle
-        curl -L -o upgrade.tar.gz "$KURL_UPGRADE_URL"
-
-        disable_internet
-
         # run the upgrade
         tar -xzvf upgrade.tar.gz
         local tar_exit_status="$?"
@@ -169,6 +167,28 @@ function run_tasks_join_token() {
     fi
 }
 
+function check_airgap() {
+    if ! echo "$KURL_URL" | grep -q "\.tar\.gz$" ; then
+        return 0
+    fi
+    echo "check for outbound requests"
+
+    local packets=$(iptables -L OUTPUT -v | grep "AIRGAP VIOLATION" | awk '{ print $1 }')
+    if [ "$packets" -eq "0" ]; then
+        return 0
+    fi
+
+    if [ -f "/var/log/messages" ]; then
+        grep "AIRGAP VIOLATION" /var/log/messages
+    fi
+    if [ -f "/var/log/syslog" ]; then
+        grep "AIRGAP VIOLATION" /var/log/syslog
+    fi
+
+    report_failure "airgap_violation"
+    exit 1
+}
+
 function disable_internet() {
     echo "disabling internet"
 
@@ -201,14 +221,11 @@ function disable_internet() {
     done
 
     # disable internet by adding restrictive iptables rules
-    iptables -A OUTPUT -p tcp -d 50.19.197.213 -j ACCEPT # accept comms to k8s.kurl.sh IPs
-    iptables -A OUTPUT -p tcp -d 54.236.144.143 -j ACCEPT # accept comms to k8s.kurl.sh IPs
-    iptables -A OUTPUT -p tcp -d 162.159.135.41 -j ACCEPT # accept comms to k8s.kurl.sh IPs
-    iptables -A OUTPUT -p tcp -d 162.159.136.41 -j ACCEPT # accept comms to k8s.kurl.sh IPs
-    iptables -A OUTPUT -p tcp -d 127.0.0.1 -j ACCEPT # accept comms to localhost
+    iptables -A OUTPUT -p tcp -d 127.0.0.0/8 -j ACCEPT # accept comms to localhost
     iptables -A OUTPUT -p tcp -d 10.0.0.0/8 -j ACCEPT # accept comms to internal IPs
     iptables -A OUTPUT -p tcp -d 172.16.0.0/12 -j ACCEPT # accept comms to internal IPs
     iptables -A OUTPUT -p tcp -d 192.168.0.0/16 -j ACCEPT # accept comms to internal IPs
+    iptables -A OUTPUT -p tcp -d 169.254.0.0/16 -j ACCEPT # accept link-local comms
     iptables -A OUTPUT -p tcp -j REJECT # reject comms to other IPs
 
     iptables -L
@@ -223,6 +240,9 @@ function disable_internet() {
         report_failure "airgap_instance"
         exit 1
     fi
+
+    local i="$(iptables -L OUTPUT --line-numbers | tail -n 1 | awk '{ print $1 }')"
+    iptables -I OUTPUT "$i" -p tcp -j LOG --log-level 4 --log-prefix "AIRGAP VIOLATION: "
 
     echo "internet disabled"
 }
@@ -327,6 +347,8 @@ function main() {
         collect_support_bundle
         exit 1
     fi
+
+    check_airgap
 
     collect_support_bundle
 
