@@ -12,6 +12,14 @@ commandExists() {
     command -v "$@" > /dev/null 2>&1
 }
 
+function get_dist_url() {
+    if [ -n "${KURL_VERSION}" ]; then
+        echo "${DIST_URL}/${KURL_VERSION}"
+    else
+        echo "${DIST_URL}"
+    fi
+}
+
 function package_download() {
     local package="$1"
 
@@ -30,7 +38,7 @@ function package_download() {
         etag=
     fi
 
-    local newetag="$(curl -IfsSL "${DIST_URL}/${package}" | grep -i 'etag:' | sed -r 's/.*"(.*)".*/\1/')"
+    local newetag="$(curl -IfsSL "$(get_dist_url)/${package}" | grep -i 'etag:' | sed -r 's/.*"(.*)".*/\1/')"
     if [ -n "${etag}" ] && [ "${etag}" = "${newetag}" ]; then
         echo "Package ${package} already exists, not downloading"
         return
@@ -41,7 +49,7 @@ function package_download() {
     local filepath="$(package_filepath "${package}")"
 
     echo "Downloading package ${package}"
-    curl -fL -o "${filepath}" "${DIST_URL}/${package}"
+    curl -fL -o "${filepath}" "$(get_dist_url)/${package}"
 
     checksum="$(md5sum "${filepath}" | awk '{print $1}')"
     echo "${package} ${newetag} ${checksum}" >> assets/Manifest
@@ -432,7 +440,7 @@ function spinner_until() {
 
 function get_common() {
     if [ "$AIRGAP" != "1" ] && [ -n "$DIST_URL" ]; then
-        curl -sSOL $DIST_URL/common.tar.gz
+        curl -sSOL "$(get_dist_url)/common.tar.gz"
         tar xf common.tar.gz
         rm common.tar.gz
     fi
