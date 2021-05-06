@@ -12,7 +12,7 @@ function get_latest_release_version() {
 }
 
 KSPLITPATH=""
-function getKsplit() {
+function get_ksplit() {
     go install github.com/go-ksplit/ksplit/ksplit@v1.0.1
     KSPLITPATH="$GOPATH/bin/ksplit"
 }
@@ -59,7 +59,7 @@ function main() {
         add_as_latest
     fi
 
-    getKsplit
+    get_ksplit
 
     generate
 

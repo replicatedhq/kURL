@@ -36,6 +36,7 @@ function longhorn() {
     render_yaml_file "$src/tmpl-ui-deployment.yaml" > "$dst/ui-deployment.yaml"
 
     kubectl apply -f "$dst/crds.yaml"
+    echo "Waiting for Longhorn CRDs to be created"
     spinner_until 120 kubernetes_resource_exists default crd engines.longhorn.io
     spinner_until 120 kubernetes_resource_exists default crd replicas.longhorn.io
     spinner_until 120 kubernetes_resource_exists default crd settings.longhorn.io
