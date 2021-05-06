@@ -33,7 +33,7 @@ function addon_install() {
         export REPORTING_CONTEXT_INFO=""
     fi
 
-    set_addon_has_been_applied $name
+    addon_set_has_been_applied $name
 
     if commandExists ${name}_join; then
         ADDONS_HAVE_HOST_COMPONENTS=1
@@ -160,18 +160,6 @@ function addon_cleanup() {
     rm -rf "${DIR}/addons"
 }
 
-function init_addon_cache() {
-    if kubernetes_resource_exists kurl configmap kurl-current-config; then
-        kubectl delete configmap -n kurl kurl-last-config || true
-        kubectl get configmap -n kurl -o json kurl-current-config | sed 's/kurl-current-config/kurl-last-config/g' | kubectl apply -f -
-        kubectl delete configmap -n kurl kurl-current-config || true
-    else
-        kubectl create configmap -n kurl kurl-last-config
-    fi
-
-    kubectl create configmap -n kurl kurl-current-config
-}
-
 function addon_has_been_applied() {
     local name=$1
     last_applied=$(kubectl get configmap -n kurl kurl-last-config -o jsonpath="{.data.addons-$name}")
@@ -190,8 +178,8 @@ function addon_has_been_applied() {
     return 1
 }
 
-function set_addon_has_been_applied() {
+function addon_set_has_been_applied() {
     local name=$1
     current=$(get_addon_config "$name" | base64 -w 0)
-    kubectl patch configmaps -n kurl  kurl-current-config --type merge -p "{\"data\":{\"addons-$name\":\"$current\"}}"
+    kubectl patch configmaps -n kurl kurl-current-config --type merge -p "{\"data\":{\"addons-$name\":\"$current\"}}"
 }

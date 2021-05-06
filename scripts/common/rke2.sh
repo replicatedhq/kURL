@@ -403,7 +403,7 @@ function rke2_main() {
     rke2_init                            # TODO(dan): A mix of Kubeadm stuff and general setup.
     apply_installer_crd
     type create_registry_service &> /dev/null && create_registry_service # this function is in an optional addon and may be missing
-    init_addon_cache
+    kurl_init_config
     ${K8S_DISTRO}_addon_for_each addon_install
     # post_init                          # TODO(dan): more kubeadm token setup
     rke2_outro                           

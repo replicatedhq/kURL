@@ -8,6 +8,7 @@ DIR=.
 
 # Magic begin: scripts are inlined for distribution. See "make build/install.sh"
 . $DIR/scripts/Manifest
+. $DIR/scripts/common/kurl.sh
 . $DIR/scripts/common/addon.sh
 . $DIR/scripts/common/common.sh
 . $DIR/scripts/common/discover.sh
@@ -443,7 +444,7 @@ function main() {
     report_kubernetes_install
     export SUPPORT_BUNDLE_READY=1 # allow ctrl+c and ERR traps to collect support bundles now that k8s is installed
     type create_registry_service &> /dev/null && create_registry_service # this function is in an optional addon and may be missing
-    init_addon_cache
+    kurl_init_config
     ${K8S_DISTRO}_addon_for_each addon_install
     helmfile_sync
     post_init
