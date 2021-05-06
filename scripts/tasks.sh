@@ -160,74 +160,6 @@ function reset() {
     printf "Reset script completed\n"
 }
 
-function weave_reset() {
-    BRIDGE=weave
-    DATAPATH=datapath
-    CONTAINER_IFNAME=ethwe
-
-    DOCKER_BRIDGE=docker0
-
-    # https://github.com/weaveworks/weave/blob/05ab1139db615c61b99074c63184076ba72e2416/weave#L460
-    for NETDEV in $BRIDGE $DATAPATH ; do
-        if [ -d /sys/class/net/$NETDEV ] ; then
-            if [ -d /sys/class/net/$NETDEV/bridge ] ; then
-                ip link del $NETDEV
-            else
-                if [ -n "$DOCKER_VERSION" ]; then
-                    docker run --rm --pid host --net host --privileged --entrypoint=/usr/bin/weaveutil weaveworks/weaveexec:$WEAVE_TAG delete-datapath $NETDEV
-                else
-                    # --pid host
-                    local guid=$(< /dev/urandom tr -dc A-Za-z0-9 | head -c16)
-                    # TODO(ethan): rke2 containerd.sock path is incorrect
-                    ctr -n=k8s.io run --rm --net-host --privileged docker.io/weaveworks/weaveexec:$WEAVE_TAG $guid /usr/bin/weaveutil delete-datapath $NETDEV
-                fi
-            fi
-        fi
-    done
-
-    # Remove any lingering bridged fastdp, pcap and attach-bridge veths
-    for VETH in $(ip -o link show | grep -o v${CONTAINER_IFNAME}[^:@]*) ; do
-        ip link del $VETH >/dev/null 2>&1 || true
-    done
-
-    if [ "$DOCKER_BRIDGE" != "$BRIDGE" ] ; then
-        run_iptables -t filter -D FORWARD -i $DOCKER_BRIDGE -o $BRIDGE -j DROP 2>/dev/null || true
-    fi
-
-    run_iptables -t filter -D INPUT -i $DOCKER_BRIDGE -p udp --dport 53  -j ACCEPT  >/dev/null 2>&1 || true
-    run_iptables -t filter -D INPUT -i $DOCKER_BRIDGE -p tcp --dport 53  -j ACCEPT  >/dev/null 2>&1 || true
-
-    if [ -n "$DOCKER_VERSION" ]; then
-        DOCKER_BRIDGE_IP=$(docker run --rm --pid host --net host --privileged -v /var/run/docker.sock:/var/run/docker.sock --entrypoint=/usr/bin/weaveutil weaveworks/weaveexec:$WEAVE_TAG bridge-ip $DOCKER_BRIDGE)
-
-        run_iptables -t filter -D INPUT -i $DOCKER_BRIDGE -p tcp --dst $DOCKER_BRIDGE_IP --dport $PORT          -j DROP >/dev/null 2>&1 || true
-        run_iptables -t filter -D INPUT -i $DOCKER_BRIDGE -p udp --dst $DOCKER_BRIDGE_IP --dport $PORT          -j DROP >/dev/null 2>&1 || true
-        run_iptables -t filter -D INPUT -i $DOCKER_BRIDGE -p udp --dst $DOCKER_BRIDGE_IP --dport $(($PORT + 1)) -j DROP >/dev/null 2>&1 || true
-    fi
-
-    run_iptables -t filter -D FORWARD -i $BRIDGE ! -o $BRIDGE -j ACCEPT 2>/dev/null || true
-    run_iptables -t filter -D FORWARD -o $BRIDGE -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT 2>/dev/null || true
-    run_iptables -t filter -D FORWARD -i $BRIDGE -o $BRIDGE -j ACCEPT 2>/dev/null || true
-    run_iptables -F WEAVE-NPC >/dev/null 2>&1 || true
-    run_iptables -t filter -D FORWARD -o $BRIDGE -j WEAVE-NPC 2>/dev/null || true
-    run_iptables -t filter -D FORWARD -o $BRIDGE -m state --state NEW -j NFLOG --nflog-group 86 2>/dev/null || true
-    run_iptables -t filter -D FORWARD -o $BRIDGE -j DROP 2>/dev/null || true
-    run_iptables -X WEAVE-NPC >/dev/null 2>&1 || true
-
-    run_iptables -F WEAVE-EXPOSE >/dev/null 2>&1 || true
-    run_iptables -t filter -D FORWARD -o $BRIDGE -j WEAVE-EXPOSE 2>/dev/null || true
-    run_iptables -X WEAVE-EXPOSE >/dev/null 2>&1 || true
-
-    run_iptables -t nat -F WEAVE >/dev/null 2>&1 || true
-    run_iptables -t nat -D POSTROUTING -j WEAVE >/dev/null 2>&1 || true
-    run_iptables -t nat -D POSTROUTING -o $BRIDGE -j ACCEPT >/dev/null 2>&1 || true
-    run_iptables -t nat -X WEAVE >/dev/null 2>&1 || true
-
-    for LOCAL_IFNAME in $(ip link show | grep v${CONTAINER_IFNAME}pl | cut -d ' ' -f 2 | tr -d ':') ; do
-        ip link del ${LOCAL_IFNAME%@*} >/dev/null 2>&1 || true
-    done
-}
-
 function kotsadm_accept_tls_uploads() {
     export KUBECONFIG=/etc/kubernetes/admin.conf
 
@@ -402,7 +334,7 @@ function get_weave_version() {
         fi
         if [ -z "$weave_version" ]; then
             # if we don't know the exact weave tag, use a sane default
-            weave_version="2.7.0"
+            weave_version="2.6.5"
         fi
     fi
     echo $weave_version
