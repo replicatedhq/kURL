@@ -56,7 +56,7 @@ export class Bundle {
    * @returns {{id: any, name: string}}
    */
   @Get("/:installerID")
-  @Get("/:kurlVersion(^v.*\..*\..*)/:installerID")
+  @Get("/version/:kurlVersion/:installerID")
   public async redirect(
     @Res() response: Express.Response,
     @Req() req: Express.Request,
