@@ -1,2 +1,2 @@
 image conformance k8s.gcr.io/conformance:v1.21.0
-image nginx-1.14-alpine docker.io/library/nginx:1.14-alpine
+image nginx k8s.gcr.io/e2e-test-images/nginx:1.14-1

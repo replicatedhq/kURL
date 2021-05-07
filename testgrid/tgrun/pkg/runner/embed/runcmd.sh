@@ -248,6 +248,10 @@ function disable_internet() {
 }
 
 function run_sonobuoy() {
+    if kubectl version --short | grep -q "v1.16"; then
+        echo "skipping sonobuoy on 1.16"
+        return 0
+    fi
     echo "running sonobuoy"
 
     # wait for 10 minutes for sonobuoy run to complete
