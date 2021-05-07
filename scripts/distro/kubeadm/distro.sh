@@ -82,7 +82,7 @@ function kubeadm_weave_reset() {
 
     DOCKER_BRIDGE=docker0
 
-    # https://github.com/weaveworks/weave/blob/05ab1139db615c61b99074c63184076ba72e2416/weave#L460
+    # https://github.com/weaveworks/weave/blob/v2.8.1/weave#L461
     for NETDEV in $BRIDGE $DATAPATH ; do
         if [ -d /sys/class/net/$NETDEV ] ; then
             if [ -d /sys/class/net/$NETDEV/bridge ] ; then
@@ -109,6 +109,7 @@ function kubeadm_weave_reset() {
         kubeadm_run_iptables -t filter -D FORWARD -i $DOCKER_BRIDGE -o $BRIDGE -j DROP 2>/dev/null || true
     fi
 
+    kubeadm_run_iptables -t filter -D INPUT -d 127.0.0.1/32 -p tcp --dport 6784 -m addrtype ! --src-type LOCAL -m conntrack ! --ctstate RELATED,ESTABLISHED -m comment --comment "Block non-local access to Weave Net control port" -j DROP >/dev/null 2>&1 || true
     kubeadm_run_iptables -t filter -D INPUT -i $DOCKER_BRIDGE -p udp --dport 53  -j ACCEPT  >/dev/null 2>&1 || true
     kubeadm_run_iptables -t filter -D INPUT -i $DOCKER_BRIDGE -p tcp --dport 53  -j ACCEPT  >/dev/null 2>&1 || true
 
