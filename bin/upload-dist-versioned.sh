@@ -110,8 +110,12 @@ function deploy() {
             copy_package_staging "${package}"
         fi
     else
-        echo "s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${package} no changes in package"
-        copy_package_dist "${package}"
+        if package_has_changes "${PACKAGE_PREFIX}/${VERSION_TAG}/${package}" "${path}" ; then
+            echo "s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${package} no changes in package"
+            copy_package_dist "${package}"
+        else
+            echo "s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${package} no changes in versioned package"
+        fi
     fi
 }
 
