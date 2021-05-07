@@ -1,4 +1,9 @@
-CEPH_VERSION=14.2.0-20190410
+
+function rook_pre_init() {
+    if [ "$KUBERNETES_TARGET_VERSION_MINOR" -ge 20 ]; then
+        bail "Rook 1.0.4 is not compatible with Kubernetes 1.20+"
+    fi
+}
 
 function rook() {
     rook_lvm2
@@ -68,6 +73,10 @@ function rook_join() {
     rook_lvm2
 }
 
+function rook_already_applied() {
+    rook_object_store_output
+}
+
 function rook_dashboard_ready_spinner() {
     # wait for ceph dashboard password to be generated
     printf "awaiting rook-ceph dashboard password\n"
@@ -122,7 +131,7 @@ function rook_set_ceph_pool_replicas() {
     if [ -n "$discoveredCephPoolReplicas" ]; then
         CEPH_POOL_REPLICAS="$discoveredCephPoolReplicas"
     fi
-    local readyNodeCount=$(kubectl get nodes 2>/dev/null | grep Ready | wc -l)
+    local readyNodeCount=$(kubectl get nodes 2>/dev/null | grep ' Ready' | wc -l)
     if [ "$readyNodeCount" -gt "$CEPH_POOL_REPLICAS" ] && [ "$readyNodeCount" -le "3" ]; then
         CEPH_POOL_REPLICAS="$readyNodeCount"
     fi

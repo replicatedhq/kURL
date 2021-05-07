@@ -11,6 +11,7 @@ type SchedulerOptions struct {
 	OverwriteRef bool
 	Ref          string
 	Staging      bool
+	Airgap       bool
 	LatestOnly   bool
 	Spec         string
 }
@@ -32,6 +33,7 @@ type OperatingSystemImage struct {
 	Name       string
 	Version    string
 	VMImageURI string
+	PreInit    string // a script to run before the test - for instance, to convert to oracle linux
 }
 
 type Instance struct {
@@ -56,6 +58,7 @@ type InstallerSpec struct {
 	Docker          *kurlv1beta1.Docker          `json:"docker,omitempty" yaml:"docker,omitempty"`
 	Containerd      *kurlv1beta1.Containerd      `json:"containerd,omitempty" yaml:"containerd,omitempty"`
 	Weave           *kurlv1beta1.Weave           `json:"weave,omitempty" yaml:"weave,omitempty"`
+	Antrea          *kurlv1beta1.Antrea          `json:"antrea,omitempty" yaml:"antrea,omitempty"`
 	Calico          *kurlv1beta1.Calico          `json:"calico,omitempty" yaml:"calico,omitempty"`
 	Contour         *kurlv1beta1.Contour         `json:"contour,omitempty" yaml:"contour,omitempty"`
 	Rook            *kurlv1beta1.Rook            `json:"rook,omitempty" yaml:"rook,omitempty"`
@@ -76,4 +79,5 @@ type InstallerSpec struct {
 	MetricsServer   *kurlv1beta1.MetricsServer   `json:"metricsServer,omitempty" yaml:"metricsServer,omitempty"`
 	Helm            *kurlv1beta1.Helm            `json:"helm,omitempty" yaml:"helm,omitempty"`
 	Longhorn        *kurlv1beta1.Longhorn        `json:"longhorn,omitempty" yaml:"longhorn,omitempty"`
+	Sonobuoy        *kurlv1beta1.Sonobuoy        `json:"sonobuoy,omitempty" yaml:"sonobuoy,omitempty"`
 }

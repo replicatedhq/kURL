@@ -66,9 +66,15 @@ function load_all_images() {
 
     if [ -n "$DOCKER_VERSION" ]; then
         find addons/ packages/ -type f -wholename '*/images/*.tar.gz' | xargs -I {} bash -c "docker load < {}"
+        if [ -f shared/kurl-util.tar ]; then
+            docker load < shared/kurl-util.tar
+        fi
     else
         # TODO(ethan): rke2 containerd.sock path is incorrect
         find addons/ packages/ -type f -wholename '*/images/*.tar.gz' | xargs -I {} bash -c "cat {} | gunzip | ctr -n=k8s.io images import -"
+        if [ -f shared/kurl-util.tar ]; then
+            ctr -n=k8s.io images import shared/kurl-util.tar
+        fi
     fi
 
     popd_install_directory
@@ -143,7 +149,7 @@ function reset() {
     rm -rf /opt/cni
     rm -rf /opt/replicated
     rm -f /usr/local/bin/helm /usr/local/bin/helmfile
-    rm -f /usr/bin/kubeadm /usr/bin/kubelet /usr/bin/kubectl
+    rm -f /usr/bin/kubeadm /usr/bin/kubelet /usr/bin/kubectl /usr/bin/crtctl
     rm -f /usr/local/bin/kustomize*
     rm -rf /var/lib/calico
     rm -rf /var/lib/etcd
@@ -317,12 +323,10 @@ function join_token() {
         common_flags="${common_flags}$(get_additional_no_proxy_addresses_flag "1" "${service_cidr},${pod_cidr}")"
     fi
     common_flags="${common_flags}$(get_kurl_install_directory_flag "${kurl_install_directory}")"
+    common_flags="${common_flags}$(get_remotes_flags)"
 
-    # build the installer prefix
-    local prefix="curl -sSL $kurl_url/$installer_id/"
-    if [ -z "$kurl_url" ]; then
-        prefix="cat "
-    fi
+    local prefix=
+    prefix="$(build_installer_prefix "${installer_id}" "${KURL_VERSION}" "${kurl_url}" "")"
 
     if [ "$HA_CLUSTER" = "1" ]; then
         printf "Master node join commands expire after two hours, and worker node join commands expire after 24 hours.\n"

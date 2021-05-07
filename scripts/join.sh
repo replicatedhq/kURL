@@ -6,6 +6,7 @@ DIR=.
 
 # Magic begin: scripts are inlined for distribution. See "make build/join.sh"
 . $DIR/scripts/Manifest
+. $DIR/scripts/common/kurl.sh
 . $DIR/scripts/common/addon.sh
 . $DIR/scripts/common/common.sh
 . $DIR/scripts/common/discover.sh
@@ -127,9 +128,10 @@ function main() {
     journald_persistent
     configure_proxy
     configure_no_proxy
+    ${K8S_DISTRO}_addon_for_each addon_fetch
     host_preflights "${MASTER:-0}" "1" "0"
-    ${K8S_DISTRO}_addon_for_each addon_pre_join
     install_cri
+    get_common
     get_shared
     setup_kubeadm_kustomize
     install_host_dependencies

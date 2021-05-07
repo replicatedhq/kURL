@@ -48,6 +48,28 @@ var operatingSystems = []types.OperatingSystemImage{
 		ID:         "centos-83",
 	},
 	{
+		VMImageURI: "https://cloud.centos.org/centos/7/images/CentOS-7-x86_64-GenericCloud-2009.qcow2",
+		Name:       "Oracle Linux",
+		Version:    "7.9",
+		ID:         "ol-79",
+		PreInit: `
+curl -L -o centos2ol.sh https://raw.githubusercontent.com/oracle/centos2ol/main/centos2ol.sh
+chmod +x centos2ol.sh
+bash centos2ol.sh
+`,
+	},
+	{
+		VMImageURI: "https://cloud.centos.org/centos/8/x86_64/images/CentOS-8-GenericCloud-8.3.2011-20201204.2.x86_64.qcow2",
+		Name:       "Oracle Linux",
+		Version:    "8.3",
+		ID:         "ol-83",
+		PreInit: `
+curl -L -o centos2ol.sh https://raw.githubusercontent.com/oracle/centos2ol/main/centos2ol.sh
+chmod +x centos2ol.sh
+bash centos2ol.sh
+`,
+	},
+	{
 		VMImageURI: "https://testgrid-images.s3.amazonaws.com/ubuntu/16.04/ubuntu-16.04-kernel-4.15.0-122-generic.qcow2",
 		Name:       "Ubuntu",
 		Version:    "16.04",

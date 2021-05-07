@@ -1,5 +1,9 @@
 
 function kubernetes_host() {
+    if [ "$SKIP_KUBERNETES_HOST" = "1" ]; then
+        return 0
+    fi
+
     kubernetes_load_ipvs_modules
 
     kubernetes_sysctl_config
@@ -11,9 +15,13 @@ function kubernetes_host() {
     # and/or re-install any missing or corrupted packages.
     if [ "$KUBERNETES_DID_GET_HOST_PACKAGES_ONLINE" != "1" ] && [ "$AIRGAP" != "1" ] && [ -n "$DIST_URL" ]; then
         kubernetes_get_host_packages_online "$KUBERNETES_VERSION"
+        kubernetes_get_conformance_packages_online "$KUBERNETES_VERSION"
     fi
 
-    load_images $DIR/packages/kubernetes/$KUBERNETES_VERSION/images
+    load_images "$DIR/packages/kubernetes/$KUBERNETES_VERSION/images"
+    if [ -d "$DIR/packages/kubernetes-conformance/$KUBERNETES_VERSION/images" ]; then
+        load_images "$DIR/packages/kubernetes-conformance/$KUBERNETES_VERSION/images"
+    fi
 
     install_plugins
 
@@ -25,7 +33,7 @@ function kubernetes_load_ipvs_modules() {
         return
     fi
 
-    if [ "$KERNEL_MAJOR" -gt "4" ] || ([ "$KERNEL_MAJOR" -eq "4" ] && [ "$KERNEL_MINOR" -ge "19" ]) || ([ "$LSB_DIST" = "rhel" ] && [ "$DIST_VERSION" = "8.3" ]) || ([ "$LSB_DIST" = "centos" ] && [ "$DIST_VERSION" = "8.3" ]); then
+    if [ "$KERNEL_MAJOR" -gt "4" ] || ([ "$KERNEL_MAJOR" -eq "4" ] && [ "$KERNEL_MINOR" -ge "19" ]) || ([ "$LSB_DIST" = "rhel" ] && [ "$DIST_VERSION" = "8.3" ]) || ([ "$LSB_DIST" = "centos" ] && [ "$DIST_VERSION" = "8.3" ]) || ([ "$LSB_DIST" = "ol" ] && [ "$DIST_VERSION" = "8.3" ]); then
         modprobe nf_conntrack
     else
         modprobe nf_conntrack_ipv4
@@ -46,7 +54,7 @@ function kubernetes_load_ipvs_modules() {
 function kubernetes_sysctl_config() {
     case "$LSB_DIST" in
         # TODO I've only seen these disabled on centos/rhel but should be safe for ubuntu
-        centos|rhel|amzn)
+        centos|rhel|amzn|ol)
             echo "net.bridge.bridge-nf-call-ip6tables = 1" > /etc/sysctl.d/k8s.conf
             echo "net.bridge.bridge-nf-call-iptables = 1" >> /etc/sysctl.d/k8s.conf
             echo "net.ipv4.conf.all.forwarding = 1" >> /etc/sysctl.d/k8s.conf
@@ -61,7 +69,7 @@ function kubernetes_sysctl_config() {
 function kubernetes_install_host_packages() {
     k8sVersion=$1
 
-    logStep "Install kubelet, kubeadm, kubectl and cni host packages"
+    logStep "Install kubelet, kubectl and cni host packages"
 
     if kubernetes_host_commands_ok "$k8sVersion"; then
         logSuccess "Kubernetes host packages already installed"
@@ -70,32 +78,68 @@ function kubernetes_install_host_packages() {
 
     if [ "$AIRGAP" != "1" ] && [ -n "$DIST_URL" ]; then
         kubernetes_get_host_packages_online "$k8sVersion"
+        kubernetes_get_conformance_packages_online "$k8sVersion"
     fi
+
+    cat > "$DIR/tmp-kubeadm.conf" <<EOF
+# Note: This dropin only works with kubeadm and kubelet v1.11+
+[Service]
+Environment="KUBELET_KUBECONFIG_ARGS=--bootstrap-kubeconfig=/etc/kubernetes/bootstrap-kubelet.conf --kubeconfig=/etc/kubernetes/kubelet.conf"
+Environment="KUBELET_CONFIG_ARGS=--config=/var/lib/kubelet/config.yaml"
+# This is a file that "kubeadm init" and "kubeadm join" generates at runtime, populating the KUBELET_KUBEADM_ARGS variable dynamically
+EnvironmentFile=-/var/lib/kubelet/kubeadm-flags.env
+# This is a file that the user can use for overrides of the kubelet args as a last resort. Preferably, the user should use
+# the .NodeRegistration.KubeletExtraArgs object in the configuration files instead. KUBELET_EXTRA_ARGS should be sourced from this file.
+EnvironmentFile=-/etc/__ENV_LOCATION__/kubelet
+ExecStart=
+ExecStart=/usr/bin/kubelet \$KUBELET_KUBECONFIG_ARGS \$KUBELET_CONFIG_ARGS \$KUBELET_KUBEADM_ARGS \$KUBELET_EXTRA_ARGS
+EOF
 
     case "$LSB_DIST" in
         ubuntu)
+            sed "s:__ENV_LOCATION__:default:g" -i "$DIR/tmp-kubeadm.conf"
             export DEBIAN_FRONTEND=noninteractive
             dpkg --install --force-depends-version $DIR/packages/kubernetes/${k8sVersion}/ubuntu-${DIST_VERSION}/*.deb
             ;;
 
-        centos|rhel|amzn)
+        centos|rhel|amzn|ol)
             case "$LSB_DIST$DIST_VERSION_MAJOR" in
                 rhel8|centos8)
+                    sed "s:__ENV_LOCATION__:sysconfig:g" -i "$DIR/tmp-kubeadm.conf"
                     rpm --upgrade --force --nodeps $DIR/packages/kubernetes/${k8sVersion}/rhel-8/*.rpm
                     ;;
 
                 *)
+                    sed "s:__ENV_LOCATION__:sysconfig:g" -i "$DIR/tmp-kubeadm.conf"
                     rpm --upgrade --force --nodeps $DIR/packages/kubernetes/${k8sVersion}/rhel-7/*.rpm
                     ;;
             esac
         ;;
+
+        *)
+            bail "Kubernetes host package install is not supported on ${LSB_DIST} ${DIST_MAJOR}"
+        ;;
     esac
+
+    # Update crictl: https://listman.redhat.com/archives/rhsa-announce/2019-October/msg00038.html 
+    tar -C /usr/bin -xzf "$DIR/packages/kubernetes/${k8sVersion}/assets/crictl-linux-amd64.tar.gz"
+    chmod a+rx /usr/bin/crictl
+
+    # Install Kubeadm from binary (see kubernetes.io)
+    cp -f "$DIR/packages/kubernetes/${k8sVersion}/assets/kubeadm" /usr/bin/
+    chmod a+rx /usr/bin/kubeadm
+
+    mkdir -p /etc/systemd/system/kubelet.service.d
+    cp -f "$DIR/tmp-kubeadm.conf" /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
+    chmod 640 /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
 
     if [ "$CLUSTER_DNS" != "$DEFAULT_CLUSTER_DNS" ]; then
         sed -i "s/$DEFAULT_CLUSTER_DNS/$CLUSTER_DNS/g" /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
     fi
 
-    systemctl enable kubelet && systemctl start kubelet
+    echo "Restarting Kubelet"
+    systemctl daemon-reload
+    systemctl enable kubelet && systemctl restart kubelet
 
     logSuccess "Kubernetes host packages installed"
 }
@@ -119,6 +163,16 @@ kubernetes_host_commands_ok() {
         printf "kustomize command missing - will install host components\n"
         return 1
     fi
+    if ! commandExists crictl; then
+        printf "crictl command missing - will install host components\n"
+        return 1
+    fi
+    local currentCrictlVersion=$(crictl --version | grep -Eo '[0-9]+\.[0-9]+\.[0-9]+')
+    semverCompare "$currentCrictlVersion" "$CRICTL_VERSION"
+    if [ "$SEMVER_COMPARE_RESULT" = "-1" ]; then
+        printf "crictl command upgrade available - will install host components\n"
+        return 1
+    fi
 
     kubelet --version | grep -q "$k8sVersion"
 }
@@ -128,14 +182,37 @@ function kubernetes_get_host_packages_online() {
     local k8sVersion="$1"
 
     if [ "$AIRGAP" != "1" ] && [ -n "$DIST_URL" ]; then
-        rm -rf $DIR/packages/kubernetes/${k8sVersion} # Cleanup broken/incompatible packages from failed runs
+        rm -rf "$DIR/packages/kubernetes/${k8sVersion}" # Cleanup broken/incompatible packages from failed runs
 
         local package="kubernetes-${k8sVersion}.tar.gz"
         package_download "${package}"
         tar xf "$(package_filepath "${package}")"
-        # rm kubernetes-${k8sVersion}.tar.gz
+        # rm "${package}"
 
         KUBERNETES_DID_GET_HOST_PACKAGES_ONLINE=1
+    fi
+}
+
+function kubernetes_get_conformance_packages_online() {
+    local k8sVersion="$1"
+
+    if [ -z "$SONOBUOY_VERSION" ]; then
+        return
+    fi
+
+    # we only build conformance packages for 1.17.0+
+    # this variable is not yet set for rke2 or k3s installs
+    if [ -n "$KUBERNETES_TARGET_VERSION_MINOR" ] && [ "$KUBERNETES_TARGET_VERSION_MINOR" -lt "17" ]; then
+        return
+    fi
+
+    if [ "$AIRGAP" != "1" ] && [ -n "$DIST_URL" ]; then
+        rm -rf "$DIR/packages/kubernetes-conformance/${k8sVersion}" # Cleanup broken/incompatible packages from failed runs
+
+        local package="kubernetes-conformance-${k8sVersion}.tar.gz"
+        package_download "${package}"
+        tar xf "$(package_filepath "${package}")"
+        # rm "${package}"
     fi
 }
 
@@ -329,7 +406,7 @@ function discover_pod_subnet() {
     fi
     local size="$POD_CIDR_RANGE"
     if [ -z "$size" ]; then
-        size="22"
+        size="20"
     fi
     # find a network for the Pods, preferring start at 10.32.0.0 
     if podnet=$($DIR/bin/subnet --subnet-alloc-range "10.32.0.0/16" --cidr-range "$size" "$excluded"); then
@@ -418,6 +495,8 @@ function kubernetes_node_images() {
 }
 
 function list_all_required_images() {
+    echo "$KURL_UTIL_IMAGE"
+
     find packages/kubernetes/$KUBERNETES_VERSION -type f -name Manifest 2>/dev/null | xargs cat | grep -E '^image' | grep -v no_remote_load | awk '{ print $3 }'
 
     if [ -n "$STEP_VERSION" ]; then
@@ -483,6 +562,10 @@ function list_all_required_images() {
     if [ -n "$METRICS_SERVER_VERSION" ]; then
         find addons/metrics-server/$METRICS_SERVER_VERSION -type f -name Manifest 2>/dev/null | xargs cat | grep -E '^image' | grep -v no_remote_load | awk '{ print $3 }'
     fi
+
+    if [ -n "$SONOBUOY_VERSION" ]; then
+        find addons/sonobuoy/$SONOBUOY_VERSION -type f -name Manifest 2>/dev/null | xargs cat | grep -E '^image' | grep -v no_remote_load | awk '{ print $3 }'
+    fi
 }
 
 function kubernetes_node_has_all_images() {
@@ -538,10 +621,10 @@ function kubernetes_load_balancer_address() {
 }
 
 function kubernetes_pod_started() {
-    name=$1
-    namespace=$2
+    local name=$1
+    local namespace=$2
 
-    phase=$(kubectl -n $namespace get pod $name -ojsonpath='{ .status.phase }')
+    local phase=$(kubectl -n $namespace get pod $name -ojsonpath='{ .status.phase }')
     case "$phase" in
         Running|Failed|Succeeded)
             return 0
@@ -552,10 +635,10 @@ function kubernetes_pod_started() {
 }
 
 function kubernetes_pod_completed() {
-    name=$1
-    namespace=$2
+    local name=$1
+    local namespace=$2
 
-    phase=$(kubectl -n $namespace get pod $name -ojsonpath='{ .status.phase }')
+    local phase=$(kubectl -n $namespace get pod $name -ojsonpath='{ .status.phase }')
     case "$phase" in
         Failed|Succeeded)
             return 0
@@ -563,6 +646,14 @@ function kubernetes_pod_completed() {
     esac
 
     return 1
+}
+
+function kubernetes_pod_succeeded() {
+    local name="$1"
+    local namespace="$2"
+
+    local phase=$(kubectl -n $namespace get pod $name -ojsonpath='{ .status.phase }')
+    [ "$phase" = "Succeeded" ]
 }
 
 function kubernetes_is_current_cluster() {
@@ -602,4 +693,100 @@ function kubeadm_cluster_configuration() {
 
 function kubeadm_cluster_status() {
     kubectl get cm -o yaml -n kube-system kubeadm-config -ojsonpath='{ .data.ClusterStatus }'
+}
+
+function check_network() {
+	logStep "Checking cluster networking"
+
+    if ! kubernetes_any_node_ready; then
+        echo "Waiting for node to report Ready"
+        spinner_until 300 kubernetes_any_node_ready
+    fi
+
+    kubectl delete pods kurlnet-client kurlnet-server --force --grace-period=0 &>/dev/null || true
+
+	cat <<EOF | kubectl apply -f -
+apiVersion: v1
+kind: Service
+metadata:
+  name: kurlnet
+spec:
+  selector:
+    app: kurlnet
+    component: server
+  ports:
+  - protocol: TCP
+    port: 8080
+    targetPort: 8080
+---
+apiVersion: v1
+kind: Pod
+metadata:
+ name: kurlnet-server
+ labels:
+   app: kurlnet
+   component: server
+spec:
+  restartPolicy: OnFailure
+  containers:
+  - name: pod
+    image: $KURL_UTIL_IMAGE
+    command: [/usr/local/bin/network, --server]
+---
+apiVersion: v1
+kind: Pod
+metadata:
+ name: kurlnet-client
+ labels:
+   app: kurlnet
+   component: client
+spec:
+  restartPolicy: OnFailure
+  containers:
+  - name: pod
+    image: $KURL_UTIL_IMAGE
+    command: [/usr/local/bin/network, --client, --address, http://kurlnet.default.svc.cluster.local:8080]
+EOF
+
+    echo "Waiting for kurlnet-client pod to start"
+    spinner_until 120 kubernetes_pod_started kurlnet-client default
+
+    # Wait up to 1 minute for the network check to succeed. If it's still failing print the client
+    # logs to help with troubleshooting. Then show the spinner indefinitely so that the script will
+    # proceed as soon as the problem is fixed.
+    if spinner_until 60 kubernetes_pod_completed kurlnet-client default; then
+        if kubernetes_pod_succeeded kurlnet-client default; then
+            kubectl delete pods kurlnet-client kurlnet-server --force --grace-period=0
+            kubectl delete service kurlnet
+            return 0
+        fi
+        bail "kurlnet-client pod failed to validate cluster networking"
+    fi
+
+    printf "${YELLOW}There appears to be a problem with cluster networking${NC}\n"
+    kubectl logs kurlnet-client
+
+    if spinner_until -1 kubernetes_pod_completed kurlnet-client default; then
+        if kubernetes_pod_succeeded kurlnet-client default; then
+            kubectl delete pods kurlnet-client kurlnet-server --force --grace-period=0
+            kubectl delete service kurlnet
+            return 0
+        fi
+        bail "kurlnet-client pod failed to validate cluster networking"
+    fi
+}
+
+function kubernetes_default_service_account_exists() {
+    kubectl -n default get serviceaccount default &>/dev/null
+}
+
+function kubernetes_service_exists() {
+    kubectl -n default get service kubernetes &>/dev/null
+}
+
+function kubernetes_any_node_ready() {
+    if kubectl get nodes --no-headers 2>/dev/null | awk '{ print $2 }' | grep -v 'NotReady' | grep -q 'Ready' ; then
+        return 0
+    fi
+    return 1
 }

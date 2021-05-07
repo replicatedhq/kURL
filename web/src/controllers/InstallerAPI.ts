@@ -11,6 +11,7 @@ import {
   Res } from "ts-express-decorators";
 import { instrumented } from "monkit";
 import { Installer, InstallerObject, InstallerStore } from "../installers";
+import { InstallerVersions } from "../installers/versions";
 import decode from "../util/jwt";
 
 interface ErrorResponse {
@@ -25,9 +26,9 @@ const invalidYAMLResponse = {
 
 const teamWithGeneratedIDResponse = {
   error: {
-    message: "Name is indistinguishable from a generated ID."
+    message: "Name is indistinguishable from a generated ID.",
   },
-}
+};
 
 const slugCharactersResponse = {
   error: {
@@ -88,7 +89,7 @@ export class Installers {
     let i: Installer;
     try {
       i = Installer.parse(request.body);
-    } catch(error) {
+    } catch (error) {
       response.status(400);
       return invalidYAMLResponse;
     }
@@ -100,7 +101,7 @@ export class Installers {
     }
     i.id = i.hash();
 
-    const err = await i.validate();
+    const err = await i.resolve().validate();
     if (err) {
       response.status(400);
       return err;
@@ -119,7 +120,7 @@ export class Installers {
   ): any {
     response.type("application/json");
 
-    const resp = _.reduce(Installer.versions, (accm, value, key) => {
+    const resp = _.reduce(InstallerVersions, (accm, value, key) => {
       accm[key] = _.concat(["latest"], value);
       return accm;
     }, {});
@@ -216,12 +217,12 @@ export class Installers {
     let i: Installer;
     try {
       i = Installer.parse(request.body);
-    } catch(error) {
+    } catch (error) {
       response.status(400);
       return invalidYAMLResponse;
     }
 
-    const err = await i.validate();
+    const err = await i.resolve().validate();
     if (err) {
       response.status(400);
       return err;
@@ -241,7 +242,7 @@ export class Installers {
     let teamID: string;
     try {
       teamID = await decode(auth);
-    } catch(error) {
+    } catch (error) {
       response.status(401);
       return unauthenticatedResponse;
     }
@@ -267,7 +268,7 @@ export class Installers {
     let i: Installer;
     try {
       i = Installer.parse(request.body, teamID);
-    } catch(error) {
+    } catch (error) {
       response.status(400);
       return { error };
     }
@@ -275,11 +276,11 @@ export class Installers {
 
     if (i.spec.kotsadm && !i.spec.kotsadm.applicationSlug) {
       if (slug !== "") {
-        i.spec.kotsadm.applicationSlug = slug
+        i.spec.kotsadm.applicationSlug = slug;
       }
     }
 
-    const err = await i.validate();
+    const err = await i.resolve().validate();
     if (err) {
       response.status(400);
       return err;

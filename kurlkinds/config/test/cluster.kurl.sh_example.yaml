@@ -66,6 +66,7 @@ spec:
     version: "latest"
   rook:
     blockDeviceFilter: "filter"
+    bypassUpgradeWarning: true
     cephReplicaCount: 24
     hostpathRequiresPrivileged: true
     isBlockStorageEnabled: true

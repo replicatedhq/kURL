@@ -10,14 +10,17 @@ import (
 )
 
 type TemplateData struct {
-	Installer clusterv1beta1.Installer
-	IsPrimary bool
-	IsJoin    bool
-	IsUpgrade bool
+	Installer      clusterv1beta1.Installer
+	IsPrimary      bool
+	IsJoin         bool
+	IsUpgrade      bool
+	PrimaryHosts   []string
+	SecondaryHosts []string
+	RemoteHosts    []string
 }
 
 func ExecuteTemplate(name, text string, data TemplateData) ([]byte, error) {
-	t, err := template.New(name).Funcs(sprig.TxtFuncMap()).Parse(text)
+	t, err := template.New(name).Funcs(sprig.TxtFuncMap()).Delims("{{kurl", "}}").Parse(text)
 	if err != nil {
 		return nil, errors.Wrap(err, "parse")
 	}

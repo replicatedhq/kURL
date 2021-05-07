@@ -1,19 +1,54 @@
 name: cron-rebuild-packages-prod
 on:
-  schedule:
-  - cron: '0 18 * * 6'
+  workflow_dispatch: {}
 
 jobs:
-  build-upload-packages:
-    runs-on: ubuntu-18.04
+  build-matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
-    - uses: actions/checkout@v2
+      - uses: actions/checkout@v2
 
-    - env:
-        GH_PAT: ${{ secrets.GH_PAT }}
-      run: |
-        git fetch --tags
-        tag=$(git tag | grep '^v20' | sort | tail -1)
-        export KURL_UTIL_IMAGE=replicated/kur-util:${tag}
-        export KURL_BIN_UTILS_FILE=kurl-bin-utils-${tag}.tar.gz
-        bin/trigger-package-rebuilds-prod.sh
+      - id: set-matrix
+        name: Build image matrix
+        run: |
+          git fetch --tags
+          tag=$(git tag | grep '^v20' | sort | tail -1)
+          export KURL_UTIL_IMAGE=replicated/kur-util:${tag}
+          export KURL_BIN_UTILS_FILE=kurl-bin-utils-${tag}.tar.gz
+          OUTPUT=`bin/list-all-packages-actions-matrix.sh`
+          echo "::set-output name=matrix::$OUTPUT"
+
+  build-upload-packages:
+    needs: build-matrix
+    runs-on: ubuntu-18.04
+    strategy:
+      matrix: ${{fromJSON(needs.build-matrix.outputs.matrix)}}
+      fail-fast: false
+      max-parallel: 10
+    steps:
+      - uses: actions/setup-go@v2.1.3
+        with:
+          go-version: 1.16.0
+
+      - uses: actions/checkout@v2
+
+      - name: "${{ matrix.package }} : Build package"
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_PROD_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_PROD_SECRET_ACCESS_KEY }}
+          PKG: ${{ matrix.package }}
+        run: |
+          git fetch --tags
+          tag=$(git tag | grep '^v20' | sort | tail -1)
+          git checkout $tag
+          export KURL_UTIL_IMAGE=replicated/kurl-util:$tag # required if this is the common package
+          make dist/$PKG
+
+          MD5="$(openssl md5 -binary dist/$PKG | base64)"
+          GITSHA="$(git rev-parse HEAD)"
+          aws s3 cp dist/$PKG s3://kurl-sh/dist/${tag}/$PKG \
+            --metadata md5="${MD5}",gitsha="${GITSHA}"
+          aws s3 cp s3://kurl-sh/dist/${tag}/$PKG s3://kurl-sh/dist/$PKG \
+            --metadata md5="${MD5}",gitsha="${GITSHA}"

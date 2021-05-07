@@ -43,6 +43,12 @@ func Run(schedulerOptions types.SchedulerOptions) error {
 
 	for _, instance := range kurlPlans {
 		testSpec := instance.InstallerSpec
+		// append sonobuoy for conformance testing
+		if testSpec.Sonobuoy == nil {
+			testSpec.Sonobuoy = &kurlv1beta1.Sonobuoy{
+				Version: "latest",
+			}
+		}
 
 		// post it to the API to get a sha / id back
 		installer := types.Installer{
@@ -85,6 +91,14 @@ func Run(schedulerOptions types.SchedulerOptions) error {
 		var upgradeYAML, upgradeURL []byte
 		if instance.UpgradeSpec != nil {
 			installer.Spec = *instance.UpgradeSpec
+
+			// append sonobuoy for conformance testing
+			if installer.Spec.Sonobuoy == nil {
+				installer.Spec.Sonobuoy = &kurlv1beta1.Sonobuoy{
+					Version: "latest",
+				}
+			}
+
 			upgradeYAML, err = json.Marshal(installer)
 			if err != nil {
 				return errors.Wrap(err, "failed to marshal upgrade json")
@@ -114,7 +128,7 @@ func Run(schedulerOptions types.SchedulerOptions) error {
 			return fmt.Errorf("error getting kurl spec url: %s", errMsg.Error.Message)
 		}
 
-		if instance.InstallerSpec.RunAirgap {
+		if instance.InstallerSpec.RunAirgap || schedulerOptions.Airgap {
 			installerURLString, err := bundleFromURL(string(installerURL))
 			if err != nil {
 				return errors.Wrapf(err, "generate airgap url from installer url %s", installerURL)
@@ -142,6 +156,7 @@ func Run(schedulerOptions types.SchedulerOptions) error {
 				OperatingSystemName:    operatingSystem.Name,
 				OperatingSystemVersion: operatingSystem.Version,
 				OperatingSystemImage:   operatingSystem.VMImageURI,
+				OperatingSystemPreInit: operatingSystem.PreInit,
 
 				IsUnsupported: isUnsupported,
 			}
@@ -150,7 +165,7 @@ func Run(schedulerOptions types.SchedulerOptions) error {
 		}
 	}
 
-	if err := reportStarted(schedulerOptions, plannedInstances); err != nil {
+	if err := sendStartInstancesRequest(schedulerOptions, plannedInstances); err != nil {
 		return errors.Wrap(err, "failed to report ref started")
 	}
 
@@ -196,7 +211,7 @@ func getKurlPlans(schedulerOptions types.SchedulerOptions) ([]types.Instance, er
 	return kurlPlans, nil
 }
 
-func reportStarted(schedulerOptions types.SchedulerOptions, plannedInstances []tghandlers.PlannedInstance) error {
+func sendStartInstancesRequest(schedulerOptions types.SchedulerOptions, plannedInstances []tghandlers.PlannedInstance) error {
 	startRefRequest := tghandlers.StartRefRequest{
 		Overwrite: schedulerOptions.OverwriteRef,
 		Instances: plannedInstances,

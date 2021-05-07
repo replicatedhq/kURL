@@ -6,6 +6,7 @@ function preflights() {
     promptIfDockerUnsupportedOS
     checkDockerK8sVersion
     checkFirewalld
+    checkUFW
     must_disable_selinux
     apply_iptables_config
     cri_preflights
@@ -43,7 +44,15 @@ function require64Bit() {
 
 function bailIfUnsupportedOS() {
     case "$LSB_DIST$DIST_VERSION" in
-        ubuntu16.04|ubuntu18.04|ubuntu20.04|rhel7.4|rhel7.5|rhel7.6|rhel7.7|rhel7.8|rhel7.9|rhel8.0|rhel8.1|rhel8.2|rhel8.3|centos7.4|centos7.5|centos7.6|centos7.7|centos7.8|centos7.9|centos8.0|centos8.1|centos8.2|centos8.3|amzn2)
+        ubuntu16.04|ubuntu18.04|ubuntu20.04)
+            ;;
+        rhel7.4|rhel7.5|rhel7.6|rhel7.7|rhel7.8|rhel7.9|rhel8.0|rhel8.1|rhel8.2|rhel8.3)
+            ;;
+        centos7.4|centos7.5|centos7.6|centos7.7|centos7.8|centos7.9|centos8.0|centos8.1|centos8.2|centos8.3)
+            ;;
+        amzn2)
+            ;;
+        ol7.4|ol7.5|ol7.6|ol7.7|ol7.8|ol7.9|ol8.0|ol8.1|ol8.2|ol8.3)
             ;;
         *)
             bail "Kubernetes install is not supported on ${LSB_DIST} ${DIST_VERSION}"
@@ -187,6 +196,50 @@ checkFirewalld() {
     printf "${YELLOW}Continue with firewalld active? ${NC}"
     if confirmY ; then
         BYPASS_FIREWALLD_WARNING=1
+        return
+    fi
+    exit 1
+}
+
+checkUFW() {
+    if [ -n "$PRESERVE_DOCKER_CONFIG" ]; then
+        return
+    fi
+
+    if [ "$BYPASS_UFW_WARNING" = "1" ]; then
+        return
+    fi
+
+    # check if UFW is enabled and installed in systemctl
+    if ! systemctl -q is-active ufw ; then
+        return
+    fi
+
+    # check if UFW is active/inactive
+    UFW_STATUS=$(ufw status | grep 'Status: ' | awk '{ print $2 }')
+    if [ "$UFW_STATUS" = "inactive" ]; then
+      return
+    fi
+
+    if [ "$HARD_FAIL_ON_UFW" = "1" ]; then
+        printf "${RED}UFW is active${NC}\n" 1>&2
+        exit 1
+    fi
+
+    if [ -n "$DISABLE_UFW" ]; then
+        ufw disable
+        return
+    fi
+
+    printf "${YELLOW}UFW is active, please press Y to disable ${NC}"
+    if confirmY ; then
+        ufw disable
+        return
+    fi
+
+    printf "${YELLOW}Continue with ufw active? ${NC}"
+    if confirmY ; then
+        BYPASS_UFW_WARNING=1
         return
     fi
     exit 1
@@ -342,7 +395,7 @@ function host_preflights() {
     local is_upgrade="$3"
 
     local opts=
-    if [ "${PREFLIGHT_IGNORE_WARNINGS}" = "1" ] || [ ! -t 0 ] ; then # if no tty
+    if [ "${PREFLIGHT_IGNORE_WARNINGS}" = "1" ] || ! can_prompt ; then
         opts="${opts} --ignore-warnings"
     fi
     if [ "${is_primary}" != "1" ]; then
@@ -355,26 +408,55 @@ function host_preflights() {
         opts="${opts} --is-upgrade"
     fi
 
+    for spec in $(${K8S_DISTRO}_addon_for_each addon_preflight); do
+        opts="${opts} --spec=${spec}"
+    done
+
+    if [ -n "$PRIMARY_HOST" ]; then
+        opts="${opts} --primary-host=${PRIMARY_HOST}"
+    fi
+    if [ -n "$SECONDARY_HOST" ]; then
+        opts="${opts} --secondary-host=${SECONDARY_HOST}"
+    fi
+
     logStep "Running host preflights"
     if [ "${PREFLIGHT_IGNORE}" = "1" ]; then
         "${DIR}"/bin/kurl host preflight "${MERGED_YAML_SPEC}" ${opts} || true
         # TODO: report preflight fail
     else
         # interactive terminal
-        if [ -t 0 ] ; then      
-            if ! "${DIR}"/bin/kurl host preflight "${MERGED_YAML_SPEC}" ${opts} </dev/tty ; then
-                printf "${RED}Host preflights have failures. Do you want to proceed anyway? ${NC} "
-                if ! confirmN "-t 30"; then
-                    report_install_fail "preflight"
-                    bail "Use the \"preflight-ignore\" flag to proceed."
-                fi
-                # TODO: report preflight fail
-            fi
+        if can_prompt; then
+            set +e
+            "${DIR}"/bin/kurl host preflight "${MERGED_YAML_SPEC}" ${opts} </dev/tty
+            local kurl_exit_code=$?
+            set -e 
+            case $kurl_exit_code in
+                3)
+                    # report_install_fail "preflight"
+                    # bail "Use the \"preflight-ignore-warnings\" flag to proceed."
+                    printf "${YELLOW}Host preflights have warnings. Do you want to proceed anyway? ${NC} "
+                    if ! confirmY "-t 10"; then
+                        report_install_fail "preflight"
+                        bail "Use the \"preflight-ignore-warnings\" flag to proceed."
+                    fi
+                    return 0
+                    ;;  
+                1)
+                    printf "${RED}Host preflights have failures. Do you want to proceed anyway? ${NC} "
+                    if ! confirmY "-t 10"; then
+                        report_install_fail "preflight"
+                        bail "Use the \"preflight-ignore\" flag to proceed."
+                    fi
+                    return 0
+                    ;;
+            esac                                       
         # non-interactive terminal
-        else                    
+        else
             if ! "${DIR}"/bin/kurl host preflight "${MERGED_YAML_SPEC}" ${opts}; then
-                report_install_fail "preflight"
-                bail "Use the \"preflight-ignore\" flag to proceed."
+                # report_install_fail "preflight"
+                # bail "Use the \"preflight-ignore\" flag to proceed."
+                printf "${RED}Host preflights failed${NC}\n"
+                return 0
             fi
         fi
     fi

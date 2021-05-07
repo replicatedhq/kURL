@@ -2,6 +2,9 @@
 
 set -eo pipefail
 
+# shellcheck source=list-all-packages.sh
+source ./bin/list-all-packages.sh
+
 function require() {
     if [ -z "$2" ]; then
         echo "validation failed: $1 unset"
@@ -13,31 +16,81 @@ require AWS_ACCESS_KEY_ID "${AWS_ACCESS_KEY_ID}"
 require AWS_SECRET_ACCESS_KEY "${AWS_SECRET_ACCESS_KEY}"
 require S3_BUCKET "${S3_BUCKET}"
 
-function upload() {
+GITSHA="$(git rev-parse HEAD)"
+
+function package_has_changes() {
+    local key="$1"
+    local path="$2"
+
+    if [ -z "${path}" ]; then
+        # if no path then we can't calculate changes
+        return 0
+    fi
+
+    local upstream_gitsha=
+    upstream_gitsha="$(aws s3api head-object --bucket "${S3_BUCKET}" --key "${key}" | grep '"gitsha":' | sed 's/[",:]//g' | awk '{print $2}')"
+
+    if [ -z "${upstream_gitsha}" ]; then
+        # if package doesn't exist or have a gitsha it has changes
+        return 0
+    fi
+
+    if git diff --quiet "${upstream_gitsha}" -- "${path}" "${GITSHA}" -- "${path}" ; then
+        return 1
+    else
+        return 0
+    fi
+}
+
+function build_and_upload() {
     local package="$1"
 
-    make dist/$package
-    aws s3 cp dist/$package s3://$S3_BUCKET/staging/
+    make "dist/${package}"
+    MD5="$(openssl md5 -binary "dist/${package}" | base64)"
+    aws s3 cp "dist/${package}" "s3://${S3_BUCKET}/staging/${package}" \
+        --metadata md5="${MD5}",gitsha="${GITSHA}"
     make clean
     if [ -n "$DOCKER_PRUNE" ]; then
         docker system prune --all --force
     fi
 }
 
-# always upload small packages that change often
-upload common.tar.gz
-upload kurl-bin-utils-latest.tar.gz
+function deploy() {
+    local package="$1"
+    local path="$2"
 
-for package in $(bin/list-all-packages.sh)
-do
-    if [[ $package == *template.tar.gz ]]; then
-      echo "skipping package $package"
-      continue
+    # always upload small packages that change often
+    if [ "$package" = "install.tmpl" ] \
+        || [ "$package" = "join.tmpl" ] \
+        || [ "$package" = "upgrade.tmpl" ] \
+        || [ "$package" = "tasks.tmpl" ] \
+        || [ "$package" = "common.tar.gz" ] \
+        || echo "${package}" | grep -q "kurl-bin-utils" ; then
+
+        echo "s3://${S3_BUCKET}/staging/${package} build and upload"
+        build_and_upload "${package}"
+        return
     fi
 
-    if ! aws s3api head-object --bucket=$S3_BUCKET --key=staging/$package &>/dev/null; then
-        upload $package
+    if package_has_changes "staging/${package}" "${path}" ; then
+        echo "s3://${S3_BUCKET}/staging/${package} has changes"
+        build_and_upload "${package}"
     else
-        echo "s3://$S3_BUCKET/staging/$package already exists"
+        echo "s3://${S3_BUCKET}/staging/${package} no changes in package"
     fi
-done
+}
+
+function main() {
+    git fetch
+
+    # TODO: kubernetes changes do not yet take into account changes in bundles/
+    # These need to manually be rebuilt when changing that path.
+
+    while read -r line
+    do
+        # shellcheck disable=SC2086
+        deploy ${line}
+    done < <(list_all)
+}
+
+main "$@"

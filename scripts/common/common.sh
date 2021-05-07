@@ -1,6 +1,3 @@
-
-STORAGE_PROVISIONER=rook
-
 GREEN='\033[0;32m'
 BLUE='\033[0;94m'
 LIGHT_BLUE='\033[0;34m'
@@ -13,6 +10,14 @@ KUBEADM_CONF_FILE="$KUBEADM_CONF_DIR/kubeadm.conf"
 
 commandExists() {
     command -v "$@" > /dev/null 2>&1
+}
+
+function get_dist_url() {
+    if [ -n "${KURL_VERSION}" ]; then
+        echo "${DIST_URL}/${KURL_VERSION}"
+    else
+        echo "${DIST_URL}"
+    fi
 }
 
 function package_download() {
@@ -33,7 +38,7 @@ function package_download() {
         etag=
     fi
 
-    local newetag="$(curl -IfsSL "${DIST_URL}/${package}" | grep -i 'etag:' | sed -r 's/.*"(.*)".*/\1/')"
+    local newetag="$(curl -IfsSL "$(get_dist_url)/${package}" | grep -i 'etag:' | sed -r 's/.*"(.*)".*/\1/')"
     if [ -n "${etag}" ] && [ "${etag}" = "${newetag}" ]; then
         echo "Package ${package} already exists, not downloading"
         return
@@ -44,7 +49,7 @@ function package_download() {
     local filepath="$(package_filepath "${package}")"
 
     echo "Downloading package ${package}"
-    curl -fL -o "${filepath}" "${DIST_URL}/${package}"
+    curl -fL -o "${filepath}" "$(get_dist_url)/${package}"
 
     checksum="$(md5sum "${filepath}" | awk '{print $1}')"
     echo "${package} ${newetag} ${checksum}" >> assets/Manifest
@@ -110,6 +115,47 @@ semverParse() {
     minor="${minor%%.*}"
     patch="${1#$major.$minor.}"
     patch="${patch%%[-.]*}"
+}
+
+SEMVER_COMPARE_RESULT=
+semverCompare() {
+    semverParse "$1"
+    _a_major="${major:-0}"
+    _a_minor="${minor:-0}"
+    _a_patch="${patch:-0}"
+    semverParse "$2"
+    _b_major="${major:-0}"
+    _b_minor="${minor:-0}"
+    _b_patch="${patch:-0}"
+    if [ "$_a_major" -lt "$_b_major" ]; then
+        SEMVER_COMPARE_RESULT=-1
+        return
+    fi
+    if [ "$_a_major" -gt "$_b_major" ]; then
+        SEMVER_COMPARE_RESULT=1
+        return
+    fi
+    if [ "$_a_minor" -lt "$_b_minor" ]; then
+        SEMVER_COMPARE_RESULT=-1
+        return
+    fi
+    if [ "$_a_minor" -gt "$_b_minor" ]; then
+        SEMVER_COMPARE_RESULT=1
+        return
+    fi
+    if [ "$_a_patch" -lt "$_b_patch" ]; then
+        SEMVER_COMPARE_RESULT=-1
+        return
+    fi
+    if [ "$_a_patch" -gt "$_b_patch" ]; then
+        SEMVER_COMPARE_RESULT=1
+        return
+    fi
+    SEMVER_COMPARE_RESULT=0
+}
+
+log() {
+    printf "%s\n" "$1" 1>&2
 }
 
 logSuccess() {
@@ -335,8 +381,31 @@ function try_1m() {
         n="$(( $n + 1 ))"
         if [ "$n" -ge "30" ]; then
             # for the final try print the error and let it exit
-            $fn $args
-            exit 1 # in case we're in a `set +e` state
+            echo ""
+            try_output="$($fn $args 2>&1)" || true
+            echo "$try_output"
+            bail "spent 1m attempting to run \"$fn $args\" without success"
+        fi
+        sleep 2
+    done
+}
+
+# try a command every 2 seconds until it succeeds, up to 30 tries max; useful for kubectl commands
+# where the Kubernetes API could be restarting
+# does not redirect stderr to /dev/null
+function try_1m_stderr() {
+    local fn="$1"
+    local args=${@:2}
+
+    n=0
+    while ! $fn $args ; do
+        n="$(( $n + 1 ))"
+        if [ "$n" -ge "30" ]; then
+            # for the final try print the error and let it exit
+            echo ""
+            try_output="$($fn $args 2>&1)" || true
+            echo "$try_output"
+            bail "spent 1m attempting to run \"$fn $args\" without success"
         fi
         sleep 2
     done
@@ -369,12 +438,15 @@ function spinner_until() {
     done
 }
 
-function get_shared() {
+function get_common() {
     if [ "$AIRGAP" != "1" ] && [ -n "$DIST_URL" ]; then
-        curl -sSOL $DIST_URL/common.tar.gz
+        curl -sSOL "$(get_dist_url)/common.tar.gz"
         tar xf common.tar.gz
         rm common.tar.gz
     fi
+}
+
+function get_shared() {
     if [ -f shared/kurl-util.tar ]; then
         if [ -n "$DOCKER_VERSION" ]; then
             docker load < shared/kurl-util.tar
@@ -502,7 +574,7 @@ function install_host_packages() {
             fi
             ;;
 
-        centos|rhel|amzn)
+        centos|rhel|amzn|ol)
             if [[ "$DIST_VERSION" =~ ^8 ]]; then
                 if test -n "$(shopt -s nullglob; echo ${dir}/rhel-8/*.rpm )" ; then
                     rpm --upgrade --force --nodeps ${dir}/rhel-8/*.rpm
@@ -512,6 +584,10 @@ function install_host_packages() {
                     rpm --upgrade --force --nodeps ${dir}/rhel-7/*.rpm
                 fi
             fi
+            ;;
+
+        *)
+            bail "Host package install is not supported on ${LSB_DIST} ${DIST_MAJOR}"
             ;;
     esac
 }
@@ -530,11 +606,11 @@ function install_host_archives() {
     case "$LSB_DIST" in
         ubuntu)
             if test -n "$(shopt -s nullglob; echo ${dir}/ubuntu-${DIST_VERSION}/archives/*.deb )" ; then
-                DEBIAN_FRONTEND=noninteractive dpkg --install --force-depends-version ${dir}/ubuntu-${DIST_VERSION}/archives/*.deb
+                DEBIAN_FRONTEND=noninteractive dpkg --install --force-depends-version --force-confold ${dir}/ubuntu-${DIST_VERSION}/archives/*.deb
             fi
             ;;
 
-        centos|rhel|amzn)
+        centos|rhel|amzn|ol)
             if [[ "$DIST_VERSION" =~ ^8 ]]; then
                 if test -n "$(shopt -s nullglob; echo ${dir}/rhel-8/archives/*.rpm )" ; then
                     rpm --upgrade --force --nodeps ${dir}/rhel-8/archives/*.rpm
@@ -544,6 +620,10 @@ function install_host_archives() {
                     rpm --upgrade --force --nodeps ${dir}/rhel-7/archives/*.rpm
                 fi
             fi
+            ;;
+
+        *)
+            bail "Host archive install is not supported on ${LSB_DIST} ${DIST_MAJOR}"
             ;;
     esac
 }
@@ -648,6 +728,16 @@ function get_kurl_install_directory_flag() {
     echo " kurl-install-directory=$(echo "${kurl_install_directory}")"
 }
 
+function get_remotes_flags() {
+    while read -r primary; do
+        printf " primary-host=$primary"
+    done < <(kubectl get nodes --no-headers --selector="node-role.kubernetes.io/master" -owide | awk '{ print $6 }')
+
+    while read -r secondary; do
+        printf " secondary-host=$secondary"
+    done < <(kubectl get node --no-headers --selector='!node-role.kubernetes.io/master' -owide | awk '{ print $6 }')
+}
+
 function systemd_restart_succeeded() {
     local oldPid=$1
     local serviceName=$2
@@ -661,7 +751,7 @@ function systemd_restart_succeeded() {
         return 1
     fi
 
-    if ps -p $oldPid; then
+    if ps -p $oldPid >/dev/null 2>&1; then
         return 1
     fi
 
@@ -670,7 +760,7 @@ function systemd_restart_succeeded() {
 
 function restart_systemd_and_wait() {
     local serviceName=$1
-    
+
     local pid="$(systemctl show --property MainPID $serviceName | cut -d = -f2)"
 
     echo "Restarting $serviceName..."
@@ -701,4 +791,40 @@ function maybe() {
 MACHINE_ID=
 function get_machine_id() {
     MACHINE_ID="$(${DIR}/bin/kurl host protectedid || true)"
+}
+
+function can_prompt() {
+    # Need the TTY to accept input and stdout to display
+    # Prompts when running the script through the terminal but not as a subshell
+    if [ -t 1 ] && [ -c /dev/tty ]; then
+        return 0
+    fi
+    return 1
+}
+
+function kebab_to_camel() {
+    echo "$1" | sed -E 's/-(.)/\U\1/g'
+}
+
+function build_installer_prefix() {
+    local installer_id="$1"
+    local kurl_version="$2"
+    local kurl_url="$3"
+    local proxy_address="$4"
+
+    if [ -z "${kurl_url}" ]; then
+        echo "cat "
+        return
+    fi
+
+    local curl_flags=
+    if [ -n "${proxy_address}" ]; then
+        curl_flags=" -x ${proxy_address}"
+    fi
+
+    if [ -n "${kurl_version}" ]; then
+        echo "curl -fsSL${curl_flags} ${kurl_url}/version/${kurl_version}/${installer_id}/"
+    else
+        echo "curl -fsSL${curl_flags} ${kurl_url}/${installer_id}/"
+    fi
 }

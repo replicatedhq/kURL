@@ -1,6 +1,6 @@
 #!/bin/bash
 
-. ./install_scripts/templates/common/common.sh
+. ./scripts/common/common.sh
 
 testCreateInsertUpdateJson()
 {
@@ -32,6 +32,17 @@ testSplitHostPort()
     splitHostPort ""
     assertEquals "Split host port failed, host" "" "$HOST"
     assertEquals "Split host port failed, port" "" "$PORT"
+}
+
+function test_get_kurl_install_directory_flag() {
+    assertEquals "get_kurl_install_directory_flag default" "" "$(get_kurl_install_directory_flag /var/lib/kurl)"
+
+    assertEquals "get_kurl_install_directory_flag KURL_INSTALL_DIRECTORY ." " kurl-install-directory=." "$(get_kurl_install_directory_flag .)"
+}
+
+function test_kebab_to_camel() {
+    assertEquals "kebab_to_camel kebab-case" "kebabCase" "$(kebab_to_camel kebab-case)"
+    assertEquals "kebab_to_camel alreadyCamelCase" "alreadyCamelCase" "$(kebab_to_camel alreadyCamelCase)"
 }
 
 . shunit2

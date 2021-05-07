@@ -1,6 +1,7 @@
 import {describe, it} from "mocha";
 import {expect} from "chai";
 import { Installer } from "../../installers";
+import { InstallerVersions } from "../../installers/versions";
 import * as _ from "lodash";
 
 const everyOption = `apiVersion: kurl.sh/v1beta1
@@ -32,6 +33,11 @@ spec:
     encryptNetwork: true
     podCidrRange: /12
     podCIDR: 39.1.2.3
+  antrea:
+    version: latest
+    isEncryptionDisabled: true
+    podCidrRange: /16
+    podCIDR: 172.19.0.0/16
   contour:
     version: latest
     tlsMinimumProtocolVersion: "1.3"
@@ -43,6 +49,7 @@ spec:
     cephReplicaCount: 1
     isBlockStorageEnabled: true
     blockDeviceFilter: sd[a-z]
+    bypassUpgradeWarning: true
     hostpathRequiresPrivileged: true
   openebs:
     version: latest
@@ -127,6 +134,8 @@ spec:
     uiBindPort: 30880
     uiReplicaCount: 0
     version: 1.1.0
+  sonobuoy:
+    version: 0.50.0
 `;
 
 // Used for validation in all options test case
@@ -154,7 +163,7 @@ metadata:
   name: stable
 spec:
   kubernetes:
-    version: 1.15.2
+    version: 1.19.9
   weave:
     version: 2.5.2
   rook:
@@ -172,7 +181,7 @@ metadata:
   name: stable
 spec:
   kubernetes:
-    version: 1.15.2
+    version: 1.19.9
   weave:
     version: 2.5.2
   rook:
@@ -188,7 +197,7 @@ spec:
 const noName = `
 spec:
   kubernetes:
-    version: 1.15.2
+    version: 1.19.9
   weave:
     version: 2.5.2
   rook:
@@ -210,7 +219,7 @@ spec:
   prometheus:
     version: 0.33.0
   kubernetes:
-    version: 1.15.2
+    version: 1.19.9
   registry:
     version: 2.7.1
   rook:
@@ -236,7 +245,7 @@ spec:
 const min = `
 spec:
   kubernetes:
-    version: 1.15.1
+    version: 1.19.9
 `;
 
 const empty = "";
@@ -376,12 +385,28 @@ spec:
     s3Override: https://dummy.s3.us-east-1.amazonaws.com/pr/contour-100.0.0.tar.gz
 `;
 
+const conformance = `
+spec:
+  kubernetes:
+    version: 1.17.7
+  sonobuoy:
+    version: 0.50.0
+`;
+
+const noConformance = `
+spec:
+  kubernetes:
+    version: 1.16.4
+  sonobuoy:
+    version: 0.50.0
+`;
+
 describe("Installer", () => {
   describe("parse", () => {
     it("parses yaml with type meta and name", () => {
       const i = Installer.parse(typeMetaStableV1Beta1);
       expect(i).to.have.property("id", "stable");
-      expect(i.spec.kubernetes).to.have.property("version", "1.15.2");
+      expect(i.spec.kubernetes).to.have.property("version", "1.19.9");
       expect(i.spec.weave).to.have.property("version", "2.5.2");
       expect(i.spec.rook).to.have.property("version", "1.0.4");
       expect(i.spec.contour).to.have.property("version", "0.14.0");
@@ -392,7 +417,7 @@ describe("Installer", () => {
     it("parses yaml with name and no type meta", () => {
       const i = Installer.parse(stable);
       expect(i).to.have.property("id", "stable");
-      expect(i.spec.kubernetes).to.have.property("version", "1.15.2");
+      expect(i.spec.kubernetes).to.have.property("version", "1.19.9");
       expect(i.spec.weave).to.have.property("version", "2.5.2");
       expect(i.spec.rook).to.have.property("version", "1.0.4");
       expect(i.spec.contour).to.have.property("version", "0.14.0");
@@ -403,7 +428,7 @@ describe("Installer", () => {
     it("parses yaml with only a spec", () => {
       const i = Installer.parse(noName);
       expect(i).to.have.property("id", "");
-      expect(i.spec.kubernetes).to.have.property("version", "1.15.2");
+      expect(i.spec.kubernetes).to.have.property("version", "1.19.9");
       expect(i.spec.weave).to.have.property("version", "2.5.2");
       expect(i.spec.rook).to.have.property("version", "1.0.4");
       expect(i.spec.contour).to.have.property("version", "0.14.0");
@@ -414,7 +439,7 @@ describe("Installer", () => {
     it("parses yaml spec in different order", () => {
       const i = Installer.parse(disordered);
       expect(i).to.have.property("id", "");
-      expect(i.spec.kubernetes).to.have.property("version", "1.15.2");
+      expect(i.spec.kubernetes).to.have.property("version", "1.19.9");
       expect(i.spec.weave).to.have.property("version", "2.5.2");
       expect(i.spec.rook).to.have.property("version", "1.0.4");
       expect(i.spec.contour).to.have.property("version", "0.14.0");
@@ -425,7 +450,7 @@ describe("Installer", () => {
     it("parses yaml spec with empty versions", () => {
       const i = Installer.parse(min);
       expect(i).to.have.property("id", "");
-      expect(i.spec.kubernetes).to.have.property("version", "1.15.1");
+      expect(i.spec.kubernetes).to.have.property("version", "1.19.9");
       expect(i.spec).not.to.have.property("weave");
       expect(i.spec).not.to.have.property("rook");
       expect(i.spec).not.to.have.property("contour");
@@ -521,7 +546,7 @@ metadata:
   name: ''
 spec:
   kubernetes:
-    version: 1.15.2
+    version: 1.19.9
   weave:
     version: 2.5.2
   rook:
@@ -754,7 +779,7 @@ spec:
       it(`=> service-cidr-range=/12 ...`, () => {
         const i = Installer.parse(everyOption);
 
-          expect(i.flags()).to.equal(`service-cidr-range=/12 service-cidr=100.1.1.1/12 ha=0 kuberenetes-master-address=192.168.1.1 load-balancer-address=10.128.10.1 bootstrap-token=token bootstrap-token-ttl=10min kubeadm-token-ca-hash=hash control-plane=0 cert-key=key bypass-storagedriver-warnings=0 hard-fail-on-loopback=0 no-ce-on-ee=0 docker-registry-ip=192.168.0.1 additional-no-proxy=129.168.0.2 no-docker=0 pod-cidr=39.1.2.3 pod-cidr-range=/12 disable-weave-encryption=0 storage-class-name=default ceph-replica-count=1 rook-block-storage-enabled=1 rook-block-device-filter=sd[a-z] rook-hostpath-requires-privileged=1 openebs-namespace=openebs openebs-localpv-enabled=1 openebs-localpv-storage-class-name=default openebs-cstor-enabled=1 openebs-cstor-storage-class-name=cstor minio-namespace=minio minio-hostpath=/sentry contour-tls-minimum-protocol-version=1.3 contour-http-port=3080 contour-https-port=3443 registry-publish-port=20 fluentd-full-efk-stack=0 kotsadm-application-slug=sentry kotsadm-ui-bind-port=8800 kotsadm-hostname=1.1.1.1 kotsadm-application-namespaces=kots velero-namespace=velero velero-disable-cli=0 velero-disable-restic=0 velero-local-bucket=local velero-restic-requires-privileged=0 ekco-node-unreachable-toleration-duration=10m ekco-min-ready-master-node-count=3 ekco-min-ready-worker-node-count=1 ekco-should-disable-reboot-service=0 ekco-rook-should-use-all-nodes=0 airgap=0 hostname-check=2.2.2.2 no-proxy=0 preflight-ignore=1 preflight-ignore-warnings=1 private-address=10.38.1.1 http-proxy=1.1.1.1 public-address=101.38.1.1 bypass-firewalld-warning=0 hard-fail-on-firewalld=0 helmfile-spec=${helmfileSpec} longhorn-ui-bind-port=30880 longhorn-ui-replica-count=0`);
+          expect(i.flags()).to.equal(`service-cidr-range=/12 service-cidr=100.1.1.1/12 ha=0 kuberenetes-master-address=192.168.1.1 load-balancer-address=10.128.10.1 bootstrap-token=token bootstrap-token-ttl=10min kubeadm-token-ca-hash=hash control-plane=0 cert-key=key bypass-storagedriver-warnings=0 hard-fail-on-loopback=0 no-ce-on-ee=0 docker-registry-ip=192.168.0.1 additional-no-proxy=129.168.0.2 no-docker=0 pod-cidr=39.1.2.3 pod-cidr-range=/12 disable-weave-encryption=0 storage-class-name=default ceph-replica-count=1 rook-block-storage-enabled=1 rook-block-device-filter=sd[a-z] rook-bypass-upgrade-warning=1 rook-hostpath-requires-privileged=1 openebs-namespace=openebs openebs-localpv-enabled=1 openebs-localpv-storage-class-name=default openebs-cstor-enabled=1 openebs-cstor-storage-class-name=cstor minio-namespace=minio minio-hostpath=/sentry contour-tls-minimum-protocol-version=1.3 contour-http-port=3080 contour-https-port=3443 registry-publish-port=20 fluentd-full-efk-stack=0 kotsadm-application-slug=sentry kotsadm-ui-bind-port=8800 kotsadm-hostname=1.1.1.1 kotsadm-application-namespaces=kots velero-namespace=velero velero-disable-cli=0 velero-disable-restic=0 velero-local-bucket=local velero-restic-requires-privileged=0 ekco-node-unreachable-toleration-duration=10m ekco-min-ready-master-node-count=3 ekco-min-ready-worker-node-count=1 ekco-should-disable-reboot-service=0 ekco-rook-should-use-all-nodes=0 airgap=0 hostname-check=2.2.2.2 no-proxy=0 preflight-ignore=1 preflight-ignore-warnings=1 private-address=10.38.1.1 http-proxy=1.1.1.1 public-address=101.38.1.1 bypass-firewalld-warning=0 hard-fail-on-firewalld=0 helmfile-spec=${helmfileSpec} longhorn-ui-bind-port=30880 longhorn-ui-replica-count=0`);
       });
     });
   });
@@ -833,6 +858,19 @@ spec:
     });
   });
 
+  describe("antrea", () => {
+    it("should parse", () => {
+      const i = Installer.parse(everyOption).resolve();
+
+      expect(i.spec.antrea).to.deep.equal({
+        version: InstallerVersions.antrea[0],
+        isEncryptionDisabled: true,
+        podCIDR: "172.19.0.0/16",
+        podCidrRange: "/16",
+      });
+    });
+  });
+
   describe("contour", () => {
     it("should parse", () => {
       const i = Installer.parse(contour);
@@ -903,11 +941,13 @@ spec:
 
       expect(out[0]).to.equal("0.0.0");
       expect(out[14]).to.equal("0.0.0");
-      expect(out[15]).to.equal("1.15.3");
+      expect(out[15]).to.equal("0.0.0");
       expect(out[16]).to.equal("1.16.4");
       expect(out[17]).to.equal("1.17.13");
-      expect(out[18]).to.equal("1.18.10");
-      expect(out[19]).to.equal("1.19.7");
+      expect(out[18]).to.match(/1\.18\.\d+/);
+      expect(out[19]).to.match(/1\.19\.\d+/);
+      expect(out[20]).to.match(/1\.20\.\d+/);
+      expect(out[21]).to.match(/1\.21\.\d+/);
     });
   });
 
@@ -979,6 +1019,61 @@ spec:
       const hasOpenssl = _.some(pkgs, (pkg) => {
         return pkg === "host-openssl";
       });
+    });
+
+    it("should include kubernetes conformance images", () => {
+      const i = Installer.parse(conformance);
+      const pkgs = i.packages();
+
+      const hasSonobuoy = _.some(pkgs, (pkg) => {
+        return pkg === "sonobuoy-0.50.0";
+      });
+      expect(hasSonobuoy).to.equal(true);
+
+      const hasKubernetes = _.some(pkgs, (pkg) => {
+        return pkg === "kubernetes-1.17.7";
+      });
+      expect(hasKubernetes).to.equal(true);
+
+      const hasConformance = _.some(pkgs, (pkg) => {
+        return pkg === "kubernetes-conformance-1.17.7";
+      });
+      expect(hasConformance).to.equal(true);
+    });
+
+    it("should not include kubernetes conformance images for versions < 1.17", () => {
+      const i = Installer.parse(noConformance);
+      const pkgs = i.packages();
+
+      const hasSonobuoy = _.some(pkgs, (pkg) => {
+        return pkg === "sonobuoy-0.50.0";
+      });
+      expect(hasSonobuoy).to.equal(true);
+
+      const hasKubernetes = _.some(pkgs, (pkg) => {
+        return pkg === "kubernetes-1.16.4";
+      });
+      expect(hasKubernetes).to.equal(true);
+
+      const hasConformance = _.some(pkgs, (pkg) => {
+        return pkg.startsWith("kubernetes-conformance");
+      });
+      expect(hasConformance).to.equal(false);
+    });
+
+    it("should not include removed Kubernetes versions", () => {
+      const i = Installer.parse(noConformance);
+      const pkgs = i.packages();
+
+      const hasKubernetes16 = _.some(pkgs, (pkg) => {
+        return pkg === "kubernetes-1.16.4";
+      });
+      expect(hasKubernetes16).to.equal(true);
+
+      const hasKubernetes000 = _.some(pkgs, (pkg) => {
+        return pkg === "kubernetes-0.0.0";
+      });
+      expect(hasKubernetes000).to.equal(false);
     });
   });
 

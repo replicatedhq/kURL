@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kurl-dist-server
+spec:
+  selector:
+    matchLabels:
+      app: kurl-dist-server
+  template:
+    metadata:
+      labels:
+        app: kurl-dist-server
+    spec:
+      containers:
+      - name: server
+        image: replicated/kurl-dist-server
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: server
+          containerPort: 80

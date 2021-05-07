@@ -5,6 +5,13 @@ function rook_pre_init() {
     if [ -n "$version" ] && [ "$version" != "1.4.3" ]; then
         printf "Rook $version is already installed, will not upgrade to 1.4.3\n"
         export SKIP_ROOK_INSTALL='true'
+        if [ "$version" = "1.0.4" ] && [ "$KUBERNETES_TARGET_VERSION_MINOR" -ge 20 ]; then
+            KUBERNETES_UPGRADE="0"
+            KUBERNETES_VERSION=$(kubectl version --short | grep -i server | awk '{ print $3 }' | sed 's/^v*//')
+            parse_kubernetes_target_version
+            # There's no guarantee the packages from this version of Kubernetes are still available
+            SKIP_KUBERNETES_HOST=1
+        fi
     elif [ "$ROOK_BLOCK_STORAGE_ENABLED" != "1" ]; then
         bail "Rook 1.4.3 requires enabling block storage"
     fi
@@ -49,6 +56,10 @@ function rook_join() {
     rook_lvm2
 }
 
+function rook_already_applied() {
+    rook_object_store_output
+}
+
 function rook_operator_deploy() {
     local src="$DIR/addons/rook/1.4.3/operator"
     local dst="$DIR/kustomize/rook/operator"
@@ -86,8 +97,13 @@ function rook_cluster_deploy() {
     cp "$src/ceph-cluster.yaml" "$dst/"
     cp "$src/ceph-block-pool.yaml" "$dst/"
     cp "$src/ceph-object-store.yaml" "$dst/"
-    cp "$src/shared-fs.yaml" "$dst/"
     render_yaml_file "$src/tmpl-ceph-storage-class.yaml" > "$dst/ceph-storage-class.yaml"
+
+    # conditional cephfs
+    if [ "${ROOK_SHARED_FILESYSTEM_DISABLED}" != "1" ]; then
+        cp "$src/shared-fs.yaml" "$dst/"
+        insert_resources "$dst/kustomization.yaml" shared-fs.yaml
+    fi
 
     # patches
     cp "$src/patches/ceph-cluster-mons.yaml" "$dst/"
@@ -138,7 +154,7 @@ function rook_set_ceph_pool_replicas() {
     if [ -n "$discoveredCephPoolReplicas" ]; then
         CEPH_POOL_REPLICAS="$discoveredCephPoolReplicas"
     fi
-    local readyNodeCount=$(kubectl get nodes 2>/dev/null | grep Ready | wc -l)
+    local readyNodeCount=$(kubectl get nodes 2>/dev/null | grep ' Ready' | wc -l)
     if [ "$readyNodeCount" -gt "$CEPH_POOL_REPLICAS" ] && [ "$readyNodeCount" -le "3" ]; then
         CEPH_POOL_REPLICAS="$readyNodeCount"
     fi

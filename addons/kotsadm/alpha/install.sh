@@ -3,13 +3,12 @@ function kotsadm() {
     local src="$DIR/addons/kotsadm/alpha"
     local dst="$DIR/kustomize/kotsadm"
 
-    try_1m object_store_create_bucket kotsadm
+    try_1m_stderr object_store_create_bucket kotsadm
     kotsadm_rename_postgres_pvc_1-12-2 "$src"
 
     cp "$src/kustomization.yaml" "$dst/"
     cp "$src/operator.yaml" "$dst/"
     cp "$src/postgres.yaml" "$dst/"
-    cp "$src/schemahero.yaml" "$dst/"
     cp "$src/kotsadm.yaml" "$dst/"
 
     kotsadm_secret_cluster_token
@@ -33,6 +32,10 @@ function kotsadm() {
     if [ "$AIRGAP" == "1" ]; then
         cp "$DIR/addons/kotsadm/alpha/kotsadm-airgap.yaml" "$DIR/kustomize/kotsadm/kotsadm-airgap.yaml"
         insert_patches_strategic_merge "$DIR/kustomize/kotsadm/kustomization.yaml" kotsadm-airgap.yaml
+    fi
+    if [ -n "$INSTALLATION_ID" ]; then
+        render_yaml_file "$DIR/addons/kotsadm/alpha/tmpl-kotsadm-installation-id.yaml" > "$DIR/kustomize/kotsadm/kotsadm-installation-id.yaml"
+        insert_patches_strategic_merge "$DIR/kustomize/kotsadm/kustomization.yaml" kotsadm-installation-id.yaml
     fi
     kotsadm_cacerts_file
 
@@ -319,7 +322,7 @@ function kotsadm_cli() {
     fi
     if [ ! -f "$src/assets/kots.tar.gz" ] && [ "$AIRGAP" != "1" ]; then
         mkdir -p "$src/assets"
-        curl -L "https://github.com/replicatedhq/kots/releases/download/v1.33.2/linux_amd64.tar.gz" > "$src/assets/kots.tar.gz"
+        curl -L "https://github.com/replicatedhq/kots/releases/download/v1.41.0/kots_linux_amd64.tar.gz" > "$src/assets/kots.tar.gz"
     fi
 
     pushd "$src/assets"
@@ -423,4 +426,8 @@ function kotsadm_cacerts_file() {
         render_yaml_file "$DIR/addons/kotsadm/alpha/tmpl-kotsadm-cacerts.yaml" > "$DIR/kustomize/kotsadm/kotsadm-cacerts.yaml"
         insert_patches_strategic_merge "$DIR/kustomize/kotsadm/kustomization.yaml" kotsadm-cacerts.yaml
     fi
+}
+
+function kotsadm_preflight() {
+    echo "${DIR}/addons/kotsadm/alpha/host-preflight.yaml"
 }

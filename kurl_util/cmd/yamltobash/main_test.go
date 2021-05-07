@@ -171,6 +171,42 @@ func Test_convertToBash(t *testing.T) {
 			},
 			wantError: false,
 		},
+		{
+			name: "Antrea.Encryption",
+			inputMap: map[string]interface{}{
+				"Antrea.IsEncryptionDisabled": true,
+			},
+			wantedMap: map[string]string{
+				"ANTREA_DISABLE_ENCRYPTION": "1",
+			},
+		},
+		{
+			name: "Sonobuoy.Version sets SONOBUOY_VERSION",
+			inputMap: map[string]interface{}{
+				"Sonobuoy.Version": "0.50.0",
+			},
+			wantedMap: map[string]string{
+				"SONOBUOY_VERSION": `"0.50.0"`,
+			},
+		},
+		{
+			name: "Sonobuoy.S3Override sets SONOBUOY_S3_OVERRIDE",
+			inputMap: map[string]interface{}{
+				"Sonobuoy.S3Override": "https://kurl-sh.s3.amazonaws.com/pr/2000-1111111-sonobuoy-0.50.0.tar.gz",
+			},
+			wantedMap: map[string]string{
+				"SONOBUOY_S3_OVERRIDE": `"https://kurl-sh.s3.amazonaws.com/pr/2000-1111111-sonobuoy-0.50.0.tar.gz"`,
+			},
+		},
+		{
+			name: "Rook.BypassUpgradeWarning sets ROOK_BYPASS_UPGRADE_WARNING",
+			inputMap: map[string]interface{}{
+				"Rook.BypassUpgradeWarning": true,
+			},
+			wantedMap: map[string]string{
+				"ROOK_BYPASS_UPGRADE_WARNING": `1`,
+			},
+		},
 	}
 
 	for _, test := range tests {
@@ -214,6 +250,27 @@ spec:
 				"Docker.Version":            true,
 				"Docker.HardFailOnLoopback": true,
 				"Weave.Version":             true,
+			},
+		},
+		{
+			name: "Antrea.IsEncryptionDisabled",
+			yaml: `apiVersion: cluster.kurl.sh/v1beta
+kind: Installer
+metadata:
+  name: kurl
+spec:
+  kubernetes:
+    version: 1.19.3
+  docker:
+    version: 19.03.10
+  antrea:
+    isEncryptionDisabled: true
+    version: 0.13.1`,
+			expect: map[string]bool{
+				"Kubernetes.Version":          true,
+				"Docker.Version":              true,
+				"Antrea.Version":              true,
+				"Antrea.IsEncryptionDisabled": true,
 			},
 		},
 	}

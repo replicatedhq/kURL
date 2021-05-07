@@ -1,0 +1,11 @@
+yum lvm2
+apt lvm2
+
+image rook-ceph rook/ceph:v1.4.9
+image ceph-ceph ceph/ceph:v15.2.8
+image cephcsi-cephcsi quay.io/cephcsi/cephcsi:v3.1.1
+image k8scsi-csi-node-driver-registrar quay.io/k8scsi/csi-node-driver-registrar:v1.2.0
+image k8scsi-csi-resizer quay.io/k8scsi/csi-resizer:v0.4.0
+image k8scsi-csi-provisioner quay.io/k8scsi/csi-provisioner:v1.6.0
+image k8scsi-csi-snapshotter quay.io/k8scsi/csi-snapshotter:v2.1.1
+image k8scsi-csi-attacher quay.io/k8scsi/csi-attacher:v2.1.0

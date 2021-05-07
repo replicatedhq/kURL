@@ -184,12 +184,16 @@ function rke2_install() {
     # TODO(ethan): is this still necessary?
     # kubernetes_sysctl_config
 
+    local k8s_semver=
+    k8s_semver="$(echo "${rke2_version}" | sed 's/^v\(.*\)-.*$/\1/')"
+
     # For online always download the rke2.tar.gz bundle.
     # Regardless if host packages are already installed, we always inspect for newer versions
     # and/or re-install any missing or corrupted packages.
     # TODO(ethan): is this comment correct?
     if [ "$AIRGAP" != "1" ] && [ -n "$DIST_URL" ]; then
         rke2_get_host_packages_online "${rke2_version}"
+        kubernetes_get_conformance_packages_online "${k8s_semver}"
     fi
 
     rke2_configure
@@ -202,7 +206,7 @@ function rke2_install() {
     systemctl start rke2-server.service
 
     spinner_containerd_is_healthy
-    
+
     get_shared
 
     logStep "Installing plugins"
@@ -215,6 +219,10 @@ function rke2_install() {
     while [ ! -f /etc/rancher/rke2/rke2.yaml ]; do
         sleep 2
     done
+
+    if [ -d "$DIR/packages/kubernetes-conformance/${k8s_semver}/images" ]; then
+        load_images "$DIR/packages/kubernetes-conformance/${k8s_semver}/images"
+    fi
 
     # For Kubectl and Rke2 binaries 
     # NOTE: this is still not in root's path
@@ -367,6 +375,7 @@ function rke2_main() {
     # report_install_start              # TODO(dan) remove reporting for now.
     # trap prek8s_ctrl_c SIGINT # trap ctrl+c (SIGINT) and handle it by reporting that the user exited intentionally # TODO(dan) remove reporting for now.
     # preflights                        # TODO(dan): mostly good, but disable for now
+    ${K8S_DISTRO}_addon_for_each addon_fetch
     # if [ -z "$CURRENT_KUBERNETES_VERSION" ]; then # TODO (ethan): support for CURRENT_KUBERNETES_VERSION
     #     host_preflights "1" "0" "0"
     # else
@@ -376,6 +385,7 @@ function rke2_main() {
     journald_persistent
     configure_proxy
     install_host_dependencies
+    get_common
     ${K8S_DISTRO}_addon_for_each addon_pre_init
     discover_pod_subnet
     # discover_service_subnet           # TODO(dan): uses kubeadm
@@ -393,6 +403,7 @@ function rke2_main() {
     rke2_init                            # TODO(dan): A mix of Kubeadm stuff and general setup.
     apply_installer_crd
     type create_registry_service &> /dev/null && create_registry_service # this function is in an optional addon and may be missing
+    kurl_init_config
     ${K8S_DISTRO}_addon_for_each addon_install
     # post_init                          # TODO(dan): more kubeadm token setup
     rke2_outro                           
@@ -438,7 +449,7 @@ function rke2_install_host_packages() {
             bail "RKE2 unsupported on $LSB_DIST Linux"
             ;;
 
-        centos|rhel|amzn)
+        centos|rhel|amzn|ol)
             case "$LSB_DIST$DIST_VERSION_MAJOR" in
                 rhel8|centos8)
                     rpm --upgrade --force --nodeps $DIR/packages/rke-2/${rke2_version}/rhel-8/*.rpm
@@ -449,6 +460,10 @@ function rke2_install_host_packages() {
                     ;;
             esac
         ;;
+
+        *)
+            bail "RKE2 install is not supported on ${LSB_DIST} ${DIST_MAJOR}"
+            ;;
     esac
 
     # TODO(ethan): is this still necessary?

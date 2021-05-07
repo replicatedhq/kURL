@@ -177,12 +177,16 @@ function k3s_install() {
     # TODO(ethan): is this still necessary?
     # kubernetes_sysctl_config
 
+    local k8s_semver=
+    k8s_semver="$(echo "${k3s_version}" | sed 's/^v\(.*\)-.*$/\1/')"
+
     # For online always download the k3s.tar.gz bundle.
     # Regardless if host packages are already installed, we always inspect for newer versions
     # and/or re-install any missing or corrupted packages.
     # TODO(ethan): is this comment correct?
     if [ "$AIRGAP" != "1" ] && [ -n "$DIST_URL" ]; then
         k3s_get_host_packages_online "${k3s_version}"
+        kubernetes_get_conformance_packages_online "${k8s_semver}"
     fi
 
     k3s_configure
@@ -214,6 +218,10 @@ function k3s_install() {
     while [ ! -f /etc/rancher/k3s/k3s.yaml ]; do
         sleep 2
     done
+
+    if [ -d "$DIR/packages/kubernetes-conformance/${k8s_semver}/images" ]; then
+        load_images "$DIR/packages/kubernetes-conformance/${k8s_semver}/images"
+    fi
 
     logStep "Waiting for Kubernetes"
     # Extending timeout to 5 min based on performance on clean machines.
@@ -354,6 +362,7 @@ function k3s_main() {
     # report_install_start              # TODO(dan) remove reporting for now.
     # trap prek8s_ctrl_c SIGINT # trap ctrl+c (SIGINT) and handle it by reporting that the user exited intentionally # TODO(dan) remove reporting for now.
     # preflights                        # TODO(dan): mostly good, but disable for now
+    ${K8S_DISTRO}_addon_for_each addon_fetch
     # if [ -z "$CURRENT_KUBERNETES_VERSION" ]; then # TODO (ethan): support for CURRENT_KUBERNETES_VERSION
     #     host_preflights "1" "0" "0"
     # else
@@ -363,6 +372,7 @@ function k3s_main() {
     journald_persistent
     configure_proxy
     install_host_dependencies
+    get_common
     ${K8S_DISTRO}_addon_for_each addon_pre_init
     discover_pod_subnet
     # discover_service_subnet           # TODO(dan): uses kubeadm
@@ -380,6 +390,7 @@ function k3s_main() {
     k3s_init                            # TODO(dan): A mix of Kubeadm stuff and general setup.
     apply_installer_crd
     type create_registry_service &> /dev/null && create_registry_service # this function is in an optional addon and may be missing
+    kurl_init_config
     ${K8S_DISTRO}_addon_for_each addon_install
     # post_init                          # TODO(dan): more kubeadm token setup
     k3s_outro                            
@@ -435,7 +446,7 @@ function k3s_install_host_packages() {
                 bail "K3S unsupported on $LSB_DIST Linux"
                 ;;
 
-            centos|rhel|amzn)
+            centos|rhel|amzn|ol)
                 case "$LSB_DIST$DIST_VERSION_MAJOR" in
                     rhel8|centos8)
                         rpm --upgrade --force --nodeps $DIR/packages/k3s/${k3s_version}/rhel-8/*.rpm
@@ -445,6 +456,10 @@ function k3s_install_host_packages() {
                         rpm --upgrade --force --nodeps $DIR/packages/k3s/${k3s_version}/rhel-7/*.rpm
                         ;;
                 esac
+            ;;
+
+            *)
+                bail "K3S install is not supported on ${LSB_DIST} ${DIST_MAJOR}"
             ;;
         esac
     fi

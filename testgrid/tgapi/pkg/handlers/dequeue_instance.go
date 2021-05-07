@@ -15,6 +15,7 @@ type DequeueInstanceResponse struct {
 	OperatingSystemName    string `json:"operatingSystemName"`
 	OperatingSystemVersion string `json:"operatingSystemVersion"`
 	OperatingSystemImage   string `json:"operatingSystemImage"`
+	OperatingSystemPreInit string `json:"operatingSystemPreInit"`
 
 	KurlYAML   string `json:"kurlYaml"`
 	KurlURL    string `json:"kurlUrl"`
@@ -49,6 +50,7 @@ func DequeueInstance(w http.ResponseWriter, r *http.Request) {
 		OperatingSystemName:    testInstance.OSName,
 		OperatingSystemVersion: testInstance.OSVersion,
 		OperatingSystemImage:   testInstance.OSImage,
+		OperatingSystemPreInit: testInstance.OSPreInit,
 
 		KurlYAML:   testInstance.KurlYAML,
 		KurlURL:    testInstance.KurlURL,

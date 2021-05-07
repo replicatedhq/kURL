@@ -77,6 +77,9 @@ spec:
           name: kotsadm-web-scripts
       - name: backup
         emptyDir: {}
+      - name: migrations
+        emptyDir:
+          medium: Memory
       containers:
       - image: kotsadm/kotsadm:alpha
         name: kotsadm
@@ -179,12 +182,62 @@ spec:
             mountPath: /etc/kurl-proxy/ca
         resources:
           limits:
-            cpu: 500m
+            cpu: 1
           requests:
             cpu: 100m
             memory: 100Mi
 
       initContainers:
+      - name: schemahero-plan
+        image: kotsadm/kotsadm-migrations:alpha
+        args: ["plan"]
+        volumeMounts:
+        - name: migrations
+          mountPath: /migrations
+        env:
+        - name: SCHEMAHERO_DRIVER
+          value: postgres
+        - name: SCHEMAHERO_SPEC_FILE
+          value: /tables
+        - name: SCHEMAHERO_URI
+          valueFrom:
+            secretKeyRef:
+              name: kotsadm-postgres
+              key: uri
+        - name: SCHEMAHERO_OUT
+          value: /migrations/plan.yaml              
+        resources:
+          limits:
+            cpu: 100m
+            memory: 100Mi
+          requests:
+            cpu: 50m
+            memory: 50Mi
+
+      - name: schemahero-apply
+        image: kotsadm/kotsadm-migrations:alpha
+        args: ["apply"]
+        volumeMounts:
+          - name: migrations
+            mountPath: /migrations
+        env:
+        - name: SCHEMAHERO_DRIVER
+          value: postgres
+        - name: SCHEMAHERO_DDL
+          value: /migrations/plan.yaml
+        - name: SCHEMAHERO_URI
+          valueFrom:
+            secretKeyRef:
+              name: kotsadm-postgres
+              key: uri
+        resources:
+          limits:
+            cpu: 100m
+            memory: 100Mi
+          requests:
+            cpu: 50m
+            memory: 50Mi
+
       - name: restore-db
         command:
         - "/restore-db.sh"
@@ -201,7 +254,7 @@ spec:
           name: backup
         resources:
           limits:
-            cpu: 500m
+            cpu: 1
           requests:
             cpu: 100m
             memory: 100Mi
@@ -236,7 +289,7 @@ spec:
           name: backup
         resources:
           limits:
-            cpu: 500m
+            cpu: 1
           requests:
             cpu: 100m
             memory: 100Mi

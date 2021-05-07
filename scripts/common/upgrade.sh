@@ -61,10 +61,19 @@ function upgrade_kubernetes_patch() {
 }
 
 function upgrade_kubernetes_local_master_patch() {
-    local k8sVersion=$1
-    local node=$(hostname)
+    local k8sVersion="$1"
+    local node="$(hostname)"
 
-    load_images $DIR/packages/kubernetes/$k8sVersion/images
+    if [ "$AIRGAP" != "1" ] && [ -n "$DIST_URL" ]; then
+        kubernetes_get_host_packages_online "$k8sVersion"
+        kubernetes_get_conformance_packages_online "$k8sVersion"
+    fi
+
+    load_images "$DIR/packages/kubernetes/$k8sVersion/images"
+    if [ -d "$DIR/packages/kubernetes-conformance/$k8sVersion/images" ]; then
+        load_images "$DIR/packages/kubernetes-conformance/$k8sVersion/images"
+    fi
+
     upgrade_kubeadm "$k8sVersion"
 
     kubeadm upgrade plan "v${k8sVersion}"
@@ -90,17 +99,7 @@ function upgrade_kubernetes_local_master_patch() {
 function upgrade_kubeadm() {
     local k8sVersion=$1
 
-    if [ "$AIRGAP" != "1" ] && [ -n "$DIST_URL" ]; then
-        kubernetes_get_host_packages_online "$k8sVersion"
-    fi
-    case "$LSB_DIST" in
-        ubuntu)
-            cp $DIR/packages/kubernetes/${k8sVersion}/ubuntu-${DIST_VERSION}/kubeadm /usr/bin/kubeadm
-            ;;
-        centos|rhel|amzn)
-            cp $DIR/packages/kubernetes/${k8sVersion}/rhel-7/kubeadm /usr/bin/kubeadm
-            ;;
-    esac
+    cp -f "$DIR/packages/kubernetes/${k8sVersion}/assets/kubeadm" /usr/bin/
     chmod a+rx /usr/bin/kubeadm
 }
 
@@ -146,14 +145,11 @@ function upgrade_kubernetes_remote_node_patch() {
     printf "\n\n\tRun the upgrade script on remote node to proceed: ${GREEN}$nodeName${NC}\n\n"
 
     if [ "$AIRGAP" = "1" ]; then
-        printf "\t${GREEN}cat upgrade.sh | sudo bash -s airgap kubernetes-version=${KUBERNETES_VERSION}${common_flags}${NC}\n\n"
-    elif [ -z "$KURL_URL" ]; then
-        printf "\t${GREEN}cat upgrade.sh | sudo bash -s kubernetes-version=${KUBERNETES_VERSION}${common_flags}${NC}\n\n"
+        printf "\t${GREEN}cat ./upgrade.sh | sudo bash -s airgap kubernetes-version=${KUBERNETES_VERSION}${common_flags}${NC}\n\n"
     else
-        local prefix="curl $KURL_URL/$INSTALLER_ID/"
-        if [ -z "$KURL_URL" ]; then
-            prefix="cat "
-        fi
+        local prefix=
+        prefix="$(build_installer_prefix "${INSTALLER_ID}" "${KURL_VERSION}" "${KURL_URL}" "${PROXY_ADDRESS}")"
+
         printf "\t${GREEN} ${prefix}upgrade.sh | sudo bash -s kubernetes-version=${KUBERNETES_VERSION}${common_flags}${NC}\n\n"
     fi
 
@@ -164,10 +160,19 @@ function upgrade_kubernetes_remote_node_patch() {
 }
 
 function upgrade_kubernetes_local_master_minor() {
-    local k8sVersion=$1
-    local node=$(hostname)
+    local k8sVersion="$1"
+    local node="$(hostname)"
 
-    load_images $DIR/packages/kubernetes/$k8sVersion/images
+    if [ "$AIRGAP" != "1" ] && [ -n "$DIST_URL" ]; then
+        kubernetes_get_host_packages_online "$k8sVersion"
+        kubernetes_get_conformance_packages_online "$k8sVersion"
+    fi
+
+    load_images "$DIR/packages/kubernetes/$k8sVersion/images"
+    if [ -d "$DIR/packages/kubernetes-conformance/$k8sVersion/images" ]; then
+        load_images "$DIR/packages/kubernetes-conformance/$k8sVersion/images"
+    fi
+
     upgrade_kubeadm "$k8sVersion"
 
     kubeadm upgrade plan "v${k8sVersion}"
@@ -243,14 +248,11 @@ function upgrade_kubernetes_remote_node_minor() {
     printf "\n\n\tRun the upgrade script on remote node to proceed: ${GREEN}$nodeName${NC}\n\n"
 
     if [ "$AIRGAP" = "1" ]; then
-        printf "\t${GREEN}cat upgrade.sh | sudo bash -s airgap kubernetes-version=${targetK8sVersion}${common_flags}${NC}\n\n"
-    elif [ -z "$KURL_URL" ]; then
-        printf "\t${GREEN}cat upgrade.sh | sudo bash -s kubernetes-version=${targetK8sVersion}${common_flags}${NC}\n\n"
+        printf "\t${GREEN}cat ./upgrade.sh | sudo bash -s airgap kubernetes-version=${targetK8sVersion}${common_flags}${NC}\n\n"
     else
-        local prefix="curl $KURL_URL/$INSTALLER_ID/"
-        if [ -z "$KURL_URL" ]; then
-            prefix="cat "
-        fi
+        local prefix=
+        prefix="$(build_installer_prefix "${INSTALLER_ID}" "${KURL_VERSION}" "${KURL_URL}" "${PROXY_ADDRESS}")"
+
         printf "\t${GREEN} ${prefix}upgrade.sh | sudo bash -s kubernetes-version=${targetK8sVersion}${common_flags}${NC}\n\n"
     fi
 

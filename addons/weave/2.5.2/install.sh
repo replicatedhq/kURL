@@ -23,6 +23,7 @@ function weave() {
 
     kubectl apply -k "$DIR/kustomize/weave/"
     weave_ready_spinner
+    check_network
 }
 
 function weave_resource_secret() {
@@ -70,4 +71,8 @@ function weave_ready_spinner() {
       kubectl logs -n kube-system -l name=weave-net --all-containers --tail 10
       bail "The weave addon failed to deploy successfully."
     fi
+}
+
+function weave_preflight() {
+    echo "${DIR}/addons/weave/2.5.2/host-preflight.yaml"
 }

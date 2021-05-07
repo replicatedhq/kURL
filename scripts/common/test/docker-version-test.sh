@@ -1,6 +1,6 @@
 #!/bin/bash
 
-. ./install_scripts/templates/common/docker-version.sh
+. ./scripts/common/docker-version.sh
 
 testParseDockerVersion()
 {

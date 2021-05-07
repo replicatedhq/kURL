@@ -15,10 +15,25 @@ function addon_install() {
     rm -rf $DIR/kustomize/$name
     mkdir -p $DIR/kustomize/$name
 
-    export REPORTING_CONTEXT_INFO="addon $name $version"
-    . $DIR/addons/$name/$version/install.sh
-    $name
-    export REPORTING_CONTEXT_INFO=""
+    # if the addon has already been applied and addons are not being forcibly reapplied
+    if addon_has_been_applied $name && [ -z "$FORCE_REAPPLY_ADDONS" ]; then
+        export REPORTING_CONTEXT_INFO="addon already applied $name $version"
+        # shellcheck disable=SC1090
+        . $DIR/addons/$name/$version/install.sh
+
+        if commandExists ${name}_already_applied; then
+            ${name}_already_applied
+        fi
+        export REPORTING_CONTEXT_INFO=""
+    else
+        export REPORTING_CONTEXT_INFO="addon $name $version"
+        # shellcheck disable=SC1090
+        . $DIR/addons/$name/$version/install.sh
+        $name
+        export REPORTING_CONTEXT_INFO=""
+    fi
+
+    addon_set_has_been_applied $name
 
     if commandExists ${name}_join; then
         ADDONS_HAVE_HOST_COMPONENTS=1
@@ -27,7 +42,7 @@ function addon_install() {
     report_addon_success "$name" "$version"
 }
 
-function addon_pre_init() {
+function addon_fetch() {
     local name=$1
     local version=$2
     local s3Override=$3
@@ -42,37 +57,27 @@ function addon_pre_init() {
             addon_fetch_no_cache "$s3Override"
         elif [ -n "$DIST_URL" ]; then
             rm -rf $DIR/addons/$name/$version # Cleanup broken/incompatible addons from failed runs
-            addon_fetch "$name-$version.tar.gz"
+            addon_fetch_cache "$name-$version.tar.gz"
         fi
     fi
 
     . $DIR/addons/$name/$version/install.sh
+}
+
+function addon_pre_init() {
+    local name=$1
 
     if commandExists ${name}_pre_init; then
         ${name}_pre_init
     fi
 }
 
-function addon_pre_join() {
+function addon_preflight() {
     local name=$1
-    local version=$2
-    local s3Override=$3
 
-    if [ -z "$version" ]; then
-        return 0
+    if commandExists ${name}_preflight; then
+        ${name}_preflight
     fi
-
-    if [ "$AIRGAP" != "1" ]; then
-        if [ -n "$s3Override" ]; then
-            rm -rf $DIR/addons/$name/$version # Cleanup broken/incompatible addons from failed runs
-            addon_fetch_no_cache "$s3Override"
-        elif [ -n "$DIST_URL" ]; then
-            rm -rf $DIR/addons/$name/$version # Cleanup broken/incompatible addons from failed runs
-            addon_fetch "$name-$version.tar.gz"
-        fi
-    fi
-
-    . $DIR/addons/$name/$version/install.sh
 }
 
 function addon_join() {
@@ -109,7 +114,7 @@ function addon_fetch_no_cache() {
     rm $archiveName
 }
 
-function addon_fetch() {
+function addon_fetch_cache() {
     local package=$1
 
     package_download "${package}"
@@ -125,16 +130,6 @@ function addon_outro() {
     fi
 
     if [ "$ADDONS_HAVE_HOST_COMPONENTS" = "1" ] && kubernetes_has_remotes; then
-        local proxyFlag=""
-        if [ -n "$PROXY_ADDRESS" ]; then
-            proxyFlag=" -x $PROXY_ADDRESS"
-        fi
-
-        local prefix="curl -sSL${proxyFlag} $KURL_URL/$INSTALLER_ID/"
-        if [ "$AIRGAP" = "1" ] || [ -z "$KURL_URL" ]; then
-            prefix="cat "
-        fi
-
         local common_flags
         common_flags="${common_flags}$(get_docker_registry_ip_flag "${DOCKER_REGISTRY_IP}")"
         common_flags="${common_flags}$(get_additional_no_proxy_addresses_flag "${PROXY_ADDRESS}" "${SERVICE_CIDR},${POD_CIDR}")"
@@ -142,8 +137,11 @@ function addon_outro() {
 
         printf "\n${YELLOW}Run this script on all remote nodes to apply changes${NC}\n"
         if [ "$AIRGAP" = "1" ]; then
-            printf "\n\t${GREEN}${prefix}upgrade.sh | sudo bash -s airgap${common_flags}${NC}\n\n"
+            printf "\n\t${GREEN}cat ./upgrade.sh | sudo bash -s airgap${common_flags}${NC}\n\n"
         else
+            local prefix=
+            prefix="$(build_installer_prefix "${INSTALLER_ID}" "${KURL_VERSION}" "${KURL_URL}" "${PROXY_ADDRESS}")"
+
             printf "\n\t${GREEN}${prefix}upgrade.sh | sudo bash -s${common_flags}${NC}\n\n"
         fi
         printf "Press enter to proceed\n"
@@ -160,4 +158,28 @@ function addon_outro() {
 
 function addon_cleanup() {
     rm -rf "${DIR}/addons"
+}
+
+function addon_has_been_applied() {
+    local name=$1
+    last_applied=$(kubectl get configmap -n kurl kurl-last-config -o jsonpath="{.data.addons-$name}")
+    current=$(get_addon_config "$name" | base64 -w 0)
+
+    if [[ "$current" == "" ]] ; then
+        # current should never be the empty string - it should at least contain the version - so this indicates an error
+        # it would be better to reinstall unnecessarily rather than skip installing, so we report that the addon has not been applied
+        return 1
+    fi
+
+    if [[ "$last_applied" == "$current" ]] ; then
+        return 0
+    fi
+
+    return 1
+}
+
+function addon_set_has_been_applied() {
+    local name=$1
+    current=$(get_addon_config "$name" | base64 -w 0)
+    kubectl patch configmaps -n kurl kurl-current-config --type merge -p "{\"data\":{\"addons-$name\":\"$current\"}}"
 }

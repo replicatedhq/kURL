@@ -7,51 +7,74 @@ spec:
   collectors:
     - cpu: {}
     - memory: {}
+    - hostServices: {}
     - diskUsage:
         collectorName: "Ephemeral Disk Usage"
         path: /var/lib/kubelet
+    - blockDevices:
+        # rook block storage or cstor is enabled and not upgrade
+        exclude: '{{kurl and (or (and .Installer.Spec.Rook.Version .Installer.Spec.Rook.IsBlockStorageEnabled) (and .Installer.Spec.OpenEBS.Version .Installer.Spec.OpenEBS.IsCstorEnabled)) (not .IsUpgrade) | not }}'
     - tcpLoadBalancer:
         collectorName: "Kubernetes API Server Load Balancer"
         port: 6443
-        address: {{ .Installer.Spec.Kubernetes.LoadBalancerAddress }}
+        address: {{kurl .Installer.Spec.Kubernetes.LoadBalancerAddress }}
         timeout: 3m
         # ha and is first master (primary and not join) and not is upgrade
-        exclude: '{{ and .Installer.Spec.Kubernetes.Version .Installer.Spec.Kubernetes.LoadBalancerAddress .IsPrimary (not .IsJoin) (not .IsUpgrade) | not }}'
-    - blockDevices:
-        # rook block storage or cstor is enabled and not upgrade
-        exclude: '{{ and (or (and .Installer.Spec.Rook.Version .Installer.Spec.Rook.IsBlockStorageEnabled) (and .Installer.Spec.OpenEBS.Version .Installer.Spec.OpenEBS.IsCstorEnabled)) (not .IsUpgrade) | not }}'
+        exclude: '{{kurl and .Installer.Spec.Kubernetes.Version .Installer.Spec.Kubernetes.LoadBalancerAddress .IsPrimary (not .IsJoin) (not .IsUpgrade) | not }}'
     - tcpPortStatus:
         collectorName: "Kubernetes API TCP Port Status"
         port: 6443
-        exclude: '{{ and .IsPrimary (not .IsUpgrade) | not }}'
+        exclude: '{{kurl and .IsPrimary (not .IsUpgrade) | not }}'
     - tcpPortStatus:
         collectorName: "ETCD Client API TCP Port Status"
         port: 2379
-        exclude: '{{ and .IsPrimary (not .IsUpgrade) | not }}'
+        exclude: '{{kurl and .IsPrimary (not .IsUpgrade) | not }}'
     - tcpPortStatus:
         collectorName: "ETCD Server API TCP Port Status"
         port: 2380
-        exclude: '{{ and .IsPrimary (not .IsUpgrade) | not }}'
+        exclude: '{{kurl and .IsPrimary (not .IsUpgrade) | not }}'
+    - tcpPortStatus:
+        collectorName: "ETCD Health Server TCP Port Status"
+        port: 2381
+        exclude: '{{kurl and .IsPrimary (not .IsUpgrade) | not }}'
+        interface: lo
+    - tcpPortStatus:
+        collectorName: "Kubelet Health Server TCP Port Status"
+        port: 10248
+        exclude: '{{kurl and (not .IsUpgrade) | not }}'
+        interface: lo
     - tcpPortStatus:
         collectorName: "Kubelet API TCP Port Status"
         port: 10250
-        exclude: '{{ and (not .IsUpgrade) | not }}'
+        exclude: '{{kurl and (not .IsUpgrade) | not }}'
     - tcpPortStatus:
-        collectorName: "Kube Scheduler TCP Port Status"
-        port: 10251
-        exclude: '{{ and .IsPrimary (not .IsUpgrade) | not }}'
+        collectorName: "Kube Controller Manager Health Server TCP Port Status"
+        port: 10257
+        exclude: '{{kurl and .IsPrimary (not .IsUpgrade) | not }}'
+        interface: lo
     - tcpPortStatus:
-        collectorName: "Kube Controller Manager TCP Port Status"
-        port: 10252
-        exclude: '{{ and .IsPrimary (not .IsUpgrade) | not }}'
-    - tcpPortStatus:
-        collectorName: "Weave Net Control TCP Port Status"
-        port: 6783
-        exclude: '{{ and .Installer.Spec.Weave.Version (not .IsUpgrade) | not }}'
+        collectorName: "Kube Scheduler Health Server TCP Port Status"
+        port: 10259
+        exclude: '{{kurl and .IsPrimary (not .IsUpgrade) | not }}'
+        interface: lo
     - tcpConnect:
         collectorName: "Kubernetes API TCP Connection Status"
-        address: '{{ .Installer.Spec.Kubernetes.MasterAddress }}'
-        exclude: '{{ and .Installer.Spec.Kubernetes.Version .Installer.Spec.Kubernetes.MasterAddress .IsJoin | not }}'
+        address: '{{kurl .Installer.Spec.Kubernetes.MasterAddress }}'
+        exclude: '{{kurl and .Installer.Spec.Kubernetes.Version .Installer.Spec.Kubernetes.MasterAddress .IsJoin | not }}'
+    - filesystemPerformance:
+        collectorName: Filesystem Latency Two Minute Benchmark
+        exclude: '{{kurl and .IsPrimary (not .IsUpgrade) | not }}'
+        timeout: 2m
+        directory: /var/lib/etcd
+        fileSize: 22Mi
+        operationSizeBytes: 2300
+        datasync: true
+        enableBackgroundIOPS: true
+        backgroundIOPSWarmupSeconds: 10
+        backgroundWriteIOPS: 300
+        backgroundWriteIOPSJobs: 6
+        backgroundReadIOPS: 50
+        backgroundReadIOPSJobs: 1
 
   analyzers:
     - cpu:
@@ -95,14 +118,14 @@ spec:
         checkName: "Kubernetes API Server Load Balancer"
         collectorName: "Kubernetes API Server Load Balancer"
         # ha and is first master (primary and not join) and not is upgrade
-        exclude: '{{ and .Installer.Spec.Kubernetes.Version .Installer.Spec.Kubernetes.LoadBalancerAddress .IsPrimary (not .IsJoin) (not .IsUpgrade) | not }}'
+        exclude: '{{kurl and .Installer.Spec.Kubernetes.Version .Installer.Spec.Kubernetes.LoadBalancerAddress .IsPrimary (not .IsJoin) (not .IsUpgrade) | not }}'
         outcomes:
           - warn:
               when: "connection-refused"
-              message: Connection to {{ .Installer.Spec.Kubernetes.LoadBalancerAddress }} via load balancer was refused.
+              message: Connection to {{kurl .Installer.Spec.Kubernetes.LoadBalancerAddress }} via load balancer was refused.
           - warn:
               when: "connection-timeout"
-              message: Timed out connecting to {{ .Installer.Spec.Kubernetes.LoadBalancerAddress }} via load balancer. Check your firewall.
+              message: Timed out connecting to {{kurl .Installer.Spec.Kubernetes.LoadBalancerAddress }} via load balancer. Check your firewall.
           - warn:
               when: "error"
               message: Unexpected port status
@@ -111,25 +134,28 @@ spec:
               message: Port 6443 is unavailable
           - pass:
               when: "connected"
-              message: Successfully connected to {{ .Installer.Spec.Kubernetes.LoadBalancerAddress }} via load balancer
+              message: Successfully connected to {{kurl .Installer.Spec.Kubernetes.LoadBalancerAddress }} via load balancer
           - warn:
               message: Unexpected port status
     - blockDevices:
         # rook block storage or cstor is enabled and not upgrade
-        exclude: '{{ and (or (and .Installer.Spec.Rook.Version .Installer.Spec.Rook.IsBlockStorageEnabled) (and .Installer.Spec.OpenEBS.Version .Installer.Spec.OpenEBS.IsCstorEnabled)) (not .IsUpgrade) | not }}'
+        includeUnmountedPartitions: true
+#        minimumAcceptableSize: 26843545600 # 1024 ^ 3 * 25, 25GiB
+        minimumAcceptableSize: 10737418240 # 1024 ^ 3 * 10, 10GiB
+        exclude: '{{kurl and (or (and .Installer.Spec.Rook.Version .Installer.Spec.Rook.IsBlockStorageEnabled) (and .Installer.Spec.OpenEBS.Version .Installer.Spec.OpenEBS.IsCstorEnabled)) (not .IsUpgrade) | not }}'
         outcomes:
           - pass:
-              when: "{{ if (and .Installer.Spec.Rook.Version .Installer.Spec.Rook.BlockDeviceFilter) }}{{ .Installer.Spec.Rook.BlockDeviceFilter }}{{ else }}.*{{ end }} == 1"
+              when: "{{kurl if (and .Installer.Spec.Rook.Version .Installer.Spec.Rook.BlockDeviceFilter) }}{{kurl .Installer.Spec.Rook.BlockDeviceFilter }}{{kurl else }}.*{{kurl end }} == 1"
               message: One available block device
           - pass:
-              when: "{{ if (and .Installer.Spec.Rook.Version .Installer.Spec.Rook.BlockDeviceFilter) }}{{ .Installer.Spec.Rook.BlockDeviceFilter }}{{ else }}.*{{ end }} > 1"
+              when: "{{kurl if (and .Installer.Spec.Rook.Version .Installer.Spec.Rook.BlockDeviceFilter) }}{{kurl .Installer.Spec.Rook.BlockDeviceFilter }}{{kurl else }}.*{{kurl end }} > 1"
               message: Multiple available block devices
           - fail:
               message: No available block devices
     - tcpPortStatus:
         checkName: "Kubernetes API TCP Port Status"
         collectorName: "Kubernetes API TCP Port Status"
-        exclude: '{{ and .IsPrimary (not .IsUpgrade) | not }}'
+        exclude: '{{kurl and .IsPrimary (not .IsUpgrade) | not }}'
         outcomes:
           - fail:
               when: "connection-refused"
@@ -151,7 +177,7 @@ spec:
     - tcpPortStatus:
         checkName: "ETCD Client API TCP Port Status"
         collectorName: "ETCD Client API TCP Port Status"
-        exclude: '{{ and .IsPrimary (not .IsUpgrade) | not }}'
+        exclude: '{{kurl and .IsPrimary (not .IsUpgrade) | not }}'
         outcomes:
           - fail:
               when: "connection-refused"
@@ -173,7 +199,7 @@ spec:
     - tcpPortStatus:
         checkName: "ETCD Server API TCP Port Status"
         collectorName: "ETCD Server API TCP Port Status"
-        exclude: '{{ and .IsPrimary (not .IsUpgrade) | not }}'
+        exclude: '{{kurl and .IsPrimary (not .IsUpgrade) | not }}'
         outcomes:
           - fail:
               when: "connection-refused"
@@ -193,9 +219,53 @@ spec:
           - warn:
               message: Unexpected port status
     - tcpPortStatus:
+        checkName: "ETCD Health Server TCP Port Status"
+        collectorName: "ETCD Health Server TCP Port Status"
+        exclude: '{{kurl and .IsPrimary (not .IsUpgrade) | not }}'
+        outcomes:
+          - fail:
+              when: "connection-refused"
+              message: Connection to port 2381 was refused. This is likely to be a routing problem since this preflight configures a test server to listen on this port.
+          - warn:
+              when: "address-in-use"
+              message: Another process was already listening on port 2381.
+          - fail:
+              when: "connection-timeout"
+              message: Timed out connecting to port 2381. Check your firewall.
+          - fail:
+              when: "error"
+              message: Unexpected port status
+          - pass:
+              when: "connected"
+              message: Port 2381 is available
+          - warn:
+              message: Unexpected port status
+    - tcpPortStatus:
+        checkName: "Kubelet Health Server TCP Port Status"
+        collectorName: "Kubelet Health Server TCP Port Status"
+        exclude: '{{kurl and (not .IsUpgrade) | not }}'
+        outcomes:
+          - fail:
+              when: "connection-refused"
+              message: Connection to port 10248 was refused. This is likely to be a routing problem since this preflight configures a test server to listen on this port.
+          - warn:
+              when: "address-in-use"
+              message: Another process was already listening on port 10248.
+          - fail:
+              when: "connection-timeout"
+              message: Timed out connecting to port 10248. Check your firewall.
+          - fail:
+              when: "error"
+              message: Unexpected port status
+          - pass:
+              when: "connected"
+              message: Port 10248 is available
+          - warn:
+              message: Unexpected port status
+    - tcpPortStatus:
         checkName: "Kubelet API TCP Port Status"
         collectorName: "Kubelet API TCP Port Status"
-        exclude: '{{ and (not .IsUpgrade) | not }}'
+        exclude: '{{kurl and (not .IsUpgrade) | not }}'
         outcomes:
           - fail:
               when: "connection-refused"
@@ -215,87 +285,78 @@ spec:
           - warn:
               message: Unexpected port status
     - tcpPortStatus:
-        checkName: "Kube Scheduler TCP Port Status"
-        collectorName: "Kube Scheduler TCP Port Status"
-        exclude: '{{ and .IsPrimary (not .IsUpgrade) | not }}'
+        checkName: "Kube Controller Manager Health Server TCP Port Status"
+        collectorName: "Kube Controller Manager Health Server TCP Port Status"
+        exclude: '{{kurl and .IsPrimary (not .IsUpgrade) | not }}'
         outcomes:
           - fail:
               when: "connection-refused"
-              message: Connection to port 10251 was refused. This is likely to be a routing problem since this preflight configures a test server to listen on this port.
+              message: Connection to port 10257 was refused. This is likely to be a routing problem since this preflight configures a test server to listen on this port.
           - warn:
               when: "address-in-use"
-              message: Another process was already listening on port 10251.
+              message: Another process was already listening on port 10257.
           - fail:
               when: "connection-timeout"
-              message: Timed out connecting to port 10251. Check your firewall.
+              message: Timed out connecting to port 10257. Check your firewall.
           - fail:
               when: "error"
               message: Unexpected port status
           - pass:
               when: "connected"
-              message: Port 10251 is open
+              message: Port 10257 is available
           - warn:
               message: Unexpected port status
     - tcpPortStatus:
-        checkName: "Kube Controller Manager TCP Port Status"
-        collectorName: "Kube Controller Manager TCP Port Status"
-        exclude: '{{ and .IsPrimary (not .IsUpgrade) | not }}'
+        checkName: "Kube Scheduler Health Server TCP Port Status"
+        collectorName: "Kube Scheduler Health Server TCP Port Status"
+        exclude: '{{kurl and .IsPrimary (not .IsUpgrade) | not }}'
         outcomes:
           - fail:
               when: "connection-refused"
-              message: Connection to port 10252 was refused. This is likely to be a routing problem since this preflight configures a test server to listen on this port.
+              message: Connection to port 10259 was refused. This is likely to be a routing problem since this preflight configures a test server to listen on this port.
           - warn:
               when: "address-in-use"
-              message: Another process was already listening on port 10252.
+              message: Another process was already listening on port 10259.
           - fail:
               when: "connection-timeout"
-              message: Timed out connecting to port 10252. Check your firewall.
+              message: Timed out connecting to port 10259. Check your firewall.
           - fail:
               when: "error"
               message: Unexpected port status
           - pass:
               when: "connected"
-              message: Port 10252 is open
-          - warn:
-              message: Unexpected port status
-    - tcpPortStatus:
-        checkName: "Weave Net Control TCP Port Status"
-        collectorName: "Weave Net Control TCP Port Status"
-        exclude: '{{ and .Installer.Spec.Weave.Version (not .IsUpgrade) | not }}'
-        outcomes:
-          - fail:
-              when: "connection-refused"
-              message: Connection to port 6783 was refused. This is likely to be a routing problem since this preflight configures a test server to listen on this port.
-          - warn:
-              when: "address-in-use"
-              message: Another process was already listening on port 6783.
-          - fail:
-              when: "connection-timeout"
-              message: Timed out connecting to port 6783. Check your firewall.
-          - fail:
-              when: "error"
-              message: Unexpected port status
-          - pass:
-              when: "connected"
-              message: Port 6783 is open
+              message: Port 10259 is available
           - warn:
               message: Unexpected port status
     - tcpConnect:
         checkName: "Kubernetes API TCP Connection Status"
         collectorName: "Kubernetes API TCP Connection Status"
-        exclude: '{{ and .Installer.Spec.Kubernetes.Version .Installer.Spec.Kubernetes.MasterAddress .IsJoin | not }}'
+        exclude: '{{kurl and .Installer.Spec.Kubernetes.Version .Installer.Spec.Kubernetes.MasterAddress .IsJoin | not }}'
         outcomes:
           - fail:
               when: "connection-refused"
-              message: Connection to the Kubernetes API at address {{ .Installer.Spec.Kubernetes.MasterAddress }} was refused
+              message: Connection to the Kubernetes API at address {{kurl .Installer.Spec.Kubernetes.MasterAddress }} was refused
           - fail:
               when: "connection-timeout"
-              message: Timed out connecting to the Kubernetes API at address {{ .Installer.Spec.Kubernetes.MasterAddress }}
+              message: Timed out connecting to the Kubernetes API at address {{kurl .Installer.Spec.Kubernetes.MasterAddress }}
           - fail:
               when: "error"
-              message: Unexpected error connecting to the Kubernetes API at address {{ .Installer.Spec.Kubernetes.MasterAddress }}
+              message: Unexpected error connecting to the Kubernetes API at address {{kurl .Installer.Spec.Kubernetes.MasterAddress }}
           - pass:
               when: "connected"
-              message: Successfully connected to the Kubernetes API at address {{ .Installer.Spec.Kubernetes.MasterAddress }}
+              message: Successfully connected to the Kubernetes API at address {{kurl .Installer.Spec.Kubernetes.MasterAddress }}
           - warn:
               message: Unexpected TCP connection status
+    - filesystemPerformance:
+        collectorName: Filesystem Latency Two Minute Benchmark
+        exclude: '{{kurl and .IsPrimary (not .IsUpgrade) | not }}'
+        outcomes:
+          - pass:
+              when: "p99 < 10ms"
+              message: "Write latency is ok (p99 target < 10ms, actual: {{ .P99 }})"
+          - warn:
+              when: "p99 < 20ms"
+              message: "Write latency is high. p99 target < 10ms, actual:{{ .String }}"
+          - fail:
+              when: "p99 >= 20ms"
+              message: "Write latency is too high. p99 target < 10ms, actual:{{ .String }}"

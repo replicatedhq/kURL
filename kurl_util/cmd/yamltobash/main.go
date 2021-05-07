@@ -232,14 +232,21 @@ func convertToBash(kurlValues map[string]interface{}, fieldsSet map[string]bool)
 		"Registry.Version":                       "REGISTRY_VERSION",
 		"RKE2.Version":                           "RKE2_VERSION",
 		"Rook.BlockDeviceFilter":                 "ROOK_BLOCK_DEVICE_FILTER",
+		"Rook.BypassUpgradeWarning":              "ROOK_BYPASS_UPGRADE_WARNING",
 		"Rook.CephReplicaCount":                  "CEPH_POOL_REPLICAS",
 		"Rook.HostpathRequiresPrivileged":        "ROOK_HOSTPATH_REQUIRES_PRIVILEGED",
 		"Rook.IsBlockStorageEnabled":             "ROOK_BLOCK_STORAGE_ENABLED",
+		"Rook.IsSharedFilesystemDisabled":        "ROOK_SHARED_FILESYSTEM_DISABLED",
 		"Rook.S3Override":                        "ROOK_S3_OVERRIDE",
 		"Rook.StorageClassName":                  "STORAGE_CLASS",
 		"Rook.Version":                           "ROOK_VERSION",
 		"SelinuxConfig.DisableSelinux":           "DISABLE_SELINUX",
 		"SelinuxConfig.PreserveConfig":           "PRESERVE_SELINUX_CONFIG",
+		"Sonobuoy.S3Override":                    "SONOBUOY_S3_OVERRIDE",
+		"Sonobuoy.Version":                       "SONOBUOY_VERSION",
+		"UFWConfig.BypassUFWWarning":             "BYPASS_UFW_WARNING",
+		"UFWConfig.DisableUFW":                   "DISABLE_UFW",
+		"UFWConfig.HardFailOnUFW":                "HARD_FAIL_ON_UFW",
 		"Velero.DisableCLI":                      "VELERO_DISABLE_CLI",
 		"Velero.DisableRestic":                   "VELERO_DISABLE_RESTIC",
 		"Velero.LocalBucket":                     "VELERO_LOCAL_BUCKET",
@@ -252,6 +259,11 @@ func convertToBash(kurlValues map[string]interface{}, fieldsSet map[string]bool)
 		"Weave.PodCidrRange":                     "POD_CIDR_RANGE",
 		"Weave.S3Override":                       "WEAVE_S3_OVERRIDE",
 		"Weave.Version":                          "WEAVE_VERSION",
+		"Antrea.IsEncryptionDisabled":            "ANTREA_DISABLE_ENCRYPTION",
+		"Antrea.PodCIDR":                         "ANTREA_POD_CIDR",
+		"Antrea.PodCidrRange":                    "ANTREA_POD_CIDR_RANGE",
+		"Antrea.S3Override":                      "ANTREA_S3_OVERRIDE",
+		"Antrea.Version":                         "ANTREA_VERSION",
 	}
 
 	finalDictionary := make(map[string]string)
@@ -302,7 +314,7 @@ func convertToBash(kurlValues map[string]interface{}, fieldsSet map[string]bool)
 			finalDictionary["OFFLINE_DOCKER_INSTALL"] = "1"
 		}
 
-		if yamlKey == "Weave.PodCidrRange" || yamlKey == "Kubernetes.ServiceCidrRange" && bashVal != "" {
+		if yamlKey == "Weave.PodCidrRange" || yamlKey == "Kubernetes.ServiceCidrRange" || yamlKey == "Antrea.PodCidrRange" && bashVal != "" {
 			bashVal = strings.Replace(bashVal, "/", "", -1)
 		}
 

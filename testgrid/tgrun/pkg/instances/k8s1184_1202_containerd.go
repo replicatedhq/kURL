@@ -12,8 +12,8 @@ func init() {
 				Kubernetes: &kurlv1beta1.Kubernetes{
 					Version: "1.18.4",
 				},
-				Weave: &kurlv1beta1.Weave{
-					Version: "2.6.4",
+				Antrea: &kurlv1beta1.Antrea{
+					Version: "0.13.1",
 				},
 				Contour: &kurlv1beta1.Contour{
 					Version: "1.0.1",
@@ -26,8 +26,8 @@ func init() {
 				Kubernetes: &kurlv1beta1.Kubernetes{
 					Version: "1.20.2",
 				},
-				Weave: &kurlv1beta1.Weave{
-					Version: "2.6.5",
+				Antrea: &kurlv1beta1.Antrea{
+					Version: "0.13.1",
 				},
 				Contour: &kurlv1beta1.Contour{
 					Version: "latest",

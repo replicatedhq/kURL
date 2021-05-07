@@ -1,7 +1,6 @@
 import { Service } from "ts-express-decorators";
 import * as mysql from "promise-mysql";
 import { MysqlWrapper } from "./mysql";
-import { Installer } from "../../installers";
 import * as uuid from "uuid";
 
 export interface GetInstallScriptEvent {

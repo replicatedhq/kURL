@@ -7,6 +7,14 @@ function render_yaml_file() {
     eval "echo \"$(cat $1)\""
 }
 
+function render_yaml_file_2() {
+    local file="$1"
+    local data=$(< "$file")
+    local delimiter="__apply_shell_expansion_delimiter__"
+    local command="cat <<$delimiter"$'\n'"$data"$'\n'"$delimiter"
+    eval "$command"
+}
+
 function render_file() {
     eval "echo \"$(cat $1)\""
 }
@@ -30,7 +38,33 @@ function insert_resources() {
         echo "resources:" >> "$kustomization_file"
     fi
 
-    sed -i "/resources.*/a - $resource_file" "$kustomization_file"
+    sed -i "/resources:.*/a - $resource_file" "$kustomization_file"
+}
+
+function insert_patches_json_6902() {
+    local kustomization_file="$1"
+    local patch_file="$2"
+    local group="$3"
+    local version="$4"
+    local kind="$5"
+    local name="$6"
+    local namespace="$7"
+
+    if ! grep -q "patchesJson6902" "$kustomization_file"; then
+        echo "patchesJson6902:" >> "$kustomization_file"
+    fi
+
+# 'fourspace_' and 'twospace_' are used because spaces at the beginning of each line are stripped
+    sed -i "/patchesJson6902.*/a- target:\n\
+fourspace_ group: $group\n\
+fourspace_ version: $version\n\
+fourspace_ kind: $kind\n\
+fourspace_ name: $name\n\
+fourspace_ namespace: $namespace\n\
+twospace_ path: $patch_file"       "$kustomization_file"
+
+    sed -i "s/fourspace_ /    /" "$kustomization_file"
+    sed -i "s/twospace_ /  /" "$kustomization_file"
 }
 
 function setup_kubeadm_kustomize() {

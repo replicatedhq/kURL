@@ -1,0 +1,8 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rook-ceph-operator
+spec:
+  template:
+    spec:
+      priorityClassName: system-cluster-critical

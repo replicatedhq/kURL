@@ -1,0 +1,45 @@
+name: daily-scan-images
+
+on:
+  schedule:
+    - cron: "0 16 * * *"
+  workflow_dispatch: {}
+
+jobs:
+  build-matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - uses: actions/setup-node@v1
+      - uses: actions/checkout@v2
+      - name: Install dependencies
+        working-directory: ./bin/scan-images/
+        run: npm install
+      - id: set-matrix
+        name: Build image matrix
+        run: |
+          OUTPUT=`./bin/scan-images/matrix.js`
+          echo "::set-output name=matrix::$OUTPUT"
+
+  scan-image:
+    needs: build-matrix
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: ${{fromJSON(needs.build-matrix.outputs.matrix)}}
+      fail-fast: false
+      max-parallel: 5
+    steps:
+      - uses: actions/setup-node@v1
+      - uses: actions/checkout@v2
+      - name: "${{ matrix.addon }}:${{ matrix.version }} - ${{ matrix.name }} : Scan image"
+        id: scan
+        uses: anchore/scan-action@v2
+        with:
+          image: ${{ matrix.image }}
+          fail-build: false
+      - name: Install dependencies
+        working-directory: ./bin/scan-images/
+        run: npm install
+      - name: "${{ matrix.addon }}:${{ matrix.version }} - ${{ matrix.name }} : Analyze vulnerabilities report"
+        run: ./bin/scan-images/analyze.js ${{ steps.scan.outputs.vulnerabilities }}

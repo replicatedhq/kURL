@@ -39,6 +39,7 @@ function kubeadm_addon_for_each() {
     $cmd nodeless "$NODELESS_VERSION"
     $cmd calico "$CALICO_VERSION" "$CALICO_S3_OVERRIDE"
     $cmd weave "$WEAVE_VERSION" "$WEAVE_S3_OVERRIDE"
+    $cmd antrea "$ANTREA_VERSION" "$ANTREA_S3_OVERRIDE"
     $cmd rook "$ROOK_VERSION" "$ROOK_S3_OVERRIDE"
     $cmd openebs "$OPENEBS_VERSION" "$OPENEBS_S3_OVERRIDE"
     $cmd longhorn "$LONGHORN_VERSION" "$LONGHORN_S3_OVERRIDE"
@@ -53,6 +54,7 @@ function kubeadm_addon_for_each() {
     $cmd collectd "$COLLECTD_VERSION" "$COLLECTD_S3_OVERRIDE"
     $cmd cert-manager "$CERT_MANAGER_VERSION" "$CERT_MANAGER_S3_OVERRIDE"
     $cmd metrics-server "$METRICS_SERVER_VERSION" "$METRICS_SERVER_S3_OVERRIDE"
+    $cmd sonobuoy "$SONOBUOY_VERSION" "$SONOBUOY_S3_OVERRIDE"
 }
 
 function kubeadm_reset() {
@@ -66,7 +68,9 @@ function kubeadm_reset() {
     fi
     printf "kubeadm reset completed\n"
 
-    weave_reset
+    if [ -f /etc/cni/net.d/10-weave.conflist ]; then
+        weave_reset
+    fi
     printf "weave reset completed\n"
 }
 

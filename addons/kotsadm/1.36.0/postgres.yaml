@@ -1,0 +1,102 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: kotsadm-postgres
+  labels:
+    kots.io/kotsadm: "true"
+    kots.io/backup: velero
+spec:
+  replicas: 1
+  serviceName: kotsadm-postgres
+  selector:
+    matchLabels:
+      app: kotsadm-postgres
+  volumeClaimTemplates:
+  - metadata:
+      name: kotsadm-postgres
+      labels:
+        kots.io/kotsadm: "true"
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: 1Gi
+  template:
+    metadata:
+      labels:
+        app: kotsadm-postgres
+        kots.io/kotsadm: "true"
+        kots.io/backup: velero
+    spec:
+      securityContext:
+        runAsUser: 999
+        fsGroup: 999
+      volumes:
+      - name: kotsadm-postgres
+        persistentVolumeClaim:
+          claimName: kotsadm-postgres
+      containers:
+      - image: kotsadm/postgres:v1.36.0
+        name: kotsadm-postgres
+        ports:
+        - name: postgres
+          containerPort: 5432
+        volumeMounts:
+        - name: kotsadm-postgres
+          mountPath: /var/lib/postgresql/data
+        env:
+        - name: PGDATA
+          value: /var/lib/postgresql/data/pgdata
+        - name: POSTGRES_USER
+          value: kotsadm
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: kotsadm-postgres
+              key: password
+        - name: POSTGRES_DB
+          value: kotsadm
+        livenessProbe:
+          initialDelaySeconds: 30
+          timeoutSeconds: 5
+          failureThreshold: 3
+          exec:
+            command:
+            - "/bin/sh"
+            - "-i"
+            - "-c"
+            - "pg_isready -U kotsadm -h 127.0.0.1 -p 5432"
+        readinessProbe:
+          initialDelaySeconds: 1
+          periodSeconds: 1
+          timeoutSeconds: 1
+          exec:
+            command:
+            - "/bin/sh"
+            - "-i"
+            - "-c"
+            - "pg_isready -U kotsadm -h 127.0.0.1 -p 5432"
+        resources:
+          limits:
+            cpu: 200m
+            memory: 200Mi
+          requests:
+            cpu: 100m
+            memory: 100Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kotsadm-postgres
+  labels:
+    kots.io/kotsadm: "true"
+    kots.io/backup: velero
+spec:
+  selector:
+    app: kotsadm-postgres
+  type: ClusterIP
+  ports:
+  - name: postgres
+    port: 5432
+    targetPort: postgres

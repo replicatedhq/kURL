@@ -233,6 +233,7 @@ func TestBuiltinExecuteTemplate(t *testing.T) {
 					query: ".spec.analyzers[] | select(.tcpLoadBalancer != null) | .tcpLoadBalancer.exclude",
 					value: `"true"`,
 				},
+
 				{
 					query: ".spec.collectors[] | select(.blockDevices != null) | .blockDevices.exclude",
 					value: `"false"`,

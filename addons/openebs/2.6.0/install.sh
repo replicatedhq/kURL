@@ -21,6 +21,7 @@ function openebs() {
     render_yaml_file "$src/tmpl-namespace.yaml" > "$dst/namespace.yaml"
     cp "$src/operator.yaml" "$dst/"
 
+    secure_openebs
     openebs_spc_cspc_migration
 
     if [ "$OPENEBS_CSTOR" = "1" ]; then
@@ -35,7 +36,12 @@ function openebs() {
         kubectl apply -k "$dst/"
 
         echo "Waiting for OpenEBS operator to apply CustomResourceDefinitions"
+        # wait for all crds we use in this function
         spinner_until 120 kubernetes_resource_exists default crd storagepoolclaims.openebs.io
+        spinner_until 120 kubernetes_resource_exists default crd cstorpools.openebs.io
+        spinner_until 120 kubernetes_resource_exists default crd blockdevices.openebs.io
+        spinner_until 120 kubernetes_resource_exists default crd cstorvolumes.openebs.io
+        spinner_until 120 kubernetes_resource_exists default crd cstorvolumereplicas.openebs.io
 
         openebs_cleanup_kubesystem
         openebs_upgrade_cstor
@@ -90,7 +96,16 @@ function openebs() {
 }
 
 function openebs_join() {
-    openebs_iscsi
+    secure_openebs
+
+    if [ "$OPENEBS_CSTOR" = "1" ]; then
+        openebs_iscsi
+    fi
+}
+
+function secure_openebs() {
+    mkdir -p /var/openebs
+    chmod 700 /var/openebs
 }
 
 function openebs_iscsi() {
@@ -120,15 +135,15 @@ function openebs_cstor_max_pools() {
     OPENEBS_CSTOR_MAX_POOLS=$(kubectl -n "$OPENEBS_NAMESPACE" get cstorpools -l openebs.io/storage-pool-claim=cstor-disk --no-headers | sort | uniq | wc -l)
 
     # add 1 for each node that has an unclaimed block device that is not already running a pool
-    while read -r blockdevicerow; do
-        local nodeName=$(echo "$blockdevicerow" | awk '{ print $2 }')
+    local nodeName=
+    while read -r nodeName; do
         local cstorPoolsOnNodeCount=$(kubectl -n "$OPENEBS_NAMESPACE" get cstorpools -l "openebs.io/storage-pool-claim=cstor-disk,kubernetes.io/hostname=$nodeName" --no-headers | wc -l)
 
         if [ $cstorPoolsOnNodeCount -eq 0 ]; then
             echo "Node $nodeName is able to join the cstor-disk pool"
             OPENEBS_CSTOR_MAX_POOLS=$((OPENEBS_CSTOR_MAX_POOLS+1))
         fi
-    done < <(kubectl -n "$OPENEBS_NAMESPACE" get blockdevices --no-headers 2>/dev/null | grep Unclaimed)
+    done < <(kubectl -n "$OPENEBS_NAMESPACE" get blockdevices --no-headers 2>/dev/null | grep Unclaimed | awk '{ print $2 }')
 
     if [ $OPENEBS_CSTOR_MAX_POOLS -lt 1 ]; then
         OPENEBS_CSTOR_MAX_POOLS=1

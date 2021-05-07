@@ -4,7 +4,57 @@
     weave:
       version: "latest"
     rook:
-      version: "1.4.3"
+      version: "1.5.9"
+      isBlockStorageEnabled: true
+    docker:
+      version: "latest"
+    prometheus:
+      version: "__testver__"
+      s3Override: "__testdist__"
+- installerSpec:
+    kubernetes:
+      version: "latest"
+    weave:
+      version: "latest"
+    rook:
+      version: "1.5.9"
+      isBlockStorageEnabled: true
+    docker:
+      version: "latest"
+    prometheus:
+      version: "0.33.0"
+  upgradeSpec:
+    kubernetes:
+      version: "latest"
+    weave:
+      version: "latest"
+    rook:
+      version: "1.5.9"
+      isBlockStorageEnabled: true
+    docker:
+      version: "latest"
+    prometheus:
+      version: "__testver__"
+      s3Override: "__testdist__"
+- installerSpec:
+    kubernetes:
+      version: "latest"
+    weave:
+      version: "latest"
+    rook:
+      version: "1.5.9"
+      isBlockStorageEnabled: true
+    docker:
+      version: "latest"
+    prometheus:
+      version: "latest"
+  upgradeSpec:
+    kubernetes:
+      version: "latest"
+    weave:
+      version: "latest"
+    rook:
+      version: "1.5.9"
       isBlockStorageEnabled: true
     docker:
       version: "latest"

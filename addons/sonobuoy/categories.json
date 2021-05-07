@@ -1,0 +1,6 @@
+{
+  "name": "sonobuoy",
+  "fulfills": ["Cluster Administration"],
+  "requires": ["CNI Plugin", "Container Runtime"],
+  "recommends": []
+}

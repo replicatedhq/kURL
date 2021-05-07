@@ -1,6 +1,5 @@
 #!/bin/bash
 # assumptions
-# - will only run the latest version of an addon if there are multiple version changes (latest is simple dictionary sort :/ )
 # - will run each changed addon as a separate testgrid run. Testing two addon updates simultaneously in a TestGrid run is not supported.
 
 set -eo pipefail
@@ -28,7 +27,7 @@ ADDON_DENY_LIST="aws calico nodeless containerd"
 PR_NUMBER=$(echo $GITHUB_REF | cut -d"/" -f3)
 
 # Checks if there is an update to a addon that meets all of the right criteria and reports to the action
-# - Not an update to the template
+# - Not an update to the template or build-images
 # - Not an update to a readme
 # - Not a addon in the ADDON_DENY_LIST (not part of the spec)
 ADDON_AVAILBLE=
@@ -36,7 +35,7 @@ check() {
   echo "Checking PR#${PR_NUMBER}..."
 
   # Take the base branch and figure out which addons changed. Verify each.
-  for addon in $(git diff --dirstat=files,0 "origin/${GITHUB_BASE_REF}" -- addons/ "origin/${GITHUB_BASE_REF}" -- addons/ | sed 's/^[ 0-9.]\+% addons\///g' | grep -v template | cut -f -1 -d"/" | uniq ) 
+  for addon in $(git diff --dirstat=files,0 "origin/${GITHUB_BASE_REF}" -- addons/ "origin/${GITHUB_BASE_REF}" -- addons/ | sed 's/^[ 0-9.]\+% addons\///g' | grep -v template | grep -v build-images | cut -f -1 -d"/" | uniq )
   do
     if ! [[ " $ADDON_DENY_LIST " =~ .*\ $addon\ .* ]]; then
       check_addon $addon
@@ -55,8 +54,8 @@ check() {
 modified_versions() {
   local name=$1
 
-  # Get the version that's changed (filter out templates)
-  local versions=$(git diff --dirstat=files,0 "origin/${GITHUB_BASE_REF}" -- "addons/${name}" "origin/${GITHUB_BASE_REF}" -- "addons/${name}" | sed 's/^[ 0-9.]\+% addons\///g' | grep -v template | cut -f2 -d"/" | uniq |  sort -r )
+  # Get the version that's changed (filter out templates and build-images)
+  local versions=$(git diff --dirstat=files,0 "origin/${GITHUB_BASE_REF}" -- "addons/${name}" "origin/${GITHUB_BASE_REF}" -- "addons/${name}" | sed 's/^[ 0-9.]\+% addons\///g' | grep -v template | grep -v build-images | cut -f2 -d"/" | uniq |  sort -r )
 
   echo $versions
 }
@@ -64,7 +63,7 @@ modified_versions() {
 check_addon() {
   local name=$1
 
-  # Get the version that's changed (filter out templates)
+  # Get the version that's changed (filter out templates and build-images)
   local versions=$(modified_versions $name)
 
   # check if there is a valid version (files in the root don't count) & template files 
@@ -138,7 +137,7 @@ run() {
   echo "Test PR#${PR_NUMBER}..."
 
   # Take the base branch and figure out which addons changed. Verify each.
-  for addon in $(git diff --dirstat=files,0 "origin/${GITHUB_BASE_REF}" -- addons/ "origin/${GITHUB_BASE_REF}" -- addons/ | sed 's/^[ 0-9.]\+% addons\///g' | grep -v template | cut -f -1 -d"/" | uniq ) 
+  for addon in $(git diff --dirstat=files,0 "origin/${GITHUB_BASE_REF}" -- addons/ "origin/${GITHUB_BASE_REF}" -- addons/ | sed 's/^[ 0-9.]\+% addons\///g' | grep -v template | grep -v build-images | cut -f -1 -d"/" | uniq )
   do
     if ! [[ " $ADDON_DENY_LIST " =~ .*\ $addon\ .* ]]; then
       run_addon $addon

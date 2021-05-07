@@ -127,6 +127,23 @@ function get_patch_yaml() {
             auto-upgrades-enabled)
                 AUTO_UPGRADES_ENABLED=1
                 ;;
+            primary-host)
+				if [ -z "$PRIMARY_HOST" ]; then
+					PRIMARY_HOST="$_value"
+				else
+					PRIMARY_HOST="$PRIMARY_HOST,$_value"
+				fi
+				;;
+            secondary-host)
+				if [ -z "$SECONDARY_HOST" ]; then
+					SECONDARY_HOST="$_value"
+				else
+					SECONDARY_HOST="$SECONDARY_HOST,$_value"
+				fi
+				;;
+            force-reapply-addons)
+                FORCE_REAPPLY_ADDONS=1
+                ;;
             *)
                 echo >&2 "Error: unknown parameter \"$_param\""
                 exit 1
@@ -255,4 +272,11 @@ function is_ha() {
     if [ "$master_count" -gt 1 ]; then
         HA_CLUSTER=1
     fi
+}
+
+function get_addon_config() {
+    local addon_name=$1
+    addon_name=$(kebab_to_camel "$addon_name")
+
+    $BIN_YAMLUTIL -j -fp $MERGED_YAML_SPEC -jf "spec.$addon_name"
 }

@@ -1,7 +1,0 @@
-image velero velero/velero:v__VELERO_VERSION__
-image restic-restore velero/velero-restic-restore-helper:v__VELERO_VERSION__
-image velero-aws velero/velero-plugin-for-aws:v1.1.0
-image velero-gcp velero/velero-plugin-for-gcp:v1.1.0
-image velero-azure velero/velero-plugin-for-microsoft-azure:v1.1.0
-
-asset velero.tar.gz https://github.com/vmware-tanzu/velero/releases/download/v__VELERO_VERSION__/velero-v__VELERO_VERSION__-linux-amd64.tar.gz

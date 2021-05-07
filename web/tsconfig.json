@@ -19,10 +19,11 @@
     "include": [
         "src/**/*.js",
         "src/**/*.ts",
-				"client/**/*.ts"
+        "client/**/*.ts"
     ],
     "exclude": [
         "node_modules",
-        "src/test/**/*.ts"
+        "src/test/**/*.ts",
+        "src/**/*_test.ts"
     ]
 }

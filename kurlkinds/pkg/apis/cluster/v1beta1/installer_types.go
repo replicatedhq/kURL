@@ -26,6 +26,7 @@ type InstallerSpec struct {
 	K3S             K3S             `json:"k3s,omitempty" yaml:"k3s,omitempty"`
 	Docker          Docker          `json:"docker,omitempty" yaml:"docker,omitempty"`
 	Weave           Weave           `json:"weave,omitempty" yaml:"weave,omitempty"`
+	Antrea          Antrea          `json:"antrea,omitempty" yaml:"antrea,omitempty"`
 	Calico          Calico          `json:"calico,omitempty" yaml:"calico,omitempty"`
 	Contour         Contour         `json:"contour,omitempty" yaml:"contour,omitempty"`
 	Rook            Rook            `json:"rook,omitempty" yaml:"rook,omitempty"`
@@ -47,6 +48,8 @@ type InstallerSpec struct {
 	MetricsServer   MetricsServer   `json:"metricsServer,omitempty" yaml:"metricsServer,omitempty"`
 	Helm            Helm            `json:"helm,omitempty" yaml:"helm,omitempty"`
 	Longhorn        Longhorn        `json:"longhorn,omitempty" yaml:"longhorn,omitempty"`
+	Sonobuoy        Sonobuoy        `json:"sonobuoy,omitempty" yaml:"sonobuoy,omitempty"`
+	UFWConfig       UFWConfig       `json:"ufwConfig,omitempty" yaml:"ufwConfig,omitempty"`
 }
 
 type Contour struct {
@@ -152,8 +155,10 @@ type K3S struct {
 
 type Rook struct {
 	BlockDeviceFilter          string `json:"blockDeviceFilter,omitempty" yaml:"blockDeviceFilter,omitempty"`
+	BypassUpgradeWarning       bool   `json:"bypassUpgradeWarning,omitempty" yaml:"bypassUpgradeWarning,omitempty"`
 	CephReplicaCount           int    `json:"cephReplicaCount,omitempty" yaml:"cephReplicaCount,omitempty"`
 	IsBlockStorageEnabled      bool   `json:"isBlockStorageEnabled,omitempty" yaml:"isBlockStorageEnabled,omitempty"`
+	IsSharedFilesystemDisabled bool   `json:"isSharedFilesystemDisabled,omitempty" yaml:"isSharedFilesystemDisabled,omitempty"`
 	S3Override                 string `json:"s3Override,omitempty" yaml:"s3Override,omitempty"`
 	StorageClassName           string `json:"storageClassName,omitempty" yaml:"storageClassName,omitempty"`
 	HostpathRequiresPrivileged bool   `json:"hostpathRequiresPrivileged,omitempty" yaml:"hostpathRequiresPrivileged,omitempty"`
@@ -171,6 +176,14 @@ type Velero struct {
 }
 
 type Weave struct {
+	IsEncryptionDisabled bool   `json:"isEncryptionDisabled,omitempty" yaml:"isEncryptionDisabled,omitempty"`
+	PodCIDR              string `json:"podCIDR,omitempty" yaml:"podCIDR,omitempty"`
+	PodCidrRange         string `json:"podCidrRange,omitempty" yaml:"podCidrRange,omitempty"`
+	S3Override           string `json:"s3Override,omitempty" yaml:"s3Override,omitempty"`
+	Version              string `json:"version" yaml:"version"`
+}
+
+type Antrea struct {
 	IsEncryptionDisabled bool   `json:"isEncryptionDisabled,omitempty" yaml:"isEncryptionDisabled,omitempty"`
 	PodCIDR              string `json:"podCIDR,omitempty" yaml:"podCIDR,omitempty"`
 	PodCidrRange         string `json:"podCidrRange,omitempty" yaml:"podCidrRange,omitempty"`
@@ -249,6 +262,17 @@ type Longhorn struct {
 	Version        string `json:"version" yaml:"version"`
 	UiBindPort     int    `json:"uiBindPort,omitempty" yaml:"uiBindPort,omitempty"`
 	UiReplicaCount int    `json:"uiReplicaCount,omitempty" yaml:"uiReplicaCount,omitempty"`
+}
+
+type Sonobuoy struct {
+	S3Override string `json:"s3Override,omitempty" yaml:"s3Override,omitempty"`
+	Version    string `json:"version" yaml:"version"`
+}
+
+type UFWConfig struct {
+	BypassUFWWarning bool `json:"bypassUFWWarning,omitempty" yaml:"bypassUFWWarning,omitempty"`
+	DisableUFW       bool `json:"disableUFW,omitempty" yaml:"disableUFW,omitempty"`
+	HardFailOnUFW    bool `json:"hardFailOnUFW,omitempty" yaml:"hardFailOnUFW,omitempty"`
 }
 
 // InstallerStatus defines the observed state of Installer

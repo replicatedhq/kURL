@@ -7,6 +7,7 @@ DIR=.
 
 # Magic begin: scripts are inlined for distribution. See "make build/upgrade.sh"
 . $DIR/scripts/Manifest
+. $DIR/scripts/common/kurl.sh
 . $DIR/scripts/common/addon.sh
 . $DIR/scripts/common/common.sh
 . $DIR/scripts/common/discover.sh
@@ -33,7 +34,6 @@ maybe_upgrade() {
     local kubeletMajor="$major"
     local kubeletMinor="$minor"
     local kubeletPatch="$patch"
-    local minorVersionDifference=$(($KUBERNETES_TARGET_VERSION_MINOR - $kubeletMinor))
 
     if [ -n "$HOSTNAME_CHECK" ]; then
         if [ "$HOSTNAME_CHECK" != "$(hostname)" ]; then
@@ -51,6 +51,10 @@ maybe_upgrade() {
     if [ "$kubeletMinor" -lt "$KUBERNETES_TARGET_VERSION_MINOR" ] || ([ "$kubeletMinor" -eq "$KUBERNETES_TARGET_VERSION_MINOR" ] && [ "$kubeletPatch" -lt "$KUBERNETES_TARGET_VERSION_PATCH" ]); then
         logStep "Kubernetes version v$kubeletVersion detected, upgrading node to version v$KUBERNETES_VERSION"
 
+
+        if [ "$AIRGAP" != "1" ] && [ -n "$DIST_URL" ]; then
+            kubernetes_get_host_packages_online "$KUBERNETES_VERSION"
+        fi
         upgrade_kubeadm "$KUBERNETES_VERSION"
 
         kubeadm upgrade node
@@ -74,8 +78,6 @@ maybe_upgrade() {
         fi
 
         kubernetes_host
-        systemctl daemon-reload
-        systemctl restart kubelet
 
         logSuccess "Kubernetes node upgraded to $KUBERNETES_VERSION"
 
@@ -117,9 +119,10 @@ function main() {
     journald_persistent
     configure_proxy
     configure_no_proxy
+    ${K8S_DISTRO}_addon_for_each addon_fetch
     host_preflights "${MASTER:-0}" "1" "1"
-    ${K8S_DISTRO}_addon_for_each addon_pre_join
     install_cri
+    get_common
     get_shared
     maybe_upgrade
     install_host_dependencies

@@ -4,7 +4,7 @@ KURL_BIN_UTILS_FILE ?= kurl-bin-utils-latest.tar.gz
 VERSION_PACKAGE = github.com/replicatedhq/kurl/pkg/version
 VERSION ?= 0.0.1
 DATE = `date -u +"%Y-%m-%dT%H:%M:%SZ"`
-BUILDFLAGS = 
+BUILDFLAGS = -tags "netgo containers_image_ostree_stub exclude_graphdriver_devicemapper exclude_graphdriver_btrfs containers_image_openpgp" -installsuffix netgo
 
 GIT_TREE = $(shell git rev-parse --is-inside-work-tree 2>/dev/null)
 ifneq "$(GIT_TREE)" ""
@@ -31,6 +31,7 @@ define LDFLAGS
 	-X ${VERSION_PACKAGE}.buildTime=${DATE} \
 "
 endef
+
 
 .PHONY: clean
 clean:
@@ -93,6 +94,12 @@ dist/weave-%.tar.gz: build/addons
 	mkdir -p dist
 	tar cf - -C build addons/weave/$* | gzip > dist/weave-$*.tar.gz
 
+dist/antrea-%.tar.gz: build/addons
+	mkdir -p build/addons/antrea/$*/images
+	bin/save-manifest-assets.sh addons/antrea/$*/Manifest $(CURDIR)/build/addons/antrea/$*
+	mkdir -p dist
+	tar cf - -C build addons/antrea/$* | gzip > dist/antrea-$*.tar.gz
+
 dist/rook-%.tar.gz: build/addons
 	mkdir -p build/addons/rook/$*/images
 	bin/save-manifest-assets.sh addons/rook/$*/Manifest $(CURDIR)/build/addons/rook/$*
@@ -141,6 +148,8 @@ dist/docker-%.tar.gz:
 	${MAKE} build/packages/docker/$*/ubuntu-20.04
 	${MAKE} build/packages/docker/$*/rhel-7
 	mkdir -p dist
+	curl -L https://github.com/opencontainers/runc/releases/download/v1.0.0-rc92/runc.amd64 > build/packages/docker/$*/runc
+	chmod +x build/packages/docker/$*/runc
 	tar cf - -C build packages/docker/$* | gzip > dist/docker-$*.tar.gz
 
 dist/containerd-%.tar.gz: build/addons
@@ -173,7 +182,19 @@ dist/longhorn-%.tar.gz: build/addons
 	mkdir -p dist
 	tar cf - -C build addons/longhorn/$* | gzip > dist/longhorn-$*.tar.gz
 
+dist/sonobuoy-%.tar.gz: build/addons
+	mkdir -p build/addons/sonobuoy/$*/images
+	bin/save-manifest-assets.sh addons/sonobuoy/$*/Manifest $(CURDIR)/build/addons/sonobuoy/$*
+	mkdir -p dist
+	tar cf - -C build addons/sonobuoy/$* | gzip > dist/sonobuoy-$*.tar.gz
+
 dist/kubernetes-%.tar.gz:
+	# conformance packages do not exist for versions of k8s prior to 1.17
+	$(eval major = $(shell echo "$*" | sed -E 's/^v?([0-9]+)\.([0-9]+).*$$/\1/'))
+	$(eval minor = $(shell echo "$*" | sed -E 's/^v?([0-9]+)\.([0-9]+).*$$/\2/'))
+	[ "${major}" -eq "1" ] && [ "${minor}" -ge "17" ] && { \
+		${MAKE} dist/kubernetes-conformance-$*.tar.gz ; \
+	} || true ;
 	${MAKE} build/packages/kubernetes/$*/images
 	${MAKE} build/packages/kubernetes/$*/ubuntu-16.04
 	${MAKE} build/packages/kubernetes/$*/ubuntu-18.04
@@ -188,7 +209,18 @@ build/packages/kubernetes/%/images:
 	mkdir -p build/packages/kubernetes/$*/images
 	bin/save-manifest-assets.sh packages/kubernetes/$*/Manifest build/packages/kubernetes/$*
 
+dist/kubernetes-conformance-%.tar.gz:
+	${MAKE} build/packages/kubernetes-conformance/$*/images
+	cp packages/kubernetes/$*/conformance/Manifest build/packages/kubernetes-conformance/$*/
+	mkdir -p dist
+	tar cf - -C build packages/kubernetes-conformance/$* | gzip > dist/kubernetes-conformance-$*.tar.gz
+
+build/packages/kubernetes-conformance/%/images:
+	mkdir -p build/packages/kubernetes-conformance/$*/images
+	bin/save-manifest-assets.sh packages/kubernetes/$*/conformance/Manifest build/packages/kubernetes-conformance/$*
+
 dist/rke-2-%.tar.gz:
+	${MAKE} dist/kubernetes-conformance-$(shell echo "$*" | sed 's/^v\(.*\)-.*$$/\1/').tar.gz
 	${MAKE} build/packages/rke-2/$*/images
 	${MAKE} build/packages/rke-2/$*/rhel-7
 	${MAKE} build/packages/rke-2/$*/rhel-8
@@ -201,6 +233,7 @@ build/packages/rke-2/%/images:
 	bin/save-manifest-assets.sh packages/rke-2/$*/Manifest build/packages/rke-2/$*
 
 dist/k-3-s-%.tar.gz:
+	${MAKE} dist/kubernetes-conformance-$(shell echo "$*" | sed 's/^v\(.*\)-.*$$/\1/').tar.gz
 	${MAKE} build/packages/k-3-s/$*/images
 	${MAKE} build/packages/k-3-s/$*/rhel-7
 	${MAKE} build/packages/k-3-s/$*/rhel-8
@@ -234,6 +267,7 @@ build/templates/install.tmpl: build/install.sh
 	sed 's/^KURL_URL=.*/KURL_URL="{{= KURL_URL }}"/' "build/install.sh" | \
 		sed 's/^DIST_URL=.*/DIST_URL="{{= DIST_URL }}"/' | \
 		sed 's/^INSTALLER_ID=.*/INSTALLER_ID="{{= INSTALLER_ID }}"/' | \
+		sed 's/^KURL_VERSION=.*/KURL_VERSION="{{= KURL_VERSION }}"/' | \
 		sed 's/^REPLICATED_APP_URL=.*/REPLICATED_APP_URL="{{= REPLICATED_APP_URL }}"/' | \
 		sed 's/^STEP_VERSIONS=.*/STEP_VERSIONS={{= STEP_VERSIONS }}/' | \
 		sed 's/^INSTALLER_YAML=.*/INSTALLER_YAML="{{= INSTALLER_YAML }}"/' | \
@@ -241,6 +275,10 @@ build/templates/install.tmpl: build/install.sh
 		sed 's/^KURL_BIN_UTILS_FILE=.*/KURL_BIN_UTILS_FILE="{{= KURL_BIN_UTILS_FILE }}"/' | \
 		sed 's/^DISABLE_REPORTING=.*//' \
 		> build/templates/install.tmpl
+
+dist/install.tmpl: build/templates/install.tmpl
+	mkdir -p dist
+	cp build/templates/install.tmpl dist/install.tmpl
 
 build/join.sh:
 	mkdir -p tmp build
@@ -261,6 +299,7 @@ build/templates/join.tmpl: build/join.sh
 	sed 's/^KURL_URL=.*/KURL_URL="{{= KURL_URL }}"/' "build/join.sh" | \
 		sed 's/^DIST_URL=.*/DIST_URL="{{= DIST_URL }}"/' | \
 		sed 's/^INSTALLER_ID=.*/INSTALLER_ID="{{= INSTALLER_ID }}"/' | \
+		sed 's/^KURL_VERSION=.*/KURL_VERSION="{{= KURL_VERSION }}"/' | \
 		sed 's/^REPLICATED_APP_URL=.*/REPLICATED_APP_URL="{{= REPLICATED_APP_URL }}"/' | \
 		sed 's/^STEP_VERSIONS=.*/STEP_VERSIONS={{= STEP_VERSIONS }}/' | \
 		sed 's/^INSTALLER_YAML=.*/INSTALLER_YAML="{{= INSTALLER_YAML }}"/' | \
@@ -268,6 +307,10 @@ build/templates/join.tmpl: build/join.sh
 		sed 's/^KURL_BIN_UTILS_FILE=.*/KURL_BIN_UTILS_FILE="{{= KURL_BIN_UTILS_FILE }}"/' | \
 		sed 's/^DISABLE_REPORTING=.*//' \
 		> build/templates/join.tmpl
+
+dist/join.tmpl: build/templates/join.tmpl
+	mkdir -p dist
+	cp build/templates/join.tmpl dist/join.tmpl
 
 build/upgrade.sh:
 	mkdir -p tmp build
@@ -288,6 +331,7 @@ build/templates/upgrade.tmpl: build/upgrade.sh
 	sed 's/^KURL_URL=.*/KURL_URL="{{= KURL_URL }}"/' "build/upgrade.sh" | \
 		sed 's/^DIST_URL=.*/DIST_URL="{{= DIST_URL }}"/' | \
 		sed 's/^INSTALLER_ID=.*/INSTALLER_ID="{{= INSTALLER_ID }}"/' | \
+		sed 's/^KURL_VERSION=.*/KURL_VERSION="{{= KURL_VERSION }}"/' | \
 		sed 's/^REPLICATED_APP_URL=.*/REPLICATED_APP_URL="{{= REPLICATED_APP_URL }}"/' | \
 		sed 's/^STEP_VERSIONS=.*/STEP_VERSIONS={{= STEP_VERSIONS }}/' | \
 		sed 's/^INSTALLER_YAML=.*/INSTALLER_YAML="{{= INSTALLER_YAML }}"/' | \
@@ -295,6 +339,10 @@ build/templates/upgrade.tmpl: build/upgrade.sh
 		sed 's/^KURL_BIN_UTILS_FILE=.*/KURL_BIN_UTILS_FILE="{{= KURL_BIN_UTILS_FILE }}"/' | \
 		sed 's/^DISABLE_REPORTING=.*//' \
 		> build/templates/upgrade.tmpl
+
+dist/upgrade.tmpl: build/templates/upgrade.tmpl
+	mkdir -p dist
+	cp build/templates/upgrade.tmpl dist/upgrade.tmpl
 
 build/tasks.sh:
 	mkdir -p tmp build
@@ -312,7 +360,21 @@ build/tasks.sh:
 
 build/templates/tasks.tmpl: build/tasks.sh
 	mkdir -p build/templates
-	cp build/tasks.sh build/templates/tasks.tmpl
+	sed 's/^KURL_URL=.*/KURL_URL="{{= KURL_URL }}"/' "build/tasks.sh" | \
+		sed 's/^DIST_URL=.*/DIST_URL="{{= DIST_URL }}"/' | \
+		sed 's/^INSTALLER_ID=.*/INSTALLER_ID="{{= INSTALLER_ID }}"/' | \
+		sed 's/^KURL_VERSION=.*/KURL_VERSION="{{= KURL_VERSION }}"/' | \
+		sed 's/^REPLICATED_APP_URL=.*/REPLICATED_APP_URL="{{= REPLICATED_APP_URL }}"/' | \
+		sed 's/^STEP_VERSIONS=.*/STEP_VERSIONS={{= STEP_VERSIONS }}/' | \
+		sed 's/^INSTALLER_YAML=.*/INSTALLER_YAML="{{= INSTALLER_YAML }}"/' | \
+		sed 's/^KURL_UTIL_IMAGE=.*/KURL_UTIL_IMAGE="{{= KURL_UTIL_IMAGE }}"/' | \
+		sed 's/^KURL_BIN_UTILS_FILE=.*/KURL_BIN_UTILS_FILE="{{= KURL_BIN_UTILS_FILE }}"/' | \
+		sed 's/^DISABLE_REPORTING=.*//' \
+		> build/templates/tasks.tmpl
+
+dist/tasks.tmpl: build/templates/tasks.tmpl
+	mkdir -p dist
+	cp build/templates/tasks.tmpl dist/tasks.tmpl
 
 build/addons:
 	mkdir -p build
@@ -498,6 +560,7 @@ build/packages/k-3-s/%/rhel-8:
 build/templates: build/templates/install.tmpl build/templates/join.tmpl build/templates/upgrade.tmpl build/templates/tasks.tmpl
 
 build/bin: build/bin/kurl
+	rm -rf kurl_util/bin
 	${MAKE} -C kurl_util build
 	cp -r kurl_util/bin build
 
@@ -506,15 +569,14 @@ build/bin/kurl:
 	ldd build/bin/kurl | grep -q "not a dynamic executable" # confirm that there are no linked libs
 
 .PHONY: code
-code: build/templates build/kustomize build/addons
+code: build/kustomize build/addons
 
 build/bin/server:
 	go build -o build/bin/server cmd/server/main.go
 
 .PHONY: web
-web: build/templates build/bin/server
+web: build/bin/server
 	mkdir -p web/build
-	cp -r build/templates web
 	cp -r build/bin web
 
 watchrsync:
@@ -530,11 +592,11 @@ lint:
 
 .PHONY: vet
 vet:
-	go vet ./cmd/... ./pkg/...
+	go vet ${BUILDFLAGS} ./cmd/... ./pkg/...
 
 .PHONY: test
 test: lint vet
-	go test ./cmd/... ./pkg/...
+	go test ${BUILDFLAGS} ./cmd/... ./pkg/...
 
 .PHONY: test-shell
 test-shell:
@@ -554,3 +616,15 @@ kurl-util-image:
 generate-addons:
 	make -C web generate-versions
 	node generate-addons.js
+
+.PHONY: generate-mocks
+generate-mocks:
+	mockgen -source=pkg/cli/cli.go -destination=pkg/cli/mock/mock_cli.go
+	mockgen -source=pkg/preflight/runner.go -destination=pkg/preflight/mock/mock_runner.go
+
+.PHONY: shunit2
+shunit2: common-test #TODO include other tests
+
+.PHONY: common-test
+common-test:
+	./scripts/common/test/common-test.sh

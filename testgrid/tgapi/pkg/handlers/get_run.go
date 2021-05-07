@@ -20,6 +20,7 @@ type GetRunRequest struct {
 type GetRunResponse struct {
 	Instances    []types.TestInstance `json:"instances"`
 	Total        int                  `json:"total"`
+	LastStart    *time.Time           `json:"last_start"`
 	LastResponse *time.Time           `json:"last_response"`
 	SuccessCount int64                `json:"success_count"` // success_count plus failure_count will not always equal total due to unsupported instances
 	FailureCount int64                `json:"failure_count"`
@@ -68,6 +69,11 @@ func GetRun(w http.ResponseWriter, r *http.Request) {
 		if instance.FinishedAt != nil {
 			if getRunResponse.LastResponse == nil || getRunResponse.LastResponse.Before(*instance.FinishedAt) {
 				getRunResponse.LastResponse = instance.FinishedAt
+			}
+		}
+		if instance.StartedAt != nil {
+			if getRunResponse.LastStart == nil || getRunResponse.LastStart.Before(*instance.StartedAt) {
+				getRunResponse.LastStart = instance.StartedAt
 			}
 		}
 		if !instance.IsUnsupported && instance.FinishedAt != nil {

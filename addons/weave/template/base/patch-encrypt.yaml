@@ -1,0 +1,17 @@
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: weave-net
+  namespace: kube-system
+spec:
+  template:
+    spec:
+      containers:
+      - name: weave
+        env:
+        - name: WEAVE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: weave-passwd
+              key: weave-passwd

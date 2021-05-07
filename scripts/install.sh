@@ -8,6 +8,7 @@ DIR=.
 
 # Magic begin: scripts are inlined for distribution. See "make build/install.sh"
 . $DIR/scripts/Manifest
+. $DIR/scripts/common/kurl.sh
 . $DIR/scripts/common/addon.sh
 . $DIR/scripts/common/common.sh
 . $DIR/scripts/common/discover.sh
@@ -108,12 +109,22 @@ function init() {
     $DIR/bin/yamlutil -r -fp $KUBEADM_CONF_DIR/kubeadm_conf_copy_in -yf metadata
     mv $KUBEADM_CONF_DIR/kubeadm_conf_copy_in $KUBEADM_CONF_FILE
 
-    cat << EOF >> $KUBEADM_CONF_FILE
+    if [ "$KUBERNETES_TARGET_VERSION_MINOR" -ge "21" ]; then
+        cat << EOF >> $KUBEADM_CONF_FILE
+apiVersion: kubelet.config.k8s.io/v1beta1
+kind: KubeletConfiguration
+shutdownGracePeriod: 30s
+shutdownGracePeriodCriticalPods: 10s
+---
+EOF
+    else
+        cat << EOF >> $KUBEADM_CONF_FILE
 apiVersion: kubelet.config.k8s.io/v1beta1
 kind: KubeletConfiguration
 cgroupDriver: systemd
 ---
 EOF
+    fi
 
     # When no_proxy changes kubeadm init rewrites the static manifests and fails because the api is
     # restarting. Trigger the restart ahead of time and wait for it to be healthy.
@@ -178,18 +189,16 @@ EOF
         kubectl -n kube-system delete pods --selector=k8s-app=kube-proxy
 
         if kubernetes_has_remotes; then
-            local proxyFlag=""
-            if [ -n "$PROXY_ADDRESS" ]; then
-                proxyFlag=" -x $PROXY_ADDRESS"
-            fi
-            local prefix="curl -sSL${proxyFlag} $KURL_URL/$INSTALLER_ID/"
-            if [ "$AIRGAP" = "1" ] || [ -z "$KURL_URL" ]; then
-                prefix="cat "
-            fi
-
             printf "${YELLOW}\nThe load balancer address has changed. Run the following on all remote nodes to use the new address${NC}\n"
             printf "\n"
-            printf "${GREEN}    ${prefix}tasks.sh | sudo bash -s set-kubeconfig-server https://${currentLoadBalancerAddress}${NC}\n"
+            if [ "$AIRGAP" = "1" ]; then
+                printf "${GREEN}    cat ./tasks.sh | sudo bash -s set-kubeconfig-server https://${currentLoadBalancerAddress}${NC}\n"
+            else
+                local prefix=
+                prefix="$(build_installer_prefix "${INSTALLER_ID}" "${KURL_VERSION}" "${KURL_URL}" "${PROXY_ADDRESS}")"
+
+                printf "${GREEN}    ${prefix}tasks.sh | sudo bash -s set-kubeconfig-server https://${currentLoadBalancerAddress}${NC}\n"
+            fi
             printf "\n"
             printf "Continue? "
             confirmY " "
@@ -205,6 +214,9 @@ EOF
 
     # create kurl namespace if it doesn't exist
     kubectl get ns kurl 2>/dev/null 1>/dev/null || kubectl create ns kurl 1>/dev/null
+
+    spinner_until 120 kubernetes_default_service_account_exists
+    spinner_until 120 kubernetes_service_exists
 
     logSuccess "Cluster Initialized"
 
@@ -261,15 +273,11 @@ function outro() {
       fi
     fi
 
-    local proxyFlag=""
-    if [ -n "$PROXY_ADDRESS" ]; then
-        proxyFlag=" -x $PROXY_ADDRESS"
-    fi
-
     local common_flags
     common_flags="${common_flags}$(get_docker_registry_ip_flag "${DOCKER_REGISTRY_IP}")"
     common_flags="${common_flags}$(get_additional_no_proxy_addresses_flag "${PROXY_ADDRESS}" "${SERVICE_CIDR},${POD_CIDR}")"
     common_flags="${common_flags}$(get_kurl_install_directory_flag "${KURL_INSTALL_DIRECTORY_FLAG}")"
+    common_flags="${common_flags}$(get_remotes_flags)"
 
     KUBEADM_TOKEN_CA_HASH=$(cat /tmp/kubeadm-init | grep 'discovery-token-ca-cert-hash' | awk '{ print $2 }' | head -1)
 
@@ -294,11 +302,9 @@ function outro() {
     fi
     printf "\n"
     printf "\n"
-    
-    local prefix="curl -sSL${proxyFlag} $KURL_URL/$INSTALLER_ID/"
-    if [ -z "$KURL_URL" ]; then
-        prefix="cat "
-    fi
+
+    local prefix=
+    prefix="$(build_installer_prefix "${INSTALLER_ID}" "${KURL_VERSION}" "${KURL_URL}" "${PROXY_ADDRESS}")"
 
     if [ "$HA_CLUSTER" = "1" ]; then
         printf "Master node join commands expire after two hours, and worker node join commands expire after 24 hours.\n"
@@ -360,7 +366,6 @@ function outro() {
 function all_kubernetes_install() {
     kubernetes_host
     install_helm
-    setup_kubeadm_kustomize
     ${K8S_DISTRO}_addon_for_each addon_load
     helm_load
     init
@@ -420,12 +425,15 @@ function main() {
     journald_persistent
     configure_proxy
     configure_no_proxy_preinstall
+    ${K8S_DISTRO}_addon_for_each addon_fetch
     if [ -z "$CURRENT_KUBERNETES_VERSION" ]; then
         host_preflights "1" "0" "0"
     else
         host_preflights "1" "0" "1"
     fi
     install_host_dependencies
+    get_common
+    setup_kubeadm_kustomize
     ${K8S_DISTRO}_addon_for_each addon_pre_init
     discover_pod_subnet
     discover_service_subnet
@@ -436,6 +444,7 @@ function main() {
     report_kubernetes_install
     export SUPPORT_BUNDLE_READY=1 # allow ctrl+c and ERR traps to collect support bundles now that k8s is installed
     type create_registry_service &> /dev/null && create_registry_service # this function is in an optional addon and may be missing
+    kurl_init_config
     ${K8S_DISTRO}_addon_for_each addon_install
     helmfile_sync
     post_init

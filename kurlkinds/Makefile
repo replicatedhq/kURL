@@ -1,6 +1,8 @@
 
 export GO111MODULE=on
 
+export PATH := /usr/local/kubebuilder/bin:${PATH}
+
 # Image URL to use all building/pushing image targets
 IMG ?= controller:latest
 
@@ -27,7 +29,7 @@ vet:
 	go vet ./pkg/... ./cmd/...
 
 # Get binaries
-deps: update-controller-gen update-client-gen
+deps: update-controller-gen update-client-gen update-kubebuilder
 
 # Generate code
 generate: controller-gen client-gen manifests
@@ -56,8 +58,18 @@ test-crd:
 
 # get/update controller-gen
 update-controller-gen:
-	go get sigs.k8s.io/controller-tools/cmd/controller-gen@v0.3.0
+	go get sigs.k8s.io/controller-tools/cmd/controller-gen@v0.5.0
 
 # get/update client-gen
 update-client-gen:
-	go get k8s.io/code-generator/cmd/client-gen@v0.18.5
+	go get k8s.io/code-generator/cmd/client-gen@v0.20.4
+
+update-kubebuilder: os = $(shell go env GOOS)
+update-kubebuilder: arch = $(shell go env GOARCH)
+update-kubebuilder: KUBEBUILDER_VERSION = 2.3.1
+update-kubebuilder:
+	# download kubebuilder and extract it to tmp
+	curl -fsSL https://go.kubebuilder.io/dl/${KUBEBUILDER_VERSION}/${os}/${arch} | tar -xz -C /tmp/
+
+	sudo rm -rf /usr/local/kubebuilder
+	sudo mv /tmp/kubebuilder_${KUBEBUILDER_VERSION}_${os}_${arch} /usr/local/kubebuilder

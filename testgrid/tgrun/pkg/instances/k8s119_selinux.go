@@ -12,7 +12,7 @@ func init() {
 				Version: "1.19.3",
 			},
 			Weave: &kurlv1beta1.Weave{
-				Version: "2.6.4",
+				Version: "2.8.1",
 			},
 			Docker: &kurlv1beta1.Docker{
 				Version: "19.03.10",

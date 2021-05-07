@@ -3,7 +3,7 @@ function kotsadm() {
     local src="$DIR/addons/kotsadm/1.33.2"
     local dst="$DIR/kustomize/kotsadm"
 
-    try_1m object_store_create_bucket kotsadm
+    try_1m_stderr object_store_create_bucket kotsadm
     kotsadm_rename_postgres_pvc_1-12-2 "$src"
 
     cp "$src/kustomization.yaml" "$dst/"
@@ -423,4 +423,8 @@ function kotsadm_cacerts_file() {
         render_yaml_file "$DIR/addons/kotsadm/1.33.2/tmpl-kotsadm-cacerts.yaml" > "$DIR/kustomize/kotsadm/kotsadm-cacerts.yaml"
         insert_patches_strategic_merge "$DIR/kustomize/kotsadm/kustomization.yaml" kotsadm-cacerts.yaml
     fi
+}
+
+function kotsadm_preflight() {
+    echo "${DIR}/addons/kotsadm/1.33.2/host-preflight.yaml"
 }

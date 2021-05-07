@@ -10,6 +10,7 @@ type TestInstance struct {
 	StartedAt     *time.Time `json:"startedAt"`
 	FinishedAt    *time.Time `json:"finishedAt"`
 	IsSuccess     bool       `json:"isSuccess"`
+	FailureReason string     `json:"failureReason"`
 	IsUnsupported bool       `json:"isUnsupported"`
 
 	KurlYAML string `json:"kurlYaml"`
@@ -23,4 +24,5 @@ type TestInstance struct {
 	OSName    string `json:"osName"`
 	OSVersion string `json:"osVersion"`
 	OSImage   string `json:"-"`
+	OSPreInit string `json:"-"`
 }

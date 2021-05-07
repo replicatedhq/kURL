@@ -3,13 +3,12 @@ import * as yaml from "js-yaml";
 import * as _ from "lodash";
 import * as mysql from "promise-mysql";
 import { Service } from "ts-express-decorators";
-import * as request from "request-promise";
 import * as AJV from "ajv";
-import * as semver from "semver"
+import * as semver from "semver";
 import { MysqlWrapper } from "../util/services/mysql";
 import { instrumented } from "monkit";
-import { logger } from "../logger";
 import { Forbidden } from "../server/errors";
+import { InstallerVersions } from "./versions";
 
 interface ErrorResponse {
   error: any;
@@ -61,7 +60,7 @@ export const rke2ConfigSchema = {
   properties: {
     version: { type: "string" },
   },
-}
+};
 
 export interface K3SConfig {
   version: string;
@@ -72,7 +71,7 @@ export const k3sConfigSchema = {
   properties: {
     version: { type: "string" },
   },
-}
+};
 
 export interface DockerConfig {
   version: string;
@@ -94,7 +93,7 @@ export const dockerConfigSchema = {
     hardFailOnLoopback: { type: "boolean", flag: "hard-fail-on-loopback", description: "The install script stops and exits if it detects a loopback file storage configuration" },
     noCEOnEE: { type: "boolean", flag: "no-ce-on-ee", description: "Do not install Docker-CE on RHEL" },
     dockerRegistryIP: { type: "string", flag: "docker-registry-ip", description: "Used during join scripts, indicates the address of the docker registry (read only)" },
-    additionalNoProxy: { type: "string", flag: "additional-no-proxy", description: "This indicates addresses that should not be proxied in addition to the private IP (This can be a comma separated list of IPs or just 1 IP)" },
+    additionalNoProxy: { type: "string", flag: "additional-no-proxy", description: "This indicates addresses that should not be proxied in addition to the private IP. Multiple addresses can be specified as a comma separated list of IPs or a range of addresses in CIDR notation." },
     noDocker: { type: "boolean", flag: "no-docker", description: "Do not install Docker" },
   },
   required: [ "version" ],
@@ -124,6 +123,27 @@ export const weaveConfigSchema = {
   additionalProperites: false,
 };
 
+export interface AntreaConfig {
+  version: string;
+  s3Override?: string;
+  podCIDR?: string;
+  podCidrRange?: string;
+  isEncryptionDisabled?: boolean;
+}
+
+export const antreaConfigSchema = {
+  type: "object",
+  properties: {
+    version: { type: "string" },
+    s3Override: { type: "string", description: "Override the download location for addon package distribution (used for CI/CD testing alpha addons)" },
+    podCIDR: { type: "string", description: "The subnet where pods will be found" },
+    podCidrRange: { type: "string", description: "The size of the CIDR where pods can be found" },
+    isEncryptionDisabled: { type: "boolean", description: "Disable encryption between nodes" },
+  },
+  required: [ "version" ],
+  additionalProperites: false,
+};
+
 export const calicoConfigSchema = {
   type: "object",
   properties: {
@@ -132,7 +152,7 @@ export const calicoConfigSchema = {
   },
   required: ["version"],
   additionalProperties: false,
-}
+};
 
 export interface FluentdConfig {
   version: string;
@@ -149,7 +169,9 @@ export interface RookConfig {
   cephReplicaCount?: number;
   storageClassName?: string;
   isBlockStorageEnabled?: boolean;
+  isSharedFilesystemDisabled?: boolean;
   blockDeviceFilter?: string;
+  bypassUpgradeWarning?: boolean;
   hostpathRequiresPrivileged?: boolean;
 }
 
@@ -161,7 +183,9 @@ export const rookConfigSchema = {
     storageClassName: { type: "string", flag: "storage-class-name", description: "The name of the StorageClass used by rook" },
     cephReplicaCount: { type: "number", flag: "ceph-replica-count", description: "The number of replicas in the Rook Ceph pool" },
     isBlockStorageEnabled: { type: "boolean", flag: "rook-block-storage-enabled", description: "Use block devices instead of the filesystem for storage in the Ceph cluster" },
+    isSharedFilesystemDisabled: { type: "boolean", flag: "rook-shared-filesystem-disabled", description: "Disable the rook-ceph shared filesystem" },
     blockDeviceFilter: { type: "string", flag: "rook-block-device-filter", description: "Only use block devices matching this regex" },
+    bypassUpgradeWarning: { type: "boolean", flag: "rook-bypass-upgrade-warning", description: "Bypass upgrade warning prompt" },
     hostpathRequiresPrivileged: { type: "boolean", flag: "rook-hostpath-requires-privileged", description: "Runs Ceph Pods as privileged to be able to write to hostPaths in OpenShift with SELinux restrictions" },
   },
   required: [ "version" ],
@@ -538,7 +562,7 @@ export const selinuxConfigSchema = {
       },
     },
   },
-}
+};
 
 export interface HelmConfig {
   helmfileSpec: string;
@@ -574,12 +598,43 @@ export const LonghornSchema = {
   additionalProperties: false,
 };
 
+export interface SonobuoyConfig {
+  version: string;
+  s3Override?: string;
+}
+
+export const sonobuoySchema = {
+  type: "object",
+  properties: {
+    version: { type: "string" },
+    s3Override: { type: "string", flag: "s3-override", description: "Override the download location for addon package distribution (used for CI/CD testing alpha addons)" },
+  },
+  required: ["version"],
+  additionalProperties: false,
+};
+
+export interface UFWConfig {
+  bypassUFWWarning?: boolean;
+  disableUFW?: boolean;
+  hardFailOnUFW?: boolean;
+}
+
+export const ufwConfigSchema = {
+  type: "object",
+  properties: {
+    bypassUFWWarning: { type: "boolean" },
+    disableUFW: { type: "boolean" },
+    hardFailOnUFW: { type: "boolean" },
+  },
+};
+
 export interface InstallerSpec {
   kubernetes: KubernetesConfig;
   rke2?: RKE2Config;
   k3s?: K3SConfig;
   docker?: DockerConfig;
   weave?: WeaveConfig;
+  antrea?: AntreaConfig;
   calico?: CalicoConfig;
   rook?: RookConfig;
   openebs?: OpenEBSConfig;
@@ -601,6 +656,8 @@ export interface InstallerSpec {
   selinuxConfig?: SelinuxConfig;
   helm?: HelmConfig;
   longhorn?: LonghornConfig;
+  sonobuoy?: SonobuoyConfig;
+  ufw?: UFWConfig;
 }
 
 const specSchema = {
@@ -612,6 +669,7 @@ const specSchema = {
     k3s: k3sConfigSchema,
     docker: dockerConfigSchema,
     weave: weaveConfigSchema,
+    antrea: antreaConfigSchema,
     calico: calicoConfigSchema,
     rook: rookConfigSchema,
     openebs: openEBSConfigSchema,
@@ -633,6 +691,8 @@ const specSchema = {
     selinuxConfig: selinuxConfigSchema,
     helm: helmConfigSchema,
     longhorn: LonghornSchema,
+    sonobuoy: sonobuoySchema,
+    ufw: ufwConfigSchema,
   },
   additionalProperites: false,
 };
@@ -649,208 +709,6 @@ export interface InstallerObject {
 }
 
 export class Installer {
-  // first version of each is "latest"
-  public static versions = {
-    kubernetes: [
-      "1.19.7",
-      "1.19.3",
-      "1.19.2",
-      "1.18.10",
-      "1.18.9",
-      "1.18.4",
-      "1.17.13",
-      "1.17.7",
-      "1.17.3",
-      "1.16.4",
-      "1.15.3",
-      "1.15.2",
-      "1.15.1",
-      "1.15.0",
-      "1.20.4", "1.20.2", "1.20.1", "1.20.0", // cron-kubernetes-update
-    ],
-    rke2: [
-      "v1.19.7+rke2r1",
-      "v1.18.13+rke2r1",
-    ],
-    k3s: [
-      "v1.19.7+k3s1",
-    ],
-    docker: [
-      "19.03.10",
-      "19.03.4",
-      "18.09.8",
-    ],
-    containerd: ["1.4.4", "1.4.3", "1.3.9", "1.3.7", "1.2.13"], // cron-containerd-update
-    weave: [
-      "2.6.5",
-      "2.6.4",
-      "2.5.2",
-      "2.7.0",
-    ],
-    rook: [
-      "1.0.4",
-      "1.4.3",
-    ],
-    contour: ["1.13.1", "1.13.0", "1.12.0", "1.11.0", "1.10.1", "1.7.0", "1.0.1", "0.14.0"], // cron-contour-update
-    registry: [
-      "2.7.1",
-    ],
-    prometheus: [
-      "0.44.1",
-      "0.33.0",
-    ],
-    fluentd: [
-      "1.7.4",
-    ],
-    kotsadm: [
-      "1.33.2",
-      "1.33.1",
-      "1.33.0",
-      "1.32.0",
-      "1.31.1",
-      "1.31.0",
-      "1.30.0",
-      "1.29.3",
-      "1.29.2",
-      "1.29.1",
-      "1.29.0",
-      "1.28.0",
-      "1.27.1",
-      "1.27.0",
-      "1.26.0",
-      "1.25.2",
-      "1.25.1",
-      "1.25.0",
-      "1.24.2",
-      "1.24.1",
-      "1.24.0",
-      "1.23.1",
-      "1.23.0",
-      "1.22.4",
-      "1.22.3",
-      "1.22.2",
-      "1.22.1",
-      "1.22.0",
-      "1.21.3",
-      "1.21.2",
-      "1.21.1",
-      "1.21.0",
-      "1.20.3",
-      "1.20.2",
-      "1.20.1",
-      "1.20.0",
-      "1.19.6",
-      "1.19.5",
-      "1.19.4",
-      "1.19.3",
-      "1.19.2",
-      "1.19.1",
-      "1.19.0",
-      "1.18.1",
-      "1.18.0",
-      "1.17.2",
-      "1.17.1",
-      "1.17.0",
-      "1.16.2",
-      "1.16.1",
-      "1.16.0",
-      "1.15.5",
-      "1.15.4",
-      "1.15.3",
-      "1.15.2",
-      "1.15.1",
-      "1.15.0",
-      "1.14.2",
-      "1.14.1",
-      "1.14.0",
-      "1.13.9",
-      "1.13.8",
-      "1.13.6",
-      "1.13.5",
-      "1.13.4",
-      "1.13.3",
-      "1.13.2",
-      "1.13.1",
-      "1.13.0",
-      "1.12.2",
-      "1.12.1",
-      "1.12.0",
-      "1.11.4",
-      "1.11.3",
-      "1.11.2",
-      "1.11.1",
-      "1.10.3",
-      "1.10.2",
-      "1.10.1",
-      "1.10.0",
-      "1.9.1",
-      "1.9.0",
-      "1.8.0",
-      "1.7.0",
-      "1.6.0",
-      "1.5.0",
-      "1.4.1",
-      "1.4.0",
-      "1.3.0",
-      "1.2.0",
-      "1.1.0",
-      "1.0.1",
-      "1.0.0",
-      "0.9.15",
-      "0.9.14",
-      "0.9.13",
-      "0.9.12",
-      "0.9.11",
-      "0.9.10",
-      "0.9.9",
-      "alpha",
-    ],
-    velero: [
-      // cron-velero-update
-      "1.5.3",
-      "1.5.1",
-      "1.2.0",
-    ],
-    openebs: [
-      "1.12.0",
-      "1.6.0",
-      "2.6.0",
-    ],
-    minio: [
-      "2020-01-25T02-50-51Z",
-    ],
-    collectd: [
-      "v5",
-      "0.0.1",
-    ],
-    ekco: [
-      "0.10.0",
-      "0.9.0",
-      "0.8.0",
-      "0.7.0",
-      "0.6.0",
-      "0.5.0",
-      "0.4.2",
-      "0.4.1",
-      "0.4.0",
-      "0.3.0",
-      "0.2.4",
-      "0.2.3",
-      "0.2.1",
-      "0.2.0",
-      "0.1.0",
-    ],
-    certManager: [
-      "1.0.3",
-    ],
-    metricsServer: [
-      "0.3.7",
-      "0.4.1",
-    ],
-    longhorn: [
-      "1.1.0",
-    ],
-  };
 
   public static latest(): Installer {
     const i = new Installer();
@@ -883,7 +741,7 @@ export class Installer {
 
   // returned installer must be validated before use
   public static parse(doc: string, teamID?: string): Installer {
-    const parsed = yaml.safeLoad(doc);
+    const parsed = yaml.load(doc);
 
     const i = new Installer(teamID);
     i.id = _.get(parsed, "metadata.name", "");
@@ -972,8 +830,18 @@ export class Installer {
     if (version === "latest") {
       return true;
     }
-    if (_.includes(Installer.versions[config], version)) {
+    if (_.includes(InstallerVersions[config], version)) {
       return true;
+    }
+
+    // search through the "latestVersions" array for something that matches the prefix here
+    if (config === "kubernetes" && version.endsWith(".x")) {
+      const searchString = version.slice(0, -2); // remove the last two characters - ".x"
+      const k8sMinors = Installer.latestMinors();
+      const matches = k8sMinors.filter((s) => s.startsWith(searchString));
+      if (matches.length > 0) {
+        return true;
+      }
     }
     return false;
   }
@@ -1122,7 +990,7 @@ export class Installer {
   }
 
   public toYAML(): string {
-    return yaml.safeDump(this.toObject());
+    return yaml.dump(this.toObject());
   }
 
   public toObject(): InstallerObject {
@@ -1151,9 +1019,19 @@ export class Installer {
   public resolve(): Installer {
     const i = this.clone();
 
-    _.each(_.keys(i.spec), (config) => {
+    _.each(_.keys(i.spec), (config: string) => {
       if (i.spec[config].version === "latest") {
-        i.spec[config].version = _.first(Installer.versions[config]);
+        i.spec[config].version = _.first(InstallerVersions[config]);
+      }
+
+      // search through the "latestVersions" array for something that matches the prefix here
+      if (config === "kubernetes" && i.spec[config].version.endsWith(".x")) {
+        const searchString = i.spec[config].version.slice(0, -2); // remove the last two characters - ".x"
+        const k8sMinors = Installer.latestMinors();
+        const matches = k8sMinors.filter((s) => s.startsWith(searchString));
+        if (matches.length > 0) {
+          i.spec[config].version = matches[0];
+        }
       }
     });
 
@@ -1211,6 +1089,12 @@ export class Installer {
     if (this.spec.weave && this.spec.weave.podCidrRange && !Installer.isValidCidrRange(this.spec.weave.podCidrRange)) {
       return { error: { message: `Weave podCidrRange "${_.escape(this.spec.weave.podCidrRange)}" is invalid` } };
     }
+    if (this.spec.antrea && !Installer.hasVersion("antrea", this.spec.antrea.version) && !this.hasS3Override("antrea")) {
+      return { error: { message: `Antrea version "${_.escape(this.spec.antrea.version)}" is not supported` } };
+    }
+    if (this.spec.antrea && this.spec.antrea.podCidrRange && !Installer.isValidCidrRange(this.spec.antrea.podCidrRange)) {
+      return { error: { message: `Antrea podCidrRange "${_.escape(this.spec.antrea.podCidrRange)}" is invalid` } };
+    }
     if (this.spec.rook && !Installer.hasVersion("rook", this.spec.rook.version) && !this.hasS3Override("rook")) {
       return { error: { message: `Rook version "${_.escape(this.spec.rook.version)}" is not supported` } };
     }
@@ -1261,6 +1145,15 @@ export class Installer {
     if (this.spec.longhorn && !Installer.hasVersion("longhorn", this.spec.longhorn.version) && !this.hasS3Override("longhorn")) {
       return { error: { message: `Longhorn version "${_.escape(this.spec.longhorn.version)}" is not supported` } };
     }
+    if (this.spec.sonobuoy && !Installer.hasVersion("sonobuoy", this.spec.sonobuoy.version) && !this.hasS3Override("sonobuoy")) {
+      return { error: { message: `Sonobuoy version "${_.escape(this.spec.sonobuoy.version)}" is not supported` } };
+    }
+    // Rook 1.0.4. is incompatible with Kubernetes 1.20+
+    if (this.spec.rook && this.spec.rook.version === "1.0.4") {
+      if (this.spec.kubernetes && semver.gte(this.spec.kubernetes.version, "1.20.0")) {
+        return { error: { message: "Rook 1.0.4 is not compatible with Kubernetes 1.20+" } };
+      }
+    }
   }
 
   public packages(): string[] {
@@ -1270,27 +1163,41 @@ export class Installer {
     const binUtils = String(process.env["KURL_BIN_UTILS_FILE"]).slice(0, -7); // remove .tar.gz
     const pkgs = [ "common", binUtils, "host-openssl" ];
 
+    let kubernetesVersion = "";
     _.each(_.keys(this.spec), (config: string) => {
       const version = this.spec[config].version;
       if (version) {
-        pkgs.push(`${_.kebabCase(config)}-${this.spec[config].version.replace(special, '-')}`); // replace special characters
+        pkgs.push(`${_.kebabCase(config)}-${this.spec[config].version.replace(special, "-")}`); // replace special characters
 
         // include an extra version of kubernetes so they can upgrade 2 minor versions
         if (config === "kubernetes") {
+          kubernetesVersion = version;
           const prevMinor = semver.minor(version) - 1;
           const step = Installer.latestMinors()[prevMinor];
-          pkgs.push(`${config}-${step}`);
+          if (step !== "0.0.0") {
+            pkgs.push(`${config}-${step}`);
+          }
+        } else if (config === "rke2") {
+          kubernetesVersion = version.replace(/^v?([^-\+]+).*$/, '$1');
+        } else if (config === "k3s") {
+          kubernetesVersion = version.replace(/^v?([^-\+]+).*$/, '$1');
         }
       }
     });
+
+    // include conformance package if sonobuoy and kubernetes
+    // we only build conformance packages for 1.17.0+
+    if (kubernetesVersion && semver.gte(kubernetesVersion, "1.17.0") && _.get(this.spec, "sonobuoy.version")) {
+      pkgs.push(`kubernetes-conformance-${kubernetesVersion}`);
+    }
 
     return pkgs;
   }
 
   public static latestMinors(): string[] {
-    const ret: string[] = _.fill(Array(15), "0.0.0");
+    const ret: string[] = _.fill(Array(16), "0.0.0");
 
-    Installer.versions.kubernetes.forEach((version: string) => {
+    InstallerVersions.kubernetes.forEach((version: string) => {
       const minor = semver.minor(version);
       const latest = ret[minor];
 
@@ -1348,7 +1255,7 @@ export class Installer {
   }
 
   public hasS3Override(config: string): boolean {
-    return _.has(this.spec, [config,'s3Override'])
+    return _.has(this.spec, [config, "s3Override"]);
   }
 }
 

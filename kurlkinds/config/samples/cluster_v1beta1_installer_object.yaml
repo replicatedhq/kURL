@@ -66,6 +66,7 @@ spec:
     registryPublishPort: 1.1.1.1
     version: latest
   rook:
+    bypassUpgradeWarning: true
     cephReplicaCount: 9000
     storageClassName: store
     hostpathRequiresPrivileged: true
