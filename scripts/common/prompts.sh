@@ -14,10 +14,6 @@ function prompts() {
     fi
 }
 
-if [ -z "$READ_TIMEOUT" ]; then
-    READ_TIMEOUT="-t 20"
-fi
-
 promptTimeout() {
     set +e
     if [ -z "$FAST_TIMEOUTS" ]; then
