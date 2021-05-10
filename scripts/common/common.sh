@@ -577,11 +577,11 @@ function install_host_packages() {
         centos|rhel|amzn|ol)
             if [[ "$DIST_VERSION" =~ ^8 ]]; then
                 if test -n "$(shopt -s nullglob; echo ${dir}/rhel-8/*.rpm )" ; then
-                    rpm --upgrade --force --nodeps ${dir}/rhel-8/*.rpm
+                    rpm --upgrade --force --nodeps --nosignature ${dir}/rhel-8/*.rpm
                 fi
             else
                 if test -n "$(shopt -s nullglob; echo ${dir}/rhel-7/*.rpm )" ; then
-                    rpm --upgrade --force --nodeps ${dir}/rhel-7/*.rpm
+                    rpm --upgrade --force --nodeps --nosignature ${dir}/rhel-7/*.rpm
                 fi
             fi
             ;;
@@ -613,11 +613,11 @@ function install_host_archives() {
         centos|rhel|amzn|ol)
             if [[ "$DIST_VERSION" =~ ^8 ]]; then
                 if test -n "$(shopt -s nullglob; echo ${dir}/rhel-8/archives/*.rpm )" ; then
-                    rpm --upgrade --force --nodeps ${dir}/rhel-8/archives/*.rpm
+                    rpm --upgrade --force --nodeps --nosignature ${dir}/rhel-8/archives/*.rpm
                 fi
             else
                 if test -n "$(shopt -s nullglob; echo ${dir}/rhel-7/archives/*.rpm )" ; then
-                    rpm --upgrade --force --nodeps ${dir}/rhel-7/archives/*.rpm
+                    rpm --upgrade --force --nodeps --nosignature ${dir}/rhel-7/archives/*.rpm
                 fi
             fi
             ;;
