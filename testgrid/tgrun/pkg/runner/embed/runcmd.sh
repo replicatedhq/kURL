@@ -185,6 +185,7 @@ function check_airgap() {
         grep "AIRGAP VIOLATION" /var/log/syslog
     fi
 
+    send_logs
     report_failure "airgap_violation"
     exit 1
 }
