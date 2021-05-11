@@ -70,7 +70,7 @@ function package_matches_checksum() {
         return 1
     elif [ ! -f "${filepath}" ] || [ ! -s "${filepath}" ]; then # if not exists or empty
         return 1
-    elif ! md5sum "${filepath}" | grep -Fq "${checksum}" ; then
+    elif ! sha256sum "${filepath}" | grep -Fq "${checksum}" ; then
         echo "Package ${package} checksum does not match"
         return 1
     fi
