@@ -44,6 +44,7 @@ module.exports.InstallerVersions = {
   ],
   antrea: [
     // cron-antrea-update
+      "0.11.4",
       "1.0.0",
     "0.13.1",
   ],
