@@ -386,6 +386,8 @@ export interface KurlConfig {
   additionalNoProxyAddresses: string[];
   airgap?: boolean;
   hostnameCheck?: string;
+  ignoreRemoteLoadImagesPrompt?: boolean;
+  ignoreRemoteUpgradePrompt?: boolean;
   nameserver?: string;
   noProxy?: string;
   privateAddress?: string;
@@ -404,6 +406,8 @@ export const kurlConfigSchema = {
     additionalNoProxyAddresses: { type: "array", items: { type: "string" }, description: "Addresses that can be reached without a proxy" },
     airgap: { type: "boolean", flag: "airgap", description: "Indicates if this install is an airgap install" },
     hostnameCheck: { type: "string", flag: "hostname-check" , description: "Used as a check during an upgrade to ensure the script will run only on the given hostname" },
+    ignoreRemoteLoadImagesPrompt: { type: "boolean", flag: "ignore-remote-load-images-prompt" , description: "Bypass prompt to load images on remotes. This is useful for automating upgrades." },
+    ignoreRemoteUpgradePrompt: { type: "boolean", flag: "ignore-remote-upgrade-prompt" , description: "Bypass prompt to upgrade remotes. This is useful for automating upgrades." },
     nameserver: { type: "string" },
     noProxy: { type: "boolean", flag: "no-proxy" , description: "Don’t detect or configure a proxy" },
     preflightIgnore: { type: "boolean", flag: "preflight-ignore" , description: "Ignore preflight failures and warnings" },

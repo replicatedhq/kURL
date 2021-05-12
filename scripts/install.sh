@@ -199,9 +199,10 @@ EOF
 
                 printf "${GREEN}    ${prefix}tasks.sh | sudo bash -s set-kubeconfig-server https://${currentLoadBalancerAddress}${NC}\n"
             fi
+
             printf "\n"
             printf "Continue? "
-            confirmY " "
+            confirmN
 
             if commandExists ekco_handle_load_balancer_address_change_post_init; then
                 ekco_handle_load_balancer_address_change_post_init $oldLoadBalancerAddress $LOAD_BALANCER_ADDRESS
@@ -421,7 +422,7 @@ function main() {
     trap ctrl_c SIGINT # trap ctrl+c (SIGINT) and handle it by reporting that the user exited intentionally (along with the line/version/etc)
     trap trap_report_error ERR # trap errors and handle it by reporting the error line and parent function
     preflights
-    prompts
+    common_prompts
     journald_persistent
     configure_proxy
     configure_no_proxy_preinstall

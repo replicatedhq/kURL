@@ -43,6 +43,8 @@ spec:
       - 2.2.2.2
     airgap: false
     hostnameCheck: 1.1.1.1
+    ignoreRemoteLoadImagesPrompt: false
+    ignoreRemoteUpgradePrompt: false
     nameserver: 1.1.1.1
     noProxy: false
     preflightIgnore: false

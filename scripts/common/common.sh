@@ -793,15 +793,6 @@ function get_machine_id() {
     MACHINE_ID="$(${DIR}/bin/kurl host protectedid || true)"
 }
 
-function can_prompt() {
-    # Need the TTY to accept input and stdout to display
-    # Prompts when running the script through the terminal but not as a subshell
-    if [ -t 1 ] && [ -c /dev/tty ]; then
-        return 0
-    fi
-    return 1
-}
-
 function kebab_to_camel() {
     echo "$1" | sed -E 's/-(.)/\U\1/g'
 }

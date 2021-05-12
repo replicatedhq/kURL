@@ -393,7 +393,7 @@ function discover_pod_subnet() {
         fi
 
         printf "${RED}Pod cidr ${POD_CIDR} overlaps with existing route. Continue? ${NC}"
-        if ! confirmY "-t 60"; then
+        if ! confirmY ; then
             exit 1
         fi
         return 0
@@ -454,7 +454,7 @@ function discover_service_subnet() {
         fi
 
         printf "${RED}Service cidr ${SERVICE_CIDR} overlaps with existing route. Continue? ${NC}"
-        if ! confirmY "-t 60"; then
+        if ! confirmY ; then
             exit 1
         fi
         return 0

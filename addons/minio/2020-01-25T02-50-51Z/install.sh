@@ -109,7 +109,7 @@ function reset_minio_config() {
     printf "Proceeding will re-configure it to be used only by this new minio instance, and any other minio instance using this location will no longer have access.\n"
     printf "If you are attempting to fully restore a prior installation, such as a disaster recovery scenario, this action is expected. Would you like to continue?${NC} "
 
-    if ! confirmN "-t 120"; then
+    if ! confirmN ; then
         bail "\n\nWill not re-configure $MINIO_HOSTPATH."
     fi
 

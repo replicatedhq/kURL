@@ -152,7 +152,7 @@ promptIfDockerUnsupportedOS()
             logWarn "The containerd addon is recommended. https://kurl.sh/docs/add-ons/containerd"
             if ! commandExists "docker" ; then
                 printf "${YELLOW}Continue? ${NC}" 1>&2
-                if ! confirmY "-t 30"; then
+                if ! confirmY ; then
                     exit 1
                 fi
             fi
@@ -194,7 +194,7 @@ checkFirewalld() {
     fi
 
     printf "${YELLOW}Continue with firewalld active? ${NC}"
-    if confirmY ; then
+    if confirmN ; then
         BYPASS_FIREWALLD_WARNING=1
         return
     fi
@@ -238,7 +238,7 @@ checkUFW() {
     fi
 
     printf "${YELLOW}Continue with ufw active? ${NC}"
-    if confirmY ; then
+    if confirmN ; then
         BYPASS_UFW_WARNING=1
         return
     fi
@@ -395,7 +395,7 @@ function host_preflights() {
     local is_upgrade="$3"
 
     local opts=
-    if [ "${PREFLIGHT_IGNORE_WARNINGS}" = "1" ] || ! can_prompt ; then
+    if [ "${PREFLIGHT_IGNORE_WARNINGS}" = "1" ] || ! prompts_can_prompt ; then
         opts="${opts} --ignore-warnings"
     fi
     if [ "${is_primary}" != "1" ]; then
@@ -425,28 +425,32 @@ function host_preflights() {
         # TODO: report preflight fail
     else
         # interactive terminal
-        if can_prompt; then
+        if prompts_can_prompt; then
             set +e
             "${DIR}"/bin/kurl host preflight "${MERGED_YAML_SPEC}" ${opts} </dev/tty
             local kurl_exit_code=$?
             set -e 
             case $kurl_exit_code in
                 3)
+                    printf "${YELLOW}Host preflights have warnings${NC} "
+
                     # report_install_fail "preflight"
                     # bail "Use the \"preflight-ignore-warnings\" flag to proceed."
-                    printf "${YELLOW}Host preflights have warnings. Do you want to proceed anyway? ${NC} "
-                    if ! confirmY "-t 10"; then
-                        report_install_fail "preflight"
-                        bail "Use the \"preflight-ignore-warnings\" flag to proceed."
-                    fi
+                    # printf "${YELLOW}Host preflights have warnings. Do you want to proceed anyway? ${NC} "
+                    # if ! confirmY ; then
+                    #     report_install_fail "preflight"
+                    #     bail "Use the \"preflight-ignore-warnings\" flag to proceed."
+                    # fi
                     return 0
                     ;;  
                 1)
-                    printf "${RED}Host preflights have failures. Do you want to proceed anyway? ${NC} "
-                    if ! confirmY "-t 10"; then
-                        report_install_fail "preflight"
-                        bail "Use the \"preflight-ignore\" flag to proceed."
-                    fi
+                    printf "${RED}Host preflights have failures${NC} "
+
+                    # printf "${RED}Host preflights have failures. Do you want to proceed anyway? ${NC} "
+                    # if ! confirmN ; then
+                    #     report_install_fail "preflight"
+                    #     bail "Use the \"preflight-ignore\" flag to proceed."
+                    # fi
                     return 0
                     ;;
             esac                                       

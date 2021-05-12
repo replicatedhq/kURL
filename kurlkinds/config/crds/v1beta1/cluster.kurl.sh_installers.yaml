@@ -268,6 +268,10 @@ spec:
                     type: boolean
                   hostnameCheck:
                     type: string
+                  ignoreRemoteLoadImagesPrompt:
+                    type: boolean
+                  ignoreRemoteUpgradePrompt:
+                    type: boolean
                   nameserver:
                     type: string
                   noProxy:

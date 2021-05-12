@@ -122,9 +122,9 @@ function main() {
     parse_kubernetes_target_version
     discover
     preflights
-    joinPrompts
+    join_prompts
     join_preflights # must come after joinPrompts as this function requires API_SERVICE_ADDRESS
-    prompts
+    common_prompts
     journald_persistent
     configure_proxy
     configure_no_proxy

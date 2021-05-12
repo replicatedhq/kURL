@@ -304,7 +304,7 @@ function openebs_do_upgrade() {
         logFail "Applications using OpenEBS-backed persistent volumes may become nonresponsive during this upgrade." 
         logFail "This upgrade may also in some failure modes result in data loss - please take a backup of any critical volumes before upgrading."
         printf "Continue? "
-        if ! confirmN " "; then
+        if ! confirmN ; then
             bail "OpenEBS upgrade is aborted."
         fi
 
