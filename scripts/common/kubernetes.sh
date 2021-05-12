@@ -98,20 +98,19 @@ EOF
     case "$LSB_DIST" in
         ubuntu)
             sed "s:__ENV_LOCATION__:default:g" -i "$DIR/tmp-kubeadm.conf"
-            export DEBIAN_FRONTEND=noninteractive
-            dpkg --install --force-depends-version $DIR/packages/kubernetes/${k8sVersion}/ubuntu-${DIST_VERSION}/*.deb
+            DEBIAN_FRONTEND=noninteractive dpkg --install --force-depends-version $DIR/packages/kubernetes/${k8sVersion}/ubuntu-${DIST_VERSION}/*.deb
             ;;
 
         centos|rhel|amzn|ol)
             case "$LSB_DIST$DIST_VERSION_MAJOR" in
                 rhel8|centos8)
                     sed "s:__ENV_LOCATION__:sysconfig:g" -i "$DIR/tmp-kubeadm.conf"
-                    rpm --upgrade --force --nodeps $DIR/packages/kubernetes/${k8sVersion}/rhel-8/*.rpm
+                    rpm --upgrade --force --nodeps --nosignature $DIR/packages/kubernetes/${k8sVersion}/rhel-8/*.rpm
                     ;;
 
                 *)
                     sed "s:__ENV_LOCATION__:sysconfig:g" -i "$DIR/tmp-kubeadm.conf"
-                    rpm --upgrade --force --nodeps $DIR/packages/kubernetes/${k8sVersion}/rhel-7/*.rpm
+                    rpm --upgrade --force --nodeps --nosignature $DIR/packages/kubernetes/${k8sVersion}/rhel-7/*.rpm
                     ;;
             esac
         ;;

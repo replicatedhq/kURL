@@ -4,12 +4,14 @@ function containerd_install() {
     local src="$DIR/addons/containerd/$CONTAINERD_VERSION"
 
     if [ "$SKIP_CONTAINERD_INSTALL" != "1" ]; then
+        logStep "Installing Containerd host packages"
         install_host_archives "$src"
         install_host_packages "$src"
         chmod +x ${DIR}/addons/containerd/${CONTAINERD_VERSION}/assets/runc
         cp ${DIR}/addons/containerd/${CONTAINERD_VERSION}/assets/runc $(which runc)
         containerd_configure
         systemctl daemon-reload
+        logSuccess "Containerd host packages installed"
     fi
 
     systemctl enable containerd
