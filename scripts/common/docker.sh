@@ -45,26 +45,29 @@ function restart_docker() {
 }
 
 docker_install() {
-   case "$LSB_DIST" in
+    logStep "Installing Docker host packages"
+
+    case "$LSB_DIST" in
         ubuntu)
-            export DEBIAN_FRONTEND=noninteractive
-            dpkg --install --force-depends-version $DIR/packages/docker/${DOCKER_VERSION}/ubuntu-${DIST_VERSION}/*.deb
+            DEBIAN_FRONTEND=noninteractive dpkg --install --force-depends-version $DIR/packages/docker/${DOCKER_VERSION}/ubuntu-${DIST_VERSION}/*.deb
             cp $DIR/packages/docker/${DOCKER_VERSION}/runc $(which runc)
             DID_INSTALL_DOCKER=1
             return 0
             ;;
 
         centos|rhel|amzn|ol)
-            rpm --upgrade --force --nodeps $DIR/packages/docker/${DOCKER_VERSION}/rhel-7/*.rpm
+            rpm --upgrade --force --nodeps --nosignature $DIR/packages/docker/${DOCKER_VERSION}/rhel-7/*.rpm
             cp $DIR/packages/docker/${DOCKER_VERSION}/runc $(which runc)
             DID_INSTALL_DOCKER=1
             return 0
             ;;
+
+        *)
+            bail "Offline Docker install is not supported on ${LSB_DIST} ${DIST_MAJOR}"
+            ;;
     esac
 
-
-    printf "Offline Docker install is not supported on ${LSB_DIST} ${DIST_MAJOR}"
-    exit 1
+    logSuccess "Docker host packages installed"
 }
 
 check_docker_storage_driver() {

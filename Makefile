@@ -584,7 +584,7 @@ watchrsync:
 
 .PHONY: deps
 deps:
-	go get -u golang.org/x/lint/golint
+	go get golang.org/x/lint/golint
 
 .PHONY: lint
 lint:
