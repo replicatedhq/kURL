@@ -35,6 +35,9 @@ function tasks() {
         set-kubeconfig-server|set_kubeconfig_server)
             set_kubeconfig_server $2
             ;;
+        taint-primaries|taint_primaries)
+            taint_primaries
+            ;;
         *)
             bail "Unknown task: $1"
             ;;
@@ -376,6 +379,41 @@ function set_kubeconfig_server() {
             kubectl --kubeconfig=/etc/kubernetes/admin.conf config set-cluster "$cluster" --server "$server"
         done < <(kubectl --kubeconfig /etc/kubernetes/admin.conf config get-clusters | grep -v NAME)
     fi
+}
+
+function taint_primaries() {
+    # Rook tolerations
+    if kubectl get namespace rook-ceph &>/dev/null; then
+        # Apply tolerations to cluster config so operator doesn't remove them on next orchestration
+        kubectl -n rook-ceph patch cephclusters rook-ceph -p '{"spec":{"placement":{"all":{"tolerations":["node-role.kubernetes.io/master"]}}}}'
+
+        while read -r deployment; do
+            kubectl -n rook-ceph patch "$deployment"  -p '{"spec":{"template":{"spec":{"tolerations":[{"key":"node-role.kubernetes.io/master","operator":"Exists"}]}}}}'
+        done < <(kubectl -n rook-ceph get deployments -oname)
+
+        while read -r daemonset; do
+            kubectl -n rook-ceph patch "$daemonset"  -p '{"spec":{"template":{"spec":{"tolerations":[{"key":"node-role.kubernetes.io/master","operator":"Exists"}]}}}}'
+        done < <(kubectl -n rook-ceph get daemonsets -oname)
+    fi
+
+    # Taint all primaries
+    kubectl taint nodes --selector=node-role.kubernetes.io/master node-role.kubernetes.io/master:NoSchedule
+
+    # Delete local pods with PVCs so they get rescheduled on worker
+    while read -r uid; do
+        if [ -z "$uid" ]; then
+            # unmounted device
+            continue
+        fi
+        pod=$(kubectl get pods --all-namespaces -ojsonpath='{ range .items[*]}{.metadata.name}{"\t"}{.metadata.uid}{"\t"}{.metadata.namespace}{"\n"}{end}' | grep "$uid" )
+        kubectl delete pod "$(echo "$pod" | awk '{ print $1 }')" --namespace="$(echo "$pod" | awk '{ print $3 }')" --wait=false
+    done < <(lsblk | grep '^rbd[0-9]' | awk '{ print $7 }' | awk -F '/' '{ print $6 }')
+
+    # Delete local pods using the Ceph filesystem so they get rescheduled on worker
+    while read -r uid; do
+        pod=$(kubectl get pods --all-namespaces -ojsonpath='{ range .items[*]}{.metadata.name}{"\t"}{.metadata.uid}{"\t"}{.metadata.namespace}{"\n"}{end}' | grep "$uid" )
+        kubectl delete pod "$(echo "$pod" | awk '{ print $1 }')" --namespace="$(echo "$pod" | awk '{ print $3 }')" --wait=false
+    done < <(grep ':6789:/' /proc/mounts | grep -v globalmount | awk '{ print $2 }' | awk -F '/' '{ print $6 }')
 }
 
 tasks "$@"
