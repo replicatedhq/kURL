@@ -10,3 +10,4 @@ patchesStrategicMerge:
 - ceph-cluster-storage.yaml
 - ceph-block-pool-replicas.yaml
 - ceph-object-store-replicas.yaml
+- ceph-cluster-tolerate.yaml
