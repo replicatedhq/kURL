@@ -382,22 +382,29 @@ function set_kubeconfig_server() {
 }
 
 function taint_primaries() {
+    export KUBECONFIG=/etc/kubernetes/admin.conf
+
     # Rook tolerations
     if kubectl get namespace rook-ceph &>/dev/null; then
         # Apply tolerations to cluster config so operator doesn't remove them on next orchestration
-        kubectl -n rook-ceph patch cephclusters rook-ceph -p '{"spec":{"placement":{"all":{"tolerations":["node-role.kubernetes.io/master"]}}}}'
+        kubectl -n rook-ceph patch cephclusters rook-ceph --type=merge -p '{"spec":{"placement":{"all":{"tolerations":[{"key":"node-role.kubernetes.io/master","operator":"Exists"}]}}}}'
 
         while read -r deployment; do
-            kubectl -n rook-ceph patch "$deployment"  -p '{"spec":{"template":{"spec":{"tolerations":[{"key":"node-role.kubernetes.io/master","operator":"Exists"}]}}}}'
+            kubectl -n rook-ceph patch "$deployment" --type=merge -p '{"spec":{"template":{"spec":{"tolerations":[{"key":"node-role.kubernetes.io/master","operator":"Exists"}]}}}}'
         done < <(kubectl -n rook-ceph get deployments -oname)
 
         while read -r daemonset; do
-            kubectl -n rook-ceph patch "$daemonset"  -p '{"spec":{"template":{"spec":{"tolerations":[{"key":"node-role.kubernetes.io/master","operator":"Exists"}]}}}}'
+            kubectl -n rook-ceph patch "$daemonset" --type=merge -p '{"spec":{"template":{"spec":{"tolerations":[{"key":"node-role.kubernetes.io/master","operator":"Exists"}]}}}}'
         done < <(kubectl -n rook-ceph get daemonsets -oname)
     fi
 
+    # EKCO tolerations
+    if kubernetes_resource_exists kurl deployment ekc-operator; then
+        kubectl -n kurl patch deployment ekc-operator --type=merge -p '{"spec":{"template":{"spec":{"tolerations":[{"key":"node-role.kubernetes.io/master","operator":"Exists"}]}}}}'
+    fi
+
     # Taint all primaries
-    kubectl taint nodes --selector=node-role.kubernetes.io/master node-role.kubernetes.io/master:NoSchedule
+    kubectl taint nodes --overwrite --selector=node-role.kubernetes.io/master node-role.kubernetes.io/master=:NoSchedule
 
     # Delete local pods with PVCs so they get rescheduled on worker
     while read -r uid; do
