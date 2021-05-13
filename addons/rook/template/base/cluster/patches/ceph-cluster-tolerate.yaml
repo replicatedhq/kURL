@@ -1,0 +1,11 @@
+apiVersion: ceph.rook.io/v1
+kind: CephCluster
+metadata:
+  name: rook-ceph
+  namespace: rook-ceph
+spec:
+  placement:
+    all:
+      tolerations:
+        - key: node-role.kubernetes.io/master
+          operator: Exists
