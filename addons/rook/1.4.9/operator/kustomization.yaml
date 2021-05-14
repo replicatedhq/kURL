@@ -12,4 +12,4 @@ resources:
 - configmap-rook-config-override.yaml
 
 patchesStrategicMerge:
-- deployment-tolerations.yaml
+- patches/deployment-tolerations.yaml
