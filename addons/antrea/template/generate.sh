@@ -4,9 +4,12 @@ set -euo pipefail
 
 VERSION=
 function get_latest_version() {
-    VERSION=$(curl -I https://github.com/vmware-tanzu/antrea/releases/latest | \
-        grep -i "^location" | \
-        grep -Eo "[0-9]+\.[0-9]+\.[0-9]+")
+    # semver sort
+    VERSION=$(curl -s https://api.github.com/repos/antrea-io/antrea/releases | \
+        grep '"tag_name": ' | \
+        grep -Eo "[0-9]+\.[0-9]+\.[0-9]+" | \
+        sed '/-/!{s/$/_/}' | sort -Vr | sed 's/_$//' | \
+        head -1)
 }
 
 function add_as_latest() {
@@ -39,7 +42,7 @@ function main() {
 
     add_as_latest
 
-    echo "::set-output name=antrea::$VERSION"
+    echo "::set-output name=antrea_version::$VERSION"
 }
 
 main "$@"
