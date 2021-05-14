@@ -387,7 +387,7 @@ function taint_primaries() {
     # Rook tolerations
     if kubectl get namespace rook-ceph &>/dev/null; then
         kubectl -n rook-ceph patch cephclusters rook-ceph --type=merge -p '{"spec":{"placement":{"all":{"tolerations":[{"key":"node-role.kubernetes.io/master","operator":"Exists"}]}}}}'
-		cat <<EOF | kubectl -n rook-ceph patch deployment rook-ceph-operator -p "$(cat)"
+        cat <<EOF | kubectl -n rook-ceph patch deployment rook-ceph-operator -p "$(cat)"
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -435,7 +435,7 @@ EOF
         kubectl delete pod "$(echo "$pod" | awk '{ print $1 }')" --namespace="$(echo "$pod" | awk '{ print $3 }')" --wait=false
     done < <(lsblk | grep '^rbd[0-9]' | awk '{ print $7 }' | awk -F '/' '{ print $6 }')
 
-    # Delete local pods using the Ceph filesystem so they get rescheduled on worker
+    # Delete local pods using the Ceph filesystem so they get rescheduled to worker nodes immediately
     while read -r uid; do
         pod=$(kubectl get pods --all-namespaces -ojsonpath='{ range .items[*]}{.metadata.name}{"\t"}{.metadata.uid}{"\t"}{.metadata.namespace}{"\n"}{end}' | grep "$uid" )
         kubectl delete pod "$(echo "$pod" | awk '{ print $1 }')" --namespace="$(echo "$pod" | awk '{ print $3 }')" --wait=false
