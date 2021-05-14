@@ -42,7 +42,7 @@ function main() {
 
     add_as_latest
 
-    echo "::set-output name=antrea::$VERSION"
+    echo "::set-output name=antrea_version::$VERSION"
 }
 
 main "$@"
