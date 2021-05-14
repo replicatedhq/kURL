@@ -386,16 +386,33 @@ function taint_primaries() {
 
     # Rook tolerations
     if kubectl get namespace rook-ceph &>/dev/null; then
-        # Apply tolerations to cluster config so operator doesn't remove them on next orchestration
         kubectl -n rook-ceph patch cephclusters rook-ceph --type=merge -p '{"spec":{"placement":{"all":{"tolerations":[{"key":"node-role.kubernetes.io/master","operator":"Exists"}]}}}}'
-
-        while read -r deployment; do
-            kubectl -n rook-ceph patch "$deployment" --type=merge -p '{"spec":{"template":{"spec":{"tolerations":[{"key":"node-role.kubernetes.io/master","operator":"Exists"}]}}}}'
-        done < <(kubectl -n rook-ceph get deployments -oname)
-
-        while read -r daemonset; do
-            kubectl -n rook-ceph patch "$daemonset" --type=merge -p '{"spec":{"template":{"spec":{"tolerations":[{"key":"node-role.kubernetes.io/master","operator":"Exists"}]}}}}'
-        done < <(kubectl -n rook-ceph get daemonsets -oname)
+		cat <<EOF | kubectl -n rook-ceph patch deployment rook-ceph-operator -p "$(cat)"
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rook-ceph-operator
+  namespace: rook-ceph
+spec:
+  template:
+    spec:
+      tolerations:
+        - key: node-role.kubernetes.io/master
+          operator: Exists
+      containers:
+        - name: rook-ceph-operator
+          env:
+            - name: DISCOVER_TOLERATION_KEY
+              value: node-role.kubernetes.io/master
+            - name: CSI_PROVISIONER_TOLERATIONS
+              value: |
+                - key: node-role.kubernetes.io/master
+                  operator: Exists
+            - name: CSI_PLUGIN_TOLERATIONS
+              value: |
+                - key: node-role.kubernetes.io/master
+                  operator: Exists
+EOF
     fi
 
     # EKCO tolerations
@@ -403,10 +420,12 @@ function taint_primaries() {
         kubectl -n kurl patch deployment ekc-operator --type=merge -p '{"spec":{"template":{"spec":{"tolerations":[{"key":"node-role.kubernetes.io/master","operator":"Exists"}]}}}}'
     fi
 
+
     # Taint all primaries
     kubectl taint nodes --overwrite --selector=node-role.kubernetes.io/master node-role.kubernetes.io/master=:NoSchedule
 
-    # Delete local pods with PVCs so they get rescheduled on worker
+    # Delete pods with PVCs so they get rescheduled to worker nodes immediately
+    # TODO: delete pods with PVCs on other primaries
     while read -r uid; do
         if [ -z "$uid" ]; then
             # unmounted device
