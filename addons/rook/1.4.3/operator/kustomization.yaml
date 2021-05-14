@@ -6,4 +6,4 @@ resources:
 - priorityclass.yaml
 
 patchesStrategicMerge:
-- ceph-operator-tolerate.yaml
+- patches/ceph-operator-tolerate.yaml
