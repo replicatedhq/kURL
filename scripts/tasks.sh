@@ -35,6 +35,9 @@ function tasks() {
         set-kubeconfig-server|set_kubeconfig_server)
             set_kubeconfig_server $2
             ;;
+        taint-primaries|taint_primaries)
+            taint_primaries
+            ;;
         *)
             bail "Unknown task: $1"
             ;;
@@ -376,6 +379,67 @@ function set_kubeconfig_server() {
             kubectl --kubeconfig=/etc/kubernetes/admin.conf config set-cluster "$cluster" --server "$server"
         done < <(kubectl --kubeconfig /etc/kubernetes/admin.conf config get-clusters | grep -v NAME)
     fi
+}
+
+function taint_primaries() {
+    export KUBECONFIG=/etc/kubernetes/admin.conf
+
+    # Rook tolerations
+    if kubectl get namespace rook-ceph &>/dev/null; then
+        kubectl -n rook-ceph patch cephclusters rook-ceph --type=merge -p '{"spec":{"placement":{"all":{"tolerations":[{"key":"node-role.kubernetes.io/master","operator":"Exists"}]}}}}'
+        cat <<EOF | kubectl -n rook-ceph patch deployment rook-ceph-operator -p "$(cat)"
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rook-ceph-operator
+  namespace: rook-ceph
+spec:
+  template:
+    spec:
+      tolerations:
+        - key: node-role.kubernetes.io/master
+          operator: Exists
+      containers:
+        - name: rook-ceph-operator
+          env:
+            - name: DISCOVER_TOLERATION_KEY
+              value: node-role.kubernetes.io/master
+            - name: CSI_PROVISIONER_TOLERATIONS
+              value: |
+                - key: node-role.kubernetes.io/master
+                  operator: Exists
+            - name: CSI_PLUGIN_TOLERATIONS
+              value: |
+                - key: node-role.kubernetes.io/master
+                  operator: Exists
+EOF
+    fi
+
+    # EKCO tolerations
+    if kubernetes_resource_exists kurl deployment ekc-operator; then
+        kubectl -n kurl patch deployment ekc-operator --type=merge -p '{"spec":{"template":{"spec":{"tolerations":[{"key":"node-role.kubernetes.io/master","operator":"Exists"}]}}}}'
+    fi
+
+
+    # Taint all primaries
+    kubectl taint nodes --overwrite --selector=node-role.kubernetes.io/master node-role.kubernetes.io/master=:NoSchedule
+
+    # Delete pods with PVCs so they get rescheduled to worker nodes immediately
+    # TODO: delete pods with PVCs on other primaries
+    while read -r uid; do
+        if [ -z "$uid" ]; then
+            # unmounted device
+            continue
+        fi
+        pod=$(kubectl get pods --all-namespaces -ojsonpath='{ range .items[*]}{.metadata.name}{"\t"}{.metadata.uid}{"\t"}{.metadata.namespace}{"\n"}{end}' | grep "$uid" )
+        kubectl delete pod "$(echo "$pod" | awk '{ print $1 }')" --namespace="$(echo "$pod" | awk '{ print $3 }')" --wait=false
+    done < <(lsblk | grep '^rbd[0-9]' | awk '{ print $7 }' | awk -F '/' '{ print $6 }')
+
+    # Delete local pods using the Ceph filesystem so they get rescheduled to worker nodes immediately
+    while read -r uid; do
+        pod=$(kubectl get pods --all-namespaces -ojsonpath='{ range .items[*]}{.metadata.name}{"\t"}{.metadata.uid}{"\t"}{.metadata.namespace}{"\n"}{end}' | grep "$uid" )
+        kubectl delete pod "$(echo "$pod" | awk '{ print $1 }')" --namespace="$(echo "$pod" | awk '{ print $3 }')" --wait=false
+    done < <(grep ':6789:/' /proc/mounts | grep -v globalmount | awk '{ print $2 }' | awk -F '/' '{ print $6 }')
 }
 
 tasks "$@"

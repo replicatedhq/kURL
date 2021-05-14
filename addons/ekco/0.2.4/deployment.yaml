@@ -17,6 +17,9 @@ spec:
       restartPolicy: Always
       nodeSelector:
         node-role.kubernetes.io/master: ""
+      tolerations:
+        - key: node-role.kubernetes.io/master
+          operator: Exists
       containers:
         - name: ekc-operator
           image: replicated/ekco:v0.2.4

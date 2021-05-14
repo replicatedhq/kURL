@@ -10,3 +10,6 @@ resources:
 - psp.yaml
 - namespace.yaml
 - configmap-rook-config-override.yaml
+
+patchesStrategicMerge:
+- patches/deployment-tolerations.yaml

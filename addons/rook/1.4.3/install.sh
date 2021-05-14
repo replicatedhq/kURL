@@ -107,6 +107,7 @@ function rook_cluster_deploy() {
 
     # patches
     cp "$src/patches/ceph-cluster-mons.yaml" "$dst/"
+    cp "$src/patches/ceph-cluster-tolerate.yaml" "$dst/"
     render_yaml_file "$src/patches/tmpl-ceph-cluster-image.yaml" > "$dst/ceph-cluster-image.yaml"
     render_yaml_file "$src/patches/tmpl-ceph-block-pool-replicas.yaml" > "$dst/ceph-block-pool-replicas.yaml"
     render_yaml_file "$src/patches/tmpl-ceph-object-store.yaml" > "$dst/ceph-object-store-replicas.yaml"
