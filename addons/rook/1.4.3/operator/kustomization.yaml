@@ -4,3 +4,6 @@ resources:
 - ceph-toolbox.yaml
 - config-override.yaml
 - priorityclass.yaml
+
+patchesStrategicMerge:
+- ceph-operator-tolerate.yaml
