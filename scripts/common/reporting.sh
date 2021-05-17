@@ -188,20 +188,28 @@ function addon_install_fail_nobundle() {
 function collect_support_bundle() {
     trap - SIGINT # reset SIGINT handler to default - someone should be able to ctrl+c the support bundle collector
 
+    # if someone has set ASSUME_YES, we shouldn't automatically upload a support bundle
+    if [ "$ASSUME_YES" = "1" ]; then
+        return 0
+    fi
+    if ! prompts_can_prompt ; then
+        return 0
+    fi
+
     printf "${YELLOW}Would you like to provide a support bundle to aid us in avoiding similar errors in the future?${NC}\n"
-    if ! supportBundleConfirmN "-t 120"; then
+    if ! confirmN; then
         return 0
     fi
 
     printf "${YELLOW}Please provide your work email address for our records (this is not a support ticket):${NC}\n"
-    promptTimeout "-t 120"
+    prompt
     local email_address=""
     if [ -n "$PROMPT_RESULT" ]; then
         email_address="$PROMPT_RESULT"
     fi
 
     printf "${YELLOW}Could you provide a quick description of the issue you encountered?${NC}\n"
-    promptTimeout "-t 120"
+    prompt
     local issue_description=""
     if [ -n "$PROMPT_RESULT" ]; then
         issue_description="$PROMPT_RESULT"

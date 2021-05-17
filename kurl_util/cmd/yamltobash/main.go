@@ -201,6 +201,8 @@ func convertToBash(kurlValues map[string]interface{}, fieldsSet map[string]bool)
 		"Kurl.AdditionalNoProxyAddresses":        "ADDITIONAL_NO_PROXY_ADDRESSES",
 		"Kurl.Airgap":                            "AIRGAP",
 		"Kurl.HostnameCheck":                     "HOSTNAME_CHECK",
+		"Kurl.IgnoreRemoteLoadImagesPrompt":      "KURL_IGNORE_REMOTE_LOAD_IMAGES_PROMPT",
+		"Kurl.IgnoreRemoteUpgradePrompt":         "KURL_IGNORE_REMOTE_UPGRADE_PROMPT",
 		"Kurl.Nameserver":                        "NAMESERVER",
 		"Kurl.NoProxy":                           "NO_PROXY",
 		"Kurl.PreflightIgnore":                   "PREFLIGHT_IGNORE",

@@ -78,7 +78,7 @@ function upgrade_kubernetes_local_master_patch() {
 
     kubeadm upgrade plan "v${k8sVersion}"
     printf "${YELLOW}Drain local node and apply upgrade? ${NC}"
-    confirmY " "
+    confirmY
  
     kubernetes_drain "$node"
  
@@ -135,7 +135,7 @@ function upgrade_kubernetes_remote_node_patch() {
     DOCKER_REGISTRY_IP=$(kubectl -n kurl get service registry -o=jsonpath='{@.spec.clusterIP}' 2>/dev/null || echo "")
 
     printf "${YELLOW}Drain node $nodeName to prepare for upgrade? ${NC}"
-    confirmY " "
+    confirmY
     kubernetes_drain "$nodeName"
 
     local common_flags
@@ -177,7 +177,7 @@ function upgrade_kubernetes_local_master_minor() {
 
     kubeadm upgrade plan "v${k8sVersion}"
     printf "${YELLOW}Drain local node and apply upgrade? ${NC}"
-    confirmY " "
+    confirmY
 
     kubernetes_drain "$node"
 
@@ -230,13 +230,13 @@ function upgrade_kubernetes_remote_node_minor() {
     local targetPatch="$patch"
 
     if [ "$nodeMinor" -ge "$targetMinor" ]; then
-        continue
+        return 0
     fi
 
     DOCKER_REGISTRY_IP=$(kubectl -n kurl get service registry -o=jsonpath='{@.spec.clusterIP}' 2>/dev/null || echo "")
 
     printf "${YELLOW}Drain node $nodeName to prepare for upgrade? ${NC}"
-    confirmY " "
+    confirmY
     kubernetes_drain "$nodeName"
 
     local common_flags

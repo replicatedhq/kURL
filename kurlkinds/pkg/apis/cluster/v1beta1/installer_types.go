@@ -105,16 +105,18 @@ type Kubernetes struct {
 }
 
 type Kurl struct {
-	AdditionalNoProxyAddresses []string `json:"additionalNoProxyAddresses,omitempty" yaml:"proxyAddress,omitempty"`
-	Airgap                     bool     `json:"airgap,omitempty" yaml:"airgap,omitempty"`
-	HostnameCheck              string   `json:"hostnameCheck,omitempty" yaml:"hostnameCheck,omitempty"`
-	Nameserver                 string   `json:"nameserver,omitempty" yaml:"nameserver,omitempty"`
-	NoProxy                    bool     `json:"noProxy,omitempty" yaml:"noProxy,omitempty"`
-	PreflightIgnore            bool     `json:"preflightIgnore,omitempty" yaml:"preflightIgnore,omitempty"`
-	PreflightIgnoreWarnings    bool     `json:"preflightIgnoreWarnings,omitempty" yaml:"preflightIgnoreWarnings,omitempty"`
-	PrivateAddress             string   `json:"privateAddress,omitempty" yaml:"privateAddress,omitempty"`
-	ProxyAddress               string   `json:"proxyAddress,omitempty" yaml:"proxyAddress,omitempty"`
-	PublicAddress              string   `json:"publicAddress,omitempty" yaml:"publicAddress,omitempty"`
+	AdditionalNoProxyAddresses   []string `json:"additionalNoProxyAddresses,omitempty" yaml:"proxyAddress,omitempty"`
+	Airgap                       bool     `json:"airgap,omitempty" yaml:"airgap,omitempty"`
+	HostnameCheck                string   `json:"hostnameCheck,omitempty" yaml:"hostnameCheck,omitempty"`
+	IgnoreRemoteLoadImagesPrompt bool     `json:"ignoreRemoteLoadImagesPrompt,omitempty" yaml:"ignoreRemoteLoadImagesPrompt,omitempty"`
+	IgnoreRemoteUpgradePrompt    bool     `json:"ignoreRemoteUpgradePrompt,omitempty" yaml:"ignoreRemoteUpgradePrompt,omitempty"`
+	Nameserver                   string   `json:"nameserver,omitempty" yaml:"nameserver,omitempty"`
+	NoProxy                      bool     `json:"noProxy,omitempty" yaml:"noProxy,omitempty"`
+	PreflightIgnore              bool     `json:"preflightIgnore,omitempty" yaml:"preflightIgnore,omitempty"`
+	PreflightIgnoreWarnings      bool     `json:"preflightIgnoreWarnings,omitempty" yaml:"preflightIgnoreWarnings,omitempty"`
+	PrivateAddress               string   `json:"privateAddress,omitempty" yaml:"privateAddress,omitempty"`
+	ProxyAddress                 string   `json:"proxyAddress,omitempty" yaml:"proxyAddress,omitempty"`
+	PublicAddress                string   `json:"publicAddress,omitempty" yaml:"publicAddress,omitempty"`
 }
 
 type Minio struct {

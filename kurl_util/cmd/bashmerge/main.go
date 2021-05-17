@@ -47,7 +47,7 @@ func checkIfFlagHasValue(length int, flag string) bool {
 	shouldHaveLengthTwo := []string{
 		"additional-no-proxy-addresses",
 		"cert-key",
-		"docker-rgistry-ip",
+		"docker-registry-ip",
 		"kubeadm-token",
 		"kubeadm-token-ca-hash",
 		"kubernetes-master-address",
@@ -109,6 +109,10 @@ func parseBashFlags(installer *kurlv1beta1.Installer, bashFlags string) error {
 			continue
 		case "kurl-registry-ip":
 			continue
+		case "ignore-remote-load-images-prompt":
+			installer.Spec.Kurl.IgnoreRemoteLoadImagesPrompt = true
+		case "ignore-remote-upgrade-prompt":
+			installer.Spec.Kurl.IgnoreRemoteUpgradePrompt = true
 		case "preflight-ignore":
 			installer.Spec.Kurl.PreflightIgnore = true
 		case "preflight-ignore-warnings":

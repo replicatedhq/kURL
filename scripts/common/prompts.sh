@@ -1,83 +1,62 @@
 # Gather any additional information required from the user that could not be discovered and was not
 # passed with a flag
 
-function prompts() {
-    if [ -z "$PRIVATE_ADDRESS" ]; then
-        promptForPrivateIp
+function prompts_can_prompt() {
+    # Need the TTY to accept input and stdout to display
+    # Prompts when running the script through the terminal but not as a subshell
+    if [ -t 1 ] && [ -c /dev/tty ]; then
+        return 0
     fi
-    # TODO public address? only required for adding SAN to K8s API server cert
-
-    prompt_airgap_preload_images
-
-    if [ "$HA_CLUSTER" = "1" ]; then
-        promptForLoadBalancerAddress
-    fi
+    return 1
 }
 
-if [ -z "$READ_TIMEOUT" ]; then
-    READ_TIMEOUT="-t 20"
-fi
-
-promptTimeout() {
-    set +e
-    if [ -z "$FAST_TIMEOUTS" ]; then
-        read ${1:-$READ_TIMEOUT} PROMPT_RESULT < /dev/tty
-    else
-        read ${READ_TIMEOUT} PROMPT_RESULT < /dev/tty
+function prompt() {
+    if ! prompts_can_prompt ; then
+        bail "Cannot prompt, shell is not interactive"
     fi
+
+    set +e
+    read PROMPT_RESULT < /dev/tty
     set -e
 }
 
-confirmY() {
+function confirmY() {
     printf "(Y/n) "
     if [ "$ASSUME_YES" = "1" ]; then
         echo "Y"
         return 0
     fi
-    promptTimeout "$@"
+    if ! prompts_can_prompt ; then
+        echo "Y"
+        logWarn "Automatically accepting prompt, shell is not interactive"
+        return 0
+    fi
+    prompt
     if [ "$PROMPT_RESULT" = "n" ] || [ "$PROMPT_RESULT" = "N" ]; then
         return 1
     fi
     return 0
 }
 
-confirmN() {
+function confirmN() {
     printf "(y/N) "
     if [ "$ASSUME_YES" = "1" ]; then
         echo "Y"
         return 0
     fi
-    promptTimeout "$@"
-    if [ "$PROMPT_RESULT" = "y" ] || [ "$PROMPT_RESULT" = "Y" ]; then
-        return 0
-    fi
-    return 1
-}
-
-# even if someone has set ASSUME_YES, we shouldn't automatically upload a support bundle
-supportBundleConfirmN() {
-    printf "(y/N) "
-    if [ "$ASSUME_YES" = "1" ]; then
+    if ! prompts_can_prompt ; then
         echo "N"
+        logWarn "Automatically declining prompt, shell is not interactive"
         return 1
     fi
-    promptTimeout "$@"
+    prompt
     if [ "$PROMPT_RESULT" = "y" ] || [ "$PROMPT_RESULT" = "Y" ]; then
         return 0
     fi
     return 1
 }
 
-prompt() {
-    if [ "$ASSUME_YES" = "1" ]; then
-        return 0
-    fi
-    set +e
-    read PROMPT_RESULT < /dev/tty
-    set -e
-}
-
-function joinPrompts() {
+function join_prompts() {
     if [ -n "$API_SERVICE_ADDRESS" ]; then
         splitHostPort "$API_SERVICE_ADDRESS"
         if [ -z "$PORT" ]; then
@@ -88,7 +67,7 @@ function joinPrompts() {
         LOAD_BALANCER_ADDRESS="$HOST"
         LOAD_BALANCER_PORT="$PORT"
     else
-        promptForMasterAddress
+        prompt_for_master_address
         splitHostPort "$KUBERNETES_MASTER_ADDR"
         if [ -n "$PORT" ]; then
             KUBERNETES_MASTER_ADDR="$HOST"
@@ -100,13 +79,16 @@ function joinPrompts() {
         LOAD_BALANCER_PORT="$KUBERNETES_MASTER_PORT"
         API_SERVICE_ADDRESS="${KUBERNETES_MASTER_ADDR}:${KUBERNETES_MASTER_PORT}"
     fi
-    promptForToken
-    promptForTokenCAHash
+    prompt_for_token
+    prompt_for_token_ca_hash
 }
 
-promptForToken() {
+function prompt_for_token() {
     if [ -n "$KUBEADM_TOKEN" ]; then
         return
+    fi
+    if ! prompts_can_prompt ; then
+        bail "kubernetes.kubeadmToken required"
     fi
 
     printf "Please enter the kubernetes discovery token.\n"
@@ -120,9 +102,12 @@ promptForToken() {
     done
 }
 
-promptForTokenCAHash() {
+function prompt_for_token_ca_hash() {
     if [ -n "$KUBEADM_TOKEN_CA_HASH" ]; then
         return
+    fi
+    if ! prompts_can_prompt ; then
+        bail "kubernetes.kubeadmTokenCAHash required"
     fi
 
     printf "Please enter the discovery token CA's hash.\n"
@@ -136,9 +121,12 @@ promptForTokenCAHash() {
     done
 }
 
-promptForMasterAddress() {
+function prompt_for_master_address() {
     if [ -n "$KUBERNETES_MASTER_ADDR" ]; then
         return
+    fi
+    if ! prompts_can_prompt ; then
+        bail "kubernetes.masterAddress required"
     fi
 
     printf "Please enter the Kubernetes master address.\n"
@@ -153,7 +141,20 @@ promptForMasterAddress() {
     done
 }
 
-promptForLoadBalancerAddress() {
+function common_prompts() {
+    if [ -z "$PRIVATE_ADDRESS" ]; then
+        prompt_for_private_ip
+    fi
+    # TODO public address? only required for adding SAN to K8s API server cert
+
+    prompt_airgap_preload_images
+
+    if [ "$HA_CLUSTER" = "1" ]; then
+        prompt_for_load_balancer_address
+    fi
+}
+
+function prompt_for_load_balancer_address() {
     local lastLoadBalancerAddress=
 
     if kubeadm_cluster_configuration >/dev/null 2>&1; then
@@ -181,6 +182,10 @@ promptForLoadBalancerAddress() {
     fi
 
     if [ -z "$LOAD_BALANCER_ADDRESS" ]; then
+        if ! prompts_can_prompt ; then
+            bail "kubernetes.loadBalancerAddress required"
+        fi
+
         printf "Please enter a load balancer address to route external and internal traffic to the API servers.\n"
         printf "In the absence of a load balancer address, all traffic will be routed to the first master.\n"
         printf "Load balancer address: "
@@ -215,6 +220,8 @@ function prompt_airgap_preload_images() {
     if ! kubernetes_has_remotes; then
         return 0
     fi
+
+    local unattended_nodes_missing_images=0
  
     while read -r node; do
         local nodeName=$(echo "$node" | awk '{ print $1 }')
@@ -230,38 +237,30 @@ function prompt_airgap_preload_images() {
         printf "${GREEN}\tcat ./tasks.sh | sudo bash -s load-images${kurl_install_directory_flag}${NC}"
         printf "\n"
 
-        while true; do
-            echo ""
-            printf "Have images been loaded on node ${nodeName}? "
-            if confirmY " "; then
-                break
+        if [ "${KURL_IGNORE_REMOTE_LOAD_IMAGES_PROMPT}" != "1" ]; then
+            if ! prompts_can_prompt ; then
+                unattended_nodes_missing_images=1
+                continue
             fi
-        done
-    done < <(kubectl get nodes --no-headers)
-}
 
-promptForPublicIp() {
-    if [ -n "$PUBLIC_ADDRESS" ]; then
-        return 0;
-    fi
-
-    while true; do
-        printf "Public IP address: "
-        promptTimeout "-t 120"
-        if [ -n "$PROMPT_RESULT" ]; then
-            if isValidIpv4 "$PROMPT_RESULT"; then
-                PUBLIC_ADDRESS=$PROMPT_RESULT
-                break
-            else
-                printf "%s is not a valid ip address.\n" "$PROMPT_RESULT"
-            fi
+            while true; do
+                echo ""
+                printf "Have images been loaded on node ${nodeName}? "
+                if confirmN ; then
+                    break
+                fi
+            done
         else
-            break
+            logWarn "Remote load-images task prompt explicitly ignored"
         fi
-    done
+    done < <(kubectl get nodes --no-headers)
+
+    if [ "$unattended_nodes_missing_images" = "1" ] ; then
+        bail "Preloading images required"
+    fi
 }
 
-promptForPrivateIp() {
+function prompt_for_private_ip() {
     _count=0
     _regex="^[[:digit:]]+: ([^[:space:]]+)[[:space:]]+[[:alnum:]]+ ([[:digit:].]+)"
     while read -r _line; do
@@ -282,6 +281,11 @@ promptForPrivateIp() {
         printf "The installer will use network interface '%s' (with IP address '%s')\n" "${_iface_names[0]}" "${_iface_addrs[0]}"
         return
     fi
+
+    if ! prompts_can_prompt ; then
+        bail "kurl.privateAddress required"
+    fi
+
     printf "The installer was unable to automatically detect the private IP address of this machine.\n"
     printf "Please choose one of the following network interfaces:\n"
     for i in $(seq 0 $((_count-1))); do

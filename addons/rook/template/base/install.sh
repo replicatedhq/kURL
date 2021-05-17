@@ -49,7 +49,7 @@ function rook_pre_init() {
             logWarn "The Rook cluster's storage may be unavailable for short periods during the upgrade process."
             log ""
             log "Would you like to continue? "
-            if ! confirmN " "; then
+            if ! confirmN ; then
                 logWarn "Will not upgrade rook-ceph cluster"
                 SKIP_ROOK_INSTALL=1
             fi

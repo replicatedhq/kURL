@@ -89,6 +89,10 @@ function get_patch_yaml() {
                 ;;
             ha)
                 ;;
+            ignore-remote-load-images-prompt)
+                ;;
+            ignore-remote-upgrade-prompt)
+                ;;
             kubeadm-token)
                 ;;
             kubeadm-token-ca-hash)

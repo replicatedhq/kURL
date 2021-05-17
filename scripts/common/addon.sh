@@ -144,9 +144,15 @@ function addon_outro() {
 
             printf "\n\t${GREEN}${prefix}upgrade.sh | sudo bash -s${common_flags}${NC}\n\n"
         fi
-        printf "Press enter to proceed\n"
-        prompt
 
+        if [ "${KURL_IGNORE_REMOTE_UPGRADE_PROMPT}" != "1" ]; then
+            if prompts_can_prompt ; then
+                echo "Press enter to proceed"
+                prompt
+            fi
+        else
+            logWarn "Remote upgrade script prompt explicitly ignored"
+        fi
     fi
 
     while read -r name; do

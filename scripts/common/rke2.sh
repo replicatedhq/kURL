@@ -147,7 +147,7 @@ function rke2_init() {
     #         printf "${GREEN}    ${prefix}tasks.sh | sudo bash -s set-kubeconfig-server https://${currentLoadBalancerAddress}${NC}\n"
     #         printf "\n"
     #         printf "Continue? "
-    #         confirmY " "
+    #         confirmN
 
     #         if commandExists ekco_handle_load_balancer_address_change_post_init; then
     #             ekco_handle_load_balancer_address_change_post_init $oldLoadBalancerAddress $LOAD_BALANCER_ADDRESS
@@ -381,7 +381,7 @@ function rke2_main() {
     # else
     #     host_preflights "1" "0" "1"
     # fi
-    prompts                             # TODO(dan): shouldn't come into play for RKE2
+    common_prompts                      # TODO(dan): shouldn't come into play for RKE2
     journald_persistent
     configure_proxy
     install_host_dependencies
