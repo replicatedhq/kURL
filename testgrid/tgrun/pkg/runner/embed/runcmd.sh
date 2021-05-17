@@ -29,15 +29,15 @@ function run_install() {
         AIRGAP_FLAG=airgap
 
         # get the install bundle
-        curl -L -o install.tar.gz "$KURL_URL"
+        curl -fsSL -o install.tar.gz "$KURL_URL"
         if [ -n "$KURL_UPGRADE_URL" ]; then
-            curl -L -o upgrade.tar.gz "$KURL_UPGRADE_URL"
+            curl -fsSL -o upgrade.tar.gz "$KURL_UPGRADE_URL"
         fi
 
         disable_internet
 
         # run the installer
-        tar -xzvf install.tar.gz
+        tar -xzf install.tar.gz
         local tar_exit_status="$?"
         if [ $tar_exit_status -ne 0 ]; then
             echo "failed to unpack airgap file with status $tar_exit_status"
@@ -46,8 +46,8 @@ function run_install() {
             exit 1
         fi
     else
-        curl "$KURL_URL" > install.sh
-        curl "$KURL_URL/tasks.sh" > tasks.sh
+        curl -fsSL "$KURL_URL" > install.sh
+        curl -fsSL "$KURL_URL/tasks.sh" > tasks.sh
     fi
 
     cat install.sh | timeout 30m bash -s $AIRGAP_FLAG
@@ -104,7 +104,7 @@ function run_upgrade() {
         AIRGAP_UPGRADE_FLAG=airgap
 
         # run the upgrade
-        tar -xzvf upgrade.tar.gz
+        tar -xzf upgrade.tar.gz
         local tar_exit_status="$?"
         if [ $tar_exit_status -ne 0 ]; then
             echo "failed to unpack airgap file with status $tar_exit_status"
@@ -113,8 +113,8 @@ function run_upgrade() {
             exit 1
         fi
     else
-        curl "$KURL_UPGRADE_URL" > install.sh
-        curl "$KURL_UPGRADE_URL/tasks.sh" > tasks.sh
+        curl -fsSL "$KURL_UPGRADE_URL" > install.sh
+        curl -fsSL "$KURL_UPGRADE_URL/tasks.sh" > tasks.sh
     fi
 
     cat install.sh | timeout 30m bash -s $AIRGAP_UPGRADE_FLAG
