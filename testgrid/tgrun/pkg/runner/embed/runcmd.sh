@@ -37,7 +37,7 @@ function run_install() {
         disable_internet
 
         # run the installer
-        tar -xzvf install.tar.gz
+        tar -xzf install.tar.gz
         local tar_exit_status="$?"
         if [ $tar_exit_status -ne 0 ]; then
             echo "failed to unpack airgap file with status $tar_exit_status"
@@ -104,7 +104,7 @@ function run_upgrade() {
         AIRGAP_UPGRADE_FLAG=airgap
 
         # run the upgrade
-        tar -xzvf upgrade.tar.gz
+        tar -xzf upgrade.tar.gz
         local tar_exit_status="$?"
         if [ $tar_exit_status -ne 0 ]; then
             echo "failed to unpack airgap file with status $tar_exit_status"
