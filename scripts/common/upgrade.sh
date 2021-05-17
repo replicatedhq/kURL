@@ -93,7 +93,7 @@ function upgrade_kubernetes_local_master_patch() {
     kubectl uncordon "$node"
 
     spinner_until 120 kubernetes_node_has_version "$node" "$k8sVersion"
-    spinner_until 120 kubernetes_nodes_ready
+    spinner_until 120 kubernetes_all_nodes_ready
 }
 
 function upgrade_kubeadm() {
@@ -108,7 +108,7 @@ function upgrade_kubernetes_remote_masters_patch() {
         upgrade_kubernetes_remote_node_patch "$master"
     done < <(try_1m kubernetes_remote_masters)
 
-    spinner_until 120 kubernetes_nodes_ready
+    spinner_until 120 kubernetes_all_nodes_ready
 }
 
 function upgrade_kubernetes_workers_patch() {
@@ -196,7 +196,7 @@ function upgrade_kubernetes_local_master_minor() {
     rm -rf $HOME/.kube
 
     spinner_until 120 kubernetes_node_has_version "$node" "$k8sVersion"
-    spinner_until 120 kubernetes_nodes_ready
+    spinner_until 120 kubernetes_all_nodes_ready
 }
 
 function upgrade_kubernetes_remote_masters_minor() {
@@ -204,7 +204,7 @@ function upgrade_kubernetes_remote_masters_minor() {
     while read -r master; do
         upgrade_kubernetes_remote_node_minor "$master" "$k8sVersion"
     done < <(try_1m kubernetes_remote_masters)
-    spinner_until 120 kubernetes_nodes_ready
+    spinner_until 120 kubernetes_all_nodes_ready
 }
 
 function upgrade_kubernetes_workers_minor() {
@@ -262,7 +262,7 @@ function upgrade_kubernetes_remote_node_minor() {
     logSuccess "Kubernetes $targetK8sVersion detected on $nodeName"
 
     kubectl uncordon "$nodeName"
-    spinner_until 120 kubernetes_nodes_ready
+    spinner_until 120 kubernetes_all_nodes_ready
 }
 
 # In k8s 1.18 the etcd image tag changed from 3.4.3 to 3.4.3-0 but kubeadm does not rewrite the

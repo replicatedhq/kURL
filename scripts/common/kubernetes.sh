@@ -328,13 +328,6 @@ function kubelet_version() {
     kubelet --version | cut -d ' ' -f 2 | sed 's/v//'
 }
 
-function kubernetes_nodes_ready() {
-    if try_1m kubectl get nodes --no-headers | awk '{ print $2 }' | grep -q "NotReady"; then
-        return 1
-    fi
-    return 0
-}
-
 function kubernetes_scale_down() {
     local ns="$1"
     local kind="$2"
@@ -781,6 +774,17 @@ function kubernetes_default_service_account_exists() {
 
 function kubernetes_service_exists() {
     kubectl -n default get service kubernetes &>/dev/null
+}
+
+function kubernetes_all_nodes_ready() {
+    local node_statuses=
+    node_statuses="$(kubectl get nodes --no-headers 2>/dev/null | awk '{ print $2 }')"
+    # no nodes are not ready and at least one node is ready
+    if echo "${node_statuses}" | grep -q 'NotReady' && \
+            echo "${node_statuses}" | grep -v 'NotReady' | grep -q 'Ready' ; then
+        return 1
+    fi
+    return 0
 }
 
 function kubernetes_any_node_ready() {
