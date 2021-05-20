@@ -469,7 +469,7 @@ data:
     datasources:
     - name: Prometheus
       type: prometheus
-      url: http://k8s:9090/
+      http://prometheus-k8s:9090/
       access: proxy
       isDefault: true
       jsonData:
