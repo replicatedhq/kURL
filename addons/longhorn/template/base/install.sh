@@ -92,7 +92,9 @@ function longhorn_join() {
 function longhorn_host_init() {
     LONGHORN_HOST_PACKAGES_INSTALL="0"
     longhorn_install_service_if_missing iscsid
-    longhorn_install_service_if_missing nfs-utils.service   
+    longhorn_install_service_if_missing nfs-utils.service
+    mkdir -p /var/lib/longhorn
+    chmod 700 /var/lib/longhorn
 }
 
 function longhorn_install_service_if_missing() {
