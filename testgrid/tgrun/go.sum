@@ -1281,6 +1281,8 @@ k8s.io/utils v0.0.0-20210305010621-2afb4311ab10 h1:u5rPykqiCpL+LBfjRkXvnK71gOgId
 k8s.io/utils v0.0.0-20210305010621-2afb4311ab10/go.mod h1:jPW/WVKK9YHAvNhRxK0md/EJ228hCsBRufyofKtW8HA=
 kubevirt.io/client-go v0.40.0 h1:fhp+p9ayDFgf+RT5iON6XGuqKcc7gcpC8yAN7IaTQFk=
 kubevirt.io/client-go v0.40.0/go.mod h1:EQPLvWWu0uVbbyA+y16Jd3I+C1i7k104rE7VPeFk/mA=
+kubevirt.io/client-go v0.41.0 h1:SQ1ZlZtxdwENabMhNhbAg+GERzmSMdLd1FAWMnpfY3w=
+kubevirt.io/client-go v0.41.0/go.mod h1:OFwGvBEhxmNoQSQfNmCDOYW0jddmStDzof6J8GrVNNM=
 kubevirt.io/containerized-data-importer v1.31.0 h1:g6cZsl91sHkiWfVFm4VBLnzTI5KPwX7G5zggQ9Tlzjk=
 kubevirt.io/containerized-data-importer v1.31.0/go.mod h1:ur+s6O4/uYD8re3OIVgyiyGzVLIxOUL3kB5E7pR9SIQ=
 kubevirt.io/controller-lifecycle-operator-sdk v0.1.2 h1:oFucZCV1JrjkLWy838kpozgPsYBioPNqZVwtw9wJP9E=
