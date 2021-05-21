@@ -10,7 +10,7 @@ require (
 	github.com/briandowns/spinner v1.12.0
 	github.com/chzyer/readline v0.0.0-20180603132655-2972be24d48e
 	github.com/denisbrodbeck/machineid v1.0.1
-	github.com/fatih/color v1.10.0
+	github.com/fatih/color v1.11.0
 	github.com/foomo/htpasswd v0.0.0-20200116085101-e3a90e78da9c
 	github.com/golang/mock v1.5.0
 	github.com/google/gofuzz v1.2.0 // indirect
@@ -21,7 +21,7 @@ require (
 	github.com/mitchellh/copystructure v1.1.1 // indirect
 	github.com/onsi/gomega v1.12.0
 	github.com/pkg/errors v0.9.1
-	github.com/replicatedhq/troubleshoot v0.10.23
+	github.com/replicatedhq/troubleshoot v0.10.24
 	github.com/spf13/afero v1.6.0
 	github.com/spf13/cobra v1.1.3
 	github.com/spf13/viper v1.7.1
