@@ -22,6 +22,8 @@ function velero() {
     render_yaml_file "$src/tmpl-kustomization.yaml" > "$dst/kustomization.yaml"
     render_yaml_file "$src/tmpl-namespace.yaml" > "$dst/namespace.yaml"
 
+    velero_patch_http_proxy "$src" "$dst"
+
     kubectl create namespace "$VELERO_NAMESPACE" 2>/dev/null || true
 
     if [ "${K8S_DISTRO}" = "rke2" ]; then
@@ -91,4 +93,19 @@ function velero_kotsadm_local_backend() {
 
     render_yaml_file "$src/tmpl-kotsadm-local-backend.yaml" > "$dst/kotsadm-local-backend.yaml"
     insert_resources "$dst/kustomization.yaml" kotsadm-local-backend.yaml
+}
+
+function velero_patch_http_proxy() {
+    local src="$1"
+    local dst="$2"
+
+    if [ -n "$PROXY_ADDRESS" ]; then
+        render_yaml_file "$src/tmpl-velero-deployment-proxy.yaml" > "$dst/velero-deployment-proxy.yaml"
+        insert_patches_strategic_merge "$dst/kustomization.yaml" velero-deployment-proxy.yaml
+    fi
+
+    if [ -n "$PROXY_ADDRESS" ] && [ "$VELERO_DISABLE_RESTIC" != "1" ]; then
+        render_yaml_file "$src/tmpl-restic-daemonset-proxy.yaml" > "$dst/restic-daemonset-proxy.yaml"
+        insert_patches_strategic_merge "$dst/kustomization.yaml" restic-daemonset-proxy.yaml
+    fi
 }
