@@ -296,7 +296,6 @@ function require_cri() {
     fi
 
     if commandExists ctr ; then
-        SKIP_CONTAINERD_INSTALL=1
         return 0
     fi
 

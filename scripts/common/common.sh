@@ -353,13 +353,7 @@ function report_install_docker() {
 }
 
 function report_install_containerd() {
-    report_addon_start "containerd" "$CONTAINERD_VERSION"
-
-    containerd_get_host_packages_online "$CONTAINERD_VERSION"
-    . $DIR/addons/containerd/$CONTAINERD_VERSION/install.sh
-    containerd_install
-
-    report_addon_success "containerd" "$CONTAINERD_VERSION"
+    addon_install containerd "$CONTAINERD_VERSION"
 }
 
 function load_images() {
@@ -709,6 +703,13 @@ function get_docker_registry_ip_flag() {
         return
     fi
     echo " docker-registry-ip=${docker_registry_ip}"
+}
+
+function get_force_reapply_addons_flag() {
+    if [ "${FORCE_REAPPLY_ADDONS}" != "1" ]; then
+        return
+    fi
+    echo " force-reapply-addons"
 }
 
 function get_additional_no_proxy_addresses_flag() {
