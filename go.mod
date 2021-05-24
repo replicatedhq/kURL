@@ -32,6 +32,7 @@ require (
 	golang.org/x/net v0.0.0-20210510120150-4163338589ed
 	golang.org/x/tools v0.1.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0
+	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
 	k8s.io/api v0.20.7
 	k8s.io/apiextensions-apiserver v0.20.7 // indirect
 	k8s.io/apimachinery v0.20.7
