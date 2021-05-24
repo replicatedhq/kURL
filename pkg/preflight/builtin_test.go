@@ -10,7 +10,7 @@ import (
 	"github.com/replicatedhq/kurl/pkg/installer"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	yaml "gopkg.in/yaml.v3"
+	yaml "gopkg.in/yaml.v2"
 )
 
 func TestBuiltinExecuteTemplate(t *testing.T) {
