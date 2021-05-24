@@ -2,7 +2,6 @@ apiVersion: apps/v1
 kind: DaemonSet
 metadata:
   name: restic
-  namespace: $VELERO_NAMESPACE
 spec:
   template:
     spec:
