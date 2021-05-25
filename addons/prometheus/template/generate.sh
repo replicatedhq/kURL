@@ -47,7 +47,7 @@ function generate() {
     # change service name "k8s" to "prometheus-k8s" for consistency with previous versions
     # replace first occurance of " name: k8s" after "kube-prometheus-stack/templates/prometheus/service.yaml" with " name: prometheus-k8s"
     sed -i -e '/kube-prometheus-stack\/templates\/prometheus\/service.yaml/!b' -e ':a' -e "s/ name: k8s/ name: prometheus-k8s/;t trail" -e 'n;ba' -e ':trail' -e 'n;btrail' "../$VERSION-$CHARTVERSION/operator/default.yaml"
-    sed -i "s/http:\/\/k8s/http:\/\/prometheus-k8s/g" "../$VERSION-$CHARTVERSION/operator/default.yaml"
+    sed -i 's/http:\/\/k8s/http:\/\/prometheus-k8s/g' "../$VERSION-$CHARTVERSION/operator/default.yaml"
 
     # get images in files
     grep 'image: '  "../$VERSION-$CHARTVERSION/operator/default.yaml" | sed 's/ *image: "*\(.*\)\/\(.*\):\([^"]*\)"*/image \2 \1\/\2:\3/' >> "../$VERSION-$CHARTVERSION/Manifest.tmp"
