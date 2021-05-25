@@ -353,6 +353,7 @@ function report_install_docker() {
 }
 
 function report_install_containerd() {
+    containerd_get_host_packages_online "$CONTAINERD_VERSION"
     addon_install containerd "$CONTAINERD_VERSION"
 }
 
