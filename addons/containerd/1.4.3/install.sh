@@ -3,16 +3,17 @@ CONTAINERD_NEEDS_RESTART=0
 function containerd_install() {
     local src="$DIR/addons/containerd/$CONTAINERD_VERSION"
 
-    if [ "$SKIP_CONTAINERD_INSTALL" != "1" ]; then
-        logStep "Installing Containerd host packages"
-        install_host_archives "$src"
-        install_host_packages "$src"
-        chmod +x ${DIR}/addons/containerd/${CONTAINERD_VERSION}/assets/runc
-        cp ${DIR}/addons/containerd/${CONTAINERD_VERSION}/assets/runc $(which runc)
-        containerd_configure
-        systemctl daemon-reload
-        logSuccess "Containerd host packages installed"
-    fi
+    logStep "Installing Containerd host packages"
+    install_host_archives "$src"
+    install_host_packages "$src"
+    chmod +x ${DIR}/addons/containerd/${CONTAINERD_VERSION}/assets/runc
+    # If the runc binary is executing the cp command will fail with "text file busy" error.
+    # Containerd uses runc in detached mode so any runc processes should be short-lived and exit
+    # as soon as the container starts
+    try_1m_stderr cp ${DIR}/addons/containerd/${CONTAINERD_VERSION}/assets/runc $(which runc)
+    containerd_configure
+    systemctl daemon-reload
+    logSuccess "Containerd host packages installed"
 
     systemctl enable containerd
 
@@ -36,6 +37,10 @@ function containerd_install() {
 }
 
 function containerd_configure() {
+    if [ -f /etc/containerd/config.toml ] && grep -q SystemdCgroup /etc/containerd/config.toml; then
+        # Kurl config has already been applied. Leave the file as is to preserve end-user configs.
+        return 0
+    fi
     mkdir -p /etc/containerd
     containerd config default > /etc/containerd/config.toml
 

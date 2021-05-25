@@ -11,11 +11,6 @@ function discover() {
         echo "Docker already exists on this machine so no docker install will be performed"
     fi
 
-    if ctr --version >/dev/null 2>&1 ; then
-        SKIP_CONTAINERD_INSTALL=1
-        echo "Containerd already exists on this machine so no containerd install will be performed"
-    fi
-
     discover_public_ip
     discover_private_ip
 

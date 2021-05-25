@@ -29,13 +29,21 @@ function addon_install() {
         export REPORTING_CONTEXT_INFO="addon $name $version"
         # shellcheck disable=SC1090
         . $DIR/addons/$name/$version/install.sh
-        $name
+        # containerd is a special case because there is also a binary named containerd on the host
+        if [ "$name" = "containerd" ]; then
+            containerd_install
+        else
+            $name
+        fi
         export REPORTING_CONTEXT_INFO=""
     fi
 
     addon_set_has_been_applied $name
 
     if commandExists ${name}_join; then
+        ADDONS_HAVE_HOST_COMPONENTS=1
+    fi
+    if [ "$name" = "containerd" ]; then
         ADDONS_HAVE_HOST_COMPONENTS=1
     fi
 
@@ -134,6 +142,7 @@ function addon_outro() {
         common_flags="${common_flags}$(get_docker_registry_ip_flag "${DOCKER_REGISTRY_IP}")"
         common_flags="${common_flags}$(get_additional_no_proxy_addresses_flag "${PROXY_ADDRESS}" "${SERVICE_CIDR},${POD_CIDR}")"
         common_flags="${common_flags}$(get_kurl_install_directory_flag "${KURL_INSTALL_DIRECTORY_FLAG}")"
+        common_flags="${common_flags}$(get_force_reapply_addons_flag)"
 
         printf "\n${YELLOW}Run this script on all remote nodes to apply changes${NC}\n"
         if [ "$AIRGAP" = "1" ]; then
@@ -168,7 +177,15 @@ function addon_cleanup() {
 
 function addon_has_been_applied() {
     local name=$1
-    last_applied=$(kubectl get configmap -n kurl kurl-last-config -o jsonpath="{.data.addons-$name}")
+
+    if [ "$name" = "containerd" ]; then
+        if [ -f $DIR/containerd-last-applied ]; then
+            last_applied=$(cat $DIR/containerd-last-applied)
+        fi
+    else
+        last_applied=$(kubectl get configmap -n kurl kurl-last-config -o jsonpath="{.data.addons-$name}")
+    fi
+
     current=$(get_addon_config "$name" | base64 -w 0)
 
     if [[ "$current" == "" ]] ; then
@@ -187,5 +204,10 @@ function addon_has_been_applied() {
 function addon_set_has_been_applied() {
     local name=$1
     current=$(get_addon_config "$name" | base64 -w 0)
-    kubectl patch configmaps -n kurl kurl-current-config --type merge -p "{\"data\":{\"addons-$name\":\"$current\"}}"
+
+    if [ "$name" = "containerd" ]; then
+        echo "$current" > $DIR/containerd-last-applied
+    else
+        kubectl patch configmaps -n kurl kurl-current-config --type merge -p "{\"data\":{\"addons-$name\":\"$current\"}}"
+    fi
 }

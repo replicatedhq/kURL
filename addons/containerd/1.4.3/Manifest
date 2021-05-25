@@ -4,5 +4,5 @@ dockerout ubuntu-16.04 addons/containerd/template/Dockerfile.ubuntu16 1.4.3
 dockerout ubuntu-18.04 addons/containerd/template/Dockerfile.ubuntu18 1.4.3
 dockerout ubuntu-20.04 addons/containerd/template/Dockerfile.ubuntu20 1.4.3
 yum libzstd
-asset runc https://github.com/opencontainers/runc/releases/download/v1.0.0-rc92/runc.amd64
+asset runc https://github.com/opencontainers/runc/releases/download/v1.0.0-rc95/runc.amd64
 image pause k8s.gcr.io/pause:3.2
