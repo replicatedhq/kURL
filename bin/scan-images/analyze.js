@@ -5,11 +5,12 @@ const yargs = require('yargs');
 const { hideBin } = require('yargs/helpers');
 
 const Severities = {
-    'negligible': 0,
-    'low': 1,
-    'medium': 2,
-    'high': 3,
-    'critical': 4,
+    'unknown': 0,
+    'negligible': 1,
+    'low': 2,
+    'medium': 3,
+    'high': 4,
+    'critical': 5,
 };
 
 var analyze = (vulnerabilitiesFilePath, severityThreshold) => {
@@ -19,7 +20,7 @@ var analyze = (vulnerabilitiesFilePath, severityThreshold) => {
         if (!match.vulnerability.fixedInVersion) {
             return;
         }
-        if (Severities[match.vulnerability.severity] < Severities[severityThreshold]) {
+        if (Severities[match.vulnerability.severity.toLowerCase()] < Severities[severityThreshold.toLowerCase()]) {
             return;
         }
         vulnerabilities.push({
@@ -52,6 +53,7 @@ yargs(hideBin(process.argv))
     .option('fail-on', {
         type: 'string',
         description: 'fail if a vulnerability is found with a severity >= the given severity',
-        choices: ['negligible', 'low', 'medium', 'high', 'critical'],
+        choices: Object.keys(Severities),
+        default: 'medium',
     })
     .argv;
