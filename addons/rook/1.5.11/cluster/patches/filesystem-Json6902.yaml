@@ -1,0 +1,10 @@
+---
+- op: replace
+  path: /metadata/name
+  value: rook-shared-fs
+- op: replace
+  path: /spec/dataPools/0/replicated/size
+  value: 1
+- op: replace
+  path: /spec/dataPools/0/replicated/requireSafeReplicaSize
+  value: false
