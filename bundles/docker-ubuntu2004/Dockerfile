@@ -14,4 +14,7 @@ RUN apt-get -d -y install \
   docker-ce=$(apt-cache madison 'docker-ce' | grep ${DOCKER_VERSION} | head -1 | awk '{$1=$1};1' | cut -d' ' -f 3) \
   -oDebug::NoLocking=1 -o=dir::cache=/packages/
 
+RUN rm /packages/archives/linux-image-unsigned-*
+RUN rm /packages/archives/linux-modules-*
+
 CMD cp -r /packages/archives/* /out/
