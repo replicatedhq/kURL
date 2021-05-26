@@ -431,7 +431,7 @@ function host_preflights() {
             set -e 
             case $kurl_exit_code in
                 3)
-                    printf "${YELLOW}Host preflights have warnings${NC} "
+                    printf "${YELLOW}Host preflights have warnings${NC}\n"
 
                     # report_install_fail "preflight"
                     # bail "Use the \"preflight-ignore-warnings\" flag to proceed."
@@ -443,7 +443,7 @@ function host_preflights() {
                     return 0
                     ;;  
                 1)
-                    printf "${RED}Host preflights have failures${NC} "
+                    printf "${RED}Host preflights have failures${NC}\n"
 
                     # printf "${RED}Host preflights have failures. Do you want to proceed anyway? ${NC} "
                     # if ! confirmN ; then
