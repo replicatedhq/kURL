@@ -5,12 +5,6 @@ resources:
 
 patchesJson6902:
 - target:
-    group: ""
-    version: v1 # apiVersion
-    kind: Service
-    name: k8s
-  path: prometheus-service.yaml
-- target:
     group: apps
     version: v1
     kind: DaemonSet
