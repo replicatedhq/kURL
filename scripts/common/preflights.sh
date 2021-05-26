@@ -52,7 +52,7 @@ function bailIfUnsupportedOS() {
             ;;
         amzn2)
             ;;
-        ol7.4|ol7.5|ol7.6|ol7.7|ol7.8|ol7.9|ol8.0|ol8.1|ol8.2|ol8.3)
+        ol7.4|ol7.5|ol7.6|ol7.7|ol7.8|ol7.9|ol8.0|ol8.1|ol8.2|ol8.3|ol8.4)
             ;;
         *)
             bail "Kubernetes install is not supported on ${LSB_DIST} ${DIST_VERSION}"
