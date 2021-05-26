@@ -61,8 +61,8 @@ bash centos2ol.sh
 	{
 		VMImageURI: "https://cloud.centos.org/centos/8/x86_64/images/CentOS-8-GenericCloud-8.3.2011-20201204.2.x86_64.qcow2",
 		Name:       "Oracle Linux",
-		Version:    "8.3",
-		ID:         "ol-83",
+		Version:    "8.4",
+		ID:         "ol-84",
 		PreInit: `
 curl -L -o centos2ol.sh https://raw.githubusercontent.com/oracle/centos2ol/main/centos2ol.sh
 chmod +x centos2ol.sh
