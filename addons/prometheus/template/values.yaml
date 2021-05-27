@@ -2139,7 +2139,7 @@ prometheus:
     ##
       volumeClaimTemplate: # originally commented out (replicated)
         spec:
-          storageClassName: default
+    #     storageClassName: gluster
           accessModes: ["ReadWriteOnce"]
           resources:
             requests:
