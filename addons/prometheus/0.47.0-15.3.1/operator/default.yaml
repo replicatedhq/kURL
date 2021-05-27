@@ -37631,7 +37631,6 @@ spec:
         resources:
           requests:
             storage: 10Gi
-        storageClassName: default
   affinity:
     podAntiAffinity:
       requiredDuringSchedulingIgnoredDuringExecution:
