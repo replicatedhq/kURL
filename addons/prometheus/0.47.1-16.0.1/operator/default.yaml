@@ -37461,10 +37461,7 @@ spec:
   retention: "15d"
   routePrefix: "/"
   serviceAccountName: k8s
-  serviceMonitorSelector:
-    matchLabels:
-      release: "v0.47.1-16.0.1"
-
+  serviceMonitorSelector: {}
   serviceMonitorNamespaceSelector: {}
   podMonitorSelector:
     matchLabels:

@@ -18,6 +18,7 @@ function prometheus() {
     spinner_until -1 prometheus_crd_ready
 
     prometheus_rook_ceph "$operatordst"
+    prometheus_longhorn "$operatordst"
 
     # remove deployments and daemonsets that had labelselectors change (as those are immutable)
     kubectl delete deployment -n monitoring kube-state-metrics || true
@@ -113,6 +114,14 @@ function prometheus_rook_ceph() {
 
     if kubectl get ns | grep -q rook-ceph; then
             insert_resources "$dst/kustomization.yaml" rook-ceph-rolebindings.yaml
+    fi
+}
+
+function prometheus_longhorn() {
+    local dst="$1"
+
+    if kubectl get ns | grep -q longhorn-system; then
+            insert_resources "$dst/kustomization.yaml" longhorn.yaml
     fi
 }
 
