@@ -4,9 +4,9 @@ terraform {
       source  = "hashicorp/aws"
       version = "~> 2.52.0"
     }
-    packet = {
-      source  = "packethost/packet"
-      version = "~> 3.1.0"
+    metal = {
+      source = "equinix/metal"
+      version = "2.1.0"
     }
     template = {
       source = "hashicorp/template"

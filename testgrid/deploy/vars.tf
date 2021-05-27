@@ -6,7 +6,7 @@ variable "instance_type" {
 
 variable "region" {
   type        = list(string)
-  default     = ["da11"]
+  default     = ["any"]
   description = "Packet regions to deploy testgrid"
 }
 
@@ -16,20 +16,15 @@ variable "project_id" {
   description = "Project name, using Testing as default."
 }
 
-variable "max_bid" {
-  type        = string
-  default     = "0.77"
-  description = "Maximum bid price for the instance"
+variable "device_count" {
+  type        = number
+  default     = 5
+  description = "Number of devices to provision"
 }
 
 variable "tg_hostname" {
   type    = string
-  default = "testgrid-spot"
-}
-
-variable "tg_hostname_burst" {
-  type    = string
-  default = "testgrid-spot-burst"
+  default = "testgrid-instance"
 }
 
 variable "tg_os" {

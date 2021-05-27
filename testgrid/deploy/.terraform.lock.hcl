@@ -14,6 +14,27 @@ provider "registry.terraform.io/carlpett/sops" {
   ]
 }
 
+provider "registry.terraform.io/equinix/metal" {
+  version     = "2.1.0"
+  constraints = "2.1.0"
+  hashes = [
+    "h1:x1NjvvjbxNFe530qkc1vPdqkEHkla1XXfeTSh2GdVZU=",
+    "zh:0ccaad1f995f97ce680ca4a2d0a301becd1b6cc929010e3abeb919eead849097",
+    "zh:29069c0a6254120d08963fe0b4a3155981d4d713c8d02ae024ed4a80757a3e3e",
+    "zh:33cd3180fbd711e2b91a284ec2b7647ab03f0b1123d595f2b0d4a3ac98ba112c",
+    "zh:38b3535286f3ff9d52ed61932f4d02dcda7a500b5bce27799f580be6b8339d78",
+    "zh:6f8526e064901eb7d3b8a9a1cb3dcd8de5f62711a585c982762e3ec8e5654c19",
+    "zh:73854e1a62aad365d76024af68acc7c6851498c04fbc0ee761660dc1971fd8f1",
+    "zh:8b9d8f1af726909dc4516da8a296ec9a208768841b1f5e9b4079a798646d61af",
+    "zh:9af1d61ddb4f465380a3707a0f96b3fb4b2c8ff348c5d655d01b699f70fec0ad",
+    "zh:b60ec31d3f987358d8cb7d17a61845a44aaa0d0406b4571a6b21f3924427873b",
+    "zh:c46a591a00aa74d025f9631744ec5b36b28e821498627afb1625f9e06453577c",
+    "zh:c6728a4b9e800d0b52c1c7d21be05bd7e4f1825670864dcf0771d3d71d7097ee",
+    "zh:e1de1f161e2b22f7f7d5a9abda30a48f68ca394a4a6d79045b5e035f3daa31c9",
+    "zh:ec9766c03dbf2d1dd92110374fc0bb0727380d37f7a7618ad3311f372ecc38a9",
+  ]
+}
+
 provider "registry.terraform.io/hashicorp/aws" {
   version     = "2.52.0"
   constraints = "~> 2.52.0"
