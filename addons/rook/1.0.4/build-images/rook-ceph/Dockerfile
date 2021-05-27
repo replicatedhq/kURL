@@ -2,7 +2,7 @@
 
 FROM rook/ceph:v1.0.4 AS base
 
-FROM ceph/ceph:v14.2.0
+FROM ceph/ceph:v14.2.21
 
 RUN yum install -y \
     bind-license \
