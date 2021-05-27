@@ -61,3 +61,15 @@
     prometheus:
       version: "__testver__"
       s3Override: "__testdist__"
+- installerSpec:
+    kubernetes:
+      version: "1.21.x"
+    weave:
+      version: "latest"
+    longhorn:
+      version: "latest"
+    containerd:
+      version: "latest"
+    prometheus:
+      version: "__testver__"
+      s3Override: "__testdist__"
