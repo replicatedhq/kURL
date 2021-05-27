@@ -996,7 +996,7 @@ spec:
   describe("packages", () => {
     it("should convert camel case to kebab case", () => {
       const i = Installer.parse(everyOption).resolve();
-      const pkgs = i.packages();
+      const pkgs = i.packages(undefined);
 
       const hasCertManager = _.some(pkgs, (pkg) => {
         return _.startsWith(pkg, "cert-manager");
@@ -1011,7 +1011,7 @@ spec:
 
     it("should include defaults", () => {
       const i = Installer.parse(min);
-      const pkgs = i.packages();
+      const pkgs = i.packages(undefined);
 
       const hasCommon = _.some(pkgs, (pkg) => {
         return pkg === "common";
@@ -1021,11 +1021,27 @@ spec:
       const hasOpenssl = _.some(pkgs, (pkg) => {
         return pkg === "host-openssl";
       });
+      expect(hasOpenssl).to.equal(true);
+
+      const hasKurlBinUtils = _.some(pkgs, (pkg) => {
+        return pkg === "kurl-bin-utils-latest";
+      });
+      expect(hasKurlBinUtils).to.equal(true);
+    });
+
+    it("should include a versioned kurl-bin-utils", () => {
+      const i = Installer.parse(min);
+      const pkgs = i.packages("v2021.05.27-0");
+
+      const hasKurlBinUtils = _.some(pkgs, (pkg) => {
+        return pkg === "kurl-bin-utils-v2021.05.27-0";
+      });
+      expect(hasKurlBinUtils).to.equal(true);
     });
 
     it("should include kubernetes conformance images", () => {
       const i = Installer.parse(conformance);
-      const pkgs = i.packages();
+      const pkgs = i.packages(undefined);
 
       const hasSonobuoy = _.some(pkgs, (pkg) => {
         return pkg === "sonobuoy-0.50.0";
@@ -1045,7 +1061,7 @@ spec:
 
     it("should not include kubernetes conformance images for versions < 1.17", () => {
       const i = Installer.parse(noConformance);
-      const pkgs = i.packages();
+      const pkgs = i.packages(undefined);
 
       const hasSonobuoy = _.some(pkgs, (pkg) => {
         return pkg === "sonobuoy-0.50.0";
@@ -1065,7 +1081,7 @@ spec:
 
     it("should not include removed Kubernetes versions", () => {
       const i = Installer.parse(noConformance);
-      const pkgs = i.packages();
+      const pkgs = i.packages(undefined);
 
       const hasKubernetes16 = _.some(pkgs, (pkg) => {
         return pkg === "kubernetes-1.16.4";

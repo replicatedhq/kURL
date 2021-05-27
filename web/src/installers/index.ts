@@ -1160,11 +1160,13 @@ export class Installer {
     }
   }
 
-  public packages(): string[] {
-    const i = this.resolve();
+  public packages(kurlVersion: string|undefined): string[] {
     const special = /[+]/g;
 
-    const binUtils = String(process.env["KURL_BIN_UTILS_FILE"]).slice(0, -7); // remove .tar.gz
+    let binUtils = String(process.env["KURL_BIN_UTILS_FILE"] || "kurl-bin-utils-latest.tar.gz").slice(0, -7); // remove .tar.gz
+    if (kurlVersion) {
+      binUtils = `kurl-bin-utils-${kurlVersion}`
+    }
     const pkgs = [ "common", binUtils, "host-openssl" ];
 
     let kubernetesVersion = "";
