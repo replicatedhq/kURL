@@ -159,6 +159,7 @@ function reset() {
     rm -rf /var/lib/kubelet
     rm -rf /var/lib/rook
     rm -rf /var/lib/weave
+    rm -rf /var/lib/longhorn
 
     printf "Reset script completed\n"
 }
