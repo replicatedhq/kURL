@@ -6,7 +6,7 @@ variable "instance_type" {
 
 variable "region" {
   type        = list(string)
-  default     = ["da11"]
+  default     = ["am6"]
   description = "Packet regions to deploy testgrid"
 }
 
@@ -18,7 +18,7 @@ variable "project_id" {
 
 variable "max_bid" {
   type        = string
-  default     = "0.77"
+  default     = "2.00"
   description = "Maximum bid price for the instance"
 }
 
