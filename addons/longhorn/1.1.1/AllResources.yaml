@@ -85,7 +85,7 @@ data:
     replica-soft-anti-affinity:
     storage-over-provisioning-percentage:
     storage-minimal-available-percentage:
-    upgrade-checker:
+    upgrade-checker: false
     default-replica-count:
     default-data-locality:
     guaranteed-engine-cpu:

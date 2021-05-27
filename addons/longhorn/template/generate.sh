@@ -31,6 +31,9 @@ function generate() {
     $KSPLITPATH crdsplit "${VERSION}/yaml/"
     cd template
 
+    # disable upgrade checker
+    sed -i 's/upgrade-checker:/upgrade-checker: false/' "../${VERSION}/yaml/AllResources.yaml"
+
     mv "../${VERSION}/yaml/AllResources.yaml" "../${VERSION}/AllResources.yaml"
     mv "../${VERSION}/yaml/CustomResourceDefinitions.yaml" "../${VERSION}/crds.yaml"
     rmdir "../${VERSION}/yaml"
