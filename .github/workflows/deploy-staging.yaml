@@ -12,17 +12,19 @@ jobs:
     - uses: actions/checkout@v2
     - run: |
         echo "$DOCKERHUB_DOCKER_PASS" | docker login -u $DOCKERHUB_DOCKER_USER --password-stdin
+        export KURL_UTIL_IMAGE=$KURL_UTIL_IMAGE_ALPHA
         make -C kurl_util build-and-push-kurl-util-image
-        KURL_UTIL_IMAGE_ALPHA=$KURL_UTIL_IMAGE
+
         git fetch --tags -f
         export VERSION_TAG=$(git tag | grep '^v20' | sort | tail -1)-dirty
         export KURL_UTIL_IMAGE=replicated/kurl-util:${VERSION_TAG}
         docker tag $KURL_UTIL_IMAGE_ALPHA $KURL_UTIL_IMAGE
+
         make -C kurl_util push-kurl-util-image
       env:
         DOCKERHUB_DOCKER_PASS: ${{ secrets.DOCKERHUB_DOCKER_PASS }}
         DOCKERHUB_DOCKER_USER: ${{ secrets.DOCKERHUB_DOCKER_USER }}
-        KURL_UTIL_IMAGE: replicated/kurl-util:alpha
+        KURL_UTIL_IMAGE_ALPHA: replicated/kurl-util:alpha
 
   build-upload-packages:
     runs-on: ubuntu-18.04
@@ -46,14 +48,19 @@ jobs:
         make build/bin
 
     - name: upload dist staging
-      run: bin/upload-dist-staging.sh
+      run: |
+        git fetch --tags -f
+        export VERSION_TAG=$(git tag | grep '^v20' | sort | tail -1)-dirty
+        export KURL_UTIL_IMAGE=replicated/kurl-util:${VERSION_TAG}
+        export KURL_BIN_UTILS_FILE=kurl-bin-utils-${VERSION_TAG}.tar.gz
+        export KURL_BIN_UTILS_FILE_LATEST=kurl-bin-utils-latest.tar.gz
+
+        bin/upload-dist-staging.sh
       env:
         S3_BUCKET: kurl-sh
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_PROD_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_PROD_SECRET_ACCESS_KEY }}
         DOCKER_PRUNE: '1'
-        KURL_UTIL_IMAGE: replicated/kurl-util:alpha
-        KURL_BIN_UTILS_FILE: kurl-bin-utils-latest.tar.gz
 
     - name: upload tag dirty
       run: |
@@ -61,6 +68,7 @@ jobs:
         export VERSION_TAG=$(git tag | grep '^v20' | sort | tail -1)-dirty
         export KURL_UTIL_IMAGE=replicated/kurl-util:${VERSION_TAG}
         export KURL_BIN_UTILS_FILE=kurl-bin-utils-${VERSION_TAG}.tar.gz
+
         bin/upload-dist-versioned.sh
       env:
         S3_BUCKET: kurl-sh
