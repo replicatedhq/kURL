@@ -12,7 +12,7 @@ spec:
   - diskUsage:
       checkName: "Longhorn Disk Usage"
       collectorName: "Longhorn Disk Usage"
-      exclude: '{{kurl and .Installer.Spec.Longhorn.Version (not .IsUpgrade) | not }}' # only run if there is a longhorn version set and this is not an upgrade
+      exclude: '{{kurl .IsUpgrade }}' # only run if this is not an upgrade
       outcomes:
       - fail:
           when: "total < 50Gi"
