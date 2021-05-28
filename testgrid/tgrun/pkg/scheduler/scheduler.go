@@ -119,6 +119,20 @@ func Run(schedulerOptions types.SchedulerOptions) error {
 			if err != nil {
 				return errors.Wrap(err, "failed to read upgrade response body")
 			}
+
+			if instance.InstallerSpec.RunAirgap || schedulerOptions.Airgap {
+				upgradeURLString, err := getBundleFromURL(string(upgradeURL), schedulerOptions.KurlVersion)
+				if err != nil {
+					return errors.Wrapf(err, "generate airgap url from upgrade url %s", upgradeURL)
+				}
+				upgradeURL = []byte(upgradeURLString)
+			} else {
+				upgradeURLString, err := getInstallerURL(string(upgradeURL), schedulerOptions.KurlVersion)
+				if err != nil {
+					return errors.Wrapf(err, "generate versioned url from upgrade url %s", upgradeURL)
+				}
+				upgradeURL = []byte(upgradeURLString)
+			}
 		}
 
 		// attempt to unmarshal installerURL as a kurl error message - if this works, it's not a URL
@@ -129,9 +143,15 @@ func Run(schedulerOptions types.SchedulerOptions) error {
 		}
 
 		if instance.InstallerSpec.RunAirgap || schedulerOptions.Airgap {
-			installerURLString, err := bundleFromURL(string(installerURL))
+			installerURLString, err := getBundleFromURL(string(installerURL), schedulerOptions.KurlVersion)
 			if err != nil {
 				return errors.Wrapf(err, "generate airgap url from installer url %s", installerURL)
+			}
+			installerURL = []byte(installerURLString)
+		} else {
+			installerURLString, err := getInstallerURL(string(installerURL), schedulerOptions.KurlVersion)
+			if err != nil {
+				return errors.Wrapf(err, "generate versioned url from installer url %s", installerURL)
 			}
 			installerURL = []byte(installerURLString)
 		}
@@ -264,12 +284,30 @@ func stringInSlice(s string, slice []string) bool {
 	return false
 }
 
-func bundleFromURL(url string) (string, error) {
+func getInstallerURL(url, kurlVersion string) (string, error) {
 	matches := urlRegexp.FindStringSubmatch(url)
 
 	if len(matches) != 3 {
 		return "", fmt.Errorf("unable to parse url %q", url)
 	}
 
-	return fmt.Sprintf("%s/bundle/%s.tar.gz", matches[1], matches[2]), nil
+	if kurlVersion == "" {
+		return url, nil
+	}
+
+	return fmt.Sprintf("%s/version/%s/%s", matches[1], kurlVersion, matches[2]), nil
+}
+
+func getBundleFromURL(url, kurlVersion string) (string, error) {
+	matches := urlRegexp.FindStringSubmatch(url)
+
+	if len(matches) != 3 {
+		return "", fmt.Errorf("unable to parse url %q", url)
+	}
+
+	if kurlVersion == "" {
+		return fmt.Sprintf("%s/bundle/%s.tar.gz", matches[1], matches[2]), nil
+	}
+
+	return fmt.Sprintf("%s/bundle/version/%s/%s.tar.gz", matches[1], kurlVersion, matches[2]), nil
 }
