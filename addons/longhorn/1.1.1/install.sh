@@ -117,3 +117,8 @@ function longhorn_install_service_if_missing() {
         systemctl enable $service
     fi
 }
+
+function longhorn_preflight() {
+    local src="${DIR}/addons/longhorn/${LONGHORN_VERSION}"
+    echo "${src}/host-preflight.yaml"
+}
