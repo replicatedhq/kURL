@@ -14,11 +14,8 @@ function longhorn() {
     cp "$src/kustomization.yaml" "$dst/"
     cp "$src/crds.yaml" "$dst/"
     cp "$src/AllResources.yaml" "$dst/"
-    if [ "$KUBERNETES_TARGET_VERSION_MINOR" -lt "17" ]; then
-        sed -i "s/system-node-critical/longhorn-critical/g" "$dst/settings-configmap.yaml"
-        cp "$src/priority-class.yaml" "$dst/"
-        insert_resources "$dst/kustomization.yaml" priority-class.yaml
-    fi
+    cp "$src/manager-priority.yaml" "$dst/"
+    cp "$src/driver-priority.yaml" "$dst/"
 
     if longhorn_has_default_storageclass && ! longhorn_is_default_storageclass ; then
         printf "${YELLOW}Existing default storage class that is not Longhorn detected${NC}\n"

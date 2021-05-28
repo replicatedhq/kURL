@@ -93,7 +93,7 @@ data:
     backupstore-poll-interval:
     taint-toleration:
     system-managed-components-node-selector:
-    priority-class:
+    priority-class: system-node-critical
     auto-salvage:
     auto-delete-pod-when-volume-detached-unexpectedly:
     disable-scheduling-on-cordoned-node:
