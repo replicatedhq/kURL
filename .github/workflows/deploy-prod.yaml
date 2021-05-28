@@ -41,8 +41,8 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - run: |
-        set -veuo pipefail
-        source bin/kurl-util-image-export.sh
+        export VERSION_TAG=$(echo $GITHUB_REF | awk -F'/' '{ print $NF }')
+        export KURL_UTIL_IMAGE=replicated/kurl-util:${VERSION_TAG}
         echo "$DOCKERHUB_DOCKER_PASS" | docker login -u $DOCKERHUB_DOCKER_USER --password-stdin
         make -C kurl_util build-and-push-kurl-util-image
       env:

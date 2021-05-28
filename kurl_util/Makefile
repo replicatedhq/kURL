@@ -89,9 +89,12 @@ bin/network:
 kurl-util-image:
 	docker build -t $(KURL_UTIL_IMAGE) -f deploy/Dockerfile --build-arg commit="${GIT_SHA}" ../
 
-.PHONY: build-and-push-kurl-util-image
-build-and-push-kurl-util-image: kurl-util-image
+.PHONY: push-kurl-util-image
+push-kurl-util-image:
 	docker push $(KURL_UTIL_IMAGE)
+
+.PHONY: build-and-push-kurl-util-image
+build-and-push-kurl-util-image: kurl-util-image push-kurl-util-image
 
 .PHONY: build-ttl.sh
 build-ttl.sh:
