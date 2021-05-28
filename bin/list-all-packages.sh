@@ -49,6 +49,9 @@ function list_other() {
     echo "tasks.tmpl"
     echo "common.tar.gz"
     echo "$KURL_BIN_UTILS_FILE"
+    if [ -n "$KURL_BIN_UTILS_FILE_LATEST" ]; then
+        echo "$KURL_BIN_UTILS_FILE_LATEST"
+    fi
     echo "docker-18.09.8.tar.gz bundles/"
     echo "docker-19.03.4.tar.gz bundles/"
     echo "docker-19.03.10.tar.gz bundles/"
