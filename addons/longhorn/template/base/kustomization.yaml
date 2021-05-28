@@ -5,3 +5,5 @@ resources:
 patchesStrategicMerge:
 - ui-deployment.yaml
 - ui-service.yaml
+- manager-priority.yaml
+- driver-priority.yaml

@@ -34,6 +34,9 @@ function generate() {
     # disable upgrade checker
     sed -i 's/upgrade-checker:/upgrade-checker: false/' "../${VERSION}/yaml/AllResources.yaml"
 
+    # add priority-class
+    sed -i 's/priority-class:/priority-class: system-node-critical/' "../${VERSION}/yaml/AllResources.yaml"
+
     mv "../${VERSION}/yaml/AllResources.yaml" "../${VERSION}/AllResources.yaml"
     mv "../${VERSION}/yaml/CustomResourceDefinitions.yaml" "../${VERSION}/crds.yaml"
     rmdir "../${VERSION}/yaml"
