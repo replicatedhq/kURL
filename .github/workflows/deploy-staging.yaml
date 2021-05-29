@@ -128,6 +128,8 @@ jobs:
 
     - name: kustomize
       run: |
+        git fetch --tags -f
+        export VERSION_TAG=$(git tag | grep '^v20' | sort | tail -1)-dirty
         curl -s https://api.github.com/repos/kubernetes-sigs/kustomize/releases/tags/v2.0.0 | \
           grep browser_download | \
           grep linux | \
@@ -137,7 +139,7 @@ jobs:
           sudo chmod +x /usr/local/bin/kustomize
         pushd kustomize/overlays/staging
         kustomize edit set image 923411875752.dkr.ecr.us-east-1.amazonaws.com/kurl:${GITHUB_SHA:0:7}
-        kustomize build . > kurl.yaml
+        kustomize build . | sed "s/__VERSION_TAG__/${VERSION_TAG}/g" > kurl.yaml
         popd
 
     - name: ssh-key
