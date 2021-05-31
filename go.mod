@@ -7,7 +7,7 @@ require (
 	github.com/Masterminds/semver v1.5.0 // indirect
 	github.com/Masterminds/sprig v2.22.0+incompatible
 	github.com/apparentlymart/go-cidr v1.1.0
-	github.com/briandowns/spinner v1.12.0
+	github.com/briandowns/spinner v1.13.0
 	github.com/chzyer/readline v0.0.0-20180603132655-2972be24d48e
 	github.com/denisbrodbeck/machineid v1.0.1
 	github.com/fatih/color v1.12.0
