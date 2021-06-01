@@ -430,6 +430,8 @@ export const containerdConfigSchema = {
   type: "object",
   properties: {
     version: { type: "string" },
+    tomlConfig: { type: "string" },
+    preserveConfig: { type: "boolean" },
     s3Override: { type: "string", flag: "s3-override", description: "Override the download location for addon package distribution (used for CI/CD testing alpha addons)" },
   },
   required: ["version"],

@@ -235,8 +235,10 @@ type Calico struct {
 }
 
 type Containerd struct {
-	S3Override string `json:"s3Override,omitempty" yaml:"s3Override,omitempty"`
-	Version    string `json:"version" yaml:"version" yaml:"version" yaml:"version"`
+	S3Override     string `json:"s3Override,omitempty" yaml:"s3Override,omitempty"`
+	TomlConfig     string `json:"tomlConfig,omitempty" yaml:"tomlConfig,omitempty"`
+	PreserveConfig bool   `json:"preserveConfig,omitempty" yaml:"preserveConfig,omitempty"`
+	Version        string `json:"version" yaml:"version" yaml:"version" yaml:"version"`
 }
 
 type Collectd struct {
