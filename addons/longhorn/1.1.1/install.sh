@@ -126,9 +126,11 @@ function longhorn_preflight() {
 function check_mount_propagation() {
     local src=$1
 
+    kubectl get ns longhorn-system 2>/dev/null 1>/dev/null || kubectl create ns longhorn-system 1>/dev/null
+
     render_yaml_file "$src/tmpl-mount-propagation.yaml" > "$src/mount-propagation.yaml"
     kubectl create -f "$src/mount-propagation.yaml"
-    echo "Waiting for Longhorn Mount Propagation Check Daemonset to be ready"
+    echo "Waiting for the Longhorn Mount Propagation Check Daemonset to be ready"
     spinner_until 120 longhorn_daemonset_is_ready longhorn-manager
 
     validate_longhorn_ds
