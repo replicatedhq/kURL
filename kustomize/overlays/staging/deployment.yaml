@@ -33,3 +33,7 @@ spec:
           value: staging
         - name: REPLICATED_APP_URL
           value: https://staging.replicated.app
+        - name: KURL_UTIL_IMAGE
+          value: replicated/kurl-util:__VERSION_TAG__
+        - name: KURL_VERSION
+          value: __VERSION_TAG__
