@@ -126,10 +126,10 @@ function longhorn_preflight() {
 function check_mount_propagation() {
     local src=$1
 
-    kubectl get ns longhorn-system 2>/dev/null 1>/dev/null || kubectl create ns longhorn-system 1>/dev/null
+    kubectl get ns longhorn-system >/dev/null 2>&1 || kubectl create ns longhorn-system >/dev/null 2>&1
 
     render_yaml_file "$src/tmpl-mount-propagation.yaml" > "$src/mount-propagation.yaml"
-    kubectl create -f "$src/mount-propagation.yaml"
+    kubectl apply -f "$src/mount-propagation.yaml"
     echo "Waiting for the Longhorn Mount Propagation Check Daemonset to be ready"
     spinner_until 120 longhorn_daemonset_is_ready longhorn-manager
 
@@ -138,8 +138,7 @@ function check_mount_propagation() {
     kubectl delete -f "$src/mount-propagation.yaml"
 }
 
-
-validate_longhorn_ds() {
+function validate_longhorn_ds() {
     local allSupported=true
 
     local allpods=$(kubectl get daemonsets -n longhorn-system longhorn-environment-check --no-headers | tr -s ' ' | cut -d ' ' -f4)
@@ -147,5 +146,9 @@ validate_longhorn_ds() {
 
     if [ "$bidirectional" -lt "$allpods" ]; then
         logWarn "Only $bidirectional of $allpods nodes support Longhorn storage"
+    fi
+
+    if [ "$bidirectional" -eq "0" ]; then
+        logWarn "no Longhorn mount propagation pods detected"
     fi
 }
