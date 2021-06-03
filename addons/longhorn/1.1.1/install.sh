@@ -127,6 +127,7 @@ function check_mount_propagation() {
     local src=$1
 
     kubectl get ns longhorn-system >/dev/null 2>&1 || kubectl create ns longhorn-system >/dev/null 2>&1
+    kubectl delete -n longhorn-system ds longhorn-environment-check || true
 
     render_yaml_file "$src/tmpl-mount-propagation.yaml" > "$src/mount-propagation.yaml"
     kubectl apply -f "$src/mount-propagation.yaml"
@@ -144,11 +145,15 @@ function validate_longhorn_ds() {
     local allpods=$(kubectl get daemonsets -n longhorn-system longhorn-environment-check --no-headers | tr -s ' ' | cut -d ' ' -f4)
     local bidirectional=$(kubectl get pods -l app=longhorn-environment-check -o=jsonpath='{.items[*].spec.containers[0].volumeMounts[*]}' | grep -o 'Bidirectional' | wc -l)
 
-    if [ "$bidirectional" -lt "$allpods" ]; then
-        logWarn "Only $bidirectional of $allpods nodes support Longhorn storage"
-    fi
+    if [ "$allpods" == "" ]; then
+        logWarn "unable to determine health and status of longhorn-environment-check daemonset"
+    else
+        if [ "$bidirectional" -lt "$allpods" ]; then
+            logWarn "Only $bidirectional of $allpods nodes support Longhorn storage"
+        fi
 
-    if [ "$bidirectional" -eq "0" ]; then
-        logWarn "no Longhorn mount propagation pods detected"
+        if [ "$bidirectional" -eq "0" ]; then
+            logWarn "No Longhorn mount propagation pods detected"
+        fi
     fi
 }
