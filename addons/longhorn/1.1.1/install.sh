@@ -153,7 +153,7 @@ function validate_longhorn_ds() {
         fi
 
         if [ "$bidirectional" -eq "0" ]; then
-            logWarn "No Longhorn mount propagation pods detected"
+            bail "No nodes with mount propagation enabled detected - Longhorn will not work. See https://longhorn.io/docs/1.1.1/deploy/install/#installation-requirements for details"
         fi
     fi
 }

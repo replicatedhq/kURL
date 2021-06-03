@@ -61,13 +61,13 @@ function longhorn_is_default_storageclass() {
     [ "$(kubectl get sc longhorn -o jsonpath='{.metadata.annotations.storageclass\.kubernetes\.io/is-default-class}')" = "true" ]; then
         return 0
     fi
-    return 1    
+    return 1
 }
 
 function longhorn_has_default_storageclass() {
     local hasDefaultStorageClass
     hasDefaultStorageClass=$(kubectl get sc -o jsonpath='{.items[*].metadata.annotations.storageclass\.kubernetes\.io/is-default-class}')
-        
+
     if [ "$hasDefaultStorageClass" = "true" ] ; then
         return 0
     fi
@@ -78,7 +78,7 @@ function longhorn_daemonset_is_ready() {
     local dsname=$1
     local desired=$(kubectl get daemonsets -n longhorn-system $dsname --no-headers | tr -s ' ' | cut -d ' ' -f2)
     local ready=$(kubectl get daemonsets -n longhorn-system $dsname --no-headers | tr -s ' ' | cut -d ' ' -f4)
-        
+
     if [ "$desired" = "$ready" ] ; then
         return 0
     fi
@@ -153,7 +153,7 @@ function validate_longhorn_ds() {
         fi
 
         if [ "$bidirectional" -eq "0" ]; then
-            logWarn "No Longhorn mount propagation pods detected"
+            bail "No nodes with mount propagation enabled detected - Longhorn will not work. See https://longhorn.io/docs/1.1.1/deploy/install/#installation-requirements for details"
         fi
     fi
 }
