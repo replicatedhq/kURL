@@ -139,6 +139,8 @@ function check_mount_propagation() {
     kubectl delete -f "$src/mount-propagation.yaml"
 }
 
+# pass if at least one node will support longhorn, but with a warning if there are nodes that won't
+# only fail if there is no chance that longhorn will work on any nodes, as installations may have dedicated 'storage' vs 'not-storage' nodes
 function validate_longhorn_ds() {
     local allSupported=true
 
