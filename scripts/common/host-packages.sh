@@ -57,7 +57,6 @@ name=kURL Local Repo
 baseurl=file://${fullpath}
 enabled=1
 gpgcheck=0
-keepcache=0
 EOF
     # We always use the same repo and we are kinda abusing yum here so we have to clear the cache.
     # This is probably not great and probably has some undesirable effects. We should probably maintain this repo.
@@ -80,7 +79,7 @@ function yum_filter_host_packages() {
     packages=("${packages[@]:1}")
 
     local available=
-    available="$(yum -q list available --disablerepo=* --enablerepo="${repo}" | awk 'NR>1 {print $1}' | sed 's/\..*//g')"
+    available="$(yum -q list available --disablerepo=* --enablerepo="${repo}" | awk 'NR>1 {print $1}' | sed 's/\.[^\.]*$//g')"
 
     for i in "${!packages[@]}" ; do
         ! echo "${available}" | grep -q "^${packages[$i]}$" && unset -v 'packages[$i]'

@@ -49,4 +49,14 @@ yajl.x86_64                                                                     
     assertEquals "yum_filter_host_packages kurl.local collectd collectd-rrdtool collectd-disk" "collectd collectd-rrdtool" "$(yum_filter_host_packages kurl.local collectd collectd-rrdtool collectd-disk)"
 }
 
+function test_yum_filter_host_packages_dot() {
+    function yum() {
+        echo "Available Packages
+containerd.io.x86_64                                                                 1.4.4-3.1.el7                                                                 kurl.local"
+    }
+    export yum
+
+    assertEquals "yum_filter_host_packages containerd.io" "containerd.io" "$(yum_filter_host_packages kurl.local containerd.io)"
+}
+
 . shunit2
