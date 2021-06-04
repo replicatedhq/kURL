@@ -14,19 +14,13 @@ function install_host_archives() {
 function _install_host_packages() {
     local dir="$1"
     local dir_prefix="$2"
-    shift
-    shift
-    local packages=("$@")
+    local packages=("${@:3}")
 
     logStep "Installing host packages ${packages[*]}"
 
     case "$LSB_DIST" in
         ubuntu)
-            local fullpath=
-            fullpath="${dir}/ubuntu-${DIST_VERSION}${dir_prefix}/*.deb"
-            if test -n "$(shopt -s nullglob; echo "${fullpath}")" ; then
-                DEBIAN_FRONTEND=noninteractive dpkg --install --force-depends-version --force-confold "${fullpath}"
-            fi
+            _dpkg_install_host_packages "$dir" "$dir_prefix" "${packages[@]}"
             ;;
 
         centos|rhel|amzn|ol)
@@ -41,7 +35,25 @@ function _install_host_packages() {
     logSuccess "Host packages ${packages[*]} installed"
 }
 
+function _dpkg_install_host_packages() {
+    local dir="$1"
+    local dir_prefix="$2"
+    local packages=("${@:3}")
+
+    local fullpath=
+    fullpath="${dir}/ubuntu-${DIST_VERSION}${dir_prefix}/*.deb"
+    if ! test -n "$(shopt -s nullglob; echo "${fullpath}")" ; then
+        return 0
+    fi
+
+    DEBIAN_FRONTEND=noninteractive dpkg --install --force-depends-version --force-confold "${fullpath}"
+}
+
 function _yum_install_host_packages() {
+    local dir="$1"
+    local dir_prefix="$2"
+    local packages=("${@:3}")
+
     local fullpath=
     if [[ "$DIST_VERSION" =~ ^8 ]]; then
         fullpath="$(realpath "${dir}")/rhel-8${dir_prefix}"
