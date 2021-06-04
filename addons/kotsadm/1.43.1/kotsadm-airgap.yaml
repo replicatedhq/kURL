@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kotsadm
+  labels:
+    kots.io/kotsadm: "true"
+    kots.io/backup: velero
+spec:
+  template:
+    metadata:
+      labels:
+        kots.io/kotsadm: "true"
+        kots.io/backup: velero
+    spec:
+      containers:
+      - name: kotsadm
+        env:
+        - name: DISABLE_OUTBOUND_CONNECTIONS
+          value: "true"
