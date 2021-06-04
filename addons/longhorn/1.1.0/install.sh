@@ -93,8 +93,7 @@ function longhorn_install_service_if_missing() {
 
     if ! systemctl list-units | grep -q $service && [ "$LONGHORN_HOST_PACKAGES_INSTALL" = "0" ]; then
         LONGHORN_HOST_PACKAGES_INSTALL="1"
-        install_host_archives "$src"
-        printf "${YELLOW}Host packages for Longhorn installed.${NC}\n"
+        install_host_archives "$src" iscsi-initiator-utils nfs-utils open-iscsi nfs-common
     fi
 
     if ! systemctl -q is-active $service; then

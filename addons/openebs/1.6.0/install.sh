@@ -111,8 +111,7 @@ function openebs_iscsi() {
     local src="$DIR/addons/openebs/1.6.0"
 
     if ! systemctl list-units | grep -q iscsid; then
-        printf "${YELLOW}Installing iscsid service${NC}\n"
-        install_host_archives "$src"
+        install_host_archives "$src" iscsi-initiator-utils open-iscsi
     fi
 
     if ! systemctl -q is-active iscsid; then

@@ -16,9 +16,10 @@ function build_rhel_8() {
         --name rhel-8-${package} \
         centos:8.1.1911 \
         /bin/bash -c "\
-        yum install -y yum-utils epel-release && \
+        yum install -y yum-utils epel-release createrepo && \
         mkdir -p /packages/archives && \
-        yumdownloader --resolve --destdir=/packages/archives -y $package"
+        yumdownloader --installroot=/tmp/empty-directory --releasever=/ --resolve --destdir=/packages/archives -y $package && \
+        createrepo /packages/archives"
     docker cp rhel-8-${package}:/packages/archives $OUT_DIR/rhel-8
     sudo chown -R $UID $OUT_DIR/rhel-8
 }
@@ -100,9 +101,10 @@ while read -r line; do
                 --name rhel-7-${package} \
                 centos:7.4.1708 \
                 /bin/bash -c "\
-                    yum install -y epel-release && \
+                    yum install -y epel-release createrepo && \
                     mkdir -p /packages/archives && \
-                    yumdownloader --resolve --destdir=/packages/archives -y $package"
+                    yumdownloader --installroot=/tmp/empty-directory --releasever=/ --resolve --destdir=/packages/archives -y $package && \
+                    createrepo /packages/archives"
             docker cp rhel-7-${package}:/packages/archives $OUT_DIR/rhel-7
             sudo chown -R $UID $OUT_DIR/rhel-7
 

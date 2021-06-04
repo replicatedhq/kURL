@@ -606,6 +606,7 @@ test-shell:
 	./scripts/distro/rke2/distro-test.sh
 	./scripts/common/common-test.sh
 	./scripts/common/docker-test.sh
+	./scripts/common/host-packages-test.sh
 	./scripts/common/kubernetes-test.sh
 
 .PHONY: kurl-util-image

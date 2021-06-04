@@ -559,68 +559,12 @@ function rm_file() {
     fi
 }
 
-function install_host_packages() {
-    local dir=$1
-
-    case "$LSB_DIST" in
-        ubuntu)
-            if test -n "$(shopt -s nullglob; echo ${dir}/ubuntu-${DIST_VERSION}/*.deb )" ; then
-                DEBIAN_FRONTEND=noninteractive dpkg --install --force-depends-version ${dir}/ubuntu-${DIST_VERSION}/*.deb
-            fi
-            ;;
-
-        centos|rhel|amzn|ol)
-            if [[ "$DIST_VERSION" =~ ^8 ]]; then
-                if test -n "$(shopt -s nullglob; echo ${dir}/rhel-8/*.rpm )" ; then
-                    rpm --upgrade --force --nodeps --nosignature ${dir}/rhel-8/*.rpm
-                fi
-            else
-                if test -n "$(shopt -s nullglob; echo ${dir}/rhel-7/*.rpm )" ; then
-                    rpm --upgrade --force --nodeps --nosignature ${dir}/rhel-7/*.rpm
-                fi
-            fi
-            ;;
-
-        *)
-            bail "Host package install is not supported on ${LSB_DIST} ${DIST_MAJOR}"
-            ;;
-    esac
-}
-
 # Checks if the provided param is in the current path, and if it is not adds it
 # this is useful for systems where /usr/local/bin is not in the path for root
 function path_add() {
     if [ -d "$1" ] && [[ ":$PATH:" != *":$1:"* ]]; then
         PATH="${PATH:+"$PATH:"}$1"
     fi
-}
-
-function install_host_archives() {
-    local dir=$1
-
-    case "$LSB_DIST" in
-        ubuntu)
-            if test -n "$(shopt -s nullglob; echo ${dir}/ubuntu-${DIST_VERSION}/archives/*.deb )" ; then
-                DEBIAN_FRONTEND=noninteractive dpkg --install --force-depends-version --force-confold ${dir}/ubuntu-${DIST_VERSION}/archives/*.deb
-            fi
-            ;;
-
-        centos|rhel|amzn|ol)
-            if [[ "$DIST_VERSION" =~ ^8 ]]; then
-                if test -n "$(shopt -s nullglob; echo ${dir}/rhel-8/archives/*.rpm )" ; then
-                    rpm --upgrade --force --nodeps --nosignature ${dir}/rhel-8/archives/*.rpm
-                fi
-            else
-                if test -n "$(shopt -s nullglob; echo ${dir}/rhel-7/archives/*.rpm )" ; then
-                    rpm --upgrade --force --nodeps --nosignature ${dir}/rhel-7/archives/*.rpm
-                fi
-            fi
-            ;;
-
-        *)
-            bail "Host archive install is not supported on ${LSB_DIST} ${DIST_MAJOR}"
-            ;;
-    esac
 }
 
 function install_host_dependencies() {
@@ -637,7 +581,7 @@ function install_host_dependencies_openssl() {
         package_download "${package}"
         tar xf "$(package_filepath "${package}")"
     fi
-    install_host_archives "${DIR}/packages/host/openssl"
+    install_host_archives "${DIR}/packages/host/openssl" openssl
 }
 
 function maybe_read_kurl_config_from_cluster() {
