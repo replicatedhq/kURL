@@ -37,9 +37,9 @@ function containerd_install() {
 }
 
 function containerd_configure() {
-    if [ -f /etc/containerd/config.toml ] && grep -q SystemdCgroup /etc/containerd/config.toml; then
-        # Kurl config has already been applied. Leave the file as is to preserve end-user configs.
-        return 0
+    if [ "$CONTAINERD_PRESERVE_CONFIG" = "1" ]; then
+        echo "Skipping containerd configuration"
+        return
     fi
     mkdir -p /etc/containerd
     containerd config default > /etc/containerd/config.toml
@@ -51,6 +51,12 @@ function containerd_configure() {
 [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc.options]
   SystemdCgroup = true
 EOF
+
+	if [ -n "$CONTAINERD_TOML_CONFIG" ]; then
+        local tmp=$(mktemp)
+        echo "$CONTAINERD_TOML_CONFIG" > "$tmp"
+        "$DIR/bin/toml" -basefile=/etc/containerd/config.toml -patchfile="$tmp"
+    fi
 
     CONTAINERD_NEEDS_RESTART=1
 }

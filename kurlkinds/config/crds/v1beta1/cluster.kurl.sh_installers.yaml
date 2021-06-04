@@ -79,7 +79,11 @@ spec:
                 type: object
               containerd:
                 properties:
+                  preserveConfig:
+                    type: boolean
                   s3Override:
+                    type: string
+                  tomlConfig:
                     type: string
                   version:
                     type: string

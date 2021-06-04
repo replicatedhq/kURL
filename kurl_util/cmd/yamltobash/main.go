@@ -142,6 +142,8 @@ func convertToBash(kurlValues map[string]interface{}, fieldsSet map[string]bool)
 		"Collectd.Version":                       "COLLECTD_VERSION",
 		"CertManager.S3Override":                 "CERT_MANAGER_S3_OVERRIDE",
 		"CertManager.Version":                    "CERT_MANAGER_VERSION",
+		"Containerd.PreserveConfig":              "CONTAINERD_PRESERVE_CONFIG",
+		"Containerd.TomlConfig":                  "CONTAINERD_TOML_CONFIG",
 		"Containerd.S3Override":                  "CONTAINERD_S3_OVERRIDE",
 		"Containerd.Version":                     "CONTAINERD_VERSION",
 		"Contour.HTTPPort":                       "CONTOUR_HTTP_PORT",
@@ -294,7 +296,9 @@ func convertToBash(kurlValues map[string]interface{}, fieldsSet map[string]bool)
 			if t == "" {
 				bashVal = ""
 			} else {
-				bashVal = "\"" + t + "\""
+				// preserve inner double quotes
+				ts := strings.ReplaceAll(t, `"`, `\"`)
+				bashVal = "\"" + ts + "\""
 			}
 		case bool:
 			if t == true {
