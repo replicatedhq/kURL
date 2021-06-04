@@ -130,7 +130,7 @@ export function bashStringEscape( unescaped : string): string {
 }
 
 export function manifestFromInstaller(i: Installer, kurlURL: string, replicatedAppURL: string, distURL: string, kurlUtilImage: string, kurlBinUtils: string, kurlVersion: string): Manifest {
-  kurlVersion = kurlVersionOrDefault(kurlVersion);
+  kurlVersion = kurlVersionOrDefault(kurlVersion, i);
   if (kurlVersion) {
     kurlUtilImage = `replicated/kurl-util:${kurlVersion}`;
     kurlBinUtils = `kurl-bin-utils-${kurlVersion}.tar.gz`;
@@ -139,7 +139,7 @@ export function manifestFromInstaller(i: Installer, kurlURL: string, replicatedA
     KURL_URL: kurlURL,
     DIST_URL: distURL,
     INSTALLER_ID: i.id,
-    KURL_VERSION: kurlVersionOrDefault(kurlVersion),
+    KURL_VERSION: kurlVersion,
     REPLICATED_APP_URL: replicatedAppURL,
     KURL_UTIL_IMAGE: kurlUtilImage,
     KURL_BIN_UTILS_FILE: kurlBinUtils,
