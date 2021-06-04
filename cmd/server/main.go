@@ -23,7 +23,7 @@ import (
 const upstream = "http://localhost:3000"
 
 func main() {
-	log.Printf("Commit %s\n", os.Getenv("COMMIT"))
+	log.Printf("Commit %s\n", os.Getenv("VERSION"))
 
 	r := mux.NewRouter()
 
