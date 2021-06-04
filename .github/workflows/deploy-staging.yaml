@@ -106,8 +106,11 @@ jobs:
     - run: make web
 
     - run: |
+        git fetch --tags -f
+        export VERSION_TAG=$(git tag | grep '^v20' | sort | tail -1)-dirty
         docker build -f deploy/Dockerfile-slim \
           --build-arg version=${GITHUB_SHA:0:7} \
+          --build-arg version_tag=${VERSION_TAG} \
           -t 923411875752.dkr.ecr.us-east-1.amazonaws.com/kurl:${GITHUB_SHA:0:7} .
 
     - run: |
