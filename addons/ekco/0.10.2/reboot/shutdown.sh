@@ -9,7 +9,7 @@ allPodUIDs=$(kubectl get pods --all-namespaces -ojsonpath='{ range .items[*]}{.m
 # delete local pods with PVCs
 while read -r dev; do
     uid=$(echo "$dev" | grep -Eo "pods\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}" | sed 's/pods\///')
-    pod=$(echo "${allPodUIDs}[*]" | grep "$uid")
+    pod=$(echo "${allPodUIDs[*]}" | grep "$uid")
     kubectl delete pod "$(echo "$pod" | awk '{ print $1 }')" --namespace="$(echo "$pod" | awk '{ print $3 }')" --wait=false
 done < <(lsblk | grep "\/var\/lib\/kubelet\/pods\/.*\/pvc-")
 
