@@ -59,7 +59,7 @@ enabled=1
 gpgcheck=0
 EOF
     # We always use the same repo and we are kinda abusing yum here so we have to clear the cache.
-    # This is probably not great and probably has some undesirable effects. We should probably maintain this repo.
+    # This is probably not great and probably has some undesirable effects.
     yum clean metadata --disablerepo=* --enablerepo=kurl.local
     yum makecache --disablerepo=* --enablerepo=kurl.local
 
