@@ -15,7 +15,17 @@ FROM debian:buster-slim
 
 RUN DEBIAN_FRONTEND=noninteractive apt-get update -qq && apt-get install -y --no-install-recommends \
     libzstd1 \
-    && rm -rf /var/lib/apt/lists/*
+    \
+    curl \
+    ipvsadm \
+    netcat \
+    openssl \
+    strace \
+    sysstat \
+    tcpdump \
+    telnet \
+    \
+  && rm -rf /var/lib/apt/lists/*
 
 COPY --from=build /go/src/github.com/replicatedhq/kurl/build/bin/* /usr/local/bin/
 
