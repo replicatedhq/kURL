@@ -7,22 +7,52 @@ OUT_DIR=$2
 
 mkdir -p "$OUT_DIR"
 
-function build_rhel_8() {
-    local package="$1"
-    docker rm -f rhel-8-${package} 2>/dev/null || true
+function build_rhel_7() {
+    local packages=("$@")
+    local outdir="${OUT_DIR}/rhel-7"
+
+    mkdir -p "${outdir}"
+
+    docker rm -f rhel-7-packages 2>/dev/null || true
     # Use the oldest OS minor version supported to ensure that updates required for outdated
     # packages are included.
     docker run \
-        --name rhel-8-${package} \
+        --name rhel-7-packages \
+        centos:7.4.1708 \
+        /bin/bash -c "\
+            set -x
+            yum install -y epel-release createrepo && \
+            mkdir -p /packages/archives && \
+            yumdownloader --installroot=/tmp/empty-directory --releasever=/ --resolve --destdir=/packages/archives -y ${packages[*]} && \
+            createrepo /packages/archives"
+    docker cp rhel-7-packages:/packages/archives "${outdir}"
+    sudo chown -R $UID "${outdir}"
+}
+
+function build_rhel_8() {
+    local packages=("$@")
+    local outdir="${OUT_DIR}/rhel-8"
+
+    mkdir -p "${outdir}"
+
+    docker rm -f rhel-8-packages 2>/dev/null || true
+    # Use the oldest OS minor version supported to ensure that updates required for outdated
+    # packages are included.
+    docker run \
+        --name rhel-8-packages \
         centos:8.1.1911 \
         /bin/bash -c "\
-        yum install -y yum-utils epel-release createrepo && \
-        mkdir -p /packages/archives && \
-        yumdownloader --installroot=/tmp/empty-directory --releasever=/ --resolve --destdir=/packages/archives -y $package && \
-        createrepo /packages/archives"
-    docker cp rhel-8-${package}:/packages/archives $OUT_DIR/rhel-8
-    sudo chown -R $UID $OUT_DIR/rhel-8
+            set -x
+            yum install -y yum-utils epel-release createrepo && \
+            mkdir -p /packages/archives && \
+            yumdownloader --installroot=/tmp/empty-directory --releasever=/ --resolve --destdir=/packages/archives -y ${packages[*]} && \
+            createrepo /packages/archives"
+    docker cp rhel-8-packages:/packages/archives "${outdir}"
+    sudo chown -R $UID "${outdir}"
 }
+
+pkgs_rhel7=()
+pkgs_rhel8=()
 
 while read -r line; do
     if [ -z "$line" ]; then
@@ -91,31 +121,14 @@ while read -r line; do
             sudo chown -R $UID $OUT_DIR/ubuntu-16.04
             ;;
         yum)
-            mkdir -p $OUT_DIR/rhel-7 $OUT_DIR/rhel-8
-            package=$(echo $line | awk '{ print $2 }')
-
-            docker rm -f rhel-7-${package} 2>/dev/null || true
-            # Use the oldest OS minor version supported to ensure that updates required for outdated
-            # packages are included
-            docker run \
-                --name rhel-7-${package} \
-                centos:7.4.1708 \
-                /bin/bash -c "\
-                    yum install -y epel-release createrepo && \
-                    mkdir -p /packages/archives && \
-                    yumdownloader --installroot=/tmp/empty-directory --releasever=/ --resolve --destdir=/packages/archives -y $package && \
-                    createrepo /packages/archives"
-            docker cp rhel-7-${package}:/packages/archives $OUT_DIR/rhel-7
-            sudo chown -R $UID $OUT_DIR/rhel-7
-
-            build_rhel_8 "$package"
+            package=$(echo "${line}" | awk '{ print $2 }')
+            pkgs_rhel7+=("${package}")
+            pkgs_rhel8+=("${package}")
             ;;
 
         yum8)
-            mkdir -p $OUT_DIR/rhel-8
-            package=$(echo $line | awk '{ print $2 }')
-
-            build_rhel_8 "$package"
+            package=$(echo "${line}" | awk '{ print $2 }')
+            pkgs_rhel8+=("${package}")
             ;;
 
         dockerout)
@@ -139,3 +152,6 @@ while read -r line; do
             ;;
     esac
 done <  $MANIFEST_PATH
+
+build_rhel_7 "${pkgs_rhel7[@]}"
+build_rhel_8 "${pkgs_rhel8[@]}"
