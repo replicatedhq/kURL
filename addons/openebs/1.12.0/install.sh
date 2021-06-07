@@ -114,7 +114,15 @@ function openebs_iscsi() {
     local src="$DIR/addons/openebs/$OPENEBS_VERSION"
 
     if ! systemctl list-units | grep -q iscsid; then
-        install_host_archives "$src" iscsi-initiator-utils open-iscsi
+        case "$LSB_DIST" in
+            ubuntu)
+                dpkg_install_host_packages "$src" open-iscsi
+                ;;
+
+            centos|rhel|amzn|ol)
+                yum_install_host_archives "$src" iscsi-initiator-utils
+                ;;
+        esac
     fi
 
     if ! systemctl -q is-active iscsid; then

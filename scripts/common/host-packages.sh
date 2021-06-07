@@ -1,15 +1,18 @@
 
-function install_host_packages() {
-    local dir="$1"
-    shift
-    _install_host_packages "$dir" "" "$@"
-}
-
 function install_host_archives() {
     local dir="$1"
-    shift
-    _install_host_packages "$dir" "/archives" "$@"
+    local dir_prefix="/archives"
+    local packages=("${@:2}")
+    _install_host_packages "$dir" "$dir_prefix" "${packages[@]}"
 }
+
+function install_host_packages() {
+    local dir="$1"
+    local dir_prefix=""
+    local packages=("${@:2}")
+    _install_host_packages "$dir" "$dir_prefix" "${packages[@]}"
+}
+
 
 function _install_host_packages() {
     local dir="$1"
@@ -20,11 +23,11 @@ function _install_host_packages() {
 
     case "$LSB_DIST" in
         ubuntu)
-            _dpkg_install_host_packages "$dir" "$dir_prefix" "${packages[@]}"
+            dpkg_install_host_packages "$dir" "$dir_prefix" "${packages[@]}"
             ;;
 
         centos|rhel|amzn|ol)
-            _yum_install_host_packages "$dir" "$dir_prefix" "${packages[@]}"
+            yum_install_host_packages "$dir" "$dir_prefix" "${packages[@]}"
             ;;
 
         *)
@@ -35,7 +38,14 @@ function _install_host_packages() {
     logSuccess "Host packages ${packages[*]} installed"
 }
 
-function _dpkg_install_host_packages() {
+function dpkg_install_host_archives() {
+    local dir="$1"
+    local dir_prefix="/archives"
+    local packages=("${@:2}")
+    dpkg_install_host_packages "$dir" "$dir_prefix" "${packages[@]}"
+}
+
+function dpkg_install_host_packages() {
     local dir="$1"
     local dir_prefix="$2"
     local packages=("${@:3}")
@@ -49,7 +59,14 @@ function _dpkg_install_host_packages() {
     DEBIAN_FRONTEND=noninteractive dpkg --install --force-depends-version --force-confold "${fullpath}"
 }
 
-function _yum_install_host_packages() {
+function yum_install_host_archives() {
+    local dir="$1"
+    local dir_prefix="/archives"
+    local packages=("${@:2}")
+    yum_install_host_packages "$dir" "$dir_prefix" "${packages[@]}"
+}
+
+function yum_install_host_packages() {
     local dir="$1"
     local dir_prefix="$2"
     local packages=("${@:3}")
@@ -74,26 +91,8 @@ EOF
     yum clean metadata --disablerepo=* --enablerepo=kurl.local
     yum makecache --disablerepo=* --enablerepo=kurl.local
 
-    local filtered=
-    filtered="$(yum_filter_host_packages kurl.local "${packages[@]}")"
-
     # shellcheck disable=SC2086
-    yum --disablerepo=* --enablerepo=kurl.local install -y ${filtered}
+    yum --disablerepo=* --enablerepo=kurl.local install -y "${packages[@]}"
     yum clean metadata --disablerepo=* --enablerepo=kurl.local
     rm /etc/yum.repos.d/kurl.local.repo
-}
-
-# yum_filter_host_packages will filter out packages not included in this distro
-function yum_filter_host_packages() {
-    local repo="$1"
-    local packages=("$@")
-    packages=("${packages[@]:1}")
-
-    local available=
-    available="$(yum -q list available --disablerepo=* --enablerepo="${repo}" | awk 'NR>1 {print $1}' | sed 's/\.[^\.]*$//g')"
-
-    for i in "${!packages[@]}" ; do
-        ! echo "${available}" | grep -q "^${packages[$i]}$" && unset -v 'packages[$i]'
-    done
-    echo "${packages[@]}"
 }
