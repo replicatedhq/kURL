@@ -16,11 +16,11 @@ require (
 	github.com/google/gofuzz v1.2.0 // indirect
 	github.com/gorilla/mux v1.8.0
 	github.com/huandu/xstrings v1.3.2 // indirect
-	github.com/itchyny/gojq v0.12.2
-	github.com/mattn/go-isatty v0.0.12
+	github.com/itchyny/gojq v0.12.4
+	github.com/mattn/go-isatty v0.0.13
 	github.com/mitchellh/copystructure v1.2.0 // indirect
 	github.com/onsi/gomega v1.12.0
-	github.com/pelletier/go-toml v1.9.1 // indirect
+	github.com/pelletier/go-toml v1.9.1
 	github.com/pkg/errors v0.9.1
 	github.com/replicatedhq/troubleshoot v0.10.24
 	github.com/spf13/afero v1.6.0
@@ -31,7 +31,6 @@ require (
 	golang.org/x/crypto v0.0.0-20210513164829-c07d793c2f9a
 	golang.org/x/lint v0.0.0-20210508222113-6edffad5e616 // indirect
 	golang.org/x/net v0.0.0-20210521195947-fe42d452be8f
-	golang.org/x/sys v0.0.0-20210521203332-0cec03c779c1 // indirect
 	golang.org/x/tools v0.1.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
