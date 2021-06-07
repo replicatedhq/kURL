@@ -9,14 +9,14 @@ function collectd() {
 
         case "$LSB_DIST" in
             ubuntu)
-                install_host_archives "$src" collectd
+                dpkg_install_host_archives "$src" collectd
                 ;;
 
             centos|rhel|amzn|ol)
                 if [[ "$DIST_VERSION" =~ ^8 ]]; then
-                    install_host_archives "$src" collectd collectd-rrdtool collectd-disk
+                    yum_install_host_archives "$src" collectd collectd-rrdtool collectd-disk
                 else
-                    install_host_archives "$src" collectd collectd-rrdtool
+                    yum_install_host_archives "$src" collectd collectd-rrdtool
                 fi
                 ;;
         esac

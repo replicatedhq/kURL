@@ -19,8 +19,6 @@ function _install_host_packages() {
     local dir_prefix="$2"
     local packages=("${@:3}")
 
-    logStep "Installing host packages ${packages[*]}"
-
     case "$LSB_DIST" in
         ubuntu)
             dpkg_install_host_packages "$dir" "$dir_prefix" "${packages[@]}"
@@ -34,8 +32,6 @@ function _install_host_packages() {
             bail "Host package install is not supported on ${LSB_DIST} ${DIST_MAJOR}"
             ;;
     esac
-
-    logSuccess "Host packages ${packages[*]} installed"
 }
 
 function dpkg_install_host_archives() {
@@ -50,6 +46,8 @@ function dpkg_install_host_packages() {
     local dir_prefix="$2"
     local packages=("${@:3}")
 
+    logStep "Installing host packages ${packages[*]}"
+
     local fullpath=
     fullpath="${dir}/ubuntu-${DIST_VERSION}${dir_prefix}/*.deb"
     if ! test -n "$(shopt -s nullglob; echo "${fullpath}")" ; then
@@ -57,6 +55,8 @@ function dpkg_install_host_packages() {
     fi
 
     DEBIAN_FRONTEND=noninteractive dpkg --install --force-depends-version --force-confold "${fullpath}"
+
+    logSuccess "Host packages ${packages[*]} installed"
 }
 
 function yum_install_host_archives() {
@@ -70,6 +70,8 @@ function yum_install_host_packages() {
     local dir="$1"
     local dir_prefix="$2"
     local packages=("${@:3}")
+
+    logStep "Installing host packages ${packages[*]}"
 
     local fullpath=
     if [[ "$DIST_VERSION" =~ ^8 ]]; then
@@ -95,4 +97,6 @@ EOF
     yum --disablerepo=* --enablerepo=kurl.local install -y "${packages[@]}"
     yum clean metadata --disablerepo=* --enablerepo=kurl.local
     rm /etc/yum.repos.d/kurl.local.repo
+
+    logSuccess "Host packages ${packages[*]} installed"
 }
