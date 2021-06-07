@@ -84,12 +84,6 @@ function ekco_join() {
         EKCO_SHOULD_INSTALL_REBOOT_SERVICE=0
     fi
 
-    # is rook disabled
-    if [ -z "$ROOK_VERSION" ]; then
-        # disable reboot service for now as it only serves rook-ceph clusters
-        EKCO_SHOULD_INSTALL_REBOOT_SERVICE=0
-    fi
-
     if [ "$EKCO_SHOULD_INSTALL_REBOOT_SERVICE" = "1" ]; then
         ekco_install_reboot_service "$src"
     fi
