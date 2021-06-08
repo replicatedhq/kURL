@@ -13,7 +13,6 @@ function install_host_packages() {
     _install_host_packages "$dir" "$dir_prefix" "${packages[@]}"
 }
 
-
 function _install_host_packages() {
     local dir="$1"
     local dir_prefix="$2"
@@ -21,11 +20,11 @@ function _install_host_packages() {
 
     case "$LSB_DIST" in
         ubuntu)
-            dpkg_install_host_packages "$dir" "$dir_prefix" "${packages[@]}"
+            _dpkg_install_host_packages "$dir" "$dir_prefix" "${packages[@]}"
             ;;
 
         centos|rhel|amzn|ol)
-            yum_install_host_packages "$dir" "$dir_prefix" "${packages[@]}"
+            _yum_install_host_packages "$dir" "$dir_prefix" "${packages[@]}"
             ;;
 
         *)
@@ -38,10 +37,17 @@ function dpkg_install_host_archives() {
     local dir="$1"
     local dir_prefix="/archives"
     local packages=("${@:2}")
-    dpkg_install_host_packages "$dir" "$dir_prefix" "${packages[@]}"
+    _dpkg_install_host_packages "$dir" "$dir_prefix" "${packages[@]}"
 }
 
 function dpkg_install_host_packages() {
+    local dir="$1"
+    local dir_prefix=""
+    local packages=("${@:2}")
+    _dpkg_install_host_packages "$dir" "$dir_prefix" "${packages[@]}"
+}
+
+function _dpkg_install_host_packages() {
     local dir="$1"
     local dir_prefix="$2"
     local packages=("${@:3}")
@@ -64,10 +70,17 @@ function yum_install_host_archives() {
     local dir="$1"
     local dir_prefix="/archives"
     local packages=("${@:2}")
-    yum_install_host_packages "$dir" "$dir_prefix" "${packages[@]}"
+    _yum_install_host_packages "$dir" "$dir_prefix" "${packages[@]}"
 }
 
 function yum_install_host_packages() {
+    local dir="$1"
+    local dir_prefix=""
+    local packages=("${@:2}")
+    _yum_install_host_packages "$dir" "$dir_prefix" "${packages[@]}"
+}
+
+function _yum_install_host_packages() {
     local dir="$1"
     local dir_prefix="$2"
     local packages=("${@:3}")
