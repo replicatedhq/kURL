@@ -90,7 +90,7 @@ function longhorn_host_init() {
 function longhorn_install_iscsi_if_missing() {
     local src="$DIR/addons/longhorn/$LONGHORN_VERSION"
 
-    if ! systemctl list-units | grep -q iscsid; then
+    if ! systemctl list-units | grep -q iscsid && [ "$LONGHORN_HOST_PACKAGES_INSTALL" = "0" ]; then
         LONGHORN_HOST_PACKAGES_INSTALL=1
         case "$LSB_DIST" in
             ubuntu)
@@ -115,7 +115,7 @@ function longhorn_install_iscsi_if_missing() {
 function longhorn_install_nfs_utils_if_missing() {
     local src="$DIR/addons/longhorn/$LONGHORN_VERSION"
 
-    if ! systemctl list-units | grep -q nfs-utils; then
+    if ! systemctl list-units | grep -q nfs-utils && [ "$LONGHORN_HOST_PACKAGES_INSTALL" = "0" ]; then
         LONGHORN_HOST_PACKAGES_INSTALL=1
         case "$LSB_DIST" in
             ubuntu)
