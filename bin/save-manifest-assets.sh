@@ -2,8 +2,9 @@
 
 set -e
 
-MANIFEST_PATH=$1
-OUT_DIR=$2
+PACKAGE_NAME=$1
+MANIFEST_PATH=$2
+OUT_DIR=$3
 
 mkdir -p "$OUT_DIR"
 
@@ -13,19 +14,36 @@ function build_rhel_7() {
 
     mkdir -p "${outdir}"
 
-    docker rm -f rhel-7-packages 2>/dev/null || true
+    docker rm -f "rhel-7-${PACKAGE_NAME}" 2>/dev/null || true
     # Use the oldest OS minor version supported to ensure that updates required for outdated
     # packages are included.
     docker run \
-        --name rhel-7-packages \
+        --name "rhel-7-${PACKAGE_NAME}" \
         centos:7.4.1708 \
         /bin/bash -c "\
             set -x
-            yum install -y epel-release createrepo && \
+            yum install -y epel-release && \
             mkdir -p /packages/archives && \
-            yumdownloader --installroot=/tmp/empty-directory --releasever=/ --resolve --destdir=/packages/archives -y ${packages[*]} && \
+            yumdownloader --installroot=/tmp/empty-directory --releasever=/ --resolve --destdir=/packages/archives -y ${packages[*]}"
+    docker cp "rhel-7-${PACKAGE_NAME}":/packages/archives "${outdir}"
+    sudo chown -R $UID "${outdir}"
+}
+
+function createrepo_rhel_7() {
+    local outdir="${OUT_DIR}/rhel-7"
+
+    docker rm -f "rhel-7-createrepo-${PACKAGE_NAME}" 2>/dev/null || true
+    # Use the oldest OS minor version supported to ensure that updates required for outdated
+    # packages are included.
+    docker run \
+        --name "rhel-7-createrepo-${PACKAGE_NAME}" \
+        -v "$(pwd)/${outdir}":/packages/archives \
+        centos:7.4.1708 \
+        /bin/bash -c "\
+            set -x
+            yum install -y createrepo && \
             createrepo /packages/archives"
-    docker cp rhel-7-packages:/packages/archives "${outdir}"
+    docker cp "rhel-7-createrepo-${PACKAGE_NAME}":/packages/archives "${outdir}"
     sudo chown -R $UID "${outdir}"
 }
 
@@ -35,19 +53,36 @@ function build_rhel_8() {
 
     mkdir -p "${outdir}"
 
-    docker rm -f rhel-8-packages 2>/dev/null || true
+    docker rm -f "rhel-8-${PACKAGE_NAME}" 2>/dev/null || true
     # Use the oldest OS minor version supported to ensure that updates required for outdated
     # packages are included.
     docker run \
-        --name rhel-8-packages \
+        --name "rhel-8-${PACKAGE_NAME}" \
         centos:8.1.1911 \
         /bin/bash -c "\
             set -x
-            yum install -y yum-utils epel-release createrepo && \
+            yum install -y yum-utils epel-release && \
             mkdir -p /packages/archives && \
-            yumdownloader --installroot=/tmp/empty-directory --releasever=/ --resolve --destdir=/packages/archives -y ${packages[*]} && \
+            yumdownloader --installroot=/tmp/empty-directory --releasever=/ --resolve --destdir=/packages/archives -y ${packages[*]}"
+    docker cp "rhel-8-${PACKAGE_NAME}":/packages/archives "${outdir}"
+    sudo chown -R $UID "${outdir}"
+}
+
+function createrepo_rhel_8() {
+    local outdir="${OUT_DIR}/rhel-8"
+
+    docker rm -f "rhel-8-createrepo-${PACKAGE_NAME}" 2>/dev/null || true
+    # Use the oldest OS minor version supported to ensure that updates required for outdated
+    # packages are included.
+    docker run \
+        --name "rhel-8-createrepo-${PACKAGE_NAME}" \
+        -v "$(pwd)/${outdir}":/packages/archives \
+        centos:8.1.1911 \
+        /bin/bash -c "\
+            set -x
+            yum install -y createrepo && \
             createrepo /packages/archives"
-    docker cp rhel-8-packages:/packages/archives "${outdir}"
+    docker cp "rhel-8-createrepo-${PACKAGE_NAME}":/packages/archives "${outdir}"
     sudo chown -R $UID "${outdir}"
 }
 
@@ -151,11 +186,17 @@ while read -r line; do
             exit 1
             ;;
     esac
-done < $MANIFEST_PATH
+done < "${MANIFEST_PATH}"
 
 if [ "${#pkgs_rhel7[@]}" -gt "0" ]; then
     build_rhel_7 "${pkgs_rhel7[@]}"
 fi
+if [ "$(ls -A "${OUT_DIR}/rhel-7")" ]; then
+    createrepo_rhel_7
+fi
 if [ "${#pkgs_rhel8[@]}" -gt "0" ]; then
     build_rhel_8 "${pkgs_rhel8[@]}"
+fi
+if [ "$(ls -A "${OUT_DIR}/rhel-8")" ]; then
+    createrepo_rhel_8
 fi
