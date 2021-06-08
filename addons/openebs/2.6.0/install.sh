@@ -114,7 +114,7 @@ function openebs_iscsi() {
     if ! systemctl list-units | grep -q iscsid; then
         case "$LSB_DIST" in
             ubuntu)
-                dpkg_install_host_packages "$src" open-iscsi
+                dpkg_install_host_archives "$src" open-iscsi
                 ;;
 
             centos|rhel|amzn|ol)
