@@ -111,12 +111,14 @@ while read -r line; do
             mkdir -p $OUT_DIR/images
             docker save $image | gzip > $OUT_DIR/images/${filename}.tar.gz
             ;;
+
         asset)
             mkdir -p $OUT_DIR/assets
             filename=$(echo $line | awk '{ print $2 }')
             url=$(echo $line | awk '{ print $3 }')
             curl -L "$url" > "$OUT_DIR/assets/$filename"
             ;;
+
         apt)
             mkdir -p $OUT_DIR/ubuntu-20.04 $OUT_DIR/ubuntu-18.04 $OUT_DIR/ubuntu-16.04
             package=$(echo $line | awk '{ print $2 }')
@@ -157,6 +159,7 @@ while read -r line; do
             docker cp ubuntu-1604-${package}:/packages/archives $OUT_DIR/ubuntu-16.04
             sudo chown -R $UID $OUT_DIR/ubuntu-16.04
             ;;
+
         yum)
             package=$(echo "${line}" | awk '{ print $2 }')
             pkgs_rhel7+=("${package}")

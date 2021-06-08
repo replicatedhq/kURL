@@ -3,13 +3,10 @@ CONTAINERD_NEEDS_RESTART=0
 function containerd_install() {
     local src="$DIR/addons/containerd/$CONTAINERD_VERSION"
 
+    install_host_packages "$src" containerd.io
     case "$LSB_DIST" in
-        ubuntu)
-            dpkg_install_host_archives "$src" containerd.io
-            ;;
-
         centos|rhel|amzn|ol)
-            yum_install_host_archives "$src" containerd.io libzstd
+            yum_install_host_archives "$src" libzstd
             ;;
     esac
     chmod +x ${DIR}/addons/containerd/${CONTAINERD_VERSION}/assets/runc
