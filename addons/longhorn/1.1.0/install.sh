@@ -118,6 +118,10 @@ function longhorn_install_nfs_utils_if_missing() {
     if ! systemctl list-units | grep -q nfs-utils; then
         LONGHORN_HOST_PACKAGES_INSTALL=1
         case "$LSB_DIST" in
+            ubuntu)
+                dpkg_install_host_packages "$src" nfs-common
+                ;;
+
             centos|rhel|amzn|ol)
                 yum_install_host_archives "$src" nfs-utils
                 ;;
