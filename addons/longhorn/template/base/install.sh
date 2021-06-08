@@ -79,7 +79,7 @@ function longhorn_daemonset_is_ready() {
     local desired=$(kubectl get daemonsets -n longhorn-system $dsname --no-headers | tr -s ' ' | cut -d ' ' -f2)
     local ready=$(kubectl get daemonsets -n longhorn-system $dsname --no-headers | tr -s ' ' | cut -d ' ' -f4)
 
-    if [ "$desired" = "$ready" ] && [ -n "$desired" ] && [ "$desired" -ne 0 ]; then
+    if [ "$desired" = "$ready" ] && [ -n "$desired" ] && [ "$desired" != "0" ]; then
         return 0
     fi
     return 1
