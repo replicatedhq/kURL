@@ -4,7 +4,11 @@ function containerd_install() {
     local src="$DIR/addons/containerd/$CONTAINERD_VERSION"
 
     install_host_archives "$src" containerd.io
-    install_host_packages "$src" libzstd
+    case "$LSB_DIST" in
+        centos|rhel|amzn|ol)
+            yum_install_host_packages "$src" libzstd
+            ;;
+    esac
     chmod +x ${DIR}/addons/containerd/${CONTAINERD_VERSION}/assets/runc
     # If the runc binary is executing the cp command will fail with "text file busy" error.
     # Containerd uses runc in detached mode so any runc processes should be short-lived and exit
