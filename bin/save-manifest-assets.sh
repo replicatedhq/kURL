@@ -151,7 +151,11 @@ while read -r line; do
             exit 1
             ;;
     esac
-done <  $MANIFEST_PATH
+done < $MANIFEST_PATH
 
-build_rhel_7 "${pkgs_rhel7[@]}"
-build_rhel_8 "${pkgs_rhel8[@]}"
+if [ "${#pkgs_rhel7[@]}" -gt "0" ]; then
+    build_rhel_7 "${pkgs_rhel7[@]}"
+fi
+if [ "${#pkgs_rhel8[@]}" -gt "0" ]; then
+    build_rhel_8 "${pkgs_rhel8[@]}"
+fi

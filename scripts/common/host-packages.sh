@@ -51,6 +51,7 @@ function dpkg_install_host_packages() {
     local fullpath=
     fullpath="${dir}/ubuntu-${DIST_VERSION}${dir_prefix}/*.deb"
     if ! test -n "$(shopt -s nullglob; echo "${fullpath}")" ; then
+        echo "Will not install host packages ${packages[*]}, no packages found."
         return 0
     fi
 
@@ -80,6 +81,7 @@ function yum_install_host_packages() {
         fullpath="$(realpath "${dir}")/rhel-7${dir_prefix}"
     fi
     if ! test -n "$(shopt -s nullglob; echo "${fullpath}/*.rpm")" ; then
+        echo "Will not install host packages ${packages[*]}, no packages found."
         return 0
     fi
     cat > /etc/yum.repos.d/kurl.local.repo <<EOF
