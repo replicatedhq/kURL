@@ -290,6 +290,8 @@ spec:
                     type: string
                   publicAddress:
                     type: string
+                  version:
+                    type: string
                 type: object
               longhorn:
                 properties:

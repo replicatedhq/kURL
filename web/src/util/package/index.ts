@@ -1,6 +1,7 @@
+import {Installer} from "../../installers";
 
-export function getPackageUrl(distUrl: string, kurlVersion: string|undefined, pkg: string): string {
-  const kv = kurlVersionOrDefault(kurlVersion)
+export function getPackageUrl(distUrl: string, kurlVersion: string|undefined, pkg: string, i?: Installer): string {
+  const kv = kurlVersionOrDefault(kurlVersion, i)
   return `${distUrl}/${kv && `${kv}/`}${pkg}`;
 }
 
@@ -17,6 +18,11 @@ export function getDistUrl(): string {
   return distUrl;
 }
 
-export function kurlVersionOrDefault(kurlVersion?: string): string {
-  return kurlVersion || process.env["KURL_VERSION"] || ""
+export function kurlVersionOrDefault(kurlVersion?: string, i?: Installer): string {
+  let iVersion: string | undefined
+  if (i && i.spec.kurl) {
+    iVersion = i.spec.kurl.version
+  }
+
+  return kurlVersion || iVersion || process.env["KURL_VERSION"] || ""
 }

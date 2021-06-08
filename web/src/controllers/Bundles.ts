@@ -72,6 +72,9 @@ export class Bundle {
     }
     installer = installer.resolve();
 
+    // if installer.spec.kurl is set, fallback to installer.spec.kurl.version if kurlVersion was not set in the URL
+    kurlVersion = installer.spec.kurl ? (kurlVersion || installer.spec.kurl.version) : kurlVersion;
+
     try {
       await this.metricsStore.saveSaasScriptEvent({
         installerID,
@@ -87,7 +90,7 @@ export class Bundle {
     response.type("application/json");
 
     const ret: BundleManifest = {layers: [], files: {}};
-    ret.layers = installer.packages(kurlVersion).map((pkg) => getPackageUrl(this.distURL, kurlVersion, `${pkg}.tar.gz`));
+    ret.layers = installer.packages(kurlVersion).map((pkg) => getPackageUrl(this.distURL, kurlVersion, `${pkg}.tar.gz`, installer));
 
     const kotsadmApplicationSlug = _.get(installer.spec, "kotsadm.applicationSlug");
     if (kotsadmApplicationSlug) {
