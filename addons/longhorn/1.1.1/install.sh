@@ -79,7 +79,7 @@ function longhorn_daemonset_is_ready() {
     local desired=$(kubectl get daemonsets -n longhorn-system $dsname --no-headers | tr -s ' ' | cut -d ' ' -f2)
     local ready=$(kubectl get daemonsets -n longhorn-system $dsname --no-headers | tr -s ' ' | cut -d ' ' -f4)
 
-    if [ "$desired" = "$ready" ] ; then
+    if [ "$desired" = "$ready" ] && [ -n "$desired" ] && [ "$desired" -ne 0 ]; then
         return 0
     fi
     return 1
@@ -147,7 +147,7 @@ function validate_longhorn_ds() {
     local allpods=$(kubectl get daemonsets -n longhorn-system longhorn-environment-check --no-headers | tr -s ' ' | cut -d ' ' -f4)
     local bidirectional=$(kubectl get pods -n longhorn-system -l app=longhorn-environment-check -o=jsonpath='{.items[*].spec.containers[0].volumeMounts[*]}' | grep -o 'Bidirectional' | wc -l)
 
-    if [ "$allpods" == "" ]; then
+    if [ "$allpods" == "" ] || [ "$allpods" -eq "0" ]; then
         logWarn "unable to determine health and status of longhorn-environment-check daemonset"
     else
         if [ "$bidirectional" -lt "$allpods" ]; then
