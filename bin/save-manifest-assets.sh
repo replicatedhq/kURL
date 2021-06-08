@@ -25,25 +25,26 @@ function build_rhel_7() {
             yum install -y epel-release && \
             mkdir -p /packages/archives && \
             yumdownloader --installroot=/tmp/empty-directory --releasever=/ --resolve --destdir=/packages/archives -y ${packages[*]}"
-    docker cp "rhel-7-${PACKAGE_NAME}":/packages/archives "${outdir}"
+    sudo docker cp "rhel-7-${PACKAGE_NAME}":/packages/archives "${outdir}"
     sudo chown -R $UID "${outdir}"
 }
 
 function createrepo_rhel_7() {
-    local outdir="${OUT_DIR}/rhel-7"
+    local outdir=
+    outdir="$(realpath "${OUT_DIR}")/rhel-7"
 
     docker rm -f "rhel-7-createrepo-${PACKAGE_NAME}" 2>/dev/null || true
     # Use the oldest OS minor version supported to ensure that updates required for outdated
     # packages are included.
     docker run \
         --name "rhel-7-createrepo-${PACKAGE_NAME}" \
-        -v "$(pwd)/${outdir}":/packages/archives \
+        -v "${outdir}/archives":/packages/archives \
         centos:7.4.1708 \
         /bin/bash -c "\
             set -x
             yum install -y createrepo && \
             createrepo /packages/archives"
-    docker cp "rhel-7-createrepo-${PACKAGE_NAME}":/packages/archives "${outdir}"
+    sudo docker cp "rhel-7-createrepo-${PACKAGE_NAME}":/packages/archives "${outdir}"
     sudo chown -R $UID "${outdir}"
 }
 
@@ -64,25 +65,26 @@ function build_rhel_8() {
             yum install -y yum-utils epel-release && \
             mkdir -p /packages/archives && \
             yumdownloader --installroot=/tmp/empty-directory --releasever=/ --resolve --destdir=/packages/archives -y ${packages[*]}"
-    docker cp "rhel-8-${PACKAGE_NAME}":/packages/archives "${outdir}"
+    sudo docker cp "rhel-8-${PACKAGE_NAME}":/packages/archives "${outdir}"
     sudo chown -R $UID "${outdir}"
 }
 
 function createrepo_rhel_8() {
-    local outdir="${OUT_DIR}/rhel-8"
+    local outdir=
+    outdir="$(realpath "${OUT_DIR}")/rhel-8"
 
     docker rm -f "rhel-8-createrepo-${PACKAGE_NAME}" 2>/dev/null || true
     # Use the oldest OS minor version supported to ensure that updates required for outdated
     # packages are included.
     docker run \
         --name "rhel-8-createrepo-${PACKAGE_NAME}" \
-        -v "$(pwd)/${outdir}":/packages/archives \
+        -v "${outdir}/archives":/packages/archives \
         centos:8.1.1911 \
         /bin/bash -c "\
             set -x
             yum install -y createrepo && \
             createrepo /packages/archives"
-    docker cp "rhel-8-createrepo-${PACKAGE_NAME}":/packages/archives "${outdir}"
+    sudo docker cp "rhel-8-createrepo-${PACKAGE_NAME}":/packages/archives "${outdir}"
     sudo chown -R $UID "${outdir}"
 }
 
