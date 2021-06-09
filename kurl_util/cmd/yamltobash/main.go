@@ -117,7 +117,7 @@ func checkIfSkippedVariable(yamlString string) bool {
 		"FirewalldConfig.Firewalld",
 		"FirewalldConfig.FirewalldCmds",
 		"IptablesConfig.IptablesCmds",
-		"Kurl.Version",
+		"Kurl.InstallerVersion",
 		"SelinuxConfig.ChconCmds",
 		"SelinuxConfig.Selinux",
 		"SelinuxConfig.SemanageCmds",

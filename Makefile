@@ -571,7 +571,7 @@ build/bin/kurl:
 .PHONY: code
 code: build/kustomize build/addons
 
-build/bin/server:
+build/bin/server: cmd/server/main.go
 	go build -o build/bin/server cmd/server/main.go
 
 .PHONY: web

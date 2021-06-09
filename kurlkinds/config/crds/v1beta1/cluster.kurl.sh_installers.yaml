@@ -276,6 +276,8 @@ spec:
                     type: boolean
                   ignoreRemoteUpgradePrompt:
                     type: boolean
+                  installerVersion:
+                    type: string
                   nameserver:
                     type: string
                   noProxy:
@@ -289,8 +291,6 @@ spec:
                   proxyAddress:
                     type: string
                   publicAddress:
-                    type: string
-                  version:
                     type: string
                 type: object
               longhorn:

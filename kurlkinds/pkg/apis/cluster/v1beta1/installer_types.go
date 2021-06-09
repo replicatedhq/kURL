@@ -110,6 +110,7 @@ type Kurl struct {
 	HostnameCheck                string   `json:"hostnameCheck,omitempty" yaml:"hostnameCheck,omitempty"`
 	IgnoreRemoteLoadImagesPrompt bool     `json:"ignoreRemoteLoadImagesPrompt,omitempty" yaml:"ignoreRemoteLoadImagesPrompt,omitempty"`
 	IgnoreRemoteUpgradePrompt    bool     `json:"ignoreRemoteUpgradePrompt,omitempty" yaml:"ignoreRemoteUpgradePrompt,omitempty"`
+	InstallerVersion             string   `json:"installerVersion,omitempty" yaml:"installerVersion,omitempty"`
 	Nameserver                   string   `json:"nameserver,omitempty" yaml:"nameserver,omitempty"`
 	NoProxy                      bool     `json:"noProxy,omitempty" yaml:"noProxy,omitempty"`
 	PreflightIgnore              bool     `json:"preflightIgnore,omitempty" yaml:"preflightIgnore,omitempty"`
@@ -117,7 +118,6 @@ type Kurl struct {
 	PrivateAddress               string   `json:"privateAddress,omitempty" yaml:"privateAddress,omitempty"`
 	ProxyAddress                 string   `json:"proxyAddress,omitempty" yaml:"proxyAddress,omitempty"`
 	PublicAddress                string   `json:"publicAddress,omitempty" yaml:"publicAddress,omitempty"`
-	Version                      string   `json:"version,omitempty" yaml:"version,omitempty"`
 }
 
 type Minio struct {
