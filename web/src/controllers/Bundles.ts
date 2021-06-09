@@ -72,8 +72,8 @@ export class Bundle {
     }
     installer = installer.resolve();
 
-    // if installer.spec.kurl is set, fallback to installer.spec.kurl.version if kurlVersion was not set in the URL
-    kurlVersion = installer.spec.kurl ? (kurlVersion || installer.spec.kurl.version) : kurlVersion;
+    // if installer.spec.kurl is set, fallback to installer.spec.kurl.installerVersion if kurlVersion was not set in the URL
+    kurlVersion = installer.spec.kurl ? (kurlVersion || installer.spec.kurl.installerVersion) : kurlVersion;
 
     try {
       await this.metricsStore.saveSaasScriptEvent({

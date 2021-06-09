@@ -398,7 +398,7 @@ export interface KurlConfig {
   bypassFirewalldWarning?: boolean; // this is not in the installer crd
   hardFailOnFirewalld?: boolean; // this is not in the installer crd
   task?: string; // this is not in the installer crd
-  version?: string;
+  installerVersion?: string;
 }
 
 export const kurlConfigSchema = {
@@ -418,7 +418,7 @@ export const kurlConfigSchema = {
     publicAddress: { type: "string", flag: "public-address" , description: "The public address of the host (different for each host in the cluster), will be added as a CNAME to the k8s API server cert so you can use kubectl with this address" },
     bypassFirewalldWarning: { type: "boolean", flag: "bypass-firewalld-warning" , description: "Continue installing even if the firewalld service is active" },
     hardFailOnFirewalld: { type: "boolean", flag: "hard-fail-on-firewalld" , description: "Exit the install script if the firewalld service is active" },
-    version: { type: "string", description: "The upstream version of kURL to use as part of the installation - see https://kurl.sh/docs/install-with-kurl/#versioned-releases" },
+    installerVersion: { type: "string", description: "The upstream version of kURL to use as part of the installation - see https://kurl.sh/docs/install-with-kurl/#versioned-releases" },
   },
   additionalProperties: false,
 };

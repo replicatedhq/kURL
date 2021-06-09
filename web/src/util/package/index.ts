@@ -21,7 +21,7 @@ export function getDistUrl(): string {
 export function kurlVersionOrDefault(kurlVersion?: string, i?: Installer): string {
   let iVersion: string | undefined
   if (i && i.spec.kurl) {
-    iVersion = i.spec.kurl.version
+    iVersion = i.spec.kurl.installerVersion
   }
 
   return kurlVersion || iVersion || process.env["KURL_VERSION"] || ""
