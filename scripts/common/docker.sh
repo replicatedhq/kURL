@@ -45,27 +45,10 @@ function restart_docker() {
 }
 
 docker_install() {
-    logStep "Installing Docker host packages"
+    install_host_packages "${DIR}/packages/docker/${DOCKER_VERSION}" docker-ce docker-ce-cli
 
-    case "$LSB_DIST" in
-        ubuntu)
-            DEBIAN_FRONTEND=noninteractive dpkg --install --force-depends-version $DIR/packages/docker/${DOCKER_VERSION}/ubuntu-${DIST_VERSION}/*.deb
-            cp $DIR/packages/docker/${DOCKER_VERSION}/runc $(which runc)
-            DID_INSTALL_DOCKER=1
-            ;;
-
-        centos|rhel|amzn|ol)
-            rpm --upgrade --force --nodeps --nosignature $DIR/packages/docker/${DOCKER_VERSION}/rhel-7/*.rpm
-            cp $DIR/packages/docker/${DOCKER_VERSION}/runc $(which runc)
-            DID_INSTALL_DOCKER=1
-            ;;
-
-        *)
-            bail "Offline Docker install is not supported on ${LSB_DIST} ${DIST_MAJOR}"
-            ;;
-    esac
-
-    logSuccess "Docker host packages installed"
+    cp "${DIR}/packages/docker/${DOCKER_VERSION}/runc" "$(which runc)"
+    export DID_INSTALL_DOCKER=1
 }
 
 check_docker_storage_driver() {
