@@ -79,7 +79,7 @@ function longhorn_daemonset_is_ready() {
     local desired=$(kubectl get daemonsets -n longhorn-system $dsname --no-headers | tr -s ' ' | cut -d ' ' -f2)
     local ready=$(kubectl get daemonsets -n longhorn-system $dsname --no-headers | tr -s ' ' | cut -d ' ' -f4)
 
-    if [ "$desired" = "$ready" ] ; then
+    if [ "$desired" = "$ready" ] && [ -n "$desired" ] && [ "$desired" != "0" ]; then
         return 0
     fi
     return 1
@@ -127,7 +127,7 @@ function check_mount_propagation() {
     local src=$1
 
     kubectl get ns longhorn-system >/dev/null 2>&1 || kubectl create ns longhorn-system >/dev/null 2>&1
-    kubectl delete -n longhorn-system ds longhorn-environment-check || true
+    kubectl delete -n longhorn-system ds longhorn-environment-check 2>/dev/null || true
 
     render_yaml_file "$src/tmpl-mount-propagation.yaml" > "$src/mount-propagation.yaml"
     kubectl apply -f "$src/mount-propagation.yaml"
@@ -142,12 +142,10 @@ function check_mount_propagation() {
 # pass if at least one node will support longhorn, but with a warning if there are nodes that won't
 # only fail if there is no chance that longhorn will work on any nodes, as installations may have dedicated 'storage' vs 'not-storage' nodes
 function validate_longhorn_ds() {
-    local allSupported=true
-
     local allpods=$(kubectl get daemonsets -n longhorn-system longhorn-environment-check --no-headers | tr -s ' ' | cut -d ' ' -f4)
     local bidirectional=$(kubectl get pods -n longhorn-system -l app=longhorn-environment-check -o=jsonpath='{.items[*].spec.containers[0].volumeMounts[*]}' | grep -o 'Bidirectional' | wc -l)
 
-    if [ "$allpods" == "" ]; then
+    if [ "$allpods" == "" ] || [ "$allpods" -eq "0" ]; then
         logWarn "unable to determine health and status of longhorn-environment-check daemonset"
     else
         if [ "$bidirectional" -lt "$allpods" ]; then
