@@ -15,10 +15,22 @@ function require() {
 require KURL_UTIL_IMAGE "${KURL_UTIL_IMAGE}" # required for common package
 require KURL_BIN_UTILS_FILE "${KURL_BIN_UTILS_FILE}"
 
+index="${1:-0}"
+
+i=0
+
 comma=""
 printf '{"include": ['
 for package in $(list_all | awk '{print $1}')
 do
+    if [ "${i}" -lt "${index}" ]; then
+        i=$((i+1))
+        continue
+    fi
+    if [ "$(("${i}"-"${index}"))" = "255" ]; then
+        break
+    fi
+    i=$((i+1))
     printf '%s{"package": "%s"}' "${comma}" "${package}"
     comma=","
 done
