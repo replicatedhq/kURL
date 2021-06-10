@@ -55,13 +55,13 @@ function _dpkg_install_host_packages() {
     logStep "Installing host packages ${packages[*]}"
 
     local fullpath=
-    fullpath="${dir}/ubuntu-${DIST_VERSION}${dir_prefix}/*.deb"
-    if ! test -n "$(shopt -s nullglob; echo "${fullpath}")" ; then
+    fullpath="${dir}/ubuntu-${DIST_VERSION}${dir_prefix}"
+    if ! test -n "$(shopt -s nullglob; echo "${fullpath}"/*.deb)" ; then
         echo "Will not install host packages ${packages[*]}, no packages found."
         return 0
     fi
 
-    DEBIAN_FRONTEND=noninteractive dpkg --install --force-depends-version --force-confold "${fullpath}"
+    DEBIAN_FRONTEND=noninteractive dpkg --install --force-depends-version --force-confold "${fullpath}"/*.deb
 
     logSuccess "Host packages ${packages[*]} installed"
 }
