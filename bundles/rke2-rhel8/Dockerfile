@@ -4,6 +4,9 @@ RUN yum install -y gettext # envsubst
 RUN yum install -y yum-utils # yumdownloader
 RUN yum install -y createrepo
 
+RUN yum-config-manager --add-repo http://mirror.centos.org/centos/8-stream/AppStream/x86_64/os/
+RUN yum install -y modulemd-tools
+
 RUN mkdir -p /packages/archives
 
 ADD ./rancher-rke2.repo.tmpl /tmp/
@@ -21,6 +24,8 @@ RUN source /tmp/env; envsubst < /tmp/rancher-rke2.repo.tmpl > /etc/yum.repos.d/r
 RUN source /tmp/env; yumdownloader --installroot=/tmp/empty-directory --releasever=/ --resolve --destdir=/packages/archives -y \
     rke2-server-${rke2_rpm_version} \
     rke2-agent-${rke2_rpm_version}
-RUN createrepo /packages/archives
+RUN createrepo_c /packages/archives
+RUN repo2module --module-name=kurl.local --module-stream=stable /packages/archives /tmp/modules.yaml
+RUN modifyrepo_c --mdtype=modules /tmp/modules.yaml /packages/archives/repodata
 
 CMD cp -r /packages/archives/* /out/

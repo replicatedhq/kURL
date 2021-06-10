@@ -5,6 +5,9 @@ RUN yum install -y gettext # envsubst
 RUN yum install -y yum-utils # yumdownloader
 RUN yum install -y createrepo
 
+RUN yum-config-manager --add-repo http://mirror.centos.org/centos/8-stream/AppStream/x86_64/os/
+RUN yum install -y modulemd-tools
+
 RUN mkdir -p /packages/archives
 
 ADD ./rancher-k3s-common.repo.tmpl /tmp/
@@ -18,6 +21,9 @@ ARG K3S_VERSION
 RUN envsubst < /tmp/rancher-k3s-common.repo.tmpl > /etc/yum.repos.d/rancher-k3s-common.repo
 RUN yumdownloader --installroot=/tmp/empty-directory --releasever=/ --resolve --destdir=/packages/archives -y \
     k3s-selinux
-RUN createrepo /packages/archives
+
+RUN createrepo_c /packages/archives
+RUN repo2module --module-name=kurl.local --module-stream=stable /packages/archives /tmp/modules.yaml
+RUN modifyrepo_c --mdtype=modules /tmp/modules.yaml /packages/archives/repodata
 
 CMD cp -r /packages/archives/* /out/
