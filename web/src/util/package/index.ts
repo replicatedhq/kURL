@@ -1,7 +1,7 @@
 import {Installer} from "../../installers";
 
-export function getPackageUrl(distUrl: string, kurlVersion: string|undefined, pkg: string, i?: Installer): string {
-  const kv = kurlVersionOrDefault(kurlVersion, i)
+export function getPackageUrl(distUrl: string, kurlVersion: string|undefined, pkg: string): string {
+  const kv = kurlVersionOrDefault(kurlVersion)
   return `${distUrl}/${kv && `${kv}/`}${pkg}`;
 }
 
