@@ -1,6 +1,11 @@
 name: cron-rebuild-packages-prod
 on:
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      index:
+        description: rebuild from index
+        required: true
+        default: 0
 
 jobs:
   build-matrix:
@@ -17,7 +22,7 @@ jobs:
           tag=$(git tag | grep '^v20' | sort | tail -1)
           export KURL_UTIL_IMAGE=replicated/kur-util:${tag}
           export KURL_BIN_UTILS_FILE=kurl-bin-utils-${tag}.tar.gz
-          OUTPUT=`bin/list-all-packages-actions-matrix.sh`
+          OUTPUT=`bin/list-all-packages-actions-matrix.sh "${{ github.event.inputs.index }}"`
           echo "::set-output name=matrix::$OUTPUT"
 
   build-upload-packages:
