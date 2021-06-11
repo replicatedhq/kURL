@@ -117,7 +117,7 @@ function createrepo_ol_7() {
     docker run \
         --name "ol-7-createrepo-${PACKAGE_NAME}" \
         -v "${outdir}/archives":/packages/archives \
-        oraclelinux:7 \
+        centos:7.4.1708 \
         /bin/bash -c "\
             set -x
             yum install -y createrepo && \
