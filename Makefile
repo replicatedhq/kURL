@@ -147,6 +147,7 @@ dist/docker-%.tar.gz:
 	${MAKE} build/packages/docker/$*/ubuntu-18.04
 	${MAKE} build/packages/docker/$*/ubuntu-20.04
 	${MAKE} build/packages/docker/$*/rhel-7
+	${MAKE} build/packages/docker/$*/rhel-8
 	mkdir -p dist
 	curl -L https://github.com/opencontainers/runc/releases/download/v1.0.0-rc95/runc.amd64 > build/packages/docker/$*/runc
 	chmod +x build/packages/docker/$*/runc
@@ -446,6 +447,27 @@ build/packages/docker/%/rhel-7:
 	mkdir -p build/packages/docker/$*/rhel-7
 	docker cp docker-rhel7-$*:/packages/archives/. build/packages/docker/$*/rhel-7
 	docker rm docker-rhel7-$*
+
+build/packages/docker/18.09.8/rhel-8:
+	# unsupported
+
+build/packages/docker/19.03.4/rhel-8:
+	# unsupported
+
+build/packages/docker/19.03.10/rhel-8:
+	# unsupported
+
+build/packages/docker/%/rhel-8:
+	docker build \
+		--build-arg DOCKER_VERSION=$* \
+		-t kurl/rhel-8-docker:$* \
+		-f bundles/docker-rhel8/Dockerfile \
+		bundles/docker-rhel8
+	-docker rm -f docker-rhel8 2>/dev/null
+	docker create --name docker-rhel8-$* kurl/rhel-8-docker:$*
+	mkdir -p build/packages/docker/$*/rhel-8
+	docker cp docker-rhel8-$*:/packages/archives/. build/packages/docker/$*/rhel-8
+	docker rm docker-rhel8-$*
 
 build/packages/kubernetes/%/ubuntu-16.04:
 	docker build \

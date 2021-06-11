@@ -31,6 +31,7 @@ module.exports.InstallerVersions = {
   ],
   docker: [
     "20.10.5",
+    "19.03.15",
     "19.03.10",
     "19.03.4",
     "18.09.8",
