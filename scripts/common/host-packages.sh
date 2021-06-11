@@ -89,7 +89,7 @@ function _yum_install_host_packages() {
 
     local fullpath=
     fullpath="$(_yum_get_host_packages_path)"
-    if ! test -n "$(shopt -s nullglob; echo "${fullpath}/*.rpm")" ; then
+    if ! test -n "$(shopt -s nullglob; echo "${fullpath}"/*.rpm)" ; then
         echo "Will not install host packages ${packages[*]}, no packages found."
         return 0
     fi
@@ -116,20 +116,20 @@ function _yum_get_host_packages_path() {
     local fullpath=
     if [ "${LSB_DIST}" = "ol" ]; then
         if [ "${DIST_VERSION_MAJOR}" = "8" ]; then
-            fullpath="$(realpath "${dir}")/ol-8${dir_prefix}"
+            fullpath="$(realpath "${dir}")/ol-8"
         else
-            fullpath="$(realpath "${dir}")/ol-7${dir_prefix}"
+            fullpath="$(realpath "${dir}")/ol-7"
         fi
-        if test -n "$(shopt -s nullglob; echo "${fullpath}/*.rpm")" ; then
+        if test -n "$(shopt -s nullglob; echo "${fullpath}"/*.rpm)" ; then
             echo "${fullpath}"
             return 0
         fi
     fi
 
     if [ "${DIST_VERSION_MAJOR}" = "8" ]; then
-        echo "$(realpath "${dir}")/rhel-8${dir_prefix}"
+        echo "$(realpath "${dir}")/rhel-8"
     else
-        echo "$(realpath "${dir}")/rhel-7${dir_prefix}"
+        echo "$(realpath "${dir}")/rhel-7"
     fi
     return 0
 }
