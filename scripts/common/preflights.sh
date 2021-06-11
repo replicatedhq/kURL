@@ -3,7 +3,7 @@ function preflights() {
     require64Bit
     bailIfUnsupportedOS
     mustSwapoff
-    bail_if_docker_unsupported_os
+    prompt_if_docker_unsupported_os
     checkDockerK8sVersion
     checkFirewalld
     checkUFW
@@ -139,7 +139,7 @@ checkDockerK8sVersion()
     esac
 }
 
-function bail_if_docker_unsupported_os() {
+function prompt_if_docker_unsupported_os() {
     if is_docker_version_supported ; then
         return
     fi
