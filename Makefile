@@ -448,11 +448,14 @@ build/packages/docker/%/rhel-7:
 	docker cp docker-rhel7-$*:/packages/archives/. build/packages/docker/$*/rhel-7
 	docker rm docker-rhel7-$*
 
-build/packages/docker/18.09.8/rhel-8: build/packages/docker/18.09.8/rhel-7-force
+build/packages/docker/18.09.8/rhel-8:
+	${MAKE} build/packages/docker/18.09.8/rhel-7-force
 
-build/packages/docker/19.03.4/rhel-8: build/packages/docker/19.03.4//rhel-7-force
+build/packages/docker/19.03.4/rhel-8:
+	${MAKE} build/packages/docker/19.03.4/rhel-7-force
 
-build/packages/docker/19.03.10/rhel-8: build/packages/docker/19.03.10/rhel-7-force
+build/packages/docker/19.03.10/rhel-8:
+	${MAKE} build/packages/docker/19.03.10/rhel-7-force
 
 build/packages/docker/%/rhel-7-force:
 	docker build \
