@@ -3,7 +3,7 @@ function preflights() {
     require64Bit
     bailIfUnsupportedOS
     mustSwapoff
-    promptIfDockerUnsupportedOS
+    bail_if_docker_unsupported_os
     checkDockerK8sVersion
     checkFirewalld
     checkUFW
@@ -139,26 +139,30 @@ checkDockerK8sVersion()
     esac
 }
 
-promptIfDockerUnsupportedOS()
-{
-    if [ -z "$DOCKER_VERSION" ]; then
+function bail_if_docker_unsupported_os() {
+    if is_docker_version_supported ; then
         return
     fi
 
+    if commandExists "docker" ; then
+        return
+    fi
+
+    bail "Docker ${DOCKER_VERSION} is not supported on ${LSB_DIST} ${DIST_VERSION}"
+}
+
+function is_docker_version_supported() {
     case "$LSB_DIST" in
     centos|rhel)
-        if [[ "$DIST_VERSION" =~ ^8 ]]; then
-            logWarn "Docker is not supported on ${LSB_DIST} ${DIST_VERSION}."
-            logWarn "The containerd addon is recommended. https://kurl.sh/docs/add-ons/containerd"
-            if ! commandExists "docker" ; then
-                printf "${YELLOW}Continue? ${NC}" 1>&2
-                if ! confirmY ; then
-                    exit 1
-                fi
-            fi
-        fi
+        ;;
+    *)
+        return 0
         ;;
     esac
+    if [ "$DOCKER_VERSION" = "18.09.8" ] || [ "$DOCKER_VERSION" = "19.03.4" ] || [ "$DOCKER_VERSION" = "19.03.10" ]; then
+        return 1
+    fi
+    return 0
 }
 
 checkFirewalld() {
