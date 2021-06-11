@@ -28,6 +28,7 @@ require (
 	github.com/mattn/go-isatty v0.0.13
 	github.com/mitchellh/copystructure v1.2.0 // indirect
 	github.com/onsi/gomega v1.13.0
+	github.com/pborman/ansi v1.0.0
 	github.com/pelletier/go-toml v1.9.3
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/common v0.29.0 // indirect
