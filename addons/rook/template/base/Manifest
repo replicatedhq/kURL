@@ -1,3 +1,4 @@
 yum lvm2
+yumol lvm2
 apt lvm2
 
