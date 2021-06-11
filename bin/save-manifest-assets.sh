@@ -34,8 +34,6 @@ function createrepo_rhel_7() {
     outdir="$(realpath "${OUT_DIR}")/rhel-7"
 
     docker rm -f "rhel-7-createrepo-${PACKAGE_NAME}" 2>/dev/null || true
-    # Use the oldest OS minor version supported to ensure that updates required for outdated
-    # packages are included.
     docker run \
         --name "rhel-7-createrepo-${PACKAGE_NAME}" \
         -v "${outdir}/archives":/packages/archives \
@@ -74,8 +72,6 @@ function createrepo_rhel_8() {
     outdir="$(realpath "${OUT_DIR}")/rhel-8"
 
     docker rm -f "rhel-8-createrepo-${PACKAGE_NAME}" 2>/dev/null || true
-    # Use the oldest OS minor version supported to ensure that updates required for outdated
-    # packages are included.
     docker run \
         --name "rhel-8-createrepo-${PACKAGE_NAME}" \
         -v "${outdir}/archives":/packages/archives \
@@ -103,7 +99,7 @@ function build_ol_7() {
     # packages are included.
     docker run \
         --name "ol-7-${PACKAGE_NAME}" \
-        centos:7 \
+        centos:7.4.1708 \
         /bin/bash -c "\
             set -x && \
             yum-config-manager --add-repo=http://public-yum.oracle.com/repo/OracleLinux/OL7/latest/x86_64/ && \
@@ -118,8 +114,6 @@ function createrepo_ol_7() {
     outdir="$(realpath "${OUT_DIR}")/ol-7"
 
     docker rm -f "ol-7-createrepo-${PACKAGE_NAME}" 2>/dev/null || true
-    # Use the oldest OS minor version supported to ensure that updates required for outdated
-    # packages are included.
     docker run \
         --name "ol-7-createrepo-${PACKAGE_NAME}" \
         -v "${outdir}/archives":/packages/archives \
