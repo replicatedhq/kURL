@@ -54,7 +54,7 @@ function docker_install() {
         ;;
     esac
 
-    if [ "${DID_INSTALL_DOCKER}"  != "1" ]; then
+    if [ "${DID_INSTALL_DOCKER}" != "1" ]; then
         install_host_packages "${DIR}/packages/docker/${DOCKER_VERSION}" docker-ce docker-ce-cli
         export DID_INSTALL_DOCKER=1
     fi
