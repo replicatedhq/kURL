@@ -34,8 +34,6 @@ function createrepo_rhel_7() {
     outdir="$(realpath "${OUT_DIR}")/rhel-7"
 
     docker rm -f "rhel-7-createrepo-${PACKAGE_NAME}" 2>/dev/null || true
-    # Use the oldest OS minor version supported to ensure that updates required for outdated
-    # packages are included.
     docker run \
         --name "rhel-7-createrepo-${PACKAGE_NAME}" \
         -v "${outdir}/archives":/packages/archives \
@@ -74,8 +72,6 @@ function createrepo_rhel_8() {
     outdir="$(realpath "${OUT_DIR}")/rhel-8"
 
     docker rm -f "rhel-8-createrepo-${PACKAGE_NAME}" 2>/dev/null || true
-    # Use the oldest OS minor version supported to ensure that updates required for outdated
-    # packages are included.
     docker run \
         --name "rhel-8-createrepo-${PACKAGE_NAME}" \
         -v "${outdir}/archives":/packages/archives \
@@ -92,8 +88,47 @@ function createrepo_rhel_8() {
     sudo chown -R $UID "${outdir}"
 }
 
+function build_ol_7() {
+    local packages=("$@")
+    local outdir="${OUT_DIR}/ol-7"
+
+    mkdir -p "${outdir}"
+
+    docker rm -f "ol-7-${PACKAGE_NAME}" 2>/dev/null || true
+    # Use the oldest OS minor version supported to ensure that updates required for outdated
+    # packages are included.
+    docker run \
+        --name "ol-7-${PACKAGE_NAME}" \
+        centos:7.4.1708 \
+        /bin/bash -c "\
+            set -x && \
+            yum-config-manager --add-repo=http://public-yum.oracle.com/repo/OracleLinux/OL7/latest/x86_64/ && \
+            mkdir -p /packages/archives && \
+            yumdownloader --disablerepo=* --enablerepo=public-yum.oracle.com_repo_OracleLinux_OL7_latest_x86_64_ --installroot=/tmp/empty-directory --releasever=/ --resolve --destdir=/packages/archives -y ${packages[*]}"
+    sudo docker cp "ol-7-${PACKAGE_NAME}":/packages/archives "${outdir}"
+    sudo chown -R $UID "${outdir}"
+}
+
+function createrepo_ol_7() {
+    local outdir=
+    outdir="$(realpath "${OUT_DIR}")/ol-7"
+
+    docker rm -f "ol-7-createrepo-${PACKAGE_NAME}" 2>/dev/null || true
+    docker run \
+        --name "ol-7-createrepo-${PACKAGE_NAME}" \
+        -v "${outdir}/archives":/packages/archives \
+        centos:7.4.1708 \
+        /bin/bash -c "\
+            set -x
+            yum install -y createrepo && \
+            createrepo /packages/archives"
+    sudo docker cp "ol-7-createrepo-${PACKAGE_NAME}":/packages/archives "${outdir}"
+    sudo chown -R $UID "${outdir}"
+}
+
 pkgs_rhel7=()
 pkgs_rhel8=()
+pkgs_ol7=()
 
 while read -r line; do
     if [ -z "$line" ]; then
@@ -175,6 +210,11 @@ while read -r line; do
             pkgs_rhel8+=("${package}")
             ;;
 
+        yumol)
+            package=$(echo "${line}" | awk '{ print $2 }')
+            pkgs_ol7+=("${package}")
+            ;;
+
         dockerout)
             dstdir=$(echo $line | awk '{ print $2 }')
             dockerfile=$(echo $line | awk '{ print $3 }')
@@ -208,4 +248,10 @@ if [ "${#pkgs_rhel8[@]}" -gt "0" ]; then
 fi
 if [ "$(ls -A "${OUT_DIR}/rhel-8")" ]; then
     createrepo_rhel_8
+fi
+if [ "${#pkgs_ol7[@]}" -gt "0" ]; then
+    build_ol_7 "${pkgs_ol7[@]}"
+fi
+if [ "$(ls -A "${OUT_DIR}/ol-7")" ]; then
+    createrepo_ol_7
 fi

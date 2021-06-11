@@ -88,11 +88,7 @@ function _yum_install_host_packages() {
     logStep "Installing host packages ${packages[*]}"
 
     local fullpath=
-    if [ "$DIST_VERSION_MAJOR" = "8" ]; then
-        fullpath="$(realpath "${dir}")/rhel-8${dir_prefix}"
-    else
-        fullpath="$(realpath "${dir}")/rhel-7${dir_prefix}"
-    fi
+    fullpath="$(_yum_get_host_packages_path)"
     if ! test -n "$(shopt -s nullglob; echo "${fullpath}/*.rpm")" ; then
         echo "Will not install host packages ${packages[*]}, no packages found."
         return 0
@@ -114,4 +110,26 @@ EOF
     rm /etc/yum.repos.d/kurl.local.repo
 
     logSuccess "Host packages ${packages[*]} installed"
+}
+
+function _yum_get_host_packages_path() {
+    local fullpath=
+    if [ "${LSB_DIST}" = "ol" ]; then
+        if [ "${DIST_VERSION_MAJOR}" = "8" ]; then
+            fullpath="$(realpath "${dir}")/ol-8${dir_prefix}"
+        else
+            fullpath="$(realpath "${dir}")/ol-7${dir_prefix}"
+        fi
+        if test -n "$(shopt -s nullglob; echo "${fullpath}/*.rpm")" ; then
+            echo "${fullpath}"
+            return 0
+        fi
+    fi
+
+    if [ "${DIST_VERSION_MAJOR}" = "8" ]; then
+        echo "$(realpath "${dir}")/rhel-8${dir_prefix}"
+    else
+        echo "$(realpath "${dir}")/rhel-7${dir_prefix}"
+    fi
+    return 0
 }
