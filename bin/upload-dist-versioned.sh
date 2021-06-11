@@ -102,13 +102,13 @@ function deploy() {
     fi
 
     if package_has_changes "${PACKAGE_PREFIX}/${package}" "${path}" ; then
-        # if package_has_changes "staging/${package}" "${path}" ; then
+        if package_has_changes "staging/${package}" "${path}" ; then
             echo "s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${package} has changes"
             build_and_upload "${package}"
-        # else
-        #     echo "s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${package} no changes in staging package"
-        #     copy_package_staging "${package}"
-        # fi
+        else
+            echo "s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${package} no changes in staging package"
+            copy_package_staging "${package}"
+        fi
     else
         if package_has_changes "${PACKAGE_PREFIX}/${VERSION_TAG}/${package}" "${path}" ; then
             echo "s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${package} no changes in package"
