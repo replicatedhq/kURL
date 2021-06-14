@@ -42,12 +42,8 @@ function createrepo_rhel_7() {
         centos:7.4.1708 \
         /bin/bash -c "\
             set -x
-            yum install -y yum-utils createrepo && \
-            yum-config-manager --add-repo http://mirror.centos.org/centos/8-stream/AppStream/x86_64/os/ && \
-            yum install -y modulemd-tools && \
-            createrepo_c /packages/archives && \
-            repo2module --module-name=kurl.local --module-stream=stable /packages/archives /tmp/modules.yaml && \
-            modifyrepo_c --mdtype=modules /tmp/modules.yaml /packages/archives/repodata"
+            yum install -y createrepo && \
+            createrepo /packages/archives"
     sudo docker cp "rhel-7-createrepo-${PACKAGE_NAME}":/packages/archives "${outdir}"
     sudo chown -R $UID "${outdir}"
 }
