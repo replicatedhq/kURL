@@ -66,7 +66,6 @@ github.com/PuerkitoBio/purell v1.1.1/go.mod h1:c11w/QuzBsJSee3cPx9rAFu61PvFxuPbt
 github.com/PuerkitoBio/urlesc v0.0.0-20160726150825-5bd2802263f2/go.mod h1:uGdkoq3SwY9Y+13GIhn11/XLaGBb4BfwItxLd5jeuXE=
 github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578 h1:d+Bc7a5rLufV/sSk/8dngufqelfh6jnri85riMAaF/M=
 github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578/go.mod h1:uGdkoq3SwY9Y+13GIhn11/XLaGBb4BfwItxLd5jeuXE=
-github.com/RHsyseng/operator-utils v0.0.0-20190906175225-942a3f9c85a9/go.mod h1:E+hCtYz+9UsXfAGnRjX2LGuaa5gSGNKHCVTmGZR79vY=
 github.com/StackExchange/wmi v0.0.0-20210224194228-fe8f1750fd46/go.mod h1:3eOhrUMpNV+6aFIbp5/iudMxNCF27Vw2OZgy4xEx0Fg=
 github.com/VividCortex/ewma v1.1.1/go.mod h1:2Tkkvm3sRDVXaiyucHiACn4cqf7DpdyLvmxzcbUokwA=
 github.com/acarl005/stripansi v0.0.0-20180116102854-5a71ef0e047d/go.mod h1:asat636LX7Bqt5lYEZ27JNDcqxfjdBQuJ/MM4CN/Lzo=
@@ -1280,10 +1279,10 @@ k8s.io/utils v0.0.0-20201110183641-67b214c5f920/go.mod h1:jPW/WVKK9YHAvNhRxK0md/
 k8s.io/utils v0.0.0-20210111153108-fddb29f9d009/go.mod h1:jPW/WVKK9YHAvNhRxK0md/EJ228hCsBRufyofKtW8HA=
 k8s.io/utils v0.0.0-20210521133846-da695404a2bc h1:dx6VGe+PnOW/kD/2UV4aUSsRfJGd7+lcqgJ6Xg0HwUs=
 k8s.io/utils v0.0.0-20210521133846-da695404a2bc/go.mod h1:jPW/WVKK9YHAvNhRxK0md/EJ228hCsBRufyofKtW8HA=
-kubevirt.io/client-go v0.41.0 h1:SQ1ZlZtxdwENabMhNhbAg+GERzmSMdLd1FAWMnpfY3w=
-kubevirt.io/client-go v0.41.0/go.mod h1:OFwGvBEhxmNoQSQfNmCDOYW0jddmStDzof6J8GrVNNM=
-kubevirt.io/containerized-data-importer v1.31.0 h1:g6cZsl91sHkiWfVFm4VBLnzTI5KPwX7G5zggQ9Tlzjk=
-kubevirt.io/containerized-data-importer v1.31.0/go.mod h1:ur+s6O4/uYD8re3OIVgyiyGzVLIxOUL3kB5E7pR9SIQ=
+kubevirt.io/client-go v0.42.1 h1:Twh3JdWUptj1TIs5sI+jwDvcUXaCL2lsfF9PLZoCw7s=
+kubevirt.io/client-go v0.42.1/go.mod h1:vZ6AlLkMCcDNH0ShJis2sm5+6P9fx1X2XwBj+OJAkfE=
+kubevirt.io/containerized-data-importer v1.34.0 h1:BrvtyeHdRWINSi+dQM46hxduUr4UwdEdwdYdX6okR14=
+kubevirt.io/containerized-data-importer v1.34.0/go.mod h1:DfmtE1pfkCQ5twfTC+ebrEXQTCYRXb9zjv0wQ1RRQ6I=
 kubevirt.io/controller-lifecycle-operator-sdk v0.1.2 h1:oFucZCV1JrjkLWy838kpozgPsYBioPNqZVwtw9wJP9E=
 kubevirt.io/controller-lifecycle-operator-sdk v0.1.2/go.mod h1:M+UuZsp90mmKUVGb5zXDZtIIY1noY5pJk9i2YCQwSnk=
 kubevirt.io/qe-tools v0.1.6/go.mod h1:PJyH/YXC4W0AmxfheDmXWMbLNsMSboVGXKpMAwfKzVE=
