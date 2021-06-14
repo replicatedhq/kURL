@@ -88,7 +88,7 @@ function _yum_install_host_packages() {
     logStep "Installing host packages ${packages[*]}"
 
     local fullpath=
-    if [ "$DIST_VERSION_MAJOR" = "8" ]; then
+    if [[ "$DIST_VERSION" =~ ^8 ]]; then
         fullpath="$(realpath "${dir}")/rhel-8${dir_prefix}"
     else
         fullpath="$(realpath "${dir}")/rhel-7${dir_prefix}"

@@ -45,16 +45,7 @@ function restart_docker() {
 }
 
 docker_install() {
-    # we do not build docker packages for 8.x versions
-    local o_distversionmajor="${DIST_VERSION_MAJOR}"
-    case "$LSB_DIST" in
-        centos|rhel|amzn|ol)
-            DIST_VERSION_MAJOR=7
-            ;;
-    esac
-
     install_host_packages "${DIR}/packages/docker/${DOCKER_VERSION}" docker-ce docker-ce-cli
-    DIST_VERSION_MAJOR="${o_distversionmajor}"
 
     cp "${DIR}/packages/docker/${DOCKER_VERSION}/runc" "$(which runc)"
     export DID_INSTALL_DOCKER=1
