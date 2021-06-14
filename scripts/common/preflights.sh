@@ -153,10 +153,7 @@ function bail_if_docker_unsupported_os() {
 
 function is_docker_version_supported() {
     case "$LSB_DIST" in
-    centos|rhel|ol)
-        if [ "${DIST_VERSION_MAJOR}" = "7" ]; then
-            return 0
-        fi
+    centos|rhel)
         ;;
     *)
         return 0
