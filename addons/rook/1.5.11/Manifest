@@ -1,5 +1,4 @@
 yum lvm2
-yumol lvm2
 apt lvm2
 
 image rook-ceph rook/ceph:v1.5.11
