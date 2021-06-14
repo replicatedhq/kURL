@@ -10,6 +10,7 @@ import { instrumented } from "monkit";
 import { Forbidden } from "../server/errors";
 import { InstallerVersions } from "./versions";
 import {getDistUrl, getPackageUrl} from "../util/package";
+import fetch from "node-fetch";
 
 interface ErrorResponse {
   error: any;
@@ -835,16 +836,16 @@ export class Installer {
     return i;
   }
 
-  public static hasVersion(config: string, version: string, installerVersion?: string): boolean {
+  public static async hasVersion(config: string, version: string, installerVersion?: string): Promise<boolean> {
     if (version === "latest") {
       return true;
     }
     if (installerVersion) {
       // hit s3 to determine if this addon+version exists for the specified installer version
-      const special = /[+]/g;
-      const generatedURL = getPackageUrl(getDistUrl(), installerVersion, Installer.generatePackageName(config, version))
+      const generatedURL = getPackageUrl(getDistUrl(), installerVersion, `${Installer.generatePackageName(config, version)}.tar.gz`);
 
-      // TODO test if generatedURL exists
+      const resp = await fetch(generatedURL, {method:"HEAD"});
+      return resp.ok;
     } else {
       if (_.includes(InstallerVersions[config], version)) {
         return true;
@@ -1055,8 +1056,7 @@ export class Installer {
     return i;
   }
 
-  // TODO: also valdiate kurl.InstallerVersion
-  public validate(): ErrorResponse|undefined {
+  public async validate(): Promise<ErrorResponse | undefined> {
     if (!this.spec ||
       (
         (!this.spec.kubernetes || !this.spec.kubernetes.version) &&
@@ -1064,7 +1064,7 @@ export class Installer {
         (!this.spec.k3s || !this.spec.k3s.version)
       )
     ) {
-      return { error: { message: "Kubernetes version is required" } };
+      return {error: {message: "Kubernetes version is required"}};
     }
 
     const ajv = new AJV();
@@ -1074,7 +1074,7 @@ export class Installer {
     if (!valid && validate.errors && validate.errors.length) {
       const err = validate.errors[0];
       const message = `spec${err.dataPath} ${err.message}`;
-      return { error: { message } };
+      return {error: {message}};
     }
 
     let installerVersion: string | undefined;
@@ -1083,98 +1083,98 @@ export class Installer {
     }
 
     if (this.spec.kubernetes) {
-      if (!Installer.hasVersion("kubernetes", this.spec.kubernetes.version, installerVersion) && !this.hasS3Override("kubernetes")) {
-        return { error: { message: `Kubernetes version ${_.escape(this.spec.kubernetes.version)} is not supported${installerVersion ? " for installer version " + _.escape(installerVersion) : ""}` } };
+      if (!(await Installer.hasVersion("kubernetes", this.spec.kubernetes.version, installerVersion)) && !this.hasS3Override("kubernetes")) {
+        return {error: {message: `Kubernetes version ${_.escape(this.spec.kubernetes.version)} is not supported${installerVersion ? " for installer version " + _.escape(installerVersion) : ""}`}};
       }
       if (this.spec.kubernetes.serviceCidrRange && !Installer.isValidCidrRange(this.spec.kubernetes.serviceCidrRange)) {
-        return { error: { message: `Kubernetes serviceCidrRange "${_.escape(this.spec.kubernetes.serviceCidrRange)}" is invalid` } };
+        return {error: {message: `Kubernetes serviceCidrRange "${_.escape(this.spec.kubernetes.serviceCidrRange)}" is invalid`}};
       }
     }
     if (this.spec.rke2) {
-      if (!Installer.hasVersion("rke2", this.spec.rke2.version, installerVersion) && !this.hasS3Override("rke2")) {
-        return { error: { message: `RKE2 version ${_.escape(this.spec.rke2.version)} is not supported${installerVersion ? " for installer version " + _.escape(installerVersion) : ""}` } };
+      if (!(await Installer.hasVersion("rke2", this.spec.rke2.version, installerVersion)) && !this.hasS3Override("rke2")) {
+        return {error: {message: `RKE2 version ${_.escape(this.spec.rke2.version)} is not supported${installerVersion ? " for installer version " + _.escape(installerVersion) : ""}`}};
       }
     }
     if (this.spec.kubernetes && this.spec.rke2) {
-      return { error: { message: `This spec contains both kubeadm and rke2, please specifiy only one Kubernetes distribution` } };
+      return {error: {message: `This spec contains both kubeadm and rke2, please specifiy only one Kubernetes distribution`}};
     }
     if (this.spec.k3s) {
-      if (!Installer.hasVersion("k3s", this.spec.k3s.version, installerVersion) && !this.hasS3Override("k3s")) {
-        return { error: { message: `K3S version ${_.escape(this.spec.k3s.version)} is not supported${installerVersion ? " for installer version " + _.escape(installerVersion) : ""}` } };
+      if (!(await Installer.hasVersion("k3s", this.spec.k3s.version, installerVersion)) && !this.hasS3Override("k3s")) {
+        return {error: {message: `K3S version ${_.escape(this.spec.k3s.version)} is not supported${installerVersion ? " for installer version " + _.escape(installerVersion) : ""}`}};
       }
     }
     if (this.spec.kubernetes && this.spec.k3s) {
-      return { error: { message: `This spec contains both kubeadm and k3s, please specifiy only one Kubernetes distribution` } };
+      return {error: {message: `This spec contains both kubeadm and k3s, please specifiy only one Kubernetes distribution`}};
     }
-    if (this.spec.weave && !Installer.hasVersion("weave", this.spec.weave.version, installerVersion) && !this.hasS3Override("weave")) {
-      return { error: { message: `Weave version "${_.escape(this.spec.weave.version)}" is not supported${installerVersion ? " for installer version " + _.escape(installerVersion) : ""}` } };
+    if (this.spec.weave && !(await Installer.hasVersion("weave", this.spec.weave.version, installerVersion)) && !this.hasS3Override("weave")) {
+      return {error: {message: `Weave version "${_.escape(this.spec.weave.version)}" is not supported${installerVersion ? " for installer version " + _.escape(installerVersion) : ""}`}};
     }
     if (this.spec.weave && this.spec.weave.podCidrRange && !Installer.isValidCidrRange(this.spec.weave.podCidrRange)) {
-      return { error: { message: `Weave podCidrRange "${_.escape(this.spec.weave.podCidrRange)}" is invalid` } };
+      return {error: {message: `Weave podCidrRange "${_.escape(this.spec.weave.podCidrRange)}" is invalid`}};
     }
-    if (this.spec.antrea && !Installer.hasVersion("antrea", this.spec.antrea.version, installerVersion) && !this.hasS3Override("antrea")) {
-      return { error: { message: `Antrea version "${_.escape(this.spec.antrea.version)}" is not supported${installerVersion ? " for installer version " + _.escape(installerVersion) : ""}` } };
+    if (this.spec.antrea && !(await Installer.hasVersion("antrea", this.spec.antrea.version, installerVersion)) && !this.hasS3Override("antrea")) {
+      return {error: {message: `Antrea version "${_.escape(this.spec.antrea.version)}" is not supported${installerVersion ? " for installer version " + _.escape(installerVersion) : ""}`}};
     }
     if (this.spec.antrea && this.spec.antrea.podCidrRange && !Installer.isValidCidrRange(this.spec.antrea.podCidrRange)) {
-      return { error: { message: `Antrea podCidrRange "${_.escape(this.spec.antrea.podCidrRange)}" is invalid` } };
+      return {error: {message: `Antrea podCidrRange "${_.escape(this.spec.antrea.podCidrRange)}" is invalid`}};
     }
-    if (this.spec.rook && !Installer.hasVersion("rook", this.spec.rook.version, installerVersion) && !this.hasS3Override("rook")) {
-      return { error: { message: `Rook version "${_.escape(this.spec.rook.version)}" is not supported${installerVersion ? " for installer version " + _.escape(installerVersion) : ""}` } };
+    if (this.spec.rook && !(await Installer.hasVersion("rook", this.spec.rook.version, installerVersion)) && !this.hasS3Override("rook")) {
+      return {error: {message: `Rook version "${_.escape(this.spec.rook.version)}" is not supported${installerVersion ? " for installer version " + _.escape(installerVersion) : ""}`}};
     }
-    if (this.spec.contour && !Installer.hasVersion("contour", this.spec.contour.version, installerVersion) && !this.hasS3Override("contour")) {
-      return { error: { message: `Contour version "${_.escape(this.spec.contour.version)}" is not supported${installerVersion ? " for installer version " + _.escape(installerVersion) : ""}` } };
+    if (this.spec.contour && !(await Installer.hasVersion("contour", this.spec.contour.version, installerVersion)) && !this.hasS3Override("contour")) {
+      return {error: {message: `Contour version "${_.escape(this.spec.contour.version)}" is not supported${installerVersion ? " for installer version " + _.escape(installerVersion) : ""}`}};
     }
-    if (this.spec.registry && !Installer.hasVersion("registry", this.spec.registry.version, installerVersion) && !this.hasS3Override("registry")) {
-      return { error: { message: `Registry version "${_.escape(this.spec.registry.version)}" is not supported${installerVersion ? " for installer version " + _.escape(installerVersion) : ""}` } };
+    if (this.spec.registry && !(await Installer.hasVersion("registry", this.spec.registry.version, installerVersion)) && !this.hasS3Override("registry")) {
+      return {error: {message: `Registry version "${_.escape(this.spec.registry.version)}" is not supported${installerVersion ? " for installer version " + _.escape(installerVersion) : ""}`}};
     }
-    if (this.spec.prometheus && !Installer.hasVersion("prometheus", this.spec.prometheus.version, installerVersion) && !this.hasS3Override("prometheus")) {
-      return { error: { message: `Prometheus version "${_.escape(this.spec.prometheus.version)}" is not supported${installerVersion ? " for installer version " + _.escape(installerVersion) : ""}` } };
+    if (this.spec.prometheus && !(await Installer.hasVersion("prometheus", this.spec.prometheus.version, installerVersion)) && !this.hasS3Override("prometheus")) {
+      return {error: {message: `Prometheus version "${_.escape(this.spec.prometheus.version)}" is not supported${installerVersion ? " for installer version " + _.escape(installerVersion) : ""}`}};
     }
-    if (this.spec.fluentd && !Installer.hasVersion("fluentd", this.spec.fluentd.version, installerVersion) && !this.hasS3Override("fluentd")) {
-      return { error: { message: `Fluentd version "${_.escape(this.spec.fluentd.version)}" is not supported${installerVersion ? " for installer version " + _.escape(installerVersion) : ""}` } };
+    if (this.spec.fluentd && !(await Installer.hasVersion("fluentd", this.spec.fluentd.version, installerVersion)) && !this.hasS3Override("fluentd")) {
+      return {error: {message: `Fluentd version "${_.escape(this.spec.fluentd.version)}" is not supported${installerVersion ? " for installer version " + _.escape(installerVersion) : ""}`}};
     }
     if (this.spec.kotsadm) {
-      if (!Installer.hasVersion("kotsadm", this.spec.kotsadm.version, installerVersion) && !this.hasS3Override("kotsadm")) {
-        return { error: { message: `Kotsadm version "${_.escape(this.spec.kotsadm.version)}" is not supported${installerVersion ? " for installer version " + _.escape(installerVersion) : ""}` } };
+      if (!(await Installer.hasVersion("kotsadm", this.spec.kotsadm.version, installerVersion)) && !this.hasS3Override("kotsadm")) {
+        return {error: {message: `Kotsadm version "${_.escape(this.spec.kotsadm.version)}" is not supported${installerVersion ? " for installer version " + _.escape(installerVersion) : ""}`}};
       }
     }
-    if (this.spec.velero && !Installer.hasVersion("velero", this.spec.velero.version, installerVersion) && !this.hasS3Override("velero")) {
-      return { error: { message: `Velero version "${_.escape(this.spec.velero.version)}" is not supported${installerVersion ? " for installer version " + _.escape(installerVersion) : ""}` } };
+    if (this.spec.velero && !(await Installer.hasVersion("velero", this.spec.velero.version, installerVersion)) && !this.hasS3Override("velero")) {
+      return {error: {message: `Velero version "${_.escape(this.spec.velero.version)}" is not supported${installerVersion ? " for installer version " + _.escape(installerVersion) : ""}`}};
     }
-    if (this.spec.openebs && !Installer.hasVersion("openebs", this.spec.openebs.version, installerVersion) && !this.hasS3Override("openebs")) {
-      return { error: { message: `OpenEBS version "${_.escape(this.spec.openebs.version)}" is not supported${installerVersion ? " for installer version " + _.escape(installerVersion) : ""}` } };
+    if (this.spec.openebs && !(await Installer.hasVersion("openebs", this.spec.openebs.version, installerVersion)) && !this.hasS3Override("openebs")) {
+      return {error: {message: `OpenEBS version "${_.escape(this.spec.openebs.version)}" is not supported${installerVersion ? " for installer version " + _.escape(installerVersion) : ""}`}};
     }
-    if (this.spec.minio && !Installer.hasVersion("minio", this.spec.minio.version, installerVersion) && !this.hasS3Override("minio")) {
-      return { error: { message: `Minio version "${_.escape(this.spec.minio.version)}" is not supported${installerVersion ? " for installer version " + _.escape(installerVersion) : ""}` } };
+    if (this.spec.minio && !(await Installer.hasVersion("minio", this.spec.minio.version, installerVersion)) && !this.hasS3Override("minio")) {
+      return {error: {message: `Minio version "${_.escape(this.spec.minio.version)}" is not supported${installerVersion ? " for installer version " + _.escape(installerVersion) : ""}`}};
     }
-    if (this.spec.ekco && !Installer.hasVersion("ekco", this.spec.ekco.version, installerVersion) && !this.hasS3Override("ekco")) {
-      return { error: { message: `Ekco version "${_.escape(this.spec.ekco.version)}" is not supported${installerVersion ? " for installer version " + _.escape(installerVersion) : ""}` } };
+    if (this.spec.ekco && !(await Installer.hasVersion("ekco", this.spec.ekco.version, installerVersion)) && !this.hasS3Override("ekco")) {
+      return {error: {message: `Ekco version "${_.escape(this.spec.ekco.version)}" is not supported${installerVersion ? " for installer version " + _.escape(installerVersion) : ""}`}};
     }
-    if (this.spec.containerd && !Installer.hasVersion("containerd", this.spec.containerd.version, installerVersion) && !this.hasS3Override("containerd")) {
-      return { error: { message: `Containerd version "${_.escape(this.spec.containerd.version)}" is not supported${installerVersion ? " for installer version " + _.escape(installerVersion) : ""}` } };
+    if (this.spec.containerd && !(await Installer.hasVersion("containerd", this.spec.containerd.version, installerVersion)) && !this.hasS3Override("containerd")) {
+      return {error: {message: `Containerd version "${_.escape(this.spec.containerd.version)}" is not supported${installerVersion ? " for installer version " + _.escape(installerVersion) : ""}`}};
     }
     if (this.spec.containerd && this.spec.docker) {
-      return { error: { message: `This spec contains both docker and containerd, please specifiy only one CRI` } };
+      return {error: {message: `This spec contains both docker and containerd, please specifiy only one CRI`}};
     }
-    if (this.spec.collectd && !Installer.hasVersion("collectd", this.spec.collectd.version, installerVersion) && !this.hasS3Override("collectd")) {
-      return { error: { message: `Collectd version "${_.escape(this.spec.collectd.version)}" is not supported${installerVersion ? " for installer version " + _.escape(installerVersion) : ""}` } };
+    if (this.spec.collectd && !(await Installer.hasVersion("collectd", this.spec.collectd.version, installerVersion)) && !this.hasS3Override("collectd")) {
+      return {error: {message: `Collectd version "${_.escape(this.spec.collectd.version)}" is not supported${installerVersion ? " for installer version " + _.escape(installerVersion) : ""}`}};
     }
-    if (this.spec.certManager && !Installer.hasVersion("certManager", this.spec.certManager.version, installerVersion) && !this.hasS3Override("certManager")) {
-      return { error: { message: `CertManager version "${_.escape(this.spec.certManager.version)}" is not supported${installerVersion ? " for installer version " + _.escape(installerVersion) : ""}` } };
+    if (this.spec.certManager && !(await Installer.hasVersion("certManager", this.spec.certManager.version, installerVersion)) && !this.hasS3Override("certManager")) {
+      return {error: {message: `CertManager version "${_.escape(this.spec.certManager.version)}" is not supported${installerVersion ? " for installer version " + _.escape(installerVersion) : ""}`}};
     }
-    if (this.spec.metricsServer && !Installer.hasVersion("metricsServer", this.spec.metricsServer.version, installerVersion) && !this.hasS3Override("metricsServer")) {
-      return { error: { message: `MetricsServer version "${_.escape(this.spec.metricsServer.version)}" is not supported${installerVersion ? " for installer version " + _.escape(installerVersion) : ""}` } };
+    if (this.spec.metricsServer && !(await Installer.hasVersion("metricsServer", this.spec.metricsServer.version, installerVersion)) && !this.hasS3Override("metricsServer")) {
+      return {error: {message: `MetricsServer version "${_.escape(this.spec.metricsServer.version)}" is not supported${installerVersion ? " for installer version " + _.escape(installerVersion) : ""}`}};
     }
-    if (this.spec.longhorn && !Installer.hasVersion("longhorn", this.spec.longhorn.version, installerVersion) && !this.hasS3Override("longhorn")) {
-      return { error: { message: `Longhorn version "${_.escape(this.spec.longhorn.version)}" is not supported${installerVersion ? " for installer version " + _.escape(installerVersion) : ""}` } };
+    if (this.spec.longhorn && !(await Installer.hasVersion("longhorn", this.spec.longhorn.version, installerVersion)) && !this.hasS3Override("longhorn")) {
+      return {error: {message: `Longhorn version "${_.escape(this.spec.longhorn.version)}" is not supported${installerVersion ? " for installer version " + _.escape(installerVersion) : ""}`}};
     }
-    if (this.spec.sonobuoy && !Installer.hasVersion("sonobuoy", this.spec.sonobuoy.version, installerVersion) && !this.hasS3Override("sonobuoy")) {
-      return { error: { message: `Sonobuoy version "${_.escape(this.spec.sonobuoy.version)}" is not supported${installerVersion ? " for installer version " + _.escape(installerVersion) : ""}` } };
+    if (this.spec.sonobuoy && !(await Installer.hasVersion("sonobuoy", this.spec.sonobuoy.version, installerVersion)) && !this.hasS3Override("sonobuoy")) {
+      return {error: {message: `Sonobuoy version "${_.escape(this.spec.sonobuoy.version)}" is not supported${installerVersion ? " for installer version " + _.escape(installerVersion) : ""}`}};
     }
     // Rook 1.0.4. is incompatible with Kubernetes 1.20+
     if (this.spec.rook && this.spec.rook.version === "1.0.4") {
       if (this.spec.kubernetes && semver.gte(this.spec.kubernetes.version, "1.20.0")) {
-        return { error: { message: "Rook 1.0.4 is not compatible with Kubernetes 1.20+" } };
+        return {error: {message: "Rook 1.0.4 is not compatible with Kubernetes 1.20+"}};
       }
     }
   }

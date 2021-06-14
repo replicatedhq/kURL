@@ -637,44 +637,44 @@ spec:
         [
           typeMetaStableV1Beta1,
         ].forEach(async (yaml) => {
-          const out = Installer.parse(yaml).validate();
+          const out = await Installer.parse(yaml).validate();
 
           expect(out).to.equal(undefined);
         });
       });
 
       describe("application slug exists", () => {
-        it("=> void", () => {
-          const out = Installer.parse(kots).validate();
+        it("=> void", async () => {
+          const out = await Installer.parse(kots).validate();
 
           expect(out).to.equal(undefined);
         });
       });
 
       describe("every option", () => {
-        it("=> void", () => {
-          const out = Installer.parse(everyOption).validate();
+        it("=> void", async () => {
+          const out = await Installer.parse(everyOption).validate();
 
           expect(out).to.equal(undefined);
         });
       });
 
       describe("unknown versions w/ overrides", () => {
-        it("=> void", () => {
-          const out = Installer.parse(overrideUnknownVersion).validate();
+        it("=> void", async () => {
+          const out = await Installer.parse(overrideUnknownVersion).validate();
           expect(out).to.equal(undefined);
         });
       });
     });
 
     describe("invalid Kubernetes versions", () => {
-      it("=> ErrorResponse", () => {
+      it("=> ErrorResponse", async () => {
         const noK8s = `
 spec:
   kubernetes:
     version: ""
 `;
-        const noK8sOut = Installer.parse(noK8s).validate();
+        const noK8sOut = await Installer.parse(noK8s).validate();
         expect(noK8sOut).to.deep.equal({ error: { message: "Kubernetes version is required" } });
 
         const badK8s = `
@@ -682,13 +682,13 @@ spec:
   kubernetes:
     version: "0.15.3"
 `;
-        const badK8sOut = Installer.parse(badK8s).validate();
+        const badK8sOut = await Installer.parse(badK8s).validate();
         expect(badK8sOut).to.deep.equal({ error: { message: "Kubernetes version 0.15.3 is not supported" } });
       });
     });
 
     describe("invalid Prometheus version", () => {
-      it("=> ErrorResponse", () => {
+      it("=> ErrorResponse", async () => {
         const yaml = `
 spec:
   kubernetes:
@@ -696,21 +696,21 @@ spec:
   prometheus:
     version: 0.32.0
 `;
-        const out = Installer.parse(yaml).validate();
+        const out = await Installer.parse(yaml).validate();
 
         expect(out).to.deep.equal({ error: { message: `Prometheus version "0.32.0" is not supported` } });
       });
     });
 
     describe("kots version missing", () => {
-      it("=> ErrorResponse", () => {
-        const out = Installer.parse(kotsNoVersion).validate();
+      it("=> ErrorResponse", async () => {
+        const out = await Installer.parse(kotsNoVersion).validate();
 
         expect(out).to.deep.equal({ error: { message: "spec.kotsadm should have required property 'version'" }});
       });
     });
 
-    describe("docker version is a boolean", () => {
+    describe("docker version is a boolean", async () => {
       const yaml = `
 spec:
   kubernetes:
@@ -718,12 +718,12 @@ spec:
   docker:
     version: true`;
       const i = Installer.parse(yaml);
-      const out = i.validate();
+      const out = await i.validate();
 
       expect(out).to.deep.equal({ error: { message: "spec.docker.version should be string" } });
     });
 
-    describe("invalid podCidrRange", () => {
+    describe("invalid podCidrRange", async () => {
       const yaml = `
 spec:
   kubernetes:
@@ -732,32 +732,32 @@ spec:
     version: latest
     podCidrRange: abc`;
       const i = Installer.parse(yaml);
-      const out = i.validate();
+      const out = await i.validate();
 
       expect(out).to.deep.equal({ error: { message: "Weave podCidrRange \"abc\" is invalid" } });
     });
 
-    describe("invalid serviceCidrRange", () => {
+    describe("invalid serviceCidrRange", async () => {
       const yaml = `
 spec:
   kubernetes:
     version: latest
     serviceCidrRange: abc`;
       const i = Installer.parse(yaml);
-      const out = i.validate();
+      const out = await i.validate();
 
       expect(out).to.deep.equal({ error: { message: "Kubernetes serviceCidrRange \"abc\" is invalid" } });
     });
 
     describe("extra options", () => {
-      it("=> ErrorResponse", () => {
+      it("=> ErrorResponse", async () => {
         const yaml = `
 spec:
   kubernetes:
     version: latest
     seLinux: true`;
         const i = Installer.parse(yaml);
-        const out = i.validate();
+        const out = await i.validate();
 
         expect(out).to.deep.equal({ error: { message: "spec.kubernetes should NOT have additional properties" } });
       });
@@ -978,7 +978,7 @@ spec:
   });
 
   describe("helm", () => {
-    it("should require helmfile", () => {
+    it("should require helmfile", async () => {
       const yaml = `
 spec:
   kubernetes:
@@ -987,7 +987,7 @@ spec:
     additionalImages:
     - postgres`;
       const i = Installer.parse(yaml);
-      const out = i.validate();
+      const out = await i.validate();
 
       expect(out).to.deep.equal({ error: { message: "spec.helm should have required property 'helmfileSpec'" } });
     });
