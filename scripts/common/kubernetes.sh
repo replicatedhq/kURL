@@ -109,7 +109,7 @@ EOF
         ;;
     esac
 
-    install_host_packages "${DIR}/packages/kubernetes/${k8sVersion}" "kubelet-${k8sVersion}" "kubectl-${k8sVersion}" kubernetes-cni git
+    install_host_packages "${DIR}/packages/kubernetes/${k8sVersion}" kubelet kubectl kubernetes-cni git
 
     # Update crictl: https://listman.redhat.com/archives/rhsa-announce/2019-October/msg00038.html 
     tar -C /usr/bin -xzf "$DIR/packages/kubernetes/${k8sVersion}/assets/crictl-linux-amd64.tar.gz"
