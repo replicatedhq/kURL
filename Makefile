@@ -52,93 +52,93 @@ dist/kurl-bin-utils-%.tar.gz: build/bin
 
 dist/aws-%.tar.gz: build/addons
 	mkdir -p dist
-	bin/save-manifest-assets.sh "aws-$*" addons/aws/$*/Manifest build/addons/aws/$*
+	bin/save-manifest-assets.sh addons/aws/$*/Manifest build/addons/aws/$*
 	tar cf - -C build addons/aws/$* | gzip > dist/aws-$*.tar.gz
 
 dist/collectd-%.tar.gz: build/addons
 	mkdir -p dist
-	bin/save-manifest-assets.sh "collectd-$*" addons/collectd/$*/Manifest build/addons/collectd/$*
+	bin/save-manifest-assets.sh addons/collectd/$*/Manifest build/addons/collectd/$*
 	tar cf - -C build addons/collectd/$* | gzip > dist/collectd-$*.tar.gz
 
 dist/nodeless-%.tar.gz: build/addons
 	mkdir -p dist
-	bin/save-manifest-assets.sh "nodeless-$*" addons/nodeless/$*/Manifest $(CURDIR)/build/addons/nodeless/$*
+	bin/save-manifest-assets.sh addons/nodeless/$*/Manifest $(CURDIR)/build/addons/nodeless/$*
 	tar cf - -C build addons/nodeless/$* | gzip > dist/nodeless-$*.tar.gz
 
 dist/calico-%.tar.gz: build/addons
 	mkdir -p dist
-	bin/save-manifest-assets.sh "calico-$*" addons/calico/$*/Manifest $(CURDIR)/build/addons/calico/$*
+	bin/save-manifest-assets.sh addons/calico/$*/Manifest $(CURDIR)/build/addons/calico/$*
 	tar cf - -C build addons/calico/$* | gzip > dist/calico-$*.tar.gz
 
 dist/velero-%.tar.gz: build/addons
 	mkdir -p build/addons/velero/$*/images
-	bin/save-manifest-assets.sh "velero-$*" addons/velero/$*/Manifest $(CURDIR)/build/addons/velero/$*
+	bin/save-manifest-assets.sh addons/velero/$*/Manifest $(CURDIR)/build/addons/velero/$*
 	mkdir -p dist
 	tar cf - -C build addons/velero/$* | gzip > dist/velero-$*.tar.gz
 
 dist/openebs-%.tar.gz: build/addons
 	mkdir -p build/addons/openebs/$*/images
-	bin/save-manifest-assets.sh "openebs-$*" addons/openebs/$*/Manifest $(CURDIR)/build/addons/openebs/$*
+	bin/save-manifest-assets.sh addons/openebs/$*/Manifest $(CURDIR)/build/addons/openebs/$*
 	mkdir -p dist
 	tar cf - -C build addons/openebs/$* | gzip > dist/openebs-$*.tar.gz
 
 dist/minio-%.tar.gz: build/addons
 	mkdir -p build/addons/minio/$*/images
-	bin/save-manifest-assets.sh "minio-$*" addons/minio/$*/Manifest $(CURDIR)/build/addons/minio/$*
+	bin/save-manifest-assets.sh addons/minio/$*/Manifest $(CURDIR)/build/addons/minio/$*
 	mkdir -p dist
 	tar cf - -C build addons/minio/$* | gzip > dist/minio-$*.tar.gz
 
 dist/weave-%.tar.gz: build/addons
 	mkdir -p build/addons/weave/$*/images
-	bin/save-manifest-assets.sh "weave-$*" addons/weave/$*/Manifest $(CURDIR)/build/addons/weave/$*
+	bin/save-manifest-assets.sh addons/weave/$*/Manifest $(CURDIR)/build/addons/weave/$*
 	mkdir -p dist
 	tar cf - -C build addons/weave/$* | gzip > dist/weave-$*.tar.gz
 
 dist/antrea-%.tar.gz: build/addons
 	mkdir -p build/addons/antrea/$*/images
-	bin/save-manifest-assets.sh "antrea-$*" addons/antrea/$*/Manifest $(CURDIR)/build/addons/antrea/$*
+	bin/save-manifest-assets.sh addons/antrea/$*/Manifest $(CURDIR)/build/addons/antrea/$*
 	mkdir -p dist
 	tar cf - -C build addons/antrea/$* | gzip > dist/antrea-$*.tar.gz
 
 dist/rook-%.tar.gz: build/addons
 	mkdir -p build/addons/rook/$*/images
-	bin/save-manifest-assets.sh "rook-$*" addons/rook/$*/Manifest $(CURDIR)/build/addons/rook/$*
+	bin/save-manifest-assets.sh addons/rook/$*/Manifest $(CURDIR)/build/addons/rook/$*
 	mkdir -p dist
 	tar cf - -C build addons/rook/$* | gzip > dist/rook-$*.tar.gz
 
 dist/contour-%.tar.gz: build/addons
 	mkdir -p build/addons/contour/$*/images
-	bin/save-manifest-assets.sh "contour-$*" addons/contour/$*/Manifest $(CURDIR)/build/addons/contour/$*
+	bin/save-manifest-assets.sh addons/contour/$*/Manifest $(CURDIR)/build/addons/contour/$*
 	mkdir -p dist
 	tar cf - -C build addons/contour/$* | gzip > dist/contour-$*.tar.gz
 
 dist/registry-%.tar.gz: build/addons
 	mkdir -p build/addons/registry/$*/images
-	bin/save-manifest-assets.sh "registry-$*" addons/registry/$*/Manifest $(CURDIR)/build/addons/registry/$*
+	bin/save-manifest-assets.sh addons/registry/$*/Manifest $(CURDIR)/build/addons/registry/$*
 	mkdir -p dist
 	tar cf - -C build addons/registry/$* | gzip > dist/registry-$*.tar.gz
 
 dist/prometheus-%.tar.gz: build/addons
 	mkdir -p build/addons/prometheus/$*/images
-	bin/save-manifest-assets.sh "prometheus-$*" addons/prometheus/$*/Manifest $(CURDIR)/build/addons/prometheus/$*
+	bin/save-manifest-assets.sh addons/prometheus/$*/Manifest $(CURDIR)/build/addons/prometheus/$*
 	mkdir -p dist
 	tar cf - -C build addons/prometheus/$* | gzip > dist/prometheus-$*.tar.gz
 
 dist/fluentd-%.tar.gz: build/addons
 	mkdir -p build/addons/fluentd/$*/images
-	bin/save-manifest-assets.sh "fluentd-$*" addons/fluentd/$*/Manifest $(CURDIR)/build/addons/fluentd/$*
+	bin/save-manifest-assets.sh addons/fluentd/$*/Manifest $(CURDIR)/build/addons/fluentd/$*
 	mkdir -p dist
 	tar cf - -C build addons/fluentd/$* | gzip > dist/fluentd-$*.tar.gz
 
 dist/ekco-%.tar.gz: build/addons
 	mkdir -p build/addons/ekco/$*/images
-	bin/save-manifest-assets.sh "ekco-$*" addons/ekco/$*/Manifest build/addons/ekco/$*
+	bin/save-manifest-assets.sh addons/ekco/$*/Manifest build/addons/ekco/$*
 	mkdir -p dist
 	tar cf - -C build addons/ekco/$* | gzip > dist/ekco-$*.tar.gz
 
 dist/kotsadm-%.tar.gz: build/addons
 	mkdir -p build/addons/kotsadm/$*/images
-	bin/save-manifest-assets.sh "kotsadm-$*" addons/kotsadm/$*/Manifest $(CURDIR)/build/addons/kotsadm/$*
+	bin/save-manifest-assets.sh addons/kotsadm/$*/Manifest $(CURDIR)/build/addons/kotsadm/$*
 	mkdir -p dist
 	tar cf - -C build addons/kotsadm/$* | gzip > dist/kotsadm-$*.tar.gz
 
@@ -154,37 +154,37 @@ dist/docker-%.tar.gz:
 
 dist/containerd-%.tar.gz: build/addons
 	mkdir -p build/addons/containerd/$*/assets
-	bin/save-manifest-assets.sh "containerd-$*" addons/containerd/$*/Manifest $(CURDIR)/build/addons/containerd/$*
+	bin/save-manifest-assets.sh addons/containerd/$*/Manifest $(CURDIR)/build/addons/containerd/$*
 	mkdir -p dist
 	tar cf - -C build addons/containerd/$* | gzip > dist/containerd-$*.tar.gz
 
 dist/cert-manager-%.tar.gz: build/addons
 	mkdir -p build/addons/cert-manager/$*/assets
-	bin/save-manifest-assets.sh "cert-manager-$*" addons/cert-manager/$*/Manifest $(CURDIR)/build/addons/cert-manager/$*
+	bin/save-manifest-assets.sh addons/cert-manager/$*/Manifest $(CURDIR)/build/addons/cert-manager/$*
 	mkdir -p dist
 	tar cf - -C build addons/cert-manager/$* | gzip > dist/cert-manager-$*.tar.gz
 
 dist/metrics-server-%.tar.gz: build/addons
 	mkdir -p build/addons/metrics-server/$*/assets
-	bin/save-manifest-assets.sh "metrics-server-$*" addons/metrics-server/$*/Manifest $(CURDIR)/build/addons/metrics-server/$*
+	bin/save-manifest-assets.sh addons/metrics-server/$*/Manifest $(CURDIR)/build/addons/metrics-server/$*
 	mkdir -p dist
 	tar cf - -C build addons/metrics-server/$* | gzip > dist/metrics-server-$*.tar.gz
 
 dist/host-openssl.tar.gz:
 	mkdir -p build/packages/host/openssl
-	bin/save-manifest-assets.sh "host-openssl" packages/host/openssl/Manifest $(CURDIR)/build/packages/host/openssl
+	bin/save-manifest-assets.sh packages/host/openssl/Manifest $(CURDIR)/build/packages/host/openssl
 	mkdir -p dist
 	tar cf - -C build packages/host/openssl | gzip > dist/host-openssl.tar.gz
 
 dist/longhorn-%.tar.gz: build/addons
 	mkdir -p build/addons/longhorn/$*/images
-	bin/save-manifest-assets.sh "longhorn-$*" addons/longhorn/$*/Manifest $(CURDIR)/build/addons/longhorn/$*
+	bin/save-manifest-assets.sh addons/longhorn/$*/Manifest $(CURDIR)/build/addons/longhorn/$*
 	mkdir -p dist
 	tar cf - -C build addons/longhorn/$* | gzip > dist/longhorn-$*.tar.gz
 
 dist/sonobuoy-%.tar.gz: build/addons
 	mkdir -p build/addons/sonobuoy/$*/images
-	bin/save-manifest-assets.sh "sonobuoy-$*" addons/sonobuoy/$*/Manifest $(CURDIR)/build/addons/sonobuoy/$*
+	bin/save-manifest-assets.sh addons/sonobuoy/$*/Manifest $(CURDIR)/build/addons/sonobuoy/$*
 	mkdir -p dist
 	tar cf - -C build addons/sonobuoy/$* | gzip > dist/sonobuoy-$*.tar.gz
 
@@ -207,7 +207,7 @@ dist/kubernetes-%.tar.gz:
 
 build/packages/kubernetes/%/images:
 	mkdir -p build/packages/kubernetes/$*/images
-	bin/save-manifest-assets.sh "kubernetes-images-$*" packages/kubernetes/$*/Manifest build/packages/kubernetes/$*
+	bin/save-manifest-assets.sh packages/kubernetes/$*/Manifest build/packages/kubernetes/$*
 
 dist/kubernetes-conformance-%.tar.gz:
 	${MAKE} build/packages/kubernetes-conformance/$*/images
@@ -217,7 +217,7 @@ dist/kubernetes-conformance-%.tar.gz:
 
 build/packages/kubernetes-conformance/%/images:
 	mkdir -p build/packages/kubernetes-conformance/$*/images
-	bin/save-manifest-assets.sh "kubernetes-conformance-images-$*" packages/kubernetes/$*/conformance/Manifest build/packages/kubernetes-conformance/$*
+	bin/save-manifest-assets.sh packages/kubernetes/$*/conformance/Manifest build/packages/kubernetes-conformance/$*
 
 dist/rke-2-%.tar.gz:
 	${MAKE} dist/kubernetes-conformance-$(shell echo "$*" | sed 's/^v\(.*\)-.*$$/\1/').tar.gz
@@ -230,7 +230,7 @@ dist/rke-2-%.tar.gz:
 
 build/packages/rke-2/%/images:
 	mkdir -p build/packages/rke-2/$*/images
-	bin/save-manifest-assets.sh "rke-2-images-$*" packages/rke-2/$*/Manifest build/packages/rke-2/$*
+	bin/save-manifest-assets.sh packages/rke-2/$*/Manifest build/packages/rke-2/$*
 
 dist/k-3-s-%.tar.gz:
 	${MAKE} dist/kubernetes-conformance-$(shell echo "$*" | sed 's/^v\(.*\)-.*$$/\1/').tar.gz
@@ -243,7 +243,7 @@ dist/k-3-s-%.tar.gz:
 
 build/packages/k-3-s/%/images:
 	mkdir -p build/packages/k-3-s/$*/images
-	bin/save-manifest-assets.sh "k-3-s-images-$*" packages/k-3-s/$*/Manifest build/packages/k-3-s/$*
+	bin/save-manifest-assets.sh packages/k-3-s/$*/Manifest build/packages/k-3-s/$*
 	gzip build/packages/k-3-s/$*/assets/k3s-images.linux-amd64.tar 
 
 DEV := 0

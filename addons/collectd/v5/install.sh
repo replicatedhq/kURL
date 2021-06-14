@@ -2,24 +2,14 @@ function collectd() {
     local src="$DIR/addons/collectd/$COLLECTD_VERSION"
     
     if ! systemctl list-units | grep -q collectd; then
+        printf "${YELLOW}Installing collectd${NC}\n"
+
         # collectd config needs to be created before service starts for the first time.
         # otherwise over 100MB of extra rrd files will be created.
         collectd_ensure_hostname_resolves
         collectd_config $src
 
-        case "$LSB_DIST" in
-            ubuntu)
-                dpkg_install_host_archives "$src" collectd
-                ;;
-
-            centos|rhel|amzn|ol)
-                if [[ "$DIST_VERSION" =~ ^8 ]]; then
-                    yum_install_host_archives "$src" collectd collectd-rrdtool collectd-disk
-                else
-                    yum_install_host_archives "$src" collectd collectd-rrdtool
-                fi
-                ;;
-        esac
+        install_host_archives "$src"
 
         systemctl restart collectd
         collectd_service_enable

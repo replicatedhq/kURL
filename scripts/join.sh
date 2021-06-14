@@ -12,7 +12,6 @@ DIR=.
 . $DIR/scripts/common/discover.sh
 . $DIR/scripts/common/docker.sh
 . $DIR/scripts/common/helm.sh
-. $DIR/scripts/common/host-packages.sh
 . $DIR/scripts/common/kubernetes.sh
 . $DIR/scripts/common/object_store.sh
 . $DIR/scripts/common/plugins.sh
