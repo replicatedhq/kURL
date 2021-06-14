@@ -448,23 +448,14 @@ build/packages/docker/%/rhel-7:
 	docker cp docker-rhel7-$*:/packages/archives/. build/packages/docker/$*/rhel-7
 	docker rm docker-rhel7-$*
 
-build/packages/docker/18.09.8/rhel-8: build/packages/docker/18.09.8/rhel-7-force
+build/packages/docker/18.09.8/rhel-8:
+	# unsupported
 
-build/packages/docker/19.03.4/rhel-8: build/packages/docker/19.03.4//rhel-7-force
+build/packages/docker/19.03.4/rhel-8:
+	# unsupported
 
-build/packages/docker/19.03.10/rhel-8: build/packages/docker/19.03.10/rhel-7-force
-
-build/packages/docker/%/rhel-7-force:
-	docker build \
-		--build-arg DOCKER_VERSION=$* \
-		-t kurl/rhel-7-force-docker:$* \
-		-f bundles/docker-rhel7-force/Dockerfile \
-		bundles/docker-rhel7-force
-	-docker rm -f docker-rhel7-force 2>/dev/null
-	docker create --name docker-rhel7-force-$* kurl/rhel-7-force-docker:$*
-	mkdir -p build/packages/docker/$*/rhel-7-force
-	docker cp docker-rhel7-force-$*:/packages/archives/. build/packages/docker/$*/rhel-7-force
-	docker rm docker-rhel7-force-$*
+build/packages/docker/19.03.10/rhel-8:
+	# unsupported
 
 build/packages/docker/%/rhel-8:
 	docker build \
