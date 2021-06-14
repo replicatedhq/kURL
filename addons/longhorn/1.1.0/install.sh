@@ -82,54 +82,28 @@ function longhorn_join() {
 }
 
 function longhorn_host_init() {
-    longhorn_install_iscsi_if_missing
-    longhorn_install_nfs_utils_if_missing 
+    LONGHORN_HOST_PACKAGES_INSTALL="0"
+    longhorn_install_service_if_missing iscsid
+    longhorn_install_service_if_missing nfs-utils.service   
 }
 
-function longhorn_install_iscsi_if_missing() {
+function longhorn_install_service_if_missing() {
+    local service=$1
     local src="$DIR/addons/longhorn/$LONGHORN_VERSION"
 
-    if ! systemctl list-units | grep -q iscsid ; then
-        case "$LSB_DIST" in
-            ubuntu)
-                dpkg_install_host_archives "$src" open-iscsi
-                ;;
-
-            centos|rhel|amzn|ol)
-                yum_install_host_archives "$src" iscsi-initiator-utils
-                ;;
-        esac
+    if ! systemctl list-units | grep -q $service && [ "$LONGHORN_HOST_PACKAGES_INSTALL" = "0" ]; then
+        LONGHORN_HOST_PACKAGES_INSTALL="1"
+        install_host_archives "$src"
+        printf "${YELLOW}Host packages for Longhorn installed.${NC}\n"
     fi
 
-    if ! systemctl -q is-active iscsid; then
-        systemctl start iscsid
+    if ! systemctl -q is-active $service; then
+        printf "${YELLOW}$service service started${NC}\n"
+        systemctl start $service
     fi
 
-    if ! systemctl -q is-enabled iscsid; then
-        systemctl enable iscsid
-    fi
-}
-
-function longhorn_install_nfs_utils_if_missing() {
-    local src="$DIR/addons/longhorn/$LONGHORN_VERSION"
-
-    if ! systemctl list-units | grep -q nfs-utils ; then
-        case "$LSB_DIST" in
-            ubuntu)
-                dpkg_install_host_archives "$src" nfs-common
-                ;;
-
-            centos|rhel|amzn|ol)
-                yum_install_host_archives "$src" nfs-utils
-                ;;
-        esac
-    fi
-
-    if ! systemctl -q is-active nfs-utils; then
-        systemctl start nfs-utils
-    fi
-
-    if ! systemctl -q is-enabled nfs-utils; then
-        systemctl enable nfs-utils
+    if ! systemctl -q is-enabled $service; then
+        printf "${YELLOW}$service service enabled${NC}\n"
+        systemctl enable $service
     fi
 }

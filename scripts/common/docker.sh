@@ -44,44 +44,28 @@ function restart_docker() {
     systemctl restart docker
 }
 
-function docker_install() {
+docker_install() {
+    logStep "Installing Docker host packages"
+
     case "$LSB_DIST" in
-    centos|rhel|ol)
-        if [ "${DIST_VERSION_MAJOR}" = "8" ] && ! is_docker_version_supported ; then
-            docker_install_rhel_7_force
-            export DID_INSTALL_DOCKER=1
-        fi
-        ;;
+        ubuntu)
+            DEBIAN_FRONTEND=noninteractive dpkg --install --force-depends-version $DIR/packages/docker/${DOCKER_VERSION}/ubuntu-${DIST_VERSION}/*.deb
+            cp $DIR/packages/docker/${DOCKER_VERSION}/runc $(which runc)
+            DID_INSTALL_DOCKER=1
+            ;;
+
+        centos|rhel|amzn|ol)
+            rpm --upgrade --force --nodeps --nosignature $DIR/packages/docker/${DOCKER_VERSION}/rhel-7/*.rpm
+            cp $DIR/packages/docker/${DOCKER_VERSION}/runc $(which runc)
+            DID_INSTALL_DOCKER=1
+            ;;
+
+        *)
+            bail "Offline Docker install is not supported on ${LSB_DIST} ${DIST_MAJOR}"
+            ;;
     esac
 
-    if [ "${DID_INSTALL_DOCKER}" != "1" ]; then
-        install_host_packages "${DIR}/packages/docker/${DOCKER_VERSION}" docker-ce docker-ce-cli
-        export DID_INSTALL_DOCKER=1
-    fi
-
-    cp "${DIR}/packages/docker/${DOCKER_VERSION}/runc" "$(which runc)"
-}
-
-function docker_install_rhel_7_force() {
-    local fullpath=
-    fullpath="$(realpath "${DIR}")/packages/docker/${DOCKER_VERSION}/rhel-7-force"
-    if test -n "$(shopt -s nullglob; echo "${fullpath}"/*.rpm )" ; then
-        rpm --upgrade --force --nodeps --nosignature "${fullpath}"/*.rpm
-    fi
-}
-
-function is_docker_version_supported() {
-    case "$LSB_DIST" in
-    centos|rhel|ol)
-        if [ "${DIST_VERSION_MAJOR}" = "8" ]; then
-            if [ "$DOCKER_VERSION" = "18.09.8" ] || [ "$DOCKER_VERSION" = "19.03.4" ] || [ "$DOCKER_VERSION" = "19.03.10" ]; then
-                return 1
-            fi
-        fi
-        ;;
-    esac
-
-    return 0
+    logSuccess "Docker host packages installed"
 }
 
 check_docker_storage_driver() {

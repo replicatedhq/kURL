@@ -432,6 +432,8 @@ function rke2_restart() {
 function rke2_install_host_packages() {
     local rke2_version="$1"
 
+    logStep "Install RKE2 host packages"
+
     if rke2_host_packages_ok "${rke2_version}"; then
         logSuccess "RKE2 host packages already installed"
 
@@ -443,9 +445,21 @@ function rke2_install_host_packages() {
     fi
 
     case "$LSB_DIST" in
-        centos|rhel|amzn|ol)
-            install_host_packages "${DIR}/packages/rke-2/${rke2_version}" rke2-server rke2-agent
+        ubuntu)
+            bail "RKE2 unsupported on $LSB_DIST Linux"
             ;;
+
+        centos|rhel|amzn|ol)
+            case "$LSB_DIST$DIST_VERSION_MAJOR" in
+                rhel8|centos8)
+                    rpm --upgrade --force --nodeps $DIR/packages/rke-2/${rke2_version}/rhel-8/*.rpm
+                    ;;
+
+                *)
+                    rpm --upgrade --force --nodeps $DIR/packages/rke-2/${rke2_version}/rhel-7/*.rpm
+                    ;;
+            esac
+        ;;
 
         *)
             bail "RKE2 install is not supported on ${LSB_DIST} ${DIST_MAJOR}"
@@ -456,6 +470,8 @@ function rke2_install_host_packages() {
     # if [ "$CLUSTER_DNS" != "$DEFAULT_CLUSTER_DNS" ]; then
     #     sed -i "s/$DEFAULT_CLUSTER_DNS/$CLUSTER_DNS/g" /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
     # fi
+
+    logSuccess "RKE2 host packages installed"
 }
 
 function rke2_host_packages_ok() {
