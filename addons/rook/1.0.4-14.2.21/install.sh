@@ -1,7 +1,8 @@
 
+
 function rook_pre_init() {
     if [ "$KUBERNETES_TARGET_VERSION_MINOR" -ge 20 ]; then
-        bail "Rook 1.0.4 is not compatible with Kubernetes 1.20+"
+        bail "Rook ${ROOK_VERSION} is not compatible with Kubernetes 1.20+"
     fi
 }
 
@@ -24,7 +25,7 @@ function rook() {
 
     printf "awaiting rook-ceph RGW pod\n"
     spinnerPodRunning rook-ceph rook-ceph-rgw-rook-ceph-store
-    kubectl apply -f "$DIR/addons/rook/1.0.4/cluster/object-user.yaml"
+    kubectl apply -f "$DIR/addons/rook/${ROOK_VERSION}/cluster/object-user.yaml"
     rook_object_store_output
 
     printf "awaiting rook-ceph object store health\n"
@@ -34,7 +35,7 @@ function rook() {
 }
 
 function rook_operator_deploy() {
-    local src="$DIR/addons/rook/1.0.4/operator"
+    local src="$DIR/addons/rook/${ROOK_VERSION}/operator"
     local dst="$DIR/kustomize/rook/operator"
 
     cp -r "$src" "$dst"
@@ -42,7 +43,7 @@ function rook_operator_deploy() {
 }
 
 function rook_cluster_deploy() {
-    local src="$DIR/addons/rook/1.0.4/cluster"
+    local src="$DIR/addons/rook/${ROOK_VERSION}/cluster"
     local dst="$DIR/kustomize/rook/cluster"
 
     mkdir -p "$dst"
