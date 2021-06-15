@@ -131,7 +131,7 @@ function kurl-dev-clean() {
 
 ```bash
 # Install Virtual Box
-brew cask install virtualbox virtualbox-extension-pack
+brew install --cask virtualbox virtualbox-extension-pack
 # NOTE: Follow Mac OS prompts to set necessary permissions 
 wget https://download.linuxvmimages.com/VirtualBox/U/18.04/Ubuntu_18.04.3_VB.zip
 unzip Ubuntu_18.04.3_VB.zip
