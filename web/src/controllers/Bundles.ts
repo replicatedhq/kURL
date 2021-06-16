@@ -90,7 +90,7 @@ export class Bundle {
     response.type("application/json");
 
     const ret: BundleManifest = {layers: [], files: {}};
-    ret.layers = installer.packages(kurlVersion).map((pkg) => getPackageUrl(this.distURL, kurlVersion, `${pkg}.tar.gz`, installer));
+    ret.layers = installer.packages(kurlVersion).map((pkg) => getPackageUrl(this.distURL, kurlVersion, `${pkg}.tar.gz`));
 
     const kotsadmApplicationSlug = _.get(installer.spec, "kotsadm.applicationSlug");
     if (kotsadmApplicationSlug) {
