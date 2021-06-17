@@ -137,7 +137,7 @@ func Run(schedulerOptions types.SchedulerOptions) error {
 		}
 
 		for _, operatingSystem := range operatingSystems {
-			testName := randSeq(6)
+			testName := randSeq(16)
 
 			isUnsupported := false
 			if stringInSlice(operatingSystem.ID, instance.UnsupportedOSIDs) {
