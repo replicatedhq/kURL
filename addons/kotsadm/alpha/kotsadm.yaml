@@ -38,17 +38,30 @@ metadata:
     kots.io/backup: velero
 ---
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: kotsadm
   labels:
     kots.io/kotsadm: "true"
     kots.io/backup: velero
 spec:
+  serviceName: kotsadm
   replicas: 1
   selector:
     matchLabels:
       app: kotsadm
+  volumeClaimTemplates:
+  - metadata:
+      name: kotsadmdata
+      labels:
+        kots.io/kotsadm: "true"
+        kots.io/backup: velero
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: 4Gi
   template:
     metadata:
       labels:
@@ -65,6 +78,9 @@ spec:
       serviceAccountName: kotsadm
       restartPolicy: Always
       volumes:
+      - name: kotsadmdata
+        persistentVolumeClaim:
+          claimName: kotsadmdata
       - name: kubelet-client-cert
         secret:
           secretName: kubelet-client-cert
@@ -169,6 +185,8 @@ spec:
                 key: PGPASSWORD
                 name: kotsadm-dex-postgres
         volumeMounts:
+          - name: kotsadmdata
+            mountPath: /kotsadmdata
           - name: kotsadm-web-scripts
             mountPath: /scripts/start-kotsadm-web.sh
             subPath: start-kotsadm-web.sh
@@ -259,40 +277,6 @@ spec:
             cpu: 100m
             memory: 100Mi
 
-      - name: restore-s3
-        command:
-        - /restore-s3.sh
-        env:
-        - name: S3_ENDPOINT
-          valueFrom:
-            secretKeyRef:
-              key: endpoint
-              name: kotsadm-s3
-        - name: S3_BUCKET_NAME
-          value: kotsadm
-        - name: S3_ACCESS_KEY_ID
-          valueFrom:
-            secretKeyRef:
-              key: access-key-id
-              name: kotsadm-s3
-        - name: S3_SECRET_ACCESS_KEY
-          valueFrom:
-            secretKeyRef:
-              key: secret-access-key
-              name: kotsadm-s3
-        - name: S3_BUCKET_ENDPOINT
-          value: "true"
-        image: kotsadm/kotsadm:alpha
-        imagePullPolicy: IfNotPresent
-        volumeMounts:
-        - mountPath: /backup
-          name: backup
-        resources:
-          limits:
-            cpu: 1
-          requests:
-            cpu: 100m
-            memory: 100Mi
 ---
 apiVersion: v1
 kind: Service

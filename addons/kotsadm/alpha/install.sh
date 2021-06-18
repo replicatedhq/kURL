@@ -3,7 +3,6 @@ function kotsadm() {
     local src="$DIR/addons/kotsadm/alpha"
     local dst="$DIR/kustomize/kotsadm"
 
-    try_1m_stderr object_store_create_bucket kotsadm
     kotsadm_rename_postgres_pvc_1-12-2 "$src"
 
     cp "$src/kustomization.yaml" "$dst/"
@@ -16,9 +15,16 @@ function kotsadm() {
     kotsadm_secret_password
     kotsadm_secret_postgres
     kotsadm_secret_dex_postgres
-    kotsadm_secret_s3
     kotsadm_secret_session
     kotsadm_api_encryption_key
+
+    if kubernetes_resource_exists default secret kotsadm-s3; then
+        # kotsadm v1.45+ does not use an object store, patch the migrate-s3 init container to migrate the data
+        # kustomize v3.8.0+ strategic merge patches append to arrays (earlier versions prepend)
+        # since the order of init containers is important, when we upgrade to kustomize v3.8.0 or greater
+        # we will need to use the "ListIncreaseDirection" option. ref: https://github.com/kubernetes-sigs/kustomize/pull/3048
+        kotsadm_api_patch_s3_migration
+    fi
 
     if [ -n "$PROMETHEUS_VERSION" ]; then
         kotsadm_api_patch_prometheus
@@ -56,6 +62,7 @@ function kotsadm() {
     kubectl delete pod kotsadm-migrations &> /dev/null || true;
     kubectl delete deployment kotsadm-web &> /dev/null || true; # replaced by 'kotsadm' deployment in 1.12.0
     kubectl delete service kotsadm-api &> /dev/null || true; # replaced by 'kotsadm-api-node' service in 1.12.0
+    kubectl delete deployment kotsadm &> /dev/null || true; # replaced by 'kotsadm' statefulset in 1.45.0
 
     # removed in 1.19.0
     kubectl delete deployment kotsadm-api &> /dev/null || true
@@ -118,7 +125,7 @@ function kotsadm_secret_cluster_token() {
     insert_resources "$DIR/kustomize/kotsadm/kustomization.yaml" secret-cluster-token.yaml
 
     # ensure all pods that consume the secret will be restarted
-    kubernetes_scale_down default deployment kotsadm
+    kubernetes_scale_down default statefulset kotsadm
     kubernetes_scale_down default deployment kotsadm-operator
 }
 
@@ -149,7 +156,7 @@ function kotsadm_secret_password() {
     render_yaml_file "$DIR/addons/kotsadm/alpha/tmpl-secret-password.yaml" > "$DIR/kustomize/kotsadm/secret-password.yaml"
     insert_resources "$DIR/kustomize/kotsadm/kustomization.yaml" secret-password.yaml
 
-    kubernetes_scale_down default deployment kotsadm
+    kubernetes_scale_down default statefulset kotsadm
 }
 
 function kotsadm_secret_postgres() {
@@ -162,7 +169,7 @@ function kotsadm_secret_postgres() {
     render_yaml_file "$DIR/addons/kotsadm/alpha/tmpl-secret-postgres.yaml" > "$DIR/kustomize/kotsadm/secret-postgres.yaml"
     insert_resources "$DIR/kustomize/kotsadm/kustomization.yaml" secret-postgres.yaml
 
-    kubernetes_scale_down default deployment kotsadm
+    kubernetes_scale_down default statefulset kotsadm
     kubernetes_scale_down default deployment kotsadm-postgres
     kubernetes_scale_down default deployment kotsadm-migrations
 }
@@ -177,15 +184,7 @@ function kotsadm_secret_dex_postgres() {
     render_yaml_file "$DIR/addons/kotsadm/alpha/tmpl-secret-dex-postgres.yaml" > "$DIR/kustomize/kotsadm/secret-dex-postgres.yaml"
     insert_resources "$DIR/kustomize/kotsadm/kustomization.yaml" secret-dex-postgres.yaml
 
-    kubernetes_scale_down default deployment kotsadm
-}
-
-function kotsadm_secret_s3() {
-    if [ -z "$VELERO_LOCAL_BUCKET" ]; then
-        VELERO_LOCAL_BUCKET=velero
-    fi
-    render_yaml_file "$DIR/addons/kotsadm/alpha/tmpl-secret-s3.yaml" > "$DIR/kustomize/kotsadm/secret-s3.yaml"
-    insert_resources "$DIR/kustomize/kotsadm/kustomization.yaml" secret-s3.yaml
+    kubernetes_scale_down default statefulset kotsadm
 }
 
 function kotsadm_secret_session() {
@@ -198,7 +197,7 @@ function kotsadm_secret_session() {
     render_yaml_file "$DIR/addons/kotsadm/alpha/tmpl-secret-session.yaml" > "$DIR/kustomize/kotsadm/secret-session.yaml"
     insert_resources "$DIR/kustomize/kotsadm/kustomization.yaml" secret-session.yaml
 
-    kubernetes_scale_down default deployment kotsadm
+    kubernetes_scale_down default statefulset kotsadm
 }
 
 function kotsadm_api_encryption_key() {
@@ -213,7 +212,12 @@ function kotsadm_api_encryption_key() {
     render_yaml_file "$DIR/addons/kotsadm/alpha/tmpl-secret-api-encryption.yaml" > "$DIR/kustomize/kotsadm/secret-api-encryption.yaml"
     insert_resources "$DIR/kustomize/kotsadm/kustomization.yaml" secret-api-encryption.yaml
 
-    kubernetes_scale_down default deployment kotsadm
+    kubernetes_scale_down default statefulset kotsadm
+}
+
+function kotsadm_api_patch_s3_migration() {
+    insert_patches_strategic_merge "$DIR/kustomize/kotsadm/kustomization.yaml" s3-migration.yaml
+    cp "$DIR/addons/kotsadm/alpha/patches/s3-migration.yaml" "$DIR/kustomize/kotsadm/s3-migration.yaml"
 }
 
 function kotsadm_api_patch_prometheus() {
@@ -395,7 +399,7 @@ function kotsadm_ready_spinner() {
     sleep 1 # ensure that kubeadm has had time to begin applying and scheduling the kotsadm pods
     if ! spinner_until 120 kotsadm_health_check; then
       kubectl logs -l app=kotsadm --all-containers --tail 10
-      bail "The kotsadm deployment in the kotsadm addon failed to deploy successfully."
+      bail "The kotsadm statefulset in the kotsadm addon failed to deploy successfully."
     fi
 }
 
