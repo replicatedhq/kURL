@@ -20,9 +20,6 @@ function kotsadm() {
 
     if kubernetes_resource_exists default secret kotsadm-s3; then
         # kotsadm v1.45+ does not use an object store, patch the migrate-s3 init container to migrate the data
-        # kustomize v3.8.0+ strategic merge patches append to arrays (earlier versions prepend)
-        # since the order of init containers is important, when we upgrade to kustomize v3.8.0 or greater
-        # we will need to use the "ListIncreaseDirection" option. ref: https://github.com/kubernetes-sigs/kustomize/pull/3048
         kotsadm_api_patch_s3_migration
     fi
 
