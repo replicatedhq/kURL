@@ -13,6 +13,20 @@ function install_host_packages() {
     _install_host_packages "$dir" "$dir_prefix" "${packages[@]}"
 }
 
+function rpm_force_install_host_archives() {
+    local dir="$1"
+    local dir_prefix="/archives"
+    local packages=("${@:2}")
+    _rpm_force_install_host_packages "$dir" "$dir_prefix" "${packages[@]}"
+}
+
+function rpm_force_install_host_packages() {
+    local dir="$1"
+    local dir_prefix=""
+    local packages=("${@:2}")
+    _rpm_force_install_host_packages "$dir" "$dir_prefix" "${packages[@]}"
+}
+
 function _install_host_packages() {
     local dir="$1"
     local dir_prefix="$2"
@@ -31,6 +45,25 @@ function _install_host_packages() {
             bail "Host package install is not supported on ${LSB_DIST} ${DIST_MAJOR}"
             ;;
     esac
+}
+
+function _rpm_force_install_host_packages() {
+    local dir="$1"
+    local dir_prefix="$2"
+    local packages=("${@:3}")
+
+    logStep "Installing host packages ${packages[*]}"
+
+    local fullpath=
+    fullpath="$(realpath "${dir}")/rhel-7-force${dir_prefix}"
+    if ! test -n "$(shopt -s nullglob; echo "${fullpath}"/*.rpm)" ; then
+        echo "Will not install host packages ${packages[*]}, no packages found."
+        return 0
+    fi
+
+    rpm --upgrade --force --nodeps --nosignature "${fullpath}"/*.rpm
+
+    logSuccess "Host packages ${packages[*]} installed"
 }
 
 function dpkg_install_host_archives() {

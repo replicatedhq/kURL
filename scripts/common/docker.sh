@@ -48,9 +48,14 @@ function docker_install() {
     case "$LSB_DIST" in
     centos|rhel|ol)
         if [ "${DIST_VERSION_MAJOR}" = "8" ] && ! is_docker_version_supported ; then
-            docker_install_rhel_7_force
+            rpm_force_install_host_packages "${DIR}/packages/docker/${DOCKER_VERSION}" docker-ce docker-ce-cli
             export DID_INSTALL_DOCKER=1
         fi
+        ;;
+
+    amzn)
+        rpm_force_install_host_packages "${DIR}/packages/docker/${DOCKER_VERSION}" docker-ce docker-ce-cli
+        export DID_INSTALL_DOCKER=1
         ;;
     esac
 
@@ -60,14 +65,6 @@ function docker_install() {
     fi
 
     cp "${DIR}/packages/docker/${DOCKER_VERSION}/runc" "$(which runc)"
-}
-
-function docker_install_rhel_7_force() {
-    local fullpath=
-    fullpath="$(realpath "${DIR}")/packages/docker/${DOCKER_VERSION}/rhel-7-force"
-    if test -n "$(shopt -s nullglob; echo "${fullpath}"/*.rpm )" ; then
-        rpm --upgrade --force --nodeps --nosignature "${fullpath}"/*.rpm
-    fi
 }
 
 function is_docker_version_supported() {
