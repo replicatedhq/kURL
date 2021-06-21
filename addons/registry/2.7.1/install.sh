@@ -34,7 +34,8 @@ function registry() {
 
     registry_docker_ca
 
-    kubectl get pvc -n kurl
+    printf "awaiting registry deployment health\n"
+    spinnerPodRunning kurl registry
 }
 
 function registry_pre_init() {
