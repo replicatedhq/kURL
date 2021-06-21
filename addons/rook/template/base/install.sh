@@ -206,6 +206,9 @@ function rook_cluster_deploy_upgrade() {
         bail "New Ceph version failed to deploy"
     fi
 
+    # Disabling rook global_id reclaim
+    kubectl -n rook-ceph exec deploy/rook-ceph-tools -- ceph config set mon auth_allow_insecure_global_id_reclaim false
+
     logSuccess "Rook-ceph cluster upgraded"
 }
 
