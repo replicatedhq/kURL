@@ -10,3 +10,38 @@
     registry:
       version: "__testver__"
       s3Override: "__testdist__"
+- installerSpec:
+    kubernetes:
+      version: "latest"
+    weave:
+      version: "latest"
+    longhorn:
+      version: "latest"
+    docker:
+      version: "latest"
+    registry:
+      version: "__testver__"
+      s3Override: "__testdist__"
+- installerSpec:
+    kubernetes:
+      version: "latest"
+    weave:
+      version: "latest"
+    longhorn:
+      version: "latest"
+    docker:
+      version: "latest"
+    registry:
+      version: "latest"
+  upgradeSpec:
+    kubernetes:
+      version: "latest"
+    weave:
+      version: "latest"
+    longhorn:
+      version: "latest"
+    docker:
+      version: "latest"
+    registry:
+      version: "__testver__"
+      s3Override: "__testdist__"
