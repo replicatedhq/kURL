@@ -98,27 +98,18 @@ EOF
     case "$LSB_DIST" in
         ubuntu)
             sed "s:__ENV_LOCATION__:default:g" -i "$DIR/tmp-kubeadm.conf"
-            DEBIAN_FRONTEND=noninteractive dpkg --install --force-depends-version $DIR/packages/kubernetes/${k8sVersion}/ubuntu-${DIST_VERSION}/*.deb
             ;;
 
         centos|rhel|amzn|ol)
-            case "$LSB_DIST$DIST_VERSION_MAJOR" in
-                rhel8|centos8)
-                    sed "s:__ENV_LOCATION__:sysconfig:g" -i "$DIR/tmp-kubeadm.conf"
-                    rpm --upgrade --force --nodeps --nosignature $DIR/packages/kubernetes/${k8sVersion}/rhel-8/*.rpm
-                    ;;
-
-                *)
-                    sed "s:__ENV_LOCATION__:sysconfig:g" -i "$DIR/tmp-kubeadm.conf"
-                    rpm --upgrade --force --nodeps --nosignature $DIR/packages/kubernetes/${k8sVersion}/rhel-7/*.rpm
-                    ;;
-            esac
-        ;;
+            sed "s:__ENV_LOCATION__:sysconfig:g" -i "$DIR/tmp-kubeadm.conf"
+            ;;
 
         *)
             bail "Kubernetes host package install is not supported on ${LSB_DIST} ${DIST_MAJOR}"
         ;;
     esac
+
+    install_host_packages "${DIR}/packages/kubernetes/${k8sVersion}" "kubelet-${k8sVersion}" "kubectl-${k8sVersion}" kubernetes-cni git
 
     # Update crictl: https://listman.redhat.com/archives/rhsa-announce/2019-October/msg00038.html 
     tar -C /usr/bin -xzf "$DIR/packages/kubernetes/${k8sVersion}/assets/crictl-linux-amd64.tar.gz"

@@ -15,7 +15,7 @@ func init() {
 				Version: "2.8.1",
 			},
 			Docker: &kurlv1beta1.Docker{
-				Version: "19.03.10",
+				Version: "19.03.15",
 			},
 			SelinuxConfig: &kurlv1beta1.SelinuxConfig{
 				Selinux: "permissive",

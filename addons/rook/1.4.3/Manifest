@@ -8,4 +8,5 @@ image csi-resizer quay.io/k8scsi/csi-resizer:v0.4.0
 image csi-snapshotter quay.io/k8scsi/csi-snapshotter:v2.1.1
 
 yum lvm2
+yumol lvm2
 apt lvm2
