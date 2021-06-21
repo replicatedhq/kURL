@@ -17,8 +17,11 @@ function registry() {
         render_yaml_file "$DIR/addons/registry/2.7.1/tmpl-configmap-velero.yaml" > "$DIR/kustomize/registry/configmap-velero.yaml"
         insert_resources "$DIR/kustomize/registry/kustomization.yaml" configmap-velero.yaml
     else
+        determine_registry_pvc_size
         cp "$DIR/addons/registry/2.7.1/deployment-pvc.yaml" "$DIR/kustomize/registry/deployment-pvc.yaml"
+        render_yaml_file "$DIR/addons/registry/2.7.1/tmpl-persistentvolumeclaim.yaml" > "$DIR/kustomize/registry/persistentvolumeclaim.yaml"
         insert_resources "$DIR/kustomize/registry/kustomization.yaml" deployment-pvc.yaml
+        insert_resources "$DIR/kustomize/registry/kustomization.yaml" persistentvolumeclaim.yaml
     fi
 
     kubectl apply -k "$DIR/kustomize/registry"
@@ -30,6 +33,8 @@ function registry() {
     registry_pki_secret "$DOCKER_REGISTRY_IP"
 
     registry_docker_ca
+
+    kubectl get pvc -n kurl
 }
 
 function registry_pre_init() {
@@ -201,4 +206,14 @@ function registry_object_store_bucket() {
 
 function registry_pvc_exists() {
     kubectl -n kurl get pvc registry-pvc &>/dev/null
+}
+
+# if the PVC size has already been set we should not reduce it
+function determine_registry_pvc_size() {
+    local registry_pvc_size="50Gi"
+    if registry_pvc_exists; then
+        registry_pvc_size=$( kubectl get pvc -n kurl registry-pvc -o jsonpath='{.spec.resources.requests.storage}')
+    fi
+
+    export REGISTRY_PVC_SIZE=$registry_pvc_size
 }
