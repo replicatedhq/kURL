@@ -56,27 +56,6 @@
       version: "latest"
     weave:
       version: "latest"
-    docker: 
-      version: "latest"
-    minio:
-      version: "latest"
-    rook:
-      version: "1.0.4"
-  upgradeSpec:
-    kubernetes:
-      version: "latest"
-    weave:
-      version: "latest"
-    docker: 
-      version: "latest"
-    minio:
-      version: "latest"
-    rook:
-- installerSpec:
-    kubernetes:
-      version: "latest"
-    weave:
-      version: "latest"
     docker:
       version: "latest"
     minio:
