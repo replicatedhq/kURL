@@ -213,7 +213,7 @@ function kotsadm_api_encryption_key() {
 }
 
 function kotsadm_api_patch_s3_migration() {
-    insert_patches_strategic_merge "$DIR/kustomize/kotsadm/kustomization.yaml" s3-migration.yaml
+    insert_patches_json_6902 "$DIR/kustomize/kotsadm/kustomization.yaml" s3-migration.yaml apps v1 StatefulSet kotsadm default
     cp "$DIR/addons/kotsadm/alpha/patches/s3-migration.yaml" "$DIR/kustomize/kotsadm/s3-migration.yaml"
 }
 

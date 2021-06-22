@@ -41,6 +41,7 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: kotsadm
+  namespace: default # explicity specified to be detected by json6902 patches
   labels:
     kots.io/kotsadm: "true"
     kots.io/backup: velero
@@ -155,25 +156,6 @@ spec:
               secretKeyRef:
                 name: kotsadm-encryption
                 key: encryptionKey
-          - name: S3_ENDPOINT
-            valueFrom:
-              secretKeyRef:
-                name: kotsadm-s3
-                key: endpoint
-          - name: S3_BUCKET_NAME
-            value: "kotsadm"
-          - name: S3_ACCESS_KEY_ID
-            valueFrom:
-              secretKeyRef:
-                name: kotsadm-s3
-                key: access-key-id
-          - name: S3_SECRET_ACCESS_KEY
-            valueFrom:
-              secretKeyRef:
-                name: kotsadm-s3
-                key: secret-access-key
-          - name: S3_BUCKET_ENDPOINT
-            value: "true"
           - name: API_ADVERTISE_ENDPOINT
             value: "http://localhost:8800"
           - name: API_ENDPOINT
