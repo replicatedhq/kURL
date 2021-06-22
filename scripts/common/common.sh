@@ -233,7 +233,7 @@ spinnerPodRunning() {
         printf "\b\b\b\b\b\b"
     done
     printf "    \b\b\b\b"
-    printf "\n"
+    printf "Pod %s running in %s \n" "$podPrefix" "namespace"
 }
 
 COMPARE_DOCKER_VERSIONS_RESULT=
@@ -433,7 +433,7 @@ function spinner_until() {
         printf "\b\b\b\b\b\b"
     done
 
-    printf "\n"
+    printf "Spinner completed\n"
 }
 
 function get_common() {
