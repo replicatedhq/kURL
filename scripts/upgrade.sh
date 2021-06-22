@@ -12,6 +12,7 @@ DIR=.
 . $DIR/scripts/common/common.sh
 . $DIR/scripts/common/discover.sh
 . $DIR/scripts/common/docker.sh
+. $DIR/scripts/common/host-packages.sh
 . $DIR/scripts/common/plugins.sh
 . $DIR/scripts/common/kubernetes.sh
 . $DIR/scripts/common/upgrade.sh

@@ -44,28 +44,41 @@ function restart_docker() {
     systemctl restart docker
 }
 
-docker_install() {
-    logStep "Installing Docker host packages"
-
+function docker_install() {
     case "$LSB_DIST" in
-        ubuntu)
-            DEBIAN_FRONTEND=noninteractive dpkg --install --force-depends-version $DIR/packages/docker/${DOCKER_VERSION}/ubuntu-${DIST_VERSION}/*.deb
-            cp $DIR/packages/docker/${DOCKER_VERSION}/runc $(which runc)
-            DID_INSTALL_DOCKER=1
-            ;;
+    centos|rhel|ol)
+        if [ "${DIST_VERSION_MAJOR}" = "8" ] && ! is_docker_version_supported ; then
+            rpm_force_install_host_packages "${DIR}/packages/docker/${DOCKER_VERSION}" "docker-ce-${DOCKER_VERSION}" "docker-ce-cli-${DOCKER_VERSION}"
+            export DID_INSTALL_DOCKER=1
+        fi
+        ;;
 
-        centos|rhel|amzn|ol)
-            rpm --upgrade --force --nodeps --nosignature $DIR/packages/docker/${DOCKER_VERSION}/rhel-7/*.rpm
-            cp $DIR/packages/docker/${DOCKER_VERSION}/runc $(which runc)
-            DID_INSTALL_DOCKER=1
-            ;;
-
-        *)
-            bail "Offline Docker install is not supported on ${LSB_DIST} ${DIST_MAJOR}"
-            ;;
+    amzn)
+        rpm_force_install_host_packages "${DIR}/packages/docker/${DOCKER_VERSION}" "docker-ce-${DOCKER_VERSION}" "docker-ce-cli-${DOCKER_VERSION}"
+        export DID_INSTALL_DOCKER=1
+        ;;
     esac
 
-    logSuccess "Docker host packages installed"
+    if [ "${DID_INSTALL_DOCKER}" != "1" ]; then
+        install_host_packages "${DIR}/packages/docker/${DOCKER_VERSION}" "docker-ce-${DOCKER_VERSION}" "docker-ce-cli-${DOCKER_VERSION}"
+        export DID_INSTALL_DOCKER=1
+    fi
+
+    cp "${DIR}/packages/docker/${DOCKER_VERSION}/runc" "$(which runc)"
+}
+
+function is_docker_version_supported() {
+    case "$LSB_DIST" in
+    centos|rhel|ol)
+        if [ "${DIST_VERSION_MAJOR}" = "8" ]; then
+            if [ "$DOCKER_VERSION" = "18.09.8" ] || [ "$DOCKER_VERSION" = "19.03.4" ] || [ "$DOCKER_VERSION" = "19.03.10" ]; then
+                return 1
+            fi
+        fi
+        ;;
+    esac
+
+    return 0
 }
 
 check_docker_storage_driver() {

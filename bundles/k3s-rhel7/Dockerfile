@@ -2,6 +2,7 @@
 FROM centos:7
 
 RUN yum install -y gettext
+RUN yum install -y createrepo
 
 RUN mkdir -p /packages/archives
 
@@ -15,7 +16,8 @@ ENV maj_ver=7
 ARG K3S_VERSION
 
 RUN envsubst < /tmp/rancher-k3s-common.repo.tmpl > /etc/yum.repos.d/rancher-k3s-common.repo
-RUN yumdownloader --resolve --destdir=/packages/archives -y \
+RUN yumdownloader --installroot=/tmp/empty-directory --releasever=/ --resolve --destdir=/packages/archives -y \
     k3s-selinux
+RUN createrepo /packages/archives
 
 CMD cp -r /packages/archives/* /out/

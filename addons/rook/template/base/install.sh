@@ -369,9 +369,8 @@ function rook_lvm2() {
     if commandExists lvm; then
         return
     fi
-    echo "Installing lvm"
 
-    install_host_archives "$src"
+    install_host_archives "$src" lvm2
 }
 
 function rook_clients_secure {
