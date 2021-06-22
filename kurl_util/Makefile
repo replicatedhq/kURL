@@ -53,40 +53,43 @@ test: lint vet
 	go test ./cmd/...
 
 .PHONY: build
-build: bin/yamlutil bin/subnet bin/docker-config bin/config bin/installermerge bin/yamltobash bin/bashmerge bin/bcrypt bin/htpasswd bin/network bin/toml
+build: bin/yamlutil bin/subnet bin/docker-config bin/config bin/installermerge bin/yamltobash bin/bashmerge bin/bcrypt bin/htpasswd bin/network bin/toml bin/networkmonitor
 
 bin/yamlutil: cmd/yamlutil/main.go
 	go build ${LDFLAGS} -o bin/yamlutil cmd/yamlutil/main.go
 
-bin/subnet:
+bin/subnet: cmd/subnet/main.go
 	go build ${LDFLAGS} -o bin/subnet cmd/subnet/main.go
 
-bin/docker-config:
+bin/docker-config: cmd/docker/main.go
 	go build ${LDFLAGS} -o bin/docker-config cmd/docker/main.go
 
-bin/config:
+bin/config: cmd/config/main.go
 	go build ${LDFLAGS} -o bin/config cmd/config/main.go
 
-bin/installermerge:
+bin/installermerge: cmd/installermerge/main.go
 	go build ${LDFLAGS} -o bin/installermerge cmd/installermerge/main.go
 
-bin/yamltobash:
+bin/yamltobash: cmd/yamltobash/main.go
 	go build ${LDFLAGS} -o bin/yamltobash cmd/yamltobash/main.go
 
-bin/bashmerge:
+bin/bashmerge: cmd/bashmerge/main.go
 	go build ${LDFLAGS} -o bin/bashmerge cmd/bashmerge/main.go
 
-bin/bcrypt:
+bin/bcrypt: cmd/bcrypt/main.go
 	go build ${LDFLAGS} -o bin/bcrypt cmd/bcrypt/main.go
 
-bin/htpasswd:
+bin/htpasswd: cmd/htpasswd/main.go
 	go build ${LDFLAGS} -o bin/htpasswd cmd/htpasswd/main.go
 
-bin/network:
+bin/network: cmd/network/main.go
 	go build ${LDFLAGS} -o bin/network cmd/network/main.go
 
-bin/toml:
+bin/toml: cmd/toml/main.go
 	go build ${LDFLAGS} -o bin/toml cmd/toml/main.go
+
+bin/networkmonitor: cmd/networkmonitor/main.go
+	go build ${LDFLAGS} -o bin/networkmonitor cmd/networkmonitor/main.go
 
 .PHONY: kurl-util-image
 kurl-util-image:
