@@ -51,3 +51,30 @@
       s3Override: "__testdist__"
       isSharedFilesystemDisabled: true
       isBlockStorageEnabled: true
+- installerSpec:
+    kubernetes:
+      version: "latest"
+    weave:
+      version: "latest"
+    docker:
+      version: "latest"
+    minio:
+      version: "latest"
+    rook:
+      version: "1.0.4"
+  upgradeSpec:
+    kubernetes:
+      version: "latest"
+    weave:
+      version: "latest"
+    docker:
+      version: "latest"
+    minio:
+      version: "latest"
+    rook:
+      version: "__testver__"
+      s3Override: "__testdist__"
+      bypassUpgradeWarning: true
+
+    
+
