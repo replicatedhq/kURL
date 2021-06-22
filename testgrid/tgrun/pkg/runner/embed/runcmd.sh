@@ -28,15 +28,17 @@ function run_install() {
     if [ "$AIRGAP" = "1" ]; then
         AIRGAP_FLAG=airgap
 
-        # get the install bundle
+        echo "downloading install bundle"
+
         curl -fsSL -o install.tar.gz "$KURL_URL"
         if [ -n "$KURL_UPGRADE_URL" ]; then
+            echo "downloading upgrade bundle"
+
             curl -fsSL -o upgrade.tar.gz "$KURL_UPGRADE_URL"
         fi
 
         disable_internet
 
-        # run the installer
         tar -xzf install.tar.gz
         local tar_exit_status="$?"
         if [ $tar_exit_status -ne 0 ]; then
@@ -49,6 +51,8 @@ function run_install() {
         curl -fsSL "$KURL_URL" > install.sh
         curl -fsSL "$KURL_URL/tasks.sh" > tasks.sh
     fi
+
+    echo "running kurl install"
 
     cat install.sh | timeout 30m bash -s $AIRGAP_FLAG
     KURL_EXIT_STATUS=$?
@@ -92,8 +96,6 @@ function run_install() {
 }
 
 function run_upgrade() {
-    echo "upgrading installation"
-
     AIRGAP_UPGRADE=
     if echo "$KURL_UPGRADE_URL" | grep -q "\.tar\.gz$" ; then
         AIRGAP_UPGRADE=1
@@ -116,6 +118,8 @@ function run_upgrade() {
         curl -fsSL "$KURL_UPGRADE_URL" > install.sh
         curl -fsSL "$KURL_UPGRADE_URL/tasks.sh" > tasks.sh
     fi
+
+    echo "running kurl upgrade"
 
     cat install.sh | timeout 30m bash -s $AIRGAP_UPGRADE_FLAG
     KURL_EXIT_STATUS=$?
@@ -173,7 +177,8 @@ function check_airgap() {
     fi
     echo "check for outbound requests"
 
-    local packets=$(iptables -L OUTPUT -v | grep "AIRGAP VIOLATION" | awk '{ print $1 }')
+    local packets=
+    packets=$(iptables -L OUTPUT -v | grep "AIRGAP VIOLATION" | awk '{ print $1 }')
     if [ "$packets" -eq "0" ]; then
         return 0
     fi
@@ -185,9 +190,7 @@ function check_airgap() {
         grep "AIRGAP VIOLATION" /var/log/syslog
     fi
 
-    send_logs
-    report_failure "airgap_violation"
-    exit 1
+    return 1
 }
 
 function disable_internet() {
@@ -325,8 +328,6 @@ function send_logs() {
 function main() {
     curl -X POST "$TESTGRID_APIENDPOINT/v1/instance/$TEST_ID/running"
 
-    echo "running kurl installer"
-
     setup_runner
 
     run_install
@@ -353,7 +354,11 @@ function main() {
         exit 1
     fi
 
-    check_airgap
+    if ! check_airgap ; then
+        send_logs
+        report_failure "airgap_violation"
+        exit 1
+    fi
 
     collect_support_bundle
 
