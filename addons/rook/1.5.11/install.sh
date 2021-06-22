@@ -375,8 +375,9 @@ function rook_lvm2() {
 }
 
 function rook_clients_secure {
-    if [[ $(kubectl -n rook-ceph exec deploy/rook-ceph-tools -- ceph status | grep "mon is allowing insecure global_id reclaim") ]];
-       then return 1
+    if [[ $(kubectl -n rook-ceph exec deploy/rook-ceph-tools -- ceph status | grep "mon is allowing insecure global_id reclaim") ]]; then 
+      return 1
+    fi
 }
 
 function rook_patch_insecure_clients {
