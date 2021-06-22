@@ -180,6 +180,7 @@ function rook_cluster_deploy_upgrade() {
 
     if rook_ceph_version_deployed "${ceph_version}" ; then
         echo "Cluster rook-ceph up to date"
+        rook_patch_insecure_clients
         return 0
     fi
 
@@ -205,6 +206,8 @@ function rook_cluster_deploy_upgrade() {
     if ! spinner_until 600 rook_ceph_version_deployed "${ceph_version}" ; then
         bail "New Ceph version failed to deploy"
     fi
+
+    rook_patch_insecure_clients
 
     logSuccess "Rook-ceph cluster upgraded"
 }
@@ -369,4 +372,22 @@ function rook_lvm2() {
     echo "Installing lvm"
 
     install_host_archives "$src"
+}
+
+function rook_clients_secure {
+    if [[ $(kubectl -n rook-ceph exec deploy/rook-ceph-tools -- ceph status | grep "mon is allowing insecure global_id reclaim") ]]; then 
+      return 1
+    fi
+}
+
+function rook_patch_insecure_clients {
+
+    echo "Patching allowance of insecure rook clients"
+    # Disabling rook global_id reclaim
+    kubectl -n rook-ceph exec deploy/rook-ceph-tools -- ceph config set mon auth_allow_insecure_global_id_reclaim false
+
+    # Checking to ensure ceph status  
+    if ! spinner_until 120 rook_clients_secure; then
+        logWarn "Mon is still allowing insecure clients"
+    fi
 }

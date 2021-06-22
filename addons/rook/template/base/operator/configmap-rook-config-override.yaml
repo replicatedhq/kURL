@@ -8,3 +8,5 @@ data:
   config: |
     [global]
     osd pool default size = 1
+    [mon]
+    auth_allow_insecure_global_id_reclaim = false
