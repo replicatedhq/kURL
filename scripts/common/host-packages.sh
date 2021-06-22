@@ -132,6 +132,7 @@ name=kURL Local Repo
 baseurl=file://${fullpath}
 enabled=1
 gpgcheck=0
+repo_gpgcheck=0
 EOF
     # We always use the same repo and we are kinda abusing yum here so we have to clear the cache.
     yum clean metadata --disablerepo=* --enablerepo=kurl.local

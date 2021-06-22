@@ -48,19 +48,19 @@ function docker_install() {
     case "$LSB_DIST" in
     centos|rhel|ol)
         if [ "${DIST_VERSION_MAJOR}" = "8" ] && ! is_docker_version_supported ; then
-            rpm_force_install_host_packages "${DIR}/packages/docker/${DOCKER_VERSION}" docker-ce docker-ce-cli
+            rpm_force_install_host_packages "${DIR}/packages/docker/${DOCKER_VERSION}" "docker-ce-${DOCKER_VERSION}" "docker-ce-cli-${DOCKER_VERSION}"
             export DID_INSTALL_DOCKER=1
         fi
         ;;
 
     amzn)
-        rpm_force_install_host_packages "${DIR}/packages/docker/${DOCKER_VERSION}" docker-ce docker-ce-cli
+        rpm_force_install_host_packages "${DIR}/packages/docker/${DOCKER_VERSION}" "docker-ce-${DOCKER_VERSION}" "docker-ce-cli-${DOCKER_VERSION}"
         export DID_INSTALL_DOCKER=1
         ;;
     esac
 
     if [ "${DID_INSTALL_DOCKER}" != "1" ]; then
-        install_host_packages "${DIR}/packages/docker/${DOCKER_VERSION}" docker-ce docker-ce-cli
+        install_host_packages "${DIR}/packages/docker/${DOCKER_VERSION}" "docker-ce-${DOCKER_VERSION}" "docker-ce-cli-${DOCKER_VERSION}"
         export DID_INSTALL_DOCKER=1
     fi
 

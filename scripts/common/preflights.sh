@@ -4,7 +4,7 @@ function preflights() {
     bailIfUnsupportedOS
     mustSwapoff
     prompt_if_docker_unsupported_os
-    checkDockerK8sVersion
+    check_docker_k8s_version
     checkFirewalld
     checkUFW
     must_disable_selinux
@@ -122,16 +122,23 @@ function swap_azure_linux_agent_disable() {
 }
 
 
-checkDockerK8sVersion()
-{
-    getDockerVersion
-    if [ -z "$DOCKER_VERSION" ]; then
+function check_docker_k8s_version() {
+    local version=
+    version="$(get_docker_version)"
+
+    if [ -z "$version" ]; then
         return
+    fi
+
+    # NOTE (ethan): This is probably the wrong thing to go here but i'm leaving it in so as not to
+    # break existing functionality.
+    if [ -z "$DOCKER_VERSION" ]; then
+        DOCKER_VERSION="${version}"
     fi
 
     case "$KUBERNETES_TARGET_VERSION_MINOR" in 
         14|15)
-            compareDockerVersions "$DOCKER_VERSION" 1.13.1
+            compareDockerVersions "$version" 1.13.1
             if [ "$COMPARE_DOCKER_VERSIONS_RESULT" -eq "-1" ]; then
                 bail "Minimum Docker version for Kubernetes $KUBERNETES_VERSION is 1.13.1."
             fi
