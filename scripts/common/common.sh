@@ -233,7 +233,6 @@ spinnerPodRunning() {
         printf "\b\b\b\b\b\b"
     done
     printf "    \b\b\b\b"
-    printf "\n"
 }
 
 COMPARE_DOCKER_VERSIONS_RESULT=
@@ -432,8 +431,6 @@ function spinner_until() {
         sleep $delay
         printf "\b\b\b\b\b\b"
     done
-
-    printf "\n"
 }
 
 function get_common() {
