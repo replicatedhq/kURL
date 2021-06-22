@@ -239,9 +239,9 @@ spec:
             cpu: 50m
             memory: 50Mi
 
-      - name: restore-db
+      - name: restore-data
         command:
-        - "/restore-db.sh"
+        - "/restore.sh"
         env:
         - name: POSTGRES_PASSWORD
           valueFrom:
@@ -251,8 +251,10 @@ spec:
         image: kotsadm/kotsadm:alpha
         imagePullPolicy: IfNotPresent
         volumeMounts:
-        - mountPath: /backup
-          name: backup
+        - name: kotsadmdata
+          mountPath: /kotsadmdata
+        - name: backup
+          mountPath: /backup
         resources:
           limits:
             cpu: 1
