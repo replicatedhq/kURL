@@ -24,13 +24,13 @@ printf '{"include": ['
 for package in $(list_all | awk '{print $1}')
 do
     if [ "${i}" -lt "${index}" ]; then
-        i=$((i+1))
+        i="$((i+1))"
         continue
     fi
     if [ "$(("${i}"-"${index}"))" = "255" ]; then
         break
     fi
-    i=$((i+1))
+    i="$((i+1))"
     printf '%s{"package": "%s"}' "${comma}" "${package}"
     comma=","
 done
