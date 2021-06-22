@@ -11,6 +11,7 @@
         secretKeyRef:
           key: endpoint
           name: kotsadm-s3
+          optional: true
     - name: S3_BUCKET_NAME
       value: kotsadm
     - name: S3_ACCESS_KEY_ID
@@ -18,11 +19,13 @@
         secretKeyRef:
           key: access-key-id
           name: kotsadm-s3
+          optional: true
     - name: S3_SECRET_ACCESS_KEY
       valueFrom:
         secretKeyRef:
           key: secret-access-key
           name: kotsadm-s3
+          optional: true
     - name: S3_BUCKET_ENDPOINT
       value: "true"
     image: kotsadm/kotsadm:alpha
