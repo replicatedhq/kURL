@@ -180,6 +180,7 @@ function rook_cluster_deploy_upgrade() {
 
     if rook_ceph_version_deployed "${ceph_version}" ; then
         echo "Cluster rook-ceph up to date"
+        rook_patch_insecure_clients
         return 0
     fi
 
