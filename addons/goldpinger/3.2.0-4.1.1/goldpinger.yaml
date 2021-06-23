@@ -103,6 +103,10 @@ spec:
             value: "80"
           - name: LABEL_SELECTOR
             value: "app.kubernetes.io/name=goldpinger"
+          - name: POD_IP
+            valueFrom:
+              fieldRef:
+                fieldPath: status.podIP
         ports:
         - name: http
           containerPort: 80

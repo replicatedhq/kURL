@@ -24,7 +24,7 @@ function generate() {
 }
 
 function add_as_latest() {
-    gsed -i "/cron-goldpinger-update/a\    \"${VERSION}-${CHARTVERSION}\"\," ../../../web/src/installers/versions.js
+    sed -i "/cron-goldpinger-update/a\    \"${VERSION}-${CHARTVERSION}\"\," ../../../web/src/installers/versions.js
 }
 
 function main() {

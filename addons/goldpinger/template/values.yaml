@@ -24,7 +24,13 @@ serviceAccount:
 goldpinger:
   port: 80
 
-extraEnv: []
+extraEnv:
+  # added block from https://github.com/bloomberg/goldpinger/blob/4f8d872/extras/example-serviceaccounts.yml#L44-L48 (replicated)
+  # podIP is used to select a randomized subset of nodes to ping.
+  - name: POD_IP
+    valueFrom:
+      fieldRef:
+        fieldPath: status.podIP
 
 service:
   type: ClusterIP # originally "LoadBalancer" (replicated)
