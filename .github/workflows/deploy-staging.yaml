@@ -3,7 +3,7 @@ name: deploy-staging
 on:
   push:
     branches:
-    - master
+    - speed-up-build-2
 
 jobs:
   kurl-util-image:
@@ -26,16 +26,40 @@ jobs:
         DOCKERHUB_DOCKER_USER: ${{ secrets.DOCKERHUB_DOCKER_USER }}
         KURL_UTIL_IMAGE_ALPHA: replicated/kurl-util:alpha
 
-  build-upload-packages:
+  build-matrix:
     runs-on: ubuntu-18.04
     needs:
     - kurl-util-image
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+    - uses: actions/checkout@v2
+
+    - id: set-matrix
+      name: Build image matrix
+      run: |
+        git fetch --tags -f
+        export VERSION_TAG=$(git tag | grep '^v20' | sort | tail -1)-dirty
+        export KURL_UTIL_IMAGE=replicated/kurl-util:${VERSION_TAG}
+        export KURL_BIN_UTILS_FILE=kurl-bin-utils-${VERSION_TAG}.tar.gz
+        export KURL_BIN_UTILS_FILE_LATEST=kurl-bin-utils-latest.tar.gz
+        OUTPUT=`bin/list-all-packages-actions-matrix.sh "${{ github.event.inputs.index }}"`
+        echo "::set-output name=matrix::$OUTPUT"
+
+  build-upload-packages:
+    runs-on: ubuntu-18.04
+    needs:
+    - build-matrix
+    strategy:
+      matrix: ${{fromJSON(needs.build-matrix.outputs.matrix)}}
+      fail-fast: true
+      max-parallel: 10
     steps:
     - uses: actions/checkout@v2
 
     - uses: actions/setup-go@v2.1.3
       with:
-        go-version: 1.16.0
+        go-version: 1.16
 
     - name: setup env
       id: env
@@ -43,9 +67,6 @@ jobs:
         echo "GOPATH=$(go env GOPATH)" >> $GITHUB_ENV
         echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
       shell: bash
-
-    - run: |
-        make build/bin
 
     - name: upload dist staging
       run: |
@@ -55,7 +76,7 @@ jobs:
         export KURL_BIN_UTILS_FILE=kurl-bin-utils-${VERSION_TAG}.tar.gz
         export KURL_BIN_UTILS_FILE_LATEST=kurl-bin-utils-latest.tar.gz
 
-        bin/upload-dist-staging.sh
+        bin/upload-dist-staging.sh "${{ matrix.batch }}"
       env:
         S3_BUCKET: kurl-sh
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_PROD_ACCESS_KEY_ID }}
@@ -69,104 +90,104 @@ jobs:
         export KURL_UTIL_IMAGE=replicated/kurl-util:${VERSION_TAG}
         export KURL_BIN_UTILS_FILE=kurl-bin-utils-${VERSION_TAG}.tar.gz
 
-        bin/upload-dist-versioned.sh
+        bin/upload-dist-versioned.sh "${{ matrix.batch }}"
       env:
         S3_BUCKET: kurl-sh
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_PROD_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_PROD_SECRET_ACCESS_KEY }}
         PACKAGE_PREFIX: staging
 
-  build-addons:
-    runs-on: ubuntu-18.04
-    steps:
-    - uses: actions/checkout@v2
-    - uses: actions/setup-node@v2.1.5
-      with:
-        node-version: '12'
-    - run: make -C web deps
-    - run: npm install
-    - run: make generate-addons
-      env:
-        S3_BUCKET: kurl-sh
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_PROD_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_PROD_SECRET_ACCESS_KEY }}
-        DIST_FOLDER: "staging"
+  # build-addons:
+  #   runs-on: ubuntu-18.04
+  #   steps:
+  #   - uses: actions/checkout@v2
+  #   - uses: actions/setup-node@v2.1.5
+  #     with:
+  #       node-version: '12'
+  #   - run: make -C web deps
+  #   - run: npm install
+  #   - run: make generate-addons
+  #     env:
+  #       S3_BUCKET: kurl-sh
+  #       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_PROD_ACCESS_KEY_ID }}
+  #       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_PROD_SECRET_ACCESS_KEY }}
+  #       DIST_FOLDER: "staging"
 
-  staging-docker-image:
-    runs-on: ubuntu-18.04
-    steps:
-    - uses: actions/checkout@v2
+  # staging-docker-image:
+  #   runs-on: ubuntu-18.04
+  #   steps:
+  #   - uses: actions/checkout@v2
 
-    - uses: actions/setup-node@v2.1.5
-      with:
-        node-version: '12'
+  #   - uses: actions/setup-node@v2.1.5
+  #     with:
+  #       node-version: '12'
 
-    - run: make -C web deps build
+  #   - run: make -C web deps build
 
-    - run: make web
+  #   - run: make web
 
-    - run: |
-        git fetch --tags -f
-        export VERSION_TAG=$(git tag | grep '^v20' | sort | tail -1)-dirty
-        docker build -f deploy/Dockerfile-slim \
-          --build-arg version=${GITHUB_SHA:0:7} \
-          --build-arg version_tag=${VERSION_TAG} \
-          -t 923411875752.dkr.ecr.us-east-1.amazonaws.com/kurl:${GITHUB_SHA:0:7} .
+  #   - run: |
+  #       git fetch --tags -f
+  #       export VERSION_TAG=$(git tag | grep '^v20' | sort | tail -1)-dirty
+  #       docker build -f deploy/Dockerfile-slim \
+  #         --build-arg version=${GITHUB_SHA:0:7} \
+  #         --build-arg version_tag=${VERSION_TAG} \
+  #         -t 923411875752.dkr.ecr.us-east-1.amazonaws.com/kurl:${GITHUB_SHA:0:7} .
 
-    - run: |
-        aws ecr get-login-password --region us-east-1 | docker login \
-          --username AWS \
-          --password-stdin 923411875752.dkr.ecr.us-east-1.amazonaws.com
-      env:
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_STAGING_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_STAGING_SECRET_ACCESS_KEY }}
+  #   - run: |
+  #       aws ecr get-login-password --region us-east-1 | docker login \
+  #         --username AWS \
+  #         --password-stdin 923411875752.dkr.ecr.us-east-1.amazonaws.com
+  #     env:
+  #       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_STAGING_ACCESS_KEY_ID }}
+  #       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_STAGING_SECRET_ACCESS_KEY }}
 
-    - run: docker push 923411875752.dkr.ecr.us-east-1.amazonaws.com/kurl:${GITHUB_SHA:0:7}
+  #   - run: docker push 923411875752.dkr.ecr.us-east-1.amazonaws.com/kurl:${GITHUB_SHA:0:7}
 
-  deploy-staging-eks:
-    runs-on: ubuntu-18.04
-    needs:
-    - staging-docker-image
-    - kurl-util-image
-    - build-upload-packages
-    steps:
-    - uses: actions/checkout@v2
+  # deploy-staging-eks:
+  #   runs-on: ubuntu-18.04
+  #   needs:
+  #   - staging-docker-image
+  #   - kurl-util-image
+  #   - build-upload-packages
+  #   steps:
+  #   - uses: actions/checkout@v2
 
-    - name: kustomize
-      run: |
-        git fetch --tags -f
-        export VERSION_TAG=$(git tag | grep '^v20' | sort | tail -1)-dirty
-        curl -s https://api.github.com/repos/kubernetes-sigs/kustomize/releases/tags/v2.0.0 | \
-          grep browser_download | \
-          grep linux | \
-          cut -d '"' -f 4 | \
-          xargs sudo curl -O -L && \
-          sudo mv kustomize_*_linux_amd64 /usr/local/bin/kustomize && \
-          sudo chmod +x /usr/local/bin/kustomize
-        pushd kustomize/overlays/staging
-        kustomize edit set image 923411875752.dkr.ecr.us-east-1.amazonaws.com/kurl:${GITHUB_SHA:0:7}
-        kustomize build . | sed "s/__VERSION_TAG__/${VERSION_TAG}/g" > kurl.yaml
-        popd
+  #   - name: kustomize
+  #     run: |
+  #       git fetch --tags -f
+  #       export VERSION_TAG=$(git tag | grep '^v20' | sort | tail -1)-dirty
+  #       curl -s https://api.github.com/repos/kubernetes-sigs/kustomize/releases/tags/v2.0.0 | \
+  #         grep browser_download | \
+  #         grep linux | \
+  #         cut -d '"' -f 4 | \
+  #         xargs sudo curl -O -L && \
+  #         sudo mv kustomize_*_linux_amd64 /usr/local/bin/kustomize && \
+  #         sudo chmod +x /usr/local/bin/kustomize
+  #       pushd kustomize/overlays/staging
+  #       kustomize edit set image 923411875752.dkr.ecr.us-east-1.amazonaws.com/kurl:${GITHUB_SHA:0:7}
+  #       kustomize build . | sed "s/__VERSION_TAG__/${VERSION_TAG}/g" > kurl.yaml
+  #       popd
 
-    - name: ssh-key
-      env:
-        GITOPS_DEPLOY_KEY: ${{ secrets.GITOPS_DEPLOY_KEY }}
-      run: |
-        mkdir -p ~/.ssh
-        echo "$GITOPS_DEPLOY_KEY" > ~/.ssh/id_rsa
-        chmod 400 ~/.ssh/id_rsa
-        echo 'github.com ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAq2A7hRGmdnm9tUDbO9IDSwBK6TbQa+PXYPCPy6rbTrTtw7PHkccKrpp0yVhp5HdEIcKr6pLlVDBfOLX9QUsyCOV0wzfjIJNlGEYsdlLJizHhbn2mUjvSAHQqZETYP81eFzLQNnPHt4EVVUh7VfDESU84KezmD5QlWpXLmvU31/yMf+Se8xhHTvKSCZIFImWwoG6mbUoWf9nzpIoaSjB+weqqUUmpaaasXVal72J+UX2B+2RPW3RcT0eOzQgqlJL3RKrTJvdsjE3JEAvGq3lGHSZXy28G3skua2SmVi/w4yCE6gbODqnTWlg7+wC604ydGXA8VJiS5ap43JXiUFFAaQ==' \
-          >> ~/.ssh/known_hosts
+  #   - name: ssh-key
+  #     env:
+  #       GITOPS_DEPLOY_KEY: ${{ secrets.GITOPS_DEPLOY_KEY }}
+  #     run: |
+  #       mkdir -p ~/.ssh
+  #       echo "$GITOPS_DEPLOY_KEY" > ~/.ssh/id_rsa
+  #       chmod 400 ~/.ssh/id_rsa
+  #       echo 'github.com ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAq2A7hRGmdnm9tUDbO9IDSwBK6TbQa+PXYPCPy6rbTrTtw7PHkccKrpp0yVhp5HdEIcKr6pLlVDBfOLX9QUsyCOV0wzfjIJNlGEYsdlLJizHhbn2mUjvSAHQqZETYP81eFzLQNnPHt4EVVUh7VfDESU84KezmD5QlWpXLmvU31/yMf+Se8xhHTvKSCZIFImWwoG6mbUoWf9nzpIoaSjB+weqqUUmpaaasXVal72J+UX2B+2RPW3RcT0eOzQgqlJL3RKrTJvdsjE3JEAvGq3lGHSZXy28G3skua2SmVi/w4yCE6gbODqnTWlg7+wC604ydGXA8VJiS5ap43JXiUFFAaQ==' \
+  #         >> ~/.ssh/known_hosts
 
-    - name: release
-      run: |
-        cd ~ && git clone --single-branch -b master git@github.com:replicatedcom/gitops-deploy
-        mkdir -p ~/gitops-deploy/kurl
-        mv ${GITHUB_WORKSPACE}/kustomize/overlays/staging/kurl.yaml gitops-deploy/kurl/kurl.yaml
-        cd ~/gitops-deploy
-        git config user.email "kurl-github-actions@replicated.com"
-        git config user.name "kURL GitHub Actions"
-        git add .
-        git commit --allow-empty -m "https://github.com/replicatedhq/kURL/actions/runs/${GITHUB_RUN_ID}" && \
-          git push origin master
+  #   - name: release
+  #     run: |
+  #       cd ~ && git clone --single-branch -b master git@github.com:replicatedcom/gitops-deploy
+  #       mkdir -p ~/gitops-deploy/kurl
+  #       mv ${GITHUB_WORKSPACE}/kustomize/overlays/staging/kurl.yaml gitops-deploy/kurl/kurl.yaml
+  #       cd ~/gitops-deploy
+  #       git config user.email "kurl-github-actions@replicated.com"
+  #       git config user.name "kURL GitHub Actions"
+  #       git add .
+  #       git commit --allow-empty -m "https://github.com/replicatedhq/kURL/actions/runs/${GITHUB_RUN_ID}" && \
+  #         git push origin master
 

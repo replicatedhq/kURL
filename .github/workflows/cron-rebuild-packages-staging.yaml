@@ -37,25 +37,29 @@ jobs:
     steps:
       - uses: actions/setup-go@v2.1.3
         with:
-          go-version: 1.16.0
+          go-version: 1.16
 
       - uses: actions/checkout@v2
 
-      - name: "${{ matrix.package }} : Build package"
+      - name: "${{ matrix.batch }} : Build batch"
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_PROD_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_PROD_SECRET_ACCESS_KEY }}
-          PKG: ${{ matrix.package }}
+          BATCH: ${{ matrix.batch }}
         run: |
           git fetch --tags -f
           export VERSION_TAG=$(git tag | grep '^v20' | sort | tail -1)-dirty
           export KURL_UTIL_IMAGE=replicated/kurl-util:${VERSION_TAG}
 
-          make dist/$PKG
+          for PKG in ${BATCH}; do
+            if [ -z "$PKG" ]; then continue; fi
 
-          MD5="$(openssl md5 -binary dist/$PKG | base64)"
-          GITSHA="$(git rev-parse HEAD)"
-          aws s3 cp dist/$PKG s3://kurl-sh/staging/${VERSION_TAG}/$PKG \
-            --metadata md5="${MD5}",gitsha="${GITSHA}"
-          aws s3 cp s3://kurl-sh/staging/${VERSION_TAG}/$PKG s3://kurl-sh/staging/$PKG \
-            --metadata md5="${MD5}",gitsha="${GITSHA}"
+            make dist/$PKG
+
+            MD5="$(openssl md5 -binary dist/$PKG | base64)"
+            GITSHA="$(git rev-parse HEAD)"
+            aws s3 cp dist/$PKG s3://kurl-sh/staging/${VERSION_TAG}/$PKG \
+              --metadata md5="${MD5}",gitsha="${GITSHA}"
+            aws s3 cp s3://kurl-sh/staging/${VERSION_TAG}/$PKG s3://kurl-sh/staging/$PKG \
+              --metadata md5="${MD5}",gitsha="${GITSHA}"
+          done
