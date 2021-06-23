@@ -52,11 +52,6 @@ function docker_install() {
             export DID_INSTALL_DOCKER=1
         fi
         ;;
-
-    amzn)
-        rpm_force_install_host_packages "${DIR}/packages/docker/${DOCKER_VERSION}" "docker-ce-${DOCKER_VERSION}" "docker-ce-cli-${DOCKER_VERSION}"
-        export DID_INSTALL_DOCKER=1
-        ;;
     esac
 
     if [ "${DID_INSTALL_DOCKER}" != "1" ]; then

@@ -3,14 +3,7 @@ CONTAINERD_NEEDS_RESTART=0
 function containerd_install() {
     local src="$DIR/addons/containerd/$CONTAINERD_VERSION"
 
-    case "$LSB_DIST" in
-    amzn)
-        rpm_force_install_host_packages "$src" containerd.io
-        ;;
-    *)
-        install_host_packages "$src" containerd.io
-        ;;
-    esac
+    install_host_packages "$src" containerd.io
 
     case "$LSB_DIST" in
         centos|rhel|amzn|ol)
