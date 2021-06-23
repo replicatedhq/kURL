@@ -188,6 +188,13 @@ dist/sonobuoy-%.tar.gz: build/addons
 	mkdir -p dist
 	tar cf - -C build addons/sonobuoy/$* | gzip > dist/sonobuoy-$*.tar.gz
 
+dist/goldpinger-%.tar.gz: build/addons
+	mkdir -p build/addons/goldpinger/$*/images
+	bin/save-manifest-assets.sh addons/goldpinger/$*/Manifest $(CURDIR)/build/addons/goldpinger/$*
+	mkdir -p dist
+	tar cf - -C build addons/goldpinger/$* | gzip > dist/goldpinger-$*.tar.gz
+
+
 dist/kubernetes-%.tar.gz:
 	# conformance packages do not exist for versions of k8s prior to 1.17
 	$(eval major = $(shell echo "$*" | sed -E 's/^v?([0-9]+)\.([0-9]+).*$$/\1/'))
