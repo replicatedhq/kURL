@@ -191,7 +191,7 @@ dist/sonobuoy-%.tar.gz: build/addons
 
 dist/goldpinger-%.tar.gz: build/addons
 	mkdir -p build/addons/goldpinger/$*/images
-	bin/save-manifest-assets.sh addons/goldpinger/$*/Manifest $(CURDIR)/build/addons/goldpinger/$*
+	bin/save-manifest-assets.sh "goldpinger-$*" addons/goldpinger/$*/Manifest $(CURDIR)/build/addons/goldpinger/$*
 	mkdir -p dist
 	tar cf - -C build addons/goldpinger/$* | gzip > dist/goldpinger-$*.tar.gz
 
