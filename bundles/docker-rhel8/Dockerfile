@@ -1,5 +1,7 @@
 FROM centos:8
 
+RUN echo -e "fastestmirror=1\nmax_parallel_downloads=8" >> /etc/dnf/dnf.conf
+
 RUN yum install -y yum-utils createrepo
 RUN yum-config-manager --add-repo http://mirror.centos.org/centos/8-stream/AppStream/x86_64/os/
 RUN yum install -y modulemd-tools

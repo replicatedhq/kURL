@@ -81,6 +81,7 @@ function build_rhel_8() {
         centos:8.1.1911 \
         /bin/bash -c "\
             set -x
+            echo -e \"fastestmirror=1\nmax_parallel_downloads=8\" >> /etc/dnf/dnf.conf && \
             yum install -y yum-utils epel-release && \
             mkdir -p /packages/archives && \
             yumdownloader --installroot=/tmp/empty-directory --releasever=/ --resolve --destdir=/packages/archives -y ${packages[*]}"
@@ -99,6 +100,7 @@ function createrepo_rhel_8() {
         centos:8.1.1911 \
         /bin/bash -c "\
             set -x
+            echo -e \"fastestmirror=1\nmax_parallel_downloads=8\" >> /etc/dnf/dnf.conf && \
             yum install -y yum-utils createrepo && \
             yum-config-manager --add-repo http://mirror.centos.org/centos/8-stream/AppStream/x86_64/os/ && \
             yum install -y modulemd-tools && \

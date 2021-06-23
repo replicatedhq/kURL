@@ -1,5 +1,7 @@
 FROM centos:8
 
+RUN echo -e "fastestmirror=1\nmax_parallel_downloads=8" >> /etc/dnf/dnf.conf
+
 RUN yum install -y gettext # envsubst
 RUN yum install -y yum-utils # yumdownloader
 RUN yum install -y createrepo
