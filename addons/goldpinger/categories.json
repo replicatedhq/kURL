@@ -1,0 +1,6 @@
+{
+  "name": "goldpinger",
+  "fulfills": ["Network Metrics"],
+  "requires": ["CNI Plugin", "Container Runtime"],
+  "recommends": ["Metrics & Monitoring"]
+}

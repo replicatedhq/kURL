@@ -269,6 +269,8 @@ func convertToBash(kurlValues map[string]interface{}, fieldsSet map[string]bool)
 		"Antrea.PodCidrRange":                    "ANTREA_POD_CIDR_RANGE",
 		"Antrea.S3Override":                      "ANTREA_S3_OVERRIDE",
 		"Antrea.Version":                         "ANTREA_VERSION",
+		"Goldpinger.Version":                     "GOLDPINGER_VERSION",
+		"Goldpinger.S3Override":                  "GOLDPINGER_S3_OVERRIDE",
 	}
 
 	finalDictionary := make(map[string]string)

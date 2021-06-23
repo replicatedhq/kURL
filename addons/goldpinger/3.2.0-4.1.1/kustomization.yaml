@@ -1,0 +1,4 @@
+namespace: kurl
+
+resources:
+- goldpinger.yaml

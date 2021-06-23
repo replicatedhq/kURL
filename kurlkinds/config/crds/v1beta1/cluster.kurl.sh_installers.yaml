@@ -183,6 +183,15 @@ spec:
                 required:
                 - version
                 type: object
+              goldpinger:
+                properties:
+                  s3Override:
+                    type: string
+                  version:
+                    type: string
+                required:
+                - version
+                type: object
               helm:
                 properties:
                   additionalImages:

@@ -258,4 +258,8 @@ module.exports.InstallerVersions = {
     // cron-sonobuoy-update
     "0.50.0",
   ],
+  goldpinger: [
+    // cron-goldpinger-update
+    "3.2.0-4.1.1",
+  ],
 };

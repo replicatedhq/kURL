@@ -55,6 +55,7 @@ function kubeadm_addon_for_each() {
     $cmd cert-manager "$CERT_MANAGER_VERSION" "$CERT_MANAGER_S3_OVERRIDE"
     $cmd metrics-server "$METRICS_SERVER_VERSION" "$METRICS_SERVER_S3_OVERRIDE"
     $cmd sonobuoy "$SONOBUOY_VERSION" "$SONOBUOY_S3_OVERRIDE"
+    $cmd goldpinger "$GOLDPINGER_VERSION" "$GOLDPINGER_S3_OVERRIDE"
 }
 
 function kubeadm_reset() {
