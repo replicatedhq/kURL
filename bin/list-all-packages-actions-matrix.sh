@@ -15,7 +15,7 @@ function require() {
 require KURL_UTIL_IMAGE "${KURL_UTIL_IMAGE}" # required for common package
 require KURL_BIN_UTILS_FILE "${KURL_BIN_UTILS_FILE}"
 
-batch_size=5
+batch_size=2
 
 i=0
 start=0
