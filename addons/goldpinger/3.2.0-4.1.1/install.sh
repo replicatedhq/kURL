@@ -3,8 +3,9 @@ function goldpinger() {
     local src="$DIR/addons/goldpinger/3.2.0-4.1.1"
     local dst="$DIR/kustomize/goldpinger"
 
-
-    cp -r "$src/" "$dst/"
+    cp "$src/kustomization.yaml" "$dst/"
+    cp "$src/goldpinger.yaml" "$dst/"
+    cp "$src/servicemonitor.yaml" "$dst/"
 
     if [ -n "${PROMETHEUS_VERSION}" ]; then
         insert_resources "$dst/kustomization.yaml" servicemonitor.yaml
