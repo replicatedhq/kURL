@@ -6,30 +6,30 @@ on:
     - speed-up-build-2
 
 jobs:
-  kurl-util-image:
-    runs-on: ubuntu-18.04
-    steps:
-    - uses: actions/checkout@v2
-    - run: |
-        echo "$DOCKERHUB_DOCKER_PASS" | docker login -u $DOCKERHUB_DOCKER_USER --password-stdin
-        export KURL_UTIL_IMAGE=$KURL_UTIL_IMAGE_ALPHA
-        make -C kurl_util build-and-push-kurl-util-image
+  # kurl-util-image:
+  #   runs-on: ubuntu-18.04
+  #   steps:
+  #   - uses: actions/checkout@v2
+  #   - run: |
+  #       echo "$DOCKERHUB_DOCKER_PASS" | docker login -u $DOCKERHUB_DOCKER_USER --password-stdin
+  #       export KURL_UTIL_IMAGE=$KURL_UTIL_IMAGE_ALPHA
+  #       make -C kurl_util build-and-push-kurl-util-image
 
-        git fetch --tags -f
-        export VERSION_TAG=$(git tag | grep '^v20' | sort | tail -1)-dirty
-        export KURL_UTIL_IMAGE=replicated/kurl-util:${VERSION_TAG}
-        docker tag $KURL_UTIL_IMAGE_ALPHA $KURL_UTIL_IMAGE
+  #       git fetch --tags -f
+  #       export VERSION_TAG=$(git tag | grep '^v20' | sort | tail -1)-dirty
+  #       export KURL_UTIL_IMAGE=replicated/kurl-util:${VERSION_TAG}
+  #       docker tag $KURL_UTIL_IMAGE_ALPHA $KURL_UTIL_IMAGE
 
-        make -C kurl_util push-kurl-util-image
-      env:
-        DOCKERHUB_DOCKER_PASS: ${{ secrets.DOCKERHUB_DOCKER_PASS }}
-        DOCKERHUB_DOCKER_USER: ${{ secrets.DOCKERHUB_DOCKER_USER }}
-        KURL_UTIL_IMAGE_ALPHA: replicated/kurl-util:alpha
+  #       make -C kurl_util push-kurl-util-image
+  #     env:
+  #       DOCKERHUB_DOCKER_PASS: ${{ secrets.DOCKERHUB_DOCKER_PASS }}
+  #       DOCKERHUB_DOCKER_USER: ${{ secrets.DOCKERHUB_DOCKER_USER }}
+  #       KURL_UTIL_IMAGE_ALPHA: replicated/kurl-util:alpha
 
   build-matrix:
     runs-on: ubuntu-18.04
-    needs:
-    - kurl-util-image
+    # needs:
+    # - kurl-util-image
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
