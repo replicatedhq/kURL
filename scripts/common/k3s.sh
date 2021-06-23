@@ -166,8 +166,8 @@ function k3s_init() {
     # TODO(dans): coredns is deployed through helm -> might need to go through values here
     # configure_coredns
 
-    if commandExists registry_containerd_init; then
-        registry_containerd_init
+    if commandExists registry_init; then
+        registry_init
     fi
 }
 
@@ -389,7 +389,6 @@ function k3s_main() {
     # init                              # See next line
     k3s_init                            # TODO(dan): A mix of Kubeadm stuff and general setup.
     apply_installer_crd
-    type create_registry_service &> /dev/null && create_registry_service # this function is in an optional addon and may be missing
     kurl_init_config
     ${K8S_DISTRO}_addon_for_each addon_install
     # post_init                          # TODO(dan): more kubeadm token setup
@@ -426,8 +425,6 @@ function k3s_restart() {
 function k3s_install_host_packages() {
     local k3s_version="$1"
 
-    logStep "Install K3S host packages"
-
     if k3s_host_packages_ok "${k3s_version}"; then
         logSuccess "K3S host packages already installed"
 
@@ -442,25 +439,13 @@ function k3s_install_host_packages() {
     # TODO (dan): need to integrate this with SELinux settings in install.sh
     if [ -n "$K3S_SELINUX_ENABLED" ]; then
         case "$LSB_DIST" in
-            ubuntu)
-                bail "K3S unsupported on $LSB_DIST Linux"
-                ;;
-
             centos|rhel|amzn|ol)
-                case "$LSB_DIST$DIST_VERSION_MAJOR" in
-                    rhel8|centos8)
-                        rpm --upgrade --force --nodeps $DIR/packages/k3s/${k3s_version}/rhel-8/*.rpm
-                        ;;
-
-                    *)
-                        rpm --upgrade --force --nodeps $DIR/packages/k3s/${k3s_version}/rhel-7/*.rpm
-                        ;;
-                esac
-            ;;
+                install_host_packages "${DIR}/packages/k3s/${k3s_version}" k3s-selinux
+                ;;
 
             *)
                 bail "K3S install is not supported on ${LSB_DIST} ${DIST_MAJOR}"
-            ;;
+                ;;
         esac
     fi
     
@@ -472,8 +457,6 @@ function k3s_install_host_packages() {
     # if [ "$CLUSTER_DNS" != "$DEFAULT_CLUSTER_DNS" ]; then
     #     sed -i "s/$DEFAULT_CLUSTER_DNS/$CLUSTER_DNS/g" /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
     # fi
-
-    logSuccess "K3S host packages installed"
 }
 
 function k3s_host_packages_ok() {

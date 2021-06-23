@@ -31,6 +31,7 @@ module.exports.InstallerVersions = {
   ],
   docker: [
     "20.10.5",
+    "19.03.15",
     "19.03.10",
     "19.03.4",
     "18.09.8",
@@ -66,6 +67,7 @@ module.exports.InstallerVersions = {
   ],
   prometheus: [
     // cron-prometheus-update
+    "0.48.1-16.10.0",
     "0.48.0-16.1.2",
     "0.47.1-16.0.1",
     "0.47.0-15.3.1",

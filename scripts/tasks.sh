@@ -5,6 +5,7 @@ set -e
 # Magic begin: scripts are inlined for distribution. See "make build/tasks.sh"
 . $DIR/scripts/common/common.sh
 . $DIR/scripts/common/prompts.sh
+. $DIR/scripts/common/host-packages.sh
 . $DIR/scripts/distro/interface.sh
 . $DIR/scripts/distro/kubeadm/distro.sh
 . $DIR/scripts/distro/rke2/distro.sh

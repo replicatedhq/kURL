@@ -132,19 +132,19 @@ function get_patch_yaml() {
                 AUTO_UPGRADES_ENABLED=1
                 ;;
             primary-host)
-				if [ -z "$PRIMARY_HOST" ]; then
-					PRIMARY_HOST="$_value"
-				else
-					PRIMARY_HOST="$PRIMARY_HOST,$_value"
-				fi
-				;;
+                if [ -z "$PRIMARY_HOST" ]; then
+                    PRIMARY_HOST="$_value"
+                else
+                    PRIMARY_HOST="$PRIMARY_HOST,$_value"
+                fi
+                ;;
             secondary-host)
-				if [ -z "$SECONDARY_HOST" ]; then
-					SECONDARY_HOST="$_value"
-				else
-					SECONDARY_HOST="$SECONDARY_HOST,$_value"
-				fi
-				;;
+                if [ -z "$SECONDARY_HOST" ]; then
+                    SECONDARY_HOST="$_value"
+                else
+                    SECONDARY_HOST="$SECONDARY_HOST,$_value"
+                fi
+                ;;
             force-reapply-addons)
                 FORCE_REAPPLY_ADDONS=1
                 ;;

@@ -3,8 +3,8 @@ function preflights() {
     require64Bit
     bailIfUnsupportedOS
     mustSwapoff
-    promptIfDockerUnsupportedOS
-    checkDockerK8sVersion
+    prompt_if_docker_unsupported_os
+    check_docker_k8s_version
     checkFirewalld
     checkUFW
     must_disable_selinux
@@ -122,16 +122,23 @@ function swap_azure_linux_agent_disable() {
 }
 
 
-checkDockerK8sVersion()
-{
-    getDockerVersion
-    if [ -z "$DOCKER_VERSION" ]; then
+function check_docker_k8s_version() {
+    local version=
+    version="$(get_docker_version)"
+
+    if [ -z "$version" ]; then
         return
+    fi
+
+    # NOTE (ethan): This is probably the wrong thing to go here but i'm leaving it in so as not to
+    # break existing functionality.
+    if [ -z "$DOCKER_VERSION" ]; then
+        DOCKER_VERSION="${version}"
     fi
 
     case "$KUBERNETES_TARGET_VERSION_MINOR" in 
         14|15)
-            compareDockerVersions "$DOCKER_VERSION" 1.13.1
+            compareDockerVersions "$version" 1.13.1
             if [ "$COMPARE_DOCKER_VERSIONS_RESULT" -eq "-1" ]; then
                 bail "Minimum Docker version for Kubernetes $KUBERNETES_VERSION is 1.13.1."
             fi
@@ -139,26 +146,22 @@ checkDockerK8sVersion()
     esac
 }
 
-promptIfDockerUnsupportedOS()
-{
-    if [ -z "$DOCKER_VERSION" ]; then
+function prompt_if_docker_unsupported_os() {
+    if is_docker_version_supported ; then
         return
     fi
 
-    case "$LSB_DIST" in
-    centos|rhel)
-        if [[ "$DIST_VERSION" =~ ^8 ]]; then
-            logWarn "Docker is not supported on ${LSB_DIST} ${DIST_VERSION}."
-            logWarn "The containerd addon is recommended. https://kurl.sh/docs/add-ons/containerd"
-            if ! commandExists "docker" ; then
-                printf "${YELLOW}Continue? ${NC}" 1>&2
-                if ! confirmY ; then
-                    exit 1
-                fi
-            fi
-        fi
-        ;;
-    esac
+    logWarn "Docker ${DOCKER_VERSION} is not supported on ${LSB_DIST} ${DIST_VERSION}."
+    logWarn "The containerd addon is recommended. https://kurl.sh/docs/add-ons/containerd"
+
+    if commandExists "docker" ; then
+        return
+    fi
+
+    printf "${YELLOW}Continue? ${NC}" 1>&2
+    if ! confirmY ; then
+        exit 1
+    fi
 }
 
 checkFirewalld() {
