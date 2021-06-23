@@ -2042,7 +2042,7 @@ prometheus:
 
     ## Maximum size of metrics
     ##
-    retentionSize: ""
+    retentionSize: "9GB" # originally "" (replicated)
 
     ## Enable compression of the write-ahead log using Snappy.
     ##
