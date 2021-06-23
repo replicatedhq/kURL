@@ -28,7 +28,7 @@ jobs:
     strategy:
       matrix: ${{fromJSON(needs.build-matrix.outputs.matrix)}}
       fail-fast: false
-      max-parallel: 10
+      max-parallel: 20
     steps:
       - uses: actions/setup-go@v2.1.3
         with:
@@ -46,10 +46,18 @@ jobs:
           export VERSION_TAG=$(git tag | grep '^v20' | sort | tail -1)-dirty
           export KURL_UTIL_IMAGE=replicated/kurl-util:${VERSION_TAG}
 
+          failed_pkgs=
+
           for PKG in ${BATCH}; do
             if [ -z "$PKG" ]; then continue; fi
 
+            set +e
             make dist/$PKG
+            status="$?"
+            set -e
+            if [ "${status}" != "0" ]; then
+              failed_pkgs="${failed_pkgs}${PKG} "
+            fi
 
             MD5="$(openssl md5 -binary dist/$PKG | base64)"
             GITSHA="$(git rev-parse HEAD)"
@@ -58,3 +66,8 @@ jobs:
             aws s3 cp s3://kurl-sh/staging/${VERSION_TAG}/$PKG s3://kurl-sh/staging/$PKG \
               --metadata md5="${MD5}",gitsha="${GITSHA}"
           done
+
+          if [ -n "${failed_pkgs}" ]; then
+            echo "Failed to build packages ${failed_pkgs}"
+            exit 1
+          fi
