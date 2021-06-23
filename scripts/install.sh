@@ -224,8 +224,14 @@ EOF
 
     configure_coredns
 
-    if commandExists registry_containerd_init && [ -n "$CONTAINERD_VERSION" ] && [ "$SKIP_DOCKER_INSTALL" != "1" ]; then
-        registry_containerd_init
+    if commandExists registry_init; then
+        registry_init
+        
+        if [ -n "$CONTAINERD_VERSION" ] && [ "$SKIP_DOCKER_INSTALL" != "1" ]; then
+            ${K8S_DISTRO}_registry_containerd_configure "${DOCKER_REGISTRY_IP}"
+            ${K8S_DISTRO}_containerd_restart
+            spinner_kubernetes_api_healthy
+        fi
     fi
 }
 
@@ -445,7 +451,6 @@ function main() {
     report_upgrade_kubernetes
     report_kubernetes_install
     export SUPPORT_BUNDLE_READY=1 # allow ctrl+c and ERR traps to collect support bundles now that k8s is installed
-    type create_registry_service &> /dev/null && create_registry_service # this function is in an optional addon and may be missing
     kurl_init_config
     ${K8S_DISTRO}_addon_for_each addon_install
     helmfile_sync

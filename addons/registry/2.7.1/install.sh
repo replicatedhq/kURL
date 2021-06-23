@@ -1,8 +1,6 @@
-
+# shellcheck disable=SC2148
 function registry() {
-    cp "$DIR/addons/registry/2.7.1/kustomization.yaml" "$DIR/kustomize/registry/kustomization.yaml"
-    cp "$DIR/addons/registry/2.7.1/service.yaml" "$DIR/kustomize/registry/service.yaml"
-
+    regsitry_init_service   # need this again because kustomize folder is cleaned before install
     registry_session_secret
 
     # Only create registry deployment with object store if rook or minio exists and the registry pvc
@@ -26,8 +24,6 @@ function registry() {
 
     kubectl apply -k "$DIR/kustomize/registry"
 
-    DOCKER_REGISTRY_IP=$(kubectl -n kurl get service registry -o=jsonpath='{@.spec.clusterIP}')
-
     registry_cred_secrets
 
     registry_pki_secret "$DOCKER_REGISTRY_IP"
@@ -47,23 +43,37 @@ function registry_pre_init() {
     fi
 }
 
-function create_registry_service() {
-    mkdir -p "$DIR/kustomize/registry"
-    cp "$DIR/addons/registry/2.7.1/kustomization.yaml" "$DIR/kustomize/registry/kustomization.yaml"
-    cp "$DIR/addons/registry/2.7.1/service.yaml" "$DIR/kustomize/registry/service.yaml"
+function registry_init() {
 
     DOCKER_REGISTRY_IP=$(kubectl -n kurl get service registry -o=jsonpath='{@.spec.clusterIP}' 2>/dev/null || echo "")
+  
+    regsitry_init_service
+
+    kubectl apply -k "$DIR/kustomize/registry"
+
+    DOCKER_REGISTRY_IP=$(kubectl -n kurl get service registry -o=jsonpath='{@.spec.clusterIP}')
+}
+
+function regsitry_init_service() {
+    mkdir -p "$DIR/kustomize/registry"
+    cp "$DIR/addons/registry/2.7.1/kustomization.yaml" "$DIR/kustomize/registry/kustomization.yaml"
+    
+    cp "$DIR/addons/registry/2.7.1/service.yaml" "$DIR/kustomize/registry/service.yaml"
+    insert_resources "$DIR/kustomize/registry/kustomization.yaml" service.yaml
+
     if [ -n "$DOCKER_REGISTRY_IP" ] && [ -z "$KURL_REGISTRY_IP" ]; then
         KURL_REGISTRY_IP=$DOCKER_REGISTRY_IP
     fi
 
     if [ -n "$REGISTRY_PUBLISH_PORT" ]; then
-        render_yaml_file "$DIR/addons/registry/2.7.1/tmpl-node-port.yaml" > "$DIR/kustomize/registry/service.yaml"
-    else
-        render_yaml_file "$DIR/addons/registry/2.7.1/tmpl-cluster-ip.yaml" > "$DIR/kustomize/registry/service.yaml"
+        render_yaml_file "$DIR/addons/registry/2.7.1/tmpl-node-port-patch.yaml" > "$DIR/kustomize/registry/node-port-patch.yaml"
+        insert_patches_strategic_merge "$DIR/kustomize/registry/kustomization.yaml" "node-port-patch.yaml"
     fi
-    insert_resources "$DIR/kustomize/registry/kustomization.yaml" service.yaml
-    kubectl apply -k "$DIR/kustomize/registry"
+
+    if [ -n "$KURL_REGISTRY_IP" ]; then
+        render_yaml_file "$DIR/addons/registry/2.7.1/tmpl-cluster-ip-patch.yaml" > "$DIR/kustomize/registry/cluster-ip-patch.yaml"
+        insert_patches_strategic_merge "$DIR/kustomize/registry/kustomization.yaml" "cluster-ip-patch.yaml"
+    fi
 }
 
 function registry_join() {
@@ -119,23 +129,6 @@ function registry_docker_ca() {
         mkdir -p /etc/docker/certs.d/$DOCKER_REGISTRY_IP
         ln -s --force "${ca_crt}" /etc/docker/certs.d/$DOCKER_REGISTRY_IP/ca.crt
     fi
-}
-
-function registry_containerd_init() {
-    local registry_ip=$(kubectl -n kurl get service registry -o=jsonpath='{@.spec.clusterIP}' 2>/dev/null || true)
-    if [ -z "$registry_ip" ]; then
-        kubectl -n kurl create service clusterip registry --tcp=443:443
-        registry_ip=$(kubectl -n kurl get service registry -o=jsonpath='{@.spec.clusterIP}')
-    fi
-
-    registry_containerd_configure "$registry_ip"
-    ${K8S_DISTRO}_containerd_restart
-    spinner_kubernetes_api_healthy
-}
-
-function registry_containerd_configure() {
-    local registry_ip="$1"
-    ${K8S_DISTRO}_registry_containerd_configure "${registry_ip}"
 }
 
 function registry_pki_secret() {
