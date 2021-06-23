@@ -95,9 +95,7 @@ function main() {
             if [ -n "${pkg}" ] && [ "${pkg}" = "${package}" ]; then
                 path="$(echo "${line}" | cut -f2 -d' ')"
 
-                echo "deploy ${package} ${path}"
-
-                # deploy "${package}" "${path}"
+                deploy "${package}" "${path}"
                 break
             fi
         done
