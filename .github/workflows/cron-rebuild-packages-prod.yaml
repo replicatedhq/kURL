@@ -56,6 +56,7 @@ jobs:
             set -e
             if [ "${status}" != "0" ]; then
               failed_pkgs="${failed_pkgs}${PKG} "
+              continue
             fi
 
             MD5="$(openssl md5 -binary dist/$PKG | base64)"
