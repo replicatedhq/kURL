@@ -20,12 +20,12 @@ batch_size=5
 i=0
 start=0
 
-echo '{"include": ['
+printf '{"include": ['
 for package in $(list_all | awk '{print $1}')
 do
     if [ "${i}" = "0" ]; then
         if [ "${start}" = "1" ]; then
-            printf '"}\n,'
+            printf '"},'
         fi
         printf '{"batch": "'
         start=1
@@ -36,5 +36,5 @@ do
         i=0
     fi
 done
-echo '"}'
-echo ']}'
+printf '"}'
+printf ']}'
