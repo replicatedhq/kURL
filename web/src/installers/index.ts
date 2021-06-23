@@ -638,6 +638,21 @@ export const ufwConfigSchema = {
   },
 };
 
+export interface GoldpingerConfig {
+  version: string;
+  s3Override?: string;
+}
+
+export const goldpingerSchema = {
+  type: "object",
+  properties: {
+    version: { type: "string" },
+    s3Override: { type: "string", flag: "s3-override", description: "Override the download location for addon package distribution (used for CI/CD testing alpha addons)" },
+  },
+  required: ["version"],
+  additionalProperties: false,
+};
+
 export interface InstallerSpec {
   kubernetes: KubernetesConfig;
   rke2?: RKE2Config;
@@ -668,6 +683,7 @@ export interface InstallerSpec {
   longhorn?: LonghornConfig;
   sonobuoy?: SonobuoyConfig;
   ufw?: UFWConfig;
+  goldpinger?: GoldpingerConfig;
 }
 
 const specSchema = {
@@ -703,6 +719,7 @@ const specSchema = {
     longhorn: LonghornSchema,
     sonobuoy: sonobuoySchema,
     ufw: ufwConfigSchema,
+    goldpinger: goldpingerSchema,
   },
   additionalProperites: false,
 };
@@ -1170,6 +1187,9 @@ export class Installer {
     }
     if (this.spec.sonobuoy && !(await Installer.hasVersion("sonobuoy", this.spec.sonobuoy.version, installerVersion)) && !this.hasS3Override("sonobuoy")) {
       return {error: {message: `Sonobuoy version "${_.escape(this.spec.sonobuoy.version)}" is not supported${installerVersion ? " for installer version " + _.escape(installerVersion) : ""}`}};
+    }
+    if (this.spec.goldpinger && !(await Installer.hasVersion("goldpinger", this.spec.goldpinger.version, installerVersion)) && !this.hasS3Override("goldpinger")) {
+      return {error: {message: `Goldpinger version "${_.escape(this.spec.goldpinger.version)}" is not supported${installerVersion ? " for installer version " + _.escape(installerVersion) : ""}`}};
     }
     // Rook 1.0.4. is incompatible with Kubernetes 1.20+
     if (this.spec.rook && this.spec.rook.version === "1.0.4") {

@@ -1,0 +1,41 @@
+name: cron-goldpinger-update
+on:
+  schedule:
+  - cron: '0 4 * * *'
+  workflow_dispatch: {}
+
+jobs:
+  build-pr-goldpinger:
+    runs-on: ubuntu-18.04
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+
+    - name: Create Goldpinger Update
+      id: update
+      working-directory: ./addons/goldpinger/template
+      run: |
+        curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
+        ./generate.sh
+
+    - name: Create Pull Request # creates a PR if there are differences
+      uses: peter-evans/create-pull-request@v3
+      id: cpr
+      with:
+        token: ${{ secrets.GH_PAT }}
+        commit-message: Create new Goldpinger version
+        title: 'Automated Goldpinger version update ${{ steps.update.outputs.goldpinger_version }}'
+        branch: automation/update-goldpinger
+        delete-branch: true
+        labels: |
+          automated-pr
+          goldpinger
+        draft: false
+        base: "master"
+        body: "Automated changes by the [cron-goldpinger-update](https://github.com/replicatedhq/kURL/blob/master/.github/workflows/update-goldpinger.yaml) GitHub action"
+
+    - name: Check outputs
+      run: |
+        echo "Pull Request Number - ${{ steps.cpr.outputs.pull-request-number }}"
+        echo "Pull Request URL - ${{ steps.cpr.outputs.pull-request-url }}"

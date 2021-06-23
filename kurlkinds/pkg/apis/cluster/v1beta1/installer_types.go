@@ -50,6 +50,7 @@ type InstallerSpec struct {
 	Longhorn        Longhorn        `json:"longhorn,omitempty" yaml:"longhorn,omitempty"`
 	Sonobuoy        Sonobuoy        `json:"sonobuoy,omitempty" yaml:"sonobuoy,omitempty"`
 	UFWConfig       UFWConfig       `json:"ufwConfig,omitempty" yaml:"ufwConfig,omitempty"`
+	Goldpinger      Goldpinger      `json:"goldpinger,omitempty" yaml:"goldpinger,omitempty"`
 }
 
 type Contour struct {
@@ -278,6 +279,11 @@ type UFWConfig struct {
 	BypassUFWWarning bool `json:"bypassUFWWarning,omitempty" yaml:"bypassUFWWarning,omitempty"`
 	DisableUFW       bool `json:"disableUFW,omitempty" yaml:"disableUFW,omitempty"`
 	HardFailOnUFW    bool `json:"hardFailOnUFW,omitempty" yaml:"hardFailOnUFW,omitempty"`
+}
+
+type Goldpinger struct {
+	S3Override string `json:"s3Override,omitempty" yaml:"s3Override,omitempty"`
+	Version    string `json:"version" yaml:"version"`
 }
 
 // InstallerStatus defines the observed state of Installer

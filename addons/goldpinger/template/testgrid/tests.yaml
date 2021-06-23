@@ -1,0 +1,14 @@
+- installerSpec:
+    kubernetes:
+      version: "latest"
+    weave:
+      version: "latest"
+    longhorn:
+      version: "latest"
+    containerd:
+      version: "latest"
+    prometheus:
+      version: "latest"
+    goldpinger:
+      version: "__testver__"
+      s3Override: "__testdist__"
