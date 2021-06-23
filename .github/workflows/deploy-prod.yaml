@@ -78,6 +78,8 @@ jobs:
       max-parallel: 10
     steps:
     - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
 
     - uses: actions/setup-go@v2.1.3
       with:
