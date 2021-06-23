@@ -147,6 +147,7 @@ dist/docker-%.tar.gz:
 	${MAKE} build/packages/docker/$*/ubuntu-18.04
 	${MAKE} build/packages/docker/$*/ubuntu-20.04
 	${MAKE} build/packages/docker/$*/rhel-7
+	${MAKE} build/packages/docker/$*/rhel-7-force
 	${MAKE} build/packages/docker/$*/rhel-8
 	mkdir -p dist
 	curl -L https://github.com/opencontainers/runc/releases/download/v1.0.0-rc95/runc.amd64 > build/packages/docker/$*/runc
@@ -208,6 +209,7 @@ dist/kubernetes-%.tar.gz:
 	${MAKE} build/packages/kubernetes/$*/ubuntu-18.04
 	${MAKE} build/packages/kubernetes/$*/ubuntu-20.04
 	${MAKE} build/packages/kubernetes/$*/rhel-7
+	${MAKE} build/packages/kubernetes/$*/rhel-7-force
 	${MAKE} build/packages/kubernetes/$*/rhel-8
 	cp packages/kubernetes/$*/Manifest build/packages/kubernetes/$*/
 	mkdir -p dist
@@ -231,6 +233,7 @@ dist/rke-2-%.tar.gz:
 	${MAKE} dist/kubernetes-conformance-$(shell echo "$*" | sed 's/^v\(.*\)-.*$$/\1/').tar.gz
 	${MAKE} build/packages/rke-2/$*/images
 	${MAKE} build/packages/rke-2/$*/rhel-7
+	${MAKE} build/packages/rke-2/$*/rhel-7-force
 	${MAKE} build/packages/rke-2/$*/rhel-8
 	cp packages/rke-2/$*/Manifest build/packages/rke-2/$*/
 	mkdir -p dist
@@ -244,6 +247,7 @@ dist/k-3-s-%.tar.gz:
 	${MAKE} dist/kubernetes-conformance-$(shell echo "$*" | sed 's/^v\(.*\)-.*$$/\1/').tar.gz
 	${MAKE} build/packages/k-3-s/$*/images
 	${MAKE} build/packages/k-3-s/$*/rhel-7
+	${MAKE} build/packages/k-3-s/$*/rhel-7-force
 	${MAKE} build/packages/k-3-s/$*/rhel-8
 	cp packages/k-3-s/$*/Manifest build/packages/k-3-s/$*/
 	mkdir -p dist
@@ -536,6 +540,18 @@ build/packages/kubernetes/%/rhel-7:
 	docker cp k8s-rhel7-$*:/packages/archives/. build/packages/kubernetes/$*/rhel-7/
 	docker rm k8s-rhel7-$*
 
+build/packages/kubernetes/%/rhel-7-force:
+	docker build \
+		--build-arg KUBERNETES_VERSION=$* \
+		-t kurl/rhel-7-force-k8s:$* \
+		-f bundles/k8s-rhel7-force/Dockerfile \
+		bundles/k8s-rhel7-force
+	-docker rm -f k8s-rhel7-force-$* 2>/dev/null
+	docker create --name k8s-rhel7-force-$* kurl/rhel-7-force-k8s:$*
+	mkdir -p build/packages/kubernetes/$*/rhel-7-force
+	docker cp k8s-rhel7-force-$*:/packages/archives/. build/packages/kubernetes/$*/rhel-7-force/
+	docker rm k8s-rhel7-force-$*
+
 build/packages/kubernetes/%/rhel-8:
 	docker build \
 		--build-arg KUBERNETES_VERSION=$* \
@@ -562,6 +578,18 @@ build/packages/rke-2/%/rhel-7:
 	docker cp rke2-rhel7-$*:/packages/archives/. build/packages/rke-2/$*/rhel-7/
 	docker rm rke2-rhel7-$*
 
+build/packages/rke-2/%/rhel-7-force:
+	docker build \
+		--build-arg RKE2_VERSION=$* \
+		-t kurl/rhel-7-force-rke2:$* \
+		-f bundles/rke2-rhel7-force/Dockerfile \
+		bundles/rke2-rhel7-force
+	-docker rm -f rke2-rhel7-force-$* 2>/dev/null
+	docker create --name rke2-rhel7-force-$* kurl/rhel-7-force-rke2:$*
+	mkdir -p build/packages/rke-2/$*/rhel-7-force
+	docker cp rke2-rhel7-force-$*:/packages/archives/. build/packages/rke-2/$*/rhel-7-force/
+	docker rm rke2-rhel7-force-$*
+
 build/packages/rke-2/%/rhel-8:
 	docker build \
 		--build-arg RKE2_VERSION=$* \
@@ -585,6 +613,18 @@ build/packages/k-3-s/%/rhel-7:
 	mkdir -p build/packages/k-3-s/$*/rhel-7
 	docker cp k3s-rhel7-$*:/packages/archives/. build/packages/k-3-s/$*/rhel-7/
 	docker rm k3s-rhel7-$*
+
+build/packages/k-3-s/%/rhel-7-force:
+	docker build \
+		--build-arg K3S_VERSION=$* \
+		-t kurl/rhel-7-force-k3s:$* \
+		-f bundles/k3s-rhel7-force/Dockerfile \
+		bundles/k3s-rhel7-force
+	-docker rm -f k3s-rhel7-force-$* 2>/dev/null
+	docker create --name k3s-rhel7-force-$* kurl/rhel-7-force-k3s:$*
+	mkdir -p build/packages/k-3-s/$*/rhel-7-force
+	docker cp k3s-rhel7-force-$*:/packages/archives/. build/packages/k-3-s/$*/rhel-7-force/
+	docker rm k3s-rhel7-force-$*
 
 build/packages/k-3-s/%/rhel-8:
 	docker build \
