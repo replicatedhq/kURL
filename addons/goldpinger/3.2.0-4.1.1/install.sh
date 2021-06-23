@@ -1,6 +1,6 @@
 
 function goldpinger() {
-    local src="$DIR/addons/goldpinger/__GOLDPINGER_VERSION__"
+    local src="$DIR/addons/goldpinger/3.2.0-4.1.1"
     local dst="$DIR/kustomize/goldpinger"
 
 

@@ -20,6 +20,9 @@ function generate() {
     # get a copy of the stack
     helm template goldpinger okgolove/goldpinger --version "$CHARTVERSION" --values ./values.yaml -n kurl --include-crds > "../$VERSION-$CHARTVERSION/goldpinger.yaml"
 
+    # update version in install.sh
+    sed -i "s/__GOLDPINGER_VERSION__/$VERSION-$CHARTVERSION/g" "../$VERSION-$CHARTVERSION/install.sh"
+
     grep 'image: '  "../$VERSION-$CHARTVERSION/goldpinger.yaml" | sed 's/ *image: "*\(.*\)\/\(.*\):\([^"]*\)"*/image \2 \1\/\2:\3/' >> "../$VERSION-$CHARTVERSION/Manifest"
 }
 
