@@ -120,15 +120,24 @@ function deploy() {
 }
 
 function main() {
+    local batch="$1"
+
     git fetch
 
     # TODO: kubernetes changes do not yet take into account changes in bundles/
     # These need to manually be rebuilt when changing that path.
 
-    while read -r line
-    do
-        # shellcheck disable=SC2086
-        deploy ${line}
+    while read -r line; do
+        package="$(echo "${line}" | cut -f1 -d' ')"
+
+        for pkg in ${batch}; do
+            if [ -n "${pkg}" ] && [ "${pkg}" = "${package}" ]; then
+                path="$(echo "${line}" | cut -f2 -d' ')"
+
+                deploy "${package}" "${path}"
+                break
+            fi
+        done
     done < <(list_all)
 }
 

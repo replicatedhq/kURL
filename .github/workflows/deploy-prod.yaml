@@ -49,17 +49,39 @@ jobs:
         DOCKERHUB_DOCKER_PASS: ${{ secrets.DOCKERHUB_DOCKER_PASS }}
         DOCKERHUB_DOCKER_USER: ${{ secrets.DOCKERHUB_DOCKER_USER }}
 
-  build-upload-packages:
+  build-matrix:
     runs-on: ubuntu-18.04
     needs:
     - production-docker-image
     - kurl-util-image
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+    - uses: actions/checkout@v2
+
+    - id: set-matrix
+      name: Build image matrix
+      run: |
+        export VERSION_TAG=$(echo $GITHUB_REF | awk -F'/' '{ print $NF }')
+        export KURL_UTIL_IMAGE=replicated/kurl-util:${VERSION_TAG}
+        export KURL_BIN_UTILS_FILE=kurl-bin-utils-${VERSION_TAG}.tar.gz
+        OUTPUT=`bin/list-all-packages-actions-matrix.sh "${{ github.event.inputs.index }}"`
+        echo "::set-output name=matrix::$OUTPUT"
+
+  build-upload-packages:
+    runs-on: ubuntu-18.04
+    needs:
+    - build-matrix
+    strategy:
+      matrix: ${{fromJSON(needs.build-matrix.outputs.matrix)}}
+      fail-fast: true
+      max-parallel: 10
     steps:
     - uses: actions/checkout@v2
 
     - uses: actions/setup-go@v2.1.3
       with:
-        go-version: 1.16.0
+        go-version: 1.16
 
     - name: setup env
       id: env
@@ -72,7 +94,8 @@ jobs:
         export VERSION_TAG=$(echo $GITHUB_REF | awk -F'/' '{ print $NF }')
         export KURL_UTIL_IMAGE=replicated/kurl-util:${VERSION_TAG}
         export KURL_BIN_UTILS_FILE=kurl-bin-utils-${VERSION_TAG}.tar.gz
-        bin/upload-dist-versioned.sh
+
+        bin/upload-dist-versioned.sh "${{ matrix.batch }}"
       env:
         S3_BUCKET: kurl-sh
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_PROD_ACCESS_KEY_ID }}
