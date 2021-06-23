@@ -166,8 +166,8 @@ function k3s_init() {
     # TODO(dans): coredns is deployed through helm -> might need to go through values here
     # configure_coredns
 
-    if commandExists registry_containerd_init; then
-        registry_containerd_init
+    if commandExists registry_init; then
+        registry_init
     fi
 }
 
@@ -389,7 +389,6 @@ function k3s_main() {
     # init                              # See next line
     k3s_init                            # TODO(dan): A mix of Kubeadm stuff and general setup.
     apply_installer_crd
-    type create_registry_service &> /dev/null && create_registry_service # this function is in an optional addon and may be missing
     kurl_init_config
     ${K8S_DISTRO}_addon_for_each addon_install
     # post_init                          # TODO(dan): more kubeadm token setup

@@ -45,3 +45,16 @@
     registry:
       version: "__testver__"
       s3Override: "__testdist__"
+- installerSpec:
+    kubernetes:
+      version: "latest"
+    weave:
+      version: "latest"
+    longhorn:
+      version: "latest"
+    containerd:
+      version: "latest"
+    registry:
+      publishPort: 8443
+      version: "__testver__"
+      s3Override: "__testdist__"
