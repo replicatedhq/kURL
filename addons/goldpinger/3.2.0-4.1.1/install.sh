@@ -6,6 +6,10 @@ function goldpinger() {
 
     cp -r "$src/" "$dst/"
 
+    if [ -n "${PROMETHEUS_VERSION}" ]; then
+        insert_resources "$dst/kustomization.yaml" servicemonitor.yaml
+    fi
+
     kubectl apply -k "$dst/"
 
     echo "Waiting for Goldpinger  Daemonset to be ready"

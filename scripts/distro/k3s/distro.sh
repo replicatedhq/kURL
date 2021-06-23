@@ -53,6 +53,7 @@ function k3s_addon_for_each() {
     $cmd collectd "$COLLECTD_VERSION" "$COLLECTD_S3_OVERRIDE"
     $cmd cert-manager "$CERT_MANAGER_VERSION" "$CERT_MANAGER_S3_OVERRIDE"
     $cmd sonobuoy "$SONOBUOY_VERSION" "$SONOBUOY_S3_OVERRIDE"
+    $cmd goldpinger "$GOLDPINGER_VERSION" "$GOLDPINGER_S3_OVERRIDE"
 }
 
 function k3s_reset() {
