@@ -18,7 +18,7 @@
     "monkit": "^0.4.0",
     "newrelic": "^5.7.0",
     "node-fetch": "^2.6.1",
-    "pino": "^4.10.4",
+    "pino": "^6.11.3",
     "promise-mysql": "^4.1.0",
     "replicated-lint": "^0.13.3",
     "request": "^2.88.0",
