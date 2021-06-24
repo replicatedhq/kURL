@@ -469,7 +469,7 @@ data:
     datasources:
     - name: Prometheus
       type: prometheus
-      url: http://k8s:9090/
+      url: http://prometheus-k8s:9090/
       access: proxy
       isDefault: true
       jsonData:
@@ -37354,7 +37354,7 @@ spec:
         apiVersion: v2
   image: quay.io/prometheus/prometheus:v2.24.0
   version: v2.24.0
-  externalUrl: http://k8s.monitoring:9090
+  externalUrl: http://prometheus-k8s.monitoring:9090
   paused: false
   replicas: 2
   shards: 1
