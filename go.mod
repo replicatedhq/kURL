@@ -17,10 +17,10 @@ require (
 	github.com/gorilla/mux v1.8.0
 	github.com/huandu/xstrings v1.3.2 // indirect
 	github.com/itchyny/gojq v0.12.2
-	github.com/mattn/go-isatty v0.0.12
+	github.com/mattn/go-isatty v0.0.13
 	github.com/mitchellh/copystructure v1.2.0 // indirect
 	github.com/onsi/gomega v1.12.0
-	github.com/pelletier/go-toml v1.9.1 // indirect
+	github.com/pelletier/go-toml v1.9.1
 	github.com/pkg/errors v0.9.1
 	github.com/replicatedhq/troubleshoot v0.10.24
 	github.com/spf13/afero v1.6.0
