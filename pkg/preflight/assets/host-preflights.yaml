@@ -360,3 +360,15 @@ spec:
           - fail:
               when: "p99 >= 20ms"
               message: "Write latency is too high. p99 target < 10ms, actual:{{ .String }}"
+    - time:
+        checkName: "NTP Status"
+        outcomes:
+            - fail:
+                when: "ntp == unsynchronized+inactive"
+                message: "System clock is not synchronized"
+            - pass:
+                when: "ntp == synchronized+active"
+                message: "System clock is synchronized"
+            - warn: 
+                when: "timezone != UTC"
+                message: "Non UTC timezone can interfere with system function"
