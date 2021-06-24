@@ -160,7 +160,7 @@ func execute(singleTest types.SingleRun, uploadProxyURL, tempDir string) error {
 		},
 		Spec: kubevirtv1.VirtualMachineInstanceSpec{
 			Domain: kubevirtv1.DomainSpec{
-				Machine: kubevirtv1.Machine{
+				Machine: &kubevirtv1.Machine{
 					Type: "",
 				},
 				Resources: kubevirtv1.ResourceRequirements{
