@@ -14,15 +14,6 @@ updates:
     schedule:
       interval: "weekly"
 
-  - package-ecosystem: "npm"
-    directory: "/web"
-    schedule:
-      interval: "weekly"
-  - package-ecosystem: "npm"
-    directory: "/testgrid/web"
-    schedule:
-      interval: "weekly"
-
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
