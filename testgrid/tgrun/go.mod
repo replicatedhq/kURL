@@ -11,8 +11,8 @@ require (
 	github.com/stretchr/testify v1.7.0
 	go.uber.org/zap v1.17.0
 	gopkg.in/yaml.v2 v2.4.0
-	k8s.io/api v0.20.8
-	k8s.io/apimachinery v0.20.8
+	k8s.io/api v0.21.2
+	k8s.io/apimachinery v0.21.2
 	k8s.io/client-go v12.0.0+incompatible
 	kubevirt.io/client-go v0.42.1
 )
@@ -37,8 +37,10 @@ replace (
 	k8s.io/component-base => k8s.io/component-base v0.20.8
 	k8s.io/cri-api => k8s.io/cri-api v0.20.8
 	k8s.io/csi-translation-lib => k8s.io/csi-translation-lib v0.20.8
+	k8s.io/klog => k8s.io/klog v0.4.0
 	k8s.io/kube-aggregator => k8s.io/kube-aggregator v0.20.8
 	k8s.io/kube-controller-manager => k8s.io/kube-controller-manager v0.20.8
+	k8s.io/kube-openapi => k8s.io/kube-openapi v0.0.0-20210113233702-8566a335510f
 	k8s.io/kube-proxy => k8s.io/kube-proxy v0.20.8
 	k8s.io/kube-scheduler => k8s.io/kube-scheduler v0.20.8
 	k8s.io/kubectl => k8s.io/kubectl v0.20.8
@@ -50,5 +52,6 @@ replace (
 	k8s.io/sample-cli-plugin => k8s.io/sample-cli-plugin v0.20.8
 	k8s.io/sample-controller => k8s.io/sample-controller v0.20.8
 
+	kubevirt.io/containerized-data-importer => kubevirt.io/containerized-data-importer v1.34.0
 	sigs.k8s.io/structured-merge-diff => sigs.k8s.io/structured-merge-diff v0.0.0-20190302045857-e85c7b244fd2
 )
