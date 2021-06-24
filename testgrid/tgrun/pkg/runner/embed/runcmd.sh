@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -x
+
 function command_exists() {
     command -v "$@" > /dev/null 2>&1
 }
