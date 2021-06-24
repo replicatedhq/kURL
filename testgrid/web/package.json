@@ -45,7 +45,7 @@
     "copy-webpack-plugin": "^5.0.0",
     "cross-env": "^5.2.0",
     "css-loader": "^2.1.0",
-    "favicons-webpack-plugin": "0.0.9",
+    "favicons-webpack-plugin": "4.2.0",
     "file-loader": "^3.0.1",
     "font-awesome-webpack": "0.0.5-beta.2",
     "fs.realpath": "^1.0.0",
