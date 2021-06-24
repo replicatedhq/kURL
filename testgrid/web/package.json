@@ -81,7 +81,7 @@
     "accounting": "^0.4.1",
     "js-yaml": "^3.13.1",
     "lodash": "^4.17.21",
-    "moment": "^2.24.0",
+    "moment": "^2.29.1",
     "monaco-editor": "^0.21.2",
     "monaco-editor-webpack-plugin": "^2.0.0",
     "parse-ansi": "^1.0.3",
