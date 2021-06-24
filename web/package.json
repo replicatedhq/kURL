@@ -21,7 +21,7 @@
     "pino": "^4.10.4",
     "promise-mysql": "^4.1.0",
     "replicated-lint": "^0.13.3",
-    "request": "^2.88.0",
+    "request": "^2.88.2",
     "request-ip": "^2.1.3",
     "request-promise": "^4.2.2",
     "statsd-client": "^0.4.2",
