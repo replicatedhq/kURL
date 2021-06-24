@@ -35,7 +35,7 @@
     "@types/lodash": "^4.14.54",
     "@types/node-fetch": "^2.5.10",
     "@types/pino": "^4.7.1",
-    "chai": "^4.1.2",
+    "chai": "^4.3.4",
     "codeclimate-test-reporter": "^0.5.0",
     "coveralls": "^3.0.0",
     "env-subst": "^1.0.3",
