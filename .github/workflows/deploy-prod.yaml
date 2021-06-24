@@ -197,7 +197,7 @@ jobs:
 
     - name: Read Changelog
       id: read-changelog
-      uses: juliangruber/read-file-action@v1.0.0
+      uses: juliangruber/read-file-action@v1.1.4
       with:
         path: ./CHANGELOG.md
 
