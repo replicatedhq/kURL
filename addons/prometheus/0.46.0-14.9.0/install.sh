@@ -58,6 +58,11 @@ function prometheus() {
         fi
     fi
 
+    # the metrics service has been renamed to v1beta1.custom.metrics.k8s.io, delete the old
+    if kubectl get --no-headers apiservice v1beta1.metrics.k8s.io 2>/dev/null | grep -q 'monitoring/prometheus-adapter' ; then
+        kubectl delete apiservice v1beta1.metrics.k8s.io
+    fi
+
     kubectl apply -k "$operatordst/"
 }
 
