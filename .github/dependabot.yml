@@ -13,14 +13,6 @@ updates:
     directory: "/testgrid/tgapi"
     schedule:
       interval: "weekly"
-  - package-ecosystem: "gomod"
-    directory: "/kurl_util"
-    schedule:
-      interval: "weekly"
-  - package-ecosystem: "gomod"
-    directory: "/kurlkinds"
-    schedule:
-      interval: "weekly"
 
   - package-ecosystem: "github-actions"
     directory: "/"
