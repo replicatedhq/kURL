@@ -3,6 +3,7 @@
 module.exports.InstallerVersions = {
   kubernetes: [
     // cron-kubernetes-update-119
+    "1.19.12",
     "1.19.11",
     "1.19.10",
     "1.19.9",
@@ -10,6 +11,7 @@ module.exports.InstallerVersions = {
     "1.19.3",
     "1.19.2",
     // cron-kubernetes-update-118
+    "1.18.20",
     "1.18.19",
     "1.18.18",
     "1.18.17",
@@ -20,7 +22,7 @@ module.exports.InstallerVersions = {
     "1.17.7",
     "1.17.3",
     "1.16.4",
-    "1.21.1", "1.21.0", "1.20.7", "1.20.6", "1.20.5", "1.20.4", "1.20.2", "1.20.1", "1.20.0", // cron-kubernetes-update-120
+    "1.21.2", "1.21.1", "1.21.0", "1.20.8", "1.20.7", "1.20.6", "1.20.5", "1.20.4", "1.20.2", "1.20.1", "1.20.0", // cron-kubernetes-update-120
   ],
   rke2: [
     "v1.19.7+rke2r1",
