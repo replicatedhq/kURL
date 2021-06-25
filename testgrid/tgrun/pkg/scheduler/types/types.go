@@ -13,6 +13,7 @@ type SchedulerOptions struct {
 	Staging      bool
 	Airgap       bool
 	LatestOnly   bool
+	KurlVersion  string
 	Spec         string
 }
 
