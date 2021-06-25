@@ -31,3 +31,6 @@ COPY --from=build /go/src/github.com/replicatedhq/kurl/build/bin/* /usr/local/bi
 
 ARG commit=unknown
 ENV COMMIT=$commit
+
+# This image is used as an initContainer in the velero deployment to register the  restore plugin
+ENTRYPOINT ["/bin/bash", "-c", "cp /usr/local/bin/veleroplugin /target/kotsadmrestore"]
