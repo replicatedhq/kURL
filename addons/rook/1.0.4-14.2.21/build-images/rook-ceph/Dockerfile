@@ -4,6 +4,13 @@ FROM rook/ceph:v1.0.4 AS base
 
 FROM ceph/ceph:v14.2.21
 
+RUN yum install -y \
+    glib2 \
+    libwbclient \
+    libldb \
+    samba-client-libs \
+  && yum clean all
+
 COPY --from=base /tini /tini
 
 COPY --from=base /usr/local/bin/rook /usr/local/bin/rookflex /usr/local/bin/toolbox.sh /usr/local/bin/

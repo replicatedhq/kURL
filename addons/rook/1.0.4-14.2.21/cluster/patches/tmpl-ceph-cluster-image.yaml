@@ -5,5 +5,5 @@ metadata:
   namespace: rook-ceph
 spec:
   cephVersion:
-    image: kurlsh/ceph:v14.2.21-e02fe9a-20210623
+    image: kurlsh/ceph:v14.2.21-9065b09-20210625
 
