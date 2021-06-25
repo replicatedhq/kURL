@@ -5,6 +5,7 @@ FROM ceph/ceph:v14.2.0
 RUN yum install -y \
     bind-license \
     curl \
+    glib2 \
     glibc \
     glibc-common \
     libcurl \
