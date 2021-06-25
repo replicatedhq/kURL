@@ -7,6 +7,8 @@
       version: "latest"
     minio:
       version: "latest"
+    kotsadm:
+      version: "latest"
     rook:
       version: "__testver__"
       s3Override: "__testdist__"
@@ -20,6 +22,8 @@
       version: "latest"
     minio:
       version: "latest"
+    kotsadm:
+      version: "latest"
     rook:
       version: "1.4.3"
       isBlockStorageEnabled: true
@@ -31,6 +35,8 @@
     docker:
       version: "latest"
     minio:
+      version: "latest"
+    kotsadm:
       version: "latest"
     rook:
       version: "__testver__"
@@ -46,6 +52,8 @@
       version: "latest"
     minio:
       version: "latest"
+    kotsadm:
+      version: "latest"
     rook:
       version: "__testver__"
       s3Override: "__testdist__"
@@ -60,6 +68,8 @@
       version: "latest"
     minio:
       version: "latest"
+    kotsadm:
+      version: "latest"
     rook:
       version: "1.0.4"
   upgradeSpec:
@@ -70,6 +80,8 @@
     docker:
       version: "latest"
     minio:
+      version: "latest"
+    kotsadm:
       version: "latest"
     rook:
       version: "__testver__"
