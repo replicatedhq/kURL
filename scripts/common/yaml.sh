@@ -96,7 +96,7 @@ EOL
         kubectl apply -f "$ORIGINAL_INSTALLER_SPEC"
     fi
 
-    kubectl apply -f "$MERGED_YAML_SPEC"
+    try_1m kubectl apply -f "$MERGED_YAML_SPEC"
 
     installer_label_velero_exclude_from_backup
 }
