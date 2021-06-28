@@ -1,0 +1,20 @@
+- name: ""
+  installerSpec:
+    installerspec:
+      kubernetes:
+        version: latest
+      docker:
+        version: latest
+      weave:
+        version: latest
+      contour:
+        version: latest
+      rook:
+        version: latest
+      registry:
+        version: latest
+      prometheus:
+        version: latest
+      ekco:
+        version: latest
+

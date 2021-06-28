@@ -192,3 +192,43 @@ jobs:
         git add .
         git commit --allow-empty -m "https://github.com/replicatedhq/kURL/actions/runs/${GITHUB_RUN_ID}" && \
           git push origin master
+
+  testgrid-run:
+    runs-on: ubuntu-18.04
+    needs:
+    - deploy-staging-eks
+    steps:
+
+    - name: Sleep for 3 minutes
+      uses: jakejarvis/wait-action@master
+      with:
+        time: "3m"
+
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Tgrun Build
+      working-directory: ./testgrid/tgrun
+      run: make build
+
+    - name: Tgrun Queue
+      id: queue
+      env:
+        TESTGRID_API_TOKEN: ${{ secrets.TESTGRID_PROD_API_TOKEN }}
+        GIT_TAG: ${{ steps.get_tag.outputs.GIT_TAG }}
+      run: |
+        REF="STAGING-release-${GIT_TAG}-$(date '+%Y%m%d%H%M%S')"
+        ./testgrid/tgrun/bin/tgrun queue --staging \
+          --ref "${REF}" \
+          --spec "$(cat ./testgrid/specs/deploy.yaml)" \
+          --os-spec "$(cat ./testgrid/specs/os-latest.yaml)"
+        MSG="Testgrid Run(s) Executing @ https://testgrid.kurl.sh/run/${REF}"
+        echo "::set-output name=msg::${MSG}"
+
+    - name: Post TG URL
+      uses: unsplash/comment-on-pr@master
+      env:
+        GITHUB_TOKEN: ${{ secrets.GH_PAT }}
+      with:
+        msg: ${{ steps.queue.outputs.msg }}
+        check_for_duplicate_msg: true

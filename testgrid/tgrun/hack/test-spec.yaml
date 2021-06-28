@@ -1,4 +1,5 @@
 - installerSpec:
+    name: hack
     kubernetes:
       version: "latest"
     weave:

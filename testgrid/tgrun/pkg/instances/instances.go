@@ -1,23 +1,32 @@
 package instances
 
-import "github.com/replicatedhq/kurl/testgrid/tgrun/pkg/scheduler/types"
+import (
+	"path/filepath"
+	"runtime"
+	"strings"
+
+	"github.com/replicatedhq/kurl/testgrid/tgrun/pkg/scheduler/types"
+)
 
 var Instances = []types.Instance{}
 
 func RegisterInstance(instance types.Instance) {
+	_, file, _, _ := runtime.Caller(1)
+	name := strings.Split(filepath.Base(file), ".")[0]
+
+	instance.Name = name
 	Instances = append(Instances, instance)
 }
 
 func RegisterAirgapAndOnlineInstance(instance types.Instance) {
+	_, file, _, _ := runtime.Caller(1)
+	name := strings.Split(filepath.Base(file), ".")[0]
+
+	instance.Name = name
 	Instances = append(Instances, instance)
 
 	duplicate := instance
-	if instance.UpgradeSpec != nil {
-		duplicateUpgrade := *instance.UpgradeSpec
-		duplicate.UpgradeSpec = &duplicateUpgrade
-		duplicate.UpgradeSpec.RunAirgap = true
-	}
-
-	duplicate.InstallerSpec.RunAirgap = true
+	duplicate.Name = name + "-airgap"
+	duplicate.Airgap = true
 	Instances = append(Instances, duplicate)
 }

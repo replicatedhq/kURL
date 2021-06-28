@@ -86,52 +86,52 @@ func appendAddOnToInstallerSpec(installerSpec kurlv1beta1.InstallerSpec, addOnNa
 	switch addOnName {
 
 	case "contour":
-		installerSpec.Contour = kurlv1beta1.Contour{
+		installerSpec.Contour = &kurlv1beta1.Contour{
 			Version: addOnVersion,
 		}
 
 	case "ekco":
-		installerSpec.Ekco = kurlv1beta1.Ekco{
+		installerSpec.Ekco = &kurlv1beta1.Ekco{
 			Version: addOnVersion,
 		}
 
 	case "fluentd":
-		installerSpec.Fluentd = kurlv1beta1.Fluentd{
+		installerSpec.Fluentd = &kurlv1beta1.Fluentd{
 			Version: addOnVersion,
 		}
 
 	case "rook":
-		installerSpec.Rook = kurlv1beta1.Rook{
+		installerSpec.Rook = &kurlv1beta1.Rook{
 			Version: addOnVersion,
 		}
 
 	case "prometheus":
-		installerSpec.Prometheus = kurlv1beta1.Prometheus{
+		installerSpec.Prometheus = &kurlv1beta1.Prometheus{
 			Version: addOnVersion,
 		}
 
 	case "kotsadm":
-		installerSpec.Kotsadm = kurlv1beta1.Kotsadm{
+		installerSpec.Kotsadm = &kurlv1beta1.Kotsadm{
 			Version: addOnVersion,
 		}
 
 	case "minio":
-		installerSpec.Minio = kurlv1beta1.Minio{
+		installerSpec.Minio = &kurlv1beta1.Minio{
 			Version: addOnVersion,
 		}
 
 	case "openebs":
-		installerSpec.OpenEBS = kurlv1beta1.OpenEBS{
+		installerSpec.OpenEBS = &kurlv1beta1.OpenEBS{
 			Version: addOnVersion,
 		}
 
 	case "registry":
-		installerSpec.Registry = kurlv1beta1.Registry{
+		installerSpec.Registry = &kurlv1beta1.Registry{
 			Version: addOnVersion,
 		}
 
 	case "velero":
-		installerSpec.Velero = kurlv1beta1.Velero{
+		installerSpec.Velero = &kurlv1beta1.Velero{
 			Version: addOnVersion,
 		}
 

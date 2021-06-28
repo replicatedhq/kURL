@@ -15,7 +15,6 @@ import (
 	"github.com/pkg/errors"
 	kurlv1beta1 "github.com/replicatedhq/kurl/kurlkinds/pkg/apis/cluster/v1beta1"
 	tghandlers "github.com/replicatedhq/kurl/testgrid/tgapi/pkg/handlers"
-	"github.com/replicatedhq/kurl/testgrid/tgrun/pkg/instances"
 	"github.com/replicatedhq/kurl/testgrid/tgrun/pkg/scheduler/types"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -36,6 +35,11 @@ func Run(schedulerOptions types.SchedulerOptions) error {
 
 	plannedInstances := []tghandlers.PlannedInstance{}
 
+	operatingSystems, err := getOses(schedulerOptions)
+	if err != nil {
+		return err
+	}
+
 	kurlPlans, err := getKurlPlans(schedulerOptions)
 	if err != nil {
 		return err
@@ -51,7 +55,7 @@ func Run(schedulerOptions types.SchedulerOptions) error {
 		}
 
 		// post it to the API to get a sha / id back
-		installer := types.Installer{
+		installer := kurlv1beta1.Installer{
 			TypeMeta: metav1.TypeMeta{
 				APIVersion: "cluster.kurl.sh/v1beta1",
 				Kind:       "Installer",
@@ -68,7 +72,7 @@ func Run(schedulerOptions types.SchedulerOptions) error {
 		}
 
 		apiUrl := "https://kurl.sh/installer"
-		if testSpec.IsStaging || schedulerOptions.Staging {
+		if schedulerOptions.Staging {
 			apiUrl = "https://staging.kurl.sh/installer"
 		}
 
@@ -120,7 +124,7 @@ func Run(schedulerOptions types.SchedulerOptions) error {
 				return errors.Wrap(err, "failed to read upgrade response body")
 			}
 
-			if instance.InstallerSpec.RunAirgap || schedulerOptions.Airgap {
+			if instance.Airgap || schedulerOptions.Airgap {
 				upgradeURLString, err := getBundleFromURL(string(upgradeURL), schedulerOptions.KurlVersion)
 				if err != nil {
 					return errors.Wrapf(err, "generate airgap url from upgrade url %s", upgradeURL)
@@ -142,7 +146,7 @@ func Run(schedulerOptions types.SchedulerOptions) error {
 			return fmt.Errorf("error getting kurl spec url: %s", errMsg.Error.Message)
 		}
 
-		if instance.InstallerSpec.RunAirgap || schedulerOptions.Airgap {
+		if instance.Airgap || schedulerOptions.Airgap {
 			installerURLString, err := getBundleFromURL(string(installerURL), schedulerOptions.KurlVersion)
 			if err != nil {
 				return errors.Wrapf(err, "generate airgap url from installer url %s", installerURL)
@@ -195,40 +199,46 @@ func Run(schedulerOptions types.SchedulerOptions) error {
 }
 
 func getKurlPlans(schedulerOptions types.SchedulerOptions) ([]types.Instance, error) {
-	var kurlPlans []types.Instance
-
-	// Custom Kurl Spec takes precedence
-	if schedulerOptions.Spec != "" {
-		err := yaml.Unmarshal([]byte(schedulerOptions.Spec), &kurlPlans)
-		if err != nil {
-			return nil, err
-		}
-
-		for idx, _ := range kurlPlans {
-			// ensure that installerSpec has a k8s and CRI version specified
-			isDistroDefined := (kurlPlans[idx].InstallerSpec.Kubernetes != nil && kurlPlans[idx].InstallerSpec.Kubernetes.Version != "") ||
-				kurlPlans[idx].InstallerSpec.RKE2 != nil || kurlPlans[idx].InstallerSpec.K3S != nil
-			if !isDistroDefined {
-				kurlPlans[idx].InstallerSpec.Kubernetes.Version = "latest"
-			}
-
-			isDistroRancher := kurlPlans[idx].InstallerSpec.RKE2 != nil || kurlPlans[idx].InstallerSpec.K3S != nil
-			if kurlPlans[idx].InstallerSpec.Docker == nil && kurlPlans[idx].InstallerSpec.Containerd == nil && !isDistroRancher {
-				kurlPlans[idx].InstallerSpec.Docker = &kurlv1beta1.Docker{
-					Version: "latest",
-				}
-			}
-		}
-
-		// Latest-only flag is set
-	} else if schedulerOptions.LatestOnly {
-		kurlPlans = instances.Latest
-
-		// Default Case: use pre-planned integration test suite
-	} else {
-		kurlPlans = instances.Instances
+	if schedulerOptions.Spec == "" {
+		return nil, errors.New("spec required")
 	}
+
+	var kurlPlans []types.Instance
+	err := yaml.Unmarshal([]byte(schedulerOptions.Spec), &kurlPlans)
+	if err != nil {
+		return nil, err
+	}
+
+	for idx := range kurlPlans {
+		// ensure that installerSpec has a k8s and CRI version specified
+		isDistroDefined := (kurlPlans[idx].InstallerSpec.Kubernetes != nil && kurlPlans[idx].InstallerSpec.Kubernetes.Version != "") ||
+			kurlPlans[idx].InstallerSpec.RKE2 != nil || kurlPlans[idx].InstallerSpec.K3S != nil
+		if !isDistroDefined {
+			kurlPlans[idx].InstallerSpec.Kubernetes = &kurlv1beta1.Kubernetes{
+				Version: "latest",
+			}
+		}
+
+		isDistroRancher := kurlPlans[idx].InstallerSpec.RKE2 != nil || kurlPlans[idx].InstallerSpec.K3S != nil
+		if kurlPlans[idx].InstallerSpec.Docker == nil && kurlPlans[idx].InstallerSpec.Containerd == nil && !isDistroRancher {
+			kurlPlans[idx].InstallerSpec.Docker = &kurlv1beta1.Docker{
+				Version: "latest",
+			}
+		}
+	}
+
 	return kurlPlans, nil
+}
+
+func getOses(schedulerOptions types.SchedulerOptions) ([]types.OperatingSystemImage, error) {
+	var oses []types.OperatingSystemImage
+
+	err := yaml.Unmarshal([]byte(schedulerOptions.OSSpec), &oses)
+	if err != nil {
+		return nil, err
+	}
+
+	return oses, nil
 }
 
 func sendStartInstancesRequest(schedulerOptions types.SchedulerOptions, plannedInstances []tghandlers.PlannedInstance) error {

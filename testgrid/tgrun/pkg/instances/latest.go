@@ -8,7 +8,7 @@ import (
 // Latest is the latest version(s) or the curl installer.
 var Latest = []types.Instance{
 	{
-		InstallerSpec: types.InstallerSpec{
+		InstallerSpec: kurlv1beta1.InstallerSpec{
 			Kubernetes: &kurlv1beta1.Kubernetes{
 				Version: "latest",
 			},
