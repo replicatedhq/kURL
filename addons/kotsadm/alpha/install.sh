@@ -259,6 +259,7 @@ function kotsadm_kurl_proxy() {
 
 function kotsadm_tls_secret() {
     if kubernetes_resource_exists default secret kotsadm-tls; then
+        kubectl -n default label secret kotsadm-tls --overwrite kots.io/kotsadm=true kots.io/backup=velero
         return 0
     fi
 
@@ -299,6 +300,7 @@ EOF
 
     kubectl -n default create secret tls kotsadm-tls --key=kotsadm.key --cert=kotsadm.crt
     kubectl -n default annotate secret kotsadm-tls acceptAnonymousUploads=1
+    kubectl -n default label secret kotsadm-tls --overwrite kots.io/kotsadm=true kots.io/backup=velero
 
     rm kotsadm.cnf kotsadm.key kotsadm.crt
 }
