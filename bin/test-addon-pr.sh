@@ -129,8 +129,8 @@ test_addon() {
   # Run testgrid plan
   ./testgrid/tgrun/bin/tgrun queue --staging \
     --ref "pr-${PR_NUMBER}-${GITHUB_SHA:0:7}-${name}-${version}-${specname}" \
-    --spec "$(cat /tmp/test-spec)" \
-    --os-spec "$(cat ./testgrid/specs/os.yaml)"
+    --spec /tmp/test-spec \
+    --os-spec ./testgrid/specs/os.yaml
   echo "Submitted TestGrid Ref pr-${PR_NUMBER}-${GITHUB_SHA:0:7}-${name}-${version}-${specname}"
   MSG="$MSG https://testgrid.kurl.sh/run/pr-${PR_NUMBER}-${GITHUB_SHA:0:7}-${name}-${version}-${specname}"
 }

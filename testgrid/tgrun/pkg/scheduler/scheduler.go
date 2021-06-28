@@ -20,9 +20,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// hack
-var previouslyGeneratedNames = []string{}
-
 var urlRegexp = regexp.MustCompile(`(https://[\w.]+)/([\w]+)`)
 
 type kurlErrResp struct {
@@ -49,10 +46,8 @@ func Run(schedulerOptions types.SchedulerOptions) error {
 	for _, instance := range kurlPlans {
 		testSpec := instance.InstallerSpec
 		// append sonobuoy for conformance testing
-		if testSpec.Sonobuoy == nil {
-			testSpec.Sonobuoy = &kurlv1beta1.Sonobuoy{
-				Version: "latest",
-			}
+		if testSpec.Sonobuoy.Version == "" {
+			testSpec.Sonobuoy.Version = "latest"
 		}
 
 		// post it to the API to get a sha / id back
@@ -98,10 +93,8 @@ func Run(schedulerOptions types.SchedulerOptions) error {
 			installer.Spec = *instance.UpgradeSpec
 
 			// append sonobuoy for conformance testing
-			if installer.Spec.Sonobuoy == nil {
-				installer.Spec.Sonobuoy = &kurlv1beta1.Sonobuoy{
-					Version: "latest",
-				}
+			if installer.Spec.Sonobuoy.Version == "" {
+				installer.Spec.Sonobuoy.Version = "latest"
 			}
 
 			upgradeYAML, err = json.Marshal(installer)
@@ -222,19 +215,14 @@ func getKurlPlans(schedulerOptions types.SchedulerOptions) ([]types.Instance, er
 
 	for idx := range kurlPlans {
 		// ensure that installerSpec has a k8s and CRI version specified
-		isDistroDefined := (kurlPlans[idx].InstallerSpec.Kubernetes != nil && kurlPlans[idx].InstallerSpec.Kubernetes.Version != "") ||
-			kurlPlans[idx].InstallerSpec.RKE2 != nil || kurlPlans[idx].InstallerSpec.K3S != nil
+		isDistroDefined := kurlPlans[idx].InstallerSpec.Kubernetes.Version != "" || kurlPlans[idx].InstallerSpec.RKE2.Version != "" || kurlPlans[idx].InstallerSpec.K3S.Version != ""
 		if !isDistroDefined {
-			kurlPlans[idx].InstallerSpec.Kubernetes = &kurlv1beta1.Kubernetes{
-				Version: "latest",
-			}
+			kurlPlans[idx].InstallerSpec.Kubernetes.Version = "latest"
 		}
 
-		isDistroRancher := kurlPlans[idx].InstallerSpec.RKE2 != nil || kurlPlans[idx].InstallerSpec.K3S != nil
-		if kurlPlans[idx].InstallerSpec.Docker == nil && kurlPlans[idx].InstallerSpec.Containerd == nil && !isDistroRancher {
-			kurlPlans[idx].InstallerSpec.Docker = &kurlv1beta1.Docker{
-				Version: "latest",
-			}
+		isDistroRancher := kurlPlans[idx].InstallerSpec.RKE2.Version != "" || kurlPlans[idx].InstallerSpec.K3S.Version != ""
+		if !isDistroRancher && kurlPlans[idx].InstallerSpec.Docker.Version == "" && kurlPlans[idx].InstallerSpec.Containerd.Version == "" {
+			kurlPlans[idx].InstallerSpec.Docker.Version = "latest"
 		}
 	}
 

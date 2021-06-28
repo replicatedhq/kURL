@@ -21,36 +21,36 @@ import (
 )
 
 type InstallerSpec struct {
-	Kubernetes      *Kubernetes      `json:"kubernetes,omitempty" yaml:"kubernetes,omitempty"`
-	RKE2            *RKE2            `json:"rke2,omitempty" yaml:"rke2,omitempty"`
-	K3S             *K3S             `json:"k3s,omitempty" yaml:"k3s,omitempty"`
-	Docker          *Docker          `json:"docker,omitempty" yaml:"docker,omitempty"`
-	Weave           *Weave           `json:"weave,omitempty" yaml:"weave,omitempty"`
-	Antrea          *Antrea          `json:"antrea,omitempty" yaml:"antrea,omitempty"`
-	Calico          *Calico          `json:"calico,omitempty" yaml:"calico,omitempty"`
-	Contour         *Contour         `json:"contour,omitempty" yaml:"contour,omitempty"`
-	Rook            *Rook            `json:"rook,omitempty" yaml:"rook,omitempty"`
-	Registry        *Registry        `json:"registry,omitempty" yaml:"registry,omitempty"`
-	Fluentd         *Fluentd         `json:"fluentd,omitempty" yaml:"fluentd,omitempty"`
-	Prometheus      *Prometheus      `json:"prometheus,omitempty" yaml:"prometheus,omitempty"`
-	Kotsadm         *Kotsadm         `json:"kotsadm,omitempty" yaml:"kotsadm,omitempty"`
-	Velero          *Velero          `json:"velero,omitempty" yaml:"velero,omitempty"`
-	Minio           *Minio           `json:"minio,omitempty" yaml:"minio,omitempty"`
-	OpenEBS         *OpenEBS         `json:"openebs,omitempty" yaml:"openebs,omitempty"`
-	SelinuxConfig   *SelinuxConfig   `json:"selinuxConfig,omitempty" yaml:"selinuxConfig,omitempty"`
-	Kurl            *Kurl            `json:"kurl,omitempty" yaml:"kurl,omitempty"`
-	IptablesConfig  *IptablesConfig  `json:"iptablesConfig,omitempty" yaml:"iptablesConfig,omitempty"`
-	FirewalldConfig *FirewalldConfig `json:"firewalldConfig,omitempty" yaml:"firewalldConfig,omitempty"`
-	Ekco            *Ekco            `json:"ekco,omitempty" yaml:"ekco,omitempty"`
-	Containerd      *Containerd      `json:"containerd,omitempty" yaml:"containerd,omitempty"`
-	Collectd        *Collectd        `json:"collectd,omitempty" yaml:"collectd,omitempty"`
-	CertManager     *CertManager     `json:"certManager,omitempty" yaml:"certManager,omitempty"`
-	MetricsServer   *MetricsServer   `json:"metricsServer,omitempty" yaml:"metricsServer,omitempty"`
-	Helm            *Helm            `json:"helm,omitempty" yaml:"helm,omitempty"`
-	Longhorn        *Longhorn        `json:"longhorn,omitempty" yaml:"longhorn,omitempty"`
-	Sonobuoy        *Sonobuoy        `json:"sonobuoy,omitempty" yaml:"sonobuoy,omitempty"`
-	UFWConfig       *UFWConfig       `json:"ufwConfig,omitempty" yaml:"ufwConfig,omitempty"`
-	Goldpinger      *Goldpinger      `json:"goldpinger,omitempty" yaml:"goldpinger,omitempty"`
+	Kubernetes      Kubernetes      `json:"kubernetes,omitempty" yaml:"kubernetes,omitempty"`
+	RKE2            RKE2            `json:"rke2,omitempty" yaml:"rke2,omitempty"`
+	K3S             K3S             `json:"k3s,omitempty" yaml:"k3s,omitempty"`
+	Docker          Docker          `json:"docker,omitempty" yaml:"docker,omitempty"`
+	Weave           Weave           `json:"weave,omitempty" yaml:"weave,omitempty"`
+	Antrea          Antrea          `json:"antrea,omitempty" yaml:"antrea,omitempty"`
+	Calico          Calico          `json:"calico,omitempty" yaml:"calico,omitempty"`
+	Contour         Contour         `json:"contour,omitempty" yaml:"contour,omitempty"`
+	Rook            Rook            `json:"rook,omitempty" yaml:"rook,omitempty"`
+	Registry        Registry        `json:"registry,omitempty" yaml:"registry,omitempty"`
+	Fluentd         Fluentd         `json:"fluentd,omitempty" yaml:"fluentd,omitempty"`
+	Prometheus      Prometheus      `json:"prometheus,omitempty" yaml:"prometheus,omitempty"`
+	Kotsadm         Kotsadm         `json:"kotsadm,omitempty" yaml:"kotsadm,omitempty"`
+	Velero          Velero          `json:"velero,omitempty" yaml:"velero,omitempty"`
+	Minio           Minio           `json:"minio,omitempty" yaml:"minio,omitempty"`
+	OpenEBS         OpenEBS         `json:"openebs,omitempty" yaml:"openebs,omitempty"`
+	SelinuxConfig   SelinuxConfig   `json:"selinuxConfig,omitempty" yaml:"selinuxConfig,omitempty"`
+	Kurl            Kurl            `json:"kurl,omitempty" yaml:"kurl,omitempty"`
+	IptablesConfig  IptablesConfig  `json:"iptablesConfig,omitempty" yaml:"iptablesConfig,omitempty"`
+	FirewalldConfig FirewalldConfig `json:"firewalldConfig,omitempty" yaml:"firewalldConfig,omitempty"`
+	Ekco            Ekco            `json:"ekco,omitempty" yaml:"ekco,omitempty"`
+	Containerd      Containerd      `json:"containerd,omitempty" yaml:"containerd,omitempty"`
+	Collectd        Collectd        `json:"collectd,omitempty" yaml:"collectd,omitempty"`
+	CertManager     CertManager     `json:"certManager,omitempty" yaml:"certManager,omitempty"`
+	MetricsServer   MetricsServer   `json:"metricsServer,omitempty" yaml:"metricsServer,omitempty"`
+	Helm            Helm            `json:"helm,omitempty" yaml:"helm,omitempty"`
+	Longhorn        Longhorn        `json:"longhorn,omitempty" yaml:"longhorn,omitempty"`
+	Sonobuoy        Sonobuoy        `json:"sonobuoy,omitempty" yaml:"sonobuoy,omitempty"`
+	UFWConfig       UFWConfig       `json:"ufwConfig,omitempty" yaml:"ufwConfig,omitempty"`
+	Goldpinger      Goldpinger      `json:"goldpinger,omitempty" yaml:"goldpinger,omitempty"`
 }
 
 type Contour struct {

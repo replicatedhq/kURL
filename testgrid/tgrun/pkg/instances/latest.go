@@ -9,28 +9,28 @@ import (
 var Latest = []types.Instance{
 	{
 		InstallerSpec: kurlv1beta1.InstallerSpec{
-			Kubernetes: &kurlv1beta1.Kubernetes{
+			Kubernetes: kurlv1beta1.Kubernetes{
 				Version: "latest",
 			},
-			Weave: &kurlv1beta1.Weave{
+			Weave: kurlv1beta1.Weave{
 				Version: "latest",
 			},
-			Rook: &kurlv1beta1.Rook{
+			Rook: kurlv1beta1.Rook{
 				Version: "latest",
 			},
-			Ekco: &kurlv1beta1.Ekco{
+			Ekco: kurlv1beta1.Ekco{
 				Version: "latest",
 			},
-			Contour: &kurlv1beta1.Contour{
+			Contour: kurlv1beta1.Contour{
 				Version: "latest",
 			},
-			Docker: &kurlv1beta1.Docker{
+			Docker: kurlv1beta1.Docker{
 				Version: "latest",
 			},
-			Prometheus: &kurlv1beta1.Prometheus{
+			Prometheus: kurlv1beta1.Prometheus{
 				Version: "latest",
 			},
-			Registry: &kurlv1beta1.Registry{
+			Registry: kurlv1beta1.Registry{
 				Version: "latest",
 			},
 		},
