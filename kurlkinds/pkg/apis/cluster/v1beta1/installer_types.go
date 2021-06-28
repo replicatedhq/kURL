@@ -31,14 +31,14 @@ type InstallerSpec struct {
 	Contour         Contour         `json:"contour,omitempty" yaml:"contour,omitempty"`
 	Rook            Rook            `json:"rook,omitempty" yaml:"rook,omitempty"`
 	Registry        Registry        `json:"registry,omitempty" yaml:"registry,omitempty"`
-	Fluentd         Fluentd         `json:"fluentd,omitempty" yaml:"fluentd,omitempty"`
 	Prometheus      Prometheus      `json:"prometheus,omitempty" yaml:"prometheus,omitempty"`
+	Fluentd         Fluentd         `json:"fluentd,omitempty" yaml:"fluentd,omitempty"`
 	Kotsadm         Kotsadm         `json:"kotsadm,omitempty" yaml:"kotsadm,omitempty"`
 	Velero          Velero          `json:"velero,omitempty" yaml:"velero,omitempty"`
 	Minio           Minio           `json:"minio,omitempty" yaml:"minio,omitempty"`
 	OpenEBS         OpenEBS         `json:"openebs,omitempty" yaml:"openebs,omitempty"`
-	SelinuxConfig   SelinuxConfig   `json:"selinuxConfig,omitempty" yaml:"selinuxConfig,omitempty"`
 	Kurl            Kurl            `json:"kurl,omitempty" yaml:"kurl,omitempty"`
+	SelinuxConfig   SelinuxConfig   `json:"selinuxConfig,omitempty" yaml:"selinuxConfig,omitempty"`
 	IptablesConfig  IptablesConfig  `json:"iptablesConfig,omitempty" yaml:"iptablesConfig,omitempty"`
 	FirewalldConfig FirewalldConfig `json:"firewalldConfig,omitempty" yaml:"firewalldConfig,omitempty"`
 	Ekco            Ekco            `json:"ekco,omitempty" yaml:"ekco,omitempty"`
