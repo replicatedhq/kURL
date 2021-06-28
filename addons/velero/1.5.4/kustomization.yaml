@@ -1,2 +1,2 @@
 resources:
-  - velero.yaml
+- velero.yaml

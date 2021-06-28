@@ -24,6 +24,8 @@ function velero() {
 
     velero_patch_http_proxy "$src" "$dst"
 
+    velero_change_storageclass "$src" "$dst"
+
     kubectl create namespace "$VELERO_NAMESPACE" 2>/dev/null || true
 
     if [ "${K8S_DISTRO}" = "rke2" ]; then
@@ -107,5 +109,20 @@ function velero_patch_http_proxy() {
     if [ -n "$PROXY_ADDRESS" ] && [ "$VELERO_DISABLE_RESTIC" != "1" ]; then
         render_yaml_file "$src/tmpl-restic-daemonset-proxy.yaml" > "$dst/restic-daemonset-proxy.yaml"
         insert_patches_strategic_merge "$dst/kustomization.yaml" restic-daemonset-proxy.yaml
+    fi
+}
+
+# If this cluster is used to restore a snapshot taken on a cluster where Rook or OpenEBS was the 
+# default storage provisioner, the storageClassName on PVCs will need to be changed from "default"
+# to "longhorn" by velero
+# https://velero.io/docs/v1.6/restore-reference/#changing-pvpvc-storage-classes
+function velero_change_storageclass() {
+    local src="$1"
+    local dst="$2"
+
+    if kubectl get sc longhorn &> /dev/null && \
+    [ "$(kubectl get sc longhorn -o jsonpath='{.metadata.annotations.storageclass\.kubernetes\.io/is-default-class}')" = "true" ]; then
+        render_yaml_file "$src/tmpl-change-storageclass.yaml" > "$dst/change-storageclass.yaml"
+        insert_resources "$dst/kustomization.yaml" change-storageclass.yaml
     fi
 }
