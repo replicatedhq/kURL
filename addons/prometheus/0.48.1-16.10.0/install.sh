@@ -64,6 +64,12 @@ function prometheus() {
         kubectl delete apiservice v1beta1.metrics.k8s.io
     fi
 
+    # change ClusterIP services to NodePorts if required
+    if [ -z "$PROMETHEUS_SERVICE_TYPE" ] || [ "$PROMETHEUS_SERVICE_TYPE" = "NodePort" ] ; then
+        cp "$src/nodeport-services.yaml" "$operatordst"
+        insert_patches_strategic_merge "$operatordst/kustomization.yaml" nodeport-services.yaml
+    fi
+
     kubectl apply -k "$operatordst/"
 }
 
@@ -88,7 +94,11 @@ function grafana_admin_secret() {
 function prometheus_outro() {
     printf "\n"
     printf "\n"
-    printf "The UIs of Prometheus, Grafana and Alertmanager have been exposed on NodePorts ${GREEN}30900${NC}, ${GREEN}30902${NC} and ${GREEN}30903${NC} respectively.\n"
+    if [ -z "$PROMETHEUS_SERVICE_TYPE" ] || [ "$PROMETHEUS_SERVICE_TYPE" = "NodePort" ] ; then
+        printf "The UIs of Prometheus, Grafana and Alertmanager have been exposed on NodePorts ${GREEN}30900${NC}, ${GREEN}30902${NC} and ${GREEN}30903${NC} respectively.\n"
+    else
+        printf "The UIs of Prometheus, Grafana and Alertmanager have been exposed on internal ClusterIP services.\n"
+    fi
     if [ -n "$GRAFANA_ADMIN_PASS" ]; then
         printf "\n"
         printf "To access Grafana use the generated user:password of ${GREEN}${GRAFANA_ADMIN_USER:-admin}:${GRAFANA_ADMIN_PASS} .${NC}\n"

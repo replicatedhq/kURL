@@ -230,6 +230,7 @@ func convertToBash(kurlValues map[string]interface{}, fieldsSet map[string]bool)
 		"OpenEBS.Namespace":                      "OPENEBS_NAMESPACE",
 		"OpenEBS.S3Override":                     "OPENEBS_S3_OVERRIDE",
 		"OpenEBS.Version":                        "OPENEBS_VERSION",
+		"Prometheus.ServiceType":                 "PROMETHEUS_SERVICE_TYPE",
 		"Prometheus.S3Override":                  "PROMETHEUS_S3_OVERRIDE",
 		"Prometheus.Version":                     "PROMETHEUS_VERSION",
 		"Registry.PublishPort":                   "REGISTRY_PUBLISH_PORT",

@@ -360,6 +360,8 @@ spec:
                 properties:
                   s3Override:
                     type: string
+                  serviceType:
+                    type: string
                   version:
                     type: string
                 required:

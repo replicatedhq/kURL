@@ -279,6 +279,7 @@ export const registryConfigSchema = {
 export interface PrometheusConfig {
   version: string;
   s3Override?: string;
+  serviceType?: string;
 }
 
 export const prometheusConfigSchema = {
@@ -286,6 +287,7 @@ export const prometheusConfigSchema = {
   properties: {
     version: { type: "string" },
     s3Override: { type: "string", flag: "s3-override", description: "Override the download location for addon package distribution (used for CI/CD testing alpha addons)" },
+    serviceType: { type: "string", flag: "service-type", description: "Change the service type used to expose Prometheus, Alertmanager and Grafana, defaulting to NodePort." },
   },
   required: ["version"],
   additionalProperties: false,
