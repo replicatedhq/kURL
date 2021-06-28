@@ -240,8 +240,8 @@ jobs:
         REF="PROD-release-${GIT_TAG}-$(date '+%Y%m%d%H%M%S')"
         ./testgrid/tgrun/bin/tgrun queue \
           --ref "${REF}" \
-          --spec "$(cat ./testgrid/specs/deploy.yaml)" \
-          --os-spec "$(cat ./testgrid/specs/os-latest.yaml)"
+          --spec ./testgrid/specs/deploy.yaml \
+          --os-spec ./testgrid/specs/os-latest.yaml
         MSG="Testgrid Run(s) Executing @ https://testgrid.kurl.sh/run/${REF}"
         echo "::set-output name=msg::${MSG}"
 

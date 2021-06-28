@@ -220,8 +220,8 @@ jobs:
         REF="STAGING-release-${GIT_TAG}-$(date '+%Y%m%d%H%M%S')"
         ./testgrid/tgrun/bin/tgrun queue --staging \
           --ref "${REF}" \
-          --spec "$(cat ./testgrid/specs/deploy.yaml)" \
-          --os-spec "$(cat ./testgrid/specs/os-latest.yaml)"
+          --spec ./testgrid/specs/deploy.yaml \
+          --os-spec ./testgrid/specs/os-latest.yaml
         MSG="Testgrid Run(s) Executing @ https://testgrid.kurl.sh/run/${REF}"
         echo "::set-output name=msg::${MSG}"
 

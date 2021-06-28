@@ -28,8 +28,8 @@ jobs:
       run: |
         ./testgrid/tgrun/bin/tgrun queue \
           --ref "PROD-daily-$(date --utc +%FT%TZ)" \
-          --spec "$(cat ./testgrid/specs/full.yaml)" \
-          --os-spec "$(cat ./testgrid/specs/os.yaml)"
+          --spec ./testgrid/specs/full.yaml \
+          --os-spec ./testgrid/specs/os.yaml
 
     - name: testgrid-queue-staging
       env:
@@ -38,5 +38,5 @@ jobs:
       run: |
         ./testgrid/tgrun/bin/tgrun queue --staging \
           --ref "STAGING-daily-$(date --utc +%FT%TZ)" \
-          --spec "$(cat ./testgrid/specs/full.yaml)" \
-          --os-spec "$(cat ./testgrid/specs/os.yaml)"
+          --spec ./testgrid/specs/full.yaml \
+          --os-spec ./testgrid/specs/os.yaml

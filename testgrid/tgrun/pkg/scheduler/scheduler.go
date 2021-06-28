@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"math/rand"
 	"net/http"
+	"os"
 	"regexp"
 	"time"
 
@@ -203,8 +204,18 @@ func getKurlPlans(schedulerOptions types.SchedulerOptions) ([]types.Instance, er
 		return nil, errors.New("spec required")
 	}
 
+	spec := schedulerOptions.Spec
+
+	if _, err := os.Stat(spec); err == nil {
+		b, err := ioutil.ReadFile(spec)
+		if err != nil {
+			return nil, err
+		}
+		spec = string(b)
+	}
+
 	var kurlPlans []types.Instance
-	err := yaml.Unmarshal([]byte(schedulerOptions.Spec), &kurlPlans)
+	err := yaml.Unmarshal([]byte(spec), &kurlPlans)
 	if err != nil {
 		return nil, err
 	}
@@ -231,9 +242,23 @@ func getKurlPlans(schedulerOptions types.SchedulerOptions) ([]types.Instance, er
 }
 
 func getOses(schedulerOptions types.SchedulerOptions) ([]types.OperatingSystemImage, error) {
+	if schedulerOptions.OSSpec == "" {
+		return nil, errors.New("os spec required")
+	}
+
 	var oses []types.OperatingSystemImage
 
-	err := yaml.Unmarshal([]byte(schedulerOptions.OSSpec), &oses)
+	spec := schedulerOptions.OSSpec
+
+	if _, err := os.Stat(spec); err == nil {
+		b, err := ioutil.ReadFile(spec)
+		if err != nil {
+			return nil, err
+		}
+		spec = string(b)
+	}
+
+	err := yaml.Unmarshal([]byte(spec), &oses)
 	if err != nil {
 		return nil, err
 	}
