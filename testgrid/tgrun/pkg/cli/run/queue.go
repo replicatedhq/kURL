@@ -44,7 +44,7 @@ func QueueCmd() *cobra.Command {
 	cmd.Flags().Bool("staging", false, "when set, run tests against staging.kurl.sh instead of kurl.sh")
 	cmd.Flags().Bool("airgap", false, "when set, run tests in airgapped mode")
 	cmd.Flags().Bool("latest-only", false, "when set, run tests against the 'latest' kurl installer only instead of the standard suite")
-	cmd.Flags().Bool("kurl-version", false, "when set, run a specific kurl version")
+	cmd.Flags().String("kurl-version", "", "when set, run a specific kurl version")
 	cmd.Flags().String("spec", "", "when set, runs test against the provided installer spec yaml")
 
 	cmd.MarkFlagRequired("ref")
