@@ -21,6 +21,8 @@ func TestRestoreKotsadmPluginExecute(t *testing.T) {
 		configMaps  []runtime.Object
 		deployment  *appsv1.Deployment
 		statefulset *appsv1.StatefulSet
+		replicaset  *appsv1.ReplicaSet
+		pod         *corev1.Pod
 		want        corev1.PodSpec
 		wantErr     bool
 	}{
@@ -45,6 +47,10 @@ func TestRestoreKotsadmPluginExecute(t *testing.T) {
 				},
 			},
 			deployment: &appsv1.Deployment{
+				TypeMeta: metav1.TypeMeta{
+					APIVersion: "apps/v1",
+					Kind:       "Deployment",
+				},
 				ObjectMeta: metav1.ObjectMeta{
 					Name: "kotsadm",
 				},
@@ -137,6 +143,10 @@ func TestRestoreKotsadmPluginExecute(t *testing.T) {
 				},
 			},
 			statefulset: &appsv1.StatefulSet{
+				TypeMeta: metav1.TypeMeta{
+					APIVersion: "apps/v1",
+					Kind:       "StatefulSet",
+				},
 				ObjectMeta: metav1.ObjectMeta{
 					Name: "kotsadm",
 				},
@@ -208,6 +218,200 @@ func TestRestoreKotsadmPluginExecute(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "replicaset",
+			configMaps: []runtime.Object{
+				&corev1.ConfigMap{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "kotsadm-restore-config",
+						Namespace: "velero",
+						Labels: map[string]string{
+							"velero.io/plugin-config":        "",
+							"kurl.sh/restore-kotsadm-plugin": "RestoreItemAction",
+						},
+					},
+					Data: map[string]string{
+						"HTTP_PROXY":  "http://10.128.0.3:3128",
+						"HTTPS_PROXY": "https://10.128.0.3:3128",
+						"NO_PROXY":    ".minio,10.128.0.50",
+						"hostCAPath":  "/etc/pki/tls/ca-bundle.pem",
+					},
+				},
+			},
+			replicaset: &appsv1.ReplicaSet{
+				TypeMeta: metav1.TypeMeta{
+					APIVersion: "apps/v1",
+					Kind:       "ReplicaSet",
+				},
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "kotsadm-577fd8c96f",
+					Labels: map[string]string{
+						"app": "kotsadm",
+					},
+				},
+				Spec: appsv1.ReplicaSetSpec{
+					Template: corev1.PodTemplateSpec{
+						Spec: corev1.PodSpec{
+							Containers: []corev1.Container{
+								{
+									Name: "kotsadm",
+									Env: []corev1.EnvVar{
+										{
+											Name:  "HTTP_PROXY",
+											Value: "http://proxy.internal",
+										},
+										{
+											Name:  "HTTPS_PROXY",
+											Value: "https://proxy.internal",
+										},
+										{
+											Name:  "NO_PROXY",
+											Value: ".rook-ceph,10.128.0.49",
+										},
+									},
+								},
+							},
+							Volumes: []corev1.Volume{
+								{
+									Name: "host-cacerts",
+									VolumeSource: corev1.VolumeSource{
+										HostPath: &corev1.HostPathVolumeSource{
+											Path: "/etc/ssl/cacerts.pem",
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			want: corev1.PodSpec{
+				Containers: []corev1.Container{
+					{
+						Name: "kotsadm",
+						Env: []corev1.EnvVar{
+							{
+								Name:  "HTTP_PROXY",
+								Value: "http://10.128.0.3:3128",
+							},
+							{
+								Name:  "HTTPS_PROXY",
+								Value: "https://10.128.0.3:3128",
+							},
+							{
+								Name:  "NO_PROXY",
+								Value: ".minio,10.128.0.50",
+							},
+						},
+					},
+				},
+				Volumes: []corev1.Volume{
+					{
+						Name: "host-cacerts",
+						VolumeSource: corev1.VolumeSource{
+							HostPath: &corev1.HostPathVolumeSource{
+								Path: "/etc/pki/tls/ca-bundle.pem",
+							},
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "pod",
+			configMaps: []runtime.Object{
+				&corev1.ConfigMap{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "kotsadm-restore-config",
+						Namespace: "velero",
+						Labels: map[string]string{
+							"velero.io/plugin-config":        "",
+							"kurl.sh/restore-kotsadm-plugin": "RestoreItemAction",
+						},
+					},
+					Data: map[string]string{
+						"HTTP_PROXY":  "http://10.128.0.3:3128",
+						"HTTPS_PROXY": "https://10.128.0.3:3128",
+						"NO_PROXY":    ".minio,10.128.0.50",
+						"hostCAPath":  "/etc/pki/tls/ca-bundle.pem",
+					},
+				},
+			},
+			pod: &corev1.Pod{
+				TypeMeta: metav1.TypeMeta{
+					APIVersion: "v1",
+					Kind:       "Pod",
+				},
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "kotsadm-5797656748-6vhht",
+					Labels: map[string]string{
+						"app": "kotsadm",
+					},
+				},
+				Spec: corev1.PodSpec{
+					Containers: []corev1.Container{
+						{
+							Name: "kotsadm",
+							Env: []corev1.EnvVar{
+								{
+									Name:  "HTTP_PROXY",
+									Value: "http://proxy.internal",
+								},
+								{
+									Name:  "HTTPS_PROXY",
+									Value: "https://proxy.internal",
+								},
+								{
+									Name:  "NO_PROXY",
+									Value: ".rook-ceph,10.128.0.49",
+								},
+							},
+						},
+					},
+					Volumes: []corev1.Volume{
+						{
+							Name: "host-cacerts",
+							VolumeSource: corev1.VolumeSource{
+								HostPath: &corev1.HostPathVolumeSource{
+									Path: "/etc/ssl/cacerts.pem",
+								},
+							},
+						},
+					},
+				},
+			},
+			want: corev1.PodSpec{
+				Containers: []corev1.Container{
+					{
+						Name: "kotsadm",
+						Env: []corev1.EnvVar{
+							{
+								Name:  "HTTP_PROXY",
+								Value: "http://10.128.0.3:3128",
+							},
+							{
+								Name:  "HTTPS_PROXY",
+								Value: "https://10.128.0.3:3128",
+							},
+							{
+								Name:  "NO_PROXY",
+								Value: ".minio,10.128.0.50",
+							},
+						},
+					},
+				},
+				Volumes: []corev1.Volume{
+					{
+						Name: "host-cacerts",
+						VolumeSource: corev1.VolumeSource{
+							HostPath: &corev1.HostPathVolumeSource{
+								Path: "/etc/pki/tls/ca-bundle.pem",
+							},
+						},
+					},
+				},
+			},
+		},
 	}
 
 	os.Setenv("VELERO_NAMESPACE", "velero")
@@ -223,8 +427,12 @@ func TestRestoreKotsadmPluginExecute(t *testing.T) {
 			var err error
 			if test.deployment != nil {
 				obj, err = runtime.DefaultUnstructuredConverter.ToUnstructured(test.deployment)
-			} else {
+			} else if test.statefulset != nil {
 				obj, err = runtime.DefaultUnstructuredConverter.ToUnstructured(test.statefulset)
+			} else if test.replicaset != nil {
+				obj, err = runtime.DefaultUnstructuredConverter.ToUnstructured(test.replicaset)
+			} else if test.pod != nil {
+				obj, err = runtime.DefaultUnstructuredConverter.ToUnstructured(test.pod)
 			}
 			require.NoError(t, err)
 
@@ -243,16 +451,27 @@ func TestRestoreKotsadmPluginExecute(t *testing.T) {
 			}
 
 			var spec corev1.PodSpec
+
 			if test.deployment != nil {
 				updatedDeployment := &appsv1.Deployment{}
 				err := runtime.DefaultUnstructuredConverter.FromUnstructured(output.UpdatedItem.UnstructuredContent(), updatedDeployment)
 				require.NoError(t, err)
 				spec = updatedDeployment.Spec.Template.Spec
-			} else {
+			} else if test.statefulset != nil {
 				updatedStatefulSet := &appsv1.StatefulSet{}
 				err := runtime.DefaultUnstructuredConverter.FromUnstructured(output.UpdatedItem.UnstructuredContent(), updatedStatefulSet)
 				require.NoError(t, err)
 				spec = updatedStatefulSet.Spec.Template.Spec
+			} else if test.replicaset != nil {
+				updatedReplicaSet := &appsv1.ReplicaSet{}
+				err := runtime.DefaultUnstructuredConverter.FromUnstructured(output.UpdatedItem.UnstructuredContent(), updatedReplicaSet)
+				require.NoError(t, err)
+				spec = updatedReplicaSet.Spec.Template.Spec
+			} else if test.pod != nil {
+				updatedPod := &corev1.Pod{}
+				err := runtime.DefaultUnstructuredConverter.FromUnstructured(output.UpdatedItem.UnstructuredContent(), updatedPod)
+				require.NoError(t, err)
+				spec = updatedPod.Spec
 			}
 
 			assert.Equal(t, test.want, spec)

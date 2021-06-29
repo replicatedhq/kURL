@@ -7,7 +7,7 @@ metadata:
     velero.io/plugin-config: \"\"
     kurl.sh/restore-kotsadm-plugin: RestoreItemAction
 data:
-  HTTP_PROXY: ${HTTP_PROXY:-'""'}
-  HTTPS_PROXY: ${HTTPS_PROXY:-'""'}
-  NO_RPOXY: ${NO_PROXY:-'""'}
+  HTTP_PROXY: ${PROXY_ADDRESS:-'""'}
+  HTTPS_PROXY: ${PROXY_ADDRESS:-'""'}
+  NO_PROXY: ${NO_PROXY_ADDRESSES:-'""'}
   hostCAPath: ${KOTSADM_TRUSTED_CERT_MOUNT:-'""'}
