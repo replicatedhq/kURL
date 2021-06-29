@@ -64,7 +64,7 @@ function collectd_join() {
 }
 
 function collectd_ensure_hostname_resolves() {
-    local host=$(hostname)
+    local host="$(get_local_node_name)"
 
     set +e
     curl -s --max-time 1 http://${host} > /dev/null

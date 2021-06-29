@@ -765,3 +765,7 @@ function build_installer_prefix() {
         echo "curl -fsSL${curl_flags} ${kurl_url}/${installer_id}/"
     fi
 }
+
+function get_local_node_name() {
+    hostname | tr '[:upper:]' '[:lower:]'
+}

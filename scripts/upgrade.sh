@@ -37,7 +37,7 @@ maybe_upgrade() {
     local kubeletPatch="$patch"
 
     if [ -n "$HOSTNAME_CHECK" ]; then
-        if [ "$HOSTNAME_CHECK" != "$(hostname)" ]; then
+        if [ "$HOSTNAME_CHECK" != "$(get_local_node_name)" ]; then
             bail "this script should be executed on host $HOSTNAME_CHECK"
         fi
     fi

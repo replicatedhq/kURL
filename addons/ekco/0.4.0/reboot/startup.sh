@@ -13,4 +13,4 @@ while [ "$(curl --noproxy "*" -sk $master/healthz)" != "ok" ]; do
         sleep 1
 done
 
-kubectl uncordon $(hostname | tr '[:upper:]' '[:lower:]')
+kubectl uncordon "$(get_local_node_name)"

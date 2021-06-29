@@ -225,7 +225,7 @@ function prompt_airgap_preload_images() {
  
     while read -r node; do
         local nodeName=$(echo "$node" | awk '{ print $1 }')
-        if [ "$nodeName" = "$(hostname)" ]; then
+        if [ "$nodeName" = "$(get_local_node_name)" ]; then
             continue
         fi
         if kubernetes_node_has_all_images "$nodeName"; then
