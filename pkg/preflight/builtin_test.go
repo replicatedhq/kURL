@@ -56,7 +56,7 @@ func TestBuiltinExecuteTemplate(t *testing.T) {
 			name: "tcpLoadBalancer kubernetes.loadBalancerAddress==1.2.3.4:7443",
 			spec: clusterv1beta1.Installer{
 				Spec: clusterv1beta1.InstallerSpec{
-					Kubernetes: clusterv1beta1.Kubernetes{
+					Kubernetes: &clusterv1beta1.Kubernetes{
 						Version:             "1.19.7",
 						LoadBalancerAddress: "1.2.3.4:7443",
 					},
@@ -98,7 +98,7 @@ func TestBuiltinExecuteTemplate(t *testing.T) {
 			name: "blockDevices rook.isBlockStorageEnabled==true",
 			spec: clusterv1beta1.Installer{
 				Spec: clusterv1beta1.InstallerSpec{
-					Rook: clusterv1beta1.Rook{
+					Rook: &clusterv1beta1.Rook{
 						Version:               "1.4.3",
 						IsBlockStorageEnabled: true,
 						BlockDeviceFilter:     "vd[b-z]",
@@ -132,7 +132,7 @@ func TestBuiltinExecuteTemplate(t *testing.T) {
 			name: "blockDevices openebs.isCstorEnabled==true",
 			spec: clusterv1beta1.Installer{
 				Spec: clusterv1beta1.InstallerSpec{
-					OpenEBS: clusterv1beta1.OpenEBS{
+					OpenEBS: &clusterv1beta1.OpenEBS{
 						Version:        "1.12.0",
 						IsCstorEnabled: true,
 					},
@@ -165,11 +165,11 @@ func TestBuiltinExecuteTemplate(t *testing.T) {
 			name: "join primary",
 			spec: clusterv1beta1.Installer{
 				Spec: clusterv1beta1.InstallerSpec{
-					Kubernetes: clusterv1beta1.Kubernetes{
+					Kubernetes: &clusterv1beta1.Kubernetes{
 						Version:             "1.19.7",
 						LoadBalancerAddress: "1.2.3.4:7443",
 					},
-					Rook: clusterv1beta1.Rook{
+					Rook: &clusterv1beta1.Rook{
 						Version:               "1.4.3",
 						IsBlockStorageEnabled: true,
 						BlockDeviceFilter:     "vd[b-z]",
@@ -212,11 +212,11 @@ func TestBuiltinExecuteTemplate(t *testing.T) {
 			name: "join secondary",
 			spec: clusterv1beta1.Installer{
 				Spec: clusterv1beta1.InstallerSpec{
-					Kubernetes: clusterv1beta1.Kubernetes{
+					Kubernetes: &clusterv1beta1.Kubernetes{
 						Version:             "1.19.7",
 						LoadBalancerAddress: "1.2.3.4:7443",
 					},
-					Rook: clusterv1beta1.Rook{
+					Rook: &clusterv1beta1.Rook{
 						Version:               "1.4.3",
 						IsBlockStorageEnabled: true,
 						BlockDeviceFilter:     "vd[b-z]",
@@ -259,11 +259,11 @@ func TestBuiltinExecuteTemplate(t *testing.T) {
 			name: "upgrade primary",
 			spec: clusterv1beta1.Installer{
 				Spec: clusterv1beta1.InstallerSpec{
-					Kubernetes: clusterv1beta1.Kubernetes{
+					Kubernetes: &clusterv1beta1.Kubernetes{
 						Version:             "1.19.7",
 						LoadBalancerAddress: "1.2.3.4:7443",
 					},
-					Rook: clusterv1beta1.Rook{
+					Rook: &clusterv1beta1.Rook{
 						Version:               "1.4.3",
 						IsBlockStorageEnabled: true,
 						BlockDeviceFilter:     "vd[b-z]",
@@ -295,11 +295,11 @@ func TestBuiltinExecuteTemplate(t *testing.T) {
 			name: "upgrade secondary",
 			spec: clusterv1beta1.Installer{
 				Spec: clusterv1beta1.InstallerSpec{
-					Kubernetes: clusterv1beta1.Kubernetes{
+					Kubernetes: &clusterv1beta1.Kubernetes{
 						Version:             "1.19.7",
 						LoadBalancerAddress: "1.2.3.4:7443",
 					},
-					Rook: clusterv1beta1.Rook{
+					Rook: &clusterv1beta1.Rook{
 						Version:               "1.4.3",
 						IsBlockStorageEnabled: true,
 						BlockDeviceFilter:     "vd[b-z]",

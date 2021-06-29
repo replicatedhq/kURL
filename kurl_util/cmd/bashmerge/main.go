@@ -59,10 +59,7 @@ func checkIfFlagHasValue(length int, flag string) bool {
 
 	for _, variable := range shouldHaveLengthTwo {
 		if variable == flag {
-			if length != 2 {
-				return false
-			}
-			return true
+			return length == 2
 		}
 	}
 	return true
@@ -82,26 +79,59 @@ func parseBashFlags(installer *kurlv1beta1.Installer, bashFlags string) error {
 
 		case "additional-no-proxy-addresses":
 			addresses := strings.Split(split[1], ",")
+			if installer.Spec.Kurl == nil {
+				installer.Spec.Kurl = &kurlv1beta1.Kurl{}
+			}
 			installer.Spec.Kurl.AdditionalNoProxyAddresses = append(installer.Spec.Kurl.AdditionalNoProxyAddresses, addresses...)
 		case "airgap":
+			if installer.Spec.Kurl == nil {
+				installer.Spec.Kurl = &kurlv1beta1.Kurl{}
+			}
 			installer.Spec.Kurl.Airgap = true
 		case "cert-key":
+			if installer.Spec.Kubernetes == nil {
+				installer.Spec.Kubernetes = &kurlv1beta1.Kubernetes{}
+			}
 			installer.Spec.Kubernetes.CertKey = split[1]
 		case "control-plane":
+			if installer.Spec.Kubernetes == nil {
+				installer.Spec.Kubernetes = &kurlv1beta1.Kubernetes{}
+			}
 			installer.Spec.Kubernetes.ControlPlane = true
 		case "docker-registry-ip":
+			if installer.Spec.Docker == nil {
+				installer.Spec.Docker = &kurlv1beta1.Docker{}
+			}
 			installer.Spec.Docker.DockerRegistryIP = split[1]
 		case "ha":
+			if installer.Spec.Kubernetes == nil {
+				installer.Spec.Kubernetes = &kurlv1beta1.Kubernetes{}
+			}
 			installer.Spec.Kubernetes.HACluster = true
 		case "kubeadm-token":
+			if installer.Spec.Kubernetes == nil {
+				installer.Spec.Kubernetes = &kurlv1beta1.Kubernetes{}
+			}
 			installer.Spec.Kubernetes.KubeadmToken = split[1]
 		case "kubeadm-token-ca-hash":
+			if installer.Spec.Kubernetes == nil {
+				installer.Spec.Kubernetes = &kurlv1beta1.Kubernetes{}
+			}
 			installer.Spec.Kubernetes.KubeadmTokenCAHash = split[1]
 		case "load-balancer-address":
+			if installer.Spec.Kubernetes == nil {
+				installer.Spec.Kubernetes = &kurlv1beta1.Kubernetes{}
+			}
 			installer.Spec.Kubernetes.LoadBalancerAddress = split[1]
 		case "kubernetes-master-address":
+			if installer.Spec.Kubernetes == nil {
+				installer.Spec.Kubernetes = &kurlv1beta1.Kubernetes{}
+			}
 			installer.Spec.Kubernetes.MasterAddress = split[1]
 		case "kubernetes-version":
+			if installer.Spec.Kubernetes == nil {
+				installer.Spec.Kubernetes = &kurlv1beta1.Kubernetes{}
+			}
 			installer.Spec.Kubernetes.Version = strings.TrimLeft(split[1], "v")
 		case "kurl-install-directory":
 			continue
@@ -110,24 +140,54 @@ func parseBashFlags(installer *kurlv1beta1.Installer, bashFlags string) error {
 		case "kurl-registry-ip":
 			continue
 		case "ignore-remote-load-images-prompt":
+			if installer.Spec.Kurl == nil {
+				installer.Spec.Kurl = &kurlv1beta1.Kurl{}
+			}
 			installer.Spec.Kurl.IgnoreRemoteLoadImagesPrompt = true
 		case "ignore-remote-upgrade-prompt":
+			if installer.Spec.Kurl == nil {
+				installer.Spec.Kurl = &kurlv1beta1.Kurl{}
+			}
 			installer.Spec.Kurl.IgnoreRemoteUpgradePrompt = true
 		case "preflight-ignore":
+			if installer.Spec.Kurl == nil {
+				installer.Spec.Kurl = &kurlv1beta1.Kurl{}
+			}
 			installer.Spec.Kurl.PreflightIgnore = true
 		case "preflight-ignore-warnings":
+			if installer.Spec.Kurl == nil {
+				installer.Spec.Kurl = &kurlv1beta1.Kurl{}
+			}
 			installer.Spec.Kurl.PreflightIgnoreWarnings = true
 		case "preserve-docker-config":
+			if installer.Spec.Docker == nil {
+				installer.Spec.Docker = &kurlv1beta1.Docker{}
+			}
 			installer.Spec.Docker.PreserveConfig = true
 		case "preserve-firewalld-config":
+			if installer.Spec.FirewalldConfig == nil {
+				installer.Spec.FirewalldConfig = &kurlv1beta1.FirewalldConfig{}
+			}
 			installer.Spec.FirewalldConfig.PreserveConfig = true
 		case "preserve-iptables-config":
+			if installer.Spec.IptablesConfig == nil {
+				installer.Spec.IptablesConfig = &kurlv1beta1.IptablesConfig{}
+			}
 			installer.Spec.IptablesConfig.PreserveConfig = true
 		case "preserve-selinux-config":
+			if installer.Spec.SelinuxConfig == nil {
+				installer.Spec.SelinuxConfig = &kurlv1beta1.SelinuxConfig{}
+			}
 			installer.Spec.SelinuxConfig.PreserveConfig = true
 		case "public-address":
+			if installer.Spec.Kurl == nil {
+				installer.Spec.Kurl = &kurlv1beta1.Kurl{}
+			}
 			installer.Spec.Kurl.PublicAddress = split[1]
 		case "private-address":
+			if installer.Spec.Kurl == nil {
+				installer.Spec.Kurl = &kurlv1beta1.Kurl{}
+			}
 			installer.Spec.Kurl.PrivateAddress = split[1]
 		case "yes":
 			continue

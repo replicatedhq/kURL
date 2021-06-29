@@ -81,5 +81,9 @@ func getDockerConfigFromYaml(yamlPath string) ([]byte, error) {
 
 	installer := obj.(*kurlv1beta1.Installer)
 
+	if installer.Spec.Docker == nil {
+		return nil, nil
+	}
+
 	return []byte(strings.TrimSpace(installer.Spec.Docker.DaemonConfig)), nil
 }

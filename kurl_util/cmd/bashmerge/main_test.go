@@ -32,17 +32,17 @@ func Test_parseBashFlags(t *testing.T) {
 					Namespace: "default",
 				},
 				Spec: kurlv1beta1.InstallerSpec{
-					Docker: kurlv1beta1.Docker{
+					Docker: &kurlv1beta1.Docker{
 						DockerRegistryIP: "1.1.1.1",
 						PreserveConfig:   true,
 					},
-					FirewalldConfig: kurlv1beta1.FirewalldConfig{
+					FirewalldConfig: &kurlv1beta1.FirewalldConfig{
 						PreserveConfig: true,
 					},
-					IptablesConfig: kurlv1beta1.IptablesConfig{
+					IptablesConfig: &kurlv1beta1.IptablesConfig{
 						PreserveConfig: true,
 					},
-					Kubernetes: kurlv1beta1.Kubernetes{
+					Kubernetes: &kurlv1beta1.Kubernetes{
 						MasterAddress:       "1.1.1.1",
 						HACluster:           true,
 						ControlPlane:        true,
@@ -52,7 +52,7 @@ func Test_parseBashFlags(t *testing.T) {
 						Version:             "1.18.1",
 						CertKey:             "secret",
 					},
-					Kurl: kurlv1beta1.Kurl{
+					Kurl: &kurlv1beta1.Kurl{
 						Airgap:         true,
 						PublicAddress:  "1.1.1.1",
 						PrivateAddress: "1.2.3.4",
@@ -61,7 +61,7 @@ func Test_parseBashFlags(t *testing.T) {
 							"10.32.0.0/22",
 						},
 					},
-					SelinuxConfig: kurlv1beta1.SelinuxConfig{
+					SelinuxConfig: &kurlv1beta1.SelinuxConfig{
 						PreserveConfig: true,
 					},
 				},
@@ -94,10 +94,10 @@ func Test_parseBashFlags(t *testing.T) {
 					Namespace: "default",
 				},
 				Spec: kurlv1beta1.InstallerSpec{
-					Docker: kurlv1beta1.Docker{
+					Docker: &kurlv1beta1.Docker{
 						DockerRegistryIP: "2.2.2.2",
 					},
-					Kubernetes: kurlv1beta1.Kubernetes{
+					Kubernetes: &kurlv1beta1.Kubernetes{
 						MasterAddress:       "2.2.2.2",
 						HACluster:           false,
 						ControlPlane:        false,
@@ -107,7 +107,7 @@ func Test_parseBashFlags(t *testing.T) {
 						Version:             "1.15.0",
 						CertKey:             "badsecret",
 					},
-					Kurl: kurlv1beta1.Kurl{
+					Kurl: &kurlv1beta1.Kurl{
 						Airgap:                     false,
 						PublicAddress:              "2.2.2.2",
 						AdditionalNoProxyAddresses: []string{"registry.internal"},
@@ -120,17 +120,17 @@ func Test_parseBashFlags(t *testing.T) {
 					Namespace: "default",
 				},
 				Spec: kurlv1beta1.InstallerSpec{
-					Docker: kurlv1beta1.Docker{
+					Docker: &kurlv1beta1.Docker{
 						DockerRegistryIP: "1.1.1.1",
 						PreserveConfig:   true,
 					},
-					FirewalldConfig: kurlv1beta1.FirewalldConfig{
+					FirewalldConfig: &kurlv1beta1.FirewalldConfig{
 						PreserveConfig: true,
 					},
-					IptablesConfig: kurlv1beta1.IptablesConfig{
+					IptablesConfig: &kurlv1beta1.IptablesConfig{
 						PreserveConfig: true,
 					},
-					Kubernetes: kurlv1beta1.Kubernetes{
+					Kubernetes: &kurlv1beta1.Kubernetes{
 						MasterAddress:       "1.1.1.1",
 						HACluster:           true,
 						ControlPlane:        true,
@@ -140,7 +140,7 @@ func Test_parseBashFlags(t *testing.T) {
 						Version:             "1.18.1",
 						CertKey:             "secret",
 					},
-					Kurl: kurlv1beta1.Kurl{
+					Kurl: &kurlv1beta1.Kurl{
 						Airgap:        true,
 						PublicAddress: "1.1.1.1",
 						AdditionalNoProxyAddresses: []string{
@@ -149,7 +149,7 @@ func Test_parseBashFlags(t *testing.T) {
 							"10.32.0.0/22",
 						},
 					},
-					SelinuxConfig: kurlv1beta1.SelinuxConfig{
+					SelinuxConfig: &kurlv1beta1.SelinuxConfig{
 						PreserveConfig: true,
 					},
 				},
@@ -217,7 +217,7 @@ func Test_parseBashFlags(t *testing.T) {
 			bashFlags:    "kubernetes-version=v1.17.3",
 			mergedInstaller: &kurlv1beta1.Installer{
 				Spec: kurlv1beta1.InstallerSpec{
-					Kubernetes: kurlv1beta1.Kubernetes{
+					Kubernetes: &kurlv1beta1.Kubernetes{
 						Version: "1.17.3",
 					},
 				},

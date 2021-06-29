@@ -11,12 +11,11 @@ import (
 	"regexp"
 	"time"
 
-	"gopkg.in/yaml.v2"
-
 	"github.com/pkg/errors"
 	kurlv1beta1 "github.com/replicatedhq/kurl/kurlkinds/pkg/apis/cluster/v1beta1"
 	tghandlers "github.com/replicatedhq/kurl/testgrid/tgapi/pkg/handlers"
 	"github.com/replicatedhq/kurl/testgrid/tgrun/pkg/scheduler/types"
+	"gopkg.in/yaml.v2"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -46,8 +45,8 @@ func Run(schedulerOptions types.SchedulerOptions) error {
 	for _, instance := range kurlPlans {
 		testSpec := instance.InstallerSpec
 		// append sonobuoy for conformance testing
-		if testSpec.Sonobuoy.Version == "" {
-			testSpec.Sonobuoy.Version = "latest"
+		if testSpec.Sonobuoy == nil || testSpec.Sonobuoy.Version == "" {
+			testSpec.Sonobuoy = &kurlv1beta1.Sonobuoy{Version: "latest"}
 		}
 
 		// post it to the API to get a sha / id back
@@ -93,8 +92,8 @@ func Run(schedulerOptions types.SchedulerOptions) error {
 			installer.Spec = *instance.UpgradeSpec
 
 			// append sonobuoy for conformance testing
-			if installer.Spec.Sonobuoy.Version == "" {
-				installer.Spec.Sonobuoy.Version = "latest"
+			if installer.Spec.Sonobuoy == nil || installer.Spec.Sonobuoy.Version == "" {
+				installer.Spec.Sonobuoy = &kurlv1beta1.Sonobuoy{Version: "latest"}
 			}
 
 			upgradeYAML, err = json.Marshal(installer)
@@ -215,14 +214,18 @@ func getKurlPlans(schedulerOptions types.SchedulerOptions) ([]types.Instance, er
 
 	for idx := range kurlPlans {
 		// ensure that installerSpec has a k8s and CRI version specified
-		isDistroDefined := kurlPlans[idx].InstallerSpec.Kubernetes.Version != "" || kurlPlans[idx].InstallerSpec.RKE2.Version != "" || kurlPlans[idx].InstallerSpec.K3S.Version != ""
+		installerSpec := kurlPlans[idx].InstallerSpec
+		isDistroDefined := (installerSpec.Kubernetes != nil && installerSpec.Kubernetes.Version != "") ||
+			(installerSpec.RKE2 != nil && installerSpec.RKE2.Version != "") ||
+			(installerSpec.K3S != nil && installerSpec.K3S.Version != "")
 		if !isDistroDefined {
-			kurlPlans[idx].InstallerSpec.Kubernetes.Version = "latest"
+			installerSpec.Kubernetes = &kurlv1beta1.Kubernetes{Version: "latest"}
 		}
 
-		isDistroRancher := kurlPlans[idx].InstallerSpec.RKE2.Version != "" || kurlPlans[idx].InstallerSpec.K3S.Version != ""
-		if !isDistroRancher && kurlPlans[idx].InstallerSpec.Docker.Version == "" && kurlPlans[idx].InstallerSpec.Containerd.Version == "" {
-			kurlPlans[idx].InstallerSpec.Docker.Version = "latest"
+		isDistroRancher := (installerSpec.RKE2 != nil && installerSpec.RKE2.Version != "") ||
+			(installerSpec.K3S != nil && installerSpec.K3S.Version != "")
+		if !isDistroRancher && installerSpec.Docker.Version == "" && installerSpec.Containerd.Version == "" {
+			installerSpec.Docker = &kurlv1beta1.Docker{Version: "latest"}
 		}
 	}
 

@@ -97,7 +97,7 @@ var addOnsWithVersions = map[string][]string{
 
 // 	for _, kubernetesVersion := range kubernetesVersions {
 // 		installerSpec := kurlv1beta1.InstallerSpec{
-// 			Kubernetes: kurlv1beta1.Kubernetes{
+// 			Kubernetes: &kurlv1beta1.Kubernetes{
 // 				Version: kubernetesVersion,
 // 			},
 // 		}
@@ -105,7 +105,7 @@ var addOnsWithVersions = map[string][]string{
 // 		for criName, criVersions := range cri {
 // 			for _, criVersion := range criVersions {
 // 				if criName == "docker" {
-// 					installerSpec.Docker = kurlv1beta1.Docker{
+// 					installerSpec.Docker = &kurlv1beta1.Docker{
 // 						Version: criVersion,
 // 					}
 // 				} else {
@@ -115,11 +115,11 @@ var addOnsWithVersions = map[string][]string{
 // 				for cniName, cniVersions := range cni {
 // 					for _, cniVersion := range cniVersions {
 // 						if cniName == "weave" {
-// 							installerSpec.Weave = kurlv1beta1.Weave{
+// 							installerSpec.Weave = &kurlv1beta1.Weave{
 // 								Version: cniVersion,
 // 							}
 // 						} else if cniName == "calico" {
-// 							installerSpec.Calico = kurlv1beta1.Calico{
+// 							installerSpec.Calico = &kurlv1beta1.Calico{
 // 								Version: cniVersion,
 // 							}
 // 						} else {
