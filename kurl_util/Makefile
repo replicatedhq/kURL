@@ -88,7 +88,7 @@ bin/network:
 bin/toml:
 	go build ${LDFLAGS} -o bin/toml cmd/toml/main.go
 
-bin/veleroplugin:
+bin/veleroplugin: cmd/veleroplugin/main.go
 	go build ${LDFLAGS} -o bin/veleroplugin cmd/veleroplugin/main.go
 
 .PHONY: kurl-util-image

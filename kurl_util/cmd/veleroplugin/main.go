@@ -20,7 +20,8 @@ import (
 )
 
 type restoreKotsadmPlugin struct {
-	log logrus.FieldLogger
+	log    logrus.FieldLogger
+	client kubernetes.Interface
 }
 
 const name = "kurl.sh/restore-kotsadm-plugin"
@@ -32,15 +33,25 @@ func main() {
 }
 
 func newRestorePlugin(logger logrus.FieldLogger) (interface{}, error) {
+	config, err := rest.InClusterConfig()
+	if err != nil {
+		return nil, err
+	}
+	client, err := kubernetes.NewForConfig(config)
+	if err != nil {
+		return nil, err
+	}
+
 	return &restoreKotsadmPlugin{
-		log: logger,
+		log:    logger,
+		client: client,
 	}, nil
 }
 
 func (p *restoreKotsadmPlugin) AppliesTo() (velero.ResourceSelector, error) {
 	return velero.ResourceSelector{
 		IncludedNamespaces: []string{"default"},
-		IncludedResources:  []string{"deployments"},
+		IncludedResources:  []string{"deployments", "statefulsets"},
 	}, nil
 }
 
@@ -53,7 +64,7 @@ func (p *restoreKotsadmPlugin) Execute(input *velero.RestoreItemActionExecuteInp
 		return &velero.RestoreItemActionExecuteOutput{UpdatedItem: input.Item}, nil
 	}
 
-	data, err := getPluginConfig()
+	data, err := p.getPluginConfig()
 	if err != nil {
 		return nil, err
 	}
@@ -88,20 +99,11 @@ func (p *restoreKotsadmPlugin) Execute(input *velero.RestoreItemActionExecuteInp
 	return &velero.RestoreItemActionExecuteOutput{UpdatedItem: item}, err
 }
 
-func getPluginConfig() (map[string]string, error) {
-	config, err := rest.InClusterConfig()
-	if err != nil {
-		return nil, err
-	}
-	client, err := kubernetes.NewForConfig(config)
-	if err != nil {
-		return nil, err
-	}
-
+func (p *restoreKotsadmPlugin) getPluginConfig() (map[string]string, error) {
 	opts := metav1.ListOptions{
 		LabelSelector: fmt.Sprintf("velero.io/plugin-config,%s=%s", name, framework.PluginKindRestoreItemAction),
 	}
-	list, err := client.CoreV1().ConfigMaps(os.Getenv("VELERO_NAMESPACE")).List(context.TODO(), opts)
+	list, err := p.client.CoreV1().ConfigMaps(os.Getenv("VELERO_NAMESPACE")).List(context.TODO(), opts)
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
