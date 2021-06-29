@@ -22,6 +22,8 @@ function velero() {
     render_yaml_file "$src/tmpl-kustomization.yaml" > "$dst/kustomization.yaml"
     render_yaml_file "$src/tmpl-namespace.yaml" > "$dst/namespace.yaml"
 
+    velero_kotsadm_restore_config "$src" "$dst"
+
     velero_patch_http_proxy "$src" "$dst"
 
     velero_change_storageclass "$src" "$dst"
@@ -47,6 +49,8 @@ function velero() {
     kubectl apply -k "$dst"
 
     velero_binary
+
+    /usr/local/bin/velero plugin add $KURL_UTIL_IMAGE
 
     kubectl label -n default --overwrite service/kubernetes velero.io/exclude-from-backup=true
 }
@@ -95,6 +99,14 @@ function velero_kotsadm_local_backend() {
 
     render_yaml_file "$src/tmpl-kotsadm-local-backend.yaml" > "$dst/kotsadm-local-backend.yaml"
     insert_resources "$dst/kustomization.yaml" kotsadm-local-backend.yaml
+}
+
+function velero_kotsadm_restore_config() {
+    local src="$1"
+    local dst="$2"
+
+    render_yaml_file "$src/tmpl-kotsadm-restore-config.yaml" > "$dst/kotsadm-restore-config.yaml"
+    insert_resources "$dst/kustomization.yaml" kotsadm-restore-config.yaml
 }
 
 function velero_patch_http_proxy() {

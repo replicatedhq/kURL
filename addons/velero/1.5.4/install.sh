@@ -20,6 +20,8 @@ function velero() {
 
     velero_patch_restic_privilege "$src" "$dst"
 
+    velero_kotsadm_restore_config "$src" "$dst"
+
     velero_patch_http_proxy "$src" "$dst"
 
     velero_change_storageclass "$src" "$dst"
@@ -55,7 +57,7 @@ function velero_install() {
     $src/assets/velero-v${VELERO_VERSION}-linux-amd64/velero install \
         $resticArg \
         $bslArgs \
-        --plugins velero/velero-plugin-for-aws:v1.1.0,velero/velero-plugin-for-gcp:v1.1.0,velero/velero-plugin-for-microsoft-azure:v1.1.0 \
+        --plugins velero/velero-plugin-for-aws:v1.1.0,velero/velero-plugin-for-gcp:v1.1.0,velero/velero-plugin-for-microsoft-azure:v1.1.0,$KURL_UTIL_IMAGE \
         --secret-file velero-credentials \
         --use-volume-snapshots=false \
         --namespace $VELERO_NAMESPACE \
@@ -116,6 +118,14 @@ function velero_binary() {
         cp velero-v${VELERO_VERSION}-linux-amd64/velero /usr/local/bin/velero
     fi
     popd
+}
+
+function velero_kotsadm_restore_config() {
+    local src="$1"
+    local dst="$2"
+
+    render_yaml_file "$src/tmpl-kotsadm-restore-config.yaml" > "$dst/kotsadm-restore-config.yaml"
+    insert_resources "$dst/kustomization.yaml" kotsadm-restore-config.yaml
 }
 
 function velero_patch_http_proxy() {

@@ -17,7 +17,7 @@ spec:
       containers:
       - name: longhorn-environment-check
         image: $KURL_UTIL_IMAGE
-        args: ["/bin/sh", "-c", "sleep 1000000000"]
+        command: ["/bin/sh", "-c", "sleep 1000000000"]
         volumeMounts:
         - name: mountpoint
           mountPath: /tmp/longhorn-environment-check
