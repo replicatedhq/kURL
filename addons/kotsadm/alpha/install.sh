@@ -19,7 +19,7 @@ function kotsadm() {
     kotsadm_api_encryption_key
 
     if kubernetes_resource_exists default secret kotsadm-s3; then
-        # kotsadm v1.45+ does not use an object store, patch the migrate-s3 init container to migrate the data
+        # kotsadm v1.46+ does not use an object store, patch the migrate-s3 init container to migrate the data
         kotsadm_api_patch_s3_migration
     fi
 
@@ -59,7 +59,7 @@ function kotsadm() {
     kubectl delete pod kotsadm-migrations &> /dev/null || true;
     kubectl delete deployment kotsadm-web &> /dev/null || true; # replaced by 'kotsadm' deployment in 1.12.0
     kubectl delete service kotsadm-api &> /dev/null || true; # replaced by 'kotsadm-api-node' service in 1.12.0
-    kubectl delete deployment kotsadm &> /dev/null || true; # replaced by 'kotsadm' statefulset in 1.45.0
+    kubectl delete deployment kotsadm &> /dev/null || true; # replaced by 'kotsadm' statefulset in 1.46.0
 
     # removed in 1.19.0
     kubectl delete deployment kotsadm-api &> /dev/null || true
