@@ -62,7 +62,7 @@ function upgrade_kubernetes_patch() {
 
 function upgrade_kubernetes_local_master_patch() {
     local k8sVersion="$1"
-    local node="$(hostname)"
+    local node="$(get_local_node_name)"
 
     if [ "$AIRGAP" != "1" ] && [ -n "$DIST_URL" ]; then
         kubernetes_get_host_packages_online "$k8sVersion"
@@ -161,7 +161,7 @@ function upgrade_kubernetes_remote_node_patch() {
 
 function upgrade_kubernetes_local_master_minor() {
     local k8sVersion="$1"
-    local node="$(hostname)"
+    local node="$(get_local_node_name)"
 
     if [ "$AIRGAP" != "1" ] && [ -n "$DIST_URL" ]; then
         kubernetes_get_host_packages_online "$k8sVersion"

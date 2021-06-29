@@ -211,7 +211,7 @@ function kubernetes_masters() {
 }
 
 function kubernetes_remote_masters() {
-    kubectl get nodes --no-headers --selector="node-role.kubernetes.io/master,kubernetes.io/hostname!=$(hostname)" 2>/dev/null
+    kubectl get nodes --no-headers --selector="node-role.kubernetes.io/master,kubernetes.io/hostname!=$(get_local_node_name)" 2>/dev/null
 }
 
 function kubernetes_workers() {
@@ -225,7 +225,7 @@ function kubernetes_has_remotes() {
         return 1
     fi
 
-    local count=$(kubectl get nodes --no-headers --selector="kubernetes.io/hostname!=$(hostname)" 2>/dev/null | wc -l)
+    local count=$(kubectl get nodes --no-headers --selector="kubernetes.io/hostname!=$(get_local_node_name)" 2>/dev/null | wc -l)
     if [ "$count" -gt "0" ]; then
         return 0
     fi
