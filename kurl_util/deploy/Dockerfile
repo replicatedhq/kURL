@@ -24,6 +24,7 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get update -qq && apt-get install -y --no
     sysstat \
     tcpdump \
     telnet \
+    rsync \
     \
   && rm -rf /var/lib/apt/lists/*
 
