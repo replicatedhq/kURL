@@ -1199,6 +1199,17 @@ export class Installer {
         return {error: {message: "Rook 1.0.4 is not compatible with Kubernetes 1.20+"}};
       }
     }
+
+    if (this.spec.prometheus && this.spec.prometheus.version && this.spec.prometheus.serviceType) {
+      if (this.spec.prometheus.serviceType != "" && this.spec.prometheus.serviceType != "ClusterIP" && this.spec.prometheus.serviceType != "NodePort") {
+        return {error: {message: `Supported Prometheus service types are "NodePort" and "ClusterIP", not "${this.spec.prometheus.serviceType}"`}};
+      }
+
+      if (InstallerVersions.prometheus.indexOf(this.spec.prometheus.version) != -1 &&
+        InstallerVersions.prometheus.indexOf(this.spec.prometheus.version) > InstallerVersions.prometheus.indexOf("0.48.1-16.10.0")) {
+        return {error: {message: `Prometheus service types are supported for version "0.48.1-16.10.0" and later, not "${this.spec.prometheus.version}"`}};
+      }
+    }
   }
 
   public static generatePackageName(config: string, version: string): string {
