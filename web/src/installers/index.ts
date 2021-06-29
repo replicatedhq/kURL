@@ -279,6 +279,7 @@ export const registryConfigSchema = {
 export interface PrometheusConfig {
   version: string;
   s3Override?: string;
+  serviceType?: string;
 }
 
 export const prometheusConfigSchema = {
@@ -286,6 +287,7 @@ export const prometheusConfigSchema = {
   properties: {
     version: { type: "string" },
     s3Override: { type: "string", flag: "s3-override", description: "Override the download location for addon package distribution (used for CI/CD testing alpha addons)" },
+    serviceType: { type: "string", flag: "service-type", description: "Change the service type used to expose Prometheus, Alertmanager and Grafana, defaulting to NodePort." },
   },
   required: ["version"],
   additionalProperties: false,
@@ -1195,6 +1197,17 @@ export class Installer {
     if (this.spec.rook && this.spec.rook.version === "1.0.4") {
       if (this.spec.kubernetes && semver.gte(this.spec.kubernetes.version, "1.20.0")) {
         return {error: {message: "Rook 1.0.4 is not compatible with Kubernetes 1.20+"}};
+      }
+    }
+
+    if (this.spec.prometheus && this.spec.prometheus.version && this.spec.prometheus.serviceType) {
+      if (this.spec.prometheus.serviceType != "" && this.spec.prometheus.serviceType != "ClusterIP" && this.spec.prometheus.serviceType != "NodePort") {
+        return {error: {message: `Supported Prometheus service types are "NodePort" and "ClusterIP", not "${this.spec.prometheus.serviceType}"`}};
+      }
+
+      if (InstallerVersions.prometheus.indexOf(this.spec.prometheus.version) != -1 &&
+        InstallerVersions.prometheus.indexOf(this.spec.prometheus.version) > InstallerVersions.prometheus.indexOf("0.48.1-16.10.0")) {
+        return {error: {message: `Prometheus service types are supported for version "0.48.1-16.10.0" and later, not "${this.spec.prometheus.version}"`}};
       }
     }
   }

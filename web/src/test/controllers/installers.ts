@@ -762,6 +762,54 @@ spec:
         expect(out).to.deep.equal({ error: { message: "spec.kubernetes should NOT have additional properties" } });
       });
     });
+
+    describe("unsupported Prometheus servicetype", () => {
+      it("=> ErrorResponse", async () => {
+        const yaml = `
+spec:
+  kubernetes:
+    version: latest
+  prometheus:
+    version: latest
+    serviceType: thisisatest`;
+        const i = Installer.parse(yaml);
+        const out = await i.validate();
+
+        expect(out).to.deep.equal({ error: { message: "Supported Prometheus service types are \"NodePort\" and \"ClusterIP\", not \"thisisatest\"" } });
+      });
+    });
+
+    describe("unsupported Prometheus version + servicetype combination", () => {
+      it("=> ErrorResponse", async () => {
+        const yaml = `
+spec:
+  kubernetes:
+    version: latest
+  prometheus:
+    version: 0.47.0-15.3.1
+    serviceType: ClusterIP`;
+        const i = Installer.parse(yaml);
+        const out = await i.validate();
+
+        expect(out).to.deep.equal({ error: { message: "Prometheus service types are supported for version \"0.48.1-16.10.0\" and later, not \"0.47.0-15.3.1\"" } });
+      });
+    });
+
+    describe("supported Prometheus version + servicetype combination", () => {
+      it("=> ErrorResponse", async () => {
+        const yaml = `
+spec:
+  kubernetes:
+    version: latest
+  prometheus:
+    version: 0.48.1-16.10.0
+    serviceType: ClusterIP`;
+        const i = Installer.parse(yaml);
+        const out = await i.validate();
+
+        expect(out).to.deep.equal(undefined);
+      });
+    });
   });
 
   describe("hasS3Override", () => {
