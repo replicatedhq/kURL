@@ -1,20 +1,38 @@
-- name: ""
+- name: "latest"
   installerSpec:
-    installerspec:
-      kubernetes:
-        version: latest
-      docker:
-        version: latest
-      weave:
-        version: latest
-      contour:
-        version: latest
-      rook:
-        version: latest
-      registry:
-        version: latest
-      prometheus:
-        version: latest
-      ekco:
-        version: latest
-
+    kubernetes:
+      version: latest
+    docker:
+      version: latest
+    weave:
+      version: latest
+    contour:
+      version: latest
+    rook:
+      version: latest
+    registry:
+      version: latest
+    prometheus:
+      version: latest
+    ekco:
+      version: latest
+- name: "longhorn"
+  installerSpec:
+    contour:
+      version: latest
+    containerd:
+      version: latest
+    ekco:
+      version: latest
+    kubernetes:
+      version: latest
+    prometheus:
+      version: latest
+    registry:
+      version: latest
+    longhorn:
+      version: latest
+    weave:
+      version: latest
+    minio:
+      version: latest
