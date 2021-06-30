@@ -84,18 +84,14 @@ function deploy() {
     local package="$1"
     local path="$2"
 
-    # Common must be built rather than copied from staging because the staging common.tar.gz
-    # package includes the alpha kurl-util image but the prod common.tar.gz needs a tagged version
-    # of the kurl-util image
-    if [ "$package" = "common.tar.gz" ] ; then
-        echo "s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${package} build and upload"
-        build_and_upload "${package}"
-        return
-    fi
+    # always upload small packages that change often
+    if [ "$package" = "install.tmpl" ] \
+        || [ "$package" = "join.tmpl" ] \
+        || [ "$package" = "upgrade.tmpl" ] \
+        || [ "$package" = "tasks.tmpl" ] \
+        || [ "$package" = "common.tar.gz" ] \
+        || echo "${package}" | grep -q "kurl-bin-utils" ; then
 
-    # The kurl-utils-bin package must be built rather than copied from staging because the staging
-    # version is latest and the prod version is tagged.
-    if echo "${package}" | grep -q "kurl-bin-utils" ; then
         echo "s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${package} build and upload"
         build_and_upload "${package}"
         return
