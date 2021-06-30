@@ -15,15 +15,15 @@ function kotsadm() {
     kotsadm_secret_password
     kotsadm_secret_postgres
     kotsadm_secret_dex_postgres
-    kotsadm_secret_s3 # this secret is currently only used for (re)configuring internal snapshots
+    kotsadm_secret_s3
     kotsadm_secret_session
     kotsadm_api_encryption_key
 
-    # kotsadm v1.46+ does not use an object store for the archives, patch the migrate-s3 init container to migrate the data.
-    # ideally, this should only be patched if an object store is detected, but we can't rely on that fact since kotsadm still requires
-    # an object store for internal snapshots, once that's resolved, we can start patching this only if an object store already exists in the cluster.
-    # the migration process is intelligent enough to detect whether an object store and a bucket exists or not.
-    kotsadm_api_patch_s3_migration
+    if should_patch_kotsadm_s3_migration; then
+        # kotsadm v1.46+ does not use an object store ('kotsadm' bucket) to store the archives,
+        # patch in the migrate-s3 init container to migrate the data.
+        kotsadm_api_patch_s3_migration
+    fi
 
     if [ -n "$PROMETHEUS_VERSION" ]; then
         kotsadm_api_patch_prometheus
@@ -220,6 +220,34 @@ function kotsadm_api_encryption_key() {
     insert_resources "$DIR/kustomize/kotsadm/kustomization.yaml" secret-api-encryption.yaml
 
     kubernetes_scale_down default statefulset kotsadm
+}
+
+function should_patch_kotsadm_s3_migration() {
+    local bucket="kotsadm"
+    local accessKeyId=$(kubernetes_secret_value default kotsadm-s3 access-key-id)
+    local secretAccessKey=$(kubernetes_secret_value default kotsadm-s3 secret-access-key)
+    local objectStoreClusterIP=$(kubernetes_secret_value default kotsadm-s3 object-store-cluster-ip)
+
+    if [ -z $accessKeyId ] ||
+       [ -z $secretAccessKey ] ||
+       [ -z $objectStoreClusterIP ];
+    then
+        return 1
+    fi
+
+    local acl="x-amz-acl:private"
+    local d=$(LC_TIME="en_US.UTF-8" TZ="UTC" date +"%a, %d %b %Y %T %z")
+    local string="HEAD\n\n\n${d}\n${acl}\n/$bucket"
+    local sig=$(echo -en "${string}" | openssl sha1 -hmac "${secretAccessKey}" -binary | base64)
+
+    # check if the bucket exists
+    curl -fsSL -I \
+        --noproxy "*" \
+        -H "Host: $objectStoreClusterIP" \
+        -H "Date: $d" \
+        -H "$acl" \
+        -H "Authorization: AWS $accessKeyId:$sig" \
+        "http://$objectStoreClusterIP/$bucket" >/dev/null 2>&1
 }
 
 function kotsadm_api_patch_s3_migration() {
