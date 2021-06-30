@@ -5,6 +5,7 @@ metadata:
   name: kurl-builtin
 spec:
   collectors:
+    - time: {}
     - cpu: {}
     - memory: {}
     - hostServices: {}
@@ -366,9 +367,15 @@ spec:
             - fail:
                 when: "ntp == unsynchronized+inactive"
                 message: "System clock is not synchronized"
+            - warn:
+                when: "ntp == unsynchronized+active"
+                message: System clock not yet synchronized                
             - pass:
                 when: "ntp == synchronized+active"
                 message: "System clock is synchronized"
             - warn: 
                 when: "timezone != UTC"
                 message: "Non UTC timezone can interfere with system function"
+            - pass:
+                when: "timezone == UTC"
+                message: "Timezone is set to UTC"
