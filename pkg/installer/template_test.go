@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_zero(t *testing.T) {
+func Test_zeroNilStructFields(t *testing.T) {
 	type C struct {
 		D *string
 	}
@@ -41,10 +41,10 @@ func Test_zero(t *testing.T) {
 		Scalar:    "scalar",
 		ScalarPtr: &scp,
 		A:         A{B: &B{C: &C{D: &scp}}},
-		AP:        &A{B: &B{C: &C{D: new(string)}}},
-		APN:       &A{B: &B{C: &C{D: new(string)}}},
+		AP:        &A{B: &B{}},
+		APN:       &A{B: &B{}},
 	}
 
-	zero(&input)
+	zeroNilStructFields(&input)
 	assert.EqualValues(t, want, input)
 }

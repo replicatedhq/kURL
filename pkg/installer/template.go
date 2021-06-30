@@ -21,7 +21,7 @@ type TemplateData struct {
 }
 
 func ExecuteTemplate(name, text string, data TemplateData) ([]byte, error) {
-	zero(&data.Installer.Spec)
+	zeroNilStructFields(&data.Installer.Spec)
 	t, err := template.New(name).Funcs(sprig.TxtFuncMap()).Delims("{{kurl", "}}").Parse(text)
 	if err != nil {
 		return nil, errors.Wrap(err, "parse")
@@ -31,7 +31,7 @@ func ExecuteTemplate(name, text string, data TemplateData) ([]byte, error) {
 	return b.Bytes(), errors.Wrap(err, "execute")
 }
 
-func zero(v interface{}) {
+func zeroNilStructFields(v interface{}) {
 	valueOf := reflect.ValueOf(v)
 	typeOf := reflect.TypeOf(v)
 	if valueOf.Kind() != reflect.Ptr || valueOf.IsNil() {
@@ -44,13 +44,11 @@ func zero(v interface{}) {
 		switch typeOf.Elem().Field(i).Type.Kind() {
 		case reflect.Ptr:
 			if !valueOf.Elem().Field(i).IsNil() {
-				zero(valueOf.Elem().Field(i).Interface())
 				continue
 			}
 			ptr := reflect.New(valueOf.Elem().Field(i).Type())
 			p2 := ptr.Elem()
 			ptr.Elem().Set(reflect.New(p2.Type().Elem()))
-			zero(ptr.Elem().Interface())
 			valueOf.Elem().Field(i).Set(p2)
 		}
 	}
