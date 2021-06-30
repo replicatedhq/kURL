@@ -18,7 +18,6 @@ function containerd_install() {
     try_1m_stderr cp ${DIR}/addons/containerd/${CONTAINERD_VERSION}/assets/runc $(which runc)
 
     containerd_configure
-    systemctl daemon-reload
 
     systemctl enable containerd
 
@@ -29,11 +28,13 @@ function containerd_install() {
         containerd_configure_proxy
     fi
 
-    if commandExists registry_containerd_configure && [ -n "$DOCKER_REGISTRY_IP" ]; then
-        registry_containerd_configure "$DOCKER_REGISTRY_IP"
+    if commandExists ${K8S_DISTRO}_registry_containerd_configure && [ -n "$DOCKER_REGISTRY_IP" ]; then
+        ${K8S_DISTRO}_registry_containerd_configure "$DOCKER_REGISTRY_IP"
+        CONTAINERD_NEEDS_RESTART=1
     fi
 
     if [ "$CONTAINERD_NEEDS_RESTART" = "1" ]; then
+        systemctl daemon-reload
         restart_systemd_and_wait containerd
         CONTAINERD_NEEDS_RESTART=0
     fi
