@@ -5,6 +5,7 @@ bases:
 resources:
   - ./service.yaml
   - ./disruptionbudget.yaml
+  - ./sealedsecret.yaml
   
 patchesStrategicMerge:
   - ./deployment.yaml

@@ -1,4 +1,5 @@
 import * as Express from "express";
+import * as bugsnag from "bugsnag";
 import * as util from "util";
 import {
   Err,
@@ -94,6 +95,7 @@ export class ErrorMiddleware implements IMiddlewareError {
     if (!(error instanceof HTTPError)) {
       // its an unhandled error so log it and then return a regular 500
       logger.error("Handling internal server error " + util.inspect(error));
+      bugsnag.notify(error);
       error = new ServerError();
     }
 
