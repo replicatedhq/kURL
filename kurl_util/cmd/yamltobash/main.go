@@ -93,7 +93,17 @@ func createMap(retrieved *kurlv1beta1.Installer) map[string]interface{} {
 	Spec := reflect.ValueOf(retrieved.Spec)
 
 	for i := 0; i < Spec.NumField(); i++ {
-		Category := reflect.ValueOf(Spec.Field(i).Interface())
+		var Category reflect.Value
+		if Spec.Field(i).Kind() == reflect.Ptr {
+			if Spec.Field(i).IsNil() {
+				ptr := reflect.New(Spec.Field(i).Type()).Elem()
+				Category = reflect.ValueOf(reflect.New(ptr.Type().Elem()).Elem().Interface())
+			} else {
+				Category = reflect.ValueOf(Spec.Field(i).Elem().Interface())
+			}
+		} else {
+			Category = reflect.ValueOf(Spec.Field(i).Interface())
+		}
 
 		TypeOfCategory := Category.Type()
 

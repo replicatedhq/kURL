@@ -4,8 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	// "reflect"
-
+	kurlv1beta1 "github.com/replicatedhq/kurl/kurlkinds/pkg/apis/cluster/v1beta1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -282,6 +281,38 @@ spec:
 			}
 			if !reflect.DeepEqual(out, test.expect) {
 				t.Errorf("Expected %+v\ngot %+v", test.expect, out)
+			}
+		})
+	}
+}
+
+func Test_createMap(t *testing.T) {
+	tests := []struct {
+		name      string
+		retrieved *kurlv1beta1.Installer
+		want      map[string]interface{}
+	}{
+		{
+			name: "basic",
+			retrieved: &kurlv1beta1.Installer{
+				Spec: kurlv1beta1.InstallerSpec{
+					Kubernetes: &kurlv1beta1.Kubernetes{
+						S3Override: "BLAH",
+					},
+				},
+			},
+			want: map[string]interface{}{
+				"Kubernetes.S3Override": "BLAH",
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := createMap(tt.retrieved)
+			for k, v := range tt.want {
+				if !reflect.DeepEqual(got[k], v) {
+					t.Errorf("createMap()[%s] = %v, want %v", k, got[k], v)
+				}
 			}
 		})
 	}
