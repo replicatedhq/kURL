@@ -20,7 +20,10 @@ function generate() {
     tmpdir="$(mktemp -d)"
     curl -L -o "${tmpdir}/sonobuoy.tar.gz" https://github.com/vmware-tanzu/sonobuoy/releases/download/v${VERSION}/sonobuoy_${VERSION}_linux_amd64.tar.gz && \
         tar xzvf "${tmpdir}/sonobuoy.tar.gz" -C "${tmpdir}"
-    "${tmpdir}/sonobuoy" gen | grep ' image: ' | grep -v conformance | sed 's/ *image: "*\(.*\)\/\(.*\):\([^"]*\)"*/image \2 \1\/\2:\3/' >> "../${VERSION}/Manifest"
+    "${tmpdir}/sonobuoy" gen --kube-conformance-image-version latest | \
+        grep ' image: ' | \
+        grep -v conformance | \
+        sed 's/ *image: "*\(.*\)\/\(.*\):\([^"]*\)"*/image \2 \1\/\2:\3/' >> "../${VERSION}/Manifest"
     rm -r "${tmpdir}"
 }
 
