@@ -224,7 +224,9 @@ func getKurlPlans(schedulerOptions types.SchedulerOptions) ([]types.Instance, er
 
 		isDistroRancher := (installerSpec.RKE2 != nil && installerSpec.RKE2.Version != "") ||
 			(installerSpec.K3S != nil && installerSpec.K3S.Version != "")
-		if !isDistroRancher && installerSpec.Docker.Version == "" && installerSpec.Containerd.Version == "" {
+		if !isDistroRancher &&
+			(installerSpec.Docker == nil || installerSpec.Docker.Version == "") &&
+			(installerSpec.Containerd == nil || installerSpec.Containerd.Version == "") {
 			installerSpec.Docker = &kurlv1beta1.Docker{Version: "latest"}
 		}
 	}
