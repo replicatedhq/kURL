@@ -16,8 +16,17 @@ spec:
             cpu: 100m
           limits:
             cpu: 1
+        envFrom:
+        - secretRef:
+            name: kurl-secrets
+        env:
+        - name: ENVIRONMENT
+          value: staging
       - name: kurl
         image: 923411875752.dkr.ecr.us-east-1.amazonaws.com/kurl
+        envFrom:
+        - secretRef:
+            name: kurl-secrets
         env:
         - name: AWS_REGION
           value: us-east-1

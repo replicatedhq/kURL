@@ -10,6 +10,8 @@ spec:
         env:
         - name: KURL_BUCKET
           value: "kurl-sh"
+        - name: ENVIRONMENT
+          value: development
       - name: kurl
         env:
         - name: KURL_URL

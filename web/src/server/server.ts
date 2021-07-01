@@ -53,7 +53,9 @@ export class Server extends ServerLoader {
     const bodyParser = require("body-parser");
 
     if (process.env["BUGSNAG_KEY"]) {
-      bugsnag.register(process.env["BUGSNAG_KEY"] || "");
+      bugsnag.register(process.env["BUGSNAG_KEY"] || "", {
+        releaseStage: process.env["NODE_ENV"],
+      });
       this.use(bugsnag.requestHandler);
     }
 
