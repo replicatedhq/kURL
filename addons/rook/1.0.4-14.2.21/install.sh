@@ -32,6 +32,8 @@ function rook() {
     if ! spinner_until 120 rook_rgw_is_healthy; then
         bail "Failed to detect healthy Rook RGW"
     fi
+
+    rook_patch_insecure_clients
 }
 
 function rook_operator_deploy() {
@@ -193,4 +195,22 @@ function rook_lvm2() {
     fi
  
     install_host_archives "$src" lvm2
+}
+
+function rook_clients_secure {
+    if [[ $(kubectl -n rook-ceph exec deploy/rook-ceph-operator -- ceph status | grep "mon is allowing insecure global_id reclaim") ]]; then 
+      return 1
+    fi
+}
+
+function rook_patch_insecure_clients {
+
+    echo "Patching allowance of insecure rook clients"
+    # Disabling rook global_id reclaim
+    try_1m kubectl -n rook-ceph exec deploy/rook-ceph-operator -- ceph config set mon auth_allow_insecure_global_id_reclaim false
+
+    # Checking to ensure ceph status  
+    if ! spinner_until 120 rook_clients_secure; then
+        logWarn "Mon is still allowing insecure clients"
+    fi
 }
