@@ -2,6 +2,7 @@ import * as _ from "lodash";
 import fetch from "node-fetch";
 import { Service } from "ts-express-decorators";
 import { Installer } from "../../installers";
+import { InstallerVersions } from "../../installers/versions";
 import { HTTPError } from "../../server/errors";
 import { getDistUrl, getPackageUrl, kurlVersionOrDefault } from "../package";
 
@@ -143,7 +144,7 @@ export function manifestFromInstaller(i: Installer, kurlURL: string, replicatedA
     REPLICATED_APP_URL: replicatedAppURL,
     KURL_UTIL_IMAGE: kurlUtilImage,
     KURL_BIN_UTILS_FILE: kurlBinUtils,
-    STEP_VERSIONS: `(${Installer.latestMinors().join(" ")})`,
+    STEP_VERSIONS: `(${Installer.latestMinors(InstallerVersions["kubernetes"]).join(" ")})`,
     INSTALLER_YAML: bashStringEscape(i.toYAML()),
   };
 }

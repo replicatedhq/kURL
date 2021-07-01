@@ -859,28 +859,65 @@ export class Installer {
     if (version === "latest") {
       return true;
     }
+
+    version = Installer.resolveVersion(config, version);
+
     if (installerVersion) {
       // hit s3 to determine if this addon+version exists for the specified installer version
       const generatedURL = getPackageUrl(getDistUrl(), installerVersion, `${Installer.generatePackageName(config, version)}.tar.gz`);
 
       const resp = await fetch(generatedURL, {method:"HEAD"});
       return resp.ok;
-    } else {
-      if (_.includes(InstallerVersions[config], version)) {
-        return true;
-      }
+    }
+
+    if (_.includes(InstallerVersions[config], version)) {
+      return true;
+    }
+    return false;
+  }
+
+  // replace problematic versions that do not sort because of semver pre-release
+  private static replaceVersions = {
+    "rook": {"1.0.4": "1.0.4-0.0.0"},
+    "prometheus": {"0.46.0": "0.46.0-0.0.0"},
+  };
+
+  public static resolveVersion(config: string, version: string): string {
+    if (version === "latest") {
+      return _.first(InstallerVersions[config]) || "latest";
+    }
+    if (!version.endsWith(".x")) {
+      return version
+    }
+
+    let installerVersions = InstallerVersions[config];
+
+    if (config in Installer.replaceVersions) {
+      Object.keys(Installer.replaceVersions[config]).forEach((k: string) => {
+        installerVersions = installerVersions.map(function(version: string): string {
+          return version === k ? Installer.replaceVersions[config][k] : version;
+        });
+      });
     }
 
     // search through the "latestVersions" array for something that matches the prefix here
-    if (config === "kubernetes" && version.endsWith(".x")) {
-      const searchString = version.slice(0, -2); // remove the last two characters - ".x"
-      const k8sMinors = Installer.latestMinors();
-      const matches = k8sMinors.filter((s) => s.startsWith(searchString));
-      if (matches.length > 0) {
-        return true;
+    const searchString = version.slice(0, -2); // remove the last two characters - ".x"
+    const minors = Installer.latestMinors(installerVersions);
+    const matches = minors.filter((s) => s.startsWith(searchString));
+    if (matches.length > 0) {
+      let match = matches[0];
+      if (config in Installer.replaceVersions) {
+        Object.keys(Installer.replaceVersions[config]).some((k: string) => {
+          if (match === Installer.replaceVersions[config][k]) {
+            match = k;
+            return true;
+          }
+          return false;
+        });
       }
+      return match;
     }
-    return false;
+    return version;
   }
 
   public static isSHA(id: string): boolean {
@@ -1057,18 +1094,8 @@ export class Installer {
     const i = this.clone();
 
     _.each(_.keys(i.spec), (config: string) => {
-      if (i.spec[config].version === "latest") {
-        i.spec[config].version = _.first(InstallerVersions[config]);
-      }
-
-      // search through the "latestVersions" array for something that matches the prefix here
-      if (config === "kubernetes" && i.spec[config].version.endsWith(".x")) {
-        const searchString = i.spec[config].version.slice(0, -2); // remove the last two characters - ".x"
-        const k8sMinors = Installer.latestMinors();
-        const matches = k8sMinors.filter((s) => s.startsWith(searchString));
-        if (matches.length > 0) {
-          i.spec[config].version = matches[0];
-        }
+      if (i.spec[config].version) {
+        i.spec[config].version = Installer.resolveVersion(config, i.spec[config].version);
       }
     });
 
@@ -1235,7 +1262,7 @@ export class Installer {
         if (config === "kubernetes") {
           kubernetesVersion = version;
           const prevMinor = semver.minor(version) - 1;
-          const step = Installer.latestMinors()[prevMinor];
+          const step = Installer.latestMinors(InstallerVersions[config])[prevMinor];
           if (step !== "0.0.0") {
             pkgs.push(`${config}-${step}`);
           }
@@ -1256,10 +1283,9 @@ export class Installer {
     return pkgs;
   }
 
-  public static latestMinors(): string[] {
+  public static latestMinors(versions: string[]): string[] {
     const ret: string[] = _.fill(Array(16), "0.0.0");
-
-    InstallerVersions.kubernetes.forEach((version: string) => {
+    versions.forEach((version: string) => {
       const minor = semver.minor(version);
       const latest = ret[minor];
 

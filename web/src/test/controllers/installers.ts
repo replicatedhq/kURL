@@ -986,8 +986,8 @@ spec:
   });
 
   describe("latestMinors", () => {
-    it("should include lateset version indexed by minor", () => {
-      const out = Installer.latestMinors();
+    it("should include latest version indexed by minor", () => {
+      const out = Installer.latestMinors(InstallerVersions["kubernetes"]);
 
       expect(out[0]).to.equal("0.0.0");
       expect(out[14]).to.equal("0.0.0");
