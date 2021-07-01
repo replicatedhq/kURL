@@ -28,7 +28,7 @@ func Test_zeroNilStructFields(t *testing.T) {
 		Scalar:    "scalar",
 		ScalarPtr: &scp,
 		A:         A{B: &B{C: &C{D: &scp}}},
-		AP:        &A{},
+		AP:        &A{B: &B{C: &C{D: &scp}}},
 		APN:       nil,
 	}
 	want := struct {
@@ -41,8 +41,8 @@ func Test_zeroNilStructFields(t *testing.T) {
 		Scalar:    "scalar",
 		ScalarPtr: &scp,
 		A:         A{B: &B{C: &C{D: &scp}}},
-		AP:        &A{B: &B{}},
-		APN:       &A{B: &B{}},
+		AP:        &A{B: &B{C: &C{D: &scp}}},
+		APN:       &A{},
 	}
 
 	zeroNilStructFields(&input)
