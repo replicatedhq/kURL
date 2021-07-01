@@ -6,8 +6,19 @@ on:
     - master
 
 jobs:
+  get-tag:
+    runs-on: ubuntu-18.04
+    steps:
+    - uses: actions/checkout@v2
+    - run: |
+        git fetch --tags -f
+        export VERSION_TAG=$(git tag | grep '^v20' | sort | tail -1)-dirty
+        echo ::set-output name=VERSION_TAG::${VERSION_TAG}
+
   kurl-util-image:
     runs-on: ubuntu-18.04
+    needs:
+    - get-tag
     steps:
     - uses: actions/checkout@v2
     - run: |
@@ -15,8 +26,6 @@ jobs:
         export KURL_UTIL_IMAGE=$KURL_UTIL_IMAGE_ALPHA
         make -C kurl_util build-and-push-kurl-util-image
 
-        git fetch --tags -f
-        export VERSION_TAG=$(git tag | grep '^v20' | sort | tail -1)-dirty
         export KURL_UTIL_IMAGE=replicated/kurl-util:${VERSION_TAG}
         docker tag $KURL_UTIL_IMAGE_ALPHA $KURL_UTIL_IMAGE
 
@@ -25,6 +34,7 @@ jobs:
         DOCKERHUB_DOCKER_PASS: ${{ secrets.DOCKERHUB_DOCKER_PASS }}
         DOCKERHUB_DOCKER_USER: ${{ secrets.DOCKERHUB_DOCKER_USER }}
         KURL_UTIL_IMAGE_ALPHA: replicated/kurl-util:alpha
+        VERSION_TAG: ${{ steps.get-tag.outputs.VERSION_TAG }}
 
   build-matrix:
     runs-on: ubuntu-18.04
@@ -38,13 +48,13 @@ jobs:
     - id: set-matrix
       name: Build image matrix
       run: |
-        git fetch --tags -f
-        export VERSION_TAG=$(git tag | grep '^v20' | sort | tail -1)-dirty
         export KURL_UTIL_IMAGE=replicated/kurl-util:${VERSION_TAG}
         export KURL_BIN_UTILS_FILE=kurl-bin-utils-${VERSION_TAG}.tar.gz
         export KURL_BIN_UTILS_FILE_LATEST=kurl-bin-utils-latest.tar.gz
         OUTPUT=`bin/list-all-packages-actions-matrix.sh "${{ github.event.inputs.index }}"`
         echo "::set-output name=matrix::$OUTPUT"
+      env:
+        VERSION_TAG: ${{ steps.get-tag.outputs.VERSION_TAG }}
 
   build-upload-packages:
     runs-on: ubuntu-18.04
@@ -72,8 +82,6 @@ jobs:
 
     - name: upload dist staging
       run: |
-        git fetch --tags -f
-        export VERSION_TAG=$(git tag | grep '^v20' | sort | tail -1)-dirty
         export KURL_UTIL_IMAGE=replicated/kurl-util:${VERSION_TAG}
         export KURL_BIN_UTILS_FILE=kurl-bin-utils-${VERSION_TAG}.tar.gz
         export KURL_BIN_UTILS_FILE_LATEST=kurl-bin-utils-latest.tar.gz
@@ -84,11 +92,10 @@ jobs:
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_PROD_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_PROD_SECRET_ACCESS_KEY }}
         DOCKER_PRUNE: '1'
+        VERSION_TAG: ${{ steps.get-tag.outputs.VERSION_TAG }}
 
     - name: upload tag dirty
       run: |
-        git fetch --tags -f
-        export VERSION_TAG=$(git tag | grep '^v20' | sort | tail -1)-dirty
         export KURL_UTIL_IMAGE=replicated/kurl-util:${VERSION_TAG}
         export KURL_BIN_UTILS_FILE=kurl-bin-utils-${VERSION_TAG}.tar.gz
 
@@ -98,6 +105,7 @@ jobs:
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_PROD_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_PROD_SECRET_ACCESS_KEY }}
         PACKAGE_PREFIX: staging
+        VERSION_TAG: ${{ steps.get-tag.outputs.VERSION_TAG }}
 
   build-addons:
     runs-on: ubuntu-18.04
@@ -117,6 +125,8 @@ jobs:
 
   staging-docker-image:
     runs-on: ubuntu-18.04
+    needs:
+    - get-tag
     steps:
     - uses: actions/checkout@v2
 
@@ -129,12 +139,12 @@ jobs:
     - run: make web
 
     - run: |
-        git fetch --tags -f
-        export VERSION_TAG=$(git tag | grep '^v20' | sort | tail -1)-dirty
         docker build -f deploy/Dockerfile-slim \
           --build-arg version=${GITHUB_SHA:0:7} \
           --build-arg version_tag=${VERSION_TAG} \
           -t 923411875752.dkr.ecr.us-east-1.amazonaws.com/kurl:${GITHUB_SHA:0:7} .
+      env:
+        VERSION_TAG: ${{ steps.get-tag.outputs.VERSION_TAG }}
 
     - run: |
         aws ecr get-login-password --region us-east-1 | docker login \
@@ -157,8 +167,6 @@ jobs:
 
     - name: kustomize
       run: |
-        git fetch --tags -f
-        export VERSION_TAG=$(git tag | grep '^v20' | sort | tail -1)-dirty
         curl -s https://api.github.com/repos/kubernetes-sigs/kustomize/releases/tags/v2.0.0 | \
           grep browser_download | \
           grep linux | \
@@ -170,6 +178,8 @@ jobs:
         kustomize edit set image 923411875752.dkr.ecr.us-east-1.amazonaws.com/kurl:${GITHUB_SHA:0:7}
         kustomize build . | sed "s/__VERSION_TAG__/${VERSION_TAG}/g" > kurl.yaml
         popd
+      env:
+        VERSION_TAG: ${{ steps.get-tag.outputs.VERSION_TAG }}
 
     - name: ssh-key
       env:
@@ -220,20 +230,12 @@ jobs:
       id: queue
       env:
         TESTGRID_API_TOKEN: ${{ secrets.TESTGRID_PROD_API_TOKEN }}
-        GIT_TAG: ${{ steps.get_tag.outputs.GIT_TAG }}
+        VERSION_TAG: ${{ steps.get-tag.outputs.VERSION_TAG }}
       run: |
-        REF="STAGING-release-${GIT_TAG}-$(date '+%Y%m%d%H%M%S')"
+        REF="STAGING-release-${VERSION_TAG}-$(date '+%Y%m%d%H%M%S')"
         ./testgrid/tgrun/bin/tgrun queue --staging \
           --ref "${REF}" \
           --spec ./testgrid/specs/deploy.yaml \
           --os-spec ./testgrid/specs/os-latest.yaml
         MSG="Testgrid Run(s) Executing @ https://testgrid.kurl.sh/run/${REF}"
         echo "::set-output name=msg::${MSG}"
-
-    - name: Post TG URL
-      uses: unsplash/comment-on-pr@master
-      env:
-        GITHUB_TOKEN: ${{ secrets.GH_PAT }}
-      with:
-        msg: ${{ steps.queue.outputs.msg }}
-        check_for_duplicate_msg: true
