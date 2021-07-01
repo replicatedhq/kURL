@@ -28,7 +28,6 @@ function containerd_install() {
         containerd_configure_proxy
     fi
 
-
     if commandExists ${K8S_DISTRO}_registry_containerd_configure && [ -n "$DOCKER_REGISTRY_IP" ]; then
         ${K8S_DISTRO}_registry_containerd_configure "$DOCKER_REGISTRY_IP"
         CONTAINERD_NEEDS_RESTART=1
