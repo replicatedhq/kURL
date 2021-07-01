@@ -26,9 +26,9 @@ func QueueCmd() *cobra.Command {
 				Ref:          v.GetString("ref"),
 				Staging:      v.GetBool("staging"),
 				Airgap:       v.GetBool("airgap"),
-				LatestOnly:   v.GetBool("latest-only"),
 				KurlVersion:  v.GetString("kurl-version"),
 				Spec:         v.GetString("spec"),
+				OSSpec:       v.GetString("os-spec"),
 			}
 
 			if err := scheduler.Run(schedulerOptions); err != nil {
@@ -40,12 +40,16 @@ func QueueCmd() *cobra.Command {
 	}
 
 	cmd.Flags().String("ref", "", "ref to report to testgrid")
+	cmd.MarkFlagRequired("ref")
 	cmd.Flags().Bool("overwrite-ref", false, "when set, overwrite the ref on the testgrid")
 	cmd.Flags().Bool("staging", false, "when set, run tests against staging.kurl.sh instead of kurl.sh")
 	cmd.Flags().Bool("airgap", false, "when set, run tests in airgapped mode")
 	cmd.Flags().Bool("latest-only", false, "when set, run tests against the 'latest' kurl installer only instead of the standard suite")
 	cmd.Flags().String("kurl-version", "", "when set, run a specific kurl version")
-	cmd.Flags().String("spec", "", "when set, runs test against the provided installer spec yaml")
+	cmd.Flags().String("spec", "", "run test against the provided installer spec yaml")
+	cmd.MarkFlagRequired("spec")
+	cmd.Flags().String("os-spec", "", "run test against the provided os spec yaml")
+	cmd.MarkFlagRequired("os-spec")
 
 	cmd.MarkFlagRequired("ref")
 

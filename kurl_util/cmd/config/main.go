@@ -106,6 +106,16 @@ func processSelinuxConfig(installer *kurlv1beta1.Installer, execCmds bool, gener
 		scriptFilename = "./configure_selinux.sh" // for dev testing
 	}
 
+	if installer.Spec.SelinuxConfig == nil {
+		// NOTE (ethan): I'm not sure the reason for this code.
+		// I'm only trying not to change functionality.
+		err := os.RemoveAll(scriptFilename)
+		if err != nil && !os.IsNotExist(err) {
+			log.Printf("Failed to delete %s: %v\n", scriptFilename, err)
+		}
+		return nil
+	}
+
 	deleteScript := true
 	if generateScript && (installer.Spec.SelinuxConfig.Selinux != "" || installer.Spec.SelinuxConfig.Type != "") {
 		scriptLines := []string{
@@ -158,7 +168,7 @@ func processSelinuxConfig(installer *kurlv1beta1.Installer, execCmds bool, gener
 
 	if deleteScript {
 		err := os.RemoveAll(scriptFilename)
-		if err != nil && os.IsNotExist(err) {
+		if err != nil && !os.IsNotExist(err) {
 			log.Printf("Failed to delete %s: %v\n", scriptFilename, err)
 		}
 	}
@@ -170,6 +180,16 @@ func processFirewalldConfig(installer *kurlv1beta1.Installer, execCmds bool, gen
 	scriptFilename := os.Getenv("CONFIGURE_FIREWALLD_SCRIPT")
 	if scriptFilename == "" {
 		scriptFilename = "./configure_firewalld.sh" // for dev testing
+	}
+
+	if installer.Spec.SelinuxConfig == nil {
+		// NOTE (ethan): I'm not sure the reason for this code.
+		// I'm only trying not to change functionality.
+		err := os.RemoveAll(scriptFilename)
+		if err != nil && !os.IsNotExist(err) {
+			log.Printf("Failed to delete %s: %v\n", scriptFilename, err)
+		}
+		return nil
 	}
 
 	deleteScript := true
@@ -210,7 +230,7 @@ func processFirewalldConfig(installer *kurlv1beta1.Installer, execCmds bool, gen
 
 	if deleteScript {
 		err := os.RemoveAll(scriptFilename)
-		if err != nil && os.IsNotExist(err) {
+		if err != nil && !os.IsNotExist(err) {
 			log.Printf("Failed to delete %s: %v\n", scriptFilename, err)
 		}
 	}
@@ -219,6 +239,10 @@ func processFirewalldConfig(installer *kurlv1beta1.Installer, execCmds bool, gen
 }
 
 func processIptablesConfig(installer *kurlv1beta1.Installer, execCmds bool, generateScript bool) error {
+	if installer.Spec.IptablesConfig == nil {
+		return nil
+	}
+
 	if execCmds {
 		for _, args := range installer.Spec.IptablesConfig.IptablesCmds {
 			err := runCommand("iptables", args)

@@ -34,6 +34,9 @@ func generateAllAddOns() ([]kurlv1beta1.InstallerSpec, error) {
 	return installerSpecs, nil
 }
 
+// hack
+var previouslyGeneratedNames = []string{}
+
 func generateAllAddOnsExcept(installerSpec kurlv1beta1.InstallerSpec, withoutAddOnNames []string) ([]kurlv1beta1.InstallerSpec, error) {
 	sort.Strings(withoutAddOnNames)
 	joined := strings.Join(withoutAddOnNames, ",")
@@ -83,57 +86,39 @@ func generateAllAddOnsExcept(installerSpec kurlv1beta1.InstallerSpec, withoutAdd
 }
 
 func appendAddOnToInstallerSpec(installerSpec kurlv1beta1.InstallerSpec, addOnName string, addOnVersion string) (kurlv1beta1.InstallerSpec, error) {
+	// TODO: this is unused and is missing addons
+
 	switch addOnName {
 
 	case "contour":
-		installerSpec.Contour = kurlv1beta1.Contour{
-			Version: addOnVersion,
-		}
+		installerSpec.Contour = &kurlv1beta1.Contour{Version: addOnVersion}
 
 	case "ekco":
-		installerSpec.Ekco = kurlv1beta1.Ekco{
-			Version: addOnVersion,
-		}
+		installerSpec.Ekco = &kurlv1beta1.Ekco{Version: addOnVersion}
 
 	case "fluentd":
-		installerSpec.Fluentd = kurlv1beta1.Fluentd{
-			Version: addOnVersion,
-		}
+		installerSpec.Fluentd = &kurlv1beta1.Fluentd{Version: addOnVersion}
 
 	case "rook":
-		installerSpec.Rook = kurlv1beta1.Rook{
-			Version: addOnVersion,
-		}
+		installerSpec.Rook = &kurlv1beta1.Rook{Version: addOnVersion}
 
 	case "prometheus":
-		installerSpec.Prometheus = kurlv1beta1.Prometheus{
-			Version: addOnVersion,
-		}
+		installerSpec.Prometheus = &kurlv1beta1.Prometheus{Version: addOnVersion}
 
 	case "kotsadm":
-		installerSpec.Kotsadm = kurlv1beta1.Kotsadm{
-			Version: addOnVersion,
-		}
+		installerSpec.Kotsadm = &kurlv1beta1.Kotsadm{Version: addOnVersion}
 
 	case "minio":
-		installerSpec.Minio = kurlv1beta1.Minio{
-			Version: addOnVersion,
-		}
+		installerSpec.Minio = &kurlv1beta1.Minio{Version: addOnVersion}
 
 	case "openebs":
-		installerSpec.OpenEBS = kurlv1beta1.OpenEBS{
-			Version: addOnVersion,
-		}
+		installerSpec.OpenEBS = &kurlv1beta1.OpenEBS{Version: addOnVersion}
 
 	case "registry":
-		installerSpec.Registry = kurlv1beta1.Registry{
-			Version: addOnVersion,
-		}
+		installerSpec.Registry = &kurlv1beta1.Registry{Version: addOnVersion}
 
 	case "velero":
-		installerSpec.Velero = kurlv1beta1.Velero{
-			Version: addOnVersion,
-		}
+		installerSpec.Velero = &kurlv1beta1.Velero{Version: addOnVersion}
 
 	default:
 		panic("unknown add on")

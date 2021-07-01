@@ -127,7 +127,10 @@ test_addon() {
   sed -i "s#__testdist__#${dist}#g" /tmp/test-spec
 
   # Run testgrid plan
-  ./testgrid/tgrun/bin/tgrun queue --staging --ref "pr-${PR_NUMBER}-${GITHUB_SHA:0:7}-${name}-${version}-${specname}" --spec "$(cat /tmp/test-spec)"
+  ./testgrid/tgrun/bin/tgrun queue --staging \
+    --ref "pr-${PR_NUMBER}-${GITHUB_SHA:0:7}-${name}-${version}-${specname}" \
+    --spec /tmp/test-spec \
+    --os-spec ./testgrid/specs/os.yaml
   echo "Submitted TestGrid Ref pr-${PR_NUMBER}-${GITHUB_SHA:0:7}-${name}-${version}-${specname}"
   MSG="$MSG https://testgrid.kurl.sh/run/pr-${PR_NUMBER}-${GITHUB_SHA:0:7}-${name}-${version}-${specname}"
 }
@@ -145,6 +148,6 @@ run() {
   done
 
   
-  echo "::set-output name=msg::${MSG}"   
+  echo "::set-output name=msg::${MSG}"
   echo "Run completed."
 }

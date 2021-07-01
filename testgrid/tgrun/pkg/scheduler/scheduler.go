@@ -7,21 +7,17 @@ import (
 	"io/ioutil"
 	"math/rand"
 	"net/http"
+	"os"
 	"regexp"
 	"time"
-
-	"gopkg.in/yaml.v2"
 
 	"github.com/pkg/errors"
 	kurlv1beta1 "github.com/replicatedhq/kurl/kurlkinds/pkg/apis/cluster/v1beta1"
 	tghandlers "github.com/replicatedhq/kurl/testgrid/tgapi/pkg/handlers"
-	"github.com/replicatedhq/kurl/testgrid/tgrun/pkg/instances"
 	"github.com/replicatedhq/kurl/testgrid/tgrun/pkg/scheduler/types"
+	"gopkg.in/yaml.v2"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
-
-// hack
-var previouslyGeneratedNames = []string{}
 
 var urlRegexp = regexp.MustCompile(`(https://[\w.]+)/([\w]+)`)
 
@@ -36,6 +32,11 @@ func Run(schedulerOptions types.SchedulerOptions) error {
 
 	plannedInstances := []tghandlers.PlannedInstance{}
 
+	operatingSystems, err := getOses(schedulerOptions)
+	if err != nil {
+		return err
+	}
+
 	kurlPlans, err := getKurlPlans(schedulerOptions)
 	if err != nil {
 		return err
@@ -44,14 +45,12 @@ func Run(schedulerOptions types.SchedulerOptions) error {
 	for _, instance := range kurlPlans {
 		testSpec := instance.InstallerSpec
 		// append sonobuoy for conformance testing
-		if testSpec.Sonobuoy == nil {
-			testSpec.Sonobuoy = &kurlv1beta1.Sonobuoy{
-				Version: "latest",
-			}
+		if testSpec.Sonobuoy == nil || testSpec.Sonobuoy.Version == "" {
+			testSpec.Sonobuoy = &kurlv1beta1.Sonobuoy{Version: "latest"}
 		}
 
 		// post it to the API to get a sha / id back
-		installer := types.Installer{
+		installer := kurlv1beta1.Installer{
 			TypeMeta: metav1.TypeMeta{
 				APIVersion: "cluster.kurl.sh/v1beta1",
 				Kind:       "Installer",
@@ -68,7 +67,7 @@ func Run(schedulerOptions types.SchedulerOptions) error {
 		}
 
 		apiUrl := "https://kurl.sh/installer"
-		if testSpec.IsStaging || schedulerOptions.Staging {
+		if schedulerOptions.Staging {
 			apiUrl = "https://staging.kurl.sh/installer"
 		}
 
@@ -93,10 +92,8 @@ func Run(schedulerOptions types.SchedulerOptions) error {
 			installer.Spec = *instance.UpgradeSpec
 
 			// append sonobuoy for conformance testing
-			if installer.Spec.Sonobuoy == nil {
-				installer.Spec.Sonobuoy = &kurlv1beta1.Sonobuoy{
-					Version: "latest",
-				}
+			if installer.Spec.Sonobuoy == nil || installer.Spec.Sonobuoy.Version == "" {
+				installer.Spec.Sonobuoy = &kurlv1beta1.Sonobuoy{Version: "latest"}
 			}
 
 			upgradeYAML, err = json.Marshal(installer)
@@ -120,7 +117,7 @@ func Run(schedulerOptions types.SchedulerOptions) error {
 				return errors.Wrap(err, "failed to read upgrade response body")
 			}
 
-			if instance.InstallerSpec.RunAirgap || schedulerOptions.Airgap {
+			if instance.Airgap || schedulerOptions.Airgap {
 				upgradeURLString, err := getBundleFromURL(string(upgradeURL), schedulerOptions.KurlVersion)
 				if err != nil {
 					return errors.Wrapf(err, "generate airgap url from upgrade url %s", upgradeURL)
@@ -142,7 +139,7 @@ func Run(schedulerOptions types.SchedulerOptions) error {
 			return fmt.Errorf("error getting kurl spec url: %s", errMsg.Error.Message)
 		}
 
-		if instance.InstallerSpec.RunAirgap || schedulerOptions.Airgap {
+		if instance.Airgap || schedulerOptions.Airgap {
 			installerURLString, err := getBundleFromURL(string(installerURL), schedulerOptions.KurlVersion)
 			if err != nil {
 				return errors.Wrapf(err, "generate airgap url from installer url %s", installerURL)
@@ -195,40 +192,69 @@ func Run(schedulerOptions types.SchedulerOptions) error {
 }
 
 func getKurlPlans(schedulerOptions types.SchedulerOptions) ([]types.Instance, error) {
-	var kurlPlans []types.Instance
+	if schedulerOptions.Spec == "" {
+		return nil, errors.New("spec required")
+	}
 
-	// Custom Kurl Spec takes precedence
-	if schedulerOptions.Spec != "" {
-		err := yaml.Unmarshal([]byte(schedulerOptions.Spec), &kurlPlans)
+	spec := schedulerOptions.Spec
+
+	if _, err := os.Stat(spec); err == nil {
+		b, err := ioutil.ReadFile(spec)
 		if err != nil {
 			return nil, err
 		}
+		spec = string(b)
+	}
 
-		for idx, _ := range kurlPlans {
-			// ensure that installerSpec has a k8s and CRI version specified
-			isDistroDefined := (kurlPlans[idx].InstallerSpec.Kubernetes != nil && kurlPlans[idx].InstallerSpec.Kubernetes.Version != "") ||
-				kurlPlans[idx].InstallerSpec.RKE2 != nil || kurlPlans[idx].InstallerSpec.K3S != nil
-			if !isDistroDefined {
-				kurlPlans[idx].InstallerSpec.Kubernetes.Version = "latest"
-			}
+	var kurlPlans []types.Instance
+	err := yaml.Unmarshal([]byte(spec), &kurlPlans)
+	if err != nil {
+		return nil, err
+	}
 
-			isDistroRancher := kurlPlans[idx].InstallerSpec.RKE2 != nil || kurlPlans[idx].InstallerSpec.K3S != nil
-			if kurlPlans[idx].InstallerSpec.Docker == nil && kurlPlans[idx].InstallerSpec.Containerd == nil && !isDistroRancher {
-				kurlPlans[idx].InstallerSpec.Docker = &kurlv1beta1.Docker{
-					Version: "latest",
-				}
-			}
+	for idx := range kurlPlans {
+		// ensure that installerSpec has a k8s and CRI version specified
+		installerSpec := kurlPlans[idx].InstallerSpec
+		isDistroDefined := (installerSpec.Kubernetes != nil && installerSpec.Kubernetes.Version != "") ||
+			(installerSpec.RKE2 != nil && installerSpec.RKE2.Version != "") ||
+			(installerSpec.K3S != nil && installerSpec.K3S.Version != "")
+		if !isDistroDefined {
+			installerSpec.Kubernetes = &kurlv1beta1.Kubernetes{Version: "latest"}
 		}
 
-		// Latest-only flag is set
-	} else if schedulerOptions.LatestOnly {
-		kurlPlans = instances.Latest
-
-		// Default Case: use pre-planned integration test suite
-	} else {
-		kurlPlans = instances.Instances
+		isDistroRancher := (installerSpec.RKE2 != nil && installerSpec.RKE2.Version != "") ||
+			(installerSpec.K3S != nil && installerSpec.K3S.Version != "")
+		if !isDistroRancher && installerSpec.Docker.Version == "" && installerSpec.Containerd.Version == "" {
+			installerSpec.Docker = &kurlv1beta1.Docker{Version: "latest"}
+		}
 	}
+
 	return kurlPlans, nil
+}
+
+func getOses(schedulerOptions types.SchedulerOptions) ([]types.OperatingSystemImage, error) {
+	if schedulerOptions.OSSpec == "" {
+		return nil, errors.New("os spec required")
+	}
+
+	var oses []types.OperatingSystemImage
+
+	spec := schedulerOptions.OSSpec
+
+	if _, err := os.Stat(spec); err == nil {
+		b, err := ioutil.ReadFile(spec)
+		if err != nil {
+			return nil, err
+		}
+		spec = string(b)
+	}
+
+	err := yaml.Unmarshal([]byte(spec), &oses)
+	if err != nil {
+		return nil, err
+	}
+
+	return oses, nil
 }
 
 func sendStartInstancesRequest(schedulerOptions types.SchedulerOptions, plannedInstances []tghandlers.PlannedInstance) error {
