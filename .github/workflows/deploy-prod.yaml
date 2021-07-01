@@ -249,11 +249,3 @@ jobs:
           --os-spec ./testgrid/specs/os-latest.yaml
         MSG="Testgrid Run(s) Executing @ https://testgrid.kurl.sh/run/${REF}"
         echo "::set-output name=msg::${MSG}"
-
-    - name: Post TG URL
-      uses: unsplash/comment-on-pr@master
-      env:
-        GITHUB_TOKEN: ${{ secrets.GH_PAT }}
-      with:
-        msg: ${{ steps.queue.outputs.msg }}
-        check_for_duplicate_msg: true
