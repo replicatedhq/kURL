@@ -3,7 +3,7 @@ name: deploy-staging
 on:
   push:
     branches:
-    - emosbaugh/20210701-fix-build-again
+    - master
 
 jobs:
   get-tag:
