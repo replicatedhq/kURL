@@ -13,7 +13,7 @@ jobs:
     - run: |
         git fetch --tags -f
         export VERSION_TAG=$(git tag | grep '^v20' | sort | tail -1)-dirty
-        echo ::set-output name=VERSION_TAG::${VERSION_TAG}
+        echo "::set-output name=VERSION_TAG::${VERSION_TAG}"
 
   kurl-util-image:
     runs-on: ubuntu-18.04
@@ -34,7 +34,7 @@ jobs:
         DOCKERHUB_DOCKER_PASS: ${{ secrets.DOCKERHUB_DOCKER_PASS }}
         DOCKERHUB_DOCKER_USER: ${{ secrets.DOCKERHUB_DOCKER_USER }}
         KURL_UTIL_IMAGE_ALPHA: replicated/kurl-util:alpha
-        VERSION_TAG: ${{ steps.get-tag.outputs.VERSION_TAG }}
+        VERSION_TAG: ${{ needs.get-tag.outputs.VERSION_TAG }}
 
   build-matrix:
     runs-on: ubuntu-18.04
@@ -54,7 +54,7 @@ jobs:
         OUTPUT=`bin/list-all-packages-actions-matrix.sh "${{ github.event.inputs.index }}"`
         echo "::set-output name=matrix::$OUTPUT"
       env:
-        VERSION_TAG: ${{ steps.get-tag.outputs.VERSION_TAG }}
+        VERSION_TAG: ${{ needs.get-tag.outputs.VERSION_TAG }}
 
   build-upload-packages:
     runs-on: ubuntu-18.04
@@ -92,7 +92,7 @@ jobs:
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_PROD_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_PROD_SECRET_ACCESS_KEY }}
         DOCKER_PRUNE: '1'
-        VERSION_TAG: ${{ steps.get-tag.outputs.VERSION_TAG }}
+        VERSION_TAG: ${{ needs.get-tag.outputs.VERSION_TAG }}
 
     - name: upload tag dirty
       run: |
@@ -105,7 +105,7 @@ jobs:
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_PROD_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_PROD_SECRET_ACCESS_KEY }}
         PACKAGE_PREFIX: staging
-        VERSION_TAG: ${{ steps.get-tag.outputs.VERSION_TAG }}
+        VERSION_TAG: ${{ needs.get-tag.outputs.VERSION_TAG }}
 
   build-addons:
     runs-on: ubuntu-18.04
@@ -144,7 +144,7 @@ jobs:
           --build-arg version_tag=${VERSION_TAG} \
           -t 923411875752.dkr.ecr.us-east-1.amazonaws.com/kurl:${GITHUB_SHA:0:7} .
       env:
-        VERSION_TAG: ${{ steps.get-tag.outputs.VERSION_TAG }}
+        VERSION_TAG: ${{ needs.get-tag.outputs.VERSION_TAG }}
 
     - run: |
         aws ecr get-login-password --region us-east-1 | docker login \
@@ -179,7 +179,7 @@ jobs:
         kustomize build . | sed "s/__VERSION_TAG__/${VERSION_TAG}/g" > kurl.yaml
         popd
       env:
-        VERSION_TAG: ${{ steps.get-tag.outputs.VERSION_TAG }}
+        VERSION_TAG: ${{ needs.get-tag.outputs.VERSION_TAG }}
 
     - name: ssh-key
       env:
@@ -230,7 +230,7 @@ jobs:
       id: queue
       env:
         TESTGRID_API_TOKEN: ${{ secrets.TESTGRID_PROD_API_TOKEN }}
-        VERSION_TAG: ${{ steps.get-tag.outputs.VERSION_TAG }}
+        VERSION_TAG: ${{ needs.get-tag.outputs.VERSION_TAG }}
       run: |
         REF="STAGING-release-${VERSION_TAG}-$(date '+%Y%m%d%H%M%S')"
         ./testgrid/tgrun/bin/tgrun queue --staging \
