@@ -15,15 +15,13 @@ function kotsadm() {
     kotsadm_secret_password
     kotsadm_secret_postgres
     kotsadm_secret_dex_postgres
-    kotsadm_secret_s3 # this secret is currently only used for (re)configuring internal snapshots
     kotsadm_secret_session
     kotsadm_api_encryption_key
 
-    # kotsadm v1.46+ does not use an object store for the archives, patch the migrate-s3 init container to migrate the data.
-    # ideally, this should only be patched if an object store is detected, but we can't rely on that fact since kotsadm still requires
-    # an object store for internal snapshots, once that's resolved, we can start patching this only if an object store already exists in the cluster.
-    # the migration process is intelligent enough to detect whether an object store and a bucket exists or not.
-    kotsadm_api_patch_s3_migration
+    if kubernetes_resource_exists default secret kotsadm-s3; then
+        # kotsadm v1.46+ does not use an object store, patch the migrate-s3 init container to migrate the data
+        kotsadm_api_patch_s3_migration
+    fi
 
     if [ -n "$PROMETHEUS_VERSION" ]; then
         kotsadm_api_patch_prometheus
@@ -184,14 +182,6 @@ function kotsadm_secret_dex_postgres() {
     insert_resources "$DIR/kustomize/kotsadm/kustomization.yaml" secret-dex-postgres.yaml
 
     kubernetes_scale_down default statefulset kotsadm
-}
-
-function kotsadm_secret_s3() {
-    if [ -z "$VELERO_LOCAL_BUCKET" ]; then
-        VELERO_LOCAL_BUCKET=velero
-    fi
-    render_yaml_file "$DIR/addons/kotsadm/alpha/tmpl-secret-s3.yaml" > "$DIR/kustomize/kotsadm/secret-s3.yaml"
-    insert_resources "$DIR/kustomize/kotsadm/kustomization.yaml" secret-s3.yaml
 }
 
 function kotsadm_secret_session() {
