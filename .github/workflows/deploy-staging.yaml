@@ -9,10 +9,10 @@ jobs:
   get-tag:
     runs-on: ubuntu-18.04
     outputs:
-      matrix: ${{ steps.set-get-tag.outputs.version_tag }}
+      version_tag: ${{ steps.set-tag.outputs.version_tag }}
     steps:
     - uses: actions/checkout@v2
-    - id: set-get-tag
+    - id: set-tag
       run: |
         git fetch --tags -f
         export VERSION_TAG=$(git tag | grep '^v20' | sort | tail -1)-dirty
@@ -25,7 +25,6 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - run: |
-        echo "VERSION_TAG = $VERSION_TAG"
         echo "$DOCKERHUB_DOCKER_PASS" | docker login -u $DOCKERHUB_DOCKER_USER --password-stdin
         export KURL_UTIL_IMAGE=$KURL_UTIL_IMAGE_ALPHA
         make -C kurl_util build-and-push-kurl-util-image
@@ -145,7 +144,6 @@ jobs:
     - run: make web
 
     - run: |
-        echo "VERSION_TAG = $VERSION_TAG"
         docker build -f deploy/Dockerfile-slim \
           --build-arg version=${GITHUB_SHA:0:7} \
           --build-arg version_tag=${VERSION_TAG} \
