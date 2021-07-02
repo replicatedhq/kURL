@@ -3,7 +3,7 @@ name: deploy-staging
 on:
   push:
     branches:
-    - master
+    - emosbaugh/20210701-fix-build-again
 
 jobs:
   get-tag:
@@ -39,6 +39,7 @@ jobs:
   build-matrix:
     runs-on: ubuntu-18.04
     needs:
+    - get-tag
     - kurl-util-image
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
@@ -59,6 +60,7 @@ jobs:
   build-upload-packages:
     runs-on: ubuntu-18.04
     needs:
+    - get-tag
     - build-matrix
     strategy:
       matrix: ${{fromJSON(needs.build-matrix.outputs.matrix)}}
@@ -159,6 +161,7 @@ jobs:
   deploy-staging-eks:
     runs-on: ubuntu-18.04
     needs:
+    - get-tag
     - staging-docker-image
     - kurl-util-image
     - build-upload-packages
@@ -206,6 +209,7 @@ jobs:
   testgrid-run:
     runs-on: ubuntu-18.04
     needs:
+    - get-tag
     - deploy-staging-eks
     steps:
 
