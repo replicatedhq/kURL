@@ -51,7 +51,7 @@ export class Installers {
       response.status(404);
       return notFoundResponse;
     }
-    installer = installer.resolve();
+    installer = await installer.resolve();
 
     response.set("X-Kurl-Hash", installer.hash());
     response.status(200);
@@ -78,7 +78,7 @@ export class Installers {
       response.status(404);
       return notFoundResponse;
     }
-    installer = installer.resolve();
+    installer = await installer.resolve();
 
     response.set("X-Kurl-Hash", installer.hash());
     response.status(200);
@@ -99,7 +99,7 @@ export class Installers {
       response.status(404);
       return notFoundResponse;
     }
-    installer = installer.resolve();
+    installer = await installer.resolve();
 
     response.set("X-Kurl-Hash", installer.hash());
     response.status(200);
@@ -113,7 +113,7 @@ export class Installers {
     @PathParams("kurlVersion") kurlVersion: string|undefined,
   ): Promise<string> {
 
-    const installer = Installer.latest().resolve();
+    const installer = await Installer.latest().resolve();
 
     response.set("X-Kurl-Hash", installer.hash());
     response.status(200);
@@ -144,7 +144,7 @@ export class Installers {
       response.status(404);
       return notFoundResponse;
     }
-    installer = installer.resolve();
+    installer = await installer.resolve();
 
     try {
       await this.metricsStore.saveSaasScriptEvent({
