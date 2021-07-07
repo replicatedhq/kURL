@@ -1,4 +1,5 @@
 import * as _ from "lodash";
+import fetch from "node-fetch";
 import bugsnag = require("bugsnag");
 import { HTTPError } from "../server/errors";
 import { getPackageUrl } from "../util/package";
@@ -33,6 +34,10 @@ export async function getInstallerVersions(distUrl: string, kurlVersion?: string
   if (!_.get(body, "supportedVersions.kubernetes") || (body.supportedVersions as IInstallerVersions).kubernetes.length === 0) {
     throw new HTTPError(500, `unexpected addon supported versions response body from url ${url}`);
   }
-  installerVersionsCache[url] = body.supportedVersions as IInstallerVersions;
+  const installerVersions = body.supportedVersions as IInstallerVersions;
+  Object.keys(installerVersions).map((addon: string) => {
+    installerVersions[addon] = installerVersions[addon].filter((version: string) => version !== "latest");
+  });
+  installerVersionsCache[url] = installerVersions;
   return installerVersionsCache[url];
 }
