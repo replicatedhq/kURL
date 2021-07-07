@@ -4,16 +4,17 @@ REPORTING_CONTEXT_INFO=""
 INSTALLATION_ID=
 TESTGRID_ID=
 function report_install_start() {
-    if [ "${DISABLE_REPORTING}" = "1" ]; then
-        return
-    fi
-
     # report that the install started
     # this includes the install ID, time, kurl URL, and linux distribution name + version.
     # TODO: HA status, server CPU count and memory size.
 
     # if airgapped, don't create an installation ID and return early
     if [ "$AIRGAP" == "1" ]; then
+        return 0
+    fi
+
+    # if DISABLE_REPORTING is set, don't create an installation ID (which thus disables all the other reporting calls) and return early
+    if [ "${DISABLE_REPORTING}" = "1" ]; then
         return 0
     fi
 
@@ -30,10 +31,6 @@ function report_install_start() {
 }
 
 function report_install_success() {
-    if [ "${DISABLE_REPORTING}" = "1" ]; then
-        return
-    fi
-
     # report that the install finished successfully
 
     # if INSTALLATION_ID is empty reporting is disabled
@@ -49,10 +46,6 @@ function report_install_success() {
 }
 
 function report_install_fail() {
-    if [ "${DISABLE_REPORTING}" = "1" ]; then
-        return
-    fi
-
     # report that the install failed
     local cause=$1
 
@@ -69,10 +62,6 @@ function report_install_fail() {
 }
 
 function report_addon_start() {
-    if [ "${DISABLE_REPORTING}" = "1" ]; then
-        return
-    fi
-
     # report that an addon started installation
     local name=$1
     local version=$2
@@ -90,10 +79,6 @@ function report_addon_start() {
 }
 
 function report_addon_success() {
-    if [ "${DISABLE_REPORTING}" = "1" ]; then
-        return
-    fi
-
     # report that an addon installed successfully
     local name=$1
     local version=$2
@@ -135,10 +120,6 @@ function ctrl_c() {
 
 # unused
 function addon_install_fail() {
-    if [ "${DISABLE_REPORTING}" = "1" ]; then
-        return
-    fi
-
     # report that an addon failed to install successfully
     local name=$1
     local version=$2
@@ -163,10 +144,6 @@ function addon_install_fail() {
 
 # unused
 function addon_install_fail_nobundle() {
-    if [ "${DISABLE_REPORTING}" = "1" ]; then
-        return
-    fi
-
     # report that an addon failed to install successfully
     local name=$1
     local version=$2
