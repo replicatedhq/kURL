@@ -28,7 +28,7 @@ daemonConfig: |
 });
 
 describe("When rendering installer yaml", () => {
-  it("does not strip double quotes from integers", () => {
+  it("does not strip double quotes from integers", async () => {
     const yaml = `apiVersion: cluster.kurl.sh/v1beta1
 kind: Installer
 metadata:
@@ -50,7 +50,7 @@ spec:
 `;
     const installer = Installer.parse(yaml);
 
-    const manifest = manifestFromInstaller(installer, "KURL_URL", "APP_URL", "DIST_URL", "UTIL_IMAGE", "BINUTILS_IMAGE", "");
+    const manifest = await manifestFromInstaller(installer, "KURL_URL", "APP_URL", "DIST_URL", "UTIL_IMAGE", "BINUTILS_IMAGE", "");
     expect(manifest.INSTALLER_YAML).to.contain(`name: '0668700'`);
   });
 });

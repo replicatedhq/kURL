@@ -2,6 +2,7 @@ import * as _ from "lodash";
 import fetch from "node-fetch";
 import { Service } from "ts-express-decorators";
 import { Installer } from "../../installers";
+import { getInstallerVersions } from "../../installers/installer-versions";
 import { HTTPError } from "../../server/errors";
 import { getDistUrl, getPackageUrl, kurlVersionOrDefault } from "../package";
 
@@ -66,39 +67,39 @@ export class Templates {
 
   public async renderInstallScript(i: Installer, kurlVersion: string|undefined): Promise<string> {
     if (!kurlVersion) {
-      return this.renderScriptFromTemplate(i, "", await this.installTmpl());
+      return await this.renderScriptFromTemplate(i, "", await this.installTmpl());
     }
     return await this.renderScriptFromUpstream(i, kurlVersion, "install.tmpl");
   }
 
   public async renderJoinScript(i: Installer, kurlVersion: string|undefined): Promise<string> {
     if (!kurlVersion) {
-      return this.renderScriptFromTemplate(i, "", await this.joinTmpl());
+      return await this.renderScriptFromTemplate(i, "", await this.joinTmpl());
     }
     return await this.renderScriptFromUpstream(i, kurlVersion, "join.tmpl");
   }
 
   public async renderUpgradeScript(i: Installer, kurlVersion: string|undefined): Promise<string> {
     if (!kurlVersion) {
-      return this.renderScriptFromTemplate(i, "", await this.upgradeTmpl());
+      return await this.renderScriptFromTemplate(i, "", await this.upgradeTmpl());
     }
     return await this.renderScriptFromUpstream(i, kurlVersion, "upgrade.tmpl");
   }
 
   public async renderTasksScript(i: Installer, kurlVersion: string|undefined): Promise<string> {
     if (!kurlVersion) {
-      return this.renderScriptFromTemplate(i, "", await this.tasksTmpl());
+      return await this.renderScriptFromTemplate(i, "", await this.tasksTmpl());
     }
     return await this.renderScriptFromUpstream(i, kurlVersion, "tasks.tmpl");
   }
 
-  public renderScriptFromTemplate(i: Installer, kurlVersion: string, tmpl: (data?: object) => string): string {
-    return tmpl(manifestFromInstaller(i, this.kurlURL, this.replicatedAppURL, this.distURL, this.kurlUtilImage, this.kurlBinUtils, kurlVersion));
+  public async renderScriptFromTemplate(i: Installer, kurlVersion: string, tmpl: (data?: object) => string): Promise<string> {
+    return tmpl(await manifestFromInstaller(i, this.kurlURL, this.replicatedAppURL, this.distURL, this.kurlUtilImage, this.kurlBinUtils, kurlVersion));
   }
 
   public async renderScriptFromUpstream(i: Installer, kurlVersion: string, script: string): Promise<string> {
     const tmpl = await this.tmplFromUpstream(kurlVersion, script);
-    return tmpl(manifestFromInstaller(i, this.kurlURL, this.replicatedAppURL, this.distURL, this.kurlUtilImage, this.kurlBinUtils, kurlVersion));
+    return tmpl(await manifestFromInstaller(i, this.kurlURL, this.replicatedAppURL, this.distURL, this.kurlUtilImage, this.kurlBinUtils, kurlVersion));
   }
 
   public async tmplFromUpstream(kurlVersion: string, script: string): Promise<((data?: object) => string)> {
@@ -129,21 +130,22 @@ export function bashStringEscape( unescaped : string): string {
   return unescaped.replace(/[!"\\]/g, "\\\$&");
 }
 
-export function manifestFromInstaller(i: Installer, kurlURL: string, replicatedAppURL: string, distURL: string, kurlUtilImage: string, kurlBinUtils: string, kurlVersion: string): Manifest {
+export async function manifestFromInstaller(i: Installer, kurlUrl: string, replicatedAppURL: string, distUrl: string, kurlUtilImage: string, kurlBinUtils: string, kurlVersion: string): Promise<Manifest> {
   kurlVersion = kurlVersionOrDefault(kurlVersion, i);
   if (kurlVersion) {
     kurlUtilImage = `replicated/kurl-util:${kurlVersion}`;
     kurlBinUtils = `kurl-bin-utils-${kurlVersion}.tar.gz`;
   }
+  const installerVersions = await getInstallerVersions(distUrl, kurlVersion);
   return {
-    KURL_URL: kurlURL,
-    DIST_URL: distURL,
+    KURL_URL: kurlUrl,
+    DIST_URL: distUrl,
     INSTALLER_ID: i.id,
     KURL_VERSION: kurlVersion,
     REPLICATED_APP_URL: replicatedAppURL,
     KURL_UTIL_IMAGE: kurlUtilImage,
     KURL_BIN_UTILS_FILE: kurlBinUtils,
-    STEP_VERSIONS: `(${Installer.latestMinors().join(" ")})`,
+    STEP_VERSIONS: `(${Installer.latestMinors(installerVersions["kubernetes"]).join(" ")})`,
     INSTALLER_YAML: bashStringEscape(i.toYAML()),
   };
 }

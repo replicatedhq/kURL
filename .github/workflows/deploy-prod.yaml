@@ -112,7 +112,9 @@ jobs:
         node-version: '12'
     - run: make -C web deps
     - run: npm install
-    - run: make generate-addons
+    - run: |
+        export VERSION_TAG=$(echo $GITHUB_REF | awk -F'/' '{ print $NF }')
+        make generate-addons
       env:
         S3_BUCKET: kurl-sh
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_PROD_ACCESS_KEY_ID }}
