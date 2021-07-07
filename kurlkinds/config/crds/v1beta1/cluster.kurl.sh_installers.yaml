@@ -229,6 +229,8 @@ spec:
                     type: string
                   hostname:
                     type: string
+                  migrateS3:
+                    type: boolean
                   s3Override:
                     type: string
                   uiBindPort:
