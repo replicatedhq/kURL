@@ -123,6 +123,8 @@ spec:
             value: "http://localhost:8800"
           - name: API_ENDPOINT
             value: http://kotsadm.default.svc.cluster.local:3000
+          - name: POD_OWNER_KIND
+            value: deployment
           - name: KURL_PROXY_TLS_CERT_PATH
             value: /etc/kurl-proxy/ca/tls.crt
           - name: DEX_PGPASSWORD

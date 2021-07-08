@@ -227,10 +227,10 @@ spec:
                     type: string
                   applicationSlug:
                     type: string
+                  disableS3:
+                    type: boolean
                   hostname:
                     type: string
-                  migrateS3:
-                    type: boolean
                   s3Override:
                     type: string
                   uiBindPort:

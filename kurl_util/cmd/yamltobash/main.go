@@ -195,7 +195,7 @@ func convertToBash(kurlValues map[string]interface{}, fieldsSet map[string]bool)
 		"Kotsadm.ApplicationSlug":                "KOTSADM_APPLICATION_SLUG",
 		"Kotsadm.Hostname":                       "KOTSADM_HOSTNAME",
 		"Kotsadm.S3Override":                     "KOTSADM_S3_OVERRIDE",
-		"Kotsadm.MigrateS3":                      "KOTSADM_MIGRATE_S3",
+		"Kotsadm.DisableS3":                      "KOTSADM_DISABLE_S3",
 		"Kotsadm.UiBindPort":                     "KOTSADM_UI_BIND_PORT",
 		"Kotsadm.Version":                        "KOTSADM_VERSION",
 		"Kubernetes.BootstrapToken":              "BOOTSTRAP_TOKEN",

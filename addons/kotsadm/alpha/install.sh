@@ -10,7 +10,7 @@ function kotsadm() {
     cp "$src/postgres.yaml" "$dst/"
     cp "$src/kotsadm.yaml" "$dst/"
 
-    if [ -n "$KOTSADM_MIGRATE_S3" ]; then
+    if [ -n "$KOTSADM_DISABLE_S3" ]; then
         cp "$DIR/addons/kotsadm/alpha/statefulset/kotsadm-statefulset.yaml" "$DIR/kustomize/kotsadm/kotsadm-statefulset.yaml"
         insert_resources "$dst/kustomization.yaml" kotsadm-statefulset.yaml
         # kotsadm v1.47+ does not use an object store for the archives, patch the migrate-s3 init container to migrate the data.
@@ -38,7 +38,7 @@ function kotsadm() {
 
     if [ -n "$PROXY_ADDRESS" ]; then
         KUBERNETES_CLUSTER_IP=$(kubectl get services kubernetes --no-headers | awk '{ print $3 }')
-        if [ -n "$KOTSADM_MIGRATE_S3" ]; then
+        if [ -n "$KOTSADM_DISABLE_S3" ]; then
             render_yaml_file "$DIR/addons/kotsadm/alpha/statefulset/tmpl-kotsadm-proxy.yaml" > "$DIR/kustomize/kotsadm/kotsadm-proxy.yaml"
         else
             render_yaml_file "$DIR/addons/kotsadm/alpha/deployment/tmpl-kotsadm-proxy.yaml" > "$DIR/kustomize/kotsadm/kotsadm-proxy.yaml"
@@ -47,7 +47,7 @@ function kotsadm() {
     fi
 
     if [ "$AIRGAP" == "1" ]; then
-        if [ -n "$KOTSADM_MIGRATE_S3" ]; then
+        if [ -n "$KOTSADM_DISABLE_S3" ]; then
             cp "$DIR/addons/kotsadm/alpha/statefulset/kotsadm-airgap.yaml" "$DIR/kustomize/kotsadm/kotsadm-airgap.yaml"
         else
             cp "$DIR/addons/kotsadm/alpha/deployment/kotsadm-airgap.yaml" "$DIR/kustomize/kotsadm/kotsadm-airgap.yaml"
@@ -56,7 +56,7 @@ function kotsadm() {
     fi
 
     if [ -n "$INSTALLATION_ID" ]; then
-        if [ -n "$KOTSADM_MIGRATE_S3" ]; then
+        if [ -n "$KOTSADM_DISABLE_S3" ]; then
             render_yaml_file "$DIR/addons/kotsadm/alpha/statefulset/tmpl-kotsadm-installation-id.yaml" > "$DIR/kustomize/kotsadm/kotsadm-installation-id.yaml"
         else
             render_yaml_file "$DIR/addons/kotsadm/alpha/deployment/tmpl-kotsadm-installation-id.yaml" > "$DIR/kustomize/kotsadm/kotsadm-installation-id.yaml"
@@ -82,7 +82,7 @@ function kotsadm() {
     kubectl delete deployment kotsadm-web &> /dev/null || true; # replaced by 'kotsadm' deployment in 1.12.0
     kubectl delete service kotsadm-api &> /dev/null || true; # replaced by 'kotsadm-api-node' service in 1.12.0
 
-    if [ -n "$KOTSADM_MIGRATE_S3" ]; then
+    if [ -n "$KOTSADM_DISABLE_S3" ]; then
         kubectl delete deployment kotsadm &> /dev/null || true; # replaced by 'kotsadm' statefulset in 1.47.0
     fi
 
@@ -251,7 +251,7 @@ function kotsadm_api_patch_s3_migration() {
 }
 
 function kotsadm_api_patch_prometheus() {
-    if [ -n "$KOTSADM_MIGRATE_S3" ]; then
+    if [ -n "$KOTSADM_DISABLE_S3" ]; then
         cp "$DIR/addons/kotsadm/alpha/statefulset/patches/api-prometheus.yaml" "$DIR/kustomize/kotsadm/api-prometheus.yaml"
     else
         cp "$DIR/addons/kotsadm/alpha/deployment/patches/api-prometheus.yaml" "$DIR/kustomize/kotsadm/api-prometheus.yaml"
@@ -411,7 +411,7 @@ function kotsadm_namespaces() {
 }
 
 function kotsadm_scale_down() {
-    if [ -n "$KOTSADM_MIGRATE_S3" ]; then
+    if [ -n "$KOTSADM_DISABLE_S3" ]; then
         kubernetes_scale_down default statefulset kotsadm
     else
         kubernetes_scale_down default deployment kotsadm
@@ -471,7 +471,7 @@ function kotsadm_cacerts_file() {
     done
 
     if [ -n "$KOTSADM_TRUSTED_CERT_MOUNT" ]; then
-        if [ -n "$KOTSADM_MIGRATE_S3" ]; then
+        if [ -n "$KOTSADM_DISABLE_S3" ]; then
             render_yaml_file "$DIR/addons/kotsadm/alpha/statefulset/tmpl-kotsadm-cacerts.yaml" > "$DIR/kustomize/kotsadm/kotsadm-cacerts.yaml"
         else
             render_yaml_file "$DIR/addons/kotsadm/alpha/deployment/tmpl-kotsadm-cacerts.yaml" > "$DIR/kustomize/kotsadm/kotsadm-cacerts.yaml"
