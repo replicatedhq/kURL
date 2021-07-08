@@ -4,6 +4,7 @@ set -e
 
 # Magic begin: scripts are inlined for distribution. See "make build/tasks.sh"
 . $DIR/scripts/common/common.sh
+. $DIR/scripts/common/discover.sh
 . $DIR/scripts/common/prompts.sh
 . $DIR/scripts/common/host-packages.sh
 . $DIR/scripts/distro/interface.sh
@@ -11,8 +12,16 @@ set -e
 . $DIR/scripts/distro/rke2/distro.sh
 # Magic end
 
+K8S_DISTRO=
 function tasks() {
     DOCKER_VERSION="$(get_docker_version)"
+
+    K8S_DISTRO=kubeadm
+    if [ -d "/etc/rancher/rke2" ]; then
+        K8S_DISTRO=rke2
+    elif [ -d "/etc/rancher/k3s" ]; then
+        K8S_DISTRO=k3s
+    fi
 
     case "$1" in
         load-images|load_images)
@@ -140,13 +149,29 @@ function reset() {
         fi
     fi
 
+    discover
+
     if commandExists "kubeadm"; then
         kubeadm_reset
     fi 
 
     if commandExists "rke2"; then
         rke2_reset
-    fi   
+    fi  
+
+    case "$LSB_DIST" in
+        ubuntu)
+            apt remove -y kubernetes-cni kubelet kubectl
+        ;;
+
+        centos|rhel|amzn|ol)
+            yum remove -y kubernetes-cni kubelet kubectl
+        ;;
+
+        *)
+            echo "Could not uninstall kuberentes host packages on ${LSB_DIST} ${DIST_MAJOR}"
+        ;;
+    esac
     
     rm -rf /etc/cni
     rm -rf /etc/kubernetes
