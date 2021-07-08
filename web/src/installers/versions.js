@@ -265,6 +265,7 @@ module.exports.InstallerVersions = {
   ],
   sonobuoy: [
     // cron-sonobuoy-update
+    "0.52.0",
     "0.50.0",
   ],
   goldpinger: [
