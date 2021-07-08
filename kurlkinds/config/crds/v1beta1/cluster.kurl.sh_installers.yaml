@@ -227,6 +227,8 @@ spec:
                     type: string
                   applicationSlug:
                     type: string
+                  disableS3:
+                    type: boolean
                   hostname:
                     type: string
                   s3Override:

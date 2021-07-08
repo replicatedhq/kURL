@@ -84,6 +84,7 @@ type Kotsadm struct {
 	ApplicationSlug      string `json:"applicationSlug,omitempty" yaml:"applicationSlug,omitempty"`
 	Hostname             string `json:"hostname,omitempty" yaml:"hostname,omitempty"`
 	S3Override           string `json:"s3Override,omitempty" yaml:"s3Override,omitempty"`
+	DisableS3            bool   `json:"disableS3,omitempty" yaml:"disableS3,omitempty"`
 	UiBindPort           int    `json:"uiBindPort,omitempty" yaml:"uiBindPort,omitempty"`
 	Version              string `json:"version" yaml:"version"`
 }
