@@ -909,8 +909,8 @@ spec:
   });
 
   describe("antrea", () => {
-    it("should parse", () => {
-      const i = Installer.parse(everyOption).resolve();
+    it("should parse", async () => {
+      const i = await Installer.parse(everyOption).resolve();
 
       expect(i.spec.antrea).to.deep.equal({
         version: InstallerVersions.antrea[0],
@@ -986,8 +986,8 @@ spec:
   });
 
   describe("latestMinors", () => {
-    it("should include lateset version indexed by minor", () => {
-      const out = Installer.latestMinors();
+    it("should include latest version indexed by minor", () => {
+      const out = Installer.latestMinors(InstallerVersions["kubernetes"]);
 
       expect(out[0]).to.equal("0.0.0");
       expect(out[14]).to.equal("0.0.0");
@@ -998,6 +998,32 @@ spec:
       expect(out[19]).to.match(/1\.19\.\d+/);
       expect(out[20]).to.match(/1\.20\.\d+/);
       expect(out[21]).to.match(/1\.21\.\d+/);
+    });
+  });
+
+  describe("resolveLatestPatchVersion", () => {
+    it("should resolve kubernetes version 1.16.x", () => {
+      const out = Installer.resolveLatestPatchVersion("1.16.x", InstallerVersions["kubernetes"]);
+      expect(out).to.equal("1.16.4");
+    });
+
+    it("should resolve weird docker versions", () => {
+      const out = Installer.resolveLatestPatchVersion("19.03.x", InstallerVersions["docker"]);
+      expect(out).to.equal("19.03.15");
+    });
+
+    it("should fail on non-semver minio version", () => {
+      const bad = function (): string {
+        return Installer.resolveLatestPatchVersion("1.1.x", InstallerVersions["minio"]);
+      };
+      expect(bad).to.throw("Invalid Version");
+    });
+
+    it("should throw an error when the version doesnt exist", () => {
+      const bad = function (): string {
+        return Installer.resolveLatestPatchVersion("1.123.x", InstallerVersions["kubernetes"]);
+      };
+      expect(bad).to.throw("latest minor version not found for 1.123.x");
     });
   });
 
@@ -1042,9 +1068,9 @@ spec:
   });
 
   describe("packages", () => {
-    it("should convert camel case to kebab case", () => {
-      const i = Installer.parse(everyOption).resolve();
-      const pkgs = i.packages(undefined);
+    it("should convert camel case to kebab case", async () => {
+      const i = await Installer.parse(everyOption).resolve();
+      const pkgs = await i.packages(undefined);
 
       const hasCertManager = _.some(pkgs, (pkg) => {
         return _.startsWith(pkg, "cert-manager");
@@ -1057,9 +1083,9 @@ spec:
       expect(hasMetricsServer).to.equal(true);
     });
 
-    it("should include defaults", () => {
+    it("should include defaults", async () => {
       const i = Installer.parse(min);
-      const pkgs = i.packages(undefined);
+      const pkgs = await i.packages(undefined);
 
       const hasCommon = _.some(pkgs, (pkg) => {
         return pkg === "common";
@@ -1077,9 +1103,9 @@ spec:
       expect(hasKurlBinUtils).to.equal(true);
     });
 
-    it("should include a versioned kurl-bin-utils", () => {
+    it("should include a versioned kurl-bin-utils", async () => {
       const i = Installer.parse(min);
-      const pkgs = i.packages("v2021.05.27-0");
+      const pkgs = await i.packages("v2021.05.27-0");
 
       const hasKurlBinUtils = _.some(pkgs, (pkg) => {
         return pkg === "kurl-bin-utils-v2021.05.27-0";
@@ -1087,9 +1113,9 @@ spec:
       expect(hasKurlBinUtils).to.equal(true);
     });
 
-    it("should include kubernetes conformance images", () => {
+    it("should include kubernetes conformance images", async () => {
       const i = Installer.parse(conformance);
-      const pkgs = i.packages(undefined);
+      const pkgs = await i.packages(undefined);
 
       const hasSonobuoy = _.some(pkgs, (pkg) => {
         return pkg === "sonobuoy-0.50.0";
@@ -1107,9 +1133,9 @@ spec:
       expect(hasConformance).to.equal(true);
     });
 
-    it("should not include kubernetes conformance images for versions < 1.17", () => {
+    it("should not include kubernetes conformance images for versions < 1.17", async () => {
       const i = Installer.parse(noConformance);
-      const pkgs = i.packages(undefined);
+      const pkgs = await i.packages(undefined);
 
       const hasSonobuoy = _.some(pkgs, (pkg) => {
         return pkg === "sonobuoy-0.50.0";
@@ -1127,9 +1153,9 @@ spec:
       expect(hasConformance).to.equal(false);
     });
 
-    it("should not include removed Kubernetes versions", () => {
+    it("should not include removed Kubernetes versions", async () => {
       const i = Installer.parse(noConformance);
-      const pkgs = i.packages(undefined);
+      const pkgs = await i.packages(undefined);
 
       const hasKubernetes16 = _.some(pkgs, (pkg) => {
         return pkg === "kubernetes-1.16.4";

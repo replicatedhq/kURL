@@ -2,7 +2,7 @@ SHELL := /bin/bash
 KURL_UTIL_IMAGE ?= replicated/kurl-util:alpha
 KURL_BIN_UTILS_FILE ?= kurl-bin-utils-latest.tar.gz
 VERSION_PACKAGE = github.com/replicatedhq/kurl/pkg/version
-VERSION ?= 0.0.1
+VERSION_TAG ?= 0.0.1
 DATE = `date -u +"%Y-%m-%dT%H:%M:%SZ"`
 BUILDFLAGS = -tags "netgo containers_image_ostree_stub exclude_graphdriver_devicemapper exclude_graphdriver_btrfs containers_image_openpgp" -installsuffix netgo
 
@@ -26,7 +26,7 @@ endif
 define LDFLAGS
 -ldflags "\
 	-s -w \
-	-X ${VERSION_PACKAGE}.version=${VERSION} \
+	-X ${VERSION_PACKAGE}.version=${VERSION_TAG} \
 	-X ${VERSION_PACKAGE}.gitSHA=${GIT_SHA} \
 	-X ${VERSION_PACKAGE}.buildTime=${DATE} \
 "

@@ -11,8 +11,9 @@ import {
   Res } from "ts-express-decorators";
 import { instrumented } from "monkit";
 import { Installer, InstallerObject, InstallerStore } from "../installers";
-import { InstallerVersions } from "../installers/versions";
 import decode from "../util/jwt";
+import { getInstallerVersions } from "../installers/installer-versions";
+import { getDistUrl } from "../util/package";
 
 interface ErrorResponse {
   error: any;
@@ -101,7 +102,7 @@ export class Installers {
     }
     i.id = i.hash();
 
-    const err = await i.resolve().validate();
+    const err = await (await i.resolve()).validate();
     if (err) {
       response.status(400);
       return err;
@@ -115,12 +116,14 @@ export class Installers {
   }
 
   @Get("/")
-  public getInstallerVersions(
+  public async getInstallerVersions(
     @Res() response: Express.Response,
-  ): any {
+  ): Promise<any> {
     response.type("application/json");
 
-    const resp = _.reduce(InstallerVersions, (accm, value, key) => {
+    const installerVersions = await getInstallerVersions(getDistUrl(), undefined);
+
+    const resp = _.reduce(installerVersions, (accm, value, key) => {
       accm[key] = _.concat(["latest"], value);
       return accm;
     }, {});
@@ -184,7 +187,7 @@ export class Installers {
       return notFoundResponse;
     }
     if (resolve) {
-      installer = installer.resolve();
+      installer = await installer.resolve();
     }
     if (installer.id === "latest") {
       installer.id = "";
@@ -222,7 +225,7 @@ export class Installers {
       return invalidYAMLResponse;
     }
 
-    const err = await i.resolve().validate();
+    const err = await (await i.resolve()).validate();
     if (err) {
       response.status(400);
       return err;
@@ -280,7 +283,7 @@ export class Installers {
       }
     }
 
-    const err = await i.resolve().validate();
+    const err = await (await i.resolve()).validate();
     if (err) {
       response.status(400);
       return err;

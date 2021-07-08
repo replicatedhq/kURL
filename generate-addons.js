@@ -7,6 +7,7 @@ const ID = process.env.AWS_ACCESS_KEY_ID;
 const SECRET = process.env.AWS_SECRET_ACCESS_KEY;
 const BUCKET_NAME = process.env.S3_BUCKET;
 const FOLDER = process.env.DIST_FOLDER;
+const VERSION_TAG = process.env.VERSION_TAG;
 
 const s3 = new AWS.S3({
   accessKeyId: ID,
@@ -16,12 +17,22 @@ const s3 = new AWS.S3({
 const uploadFile = (file) => {
   const fileName = file.split("/")[1];
   const fileContent = fs.readFileSync(file);
-  const params = {
+
+  let params = {
+    Bucket: BUCKET_NAME,
+    Key:  FOLDER + "/" + VERSION_TAG + "/" + fileName,
+    Body: fileContent
+  };
+  s3.upload(params, (err, data) => {
+    if (err) throw err;
+    console.log("\x1b[32m%s\x1b[0m", "Successfully uploaded " + fileName + " to " + data.Location);
+  });
+
+  params = {
     Bucket: BUCKET_NAME,
     Key:  FOLDER + "/" + fileName,
     Body: fileContent
   };
-
   s3.upload(params, (err, data) => {
     if (err) throw err;
     console.log("\x1b[32m%s\x1b[0m", "Successfully uploaded " + fileName + " to " + data.Location);

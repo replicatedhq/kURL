@@ -49,9 +49,9 @@ module.exports.InstallerVersions = {
   ],
   antrea: [
     // cron-antrea-update
-      "1.1.0",
-      "1.0.1",
-      "1.0.0",
+    "1.1.0",
+    "1.0.1",
+    "1.0.0",
     "0.13.1",
   ],
   rook: [
@@ -71,6 +71,7 @@ module.exports.InstallerVersions = {
   ],
   prometheus: [
     // cron-prometheus-update
+    "0.48.1-16.12.1",
     "0.48.1-16.10.0",
     "0.48.0-16.1.2",
     "0.47.1-16.0.1",
@@ -264,6 +265,7 @@ module.exports.InstallerVersions = {
   ],
   sonobuoy: [
     // cron-sonobuoy-update
+    "0.52.0",
     "0.50.0",
   ],
   goldpinger: [

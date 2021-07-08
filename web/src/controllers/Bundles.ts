@@ -70,7 +70,7 @@ export class Bundle {
       response.status(404);
       return notFoundResponse;
     }
-    installer = installer.resolve();
+    installer = await installer.resolve();
 
     // if installer.spec.kurl is set, fallback to installer.spec.kurl.installerVersion if kurlVersion was not set in the URL
     kurlVersion = installer.spec.kurl ? (kurlVersion || installer.spec.kurl.installerVersion) : kurlVersion;
@@ -90,7 +90,7 @@ export class Bundle {
     response.type("application/json");
 
     const ret: BundleManifest = {layers: [], files: {}};
-    ret.layers = installer.packages(kurlVersion).map((pkg) => getPackageUrl(this.distURL, kurlVersion, `${pkg}.tar.gz`));
+    ret.layers = (await installer.packages(kurlVersion)).map((pkg) => getPackageUrl(this.distURL, kurlVersion, `${pkg}.tar.gz`));
 
     const kotsadmApplicationSlug = _.get(installer.spec, "kotsadm.applicationSlug");
     if (kotsadmApplicationSlug) {
