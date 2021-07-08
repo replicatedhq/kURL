@@ -1,4 +1,4 @@
-- name: "latest"
+- name: latest
   installerSpec:
     kubernetes:
       version: latest
@@ -16,7 +16,9 @@
       version: latest
     ekco:
       version: latest
-- name: "longhorn"
+    kotsadm:
+      version: latest
+- name: longhorn
   installerSpec:
     contour:
       version: latest
@@ -35,4 +37,6 @@
     weave:
       version: latest
     minio:
+      version: latest
+    kotsadm:
       version: latest

@@ -31,10 +31,12 @@
   },
   "devDependencies": {
     "@pact-foundation/pact": "^8.2.0",
+    "@types/chai": "^4.2.19",
     "@types/express": "^4.0.35",
     "@types/lodash": "^4.14.54",
     "@types/node-fetch": "^2.5.10",
     "@types/pino": "^4.7.1",
+    "@types/semver": "^7.3.7",
     "chai": "^4.1.2",
     "codeclimate-test-reporter": "^0.5.0",
     "coveralls": "^3.0.0",

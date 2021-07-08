@@ -8,9 +8,9 @@ import * as semver from "semver";
 import { MysqlWrapper } from "../util/services/mysql";
 import { instrumented } from "monkit";
 import { Forbidden } from "../server/errors";
-import { InstallerVersions } from "./versions";
 import {getDistUrl, getPackageUrl} from "../util/package";
 import fetch from "node-fetch";
+import { getInstallerVersions } from "./installer-versions";
 
 interface ErrorResponse {
   error: any;
@@ -855,32 +855,71 @@ export class Installer {
     return i;
   }
 
-  public static async hasVersion(config: string, version: string, installerVersion?: string): Promise<boolean> {
+  public static async hasVersion(config: string, version: string, kurlVersion?: string): Promise<boolean> {
     if (version === "latest") {
       return true;
     }
-    if (installerVersion) {
+
+    const distUrl = getDistUrl();
+
+    const installerversions = await getInstallerVersions(distUrl, kurlVersion);
+
+    version = await Installer.resolveVersion(config, version);
+
+    if (kurlVersion) {
       // hit s3 to determine if this addon+version exists for the specified installer version
-      const generatedURL = getPackageUrl(getDistUrl(), installerVersion, `${Installer.generatePackageName(config, version)}.tar.gz`);
+      // NOTE: this is no longer necessary since getInstallerVersions uses supported-versions-gen.json
+      const generatedURL = getPackageUrl(getDistUrl(), kurlVersion, `${Installer.generatePackageName(config, version)}.tar.gz`);
 
       const resp = await fetch(generatedURL, {method:"HEAD"});
       return resp.ok;
-    } else {
-      if (_.includes(InstallerVersions[config], version)) {
-        return true;
-      }
     }
 
-    // search through the "latestVersions" array for something that matches the prefix here
-    if (config === "kubernetes" && version.endsWith(".x")) {
-      const searchString = version.slice(0, -2); // remove the last two characters - ".x"
-      const k8sMinors = Installer.latestMinors();
-      const matches = k8sMinors.filter((s) => s.startsWith(searchString));
-      if (matches.length > 0) {
-        return true;
-      }
+    if (_.includes(installerversions[config], version)) {
+      return true;
     }
     return false;
+  }
+
+  // replace problematic versions that do not sort because of semver pre-release
+  private static replaceVersions = {
+    "rook": {"1.0.4": "1.0.4-0.0.0"},
+    "prometheus": {"0.46.0": "0.46.0-0.0.0"},
+  };
+
+  public static async resolveVersion(config: string, version: string, kurlVersion?: string): Promise<string> {
+    const distUrl = getDistUrl();
+
+    const installerversions = await getInstallerVersions(distUrl, kurlVersion);
+
+    if (version === "latest") {
+      return _.first(installerversions[config]) || "latest";
+    }
+    if (!version.endsWith(".x")) {
+      return version
+    }
+
+    let addonInstallerVersions = installerversions[config];
+
+    if (config in Installer.replaceVersions) {
+      Object.keys(Installer.replaceVersions[config]).forEach((k: string) => {
+        addonInstallerVersions = addonInstallerVersions.map(function(version: string): string {
+          return version === k ? Installer.replaceVersions[config][k] : version;
+        });
+      });
+    }
+
+    let match = Installer.resolveLatestPatchVersion(version, addonInstallerVersions);
+    if (config in Installer.replaceVersions) {
+      Object.keys(Installer.replaceVersions[config]).some((k: string) => {
+        if (match === Installer.replaceVersions[config][k]) {
+          match = k;
+          return true;
+        }
+        return false;
+      });
+    }
+    return match;
   }
 
   public static isSHA(id: string): boolean {
@@ -1053,24 +1092,14 @@ export class Installer {
     return obj;
   }
 
-  public resolve(): Installer {
+  public async resolve(): Promise<Installer> {
     const i = this.clone();
 
-    _.each(_.keys(i.spec), (config: string) => {
-      if (i.spec[config].version === "latest") {
-        i.spec[config].version = _.first(InstallerVersions[config]);
+    await Promise.all(_.each(_.keys(i.spec), async (config: string) => {
+      if (i.spec[config].version) {
+        i.spec[config].version = await Installer.resolveVersion(config, i.spec[config].version);
       }
-
-      // search through the "latestVersions" array for something that matches the prefix here
-      if (config === "kubernetes" && i.spec[config].version.endsWith(".x")) {
-        const searchString = i.spec[config].version.slice(0, -2); // remove the last two characters - ".x"
-        const k8sMinors = Installer.latestMinors();
-        const matches = k8sMinors.filter((s) => s.startsWith(searchString));
-        if (matches.length > 0) {
-          i.spec[config].version = matches[0];
-        }
-      }
-    });
+    }));
 
     return i;
   }
@@ -1096,7 +1125,7 @@ export class Installer {
       return {error: {message}};
     }
 
-    let installerVersion: string | undefined;
+    let installerVersion: string|undefined;
     if (this.spec.kurl) {
       installerVersion = this.spec.kurl.installerVersion;
     }
@@ -1205,8 +1234,10 @@ export class Installer {
         return {error: {message: `Supported Prometheus service types are "NodePort" and "ClusterIP", not "${this.spec.prometheus.serviceType}"`}};
       }
 
-      if (InstallerVersions.prometheus.indexOf(this.spec.prometheus.version) != -1 &&
-        InstallerVersions.prometheus.indexOf(this.spec.prometheus.version) > InstallerVersions.prometheus.indexOf("0.48.1-16.10.0")) {
+      const installerVersions = await getInstallerVersions(getDistUrl(), installerVersion);
+
+      if (installerVersions.prometheus.indexOf(this.spec.prometheus.version) != -1 &&
+        installerVersions.prometheus.indexOf(this.spec.prometheus.version) > installerVersions.prometheus.indexOf("0.48.1-16.10.0")) {
         return {error: {message: `Prometheus service types are supported for version "0.48.1-16.10.0" and later, not "${this.spec.prometheus.version}"`}};
       }
     }
@@ -1217,8 +1248,10 @@ export class Installer {
     return `${_.kebabCase(config)}-${version.replace(special, "-")}` // replace special characters
   }
 
-  public packages(kurlVersion: string|undefined): string[] {
-
+  public async packages(kurlVersion?: string): Promise<string[]> {
+    if (!kurlVersion && this.spec.kurl) {
+      kurlVersion = this.spec.kurl.installerVersion;
+    }
     let binUtils = String(process.env["KURL_BIN_UTILS_FILE"] || "kurl-bin-utils-latest.tar.gz").slice(0, -7); // remove .tar.gz
     if (kurlVersion) {
       binUtils = `kurl-bin-utils-${kurlVersion}`
@@ -1226,16 +1259,18 @@ export class Installer {
     const pkgs = [ "common", binUtils, "host-openssl" ];
 
     let kubernetesVersion = "";
-    _.each(_.keys(this.spec), (config: string) => {
+    await Promise.all(_.each(_.keys(this.spec), async (config: string) => {
       const version = this.spec[config].version;
       if (version) {
         pkgs.push(Installer.generatePackageName(config, this.spec[config].version));
+
+        const installerVersions = await getInstallerVersions(getDistUrl(), kurlVersion);
 
         // include an extra version of kubernetes so they can upgrade 2 minor versions
         if (config === "kubernetes") {
           kubernetesVersion = version;
           const prevMinor = semver.minor(version) - 1;
-          const step = Installer.latestMinors()[prevMinor];
+          const step = Installer.latestMinors(installerVersions[config])[prevMinor];
           if (step !== "0.0.0") {
             pkgs.push(`${config}-${step}`);
           }
@@ -1245,7 +1280,7 @@ export class Installer {
           kubernetesVersion = version.replace(/^v?([^-\+]+).*$/, '$1');
         }
       }
-    });
+    }));
 
     // include conformance package if sonobuoy and kubernetes
     // we only build conformance packages for 1.17.0+
@@ -1256,10 +1291,33 @@ export class Installer {
     return pkgs;
   }
 
-  public static latestMinors(): string[] {
-    const ret: string[] = _.fill(Array(16), "0.0.0");
+  public static resolveLatestPatchVersion(xVersion: string, versions: string[]): string {
+    const version = xVersion
+      .replace(/\.0(\d)\./, ".$1.") // replace weird docker versions prefixed with 0
+      .replace(".x", ".0"); // replace the .x so it can semver parse
+    const major = semver.major(version);
+    const minor = semver.minor(version);
+    let ret = "";
+    let retClean = "";
+    versions.forEach((version: string) => {
+      const clean = version.replace(/\.0(\d)\./, ".$1.");
+      if (semver.major(clean) !== major || semver.minor(clean) !== minor) {
+        return;
+      }
+      if (!ret || semver.gt(clean, retClean)) {
+        ret = version;
+        retClean = clean;
+      }
+    });
+    if (!ret) {
+      throw `latest minor version not found for ${xVersion}`;
+    }
+    return ret;
+  }
 
-    InstallerVersions.kubernetes.forEach((version: string) => {
+  public static latestMinors(versions: string[]): string[] {
+    const ret: string[] = _.fill(Array(16), "0.0.0");
+    versions.forEach((version: string) => {
       const minor = semver.minor(version);
       const latest = ret[minor];
 

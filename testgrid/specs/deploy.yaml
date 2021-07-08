@@ -1,3 +1,45 @@
+- name: latest
+  installerSpec:
+    kubernetes:
+      version: latest
+    docker:
+      version: latest
+    weave:
+      version: latest
+    contour:
+      version: latest
+    rook:
+      version: latest
+    registry:
+      version: latest
+    prometheus:
+      version: latest
+    ekco:
+      version: latest
+    kotsadm:
+      version: latest
+- name: longhorn
+  installerSpec:
+    contour:
+      version: latest
+    containerd:
+      version: latest
+    ekco:
+      version: latest
+    kubernetes:
+      version: latest
+    prometheus:
+      version: latest
+    registry:
+      version: latest
+    longhorn:
+      version: latest
+    weave:
+      version: latest
+    minio:
+      version: latest
+    kotsadm:
+      version: latest
 - name: k3s
   installerSpec:
     k3s:
@@ -11,219 +53,6 @@
       version: latest
     minio:
       version: latest
-- name: k8s119
-  installerSpec:
-    kubernetes:
-      version: 1.19.x
-    docker:
-      version: 19.03.15
-    antrea:
-      version: 0.13.1
-    contour:
-      version: 1.0.1
-    rook:
-      version: 1.0.4
-    registry:
-      version: 2.7.1
-    prometheus:
-      version: 0.33.0
-    kotsadm:
-      version: latest
-    velero:
-      version: 1.2.0
-    ekco:
-      version: 0.6.0
-- name: k8s119-airgap
-  installerSpec:
-    kubernetes:
-      version: 1.19.x
-    docker:
-      version: 19.03.15
-    antrea:
-      version: 0.13.1
-    contour:
-      version: 1.0.1
-    rook:
-      version: 1.0.4
-    registry:
-      version: 2.7.1
-    prometheus:
-      version: 0.33.0
-    kotsadm:
-      version: latest
-    velero:
-      version: 1.2.0
-    ekco:
-      version: 0.6.0
-  airgap: true
-- name: k8s119_containerd146
-  installerSpec:
-    kubernetes:
-      version: 1.19.x
-    weave:
-      version: 2.8.1
-    contour:
-      version: 1.0.1
-    rook:
-      version: 1.0.4
-    registry:
-      version: 2.7.1
-    prometheus:
-      version: 0.33.0
-    kotsadm:
-      version: latest
-    velero:
-      version: 1.2.0
-    ekco:
-      version: 0.6.0
-    containerd:
-      version: 1.4.6
-- name: k8s119_containerd_rook_block
-  installerSpec:
-    kubernetes:
-      version: 1.19.3
-    antrea:
-      version: 0.13.1
-    contour:
-      version: 1.7.0
-    rook:
-      isBlockStorageEnabled: true
-      version: 1.5.12
-    registry:
-      version: 2.7.1
-    fluentd:
-      fullEFKStack: true
-      version: 1.7.4
-    kotsadm:
-      version: 1.25.2
-    ekco:
-      version: 0.7.0
-    containerd:
-      version: 1.3.7
-    certManager:
-      version: 1.0.3
-- name: k8s119_ctrd_longhorn
-  installerSpec:
-    kubernetes:
-      version: 1.19.9
-    weave:
-      version: 2.8.1
-    contour:
-      version: 1.7.0
-    registry:
-      version: 2.7.1
-    fluentd:
-      fullEFKStack: true
-      version: 1.7.4
-    kotsadm:
-      uiBindPort: 30880
-      version: 1.25.2
-    minio:
-      version: latest
-    ekco:
-      version: 0.7.0
-    containerd:
-      version: 1.4.3
-    certManager:
-      version: 1.0.3
-    longhorn:
-      version: 1.1.0
-      uiBindPort: 30080
-- name: k8s119_ctrd_longhorn-airgap
-  installerSpec:
-    kubernetes:
-      version: 1.19.9
-    weave:
-      version: 2.8.1
-    contour:
-      version: 1.7.0
-    registry:
-      version: 2.7.1
-    fluentd:
-      fullEFKStack: true
-      version: 1.7.4
-    kotsadm:
-      uiBindPort: 30880
-      version: 1.25.2
-    minio:
-      version: latest
-    ekco:
-      version: 0.7.0
-    containerd:
-      version: 1.4.3
-    certManager:
-      version: 1.0.3
-    longhorn:
-      version: 1.1.0
-      uiBindPort: 30080
-  airgap: true
-- name: k8s121
-  installerSpec:
-    kubernetes:
-      version: 1.21.x
-    docker:
-      version: latest
-    weave:
-      version: latest
-    contour:
-      version: latest
-    rook:
-      isBlockStorageEnabled: true
-      version: 1.4.9
-    registry:
-      version: latest
-    kotsadm:
-      version: latest
-    velero:
-      version: latest
-    ekco:
-      version: latest
-- name: k8s121-airgap
-  installerSpec:
-    kubernetes:
-      version: 1.21.x
-    docker:
-      version: latest
-    weave:
-      version: latest
-    contour:
-      version: latest
-    rook:
-      isBlockStorageEnabled: true
-      version: 1.4.9
-    registry:
-      version: latest
-    kotsadm:
-      version: latest
-    velero:
-      version: latest
-    ekco:
-      version: latest
-  airgap: true
-- name: k8s1210_openebs260_minio
-  installerSpec:
-    kubernetes:
-      version: 1.20.5
-    docker:
-      version: 20.10.5
-    weave:
-      version: 2.8.1
-    registry:
-      version: 2.7.1
-    kotsadm:
-      version: latest
-    minio:
-      namespace: minio
-      version: latest
-    openebs:
-      cstorStorageClassName: default
-      isCstorEnabled: true
-      isLocalPVEnabled: true
-      localPVStorageClassName: openebs
-      namespace: openebs
-      version: 2.6.0
-    ekco:
-      version: 0.10.1
 - name: rke2
   installerSpec:
     rke2:
@@ -232,7 +61,7 @@
       isBlockStorageEnabled: true
       storageClassName: default
       hostpathRequiresPrivileged: true
-      version: 1.4.3
+      version: 1.4.x
     registry:
       version: latest
     kotsadm:
@@ -245,3 +74,134 @@
   - ubuntu-1604
   - ubuntu-1804
   - ubuntu-2004
+- name: k8s119
+  installerSpec:
+    kubernetes:
+      version: 1.19.x
+    docker:
+      version: 19.03.x
+    weave:
+      version: 2.8.x
+    contour:
+      version: 1.0.1
+    rook:
+      version: 1.0.4
+    registry:
+      version: 2.7.1
+    prometheus:
+      version: 0.33.0
+    kotsadm:
+      version: latest
+    velero:
+      version: 1.5.x
+    ekco:
+      version: 0.10.x
+- name: k8s119-airgap
+  installerSpec:
+    kubernetes:
+      version: 1.19.x
+    docker:
+      version: 19.03.x
+    weave:
+      version: 2.8.x
+    contour:
+      version: 1.0.1
+    rook:
+      version: 1.0.4
+    registry:
+      version: 2.7.1
+    prometheus:
+      version: 0.33.0
+    kotsadm:
+      version: latest
+    velero:
+      version: 1.5.x
+    ekco:
+      version: 0.10.x
+  airgap: true
+- name: k8s120
+  installerSpec:
+    kubernetes:
+      version: 1.20.x
+    containerd:
+      version: 1.4.x
+    weave:
+      version: 2.8.x
+    contour:
+      version: 1.16.x
+    rook:
+      isBlockStorageEnabled: true
+      version: 1.4.3
+    registry:
+      version: latest
+    kotsadm:
+      version: latest
+    velero:
+      version: 1.5.x
+    ekco:
+      version: latest
+- name: k8s120-airgap
+  installerSpec:
+    kubernetes:
+      version: 1.20.x
+    containerd:
+      version: 1.4.x
+    weave:
+      version: 2.8.x
+    contour:
+      version: 1.16.x
+    rook:
+      isBlockStorageEnabled: true
+      version: 1.4.3
+    registry:
+      version: latest
+    kotsadm:
+      version: latest
+    velero:
+      version: 1.5.x
+    ekco:
+      version: latest
+  airgap: true
+- name: k8s121
+  installerSpec:
+    kubernetes:
+      version: 1.21.x
+    containerd:
+      version: latest
+    weave:
+      version: 2.8.x
+    contour:
+      version: latest
+    rook:
+      isBlockStorageEnabled: true
+      version: 1.5.x
+    registry:
+      version: latest
+    kotsadm:
+      version: latest
+    velero:
+      version: latest
+    ekco:
+      version: latest
+- name: k8s121-airgap
+  installerSpec:
+    kubernetes:
+      version: 1.21.x
+    containerd:
+      version: latest
+    weave:
+      version: 2.8.x
+    contour:
+      version: latest
+    rook:
+      isBlockStorageEnabled: true
+      version: 1.5.x
+    registry:
+      version: latest
+    kotsadm:
+      version: latest
+    velero:
+      version: latest
+    ekco:
+      version: latest
+  airgap: true
