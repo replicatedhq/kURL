@@ -503,7 +503,11 @@ function migrate_pvcs() {
     download_util_binaries
 
     # check that rook-ceph is healthy
-    CEPH_HEALTH_DETAIL=$(kubectl exec -n rook-ceph deployment/rook-ceph-operator -- ceph health detail)
+    ROOK_CEPH_EXEC_TARGET=rook-ceph-operator
+    if kubectl get deployment -n rook-ceph rook-ceph-tools &>/dev/null; then
+        ROOK_CEPH_EXEC_TARGET=rook-ceph-tools
+    fi
+    CEPH_HEALTH_DETAIL=$(kubectl exec -n rook-ceph deployment/$ROOK_CEPH_EXEC_TARGET -- ceph health detail)
     if [ "$CEPH_HEALTH_DETAIL" != "HEALTH_OK" ]; then
         if [ "$SKIP_ROOK_HEALTH_CHECKS" = "1" ]; then
             echo "Continuing with unhealthy rook due to skip-rook-health-checks flag"
@@ -515,7 +519,7 @@ function migrate_pvcs() {
     else
         echo "rook-ceph appears to be healthy"
     fi
-    CEPH_DISK_USAGE_TOTAL=$(kubectl exec -n rook-ceph deployment/rook-ceph-operator -- ceph df | grep TOTAL | awk '{{ print $8$9 }}')
+    CEPH_DISK_USAGE_TOTAL=$(kubectl exec -n rook-ceph deployment/$ROOK_CEPH_EXEC_TARGET -- ceph df | grep TOTAL | awk '{{ print $8$9 }}')
 
     # check that longhorn is healthy
     LONGHORN_NODES_STATUS=$(kubectl get nodes.longhorn.io -n longhorn-system -o=jsonpath='{.items[*].status.conditions.Ready.status}')
