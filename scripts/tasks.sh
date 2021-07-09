@@ -3,10 +3,12 @@
 set -e
 
 # Magic begin: scripts are inlined for distribution. See "make build/tasks.sh"
+. $DIR/scripts/Manifest
 . $DIR/scripts/common/common.sh
 . $DIR/scripts/common/discover.sh
 . $DIR/scripts/common/prompts.sh
 . $DIR/scripts/common/host-packages.sh
+. $DIR/scripts/common/utilbinaries.sh
 . $DIR/scripts/distro/interface.sh
 . $DIR/scripts/distro/kubeadm/distro.sh
 . $DIR/scripts/distro/rke2/distro.sh
@@ -47,6 +49,9 @@ function tasks() {
             ;;
         taint-primaries|taint_primaries)
             taint_primaries
+            ;;
+        migrate-pvcs|migrate_pvcs)
+            migrate_pvcs $@
             ;;
         *)
             bail "Unknown task: $1"
@@ -467,6 +472,104 @@ EOF
         pod=$(kubectl get pods --all-namespaces -ojsonpath='{ range .items[*]}{.metadata.name}{"\t"}{.metadata.uid}{"\t"}{.metadata.namespace}{"\n"}{end}' | grep "$uid" )
         kubectl delete pod "$(echo "$pod" | awk '{ print $1 }')" --namespace="$(echo "$pod" | awk '{ print $3 }')" --wait=false
     done < <(grep ':6789:/' /proc/mounts | grep -v globalmount | awk '{ print $2 }' | awk -F '/' '{ print $6 }')
+}
+
+function migrate_pvcs() {
+    export KUBECONFIG=/etc/kubernetes/admin.conf
+
+    # get params - specifically need airgap as that impacts binary downloads and skip-rook-health-checks to skip rook health checks
+    shift # the first param is migrate_pvcs/migrate-pvcs
+    while [ "$1" != "" ]; do
+        _param="$(echo "$1" | cut -d= -f1)"
+        _value="$(echo "$1" | grep '=' | cut -d= -f2-)"
+        case $_param in
+            airgap)
+                AIRGAP="1"
+                ;;
+            skip-rook-health-checks)
+                SKIP_ROOK_HEALTH_CHECKS="1"
+                ;;
+            skip-longhorn-health-checks)
+                SKIP_LONGHORN_HEALTH_CHECKS="1"
+                ;;
+            *)
+                echo >&2 "Error: unknown parameter \"$_param\""
+                exit 1
+                ;;
+        esac
+        shift
+    done
+
+    download_util_binaries
+
+    # check that rook-ceph is healthy
+    ROOK_CEPH_EXEC_TARGET=rook-ceph-operator
+    if kubectl get deployment -n rook-ceph rook-ceph-tools &>/dev/null; then
+        ROOK_CEPH_EXEC_TARGET=rook-ceph-tools
+    fi
+    CEPH_HEALTH_DETAIL=$(kubectl exec -n rook-ceph deployment/$ROOK_CEPH_EXEC_TARGET -- ceph health detail)
+    if [ "$CEPH_HEALTH_DETAIL" != "HEALTH_OK" ]; then
+        if [ "$SKIP_ROOK_HEALTH_CHECKS" = "1" ]; then
+            echo "Continuing with unhealthy rook due to skip-rook-health-checks flag"
+        else
+            echo "Ceph is not healthy, please resolve this before rerunning the script or rerun with the skip-rook-health-checks flag:"
+            echo "$CEPH_HEALTH_DETAIL"
+            return 1
+        fi
+    else
+        echo "rook-ceph appears to be healthy"
+    fi
+    CEPH_DISK_USAGE_TOTAL=$(kubectl exec -n rook-ceph deployment/$ROOK_CEPH_EXEC_TARGET -- ceph df | grep TOTAL | awk '{{ print $8$9 }}')
+
+    # check that longhorn is healthy
+    LONGHORN_NODES_STATUS=$(kubectl get nodes.longhorn.io -n longhorn-system -o=jsonpath='{.items[*].status.conditions.Ready.status}')
+    LONGHORN_NODES_SCHEDULABLE=$(kubectl get nodes.longhorn.io -n longhorn-system -o=jsonpath='{.items[*].status.conditions.Schedulable.status}')
+    pat="^True( True)*$" # match "True", "True True" etc but not "False True" or ""
+    if [[ $LONGHORN_NODES_STATUS =~ $pat ]] && [[ $LONGHORN_NODES_SCHEDULABLE =~ $pat ]]; then
+        echo "All Longhorn nodes are ready and schedulable"
+    else
+        if [ "$SKIP_LONGHORN_HEALTH_CHECKS" = "1" ]; then
+            echo "Continuing with unhealthy Longhorn due to skip-longhorn-health-checks flag"
+        else
+            echo "Longhorn is not healthy, please resolve this before rerunning the script or rerun with the skip-longhorn-health-checks flag:"
+            kubectl get nodes.longhorn.io -n longhorn-system
+            return 1
+        fi
+    fi
+
+    # provide large warning that this will stop the app
+    printf "${YELLOW}"
+    printf "WARNING: \n"
+    printf "\n"
+    printf "    This command will attempt to move data from rook-ceph to longhorn.\n"
+    printf "\n"
+    printf "    As part of this, all pods mounting PVCs will be stopped, taking down the application.\n"
+    printf "\n"
+    printf "    Copying the data currently stored within rook-ceph will require at least %s of free space across the cluster.\n" "$CEPH_DISK_USAGE_TOTAL"
+    printf "    It is recommended to take a snapshot or otherwise back up your data before starting this process.\n${NC}"
+    printf "\n"
+    printf "Would you like to continue? "
+
+    if ! confirmN; then
+        printf "Not migrating\n"
+        exit 1
+    fi
+
+    # set prometheus scale if it exists
+    if kubectl get namespace monitoring &>/dev/null; then
+        kubectl patch prometheus -n monitoring  k8s --type='json' --patch '[{"op": "replace", "path": "/spec/replicas", value: 0}]'
+    fi
+
+    # run the migration
+    $BIN_PVMIGRATE --source-sc default --dest-sc longhorn --rsync-image "$KURL_UTIL_IMAGE"
+
+    # reset prometheus scale
+    if kubectl get namespace monitoring &>/dev/null; then
+        kubectl patch prometheus -n monitoring  k8s --type='json' --patch '[{"op": "replace", "path": "/spec/replicas", value: 2}]'
+    fi
+
+    # print success message
+    printf "${GREEN}Migration from rook-ceph to longhorn completed successfully!\n${NC}"
 }
 
 tasks "$@"
