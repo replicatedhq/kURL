@@ -478,7 +478,7 @@ function migrate_pvcs() {
     export KUBECONFIG=/etc/kubernetes/admin.conf
 
     # get params - specifically need airgap as that impacts binary downloads and skip-rook-health-checks to skip rook health checks
-    shift # the first param is join_token/join-token
+    shift # the first param is migrate_pvcs/migrate-pvcs
     while [ "$1" != "" ]; do
         _param="$(echo "$1" | cut -d= -f1)"
         _value="$(echo "$1" | grep '=' | cut -d= -f2-)"
@@ -488,6 +488,9 @@ function migrate_pvcs() {
                 ;;
             skip-rook-health-checks)
                 SKIP_ROOK_HEALTH_CHECKS="1"
+                ;;
+            skip-longhorn-health-checks)
+                SKIP_LONGHORN_HEALTH_CHECKS="1"
                 ;;
             *)
                 echo >&2 "Error: unknown parameter \"$_param\""
@@ -503,16 +506,32 @@ function migrate_pvcs() {
     CEPH_HEALTH_DETAIL=$(kubectl exec -n rook-ceph deployment/rook-ceph-operator -- ceph health detail)
     if [ "$CEPH_HEALTH_DETAIL" != "HEALTH_OK" ]; then
         if [ "$SKIP_ROOK_HEALTH_CHECKS" = "1" ]; then
-            echo "continuing with unhealthy rook due to skip-rook-health flag"
+            echo "Continuing with unhealthy rook due to skip-rook-health-checks flag"
         else
-            echo "Ceph is not healthy, please resolve this before rerunning the script or rerun with the skip-rook-health flag:"
+            echo "Ceph is not healthy, please resolve this before rerunning the script or rerun with the skip-rook-health-checks flag:"
             echo "$CEPH_HEALTH_DETAIL"
             return 1
         fi
+    else
+        echo "rook-ceph appears to be healthy"
     fi
     CEPH_DISK_USAGE_TOTAL=$(kubectl exec -n rook-ceph deployment/rook-ceph-operator -- ceph df | grep TOTAL | awk '{{ print $8$9 }}')
 
-    # check that longhorn is healthy TODO
+    # check that longhorn is healthy
+    LONGHORN_NODES_STATUS=$(kubectl get nodes.longhorn.io -n longhorn-system -o=jsonpath='{.items[*].status.conditions.Ready.status}')
+    LONGHORN_NODES_SCHEDULABLE=$(kubectl get nodes.longhorn.io -n longhorn-system -o=jsonpath='{.items[*].status.conditions.Schedulable.status}')
+    pat="^True( True)*$" # match "True", "True True" etc but not "False True" or ""
+    if [[ $LONGHORN_NODES_STATUS =~ $pat ]] && [[ $LONGHORN_NODES_SCHEDULABLE =~ $pat ]]; then
+        echo "All Longhorn nodes are ready and schedulable"
+    else
+        if [ "$SKIP_LONGHORN_HEALTH_CHECKS" = "1" ]; then
+            echo "Continuing with unhealthy Longhorn due to skip-longhorn-health-checks flag"
+        else
+            echo "Longhorn is not healthy, please resolve this before rerunning the script or rerun with the skip-longhorn-health-checks flag:"
+            kubectl get nodes.longhorn.io -n longhorn-system
+            return 1
+        fi
+    fi
 
     # provide large warning that this will stop the app
     printf "${YELLOW}"
