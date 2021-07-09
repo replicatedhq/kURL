@@ -1,8 +1,8 @@
-image kotsadm-migrations docker.io/kotsadm/kotsadm-migrations:alpha
-image kotsadm-operator docker.io/kotsadm/kotsadm-operator:alpha
+image kotsadm-migrations docker.io/kotsadm/kotsadm-migrations:v1.47.0
+image kotsadm-operator docker.io/kotsadm/kotsadm-operator:v1.47.0
 image kotsadm-minio minio/minio:RELEASE.2021-07-08T19-43-25Z
-image kotsadm docker.io/kotsadm/kotsadm:alpha
-image kurl-proxy docker.io/kotsadm/kurl-proxy:alpha
+image kotsadm docker.io/kotsadm/kotsadm:v1.47.0
+image kurl-proxy docker.io/kotsadm/kurl-proxy:v1.47.0
 image postgres postgres:10.17-alpine
 image dex docker.io/kotsadm/dex:v2.28.1
 
