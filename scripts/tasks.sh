@@ -500,7 +500,7 @@ function migrate_pvcs() {
     download_util_binaries
 
     # check that rook-ceph is healthy
-    CEPH_HEALTH_DETAIL=$(kubectl exec -it -n rook-ceph deployment/rook-ceph-operator -- ceph health detail)
+    CEPH_HEALTH_DETAIL=$(kubectl exec -n rook-ceph deployment/rook-ceph-operator -- ceph health detail)
     if [ "$CEPH_HEALTH_DETAIL" != "HEALTH_OK" ]; then
         if [ "$SKIP_ROOK_HEALTH_CHECKS" = "1" ]; then
             echo "continuing with unhealthy rook due to skip-rook-health flag"
@@ -510,19 +510,19 @@ function migrate_pvcs() {
             return 1
         fi
     fi
-    CEPH_DISK_USAGE_TOTAL=$(kubectl exec -it -n rook-ceph deployment/rook-ceph-operator -- ceph df | grep TOTAL | awk '{{ print $8$9 }}')
+    CEPH_DISK_USAGE_TOTAL=$(kubectl exec -n rook-ceph deployment/rook-ceph-operator -- ceph df | grep TOTAL | awk '{{ print $8$9 }}')
 
-    # check that longhorn is healthy
+    # check that longhorn is healthy TODO
 
     # provide large warning that this will stop the app
     printf "${YELLOW}"
     printf "WARNING: \n"
     printf "\n"
-    printf "    The \"migrate_pvcs\" command will attempt to move data from rook-ceph to longhorn.\n"
+    printf "    This command will attempt to move data from rook-ceph to longhorn.\n"
     printf "\n"
     printf "    As part of this, all pods mounting PVCs will be stopped, taking down the application.\n"
     printf "\n"
-    printf "    This will require at least %s of free space across the cluster.\n" "$CEPH_DISK_USAGE_TOTAL"
+    printf "    Copying the data currently stored within rook-ceph will require at least %s of free space across the cluster.\n" "$CEPH_DISK_USAGE_TOTAL"
     printf "    It is recommended to take a snapshot or otherwise back up your data before starting this process.\n${NC}"
     printf "\n"
     printf "Would you like to continue? "
