@@ -31,7 +31,7 @@ require (
 	github.com/pelletier/go-toml v1.9.3
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/common v0.29.0 // indirect
-	github.com/replicatedhq/pvmigrate v0.1.0 // indirect
+	github.com/replicatedhq/pvmigrate v0.1.1 // indirect
 	github.com/replicatedhq/troubleshoot v0.13.1
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/afero v1.6.0
@@ -66,7 +66,6 @@ require (
 
 replace (
 	github.com/longhorn/longhorn-manager => github.com/replicatedhq/longhorn-manager v1.1.2-0.20210622201804-05b01947b99d
-	sigs.k8s.io/controller-runtime => sigs.k8s.io/controller-runtime v0.8.3
 	k8s.io/api => k8s.io/api v0.20.2
 	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.20.2
 	k8s.io/apimachinery => k8s.io/apimachinery v0.20.2
@@ -88,4 +87,5 @@ replace (
 	k8s.io/legacy-cloud-providers => k8s.io/legacy-cloud-providers v0.20.2
 	k8s.io/metrics => k8s.io/metrics v0.20.2
 	k8s.io/sample-apiserver => k8s.io/sample-apiserver v0.20.0
+	sigs.k8s.io/controller-runtime => sigs.k8s.io/controller-runtime v0.8.3
 )
