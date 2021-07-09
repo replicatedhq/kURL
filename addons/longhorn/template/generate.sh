@@ -14,6 +14,9 @@ function get_latest_release_version() {
 KSPLITPATH=""
 function get_ksplit() {
     go install github.com/go-ksplit/ksplit/ksplit@v1.0.1
+    if [ -z "${GOPATH}" ]; then
+        GOPATH="$HOME/go"
+    fi
     KSPLITPATH="$GOPATH/bin/ksplit"
 }
 
