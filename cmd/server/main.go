@@ -131,7 +131,6 @@ func bundle(w http.ResponseWriter, r *http.Request) {
 			handleHttpError(w, r, err, http.StatusInternalServerError)
 			return
 		}
-		fmt.Println("HEAD", srcURL, resp.StatusCode)
 		resp.Body.Close()
 		if resp.StatusCode != http.StatusOK {
 			err := errors.Errorf("unexpected response status code %d", resp.StatusCode)
