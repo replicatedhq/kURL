@@ -260,7 +260,7 @@ build/packages/k-3-s/%/images:
 
 DEV := 0
 
-build/install.sh:
+build/install.sh: scripts/install.sh
 	mkdir -p tmp build
 	sed '/# Magic begin/q' scripts/install.sh | sed '$$d' > tmp/install.sh
 	for script in $(shell cat scripts/install.sh | grep '\. $$DIR/' | sed 's/. $$DIR\///'); do \
@@ -292,7 +292,7 @@ dist/install.tmpl: build/templates/install.tmpl
 	mkdir -p dist
 	cp build/templates/install.tmpl dist/install.tmpl
 
-build/join.sh:
+build/join.sh: scripts/join.sh
 	mkdir -p tmp build
 	sed '/# Magic begin/q' scripts/join.sh | sed '$$d' > tmp/join.sh
 	for script in $(shell cat scripts/join.sh | grep '\. $$DIR/' | sed 's/. $$DIR\///'); do \
@@ -324,7 +324,7 @@ dist/join.tmpl: build/templates/join.tmpl
 	mkdir -p dist
 	cp build/templates/join.tmpl dist/join.tmpl
 
-build/upgrade.sh:
+build/upgrade.sh: scripts/upgrade.sh
 	mkdir -p tmp build
 	sed '/# Magic begin/q' scripts/upgrade.sh | sed '$$d' > tmp/upgrade.sh
 	for script in $(shell cat scripts/upgrade.sh | grep '\. $$DIR/' | sed 's/. $$DIR\///'); do \
@@ -356,7 +356,7 @@ dist/upgrade.tmpl: build/templates/upgrade.tmpl
 	mkdir -p dist
 	cp build/templates/upgrade.tmpl dist/upgrade.tmpl
 
-build/tasks.sh:
+build/tasks.sh: scripts/tasks.sh
 	mkdir -p tmp build
 	sed '/# Magic begin/q' scripts/tasks.sh | sed '$$d' > tmp/tasks.sh
 	for script in $(shell cat scripts/tasks.sh | grep '\. $$DIR/' | sed 's/. $$DIR\///'); do \
