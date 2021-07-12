@@ -732,7 +732,9 @@ spec:
 EOF
 
     echo "Waiting for kurlnet-client pod to start"
-    spinner_until 120 kubernetes_pod_started kurlnet-client default
+    if ! spinner_until 120 kubernetes_pod_started kurlnet-client default; then
+        bail "kurlnet-client pod failed to start"
+    fi
 
     # Wait up to 1 minute for the network check to succeed. If it's still failing print the client
     # logs to help with troubleshooting. Then show the spinner indefinitely so that the script will
