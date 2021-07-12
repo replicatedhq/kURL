@@ -14,7 +14,6 @@ import (
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/kurl/pkg/installer"
 	"github.com/replicatedhq/kurl/pkg/preflight"
-	"github.com/replicatedhq/kurl/pkg/util"
 	analyze "github.com/replicatedhq/troubleshoot/pkg/analyze"
 	"github.com/replicatedhq/troubleshoot/pkg/apis/troubleshoot/v1beta2"
 	troubleshootv1beta2 "github.com/replicatedhq/troubleshoot/pkg/apis/troubleshoot/v1beta2"
@@ -36,14 +35,6 @@ func NewHostPreflightCmd(cli CLI) *cobra.Command {
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			v := cli.GetViper()
-
-			if outFile := v.GetString("output-file"); outFile != "" {
-				w, err := setFileOutputWriter(outFile, cmd.OutOrStdout())
-				if err != nil {
-					return errors.Wrap(err, "set file output writer")
-				}
-				cmd.SetOut(w)
-			}
 
 			installerSpec, err := installer.RetrieveSpec(cli.GetFS(), args[0])
 			if err != nil {
@@ -227,7 +218,6 @@ func NewHostPreflightCmd(cli CLI) *cobra.Command {
 	cmd.Flags().Bool("is-join", false, "set to true if this node is joining an existing cluster (non-primary implies join)")
 	cmd.Flags().Bool("is-primary", true, "set to true if this node is a primary")
 	cmd.Flags().Bool("is-upgrade", false, "set to true if this is an upgrade")
-	cmd.Flags().String("output-file", "", "name of the file to output results in addition to stdout")
 	cmd.Flags().StringSlice("primary-host", nil, "host or IP of a control plane node running a Kubernetes API server and etcd peer")
 	cmd.Flags().StringSlice("secondary-host", nil, "host or IP of a secondary node running kubelet")
 	cmd.Flags().StringSlice("spec", nil, "preflight specs")
@@ -235,17 +225,6 @@ func NewHostPreflightCmd(cli CLI) *cobra.Command {
 	cmd.MarkFlagFilename("spec", "yaml", "yml")
 
 	return cmd
-}
-
-func setFileOutputWriter(outFile string, w io.Writer) (io.Writer, error) {
-	file, err := os.Create(outFile)
-	if err != nil {
-		return nil, errors.Wrap(err, "create file")
-	}
-	pr, pw := io.Pipe()
-	tr := io.TeeReader(pr, util.NewStripANSIWriter(file)) // TODO: do not write control characters
-	go io.Copy(w, tr)
-	return pw, nil
 }
 
 func decodePreflightSpec(raw string, data installer.TemplateData) (*troubleshootv1beta2.HostPreflight, error) {

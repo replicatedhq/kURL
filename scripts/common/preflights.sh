@@ -391,7 +391,7 @@ function preflights_require_no_kubernetes_or_current_node() {
     return 0
 }
 
-HOST_PREFLIGHT_OUTPUT_DIR=
+HOST_PREFLIGHTS_RESULTS_OUTPUT_DIR="host-preflights"
 function host_preflights() {
     local is_primary="$1"
     local is_join="$2"
@@ -399,12 +399,10 @@ function host_preflights() {
 
     local opts=
 
-    if [ -z "${HOST_PREFLIGHT_OUTPUT_DIR}" ]; then
-        HOST_PREFLIGHT_OUTPUT_DIR="$(mktemp -d -t host-preflight.XXXXXXXXXX)"
-    fi
     local out_file=
-    out_file="${HOST_PREFLIGHT_OUTPUT_DIR}/results-$(date +%s).txt"
-    opts="--output-file=${out_file}"
+    out_file="${HOST_PREFLIGHTS_RESULTS_OUTPUT_DIR}/results-$(date +%s).txt"
+
+    mkdir -p "${HOST_PREFLIGHTS_RESULTS_OUTPUT_DIR}"
 
     if [ "${PREFLIGHT_IGNORE_WARNINGS}" = "1" ] || ! prompts_can_prompt ; then
         opts="${opts} --ignore-warnings"
@@ -432,8 +430,9 @@ function host_preflights() {
 
     logStep "Running host preflights"
     if [ "${PREFLIGHT_IGNORE}" = "1" ]; then
-        "${DIR}"/bin/kurl host preflight "${MERGED_YAML_SPEC}" ${opts} || true
+        "${DIR}"/bin/kurl host preflight "${MERGED_YAML_SPEC}" ${opts} > "${out_file}" || true
 
+        cat "${out_file}"
         host_preflights_mkresults "${out_file}" "${opts}"
 
         # TODO: report preflight fail
@@ -441,10 +440,11 @@ function host_preflights() {
         # interactive terminal
         if prompts_can_prompt; then
             set +e
-            "${DIR}"/bin/kurl host preflight "${MERGED_YAML_SPEC}" ${opts} </dev/tty
+            "${DIR}"/bin/kurl host preflight "${MERGED_YAML_SPEC}" ${opts} > "${out_file}" </dev/tty
             local kurl_exit_code=$?
             set -e 
 
+            cat "${out_file}"
             host_preflights_mkresults "${out_file}" "${opts}"
 
             case $kurl_exit_code in
@@ -473,16 +473,17 @@ function host_preflights() {
             esac                                       
         # non-interactive terminal
         else
-            if ! "${DIR}"/bin/kurl host preflight "${MERGED_YAML_SPEC}" ${opts}; then
+            if ! "${DIR}"/bin/kurl host preflight "${MERGED_YAML_SPEC}" ${opts} > "${out_file}"; then
+                cat "${out_file}"
+                host_preflights_mkresults "${out_file}" "${opts}"
+
                 # report_install_fail "preflight"
                 # bail "Use the \"preflight-ignore\" flag to proceed."
                 logFail "Host preflights failed"
-
-                host_preflights_mkresults "${out_file}" "${opts}"
-
                 return 0
             fi
 
+            cat "${out_file}"
             host_preflights_mkresults "${out_file}" "${opts}"
         fi
     fi
@@ -493,8 +494,10 @@ function host_preflights() {
 function host_preflights_mkresults() {
     local out_file="$1"
     local opts="$2"
+    local kurl_version=
+    kurl_version="$(./bin/kurl version | grep version= | awk 'BEGIN { FS="=" }; { print $2 }')"
     local tmp_file=
     tmp_file="$(mktemp)"
-    echo -e "[options]\n${opts}\n\n[results]" | cat - "${out_file}" > "${tmp_file}" && mv "${tmp_file}" "${out_file}"
+    echo -e "[version]\n${kurl_version}\n\n[options]\n${opts}\n\n[results]" | cat - "${out_file}" > "${tmp_file}" && mv "${tmp_file}" "${out_file}"
     rm -f "${tmp_file}"
 }
