@@ -430,9 +430,7 @@ function host_preflights() {
 
     logStep "Running host preflights"
     if [ "${PREFLIGHT_IGNORE}" = "1" ]; then
-        "${DIR}"/bin/kurl host preflight "${MERGED_YAML_SPEC}" ${opts} > "${out_file}" || true
-
-        cat "${out_file}"
+        "${DIR}"/bin/kurl host preflight "${MERGED_YAML_SPEC}" ${opts} | tee "${out_file}"
         host_preflights_mkresults "${out_file}" "${opts}"
 
         # TODO: report preflight fail
@@ -440,11 +438,10 @@ function host_preflights() {
         # interactive terminal
         if prompts_can_prompt; then
             set +e
-            "${DIR}"/bin/kurl host preflight "${MERGED_YAML_SPEC}" ${opts} > "${out_file}" </dev/tty
-            local kurl_exit_code=$?
-            set -e 
+            "${DIR}"/bin/kurl host preflight "${MERGED_YAML_SPEC}" ${opts} </dev/tty | tee "${out_file}"
+            local kurl_exit_code="${PIPESTATUS[0]}"
+            set -e
 
-            cat "${out_file}"
             host_preflights_mkresults "${out_file}" "${opts}"
 
             case $kurl_exit_code in
@@ -473,18 +470,19 @@ function host_preflights() {
             esac                                       
         # non-interactive terminal
         else
-            if ! "${DIR}"/bin/kurl host preflight "${MERGED_YAML_SPEC}" ${opts} > "${out_file}"; then
-                cat "${out_file}"
-                host_preflights_mkresults "${out_file}" "${opts}"
+            set +e
+            "${DIR}"/bin/kurl host preflight "${MERGED_YAML_SPEC}" ${opts} | tee "${out_file}"
+            local kurl_exit_code="${PIPESTATUS[0]}"
+            set -e
 
+            host_preflights_mkresults "${out_file}" "${opts}"
+
+            if [ "${kurl_exit_code}" != "0" ] ; then
                 # report_install_fail "preflight"
                 # bail "Use the \"preflight-ignore\" flag to proceed."
                 logFail "Host preflights failed"
                 return 0
             fi
-
-            cat "${out_file}"
-            host_preflights_mkresults "${out_file}" "${opts}"
         fi
     fi
     logStep "Host preflights success"
