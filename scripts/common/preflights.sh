@@ -400,9 +400,9 @@ function host_preflights() {
     local opts=
 
     local out_file=
-    out_file="${HOST_PREFLIGHTS_RESULTS_OUTPUT_DIR}/results-$(date +%s).txt"
+    out_file="${DIR}/${HOST_PREFLIGHTS_RESULTS_OUTPUT_DIR}/results-$(date +%s).txt"
 
-    mkdir -p "${HOST_PREFLIGHTS_RESULTS_OUTPUT_DIR}"
+    mkdir -p "${DIR}/${HOST_PREFLIGHTS_RESULTS_OUTPUT_DIR}"
 
     if [ "${PREFLIGHT_IGNORE_WARNINGS}" = "1" ] || ! prompts_can_prompt ; then
         opts="${opts} --ignore-warnings"
