@@ -391,12 +391,19 @@ function preflights_require_no_kubernetes_or_current_node() {
     return 0
 }
 
+HOST_PREFLIGHTS_RESULTS_OUTPUT_DIR="host-preflights"
 function host_preflights() {
     local is_primary="$1"
     local is_join="$2"
     local is_upgrade="$3"
 
     local opts=
+
+    local out_file=
+    out_file="${DIR}/${HOST_PREFLIGHTS_RESULTS_OUTPUT_DIR}/results-$(date +%s).txt"
+
+    mkdir -p "${DIR}/${HOST_PREFLIGHTS_RESULTS_OUTPUT_DIR}"
+
     if [ "${PREFLIGHT_IGNORE_WARNINGS}" = "1" ] || ! prompts_can_prompt ; then
         opts="${opts} --ignore-warnings"
     fi
@@ -410,7 +417,7 @@ function host_preflights() {
         opts="${opts} --is-upgrade"
     fi
 
-    for spec in $(${K8S_DISTRO}_addon_for_each addon_preflight); do
+    for spec in $("${K8S_DISTRO}_addon_for_each" addon_preflight); do
         opts="${opts} --spec=${spec}"
     done
 
@@ -423,18 +430,23 @@ function host_preflights() {
 
     logStep "Running host preflights"
     if [ "${PREFLIGHT_IGNORE}" = "1" ]; then
-        "${DIR}"/bin/kurl host preflight "${MERGED_YAML_SPEC}" ${opts} || true
+        "${DIR}"/bin/kurl host preflight "${MERGED_YAML_SPEC}" ${opts} | tee "${out_file}"
+        host_preflights_mkresults "${out_file}" "${opts}"
+
         # TODO: report preflight fail
     else
         # interactive terminal
         if prompts_can_prompt; then
             set +e
-            "${DIR}"/bin/kurl host preflight "${MERGED_YAML_SPEC}" ${opts} </dev/tty
-            local kurl_exit_code=$?
-            set -e 
+            "${DIR}"/bin/kurl host preflight "${MERGED_YAML_SPEC}" ${opts} </dev/tty | tee "${out_file}"
+            local kurl_exit_code="${PIPESTATUS[0]}"
+            set -e
+
+            host_preflights_mkresults "${out_file}" "${opts}"
+
             case $kurl_exit_code in
                 3)
-                    printf "${YELLOW}Host preflights have warnings${NC}\n"
+                    logWarn "Host preflights have warnings"
 
                     # report_install_fail "preflight"
                     # bail "Use the \"preflight-ignore-warnings\" flag to proceed."
@@ -446,7 +458,7 @@ function host_preflights() {
                     return 0
                     ;;  
                 1)
-                    printf "${RED}Host preflights have failures${NC}\n"
+                    logFail "Host preflights have failures"
 
                     # printf "${RED}Host preflights have failures. Do you want to proceed anyway? ${NC} "
                     # if ! confirmN ; then
@@ -458,13 +470,32 @@ function host_preflights() {
             esac                                       
         # non-interactive terminal
         else
-            if ! "${DIR}"/bin/kurl host preflight "${MERGED_YAML_SPEC}" ${opts}; then
+            set +e
+            "${DIR}"/bin/kurl host preflight "${MERGED_YAML_SPEC}" ${opts} | tee "${out_file}"
+            local kurl_exit_code="${PIPESTATUS[0]}"
+            set -e
+
+            host_preflights_mkresults "${out_file}" "${opts}"
+
+            if [ "${kurl_exit_code}" != "0" ] ; then
                 # report_install_fail "preflight"
                 # bail "Use the \"preflight-ignore\" flag to proceed."
-                printf "${RED}Host preflights failed${NC}\n"
+                logFail "Host preflights failed"
                 return 0
             fi
         fi
     fi
     logStep "Host preflights success"
+}
+
+# host_preflights_mkresults will append cli data to preflight results file
+function host_preflights_mkresults() {
+    local out_file="$1"
+    local opts="$2"
+    local kurl_version=
+    kurl_version="$(./bin/kurl version | grep version= | awk 'BEGIN { FS="=" }; { print $2 }')"
+    local tmp_file=
+    tmp_file="$(mktemp)"
+    echo -e "[version]\n${kurl_version}\n\n[options]\n${opts}\n\n[results]" | cat - "${out_file}" > "${tmp_file}" && mv "${tmp_file}" "${out_file}"
+    rm -f "${tmp_file}"
 }

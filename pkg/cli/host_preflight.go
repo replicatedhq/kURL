@@ -218,11 +218,11 @@ func NewHostPreflightCmd(cli CLI) *cobra.Command {
 	cmd.Flags().Bool("is-join", false, "set to true if this node is joining an existing cluster (non-primary implies join)")
 	cmd.Flags().Bool("is-primary", true, "set to true if this node is a primary")
 	cmd.Flags().Bool("is-upgrade", false, "set to true if this is an upgrade")
+	cmd.Flags().StringSlice("primary-host", nil, "host or IP of a control plane node running a Kubernetes API server and etcd peer")
+	cmd.Flags().StringSlice("secondary-host", nil, "host or IP of a secondary node running kubelet")
 	cmd.Flags().StringSlice("spec", nil, "preflight specs")
 	// cmd.MarkFlagRequired("spec")
 	cmd.MarkFlagFilename("spec", "yaml", "yml")
-	cmd.Flags().StringSlice("primary-host", nil, "host or IP of a control plane node running a Kubernetes API server and etcd peer")
-	cmd.Flags().StringSlice("secondary-host", nil, "host or IP of a secondary node running kubelet")
 
 	return cmd
 }
