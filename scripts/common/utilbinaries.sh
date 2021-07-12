@@ -12,6 +12,7 @@ function download_util_binaries() {
     BIN_INSTALLERMERGE=./bin/installermerge
     BIN_YAMLTOBASH=./bin/yamltobash
     BIN_BASHTOYAML=./bin/bashmerge
+    BIN_PVMIGRATE=./bin/pvmigrate
 
     mkdir -p /tmp/kurl-bin-utils/scripts
     CONFIGURE_SELINUX_SCRIPT=/tmp/kurl-bin-utils/scripts/configure_selinux.sh
