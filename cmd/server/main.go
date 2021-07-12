@@ -124,6 +124,23 @@ func bundle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	for _, srcURL := range bundle.Layers {
+		resp, err := http.Head(srcURL)
+		if err != nil {
+			err = errors.Wrapf(err, "error http head %s for installer %s bundle", srcURL, installerID)
+			handleHttpError(w, r, err, http.StatusInternalServerError)
+			return
+		}
+		fmt.Println("HEAD", srcURL, resp.StatusCode)
+		resp.Body.Close()
+		if resp.StatusCode != http.StatusOK {
+			err := errors.Errorf("unexpected response status code %d", resp.StatusCode)
+			err = errors.Wrapf(err, "error http head %s for installer %s bundle", srcURL, installerID)
+			handleHttpError(w, r, err, http.StatusInternalServerError)
+			return
+		}
+	}
+
 	w.Header().Set("Content-Type", "binary/octet-stream")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Content-Disposition", "attachment")
