@@ -31,7 +31,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/common v0.29.0 // indirect
 	github.com/replicatedhq/pvmigrate v0.1.1
-	github.com/replicatedhq/troubleshoot v0.13.1
+	github.com/replicatedhq/troubleshoot v0.13.2
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/afero v1.6.0
 	github.com/spf13/cobra v1.1.3
