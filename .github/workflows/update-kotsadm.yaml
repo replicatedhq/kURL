@@ -1,0 +1,38 @@
+name: auto-kotsadm-update
+on:
+  workflow_dispatch: {}
+
+jobs:
+  build-pr-kotsadm:
+    runs-on: ubuntu-20.04
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+
+    - name: Create Kotsadm Update
+      id: update
+      working-directory: ./addons/kotsadm/template
+      env:
+        KOTSADM_VERSION: ${{ github.event.client_payload.version }}
+      run: ./generate.sh
+
+    - name: Create Pull Request # creates a PR if there are differences
+      uses: peter-evans/create-pull-request@v3
+      id: cpr
+      with:
+        token: ${{ secrets.GH_PAT }}
+        commit-message: Create new Kotsadm version
+        title: 'Triggered Kotsadm version update ${{ steps.update.outputs.kotsadm_version }}'
+        branch: automation/update-kotsadm
+        delete-branch: true
+        labels: |
+          kotsadm
+        draft: false
+        base: "master"
+        body: "Automated changes by the [auto-kotsadm-update](https://github.com/replicatedhq/kURL/blob/master/.github/workflows/update-kotsadm.yaml) GitHub action"
+
+    - name: Check outputs
+      run: |
+        echo "Pull Request Number - ${{ steps.cpr.outputs.pull-request-number }}"
+        echo "Pull Request URL - ${{ steps.cpr.outputs.pull-request-url }}"
