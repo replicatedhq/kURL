@@ -14,6 +14,7 @@ require (
 	github.com/evanphx/json-patch v4.11.0+incompatible // indirect
 	github.com/fatih/color v1.12.0
 	github.com/foomo/htpasswd v0.0.0-20200116085101-e3a90e78da9c
+	github.com/go-ini/ini v1.62.0 // indirect
 	github.com/go-logr/zapr v0.4.0 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/mock v1.6.0
@@ -25,6 +26,7 @@ require (
 	github.com/imdario/mergo v0.3.12 // indirect
 	github.com/itchyny/gojq v0.12.4
 	github.com/mattn/go-isatty v0.0.13
+	github.com/minio/minio-go v6.0.14+incompatible // indirect
 	github.com/mitchellh/copystructure v1.2.0 // indirect
 	github.com/onsi/gomega v1.13.0
 	github.com/pelletier/go-toml v1.9.3

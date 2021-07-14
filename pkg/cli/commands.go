@@ -9,4 +9,6 @@ func AddCommands(cmd *cobra.Command, cli CLI) {
 	hostCmd.AddCommand(NewHostProtectedidCmd(cli))
 	hostCmd.AddCommand(NewHostPreflightCmd(cli))
 	cmd.AddCommand(hostCmd)
+
+	cmd.AddCommand(NewSyncObjectStoreCmd(cli))
 }
