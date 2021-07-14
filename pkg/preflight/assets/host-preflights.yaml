@@ -121,6 +121,9 @@ spec:
         # ha and is first master (primary and not join) and not is upgrade
         exclude: '{{kurl and .Installer.Spec.Kubernetes.Version .Installer.Spec.Kubernetes.LoadBalancerAddress .IsPrimary (not .IsJoin) (not .IsUpgrade) | not }}'
         outcomes:
+          - fail:
+              when: "invalid-address"
+              message: The load balancer address {{kurl .Installer.Spec.Kubernetes.LoadBalancerAddress }} is not valid.
           - warn:
               when: "connection-refused"
               message: Connection to {{kurl .Installer.Spec.Kubernetes.LoadBalancerAddress }} via load balancer was refused.
