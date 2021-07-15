@@ -74,7 +74,10 @@ func TestBuiltinExecuteTemplate(t *testing.T) {
 				},
 				{
 					query: ".spec.analyzers[] | select(.tcpLoadBalancer != null) | .tcpLoadBalancer.outcomes",
-					value: `- warn:
+					value: `- fail:
+    message: The load balancer address 1.2.3.4:7443 is not valid.
+    when: invalid-address
+- warn:
     when: "connection-refused"
     message: Connection to 1.2.3.4:7443 via load balancer was refused.
 - warn:
