@@ -26,9 +26,9 @@ require (
 	github.com/imdario/mergo v0.3.12 // indirect
 	github.com/itchyny/gojq v0.12.4
 	github.com/mattn/go-isatty v0.0.13
-	github.com/minio/minio-go v6.0.14+incompatible // indirect
+	github.com/minio/minio-go v6.0.14+incompatible
 	github.com/mitchellh/copystructure v1.2.0 // indirect
-	github.com/onsi/gomega v1.13.0
+	github.com/onsi/gomega v1.14.0
 	github.com/pelletier/go-toml v1.9.3
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/common v0.29.0 // indirect
@@ -42,7 +42,6 @@ require (
 	github.com/vishvananda/netlink v1.1.0
 	github.com/vmware-tanzu/velero v1.6.1
 	golang.org/x/crypto v0.0.0-20210513164829-c07d793c2f9a
-	golang.org/x/lint v0.0.0-20210508222113-6edffad5e616 // indirect
 	golang.org/x/net v0.0.0-20210614182718-04defd469f4e
 	golang.org/x/oauth2 v0.0.0-20210622215436-a8dc77f794b6 // indirect
 	golang.org/x/sys v0.0.0-20210616094352-59db8d763f22 // indirect
