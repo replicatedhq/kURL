@@ -6,6 +6,7 @@ set -e
 . $DIR/scripts/Manifest
 . $DIR/scripts/common/common.sh
 . $DIR/scripts/common/discover.sh
+. $DIR/scripts/common/kubernetes.sh
 . $DIR/scripts/common/prompts.sh
 . $DIR/scripts/common/host-packages.sh
 . $DIR/scripts/common/utilbinaries.sh
@@ -52,6 +53,9 @@ function tasks() {
             ;;
         migrate-pvcs|migrate_pvcs)
             migrate_pvcs $@
+            ;;
+        migrate-rgw-to-minio|migrate_rgw_to_minio)
+            migrate_rgw_to_minio $@
             ;;
         *)
             bail "Unknown task: $1"
@@ -570,6 +574,78 @@ function migrate_pvcs() {
 
     # print success message
     printf "${GREEN}Migration from rook-ceph to longhorn completed successfully!\n${NC}"
+}
+
+function migrate_rgw_to_minio() {
+    export KUBECONFIG=/etc/kubernetes/admin.conf
+    MINIO_NAMESPACE=minio
+
+    shift
+    while [ "$1" != "" ]; do
+        _param="$(echo "$1" | cut -d= -f1)"
+        _value="$(echo "$1" | grep '=' | cut -d= -f2-)"
+        case $_param in
+            minio-namespace|minio_namespace)
+                MINIO_NAMESPACE="$_value"
+                ;;
+            *)
+                echo >&2 "Error: unknown parameter \"$_param\""
+                exit 1
+                ;;
+        esac
+        shift
+    done
+
+    RGW_HOST="rook-ceph-rgw-rook-ceph-store.rook-ceph"
+    RGW_ACCESS_KEY_ID=$(kubectl -n rook-ceph get secret rook-ceph-object-user-rook-ceph-store-kurl -o yaml | grep AccessKey | head -1 | awk '{print $2}' | base64 --decode)
+    RGW_ACCESS_KEY_SECRET=$(kubectl -n rook-ceph get secret rook-ceph-object-user-rook-ceph-store-kurl -o yaml | grep SecretKey | head -1 | awk '{print $2}' | base64 --decode)
+
+    MINIO_HOST="minio.${MINIO_NAMESPACE}"
+    MINIO_ACCESS_KEY_ID=$(kubectl -n ${MINIO_NAMESPACE} get secret minio-credentials -ojsonpath='{ .data.MINIO_ACCESS_KEY }' | base64 --decode)
+    MINIO_ACCESS_KEY_SECRET=$(kubectl -n ${MINIO_NAMESPACE} get secret minio-credentials -ojsonpath='{ .data.MINIO_SECRET_KEY }' | base64 --decode)
+
+    get_shared    
+
+    kubectl delete pod sync-object-store --force --grace-period=0 &>/dev/null || true
+
+    cat <<EOF | kubectl apply -f -
+apiVersion: v1
+kind: Pod
+metadata:
+  name: sync-object-store
+  namespace: default
+spec:
+  restartPolicy: OnFailure
+  containers:
+  - name: sync-object-store
+    image: $KURL_UTIL_IMAGE
+    command:
+    - /usr/local/bin/kurl
+    - sync-object-store
+    - --source_host=$RGW_HOST
+    - --source_access_key_id=$RGW_ACCESS_KEY_ID
+    - --source_access_key_secret=$RGW_ACCESS_KEY_SECRET
+    - --dest_host=$MINIO_HOST
+    - --dest_access_key_id=$MINIO_ACCESS_KEY_ID
+    - --dest_access_key_secret=$MINIO_ACCESS_KEY_SECRET
+EOF
+
+    echo "Waiting up to 2 minutes for sync-object-store pod to start"
+    if ! spinner_until 120 kubernetes_pod_started sync-object-store default; then
+        bail "sync-object-store pod failed to start within 2 minutes"
+    fi
+
+    kubectl logs -f sync-object-store
+
+    spinner_until 10 kubernetes_pod_completed sync-object-store default
+
+    if kubernetes_pod_succeeded sync-object-store default; then
+        printf "\n${GREEN}Object store migration completed successfully${NC}\n"
+        kubectl delete pod sync-object-store --force --grace-period=0 &> /dev/null
+        return 0
+    fi
+
+    bail "sync-object-store pod failed"
 }
 
 tasks "$@"
