@@ -93,13 +93,13 @@ spec:
         checkName: "Amount of Memory"
         outcomes:
           - warn:
-              when: "< 8Gi"
-              message: At least 8Gi of memory is recommended
+              when: "< 8G"
+              message: At least 8G of memory is recommended
           - fail:
-              when: "< 4Gi"
-              message: At least 4Gi of memory is required, and 8Gi of memory is recommended
+              when: "< 4G"
+              message: At least 4G of memory is required, and 8G of memory is recommended
           - pass:
-              message: The system has at least 8Gi of memory
+              message: The system has at least 8G of memory
     - diskUsage:
         checkName: "Ephemeral Disk Usage"
         collectorName: "Ephemeral Disk Usage"
