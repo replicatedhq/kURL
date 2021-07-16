@@ -38,9 +38,6 @@ spec:
               when: "address-in-use"
               message: Another process was already listening on port 6781.
           - fail:
-              when: "connection-timeout"
-              message: Timed out connecting to port 6781. Check your firewall.
-          - fail:
               when: "error"
               message: Unexpected port status
           - pass:
