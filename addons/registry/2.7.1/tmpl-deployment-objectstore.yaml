@@ -53,6 +53,7 @@ type: Opaque
 stringData:
   access-key-id: ${OBJECT_STORE_ACCESS_KEY}
   secret-access-key: ${OBJECT_STORE_SECRET_KEY}
+  object-store-cluster-ip: ${OBJECT_STORE_CLUSTER_IP}
 ---
 apiVersion: apps/v1
 kind: Deployment

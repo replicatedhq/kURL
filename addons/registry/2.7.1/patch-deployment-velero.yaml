@@ -41,6 +41,11 @@ spec:
             secretKeyRef:
               key: secret-access-key
               name: registry-s3-secret
+        - name: OBJECT_STORE_CLUSTER_IP
+          valueFrom:
+            secretKeyRef:
+              key: object-store-cluster-ip
+              name: registry-s3-secret
       containers:
       - name: registry-backup
         image: kurlsh/s3cmd:7f7dc75-20210331
@@ -59,6 +64,11 @@ spec:
           valueFrom:
             secretKeyRef:
               key: secret-access-key
+              name: registry-s3-secret
+        - name: OBJECT_STORE_CLUSTER_IP
+          valueFrom:
+            secretKeyRef:
+              key: object-store-cluster-ip
               name: registry-s3-secret
         volumeMounts:
         - name: registry-velero-config
