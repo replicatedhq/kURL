@@ -127,7 +127,7 @@ type Minio struct {
 	S3Override     string `json:"s3Override,omitempty" yaml:"s3Override,omitempty"`
 	HostPath       string `json:"hostPath,omitempty" yaml:"hostPath,omitempty"`
 	Version        string `json:"version" yaml:"version"`
-	MigrateFromRGW bool   `json:"migrateFromRGW" yaml:"migrateFromRGW"`
+	MigrateFromRGW bool   `json:"migrateFromRGW,omitempty" yaml:"migrateFromRGW,omitempty"`
 }
 
 type OpenEBS struct {

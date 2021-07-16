@@ -339,7 +339,6 @@ spec:
                   version:
                     type: string
                 required:
-                - migrateFromRGW
                 - version
                 type: object
               openebs:
