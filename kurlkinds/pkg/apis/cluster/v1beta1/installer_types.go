@@ -123,10 +123,11 @@ type Kurl struct {
 }
 
 type Minio struct {
-	Namespace  string `json:"namespace,omitempty" yaml:"namespace,omitempty"`
-	S3Override string `json:"s3Override,omitempty" yaml:"s3Override,omitempty"`
-	HostPath   string `json:"hostPath,omitempty" yaml:"hostPath,omitempty"`
-	Version    string `json:"version" yaml:"version"`
+	Namespace      string `json:"namespace,omitempty" yaml:"namespace,omitempty"`
+	S3Override     string `json:"s3Override,omitempty" yaml:"s3Override,omitempty"`
+	HostPath       string `json:"hostPath,omitempty" yaml:"hostPath,omitempty"`
+	Version        string `json:"version" yaml:"version"`
+	MigrateFromRGW bool   `json:"migrateFromRGW" yaml:"migrateFromRGW"`
 }
 
 type OpenEBS struct {

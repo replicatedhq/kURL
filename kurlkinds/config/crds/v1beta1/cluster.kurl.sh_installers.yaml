@@ -330,6 +330,8 @@ spec:
                 properties:
                   hostPath:
                     type: string
+                  migrateFromRGW:
+                    type: boolean
                   namespace:
                     type: string
                   s3Override:
@@ -337,6 +339,7 @@ spec:
                   version:
                     type: string
                 required:
+                - migrateFromRGW
                 - version
                 type: object
               openebs:
