@@ -330,6 +330,8 @@ spec:
                 properties:
                   hostPath:
                     type: string
+                  migrateFromRGW:
+                    type: boolean
                   namespace:
                     type: string
                   s3Override:

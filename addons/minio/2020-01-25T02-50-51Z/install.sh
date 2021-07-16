@@ -30,6 +30,8 @@ function minio() {
     kubectl apply -k "$dst/"
 
     minio_object_store_output
+
+    minio_migrate_from_rgw
 }
 
 function minio_already_applied() {
@@ -142,4 +144,16 @@ function minio_object_store_output() {
 
 function minio_ready() {
     curl --noproxy "*" -s "http://$OBJECT_STORE_CLUSTER_IP/minio/health/ready"
+}
+
+function minio_migrate_from_rgw() {
+    if [ "$MINIO_MIGRATE_FROM_RGW" != "1" ]; then
+        return
+    fi
+
+    if ! kubernetes_resource_exists rook-ceph deployment rook-ceph-rgw-rook-ceph-store-a; then
+        return
+    fi
+
+    migrate_rgw_to_minio
 }
