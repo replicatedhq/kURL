@@ -26,3 +26,17 @@ One optional add-on available for object storage is [MinIO](https://github.com/m
 
 One optional add-on available for Metrics & Monitoring is Prometheus via the [Prometheus Operator](https://github.com/prometheus-operator/prometheus-operator), which includes Grafana. Use of Grafana is currently governed by the GNU AGPL v3 license that can be found in their [License](https://github.com/grafana/grafana/blob/main/LICENSE) file. 
 
+# Releases
+
+For details on each release, see [kurl.sh/release-notes](https://kurl.sh/release-notes).
+
+Release assets and changelog are available on the [GitHub Releases](https://github.com/replicatedhq/kURL/releases) page.
+
+Releases are created by a GitHub Workflow when a tag is pushed.
+The tag should follow the date format `vYYYY.MM.DD-#`.
+
+See the following example:
+
+```
+git tag -a v2021.06.22-0 -m "Release v2021.06.22-0" && git push origin v2021.06.22-0
+```
