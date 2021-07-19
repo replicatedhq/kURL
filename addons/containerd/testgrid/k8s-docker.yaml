@@ -1,0 +1,15 @@
+- installerSpec:
+    kubernetes:
+      version: "latest"
+    weave:
+      version: "latest"
+    containerd:
+      version: "latest"
+    minio:
+      version: "latest"
+    kotsadm:
+      version: "latest"
+    rook:
+      version: "latest"
+    
+
