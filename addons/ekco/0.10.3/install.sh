@@ -99,7 +99,11 @@ function ekco_install_reboot_service() {
     mkdir -p /opt/ekco
     cp "$src/reboot/startup.sh" /opt/ekco/startup.sh
     cp "$src/reboot/shutdown.sh" /opt/ekco/shutdown.sh
-    cp "$src/reboot/ekco-reboot.service" /etc/systemd/system/ekco-reboot.service
+    if [ -n "$DOCKER_VERSION" ]; then
+        cp "$src/reboot/ekco-reboot.service" /etc/systemd/system/ekco-reboot.service
+    else
+        cp "$src/reboot/ekco-reboot-containerd.service" /etc/systemd/system/ekco-reboot.service
+    fi
     chmod u+x /opt/ekco/startup.sh
     chmod u+x /opt/ekco/shutdown.sh
 
