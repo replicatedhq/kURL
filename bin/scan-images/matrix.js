@@ -22,7 +22,6 @@ var getImages = () => {
             if (!stats.isDirectory()) {
                 return;
             }
-            if (addon !== 'rook' && version !== '1.0.4') return; // TODO: remove
             const manifestFile = `${specDir}/${addon}/${version}/Manifest`;
             if (!fs.existsSync(manifestFile)) {
                 return;
