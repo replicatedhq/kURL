@@ -41,5 +41,7 @@ jobs:
       - name: Install dependencies
         working-directory: ./bin/scan-images/
         run: npm install
+      - name: "${{ matrix.addon }}:${{ matrix.version }} - ${{ matrix.name }} : Write whitelist file"
+        run: if [ -n '${{ matrix.whitelist }}' ]; then echo '${{ matrix.whitelist }}' > whitelist.json ; fi
       - name: "${{ matrix.addon }}:${{ matrix.version }} - ${{ matrix.name }} : Analyze vulnerabilities report"
-        run: ./bin/scan-images/analyze.js ${{ steps.scan.outputs.vulnerabilities }}
+        run: ./bin/scan-images/analyze.js ${{ steps.scan.outputs.vulnerabilities }} --whitelist ./whitelist.json

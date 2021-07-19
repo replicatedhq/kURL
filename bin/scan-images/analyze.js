@@ -13,8 +13,13 @@ const Severities = {
     'critical': 5,
 };
 
-var analyze = (vulnerabilitiesFilePath, severityThreshold) => {
+var analyze = (vulnerabilitiesFilePath, severityThreshold, whitelistFile) => {
     const parsed = JSON.parse(fs.readFileSync(vulnerabilitiesFilePath, 'utf-8'));
+    let whitelist = [];
+    if (whitelistFile && fs.existsSync(whitelistFile)) {
+        whitelist = JSON.parse(fs.readFileSync(whitelistFile, 'utf-8'));
+    };
+    const image = parsed.source.target.userInput;
     const vulnerabilities = [];
     parsed.matches.forEach(match => {
         if (!match.vulnerability.fixedInVersion) {
@@ -23,6 +28,10 @@ var analyze = (vulnerabilitiesFilePath, severityThreshold) => {
         if (Severities[match.vulnerability.severity.toLowerCase()] < Severities[severityThreshold.toLowerCase()]) {
             return;
         }
+        const vulnStr = `image=${image} artifact=${match.artifact.name} version=${match.artifact.version} fixedInVersion=${match.vulnerability.fixedInVersion} vulnerabilityId=${match.vulnerability.id} ${match.vulnerability.severity}`;
+        if (whitelist.some(regex => vulnStr.match(regex))) {
+            return;
+        };
         vulnerabilities.push({
             'NAME': match.artifact.name,
             'INSTALLED': match.artifact.version,
@@ -48,12 +57,16 @@ yargs(hideBin(process.argv))
                 default: './vulnerabilities.json'
             });
     }, (argv) => {
-        analyze(argv['path'], argv['fail-on']);
+        analyze(argv['path'], argv['fail-on'], argv['whitelist']);
     })
     .option('fail-on', {
         type: 'string',
         description: 'fail if a vulnerability is found with a severity >= the given severity',
         choices: Object.keys(Severities),
         default: 'medium',
+    })
+    .option('whitelist', {
+        type: 'string',
+        description: 'path to whitelist json file',
     })
     .argv;

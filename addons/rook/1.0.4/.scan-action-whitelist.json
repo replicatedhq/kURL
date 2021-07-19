@@ -1,0 +1,6 @@
+[
+    "vulnerabilityId=GHSA-",
+    "artifact=perl-Pod-Escapes .+ fixedInVersion=4:5\\.16\\.3-294\\.el7_6",
+    "artifact=perl-Pod-Escapes .+ fixedInVersion=4:5\\.16\\.3-299\\.el7_9",
+    "artifact=libldb .+ fixedInVersion=0:1\\.5\\.4-2\\.el7_9"
+]
