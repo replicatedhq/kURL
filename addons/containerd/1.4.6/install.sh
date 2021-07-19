@@ -24,7 +24,7 @@ function containerd_install() {
     containerd_configure
 
     systemctl enable containerd
-
+    # test
     containerd_configure_ctl "$src"
 
     # NOTE: this will not remove the proxy

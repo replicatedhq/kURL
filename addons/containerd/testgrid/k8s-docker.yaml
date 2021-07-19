@@ -4,7 +4,8 @@
     weave:
       version: "latest"
     containerd:
-      version: "latest"
+      version: "__testver__"
+      s3Override: "__testdist__"
     minio:
       version: "latest"
     kotsadm:
