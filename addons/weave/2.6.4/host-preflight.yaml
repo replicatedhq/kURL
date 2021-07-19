@@ -34,20 +34,18 @@ spec:
           - fail:
               when: "connection-refused"
               message: Connection to port 6781 was refused. This is likely to be a routing problem since this preflight configures a test server to listen on this port.
-          - warn:
+          - fail:
               when: "address-in-use"
               message: Another process was already listening on port 6781.
-          - fail:
+          - pass:
               when: "connection-timeout"
-              message: Timed out connecting to port 6781. Check your firewall.
+              message: Port 6781 is available
           - fail:
               when: "error"
               message: Unexpected port status
           - pass:
               when: "connected"
               message: Port 6781 is available
-          - warn:
-              message: Unexpected port status
     - tcpPortStatus:
         checkName: "Weave Net Metrics Server TCP Port Status"
         collectorName: "Weave Net Metrics Server TCP Port Status"
@@ -56,20 +54,18 @@ spec:
           - fail:
               when: "connection-refused"
               message: Connection to port 6782 was refused. This is likely to be a routing problem since this preflight configures a test server to listen on this port.
-          - warn:
+          - fail:
               when: "address-in-use"
               message: Another process was already listening on port 6782.
-          - fail:
+          - pass:
               when: "connection-timeout"
-              message: Timed out connecting to port 6782. Check your firewall.
+              message: Port 6782 is available
           - fail:
               when: "error"
               message: Unexpected port status
           - pass:
               when: "connected"
               message: Port 6782 is available
-          - warn:
-              message: Unexpected port status
     - tcpPortStatus:
         checkName: "Weave Net Control TCP Port Status"
         collectorName: "Weave Net Control TCP Port Status"
