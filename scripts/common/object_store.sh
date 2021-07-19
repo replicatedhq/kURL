@@ -101,7 +101,7 @@ EOF
     # and then following the logs allows for an indefinite amount of time for the migration to
     # complete in case there is a lot of data
     echo "Waiting up to 5 minutes for sync-object-store pod to complete"
-    spinner_until 300 kubernetes_pod_completed sync-object-store default
+    spinner_until 300 kubernetes_pod_completed sync-object-store default || true
     kubectl logs -f sync-object-store
 
     if kubernetes_pod_succeeded sync-object-store default; then
