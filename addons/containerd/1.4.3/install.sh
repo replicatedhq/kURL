@@ -3,6 +3,10 @@ CONTAINERD_NEEDS_RESTART=0
 function containerd_install() {
     local src="$DIR/addons/containerd/$CONTAINERD_VERSION"
 
+    if ! containerd_xfs_ftype_enabled; then
+        bail "The filesystem mounted at /var/lib/containerd does not have ftype enabled"
+    fi
+
     install_host_packages "$src" containerd.io
 
     case "$LSB_DIST" in
@@ -97,4 +101,19 @@ containerd_configure_proxy() {
     fi
 
     CONTAINERD_NEEDS_RESTART=1
+}
+
+# Returns 0 on non-xfs filesystems and on xfs filesystems if ftype=1.
+containerd_xfs_ftype_enabled() {
+    if ! commandExists xfs_info; then
+        return 0
+    fi
+
+    mkdir -p /var/lib/containerd
+
+    if xfs_info /var/lib/containerd 2>/dev/null | grep -q "ftype=0"; then
+        return 1
+    fi
+
+    return 0
 }
