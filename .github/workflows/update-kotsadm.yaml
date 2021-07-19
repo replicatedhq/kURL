@@ -1,6 +1,7 @@
 name: auto-kotsadm-update
 on:
-  workflow_dispatch: {}
+  repository_dispatch:
+    types: [auto-kotsadm-update]
 
 jobs:
   build-pr-kotsadm:
