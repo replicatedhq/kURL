@@ -96,9 +96,13 @@ EOF
         bail "sync-object-store pod failed to start within 2 minutes"
     fi
 
-    kubectl logs -f sync-object-store
 
-    spinner_until 10 kubernetes_pod_completed sync-object-store default
+    # The 5 minute spinner allows the pod to crash a few times waiting for minio to be ready
+    # and then following the logs allows for an indefinite amount of time for the migration to
+    # complete in case there is a lot of data
+    echo "Waiting up to 5 minutes for sync-object-store pod to complete"
+    spinner_until 300 kubernetes_pod_completed sync-object-store default || true
+    kubectl logs -f sync-object-store
 
     if kubernetes_pod_succeeded sync-object-store default; then
         printf "\n${GREEN}Object store data synced successfully${NC}\n"
@@ -139,13 +143,14 @@ EOF
     if kubernetes_resource_exists velero backupstoragelocation default; then
         echo "Updating velero to use minio"
         s3Url=$(kubectl -n velero get backupstoragelocation default -ojsonpath='{ .spec.config.s3Url }')
-        if [ "$s3Url" = "http://rook-ceph-rgw-rook-ceph-store.rook-ceph" ]; then
+        if [ "$s3Url" = "http://${RGW_HOST}" ]; then
             kubectl -n velero patch backupstoragelocation default --type=merge -p "{\"spec\":{\"config\":{\"s3Url\":\"http://${MINIO_HOST}\",\"publicUrl\":\"http://${MINIO_CLUSTER_IP}\"}}}"
 
-            resticrepo=$(kubectl -n velero get resticrepositories --selector=velero.io/storage-location=default --no-headers | awk '{ print $1 }')
-            if [ -n "$resticrepo" ]; then
-                kubectl -n velero patch resticrepositories "$resticrepo" --type=merge -p "{\"spec\":{\"resticIdentifier\":\"s3:http://${MINIO_HOST}/velero/restic/default\"}}"
-            fi
+            while read -r resticrepo; do
+                oldResticIdentifier=$(kubectl -n velero get resticrepositories "$resticrepo" -ojsonpath="{ .spec.resticIdentifier }")
+                newResticIdentifier=$(echo "$oldResticIdentifier" | sed "s/${RGW_HOST}/${MINIO_HOST}/")
+                kubectl -n velero patch resticrepositories "$resticrepo" --type=merge -p "{\"spec\":{\"resticIdentifier\":\"${newResticIdentifier}\"}}"
+            done < <(kubectl -n velero get resticrepositories --selector=velero.io/storage-location=default --no-headers | awk '{ print $1 }')
         else
             echo "default backupstoragelocation was not rgw, skipping"
         fi
