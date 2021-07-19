@@ -14,3 +14,30 @@
       version: "latest"
     
 
+- installerSpec:
+    kubernetes:
+      version: "latest"
+    weave:
+      version: "latest"
+    containerd:
+      version: "latest"
+    minio:
+      version: "latest"
+    kotsadm:
+      version: "latest"
+    rook:
+      version: "latest"
+  upgradeSpec:
+    kubernetes:
+      version: "latest"
+    weave:
+      version: "latest"
+    containerd:
+      version: "__testver__"
+      s3Override: "__testdist__"
+    minio:
+      version: "latest"
+    kotsadm:
+      version: "latest"
+    rook:
+      version: "latest"
