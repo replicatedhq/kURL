@@ -54,7 +54,7 @@ function main() {
         *)
             # Check for a new release, if so make it latest in the web and also create a new alpha
             if [ ! -d "../$KOTSADM_VERSION" ]; then
-                add_as_latest "v$KOTSADM_VERSION"
+                add_as_latest "$KOTSADM_VERSION"
                 echo "generating alpha version"
                 generate "alpha" "alpha" "v$KOTSADM_VERSION"
             fi
