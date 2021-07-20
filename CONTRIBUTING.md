@@ -2,6 +2,8 @@
 
 We welcome contributions to kURL. We appreciate your time and help. 
 
+# Development workflow
+
 ## Testing kURL
 
 1. Set up a 'test server' to test kURL ([some options](#test-environments))
@@ -53,20 +55,19 @@ We welcome contributions to kURL. We appreciate your time and help.
         version: 2.7.1"
     ```
 1. Validate and run installation on test system
-```bash
-# On test server
-# validate your expected changes in install.sh|upgrade.sh and|or addons|packages
-# run installation
-sudo ./install.sh
-```
-*NOTE: `install.sh` runs are idempotent, consecutive runs on changed spec will update kURL installation.*
+    ```bash
+    # On test server
+    # validate your expected changes in install.sh|upgrade.sh and|or addons packages
+    # run installation
+    sudo ./install.sh
+    ```
+    *NOTE: `install.sh` runs are idempotent, consecutive runs on changed spec will update kURL installation.*
 
 ### Running local test versions of Object store and kURL API server
 
 ```bash
 # To be added
 ```
-
 
 ## Test environments
 
