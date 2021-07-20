@@ -22,7 +22,7 @@ require AWS_SECRET_ACCESS_KEY "${AWS_SECRET_ACCESS_KEY}"
 require S3_BUCKET "${S3_BUCKET}"
 
 # These addons aren't part of the spec. (containerd doesn't use addon.sh)
-ADDON_DENY_LIST="aws calico nodeless containerd"
+ADDON_DENY_LIST="aws calico nodeless"
 
 PR_NUMBER=$(echo $GITHUB_REF | cut -d"/" -f3)
 
