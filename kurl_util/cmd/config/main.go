@@ -182,7 +182,7 @@ func processFirewalldConfig(installer *kurlv1beta1.Installer, execCmds bool, gen
 		scriptFilename = "./configure_firewalld.sh" // for dev testing
 	}
 
-	if installer.Spec.SelinuxConfig == nil {
+	if installer.Spec.FirewalldConfig == nil {
 		// NOTE (ethan): I'm not sure the reason for this code.
 		// I'm only trying not to change functionality.
 		err := os.RemoveAll(scriptFilename)
