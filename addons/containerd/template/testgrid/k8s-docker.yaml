@@ -12,8 +12,6 @@
       version: "latest"
     rook:
       version: "latest"
-    
-
 - installerSpec:
     kubernetes:
       version: "latest"
