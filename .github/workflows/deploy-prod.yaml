@@ -234,6 +234,11 @@ jobs:
       with:
         go-version: 1.16
 
+    - name: Get the version
+      id: get_tag
+      shell: bash
+      run: echo ::set-output name=GIT_TAG::${GITHUB_REF/refs\/tags\//}
+
     - name: Tgrun Build
       working-directory: ./testgrid/tgrun
       run: make build
