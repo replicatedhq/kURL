@@ -860,4 +860,121 @@ describe("POST /installer/validate", () => {
       expect(err).to.have.property("message", "Rook 1.0.4 is not compatible with Kubernetes 1.20+");
     });
   });
+
+  describe("rook 1.4.3 without blockStorageEnabled", () => {
+    it("400", async () => {
+      const spec = `
+      spec:
+        rook:
+          version: 1.4.3
+        kubernetes:
+          version: latest`;
+      let err;
+
+      try {
+        await client.validateInstaller(spec);
+      } catch (error) {
+        err = error;
+      }
+      expect(err).to.have.property("message", "Rook versions >= 1.4.0 require blockStorageEnabled to be set to true");
+    });
+  });
+  describe("rook 1.4.3 with blockStorageEnabled", () => {
+    it("400", async () => {
+      const spec = `
+      spec:
+        rook:
+          version: 1.4.3
+          isBlockStorageEnabled: true
+        kubernetes:
+          version: latest`;
+      let err;
+
+      try {
+        await client.validateInstaller(spec);
+      } catch (error) {
+        err = error;
+      }
+
+      expect(err).to.be.undefined;
+    });
+  });
+
+  describe("rook 1.4.3 with blockStorageEnabled explicitly disabled", () => {
+    it("400", async () => {
+      const spec = `
+      spec:
+        rook:
+          version: 1.4.3
+          isBlockStorageEnabled: false
+        kubernetes:
+          version: latest`;
+      let err;
+
+      try {
+        await client.validateInstaller(spec);
+      } catch (error) {
+        err = error;
+      }
+      expect(err).to.have.property("message", "Rook versions >= 1.4.0 require blockStorageEnabled to be set to true");
+    });
+  });
+
+  describe("rook 1.5.12 with blockStorageEnabled explicitly disabled", () => {
+    it("400", async () => {
+      const spec = `
+      spec:
+        rook:
+          version: 1.5.12
+          isBlockStorageEnabled: false
+        kubernetes:
+          version: latest`;
+      let err;
+
+      try {
+        await client.validateInstaller(spec);
+      } catch (error) {
+        err = error;
+      }
+      expect(err).to.have.property("message", "Rook versions >= 1.4.0 require blockStorageEnabled to be set to true");
+    });
+  });
+
+  describe("rook 1.5.12 with blockStorageEnabled undefined", () => {
+    it("400", async () => {
+      const spec = `
+      spec:
+        rook:
+          version: 1.5.12
+        kubernetes:
+          version: latest`;
+      let err;
+
+      try {
+        await client.validateInstaller(spec);
+      } catch (error) {
+        err = error;
+      }
+      expect(err).to.have.property("message", "Rook versions >= 1.4.0 require blockStorageEnabled to be set to true");
+    });
+  });
+
+  describe("rook 1.0.4-14.2.21 with undefied blockStorageEnabled", () => {
+    it("400", async () => {
+      const spec = `
+      spec:
+        rook:
+          version: 1.0.4-14.2.21
+        kubernetes:
+          version: latest`;
+      let err;
+
+      try {
+        await client.validateInstaller(spec);
+      } catch (error) {
+        err = error;
+      }
+      expect(err).to.be.undefined;
+    });
+  });
 });
