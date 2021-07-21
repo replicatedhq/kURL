@@ -24,6 +24,7 @@ spec:
     version: 2.7.0
   rook:
     version: 1.4.3
+    isBlockStorageEnabled: true
   registry:
     version: 2.7.1
   kotsadm:
@@ -44,9 +45,9 @@ describe("script with iptables config", () => {
 	it("200", async () => {
 		const uri = await client.postInstaller(iptables);
 
-		expect(uri).to.match(/2a41e4c/);
+		expect(uri).to.match(/2e643a0/);
 
-		const script = await client.getInstallScript("2a41e4c");
+		const script = await client.getInstallScript("2e643a0");
 
 		expect(script).to.match(new RegExp(`iptablesConfig:`));
 		expect(script).to.match(new RegExp(`iptablesCmds:`));
