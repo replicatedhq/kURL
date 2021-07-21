@@ -232,6 +232,8 @@ type Ekco struct {
 	ShouldEnablePurgeNodes      bool   `json:"shouldEnablePurgeNodes,omitempty" yaml:"shouldEnablePurgeNodes,omitempty"`
 	Version                     string `json:"version" yaml:"version"`
 	AutoUpgradeSchedule         string `json:"autoUpgradeSchedule,omitempty" yaml:"autoUpgradeSchedule,omitempty"`
+	EnableInternalLoadBalancer  bool   `json:"enableInternalLoadBalancer,omitempty" yaml:"enableInternalLoadBalancer,omitempty"`
+	InternalLoadBalancerPort    int    `json:"internalLoadBalancerPort,omitempty"  yaml:"internalLoadBalancerPort,omitempty"`
 }
 
 type Calico struct {
