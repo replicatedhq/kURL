@@ -881,7 +881,7 @@ describe("POST /installer/validate", () => {
   });
 
   describe("rook 1.4.3 with blockStorageEnabled", () => {
-    it("400", async () => {
+    it("200", async () => {
       const spec = `
       spec:
         rook:
@@ -902,7 +902,7 @@ describe("POST /installer/validate", () => {
   });
 
   describe("rook latest (pinned at 1.0.4) with blockStorageEnabled undefined", () => {
-    it("400", async () => {
+    it("200", async () => {
       const spec = `
       spec:
         rook:
@@ -981,7 +981,7 @@ describe("POST /installer/validate", () => {
   });
 
   describe("rook 1.0.4-14.2.21 with undefied blockStorageEnabled", () => {
-    it("400", async () => {
+    it("200", async () => {
       const spec = `
       spec:
         rook:
