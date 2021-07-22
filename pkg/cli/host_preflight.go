@@ -22,10 +22,19 @@ import (
 	"github.com/spf13/cobra"
 )
 
+const HostPreflightCmdExample = `
+# Installer spec from file
+$ kurl host preflight spec.yaml
+
+# Installer spec from STDIN
+$ kubectl get installer 6abe39c -oyaml | kurl host preflight -
+`
+
 func NewHostPreflightCmd(cli CLI) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:          "preflight [installer spec file]",
+		Use:          "preflight [installer spec file|-]",
 		Short:        "Runs kURL host preflight checks",
+		Example:      HostPreflightCmdExample,
 		SilenceUsage: true,
 		Args:         cobra.ExactArgs(1),
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
