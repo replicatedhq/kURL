@@ -15,6 +15,7 @@ spec:
     - diskUsage:
         collectorName: "Ephemeral Disk Usage /var/lib/docker"
         path: /var/lib/docker
+        exclude: '{{kurl not .Installer.Spec.Docker}}'
     - blockDevices:
         # rook block storage or cstor is enabled and not upgrade
         exclude: '{{kurl and (or (and .Installer.Spec.Rook.Version .Installer.Spec.Rook.IsBlockStorageEnabled) (and .Installer.Spec.OpenEBS.Version .Installer.Spec.OpenEBS.IsCstorEnabled)) (not .IsUpgrade) | not }}'
@@ -121,6 +122,7 @@ spec:
     - diskUsage:
         checkName: "Ephemeral Disk Usage /var/lib/docker"
         collectorName: "Ephemeral Disk Usage /var/lib/docker"
+        exclude: '{{kurl not .Installer.Spec.Docker}}'
         outcomes:
           - fail:
               when: "total < 30Gi"
