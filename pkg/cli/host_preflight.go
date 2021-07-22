@@ -18,6 +18,7 @@ import (
 	"github.com/replicatedhq/troubleshoot/pkg/apis/troubleshoot/v1beta2"
 	troubleshootv1beta2 "github.com/replicatedhq/troubleshoot/pkg/apis/troubleshoot/v1beta2"
 	"github.com/replicatedhq/troubleshoot/pkg/collect"
+	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 )
 
@@ -36,9 +37,14 @@ func NewHostPreflightCmd(cli CLI) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			v := cli.GetViper()
 
-			installerSpec, err := installer.RetrieveSpec(cli.GetFS(), args[0])
+			installerSpecData, err := retrieveInstallerSpecDataFromArg(cli.GetFS(), cmd.InOrStdin(), args[0])
 			if err != nil {
-				return errors.Wrap(err, "retrieve installer spec")
+				return errors.Wrap(err, "retrieve installer spec from arg")
+			}
+
+			installerSpec, err := installer.DecodeSpec(installerSpecData)
+			if err != nil {
+				return errors.Wrap(err, "decode installer spec")
 			}
 
 			remotes := append([]string{}, v.GetStringSlice("primary-host")...)
@@ -268,6 +274,22 @@ func writeProgress(w io.Writer, ch <-chan interface{}, cancel func(), isTerminal
 		sp.Stop()
 	}
 	cancel()
+}
+
+func retrieveInstallerSpecDataFromArg(fs afero.Fs, stdin io.Reader, arg string) ([]byte, error) {
+	if arg == "-" {
+		data, err := ioutil.ReadAll(stdin)
+		if err != nil {
+			return nil, errors.Wrap(err, "read from stdin")
+		}
+		if len(data) == 0 {
+			return nil, errors.New("no data read from stdin")
+		}
+		return data, nil
+	}
+
+	data, err := afero.ReadFile(fs, arg)
+	return data, errors.Wrapf(err, "read from file %s", arg)
 }
 
 func printPreflightResults(w io.Writer, results []*analyze.AnalyzeResult) {
