@@ -10,8 +10,11 @@ spec:
     - memory: {}
     - hostServices: {}
     - diskUsage:
-        collectorName: "Ephemeral Disk Usage"
+        collectorName: "Ephemeral Disk Usage /var/lib/kubelet"
         path: /var/lib/kubelet
+    - diskUsage:
+        collectorName: "Ephemeral Disk Usage /var/lib/docker"
+        path: /var/lib/docker
     - blockDevices:
         # rook block storage or cstor is enabled and not upgrade
         exclude: '{{kurl and (or (and .Installer.Spec.Rook.Version .Installer.Spec.Rook.IsBlockStorageEnabled) (and .Installer.Spec.OpenEBS.Version .Installer.Spec.OpenEBS.IsCstorEnabled)) (not .IsUpgrade) | not }}'
@@ -101,8 +104,8 @@ spec:
           - pass:
               message: The system has at least 8G of memory
     - diskUsage:
-        checkName: "Ephemeral Disk Usage"
-        collectorName: "Ephemeral Disk Usage"
+        checkName: "Ephemeral Disk Usage /var/lib/kubelet"
+        collectorName: "Ephemeral Disk Usage /var/lib/kubelet"
         outcomes:
           - fail:
               when: "total < 30Gi"
@@ -115,6 +118,21 @@ spec:
               message: The disk containing directory /var/lib/kubelet is more than 60% full
           - pass:
               message: The disk containing directory /var/lib/kubelet has at least 30Gi disk space available
+    - diskUsage:
+        checkName: "Ephemeral Disk Usage /var/lib/docker"
+        collectorName: "Ephemeral Disk Usage /var/lib/docker"
+        outcomes:
+          - fail:
+              when: "total < 30Gi"
+              message: The disk containing directory /var/lib/docker has less than 30Gi of total space
+          - fail:
+              when: "used/total > 80%"
+              message: The disk containing directory /var/lib/docker is more than 80% full
+          - warn:
+              when: "used/total > 60%"
+              message: The disk containing directory /var/lib/docker is more than 60% full
+          - pass:
+              message: The disk containing directory /var/lib/docker has at least 30Gi disk space available
     - tcpLoadBalancer:
         checkName: "Kubernetes API Server Load Balancer"
         collectorName: "Kubernetes API Server Load Balancer"
