@@ -27,8 +27,7 @@ const HostPreflightCmdExample = `
   $ kurl host preflight spec.yaml
 
   # Installer spec from STDIN
-  $ kubectl get installer 6abe39c -oyaml | kurl host preflight -
-`
+  $ kubectl get installer 6abe39c -oyaml | kurl host preflight -`
 
 func NewHostPreflightCmd(cli CLI) *cobra.Command {
 	cmd := &cobra.Command{
