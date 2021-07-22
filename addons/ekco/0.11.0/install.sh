@@ -91,6 +91,10 @@ function ekco_join() {
     if kubernetes_is_master; then
         ekco_install_purge_node_command "$src"
     fi
+
+    if [ "$EKCO_ENABLE_INTERNAL_LOAD_BALANCER" = "1" ]; then
+        ekco_bootstrap_internal_lb "${EKCO_INTERNAL_LOAD_BALANCER_PORT:-6444}"
+    fi
 }
 
 function ekco_install_reboot_service() {
@@ -229,4 +233,58 @@ function ekco_handle_load_balancer_address_change_post_init() {
         fi
         kubectl delete pod $podName --force --grace-period=0
     done
+}
+
+# The internal load balancer is a static pod running haproxy on every node. When joining, kubeadm
+# needs to be connect to the Kubernetes API before starting kubelet. To workaround this problem,
+# add a temporary DNAT rule to iptables to send traffic to the original primary.
+function ekco_bootstrap_internal_lb() {
+    local port="$1"
+
+    # Check if load balancer is already bootstrapped
+    if curl -skf "https://localhost:${port}/healthz"; then
+        return 0
+    fi
+
+    if commandExists docker; then
+        mkdir -p /etc/haproxy
+        docker run --rm -i \
+            --entrypoint="/usr/bin/ekco" \
+            ttl.sh/areed/ekco:12h \
+            generate-haproxy-manifest --primary-host=${PRIMARY_HOST} \
+            > /etc/haproxy/haproxy.cfg
+
+        mkdir -p /etc/kubernetes/manifests
+        docker run --rm -i \
+            --entrypoint="/usr/bin/ekco" \
+            ttl.sh/areed/ekco:12h \
+            generate-haproxy-config --primary-host=${PRIMARY_HOST} \
+            > /etc/kubernetes/manifests/haproxy.yaml
+
+        docker rm -f bootstrap-lb &>/dev/null || true
+        docker run -d -p "$port:$port" -v /etc/haproxy:/usr/local/etc/haproxy --name bootstrap-lb haproxy:2.4.2
+    else
+        # TODO generate the haproxy config and manifest
+        exit 1
+        ctr --namespace k8s.io delete bootstrap-lb &>/dev/null || true
+        ctr run \
+            --namespace k8s.io \
+            --mount "type=bind,src=/etc/haproxy,dst=/usr/local/etc/haproxy,options=rbind:ro" \
+            --net-host \
+            --detach \
+            docker.io/haproxy:2.4.2 \
+            bootstrap-lb
+    fi
+
+    # TODO update image from ttl.sh
+    # TODO ekco maintains the haproxy.cfg on every node
+    # TODO reset haproxy.cfg
+}
+
+function ecko_cleanup_bootstrap_internal_lb() {
+    if commandExists docker; then
+        docker rm -f bootstrap-lb &>/dev/null || true
+    else
+        ctr --namespace k8s.io delete bootstrap-lb &>/dev/null || true
+    fi
 }
