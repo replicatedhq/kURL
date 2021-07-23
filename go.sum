@@ -1135,6 +1135,8 @@ github.com/vishvananda/netns v0.0.0-20191106174202-0a2b9b5464df h1:OviZH7qLw/7Zo
 github.com/vishvananda/netns v0.0.0-20191106174202-0a2b9b5464df/go.mod h1:JP3t17pCcGlemwknint6hfoeCVQrEMVwxRLRjXpq+BU=
 github.com/vmware-tanzu/velero v1.6.1 h1:ZwTARKGN7ubLyu3Zfql4kVESA9fWUngbkYE2ZM/TbAE=
 github.com/vmware-tanzu/velero v1.6.1/go.mod h1:FwtXUTqKFOdBUjXNvVgsNu3a968Tw0gL5t3yaqMrOlk=
+github.com/vmware-tanzu/velero v1.6.2 h1:MyAZgbqtzzGPXNIuSbfv2NgUU7l/PKmuCn3OhscbRJ0=
+github.com/vmware-tanzu/velero v1.6.2/go.mod h1:MFQhiJ1NSZ0VerE8kwQDPkQAmN2msddvJoETAc93mfQ=
 github.com/vmware/govmomi v0.20.1/go.mod h1:URlwyTFZX72RmxtxuaFL2Uj3fD1JTvZdx59bHWk6aFU=
 github.com/vmware/govmomi v0.20.3/go.mod h1:URlwyTFZX72RmxtxuaFL2Uj3fD1JTvZdx59bHWk6aFU=
 github.com/willf/bitset v1.1.10/go.mod h1:RjeCKbqT1RxIR/KWY6phxZiaY1IyutSBfGjNPySAYV4=
