@@ -1314,6 +1314,9 @@ export class Installer {
     let retClean = "";
     versions.forEach((version: string) => {
       const clean = version.replace(/\.0(\d)\./, ".$1.");
+      if (!semver.valid(clean)) {
+        return;
+      }
       if (semver.major(clean) !== major || semver.minor(clean) !== minor) {
         return;
       }
@@ -1323,7 +1326,7 @@ export class Installer {
       }
     });
     if (!ret) {
-      throw `latest minor version not found for ${xVersion}`;
+      throw `latest patch version not found for ${xVersion}`;
     }
     return ret;
   }
