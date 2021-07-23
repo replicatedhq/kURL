@@ -966,6 +966,8 @@ github.com/replicatedhq/pvmigrate v0.1.1 h1:lYEqyl+G3lgI/X5T6A/Z+Mra4F79eA/6Q6Yp
 github.com/replicatedhq/pvmigrate v0.1.1/go.mod h1:HXPV+iTqyR2YXPkSKkVtfkAhps9t55W0UqdOeaQvULk=
 github.com/replicatedhq/pvmigrate v0.2.0 h1:21rd9RGzSa/lxnn2IPyaryv6RLiihynX/9MzwC0MeQQ=
 github.com/replicatedhq/pvmigrate v0.2.0/go.mod h1:HXPV+iTqyR2YXPkSKkVtfkAhps9t55W0UqdOeaQvULk=
+github.com/replicatedhq/pvmigrate v0.3.0 h1:PJe2nEctvxnJd+k/cg65znM7DYzZnBHlvlwtqWQZToU=
+github.com/replicatedhq/pvmigrate v0.3.0/go.mod h1:HXPV+iTqyR2YXPkSKkVtfkAhps9t55W0UqdOeaQvULk=
 github.com/replicatedhq/termui/v3 v3.1.1-0.20200811145416-f40076d26851/go.mod h1:JDxG6+uubnk9/BZ2yUsyAJJwlptjrnmB2MPF5d2Xe/8=
 github.com/replicatedhq/troubleshoot v0.13.1 h1:x75YrMdkwX3GRA6T2lOjL7sgLHCqDvO5NobFdFQ42Lg=
 github.com/replicatedhq/troubleshoot v0.13.1/go.mod h1:INf+DZhU9XXCHBeab5jLOhwsKzHcGCoEw4H6hGt9X5o=
