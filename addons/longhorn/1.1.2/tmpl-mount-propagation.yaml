@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  labels:
+    app: longhorn-environment-check
+  name: longhorn-environment-check
+  namespace: longhorn-system
+spec:
+  selector:
+    matchLabels:
+      app: longhorn-environment-check
+  template:
+    metadata:
+      labels:
+        app: longhorn-environment-check
+    spec:
+      containers:
+      - name: longhorn-environment-check
+        image: $KURL_UTIL_IMAGE
+        command: ["/bin/sh", "-c", "sleep 1000000000"]
+        volumeMounts:
+        - name: mountpoint
+          mountPath: /tmp/longhorn-environment-check
+          mountPropagation: Bidirectional
+        securityContext:
+          privileged: true
+      volumes:
+      - name: mountpoint
+        hostPath:
+          path: /tmp/longhorn-environment-check

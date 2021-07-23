@@ -1,0 +1,27 @@
+apiVersion: troubleshoot.sh/v1beta2
+kind: HostPreflight
+metadata:
+  name: longhorn
+spec:
+  collectors:
+  - diskUsage:
+      collectorName: "Longhorn Disk Usage"
+      path: /var/lib/longhorn
+
+  analyzers:
+  - diskUsage:
+      checkName: "Longhorn Disk Usage"
+      collectorName: "Longhorn Disk Usage"
+      exclude: '{{kurl .IsUpgrade }}' # only run if this is not an upgrade
+      outcomes:
+      - fail:
+          when: "total < 50Gi"
+          message: The disk containing directory /var/lib/longhorn has less than 50Gi of total space
+      - fail:
+          when: "used/total > 80%"
+          message: The disk containing directory /var/lib/longhorn is more than 80% full
+      - warn:
+          when: "used/total > 60%"
+          message: The disk containing directory /var/lib/longhorn is more than 60% full
+      - pass:
+          message: The disk containing directory /var/lib/longhorn has at least 20Gi disk space available and is at least 50Gi in size
