@@ -966,6 +966,8 @@ github.com/replicatedhq/pvmigrate v0.1.1 h1:lYEqyl+G3lgI/X5T6A/Z+Mra4F79eA/6Q6Yp
 github.com/replicatedhq/pvmigrate v0.1.1/go.mod h1:HXPV+iTqyR2YXPkSKkVtfkAhps9t55W0UqdOeaQvULk=
 github.com/replicatedhq/pvmigrate v0.2.0 h1:21rd9RGzSa/lxnn2IPyaryv6RLiihynX/9MzwC0MeQQ=
 github.com/replicatedhq/pvmigrate v0.2.0/go.mod h1:HXPV+iTqyR2YXPkSKkVtfkAhps9t55W0UqdOeaQvULk=
+github.com/replicatedhq/pvmigrate v0.3.0 h1:PJe2nEctvxnJd+k/cg65znM7DYzZnBHlvlwtqWQZToU=
+github.com/replicatedhq/pvmigrate v0.3.0/go.mod h1:HXPV+iTqyR2YXPkSKkVtfkAhps9t55W0UqdOeaQvULk=
 github.com/replicatedhq/termui/v3 v3.1.1-0.20200811145416-f40076d26851/go.mod h1:JDxG6+uubnk9/BZ2yUsyAJJwlptjrnmB2MPF5d2Xe/8=
 github.com/replicatedhq/troubleshoot v0.13.1 h1:x75YrMdkwX3GRA6T2lOjL7sgLHCqDvO5NobFdFQ42Lg=
 github.com/replicatedhq/troubleshoot v0.13.1/go.mod h1:INf+DZhU9XXCHBeab5jLOhwsKzHcGCoEw4H6hGt9X5o=
@@ -1133,6 +1135,8 @@ github.com/vishvananda/netns v0.0.0-20191106174202-0a2b9b5464df h1:OviZH7qLw/7Zo
 github.com/vishvananda/netns v0.0.0-20191106174202-0a2b9b5464df/go.mod h1:JP3t17pCcGlemwknint6hfoeCVQrEMVwxRLRjXpq+BU=
 github.com/vmware-tanzu/velero v1.6.1 h1:ZwTARKGN7ubLyu3Zfql4kVESA9fWUngbkYE2ZM/TbAE=
 github.com/vmware-tanzu/velero v1.6.1/go.mod h1:FwtXUTqKFOdBUjXNvVgsNu3a968Tw0gL5t3yaqMrOlk=
+github.com/vmware-tanzu/velero v1.6.2 h1:MyAZgbqtzzGPXNIuSbfv2NgUU7l/PKmuCn3OhscbRJ0=
+github.com/vmware-tanzu/velero v1.6.2/go.mod h1:MFQhiJ1NSZ0VerE8kwQDPkQAmN2msddvJoETAc93mfQ=
 github.com/vmware/govmomi v0.20.1/go.mod h1:URlwyTFZX72RmxtxuaFL2Uj3fD1JTvZdx59bHWk6aFU=
 github.com/vmware/govmomi v0.20.3/go.mod h1:URlwyTFZX72RmxtxuaFL2Uj3fD1JTvZdx59bHWk6aFU=
 github.com/willf/bitset v1.1.10/go.mod h1:RjeCKbqT1RxIR/KWY6phxZiaY1IyutSBfGjNPySAYV4=
