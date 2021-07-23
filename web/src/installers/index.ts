@@ -1317,7 +1317,7 @@ export class Installer {
       }
     });
     if (!ret) {
-      throw `latest minor version not found for ${xVersion}`;
+      throw `latest patch version not found for ${xVersion}`;
     }
     return ret;
   }

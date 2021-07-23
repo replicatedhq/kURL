@@ -1016,14 +1016,14 @@ spec:
       const bad = function (): string {
         return Installer.resolveLatestPatchVersion("1.1.x", InstallerVersions["minio"]);
       };
-      expect(bad).to.throw("latest minor version not found for 1.1.x");
+      expect(bad).to.throw("latest patch version not found for 1.1.x");
     });
 
     it("should throw an error when the version doesnt exist", () => {
       const bad = function (): string {
         return Installer.resolveLatestPatchVersion("1.123.x", InstallerVersions["kubernetes"]);
       };
-      expect(bad).to.throw("latest minor version not found for 1.123.x");
+      expect(bad).to.throw("latest patch version not found for 1.123.x");
     });
 
     it("should not fail on kotsadm alpha version", () => {
