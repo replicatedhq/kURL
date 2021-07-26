@@ -17,7 +17,7 @@ This addon deploys it to the `kurl` namespace.
 - `ekco-disable-should-install-reboot-service`: Whether to disable the reboot service, responsible for graceful node termination.
 - `rook-version`: Version of Rook to manage
 - `rook-priority-class`: Name of priority class to add to Rook 1.0 Deployments and DaemonSets. Will be created if not found.
-- `enable-internal-load-balancer`: Run haproxy on all nodes forwarding to all API server pods
-- `internal-load-balancer-port`: The port for the internal load balancer to liste on.
-- `host-task-image`: The image to use for host tasks, such as updating the haproxy configuration on all nodes
+- `enable-internal-load-balancer`: Run haproxy on all nodes and forward to all Kubernetes API server pods
+- `internal-load-balancer-port`: The port for the internal load balancer to listen  on.
+- `host-task-image`: The image to use for host tasks, such as updating the haproxy configuration on all nodes.
 - `host-task-namespace`: The namespace host task pods will run in.
