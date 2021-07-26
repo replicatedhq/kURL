@@ -90,7 +90,7 @@ function join() {
     fi
 
     if commandExists ekco_cleanup_bootstrap_internal_lb; then
-        ecko_cleanup_bootstrap_internal_lb
+        ekco_cleanup_bootstrap_internal_lb
     fi
 }
 

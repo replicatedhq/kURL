@@ -196,6 +196,7 @@ function reset() {
     rm -rf /var/lib/rook
     rm -rf /var/lib/weave
     rm -rf /var/lib/longhorn
+    rm -rf /etc/haproxy
 
     printf "Reset script completed\n"
 }

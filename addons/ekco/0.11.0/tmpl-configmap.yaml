@@ -30,3 +30,7 @@ data:
     kotsadm_kubelet_cert_namespace: default
     kotsadm_kubelet_cert_secret: kubelet-client-cert
     rook_priority_class: \"$EKCO_ROOK_PRIORITY_CLASS\"
+    host_task_image: replicated/ekco:v$EKCO_VERSION
+    host_task_namespace: kurl
+    enable_internal_load_balancer: $EKCO_ENABLE_INTERNAL_LOAD_BALANCER_BOOL
+    internal_load_balancer_port: $EKCO_INTERNAL_LOAD_BALANCER_PORT

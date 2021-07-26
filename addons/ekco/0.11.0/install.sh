@@ -28,6 +28,14 @@ function ekco_pre_init() {
     if [ "$ROOK_VERSION" = "1.0.4" ]; then
         EKCO_ROOK_PRIORITY_CLASS="node-critical"
     fi
+
+    EKCO_ENABLE_INTERNAL_LOAD_BALANCER_BOOL=false
+    if [ "$EKCO_ENABLE_INTERNAL_LOAD_BALANCER" = "1" ]; then
+        EKCO_ENABLE_INTERNAL_LOAD_BALANCER_BOOL=true
+        HA_CLUSTER=1
+        LOAD_BALANCER_ADDRESS=localhost
+        LOAD_BALANCER_PORT="${EKCO_INTERNAL_LOAD_BALANCER_PORT:-6444}"
+    fi
 }
 
 function ekco() {
@@ -236,10 +244,15 @@ function ekco_handle_load_balancer_address_change_post_init() {
 }
 
 # The internal load balancer is a static pod running haproxy on every node. When joining, kubeadm
-# needs to be connect to the Kubernetes API before starting kubelet. To workaround this problem,
-# add a temporary DNAT rule to iptables to send traffic to the original primary.
+# needs to connect to the Kubernetes API before starting kubelet. To workaround this problem,
+# temporarily run haproxy as a container directly with docker or containerd.
 function ekco_bootstrap_internal_lb() {
     local port="$1"
+
+    local backends="$PRIMARY_HOST"
+    if [ -z "$backends" ]; then
+        backends="$PRIVATE_ADDRESS"
+    fi
 
     # Check if load balancer is already bootstrapped
     if curl -skf "https://localhost:${port}/healthz"; then
@@ -250,41 +263,49 @@ function ekco_bootstrap_internal_lb() {
         mkdir -p /etc/haproxy
         docker run --rm -i \
             --entrypoint="/usr/bin/ekco" \
-            ttl.sh/areed/ekco:12h \
-            generate-haproxy-manifest --primary-host=${PRIMARY_HOST} \
+            replicated/ekco:v$EKCO_VERSION \
+            generate-haproxy-config --primary-host=${backends} --load-balancer-port=${port} \
             > /etc/haproxy/haproxy.cfg
 
         mkdir -p /etc/kubernetes/manifests
         docker run --rm -i \
             --entrypoint="/usr/bin/ekco" \
-            ttl.sh/areed/ekco:12h \
-            generate-haproxy-config --primary-host=${PRIMARY_HOST} \
-            > /etc/kubernetes/manifests/haproxy.yaml
+            --volume '/etc:/host/etc' \
+            replicated/ekco:v$EKCO_VERSION \
+            generate-haproxy-manifest --primary-host=${backends} --load-balancer-port=${port} --file=/host/etc/kubernetes/manifests/haproxy.yaml
 
         docker rm -f bootstrap-lb &>/dev/null || true
         docker run -d -p "$port:$port" -v /etc/haproxy:/usr/local/etc/haproxy --name bootstrap-lb haproxy:2.4.2
     else
-        # TODO generate the haproxy config and manifest
-        exit 1
-        ctr --namespace k8s.io delete bootstrap-lb &>/dev/null || true
-        ctr run \
-            --namespace k8s.io \
+        mkdir -p /etc/haproxy
+        ctr --namespace k8s.io run --rm \
+            replicated/ekco:v$EKCO_VERSION \
+            haproxy-cfg \
+            ekco generate-haproxy-config --primary-host=${backends} --load-balancer-port=${port} \
+            > /etc/haproxy/haproxy.cfg
+
+        mkdir -p /etc/kubernetes/manifests
+        ctr --namespace k8s.io run --rm \
+            --mount "type=bind,src=/etc,dst=/host/etc,options=rbind:rw" \
+            replicated/ekco:v$EKCO_VERSION \
+            haproxy-manifest \
+            ekco generate-haproxy-manifest --primary-host=${backends} --load-balancer-port=${port} --file=/host/etc/kubernetes/manifests/haproxy.yaml
+
+
+        ctr --namespace k8s.io run --rm \
             --mount "type=bind,src=/etc/haproxy,dst=/usr/local/etc/haproxy,options=rbind:ro" \
             --net-host \
             --detach \
-            docker.io/haproxy:2.4.2 \
+            docker.io/library/haproxy:2.4.2 \
             bootstrap-lb
     fi
-
-    # TODO update image from ttl.sh
-    # TODO ekco maintains the haproxy.cfg on every node
-    # TODO reset haproxy.cfg
 }
 
-function ecko_cleanup_bootstrap_internal_lb() {
+function ekco_cleanup_bootstrap_internal_lb() {
     if commandExists docker; then
         docker rm -f bootstrap-lb &>/dev/null || true
     else
-        ctr --namespace k8s.io delete bootstrap-lb &>/dev/null || true
+        ctr --namespace k8s.io task kill -s SIGKILL bootstrap-lb &>/dev/null || true
+        ctr --namespace k8s.io containers delete bootstrap-lb &>/dev/null || true
     fi
 }

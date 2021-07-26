@@ -63,6 +63,9 @@ function init() {
     if commandExists ekco_handle_load_balancer_address_change_pre_init; then
         ekco_handle_load_balancer_address_change_pre_init $oldLoadBalancerAddress $LOAD_BALANCER_ADDRESS
     fi
+    if commandExists ekco_bootstrap_internal_lb; then
+        ekco_bootstrap_internal_lb "$LOAD_BALANCER_PORT"
+    fi
 
     kustomize_kubeadm_init=./kustomize/kubeadm/init
     CERT_KEY=
@@ -168,6 +171,10 @@ EOF
 
     if [ -n "$LOAD_BALANCER_ADDRESS" ]; then
         spinner_until 120 cert_has_san "$PRIVATE_ADDRESS:6443" "$LOAD_BALANCER_ADDRESS"
+    fi
+
+    if commandExists ekco_cleanup_bootstrap_internal_lb; then
+        ekco_cleanup_bootstrap_internal_lb
     fi
 
     spinner_kubernetes_api_stable
