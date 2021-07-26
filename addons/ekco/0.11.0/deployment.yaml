@@ -22,10 +22,8 @@ spec:
           operator: Exists
       containers:
         - name: ekc-operator
-          # image: replicated/ekco:v0.11.0
-          # imagePullPolicy: IfNotPresent
-          image: ttl.sh/areed/ekco:12h
-          imagePullPolicy: Always
+          image: replicated/ekco:v0.11.0
+          imagePullPolicy: IfNotPresent
           command: [ /usr/bin/ekco, operator ]
           resources:
             requests:
