@@ -30,6 +30,8 @@ data:
       accesslog:
         disabled: true
     storage:
+      delete:
+        enabled: true
       redirect:
         disable: true
       s3:
