@@ -58,6 +58,9 @@ function tasks() {
         migrate-rgw-to-minio|migrate_rgw_to_minio)
             migrate_rgw_to_minio_task $@
             ;;
+        remove-rook-ceph|remove_rook_ceph)
+            remove_rook_ceph
+            ;;
         *)
             bail "Unknown task: $1"
             ;;
@@ -598,6 +601,63 @@ function migrate_rgw_to_minio_task() {
     done
 
     migrate_rgw_to_minio
+}
+
+function remove_rook_ceph() {
+    export KUBECONFIG=/etc/kubernetes/admin.conf
+
+    # make sure there aren't any PVs using rook before deleting it
+    rook_pvs="$(kubectl get pv -o=jsonpath='{.items[0].spec.csi.driver}' | grep ceph.rook.io)"
+    if [ -n "$rook_pvs" ]; then
+        # do stuff
+        printf "${RED}"
+        printf "ERROR: \n"
+        printf "There are still PVs using rook-ceph.\n"
+        printf "Remove these PVs before continuing.\n"
+        printf "${NC}"
+        exit 1
+    fi
+
+    # provide large warning that this will stop the app
+    printf "${YELLOW}"
+    printf "WARNING: \n"
+    printf "\n"
+    printf "    This command will delete the rook-ceph storage provider\n${NC}"
+    printf "\n"
+    printf "Would you like to continue? "
+
+    if ! confirmN; then
+        printf "Not removing rook-ceph\n"
+        exit 1
+    fi
+
+    # remove all rook-ceph CR objects
+    # these are here in all installations
+    kubectl delete cephblockpools.ceph.rook.io -n rook-ceph replicapool
+    kubectl delete cephobjectstoreusers.ceph.rook.io -n rook-ceph --all
+    kubectl delete cephobjectstores.ceph.rook.io -n rook-ceph rook-ceph-store
+
+    # these don't exist on default installs, but should still be removed
+    kubectl delete cephnfses.ceph.rook.io -n rook-ceph --all
+    kubectl delete cephfilesystems.ceph.rook.io -n rook-ceph --all
+    kubectl delete volumes.rook.io -n rook-ceph --all
+
+    # this is present in all installations
+    kubectl delete cephclusters.ceph.rook.io -n rook-ceph rook-ceph
+
+    # wait for rook-ceph-osd pods to disappear TODO
+
+    # delete rook-ceph CRDs
+    kubectl delete crd cephblockpools.ceph.rook.io cephclusters.ceph.rook.io cephfilesystems.ceph.rook.io cephnfses.ceph.rook.io cephobjectstores.ceph.rook.io cephobjectstoreusers.ceph.rook.io volumes.rook.io
+
+    # delete rook-ceph ns
+    kubectl delete ns rook-ceph
+
+    # delete rook-ceph storageclass(es)
+    # shellcheck disable=SC2046
+    kubectl delete storageclass $(kubectl get storageclass | grep ceph.rook.io | awk '{ print $1 }')
+
+
 }
 
 tasks "$@"
