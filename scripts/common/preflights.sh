@@ -497,5 +497,6 @@ function host_preflights_mkresults() {
     local tmp_file=
     tmp_file="$(mktemp)"
     echo -e "[version]\n${kurl_version}\n\n[options]\n${opts}\n\n[results]" | cat - "${out_file}" > "${tmp_file}" && mv "${tmp_file}" "${out_file}"
+    chmod -R +r "${DIR}/${HOST_PREFLIGHTS_RESULTS_OUTPUT_DIR}/" # make sure the file is readable by kots support bundle
     rm -f "${tmp_file}"
 }
