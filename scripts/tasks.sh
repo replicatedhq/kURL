@@ -566,7 +566,7 @@ function migrate_pvcs() {
     fi
 
     # run the migration
-    $BIN_PVMIGRATE --source-sc default --dest-sc longhorn --rsync-image "$KURL_UTIL_IMAGE"
+    $BIN_PVMIGRATE --source-sc default --dest-sc longhorn --rsync-image "$KURL_UTIL_IMAGE" --set-defaults
 
     # reset prometheus scale
     if kubectl get namespace monitoring &>/dev/null; then
