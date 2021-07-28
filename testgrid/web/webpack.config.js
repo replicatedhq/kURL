@@ -132,13 +132,13 @@ module.exports = function(env) {
   };
 
   if (env === "production") {
-    const prod = require("./webpack.config.prod");
+    const prod = require("./webpack.prod.config");
     return webpackMerge(common, prod);
   } else if (env === "staging") {
-    const staging = require("./webpack.config.staging");
+    const staging = require("./webpack.staging.config");
     return webpackMerge(common, staging);
   } else {
-    const dev = require("./webpack.config.dev");
+    const dev = require("./webpack.dev.config");
     return webpackMerge(common, dev);
   }
 };
