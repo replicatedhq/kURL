@@ -35,7 +35,23 @@ endef
 
 .PHONY: clean
 clean:
-	rm -rf build tmp dist
+	rm -rf build tmp dist sbom
+
+.PHONY: spdx-sbom-generator
+spdx-sbom-generator:
+ifeq (,$(shell which spdx-sbom-generator))
+	mkdir -p sbom 
+	curl -L https://github.com/spdx/spdx-sbom-generator/releases/download/v0.0.10/spdx-sbom-generator-v0.0.10-linux-amd64.tar.gz -o ./sbom/spdx-sbom-generator-v0.0.10-linux-amd64.tar.gz 
+	tar -xzvf ./sbom/spdx-sbom-generator-v0.0.10-linux-amd64.tar.gz -C sbom 
+SPDX_GENERATOR=./sbom/spdx-sbom-generator
+else
+SPDX_GENERATOR=$(shell which spdx-sbom-generator)
+endif 
+
+.PHONY: sbom
+sbom: spdx-sbom-generator 
+	mkdir -p sbom 
+	$(SPDX_GENERATOR) -o ./sbom 
 
 dist/common.tar.gz: build/kustomize build/shared build/krew build/kurlkinds build/helm
 	mkdir -p dist
