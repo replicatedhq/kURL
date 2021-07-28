@@ -11,6 +11,7 @@ set -e
 . $DIR/scripts/common/prompts.sh
 . $DIR/scripts/common/host-packages.sh
 . $DIR/scripts/common/utilbinaries.sh
+. $DIR/scripts/common/rook.sh
 . $DIR/scripts/distro/interface.sh
 . $DIR/scripts/distro/kubeadm/distro.sh
 . $DIR/scripts/distro/rke2/distro.sh
@@ -59,7 +60,7 @@ function tasks() {
             migrate_rgw_to_minio_task $@
             ;;
         remove-rook-ceph|remove_rook_ceph)
-            remove_rook_ceph
+            remove_rook_ceph_task
             ;;
         *)
             bail "Unknown task: $1"
@@ -563,21 +564,7 @@ function migrate_pvcs() {
         exit 1
     fi
 
-    # set prometheus scale if it exists
-    if kubectl get namespace monitoring &>/dev/null; then
-        kubectl patch prometheus -n monitoring  k8s --type='json' --patch '[{"op": "replace", "path": "/spec/replicas", value: 0}]'
-    fi
-
-    # run the migration
-    $BIN_PVMIGRATE --source-sc default --dest-sc longhorn --rsync-image "$KURL_UTIL_IMAGE" --set-defaults
-
-    # reset prometheus scale
-    if kubectl get namespace monitoring &>/dev/null; then
-        kubectl patch prometheus -n monitoring  k8s --type='json' --patch '[{"op": "replace", "path": "/spec/replicas", value: 2}]'
-    fi
-
-    # print success message
-    printf "${GREEN}Migration from rook-ceph to longhorn completed successfully!\n${NC}"
+    rook_ceph_to_longhorn
 }
 
 function migrate_rgw_to_minio_task() {
@@ -603,27 +590,8 @@ function migrate_rgw_to_minio_task() {
     migrate_rgw_to_minio
 }
 
-function rook_ceph_osd_pods_gone() {
-    if kubectl -n rook-ceph get pods -l app=rook-ceph-osd 2>&1 | grep 'rook-ceph-osd' &>/dev/null ; then
-        return 1
-    fi
-    return 0
-}
-
-function remove_rook_ceph() {
+function remove_rook_ceph_task() {
     export KUBECONFIG=/etc/kubernetes/admin.conf
-
-    # make sure there aren't any PVs using rook before deleting it
-    rook_pvs="$(kubectl get pv -o=jsonpath='{.items[*].spec.csi.driver}' | grep rook)"
-    if [ -n "$rook_pvs" ]; then
-        # do stuff
-        printf "${RED}"
-        printf "ERROR: \n"
-        printf "There are still PVs using rook-ceph.\n"
-        printf "Remove these PVs before continuing.\n"
-        printf "${NC}"
-        exit 1
-    fi
 
     # provide large warning that this will delete rook-ceph
     printf "${YELLOW}"
@@ -638,41 +606,7 @@ function remove_rook_ceph() {
         exit 1
     fi
 
-    # scale ekco to 0 replicas if it exists
-    if kubernetes_resource_exists kurl deployment ekc-operator; then
-        kubectl -n kurl scale deploy ekc-operator --replicas=0
-    fi
-
-    # remove all rook-ceph CR objects
-    printf "Removing rook-ceph custom resource objects - this may take some time:\n"
-    kubectl delete cephcluster -n rook-ceph rook-ceph # deleting this first frees up resources
-    kubectl get crd | grep 'ceph.rook.io' | awk '{ print $1 }' | xargs -I'{}' kubectl -n rook-ceph delete '{}' --all
-    kubectl delete volumes.rook.io --all
-
-    # wait for rook-ceph-osd pods to disappear
-    echo "Waiting for rook-ceph OSD pods to be removed"
-    spinner_until 120 rook_ceph_osd_pods_gone
-
-    # delete rook-ceph CRDs
-    printf "Removing rook-ceph custom resources:\n"
-    kubectl get crd | grep 'ceph.rook.io' | awk '{ print $1 }' | xargs -I'{}' kubectl delete crd '{}'
-    kubectl delete crd volumes.rook.io
-
-    # delete rook-ceph ns
-    kubectl delete ns rook-ceph
-
-    # delete rook-ceph storageclass(es)
-    printf "Removing rook-ceph StorageClasses"
-    kubectl get storageclass | grep rook | awk '{ print $1 }' | xargs -I'{}' kubectl delete storageclass '{}'
-
-    # scale ekco back to 1 replicas if it exists
-    if kubernetes_resource_exists kurl deployment ekc-operator; then
-        kubectl -n kurl scale deploy ekc-operator --replicas=1
-    fi
-
-    # print success message
-    printf "${GREEN}Removed rook-ceph successfully!\n${NC}"
-    printf "Data within /var/lib/rook, /opt/replicated/rook and any bound disks has not been freed.\n"
+    remove_rook_ceph
 }
 
 tasks "$@"
