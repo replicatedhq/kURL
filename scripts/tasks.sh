@@ -614,7 +614,7 @@ function remove_rook_ceph() {
     export KUBECONFIG=/etc/kubernetes/admin.conf
 
     # make sure there aren't any PVs using rook before deleting it
-    rook_pvs="$(kubectl get pv -o=jsonpath='{.items[0].spec.csi.driver}' | grep rook)"
+    rook_pvs="$(kubectl get pv -o=jsonpath='{.items[*].spec.csi.driver}' | grep rook)"
     if [ -n "$rook_pvs" ]; then
         # do stuff
         printf "${RED}"
@@ -647,7 +647,7 @@ function remove_rook_ceph() {
     printf "Removing rook-ceph custom resource objects - this may take some time:\n"
     kubectl delete cephcluster -n rook-ceph rook-ceph # deleting this first frees up resources
     kubectl get crd | grep 'ceph.rook.io' | awk '{ print $1 }' | xargs -I'{}' kubectl -n rook-ceph delete '{}' --all
-    kubectl delete kubectl delete volumes.rook.io --all
+    kubectl delete volumes.rook.io --all
 
     # wait for rook-ceph-osd pods to disappear
     echo "Waiting for rook-ceph OSD pods to be removed"
