@@ -5,6 +5,10 @@ PROJECT_NAME ?= tgweb
 deps:
 	npm install
 
+depcheck:
+	# npm install depcheck -g
+	depcheck . --specials=webpack,babel,bin,eslint
+
 .PHONY: serve
 serve:
 	NODE_ENV=dev node --max-old-space-size=6144 `npm bin`/webpack-dev-server --config webpack.config.js --progress -w --color --debug --env development

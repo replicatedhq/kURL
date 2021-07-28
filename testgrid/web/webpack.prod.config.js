@@ -1,10 +1,9 @@
 var path = require("path");
 var webpack = require("webpack");
-var CopyWebpackPlugin = require("copy-webpack-plugin");
 const BundleAnalyzerPlugin = require("webpack-bundle-analyzer").BundleAnalyzerPlugin;
 
 var srcPath = path.join(__dirname, "src");
-var distPath = path.join(__dirname, "dist-staging");
+var distPath = path.join(__dirname, "dist-prod");
 
 module.exports = {
   entry: [
@@ -17,12 +16,12 @@ module.exports = {
         test: /\.jsx?$/,
         include: srcPath,
         enforce: "pre",
-        loader: "tslint-loader",
+        use: "tslint-loader",
       },
       {
         test: /\.jsx?$/,
         include: srcPath,
-        loader: "awesome-typescript-loader",
+        use: "awesome-typescript-loader",
       },
     ],
   },

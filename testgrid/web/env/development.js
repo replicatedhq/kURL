@@ -2,7 +2,7 @@ module.exports = {
   ENVIRONMENT: "development",
   API_ENDPOINT: "http://127.0.0.1:30110/api/v1",
   WEBPACK_SCRIPTS: [
-    "https://cdnjs.cloudflare.com/ajax/libs/react/15.4.2/react-with-addons.js",
-    "https://cdnjs.cloudflare.com/ajax/libs/react/15.4.2/react-dom.js",
+    "https://unpkg.com/react@15/dist/react.min.js",
+    "https://unpkg.com/react-dom@15/dist/react-dom.min.js",
   ]
 };
