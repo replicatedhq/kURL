@@ -34,7 +34,7 @@ function ekco_pre_init() {
         EKCO_ENABLE_INTERNAL_LOAD_BALANCER_BOOL=true
         HA_CLUSTER=1
         LOAD_BALANCER_ADDRESS=localhost
-        LOAD_BALANCER_PORT="${EKCO_INTERNAL_LOAD_BALANCER_PORT:-6444}"
+        LOAD_BALANCER_PORT="6444"
     fi
 }
 
@@ -101,7 +101,7 @@ function ekco_join() {
     fi
 
     if [ "$EKCO_ENABLE_INTERNAL_LOAD_BALANCER" = "1" ]; then
-        ekco_bootstrap_internal_lb "${EKCO_INTERNAL_LOAD_BALANCER_PORT:-6444}"
+        ekco_bootstrap_internal_lb
     fi
 }
 
@@ -247,15 +247,13 @@ function ekco_handle_load_balancer_address_change_post_init() {
 # needs to connect to the Kubernetes API before starting kubelet. To workaround this problem,
 # temporarily run haproxy as a container directly with docker or containerd.
 function ekco_bootstrap_internal_lb() {
-    local port="$1"
-
     local backends="$PRIMARY_HOST"
     if [ -z "$backends" ]; then
         backends="$PRIVATE_ADDRESS"
     fi
 
     # Check if load balancer is already bootstrapped
-    if curl -skf "https://localhost:${port}/healthz"; then
+    if curl -skf "https://localhost:6444/healthz"; then
         return 0
     fi
 
@@ -264,7 +262,7 @@ function ekco_bootstrap_internal_lb() {
         docker run --rm -i \
             --entrypoint="/usr/bin/ekco" \
             replicated/ekco:v$EKCO_VERSION \
-            generate-haproxy-config --primary-host=${backends} --load-balancer-port=${port} \
+            generate-haproxy-config --primary-host=${backends} \
             > /etc/haproxy/haproxy.cfg
 
         mkdir -p /etc/kubernetes/manifests
@@ -272,16 +270,16 @@ function ekco_bootstrap_internal_lb() {
             --entrypoint="/usr/bin/ekco" \
             --volume '/etc:/host/etc' \
             replicated/ekco:v$EKCO_VERSION \
-            generate-haproxy-manifest --primary-host=${backends} --load-balancer-port=${port} --file=/host/etc/kubernetes/manifests/haproxy.yaml
+            generate-haproxy-manifest --primary-host=${backends} --file=/host/etc/kubernetes/manifests/haproxy.yaml
 
         docker rm -f bootstrap-lb &>/dev/null || true
-        docker run -d -p "$port:$port" -v /etc/haproxy:/usr/local/etc/haproxy --name bootstrap-lb haproxy:2.4.2
+        docker run -d -p "6444:6444" -v /etc/haproxy:/usr/local/etc/haproxy --name bootstrap-lb haproxy:2.4.2
     else
         mkdir -p /etc/haproxy
         ctr --namespace k8s.io run --rm \
             replicated/ekco:v$EKCO_VERSION \
             haproxy-cfg \
-            ekco generate-haproxy-config --primary-host=${backends} --load-balancer-port=${port} \
+            ekco generate-haproxy-config --primary-host=${backends} \
             > /etc/haproxy/haproxy.cfg
 
         mkdir -p /etc/kubernetes/manifests
@@ -289,7 +287,7 @@ function ekco_bootstrap_internal_lb() {
             --mount "type=bind,src=/etc,dst=/host/etc,options=rbind:rw" \
             replicated/ekco:v$EKCO_VERSION \
             haproxy-manifest \
-            ekco generate-haproxy-manifest --primary-host=${backends} --load-balancer-port=${port} --file=/host/etc/kubernetes/manifests/haproxy.yaml
+            ekco generate-haproxy-manifest --primary-host=${backends} --file=/host/etc/kubernetes/manifests/haproxy.yaml
 
 
         ctr --namespace k8s.io run --rm \
@@ -307,5 +305,13 @@ function ekco_cleanup_bootstrap_internal_lb() {
     else
         ctr --namespace k8s.io task kill -s SIGKILL bootstrap-lb &>/dev/null || true
         ctr --namespace k8s.io containers delete bootstrap-lb &>/dev/null || true
+    fi
+}
+
+function ekco_handle_load_balancer_address_change_kubeconfigs() {
+    if [ "$EKCO_ENABLE_INTERNAL_LOAD_BALANCER" = "1" ]; then
+        kubectl -n kurl exec deploy/ekc-operator -- ekco change-load-balancer --internal --server=https://localhost:6444
+    else
+        kubectl -n kurl exec deploy/ekc-operator -- ekco change-load-balancer --server="https://${API_SERVICE_ADDRESS}"
     fi
 }
