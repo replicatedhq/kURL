@@ -20,11 +20,9 @@
       version: "latest"
     containerd:
       version: "latest"
-    minio:
-      version: "latest"
     kotsadm:
       version: "latest"
-    longhorn:
+    rook-ceph:
       version: "latest"
   upgradeSpec:
     kubernetes:
