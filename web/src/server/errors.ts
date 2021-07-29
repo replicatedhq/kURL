@@ -13,7 +13,7 @@ import {
 import { logger } from "../logger";
 
 export class HTTPError extends Error {
-  public static requireMatch(field: string, pattern: RegExp, name: string) {
+  public static requireMatch(field: string, pattern: RegExp, name: string): void {
     const isValid = pattern.test(field);
     if (!isValid) {
       throw new HTTPError(400, {

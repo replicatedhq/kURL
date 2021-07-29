@@ -1288,9 +1288,9 @@ export class Installer {
             pkgs.push(`${config}-${step}`);
           }
         } else if (config === "rke2") {
-          kubernetesVersion = version.replace(/^v?([^-\+]+).*$/, '$1');
+          kubernetesVersion = version.replace(/^v?([^-+]+).*$/, '$1');
         } else if (config === "k3s") {
-          kubernetesVersion = version.replace(/^v?([^-\+]+).*$/, '$1');
+          kubernetesVersion = version.replace(/^v?([^-+]+).*$/, '$1');
         }
       }
     }));
@@ -1365,23 +1365,24 @@ export class Installer {
           return;
         }
         switch (propertySchema.type) {
-        case "number": // fallthrough
-        case "string":
-          flags.push(`${flag}=${spec[propertyName]}`);
-          break;
-        case "boolean":
-          // This converts advanced options with default true to disable-style bash flags that
-          // do not take an arg. i.e. only `velero.installCLI: false` should set the flag
-          // velero-disable-cli
-          const flagFalseOnlyNoArg = _.get(propertySchema, "flagFalseOnlyNoArg");
-          if (flagFalseOnlyNoArg) {
-            if (spec[propertyName] === false) {
-              flags.push(flag);
+          case "number": // fallthrough
+          case "string":
+            flags.push(`${flag}=${spec[propertyName]}`);
+            break;
+          case "boolean": {
+            // This converts advanced options with default true to disable-style bash flags that
+            // do not take an arg. i.e. only `velero.installCLI: false` should set the flag
+            // velero-disable-cli
+            const flagFalseOnlyNoArg = _.get(propertySchema, "flagFalseOnlyNoArg");
+            if (flagFalseOnlyNoArg) {
+              if (spec[propertyName] === false) {
+                flags.push(flag);
+              }
+            } else {
+              flags.push(`${flag}=${spec[propertyName] ? 1 : 0}`);
             }
-          } else {
-            flags.push(`${flag}=${spec[propertyName] ? 1 : 0}`);
+            break;
           }
-          break;
         }
       });
     }

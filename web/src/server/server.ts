@@ -13,13 +13,15 @@ import * as Express from "express";
 import * as RateLimit from "express-rate-limit";
 import { TSEDVerboseLogging } from "../logger";
 import { initMysqlPool } from "../util/persistence/mysql";
+import { v4 as uuidv4 } from 'uuid';
+import bodyParser = require("body-parser");
 
 @ServerSettings({
   rootDir: path.resolve(__dirname),
   mount: {
     "/": "${rootDir}/../controllers/**/*.js",
   },
-  acceptMimes: ["application/json"],
+  acceptMimes: ["application/json", "application/yaml", "text/yaml"],
   port: 3000,
   httpsPort: 0,
   componentsScan: [
@@ -50,8 +52,7 @@ export class Server extends ServerLoader {
    */
   public async $onMountingMiddlewares(): Promise<void> {
     this.expressApp.enable("trust proxy");  // so we get the real ip from the ELB in amaazon
-    const bodyParser = require("body-parser");
-
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
     if (process.env["BUGSNAG_KEY"]) {
       bugsnag.register(process.env["BUGSNAG_KEY"] || "", {
         releaseStage: process.env["NODE_ENV"],
@@ -76,7 +77,7 @@ export class Server extends ServerLoader {
 
     if (process.env["IGNORE_RATE_LIMITS"] !== "1") {
       // this limiter applies to all requests to the service.
-      let globalLimiter = new RateLimit({
+      const globalLimiter = new RateLimit({
         windowMs: 1000, // 1 second
         max: 10000, // limit each IP to 10000 requests per windowMs
         delayMs: 0, // disable delaying - full speed until the max limit is reached
@@ -85,7 +86,7 @@ export class Server extends ServerLoader {
     }
   }
 
-  public $onServerInitError(err) {
+  public $onServerInitError(err: any): void {
     $log.error(err);
   }
 }
@@ -97,7 +98,7 @@ export class CustomLogIncomingRequestMiddleware extends LogIncomingRequestMiddle
 
   public use(@Req() request): void {
     // you can set a custom ID with another lib
-    request.id = require("uuid").v4();
+    request.id = uuidv4();
     request.start = new Date().getTime();
     return super.use(request); // required
   }
@@ -126,7 +127,7 @@ export class CustomLogIncomingRequestMiddleware extends LogIncomingRequestMiddle
     };
   }
 
-  protected requestToObject(request) {
+  protected requestToObject(request): any {
     if (request.originalUrl === "/healthz" || request.url === "/healthz") {
       return {
         url: "/healthz",
@@ -154,7 +155,7 @@ export class CustomLogIncomingRequestMiddleware extends LogIncomingRequestMiddle
     }
   }
 
-  protected onLogEnd(request, response) {
+  protected onLogEnd(request, response): void {
     if (this.requestToObject(request).url === "/healthz") {
       delete request.log;
       return;

@@ -5,6 +5,10 @@ import {
   Res } from "ts-express-decorators";
 import { instrumented } from "monkit";
 
+interface Health {
+  version: string|undefined;
+}
+
 @Controller("/healthz")
 export class HealthzAPI {
     /**
@@ -12,13 +16,13 @@ export class HealthzAPI {
      *
      * @param request
      * @param response
-     * @returns {{id: any, name: string}}
+     * @returns {{version: string|undefined}}
      */
   @Get("")
   @instrumented
   public async healthz(
     @Res() response: Express.Response,
-  ): Promise<{}> {
+  ): Promise<Health> {
     response.status(200);
     return {
       version: process.env.VERSION,

@@ -4,7 +4,7 @@ WORKDIR /src
 
 ADD Makefile .
 ADD package.json .
-ADD yarn.lock .
+ADD package-lock.json .
 RUN make deps
 
 ADD . .

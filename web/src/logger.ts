@@ -38,7 +38,7 @@ function initLoggerFromEnv(): pino.Logger {
 
 export const logger = initLoggerFromEnv();
 
-export function log(...msg: any[]) {
+export function log(...msg: any[]): void {
   if (msg.length >= 0) {
     const arg = msg[0];
     msg.splice(0, 1);

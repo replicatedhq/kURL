@@ -594,7 +594,7 @@ spec:
       it(`${test.id} => ${test.answer}`, () => {
         const output = Installer.isSHA(test.id);
 
-        expect(Installer.isSHA(test.id)).to.equal(test.answer);
+        expect(output).to.equal(test.answer);
       });
     });
   });
@@ -605,13 +605,13 @@ spec:
       { slug: "", answer: false},
       { slug: " ", answer: false},
       { slug: "big-bank-beta", answer: true},
-      { slug: _.range(0, 255).map((x) => "a").join(""), answer: true },
-      { slug: _.range(0, 256).map((x) => "a").join(""), answer: false },
+      { slug: _.range(0, 255).map(() => "a").join(""), answer: true },
+      { slug: _.range(0, 256).map(() => "a").join(""), answer: false },
     ].forEach((test) => {
       it(`"${test.slug}" => ${test.answer}`, () => {
         const output = Installer.isValidSlug(test.slug);
 
-        expect(Installer.isValidSlug(test.slug)).to.equal(test.answer);
+        expect(output).to.equal(test.answer);
       });
     });
   });
@@ -626,7 +626,7 @@ spec:
       it(`"${test.cidrRange}" => ${test.answer}`, () => {
         const output = Installer.isValidCidrRange(test.cidrRange);
 
-        expect(Installer.isValidCidrRange(test.cidrRange)).to.equal(test.answer);
+        expect(output).to.equal(test.answer);
       });
     });
   });

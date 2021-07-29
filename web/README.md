@@ -10,4 +10,4 @@ It relies on a mysql database schema that is not open source, but could be easil
 
 
 # Testing 
-1. Run `yarn run api-tests` in this directory
+1. Run `npm run api-tests` in this directory

@@ -33,7 +33,7 @@ interface FilepathContentsMap {
 interface BundleManifest {
   layers: string[];
   files: FilepathContentsMap;
-};
+}
 
 @Controller("/bundle")
 export class Bundle {

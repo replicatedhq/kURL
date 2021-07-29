@@ -14,10 +14,10 @@ export class Templates {
   private replicatedAppURL: string;
   private kurlUtilImage: string;
   private kurlBinUtils: string;
-  private installTmplResolved: (data?: object) => string;
-  private joinTmplResolved: (data?: object) => string;
-  private upgradeTmplResolved: (data?: object) => string;
-  private tasksTmplResolved: (data?: object) => string;
+  private installTmplResolved: (data?: Manifest) => string;
+  private joinTmplResolved: (data?: Manifest) => string;
+  private upgradeTmplResolved: (data?: Manifest) => string;
+  private tasksTmplResolved: (data?: Manifest) => string;
   private templateOpts = {
     escape: /{{-([\s\S]+?)}}/g,
     evaluate: /{{([\s\S]+?)}}/g,
@@ -33,7 +33,7 @@ export class Templates {
     this.distURL = getDistUrl();
   }
 
-  private async installTmpl(): Promise<((data?: object) => string)> {
+  private async installTmpl(): Promise<((data?: Manifest) => string)> {
     if (this.installTmplResolved) {
       return this.installTmplResolved;
     }
@@ -41,7 +41,7 @@ export class Templates {
     return this.installTmplResolved;
   }
 
-  private async joinTmpl(): Promise<((data?: object) => string)> {
+  private async joinTmpl(): Promise<((data?: Manifest) => string)> {
     if (this.joinTmplResolved) {
       return this.joinTmplResolved;
     }
@@ -49,7 +49,7 @@ export class Templates {
     return this.joinTmplResolved;
   }
 
-  private async upgradeTmpl(): Promise<((data?: object) => string)> {
+  private async upgradeTmpl(): Promise<((data?: Manifest) => string)> {
     if (this.upgradeTmplResolved) {
       return this.upgradeTmplResolved;
     }
@@ -57,7 +57,7 @@ export class Templates {
     return this.upgradeTmplResolved;
   }
 
-  private async tasksTmpl(): Promise<((data?: object) => string)> {
+  private async tasksTmpl(): Promise<((data?: Manifest) => string)> {
     if (this.tasksTmplResolved) {
       return this.tasksTmplResolved;
     }
@@ -93,7 +93,7 @@ export class Templates {
     return await this.renderScriptFromUpstream(i, kurlVersion, "tasks.tmpl");
   }
 
-  public async renderScriptFromTemplate(i: Installer, kurlVersion: string, tmpl: (data?: object) => string): Promise<string> {
+  public async renderScriptFromTemplate(i: Installer, kurlVersion: string, tmpl: (data?: Manifest) => string): Promise<string> {
     return tmpl(await manifestFromInstaller(i, this.kurlURL, this.replicatedAppURL, this.distURL, this.kurlUtilImage, this.kurlBinUtils, kurlVersion));
   }
 
@@ -102,7 +102,7 @@ export class Templates {
     return tmpl(await manifestFromInstaller(i, this.kurlURL, this.replicatedAppURL, this.distURL, this.kurlUtilImage, this.kurlBinUtils, kurlVersion));
   }
 
-  public async tmplFromUpstream(kurlVersion: string, script: string): Promise<((data?: object) => string)> {
+  public async tmplFromUpstream(kurlVersion: string, script: string): Promise<((data?: Manifest) => string)> {
     const res = await fetch(getPackageUrl(this.distURL, kurlVersion, script));
     if (res.status === 404) {
       throw new HTTPError(404, "version not found");
@@ -127,7 +127,7 @@ interface Manifest {
 }
 
 export function bashStringEscape( unescaped : string): string {
-  return unescaped.replace(/[!"\\]/g, "\\\$&");
+  return unescaped.replace(/[!"\\]/g, "\\$&");
 }
 
 export async function manifestFromInstaller(i: Installer, kurlUrl: string, replicatedAppURL: string, distUrl: string, kurlUtilImage: string, kurlBinUtils: string, kurlVersion: string): Promise<Manifest> {
