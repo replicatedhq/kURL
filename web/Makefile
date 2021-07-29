@@ -3,11 +3,15 @@ PROJECT_NAME ?= kurl
 
 .PHONY: deps
 deps:
-	yarn --silent --frozen-lockfile
+	npm install
+
+depcheck:
+	# npm install depcheck -g
+	depcheck . --specials=bin,mocha,eslint
 
 .PHONY: test
 test: deps
-	yarn run test
+	npm run test
 	# missing api-tests, pact tests
 
 .PHONY: prebuild
@@ -17,11 +21,11 @@ prebuild:
 
 .PHONY: lint
 lint:
-	npx tslint --project ./tsconfig.json --fix
+	npx eslint . --ext .js,.jsx,.ts,.tsx
 
 .PHONY: build
 build: prebuild
-	`yarn bin`/tsc --project .
+	`npm bin`/tsc --project .
 	mkdir -p bin
 	cp newrelic.js bin/newrelic.js
 	cp build/kurl.js bin/kurl
@@ -62,4 +66,4 @@ build_and_push:
 	docker push $(REGISTRY)/${PROJECT_NAME}:$${CIRCLE_SHA1:0:7}
 
 generate-versions:
-	`yarn bin`/ts-node generate-versions.ts
+	`npm bin`/ts-node generate-versions.ts

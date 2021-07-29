@@ -1,7 +1,6 @@
 import {describe, it} from "mocha";
 import {expect} from "chai";
 import { KurlClient } from "./";
-import * as _ from "lodash";
 
 const kurlURL = process.env.KURL_URL || "http://localhost:30092";
 const client = new KurlClient(kurlURL);

@@ -13,7 +13,7 @@ export function startStatsdReporter(
   statsdPort: number,
   intervalMs: number,
   prefix: string,
-) {
+): void {
   logger.info(`starting statsd reporter ${statsdHost}:${statsdPort} at interval ${intervalMs}ms`);
   const reporter = new StatsdReporter(
     getRegistry(),
@@ -26,7 +26,7 @@ export function startStatsdReporter(
     reporter.report();
   }, intervalMs);
   logger.info("started");
-};
+}
 
 export function startStatusPageReporter(
   url: string,
@@ -34,7 +34,7 @@ export function startStatusPageReporter(
   statusPageToken: string,
   metricIds: any,
   intervalMs: number,
-) {
+): void {
   logger.info(`starting statusPage reporter ${url}/${pageId} at interval ${intervalMs}ms`);
 
   const reporter = new StatusPageReporter(
@@ -50,13 +50,13 @@ export function startStatusPageReporter(
     reporter.report();
   }, intervalMs);
   logger.info("started");
-};
+}
 
-export async function bootstrapFromEnv() {
+export async function bootstrapFromEnv(): Promise<void> {
   let statsdIpAddress;
 
   if (process.env["USE_EC2_PARAMETERS"]) {
-    let options = {
+    const options = {
       uri: "http://169.254.169.254/latest/meta-data/local-ipv4",
     };
 
@@ -94,4 +94,4 @@ export async function bootstrapFromEnv() {
     intervalMs,
   );
 
-};
+}

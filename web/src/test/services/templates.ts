@@ -1,7 +1,6 @@
 import {describe, it} from "mocha";
 import {expect} from "chai";
 import { bashStringEscape, manifestFromInstaller } from "../../util/services/templates";
-import * as _ from "lodash";
 import { Installer } from "../../installers";
 
 

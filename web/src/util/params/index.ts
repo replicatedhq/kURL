@@ -25,7 +25,7 @@ export default async function(envName: string, ssmName: string, encrypted = fals
         return "";
       }
 
-      return result.Parameters[0].Value!;
+      return result.Parameters[0].Value || "";
     });
   } else {
     return process.env[envName] || "";

@@ -235,7 +235,7 @@ export class Installers {
     return "";
   }
 
-  async doMakeInstaller( response: Express.Response, request: Express.Request, id: string, slug: string) {
+  async doMakeInstaller( response: Express.Response, request: Express.Request, id: string, slug: string): Promise<string | ErrorResponse> {
     const auth = request.header("Authorization");
     if (!auth) {
       response.status(401);

@@ -1,8 +1,8 @@
-FROM node:12
+FROM node:14
 EXPOSE 3000 8092
 
 ADD ./package.json /src/package.json
-ADD ./yarn.lock /src/yarn.lock
+ADD ./package-lock.json /src/package-lock.json
+ADD ./Makefile /src/Makefile
 WORKDIR /src
-RUN yarn install --silent
-
+RUN make deps

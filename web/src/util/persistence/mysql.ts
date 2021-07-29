@@ -33,7 +33,7 @@ const getMysqlPoolMetrics = (pool: mysql.Pool): MySQLPoolMetrics => {
   };
 };
 
-export async function updatePoolGauges() {
+export async function updatePoolGauges(): Promise<void> {
   const pool = await getMysqlPool();
 
   const {
