@@ -10,3 +10,30 @@
     minio:
       version: "__testver__"
       s3Override: "__testdist__"
+
+- installerSpec:
+    kubernetes:
+      version: "latest"
+    weave:
+      version: "latest"
+    containerd:
+      version: "latest"
+    kotsadm:
+      version: "latest"
+    rook:
+      version: "latest"
+  upgradeSpec:
+    kubernetes:
+      version: "latest"
+    weave:
+      version: "latest"
+    containerd:
+      version: "latest"
+    kotsadm:
+      version: "latest"
+    rook:
+      version: "latest"
+    minio:
+      version: "__testver__"
+      s3Override: "__testdist__"
+      migrateFromRGW: true
