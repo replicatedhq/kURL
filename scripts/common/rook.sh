@@ -77,15 +77,28 @@ function remove_rook_ceph() {
     printf "Data within /var/lib/rook, /opt/replicated/rook and any bound disks has not been freed.\n"
 }
 
-# scale down prometheus, move all 'default' PVCs to 'longhorn', scale up promethues
+# scale down prometheus, move all 'rook-ceph' PVCs to 'longhorn', scale up prometheus
 function rook_ceph_to_longhorn() {
     # set prometheus scale if it exists
     if kubectl get namespace monitoring &>/dev/null; then
         kubectl patch prometheus -n monitoring  k8s --type='json' --patch '[{"op": "replace", "path": "/spec/replicas", value: 0}]'
     fi
 
-    # run the migration
-    $BIN_PVMIGRATE --source-sc default --dest-sc longhorn --rsync-image "$KURL_UTIL_IMAGE" --set-defaults
+    # get the list of StorageClasses that use rook-ceph
+    rook_scs=$(kubectl get storageclass | grep rook | grep -v '(default)' | awk '{ print $1}') # any non-default rook StorageClasses
+    rook_default_sc=$(kubectl get storageclass | grep rook | grep '(default)' | awk '{ print $1}') # any default rook StorageClasses
+
+    for rook_sc in $rook_scs
+    do
+        # run the migration (without setting defaults)
+        $BIN_PVMIGRATE --source-sc "$rook_sc" --dest-sc longhorn --rsync-image "$KURL_UTIL_IMAGE"
+    done
+
+    for rook_sc in $rook_default_sc
+    do
+        # run the migration (setting defaults)
+        $BIN_PVMIGRATE --source-sc "$rook_sc" --dest-sc longhorn --rsync-image "$KURL_UTIL_IMAGE" --set-defaults
+    done
 
     # reset prometheus scale
     if kubectl get namespace monitoring &>/dev/null; then
