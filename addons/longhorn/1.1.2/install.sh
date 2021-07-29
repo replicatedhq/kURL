@@ -196,6 +196,14 @@ function maybe_migrate_from_rook() {
         if kubectl get ns | grep -q rook-ceph; then
             rook_ceph_to_longhorn
             export DID_MIGRATE_ROOK_PVCS="1" # used to automatically delete rook-ceph if object store data was also migrated
+
+            kubectl get pods -A
+
+            # for testing purposes
+            remove_rook_ceph
+
+            kubectl get pods -A
+
         fi
     fi
 }
