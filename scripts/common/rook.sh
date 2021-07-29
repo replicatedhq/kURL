@@ -29,8 +29,8 @@ function rook_ceph_osd_pods_gone() {
 
 function remove_rook_ceph() {
     # make sure there aren't any PVs using rook before deleting it
-    rook_pvs="$(kubectl get pv -o=jsonpath='{.items[*].spec.csi.driver}' | grep rook)"
-    if [ -n "$rook_pvs" ]; then
+    all_pv_drivers="$(kubectl get pv -o=jsonpath='{.items[*].spec.csi.driver}')"
+    if echo "$all_pv_drivers" | grep "rook" &>/dev/null ; then
         # do stuff
         printf "${RED}"
         printf "ERROR: \n"
