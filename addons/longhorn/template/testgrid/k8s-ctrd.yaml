@@ -21,7 +21,7 @@
     containerd:
       version: "latest"
     kotsadm:
-      version: "latest"
+      version: "1.46.0"
     rook-ceph:
       version: "latest"
   upgradeSpec:
@@ -33,8 +33,9 @@
       version: "latest"
     minio:
       version: "latest"
+      migrateFromRGW: "1"
     kotsadm:
-      version: "latest"
+      version: "1.46.0"
     longhorn:
       version: "__testver__"
       s3Override: "__testdist__"
