@@ -30,10 +30,15 @@ data:
       accesslog:
         disabled: true
     storage:
+      delete:
+        enabled: true
       filesystem:
         rootdirectory: /var/lib/registry
       cache:
         blobdescriptor: inmemory
+      maintenance:
+        uploadpurging:
+          enabled: false
     version: 0.1
 ---
 apiVersion: apps/v1
