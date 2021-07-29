@@ -5,6 +5,8 @@ var srcPath = path.join(__dirname, "src");
 var distPath = path.join(__dirname, "dist");
 
 module.exports = {
+  mode: 'development',
+
   entry: [
     "./src/index.jsx",
   ],
@@ -15,7 +17,7 @@ module.exports = {
         test: /\.jsx?$/,
         include: srcPath,
         enforce: "pre",
-        use: "tslint-loader",
+        use: 'ts-loader',
       },
       {
         enforce: "pre",
@@ -23,18 +25,16 @@ module.exports = {
         test: /\.jsx?$/,
         use: "source-map-loader",
       },
-      {
-        test: /\.jsx?$/,
-        include: srcPath,
-        use: "awesome-typescript-loader",
-      },
     ],
   },
 
   plugins: [
     new webpack.HotModuleReplacementPlugin(),
-    new webpack.NamedModulesPlugin(),
   ],
+
+  optimization: {
+    moduleIds: "named",
+  },
 
   output: {
     path: distPath,

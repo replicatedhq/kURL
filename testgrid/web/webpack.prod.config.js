@@ -6,6 +6,8 @@ var srcPath = path.join(__dirname, "src");
 var distPath = path.join(__dirname, "dist-prod");
 
 module.exports = {
+  mode: 'production',
+
   entry: [
     "./src/index.jsx",
   ],
@@ -16,29 +18,22 @@ module.exports = {
         test: /\.jsx?$/,
         include: srcPath,
         enforce: "pre",
-        use: "tslint-loader",
-      },
-      {
-        test: /\.jsx?$/,
-        include: srcPath,
-        use: "awesome-typescript-loader",
+        use: 'ts-loader',
       },
     ],
   },
 
   plugins: [
-    new webpack.NamedModulesPlugin(),
-    new webpack.DefinePlugin({
-      "process.env": {
-        NODE_ENV: JSON.stringify("production"),
-      },
-    }),
     new BundleAnalyzerPlugin({
       analyzerMode: "disabled",
       generateStatsFile: true,
       statsOptions: { source: false }
     }),
   ],
+
+  optimization: {
+    moduleIds: "named",
+  },
 
   output: {
     path: distPath,
