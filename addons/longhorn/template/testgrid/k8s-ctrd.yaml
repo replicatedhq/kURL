@@ -40,3 +40,58 @@
     longhorn:
       version: "__testver__"
       s3Override: "__testdist__"
+
+- installerSpec:
+    kubernetes:
+      version: "latest"
+    weave:
+      version: "latest"
+    containerd:
+      version: "latest"
+    kotsadm:
+      version: "latest"
+    rook:
+      version: "latest"
+  upgradeSpec:
+    kubernetes:
+      version: "latest"
+    weave:
+      version: "latest"
+    containerd:
+      version: "latest"
+    minio:
+      version: "latest"
+      migrateFromRGW: true
+    kotsadm:
+      version: "latest"
+    longhorn:
+      version: "__testver__"
+      s3Override: "__testdist__"
+
+- installerSpec:
+    kubernetes:
+      version: "latest"
+    weave:
+      version: "latest"
+    containerd:
+      version: "latest"
+    kotsadm:
+      version: "latest"
+    rook:
+      version: "1.5.x"
+      isBlockStorageEnabled: true
+  upgradeSpec:
+    kubernetes:
+      version: "latest"
+    weave:
+      version: "latest"
+    containerd:
+      version: "latest"
+    minio:
+      version: "latest"
+      migrateFromRGW: true
+    kotsadm:
+      version: "latest"
+    longhorn:
+      version: "__testver__"
+      s3Override: "__testdist__"

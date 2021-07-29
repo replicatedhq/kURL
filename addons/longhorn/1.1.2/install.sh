@@ -1,3 +1,5 @@
+DID_MIGRATE_ROOK_PVCS=
+
 function longhorn_pre_init() {
     if [ -z "$LONGHORN_UI_BIND_PORT" ]; then
         LONGHORN_UI_BIND_PORT="30880"
@@ -54,6 +56,8 @@ function longhorn() {
 
     echo "Waiting for Longhorn Manager Daemonset to be ready"
     spinner_until 180 longhorn_daemonset_is_ready longhorn-manager
+
+    maybe_migrate_from_rook
 }
 
 function longhorn_is_default_storageclass() {
@@ -182,6 +186,16 @@ function validate_longhorn_ds() {
 
         if [ "$bidirectional" -eq "0" ]; then
             bail "No nodes with mount propagation enabled detected - Longhorn will not work. See https://longhorn.io/docs/1.1.1/deploy/install/#installation-requirements for details"
+        fi
+    fi
+}
+
+# if rook-ceph is installed but is not specified in the kURL spec, migrate data from rook-ceph to longhorn
+function maybe_migrate_from_rook() {
+    if [ -z "$ROOK_VERSION" ]; then
+        if kubectl get ns | grep -q rook-ceph; then
+            rook_ceph_to_longhorn
+            export DID_MIGRATE_ROOK_PVCS="1" # used to automatically delete rook-ceph if object store data was also migrated
         fi
     fi
 }
