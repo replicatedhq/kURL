@@ -1,6 +1,6 @@
 import * as _ from "lodash";
 import fetch from "node-fetch";
-import { Service } from "ts-express-decorators";
+import { Service } from "@tsed/common";
 import { Installer } from "../../installers";
 import { getInstallerVersions } from "../../installers/installer-versions";
 import { HTTPError } from "../../server/errors";

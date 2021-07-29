@@ -2,7 +2,7 @@ import * as crypto from "crypto";
 import * as yaml from "js-yaml";
 import * as _ from "lodash";
 import * as mysql from "promise-mysql";
-import { Service } from "ts-express-decorators";
+import { Service } from "@tsed/common";
 import * as AJV from "ajv";
 import * as semver from "semver";
 import { MysqlWrapper } from "../util/services/mysql";

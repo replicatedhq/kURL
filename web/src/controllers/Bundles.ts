@@ -7,7 +7,7 @@ import {
   Get,
   PathParams,
   Req,
-  Res } from "ts-express-decorators";
+  Res } from "@tsed/common";
 import { Templates } from "../util/services/templates";
 import { InstallerStore } from "../installers";
 import { logger } from "../logger";

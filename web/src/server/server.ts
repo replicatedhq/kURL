@@ -1,78 +1,59 @@
-import {
-  OverrideMiddleware,
-  LogIncomingRequestMiddleware,
-  Req,
-  ServerLoader,
-  ServerSettings,
-} from "ts-express-decorators";
+import {Configuration, PlatformApplication} from "@tsed/common";
+import {Inject} from "@tsed/di";
 import * as bugsnag from "bugsnag";
 import * as cors from "cors";
-import { $log } from "ts-log-debug";
 import * as path from "path";
-import * as Express from "express";
 import * as RateLimit from "express-rate-limit";
-import { TSEDVerboseLogging } from "../logger";
-import { initMysqlPool } from "../util/persistence/mysql";
-import { v4 as uuidv4 } from 'uuid';
-import bodyParser = require("body-parser");
+import * as express from "express";
+import { ErrorMiddleware } from "./errors";
 
-@ServerSettings({
+@Configuration({
   rootDir: path.resolve(__dirname),
   mount: {
-    "/": "${rootDir}/../controllers/**/*.js",
+    "/": "${rootDir}/../controllers/**/*.ts",
   },
   acceptMimes: ["application/json", "application/yaml", "text/yaml"],
   port: 3000,
   httpsPort: 0,
   componentsScan: [
-    "${rootDir}/../util/services/**/**.js",
-    "${rootDir}/../installers/**/**.js",
-    "${rootDir}/**/**.js",
+    "${rootDir}/../util/services/**/*.ts",
+    "${rootDir}/../installers/**/*.ts",
+    "${rootDir}/**/*.ts",
   ],
   logger: {
-    level: "info",
+    level: process.env["NODE_ENV"] === "development" ? "debug" : "info",
+    ignoreUrlPatterns: ["healthz"],
   },
 })
 
-export class Server extends ServerLoader {
+export class Server {
+  @Inject()
+  app: PlatformApplication<express.Application>;
 
-  constructor(
-    private readonly bugsnagKey: string,
-  ) {
-    super();
-  }
+  $beforeRoutesInit(): void | Promise<any> {
+    this.app.getApp().enable("trust proxy"); // so we get the real ip from the ELB in amaazon
 
-  public async $onInit(): Promise<void> {
-    await initMysqlPool();
-  }
-
-  /**
-   * This method let you configure the middleware required by your application to works.
-   * @returns {Server}
-   */
-  public async $onMountingMiddlewares(): Promise<void> {
-    this.expressApp.enable("trust proxy");  // so we get the real ip from the ELB in amaazon
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     if (process.env["BUGSNAG_KEY"]) {
       bugsnag.register(process.env["BUGSNAG_KEY"] || "", {
         releaseStage: process.env["NODE_ENV"],
       });
-      this.use(bugsnag.requestHandler);
+      this.app.use(bugsnag.requestHandler);
     }
 
-    this.use(bodyParser.json());
-    this.use(bodyParser.urlencoded({
+    this.app.use(express.json());
+    this.app.use(express.urlencoded({
       type: "application/x-www-form-urlencoded",
       extended: false,
     }));
-    this.use(bodyParser.text({
+    this.app.use(express.text({
       type: ["text/plain", "text/yaml", "text/x-yaml", "application/x-yaml"],
     }));
 
-    this.use(cors());
+    this.app.use(cors());
 
     if (process.env["BUGSNAG_KEY"]) {
-      this.use(bugsnag.errorHandler);
+      this.app.use(bugsnag.errorHandler);
     }
 
     if (process.env["IGNORE_RATE_LIMITS"] !== "1") {
@@ -82,84 +63,11 @@ export class Server extends ServerLoader {
         max: 10000, // limit each IP to 10000 requests per windowMs
         delayMs: 0, // disable delaying - full speed until the max limit is reached
       });
-      this.use(globalLimiter);
+      this.app.use(globalLimiter);
     }
   }
 
-  public $onServerInitError(err: any): void {
-    $log.error(err);
-  }
-}
-
-const verboseLogging = TSEDVerboseLogging;
-
-@OverrideMiddleware(LogIncomingRequestMiddleware)
-export class CustomLogIncomingRequestMiddleware extends LogIncomingRequestMiddleware {
-
-  public use(@Req() request): void {
-    // you can set a custom ID with another lib
-    request.id = uuidv4();
-    request.start = new Date().getTime();
-    return super.use(request); // required
-  }
-
-  // pretty much copy-pasted, but hooked into verboseLogging from above to control multiline logging
-  protected stringify(request: Express.Request, propertySelector: (e: Express.Request) => any): (scope: any) => string {
-    return (scope) => {
-      if (!scope) {
-        scope = {};
-      }
-
-      if (typeof scope === "string") {
-        scope = {message: scope};
-      }
-
-      scope = Object.assign(scope, propertySelector(request));
-      try {
-        if (verboseLogging) { // this is the only line that's different
-          return JSON.stringify(scope, null, 2);
-        }
-        return JSON.stringify(scope);
-      } catch (err) {
-        $log.error({error: err});
-      }
-      return "";
-    };
-  }
-
-  protected requestToObject(request): any {
-    if (request.originalUrl === "/healthz" || request.url === "/healthz") {
-      return {
-        url: "/healthz",
-      };
-    }
-
-    if (verboseLogging) {
-      return {
-        reqId: request.id,
-        method: request.method,
-        url: request.originalUrl || request.url,
-        duration: new Date().getTime() - request.start,
-        headers: request.headers,
-        body: request.body,
-        query: request.query,
-        params: request.params,
-      };
-    } else {
-      return {
-        reqId: request.id,
-        method: request.method,
-        url: request.originalUrl || request.url,
-        duration: new Date().getTime() - request.start,
-      };
-    }
-  }
-
-  protected onLogEnd(request, response): void {
-    if (this.requestToObject(request).url === "/healthz") {
-      delete request.log;
-      return;
-    }
-    return super.onLogEnd(request, response);
+  $afterRoutesInit(): void | Promise<any> {
+    this.app.use(ErrorMiddleware);
   }
 }

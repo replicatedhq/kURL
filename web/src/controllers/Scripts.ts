@@ -4,13 +4,14 @@ import {
   Get,
   PathParams,
   Req,
-  Res } from "ts-express-decorators";
+  Res } from "@tsed/common";
 import { instrumented } from "monkit";
 import { Installer, InstallerStore } from "../installers";
 import { Templates } from "../util/services/templates";
 import { MetricsStore } from "../util/services/metrics";
 import { logger } from "../logger";
 import * as requestIP from "request-ip";
+import { ServerError } from "../server/errors";
 
 interface ErrorResponse {
   error: any;

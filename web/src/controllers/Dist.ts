@@ -3,7 +3,7 @@ import {
   Controller,
   Get,
   PathParams,
-  Res } from "ts-express-decorators";
+  Res } from "@tsed/common";
 import { getDistUrl, getPackageUrl } from "../util/package";
 
 @Controller("/dist")

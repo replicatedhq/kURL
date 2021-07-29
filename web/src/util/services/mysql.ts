@@ -1,4 +1,4 @@
-import {Service} from "ts-express-decorators";
+import {Service} from "@tsed/common";
 import * as mysql from "promise-mysql";
 import getMysqlPool from "../persistence/mysql";
 
