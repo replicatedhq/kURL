@@ -977,7 +977,7 @@ github.com/prometheus/tsdb v0.8.0/go.mod h1:fSI0j+IUQrDd7+ZtR9WKIGtoYAYAJUKcKhYL
 github.com/quasilyte/go-consistent v0.0.0-20190521200055-c6f3937de18c/go.mod h1:5STLWrekHfjyYwxBRVRXNOSewLJ3PWfDJd1VyTS21fI=
 github.com/quobyte/api v0.1.2/go.mod h1:jL7lIHrmqQ7yh05OJ+eEEdHr0u/kmT1Ff9iHd+4H6VI=
 github.com/rancher/go-rancher v0.1.1-0.20190307222549-9756097e5e4c/go.mod h1:7oQvGNiJsGvrUgB+7AH8bmdzuR0uhULfwKb43Ht0hUk=
-github.com/replicatedhq/pvmigrate v0.3.0/go.mod h1:HXPV+iTqyR2YXPkSKkVtfkAhps9t55W0UqdOeaQvULk=
+github.com/replicatedhq/pvmigrate v0.3.1/go.mod h1:HXPV+iTqyR2YXPkSKkVtfkAhps9t55W0UqdOeaQvULk=
 github.com/replicatedhq/termui/v3 v3.1.1-0.20200811145416-f40076d26851/go.mod h1:JDxG6+uubnk9/BZ2yUsyAJJwlptjrnmB2MPF5d2Xe/8=
 github.com/replicatedhq/troubleshoot v0.13.5/go.mod h1:mfDCXqnMY1OUoELXFIZnNH7zHYIveAfuv5eZFcHZnVk=
 github.com/robfig/cron v1.1.0/go.mod h1:JGuDeoQd7Z6yL4zQhZ3OPEVHB7fL6Ka6skscFHfmt2k=
