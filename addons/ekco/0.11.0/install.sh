@@ -309,9 +309,28 @@ function ekco_cleanup_bootstrap_internal_lb() {
 }
 
 function ekco_handle_load_balancer_address_change_kubeconfigs() {
+    # The change-load-balancer command will restart kubelet on all remote nodes after updating
+    # kubeconfigs. When kubelet restarts on the node where the ekco pod is scheduled, the connection
+    # to the change-load-balancer output stream will break, but the command will continue running
+    # in the pod to completion. Therefore the command output has to be redirected to a file in the
+    # pod and then we have to poll that file to determine when the command is finished and if it was
+    # successful
     if [ "$EKCO_ENABLE_INTERNAL_LOAD_BALANCER" = "1" ]; then
-        kubectl -n kurl exec deploy/ekc-operator -- ekco change-load-balancer --internal --server=https://localhost:6444
+        kubectl -n kurl exec deploy/ekc-operator -- /bin/bash -c "ekco change-load-balancer --internal --server=https://localhost:6444 &>/tmp/change-lb-log"
     else
-        kubectl -n kurl exec deploy/ekc-operator -- ekco change-load-balancer --server="https://${API_SERVICE_ADDRESS}"
+        kubectl -n kurl exec deploy/ekc-operator -- /bin/bash -c "ekco change-load-balancer --server=https://${API_SERVICE_ADDRESS} &>/tmp/change-lb-log"
     fi
+
+    echo "Waiting up to 10 minutes for kubeconfigs on remote nodes to begin using new load balancer address"
+    spinner_until 600 ekco_change_lb_completed
+
+    logs=$(kubectl -n kurl exec -i deploy/ekc-operator -- cat /tmp/change-lb-log)
+    if ! echo "$logs" | grep -q "Result: success"; then
+        echo "$logs"
+        bail "Failed to update server address in kubeconfigs on remote ndoes"
+    fi
+}
+
+function ekco_change_lb_completed() {
+    2>/dev/null kubectl -n kurl exec -i deploy/ekc-operator -- grep -q "Result:" /tmp/change-lb-log
 }
