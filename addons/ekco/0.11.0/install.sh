@@ -259,14 +259,14 @@ function ekco_bootstrap_internal_lb() {
 
     if commandExists docker; then
         mkdir -p /etc/haproxy
-        docker run --rm -i \
+        docker run --rm \
             --entrypoint="/usr/bin/ekco" \
             replicated/ekco:v$EKCO_VERSION \
             generate-haproxy-config --primary-host=${backends} \
             > /etc/haproxy/haproxy.cfg
 
         mkdir -p /etc/kubernetes/manifests
-        docker run --rm -i \
+        docker run --rm \
             --entrypoint="/usr/bin/ekco" \
             --volume '/etc:/host/etc' \
             replicated/ekco:v$EKCO_VERSION \
