@@ -1,15 +1,7 @@
 import * as Express from "express";
 import * as bugsnag from "bugsnag";
 import * as util from "util";
-import {
-  Err,
-  IMiddlewareError,
-  GlobalErrorHandlerMiddleware,
-  Next,
-  OverrideProvider,
-  Request,
-  Response,
-} from "ts-express-decorators";
+import { Err, Next, Middleware, Req, Res } from "@tsed/common";
 import { logger } from "../logger";
 
 export class HTTPError extends Error {
@@ -76,14 +68,13 @@ export class Errors {
   public static ServerError = ServerError;
 }
 
-@OverrideProvider(GlobalErrorHandlerMiddleware)
-export class ErrorMiddleware implements IMiddlewareError {
-
-  public use(
+@Middleware()
+export class ErrorMiddleware {
+  use(
     @Err() error: any,
-    @Request() request: Express.Request,
-    @Response() response: Express.Response,
-    @Next() next: Express.NextFunction,
+    @Res() response: Express.Response,
+    @Req() request: Express.Request,
+    @Next() next: Next,
   ): any {
     logger.debug("Handling error", error);
 
@@ -99,8 +90,8 @@ export class ErrorMiddleware implements IMiddlewareError {
       error = new ServerError();
     }
 
-    response.status(error.status).send(JSON.stringify(error.body));
+    response.status((error as HTTPError).status).send(JSON.stringify((error as HTTPError).body));
     return next();
-
   }
 }
+

@@ -1,4 +1,7 @@
 import * as util from "util";
+import {$log} from "@tsed/common";
+import {PlatformExpress} from "@tsed/platform-express";
+import { initMysqlPool } from "../util/persistence/mysql";
 import { Server } from "../server/server";
 import * as metrics from "../metrics";
 
@@ -25,7 +28,17 @@ export async function main(argv: any): Promise<void> {
 
   metrics.bootstrapFromEnv();
 
-  await new Server(
-    argv.bugsnagKey,
-  ).start();
+  await initMysqlPool();
+
+  try {
+    $log.debug("Start server...");
+    const platform = await PlatformExpress.bootstrap(Server, {
+      // extra settings
+    });
+
+    await platform.listen();
+    $log.debug("Server initialized");
+  } catch (er) {
+    $log.error(er);
+  }
 }

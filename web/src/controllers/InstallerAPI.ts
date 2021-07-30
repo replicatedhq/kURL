@@ -8,12 +8,13 @@ import {
   Put,
   QueryParams,
   Req,
-  Res } from "ts-express-decorators";
+  Res } from "@tsed/common";
 import { instrumented } from "monkit";
 import { Installer, InstallerObject, InstallerStore } from "../installers";
 import decode from "../util/jwt";
 import { getInstallerVersions } from "../installers/installer-versions";
 import { getDistUrl } from "../util/package";
+import { ServerError } from "../server/errors";
 
 interface ErrorResponse {
   error: any;

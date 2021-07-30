@@ -2,7 +2,7 @@ import * as Express from "express";
 import {
   Controller,
   Get,
-  Res } from "ts-express-decorators";
+  Res } from "@tsed/common";
 import { instrumented } from "monkit";
 
 interface Health {
