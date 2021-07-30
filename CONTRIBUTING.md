@@ -19,7 +19,7 @@ We welcome contributions to kURL. We appreciate your time and help.
 1. Rsync local packages to remote test server.
     ```bash
     # Local workstation
-    yarn install
+    npm install
     export REMOTES="USER@TARGET_SERVER_IP"
     make watchrsync
     # The job continually synchronizes local builds, keep it running
