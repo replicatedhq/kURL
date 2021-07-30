@@ -5,7 +5,7 @@
   "main": "./build/index.js",
   "license": "Apache License 2.0",
   "dependencies": {
-    "@tsed/common": "^6.61.1",
+    "@tsed/common": "^6.62.0",
     "@tsed/core": "^6.61.1",
     "@tsed/di": "^6.61.1",
     "@tsed/logger": "^5.17.0",
