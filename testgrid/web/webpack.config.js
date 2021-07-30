@@ -1,5 +1,5 @@
-const webpackMerge = require("webpack-merge");
 const webpack = require("webpack");
+const { merge } = require("webpack-merge");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const FaviconsWebpackPlugin = require("favicons-webpack-plugin");
 const HtmlWebpackTemplate = require("html-webpack-template");
@@ -7,12 +7,17 @@ const MonacoWebpackPlugin = require("monaco-editor-webpack-plugin");
 
 const path = require("path");
 
-module.exports = function(env) {
-  const appEnv = require("./env/" + (env || "development") + ".js");
+module.exports = (env) => {
+  let appEnv;
+  if (env.production) {
+    appEnv = require("./env/production.js");
+  } else if (env.staging) {
+    appEnv = require("./env/staging.js");
+  } else {
+    appEnv = require("./env/development.js");
+  }
 
   const common = {
-    mode: env,
-
     resolve: {
       extensions: [".js", ".jsx", ".scss", ".css", ".png", ".jpg", ".svg", ".ico"],
     },
@@ -32,12 +37,7 @@ module.exports = function(env) {
               }
             },
             {
-              loader: "sass-loader",
-              options: {
-                includePaths: [
-                  path.resolve(__dirname, "node_modules"),
-                ],
-              },
+              loader: "sass-loader"
             },
             {
               loader: "postcss-loader"
@@ -64,7 +64,14 @@ module.exports = function(env) {
         },
         {
           test: /\.woff(2)?(\?v=\d+\.\d+\.\d+)?$/,
-          loader: "url-loader?limit=10000&mimetype=application/font-woff&name=./assets/[hash].[ext]",
+          use: {
+            loader: 'url-loader',
+            options: {
+              limit: 10000,
+              mimetype: 'application/font-woff',
+              name: './assets/[hash].[ext]'
+            }
+          }
         },
         {
           test: /\.(ttf|eot)$/,
@@ -75,6 +82,10 @@ module.exports = function(env) {
             }
           }
         },
+        {
+          test: /\.json$/,
+          loader: 'json-loader'
+        }
       ]
     },
 
@@ -103,7 +114,7 @@ module.exports = function(env) {
           }
         ],
         scripts: appEnv.WEBPACK_SCRIPTS,
-        inject: false,
+        inject: true,
         window: {
           env: appEnv,
         },
@@ -131,14 +142,14 @@ module.exports = function(env) {
     ],
   };
 
-  if (env === "production") {
+  if (env.production) {
     const prod = require("./webpack.prod.config");
-    return webpackMerge(common, prod);
-  } else if (env === "staging") {
+    return merge(common, prod);
+  } else if (env.staging) {
     const staging = require("./webpack.staging.config");
-    return webpackMerge(common, staging);
+    return merge(common, staging);
   } else {
     const dev = require("./webpack.dev.config");
-    return webpackMerge(common, dev);
+    return merge(common, dev);
   }
 };
