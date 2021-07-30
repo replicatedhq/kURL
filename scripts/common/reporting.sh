@@ -26,7 +26,7 @@ function report_install_start() {
     fi
 
      # Determine if it is the first kurl install 
-     if kubernetes_resource_exists kurl configmap kurl-current-config; then
+     if kubernetes_resource_exists kube-system configmap kurl-config; then
          curl -s --output /dev/null -H 'Content-Type: application/json' --max-time 5 \
          -d "{\"started\": \"$started\", \"os\": \"$LSB_DIST $DIST_VERSION\", \"kernel_version\": \"$KERNEL_MAJOR.$KERNEL_MINOR\", \"kurl_url\": \"$KURL_URL\", \"installer_id\": \"$INSTALLER_ID\", \"testgrid_id\": \"$TESTGRID_ID\", \"machine_id\": \"$MACHINE_ID\", \"is_upgrade\": true}" \
          $REPLICATED_APP_URL/kurl_metrics/start_install/$INSTALLATION_ID || true
