@@ -130,6 +130,8 @@ spec:
                 properties:
                   autoUpgradeSchedule:
                     type: string
+                  enableInternalLoadBalancer:
+                    type: boolean
                   minReadyMasterNodeCount:
                     type: integer
                   minReadyWorkerNodeCount:

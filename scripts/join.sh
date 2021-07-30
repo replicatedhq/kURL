@@ -88,6 +88,10 @@ function join() {
     else
         logSuccess "Node joined successfully"
     fi
+
+    if commandExists ekco_cleanup_bootstrap_internal_lb; then
+        ekco_cleanup_bootstrap_internal_lb
+    fi
 }
 
 outro() {

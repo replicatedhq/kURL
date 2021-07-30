@@ -63,6 +63,9 @@ function init() {
     if commandExists ekco_handle_load_balancer_address_change_pre_init; then
         ekco_handle_load_balancer_address_change_pre_init $oldLoadBalancerAddress $LOAD_BALANCER_ADDRESS
     fi
+    if [ "$EKCO_ENABLE_INTERNAL_LOAD_BALANCER" = "1" ] && commandExists ekco_bootstrap_internal_lb; then
+        ekco_bootstrap_internal_lb
+    fi
 
     kustomize_kubeadm_init=./kustomize/kubeadm/init
     CERT_KEY=
@@ -170,6 +173,10 @@ EOF
         spinner_until 120 cert_has_san "$PRIVATE_ADDRESS:6443" "$LOAD_BALANCER_ADDRESS"
     fi
 
+    if commandExists ekco_cleanup_bootstrap_internal_lb; then
+        ekco_cleanup_bootstrap_internal_lb
+    fi
+
     spinner_kubernetes_api_stable
 
     exportKubeconfig
@@ -186,29 +193,35 @@ EOF
         # restart scheduler and controller-manager on this node so they use the new address
         mv /etc/kubernetes/manifests/kube-scheduler.yaml /tmp/ && sleep 1 && mv /tmp/kube-scheduler.yaml /etc/kubernetes/manifests/
         mv /etc/kubernetes/manifests/kube-controller-manager.yaml /tmp/ && sleep 1 && mv /tmp/kube-controller-manager.yaml /etc/kubernetes/manifests/
-        # restart kube-proxies so they use the new address
-        kubectl -n kube-system delete pods --selector=k8s-app=kube-proxy
 
         if kubernetes_has_remotes; then
-            printf "${YELLOW}\nThe load balancer address has changed. Run the following on all remote nodes to use the new address${NC}\n"
-            printf "\n"
-            if [ "$AIRGAP" = "1" ]; then
-                printf "${GREEN}    cat ./tasks.sh | sudo bash -s set-kubeconfig-server https://${currentLoadBalancerAddress}${NC}\n"
+            if commandExists ekco_handle_load_balancer_address_change_kubeconfigs; then
+                ekco_handle_load_balancer_address_change_kubeconfigs
             else
-                local prefix=
-                prefix="$(build_installer_prefix "${INSTALLER_ID}" "${KURL_VERSION}" "${KURL_URL}" "${PROXY_ADDRESS}")"
+                # Manual steps for ekco < 0.11.0
+                printf "${YELLOW}\nThe load balancer address has changed. Run the following on all remote nodes to use the new address${NC}\n"
+                printf "\n"
+                if [ "$AIRGAP" = "1" ]; then
+                    printf "${GREEN}    cat ./tasks.sh | sudo bash -s set-kubeconfig-server https://${currentLoadBalancerAddress}${NC}\n"
+                else
+                    local prefix=
+                    prefix="$(build_installer_prefix "${INSTALLER_ID}" "${KURL_VERSION}" "${KURL_URL}" "${PROXY_ADDRESS}")"
 
-                printf "${GREEN}    ${prefix}tasks.sh | sudo bash -s set-kubeconfig-server https://${currentLoadBalancerAddress}${NC}\n"
+                    printf "${GREEN}    ${prefix}tasks.sh | sudo bash -s set-kubeconfig-server https://${currentLoadBalancerAddress}${NC}\n"
+                fi
+
+                printf "\n"
+                printf "Continue? "
+                confirmN
             fi
-
-            printf "\n"
-            printf "Continue? "
-            confirmN
 
             if commandExists ekco_handle_load_balancer_address_change_post_init; then
                 ekco_handle_load_balancer_address_change_post_init $oldLoadBalancerAddress $LOAD_BALANCER_ADDRESS
             fi
         fi
+
+        # restart kube-proxies so they use the new address
+        kubectl -n kube-system delete pods --selector=k8s-app=kube-proxy
     fi
 
     labelNodes
