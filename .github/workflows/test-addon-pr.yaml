@@ -33,7 +33,7 @@ jobs:
           check
 
       - name: Setup Go
-        uses: actions/setup-go@v2.1.3
+        uses: actions/setup-go@v2
         if: ${{ steps.check.outputs.addons_available == 'true' }}
         with:
           go-version: 1.16
@@ -57,11 +57,10 @@ jobs:
           run
 
       - name: Post TG URL
-        uses: unsplash/comment-on-pr@master
+        uses: mshick/add-pr-comment@v1
         if: ${{ steps.check.outputs.addons_available == 'true' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GH_PAT }}
         with:
-          msg: ${{ steps.queue.outputs.msg }}
-          check_for_duplicate_msg: true
-
+          message: ${{ steps.queue.outputs.msg }}
+          allow-repeats: false
