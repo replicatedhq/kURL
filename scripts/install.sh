@@ -453,6 +453,7 @@ function main() {
     export SUPPORT_BUNDLE_READY=1 # allow ctrl+c and ERR traps to collect support bundles now that k8s is installed
     kurl_init_config
     ${K8S_DISTRO}_addon_for_each addon_install
+    maybe_cleanup_rook
     helmfile_sync
     post_init
     outro

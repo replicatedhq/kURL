@@ -108,3 +108,14 @@ function rook_ceph_to_longhorn() {
     # print success message
     printf "${GREEN}Migration from rook-ceph to longhorn completed successfully!\n${NC}"
 }
+
+# if PVCs and object store data have both been migrated from rook-ceph and rook-ceph is no longer specified in the kURL spec, remove rook-ceph
+function maybe_cleanup_rook() {
+    if [ -z "$ROOK_VERSION" ]; then
+        if [ "$DID_MIGRATE_ROOK_PVCS" == "1" ] && [ "$DID_MIGRATE_ROOK_OBJECT_STORE" == "1" ]; then
+            report_addon_start "rook-ceph-removal" "v1"
+            remove_rook_ceph
+            report_addon_success "rook-ceph-removal" "v1"
+        fi
+    fi
+}
