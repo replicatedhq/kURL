@@ -35,8 +35,6 @@ function report_install_start() {
          -d "{\"started\": \"$started\", \"os\": \"$LSB_DIST $DIST_VERSION\", \"kernel_version\": \"$KERNEL_MAJOR.$KERNEL_MINOR\", \"kurl_url\": \"$KURL_URL\", \"installer_id\": \"$INSTALLER_ID\", \"testgrid_id\": \"$TESTGRID_ID\", \"machine_id\": \"$MACHINE_ID\", \"is_upgrade\": false}" \
          $REPLICATED_APP_URL/kurl_metrics/start_install/$INSTALLATION_ID || true
      fi
-
-     }
 }
 
 function report_install_success() {
