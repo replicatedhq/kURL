@@ -224,7 +224,6 @@ export interface MinioConfig {
   s3Override?: string;
   namespace?: string;
   hostPath?: string;
-  migrateFromRGW?: boolean;
 }
 
 export const minioConfigSchema = {
@@ -234,7 +233,6 @@ export const minioConfigSchema = {
     s3Override: { type: "string", flag: "s3-override", description: "Override the download location for addon package distribution (used for CI/CD testing alpha addons)" },
     namespace: { type: "string", flag: "minio-namespace", description: "The namespace Minio is installed to" },
     hostPath: { type: "string", flag: "minio-hostpath", description: "Configure the minio deployment to use a local hostPath for storing data." },
-    migrateFromRGW: { type: "boolean", flag: "migrate-from-rgw", description: "Automatically migrate all data from Rook RGW object store if found in the cluster" },
   },
   required: ["version"],
   additionalProperties: false,
