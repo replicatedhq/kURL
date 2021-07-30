@@ -290,6 +290,8 @@ function ekco_bootstrap_internal_lb() {
             ekco generate-haproxy-manifest --primary-host=${backends} --file=/host/etc/kubernetes/manifests/haproxy.yaml
 
 
+        ctr --namespace k8s.io task kill -s SIGKILL bootstrap-lb &>/dev/null || true
+        ctr --namespace k8s.io containers delete bootstrap-lb &>/dev/null || true
         ctr --namespace k8s.io run --rm \
             --mount "type=bind,src=/etc/haproxy,dst=/usr/local/etc/haproxy,options=rbind:ro" \
             --net-host \
@@ -315,10 +317,11 @@ function ekco_handle_load_balancer_address_change_kubeconfigs() {
     # in the pod to completion. Therefore the command output has to be redirected to a file in the
     # pod and then we have to poll that file to determine when the command is finished and if it was
     # successful
+    exclude=$(hostname | tr '[:upper:]' '[:lower:]')
     if [ "$EKCO_ENABLE_INTERNAL_LOAD_BALANCER" = "1" ]; then
-        kubectl -n kurl exec deploy/ekc-operator -- /bin/bash -c "ekco change-load-balancer --internal --server=https://localhost:6444 &>/tmp/change-lb-log"
+        kubectl -n kurl exec deploy/ekc-operator -- /bin/bash -c "ekco change-load-balancer --exclude=${exclude} --internal --server=https://localhost:6444 &>/tmp/change-lb-log"
     else
-        kubectl -n kurl exec deploy/ekc-operator -- /bin/bash -c "ekco change-load-balancer --server=https://${API_SERVICE_ADDRESS} &>/tmp/change-lb-log"
+        kubectl -n kurl exec deploy/ekc-operator -- /bin/bash -c "ekco change-load-balancer --exclude=${exclude} --server=https://${API_SERVICE_ADDRESS} &>/tmp/change-lb-log"
     fi
 
     echo "Waiting up to 10 minutes for kubeconfigs on remote nodes to begin using new load balancer address"
