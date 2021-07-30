@@ -17,7 +17,6 @@ spec:
     version: 19.03.10
   minio:
     version: 2020-01-25T02-50-51Z
-    migrateFromRGW: true
 `;
 
 describe("script with minio config", () => {
@@ -30,6 +29,5 @@ describe("script with minio config", () => {
 
 		expect(script).to.match(new RegExp(`minio:`));
 		expect(script).to.match(new RegExp(`version: 2020-01-25T02-50-51Z`));
-		expect(script).to.match(new RegExp(`migrateFromRGW: true`));
 	});
 });

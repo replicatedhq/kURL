@@ -61,7 +61,6 @@
       version: "latest"
     minio:
       version: "latest"
-      migrateFromRGW: true
     kotsadm:
       version: "latest"
     longhorn:
@@ -89,7 +88,6 @@
       version: "latest"
     minio:
       version: "latest"
-      migrateFromRGW: true
     kotsadm:
       version: "latest"
     longhorn:

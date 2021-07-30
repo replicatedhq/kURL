@@ -148,11 +148,11 @@ function minio_ready() {
 }
 
 function minio_migrate_from_rgw() {
-    if [ "$MINIO_MIGRATE_FROM_RGW" != "1" ]; then
+    if [ -n "$ROOK_VERSION" ]; then # if rook is still specified in the kURL spec, don't migrate
         return
     fi
 
-    if ! kubernetes_resource_exists rook-ceph deployment rook-ceph-rgw-rook-ceph-store-a; then
+    if ! kubernetes_resource_exists rook-ceph deployment rook-ceph-rgw-rook-ceph-store-a; then # if rook is not installed, don't migrate
         return
     fi
 
