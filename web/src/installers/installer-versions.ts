@@ -1,6 +1,6 @@
 import * as _ from "lodash";
 import fetch from "node-fetch";
-import bugsnag = require("bugsnag");
+import Bugsnag from "@bugsnag/js";
 import { HTTPError } from "../server/errors";
 import { getPackageUrl } from "../util/package";
 import { InstallerVersions } from "./versions";
@@ -24,7 +24,7 @@ export async function getInstallerVersions(distUrl: string, kurlVersion?: string
     // older versions did not have support for versioned supported-versions-gen.json
     const err = `Supported versions file not found for ${url}`;
     console.error(err);
-    bugsnag.notify(err);
+    Bugsnag.notify(err);
 
     return InstallerVersions;
   } else if (res.status !== 200) {

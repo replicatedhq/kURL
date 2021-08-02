@@ -19,18 +19,10 @@ function initLoggerFromEnv(): pino.Logger {
   const options = {
     name: component,
     level: pinoLevel,
+    prettyPrint: !!process.env.PINO_LOG_PRETTY,
   };
 
-  if (!process.env.PINO_LOG_PRETTY) {
-    return pino(options, dest as stream.Writable).child({
-      version: process.env.VERSION,
-      component,
-    });
-  }
-
-  const prettifier = pino.pretty();
-  prettifier.pipe(dest);
-  return pino(options, prettifier).child({
+  return pino(options, dest).child({
     version: process.env.VERSION,
     component,
   });

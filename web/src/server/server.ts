@@ -1,6 +1,6 @@
-import {Configuration, PlatformApplication} from "@tsed/common";
+import {Configuration, PlatformApplication, Context, OverrideProvider, PlatformLogMiddleware} from "@tsed/common";
 import {Inject} from "@tsed/di";
-import * as bugsnag from "bugsnag";
+import Bugsnag from "@bugsnag/js";
 import * as cors from "cors";
 import * as path from "path";
 import * as RateLimit from "express-rate-limit";
@@ -33,12 +33,10 @@ export class Server {
   $beforeRoutesInit(): void | Promise<any> {
     this.app.getApp().enable("trust proxy"); // so we get the real ip from the ELB in amaazon
 
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    if (process.env["BUGSNAG_KEY"]) {
-      bugsnag.register(process.env["BUGSNAG_KEY"] || "", {
-        releaseStage: process.env["NODE_ENV"],
-      });
-      this.app.use(bugsnag.requestHandler);
+    const bugsnagMiddleware = Bugsnag.getPlugin("express");
+
+    if (bugsnagMiddleware) {
+      this.app.use(bugsnagMiddleware.requestHandler);
     }
 
     this.app.use(express.json());
@@ -52,8 +50,8 @@ export class Server {
 
     this.app.use(cors());
 
-    if (process.env["BUGSNAG_KEY"]) {
-      this.app.use(bugsnag.errorHandler);
+    if (bugsnagMiddleware) {
+      this.app.use(bugsnagMiddleware.errorHandler);
     }
 
     if (process.env["IGNORE_RATE_LIMITS"] !== "1") {
@@ -69,5 +67,38 @@ export class Server {
 
   $afterRoutesInit(): void | Promise<any> {
     this.app.use(ErrorMiddleware);
+  }
+}
+
+@OverrideProvider(PlatformLogMiddleware)
+export class CustomPlatformLogMiddleware extends PlatformLogMiddleware {
+  public use(@Context() ctx: Context) {
+    // do something
+
+    return super.use(ctx); // required
+  }
+
+  /**
+   * Called when the `$onResponse` is called by Ts.ED (through Express.end).
+   */
+   protected onLogEnd(ctx: Context) {
+    const {debug, logRequest, logEnd} = this.settings;
+
+    if (logEnd !== false) {
+      if (debug) {
+        ctx.logger.debug({
+          event: "request.end",
+          status: ctx.response.statusCode,
+          // data: ctx.data // data is too noisy
+        });
+      } else if (logRequest) {
+        ctx.logger.info({
+          event: "request.end",
+          status: ctx.response.statusCode
+        });
+      }
+    }
+
+    ctx.logger.flush();
   }
 }

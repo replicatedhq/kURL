@@ -1,5 +1,5 @@
 import * as Express from "express";
-import * as bugsnag from "bugsnag";
+import Bugsnag from "@bugsnag/js";
 import * as util from "util";
 import { Err, Next, Middleware, Req, Res } from "@tsed/common";
 import { logger } from "../logger";
@@ -86,7 +86,7 @@ export class ErrorMiddleware {
     if (!(error instanceof HTTPError)) {
       // its an unhandled error so log it and then return a regular 500
       logger.error("Handling internal server error " + util.inspect(error));
-      bugsnag.notify(error);
+      Bugsnag.notify(error);
       error = new ServerError();
     }
 

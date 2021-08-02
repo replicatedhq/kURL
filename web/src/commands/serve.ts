@@ -1,6 +1,8 @@
 import * as util from "util";
 import {$log} from "@tsed/common";
 import {PlatformExpress} from "@tsed/platform-express";
+import Bugsnag from "@bugsnag/js";
+import BugsnagPluginExpress from "@bugsnag/plugin-express";
 import { initMysqlPool } from "../util/persistence/mysql";
 import { Server } from "../server/server";
 import * as metrics from "../metrics";
@@ -24,6 +26,14 @@ exports.handler = (argv) => {
 export async function main(argv: any): Promise<void> {
   if (process.env["NEW_RELIC_LICENSE_KEY"]) {
     require("newrelic");
+  }
+
+  if (process.env["BUGSNAG_KEY"]) {
+    Bugsnag.start({
+      apiKey: process.env["BUGSNAG_KEY"] || "",
+      releaseStage: process.env["NODE_ENV"],
+      plugins: [BugsnagPluginExpress],
+    });
   }
 
   metrics.bootstrapFromEnv();

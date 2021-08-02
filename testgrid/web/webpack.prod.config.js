@@ -38,7 +38,7 @@ module.exports = {
   output: {
     path: distPath,
     publicPath: "/",
-    filename: "kurltestgrid.[hash].js",
+    filename: "kurltestgrid.[fullhash].js",
   },
 
   devtool: false,
