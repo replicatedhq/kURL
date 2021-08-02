@@ -706,7 +706,7 @@ spec:
       it("=> ErrorResponse", async () => {
         const out = await Installer.parse(kotsNoVersion).validate();
 
-        expect(out).to.deep.equal({ error: { message: "spec.kotsadm should have required property 'version'" }});
+        expect(out).to.deep.equal({ error: { message: "spec/kotsadm must have required property 'version'" }});
       });
     });
 
@@ -759,7 +759,7 @@ spec:
         const i = Installer.parse(yaml);
         const out = await i.validate();
 
-        expect(out).to.deep.equal({ error: { message: "spec.kubernetes should NOT have additional properties" } });
+        expect(out).to.deep.equal({ error: { message: "spec/kubernetes must NOT have additional properties" } });
       });
     });
 
@@ -886,7 +886,7 @@ spec:
     it("should parse", () => {
       const i = Installer.parse(everyOption);
 
-      expect(i.spec.openebs.namespace).to.equal("openebs");
+      expect(i.spec.openebs?.namespace).to.equal("openebs");
     });
   });
 
@@ -1036,7 +1036,7 @@ spec:
     it("should parse", () => {
       const i = Installer.parse(everyOption);
 
-      expect(i.spec.collectd.version).to.equal("v5");
+      expect(i.spec.collectd?.version).to.equal("v5");
     });
   });
 
@@ -1044,7 +1044,7 @@ spec:
     it("should parse the version", () => {
       const i = Installer.parse(everyOption);
 
-      expect(i.spec.certManager.version).to.equal("1.0.3");
+      expect(i.spec.certManager?.version).to.equal("1.0.3");
     });
   });
 
@@ -1052,7 +1052,7 @@ spec:
     it("should parse the version", () => {
       const i = Installer.parse(everyOption);
 
-      expect(i.spec.metricsServer.version).to.equal("0.3.7");
+      expect(i.spec.metricsServer?.version).to.equal("0.3.7");
     });
   });
 
@@ -1068,7 +1068,7 @@ spec:
       const i = Installer.parse(yaml);
       const out = await i.validate();
 
-      expect(out).to.deep.equal({ error: { message: "spec.helm should have required property 'helmfileSpec'" } });
+      expect(out).to.deep.equal({ error: { message: "spec/helm must have required property 'helmfileSpec'" } });
     });
   });
 
@@ -1178,7 +1178,7 @@ spec:
     it("should parse the nameserver", () => {
       const i = Installer.parse(everyOption);
 
-      expect(i.spec.kurl.nameserver).to.equal("8.8.8.8");
+      expect(i.spec.kurl?.nameserver).to.equal("8.8.8.8");
     });
   });
 });

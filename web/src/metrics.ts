@@ -1,5 +1,5 @@
 import * as StatsdClient from "statsd-client";
-import * as rp from "request-promise";
+import fetch from "node-fetch";
 
 import {
   getRegistry,
@@ -56,11 +56,8 @@ export async function bootstrapFromEnv(): Promise<void> {
   let statsdIpAddress;
 
   if (process.env["USE_EC2_PARAMETERS"]) {
-    const options = {
-      uri: "http://169.254.169.254/latest/meta-data/local-ipv4",
-    };
-
-    statsdIpAddress = await rp(options);
+    const res = await fetch("http://169.254.169.254/latest/meta-data/local-ipv4");
+    statsdIpAddress = await res.text();
   }
 
   const statsdHost = statsdIpAddress || process.env.STATSD_IP_ADDRESS;

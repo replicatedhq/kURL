@@ -4,8 +4,7 @@ const HtmlWebpackPlugin = require("html-webpack-plugin");
 const FaviconsWebpackPlugin = require("favicons-webpack-plugin");
 const HtmlWebpackTemplate = require("html-webpack-template");
 const MonacoWebpackPlugin = require("monaco-editor-webpack-plugin");
-
-const path = require("path");
+const ESLintPlugin = require("eslint-webpack-plugin");
 
 module.exports = (env) => {
   let appEnv;
@@ -40,7 +39,14 @@ module.exports = (env) => {
               loader: "sass-loader"
             },
             {
-              loader: "postcss-loader"
+              loader: "postcss-loader",
+              options: {
+                postcssOptions: {
+                  plugins: [
+                    ["autoprefixer"]
+                  ]
+                }
+              }
             },
           ],
         },
@@ -69,7 +75,7 @@ module.exports = (env) => {
             options: {
               limit: 10000,
               mimetype: 'application/font-woff',
-              name: './assets/[hash].[ext]'
+              name: './assets/[fullhash].[ext]'
             }
           }
         },
@@ -78,7 +84,7 @@ module.exports = (env) => {
           use: {
             loader: 'file-loader',
             options: {
-              name: 'fonts/[hash].[ext]'
+              name: 'fonts/[fullhash].[ext]'
             }
           }
         },
@@ -91,6 +97,7 @@ module.exports = (env) => {
 
     plugins: [
       new webpack.IgnorePlugin(/^\.\/locale$/, /moment$/),
+      new ESLintPlugin(),
       new HtmlWebpackPlugin({
         template: HtmlWebpackTemplate,
         title: "kurl.sh test grid",
@@ -118,17 +125,6 @@ module.exports = (env) => {
         window: {
           env: appEnv,
         },
-      }),
-      new webpack.LoaderOptionsPlugin({
-        options: {
-          tslint: {
-            emitErrors: true,
-            failOnHint: true,
-          },
-        },
-        postcss: [
-          require("autoprefixer"),
-        ],
       }),
       new FaviconsWebpackPlugin("./src/assets/images/favicon-64.png"),
 			new webpack.ContextReplacementPlugin(

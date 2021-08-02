@@ -23,9 +23,9 @@ describe("script with minio config", () => {
 	it("200", async () => {
 		const uri = await client.postInstaller(minio);
 
-		expect(uri).to.match(/b737e21/);
+		expect(uri).to.match(/5e5ebc3/);
 
-		const script = await client.getInstallScript("b737e21");
+		const script = await client.getInstallScript("5e5ebc3");
 
 		expect(script).to.match(new RegExp(`minio:`));
 		expect(script).to.match(new RegExp(`version: 2020-01-25T02-50-51Z`));

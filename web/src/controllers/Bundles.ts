@@ -1,6 +1,5 @@
-
+import fetch from "node-fetch";
 import * as Express from "express";
-import * as request from "request-promise";
 import * as _ from "lodash";
 import {
   Controller,
@@ -96,9 +95,9 @@ export class Bundle {
     if (kotsadmApplicationSlug) {
       try {
           logger.debug("URL:" + this.replicatedAppURL + ", SLUG:" + kotsadmApplicationSlug);
-          const appMetadata = await request(`${this.replicatedAppURL}/metadata/${kotsadmApplicationSlug}`);
+          const res = await fetch(`${this.replicatedAppURL}/metadata/${kotsadmApplicationSlug}`);
           const key = `kurl/addons/kotsadm/${_.get(installer.spec, "kotsadm.version")}/application.yaml`;
-          ret.files[key] = appMetadata;
+          ret.files[key] = await res.text();
       } catch (err) {
           // Log the error but continue bundle execution
           // (branding metadata is optional even though user specified a app slug)

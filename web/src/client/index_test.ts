@@ -529,7 +529,8 @@ describe("GET /<installerID>", () => {
 
     before(async () => {
       const installer = await client.postInstaller(mixedLatest);
-      id = _.trim(url.parse(installer).path, "/");
+      const urlObj = new URL(installer);
+      id = _.trim(urlObj.searchParams.get("path") || "", "/");
     });
 
     it("resolves all versions", async () => {
@@ -830,7 +831,8 @@ describe("POST /installer/validate", () => {
 
     before(async () => {
       const installer = await client.postInstaller(pinnedMinork8s);
-      id = _.trim(url.parse(installer).path, "/");
+      const urlObj = new URL(installer);
+      id = _.trim(urlObj.searchParams.get("path") || "", "/");
     });
 
     it("resolves all versions", async () => {

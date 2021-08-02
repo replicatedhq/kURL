@@ -3,7 +3,7 @@ import * as yaml from "js-yaml";
 import * as _ from "lodash";
 import * as mysql from "promise-mysql";
 import { Service } from "@tsed/common";
-import * as AJV from "ajv";
+import Ajv, {KeywordCxt} from "ajv";
 import * as semver from "semver";
 import { MysqlWrapper } from "../util/services/mysql";
 import { instrumented } from "monkit";
@@ -1117,13 +1117,15 @@ export class Installer {
       return {error: {message: "Kubernetes version is required"}};
     }
 
-    const ajv = new AJV();
+    const ajv = new Ajv({
+      strict: false,
+    });
     const validate = ajv.compile(specSchema);
     const valid = validate(this.spec);
 
     if (!valid && validate.errors && validate.errors.length) {
       const err = validate.errors[0];
-      const message = `spec${err.dataPath} ${err.message}`;
+      const message = `spec${err.instancePath} ${err.message}`;
       return {error: {message}};
     }
 
