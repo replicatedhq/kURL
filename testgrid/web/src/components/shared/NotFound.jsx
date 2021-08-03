@@ -18,7 +18,7 @@ export default class NotFound extends React.Component {
                 Error 404
               </p>
               <p className="u-marginTop--more u-color--dustyGray u-fontSize--large u-lineHeight--normal">
-                Oops, we couldn't find the page you were looking for
+                Oops, we couldn&apos;t find the page you were looking for
               </p>
               <div className="u-marginTop--more">
                 <Link to="/" className="Button primary large">Take me home</Link>

@@ -298,7 +298,7 @@ export default class InstanceTable extends React.Component {
           className="Modal LargeSize flex-column u-height--threeQuarters"
         >
           <div className="Modal-header">
-              <p>Installer for kURL URL: <a href={this.state.selectedInstance?.kurlURL} target="_blank">{this.state.selectedInstance?.kurlURL}</a></p>
+              <p>Installer for kURL URL: <a href={this.state.selectedInstance?.kurlURL} target="_blank" rel="noreferrer">{this.state.selectedInstance?.kurlURL}</a></p>
           </div>
           <div className="Modal-body flex1 flex-column">
             <div className="MonacoEditor-wrapper">
@@ -332,7 +332,7 @@ export default class InstanceTable extends React.Component {
           className="Modal XLargeSize flex-column u-height--fourFifths"
         >
           <div className="Modal-header">
-              <p>Logs for: <a href={this.state.selectedInstance?.kurlURL} target="_blank">{this.state.selectedInstance?.kurlURL}</a> / {this.state.selectedInstance?.osName}-{this.state.selectedInstance?.osVersion} <span className={`status-text ${this.getInstanceStatus(this.state.selectedInstance)}`}>({this.getInstanceStatus(this.state.selectedInstance)})</span></p>
+              <p>Logs for: <a href={this.state.selectedInstance?.kurlURL} target="_blank" rel="noreferrer">{this.state.selectedInstance?.kurlURL}</a> / {this.state.selectedInstance?.osName}-{this.state.selectedInstance?.osVersion} <span className={`status-text ${this.getInstanceStatus(this.state.selectedInstance)}`}>({this.getInstanceStatus(this.state.selectedInstance)})</span></p>
           </div>
           {this.state.loadingLogs ? 
             <Loader />
@@ -377,7 +377,7 @@ export default class InstanceTable extends React.Component {
           className="Modal XLargeSize flex-column u-height--fourFifths"
         >
           <div className="Modal-header">
-            <p>Sonobuoy Results for: <a href={this.state.selectedInstance?.kurlURL} target="_blank">{this.state.selectedInstance?.kurlURL}</a> / {this.state.selectedInstance?.osName}-{this.state.selectedInstance?.osVersion} <span className={`status-text ${this.getInstanceStatus(this.state.selectedInstance)}`}>({this.getInstanceStatus(this.state.selectedInstance)})</span></p>
+            <p>Sonobuoy Results for: <a href={this.state.selectedInstance?.kurlURL} target="_blank" rel="noreferrer">{this.state.selectedInstance?.kurlURL}</a> / {this.state.selectedInstance?.osName}-{this.state.selectedInstance?.osVersion} <span className={`status-text ${this.getInstanceStatus(this.state.selectedInstance)}`}>({this.getInstanceStatus(this.state.selectedInstance)})</span></p>
           </div>
           {this.state.loadingSonobuoyResults ? 
             <Loader />

@@ -1,5 +1,4 @@
 var path = require("path");
-var webpack = require("webpack");
 const BundleAnalyzerPlugin = require("webpack-bundle-analyzer").BundleAnalyzerPlugin;
 
 var srcPath = path.join(__dirname, "src");
@@ -16,9 +15,9 @@ module.exports = {
     rules: [
       {
         test: /\.jsx?$/,
+        use: 'ts-loader',
         include: srcPath,
         enforce: "pre",
-        use: 'ts-loader',
       },
     ],
   },

@@ -11,6 +11,7 @@ import "../assets/scss/index.scss";
 
 class Root extends React.Component {
   constructor(props) {
+    super(props);
     autobind(this);
   }
 
@@ -29,6 +30,6 @@ class Root extends React.Component {
       </BrowserRouter>
     );
   }
-};
+}
 
 export default Root;
