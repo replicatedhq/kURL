@@ -186,14 +186,25 @@ function prompt_for_load_balancer_address() {
             bail "kubernetes.loadBalancerAddress required"
         fi
 
-        printf "Please enter a load balancer address to route external and internal traffic to the API servers.\n"
-        printf "In the absence of a load balancer address, all traffic will be routed to the first master.\n"
-        printf "Load balancer address: "
-        prompt
-        LOAD_BALANCER_ADDRESS="$PROMPT_RESULT"
-        if [ -z "$LOAD_BALANCER_ADDRESS" ]; then
-            LOAD_BALANCER_ADDRESS="$PRIVATE_ADDRESS"
-            LOAD_BALANCER_PORT=6443
+        if [ -n "$EKCO_VERSION" ] && semverCompare "$EKCO_VERSION" "0.11.0" && [ "$SEMVER_COMPARE_RESULT" -ge "0" ]; then
+            printf "\nIf you would like to bring your own load balancer to route external and internal traffic to the API servers, please enter a load balancer address.\n"
+            printf "HAProxy will be used to perform this load balancing internally if you do not provide a load balancer address.\n"
+            printf "Load balancer address: "
+            prompt
+            LOAD_BALANCER_ADDRESS="$PROMPT_RESULT"
+            if [ -z "$LOAD_BALANCER_ADDRESS" ]; then
+                EKCO_ENABLE_INTERNAL_LOAD_BALANCER=1
+            fi
+        else
+            printf "Please enter a load balancer address to route external and internal traffic to the API servers.\n"
+            printf "In the absence of a load balancer address, all traffic will be routed to the first master.\n"
+            printf "Load balancer address: "
+            prompt
+            LOAD_BALANCER_ADDRESS="$PROMPT_RESULT"
+            if [ -z "$LOAD_BALANCER_ADDRESS" ]; then
+                LOAD_BALANCER_ADDRESS="$PRIVATE_ADDRESS"
+                LOAD_BALANCER_PORT=6443
+            fi
         fi
     fi
 
