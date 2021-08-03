@@ -877,7 +877,7 @@ describe("POST /installer/validate", () => {
       } catch (error) {
         err = error;
       }
-      expect(err).to.have.property("message", "Rook versions >= 1.4.0 require blockStorageEnabled to be set to true");
+      expect(err).to.be.undefined;
     });
   });
 
@@ -938,7 +938,7 @@ describe("POST /installer/validate", () => {
       } catch (error) {
         err = error;
       }
-      expect(err).to.have.property("message", "Rook versions >= 1.4.0 require blockStorageEnabled to be set to true");
+      expect(err).to.be.undefined;
     });
   });
 
@@ -958,7 +958,7 @@ describe("POST /installer/validate", () => {
       } catch (error) {
         err = error;
       }
-      expect(err).to.have.property("message", "Rook versions >= 1.4.0 require blockStorageEnabled to be set to true");
+      expect(err).to.be.undefined;
     });
   });
 
@@ -977,7 +977,7 @@ describe("POST /installer/validate", () => {
       } catch (error) {
         err = error;
       }
-      expect(err).to.have.property("message", "Rook versions >= 1.4.0 require blockStorageEnabled to be set to true");
+      expect(err).to.be.undefined;
     });
   });
 
