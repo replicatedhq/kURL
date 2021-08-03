@@ -15,15 +15,15 @@ module.exports = {
     rules: [
       {
         test: /\.jsx?$/,
+        use: 'ts-loader',
         include: srcPath,
         enforce: "pre",
-        use: 'ts-loader',
       },
       {
-        enforce: "pre",
-        include: srcPath,
         test: /\.jsx?$/,
         use: "source-map-loader",
+        include: srcPath,
+        enforce: "pre",
       },
     ],
   },

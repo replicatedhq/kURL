@@ -61,7 +61,7 @@
     "prop-types": "^15.7.2",
     "query-string": "^7.0.1",
     "react": "^16.14.0",
-    "react-ace": "^6.6.0",
+    "react-ace": "^9.4.3",
     "react-autobind": "^1.0.6",
     "react-dom": "^16.14.0",
     "react-github-button": "^0.1.11",

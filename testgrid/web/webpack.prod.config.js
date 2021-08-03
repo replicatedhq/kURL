@@ -16,9 +16,9 @@ module.exports = {
     rules: [
       {
         test: /\.jsx?$/,
+        use: 'ts-loader',
         include: srcPath,
         enforce: "pre",
-        use: 'ts-loader',
       },
     ],
   },
