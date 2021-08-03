@@ -39,7 +39,7 @@ function rook_pre_init() {
     fi
 
     if [ -z "${SKIP_ROOK_INSTALL}" ] && [ "${ROOK_BLOCK_STORAGE_ENABLED}" != "1" ]; then
-        bail "Rook ${ROOK_VERSION} requires enabling block storage"
+        logWarn "Rook ${ROOK_VERSION} requires enabling block storage"
     fi
 
     if [ "${ROOK_BYPASS_UPGRADE_WARNING}" != "1" ]; then

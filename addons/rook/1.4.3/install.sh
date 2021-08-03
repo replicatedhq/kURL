@@ -13,7 +13,7 @@ function rook_pre_init() {
             SKIP_KUBERNETES_HOST=1
         fi
     elif [ "$ROOK_BLOCK_STORAGE_ENABLED" != "1" ]; then
-        bail "Rook 1.4.3 requires enabling block storage"
+        logWarn "Rook 1.4.3 requires enabling block storage"
     fi
 }
 
