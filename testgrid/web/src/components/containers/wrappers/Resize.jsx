@@ -55,7 +55,7 @@ export function Resizer(config = {}) {
 
       render() {
         return (
-          <DecoratedComponent {...this.props} {...this.state} ref="child" />
+          <DecoratedComponent {...this.props} {...this.state} />
         );
       }
     };

@@ -5,7 +5,7 @@ import Root from "./Root";
 // get the config from the server
 fetch(`${window.env.API_ENDPOINT}/config`, { })
   .then(res => res.json())
-  .then((config) => {
+  .then(() => {
     ReactDOM.render((<Root />), document.getElementById("app"));
   })
   .catch((err) => {
