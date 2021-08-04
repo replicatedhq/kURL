@@ -861,7 +861,7 @@ describe("POST /installer/validate", () => {
       expect(err).to.have.property("message", "Rook 1.0.4 is not compatible with Kubernetes 1.20+");
     });
   });
-/*
+
   describe("rook 1.4.3 without blockStorageEnabled", () => {
     it("400", async () => {
       const spec = `
@@ -877,7 +877,7 @@ describe("POST /installer/validate", () => {
       } catch (error) {
         err = error;
       }
-      expect(err).to.have.property("message", "Rook versions >= 1.4.0 require blockStorageEnabled to be set to true");
+      expect(err).to.be.undefined;
     });
   });
 
@@ -938,7 +938,7 @@ describe("POST /installer/validate", () => {
       } catch (error) {
         err = error;
       }
-      expect(err).to.have.property("message", "Rook versions >= 1.4.0 require blockStorageEnabled to be set to true");
+      expect(err).to.be.undefined;
     });
   });
 
@@ -958,7 +958,7 @@ describe("POST /installer/validate", () => {
       } catch (error) {
         err = error;
       }
-      expect(err).to.have.property("message", "Rook versions >= 1.4.0 require blockStorageEnabled to be set to true");
+      expect(err).to.be.undefined;
     });
   });
 
@@ -977,12 +977,12 @@ describe("POST /installer/validate", () => {
       } catch (error) {
         err = error;
       }
-      expect(err).to.have.property("message", "Rook versions >= 1.4.0 require blockStorageEnabled to be set to true");
+      expect(err).to.be.undefined;
     });
   });
-  */
+  
 
-  describe("rook 1.0.4-14.2.21 with undefied blockStorageEnabled", () => {
+  describe("rook 1.0.4-14.2.21 with undefined blockStorageEnabled", () => {
     it("200", async () => {
       const spec = `
       spec:

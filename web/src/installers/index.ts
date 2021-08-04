@@ -1233,17 +1233,6 @@ export class Installer {
       }
     }
 
-    
-    // Rook >= 1.4.0 requires isBlockStorageEnabled to be set to true
-    /*
-    if (this.spec.rook && this.spec.rook.version !== "latest" && semver.gte(this.spec.rook.version, "1.4.0")) {
-      if ( !this.spec.rook.isBlockStorageEnabled ) {
-        return {error: {message: "Rook versions >= 1.4.0 require blockStorageEnabled to be set to true"}};
-      }
-    }
-    */
-  
-
     if (this.spec.prometheus && this.spec.prometheus.version && this.spec.prometheus.serviceType) {
       if (this.spec.prometheus.serviceType != "" && this.spec.prometheus.serviceType != "ClusterIP" && this.spec.prometheus.serviceType != "NodePort") {
         return {error: {message: `Supported Prometheus service types are "NodePort" and "ClusterIP", not "${this.spec.prometheus.serviceType}"`}};
