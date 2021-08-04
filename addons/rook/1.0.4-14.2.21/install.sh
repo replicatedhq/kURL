@@ -1,4 +1,5 @@
 
+    # test
 
 function rook_pre_init() {
     if [ "$KUBERNETES_TARGET_VERSION_MINOR" -ge 20 ]; then

@@ -53,8 +53,8 @@ function rook_cluster_deploy() {
     cp "$src/ceph-block-pool.yaml" "$dst/"
     cp "$src/ceph-object-store.yaml" "$dst/"
     render_yaml_file "$src/tmpl-ceph-storage-class.yaml" > "$dst/ceph-storage-class.yaml"
-
-    # patches
+    # test
+    # patches 
     cp "$src/patches/ceph-cluster-mons.yaml" "$dst/"
     render_yaml_file "$src/patches/tmpl-ceph-cluster-image.yaml" > "$dst/ceph-cluster-image.yaml"
     render_yaml_file "$src/patches/tmpl-ceph-block-pool-replicas.yaml" > "$dst/ceph-block-pool-replicas.yaml"

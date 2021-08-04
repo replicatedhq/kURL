@@ -1,3 +1,4 @@
+# test
 
 function rook_pre_init() {
     local current_version='' current_version_minor='' current_version_patch=''
