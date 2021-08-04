@@ -12,8 +12,6 @@ function rook_pre_init() {
             # There's no guarantee the packages from this version of Kubernetes are still available
             SKIP_KUBERNETES_HOST=1
         fi
-    elif [ "$ROOK_BLOCK_STORAGE_ENABLED" != "1" ]; then
-        logWarn "Rook 1.4.3 requires enabling block storage"
     fi
 }
 
