@@ -201,6 +201,10 @@ function disable_internet() {
     # get the list of testgrid API IPs
     command -v dig >/dev/null 2>&1 || { yum -y install bind-utils; }
     command -v iptables >/dev/null 2>&1 || { yum -y install iptables; }
+    if [ -f /usr/lib64/libip4tc.so.2 ] && [ ! -f /usr/lib64/libip4tc.so.0 ]; then
+        # On CentOS 8.1 `systemctl` commands don't work after installing iptables
+        ln -s /usr/lib64/libip4tc.so.2 /usr/lib64/libip4tc.so.0
+    fi
     TESTGRID_DOMAIN=$(echo "$TESTGRID_APIENDPOINT" | sed -e "s.^https://..")
     echo "testgrid API endpoint: $TESTGRID_APIENDPOINT domain: $TESTGRID_DOMAIN"
     APIENDPOINT_IPS=$(dig "$TESTGRID_DOMAIN" | grep 'IN A' | awk '{ print $5 }')
@@ -315,7 +319,13 @@ function collect_support_bundle() {
 }
 
 function report_success() {
-    curl -X POST -d '{"success": true}' "$TESTGRID_APIENDPOINT/v1/instance/$TEST_ID/finish"
+    local failure="$1"
+
+    if [ -n "$failure" ]; then
+        curl -X POST -d "{\"success\": true, \"failureReason\": \"${failure}\"}" "$TESTGRID_APIENDPOINT/v1/instance/$TEST_ID/finish"
+    else
+        curl -X POST -d '{"success": true}' "$TESTGRID_APIENDPOINT/v1/instance/$TEST_ID/finish"
+    fi
 }
 
 function report_failure() {
@@ -356,10 +366,9 @@ function main() {
         exit 1
     fi
 
+    failureReason=""
     if ! check_airgap ; then
-        send_logs
-        report_failure "airgap_violation"
-        exit 1
+        failureReason="airgap_violation"
     fi
 
     collect_support_bundle
@@ -367,7 +376,7 @@ function main() {
     run_sonobuoy
 
     send_logs
-    report_success
+    report_success "$failureReason"
     exit 0
 }
 
