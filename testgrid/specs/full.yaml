@@ -124,6 +124,12 @@
       version: 1.12.0
     ekco:
       version: 0.6.0
+  unsupportedOSIDs:
+  - centos-81
+  - centos-82
+  - centos-83
+  - centos-84
+  - ol-84
 - name: k8s118
   installerSpec:
     kubernetes:
@@ -712,47 +718,3 @@
     ekco:
       version: 0.10.1
   airgap: true
-- name: rke2
-  installerSpec:
-    rke2:
-      version: latest
-    rook:
-      isBlockStorageEnabled: true
-      storageClassName: default
-      hostpathRequiresPrivileged: true
-      version: 1.4.3
-    registry:
-      version: latest
-    kotsadm:
-      uiBindPort: 30880
-      version: latest
-    velero:
-      resticRequiresPrivileged: true
-      version: latest
-  unsupportedOSIDs:
-  - ubuntu-1604
-  - ubuntu-1804
-  - ubuntu-2004
-- name: rke2-airgap
-  installerSpec:
-    rke2:
-      version: latest
-    rook:
-      isBlockStorageEnabled: true
-      storageClassName: default
-      hostpathRequiresPrivileged: true
-      version: 1.4.3
-    registry:
-      version: latest
-    kotsadm:
-      uiBindPort: 30880
-      version: latest
-    velero:
-      resticRequiresPrivileged: true
-      version: latest
-  airgap: true
-  unsupportedOSIDs:
-  - ubuntu-1604
-  - ubuntu-1804
-  - ubuntu-2004
-

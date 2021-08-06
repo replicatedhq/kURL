@@ -23,7 +23,7 @@ module.exports.InstallerVersions = {
     "1.17.7",
     "1.17.3",
     "1.16.4",
-    "1.21.3", "1.21.2", "1.21.1", "1.21.0", "1.20.9", "1.20.8", "1.20.7", "1.20.6", "1.20.5", "1.20.4", "1.20.2", "1.20.1", "1.20.0", // cron-kubernetes-update-120
+    "1.22.0", "1.21.3", "1.21.2", "1.21.1", "1.21.0", "1.20.9", "1.20.8", "1.20.7", "1.20.6", "1.20.5", "1.20.4", "1.20.2", "1.20.1", "1.20.0", // cron-kubernetes-update-120
   ],
   rke2: [
     "v1.19.7+rke2r1",
@@ -73,6 +73,7 @@ module.exports.InstallerVersions = {
   ],
   prometheus: [
     // cron-prometheus-update
+    "0.49.0-17.1.1",
     "0.49.0-17.0.0",
     "0.48.1-16.12.1",
     "0.48.1-16.10.0",
@@ -278,11 +279,13 @@ module.exports.InstallerVersions = {
   ],
   sonobuoy: [
     // cron-sonobuoy-update
+    "0.53.0",
     "0.52.0",
     "0.50.0",
   ],
   goldpinger: [
     // cron-goldpinger-update
+    "3.2.0-4.2.1",
     "3.2.0-4.1.1",
   ],
 };

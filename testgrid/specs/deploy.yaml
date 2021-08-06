@@ -53,27 +53,6 @@
       version: latest
     minio:
       version: latest
-- name: rke2
-  installerSpec:
-    rke2:
-      version: latest
-    rook:
-      isBlockStorageEnabled: true
-      storageClassName: default
-      hostpathRequiresPrivileged: true
-      version: 1.4.x
-    registry:
-      version: latest
-    kotsadm:
-      uiBindPort: 30880
-      version: latest
-    velero:
-      resticRequiresPrivileged: true
-      version: latest
-  unsupportedOSIDs:
-  - ubuntu-1604
-  - ubuntu-1804
-  - ubuntu-2004
 - name: k8s119
   installerSpec:
     kubernetes:
