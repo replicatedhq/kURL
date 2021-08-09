@@ -36,7 +36,7 @@
     "@types/chai": "^4.2.21",
     "@types/express": "^4.0.35",
     "@types/express-serve-static-core": "^4.17.24",
-    "@types/lodash": "^4.14.171",
+    "@types/lodash": "^4.14.172",
     "@types/node-fetch": "^2.5.12",
     "@types/pino": "^6.3.11",
     "@types/semver": "^7.3.8",
