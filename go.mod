@@ -55,13 +55,12 @@ require (
 	k8s.io/api v0.21.3
 	k8s.io/apiextensions-apiserver v0.21.3 // indirect
 	k8s.io/apimachinery v0.21.3
-	k8s.io/client-go v0.21.2
+	k8s.io/client-go v0.22.0
 	k8s.io/component-base v0.21.2 // indirect
 	k8s.io/klog/v2 v2.9.0 // indirect
 	k8s.io/kube-openapi v0.0.0-20210527164424-3c818078ee3d // indirect
 	k8s.io/utils v0.0.0-20210527160623-6fdb442a123b // indirect
 	sigs.k8s.io/controller-runtime v0.9.5
-	sigs.k8s.io/controller-tools v0.6.2 // indirect
 	sigs.k8s.io/structured-merge-diff/v4 v4.1.1 // indirect
 )
 
