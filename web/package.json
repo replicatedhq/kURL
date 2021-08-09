@@ -9,7 +9,7 @@
     "@bugsnag/plugin-express": "^7.11.0",
     "@tsed/common": "^6.62.0",
     "@tsed/core": "^6.62.0",
-    "@tsed/di": "^6.62.0",
+    "@tsed/di": "^6.62.2",
     "@tsed/logger": "^5.17.0",
     "@tsed/platform-express": "^6.62.0",
     "ajv": "^8.6.2",
@@ -21,7 +21,7 @@
     "jsonwebtoken": "^8.5.1",
     "lodash": "^4.17.21",
     "monkit": "~0.4.0",
-    "newrelic": "^8.0.0",
+    "newrelic": "^8.1.0",
     "node-fetch": "^2.6.1",
     "pino": "^6.13.0",
     "pino-pretty": "^5.1.2",
@@ -30,7 +30,7 @@
     "statsd-client": "^0.4.7",
     "superagent": "^6.1.0",
     "uuid": "^8.3.2",
-    "yargs": "^17.0.1"
+    "yargs": "^17.1.0"
   },
   "devDependencies": {
     "@types/chai": "^4.2.21",
@@ -41,7 +41,7 @@
     "@types/pino": "^6.3.11",
     "@types/semver": "^7.3.8",
     "@types/yargs": "^17.0.2",
-    "@typescript-eslint/eslint-plugin": "^4.28.5",
+    "@typescript-eslint/eslint-plugin": "^4.29.0",
     "@typescript-eslint/parser": "^4.28.5",
     "chai": "^4.3.4",
     "eslint": "^7.32.0",
