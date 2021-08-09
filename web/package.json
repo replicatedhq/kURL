@@ -21,7 +21,7 @@
     "jsonwebtoken": "^8.5.1",
     "lodash": "^4.17.21",
     "monkit": "~0.4.0",
-    "newrelic": "^8.0.0",
+    "newrelic": "^8.1.0",
     "node-fetch": "^2.6.1",
     "pino": "^6.13.0",
     "pino-pretty": "^5.1.2",
