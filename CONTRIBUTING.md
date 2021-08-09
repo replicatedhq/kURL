@@ -95,7 +95,7 @@ function kurl-dev-make() {
     local VMNAME="${1:-$VM_DEFAULT_NAME}"
     local VMDISK="$VMNAME-disk1"
 
-    echo "Creatig instance $VMNAME..."
+    echo "Creating instance $VMNAME..."
     gcloud compute instances create $VMNAME --image-project=$VM_IMAGE_PROJECT --image-family=$VM_IMAGE_FAMILY --machine-type=$VM_INSTANCE_TYPE --boot-disk-size=200G
 
     local ZONE=$(gcloud compute instances describe $VMNAME --format='value(zone)' | awk -F/ '{print $NF}')
