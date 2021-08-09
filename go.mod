@@ -29,7 +29,7 @@ require (
 	github.com/mattn/go-isatty v0.0.13
 	github.com/minio/minio-go v6.0.14+incompatible
 	github.com/mitchellh/copystructure v1.2.0 // indirect
-	github.com/onsi/gomega v1.14.0
+	github.com/onsi/gomega v1.15.0
 	github.com/pelletier/go-toml v1.9.3
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/common v0.29.0 // indirect
@@ -43,7 +43,7 @@ require (
 	github.com/vishvananda/netlink v1.1.0
 	github.com/vmware-tanzu/velero v1.6.2
 	golang.org/x/crypto v0.0.0-20210513164829-c07d793c2f9a
-	golang.org/x/net v0.0.0-20210614182718-04defd469f4e
+	golang.org/x/net v0.0.0-20210805182204-aaa1db679c0d
 	golang.org/x/oauth2 v0.0.0-20210622215436-a8dc77f794b6 // indirect
 	golang.org/x/sys v0.0.0-20210616094352-59db8d763f22 // indirect
 	golang.org/x/term v0.0.0-20210615171337-6886f2dfbf5b // indirect
@@ -54,14 +54,13 @@ require (
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
 	k8s.io/api v0.21.3
 	k8s.io/apiextensions-apiserver v0.21.3 // indirect
-	k8s.io/apimachinery v0.21.3
-	k8s.io/client-go v0.21.2
+	k8s.io/apimachinery v0.22.0
+	k8s.io/client-go v0.22.0
 	k8s.io/component-base v0.21.2 // indirect
 	k8s.io/klog/v2 v2.9.0 // indirect
 	k8s.io/kube-openapi v0.0.0-20210527164424-3c818078ee3d // indirect
 	k8s.io/utils v0.0.0-20210527160623-6fdb442a123b // indirect
 	sigs.k8s.io/controller-runtime v0.9.5
-	sigs.k8s.io/controller-tools v0.6.2 // indirect
 	sigs.k8s.io/structured-merge-diff/v4 v4.1.1 // indirect
 )
 
