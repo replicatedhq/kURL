@@ -6,6 +6,11 @@
 
 > NOTE: Project based token doesn't have sufficient privileges for Spot instance create/destroy operations (*creation works with errors; destroy fails*). Personal token can be used to get sufficient privileges:
 
+#### Getting Personal Token
+1. In the top right corner of equinix select your name and choose `Personal API Keys`.
+2. + Add New Key
+3. Under the actions column choose `Copy` which will copy it to your clipboard.
+
 ```bash
 export AWS_PROFILE=replicated-production
 export PACKET_AUTH_TOKEN=<packet-auth-token>
@@ -23,10 +28,11 @@ terraform destroy
 
 ### Tested versions
 ```bash
-Terraform v0.14.10
+Terraform v1.0.4
 + provider registry.terraform.io/hashicorp/aws v2.52.0
 + provider registry.terraform.io/hashicorp/template v2.2.0
 + provider registry.terraform.io/packethost/packet v3.1.0
++ provider registry.terraform.io/equinix/metal v3.1.0
 ```
 
 ### Debugging

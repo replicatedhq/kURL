@@ -6,11 +6,11 @@ terraform {
     }
     metal = {
       source = "equinix/metal"
-      version = "2.1.0"
+      version = "3.1.0"
     }
     template = {
       source = "hashicorp/template"
     }
   }
-  required_version = ">= 0.13"
+  required_version = ">= 1.0.0"
 }

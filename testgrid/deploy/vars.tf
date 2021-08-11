@@ -1,25 +1,13 @@
 variable "instance_type" {
   type        = string
   default     = "m3.large.x86"
-  description = "packet instamce type"
+  description = "packet instance type"
 }
 
 variable "region" {
   type        = list(string)
   default     = ["any"]
   description = "Packet regions to deploy testgrid"
-}
-
-variable "spot_region" {
-  type        = list(string)
-  default     = ["sv15"]
-  description = "Packet regions to deploy testgrid"
-}
-
-variable "max_bid" {
-  type        = string
-  default     = "1.00"
-  description = "Maximum bid price for the instance"
 }
 
 variable "project_id" {
@@ -30,13 +18,7 @@ variable "project_id" {
 
 variable "device_count" {
   type        = number
-  default     = 1
-  description = "Number of devices to provision"
-}
-
-variable "device_count_spot" {
-  type        = number
-  default     = 4
+  default     = 3
   description = "Number of devices to provision"
 }
 
