@@ -156,6 +156,10 @@ function common_prompts() {
 
 function prompt_license() {
     if [ -n "$LICENSE_URL" ]; then
+        if ["$AIRGAP" = "1"]; then
+            logWarn "License Agreements with Airgap installs are not supported yet.\n"
+            return
+        fi
         curl $LICENSE_URL
         printf "\nThe license text is reproduced above. To view the license in your browser visit $LICENSE_URL.\n"
         printf "Do you accept the license agreement?"
