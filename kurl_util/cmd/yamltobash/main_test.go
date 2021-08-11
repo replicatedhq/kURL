@@ -271,6 +271,29 @@ spec:
 				"Antrea.Version":              true,
 				"Antrea.IsEncryptionDisabled": true,
 			},
+		},{
+			name: "Docker.LicenseFile",
+			yaml: `apiVersion: cluster.kurl.sh/v1beta
+kind: Installer
+metadata:
+  name: kurl
+spec:
+  kurl:
+    licenseURL: hello.com
+  kubernetes:
+    version: 1.19.3
+  docker:
+    version: 19.03.10
+    hardFailOnLoopback: false
+  weave:
+    version: 2.6.5`,
+			expect: map[string]bool{
+				"Kubernetes.Version":        true,
+				"Docker.Version":            true,
+				"Docker.HardFailOnLoopback": true,
+				"Weave.Version":             true,
+				"Kurl.LicenseURL":           true,
+			},
 		},
 	}
 	for _, test := range tests {
@@ -303,6 +326,18 @@ func Test_createMap(t *testing.T) {
 			},
 			want: map[string]interface{}{
 				"Kubernetes.S3Override": "BLAH",
+			},
+		},{
+			name: "kurl.",
+			retrieved: &kurlv1beta1.Installer{
+				Spec: kurlv1beta1.InstallerSpec{
+					Kurl: &kurlv1beta1.Kurl{
+						LicenseURL: "example.com/license/example-license.txt",
+					},
+				},
+			},
+			want: map[string]interface{}{
+				"Kurl.LicenseURL": "example.com/license/example-license.txt",
 			},
 		},
 	}

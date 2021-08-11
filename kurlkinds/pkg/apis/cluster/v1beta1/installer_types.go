@@ -113,6 +113,7 @@ type Kurl struct {
 	IgnoreRemoteLoadImagesPrompt bool     `json:"ignoreRemoteLoadImagesPrompt,omitempty" yaml:"ignoreRemoteLoadImagesPrompt,omitempty"`
 	IgnoreRemoteUpgradePrompt    bool     `json:"ignoreRemoteUpgradePrompt,omitempty" yaml:"ignoreRemoteUpgradePrompt,omitempty"`
 	InstallerVersion             string   `json:"installerVersion,omitempty" yaml:"installerVersion,omitempty"`
+	LicenseURL                   string   `json:"licenseURL,omitempty" yaml:"licenseURL,omitempty"`
 	Nameserver                   string   `json:"nameserver,omitempty" yaml:"nameserver,omitempty"`
 	NoProxy                      bool     `json:"noProxy,omitempty" yaml:"noProxy,omitempty"`
 	PreflightIgnore              bool     `json:"preflightIgnore,omitempty" yaml:"preflightIgnore,omitempty"`
