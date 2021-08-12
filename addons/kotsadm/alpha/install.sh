@@ -6,7 +6,6 @@ function kotsadm() {
     kotsadm_rename_postgres_pvc_1-12-2 "$src"
 
     cp "$src/kustomization.yaml" "$dst/"
-    cp "$src/operator.yaml" "$dst/"
     cp "$src/postgres.yaml" "$dst/"
     cp "$src/kotsadm.yaml" "$dst/"
 
@@ -95,6 +94,12 @@ function kotsadm() {
     kubectl delete serviceaccount kotsadm-api &> /dev/null || true
     kubectl delete clusterrolebinding kotsadm-api-rolebinding &> /dev/null || true
     kubectl delete clusterrole kotsadm-api-role &> /dev/null || true
+
+    # kotsadm-operator removed in 1.50.0
+    kubectl delete deployment kotsadm-operator &> /dev/null || true
+    kubectl delete clusterrolebinding kotsadm-operator-clusterrolebinding &> /dev/null || true
+    kubectl delete clusterrole kotsadm-operator-clusterrole &> /dev/null || true
+    kubectl delete serviceaccount kotsadm-operator &> /dev/null || true
 
     kotsadm_namespaces "$src" "$dst"
 
@@ -365,7 +370,7 @@ function kotsadm_cli() {
     fi
     if [ ! -f "$src/assets/kots.tar.gz" ] && [ "$AIRGAP" != "1" ]; then
         mkdir -p "$src/assets"
-        curl -L "https://github.com/replicatedhq/kots/releases/download/v1.49.0/kots_linux_amd64.tar.gz" > "$src/assets/kots.tar.gz"
+        curl -L "https://github.com/replicatedhq/kots/releases/download/v1.50.0-beta.0/kots_linux_amd64.tar.gz" > "$src/assets/kots.tar.gz"
     fi
 
     pushd "$src/assets"
