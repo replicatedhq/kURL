@@ -1,5 +1,4 @@
 resources:
-- operator.yaml
 - postgres.yaml
 - kotsadm.yaml
 - kotsadm-web-scripts.yaml
