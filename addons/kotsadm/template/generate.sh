@@ -20,6 +20,9 @@ function generate() {
 
     if [ -d "$dir" ]; then
         echo "Kotsadm ${kotsadm_dir} add-on already exists"
+        
+        # Clean out the directory in case the template has removed any files
+        rm -rf "$dir"
     fi
     mkdir -p "$dir"
 
@@ -49,7 +52,7 @@ function main() {
             ;;
         *"beta"*)
             echo "generating beta version"
-            generate "alpha" "alpha" "$KOTSADM_VERSION"
+            generate "alpha" "alpha" "v$KOTSADM_VERSION"
             ;;
         *)
             # Check for a new release, if so make it latest in the web and also create a new alpha
