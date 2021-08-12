@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 
 function kotsadm() {
     local src="$DIR/addons/kotsadm/__KOTSADM_DIR__"
@@ -14,6 +15,7 @@ function kotsadm() {
         KOTSADM_DISABLE_S3="1"
     fi
 
+    # Migrate kotsadm deployment to statefulset
     if [ "$KOTSADM_DISABLE_S3" == "1" ]; then
         cp "$DIR/addons/kotsadm/__KOTSADM_DIR__/statefulset/kotsadm-statefulset.yaml" "$DIR/kustomize/kotsadm/kotsadm-statefulset.yaml"
         insert_resources "$dst/kustomization.yaml" kotsadm-statefulset.yaml
@@ -112,6 +114,11 @@ function kotsadm() {
     kubectl label pvc kotsadm-postgres-kotsadm-postgres-0 velero.io/exclude-from-backup- kots.io/backup=velero --overwrite
 
     kotsadm_cli $src
+
+    # Migrate existing hostpath and nfs snapshot minio to velero lvp plugin
+    if [ "$KOTSADM_DISABLE_S3" == "1" ] && [ -n "$VELERO_VERSION" ] ; then
+        kubectl kots velero migrate-minio-filesystems -n default
+    fi
 }
 
 function kotsadm_join() {

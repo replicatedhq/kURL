@@ -50,6 +50,7 @@ function velero() {
 
     velero_binary
 
+    /usr/local/bin/velero plugin add replicated/local-volume-provider:v0.1.0
     /usr/local/bin/velero plugin add $KURL_UTIL_IMAGE
 
     kubectl label -n default --overwrite service/kubernetes velero.io/exclude-from-backup=true
