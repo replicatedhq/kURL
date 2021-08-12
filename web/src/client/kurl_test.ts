@@ -50,6 +50,6 @@ describe("script with kurl config", () => {
 
 		expect(script).to.match(new RegExp(`kurl:`));
 		expect(script).to.match(new RegExp(`nameserver: 8.8.8.8`));
-                expect(script).to.match(new RegExp(`licenseURL: https://raw.githubusercontent.com/replicatedhq/kURL/master/LICENSE`));
+		expect(script).to.match(new RegExp(`licenseURL: https://raw.githubusercontent.com/replicatedhq/kURL/master/LICENSE`));
 	});
 });
