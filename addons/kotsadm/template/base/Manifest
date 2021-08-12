@@ -1,5 +1,4 @@
 image kotsadm-migrations docker.io/kotsadm/kotsadm-migrations:__KOTSADM_TAG__
-image kotsadm-operator docker.io/kotsadm/kotsadm-operator:__KOTSADM_TAG__
 image kotsadm-minio minio/minio:RELEASE.2021-07-27T02-40-15Z
 image kotsadm docker.io/kotsadm/kotsadm:__KOTSADM_TAG__
 image kurl-proxy docker.io/kotsadm/kurl-proxy:__KOTSADM_TAG__
