@@ -421,6 +421,7 @@ function main() {
     apply_bash_flag_overrides "$@"
     parse_yaml_into_bash_variables
     MASTER=1 # parse_yaml_into_bash_variables will unset master
+    prompt_license
 
     # ALPHA FLAGS
     if [ -n "$RKE2_VERSION" ]; then

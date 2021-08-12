@@ -124,6 +124,7 @@ function main() {
     merge_yaml_specs
     apply_bash_flag_overrides "$@"
     parse_yaml_into_bash_variables
+    prompt_license
     parse_kubernetes_target_version
     discover
     preflights

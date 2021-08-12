@@ -291,6 +291,8 @@ spec:
                     type: boolean
                   installerVersion:
                     type: string
+                  licenseURL:
+                    type: string
                   nameserver:
                     type: string
                   noProxy:

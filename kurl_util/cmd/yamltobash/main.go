@@ -215,6 +215,7 @@ func convertToBash(kurlValues map[string]interface{}, fieldsSet map[string]bool)
 		"Kubernetes.Version":                     "KUBERNETES_VERSION",
 		"Kurl.AdditionalNoProxyAddresses":        "ADDITIONAL_NO_PROXY_ADDRESSES",
 		"Kurl.Airgap":                            "AIRGAP",
+		"Kurl.LicenseURL":                        "LICENSE_URL",
 		"Kurl.HostnameCheck":                     "HOSTNAME_CHECK",
 		"Kurl.IgnoreRemoteLoadImagesPrompt":      "KURL_IGNORE_REMOTE_LOAD_IMAGES_PROMPT",
 		"Kurl.IgnoreRemoteUpgradePrompt":         "KURL_IGNORE_REMOTE_UPGRADE_PROMPT",

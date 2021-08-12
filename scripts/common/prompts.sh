@@ -154,6 +154,23 @@ function common_prompts() {
     fi
 }
 
+function prompt_license() {
+    if [ -n "$LICENSE_URL" ]; then
+        if ["$AIRGAP" = "1"]; then
+            logWarn "License Agreements with Airgap installs are not supported yet.\n"
+            return
+        fi
+        curl $LICENSE_URL
+        printf "\nThe license text is reproduced above. To view the license in your browser visit $LICENSE_URL.\n"
+        printf "Do you accept the license agreement?"
+        if confirmN; then
+            printf "License Agreement Accepted. Continuing Installation.\n"
+        else
+            bail "License Agreement Not Accepted. 'y' or 'Y' needed to accept. Exiting installation."
+        fi
+    fi
+}
+
 function prompt_for_load_balancer_address() {
     local lastLoadBalancerAddress=
 
