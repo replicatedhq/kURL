@@ -42,35 +42,7 @@ function ekco() {
     local src="$DIR/addons/ekco/$EKCO_VERSION"
     local dst="$DIR/kustomize/ekco"
 
-    cp "$src/kustomization.yaml" "$dst/kustomization.yaml"
-    cp "$src/namespace.yaml" "$dst/namespace.yaml"
-    cp "$src/rbac.yaml" "$dst/rbac.yaml"
-    cp "$src/rolebinding.yaml" "$dst/rolebinding.yaml"
-    cp "$src/deployment.yaml" "$dst/deployment.yaml"
-    cp "$src/rotate-certs-rbac.yaml" "$dst/rotate-certs-rbac.yaml"
-
-    # is rook enabled
-    if kubectl get ns | grep -q rook-ceph; then
-        cp "$src/rbac-rook.yaml" "$dst/rbac-rook.yaml"
-        insert_resources "$dst/kustomization.yaml" rbac-rook.yaml
-        cat "$src/rolebinding-rook.yaml" >> "$dst/rolebinding.yaml"
-
-        if [ -n "$EKCO_ROOK_PRIORITY_CLASS" ]; then
-            kubectl label namespace rook-ceph rook-priority.kurl.sh="" --overwrite
-        fi
-    else
-        EKCO_SHOULD_MAINTAIN_ROOK_STORAGE_NODES=false
-    fi
-
-    render_yaml_file "$src/tmpl-configmap.yaml" > "$dst/configmap.yaml"
-    insert_resources "$dst/kustomization.yaml" configmap.yaml
-
-    kubectl apply -k "$dst"
-    # apply rolebindings separately so as not to override the namespace
-    kubectl apply -f "$dst/rolebinding.yaml"
-
-    # delete pod to re-read the config map
-    kubectl -n kurl delete pod -l app=ekc-operator 2>/dev/null || true
+    ekco_create_deployment "$src" "$dst"
 
     if [ "$EKCO_SHOULD_INSTALL_REBOOT_SERVICE" = "1" ]; then
         ekco_install_reboot_service "$src"
@@ -102,6 +74,16 @@ function ekco_join() {
 
     if [ "$EKCO_ENABLE_INTERNAL_LOAD_BALANCER" = "1" ]; then
         ekco_bootstrap_internal_lb
+    fi
+}
+
+function ekco_already_applied() {
+    local src="$DIR/addons/ekco/$EKCO_VERSION"
+    local dst="$DIR/kustomize/ekco"
+
+    # if rook-ceph has been removed, ekco should be redeployed to not attempt to manage it
+    if [ "$DID_MIGRATE_ROOK_PVCS" == "1" ]; then
+        ekco_create_deployment "$src" "$dst"
     fi
 }
 
@@ -336,4 +318,36 @@ function ekco_handle_load_balancer_address_change_kubeconfigs() {
 
 function ekco_change_lb_completed() {
     2>/dev/null kubectl -n kurl exec -i deploy/ekc-operator -- grep -q "Result:" /tmp/change-lb-log
+}
+
+function ekco_create_deployment() {
+    cp "$src/kustomization.yaml" "$dst/kustomization.yaml"
+    cp "$src/namespace.yaml" "$dst/namespace.yaml"
+    cp "$src/rbac.yaml" "$dst/rbac.yaml"
+    cp "$src/rolebinding.yaml" "$dst/rolebinding.yaml"
+    cp "$src/deployment.yaml" "$dst/deployment.yaml"
+    cp "$src/rotate-certs-rbac.yaml" "$dst/rotate-certs-rbac.yaml"
+
+    # is rook enabled
+    if kubectl get ns | grep -q rook-ceph; then
+        cp "$src/rbac-rook.yaml" "$dst/rbac-rook.yaml"
+        insert_resources "$dst/kustomization.yaml" rbac-rook.yaml
+        cat "$src/rolebinding-rook.yaml" >> "$dst/rolebinding.yaml"
+
+        if [ -n "$EKCO_ROOK_PRIORITY_CLASS" ]; then
+            kubectl label namespace rook-ceph rook-priority.kurl.sh="" --overwrite
+        fi
+    else
+        EKCO_SHOULD_MAINTAIN_ROOK_STORAGE_NODES=false
+    fi
+
+    render_yaml_file "$src/tmpl-configmap.yaml" > "$dst/configmap.yaml"
+    insert_resources "$dst/kustomization.yaml" configmap.yaml
+
+    kubectl apply -k "$dst"
+    # apply rolebindings separately so as not to override the namespace
+    kubectl apply -f "$dst/rolebinding.yaml"
+
+    # delete pod to re-read the config map
+    kubectl -n kurl delete pod -l app=ekc-operator 2>/dev/null || true
 }
