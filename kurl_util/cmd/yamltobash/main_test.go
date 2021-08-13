@@ -1,6 +1,10 @@
 package main
 
 import (
+	kurlscheme "github.com/replicatedhq/kurl/kurlkinds/client/kurlclientset/scheme"
+	"io/ioutil"
+	"k8s.io/client-go/kubernetes/scheme"
+	"path"
 	"reflect"
 	"testing"
 
@@ -349,6 +353,53 @@ func Test_createMap(t *testing.T) {
 					t.Errorf("createMap()[%s] = %v, want %v", k, got[k], v)
 				}
 			}
+		})
+	}
+}
+
+func TestEndToEnd(t *testing.T) {
+	tt := []struct {
+		name     string
+		yaml     string
+		expected string
+		wantErr  bool
+	}{
+		{
+			name:     "default weave masq should be set",
+			yaml:     "weave_no_masq_local_default.yaml",
+			expected: "weave_no_masq_local_default",
+		},
+		{
+			name:     "weave masq should be set",
+			yaml:     "weave_no_masq_local_set.yaml",
+			expected: "weave_no_masq_local_default",
+		},
+		{
+			name:     "weave masq should not be set",
+			yaml:     "weave_no_masq_local_unset.yaml",
+			expected: "weave_no_masq_local_unset",
+		},
+	}
+
+	kurlscheme.AddToScheme(scheme.Scheme)
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			envPath := path.Join(t.TempDir(), "out")
+			yamlPath := path.Join("testdata", "yaml", tc.yaml)
+			err := addBashVariablesFromYaml(yamlPath, envPath)
+			if tc.wantErr {
+				require.NotNil(t, err)
+				return
+			}
+			require.Nil(t, err)
+			b, err := ioutil.ReadFile(path.Join("testdata", "expected", tc.expected))
+			require.Nil(t, err)
+			expected := string(b)
+			b, err = ioutil.ReadFile(envPath)
+			require.Nil(t, err)
+			actual := string(b)
+			require.Equal(t, expected, actual)
 		})
 	}
 }

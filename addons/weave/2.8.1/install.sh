@@ -24,6 +24,10 @@ function weave() {
         weave_patch_ip_alloc_range
     fi
 
+    if [ -n "$NO_MASQ_LOCAL" ]; then
+      weave_patch_no_masq_local
+    fi
+
     kubectl apply -k "${dst}/"
     weave_ready_spinner
     check_network
@@ -53,6 +57,14 @@ function weave_patch_ip_alloc_range() {
 
     insert_patches_strategic_merge "${dst}/kustomization.yaml" patch-ip-alloc-range.yaml
     render_yaml_file "${src}/tmpl-patch-ip-alloc-range.yaml" > "${dst}/patch-ip-alloc-range.yaml"
+}
+
+function weave_patch_no_masq_local() {
+    local src="${DIR}/addons/weave/${WEAVE_VERSION}"
+    local dst="${DIR}/kustomize/weave"
+
+    insert_patches_strategic_merge "${dst}/kustomization.yaml" patch-no-masq-local.yaml
+    render_yaml_file "${src}/tmpl-patch-no-masq-local.yaml" > "${dst}/patch-no-masq-local.yaml"
 }
 
 function weave_warn_if_sleeve() {

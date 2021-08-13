@@ -4,7 +4,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.6.1
+    controller-gen.kubebuilder.io/version: v0.6.2
   creationTimestamp: null
   name: installers.cluster.kurl.sh
 spec:
@@ -477,6 +477,11 @@ spec:
               weave:
                 properties:
                   isEncryptionDisabled:
+                    type: boolean
+                  noMasqLocal:
+                    description: NoMasqLocal if not present defaults to true, which
+                      will expose the original client IP address in the X-Forwarded-For
+                      header.
                     type: boolean
                   podCIDR:
                     type: string

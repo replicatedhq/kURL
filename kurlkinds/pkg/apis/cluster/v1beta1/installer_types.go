@@ -188,6 +188,9 @@ type Weave struct {
 	PodCidrRange         string `json:"podCidrRange,omitempty" yaml:"podCidrRange,omitempty"`
 	S3Override           string `json:"s3Override,omitempty" yaml:"s3Override,omitempty"`
 	Version              string `json:"version" yaml:"version"`
+	// NoMasqLocal if not present defaults to true, which will expose the original client IP address in the
+	// X-Forwarded-For header.
+	NoMasqLocal *bool `json:"noMasqLocal,omitempty" yaml:"noMasqLocal,omitempty"`
 }
 
 type Antrea struct {

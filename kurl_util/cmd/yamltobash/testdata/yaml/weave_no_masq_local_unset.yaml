@@ -1,0 +1,9 @@
+kind: Installer
+apiVersion: cluster.kurl.sh/v1beta1
+metadata:
+  name: test
+spec:
+  weave:
+    version: 2.8.x
+    noMasqLocal: false
+

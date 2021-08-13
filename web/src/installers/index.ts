@@ -110,6 +110,7 @@ export interface WeaveConfig {
   IPAllocRange?: string; // deprecated, will be converted to podCidrRange
   encryptNetwork?: boolean; // deprectaed, will be converted to isEncryptionDisabled
   isEncryptionDisabled?: boolean;
+  noMasqLocal?: boolean;
 }
 
 export const weaveConfigSchema = {

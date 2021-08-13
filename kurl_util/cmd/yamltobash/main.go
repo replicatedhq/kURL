@@ -278,6 +278,7 @@ func convertToBash(kurlValues map[string]interface{}, fieldsSet map[string]bool)
 		"Weave.PodCidrRange":                     "POD_CIDR_RANGE",
 		"Weave.S3Override":                       "WEAVE_S3_OVERRIDE",
 		"Weave.Version":                          "WEAVE_VERSION",
+		"Weave.NoMasqLocal":                      "NO_MASQ_LOCAL",
 		"Antrea.IsEncryptionDisabled":            "ANTREA_DISABLE_ENCRYPTION",
 		"Antrea.PodCIDR":                         "ANTREA_POD_CIDR",
 		"Antrea.PodCidrRange":                    "ANTREA_POD_CIDR_RANGE",
@@ -323,27 +324,34 @@ func convertToBash(kurlValues map[string]interface{}, fieldsSet map[string]bool)
 			} else {
 				bashVal = ""
 			}
+		case *bool:
+			if t != nil {
+				bashVal = strconv.FormatBool(*t)
+			}
 		case []string:
 			if len(t) > 0 {
 				bashVal = strings.Join(t, ",")
 			}
 		}
 
-		if yamlKey == "Kubernetes.LoadBalancerAddress" && bashVal != "" {
+		switch {
+		case yamlKey == "Kubernetes.LoadBalancerAddress" && bashVal != "" :
 			finalDictionary["HA_CLUSTER"] = "1"
-		}
-
-		if yamlKey == "Kurl.Airgap" && bashVal != "" {
+		case yamlKey == "Kurl.Airgap" && bashVal != "" :
 			finalDictionary["OFFLINE_DOCKER_INSTALL"] = "1"
-		}
-
-		if yamlKey == "Weave.PodCidrRange" || yamlKey == "Kubernetes.ServiceCidrRange" || yamlKey == "Antrea.PodCidrRange" && bashVal != "" {
+		case yamlKey == "Weave.PodCidrRange" || yamlKey == "Kubernetes.ServiceCidrRange" || yamlKey == "Antrea.PodCidrRange" && bashVal != "":
 			bashVal = strings.Replace(bashVal, "/", "", -1)
-		}
-
-		// HARD_FAIL_ON_LOOPBACK defaults to true
-		if yamlKey == "Docker.HardFailOnLoopback" && bashVal == "" && !fieldsSet[yamlKey] {
+		case yamlKey == "Docker.HardFailOnLoopback" && bashVal == "" && !fieldsSet[yamlKey] :
 			bashVal = "1"
+		case yamlKey == "Weave.NoMasqLocal":
+
+			if bashVal == "true" || bashVal == "" {
+				bashVal = "1"
+			}
+			if bashVal == "false" {
+				bashVal = "0"
+			}
+
 		}
 
 		finalDictionary[bashKey] = bashVal
