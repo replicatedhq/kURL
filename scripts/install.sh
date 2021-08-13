@@ -169,10 +169,6 @@ EOF
         | tee /tmp/kubeadm-init
     set +o pipefail
 
-    # Node would be cordoned if migrated from docker to containerd
-    local node=$(hostname | tr '[:upper:]' '[:lower:]')
-    kubectl uncordon "$node"
-
     if [ -n "$LOAD_BALANCER_ADDRESS" ]; then
         spinner_until 120 cert_has_san "$PRIVATE_ADDRESS:6443" "$LOAD_BALANCER_ADDRESS"
     fi
@@ -244,7 +240,7 @@ EOF
     if commandExists registry_init; then
         registry_init
         
-        if [ -n "$CONTAINERD_VERSION" ]; then
+        if [ -n "$CONTAINERD_VERSION" ] && [ "$SKIP_DOCKER_INSTALL" != "1" ]; then
             ${K8S_DISTRO}_registry_containerd_configure "${DOCKER_REGISTRY_IP}"
             ${K8S_DISTRO}_containerd_restart
             spinner_kubernetes_api_healthy
@@ -255,7 +251,6 @@ EOF
 function post_init() {
     BOOTSTRAP_TOKEN_EXPIRY=$(kubeadm token list | grep $BOOTSTRAP_TOKEN | awk '{print $3}')
     kurl_config
-    uninstall_docker
 }
 
 function kubernetes_maybe_generate_bootstrap_token() {
@@ -310,7 +305,6 @@ function outro() {
     printf "\n"
     printf "\t\t${GREEN}Installation${NC}\n"
     printf "\t\t${GREEN}  Complete ✔${NC}\n"
-
     addon_outro
     printf "\n"
     kubeconfig_setup_outro

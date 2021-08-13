@@ -130,7 +130,6 @@ function main() {
     ${K8S_DISTRO}_addon_for_each addon_join
     outro
     package_cleanup
-    uninstall_docker
 
     popd_install_directory
 }

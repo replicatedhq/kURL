@@ -130,6 +130,12 @@ function check_docker_k8s_version() {
         return
     fi
 
+    # NOTE (ethan): This is probably the wrong thing to go here but i'm leaving it in so as not to
+    # break existing functionality.
+    if [ -z "$DOCKER_VERSION" ]; then
+        DOCKER_VERSION="${version}"
+    fi
+
     case "$KUBERNETES_TARGET_VERSION_MINOR" in 
         14|15)
             compareDockerVersions "$version" 1.13.1
