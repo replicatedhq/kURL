@@ -160,8 +160,8 @@ function prompt_license() {
             logWarn "License Agreements with Airgap installs are not supported yet.\n"
             return
         fi
-        curl $LICENSE_URL
-        printf "\nThe license text is reproduced above. To view the license in your browser visit $LICENSE_URL.\n"
+        curl --fail $LICENSE_URL || bail "Failed to fetch license at url: $LICENSE_URL"
+        printf "\n\nThe license text is reproduced above. To view the license in your browser visit $LICENSE_URL.\n\n"
         printf "Do you accept the license agreement?"
         if confirmN; then
             printf "License Agreement Accepted. Continuing Installation.\n"
