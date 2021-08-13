@@ -57,7 +57,7 @@ function velero_install() {
     $src/assets/velero-v${VELERO_VERSION}-linux-amd64/velero install \
         $resticArg \
         $bslArgs \
-        --plugins velero/velero-plugin-for-aws:v__AWS_PLUGIN_VERSION__,velero/velero-plugin-for-gcp:v__GCP_PLUGIN_VERSION__,velero/velero-plugin-for-microsoft-azure:v__AZURE_PLUGIN_VERSION__,$KURL_UTIL_IMAGE \
+        --plugins velero/velero-plugin-for-aws:v__AWS_PLUGIN_VERSION__,velero/velero-plugin-for-gcp:v__GCP_PLUGIN_VERSION__,velero/velero-plugin-for-microsoft-azure:v__AZURE_PLUGIN_VERSION__,replicated/local-volume-provider:v0.1.0,$KURL_UTIL_IMAGE \
         --secret-file velero-credentials \
         --use-volume-snapshots=false \
         --namespace $VELERO_NAMESPACE \
