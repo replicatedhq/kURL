@@ -11,4 +11,4 @@ spec:
         - name: weave
           env:
           - name: NO_MASQ_LOCAL
-            value: "$NO_MASQ_LOCAL"
+            value: \"$NO_MASQ_LOCAL\"
