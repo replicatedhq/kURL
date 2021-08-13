@@ -76,6 +76,42 @@ function is_docker_version_supported() {
     return 0
 }
 
+function uninstall_docker() {
+    if ! commandExists docker || [ -n "$DOCKER_VERSION" ] || [ -z "$CONTAINERD_VERSION" ]; then
+        return
+    fi
+
+    docker rm -f $(docker ps -a -q) || true
+    # The rm -rf /var/lib/docker command below may fail with device busy error, so remove as much
+    # data as possible now
+    docker system prune --all --volumes --force
+
+    echo "Uninstalling Docker..."
+    case "$LSB_DIST" in
+        ubuntu)
+            export DEBIAN_FRONTEND=noninteractive
+            dpkg --purge docker-ce docker-ce-cli
+            ;;
+
+        centos|rhel|amzn|ol)
+            rpm --erase docker-ce docker-ce-cli docker-ce-rootless-extras
+            ;;
+    esac
+
+    rm -rf /var/lib/docker || true
+    rm -f /var/run/dockershim.sock
+    rm -f /var/run/docker.sock
+    echo "Docker successfully uninstalled."
+
+    systemctl start kubelet
+
+    # With the internal loadbalancer it may take a minute or two after starting kubelet before
+    # kubectl commands work
+    local node=$(hostname | tr '[:upper:]' '[:lower:]')
+    try_5m kubectl uncordon "$node" --kubeconfig=/etc/kubernetes/kubelet.conf
+
+}
+
 check_docker_storage_driver() {
     if [ "$BYPASS_STORAGEDRIVER_WARNINGS" = "1" ]; then
         return
