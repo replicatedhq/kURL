@@ -166,13 +166,16 @@ function reset() {
     discover
 
     if commandExists "kubeadm"; then
+        printf "Resetting kubeadm\n"
         kubeadm_reset
     fi 
 
     if commandExists "rke2"; then
+        printf "Resetting rke2\n"
         rke2_reset
     fi  
 
+    printf "Removing kubernetes packages\n"
     case "$LSB_DIST" in
         ubuntu)
             apt remove -y kubernetes-cni kubelet kubectl
@@ -186,7 +189,8 @@ function reset() {
             echo "Could not uninstall kuberentes host packages on ${LSB_DIST} ${DIST_MAJOR}"
         ;;
     esac
-    
+
+    printf "Removing host files\n"
     rm -rf /etc/cni
     rm -rf /etc/kubernetes
     rm -rf /opt/cni
