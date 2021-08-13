@@ -334,7 +334,7 @@ function kubernetes_resource_exists() {
 
 function install_cri() {
     # In the event someone changes the installer spec from docker to containerd, maintain backward capability with old installs
-    if [ -n "$DOCKER_VERSION" ] ; then
+    if [ -n "$DOCKER_VERSION" ] || [ "$SKIP_DOCKER_INSTALL" = "1" ] ; then
         export REPORTING_CONTEXT_INFO="docker $DOCKER_VERSION"
         report_install_docker
         export REPORTING_CONTEXT_INFO=""
@@ -380,26 +380,6 @@ function try_1m() {
             try_output="$($fn $args 2>&1)" || true
             echo "$try_output"
             bail "spent 1m attempting to run \"$fn $args\" without success"
-        fi
-        sleep 2
-    done
-}
-
-# try a command every 2 seconds until it succeeds, up to 150 tries max; useful for kubectl commands
-# where the Kubernetes API could be restarting
-function try_5m() {
-    local fn="$1"
-    local args=${@:2}
-
-    n=0
-    while ! $fn $args 2>/dev/null ; do
-        n="$(( $n + 1 ))"
-        if [ "$n" -ge "150" ]; then
-            # for the final try print the error and let it exit
-            echo ""
-            try_output="$($fn $args 2>&1)" || true
-            echo "$try_output"
-            bail "spent 5m attempting to run \"$fn $args\" without success"
         fi
         sleep 2
     done
