@@ -10,3 +10,4 @@ supported-versions-gen.json
 addons-gen.json
 .envrc
 .github/workflows/payloads
+*.swp
