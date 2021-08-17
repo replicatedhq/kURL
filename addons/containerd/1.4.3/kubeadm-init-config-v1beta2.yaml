@@ -1,0 +1,8 @@
+apiVersion: kubeadm.k8s.io/v1beta2
+kind: InitConfiguration
+metadata:
+  name: kubeadm-init-configuration
+nodeRegistration:
+  kubeletExtraArgs:
+    container-runtime: remote
+    container-runtime-endpoint: unix:///run/containerd/containerd.sock
