@@ -1,0 +1,1328 @@
+- name: '[sig-network] Services should have session affinity timeout work for
+        NodePort service [LinuxOnly] [Conformance]'
+      status: failed
+      details:
+        failure: |-
+          /workspace/src/k8s.io/kubernetes/_output/dockerized/go/src/k8s.io/kubernetes/test/e2e/framework/framework.go:629
+          Aug 17 20:02:40.392: Unexpected error:
+              <*errors.errorString | 0xc00275faa0>: {
+                  s: "out-of-range nodePort (16104) for service",
+              }
+              out-of-range nodePort (16104) for service
+          occurred
+          /workspace/src/k8s.io/kubernetes/_output/dockerized/go/src/k8s.io/kubernetes/test/e2e/network/service.go:3365
+        system-out: "[BeforeEach] [sig-network] Services\n  /workspace/src/k8s.io/kubernetes/_output/dockerized/go/src/k8s.io/kubernetes/test/e2e/framework/framework.go:174\nSTEP:
+          Creating a kubernetes client\nAug 17 20:02:27.813: INFO: >>> kubeConfig:
+          /tmp/kubeconfig-225689195\nSTEP: Building a namespace api object, basename
+          services\nSTEP: Waiting for a default service account to be provisioned
+          in namespace\n[BeforeEach] [sig-network] Services\n  /workspace/src/k8s.io/kubernetes/_output/dockerized/go/src/k8s.io/kubernetes/test/e2e/network/service.go:745\n[It]
+          should have session affinity timeout work for NodePort service [LinuxOnly]
+          [Conformance]\n  /workspace/src/k8s.io/kubernetes/_output/dockerized/go/src/k8s.io/kubernetes/test/e2e/framework/framework.go:629\nSTEP:
+          creating service in namespace services-4943\nAug 17 20:02:29.870: INFO:
+          Running '/usr/local/bin/kubectl --kubeconfig=/tmp/kubeconfig-225689195 --namespace=services-4943
+          exec kube-proxy-mode-detector -- /bin/sh -x -c curl -q -s --connect-timeout
+          1 http://localhost:10249/proxyMode'\nAug 17 20:02:30.275: INFO: stderr:
+          \"+ curl -q -s --connect-timeout 1 http://localhost:10249/proxyMode\\n\"\nAug
+          17 20:02:30.275: INFO: stdout: \"ipvs\"\nAug 17 20:02:30.275: INFO: proxyMode:
+          ipvs\nAug 17 20:02:30.286: INFO: Waiting for pod kube-proxy-mode-detector
+          to disappear\nAug 17 20:02:30.289: INFO: Pod kube-proxy-mode-detector no
+          longer exists\nSTEP: creating service affinity-nodeport-timeout in namespace
+          services-4943\nSTEP: creating replication controller affinity-nodeport-timeout
+          in namespace services-4943\nAug 17 20:02:36.373: INFO: Creating new exec
+          pod\nAug 17 20:02:40.392: FAIL: Unexpected error:\n    <*errors.errorString
+          | 0xc00275faa0>: {\n        s: \"out-of-range nodePort (16104) for service\",\n
+          \   }\n    out-of-range nodePort (16104) for service\noccurred\n\nFull Stack
+          Trace\nk8s.io/kubernetes/test/e2e/network.execAffinityTestForSessionAffinityTimeout(0xc000f05ce0,
+          0x5607d80, 0xc0017b1a20, 0xc000e04780)\n\t/workspace/src/k8s.io/kubernetes/_output/dockerized/go/src/k8s.io/kubernetes/test/e2e/network/service.go:3365
+          +0x751\nk8s.io/kubernetes/test/e2e/network.glob..func24.29()\n\t/workspace/src/k8s.io/kubernetes/_output/dockerized/go/src/k8s.io/kubernetes/test/e2e/network/service.go:2469
+          +0x9c\nk8s.io/kubernetes/test/e2e.RunE2ETests(0xc003845500)\n\t_output/dockerized/go/src/k8s.io/kubernetes/test/e2e/e2e.go:130
+          +0x36c\nk8s.io/kubernetes/test/e2e.TestE2E(0xc003845500)\n\t_output/dockerized/go/src/k8s.io/kubernetes/test/e2e/e2e_test.go:144
+          +0x2b\ntesting.tRunner(0xc003845500, 0x4fc1e88)\n\t/usr/local/go/src/testing/testing.go:1123
+          +0xef\ncreated by testing.(*T).Run\n\t/usr/local/go/src/testing/testing.go:1168
+          +0x2b3\nAug 17 20:02:40.392: INFO: Cleaning up the exec pod\nSTEP: deleting
+          ReplicationController affinity-nodeport-timeout in namespace services-4943,
+          will wait for the garbage collector to delete the pods\nAug 17 20:02:40.463:
+          INFO: Deleting ReplicationController affinity-nodeport-timeout took: 5.46329ms\nAug
+          17 20:02:41.163: INFO: Terminating ReplicationController affinity-nodeport-timeout
+          pods took: 700.282181ms\n[AfterEach] [sig-network] Services\n  /workspace/src/k8s.io/kubernetes/_output/dockerized/go/src/k8s.io/kubernetes/test/e2e/framework/framework.go:175\nSTEP:
+          Collecting events from namespace \"services-4943\".\nSTEP: Found 30 events.\nAug
+          17 20:02:49.692: INFO: At 2021-08-17 20:02:27 +0000 UTC - event for kube-proxy-mode-detector:
+          {default-scheduler } Scheduled: Successfully assigned services-4943/kube-proxy-mode-detector
+          to instance-1\nAug 17 20:02:49.692: INFO: At 2021-08-17 20:02:28 +0000 UTC
+          - event for kube-proxy-mode-detector: {kubelet instance-1} Started: Started
+          container agnhost-container\nAug 17 20:02:49.692: INFO: At 2021-08-17 20:02:28
+          +0000 UTC - event for kube-proxy-mode-detector: {kubelet instance-1} Created:
+          Created container agnhost-container\nAug 17 20:02:49.692: INFO: At 2021-08-17
+          20:02:28 +0000 UTC - event for kube-proxy-mode-detector: {kubelet instance-1}
+          Pulled: Container image \"k8s.gcr.io/e2e-test-images/agnhost:2.21\" already
+          present on machine\nAug 17 20:02:49.692: INFO: At 2021-08-17 20:02:30 +0000
+          UTC - event for affinity-nodeport-timeout: {replication-controller } SuccessfulCreate:
+          Created pod: affinity-nodeport-timeout-fkfhz\nAug 17 20:02:49.692: INFO:
+          At 2021-08-17 20:02:30 +0000 UTC - event for affinity-nodeport-timeout:
+          {replication-controller } SuccessfulCreate: Created pod: affinity-nodeport-timeout-v7mzk\nAug
+          17 20:02:49.692: INFO: At 2021-08-17 20:02:30 +0000 UTC - event for affinity-nodeport-timeout:
+          {replication-controller } SuccessfulCreate: Created pod: affinity-nodeport-timeout-l9fhv\nAug
+          17 20:02:49.692: INFO: At 2021-08-17 20:02:30 +0000 UTC - event for affinity-nodeport-timeout-fkfhz:
+          {default-scheduler } Scheduled: Successfully assigned services-4943/affinity-nodeport-timeout-fkfhz
+          to instance-1\nAug 17 20:02:49.692: INFO: At 2021-08-17 20:02:30 +0000 UTC
+          - event for affinity-nodeport-timeout-l9fhv: {default-scheduler } Scheduled:
+          Successfully assigned services-4943/affinity-nodeport-timeout-l9fhv to instance-1\nAug
+          17 20:02:49.692: INFO: At 2021-08-17 20:02:30 +0000 UTC - event for affinity-nodeport-timeout-v7mzk:
+          {default-scheduler } Scheduled: Successfully assigned services-4943/affinity-nodeport-timeout-v7mzk
+          to instance-1\nAug 17 20:02:49.692: INFO: At 2021-08-17 20:02:30 +0000 UTC
+          - event for kube-proxy-mode-detector: {kubelet instance-1} Killing: Stopping
+          container agnhost-container\nAug 17 20:02:49.692: INFO: At 2021-08-17 20:02:31
+          +0000 UTC - event for affinity-nodeport-timeout-fkfhz: {kubelet instance-1}
+          Started: Started container affinity-nodeport-timeout\nAug 17 20:02:49.692:
+          INFO: At 2021-08-17 20:02:31 +0000 UTC - event for affinity-nodeport-timeout-fkfhz:
+          {kubelet instance-1} Created: Created container affinity-nodeport-timeout\nAug
+          17 20:02:49.692: INFO: At 2021-08-17 20:02:31 +0000 UTC - event for affinity-nodeport-timeout-fkfhz:
+          {kubelet instance-1} Pulled: Container image \"k8s.gcr.io/e2e-test-images/agnhost:2.21\"
+          already present on machine\nAug 17 20:02:49.692: INFO: At 2021-08-17 20:02:31
+          +0000 UTC - event for affinity-nodeport-timeout-v7mzk: {kubelet instance-1}
+          Pulled: Container image \"k8s.gcr.io/e2e-test-images/agnhost:2.21\" already
+          present on machine\nAug 17 20:02:49.692: INFO: At 2021-08-17 20:02:31 +0000
+          UTC - event for kube-proxy-mode-detector: {kubelet instance-1} SandboxChanged:
+          Pod sandbox changed, it will be killed and re-created.\nAug 17 20:02:49.692:
+          INFO: At 2021-08-17 20:02:32 +0000 UTC - event for affinity-nodeport-timeout-v7mzk:
+          {kubelet instance-1} Created: Created container affinity-nodeport-timeout\nAug
+          17 20:02:49.692: INFO: At 2021-08-17 20:02:32 +0000 UTC - event for affinity-nodeport-timeout-v7mzk:
+          {kubelet instance-1} Started: Started container affinity-nodeport-timeout\nAug
+          17 20:02:49.692: INFO: At 2021-08-17 20:02:33 +0000 UTC - event for affinity-nodeport-timeout-l9fhv:
+          {kubelet instance-1} Created: Created container affinity-nodeport-timeout\nAug
+          17 20:02:49.692: INFO: At 2021-08-17 20:02:33 +0000 UTC - event for affinity-nodeport-timeout-l9fhv:
+          {kubelet instance-1} Pulled: Container image \"k8s.gcr.io/e2e-test-images/agnhost:2.21\"
+          already present on machine\nAug 17 20:02:49.692: INFO: At 2021-08-17 20:02:33
+          +0000 UTC - event for affinity-nodeport-timeout-l9fhv: {kubelet instance-1}
+          Started: Started container affinity-nodeport-timeout\nAug 17 20:02:49.692:
+          INFO: At 2021-08-17 20:02:36 +0000 UTC - event for execpod-affinityrgx87:
+          {default-scheduler } Scheduled: Successfully assigned services-4943/execpod-affinityrgx87
+          to instance-1\nAug 17 20:02:49.692: INFO: At 2021-08-17 20:02:37 +0000 UTC
+          - event for execpod-affinityrgx87: {kubelet instance-1} Created: Created
+          container agnhost-container\nAug 17 20:02:49.692: INFO: At 2021-08-17 20:02:37
+          +0000 UTC - event for execpod-affinityrgx87: {kubelet instance-1} Started:
+          Started container agnhost-container\nAug 17 20:02:49.692: INFO: At 2021-08-17
+          20:02:37 +0000 UTC - event for execpod-affinityrgx87: {kubelet instance-1}
+          Pulled: Container image \"k8s.gcr.io/e2e-test-images/agnhost:2.21\" already
+          present on machine\nAug 17 20:02:49.692: INFO: At 2021-08-17 20:02:40 +0000
+          UTC - event for execpod-affinityrgx87: {kubelet instance-1} Killing: Stopping
+          container agnhost-container\nAug 17 20:02:49.692: INFO: At 2021-08-17 20:02:41
+          +0000 UTC - event for affinity-nodeport-timeout: {endpoint-controller }
+          FailedToUpdateEndpoint: Failed to update endpoint services-4943/affinity-nodeport-timeout:
+          Operation cannot be fulfilled on endpoints \"affinity-nodeport-timeout\":
+          the object has been modified; please apply your changes to the latest version
+          and try again\nAug 17 20:02:49.692: INFO: At 2021-08-17 20:02:41 +0000 UTC
+          - event for affinity-nodeport-timeout-fkfhz: {kubelet instance-1} Killing:
+          Stopping container affinity-nodeport-timeout\nAug 17 20:02:49.692: INFO:
+          At 2021-08-17 20:02:41 +0000 UTC - event for affinity-nodeport-timeout-l9fhv:
+          {kubelet instance-1} Killing: Stopping container affinity-nodeport-timeout\nAug
+          17 20:02:49.692: INFO: At 2021-08-17 20:02:41 +0000 UTC - event for affinity-nodeport-timeout-v7mzk:
+          {kubelet instance-1} Killing: Stopping container affinity-nodeport-timeout\nAug
+          17 20:02:49.695: INFO: POD  NODE  PHASE  GRACE  CONDITIONS\nAug 17 20:02:49.695:
+          INFO: \nAug 17 20:02:49.698: INFO: \nLogging node info for node instance-1\nAug
+          17 20:02:49.700: INFO: Node Info: &Node{ObjectMeta:{instance-1    0691d59d-7a03-4b01-a2b2-7f00e0d72379
+          3858 0 2021-08-17 19:48:59 +0000 UTC <nil> <nil> map[beta.kubernetes.io/arch:amd64
+          beta.kubernetes.io/os:linux kubernetes.io/arch:amd64 kubernetes.io/hostname:instance-1
+          kubernetes.io/os:linux kurl.sh/cluster:true] map[kubeadm.alpha.kubernetes.io/cri-socket:/var/run/dockershim.sock
+          node.alpha.kubernetes.io/ttl:0 volumes.kubernetes.io/controller-managed-attach-detach:true]
+          [] []  [{kube-controller-manager Update v1 2021-08-17 19:49:04 +0000 UTC
+          FieldsV1 {\"f:metadata\":{\"f:annotations\":{\"f:node.alpha.kubernetes.io/ttl\":{}}}}}
+          {kubeadm Update v1 2021-08-17 19:49:04 +0000 UTC FieldsV1 {\"f:metadata\":{\"f:annotations\":{\"f:kubeadm.alpha.kubernetes.io/cri-socket\":{}}}}}
+          {kubelet Update v1 2021-08-17 19:49:09 +0000 UTC FieldsV1 {\"f:metadata\":{\"f:annotations\":{\".\":{},\"f:volumes.kubernetes.io/controller-managed-attach-detach\":{}},\"f:labels\":{\".\":{},\"f:beta.kubernetes.io/arch\":{},\"f:beta.kubernetes.io/os\":{},\"f:kubernetes.io/arch\":{},\"f:kubernetes.io/hostname\":{},\"f:kubernetes.io/os\":{},\"f:kurl.sh/cluster\":{}}},\"f:status\":{\"f:addresses\":{\".\":{},\"k:{\\\"type\\\":\\\"Hostname\\\"}\":{\".\":{},\"f:address\":{},\"f:type\":{}},\"k:{\\\"type\\\":\\\"InternalIP\\\"}\":{\".\":{},\"f:address\":{},\"f:type\":{}}},\"f:allocatable\":{\".\":{},\"f:cpu\":{},\"f:ephemeral-storage\":{},\"f:hugepages-1Gi\":{},\"f:hugepages-2Mi\":{},\"f:memory\":{},\"f:pods\":{}},\"f:capacity\":{\".\":{},\"f:cpu\":{},\"f:ephemeral-storage\":{},\"f:hugepages-1Gi\":{},\"f:hugepages-2Mi\":{},\"f:memory\":{},\"f:pods\":{}},\"f:conditions\":{\".\":{},\"k:{\\\"type\\\":\\\"DiskPressure\\\"}\":{\".\":{},\"f:lastHeartbeatTime\":{},\"f:lastTransitionTime\":{},\"f:message\":{},\"f:reason\":{},\"f:status\":{},\"f:type\":{}},\"k:{\\\"type\\\":\\\"MemoryPressure\\\"}\":{\".\":{},\"f:lastHeartbeatTime\":{},\"f:lastTransitionTime\":{},\"f:message\":{},\"f:reason\":{},\"f:status\":{},\"f:type\":{}},\"k:{\\\"type\\\":\\\"PIDPressure\\\"}\":{\".\":{},\"f:lastHeartbeatTime\":{},\"f:lastTransitionTime\":{},\"f:message\":{},\"f:reason\":{},\"f:status\":{},\"f:type\":{}},\"k:{\\\"type\\\":\\\"Ready\\\"}\":{\".\":{},\"f:lastHeartbeatTime\":{},\"f:lastTransitionTime\":{},\"f:message\":{},\"f:reason\":{},\"f:status\":{},\"f:type\":{}}},\"f:daemonEndpoints\":{\"f:kubeletEndpoint\":{\"f:Port\":{}}},\"f:images\":{},\"f:nodeInfo\":{\"f:architecture\":{},\"f:bootID\":{},\"f:containerRuntimeVersion\":{},\"f:kernelVersion\":{},\"f:kubeProxyVersion\":{},\"f:kubeletVersion\":{},\"f:machineID\":{},\"f:operatingSystem\":{},\"f:osImage\":{},\"f:systemUUID\":{}}}}}
+          {kube-utils Update v1 2021-08-17 19:49:40 +0000 UTC FieldsV1 {\"f:status\":{\"f:conditions\":{\"k:{\\\"type\\\":\\\"NetworkUnavailable\\\"}\":{\".\":{},\"f:lastHeartbeatTime\":{},\"f:lastTransitionTime\":{},\"f:message\":{},\"f:reason\":{},\"f:status\":{},\"f:type\":{}}}}}}]},Spec:NodeSpec{PodCIDR:,DoNotUseExternalID:,ProviderID:,Unschedulable:false,Taints:[]Taint{},ConfigSource:nil,PodCIDRs:[],},Status:NodeStatus{Capacity:ResourceList{cpu:
+          {{4 0} {<nil>} 4 DecimalSI},ephemeral-storage: {{51848359936 0} {<nil>}
+          50633164Ki BinarySI},hugepages-1Gi: {{0 0} {<nil>} 0 DecimalSI},hugepages-2Mi:
+          {{0 0} {<nil>} 0 DecimalSI},memory: {{16819818496 0} {<nil>} 16425604Ki
+          BinarySI},pods: {{110 0} {<nil>} 110 DecimalSI},},Allocatable:ResourceList{cpu:
+          {{4 0} {<nil>} 4 DecimalSI},ephemeral-storage: {{46663523866 0} {<nil>}
+          46663523866 DecimalSI},hugepages-1Gi: {{0 0} {<nil>} 0 DecimalSI},hugepages-2Mi:
+          {{0 0} {<nil>} 0 DecimalSI},memory: {{16714960896 0} {<nil>} 16323204Ki
+          BinarySI},pods: {{110 0} {<nil>} 110 DecimalSI},},Phase:,Conditions:[]NodeCondition{NodeCondition{Type:NetworkUnavailable,Status:False,LastHeartbeatTime:2021-08-17
+          19:49:40 +0000 UTC,LastTransitionTime:2021-08-17 19:49:40 +0000 UTC,Reason:WeaveIsUp,Message:Weave
+          pod has set this,},NodeCondition{Type:MemoryPressure,Status:False,LastHeartbeatTime:2021-08-17
+          20:02:02 +0000 UTC,LastTransitionTime:2021-08-17 19:48:59 +0000 UTC,Reason:KubeletHasSufficientMemory,Message:kubelet
+          has sufficient memory available,},NodeCondition{Type:DiskPressure,Status:False,LastHeartbeatTime:2021-08-17
+          20:02:02 +0000 UTC,LastTransitionTime:2021-08-17 19:48:59 +0000 UTC,Reason:KubeletHasNoDiskPressure,Message:kubelet
+          has no disk pressure,},NodeCondition{Type:PIDPressure,Status:False,LastHeartbeatTime:2021-08-17
+          20:02:02 +0000 UTC,LastTransitionTime:2021-08-17 19:48:59 +0000 UTC,Reason:KubeletHasSufficientPID,Message:kubelet
+          has sufficient PID available,},NodeCondition{Type:Ready,Status:True,LastHeartbeatTime:2021-08-17
+          20:02:02 +0000 UTC,LastTransitionTime:2021-08-17 19:49:49 +0000 UTC,Reason:KubeletReady,Message:kubelet
+          is posting ready status. AppArmor enabled,},},Addresses:[]NodeAddress{NodeAddress{Type:InternalIP,Address:10.138.0.85,},NodeAddress{Type:Hostname,Address:instance-1,},},DaemonEndpoints:NodeDaemonEndpoints{KubeletEndpoint:DaemonEndpoint{Port:10250,},},NodeInfo:NodeSystemInfo{MachineID:88fad3d5f21a09782b2dbead66e93a51,SystemUUID:8DB67A60-CE5C-7D67-B8D7-C54DA378F196,BootID:6e6cfdab-b9bc-49ac-a44e-3e28f5fda275,KernelVersion:4.15.0-1027-gcp,OSImage:Ubuntu
+          18.04.2 LTS,ContainerRuntimeVersion:docker://20.10.5,KubeletVersion:v1.20.9,KubeProxyVersion:v1.20.9,OperatingSystem:linux,Architecture:amd64,},Images:[]ContainerImage{ContainerImage{Names:[replicated/kurl-util:v2021.08.16-0],SizeBytes:387837491,},ContainerImage{Names:[sonobuoy/systemd-logs@sha256:fadad24a66ddd544987c38811108a73d1a306dd3b5e3f090b207786f2825ffde
+          sonobuoy/systemd-logs:v0.3],SizeBytes:297365055,},ContainerImage{Names:[k8s.gcr.io/etcd:3.4.13-0],SizeBytes:253392289,},ContainerImage{Names:[k8s.gcr.io/conformance@sha256:49d174932ba9a8923b557ac20e7aadffeb4d8353d05136966bbf354bd792803f
+          k8s.gcr.io/conformance:v1.20.9],SizeBytes:229580091,},ContainerImage{Names:[weaveworks/weaveexec:2.6.5],SizeBytes:149093862,},ContainerImage{Names:[envoyproxy/envoy:v1.19.0],SizeBytes:133745493,},ContainerImage{Names:[httpd@sha256:eb8ccf084cf3e80eece1add239effefd171eb39adbc154d33c14260d905d4060
+          httpd:2.4.38-alpine],SizeBytes:123781643,},ContainerImage{Names:[weaveworks/weave-kube:2.6.5],SizeBytes:123327967,},ContainerImage{Names:[k8s.gcr.io/kube-apiserver:v1.20.9],SizeBytes:121803165,},ContainerImage{Names:[replicated/ekco:v0.11.0],SizeBytes:117690299,},ContainerImage{Names:[k8s.gcr.io/kube-controller-manager:v1.20.9],SizeBytes:116347293,},ContainerImage{Names:[k8s.gcr.io/e2e-test-images/agnhost@sha256:ab055cd3d45f50b90732c14593a5bf50f210871bb4f91994c756fc22db6d922a
+          k8s.gcr.io/e2e-test-images/agnhost:2.21],SizeBytes:113879107,},ContainerImage{Names:[k8s.gcr.io/kube-proxy:v1.20.9],SizeBytes:99667598,},ContainerImage{Names:[haproxy:2.4.2],SizeBytes:95448973,},ContainerImage{Names:[k8s.gcr.io/kube-scheduler:v1.20.9],SizeBytes:47276445,},ContainerImage{Names:[k8s.gcr.io/coredns:1.7.0],SizeBytes:45227747,},ContainerImage{Names:[projectcontour/contour:v1.18.0],SizeBytes:42696704,},ContainerImage{Names:[sonobuoy/sonobuoy@sha256:d393e2c862fffd0823409594f3ab8bc2524b359d9e6313ae3f9edb5d3dfa56e1
+          sonobuoy/sonobuoy:v0.53.2],SizeBytes:37400989,},ContainerImage{Names:[weaveworks/weave-npc:2.6.5],SizeBytes:36767037,},ContainerImage{Names:[nginx@sha256:485b610fefec7ff6c463ced9623314a04ed67e3945b9c08d7e53a47f6d108dc7
+          nginx:1.14-alpine],SizeBytes:16032814,},ContainerImage{Names:[busybox@sha256:8ccbac733d19c0dd4d70b4f0c1e12245b5fa3ad24758a11035ee505c629c0796
+          busybox:1.29],SizeBytes:1154361,},ContainerImage{Names:[k8s.gcr.io/pause:3.2],SizeBytes:682696,},},VolumesInUse:[],VolumesAttached:[]AttachedVolume{},Config:nil,},}\nAug
+          17 20:02:49.701: INFO: \nLogging kubelet events for node instance-1\nAug
+          17 20:02:49.704: INFO: \nLogging pods the kubelet thinks is on node instance-1\nAug
+          17 20:02:49.721: INFO: weave-net-pzzgq started at 2021-08-17 19:49:00 +0000
+          UTC (0+2 container statuses recorded)\nAug 17 20:02:49.721: INFO: \tContainer
+          weave ready: true, restart count 1\nAug 17 20:02:49.721: INFO: \tContainer
+          weave-npc ready: true, restart count 0\nAug 17 20:02:49.721: INFO: envoy-9h5jr
+          started at 2021-08-17 19:49:49 +0000 UTC (1+2 container statuses recorded)\nAug
+          17 20:02:49.721: INFO: \tInit container envoy-initconfig ready: true, restart
+          count 0\nAug 17 20:02:49.721: INFO: \tContainer envoy ready: true, restart
+          count 0\nAug 17 20:02:49.721: INFO: \tContainer shutdown-manager ready:
+          true, restart count 0\nAug 17 20:02:49.721: INFO: sonobuoy-e2e-job-5b76cec565304abe
+          started at 2021-08-17 19:59:25 +0000 UTC (0+2 container statuses recorded)\nAug
+          17 20:02:49.721: INFO: \tContainer e2e ready: true, restart count 0\nAug
+          17 20:02:49.721: INFO: \tContainer sonobuoy-worker ready: true, restart
+          count 0\nAug 17 20:02:49.721: INFO: kube-proxy-gbvr2 started at 2021-08-17
+          19:49:00 +0000 UTC (0+1 container statuses recorded)\nAug 17 20:02:49.721:
+          INFO: \tContainer kube-proxy ready: true, restart count 0\nAug 17 20:02:49.721:
+          INFO: sonobuoy started at 2021-08-17 19:59:20 +0000 UTC (0+1 container statuses
+          recorded)\nAug 17 20:02:49.721: INFO: \tContainer kube-sonobuoy ready: true,
+          restart count 0\nAug 17 20:02:49.721: INFO: sonobuoy-systemd-logs-daemon-set-ed45bd546f8e4327-cgzlw
+          started at 2021-08-17 19:59:25 +0000 UTC (0+2 container statuses recorded)\nAug
+          17 20:02:49.721: INFO: \tContainer sonobuoy-worker ready: true, restart
+          count 0\nAug 17 20:02:49.721: INFO: \tContainer systemd-logs ready: true,
+          restart count 0\nAug 17 20:02:49.756: INFO: \nLatency metrics for node instance-1\nAug
+          17 20:02:49.757: INFO: \nLogging node info for node kurl-k8s-20-conform1\nAug
+          17 20:02:49.759: INFO: Node Info: &Node{ObjectMeta:{kurl-k8s-20-conform1
+          \   f5e06593-3800-42ce-b84f-e92cb98da97c 3954 0 2021-08-17 19:38:17 +0000
+          UTC <nil> <nil> map[beta.kubernetes.io/arch:amd64 beta.kubernetes.io/os:linux
+          kubernetes.io/arch:amd64 kubernetes.io/hostname:kurl-k8s-20-conform1 kubernetes.io/os:linux
+          kurl.sh/cluster:true node-role.kubernetes.io/control-plane: node-role.kubernetes.io/master:]
+          map[kubeadm.alpha.kubernetes.io/cri-socket:/var/run/dockershim.sock node.alpha.kubernetes.io/ttl:0
+          volumes.kubernetes.io/controller-managed-attach-detach:true] [] []  [{kubelet
+          Update v1 2021-08-17 19:38:17 +0000 UTC FieldsV1 {\"f:metadata\":{\"f:annotations\":{\".\":{},\"f:volumes.kubernetes.io/controller-managed-attach-detach\":{}},\"f:labels\":{\".\":{},\"f:beta.kubernetes.io/arch\":{},\"f:beta.kubernetes.io/os\":{},\"f:kubernetes.io/arch\":{},\"f:kubernetes.io/hostname\":{},\"f:kubernetes.io/os\":{},\"f:kurl.sh/cluster\":{}}},\"f:status\":{\"f:addresses\":{\".\":{},\"k:{\\\"type\\\":\\\"Hostname\\\"}\":{\".\":{},\"f:address\":{},\"f:type\":{}},\"k:{\\\"type\\\":\\\"InternalIP\\\"}\":{\".\":{},\"f:address\":{},\"f:type\":{}}},\"f:allocatable\":{\".\":{},\"f:cpu\":{},\"f:ephemeral-storage\":{},\"f:hugepages-1Gi\":{},\"f:hugepages-2Mi\":{},\"f:memory\":{},\"f:pods\":{}},\"f:capacity\":{\".\":{},\"f:cpu\":{},\"f:ephemeral-storage\":{},\"f:hugepages-1Gi\":{},\"f:hugepages-2Mi\":{},\"f:memory\":{},\"f:pods\":{}},\"f:conditions\":{\".\":{},\"k:{\\\"type\\\":\\\"DiskPressure\\\"}\":{\".\":{},\"f:lastHeartbeatTime\":{},\"f:lastTransitionTime\":{},\"f:message\":{},\"f:reason\":{},\"f:status\":{},\"f:type\":{}},\"k:{\\\"type\\\":\\\"MemoryPressure\\\"}\":{\".\":{},\"f:lastHeartbeatTime\":{},\"f:lastTransitionTime\":{},\"f:message\":{},\"f:reason\":{},\"f:status\":{},\"f:type\":{}},\"k:{\\\"type\\\":\\\"PIDPressure\\\"}\":{\".\":{},\"f:lastHeartbeatTime\":{},\"f:lastTransitionTime\":{},\"f:message\":{},\"f:reason\":{},\"f:status\":{},\"f:type\":{}},\"k:{\\\"type\\\":\\\"Ready\\\"}\":{\".\":{},\"f:lastHeartbeatTime\":{},\"f:lastTransitionTime\":{},\"f:message\":{},\"f:reason\":{},\"f:status\":{},\"f:type\":{}}},\"f:daemonEndpoints\":{\"f:kubeletEndpoint\":{\"f:Port\":{}}},\"f:images\":{},\"f:nodeInfo\":{\"f:architecture\":{},\"f:bootID\":{},\"f:containerRuntimeVersion\":{},\"f:kernelVersion\":{},\"f:kubeProxyVersion\":{},\"f:kubeletVersion\":{},\"f:machineID\":{},\"f:operatingSystem\":{},\"f:osImage\":{},\"f:systemUUID\":{}}}}}
+          {kubeadm Update v1 2021-08-17 19:38:18 +0000 UTC FieldsV1 {\"f:metadata\":{\"f:annotations\":{\"f:kubeadm.alpha.kubernetes.io/cri-socket\":{}},\"f:labels\":{\"f:node-role.kubernetes.io/control-plane\":{},\"f:node-role.kubernetes.io/master\":{}}}}}
+          {kube-controller-manager Update v1 2021-08-17 19:38:24 +0000 UTC FieldsV1
+          {\"f:metadata\":{\"f:annotations\":{\"f:node.alpha.kubernetes.io/ttl\":{}}}}}
+          {kube-utils Update v1 2021-08-17 19:38:38 +0000 UTC FieldsV1 {\"f:status\":{\"f:conditions\":{\"k:{\\\"type\\\":\\\"NetworkUnavailable\\\"}\":{\".\":{},\"f:lastHeartbeatTime\":{},\"f:lastTransitionTime\":{},\"f:message\":{},\"f:reason\":{},\"f:status\":{},\"f:type\":{}}}}}}]},Spec:NodeSpec{PodCIDR:,DoNotUseExternalID:,ProviderID:,Unschedulable:false,Taints:[]Taint{},ConfigSource:nil,PodCIDRs:[],},Status:NodeStatus{Capacity:ResourceList{cpu:
+          {{4 0} {<nil>} 4 DecimalSI},ephemeral-storage: {{51848359936 0} {<nil>}
+          50633164Ki BinarySI},hugepages-1Gi: {{0 0} {<nil>} 0 DecimalSI},hugepages-2Mi:
+          {{0 0} {<nil>} 0 DecimalSI},memory: {{16819826688 0} {<nil>} 16425612Ki
+          BinarySI},pods: {{110 0} {<nil>} 110 DecimalSI},},Allocatable:ResourceList{cpu:
+          {{4 0} {<nil>} 4 DecimalSI},ephemeral-storage: {{46663523866 0} {<nil>}
+          46663523866 DecimalSI},hugepages-1Gi: {{0 0} {<nil>} 0 DecimalSI},hugepages-2Mi:
+          {{0 0} {<nil>} 0 DecimalSI},memory: {{16714969088 0} {<nil>} 16323212Ki
+          BinarySI},pods: {{110 0} {<nil>} 110 DecimalSI},},Phase:,Conditions:[]NodeCondition{NodeCondition{Type:NetworkUnavailable,Status:False,LastHeartbeatTime:2021-08-17
+          19:38:38 +0000 UTC,LastTransitionTime:2021-08-17 19:38:38 +0000 UTC,Reason:WeaveIsUp,Message:Weave
+          pod has set this,},NodeCondition{Type:MemoryPressure,Status:False,LastHeartbeatTime:2021-08-17
+          20:02:24 +0000 UTC,LastTransitionTime:2021-08-17 19:38:16 +0000 UTC,Reason:KubeletHasSufficientMemory,Message:kubelet
+          has sufficient memory available,},NodeCondition{Type:DiskPressure,Status:False,LastHeartbeatTime:2021-08-17
+          20:02:24 +0000 UTC,LastTransitionTime:2021-08-17 19:38:16 +0000 UTC,Reason:KubeletHasNoDiskPressure,Message:kubelet
+          has no disk pressure,},NodeCondition{Type:PIDPressure,Status:False,LastHeartbeatTime:2021-08-17
+          20:02:24 +0000 UTC,LastTransitionTime:2021-08-17 19:38:16 +0000 UTC,Reason:KubeletHasSufficientPID,Message:kubelet
+          has sufficient PID available,},NodeCondition{Type:Ready,Status:True,LastHeartbeatTime:2021-08-17
+          20:02:24 +0000 UTC,LastTransitionTime:2021-08-17 19:38:39 +0000 UTC,Reason:KubeletReady,Message:kubelet
+          is posting ready status. AppArmor enabled,},},Addresses:[]NodeAddress{NodeAddress{Type:InternalIP,Address:10.138.0.74,},NodeAddress{Type:Hostname,Address:kurl-k8s-20-conform1,},},DaemonEndpoints:NodeDaemonEndpoints{KubeletEndpoint:DaemonEndpoint{Port:10250,},},NodeInfo:NodeSystemInfo{MachineID:88fad3d5f21a09782b2dbead66e93a51,SystemUUID:C7CF0731-675E-95C7-83A3-C56583255D9B,BootID:d74884d9-1350-4c19-b2ef-6e6984ff0589,KernelVersion:4.15.0-1027-gcp,OSImage:Ubuntu
+          18.04.2 LTS,ContainerRuntimeVersion:docker://20.10.5,KubeletVersion:v1.20.9,KubeProxyVersion:v1.20.9,OperatingSystem:linux,Architecture:amd64,},Images:[]ContainerImage{ContainerImage{Names:[replicated/kurl-util:v2021.08.16-0],SizeBytes:387837491,},ContainerImage{Names:[sonobuoy/systemd-logs@sha256:fadad24a66ddd544987c38811108a73d1a306dd3b5e3f090b207786f2825ffde
+          sonobuoy/systemd-logs:v0.3],SizeBytes:297365055,},ContainerImage{Names:[k8s.gcr.io/etcd:3.4.13-0],SizeBytes:253392289,},ContainerImage{Names:[weaveworks/weaveexec:2.6.5],SizeBytes:149093862,},ContainerImage{Names:[envoyproxy/envoy:v1.19.0],SizeBytes:133745493,},ContainerImage{Names:[weaveworks/weave-kube:2.6.5],SizeBytes:123327967,},ContainerImage{Names:[k8s.gcr.io/kube-apiserver:v1.20.9],SizeBytes:121803165,},ContainerImage{Names:[replicated/ekco:v0.11.0],SizeBytes:117690299,},ContainerImage{Names:[k8s.gcr.io/kube-controller-manager:v1.20.9],SizeBytes:116347293,},ContainerImage{Names:[k8s.gcr.io/e2e-test-images/agnhost@sha256:ab055cd3d45f50b90732c14593a5bf50f210871bb4f91994c756fc22db6d922a
+          k8s.gcr.io/e2e-test-images/agnhost:2.21],SizeBytes:113879107,},ContainerImage{Names:[k8s.gcr.io/kube-proxy:v1.20.9],SizeBytes:99667598,},ContainerImage{Names:[haproxy:2.4.2],SizeBytes:95448973,},ContainerImage{Names:[k8s.gcr.io/kube-scheduler:v1.20.9],SizeBytes:47276445,},ContainerImage{Names:[k8s.gcr.io/coredns:1.7.0],SizeBytes:45227747,},ContainerImage{Names:[projectcontour/contour:v1.18.0],SizeBytes:42696704,},ContainerImage{Names:[sonobuoy/sonobuoy@sha256:d393e2c862fffd0823409594f3ab8bc2524b359d9e6313ae3f9edb5d3dfa56e1
+          sonobuoy/sonobuoy:v0.53.2],SizeBytes:37400989,},ContainerImage{Names:[weaveworks/weave-npc:2.6.5],SizeBytes:36767037,},ContainerImage{Names:[k8s.gcr.io/pause:3.2],SizeBytes:682696,},},VolumesInUse:[],VolumesAttached:[]AttachedVolume{},Config:nil,},}\nAug
+          17 20:02:49.760: INFO: \nLogging kubelet events for node kurl-k8s-20-conform1\nAug
+          17 20:02:49.764: INFO: \nLogging pods the kubelet thinks is on node kurl-k8s-20-conform1\nAug
+          17 20:02:49.783: INFO: etcd-kurl-k8s-20-conform1 started at 2021-08-17 19:38:19
+          +0000 UTC (0+1 container statuses recorded)\nAug 17 20:02:49.783: INFO:
+          \tContainer etcd ready: true, restart count 0\nAug 17 20:02:49.783: INFO:
+          kube-apiserver-kurl-k8s-20-conform1 started at 2021-08-17 19:38:20 +0000
+          UTC (0+1 container statuses recorded)\nAug 17 20:02:49.783: INFO: \tContainer
+          kube-apiserver ready: true, restart count 0\nAug 17 20:02:49.783: INFO:
+          contour-certgen-v1.18.0-qx9g5 started at 2021-08-17 19:38:59 +0000 UTC (0+1
+          container statuses recorded)\nAug 17 20:02:49.783: INFO: \tContainer contour
+          ready: false, restart count 0\nAug 17 20:02:49.783: INFO: coredns-74ff55c5b-qww4n
+          started at 2021-08-17 19:38:46 +0000 UTC (0+1 container statuses recorded)\nAug
+          17 20:02:49.783: INFO: \tContainer coredns ready: true, restart count 0\nAug
+          17 20:02:49.783: INFO: ekc-operator-5888598d79-hpnnb started at 2021-08-17
+          19:39:01 +0000 UTC (0+1 container statuses recorded)\nAug 17 20:02:49.783:
+          INFO: \tContainer ekc-operator ready: true, restart count 0\nAug 17 20:02:49.783:
+          INFO: kube-controller-manager-kurl-k8s-20-conform1 started at 2021-08-17
+          19:38:20 +0000 UTC (0+1 container statuses recorded)\nAug 17 20:02:49.783:
+          INFO: \tContainer kube-controller-manager ready: true, restart count 0\nAug
+          17 20:02:49.783: INFO: kube-scheduler-kurl-k8s-20-conform1 started at 2021-08-17
+          19:38:19 +0000 UTC (0+1 container statuses recorded)\nAug 17 20:02:49.783:
+          INFO: \tContainer kube-scheduler ready: true, restart count 0\nAug 17 20:02:49.783:
+          INFO: weave-net-fjkrd started at 2021-08-17 19:38:33 +0000 UTC (0+2 container
+          statuses recorded)\nAug 17 20:02:49.783: INFO: \tContainer weave ready:
+          true, restart count 1\nAug 17 20:02:49.783: INFO: \tContainer weave-npc
+          ready: true, restart count 0\nAug 17 20:02:49.783: INFO: contour-f85dd8bcb-v5gpr
+          started at 2021-08-17 19:38:58 +0000 UTC (0+1 container statuses recorded)\nAug
+          17 20:02:49.783: INFO: \tContainer contour ready: true, restart count 0\nAug
+          17 20:02:49.783: INFO: contour-f85dd8bcb-s4dg2 started at 2021-08-17 19:38:58
+          +0000 UTC (0+1 container statuses recorded)\nAug 17 20:02:49.783: INFO:
+          \tContainer contour ready: true, restart count 0\nAug 17 20:02:49.783: INFO:
+          coredns-74ff55c5b-l8z82 started at 2021-08-17 19:38:46 +0000 UTC (0+1 container
+          statuses recorded)\nAug 17 20:02:49.783: INFO: \tContainer coredns ready:
+          true, restart count 0\nAug 17 20:02:49.783: INFO: sonobuoy-systemd-logs-daemon-set-ed45bd546f8e4327-bzqb6
+          started at 2021-08-17 19:59:25 +0000 UTC (0+2 container statuses recorded)\nAug
+          17 20:02:49.783: INFO: \tContainer sonobuoy-worker ready: true, restart
+          count 0\nAug 17 20:02:49.783: INFO: \tContainer systemd-logs ready: true,
+          restart count 0\nAug 17 20:02:49.783: INFO: kube-proxy-2zmrb started at
+          2021-08-17 19:38:24 +0000 UTC (0+1 container statuses recorded)\nAug 17
+          20:02:49.783: INFO: \tContainer kube-proxy ready: true, restart count 0\nAug
+          17 20:02:49.783: INFO: envoy-8j56d started at 2021-08-17 19:38:58 +0000
+          UTC (1+2 container statuses recorded)\nAug 17 20:02:49.783: INFO: \tInit
+          container envoy-initconfig ready: true, restart count 0\nAug 17 20:02:49.783:
+          INFO: \tContainer envoy ready: true, restart count 0\nAug 17 20:02:49.783:
+          INFO: \tContainer shutdown-manager ready: true, restart count 0\nAug 17
+          20:02:49.817: INFO: \nLatency metrics for node kurl-k8s-20-conform1\nAug
+          17 20:02:49.817: INFO: Waiting up to 3m0s for all (but 0) nodes to be ready\nSTEP:
+          Destroying namespace \"services-4943\" for this suite.\n[AfterEach] [sig-network]
+          Services\n  /workspace/src/k8s.io/kubernetes/_output/dockerized/go/src/k8s.io/kubernetes/test/e2e/network/service.go:749\n"
+    - name: '[sig-network] Services should have session affinity work for NodePort
+        service [LinuxOnly] [Conformance]'
+      status: failed
+      details:
+        failure: |-
+          /workspace/src/k8s.io/kubernetes/_output/dockerized/go/src/k8s.io/kubernetes/test/e2e/framework/framework.go:629
+          Aug 17 20:39:24.341: Unexpected error:
+              <*errors.errorString | 0xc0036f58c0>: {
+                  s: "out-of-range nodePort (55474) for service",
+              }
+              out-of-range nodePort (55474) for service
+          occurred
+          /workspace/src/k8s.io/kubernetes/_output/dockerized/go/src/k8s.io/kubernetes/test/e2e/network/service.go:3444
+        system-out: "[BeforeEach] [sig-network] Services\n  /workspace/src/k8s.io/kubernetes/_output/dockerized/go/src/k8s.io/kubernetes/test/e2e/framework/framework.go:174\nSTEP:
+          Creating a kubernetes client\nAug 17 20:39:19.221: INFO: >>> kubeConfig:
+          /tmp/kubeconfig-225689195\nSTEP: Building a namespace api object, basename
+          services\nSTEP: Waiting for a default service account to be provisioned
+          in namespace\n[BeforeEach] [sig-network] Services\n  /workspace/src/k8s.io/kubernetes/_output/dockerized/go/src/k8s.io/kubernetes/test/e2e/network/service.go:745\n[It]
+          should have session affinity work for NodePort service [LinuxOnly] [Conformance]\n
+          \ /workspace/src/k8s.io/kubernetes/_output/dockerized/go/src/k8s.io/kubernetes/test/e2e/framework/framework.go:629\nSTEP:
+          creating service in namespace services-8120\nSTEP: creating service affinity-nodeport
+          in namespace services-8120\nSTEP: creating replication controller affinity-nodeport
+          in namespace services-8120\nAug 17 20:39:22.329: INFO: Creating new exec
+          pod\nAug 17 20:39:24.341: FAIL: Unexpected error:\n    <*errors.errorString
+          | 0xc0036f58c0>: {\n        s: \"out-of-range nodePort (55474) for service\",\n
+          \   }\n    out-of-range nodePort (55474) for service\noccurred\n\nFull Stack
+          Trace\nk8s.io/kubernetes/test/e2e/network.execAffinityTestForNonLBServiceWithOptionalTransition(0xc000f05ce0,
+          0x5607d80, 0xc001a12f20, 0xc0004f4c80, 0x0)\n\t/workspace/src/k8s.io/kubernetes/_output/dockerized/go/src/k8s.io/kubernetes/test/e2e/network/service.go:3444
+          +0x62e\nk8s.io/kubernetes/test/e2e/network.execAffinityTestForNonLBService(...)\n\t/workspace/src/k8s.io/kubernetes/_output/dockerized/go/src/k8s.io/kubernetes/test/e2e/network/service.go:3403\nk8s.io/kubernetes/test/e2e/network.glob..func24.28()\n\t/workspace/src/k8s.io/kubernetes/_output/dockerized/go/src/k8s.io/kubernetes/test/e2e/network/service.go:2452
+          +0xa5\nk8s.io/kubernetes/test/e2e.RunE2ETests(0xc003845500)\n\t_output/dockerized/go/src/k8s.io/kubernetes/test/e2e/e2e.go:130
+          +0x36c\nk8s.io/kubernetes/test/e2e.TestE2E(0xc003845500)\n\t_output/dockerized/go/src/k8s.io/kubernetes/test/e2e/e2e_test.go:144
+          +0x2b\ntesting.tRunner(0xc003845500, 0x4fc1e88)\n\t/usr/local/go/src/testing/testing.go:1123
+          +0xef\ncreated by testing.(*T).Run\n\t/usr/local/go/src/testing/testing.go:1168
+          +0x2b3\nAug 17 20:39:24.341: INFO: Cleaning up the exec pod\nSTEP: deleting
+          ReplicationController affinity-nodeport in namespace services-8120, will
+          wait for the garbage collector to delete the pods\nAug 17 20:39:24.407:
+          INFO: Deleting ReplicationController affinity-nodeport took: 4.906757ms\nAug
+          17 20:39:25.107: INFO: Terminating ReplicationController affinity-nodeport
+          pods took: 700.190578ms\n[AfterEach] [sig-network] Services\n  /workspace/src/k8s.io/kubernetes/_output/dockerized/go/src/k8s.io/kubernetes/test/e2e/framework/framework.go:175\nSTEP:
+          Collecting events from namespace \"services-8120\".\nSTEP: Found 24 events.\nAug
+          17 20:39:39.730: INFO: At 2021-08-17 20:39:19 +0000 UTC - event for affinity-nodeport:
+          {replication-controller } SuccessfulCreate: Created pod: affinity-nodeport-gr7kq\nAug
+          17 20:39:39.730: INFO: At 2021-08-17 20:39:19 +0000 UTC - event for affinity-nodeport:
+          {replication-controller } SuccessfulCreate: Created pod: affinity-nodeport-hdh48\nAug
+          17 20:39:39.730: INFO: At 2021-08-17 20:39:19 +0000 UTC - event for affinity-nodeport:
+          {replication-controller } SuccessfulCreate: Created pod: affinity-nodeport-fh2mv\nAug
+          17 20:39:39.730: INFO: At 2021-08-17 20:39:19 +0000 UTC - event for affinity-nodeport-fh2mv:
+          {default-scheduler } Scheduled: Successfully assigned services-8120/affinity-nodeport-fh2mv
+          to instance-1\nAug 17 20:39:39.730: INFO: At 2021-08-17 20:39:19 +0000 UTC
+          - event for affinity-nodeport-gr7kq: {default-scheduler } Scheduled: Successfully
+          assigned services-8120/affinity-nodeport-gr7kq to instance-1\nAug 17 20:39:39.730:
+          INFO: At 2021-08-17 20:39:19 +0000 UTC - event for affinity-nodeport-hdh48:
+          {default-scheduler } Scheduled: Successfully assigned services-8120/affinity-nodeport-hdh48
+          to instance-1\nAug 17 20:39:39.730: INFO: At 2021-08-17 20:39:20 +0000 UTC
+          - event for affinity-nodeport-fh2mv: {kubelet instance-1} Created: Created
+          container affinity-nodeport\nAug 17 20:39:39.730: INFO: At 2021-08-17 20:39:20
+          +0000 UTC - event for affinity-nodeport-fh2mv: {kubelet instance-1} Pulled:
+          Container image \"k8s.gcr.io/e2e-test-images/agnhost:2.21\" already present
+          on machine\nAug 17 20:39:39.730: INFO: At 2021-08-17 20:39:20 +0000 UTC
+          - event for affinity-nodeport-gr7kq: {kubelet instance-1} Created: Created
+          container affinity-nodeport\nAug 17 20:39:39.730: INFO: At 2021-08-17 20:39:20
+          +0000 UTC - event for affinity-nodeport-gr7kq: {kubelet instance-1} Started:
+          Started container affinity-nodeport\nAug 17 20:39:39.730: INFO: At 2021-08-17
+          20:39:20 +0000 UTC - event for affinity-nodeport-gr7kq: {kubelet instance-1}
+          Pulled: Container image \"k8s.gcr.io/e2e-test-images/agnhost:2.21\" already
+          present on machine\nAug 17 20:39:39.730: INFO: At 2021-08-17 20:39:20 +0000
+          UTC - event for affinity-nodeport-hdh48: {kubelet instance-1} Pulled: Container
+          image \"k8s.gcr.io/e2e-test-images/agnhost:2.21\" already present on machine\nAug
+          17 20:39:39.730: INFO: At 2021-08-17 20:39:21 +0000 UTC - event for affinity-nodeport-fh2mv:
+          {kubelet instance-1} Started: Started container affinity-nodeport\nAug 17
+          20:39:39.730: INFO: At 2021-08-17 20:39:21 +0000 UTC - event for affinity-nodeport-hdh48:
+          {kubelet instance-1} Started: Started container affinity-nodeport\nAug 17
+          20:39:39.730: INFO: At 2021-08-17 20:39:21 +0000 UTC - event for affinity-nodeport-hdh48:
+          {kubelet instance-1} Created: Created container affinity-nodeport\nAug 17
+          20:39:39.731: INFO: At 2021-08-17 20:39:22 +0000 UTC - event for execpod-affinityphhz2:
+          {default-scheduler } Scheduled: Successfully assigned services-8120/execpod-affinityphhz2
+          to instance-1\nAug 17 20:39:39.731: INFO: At 2021-08-17 20:39:23 +0000 UTC
+          - event for execpod-affinityphhz2: {kubelet instance-1} Started: Started
+          container agnhost-container\nAug 17 20:39:39.731: INFO: At 2021-08-17 20:39:23
+          +0000 UTC - event for execpod-affinityphhz2: {kubelet instance-1} Pulled:
+          Container image \"k8s.gcr.io/e2e-test-images/agnhost:2.21\" already present
+          on machine\nAug 17 20:39:39.731: INFO: At 2021-08-17 20:39:23 +0000 UTC
+          - event for execpod-affinityphhz2: {kubelet instance-1} Created: Created
+          container agnhost-container\nAug 17 20:39:39.731: INFO: At 2021-08-17 20:39:24
+          +0000 UTC - event for execpod-affinityphhz2: {kubelet instance-1} Killing:
+          Stopping container agnhost-container\nAug 17 20:39:39.731: INFO: At 2021-08-17
+          20:39:25 +0000 UTC - event for affinity-nodeport-fh2mv: {kubelet instance-1}
+          Killing: Stopping container affinity-nodeport\nAug 17 20:39:39.731: INFO:
+          At 2021-08-17 20:39:25 +0000 UTC - event for affinity-nodeport-gr7kq: {kubelet
+          instance-1} Killing: Stopping container affinity-nodeport\nAug 17 20:39:39.731:
+          INFO: At 2021-08-17 20:39:25 +0000 UTC - event for affinity-nodeport-hdh48:
+          {kubelet instance-1} Killing: Stopping container affinity-nodeport\nAug
+          17 20:39:39.731: INFO: At 2021-08-17 20:39:25 +0000 UTC - event for execpod-affinityphhz2:
+          {kubelet instance-1} SandboxChanged: Pod sandbox changed, it will be killed
+          and re-created.\nAug 17 20:39:39.733: INFO: POD  NODE  PHASE  GRACE  CONDITIONS\nAug
+          17 20:39:39.733: INFO: \nAug 17 20:39:39.735: INFO: \nLogging node info
+          for node instance-1\nAug 17 20:39:39.738: INFO: Node Info: &Node{ObjectMeta:{instance-1
+          \   0691d59d-7a03-4b01-a2b2-7f00e0d72379 12196 0 2021-08-17 19:48:59 +0000
+          UTC <nil> <nil> map[beta.kubernetes.io/arch:amd64 beta.kubernetes.io/os:linux
+          kubernetes.io/arch:amd64 kubernetes.io/hostname:instance-1 kubernetes.io/os:linux
+          kurl.sh/cluster:true] map[kubeadm.alpha.kubernetes.io/cri-socket:/var/run/dockershim.sock
+          node.alpha.kubernetes.io/ttl:0 volumes.kubernetes.io/controller-managed-attach-detach:true]
+          [] []  [{kube-controller-manager Update v1 2021-08-17 19:49:04 +0000 UTC
+          FieldsV1 {\"f:metadata\":{\"f:annotations\":{\"f:node.alpha.kubernetes.io/ttl\":{}}}}}
+          {kubeadm Update v1 2021-08-17 19:49:04 +0000 UTC FieldsV1 {\"f:metadata\":{\"f:annotations\":{\"f:kubeadm.alpha.kubernetes.io/cri-socket\":{}}}}}
+          {kubelet Update v1 2021-08-17 19:49:09 +0000 UTC FieldsV1 {\"f:metadata\":{\"f:annotations\":{\".\":{},\"f:volumes.kubernetes.io/controller-managed-attach-detach\":{}},\"f:labels\":{\".\":{},\"f:beta.kubernetes.io/arch\":{},\"f:beta.kubernetes.io/os\":{},\"f:kubernetes.io/arch\":{},\"f:kubernetes.io/hostname\":{},\"f:kubernetes.io/os\":{},\"f:kurl.sh/cluster\":{}}},\"f:status\":{\"f:addresses\":{\".\":{},\"k:{\\\"type\\\":\\\"Hostname\\\"}\":{\".\":{},\"f:address\":{},\"f:type\":{}},\"k:{\\\"type\\\":\\\"InternalIP\\\"}\":{\".\":{},\"f:address\":{},\"f:type\":{}}},\"f:allocatable\":{\".\":{},\"f:cpu\":{},\"f:ephemeral-storage\":{},\"f:hugepages-1Gi\":{},\"f:hugepages-2Mi\":{},\"f:memory\":{},\"f:pods\":{}},\"f:capacity\":{\".\":{},\"f:cpu\":{},\"f:ephemeral-storage\":{},\"f:hugepages-1Gi\":{},\"f:hugepages-2Mi\":{},\"f:memory\":{},\"f:pods\":{}},\"f:conditions\":{\".\":{},\"k:{\\\"type\\\":\\\"DiskPressure\\\"}\":{\".\":{},\"f:lastHeartbeatTime\":{},\"f:lastTransitionTime\":{},\"f:message\":{},\"f:reason\":{},\"f:status\":{},\"f:type\":{}},\"k:{\\\"type\\\":\\\"MemoryPressure\\\"}\":{\".\":{},\"f:lastHeartbeatTime\":{},\"f:lastTransitionTime\":{},\"f:message\":{},\"f:reason\":{},\"f:status\":{},\"f:type\":{}},\"k:{\\\"type\\\":\\\"PIDPressure\\\"}\":{\".\":{},\"f:lastHeartbeatTime\":{},\"f:lastTransitionTime\":{},\"f:message\":{},\"f:reason\":{},\"f:status\":{},\"f:type\":{}},\"k:{\\\"type\\\":\\\"Ready\\\"}\":{\".\":{},\"f:lastHeartbeatTime\":{},\"f:lastTransitionTime\":{},\"f:message\":{},\"f:reason\":{},\"f:status\":{},\"f:type\":{}}},\"f:daemonEndpoints\":{\"f:kubeletEndpoint\":{\"f:Port\":{}}},\"f:images\":{},\"f:nodeInfo\":{\"f:architecture\":{},\"f:bootID\":{},\"f:containerRuntimeVersion\":{},\"f:kernelVersion\":{},\"f:kubeProxyVersion\":{},\"f:kubeletVersion\":{},\"f:machineID\":{},\"f:operatingSystem\":{},\"f:osImage\":{},\"f:systemUUID\":{}}}}}
+          {kube-utils Update v1 2021-08-17 19:49:40 +0000 UTC FieldsV1 {\"f:status\":{\"f:conditions\":{\"k:{\\\"type\\\":\\\"NetworkUnavailable\\\"}\":{\".\":{},\"f:lastHeartbeatTime\":{},\"f:lastTransitionTime\":{},\"f:message\":{},\"f:reason\":{},\"f:status\":{},\"f:type\":{}}}}}}]},Spec:NodeSpec{PodCIDR:,DoNotUseExternalID:,ProviderID:,Unschedulable:false,Taints:[]Taint{},ConfigSource:nil,PodCIDRs:[],},Status:NodeStatus{Capacity:ResourceList{cpu:
+          {{4 0} {<nil>} 4 DecimalSI},ephemeral-storage: {{51848359936 0} {<nil>}
+          50633164Ki BinarySI},hugepages-1Gi: {{0 0} {<nil>} 0 DecimalSI},hugepages-2Mi:
+          {{0 0} {<nil>} 0 DecimalSI},memory: {{16819818496 0} {<nil>} 16425604Ki
+          BinarySI},pods: {{110 0} {<nil>} 110 DecimalSI},},Allocatable:ResourceList{cpu:
+          {{4 0} {<nil>} 4 DecimalSI},ephemeral-storage: {{46663523866 0} {<nil>}
+          46663523866 DecimalSI},hugepages-1Gi: {{0 0} {<nil>} 0 DecimalSI},hugepages-2Mi:
+          {{0 0} {<nil>} 0 DecimalSI},memory: {{16714960896 0} {<nil>} 16323204Ki
+          BinarySI},pods: {{110 0} {<nil>} 110 DecimalSI},},Phase:,Conditions:[]NodeCondition{NodeCondition{Type:NetworkUnavailable,Status:False,LastHeartbeatTime:2021-08-17
+          20:11:34 +0000 UTC,LastTransitionTime:2021-08-17 20:11:34 +0000 UTC,Reason:WeaveIsUp,Message:Weave
+          pod has set this,},NodeCondition{Type:MemoryPressure,Status:False,LastHeartbeatTime:2021-08-17
+          20:39:12 +0000 UTC,LastTransitionTime:2021-08-17 19:48:59 +0000 UTC,Reason:KubeletHasSufficientMemory,Message:kubelet
+          has sufficient memory available,},NodeCondition{Type:DiskPressure,Status:False,LastHeartbeatTime:2021-08-17
+          20:39:12 +0000 UTC,LastTransitionTime:2021-08-17 19:48:59 +0000 UTC,Reason:KubeletHasNoDiskPressure,Message:kubelet
+          has no disk pressure,},NodeCondition{Type:PIDPressure,Status:False,LastHeartbeatTime:2021-08-17
+          20:39:12 +0000 UTC,LastTransitionTime:2021-08-17 19:48:59 +0000 UTC,Reason:KubeletHasSufficientPID,Message:kubelet
+          has sufficient PID available,},NodeCondition{Type:Ready,Status:True,LastHeartbeatTime:2021-08-17
+          20:39:12 +0000 UTC,LastTransitionTime:2021-08-17 19:49:49 +0000 UTC,Reason:KubeletReady,Message:kubelet
+          is posting ready status. AppArmor enabled,},},Addresses:[]NodeAddress{NodeAddress{Type:InternalIP,Address:10.138.0.85,},NodeAddress{Type:Hostname,Address:instance-1,},},DaemonEndpoints:NodeDaemonEndpoints{KubeletEndpoint:DaemonEndpoint{Port:10250,},},NodeInfo:NodeSystemInfo{MachineID:88fad3d5f21a09782b2dbead66e93a51,SystemUUID:8DB67A60-CE5C-7D67-B8D7-C54DA378F196,BootID:6e6cfdab-b9bc-49ac-a44e-3e28f5fda275,KernelVersion:4.15.0-1027-gcp,OSImage:Ubuntu
+          18.04.2 LTS,ContainerRuntimeVersion:docker://20.10.5,KubeletVersion:v1.20.9,KubeProxyVersion:v1.20.9,OperatingSystem:linux,Architecture:amd64,},Images:[]ContainerImage{ContainerImage{Names:[replicated/kurl-util:v2021.08.16-0],SizeBytes:387837491,},ContainerImage{Names:[sonobuoy/systemd-logs@sha256:fadad24a66ddd544987c38811108a73d1a306dd3b5e3f090b207786f2825ffde
+          sonobuoy/systemd-logs:v0.3],SizeBytes:297365055,},ContainerImage{Names:[k8s.gcr.io/etcd:3.4.13-0],SizeBytes:253392289,},ContainerImage{Names:[k8s.gcr.io/conformance@sha256:49d174932ba9a8923b557ac20e7aadffeb4d8353d05136966bbf354bd792803f
+          k8s.gcr.io/conformance:v1.20.9],SizeBytes:229580091,},ContainerImage{Names:[gcr.io/kubernetes-e2e-test-images/jessie-dnsutils@sha256:ad583e33cb284f7ef046673809b146ec4053cda19b54a85d2b180a86169715eb
+          gcr.io/kubernetes-e2e-test-images/jessie-dnsutils:1.0],SizeBytes:195659796,},ContainerImage{Names:[weaveworks/weaveexec:2.6.5],SizeBytes:149093862,},ContainerImage{Names:[envoyproxy/envoy:v1.19.0],SizeBytes:133745493,},ContainerImage{Names:[httpd@sha256:addd70e4ee83f3bc9a4c1c7c41e37927ba47faf639312fc936df3afad7926f5a
+          httpd:2.4.39-alpine],SizeBytes:126894770,},ContainerImage{Names:[httpd@sha256:eb8ccf084cf3e80eece1add239effefd171eb39adbc154d33c14260d905d4060
+          httpd:2.4.38-alpine],SizeBytes:123781643,},ContainerImage{Names:[weaveworks/weave-kube:2.6.5],SizeBytes:123327967,},ContainerImage{Names:[k8s.gcr.io/kube-apiserver:v1.20.9],SizeBytes:121803165,},ContainerImage{Names:[replicated/ekco:v0.11.0],SizeBytes:117690299,},ContainerImage{Names:[k8s.gcr.io/kube-controller-manager:v1.20.9],SizeBytes:116347293,},ContainerImage{Names:[k8s.gcr.io/e2e-test-images/agnhost@sha256:ab055cd3d45f50b90732c14593a5bf50f210871bb4f91994c756fc22db6d922a
+          k8s.gcr.io/e2e-test-images/agnhost:2.21],SizeBytes:113879107,},ContainerImage{Names:[k8s.gcr.io/kube-proxy:v1.20.9],SizeBytes:99667598,},ContainerImage{Names:[haproxy:2.4.2],SizeBytes:95448973,},ContainerImage{Names:[k8s.gcr.io/kube-scheduler:v1.20.9],SizeBytes:47276445,},ContainerImage{Names:[k8s.gcr.io/coredns:1.7.0],SizeBytes:45227747,},ContainerImage{Names:[projectcontour/contour:v1.18.0],SizeBytes:42696704,},ContainerImage{Names:[sonobuoy/sonobuoy@sha256:d393e2c862fffd0823409594f3ab8bc2524b359d9e6313ae3f9edb5d3dfa56e1
+          sonobuoy/sonobuoy:v0.53.2],SizeBytes:37400989,},ContainerImage{Names:[weaveworks/weave-npc:2.6.5],SizeBytes:36767037,},ContainerImage{Names:[nginx@sha256:485b610fefec7ff6c463ced9623314a04ed67e3945b9c08d7e53a47f6d108dc7
+          nginx:1.14-alpine],SizeBytes:16032814,},ContainerImage{Names:[busybox@sha256:8ccbac733d19c0dd4d70b4f0c1e12245b5fa3ad24758a11035ee505c629c0796
+          busybox:1.29],SizeBytes:1154361,},ContainerImage{Names:[k8s.gcr.io/pause:3.2],SizeBytes:682696,},},VolumesInUse:[],VolumesAttached:[]AttachedVolume{},Config:nil,},}\nAug
+          17 20:39:39.738: INFO: \nLogging kubelet events for node instance-1\nAug
+          17 20:39:39.741: INFO: \nLogging pods the kubelet thinks is on node instance-1\nAug
+          17 20:39:39.749: INFO: sonobuoy-e2e-job-5b76cec565304abe started at 2021-08-17
+          19:59:25 +0000 UTC (0+2 container statuses recorded)\nAug 17 20:39:39.749:
+          INFO: \tContainer e2e ready: true, restart count 0\nAug 17 20:39:39.749:
+          INFO: \tContainer sonobuoy-worker ready: true, restart count 0\nAug 17 20:39:39.749:
+          INFO: busybox-scheduling-58dcf691-4a5d-41c1-82ba-c31a1fd15594 started at
+          2021-08-17 20:38:59 +0000 UTC (0+1 container statuses recorded)\nAug 17
+          20:39:39.749: INFO: \tContainer busybox-scheduling-58dcf691-4a5d-41c1-82ba-c31a1fd15594
+          ready: true, restart count 0\nAug 17 20:39:39.749: INFO: kube-proxy-gbvr2
+          started at 2021-08-17 19:49:00 +0000 UTC (0+1 container statuses recorded)\nAug
+          17 20:39:39.749: INFO: \tContainer kube-proxy ready: true, restart count
+          0\nAug 17 20:39:39.749: INFO: sonobuoy-systemd-logs-daemon-set-ed45bd546f8e4327-cgzlw
+          started at 2021-08-17 19:59:25 +0000 UTC (0+2 container statuses recorded)\nAug
+          17 20:39:39.749: INFO: \tContainer sonobuoy-worker ready: true, restart
+          count 0\nAug 17 20:39:39.749: INFO: \tContainer systemd-logs ready: true,
+          restart count 0\nAug 17 20:39:39.749: INFO: weave-net-8gt5h started at 2021-08-17
+          20:11:30 +0000 UTC (0+2 container statuses recorded)\nAug 17 20:39:39.749:
+          INFO: \tContainer weave ready: true, restart count 1\nAug 17 20:39:39.749:
+          INFO: \tContainer weave-npc ready: true, restart count 0\nAug 17 20:39:39.749:
+          INFO: sonobuoy started at 2021-08-17 19:59:20 +0000 UTC (0+1 container statuses
+          recorded)\nAug 17 20:39:39.749: INFO: \tContainer kube-sonobuoy ready: true,
+          restart count 0\nAug 17 20:39:39.749: INFO: envoy-ljmwg started at 2021-08-17
+          20:12:31 +0000 UTC (1+2 container statuses recorded)\nAug 17 20:39:39.749:
+          INFO: \tInit container envoy-initconfig ready: true, restart count 0\nAug
+          17 20:39:39.749: INFO: \tContainer envoy ready: true, restart count 0\nAug
+          17 20:39:39.749: INFO: \tContainer shutdown-manager ready: true, restart
+          count 0\nAug 17 20:39:39.784: INFO: \nLatency metrics for node instance-1\nAug
+          17 20:39:39.784: INFO: \nLogging node info for node kurl-k8s-20-conform1\nAug
+          17 20:39:39.788: INFO: Node Info: &Node{ObjectMeta:{kurl-k8s-20-conform1
+          \   f5e06593-3800-42ce-b84f-e92cb98da97c 12024 0 2021-08-17 19:38:17 +0000
+          UTC <nil> <nil> map[beta.kubernetes.io/arch:amd64 beta.kubernetes.io/os:linux
+          kubernetes.io/arch:amd64 kubernetes.io/hostname:kurl-k8s-20-conform1 kubernetes.io/os:linux
+          kurl.sh/cluster:true node-role.kubernetes.io/control-plane: node-role.kubernetes.io/master:]
+          map[kubeadm.alpha.kubernetes.io/cri-socket:/var/run/dockershim.sock node.alpha.kubernetes.io/ttl:0
+          volumes.kubernetes.io/controller-managed-attach-detach:true] [] []  [{kubelet
+          Update v1 2021-08-17 19:38:17 +0000 UTC FieldsV1 {\"f:metadata\":{\"f:annotations\":{\".\":{},\"f:volumes.kubernetes.io/controller-managed-attach-detach\":{}},\"f:labels\":{\".\":{},\"f:beta.kubernetes.io/arch\":{},\"f:beta.kubernetes.io/os\":{},\"f:kubernetes.io/arch\":{},\"f:kubernetes.io/hostname\":{},\"f:kubernetes.io/os\":{},\"f:kurl.sh/cluster\":{}}},\"f:status\":{\"f:addresses\":{\".\":{},\"k:{\\\"type\\\":\\\"Hostname\\\"}\":{\".\":{},\"f:address\":{},\"f:type\":{}},\"k:{\\\"type\\\":\\\"InternalIP\\\"}\":{\".\":{},\"f:address\":{},\"f:type\":{}}},\"f:allocatable\":{\".\":{},\"f:cpu\":{},\"f:ephemeral-storage\":{},\"f:hugepages-1Gi\":{},\"f:hugepages-2Mi\":{},\"f:memory\":{},\"f:pods\":{}},\"f:capacity\":{\".\":{},\"f:cpu\":{},\"f:ephemeral-storage\":{},\"f:hugepages-1Gi\":{},\"f:hugepages-2Mi\":{},\"f:memory\":{},\"f:pods\":{}},\"f:conditions\":{\".\":{},\"k:{\\\"type\\\":\\\"DiskPressure\\\"}\":{\".\":{},\"f:lastHeartbeatTime\":{},\"f:lastTransitionTime\":{},\"f:message\":{},\"f:reason\":{},\"f:status\":{},\"f:type\":{}},\"k:{\\\"type\\\":\\\"MemoryPressure\\\"}\":{\".\":{},\"f:lastHeartbeatTime\":{},\"f:lastTransitionTime\":{},\"f:message\":{},\"f:reason\":{},\"f:status\":{},\"f:type\":{}},\"k:{\\\"type\\\":\\\"PIDPressure\\\"}\":{\".\":{},\"f:lastHeartbeatTime\":{},\"f:lastTransitionTime\":{},\"f:message\":{},\"f:reason\":{},\"f:status\":{},\"f:type\":{}},\"k:{\\\"type\\\":\\\"Ready\\\"}\":{\".\":{},\"f:lastHeartbeatTime\":{},\"f:lastTransitionTime\":{},\"f:message\":{},\"f:reason\":{},\"f:status\":{},\"f:type\":{}}},\"f:daemonEndpoints\":{\"f:kubeletEndpoint\":{\"f:Port\":{}}},\"f:images\":{},\"f:nodeInfo\":{\"f:architecture\":{},\"f:bootID\":{},\"f:containerRuntimeVersion\":{},\"f:kernelVersion\":{},\"f:kubeProxyVersion\":{},\"f:kubeletVersion\":{},\"f:machineID\":{},\"f:operatingSystem\":{},\"f:osImage\":{},\"f:systemUUID\":{}}}}}
+          {kubeadm Update v1 2021-08-17 19:38:18 +0000 UTC FieldsV1 {\"f:metadata\":{\"f:annotations\":{\"f:kubeadm.alpha.kubernetes.io/cri-socket\":{}},\"f:labels\":{\"f:node-role.kubernetes.io/control-plane\":{},\"f:node-role.kubernetes.io/master\":{}}}}}
+          {kube-controller-manager Update v1 2021-08-17 19:38:24 +0000 UTC FieldsV1
+          {\"f:metadata\":{\"f:annotations\":{\"f:node.alpha.kubernetes.io/ttl\":{}}}}}
+          {kube-utils Update v1 2021-08-17 19:38:38 +0000 UTC FieldsV1 {\"f:status\":{\"f:conditions\":{\"k:{\\\"type\\\":\\\"NetworkUnavailable\\\"}\":{\".\":{},\"f:lastHeartbeatTime\":{},\"f:lastTransitionTime\":{},\"f:message\":{},\"f:reason\":{},\"f:status\":{},\"f:type\":{}}}}}}]},Spec:NodeSpec{PodCIDR:,DoNotUseExternalID:,ProviderID:,Unschedulable:false,Taints:[]Taint{},ConfigSource:nil,PodCIDRs:[],},Status:NodeStatus{Capacity:ResourceList{cpu:
+          {{4 0} {<nil>} 4 DecimalSI},ephemeral-storage: {{51848359936 0} {<nil>}
+          50633164Ki BinarySI},hugepages-1Gi: {{0 0} {<nil>} 0 DecimalSI},hugepages-2Mi:
+          {{0 0} {<nil>} 0 DecimalSI},memory: {{16819826688 0} {<nil>} 16425612Ki
+          BinarySI},pods: {{110 0} {<nil>} 110 DecimalSI},},Allocatable:ResourceList{cpu:
+          {{4 0} {<nil>} 4 DecimalSI},ephemeral-storage: {{46663523866 0} {<nil>}
+          46663523866 DecimalSI},hugepages-1Gi: {{0 0} {<nil>} 0 DecimalSI},hugepages-2Mi:
+          {{0 0} {<nil>} 0 DecimalSI},memory: {{16714969088 0} {<nil>} 16323212Ki
+          BinarySI},pods: {{110 0} {<nil>} 110 DecimalSI},},Phase:,Conditions:[]NodeCondition{NodeCondition{Type:NetworkUnavailable,Status:False,LastHeartbeatTime:2021-08-17
+          19:38:38 +0000 UTC,LastTransitionTime:2021-08-17 19:38:38 +0000 UTC,Reason:WeaveIsUp,Message:Weave
+          pod has set this,},NodeCondition{Type:MemoryPressure,Status:False,LastHeartbeatTime:2021-08-17
+          20:38:32 +0000 UTC,LastTransitionTime:2021-08-17 19:38:16 +0000 UTC,Reason:KubeletHasSufficientMemory,Message:kubelet
+          has sufficient memory available,},NodeCondition{Type:DiskPressure,Status:False,LastHeartbeatTime:2021-08-17
+          20:38:32 +0000 UTC,LastTransitionTime:2021-08-17 19:38:16 +0000 UTC,Reason:KubeletHasNoDiskPressure,Message:kubelet
+          has no disk pressure,},NodeCondition{Type:PIDPressure,Status:False,LastHeartbeatTime:2021-08-17
+          20:38:32 +0000 UTC,LastTransitionTime:2021-08-17 19:38:16 +0000 UTC,Reason:KubeletHasSufficientPID,Message:kubelet
+          has sufficient PID available,},NodeCondition{Type:Ready,Status:True,LastHeartbeatTime:2021-08-17
+          20:38:32 +0000 UTC,LastTransitionTime:2021-08-17 19:38:39 +0000 UTC,Reason:KubeletReady,Message:kubelet
+          is posting ready status. AppArmor enabled,},},Addresses:[]NodeAddress{NodeAddress{Type:InternalIP,Address:10.138.0.74,},NodeAddress{Type:Hostname,Address:kurl-k8s-20-conform1,},},DaemonEndpoints:NodeDaemonEndpoints{KubeletEndpoint:DaemonEndpoint{Port:10250,},},NodeInfo:NodeSystemInfo{MachineID:88fad3d5f21a09782b2dbead66e93a51,SystemUUID:C7CF0731-675E-95C7-83A3-C56583255D9B,BootID:d74884d9-1350-4c19-b2ef-6e6984ff0589,KernelVersion:4.15.0-1027-gcp,OSImage:Ubuntu
+          18.04.2 LTS,ContainerRuntimeVersion:docker://20.10.5,KubeletVersion:v1.20.9,KubeProxyVersion:v1.20.9,OperatingSystem:linux,Architecture:amd64,},Images:[]ContainerImage{ContainerImage{Names:[replicated/kurl-util:v2021.08.16-0],SizeBytes:387837491,},ContainerImage{Names:[sonobuoy/systemd-logs@sha256:fadad24a66ddd544987c38811108a73d1a306dd3b5e3f090b207786f2825ffde
+          sonobuoy/systemd-logs:v0.3],SizeBytes:297365055,},ContainerImage{Names:[k8s.gcr.io/etcd:3.4.13-0],SizeBytes:253392289,},ContainerImage{Names:[weaveworks/weaveexec:2.6.5],SizeBytes:149093862,},ContainerImage{Names:[envoyproxy/envoy:v1.19.0],SizeBytes:133745493,},ContainerImage{Names:[httpd@sha256:eb8ccf084cf3e80eece1add239effefd171eb39adbc154d33c14260d905d4060
+          httpd:2.4.38-alpine],SizeBytes:123781643,},ContainerImage{Names:[weaveworks/weave-kube:2.6.5],SizeBytes:123327967,},ContainerImage{Names:[k8s.gcr.io/kube-apiserver:v1.20.9],SizeBytes:121803165,},ContainerImage{Names:[replicated/ekco:v0.11.0],SizeBytes:117690299,},ContainerImage{Names:[k8s.gcr.io/kube-controller-manager:v1.20.9],SizeBytes:116347293,},ContainerImage{Names:[k8s.gcr.io/e2e-test-images/agnhost@sha256:ab055cd3d45f50b90732c14593a5bf50f210871bb4f91994c756fc22db6d922a
+          k8s.gcr.io/e2e-test-images/agnhost:2.21],SizeBytes:113879107,},ContainerImage{Names:[k8s.gcr.io/kube-proxy:v1.20.9],SizeBytes:99667598,},ContainerImage{Names:[haproxy:2.4.2],SizeBytes:95448973,},ContainerImage{Names:[k8s.gcr.io/kube-scheduler:v1.20.9],SizeBytes:47276445,},ContainerImage{Names:[k8s.gcr.io/coredns:1.7.0],SizeBytes:45227747,},ContainerImage{Names:[projectcontour/contour:v1.18.0],SizeBytes:42696704,},ContainerImage{Names:[sonobuoy/sonobuoy@sha256:d393e2c862fffd0823409594f3ab8bc2524b359d9e6313ae3f9edb5d3dfa56e1
+          sonobuoy/sonobuoy:v0.53.2],SizeBytes:37400989,},ContainerImage{Names:[weaveworks/weave-npc:2.6.5],SizeBytes:36767037,},ContainerImage{Names:[nginx@sha256:485b610fefec7ff6c463ced9623314a04ed67e3945b9c08d7e53a47f6d108dc7
+          nginx:1.14-alpine],SizeBytes:16032814,},ContainerImage{Names:[k8s.gcr.io/pause:3.2],SizeBytes:682696,},},VolumesInUse:[],VolumesAttached:[]AttachedVolume{},Config:nil,},}\nAug
+          17 20:39:39.788: INFO: \nLogging kubelet events for node kurl-k8s-20-conform1\nAug
+          17 20:39:39.791: INFO: \nLogging pods the kubelet thinks is on node kurl-k8s-20-conform1\nAug
+          17 20:39:39.810: INFO: coredns-74ff55c5b-l8z82 started at 2021-08-17 19:38:46
+          +0000 UTC (0+1 container statuses recorded)\nAug 17 20:39:39.810: INFO:
+          \tContainer coredns ready: true, restart count 0\nAug 17 20:39:39.810: INFO:
+          sonobuoy-systemd-logs-daemon-set-ed45bd546f8e4327-bzqb6 started at 2021-08-17
+          19:59:25 +0000 UTC (0+2 container statuses recorded)\nAug 17 20:39:39.810:
+          INFO: \tContainer sonobuoy-worker ready: true, restart count 0\nAug 17 20:39:39.810:
+          INFO: \tContainer systemd-logs ready: true, restart count 0\nAug 17 20:39:39.810:
+          INFO: kube-proxy-2zmrb started at 2021-08-17 19:38:24 +0000 UTC (0+1 container
+          statuses recorded)\nAug 17 20:39:39.810: INFO: \tContainer kube-proxy ready:
+          true, restart count 0\nAug 17 20:39:39.810: INFO: envoy-8j56d started at
+          2021-08-17 19:38:58 +0000 UTC (1+2 container statuses recorded)\nAug 17
+          20:39:39.810: INFO: \tInit container envoy-initconfig ready: true, restart
+          count 0\nAug 17 20:39:39.810: INFO: \tContainer envoy ready: true, restart
+          count 0\nAug 17 20:39:39.810: INFO: \tContainer shutdown-manager ready:
+          true, restart count 0\nAug 17 20:39:39.810: INFO: etcd-kurl-k8s-20-conform1
+          started at 2021-08-17 19:38:19 +0000 UTC (0+1 container statuses recorded)\nAug
+          17 20:39:39.810: INFO: \tContainer etcd ready: true, restart count 0\nAug
+          17 20:39:39.810: INFO: kube-apiserver-kurl-k8s-20-conform1 started at 2021-08-17
+          19:38:20 +0000 UTC (0+1 container statuses recorded)\nAug 17 20:39:39.810:
+          INFO: \tContainer kube-apiserver ready: true, restart count 0\nAug 17 20:39:39.810:
+          INFO: contour-certgen-v1.18.0-qx9g5 started at 2021-08-17 19:38:59 +0000
+          UTC (0+1 container statuses recorded)\nAug 17 20:39:39.810: INFO: \tContainer
+          contour ready: false, restart count 0\nAug 17 20:39:39.810: INFO: coredns-74ff55c5b-qww4n
+          started at 2021-08-17 19:38:46 +0000 UTC (0+1 container statuses recorded)\nAug
+          17 20:39:39.810: INFO: \tContainer coredns ready: true, restart count 0\nAug
+          17 20:39:39.810: INFO: kube-controller-manager-kurl-k8s-20-conform1 started
+          at 2021-08-17 19:38:20 +0000 UTC (0+1 container statuses recorded)\nAug
+          17 20:39:39.810: INFO: \tContainer kube-controller-manager ready: true,
+          restart count 0\nAug 17 20:39:39.810: INFO: kube-scheduler-kurl-k8s-20-conform1
+          started at 2021-08-17 19:38:19 +0000 UTC (0+1 container statuses recorded)\nAug
+          17 20:39:39.810: INFO: \tContainer kube-scheduler ready: true, restart count
+          0\nAug 17 20:39:39.810: INFO: weave-net-fjkrd started at 2021-08-17 19:38:33
+          +0000 UTC (0+2 container statuses recorded)\nAug 17 20:39:39.810: INFO:
+          \tContainer weave ready: true, restart count 1\nAug 17 20:39:39.810: INFO:
+          \tContainer weave-npc ready: true, restart count 0\nAug 17 20:39:39.810:
+          INFO: contour-f85dd8bcb-v5gpr started at 2021-08-17 19:38:58 +0000 UTC (0+1
+          container statuses recorded)\nAug 17 20:39:39.810: INFO: \tContainer contour
+          ready: true, restart count 0\nAug 17 20:39:39.810: INFO: contour-f85dd8bcb-s4dg2
+          started at 2021-08-17 19:38:58 +0000 UTC (0+1 container statuses recorded)\nAug
+          17 20:39:39.810: INFO: \tContainer contour ready: true, restart count 0\nAug
+          17 20:39:39.810: INFO: ekc-operator-5888598d79-hpnnb started at 2021-08-17
+          19:39:01 +0000 UTC (0+1 container statuses recorded)\nAug 17 20:39:39.810:
+          INFO: \tContainer ekc-operator ready: true, restart count 0\nAug 17 20:39:39.839:
+          INFO: \nLatency metrics for node kurl-k8s-20-conform1\nAug 17 20:39:39.839:
+          INFO: Waiting up to 3m0s for all (but 0) nodes to be ready\nSTEP: Destroying
+          namespace \"services-8120\" for this suite.\n[AfterEach] [sig-network] Services\n
+          \ /workspace/src/k8s.io/kubernetes/_output/dockerized/go/src/k8s.io/kubernetes/test/e2e/network/service.go:749\n"
+    - name: '[sig-network] Services should be able to create a functioning NodePort
+        service [Conformance]'
+      status: failed
+      details:
+        failure: |-
+          /workspace/src/k8s.io/kubernetes/_output/dockerized/go/src/k8s.io/kubernetes/test/e2e/framework/framework.go:629
+          Aug 17 20:48:57.056: Unexpected error:
+              <*errors.errorString | 0xc00729d6f0>: {
+                  s: "out-of-range nodePort (7393) for service",
+              }
+              out-of-range nodePort (7393) for service
+          occurred
+          /workspace/src/k8s.io/kubernetes/_output/dockerized/go/src/k8s.io/kubernetes/test/e2e/network/service.go:1174
+        system-out: "[BeforeEach] [sig-network] Services\n  /workspace/src/k8s.io/kubernetes/_output/dockerized/go/src/k8s.io/kubernetes/test/e2e/framework/framework.go:174\nSTEP:
+          Creating a kubernetes client\nAug 17 20:48:57.016: INFO: >>> kubeConfig:
+          /tmp/kubeconfig-225689195\nSTEP: Building a namespace api object, basename
+          services\nSTEP: Waiting for a default service account to be provisioned
+          in namespace\n[BeforeEach] [sig-network] Services\n  /workspace/src/k8s.io/kubernetes/_output/dockerized/go/src/k8s.io/kubernetes/test/e2e/network/service.go:745\n[It]
+          should be able to create a functioning NodePort service [Conformance]\n
+          \ /workspace/src/k8s.io/kubernetes/_output/dockerized/go/src/k8s.io/kubernetes/test/e2e/framework/framework.go:629\nSTEP:
+          creating service nodeport-test with type=NodePort in namespace services-2654\nAug
+          17 20:48:57.056: FAIL: Unexpected error:\n    <*errors.errorString | 0xc00729d6f0>:
+          {\n        s: \"out-of-range nodePort (7393) for service\",\n    }\n    out-of-range
+          nodePort (7393) for service\noccurred\n\nFull Stack Trace\nk8s.io/kubernetes/test/e2e/network.glob..func24.11()\n\t/workspace/src/k8s.io/kubernetes/_output/dockerized/go/src/k8s.io/kubernetes/test/e2e/network/service.go:1174
+          +0x179\nk8s.io/kubernetes/test/e2e.RunE2ETests(0xc003845500)\n\t_output/dockerized/go/src/k8s.io/kubernetes/test/e2e/e2e.go:130
+          +0x36c\nk8s.io/kubernetes/test/e2e.TestE2E(0xc003845500)\n\t_output/dockerized/go/src/k8s.io/kubernetes/test/e2e/e2e_test.go:144
+          +0x2b\ntesting.tRunner(0xc003845500, 0x4fc1e88)\n\t/usr/local/go/src/testing/testing.go:1123
+          +0xef\ncreated by testing.(*T).Run\n\t/usr/local/go/src/testing/testing.go:1168
+          +0x2b3\n[AfterEach] [sig-network] Services\n  /workspace/src/k8s.io/kubernetes/_output/dockerized/go/src/k8s.io/kubernetes/test/e2e/framework/framework.go:175\nSTEP:
+          Collecting events from namespace \"services-2654\".\nSTEP: Found 0 events.\nAug
+          17 20:48:57.064: INFO: POD  NODE  PHASE  GRACE  CONDITIONS\nAug 17 20:48:57.064:
+          INFO: \nAug 17 20:48:57.067: INFO: \nLogging node info for node instance-1\nAug
+          17 20:48:57.069: INFO: Node Info: &Node{ObjectMeta:{instance-1    0691d59d-7a03-4b01-a2b2-7f00e0d72379
+          13281 0 2021-08-17 19:48:59 +0000 UTC <nil> <nil> map[beta.kubernetes.io/arch:amd64
+          beta.kubernetes.io/os:linux kubernetes.io/arch:amd64 kubernetes.io/hostname:instance-1
+          kubernetes.io/os:linux kurl.sh/cluster:true] map[kubeadm.alpha.kubernetes.io/cri-socket:/var/run/dockershim.sock
+          node.alpha.kubernetes.io/ttl:0 volumes.kubernetes.io/controller-managed-attach-detach:true]
+          [] []  [{kube-controller-manager Update v1 2021-08-17 19:49:04 +0000 UTC
+          FieldsV1 {\"f:metadata\":{\"f:annotations\":{\"f:node.alpha.kubernetes.io/ttl\":{}}}}}
+          {kubeadm Update v1 2021-08-17 19:49:04 +0000 UTC FieldsV1 {\"f:metadata\":{\"f:annotations\":{\"f:kubeadm.alpha.kubernetes.io/cri-socket\":{}}}}}
+          {kubelet Update v1 2021-08-17 19:49:09 +0000 UTC FieldsV1 {\"f:metadata\":{\"f:annotations\":{\".\":{},\"f:volumes.kubernetes.io/controller-managed-attach-detach\":{}},\"f:labels\":{\".\":{},\"f:beta.kubernetes.io/arch\":{},\"f:beta.kubernetes.io/os\":{},\"f:kubernetes.io/arch\":{},\"f:kubernetes.io/hostname\":{},\"f:kubernetes.io/os\":{},\"f:kurl.sh/cluster\":{}}},\"f:status\":{\"f:addresses\":{\".\":{},\"k:{\\\"type\\\":\\\"Hostname\\\"}\":{\".\":{},\"f:address\":{},\"f:type\":{}},\"k:{\\\"type\\\":\\\"InternalIP\\\"}\":{\".\":{},\"f:address\":{},\"f:type\":{}}},\"f:allocatable\":{\".\":{},\"f:cpu\":{},\"f:ephemeral-storage\":{},\"f:hugepages-1Gi\":{},\"f:hugepages-2Mi\":{},\"f:memory\":{},\"f:pods\":{}},\"f:capacity\":{\".\":{},\"f:cpu\":{},\"f:ephemeral-storage\":{},\"f:hugepages-1Gi\":{},\"f:hugepages-2Mi\":{},\"f:memory\":{},\"f:pods\":{}},\"f:conditions\":{\".\":{},\"k:{\\\"type\\\":\\\"DiskPressure\\\"}\":{\".\":{},\"f:lastHeartbeatTime\":{},\"f:lastTransitionTime\":{},\"f:message\":{},\"f:reason\":{},\"f:status\":{},\"f:type\":{}},\"k:{\\\"type\\\":\\\"MemoryPressure\\\"}\":{\".\":{},\"f:lastHeartbeatTime\":{},\"f:lastTransitionTime\":{},\"f:message\":{},\"f:reason\":{},\"f:status\":{},\"f:type\":{}},\"k:{\\\"type\\\":\\\"PIDPressure\\\"}\":{\".\":{},\"f:lastHeartbeatTime\":{},\"f:lastTransitionTime\":{},\"f:message\":{},\"f:reason\":{},\"f:status\":{},\"f:type\":{}},\"k:{\\\"type\\\":\\\"Ready\\\"}\":{\".\":{},\"f:lastHeartbeatTime\":{},\"f:lastTransitionTime\":{},\"f:message\":{},\"f:reason\":{},\"f:status\":{},\"f:type\":{}}},\"f:daemonEndpoints\":{\"f:kubeletEndpoint\":{\"f:Port\":{}}},\"f:images\":{},\"f:nodeInfo\":{\"f:architecture\":{},\"f:bootID\":{},\"f:containerRuntimeVersion\":{},\"f:kernelVersion\":{},\"f:kubeProxyVersion\":{},\"f:kubeletVersion\":{},\"f:machineID\":{},\"f:operatingSystem\":{},\"f:osImage\":{},\"f:systemUUID\":{}}}}}
+          {kube-utils Update v1 2021-08-17 19:49:40 +0000 UTC FieldsV1 {\"f:status\":{\"f:conditions\":{\"k:{\\\"type\\\":\\\"NetworkUnavailable\\\"}\":{\".\":{},\"f:lastHeartbeatTime\":{},\"f:lastTransitionTime\":{},\"f:message\":{},\"f:reason\":{},\"f:status\":{},\"f:type\":{}}}}}}]},Spec:NodeSpec{PodCIDR:,DoNotUseExternalID:,ProviderID:,Unschedulable:false,Taints:[]Taint{},ConfigSource:nil,PodCIDRs:[],},Status:NodeStatus{Capacity:ResourceList{cpu:
+          {{4 0} {<nil>} 4 DecimalSI},ephemeral-storage: {{51848359936 0} {<nil>}
+          50633164Ki BinarySI},hugepages-1Gi: {{0 0} {<nil>} 0 DecimalSI},hugepages-2Mi:
+          {{0 0} {<nil>} 0 DecimalSI},memory: {{16819818496 0} {<nil>} 16425604Ki
+          BinarySI},pods: {{110 0} {<nil>} 110 DecimalSI},},Allocatable:ResourceList{cpu:
+          {{4 0} {<nil>} 4 DecimalSI},ephemeral-storage: {{46663523866 0} {<nil>}
+          46663523866 DecimalSI},hugepages-1Gi: {{0 0} {<nil>} 0 DecimalSI},hugepages-2Mi:
+          {{0 0} {<nil>} 0 DecimalSI},memory: {{16714960896 0} {<nil>} 16323204Ki
+          BinarySI},pods: {{110 0} {<nil>} 110 DecimalSI},},Phase:,Conditions:[]NodeCondition{NodeCondition{Type:NetworkUnavailable,Status:False,LastHeartbeatTime:2021-08-17
+          20:11:34 +0000 UTC,LastTransitionTime:2021-08-17 20:11:34 +0000 UTC,Reason:WeaveIsUp,Message:Weave
+          pod has set this,},NodeCondition{Type:MemoryPressure,Status:False,LastHeartbeatTime:2021-08-17
+          20:44:14 +0000 UTC,LastTransitionTime:2021-08-17 19:48:59 +0000 UTC,Reason:KubeletHasSufficientMemory,Message:kubelet
+          has sufficient memory available,},NodeCondition{Type:DiskPressure,Status:False,LastHeartbeatTime:2021-08-17
+          20:44:14 +0000 UTC,LastTransitionTime:2021-08-17 19:48:59 +0000 UTC,Reason:KubeletHasNoDiskPressure,Message:kubelet
+          has no disk pressure,},NodeCondition{Type:PIDPressure,Status:False,LastHeartbeatTime:2021-08-17
+          20:44:14 +0000 UTC,LastTransitionTime:2021-08-17 19:48:59 +0000 UTC,Reason:KubeletHasSufficientPID,Message:kubelet
+          has sufficient PID available,},NodeCondition{Type:Ready,Status:True,LastHeartbeatTime:2021-08-17
+          20:44:14 +0000 UTC,LastTransitionTime:2021-08-17 19:49:49 +0000 UTC,Reason:KubeletReady,Message:kubelet
+          is posting ready status. AppArmor enabled,},},Addresses:[]NodeAddress{NodeAddress{Type:InternalIP,Address:10.138.0.85,},NodeAddress{Type:Hostname,Address:instance-1,},},DaemonEndpoints:NodeDaemonEndpoints{KubeletEndpoint:DaemonEndpoint{Port:10250,},},NodeInfo:NodeSystemInfo{MachineID:88fad3d5f21a09782b2dbead66e93a51,SystemUUID:8DB67A60-CE5C-7D67-B8D7-C54DA378F196,BootID:6e6cfdab-b9bc-49ac-a44e-3e28f5fda275,KernelVersion:4.15.0-1027-gcp,OSImage:Ubuntu
+          18.04.2 LTS,ContainerRuntimeVersion:docker://20.10.5,KubeletVersion:v1.20.9,KubeProxyVersion:v1.20.9,OperatingSystem:linux,Architecture:amd64,},Images:[]ContainerImage{ContainerImage{Names:[replicated/kurl-util:v2021.08.16-0],SizeBytes:387837491,},ContainerImage{Names:[sonobuoy/systemd-logs@sha256:fadad24a66ddd544987c38811108a73d1a306dd3b5e3f090b207786f2825ffde
+          sonobuoy/systemd-logs:v0.3],SizeBytes:297365055,},ContainerImage{Names:[k8s.gcr.io/etcd:3.4.13-0],SizeBytes:253392289,},ContainerImage{Names:[k8s.gcr.io/conformance@sha256:49d174932ba9a8923b557ac20e7aadffeb4d8353d05136966bbf354bd792803f
+          k8s.gcr.io/conformance:v1.20.9],SizeBytes:229580091,},ContainerImage{Names:[gcr.io/kubernetes-e2e-test-images/jessie-dnsutils@sha256:ad583e33cb284f7ef046673809b146ec4053cda19b54a85d2b180a86169715eb
+          gcr.io/kubernetes-e2e-test-images/jessie-dnsutils:1.0],SizeBytes:195659796,},ContainerImage{Names:[weaveworks/weaveexec:2.6.5],SizeBytes:149093862,},ContainerImage{Names:[envoyproxy/envoy:v1.19.0],SizeBytes:133745493,},ContainerImage{Names:[httpd@sha256:addd70e4ee83f3bc9a4c1c7c41e37927ba47faf639312fc936df3afad7926f5a
+          httpd:2.4.39-alpine],SizeBytes:126894770,},ContainerImage{Names:[httpd@sha256:eb8ccf084cf3e80eece1add239effefd171eb39adbc154d33c14260d905d4060
+          httpd:2.4.38-alpine],SizeBytes:123781643,},ContainerImage{Names:[weaveworks/weave-kube:2.6.5],SizeBytes:123327967,},ContainerImage{Names:[k8s.gcr.io/kube-apiserver:v1.20.9],SizeBytes:121803165,},ContainerImage{Names:[replicated/ekco:v0.11.0],SizeBytes:117690299,},ContainerImage{Names:[k8s.gcr.io/kube-controller-manager:v1.20.9],SizeBytes:116347293,},ContainerImage{Names:[k8s.gcr.io/e2e-test-images/agnhost@sha256:ab055cd3d45f50b90732c14593a5bf50f210871bb4f91994c756fc22db6d922a
+          k8s.gcr.io/e2e-test-images/agnhost:2.21],SizeBytes:113879107,},ContainerImage{Names:[k8s.gcr.io/kube-proxy:v1.20.9],SizeBytes:99667598,},ContainerImage{Names:[haproxy:2.4.2],SizeBytes:95448973,},ContainerImage{Names:[k8s.gcr.io/kube-scheduler:v1.20.9],SizeBytes:47276445,},ContainerImage{Names:[k8s.gcr.io/coredns:1.7.0],SizeBytes:45227747,},ContainerImage{Names:[projectcontour/contour:v1.18.0],SizeBytes:42696704,},ContainerImage{Names:[sonobuoy/sonobuoy@sha256:d393e2c862fffd0823409594f3ab8bc2524b359d9e6313ae3f9edb5d3dfa56e1
+          sonobuoy/sonobuoy:v0.53.2],SizeBytes:37400989,},ContainerImage{Names:[weaveworks/weave-npc:2.6.5],SizeBytes:36767037,},ContainerImage{Names:[nginx@sha256:485b610fefec7ff6c463ced9623314a04ed67e3945b9c08d7e53a47f6d108dc7
+          nginx:1.14-alpine],SizeBytes:16032814,},ContainerImage{Names:[busybox@sha256:8ccbac733d19c0dd4d70b4f0c1e12245b5fa3ad24758a11035ee505c629c0796
+          busybox:1.29],SizeBytes:1154361,},ContainerImage{Names:[k8s.gcr.io/pause:3.2],SizeBytes:682696,},},VolumesInUse:[],VolumesAttached:[]AttachedVolume{},Config:nil,},}\nAug
+          17 20:48:57.069: INFO: \nLogging kubelet events for node instance-1\nAug
+          17 20:48:57.072: INFO: \nLogging pods the kubelet thinks is on node instance-1\nAug
+          17 20:48:57.102: INFO: kube-proxy-gbvr2 started at 2021-08-17 19:49:00 +0000
+          UTC (0+1 container statuses recorded)\nAug 17 20:48:57.102: INFO: \tContainer
+          kube-proxy ready: true, restart count 0\nAug 17 20:48:57.102: INFO: sonobuoy-systemd-logs-daemon-set-ed45bd546f8e4327-cgzlw
+          started at 2021-08-17 19:59:25 +0000 UTC (0+2 container statuses recorded)\nAug
+          17 20:48:57.102: INFO: \tContainer sonobuoy-worker ready: true, restart
+          count 0\nAug 17 20:48:57.102: INFO: \tContainer systemd-logs ready: true,
+          restart count 0\nAug 17 20:48:57.102: INFO: weave-net-8gt5h started at 2021-08-17
+          20:11:30 +0000 UTC (0+2 container statuses recorded)\nAug 17 20:48:57.102:
+          INFO: \tContainer weave ready: true, restart count 1\nAug 17 20:48:57.102:
+          INFO: \tContainer weave-npc ready: true, restart count 0\nAug 17 20:48:57.102:
+          INFO: sonobuoy started at 2021-08-17 19:59:20 +0000 UTC (0+1 container statuses
+          recorded)\nAug 17 20:48:57.102: INFO: \tContainer kube-sonobuoy ready: true,
+          restart count 0\nAug 17 20:48:57.102: INFO: envoy-ljmwg started at 2021-08-17
+          20:12:31 +0000 UTC (1+2 container statuses recorded)\nAug 17 20:48:57.102:
+          INFO: \tInit container envoy-initconfig ready: true, restart count 0\nAug
+          17 20:48:57.102: INFO: \tContainer envoy ready: true, restart count 0\nAug
+          17 20:48:57.102: INFO: \tContainer shutdown-manager ready: true, restart
+          count 0\nAug 17 20:48:57.102: INFO: sonobuoy-e2e-job-5b76cec565304abe started
+          at 2021-08-17 19:59:25 +0000 UTC (0+2 container statuses recorded)\nAug
+          17 20:48:57.102: INFO: \tContainer e2e ready: true, restart count 0\nAug
+          17 20:48:57.102: INFO: \tContainer sonobuoy-worker ready: true, restart
+          count 0\nAug 17 20:48:57.142: INFO: \nLatency metrics for node instance-1\nAug
+          17 20:48:57.142: INFO: \nLogging node info for node kurl-k8s-20-conform1\nAug
+          17 20:48:57.146: INFO: Node Info: &Node{ObjectMeta:{kurl-k8s-20-conform1
+          \   f5e06593-3800-42ce-b84f-e92cb98da97c 14012 0 2021-08-17 19:38:17 +0000
+          UTC <nil> <nil> map[beta.kubernetes.io/arch:amd64 beta.kubernetes.io/os:linux
+          kubernetes.io/arch:amd64 kubernetes.io/hostname:kurl-k8s-20-conform1 kubernetes.io/os:linux
+          kurl.sh/cluster:true node-role.kubernetes.io/control-plane: node-role.kubernetes.io/master:]
+          map[kubeadm.alpha.kubernetes.io/cri-socket:/var/run/dockershim.sock node.alpha.kubernetes.io/ttl:0
+          volumes.kubernetes.io/controller-managed-attach-detach:true] [] []  [{kubelet
+          Update v1 2021-08-17 19:38:17 +0000 UTC FieldsV1 {\"f:metadata\":{\"f:annotations\":{\".\":{},\"f:volumes.kubernetes.io/controller-managed-attach-detach\":{}},\"f:labels\":{\".\":{},\"f:beta.kubernetes.io/arch\":{},\"f:beta.kubernetes.io/os\":{},\"f:kubernetes.io/arch\":{},\"f:kubernetes.io/hostname\":{},\"f:kubernetes.io/os\":{},\"f:kurl.sh/cluster\":{}}},\"f:status\":{\"f:addresses\":{\".\":{},\"k:{\\\"type\\\":\\\"Hostname\\\"}\":{\".\":{},\"f:address\":{},\"f:type\":{}},\"k:{\\\"type\\\":\\\"InternalIP\\\"}\":{\".\":{},\"f:address\":{},\"f:type\":{}}},\"f:allocatable\":{\".\":{},\"f:cpu\":{},\"f:ephemeral-storage\":{},\"f:hugepages-1Gi\":{},\"f:hugepages-2Mi\":{},\"f:memory\":{},\"f:pods\":{}},\"f:capacity\":{\".\":{},\"f:cpu\":{},\"f:ephemeral-storage\":{},\"f:hugepages-1Gi\":{},\"f:hugepages-2Mi\":{},\"f:memory\":{},\"f:pods\":{}},\"f:conditions\":{\".\":{},\"k:{\\\"type\\\":\\\"DiskPressure\\\"}\":{\".\":{},\"f:lastHeartbeatTime\":{},\"f:lastTransitionTime\":{},\"f:message\":{},\"f:reason\":{},\"f:status\":{},\"f:type\":{}},\"k:{\\\"type\\\":\\\"MemoryPressure\\\"}\":{\".\":{},\"f:lastHeartbeatTime\":{},\"f:lastTransitionTime\":{},\"f:message\":{},\"f:reason\":{},\"f:status\":{},\"f:type\":{}},\"k:{\\\"type\\\":\\\"PIDPressure\\\"}\":{\".\":{},\"f:lastHeartbeatTime\":{},\"f:lastTransitionTime\":{},\"f:message\":{},\"f:reason\":{},\"f:status\":{},\"f:type\":{}},\"k:{\\\"type\\\":\\\"Ready\\\"}\":{\".\":{},\"f:lastHeartbeatTime\":{},\"f:lastTransitionTime\":{},\"f:message\":{},\"f:reason\":{},\"f:status\":{},\"f:type\":{}}},\"f:daemonEndpoints\":{\"f:kubeletEndpoint\":{\"f:Port\":{}}},\"f:images\":{},\"f:nodeInfo\":{\"f:architecture\":{},\"f:bootID\":{},\"f:containerRuntimeVersion\":{},\"f:kernelVersion\":{},\"f:kubeProxyVersion\":{},\"f:kubeletVersion\":{},\"f:machineID\":{},\"f:operatingSystem\":{},\"f:osImage\":{},\"f:systemUUID\":{}}}}}
+          {kubeadm Update v1 2021-08-17 19:38:18 +0000 UTC FieldsV1 {\"f:metadata\":{\"f:annotations\":{\"f:kubeadm.alpha.kubernetes.io/cri-socket\":{}},\"f:labels\":{\"f:node-role.kubernetes.io/control-plane\":{},\"f:node-role.kubernetes.io/master\":{}}}}}
+          {kube-controller-manager Update v1 2021-08-17 19:38:24 +0000 UTC FieldsV1
+          {\"f:metadata\":{\"f:annotations\":{\"f:node.alpha.kubernetes.io/ttl\":{}}}}}
+          {kube-utils Update v1 2021-08-17 19:38:38 +0000 UTC FieldsV1 {\"f:status\":{\"f:conditions\":{\"k:{\\\"type\\\":\\\"NetworkUnavailable\\\"}\":{\".\":{},\"f:lastHeartbeatTime\":{},\"f:lastTransitionTime\":{},\"f:message\":{},\"f:reason\":{},\"f:status\":{},\"f:type\":{}}}}}}]},Spec:NodeSpec{PodCIDR:,DoNotUseExternalID:,ProviderID:,Unschedulable:false,Taints:[]Taint{},ConfigSource:nil,PodCIDRs:[],},Status:NodeStatus{Capacity:ResourceList{cpu:
+          {{4 0} {<nil>} 4 DecimalSI},ephemeral-storage: {{51848359936 0} {<nil>}
+          50633164Ki BinarySI},hugepages-1Gi: {{0 0} {<nil>} 0 DecimalSI},hugepages-2Mi:
+          {{0 0} {<nil>} 0 DecimalSI},memory: {{16819826688 0} {<nil>} 16425612Ki
+          BinarySI},pods: {{110 0} {<nil>} 110 DecimalSI},},Allocatable:ResourceList{cpu:
+          {{4 0} {<nil>} 4 DecimalSI},ephemeral-storage: {{46663523866 0} {<nil>}
+          46663523866 DecimalSI},hugepages-1Gi: {{0 0} {<nil>} 0 DecimalSI},hugepages-2Mi:
+          {{0 0} {<nil>} 0 DecimalSI},memory: {{16714969088 0} {<nil>} 16323212Ki
+          BinarySI},pods: {{110 0} {<nil>} 110 DecimalSI},},Phase:,Conditions:[]NodeCondition{NodeCondition{Type:NetworkUnavailable,Status:False,LastHeartbeatTime:2021-08-17
+          19:38:38 +0000 UTC,LastTransitionTime:2021-08-17 19:38:38 +0000 UTC,Reason:WeaveIsUp,Message:Weave
+          pod has set this,},NodeCondition{Type:MemoryPressure,Status:False,LastHeartbeatTime:2021-08-17
+          20:48:35 +0000 UTC,LastTransitionTime:2021-08-17 19:38:16 +0000 UTC,Reason:KubeletHasSufficientMemory,Message:kubelet
+          has sufficient memory available,},NodeCondition{Type:DiskPressure,Status:False,LastHeartbeatTime:2021-08-17
+          20:48:35 +0000 UTC,LastTransitionTime:2021-08-17 19:38:16 +0000 UTC,Reason:KubeletHasNoDiskPressure,Message:kubelet
+          has no disk pressure,},NodeCondition{Type:PIDPressure,Status:False,LastHeartbeatTime:2021-08-17
+          20:48:35 +0000 UTC,LastTransitionTime:2021-08-17 19:38:16 +0000 UTC,Reason:KubeletHasSufficientPID,Message:kubelet
+          has sufficient PID available,},NodeCondition{Type:Ready,Status:True,LastHeartbeatTime:2021-08-17
+          20:48:35 +0000 UTC,LastTransitionTime:2021-08-17 19:38:39 +0000 UTC,Reason:KubeletReady,Message:kubelet
+          is posting ready status. AppArmor enabled,},},Addresses:[]NodeAddress{NodeAddress{Type:InternalIP,Address:10.138.0.74,},NodeAddress{Type:Hostname,Address:kurl-k8s-20-conform1,},},DaemonEndpoints:NodeDaemonEndpoints{KubeletEndpoint:DaemonEndpoint{Port:10250,},},NodeInfo:NodeSystemInfo{MachineID:88fad3d5f21a09782b2dbead66e93a51,SystemUUID:C7CF0731-675E-95C7-83A3-C56583255D9B,BootID:d74884d9-1350-4c19-b2ef-6e6984ff0589,KernelVersion:4.15.0-1027-gcp,OSImage:Ubuntu
+          18.04.2 LTS,ContainerRuntimeVersion:docker://20.10.5,KubeletVersion:v1.20.9,KubeProxyVersion:v1.20.9,OperatingSystem:linux,Architecture:amd64,},Images:[]ContainerImage{ContainerImage{Names:[replicated/kurl-util:v2021.08.16-0],SizeBytes:387837491,},ContainerImage{Names:[sonobuoy/systemd-logs@sha256:fadad24a66ddd544987c38811108a73d1a306dd3b5e3f090b207786f2825ffde
+          sonobuoy/systemd-logs:v0.3],SizeBytes:297365055,},ContainerImage{Names:[k8s.gcr.io/etcd:3.4.13-0],SizeBytes:253392289,},ContainerImage{Names:[weaveworks/weaveexec:2.6.5],SizeBytes:149093862,},ContainerImage{Names:[envoyproxy/envoy:v1.19.0],SizeBytes:133745493,},ContainerImage{Names:[httpd@sha256:eb8ccf084cf3e80eece1add239effefd171eb39adbc154d33c14260d905d4060
+          httpd:2.4.38-alpine],SizeBytes:123781643,},ContainerImage{Names:[weaveworks/weave-kube:2.6.5],SizeBytes:123327967,},ContainerImage{Names:[k8s.gcr.io/kube-apiserver:v1.20.9],SizeBytes:121803165,},ContainerImage{Names:[replicated/ekco:v0.11.0],SizeBytes:117690299,},ContainerImage{Names:[k8s.gcr.io/kube-controller-manager:v1.20.9],SizeBytes:116347293,},ContainerImage{Names:[k8s.gcr.io/e2e-test-images/agnhost@sha256:ab055cd3d45f50b90732c14593a5bf50f210871bb4f91994c756fc22db6d922a
+          k8s.gcr.io/e2e-test-images/agnhost:2.21],SizeBytes:113879107,},ContainerImage{Names:[k8s.gcr.io/kube-proxy:v1.20.9],SizeBytes:99667598,},ContainerImage{Names:[haproxy:2.4.2],SizeBytes:95448973,},ContainerImage{Names:[k8s.gcr.io/kube-scheduler:v1.20.9],SizeBytes:47276445,},ContainerImage{Names:[k8s.gcr.io/coredns:1.7.0],SizeBytes:45227747,},ContainerImage{Names:[projectcontour/contour:v1.18.0],SizeBytes:42696704,},ContainerImage{Names:[sonobuoy/sonobuoy@sha256:d393e2c862fffd0823409594f3ab8bc2524b359d9e6313ae3f9edb5d3dfa56e1
+          sonobuoy/sonobuoy:v0.53.2],SizeBytes:37400989,},ContainerImage{Names:[weaveworks/weave-npc:2.6.5],SizeBytes:36767037,},ContainerImage{Names:[nginx@sha256:485b610fefec7ff6c463ced9623314a04ed67e3945b9c08d7e53a47f6d108dc7
+          nginx:1.14-alpine],SizeBytes:16032814,},ContainerImage{Names:[k8s.gcr.io/pause:3.2],SizeBytes:682696,},},VolumesInUse:[],VolumesAttached:[]AttachedVolume{},Config:nil,},}\nAug
+          17 20:48:57.146: INFO: \nLogging kubelet events for node kurl-k8s-20-conform1\nAug
+          17 20:48:57.149: INFO: \nLogging pods the kubelet thinks is on node kurl-k8s-20-conform1\nAug
+          17 20:48:57.170: INFO: sonobuoy-systemd-logs-daemon-set-ed45bd546f8e4327-bzqb6
+          started at 2021-08-17 19:59:25 +0000 UTC (0+2 container statuses recorded)\nAug
+          17 20:48:57.170: INFO: \tContainer sonobuoy-worker ready: true, restart
+          count 0\nAug 17 20:48:57.170: INFO: \tContainer systemd-logs ready: true,
+          restart count 0\nAug 17 20:48:57.170: INFO: coredns-74ff55c5b-l8z82 started
+          at 2021-08-17 19:38:46 +0000 UTC (0+1 container statuses recorded)\nAug
+          17 20:48:57.170: INFO: \tContainer coredns ready: true, restart count 0\nAug
+          17 20:48:57.170: INFO: envoy-8j56d started at 2021-08-17 19:38:58 +0000
+          UTC (1+2 container statuses recorded)\nAug 17 20:48:57.170: INFO: \tInit
+          container envoy-initconfig ready: true, restart count 0\nAug 17 20:48:57.170:
+          INFO: \tContainer envoy ready: true, restart count 0\nAug 17 20:48:57.170:
+          INFO: \tContainer shutdown-manager ready: true, restart count 0\nAug 17
+          20:48:57.170: INFO: kube-proxy-2zmrb started at 2021-08-17 19:38:24 +0000
+          UTC (0+1 container statuses recorded)\nAug 17 20:48:57.170: INFO: \tContainer
+          kube-proxy ready: true, restart count 0\nAug 17 20:48:57.170: INFO: kube-apiserver-kurl-k8s-20-conform1
+          started at 2021-08-17 19:38:20 +0000 UTC (0+1 container statuses recorded)\nAug
+          17 20:48:57.170: INFO: \tContainer kube-apiserver ready: true, restart count
+          0\nAug 17 20:48:57.170: INFO: contour-certgen-v1.18.0-qx9g5 started at 2021-08-17
+          19:38:59 +0000 UTC (0+1 container statuses recorded)\nAug 17 20:48:57.170:
+          INFO: \tContainer contour ready: false, restart count 0\nAug 17 20:48:57.170:
+          INFO: coredns-74ff55c5b-qww4n started at 2021-08-17 19:38:46 +0000 UTC (0+1
+          container statuses recorded)\nAug 17 20:48:57.170: INFO: \tContainer coredns
+          ready: true, restart count 0\nAug 17 20:48:57.170: INFO: etcd-kurl-k8s-20-conform1
+          started at 2021-08-17 19:38:19 +0000 UTC (0+1 container statuses recorded)\nAug
+          17 20:48:57.170: INFO: \tContainer etcd ready: true, restart count 0\nAug
+          17 20:48:57.170: INFO: kube-scheduler-kurl-k8s-20-conform1 started at 2021-08-17
+          19:38:19 +0000 UTC (0+1 container statuses recorded)\nAug 17 20:48:57.170:
+          INFO: \tContainer kube-scheduler ready: true, restart count 0\nAug 17 20:48:57.170:
+          INFO: weave-net-fjkrd started at 2021-08-17 19:38:33 +0000 UTC (0+2 container
+          statuses recorded)\nAug 17 20:48:57.170: INFO: \tContainer weave ready:
+          true, restart count 1\nAug 17 20:48:57.170: INFO: \tContainer weave-npc
+          ready: true, restart count 0\nAug 17 20:48:57.170: INFO: contour-f85dd8bcb-v5gpr
+          started at 2021-08-17 19:38:58 +0000 UTC (0+1 container statuses recorded)\nAug
+          17 20:48:57.170: INFO: \tContainer contour ready: true, restart count 0\nAug
+          17 20:48:57.170: INFO: contour-f85dd8bcb-s4dg2 started at 2021-08-17 19:38:58
+          +0000 UTC (0+1 container statuses recorded)\nAug 17 20:48:57.170: INFO:
+          \tContainer contour ready: true, restart count 0\nAug 17 20:48:57.170: INFO:
+          ekc-operator-5888598d79-hpnnb started at 2021-08-17 19:39:01 +0000 UTC (0+1
+          container statuses recorded)\nAug 17 20:48:57.170: INFO: \tContainer ekc-operator
+          ready: true, restart count 0\nAug 17 20:48:57.170: INFO: kube-controller-manager-kurl-k8s-20-conform1
+          started at 2021-08-17 19:38:20 +0000 UTC (0+1 container statuses recorded)\nAug
+          17 20:48:57.170: INFO: \tContainer kube-controller-manager ready: true,
+          restart count 0\nAug 17 20:48:57.210: INFO: \nLatency metrics for node kurl-k8s-20-conform1\nAug
+          17 20:48:57.210: INFO: Waiting up to 3m0s for all (but 0) nodes to be ready\nSTEP:
+          Destroying namespace \"services-2654\" for this suite.\n[AfterEach] [sig-network]
+          Services\n  /workspace/src/k8s.io/kubernetes/_output/dockerized/go/src/k8s.io/kubernetes/test/e2e/network/service.go:749\n"
+    - name: '[sig-network] Services should be able to change the type from NodePort
+        to ExternalName [Conformance]'
+      status: failed
+      details:
+        failure: |-
+          /workspace/src/k8s.io/kubernetes/_output/dockerized/go/src/k8s.io/kubernetes/test/e2e/framework/framework.go:629
+          Aug 17 20:59:19.968: Unexpected error:
+              <*errors.errorString | 0xc00729dd40>: {
+                  s: "out-of-range nodePort (29533) for service",
+              }
+              out-of-range nodePort (29533) for service
+          occurred
+          /workspace/src/k8s.io/kubernetes/_output/dockerized/go/src/k8s.io/kubernetes/test/e2e/network/service.go:1762
+        system-out: "[BeforeEach] [sig-network] Services\n  /workspace/src/k8s.io/kubernetes/_output/dockerized/go/src/k8s.io/kubernetes/test/e2e/framework/framework.go:174\nSTEP:
+          Creating a kubernetes client\nAug 17 20:59:19.928: INFO: >>> kubeConfig:
+          /tmp/kubeconfig-225689195\nSTEP: Building a namespace api object, basename
+          services\nSTEP: Waiting for a default service account to be provisioned
+          in namespace\n[BeforeEach] [sig-network] Services\n  /workspace/src/k8s.io/kubernetes/_output/dockerized/go/src/k8s.io/kubernetes/test/e2e/network/service.go:745\n[It]
+          should be able to change the type from NodePort to ExternalName [Conformance]\n
+          \ /workspace/src/k8s.io/kubernetes/_output/dockerized/go/src/k8s.io/kubernetes/test/e2e/framework/framework.go:629\nSTEP:
+          creating a service nodeport-service with the type=NodePort in namespace
+          services-7667\nAug 17 20:59:19.968: FAIL: Unexpected error:\n    <*errors.errorString
+          | 0xc00729dd40>: {\n        s: \"out-of-range nodePort (29533) for service\",\n
+          \   }\n    out-of-range nodePort (29533) for service\noccurred\n\nFull Stack
+          Trace\nk8s.io/kubernetes/test/e2e/network.glob..func24.17()\n\t/workspace/src/k8s.io/kubernetes/_output/dockerized/go/src/k8s.io/kubernetes/test/e2e/network/service.go:1762
+          +0x1a5\nk8s.io/kubernetes/test/e2e.RunE2ETests(0xc003845500)\n\t_output/dockerized/go/src/k8s.io/kubernetes/test/e2e/e2e.go:130
+          +0x36c\nk8s.io/kubernetes/test/e2e.TestE2E(0xc003845500)\n\t_output/dockerized/go/src/k8s.io/kubernetes/test/e2e/e2e_test.go:144
+          +0x2b\ntesting.tRunner(0xc003845500, 0x4fc1e88)\n\t/usr/local/go/src/testing/testing.go:1123
+          +0xef\ncreated by testing.(*T).Run\n\t/usr/local/go/src/testing/testing.go:1168
+          +0x2b3\n[AfterEach] [sig-network] Services\n  /workspace/src/k8s.io/kubernetes/_output/dockerized/go/src/k8s.io/kubernetes/test/e2e/framework/framework.go:175\nSTEP:
+          Collecting events from namespace \"services-7667\".\nSTEP: Found 0 events.\nAug
+          17 20:59:19.976: INFO: POD  NODE  PHASE  GRACE  CONDITIONS\nAug 17 20:59:19.976:
+          INFO: \nAug 17 20:59:19.980: INFO: \nLogging node info for node instance-1\nAug
+          17 20:59:19.983: INFO: Node Info: &Node{ObjectMeta:{instance-1    0691d59d-7a03-4b01-a2b2-7f00e0d72379
+          17133 0 2021-08-17 19:48:59 +0000 UTC <nil> <nil> map[beta.kubernetes.io/arch:amd64
+          beta.kubernetes.io/os:linux kubernetes.io/arch:amd64 kubernetes.io/hostname:instance-1
+          kubernetes.io/os:linux kurl.sh/cluster:true] map[kubeadm.alpha.kubernetes.io/cri-socket:/var/run/dockershim.sock
+          node.alpha.kubernetes.io/ttl:0 volumes.kubernetes.io/controller-managed-attach-detach:true]
+          [] []  [{kube-controller-manager Update v1 2021-08-17 19:49:04 +0000 UTC
+          FieldsV1 {\"f:metadata\":{\"f:annotations\":{\"f:node.alpha.kubernetes.io/ttl\":{}}}}}
+          {kubeadm Update v1 2021-08-17 19:49:04 +0000 UTC FieldsV1 {\"f:metadata\":{\"f:annotations\":{\"f:kubeadm.alpha.kubernetes.io/cri-socket\":{}}}}}
+          {kube-utils Update v1 2021-08-17 19:49:40 +0000 UTC FieldsV1 {\"f:status\":{\"f:conditions\":{\"k:{\\\"type\\\":\\\"NetworkUnavailable\\\"}\":{\".\":{},\"f:lastHeartbeatTime\":{},\"f:lastTransitionTime\":{},\"f:message\":{},\"f:reason\":{},\"f:status\":{},\"f:type\":{}}}}}}
+          {e2e.test Update v1 2021-08-17 20:55:54 +0000 UTC FieldsV1 {\"f:status\":{\"f:capacity\":{\"f:scheduling.k8s.io/foo\":{}}}}}
+          {kubelet Update v1 2021-08-17 20:55:57 +0000 UTC FieldsV1 {\"f:metadata\":{\"f:annotations\":{\".\":{},\"f:volumes.kubernetes.io/controller-managed-attach-detach\":{}},\"f:labels\":{\".\":{},\"f:beta.kubernetes.io/arch\":{},\"f:beta.kubernetes.io/os\":{},\"f:kubernetes.io/arch\":{},\"f:kubernetes.io/hostname\":{},\"f:kubernetes.io/os\":{},\"f:kurl.sh/cluster\":{}}},\"f:status\":{\"f:addresses\":{\".\":{},\"k:{\\\"type\\\":\\\"Hostname\\\"}\":{\".\":{},\"f:address\":{},\"f:type\":{}},\"k:{\\\"type\\\":\\\"InternalIP\\\"}\":{\".\":{},\"f:address\":{},\"f:type\":{}}},\"f:allocatable\":{\".\":{},\"f:cpu\":{},\"f:ephemeral-storage\":{},\"f:hugepages-1Gi\":{},\"f:hugepages-2Mi\":{},\"f:memory\":{},\"f:pods\":{},\"f:scheduling.k8s.io/foo\":{}},\"f:capacity\":{\".\":{},\"f:cpu\":{},\"f:ephemeral-storage\":{},\"f:hugepages-1Gi\":{},\"f:hugepages-2Mi\":{},\"f:memory\":{},\"f:pods\":{}},\"f:conditions\":{\".\":{},\"k:{\\\"type\\\":\\\"DiskPressure\\\"}\":{\".\":{},\"f:lastHeartbeatTime\":{},\"f:lastTransitionTime\":{},\"f:message\":{},\"f:reason\":{},\"f:status\":{},\"f:type\":{}},\"k:{\\\"type\\\":\\\"MemoryPressure\\\"}\":{\".\":{},\"f:lastHeartbeatTime\":{},\"f:lastTransitionTime\":{},\"f:message\":{},\"f:reason\":{},\"f:status\":{},\"f:type\":{}},\"k:{\\\"type\\\":\\\"PIDPressure\\\"}\":{\".\":{},\"f:lastHeartbeatTime\":{},\"f:lastTransitionTime\":{},\"f:message\":{},\"f:reason\":{},\"f:status\":{},\"f:type\":{}},\"k:{\\\"type\\\":\\\"Ready\\\"}\":{\".\":{},\"f:lastHeartbeatTime\":{},\"f:lastTransitionTime\":{},\"f:message\":{},\"f:reason\":{},\"f:status\":{},\"f:type\":{}}},\"f:daemonEndpoints\":{\"f:kubeletEndpoint\":{\"f:Port\":{}}},\"f:images\":{},\"f:nodeInfo\":{\"f:architecture\":{},\"f:bootID\":{},\"f:containerRuntimeVersion\":{},\"f:kernelVersion\":{},\"f:kubeProxyVersion\":{},\"f:kubeletVersion\":{},\"f:machineID\":{},\"f:operatingSystem\":{},\"f:osImage\":{},\"f:systemUUID\":{}}}}}]},Spec:NodeSpec{PodCIDR:,DoNotUseExternalID:,ProviderID:,Unschedulable:false,Taints:[]Taint{},ConfigSource:nil,PodCIDRs:[],},Status:NodeStatus{Capacity:ResourceList{cpu:
+          {{4 0} {<nil>} 4 DecimalSI},ephemeral-storage: {{51848359936 0} {<nil>}
+          50633164Ki BinarySI},hugepages-1Gi: {{0 0} {<nil>} 0 DecimalSI},hugepages-2Mi:
+          {{0 0} {<nil>} 0 DecimalSI},memory: {{16819818496 0} {<nil>} 16425604Ki
+          BinarySI},pods: {{110 0} {<nil>} 110 DecimalSI},scheduling.k8s.io/foo: {{3
+          0} {<nil>} 3 DecimalSI},},Allocatable:ResourceList{cpu: {{4 0} {<nil>} 4
+          DecimalSI},ephemeral-storage: {{46663523866 0} {<nil>} 46663523866 DecimalSI},hugepages-1Gi:
+          {{0 0} {<nil>} 0 DecimalSI},hugepages-2Mi: {{0 0} {<nil>} 0 DecimalSI},memory:
+          {{16714960896 0} {<nil>} 16323204Ki BinarySI},pods: {{110 0} {<nil>} 110
+          DecimalSI},scheduling.k8s.io/foo: {{3 0} {<nil>} 3 DecimalSI},},Phase:,Conditions:[]NodeCondition{NodeCondition{Type:NetworkUnavailable,Status:False,LastHeartbeatTime:2021-08-17
+          20:11:34 +0000 UTC,LastTransitionTime:2021-08-17 20:11:34 +0000 UTC,Reason:WeaveIsUp,Message:Weave
+          pod has set this,},NodeCondition{Type:MemoryPressure,Status:False,LastHeartbeatTime:2021-08-17
+          20:58:07 +0000 UTC,LastTransitionTime:2021-08-17 19:48:59 +0000 UTC,Reason:KubeletHasSufficientMemory,Message:kubelet
+          has sufficient memory available,},NodeCondition{Type:DiskPressure,Status:False,LastHeartbeatTime:2021-08-17
+          20:58:07 +0000 UTC,LastTransitionTime:2021-08-17 19:48:59 +0000 UTC,Reason:KubeletHasNoDiskPressure,Message:kubelet
+          has no disk pressure,},NodeCondition{Type:PIDPressure,Status:False,LastHeartbeatTime:2021-08-17
+          20:58:07 +0000 UTC,LastTransitionTime:2021-08-17 19:48:59 +0000 UTC,Reason:KubeletHasSufficientPID,Message:kubelet
+          has sufficient PID available,},NodeCondition{Type:Ready,Status:True,LastHeartbeatTime:2021-08-17
+          20:58:07 +0000 UTC,LastTransitionTime:2021-08-17 19:49:49 +0000 UTC,Reason:KubeletReady,Message:kubelet
+          is posting ready status. AppArmor enabled,},},Addresses:[]NodeAddress{NodeAddress{Type:InternalIP,Address:10.138.0.85,},NodeAddress{Type:Hostname,Address:instance-1,},},DaemonEndpoints:NodeDaemonEndpoints{KubeletEndpoint:DaemonEndpoint{Port:10250,},},NodeInfo:NodeSystemInfo{MachineID:88fad3d5f21a09782b2dbead66e93a51,SystemUUID:8DB67A60-CE5C-7D67-B8D7-C54DA378F196,BootID:6e6cfdab-b9bc-49ac-a44e-3e28f5fda275,KernelVersion:4.15.0-1027-gcp,OSImage:Ubuntu
+          18.04.2 LTS,ContainerRuntimeVersion:docker://20.10.5,KubeletVersion:v1.20.9,KubeProxyVersion:v1.20.9,OperatingSystem:linux,Architecture:amd64,},Images:[]ContainerImage{ContainerImage{Names:[replicated/kurl-util:v2021.08.16-0],SizeBytes:387837491,},ContainerImage{Names:[sonobuoy/systemd-logs@sha256:fadad24a66ddd544987c38811108a73d1a306dd3b5e3f090b207786f2825ffde
+          sonobuoy/systemd-logs:v0.3],SizeBytes:297365055,},ContainerImage{Names:[k8s.gcr.io/etcd:3.4.13-0],SizeBytes:253392289,},ContainerImage{Names:[k8s.gcr.io/conformance@sha256:49d174932ba9a8923b557ac20e7aadffeb4d8353d05136966bbf354bd792803f
+          k8s.gcr.io/conformance:v1.20.9],SizeBytes:229580091,},ContainerImage{Names:[gcr.io/kubernetes-e2e-test-images/jessie-dnsutils@sha256:ad583e33cb284f7ef046673809b146ec4053cda19b54a85d2b180a86169715eb
+          gcr.io/kubernetes-e2e-test-images/jessie-dnsutils:1.0],SizeBytes:195659796,},ContainerImage{Names:[weaveworks/weaveexec:2.6.5],SizeBytes:149093862,},ContainerImage{Names:[envoyproxy/envoy:v1.19.0],SizeBytes:133745493,},ContainerImage{Names:[httpd@sha256:addd70e4ee83f3bc9a4c1c7c41e37927ba47faf639312fc936df3afad7926f5a
+          httpd:2.4.39-alpine],SizeBytes:126894770,},ContainerImage{Names:[httpd@sha256:eb8ccf084cf3e80eece1add239effefd171eb39adbc154d33c14260d905d4060
+          httpd:2.4.38-alpine],SizeBytes:123781643,},ContainerImage{Names:[weaveworks/weave-kube:2.6.5],SizeBytes:123327967,},ContainerImage{Names:[k8s.gcr.io/kube-apiserver:v1.20.9],SizeBytes:121803165,},ContainerImage{Names:[replicated/ekco:v0.11.0],SizeBytes:117690299,},ContainerImage{Names:[k8s.gcr.io/kube-controller-manager:v1.20.9],SizeBytes:116347293,},ContainerImage{Names:[k8s.gcr.io/e2e-test-images/agnhost@sha256:ab055cd3d45f50b90732c14593a5bf50f210871bb4f91994c756fc22db6d922a
+          k8s.gcr.io/e2e-test-images/agnhost:2.21],SizeBytes:113879107,},ContainerImage{Names:[k8s.gcr.io/kube-proxy:v1.20.9],SizeBytes:99667598,},ContainerImage{Names:[haproxy:2.4.2],SizeBytes:95448973,},ContainerImage{Names:[k8s.gcr.io/kube-scheduler:v1.20.9],SizeBytes:47276445,},ContainerImage{Names:[k8s.gcr.io/coredns:1.7.0],SizeBytes:45227747,},ContainerImage{Names:[projectcontour/contour:v1.18.0],SizeBytes:42696704,},ContainerImage{Names:[sonobuoy/sonobuoy@sha256:d393e2c862fffd0823409594f3ab8bc2524b359d9e6313ae3f9edb5d3dfa56e1
+          sonobuoy/sonobuoy:v0.53.2],SizeBytes:37400989,},ContainerImage{Names:[weaveworks/weave-npc:2.6.5],SizeBytes:36767037,},ContainerImage{Names:[nginx@sha256:485b610fefec7ff6c463ced9623314a04ed67e3945b9c08d7e53a47f6d108dc7
+          nginx:1.14-alpine],SizeBytes:16032814,},ContainerImage{Names:[gcr.io/kubernetes-e2e-test-images/nonewprivs@sha256:10066e9039219449fe3c81f38fe01928f87914150768ab81b62a468e51fa7411
+          gcr.io/kubernetes-e2e-test-images/nonewprivs:1.0],SizeBytes:6757579,},ContainerImage{Names:[busybox@sha256:8ccbac733d19c0dd4d70b4f0c1e12245b5fa3ad24758a11035ee505c629c0796
+          busybox:1.29],SizeBytes:1154361,},ContainerImage{Names:[k8s.gcr.io/pause:3.2],SizeBytes:682696,},},VolumesInUse:[],VolumesAttached:[]AttachedVolume{},Config:nil,},}\nAug
+          17 20:59:19.984: INFO: \nLogging kubelet events for node instance-1\nAug
+          17 20:59:19.987: INFO: \nLogging pods the kubelet thinks is on node instance-1\nAug
+          17 20:59:19.998: INFO: sonobuoy-e2e-job-5b76cec565304abe started at 2021-08-17
+          19:59:25 +0000 UTC (0+2 container statuses recorded)\nAug 17 20:59:19.998:
+          INFO: \tContainer e2e ready: true, restart count 0\nAug 17 20:59:19.998:
+          INFO: \tContainer sonobuoy-worker ready: true, restart count 0\nAug 17 20:59:19.998:
+          INFO: kube-proxy-gbvr2 started at 2021-08-17 19:49:00 +0000 UTC (0+1 container
+          statuses recorded)\nAug 17 20:59:19.998: INFO: \tContainer kube-proxy ready:
+          true, restart count 0\nAug 17 20:59:19.998: INFO: sonobuoy-systemd-logs-daemon-set-ed45bd546f8e4327-cgzlw
+          started at 2021-08-17 19:59:25 +0000 UTC (0+2 container statuses recorded)\nAug
+          17 20:59:19.998: INFO: \tContainer sonobuoy-worker ready: true, restart
+          count 0\nAug 17 20:59:19.998: INFO: \tContainer systemd-logs ready: true,
+          restart count 0\nAug 17 20:59:19.998: INFO: weave-net-8gt5h started at 2021-08-17
+          20:11:30 +0000 UTC (0+2 container statuses recorded)\nAug 17 20:59:19.998:
+          INFO: \tContainer weave ready: true, restart count 1\nAug 17 20:59:19.998:
+          INFO: \tContainer weave-npc ready: true, restart count 0\nAug 17 20:59:19.998:
+          INFO: update-demo-nautilus-jh7ls started at 2021-08-17 20:59:12 +0000 UTC
+          (0+1 container statuses recorded)\nAug 17 20:59:19.998: INFO: \tContainer
+          update-demo ready: true, restart count 0\nAug 17 20:59:19.998: INFO: sonobuoy
+          started at 2021-08-17 19:59:20 +0000 UTC (0+1 container statuses recorded)\nAug
+          17 20:59:19.998: INFO: \tContainer kube-sonobuoy ready: true, restart count
+          0\nAug 17 20:59:19.998: INFO: envoy-ljmwg started at 2021-08-17 20:12:31
+          +0000 UTC (1+2 container statuses recorded)\nAug 17 20:59:19.998: INFO:
+          \tInit container envoy-initconfig ready: true, restart count 0\nAug 17 20:59:19.998:
+          INFO: \tContainer envoy ready: true, restart count 0\nAug 17 20:59:19.998:
+          INFO: \tContainer shutdown-manager ready: true, restart count 0\nAug 17
+          20:59:19.998: INFO: update-demo-nautilus-6r28l started at 2021-08-17 20:59:00
+          +0000 UTC (0+1 container statuses recorded)\nAug 17 20:59:19.998: INFO:
+          \tContainer update-demo ready: true, restart count 0\nAug 17 20:59:20.054:
+          INFO: \nLatency metrics for node instance-1\nAug 17 20:59:20.054: INFO:
+          \nLogging node info for node kurl-k8s-20-conform1\nAug 17 20:59:20.058:
+          INFO: Node Info: &Node{ObjectMeta:{kurl-k8s-20-conform1    f5e06593-3800-42ce-b84f-e92cb98da97c
+          16348 0 2021-08-17 19:38:17 +0000 UTC <nil> <nil> map[beta.kubernetes.io/arch:amd64
+          beta.kubernetes.io/os:linux kubernetes.io/arch:amd64 kubernetes.io/hostname:kurl-k8s-20-conform1
+          kubernetes.io/os:linux kurl.sh/cluster:true node-role.kubernetes.io/control-plane:
+          node-role.kubernetes.io/master:] map[kubeadm.alpha.kubernetes.io/cri-socket:/var/run/dockershim.sock
+          node.alpha.kubernetes.io/ttl:0 volumes.kubernetes.io/controller-managed-attach-detach:true]
+          [] []  [{kubeadm Update v1 2021-08-17 19:38:18 +0000 UTC FieldsV1 {\"f:metadata\":{\"f:annotations\":{\"f:kubeadm.alpha.kubernetes.io/cri-socket\":{}},\"f:labels\":{\"f:node-role.kubernetes.io/control-plane\":{},\"f:node-role.kubernetes.io/master\":{}}}}}
+          {kube-controller-manager Update v1 2021-08-17 19:38:24 +0000 UTC FieldsV1
+          {\"f:metadata\":{\"f:annotations\":{\"f:node.alpha.kubernetes.io/ttl\":{}}}}}
+          {kube-utils Update v1 2021-08-17 19:38:38 +0000 UTC FieldsV1 {\"f:status\":{\"f:conditions\":{\"k:{\\\"type\\\":\\\"NetworkUnavailable\\\"}\":{\".\":{},\"f:lastHeartbeatTime\":{},\"f:lastTransitionTime\":{},\"f:message\":{},\"f:reason\":{},\"f:status\":{},\"f:type\":{}}}}}}
+          {e2e.test Update v1 2021-08-17 20:55:54 +0000 UTC FieldsV1 {\"f:status\":{\"f:capacity\":{\"f:scheduling.k8s.io/foo\":{}}}}}
+          {kubelet Update v1 2021-08-17 20:55:57 +0000 UTC FieldsV1 {\"f:metadata\":{\"f:annotations\":{\".\":{},\"f:volumes.kubernetes.io/controller-managed-attach-detach\":{}},\"f:labels\":{\".\":{},\"f:beta.kubernetes.io/arch\":{},\"f:beta.kubernetes.io/os\":{},\"f:kubernetes.io/arch\":{},\"f:kubernetes.io/hostname\":{},\"f:kubernetes.io/os\":{},\"f:kurl.sh/cluster\":{}}},\"f:status\":{\"f:addresses\":{\".\":{},\"k:{\\\"type\\\":\\\"Hostname\\\"}\":{\".\":{},\"f:address\":{},\"f:type\":{}},\"k:{\\\"type\\\":\\\"InternalIP\\\"}\":{\".\":{},\"f:address\":{},\"f:type\":{}}},\"f:allocatable\":{\".\":{},\"f:cpu\":{},\"f:ephemeral-storage\":{},\"f:hugepages-1Gi\":{},\"f:hugepages-2Mi\":{},\"f:memory\":{},\"f:pods\":{},\"f:scheduling.k8s.io/foo\":{}},\"f:capacity\":{\".\":{},\"f:cpu\":{},\"f:ephemeral-storage\":{},\"f:hugepages-1Gi\":{},\"f:hugepages-2Mi\":{},\"f:memory\":{},\"f:pods\":{}},\"f:conditions\":{\".\":{},\"k:{\\\"type\\\":\\\"DiskPressure\\\"}\":{\".\":{},\"f:lastHeartbeatTime\":{},\"f:lastTransitionTime\":{},\"f:message\":{},\"f:reason\":{},\"f:status\":{},\"f:type\":{}},\"k:{\\\"type\\\":\\\"MemoryPressure\\\"}\":{\".\":{},\"f:lastHeartbeatTime\":{},\"f:lastTransitionTime\":{},\"f:message\":{},\"f:reason\":{},\"f:status\":{},\"f:type\":{}},\"k:{\\\"type\\\":\\\"PIDPressure\\\"}\":{\".\":{},\"f:lastHeartbeatTime\":{},\"f:lastTransitionTime\":{},\"f:message\":{},\"f:reason\":{},\"f:status\":{},\"f:type\":{}},\"k:{\\\"type\\\":\\\"Ready\\\"}\":{\".\":{},\"f:lastHeartbeatTime\":{},\"f:lastTransitionTime\":{},\"f:message\":{},\"f:reason\":{},\"f:status\":{},\"f:type\":{}}},\"f:daemonEndpoints\":{\"f:kubeletEndpoint\":{\"f:Port\":{}}},\"f:images\":{},\"f:nodeInfo\":{\"f:architecture\":{},\"f:bootID\":{},\"f:containerRuntimeVersion\":{},\"f:kernelVersion\":{},\"f:kubeProxyVersion\":{},\"f:kubeletVersion\":{},\"f:machineID\":{},\"f:operatingSystem\":{},\"f:osImage\":{},\"f:systemUUID\":{}}}}}]},Spec:NodeSpec{PodCIDR:,DoNotUseExternalID:,ProviderID:,Unschedulable:false,Taints:[]Taint{},ConfigSource:nil,PodCIDRs:[],},Status:NodeStatus{Capacity:ResourceList{cpu:
+          {{4 0} {<nil>} 4 DecimalSI},ephemeral-storage: {{51848359936 0} {<nil>}
+          50633164Ki BinarySI},hugepages-1Gi: {{0 0} {<nil>} 0 DecimalSI},hugepages-2Mi:
+          {{0 0} {<nil>} 0 DecimalSI},memory: {{16819826688 0} {<nil>} 16425612Ki
+          BinarySI},pods: {{110 0} {<nil>} 110 DecimalSI},scheduling.k8s.io/foo: {{3
+          0} {<nil>} 3 DecimalSI},},Allocatable:ResourceList{cpu: {{4 0} {<nil>} 4
+          DecimalSI},ephemeral-storage: {{46663523866 0} {<nil>} 46663523866 DecimalSI},hugepages-1Gi:
+          {{0 0} {<nil>} 0 DecimalSI},hugepages-2Mi: {{0 0} {<nil>} 0 DecimalSI},memory:
+          {{16714969088 0} {<nil>} 16323212Ki BinarySI},pods: {{110 0} {<nil>} 110
+          DecimalSI},scheduling.k8s.io/foo: {{3 0} {<nil>} 3 DecimalSI},},Phase:,Conditions:[]NodeCondition{NodeCondition{Type:NetworkUnavailable,Status:False,LastHeartbeatTime:2021-08-17
+          19:38:38 +0000 UTC,LastTransitionTime:2021-08-17 19:38:38 +0000 UTC,Reason:WeaveIsUp,Message:Weave
+          pod has set this,},NodeCondition{Type:MemoryPressure,Status:False,LastHeartbeatTime:2021-08-17
+          20:55:57 +0000 UTC,LastTransitionTime:2021-08-17 19:38:16 +0000 UTC,Reason:KubeletHasSufficientMemory,Message:kubelet
+          has sufficient memory available,},NodeCondition{Type:DiskPressure,Status:False,LastHeartbeatTime:2021-08-17
+          20:55:57 +0000 UTC,LastTransitionTime:2021-08-17 19:38:16 +0000 UTC,Reason:KubeletHasNoDiskPressure,Message:kubelet
+          has no disk pressure,},NodeCondition{Type:PIDPressure,Status:False,LastHeartbeatTime:2021-08-17
+          20:55:57 +0000 UTC,LastTransitionTime:2021-08-17 19:38:16 +0000 UTC,Reason:KubeletHasSufficientPID,Message:kubelet
+          has sufficient PID available,},NodeCondition{Type:Ready,Status:True,LastHeartbeatTime:2021-08-17
+          20:55:57 +0000 UTC,LastTransitionTime:2021-08-17 19:38:39 +0000 UTC,Reason:KubeletReady,Message:kubelet
+          is posting ready status. AppArmor enabled,},},Addresses:[]NodeAddress{NodeAddress{Type:InternalIP,Address:10.138.0.74,},NodeAddress{Type:Hostname,Address:kurl-k8s-20-conform1,},},DaemonEndpoints:NodeDaemonEndpoints{KubeletEndpoint:DaemonEndpoint{Port:10250,},},NodeInfo:NodeSystemInfo{MachineID:88fad3d5f21a09782b2dbead66e93a51,SystemUUID:C7CF0731-675E-95C7-83A3-C56583255D9B,BootID:d74884d9-1350-4c19-b2ef-6e6984ff0589,KernelVersion:4.15.0-1027-gcp,OSImage:Ubuntu
+          18.04.2 LTS,ContainerRuntimeVersion:docker://20.10.5,KubeletVersion:v1.20.9,KubeProxyVersion:v1.20.9,OperatingSystem:linux,Architecture:amd64,},Images:[]ContainerImage{ContainerImage{Names:[replicated/kurl-util:v2021.08.16-0],SizeBytes:387837491,},ContainerImage{Names:[sonobuoy/systemd-logs@sha256:fadad24a66ddd544987c38811108a73d1a306dd3b5e3f090b207786f2825ffde
+          sonobuoy/systemd-logs:v0.3],SizeBytes:297365055,},ContainerImage{Names:[k8s.gcr.io/etcd:3.4.13-0],SizeBytes:253392289,},ContainerImage{Names:[weaveworks/weaveexec:2.6.5],SizeBytes:149093862,},ContainerImage{Names:[envoyproxy/envoy:v1.19.0],SizeBytes:133745493,},ContainerImage{Names:[httpd@sha256:eb8ccf084cf3e80eece1add239effefd171eb39adbc154d33c14260d905d4060
+          httpd:2.4.38-alpine],SizeBytes:123781643,},ContainerImage{Names:[weaveworks/weave-kube:2.6.5],SizeBytes:123327967,},ContainerImage{Names:[k8s.gcr.io/kube-apiserver:v1.20.9],SizeBytes:121803165,},ContainerImage{Names:[replicated/ekco:v0.11.0],SizeBytes:117690299,},ContainerImage{Names:[k8s.gcr.io/kube-controller-manager:v1.20.9],SizeBytes:116347293,},ContainerImage{Names:[k8s.gcr.io/e2e-test-images/agnhost@sha256:ab055cd3d45f50b90732c14593a5bf50f210871bb4f91994c756fc22db6d922a
+          k8s.gcr.io/e2e-test-images/agnhost:2.21],SizeBytes:113879107,},ContainerImage{Names:[k8s.gcr.io/kube-proxy:v1.20.9],SizeBytes:99667598,},ContainerImage{Names:[haproxy:2.4.2],SizeBytes:95448973,},ContainerImage{Names:[k8s.gcr.io/kube-scheduler:v1.20.9],SizeBytes:47276445,},ContainerImage{Names:[k8s.gcr.io/coredns:1.7.0],SizeBytes:45227747,},ContainerImage{Names:[projectcontour/contour:v1.18.0],SizeBytes:42696704,},ContainerImage{Names:[sonobuoy/sonobuoy@sha256:d393e2c862fffd0823409594f3ab8bc2524b359d9e6313ae3f9edb5d3dfa56e1
+          sonobuoy/sonobuoy:v0.53.2],SizeBytes:37400989,},ContainerImage{Names:[weaveworks/weave-npc:2.6.5],SizeBytes:36767037,},ContainerImage{Names:[nginx@sha256:485b610fefec7ff6c463ced9623314a04ed67e3945b9c08d7e53a47f6d108dc7
+          nginx:1.14-alpine],SizeBytes:16032814,},ContainerImage{Names:[k8s.gcr.io/pause:3.2],SizeBytes:682696,},},VolumesInUse:[],VolumesAttached:[]AttachedVolume{},Config:nil,},}\nAug
+          17 20:59:20.058: INFO: \nLogging kubelet events for node kurl-k8s-20-conform1\nAug
+          17 20:59:20.061: INFO: \nLogging pods the kubelet thinks is on node kurl-k8s-20-conform1\nAug
+          17 20:59:20.082: INFO: contour-f85dd8bcb-v5gpr started at 2021-08-17 19:38:58
+          +0000 UTC (0+1 container statuses recorded)\nAug 17 20:59:20.082: INFO:
+          \tContainer contour ready: true, restart count 0\nAug 17 20:59:20.082: INFO:
+          contour-f85dd8bcb-s4dg2 started at 2021-08-17 19:38:58 +0000 UTC (0+1 container
+          statuses recorded)\nAug 17 20:59:20.082: INFO: \tContainer contour ready:
+          true, restart count 0\nAug 17 20:59:20.082: INFO: ekc-operator-5888598d79-hpnnb
+          started at 2021-08-17 19:39:01 +0000 UTC (0+1 container statuses recorded)\nAug
+          17 20:59:20.082: INFO: \tContainer ekc-operator ready: true, restart count
+          0\nAug 17 20:59:20.082: INFO: kube-controller-manager-kurl-k8s-20-conform1
+          started at 2021-08-17 19:38:20 +0000 UTC (0+1 container statuses recorded)\nAug
+          17 20:59:20.082: INFO: \tContainer kube-controller-manager ready: true,
+          restart count 0\nAug 17 20:59:20.082: INFO: kube-scheduler-kurl-k8s-20-conform1
+          started at 2021-08-17 19:38:19 +0000 UTC (0+1 container statuses recorded)\nAug
+          17 20:59:20.082: INFO: \tContainer kube-scheduler ready: true, restart count
+          0\nAug 17 20:59:20.082: INFO: weave-net-fjkrd started at 2021-08-17 19:38:33
+          +0000 UTC (0+2 container statuses recorded)\nAug 17 20:59:20.082: INFO:
+          \tContainer weave ready: true, restart count 1\nAug 17 20:59:20.082: INFO:
+          \tContainer weave-npc ready: true, restart count 0\nAug 17 20:59:20.082:
+          INFO: coredns-74ff55c5b-l8z82 started at 2021-08-17 19:38:46 +0000 UTC (0+1
+          container statuses recorded)\nAug 17 20:59:20.082: INFO: \tContainer coredns
+          ready: true, restart count 0\nAug 17 20:59:20.082: INFO: sonobuoy-systemd-logs-daemon-set-ed45bd546f8e4327-bzqb6
+          started at 2021-08-17 19:59:25 +0000 UTC (0+2 container statuses recorded)\nAug
+          17 20:59:20.082: INFO: \tContainer sonobuoy-worker ready: true, restart
+          count 0\nAug 17 20:59:20.082: INFO: \tContainer systemd-logs ready: true,
+          restart count 0\nAug 17 20:59:20.082: INFO: kube-proxy-2zmrb started at
+          2021-08-17 19:38:24 +0000 UTC (0+1 container statuses recorded)\nAug 17
+          20:59:20.082: INFO: \tContainer kube-proxy ready: true, restart count 0\nAug
+          17 20:59:20.082: INFO: envoy-8j56d started at 2021-08-17 19:38:58 +0000
+          UTC (1+2 container statuses recorded)\nAug 17 20:59:20.082: INFO: \tInit
+          container envoy-initconfig ready: true, restart count 0\nAug 17 20:59:20.082:
+          INFO: \tContainer envoy ready: true, restart count 0\nAug 17 20:59:20.082:
+          INFO: \tContainer shutdown-manager ready: true, restart count 0\nAug 17
+          20:59:20.082: INFO: coredns-74ff55c5b-qww4n started at 2021-08-17 19:38:46
+          +0000 UTC (0+1 container statuses recorded)\nAug 17 20:59:20.082: INFO:
+          \tContainer coredns ready: true, restart count 0\nAug 17 20:59:20.082: INFO:
+          etcd-kurl-k8s-20-conform1 started at 2021-08-17 19:38:19 +0000 UTC (0+1
+          container statuses recorded)\nAug 17 20:59:20.082: INFO: \tContainer etcd
+          ready: true, restart count 0\nAug 17 20:59:20.082: INFO: kube-apiserver-kurl-k8s-20-conform1
+          started at 2021-08-17 19:38:20 +0000 UTC (0+1 container statuses recorded)\nAug
+          17 20:59:20.082: INFO: \tContainer kube-apiserver ready: true, restart count
+          0\nAug 17 20:59:20.082: INFO: contour-certgen-v1.18.0-qx9g5 started at 2021-08-17
+          19:38:59 +0000 UTC (0+1 container statuses recorded)\nAug 17 20:59:20.082:
+          INFO: \tContainer contour ready: false, restart count 0\nAug 17 20:59:20.120:
+          INFO: \nLatency metrics for node kurl-k8s-20-conform1\nAug 17 20:59:20.120:
+          INFO: Waiting up to 3m0s for all (but 0) nodes to be ready\nSTEP: Destroying
+          namespace \"services-7667\" for this suite.\n[AfterEach] [sig-network] Services\n
+          \ /workspace/src/k8s.io/kubernetes/_output/dockerized/go/src/k8s.io/kubernetes/test/e2e/network/service.go:749\n"
+    - name: '[sig-network] Services should be able to change the type from ExternalName
+        to NodePort [Conformance]'
+      status: failed
+      details:
+        failure: |-
+          /workspace/src/k8s.io/kubernetes/_output/dockerized/go/src/k8s.io/kubernetes/test/e2e/framework/framework.go:629
+          Aug 17 21:03:06.425: Unexpected error:
+              <*errors.errorString | 0xc00722cb90>: {
+                  s: "out-of-range nodePort (51727) for service",
+              }
+              out-of-range nodePort (51727) for service
+          occurred
+          /workspace/src/k8s.io/kubernetes/_output/dockerized/go/src/k8s.io/kubernetes/test/e2e/network/service.go:1695
+        system-out: "[BeforeEach] [sig-network] Services\n  /workspace/src/k8s.io/kubernetes/_output/dockerized/go/src/k8s.io/kubernetes/test/e2e/framework/framework.go:174\nSTEP:
+          Creating a kubernetes client\nAug 17 21:03:06.317: INFO: >>> kubeConfig:
+          /tmp/kubeconfig-225689195\nSTEP: Building a namespace api object, basename
+          services\nSTEP: Waiting for a default service account to be provisioned
+          in namespace\n[BeforeEach] [sig-network] Services\n  /workspace/src/k8s.io/kubernetes/_output/dockerized/go/src/k8s.io/kubernetes/test/e2e/network/service.go:745\n[It]
+          should be able to change the type from ExternalName to NodePort [Conformance]\n
+          \ /workspace/src/k8s.io/kubernetes/_output/dockerized/go/src/k8s.io/kubernetes/test/e2e/framework/framework.go:629\nSTEP:
+          creating a service externalname-service with the type=ExternalName in namespace
+          services-4608\nSTEP: changing the ExternalName service to type=NodePort\nAug
+          17 21:03:06.425: FAIL: Unexpected error:\n    <*errors.errorString | 0xc00722cb90>:
+          {\n        s: \"out-of-range nodePort (51727) for service\",\n    }\n    out-of-range
+          nodePort (51727) for service\noccurred\n\nFull Stack Trace\nk8s.io/kubernetes/test/e2e/network.glob..func24.15()\n\t/workspace/src/k8s.io/kubernetes/_output/dockerized/go/src/k8s.io/kubernetes/test/e2e/network/service.go:1695
+          +0x265\nk8s.io/kubernetes/test/e2e.RunE2ETests(0xc003845500)\n\t_output/dockerized/go/src/k8s.io/kubernetes/test/e2e/e2e.go:130
+          +0x36c\nk8s.io/kubernetes/test/e2e.TestE2E(0xc003845500)\n\t_output/dockerized/go/src/k8s.io/kubernetes/test/e2e/e2e_test.go:144
+          +0x2b\ntesting.tRunner(0xc003845500, 0x4fc1e88)\n\t/usr/local/go/src/testing/testing.go:1123
+          +0xef\ncreated by testing.(*T).Run\n\t/usr/local/go/src/testing/testing.go:1168
+          +0x2b3\nAug 17 21:03:06.426: INFO: Cleaning up the ExternalName to NodePort
+          test service\n[AfterEach] [sig-network] Services\n  /workspace/src/k8s.io/kubernetes/_output/dockerized/go/src/k8s.io/kubernetes/test/e2e/framework/framework.go:175\nSTEP:
+          Collecting events from namespace \"services-4608\".\nSTEP: Found 0 events.\nAug
+          17 21:03:06.447: INFO: POD  NODE  PHASE  GRACE  CONDITIONS\nAug 17 21:03:06.448:
+          INFO: \nAug 17 21:03:06.450: INFO: \nLogging node info for node instance-1\nAug
+          17 21:03:06.453: INFO: Node Info: &Node{ObjectMeta:{instance-1    0691d59d-7a03-4b01-a2b2-7f00e0d72379
+          17822 0 2021-08-17 19:48:59 +0000 UTC <nil> <nil> map[beta.kubernetes.io/arch:amd64
+          beta.kubernetes.io/os:linux kubernetes.io/arch:amd64 kubernetes.io/hostname:instance-1
+          kubernetes.io/os:linux kurl.sh/cluster:true] map[kubeadm.alpha.kubernetes.io/cri-socket:/var/run/dockershim.sock
+          node.alpha.kubernetes.io/ttl:0 volumes.kubernetes.io/controller-managed-attach-detach:true]
+          [] []  [{kube-controller-manager Update v1 2021-08-17 19:49:04 +0000 UTC
+          FieldsV1 {\"f:metadata\":{\"f:annotations\":{\"f:node.alpha.kubernetes.io/ttl\":{}}}}}
+          {kubeadm Update v1 2021-08-17 19:49:04 +0000 UTC FieldsV1 {\"f:metadata\":{\"f:annotations\":{\"f:kubeadm.alpha.kubernetes.io/cri-socket\":{}}}}}
+          {kube-utils Update v1 2021-08-17 19:49:40 +0000 UTC FieldsV1 {\"f:status\":{\"f:conditions\":{\"k:{\\\"type\\\":\\\"NetworkUnavailable\\\"}\":{\".\":{},\"f:lastHeartbeatTime\":{},\"f:lastTransitionTime\":{},\"f:message\":{},\"f:reason\":{},\"f:status\":{},\"f:type\":{}}}}}}
+          {e2e.test Update v1 2021-08-17 20:55:54 +0000 UTC FieldsV1 {\"f:status\":{\"f:capacity\":{\"f:scheduling.k8s.io/foo\":{}}}}}
+          {kubelet Update v1 2021-08-17 20:55:57 +0000 UTC FieldsV1 {\"f:metadata\":{\"f:annotations\":{\".\":{},\"f:volumes.kubernetes.io/controller-managed-attach-detach\":{}},\"f:labels\":{\".\":{},\"f:beta.kubernetes.io/arch\":{},\"f:beta.kubernetes.io/os\":{},\"f:kubernetes.io/arch\":{},\"f:kubernetes.io/hostname\":{},\"f:kubernetes.io/os\":{},\"f:kurl.sh/cluster\":{}}},\"f:status\":{\"f:addresses\":{\".\":{},\"k:{\\\"type\\\":\\\"Hostname\\\"}\":{\".\":{},\"f:address\":{},\"f:type\":{}},\"k:{\\\"type\\\":\\\"InternalIP\\\"}\":{\".\":{},\"f:address\":{},\"f:type\":{}}},\"f:allocatable\":{\".\":{},\"f:cpu\":{},\"f:ephemeral-storage\":{},\"f:hugepages-1Gi\":{},\"f:hugepages-2Mi\":{},\"f:memory\":{},\"f:pods\":{},\"f:scheduling.k8s.io/foo\":{}},\"f:capacity\":{\".\":{},\"f:cpu\":{},\"f:ephemeral-storage\":{},\"f:hugepages-1Gi\":{},\"f:hugepages-2Mi\":{},\"f:memory\":{},\"f:pods\":{}},\"f:conditions\":{\".\":{},\"k:{\\\"type\\\":\\\"DiskPressure\\\"}\":{\".\":{},\"f:lastHeartbeatTime\":{},\"f:lastTransitionTime\":{},\"f:message\":{},\"f:reason\":{},\"f:status\":{},\"f:type\":{}},\"k:{\\\"type\\\":\\\"MemoryPressure\\\"}\":{\".\":{},\"f:lastHeartbeatTime\":{},\"f:lastTransitionTime\":{},\"f:message\":{},\"f:reason\":{},\"f:status\":{},\"f:type\":{}},\"k:{\\\"type\\\":\\\"PIDPressure\\\"}\":{\".\":{},\"f:lastHeartbeatTime\":{},\"f:lastTransitionTime\":{},\"f:message\":{},\"f:reason\":{},\"f:status\":{},\"f:type\":{}},\"k:{\\\"type\\\":\\\"Ready\\\"}\":{\".\":{},\"f:lastHeartbeatTime\":{},\"f:lastTransitionTime\":{},\"f:message\":{},\"f:reason\":{},\"f:status\":{},\"f:type\":{}}},\"f:daemonEndpoints\":{\"f:kubeletEndpoint\":{\"f:Port\":{}}},\"f:images\":{},\"f:nodeInfo\":{\"f:architecture\":{},\"f:bootID\":{},\"f:containerRuntimeVersion\":{},\"f:kernelVersion\":{},\"f:kubeProxyVersion\":{},\"f:kubeletVersion\":{},\"f:machineID\":{},\"f:operatingSystem\":{},\"f:osImage\":{},\"f:systemUUID\":{}}}}}]},Spec:NodeSpec{PodCIDR:,DoNotUseExternalID:,ProviderID:,Unschedulable:false,Taints:[]Taint{},ConfigSource:nil,PodCIDRs:[],},Status:NodeStatus{Capacity:ResourceList{cpu:
+          {{4 0} {<nil>} 4 DecimalSI},ephemeral-storage: {{51848359936 0} {<nil>}
+          50633164Ki BinarySI},hugepages-1Gi: {{0 0} {<nil>} 0 DecimalSI},hugepages-2Mi:
+          {{0 0} {<nil>} 0 DecimalSI},memory: {{16819818496 0} {<nil>} 16425604Ki
+          BinarySI},pods: {{110 0} {<nil>} 110 DecimalSI},scheduling.k8s.io/foo: {{3
+          0} {<nil>} 3 DecimalSI},},Allocatable:ResourceList{cpu: {{4 0} {<nil>} 4
+          DecimalSI},ephemeral-storage: {{46663523866 0} {<nil>} 46663523866 DecimalSI},hugepages-1Gi:
+          {{0 0} {<nil>} 0 DecimalSI},hugepages-2Mi: {{0 0} {<nil>} 0 DecimalSI},memory:
+          {{16714960896 0} {<nil>} 16323204Ki BinarySI},pods: {{110 0} {<nil>} 110
+          DecimalSI},scheduling.k8s.io/foo: {{3 0} {<nil>} 3 DecimalSI},},Phase:,Conditions:[]NodeCondition{NodeCondition{Type:NetworkUnavailable,Status:False,LastHeartbeatTime:2021-08-17
+          20:11:34 +0000 UTC,LastTransitionTime:2021-08-17 20:11:34 +0000 UTC,Reason:WeaveIsUp,Message:Weave
+          pod has set this,},NodeCondition{Type:MemoryPressure,Status:False,LastHeartbeatTime:2021-08-17
+          20:59:37 +0000 UTC,LastTransitionTime:2021-08-17 19:48:59 +0000 UTC,Reason:KubeletHasSufficientMemory,Message:kubelet
+          has sufficient memory available,},NodeCondition{Type:DiskPressure,Status:False,LastHeartbeatTime:2021-08-17
+          20:59:37 +0000 UTC,LastTransitionTime:2021-08-17 19:48:59 +0000 UTC,Reason:KubeletHasNoDiskPressure,Message:kubelet
+          has no disk pressure,},NodeCondition{Type:PIDPressure,Status:False,LastHeartbeatTime:2021-08-17
+          20:59:37 +0000 UTC,LastTransitionTime:2021-08-17 19:48:59 +0000 UTC,Reason:KubeletHasSufficientPID,Message:kubelet
+          has sufficient PID available,},NodeCondition{Type:Ready,Status:True,LastHeartbeatTime:2021-08-17
+          20:59:37 +0000 UTC,LastTransitionTime:2021-08-17 19:49:49 +0000 UTC,Reason:KubeletReady,Message:kubelet
+          is posting ready status. AppArmor enabled,},},Addresses:[]NodeAddress{NodeAddress{Type:InternalIP,Address:10.138.0.85,},NodeAddress{Type:Hostname,Address:instance-1,},},DaemonEndpoints:NodeDaemonEndpoints{KubeletEndpoint:DaemonEndpoint{Port:10250,},},NodeInfo:NodeSystemInfo{MachineID:88fad3d5f21a09782b2dbead66e93a51,SystemUUID:8DB67A60-CE5C-7D67-B8D7-C54DA378F196,BootID:6e6cfdab-b9bc-49ac-a44e-3e28f5fda275,KernelVersion:4.15.0-1027-gcp,OSImage:Ubuntu
+          18.04.2 LTS,ContainerRuntimeVersion:docker://20.10.5,KubeletVersion:v1.20.9,KubeProxyVersion:v1.20.9,OperatingSystem:linux,Architecture:amd64,},Images:[]ContainerImage{ContainerImage{Names:[replicated/kurl-util:v2021.08.16-0],SizeBytes:387837491,},ContainerImage{Names:[sonobuoy/systemd-logs@sha256:fadad24a66ddd544987c38811108a73d1a306dd3b5e3f090b207786f2825ffde
+          sonobuoy/systemd-logs:v0.3],SizeBytes:297365055,},ContainerImage{Names:[k8s.gcr.io/etcd:3.4.13-0],SizeBytes:253392289,},ContainerImage{Names:[k8s.gcr.io/conformance@sha256:49d174932ba9a8923b557ac20e7aadffeb4d8353d05136966bbf354bd792803f
+          k8s.gcr.io/conformance:v1.20.9],SizeBytes:229580091,},ContainerImage{Names:[gcr.io/kubernetes-e2e-test-images/jessie-dnsutils@sha256:ad583e33cb284f7ef046673809b146ec4053cda19b54a85d2b180a86169715eb
+          gcr.io/kubernetes-e2e-test-images/jessie-dnsutils:1.0],SizeBytes:195659796,},ContainerImage{Names:[weaveworks/weaveexec:2.6.5],SizeBytes:149093862,},ContainerImage{Names:[envoyproxy/envoy:v1.19.0],SizeBytes:133745493,},ContainerImage{Names:[httpd@sha256:addd70e4ee83f3bc9a4c1c7c41e37927ba47faf639312fc936df3afad7926f5a
+          httpd:2.4.39-alpine],SizeBytes:126894770,},ContainerImage{Names:[httpd@sha256:eb8ccf084cf3e80eece1add239effefd171eb39adbc154d33c14260d905d4060
+          httpd:2.4.38-alpine],SizeBytes:123781643,},ContainerImage{Names:[weaveworks/weave-kube:2.6.5],SizeBytes:123327967,},ContainerImage{Names:[k8s.gcr.io/kube-apiserver:v1.20.9],SizeBytes:121803165,},ContainerImage{Names:[replicated/ekco:v0.11.0],SizeBytes:117690299,},ContainerImage{Names:[k8s.gcr.io/kube-controller-manager:v1.20.9],SizeBytes:116347293,},ContainerImage{Names:[k8s.gcr.io/e2e-test-images/agnhost@sha256:ab055cd3d45f50b90732c14593a5bf50f210871bb4f91994c756fc22db6d922a
+          k8s.gcr.io/e2e-test-images/agnhost:2.21],SizeBytes:113879107,},ContainerImage{Names:[k8s.gcr.io/kube-proxy:v1.20.9],SizeBytes:99667598,},ContainerImage{Names:[haproxy:2.4.2],SizeBytes:95448973,},ContainerImage{Names:[k8s.gcr.io/kube-scheduler:v1.20.9],SizeBytes:47276445,},ContainerImage{Names:[k8s.gcr.io/coredns:1.7.0],SizeBytes:45227747,},ContainerImage{Names:[projectcontour/contour:v1.18.0],SizeBytes:42696704,},ContainerImage{Names:[sonobuoy/sonobuoy@sha256:d393e2c862fffd0823409594f3ab8bc2524b359d9e6313ae3f9edb5d3dfa56e1
+          sonobuoy/sonobuoy:v0.53.2],SizeBytes:37400989,},ContainerImage{Names:[weaveworks/weave-npc:2.6.5],SizeBytes:36767037,},ContainerImage{Names:[nginx@sha256:485b610fefec7ff6c463ced9623314a04ed67e3945b9c08d7e53a47f6d108dc7
+          nginx:1.14-alpine],SizeBytes:16032814,},ContainerImage{Names:[gcr.io/kubernetes-e2e-test-images/nonewprivs@sha256:10066e9039219449fe3c81f38fe01928f87914150768ab81b62a468e51fa7411
+          gcr.io/kubernetes-e2e-test-images/nonewprivs:1.0],SizeBytes:6757579,},ContainerImage{Names:[gcr.io/kubernetes-e2e-test-images/nautilus@sha256:33a732d4c42a266912a5091598a0f07653c9134db4b8d571690d8afd509e0bfc
+          gcr.io/kubernetes-e2e-test-images/nautilus:1.0],SizeBytes:4753501,},ContainerImage{Names:[busybox@sha256:8ccbac733d19c0dd4d70b4f0c1e12245b5fa3ad24758a11035ee505c629c0796
+          busybox:1.29],SizeBytes:1154361,},ContainerImage{Names:[k8s.gcr.io/pause:3.2],SizeBytes:682696,},},VolumesInUse:[],VolumesAttached:[]AttachedVolume{},Config:nil,},}\nAug
+          17 21:03:06.453: INFO: \nLogging kubelet events for node instance-1\nAug
+          17 21:03:06.456: INFO: \nLogging pods the kubelet thinks is on node instance-1\nAug
+          17 21:03:06.462: INFO: sonobuoy started at 2021-08-17 19:59:20 +0000 UTC
+          (0+1 container statuses recorded)\nAug 17 21:03:06.463: INFO: \tContainer
+          kube-sonobuoy ready: true, restart count 0\nAug 17 21:03:06.463: INFO: envoy-ljmwg
+          started at 2021-08-17 20:12:31 +0000 UTC (1+2 container statuses recorded)\nAug
+          17 21:03:06.463: INFO: \tInit container envoy-initconfig ready: true, restart
+          count 0\nAug 17 21:03:06.463: INFO: \tContainer envoy ready: true, restart
+          count 0\nAug 17 21:03:06.463: INFO: \tContainer shutdown-manager ready:
+          true, restart count 0\nAug 17 21:03:06.463: INFO: labelsupdate6f84359b-a5c6-4491-a1b9-93d2c59bebcd
+          started at 2021-08-17 21:02:59 +0000 UTC (0+1 container statuses recorded)\nAug
+          17 21:03:06.463: INFO: \tContainer client-container ready: true, restart
+          count 0\nAug 17 21:03:06.463: INFO: sonobuoy-e2e-job-5b76cec565304abe started
+          at 2021-08-17 19:59:25 +0000 UTC (0+2 container statuses recorded)\nAug
+          17 21:03:06.463: INFO: \tContainer e2e ready: true, restart count 0\nAug
+          17 21:03:06.463: INFO: \tContainer sonobuoy-worker ready: true, restart
+          count 0\nAug 17 21:03:06.463: INFO: kube-proxy-gbvr2 started at 2021-08-17
+          19:49:00 +0000 UTC (0+1 container statuses recorded)\nAug 17 21:03:06.463:
+          INFO: \tContainer kube-proxy ready: true, restart count 0\nAug 17 21:03:06.463:
+          INFO: sonobuoy-systemd-logs-daemon-set-ed45bd546f8e4327-cgzlw started at
+          2021-08-17 19:59:25 +0000 UTC (0+2 container statuses recorded)\nAug 17
+          21:03:06.463: INFO: \tContainer sonobuoy-worker ready: true, restart count
+          0\nAug 17 21:03:06.463: INFO: \tContainer systemd-logs ready: true, restart
+          count 0\nAug 17 21:03:06.463: INFO: weave-net-8gt5h started at 2021-08-17
+          20:11:30 +0000 UTC (0+2 container statuses recorded)\nAug 17 21:03:06.463:
+          INFO: \tContainer weave ready: true, restart count 1\nAug 17 21:03:06.463:
+          INFO: \tContainer weave-npc ready: true, restart count 0\nAug 17 21:03:06.490:
+          INFO: \nLatency metrics for node instance-1\nAug 17 21:03:06.490: INFO:
+          \nLogging node info for node kurl-k8s-20-conform1\nAug 17 21:03:06.493:
+          INFO: Node Info: &Node{ObjectMeta:{kurl-k8s-20-conform1    f5e06593-3800-42ce-b84f-e92cb98da97c
+          18042 0 2021-08-17 19:38:17 +0000 UTC <nil> <nil> map[beta.kubernetes.io/arch:amd64
+          beta.kubernetes.io/os:linux kubernetes.io/arch:amd64 kubernetes.io/hostname:kurl-k8s-20-conform1
+          kubernetes.io/os:linux kurl.sh/cluster:true node-role.kubernetes.io/control-plane:
+          node-role.kubernetes.io/master:] map[kubeadm.alpha.kubernetes.io/cri-socket:/var/run/dockershim.sock
+          node.alpha.kubernetes.io/ttl:0 volumes.kubernetes.io/controller-managed-attach-detach:true]
+          [] []  [{kubeadm Update v1 2021-08-17 19:38:18 +0000 UTC FieldsV1 {\"f:metadata\":{\"f:annotations\":{\"f:kubeadm.alpha.kubernetes.io/cri-socket\":{}},\"f:labels\":{\"f:node-role.kubernetes.io/control-plane\":{},\"f:node-role.kubernetes.io/master\":{}}}}}
+          {kube-controller-manager Update v1 2021-08-17 19:38:24 +0000 UTC FieldsV1
+          {\"f:metadata\":{\"f:annotations\":{\"f:node.alpha.kubernetes.io/ttl\":{}}}}}
+          {kube-utils Update v1 2021-08-17 19:38:38 +0000 UTC FieldsV1 {\"f:status\":{\"f:conditions\":{\"k:{\\\"type\\\":\\\"NetworkUnavailable\\\"}\":{\".\":{},\"f:lastHeartbeatTime\":{},\"f:lastTransitionTime\":{},\"f:message\":{},\"f:reason\":{},\"f:status\":{},\"f:type\":{}}}}}}
+          {e2e.test Update v1 2021-08-17 20:55:54 +0000 UTC FieldsV1 {\"f:status\":{\"f:capacity\":{\"f:scheduling.k8s.io/foo\":{}}}}}
+          {kubelet Update v1 2021-08-17 20:55:57 +0000 UTC FieldsV1 {\"f:metadata\":{\"f:annotations\":{\".\":{},\"f:volumes.kubernetes.io/controller-managed-attach-detach\":{}},\"f:labels\":{\".\":{},\"f:beta.kubernetes.io/arch\":{},\"f:beta.kubernetes.io/os\":{},\"f:kubernetes.io/arch\":{},\"f:kubernetes.io/hostname\":{},\"f:kubernetes.io/os\":{},\"f:kurl.sh/cluster\":{}}},\"f:status\":{\"f:addresses\":{\".\":{},\"k:{\\\"type\\\":\\\"Hostname\\\"}\":{\".\":{},\"f:address\":{},\"f:type\":{}},\"k:{\\\"type\\\":\\\"InternalIP\\\"}\":{\".\":{},\"f:address\":{},\"f:type\":{}}},\"f:allocatable\":{\".\":{},\"f:cpu\":{},\"f:ephemeral-storage\":{},\"f:hugepages-1Gi\":{},\"f:hugepages-2Mi\":{},\"f:memory\":{},\"f:pods\":{},\"f:scheduling.k8s.io/foo\":{}},\"f:capacity\":{\".\":{},\"f:cpu\":{},\"f:ephemeral-storage\":{},\"f:hugepages-1Gi\":{},\"f:hugepages-2Mi\":{},\"f:memory\":{},\"f:pods\":{}},\"f:conditions\":{\".\":{},\"k:{\\\"type\\\":\\\"DiskPressure\\\"}\":{\".\":{},\"f:lastHeartbeatTime\":{},\"f:lastTransitionTime\":{},\"f:message\":{},\"f:reason\":{},\"f:status\":{},\"f:type\":{}},\"k:{\\\"type\\\":\\\"MemoryPressure\\\"}\":{\".\":{},\"f:lastHeartbeatTime\":{},\"f:lastTransitionTime\":{},\"f:message\":{},\"f:reason\":{},\"f:status\":{},\"f:type\":{}},\"k:{\\\"type\\\":\\\"PIDPressure\\\"}\":{\".\":{},\"f:lastHeartbeatTime\":{},\"f:lastTransitionTime\":{},\"f:message\":{},\"f:reason\":{},\"f:status\":{},\"f:type\":{}},\"k:{\\\"type\\\":\\\"Ready\\\"}\":{\".\":{},\"f:lastHeartbeatTime\":{},\"f:lastTransitionTime\":{},\"f:message\":{},\"f:reason\":{},\"f:status\":{},\"f:type\":{}}},\"f:daemonEndpoints\":{\"f:kubeletEndpoint\":{\"f:Port\":{}}},\"f:images\":{},\"f:nodeInfo\":{\"f:architecture\":{},\"f:bootID\":{},\"f:containerRuntimeVersion\":{},\"f:kernelVersion\":{},\"f:kubeProxyVersion\":{},\"f:kubeletVersion\":{},\"f:machineID\":{},\"f:operatingSystem\":{},\"f:osImage\":{},\"f:systemUUID\":{}}}}}]},Spec:NodeSpec{PodCIDR:,DoNotUseExternalID:,ProviderID:,Unschedulable:false,Taints:[]Taint{},ConfigSource:nil,PodCIDRs:[],},Status:NodeStatus{Capacity:ResourceList{cpu:
+          {{4 0} {<nil>} 4 DecimalSI},ephemeral-storage: {{51848359936 0} {<nil>}
+          50633164Ki BinarySI},hugepages-1Gi: {{0 0} {<nil>} 0 DecimalSI},hugepages-2Mi:
+          {{0 0} {<nil>} 0 DecimalSI},memory: {{16819826688 0} {<nil>} 16425612Ki
+          BinarySI},pods: {{110 0} {<nil>} 110 DecimalSI},scheduling.k8s.io/foo: {{3
+          0} {<nil>} 3 DecimalSI},},Allocatable:ResourceList{cpu: {{4 0} {<nil>} 4
+          DecimalSI},ephemeral-storage: {{46663523866 0} {<nil>} 46663523866 DecimalSI},hugepages-1Gi:
+          {{0 0} {<nil>} 0 DecimalSI},hugepages-2Mi: {{0 0} {<nil>} 0 DecimalSI},memory:
+          {{16714969088 0} {<nil>} 16323212Ki BinarySI},pods: {{110 0} {<nil>} 110
+          DecimalSI},scheduling.k8s.io/foo: {{3 0} {<nil>} 3 DecimalSI},},Phase:,Conditions:[]NodeCondition{NodeCondition{Type:NetworkUnavailable,Status:False,LastHeartbeatTime:2021-08-17
+          19:38:38 +0000 UTC,LastTransitionTime:2021-08-17 19:38:38 +0000 UTC,Reason:WeaveIsUp,Message:Weave
+          pod has set this,},NodeCondition{Type:MemoryPressure,Status:False,LastHeartbeatTime:2021-08-17
+          21:00:58 +0000 UTC,LastTransitionTime:2021-08-17 19:38:16 +0000 UTC,Reason:KubeletHasSufficientMemory,Message:kubelet
+          has sufficient memory available,},NodeCondition{Type:DiskPressure,Status:False,LastHeartbeatTime:2021-08-17
+          21:00:58 +0000 UTC,LastTransitionTime:2021-08-17 19:38:16 +0000 UTC,Reason:KubeletHasNoDiskPressure,Message:kubelet
+          has no disk pressure,},NodeCondition{Type:PIDPressure,Status:False,LastHeartbeatTime:2021-08-17
+          21:00:58 +0000 UTC,LastTransitionTime:2021-08-17 19:38:16 +0000 UTC,Reason:KubeletHasSufficientPID,Message:kubelet
+          has sufficient PID available,},NodeCondition{Type:Ready,Status:True,LastHeartbeatTime:2021-08-17
+          21:00:58 +0000 UTC,LastTransitionTime:2021-08-17 19:38:39 +0000 UTC,Reason:KubeletReady,Message:kubelet
+          is posting ready status. AppArmor enabled,},},Addresses:[]NodeAddress{NodeAddress{Type:InternalIP,Address:10.138.0.74,},NodeAddress{Type:Hostname,Address:kurl-k8s-20-conform1,},},DaemonEndpoints:NodeDaemonEndpoints{KubeletEndpoint:DaemonEndpoint{Port:10250,},},NodeInfo:NodeSystemInfo{MachineID:88fad3d5f21a09782b2dbead66e93a51,SystemUUID:C7CF0731-675E-95C7-83A3-C56583255D9B,BootID:d74884d9-1350-4c19-b2ef-6e6984ff0589,KernelVersion:4.15.0-1027-gcp,OSImage:Ubuntu
+          18.04.2 LTS,ContainerRuntimeVersion:docker://20.10.5,KubeletVersion:v1.20.9,KubeProxyVersion:v1.20.9,OperatingSystem:linux,Architecture:amd64,},Images:[]ContainerImage{ContainerImage{Names:[replicated/kurl-util:v2021.08.16-0],SizeBytes:387837491,},ContainerImage{Names:[sonobuoy/systemd-logs@sha256:fadad24a66ddd544987c38811108a73d1a306dd3b5e3f090b207786f2825ffde
+          sonobuoy/systemd-logs:v0.3],SizeBytes:297365055,},ContainerImage{Names:[k8s.gcr.io/etcd:3.4.13-0],SizeBytes:253392289,},ContainerImage{Names:[weaveworks/weaveexec:2.6.5],SizeBytes:149093862,},ContainerImage{Names:[envoyproxy/envoy:v1.19.0],SizeBytes:133745493,},ContainerImage{Names:[httpd@sha256:eb8ccf084cf3e80eece1add239effefd171eb39adbc154d33c14260d905d4060
+          httpd:2.4.38-alpine],SizeBytes:123781643,},ContainerImage{Names:[weaveworks/weave-kube:2.6.5],SizeBytes:123327967,},ContainerImage{Names:[k8s.gcr.io/kube-apiserver:v1.20.9],SizeBytes:121803165,},ContainerImage{Names:[replicated/ekco:v0.11.0],SizeBytes:117690299,},ContainerImage{Names:[k8s.gcr.io/kube-controller-manager:v1.20.9],SizeBytes:116347293,},ContainerImage{Names:[k8s.gcr.io/e2e-test-images/agnhost@sha256:ab055cd3d45f50b90732c14593a5bf50f210871bb4f91994c756fc22db6d922a
+          k8s.gcr.io/e2e-test-images/agnhost:2.21],SizeBytes:113879107,},ContainerImage{Names:[k8s.gcr.io/kube-proxy:v1.20.9],SizeBytes:99667598,},ContainerImage{Names:[haproxy:2.4.2],SizeBytes:95448973,},ContainerImage{Names:[k8s.gcr.io/kube-scheduler:v1.20.9],SizeBytes:47276445,},ContainerImage{Names:[k8s.gcr.io/coredns:1.7.0],SizeBytes:45227747,},ContainerImage{Names:[projectcontour/contour:v1.18.0],SizeBytes:42696704,},ContainerImage{Names:[sonobuoy/sonobuoy@sha256:d393e2c862fffd0823409594f3ab8bc2524b359d9e6313ae3f9edb5d3dfa56e1
+          sonobuoy/sonobuoy:v0.53.2],SizeBytes:37400989,},ContainerImage{Names:[weaveworks/weave-npc:2.6.5],SizeBytes:36767037,},ContainerImage{Names:[nginx@sha256:485b610fefec7ff6c463ced9623314a04ed67e3945b9c08d7e53a47f6d108dc7
+          nginx:1.14-alpine],SizeBytes:16032814,},ContainerImage{Names:[k8s.gcr.io/pause:3.2],SizeBytes:682696,},},VolumesInUse:[],VolumesAttached:[]AttachedVolume{},Config:nil,},}\nAug
+          17 21:03:06.493: INFO: \nLogging kubelet events for node kurl-k8s-20-conform1\nAug
+          17 21:03:06.496: INFO: \nLogging pods the kubelet thinks is on node kurl-k8s-20-conform1\nAug
+          17 21:03:06.512: INFO: kube-apiserver-kurl-k8s-20-conform1 started at 2021-08-17
+          19:38:20 +0000 UTC (0+1 container statuses recorded)\nAug 17 21:03:06.512:
+          INFO: \tContainer kube-apiserver ready: true, restart count 0\nAug 17 21:03:06.512:
+          INFO: contour-certgen-v1.18.0-qx9g5 started at 2021-08-17 19:38:59 +0000
+          UTC (0+1 container statuses recorded)\nAug 17 21:03:06.512: INFO: \tContainer
+          contour ready: false, restart count 0\nAug 17 21:03:06.512: INFO: coredns-74ff55c5b-qww4n
+          started at 2021-08-17 19:38:46 +0000 UTC (0+1 container statuses recorded)\nAug
+          17 21:03:06.512: INFO: \tContainer coredns ready: true, restart count 0\nAug
+          17 21:03:06.512: INFO: etcd-kurl-k8s-20-conform1 started at 2021-08-17 19:38:19
+          +0000 UTC (0+1 container statuses recorded)\nAug 17 21:03:06.512: INFO:
+          \tContainer etcd ready: true, restart count 0\nAug 17 21:03:06.512: INFO:
+          kube-scheduler-kurl-k8s-20-conform1 started at 2021-08-17 19:38:19 +0000
+          UTC (0+1 container statuses recorded)\nAug 17 21:03:06.512: INFO: \tContainer
+          kube-scheduler ready: true, restart count 0\nAug 17 21:03:06.512: INFO:
+          weave-net-fjkrd started at 2021-08-17 19:38:33 +0000 UTC (0+2 container
+          statuses recorded)\nAug 17 21:03:06.512: INFO: \tContainer weave ready:
+          true, restart count 1\nAug 17 21:03:06.512: INFO: \tContainer weave-npc
+          ready: true, restart count 0\nAug 17 21:03:06.512: INFO: contour-f85dd8bcb-v5gpr
+          started at 2021-08-17 19:38:58 +0000 UTC (0+1 container statuses recorded)\nAug
+          17 21:03:06.512: INFO: \tContainer contour ready: true, restart count 0\nAug
+          17 21:03:06.512: INFO: contour-f85dd8bcb-s4dg2 started at 2021-08-17 19:38:58
+          +0000 UTC (0+1 container statuses recorded)\nAug 17 21:03:06.513: INFO:
+          \tContainer contour ready: true, restart count 0\nAug 17 21:03:06.513: INFO:
+          ekc-operator-5888598d79-hpnnb started at 2021-08-17 19:39:01 +0000 UTC (0+1
+          container statuses recorded)\nAug 17 21:03:06.513: INFO: \tContainer ekc-operator
+          ready: true, restart count 0\nAug 17 21:03:06.513: INFO: kube-controller-manager-kurl-k8s-20-conform1
+          started at 2021-08-17 19:38:20 +0000 UTC (0+1 container statuses recorded)\nAug
+          17 21:03:06.513: INFO: \tContainer kube-controller-manager ready: true,
+          restart count 0\nAug 17 21:03:06.513: INFO: sonobuoy-systemd-logs-daemon-set-ed45bd546f8e4327-bzqb6
+          started at 2021-08-17 19:59:25 +0000 UTC (0+2 container statuses recorded)\nAug
+          17 21:03:06.513: INFO: \tContainer sonobuoy-worker ready: true, restart
+          count 0\nAug 17 21:03:06.513: INFO: \tContainer systemd-logs ready: true,
+          restart count 0\nAug 17 21:03:06.513: INFO: coredns-74ff55c5b-l8z82 started
+          at 2021-08-17 19:38:46 +0000 UTC (0+1 container statuses recorded)\nAug
+          17 21:03:06.513: INFO: \tContainer coredns ready: true, restart count 0\nAug
+          17 21:03:06.513: INFO: envoy-8j56d started at 2021-08-17 19:38:58 +0000
+          UTC (1+2 container statuses recorded)\nAug 17 21:03:06.513: INFO: \tInit
+          container envoy-initconfig ready: true, restart count 0\nAug 17 21:03:06.513:
+          INFO: \tContainer envoy ready: true, restart count 0\nAug 17 21:03:06.513:
+          INFO: \tContainer shutdown-manager ready: true, restart count 0\nAug 17
+          21:03:06.513: INFO: kube-proxy-2zmrb started at 2021-08-17 19:38:24 +0000
+          UTC (0+1 container statuses recorded)\nAug 17 21:03:06.513: INFO: \tContainer
+          kube-proxy ready: true, restart count 0\nAug 17 21:03:06.540: INFO: \nLatency
+          metrics for node kurl-k8s-20-conform1\nAug 17 21:03:06.540: INFO: Waiting
+          up to 3m0s for all (but 0) nodes to be ready\nSTEP: Destroying namespace
+          \"services-4608\" for this suite.\n[AfterEach] [sig-network] Services\n
+          \ /workspace/src/k8s.io/kubernetes/_output/dockerized/go/src/k8s.io/kubernetes/test/e2e/network/service.go:749\n"
+    - name: '[sig-network] Services should be able to switch session affinity for
+        NodePort service [LinuxOnly] [Conformance]'
+      status: failed
+      details:
+        failure: |-
+          /workspace/src/k8s.io/kubernetes/_output/dockerized/go/src/k8s.io/kubernetes/test/e2e/framework/framework.go:629
+          Aug 17 21:28:17.386: Unexpected error:
+              <*errors.errorString | 0xc002663e10>: {
+                  s: "out-of-range nodePort (54098) for service",
+              }
+              out-of-range nodePort (54098) for service
+          occurred
+          /workspace/src/k8s.io/kubernetes/_output/dockerized/go/src/k8s.io/kubernetes/test/e2e/network/service.go:3444
+        system-out: "[BeforeEach] [sig-network] Services\n  /workspace/src/k8s.io/kubernetes/_output/dockerized/go/src/k8s.io/kubernetes/test/e2e/framework/framework.go:174\nSTEP:
+          Creating a kubernetes client\nAug 17 21:28:10.264: INFO: >>> kubeConfig:
+          /tmp/kubeconfig-225689195\nSTEP: Building a namespace api object, basename
+          services\nSTEP: Waiting for a default service account to be provisioned
+          in namespace\n[BeforeEach] [sig-network] Services\n  /workspace/src/k8s.io/kubernetes/_output/dockerized/go/src/k8s.io/kubernetes/test/e2e/network/service.go:745\n[It]
+          should be able to switch session affinity for NodePort service [LinuxOnly]
+          [Conformance]\n  /workspace/src/k8s.io/kubernetes/_output/dockerized/go/src/k8s.io/kubernetes/test/e2e/framework/framework.go:629\nSTEP:
+          creating service in namespace services-3314\nSTEP: creating service affinity-nodeport-transition
+          in namespace services-3314\nSTEP: creating replication controller affinity-nodeport-transition
+          in namespace services-3314\nAug 17 21:28:13.373: INFO: Creating new exec
+          pod\nAug 17 21:28:17.386: FAIL: Unexpected error:\n    <*errors.errorString
+          | 0xc002663e10>: {\n        s: \"out-of-range nodePort (54098) for service\",\n
+          \   }\n    out-of-range nodePort (54098) for service\noccurred\n\nFull Stack
+          Trace\nk8s.io/kubernetes/test/e2e/network.execAffinityTestForNonLBServiceWithOptionalTransition(0xc000f05ce0,
+          0x5607d80, 0xc004837080, 0xc000a01180, 0x1)\n\t/workspace/src/k8s.io/kubernetes/_output/dockerized/go/src/k8s.io/kubernetes/test/e2e/network/service.go:3444
+          +0x62e\nk8s.io/kubernetes/test/e2e/network.execAffinityTestForNonLBServiceWithTransition(...)\n\t/workspace/src/k8s.io/kubernetes/_output/dockerized/go/src/k8s.io/kubernetes/test/e2e/network/service.go:3399\nk8s.io/kubernetes/test/e2e/network.glob..func24.30()\n\t/workspace/src/k8s.io/kubernetes/_output/dockerized/go/src/k8s.io/kubernetes/test/e2e/network/service.go:2485
+          +0xa5\nk8s.io/kubernetes/test/e2e.RunE2ETests(0xc003845500)\n\t_output/dockerized/go/src/k8s.io/kubernetes/test/e2e/e2e.go:130
+          +0x36c\nk8s.io/kubernetes/test/e2e.TestE2E(0xc003845500)\n\t_output/dockerized/go/src/k8s.io/kubernetes/test/e2e/e2e_test.go:144
+          +0x2b\ntesting.tRunner(0xc003845500, 0x4fc1e88)\n\t/usr/local/go/src/testing/testing.go:1123
+          +0xef\ncreated by testing.(*T).Run\n\t/usr/local/go/src/testing/testing.go:1168
+          +0x2b3\nAug 17 21:28:17.387: INFO: Cleaning up the exec pod\nSTEP: deleting
+          ReplicationController affinity-nodeport-transition in namespace services-3314,
+          will wait for the garbage collector to delete the pods\nAug 17 21:28:17.454:
+          INFO: Deleting ReplicationController affinity-nodeport-transition took:
+          6.365353ms\nAug 17 21:28:18.155: INFO: Terminating ReplicationController
+          affinity-nodeport-transition pods took: 700.296051ms\n[AfterEach] [sig-network]
+          Services\n  /workspace/src/k8s.io/kubernetes/_output/dockerized/go/src/k8s.io/kubernetes/test/e2e/framework/framework.go:175\nSTEP:
+          Collecting events from namespace \"services-3314\".\nSTEP: Found 23 events.\nAug
+          17 21:28:29.691: INFO: At 2021-08-17 21:28:10 +0000 UTC - event for affinity-nodeport-transition:
+          {replication-controller } SuccessfulCreate: Created pod: affinity-nodeport-transition-9qq7j\nAug
+          17 21:28:29.691: INFO: At 2021-08-17 21:28:10 +0000 UTC - event for affinity-nodeport-transition:
+          {replication-controller } SuccessfulCreate: Created pod: affinity-nodeport-transition-z4sfz\nAug
+          17 21:28:29.691: INFO: At 2021-08-17 21:28:10 +0000 UTC - event for affinity-nodeport-transition:
+          {replication-controller } SuccessfulCreate: Created pod: affinity-nodeport-transition-9tmmj\nAug
+          17 21:28:29.691: INFO: At 2021-08-17 21:28:10 +0000 UTC - event for affinity-nodeport-transition-9qq7j:
+          {default-scheduler } Scheduled: Successfully assigned services-3314/affinity-nodeport-transition-9qq7j
+          to instance-1\nAug 17 21:28:29.691: INFO: At 2021-08-17 21:28:10 +0000 UTC
+          - event for affinity-nodeport-transition-9tmmj: {default-scheduler } Scheduled:
+          Successfully assigned services-3314/affinity-nodeport-transition-9tmmj to
+          instance-1\nAug 17 21:28:29.691: INFO: At 2021-08-17 21:28:10 +0000 UTC
+          - event for affinity-nodeport-transition-z4sfz: {default-scheduler } Scheduled:
+          Successfully assigned services-3314/affinity-nodeport-transition-z4sfz to
+          instance-1\nAug 17 21:28:29.691: INFO: At 2021-08-17 21:28:11 +0000 UTC
+          - event for affinity-nodeport-transition-9qq7j: {kubelet instance-1} Pulled:
+          Container image \"k8s.gcr.io/e2e-test-images/agnhost:2.21\" already present
+          on machine\nAug 17 21:28:29.691: INFO: At 2021-08-17 21:28:11 +0000 UTC
+          - event for affinity-nodeport-transition-9qq7j: {kubelet instance-1} Created:
+          Created container affinity-nodeport-transition\nAug 17 21:28:29.691: INFO:
+          At 2021-08-17 21:28:11 +0000 UTC - event for affinity-nodeport-transition-9qq7j:
+          {kubelet instance-1} Started: Started container affinity-nodeport-transition\nAug
+          17 21:28:29.691: INFO: At 2021-08-17 21:28:11 +0000 UTC - event for affinity-nodeport-transition-9tmmj:
+          {kubelet instance-1} Pulled: Container image \"k8s.gcr.io/e2e-test-images/agnhost:2.21\"
+          already present on machine\nAug 17 21:28:29.691: INFO: At 2021-08-17 21:28:12
+          +0000 UTC - event for affinity-nodeport-transition-9tmmj: {kubelet instance-1}
+          Created: Created container affinity-nodeport-transition\nAug 17 21:28:29.691:
+          INFO: At 2021-08-17 21:28:12 +0000 UTC - event for affinity-nodeport-transition-9tmmj:
+          {kubelet instance-1} Started: Started container affinity-nodeport-transition\nAug
+          17 21:28:29.691: INFO: At 2021-08-17 21:28:12 +0000 UTC - event for affinity-nodeport-transition-z4sfz:
+          {kubelet instance-1} Created: Created container affinity-nodeport-transition\nAug
+          17 21:28:29.691: INFO: At 2021-08-17 21:28:12 +0000 UTC - event for affinity-nodeport-transition-z4sfz:
+          {kubelet instance-1} Started: Started container affinity-nodeport-transition\nAug
+          17 21:28:29.691: INFO: At 2021-08-17 21:28:12 +0000 UTC - event for affinity-nodeport-transition-z4sfz:
+          {kubelet instance-1} Pulled: Container image \"k8s.gcr.io/e2e-test-images/agnhost:2.21\"
+          already present on machine\nAug 17 21:28:29.691: INFO: At 2021-08-17 21:28:13
+          +0000 UTC - event for execpod-affinity4b4g2: {default-scheduler } Scheduled:
+          Successfully assigned services-3314/execpod-affinity4b4g2 to instance-1\nAug
+          17 21:28:29.691: INFO: At 2021-08-17 21:28:14 +0000 UTC - event for execpod-affinity4b4g2:
+          {kubelet instance-1} Started: Started container agnhost-container\nAug 17
+          21:28:29.691: INFO: At 2021-08-17 21:28:14 +0000 UTC - event for execpod-affinity4b4g2:
+          {kubelet instance-1} Pulled: Container image \"k8s.gcr.io/e2e-test-images/agnhost:2.21\"
+          already present on machine\nAug 17 21:28:29.691: INFO: At 2021-08-17 21:28:14
+          +0000 UTC - event for execpod-affinity4b4g2: {kubelet instance-1} Created:
+          Created container agnhost-container\nAug 17 21:28:29.691: INFO: At 2021-08-17
+          21:28:17 +0000 UTC - event for execpod-affinity4b4g2: {kubelet instance-1}
+          Killing: Stopping container agnhost-container\nAug 17 21:28:29.691: INFO:
+          At 2021-08-17 21:28:18 +0000 UTC - event for affinity-nodeport-transition-9qq7j:
+          {kubelet instance-1} Killing: Stopping container affinity-nodeport-transition\nAug
+          17 21:28:29.691: INFO: At 2021-08-17 21:28:18 +0000 UTC - event for affinity-nodeport-transition-9tmmj:
+          {kubelet instance-1} Killing: Stopping container affinity-nodeport-transition\nAug
+          17 21:28:29.691: INFO: At 2021-08-17 21:28:18 +0000 UTC - event for affinity-nodeport-transition-z4sfz:
+          {kubelet instance-1} Killing: Stopping container affinity-nodeport-transition\nAug
+          17 21:28:29.695: INFO: POD  NODE  PHASE  GRACE  CONDITIONS\nAug 17 21:28:29.695:
+          INFO: \nAug 17 21:28:29.698: INFO: \nLogging node info for node instance-1\nAug
+          17 21:28:29.700: INFO: Node Info: &Node{ObjectMeta:{instance-1    0691d59d-7a03-4b01-a2b2-7f00e0d72379
+          25374 0 2021-08-17 19:48:59 +0000 UTC <nil> <nil> map[beta.kubernetes.io/arch:amd64
+          beta.kubernetes.io/os:linux kubernetes.io/arch:amd64 kubernetes.io/hostname:instance-1
+          kubernetes.io/os:linux kurl.sh/cluster:true] map[kubeadm.alpha.kubernetes.io/cri-socket:/var/run/dockershim.sock
+          node.alpha.kubernetes.io/ttl:0 volumes.kubernetes.io/controller-managed-attach-detach:true]
+          [] []  [{kube-controller-manager Update v1 2021-08-17 19:49:04 +0000 UTC
+          FieldsV1 {\"f:metadata\":{\"f:annotations\":{\"f:node.alpha.kubernetes.io/ttl\":{}}}}}
+          {kubeadm Update v1 2021-08-17 19:49:04 +0000 UTC FieldsV1 {\"f:metadata\":{\"f:annotations\":{\"f:kubeadm.alpha.kubernetes.io/cri-socket\":{}}}}}
+          {kube-utils Update v1 2021-08-17 19:49:40 +0000 UTC FieldsV1 {\"f:status\":{\"f:conditions\":{\"k:{\\\"type\\\":\\\"NetworkUnavailable\\\"}\":{\".\":{},\"f:lastHeartbeatTime\":{},\"f:lastTransitionTime\":{},\"f:message\":{},\"f:reason\":{},\"f:status\":{},\"f:type\":{}}}}}}
+          {kubelet Update v1 2021-08-17 20:55:57 +0000 UTC FieldsV1 {\"f:metadata\":{\"f:annotations\":{\".\":{},\"f:volumes.kubernetes.io/controller-managed-attach-detach\":{}},\"f:labels\":{\".\":{},\"f:beta.kubernetes.io/arch\":{},\"f:beta.kubernetes.io/os\":{},\"f:kubernetes.io/arch\":{},\"f:kubernetes.io/hostname\":{},\"f:kubernetes.io/os\":{},\"f:kurl.sh/cluster\":{}}},\"f:status\":{\"f:addresses\":{\".\":{},\"k:{\\\"type\\\":\\\"Hostname\\\"}\":{\".\":{},\"f:address\":{},\"f:type\":{}},\"k:{\\\"type\\\":\\\"InternalIP\\\"}\":{\".\":{},\"f:address\":{},\"f:type\":{}}},\"f:allocatable\":{\".\":{},\"f:cpu\":{},\"f:ephemeral-storage\":{},\"f:hugepages-1Gi\":{},\"f:hugepages-2Mi\":{},\"f:memory\":{},\"f:pods\":{},\"f:scheduling.k8s.io/foo\":{}},\"f:capacity\":{\".\":{},\"f:cpu\":{},\"f:ephemeral-storage\":{},\"f:hugepages-1Gi\":{},\"f:hugepages-2Mi\":{},\"f:memory\":{},\"f:pods\":{}},\"f:conditions\":{\".\":{},\"k:{\\\"type\\\":\\\"DiskPressure\\\"}\":{\".\":{},\"f:lastHeartbeatTime\":{},\"f:lastTransitionTime\":{},\"f:message\":{},\"f:reason\":{},\"f:status\":{},\"f:type\":{}},\"k:{\\\"type\\\":\\\"MemoryPressure\\\"}\":{\".\":{},\"f:lastHeartbeatTime\":{},\"f:lastTransitionTime\":{},\"f:message\":{},\"f:reason\":{},\"f:status\":{},\"f:type\":{}},\"k:{\\\"type\\\":\\\"PIDPressure\\\"}\":{\".\":{},\"f:lastHeartbeatTime\":{},\"f:lastTransitionTime\":{},\"f:message\":{},\"f:reason\":{},\"f:status\":{},\"f:type\":{}},\"k:{\\\"type\\\":\\\"Ready\\\"}\":{\".\":{},\"f:lastHeartbeatTime\":{},\"f:lastTransitionTime\":{},\"f:message\":{},\"f:reason\":{},\"f:status\":{},\"f:type\":{}}},\"f:daemonEndpoints\":{\"f:kubeletEndpoint\":{\"f:Port\":{}}},\"f:images\":{},\"f:nodeInfo\":{\"f:architecture\":{},\"f:bootID\":{},\"f:containerRuntimeVersion\":{},\"f:kernelVersion\":{},\"f:kubeProxyVersion\":{},\"f:kubeletVersion\":{},\"f:machineID\":{},\"f:operatingSystem\":{},\"f:osImage\":{},\"f:systemUUID\":{}}}}}
+          {e2e.test Update v1 2021-08-17 21:18:49 +0000 UTC FieldsV1 {\"f:status\":{\"f:capacity\":{\"f:scheduling.k8s.io/foo\":{}}}}}]},Spec:NodeSpec{PodCIDR:,DoNotUseExternalID:,ProviderID:,Unschedulable:false,Taints:[]Taint{},ConfigSource:nil,PodCIDRs:[],},Status:NodeStatus{Capacity:ResourceList{cpu:
+          {{4 0} {<nil>} 4 DecimalSI},ephemeral-storage: {{51848359936 0} {<nil>}
+          50633164Ki BinarySI},hugepages-1Gi: {{0 0} {<nil>} 0 DecimalSI},hugepages-2Mi:
+          {{0 0} {<nil>} 0 DecimalSI},memory: {{16819818496 0} {<nil>} 16425604Ki
+          BinarySI},pods: {{110 0} {<nil>} 110 DecimalSI},scheduling.k8s.io/foo: {{3
+          0} {<nil>} 3 DecimalSI},},Allocatable:ResourceList{cpu: {{4 0} {<nil>} 4
+          DecimalSI},ephemeral-storage: {{46663523866 0} {<nil>} 46663523866 DecimalSI},hugepages-1Gi:
+          {{0 0} {<nil>} 0 DecimalSI},hugepages-2Mi: {{0 0} {<nil>} 0 DecimalSI},memory:
+          {{16714960896 0} {<nil>} 16323204Ki BinarySI},pods: {{110 0} {<nil>} 110
+          DecimalSI},scheduling.k8s.io/foo: {{3 0} {<nil>} 3 DecimalSI},},Phase:,Conditions:[]NodeCondition{NodeCondition{Type:NetworkUnavailable,Status:False,LastHeartbeatTime:2021-08-17
+          21:17:28 +0000 UTC,LastTransitionTime:2021-08-17 21:17:28 +0000 UTC,Reason:WeaveIsUp,Message:Weave
+          pod has set this,},NodeCondition{Type:MemoryPressure,Status:False,LastHeartbeatTime:2021-08-17
+          21:27:05 +0000 UTC,LastTransitionTime:2021-08-17 19:48:59 +0000 UTC,Reason:KubeletHasSufficientMemory,Message:kubelet
+          has sufficient memory available,},NodeCondition{Type:DiskPressure,Status:False,LastHeartbeatTime:2021-08-17
+          21:27:05 +0000 UTC,LastTransitionTime:2021-08-17 19:48:59 +0000 UTC,Reason:KubeletHasNoDiskPressure,Message:kubelet
+          has no disk pressure,},NodeCondition{Type:PIDPressure,Status:False,LastHeartbeatTime:2021-08-17
+          21:27:05 +0000 UTC,LastTransitionTime:2021-08-17 19:48:59 +0000 UTC,Reason:KubeletHasSufficientPID,Message:kubelet
+          has sufficient PID available,},NodeCondition{Type:Ready,Status:True,LastHeartbeatTime:2021-08-17
+          21:27:05 +0000 UTC,LastTransitionTime:2021-08-17 19:49:49 +0000 UTC,Reason:KubeletReady,Message:kubelet
+          is posting ready status. AppArmor enabled,},},Addresses:[]NodeAddress{NodeAddress{Type:InternalIP,Address:10.138.0.85,},NodeAddress{Type:Hostname,Address:instance-1,},},DaemonEndpoints:NodeDaemonEndpoints{KubeletEndpoint:DaemonEndpoint{Port:10250,},},NodeInfo:NodeSystemInfo{MachineID:88fad3d5f21a09782b2dbead66e93a51,SystemUUID:8DB67A60-CE5C-7D67-B8D7-C54DA378F196,BootID:6e6cfdab-b9bc-49ac-a44e-3e28f5fda275,KernelVersion:4.15.0-1027-gcp,OSImage:Ubuntu
+          18.04.2 LTS,ContainerRuntimeVersion:docker://20.10.5,KubeletVersion:v1.20.9,KubeProxyVersion:v1.20.9,OperatingSystem:linux,Architecture:amd64,},Images:[]ContainerImage{ContainerImage{Names:[replicated/kurl-util:v2021.08.16-0],SizeBytes:387837491,},ContainerImage{Names:[sonobuoy/systemd-logs@sha256:fadad24a66ddd544987c38811108a73d1a306dd3b5e3f090b207786f2825ffde
+          sonobuoy/systemd-logs:v0.3],SizeBytes:297365055,},ContainerImage{Names:[k8s.gcr.io/etcd:3.4.13-0],SizeBytes:253392289,},ContainerImage{Names:[k8s.gcr.io/conformance@sha256:49d174932ba9a8923b557ac20e7aadffeb4d8353d05136966bbf354bd792803f
+          k8s.gcr.io/conformance:v1.20.9],SizeBytes:229580091,},ContainerImage{Names:[gcr.io/kubernetes-e2e-test-images/jessie-dnsutils@sha256:ad583e33cb284f7ef046673809b146ec4053cda19b54a85d2b180a86169715eb
+          gcr.io/kubernetes-e2e-test-images/jessie-dnsutils:1.0],SizeBytes:195659796,},ContainerImage{Names:[weaveworks/weaveexec:2.6.5],SizeBytes:149093862,},ContainerImage{Names:[envoyproxy/envoy:v1.19.0],SizeBytes:133745493,},ContainerImage{Names:[httpd@sha256:addd70e4ee83f3bc9a4c1c7c41e37927ba47faf639312fc936df3afad7926f5a
+          httpd:2.4.39-alpine],SizeBytes:126894770,},ContainerImage{Names:[httpd@sha256:eb8ccf084cf3e80eece1add239effefd171eb39adbc154d33c14260d905d4060
+          httpd:2.4.38-alpine],SizeBytes:123781643,},ContainerImage{Names:[weaveworks/weave-kube:2.6.5],SizeBytes:123327967,},ContainerImage{Names:[k8s.gcr.io/kube-apiserver:v1.20.9],SizeBytes:121803165,},ContainerImage{Names:[replicated/ekco:v0.11.0],SizeBytes:117690299,},ContainerImage{Names:[k8s.gcr.io/kube-controller-manager:v1.20.9],SizeBytes:116347293,},ContainerImage{Names:[k8s.gcr.io/e2e-test-images/agnhost@sha256:ab055cd3d45f50b90732c14593a5bf50f210871bb4f91994c756fc22db6d922a
+          k8s.gcr.io/e2e-test-images/agnhost:2.21],SizeBytes:113879107,},ContainerImage{Names:[k8s.gcr.io/kube-proxy:v1.20.9],SizeBytes:99667598,},ContainerImage{Names:[haproxy:2.4.2],SizeBytes:95448973,},ContainerImage{Names:[gcr.io/kubernetes-e2e-test-images/sample-apiserver@sha256:ff02aacd9766d597883fabafc7ad604c719a57611db1bcc1564c69a45b000a55
+          gcr.io/kubernetes-e2e-test-images/sample-apiserver:1.17],SizeBytes:60684726,},ContainerImage{Names:[k8s.gcr.io/kube-scheduler:v1.20.9],SizeBytes:47276445,},ContainerImage{Names:[k8s.gcr.io/coredns:1.7.0],SizeBytes:45227747,},ContainerImage{Names:[projectcontour/contour:v1.18.0],SizeBytes:42696704,},ContainerImage{Names:[sonobuoy/sonobuoy@sha256:d393e2c862fffd0823409594f3ab8bc2524b359d9e6313ae3f9edb5d3dfa56e1
+          sonobuoy/sonobuoy:v0.53.2],SizeBytes:37400989,},ContainerImage{Names:[weaveworks/weave-npc:2.6.5],SizeBytes:36767037,},ContainerImage{Names:[nginx@sha256:485b610fefec7ff6c463ced9623314a04ed67e3945b9c08d7e53a47f6d108dc7
+          nginx:1.14-alpine],SizeBytes:16032814,},ContainerImage{Names:[gcr.io/kubernetes-e2e-test-images/nonewprivs@sha256:10066e9039219449fe3c81f38fe01928f87914150768ab81b62a468e51fa7411
+          gcr.io/kubernetes-e2e-test-images/nonewprivs:1.0],SizeBytes:6757579,},ContainerImage{Names:[gcr.io/kubernetes-e2e-test-images/nautilus@sha256:33a732d4c42a266912a5091598a0f07653c9134db4b8d571690d8afd509e0bfc
+          gcr.io/kubernetes-e2e-test-images/nautilus:1.0],SizeBytes:4753501,},ContainerImage{Names:[busybox@sha256:8ccbac733d19c0dd4d70b4f0c1e12245b5fa3ad24758a11035ee505c629c0796
+          busybox:1.29],SizeBytes:1154361,},ContainerImage{Names:[k8s.gcr.io/pause:3.2],SizeBytes:682696,},},VolumesInUse:[],VolumesAttached:[]AttachedVolume{},Config:nil,},}\nAug
+          17 21:28:29.701: INFO: \nLogging kubelet events for node instance-1\nAug
+          17 21:28:29.704: INFO: \nLogging pods the kubelet thinks is on node instance-1\nAug
+          17 21:28:29.712: INFO: sonobuoy started at 2021-08-17 19:59:20 +0000 UTC
+          (0+1 container statuses recorded)\nAug 17 21:28:29.712: INFO: \tContainer
+          kube-sonobuoy ready: true, restart count 0\nAug 17 21:28:29.712: INFO: envoy-t7t74
+          started at 2021-08-17 21:17:59 +0000 UTC (1+2 container statuses recorded)\nAug
+          17 21:28:29.712: INFO: \tInit container envoy-initconfig ready: true, restart
+          count 0\nAug 17 21:28:29.712: INFO: \tContainer envoy ready: true, restart
+          count 0\nAug 17 21:28:29.712: INFO: \tContainer shutdown-manager ready:
+          true, restart count 0\nAug 17 21:28:29.712: INFO: kube-proxy-gbvr2 started
+          at 2021-08-17 19:49:00 +0000 UTC (0+1 container statuses recorded)\nAug
+          17 21:28:29.712: INFO: \tContainer kube-proxy ready: true, restart count
+          0\nAug 17 21:28:29.712: INFO: sonobuoy-systemd-logs-daemon-set-ed45bd546f8e4327-cgzlw
+          started at 2021-08-17 19:59:25 +0000 UTC (0+2 container statuses recorded)\nAug
+          17 21:28:29.712: INFO: \tContainer sonobuoy-worker ready: true, restart
+          count 0\nAug 17 21:28:29.712: INFO: \tContainer systemd-logs ready: true,
+          restart count 0\nAug 17 21:28:29.712: INFO: sonobuoy-e2e-job-5b76cec565304abe
+          started at 2021-08-17 19:59:25 +0000 UTC (0+2 container statuses recorded)\nAug
+          17 21:28:29.712: INFO: \tContainer e2e ready: true, restart count 0\nAug
+          17 21:28:29.712: INFO: \tContainer sonobuoy-worker ready: true, restart
+          count 0\nAug 17 21:28:29.712: INFO: weave-net-dlm5c started at 2021-08-17
+          21:17:23 +0000 UTC (0+2 container statuses recorded)\nAug 17 21:28:29.712:
+          INFO: \tContainer weave ready: true, restart count 1\nAug 17 21:28:29.712:
+          INFO: \tContainer weave-npc ready: true, restart count 0\nAug 17 21:28:29.747:
+          INFO: \nLatency metrics for node instance-1\nAug 17 21:28:29.747: INFO:
+          \nLogging node info for node kurl-k8s-20-conform1\nAug 17 21:28:29.750:
+          INFO: Node Info: &Node{ObjectMeta:{kurl-k8s-20-conform1    f5e06593-3800-42ce-b84f-e92cb98da97c
+          25065 0 2021-08-17 19:38:17 +0000 UTC <nil> <nil> map[beta.kubernetes.io/arch:amd64
+          beta.kubernetes.io/os:linux kubernetes.io/arch:amd64 kubernetes.io/hostname:kurl-k8s-20-conform1
+          kubernetes.io/os:linux kurl.sh/cluster:true node-role.kubernetes.io/control-plane:
+          node-role.kubernetes.io/master:] map[kubeadm.alpha.kubernetes.io/cri-socket:/var/run/dockershim.sock
+          node.alpha.kubernetes.io/ttl:0 volumes.kubernetes.io/controller-managed-attach-detach:true]
+          [] []  [{kubeadm Update v1 2021-08-17 19:38:18 +0000 UTC FieldsV1 {\"f:metadata\":{\"f:annotations\":{\"f:kubeadm.alpha.kubernetes.io/cri-socket\":{}},\"f:labels\":{\"f:node-role.kubernetes.io/control-plane\":{},\"f:node-role.kubernetes.io/master\":{}}}}}
+          {kube-controller-manager Update v1 2021-08-17 19:38:24 +0000 UTC FieldsV1
+          {\"f:metadata\":{\"f:annotations\":{\"f:node.alpha.kubernetes.io/ttl\":{}}}}}
+          {kube-utils Update v1 2021-08-17 19:38:38 +0000 UTC FieldsV1 {\"f:status\":{\"f:conditions\":{\"k:{\\\"type\\\":\\\"NetworkUnavailable\\\"}\":{\".\":{},\"f:lastHeartbeatTime\":{},\"f:lastTransitionTime\":{},\"f:message\":{},\"f:reason\":{},\"f:status\":{},\"f:type\":{}}}}}}
+          {kubelet Update v1 2021-08-17 20:55:57 +0000 UTC FieldsV1 {\"f:metadata\":{\"f:annotations\":{\".\":{},\"f:volumes.kubernetes.io/controller-managed-attach-detach\":{}},\"f:labels\":{\".\":{},\"f:beta.kubernetes.io/arch\":{},\"f:beta.kubernetes.io/os\":{},\"f:kubernetes.io/arch\":{},\"f:kubernetes.io/hostname\":{},\"f:kubernetes.io/os\":{},\"f:kurl.sh/cluster\":{}}},\"f:status\":{\"f:addresses\":{\".\":{},\"k:{\\\"type\\\":\\\"Hostname\\\"}\":{\".\":{},\"f:address\":{},\"f:type\":{}},\"k:{\\\"type\\\":\\\"InternalIP\\\"}\":{\".\":{},\"f:address\":{},\"f:type\":{}}},\"f:allocatable\":{\".\":{},\"f:cpu\":{},\"f:ephemeral-storage\":{},\"f:hugepages-1Gi\":{},\"f:hugepages-2Mi\":{},\"f:memory\":{},\"f:pods\":{},\"f:scheduling.k8s.io/foo\":{}},\"f:capacity\":{\".\":{},\"f:cpu\":{},\"f:ephemeral-storage\":{},\"f:hugepages-1Gi\":{},\"f:hugepages-2Mi\":{},\"f:memory\":{},\"f:pods\":{}},\"f:conditions\":{\".\":{},\"k:{\\\"type\\\":\\\"DiskPressure\\\"}\":{\".\":{},\"f:lastHeartbeatTime\":{},\"f:lastTransitionTime\":{},\"f:message\":{},\"f:reason\":{},\"f:status\":{},\"f:type\":{}},\"k:{\\\"type\\\":\\\"MemoryPressure\\\"}\":{\".\":{},\"f:lastHeartbeatTime\":{},\"f:lastTransitionTime\":{},\"f:message\":{},\"f:reason\":{},\"f:status\":{},\"f:type\":{}},\"k:{\\\"type\\\":\\\"PIDPressure\\\"}\":{\".\":{},\"f:lastHeartbeatTime\":{},\"f:lastTransitionTime\":{},\"f:message\":{},\"f:reason\":{},\"f:status\":{},\"f:type\":{}},\"k:{\\\"type\\\":\\\"Ready\\\"}\":{\".\":{},\"f:lastHeartbeatTime\":{},\"f:lastTransitionTime\":{},\"f:message\":{},\"f:reason\":{},\"f:status\":{},\"f:type\":{}}},\"f:daemonEndpoints\":{\"f:kubeletEndpoint\":{\"f:Port\":{}}},\"f:images\":{},\"f:nodeInfo\":{\"f:architecture\":{},\"f:bootID\":{},\"f:containerRuntimeVersion\":{},\"f:kernelVersion\":{},\"f:kubeProxyVersion\":{},\"f:kubeletVersion\":{},\"f:machineID\":{},\"f:operatingSystem\":{},\"f:osImage\":{},\"f:systemUUID\":{}}}}}
+          {e2e.test Update v1 2021-08-17 21:17:39 +0000 UTC FieldsV1 {\"f:status\":{\"f:capacity\":{\"f:scheduling.k8s.io/foo\":{}}}}}]},Spec:NodeSpec{PodCIDR:,DoNotUseExternalID:,ProviderID:,Unschedulable:false,Taints:[]Taint{},ConfigSource:nil,PodCIDRs:[],},Status:NodeStatus{Capacity:ResourceList{cpu:
+          {{4 0} {<nil>} 4 DecimalSI},ephemeral-storage: {{51848359936 0} {<nil>}
+          50633164Ki BinarySI},hugepages-1Gi: {{0 0} {<nil>} 0 DecimalSI},hugepages-2Mi:
+          {{0 0} {<nil>} 0 DecimalSI},memory: {{16819826688 0} {<nil>} 16425612Ki
+          BinarySI},pods: {{110 0} {<nil>} 110 DecimalSI},scheduling.k8s.io/foo: {{3
+          0} {<nil>} 3 DecimalSI},},Allocatable:ResourceList{cpu: {{4 0} {<nil>} 4
+          DecimalSI},ephemeral-storage: {{46663523866 0} {<nil>} 46663523866 DecimalSI},hugepages-1Gi:
+          {{0 0} {<nil>} 0 DecimalSI},hugepages-2Mi: {{0 0} {<nil>} 0 DecimalSI},memory:
+          {{16714969088 0} {<nil>} 16323212Ki BinarySI},pods: {{110 0} {<nil>} 110
+          DecimalSI},scheduling.k8s.io/foo: {{3 0} {<nil>} 3 DecimalSI},},Phase:,Conditions:[]NodeCondition{NodeCondition{Type:NetworkUnavailable,Status:False,LastHeartbeatTime:2021-08-17
+          19:38:38 +0000 UTC,LastTransitionTime:2021-08-17 19:38:38 +0000 UTC,Reason:WeaveIsUp,Message:Weave
+          pod has set this,},NodeCondition{Type:MemoryPressure,Status:False,LastHeartbeatTime:2021-08-17
+          21:26:04 +0000 UTC,LastTransitionTime:2021-08-17 19:38:16 +0000 UTC,Reason:KubeletHasSufficientMemory,Message:kubelet
+          has sufficient memory available,},NodeCondition{Type:DiskPressure,Status:False,LastHeartbeatTime:2021-08-17
+          21:26:04 +0000 UTC,LastTransitionTime:2021-08-17 19:38:16 +0000 UTC,Reason:KubeletHasNoDiskPressure,Message:kubelet
+          has no disk pressure,},NodeCondition{Type:PIDPressure,Status:False,LastHeartbeatTime:2021-08-17
+          21:26:04 +0000 UTC,LastTransitionTime:2021-08-17 19:38:16 +0000 UTC,Reason:KubeletHasSufficientPID,Message:kubelet
+          has sufficient PID available,},NodeCondition{Type:Ready,Status:True,LastHeartbeatTime:2021-08-17
+          21:26:04 +0000 UTC,LastTransitionTime:2021-08-17 19:38:39 +0000 UTC,Reason:KubeletReady,Message:kubelet
+          is posting ready status. AppArmor enabled,},},Addresses:[]NodeAddress{NodeAddress{Type:InternalIP,Address:10.138.0.74,},NodeAddress{Type:Hostname,Address:kurl-k8s-20-conform1,},},DaemonEndpoints:NodeDaemonEndpoints{KubeletEndpoint:DaemonEndpoint{Port:10250,},},NodeInfo:NodeSystemInfo{MachineID:88fad3d5f21a09782b2dbead66e93a51,SystemUUID:C7CF0731-675E-95C7-83A3-C56583255D9B,BootID:d74884d9-1350-4c19-b2ef-6e6984ff0589,KernelVersion:4.15.0-1027-gcp,OSImage:Ubuntu
+          18.04.2 LTS,ContainerRuntimeVersion:docker://20.10.5,KubeletVersion:v1.20.9,KubeProxyVersion:v1.20.9,OperatingSystem:linux,Architecture:amd64,},Images:[]ContainerImage{ContainerImage{Names:[replicated/kurl-util:v2021.08.16-0],SizeBytes:387837491,},ContainerImage{Names:[sonobuoy/systemd-logs@sha256:fadad24a66ddd544987c38811108a73d1a306dd3b5e3f090b207786f2825ffde
+          sonobuoy/systemd-logs:v0.3],SizeBytes:297365055,},ContainerImage{Names:[k8s.gcr.io/etcd:3.4.13-0],SizeBytes:253392289,},ContainerImage{Names:[weaveworks/weaveexec:2.6.5],SizeBytes:149093862,},ContainerImage{Names:[envoyproxy/envoy:v1.19.0],SizeBytes:133745493,},ContainerImage{Names:[httpd@sha256:eb8ccf084cf3e80eece1add239effefd171eb39adbc154d33c14260d905d4060
+          httpd:2.4.38-alpine],SizeBytes:123781643,},ContainerImage{Names:[weaveworks/weave-kube:2.6.5],SizeBytes:123327967,},ContainerImage{Names:[k8s.gcr.io/kube-apiserver:v1.20.9],SizeBytes:121803165,},ContainerImage{Names:[replicated/ekco:v0.11.0],SizeBytes:117690299,},ContainerImage{Names:[k8s.gcr.io/kube-controller-manager:v1.20.9],SizeBytes:116347293,},ContainerImage{Names:[k8s.gcr.io/e2e-test-images/agnhost@sha256:ab055cd3d45f50b90732c14593a5bf50f210871bb4f91994c756fc22db6d922a
+          k8s.gcr.io/e2e-test-images/agnhost:2.21],SizeBytes:113879107,},ContainerImage{Names:[k8s.gcr.io/kube-proxy:v1.20.9],SizeBytes:99667598,},ContainerImage{Names:[haproxy:2.4.2],SizeBytes:95448973,},ContainerImage{Names:[k8s.gcr.io/kube-scheduler:v1.20.9],SizeBytes:47276445,},ContainerImage{Names:[k8s.gcr.io/coredns:1.7.0],SizeBytes:45227747,},ContainerImage{Names:[projectcontour/contour:v1.18.0],SizeBytes:42696704,},ContainerImage{Names:[sonobuoy/sonobuoy@sha256:d393e2c862fffd0823409594f3ab8bc2524b359d9e6313ae3f9edb5d3dfa56e1
+          sonobuoy/sonobuoy:v0.53.2],SizeBytes:37400989,},ContainerImage{Names:[weaveworks/weave-npc:2.6.5],SizeBytes:36767037,},ContainerImage{Names:[nginx@sha256:485b610fefec7ff6c463ced9623314a04ed67e3945b9c08d7e53a47f6d108dc7
+          nginx:1.14-alpine],SizeBytes:16032814,},ContainerImage{Names:[k8s.gcr.io/pause:3.2],SizeBytes:682696,},},VolumesInUse:[],VolumesAttached:[]AttachedVolume{},Config:nil,},}\nAug
+          17 21:28:29.751: INFO: \nLogging kubelet events for node kurl-k8s-20-conform1\nAug
+          17 21:28:29.754: INFO: \nLogging pods the kubelet thinks is on node kurl-k8s-20-conform1\nAug
+          17 21:28:29.772: INFO: etcd-kurl-k8s-20-conform1 started at 2021-08-17 19:38:19
+          +0000 UTC (0+1 container statuses recorded)\nAug 17 21:28:29.772: INFO:
+          \tContainer etcd ready: true, restart count 0\nAug 17 21:28:29.772: INFO:
+          kube-apiserver-kurl-k8s-20-conform1 started at 2021-08-17 19:38:20 +0000
+          UTC (0+1 container statuses recorded)\nAug 17 21:28:29.772: INFO: \tContainer
+          kube-apiserver ready: true, restart count 0\nAug 17 21:28:29.772: INFO:
+          contour-certgen-v1.18.0-qx9g5 started at 2021-08-17 19:38:59 +0000 UTC (0+1
+          container statuses recorded)\nAug 17 21:28:29.772: INFO: \tContainer contour
+          ready: false, restart count 0\nAug 17 21:28:29.772: INFO: coredns-74ff55c5b-qww4n
+          started at 2021-08-17 19:38:46 +0000 UTC (0+1 container statuses recorded)\nAug
+          17 21:28:29.772: INFO: \tContainer coredns ready: true, restart count 0\nAug
+          17 21:28:29.772: INFO: kube-controller-manager-kurl-k8s-20-conform1 started
+          at 2021-08-17 19:38:20 +0000 UTC (0+1 container statuses recorded)\nAug
+          17 21:28:29.772: INFO: \tContainer kube-controller-manager ready: true,
+          restart count 0\nAug 17 21:28:29.772: INFO: kube-scheduler-kurl-k8s-20-conform1
+          started at 2021-08-17 19:38:19 +0000 UTC (0+1 container statuses recorded)\nAug
+          17 21:28:29.772: INFO: \tContainer kube-scheduler ready: true, restart count
+          0\nAug 17 21:28:29.772: INFO: weave-net-fjkrd started at 2021-08-17 19:38:33
+          +0000 UTC (0+2 container statuses recorded)\nAug 17 21:28:29.772: INFO:
+          \tContainer weave ready: true, restart count 1\nAug 17 21:28:29.772: INFO:
+          \tContainer weave-npc ready: true, restart count 0\nAug 17 21:28:29.772:
+          INFO: contour-f85dd8bcb-v5gpr started at 2021-08-17 19:38:58 +0000 UTC (0+1
+          container statuses recorded)\nAug 17 21:28:29.772: INFO: \tContainer contour
+          ready: true, restart count 0\nAug 17 21:28:29.772: INFO: contour-f85dd8bcb-s4dg2
+          started at 2021-08-17 19:38:58 +0000 UTC (0+1 container statuses recorded)\nAug
+          17 21:28:29.772: INFO: \tContainer contour ready: true, restart count 0\nAug
+          17 21:28:29.772: INFO: ekc-operator-5888598d79-hpnnb started at 2021-08-17
+          19:39:01 +0000 UTC (0+1 container statuses recorded)\nAug 17 21:28:29.772:
+          INFO: \tContainer ekc-operator ready: true, restart count 0\nAug 17 21:28:29.772:
+          INFO: coredns-74ff55c5b-l8z82 started at 2021-08-17 19:38:46 +0000 UTC (0+1
+          container statuses recorded)\nAug 17 21:28:29.772: INFO: \tContainer coredns
+          ready: true, restart count 0\nAug 17 21:28:29.772: INFO: sonobuoy-systemd-logs-daemon-set-ed45bd546f8e4327-bzqb6
+          started at 2021-08-17 19:59:25 +0000 UTC (0+2 container statuses recorded)\nAug
+          17 21:28:29.772: INFO: \tContainer sonobuoy-worker ready: true, restart
+          count 0\nAug 17 21:28:29.772: INFO: \tContainer systemd-logs ready: true,
+          restart count 0\nAug 17 21:28:29.772: INFO: kube-proxy-2zmrb started at
+          2021-08-17 19:38:24 +0000 UTC (0+1 container statuses recorded)\nAug 17
+          21:28:29.772: INFO: \tContainer kube-proxy ready: true, restart count 0\nAug
+          17 21:28:29.772: INFO: envoy-8j56d started at 2021-08-17 19:38:58 +0000
+          UTC (1+2 container statuses recorded)\nAug 17 21:28:29.772: INFO: \tInit
+          container envoy-initconfig ready: true, restart count 0\nAug 17 21:28:29.772:
+          INFO: \tContainer envoy ready: true, restart count 0\nAug 17 21:28:29.772:
+          INFO: \tContainer shutdown-manager ready: true, restart count 0\nAug 17
+          21:28:29.802: INFO: \nLatency metrics for node kurl-k8s-20-conform1\nAug
+          17 21:28:29.802: INFO: Waiting up to 3m0s for all (but 0) nodes to be ready\nSTEP:
+          Destroying namespace \"services-3314\" for this suite.\n[AfterEach] [sig-network]
+          Services\n  /workspace/src/k8s.io/kubernetes/_output/dockerized/go/src/k8s.io/kubernetes/test/e2e/network/service.go:749\n"
+    
