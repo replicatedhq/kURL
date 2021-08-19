@@ -86,7 +86,7 @@ function uninstall_docker() {
     # data as possible now
     docker system prune --all --volumes --force
 
-    echo "Uninstalling Docker..."
+    logStep "Uninstalling Docker..."
     case "$LSB_DIST" in
         ubuntu)
             export DEBIAN_FRONTEND=noninteractive
@@ -103,6 +103,7 @@ function uninstall_docker() {
     rm -f /var/run/docker.sock
     echo "Docker successfully uninstalled."
 
+    echo "Starting kubelet"
     systemctl start kubelet
 
     # With the internal loadbalancer it may take a minute or two after starting kubelet before
