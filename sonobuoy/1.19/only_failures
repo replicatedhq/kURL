@@ -12,8 +12,7 @@ items:
   - name: Kubernetes e2e suite
     status: failed
     items:
-    - name: '[sig-network] Services should be able to change the type from ExternalName
-        to NodePort [Conformance]'
+    - name: '[sig-network] Services should be able to change the type from ExternalName to NodePort [Conformance]'
       status: failed
       details:
         failure: |-
@@ -199,8 +198,7 @@ items:
           metrics for node kyle-kurl\nAug 16 22:15:47.402: INFO: Waiting up to 3m0s
           for all (but 0) nodes to be ready\nSTEP: Destroying namespace \"services-5949\"
           for this suite.\n[AfterEach] [sig-network] Services\n  /workspace/src/k8s.io/kubernetes/_output/dockerized/go/src/k8s.io/kubernetes/test/e2e/network/service.go:786\n"
-    - name: '[sig-network] Services should have session affinity work for NodePort
-        service [LinuxOnly] [Conformance]'
+    - name: '[sig-network] Services should have session affinity work for NodePort service [LinuxOnly] [Conformance]'
       status: failed
       details:
         failure: |-
@@ -447,8 +445,7 @@ items:
           for node kyle-kurl\nAug 16 22:17:08.193: INFO: Waiting up to 3m0s for all
           (but 0) nodes to be ready\nSTEP: Destroying namespace \"services-5385\"
           for this suite.\n[AfterEach] [sig-network] Services\n  /workspace/src/k8s.io/kubernetes/_output/dockerized/go/src/k8s.io/kubernetes/test/e2e/network/service.go:786\n"
-    - name: '[sig-scheduling] SchedulerPredicates [Serial] validates resource limits
-        of pods that are allowed to run  [Conformance]'
+    - name: '[sig-scheduling] SchedulerPredicates [Serial] validates resource limits of pods that are allowed to run  [Conformance]'
       status: failed
       details:
         failure: |-
@@ -750,8 +747,7 @@ items:
           16 22:42:24.687: INFO: Waiting up to 3m0s for all (but 0) nodes to be ready\nSTEP:
           Destroying namespace \"sched-pred-5764\" for this suite.\n[AfterEach] [sig-scheduling]
           SchedulerPredicates [Serial]\n  /workspace/src/k8s.io/kubernetes/_output/dockerized/go/src/k8s.io/kubernetes/test/e2e/scheduling/predicates.go:81\n"
-    - name: '[sig-network] Services should be able to switch session affinity for
-        NodePort service [LinuxOnly] [Conformance]'
+    - name: '[sig-network] Services should be able to switch session affinity for NodePort service [LinuxOnly] [Conformance]'
       status: failed
       details:
         failure: |-
@@ -1007,8 +1003,7 @@ items:
           up to 3m0s for all (but 0) nodes to be ready\nSTEP: Destroying namespace
           \"services-7001\" for this suite.\n[AfterEach] [sig-network] Services\n
           \ /workspace/src/k8s.io/kubernetes/_output/dockerized/go/src/k8s.io/kubernetes/test/e2e/network/service.go:786\n"
-    - name: '[sig-network] Services should be able to change the type from NodePort
-        to ExternalName [Conformance]'
+    - name: '[sig-network] Services should be able to change the type from NodePort to ExternalName [Conformance]'
       status: failed
       details:
         failure: |-
@@ -1199,8 +1194,7 @@ items:
           16 22:54:42.744: INFO: Waiting up to 3m0s for all (but 0) nodes to be ready\nSTEP:
           Destroying namespace \"services-1852\" for this suite.\n[AfterEach] [sig-network]
           Services\n  /workspace/src/k8s.io/kubernetes/_output/dockerized/go/src/k8s.io/kubernetes/test/e2e/network/service.go:786\n"
-    - name: '[sig-apps] Daemon set [Serial] should rollback without unnecessary restarts
-        [Conformance]'
+    - name: '[sig-apps] Daemon set [Serial] should rollback without unnecessary restarts [Conformance]'
       status: failed
       details:
         failure: |-
@@ -1384,8 +1378,7 @@ items:
           for node kyle-kurl\nAug 16 23:37:34.589: INFO: Waiting up to 3m0s for all
           (but 0) nodes to be ready\nSTEP: Destroying namespace \"daemonsets-9780\"
           for this suite.\n"
-          - name: '[sig-network] Services should be able to create a functioning NodePort
-        service [Conformance]'
+          - name: '[sig-network] Services should be able to create a functioning NodePort service [Conformance]'
       status: failed
       details:
         failure: |-
@@ -1569,8 +1562,7 @@ items:
           INFO: Waiting up to 3m0s for all (but 0) nodes to be ready\nSTEP: Destroying
           namespace \"services-3567\" for this suite.\n[AfterEach] [sig-network] Services\n
           \ /workspace/src/k8s.io/kubernetes/_output/dockerized/go/src/k8s.io/kubernetes/test/e2e/network/service.go:786\n"
-    - name: '[sig-network] Services should be able to create a functioning NodePort
-        service [Conformance]'
+    - name: '[sig-network] Services should be able to create a functioning NodePort service [Conformance]'
       status: failed
       details:
         failure: |-
@@ -1754,8 +1746,7 @@ items:
           INFO: Waiting up to 3m0s for all (but 0) nodes to be ready\nSTEP: Destroying
           namespace \"services-3567\" for this suite.\n[AfterEach] [sig-network] Services\n
           \ /workspace/src/k8s.io/kubernetes/_output/dockerized/go/src/k8s.io/kubernetes/test/e2e/network/service.go:786\n"
-    - name: '[sig-scheduling] SchedulerPreemption [Serial] validates lower priority
-        pod preemption by critical pod [Conformance]'
+    - name: '[sig-scheduling] SchedulerPreemption [Serial] validates lower priority pod preemption by critical pod [Conformance]'
       status: failed
       details:
         failure: |-
@@ -1942,8 +1933,7 @@ items:
           16 23:43:09.396: INFO: Waiting up to 3m0s for all (but 0) nodes to be ready\nSTEP:
           Destroying namespace \"sched-preemption-3242\" for this suite.\n[AfterEach]
           [sig-scheduling] SchedulerPreemption [Serial]\n  /workspace/src/k8s.io/kubernetes/_output/dockerized/go/src/k8s.io/kubernetes/test/e2e/scheduling/preemption.go:77\n"
-    - name: '[sig-network] Services should have session affinity timeout work for
-        NodePort service [LinuxOnly] [Conformance]'
+    - name: '[sig-network] Services should have session affinity timeout work for NodePort service [LinuxOnly] [Conformance]'
       status: failed
       details:
         failure: |-
@@ -2216,8 +2206,7 @@ items:
           INFO: Waiting up to 3m0s for all (but 0) nodes to be ready\nSTEP: Destroying
           namespace \"services-6568\" for this suite.\n[AfterEach] [sig-network] Services\n
           \ /workspace/src/k8s.io/kubernetes/_output/dockerized/go/src/k8s.io/kubernetes/test/e2e/network/service.go:786\n"
-    - name: '[sig-scheduling] SchedulerPredicates [Serial] validates that NodeSelector
-        is respected if not matching  [Conformance]'
+    - name: '[sig-scheduling] SchedulerPredicates [Serial] validates that NodeSelector is respected if not matching  [Conformance]'
       status: failed
       details:
         failure: |-
