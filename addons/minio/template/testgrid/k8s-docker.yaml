@@ -48,7 +48,7 @@
       version: "latest"
     minio:
       version: "__testver__"
-#      claimSize: "20Gi"
+#      claimSize: "20Gi" # TODO: uncomment this after the claimSize code is merged in order to prevent/detect regressions
       s3Override: "__testdist__"
 
 - installerSpec:
