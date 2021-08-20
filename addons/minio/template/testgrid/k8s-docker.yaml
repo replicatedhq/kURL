@@ -1,3 +1,4 @@
+# basic test
 - installerSpec:
     kubernetes:
       version: "latest"
@@ -11,6 +12,7 @@
       version: "__testver__"
       s3Override: "__testdist__"
 
+# migration from rook-ceph object store to minio
 - installerSpec:
     kubernetes:
       version: "latest"
@@ -37,6 +39,7 @@
       version: "__testver__"
       s3Override: "__testdist__"
 
+# installation with specified PVC size
 - installerSpec:
     kubernetes:
       version: "latest"
@@ -48,9 +51,10 @@
       version: "latest"
     minio:
       version: "__testver__"
-#      claimSize: "20Gi" # TODO: uncomment this after the claimSize code is merged in order to prevent/detect regressions
+      claimSize: "20Gi"
       s3Override: "__testdist__"
 
+# installation with hostPath
 - installerSpec:
     kubernetes:
       version: "latest"
@@ -61,4 +65,32 @@
     minio:
       version: "__testver__"
       hostPath: "/opt/minio"
+      s3Override: "__testdist__"
+
+# upgrade that changes PVC size
+- installerSpec:
+    kubernetes:
+      version: "latest"
+    weave:
+      version: "latest"
+    longhorn:
+      version: "latest"
+    containerd:
+      version: "latest"
+    minio:
+      version: "__testver__"
+      claimSize: "5Gi"
+      s3Override: "__testdist__"
+  upgradeSpec:
+    kubernetes:
+      version: "latest"
+    weave:
+      version: "latest"
+    longhorn:
+      version: "latest"
+    containerd:
+      version: "latest"
+    minio:
+      version: "__testver__"
+      claimSize: "20Gi"
       s3Override: "__testdist__"
