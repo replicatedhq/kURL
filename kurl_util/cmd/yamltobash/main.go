@@ -233,6 +233,7 @@ func convertToBash(kurlValues map[string]interface{}, fieldsSet map[string]bool)
 		"MetricsServer.S3Override":               "METRICS_SERVER_S3_OVERRIDE",
 		"MetricsServer.Version":                  "METRICS_SERVER_VERSION",
 		"Minio.Namespace":                        "MINIO_NAMESPACE",
+		"Minio.ClaimSize":                        "MINIO_CLAIM_SIZE",
 		"Minio.S3Override":                       "MINIO_S3_OVERRIDE",
 		"Minio.HostPath":                         "MINIO_HOSTPATH",
 		"Minio.Version":                          "MINIO_VERSION",
@@ -335,13 +336,13 @@ func convertToBash(kurlValues map[string]interface{}, fieldsSet map[string]bool)
 		}
 
 		switch {
-		case yamlKey == "Kubernetes.LoadBalancerAddress" && bashVal != "" :
+		case yamlKey == "Kubernetes.LoadBalancerAddress" && bashVal != "":
 			finalDictionary["HA_CLUSTER"] = "1"
-		case yamlKey == "Kurl.Airgap" && bashVal != "" :
+		case yamlKey == "Kurl.Airgap" && bashVal != "":
 			finalDictionary["OFFLINE_DOCKER_INSTALL"] = "1"
 		case yamlKey == "Weave.PodCidrRange" || yamlKey == "Kubernetes.ServiceCidrRange" || yamlKey == "Antrea.PodCidrRange" && bashVal != "":
 			bashVal = strings.Replace(bashVal, "/", "", -1)
-		case yamlKey == "Docker.HardFailOnLoopback" && bashVal == "" && !fieldsSet[yamlKey] :
+		case yamlKey == "Docker.HardFailOnLoopback" && bashVal == "" && !fieldsSet[yamlKey]:
 			bashVal = "1"
 		case yamlKey == "Weave.NoMasqLocal":
 

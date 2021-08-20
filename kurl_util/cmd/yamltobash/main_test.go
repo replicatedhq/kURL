@@ -1,12 +1,14 @@
 package main
 
 import (
-	kurlscheme "github.com/replicatedhq/kurl/kurlkinds/client/kurlclientset/scheme"
 	"io/ioutil"
-	"k8s.io/client-go/kubernetes/scheme"
 	"path"
 	"reflect"
+	"regexp"
 	"testing"
+
+	kurlscheme "github.com/replicatedhq/kurl/kurlkinds/client/kurlclientset/scheme"
+	"k8s.io/client-go/kubernetes/scheme"
 
 	kurlv1beta1 "github.com/replicatedhq/kurl/kurlkinds/pkg/apis/cluster/v1beta1"
 	"github.com/stretchr/testify/assert"
@@ -275,7 +277,7 @@ spec:
 				"Antrea.Version":              true,
 				"Antrea.IsEncryptionDisabled": true,
 			},
-		},{
+		}, {
 			name: "Docker.LicenseFile",
 			yaml: `apiVersion: cluster.kurl.sh/v1beta
 kind: Installer
@@ -331,7 +333,7 @@ func Test_createMap(t *testing.T) {
 			want: map[string]interface{}{
 				"Kubernetes.S3Override": "BLAH",
 			},
-		},{
+		}, {
 			name: "kurl.",
 			retrieved: &kurlv1beta1.Installer{
 				Spec: kurlv1beta1.InstallerSpec{
@@ -359,25 +361,25 @@ func Test_createMap(t *testing.T) {
 
 func TestEndToEnd(t *testing.T) {
 	tt := []struct {
-		name     string
-		yaml     string
-		expected string
-		wantErr  bool
+		name           string
+		yaml           string
+		expectedRegexp string
+		wantErr        bool
 	}{
 		{
-			name:     "default weave masq should be set",
-			yaml:     "weave_no_masq_local_default.yaml",
-			expected: "weave_no_masq_local_default",
+			name:           "default weave masq should be set",
+			yaml:           "weave_no_masq_local_default.yaml",
+			expectedRegexp: "(?m)^NO_MASQ_LOCAL=1$",
 		},
 		{
-			name:     "weave masq should be set",
-			yaml:     "weave_no_masq_local_set.yaml",
-			expected: "weave_no_masq_local_default",
+			name:           "weave masq should be set",
+			yaml:           "weave_no_masq_local_set.yaml",
+			expectedRegexp: "(?m)^NO_MASQ_LOCAL=1$",
 		},
 		{
-			name:     "weave masq should not be set",
-			yaml:     "weave_no_masq_local_unset.yaml",
-			expected: "weave_no_masq_local_unset",
+			name:           "weave masq should not be set",
+			yaml:           "weave_no_masq_local_unset.yaml",
+			expectedRegexp: "(?m)^NO_MASQ_LOCAL=0$",
 		},
 	}
 
@@ -393,13 +395,10 @@ func TestEndToEnd(t *testing.T) {
 				return
 			}
 			require.Nil(t, err)
-			b, err := ioutil.ReadFile(path.Join("testdata", "expected", tc.expected))
-			require.Nil(t, err)
-			expected := string(b)
-			b, err = ioutil.ReadFile(envPath)
+			b, err := ioutil.ReadFile(envPath)
 			require.Nil(t, err)
 			actual := string(b)
-			require.Equal(t, expected, actual)
+			require.Regexp(t, regexp.MustCompile(tc.expectedRegexp), actual)
 		})
 	}
 }

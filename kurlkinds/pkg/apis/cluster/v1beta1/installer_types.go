@@ -124,6 +124,7 @@ type Kurl struct {
 }
 
 type Minio struct {
+	ClaimSize  string `json:"claimSize,omitempty" yaml:"claimSize,omitempty"`
 	Namespace  string `json:"namespace,omitempty" yaml:"namespace,omitempty"`
 	S3Override string `json:"s3Override,omitempty" yaml:"s3Override,omitempty"`
 	HostPath   string `json:"hostPath,omitempty" yaml:"hostPath,omitempty"`
