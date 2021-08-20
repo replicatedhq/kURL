@@ -142,6 +142,7 @@ function minio_object_store_output() {
     OBJECT_STORE_CLUSTER_IP=$(kubectl -n ${MINIO_NAMESPACE} get service minio | tail -n1 | awk '{ print $3}')
     OBJECT_STORE_CLUSTER_HOST="http://minio.${MINIO_NAMESPACE}"
 
+    printf "awaiting minio readiness\n"
     if ! spinner_until 120 minio_ready; then
         bail "Minio API failed to report healthy"
     fi
