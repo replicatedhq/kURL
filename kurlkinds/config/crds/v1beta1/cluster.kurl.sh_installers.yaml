@@ -332,6 +332,8 @@ spec:
                 type: object
               minio:
                 properties:
+                  claimSize:
+                    type: string
                   hostPath:
                     type: string
                   namespace:

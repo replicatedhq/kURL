@@ -225,6 +225,7 @@ export interface MinioConfig {
   s3Override?: string;
   namespace?: string;
   hostPath?: string;
+  claimSize?: string;
 }
 
 export const minioConfigSchema = {
@@ -234,6 +235,7 @@ export const minioConfigSchema = {
     s3Override: { type: "string", flag: "s3-override", description: "Override the download location for addon package distribution (used for CI/CD testing alpha addons)" },
     namespace: { type: "string", flag: "minio-namespace", description: "The namespace Minio is installed to" },
     hostPath: { type: "string", flag: "minio-hostpath", description: "Configure the minio deployment to use a local hostPath for storing data." },
+    claimSize: { type: "string", flag: "claim-size", description: "Configure the size of the Persistent Volume Claim that Minio will use, defaulting to 10Gi" },
   },
   required: ["version"],
   additionalProperties: false,

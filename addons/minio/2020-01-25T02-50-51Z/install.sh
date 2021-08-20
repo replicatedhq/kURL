@@ -4,6 +4,10 @@ function minio_pre_init() {
     if [ -z "$MINIO_NAMESPACE" ]; then
         MINIO_NAMESPACE=minio
     fi
+
+    if [ -z "$MINIO_CLAIM_SIZE" ]; then
+        MINIO_CLAIM_SIZE="10Gi"
+    fi
 }
 
 function minio() {
@@ -20,7 +24,7 @@ function minio() {
         render_yaml_file "$src/tmpl-deployment-hostpath.yaml" > "$dst/deployment-hostpath.yaml"
         insert_patches_strategic_merge "$dst/kustomization.yaml" deployment-hostpath.yaml
     else
-        cp "$src/pvc.yaml" "$dst/"
+        render_yaml_file "$src/tmpl-pvc.yaml" > "$dst/pvc.yaml"
         insert_resources "$dst/kustomization.yaml" pvc.yaml
         render_yaml_file "$src/tmpl-deployment-pvc.yaml" > "$dst/deployment-pvc.yaml"
         insert_patches_strategic_merge "$dst/kustomization.yaml" deployment-pvc.yaml
