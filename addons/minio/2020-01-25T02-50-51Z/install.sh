@@ -34,6 +34,8 @@ function minio() {
 
     kubectl apply -k "$dst/"
 
+    allow_pvc_resize
+
     minio_object_store_output
 
     minio_migrate_from_rgw
@@ -163,4 +165,33 @@ function minio_migrate_from_rgw() {
 
     migrate_rgw_to_minio
     export DID_MIGRATE_ROOK_OBJECT_STORE="1"
+}
+
+function allow_pvc_resize() {
+    if kubernetes_resource_exists "$MINIO_NAMESPACE" pvc minio-pv-claim; then
+        # check if the minio PVC's current size is not the desired size
+        current_size=$(kubectl get pvc -n "$MINIO_NAMESPACE" minio-pv-claim -o jsonpath='{.status.capacity.storage}')
+        desired_size=$(kubectl get pvc -n "$MINIO_NAMESPACE" minio-pv-claim -o jsonpath='{.spec.resources.requests.storage}')
+
+        if [ "$current_size" != "$desired_size" ]; then
+            # if it is not at the desired size, scale down the minio deployment
+            kubectl scale deployment -n "$MINIO_NAMESPACE" minio --replicas=0
+
+            printf "Waiting up to one minute for Minio PVC size to change from %s to %s\n" "$current_size" "$desired_size"
+            n=0
+            while [ "$current_size" != "$desired_size" ] && [ $n -lt 30 ]; do
+                sleep 2
+                current_size=$(kubectl get pvc -n "$MINIO_NAMESPACE" minio-pv-claim -o jsonpath='{.status.capacity.storage}')
+            done
+
+            if [ "$current_size" == "$desired_size" ]; then
+                printf "Successfully updated Minio PVC size to %s\n" "$current_size"
+            else
+                printf "Failed to update Minio PVC size from %s to %s after 1m, continuing with installation process\n" "$current_size" "$desired_size"
+            fi
+
+            # restore the scale to 1 (whether the minute of waiting worked or not)
+            kubectl scale deployment -n "$MINIO_NAMESPACE" minio --replicas=1
+        fi
+    fi
 }
