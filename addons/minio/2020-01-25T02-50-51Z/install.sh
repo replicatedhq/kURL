@@ -37,6 +37,8 @@ function minio() {
     minio_object_store_output
 
     minio_migrate_from_rgw
+    printf "test: PVCs"
+    kubectl get pvc -A
 }
 
 function minio_already_applied() {

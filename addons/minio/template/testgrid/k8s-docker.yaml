@@ -78,9 +78,7 @@
     containerd:
       version: "latest"
     minio:
-      version: "__testver__"
-      claimSize: "5Gi"
-      s3Override: "__testdist__"
+      version: "latest"
   upgradeSpec:
     kubernetes:
       version: "latest"
