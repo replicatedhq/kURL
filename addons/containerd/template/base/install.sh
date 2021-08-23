@@ -7,6 +7,8 @@ function containerd_install() {
         bail "The filesystem mounted at /var/lib/containerd does not have ftype enabled"
     fi
 
+    containerd_migrate_from_docker
+
     install_host_packages "$src" containerd.io
 
     case "$LSB_DIST" in
@@ -41,6 +43,11 @@ function containerd_install() {
         systemctl daemon-reload
         restart_systemd_and_wait containerd
         CONTAINERD_NEEDS_RESTART=0
+    fi
+
+    # Explicitly configure kubelet to use containerd instead of detecting dockershim socket
+    if [ -d "$DIR/kustomize/kubeadm/init-patches" ]; then
+        cp "$DIR/addons/containerd/$CONTAINERD_VERSION/kubeadm-init-config-v1beta2.yaml" "$DIR/kustomize/kubeadm/init-patches/containerd-kubeadm-init-config-v1beta2.yml"
     fi
 
     load_images $src/images
@@ -116,4 +123,47 @@ containerd_xfs_ftype_enabled() {
     fi
 
     return 0
+}
+
+function containerd_migrate_from_docker() {
+    if ! commandExists docker; then
+        return
+    fi
+
+    echo "Draining node to prepare for migration from docker to containerd"
+
+    # Delete pods that depend on other pods on the same node
+    if [ -f "$DIR/addons/ekco/$EKCO_VERSION/reboot/shutdown.sh" ]; then
+        bash $DIR/addons/ekco/$EKCO_VERSION/reboot/shutdown.sh
+    elif [ -f /opt/ekco/shutdown.sh ]; then
+        bash /opt/ekco/shutdown.sh
+    else
+        printf "${RED}EKCO shutdown script not available. Migration to containerd may fail\n${NC}"
+    fi
+
+    local node=$(hostname | tr '[:upper:]' '[:lower:]')
+    kubectl cordon "$node" --kubeconfig=/etc/kubernetes/kubelet.conf
+
+    local allPodUIDs=$(kubectl --kubeconfig=/etc/kubernetes/kubelet.conf get pods --all-namespaces -ojsonpath='{ range .items[*]}{.metadata.name}{"\t"}{.metadata.uid}{"\t"}{.metadata.namespace}{"\n"}{end}' )
+
+    # Drain remaining pods using only the permissions available to kubelet
+    while read -r uid; do
+        local pod=$(echo "${allPodUIDs[*]}" | grep "$uid")
+        if [ -z "$pod" ]; then
+            continue
+        fi
+        local podName=$(echo "$pod" | awk '{ print $1 }')
+        local podNamespace=$(echo "$pod" | awk '{ print $3 }')
+        # some may timeout but proceed anyway
+        kubectl --kubeconfig=/etc/kubernetes/kubelet.conf delete pod "$podName" --namespace="$podNamespace" --timeout=60s || true
+    done < <(ls /var/lib/kubelet/pods)
+
+    systemctl stop kubelet
+
+    docker rm -f $(docker ps -a -q) || true # Errors if there are not containers found
+
+    # Reconfigure kubelet to use containerd
+    containerdFlags="--container-runtime=remote --container-runtime-endpoint=unix:///run/containerd/containerd.sock"
+    sed -i "s@\(KUBELET_KUBEADM_ARGS=\".*\)\"@\1 $containerdFlags\" @" /var/lib/kubelet/kubeadm-flags.env
+    systemctl daemon-reload
 }

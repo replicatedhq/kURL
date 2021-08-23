@@ -8,7 +8,9 @@ function discover() {
     # never upgrade docker underneath kubernetes
     if docker version >/dev/null 2>&1 ; then
         SKIP_DOCKER_INSTALL=1
-        echo "Docker already exists on this machine so no docker install will be performed"
+        if [ -n "$DOCKER_VERSION" ]; then
+            echo "Docker already exists on this machine so no docker install will be performed"
+        fi
     fi
 
     discover_public_ip
