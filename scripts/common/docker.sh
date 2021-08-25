@@ -103,8 +103,6 @@ function uninstall_docker() {
     rm -f /var/run/docker.sock
     echo "Docker successfully uninstalled."
 
-    systemctl start kubelet
-
     # With the internal loadbalancer it may take a minute or two after starting kubelet before
     # kubectl commands work
     local node=$(hostname | tr '[:upper:]' '[:lower:]')

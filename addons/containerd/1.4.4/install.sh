@@ -50,6 +50,10 @@ function containerd_install() {
         cp "$DIR/addons/containerd/$CONTAINERD_VERSION/kubeadm-init-config-v1beta2.yaml" "$DIR/kustomize/kubeadm/init-patches/containerd-kubeadm-init-config-v1beta2.yml"
     fi
 
+    if systemctl list-unit-files | grep -q kubelet.service; then
+        systemctl start kubelet
+    fi
+
     load_images $src/images
 }
 
