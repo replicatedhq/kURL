@@ -173,6 +173,12 @@ function allow_pvc_resize() {
         current_size=$(kubectl get pvc -n "$MINIO_NAMESPACE" minio-pv-claim -o jsonpath='{.status.capacity.storage}')
         desired_size=$(kubectl get pvc -n "$MINIO_NAMESPACE" minio-pv-claim -o jsonpath='{.spec.resources.requests.storage}')
 
+        if [ -n "$current_size" ]; then
+            # if the current size is not set, then the PVC does not yet have a PV
+            # this is something that will be the case on first install, and the PV will be created with the right size
+            return
+        fi
+
         if [ "$current_size" != "$desired_size" ]; then
             # if it is not at the desired size, scale down the minio deployment
             kubectl scale deployment -n "$MINIO_NAMESPACE" minio --replicas=0
