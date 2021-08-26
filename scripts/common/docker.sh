@@ -86,7 +86,7 @@ function uninstall_docker() {
     # data as possible now
     docker system prune --all --volumes --force
 
-    echo "Uninstalling Docker..."
+    logStep "Uninstalling Docker..."
     case "$LSB_DIST" in
         ubuntu)
             export DEBIAN_FRONTEND=noninteractive
