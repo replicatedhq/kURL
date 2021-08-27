@@ -709,3 +709,7 @@ shunit2: common-test #TODO include other tests
 .PHONY: common-test
 common-test:
 	./scripts/common/test/common-test.sh
+
+.PHONY: yaml-lint
+yaml-lint:
+	bin/yaml-lint.sh
