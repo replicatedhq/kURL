@@ -52,6 +52,10 @@ function containerd_install() {
 
     if systemctl list-unit-files | grep -q kubelet.service; then
         systemctl start kubelet
+        # If using the internal load balancer the Kubernetes API server will be unavailable until
+        # kubelet starts the HAProxy static pod. This check ensures the Kubernetes API server
+        # is available before proceeeding.
+        try_5m kubectl --kubeconfig=/etc/kubernetes/kubelet.conf get nodes
     fi
 
     load_images $src/images
