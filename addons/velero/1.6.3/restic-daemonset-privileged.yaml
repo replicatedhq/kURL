@@ -1,0 +1,11 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: restic
+spec:
+  template:
+    spec:
+      containers:
+        - name: restic
+          securityContext:
+            privileged: true
