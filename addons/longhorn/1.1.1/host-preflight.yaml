@@ -24,4 +24,5 @@ spec:
           when: "used/total > 60%"
           message: The disk containing directory /var/lib/longhorn is more than 60% full
       - pass:
+          when: "used/total <= 60%"
           message: The disk containing directory /var/lib/longhorn has at least 20Gi disk space available and is at least 50Gi in size
