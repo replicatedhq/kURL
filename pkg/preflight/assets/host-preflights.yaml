@@ -92,6 +92,7 @@ spec:
               when: "count < 2"
               message: At least 2 CPU cores are required, and 4 CPU cores are recommended
           - pass:
+              when: "count >= 4"
               message: This server has at least 4 CPU cores
     - memory:
         checkName: "Amount of Memory"
@@ -103,6 +104,7 @@ spec:
               when: "< 4G"
               message: At least 4G of memory is required, and 8G of memory is recommended
           - pass:
+              when: ">= 8G"
               message: The system has at least 8G of memory
     - diskUsage:
         checkName: "Ephemeral Disk Usage /var/lib/kubelet"
@@ -118,6 +120,7 @@ spec:
               when: "used/total > 60%"
               message: The disk containing directory /var/lib/kubelet is more than 60% full
           - pass:
+              when: "used/total <= 60%"
               message: The disk containing directory /var/lib/kubelet has at least 30Gi disk space available
     - diskUsage:
         checkName: "Ephemeral Disk Usage /var/lib/docker"
@@ -134,6 +137,7 @@ spec:
               when: "used/total > 60%"
               message: The disk containing directory /var/lib/docker is more than 60% full
           - pass:
+              when: "used/total <= 60%"
               message: The disk containing directory /var/lib/docker has at least 30Gi disk space available
     - tcpLoadBalancer:
         checkName: "Kubernetes API Server Load Balancer"
@@ -159,8 +163,6 @@ spec:
           - pass:
               when: "connected"
               message: Successfully connected to {{kurl .Installer.Spec.Kubernetes.LoadBalancerAddress }} via load balancer
-          - warn:
-              message: Unexpected port status
     - blockDevices:
         # rook block storage or cstor is enabled and not upgrade
         includeUnmountedPartitions: true
@@ -196,8 +198,6 @@ spec:
           - pass:
               when: "connected"
               message: Port 6443 is open
-          - warn:
-              message: Unexpected port status
     - tcpPortStatus:
         checkName: "ETCD Client API TCP Port Status"
         collectorName: "ETCD Client API TCP Port Status"
@@ -218,8 +218,6 @@ spec:
           - pass:
               when: "connected"
               message: Port 2379 is open
-          - warn:
-              message: Unexpected port status
     - tcpPortStatus:
         checkName: "ETCD Server API TCP Port Status"
         collectorName: "ETCD Server API TCP Port Status"
@@ -240,8 +238,6 @@ spec:
           - pass:
               when: "connected"
               message: Port 2380 is open
-          - warn:
-              message: Unexpected port status
     - tcpPortStatus:
         checkName: "ETCD Health Server TCP Port Status"
         collectorName: "ETCD Health Server TCP Port Status"
@@ -262,8 +258,6 @@ spec:
           - pass:
               when: "connected"
               message: Port 2381 is available
-          - warn:
-              message: Unexpected port status
     - tcpPortStatus:
         checkName: "Kubelet Health Server TCP Port Status"
         collectorName: "Kubelet Health Server TCP Port Status"
@@ -284,8 +278,6 @@ spec:
           - pass:
               when: "connected"
               message: Port 10248 is available
-          - warn:
-              message: Unexpected port status
     - tcpPortStatus:
         checkName: "Kubelet API TCP Port Status"
         collectorName: "Kubelet API TCP Port Status"
@@ -306,8 +298,6 @@ spec:
           - pass:
               when: "connected"
               message: Port 10250 is open
-          - warn:
-              message: Unexpected port status
     - tcpPortStatus:
         checkName: "Kube Controller Manager Health Server TCP Port Status"
         collectorName: "Kube Controller Manager Health Server TCP Port Status"
@@ -328,8 +318,6 @@ spec:
           - pass:
               when: "connected"
               message: Port 10257 is available
-          - warn:
-              message: Unexpected port status
     - tcpPortStatus:
         checkName: "Kube Scheduler Health Server TCP Port Status"
         collectorName: "Kube Scheduler Health Server TCP Port Status"
@@ -350,8 +338,6 @@ spec:
           - pass:
               when: "connected"
               message: Port 10259 is available
-          - warn:
-              message: Unexpected port status
     - tcpConnect:
         checkName: "Kubernetes API TCP Connection Status"
         collectorName: "Kubernetes API TCP Connection Status"
@@ -369,8 +355,6 @@ spec:
           - pass:
               when: "connected"
               message: Successfully connected to the Kubernetes API at address {{kurl .Installer.Spec.Kubernetes.MasterAddress }}
-          - warn:
-              message: Unexpected TCP connection status
     - filesystemPerformance:
         collectorName: Filesystem Latency Two Minute Benchmark
         exclude: '{{kurl and .IsPrimary (not .IsUpgrade) | not }}'
