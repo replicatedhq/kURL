@@ -1,12 +1,14 @@
 #!/bin/bash 
 
+set -euo pipefail 
 
 if [ -n "${COSIGN_KEY}" ]
 then
-  echo "writing key to file"	
+  echo "Writing cosign key to file"	
   echo "${COSIGN_KEY}" | base64 -d > ./cosign.key
 else
-  echo "missing COSIGN_KEY"
+  echo "ERROR: Missing COSIGN_KEY!"
+  exit 1
 fi
 
 # 
