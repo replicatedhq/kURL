@@ -720,7 +720,7 @@ init-sbom:
 .PHONY: install-spdx-sbom-generator
 install-spdx-sbom-generator: init-sbom
 ifeq (,$(shell command -v spdx-sbom-generator))
-	./scripts/install-sbom-generator.sh
+	./scripts/initialize-build.sh
 SPDX_GENERATOR=./sbom/spdx-sbom-generator
 else
 SPDX_GENERATOR=$(shell command -v spdx-sbom-generator)

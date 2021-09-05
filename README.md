@@ -40,3 +40,17 @@ See the following example:
 ```
 git tag -a v2021.06.22-0 -m "Release v2021.06.22-0" && git push origin v2021.06.22-0
 ```
+
+# Software Bill of Materials
+Signed SBOMs for kURL Go and Javascript dependencies are combined into a tar file and are included with each release.
+- **kots-sbom.tgz** contains SBOMs for Go  and Javascript dependencies
+- **kots-sbom.tgz.sig** is the digital signature for kots-sbom.tgz
+- **key.pub** is the public key from the key pair used to sign kots-sbom.tgz 
+ 
+The following example illustrates using [cosign](https://github.com/sigstore/cosign) to verify that **kots-sbom.tgz** has 
+not been tampered with.
+```shell
+$ cosign verify-blob -key key.pub -signature kots-sbom.tgz.sig kots-sbom.tgz
+Verified OK
+```
+

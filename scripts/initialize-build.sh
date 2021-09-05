@@ -1,7 +1,17 @@
 #!/bin/bash 
 
+
+if [ -n "${COSIGN_KEY}" ]
+then
+  echo "writing key to file"	
+  echo "${COSIGN_KEY}" | base64 -d > ./cosign.key
+else
+  echo "missing COSIGN_KEY"
+fi
+
 # 
-# Check to see if the spdx-sbom-generator is installed. If it is not, download it, check to make sure that the md5sum is correct, and extract it. 
+# Check to see if the spdx-sbom-generator is installed. If it is not, download it, check to make sure that the md5sum is correct,
+# and extract it.
 # 
 if ! command -v spdx-sbom-generator &> /dev/null 
 then 

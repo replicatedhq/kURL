@@ -106,7 +106,7 @@ jobs:
   build-addons:
     runs-on: ubuntu-18.04
     steps:
-    - uses: actions/checkout@v2
+     - uses: actions/checkout@v2
     - uses: actions/setup-node@v2
       with:
         node-version: '12'
@@ -129,7 +129,6 @@ jobs:
     - build-upload-packages
     steps:
     - uses: actions/checkout@v2
-
     - name: kustomize
       run: |
         export VERSION_TAG=$(echo $GITHUB_REF | awk -F'/' '{ print $NF }')
@@ -204,6 +203,7 @@ jobs:
         path: ./CHANGELOG.md
 
     - name: GitHub Release
+      id: create_release
       uses: actions/create-release@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -214,6 +214,41 @@ jobs:
         body: ${{ steps.read-changelog.outputs.content }}
         draft: false
         prerelease: false
+
+    - name: Get npm cache
+      id: npm-cache-dir
+      run: |
+        echo "::set-output name=dir::$(npm config get cache)"
+    - uses: actions/cache@v2
+      id: npm-cache
+      with:
+        path: ${{ steps.npm-cache-dir.outputs.dir }}
+        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+        restore-keys:
+          ${{ runner.os }}-node-
+
+    - uses: actions/setup-node@v2
+      with:
+        node-version: '12'
+
+    - name: Initialize web
+      if: steps.npm-cache.outputs.cache-hit != 'true'
+      run: |
+        make -C web deps
+        npm install
+
+    - name: Generate SBOM
+      run: |
+        COSIGN_PASSWORD=$COSIGN_PASSWORD COSIGN_KEY=$COSIGN_KEY make sbom
+      env:
+        COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
+        COSIGN_KEY: ${{ secrets.COSIGN_KEY }}
+
+    - uses: shogo82148/actions-upload-release-asset@v1.3.1
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: sbom/assets/*
+
 
   testgrid-run:
     runs-on: ubuntu-18.04

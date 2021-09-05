@@ -27,16 +27,11 @@ jobs:
 
       - uses: sigstore/cosign-installer@v1.1.0
 
-      - name: Get Cosign Key
-        run: |
-          echo $COSIGN_KEY | base64 -d > ./cosign.key
-        env:
-          COSIGN_KEY: ${{ secrets.COSIGN_KEY }}
-
       - name: Generate SBOM
         run: |
-          COSIGN_PASSWORD=$COSIGN_PASSWORD make sbom
+          COSIGN_PASSWORD=$COSIGN_PASSWORD COSIGN_KEY=$COSIGN_KEY make sbom
         env:
           COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
+          COSIGN_KEY: ${{ secrets.COSIGN_KEY }}
 
 
