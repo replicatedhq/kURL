@@ -734,5 +734,5 @@ sbom/assets/kurl-sbom.tgz: generate-sbom
 	tar -czf sbom/assets/kurl-sbom.tgz sbom/spdx/*.spdx
 
 sbom: sbom/assets/kurl-sbom.tgz
-	$(shell cosign sign-blob -key ./cosign.key sbom/assets/kurl-sbom.tgz > ./sbom/assets/kurl-sbom.tgz.sig)
-	$(shell cosign public-key -key ./cosign.key -outfile ./sbom/assets/key.pub)
+	cosign sign-blob -key ./cosign.key sbom/assets/kurl-sbom.tgz > ./sbom/assets/kurl-sbom.tgz.sig
+	cosign public-key -key ./cosign.key -outfile ./sbom/assets/key.pub
