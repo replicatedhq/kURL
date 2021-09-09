@@ -39,15 +39,15 @@ func TestBuiltinExecuteTemplate(t *testing.T) {
 					value: `"true"`,
 				},
 				{
+					query: ".spec.collectors[] | select(.diskUsage != null) | select(.diskUsage.path == \"/var/lib/docker\") | .diskUsage.exclude",
+					value: `"true"`,
+				},
+				{
 					query: ".spec.analyzers[] | select(.tcpLoadBalancer != null) | .tcpLoadBalancer.exclude",
 					value: `"true"`,
 				},
 				{
-					query: ".spec.collectors[] | select(.blockDevices != null) | .blockDevices.exclude",
-					value: `"true"`,
-				},
-				{
-					query: ".spec.analyzers[] | select(.blockDevices != null) | .blockDevices.exclude",
+					query: ".spec.analyzers[] | select(.diskUsage != null) | select(.diskUsage.checkName == \"Ephemeral Disk Usage /var/lib/docker\")| .diskUsage.exclude",
 					value: `"true"`,
 				},
 			},
@@ -98,73 +98,6 @@ func TestBuiltinExecuteTemplate(t *testing.T) {
 			},
 		},
 		{
-			name: "blockDevices rook.isBlockStorageEnabled==true",
-			spec: clusterv1beta1.Installer{
-				Spec: clusterv1beta1.InstallerSpec{
-					Rook: &clusterv1beta1.Rook{
-						Version:               "1.4.3",
-						IsBlockStorageEnabled: true,
-						BlockDeviceFilter:     "vd[b-z]",
-					},
-				},
-			},
-			isPrimary: true,
-			want: []jsonquery{
-				{
-					query: ".spec.collectors[] | select(.blockDevices != null) | .blockDevices.exclude",
-					value: `"false"`,
-				},
-				{
-					query: ".spec.analyzers[] | select(.blockDevices != null) | .blockDevices.exclude",
-					value: `"false"`,
-				},
-				{
-					query: ".spec.analyzers[] | select(.blockDevices != null) | .blockDevices.outcomes",
-					value: `- pass:
-    when: "vd[b-z] == 1"
-    message: One available block device
-- pass:
-    when: "vd[b-z] > 1"
-    message: Multiple available block devices
-- fail:
-    message: No available block devices`,
-				},
-			},
-		},
-		{
-			name: "blockDevices openebs.isCstorEnabled==true",
-			spec: clusterv1beta1.Installer{
-				Spec: clusterv1beta1.InstallerSpec{
-					OpenEBS: &clusterv1beta1.OpenEBS{
-						Version:        "1.12.0",
-						IsCstorEnabled: true,
-					},
-				},
-			},
-			isPrimary: true,
-			want: []jsonquery{
-				{
-					query: ".spec.collectors[] | select(.blockDevices != null) | .blockDevices.exclude",
-					value: `"false"`,
-				},
-				{
-					query: ".spec.analyzers[] | select(.blockDevices != null) | .blockDevices.exclude",
-					value: `"false"`,
-				},
-				{
-					query: ".spec.analyzers[] | select(.blockDevices != null) | .blockDevices.outcomes",
-					value: `- pass:
-    when: ".* == 1"
-    message: One available block device
-- pass:
-    when: ".* > 1"
-    message: Multiple available block devices
-- fail:
-    message: No available block devices`,
-				},
-			},
-		},
-		{
 			name: "join primary",
 			spec: clusterv1beta1.Installer{
 				Spec: clusterv1beta1.InstallerSpec{
@@ -189,25 +122,6 @@ func TestBuiltinExecuteTemplate(t *testing.T) {
 				{
 					query: ".spec.analyzers[] | select(.tcpLoadBalancer != null) | .tcpLoadBalancer.exclude",
 					value: `"true"`,
-				},
-				{
-					query: ".spec.collectors[] | select(.blockDevices != null) | .blockDevices.exclude",
-					value: `"false"`,
-				},
-				{
-					query: ".spec.analyzers[] | select(.blockDevices != null) | .blockDevices.exclude",
-					value: `"false"`,
-				},
-				{
-					query: ".spec.analyzers[] | select(.blockDevices != null) | .blockDevices.outcomes",
-					value: `- pass:
-    when: "vd[b-z] == 1"
-    message: One available block device
-- pass:
-    when: "vd[b-z] > 1"
-    message: Multiple available block devices
-- fail:
-    message: No available block devices`,
 				},
 			},
 		},
@@ -235,26 +149,6 @@ func TestBuiltinExecuteTemplate(t *testing.T) {
 				{
 					query: ".spec.analyzers[] | select(.tcpLoadBalancer != null) | .tcpLoadBalancer.exclude",
 					value: `"true"`,
-				},
-
-				{
-					query: ".spec.collectors[] | select(.blockDevices != null) | .blockDevices.exclude",
-					value: `"false"`,
-				},
-				{
-					query: ".spec.analyzers[] | select(.blockDevices != null) | .blockDevices.exclude",
-					value: `"false"`,
-				},
-				{
-					query: ".spec.analyzers[] | select(.blockDevices != null) | .blockDevices.outcomes",
-					value: `- pass:
-    when: "vd[b-z] == 1"
-    message: One available block device
-- pass:
-    when: "vd[b-z] > 1"
-    message: Multiple available block devices
-- fail:
-    message: No available block devices`,
 				},
 			},
 		},
@@ -284,14 +178,6 @@ func TestBuiltinExecuteTemplate(t *testing.T) {
 					query: ".spec.analyzers[] | select(.tcpLoadBalancer != null) | .tcpLoadBalancer.exclude",
 					value: `"true"`,
 				},
-				{
-					query: ".spec.collectors[] | select(.blockDevices != null) | .blockDevices.exclude",
-					value: `"true"`,
-				},
-				{
-					query: ".spec.analyzers[] | select(.blockDevices != null) | .blockDevices.exclude",
-					value: `"true"`,
-				},
 			},
 		},
 		{
@@ -319,13 +205,34 @@ func TestBuiltinExecuteTemplate(t *testing.T) {
 					query: ".spec.analyzers[] | select(.tcpLoadBalancer != null) | .tcpLoadBalancer.exclude",
 					value: `"true"`,
 				},
+			},
+		},
+		{
+			name: "docker",
+			spec: clusterv1beta1.Installer{
+				Spec: clusterv1beta1.InstallerSpec{
+					Docker: &clusterv1beta1.Docker{
+						Version: "latest",
+					},
+				},
+			},
+			isPrimary: true,
+			want: []jsonquery{
 				{
-					query: ".spec.collectors[] | select(.blockDevices != null) | .blockDevices.exclude",
-					value: `"true"`,
+					query: ".spec.collectors[] | select(.diskUsage != null) | select(.diskUsage.path == \"/var/lib/docker\") | .diskUsage.exclude",
+					value: `"false"`,
 				},
 				{
-					query: ".spec.analyzers[] | select(.blockDevices != null) | .blockDevices.exclude",
-					value: `"true"`,
+					query: ".spec.collectors[] | select(.diskUsage != null) | select(.diskUsage.path == \"/var/lib/docker\") | .diskUsage.path",
+					value: `"/var/lib/docker"`,
+				},
+				{
+					query: ".spec.analyzers[] | select(.diskUsage != null) | select(.diskUsage.checkName == \"Ephemeral Disk Usage /var/lib/docker\")| .diskUsage.exclude",
+					value: `"false"`,
+				},
+				{
+					query: ".spec.analyzers[] | select(.diskUsage != null) | select(.diskUsage.checkName == \"Ephemeral Disk Usage /var/lib/docker\")| .diskUsage.collectorName",
+					value: `"Ephemeral Disk Usage /var/lib/docker"`,
 				},
 			},
 		},
