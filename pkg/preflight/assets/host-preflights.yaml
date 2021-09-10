@@ -16,9 +16,6 @@ spec:
         collectorName: "Ephemeral Disk Usage /var/lib/docker"
         path: /var/lib/docker
         exclude: '{{kurl not .Installer.Spec.Docker.Version}}'
-    - blockDevices:
-        # rook block storage or cstor is enabled and not upgrade
-        exclude: '{{kurl and (or (and .Installer.Spec.Rook.Version .Installer.Spec.Rook.IsBlockStorageEnabled) (and .Installer.Spec.OpenEBS.Version .Installer.Spec.OpenEBS.IsCstorEnabled)) (not .IsUpgrade) | not }}'
     - tcpLoadBalancer:
         collectorName: "Kubernetes API Server Load Balancer"
         port: 6443
@@ -117,8 +114,11 @@ spec:
           - warn:
               when: "used/total > 60%"
               message: The disk containing directory /var/lib/kubelet is more than 60% full
+          - warn:
+              when: "available < 10Gi"
+              message: The disk containing directory /var/lib/kubelet has less than 10Gi of disk space available
           - pass:
-              message: The disk containing directory /var/lib/kubelet has at least 30Gi disk space available
+              message: The disk containing directory /var/lib/kubelet has at least 10Gi of disk space available and is not nearly full
     - diskUsage:
         checkName: "Ephemeral Disk Usage /var/lib/docker"
         collectorName: "Ephemeral Disk Usage /var/lib/docker"
@@ -133,8 +133,11 @@ spec:
           - warn:
               when: "used/total > 60%"
               message: The disk containing directory /var/lib/docker is more than 60% full
+          - warn:
+              when: "available < 10Gi"
+              message: The disk containing directory /var/lib/docker has less than 10Gi of disk space available
           - pass:
-              message: The disk containing directory /var/lib/docker has at least 30Gi disk space available
+              message: The disk containing directory /var/lib/docker has at least 10Gi of disk space available and is not nearly full
     - tcpLoadBalancer:
         checkName: "Kubernetes API Server Load Balancer"
         collectorName: "Kubernetes API Server Load Balancer"
@@ -161,21 +164,6 @@ spec:
               message: Successfully connected to {{kurl .Installer.Spec.Kubernetes.LoadBalancerAddress }} via load balancer
           - warn:
               message: Unexpected port status
-    - blockDevices:
-        # rook block storage or cstor is enabled and not upgrade
-        includeUnmountedPartitions: true
-#        minimumAcceptableSize: 26843545600 # 1024 ^ 3 * 25, 25GiB
-        minimumAcceptableSize: 10737418240 # 1024 ^ 3 * 10, 10GiB
-        exclude: '{{kurl and (or (and .Installer.Spec.Rook.Version .Installer.Spec.Rook.IsBlockStorageEnabled) (and .Installer.Spec.OpenEBS.Version .Installer.Spec.OpenEBS.IsCstorEnabled)) (not .IsUpgrade) | not }}'
-        outcomes:
-          - pass:
-              when: "{{kurl if (and .Installer.Spec.Rook.Version .Installer.Spec.Rook.BlockDeviceFilter) }}{{kurl .Installer.Spec.Rook.BlockDeviceFilter }}{{kurl else }}.*{{kurl end }} == 1"
-              message: One available block device
-          - pass:
-              when: "{{kurl if (and .Installer.Spec.Rook.Version .Installer.Spec.Rook.BlockDeviceFilter) }}{{kurl .Installer.Spec.Rook.BlockDeviceFilter }}{{kurl else }}.*{{kurl end }} > 1"
-              message: Multiple available block devices
-          - fail:
-              message: No available block devices
     - tcpPortStatus:
         checkName: "Kubernetes API TCP Port Status"
         collectorName: "Kubernetes API TCP Port Status"

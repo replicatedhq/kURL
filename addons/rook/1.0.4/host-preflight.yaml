@@ -1,0 +1,45 @@
+apiVersion: troubleshoot.sh/v1beta2
+kind: HostPreflight
+metadata:
+  name: kurl-builtin
+spec:
+  collectors:
+  - blockDevices:
+      exclude: '{{kurl and (and .Installer.Spec.Rook.Version .Installer.Spec.Rook.IsBlockStorageEnabled) (not .IsUpgrade) | not }}'
+
+  - diskUsage:
+      exclude: '{{kurl or (and .Installer.Spec.Rook.Version .Installer.Spec.Rook.IsBlockStorageEnabled) (.IsUpgrade) }}'
+      collectorName: "Ephemeral Disk Usage /opt/replicated/rook"
+      path: /opt/replicated/rook
+
+  analyzers:
+  - blockDevices:
+      includeUnmountedPartitions: true
+      minimumAcceptableSize: 10737418240 # 1024 ^ 3 * 10, 10GiB
+      exclude: '{{kurl and (and .Installer.Spec.Rook.Version .Installer.Spec.Rook.IsBlockStorageEnabled) (not .IsUpgrade) | not }}'
+      outcomes:
+      - pass:
+          when: "{{kurl if (and .Installer.Spec.Rook.Version .Installer.Spec.Rook.BlockDeviceFilter) }}{{kurl .Installer.Spec.Rook.BlockDeviceFilter }}{{kurl else }}.*{{kurl end }} == 1"
+          message: One available block device
+      - pass:
+          when: "{{kurl if (and .Installer.Spec.Rook.Version .Installer.Spec.Rook.BlockDeviceFilter) }}{{kurl .Installer.Spec.Rook.BlockDeviceFilter }}{{kurl else }}.*{{kurl end }} > 1"
+          message: Multiple available block devices
+      - fail:
+          message: No available block devices
+
+  - diskUsage:
+      checkName: "Ephemeral Disk Usage /opt/replicated/rook"
+      collectorName: "Ephemeral Disk Usage /opt/replicated/rook"
+      exclude: '{{kurl or (and .Installer.Spec.Rook.Version .Installer.Spec.Rook.IsBlockStorageEnabled) (.IsUpgrade) }}'
+      outcomes:
+      - fail:
+          when: "available < 10Gi"
+          message: The disk containing directory /opt/replicated/rook has less than 10Gi of available space
+      - fail:
+          when: "used/total > 80%"
+          message: The disk containing directory /opt/replicated/rook is more than 80% full
+      - warn:
+          when: "available < 25Gi"
+          message: The disk containing directory /opt/replicated/rook has less than 25Gi of available space
+      - pass:
+          message: The disk containing directory /opt/replicated/rook has at least 25Gi disk space available
