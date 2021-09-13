@@ -372,6 +372,7 @@ export interface EkcoConfig {
   shouldDisableClearNodes?: boolean;
   shouldEnablePurgeNodes?: boolean;
   rookShouldUseAllNodes?: boolean;
+  podImageOverrides?: Array<string>;
 }
 
 export const ekcoConfigSchema = {
@@ -386,6 +387,7 @@ export const ekcoConfigSchema = {
     shouldDisableClearNodes: { type: "boolean", description: "Do not watch for unreachable nodes and force delete pods on them stuck in the terminating state" },
     shouldEnablePurgeNodes: { type: "boolean", description: "Watch for unreachable nodes and automatically remove them from the cluster" },
     rookShouldUseAllNodes: { type: "boolean", flag: "ekco-rook-should-use-all-nodes" , description: "This will disable management of nodes in the CephCluster resource. If false, ekco will add nodes to the storage list and remove them when a node is purged" },
+    podImageOverrides: { type: "array", items: { type: "string" }, flag: "pod-image-overrides", description: "Switch images in a pod when created" },
   },
   required: ["version"],
   // additionalProperties: false,
