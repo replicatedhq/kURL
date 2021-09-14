@@ -32,6 +32,7 @@ interface FilepathContentsMap {
 interface BundleManifest {
   layers: string[];
   files: FilepathContentsMap;
+  images: string[];
 }
 
 @Controller("/bundle")
@@ -88,8 +89,16 @@ export class Bundle {
 
     response.type("application/json");
 
-    const ret: BundleManifest = {layers: [], files: {}};
+    const ret: BundleManifest = {layers: [], files: {}, images: []};
     ret.layers = (await installer.packages(kurlVersion)).map((pkg) => getPackageUrl(this.distURL, kurlVersion, `${pkg}.tar.gz`));
+
+    ret.images = _.map(_.get(installer.spec, "ekco.podImageOverrides"), (override: string) => {
+      const parts = _.split(override, "=");
+      if (parts.length == 2) {
+        return parts[1];
+      }
+      return "";
+    });
 
     const kotsadmApplicationSlug = _.get(installer.spec, "kotsadm.applicationSlug");
     if (kotsadmApplicationSlug) {
