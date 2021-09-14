@@ -27,6 +27,7 @@ import (
 	"github.com/containers/image/v5/types"
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
+	"golang.org/x/net/publicsuffix"
 )
 
 const upstream = "http://localhost:3000"
@@ -151,6 +152,14 @@ func bundle(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	for _, image := range bundle.Images {
+		if !allowRegistry(image) {
+			err := errors.Errorf("Unsupported image registry %s", image)
+			handleHttpError(w, r, err, http.StatusUnprocessableEntity)
+			return
+		}
+	}
+
 	w.Header().Set("Content-Type", "binary/octet-stream")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Content-Disposition", "attachment")
@@ -218,6 +227,12 @@ func bundle(w http.ResponseWriter, r *http.Request) {
 		}
 		srcCtx := &types.SystemContext{
 			DockerDisableV1Ping: true,
+			AuthFilePath:        "/dev/null",
+			DockerAuthConfig: &types.DockerAuthConfig{
+				Username:      "x",
+				Password:      "x",
+				IdentityToken: "x",
+			},
 		}
 		_, err = copy.Image(r.Context(), policyContext, localRef, srcRef, &copy.Options{
 			RemoveSignatures:      true,
@@ -327,4 +342,20 @@ func handleHttpError(w http.ResponseWriter, r *http.Request, err error, code int
 func handleError(ctx context.Context, err error) {
 	log.Println(err)
 	bugsnag.Notify(err, ctx)
+}
+
+func allowRegistry(image string) bool {
+	parsed, err := url.Parse(fmt.Sprintf("https://%s", image))
+	if err != nil {
+		return false
+	}
+
+	host, _ := publicsuffix.EffectiveTLDPlusOne(parsed.Hostname())
+
+	switch host {
+	case "docker.io", "gcr.io", "ghcr.io", "azurecr.io", "ttl.sh", "ecr.us-east-1.amazonaws.com":
+		return true
+	}
+
+	return false
 }
