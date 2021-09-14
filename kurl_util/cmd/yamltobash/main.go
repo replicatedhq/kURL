@@ -180,6 +180,7 @@ func convertToBash(kurlValues map[string]interface{}, fieldsSet map[string]bool)
 		"Ekco.Version":                           "EKCO_VERSION",
 		"Ekco.AutoUpgradeSchedule":               "EKCO_AUTO_UPGRADE_SCHEDULE",
 		"Ekco.EnableInternalLoadBalancer":        "EKCO_ENABLE_INTERNAL_LOAD_BALANCER",
+		"Ekco.PodImageOverrides":                 "EKCO_POD_IMAGE_OVERRIDES",
 		"FirewalldConfig.BypassFirewalldWarning": "BYPASS_FIREWALLD_WARNING",
 		"FirewalldConfig.DisableFirewalld":       "DISABLE_FIREWALLD",
 		"FirewalldConfig.HardFailOnFirewalld":    "HARD_FAIL_ON_FIREWALLD",

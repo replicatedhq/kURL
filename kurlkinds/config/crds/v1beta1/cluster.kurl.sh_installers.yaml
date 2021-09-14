@@ -138,6 +138,10 @@ spec:
                     type: integer
                   nodeUnreachableToleration:
                     type: string
+                  podImageOverrides:
+                    items:
+                      type: string
+                    type: array
                   rookShouldUseAllNodes:
                     type: boolean
                   s3Override:
