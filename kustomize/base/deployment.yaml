@@ -23,6 +23,9 @@ spec:
                   values:
                   - kurl
               topologyKey: "kubernetes.io/hostname"
+      volumes:
+      - name: images
+        emptyDir: {}
       containers:
       - name: server
         image: replicated/kurl
@@ -36,6 +39,9 @@ spec:
             cpu: 100m
           limits:
             cpu: 2
+        volumeMounts:
+        - name: images
+          mountPath: "/images"
       - name: kurl
         image: replicated/kurl
         imagePullPolicy: IfNotPresent
