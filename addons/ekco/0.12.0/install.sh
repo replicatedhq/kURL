@@ -58,6 +58,7 @@ function ekco() {
     # Wait for the pod image override mutating webhook to be created so when other add-ons are
     # installed they will get their overridden image
     if [ -n "$EKCO_POD_IMAGE_OVERRIDES" ]; then
+        ekco_load_images
         echo "Waiting up to 5 minutes for pod-image-overrides mutating webhook config to be created"
         if ! spinner_until 300 kubernetes_resource_exists kurl mutatingwebhookconfigurations pod-image-overrides.kurl.sh; then
             bail "EKCO failed to deploy the pod-image-overrides.kurl.sh mutating webhook configuration"
@@ -84,6 +85,8 @@ function ekco_join() {
     if [ "$EKCO_ENABLE_INTERNAL_LOAD_BALANCER" = "1" ]; then
         ekco_bootstrap_internal_lb
     fi
+
+    ekco_load_images
 }
 
 function ekco_already_applied() {
@@ -359,4 +362,16 @@ function ekco_create_deployment() {
 
     # delete pod to re-read the config map
     kubectl -n kurl delete pod -l app=ekc-operator 2>/dev/null || true
+}
+
+function ekco_load_images() {
+    if [ -z "$EKCO_POD_IMAGE_OVERRIDES" ] || [ "$AIRGAP" != "1" ]; then
+        return 0
+    fi
+
+    if [ -n "$DOCKER_VERSION" ]; then
+        find "$DIR/image-overrides" -type f | xargs -I {} bash -c "docker load < {}"
+    else
+        find "$DIR/image-overrides" -type f | xargs -I {} bash -c "cat {} | ctr -a $(${K8S_DISTRO}_get_containerd_sock) -n=k8s.io images import -"
+    fi
 }

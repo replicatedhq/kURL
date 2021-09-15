@@ -14,13 +14,20 @@ import (
 	"net/http/httputil"
 	"net/url"
 	"os"
+	"path"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"time"
 
 	"github.com/bugsnag/bugsnag-go/v2"
+	"github.com/containers/image/v5/copy"
+	"github.com/containers/image/v5/signature"
+	"github.com/containers/image/v5/transports/alltransports"
+	"github.com/containers/image/v5/types"
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
+	"golang.org/x/net/publicsuffix"
 )
 
 const upstream = "http://localhost:3000"
@@ -59,7 +66,12 @@ func main() {
 type BundleManifest struct {
 	Layers []string          `json:"layers"`
 	Files  map[string]string `json:"files"`
+	Images []string          `json:"images"`
 }
+
+var imagePolicy = []byte(`{
+	"default": [{"type": "insecureAcceptAnything"}]
+}`)
 
 func bundle(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "OPTIONS" {
@@ -140,6 +152,14 @@ func bundle(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	for _, image := range bundle.Images {
+		if !allowRegistry(image) {
+			err := errors.Errorf("Unsupported image registry %s", image)
+			handleHttpError(w, r, err, http.StatusUnprocessableEntity)
+			return
+		}
+	}
+
 	w.Header().Set("Content-Type", "binary/octet-stream")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Content-Disposition", "attachment")
@@ -164,6 +184,97 @@ func bundle(w http.ResponseWriter, r *http.Request) {
 			handleError(r.Context(), err)
 		}
 	}()
+
+	for i, image := range bundle.Images {
+		srcRef, err := alltransports.ParseImageName(fmt.Sprintf("docker://%s", image))
+		if err != nil {
+			err = errors.Wrapf(err, "error parsing override image %q: %v", image, err)
+			handleHttpError(w, r, err, http.StatusInternalServerError)
+			return
+		}
+
+		tempDir, err := ioutil.TempDir("/images", "temp-image-pull")
+		if err != nil {
+			err = errors.Wrap(err, "error creating temp directory")
+			handleHttpError(w, r, err, http.StatusInternalServerError)
+			return
+		}
+		defer os.RemoveAll(tempDir)
+
+		destPath := path.Join(tempDir, "temp-archive-image")
+		destStr := fmt.Sprintf("docker-archive:%s:%s", destPath, image)
+		localRef, err := alltransports.ParseImageName(destStr)
+		if err != nil {
+			err = errors.Wrapf(err, "failed to parse local image name: %s", destStr)
+			handleHttpError(w, r, err, http.StatusInternalServerError)
+			return
+		}
+
+		policy, err := signature.NewPolicyFromBytes(imagePolicy)
+		if err != nil {
+			err = errors.Wrap(err, "failed to read default image policy")
+			handleHttpError(w, r, err, http.StatusInternalServerError)
+			return
+		}
+		policyContext, err := signature.NewPolicyContext(policy)
+		if err != nil {
+			err = errors.Wrap(err, "failed to create image policy context")
+			handleHttpError(w, r, err, http.StatusInternalServerError)
+			return
+		}
+		destCtx := &types.SystemContext{
+			DockerDisableV1Ping: true,
+		}
+		srcCtx := &types.SystemContext{
+			DockerDisableV1Ping: true,
+			AuthFilePath:        "/dev/null",
+			DockerAuthConfig: &types.DockerAuthConfig{
+				Username:      "",
+				Password:      "",
+				IdentityToken: "",
+			},
+		}
+		_, err = copy.Image(r.Context(), policyContext, localRef, srcRef, &copy.Options{
+			RemoveSignatures:      true,
+			SignBy:                "",
+			ForceManifestMIMEType: "",
+			DestinationCtx:        destCtx,
+			SourceCtx:             srcCtx,
+		})
+		if err != nil {
+			err = errors.Wrapf(err, "failed to save docker image archive of %s", image)
+			handleHttpError(w, r, err, http.StatusInternalServerError)
+			return
+		}
+
+		f, err := os.Open(destPath)
+		if err != nil {
+			err = errors.Wrap(err, "failed to open override image archive")
+			handleHttpError(w, r, err, http.StatusInternalServerError)
+			return
+		}
+		fi, err := f.Stat()
+		if err != nil {
+			handleHttpError(w, r, err, http.StatusInternalServerError)
+			return
+		}
+
+		header := &tar.Header{
+			Name:    fmt.Sprintf("kurl/image-overrides/%d.tar", i),
+			Size:    fi.Size(),
+			Mode:    0644,
+			ModTime: time.Now(),
+		}
+		archive.WriteHeader(header)
+		_, err = io.Copy(archive, f)
+		if err != nil {
+			err = errors.Wrapf(err, "copy file %s contents", header.Name)
+			handleHttpError(w, r, err, http.StatusInternalServerError)
+			return
+		}
+		os.RemoveAll(tempDir)
+		runtime.GC()
+	}
 
 	for _, layerURL := range bundle.Layers {
 		if err := pipe(archive, layerURL); err != nil {
@@ -231,4 +342,20 @@ func handleHttpError(w http.ResponseWriter, r *http.Request, err error, code int
 func handleError(ctx context.Context, err error) {
 	log.Println(err)
 	bugsnag.Notify(err, ctx)
+}
+
+func allowRegistry(image string) bool {
+	parsed, err := url.Parse(fmt.Sprintf("https://%s", image))
+	if err != nil {
+		return false
+	}
+
+	host, _ := publicsuffix.EffectiveTLDPlusOne(parsed.Hostname())
+
+	switch host {
+	case "docker.io", "gcr.io", "ghcr.io", "azurecr.io", "ttl.sh", "ecr.us-east-1.amazonaws.com":
+		return true
+	}
+
+	return false
 }
