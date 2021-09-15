@@ -260,7 +260,7 @@ func bundle(w http.ResponseWriter, r *http.Request) {
 		}
 
 		header := &tar.Header{
-			Name:    fmt.Sprintf("image-overrides/%d.tar", i),
+			Name:    fmt.Sprintf("kurl/image-overrides/%d.tar", i),
 			Size:    fi.Size(),
 			Mode:    0644,
 			ModTime: time.Now(),

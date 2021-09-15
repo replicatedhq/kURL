@@ -365,13 +365,13 @@ function ekco_create_deployment() {
 }
 
 function ekco_load_images() {
-    if [ -n "$EKCO_POD_IMAGE_OVERRIDES" ] || [ "$AIRGAP" != "1" ]; then
+    if [ -z "$EKCO_POD_IMAGE_OVERRIDES" ] || [ "$AIRGAP" != "1" ]; then
         return 0
     fi
 
     if [ -n "$DOCKER_VERSION" ]; then
-        find "$1" -type f | xargs -I {} bash -c "docker load < {}"
+        find "$DIR/image-overrides" -type f | xargs -I {} bash -c "docker load < {}"
     else
-        find "$1" -type f | xargs -I {} bash -c "cat {} | ctr -a $(${K8S_DISTRO}_get_containerd_sock) -n=k8s.io images import -"
+        find "$DIR/image-overrides" -type f | xargs -I {} bash -c "cat {} | ctr -a $(${K8S_DISTRO}_get_containerd_sock) -n=k8s.io images import -"
     fi
 }
