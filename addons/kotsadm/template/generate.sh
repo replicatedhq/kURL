@@ -56,7 +56,7 @@ function main() {
             ;;
         *"nightly"*)
             echo "generating nightly version"
-            generate "nightly" "nightly" "v0.0.0-nightly"
+            generate "v0.0.0-nightly" "nightly" "v0.0.0-nightly"
             ;;
         *)
             # Check for a new release, if so make it latest in the web and also create a new alpha
@@ -65,7 +65,7 @@ function main() {
                 echo "generating alpha version"
                 generate "alpha" "alpha" "v$KOTSADM_VERSION"
                 echo "generating nightly version"
-                generate "nightly" "nightly" "v0.0.0-nightly"
+                generate "v0.0.0-nightly" "nightly" "v0.0.0-nightly"
             fi
 
             echo "generating v$KOTSADM_VERSION version"
