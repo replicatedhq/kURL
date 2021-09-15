@@ -20,6 +20,7 @@ resource "metal_device" "device" {
   operating_system = var.tg_os
   plan             = var.instance_type
   user_data        = file("tg-script.sh")
+  hardware_reservation_id = length(var.reservation_ids) > count.index ? var.reservation_ids[count.index] : ""
 }
 
 output "device_ids" {

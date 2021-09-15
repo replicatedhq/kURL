@@ -22,6 +22,12 @@ variable "device_count" {
   description = "Number of devices to provision"
 }
 
+variable "reservation_ids" {
+  type        = list(string)
+  default     = ["860b9195-f454-45d5-8dd0-c24bcb2c4c1f", "021b3a89-6036-494b-a471-206dccb9c685"]
+  description = "The ids of hardware reservation which the devices occupy"
+}
+
 variable "tg_hostname" {
   type    = string
   default = "testgrid-instance"
