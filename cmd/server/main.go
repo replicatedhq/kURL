@@ -229,9 +229,9 @@ func bundle(w http.ResponseWriter, r *http.Request) {
 			DockerDisableV1Ping: true,
 			AuthFilePath:        "/dev/null",
 			DockerAuthConfig: &types.DockerAuthConfig{
-				Username:      "x",
-				Password:      "x",
-				IdentityToken: "x",
+				Username:      "",
+				Password:      "",
+				IdentityToken: "",
 			},
 		}
 		_, err = copy.Image(r.Context(), policyContext, localRef, srcRef, &copy.Options{
