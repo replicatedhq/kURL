@@ -69,10 +69,15 @@ fs.readdir(specDir, (err, files) => {
         }
       });
 
-      // Sorting doesn't work if there is an 'alpha' version (like in kotsadm) so we have to remove it before sorting
+      // Sorting doesn't work if there is an 'alpha' and 'nightly' version (like in kotsadm) so we have to remove it before sorting
       // This is pretty specific to kotsadm so if more add-ons end up with alpha versions we may need to refactor this to support them
       const hasAlphaVersion = sv.includes("alpha");
+      const hasNightlyVersion = sv.includes("nightly");
+
       if (hasAlphaVersion) {
+        sv.pop();
+      }
+      if (hasNightlyVersion) {
         sv.pop();
       }
 
@@ -80,6 +85,10 @@ fs.readdir(specDir, (err, files) => {
       if (hasAlphaVersion) {
         sv.push("alpha");
       }
+      if (hasNightlyVersion) {
+        sv.push("nightly");
+      }
+
       if (preferredVersions[file]) {
         sv = preferredVersions[file];
       }
