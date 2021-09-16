@@ -54,12 +54,18 @@ function main() {
             echo "generating beta version"
             generate "alpha" "alpha" "v$KOTSADM_VERSION"
             ;;
+        *"nightly"*)
+            echo "generating nightly version"
+            generate "v0.0.0-nightly" "nightly" "v0.0.0-nightly"
+            ;;
         *)
             # Check for a new release, if so make it latest in the web and also create a new alpha
             if [ ! -d "../$KOTSADM_VERSION" ]; then
                 add_as_latest "$KOTSADM_VERSION"
                 echo "generating alpha version"
                 generate "alpha" "alpha" "v$KOTSADM_VERSION"
+                echo "generating nightly version"
+                generate "v0.0.0-nightly" "nightly" "v0.0.0-nightly"
             fi
 
             echo "generating v$KOTSADM_VERSION version"

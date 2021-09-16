@@ -226,6 +226,7 @@ module.exports.InstallerVersions = {
     "0.9.10",
     "0.9.9",
     "alpha",
+    "nightly",
   ],
   velero: [
     // cron-velero-update
