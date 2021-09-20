@@ -422,6 +422,12 @@ function host_preflights() {
         opts="${opts} --secondary-host=${SECONDARY_HOST}"
     fi
 
+    # Merge Host-Preflights
+
+    logStep "Merging hostpreflights"
+    echo $HOST_PREFLIGHTS
+    echo 'Merge some preflights'
+    
     logStep "Running host preflights"
     if [ "${PREFLIGHT_IGNORE}" = "1" ]; then
         "${DIR}"/bin/kurl host preflight "${MERGED_YAML_SPEC}" ${opts} | tee "${out_file}"

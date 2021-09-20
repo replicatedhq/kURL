@@ -399,6 +399,7 @@ export interface KurlConfig {
   hostnameCheck?: string;
   ignoreRemoteLoadImagesPrompt?: boolean;
   ignoreRemoteUpgradePrompt?: boolean;
+  hostPreflights?: object;
   licenseURL?: string;
   nameserver?: string;
   noProxy?: string;
@@ -419,6 +420,7 @@ export const kurlConfigSchema = {
     additionalNoProxyAddresses: { type: "array", items: { type: "string" }, description: "Addresses that can be reached without a proxy" },
     airgap: { type: "boolean", flag: "airgap", description: "Indicates if this install is an airgap install" },
     hostnameCheck: { type: "string", flag: "hostname-check" , description: "Used as a check during an upgrade to ensure the script will run only on the given hostname" },
+    hostPreflights: { type: "object", description: "Used to add additional host preflight checks."},
     ignoreRemoteLoadImagesPrompt: { type: "boolean", flag: "ignore-remote-load-images-prompt" , description: "Bypass prompt to load images on remotes. This is useful for automating upgrades." },
     ignoreRemoteUpgradePrompt: { type: "boolean", flag: "ignore-remote-upgrade-prompt" , description: "Bypass prompt to upgrade remotes. This is useful for automating upgrades." },
     licenseURL: { type: "string", description: "A URL to a licensing agreement that will presented during installation and needs to be accepted or the install will exit." },
