@@ -129,7 +129,6 @@ jobs:
     - build-upload-packages
     steps:
     - uses: actions/checkout@v2
-
     - name: kustomize
       run: |
         export VERSION_TAG=$(echo $GITHUB_REF | awk -F'/' '{ print $NF }')
@@ -204,6 +203,7 @@ jobs:
         path: ./CHANGELOG.md
 
     - name: GitHub Release
+      id: create_release
       uses: actions/create-release@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -214,6 +214,30 @@ jobs:
         body: ${{ steps.read-changelog.outputs.content }}
         draft: false
         prerelease: false
+
+
+    - name: Get Cosign Key
+      run: | 
+        echo $COSIGN_KEY | base64 -d > ./cosign.key
+      env:
+        COSIGN_KEY: ${{secrets.COSIGN_KEY}}
+
+    - uses: sigstore/cosign-installer@main
+      with:
+        cosign-release: 'v1.2.1'
+
+    - name: Generate SBOM
+      run: |
+        make sbom
+      env:
+        COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
+        COSIGN_KEY: ${{ secrets.COSIGN_KEY }}
+
+    - uses: shogo82148/actions-upload-release-asset@v1
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: sbom/assets/*
+
 
   testgrid-run:
     runs-on: ubuntu-18.04
