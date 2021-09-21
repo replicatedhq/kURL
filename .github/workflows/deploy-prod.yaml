@@ -222,6 +222,10 @@ jobs:
       env:
         COSIGN_KEY: ${{secrets.COSIGN_KEY}}
 
+    - uses: sigstore/cosign-installer@main
+      with:
+        cosign-release: 'v1.2.1'
+
     - name: Generate SBOM
       run: |
         make sbom

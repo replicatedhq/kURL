@@ -15,7 +15,7 @@ jobs:
 
       - name: Get Cosign Key
         run: |
-          echo @COSIGN_KEY | base64 -d > ./cosign.key
+          echo $COSIGN_KEY | base64 -d > ./cosign.key
         env:
           COSIGN_KEY: ${{secrets.COSIGN_KEY}}
 
