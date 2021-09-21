@@ -18,6 +18,7 @@ require (
 	github.com/foomo/htpasswd v0.0.0-20200116085101-e3a90e78da9c
 	github.com/go-ini/ini v1.62.0 // indirect
 	github.com/go-logr/zapr v0.4.0 // indirect
+	github.com/gobuffalo/flect v0.2.3 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/mock v1.6.0
 	github.com/google/go-cmp v0.5.6 // indirect
@@ -64,7 +65,7 @@ require (
 	k8s.io/kube-openapi v0.0.0-20210527164424-3c818078ee3d // indirect
 	k8s.io/utils v0.0.0-20210527160623-6fdb442a123b // indirect
 	sigs.k8s.io/controller-runtime v0.9.5
-	sigs.k8s.io/controller-tools v0.6.2 // indirect
+	sigs.k8s.io/controller-tools v0.3.0 // indirect
 )
 
 replace (

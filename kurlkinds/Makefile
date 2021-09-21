@@ -49,6 +49,7 @@ client-gen:
 manifests:
 	controller-gen \
 		rbac:roleName=manager-role webhook crd output:crd:artifacts:config=config/crds/v1beta1 paths=./pkg/apis/...
+	sed -i 's/BoolString/{"oneOf": [{"type": "string"},{"type": "boolean"}]}/' config/crds/v1beta1/cluster.kurl.sh_installers.yaml
 
 test-crd:
 	kubectl apply -f config/crds/v1beta1/cluster.kurl.sh_installers.yaml
@@ -58,7 +59,7 @@ test-crd:
 
 # get/update controller-gen
 update-controller-gen:
-	go get sigs.k8s.io/controller-tools/cmd/controller-gen@v0.6.2
+	go get sigs.k8s.io/controller-tools/cmd/controller-gen@v0.3.0
 
 # get/update client-gen
 update-client-gen:
