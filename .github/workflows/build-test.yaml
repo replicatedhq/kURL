@@ -9,7 +9,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - uses: sigstore/cosign-installer@v1
+      - uses: sigstore/cosign-installer@main
+        with:
+          cosign-release: 'v1.2.1'
 
       - name: Get Cosign Key
         run: |
