@@ -321,7 +321,7 @@ spec:
                                       consumes the inner type.  This allows you to
                                       have, for example, a JSON field that can accept
                                       a booolean string or raw bool.
-                                    type: {"oneOf": [{"type": "string"},{"type": "boolean"}]}
+                                    oneOf: [{"type": "string"},{"type": "boolean"}]
                                   includeUnmountedPartitions:
                                     type: boolean
                                   minimumAcceptableSize:
@@ -377,7 +377,7 @@ spec:
                                       consumes the inner type.  This allows you to
                                       have, for example, a JSON field that can accept
                                       a booolean string or raw bool.
-                                    type: {"oneOf": [{"type": "string"},{"type": "boolean"}]}
+                                    oneOf: [{"type": "string"},{"type": "boolean"}]
                                   outcomes:
                                     items:
                                       properties:
@@ -424,7 +424,7 @@ spec:
                                       consumes the inner type.  This allows you to
                                       have, for example, a JSON field that can accept
                                       a booolean string or raw bool.
-                                    type: {"oneOf": [{"type": "string"},{"type": "boolean"}]}
+                                    oneOf: [{"type": "string"},{"type": "boolean"}]
                                   outcomes:
                                     items:
                                       properties:
@@ -473,7 +473,7 @@ spec:
                                       consumes the inner type.  This allows you to
                                       have, for example, a JSON field that can accept
                                       a booolean string or raw bool.
-                                    type: {"oneOf": [{"type": "string"},{"type": "boolean"}]}
+                                    oneOf: [{"type": "string"},{"type": "boolean"}]
                                   outcomes:
                                     items:
                                       properties:
@@ -522,7 +522,7 @@ spec:
                                       consumes the inner type.  This allows you to
                                       have, for example, a JSON field that can accept
                                       a booolean string or raw bool.
-                                    type: {"oneOf": [{"type": "string"},{"type": "boolean"}]}
+                                    oneOf: [{"type": "string"},{"type": "boolean"}]
                                   outcomes:
                                     items:
                                       properties:
@@ -569,7 +569,7 @@ spec:
                                       consumes the inner type.  This allows you to
                                       have, for example, a JSON field that can accept
                                       a booolean string or raw bool.
-                                    type: {"oneOf": [{"type": "string"},{"type": "boolean"}]}
+                                    oneOf: [{"type": "string"},{"type": "boolean"}]
                                   outcomes:
                                     items:
                                       properties:
@@ -618,7 +618,7 @@ spec:
                                       consumes the inner type.  This allows you to
                                       have, for example, a JSON field that can accept
                                       a booolean string or raw bool.
-                                    type: {"oneOf": [{"type": "string"},{"type": "boolean"}]}
+                                    oneOf: [{"type": "string"},{"type": "boolean"}]
                                   outcomes:
                                     items:
                                       properties:
@@ -667,7 +667,7 @@ spec:
                                       consumes the inner type.  This allows you to
                                       have, for example, a JSON field that can accept
                                       a booolean string or raw bool.
-                                    type: {"oneOf": [{"type": "string"},{"type": "boolean"}]}
+                                    oneOf: [{"type": "string"},{"type": "boolean"}]
                                   outcomes:
                                     items:
                                       properties:
@@ -714,7 +714,7 @@ spec:
                                       consumes the inner type.  This allows you to
                                       have, for example, a JSON field that can accept
                                       a booolean string or raw bool.
-                                    type: {"oneOf": [{"type": "string"},{"type": "boolean"}]}
+                                    oneOf: [{"type": "string"},{"type": "boolean"}]
                                   outcomes:
                                     items:
                                       properties:
@@ -761,7 +761,7 @@ spec:
                                       consumes the inner type.  This allows you to
                                       have, for example, a JSON field that can accept
                                       a booolean string or raw bool.
-                                    type: {"oneOf": [{"type": "string"},{"type": "boolean"}]}
+                                    oneOf: [{"type": "string"},{"type": "boolean"}]
                                   outcomes:
                                     items:
                                       properties:
@@ -810,7 +810,7 @@ spec:
                                       consumes the inner type.  This allows you to
                                       have, for example, a JSON field that can accept
                                       a booolean string or raw bool.
-                                    type: {"oneOf": [{"type": "string"},{"type": "boolean"}]}
+                                    oneOf: [{"type": "string"},{"type": "boolean"}]
                                   outcomes:
                                     items:
                                       properties:
@@ -859,7 +859,7 @@ spec:
                                       consumes the inner type.  This allows you to
                                       have, for example, a JSON field that can accept
                                       a booolean string or raw bool.
-                                    type: {"oneOf": [{"type": "string"},{"type": "boolean"}]}
+                                    oneOf: [{"type": "string"},{"type": "boolean"}]
                                   outcomes:
                                     items:
                                       properties:
@@ -908,7 +908,7 @@ spec:
                                       consumes the inner type.  This allows you to
                                       have, for example, a JSON field that can accept
                                       a booolean string or raw bool.
-                                    type: {"oneOf": [{"type": "string"},{"type": "boolean"}]}
+                                    oneOf: [{"type": "string"},{"type": "boolean"}]
                                   outcomes:
                                     items:
                                       properties:
@@ -955,7 +955,7 @@ spec:
                                       consumes the inner type.  This allows you to
                                       have, for example, a JSON field that can accept
                                       a booolean string or raw bool.
-                                    type: {"oneOf": [{"type": "string"},{"type": "boolean"}]}
+                                    oneOf: [{"type": "string"},{"type": "boolean"}]
                                   outcomes:
                                     items:
                                       properties:
@@ -1007,7 +1007,7 @@ spec:
                                       consumes the inner type.  This allows you to
                                       have, for example, a JSON field that can accept
                                       a booolean string or raw bool.
-                                    type: {"oneOf": [{"type": "string"},{"type": "boolean"}]}
+                                    oneOf: [{"type": "string"},{"type": "boolean"}]
                                 type: object
                               certificate:
                                 properties:
@@ -1022,7 +1022,7 @@ spec:
                                       consumes the inner type.  This allows you to
                                       have, for example, a JSON field that can accept
                                       a booolean string or raw bool.
-                                    type: {"oneOf": [{"type": "string"},{"type": "boolean"}]}
+                                    oneOf: [{"type": "string"},{"type": "boolean"}]
                                   keyPath:
                                     type: string
                                 required:
@@ -1040,7 +1040,7 @@ spec:
                                       consumes the inner type.  This allows you to
                                       have, for example, a JSON field that can accept
                                       a booolean string or raw bool.
-                                    type: {"oneOf": [{"type": "string"},{"type": "boolean"}]}
+                                    oneOf: [{"type": "string"},{"type": "boolean"}]
                                 type: object
                               diskUsage:
                                 properties:
@@ -1053,7 +1053,7 @@ spec:
                                       consumes the inner type.  This allows you to
                                       have, for example, a JSON field that can accept
                                       a booolean string or raw bool.
-                                    type: {"oneOf": [{"type": "string"},{"type": "boolean"}]}
+                                    oneOf: [{"type": "string"},{"type": "boolean"}]
                                   path:
                                     type: string
                                 required:
@@ -1118,7 +1118,7 @@ spec:
                                       consumes the inner type.  This allows you to
                                       have, for example, a JSON field that can accept
                                       a booolean string or raw bool.
-                                    type: {"oneOf": [{"type": "string"},{"type": "boolean"}]}
+                                    oneOf: [{"type": "string"},{"type": "boolean"}]
                                   fileSize:
                                     description: The size of the file used in the
                                       benchmark. The number of IO operations for the
@@ -1161,7 +1161,7 @@ spec:
                                       consumes the inner type.  This allows you to
                                       have, for example, a JSON field that can accept
                                       a booolean string or raw bool.
-                                    type: {"oneOf": [{"type": "string"},{"type": "boolean"}]}
+                                    oneOf: [{"type": "string"},{"type": "boolean"}]
                                 type: object
                               http:
                                 properties:
@@ -1174,7 +1174,7 @@ spec:
                                       consumes the inner type.  This allows you to
                                       have, for example, a JSON field that can accept
                                       a booolean string or raw bool.
-                                    type: {"oneOf": [{"type": "string"},{"type": "boolean"}]}
+                                    oneOf: [{"type": "string"},{"type": "boolean"}]
                                   get:
                                     properties:
                                       headers:
@@ -1232,7 +1232,7 @@ spec:
                                       consumes the inner type.  This allows you to
                                       have, for example, a JSON field that can accept
                                       a booolean string or raw bool.
-                                    type: {"oneOf": [{"type": "string"},{"type": "boolean"}]}
+                                    oneOf: [{"type": "string"},{"type": "boolean"}]
                                   path:
                                     type: string
                                   port:
@@ -1255,7 +1255,7 @@ spec:
                                       consumes the inner type.  This allows you to
                                       have, for example, a JSON field that can accept
                                       a booolean string or raw bool.
-                                    type: {"oneOf": [{"type": "string"},{"type": "boolean"}]}
+                                    oneOf: [{"type": "string"},{"type": "boolean"}]
                                 type: object
                               kubernetes:
                                 properties:
@@ -1268,7 +1268,7 @@ spec:
                                       consumes the inner type.  This allows you to
                                       have, for example, a JSON field that can accept
                                       a booolean string or raw bool.
-                                    type: {"oneOf": [{"type": "string"},{"type": "boolean"}]}
+                                    oneOf: [{"type": "string"},{"type": "boolean"}]
                                 type: object
                               memory:
                                 properties:
@@ -1281,7 +1281,7 @@ spec:
                                       consumes the inner type.  This allows you to
                                       have, for example, a JSON field that can accept
                                       a booolean string or raw bool.
-                                    type: {"oneOf": [{"type": "string"},{"type": "boolean"}]}
+                                    oneOf: [{"type": "string"},{"type": "boolean"}]
                                 type: object
                               tcpConnect:
                                 properties:
@@ -1296,7 +1296,7 @@ spec:
                                       consumes the inner type.  This allows you to
                                       have, for example, a JSON field that can accept
                                       a booolean string or raw bool.
-                                    type: {"oneOf": [{"type": "string"},{"type": "boolean"}]}
+                                    oneOf: [{"type": "string"},{"type": "boolean"}]
                                   timeout:
                                     type: string
                                 required:
@@ -1315,7 +1315,7 @@ spec:
                                       consumes the inner type.  This allows you to
                                       have, for example, a JSON field that can accept
                                       a booolean string or raw bool.
-                                    type: {"oneOf": [{"type": "string"},{"type": "boolean"}]}
+                                    oneOf: [{"type": "string"},{"type": "boolean"}]
                                   port:
                                     type: integer
                                   timeout:
@@ -1335,7 +1335,7 @@ spec:
                                       consumes the inner type.  This allows you to
                                       have, for example, a JSON field that can accept
                                       a booolean string or raw bool.
-                                    type: {"oneOf": [{"type": "string"},{"type": "boolean"}]}
+                                    oneOf: [{"type": "string"},{"type": "boolean"}]
                                   interface:
                                     type: string
                                   port:
@@ -1354,7 +1354,7 @@ spec:
                                       consumes the inner type.  This allows you to
                                       have, for example, a JSON field that can accept
                                       a booolean string or raw bool.
-                                    type: {"oneOf": [{"type": "string"},{"type": "boolean"}]}
+                                    oneOf: [{"type": "string"},{"type": "boolean"}]
                                 type: object
                             type: object
                           type: array
