@@ -19,7 +19,7 @@ spec:
     spec:
       containers:
       - name: proxy
-        image: kotsadm/kurl-proxy:v2021.9.20-nightly
+        image: kotsadm/kurl-proxy:v2021.9.21-nightly
         imagePullPolicy: IfNotPresent
         env:
         - name: NODE_PORT
