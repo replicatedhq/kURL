@@ -17,6 +17,7 @@ limitations under the License.
 package v1beta1
 
 import (
+	_ "github.com/replicatedhq/troubleshoot/pkg/apis" // runs the init addon for troubleshoot schema
 	troubleshootv1beta2 "github.com/replicatedhq/troubleshoot/pkg/apis/troubleshoot/v1beta2"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
