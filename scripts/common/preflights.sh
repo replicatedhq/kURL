@@ -421,6 +421,10 @@ function host_preflights() {
     if [ -n "$SECONDARY_HOST" ]; then
         opts="${opts} --secondary-host=${SECONDARY_HOST}"
     fi
+    # Merge Host-Preflights
+    logStep "JALAJA Merging hostpreflights"
+    echo $HOST_PREFLIGHTS
+    echo 'Merge some preflights'
 
     logStep "Running host preflights"
     if [ "${PREFLIGHT_IGNORE}" = "1" ]; then
