@@ -1,5 +1,5 @@
 image kotsadm-migrations docker.io/kotsadm/kotsadm-migrations:v1.51.0
-image kotsadm-minio minio/minio:RELEASE.2021-08-05T22-01-19Z
+image kotsadm-minio minio/minio:RELEASE.2021-09-15T04-54-25Z
 image kotsadm docker.io/kotsadm/kotsadm:v1.51.0
 image kurl-proxy docker.io/kotsadm/kurl-proxy:v1.51.0
 image postgres postgres:10.18-alpine
