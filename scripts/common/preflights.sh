@@ -411,6 +411,7 @@ function host_preflights() {
         opts="${opts} --is-upgrade"
     fi
 
+    # Adding kurl addon preflight checks
     for spec in $("${K8S_DISTRO}_addon_for_each" addon_preflight); do
         opts="${opts} --spec=${spec}"
     done
@@ -422,11 +423,14 @@ function host_preflights() {
         opts="${opts} --secondary-host=${SECONDARY_HOST}"
     fi
 
-    # Merge Host-Preflights
+    # Add Vendor Host-Preflights
 
-    logStep "Merging hostpreflights"
+    logStep "Adding Vendor Preflights"
     echo $HOST_PREFLIGHTS
     echo 'Merge some preflights'
+    echo "${MERGED_YAML_SPEC}"
+
+    # opts="${opts} --spec=${spec}"
     
     logStep "Running host preflights"
     if [ "${PREFLIGHT_IGNORE}" = "1" ]; then
