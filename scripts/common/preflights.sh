@@ -410,8 +410,10 @@ function host_preflights() {
     if [ "${is_upgrade}" = "1" ]; then
         opts="${opts} --is-upgrade"
     fi
+    #call the binary here and optionally add files to where addon_preflight
 
     for spec in $("${K8S_DISTRO}_addon_for_each" addon_preflight); do
+        echo "debugging ++++++ ${spec}"
         opts="${opts} --spec=${spec}"
     done
 
@@ -422,6 +424,12 @@ function host_preflights() {
         opts="${opts} --secondary-host=${SECONDARY_HOST}"
     fi
 
+    # Merge Host-Preflights
+
+    logStep "Jalaja Merging hostpreflights"
+    echo $HOST_PREFLIGHTS
+    echo 'Merge some preflights'
+    
     logStep "Running host preflights"
     if [ "${PREFLIGHT_IGNORE}" = "1" ]; then
         "${DIR}"/bin/kurl host preflight "${MERGED_YAML_SPEC}" ${opts} | tee "${out_file}"

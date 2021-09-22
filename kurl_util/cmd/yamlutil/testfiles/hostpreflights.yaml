@@ -1,0 +1,28 @@
+apiVersion: cluster.kurl.sh/v1beta1
+kind: Installer
+metadata:
+  name: testing
+spec:
+  kubernetes:
+    version: 1.19.3
+  weave:
+    version: 2.7.0
+  openebs:
+    version: 1.12.0
+    isLocalPVEnabled: true
+    localPVStorageClassName: default
+  kurl:
+    hostPreflights:
+      apiVersion: troubleshoot.sh/v1beta2
+      kind: HostPreflight
+      spec:
+        collectors:
+          - cpu: {}
+        analyzers:
+          - cpu:
+              checkName: Number of CPUs
+              outcomes:
+              - pass:
+                message: This server has at least 4 CPU cores
+  containerd:
+    version: 1.4.3

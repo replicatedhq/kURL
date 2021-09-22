@@ -218,6 +218,7 @@ func convertToBash(kurlValues map[string]interface{}, fieldsSet map[string]bool)
 		"Kurl.Airgap":                            "AIRGAP",
 		"Kurl.LicenseURL":                        "LICENSE_URL",
 		"Kurl.HostnameCheck":                     "HOSTNAME_CHECK",
+		"Kurl.HostPreflights":                    "HOST_PREFLIGHTS",
 		"Kurl.IgnoreRemoteLoadImagesPrompt":      "KURL_IGNORE_REMOTE_LOAD_IMAGES_PROMPT",
 		"Kurl.IgnoreRemoteUpgradePrompt":         "KURL_IGNORE_REMOTE_UPGRADE_PROMPT",
 		"Kurl.Nameserver":                        "NAMESERVER",
