@@ -22,8 +22,11 @@ spec:
           - cpu:
               checkName: Number of CPUs
               outcomes:
-              - pass:
-                message: This server has at least 4 CPU cores
+                - fail:
+                    when: "count < 2"
+                    message: This server has at least 4 CPU cores
+                - pass:
+                    message: This server has at least 4 CPU cores
   containerd:
     version: 1.4.3
   prometheus:

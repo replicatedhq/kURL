@@ -1,18 +1,22 @@
 package main
 
 import (
+	"bytes"
 	"flag"
 	"fmt"
 	"io/ioutil"
 	"log"
+	"os"
+	"path/filepath"
 
+	"github.com/replicatedhq/kurl/kurlkinds/client/kurlclientset/scheme"
 	"github.com/replicatedhq/kurl/pkg/installer"
+	serializer "k8s.io/apimachinery/pkg/runtime/serializer/json"
 )
 
 // takes the path to installer spec yaml
 func extractPreflightSpec(inputPath string, outputPath string) error {
 
-	fmt.Println(inputPath)
 	data, err := ioutil.ReadFile(inputPath)
 	if err != nil {
 		return err
@@ -21,8 +25,45 @@ func extractPreflightSpec(inputPath string, outputPath string) error {
 	if err != nil {
 		return err
 	}
+	if installerSpec.Spec.Kurl == nil {
+		return nil
+	}
+	var b bytes.Buffer
+	if installerSpec.Spec.Kurl.HostPreflights != nil {
+		// create a hostpreflights.yaml in TODO the right place
+		hostPreflights := installerSpec.Spec.Kurl.HostPreflights
+		// TODO check the output seems incorrect
+		s := serializer.NewYAMLSerializer(serializer.DefaultMetaFactory, scheme.Scheme, scheme.Scheme)
 
-	fmt.Println(installerSpec)
+		if err := s.Encode(hostPreflights, &b); err != nil {
+			return fmt.Errorf("failed to reserialize yaml %w", err)
+		}
+
+		if err := writeSpec(outputPath, b.Bytes()); err != nil {
+			return fmt.Errorf("failed to write file %s %w", outputPath, err)
+		}
+
+	}
+
+	return nil
+}
+
+func writeSpec(filename string, spec []byte) error {
+	err := os.MkdirAll(filepath.Dir(filename), 0755)
+	if err != nil {
+		return fmt.Errorf("failed to create script dir %w", err)
+	}
+
+	f, err := os.OpenFile(filename, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0644)
+	if err != nil {
+		return fmt.Errorf("failed to create script file %w", err)
+	}
+	defer f.Close()
+
+	_, err = f.Write(spec)
+	if err != nil {
+		return fmt.Errorf("failed to create script file %w", err)
+	}
 
 	return nil
 }
@@ -31,9 +72,9 @@ func extractPreflightSpec(inputPath string, outputPath string) error {
 // arg2: output file to write the troubleshoot spec to
 func main() {
 
-	fmt.Println("##################")
 	inputPath := flag.String("i", "", "Input path for kurl installer yaml")
 	outputPath := flag.String("o", "", "Output path for troubleshoot preflight spec yaml")
+	flag.Parse()
 
 	err := extractPreflightSpec(*inputPath, *outputPath)
 	if err != nil {
