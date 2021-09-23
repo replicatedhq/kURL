@@ -412,12 +412,12 @@ function host_preflights() {
     fi
 
     # Remove previous file if it exists
-    if [ -f "$VENDOR_PREFLIGHT_SPEC" ]; then
-      rm "$VENDOR_PREFLIGHT_SEC"
+    if [ -f "${VENDOR_PREFLIGHT_SPEC}" ]; then
+      rm "$VENDOR_PREFLIGHT_SPEC"
     fi
     
     $DIR/bin/vendorflights -i "${MERGED_YAML_SPEC}" -o "${VENDOR_PREFLIGHT_SPEC}"
-    if [ -f "$VENDOR_PREFLIGHT_SPEC" ]; then
+    if [ -f "${VENDOR_PREFLIGHT_SPEC}" ]; then
       opts="${opts} --spec=${VENDOR_PREFLIGHT_SPEC}"
     fi
 

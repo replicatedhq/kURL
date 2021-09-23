@@ -30,9 +30,7 @@ func extractPreflightSpec(inputPath string, outputPath string) error {
 	}
 	var b bytes.Buffer
 	if installerSpec.Spec.Kurl.HostPreflights != nil {
-		// create a hostpreflights.yaml in TODO the right place
 		hostPreflights := installerSpec.Spec.Kurl.HostPreflights
-		// TODO check the output seems incorrect
 		s := serializer.NewYAMLSerializer(serializer.DefaultMetaFactory, scheme.Scheme, scheme.Scheme)
 
 		if err := s.Encode(hostPreflights, &b); err != nil {
