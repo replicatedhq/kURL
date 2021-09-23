@@ -33,6 +33,11 @@ function rook() {
         bail "Failed to detect healthy Rook RGW"
     fi
 
+
+    if ! spinner_until 600 rook_ceph_version_deployed; then
+        bail "New Ceph version failed to deploy"
+    fi
+
     rook_patch_insecure_clients
 }
 
@@ -207,7 +212,7 @@ function rook_patch_insecure_clients {
 
     echo "Patching allowance of insecure rook clients"
     # Disabling rook global_id reclaim
-    try_1m kubectl -n rook-ceph exec deploy/rook-ceph-operator -- ceph config set mon auth_allow_insecure_global_id_reclaim false
+    try_5m kubectl -n rook-ceph exec deploy/rook-ceph-operator -- ceph config set mon auth_allow_insecure_global_id_reclaim false
 
     # Checking to ensure ceph status  
     if ! spinner_until 120 rook_clients_secure; then
@@ -218,4 +223,22 @@ function rook_patch_insecure_clients {
 function rook_preflight() {
     local src="${DIR}/addons/rook/${ROOK_VERSION}"
     echo "${src}/host-preflight.yaml"
+}
+
+# rook_ceph_version_deployed checks that there is only one ceph-version reported across the cluster
+function rook_ceph_version_deployed() {
+    local ceph_version="14.2.21"
+    # wait for our version to start reporting
+    if ! kubectl -n rook-ceph get deployment -l rook_cluster=rook-ceph -o jsonpath='{range .items[*]}{"ceph-version="}{.metadata.labels.ceph-version}{"\n"}{end}' | grep -q "${ceph_version}" ; then
+        return 1
+    fi
+    # wait for our version to be the only one reporting
+    if [ "$(kubectl -n rook-ceph get deployment -l rook_cluster=rook-ceph -o jsonpath='{range .items[*]}{"ceph-version="}{.metadata.labels.ceph-version}{"\n"}{end}' | sort | uniq | wc -l)" != "1" ]; then
+        return 1
+    fi
+    # sanity check
+    if ! kubectl -n rook-ceph get deployment -l rook_cluster=rook-ceph -o jsonpath='{range .items[*]}{"ceph-version="}{.metadata.labels.ceph-version}{"\n"}{end}' | grep -q "${ceph_version}" ; then
+        return 1
+    fi
+    return 0
 }
