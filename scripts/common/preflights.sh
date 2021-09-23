@@ -411,6 +411,10 @@ function host_preflights() {
         opts="${opts} --is-upgrade"
     fi
 
+    # Remove previous file if it exists
+    if [ -f "$VENDOR_PREFLIGHT_SPEC" ]; then
+      rm "$VENDOR_PREFLIGHT_SEC"
+    fi
     
     $DIR/bin/vendorflights -i "${MERGED_YAML_SPEC}" -o "${VENDOR_PREFLIGHT_SPEC}"
     if [ -f "$VENDOR_PREFLIGHT_SPEC" ]; then
@@ -429,9 +433,6 @@ function host_preflights() {
     if [ -n "$SECONDARY_HOST" ]; then
         opts="${opts} --secondary-host=${SECONDARY_HOST}"
     fi
-
-
-    # opts="${opts} --spec=${spec}"
     
     logStep "Running host preflights"
     if [ "${PREFLIGHT_IGNORE}" = "1" ]; then
