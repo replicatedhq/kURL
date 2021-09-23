@@ -15,7 +15,7 @@ metadata:
   name: testing
 spec:
   kubernetes:
-    version: 1.19.3
+    version: 1.19.7
   weave:
     version: 2.7.0
   openebs:
@@ -26,15 +26,17 @@ spec:
     hostPreflights:
       apiVersion: troubleshoot.sh/v1beta2
       kind: HostPreflight
+      metadata:
+        name: vendor1
       spec:
         collectors:
           - cpu: {}
         analyzers:
           - cpu:
-              checkName: Number of CPUs
+              checkName: Vendor - Number of cpus
               outcomes:
-              - pass:
-                message: This server has at least 4 CPU cores
+                - pass:
+                    message: ALL THE CPUS
   containerd:
     version: 1.4.3
   prometheus:
