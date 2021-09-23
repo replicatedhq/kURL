@@ -44,7 +44,6 @@ require (
 	github.com/vishvananda/netlink v1.1.0
 	github.com/vmware-tanzu/velero v1.6.2
 	golang.org/x/crypto v0.0.0-20210513164829-c07d793c2f9a
-	golang.org/x/lint v0.0.0-20210508222113-6edffad5e616 // indirect
 	golang.org/x/net v0.0.0-20210805182204-aaa1db679c0d
 	golang.org/x/oauth2 v0.0.0-20210622215436-a8dc77f794b6 // indirect
 	golang.org/x/sys v0.0.0-20210616094352-59db8d763f22 // indirect
@@ -54,7 +53,7 @@ require (
 	gomodules.xyz/jsonpatch/v2 v2.2.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
-	k8s.io/api v0.22.0
+	k8s.io/api v0.22.2
 	k8s.io/apiextensions-apiserver v0.21.3 // indirect
 	k8s.io/apimachinery v0.22.0
 	k8s.io/client-go v0.22.0
