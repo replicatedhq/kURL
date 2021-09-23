@@ -31,6 +31,13 @@ function generate() {
     find "$dir" -type f -exec sed -i -e "s/__KOTSADM_DIR__/$kotsadm_dir/g" {} \;
     find "$dir" -type f -exec sed -i -e "s/__KOTSADM_BINARY_VERSION__/$kotsadm_binary_version/g" {} \;
 
+    # grab generated dot env file containing the latest version tags, export environment variables in dot env file
+    # and update manifest with latest image tags
+    export $(curl https://raw.githubusercontent.com/replicatedhq/kots/master/.image.env | sed 's/#.*//g' | xargs)
+    sed -i -e "s/__MINIO_TAG__/$MINIO_TAG/g" "${dir}/Manifest"
+    sed -i -e "s/__POSTGRES_TAG__/$POSTGRES_ALPINE_TAG/g" "${dir}/Manifest"
+    sed -i -e "s/__DEX_TAG__/$DEX_TAG/g" "${dir}/Manifest"
+
 }
 
 function add_as_latest() {
