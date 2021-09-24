@@ -386,3 +386,8 @@ function rook_patch_insecure_clients {
         logWarn "Mon is still allowing insecure clients"
     fi
 }
+
+function rook_preflight() {
+    local src="${DIR}/addons/rook/${ROOK_VERSION}"
+    echo "${src}/host-preflight.yaml"
+}

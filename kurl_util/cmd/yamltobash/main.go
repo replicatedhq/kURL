@@ -292,8 +292,6 @@ func convertToBash(kurlValues map[string]interface{}, fieldsSet map[string]bool)
 
 	finalDictionary := make(map[string]string)
 
-	var bashVal string
-
 	for yamlKey, val := range kurlValues {
 		if checkIfSkippedVariable(yamlKey) == true {
 			//certain variables from the crd are handled by go binaries and not parsed into bash variables
@@ -304,6 +302,8 @@ func convertToBash(kurlValues map[string]interface{}, fieldsSet map[string]bool)
 		if ok == false {
 			return nil, fmt.Errorf("%v not found in lookup table, it has not been added to the lookup table or is not in this version of kurlkinds", yamlKey)
 		}
+
+		var bashVal string
 
 		switch t := interface{}(val).(type) {
 		case int:
@@ -346,14 +346,12 @@ func convertToBash(kurlValues map[string]interface{}, fieldsSet map[string]bool)
 		case yamlKey == "Docker.HardFailOnLoopback" && bashVal == "" && !fieldsSet[yamlKey]:
 			bashVal = "1"
 		case yamlKey == "Weave.NoMasqLocal":
-
 			if bashVal == "true" || bashVal == "" {
 				bashVal = "1"
 			}
 			if bashVal == "false" {
 				bashVal = "0"
 			}
-
 		}
 
 		finalDictionary[bashKey] = bashVal

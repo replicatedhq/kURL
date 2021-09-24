@@ -709,3 +709,30 @@ shunit2: common-test #TODO include other tests
 .PHONY: common-test
 common-test:
 	./scripts/common/test/common-test.sh
+
+.PHONY: init-sbom
+init-sbom:
+	mkdir -p sbom/spdx sbom/assets
+	# remove directory that breaks go sbom generation 
+	- rm -rf web/node_modules/snyk/dist/gosrc
+	- rm -rf web/node_modules/snyk-go-plugin/gosrc
+
+.PHONY: install-spdx-sbom-generator
+install-spdx-sbom-generator: init-sbom
+ifeq (,$(shell command -v spdx-sbom-generator))
+	./scripts/initialize-build.sh
+SPDX_GENERATOR=./sbom/spdx-sbom-generator
+else
+SPDX_GENERATOR=$(shell command -v spdx-sbom-generator)
+endif
+
+.PHONY: generate-sbom
+generate-sbom: install-spdx-sbom-generator 
+	$(SPDX_GENERATOR) -o ./sbom/spdx        
+
+sbom/assets/kurl-sbom.tgz: generate-sbom 
+	tar -czf sbom/assets/kurl-sbom.tgz sbom/spdx/*.spdx
+
+sbom: sbom/assets/kurl-sbom.tgz
+	cosign sign-blob -key ./cosign.key sbom/assets/kurl-sbom.tgz > ./sbom/assets/kurl-sbom.tgz.sig
+	cosign public-key -key ./cosign.key -outfile ./sbom/assets/key.pub
