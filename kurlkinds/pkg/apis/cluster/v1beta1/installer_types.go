@@ -118,7 +118,7 @@ type Kurl struct {
 	LicenseURL                   string                             `json:"licenseURL,omitempty" yaml:"licenseURL,omitempty"`
 	Nameserver                   string                             `json:"nameserver,omitempty" yaml:"nameserver,omitempty"`
 	NoProxy                      bool                               `json:"noProxy,omitempty" yaml:"noProxy,omitempty"`
-	HostPreflights               *troubleshootv1beta2.HostPreflight `json:"hostPreflights,omitempty" yaml:"hostPreflights, omitempty"`
+	HostPreflights               *troubleshootv1beta2.HostPreflight `json:"hostPreflights,omitempty" yaml:"hostPreflights,omitempty"`
 	PreflightIgnore              bool                               `json:"preflightIgnore,omitempty" yaml:"preflightIgnore,omitempty"`
 	PreflightIgnoreWarnings      bool                               `json:"preflightIgnoreWarnings,omitempty" yaml:"preflightIgnoreWarnings,omitempty"`
 	PrivateAddress               string                             `json:"privateAddress,omitempty" yaml:"privateAddress,omitempty"`
