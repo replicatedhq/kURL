@@ -31,6 +31,11 @@ func extractPreflightSpec(inputPath string, outputPath string) error {
 	var b bytes.Buffer
 	if installerSpec.Spec.Kurl.HostPreflights != nil {
 		hostPreflights := installerSpec.Spec.Kurl.HostPreflights
+
+		if hostPreflights.APIVersion != "troubleshoot.sh/v1beta2" {
+			return fmt.Errorf("Invalid HostPreflight APIVersion - troubleshoot.sh/v1beta2 required.")
+		}
+
 		s := serializer.NewYAMLSerializer(serializer.DefaultMetaFactory, scheme.Scheme, scheme.Scheme)
 
 		if err := s.Encode(hostPreflights, &b); err != nil {
@@ -66,8 +71,8 @@ func writeSpec(filename string, spec []byte) error {
 	return nil
 }
 
-// arg1: path to kurl installer spec .yaml
-// arg2: output file to write the troubleshoot spec to
+// -i INPATH: Input path to kurl installer spec file
+// -o OUTPATH: Output path for file to write the troubleshoot spec to
 func main() {
 
 	inputPath := flag.String("i", "", "Input path for kurl installer yaml")
