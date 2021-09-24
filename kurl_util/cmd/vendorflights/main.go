@@ -33,7 +33,7 @@ func extractPreflightSpec(inputPath string, outputPath string) error {
 		hostPreflights := installerSpec.Spec.Kurl.HostPreflights
 
 		if hostPreflights.APIVersion != "troubleshoot.sh/v1beta2" {
-			return fmt.Errorf("Invalid HostPreflight APIVersion - troubleshoot.sh/v1beta2 required.")
+			return fmt.Errorf("invalid HostPreflight APIVersion - troubleshoot.sh/v1beta2 required")
 		}
 
 		s := serializer.NewYAMLSerializer(serializer.DefaultMetaFactory, scheme.Scheme, scheme.Scheme)
