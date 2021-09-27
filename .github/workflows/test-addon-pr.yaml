@@ -61,4 +61,5 @@ jobs:
         if: ${{ steps.check.outputs.addons_available == 'true' }}
         with:
           message: ${{ steps.queue.outputs.msg }}
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
           allow-repeats: false
