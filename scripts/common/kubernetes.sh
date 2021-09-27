@@ -52,13 +52,13 @@ function kubernetes_load_ipvs_modules() {
 }
 
 function kubernetes_sysctl_config() {
-    if ! grep -q "net.bridge.bridge-nf-call-ip6tables = 1" /etc/sysctl.conf; then
+    if ! cat /etc/sysctl.conf | grep "^net.bridge.bridge-nf-call-ip6tables" | tail -n1 | grep -Eq "^net.bridge.bridge-nf-call-ip6tables\s*=\s*1"; then
         echo "net.bridge.bridge-nf-call-ip6tables = 1" >> /etc/sysctl.conf
     fi
-    if ! grep -q "net.bridge.bridge-nf-call-iptables = 1" /etc/sysctl.conf; then
+    if ! cat /etc/sysctl.conf | grep "^net.bridge.bridge-nf-call-iptables" | tail -n1 | grep -Eq "^net.bridge.bridge-nf-call-iptables\s*=\s*1"; then
         echo "net.bridge.bridge-nf-call-iptables = 1" >> /etc/sysctl.conf
     fi
-    if ! grep -q "net.ipv4.conf.all.forwarding = 1" /etc/sysctl.conf; then
+    if ! cat /etc/sysctl.conf | grep "^net.ipv4.conf.all.forwarding" | tail -n1 | grep -Eq "^net.ipv4.conf.all.forwarding\s*=\s*1"; then
         echo "net.ipv4.conf.all.forwarding = 1" >> /etc/sysctl.conf
     fi
 
