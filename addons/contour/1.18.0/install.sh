@@ -1,5 +1,7 @@
 
 function contour_pre_init() {
+    echo "change something"
+
     if [ -z "$CONTOUR_NAMESPACE" ]; then
         CONTOUR_NAMESPACE=projectcontour
     fi
