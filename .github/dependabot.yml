@@ -1,6 +1,9 @@
 ---
 version: 2
 updates:
+
+  ## Go mod
+
   - package-ecosystem: "gomod"
     directory: "/"
     schedule:
@@ -14,6 +17,8 @@ updates:
     schedule:
       interval: "weekly"
 
+  ## Npm
+
   - package-ecosystem: "npm"
     directory: "/web"
     schedule:
@@ -23,7 +28,24 @@ updates:
     schedule:
       interval: "weekly"
 
+  ## Github actions
+
   - package-ecosystem: "github-actions"
     directory: "/"
+    schedule:
+      interval: "weekly"
+
+  ## Docker
+
+  - package-ecosystem: "docker"
+    directory: "/deploy"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "docker"
+    directory: "/kurl_util/deploy"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "docker"
+    directory: "/testgrid/tgapi/deploy"
     schedule:
       interval: "weekly"

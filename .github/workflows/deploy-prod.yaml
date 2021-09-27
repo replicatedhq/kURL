@@ -21,7 +21,7 @@ jobs:
 
     - run: |
         export VERSION_TAG=$(echo $GITHUB_REF | awk -F'/' '{ print $NF }')
-        docker build -f deploy/Dockerfile-slim \
+        docker build -f deploy/Dockerfile \
           --build-arg version=${GITHUB_SHA:0:7} \
           --build-arg version_tag=${VERSION_TAG} \
           -t 799720048698.dkr.ecr.us-east-1.amazonaws.com/kurl:${GITHUB_SHA:0:7} .

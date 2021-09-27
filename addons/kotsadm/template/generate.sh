@@ -60,6 +60,7 @@ function main() {
         *"beta"*)
             echo "generating beta version"
             generate "alpha" "alpha" "v$KOTSADM_VERSION"
+            generate "nightly" "nightly" "nightly"
             ;;
         *"nightly"*)
             echo "generating nightly version"
@@ -78,6 +79,7 @@ function main() {
 
             echo "generating v$KOTSADM_VERSION version"
             generate "v$KOTSADM_VERSION" "$KOTSADM_VERSION" "v$KOTSADM_VERSION"
+            generate "nightly" "nightly" "nightly"
             ;;
     esac
 
