@@ -317,7 +317,7 @@ spec:
                                     checkName:
                                       type: string
                                     exclude:
-                                      oneOf: [{"type": "string"},{"type": "boolean"}]
+                                      type: string
                                     includeUnmountedPartitions:
                                       type: boolean
                                     minimumAcceptableSize:
@@ -367,7 +367,7 @@ spec:
                                     collectorName:
                                       type: string
                                     exclude:
-                                      oneOf: [{"type": "string"},{"type": "boolean"}]
+                                      type: string
                                     outcomes:
                                       items:
                                         properties:
@@ -408,7 +408,7 @@ spec:
                                     checkName:
                                       type: string
                                     exclude:
-                                      oneOf: [{"type": "string"},{"type": "boolean"}]
+                                      type: string
                                     outcomes:
                                       items:
                                         properties:
@@ -451,7 +451,7 @@ spec:
                                     collectorName:
                                       type: string
                                     exclude:
-                                      oneOf: [{"type": "string"},{"type": "boolean"}]
+                                      type: string
                                     outcomes:
                                       items:
                                         properties:
@@ -494,7 +494,7 @@ spec:
                                     collectorName:
                                       type: string
                                     exclude:
-                                      oneOf: [{"type": "string"},{"type": "boolean"}]
+                                      type: string
                                     outcomes:
                                       items:
                                         properties:
@@ -535,7 +535,7 @@ spec:
                                     checkName:
                                       type: string
                                     exclude:
-                                      oneOf: [{"type": "string"},{"type": "boolean"}]
+                                      type: string
                                     outcomes:
                                       items:
                                         properties:
@@ -578,7 +578,7 @@ spec:
                                     collectorName:
                                       type: string
                                     exclude:
-                                      oneOf: [{"type": "string"},{"type": "boolean"}]
+                                      type: string
                                     outcomes:
                                       items:
                                         properties:
@@ -621,7 +621,7 @@ spec:
                                     collectorName:
                                       type: string
                                     exclude:
-                                      oneOf: [{"type": "string"},{"type": "boolean"}]
+                                      type: string
                                     outcomes:
                                       items:
                                         properties:
@@ -662,7 +662,7 @@ spec:
                                     checkName:
                                       type: string
                                     exclude:
-                                      oneOf: [{"type": "string"},{"type": "boolean"}]
+                                      type: string
                                     outcomes:
                                       items:
                                         properties:
@@ -703,7 +703,7 @@ spec:
                                     checkName:
                                       type: string
                                     exclude:
-                                      oneOf: [{"type": "string"},{"type": "boolean"}]
+                                      type: string
                                     outcomes:
                                       items:
                                         properties:
@@ -746,7 +746,7 @@ spec:
                                     collectorName:
                                       type: string
                                     exclude:
-                                      oneOf: [{"type": "string"},{"type": "boolean"}]
+                                      type: string
                                     outcomes:
                                       items:
                                         properties:
@@ -789,7 +789,7 @@ spec:
                                     collectorName:
                                       type: string
                                     exclude:
-                                      oneOf: [{"type": "string"},{"type": "boolean"}]
+                                      type: string
                                     outcomes:
                                       items:
                                         properties:
@@ -832,7 +832,7 @@ spec:
                                     collectorName:
                                       type: string
                                     exclude:
-                                      oneOf: [{"type": "string"},{"type": "boolean"}]
+                                      type: string
                                     outcomes:
                                       items:
                                         properties:
@@ -873,7 +873,7 @@ spec:
                                     checkName:
                                       type: string
                                     exclude:
-                                      oneOf: [{"type": "string"},{"type": "boolean"}]
+                                      type: string
                                     outcomes:
                                       items:
                                         properties:
@@ -919,7 +919,7 @@ spec:
                                     collectorName:
                                       type: string
                                     exclude:
-                                      oneOf: [{"type": "string"},{"type": "boolean"}]
+                                      type: string
                                   type: object
                                 certificate:
                                   properties:
@@ -928,7 +928,7 @@ spec:
                                     collectorName:
                                       type: string
                                     exclude:
-                                      oneOf: [{"type": "string"},{"type": "boolean"}]
+                                      type: string
                                     keyPath:
                                       type: string
                                   required:
@@ -940,14 +940,14 @@ spec:
                                     collectorName:
                                       type: string
                                     exclude:
-                                      oneOf: [{"type": "string"},{"type": "boolean"}]
+                                      type: string
                                   type: object
                                 diskUsage:
                                   properties:
                                     collectorName:
                                       type: string
                                     exclude:
-                                      oneOf: [{"type": "string"},{"type": "boolean"}]
+                                      type: string
                                     path:
                                       type: string
                                   required:
@@ -1007,7 +1007,7 @@ spec:
                                       description: Enable the background IOPS feature.
                                       type: boolean
                                     exclude:
-                                      oneOf: [{"type": "string"},{"type": "boolean"}]
+                                      type: string
                                     fileSize:
                                       description: The size of the file used in the
                                         benchmark. The number of IO operations for
@@ -1044,14 +1044,14 @@ spec:
                                     collectorName:
                                       type: string
                                     exclude:
-                                      oneOf: [{"type": "string"},{"type": "boolean"}]
+                                      type: string
                                   type: object
                                 http:
                                   properties:
                                     collectorName:
                                       type: string
                                     exclude:
-                                      oneOf: [{"type": "string"},{"type": "boolean"}]
+                                      type: string
                                     get:
                                       properties:
                                         headers:
@@ -1103,7 +1103,7 @@ spec:
                                     collectorName:
                                       type: string
                                     exclude:
-                                      oneOf: [{"type": "string"},{"type": "boolean"}]
+                                      type: string
                                     path:
                                       type: string
                                     port:
@@ -1120,21 +1120,21 @@ spec:
                                     collectorName:
                                       type: string
                                     exclude:
-                                      oneOf: [{"type": "string"},{"type": "boolean"}]
+                                      type: string
                                   type: object
                                 kubernetes:
                                   properties:
                                     collectorName:
                                       type: string
                                     exclude:
-                                      oneOf: [{"type": "string"},{"type": "boolean"}]
+                                      type: string
                                   type: object
                                 memory:
                                   properties:
                                     collectorName:
                                       type: string
                                     exclude:
-                                      oneOf: [{"type": "string"},{"type": "boolean"}]
+                                      type: string
                                   type: object
                                 tcpConnect:
                                   properties:
@@ -1143,7 +1143,7 @@ spec:
                                     collectorName:
                                       type: string
                                     exclude:
-                                      oneOf: [{"type": "string"},{"type": "boolean"}]
+                                      type: string
                                     timeout:
                                       type: string
                                   required:
@@ -1156,7 +1156,7 @@ spec:
                                     collectorName:
                                       type: string
                                     exclude:
-                                      oneOf: [{"type": "string"},{"type": "boolean"}]
+                                      type: string
                                     port:
                                       type: integer
                                     timeout:
@@ -1170,7 +1170,7 @@ spec:
                                     collectorName:
                                       type: string
                                     exclude:
-                                      oneOf: [{"type": "string"},{"type": "boolean"}]
+                                      type: string
                                     interface:
                                       type: string
                                     port:
@@ -1183,7 +1183,7 @@ spec:
                                     collectorName:
                                       type: string
                                     exclude:
-                                      oneOf: [{"type": "string"},{"type": "boolean"}]
+                                      type: string
                                   type: object
                               type: object
                             type: array
