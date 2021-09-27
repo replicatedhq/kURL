@@ -23,7 +23,6 @@ jobs:
       uses: peter-evans/create-pull-request@v3
       id: cpr
       with:
-        token: ${{ secrets.GH_PAT }}
         commit-message: Create new Prometheus version
         title: 'Automated Prometheus version update ${{ steps.update.outputs.prometheus_version }}'
         branch: automation/update-prometheus

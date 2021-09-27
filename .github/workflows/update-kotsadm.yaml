@@ -22,7 +22,6 @@ jobs:
       uses: peter-evans/create-pull-request@v3
       id: cpr
       with:
-        token: ${{ secrets.GH_PAT }}
         commit-message: Create new Kotsadm version
         title: 'Triggered Kotsadm version update ${{ steps.update.outputs.kotsadm_version }}'
         branch: automation/update-kotsadm/${{ steps.update.outputs.kotsadm_version }}
