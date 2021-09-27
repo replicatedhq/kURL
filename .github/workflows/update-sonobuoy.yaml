@@ -21,7 +21,6 @@ jobs:
       uses: peter-evans/create-pull-request@v3
       id: cpr
       with:
-        token: ${{ secrets.GH_PAT }}
         commit-message: Create new Sonobuoy version
         title: 'Automated Sonobuoy version update ${{ steps.update.outputs.sonobuoy_version }}'
         branch: automation/update-sonobuoy
