@@ -178,7 +178,7 @@ while read -r line; do
             mkdir -p $OUT_DIR/assets
             filename=$(echo $line | awk '{ print $2 }')
             url=$(echo $line | awk '{ print $3 }')
-            curl -L "$url" > "$OUT_DIR/assets/$filename"
+            curl -fL -o "$OUT_DIR/assets/$filename" "$url"
             ;;
 
         apt)
