@@ -411,18 +411,6 @@ function host_preflights() {
         opts="${opts} --is-upgrade"
     fi
 
-    # Remove previous file if it exists
-    if [ -f "${VENDOR_PREFLIGHT_SPEC}" ]; then
-      rm "$VENDOR_PREFLIGHT_SPEC"
-    fi
-    
-    $DIR/bin/vendorflights -i "${MERGED_YAML_SPEC}" -o "${VENDOR_PREFLIGHT_SPEC}"
-    if [ -f "${VENDOR_PREFLIGHT_SPEC}" ]; then
-      opts="${opts} --spec=${VENDOR_PREFLIGHT_SPEC}"
-    fi
-
-
-    # Adding kurl addon preflight checks
     for spec in $("${K8S_DISTRO}_addon_for_each" addon_preflight); do
         opts="${opts} --spec=${spec}"
     done
@@ -433,7 +421,7 @@ function host_preflights() {
     if [ -n "$SECONDARY_HOST" ]; then
         opts="${opts} --secondary-host=${SECONDARY_HOST}"
     fi
-    
+
     logStep "Running host preflights"
     if [ "${PREFLIGHT_IGNORE}" = "1" ]; then
         "${DIR}"/bin/kurl host preflight "${MERGED_YAML_SPEC}" ${opts} | tee "${out_file}"

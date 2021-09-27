@@ -40,15 +40,15 @@ We welcome contributions to kURL. We appreciate your time and help.
       name: testing
     spec:
       kubernetes:
-        version: 1.19.7
+        version: 1.19.3
       weave:
         version: 2.7.0
       openebs:
         version: 1.12.0
         isLocalPVEnabled: true
         localPVStorageClassName: default
-      containerd:
-        version: 1.4.3
+      docker:
+        version: 19.03.10
       prometheus:
         version: 0.33.0
       registry:
