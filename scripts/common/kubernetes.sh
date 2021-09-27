@@ -52,16 +52,21 @@ function kubernetes_load_ipvs_modules() {
 }
 
 function kubernetes_sysctl_config() {
-    case "$LSB_DIST" in
-        # TODO I've only seen these disabled on centos/rhel but should be safe for ubuntu
-        centos|rhel|amzn|ol)
-            echo "net.bridge.bridge-nf-call-ip6tables = 1" > /etc/sysctl.d/k8s.conf
-            echo "net.bridge.bridge-nf-call-iptables = 1" >> /etc/sysctl.d/k8s.conf
-            echo "net.ipv4.conf.all.forwarding = 1" >> /etc/sysctl.d/k8s.conf
+    if ! grep -q "net.bridge.bridge-nf-call-ip6tables = 1" /etc/sysctl.conf; then
+        echo "net.bridge.bridge-nf-call-ip6tables = 1" >> /etc/sysctl.conf
+    fi
+    if ! grep -q "net.bridge.bridge-nf-call-iptables = 1" /etc/sysctl.conf; then
+        echo "net.bridge.bridge-nf-call-iptables = 1" >> /etc/sysctl.conf
+    fi
+    if ! grep -q "net.ipv4.conf.all.forwarding = 1" /etc/sysctl.conf; then
+        echo "net.ipv4.conf.all.forwarding = 1" >> /etc/sysctl.conf
+    fi
 
-            sysctl --system
-        ;;
-    esac
+    sysctl --system
+
+    if [ "$(cat /proc/sys/net/ipv4/ip_forward)" = "0" ]; then
+        bail "Failed to enable IP forwarding."
+    fi
 }
 
 # k8sVersion is an argument because this may be used to install step versions of K8s during an upgrade
