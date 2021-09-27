@@ -47,6 +47,8 @@ function rook_operator_deploy() {
 
     cp -r "$src" "$dst"
     kubectl apply -k "$dst/"
+    # on upgrades wait for the new version of the operator pod
+    kubectl -n rook-ceph rollout status deployment/rook-ceph-operator
 }
 
 function rook_cluster_deploy() {
