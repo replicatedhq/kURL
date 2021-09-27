@@ -59,7 +59,7 @@ test-crd:
 
 # get/update controller-gen
 update-controller-gen:
-	go get sigs.k8s.io/controller-tools/cmd/controller-gen@v0.3.0
+	go get sigs.k8s.io/controller-tools/cmd/controller-gen@v0.7.0
 
 # get/update client-gen
 update-client-gen:
