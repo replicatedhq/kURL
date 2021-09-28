@@ -60,6 +60,18 @@ function velero_join() {
     velero_binary
 }
 
+function velero_already_applied() {
+    local src="$DIR/addons/velero/$VELERO_VERSION"
+    local dst="$DIR/kustomize/velero"
+
+    velero_change_storageclass "$src" "$dst" true
+
+    # This should only be applying the configmap if required
+    if [ -d "$dst" ]; then
+        kubectl apply -f "$dst"
+    fi
+}
+
 function velero_binary() {
     local src="$DIR/addons/velero/1.5.1"
 
@@ -132,10 +144,13 @@ function velero_patch_http_proxy() {
 function velero_change_storageclass() {
     local src="$1"
     local dst="$2"
+    local disable_kustomization="$3"
 
     if kubectl get sc longhorn &> /dev/null && \
     [ "$(kubectl get sc longhorn -o jsonpath='{.metadata.annotations.storageclass\.kubernetes\.io/is-default-class}')" = "true" ]; then
         render_yaml_file "$src/tmpl-change-storageclass.yaml" > "$dst/change-storageclass.yaml"
-        insert_resources "$dst/kustomization.yaml" change-storageclass.yaml
+        if [ -z "$disable_kustomization" ]; then
+            insert_resources "$dst/kustomization.yaml" change-storageclass.yaml
+        fi
     fi
 }
