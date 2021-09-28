@@ -21,7 +21,6 @@ jobs:
       uses: peter-evans/create-pull-request@v3
       id: cpr
       with:
-        token: ${{ secrets.GH_PAT }}
         commit-message: Create new Weave version
         title: 'Automated Weave version update ${{ steps.update.outputs.weave_version }}'
         branch: automation/update-weave
