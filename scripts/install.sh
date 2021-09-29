@@ -132,7 +132,7 @@ EOF
     if [ -n "$CONTAINER_LOG_MAX_SIZE" ]; then
         echo "containerLogMaxSize: $CONTAINER_LOG_MAX_SIZE" >> $KUBEADM_CONF_FILE
     fi
-    if [ $CONTAINER_LOG_MAX_FILES -gt 0 ]; then
+    if [ -n "$CONTAINER_LOG_MAX_FILES" ]; then
         echo "containerLogMaxFiles: $CONTAINER_LOG_MAX_FILES" >> $KUBEADM_CONF_FILE
     fi
     echo "---" >> $KUBEADM_CONF_FILE
