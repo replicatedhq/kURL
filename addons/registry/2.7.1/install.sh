@@ -20,6 +20,16 @@ function registry() {
         render_yaml_file "$DIR/addons/registry/2.7.1/tmpl-persistentvolumeclaim.yaml" > "$DIR/kustomize/registry/persistentvolumeclaim.yaml"
         insert_resources "$DIR/kustomize/registry/kustomization.yaml" deployment-pvc.yaml
         insert_resources "$DIR/kustomize/registry/kustomization.yaml" persistentvolumeclaim.yaml
+
+        # check for readwritemany volume providers. Longhorn >=1.1.0 or Rook >=1.6.0
+        # rook case should never run, but keeping for future capability
+        if [ -n "$ROOK_VERSION" ]; then
+            semverCompare "$ROOK_VERSION" "1.6.0"
+            maybe_rwx_patch_registry_pvc "$SEMVER_COMPARE_RESULT" 
+        elif [ -n "$LONGHORN_VERSION" ]; then
+            semverCompare "$LONGHORN_VERSION" "1.1.0"
+            maybe_rwx_patch_registry_pvc "$SEMVER_COMPARE_RESULT"
+        fi
     fi
 
     kubectl apply -k "$DIR/kustomize/registry"
@@ -202,6 +212,10 @@ function registry_pvc_exists() {
     kubectl -n kurl get pvc registry-pvc &>/dev/null
 }
 
+function registry_pvc_is_rwx() {
+    kubectl -n kurl get pvc registry-pvc -ojsonpath=\{.spec.accessModes\} | grep -q ReadWriteMany
+}
+
 # if the PVC size has already been set we should not reduce it
 function determine_registry_pvc_size() {
     local registry_pvc_size="50Gi"
@@ -210,4 +224,26 @@ function determine_registry_pvc_size() {
     fi
 
     export REGISTRY_PVC_SIZE=$registry_pvc_size
+}
+
+# Patch the registry deployment to be HA, only if the right dependency version is met
+# Dont' try to apply for existing PVC installs
+function maybe_rwx_patch_registry_pvc() {
+    local src="$DIR/addons/registry/$REGISTRY_VERSION"
+    local dst="$DIR/kustomize/registry"
+    local semver_compare_result="$1"
+
+    # The case it already exists with the RWO volume
+    if registry_pvc_exists && ! registry_pvc_is_rwx; then
+        return
+    elif [ ! "$semver_compare_result" = "-1" ]; then
+        echo "Found CSI Driver compatible with RWX volumes; scaling out registry replicas to 2"
+        cp "$src/patch-deployment-ha.yaml" "$dst/"
+        insert_patches_strategic_merge "$dst/kustomization.yaml" patch-deployment-ha.yaml
+
+        cp "$src/patch-persistentvolumeclaim-rwx.yaml" "$dst/"
+        insert_patches_strategic_merge "$dst/kustomization.yaml" patch-persistentvolumeclaim-rwx.yaml
+    else
+        echo "CSI Driver not compatible with RWX volumes; keeping registry replicas at 1"
+    fi
 }
