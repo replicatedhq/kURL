@@ -419,6 +419,7 @@ function host_preflights() {
     $DIR/bin/vendorflights -i "${MERGED_YAML_SPEC}" -o "${VENDOR_PREFLIGHT_SPEC}"
     if [ -f "${VENDOR_PREFLIGHT_SPEC}" ]; then
       opts="${opts} --spec=${VENDOR_PREFLIGHT_SPEC}"
+      echo "+++++++++ Adding Vendor preflight spec ${VENDOR_PREFLIGHT_SPEC}, opts: ${opts}"
     fi
 
 
@@ -435,6 +436,7 @@ function host_preflights() {
     fi
     
     logStep "Running host preflights"
+    echo "PRINTING MERGED_YAML_SPEC ${MERGED_YAML_SPEC}"
     if [ "${PREFLIGHT_IGNORE}" = "1" ]; then
         "${DIR}"/bin/kurl host preflight "${MERGED_YAML_SPEC}" ${opts} | tee "${out_file}"
         host_preflights_mkresults "${out_file}" "${opts}"
@@ -444,6 +446,7 @@ function host_preflights() {
         # interactive terminal
         if prompts_can_prompt; then
             set +e
+            echo "+++++++++++++++ interactive ${opts}"
             "${DIR}"/bin/kurl host preflight "${MERGED_YAML_SPEC}" ${opts} </dev/tty | tee "${out_file}"
             local kurl_exit_code="${PIPESTATUS[0]}"
             set -e
@@ -478,6 +481,7 @@ function host_preflights() {
         else
             set +e
             "${DIR}"/bin/kurl host preflight "${MERGED_YAML_SPEC}" ${opts} | tee "${out_file}"
+            echo "++++++++++++++++++ opts: ${opts}"
             local kurl_exit_code="${PIPESTATUS[0]}"
             set -e
 

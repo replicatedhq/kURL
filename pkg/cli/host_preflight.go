@@ -54,6 +54,7 @@ func NewHostPreflightCmd(cli CLI) *cobra.Command {
 			if err != nil {
 				return errors.Wrap(err, "decode installer spec")
 			}
+			ioutil.WriteFile("/tmp/john-install-spec.yaml", installerSpecData, 777)
 
 			remotes := append([]string{}, v.GetStringSlice("primary-host")...)
 			remotes = append(remotes, v.GetStringSlice("secondary-host")...)
@@ -68,12 +69,31 @@ func NewHostPreflightCmd(cli CLI) *cobra.Command {
 			}
 
 			builtin := preflight.Builtin()
+			//fmt.Println("++++++++++++++ Dumping the builtin", builtin)
 			preflightSpec, err := decodePreflightSpec(builtin, data)
 			if err != nil {
 				return errors.Wrap(err, "builtin")
 			}
+			/*
+				fmt.Println("++++++++++++++ Dumping the preflightSpec", preflightSpec)
+
+				for kdata, pdata := range preflightSpec.Spec.Analyzers {
+					fmt.Println("++++++++ Jalajaaaaa dumping analyzers", kdata, pdata)
+					if pdata.CPU == nil {
+						continue
+					}
+					fmt.Println("++++++ AnalyzeMeta data ++++++", pdata.CPU.AnalyzeMeta.ID)
+
+				}
+			*/
+			//TODO jalaja
+			//decode into a map, remove the id from the file, put it back.
+			//remove the parent map element.
+			//change the installer spec to allow the addition of the the exclude list.
+			//two identical files - the one for build tags to include the go file..
 
 			for _, filename := range v.GetStringSlice("spec") {
+				fmt.Println("++++++++++++ spec", filename)
 				spec, err := ioutil.ReadFile(filename)
 				if err != nil {
 					return errors.Wrapf(err, "read spec file %s", filename)
