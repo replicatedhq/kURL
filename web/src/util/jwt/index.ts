@@ -1,6 +1,6 @@
 import * as jwt from "jsonwebtoken";
 import * as _ from "lodash";
-import CryptoJS from 'crypto-js';
+import * as crypto from 'crypto';
 import getMysqlPool from "../persistence/mysql";
 import param from "../params";
 
@@ -13,18 +13,15 @@ export default async function decode(auth: string): Promise<string> {
     const q = `select teamid, name, access_token, is_system_token, last_active, read_only from vendor_team_access_token where access_token = ?`;
     const v = [auth];
     const pool = getMysqlPool();
-    const result = await pool.query(q, v);
+    let result = await pool.query(q, v);
 
     // check for a hashed token in case it's a user or service account
     if (result.length === 0) {
-      const hashedV = CryptoJS.SHA256([auth]).toString(CryptoJS.enc.Base64);
-      const hashedResult = await pool.query(q, hashedV);
-      if (hashedResult.length === 0 || hashedResult[0].read_only) {
-        return "";
-      }
+      const encoded = crypto.createHash('sha256').update(auth).digest('base64');
+      result = await pool.query(q, encoded);
     }
 
-    if (result[0].read_only) {
+    if (result.length === 0 || result[0].read_only) {
       return "";
     }
 
