@@ -207,7 +207,7 @@ function has_default_namespace() {
 
 # Label nodes as provisioned by kurl installation
 # (these labels should have been added by kurl installation.
-#  See kubeadm-init and kubeadm-join yamk files.
+#  See kubeadm-init and kubeadm-join yaml files.
 #  This bit will ensure the labels are added for pre-existing cluster
 #  during a kurl upgrade.)
 labelNodes() {

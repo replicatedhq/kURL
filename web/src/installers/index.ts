@@ -24,6 +24,8 @@ export interface KubernetesConfig {
   HACluster?: boolean;
   masterAddress?: string;
   loadBalancerAddress?: string;
+  containerLogMaxSize?: string;
+  containerLogMaxFiles?: number;
   bootstrapToken?: string;
   bootstrapTokenTTL?: string;
   kubeadmTokenCAHash?: string;
@@ -43,6 +45,8 @@ export const kubernetesConfigSchema = {
     masterAddress: { type: "string", flag: "kuberenetes-master-address", description: "The address of the internal Kubernetes API server, used during join scripts (read-only)" },
     loadBalancerAddress: { type: "string", flag: "load-balancer-address", description: "Used for High Availability installs, indicates the address of the external load balancer" },
     bootstrapToken: { type: "string", flag: "bootstrap-token", description: "A secret needed for new nodes to join an existing cluster" },
+    containerLogMaxSize: { type: "string", flag: "container-log-max-size", description: "A quantity defining the maximum size of the container log file before it is rotated. For example: \"5Mi\" or \"256Ki\"." },
+    containerLogMaxFiles: { type: "number", flag: "container-log-max-files", description: "Specifies the maximum number of container log files that can be present for a container." },
     bootstrapTokenTTL: { type: "string", flag: "bootstrap-token-ttl", description: "How long the bootstrap token is valid for" },
     kubeadmTokenCAHash: { type: "string", flag: "kubeadm-token-ca-hash", description: "Generated during the install script, used for nodes joining (read-only)" },
     useStandardNodePortRange: { type: "boolean" },

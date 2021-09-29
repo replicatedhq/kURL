@@ -95,6 +95,8 @@ type Kubernetes struct {
 	CertKey                  string `json:"certKey,omitempty" yaml:"certKey,omitempty"`
 	ControlPlane             bool   `json:"controlPlane,omitempty" yaml:"controlPlane,omitempty"`
 	HACluster                bool   `json:"HACluster,omitempty" yaml:"HACluster,omitempty"`
+	ContainerLogMaxSize      string `json:"containerLogMaxSize,omitempty" yaml:"containerLogMaxSize,omitempty"`
+	ContainerLogMaxFiles     int    `json:"containerLogMaxFiles,omitempty" yaml:"containerLogMaxFiles,omitempty"`
 	KubeadmToken             string `json:"kubeadmToken,omitempty" yaml:"kubeadmToken,omitempty"`
 	KubeadmTokenCAHash       string `json:"kubeadmTokenCAHash,omitempty" yaml:"kubeadmTokenCAHash,omitempty"`
 	LoadBalancerAddress      string `json:"loadBalancerAddress,omitempty" yaml:"loadBalancerAddress,omitempty"`

@@ -205,6 +205,8 @@ func convertToBash(kurlValues map[string]interface{}, fieldsSet map[string]bool)
 		"Kubernetes.CertKey":                     "CERT_KEY",
 		"Kubernetes.ControlPlane":                "MASTER",
 		"Kubernetes.HACluster":                   "HA_CLUSTER",
+		"Kubernetes.ContainerLogMaxSize":         "CONTAINER_LOG_MAX_SIZE",
+		"Kubernetes.ContainerLogMaxFiles":        "CONTAINER_LOG_MAX_FILES",
 		"Kubernetes.KubeadmToken":                "KUBEADM_TOKEN",
 		"Kubernetes.KubeadmTokenCAHash":          "KUBEADM_TOKEN_CA_HASH",
 		"Kubernetes.LoadBalancerAddress":         "LOAD_BALANCER_ADDRESS",
