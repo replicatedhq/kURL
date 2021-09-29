@@ -1,5 +1,6 @@
 import * as jwt from "jsonwebtoken";
 import * as _ from "lodash";
+import CryptoJS from 'crypto-js';
 import getMysqlPool from "../persistence/mysql";
 import param from "../params";
 
@@ -14,7 +15,16 @@ export default async function decode(auth: string): Promise<string> {
     const pool = getMysqlPool();
     const result = await pool.query(q, v);
 
-    if (result.length === 0 || result[0].read_only) {
+    // check for a hashed token in case it's a user or service account
+    if (result.length === 0) {
+      const hashedV = CryptoJS.SHA256([auth]).toString(CryptoJS.enc.Base64);
+      const hashedResult = await pool.query(q, hashedV);
+      if (hashedResult.length === 0 || hashedResult[0].read_only) {
+        return "";
+      }
+    }
+
+    if (result[0].read_only) {
       return "";
     }
 
