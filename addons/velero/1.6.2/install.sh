@@ -66,6 +66,18 @@ function velero_install() {
     rm velero-credentials
 }
 
+function velero_already_applied() {
+    local src="$DIR/addons/velero/$VELERO_VERSION"
+    local dst="$DIR/kustomize/velero"
+
+    velero_change_storageclass "$src" "$dst" true
+
+    # This should only be applying the configmap if required
+    if [ -d "$dst" ]; then
+        kubectl apply -f "$dst"
+    fi
+}
+
 # The --secret-file flag must always be used so that the generated velero deployment uses the
 # cloud-credentials secret. Use the contents of that secret if it exists to avoid overwriting
 # any changes. Else if a local object store (Ceph/Minio) is configured, use its credentials.
@@ -150,10 +162,13 @@ function velero_patch_http_proxy() {
 function velero_change_storageclass() {
     local src="$1"
     local dst="$2"
+    local disable_kustomization="$3"
 
     if kubectl get sc longhorn &> /dev/null && \
     [ "$(kubectl get sc longhorn -o jsonpath='{.metadata.annotations.storageclass\.kubernetes\.io/is-default-class}')" = "true" ]; then
         render_yaml_file "$src/tmpl-change-storageclass.yaml" > "$dst/change-storageclass.yaml"
-        insert_resources "$dst/kustomization.yaml" change-storageclass.yaml
+        if [ -z "$disable_kustomization" ]; then
+            insert_resources "$dst/kustomization.yaml" change-storageclass.yaml
+        fi
     fi
 }

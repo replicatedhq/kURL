@@ -43,6 +43,8 @@ function minio() {
 
 function minio_already_applied() {
     minio_object_store_output
+
+    minio_migrate_from_rgw
 }
 
 function minio_creds() {
