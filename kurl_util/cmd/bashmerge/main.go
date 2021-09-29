@@ -120,7 +120,7 @@ func parseBashFlags(installer *kurlv1beta1.Installer, bashFlags string) error {
 			}
 			m, err := strconv.Atoi(split[1])
 			if err != nil {
-				return errors.Wrap(err, "invalid container-log-max-files value,. must be an integer.")
+				return errors.Wrap(err, "invalid container-log-max-files value. must be an integer.")
 			}
 			installer.Spec.Kubernetes.ContainerLogMaxFiles = m
 		case "kubeadm-token":
