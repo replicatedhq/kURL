@@ -1,20 +1,33 @@
 
-function change_cgroup_driver_to_systemd() {
-    # Docker uses cgroupfs by default to manage cgroup. On distributions using systemd,
-    # i.e. RHEL and Ubuntu, this causes issues because there are now 2 seperate ways
-    # to manage resources. For more info see the link below.
-    # https://github.com/kubernetes/kubeadm/issues/1394#issuecomment-462878219
-
-    if [ -f /var/lib/kubelet/kubeadm-flags.env ] || [ -f /etc/docker/daemon.json ]; then
+function init_daemon_json() {
+    if [ -f /etc/docker/daemon.json ]; then
         return
     fi
 
     mkdir -p /etc/docker
-    cat > /etc/docker/daemon.json <<EOF
+
+    # Change cgroup driver to systemd
+    # Docker uses cgroupfs by default to manage cgroup. On distributions using systemd,
+    # i.e. RHEL and Ubuntu, this causes issues because there are now 2 seperate ways
+    # to manage resources. For more info see the link below.
+    # https://github.com/kubernetes/kubeadm/issues/1394#issuecomment-462878219
+    #
+    if [ ! -f /var/lib/kubelet/kubeadm-flags.env ]; then
+        cat > /etc/docker/daemon.json <<EOF
 {
+    "log-driver": "json-file",
+    "log-opts": {"max-size": "10m"},
     "exec-opts": ["native.cgroupdriver=systemd"]
 }
 EOF
+    else
+        cat > /etc/docker/daemon.json <<EOF
+{
+    "log-driver": "json-file",
+    "log-opts": {"max-size": "10m"}
+}
+EOF
+    fi
 
     mkdir -p /etc/systemd/system/docker.service.d
 }
@@ -25,7 +38,7 @@ function install_docker() {
             printf "${RED}The installer did not specify a version of Docker to include, but is required by all kURL installation scripts currently. The latest supported version of Docker will be installed.${NC}\n"
             DOCKER_VERSION="19.03.4"
         fi
-        change_cgroup_driver_to_systemd
+        init_daemon_json
         docker_get_host_packages_online "$DOCKER_VERSION"
         docker_install
         systemctl enable docker
