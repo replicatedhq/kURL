@@ -26,7 +26,7 @@ func readFile(path string) []byte {
 	return configuration
 }
 
-func prettifyJson(readFile func(string) []byte, filePath string) {
+func prettifyJSON(readFile func(string) []byte, filePath string) {
 	config := readFile(filePath)
 
 	var parsed interface{}
@@ -54,7 +54,7 @@ func main() {
 	flag.Parse()
 
 	if *prettify == true && *filePath != "" {
-		prettifyJson(readFile, *filePath)
+		prettifyJSON(readFile, *filePath)
 	} else {
 		log.Fatalf("incorrect binary usage")
 	}
