@@ -21,6 +21,7 @@ function download_util_binaries() {
 
     mkdir -p /tmp/kurl-bin-utils/specs
     MERGED_YAML_SPEC=/tmp/kurl-bin-utils/specs/merged.yaml
+    VENDOR_PREFLIGHT_SPEC=/tmp/kurl-bin-utils/specs/vendor-preflight.yaml
 
     PARSED_YAML_SPEC=/tmp/kurl-bin-utils/scripts/variables.sh
 }

@@ -17,6 +17,8 @@ limitations under the License.
 package v1beta1
 
 import (
+	_ "github.com/replicatedhq/troubleshoot/pkg/apis" // runs the init addon for troubleshoot schema
+	troubleshootv1beta2 "github.com/replicatedhq/troubleshoot/pkg/apis/troubleshoot/v1beta2"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -107,20 +109,21 @@ type Kubernetes struct {
 }
 
 type Kurl struct {
-	AdditionalNoProxyAddresses   []string `json:"additionalNoProxyAddresses,omitempty" yaml:"additionalNoProxyAddresses,omitempty"`
-	Airgap                       bool     `json:"airgap,omitempty" yaml:"airgap,omitempty"`
-	HostnameCheck                string   `json:"hostnameCheck,omitempty" yaml:"hostnameCheck,omitempty"`
-	IgnoreRemoteLoadImagesPrompt bool     `json:"ignoreRemoteLoadImagesPrompt,omitempty" yaml:"ignoreRemoteLoadImagesPrompt,omitempty"`
-	IgnoreRemoteUpgradePrompt    bool     `json:"ignoreRemoteUpgradePrompt,omitempty" yaml:"ignoreRemoteUpgradePrompt,omitempty"`
-	InstallerVersion             string   `json:"installerVersion,omitempty" yaml:"installerVersion,omitempty"`
-	LicenseURL                   string   `json:"licenseURL,omitempty" yaml:"licenseURL,omitempty"`
-	Nameserver                   string   `json:"nameserver,omitempty" yaml:"nameserver,omitempty"`
-	NoProxy                      bool     `json:"noProxy,omitempty" yaml:"noProxy,omitempty"`
-	PreflightIgnore              bool     `json:"preflightIgnore,omitempty" yaml:"preflightIgnore,omitempty"`
-	PreflightIgnoreWarnings      bool     `json:"preflightIgnoreWarnings,omitempty" yaml:"preflightIgnoreWarnings,omitempty"`
-	PrivateAddress               string   `json:"privateAddress,omitempty" yaml:"privateAddress,omitempty"`
-	ProxyAddress                 string   `json:"proxyAddress,omitempty" yaml:"proxyAddress,omitempty"`
-	PublicAddress                string   `json:"publicAddress,omitempty" yaml:"publicAddress,omitempty"`
+	AdditionalNoProxyAddresses   []string                           `json:"additionalNoProxyAddresses,omitempty" yaml:"additionalNoProxyAddresses,omitempty"`
+	Airgap                       bool                               `json:"airgap,omitempty" yaml:"airgap,omitempty"`
+	HostnameCheck                string                             `json:"hostnameCheck,omitempty" yaml:"hostnameCheck,omitempty"`
+	IgnoreRemoteLoadImagesPrompt bool                               `json:"ignoreRemoteLoadImagesPrompt,omitempty" yaml:"ignoreRemoteLoadImagesPrompt,omitempty"`
+	IgnoreRemoteUpgradePrompt    bool                               `json:"ignoreRemoteUpgradePrompt,omitempty" yaml:"ignoreRemoteUpgradePrompt,omitempty"`
+	InstallerVersion             string                             `json:"installerVersion,omitempty" yaml:"installerVersion,omitempty"`
+	LicenseURL                   string                             `json:"licenseURL,omitempty" yaml:"licenseURL,omitempty"`
+	Nameserver                   string                             `json:"nameserver,omitempty" yaml:"nameserver,omitempty"`
+	NoProxy                      bool                               `json:"noProxy,omitempty" yaml:"noProxy,omitempty"`
+	HostPreflights               *troubleshootv1beta2.HostPreflight `json:"hostPreflights,omitempty" yaml:"hostPreflights,omitempty"`
+	PreflightIgnore              bool                               `json:"preflightIgnore,omitempty" yaml:"preflightIgnore,omitempty"`
+	PreflightIgnoreWarnings      bool                               `json:"preflightIgnoreWarnings,omitempty" yaml:"preflightIgnoreWarnings,omitempty"`
+	PrivateAddress               string                             `json:"privateAddress,omitempty" yaml:"privateAddress,omitempty"`
+	ProxyAddress                 string                             `json:"proxyAddress,omitempty" yaml:"proxyAddress,omitempty"`
+	PublicAddress                string                             `json:"publicAddress,omitempty" yaml:"publicAddress,omitempty"`
 }
 
 type Minio struct {
