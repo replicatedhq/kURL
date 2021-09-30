@@ -95,6 +95,10 @@ function get_patch_yaml() {
                 ;;
             ignore-remote-upgrade-prompt)
                 ;;
+            container-log-max-size)
+                ;;
+            container-log-max-files)
+                ;;
             kubeadm-token)
                 ;;
             kubeadm-token-ca-hash)

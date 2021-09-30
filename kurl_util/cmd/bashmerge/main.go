@@ -8,6 +8,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -108,6 +109,20 @@ func parseBashFlags(installer *kurlv1beta1.Installer, bashFlags string) error {
 				installer.Spec.Kubernetes = &kurlv1beta1.Kubernetes{}
 			}
 			installer.Spec.Kubernetes.HACluster = true
+		case "container-log-max-size":
+			if installer.Spec.Kubernetes == nil {
+				installer.Spec.Kubernetes = &kurlv1beta1.Kubernetes{}
+			}
+			installer.Spec.Kubernetes.ContainerLogMaxSize = split[1]
+		case "container-log-max-files":
+			if installer.Spec.Kubernetes == nil {
+				installer.Spec.Kubernetes = &kurlv1beta1.Kubernetes{}
+			}
+			m, err := strconv.Atoi(split[1])
+			if err != nil {
+				return errors.Wrap(err, "invalid container-log-max-files value. must be an integer.")
+			}
+			installer.Spec.Kubernetes.ContainerLogMaxFiles = m
 		case "kubeadm-token":
 			if installer.Spec.Kubernetes == nil {
 				installer.Spec.Kubernetes = &kurlv1beta1.Kubernetes{}

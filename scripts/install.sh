@@ -119,16 +119,23 @@ apiVersion: kubelet.config.k8s.io/v1beta1
 kind: KubeletConfiguration
 shutdownGracePeriod: 30s
 shutdownGracePeriodCriticalPods: 10s
----
 EOF
     else
         cat << EOF >> $KUBEADM_CONF_FILE
 apiVersion: kubelet.config.k8s.io/v1beta1
 kind: KubeletConfiguration
 cgroupDriver: systemd
----
 EOF
     fi
+
+    # conditional kubelet configuration fields
+    if [ -n "$CONTAINER_LOG_MAX_SIZE" ]; then
+        echo "containerLogMaxSize: $CONTAINER_LOG_MAX_SIZE" >> $KUBEADM_CONF_FILE
+    fi
+    if [ -n "$CONTAINER_LOG_MAX_FILES" ]; then
+        echo "containerLogMaxFiles: $CONTAINER_LOG_MAX_FILES" >> $KUBEADM_CONF_FILE
+    fi
+    echo "---" >> $KUBEADM_CONF_FILE
 
     # When no_proxy changes kubeadm init rewrites the static manifests and fails because the api is
     # restarting. Trigger the restart ahead of time and wait for it to be healthy.

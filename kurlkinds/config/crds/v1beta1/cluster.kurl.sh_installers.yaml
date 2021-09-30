@@ -256,6 +256,11 @@ spec:
                     type: string
                   certKey:
                     type: string
+                  containerLogMaxFiles:
+                    format: int32
+                    type: integer
+                  containerLogMaxSize:
+                    type: string
                   controlPlane:
                     type: boolean
                   kubeadmToken:
