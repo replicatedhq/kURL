@@ -48,7 +48,7 @@ func prettifyJson(readFile func(string) []byte, filePath string) {
 }
 
 func main() {
-	prettify := flag.Bool("p", false, "Prettifies the content of a json file. Must be accompanied by -fp [file_path] -jf [json_field]")
+	prettify := flag.Bool("p", false, "Prettifies the content of a json file. Must be accompanied by -fp [file_path]")
 	filePath := flag.String("fp", "", "filepath")
 
 	flag.Parse()
