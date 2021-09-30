@@ -61,7 +61,7 @@ require (
 	k8s.io/component-base v0.21.2 // indirect
 	k8s.io/klog/v2 v2.9.0 // indirect
 	k8s.io/utils v0.0.0-20210527160623-6fdb442a123b // indirect
-	sigs.k8s.io/controller-runtime v0.9.5
+	sigs.k8s.io/controller-runtime v0.10.1
 	sigs.k8s.io/controller-tools v0.7.0 // indirect
 )
 
