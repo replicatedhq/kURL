@@ -86,45 +86,24 @@ function package_cleanup() {
 }
 
 insertOrReplaceJsonParam() {
-    escapeValue='1'
-    # don't escape the value with quotes if it's an array or an object
-    if [ "${3:0:1}" == "{" ] || [ "${3:0:1}" == "[" ]; then
-        escapeValue='0'
-    fi
     if ! [ -f "$1" ]; then
         # If settings file does not exist
         mkdir -p "$(dirname "$1")"
-        if [ "$escapeValue" == "1" ]; then
-            echo "{\"$2\": \"$3\"}" > "$1"
-        else
-            echo "{\"$2\": $3}" > "$1"
-        fi
+        echo "{\"$2\": \"$3\"}" > "$1"
     else
         # Settings file exists
         if grep -q -E "\"$2\" *: *\"[^\"]*\"" "$1"; then
             # If settings file contains named setting, replace it
-            if [ "$escapeValue" == "1" ]; then
-                sed -i -e "s/\"$2\" *: *\"[^\"]*\"/\"$2\": \"$3\"/g" "$1"
-            else
-                sed -i -e "s/\"$2\" *: *\"[^\"]*\"/\"$2\": $3/g" "$1"
-            fi
+            sed -i -e "s/\"$2\" *: *\"[^\"]*\"/\"$2\": \"$3\"/g" "$1"
         else
             # Insert into settings file (with proper commas)
             if [ $(wc -c <"$1") -ge 5 ]; then
                 # File long enough to actually have an entry, insert "name": "value",\n after first {
-                if [ "$escapeValue" == "1" ]; then
-                    _commonJsonReplaceTmp="$(awk "NR==1,/^{/{sub(/^{/, \"{\\\"$2\\\": \\\"$3\\\", \")} 1" "$1")"
-                else
-                    _commonJsonReplaceTmp="$(awk "NR==1,/^{/{sub(/^{/, \"{\\\"$2\\\": $3, \")} 1" "$1")"
-                fi
+                _commonJsonReplaceTmp="$(awk "NR==1,/^{/{sub(/^{/, \"{\\\"$2\\\": \\\"$3\\\", \")} 1" "$1")"
                 echo "$_commonJsonReplaceTmp" > "$1"
             else
                 # file not long enough to actually have contents, replace wholesale
-                if [ "$escapeValue" == "1" ]; then
-                    echo "{\"$2\": \"$3\"}" > "$1"
-                else
-                    echo "{\"$2\": $3}" > "$1"
-                fi
+                echo "{\"$2\": \"$3\"}" > "$1"
             fi
         fi
     fi
@@ -228,7 +207,7 @@ function has_default_namespace() {
 
 # Label nodes as provisioned by kurl installation
 # (these labels should have been added by kurl installation.
-#  See kubeadm-init and kubeadm-join yamk files.
+#  See kubeadm-init and kubeadm-join yaml files.
 #  This bit will ensure the labels are added for pre-existing cluster
 #  during a kurl upgrade.)
 labelNodes() {

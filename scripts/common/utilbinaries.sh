@@ -7,7 +7,6 @@ function download_util_binaries() {
 
     BIN_SYSTEM_CONFIG=./bin/config
     BIN_YAMLUTIL=./bin/yamlutil
-    BIN_JSONUTIL=./bin/jsonutil
     BIN_DOCKER_CONFIG=./bin/docker-config
     BIN_SUBNET=./bin/subnet
     BIN_INSTALLERMERGE=./bin/installermerge

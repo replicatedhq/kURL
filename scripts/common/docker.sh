@@ -5,10 +5,6 @@ function init_daemon_json() {
     fi
 
     mkdir -p /etc/docker
-    daemonJsonFile=/etc/docker/daemon.json
-
-    insertOrReplaceJsonParam "$daemonJsonFile" "log-driver" "json-file"
-    insertOrReplaceJsonParam "$daemonJsonFile" "log-opts" '{\"max-size\": \"10m\"}'
 
     # Change cgroup driver to systemd
     # Docker uses cgroupfs by default to manage cgroup. On distributions using systemd,
@@ -17,11 +13,21 @@ function init_daemon_json() {
     # https://github.com/kubernetes/kubeadm/issues/1394#issuecomment-462878219
     #
     if [ ! -f /var/lib/kubelet/kubeadm-flags.env ]; then
-        insertOrReplaceJsonParam "$daemonJsonFile" "exec-opts" '[\"native.cgroupdriver=systemd\"]'
+        cat > /etc/docker/daemon.json <<EOF
+{
+    "log-driver": "json-file",
+    "log-opts": {"max-size": "10m"},
+    "exec-opts": ["native.cgroupdriver=systemd"]
+}
+EOF
+    else
+        cat > /etc/docker/daemon.json <<EOF
+{
+    "log-driver": "json-file",
+    "log-opts": {"max-size": "10m"},
+}
+EOF
     fi
-
-    $BIN_JSONUTIL -p -fp $daemonJsonFile # prettify
-    echo >> $daemonJsonFile
 
     mkdir -p /etc/systemd/system/docker.service.d
 }
