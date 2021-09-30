@@ -759,7 +759,7 @@ export class Installer {
 
     i.id = "latest";
     i.spec.kubernetes = { version: "latest" };
-    i.spec.docker = { version: "latest" };
+    i.spec.containerd = { version: "latest" };
     i.spec.weave = { version: "latest" };
     i.spec.rook = { version: "latest" };
     i.spec.ekco = { version: "latest" };
