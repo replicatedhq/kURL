@@ -1,6 +1,7 @@
 import * as jwt from "jsonwebtoken";
 import * as _ from "lodash";
-import * as crypto from 'crypto';
+import * as crypto from "crypto";
+import base64url from "base64url";
 import getMysqlPool from "../persistence/mysql";
 import param from "../params";
 
@@ -17,7 +18,8 @@ export default async function decode(auth: string): Promise<string> {
 
     // check for a hashed token in case it's a user or service account
     if (result.length === 0) {
-      const encoded = crypto.createHash('sha256').update(auth).digest('base64');
+      const hashed = crypto.createHash('sha256').update(auth).digest();
+      const encoded = base64url(hashed) + "="; // golang adds '='s to url-base64 encoded strings ...
       result = await pool.query(q, encoded);
     }
 
