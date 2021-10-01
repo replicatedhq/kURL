@@ -1,7 +1,7 @@
 import * as jwt from "jsonwebtoken";
 import * as _ from "lodash";
 import * as crypto from "crypto";
-import base64url from 'base64url';
+import base64url from "base64url";
 import getMysqlPool from "../persistence/mysql";
 import param from "../params";
 
