@@ -67,7 +67,7 @@ function velero_already_applied() {
     velero_change_storageclass "$src" "$dst" true
 
     # This should only be applying the configmap if required
-    if [ -d "$dst" ]; then
+    if compgen -G "$dst/*.yaml" > /dev/null; then
         kubectl apply -f "$dst"
     fi
 }
