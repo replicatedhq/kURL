@@ -311,7 +311,7 @@ function prompt_for_private_ip() {
     fi
 
     if ! prompts_can_prompt ; then
-        bail "kurl.privateAddress required"
+        bail "kurl.privateAddress required. Try passing the private address to this script e.g. 'sudo ./install.sh private-address=1.2.3.4' or supply the privateAddress field to the kurl add-on."
     fi
 
     printf "The installer was unable to automatically detect the private IP address of this machine.\n"
