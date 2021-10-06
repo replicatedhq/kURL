@@ -21,6 +21,7 @@ jobs:
       uses: peter-evans/create-pull-request@v3
       id: cpr
       with:
+        token: ${{ secrets.AUTOMATED_PR_GH_PAT }}
         commit-message: Create new Rook version
         title: 'Automated Rook version update ${{ steps.update.outputs.rook_version }}'
         branch: automation/update-rook
