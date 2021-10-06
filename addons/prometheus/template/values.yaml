@@ -1752,7 +1752,7 @@ prometheus:
 
     ## Service type
     ##
-    type: LoadBalancer
+    type: ClusterIP # originally "LoadBalancer" (replicated)
 
     ## Port to expose on each node
     ##
