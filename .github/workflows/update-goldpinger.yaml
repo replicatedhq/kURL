@@ -23,6 +23,7 @@ jobs:
       uses: peter-evans/create-pull-request@v3
       id: cpr
       with:
+        token: ${{ secrets.AUTOMATED_PR_GH_PAT }}
         commit-message: Create new Goldpinger version
         title: 'Automated Goldpinger version update ${{ steps.update.outputs.goldpinger_version }}'
         branch: automation/update-goldpinger
