@@ -35,7 +35,7 @@ function rook() {
 
 
     if ! spinner_until 600 rook_ceph_version_deployed; then
-        bail "New Ceph version failed to deploy"
+        rook_ceph_edit_version
     fi
 
     rook_patch_insecure_clients
@@ -243,4 +243,18 @@ function rook_ceph_version_deployed() {
         return 1
     fi
     return 0
+}
+
+# Occasionally the operator will update the mons but not the osds. This leaves the osds
+# unable to run. Manually edit the version in deployments that have not been updated.
+function rook_ceph_edit_version() {
+    printf "${YELLOW}Ceph failed to gracefully upgrade to v14.2.21. Force-applying upgrade\n${NC}"
+
+    kubectl -n rook-ceph get deploy --selector=ceph-version=14.2.0 -oyaml | \
+        sed 's/kurlsh\/ceph:v14.2.0.*/kurlsh\/ceph:v14.2.21-9065b09-20210625/g' | \
+        sed 's/kurlsh\/rook-ceph:v1.0.4.*/kurlsh\/rook-ceph:v1.0.4-14.2.21-9065b09-20210625/g' | \
+        sed 's/14.2.0/14.2.21/g' \
+        > /tmp/ceph.yaml
+
+    kubectl apply -f /tmp/ceph.yaml
 }
