@@ -141,6 +141,10 @@ spec:
     version: 1.1.0
   sonobuoy:
     version: 0.50.0
+  nginx:
+    version: latest
+    httpPort: 3080
+    httpsPort: 3443
 `;
 
 // Used for validation in all options test case
@@ -339,6 +343,14 @@ spec:
   contour:
     version: latest
     tlsMinimumProtocolVersion: "1.3"
+    httpPort: 3080
+    httpsPort: 3443
+`;
+
+const nginx = `
+spec:
+  nginx:
+    version: latest
     httpPort: 3080
     httpsPort: 3443
 `;
@@ -831,7 +843,7 @@ spec:
     describe("every option", () => {
       it(`=> service-cidr-range=/12 ...`, () => {
         const i = Installer.parse(everyOption);
-        expect(i.flags()).to.equal(`service-cidr-range=/12 service-cidr=100.1.1.1/12 ha=0 kuberenetes-master-address=192.168.1.1 load-balancer-address=10.128.10.1 container-log-max-size=256Ki container-log-max-files=4 bootstrap-token=token bootstrap-token-ttl=10min kubeadm-token-ca-hash=hash control-plane=0 cert-key=key bypass-storagedriver-warnings=0 hard-fail-on-loopback=0 no-ce-on-ee=0 docker-registry-ip=192.168.0.1 additional-no-proxy=129.168.0.2 no-docker=0 pod-cidr=39.1.2.3 pod-cidr-range=/12 disable-weave-encryption=0 storage-class-name=default ceph-replica-count=1 rook-block-storage-enabled=1 rook-block-device-filter=sd[a-z] rook-bypass-upgrade-warning=1 rook-hostpath-requires-privileged=1 openebs-namespace=openebs openebs-localpv-enabled=1 openebs-localpv-storage-class-name=default openebs-cstor-enabled=1 openebs-cstor-storage-class-name=cstor minio-namespace=minio minio-hostpath=/sentry contour-tls-minimum-protocol-version=1.3 contour-http-port=3080 contour-https-port=3443 registry-publish-port=20 fluentd-full-efk-stack=0 kotsadm-application-slug=sentry kotsadm-ui-bind-port=8800 kotsadm-hostname=1.1.1.1 kotsadm-application-namespaces=kots velero-namespace=velero velero-disable-cli=0 velero-disable-restic=0 velero-local-bucket=local velero-restic-requires-privileged=0 ekco-node-unreachable-toleration-duration=10m ekco-min-ready-master-node-count=3 ekco-min-ready-worker-node-count=1 ekco-should-disable-reboot-service=0 ekco-rook-should-use-all-nodes=0 airgap=0 hostname-check=2.2.2.2 ignore-remote-load-images-prompt=0 ignore-remote-upgrade-prompt=0 no-proxy=0 preflight-ignore=1 preflight-ignore-warnings=1 private-address=10.38.1.1 http-proxy=1.1.1.1 public-address=101.38.1.1 bypass-firewalld-warning=0 hard-fail-on-firewalld=0 helmfile-spec=${helmfileSpec} longhorn-ui-bind-port=30880 longhorn-ui-replica-count=0`);
+        expect(i.flags()).to.equal(`service-cidr-range=/12 service-cidr=100.1.1.1/12 ha=0 kuberenetes-master-address=192.168.1.1 load-balancer-address=10.128.10.1 container-log-max-size=256Ki container-log-max-files=4 bootstrap-token=token bootstrap-token-ttl=10min kubeadm-token-ca-hash=hash control-plane=0 cert-key=key bypass-storagedriver-warnings=0 hard-fail-on-loopback=0 no-ce-on-ee=0 docker-registry-ip=192.168.0.1 additional-no-proxy=129.168.0.2 no-docker=0 pod-cidr=39.1.2.3 pod-cidr-range=/12 disable-weave-encryption=0 storage-class-name=default ceph-replica-count=1 rook-block-storage-enabled=1 rook-block-device-filter=sd[a-z] rook-bypass-upgrade-warning=1 rook-hostpath-requires-privileged=1 openebs-namespace=openebs openebs-localpv-enabled=1 openebs-localpv-storage-class-name=default openebs-cstor-enabled=1 openebs-cstor-storage-class-name=cstor minio-namespace=minio minio-hostpath=/sentry contour-tls-minimum-protocol-version=1.3 contour-http-port=3080 contour-https-port=3443 registry-publish-port=20 fluentd-full-efk-stack=0 kotsadm-application-slug=sentry kotsadm-ui-bind-port=8800 kotsadm-hostname=1.1.1.1 kotsadm-application-namespaces=kots velero-namespace=velero velero-disable-cli=0 velero-disable-restic=0 velero-local-bucket=local velero-restic-requires-privileged=0 ekco-node-unreachable-toleration-duration=10m ekco-min-ready-master-node-count=3 ekco-min-ready-worker-node-count=1 ekco-should-disable-reboot-service=0 ekco-rook-should-use-all-nodes=0 airgap=0 hostname-check=2.2.2.2 ignore-remote-load-images-prompt=0 ignore-remote-upgrade-prompt=0 no-proxy=0 preflight-ignore=1 preflight-ignore-warnings=1 private-address=10.38.1.1 http-proxy=1.1.1.1 public-address=101.38.1.1 bypass-firewalld-warning=0 hard-fail-on-firewalld=0 helmfile-spec=${helmfileSpec} longhorn-ui-bind-port=30880 longhorn-ui-replica-count=0 nginx-http-port=3080 nginx-https-port=3443`);
       });
     });
   });
@@ -935,6 +947,20 @@ spec:
       });
       
       expect(i.flags()).to.equal("contour-tls-minimum-protocol-version=1.3 contour-http-port=3080 contour-https-port=3443")
+    });
+  });
+
+  describe("nginx", () => {
+    it("should parse", () => {
+      const i = Installer.parse(nginx);
+
+      expect(i.spec.nginx).to.deep.equal({
+        version: "latest",
+        httpPort: 3080,
+        httpsPort: 3443,
+      });
+      
+      expect(i.flags()).to.equal("nginx-http-port=3080 nginx-https-port=3443")
     });
   });
 

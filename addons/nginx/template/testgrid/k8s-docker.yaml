@@ -1,0 +1,10 @@
+- installerSpec:
+    kubernetes:
+      version: "latest"
+    weave:
+      version: "latest"
+    docker:
+      version: "latest"
+    nginx:
+      version: "__testver__"
+      s3Override: "__testdist__"

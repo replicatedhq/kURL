@@ -1,0 +1,18 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ingress-nginx-controller
+  namespace: ingress-nginx
+spec:
+  ports:
+    - name: http
+      port: $NGINX_HTTP_PORT
+      protocol: TCP
+      targetPort: http
+      appProtocol: http
+    - name: https
+      port: $NGINX_HTTPS_PORT
+      protocol: TCP
+      targetPort: https
+      appProtocol: https
