@@ -20,7 +20,7 @@ while read -r uid; do
 done < <(grep ':6789:/' /proc/mounts | grep -v globalmount | awk '{ print $2 }' | awk -F '/' '{ print $6 }')
 
 # while there are still pods with PVCs mounted
-while [ -n "$(lsblk | grep -q "\/var\/lib\/kubelet\/pods\/.*\/pvc-")" ]; do
+while [ -n "$(lsblk | grep "\/var\/lib\/kubelet\/pods\/.*\/pvc-")" ]; do
     echo "Waiting for pods to unmount PVCs"
     sleep 1
 done
