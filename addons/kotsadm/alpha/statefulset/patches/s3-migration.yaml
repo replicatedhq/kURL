@@ -28,7 +28,7 @@
           optional: true
     - name: S3_BUCKET_ENDPOINT
       value: "true"
-    image: kotsadm/kotsadm:alpha
+    image: kotsadm/kotsadm:v2021.10.15-2-nightly
     imagePullPolicy: IfNotPresent
     volumeMounts:
     - name: kotsadmdata
