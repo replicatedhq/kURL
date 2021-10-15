@@ -138,10 +138,6 @@ function containerd_migrate_from_docker() {
         return
     fi
 
-    if ! commandExists kubectl; then
-        return
-    fi
-
     echo "Draining node to prepare for migration from docker to containerd"
 
     # Delete pods that depend on other pods on the same node
