@@ -165,6 +165,10 @@ function reset() {
 
     discover
 
+    if [ -f /opt/ekco/shutdown.sh ]; then
+        bash /opt/ekco/shutdown.sh
+    fi
+
     if commandExists "kubeadm"; then
         printf "Resetting kubeadm\n"
         kubeadm_reset
