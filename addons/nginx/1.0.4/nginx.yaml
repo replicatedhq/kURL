@@ -273,9 +273,7 @@ metadata:
   namespace: ingress-nginx
 spec:
   type: NodePort
-  ipFamilyPolicy: SingleStack
-  ipFamilies:
-    - IPv4
+  # (dans) have to remove the ipFamilies here for kubernetes <1.20
   ports:
     - name: http
       port: 80

@@ -11,13 +11,18 @@ function nginx_pre_init() {
 }
 
 function nginx() {
-  local src="$DIR/addons/nginx/1.0.4"
-  local dst="$DIR/kustomize/nginx"
+    local src="$DIR/addons/nginx/1.0.4"
+    local dst="$DIR/kustomize/nginx"
 
-  cp "$src/nginx.yaml" "$dst"
-  cp "$src/kustomization.yaml" "$dst"
+    cp "$src/nginx.yaml" "$dst"
+    cp "$src/kustomization.yaml" "$dst"
 
-  render_yaml_file "$src/tmpl-service-patch.yaml" > "$dst/service-patch.yaml"
+    semverCompare "$KUBERNETES_VERSION" "1.20.0"
+    if [ "$semver_compare_result" = "-1" ]; then
+        render_yaml_file "$src/tmpl-ipv4-service-patch.yaml" > "$dst/service-patch.yaml"
+    else
+        render_yaml_file "$src/tmpl-service-patch.yaml" > "$dst/service-patch.yaml"
+    fi
 
-  kubectl apply -k "$dst"
+    kubectl apply -k "$dst"
 }
