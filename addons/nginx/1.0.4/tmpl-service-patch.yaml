@@ -7,12 +7,12 @@ metadata:
 spec:
   ports:
     - name: http
-      port: $NGINX_HTTP_PORT
+      nodePort: $NGINX_HTTP_PORT
       protocol: TCP
       targetPort: http
       appProtocol: http
     - name: https
-      port: $NGINX_HTTPS_PORT
+      nodePort: $NGINX_HTTPS_PORT
       protocol: TCP
       targetPort: https
       appProtocol: https

@@ -1,10 +1,25 @@
+# basic test
 - installerSpec:
     kubernetes:
       version: "latest"
     weave:
       version: "latest"
-    docker:
+    containerd:
       version: "latest"
     nginx:
       version: "__testver__"
       s3Override: "__testdist__"
+
+# with http/https ports
+- installerSpec:
+    kubernetes:
+      version: "latest"
+    weave:
+      version: "latest"
+    containerd:
+      version: "latest"
+    nginx:
+      version: "__testver__"
+      s3Override: "__testdist__"
+      httpPort: 80
+      httpsPort: 443
