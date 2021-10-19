@@ -1,0 +1,32 @@
+name: dependabot-automerge
+##########################################################
+# This action will automatically merge dependabot PR's
+# if they pass all status checks, it currently only updates
+# changes to patch versions
+##########################################################
+on:
+  pull_request_target:
+    types:
+      - opened
+    branches:
+      - 'dependabot/**'
+
+jobs:
+  auto-merge:
+    runs-on: ubuntu-18.04
+    steps:
+      - uses: actions/checkout@v2
+      - uses: ahmadnassri/action-dependabot-auto-merge@v2
+        with:
+          target: patch
+          github-token: ${{ secrets.AUTOMATED_PR_GH_PAT }}
+
+      - name: create shortcut story on failure
+
+        run: |
+          curl -X POST \
+            -H "Content-Type: application/json" \
+            -H "Shortcut-Token: $SHORTCUT_SECRET \
+            
+        env:
+          SHORTCUT_SECRET: ${{ secrets.SHORTCUT_SECRET }}
