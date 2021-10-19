@@ -26,6 +26,8 @@ To view logs for `tgrun` - `journalctl -u tgrun`
 terraform destroy
 ```
 
+*NOTE: After deprovisioning the instance, Equinix will take some time to release the reservations to our account. Until the reservation is released you will not be able to provision reserved instances. Once the reservation has been released you should see 2 instances on [this page](https://console.equinix.com/projects/bf141b98-6b6d-49c8-b7df-c261e383fc74/create-server/reserved).*
+
 ### Tested versions
 ```bash
 Terraform v1.0.4
