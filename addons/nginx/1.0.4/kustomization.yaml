@@ -1,0 +1,5 @@
+resources:
+- nginx.yaml
+
+patchesStrategicMerge:
+- service-patch.yaml

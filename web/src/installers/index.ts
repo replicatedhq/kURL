@@ -266,6 +266,25 @@ export const contourConfigSchema = {
   additionalProperties: false,
 };
 
+export interface NGINXConfig {
+  version: string;
+  s3Override?: string;
+  httpPort?: number;
+  httpsPort?: number;
+}
+
+export const nginxConfigSchema = {
+  type: "object",
+  properties: {
+    version: { type: "string" },
+    s3Override: { type: "string", flag: "s3-override", description: "Override the download location for addon package distribution (used for CI/CD testing alpha addons)" },
+    httpPort: { type: "number", flag: "nginx-http-port", description: "Sets the NodePort used for http traffic on ingress routes." },
+    httpsPort: { type: "number", flag: "nginx-https-port", description: "Sets the NodePort used for https (TLS) traffic on ingress routes." },
+  },
+  required: ["version"],
+  additionalProperties: false,
+};
+
 export interface RegistryConfig {
   version: string;
   s3Override?: string;
@@ -682,6 +701,7 @@ export interface InstallerSpec {
   openebs?: OpenEBSConfig;
   minio?: MinioConfig;
   contour?: ContourConfig;
+  nginx?: NGINXConfig;
   registry?: RegistryConfig;
   prometheus?: PrometheusConfig;
   fluentd?: FluentdConfig;
@@ -718,6 +738,7 @@ const specSchema = {
     openebs: openEBSConfigSchema,
     minio: minioConfigSchema,
     contour: contourConfigSchema,
+    nginx: nginxConfigSchema,
     registry: registryConfigSchema,
     prometheus: prometheusConfigSchema,
     fluentd: fluentdConfigSchema,
@@ -1188,6 +1209,9 @@ export class Installer {
     }
     if (this.spec.contour && !(await Installer.hasVersion("contour", this.spec.contour.version, installerVersion)) && !this.hasS3Override("contour")) {
       return {error: {message: `Contour version "${_.escape(this.spec.contour.version)}" is not supported${installerVersion ? " for installer version " + _.escape(installerVersion) : ""}`}};
+    }
+    if (this.spec.nginx && !(await Installer.hasVersion("nginx", this.spec.nginx.version, installerVersion)) && !this.hasS3Override("nginx")) {
+      return {error: {message: `NGINX version "${_.escape(this.spec.nginx.version)}" is not supported${installerVersion ? " for installer version " + _.escape(installerVersion) : ""}`}};
     }
     if (this.spec.registry && !(await Installer.hasVersion("registry", this.spec.registry.version, installerVersion)) && !this.hasS3Override("registry")) {
       return {error: {message: `Registry version "${_.escape(this.spec.registry.version)}" is not supported${installerVersion ? " for installer version " + _.escape(installerVersion) : ""}`}};

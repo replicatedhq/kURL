@@ -112,6 +112,12 @@ dist/contour-%.tar.gz: build/addons
 	mkdir -p dist
 	tar cf - -C build addons/contour/$* | gzip > dist/contour-$*.tar.gz
 
+dist/nginx-%.tar.gz: build/addons
+	mkdir -p build/addons/nginx/$*/images
+	bin/save-manifest-assets.sh "nginx-$*" addons/nginx/$*/Manifest $(CURDIR)/build/addons/nginx/$*
+	mkdir -p dist
+	tar cf - -C build addons/nginx/$* | gzip > dist/nginx-$*.tar.gz
+
 dist/registry-%.tar.gz: build/addons
 	mkdir -p build/addons/registry/$*/images
 	bin/save-manifest-assets.sh "registry-$*" addons/registry/$*/Manifest $(CURDIR)/build/addons/registry/$*
