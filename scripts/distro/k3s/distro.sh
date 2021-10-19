@@ -44,7 +44,6 @@ function k3s_addon_for_each() {
     $cmd longhorn "$LONGHORN_VERSION" "$LONGHORN_S3_OVERRIDE"
     $cmd minio "$MINIO_VERSION" "$MINIO_S3_OVERRIDE"
     $cmd contour "$CONTOUR_VERSION" "$CONTOUR_S3_OVERRIDE"
-    $cmd nginx "$NGINX_VERSION" "$NGINX_S3_OVERRIDE"
     $cmd registry "$REGISTRY_VERSION" "$REGISTRY_S3_OVERRIDE"
     $cmd prometheus "$PROMETHEUS_VERSION" "$PROMETHEUS_S3_OVERRIDE"
     $cmd kotsadm "$KOTSADM_VERSION" "$KOTSADM_S3_OVERRIDE"
