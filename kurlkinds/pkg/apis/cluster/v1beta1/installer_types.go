@@ -31,7 +31,6 @@ type InstallerSpec struct {
 	Antrea          *Antrea          `json:"antrea,omitempty" yaml:"antrea,omitempty"`
 	Calico          *Calico          `json:"calico,omitempty" yaml:"calico,omitempty"`
 	Contour         *Contour         `json:"contour,omitempty" yaml:"contour,omitempty"`
-	NGINX           *NGINX           `json:"nginx,omitempty" yaml:"nginx,omitempty"`
 	Rook            *Rook            `json:"rook,omitempty" yaml:"rook,omitempty"`
 	Registry        *Registry        `json:"registry,omitempty" yaml:"registry,omitempty"`
 	Prometheus      *Prometheus      `json:"prometheus,omitempty" yaml:"prometheus,omitempty"`
@@ -135,13 +134,6 @@ type Minio struct {
 	S3Override string `json:"s3Override,omitempty" yaml:"s3Override,omitempty"`
 	HostPath   string `json:"hostPath,omitempty" yaml:"hostPath,omitempty"`
 	Version    string `json:"version" yaml:"version"`
-}
-
-type NGINX struct {
-	S3Override string `json:"s3Override,omitempty" yaml:"s3Override,omitempty"`
-	Version    string `json:"version" yaml:"version"`
-	HTTPPort   int    `json:"httpPort,omitempty" yaml:"httpPort,omitempty"`
-	HTTPSPort  int    `json:"httpsPort,omitempty" yaml:"httpsPort,omitempty"`
 }
 
 type OpenEBS struct {
