@@ -18,7 +18,7 @@ variable "project_id" {
 
 variable "device_count" {
   type        = number
-  default     = 3
+  default     = 5
   description = "Number of devices to provision"
 }
 
