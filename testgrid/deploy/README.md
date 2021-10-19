@@ -13,7 +13,7 @@
 
 ```bash
 export AWS_PROFILE=replicated-production
-export PACKET_AUTH_TOKEN=<packet-auth-token>
+export METAL_AUTH_TOKEN=<packet-auth-token>
 terrafrom plan
 terraform apply
 ```
