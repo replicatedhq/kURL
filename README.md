@@ -54,3 +54,4 @@ $ cosign verify-blob -key key.pub -signature kots-sbom.tgz.sig kots-sbom.tgz
 Verified OK
 ```
 
+
