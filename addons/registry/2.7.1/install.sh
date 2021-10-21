@@ -14,6 +14,11 @@ function registry() {
         insert_patches_strategic_merge "$DIR/kustomize/registry/kustomization.yaml" patch-deployment-velero.yaml
         render_yaml_file "$DIR/addons/registry/2.7.1/tmpl-configmap-velero.yaml" > "$DIR/kustomize/registry/configmap-velero.yaml"
         insert_resources "$DIR/kustomize/registry/kustomization.yaml" configmap-velero.yaml
+
+        # TODO jalaja add this logic only if migration flag is enabled
+        determine_registry_pvc_size
+        render_yaml_file "$DIR/addons/registry/2.7.1/tmpl-persistentvolumeclaim.yaml" > "$DIR/kustomize/registry/persistentvolumeclaim.yaml"
+        insert_resources "$DIR/kustomize/registry/kustomization.yaml" persistentvolumeclaim.yaml
     else
         determine_registry_pvc_size
         cp "$DIR/addons/registry/2.7.1/deployment-pvc.yaml" "$DIR/kustomize/registry/deployment-pvc.yaml"
