@@ -314,7 +314,7 @@ function run_analyzers() {
         send_logs
         report_failure "troubleshoot_analysis"
         exit 1
-    elif grep -q '"severity": "error"' ./analyzer-results.json ; then
+    elif grep -q '"severity": "warn"' ./analyzer-results.json ; then
         echo "failed troubleshoot analysis with warnings"
         send_logs
         report_failure "troubleshoot_analysis"
