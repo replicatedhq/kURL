@@ -52,8 +52,8 @@ spec:
         command:
         - /migrate-s3.sh
         volumeMounts:
-        - mountPath: /backup
-          name: backup
+        - mountPath: /var/lib/registry
+          name: registry-data
         - name: registry-velero-config
           mountPath: /migrate-s3.sh
           subPath: migrate-s3.sh
