@@ -17,10 +17,11 @@ type DequeueInstanceResponse struct {
 	OperatingSystemImage   string `json:"operatingSystemImage"`
 	OperatingSystemPreInit string `json:"operatingSystemPreInit"`
 
-	KurlYAML   string `json:"kurlYaml"`
-	KurlURL    string `json:"kurlUrl"`
-	UpgradeURL string `json:"upgradeUrl"`
-	KurlRef    string `json:"kurlRef"`
+	KurlYAML          string `json:"kurlYaml"`
+	KurlURL           string `json:"kurlUrl"`
+	UpgradeURL        string `json:"upgradeUrl"`
+	SupportbundleYAML string `json:"supportbundleYaml"`
+	KurlRef           string `json:"kurlRef"`
 }
 
 func DequeueInstance(w http.ResponseWriter, r *http.Request) {
@@ -52,10 +53,11 @@ func DequeueInstance(w http.ResponseWriter, r *http.Request) {
 		OperatingSystemImage:   testInstance.OSImage,
 		OperatingSystemPreInit: testInstance.OSPreInit,
 
-		KurlYAML:   testInstance.KurlYAML,
-		KurlURL:    testInstance.KurlURL,
-		UpgradeURL: testInstance.UpgradeURL,
-		KurlRef:    testInstance.RefID,
+		KurlYAML:          testInstance.KurlYAML,
+		KurlURL:           testInstance.KurlURL,
+		UpgradeURL:        testInstance.UpgradeURL,
+		SupportbundleYAML: testInstance.SupportbundleYAML,
+		KurlRef:           testInstance.RefID,
 	}
 
 	JSON(w, 200, []DequeueInstanceResponse{

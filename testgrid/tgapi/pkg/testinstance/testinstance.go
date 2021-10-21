@@ -22,12 +22,12 @@ type KurlInstallerMetadata struct {
 	Name string `json:"name" yaml:"name"`
 }
 
-func Create(id, refID, kurlYAML, kurlURL, upgradeYAML, upgradeURL, osName, osVersion, osImage, osPreInit string) error {
+func Create(id, refID, kurlYAML, kurlURL, upgradeYAML, upgradeURL, supportbundleYAML, osName, osVersion, osImage, osPreInit string) error {
 	pg := persistence.MustGetPGSession()
 
-	query := `insert into testinstance (id, enqueued_at, testrun_ref, kurl_yaml, kurl_url, upgrade_yaml, upgrade_url, os_name, os_version, os_image, os_preinit)
-values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`
-	if _, err := pg.Exec(query, id, time.Now(), refID, kurlYAML, kurlURL, upgradeYAML, upgradeURL, osName, osVersion, osImage, osPreInit); err != nil {
+	query := `insert into testinstance (id, enqueued_at, testrun_ref, kurl_yaml, kurl_url, upgrade_yaml, upgrade_url, supportbundle_yaml, os_name, os_version, os_image, os_preinit)
+values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`
+	if _, err := pg.Exec(query, id, time.Now(), refID, kurlYAML, kurlURL, upgradeYAML, upgradeURL, supportbundleYAML, osName, osVersion, osImage, osPreInit); err != nil {
 		return errors.Wrap(err, "failed to insert")
 	}
 
@@ -43,19 +43,20 @@ set dequeued_at = now() where id in (
 select id from testinstance
 where dequeued_at is null
 order by enqueued_at asc
-limit 1) returning id, dequeued_at, testrun_ref, kurl_yaml, kurl_url, upgrade_yaml, upgrade_url, os_name, os_version, os_image, os_preinit
-) select id, testrun_ref, kurl_yaml, kurl_url, upgrade_yaml, upgrade_url, os_name, os_version, os_image, os_preinit from updated`
+limit 1) returning id, dequeued_at, testrun_ref, kurl_yaml, kurl_url, upgrade_yaml, upgrade_url, supportbundle_yaml, os_name, os_version, os_image, os_preinit
+) select id, testrun_ref, kurl_yaml, kurl_url, upgrade_yaml, upgrade_url, supportbundle_yaml, os_name, os_version, os_image, os_preinit from updated`
 
 	row := db.QueryRow(query)
 
 	testInstance := types.TestInstance{}
-	var upgradeYAML, upgradeURL, osPreInit sql.NullString
+	var upgradeYAML, upgradeURL, supportbundleYAML, osPreInit sql.NullString
 	if err := row.Scan(&testInstance.ID,
 		&testInstance.RefID,
 		&testInstance.KurlYAML,
 		&testInstance.KurlURL,
 		&upgradeYAML,
 		&upgradeURL,
+		&supportbundleYAML,
 		&testInstance.OSName,
 		&testInstance.OSVersion,
 		&testInstance.OSImage,
@@ -66,6 +67,7 @@ limit 1) returning id, dequeued_at, testrun_ref, kurl_yaml, kurl_url, upgrade_ya
 
 	testInstance.UpgradeYAML = upgradeYAML.String
 	testInstance.UpgradeURL = upgradeURL.String
+	testInstance.SupportbundleYAML = supportbundleYAML.String
 	testInstance.OSPreInit = osPreInit.String
 
 	return &testInstance, nil
@@ -83,19 +85,20 @@ AND dequeued_at <  now() - INTERVAL '12 hours'
 AND dequeued_at >  now() - INTERVAL '24 hours'
 AND enqueued_at >  now() - INTERVAL '24 hours'
 order by enqueued_at asc
-limit 1) returning id, dequeued_at, testrun_ref, kurl_yaml, kurl_url, upgrade_yaml, upgrade_url, os_name, os_version, os_image, os_preinit
-) select id, testrun_ref, kurl_yaml, kurl_url, upgrade_yaml, upgrade_url, os_name, os_version, os_image, os_preinit from updated`
+limit 1) returning id, dequeued_at, testrun_ref, kurl_yaml, kurl_url, upgrade_yaml, upgrade_url, supportbundle_yaml, os_name, os_version, os_image, os_preinit
+) select id, testrun_ref, kurl_yaml, kurl_url, upgrade_yaml, upgrade_url, supportbundle_yaml, os_name, os_version, os_image, os_preinit from updated`
 
 	row := db.QueryRow(query)
 
 	testInstance := types.TestInstance{}
-	var upgradeYAML, upgradeURL, osPreInit sql.NullString
+	var upgradeYAML, upgradeURL, supportbundleYAML, osPreInit sql.NullString
 	if err := row.Scan(&testInstance.ID,
 		&testInstance.RefID,
 		&testInstance.KurlYAML,
 		&testInstance.KurlURL,
 		&upgradeYAML,
 		&upgradeURL,
+		&supportbundleYAML,
 		&testInstance.OSName,
 		&testInstance.OSVersion,
 		&testInstance.OSImage,
@@ -106,6 +109,7 @@ limit 1) returning id, dequeued_at, testrun_ref, kurl_yaml, kurl_url, upgrade_ya
 
 	testInstance.UpgradeYAML = upgradeYAML.String
 	testInstance.UpgradeURL = upgradeURL.String
+	testInstance.SupportbundleYAML = supportbundleYAML.String
 	testInstance.OSPreInit = osPreInit.String
 
 	return &testInstance, nil
@@ -221,7 +225,7 @@ where id = $1`
 func List(refID string, limit int, offset int, addons map[string]string) ([]types.TestInstance, error) {
 	db := persistence.MustGetPGSession()
 
-	query := `SELECT ti.id, ti.kurl_yaml, ti.kurl_url, ti.upgrade_yaml, ti.upgrade_url, ti.os_name, ti.os_version, ti.os_image, ti.enqueued_at, ti.dequeued_at, ti.started_at, ti.finished_at, ti.is_success, ti.failure_reason, ti.is_unsupported
+	query := `SELECT ti.id, ti.kurl_yaml, ti.kurl_url, ti.upgrade_yaml, ti.upgrade_url, ti.supportbundle_yaml, ti.os_name, ti.os_version, ti.os_image, ti.enqueued_at, ti.dequeued_at, ti.started_at, ti.finished_at, ti.is_success, ti.failure_reason, ti.is_unsupported
 FROM testinstance ti
 WHERE ti.testrun_ref = $1`
 
@@ -258,7 +262,7 @@ WHERE ti.testrun_ref = $1`
 		var startedAt sql.NullTime
 		var finishedAt sql.NullTime
 		var isSuccess, isUnsupported sql.NullBool
-		var upgradeYAML, upgradeURL, failureReason sql.NullString
+		var upgradeYAML, upgradeURL, supportbundleYAML, failureReason sql.NullString
 
 		if err := rows.Scan(
 			&testInstance.ID,
@@ -266,6 +270,7 @@ WHERE ti.testrun_ref = $1`
 			&testInstance.KurlURL,
 			&upgradeYAML,
 			&upgradeURL,
+			&supportbundleYAML,
 			&testInstance.OSName,
 			&testInstance.OSVersion,
 			&testInstance.OSImage,
@@ -306,6 +311,9 @@ WHERE ti.testrun_ref = $1`
 		}
 		if upgradeURL.Valid {
 			testInstance.UpgradeURL = upgradeURL.String
+		}
+		if supportbundleYAML.Valid {
+			testInstance.SupportbundleYAML = supportbundleYAML.String
 		}
 
 		testInstances = append(testInstances, testInstance)

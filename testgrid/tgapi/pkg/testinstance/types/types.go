@@ -17,7 +17,9 @@ type TestInstance struct {
 	KurlURL  string `json:"kurlURL"`
 
 	UpgradeYAML string `json:"upgradeYaml"`
-	UpgradeURL  string `json:"upgradeURL"`
+	UpgradeURL  string `json:"upgradeUrl"`
+
+	SupportbundleYAML string `json:"supportbundleYaml"`
 
 	Output string `json:"-"`
 
