@@ -49,7 +49,6 @@ data:
     # TODO jalaja how to prevent migration happening next time
     if [ -f $MIGRATION_FILE ]; then
         echo 'migration has already run. no-op.'
-        exit 0
     fi
 
     export S3CMD_FLAGS=\"--access_key=\$AWS_ACCESS_KEY_ID --secret_key=\$AWS_SECRET_ACCESS_KEY --host=\$S3_HOST --no-ssl --host-bucket=\$S3_BUCKET_NAME.\$S3_HOST\"
@@ -59,10 +58,10 @@ data:
         echo "bucket \$S3_BUCKET_NAME bucket not found, skipping migration ..."
         exit 0
     fi
-    echo 'object store detected, running migration ...'
 
+    echo 'object store detected, running migration ...'
     # TODO jalaja, check the destination is pvc mounted directory
+    mkdir -p \$ARCHIVES_DIR
     s3cmd \$S3CMD_FLAGS sync s3://\$S3_BUCKET_NAME \$ARCHIVES_DIR
     echo 'migration ran successfully ...'
     echo 'recording that the migration ran ...'
-    echo "migration ran at: $(date)" > "$MIGRATION_FILE"
