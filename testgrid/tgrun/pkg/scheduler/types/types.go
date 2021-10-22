@@ -38,10 +38,10 @@ type OperatingSystemImage struct {
 }
 
 type Instance struct {
-	Name              string                                 `json:"name" yaml:"name"`
-	InstallerSpec     kurlv1beta1.InstallerSpec              `json:"installerSpec" yaml:"installerSpec"`
-	UpgradeSpec       *kurlv1beta1.InstallerSpec             `json:"upgradeSpec,omitempty" yaml:"upgradeSpec,omitempty"`
-	SupportbundleSpec *troubleshootv1beta2.SupportBundleSpec `json:"supportbundleSpec,omitempty" yaml:"supportbundleSpec,omitempty"`
-	Airgap            bool                                   `json:"airgap,omitempty" yaml:"airgap,omitempty"`
-	UnsupportedOSIDs  []string                               `json:"unsupportedOSIDs,omitempty" yaml:"unsupportedOSIDs,omitempty"`
+	Name              string                             `json:"name" yaml:"name"`
+	InstallerSpec     kurlv1beta1.InstallerSpec          `json:"installerSpec" yaml:"installerSpec"`
+	UpgradeSpec       *kurlv1beta1.InstallerSpec         `json:"upgradeSpec,omitempty" yaml:"upgradeSpec,omitempty"`
+	SupportbundleSpec *troubleshootv1beta2.SupportBundle `json:"supportbundleSpec,omitempty" yaml:"supportbundleSpec,omitempty"`
+	Airgap            bool                               `json:"airgap,omitempty" yaml:"airgap,omitempty"`
+	UnsupportedOSIDs  []string                           `json:"unsupportedOSIDs,omitempty" yaml:"unsupportedOSIDs,omitempty"`
 }
