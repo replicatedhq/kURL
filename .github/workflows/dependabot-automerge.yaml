@@ -3,7 +3,7 @@ name: dependabot-automerge
 # This action will automatically merge dependabot PR's
 # if they pass all status checks, it currently only updates
 # changes to minor and patch versions, note it automatically picks
-# up auto-merge.yaml with additional options
+# up .github/auto-merge.yaml with additional options
 ##########################################################
 on:
   pull_request_target:
