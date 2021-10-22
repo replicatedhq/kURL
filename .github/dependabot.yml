@@ -3,23 +3,43 @@ version: 2
 updates:
   - package-ecosystem: "gomod"
     directory: "/"
+    labels:
+      - "dependencies"
+      - "go"
+      - "kind/chore"
     schedule:
       interval: "weekly"
   - package-ecosystem: "gomod"
     directory: "/testgrid/tgrun"
+    labels:
+      - "dependencies"
+      - "go"
+      - "kind/chore"
     schedule:
       interval: "weekly"
   - package-ecosystem: "gomod"
     directory: "/testgrid/tgapi"
+    labels:
+      - "dependencies"
+      - "go"
+      - "kind/chore"
     schedule:
       interval: "weekly"
 
   - package-ecosystem: "npm"
     directory: "/web"
+    labels:
+      - "dependencies"
+      - "javascript"
+      - "kind/chore"
     schedule:
       interval: "weekly"
   - package-ecosystem: "npm"
     directory: "/testgrid/web"
+    labels:
+      - "dependencies"
+      - "javascript"
+      - "kind/chore"
     schedule:
       interval: "weekly"
 
