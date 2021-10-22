@@ -134,6 +134,7 @@ func Run(schedulerOptions types.SchedulerOptions) error {
 
 		var supportbundleYAML []byte
 		if instance.SupportbundleSpec != nil {
+			instance.SupportbundleSpec.APIVersion = "troubleshoot.sh/v1beta2"
 			supportbundleYAML, err = json.Marshal(instance.SupportbundleSpec)
 			if err != nil {
 				return errors.Wrap(err, "failed to marshal support bundle json")
