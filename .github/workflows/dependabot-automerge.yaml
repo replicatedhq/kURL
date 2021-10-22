@@ -36,6 +36,6 @@ jobs:
               \"workflow_state_id\": 500122316, \
               \"estimate\": 1 }"
         env:
-          SHORTCUT_SECRET: ${{ secrets.SHORTCUT_SECRET }}
+          SHORTCUT_SECRET: ${{ secrets.SHORTCUT_API_TOKEN }}
           GITHUB_ACTOR: ${{ github.actor }}
           GITHUB_REF: ${{ github.ref }}
