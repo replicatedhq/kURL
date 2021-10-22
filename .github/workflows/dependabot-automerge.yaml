@@ -2,7 +2,8 @@ name: dependabot-automerge
 ##########################################################
 # This action will automatically merge dependabot PR's
 # if they pass all status checks, it currently only updates
-# changes to patch versions
+# changes to minor and patch versions, note it automatically picks
+# up auto-merge.yaml with additional options
 ##########################################################
 on:
   pull_request_target:
@@ -18,15 +19,23 @@ jobs:
       - uses: actions/checkout@v2
       - uses: ahmadnassri/action-dependabot-auto-merge@v2
         with:
-          target: patch
           github-token: ${{ secrets.AUTOMATED_PR_GH_PAT }}
 
-      - name: create shortcut story on failure
-
+      - name: create shortcut story if auto merge fails
+        if: ${{ always()  && !success() }}
         run: |
-          curl -X POST \
-            -H "Content-Type: application/json" \
-            -H "Shortcut-Token: $SHORTCUT_SECRET \
-            
+          curl --location --request POST 'https://api.app.shortcut.com/api/v3/stories' \
+          --header "Shortcut-Token: ${SHORTCUT_SECRET}" \
+          --header 'Content-Type: application/json' \
+          --data-raw "{ \
+              \"group_id\": \"6125060f-c490-4005-8dd7-165aa0b9cc18\", \
+              \"owner_ids\": [\"61118e83-225b-4bff-9ae1-e5342ae0868f\"], \
+              \"name\": \"${GITHUB_ACTOR} Automerge Failed ${GITHUB_REF}\", \
+              \"story_type\": \"chore\", \
+              \"description\": \"Dependabot was unable to automatically merge package update.\", \
+              \"workflow_state_id\": 500122316, \
+              \"estimate\": 1 }"
         env:
           SHORTCUT_SECRET: ${{ secrets.SHORTCUT_SECRET }}
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_REF: ${{ github.ref }}
