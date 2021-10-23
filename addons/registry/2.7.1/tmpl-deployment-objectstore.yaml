@@ -89,8 +89,6 @@ spec:
         - containerPort: 443
           protocol: TCP
         volumeMounts:
-        - name: registry-data
-          mountPath: /var/lib/registry
         - name: registry-config
           mountPath: /etc/docker/registry
         - name: registry-pki
@@ -124,9 +122,6 @@ spec:
             port: 443
             scheme: HTTPS
       volumes:
-      - name: registry-data
-        persistentVolumeClaim:
-          claimName: registry-pvc
       - name: registry-config
         configMap:
           name: registry-config

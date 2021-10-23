@@ -15,10 +15,18 @@ function registry() {
         render_yaml_file "$DIR/addons/registry/2.7.1/tmpl-configmap-velero.yaml" > "$DIR/kustomize/registry/configmap-velero.yaml"
         insert_resources "$DIR/kustomize/registry/kustomization.yaml" configmap-velero.yaml
 
-        # TODO jalaja add this logic only if migration flag is enabled
-        determine_registry_pvc_size
-        render_yaml_file "$DIR/addons/registry/2.7.1/tmpl-persistentvolumeclaim.yaml" > "$DIR/kustomize/registry/persistentvolumeclaim.yaml"
-        insert_resources "$DIR/kustomize/registry/kustomization.yaml" persistentvolumeclaim.yaml
+        # Start migration only when usePvcStorage flag is enabled in the installer spec
+        if [ "$REGISTRY_USE_PVC_STORAGE" = "1" ]; then
+            cp "$DIR/addons/registry/2.7.1/patch-deployment-migrate-s3.yaml" "$DIR/kustomize/registry/patch-deployment-migrate-s3.yaml"
+            insert_patches_strategic_merge "$DIR/kustomize/registry/kustomization.yaml" patch-deployment-migrate-s3.yaml
+            cp "$DIR/addons/registry/2.7.1/patch-pvc-for-migrate-s3.yaml" "$DIR/kustomize/registry/patch-pvc-for-migrate-s3.yaml"
+            insert_patches_strategic_merge "$DIR/kustomize/registry/kustomization.yaml" patch-pvc-for-migrate-s3.yaml
+            determine_registry_pvc_size
+            render_yaml_file "$DIR/addons/registry/2.7.1/tmpl-persistentvolumeclaim.yaml" > "$DIR/kustomize/registry/persistentvolumeclaim.yaml"
+            insert_resources "$DIR/kustomize/registry/kustomization.yaml" persistentvolumeclaim.yaml
+            render_yaml_file "$DIR/addons/registry/2.7.1/tmpl-configmap-migrate-s3.yaml" > "$DIR/kustomize/registry/configmap-migrate-s3.yaml"
+            insert_resources "$DIR/kustomize/registry/kustomization.yaml" configmap-migrate-s3.yaml
+        fi
     else
         determine_registry_pvc_size
         cp "$DIR/addons/registry/2.7.1/deployment-pvc.yaml" "$DIR/kustomize/registry/deployment-pvc.yaml"
