@@ -407,3 +407,58 @@ spec:
 		})
 	}
 }
+
+func Test_containsNbsp(t *testing.T) {
+	tests := []struct {
+		name string
+		data []byte
+		want bool
+	}{
+		{
+			name: "normal yaml",
+			data: []byte(`
+apiVersion: "cluster.kurl.sh/v1beta1"
+kind: "Installer"
+metadata:
+  name: "merged"
+spec:
+  kubernetes:
+    version: "latest"
+`),
+			want: false,
+		},
+		{
+			name: "nbsp yaml",
+			data: []byte(`
+apiVersion: "cluster.kurl.sh/v1beta1"
+kind: "Installer"
+metadata:
+  name: "merged"
+spec:
+  kubernetes:
+    version: "latest"
+`),
+			want: true,
+		},
+		{
+			name: "nbsp in yaml va,ue",
+			data: []byte(`
+apiVersion: "cluster.kurl.sh/v1beta1"
+kind: "Installer"
+metadata:
+  name: "merged"
+spec:
+  kubernetes:
+    version: "latest ver"
+`),
+			want: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			req := require.New(t)
+			got := containsNbsp(tt.data)
+			req.Equal(tt.want, got)
+		})
+	}
+}

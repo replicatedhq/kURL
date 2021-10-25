@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"bytes"
 	"encoding/json"
 	"flag"
@@ -9,6 +10,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/pkg/errors"
 	kurlscheme "github.com/replicatedhq/kurl/kurlkinds/client/kurlclientset/scheme"
@@ -45,8 +47,16 @@ func getInstallerConfigFromYaml(yamlPath string) ([]byte, error) {
 	return yamlData, nil
 }
 
-// todo: convert to string, read line-by-line, return true if any line starts with non-breaking space
+// convert to string, read line-by-line, return true if any line starts with non-breaking space
 func containsNbsp(data []byte) bool {
+	databuf := bufio.NewScanner(bytes.NewReader(data))
+	for databuf.Scan() {
+		text := databuf.Text()
+		if strings.HasPrefix(text, " ") {
+			return true
+		}
+	}
+
 	return false
 }
 
