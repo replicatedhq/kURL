@@ -19,7 +19,7 @@ import (
 	"k8s.io/client-go/kubernetes/scheme"
 )
 
-const NBSP = " "
+const nbsp = " "
 
 func getInstallerConfigFromYaml(yamlPath string) ([]byte, error) {
 	yamlData, err := ioutil.ReadFile(yamlPath)
@@ -33,7 +33,7 @@ func getInstallerConfigFromYaml(yamlPath string) ([]byte, error) {
 	}
 
 	if containsNbsp(yamlData) {
-		return nil, errors.New(fmt.Sprintf("yaml file at %s has lines starting with non-breaking spaces", yamlPath))
+		return nil, errors.New(fmt.Sprintf("yaml file at %s has lines starting with non-breaking spaces, please convert these to normal spaces", yamlPath))
 	}
 
 	decode := scheme.Codecs.UniversalDeserializer().Decode
@@ -54,7 +54,7 @@ func containsNbsp(data []byte) bool {
 	databuf := bufio.NewScanner(bytes.NewReader(data))
 	for databuf.Scan() {
 		text := databuf.Text()
-		if strings.HasPrefix(text, NBSP) {
+		if strings.HasPrefix(text, nbsp) {
 			return true
 		}
 	}
