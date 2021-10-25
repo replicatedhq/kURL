@@ -1,3 +1,4 @@
+import * as sourceMapSupport from "source-map-support";
 import * as util from "util";
 import {$log} from "@tsed/common";
 import {PlatformExpress} from "@tsed/platform-express";
@@ -24,6 +25,8 @@ exports.handler = (argv) => {
 };
 
 export async function main(argv: any): Promise<void> {
+  sourceMapSupport.install();
+
   if (process.env["NEW_RELIC_LICENSE_KEY"]) {
     require("newrelic");
   }
