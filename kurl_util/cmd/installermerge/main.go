@@ -1,13 +1,16 @@
 package main
 
 import (
+	"bufio"
 	"bytes"
 	"encoding/json"
 	"flag"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/pkg/errors"
 	kurlscheme "github.com/replicatedhq/kurl/kurlkinds/client/kurlclientset/scheme"
@@ -15,6 +18,8 @@ import (
 	"gopkg.in/yaml.v2"
 	"k8s.io/client-go/kubernetes/scheme"
 )
+
+const nbsp = " "
 
 func getInstallerConfigFromYaml(yamlPath string) ([]byte, error) {
 	yamlData, err := ioutil.ReadFile(yamlPath)
@@ -25,6 +30,10 @@ func getInstallerConfigFromYaml(yamlPath string) ([]byte, error) {
 	yamlData = bytes.TrimSpace(yamlData)
 	if len(yamlData) == 0 {
 		return nil, nil
+	}
+
+	if containsNbsp(yamlData) {
+		return nil, errors.New(fmt.Sprintf("yaml file at %s has lines starting with non-breaking spaces, please convert these to normal spaces", yamlPath))
 	}
 
 	decode := scheme.Codecs.UniversalDeserializer().Decode
@@ -38,6 +47,19 @@ func getInstallerConfigFromYaml(yamlPath string) ([]byte, error) {
 	}
 
 	return yamlData, nil
+}
+
+// convert to string, read line-by-line, return true if any line starts with non-breaking space
+func containsNbsp(data []byte) bool {
+	databuf := bufio.NewScanner(bytes.NewReader(data))
+	for databuf.Scan() {
+		text := databuf.Text()
+		if strings.HasPrefix(text, nbsp) {
+			return true
+		}
+	}
+
+	return false
 }
 
 func convertToMapStringInterface(original map[interface{}]interface{}) map[string]interface{} {
@@ -68,6 +90,13 @@ func mergeYAMLMaps(oldConfig map[string]interface{}, newConfig map[string]interf
 
 		if !oldOk && newOk {
 			mergedConfig[key] = newVal
+			continue
+		}
+
+		// don't replace old values with nil, as that indicates a likely yaml issue
+		if newVal == nil {
+			mergedConfig[key] = oldVal
+			log.Printf("not overwriting existing key %q with nil\n", key)
 			continue
 		}
 

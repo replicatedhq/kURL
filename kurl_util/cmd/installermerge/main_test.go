@@ -190,6 +190,104 @@ spec:
 			wantError: false,
 		},
 		{
+			name: "both config are non-empty, new config indented with non-breaking spaces",
+			oldConfig: []byte(`apiVersion: "cluster.kurl.sh/v1beta1"
+kind: "Installer"
+metadata:
+  name: "old"
+spec:
+  kubernetes:
+    version: "latest"
+    serviceCIDR: ""
+  contour:
+    version: "1.0.1"`),
+			newConfig: []byte(`apiVersion: "cluster.kurl.sh/v1beta1"
+kind: "Installer"
+metadata:
+  name: "base"
+spec:
+  fluentd:
+    fullEFKStack: true`),
+			want: []byte(`apiVersion: "cluster.kurl.sh/v1beta1"
+kind: "Installer"
+metadata:
+  name: "old"
+spec:
+  kubernetes:
+    version: "latest"
+    serviceCIDR: ""
+  contour:
+    version: "1.0.1"
+  name: "base"
+  fluentd:
+    fullEFKStack: true
+`),
+			wantError: false,
+		},
+
+		{
+			name: "both config are non-empty, new config has no spec",
+			oldConfig: []byte(`apiVersion: "cluster.kurl.sh/v1beta1"
+kind: "Installer"
+metadata:
+  name: "old"
+spec:
+  kubernetes:
+    version: "latest"
+    serviceCIDR: ""
+  contour:
+    version: "1.0.1"`),
+			newConfig: []byte(`apiVersion: "cluster.kurl.sh/v1beta1"
+kind: "Installer"
+metadata:
+  name: "base"
+spec:`),
+			want: []byte(`apiVersion: "cluster.kurl.sh/v1beta1"
+kind: "Installer"
+metadata:
+  name: "merged"
+spec:
+  kubernetes:
+    version: "latest"
+    serviceCIDR: ""
+  contour:
+    version: "1.0.1"
+`),
+			wantError: false,
+		},
+		{
+			name: "both config are non-empty, new config removes addon version",
+			oldConfig: []byte(`apiVersion: "cluster.kurl.sh/v1beta1"
+kind: "Installer"
+metadata:
+  name: "old"
+spec:
+  kubernetes:
+    version: "latest"
+    serviceCIDR: ""
+  contour:
+    version: "1.0.1"`),
+			newConfig: []byte(`apiVersion: "cluster.kurl.sh/v1beta1"
+kind: "Installer"
+metadata:
+  name: "new"
+spec:
+  contour:
+    version: ""`),
+			want: []byte(`apiVersion: "cluster.kurl.sh/v1beta1"
+kind: "Installer"
+metadata:
+  name: "merged"
+spec:
+  kubernetes:
+    version: "latest"
+    serviceCIDR: ""
+  contour:
+    version: ""
+`),
+			wantError: false,
+		},
+		{
 			name: "merges daemon.json properly",
 			oldConfig: []byte(`apiVersion: "cluster.kurl.sh/v1beta1"
 kind: "Installer"
@@ -337,6 +435,61 @@ spec:
 			_ = yaml.Unmarshal(mergedConfig, &mergedMap)
 			_ = yaml.Unmarshal(test.want, &wantMap)
 			assert.Equal(t, wantMap, mergedMap)
+		})
+	}
+}
+
+func Test_containsNbsp(t *testing.T) {
+	tests := []struct {
+		name string
+		data []byte
+		want bool
+	}{
+		{
+			name: "normal yaml",
+			data: []byte(`
+apiVersion: "cluster.kurl.sh/v1beta1"
+kind: "Installer"
+metadata:
+  name: "merged"
+spec:
+  kubernetes:
+    version: "latest"
+`),
+			want: false,
+		},
+		{
+			name: "nbsp yaml",
+			data: []byte(`
+apiVersion: "cluster.kurl.sh/v1beta1"
+kind: "Installer"
+metadata:
+  name: "merged"
+spec:
+  kubernetes:
+    version: "latest"
+`),
+			want: true,
+		},
+		{
+			name: "nbsp in yaml va,ue",
+			data: []byte(`
+apiVersion: "cluster.kurl.sh/v1beta1"
+kind: "Installer"
+metadata:
+  name: "merged"
+spec:
+  kubernetes:
+    version: "latest ver"
+`),
+			want: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			req := require.New(t)
+			got := containsNbsp(tt.data)
+			req.Equal(tt.want, got)
 		})
 	}
 }
