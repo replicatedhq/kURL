@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 apt update
 DEBIAN_FRONTEND=noninteractive apt upgrade -y
 
