@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"flag"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
@@ -27,6 +28,10 @@ func getInstallerConfigFromYaml(yamlPath string) ([]byte, error) {
 		return nil, nil
 	}
 
+	if containsNbsp(yamlData) {
+		return nil, errors.New(fmt.Sprintf("yaml file at %s has lines starting with non-breaking spaces", yamlPath))
+	}
+
 	decode := scheme.Codecs.UniversalDeserializer().Decode
 	_, gvk, err := decode(yamlData, nil, nil)
 	if err != nil {
@@ -38,6 +43,11 @@ func getInstallerConfigFromYaml(yamlPath string) ([]byte, error) {
 	}
 
 	return yamlData, nil
+}
+
+// todo: convert to string, read line-by-line, return true if any line starts with non-breaking space
+func containsNbsp(data []byte) bool {
+	return false
 }
 
 func convertToMapStringInterface(original map[interface{}]interface{}) map[string]interface{} {
@@ -68,6 +78,13 @@ func mergeYAMLMaps(oldConfig map[string]interface{}, newConfig map[string]interf
 
 		if !oldOk && newOk {
 			mergedConfig[key] = newVal
+			continue
+		}
+
+		// don't replace old values with nil, as that indicates a likely yaml issue
+		if newVal == nil {
+			mergedConfig[key] = oldVal
+			log.Printf("not overwriting existing key %s with nil\n", key)
 			continue
 		}
 

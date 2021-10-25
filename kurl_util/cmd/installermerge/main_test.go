@@ -190,6 +190,73 @@ spec:
 			wantError: false,
 		},
 		{
+			name: "both config are non-empty, new config indented with non-breaking spaces",
+			oldConfig: []byte(`apiVersion: "cluster.kurl.sh/v1beta1"
+kind: "Installer"
+metadata:
+  name: "old"
+spec:
+  kubernetes:
+    version: "latest"
+    serviceCIDR: ""
+  contour:
+    version: "1.0.1"`),
+			newConfig: []byte(`apiVersion: "cluster.kurl.sh/v1beta1"
+kind: "Installer"
+metadata:
+  name: "base"
+spec:
+  fluentd:
+    fullEFKStack: true`),
+			want: []byte(`apiVersion: "cluster.kurl.sh/v1beta1"
+kind: "Installer"
+metadata:
+  name: "old"
+spec:
+  kubernetes:
+    version: "latest"
+    serviceCIDR: ""
+  contour:
+    version: "1.0.1"
+  name: "base"
+  fluentd:
+    fullEFKStack: true
+`),
+			wantError: false,
+		},
+		{
+			name: "both config are non-empty, new config removes addon version",
+			oldConfig: []byte(`apiVersion: "cluster.kurl.sh/v1beta1"
+kind: "Installer"
+metadata:
+  name: "old"
+spec:
+  kubernetes:
+    version: "latest"
+    serviceCIDR: ""
+  contour:
+    version: "1.0.1"`),
+			newConfig: []byte(`apiVersion: "cluster.kurl.sh/v1beta1"
+kind: "Installer"
+metadata:
+  name: "new"
+spec:
+  contour:
+    version: ""`),
+			want: []byte(`apiVersion: "cluster.kurl.sh/v1beta1"
+kind: "Installer"
+metadata:
+  name: "merged"
+spec:
+  kubernetes:
+    version: "latest"
+    serviceCIDR: ""
+  contour:
+    version: ""
+`),
+			wantError: false,
+		},
+		{
 			name: "merges daemon.json properly",
 			oldConfig: []byte(`apiVersion: "cluster.kurl.sh/v1beta1"
 kind: "Installer"
