@@ -224,6 +224,37 @@ spec:
 `),
 			wantError: false,
 		},
+
+		{
+			name: "both config are non-empty, new config has no spec",
+			oldConfig: []byte(`apiVersion: "cluster.kurl.sh/v1beta1"
+kind: "Installer"
+metadata:
+  name: "old"
+spec:
+  kubernetes:
+    version: "latest"
+    serviceCIDR: ""
+  contour:
+    version: "1.0.1"`),
+			newConfig: []byte(`apiVersion: "cluster.kurl.sh/v1beta1"
+kind: "Installer"
+metadata:
+  name: "base"
+spec:`),
+			want: []byte(`apiVersion: "cluster.kurl.sh/v1beta1"
+kind: "Installer"
+metadata:
+  name: "merged"
+spec:
+  kubernetes:
+    version: "latest"
+    serviceCIDR: ""
+  contour:
+    version: "1.0.1"
+`),
+			wantError: false,
+		},
 		{
 			name: "both config are non-empty, new config removes addon version",
 			oldConfig: []byte(`apiVersion: "cluster.kurl.sh/v1beta1"

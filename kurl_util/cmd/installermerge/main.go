@@ -94,7 +94,7 @@ func mergeYAMLMaps(oldConfig map[string]interface{}, newConfig map[string]interf
 		// don't replace old values with nil, as that indicates a likely yaml issue
 		if newVal == nil {
 			mergedConfig[key] = oldVal
-			log.Printf("not overwriting existing key %s with nil\n", key)
+			log.Printf("not overwriting existing key %q with nil\n", key)
 			continue
 		}
 
