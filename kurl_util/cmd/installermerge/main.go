@@ -19,6 +19,8 @@ import (
 	"k8s.io/client-go/kubernetes/scheme"
 )
 
+const NBSP = " "
+
 func getInstallerConfigFromYaml(yamlPath string) ([]byte, error) {
 	yamlData, err := ioutil.ReadFile(yamlPath)
 	if err != nil {
@@ -52,7 +54,7 @@ func containsNbsp(data []byte) bool {
 	databuf := bufio.NewScanner(bytes.NewReader(data))
 	for databuf.Scan() {
 		text := databuf.Text()
-		if strings.HasPrefix(text, " ") {
+		if strings.HasPrefix(text, NBSP) {
 			return true
 		}
 	}
