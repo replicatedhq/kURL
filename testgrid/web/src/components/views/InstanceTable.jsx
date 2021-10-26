@@ -325,7 +325,7 @@ export default class InstanceTable extends React.Component {
                 value={
                   this.state.showUpgradeYaml ?
                     this.prettifyJSON(this.state.selectedInstance?.upgradeYaml) : (
-                      this.state.showsupportbundleYaml ?
+                      this.state.showSupportbundleYaml ?
                         this.prettifyJSON(this.state.selectedInstance?.supportbundleYaml) :
                         this.prettifyJSON(this.state.selectedInstance?.kurlYaml)
                     )
