@@ -147,6 +147,15 @@ jobs:
     - run: make web
 
     - run: |
+        npm i -g npm @bugsnag/source-maps
+        bugsnag-source-maps upload-node \
+          --api-key ${{ secrets.BUGSNAG_API_KEY }} \
+          --app-version ${VERSION_TAG} \
+          --directory ./web/build
+      env:
+        VERSION_TAG: ${{ needs.get-tag.outputs.version_tag }}
+
+    - run: |
         docker build -f deploy/Dockerfile-slim \
           --build-arg version=${GITHUB_SHA:0:7} \
           --build-arg version_tag=${VERSION_TAG} \

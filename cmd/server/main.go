@@ -33,12 +33,13 @@ import (
 const upstream = "http://localhost:3000"
 
 func main() {
-	log.Printf("Commit %s\n", os.Getenv("VERSION"))
+	log.Printf("Commit %s", os.Getenv("VERSION"))
 
 	if bugsnagKey := os.Getenv("BUGSNAG_KEY"); bugsnagKey != "" {
 		bugsnag.Configure(bugsnag.Configuration{
 			APIKey:       bugsnagKey,
 			ReleaseStage: os.Getenv("ENVIRONMENT"),
+			AppVersion:   os.Getenv("KURL_VERSION"),
 		})
 	}
 
