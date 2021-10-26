@@ -34,8 +34,8 @@ export default class InstanceTable extends React.Component {
 
   getOSArray = instancesMap => {
     const osMap = {};
-    Object.keys(instancesMap).forEach(kurlURL => {
-      instancesMap[kurlURL].forEach(instance => {
+    Object.keys(instancesMap).forEach(kurlUrl => {
+      instancesMap[kurlUrl].forEach(instance => {
         osMap[`${instance.osName}-${instance.osVersion}`] = true;
       });
     });
@@ -243,32 +243,32 @@ export default class InstanceTable extends React.Component {
 
   render() {
     const osArray = this.getOSArray(this.props.instancesMap);
-    const rows = Object.keys(this.props.instancesMap).map(kurlURL => {
+    const rows = Object.keys(this.props.instancesMap).map(kurlUrl => {
       return (
-        <tr key={kurlURL}>
+        <tr key={kurlUrl}>
           <td>
-            <span className="url" onClick={() => this.viewInstanceInstaller(this.props.instancesMap[kurlURL][0])}>{kurlURL}</span>
-            {this.props.instancesMap[kurlURL][0].upgradeUrl &&
+            <span className="url" onClick={() => this.viewInstanceInstaller(this.props.instancesMap[kurlUrl][0])}>{kurlUrl}</span>
+            {this.props.instancesMap[kurlUrl][0].upgradeUrl &&
               <div>
                 <span>{' -> '}</span>
-                <span className="url" onClick={() => this.viewUpgradeInstaller(this.props.instancesMap[kurlURL][0])}>{this.props.instancesMap[kurlURL][0].upgradeUrl}</span>
+                <span className="url" onClick={() => this.viewUpgradeInstaller(this.props.instancesMap[kurlUrl][0])}>{this.props.instancesMap[kurlUrl][0].upgradeUrl}</span>
               </div>
               }
-            {this.props.instancesMap[kurlURL][0].supportbundleYAML &&
+            {this.props.instancesMap[kurlUrl][0].supportbundleYaml &&
               <div>
                 <br/>
-                <span className="url" onClick={() => this.viewSupportbundleYaml(this.props.instancesMap[kurlURL][0])}>Support Bundle YAML</span>
+                <span className="url" onClick={() => this.viewSupportbundleYaml(this.props.instancesMap[kurlUrl][0])}>Support Bundle YAML</span>
               </div>
               }
           </td>
           {osArray.map(osKey => {
-            const instance = find(this.props.instancesMap[kurlURL], i => (osKey == `${i.osName}-${i.osVersion}`));
+            const instance = find(this.props.instancesMap[kurlUrl], i => (osKey == `${i.osName}-${i.osVersion}`));
             if (instance) {
               const status = this.getInstanceStatus(instance);
               const failureReason = this.getInstanceFailureReason(instance);
               return (
                 <td
-                  key={`${kurlURL}-${osKey}-${instance.id}`}
+                  key={`${kurlUrl}-${osKey}-${instance.id}`}
                   className={status}
                 >
                   <div className="flex flex1 alignItems--center">
@@ -285,7 +285,7 @@ export default class InstanceTable extends React.Component {
                 </td>
               );
             }
-            return <td key={`${kurlURL}-${osKey}`}>-</td>;
+            return <td key={`${kurlUrl}-${osKey}`}>-</td>;
           })}
         </tr>
       )
@@ -316,7 +316,7 @@ export default class InstanceTable extends React.Component {
           className="Modal LargeSize flex-column u-height--threeQuarters"
         >
           <div className="Modal-header">
-              <p>Installer for kURL URL: <a href={this.state.selectedInstance?.kurlURL} target="_blank" rel="noreferrer">{this.state.selectedInstance?.kurlURL}</a></p>
+              <p>Installer for kURL URL: <a href={this.state.selectedInstance?.kurlUrl} target="_blank" rel="noreferrer">{this.state.selectedInstance?.kurlUrl}</a></p>
           </div>
           <div className="Modal-body flex1 flex-column">
             <div className="MonacoEditor-wrapper">
@@ -325,8 +325,8 @@ export default class InstanceTable extends React.Component {
                 value={
                   this.state.showUpgradeYaml ?
                     this.prettifyJSON(this.state.selectedInstance?.upgradeYaml) : (
-                      this.state.showSupportbundleYaml ?
-                        this.prettifyJSON(this.state.selectedInstance?.supportbundleYAML) :
+                      this.state.showsupportbundleYaml ?
+                        this.prettifyJSON(this.state.selectedInstance?.supportbundleYaml) :
                         this.prettifyJSON(this.state.selectedInstance?.kurlYaml)
                     )
                   }
@@ -357,7 +357,7 @@ export default class InstanceTable extends React.Component {
           className="Modal XLargeSize flex-column u-height--fourFifths"
         >
           <div className="Modal-header">
-              <p>Logs for: <a href={this.state.selectedInstance?.kurlURL} target="_blank" rel="noreferrer">{this.state.selectedInstance?.kurlURL}</a> / {this.state.selectedInstance?.osName}-{this.state.selectedInstance?.osVersion} <span className={`status-text ${this.getInstanceStatus(this.state.selectedInstance)}`}>({this.getInstanceStatus(this.state.selectedInstance)})</span></p>
+              <p>Logs for: <a href={this.state.selectedInstance?.kurlUrl} target="_blank" rel="noreferrer">{this.state.selectedInstance?.kurlUrl}</a> / {this.state.selectedInstance?.osName}-{this.state.selectedInstance?.osVersion} <span className={`status-text ${this.getInstanceStatus(this.state.selectedInstance)}`}>({this.getInstanceStatus(this.state.selectedInstance)})</span></p>
           </div>
           {this.state.loadingLogs ? 
             <Loader />
@@ -402,7 +402,7 @@ export default class InstanceTable extends React.Component {
           className="Modal XLargeSize flex-column u-height--fourFifths"
         >
           <div className="Modal-header">
-            <p>Sonobuoy Results for: <a href={this.state.selectedInstance?.kurlURL} target="_blank" rel="noreferrer">{this.state.selectedInstance?.kurlURL}</a> / {this.state.selectedInstance?.osName}-{this.state.selectedInstance?.osVersion} <span className={`status-text ${this.getInstanceStatus(this.state.selectedInstance)}`}>({this.getInstanceStatus(this.state.selectedInstance)})</span></p>
+            <p>Sonobuoy Results for: <a href={this.state.selectedInstance?.kurlUrl} target="_blank" rel="noreferrer">{this.state.selectedInstance?.kurlUrl}</a> / {this.state.selectedInstance?.osName}-{this.state.selectedInstance?.osVersion} <span className={`status-text ${this.getInstanceStatus(this.state.selectedInstance)}`}>({this.getInstanceStatus(this.state.selectedInstance)})</span></p>
           </div>
           {this.state.loadingSonobuoyResults ? 
             <Loader />

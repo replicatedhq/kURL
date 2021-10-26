@@ -4,7 +4,7 @@ import "time"
 
 type TestInstance struct {
 	ID            string     `json:"id"`
-	RefID         string     `json:"refID"`
+	RefID         string     `json:"refId"`
 	EnqueuedAt    *time.Time `json:"enqueuedAt"`
 	DequeuedAt    *time.Time `json:"dequeuedAt"`
 	StartedAt     *time.Time `json:"startedAt"`
@@ -14,7 +14,7 @@ type TestInstance struct {
 	IsUnsupported bool       `json:"isUnsupported"`
 
 	KurlYAML string `json:"kurlYaml"`
-	KurlURL  string `json:"kurlURL"`
+	KurlURL  string `json:"kurlUrl"`
 
 	UpgradeYAML string `json:"upgradeYaml"`
 	UpgradeURL  string `json:"upgradeUrl"`
