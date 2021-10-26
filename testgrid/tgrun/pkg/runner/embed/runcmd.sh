@@ -299,6 +299,29 @@ function run_sonobuoy() {
     fi
 }
 
+function run_analyzers() {
+    if [ -z "${SUPPORTBUNDLE_SPEC}" ]; then
+        return 0
+    fi
+
+    echo "${SUPPORTBUNDLE_SPEC}" > ./supportbundle.yaml
+
+    /usr/local/bin/kubectl-support_bundle ./supportbundle.yaml --interactive=false > ./analyzer-results.json
+    cat ./analyzer-results.json
+
+    if grep -q '"severity": "error"' ./analyzer-results.json ; then
+        echo "failed troubleshoot analysis with errors"
+        send_logs
+        report_failure "troubleshoot_analysis"
+        exit 1
+    elif grep -q '"severity": "warn"' ./analyzer-results.json ; then
+        echo "failed troubleshoot analysis with warnings"
+        send_logs
+        report_failure "troubleshoot_analysis"
+        exit 1
+    fi
+}
+
 function collect_debug_info_sonobuoy() {
     kubectl -n sonobuoy get pods
     kubectl -n sonobuoy describe pod sonobuoy || true
@@ -375,6 +398,8 @@ function main() {
 
     run_sonobuoy
 
+    run_analyzers
+
     send_logs
     report_success "$failureReason"
     exit 0
@@ -387,6 +412,7 @@ function main() {
 # TEST_ID
 # KURL_URL
 # KURL_UPGRADE_URL
+# SUPPORTBUNDLE_SPEC
 #
 ###############################################################################
 

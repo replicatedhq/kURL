@@ -258,8 +258,9 @@ export TESTGRID_APIENDPOINT='%s'
 export TEST_ID='%s'
 export KURL_URL='%s'
 export KURL_UPGRADE_URL='%s'
+export SUPPORTBUNDLE_SPEC='%s'
 `,
-		singleTest.TestGridAPIEndpoint, singleTest.ID, singleTest.KurlURL, singleTest.UpgradeURL)
+		singleTest.TestGridAPIEndpoint, singleTest.ID, singleTest.KurlURL, singleTest.UpgradeURL, singleTest.SupportbundleYAML)
 
 	varsB64 := base64.StdEncoding.EncodeToString([]byte(varsSh))
 

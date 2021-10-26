@@ -41,6 +41,8 @@ spec:
           type: text
         - name: upgrade_url
           type: text
+        - name: supportbundle_yaml
+          type: text
         - name: os_name
           type: text
         - name: os_version

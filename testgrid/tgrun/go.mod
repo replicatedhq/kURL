@@ -6,6 +6,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/replicatedhq/kurl v0.0.0-00010101000000-000000000000
 	github.com/replicatedhq/kurl/testgrid/tgapi v0.0.0-00010101000000-000000000000
+	github.com/replicatedhq/troubleshoot v0.16.0 // indirect
 	github.com/spf13/cobra v1.2.1
 	github.com/spf13/viper v1.8.1
 	github.com/stretchr/testify v1.7.0

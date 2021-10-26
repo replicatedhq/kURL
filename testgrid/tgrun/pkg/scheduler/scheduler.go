@@ -132,6 +132,15 @@ func Run(schedulerOptions types.SchedulerOptions) error {
 			}
 		}
 
+		var supportbundleYAML []byte
+		if instance.SupportbundleSpec != nil {
+			instance.SupportbundleSpec.APIVersion = "troubleshoot.sh/v1beta2"
+			supportbundleYAML, err = json.Marshal(instance.SupportbundleSpec)
+			if err != nil {
+				return errors.Wrap(err, "failed to marshal support bundle json")
+			}
+		}
+
 		// attempt to unmarshal installerURL as a kurl error message - if this works, it's not a URL
 		var errMsg kurlErrResp
 		err = json.Unmarshal(installerURL, &errMsg)
@@ -169,6 +178,8 @@ func Run(schedulerOptions types.SchedulerOptions) error {
 
 				UpgradeYAML: string(upgradeYAML),
 				UpgradeURL:  string(upgradeURL),
+
+				SupportbundleYAML: string(supportbundleYAML),
 
 				OperatingSystemName:    operatingSystem.Name,
 				OperatingSystemVersion: operatingSystem.Version,

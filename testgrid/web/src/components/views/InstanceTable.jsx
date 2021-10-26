@@ -28,6 +28,7 @@ export default class InstanceTable extends React.Component {
       loadingSonobuoyResults: false,
       activeMarkers: [],
       showUpgradeYaml: false,
+      showSupportbundleYaml: false,
     };
   }
 
@@ -50,6 +51,7 @@ export default class InstanceTable extends React.Component {
       selectedInstance: instance,
       showInstallerModal: true,
       showUpgradeYaml: false,
+      showSupportbundleYaml: false,
     });
   }
 
@@ -58,6 +60,16 @@ export default class InstanceTable extends React.Component {
       selectedInstance: instance,
       showInstallerModal: true,
       showUpgradeYaml: true,
+      showSupportbundleYaml: false,
+    });
+  }
+
+  viewSupportbundleYaml = instance => {
+    this.setState({
+      selectedInstance: instance,
+      showInstallerModal: true,
+      showUpgradeYaml: false,
+      showSupportbundleYaml: true,
     });
   }
 
@@ -236,10 +248,16 @@ export default class InstanceTable extends React.Component {
         <tr key={kurlURL}>
           <td>
             <span className="url" onClick={() => this.viewInstanceInstaller(this.props.instancesMap[kurlURL][0])}>{kurlURL}</span>
-            {this.props.instancesMap[kurlURL][0].upgradeURL &&
+            {this.props.instancesMap[kurlURL][0].upgradeUrl &&
               <div>
                 <span>{' -> '}</span>
-                <span className="url" onClick={() => this.viewUpgradeInstaller(this.props.instancesMap[kurlURL][0])}>{this.props.instancesMap[kurlURL][0].upgradeURL}</span>
+                <span className="url" onClick={() => this.viewUpgradeInstaller(this.props.instancesMap[kurlURL][0])}>{this.props.instancesMap[kurlURL][0].upgradeUrl}</span>
+              </div>
+              }
+            {this.props.instancesMap[kurlURL][0].supportbundleYAML &&
+              <div>
+                <br/>
+                <span className="url" onClick={() => this.viewSupportbundleYaml(this.props.instancesMap[kurlURL][0])}>Support Bundle YAML</span>
               </div>
               }
           </td>
@@ -304,7 +322,14 @@ export default class InstanceTable extends React.Component {
             <div className="MonacoEditor-wrapper">
               <MonacoEditor
                 language="json"
-                value={!this.state.showUpgradeYaml ? this.prettifyJSON(this.state.selectedInstance?.kurlYaml) : this.prettifyJSON(this.state.selectedInstance?.upgradeYaml)}
+                value={
+                  this.state.showUpgradeYaml ?
+                    this.prettifyJSON(this.state.selectedInstance?.upgradeYaml) : (
+                      this.state.showSupportbundleYaml ?
+                        this.prettifyJSON(this.state.selectedInstance?.supportbundleYAML) :
+                        this.prettifyJSON(this.state.selectedInstance?.kurlYaml)
+                    )
+                  }
                 height="100%"
                 width="100%"
                 options={{

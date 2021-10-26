@@ -2,6 +2,7 @@ package types
 
 import (
 	kurlv1beta1 "github.com/replicatedhq/kurl/kurlkinds/pkg/apis/cluster/v1beta1"
+	troubleshootv1beta2 "github.com/replicatedhq/troubleshoot/pkg/apis/troubleshoot/v1beta2"
 )
 
 type SchedulerOptions struct {
@@ -37,9 +38,10 @@ type OperatingSystemImage struct {
 }
 
 type Instance struct {
-	Name             string                     `json:"name" yaml:"name"`
-	InstallerSpec    kurlv1beta1.InstallerSpec  `json:"installerSpec" yaml:"installerSpec"`
-	UpgradeSpec      *kurlv1beta1.InstallerSpec `json:"upgradeSpec,omitempty" yaml:"upgradeSpec,omitempty"`
-	Airgap           bool                       `json:"airgap,omitempty" yaml:"airgap,omitempty"`
-	UnsupportedOSIDs []string                   `json:"unsupportedOSIDs,omitempty" yaml:"unsupportedOSIDs,omitempty"`
+	Name              string                             `json:"name" yaml:"name"`
+	InstallerSpec     kurlv1beta1.InstallerSpec          `json:"installerSpec" yaml:"installerSpec"`
+	UpgradeSpec       *kurlv1beta1.InstallerSpec         `json:"upgradeSpec,omitempty" yaml:"upgradeSpec,omitempty"`
+	SupportbundleSpec *troubleshootv1beta2.SupportBundle `json:"supportbundleSpec,omitempty" yaml:"supportbundleSpec,omitempty"`
+	Airgap            bool                               `json:"airgap,omitempty" yaml:"airgap,omitempty"`
+	UnsupportedOSIDs  []string                           `json:"unsupportedOSIDs,omitempty" yaml:"unsupportedOSIDs,omitempty"`
 }
