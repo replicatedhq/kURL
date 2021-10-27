@@ -18,6 +18,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"syscall"
 	"time"
 
 	"github.com/bugsnag/bugsnag-go/v2"
@@ -342,7 +343,9 @@ func handleHttpError(w http.ResponseWriter, r *http.Request, err error, code int
 
 func handleError(ctx context.Context, err error) {
 	log.Println(err)
-	bugsnag.Notify(err, ctx)
+	if !errors.Is(err, syscall.EPIPE) && !errors.Is(err, syscall.ECONNRESET) {
+		bugsnag.Notify(err, ctx)
+	}
 }
 
 func allowRegistry(image string) bool {
