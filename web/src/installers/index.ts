@@ -66,6 +66,8 @@ export const rke2ConfigSchema = {
   properties: {
     version: { type: "string" },
   },
+  required: [ "version" ],
+  additionalProperites: false,
 };
 
 export interface K3SConfig {
@@ -77,6 +79,8 @@ export const k3sConfigSchema = {
   properties: {
     version: { type: "string" },
   },
+  required: [ "version" ],
+  additionalProperites: false,
 };
 
 export interface DockerConfig {
