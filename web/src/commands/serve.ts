@@ -36,6 +36,7 @@ export async function main(argv: any): Promise<void> {
       apiKey: process.env["BUGSNAG_KEY"] || "",
       releaseStage: process.env["NODE_ENV"],
       plugins: [BugsnagPluginExpress],
+      appVersion: process.env["KURL_VERSION"],
     });
   }
 

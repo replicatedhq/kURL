@@ -21,6 +21,14 @@ jobs:
 
     - run: |
         export VERSION_TAG=$(echo $GITHUB_REF | awk -F'/' '{ print $NF }')
+        npm i -g npm @bugsnag/source-maps
+        bugsnag-source-maps upload-node \
+          --api-key ${{ secrets.BUGSNAG_API_KEY }} \
+          --app-version ${VERSION_TAG} \
+          --directory ./web/build
+
+    - run: |
+        export VERSION_TAG=$(echo $GITHUB_REF | awk -F'/' '{ print $NF }')
         docker build -f deploy/Dockerfile-slim \
           --build-arg version=${GITHUB_SHA:0:7} \
           --build-arg version_tag=${VERSION_TAG} \
