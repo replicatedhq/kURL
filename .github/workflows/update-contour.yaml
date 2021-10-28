@@ -2,6 +2,7 @@ name: cron-contour-update
 on:
   schedule:
   - cron: '0 4 * * *'
+  workflow_dispatch: {}
 
 jobs:
   build-pr-contour:
