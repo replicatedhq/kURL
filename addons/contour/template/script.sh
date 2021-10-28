@@ -21,7 +21,7 @@ curl -Ls -m 60 -o "$tmpdir"/contour.yaml "$UPSTREAM_URL"
 
 # copy that contour yaml into an env var and determine the full contour and envoy versions (major.minor.patch)
 fileContents=$(cat "$tmpdir"/contour.yaml)
-upstreamContourVersionPattern='docker.io/projectcontour/contour:v([0-9]+\.[0-9]+\.[0-9]+)'
+upstreamContourVersionPattern='/projectcontour/contour:v([0-9]+\.[0-9]+\.[0-9]+)' # hosted on docker.io and ghcr depending on version
 [[ "$fileContents" =~ $upstreamContourVersionPattern ]]
 CONTOUR_VERSION="${BASH_REMATCH[1]}" # 1.11.0
 
@@ -60,7 +60,7 @@ sed -i "s|docker.io/||g" $tmpdir/contour.yaml
 # remove namespace and config from contour.yaml
 
 # first, split file by `---`
-csplit --prefix "$tmpdir"/split "$tmpdir"/contour.yaml "/---/" "{*}"
+csplit --quiet --prefix "$tmpdir"/split "$tmpdir"/contour.yaml "/---/" "{*}"
 
 # remove 'namespace' file, move 'config' file
 rm $(grep -Hl 'kind: Namespace' "$tmpdir"/split*)
