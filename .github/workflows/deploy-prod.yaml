@@ -24,7 +24,7 @@ jobs:
         npm i -g npm @bugsnag/source-maps
         bugsnag-source-maps upload-node \
           --api-key ${{ secrets.BUGSNAG_API_KEY }} \
-          --app-version ${VERSION_TAG} \
+          --app-version ${GITHUB_SHA:0:7} \
           --directory ./web/build
 
     - run: |
