@@ -40,7 +40,7 @@ func main() {
 		bugsnag.Configure(bugsnag.Configuration{
 			APIKey:       bugsnagKey,
 			ReleaseStage: os.Getenv("ENVIRONMENT"),
-			AppVersion:   os.Getenv("KURL_VERSION"),
+			AppVersion:   os.Getenv("VERSION"),
 		})
 	}
 
