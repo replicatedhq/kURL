@@ -9,6 +9,7 @@ spec:
   selector:
     matchLabels:
       app: registry
+  replicas: 1
   template:
     metadata:
       labels:
