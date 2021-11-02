@@ -81,7 +81,15 @@ function rook() {
         export CEPH_DASHBOARD_PASSWORD="$cephDashboardPassword"
     fi
 
-    echo "Awaiting rook-ceph RGW pod"
+    semverParse "$ROOK_VERSION"
+    local rook_major_minior_version="${major}.${minor}"
+
+    printf "\n\n${GREEN}Rook Ceph 1.4+ requires a secondary, unformatted block device attached to the host.${NC}\n"
+    printf "${GREEN}If you are stuck waiting at this step for more than two minutes, you are either missing the device or it is already formatted.${NC}\n"
+    printf "\t${GREEN} * If it is missing, attach it now and it will be picked up; or CTRL+C, attach, and re-start the installer${NC}\n"
+    printf "\t${GREEN} * If the disk is attached, try wiping it using the recommended zap procedure: https://rook.io/docs/rook/v${rook_major_minior_version}/ceph-teardown.html#zapping-devices${NC}\n\n"
+
+    printf "checking for attached secondary block device (awaiting rook-ceph RGW pod)\n"
     spinnerPodRunning rook-ceph rook-ceph-rgw-rook-ceph-store
     kubectl -n rook-ceph apply -f "$src/cluster/object-user.yaml"
     rook_object_store_output
