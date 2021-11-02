@@ -116,6 +116,7 @@ jobs:
     runs-on: ubuntu-18.04
     needs:
     - get-tag
+    - kurl-util-image
     steps:
     - uses: actions/checkout@v2
     - uses: actions/setup-node@v2

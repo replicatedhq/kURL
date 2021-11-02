@@ -114,6 +114,9 @@ jobs:
 
   build-addons:
     runs-on: ubuntu-18.04
+    needs:
+    - production-docker-image
+    - kurl-util-image
     steps:
     - uses: actions/checkout@v2
     - uses: actions/setup-node@v2
@@ -177,6 +180,9 @@ jobs:
 
   github-release:
     runs-on: ubuntu-18.04
+    needs:
+    - production-docker-image
+    - kurl-util-image
     steps:
     - name: Checkout
       uses: actions/checkout@v2
