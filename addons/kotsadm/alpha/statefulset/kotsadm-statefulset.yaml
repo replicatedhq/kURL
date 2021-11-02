@@ -61,7 +61,7 @@ spec:
         emptyDir:
           medium: Memory
       containers:
-      - image: kotsadm/kotsadm:alpha
+      - image: kotsadm/kotsadm:v2021.11.2-1-nightly
         name: kotsadm
         command: ["bash"]
         args:
@@ -152,7 +152,7 @@ spec:
 
       initContainers:
       - name: schemahero-plan
-        image: kotsadm/kotsadm-migrations:alpha
+        image: kotsadm/kotsadm-migrations:v2021.11.2-1-nightly
         args: ["plan"]
         volumeMounts:
         - name: migrations
@@ -178,7 +178,7 @@ spec:
             memory: 50Mi
 
       - name: schemahero-apply
-        image: kotsadm/kotsadm-migrations:alpha
+        image: kotsadm/kotsadm-migrations:v2021.11.2-1-nightly
         args: ["apply"]
         volumeMounts:
           - name: migrations
@@ -210,7 +210,7 @@ spec:
             secretKeyRef:
               key: password
               name: kotsadm-postgres
-        image: kotsadm/kotsadm:alpha
+        image: kotsadm/kotsadm:v2021.11.2-1-nightly
         imagePullPolicy: IfNotPresent
         volumeMounts:
         - name: kotsadmdata
