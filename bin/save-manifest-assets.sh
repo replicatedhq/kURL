@@ -149,6 +149,20 @@ function createrepo_ol_7() {
     sudo chown -R $UID "${outdir}"
 }
 
+function try_5_times() {
+    local fn="$1"
+    local args=("${@:2}")
+
+    n=0
+    while ! $fn "${args[@]}" ; do
+        n="$(( n + 1 ))"
+        if [ "$n" = "5" ]; then
+            return 1
+        fi
+        sleep 2
+    done
+}
+
 pkgs_rhel7=()
 pkgs_rhel8=()
 pkgs_ol7=()
@@ -169,7 +183,7 @@ while read -r line; do
         image)
             filename=$(echo $line | awk '{ print $2 }')
             image=$(echo $line | awk '{ print $3 }')
-            docker pull $image
+            try_5_times docker pull $image
             mkdir -p $OUT_DIR/images
             docker save $image | gzip > $OUT_DIR/images/${filename}.tar.gz
             ;;
