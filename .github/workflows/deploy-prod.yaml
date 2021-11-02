@@ -25,7 +25,8 @@ jobs:
         bugsnag-source-maps upload-node \
           --api-key ${{ secrets.BUGSNAG_API_KEY }} \
           --app-version ${GITHUB_SHA:0:7} \
-          --directory ./web/build
+          --directory ./web/build \
+          --overwrite
 
     - run: |
         export VERSION_TAG=$(echo $GITHUB_REF | awk -F'/' '{ print $NF }')
@@ -113,6 +114,9 @@ jobs:
 
   build-addons:
     runs-on: ubuntu-18.04
+    needs:
+    - production-docker-image
+    - kurl-util-image
     steps:
     - uses: actions/checkout@v2
     - uses: actions/setup-node@v2
@@ -176,6 +180,9 @@ jobs:
 
   github-release:
     runs-on: ubuntu-18.04
+    needs:
+    - production-docker-image
+    - kurl-util-image
     steps:
     - name: Checkout
       uses: actions/checkout@v2

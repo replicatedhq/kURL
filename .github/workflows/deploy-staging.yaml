@@ -116,6 +116,7 @@ jobs:
     runs-on: ubuntu-18.04
     needs:
     - get-tag
+    - kurl-util-image
     steps:
     - uses: actions/checkout@v2
     - uses: actions/setup-node@v2
@@ -151,7 +152,8 @@ jobs:
         bugsnag-source-maps upload-node \
           --api-key ${{ secrets.BUGSNAG_API_KEY }} \
           --app-version ${GITHUB_SHA:0:7} \
-          --directory ./web/build
+          --directory ./web/build \
+          --overwrite
       env:
         VERSION_TAG: ${{ needs.get-tag.outputs.version_tag }}
 
