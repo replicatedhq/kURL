@@ -43,7 +43,6 @@ module.exports.InstallerVersions = {
     "1.17.7",
     "1.17.3",
     "1.16.4",
-    
   ],
   rke2: [
     "v1.19.7+rke2r1",
