@@ -25,7 +25,8 @@ jobs:
         bugsnag-source-maps upload-node \
           --api-key ${{ secrets.BUGSNAG_API_KEY }} \
           --app-version ${GITHUB_SHA:0:7} \
-          --directory ./web/build
+          --directory ./web/build \
+          --overwrite
 
     - run: |
         export VERSION_TAG=$(echo $GITHUB_REF | awk -F'/' '{ print $NF }')
