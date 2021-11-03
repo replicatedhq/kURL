@@ -36,3 +36,11 @@ spec:
             secretKeyRef:
               key: object-store-cluster-ip
               name: registry-s3-secret
+      volumes:
+      - name: registry-data
+        persistentVolumeClaim:
+          claimName: registry-pvc
+      - name: registry-migrate-s3-config
+        configMap:
+          name: registry-migrate-s3-config
+          defaultMode: 0777
