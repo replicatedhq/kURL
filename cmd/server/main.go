@@ -14,7 +14,6 @@ import (
 	"net/http/httputil"
 	"net/url"
 	"os"
-	"path"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -72,9 +71,18 @@ type BundleManifest struct {
 	Images []string          `json:"images"`
 }
 
-var imagePolicy = []byte(`{
-	"default": [{"type": "insecureAcceptAnything"}]
-}`)
+var policyContextInsecureAcceptAnything *signature.PolicyContext
+
+func init() {
+	policy := signature.Policy{Default: []signature.PolicyRequirement{
+		signature.NewPRInsecureAcceptAnything(),
+	}}
+	pc, err := signature.NewPolicyContext(&policy)
+	if err != nil {
+		panic(errors.Wrapf(err, "failed to create image policy context"))
+	}
+	policyContextInsecureAcceptAnything = pc
+}
 
 func bundle(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "OPTIONS" {
@@ -212,54 +220,10 @@ func bundle(w http.ResponseWriter, r *http.Request) {
 		defer close(imageCh)
 
 		for i, image := range bundle.Images {
-			srcRef, err := alltransports.ParseImageName(fmt.Sprintf("docker://%s", image))
-			if err != nil {
-				errCh <- errors.Wrapf(err, "error parsing override image %q: %v", image, err)
-				return
-			}
+			destPath := filepath.Join(tempDir, fmt.Sprintf("%d.tar", i))
 
-			destPath := path.Join(tempDir, fmt.Sprintf("%d.tar", i))
-			destStr := fmt.Sprintf("docker-archive:%s:%s", destPath, image)
-			localRef, err := alltransports.ParseImageName(destStr)
-			if err != nil {
-				errCh <- errors.Wrapf(err, "failed to parse local image name: %s", destStr)
-				return
-			}
-
-			policy, err := signature.NewPolicyFromBytes(imagePolicy)
-			if err != nil {
-				errCh <- errors.Wrapf(err, "failed to read default image policy for image %q", image)
-				return
-			}
-			policyContext, err := signature.NewPolicyContext(policy)
-			if err != nil {
-				errCh <- errors.Wrapf(err, "failed to create image policy context for image %q", image)
-				return
-			}
-			destCtx := &types.SystemContext{
-				DockerDisableV1Ping: true,
-			}
-			srcCtx := &types.SystemContext{
-				DockerDisableV1Ping: true,
-				AuthFilePath:        "/dev/null",
-				DockerAuthConfig: &types.DockerAuthConfig{
-					Username:      "",
-					Password:      "",
-					IdentityToken: "",
-				},
-			}
-			_, err = copy.Image(r.Context(), policyContext, localRef, srcRef, &copy.Options{
-				RemoveSignatures:      true,
-				SignBy:                "",
-				ForceManifestMIMEType: "",
-				DestinationCtx:        destCtx,
-				SourceCtx:             srcCtx,
-			})
-
-			runtime.GC()
-
-			if err != nil {
-				errCh <- errors.Wrapf(err, "failed to save docker image archive of %s", image)
+			if err := downloadImage(r.Context(), image, destPath); err != nil {
+				errCh <- errors.Wrapf(err, "failed to download image %s to path %s", image, destPath)
 				return
 			}
 
@@ -268,23 +232,17 @@ func bundle(w http.ResponseWriter, r *http.Request) {
 	}()
 
 	for _, layerURL := range bundle.Layers {
-		if err := pipe(archive, layerURL); err != nil {
-			err = errors.Wrapf(err, "error piping %s to %s bundle", layerURL, installerID)
+		if err := pipeAddonArchive(archive, layerURL); err != nil {
+			err = errors.Wrapf(err, "error piping layer %s to bundle %s", layerURL, installerID)
 			handleError(r.Context(), err)
 			return
 		}
 	}
 
 	for filepath, contents := range bundle.Files {
-		archive.WriteHeader(&tar.Header{
-			Name:    filepath,
-			Size:    int64(len(contents)),
-			Mode:    0644,
-			ModTime: time.Now(),
-		})
-		_, err := archive.Write([]byte(contents))
+		err := pipeBlob(archive, []byte(contents), filepath)
 		if err != nil {
-			err = errors.Wrapf(err, "error writing file %s for %s", filepath, installerID)
+			err = errors.Wrapf(err, "error writing file %s to bundle %s", filepath, installerID)
 			handleError(r.Context(), err)
 			return
 		}
@@ -296,40 +254,14 @@ func bundle(w http.ResponseWriter, r *http.Request) {
 			handleError(r.Context(), err)
 			return
 
-		case destPath, ok := <-imageCh:
+		case srcPath, ok := <-imageCh:
 			if !ok {
 				return
 			}
 
-			f, err := os.Open(destPath)
-			if err != nil {
-				err = errors.Wrap(err, "failed to open override image archive")
-				handleError(r.Context(), err)
-				return
-			}
-			fi, err := f.Stat()
-			if err != nil {
-				err = errors.Wrap(err, "failed to stat file")
-				handleError(r.Context(), err)
-				return
-			}
-
-			header := &tar.Header{
-				Name:    fmt.Sprintf("kurl/image-overrides/%d.tar", i),
-				Size:    fi.Size(),
-				Mode:    0644,
-				ModTime: time.Now(),
-			}
-			err = archive.WriteHeader(header)
-			if err != nil {
-				err = errors.Wrap(err, "failed to write tar header")
-				handleError(r.Context(), err)
-				return
-			}
-
-			_, err = io.Copy(archive, f)
-			if err != nil {
-				err = errors.Wrapf(err, "copy file %s contents", header.Name)
+			destPath := fmt.Sprintf("kurl/image-overrides/%d.tar", i)
+			if err := pipeFile(archive, srcPath, destPath); err != nil {
+				err = errors.Wrapf(err, "error piping image %s to bundle %s", srcPath, installerID)
 				handleError(r.Context(), err)
 				return
 			}
@@ -337,12 +269,50 @@ func bundle(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func pipe(dst *tar.Writer, srcURL string) error {
+func downloadImage(ctx context.Context, image string, destPath string) error {
+	srcRef, err := alltransports.ParseImageName(fmt.Sprintf("docker://%s", image))
+	if err != nil {
+		return errors.Wrap(err, "parse src image name")
+	}
+
+	destStr := fmt.Sprintf("docker-archive:%s:%s", destPath, image)
+	localRef, err := alltransports.ParseImageName(destStr)
+	if err != nil {
+		return errors.Wrap(err, "parse dest image name")
+	}
+
+	destCtx := &types.SystemContext{
+		DockerDisableV1Ping: true,
+	}
+	srcCtx := &types.SystemContext{
+		DockerDisableV1Ping: true,
+		AuthFilePath:        "/dev/null",
+		DockerAuthConfig: &types.DockerAuthConfig{
+			Username:      "",
+			Password:      "",
+			IdentityToken: "",
+		},
+	}
+	_, err = copy.Image(ctx, policyContextInsecureAcceptAnything, localRef, srcRef, &copy.Options{
+		RemoveSignatures:      true,
+		SignBy:                "",
+		ForceManifestMIMEType: "",
+		DestinationCtx:        destCtx,
+		SourceCtx:             srcCtx,
+	})
+
+	runtime.GC()
+
+	return errors.Wrapf(err, "copy image")
+}
+
+func pipeAddonArchive(dst *tar.Writer, srcURL string) error {
 	resp, err := http.Get(srcURL)
 	if err != nil {
 		return err
 	}
 	defer resp.Body.Close()
+
 	if resp.StatusCode != http.StatusOK {
 		return errors.Errorf("unexpected response code %d", resp.StatusCode)
 	}
@@ -352,6 +322,7 @@ func pipe(dst *tar.Writer, srcURL string) error {
 		return errors.Wrap(err, "gunzip response")
 	}
 	defer zr.Close()
+
 	src := tar.NewReader(zr)
 
 	for {
@@ -362,12 +333,59 @@ func pipe(dst *tar.Writer, srcURL string) error {
 			return errors.Wrap(err, "next file")
 		}
 		header.Name = filepath.Join("kurl", header.Name)
-		dst.WriteHeader(header)
+
+		err = dst.WriteHeader(header)
+		if err != nil {
+			return errors.Wrap(err, "write tar header")
+		}
+
 		_, err = io.Copy(dst, src)
 		if err != nil {
-			return errors.Wrapf(err, "copy file %s contents", header.Name)
+			return errors.Wrap(err, "copy file contents")
 		}
 	}
+}
+
+func pipeBlob(dst *tar.Writer, srcBytes []byte, destPath string) error {
+	err := dst.WriteHeader(&tar.Header{
+		Name:    destPath,
+		Size:    int64(len(srcBytes)),
+		Mode:    0644,
+		ModTime: time.Now(),
+	})
+	if err != nil {
+		return errors.Wrap(err, "write tar header")
+	}
+
+	_, err = dst.Write(srcBytes)
+	return errors.Wrap(err, "write blob")
+}
+
+func pipeFile(dst *tar.Writer, fileName, destPath string) error {
+	f, err := os.Open(fileName)
+	if err != nil {
+		return errors.Wrap(err, "open file")
+	}
+	defer f.Close()
+
+	fi, err := f.Stat()
+	if err != nil {
+		return errors.Wrap(err, "stat file")
+	}
+
+	header := &tar.Header{
+		Name:    destPath,
+		Size:    fi.Size(),
+		Mode:    0644,
+		ModTime: time.Now(),
+	}
+	err = dst.WriteHeader(header)
+	if err != nil {
+		return errors.Wrap(err, "write tar header")
+	}
+
+	_, err = io.Copy(dst, f)
+	return errors.Wrapf(err, "copy file %s contents", header.Name)
 }
 
 func handleHttpError(w http.ResponseWriter, r *http.Request, err error, code int) {
