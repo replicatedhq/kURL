@@ -401,9 +401,12 @@ func handleError(ctx context.Context, err error, archive *tar.Writer) {
 	}
 
 	if archive != nil {
-		// write some bogus stuff to the archive so that it can't be extracted
+		pipeBlob(archive, []byte("Failed to generate archive resulting in an incomplete bundle.\n"), "ERROR.txt")
+
+		// HACK: This will prevent the archive from being extracted.
+		// It will result in an unexpected EOF.
 		archive.WriteHeader(&tar.Header{
-			Name:    "error",
+			Name:    "INVALID BUNDLE",
 			Size:    8,
 			Mode:    0644,
 			ModTime: time.Now(),
