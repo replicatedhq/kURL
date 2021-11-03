@@ -14,7 +14,6 @@ import (
 	"net/http/httputil"
 	"net/url"
 	"os"
-	"path"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -23,6 +22,7 @@ import (
 
 	"github.com/bugsnag/bugsnag-go/v2"
 	"github.com/containers/image/v5/copy"
+	"github.com/containers/image/v5/docker/reference"
 	"github.com/containers/image/v5/signature"
 	"github.com/containers/image/v5/transports/alltransports"
 	"github.com/containers/image/v5/types"
@@ -71,9 +71,18 @@ type BundleManifest struct {
 	Images []string          `json:"images"`
 }
 
-var imagePolicy = []byte(`{
-	"default": [{"type": "insecureAcceptAnything"}]
-}`)
+var policyContextInsecureAcceptAnything *signature.PolicyContext
+
+func init() {
+	policy := signature.Policy{Default: []signature.PolicyRequirement{
+		signature.NewPRInsecureAcceptAnything(),
+	}}
+	pc, err := signature.NewPolicyContext(&policy)
+	if err != nil {
+		panic(errors.Wrapf(err, "failed to create image policy context"))
+	}
+	policyContextInsecureAcceptAnything = pc
+}
 
 func bundle(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "OPTIONS" {
@@ -167,6 +176,8 @@ func bundle(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Disposition", "attachment")
 	w.Header().Set("Transfer-Encoding", "chunked")
 
+	// use handleError below here since headers have already been written
+
 	if r.Method == "HEAD" {
 		return
 	}
@@ -187,127 +198,123 @@ func bundle(w http.ResponseWriter, r *http.Request) {
 		}
 	}()
 
-	for i, image := range bundle.Images {
-		srcRef, err := alltransports.ParseImageName(fmt.Sprintf("docker://%s", image))
-		if err != nil {
-			err = errors.Wrapf(err, "error parsing override image %q: %v", image, err)
-			handleHttpError(w, r, err, http.StatusInternalServerError)
-			return
-		}
-
-		tempDir, err := ioutil.TempDir("/images", "temp-image-pull")
+	var tempDir string
+	if len(bundle.Images) > 0 {
+		tempDir, err = ioutil.TempDir("/images", "temp-image-pull")
 		if err != nil {
 			err = errors.Wrap(err, "error creating temp directory")
-			handleHttpError(w, r, err, http.StatusInternalServerError)
+			handleError(r.Context(), err)
 			return
 		}
 		defer os.RemoveAll(tempDir)
-
-		destPath := path.Join(tempDir, "temp-archive-image")
-		destStr := fmt.Sprintf("docker-archive:%s:%s", destPath, image)
-		localRef, err := alltransports.ParseImageName(destStr)
-		if err != nil {
-			err = errors.Wrapf(err, "failed to parse local image name: %s", destStr)
-			handleHttpError(w, r, err, http.StatusInternalServerError)
-			return
-		}
-
-		policy, err := signature.NewPolicyFromBytes(imagePolicy)
-		if err != nil {
-			err = errors.Wrap(err, "failed to read default image policy")
-			handleHttpError(w, r, err, http.StatusInternalServerError)
-			return
-		}
-		policyContext, err := signature.NewPolicyContext(policy)
-		if err != nil {
-			err = errors.Wrap(err, "failed to create image policy context")
-			handleHttpError(w, r, err, http.StatusInternalServerError)
-			return
-		}
-		destCtx := &types.SystemContext{
-			DockerDisableV1Ping: true,
-		}
-		srcCtx := &types.SystemContext{
-			DockerDisableV1Ping: true,
-			AuthFilePath:        "/dev/null",
-			DockerAuthConfig: &types.DockerAuthConfig{
-				Username:      "",
-				Password:      "",
-				IdentityToken: "",
-			},
-		}
-		_, err = copy.Image(r.Context(), policyContext, localRef, srcRef, &copy.Options{
-			RemoveSignatures:      true,
-			SignBy:                "",
-			ForceManifestMIMEType: "",
-			DestinationCtx:        destCtx,
-			SourceCtx:             srcCtx,
-		})
-		if err != nil {
-			err = errors.Wrapf(err, "failed to save docker image archive of %s", image)
-			handleHttpError(w, r, err, http.StatusInternalServerError)
-			return
-		}
-
-		f, err := os.Open(destPath)
-		if err != nil {
-			err = errors.Wrap(err, "failed to open override image archive")
-			handleHttpError(w, r, err, http.StatusInternalServerError)
-			return
-		}
-		fi, err := f.Stat()
-		if err != nil {
-			handleHttpError(w, r, err, http.StatusInternalServerError)
-			return
-		}
-
-		header := &tar.Header{
-			Name:    fmt.Sprintf("kurl/image-overrides/%d.tar", i),
-			Size:    fi.Size(),
-			Mode:    0644,
-			ModTime: time.Now(),
-		}
-		archive.WriteHeader(header)
-		_, err = io.Copy(archive, f)
-		if err != nil {
-			err = errors.Wrapf(err, "copy file %s contents", header.Name)
-			handleHttpError(w, r, err, http.StatusInternalServerError)
-			return
-		}
-		os.RemoveAll(tempDir)
-		runtime.GC()
 	}
 
+	errCh := make(chan error, 1)
+	defer close(errCh)
+
+	imageCh := make(chan string, len(bundle.Images))
+
+	// HACK: Work around the fact that github.com/containers/image/v5/copy copy.Image does not support streaming.
+	// Download images concurrently while streaming the rest of the bundle to minimize idle time.
+	go func() {
+		defer close(imageCh)
+
+		for i, image := range bundle.Images {
+			destPath := filepath.Join(tempDir, fmt.Sprintf("%d.tar", i))
+
+			if err := downloadImage(r.Context(), image, destPath); err != nil {
+				errCh <- errors.Wrapf(err, "failed to download image %s to path %s", image, destPath)
+				return
+			}
+
+			imageCh <- destPath
+		}
+	}()
+
 	for _, layerURL := range bundle.Layers {
-		if err := pipe(archive, layerURL); err != nil {
-			err = errors.Wrapf(err, "error piping %s to %s bundle", layerURL, installerID)
+		if err := pipeAddonArchive(archive, layerURL); err != nil {
+			err = errors.Wrapf(err, "error piping layer %s to bundle %s", layerURL, installerID)
 			handleError(r.Context(), err)
 			return
 		}
 	}
 
 	for filepath, contents := range bundle.Files {
-		archive.WriteHeader(&tar.Header{
-			Name:    filepath,
-			Size:    int64(len(contents)),
-			Mode:    0644,
-			ModTime: time.Now(),
-		})
-		_, err := archive.Write([]byte(contents))
+		err := pipeBlob(archive, []byte(contents), filepath)
 		if err != nil {
-			err = errors.Wrapf(err, "error writing file %s for %s", filepath, installerID)
+			err = errors.Wrapf(err, "error writing file %s to bundle %s", filepath, installerID)
 			handleError(r.Context(), err)
 			return
 		}
 	}
+
+	for i := 0; ; i++ {
+		select {
+		case err := <-errCh:
+			handleError(r.Context(), err)
+			return
+
+		case srcPath, ok := <-imageCh:
+			if !ok {
+				return
+			}
+
+			destPath := fmt.Sprintf("kurl/image-overrides/%d.tar", i)
+			if err := pipeFile(archive, srcPath, destPath); err != nil {
+				err = errors.Wrapf(err, "error piping image %s to bundle %s", srcPath, installerID)
+				handleError(r.Context(), err)
+				return
+			}
+		}
+	}
 }
 
-func pipe(dst *tar.Writer, srcURL string) error {
+func downloadImage(ctx context.Context, image string, destPath string) error {
+	srcRef, err := alltransports.ParseImageName(fmt.Sprintf("docker://%s", image))
+	if err != nil {
+		return errors.Wrap(err, "parse src image name")
+	}
+
+	destStr := fmt.Sprintf("docker-archive:%s:%s", destPath, image)
+	localRef, err := alltransports.ParseImageName(destStr)
+	if err != nil {
+		return errors.Wrap(err, "parse dest image name")
+	}
+
+	destCtx := &types.SystemContext{
+		DockerDisableV1Ping: true,
+	}
+	srcCtx := &types.SystemContext{
+		DockerDisableV1Ping: true,
+		AuthFilePath:        "/dev/null",
+		DockerAuthConfig: &types.DockerAuthConfig{
+			Username:      "",
+			Password:      "",
+			IdentityToken: "",
+		},
+	}
+	_, err = copy.Image(ctx, policyContextInsecureAcceptAnything, localRef, srcRef, &copy.Options{
+		RemoveSignatures:      true,
+		SignBy:                "",
+		ForceManifestMIMEType: "",
+		DestinationCtx:        destCtx,
+		SourceCtx:             srcCtx,
+	})
+
+	// This is to keep memory usage down. Go will keep requesting more memory from the system
+	// for each image pull, eventually the pod will be evicted.
+	runtime.GC()
+
+	return errors.Wrapf(err, "copy image")
+}
+
+func pipeAddonArchive(dst *tar.Writer, srcURL string) error {
 	resp, err := http.Get(srcURL)
 	if err != nil {
 		return err
 	}
 	defer resp.Body.Close()
+
 	if resp.StatusCode != http.StatusOK {
 		return errors.Errorf("unexpected response code %d", resp.StatusCode)
 	}
@@ -317,6 +324,7 @@ func pipe(dst *tar.Writer, srcURL string) error {
 		return errors.Wrap(err, "gunzip response")
 	}
 	defer zr.Close()
+
 	src := tar.NewReader(zr)
 
 	for {
@@ -327,12 +335,59 @@ func pipe(dst *tar.Writer, srcURL string) error {
 			return errors.Wrap(err, "next file")
 		}
 		header.Name = filepath.Join("kurl", header.Name)
-		dst.WriteHeader(header)
+
+		err = dst.WriteHeader(header)
+		if err != nil {
+			return errors.Wrap(err, "write tar header")
+		}
+
 		_, err = io.Copy(dst, src)
 		if err != nil {
-			return errors.Wrapf(err, "copy file %s contents", header.Name)
+			return errors.Wrap(err, "copy file contents")
 		}
 	}
+}
+
+func pipeBlob(dst *tar.Writer, srcBytes []byte, destPath string) error {
+	err := dst.WriteHeader(&tar.Header{
+		Name:    destPath,
+		Size:    int64(len(srcBytes)),
+		Mode:    0644,
+		ModTime: time.Now(),
+	})
+	if err != nil {
+		return errors.Wrap(err, "write tar header")
+	}
+
+	_, err = dst.Write(srcBytes)
+	return errors.Wrap(err, "write blob")
+}
+
+func pipeFile(dst *tar.Writer, fileName, destPath string) error {
+	f, err := os.Open(fileName)
+	if err != nil {
+		return errors.Wrap(err, "open file")
+	}
+	defer f.Close()
+
+	fi, err := f.Stat()
+	if err != nil {
+		return errors.Wrap(err, "stat file")
+	}
+
+	header := &tar.Header{
+		Name:    destPath,
+		Size:    fi.Size(),
+		Mode:    0644,
+		ModTime: time.Now(),
+	}
+	err = dst.WriteHeader(header)
+	if err != nil {
+		return errors.Wrap(err, "write tar header")
+	}
+
+	_, err = io.Copy(dst, f)
+	return errors.Wrapf(err, "copy file %s contents", header.Name)
 }
 
 func handleHttpError(w http.ResponseWriter, r *http.Request, err error, code int) {
@@ -349,12 +404,13 @@ func handleError(ctx context.Context, err error) {
 }
 
 func allowRegistry(image string) bool {
-	parsed, err := url.Parse(fmt.Sprintf("https://%s", image))
+	named, err := reference.ParseNormalizedNamed(image)
 	if err != nil {
 		return false
 	}
 
-	host, _ := publicsuffix.EffectiveTLDPlusOne(parsed.Hostname())
+	host := reference.Domain(named)
+	host, _ = publicsuffix.EffectiveTLDPlusOne(host)
 
 	switch host {
 	case "docker.io", "gcr.io", "ghcr.io", "azurecr.io", "ttl.sh", "ecr.us-east-1.amazonaws.com":

@@ -22,6 +22,9 @@ func TestAllowRegistry(t *testing.T) {
 		{"799720048698.dkr.ecr.us-east-1.amazonaws.com/kurl:latest", true},
 		{"ghcr.io/redis:2.0", true},
 		{"azurecr.io/redis:2.0", true},
+		{"kotsadm/kotsadm:2.0", true},
+		{"library/redis:2.0", true},
+		{"redis:2.0", true},
 	}
 	for _, test := range tests {
 		t.Run(test.image, func(t *testing.T) {
