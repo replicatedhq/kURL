@@ -34,6 +34,7 @@ function registry() {
             # enable registry svc after migration is complete
             cp "$DIR/addons/registry/2.7.1/service.yaml" "$DIR/kustomize/registry/service.yaml"
             insert_patches_strategic_merge "$DIR/kustomize/registry/kustomization.yaml" service.yaml
+            logSucess "Registry migration from s3 to PVC completed"
         fi
     else
         determine_registry_pvc_size
