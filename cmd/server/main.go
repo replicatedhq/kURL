@@ -185,16 +185,14 @@ func bundle(w http.ResponseWriter, r *http.Request) {
 	wz := gzip.NewWriter(w)
 	archive := tar.NewWriter(wz)
 	defer func() {
-		// TODO: it would be better to somehow make this archive invalid if there is an error so
-		// it's not just missing a package
 		if err := archive.Close(); err != nil {
 			err = errors.Wrapf(err, "error closing archive for installer %s", installerID)
-			handleError(r.Context(), err)
+			handleError(r.Context(), err, nil)
 		}
 
 		if err := wz.Close(); err != nil {
 			err = errors.Wrapf(err, "error closing gzip stream for installer %s", installerID)
-			handleError(r.Context(), err)
+			handleError(r.Context(), err, nil)
 		}
 	}()
 
@@ -203,7 +201,7 @@ func bundle(w http.ResponseWriter, r *http.Request) {
 		tempDir, err = ioutil.TempDir("/images", "temp-image-pull")
 		if err != nil {
 			err = errors.Wrap(err, "error creating temp directory")
-			handleError(r.Context(), err)
+			handleError(r.Context(), err, archive)
 			return
 		}
 		defer os.RemoveAll(tempDir)
@@ -234,7 +232,7 @@ func bundle(w http.ResponseWriter, r *http.Request) {
 	for _, layerURL := range bundle.Layers {
 		if err := pipeAddonArchive(archive, layerURL); err != nil {
 			err = errors.Wrapf(err, "error piping layer %s to bundle %s", layerURL, installerID)
-			handleError(r.Context(), err)
+			handleError(r.Context(), err, archive)
 			return
 		}
 	}
@@ -243,7 +241,7 @@ func bundle(w http.ResponseWriter, r *http.Request) {
 		err := pipeBlob(archive, []byte(contents), filepath)
 		if err != nil {
 			err = errors.Wrapf(err, "error writing file %s to bundle %s", filepath, installerID)
-			handleError(r.Context(), err)
+			handleError(r.Context(), err, archive)
 			return
 		}
 	}
@@ -251,7 +249,7 @@ func bundle(w http.ResponseWriter, r *http.Request) {
 	for i := 0; ; i++ {
 		select {
 		case err := <-errCh:
-			handleError(r.Context(), err)
+			handleError(r.Context(), err, archive)
 			return
 
 		case srcPath, ok := <-imageCh:
@@ -262,7 +260,7 @@ func bundle(w http.ResponseWriter, r *http.Request) {
 			destPath := fmt.Sprintf("kurl/image-overrides/%d.tar", i)
 			if err := pipeFile(archive, srcPath, destPath); err != nil {
 				err = errors.Wrapf(err, "error piping image %s to bundle %s", srcPath, installerID)
-				handleError(r.Context(), err)
+				handleError(r.Context(), err, archive)
 				return
 			}
 		}
@@ -396,10 +394,23 @@ func handleHttpError(w http.ResponseWriter, r *http.Request, err error, code int
 	bugsnag.Notify(err, r.Context())
 }
 
-func handleError(ctx context.Context, err error) {
+func handleError(ctx context.Context, err error, archive *tar.Writer) {
 	log.Println(err)
 	if !errors.Is(err, syscall.EPIPE) && !errors.Is(err, syscall.ECONNRESET) {
 		bugsnag.Notify(err, ctx)
+	}
+
+	if archive != nil {
+		pipeBlob(archive, []byte("Failed to generate archive resulting in an incomplete bundle.\n"), "ERROR.txt")
+
+		// HACK: This will prevent the archive from being extracted.
+		// It will result in an unexpected EOF.
+		archive.WriteHeader(&tar.Header{
+			Name:    "INVALID BUNDLE",
+			Size:    8,
+			Mode:    0644,
+			ModTime: time.Now(),
+		})
 	}
 }
 
