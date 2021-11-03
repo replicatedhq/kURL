@@ -17,10 +17,24 @@ spec:
     spec:
       containers:
       - name: registry
+        image: registry:2.7.1
+        imagePullPolicy: IfNotPresent
+        command:
+        - /bin/registry
+        - serve
+        - /etc/docker/registry/config-pvc.yml
+        ports:
+        - containerPort: 443
+          protocol: TCP
         volumeMounts:
         - name: registry-data
           mountPath: /var/lib/registry
+        - name: registry-pvc-config
+          mountPath: /etc/docker/registry
       volumes:
+      - name: registry-pvc-config
+        configMap:
+          name: registry-pvc-config
       - name: registry-data
         persistentVolumeClaim:
           claimName: registry-pvc
