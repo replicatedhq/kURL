@@ -10,8 +10,10 @@
       version: "latest"
     kotsadm:
       version: "latest"
-    rook:
-      version: "latest"
+    longhorn:
+      version: latest
+    minio:
+      version: latest
 - installerSpec:
     kubernetes:
       version: "latest"
@@ -23,8 +25,10 @@
       version: "latest"
     kotsadm:
       version: "latest"
-    rook:
-      version: "latest"
+    longhorn:
+      version: latest
+    minio:
+      version: latest
   upgradeSpec:
     kubernetes:
       version: "latest"
@@ -37,5 +41,7 @@
       version: "latest"
     kotsadm:
       version: "latest"
-    rook:
-      version: "latest"
+    longhorn:
+      version: latest
+    minio:
+      version: latest

@@ -4,7 +4,7 @@
       version: "latest"
     weave:
       version: "latest"
-    rook:
+    longhorn:
       version: "latest"
     docker:
       version: "latest"
@@ -22,7 +22,9 @@
       version: "latest"
     kotsadm:
       version: "latest"
-    rook:
+    longhorn:
+      version: "latest"
+    minio:
       version: "latest"
   upgradeSpec:
     kubernetes:
@@ -32,8 +34,6 @@
     containerd:
       version: "latest"
     kotsadm:
-      version: "latest"
-    rook:
       version: "latest"
     minio:
       version: "__testver__"
