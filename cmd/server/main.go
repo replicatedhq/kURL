@@ -301,6 +301,8 @@ func downloadImage(ctx context.Context, image string, destPath string) error {
 		SourceCtx:             srcCtx,
 	})
 
+	// This is to keep memory usage down. Go will keep requesting more memory from the system
+	// for each image pull, eventually the pod will be evicted.
 	runtime.GC()
 
 	return errors.Wrapf(err, "copy image")
