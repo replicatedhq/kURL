@@ -677,6 +677,7 @@ describe("GET /<installerID>/join.sh", () => {
       expect(script).to.match(new RegExp(`version: ${latestResolve.spec.contour?.version}`));
       expect(script).to.match(new RegExp(`version: ${latestResolve.spec.registry?.version}`));
       expect(script).to.match(new RegExp(`version: ${latestResolve.spec.prometheus?.version}`));
+      expect(script).to.match(new RegExp(`version: ${latestResolve.spec.containerd?.version}`));
     });
     
   });
