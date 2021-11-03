@@ -17,6 +17,9 @@ function registry() {
 
         # Start migration only when usePvcStorage flag is enabled in the installer spec
         if [ "$REGISTRY_USE_PVC_STORAGE" = "1" ]; then
+            logWarn "Registry data migration from s3 to PVC in progress, Refer s3-migration.txt inside registry container"
+            # disable registry svc so nothing can write to the registry during migration
+            kubectl delete svc registry -n kurl
             # configmap for the migration script
             render_yaml_file "$DIR/addons/registry/2.7.1/tmpl-configmap-migrate-s3.yaml" > "$DIR/kustomize/registry/configmap-migrate-s3.yaml"
             insert_resources "$DIR/kustomize/registry/kustomization.yaml" configmap-migrate-s3.yaml
@@ -28,6 +31,9 @@ function registry() {
             insert_patches_strategic_merge "$DIR/kustomize/registry/kustomization.yaml" deployment-pvc.yaml
             render_yaml_file "$DIR/addons/registry/2.7.1/tmpl-persistentvolumeclaim.yaml" > "$DIR/kustomize/registry/persistentvolumeclaim.yaml"
             insert_resources "$DIR/kustomize/registry/kustomization.yaml" persistentvolumeclaim.yaml
+            # enable registry svc after migration is complete
+            cp "$DIR/addons/registry/2.7.1/service.yaml" "$DIR/kustomize/registry/service.yaml"
+            insert_patches_strategic_merge "$DIR/kustomize/registry/kustomization.yaml" service.yaml
         fi
     else
         determine_registry_pvc_size
