@@ -3,20 +3,6 @@
       version: "latest"
     weave:
       version: "latest"
-    longhorn:
-      version: latest
-    minio:
-      version: latest
-    docker:
-      version: "latest"
-    kotsadm:
-      version: "__testver__"
-      s3Override: "__testdist__"
-- installerSpec:
-    kubernetes:
-      version: "1.19.15"
-    weave:
-      version: "latest"
     rook:
       version: "latest"
     docker:

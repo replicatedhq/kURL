@@ -17,13 +17,11 @@ metadata:
 spec:
   kubernetes:
     version: latest
-  containerd:
+  docker:
     version: latest
   weave:
     version: latest
-  longhorn:
-    version: latest
-  minio:
+  rook:
     version: latest
   ekco:
     version: latest
@@ -43,13 +41,11 @@ metadata:
 spec:
   kubernetes:
     version: latest
-  containerd:
+  docker:
     version: latest
   weave:
     version: latest
-  longhorn:
-    version: latest
-  minio:
+  rook:
     version: latest
   ekco:
     version: latest
@@ -89,7 +85,7 @@ metadata:
   name: ""
 spec:
   kubernetes:
-    version: 1.19.15
+    version: latest
   weave:
     version: latest
   rook:
@@ -181,7 +177,7 @@ spec:
 const rookBlock = `
 spec:
   kubernetes:
-    version: 1.19.15
+    version: latest
   rook:
     version: latest
     isBlockStorageEnabled: true
@@ -498,7 +494,6 @@ describe("PUT /installer/<id>", () => {
 });
 
 describe("GET /<installerID>", () => {
-
   describe("/latest", async () => {
     const latestResolve = await Installer.latest().resolve();
 
@@ -507,18 +502,15 @@ describe("GET /<installerID>", () => {
 
       expect(script).to.match(new RegExp(`version: ${latestResolve.spec.kubernetes.version}`));
       expect(script).to.match(new RegExp(`version: ${latestResolve.spec.weave?.version}`));
-      expect(script).to.match(new RegExp(`version: ${latestResolve.spec.longhorn?.version}`));
-      expect(script).to.match(new RegExp(`version: ${latestResolve.spec.minio?.version}`));
+      expect(script).to.match(new RegExp(`version: ${latestResolve.spec.rook?.version}`));
       expect(script).to.match(new RegExp(`version: ${latestResolve.spec.ekco?.version}`));
       expect(script).to.match(new RegExp(`version: ${latestResolve.spec.contour?.version}`));
       expect(script).to.match(new RegExp(`version: ${latestResolve.spec.registry?.version}`));
       expect(script).to.match(new RegExp(`version: ${latestResolve.spec.prometheus?.version}`));
-      expect(script).to.match(new RegExp(`version: ${latestResolve.spec.containerd?.version}`));
-      // expect(script).to.match(/INSTALLER_ID="latest"/);
+      expect(script).to.match(new RegExp(`version: ${latestResolve.spec.docker?.version}`));
+      expect(script).to.match(/INSTALLER_ID="latest"/);
     });
   });
-
-
 
   describe("min (/d44632a)", () => {
     before(async () => {
@@ -612,8 +604,8 @@ describe("GET /<installerID>", () => {
     });
   });
 
-  describe("rook with block storage (/f4fbc31)", () => {
-    const id = "f4fbc31";
+  describe("rook with block storage (/1a1b590)", () => {
+    const id = "1a1b590";
 
     before(async () => {
       const uri = await client.postInstaller(rookBlock);
@@ -662,26 +654,21 @@ describe("GET /<installerID>", () => {
 });
 
 describe("GET /<installerID>/join.sh", () => {
-  
   describe("/latest/join.sh", async () => {
     const latestResolve = await Installer.latest().resolve();
-    
+
     it(`injects k8s ${latestResolve.spec.kubernetes.version}, weave ${latestResolve.spec.weave?.version}, rook ${latestResolve.spec.rook?.version}, contour ${latestResolve.spec.contour?.version}, registry ${latestResolve.spec.registry?.version}, prometheus ${latestResolve.spec.prometheus?.version}`, async () => {
       const script = await client.getJoinScript("latest");
 
       expect(script).to.match(new RegExp(`version: ${latestResolve.spec.kubernetes.version}`));
       expect(script).to.match(new RegExp(`version: ${latestResolve.spec.weave?.version}`));
-      expect(script).to.match(new RegExp(`version: ${latestResolve.spec.minio?.version}`));
-      expect(script).to.match(new RegExp(`version: ${latestResolve.spec.longhorn?.version}`));
+      expect(script).to.match(new RegExp(`version: ${latestResolve.spec.rook?.version}`));
       expect(script).to.match(new RegExp(`version: ${latestResolve.spec.ekco?.version}`));
       expect(script).to.match(new RegExp(`version: ${latestResolve.spec.contour?.version}`));
       expect(script).to.match(new RegExp(`version: ${latestResolve.spec.registry?.version}`));
       expect(script).to.match(new RegExp(`version: ${latestResolve.spec.prometheus?.version}`));
-      expect(script).to.match(new RegExp(`version: ${latestResolve.spec.containerd?.version}`));
     });
-    
   });
-  
 
   describe("min (/d44632a/join.sh)", () => {
     before(async () => {
@@ -875,25 +862,6 @@ describe("POST /installer/validate", () => {
     });
   });
 
-  describe("rook latest incompatible with Kubernetes latest", () => {
-    it("400", async () => {
-      const spec = `
-      spec:
-        rook:
-          version: latest
-        kubernetes:
-          version: latest`;
-      let err;
-
-      try {
-        await client.validateInstaller(spec);
-      } catch (error) {
-        err = error;
-      }
-      expect(err).to.have.property("message", "Rook 1.0.4 is not compatible with Kubernetes 1.20+");
-    });
-  });
-
   describe("rook 1.4.3 without blockStorageEnabled", () => {
     it("400", async () => {
       const spec = `
@@ -941,7 +909,7 @@ describe("POST /installer/validate", () => {
         rook:
           version: latest
         kubernetes:
-          version: 1.19.15`;
+          version: latest`;
       let err;
 
       try {

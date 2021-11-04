@@ -3,10 +3,8 @@
       version: "latest"
     weave:
       version: "latest"
-    longhorn:
-      version: latest
-    minio:
-      version: latest
+    rook:
+      version: "latest"
     docker:
       version: "latest"
     fluentd:

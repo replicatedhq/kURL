@@ -4,7 +4,7 @@
       version: "latest"
     weave:
       version: "latest"
-    longhorn:
+    rook:
       version: "latest"
     docker:
       version: "latest"
@@ -15,7 +15,7 @@
 # migration from rook-ceph object store to minio
 - installerSpec:
     kubernetes:
-      version: "1.19.15"
+      version: "latest"
     weave:
       version: "latest"
     containerd:
@@ -26,14 +26,14 @@
       version: "latest"
   upgradeSpec:
     kubernetes:
-      version: "1.19.15"
+      version: "latest"
     weave:
       version: "latest"
     containerd:
       version: "latest"
     kotsadm:
       version: "latest"
-    longhorn:
+    rook:
       version: "latest"
     minio:
       version: "__testver__"
