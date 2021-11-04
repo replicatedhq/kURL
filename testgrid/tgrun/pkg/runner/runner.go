@@ -259,8 +259,17 @@ export TEST_ID='%s'
 export KURL_URL='%s'
 export KURL_UPGRADE_URL='%s'
 export SUPPORTBUNDLE_SPEC='%s'
+export POST_INSTALL_SCRIPT='%s' // TODO
+export POST_UPGRADE_SCRIPT='%s' // TODO
 `,
-		singleTest.TestGridAPIEndpoint, singleTest.ID, singleTest.KurlURL, singleTest.UpgradeURL, singleTest.SupportbundleYAML)
+		singleTest.TestGridAPIEndpoint,
+		singleTest.ID,
+		singleTest.KurlURL,
+		singleTest.UpgradeURL,
+		singleTest.SupportbundleYAML,
+		singleTest.PostInstallScript,
+		singleTest.PostUpgradeScript,
+	)
 
 	varsB64 := base64.StdEncoding.EncodeToString([]byte(varsSh))
 

@@ -97,6 +97,8 @@ func MainRunLoop(runnerOptions types.RunnerOptions) error {
 				KurlURL:           dequeuedInstance.KurlURL,
 				UpgradeURL:        dequeuedInstance.UpgradeURL,
 				SupportbundleYAML: dequeuedInstance.SupportbundleYAML,
+				PostInstallScript: dequeuedInstance.PostInstallScript,
+				PostUpgradeScript: dequeuedInstance.PostUpgradeScript,
 				KurlRef:           dequeuedInstance.KurlRef,
 
 				TestGridAPIEndpoint: runnerOptions.APIEndpoint,

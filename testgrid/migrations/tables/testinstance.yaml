@@ -43,6 +43,10 @@ spec:
           type: text
         - name: supportbundle_yaml
           type: text
+        - name: post_install_script
+          type: text
+        - name: post_upgrade_script
+          type: text
         - name: os_name
           type: text
         - name: os_version
