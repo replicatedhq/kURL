@@ -27,6 +27,7 @@ function registry() {
         insert_resources "$DIR/kustomize/registry/kustomization.yaml" persistentvolumeclaim.yaml
 
         if object_store_exists && [ "$REGISTRY_USE_PVC_STORAGE" = "1" ]; then
+            logWarn "Registry migration in progres......"
             render_yaml_file "$DIR/addons/registry/2.7.1/tmpl-configmap-migrate-s3.yaml" > "$DIR/kustomize/registry/configmap-migrate-s3.yaml"
             insert_resources "$DIR/kustomize/registry/kustomization.yaml" configmap-migrate-s3.yaml
             cp "$DIR/addons/registry/2.7.1/patch-deployment-migrate-s3.yaml" "$DIR/kustomize/registry/patch-deployment-migrate-s3.yaml"
@@ -232,5 +233,6 @@ function determine_registry_pvc_size() {
 
 function registry_pvc_migrated() {
     registry_pod=$( kubectl get pods -n kurl -l app=registry -o jsonpath='{.items[0].metadata.name}')
-    kubectl -n kurl logs $registry_pod -c migrate-s3  | grep "migration ran successfully" &>/dev/null
+    kubectl -n kurl logs $registry_pod -c migrate-s3  | grep -q "migration ran successfully" &>/dev/null
 }
+
