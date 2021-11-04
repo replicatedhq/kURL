@@ -33,7 +33,7 @@
       version: "latest"
     kotsadm:
       version: "latest"
-    rook:
+    longhorn:
       version: "latest"
     minio:
       version: "__testver__"
