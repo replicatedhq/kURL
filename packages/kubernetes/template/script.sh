@@ -6,15 +6,8 @@ set -euo pipefail
 VERSIONS=()
 function find_available_versions() {
     docker build -t k8s - < Dockerfile
-
-    # Versions 1.21.*
-    VERSIONS=($(docker run k8s apt list -a kubelet 2>/dev/null | grep -Eo '1\.21\.[0-9]+' | sort -rV | uniq))
-
-    local versions120=($(docker run k8s apt list -a kubelet 2>/dev/null | grep -Eo '1\.20\.[0-9]+' | sort -rV | uniq))
-    if [ ${#versions120[@]} -gt 0 ]; then
-        echo "Found latest version for Kubernetes 1.20: ${versions120[0]}"
-        VERSIONS+=("${versions120[0]}")
-    fi
+    VERSIONS=($(docker run k8s apt list -a kubelet 2>/dev/null | grep -Eo '1\.[2-9][0-9]\.[0-9]+' | sort -rV | uniq))
+    echo "Found ${#VERSIONS[*]} versions for Kubernetes 1.20+: ${VERSIONS[*]}"
 
     local versions119=($(docker run k8s apt list -a kubelet 2>/dev/null | grep -Eo '1\.19\.[0-9]+' | sort -rV | uniq))
     if [ ${#versions119[@]} -gt 0 ]; then
@@ -102,14 +95,9 @@ function generate_conformance_package() {
 }
 
 function update_available_versions() {
-    local versions121=( $( for i in "${VERSIONS[@]}" ; do echo $i ; done | grep '^1.21' ) )
-    if [ ${#versions121[@]} -gt 0 ]; then
-        sed -i "/cron-kubernetes-update-121/c\    \"$(echo ${versions121[0]} | sed 's/ /", "/g')\", \/\/ cron-kubernetes-update-121" ../../../web/src/installers/versions.js
-    fi
-
-    local versions120=( $( for i in "${VERSIONS[@]}" ; do echo $i ; done | grep '^1.20' ) )
+    local versions120=( $( for i in "${VERSIONS[@]}" ; do echo $i ; done | grep '^1.2' ) )
     if [ ${#versions120[@]} -gt 0 ]; then
-        sed -i "/cron-kubernetes-update-120/c\    \"$(echo ${versions120[0]} | sed 's/ /", "/g')\", \/\/ cron-kubernetes-update-120" ../../../web/src/installers/versions.js
+        sed -i "/cron-kubernetes-update-120/c\    \"$(echo ${versions120[*]} | sed 's/ /", "/g')\", \/\/ cron-kubernetes-update-120" ../../../web/src/installers/versions.js
     fi
 
     local version119=( $( for i in "${VERSIONS[@]}" ; do echo $i ; done | grep '^1.19' ) )
