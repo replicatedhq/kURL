@@ -4,7 +4,7 @@
       version: "latest"
     weave:
       version: "2.6.5"
-    longhorn:
+    rook:
       version: "latest"
     contour:
       version: "latest"

@@ -8,10 +8,8 @@
       version: latest
     contour:
       version: latest
-    longhorn:
-      version: "latest"
-    minio:
-      version: "latest"
+    rook:
+      version: latest
     registry:
       version: latest
     prometheus:
@@ -39,26 +37,6 @@
     weave:
       version: latest
     minio:
-      version: latest
-    kotsadm:
-      version: latest
-- name: rook-latest
-  installerSpec:
-    kubernetes:
-      version: 1.19.15
-    docker:
-      version: latest
-    weave:
-      version: latest
-    contour:
-      version: latest
-    rook:
-      version: latest
-    registry:
-      version: latest
-    prometheus:
-      version: latest
-    ekco:
       version: latest
     kotsadm:
       version: latest
