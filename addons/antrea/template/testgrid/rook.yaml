@@ -1,6 +1,6 @@
 - installerSpec:
     kubernetes:
-      version: "latest"
+      version: "1.19.15"
     rook:
       version: "latest"
     containerd:

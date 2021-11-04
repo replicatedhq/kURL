@@ -3,7 +3,9 @@
       version: "latest"
     weave:
       version: "latest"
-    rook:
+    longhorn:
+      version: "latest"
+    minio:
       version: "latest"
     docker:
       version: "latest"
