@@ -61,7 +61,7 @@
       isBlockStorageEnabled: true
 - installerSpec:
     kubernetes:
-      version: "1.19.15"
+      version: "latest"
     weave:
       version: "latest"
     docker:
