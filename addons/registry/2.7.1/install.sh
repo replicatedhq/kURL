@@ -3,10 +3,6 @@ function registry() {
     regsitry_init_service   # need this again because kustomize folder is cleaned before install
     registry_session_secret
 
-    local will_migrate_pvc=
-    if ! registry_pvc_exists && object_store_exists && [ "$REGISTRY_USE_PVC_STORAGE" = "1" ]; then
-       will_migrate_pvc=1
-    fi
 
     # Only create registry deployment with object store if rook or minio exists and the registry pvc
     # doesn't already exist.
@@ -26,6 +22,10 @@ function registry() {
         insert_resources "$DIR/kustomize/registry/kustomization.yaml" deployment-pvc.yaml
         insert_resources "$DIR/kustomize/registry/kustomization.yaml" persistentvolumeclaim.yaml
 
+        local will_migrate_pvc=
+        if ! registry_pvc_exists && object_store_exists && [ "$REGISTRY_USE_PVC_STORAGE" = "1" ]; then
+            will_migrate_pvc=1
+        fi
         if object_store_exists && [ "$REGISTRY_USE_PVC_STORAGE" = "1" ]; then
             logWarn "Registry migration in progres......"
             render_yaml_file "$DIR/addons/registry/2.7.1/tmpl-configmap-migrate-s3.yaml" > "$DIR/kustomize/registry/configmap-migrate-s3.yaml"
