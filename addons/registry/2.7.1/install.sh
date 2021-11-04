@@ -3,9 +3,14 @@ function registry() {
     regsitry_init_service   # need this again because kustomize folder is cleaned before install
     registry_session_secret
 
+    local will_migrate_pvc=
+    if ! registry_pvc_exists && object_store_exists && [ "$REGISTRY_USE_PVC_STORAGE" = "1" ]; then
+       will_migrate_pvc=1
+    fi
+
     # Only create registry deployment with object store if rook or minio exists and the registry pvc
     # doesn't already exist.
-    if ! registry_pvc_exists && object_store_exists; then
+    if ! registry_pvc_exists && object_store_exists && [ "$REGISTRY_USE_PVC_STORAGE" != "1" ]; then
         registry_object_store_bucket
         render_yaml_file "$DIR/addons/registry/2.7.1/tmpl-deployment-objectstore.yaml" > "$DIR/kustomize/registry/deployment-objectstore.yaml"
         insert_resources "$DIR/kustomize/registry/kustomization.yaml" deployment-objectstore.yaml
@@ -14,37 +19,28 @@ function registry() {
         insert_patches_strategic_merge "$DIR/kustomize/registry/kustomization.yaml" patch-deployment-velero.yaml
         render_yaml_file "$DIR/addons/registry/2.7.1/tmpl-configmap-velero.yaml" > "$DIR/kustomize/registry/configmap-velero.yaml"
         insert_resources "$DIR/kustomize/registry/kustomization.yaml" configmap-velero.yaml
-
-        # Start migration only when usePvcStorage flag is enabled in the installer spec
-        if [ "$REGISTRY_USE_PVC_STORAGE" = "1" ]; then
-            logWarn "Registry data migration from s3 to PVC in progress, Refer s3-migration.txt inside registry container"
-            # disable registry svc so nothing can write to the registry during migration
-            kubectl delete svc registry -n kurl
-            # configmap for the migration script
-            render_yaml_file "$DIR/addons/registry/2.7.1/tmpl-configmap-migrate-s3.yaml" > "$DIR/kustomize/registry/configmap-migrate-s3.yaml"
-            insert_resources "$DIR/kustomize/registry/kustomization.yaml" configmap-migrate-s3.yaml
-            # deployment for the initContainer
-            cp "$DIR/addons/registry/2.7.1/patch-deployment-migrate-s3.yaml" "$DIR/kustomize/registry/patch-deployment-migrate-s3.yaml"
-            insert_patches_strategic_merge "$DIR/kustomize/registry/kustomization.yaml" patch-deployment-migrate-s3.yaml
-            determine_registry_pvc_size
-            cp "$DIR/addons/registry/2.7.1/deployment-pvc.yaml" "$DIR/kustomize/registry/deployment-pvc.yaml"
-            insert_patches_strategic_merge "$DIR/kustomize/registry/kustomization.yaml" deployment-pvc.yaml
-            render_yaml_file "$DIR/addons/registry/2.7.1/tmpl-persistentvolumeclaim.yaml" > "$DIR/kustomize/registry/persistentvolumeclaim.yaml"
-            insert_resources "$DIR/kustomize/registry/kustomization.yaml" persistentvolumeclaim.yaml
-            # enable registry svc after migration is complete
-            cp "$DIR/addons/registry/2.7.1/service.yaml" "$DIR/kustomize/registry/service.yaml"
-            insert_patches_strategic_merge "$DIR/kustomize/registry/kustomization.yaml" service.yaml
-            logSucess "Registry migration from s3 to PVC completed"
-        fi
     else
         determine_registry_pvc_size
         cp "$DIR/addons/registry/2.7.1/deployment-pvc.yaml" "$DIR/kustomize/registry/deployment-pvc.yaml"
         render_yaml_file "$DIR/addons/registry/2.7.1/tmpl-persistentvolumeclaim.yaml" > "$DIR/kustomize/registry/persistentvolumeclaim.yaml"
         insert_resources "$DIR/kustomize/registry/kustomization.yaml" deployment-pvc.yaml
         insert_resources "$DIR/kustomize/registry/kustomization.yaml" persistentvolumeclaim.yaml
+
+        if object_store_exists && [ "$REGISTRY_USE_PVC_STORAGE" = "1" ]; then
+            render_yaml_file "$DIR/addons/registry/2.7.1/tmpl-configmap-migrate-s3.yaml" > "$DIR/kustomize/registry/configmap-migrate-s3.yaml"
+            insert_resources "$DIR/kustomize/registry/kustomization.yaml" configmap-migrate-s3.yaml
+            cp "$DIR/addons/registry/2.7.1/patch-deployment-migrate-s3.yaml" "$DIR/kustomize/registry/patch-deployment-migrate-s3.yaml"
+            insert_patches_strategic_merge "$DIR/kustomize/registry/kustomization.yaml" patch-deployment-migrate-s3.yaml
+        fi
     fi
 
     kubectl apply -k "$DIR/kustomize/registry"
+
+    if [ "$will_migrate_pvc" = "1" ]; then
+        logWarn "Registry will migrate from object store to pvc"
+        try_1m registry_pvc_migrated
+        logSuccess "Registry migration complete"
+    fi
 
     registry_cred_secrets
 
@@ -232,4 +228,9 @@ function determine_registry_pvc_size() {
     fi
 
     export REGISTRY_PVC_SIZE=$registry_pvc_size
+}
+
+function registry_pvc_migrated() {
+    registry_pod=$( kubectl get pods -n kurl -l app=registry -o jsonpath='{.items[0].metadata.name}')
+    kubectl -n kurl logs $registry_pod -c migrate-s3  | grep "migration ran successfully" &>/dev/null
 }
