@@ -339,9 +339,9 @@ export default class InstanceTable extends React.Component {
     } else if (this.state.showSupportbundleYaml) {
       editorContent = this.prettifyJSON(this.state.selectedInstance?.supportbundleYaml);
     } else if (this.state.showPostInstallScript) {
-      editorContent = this.prettifyJSON(this.state.selectedInstance?.postInstallScript);
+      editorContent = this.state.selectedInstance?.postInstallScript;
     } else if (this.state.showPostUpgradeScript) {
-      editorContent = this.prettifyJSON(this.state.selectedInstance?.postUpgradeScript);
+      editorContent = this.state.selectedInstance?.postUpgradeScript;
     } else {
       editorContent = this.prettifyJSON(this.state.selectedInstance?.kurlYaml);
     }
