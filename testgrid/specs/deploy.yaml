@@ -8,8 +8,10 @@
       version: latest
     contour:
       version: latest
-    rook:
-      version: latest
+    longhorn:
+      version: "latest"
+    minio:
+      version: "latest"
     registry:
       version: latest
     prometheus:

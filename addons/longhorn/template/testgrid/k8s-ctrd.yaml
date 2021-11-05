@@ -43,7 +43,7 @@
 
 - installerSpec:
     kubernetes:
-      version: "latest"
+      version: "1.19.15"
     weave:
       version: "latest"
     containerd:
