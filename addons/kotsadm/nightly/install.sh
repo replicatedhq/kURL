@@ -32,7 +32,7 @@ function kotsadm() {
     kotsadm_secret_password
     kotsadm_secret_postgres
     kotsadm_secret_dex_postgres
-    kotsadm_secret_s3 # this secret is currently only used for (re)configuring internal snapshots
+    kotsadm_secret_s3           # this secret is only used for (re)configuring internal snapshots; will not be created if there is no object store 
     kotsadm_secret_session
     kotsadm_api_encryption_key
 
@@ -225,6 +225,11 @@ function kotsadm_secret_dex_postgres() {
 }
 
 function kotsadm_secret_s3() {
+    # When no object store is defined and S3 is disabled for KOTS, bail from adding the secret. 
+    if [ -z "$OBJECT_STORE_ACCESS_KEY" ] && [ "$KOTSADM_DISABLE_S3" == "1" ]; then
+        return
+    fi
+
     if [ -z "$VELERO_LOCAL_BUCKET" ]; then
         VELERO_LOCAL_BUCKET=velero
     fi
