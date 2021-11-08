@@ -260,9 +260,17 @@ export KURL_URL='%s'
 export KURL_UPGRADE_URL='%s'
 export SUPPORTBUNDLE_SPEC='%s'
 `,
-		singleTest.TestGridAPIEndpoint, singleTest.ID, singleTest.KurlURL, singleTest.UpgradeURL, singleTest.SupportbundleYAML)
+		singleTest.TestGridAPIEndpoint,
+		singleTest.ID,
+		singleTest.KurlURL,
+		singleTest.UpgradeURL,
+		singleTest.SupportbundleYAML,
+	)
 
 	varsB64 := base64.StdEncoding.EncodeToString([]byte(varsSh))
+
+	postInstallB64 := base64.StdEncoding.EncodeToString([]byte(singleTest.PostInstallScript))
+	postUpgradeB64 := base64.StdEncoding.EncodeToString([]byte(singleTest.PostUpgradeScript))
 
 	script := fmt.Sprintf(`#cloud-config
 
@@ -276,6 +284,8 @@ runcmd:
   - [ bash, -c, 'echo %s | base64 -d > /opt/kurl-testgrid/preinit.sh' ]
   - [ bash, -c, 'echo %s | base64 -d > /opt/kurl-testgrid/vars.sh' ]
   - [ bash, -c, 'echo %s | base64 -d > /opt/kurl-testgrid/runcmd.sh' ]
+  - [ bash, -c, '[ %d -eq 0 ] || echo %s | base64 -d > /opt/kurl-testgrid/postinstall.sh' ]
+  - [ bash, -c, '[ %d -eq 0 ] || echo %s | base64 -d > /opt/kurl-testgrid/postupgrade.sh' ]
   - [ bash, -c, 'sudo bash /opt/kurl-testgrid/preinit.sh' ]
   - [ bash, -c, 'sudo bash -c ". /opt/kurl-testgrid/vars.sh && bash /opt/kurl-testgrid/runcmd.sh"' ]
   - [ bash, -c, 'sleep 10 && sudo poweroff' ]
@@ -287,6 +297,10 @@ power_state:
 		base64.StdEncoding.EncodeToString([]byte(singleTest.OperatingSystemPreInit)),
 		varsB64,
 		runcmdB64,
+		len(singleTest.PostInstallScript),
+		postInstallB64,
+		len(singleTest.PostUpgradeScript),
+		postUpgradeB64,
 	)
 
 	file := filepath.Join(tempDir, "startup-script.sh")

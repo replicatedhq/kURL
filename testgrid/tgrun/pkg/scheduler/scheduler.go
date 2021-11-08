@@ -181,6 +181,9 @@ func Run(schedulerOptions types.SchedulerOptions) error {
 
 				SupportbundleYAML: string(supportbundleYAML),
 
+				PostInstallScript: instance.PostInstallScript,
+				PostUpgradeScript: instance.PostUpgradeScript,
+
 				OperatingSystemName:    operatingSystem.Name,
 				OperatingSystemVersion: operatingSystem.Version,
 				OperatingSystemImage:   operatingSystem.VMImageURI,

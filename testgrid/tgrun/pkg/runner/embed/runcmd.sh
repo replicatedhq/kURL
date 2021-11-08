@@ -140,6 +140,40 @@ function run_upgrade() {
     collect_debug_info_after_kurl || true
 }
 
+function run_post_install_script() {
+    if [ ! -f /opt/kurl-testgrid/postinstall.sh ] ; then
+        return # file does not exist
+    fi
+
+    bash -ex /opt/kurl-testgrid/postinstall.sh
+    local exit_status="$?"
+
+    send_logs
+
+    if [ "$exit_status" -ne 0 ]; then
+        report_failure "post_install_script"
+        collect_support_bundle
+        exit 1
+    fi
+}
+
+function run_post_upgrade_script() {
+    if [ ! -f /opt/kurl-testgrid/postupgrade.sh ] ; then
+        return # file does not exist
+    fi
+
+    bash -ex /opt/kurl-testgrid/postupgrade.sh
+    local exit_status="$?"
+
+    send_logs
+
+    if [ "$exit_status" -ne 0 ]; then
+        report_failure "post_upgrade_script"
+        collect_support_bundle
+        exit 1
+    fi
+}
+
 function collect_debug_info_after_kurl() {
     if [ "$KURL_EXIT_STATUS" -ne 0 ]; then
         echo "kubelet status"
@@ -375,6 +409,8 @@ function main() {
         exit 1
     fi
 
+    run_post_install_script
+
     run_tasks_join_token
 
     if [ "$KURL_UPGRADE_URL" != "" ]; then
@@ -387,6 +423,10 @@ function main() {
         report_failure "kurl_upgrade"
         collect_support_bundle
         exit 1
+    fi
+
+    if [ "$KURL_UPGRADE_URL" != "" ]; then
+        run_post_upgrade_script
     fi
 
     failureReason=""

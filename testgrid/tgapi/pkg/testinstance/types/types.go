@@ -20,6 +20,8 @@ type TestInstance struct {
 	UpgradeURL  string `json:"upgradeUrl"`
 
 	SupportbundleYAML string `json:"supportbundleYaml"`
+	PostInstallScript string `json:"postInstallScript"`
+	PostUpgradeScript string `json:"postUpgradeScript"`
 
 	Output string `json:"-"`
 
