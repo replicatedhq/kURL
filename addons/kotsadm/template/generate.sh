@@ -60,11 +60,13 @@ function main() {
         *"beta"*)
             echo "generating beta version"
             generate "alpha" "alpha" "v$KOTSADM_VERSION"
+            export KOTSADM_VERSION_TYPE="alpha"
             ;;
         *"nightly"*)
             echo "generating nightly version"
             generate "v0.0.0-nightly" "nightly" "v0.0.0-nightly"
             generate "v$KOTSADM_VERSION" "alpha" "v$KOTSADM_VERSION"
+            export KOTSADM_VERSION_TYPE="nightly"
             ;;
         *)
             # Check for a new release, if so make it latest in the web and also create a new alpha
@@ -78,10 +80,12 @@ function main() {
 
             echo "generating v$KOTSADM_VERSION version"
             generate "v$KOTSADM_VERSION" "$KOTSADM_VERSION" "v$KOTSADM_VERSION"
+            export KOTSADM_VERSION_TYPE="release"
             ;;
     esac
 
     echo "::set-output name=kotsadm_version::$KOTSADM_VERSION"
+    echo "::set-output name=kotsadm_version_type::$KOTSADM_VERSION_TYPE"
 }
 
 main "$@"
