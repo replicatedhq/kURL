@@ -152,6 +152,7 @@ function run_post_install_script() {
 
     if [ "$exit_status" -ne 0 ]; then
         report_failure "post_install_script"
+        collect_support_bundle
         exit 1
     fi
 }
@@ -168,6 +169,7 @@ function run_post_upgrade_script() {
 
     if [ "$exit_status" -ne 0 ]; then
         report_failure "post_upgrade_script"
+        collect_support_bundle
         exit 1
     fi
 }
