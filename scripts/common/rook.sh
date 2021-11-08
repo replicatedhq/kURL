@@ -79,6 +79,8 @@ function remove_rook_ceph() {
 
 # scale down prometheus, move all 'rook-ceph' PVCs to 'longhorn', scale up prometheus
 function rook_ceph_to_longhorn() {
+    report_addon_start "rook-ceph-to-longhorn" "v1"
+
     # set prometheus scale if it exists
     if kubectl get namespace monitoring &>/dev/null; then
         kubectl patch prometheus -n monitoring  k8s --type='json' --patch '[{"op": "replace", "path": "/spec/replicas", value: 0}]'
@@ -107,6 +109,7 @@ function rook_ceph_to_longhorn() {
 
     # print success message
     printf "${GREEN}Migration from rook-ceph to longhorn completed successfully!\n${NC}"
+    report_addon_success "rook-ceph-to-longhorn" "v1"
 }
 
 # if PVCs and object store data have both been migrated from rook-ceph and rook-ceph is no longer specified in the kURL spec, remove rook-ceph
