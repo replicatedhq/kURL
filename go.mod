@@ -10,19 +10,18 @@ require (
 	github.com/aws/aws-sdk-go v1.40.11 // indirect
 	github.com/briandowns/spinner v1.16.0
 	github.com/bugsnag/bugsnag-go/v2 v2.1.1
+	github.com/c9s/goprocinfo v0.0.0-20190309065803-0b2ad9ac246b // indirect
 	github.com/chzyer/readline v0.0.0-20180603132655-2972be24d48e
 	github.com/containers/image/v5 v5.10.4
 	github.com/denisbrodbeck/machineid v1.0.1
-	github.com/evanphx/json-patch v4.11.0+incompatible // indirect
+	github.com/docker/spdystream v0.0.0-20181023171402-6480d4af844c // indirect
+	github.com/emicklei/go-restful v2.9.6+incompatible // indirect
 	github.com/fatih/color v1.12.0
 	github.com/foomo/htpasswd v0.0.0-20200116085101-e3a90e78da9c
 	github.com/go-ini/ini v1.62.0 // indirect
 	github.com/go-logr/zapr v0.4.0 // indirect
-	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/mock v1.6.0
-	github.com/google/go-cmp v0.5.6 // indirect
 	github.com/google/uuid v1.2.0 // indirect
-	github.com/googleapis/gnostic v0.5.5 // indirect
 	github.com/gorilla/mux v1.8.0
 	github.com/huandu/xstrings v1.3.2 // indirect
 	github.com/imdario/mergo v0.3.12 // indirect
@@ -35,7 +34,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/common v0.29.0 // indirect
 	github.com/replicatedhq/pvmigrate v0.3.1
-	github.com/replicatedhq/troubleshoot v0.13.11
+	github.com/replicatedhq/troubleshoot v0.22.1
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/afero v1.6.0
 	github.com/spf13/cobra v1.2.1
@@ -44,25 +43,17 @@ require (
 	github.com/vishvananda/netlink v1.1.0
 	github.com/vmware-tanzu/velero v1.6.2
 	golang.org/x/crypto v0.0.0-20210513164829-c07d793c2f9a
-	golang.org/x/lint v0.0.0-20210508222113-6edffad5e616 // indirect
 	golang.org/x/net v0.0.0-20210805182204-aaa1db679c0d
 	golang.org/x/oauth2 v0.0.0-20210622215436-a8dc77f794b6 // indirect
-	golang.org/x/sys v0.0.0-20210616094352-59db8d763f22 // indirect
 	golang.org/x/term v0.0.0-20210615171337-6886f2dfbf5b // indirect
-	golang.org/x/time v0.0.0-20210611083556-38a9dc6acbc6 // indirect
-	golang.org/x/tools v0.1.5 // indirect
 	gomodules.xyz/jsonpatch/v2 v2.2.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
 	k8s.io/api v0.22.2
 	k8s.io/apimachinery v0.22.2
-	k8s.io/client-go v0.22.0
-	k8s.io/code-generator v0.21.3 // indirect
+	k8s.io/client-go v0.22.2
 	k8s.io/component-base v0.21.2 // indirect
-	k8s.io/klog/v2 v2.9.0 // indirect
-	k8s.io/utils v0.0.0-20210527160623-6fdb442a123b // indirect
 	sigs.k8s.io/controller-runtime v0.9.5
-	sigs.k8s.io/controller-tools v0.7.0 // indirect
 )
 
 replace (
