@@ -2,8 +2,13 @@
 
 set -e
 
+export DEBIAN_FRONTEND=noninteractive
+
 apt update
-DEBIAN_FRONTEND=noninteractive apt upgrade -y
+
+touch /boot/grub/menu.lst
+update-grub2
+apt upgrade -y
 
 echo "Setting up RAID0 for openebs local storage."
 apt install -y btrbk
