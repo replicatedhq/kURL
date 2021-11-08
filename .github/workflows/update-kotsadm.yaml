@@ -25,7 +25,7 @@ jobs:
         token: ${{ secrets.AUTOMATED_PR_GH_PAT }}
         commit-message: Create new Kotsadm version
         title: 'Triggered Kotsadm version update ${{ steps.update.outputs.kotsadm_version }}'
-        branch: automation/update-kotsadm/${{ steps.update.outputs.kotsadm_version }}
+        branch: automation/update-kotsadm/${{ steps.update.outputs.kotsadm_version_type }}
         delete-branch: true
         labels: |
           kotsadm
