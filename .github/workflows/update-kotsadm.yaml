@@ -29,6 +29,7 @@ jobs:
         delete-branch: true
         labels: |
           kotsadm
+          automated-pr
         draft: false
         base: "master"
         body: "Automated changes by the [auto-kotsadm-update](https://github.com/replicatedhq/kURL/blob/master/.github/workflows/update-kotsadm.yaml) GitHub action"
