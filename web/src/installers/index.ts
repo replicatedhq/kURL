@@ -765,8 +765,8 @@ export class Installer {
     i.spec.kubernetes = { version: "latest" };
     i.spec.containerd = { version: "latest" };
     i.spec.weave = { version: "latest" };
-    i.spec.longhorn = { version: "latest "};
-    i.spec.minio = { version: "latest "};
+    i.spec.longhorn = { version: "latest"};
+    i.spec.minio = { version: "latest"};
     i.spec.ekco = { version: "latest" };
     i.spec.contour = { version: "latest" };
     i.spec.registry = { version: "latest" };
