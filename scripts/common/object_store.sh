@@ -56,6 +56,8 @@ function object_store_bucket_exists() {
 }
 
 function migrate_rgw_to_minio() {
+    report_addon_start "rook-ceph-to-minio" "v1"
+
     RGW_HOST="rook-ceph-rgw-rook-ceph-store.rook-ceph"
     RGW_ACCESS_KEY_ID=$(kubectl -n rook-ceph get secret rook-ceph-object-user-rook-ceph-store-kurl -o yaml | grep AccessKey | head -1 | awk '{print $2}' | base64 --decode)
     RGW_ACCESS_KEY_SECRET=$(kubectl -n rook-ceph get secret rook-ceph-object-user-rook-ceph-store-kurl -o yaml | grep SecretKey | head -1 | awk '{print $2}' | base64 --decode)
@@ -175,4 +177,5 @@ EOF
     fi
 
     printf "\n${GREEN}Object store migration completed successfully${NC}\n"
+    report_addon_success "rook-ceph-to-minio" "v1"
 }

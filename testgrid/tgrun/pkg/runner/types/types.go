@@ -19,6 +19,8 @@ type SingleRun struct {
 	KurlURL           string
 	UpgradeURL        string
 	SupportbundleYAML string
+	PostInstallScript string
+	PostUpgradeScript string
 	KurlRef           string
 
 	TestGridAPIEndpoint string

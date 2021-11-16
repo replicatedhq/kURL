@@ -25,10 +25,11 @@ jobs:
         token: ${{ secrets.AUTOMATED_PR_GH_PAT }}
         commit-message: Create new Kotsadm version
         title: 'Triggered Kotsadm version update ${{ steps.update.outputs.kotsadm_version }}'
-        branch: automation/update-kotsadm/${{ steps.update.outputs.kotsadm_version }}
+        branch: automation/update-kotsadm/${{ steps.update.outputs.kotsadm_version_type }}
         delete-branch: true
         labels: |
           kotsadm
+          automated-pr
         draft: false
         base: "master"
         body: "Automated changes by the [auto-kotsadm-update](https://github.com/replicatedhq/kURL/blob/master/.github/workflows/update-kotsadm.yaml) GitHub action"

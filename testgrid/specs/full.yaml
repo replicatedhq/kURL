@@ -418,7 +418,7 @@
     certManager:
       version: 1.0.3
     longhorn:
-      version: 1.1.0
+      version: 1.1.2
       uiBindPort: 30080
 - name: k8s119_ctrd_longhorn-airgap
   installerSpec:
@@ -445,7 +445,7 @@
     certManager:
       version: 1.0.3
     longhorn:
-      version: 1.1.0
+      version: 1.1.2
       uiBindPort: 30080
   airgap: true
 - name: k8s119_helm
@@ -574,7 +574,7 @@
     containerd:
       version: 1.4.4
     longhorn:
-      version: 1.1.0
+      version: 1.1.2
 - name: k8s120-airgap
   installerSpec:
     kubernetes:
@@ -598,7 +598,7 @@
     containerd:
       version: 1.4.4
     longhorn:
-      version: 1.1.0
+      version: 1.1.2
   airgap: true
 - name: k8s1205_rook_upgrade
   installerSpec:
@@ -718,3 +718,29 @@
     ekco:
       version: 0.10.1
   airgap: true
+- name: k8s1205_rook_to_longhorn
+  installerSpec:
+    kubernetes:
+      version: 1.20.x
+    weave:
+      version: 2.8.1
+    rook:
+      isBlockStorageEnabled: true
+      version: 1.4.3
+    kotsadm:
+      version: 1.38.0
+    containerd:
+      version: 1.4.4
+  upgradeSpec:
+    kubernetes:
+      version: 1.20.x
+    weave:
+      version: 2.8.1
+    longhorn:
+      version: 1.1.2
+    minio:
+      version: latest
+    kotsadm:
+      version: 1.38.0
+    containerd:
+      version: 1.4.4

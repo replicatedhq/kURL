@@ -29,6 +29,8 @@ export default class InstanceTable extends React.Component {
       activeMarkers: [],
       showUpgradeYaml: false,
       showSupportbundleYaml: false,
+      showPostInstallScript: false,
+      showPostUpgradeScript: false,
     };
   }
 
@@ -52,6 +54,8 @@ export default class InstanceTable extends React.Component {
       showInstallerModal: true,
       showUpgradeYaml: false,
       showSupportbundleYaml: false,
+      showPostInstallScript: false,
+      showPostUpgradeScript: false,
     });
   }
 
@@ -61,6 +65,8 @@ export default class InstanceTable extends React.Component {
       showInstallerModal: true,
       showUpgradeYaml: true,
       showSupportbundleYaml: false,
+      showPostInstallScript: false,
+      showPostUpgradeScript: false,
     });
   }
 
@@ -70,6 +76,30 @@ export default class InstanceTable extends React.Component {
       showInstallerModal: true,
       showUpgradeYaml: false,
       showSupportbundleYaml: true,
+      showPostInstallScript: false,
+      showPostUpgradeScript: false,
+    });
+  }
+
+  viewPostInstallScript = instance => {
+    this.setState({
+      selectedInstance: instance,
+      showInstallerModal: true,
+      showUpgradeYaml: false,
+      showSupportbundleYaml: false,
+      showPostInstallScript: true,
+      showPostUpgradeScript: false,
+    });
+  }
+
+  viewPostUpgradeScript = instance => {
+    this.setState({
+      selectedInstance: instance,
+      showInstallerModal: true,
+      showUpgradeYaml: false,
+      showSupportbundleYaml: false,
+      showPostInstallScript: false,
+      showPostUpgradeScript: true,
     });
   }
 
@@ -173,10 +203,10 @@ export default class InstanceTable extends React.Component {
   }
 
   prettifyJSON = value => {
+    if (!value) {
+      return "";
+    }
     try {
-      if (!value) {
-        return "";
-      }
       return JSON.stringify(JSON.parse(value), null, 4);
     } catch(err) {
       console.log(err);
@@ -260,6 +290,18 @@ export default class InstanceTable extends React.Component {
                 <span className="url" onClick={() => this.viewSupportbundleYaml(this.props.instancesMap[kurlUrl][0])}>Support Bundle YAML</span>
               </div>
               }
+            {this.props.instancesMap[kurlUrl][0].postInstallScript &&
+              <div>
+                <br/>
+                <span className="url" onClick={() => this.viewPostInstallScript(this.props.instancesMap[kurlUrl][0])}>Post-Install Script</span>
+              </div>
+              }
+            {this.props.instancesMap[kurlUrl][0].postUpgradeScript &&
+              <div>
+                <br/>
+                <span className="url" onClick={() => this.viewPostUpgradeScript(this.props.instancesMap[kurlUrl][0])}>Post-Upgrade Script</span>
+              </div>
+              }
           </td>
           {osArray.map(osKey => {
             const instance = find(this.props.instancesMap[kurlUrl], i => (osKey == `${i.osName}-${i.osVersion}`));
@@ -290,6 +332,19 @@ export default class InstanceTable extends React.Component {
         </tr>
       )
     });
+
+    let editorContent = "";
+    if (this.state.showUpgradeYaml) {
+      editorContent = this.prettifyJSON(this.state.selectedInstance?.upgradeYaml)
+    } else if (this.state.showSupportbundleYaml) {
+      editorContent = this.prettifyJSON(this.state.selectedInstance?.supportbundleYaml);
+    } else if (this.state.showPostInstallScript) {
+      editorContent = this.state.selectedInstance?.postInstallScript;
+    } else if (this.state.showPostUpgradeScript) {
+      editorContent = this.state.selectedInstance?.postUpgradeScript;
+    } else {
+      editorContent = this.prettifyJSON(this.state.selectedInstance?.kurlYaml);
+    }
 
     return (
       <div className="InstanceTableContainer">
@@ -322,14 +377,7 @@ export default class InstanceTable extends React.Component {
             <div className="MonacoEditor-wrapper">
               <MonacoEditor
                 language="json"
-                value={
-                  this.state.showUpgradeYaml ?
-                    this.prettifyJSON(this.state.selectedInstance?.upgradeYaml) : (
-                      this.state.showSupportbundleYaml ?
-                        this.prettifyJSON(this.state.selectedInstance?.supportbundleYaml) :
-                        this.prettifyJSON(this.state.selectedInstance?.kurlYaml)
-                    )
-                  }
+                value={editorContent}
                 height="100%"
                 width="100%"
                 options={{

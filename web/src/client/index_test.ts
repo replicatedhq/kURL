@@ -25,6 +25,8 @@ spec:
     version: latest
   minio:
     version: latest
+  longhorn:
+    version: latest  
   ekco:
     version: latest
   contour:
@@ -47,10 +49,15 @@ spec:
     version: latest
   weave:
     version: latest
+<<<<<<< HEAD
   longhorn:
     version: latest
+=======
+>>>>>>> @{-1}
   minio:
     version: latest
+  longhorn:
+    version: latest 
   ekco:
     version: latest
   contour:
@@ -514,7 +521,7 @@ describe("GET /<installerID>", () => {
       expect(script).to.match(new RegExp(`version: ${latestResolve.spec.registry?.version}`));
       expect(script).to.match(new RegExp(`version: ${latestResolve.spec.prometheus?.version}`));
       expect(script).to.match(new RegExp(`version: ${latestResolve.spec.containerd?.version}`));
-      // expect(script).to.match(/INSTALLER_ID="latest"/);
+      expect(script).to.match(/INSTALLER_ID="latest"/);
     });
   });
 
@@ -670,6 +677,7 @@ describe("GET /<installerID>/join.sh", () => {
       const script = await client.getJoinScript("latest");
 
       expect(script).to.match(new RegExp(`version: ${latestResolve.spec.kubernetes.version}`));
+      expect(script).to.match(new RegExp(`version: ${latestResolve.spec.containerd?.version}`));
       expect(script).to.match(new RegExp(`version: ${latestResolve.spec.weave?.version}`));
       expect(script).to.match(new RegExp(`version: ${latestResolve.spec.minio?.version}`));
       expect(script).to.match(new RegExp(`version: ${latestResolve.spec.longhorn?.version}`));

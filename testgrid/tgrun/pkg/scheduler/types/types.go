@@ -42,6 +42,8 @@ type Instance struct {
 	InstallerSpec     kurlv1beta1.InstallerSpec          `json:"installerSpec" yaml:"installerSpec"`
 	UpgradeSpec       *kurlv1beta1.InstallerSpec         `json:"upgradeSpec,omitempty" yaml:"upgradeSpec,omitempty"`
 	SupportbundleSpec *troubleshootv1beta2.SupportBundle `json:"supportbundleSpec,omitempty" yaml:"supportbundleSpec,omitempty"`
+	PostInstallScript string                             `json:"postInstallScript,omitempty" yaml:"postInstallScript,omitempty"`
+	PostUpgradeScript string                             `json:"postUpgradeScript,omitempty" yaml:"postUpgradeScript,omitempty"`
 	Airgap            bool                               `json:"airgap,omitempty" yaml:"airgap,omitempty"`
 	UnsupportedOSIDs  []string                           `json:"unsupportedOSIDs,omitempty" yaml:"unsupportedOSIDs,omitempty"`
 }
