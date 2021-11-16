@@ -77,7 +77,6 @@ module.exports.InstallerVersions = {
     "0.13.1",
   ],
   rook: [
-    "1.0.4",
     // cron-rook-update
     "1.5.12",
     "1.5.11",
@@ -86,6 +85,7 @@ module.exports.InstallerVersions = {
     "1.4.9",
     "1.4.3",
     "1.0.4-14.2.21",
+    "1.0.4",
   ],
   contour: ["1.18.0", "1.16.0", "1.15.1", "1.14.1", "1.14.0", "1.13.1", "1.13.0", "1.12.0", "1.11.0", "1.10.1", "1.7.0", "1.0.1", "0.14.0"], // cron-contour-update
   registry: [
