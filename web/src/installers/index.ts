@@ -762,15 +762,15 @@ export class Installer {
     const i = new Installer();
 
     i.id = "latest";
-    i.spec.kubernetes = { version: "latest" };
-    i.spec.containerd = { version: "latest" };
-    i.spec.weave = { version: "latest" };
-    i.spec.longhorn = { version: "latest"};
-    i.spec.minio = { version: "latest"};
+    i.spec.kubernetes = { version: "1.21.x" };
+    i.spec.containerd = { version: "1.4.x" };
+    i.spec.weave = { version: "2.6.x" };
+    i.spec.longhorn = { version: "1.1.x"};
+    i.spec.minio = { version: "2020-01-25T02-50-51Z"};
     i.spec.ekco = { version: "latest" };
-    i.spec.contour = { version: "latest" };
-    i.spec.registry = { version: "latest" };
-    i.spec.prometheus = { version: "latest" };
+    i.spec.contour = { version: "1.18.x" };
+    i.spec.registry = { version: "2.7.x" };
+    i.spec.prometheus = { version: "0.49.x" };
 
     return i;
   }
