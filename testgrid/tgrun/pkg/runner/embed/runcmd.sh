@@ -32,16 +32,16 @@ function run_install() {
 
         echo "downloading install bundle"
 
-        curl -fsSL -o install.tar.gz "$KURL_URL"
+        curl -sSL -o install.tar.gz "$KURL_URL"
         if [ -n "$KURL_UPGRADE_URL" ]; then
             echo "downloading upgrade bundle"
 
-            curl -fsSL -o upgrade.tar.gz "$KURL_UPGRADE_URL"
+            curl -sSL -o upgrade.tar.gz "$KURL_UPGRADE_URL"
         fi
 
         disable_internet
 
-        tar -xzf install.tar.gz
+        tar -xzvf install.tar.gz
         local tar_exit_status="$?"
         if [ $tar_exit_status -ne 0 ]; then
             echo "failed to unpack airgap file with status $tar_exit_status"

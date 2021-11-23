@@ -6,10 +6,6 @@ export DEBIAN_FRONTEND=noninteractive
 
 apt update
 
-touch /boot/grub/menu.lst
-update-grub2
-apt upgrade -y
-
 echo "Setting up RAID0 for openebs local storage."
 apt install -y btrbk
 mkfs.btrfs -d raid0 /dev/nvme0n1 /dev/nvme1n1
