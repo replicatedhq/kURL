@@ -1,4 +1,4 @@
-
+# shellcheck disable=SC2148
 function object_store_exists() {
     if [ -n "$OBJECT_STORE_ACCESS_KEY" ] && \
         [ -n "$OBJECT_STORE_SECRET_KEY" ] && \
@@ -7,6 +7,13 @@ function object_store_exists() {
     else
         return 1
     fi
+}
+
+function object_store_running() {
+    if kubernetes_resource_exists rook-ceph secret rook-ceph-object-user-rook-ceph-store-kurl || kubernetes_resource_exists minio get secret minio-credentials; then
+        return 0
+    fi
+    return 1
 }
 
 function object_store_create_bucket() {
