@@ -3,7 +3,10 @@ name: test-addon-pr.yaml
 
 on:
   pull_request:
-    branches: [ master ]
+    branches:
+    - master
+    paths:
+    - 'addons/**'
 
   workflow_dispatch: {}
 
