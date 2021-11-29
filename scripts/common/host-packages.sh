@@ -153,6 +153,8 @@ EOF
     yum clean metadata --disablerepo=* --enablerepo=kurl.local
     rm /etc/yum.repos.d/kurl.local.repo
 
+    reset_dnf_module_kurl_local
+
     logSuccess "Host packages ${packages[*]} installed"
 }
 
@@ -179,4 +181,17 @@ function _yum_get_host_packages_path() {
         echo "$(realpath "${dir}")/rhel-7${dir_prefix}"
     fi
     return 0
+}
+
+# we use a hack and install packages on the host as dnf modules. we need to
+# reset the modules after each install as running yum update throws an error
+# because it cannot resolve modular dependencies.
+function reset_dnf_module_kurl_local() {
+    if ! commandExists dnf; then
+        return
+    fi
+    if ! dnf module list | grep -q kurl.local ; then
+        return
+    fi
+    yum module reset -y kurl.local
 }
