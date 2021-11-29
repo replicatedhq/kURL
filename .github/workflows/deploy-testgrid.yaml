@@ -14,7 +14,8 @@ jobs:
     - run: |
         docker build -f testgrid/tgapi/deploy/Dockerfile \
           --build-arg version=${GITHUB_SHA:0:7} \
-          -t 923411875752.dkr.ecr.us-east-1.amazonaws.com/tgapi:${GITHUB_SHA:0:7} testgrid/tgapi
+          -t 923411875752.dkr.ecr.us-east-1.amazonaws.com/tgapi:${GITHUB_SHA:0:7} \
+          .
 
     - run: |
         aws ecr get-login-password --region us-east-1 | docker login \
@@ -76,7 +77,8 @@ jobs:
     - run: |
         docker build -f testgrid/tgapi/deploy/Dockerfile \
           --build-arg version=${GITHUB_SHA:0:7} \
-          -t 799720048698.dkr.ecr.us-east-1.amazonaws.com/tgapi:${GITHUB_SHA:0:7} testgrid/tgapi
+          -t 799720048698.dkr.ecr.us-east-1.amazonaws.com/tgapi:${GITHUB_SHA:0:7} \
+          .
 
     - run: |
         aws ecr get-login-password --region us-east-1 | docker login \

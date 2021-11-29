@@ -1,6 +1,9 @@
 FROM golang:1.14
 
-ADD . /go/src/github.com/replicatedhq/kurl/testgrid/tgapi
+ADD go.* /go/src/github.com/replicatedhq/kurl/
+ADD pkg /go/src/github.com/replicatedhq/kurl/pkg
+ADD testgrid/tgapi /go/src/github.com/replicatedhq/kurl/testgrid/tgapi
+ADD testgrid/tgrun /go/src/github.com/replicatedhq/kurl/testgrid/tgrun
 WORKDIR /go/src/github.com/replicatedhq/kurl/testgrid/tgapi
 RUN make build
 
