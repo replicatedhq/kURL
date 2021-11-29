@@ -3,29 +3,6 @@ name: build-test
 on: [ pull_request ]
 
 jobs:
-  generate-sbom:
-    runs-on: ubuntu-18.04
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-
-      - uses: sigstore/cosign-installer@main
-        with:
-          cosign-release: 'v1.2.1'
-
-      - name: Get Cosign Key
-        run: |
-          echo $COSIGN_KEY | base64 -d > ./cosign.key
-        env:
-          COSIGN_KEY: ${{secrets.COSIGN_KEY}}
-
-      - name: Generate SBOM
-        run: |
-          make sbom
-        env: 
-          COSIGN_PASSWORD: ${{secrets.COSIGN_PASSWORD}}
-          COSIGN_KEY: ${{secrets.COSIGN_KEY}}
-
   build-kurl-utils:
     runs-on: ubuntu-18.04
     steps:
