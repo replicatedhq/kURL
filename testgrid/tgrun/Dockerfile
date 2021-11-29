@@ -3,13 +3,13 @@ FROM golang:1.16-alpine AS builder
 
 RUN apk update && apk add --no-cache git ca-certificates && update-ca-certificates
 
-COPY ./testgrid/tgrun /tgrun
-COPY ./testgrid/tgapi /tgapi
-COPY ./kurlkinds /kurlkinds
-COPY ./go.mod /go.mod
-COPY ./go.sum /go.sum
+ADD go.* /go/src/github.com/replicatedhq/kurl/
+ADD pkg /go/src/github.com/replicatedhq/kurl/pkg
+ADD kurlkinds /go/src/github.com/replicatedhq/kurl/kurlkinds
+ADD testgrid/tgapi /go/src/github.com/replicatedhq/kurl/testgrid/tgapi
+ADD testgrid/tgrun /go/src/github.com/replicatedhq/kurl/testgrid/tgrun
 
-WORKDIR /tgrun
+WORKDIR /go/src/github.com/replicatedhq/kurl/testgrid/tgrun
 
 RUN go mod download
 RUN go mod verify
