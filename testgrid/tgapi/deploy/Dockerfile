@@ -1,4 +1,4 @@
-FROM golang:1.14
+FROM golang:1.16
 
 ADD go.* /go/src/github.com/replicatedhq/kurl/
 ADD pkg /go/src/github.com/replicatedhq/kurl/pkg
