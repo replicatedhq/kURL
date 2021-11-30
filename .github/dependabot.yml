@@ -9,22 +9,6 @@ updates:
       - "kind/chore"
     schedule:
       interval: "weekly"
-  - package-ecosystem: "gomod"
-    directory: "/testgrid/tgrun"
-    labels:
-      - "dependencies"
-      - "go"
-      - "kind/chore"
-    schedule:
-      interval: "weekly"
-  - package-ecosystem: "gomod"
-    directory: "/testgrid/tgapi"
-    labels:
-      - "dependencies"
-      - "go"
-      - "kind/chore"
-    schedule:
-      interval: "weekly"
 
   - package-ecosystem: "npm"
     directory: "/web"
