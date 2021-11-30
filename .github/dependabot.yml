@@ -6,7 +6,7 @@ updates:
     labels:
       - "dependencies"
       - "go"
-      - "kind/chore"
+      - "type::chore"
     schedule:
       interval: "weekly"
 
@@ -15,7 +15,7 @@ updates:
     labels:
       - "dependencies"
       - "javascript"
-      - "kind/chore"
+      - "type::chore"
     schedule:
       interval: "weekly"
   - package-ecosystem: "npm"
@@ -23,11 +23,15 @@ updates:
     labels:
       - "dependencies"
       - "javascript"
-      - "kind/chore"
+      - "type::chore"
     schedule:
       interval: "weekly"
 
   - package-ecosystem: "github-actions"
     directory: "/"
+    labels:
+      - "dependencies"
+      - "github-actions"
+      - "type::chore"
     schedule:
       interval: "weekly"
