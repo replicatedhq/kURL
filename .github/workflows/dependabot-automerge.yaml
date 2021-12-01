@@ -1,50 +1,57 @@
 ###############################################################################
-# This action will automatically merge dependabot PR's if they pass all branch
-# protection rules including status checks. It currently only merges changes to
-# minor and patch versions.
+# This action will automatically approve and merge dependabot PR's with updates
+# to minor and patch versions if they pass all branch protection rules including
+# status checks.
 ###############################################################################
 
 name: dependabot-automerge
 
-on:
-  # This workflow trigger may lead to malicious PR authors being able to obtain repository write
-  # permissions or stealing repository secrets. 
-  # Please read https://securitylab.github.com/research/github-actions-preventing-pwn-requests/
-  pull_request_target:
-    types:
-      - labeled
-      - unlabeled
-      - synchronize
-      - opened
-      - edited
-      - ready_for_review
-      - reopened
-      - unlocked
-  pull_request_review:
-    types:
-      - submitted
-  check_suite:
-    types:
-      - completed
-  status: {}
+# This workflow trigger may lead to malicious PR authors being able to obtain repository write
+# permissions or stealing repository secrets. 
+# Please read https://securitylab.github.com/research/github-actions-preventing-pwn-requests/
+on: pull_request_target
+
+permissions:
+  pull-requests: write
+  contents: write
 
 jobs:
+
   auto-merge:
     runs-on: ubuntu-latest
 
-    # only run for dependabot pull requests
+    # Only run for dependabot pull requests
     if: ${{ github.actor == 'dependabot[bot]' }}
 
     steps:
-      - name: dependabot metadata
+
+      - name: Wait for build-test
+        uses: fountainhead/action-wait-for-check@v1.0.0
+        id: wait-build-test
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          checkName: build-test-success
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Job build-test success
+        if: ${{ steps.wait-build-test.outputs.conclusion == 'success' }}
+        run: echo "::notice ::build-test success"
+
+      - name: Job build-test failure
+        if: ${{ steps.wait-build-test.outputs.conclusion != 'success' }}
+        run: |
+          echo "::notice ::build-test conclusion ${{ github.event.workflow_run.conclusion }}"
+          exit 1
+
+      - name: Dependabot metadata
         id: dependabot-metadata
         uses: dependabot/fetch-metadata@v1.1.1
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: "${{ secrets.GITHUB_TOKEN }}"
 
-      - name: auto-approve conditions
+      - name: Auto-approve conditions
         id: auto-approve-conditions
-        # only auto-approve if this is a minor or patch version update
+        # Only auto-approve if this is a minor or patch version update
         if: |
           (
             steps.dependabot-metadata.outputs.update-type == 'version-update:semver-patch'
@@ -53,20 +60,18 @@ jobs:
           )
         run: echo "::notice ::auto-approve conditions satisfied"
 
-      - name: auto-approve
-        uses: hmarr/auto-approve-action@v2
+      - name: Approve Dependabot PR
         if: ${{ steps.auto-approve-conditions.conclusion == 'success' }}
-        with:
-          github-token: "${{ secrets.GITHUB_TOKEN }}"
-
-      # auto-merge will wait for the branch protection rules, including required status checks,
-      # for up to 5 minutes (MERGE_RETRIES * MERGE_RETRY_SLEEP).
-      # at the time this pull request was submitted, build-test was taking ~3m 30s.
-      - name: auto-merge
-        uses: pascalgn/automerge-action@v0.14.3
+        run: gh pr review --approve "$PR_URL"
         env:
-          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
-          MERGE_LABELS: ""
-          MERGE_REQUIRED_APPROVALS: "1"
-          MERGE_RETRIES: "30"
-          MERGE_RETRY_SLEEP: "10000"
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Auto-merge will wait for the branch protection rules, including approval and required
+      # status checks.
+      - name: Enable auto-merge for Dependabot PR
+        if: ${{ steps.auto-approve-conditions.conclusion == 'success' }}
+        run: gh pr merge --auto --merge "$PR_URL"
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
