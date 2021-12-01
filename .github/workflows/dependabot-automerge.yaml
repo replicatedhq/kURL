@@ -1,41 +1,72 @@
+###############################################################################
+# This action will automatically merge dependabot PR's if they pass all branch
+# protection rules including status checks. It currently only merges changes to
+# minor and patch versions.
+###############################################################################
+
 name: dependabot-automerge
-##########################################################
-# This action will automatically merge dependabot PR's
-# if they pass all status checks, it currently only updates
-# changes to minor and patch versions, note it automatically picks
-# up .github/auto-merge.yaml with additional options
-##########################################################
+
 on:
+  # This workflow trigger may lead to malicious PR authors being able to obtain repository write
+  # permissions or stealing repository secrets. 
+  # Please read https://securitylab.github.com/research/github-actions-preventing-pwn-requests/
   pull_request_target:
     types:
+      - labeled
+      - unlabeled
+      - synchronize
       - opened
-    branches:
-      - 'dependabot/**'
+      - edited
+      - ready_for_review
+      - reopened
+      - unlocked
+  pull_request_review:
+    types:
+      - submitted
+  check_suite:
+    types:
+      - completed
+  status: {}
 
 jobs:
   auto-merge:
-    runs-on: ubuntu-18.04
-    steps:
-      - uses: actions/checkout@v2
-      - uses: ahmadnassri/action-dependabot-auto-merge@v2
-        with:
-          github-token: ${{ secrets.AUTOMATED_PR_GH_PAT }}
+    runs-on: ubuntu-latest
 
-      - name: create shortcut story if auto merge fails
-        if: ${{ always()  && !success() }}
-        run: |
-          curl --location --request POST 'https://api.app.shortcut.com/api/v3/stories' \
-          --header "Shortcut-Token: ${SHORTCUT_SECRET}" \
-          --header 'Content-Type: application/json' \
-          --data-raw "{ \
-              \"group_id\": \"6125060f-c490-4005-8dd7-165aa0b9cc18\", \
-              \"owner_ids\": [\"61118e83-225b-4bff-9ae1-e5342ae0868f\"], \
-              \"name\": \"${GITHUB_ACTOR} Automerge Failed ${GITHUB_REF}\", \
-              \"story_type\": \"chore\", \
-              \"description\": \"Dependabot was unable to automatically merge package update.\", \
-              \"workflow_state_id\": 500122316, \
-              \"estimate\": 1 }"
+    # only run for dependabot pull requests
+    if: ${{ github.actor == 'dependabot[bot]' }}
+
+    steps:
+      - name: dependabot metadata
+        id: dependabot-metadata
+        uses: dependabot/fetch-metadata@v1.1.1
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: auto-approve conditions
+        id: auto-approve-conditions
+        # only auto-approve if this is a minor or patch version update
+        if: |
+          (
+            steps.dependabot-metadata.outputs.update-type == 'version-update:semver-patch'
+          ) || (
+            steps.dependabot-metadata.outputs.update-type == 'version-update:semver-minor'
+          )
+        run: echo "::notice ::auto-approve conditions satisfied"
+
+      - name: auto-approve
+        uses: hmarr/auto-approve-action@v2
+        if: ${{ steps.auto-approve-conditions.conclusion == 'success' }}
+        with:
+          github-token: "${{ secrets.GITHUB_TOKEN }}"
+
+      # auto-merge will wait for the branch protection rules, including required status checks,
+      # for up to 5 minutes (MERGE_RETRIES * MERGE_RETRY_SLEEP).
+      # at the time this pull request was submitted, build-test was taking ~3m 30s.
+      - name: auto-merge
+        uses: pascalgn/automerge-action@v0.14.3
         env:
-          SHORTCUT_SECRET: ${{ secrets.SHORTCUT_API_TOKEN }}
-          GITHUB_ACTOR: ${{ github.actor }}
-          GITHUB_REF: ${{ github.ref }}
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+          MERGE_LABELS: ""
+          MERGE_REQUIRED_APPROVALS: "1"
+          MERGE_RETRIES: "30"
+          MERGE_RETRY_SLEEP: "10000"
