@@ -85,7 +85,7 @@ function velero_install() {
 
         # TODO (dans): remove the BETA flag when this is GA
         # Only use the PVC backup location for new installs where disableS3 is set to TRUE
-        if [ -n "$BETA_VELERO_USE_INTERNAL_PVC" ] && [ "$KOTSADM_DISABLE_S3" != 1 ] ; then
+        if [ -n "$BETA_VELERO_USE_INTERNAL_PVC" ] && [ "$KOTSADM_DISABLE_S3" == 1 ] ; then
             bslArgs="--provider replicated.com/pvc --bucket velero-internal-snapshots --backup-location-config storageSize=${VELERO_PVC_SIZE},resticRepoPrefix=/var/velero-local-volume-provider/velero-internal-snapshots/restic"
         elif object_store_bucket_exists; then
             bslArgs="--provider aws --bucket $VELERO_LOCAL_BUCKET --backup-location-config region=us-east-1,s3Url=${OBJECT_STORE_CLUSTER_HOST},publicUrl=http://${OBJECT_STORE_CLUSTER_IP},s3ForcePathStyle=true"  
