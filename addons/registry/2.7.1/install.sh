@@ -1,8 +1,29 @@
 # shellcheck disable=SC2148
 function registry() {
+
+    registry_install
+
+    kubectl apply -k "$DIR/kustomize/registry"
+
+    if registry_is_pvc_migrating; then
+        logWarn "Registry will migrate from object store to pvc"
+        try_5m registry_pvc_migrated
+        logSuccess "Registry migration complete"
+    fi
+
+    registry_cred_secrets
+
+    registry_pki_secret "$DOCKER_REGISTRY_IP"
+
+    registry_docker_ca
+
+    echo "awaiting registry deployment health"
+    spinnerPodRunning kurl registry
+}
+
+function registry_install() {
     regsitry_init_service   # need this again because kustomize folder is cleaned before install
     registry_session_secret
-
 
     # Only create registry deployment with object store if rook or minio exists and the registry pvc
     # doesn't already exist.
@@ -21,36 +42,40 @@ function registry() {
         render_yaml_file "$DIR/addons/registry/2.7.1/tmpl-persistentvolumeclaim.yaml" > "$DIR/kustomize/registry/persistentvolumeclaim.yaml"
         insert_resources "$DIR/kustomize/registry/kustomization.yaml" deployment-pvc.yaml
         insert_resources "$DIR/kustomize/registry/kustomization.yaml" persistentvolumeclaim.yaml
-
-        local will_migrate_pvc=
-        if ! registry_pvc_exists && object_store_exists && [ "$REGISTRY_USE_PVC_STORAGE" = "1" ]; then
-            will_migrate_pvc=1
-        fi
-        if object_store_exists && [ "$REGISTRY_USE_PVC_STORAGE" = "1" ]; then
-            logWarn "Registry migration in progres......"
-            render_yaml_file "$DIR/addons/registry/2.7.1/tmpl-configmap-migrate-s3.yaml" > "$DIR/kustomize/registry/configmap-migrate-s3.yaml"
-            insert_resources "$DIR/kustomize/registry/kustomization.yaml" configmap-migrate-s3.yaml
-            cp "$DIR/addons/registry/2.7.1/patch-deployment-migrate-s3.yaml" "$DIR/kustomize/registry/patch-deployment-migrate-s3.yaml"
-            insert_patches_strategic_merge "$DIR/kustomize/registry/kustomization.yaml" patch-deployment-migrate-s3.yaml
-        fi
     fi
 
-    kubectl apply -k "$DIR/kustomize/registry"
+    if registry_will_migrate_pvc; then
+        logWarn "Registry migration in progres......"
 
-    if [ "$will_migrate_pvc" = "1" ]; then
+        # Object store credentials already live in the previously created secret 
+        render_yaml_file "$DIR/addons/registry/2.7.1/tmpl-configmap-migrate-s3.yaml" > "$DIR/kustomize/registry/configmap-migrate-s3.yaml"
+        insert_resources "$DIR/kustomize/registry/kustomization.yaml" configmap-migrate-s3.yaml
+        cp "$DIR/addons/registry/2.7.1/patch-deployment-migrate-s3.yaml" "$DIR/kustomize/registry/patch-deployment-migrate-s3.yaml"
+        insert_patches_strategic_merge "$DIR/kustomize/registry/kustomization.yaml" patch-deployment-migrate-s3.yaml
+    fi
+}
+
+function registry_will_migrate_pvc() {
+    if ! registry_pvc_exists && object_store_running && [ "$REGISTRY_USE_PVC_STORAGE" = "1" ]; then
+        return 0
+    fi
+    return 1
+}
+
+# When re-running the installer, make sure that you can perform a migration
+# even when an existing install of the same addon version is detected (and `registry()` is NOT called in this case).
+# Implements hook [addon]_already_applied()
+function registry_already_applied() {
+
+    if registry_will_migrate_pvc; then
+        registry_install
+
+        kubectl apply -k "$DIR/kustomize/registry"
+
         logWarn "Registry will migrate from object store to pvc"
-        try_1m registry_pvc_migrated
+        try_5m registry_pvc_migrated
         logSuccess "Registry migration complete"
     fi
-
-    registry_cred_secrets
-
-    registry_pki_secret "$DOCKER_REGISTRY_IP"
-
-    registry_docker_ca
-
-    printf "awaiting registry deployment health\n"
-    spinnerPodRunning kurl registry
 }
 
 function registry_pre_init() {
@@ -231,8 +256,18 @@ function determine_registry_pvc_size() {
     export REGISTRY_PVC_SIZE=$registry_pvc_size
 }
 
-function registry_pvc_migrated() {
+function registry_is_pvc_migrating() {
     registry_pod=$( kubectl get pods -n kurl -l app=registry -o jsonpath='{.items[0].metadata.name}')
-    kubectl -n kurl logs $registry_pod -c migrate-s3  | grep -q "migration ran successfully" &>/dev/null
+    kubectl -n kurl logs $registry_pod -c migrate-s3 &>/dev/null
 }
 
+function registry_pvc_migrated() {
+    registry_pod=$( kubectl get pods -n kurl -l app=registry -o jsonpath='{.items[0].metadata.name}')
+    if kubectl -n kurl logs $registry_pod -c migrate-s3  | grep -q "migration ran successfully" &>/dev/null; then
+        return 0
+    fi
+    if kubectl -n kurl logs $registry_pod -c migrate-s3  | grep -q "migration has already run" &>/dev/null; then
+        return 0
+    fi
+    return 1
+}
