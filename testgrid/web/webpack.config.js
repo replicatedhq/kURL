@@ -96,7 +96,10 @@ module.exports = (env) => {
     },
 
     plugins: [
-      new webpack.IgnorePlugin(/^\.\/locale$/, /moment$/),
+      new webpack.IgnorePlugin({
+        resourceRegExp: /^\.\/locale$/,
+        contextRegExp: /moment$/,
+      }),
       new ESLintPlugin(),
       new HtmlWebpackPlugin({
         template: HtmlWebpackTemplate,
