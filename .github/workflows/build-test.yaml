@@ -30,7 +30,7 @@ jobs:
         with:
           node-version: '12'
 
-      - run: make -C web test
+      - run: make -C web deps test build
 
   test-shell:
     runs-on: ubuntu-18.04
