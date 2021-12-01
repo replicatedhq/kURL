@@ -16,7 +16,7 @@ We welcome contributions to kURL. We appreciate your time and help.
     *For packages that have already been released, you can save time by running `curl -L https://kurl.sh/dist/kubernetes-1.19.7.tar.gz | tar -xzv -C kurl -f -` and `curl -L https://kurl.sh/dist/docker-19.03.10.tar.gz | tar -xzv -C kurl -f -` on the test server.* <br /><br />
     *If using `containerd` building docker packages is not necessary. Instead to build packages run `make dist/containerd-1.4.3.tar.gz && tar xzvf dist/containerd-1.4.3.tar.gz` or to download already built packages `curl -L https://k8s.kurl.sh/dist/containerd-1.4.3.tar.gz | tar -xzv -C kurl -f -`*<br /><br />
     *For centos/rhel hosts, `openssl` packages are required. Run `make dist/host-openssl.tar.gz && tar xzvf dist/host-openssl.tar.gz` or to download already built packages `curl -L https://k8s.kurl.sh/dist/host-openssl.tar.gz  | tar -xzv -C kurl -f -`*<br />
-1. Rsync local packages to remote test server.
+1. Rsync local packages to remote test server. To run the build on MacOS, jump to [Building on MacOS](#building-on-macos).
     ```bash
     # Local workstation
     npm install
@@ -176,6 +176,13 @@ Snapshot management requires VM t be powered off.
 
 ### QEMU on MacOS
 
+### Building on MacOs
+
+To run `make watchrsync`, you'll need to perform the following additional steps.
+
+1. `export GOOS=linux`
+2. If you have an M1 or other arm Macbook, you'll also need `export GOARCH=amd64`
+
 ## Building Add-on Images
 
 Building images can be triggered with the "build-image" github action specifying the "image" var as follows:
@@ -187,3 +194,4 @@ curl -H "Authorization: token $GH_PAT" \
   -d "{\"event_type\": \"build-image\", \"client_payload\": {\"image\": \"${image}\"}}" \
   "https://api.github.com/repos/replicatedhq/kurl/dispatches"
 ```
+

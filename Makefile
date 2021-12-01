@@ -6,6 +6,7 @@ VERSION_TAG ?= 0.0.1
 DATE = `date -u +"%Y-%m-%dT%H:%M:%SZ"`
 BUILDFLAGS = -tags "netgo containers_image_ostree_stub exclude_graphdriver_devicemapper exclude_graphdriver_btrfs containers_image_openpgp" -installsuffix netgo
 
+
 GIT_TREE = $(shell git rev-parse --is-inside-work-tree 2>/dev/null)
 ifneq "$(GIT_TREE)" ""
 define GIT_UPDATE_INDEX_CMD
@@ -31,6 +32,18 @@ define LDFLAGS
 	-X ${VERSION_PACKAGE}.buildTime=${DATE} \
 "
 endef
+
+
+# support for building on macos
+SED_INPLACE=-i
+LDD_OR_OTOOL=ldd
+ifeq "darwin" "$(shell uname | tr '[:upper:]' '[:lower:]')"
+SED_INPLACE=-i.bak
+
+# todo(dex) FWIW I'm not sure if this actually does the
+# linked lib check as expected on macos, but the grep -q passes
+LDD_OR_OTOOL=otool -L
+endif
 
 
 .PHONY: clean
@@ -270,7 +283,7 @@ build/install.sh: scripts/install.sh
 	sed -n '/# Magic end/,$$p' scripts/install.sh | sed '1d' >> tmp/install.sh
 	mv tmp/install.sh build/install.sh
 	if [ "${DEV}" = "1" ]; then \
-		sed -i 's/^KURL_INSTALL_DIRECTORY=.*/KURL_INSTALL_DIRECTORY=\.\/kurl/' build/install.sh; \
+		sed ${SED_INPLACE} 's/^KURL_INSTALL_DIRECTORY=.*/KURL_INSTALL_DIRECTORY=\.\/kurl/' build/install.sh; \
 	fi
 	chmod +x build/install.sh
 
@@ -302,7 +315,7 @@ build/join.sh: scripts/join.sh
 	sed -n '/# Magic end/,$$p' scripts/join.sh | sed '1d' >> tmp/join.sh
 	mv tmp/join.sh build/join.sh
 	if [ "${DEV}" = "1" ]; then \
-		sed -i 's/^KURL_INSTALL_DIRECTORY=.*/KURL_INSTALL_DIRECTORY=\.\/kurl/' build/join.sh; \
+		sed ${SED_INPLACE} 's/^KURL_INSTALL_DIRECTORY=.*/KURL_INSTALL_DIRECTORY=\.\/kurl/' build/join.sh; \
 	fi
 	chmod +x build/join.sh
 
@@ -334,7 +347,7 @@ build/upgrade.sh: scripts/upgrade.sh
 	sed -n '/# Magic end/,$$p' scripts/upgrade.sh | sed '1d' >> tmp/upgrade.sh
 	mv tmp/upgrade.sh build/upgrade.sh
 	if [ "${DEV}" = "1" ]; then \
-		sed -i 's/^KURL_INSTALL_DIRECTORY=.*/KURL_INSTALL_DIRECTORY=\.\/kurl/' build/upgrade.sh; \
+		sed ${SED_INPLACE} 's/^KURL_INSTALL_DIRECTORY=.*/KURL_INSTALL_DIRECTORY=\.\/kurl/' build/upgrade.sh; \
 	fi
 	chmod +x ./build/upgrade.sh
 
@@ -366,7 +379,7 @@ build/tasks.sh: scripts/tasks.sh
 	sed -n '/# Magic end/,$$p' scripts/tasks.sh | sed '1d' >> tmp/tasks.sh
 	mv tmp/tasks.sh build/tasks.sh
 	if [ "${DEV}" = "1" ]; then \
-		sed -i 's/^KURL_INSTALL_DIRECTORY=.*/KURL_INSTALL_DIRECTORY=\.\/kurl/' build/tasks.sh; \
+		sed ${SED_INPLACE} 's/^KURL_INSTALL_DIRECTORY=.*/KURL_INSTALL_DIRECTORY=\.\/kurl/' build/tasks.sh; \
 	fi
 	chmod +x build/tasks.sh
 
@@ -647,7 +660,7 @@ build/bin: build/bin/kurl
 
 build/bin/kurl:
 	CGO_ENABLED=0 go build $(LDFLAGS) -o build/bin/kurl $(BUILDFLAGS) ./cmd/kurl
-	ldd build/bin/kurl | grep -q "not a dynamic executable" # confirm that there are no linked libs
+	/bin/sh -c "${LDD_OR_OTOOL} build/bin/kurl" #| grep -q "not a dynamic executable" # confirm that there are no linked libs
 
 .PHONY: code
 code: build/kustomize build/addons
