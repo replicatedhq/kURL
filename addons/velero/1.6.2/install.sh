@@ -257,8 +257,8 @@ function velero_should_migrate_from_object_store() {
         return 1
     fi
 
-    # if there is still an object store, don't migrate. If KOTSADM_DISABLE_S3 is set, force the migration
-    if [ "$KOTSADM_DISABLE_S3" != 1 ] || [ -n "$ROOK_VERSION" ] || [ -n "$MINIO_VERSION" ]; then 
+    # If KOTSADM_DISABLE_S3 is set, force the migration
+    if [ "$KOTSADM_DISABLE_S3" != 1 ]; then 
         return 1
     fi
     # if an object store isn't installed don't migrate
