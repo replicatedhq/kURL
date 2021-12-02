@@ -125,8 +125,9 @@ function velero_already_applied() {
     # underneath the migration
     if velero_should_migrate_from_object_store; then
         
+        render_yaml_file "$src/tmpl-kustomization.yaml" > "$dst/kustomization.yaml"
+
         determine_velero_pvc_size
-        velero_migrate_from_object_store "$src" "$dst"  # This function will copy the kustomization template from the file if we need a migration.
 
         velero_binary 
         velero_install "$src" "$dst"
@@ -134,6 +135,7 @@ function velero_already_applied() {
         velero_kotsadm_restore_config "$src" "$dst"
         velero_patch_internal_pvc_snapshots "$src" "$dst"
         velero_patch_http_proxy "$src" "$dst"
+        velero_migrate_from_object_store "$src" "$dst"
     fi
 
     # If we didn't need to migrate, reset the kustomization file and only apply the configmap
@@ -300,11 +302,6 @@ function velero_migrate_from_object_store() {
         VELERO_S3_HOST="minio.minio"
         VELERO_S3_ACCESS_KEY_ID=$(kubectl -n minio get secret minio-credentials -ojsonpath='{ .data.MINIO_ACCESS_KEY }' | base64 --decode)
         VELERO_S3_ACCESS_KEY_SECRET=$(kubectl -n minio get secret minio-credentials -ojsonpath='{ .data.MINIO_SECRET_KEY }' | base64 --decode)
-    fi
-
-    # If this is run through `velero_already_applied`, we need to create base kustomization file
-    if [ ! -f "$dst/kustomization.yaml" ];then
-        render_yaml_file "$src/tmpl-kustomization.yaml" > "$dst/kustomization.yaml"
     fi
 
     # TODO (dans): figure out if there is enough space create a new volume with all the snapshot data
