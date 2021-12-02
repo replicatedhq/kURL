@@ -9,7 +9,7 @@ jobs:
     steps:
       - uses: actions/setup-go@v2
         with:
-          go-version: 1.16
+          go-version: 1.17
 
       - name: setup env
         run: |
@@ -44,7 +44,7 @@ jobs:
     steps:
       - uses: actions/setup-go@v2
         with:
-          go-version: 1.16
+          go-version: 1.17
 
       - name: setup env
         run: |
@@ -62,7 +62,7 @@ jobs:
     steps:
       - uses: actions/setup-go@v2
         with:
-          go-version: 1.16
+          go-version: 1.17
 
       - name: setup env
         run: |
@@ -79,7 +79,7 @@ jobs:
     steps:
     - uses: actions/setup-go@v2
       with:
-        go-version: 1.16
+        go-version: 1.17
     - name: setup env
       run: |
         echo "GOPATH=$(go env GOPATH)" >> $GITHUB_ENV
