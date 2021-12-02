@@ -38,7 +38,7 @@ clean:
 
 .PHONY: deps
 deps:
-	go get golang.org/x/lint/golint
+	go install golang.org/x/lint/golint
 
 .PHONY: lint
 lint:
