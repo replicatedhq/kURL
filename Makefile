@@ -36,13 +36,10 @@ endef
 
 # support for building on macos
 SED_INPLACE=-i
-LDD_OR_OTOOL=ldd
+SKIP_LDD_CHECK=
 ifeq "darwin" "$(shell uname | tr '[:upper:]' '[:lower:]')"
 SED_INPLACE=-i.bak
-
-# todo(dex) FWIW I'm not sure if this actually does the
-# linked lib check as expected on macos, but the grep -q passes
-LDD_OR_OTOOL=otool -L
+SKIP_LDD_CHECK=1
 endif
 
 
@@ -660,7 +657,7 @@ build/bin: build/bin/kurl
 
 build/bin/kurl:
 	CGO_ENABLED=0 go build $(LDFLAGS) -o build/bin/kurl $(BUILDFLAGS) ./cmd/kurl
-	/bin/sh -c "${LDD_OR_OTOOL} build/bin/kurl" #| grep -q "not a dynamic executable" # confirm that there are no linked libs
+	[ -n "${SKIP_LDD_CHECK}" ] || ldd build/bin/kurl | grep -q "not a dynamic executable" # confirm that there are no linked libs
 
 .PHONY: code
 code: build/kustomize build/addons
