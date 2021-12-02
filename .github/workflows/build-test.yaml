@@ -90,6 +90,7 @@ jobs:
 
     - run: make -C testgrid/tgrun test build
     - run: make -C testgrid/tgapi test build
+    - run: make -C testgrid/web deps build-staging
 
   build-test-success:
     runs-on: ubuntu-latest
