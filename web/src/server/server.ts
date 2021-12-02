@@ -72,7 +72,7 @@ export class Server {
 
 @OverrideProvider(PlatformLogMiddleware)
 export class CustomPlatformLogMiddleware extends PlatformLogMiddleware {
-  public use(@Context() ctx: Context) {
+  public use(@Context() ctx: Context): void {
     // do something
 
     return super.use(ctx); // required
@@ -81,7 +81,7 @@ export class CustomPlatformLogMiddleware extends PlatformLogMiddleware {
   /**
    * Called when the `$onResponse` is called by Ts.ED (through Express.end).
    */
-   protected onLogEnd(ctx: Context) {
+  protected onLogEnd(ctx: Context): void {
     const {debug, logRequest, logEnd} = this.settings;
 
     if (logEnd !== false) {
