@@ -29,13 +29,17 @@ function velero() {
 
     velero_kotsadm_restore_config "$src" "$dst"
 
-    # always patch the velero and restic manifests to include the PVC case
-    velero_patch_internal_pvc_snapshots "$src" "$dst"
-
     velero_patch_http_proxy "$src" "$dst"
 
     velero_change_storageclass "$src" "$dst"
 
+    # If we already migrated, or we on a new install that has the disableS3 flag set, we need a PVC attached
+    # TODO (dans): remove beta fla
+    if kubernetes_resource_exists "$VELERO_NAMESPACE" pvc velero-internal-snapshots || { [ "$KOTSADM_DISABLE_S3" == "1" ] && [ -n "$BETA_VELERO_USE_INTERNAL_PVC" ]; }; then
+        velero_patch_internal_pvc_snapshots "$src" "$dst"
+    fi
+
+    # Check if we need a migration
     if velero_should_migrate_from_object_store; then
         velero_migrate_from_object_store "$src" "$dst"
     fi
@@ -166,6 +170,16 @@ function velero_credentials() {
         kubectl -n velero get secret cloud-credentials -ojsonpath='{ .data.cloud }' | base64 -d > velero-credentials
         return 0
     fi
+
+    if [ -n "$OBJECT_STORE_CLUSTER_IP" ]; then
+        try_1m object_store_create_bucket "$VELERO_LOCAL_BUCKET"
+    fi
+
+    cat >velero-credentials <<EOF
+[default]
+aws_access_key_id=$OBJECT_STORE_ACCESS_KEY
+aws_secret_access_key=$OBJECT_STORE_SECRET_KEY
+EOF
 }
 
 function velero_patch_restic_privilege() {
