@@ -14,7 +14,7 @@ RUN yumdownloader --installroot=/tmp/empty-directory --releasever=/ --resolve --
 
 # installing "createrepo" package on rhel requires a subscription. it's only needed to create the repo,
 # and it's not part of the produced packages, so we can do this:
-FROM centos:8.1.1911
+FROM centos:8
 COPY --from=builder /packages/archives /packages/archives
 RUN yum install -y createrepo modulemd-tools
 RUN createrepo_c /packages/archives

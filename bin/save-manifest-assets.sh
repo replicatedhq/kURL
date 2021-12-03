@@ -88,27 +88,6 @@ function build_rhel_7() {
     sudo chown -R $UID "${outdir}"
 }
 
-function build_rhel_7_force() {
-    local packages=("$@")
-    local outdir="${OUT_DIR}/rhel-7-force"
-
-    mkdir -p "${outdir}"
-
-    docker rm -f "rhel-7-force-${PACKAGE_NAME}" 2>/dev/null || true
-    # Use the oldest OS minor version supported to ensure that updates required for outdated
-    # packages are included.
-    docker run \
-        --name "rhel-7-force-${PACKAGE_NAME}" \
-        registry.access.redhat.com/ubi7/ubi:7.9 \
-        /bin/bash -c "\
-            set -x
-            yum install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm && \
-            mkdir -p /packages/archives && \
-            yumdownloader --resolve --destdir=/packages/archives -y ${packages[*]}"
-    sudo docker cp "rhel-7-force-${PACKAGE_NAME}":/packages/archives "${outdir}"
-    sudo chown -R $UID "${outdir}"
-}
-
 function createrepo_rhel_7() {
     local outdir=
     outdir="$(realpath "${OUT_DIR}")/rhel-7"
@@ -399,9 +378,6 @@ if [ "${#pkgs_rhel7[@]}" -gt "0" ]; then
 fi
 if [ "$(ls -A "${OUT_DIR}/rhel-7")" ]; then
     createrepo_rhel_7
-fi
-if [ "${#pkgs_rhel7[@]}" -gt "0" ]; then
-    build_rhel_7_force "${pkgs_rhel7[@]}"
 fi
 
 # centos 8

@@ -22,7 +22,7 @@ RUN source /tmp/env; yumdownloader --installroot=/tmp/empty-directory --releasev
 
 # installing "createrepo" package on rhel requires a subscription. it's only needed to create the repo,
 # and it's not part of the produced packages, so we can do this:
-FROM centos:7.4.1708
+FROM centos:7
 COPY --from=builder /packages/archives /packages/archives
 RUN yum install -y createrepo
 RUN createrepo /packages/archives
