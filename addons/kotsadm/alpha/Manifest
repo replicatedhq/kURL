@@ -5,4 +5,4 @@ image kurl-proxy docker.io/kotsadm/kurl-proxy:alpha
 image postgres postgres:10.18-alpine
 image dex docker.io/kotsadm/dex:v2.30.0
 
-asset kots.tar.gz https://github.com/replicatedhq/kots/releases/download/v1.58.0/kots_linux_amd64.tar.gz
+asset kots.tar.gz https://github.com/replicatedhq/kots/releases/download/v1.58.1/kots_linux_amd64.tar.gz

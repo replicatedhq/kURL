@@ -9,7 +9,7 @@ jobs:
     steps:
       - uses: actions/setup-go@v2
         with:
-          go-version: 1.16
+          go-version: 1.17
 
       - name: setup env
         run: |
@@ -30,7 +30,7 @@ jobs:
         with:
           node-version: '12'
 
-      - run: make -C web test
+      - run: make -C web deps test build
 
   test-shell:
     runs-on: ubuntu-18.04
@@ -44,7 +44,7 @@ jobs:
     steps:
       - uses: actions/setup-go@v2
         with:
-          go-version: 1.16
+          go-version: 1.17
 
       - name: setup env
         run: |
@@ -62,7 +62,7 @@ jobs:
     steps:
       - uses: actions/setup-go@v2
         with:
-          go-version: 1.16
+          go-version: 1.17
 
       - name: setup env
         run: |
@@ -79,7 +79,7 @@ jobs:
     steps:
     - uses: actions/setup-go@v2
       with:
-        go-version: 1.16
+        go-version: 1.17
     - name: setup env
       run: |
         echo "GOPATH=$(go env GOPATH)" >> $GITHUB_ENV
@@ -90,6 +90,7 @@ jobs:
 
     - run: make -C testgrid/tgrun test build
     - run: make -C testgrid/tgapi test build
+    - run: make -C testgrid/web deps build-staging
 
   build-test-success:
     runs-on: ubuntu-latest

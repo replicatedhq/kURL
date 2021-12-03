@@ -2,6 +2,8 @@
 
 set -e
 
+DIR=.
+
 # Magic begin: scripts are inlined for distribution. See "make build/tasks.sh"
 . $DIR/scripts/Manifest
 . $DIR/scripts/common/common.sh
@@ -12,6 +14,7 @@ set -e
 . $DIR/scripts/common/host-packages.sh
 . $DIR/scripts/common/utilbinaries.sh
 . $DIR/scripts/common/rook.sh
+. $DIR/scripts/common/longhorn.sh
 . $DIR/scripts/distro/interface.sh
 . $DIR/scripts/distro/kubeadm/distro.sh
 . $DIR/scripts/distro/rke2/distro.sh
@@ -61,6 +64,9 @@ function tasks() {
             ;;
         remove-rook-ceph|remove_rook_ceph)
             remove_rook_ceph_task
+            ;;
+        longhorn-node-initilize|longhorn_node_initilize)
+            install_host_dependencies_longhorn
             ;;
         *)
             bail "Unknown task: $1"
