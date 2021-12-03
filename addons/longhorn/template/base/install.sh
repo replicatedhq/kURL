@@ -30,7 +30,7 @@ function longhorn() {
 
     check_mount_propagation $src
 
-    longhorn_host_init "$DIR/addons/longhorn/$LONGHORN_VERSION"
+    longhorn_host_init_common "$DIR/addons/longhorn/$LONGHORN_VERSION"
 
 
     render_yaml_file "$src/tmpl-ui-service.yaml" > "$dst/ui-service.yaml"
@@ -93,7 +93,7 @@ function longhorn_daemonset_is_ready() {
 }
 
 function longhorn_join() {
-    longhorn_host_init "$DIR/addons/longhorn/$LONGHORN_VERSION"
+    longhorn_host_init_common "$DIR/addons/longhorn/$LONGHORN_VERSION"
 }
 
 function longhorn_preflight() {

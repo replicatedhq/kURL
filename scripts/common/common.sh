@@ -618,7 +618,7 @@ function install_host_dependencies_longhorn() {
     fi
     pushd_install_directory
 
-    longhorn_host_init "${DIR}/packages/host/longhorn"
+    longhorn_host_init_common "${DIR}/packages/host/longhorn"
 }
 
 function maybe_read_kurl_config_from_cluster() {
