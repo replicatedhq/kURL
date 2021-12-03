@@ -3,12 +3,12 @@
     kubernetes:
       version: "latest"
     weave:
-      version: "2.6.5"
-    rook:
+      version: "latest"
+    longhorn:
       version: "latest"
     contour:
       version: "latest"
-    docker:
+    containerd:
       version: "latest"
     prometheus:
       version: "latest"

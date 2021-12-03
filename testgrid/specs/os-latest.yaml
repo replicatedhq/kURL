@@ -21,6 +21,8 @@
   name: Oracle Linux
   version: "8.5"
   vmimageuri: https://yum.oracle.com/templates/OracleLinux/OL8/u5/x86_64/OL8U5_x86_64-olvm-b107.qcow2
+  preinit: |
+    yum install tar -y
 - id: ubuntu-2004
   name: Ubuntu
   version: "20.04"
