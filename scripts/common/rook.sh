@@ -69,6 +69,9 @@ function remove_rook_ceph() {
 
     # scale ekco back to 1 replicas if it exists
     if kubernetes_resource_exists kurl deployment ekc-operator; then
+        kubectl -n kurl get configmap ekco-config -o yaml | \
+            sed --expression='s/maintain_rook_storage_nodes:[ ]*true/maintain_rook_storage_nodes: false/g' | \
+            kubectl -n kurl apply -f - 
         kubectl -n kurl scale deploy ekc-operator --replicas=1
     fi
 
