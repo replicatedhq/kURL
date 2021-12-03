@@ -66,7 +66,7 @@ jobs:
           STORY_NAME="Dependabot auto-merge failed for #${PR_NUMBER} - '${PR_TITLE//\"/\\\"}'"
           STORY_DESCRIPTION="Dependabot auto-merge failed - auto-approve conditions not satisfied : update-type = ${{ steps.dependabot-metadata.outputs.update-type }}\\n\\n${PR_URL}"
 
-          EXISTING_STORY_ID="$(gh pr view --repo "${GITHUB_REPO}" "${PR_NUMBER}" --json comments | grep -o '\[sc-[^]]*' | grep -o '[0-9]*' || true)"
+          EXISTING_STORY_ID="$(gh pr view --repo "${GITHUB_REPO}" "${PR_NUMBER}" --json comments --jq '.comments | .[].body' | grep -o '\[sc-[0-9]*\]' || true)"
           if [ -n "${EXISTING_STORY_ID}" ] ; then
             curl -X POST \
               -H "Content-Type: application/json" \
@@ -90,7 +90,7 @@ jobs:
               \"name\": \"${STORY_NAME}\", \
               \"description\": \"${STORY_DESCRIPTION}\" }" \
             -L "https://api.app.shortcut.com/api/v3/stories")"
-          NEW_STORY_ID="$(echo "${NEW_STORY}" | grep -o '"id":[0-9]*' | grep -o '[0-9]*')"
+          NEW_STORY_ID="$(echo "${NEW_STORY}"| jq -r '.id')"
 
           gh pr comment --repo "${GITHUB_REPO}" "${PR_NUMBER}" --body "[sc-${NEW_STORY_ID}]"
 
