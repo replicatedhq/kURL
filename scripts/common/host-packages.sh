@@ -64,7 +64,8 @@ function _rpm_force_install_host_packages() {
 
     logStep "Installing host packages ${packages[*]}"
 
-    local fullpath="$(realpath "${dir}")/centos-7-force${dir_prefix}"
+    local fullpath=
+    fullpath="$(realpath "${dir}")/centos-7-force${dir_prefix}"
 
     if ! test -n "$(shopt -s nullglob; echo "${fullpath}"/*.rpm)" ; then
         echo "Will not install host packages ${packages[*]}, no packages found."
