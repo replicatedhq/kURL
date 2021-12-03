@@ -1,0 +1,62 @@
+###############################################################################
+# This action will create a shortcut story when build-test fails for dependabot
+# pull requests.
+###############################################################################
+
+name: dependabot-buildfailure
+
+on:
+  workflow_run:
+    workflows: [ "build-test" ]
+    types: [ completed ]
+
+permissions:
+  pull-requests: read
+
+jobs:
+
+  on-failure:
+    runs-on: ubuntu-latest
+    # only run for dependabot pull requests
+    if: |
+      (
+        github.actor == 'dependabot[bot]'
+      ) && (
+        github.event.workflow_run.conclusion == 'failure'
+      )
+    steps:
+
+      - name: Create shortcut story if build-test fails
+        run: |
+          EXISTING_STORY="$(curl -X GET \
+            -H "Content-Type: application/json" \
+            -H "Shortcut-Token: ${SHORTCUT_API_TOKEN}" \
+            -d "{ \"page_size\": 1, \"query\": \"title:\\\"Automerge Failed for #${PR_NUMBER}\\\"\" }" \
+            -L "https://api.app.shortcut.com/api/v3/search/stories")"
+          if echo "${EXISTING_STORY}" | grep -q "Automerge Failed for #${PR_NUMBER} " ; then
+            echo "::notice ::shortcut story already exists"
+            exit 0
+          fi
+
+          PR_TITLE="$(gh pr view --repo "${GITHUB_REPO}" "${PR_NUMBER}" --json title --jq '.title')"
+          PR_BODY="$(gh pr view --repo "${GITHUB_REPO}" "${PR_NUMBER}" | sed -n '/--/q;p')"
+
+          curl -X POST \
+            -H "Content-Type: application/json" \
+            -H "Shortcut-Token: ${SHORTCUT_API_TOKEN}" \
+            -d "{ \
+              \"group_id\": \"6125060f-c490-4005-8dd7-165aa0b9cc18\", \
+              \"owner_ids\": [\"61118e83-225b-4bff-9ae1-e5342ae0868f\"], \
+              \"name\": \"Automerge Failed for #${PR_NUMBER} - '${PR_TITLE//\"/\\\"}'\", \
+              \"story_type\": \"chore\", \
+              \"description\": \"Dependabot was unable to automatically merge package update.\\n\\n${PR_BODY//\"/\\\"}\", \
+              \"workflow_state_id\": 500122316, \
+              \"estimate\": 1 }" \
+            -L "https://api.app.shortcut.com/api/v3/stories"
+          
+          echo "::notice ::shortcut story created"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SHORTCUT_API_TOKEN: ${{ secrets.SHORTCUT_API_TOKEN }}
+          GITHUB_REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.workflow_run.pull_requests[0].number }}
