@@ -113,11 +113,12 @@ function createrepo_rhel_7() {
     local outdir=
     outdir="$(realpath "${OUT_DIR}")/rhel-7"
 
+    # installing "createrepo" package on rhel requires a subscription. it's only needed to create the repo, and it's not part of the produced packages, so use the centos image instead
     docker rm -f "rhel-7-createrepo-${PACKAGE_NAME}" 2>/dev/null || true
     docker run \
         --name "rhel-7-createrepo-${PACKAGE_NAME}" \
         -v "${outdir}/archives":/packages/archives \
-        centos:7.4.1708 \ # installing "createrepo" package on rhel requires a subscription. it's only needed to create the repo, and it's not part of the produced packages, so use the centos image instead
+        centos:7.4.1708 \
         /bin/bash -c "\
             set -x
             yum install -y createrepo && \
@@ -196,11 +197,12 @@ function createrepo_rhel_8() {
     local outdir=
     outdir="$(realpath "${OUT_DIR}")/rhel-8"
 
+    # installing "createrepo" package on rhel requires a subscription. it's only needed to create the repo, and it's not part of the produced packages, so use the centos image instead
     docker rm -f "rhel-8-createrepo-${PACKAGE_NAME}" 2>/dev/null || true
     docker run \
         --name "rhel-8-createrepo-${PACKAGE_NAME}" \
         -v "${outdir}/archives":/packages/archives \
-        centos:8.1.1911 \ # installing "createrepo" package on rhel requires a subscription. it's only needed to create the repo, and it's not part of the produced packages, so use the centos image instead
+        centos:8.1.1911 \
         /bin/bash -c "\
             set -x
             echo -e \"fastestmirror=1\nmax_parallel_downloads=8\" >> /etc/dnf/dnf.conf && \
