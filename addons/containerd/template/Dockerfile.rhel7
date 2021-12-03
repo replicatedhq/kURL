@@ -1,0 +1,19 @@
+FROM registry.access.redhat.com/ubi7/ubi:7.9 AS builder
+
+RUN yum install -y createrepo
+RUN yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+RUN mkdir -p /packages/archives
+
+ARG VERSION
+ENV VERSION=${VERSION}
+
+CMD yumdownloader --installroot=/tmp/empty-directory --releasever=/ --resolve --destdir=/packages/archives -y \
+    containerd.io-$(yum list --showduplicates 'containerd.io' | grep ${VERSION} | tail -1 | awk '{ print $2 }' | sed 's/.\://')
+
+# installing "createrepo" package on rhel requires a subscription. it's only needed to create the repo,
+# and it's not part of the produced packages, so we can do this:
+FROM centos:7.4.1708
+COPY --from=builder /packages/archives /packages/archives
+RUN yum install -y createrepo
+RUN createrepo /packages/archives \
+  && cp -r /packages/archives/* /out/

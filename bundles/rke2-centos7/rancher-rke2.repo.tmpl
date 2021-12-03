@@ -1,0 +1,13 @@
+[rancher-rke2-common-${rke2_rpm_channel}]
+name=Rancher RKE2 Common (${rke2_rpm_channel})
+baseurl=https://${rpm_site}/rke2/${rke2_rpm_channel}/common/centos/${maj_ver}/noarch
+enabled=1
+gpgcheck=1
+gpgkey=https://${rpm_site}/public.key
+
+[rancher-rke2-${rke2_majmin}-${rke2_rpm_channel}]
+name=Rancher RKE2 ${rke2_majmin} (${rke2_rpm_channel})
+baseurl=https://${rpm_site}/rke2/${rke2_rpm_channel}/${rke2_majmin}/centos/${maj_ver}/x86_64
+enabled=1
+gpgcheck=1
+gpgkey=https://${rpm_site}/public.key

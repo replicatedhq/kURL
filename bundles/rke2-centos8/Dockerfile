@@ -1,6 +1,13 @@
-FROM registry.access.redhat.com/ubi7/ubi:7.9 AS builder
+FROM centos:8
 
-RUN yum install -y gettext
+RUN echo -e "fastestmirror=1\nmax_parallel_downloads=8" >> /etc/dnf/dnf.conf
+
+RUN yum install -y gettext # envsubst
+RUN yum install -y yum-utils # yumdownloader
+RUN yum install -y createrepo
+
+RUN yum-config-manager --add-repo http://mirror.centos.org/centos/8-stream/AppStream/x86_64/os/
+RUN yum install -y modulemd-tools
 
 RUN mkdir -p /packages/archives
 
@@ -8,7 +15,7 @@ ADD ./rancher-rke2.repo.tmpl /tmp/
 
 ENV rpm_site=rpm.rancher.io
 ENV rke2_rpm_channel=stable
-ENV maj_ver=7
+ENV maj_ver=8
 
 ARG RKE2_VERSION
 
@@ -19,11 +26,8 @@ RUN source /tmp/env; envsubst < /tmp/rancher-rke2.repo.tmpl > /etc/yum.repos.d/r
 RUN source /tmp/env; yumdownloader --installroot=/tmp/empty-directory --releasever=/ --resolve --destdir=/packages/archives -y \
     rke2-server-${rke2_rpm_version} \
     rke2-agent-${rke2_rpm_version}
+RUN createrepo_c /packages/archives
+RUN repo2module --module-name=kurl.local --module-stream=stable /packages/archives /tmp/modules.yaml
+RUN modifyrepo_c --mdtype=modules /tmp/modules.yaml /packages/archives/repodata
 
-# installing "createrepo" package on rhel requires a subscription. it's only needed to create the repo,
-# and it's not part of the produced packages, so we can do this:
-FROM centos:7.4.1708
-COPY --from=builder /packages/archives /packages/archives
-RUN yum install -y createrepo
-RUN createrepo /packages/archives
 CMD cp -r /packages/archives/* /out/

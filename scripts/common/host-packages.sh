@@ -43,7 +43,7 @@ function _install_host_packages() {
 
         amzn)
             local fullpath=
-            fullpath="$(realpath "${dir}")/rhel-7-force${dir_prefix}"
+            fullpath="$(realpath "${dir}")/centos-7-force${dir_prefix}"
             if test -n "$(shopt -s nullglob; echo "${fullpath}"/*.rpm)" ; then
                 _rpm_force_install_host_packages "$dir" "$dir_prefix" "${packages[@]}"
             else
@@ -65,7 +65,12 @@ function _rpm_force_install_host_packages() {
     logStep "Installing host packages ${packages[*]}"
 
     local fullpath=
-    fullpath="$(realpath "${dir}")/rhel-7-force${dir_prefix}"
+    if [ "${LSB_DIST}" = "rhel" ]; then
+        fullpath="$(realpath "${dir}")/rhel-7-force${dir_prefix}"
+    else
+        fullpath="$(realpath "${dir}")/centos-7-force${dir_prefix}"
+    fi
+
     if ! test -n "$(shopt -s nullglob; echo "${fullpath}"/*.rpm)" ; then
         echo "Will not install host packages ${packages[*]}, no packages found."
         return 0
@@ -175,10 +180,19 @@ function _yum_get_host_packages_path() {
         fi
     fi
 
+    if [ "${LSB_DIST}" = "rhel" ]; then
+        if [ "${DIST_VERSION_MAJOR}" = "8" ]; then
+            echo "$(realpath "${dir}")/rhel-8${dir_prefix}"
+        else
+            echo "$(realpath "${dir}")/rhel-7${dir_prefix}"
+        fi
+        return 0
+    fi
+
     if [ "${DIST_VERSION_MAJOR}" = "8" ]; then
-        echo "$(realpath "${dir}")/rhel-8${dir_prefix}"
+        echo "$(realpath "${dir}")/centos-8${dir_prefix}"
     else
-        echo "$(realpath "${dir}")/rhel-7${dir_prefix}"
+        echo "$(realpath "${dir}")/centos-7${dir_prefix}"
     fi
     return 0
 }

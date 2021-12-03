@@ -1,4 +1,4 @@
-FROM registry.access.redhat.com/ubi7/ubi:7.9
+FROM centos:7
 ARG KUBERNETES_VERSION
 COPY ./kubernetes.repo /etc/yum.repos.d/kubernetes.repo
 RUN mkdir -p /packages/archives

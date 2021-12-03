@@ -1,4 +1,4 @@
-FROM centos:7
+FROM registry.access.redhat.com/ubi7/ubi:7.9
 
 RUN yum install -y gettext
 

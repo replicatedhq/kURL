@@ -1,4 +1,4 @@
-FROM registry.access.redhat.com/ubi7/ubi:7.9
+FROM centos:7
 
 RUN yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
 RUN mkdir -p /packages/archives

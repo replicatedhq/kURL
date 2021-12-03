@@ -1,5 +1,5 @@
 # THIS ONLY DOWNLOADS THE SELINUX POLICY, not the k3s cli
-FROM registry.access.redhat.com/ubi7/ubi:7.9
+FROM centos:7
 
 RUN yum install -y gettext
 

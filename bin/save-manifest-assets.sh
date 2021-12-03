@@ -8,6 +8,65 @@ OUT_DIR=$3
 
 mkdir -p "$OUT_DIR"
 
+function build_centos_7() {
+    local packages=("$@")
+    local outdir="${OUT_DIR}/centos-7"
+
+    mkdir -p "${outdir}"
+
+    docker rm -f "centos-7-${PACKAGE_NAME}" 2>/dev/null || true
+    # Use the oldest OS minor version supported to ensure that updates required for outdated
+    # packages are included.
+    docker run \
+        --name "centos-7-${PACKAGE_NAME}" \
+        centos:7.4.1708 \
+        /bin/bash -c "\
+            set -x
+            yum install -y epel-release && \
+            mkdir -p /packages/archives && \
+            yumdownloader --installroot=/tmp/empty-directory --releasever=/ --resolve --destdir=/packages/archives -y ${packages[*]}"
+    sudo docker cp "centos-7-${PACKAGE_NAME}":/packages/archives "${outdir}"
+    sudo chown -R $UID "${outdir}"
+}
+
+function build_centos_7_force() {
+    local packages=("$@")
+    local outdir="${OUT_DIR}/centos-7-force"
+
+    mkdir -p "${outdir}"
+
+    docker rm -f "centos-7-force-${PACKAGE_NAME}" 2>/dev/null || true
+    # Use the oldest OS minor version supported to ensure that updates required for outdated
+    # packages are included.
+    docker run \
+        --name "centos-7-force-${PACKAGE_NAME}" \
+        centos:7.4.1708 \
+        /bin/bash -c "\
+            set -x
+            yum install -y epel-release && \
+            mkdir -p /packages/archives && \
+            yumdownloader --resolve --destdir=/packages/archives -y ${packages[*]}"
+    sudo docker cp "centos-7-force-${PACKAGE_NAME}":/packages/archives "${outdir}"
+    sudo chown -R $UID "${outdir}"
+}
+
+function createrepo_centos_7() {
+    local outdir=
+    outdir="$(realpath "${OUT_DIR}")/centos-7"
+
+    docker rm -f "centos-7-createrepo-${PACKAGE_NAME}" 2>/dev/null || true
+    docker run \
+        --name "centos-7-createrepo-${PACKAGE_NAME}" \
+        -v "${outdir}/archives":/packages/archives \
+        centos:7.4.1708 \
+        /bin/bash -c "\
+            set -x
+            yum install -y createrepo && \
+            createrepo /packages/archives"
+    sudo docker cp "centos-7-createrepo-${PACKAGE_NAME}":/packages/archives "${outdir}"
+    sudo chown -R $UID "${outdir}"
+}
+
 function build_rhel_7() {
     local packages=("$@")
     local outdir="${OUT_DIR}/rhel-7"
@@ -19,10 +78,10 @@ function build_rhel_7() {
     # packages are included.
     docker run \
         --name "rhel-7-${PACKAGE_NAME}" \
-        centos:7.4.1708 \
+        registry.access.redhat.com/ubi7/ubi:7.9 \
         /bin/bash -c "\
             set -x
-            yum install -y epel-release && \
+            yum install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm && \
             mkdir -p /packages/archives && \
             yumdownloader --installroot=/tmp/empty-directory --releasever=/ --resolve --destdir=/packages/archives -y ${packages[*]}"
     sudo docker cp "rhel-7-${PACKAGE_NAME}":/packages/archives "${outdir}"
@@ -40,10 +99,10 @@ function build_rhel_7_force() {
     # packages are included.
     docker run \
         --name "rhel-7-force-${PACKAGE_NAME}" \
-        centos:7.4.1708 \
+        registry.access.redhat.com/ubi7/ubi:7.9 \
         /bin/bash -c "\
             set -x
-            yum install -y epel-release && \
+            yum install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm && \
             mkdir -p /packages/archives && \
             yumdownloader --resolve --destdir=/packages/archives -y ${packages[*]}"
     sudo docker cp "rhel-7-force-${PACKAGE_NAME}":/packages/archives "${outdir}"
@@ -58,12 +117,56 @@ function createrepo_rhel_7() {
     docker run \
         --name "rhel-7-createrepo-${PACKAGE_NAME}" \
         -v "${outdir}/archives":/packages/archives \
-        centos:7.4.1708 \
+        centos:7.4.1708 \ # installing "createrepo" package on rhel requires a subscription. it's only needed to create the repo, and it's not part of the produced packages, so use the centos image instead
         /bin/bash -c "\
             set -x
             yum install -y createrepo && \
             createrepo /packages/archives"
     sudo docker cp "rhel-7-createrepo-${PACKAGE_NAME}":/packages/archives "${outdir}"
+    sudo chown -R $UID "${outdir}"
+}
+
+function build_centos_8() {
+    local packages=("$@")
+    local outdir="${OUT_DIR}/centos-8"
+
+    mkdir -p "${outdir}"
+
+    docker rm -f "centos-8-${PACKAGE_NAME}" 2>/dev/null || true
+    # Use the oldest OS minor version supported to ensure that updates required for outdated
+    # packages are included.
+    docker run \
+        --name "centos-8-${PACKAGE_NAME}" \
+        centos:8.1.1911 \
+        /bin/bash -c "\
+            set -x
+            echo -e \"fastestmirror=1\nmax_parallel_downloads=8\" >> /etc/dnf/dnf.conf && \
+            yum install -y yum-utils epel-release && \
+            mkdir -p /packages/archives && \
+            yumdownloader --installroot=/tmp/empty-directory --releasever=/ --resolve --destdir=/packages/archives -y ${packages[*]}"
+    sudo docker cp "centos-8-${PACKAGE_NAME}":/packages/archives "${outdir}"
+    sudo chown -R $UID "${outdir}"
+}
+
+function createrepo_centos_8() {
+    local outdir=
+    outdir="$(realpath "${OUT_DIR}")/centos-8"
+
+    docker rm -f "centos-8-createrepo-${PACKAGE_NAME}" 2>/dev/null || true
+    docker run \
+        --name "centos-8-createrepo-${PACKAGE_NAME}" \
+        -v "${outdir}/archives":/packages/archives \
+        centos:8.1.1911 \
+        /bin/bash -c "\
+            set -x
+            echo -e \"fastestmirror=1\nmax_parallel_downloads=8\" >> /etc/dnf/dnf.conf && \
+            yum install -y yum-utils createrepo && \
+            yum-config-manager --add-repo http://mirror.centos.org/centos/8-stream/AppStream/x86_64/os/ && \
+            yum install -y modulemd-tools && \
+            createrepo_c /packages/archives && \
+            repo2module --module-name=kurl.local --module-stream=stable /packages/archives /tmp/modules.yaml && \
+            modifyrepo_c --mdtype=modules /tmp/modules.yaml /packages/archives/repodata"
+    sudo docker cp "centos-8-createrepo-${PACKAGE_NAME}":/packages/archives "${outdir}"
     sudo chown -R $UID "${outdir}"
 }
 
@@ -78,11 +181,11 @@ function build_rhel_8() {
     # packages are included.
     docker run \
         --name "rhel-8-${PACKAGE_NAME}" \
-        centos:8.1.1911 \
+        registry.access.redhat.com/ubi8/ubi:8.1 \
         /bin/bash -c "\
             set -x
             echo -e \"fastestmirror=1\nmax_parallel_downloads=8\" >> /etc/dnf/dnf.conf && \
-            yum install -y yum-utils epel-release && \
+            yum install -y yum-utils https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm && \
             mkdir -p /packages/archives && \
             yumdownloader --installroot=/tmp/empty-directory --releasever=/ --resolve --destdir=/packages/archives -y ${packages[*]}"
     sudo docker cp "rhel-8-${PACKAGE_NAME}":/packages/archives "${outdir}"
@@ -97,13 +200,11 @@ function createrepo_rhel_8() {
     docker run \
         --name "rhel-8-createrepo-${PACKAGE_NAME}" \
         -v "${outdir}/archives":/packages/archives \
-        centos:8.1.1911 \
+        centos:8.1.1911 \ # installing "createrepo" package on rhel requires a subscription. it's only needed to create the repo, and it's not part of the produced packages, so use the centos image instead
         /bin/bash -c "\
             set -x
             echo -e \"fastestmirror=1\nmax_parallel_downloads=8\" >> /etc/dnf/dnf.conf && \
-            yum install -y yum-utils createrepo && \
-            yum-config-manager --add-repo http://mirror.centos.org/centos/8-stream/AppStream/x86_64/os/ && \
-            yum install -y modulemd-tools && \
+            yum install -y createrepo modulemd-tools && \
             createrepo_c /packages/archives && \
             repo2module --module-name=kurl.local --module-stream=stable /packages/archives /tmp/modules.yaml && \
             modifyrepo_c --mdtype=modules /tmp/modules.yaml /packages/archives/repodata"
@@ -163,7 +264,9 @@ function try_5_times() {
     done
 }
 
+pkgs_centos7=()
 pkgs_rhel7=()
+pkgs_centos8=()
 pkgs_rhel8=()
 pkgs_ol7=()
 
@@ -238,12 +341,15 @@ while read -r line; do
 
         yum)
             package=$(echo "${line}" | awk '{ print $2 }')
+            pkgs_centos7+=("${package}")
             pkgs_rhel7+=("${package}")
+            pkgs_centos8+=("${package}")
             pkgs_rhel8+=("${package}")
             ;;
 
         yum8)
             package=$(echo "${line}" | awk '{ print $2 }')
+            pkgs_centos8+=("${package}")
             pkgs_rhel8+=("${package}")
             ;;
 
@@ -274,6 +380,18 @@ while read -r line; do
     esac
 done < "${MANIFEST_PATH}"
 
+# centos 7
+if [ "${#pkgs_centos7[@]}" -gt "0" ]; then
+    build_centos_7 "${pkgs_centos7[@]}"
+fi
+if [ "$(ls -A "${OUT_DIR}/centos-7")" ]; then
+    createrepo_centos_7
+fi
+if [ "${#pkgs_centos7[@]}" -gt "0" ]; then
+    build_centos_7_force "${pkgs_centos7[@]}"
+fi
+
+# rhel 7
 if [ "${#pkgs_rhel7[@]}" -gt "0" ]; then
     build_rhel_7 "${pkgs_rhel7[@]}"
 fi
@@ -283,12 +401,24 @@ fi
 if [ "${#pkgs_rhel7[@]}" -gt "0" ]; then
     build_rhel_7_force "${pkgs_rhel7[@]}"
 fi
+
+# centos 8
+if [ "${#pkgs_centos8[@]}" -gt "0" ]; then
+    build_centos_8 "${pkgs_centos8[@]}"
+fi
+if [ "$(ls -A "${OUT_DIR}/centos-8")" ]; then
+    createrepo_centos_8
+fi
+
+# rhel 8
 if [ "${#pkgs_rhel8[@]}" -gt "0" ]; then
     build_rhel_8 "${pkgs_rhel8[@]}"
 fi
 if [ "$(ls -A "${OUT_DIR}/rhel-8")" ]; then
     createrepo_rhel_8
 fi
+
+# ol 7
 if [ "${#pkgs_ol7[@]}" -gt "0" ]; then
     build_ol_7 "${pkgs_ol7[@]}"
 fi

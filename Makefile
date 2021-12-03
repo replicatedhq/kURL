@@ -146,6 +146,9 @@ dist/docker-%.tar.gz:
 	${MAKE} build/packages/docker/$*/ubuntu-16.04
 	${MAKE} build/packages/docker/$*/ubuntu-18.04
 	${MAKE} build/packages/docker/$*/ubuntu-20.04
+	${MAKE} build/packages/docker/$*/centos-7
+	${MAKE} build/packages/docker/$*/centos-7-force
+	${MAKE} build/packages/docker/$*/centos-8
 	${MAKE} build/packages/docker/$*/rhel-7
 	${MAKE} build/packages/docker/$*/rhel-7-force
 	${MAKE} build/packages/docker/$*/rhel-8
@@ -208,6 +211,9 @@ dist/kubernetes-%.tar.gz:
 	${MAKE} build/packages/kubernetes/$*/ubuntu-16.04
 	${MAKE} build/packages/kubernetes/$*/ubuntu-18.04
 	${MAKE} build/packages/kubernetes/$*/ubuntu-20.04
+	${MAKE} build/packages/kubernetes/$*/centos-7
+	${MAKE} build/packages/kubernetes/$*/centos-7-force
+	${MAKE} build/packages/kubernetes/$*/centos-8
 	${MAKE} build/packages/kubernetes/$*/rhel-7
 	${MAKE} build/packages/kubernetes/$*/rhel-7-force
 	${MAKE} build/packages/kubernetes/$*/rhel-8
@@ -232,6 +238,9 @@ build/packages/kubernetes-conformance/%/images:
 dist/rke-2-%.tar.gz:
 	${MAKE} dist/kubernetes-conformance-$(shell echo "$*" | sed 's/^v\(.*\)-.*$$/\1/').tar.gz
 	${MAKE} build/packages/rke-2/$*/images
+	${MAKE} build/packages/rke-2/$*/centos-7
+	${MAKE} build/packages/rke-2/$*/centos-7-force
+	${MAKE} build/packages/rke-2/$*/centos-8
 	${MAKE} build/packages/rke-2/$*/rhel-7
 	${MAKE} build/packages/rke-2/$*/rhel-7-force
 	${MAKE} build/packages/rke-2/$*/rhel-8
@@ -246,6 +255,9 @@ build/packages/rke-2/%/images:
 dist/k-3-s-%.tar.gz:
 	${MAKE} dist/kubernetes-conformance-$(shell echo "$*" | sed 's/^v\(.*\)-.*$$/\1/').tar.gz
 	${MAKE} build/packages/k-3-s/$*/images
+	${MAKE} build/packages/k-3-s/$*/centos-7
+	${MAKE} build/packages/k-3-s/$*/centos-7-force
+	${MAKE} build/packages/k-3-s/$*/centos-8
 	${MAKE} build/packages/k-3-s/$*/rhel-7
 	${MAKE} build/packages/k-3-s/$*/rhel-7-force
 	${MAKE} build/packages/k-3-s/$*/rhel-8
@@ -447,6 +459,51 @@ build/packages/docker/%/ubuntu-18.04:
 build/packages/docker/%/ubuntu-20.04:
 	./bundles/docker-ubuntu2004/build.sh $* `pwd`/build/packages/docker/$*/ubuntu-20.04
 
+build/packages/docker/%/centos-7:
+	docker build \
+		--build-arg DOCKER_VERSION=$* \
+		-t kurl/centos-7-docker:$* \
+		-f bundles/docker-centos7/Dockerfile \
+		bundles/docker-centos7
+	-docker rm -f docker-centos7 2>/dev/null
+	docker create --name docker-centos7-$* kurl/centos-7-docker:$*
+	mkdir -p build/packages/docker/$*/centos-7
+	docker cp docker-centos7-$*:/packages/archives/. build/packages/docker/$*/centos-7
+	docker rm docker-centos7-$*
+
+build/packages/docker/18.09.8/centos-8:
+	${MAKE} build/packages/docker/18.09.8/centos-7-force
+
+build/packages/docker/19.03.4/centos-8:
+	${MAKE} build/packages/docker/19.03.4/centos-7-force
+
+build/packages/docker/19.03.10/centos-8:
+	${MAKE} build/packages/docker/19.03.10/centos-7-force
+
+build/packages/docker/%/centos-7-force:
+	docker build \
+		--build-arg DOCKER_VERSION=$* \
+		-t kurl/centos-7-force-docker:$* \
+		-f bundles/docker-centos7-force/Dockerfile \
+		bundles/docker-centos7-force
+	-docker rm -f docker-centos7-force 2>/dev/null
+	docker create --name docker-centos7-force-$* kurl/centos-7-force-docker:$*
+	mkdir -p build/packages/docker/$*/centos-7-force
+	docker cp docker-centos7-force-$*:/packages/archives/. build/packages/docker/$*/centos-7-force
+	docker rm docker-centos7-force-$*
+
+build/packages/docker/%/centos-8:
+	docker build \
+		--build-arg DOCKER_VERSION=$* \
+		-t kurl/centos-8-docker:$* \
+		-f bundles/docker-centos8/Dockerfile \
+		bundles/docker-centos8
+	-docker rm -f docker-centos8 2>/dev/null
+	docker create --name docker-centos8-$* kurl/centos-8-docker:$*
+	mkdir -p build/packages/docker/$*/centos-8
+	docker cp docker-centos8-$*:/packages/archives/. build/packages/docker/$*/centos-8
+	docker rm docker-centos8-$*
+
 build/packages/docker/%/rhel-7:
 	docker build \
 		--build-arg DOCKER_VERSION=$* \
@@ -528,6 +585,44 @@ build/packages/kubernetes/%/ubuntu-20.04:
 	docker cp k8s-ubuntu2004-$*:/packages/archives/. build/packages/kubernetes/$*/ubuntu-20.04/
 	docker rm k8s-ubuntu2004-$*
 
+build/packages/kubernetes/%/centos-7:
+	docker build \
+		--build-arg KUBERNETES_VERSION=$* \
+		-t kurl/centos-7-k8s:$* \
+		-f bundles/k8s-centos7/Dockerfile \
+		bundles/k8s-centos7
+	-docker rm -f k8s-centos7-$* 2>/dev/null
+	docker create --name k8s-centos7-$* kurl/centos-7-k8s:$*
+	mkdir -p build/packages/kubernetes/$*/centos-7
+	docker cp k8s-centos7-$*:/packages/archives/. build/packages/kubernetes/$*/centos-7/
+	docker rm k8s-centos7-$*
+
+build/packages/kubernetes/%/centos-7-force:
+	docker build \
+		--build-arg KUBERNETES_VERSION=$* \
+		-t kurl/centos-7-force-k8s:$* \
+		-f bundles/k8s-centos7-force/Dockerfile \
+		bundles/k8s-centos7-force
+	-docker rm -f k8s-centos7-force-$* 2>/dev/null
+	docker create --name k8s-centos7-force-$* kurl/centos-7-force-k8s:$*
+	mkdir -p build/packages/kubernetes/$*/centos-7-force
+	docker cp k8s-centos7-force-$*:/packages/archives/. build/packages/kubernetes/$*/centos-7-force/
+	docker rm k8s-centos7-force-$*
+
+build/packages/kubernetes/%/centos-8:
+	docker build \
+		--build-arg KUBERNETES_VERSION=$* \
+		-t kurl/centos-8-k8s:$* \
+		-f bundles/k8s-centos8/Dockerfile \
+		bundles/k8s-centos8
+	-docker rm -f k8s-centos8-$* 2>/dev/null
+	docker create --name k8s-centos8-$* kurl/centos-8-k8s:$*
+	mkdir -p build/packages/kubernetes/$*/centos-8
+	docker cp k8s-centos8-$*:/packages/archives/. build/packages/kubernetes/$*/centos-8/
+	find build/packages/kubernetes/$*/centos-8 | grep kubelet | grep -v kubelet-$* | xargs rm -vf
+	find build/packages/kubernetes/$*/centos-8 | grep kubectl | grep -v kubectl-$* | xargs rm -vf
+	docker rm k8s-centos8-$*
+
 build/packages/kubernetes/%/rhel-7:
 	docker build \
 		--build-arg KUBERNETES_VERSION=$* \
@@ -566,6 +661,42 @@ build/packages/kubernetes/%/rhel-8:
 	find build/packages/kubernetes/$*/rhel-8 | grep kubectl | grep -v kubectl-$* | xargs rm -vf
 	docker rm k8s-rhel8-$*
 
+build/packages/rke-2/%/centos-7:
+	docker build \
+		--build-arg RKE2_VERSION=$* \
+		-t kurl/centos-7-rke2:$* \
+		-f bundles/rke2-centos7/Dockerfile \
+		bundles/rke2-centos7
+	-docker rm -f rke2-centos7-$* 2>/dev/null
+	docker create --name rke2-centos7-$* kurl/centos-7-rke2:$*
+	mkdir -p build/packages/rke-2/$*/centos-7
+	docker cp rke2-centos7-$*:/packages/archives/. build/packages/rke-2/$*/centos-7/
+	docker rm rke2-centos7-$*
+
+build/packages/rke-2/%/centos-7-force:
+	docker build \
+		--build-arg RKE2_VERSION=$* \
+		-t kurl/centos-7-force-rke2:$* \
+		-f bundles/rke2-centos7-force/Dockerfile \
+		bundles/rke2-centos7-force
+	-docker rm -f rke2-centos7-force-$* 2>/dev/null
+	docker create --name rke2-centos7-force-$* kurl/centos-7-force-rke2:$*
+	mkdir -p build/packages/rke-2/$*/centos-7-force
+	docker cp rke2-centos7-force-$*:/packages/archives/. build/packages/rke-2/$*/centos-7-force/
+	docker rm rke2-centos7-force-$*
+
+build/packages/rke-2/%/centos-8:
+	docker build \
+		--build-arg RKE2_VERSION=$* \
+		-t kurl/centos-8-rke2:$* \
+		-f bundles/rke2-centos8/Dockerfile \
+		bundles/rke2-centos8
+	-docker rm -f rke2-centos8-$* 2>/dev/null
+	docker create --name rke2-centos8-$* kurl/centos-8-rke2:$*
+	mkdir -p build/packages/rke-2/$*/centos-8
+	docker cp rke2-centos8-$*:/packages/archives/. build/packages/rke-2/$*/centos-8/
+	docker rm rke2-centos8-$*
+
 build/packages/rke-2/%/rhel-7:
 	docker build \
 		--build-arg RKE2_VERSION=$* \
@@ -601,6 +732,42 @@ build/packages/rke-2/%/rhel-8:
 	mkdir -p build/packages/rke-2/$*/rhel-8
 	docker cp rke2-rhel8-$*:/packages/archives/. build/packages/rke-2/$*/rhel-8/
 	docker rm rke2-rhel8-$*
+
+build/packages/k-3-s/%/centos-7:
+	docker build \
+		--build-arg K3S_VERSION=$* \
+		-t kurl/centos-7-k3s:$* \
+		-f bundles/k3s-centos7/Dockerfile \
+		bundles/k3s-centos7
+	-docker rm -f k3s-centos7-$* 2>/dev/null
+	docker create --name k3s-centos7-$* kurl/centos-7-k3s:$*
+	mkdir -p build/packages/k-3-s/$*/centos-7
+	docker cp k3s-centos7-$*:/packages/archives/. build/packages/k-3-s/$*/centos-7/
+	docker rm k3s-centos7-$*
+
+build/packages/k-3-s/%/centos-7-force:
+	docker build \
+		--build-arg K3S_VERSION=$* \
+		-t kurl/centos-7-force-k3s:$* \
+		-f bundles/k3s-centos7-force/Dockerfile \
+		bundles/k3s-centos7-force
+	-docker rm -f k3s-centos7-force-$* 2>/dev/null
+	docker create --name k3s-centos7-force-$* kurl/centos-7-force-k3s:$*
+	mkdir -p build/packages/k-3-s/$*/centos-7-force
+	docker cp k3s-centos7-force-$*:/packages/archives/. build/packages/k-3-s/$*/centos-7-force/
+	docker rm k3s-centos7-force-$*
+
+build/packages/k-3-s/%/centos-8:
+	docker build \
+		--build-arg K3S_VERSION=$* \
+		-t kurl/centos-8-k3s:$* \
+		-f bundles/k3s-centos8/Dockerfile \
+		bundles/k3s-centos8
+	-docker rm -f k3s-centos8-$* 2>/dev/null
+	docker create --name k3s-centos8-$* kurl/centos-8-k3s:$*
+	mkdir -p build/packages/k-3-s/$*/centos-8
+	docker cp k3s-centos8-$*:/packages/archives/. build/packages/k-3-s/$*/centos-8/
+	docker rm k3s-centos8-$*
 
 build/packages/k-3-s/%/rhel-7:
 	docker build \

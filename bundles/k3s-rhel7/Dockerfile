@@ -1,8 +1,7 @@
 # THIS ONLY DOWNLOADS THE SELINUX POLICY, not the k3s cli
-FROM centos:7
+FROM registry.access.redhat.com/ubi7/ubi:7.9 AS builder
 
 RUN yum install -y gettext
-RUN yum install -y createrepo
 
 RUN mkdir -p /packages/archives
 
@@ -18,6 +17,12 @@ ARG K3S_VERSION
 RUN envsubst < /tmp/rancher-k3s-common.repo.tmpl > /etc/yum.repos.d/rancher-k3s-common.repo
 RUN yumdownloader --installroot=/tmp/empty-directory --releasever=/ --resolve --destdir=/packages/archives -y \
     k3s-selinux
+
+# installing "createrepo" package on rhel requires a subscription. it's only needed to create the repo,
+# and it's not part of the produced packages, so we can do this:
+FROM centos:7.4.1708
+COPY --from=builder /packages/archives /packages/archives
+RUN yum install -y createrepo
 RUN createrepo /packages/archives
 
 CMD cp -r /packages/archives/* /out/
