@@ -1,6 +1,5 @@
 FROM registry.access.redhat.com/ubi7/ubi:7.9 AS builder
 
-RUN yum install -y createrepo
 RUN yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
 RUN mkdir -p /packages/archives
 
