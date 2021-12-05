@@ -54,6 +54,9 @@ function longhorn() {
     echo "Waiting for Longhorn Manager to create Storage Class"
     spinner_until 120 kubernetes_resource_exists longhorn-system sc longhorn
 
+    echo "Checking if all nodes have Longhorn Manager Daemonset prerequisites"
+    maybe_init_hosts
+
     echo "Waiting for Longhorn Manager Daemonset to be ready"
     spinner_until 180 longhorn_daemonset_is_ready longhorn-manager
 
@@ -188,6 +191,48 @@ function validate_longhorn_ds() {
             bail "No nodes with mount propagation enabled detected - Longhorn will not work. See https://longhorn.io/docs/1.1.1/deploy/install/#installation-requirements for details"
         fi
     fi
+}
+
+# if this is a multinode cluster, we need to prepare all hosts to run the daemonset
+function maybe_init_hosts() {
+    while true; do
+        local desired=$(kubectl get daemonsets -n longhorn-system longhorn-manager --no-headers | tr -s ' ' | cut -d ' ' -f2)
+        local ready=$(kubectl get daemonsets -n longhorn-system longhorn-manager --no-headers | tr -s ' ' | cut -d ' ' -f4)
+
+        if [ "$desired" = "$ready" ] && [ -n "$desired" ] && [ "$desired" > "1" ]; then
+            return
+        fi
+
+        while read -r podName; do            
+            if kubectl -n longhorn-system logs -p $podName | grep -q 'please make sure you have iscsiadm/open-iscsi installed on the host'; then
+                printf "\nRun this script on all nodes to install Longhorn prerequisites:\n"
+                if [ "$AIRGAP" = "1" ]; then
+                    printf "\n\t${GREEN}cat ./tasks.sh | sudo bash -s longhorn-node-initilize airgap${NC}\n\n"
+                else
+                    local prefix=
+                    prefix="$(build_installer_prefix "${INSTALLER_ID}" "${KURL_VERSION}" "${KURL_URL}" "${PROXY_ADDRESS}")"
+                    printf "\n\t${GREEN}${prefix}tasks.sh | sudo bash -s longhorn-node-initilize${NC}\n\n"
+                fi
+
+                if ! prompts_can_prompt ; then
+                    logWarn "Install Longhorn prerequisites prompt explicitly ignored"
+                    return
+                fi
+
+                while true; do
+                    echo ""
+                    printf "Has the command been ran on all remote nodes? "
+                    if confirmN ; then
+                        return
+                    else
+                        bail "Migration to Longhorn has been aborted."
+                    fi
+                done
+            fi
+        done < <(kubectl -n longhorn-system get pods -l app=longhorn-manager --no-headers | grep -v Running | awk '{print $1}')
+
+        sleep 1
+    done
 }
 
 # if rook-ceph is installed but is not specified in the kURL spec, migrate data from rook-ceph to longhorn

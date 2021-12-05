@@ -59,11 +59,11 @@ test-crd:
 
 # get/update controller-gen
 update-controller-gen:
-	go get sigs.k8s.io/controller-tools/cmd/controller-gen@v0.7.0
+	go install sigs.k8s.io/controller-tools/cmd/controller-gen@v0.7.0
 
 # get/update client-gen
 update-client-gen:
-	go get k8s.io/code-generator/cmd/client-gen@v0.21.3
+	go install k8s.io/code-generator/cmd/client-gen@v0.21.3
 
 update-kubebuilder: os = $(shell go env GOOS)
 update-kubebuilder: arch = $(shell go env GOARCH)

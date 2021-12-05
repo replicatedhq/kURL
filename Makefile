@@ -188,6 +188,12 @@ dist/host-openssl.tar.gz:
 	mkdir -p dist
 	tar cf - -C build packages/host/openssl | gzip > dist/host-openssl.tar.gz
 
+dist/host-longhorn.tar.gz:
+	mkdir -p build/packages/host/longhorn
+	bin/save-manifest-assets.sh "host-longhorn" packages/host/longhorn/Manifest $(CURDIR)/build/packages/host/longhorn
+	mkdir -p dist
+	tar cf - -C build packages/host/longhorn | gzip > dist/host-longhorn.tar.gz
+
 dist/longhorn-%.tar.gz: build/addons
 	mkdir -p build/addons/longhorn/$*/images
 	bin/save-manifest-assets.sh "longhorn-$*" addons/longhorn/$*/Manifest $(CURDIR)/build/addons/longhorn/$*
@@ -675,7 +681,7 @@ watchrsync:
 
 .PHONY: deps
 deps:
-	go get golang.org/x/lint/golint
+	go install golang.org/x/lint/golint
 
 .PHONY: lint
 lint:

@@ -21,7 +21,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	kubevirtv1 "kubevirt.io/client-go/api/v1"
+	kubevirtv1 "kubevirt.io/client-go/apis/core/v1"
 )
 
 var zero = int64(0)
@@ -196,8 +196,10 @@ func execute(singleTest types.SingleRun, uploadProxyURL, tempDir string) error {
 				{
 					Name: "pvcdisk",
 					VolumeSource: kubevirtv1.VolumeSource{
-						PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
-							ClaimName: singleTest.PVCName,
+						PersistentVolumeClaim: &kubevirtv1.PersistentVolumeClaimVolumeSource{
+							PersistentVolumeClaimVolumeSource: corev1.PersistentVolumeClaimVolumeSource{
+								ClaimName: singleTest.PVCName,
+							},
 						},
 					},
 				},

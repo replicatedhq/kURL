@@ -1,0 +1,4 @@
+yum nfs-utils
+yum iscsi-initiator-utils
+apt nfs-common
+apt open-iscsi
