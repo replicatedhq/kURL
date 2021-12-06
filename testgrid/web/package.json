@@ -67,7 +67,7 @@
     "react-dom": "^17.0.2",
     "react-github-button": "^0.1.11",
     "react-helmet": "^6.1.0",
-    "react-modal": "^3.14.3",
+    "react-modal": "^3.14.4",
     "react-monaco-editor": "^0.44.0",
     "react-router-dom": "^5.2.0",
     "reflexbox": "^4.0.6"
