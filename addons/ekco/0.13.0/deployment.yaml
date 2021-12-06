@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ekc-operator
+spec:
+  selector:
+    matchLabels:
+      app: ekc-operator
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: ekc-operator
+    spec:
+      serviceAccountName: ekco
+      restartPolicy: Always
+      nodeSelector:
+        node-role.kubernetes.io/master: ""
+      tolerations:
+        - key: node-role.kubernetes.io/master
+          operator: Exists
+      containers:
+        - name: ekc-operator
+          image: replicated/ekco:v0.13.0
+          imagePullPolicy: IfNotPresent
+          command: [ /usr/bin/ekco, operator ]
+          resources:
+            requests:
+              cpu: 100m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+          env:
+            - name: LOG_LEVEL
+              value: info
+          volumeMounts:
+            - name: ekco-config
+              mountPath: /etc/ekco
+              readOnly: true
+            - name: certificates-dir
+              mountPath: /etc/kubernetes/pki
+              readOnly: true
+      volumes:
+        - name: ekco-config
+          configMap:
+            name: ekco-config
+        - name: certificates-dir
+          hostPath:
+            path: /etc/kubernetes/pki
+            type: Directory
