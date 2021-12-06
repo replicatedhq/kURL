@@ -32,7 +32,7 @@
     "statsd-client": "^0.4.7",
     "superagent": "^6.1.0",
     "uuid": "^8.3.2",
-    "yargs": "^17.1.0"
+    "yargs": "^17.3.0"
   },
   "devDependencies": {
     "@types/chai": "^4.2.21",
