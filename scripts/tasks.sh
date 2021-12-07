@@ -66,7 +66,7 @@ function tasks() {
             remove_rook_ceph_task
             ;;
         longhorn-node-initilize|longhorn_node_initilize)
-            install_host_dependencies_longhorn
+            install_host_dependencies_longhorn $@
             ;;
         *)
             bail "Unknown task: $1"
@@ -622,6 +622,50 @@ function remove_rook_ceph_task() {
     fi
 
     remove_rook_ceph
+}
+
+function install_host_dependencies_longhorn() {
+    shift # the first param is longhorn-node-initilize|longhorn_node_initilize
+    while [ "$1" != "" ]; do
+        _param="$(echo "$1" | cut -d= -f1)"
+        _value="$(echo "$1" | grep '=' | cut -d= -f2-)"
+        case $_param in
+            airgap)
+                AIRGAP="1"
+                ;;
+            kurl-install-directory)
+                if [ -n "$_value" ]; then
+                    KURL_INSTALL_DIRECTORY_FLAG="${_value}"
+                    KURL_INSTALL_DIRECTORY="$(realpath ${_value})/kurl"
+                fi
+                ;;
+        esac
+        shift
+    done
+
+    discover
+
+    local cwd="$(pwd)"
+    if [ "$(readlink -f $KURL_INSTALL_DIRECTORY)" != "${cwd}/kurl" ]; then
+        mkdir -p ${cwd}/kurl
+        pushd ${cwd}/kurl
+        local pushed="1"
+    fi
+
+    if [ "$AIRGAP" != "1" ] && [ -n "$DIST_URL" ]; then
+        local package="host-longhorn.tar.gz"
+        package_download "${package}"
+        tar xf "$(package_filepath "${package}")"
+    fi
+
+    if [ "$pushed" == "1" ]; then
+        popd
+    fi
+
+    move_airgap_assets # even if not airgap, download happens in cwd and files need to be moved
+    pushd_install_directory
+
+    longhorn_host_init_common "${DIR}/packages/host/longhorn"
 }
 
 tasks "$@"
