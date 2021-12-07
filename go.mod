@@ -23,7 +23,7 @@ require (
 	github.com/onsi/gomega v1.15.0
 	github.com/pelletier/go-toml v1.9.3
 	github.com/pkg/errors v0.9.1
-	github.com/replicatedhq/pvmigrate v0.3.2
+	github.com/replicatedhq/pvmigrate v0.4.1
 	github.com/replicatedhq/troubleshoot v0.22.2-0.20211201002858-27c5e5192046
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/afero v1.6.0
@@ -43,7 +43,7 @@ require (
 	k8s.io/client-go v12.0.0+incompatible
 	k8s.io/code-generator v0.22.4
 	kubevirt.io/client-go v0.47.1
-	sigs.k8s.io/controller-runtime v0.9.5
+	sigs.k8s.io/controller-runtime v0.10.2
 	sigs.k8s.io/controller-tools v0.7.0
 )
 
