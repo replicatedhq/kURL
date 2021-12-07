@@ -113,6 +113,9 @@ function get_patch_yaml() {
                     KURL_INSTALL_DIRECTORY="$(realpath ${_value})/kurl"
                 fi
                 ;;
+            labels)
+                NODE_LABELS="$_value"
+                ;;
             load-balancer-address)
                 ;;
             preflight-ignore)

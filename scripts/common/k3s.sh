@@ -156,6 +156,7 @@ function k3s_init() {
     # fi
 
     labelNodes
+    labelNode
     kubectl cluster-info
 
     # create kurl namespace if it doesn't exist

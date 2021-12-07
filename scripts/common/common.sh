@@ -219,6 +219,12 @@ labelNodes() {
     done
 }
 
+labelNode() {
+    if [ -n "$NODE_LABELS" ]; then
+        kubectl label node --overwrite $(get_local_node_name) ${NODE_LABELS//,/ }
+    fi
+}
+
 spinnerPodRunning() {
     namespace=$1
     podPrefix=$2
