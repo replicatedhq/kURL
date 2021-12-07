@@ -975,8 +975,14 @@ spec:
   });
 
   describe("longhorn", () => {
-    it("should parse", () => {
+    it("should parse", async () => {
       const i = Installer.parse(longhorn);
+      const pkgs = await i.packages(undefined);
+
+      const hasHostLonghorn = _.some(pkgs, (pkg) => {
+        return pkg === "host-longhorn";
+      });
+      expect(hasHostLonghorn).to.equal(true);
 
       expect(i.spec.longhorn).to.deep.equal({
         s3Override: "https://dummy.s3.us-east-1.amazonaws.com/pr/longhorn-1.1.0.tar.gz",
@@ -1103,6 +1109,11 @@ spec:
         return pkg === "host-openssl";
       });
       expect(hasOpenssl).to.equal(true);
+
+      const hasHostLonghorn = _.some(pkgs, (pkg) => {
+        return pkg === "host-longhorn";
+      });
+      expect(hasHostLonghorn).to.equal(false);
 
       const hasKurlBinUtils = _.some(pkgs, (pkg) => {
         return pkg === "kurl-bin-utils-latest";
