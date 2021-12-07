@@ -3,7 +3,7 @@ image restic-restore velero/velero-restic-restore-helper:v1.6.0
 image velero-aws velero/velero-plugin-for-aws:v1.2.0
 image velero-gcp velero/velero-plugin-for-gcp:v1.2.0
 image velero-azure velero/velero-plugin-for-microsoft-azure:v1.2.0
-image local-volume-provider replicated/local-volume-provider:v0.1.0
-image local-volume-fileserver replicated/local-volume-fileserver:v0.1.0
+image local-volume-provider replicated/local-volume-provider:v0.3.0
+image s3cmd kurlsh/s3cmd:7f7dc75-20210331
 
 asset velero.tar.gz https://github.com/vmware-tanzu/velero/releases/download/v1.6.0/velero-v1.6.0-linux-amd64.tar.gz
