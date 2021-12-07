@@ -1279,6 +1279,9 @@ export class Installer {
       binUtils = `kurl-bin-utils-${kurlVersion}`
     }
     const pkgs = [ "common", binUtils, "host-openssl" ];
+    if (this.spec.longhorn) {
+      pkgs.push("host-longhorn");
+    }
 
     let kubernetesVersion = "";
     await Promise.all(_.each(_.keys(this.spec), async (config: string) => {
