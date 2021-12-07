@@ -1,4 +1,4 @@
-
+# shellcheck disable=SC2148
 function velero_pre_init() {
     if [ -z "$VELERO_NAMESPACE" ]; then
         VELERO_NAMESPACE=velero
@@ -48,7 +48,7 @@ function velero_install() {
     fi
 
     local bslArgs="--no-default-backup-location"
-    if ! kubernetes_resource_exists "$VELERO_NAMESPACE" backupstoragelocation default; then
+    if ! kubernetes_resource_exists "$VELERO_NAMESPACE" backupstoragelocation default && object_store_exists; then
         bslArgs="--provider aws --bucket $VELERO_LOCAL_BUCKET --backup-location-config region=us-east-1,s3Url=${OBJECT_STORE_CLUSTER_HOST},publicUrl=http://${OBJECT_STORE_CLUSTER_IP},s3ForcePathStyle=true"
     fi
 
