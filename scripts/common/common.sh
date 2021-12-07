@@ -604,23 +604,6 @@ function install_host_dependencies_openssl() {
     install_host_archives "${DIR}/packages/host/openssl" openssl
 }
 
-function install_host_dependencies_longhorn() {
-    discover
-
-    if [ "$AIRGAP" != "1" ] && [ -n "$DIST_URL" ]; then
-        local package="host-longhorn.tar.gz"
-        package_download "${package}"
-        tar xf "$(package_filepath "${package}")"
-    fi
-
-    if [ "$AIRGAP" == "1" ]; then
-        move_airgap_assets
-    fi
-    pushd_install_directory
-
-    longhorn_host_init_common "${DIR}/packages/host/longhorn"
-}
-
 function maybe_read_kurl_config_from_cluster() {
     if [ -n "${KURL_INSTALL_DIRECTORY_FLAG}" ]; then
         return
@@ -662,7 +645,7 @@ function move_airgap_assets() {
     local cwd
     cwd="$(pwd)"
 
-    if [ "$(readlink -f KURL_INSTALL_DIRECTORY)" = "${cwd}/kurl" ]; then
+    if [ "$(readlink -f $KURL_INSTALL_DIRECTORY)" = "${cwd}/kurl" ]; then
         return
     fi
 
