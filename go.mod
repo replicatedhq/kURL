@@ -34,14 +34,17 @@ require (
 	github.com/vmware-tanzu/velero v1.6.2
 	go.uber.org/zap v1.19.0
 	golang.org/x/crypto v0.0.0-20210513164829-c07d793c2f9a
+	golang.org/x/lint v0.0.0-20210508222113-6edffad5e616
 	golang.org/x/net v0.0.0-20211005001312-d4b1ae081e3b
 	gopkg.in/yaml.v2 v2.4.0
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
 	k8s.io/api v0.22.4
 	k8s.io/apimachinery v0.22.4
 	k8s.io/client-go v12.0.0+incompatible
+	k8s.io/code-generator v0.22.4
 	kubevirt.io/client-go v0.47.1
 	sigs.k8s.io/controller-runtime v0.9.5
+	sigs.k8s.io/controller-tools v0.7.0
 )
 
 require (
@@ -195,7 +198,6 @@ require (
 	go.opencensus.io v0.23.0 // indirect
 	go.uber.org/atomic v1.7.0 // indirect
 	go.uber.org/multierr v1.6.0 // indirect
-	golang.org/x/lint v0.0.0-20210508222113-6edffad5e616 // indirect
 	golang.org/x/mod v0.4.2 // indirect
 	golang.org/x/oauth2 v0.0.0-20210622215436-a8dc77f794b6 // indirect
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c // indirect
