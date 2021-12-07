@@ -34,7 +34,7 @@ jobs:
       - uses: actions/checkout@v2
       - name: "${{ matrix.addon }}:${{ matrix.version }} - ${{ matrix.name }} : Scan image"
         id: scan
-        uses: anchore/scan-action@v2
+        uses: anchore/scan-action@v3.1.0
         with:
           image: ${{ matrix.image }}
           fail-build: false
