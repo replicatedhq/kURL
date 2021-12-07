@@ -176,15 +176,6 @@ function _yum_get_host_packages_path() {
         fi
     fi
 
-    if [ "${LSB_DIST}" = "rhel" ]; then
-        if [ "${DIST_VERSION_MAJOR}" = "8" ]; then
-            echo "$(realpath "${dir}")/rhel-8${dir_prefix}"
-        else
-            echo "$(realpath "${dir}")/rhel-7${dir_prefix}"
-        fi
-        return 0
-    fi
-
     if [ "${DIST_VERSION_MAJOR}" = "8" ]; then
         echo "$(realpath "${dir}")/centos-8${dir_prefix}"
     else

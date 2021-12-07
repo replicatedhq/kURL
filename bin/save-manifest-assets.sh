@@ -67,45 +67,6 @@ function createrepo_centos_7() {
     sudo chown -R $UID "${outdir}"
 }
 
-function build_rhel_7() {
-    local packages=("$@")
-    local outdir="${OUT_DIR}/rhel-7"
-
-    mkdir -p "${outdir}"
-
-    docker rm -f "rhel-7-${PACKAGE_NAME}" 2>/dev/null || true
-    # Use the oldest OS minor version supported to ensure that updates required for outdated
-    # packages are included.
-    docker run \
-        --name "rhel-7-${PACKAGE_NAME}" \
-        registry.access.redhat.com/ubi7/ubi:7.9 \
-        /bin/bash -c "\
-            set -x
-            yum install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm && \
-            mkdir -p /packages/archives && \
-            yumdownloader --installroot=/tmp/empty-directory --releasever=/ --resolve --destdir=/packages/archives -y ${packages[*]}"
-    sudo docker cp "rhel-7-${PACKAGE_NAME}":/packages/archives "${outdir}"
-    sudo chown -R $UID "${outdir}"
-}
-
-function createrepo_rhel_7() {
-    local outdir=
-    outdir="$(realpath "${OUT_DIR}")/rhel-7"
-
-    # installing "createrepo" package on rhel requires a subscription. it's only needed to create the repo, and it's not part of the produced packages, so use the centos image instead
-    docker rm -f "rhel-7-createrepo-${PACKAGE_NAME}" 2>/dev/null || true
-    docker run \
-        --name "rhel-7-createrepo-${PACKAGE_NAME}" \
-        -v "${outdir}/archives":/packages/archives \
-        centos:7.4.1708 \
-        /bin/bash -c "\
-            set -x
-            yum install -y createrepo && \
-            createrepo /packages/archives"
-    sudo docker cp "rhel-7-createrepo-${PACKAGE_NAME}":/packages/archives "${outdir}"
-    sudo chown -R $UID "${outdir}"
-}
-
 function build_centos_8() {
     local packages=("$@")
     local outdir="${OUT_DIR}/centos-8"
@@ -147,49 +108,6 @@ function createrepo_centos_8() {
             repo2module --module-name=kurl.local --module-stream=stable /packages/archives /tmp/modules.yaml && \
             modifyrepo_c --mdtype=modules /tmp/modules.yaml /packages/archives/repodata"
     sudo docker cp "centos-8-createrepo-${PACKAGE_NAME}":/packages/archives "${outdir}"
-    sudo chown -R $UID "${outdir}"
-}
-
-function build_rhel_8() {
-    local packages=("$@")
-    local outdir="${OUT_DIR}/rhel-8"
-
-    mkdir -p "${outdir}"
-
-    docker rm -f "rhel-8-${PACKAGE_NAME}" 2>/dev/null || true
-    # Use the oldest OS minor version supported to ensure that updates required for outdated
-    # packages are included.
-    docker run \
-        --name "rhel-8-${PACKAGE_NAME}" \
-        registry.access.redhat.com/ubi8/ubi:8.1 \
-        /bin/bash -c "\
-            set -x
-            echo -e \"fastestmirror=1\nmax_parallel_downloads=8\" >> /etc/dnf/dnf.conf && \
-            yum install -y yum-utils https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm && \
-            mkdir -p /packages/archives && \
-            yumdownloader --installroot=/tmp/empty-directory --releasever=/ --resolve --destdir=/packages/archives -y ${packages[*]}"
-    sudo docker cp "rhel-8-${PACKAGE_NAME}":/packages/archives "${outdir}"
-    sudo chown -R $UID "${outdir}"
-}
-
-function createrepo_rhel_8() {
-    local outdir=
-    outdir="$(realpath "${OUT_DIR}")/rhel-8"
-
-    # installing "createrepo" package on rhel requires a subscription. it's only needed to create the repo, and it's not part of the produced packages, so use the centos image instead
-    docker rm -f "rhel-8-createrepo-${PACKAGE_NAME}" 2>/dev/null || true
-    docker run \
-        --name "rhel-8-createrepo-${PACKAGE_NAME}" \
-        -v "${outdir}/archives":/packages/archives \
-        centos:8.1.1911 \
-        /bin/bash -c "\
-            set -x
-            echo -e \"fastestmirror=1\nmax_parallel_downloads=8\" >> /etc/dnf/dnf.conf && \
-            yum install -y createrepo modulemd-tools && \
-            createrepo_c /packages/archives && \
-            repo2module --module-name=kurl.local --module-stream=stable /packages/archives /tmp/modules.yaml && \
-            modifyrepo_c --mdtype=modules /tmp/modules.yaml /packages/archives/repodata"
-    sudo docker cp "rhel-8-createrepo-${PACKAGE_NAME}":/packages/archives "${outdir}"
     sudo chown -R $UID "${outdir}"
 }
 
@@ -246,9 +164,7 @@ function try_5_times() {
 }
 
 pkgs_centos7=()
-pkgs_rhel7=()
 pkgs_centos8=()
-pkgs_rhel8=()
 pkgs_ol7=()
 
 while read -r line; do
@@ -323,15 +239,12 @@ while read -r line; do
         yum)
             package=$(echo "${line}" | awk '{ print $2 }')
             pkgs_centos7+=("${package}")
-            pkgs_rhel7+=("${package}")
             pkgs_centos8+=("${package}")
-            pkgs_rhel8+=("${package}")
             ;;
 
         yum8)
             package=$(echo "${line}" | awk '{ print $2 }')
             pkgs_centos8+=("${package}")
-            pkgs_rhel8+=("${package}")
             ;;
 
         yumol)
@@ -372,28 +285,12 @@ if [ "${#pkgs_centos7[@]}" -gt "0" ]; then
     build_centos_7_force "${pkgs_centos7[@]}"
 fi
 
-# rhel 7
-if [ "${#pkgs_rhel7[@]}" -gt "0" ]; then
-    build_rhel_7 "${pkgs_rhel7[@]}"
-fi
-if [ "$(ls -A "${OUT_DIR}/rhel-7")" ]; then
-    createrepo_rhel_7
-fi
-
 # centos 8
 if [ "${#pkgs_centos8[@]}" -gt "0" ]; then
     build_centos_8 "${pkgs_centos8[@]}"
 fi
 if [ "$(ls -A "${OUT_DIR}/centos-8")" ]; then
     createrepo_centos_8
-fi
-
-# rhel 8
-if [ "${#pkgs_rhel8[@]}" -gt "0" ]; then
-    build_rhel_8 "${pkgs_rhel8[@]}"
-fi
-if [ "$(ls -A "${OUT_DIR}/rhel-8")" ]; then
-    createrepo_rhel_8
 fi
 
 # ol 7

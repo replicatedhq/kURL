@@ -149,8 +149,6 @@ dist/docker-%.tar.gz:
 	${MAKE} build/packages/docker/$*/centos-7
 	${MAKE} build/packages/docker/$*/centos-7-force
 	${MAKE} build/packages/docker/$*/centos-8
-	${MAKE} build/packages/docker/$*/rhel-7
-	${MAKE} build/packages/docker/$*/rhel-8
 	mkdir -p dist
 	curl -L https://github.com/opencontainers/runc/releases/download/v1.0.0-rc95/runc.amd64 > build/packages/docker/$*/runc
 	chmod +x build/packages/docker/$*/runc
@@ -219,8 +217,6 @@ dist/kubernetes-%.tar.gz:
 	${MAKE} build/packages/kubernetes/$*/centos-7
 	${MAKE} build/packages/kubernetes/$*/centos-7-force
 	${MAKE} build/packages/kubernetes/$*/centos-8
-	${MAKE} build/packages/kubernetes/$*/rhel-7
-	${MAKE} build/packages/kubernetes/$*/rhel-8
 	cp packages/kubernetes/$*/Manifest build/packages/kubernetes/$*/
 	mkdir -p dist
 	tar cf - -C build packages/kubernetes/$* | gzip > dist/kubernetes-$*.tar.gz
@@ -245,8 +241,6 @@ dist/rke-2-%.tar.gz:
 	${MAKE} build/packages/rke-2/$*/centos-7
 	${MAKE} build/packages/rke-2/$*/centos-7-force
 	${MAKE} build/packages/rke-2/$*/centos-8
-	${MAKE} build/packages/rke-2/$*/rhel-7
-	${MAKE} build/packages/rke-2/$*/rhel-8
 	cp packages/rke-2/$*/Manifest build/packages/rke-2/$*/
 	mkdir -p dist
 	tar cf - -C build packages/rke-2/$* | gzip > dist/rke-2-$*.tar.gz
@@ -261,8 +255,6 @@ dist/k-3-s-%.tar.gz:
 	${MAKE} build/packages/k-3-s/$*/centos-7
 	${MAKE} build/packages/k-3-s/$*/centos-7-force
 	${MAKE} build/packages/k-3-s/$*/centos-8
-	${MAKE} build/packages/k-3-s/$*/rhel-7
-	${MAKE} build/packages/k-3-s/$*/rhel-8
 	cp packages/k-3-s/$*/Manifest build/packages/k-3-s/$*/
 	mkdir -p dist
 	tar cf - -C build packages/k-3-s/$* | gzip > dist/k-3-s-$*.tar.gz
@@ -506,39 +498,6 @@ build/packages/docker/%/centos-8:
 	docker cp docker-centos8-$*:/packages/archives/. build/packages/docker/$*/centos-8
 	docker rm docker-centos8-$*
 
-build/packages/docker/%/rhel-7:
-	docker build \
-		--build-arg DOCKER_VERSION=$* \
-		-t kurl/rhel-7-docker:$* \
-		-f bundles/docker-rhel7/Dockerfile \
-		bundles/docker-rhel7
-	-docker rm -f docker-rhel7 2>/dev/null
-	docker create --name docker-rhel7-$* kurl/rhel-7-docker:$*
-	mkdir -p build/packages/docker/$*/rhel-7
-	docker cp docker-rhel7-$*:/packages/archives/. build/packages/docker/$*/rhel-7
-	docker rm docker-rhel7-$*
-
-build/packages/docker/18.09.8/rhel-8:
-	${MAKE} build/packages/docker/18.09.8/rhel-8
-
-build/packages/docker/19.03.4/rhel-8:
-	${MAKE} build/packages/docker/19.03.4/rhel-8
-
-build/packages/docker/19.03.10/rhel-8:
-	${MAKE} build/packages/docker/19.03.10/rhel-8
-
-build/packages/docker/%/rhel-8:
-	docker build \
-		--build-arg DOCKER_VERSION=$* \
-		-t kurl/rhel-8-docker:$* \
-		-f bundles/docker-rhel8/Dockerfile \
-		bundles/docker-rhel8
-	-docker rm -f docker-rhel8 2>/dev/null
-	docker create --name docker-rhel8-$* kurl/rhel-8-docker:$*
-	mkdir -p build/packages/docker/$*/rhel-8
-	docker cp docker-rhel8-$*:/packages/archives/. build/packages/docker/$*/rhel-8
-	docker rm docker-rhel8-$*
-
 build/packages/kubernetes/%/ubuntu-16.04:
 	docker build \
 		--build-arg KUBERNETES_VERSION=$* \
@@ -613,32 +572,6 @@ build/packages/kubernetes/%/centos-8:
 	find build/packages/kubernetes/$*/centos-8 | grep kubectl | grep -v kubectl-$* | xargs rm -vf
 	docker rm k8s-centos8-$*
 
-build/packages/kubernetes/%/rhel-7:
-	docker build \
-		--build-arg KUBERNETES_VERSION=$* \
-		-t kurl/rhel-7-k8s:$* \
-		-f bundles/k8s-rhel7/Dockerfile \
-		bundles/k8s-rhel7
-	-docker rm -f k8s-rhel7-$* 2>/dev/null
-	docker create --name k8s-rhel7-$* kurl/rhel-7-k8s:$*
-	mkdir -p build/packages/kubernetes/$*/rhel-7
-	docker cp k8s-rhel7-$*:/packages/archives/. build/packages/kubernetes/$*/rhel-7/
-	docker rm k8s-rhel7-$*
-
-build/packages/kubernetes/%/rhel-8:
-	docker build \
-		--build-arg KUBERNETES_VERSION=$* \
-		-t kurl/rhel-8-k8s:$* \
-		-f bundles/k8s-rhel8/Dockerfile \
-		bundles/k8s-rhel8
-	-docker rm -f k8s-rhel8-$* 2>/dev/null
-	docker create --name k8s-rhel8-$* kurl/rhel-8-k8s:$*
-	mkdir -p build/packages/kubernetes/$*/rhel-8
-	docker cp k8s-rhel8-$*:/packages/archives/. build/packages/kubernetes/$*/rhel-8/
-	find build/packages/kubernetes/$*/rhel-8 | grep kubelet | grep -v kubelet-$* | xargs rm -vf
-	find build/packages/kubernetes/$*/rhel-8 | grep kubectl | grep -v kubectl-$* | xargs rm -vf
-	docker rm k8s-rhel8-$*
-
 build/packages/rke-2/%/centos-7:
 	docker build \
 		--build-arg RKE2_VERSION=$* \
@@ -675,30 +608,6 @@ build/packages/rke-2/%/centos-8:
 	docker cp rke2-centos8-$*:/packages/archives/. build/packages/rke-2/$*/centos-8/
 	docker rm rke2-centos8-$*
 
-build/packages/rke-2/%/rhel-7:
-	docker build \
-		--build-arg RKE2_VERSION=$* \
-		-t kurl/rhel-7-rke2:$* \
-		-f bundles/rke2-rhel7/Dockerfile \
-		bundles/rke2-rhel7
-	-docker rm -f rke2-rhel7-$* 2>/dev/null
-	docker create --name rke2-rhel7-$* kurl/rhel-7-rke2:$*
-	mkdir -p build/packages/rke-2/$*/rhel-7
-	docker cp rke2-rhel7-$*:/packages/archives/. build/packages/rke-2/$*/rhel-7/
-	docker rm rke2-rhel7-$*
-
-build/packages/rke-2/%/rhel-8:
-	docker build \
-		--build-arg RKE2_VERSION=$* \
-		-t kurl/rhel-8-rke2:$* \
-		-f bundles/rke2-rhel8/Dockerfile \
-		bundles/rke2-rhel8
-	-docker rm -f rke2-rhel8-$* 2>/dev/null
-	docker create --name rke2-rhel8-$* kurl/rhel-8-rke2:$*
-	mkdir -p build/packages/rke-2/$*/rhel-8
-	docker cp rke2-rhel8-$*:/packages/archives/. build/packages/rke-2/$*/rhel-8/
-	docker rm rke2-rhel8-$*
-
 build/packages/k-3-s/%/centos-7:
 	docker build \
 		--build-arg K3S_VERSION=$* \
@@ -734,30 +643,6 @@ build/packages/k-3-s/%/centos-8:
 	mkdir -p build/packages/k-3-s/$*/centos-8
 	docker cp k3s-centos8-$*:/packages/archives/. build/packages/k-3-s/$*/centos-8/
 	docker rm k3s-centos8-$*
-
-build/packages/k-3-s/%/rhel-7:
-	docker build \
-		--build-arg K3S_VERSION=$* \
-		-t kurl/rhel-7-k3s:$* \
-		-f bundles/k3s-rhel7/Dockerfile \
-		bundles/k3s-rhel7
-	-docker rm -f k3s-rhel7-$* 2>/dev/null
-	docker create --name k3s-rhel7-$* kurl/rhel-7-k3s:$*
-	mkdir -p build/packages/k-3-s/$*/rhel-7
-	docker cp k3s-rhel7-$*:/packages/archives/. build/packages/k-3-s/$*/rhel-7/
-	docker rm k3s-rhel7-$*
-
-build/packages/k-3-s/%/rhel-8:
-	docker build \
-		--build-arg K3S_VERSION=$* \
-		-t kurl/rhel-8-k3s:$* \
-		-f bundles/k3s-rhel8/Dockerfile \
-		bundles/k3s-rhel8
-	-docker rm -f k3s-rhel8-$* 2>/dev/null
-	docker create --name k3s-rhel8-$* kurl/rhel-8-k3s:$*
-	mkdir -p build/packages/k-3-s/$*/rhel-8
-	docker cp k3s-rhel8-$*:/packages/archives/. build/packages/k-3-s/$*/rhel-8/
-	docker rm k3s-rhel8-$*
 
 build/templates: build/templates/install.tmpl build/templates/join.tmpl build/templates/upgrade.tmpl build/templates/tasks.tmpl
 
