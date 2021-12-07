@@ -630,6 +630,9 @@ function install_host_dependencies_longhorn() {
         _param="$(echo "$1" | cut -d= -f1)"
         _value="$(echo "$1" | grep '=' | cut -d= -f2-)"
         case $_param in
+            airgap)
+                AIRGAP="1"
+                ;;
             kurl-install-directory)
                 if [ -n "$_value" ]; then
                     KURL_INSTALL_DIRECTORY_FLAG="${_value}"
