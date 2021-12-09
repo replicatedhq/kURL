@@ -11,4 +11,6 @@ func AddCommands(cmd *cobra.Command, cli CLI) {
 	cmd.AddCommand(hostCmd)
 
 	cmd.AddCommand(NewSyncObjectStoreCmd(cli))
+
+	cmd.AddCommand(NewFormatAddressCmd(cli))
 }

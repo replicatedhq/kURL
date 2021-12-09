@@ -155,8 +155,13 @@ function registry_cred_secrets() {
     kubectl -n kurl patch secret registry-htpasswd -p '{"metadata":{"labels":{"kots.io/kotsadm":"true", "kots.io/backup":"velero"}}}'
     rm htpasswd
 
+    local server="$DOCKER_REGISTRY_IP"
+    if [ "$IPV6_ONLY" = "1" ]; then
+        server="registry.kurl.svc.cluster.local"
+    fi
+
     kubectl -n default create secret docker-registry registry-creds \
-        --docker-server="$DOCKER_REGISTRY_IP" \
+        --docker-server="$server" \
         --docker-username="$user" \
         --docker-password="$password"
     kubectl -n default patch secret registry-creds -p '{"metadata":{"labels":{"kots.io/kotsadm":"true", "kots.io/backup":"velero"}}}'

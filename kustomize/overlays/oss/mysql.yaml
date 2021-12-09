@@ -1,0 +1,70 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: schema
+data:
+  migrate.sql: |
+    CREATE TABLE IF NOT EXISTS kurl_installer (
+      kurl_installer_id VARCHAR(255),
+      yaml MEDIUMTEXT NOT NULL,
+      team_id CHAR(36),
+      PRIMARY KEY (kurl_installer_id)
+    );
+    CREATE TABLE IF NOT EXISTS kurl_saas_script_metrics (
+      id VARCHAR(255),
+      installer_id VARCHAR(255),
+      timestamp DATETIME,
+      is_airgap TINYINT,
+      client_ip VARCHAR(255),
+      user_agent VARCHAR(255)
+    );
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mysql
+spec:
+  selector:
+    matchLabels:
+      app: mysql
+  template:
+    metadata:
+      labels:
+        app: mysql
+    spec:
+      volumes:
+      - name: data
+        hostPath:
+          path: /opt/kurl/db
+      - name: init
+        configMap:
+          name: schema
+      containers:
+      - name: mysql
+        image: mysql:5
+        volumeMounts:
+        - name: data
+          mountPath: /var/lib/mysql
+        - name: init
+          mountPath: /docker-entrypoint-initdb.d
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          value: password
+        - name: MYSQL_DATABASE
+          value: replicated
+        - name: MYSQL_USER
+          value: replicated
+        - name: MYSQL_PASSWORD
+          value: password
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql
+spec:
+  selector:
+    app: mysql
+  ports:
+    - protocol: TCP
+      port: 3306
+      targetPort: 3306

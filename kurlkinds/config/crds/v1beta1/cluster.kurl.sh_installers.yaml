@@ -1710,6 +1710,8 @@ spec:
                     type: boolean
                   installerVersion:
                     type: string
+                  ipv6:
+                    type: boolean
                   licenseURL:
                     type: string
                   nameserver:

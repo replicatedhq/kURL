@@ -37,13 +37,14 @@ function _object_store_create_bucket() {
     local string="PUT\n\n\n${d}\n${acl}\n/$bucket"
     local sig=$(echo -en "${string}" | openssl sha1 -hmac "${OBJECT_STORE_SECRET_KEY}" -binary | base64)
 
+    local addr=$($DIR/bin/kurl format-address "$OBJECT_STORE_CLUSTER_IP")
     curl -fsSL -X PUT  \
         --noproxy "*" \
         -H "Host: $OBJECT_STORE_CLUSTER_IP" \
         -H "Date: $d" \
         -H "$acl" \
         -H "Authorization: AWS $OBJECT_STORE_ACCESS_KEY:$sig" \
-        "http://$OBJECT_STORE_CLUSTER_IP/$bucket" >/dev/null 2>&1
+        "http://$addr/$bucket" >/dev/null 2>&1
 }
 
 function object_store_bucket_exists() {
@@ -53,13 +54,14 @@ function object_store_bucket_exists() {
     local string="HEAD\n\n\n${d}\n${acl}\n/$bucket"
     local sig=$(echo -en "${string}" | openssl sha1 -hmac "${OBJECT_STORE_SECRET_KEY}" -binary | base64)
 
+    local addr=$($DIR/bin/kurl format-address "$OBJECT_STORE_CLUSTER_IP")
     curl -fsSL -I \
         --noproxy "*" \
         -H "Host: $OBJECT_STORE_CLUSTER_IP" \
         -H "Date: $d" \
         -H "$acl" \
         -H "Authorization: AWS $OBJECT_STORE_ACCESS_KEY:$sig" \
-        "http://$OBJECT_STORE_CLUSTER_IP/$bucket" >/dev/null 2>&1
+        "http://$addr/$bucket" >/dev/null 2>&1
 }
 
 function migrate_rgw_to_minio() {
@@ -132,10 +134,11 @@ EOF
         fi
     fi
 
+    local minioIP=$($DIR/bin/kurl format-address "$MINIO_CLUSTER_IP")
     # Update registry to use minio
     if kubernetes_resource_exists kurl configmap registry-config; then
         echo "Updating registry to use minio"
-        kubectl -n kurl get configmap registry-config -ojsonpath='{ .data.config\.yml }' | sed "s/regionendpoint: http.*/regionendpoint: http:\/\/${MINIO_CLUSTER_IP}/" > config.yml
+        kubectl -n kurl get configmap registry-config -ojsonpath='{ .data.config\.yml }' | sed "s/regionendpoint: http.*/regionendpoint: http:\/\/${minioIP}/" > config.yml
         kubectl -n kurl delete configmap registry-config
         kubectl -n kurl create configmap registry-config --from-file=config.yml=config.yml
         rm config.yml
@@ -153,7 +156,7 @@ EOF
         echo "Updating velero to use minio"
         s3Url=$(kubectl -n velero get backupstoragelocation default -ojsonpath='{ .spec.config.s3Url }')
         if [ "$s3Url" = "http://${RGW_HOST}" ]; then
-            kubectl -n velero patch backupstoragelocation default --type=merge -p "{\"spec\":{\"config\":{\"s3Url\":\"http://${MINIO_HOST}\",\"publicUrl\":\"http://${MINIO_CLUSTER_IP}\"}}}"
+            kubectl -n velero patch backupstoragelocation default --type=merge -p "{\"spec\":{\"config\":{\"s3Url\":\"http://${MINIO_HOST}\",\"publicUrl\":\"http://${minioIP}\"}}}"
 
             while read -r resticrepo; do
                 oldResticIdentifier=$(kubectl -n velero get resticrepositories "$resticrepo" -ojsonpath="{ .spec.resticIdentifier }")

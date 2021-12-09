@@ -52,9 +52,23 @@ function kubernetes_load_ipvs_modules() {
 }
 
 function kubernetes_sysctl_config() {
-    if ! cat /etc/sysctl.conf | grep "^net.bridge.bridge-nf-call-ip6tables" | tail -n1 | grep -Eq "^net.bridge.bridge-nf-call-ip6tables\s*=\s*1"; then
-        echo "net.bridge.bridge-nf-call-ip6tables = 1" >> /etc/sysctl.conf
+    if [ "$IPV6_ONLY" = "1" ]; then
+        if ! cat /etc/sysctl.conf | grep "^net.bridge.bridge-nf-call-ip6tables" | tail -n1 | grep -Eq "^net.bridge.bridge-nf-call-ip6tables\s*=\s*1"; then
+            echo "net.bridge.bridge-nf-call-ip6tables = 1" >> /etc/sysctl.conf
+        fi
+        if ! cat /etc/sysctl.conf | grep "^net.ipv6.conf.all.forwarding" | tail -n1 | grep -Eq "^net.ipv6.conf.all.forwarding\s*=\s*1"; then
+            echo "net.ipv6.conf.all.forwarding = 1" >> /etc/sysctl.conf
+        fi
+
+        sysctl --system
+
+        if [ "$(cat /proc/sys/net/ipv6/conf/all/forwarding)" = "0" ]; then
+            bail "Failed to enable IPv6 forwarding."
+        fi
+
+        return 0
     fi
+
     if ! cat /etc/sysctl.conf | grep "^net.bridge.bridge-nf-call-iptables" | tail -n1 | grep -Eq "^net.bridge.bridge-nf-call-iptables\s*=\s*1"; then
         echo "net.bridge.bridge-nf-call-iptables = 1" >> /etc/sysctl.conf
     fi
@@ -239,11 +253,17 @@ function kubernetes_has_remotes() {
 }
 
 function kubernetes_api_address() {
-    if [ -n "$LOAD_BALANCER_ADDRESS" ]; then
-        echo "${LOAD_BALANCER_ADDRESS}:${LOAD_BALANCER_PORT}"
-        return
+    local addr="$LOAD_BALANCER_ADDRESS"
+    local port="$LOAD_BALANCER_PORT"
+
+    if [ -z "$addr" ]; then
+        addr="$PRIVATE_ADDRESS"
+        port="6443"
     fi
-    echo "${PRIVATE_ADDRESS}:6443"
+
+    addr=$(${DIR}/bin/kurl format-address ${addr})
+
+    echo "${addr}:${port}"
 }
 
 function kubernetes_api_is_healthy() {
@@ -355,6 +375,14 @@ function kubernetes_is_master() {
 }
 
 function discover_pod_subnet() {
+    # TODO check ipv6 cidr for overlaps
+    if [ "$IPV6_ONLY" = "1" ]; then
+        if [ -z "$POD_CIDR" ]; then
+            POD_CIDR="fd00:c00b:1::/112"
+        fi
+        return 0
+    fi
+
     local excluded=""
     if ! ip route show src "$PRIVATE_ADDRESS" | awk '{ print $1 }' | grep -q '/'; then
         excluded="--exclude-subnet=${PRIVATE_ADDRESS}/16"
@@ -414,6 +442,13 @@ function discover_pod_subnet() {
 
 # This must run after discover_pod_subnet since it excludes the pod cidr
 function discover_service_subnet() {
+    # TODO check ipv6 cidr for overlaps
+    if [ "$IPV6_ONLY" = "1" ]; then
+        if [ -z "$SERVICE_CIDR" ]; then
+            SERVICE_CIDR="fd00:c00b:2::/112"
+        fi
+        return 0
+    fi
     local excluded="--exclude-subnet=$POD_CIDR"
     if ! ip route show src "$PRIVATE_ADDRESS" | awk '{ print $1 }' | grep -q '/'; then
         excluded="$excluded,${PRIVATE_ADDRESS}/16"
