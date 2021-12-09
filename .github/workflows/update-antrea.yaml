@@ -30,8 +30,8 @@ jobs:
           automated-pr
           antrea
         draft: false
-        base: "master"
-        body: "Automated changes by the [cron-antrea-update](https://github.com/replicatedhq/kURL/blob/master/.github/workflows/update-antrea.yaml) GitHub action"
+        base: "main"
+        body: "Automated changes by the [cron-antrea-update](https://github.com/replicatedhq/kURL/blob/main/.github/workflows/update-antrea.yaml) GitHub action"
 
     - name: Check outputs
       run: |

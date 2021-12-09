@@ -3,7 +3,7 @@ name: deploy-testgrid
 on:
   push:
     branches:
-    - master
+    - main
 
 jobs:
   staging-docker-image-tgapi:

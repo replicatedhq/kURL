@@ -202,7 +202,7 @@ jobs:
           ferrarimarco/github-changelog-generator \
           --user=replicatedhq \
           --project=kurl \
-          --release-branch=master \
+          --release-branch=main \
           --since-tag="$lastTag" \
           --no-issues \
           --no-author
