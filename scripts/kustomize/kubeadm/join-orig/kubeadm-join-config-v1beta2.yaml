@@ -7,7 +7,7 @@ nodeRegistration:
   taints: []
   kubeletExtraArgs:
     node-ip: $PRIVATE_ADDRESS
-    node-labels: "kurl.sh/cluster=true"
+    node-labels: "kurl.sh/cluster=true,$NODE_LABELS"
 discovery:
   bootstrapToken:
     token: $KUBEADM_TOKEN
