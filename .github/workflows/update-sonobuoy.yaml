@@ -30,8 +30,8 @@ jobs:
           automated-pr
           sonobuoy
         draft: false
-        base: "master"
-        body: "Automated changes by the [cron-sonobuoy-update](https://github.com/replicatedhq/kURL/blob/master/.github/workflows/update-sonobuoy.yaml) GitHub action"
+        base: "main"
+        body: "Automated changes by the [cron-sonobuoy-update](https://github.com/replicatedhq/kURL/blob/main/.github/workflows/update-sonobuoy.yaml) GitHub action"
 
     - name: Check outputs
       run: |
