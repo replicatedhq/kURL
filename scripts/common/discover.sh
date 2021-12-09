@@ -23,6 +23,7 @@ function discover() {
 LSB_DIST=
 DIST_VERSION=
 DIST_VERSION_MAJOR=
+DIST_VERSION_MINOR=
 detectLsbDist() {
     _dist=
     _error_msg="We have checked /etc/os-release and /etc/centos-release files."
@@ -44,7 +45,7 @@ detectLsbDist() {
         if grep --quiet "Amazon Linux" /etc/system-release; then
             # Special case for Amazon 2014.03
             _dist="amzn"
-            _version=`awk '/Amazon Linux/{print $NF}' /etc/system-release`
+            _version=$(awk '/Amazon Linux/{print $NF}' /etc/system-release)
         fi
     else
         _error_msg="$_error_msg\nDistribution cannot be determined because neither of these files exist."
@@ -72,12 +73,12 @@ detectLsbDist() {
             rhel)
                 _error_msg="$_error_msg\nHowever detected version $_version is less than 7."
                 oIFS="$IFS"; IFS=.; set -- $_version; IFS="$oIFS";
-                [ $1 -ge 6 ] && LSB_DIST=$_dist && DIST_VERSION=$_version && DIST_VERSION_MAJOR=$1
+                [ $1 -ge 6 ] && LSB_DIST=$_dist && DIST_VERSION=$_version && DIST_VERSION_MAJOR=$1 && DIST_VERSION_MINOR="${DIST_VERSION#$DIST_VERSION_MAJOR.}" && DIST_VERSION_MINOR="${DIST_VERSION_MINOR%%.*}"
                 ;;
             centos)
                 _error_msg="$_error_msg\nHowever detected version $_version is less than 6."
                 oIFS="$IFS"; IFS=.; set -- $_version; IFS="$oIFS";
-                [ $1 -ge 6 ] && LSB_DIST=$_dist && DIST_VERSION=$_version && DIST_VERSION_MAJOR=$1
+                [ $1 -ge 6 ] && LSB_DIST=$_dist && DIST_VERSION=$_version && DIST_VERSION_MAJOR=$1 && DIST_VERSION_MINOR="${DIST_VERSION#$DIST_VERSION_MAJOR.}" && DIST_VERSION_MINOR="${DIST_VERSION_MINOR%%.*}"
                 ;;
             amzn)
                 _error_msg="$_error_msg\nHowever detected version $_version is not one of\n    2, 2.0, 2018.03, 2017.09, 2017.03, 2016.09, 2016.03, 2015.09, 2015.03, 2014.09, 2014.03."
@@ -97,7 +98,7 @@ detectLsbDist() {
             ol)
                 _error_msg="$_error_msg\nHowever detected version $_version is less than 6."
                 oIFS="$IFS"; IFS=.; set -- $_version; IFS="$oIFS";
-                [ $1 -ge 6 ] && LSB_DIST=$_dist && DIST_VERSION=$_version && DIST_VERSION_MAJOR=$1
+                [ $1 -ge 6 ] && LSB_DIST=$_dist && DIST_VERSION=$_version && DIST_VERSION_MAJOR=$1 && DIST_VERSION_MINOR="${DIST_VERSION#$DIST_VERSION_MAJOR.}" && DIST_VERSION_MINOR="${DIST_VERSION_MINOR%%.*}"
                 ;;
             *)
                 _error_msg="$_error_msg\nThat is an unsupported distribution."
