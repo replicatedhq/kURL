@@ -18,6 +18,62 @@ function contains() {
     return 1
 }
 
+function init_preflight_file() {
+    local version=$1
+
+    mkdir -p /tmp/containerd/$version
+    local file=/tmp/containerd/$version/host-preflight.yaml
+
+    cat <<EOT > $file
+apiVersion: troubleshoot.sh/v1beta2
+kind: HostPreflight
+metadata:
+  name: kurl-builtin
+spec:
+  collectors:
+    - hostOS: {}
+  analyzers:
+    - hostOS:
+        outcomes:
+EOT
+}
+
+function add_unsupported_os_to_preflight_file() {
+    local version=$1
+    local os_distro=$2
+    local os_version=$3
+
+    local file=/tmp/containerd/$version/host-preflight.yaml
+    cat <<EOT >> $file
+          - fail:
+              when: "$os_distro = $os_version"
+              message: "containerd addon does not support $os_distro $os_version"
+EOT
+}
+
+function add_supported_os_to_preflight_file() {
+    local version=$1
+    local os_distro=$2
+    local os_version=$3
+
+    local file=/tmp/containerd/$version/host-preflight.yaml
+    cat <<EOT >> $file
+          - pass:
+              when: "$os_distro = $os_version"
+              message: "containerd addon supports $os_distro $os_version"
+EOT
+}
+
+function copy_preflight_file() {
+    local version=$1
+
+    local src=/tmp/containerd/$version/host-preflight.yaml
+    local dst=../$version/host-preflight.yaml
+
+    if [ -f $src ]; then
+        mv -f $src $dst
+    fi
+}
 
 VERSIONS=()
 function find_common_versions() {
@@ -43,23 +99,47 @@ function find_common_versions() {
     echo "Found ${#UBUNTU20_VERSIONS[*]} containerd versions for Ubuntu 20: ${UBUNTU20_VERSIONS[*]}"
 
     # Get the intersection of versions available for all operating systems
-    for version in ${CENTOS7_VERSIONS[@]}; do
+    local ALL_VERSIONS=("${CENTOS7_VERSIONS[@]}" "${CENTOS8_VERSIONS[@]}" "${UBUNTU16_VERSIONS[@]}" "${UBUNTU18_VERSIONS[@]}" "${UBUNTU20_VERSIONS[@]}")
+    ALL_VERSIONS=($(echo "${ALL_VERSIONS[@]}" | tr ' ' '\n' | sort -r | uniq -d | tr '\n' ' ')) # remove duplicates
+
+    for version in ${ALL_VERSIONS[@]}; do
+        init_preflight_file $version
+
+        if ! contains "$version" ${CENTOS7_VERSIONS[*]}; then
+            echo "CentOS 7 lacks version $version"
+            add_unsupported_os_to_preflight_file $version "centos" "7"
+        else
+            add_supported_os_to_preflight_file $version "centos" "7"
+        fi
+
         if ! contains "$version" ${CENTOS8_VERSIONS[*]}; then
             echo "CentOS 8 lacks version $version"
-            continue
+            add_unsupported_os_to_preflight_file $version "centos" "8"
+        else
+            add_supported_os_to_preflight_file $version "centos" "8"
         fi
+
         if ! contains "$version" ${UBUNTU16_VERSIONS[*]}; then
             echo "Ubuntu 16 lacks version $version"
-            continue
+            add_unsupported_os_to_preflight_file $version "ubuntu" "16.04"
+        else
+            add_supported_os_to_preflight_file $version "ubuntu" "16.04"
         fi
+
         if ! contains "$version" ${UBUNTU18_VERSIONS[*]}; then
             echo "Ubuntu 18 lacks version $version"
-            continue
+            add_unsupported_os_to_preflight_file $version "ubuntu" "18.04"
+        else
+            add_supported_os_to_preflight_file $version "ubuntu" "18.04"
         fi
+
         if ! contains "$version" ${UBUNTU20_VERSIONS[*]}; then
             echo "Ubuntu 20 lacks version $version"
-            continue
+            add_unsupported_os_to_preflight_file $version "ubuntu" "20.04"
+        else
+            add_supported_os_to_preflight_file $version "ubuntu" "20.04"
         fi
+
         VERSIONS+=("$version")
     done
 
@@ -71,6 +151,7 @@ function generate_version() {
     cp -r ./base/* "../$version"
 
     sed -i "s/__version__/$version/g" "../$version/Manifest"
+    sed -i "s/__version__/$version/g" "../$version/install.sh"
 
     # Containerd overrides the pod sandbox image with pause:3.1 for 1.3.x and pause:3.2 for 1.4+.
     # The Kubernetes airgap package only includes the default pause image specified by kubeadm for the
@@ -80,6 +161,8 @@ function generate_version() {
     else
         echo "image pause k8s.gcr.io/pause:3.2" >> "../$version/Manifest"
     fi
+
+    copy_preflight_file $version
 }
 
 function update_available_versions() {
