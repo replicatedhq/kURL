@@ -355,6 +355,7 @@ function rook_create_bucket() {
     sig=$(echo -en "${string}" | openssl sha1 -hmac "${OBJECT_STORE_SECRET_KEY}" -binary | base64)
 
     curl -X PUT  \
+        --globoff \
         --noproxy "*" \
         -H "Host: $OBJECT_STORE_CLUSTER_IP" \
         -H "Date: $d" \
@@ -364,7 +365,7 @@ function rook_create_bucket() {
 }
 
 function rook_rgw_is_healthy() {
-    curl --noproxy "*" --fail --silent --insecure "http://${OBJECT_STORE_CLUSTER_IP_BRACKETED}" > /dev/null
+    curl --globoff --noproxy "*" --fail --silent --insecure "http://${OBJECT_STORE_CLUSTER_IP_BRACKETED}" > /dev/null
 }
 
 function rook_version() {

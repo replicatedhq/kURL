@@ -39,6 +39,7 @@ function _object_store_create_bucket() {
 
     local addr=$($DIR/bin/kurl format-address "$OBJECT_STORE_CLUSTER_IP")
     curl -fsSL -X PUT  \
+        --globoff \
         --noproxy "*" \
         -H "Host: $OBJECT_STORE_CLUSTER_IP" \
         -H "Date: $d" \
@@ -56,6 +57,7 @@ function object_store_bucket_exists() {
 
     local addr=$($DIR/bin/kurl format-address "$OBJECT_STORE_CLUSTER_IP")
     curl -fsSL -I \
+        --globoff \
         --noproxy "*" \
         -H "Host: $OBJECT_STORE_CLUSTER_IP" \
         -H "Date: $d" \
