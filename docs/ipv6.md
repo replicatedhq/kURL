@@ -21,3 +21,9 @@ spec:
   registry:
     version: 2.7.1
 "
+
+## Troubleshooting
+
+Problem: nodes in cluster can't ping6 each other.
+Symptom: `ip -6 route` shows no default route
+Solution: `sudo ip -6 route add default dev ens5`
