@@ -40,7 +40,7 @@ There is no auto-detection of ipv6 or fall-back to ipv4 when ipv6 is not enabled
 ## Current Limitations
 
 * Dual-stack is not supported. Resources will have only an ipv6 address when ipv6 is enabled. The host can be dual-stack, but control plane servers, pods, and cluster services will use IPv6. Node port services must be accessed on the hosts' IPv6 address.
-* Ubuntu 18 is the only supported OS.
+* Ubuntu 18 is the only supported OS. (CentOS 8 and Ubuntu 20 fail with Rook 1.5.12 in ipv6 mode, and CentOS 7 NodePorts fail, but might work if you upgrade the kernel).
 * Antrea is the only supported CNI.
 * Antrea with encryption enabled is not supported.
 * Rook is the only supported CSI.
@@ -51,8 +51,6 @@ There is no auto-detection of ipv6 or fall-back to ipv4 when ipv6 is not enabled
 
 
 ## Host Requirements
-
-* 3.10 kernel does not work with Kubernetes 1.19. CentOS/RHEL 7 probably work if you upgrade the kernel.
 
 * IPv6 forwarding must be enabled and bridge-call-nf6tables must be enabled. The installer does this automatically and configures this to persist after reboots.
 
