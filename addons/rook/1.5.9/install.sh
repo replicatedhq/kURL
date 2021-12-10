@@ -373,8 +373,3 @@ function rook_lvm2() {
 
     install_host_archives "$src" lvm2
 }
-
-function rook_preflight() {
-    local src="${DIR}/addons/rook/${ROOK_VERSION}"
-    echo "${src}/host-preflight.yaml"
-}

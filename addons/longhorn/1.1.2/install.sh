@@ -151,11 +151,6 @@ function longhorn_install_nfs_utils_if_missing() {
     fi
 }
 
-function longhorn_preflight() {
-    local src="${DIR}/addons/longhorn/${LONGHORN_VERSION}"
-    echo "${src}/host-preflight.yaml"
-}
-
 function check_mount_propagation() {
     local src=$1
 

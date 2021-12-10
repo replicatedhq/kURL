@@ -126,6 +126,7 @@ type Kurl struct {
 	PrivateAddress               string                             `json:"privateAddress,omitempty" yaml:"privateAddress,omitempty"`
 	ProxyAddress                 string                             `json:"proxyAddress,omitempty" yaml:"proxyAddress,omitempty"`
 	PublicAddress                string                             `json:"publicAddress,omitempty" yaml:"publicAddress,omitempty"`
+	UseSystemPackages            bool                               `json:"useSystemPackages,omitempty" yaml:"useSystemPackages,omitempty"`
 }
 
 type Minio struct {

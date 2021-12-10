@@ -96,11 +96,6 @@ function longhorn_join() {
     longhorn_host_init_common "$DIR/addons/longhorn/$LONGHORN_VERSION"
 }
 
-function longhorn_preflight() {
-    local src="${DIR}/addons/longhorn/${LONGHORN_VERSION}"
-    echo "${src}/host-preflight.yaml"
-}
-
 function check_mount_propagation() {
     local src=$1
 

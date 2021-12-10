@@ -677,6 +677,13 @@ function get_force_reapply_addons_flag() {
     echo " force-reapply-addons"
 }
 
+function get_use_system_packages_flag() {
+    if [ "${USE_SYSTEM_PACKAGES}" != "1" ]; then
+        return
+    fi
+    echo " use-system-packages"
+}
+
 function get_additional_no_proxy_addresses_flag() {
     local has_proxy="$1"
     local no_proxy_addresses="$2"

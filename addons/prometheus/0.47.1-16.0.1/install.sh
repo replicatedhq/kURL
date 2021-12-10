@@ -129,8 +129,3 @@ function prometheus_longhorn() {
             insert_resources "$dst/kustomization.yaml" longhorn.yaml
     fi
 }
-
-function prometheus_preflight() {
-    local src="${DIR}/addons/prometheus/${PROMETHEUS_VERSION}"
-    echo "${src}/host-preflight.yaml"
-}
