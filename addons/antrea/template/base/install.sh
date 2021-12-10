@@ -24,6 +24,10 @@ function antrea() {
     if ! lsmod | grep ip_tables; then
         modprobe ip_tables
     fi
+	if [ "$IPV6_ONLY" = "1" ]; then
+		modprobe ip6_tables
+	fi
+
 
     cp "$src/kustomization.yaml" "$dst/"
 
