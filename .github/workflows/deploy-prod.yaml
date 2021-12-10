@@ -187,6 +187,16 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v2
 
+    # Node and Go are needed by the SBOM generator
+    - uses: actions/setup-node@v2
+      with:
+        node-version: '12'
+
+    - name: setup-go
+      uses: actions/setup-go@v2
+      with:
+        go-version: 1.17
+
     - name: Get the version
       id: get_tag
       shell: bash
