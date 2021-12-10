@@ -158,7 +158,7 @@ function addon_outro() {
         common_flags="${common_flags}$(get_additional_no_proxy_addresses_flag "${PROXY_ADDRESS}" "${SERVICE_CIDR},${POD_CIDR}")"
         common_flags="${common_flags}$(get_kurl_install_directory_flag "${KURL_INSTALL_DIRECTORY_FLAG}")"
         common_flags="${common_flags}$(get_force_reapply_addons_flag)"
-        common_flags="${common_flags}$(get_SKIP_SYSTEM_PACKAGE_INSTALL_flag)"
+        common_flags="${common_flags}$(get_skip_system_package_install_flag)"
 
         printf "\n${YELLOW}Run this script on all remote nodes to apply changes${NC}\n"
         if [ "$AIRGAP" = "1" ]; then

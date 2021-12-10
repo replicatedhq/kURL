@@ -677,7 +677,7 @@ function get_force_reapply_addons_flag() {
     echo " force-reapply-addons"
 }
 
-function get_SKIP_SYSTEM_PACKAGE_INSTALL_flag() {
+function get_skip_system_package_install_flag() {
     if [ "${SKIP_SYSTEM_PACKAGE_INSTALL}" != "1" ]; then
         return
     fi
