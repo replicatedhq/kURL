@@ -3,7 +3,7 @@ import * as yaml from "js-yaml";
 import * as _ from "lodash";
 import * as mysql from "promise-mysql";
 import { Service } from "@tsed/common";
-import Ajv, {KeywordCxt} from "ajv";
+import Ajv from "ajv";
 import * as semver from "semver";
 import { MysqlWrapper } from "../util/services/mysql";
 import { instrumented } from "monkit";
@@ -758,19 +758,23 @@ export interface InstallerObject {
 
 export class Installer {
 
-  public static latest(): Installer {
+  public static async latest(kurlVersion?: string): Promise<Installer> {
     const i = new Installer();
+
+    const distUrl = getDistUrl();
+
+    const installerVersions = await getInstallerVersions(distUrl, kurlVersion);
 
     i.id = "latest";
     i.spec.kubernetes = { version: "1.21.x" };
-    i.spec.containerd = { version: "1.4.x" };
-    i.spec.weave = { version: "2.6.x" };
-    i.spec.longhorn = { version: "1.1.x"};
-    i.spec.minio = { version: "2020-01-25T02-50-51Z"};
+    i.spec.containerd = { version: this.toDotXVersion(installerVersions.containerd[0]) };
+    i.spec.weave = { version: this.toDotXVersion(installerVersions.weave[0]) };
+    i.spec.longhorn = { version: this.toDotXVersion(installerVersions.longhorn[0]) };
+    i.spec.minio = { version: installerVersions.minio[0] };
     i.spec.ekco = { version: "latest" };
-    i.spec.contour = { version: "1.18.x" };
-    i.spec.registry = { version: "2.7.x" };
-    i.spec.prometheus = { version: "0.49.x" };
+    i.spec.contour = { version: this.toDotXVersion(installerVersions.contour[0]) };
+    i.spec.registry = { version: this.toDotXVersion(installerVersions.registry[0]) };
+    i.spec.prometheus = { version: this.toDotXVersion(installerVersions.prometheus[0]) };
 
     return i;
   }
@@ -1316,6 +1320,13 @@ export class Installer {
     return pkgs;
   }
 
+  public static toDotXVersion(version: string): string {
+    if (!version.match(/^\d+\.\d+\.\d+/)) {
+      return version;
+    }
+    return version.replace(/^(\d+\.\d+\.).*$/, "$1x");
+  }
+
   public static resolveLatestPatchVersion(xVersion: string, versions: string[]): string {
     const version = xVersion
       .replace(/\.0(\d)\./, ".$1.") // replace weird docker versions prefixed with 0
@@ -1359,8 +1370,8 @@ export class Installer {
     return ret;
   }
 
-  public isLatest(): boolean {
-    return _.isEqual(this.spec, Installer.latest().spec);
+  public async isLatest(): Promise<boolean> {
+    return _.isEqual(this.spec, (await Installer.latest()).spec);
   }
 
   public flags(): string {
@@ -1421,7 +1432,7 @@ export class InstallerStore {
   @instrumented
   public async getInstaller(installerID: string): Promise<Installer|undefined> {
     if (installerID === "latest") {
-      return Installer.latest();
+      return await Installer.latest();
     }
 
     const q = "SELECT yaml, team_id FROM kurl_installer WHERE kurl_installer_id = ?";
