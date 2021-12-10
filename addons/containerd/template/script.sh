@@ -18,6 +18,27 @@ function contains() {
     return 1
 }
 
+function init_manifest_file() {
+    mkdir -p /tmp/containerd/$version
+    local file=/tmp/containerd/$version/Manifest
+
+    cat <<EOT >> $file
+yum libzstd
+asset runc https://github.com/opencontainers/runc/releases/download/v1.0.0-rc95/runc.amd64
+EOT
+}
+
+function add_supported_os_to_manifest_file() {
+    local version=$1
+    local os=$2
+    local dockerfile=$3
+    local file=/tmp/containerd/$version/Manifest
+
+    cat <<EOT >> $file
+dockerout $os addons/containerd/template/$dockerfile $version
+EOT
+}
+
 function init_preflight_file() {
     local version=$1
 
@@ -64,11 +85,18 @@ function add_supported_os_to_preflight_file() {
 EOT
 }
 
-function copy_preflight_file() {
+function copy_generated_files() {
     local version=$1
 
     local src=/tmp/containerd/$version/host-preflight.yaml
     local dst=../$version/host-preflight.yaml
+
+    if [ -f $src ]; then
+        mv -f $src $dst
+    fi
+
+    local src=/tmp/containerd/$version/Manifest
+    local dst=../$version/Manifest
 
     if [ -f $src ]; then
         mv -f $src $dst
@@ -104,12 +132,15 @@ function find_common_versions() {
 
     for version in ${ALL_VERSIONS[@]}; do
         init_preflight_file $version
+        init_manifest_file $version
 
         if ! contains "$version" ${CENTOS7_VERSIONS[*]}; then
             echo "CentOS 7 lacks version $version"
             add_unsupported_os_to_preflight_file $version "centos" "7"
         else
             add_supported_os_to_preflight_file $version "centos" "7"
+            add_supported_os_to_manifest_file $version "rhel-7" "Dockerfile.centos7"
+            add_supported_os_to_manifest_file $version "rhel-7-force" "Dockerfile.centos7-force"
         fi
 
         if ! contains "$version" ${CENTOS8_VERSIONS[*]}; then
@@ -117,6 +148,7 @@ function find_common_versions() {
             add_unsupported_os_to_preflight_file $version "centos" "8"
         else
             add_supported_os_to_preflight_file $version "centos" "8"
+            add_supported_os_to_manifest_file $version "rhel-8" "Dockerfile.centos8"
         fi
 
         if ! contains "$version" ${UBUNTU16_VERSIONS[*]}; then
@@ -124,6 +156,7 @@ function find_common_versions() {
             add_unsupported_os_to_preflight_file $version "ubuntu" "16.04"
         else
             add_supported_os_to_preflight_file $version "ubuntu" "16.04"
+            add_supported_os_to_manifest_file $version "ubuntu-16.04" "Dockerfile.ubuntu16"
         fi
 
         if ! contains "$version" ${UBUNTU18_VERSIONS[*]}; then
@@ -131,6 +164,7 @@ function find_common_versions() {
             add_unsupported_os_to_preflight_file $version "ubuntu" "18.04"
         else
             add_supported_os_to_preflight_file $version "ubuntu" "18.04"
+            add_supported_os_to_manifest_file $version "ubuntu-18.04" "Dockerfile.ubuntu18"
         fi
 
         if ! contains "$version" ${UBUNTU20_VERSIONS[*]}; then
@@ -138,6 +172,7 @@ function find_common_versions() {
             add_unsupported_os_to_preflight_file $version "ubuntu" "20.04"
         else
             add_supported_os_to_preflight_file $version "ubuntu" "20.04"
+            add_supported_os_to_manifest_file $version "ubuntu-20.04" "Dockerfile.ubuntu20"
         fi
 
         VERSIONS+=("$version")
@@ -150,8 +185,9 @@ function generate_version() {
     mkdir -p "../$version"
     cp -r ./base/* "../$version"
 
-    sed -i "s/__version__/$version/g" "../$version/Manifest"
     sed -i "s/__version__/$version/g" "../$version/install.sh"
+
+    copy_generated_files $version
 
     # Containerd overrides the pod sandbox image with pause:3.1 for 1.3.x and pause:3.2 for 1.4+.
     # The Kubernetes airgap package only includes the default pause image specified by kubeadm for the
@@ -161,8 +197,6 @@ function generate_version() {
     else
         echo "image pause k8s.gcr.io/pause:3.2" >> "../$version/Manifest"
     fi
-
-    copy_preflight_file $version
 }
 
 function update_available_versions() {

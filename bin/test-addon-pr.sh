@@ -87,6 +87,11 @@ run_addon() {
 
   for version in $versions
   do
+    if [ "$version" = "template" ]; then
+      echo "Skipping template for $name"
+      continue
+    fi
+
     echo "Testing Modified Addon: $name-$version"
 
     # Build Packages
@@ -137,7 +142,6 @@ test_addon() {
 
 MSG="Testgrid Run(s) Executing @ "
 run() {
-  set -x
   echo "Test PR#${PR_NUMBER}..."
 
   # Take the base branch and figure out which addons changed. Verify each.

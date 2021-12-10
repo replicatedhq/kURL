@@ -179,7 +179,3 @@ function containerd_migrate_from_docker() {
     sed -i "s@\(KUBELET_KUBEADM_ARGS=\".*\)\"@\1 $containerdFlags\" @" /var/lib/kubelet/kubeadm-flags.env
     systemctl daemon-reload
 }
-
-function containerd_preflight() {
-    echo "${DIR}/addons/containerd/__version_/host-preflight.yaml"
-}
