@@ -55,7 +55,7 @@ function join() {
     if [ "$MASTER" = "1" ]; then
         insert_patches_strategic_merge \
             $kustomize_kubeadm_join/kustomization.yaml \
-            patch-certificate-key.yaml
+            patch-control-plane.yaml
     fi
     # Add kubeadm join patches from addons.
     for patch in $(ls -1 ${kustomize_kubeadm_join}-patches/* 2>/dev/null || echo); do

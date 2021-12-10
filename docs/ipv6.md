@@ -10,6 +10,7 @@ spec:
   containerd:
     version: 1.4.6
   antrea:
+    isEncryptionDisabled: true
     version: 1.2.1
   rook:
     version: 1.5.12
