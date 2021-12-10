@@ -4,27 +4,37 @@ go 1.17
 
 require (
 	github.com/DataDog/datadog-go v4.8.1+incompatible
+	github.com/Masterminds/goutils v1.1.1 // indirect
+	github.com/Masterminds/semver v1.5.0 // indirect
 	github.com/Masterminds/sprig v2.22.0+incompatible
 	github.com/apparentlymart/go-cidr v1.1.0
 	github.com/aws/aws-sdk-go v1.40.18
 	github.com/briandowns/spinner v1.16.0
 	github.com/bugsnag/bugsnag-go/v2 v2.1.1
+	github.com/c9s/goprocinfo v0.0.0-20190309065803-0b2ad9ac246b // indirect
 	github.com/chzyer/readline v0.0.0-20180603132655-2972be24d48e
 	github.com/containers/image/v5 v5.17.0
 	github.com/denisbrodbeck/machineid v1.0.1
 	github.com/fatih/color v1.13.0
 	github.com/foomo/htpasswd v0.0.0-20200116085101-e3a90e78da9c
+	github.com/go-ini/ini v1.62.0 // indirect
+	github.com/go-logr/zapr v0.4.0 // indirect
+	github.com/go-openapi/spec v0.19.5 // indirect
 	github.com/golang/mock v1.6.0
 	github.com/gorilla/mux v1.8.0
+	github.com/huandu/xstrings v1.3.2 // indirect
 	github.com/itchyny/gojq v0.12.4
 	github.com/lib/pq v1.10.4
 	github.com/mattn/go-isatty v0.0.14
 	github.com/minio/minio-go v6.0.14+incompatible
+	github.com/mitchellh/copystructure v1.2.0 // indirect
 	github.com/onsi/gomega v1.15.0
 	github.com/pelletier/go-toml v1.9.4
 	github.com/pkg/errors v0.9.1
+	github.com/prometheus/common v0.29.0 // indirect
 	github.com/replicatedhq/pvmigrate v0.4.1
 	github.com/replicatedhq/troubleshoot v0.23.1-0.20211210033336-6419bb8bb7ff
+	github.com/replicatedhq/yaml/v3 v3.0.0-beta5-replicatedhq
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/afero v1.6.0
 	github.com/spf13/cobra v1.2.1
@@ -36,32 +46,19 @@ require (
 	golang.org/x/crypto v0.0.0-20210817164053-32db794688a5
 	golang.org/x/lint v0.0.0-20210508222113-6edffad5e616
 	golang.org/x/net v0.0.0-20211005001312-d4b1ae081e3b
+	golang.org/x/term v0.0.0-20210615171337-6886f2dfbf5b // indirect
+	gomodules.xyz/jsonpatch/v2 v2.2.0 // indirect
+	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 	gopkg.in/yaml.v2 v2.4.0
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
 	k8s.io/api v0.22.4
 	k8s.io/apimachinery v0.22.4
 	k8s.io/client-go v12.0.0+incompatible
 	k8s.io/code-generator v0.22.4
+	k8s.io/component-base v0.21.3 // indirect
 	kubevirt.io/client-go v0.47.1
 	sigs.k8s.io/controller-runtime v0.10.3
 	sigs.k8s.io/controller-tools v0.7.0
-)
-
-require (
-	github.com/Masterminds/goutils v1.1.1 // indirect
-	github.com/Masterminds/semver v1.5.0 // indirect
-	github.com/c9s/goprocinfo v0.0.0-20190309065803-0b2ad9ac246b // indirect
-	github.com/go-ini/ini v1.62.0 // indirect
-	github.com/go-logr/zapr v0.4.0 // indirect
-	github.com/go-openapi/spec v0.19.5 // indirect
-	github.com/huandu/xstrings v1.3.2 // indirect
-	github.com/mitchellh/copystructure v1.2.0 // indirect
-	github.com/prometheus/common v0.29.0 // indirect
-	github.com/replicatedhq/yaml/v3 v3.0.0-beta5-replicatedhq
-	golang.org/x/term v0.0.0-20210615171337-6886f2dfbf5b // indirect
-	gomodules.xyz/jsonpatch/v2 v2.2.0 // indirect
-	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
-	k8s.io/component-base v0.21.3 // indirect
 )
 
 replace (
