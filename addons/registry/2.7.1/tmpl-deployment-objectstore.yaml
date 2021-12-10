@@ -36,7 +36,7 @@ data:
         disable: true
       s3:
         region: "us-east-1"
-        regionendpoint: http://$OBJECT_STORE_CLUSTER_IP_BRACKETED
+        regionendpoint: http://$objectStoreIP
         bucket: docker-registry
       cache:
         blobdescriptor: inmemory

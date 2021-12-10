@@ -29,6 +29,7 @@ function registry_install() {
     # doesn't already exist.
     if ! registry_pvc_exists && object_store_exists && [ "$REGISTRY_USE_PVC_STORAGE" != "1" ]; then
         registry_object_store_bucket
+        objectStoreIP=$($DIR/bin/kurl format-address $OBJECT_STORE_CLUSTER_IP)
         render_yaml_file "$DIR/addons/registry/2.7.1/tmpl-deployment-objectstore.yaml" > "$DIR/kustomize/registry/deployment-objectstore.yaml"
         insert_resources "$DIR/kustomize/registry/kustomization.yaml" deployment-objectstore.yaml
 
