@@ -63,3 +63,173 @@ func Test_jsonField(t *testing.T) {
 		})
 	}
 }
+
+func Test_addFieldToContent(t *testing.T) {
+	tests := []struct {
+		name        string
+		yamlContent string
+		yamlPath    string
+		value       string
+		want        string
+	}{
+		{
+			name: "basic add field",
+			yamlContent: `apiVersion: troubleshoot.sh/v1beta2
+kind: HostPreflight
+metadata:
+  name: longhorn
+`,
+			yamlPath: "metadata_namespace",
+			value:    `longhorn`,
+			want: `apiVersion: troubleshoot.sh/v1beta2
+kind: HostPreflight
+metadata:
+  name: longhorn
+  namespace: longhorn
+`,
+		},
+		{
+			name: "basic modify field",
+			yamlContent: `apiVersion: troubleshoot.sh/v1beta2
+kind: HostPreflight
+metadata:
+  name: longhorn
+`,
+			yamlPath: "metadata_name",
+			value:    `longhorn-modified`,
+			want: `apiVersion: troubleshoot.sh/v1beta2
+kind: HostPreflight
+metadata:
+  name: longhorn-modified
+`,
+		},
+		{
+			name: "add to empty array",
+			yamlContent: `apiVersion: troubleshoot.sh/v1beta2
+kind: HostPreflight
+metadata:
+  name: longhorn
+spec:
+  analyzers: []
+  collectors: []
+`,
+			yamlPath: "spec_collectors[]",
+			value: `systemPackages:
+  amzn:
+  - iscsi-initiator-utils
+  - nfs-utils
+  centos:
+  - iscsi-initiator-utils
+  - nfs-utils
+  collectorName: longhorn
+  ol:
+  - iscsi-initiator-utils
+  - nfs-utils
+  rhel:
+  - iscsi-initiator-utils
+  - nfs-utils
+  ubuntu:
+  - open-iscsi
+  - nfs-common
+`,
+			want: `apiVersion: troubleshoot.sh/v1beta2
+kind: HostPreflight
+metadata:
+  name: longhorn
+spec:
+  analyzers: []
+  collectors:
+  - systemPackages:
+      amzn:
+      - iscsi-initiator-utils
+      - nfs-utils
+      centos:
+      - iscsi-initiator-utils
+      - nfs-utils
+      collectorName: longhorn
+      ol:
+      - iscsi-initiator-utils
+      - nfs-utils
+      rhel:
+      - iscsi-initiator-utils
+      - nfs-utils
+      ubuntu:
+      - open-iscsi
+      - nfs-common
+`,
+		},
+		{
+			name: "add to non-empty array",
+			yamlContent: `apiVersion: troubleshoot.sh/v1beta2
+kind: HostPreflight
+metadata:
+  name: kurl-builtin
+spec:
+  collectors:
+  - diskUsage:
+      collectorName: "Ephemeral Disk Usage /opt/replicated/rook"
+      path: /opt/replicated/rook
+
+  analyzers:
+  - blockDevices:
+      includeUnmountedPartitions: true
+      outcomes:
+      - pass:
+          when: '{{kurl if (and .Installer.Spec.Rook.Version .Installer.Spec.Rook.BlockDeviceFilter) }}{{kurl .Installer.Spec.Rook.BlockDeviceFilter }}{{kurl else }}.*{{kurl end }} == 1'
+          message: One available block device
+      - pass:
+          when: '{{kurl if (and .Installer.Spec.Rook.Version .Installer.Spec.Rook.BlockDeviceFilter) }}{{kurl .Installer.Spec.Rook.BlockDeviceFilter }}{{kurl else }}.*{{kurl end }} > 1'
+          message: Multiple available block devices
+      - fail:
+          message: No available block devices
+`,
+			yamlPath: "spec_analyzers[]",
+			value: `systemPackages:
+  collectorName: longhorn
+  outcomes:
+  - fail:
+      message: Package {{ .Name }} is not installed.
+      when: '{{ not .IsInstalled }}'
+  - pass:
+      message: Package {{ .Name }} is installed.`,
+			want: `apiVersion: troubleshoot.sh/v1beta2
+kind: HostPreflight
+metadata:
+  name: kurl-builtin
+spec:
+  analyzers:
+  - blockDevices:
+      includeUnmountedPartitions: true
+      outcomes:
+      - pass:
+          message: One available block device
+          when: '{{kurl if (and .Installer.Spec.Rook.Version .Installer.Spec.Rook.BlockDeviceFilter) }}{{kurl .Installer.Spec.Rook.BlockDeviceFilter }}{{kurl else }}.*{{kurl end }} == 1'
+      - pass:
+          message: Multiple available block devices
+          when: '{{kurl if (and .Installer.Spec.Rook.Version .Installer.Spec.Rook.BlockDeviceFilter) }}{{kurl .Installer.Spec.Rook.BlockDeviceFilter }}{{kurl else }}.*{{kurl end }} > 1'
+      - fail:
+          message: No available block devices
+  - systemPackages:
+      collectorName: longhorn
+      outcomes:
+      - fail:
+          message: Package {{ .Name }} is not installed.
+          when: '{{ not .IsInstalled }}'
+      - pass:
+          message: Package {{ .Name }} is installed.
+  collectors:
+  - diskUsage:
+      collectorName: Ephemeral Disk Usage /opt/replicated/rook
+      path: /opt/replicated/rook
+`,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			req := require.New(t)
+			got, err := addFieldToContent([]byte(tt.yamlContent), tt.yamlPath, tt.value)
+			req.Equal(tt.want, got)
+			req.NoError(err)
+		})
+	}
+}

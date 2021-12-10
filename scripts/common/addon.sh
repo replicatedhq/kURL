@@ -85,12 +85,12 @@ function addon_preflight() {
     local version=$2 # will be unset if addon is not part of the installer
 
     if [ -z "$name" ] || [ -z "$version" ]; then
-        return 0
+        return
     fi
 
     local addonRoot="${DIR}/addons/${name}/${version}"
     if [ ! -d "$addonRoot" ]; then
-        return 0
+        return
     fi
 
     local src="${addonRoot}/host-preflight.yaml"
@@ -99,7 +99,7 @@ function addon_preflight() {
     fi
 
     if [ "${USE_SYSTEM_PACKAGES}" == "1" ]; then
-        system_packages_preflight "$name" "$version"
+        preflights_system_packages "$name" "$version"
     fi
 }
 

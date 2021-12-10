@@ -385,7 +385,7 @@ function preflights_require_no_kubernetes_or_current_node() {
     return 0
 }
 
-function system_packages_preflight() {
+function preflights_system_packages() {
   local addonName=$1
   local addonVersion=$2
 
@@ -393,7 +393,7 @@ function system_packages_preflight() {
   local preflightPath="${DIR}/addons/${addonName}/${addonVersion}/system-packages-preflight.yaml"
 
   if [ ! -f "$manifestPath" ]; then
-      return 1
+      return
   fi
 
   local pkgs_all=()
@@ -440,7 +440,7 @@ function system_packages_preflight() {
   done < "${manifestPath}"
 
   if [ "${#pkgs_all[@]}" -eq "0" ]; then
-      return 0
+      return
   fi
 
   local system_packages_collector="
@@ -545,7 +545,9 @@ function host_preflights() {
     done
 
     # Add containerd preflight checks separately since it's a special addon and is not part of the addons array
-    opts="${opts} --spec=$(addon_preflight containerd "$CONTAINERD_VERSION")"
+    for spec in $(addon_preflight containerd "$CONTAINERD_VERSION"); do
+        opts="${opts} --spec=${spec}"
+    done
 
     if [ -n "$PRIMARY_HOST" ]; then
         opts="${opts} --primary-host=${PRIMARY_HOST}"
