@@ -114,7 +114,7 @@ export class Installers {
     @PathParams("kurlVersion") kurlVersion: string|undefined,
   ): Promise<string> {
 
-    const installer = await Installer.latest().resolve();
+    const installer = await (await Installer.latest(kurlVersion)).resolve();
 
     response.set("X-Kurl-Hash", installer.hash());
     response.status(200);

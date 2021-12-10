@@ -634,6 +634,19 @@ spec:
     });
   });
 
+  describe("Installer.toDotXVersion", () => {
+    [
+      { version: "1.21.5", answer: "1.21.x" },
+      { version: "2020-01-25T02-50-51Z", answer: "2020-01-25T02-50-51Z"},
+    ].forEach((test) => {
+      it(`"${test.version}" => ${test.answer}`, () => {
+        const output = Installer.toDotXVersion(test.version);
+
+        expect(output).to.equal(test.answer);
+      });
+    });
+  });
+
   describe("validate", () => {
     describe("valid", () => {
       it("=> void", () => {
