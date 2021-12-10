@@ -31,8 +31,8 @@ jobs:
           kotsadm
           automated-pr
         draft: false
-        base: "master"
-        body: "Automated changes by the [auto-kotsadm-update](https://github.com/replicatedhq/kURL/blob/master/.github/workflows/update-kotsadm.yaml) GitHub action"
+        base: "main"
+        body: "Automated changes by the [auto-kotsadm-update](https://github.com/replicatedhq/kURL/blob/main/.github/workflows/update-kotsadm.yaml) GitHub action"
 
     - name: Check outputs
       run: |

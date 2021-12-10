@@ -96,7 +96,7 @@ export class Installers {
       return invalidYAMLResponse;
     }
 
-    if (i.isLatest()) {
+    if (await i.isLatest()) {
       response.contentType("text/plain");
       response.status(201);
       return `${this.kurlURL}/latest`;

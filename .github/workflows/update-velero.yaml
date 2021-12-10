@@ -30,8 +30,8 @@ jobs:
           automated-pr
           velero
         draft: false
-        base: "master"
-        body: "Automated changes by the [cron-velero-update](https://github.com/replicatedhq/kURL/blob/master/.github/workflows/update-velero.yaml) GitHub action"
+        base: "main"
+        body: "Automated changes by the [cron-velero-update](https://github.com/replicatedhq/kURL/blob/main/.github/workflows/update-velero.yaml) GitHub action"
 
     - name: Check outputs
       run: |

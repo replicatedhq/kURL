@@ -1,4 +1,4 @@
-# This rebuilds a single package from master and uploads to the staging/ folder.
+# This rebuilds a single package from main and uploads to the staging/ folder.
 # The cron-rebuild-packages-staging workflow triggers this once for each package.
 name: build-package-staging
 on:

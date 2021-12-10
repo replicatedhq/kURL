@@ -30,8 +30,8 @@ jobs:
           automated-pr
           weave
         draft: false
-        base: "master"
-        body: "Automated changes by the [cron-weave-update](https://github.com/replicatedhq/kURL/blob/master/.github/workflows/update-weave.yaml) GitHub action"
+        base: "main"
+        body: "Automated changes by the [cron-weave-update](https://github.com/replicatedhq/kURL/blob/main/.github/workflows/update-weave.yaml) GitHub action"
 
     - name: Check outputs
       run: |
