@@ -137,6 +137,7 @@ test_addon() {
 
 MSG="Testgrid Run(s) Executing @ "
 run() {
+  set -x
   echo "Test PR#${PR_NUMBER}..."
 
   # Take the base branch and figure out which addons changed. Verify each.
