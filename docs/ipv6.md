@@ -34,7 +34,7 @@ spec:
     version: 2.7.1
 ```
 
-There is no auto-detection of ipv6 or fall-back to ipv4 when ipv6 is not enabledon the host.
+There is no auto-detection of ipv6 or fall-back to ipv4 when ipv6 is not enabled on the host.
 
 
 ## Current Limitations
@@ -58,7 +58,9 @@ There is no auto-detection of ipv6 or fall-back to ipv4 when ipv6 is not enabled
 
 ## Troubleshooting
 
-Problem: nodes in cluster can't ping6 each other.
+
+Problem: joining 2nd node to cluster fails
+Symptom: nodes in cluster can't ping6 each other.
 Symptom: `ip -6 route` shows no default route
 Solution: `sudo ip -6 route add default dev ens5`
 
@@ -67,8 +69,8 @@ Solution: deploy a NAT64 server
 Solution: use airgap
 Solution: wait for AAAA records to be added to replicated.app
 
-Problem: networking check fails
-Symptom:
+Problem: networking check fails in curl installer
+Symptom: antrea-agent logs show:
 ```
 E1210 19:44:12.494994       1 route_linux.go:119] Failed to initialize iptables: error checking if chain ANTREA-PREROUTING exists in table raw: running [/usr/sbin/ip6tables -t raw -S ANTREA-PREROUTING 1 
 --wait]: exit status 3: modprobe: FATAL: Module ip6_tables not found in directory /lib/modules/4.18.0-193.19.1.el8_2.x86_64
