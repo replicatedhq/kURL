@@ -545,7 +545,7 @@ function host_preflights() {
     done
 
     # Add containerd preflight checks separately since it's a special addon and is not part of the addons array
-    opts="${opts} --spec=$(addon_preflight containerd "$CONTAINERD_VERSION" "$CONTAINERD_S3_OVERRIDE")"
+    opts="${opts} --spec=$(addon_preflight containerd "$CONTAINERD_VERSION")"
 
     if [ -n "$PRIMARY_HOST" ]; then
         opts="${opts} --primary-host=${PRIMARY_HOST}"
