@@ -677,11 +677,11 @@ function get_force_reapply_addons_flag() {
     echo " force-reapply-addons"
 }
 
-function get_use_system_packages_flag() {
-    if [ "${USE_SYSTEM_PACKAGES}" != "1" ]; then
+function get_SKIP_SYSTEM_PACKAGE_INSTALL_flag() {
+    if [ "${SKIP_SYSTEM_PACKAGE_INSTALL}" != "1" ]; then
         return
     fi
-    echo " use-system-packages"
+    echo " skip-system-package-install"
 }
 
 function get_additional_no_proxy_addresses_flag() {

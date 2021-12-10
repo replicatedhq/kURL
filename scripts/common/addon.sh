@@ -98,7 +98,7 @@ function addon_preflight() {
         echo "$src"
     fi
 
-    if [ "${USE_SYSTEM_PACKAGES}" == "1" ]; then
+    if [ "${SKIP_SYSTEM_PACKAGE_INSTALL}" == "1" ]; then
         preflights_system_packages "$name" "$version"
     fi
 }
@@ -158,7 +158,7 @@ function addon_outro() {
         common_flags="${common_flags}$(get_additional_no_proxy_addresses_flag "${PROXY_ADDRESS}" "${SERVICE_CIDR},${POD_CIDR}")"
         common_flags="${common_flags}$(get_kurl_install_directory_flag "${KURL_INSTALL_DIRECTORY_FLAG}")"
         common_flags="${common_flags}$(get_force_reapply_addons_flag)"
-        common_flags="${common_flags}$(get_use_system_packages_flag)"
+        common_flags="${common_flags}$(get_SKIP_SYSTEM_PACKAGE_INSTALL_flag)"
 
         printf "\n${YELLOW}Run this script on all remote nodes to apply changes${NC}\n"
         if [ "$AIRGAP" = "1" ]; then

@@ -207,11 +207,11 @@ func parseBashFlags(installer *kurlv1beta1.Installer, bashFlags string) error {
 				installer.Spec.Kurl = &kurlv1beta1.Kurl{}
 			}
 			installer.Spec.Kurl.PrivateAddress = split[1]
-		case "use-system-packages":
+		case "skip-system-package-install":
 			if installer.Spec.Kurl == nil {
 				installer.Spec.Kurl = &kurlv1beta1.Kurl{}
 			}
-			installer.Spec.Kurl.UseSystemPackages = true
+			installer.Spec.Kurl.SkipSystemPackageInstall = true
 		case "yes":
 			continue
 		case "auto-upgrades-enabled":

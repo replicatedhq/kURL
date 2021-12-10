@@ -1726,7 +1726,7 @@ spec:
                     type: string
                   publicAddress:
                     type: string
-                  useSystemPackages:
+                  skipSystemPackageInstall:
                     type: boolean
                 type: object
               longhorn:
