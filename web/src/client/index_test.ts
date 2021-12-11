@@ -499,7 +499,7 @@ describe("PUT /installer/<id>", () => {
 
 describe("GET /<installerID>", () => {
   describe("/latest", async () => {
-    const latestResolve = await Installer.latest().resolve();
+    const latestResolve = await (await Installer.latest()).resolve();
 
     it(`injects k8s ${latestResolve.spec.kubernetes.version}, weave ${latestResolve.spec.weave?.version}, rook ${latestResolve.spec.rook?.version}, contour ${latestResolve.spec.contour?.version}, registry ${latestResolve.spec.registry?.version}, prometheus ${latestResolve.spec.prometheus?.version}, docker ${latestResolve.spec.docker?.version}`, async () => {
       const script = await client.getInstallScript("latest");
@@ -660,7 +660,7 @@ describe("GET /<installerID>", () => {
 
 describe("GET /<installerID>/join.sh", () => {
   describe("/latest/join.sh", async () => {
-    const latestResolve = await Installer.latest().resolve();
+    const latestResolve = await (await Installer.latest()).resolve();
 
     it(`injects k8s ${latestResolve.spec.kubernetes.version}, weave ${latestResolve.spec.weave?.version}, rook ${latestResolve.spec.rook?.version}, contour ${latestResolve.spec.contour?.version}, registry ${latestResolve.spec.registry?.version}, prometheus ${latestResolve.spec.prometheus?.version}`, async () => {
       const script = await client.getJoinScript("latest");
@@ -987,7 +987,6 @@ describe("POST /installer/validate", () => {
       expect(err).to.be.undefined;
     });
   });
-  
 
   describe("rook 1.0.4-14.2.21 with undefined blockStorageEnabled", () => {
     it("200", async () => {
