@@ -120,8 +120,3 @@ function prometheus_rook_ceph() {
             insert_resources "$dst/kustomization.yaml" rook-ceph-rolebindings.yaml
     fi
 }
-
-function prometheus_preflight() {
-    local src="${DIR}/addons/prometheus/${PROMETHEUS_VERSION}"
-    echo "${src}/host-preflight.yaml"
-}

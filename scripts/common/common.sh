@@ -677,6 +677,13 @@ function get_force_reapply_addons_flag() {
     echo " force-reapply-addons"
 }
 
+function get_skip_system_package_install_flag() {
+    if [ "${SKIP_SYSTEM_PACKAGE_INSTALL}" != "1" ]; then
+        return
+    fi
+    echo " skip-system-package-install"
+}
+
 function get_additional_no_proxy_addresses_flag() {
     local has_proxy="$1"
     local no_proxy_addresses="$2"

@@ -82,9 +82,24 @@ function addon_pre_init() {
 
 function addon_preflight() {
     local name=$1
+    local version=$2 # will be unset if addon is not part of the installer
 
-    if commandExists ${name}_preflight; then
-        ${name}_preflight
+    if [ -z "$name" ] || [ -z "$version" ]; then
+        return
+    fi
+
+    local addonRoot="${DIR}/addons/${name}/${version}"
+    if [ ! -d "$addonRoot" ]; then
+        return
+    fi
+
+    local src="${addonRoot}/host-preflight.yaml"
+    if [ -f "$src" ]; then
+        echo "$src"
+    fi
+
+    if [ "${SKIP_SYSTEM_PACKAGE_INSTALL}" == "1" ]; then
+        preflights_system_packages "$name" "$version"
     fi
 }
 
@@ -143,6 +158,7 @@ function addon_outro() {
         common_flags="${common_flags}$(get_additional_no_proxy_addresses_flag "${PROXY_ADDRESS}" "${SERVICE_CIDR},${POD_CIDR}")"
         common_flags="${common_flags}$(get_kurl_install_directory_flag "${KURL_INSTALL_DIRECTORY_FLAG}")"
         common_flags="${common_flags}$(get_force_reapply_addons_flag)"
+        common_flags="${common_flags}$(get_skip_system_package_install_flag)"
 
         printf "\n${YELLOW}Run this script on all remote nodes to apply changes${NC}\n"
         if [ "$AIRGAP" = "1" ]; then

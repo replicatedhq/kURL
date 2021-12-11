@@ -154,6 +154,9 @@ function get_patch_yaml() {
             force-reapply-addons)
                 FORCE_REAPPLY_ADDONS=1
                 ;;
+            skip-system-package-install)
+                SKIP_SYSTEM_PACKAGE_INSTALL=1
+                ;;
             *)
                 echo >&2 "Error: unknown parameter \"$_param\""
                 exit 1
