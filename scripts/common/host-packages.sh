@@ -59,7 +59,7 @@ function _install_host_packages() {
 
 function _rpm_force_install_host_packages() {
     if [ "${SKIP_SYSTEM_PACKAGE_INSTALL}" == "1" ]; then
-        logStep "Will use existing system packages. Skipping installation of host packages: ${packages[*]}"
+        logStep "Skipping installation of host packages: ${packages[*]}"
         return
     fi
 
@@ -97,7 +97,7 @@ function dpkg_install_host_packages() {
 
 function _dpkg_install_host_packages() {
     if [ "${SKIP_SYSTEM_PACKAGE_INSTALL}" == "1" ]; then
-        logStep "Will use existing system packages. Skipping installation of host packages: ${packages[*]}"
+        logStep "Skipping installation of host packages: ${packages[*]}"
         return
     fi
 
@@ -135,7 +135,7 @@ function yum_install_host_packages() {
 
 function _yum_install_host_packages() {
     if [ "${SKIP_SYSTEM_PACKAGE_INSTALL}" == "1" ]; then
-        logStep "Will use existing system packages. Skipping installation of host packages: ${packages[*]}"
+        logStep "Skipping installation of host packages: ${packages[*]}"
         return
     fi
 
