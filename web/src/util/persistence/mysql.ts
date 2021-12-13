@@ -52,10 +52,10 @@ let mysqlPool: mysql.Pool;
 export async function initMysqlPool(): Promise<void> {
   const host = await param("MYSQL_HOST", "/mysql/host");
   const port = parseInt(await param("MYSQL_PORT", "/mysql/port") || "3306");
-  const user = await param("MYSQL_USER", "/mysql/user");
+  const user = await param("MYSQL_USER", "/kurl/mysql_user");
   const database = await param("MYSQL_DATABASE", "/mysql/database");
   const connectionLimit = Number(await param("MYSQL_POOL_SIZE", "/mysql/pool_size")) || 10;
-  const password = await param("MYSQL_PASSWORD", "/mysql/password", true);
+  const password = await param("MYSQL_PASSWORD", "/kurl/mysql_password", true);
 
   logger.info(`Connecting to mysql with connection string: server=${host}port=${port};;uid=${user};pwd=*******;database=${database}`);
   mysqlPool = await mysql.createPool({
