@@ -213,7 +213,7 @@ jobs:
 
     - name: release
       run: |
-        cd ~ && git clone --single-branch -b master git@github.com:replicatedcom/gitops-deploy
+        cd ~ && git clone --single-branch -b main git@github.com:replicatedcom/gitops-deploy
         mkdir -p ~/gitops-deploy/kurl
         mv ${GITHUB_WORKSPACE}/kustomize/overlays/staging/kurl.yaml gitops-deploy/kurl/kurl.yaml
         cd ~/gitops-deploy
