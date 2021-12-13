@@ -50,8 +50,17 @@ function generate_version_directory() {
     if [ "$minor" -ge 20 ]; then
         criToolsVersion=$(curl -s https://api.github.com/repos/kubernetes-sigs/cri-tools/releases | \
             grep '"tag_name": ' | \
-            grep -Eo "1\.${minor}\.[0-9]+" | \
+            ( grep -Eo "1\.${minor}\.[0-9]+" || true ) | \
             head -1)
+    fi
+
+    # Fallback: Kubernetes 1.23 doesn't have a version of criTools as of 2021-12-13
+    # Any latest version of criTools will work for any version of Kubernetes >=1.16, so this is a safe operation
+    if [ -z "$criToolsVersion" ]; then
+        criToolsVersion=$(curl -s https://api.github.com/repos/kubernetes-sigs/cri-tools/releases | \
+        grep '"tag_name": ' | \
+        grep -Eo "1\.[2-9][0-9]\.[0-9]+"| \
+        head -1)
     fi
 
     echo "" >> "../$version/Manifest"
