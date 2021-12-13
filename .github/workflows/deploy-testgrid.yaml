@@ -67,7 +67,7 @@ jobs:
         git config user.name "kURL GitHub Actions"
         git add .
         git commit --allow-empty -m "https://github.com/replicatedhq/kURL/actions/runs/${GITHUB_RUN_ID}" && \
-          git push origin main
+          git push origin master
 
   production-docker-image-tgapi:
     runs-on: ubuntu-18.04
