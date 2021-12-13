@@ -55,10 +55,15 @@ function init() {
 
     kubernetes_maybe_generate_bootstrap_token
 
+    local addr="$PRIVATE_ADDRESS"
+    local port="6443"
     API_SERVICE_ADDRESS="$PRIVATE_ADDRESS:6443"
     if [ "$HA_CLUSTER" = "1" ]; then
-        API_SERVICE_ADDRESS="$LOAD_BALANCER_ADDRESS:$LOAD_BALANCER_PORT"
+        addr="$LOAD_BALANCER_ADDRESS"
+        port="$LOAD_BALANCER_PORT"
     fi
+    addr=$($DIR/bin/kurl format-address "$addr")
+    API_SERVICE_ADDRESS="$addr:$port"
 
     local oldLoadBalancerAddress=$(kubernetes_load_balancer_address)
     if commandExists ekco_handle_load_balancer_address_change_pre_init; then
@@ -182,7 +187,8 @@ EOF
     kubectl uncordon "$node"
 
     if [ -n "$LOAD_BALANCER_ADDRESS" ]; then
-        spinner_until 120 cert_has_san "$PRIVATE_ADDRESS:6443" "$LOAD_BALANCER_ADDRESS"
+        addr=$($DIR/bin/kurl format-address "$PRIVATE_ADDRESS")
+        spinner_until 120 cert_has_san "$addr:6443" "$LOAD_BALANCER_ADDRESS"
     fi
 
     if commandExists ekco_cleanup_bootstrap_internal_lb; then

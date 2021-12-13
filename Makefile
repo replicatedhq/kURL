@@ -36,7 +36,7 @@ endef
 
 # support for building on macos
 SED_INPLACE=-i
-SKIP_LDD_CHECK=
+SKIP_LDD_CHECK=${SKIP_DYNAMIC_CHECK}
 ifeq "darwin" "$(shell uname | tr '[:upper:]' '[:lower:]')"
 SED_INPLACE=-i.bak
 SKIP_LDD_CHECK=1

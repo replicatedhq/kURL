@@ -157,6 +157,9 @@ function get_patch_yaml() {
             skip-system-package-install)
                 SKIP_SYSTEM_PACKAGE_INSTALL=1
                 ;;
+            ipv6)
+                IPV6_ONLY=1
+                ;;
             *)
                 echo >&2 "Error: unknown parameter \"$_param\""
                 exit 1

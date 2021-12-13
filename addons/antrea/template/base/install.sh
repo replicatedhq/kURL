@@ -24,15 +24,25 @@ function antrea() {
     if ! lsmod | grep ip_tables; then
         modprobe ip_tables
     fi
+    if [ "$IPV6_ONLY" = "1" ]; then
+        modprobe ip6_tables
+    fi
+
 
     cp "$src/kustomization.yaml" "$dst/"
 
     if [ "$ANTREA_DISABLE_ENCRYPTION" = "1" ]; then
         cp "$src/plaintext.yaml" "$dst/"
         insert_resources "$dst/kustomization.yaml" plaintext.yaml
+        if [ "$IPV6_ONLY" = "1" ]; then
+            sed -i "/serviceCIDRv6:.*/a\    serviceCIDRv6: $SERVICE_CIDR" "$dst/plaintext.yaml"
+        fi
     else
         cp "$src/ipsec.yaml" "$dst/"
         insert_resources "$dst/kustomization.yaml" ipsec.yaml
+        if [ "$IPV6_ONLY" = "1" ]; then
+            sed -i "/serviceCIDRv6:.*/a\    serviceCIDRv6: $SERVICE_CIDR" "$dst/ipsec.yaml"
+        fi
 
         ANTREA_IPSEC_PSK=$(kubernetes_secret_value kube-system antrea-ipsec psk)
         if [ -z "$ANTREA_IPSEC_PSK" ]; then
@@ -62,7 +72,11 @@ function antrea_join() {
 function antrea_cli() {
   local src="$DIR/addons/antrea/$ANTREA_VERSION"
     
+  # github.com has no AAAA records as of 12/6/21
   if [ ! -f "$src/assets/antctl" ] && [ "$AIRGAP" != "1" ]; then
+    if [ "$IPV6_ONLY" = "1" ]; then
+        return 0
+    fi
     mkdir -p "$src/assets"
     curl -L --fail "https://github.com/vmware-tanzu/antrea/releases/download/v${ANTREA_VERSION}/antctl-Linux-x86_64" > "$src/assets/antctl"
   fi

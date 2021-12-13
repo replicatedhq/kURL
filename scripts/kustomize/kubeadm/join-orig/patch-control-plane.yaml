@@ -4,3 +4,5 @@ metadata:
   name: kubeadm-join-configuration
 controlPlane:
   certificateKey: $CERT_KEY
+  localAPIEndpoint:
+    advertiseAddress: $PRIVATE_ADDRESS

@@ -12,11 +12,20 @@ commandExists() {
     command -v "$@" > /dev/null 2>&1
 }
 
+# default s3 endpoint does not have AAAA records so IPv6 installs have to choose
+# an arbitrary regional dualstack endpoint. If S3 transfer acceleration is ever
+# enabled on the kurl-sh bucket the s3.accelerate.amazonaws.com endpoint can be
+# used for both IPv4 and IPv6.
 function get_dist_url() {
+    local url="$DIST_URL"
     if [ -n "${KURL_VERSION}" ]; then
-        echo "${DIST_URL}/${KURL_VERSION}"
+        url="${DIST_URL}/${KURL_VERSION}"
+    fi
+
+    if [ "$IPV6_ONLY" = "1" ]; then
+        echo "$url" | sed 's/s3\.amazonaws\.com/s3.dualstack.us-east-1.amazonaws.com/'
     else
-        echo "${DIST_URL}"
+        echo "$url"
     fi
 }
 

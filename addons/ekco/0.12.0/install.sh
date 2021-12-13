@@ -199,7 +199,8 @@ function ekco_handle_load_balancer_address_change_pre_init() {
     for NODE in ${KUBERNETES_REMOTE_PRIMARIES[@]}; do
         local nodeIP=$(kubectl get node $NODE -owide  --no-headers | awk '{ print $6 }')
         echo "Waiting for $NODE to begin serving certificate signed for $newLoadBalancerHost"
-        if ! spinner_until 120 cert_has_san "$nodeIP:6443" "$newLoadBalancerHost"; then
+        local addr=$($DIR/bin/kurl format-address $nodeIP)
+        if ! spinner_until 120 cert_has_san "$addr:6443" "$newLoadBalancerHost"; then
             printf "${YELLOW}$NODE is not serving certificate signed for $newLoadBalancerHost${NC}\n"
         fi
     done
