@@ -19,8 +19,9 @@ export class Templates {
   private upgradeTmplResolved: (data?: Manifest) => string;
   private tasksTmplResolved: (data?: Manifest) => string;
   private templateOpts = {
-    escape: /{{-([\s\S]+?)}}/g,
-    evaluate: /{{([\s\S]+?)}}/g,
+    // HACK: do not hijack these from user facing go text template
+    escape: /{{--unsupported--([\s\S]+?)}}/g, // do not use this
+    evaluate: /{{-unsupported-([\s\S]+?)}}/g, // do not use this
     interpolate: /{{=([\s\S]+?)}}/g,
   };
 
