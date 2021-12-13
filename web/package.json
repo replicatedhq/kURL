@@ -12,7 +12,7 @@
     "@tsed/di": "^6.92.0",
     "@tsed/logger": "^6.0.0",
     "@tsed/platform-express": "^6.95.2",
-    "ajv": "^8.6.2",
+    "ajv": "^8.8.2",
     "aws-sdk": "^2.1040.0",
     "base64url": "^3.0.1",
     "cors": "^2.8.5",
@@ -50,7 +50,7 @@
     "eslint": "^8.4.1",
     "mocha": "^9.0.3",
     "snyk": "^1.677.0",
-    "ts-node": "^10.2.0",
+    "ts-node": "^10.4.0",
     "typescript": "^4.5.2"
   },
   "scripts": {

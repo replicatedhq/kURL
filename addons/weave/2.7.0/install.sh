@@ -96,8 +96,3 @@ function weave_ready_spinner() {
       bail "The weave addon failed to deploy successfully."
     fi
 }
-
-function weave_preflight() {
-    local src="${DIR}/addons/weave/${WEAVE_VERSION}"
-    echo "${src}/host-preflight.yaml"
-}

@@ -385,6 +385,124 @@ function preflights_require_no_kubernetes_or_current_node() {
     return 0
 }
 
+function preflights_system_packages() {
+  local addonName=$1
+  local addonVersion=$2
+
+  local manifestPath="${DIR}/addons/${addonName}/${addonVersion}/Manifest"
+  local preflightPath="${DIR}/addons/${addonName}/${addonVersion}/system-packages-preflight.yaml"
+
+  if [ ! -f "$manifestPath" ]; then
+      return
+  fi
+
+  local pkgs_all=()
+  local pkgs_ubuntu=()
+  local pkgs_centos=()
+  local pkgs_centos8=()
+  local pkgs_ol=()
+
+  while read -r line; do
+      if [ -z "$line" ]; then
+          continue
+      fi
+      # support for comments in manifest files
+      if [ "$(echo "$line" | cut -c1-1)" = "#" ]; then
+          continue
+      fi
+      kind=$(echo "$line" | awk '{ print $1 }')
+
+      case "$kind" in
+          apt)
+              package=$(echo "${line}" | awk '{ print $2 }')
+              pkgs_ubuntu+=("${package}")
+              pkgs_all+=("${package}")
+              ;;
+
+          yum)
+              package=$(echo "${line}" | awk '{ print $2 }')
+              pkgs_centos+=("${package}")
+              pkgs_all+=("${package}")
+              ;;
+
+          yum8)
+              package=$(echo "${line}" | awk '{ print $2 }')
+              pkgs_centos8+=("${package}")
+              pkgs_all+=("${package}")
+              ;;
+
+          yumol)
+              package=$(echo "${line}" | awk '{ print $2 }')
+              pkgs_ol+=("${package}")
+              pkgs_all+=("${package}")
+              ;;
+      esac
+  done < "${manifestPath}"
+
+  if [ "${#pkgs_all[@]}" -eq "0" ]; then
+      return
+  fi
+
+  local system_packages_collector="
+systemPackages:
+  collectorName: $addonName
+"
+
+  local system_packages_analyzer="
+systemPackages:
+  collectorName: $addonName
+  outcomes:
+  - fail:
+      when: '{{ not .IsInstalled }}'
+      message: Package {{ .Name }} is not installed.
+  - pass:
+      message: Package {{ .Name }} is installed.
+"
+
+  for pkg in "${pkgs_ubuntu[@]}"
+  do
+      system_packages_collector=$("${DIR}"/bin/yamlutil -a -yc "$system_packages_collector" -yp systemPackages_ubuntu[] -v "$pkg")
+  done
+
+  for pkg in "${pkgs_centos[@]}"
+  do
+      system_packages_collector=$("${DIR}"/bin/yamlutil -a -yc "$system_packages_collector" -yp systemPackages_centos[] -v "$pkg")
+      system_packages_collector=$("${DIR}"/bin/yamlutil -a -yc "$system_packages_collector" -yp systemPackages_rhel[] -v "$pkg")
+      system_packages_collector=$("${DIR}"/bin/yamlutil -a -yc "$system_packages_collector" -yp systemPackages_ol[] -v "$pkg")
+      system_packages_collector=$("${DIR}"/bin/yamlutil -a -yc "$system_packages_collector" -yp systemPackages_amzn[] -v "$pkg")
+  done
+
+  for pkg in "${pkgs_centos8[@]}"
+  do
+      system_packages_collector=$("${DIR}"/bin/yamlutil -a -yc "$system_packages_collector" -yp systemPackages_centos8[] -v "$pkg")
+      system_packages_collector=$("${DIR}"/bin/yamlutil -a -yc "$system_packages_collector" -yp systemPackages_rhel8[] -v "$pkg")
+      system_packages_collector=$("${DIR}"/bin/yamlutil -a -yc "$system_packages_collector" -yp systemPackages_ol8[] -v "$pkg")
+  done
+
+  for pkg in "${pkgs_ol[@]}"
+  do
+      system_packages_collector=$("${DIR}"/bin/yamlutil -a -yc "$system_packages_collector" -yp systemPackages_ol[] -v "$pkg")
+  done
+
+  # host preflight file not found, create one
+  rm -rf "$preflightPath"
+  mkdir -p "$(dirname "$preflightPath")"
+  cat <<EOF >> "$preflightPath"
+apiVersion: troubleshoot.sh/v1beta2
+kind: HostPreflight
+metadata:
+  name: "$addonName"
+spec:
+  collectors: []
+  analyzers: []
+EOF
+
+  "${DIR}"/bin/yamlutil -a -fp "$preflightPath" -yp spec_collectors[] -v "$system_packages_collector"
+  "${DIR}"/bin/yamlutil -a -fp "$preflightPath" -yp spec_analyzers[] -v "$system_packages_analyzer"
+
+  echo "$preflightPath"
+}
+
 HOST_PREFLIGHTS_RESULTS_OUTPUT_DIR="host-preflights"
 function host_preflights() {
     local is_primary="$1"
@@ -421,9 +539,13 @@ function host_preflights() {
       opts="${opts} --spec=${VENDOR_PREFLIGHT_SPEC}"
     fi
 
-
     # Adding kurl addon preflight checks
     for spec in $("${K8S_DISTRO}_addon_for_each" addon_preflight); do
+        opts="${opts} --spec=${spec}"
+    done
+
+    # Add containerd preflight checks separately since it's a special addon and is not part of the addons array
+    for spec in $(addon_preflight containerd "$CONTAINERD_VERSION"); do
         opts="${opts} --spec=${spec}"
     done
 
@@ -433,7 +555,7 @@ function host_preflights() {
     if [ -n "$SECONDARY_HOST" ]; then
         opts="${opts} --secondary-host=${SECONDARY_HOST}"
     fi
-    
+
     logStep "Running host preflights"
     if [ "${PREFLIGHT_IGNORE}" = "1" ]; then
         "${DIR}"/bin/kurl host preflight "${MERGED_YAML_SPEC}" ${opts} | tee "${out_file}"

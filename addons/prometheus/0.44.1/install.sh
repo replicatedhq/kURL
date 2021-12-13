@@ -119,8 +119,3 @@ EOF
 EOF
     fi
 }
-
-function prometheus_preflight() {
-    local src="${DIR}/addons/prometheus/${PROMETHEUS_VERSION}"
-    echo "${src}/host-preflight.yaml"
-}

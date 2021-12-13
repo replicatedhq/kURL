@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
+	replyaml "github.com/replicatedhq/yaml/v3" // using replicatedhq/yaml/v3 because that allows setting line length
 	"gopkg.in/yaml.v2"
 )
 
@@ -30,6 +31,88 @@ func readFile(path string) []byte {
 	}
 
 	return configuration
+}
+
+func marshalIndent(in interface{}, indent int) ([]byte, error) {
+	var buf bytes.Buffer
+	enc := replyaml.NewEncoder(&buf)
+	enc.SetIndent(indent)
+	enc.SetLineLength(-1)
+	err := enc.Encode(in)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to encode with indent %d", indent)
+	}
+	return buf.Bytes(), nil
+}
+
+func addFieldToFile(readFile func(string) []byte, filePath, yamlPath, value string) {
+	configuration := readFile(filePath)
+
+	modified, err := addFieldToContent(configuration, yamlPath, value)
+	if err != nil {
+		log.Fatalf("error: %v", err)
+	}
+
+	err = ioutil.WriteFile(filePath, []byte(modified), 0644)
+	if err != nil {
+		log.Fatalf("error: %v", err)
+	}
+}
+
+func addFieldToContent(content []byte, yamlPath, value string) (string, error) {
+	var parsedVal interface{}
+	err := yaml.Unmarshal([]byte(value), &parsedVal)
+	if err != nil {
+		return "", errors.Wrap(err, "failed to unmarshal value")
+	}
+
+	var buffer []byte
+
+	resources := bytes.Split(content, []byte("---"))
+
+	for index, config := range resources {
+		var parsedObj map[interface{}]interface{}
+
+		err := yaml.Unmarshal(config, &parsedObj)
+		if err != nil {
+			return "", errors.Wrap(err, "failed to unmarshal content")
+		}
+		if parsedObj == nil {
+			continue
+		}
+
+		isArray := strings.HasSuffix(yamlPath, "[]")
+		yamlPath = strings.TrimSuffix(yamlPath, "[]")
+
+		fields := strings.Split(yamlPath, "_")
+		if len(fields) != 2 {
+			return "", errors.Wrap(err, "yaml path must be of 2 length")
+		}
+
+		if isArray {
+			arr := parsedObj[fields[0]].(map[interface{}]interface{})[fields[1]]
+			if arr == nil {
+				arr = []interface{}{}
+			}
+			parsedObj[fields[0]].(map[interface{}]interface{})[fields[1]] = append(arr.([]interface{}), parsedVal)
+		} else {
+			parsedObj[fields[0]].(map[interface{}]interface{})[fields[1]] = parsedVal
+		}
+
+		b, err := marshalIndent(&parsedObj, 2)
+		if err != nil {
+			return "", errors.Wrap(err, "failed to marshal")
+		}
+
+		buffer = append(buffer, b...)
+
+		// don't append "---" to the last document
+		if index < len(resources)-1 {
+			buffer = append(buffer, []byte("---\n")...)
+		}
+	}
+
+	return string(buffer), nil
 }
 
 func removeField(readFile func(string) []byte, filePath, yamlField string) {
@@ -156,18 +239,30 @@ func convertToStringMaps(startMap map[interface{}]interface{}) map[string]interf
 }
 
 func main() {
-
+	add := flag.Bool("a", false, "Adds a yaml field and its children. Must be accompanied by (-fp [file_path] or -yc [yaml_content]) -yp [yaml_path] -v [value]. yaml_path is delineated by '_'. if field is to be added to an array, yaml_path must end with '[]', for example: spec.collectors[]")
 	remove := flag.Bool("r", false, "Removes a yaml field and its children. Must be accompanied by -fp [file_path] -yf [yaml_field]")
 	parse := flag.Bool("p", false, "Parses a yaml tree given a path. Must be accompanied by -fp [file_path] -yp [yaml_path]. yaml_path is delineated by '_'")
 	json := flag.Bool("j", false, "Parses a yaml tree given a path. Must be accompanied by -fp [file_path] -jf [json_field]. json_field is delineated by '.'")
+	value := flag.String("v", "", "Value to assign to added yaml field. Must be accompanied by (-fp [file_path] or -yc [yaml_content]) -yp [yaml_path].")
 	filePath := flag.String("fp", "", "filepath")
-	yamlPath := flag.String("yp", "", "filepath")
-	yamlField := flag.String("yf", "", "filepath")
+	yamlContent := flag.String("yc", "", "yamlcontent")
+	yamlPath := flag.String("yp", "", "yamlpath")
+	yamlField := flag.String("yf", "", "yamlfield")
 	jsonPath := flag.String("jf", "", "path to a field within a yaml object")
 
 	flag.Parse()
 
-	if *remove == true && *filePath != "" && *yamlField != "" {
+	if *add == true && *yamlPath != "" && *value != "" {
+		if *filePath != "" {
+			addFieldToFile(readFile, *filePath, *yamlPath, *value)
+		} else if *yamlContent != "" {
+			modified, err := addFieldToContent([]byte(*yamlContent), *yamlPath, *value)
+			if err != nil {
+				log.Fatal(err.Error())
+			}
+			fmt.Printf("%s\n", modified)
+		}
+	} else if *remove == true && *filePath != "" && *yamlField != "" {
 		removeField(readFile, *filePath, *yamlField)
 	} else if *parse == true && *filePath != "" && *yamlPath != "" {
 		retrieveField(readFile, *filePath, *yamlPath)
