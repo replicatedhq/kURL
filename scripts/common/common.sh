@@ -725,6 +725,12 @@ function get_remotes_flags() {
     done < <(kubectl get node --no-headers --selector='!node-role.kubernetes.io/master' -owide | awk '{ print $6 }')
 }
 
+function get_ipv6_flag() {
+    if [ "$IPV6_ONLY" = "1" ]; then
+        echo " ipv6"
+    fi
+}
+
 function systemd_restart_succeeded() {
     local oldPid=$1
     local serviceName=$2

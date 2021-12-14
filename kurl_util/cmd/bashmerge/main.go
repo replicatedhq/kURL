@@ -223,7 +223,10 @@ func parseBashFlags(installer *kurlv1beta1.Installer, bashFlags string) error {
 		case "force-reapply-addons":
 			continue
 		case "ipv6":
-			continue
+			if installer.Spec.Kurl == nil {
+				installer.Spec.Kurl = &kurlv1beta1.Kurl{}
+			}
+			installer.Spec.Kurl.IPv6 = true
 		default:
 			return errors.New(fmt.Sprintf("string %s is not a bash flag", split[0]))
 		}
