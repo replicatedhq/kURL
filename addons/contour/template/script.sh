@@ -45,9 +45,10 @@ echo "envoy version: $ENVOY_VERSION"
 mkdir -p "../$CONTOUR_VERSION"
 cp -r ./base/* "../$CONTOUR_VERSION"
 
-# template 'Manifest', 'install.sh' and 'job-image.yaml' with versions
-sed -i "s/__releasever__/$CONTOUR_VERSION/g" "../$CONTOUR_VERSION/Manifest"
-sed -i "s/__envoyver__/$ENVOY_VERSION/g" "../$CONTOUR_VERSION/Manifest"
+cat /dev/null > ../$CONTOUR_VERSION/Manifest
+grep 'image: '  "$tmpdir/contour.yaml" | sort -u | sed 's/ *image: "*\(.*\)\/\(.*\):\([^"]*\)"*/image \2 \1\/\2:\3/' >> "../$CONTOUR_VERSION/Manifest"
+
+# template 'install.sh' and 'job-image.yaml' with versions
 sed -i "s/__releasever__/$CONTOUR_VERSION/g" "../$CONTOUR_VERSION/install.sh"
 sed -i "s/__releasever__/$CONTOUR_VERSION/g" "../$CONTOUR_VERSION/patches/job-image.yaml"
 
