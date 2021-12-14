@@ -101,6 +101,7 @@ spec:
     hostnameCheck: 2.2.2.2
     ignoreRemoteLoadImagesPrompt: false
     ignoreRemoteUpgradePrompt: false
+    ipv6: false
     licenseURL: https://www.sec.gov/Archives/edgar/data/1029786/00011931250557724/dex104.htm
     nameserver: 8.8.8.8
     noProxy: false
