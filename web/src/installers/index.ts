@@ -407,6 +407,7 @@ export interface KurlConfig {
   hostnameCheck?: string;
   ignoreRemoteLoadImagesPrompt?: boolean;
   ignoreRemoteUpgradePrompt?: boolean;
+  ipv6?: boolean;
   hostPreflights?: object;
   licenseURL?: string;
   nameserver?: string;
@@ -432,6 +433,7 @@ export const kurlConfigSchema = {
     hostPreflights: { type: "object", description: "Used to add additional host preflight checks."},
     ignoreRemoteLoadImagesPrompt: { type: "boolean", flag: "ignore-remote-load-images-prompt" , description: "Bypass prompt to load images on remotes. This is useful for automating upgrades." },
     ignoreRemoteUpgradePrompt: { type: "boolean", flag: "ignore-remote-upgrade-prompt" , description: "Bypass prompt to upgrade remotes. This is useful for automating upgrades." },
+    ipv6: { type: "boolean", description: "Install on IPv6 enabled hosts - see https://kurl.sh/docs/install-with-kurl/ipv6" },
     licenseURL: { type: "string", description: "A URL to a licensing agreement that will presented during installation and needs to be accepted or the install will exit." },
     nameserver: { type: "string" },
     noProxy: { type: "boolean", flag: "no-proxy" , description: "Don’t detect or configure a proxy" },
