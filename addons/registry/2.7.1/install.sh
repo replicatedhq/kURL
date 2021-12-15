@@ -29,6 +29,7 @@ function registry_install() {
     # doesn't already exist.
     if ! registry_pvc_exists && object_store_exists && [ "$REGISTRY_USE_PVC_STORAGE" != "1" ]; then
         registry_object_store_bucket
+        objectStoreIP=$($DIR/bin/kurl format-address $OBJECT_STORE_CLUSTER_IP)
         render_yaml_file "$DIR/addons/registry/2.7.1/tmpl-deployment-objectstore.yaml" > "$DIR/kustomize/registry/deployment-objectstore.yaml"
         insert_resources "$DIR/kustomize/registry/kustomization.yaml" deployment-objectstore.yaml
 
@@ -155,8 +156,13 @@ function registry_cred_secrets() {
     kubectl -n kurl patch secret registry-htpasswd -p '{"metadata":{"labels":{"kots.io/kotsadm":"true", "kots.io/backup":"velero"}}}'
     rm htpasswd
 
+    local server="$DOCKER_REGISTRY_IP"
+    if [ "$IPV6_ONLY" = "1" ]; then
+        server="registry.kurl.svc.cluster.local"
+    fi
+
     kubectl -n default create secret docker-registry registry-creds \
-        --docker-server="$DOCKER_REGISTRY_IP" \
+        --docker-server="$server" \
         --docker-username="$user" \
         --docker-password="$password"
     kubectl -n default patch secret registry-creds -p '{"metadata":{"labels":{"kots.io/kotsadm":"true", "kots.io/backup":"velero"}}}'

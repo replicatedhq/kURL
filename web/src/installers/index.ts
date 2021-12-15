@@ -3,7 +3,7 @@ import * as yaml from "js-yaml";
 import * as _ from "lodash";
 import * as mysql from "promise-mysql";
 import { Service } from "@tsed/common";
-import Ajv, {KeywordCxt} from "ajv";
+import Ajv from "ajv";
 import * as semver from "semver";
 import { MysqlWrapper } from "../util/services/mysql";
 import { instrumented } from "monkit";
@@ -407,6 +407,7 @@ export interface KurlConfig {
   hostnameCheck?: string;
   ignoreRemoteLoadImagesPrompt?: boolean;
   ignoreRemoteUpgradePrompt?: boolean;
+  ipv6?: boolean;
   hostPreflights?: object;
   licenseURL?: string;
   nameserver?: string;
@@ -416,6 +417,7 @@ export interface KurlConfig {
   preflightIgnoreWarnings?: boolean;
   proxyAddress?: string;
   publicAddress?: string;
+  skipSystemPackageInstall?: boolean;
   bypassFirewalldWarning?: boolean; // this is not in the installer crd
   hardFailOnFirewalld?: boolean; // this is not in the installer crd
   task?: string; // this is not in the installer crd
@@ -431,6 +433,7 @@ export const kurlConfigSchema = {
     hostPreflights: { type: "object", description: "Used to add additional host preflight checks."},
     ignoreRemoteLoadImagesPrompt: { type: "boolean", flag: "ignore-remote-load-images-prompt" , description: "Bypass prompt to load images on remotes. This is useful for automating upgrades." },
     ignoreRemoteUpgradePrompt: { type: "boolean", flag: "ignore-remote-upgrade-prompt" , description: "Bypass prompt to upgrade remotes. This is useful for automating upgrades." },
+    ipv6: { type: "boolean", description: "Install on IPv6 enabled hosts - see https://kurl.sh/docs/install-with-kurl/ipv6" },
     licenseURL: { type: "string", description: "A URL to a licensing agreement that will presented during installation and needs to be accepted or the install will exit." },
     nameserver: { type: "string" },
     noProxy: { type: "boolean", flag: "no-proxy" , description: "Don’t detect or configure a proxy" },
@@ -439,6 +442,7 @@ export const kurlConfigSchema = {
     privateAddress: { type: "string", flag: "private-address" , description: "The local address of the host (different for each host in the cluster)" },
     proxyAddress: { type: "string", flag: "http-proxy" , description: "The address of the proxy to use for outbound connections" },
     publicAddress: { type: "string", flag: "public-address" , description: "The public address of the host (different for each host in the cluster), will be added as a CNAME to the k8s API server cert so you can use kubectl with this address" },
+    skipSystemPackageInstall: { type: "boolean", flag: "skip-system-package-install" , description: "Skip the installation of system packages." },
     bypassFirewalldWarning: { type: "boolean", flag: "bypass-firewalld-warning" , description: "Continue installing even if the firewalld service is active" },
     hardFailOnFirewalld: { type: "boolean", flag: "hard-fail-on-firewalld" , description: "Exit the install script if the firewalld service is active" },
     installerVersion: { type: "string", description: "The upstream version of kURL to use as part of the installation - see https://kurl.sh/docs/install-with-kurl/#versioned-releases" },
@@ -758,19 +762,23 @@ export interface InstallerObject {
 
 export class Installer {
 
-  public static latest(): Installer {
+  public static async latest(kurlVersion?: string): Promise<Installer> {
     const i = new Installer();
 
+    const distUrl = getDistUrl();
+
+    const installerVersions = await getInstallerVersions(distUrl, kurlVersion);
+
     i.id = "latest";
-    i.spec.kubernetes = { version: "latest" };
-    i.spec.containerd = { version: "latest" };
-    i.spec.weave = { version: "latest" };
-    i.spec.longhorn = { version: "latest"};
-    i.spec.minio = { version: "latest"};
+    i.spec.kubernetes = { version: "1.21.x" };
+    i.spec.containerd = { version: this.toDotXVersion(installerVersions.containerd[0]) };
+    i.spec.weave = { version: this.toDotXVersion(installerVersions.weave[0]) };
+    i.spec.longhorn = { version: this.toDotXVersion(installerVersions.longhorn[0]) };
+    i.spec.minio = { version: installerVersions.minio[0] };
     i.spec.ekco = { version: "latest" };
-    i.spec.contour = { version: "latest" };
-    i.spec.registry = { version: "latest" };
-    i.spec.prometheus = { version: "latest" };
+    i.spec.contour = { version: this.toDotXVersion(installerVersions.contour[0]) };
+    i.spec.registry = { version: this.toDotXVersion(installerVersions.registry[0]) };
+    i.spec.prometheus = { version: this.toDotXVersion(installerVersions.prometheus[0]) };
 
     return i;
   }
@@ -1279,6 +1287,9 @@ export class Installer {
       binUtils = `kurl-bin-utils-${kurlVersion}`
     }
     const pkgs = [ "common", binUtils, "host-openssl" ];
+    if (this.spec.longhorn) {
+      pkgs.push("host-longhorn");
+    }
 
     let kubernetesVersion = "";
     await Promise.all(_.each(_.keys(this.spec), async (config: string) => {
@@ -1311,6 +1322,13 @@ export class Installer {
     }
 
     return pkgs;
+  }
+
+  public static toDotXVersion(version: string): string {
+    if (!version.match(/^\d+\.\d+\.\d+/)) {
+      return version;
+    }
+    return version.replace(/^(\d+\.\d+\.).*$/, "$1x");
   }
 
   public static resolveLatestPatchVersion(xVersion: string, versions: string[]): string {
@@ -1356,8 +1374,8 @@ export class Installer {
     return ret;
   }
 
-  public isLatest(): boolean {
-    return _.isEqual(this.spec, Installer.latest().spec);
+  public async isLatest(): Promise<boolean> {
+    return _.isEqual(this.spec, (await Installer.latest()).spec);
   }
 
   public flags(): string {
@@ -1418,7 +1436,7 @@ export class InstallerStore {
   @instrumented
   public async getInstaller(installerID: string): Promise<Installer|undefined> {
     if (installerID === "latest") {
-      return Installer.latest();
+      return await Installer.latest();
     }
 
     const q = "SELECT yaml, team_id FROM kurl_installer WHERE kurl_installer_id = ?";

@@ -1,0 +1,6 @@
+
+bases:
+  - ../dev
+
+resources:
+  - ./mysql.yaml

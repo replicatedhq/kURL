@@ -222,11 +222,6 @@ function rook_patch_insecure_clients {
     fi
 }
 
-function rook_preflight() {
-    local src="${DIR}/addons/rook/${ROOK_VERSION}"
-    echo "${src}/host-preflight.yaml"
-}
-
 # rook_ceph_version_deployed checks that there is only one ceph-version reported across the cluster
 function rook_ceph_version_deployed() {
     local ceph_version="14.2.21"

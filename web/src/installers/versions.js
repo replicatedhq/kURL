@@ -51,6 +51,7 @@ module.exports.InstallerVersions = {
   ],
   antrea: [
     // cron-antrea-update
+    "1.4.0",
     "1.2.1",
     "1.2.0",
     "1.1.0",
@@ -69,7 +70,7 @@ module.exports.InstallerVersions = {
     "1.4.3",
     "1.0.4-14.2.21",
   ],
-  contour: ["1.18.0", "1.16.0", "1.15.1", "1.14.1", "1.14.0", "1.13.1", "1.13.0", "1.12.0", "1.11.0", "1.10.1", "1.7.0", "1.0.1", "0.14.0"], // cron-contour-update
+  contour: ["1.19.1", "1.18.0", "1.16.0", "1.15.1", "1.14.1", "1.14.0", "1.13.1", "1.13.0", "1.12.0", "1.11.0", "1.10.1", "1.7.0", "1.0.1", "0.14.0"], // cron-contour-update
   registry: [
     "2.7.1",
   ],
@@ -95,6 +96,7 @@ module.exports.InstallerVersions = {
   ],
   kotsadm: [
     // auto-kotsadm-update
+    "1.58.2",
     "1.58.1",
     "1.58.0",
     "1.57.0",
@@ -241,6 +243,7 @@ module.exports.InstallerVersions = {
   ],
   velero: [
     // cron-velero-update
+    "1.7.1",
     "1.6.2",
     "1.6.1",
     "1.6.0",
@@ -262,6 +265,7 @@ module.exports.InstallerVersions = {
     "0.0.1",
   ],
   ekco: [
+    "0.13.0",
     "0.12.0",
     "0.11.0",
     "0.10.3",
@@ -292,18 +296,21 @@ module.exports.InstallerVersions = {
   ],
   longhorn: [
     // cron-longhorn-update
+    "1.2.2",
     "1.1.2",
     "1.1.1",
     "1.1.0",
   ],
   sonobuoy: [
     // cron-sonobuoy-update
+    "0.55.1",
     "0.53.0",
     "0.52.0",
     "0.50.0",
   ],
   goldpinger: [
     // cron-goldpinger-update
+    "3.2.0-5.0.0",
     "3.2.0-4.2.1",
     "3.2.0-4.1.1",
   ],

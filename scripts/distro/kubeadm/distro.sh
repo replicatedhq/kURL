@@ -162,13 +162,20 @@ function kubeadm_containerd_restart() {
 function kubeadm_registry_containerd_configure() {
     local registry_ip="$1"
 
-    if grep -q "plugins.\"io.containerd.grpc.v1.cri\".registry.configs.\"${registry_ip}\".tls" /etc/containerd/config.toml; then
-        echo "Registry ${registry_ip} TLS already configured for containerd"
+    local server="$registry_ip"
+    if [ "$IPV6_ONLY" = "1" ]; then
+        server="registry.kurl.svc.cluster.local"
+        sed -i '/registry\.kurl\.svc\.cluster\.local/d' /etc/hosts
+        echo "$registry_ip $server" >> /etc/hosts
+    fi
+
+    if grep -q "plugins.\"io.containerd.grpc.v1.cri\".registry.configs.\"${server}\".tls" /etc/containerd/config.toml; then
+        echo "Registry ${server} TLS already configured for containerd"
         return 0
     fi
 
     cat >> /etc/containerd/config.toml <<EOF
-[plugins."io.containerd.grpc.v1.cri".registry.configs."${registry_ip}".tls]
+[plugins."io.containerd.grpc.v1.cri".registry.configs."${server}".tls]
   ca_file = "/etc/kubernetes/pki/ca.crt"
 EOF
 
@@ -176,6 +183,6 @@ EOF
 }
 
 function kubeadm_api_is_healthy() {
-    curl --noproxy "*" --fail --silent --insecure "https://$(kubernetes_api_address)/healthz" >/dev/null
+    curl --globoff --noproxy "*" --fail --silent --insecure "https://$(kubernetes_api_address)/healthz" >/dev/null
 }
     

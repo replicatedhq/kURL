@@ -1,4 +1,3 @@
-import { hot } from "react-hot-loader/root";
 import * as React from "react";
 import ComponentRoot from "./components";
 import { Helmet } from "react-helmet";
@@ -18,4 +17,4 @@ class Root extends React.Component {
   }
 };
 
-export default hot(Root);
+export default Root;

@@ -30,8 +30,8 @@ jobs:
           automated-pr
           containerd
         draft: false
-        base: "master"
-        body: "Automated changes by the [cron-containerd-update](https://github.com/replicatedhq/kURL/blob/master/.github/workflows/update-containerd.yaml) GitHub action"
+        base: "main"
+        body: "Automated changes by the [cron-containerd-update](https://github.com/replicatedhq/kURL/blob/main/.github/workflows/update-containerd.yaml) GitHub action"
 
     - name: Check outputs
       run: |

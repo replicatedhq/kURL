@@ -12,11 +12,20 @@ commandExists() {
     command -v "$@" > /dev/null 2>&1
 }
 
+# default s3 endpoint does not have AAAA records so IPv6 installs have to choose
+# an arbitrary regional dualstack endpoint. If S3 transfer acceleration is ever
+# enabled on the kurl-sh bucket the s3.accelerate.amazonaws.com endpoint can be
+# used for both IPv4 and IPv6.
 function get_dist_url() {
+    local url="$DIST_URL"
     if [ -n "${KURL_VERSION}" ]; then
-        echo "${DIST_URL}/${KURL_VERSION}"
+        url="${DIST_URL}/${KURL_VERSION}"
+    fi
+
+    if [ "$IPV6_ONLY" = "1" ]; then
+        echo "$url" | sed 's/s3\.amazonaws\.com/s3.dualstack.us-east-1.amazonaws.com/'
     else
-        echo "${DIST_URL}"
+        echo "$url"
     fi
 }
 
@@ -604,23 +613,6 @@ function install_host_dependencies_openssl() {
     install_host_archives "${DIR}/packages/host/openssl" openssl
 }
 
-function install_host_dependencies_longhorn() {
-    discover
-
-    if [ "$AIRGAP" != "1" ] && [ -n "$DIST_URL" ]; then
-        local package="host-longhorn.tar.gz"
-        package_download "${package}"
-        tar xf "$(package_filepath "${package}")"
-    fi
-
-    if [ "$AIRGAP" == "1" ]; then
-        move_airgap_assets
-    fi
-    pushd_install_directory
-
-    longhorn_host_init_common "${DIR}/packages/host/longhorn"
-}
-
 function maybe_read_kurl_config_from_cluster() {
     if [ -n "${KURL_INSTALL_DIRECTORY_FLAG}" ]; then
         return
@@ -662,7 +654,7 @@ function move_airgap_assets() {
     local cwd
     cwd="$(pwd)"
 
-    if [ "$(readlink -f KURL_INSTALL_DIRECTORY)" = "${cwd}/kurl" ]; then
+    if [ "$(readlink -f $KURL_INSTALL_DIRECTORY)" = "${cwd}/kurl" ]; then
         return
     fi
 
@@ -692,6 +684,13 @@ function get_force_reapply_addons_flag() {
         return
     fi
     echo " force-reapply-addons"
+}
+
+function get_skip_system_package_install_flag() {
+    if [ "${SKIP_SYSTEM_PACKAGE_INSTALL}" != "1" ]; then
+        return
+    fi
+    echo " skip-system-package-install"
 }
 
 function get_additional_no_proxy_addresses_flag() {

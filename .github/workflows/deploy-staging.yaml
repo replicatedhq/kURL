@@ -3,7 +3,7 @@ name: deploy-staging
 on:
   push:
     branches:
-    - master
+    - main
 
 jobs:
   get-tag:
@@ -213,7 +213,7 @@ jobs:
 
     - name: release
       run: |
-        cd ~ && git clone --single-branch -b master git@github.com:replicatedcom/gitops-deploy
+        cd ~ && git clone --single-branch -b main git@github.com:replicatedcom/gitops-deploy
         mkdir -p ~/gitops-deploy/kurl
         mv ${GITHUB_WORKSPACE}/kustomize/overlays/staging/kurl.yaml gitops-deploy/kurl/kurl.yaml
         cd ~/gitops-deploy
@@ -221,7 +221,7 @@ jobs:
         git config user.name "kURL GitHub Actions"
         git add .
         git commit --allow-empty -m "https://github.com/replicatedhq/kURL/actions/runs/${GITHUB_RUN_ID}" && \
-          git push origin master
+          git push origin main
 
   testgrid-run:
     runs-on: ubuntu-18.04

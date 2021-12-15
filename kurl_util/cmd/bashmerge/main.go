@@ -209,6 +209,11 @@ func parseBashFlags(installer *kurlv1beta1.Installer, bashFlags string) error {
 				installer.Spec.Kurl = &kurlv1beta1.Kurl{}
 			}
 			installer.Spec.Kurl.PrivateAddress = split[1]
+		case "skip-system-package-install":
+			if installer.Spec.Kurl == nil {
+				installer.Spec.Kurl = &kurlv1beta1.Kurl{}
+			}
+			installer.Spec.Kurl.SkipSystemPackageInstall = true
 		case "yes":
 			continue
 		case "auto-upgrades-enabled":
@@ -218,6 +223,8 @@ func parseBashFlags(installer *kurlv1beta1.Installer, bashFlags string) error {
 		case "secondary-host":
 			continue
 		case "force-reapply-addons":
+			continue
+		case "ipv6":
 			continue
 		default:
 			return errors.New(fmt.Sprintf("string %s is not a bash flag", split[0]))

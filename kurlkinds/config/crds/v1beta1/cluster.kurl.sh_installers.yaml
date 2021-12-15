@@ -825,6 +825,49 @@ spec:
                                   required:
                                   - outcomes
                                   type: object
+                                systemPackages:
+                                  properties:
+                                    checkName:
+                                      type: string
+                                    collectorName:
+                                      type: string
+                                    exclude:
+                                      type: string
+                                    outcomes:
+                                      items:
+                                        properties:
+                                          fail:
+                                            properties:
+                                              message:
+                                                type: string
+                                              uri:
+                                                type: string
+                                              when:
+                                                type: string
+                                            type: object
+                                          pass:
+                                            properties:
+                                              message:
+                                                type: string
+                                              uri:
+                                                type: string
+                                              when:
+                                                type: string
+                                            type: object
+                                          warn:
+                                            properties:
+                                              message:
+                                                type: string
+                                              uri:
+                                                type: string
+                                              when:
+                                                type: string
+                                            type: object
+                                        type: object
+                                      type: array
+                                  required:
+                                  - outcomes
+                                  type: object
                                 tcpConnect:
                                   properties:
                                     checkName:
@@ -1236,6 +1279,89 @@ spec:
                                     exclude:
                                       type: string
                                   type: object
+                                systemPackages:
+                                  properties:
+                                    amzn:
+                                      items:
+                                        type: string
+                                      type: array
+                                    amzn2:
+                                      items:
+                                        type: string
+                                      type: array
+                                    centos:
+                                      items:
+                                        type: string
+                                      type: array
+                                    centos7:
+                                      items:
+                                        type: string
+                                      type: array
+                                    centos8:
+                                      items:
+                                        type: string
+                                      type: array
+                                    collectorName:
+                                      type: string
+                                    exclude:
+                                      type: string
+                                    ol:
+                                      items:
+                                        type: string
+                                      type: array
+                                    ol7:
+                                      items:
+                                        type: string
+                                      type: array
+                                    ol8:
+                                      items:
+                                        type: string
+                                      type: array
+                                    rhel:
+                                      items:
+                                        type: string
+                                      type: array
+                                    rhel7:
+                                      items:
+                                        type: string
+                                      type: array
+                                    rhel8:
+                                      items:
+                                        type: string
+                                      type: array
+                                    ubuntu:
+                                      items:
+                                        type: string
+                                      type: array
+                                    ubuntu16:
+                                      items:
+                                        type: string
+                                      type: array
+                                    ubuntu18:
+                                      items:
+                                        type: string
+                                      type: array
+                                    ubuntu20:
+                                      items:
+                                        type: string
+                                      type: array
+                                  required:
+                                  - amzn
+                                  - amzn2
+                                  - centos
+                                  - centos7
+                                  - centos8
+                                  - ol
+                                  - ol7
+                                  - ol8
+                                  - rhel
+                                  - rhel7
+                                  - rhel8
+                                  - ubuntu
+                                  - ubuntu16
+                                  - ubuntu18
+                                  - ubuntu20
+                                  type: object
                                 tcpConnect:
                                   properties:
                                     address:
@@ -1512,6 +1638,13 @@ spec:
                                     exclude:
                                       type: string
                                   type: object
+                                systemPackages:
+                                  properties:
+                                    collectorName:
+                                      type: string
+                                    exclude:
+                                      type: string
+                                  type: object
                                 tcpConnect:
                                   properties:
                                     address:
@@ -1577,6 +1710,8 @@ spec:
                     type: boolean
                   installerVersion:
                     type: string
+                  ipv6:
+                    type: boolean
                   licenseURL:
                     type: string
                   nameserver:
@@ -1593,6 +1728,8 @@ spec:
                     type: string
                   publicAddress:
                     type: string
+                  skipSystemPackageInstall:
+                    type: boolean
                 type: object
               longhorn:
                 properties:

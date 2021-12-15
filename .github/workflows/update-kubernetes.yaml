@@ -30,8 +30,8 @@ jobs:
           automated-pr
           kubernetes
         draft: false
-        base: "master"
-        body: "Automated changes by the [cron-kubernetes-update](https://github.com/replicatedhq/kURL/blob/master/.github/workflows/update-kubernetes.yaml) GitHub action"
+        base: "main"
+        body: "Automated changes by the [cron-kubernetes-update](https://github.com/replicatedhq/kURL/blob/main/.github/workflows/update-kubernetes.yaml) GitHub action"
 
     - name: Check outputs
       run: |

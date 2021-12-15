@@ -499,7 +499,3 @@ function kotsadm_cacerts_file() {
         insert_patches_strategic_merge "$DIR/kustomize/kotsadm/kustomization.yaml" kotsadm-cacerts.yaml
     fi
 }
-
-function kotsadm_preflight() {
-    echo "${DIR}/addons/kotsadm/1.56.0/host-preflight.yaml"
-}

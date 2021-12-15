@@ -80,7 +80,7 @@ function kotsadm() {
     fi
 
     cat "$src/tmpl-start-kotsadm-web.sh" | sed "s/###_HOSTNAME_###/$KOTSADM_HOSTNAME:8800/g" > "$dst/start-kotsadm-web.sh"
-    kubectl create configmap kotsadm-web-scripts --from-file="$dst/start-kotsadm-web.sh" --dry-run -oyaml > "$dst/kotsadm-web-scripts.yaml"
+    kubectl create configmap kotsadm-web-scripts --from-file="$dst/start-kotsadm-web.sh" --dry-run=client -oyaml > "$dst/kotsadm-web-scripts.yaml"
 
     kubectl delete pod kotsadm-migrations &> /dev/null || true;
     kubectl delete deployment kotsadm-web &> /dev/null || true; # replaced by 'kotsadm' deployment in 1.12.0
@@ -293,7 +293,7 @@ function kotsadm_metadata_configmap() {
     fi
     if test -s "$src/application.yaml"; then
         cp "$src/application.yaml" "$dst/"
-        kubectl create configmap kotsadm-application-metadata --from-file="$dst/application.yaml" --dry-run -oyaml > "$dst/kotsadm-application-metadata.yaml"
+        kubectl create configmap kotsadm-application-metadata --from-file="$dst/application.yaml" --dry-run=client -oyaml > "$dst/kotsadm-application-metadata.yaml"
         insert_resources $dst/kustomization.yaml kotsadm-application-metadata.yaml
     fi
 }
@@ -382,7 +382,7 @@ function kotsadm_cli() {
     fi
     if [ ! -f "$src/assets/kots.tar.gz" ] && [ "$AIRGAP" != "1" ]; then
         mkdir -p "$src/assets"
-        curl -L "https://github.com/replicatedhq/kots/releases/download/v1.58.1/kots_linux_amd64.tar.gz" > "$src/assets/kots.tar.gz"
+        curl -L "https://github.com/replicatedhq/kots/releases/download/v1.58.2/kots_linux_amd64.tar.gz" > "$src/assets/kots.tar.gz"
     fi
 
     pushd "$src/assets"
@@ -498,8 +498,4 @@ function kotsadm_cacerts_file() {
         fi
         insert_patches_strategic_merge "$DIR/kustomize/kotsadm/kustomization.yaml" kotsadm-cacerts.yaml
     fi
-}
-
-function kotsadm_preflight() {
-    echo "${DIR}/addons/kotsadm/alpha/host-preflight.yaml"
 }

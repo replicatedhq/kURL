@@ -56,3 +56,8 @@ render_yaml_file "$DIR/addons/weave/2.5.2/tmpl-secret.yaml" > "$DIR/kustomize/we
 ```
 
 After the kustomize directory has been prepared with resources and patches and the kustomization.yaml file has been updated, the add-on should call `kubectl apply -k`.
+
+## Adding version to Kurl.sh
+
+After adding a new version of an addon, you need to update the versions.js(kURL/web/src/installers/versions.js) file 
+in the web app for it to show up in the kurl.sh website. 
