@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 function kotsadm() {
-    local src="$DIR/addons/kotsadm/nightly"
+    local src="$DIR/addons/kotsadm/1.58.2"
     local dst="$DIR/kustomize/kotsadm"
 
     kotsadm_rename_postgres_pvc_1-12-2 "$src"
@@ -17,13 +17,13 @@ function kotsadm() {
 
     # Migrate kotsadm deployment to statefulset
     if [ "$KOTSADM_DISABLE_S3" == "1" ]; then
-        cp "$DIR/addons/kotsadm/nightly/statefulset/kotsadm-statefulset.yaml" "$DIR/kustomize/kotsadm/kotsadm-statefulset.yaml"
+        cp "$DIR/addons/kotsadm/1.58.2/statefulset/kotsadm-statefulset.yaml" "$DIR/kustomize/kotsadm/kotsadm-statefulset.yaml"
         insert_resources "$dst/kustomization.yaml" kotsadm-statefulset.yaml
         # kotsadm v1.47+ does not use an object store for the archives, patch the migrate-s3 init container to migrate the data.
         # the migration process is intelligent enough to detect whether an object store and a bucket exists or not.
         kotsadm_api_patch_s3_migration
     else
-        cp "$DIR/addons/kotsadm/nightly/deployment/kotsadm-deployment.yaml" "$DIR/kustomize/kotsadm/kotsadm-deployment.yaml"
+        cp "$DIR/addons/kotsadm/1.58.2/deployment/kotsadm-deployment.yaml" "$DIR/kustomize/kotsadm/kotsadm-deployment.yaml"
         insert_resources "$dst/kustomization.yaml" kotsadm-deployment.yaml
     fi
 
@@ -43,27 +43,27 @@ function kotsadm() {
     if [ -n "$PROXY_ADDRESS" ]; then
         KUBERNETES_CLUSTER_IP=$(kubectl get services kubernetes --no-headers | awk '{ print $3 }')
         if [ "$KOTSADM_DISABLE_S3" == "1" ]; then
-            render_yaml_file "$DIR/addons/kotsadm/nightly/statefulset/tmpl-kotsadm-proxy.yaml" > "$DIR/kustomize/kotsadm/kotsadm-proxy.yaml"
+            render_yaml_file "$DIR/addons/kotsadm/1.58.2/statefulset/tmpl-kotsadm-proxy.yaml" > "$DIR/kustomize/kotsadm/kotsadm-proxy.yaml"
         else
-            render_yaml_file "$DIR/addons/kotsadm/nightly/deployment/tmpl-kotsadm-proxy.yaml" > "$DIR/kustomize/kotsadm/kotsadm-proxy.yaml"
+            render_yaml_file "$DIR/addons/kotsadm/1.58.2/deployment/tmpl-kotsadm-proxy.yaml" > "$DIR/kustomize/kotsadm/kotsadm-proxy.yaml"
         fi
         insert_patches_strategic_merge "$DIR/kustomize/kotsadm/kustomization.yaml" kotsadm-proxy.yaml
     fi
 
     if [ "$AIRGAP" == "1" ]; then
         if [ "$KOTSADM_DISABLE_S3" == "1" ]; then
-            cp "$DIR/addons/kotsadm/nightly/statefulset/kotsadm-airgap.yaml" "$DIR/kustomize/kotsadm/kotsadm-airgap.yaml"
+            cp "$DIR/addons/kotsadm/1.58.2/statefulset/kotsadm-airgap.yaml" "$DIR/kustomize/kotsadm/kotsadm-airgap.yaml"
         else
-            cp "$DIR/addons/kotsadm/nightly/deployment/kotsadm-airgap.yaml" "$DIR/kustomize/kotsadm/kotsadm-airgap.yaml"
+            cp "$DIR/addons/kotsadm/1.58.2/deployment/kotsadm-airgap.yaml" "$DIR/kustomize/kotsadm/kotsadm-airgap.yaml"
         fi
         insert_patches_strategic_merge "$DIR/kustomize/kotsadm/kustomization.yaml" kotsadm-airgap.yaml
     fi
 
     if [ -n "$INSTALLATION_ID" ]; then
         if [ "$KOTSADM_DISABLE_S3" == "1" ]; then
-            render_yaml_file "$DIR/addons/kotsadm/nightly/statefulset/tmpl-kotsadm-installation-id.yaml" > "$DIR/kustomize/kotsadm/kotsadm-installation-id.yaml"
+            render_yaml_file "$DIR/addons/kotsadm/1.58.2/statefulset/tmpl-kotsadm-installation-id.yaml" > "$DIR/kustomize/kotsadm/kotsadm-installation-id.yaml"
         else
-            render_yaml_file "$DIR/addons/kotsadm/nightly/deployment/tmpl-kotsadm-installation-id.yaml" > "$DIR/kustomize/kotsadm/kotsadm-installation-id.yaml"
+            render_yaml_file "$DIR/addons/kotsadm/1.58.2/deployment/tmpl-kotsadm-installation-id.yaml" > "$DIR/kustomize/kotsadm/kotsadm-installation-id.yaml"
         fi
         insert_patches_strategic_merge "$DIR/kustomize/kotsadm/kustomization.yaml" kotsadm-installation-id.yaml
     fi
@@ -122,7 +122,7 @@ function kotsadm() {
 }
 
 function kotsadm_join() {
-    kotsadm_cli "$DIR/addons/kotsadm/nightly"
+    kotsadm_cli "$DIR/addons/kotsadm/1.58.2"
 }
 
 function kotsadm_outro() {
@@ -158,7 +158,7 @@ function kotsadm_secret_cluster_token() {
         fi
     fi
 
-    render_yaml_file "$DIR/addons/kotsadm/nightly/tmpl-secret-cluster-token.yaml" > "$DIR/kustomize/kotsadm/secret-cluster-token.yaml"
+    render_yaml_file "$DIR/addons/kotsadm/1.58.2/tmpl-secret-cluster-token.yaml" > "$DIR/kustomize/kotsadm/secret-cluster-token.yaml"
     insert_resources "$DIR/kustomize/kotsadm/kustomization.yaml" secret-cluster-token.yaml
 
     # ensure all pods that consume the secret will be restarted
@@ -177,7 +177,7 @@ function kotsadm_secret_authstring() {
         AUTHSTRING="Kots $(< /dev/urandom tr -dc A-Za-z0-9 | head -c32)"
     fi
 
-    render_yaml_file "$DIR/addons/kotsadm/nightly/tmpl-secret-authstring.yaml" > "$DIR/kustomize/kotsadm/secret-authstring.yaml"
+    render_yaml_file "$DIR/addons/kotsadm/1.58.2/tmpl-secret-authstring.yaml" > "$DIR/kustomize/kotsadm/secret-authstring.yaml"
     insert_resources "$DIR/kustomize/kotsadm/kustomization.yaml" secret-authstring.yaml
 }
 
@@ -190,7 +190,7 @@ function kotsadm_secret_password() {
         BCRYPT_PASSWORD=$(echo "$KOTSADM_PASSWORD" | $DIR/bin/bcrypt --cost=14)
     fi
 
-    render_yaml_file "$DIR/addons/kotsadm/nightly/tmpl-secret-password.yaml" > "$DIR/kustomize/kotsadm/secret-password.yaml"
+    render_yaml_file "$DIR/addons/kotsadm/1.58.2/tmpl-secret-password.yaml" > "$DIR/kustomize/kotsadm/secret-password.yaml"
     insert_resources "$DIR/kustomize/kotsadm/kustomization.yaml" secret-password.yaml
 
     kotsadm_scale_down
@@ -203,7 +203,7 @@ function kotsadm_secret_postgres() {
         POSTGRES_PASSWORD=$(< /dev/urandom tr -dc A-Za-z0-9 | head -c16)
     fi
 
-    render_yaml_file "$DIR/addons/kotsadm/nightly/tmpl-secret-postgres.yaml" > "$DIR/kustomize/kotsadm/secret-postgres.yaml"
+    render_yaml_file "$DIR/addons/kotsadm/1.58.2/tmpl-secret-postgres.yaml" > "$DIR/kustomize/kotsadm/secret-postgres.yaml"
     insert_resources "$DIR/kustomize/kotsadm/kustomization.yaml" secret-postgres.yaml
 
     kotsadm_scale_down
@@ -218,7 +218,7 @@ function kotsadm_secret_dex_postgres() {
         DEX_PGPASSWORD=$(< /dev/urandom tr -dc A-Za-z0-9 | head -c32)
     fi
 
-    render_yaml_file "$DIR/addons/kotsadm/nightly/tmpl-secret-dex-postgres.yaml" > "$DIR/kustomize/kotsadm/secret-dex-postgres.yaml"
+    render_yaml_file "$DIR/addons/kotsadm/1.58.2/tmpl-secret-dex-postgres.yaml" > "$DIR/kustomize/kotsadm/secret-dex-postgres.yaml"
     insert_resources "$DIR/kustomize/kotsadm/kustomization.yaml" secret-dex-postgres.yaml
 
     kotsadm_scale_down
@@ -233,7 +233,7 @@ function kotsadm_secret_s3() {
     if [ -z "$VELERO_LOCAL_BUCKET" ]; then
         VELERO_LOCAL_BUCKET=velero
     fi
-    render_yaml_file "$DIR/addons/kotsadm/nightly/tmpl-secret-s3.yaml" > "$DIR/kustomize/kotsadm/secret-s3.yaml"
+    render_yaml_file "$DIR/addons/kotsadm/1.58.2/tmpl-secret-s3.yaml" > "$DIR/kustomize/kotsadm/secret-s3.yaml"
     insert_resources "$DIR/kustomize/kotsadm/kustomization.yaml" secret-s3.yaml
 }
 
@@ -244,7 +244,7 @@ function kotsadm_secret_session() {
         JWT_SECRET=$(< /dev/urandom tr -dc A-Za-z0-9 | head -c16)
     fi
 
-    render_yaml_file "$DIR/addons/kotsadm/nightly/tmpl-secret-session.yaml" > "$DIR/kustomize/kotsadm/secret-session.yaml"
+    render_yaml_file "$DIR/addons/kotsadm/1.58.2/tmpl-secret-session.yaml" > "$DIR/kustomize/kotsadm/secret-session.yaml"
     insert_resources "$DIR/kustomize/kotsadm/kustomization.yaml" secret-session.yaml
 
     kotsadm_scale_down
@@ -259,7 +259,7 @@ function kotsadm_api_encryption_key() {
         API_ENCRYPTION=$(< /dev/urandom cat | head -c36 | base64)
     fi
 
-    render_yaml_file "$DIR/addons/kotsadm/nightly/tmpl-secret-api-encryption.yaml" > "$DIR/kustomize/kotsadm/secret-api-encryption.yaml"
+    render_yaml_file "$DIR/addons/kotsadm/1.58.2/tmpl-secret-api-encryption.yaml" > "$DIR/kustomize/kotsadm/secret-api-encryption.yaml"
     insert_resources "$DIR/kustomize/kotsadm/kustomization.yaml" secret-api-encryption.yaml
 
     kotsadm_scale_down
@@ -267,14 +267,14 @@ function kotsadm_api_encryption_key() {
 
 function kotsadm_api_patch_s3_migration() {
     insert_patches_json_6902 "$DIR/kustomize/kotsadm/kustomization.yaml" s3-migration.yaml apps v1 StatefulSet kotsadm default
-    cp "$DIR/addons/kotsadm/nightly/statefulset/patches/s3-migration.yaml" "$DIR/kustomize/kotsadm/s3-migration.yaml"
+    cp "$DIR/addons/kotsadm/1.58.2/statefulset/patches/s3-migration.yaml" "$DIR/kustomize/kotsadm/s3-migration.yaml"
 }
 
 function kotsadm_api_patch_prometheus() {
     if [ "$KOTSADM_DISABLE_S3" == "1" ]; then
-        cp "$DIR/addons/kotsadm/nightly/statefulset/patches/api-prometheus.yaml" "$DIR/kustomize/kotsadm/api-prometheus.yaml"
+        cp "$DIR/addons/kotsadm/1.58.2/statefulset/patches/api-prometheus.yaml" "$DIR/kustomize/kotsadm/api-prometheus.yaml"
     else
-        cp "$DIR/addons/kotsadm/nightly/deployment/patches/api-prometheus.yaml" "$DIR/kustomize/kotsadm/api-prometheus.yaml"
+        cp "$DIR/addons/kotsadm/1.58.2/deployment/patches/api-prometheus.yaml" "$DIR/kustomize/kotsadm/api-prometheus.yaml"
     fi
     insert_patches_strategic_merge "$DIR/kustomize/kotsadm/kustomization.yaml" api-prometheus.yaml
 }
@@ -382,7 +382,7 @@ function kotsadm_cli() {
     fi
     if [ ! -f "$src/assets/kots.tar.gz" ] && [ "$AIRGAP" != "1" ]; then
         mkdir -p "$src/assets"
-        curl -L "https://github.com/replicatedhq/kots/releases/download/v0.0.0-nightly/kots_linux_amd64.tar.gz" > "$src/assets/kots.tar.gz"
+        curl -L "https://github.com/replicatedhq/kots/releases/download/v1.58.2/kots_linux_amd64.tar.gz" > "$src/assets/kots.tar.gz"
     fi
 
     pushd "$src/assets"
@@ -492,9 +492,9 @@ function kotsadm_cacerts_file() {
 
     if [ -n "$KOTSADM_TRUSTED_CERT_MOUNT" ]; then
         if [ "$KOTSADM_DISABLE_S3" == "1" ]; then
-            render_yaml_file "$DIR/addons/kotsadm/nightly/statefulset/tmpl-kotsadm-cacerts.yaml" > "$DIR/kustomize/kotsadm/kotsadm-cacerts.yaml"
+            render_yaml_file "$DIR/addons/kotsadm/1.58.2/statefulset/tmpl-kotsadm-cacerts.yaml" > "$DIR/kustomize/kotsadm/kotsadm-cacerts.yaml"
         else
-            render_yaml_file "$DIR/addons/kotsadm/nightly/deployment/tmpl-kotsadm-cacerts.yaml" > "$DIR/kustomize/kotsadm/kotsadm-cacerts.yaml"
+            render_yaml_file "$DIR/addons/kotsadm/1.58.2/deployment/tmpl-kotsadm-cacerts.yaml" > "$DIR/kustomize/kotsadm/kotsadm-cacerts.yaml"
         fi
         insert_patches_strategic_merge "$DIR/kustomize/kotsadm/kustomization.yaml" kotsadm-cacerts.yaml
     fi
