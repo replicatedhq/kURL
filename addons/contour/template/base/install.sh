@@ -34,7 +34,7 @@ function contour() {
         kubectl delete namespace heptio-contour
     fi
 
-    kubectl create namespace "$CONTOUR_NAMESPACE" 2>/dev/null || true
+    kubectl create --save-config namespace "$CONTOUR_NAMESPACE" 2>/dev/null || true
 
     kubectl apply -k "$dst/"
 }
