@@ -259,7 +259,7 @@
       version: 1.4.8
   unsupportedOSIDs:
   - ubuntu-1604
-- name: k8s118_containerd139
+- name: k8s119x_containerd139
   installerSpec:
     kubernetes:
       version: 1.19.x
