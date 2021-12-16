@@ -94,7 +94,7 @@
       version: 1.4.9
   unsupportedOSIDs:
   - ubuntu-1604
-- name: k8s117_openebs_minio
+- name: k8s120x_openebs_minio
   installerSpec:
     kubernetes:
       version: 1.20.x
