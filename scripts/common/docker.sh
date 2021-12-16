@@ -189,7 +189,7 @@ function containerd_get_host_packages_online() {
         rm -rf $DIR/packages/containerd/${version} # Cleanup broken/incompatible packages from failed runs
 
         local package="containerd-${version}.tar.gz"
-        package_download "${package}"
+        package_download "${package}" $CONTAINERD_S3_OVERRIDE
         tar xf "$(package_filepath "${package}")"
         # rm containerd-${version}.tar.gz
     fi
