@@ -235,7 +235,7 @@
       version: latest
     containerd:
       version: 1.4.6
-- name: k8s1184_containerd148
+- name: k8s119x_containerd148
   installerSpec:
     kubernetes:
       version: 1.19.x
