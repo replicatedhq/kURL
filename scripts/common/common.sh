@@ -31,6 +31,7 @@ function get_dist_url() {
 
 function package_download() {
     local package="$1"
+    local url_override="$2"
 
     if [ -z "${DIST_URL}" ]; then
         logWarn "DIST_URL not set, will not download $1"
@@ -58,7 +59,11 @@ function package_download() {
     local filepath="$(package_filepath "${package}")"
 
     echo "Downloading package ${package}"
-    curl -fL -o "${filepath}" "$(get_dist_url)/${package}"
+    if [ -z "$url_override" ]; then
+        curl -fL -o "${filepath}" "$(get_dist_url)/${package}"
+    else
+        curl -fL -o "${filepath}" "${url_override}"
+    fi
 
     checksum="$(md5sum "${filepath}" | awk '{print $1}')"
     echo "${package} ${newetag} ${checksum}" >> assets/Manifest

@@ -1,0 +1,10 @@
+apiVersion: troubleshoot.sh/v1beta2
+kind: HostPreflight
+metadata:
+  name: kurl-builtin
+spec:
+  collectors:
+    - hostOS: {}
+  analyzers:
+    - hostOS:
+        outcomes:
