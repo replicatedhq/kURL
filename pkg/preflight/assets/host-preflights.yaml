@@ -357,8 +357,6 @@ spec:
           - pass:
               when: "connected"
               message: Successfully connected to the Kubernetes API at address {{kurl .Installer.Spec.Kubernetes.MasterAddress }}
-          - warn:
-              message: Unexpected TCP connection status
     - filesystemPerformance:
         collectorName: Filesystem Latency Two Minute Benchmark
         exclude: '{{kurl and .IsPrimary (not .IsUpgrade) | not }}'

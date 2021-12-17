@@ -91,6 +91,7 @@ func NewHostPreflightCmd(cli CLI) *cobra.Command {
 			if data.IsJoin && data.IsPrimary && !data.IsUpgrade {
 				// Check connection to kubelet on all remotes
 				for _, remote := range remotes {
+					remote = formatAddress(remote)
 					name := fmt.Sprintf("kubelet %s", remote)
 
 					preflightSpec.Spec.Collectors = append(preflightSpec.Spec.Collectors, &v1beta2.HostCollect{
@@ -134,17 +135,13 @@ func NewHostPreflightCmd(cli CLI) *cobra.Command {
 										Message: fmt.Sprintf("Successfully connected to kubelet %s:10250", remote),
 									},
 								},
-								{
-									Warn: &v1beta2.SingleOutcome{
-										Message: fmt.Sprintf("Unexpected TCP connection status for kubelet %s:10250", remote),
-									},
-								},
 							},
 						},
 					})
 				}
 				// Check connection to etcd on all primaries
 				for _, primary := range data.PrimaryHosts {
+					primary = formatAddress(primary)
 					name := fmt.Sprintf("etcd peer %s", primary)
 
 					preflightSpec.Spec.Collectors = append(preflightSpec.Spec.Collectors, &v1beta2.HostCollect{
@@ -186,11 +183,6 @@ func NewHostPreflightCmd(cli CLI) *cobra.Command {
 									Pass: &v1beta2.SingleOutcome{
 										When:    collect.NetworkStatusConnected,
 										Message: fmt.Sprintf("Successfully connected to etcd peer %s:2380", primary),
-									},
-								},
-								{
-									Warn: &v1beta2.SingleOutcome{
-										Message: fmt.Sprintf("Unexpected TCP connection status for etcd peer %s:2380", primary),
 									},
 								},
 							},

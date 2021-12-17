@@ -13,11 +13,7 @@ func NewFormatAddressCmd(cli CLI) *cobra.Command {
 		Short: "Adds brackets around ipv6 addresses",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			address := args[0]
-
-			if strings.Contains(address, ":") {
-				address = fmt.Sprintf("[%s]", address)
-			}
+			address := formatAddress(args[0])
 
 			_, err := fmt.Fprintln(cmd.OutOrStdout(), address)
 
@@ -25,4 +21,12 @@ func NewFormatAddressCmd(cli CLI) *cobra.Command {
 		},
 	}
 	return cmd
+}
+
+func formatAddress(addr string) string {
+	if strings.Contains(addr, ":") {
+		return fmt.Sprintf("[%s]", addr)
+	}
+
+	return addr
 }
