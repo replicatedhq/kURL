@@ -754,3 +754,36 @@
       version: 1.38.0
     containerd:
       version: 1.4.6
+- name: remove_all_object_storage
+  installerSpec:
+    kubernetes:
+      version: 1.20.x
+    weave:
+      version: latest
+    rook:
+      isBlockStorageEnabled: true
+      version: 1.5.x
+    registry:
+      version: latest
+    kotsadm:
+      version: latest
+    containerd:
+      version: latest
+    velero:
+      version: 1.6.x
+  upgradeSpec:
+    kubernetes:
+      version: 1.21.x
+    weave:
+      version: latest
+    longhorn:
+      version: latest
+    registry:
+      version: latest
+    kotsadm:
+      version: latest
+      s3Disabled: true
+    containerd:
+      version: latest
+    velero:
+      version: 1.7.x
