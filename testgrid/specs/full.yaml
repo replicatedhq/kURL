@@ -48,6 +48,8 @@
       version: 1.5.1
     ekco:
       version: 0.7.0
+  unsupportedOSIDs:
+  - ubuntu-2004 # docker 19.03.4 is not available on ubuntu 20.04
 - name: k8s119x
   installerSpec:
     kubernetes:
@@ -97,7 +99,7 @@
 - name: k8s120x_openebs_minio
   installerSpec:
     kubernetes:
-      version: 1.20.x
+      version: 1.17.13
     docker:
       version: 20.10.5
     weave:
@@ -109,7 +111,7 @@
     prometheus:
       version: 0.33.0
     kotsadm:
-      version: latest
+      version: 1.57.x # greater versions fail with --dry-run=client when running create configmap kotsadm-application-metadata
     velero:
       version: 1.2.0
     minio:
