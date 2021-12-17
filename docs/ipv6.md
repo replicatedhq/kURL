@@ -46,9 +46,7 @@ There is no auto-detection of ipv6 or fall-back to ipv4 when ipv6 is not enabled
 * Antrea with encryption requires the kernel wireguard module to be available. The installer will bail if wireguard module cannot be loaded. Follow this guide for your OS, then reboot before running kurl: https://www.wireguard.com/install/.
 * Rook is the only supported CSI (1.5.12+).
 * Snapshots require velero 1.7.1+.
-* External load balancer hasn't been tested.
-* HTTP proxy hasn't been tested.
-* Host preflight checks fail even though install succeeds.
+* External load balancer requires a DNS name. You cannot enter an IPv6 IP at the load balancer prompt.
 
 
 ## Host Requirements
@@ -68,6 +66,7 @@ Solution: `sudo ip -6 route add default dev ens5`
 Problem: upload license fails with `failed to execute get request: Get "https://replicated.app/license/ipv6": dial tcp: lookup replicated.app on [fd00:c00b:2::a]:53: server misbehaving`
 Solution: deploy a NAT64 server
 Solution: use airgap or just set env var "DISABLE_OUTBOUND_CONNECTIONS=1" on the kotsadm deployment
+Solution: Use an http proxy with dualstack enabled.
 Solution: wait for AAAA records to be added to replicated.app
 
 Problem: networking check fails in curl installer
