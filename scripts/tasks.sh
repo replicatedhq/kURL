@@ -270,6 +270,9 @@ function join_token() {
             ha)
                 HA_CLUSTER="1"
                 ;;
+            ipv6)
+                IPV6_ONLY="1"
+                ;;
             *)
                 echo >&2 "Error: unknown parameter \"$_param\""
                 exit 1
@@ -315,6 +318,7 @@ function join_token() {
     fi
     common_flags="${common_flags}$(get_kurl_install_directory_flag "${kurl_install_directory}")"
     common_flags="${common_flags}$(get_remotes_flags)"
+    common_flags="${common_flags}$(get_ipv6_flag)"
 
     local prefix=
     prefix="$(build_installer_prefix "${installer_id}" "${KURL_VERSION}" "${kurl_url}" "")"

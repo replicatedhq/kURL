@@ -134,6 +134,7 @@ function rook_operator_deploy() {
 
     if [ "$IPV6_ONLY" = "1" ]; then
         sed -i "/\[global\].*/a\    ms bind ipv6 = true" "$dst/configmap-rook-config-override.yaml"
+        sed -i "/\[global\].*/a\    ms bind ipv4 = false" "$dst/configmap-rook-config-override.yaml"
     fi
 
     kubectl -n rook-ceph apply -k "$dst"

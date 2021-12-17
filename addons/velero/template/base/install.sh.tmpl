@@ -92,7 +92,8 @@ function velero_install() {
         if [ -n "$BETA_VELERO_USE_INTERNAL_PVC" ] && [ "$KOTSADM_DISABLE_S3" == 1 ] ; then
             bslArgs="--provider replicated.com/pvc --bucket velero-internal-snapshots --backup-location-config storageSize=${VELERO_PVC_SIZE},resticRepoPrefix=/var/velero-local-volume-provider/velero-internal-snapshots/restic"
         elif object_store_bucket_exists; then
-            bslArgs="--provider aws --bucket $VELERO_LOCAL_BUCKET --backup-location-config region=us-east-1,s3Url=${OBJECT_STORE_CLUSTER_HOST},publicUrl=http://${OBJECT_STORE_CLUSTER_IP},s3ForcePathStyle=true"  
+	    local ip=$($DIR/bin/kurl format-address $OBJECT_STORE_CLUSTER_IP)
+            bslArgs="--provider aws --bucket $VELERO_LOCAL_BUCKET --backup-location-config region=us-east-1,s3Url=${OBJECT_STORE_CLUSTER_HOST},publicUrl=http://${ip},s3ForcePathStyle=true"
         fi
     fi
 
