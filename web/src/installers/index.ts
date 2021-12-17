@@ -11,6 +11,7 @@ import { Forbidden } from "../server/errors";
 import {getDistUrl, getPackageUrl} from "../util/package";
 import fetch from "node-fetch";
 import { getInstallerVersions } from "./installer-versions";
+import * as hash from "object-hash";
 
 interface ErrorResponse {
   error: any;
@@ -1050,7 +1051,11 @@ export class Installer {
           return;
         }
 
-        fields.push(`${fieldKey}=${val}`);
+        if (val === Object(val)) { // not a primative type
+          fields.push(`${fieldKey}=${hash(val)}`);
+        } else {
+          fields.push(`${fieldKey}=${val}`);
+        }
       });
     });
 

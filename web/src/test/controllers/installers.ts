@@ -525,7 +525,7 @@ describe("Installer", () => {
       - name: nginx
         repo: nginx.com`;
 
-        const helm2 = `spec:
+      const helm2 = `spec:
   kubernetes:
     version: latest
   helm:
@@ -536,6 +536,27 @@ describe("Installer", () => {
 
       const a = Installer.parse(helm1).hash();
       const b = Installer.parse(helm2).hash();
+
+      expect(a).not.to.equal(b);
+    });
+
+    it("hashes specs with kurl.hostPreflights values differently", () => {
+      const spec1 = `spec:
+  kubernetes:
+    version: latest
+  kurl:
+    hostPreflights:
+      one: two`;
+
+      const spec2 = `spec:
+  kubernetes:
+    version: latest
+  kurl:
+    hostPreflights:
+      three: four`;
+
+      const a = Installer.parse(spec1).hash();
+      const b = Installer.parse(spec2).hash();
 
       expect(a).not.to.equal(b);
     });
