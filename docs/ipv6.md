@@ -21,17 +21,18 @@ spec:
   containerd:
     version: 1.4.6
   antrea:
-    isEncryptionDisabled: true
-    version: 1.2.1
+    version: 1.4.0
   rook:
     version: 1.5.12
   kotsadm:
     version: 1.58.1
   ekco:
-    version: 0.12.0
+    version: 0.13.0
     enableInternalLoadBalancer: true
   registry:
     version: 2.7.1
+  velero:
+    version: 1.7.1
 ```
 
 There is no auto-detection of ipv6 or fall-back to ipv4 when ipv6 is not enabled on the host.
@@ -40,11 +41,11 @@ There is no auto-detection of ipv6 or fall-back to ipv4 when ipv6 is not enabled
 ## Current Limitations
 
 * Dual-stack is not supported. Resources will have only an ipv6 address when ipv6 is enabled. The host can be dual-stack, but control plane servers, pods, and cluster services will use IPv6. Node port services must be accessed on the hosts' IPv6 address.
-* Ubuntu 18 is the only supported OS. (CentOS 8 and Ubuntu 20 fail with Rook 1.5.12 in ipv6 mode, and CentOS 7 NodePorts fail, but might work if you upgrade the kernel).
-* Antrea is the only supported CNI.
-* Antrea with encryption enabled is not supported.
-* Rook is the only supported CSI.
-* Snapshots and restore have not been tested.
+* The only supported operating systems are: Ubuntu 18.04, Ubuntu 20.04, CentOS 8, and RHEL 8. (CentOS 7 NodePorts fail, but might work if you upgrade the kernel. Oracle Linux and Amazon Linux have not been tested).
+* Antrea is the only supported CNI (1.4.0+).
+* Antrea with encryption requires the kernel wireguard module to be available. The installer will bail if wireguard module cannot be loaded. Follow this guide for your OS, then reboot before running kurl: https://www.wireguard.com/install/.
+* Rook is the only supported CSI (1.5.12+).
+* Snapshots require velero 1.7.1+.
 * External load balancer hasn't been tested.
 * HTTP proxy hasn't been tested.
 * Host preflight checks fail even though install succeeds.
@@ -54,7 +55,7 @@ There is no auto-detection of ipv6 or fall-back to ipv4 when ipv6 is not enabled
 
 * IPv6 forwarding must be enabled and bridge-call-nf6tables must be enabled. The installer does this automatically and configures this to persist after reboots.
 
-* Using antrea, TCP 8091 and UDP 6081 have to be open between nodes instead of the ports used by weave (6784 and 6783).
+* Using antrea, TCP 8091 and UDP 6081 have to be open between nodes instead of the ports used by weave (6784 and 6783). Antrea with encryption requires UDP port 51820 be open between nodes for wireguard.
 
 ## Troubleshooting
 
@@ -64,9 +65,9 @@ Symptom: nodes in cluster can't ping6 each other.
 Symptom: `ip -6 route` shows no default route
 Solution: `sudo ip -6 route add default dev ens5`
 
-Problem: cannot `curl https://replicated.app`
+Problem: upload license fails with `failed to execute get request: Get "https://replicated.app/license/ipv6": dial tcp: lookup replicated.app on [fd00:c00b:2::a]:53: server misbehaving`
 Solution: deploy a NAT64 server
-Solution: use airgap
+Solution: use airgap or just set env var "DISABLE_OUTBOUND_CONNECTIONS=1" on the kotsadm deployment
 Solution: wait for AAAA records to be added to replicated.app
 
 Problem: networking check fails in curl installer
@@ -104,6 +105,10 @@ You'll also need to proxy node port services through your jump box. HAProxy work
 ```
 sudo apt install -y haproxy
 ```
+
+Add something like this to /etc/haproxy/haproxy.cfg then run `systemctl restart haproxy`:
+
+```
 frontend kots
     bind 0.0.0.0:8800
     mode tcp
@@ -114,7 +119,3 @@ backend kots
     mode tcp
     server kots [2600:1f14:75b:2d00:5e3d:25bf:6af1:643a]:8800
 ```
-
-#### Hetzner
-
-[Hetzner has IPv6-only servers now.](https://www.hetzner.com/news/12-21-ipv6-only/).

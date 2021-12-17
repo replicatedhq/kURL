@@ -31,6 +31,7 @@ function registry_install() {
         registry_object_store_bucket
         # shellcheck disable=SC2034  # used in the deployment template
         objectStoreIP=$($DIR/bin/kurl format-address $OBJECT_STORE_CLUSTER_IP)
+        objectStoreHostname=$(echo $OBJECT_STORE_CLUSTER_HOST | sed 's/http:\/\///')
         render_yaml_file "$DIR/addons/registry/2.7.1/tmpl-deployment-objectstore.yaml" > "$DIR/kustomize/registry/deployment-objectstore.yaml"
         insert_resources "$DIR/kustomize/registry/kustomization.yaml" deployment-objectstore.yaml
 

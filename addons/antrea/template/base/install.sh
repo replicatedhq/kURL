@@ -23,9 +23,11 @@ function antrea() {
 
     if ! lsmod | grep ip_tables; then
         modprobe ip_tables
+        echo 'ip_tables' > /etc/modules-load.d/kurl-antrea.conf
     fi
     if [ "$IPV6_ONLY" = "1" ]; then
         modprobe ip6_tables
+        echo 'ip6_tables' > /etc/modules-load.d/kurl-antrea.conf
     fi
 
 
@@ -35,13 +37,13 @@ function antrea() {
         cp "$src/plaintext.yaml" "$dst/"
         insert_resources "$dst/kustomization.yaml" plaintext.yaml
         if [ "$IPV6_ONLY" = "1" ]; then
-            sed -i "/serviceCIDRv6:.*/a\    serviceCIDRv6: $SERVICE_CIDR" "$dst/plaintext.yaml"
+            sed -i "/#serviceCIDRv6:.*/a\    serviceCIDRv6: $SERVICE_CIDR" "$dst/plaintext.yaml"
         fi
     else
         cp "$src/ipsec.yaml" "$dst/"
         insert_resources "$dst/kustomization.yaml" ipsec.yaml
         if [ "$IPV6_ONLY" = "1" ]; then
-            sed -i "/serviceCIDRv6:.*/a\    serviceCIDRv6: $SERVICE_CIDR" "$dst/ipsec.yaml"
+            sed -i "/#serviceCIDRv6:.*/a\    serviceCIDRv6: $SERVICE_CIDR" "$dst/ipsec.yaml"
         fi
 
         ANTREA_IPSEC_PSK=$(kubernetes_secret_value kube-system antrea-ipsec psk)
@@ -62,6 +64,11 @@ function antrea() {
 function antrea_join() {
     if ! lsmod | grep ip_tables; then
         modprobe ip_tables
+        echo 'ip_tables' > /etc/modules-load.d/kurl-antrea.conf
+    fi
+    if [ "$IPV6_ONLY" = "1" ]; then
+        modprobe ip6_tables
+        echo 'ip6_tables' > /etc/modules-load.d/kurl-antrea.conf
     fi
 
     if kubernetes_is_master; then
