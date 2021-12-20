@@ -37,7 +37,7 @@
     "node-sass": "^7.0.0",
     "postcss-loader": "^6.1.1",
     "react-svg-loader": "^3.0.3",
-    "sass-loader": "^12.1.0",
+    "sass-loader": "^12.4.0",
     "screen": "^0.2.10",
     "source-map-loader": "^3.0.0",
     "style-loader": "^3.3.1",
