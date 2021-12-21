@@ -6,7 +6,7 @@ set -euo pipefail
 VERSIONS=()
 function find_available_versions() {
     docker build -t k8s - < Dockerfile
-    VERSIONS=($(docker run k8s apt list -a kubelet 2>/dev/null | grep -Eo '1\.[2-9][0-9]\.[0-9]+' | sort -rV | uniq))
+    VERSIONS=($(docker run k8s apt list -a kubelet 2>/dev/null | grep -Eo '1\.[2-9][0-1]\.[0-9]+' | sort -rV | uniq))
     echo "Found ${#VERSIONS[*]} versions for Kubernetes 1.20+: ${VERSIONS[*]}"
 
     local versions119=($(docker run k8s apt list -a kubelet 2>/dev/null | grep -Eo '1\.19\.[0-9]+' | sort -rV | uniq))
@@ -48,10 +48,7 @@ function generate_version_directory() {
     # Kubernetes 1.21+ gets latest crictl release with same minor
     local minor=$(echo "$version" | awk -F'.' '{ print $2 }')
     if [ "$minor" -ge 20 ]; then
-        criToolsVersion=$(curl -s https://api.github.com/repos/kubernetes-sigs/cri-tools/releases | \
-            grep '"tag_name": ' | \
-            ( grep -Eo "1\.${minor}\.[0-9]+" || true ) | \
-            head -1)
+        criToolsVersion=$(curl -s https://api.github.com/repos/kubernetes-sigs/cri-tools/releases | grep '"tag_name": ' | ( grep -Eo "1\.${minor}\.[0-9]+" ) | head -1)
     fi
 
     # Fallback: Kubernetes 1.23 doesn't have a version of criTools as of 2021-12-13
