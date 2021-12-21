@@ -27,6 +27,7 @@ export default class InstanceTable extends React.Component {
       showSonobuoyResultsModal: false,
       loadingSonobuoyResults: false,
       activeMarkers: [],
+      showFlags: false,
       showUpgradeYaml: false,
       showSupportbundleYaml: false,
       showPostInstallScript: false,
@@ -52,6 +53,7 @@ export default class InstanceTable extends React.Component {
     this.setState({
       selectedInstance: instance,
       showInstallerModal: true,
+      showFlags: false,
       showUpgradeYaml: false,
       showSupportbundleYaml: false,
       showPostInstallScript: false,
@@ -63,6 +65,7 @@ export default class InstanceTable extends React.Component {
     this.setState({
       selectedInstance: instance,
       showInstallerModal: true,
+      showFlags: false,
       showUpgradeYaml: true,
       showSupportbundleYaml: false,
       showPostInstallScript: false,
@@ -74,6 +77,7 @@ export default class InstanceTable extends React.Component {
     this.setState({
       selectedInstance: instance,
       showInstallerModal: true,
+      showFlags: false,
       showUpgradeYaml: false,
       showSupportbundleYaml: true,
       showPostInstallScript: false,
@@ -85,6 +89,7 @@ export default class InstanceTable extends React.Component {
     this.setState({
       selectedInstance: instance,
       showInstallerModal: true,
+      showFlags: false,
       showUpgradeYaml: false,
       showSupportbundleYaml: false,
       showPostInstallScript: true,
@@ -96,10 +101,23 @@ export default class InstanceTable extends React.Component {
     this.setState({
       selectedInstance: instance,
       showInstallerModal: true,
+      showFlags: false,
       showUpgradeYaml: false,
       showSupportbundleYaml: false,
       showPostInstallScript: false,
       showPostUpgradeScript: true,
+    });
+  }
+
+  viewFlags = instance => {
+    this.setState({
+      selectedInstance: instance,
+      showInstallerModal: true,
+      showFlags: true,
+      showUpgradeYaml: false,
+      showSupportbundleYaml: false,
+      showPostInstallScript: false,
+      showPostUpgradeScript: false,
     });
   }
 
@@ -278,6 +296,12 @@ export default class InstanceTable extends React.Component {
         <tr key={kurlUrl}>
           <td>
             <span className="url" onClick={() => this.viewInstanceInstaller(this.props.instancesMap[kurlUrl][0])}>{kurlUrl}</span>
+            {this.props.instancesMap[kurlUrl][0].kurlFlags &&
+              <div>
+                <span>{' -> '}</span>
+                <span className="url" onClick={() => this.viewFlags(this.props.instancesMap[kurlUrl][0])}>{this.props.instancesMap[kurlUrl][0].kurlFlags}</span>
+              </div>
+              }
             {this.props.instancesMap[kurlUrl][0].upgradeUrl &&
               <div>
                 <span>{' -> '}</span>
@@ -334,7 +358,9 @@ export default class InstanceTable extends React.Component {
     });
 
     let editorContent = "";
-    if (this.state.showUpgradeYaml) {
+    if (this.state.showFlags) {
+      editorContent = this.state.selectedInstance?.kurlFlags;
+    } else if (this.state.showUpgradeYaml) {
       editorContent = this.prettifyJSON(this.state.selectedInstance?.upgradeYaml)
     } else if (this.state.showSupportbundleYaml) {
       editorContent = this.prettifyJSON(this.state.selectedInstance?.supportbundleYaml);

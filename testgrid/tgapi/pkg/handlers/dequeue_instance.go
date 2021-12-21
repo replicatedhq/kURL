@@ -19,6 +19,7 @@ type DequeueInstanceResponse struct {
 
 	KurlYAML          string `json:"kurlYaml"`
 	KurlURL           string `json:"kurlUrl"`
+	KurlFlags         string `json:"kurlFlags"`
 	UpgradeURL        string `json:"upgradeUrl"`
 	SupportbundleYAML string `json:"supportbundleYaml"`
 	PostInstallScript string `json:"postInstallScript"`
@@ -57,6 +58,7 @@ func DequeueInstance(w http.ResponseWriter, r *http.Request) {
 
 		KurlYAML:          testInstance.KurlYAML,
 		KurlURL:           testInstance.KurlURL,
+		KurlFlags:         testInstance.KurlFlags,
 		UpgradeURL:        testInstance.UpgradeURL,
 		SupportbundleYAML: testInstance.SupportbundleYAML,
 		PostInstallScript: testInstance.PostInstallScript,

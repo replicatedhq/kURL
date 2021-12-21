@@ -95,6 +95,7 @@ func MainRunLoop(runnerOptions types.RunnerOptions) error {
 
 				KurlYAML:          dequeuedInstance.KurlYAML,
 				KurlURL:           dequeuedInstance.KurlURL,
+				KurlFlags:         dequeuedInstance.KurlFlags,
 				UpgradeURL:        dequeuedInstance.UpgradeURL,
 				SupportbundleYAML: dequeuedInstance.SupportbundleYAML,
 				PostInstallScript: dequeuedInstance.PostInstallScript,

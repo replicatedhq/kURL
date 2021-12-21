@@ -23,8 +23,9 @@ type StartRefResponse struct {
 type PlannedInstance struct {
 	ID string
 
-	KurlYAML string
-	KurlURL  string
+	KurlYAML  string
+	KurlURL   string
+	KurlFlags string
 
 	UpgradeYAML string
 	UpgradeURL  string
@@ -87,6 +88,7 @@ func StartRef(w http.ResponseWriter, r *http.Request) {
 			refID,
 			plannedInstance.KurlYAML,
 			plannedInstance.KurlURL,
+			plannedInstance.KurlFlags,
 			plannedInstance.UpgradeYAML,
 			plannedInstance.UpgradeURL,
 			plannedInstance.SupportbundleYAML,

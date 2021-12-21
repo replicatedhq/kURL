@@ -13,8 +13,9 @@ type TestInstance struct {
 	FailureReason string     `json:"failureReason"`
 	IsUnsupported bool       `json:"isUnsupported"`
 
-	KurlYAML string `json:"kurlYaml"`
-	KurlURL  string `json:"kurlUrl"`
+	KurlYAML  string `json:"kurlYaml"`
+	KurlURL   string `json:"kurlUrl"`
+	KurlFlags string `json:"kurlFlags"`
 
 	UpgradeYAML string `json:"upgradeYaml"`
 	UpgradeURL  string `json:"upgradeUrl"`
