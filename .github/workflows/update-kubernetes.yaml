@@ -16,6 +16,8 @@ jobs:
       id: update
       working-directory: ./packages/kubernetes/template
       run: ./script.sh
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Create Pull Request # creates a PR if there are differences
       uses: peter-evans/create-pull-request@v3
