@@ -173,8 +173,9 @@ func Run(schedulerOptions types.SchedulerOptions) error {
 			plannedInstance := tghandlers.PlannedInstance{
 				ID: testName,
 
-				KurlYAML: string(installerYAML),
-				KurlURL:  string(installerURL),
+				KurlYAML:  string(installerYAML),
+				KurlURL:   string(installerURL),
+				KurlFlags: string(instance.Flags),
 
 				UpgradeYAML: string(upgradeYAML),
 				UpgradeURL:  string(upgradeURL),

@@ -56,7 +56,7 @@ function run_install() {
 
     echo "running kurl install"
 
-    cat install.sh | timeout 30m bash -s $AIRGAP_FLAG
+    cat install.sh | timeout 30m bash -s $AIRGAP_FLAG $KURL_FLAGS
     KURL_EXIT_STATUS=$?
 
     export KUBECONFIG=/etc/kubernetes/admin.conf
@@ -123,7 +123,7 @@ function run_upgrade() {
 
     echo "running kurl upgrade"
 
-    cat install.sh | timeout 30m bash -s $AIRGAP_UPGRADE_FLAG
+    cat install.sh | timeout 30m bash -s $AIRGAP_UPGRADE_FLAG $KURL_FLAGS
     KURL_EXIT_STATUS=$?
 
     if [ "$KURL_EXIT_STATUS" -eq 0 ]; then
