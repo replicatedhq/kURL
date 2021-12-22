@@ -113,6 +113,7 @@ module.exports.InstallerVersions = {
   ],
   kotsadm: [
     // auto-kotsadm-update
+    "1.59.0",
     "1.58.2",
     "1.58.1",
     "1.58.0",
