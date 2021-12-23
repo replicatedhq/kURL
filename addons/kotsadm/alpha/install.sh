@@ -4,6 +4,8 @@ function kotsadm() {
     local src="$DIR/addons/kotsadm/alpha"
     local dst="$DIR/kustomize/kotsadm"
 
+    validate_object_storage
+
     kotsadm_rename_postgres_pvc_1-12-2 "$src"
 
     cp "$src/kustomization.yaml" "$dst/"
@@ -118,6 +120,14 @@ function kotsadm() {
     # Migrate existing hostpath and nfs snapshot minio to velero lvp plugin
     if [ "$KOTSADM_DISABLE_S3" == "1" ] && [ -n "$VELERO_VERSION" ] ; then
         kubectl kots velero migrate-minio-filesystems -n default
+    fi
+}
+
+# TODO (dans): remove this when the KOTS default state is set disableS3=true
+# Having no object storage in your spec and not setting disableS3 to true is invalid and not supported
+function validate_object_storage() {
+    if ! object_store_exists && [ "$KOTSADM_DISABLE_S3" != 1 ]; then 
+        bail "KOTS must have an object storage provider as part of the installer spec (e.g. Rook or Minio), or must have 'kotsadm.disableS3=true' set in the installer"
     fi
 }
 
@@ -382,7 +392,7 @@ function kotsadm_cli() {
     fi
     if [ ! -f "$src/assets/kots.tar.gz" ] && [ "$AIRGAP" != "1" ]; then
         mkdir -p "$src/assets"
-        curl -L "https://github.com/replicatedhq/kots/releases/download/v2021.12.16-nightly/kots_linux_amd64.tar.gz" > "$src/assets/kots.tar.gz"
+        curl -L "https://github.com/replicatedhq/kots/releases/download/v1.59.0/kots_linux_amd64.tar.gz" > "$src/assets/kots.tar.gz"
     fi
 
     pushd "$src/assets"
@@ -483,7 +493,7 @@ function kotsadm_cacerts_file() {
         "/etc/ssl/cert.pem" \                                   # Alpine Linux
     )
 
-    for cert_file in ${sslDirectories[@]};  do
+    for cert_file in "${sslDirectories[@]}";  do
         if [ -f "$cert_file" ]; then
             KOTSADM_TRUSTED_CERT_MOUNT="${cert_file}"
             break
