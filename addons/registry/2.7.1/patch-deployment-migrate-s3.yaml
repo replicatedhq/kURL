@@ -34,7 +34,7 @@ spec:
         - name: OBJECT_STORE_CLUSTER_IP
           valueFrom:
             secretKeyRef:
-              key: object-store-cluster-ip
+              key: object-store-hostname
               name: registry-s3-secret
       volumes:
       - name: registry-migrate-s3-config
