@@ -5,7 +5,7 @@
     weave:
       version: "latest"
     rook:
-      version: "latest"
+      version: 1.5.x
     docker:
       version: "latest"
     registry:
