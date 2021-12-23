@@ -1,12 +1,10 @@
 #!/usr/bin/env bash
 
-function kotsadm_pre_init() {
-    validate_object_storage
-}
-
 function kotsadm() {
     local src="$DIR/addons/kotsadm/__KOTSADM_DIR__"
     local dst="$DIR/kustomize/kotsadm"
+
+    validate_object_storage
 
     kotsadm_rename_postgres_pvc_1-12-2 "$src"
 
