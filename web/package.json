@@ -45,7 +45,7 @@
     "@types/pino": "^7.0.5",
     "@types/semver": "^7.3.9",
     "@types/source-map-support": "^0.5.4",
-    "@types/yargs": "^17.0.2",
+    "@types/yargs": "^17.0.8",
     "@typescript-eslint/eslint-plugin": "^4.29.1",
     "@typescript-eslint/parser": "^4.29.1",
     "chai": "^4.3.4",
