@@ -65,7 +65,7 @@ Solution: `sudo ip -6 route add default dev ens5`
 
 Problem: upload license fails with `failed to execute get request: Get "https://replicated.app/license/ipv6": dial tcp: lookup replicated.app on [fd00:c00b:2::a]:53: server misbehaving`
 Solution: deploy a NAT64 server
-Solution: use airgap or just set env var "DISABLE_OUTBOUND_CONNECTIONS=1" on the kotsadm deployment
+Solution: use airgap or just set env var `DISABLE_OUTBOUND_CONNECTIONS=1` on the kotsadm deployment
 Solution: Use an http proxy with dualstack enabled.
 Solution: wait for AAAA records to be added to replicated.app
 
