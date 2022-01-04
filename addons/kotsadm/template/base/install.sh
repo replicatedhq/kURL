@@ -123,6 +123,17 @@ function kotsadm() {
     fi
 }
 
+function kotsadm_already_applied() {
+
+    # This prints in the outro regardless of being already applied
+    if [ -z "$KOTSADM_HOSTNAME" ]; then
+        KOTSADM_HOSTNAME="$PUBLIC_ADDRESS"
+    fi
+    if [ -z "$KOTSADM_HOSTNAME" ]; then
+        KOTSADM_HOSTNAME="$PRIVATE_ADDRESS"
+    fi
+}
+
 # TODO (dans): remove this when the KOTS default state is set disableS3=true
 # Having no object storage in your spec and not setting disableS3 to true is invalid and not supported
 function validate_object_storage() {
