@@ -10,6 +10,16 @@ function velero_pre_init() {
     # if [ -z "$VELERO_REQUESTED_CLAIM_SIZE" ]; then
     #     VELERO_REQUESTED_CLAIM_SIZE="50Gi"
     # fi
+
+    # If someone is trying to use only Rook 1.0.4, RWX volumes are not supported
+    if [ "$ROOK_VERSION" = "1.0.4" ] && [ -z "$LONGHORN_VERSION" ] && [ "$KOTSADM_DISABLE_S3" == 1 ]; then
+        bail "Rook 1.0.4 does not support RWX volumes used for Internal snapshot storage. Please upgrade to Rook 1.4.3 or higher."
+    fi
+
+    # If someone uses OpenEBS as their primary CSI provider, bail because it doesn't support RWX volumes
+    if [ -z "$ROOK_VERSION" ] && [ -z "$LONGHORN_VERSION" ] && [ "$KOTSADM_DISABLE_S3" == 1 ]; then
+        bail "Only Rook and Longhorn are supported for Velero Internal backup storage."
+    fi
 }
 
 # runs on first install, and on version upgrades only
@@ -48,7 +58,7 @@ function velero() {
     kubectl label -n default --overwrite service/kubernetes velero.io/exclude-from-backup=true
 
     # Bail if the migrationn fails, preventing the original object store from being deleted
-    if velero_should_migrate_from_object_store; then
+    if velero_did_migrate_from_object_store; then
         logWarn "Velero will migrate from object store to pvc"
         try_5m velero_pvc_migrated
         logSuccess "Velero migration complete"
@@ -89,7 +99,8 @@ function velero_install() {
         if [ "$KOTSADM_DISABLE_S3" == 1 ] ; then
             bslArgs="--provider replicated.com/pvc --bucket velero-internal-snapshots --backup-location-config storageSize=${VELERO_PVC_SIZE},resticRepoPrefix=/var/velero-local-volume-provider/velero-internal-snapshots/restic"
         elif object_store_bucket_exists; then
-            bslArgs="--provider aws --bucket $VELERO_LOCAL_BUCKET --backup-location-config region=us-east-1,s3Url=${OBJECT_STORE_CLUSTER_HOST},publicUrl=http://${OBJECT_STORE_CLUSTER_IP},s3ForcePathStyle=true"  
+            local ip=$($DIR/bin/kurl format-address $OBJECT_STORE_CLUSTER_IP)
+            bslArgs="--provider aws --bucket $VELERO_LOCAL_BUCKET --backup-location-config region=us-east-1,s3Url=${OBJECT_STORE_CLUSTER_HOST},publicUrl=http://${ip},s3ForcePathStyle=true"
         fi
     fi
 
@@ -145,7 +156,7 @@ function velero_already_applied() {
     fi
 
     # Bail if the migration fails, preventing the original object store from being deleted
-    if velero_should_migrate_from_object_store; then
+    if velero_did_migrate_from_object_store; then
         logWarn "Velero will migrate from object store to pvc"
         try_5m velero_pvc_migrated
         logSuccess "Velero migration complete"
@@ -269,12 +280,33 @@ function velero_should_migrate_from_object_store() {
     if [ "$KOTSADM_DISABLE_S3" != 1 ]; then 
         return 1
     fi
+
+    # if the PVC already exists, we've already migrated
+    if kubernetes_resource_exists "${VELERO_NAMESPACE}" pvc velero-internal-snapshots; then 
+        return 1
+    fi
+
     # if an object store isn't installed don't migrate
     # TODO (dans): this doeesn't support minio in a non-standard namespace
     if (! kubernetes_resource_exists rook-ceph deployment rook-ceph-rgw-rook-ceph-store-a) && (! kubernetes_resource_exists minio deployment minio); then 
         return 1
     fi
+
+    # If there isn't a cloud-credentials, this isn't an existing install or it isn't using object storage; there is nothing to migrate.
+    if ! kubernetes_resource_exists "$VELERO_NAMESPACE" secret cloud-credentials; then
+        return 1
+    fi
+
     return 0
+}
+
+function velero_did_migrate_from_object_store() {
+    
+    # If KOTSADM_DISABLE_S3 is set, force the migration
+    if [ -f "$DIR/kustomize/velero/kustomization.yaml" ] && cat "$DIR/kustomize/velero/kustomization.yaml" | grep -q "s3-migration-deployment-patch.yaml"; then
+        return 0
+    fi
+    return 1
 }
 
 function velero_migrate_from_object_store() {
@@ -321,8 +353,8 @@ function velero_patch_internal_pvc_snapshots() {
     local src="$1"
     local dst="$2"
 
-    # If we are migrating from Rook to Longhorn, longhorn is not yes the default storage class.
-    export VELERO_PVC_STORAGE_CLASS="default" # this is the rook-ceph default storage class
+    # If we are migrating from Rook to Longhorn, longhorn is not yet the default storage class.
+    export VELERO_PVC_STORAGE_CLASS="rook-cephfs" # this is the rook-ceph storage class for RWX access
     if [ -n "$LONGHORN_VERSION" ]; then
         export VELERO_PVC_STORAGE_CLASS="longhorn"
     fi
@@ -332,11 +364,11 @@ function velero_patch_internal_pvc_snapshots() {
     insert_resources "$dst/kustomization.yaml" internal-snaps-pvc.yaml
 
     # add patch to add the pvc in the correct location for the velero deployment
-    cp "$src/internal-snaps-deployment-patch.yaml" "$dst/internal-snaps-deployment-patch.yaml"
+    render_yaml_file "$src/tmpl-internal-snaps-deployment-patch.yaml" > "$dst/internal-snaps-deployment-patch.yaml"
     insert_patches_strategic_merge "$dst/kustomization.yaml" internal-snaps-deployment-patch.yaml
 
     # add patch to add the pvc in the correct location for the restic daemonset
-    cp "$src/internal-snaps-ds-patch.yaml" "$dst/internal-snaps-ds-patch.yaml"
+    render_yaml_file "$src/tmpl-internal-snaps-ds-patch.yaml" > "$dst/internal-snaps-ds-patch.yaml"
     insert_patches_strategic_merge "$dst/kustomization.yaml" internal-snaps-ds-patch.yaml
 
 }
