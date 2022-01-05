@@ -142,8 +142,6 @@
       version: 2.6.5
     contour:
       version: 1.0.1
-    rook:
-      version: 1.0.4
     registry:
       version: 2.7.1
     prometheus:
@@ -164,8 +162,6 @@
       version: 2.6.5
     contour:
       version: 1.0.1
-    rook:
-      version: 1.0.4
     registry:
       version: 2.7.1
     prometheus:
