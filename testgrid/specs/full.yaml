@@ -132,10 +132,10 @@
   - centos-83
   - centos-84
   - ol-84
-- name: k8s118
+- name: k8s120x_docker
   installerSpec:
     kubernetes:
-      version: 1.18.x
+      version: 1.20.x
     docker:
       version: 19.03.10
     weave:
@@ -154,12 +154,12 @@
       version: 1.2.0
     ekco:
       version: 0.6.0
-- name: k8s1184
+- name: k8s121x_containerd
   installerSpec:
     kubernetes:
-      version: 1.18.4
-    docker:
-      version: 19.03.10
+      version: 1.21.x
+    containerd:
+      version: 1.4.6
     weave:
       version: 2.6.5
     contour:
