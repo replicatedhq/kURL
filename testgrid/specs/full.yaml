@@ -793,3 +793,77 @@
       version: latest
     velero:
       version: 1.7.x
+- name: "K8s 1.22x Rook"
+  installerSpec:
+    kubernetes:
+      version: 1.22.x
+    containerd:
+      version: 1.4.x
+    antrea:
+      version: 1.4.x
+    contour:
+      version: 1.19.1
+    rook:
+      version: 1.5.12
+    registry:
+      version: 2.7.1
+    prometheus:
+      version: 0.49.0-17.1.3
+    kotsadm:
+      version: latest
+    velero:
+      version: 1.7.x
+    ekco:
+      version: latest
+  unsupportedOSIDs:
+  - ubuntu-1604
+- name: "K8s 1.22x Longhorn, disableS3"
+  installerSpec:
+    kubernetes:
+      version: 1.22.x
+    containerd:
+      version: 1.4.x
+    weave:
+      version: latest
+    contour:
+      version: 1.19.1
+    longhorn:
+      version: 1.2.2
+    registry:
+      version: 2.7.1
+    prometheus:
+      version: 0.49.0-17.1.3
+    kotsadm:
+      version: latest
+      disableS3: true
+    velero:
+      version: 1.7.x
+    ekco:
+      version: latest
+  unsupportedOSIDs:
+  - ubuntu-1604
+- name: "K8s 1.22x Airgap"
+  installerSpec:
+    kubernetes:
+      version: 1.22.x
+    containerd:
+      version: 1.4.x
+    antrea:
+      version: 1.4.x
+    contour:
+      version: 1.19.1
+    rook:
+      version: 1.5.12
+    registry:
+      version: 2.7.1
+    prometheus:
+      version: 0.49.0-17.1.3
+    kotsadm:
+      version: latest
+    velero:
+      version: 1.7.x
+    ekco:
+      version: latest
+  airgap: true
+  unsupportedOSIDs:
+  - ubuntu-1604
