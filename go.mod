@@ -8,7 +8,7 @@ require (
 	github.com/apparentlymart/go-cidr v1.1.0
 	github.com/aws/aws-sdk-go v1.40.18
 	github.com/briandowns/spinner v1.16.0
-	github.com/bugsnag/bugsnag-go/v2 v2.1.1
+	github.com/bugsnag/bugsnag-go/v2 v2.1.2
 	github.com/chzyer/readline v0.0.0-20180603132655-2972be24d48e
 	github.com/containers/image/v5 v5.17.0
 	github.com/denisbrodbeck/machineid v1.0.1
@@ -64,7 +64,7 @@ require (
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bgentry/go-netrc v0.0.0-20140422174119-9fd32a8b3d3d // indirect
 	github.com/blang/semver v3.5.1+incompatible // indirect
-	github.com/bugsnag/panicwrap v1.3.2 // indirect
+	github.com/bugsnag/panicwrap v1.3.4 // indirect
 	github.com/c9s/goprocinfo v0.0.0-20190309065803-0b2ad9ac246b // indirect
 	github.com/cespare/xxhash/v2 v2.1.1 // indirect
 	github.com/containerd/cgroups v1.0.1 // indirect
