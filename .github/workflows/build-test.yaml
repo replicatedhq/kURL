@@ -19,7 +19,7 @@ jobs:
 
       - uses: actions/checkout@v2
 
-      - run: go mod tidy
+      - run: go mod tidy -compat=1.17
 
   build-kurl-utils:
     runs-on: ubuntu-18.04
