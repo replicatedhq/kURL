@@ -232,6 +232,7 @@ func convertToBash(kurlValues map[string]interface{}, fieldsSet map[string]bool)
 		"Kurl.ProxyAddress":                      "PROXY_ADDRESS",
 		"Kurl.PublicAddress":                     "PUBLIC_ADDRESS",
 		"Kurl.SkipSystemPackageInstall":          "SKIP_SYSTEM_PACKAGE_INSTALL",
+		"Kurl.ExcludeBuiltinPreflights":          "EXCLUDE_BUILTIN_PREFLIGHTS",
 		"Longhorn.S3Override":                    "LONGHORN_S3_OVERRIDE",
 		"Longhorn.UiBindPort":                    "LONGHORN_UI_BIND_PORT",
 		"Longhorn.UiReplicaCount":                "LONGHORN_UI_REPLICA_COUNT",

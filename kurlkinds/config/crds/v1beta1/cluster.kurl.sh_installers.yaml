@@ -291,6 +291,8 @@ spec:
                     type: array
                   airgap:
                     type: boolean
+                  excludeBuiltinPreflights:
+                    type: boolean
                   hostPreflights:
                     description: HostPreflight is the Schema for the hostpreflights
                       API
@@ -1345,22 +1347,6 @@ spec:
                                       items:
                                         type: string
                                       type: array
-                                  required:
-                                  - amzn
-                                  - amzn2
-                                  - centos
-                                  - centos7
-                                  - centos8
-                                  - ol
-                                  - ol7
-                                  - ol8
-                                  - rhel
-                                  - rhel7
-                                  - rhel8
-                                  - ubuntu
-                                  - ubuntu16
-                                  - ubuntu18
-                                  - ubuntu20
                                   type: object
                                 tcpConnect:
                                   properties:

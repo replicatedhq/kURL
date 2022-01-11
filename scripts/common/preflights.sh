@@ -539,15 +539,18 @@ function host_preflights() {
       opts="${opts} --spec=${VENDOR_PREFLIGHT_SPEC}"
     fi
 
-    # Adding kurl addon preflight checks
-    for spec in $("${K8S_DISTRO}_addon_for_each" addon_preflight); do
-        opts="${opts} --spec=${spec}"
-    done
-
-    # Add containerd preflight checks separately since it's a special addon and is not part of the addons array
-    for spec in $(addon_preflight containerd "$CONTAINERD_VERSION"); do
-        opts="${opts} --spec=${spec}"
-    done
+    if [ "$EXCLUDE_BUILTIN_PREFLIGHTS" == "1" ]; then
+        opts="${opts} --exclude-builtin"
+    else
+        # Adding kurl addon preflight checks
+        for spec in $("${K8S_DISTRO}_addon_for_each" addon_preflight); do
+            opts="${opts} --spec=${spec}"
+        done
+        # Add containerd preflight checks separately since it's a special addon and is not part of the addons array
+        for spec in $(addon_preflight containerd "$CONTAINERD_VERSION"); do
+            opts="${opts} --spec=${spec}"
+        done
+    fi
 
     if [ -n "$PRIMARY_HOST" ]; then
         opts="${opts} --primary-host=${PRIMARY_HOST}"
