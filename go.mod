@@ -234,6 +234,8 @@ require (
 replace (
 	// from github.com/replicatedhq/troubleshoot and github.com/kubevirt/client-go
 	github.com/StackExchange/wmi => github.com/yusufpapurcu/wmi v1.2.2
+	github.com/go-logr/logr => github.com/go-logr/logr v0.4.0
+	github.com/go-logr/zapr => github.com/go-logr/zapr v0.4.0
 	github.com/go-ole/go-ole => github.com/go-ole/go-ole v1.2.6 // needed for arm builds
 	github.com/onsi/ginkgo => github.com/onsi/ginkgo v1.12.1
 	github.com/onsi/gomega => github.com/onsi/gomega v1.10.1
@@ -255,6 +257,7 @@ replace (
 	k8s.io/cri-api => k8s.io/cri-api v0.20.9
 	k8s.io/csi-translation-lib => k8s.io/csi-translation-lib v0.20.9
 	k8s.io/klog => k8s.io/klog v0.4.0
+	k8s.io/klog/v2 => k8s.io/klog/v2 v2.9.0
 	k8s.io/kube-aggregator => k8s.io/kube-aggregator v0.20.9
 	k8s.io/kube-controller-manager => k8s.io/kube-controller-manager v0.20.9
 	k8s.io/kube-openapi => k8s.io/kube-openapi v0.0.0-20210113233702-8566a335510f
@@ -269,7 +272,7 @@ replace (
 	k8s.io/sample-cli-plugin => k8s.io/sample-cli-plugin v0.20.9
 	k8s.io/sample-controller => k8s.io/sample-controller v0.20.9
 	kubevirt.io/containerized-data-importer => kubevirt.io/containerized-data-importer v1.36.0
-	sigs.k8s.io/controller-runtime => sigs.k8s.io/controller-runtime v0.11.0
+	sigs.k8s.io/controller-runtime => sigs.k8s.io/controller-runtime v0.8.3
 	sigs.k8s.io/structured-merge-diff => sigs.k8s.io/structured-merge-diff v0.0.0-20190302045857-e85c7b244fd2
 )
 
