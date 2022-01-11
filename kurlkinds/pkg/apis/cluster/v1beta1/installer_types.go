@@ -127,6 +127,7 @@ type Kurl struct {
 	ProxyAddress                 string                             `json:"proxyAddress,omitempty" yaml:"proxyAddress,omitempty"`
 	PublicAddress                string                             `json:"publicAddress,omitempty" yaml:"publicAddress,omitempty"`
 	SkipSystemPackageInstall     bool                               `json:"skipSystemPackageInstall,omitempty" yaml:"skipSystemPackageInstall,omitempty"`
+	ExcludeBuiltinPreflights     bool                               `json:"excludeBuiltinPreflights,omitempty" yaml:"excludeBuiltinPreflights,omitempty"`
 	IPv6                         bool                               `json:"ipv6,omitempty" yaml:"ipv6,omitempty"`
 }
 

@@ -67,10 +67,15 @@ func NewHostPreflightCmd(cli CLI) *cobra.Command {
 				RemoteHosts:    remotes,
 			}
 
-			builtin := preflight.Builtin()
-			preflightSpec, err := decodePreflightSpec(builtin, data)
-			if err != nil {
-				return errors.Wrap(err, "builtin")
+			preflightSpec := &troubleshootv1beta2.HostPreflight{}
+
+			if !v.GetBool("exclude-builtin") {
+				builtin := preflight.Builtin()
+				s, err := decodePreflightSpec(builtin, data)
+				if err != nil {
+					return errors.Wrap(err, "builtin")
+				}
+				preflightSpec = s
 			}
 
 			for _, filename := range v.GetStringSlice("spec") {
@@ -224,6 +229,7 @@ func NewHostPreflightCmd(cli CLI) *cobra.Command {
 	cmd.Flags().Bool("is-join", false, "set to true if this node is joining an existing cluster (non-primary implies join)")
 	cmd.Flags().Bool("is-primary", true, "set to true if this node is a primary")
 	cmd.Flags().Bool("is-upgrade", false, "set to true if this is an upgrade")
+	cmd.Flags().Bool("exclude-builtin", false, "set to true to exclude builtin preflights")
 	cmd.Flags().StringSlice("primary-host", nil, "host or IP of a control plane node running a Kubernetes API server and etcd peer")
 	cmd.Flags().StringSlice("secondary-host", nil, "host or IP of a secondary node running kubelet")
 	cmd.Flags().StringSlice("spec", nil, "preflight specs")

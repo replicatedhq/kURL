@@ -698,6 +698,13 @@ function get_skip_system_package_install_flag() {
     echo " skip-system-package-install"
 }
 
+function get_exclude_builtin_preflights_flag() {
+    if [ "${EXCLUDE_BUILTIN_PREFLIGHTS}" != "1" ]; then
+        return
+    fi
+    echo " exclude-builtin-preflights"
+}
+
 function get_additional_no_proxy_addresses_flag() {
     local has_proxy="$1"
     local no_proxy_addresses="$2"

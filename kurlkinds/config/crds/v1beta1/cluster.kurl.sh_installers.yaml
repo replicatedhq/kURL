@@ -291,6 +291,8 @@ spec:
                     type: array
                   airgap:
                     type: boolean
+                  excludeBuiltinPreflights:
+                    type: boolean
                   hostPreflights:
                     description: HostPreflight is the Schema for the hostpreflights
                       API
