@@ -4,6 +4,23 @@ on: [ pull_request ]
 
 jobs:
 
+  validate-go-mod:
+    runs-on: ubuntu-18.04
+    steps:
+      - uses: actions/setup-go@v2
+        with:
+          go-version: 1.17
+
+      - name: setup env
+        run: |
+          echo "GOPATH=$(go env GOPATH)" >> $GITHUB_ENV
+          echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
+        shell: bash
+
+      - uses: actions/checkout@v2
+
+      - run: go mod tidy -compat=1.17
+
   build-kurl-utils:
     runs-on: ubuntu-18.04
     steps:
@@ -76,6 +93,7 @@ jobs:
 
   build-testgrid:
     runs-on: ubuntu-18.04
+    needs: validate-go-mod
     steps:
     - uses: actions/setup-go@v2
       with:
@@ -95,6 +113,7 @@ jobs:
   build-test-success:
     runs-on: ubuntu-latest
     needs:
+    - validate-go-mod
     - build-kurl-utils
     - build-web
     - test-shell
