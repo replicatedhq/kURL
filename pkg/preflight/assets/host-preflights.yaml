@@ -82,23 +82,23 @@ spec:
     - cpu:
         checkName: "Number of CPUs"
         outcomes:
-          - warn:
-              when: "count < 4"
-              message: At least 4 CPU cores are recommended
           - fail:
               when: "count < 2"
               message: At least 2 CPU cores are required, and 4 CPU cores are recommended
+          - warn:
+              when: "count < 4"
+              message: At least 4 CPU cores are recommended
           - pass:
               message: This server has at least 4 CPU cores
     - memory:
         checkName: "Amount of Memory"
         outcomes:
-          - warn:
-              when: "< 8G"
-              message: At least 8G of memory is recommended
           - fail:
               when: "< 4G"
               message: At least 4G of memory is required, and 8G of memory is recommended
+          - warn:
+              when: "< 8G"
+              message: At least 8G of memory is recommended
           - pass:
               message: The system has at least 8G of memory
     - diskUsage:
