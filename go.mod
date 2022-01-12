@@ -24,7 +24,7 @@ require (
 	github.com/pelletier/go-toml v1.9.4
 	github.com/pkg/errors v0.9.1
 	github.com/replicatedhq/pvmigrate v0.4.1
-	github.com/replicatedhq/troubleshoot v0.27.0
+	github.com/replicatedhq/troubleshoot v0.28.0
 	github.com/replicatedhq/yaml/v3 v3.0.0-beta5-replicatedhq
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/afero v1.8.0
