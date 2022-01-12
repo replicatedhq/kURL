@@ -1,0 +1,36 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ekco-config
+data:
+  config.yaml: |
+    node_unreachable_toleration: $EKCO_NODE_UNREACHABLE_TOLERATION_DURATION
+    clear_dead_nodes: $EKCO_CLEAR_DEAD_NODES
+    purge_dead_nodes: $EKCO_PURGE_DEAD_NODES
+    min_ready_master_nodes: $EKCO_MIN_READY_MASTER_NODE_COUNT
+    min_ready_worker_nodes: $EKCO_MIN_READY_WORKER_NODE_COUNT
+    maintain_rook_storage_nodes: $EKCO_SHOULD_MAINTAIN_ROOK_STORAGE_NODES
+    ceph_block_pool: replicapool
+    ceph_filesystem: rook-shared-fs
+    ceph_object_store: rook-ceph-store
+    min_ceph_pool_replication: 1
+    max_ceph_pool_replication: 3
+    certificates_dir: /etc/kubernetes/pki
+    reconcile_interval: 1m
+    rook_version: $ROOK_VERSION
+    rotate_certs_image: replicated/ekco:v$EKCO_VERSION
+    rotate_certs_namespace: kurl
+    rotate_certs_ttl: 720h
+    rotate_certs_check_interval: 24h
+    rotate_certs: true
+    registry_cert_namespace: kurl
+    registry_cert_secret: registry-pki
+    kurl_proxy_cert_namespace: default
+    kurl_proxy_cert_secret: kotsadm-tls
+    kotsadm_kubelet_cert_namespace: default
+    kotsadm_kubelet_cert_secret: kubelet-client-cert
+    rook_priority_class: \"$EKCO_ROOK_PRIORITY_CLASS\"
+    host_task_image: replicated/ekco:v$EKCO_VERSION
+    host_task_namespace: kurl
+    enable_internal_load_balancer: $EKCO_ENABLE_INTERNAL_LOAD_BALANCER_BOOL
+    pod_image_overrides: \"$EKCO_POD_IMAGE_OVERRIDES\"
