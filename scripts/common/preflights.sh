@@ -588,6 +588,10 @@ function host_preflights() {
                     # fi
                     return 0
                     ;;  
+                2)
+                    logWarn "Host preflights warnings ignored"
+                    return 0
+                    ;;
                 1)
                     logFail "Host preflights have failures"
 

@@ -29,6 +29,12 @@ const HostPreflightCmdExample = `
   # Installer spec from STDIN
   $ kubectl get installer 6abe39c -oyaml | kurl host preflight -`
 
+const (
+	PREFLIGHTS_WARNING_CODE        = 3
+	PREFLIGHTS_IGNORE_WARNING_CODE = 2
+	PREFLIGHTS_ERROR_CODE          = 1
+)
+
 func NewHostPreflightCmd(cli CLI) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:          "preflight [installer spec file|-]",
@@ -213,12 +219,12 @@ func NewHostPreflightCmd(cli CLI) *cobra.Command {
 
 			switch {
 			case preflightIsFail(results):
-				return errors.New("preflights have failures")
+				os.Exit(PREFLIGHTS_ERROR_CODE)
 			case preflightIsWarn(results):
 				if v.GetBool("ignore-warnings") {
-					fmt.Fprintln(cmd.ErrOrStderr(), "Warnings ignored by CLI flag \"ignore-warnings\"")
+					os.Exit(PREFLIGHTS_IGNORE_WARNING_CODE)
 				} else {
-					return ErrWarn
+					os.Exit(PREFLIGHTS_WARNING_CODE)
 				}
 			}
 			return nil
