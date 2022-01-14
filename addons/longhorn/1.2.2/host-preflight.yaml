@@ -7,6 +7,7 @@ spec:
   - diskUsage:
       collectorName: "Longhorn Disk Usage"
       path: /var/lib/longhorn
+      exclude: '{{kurl .IsUpgrade }}'
 
   analyzers:
   - diskUsage:
