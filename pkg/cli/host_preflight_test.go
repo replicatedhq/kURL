@@ -131,7 +131,7 @@ func TestNewHostPreflightCmd(t *testing.T) {
 			bOut, bErr := bytes.NewBufferString(""), bytes.NewBufferString("")
 			cmd.SetOut(bOut)
 			cmd.SetErr(bErr)
-			args := []string{installerFilename}
+			args := []string{installerFilename, "--use-exit-codes=false"}
 			if tt.ignoreWarnings {
 				args = append(args, "--ignore-warnings")
 			}

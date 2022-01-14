@@ -217,14 +217,28 @@ func NewHostPreflightCmd(cli CLI) *cobra.Command {
 
 			printPreflightResults(cmd.OutOrStdout(), results)
 
+			if v.GetBool("use-exit-codes") {
+				switch {
+				case preflightIsFail(results):
+					os.Exit(PREFLIGHTS_ERROR_CODE)
+				case preflightIsWarn(results):
+					if v.GetBool("ignore-warnings") {
+						os.Exit(PREFLIGHTS_IGNORE_WARNING_CODE)
+					} else {
+						os.Exit(PREFLIGHTS_WARNING_CODE)
+					}
+				}
+				return nil
+			}
+
 			switch {
 			case preflightIsFail(results):
-				os.Exit(PREFLIGHTS_ERROR_CODE)
+				return errors.New("preflights have failures")
 			case preflightIsWarn(results):
 				if v.GetBool("ignore-warnings") {
-					os.Exit(PREFLIGHTS_IGNORE_WARNING_CODE)
+					fmt.Fprintln(cmd.ErrOrStderr(), "Warnings ignored by CLI flag \"ignore-warnings\"")
 				} else {
-					os.Exit(PREFLIGHTS_WARNING_CODE)
+					return ErrWarn
 				}
 			}
 			return nil
@@ -236,6 +250,7 @@ func NewHostPreflightCmd(cli CLI) *cobra.Command {
 	cmd.Flags().Bool("is-primary", true, "set to true if this node is a primary")
 	cmd.Flags().Bool("is-upgrade", false, "set to true if this is an upgrade")
 	cmd.Flags().Bool("exclude-builtin", false, "set to true to exclude builtin preflights")
+	cmd.Flags().Bool("use-exit-codes", true, "set to false to return an error instead of an exit code")
 	cmd.Flags().StringSlice("primary-host", nil, "host or IP of a control plane node running a Kubernetes API server and etcd peer")
 	cmd.Flags().StringSlice("secondary-host", nil, "host or IP of a secondary node running kubelet")
 	cmd.Flags().StringSlice("spec", nil, "preflight specs")
