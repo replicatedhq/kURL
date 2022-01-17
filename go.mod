@@ -10,7 +10,7 @@ require (
 	github.com/briandowns/spinner v1.18.0
 	github.com/bugsnag/bugsnag-go/v2 v2.1.2
 	github.com/chzyer/readline v0.0.0-20180603132655-2972be24d48e
-	github.com/containers/image/v5 v5.17.0
+	github.com/containers/image/v5 v5.18.0
 	github.com/denisbrodbeck/machineid v1.0.1
 	github.com/fatih/color v1.13.0
 	github.com/foomo/htpasswd v0.0.0-20200116085101-e3a90e78da9c
@@ -34,7 +34,7 @@ require (
 	github.com/vishvananda/netlink v1.1.1-0.20201029203352-d40f9887b852
 	github.com/vmware-tanzu/velero v1.6.2
 	go.uber.org/zap v1.20.0
-	golang.org/x/crypto v0.0.0-20211108221036-ceb1ce70b4fa
+	golang.org/x/crypto v0.0.0-20211215153901-e495a2d5b3d3
 	golang.org/x/lint v0.0.0-20210508222113-6edffad5e616
 	golang.org/x/net v0.0.0-20211209124913-491a49abca63
 	gopkg.in/yaml.v2 v2.4.0
@@ -56,7 +56,7 @@ require (
 	github.com/Masterminds/goutils v1.1.1 // indirect
 	github.com/Masterminds/semver v1.5.0 // indirect
 	github.com/Microsoft/go-winio v0.5.0 // indirect
-	github.com/Microsoft/hcsshim v0.8.22 // indirect
+	github.com/Microsoft/hcsshim v0.8.23 // indirect
 	github.com/PuerkitoBio/purell v1.1.1 // indirect
 	github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578 // indirect
 	github.com/VividCortex/ewma v1.2.0 // indirect
@@ -68,7 +68,7 @@ require (
 	github.com/c9s/goprocinfo v0.0.0-20190309065803-0b2ad9ac246b // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
 	github.com/containerd/cgroups v1.0.1 // indirect
-	github.com/containerd/containerd v1.5.7 // indirect
+	github.com/containerd/containerd v1.5.9 // indirect
 	github.com/containerd/stargz-snapshotter/estargz v0.9.0 // indirect
 	github.com/containers/libtrust v0.0.0-20190913040956-14b96171aa3b // indirect
 	github.com/containers/ocicrypt v1.1.2 // indirect
@@ -76,7 +76,7 @@ require (
 	github.com/coreos/prometheus-operator v0.35.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/docker/distribution v2.7.1+incompatible // indirect
-	github.com/docker/docker v20.10.11+incompatible // indirect
+	github.com/docker/docker v20.10.12+incompatible // indirect
 	github.com/docker/docker-credential-helpers v0.6.4 // indirect
 	github.com/docker/go-connections v0.4.0 // indirect
 	github.com/docker/go-metrics v0.0.1 // indirect
@@ -160,10 +160,10 @@ require (
 	github.com/mtrmac/gpgme v0.1.2 // indirect
 	github.com/oklog/run v1.0.0 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
-	github.com/opencontainers/image-spec v1.0.2-0.20210819154149-5ad6f50d6283 // indirect
+	github.com/opencontainers/image-spec v1.0.3-0.20211202193544-a5463b7f9c84 // indirect
 	github.com/opencontainers/runc v1.0.2 // indirect
 	github.com/opencontainers/runtime-spec v1.0.3-0.20210326190908-1c3f411f0417 // indirect
-	github.com/opencontainers/selinux v1.9.1 // indirect
+	github.com/opencontainers/selinux v1.10.0 // indirect
 	github.com/openshift/api v0.0.0 // indirect
 	github.com/openshift/client-go v0.0.0 // indirect
 	github.com/openshift/custom-resource-status v0.0.0-20200602122900-c002fd1547ca // indirect
@@ -190,7 +190,7 @@ require (
 	github.com/tklauser/numcpus v0.3.0 // indirect
 	github.com/ulikunitz/xz v0.5.10 // indirect
 	github.com/vbatts/tar-split v0.11.2 // indirect
-	github.com/vbauerster/mpb/v7 v7.1.5 // indirect
+	github.com/vbauerster/mpb/v7 v7.3.0 // indirect
 	github.com/vishvananda/netns v0.0.0-20200728191858-db3c7e526aae // indirect
 	github.com/yusufpapurcu/wmi v1.2.2 // indirect
 	go.etcd.io/bbolt v1.3.6 // indirect
@@ -200,7 +200,7 @@ require (
 	go.uber.org/multierr v1.6.0 // indirect
 	golang.org/x/oauth2 v0.0.0-20211104180415-d3ed0bb246c8 // indirect
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c // indirect
-	golang.org/x/sys v0.0.0-20211210111614-af8b64212486 // indirect
+	golang.org/x/sys v0.0.0-20211214234402-4825e8c3871d // indirect
 	golang.org/x/term v0.0.0-20210615171337-6886f2dfbf5b // indirect
 	golang.org/x/text v0.3.7 // indirect
 	golang.org/x/time v0.0.0-20210723032227-1f47c861a9ac // indirect
