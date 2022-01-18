@@ -123,6 +123,17 @@ function kotsadm() {
     fi
 }
 
+function kotsadm_already_applied() {
+
+    # This prints in the outro regardless of being already applied
+    if [ -z "$KOTSADM_HOSTNAME" ]; then
+        KOTSADM_HOSTNAME="$PUBLIC_ADDRESS"
+    fi
+    if [ -z "$KOTSADM_HOSTNAME" ]; then
+        KOTSADM_HOSTNAME="$PRIVATE_ADDRESS"
+    fi
+}
+
 # TODO (dans): remove this when the KOTS default state is set disableS3=true
 # Having no object storage in your spec and not setting disableS3 to true is invalid and not supported
 function validate_object_storage() {
@@ -392,7 +403,7 @@ function kotsadm_cli() {
     fi
     if [ ! -f "$src/assets/kots.tar.gz" ] && [ "$AIRGAP" != "1" ]; then
         mkdir -p "$src/assets"
-        curl -L "https://github.com/replicatedhq/kots/releases/download/v1.59.1/kots_linux_amd64.tar.gz" > "$src/assets/kots.tar.gz"
+        curl -L "https://github.com/replicatedhq/kots/releases/download/v1.59.2/kots_linux_amd64.tar.gz" > "$src/assets/kots.tar.gz"
     fi
 
     pushd "$src/assets"
