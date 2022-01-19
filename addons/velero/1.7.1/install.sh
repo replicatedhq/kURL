@@ -98,7 +98,7 @@ function velero_install() {
         # Only use the PVC backup location for new installs where disableS3 is set to TRUE
         if [ "$KOTSADM_DISABLE_S3" == 1 ] ; then
             bslArgs="--provider replicated.com/pvc --bucket velero-internal-snapshots --backup-location-config storageSize=${VELERO_PVC_SIZE},resticRepoPrefix=/var/velero-local-volume-provider/velero-internal-snapshots/restic"
-        elif object_store_bucket_exists; then
+        elif object_store_exists; then
             local ip=$($DIR/bin/kurl format-address $OBJECT_STORE_CLUSTER_IP)
             bslArgs="--provider aws --bucket $VELERO_LOCAL_BUCKET --backup-location-config region=us-east-1,s3Url=${OBJECT_STORE_CLUSTER_HOST},publicUrl=http://${ip},s3ForcePathStyle=true"
         fi
@@ -107,7 +107,7 @@ function velero_install() {
     # we need a secret file if it's already set for some other provider, OR
     # If we have object storage AND are NOT actively opting out of the existing functionality
     local secretArgs="--no-secret"
-    if kubernetes_resource_exists "$VELERO_NAMESPACE" secret cloud-credentials || { object_store_bucket_exists && ! [ "$KOTSADM_DISABLE_S3" == 1 ]; }; then
+    if kubernetes_resource_exists "$VELERO_NAMESPACE" secret cloud-credentials || { object_store_exists && ! [ "$KOTSADM_DISABLE_S3" == 1 ]; }; then
         velero_credentials
         secretArgs="--secret-file velero-credentials"
     fi
