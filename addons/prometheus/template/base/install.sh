@@ -1,3 +1,4 @@
+# shellcheck disable=SC2148
 
 function prometheus() {
     local src="$DIR/addons/prometheus/__PROMETHEUS_VERSION__"
@@ -14,7 +15,9 @@ function prometheus() {
 
     grafana_admin_secret "$src" "$operatordst"
 
-    kubectl apply -k "$crdsdst/"
+    # Server-side apply is needed here because the CRDs are too large to keep in metadata
+    # https://github.com/prometheus-community/helm-charts/issues/1500
+    kubectl apply --server-side --force-conflicts -k "$crdsdst/"
     spinner_until -1 prometheus_crd_ready
 
     prometheus_rook_ceph "$operatordst"
