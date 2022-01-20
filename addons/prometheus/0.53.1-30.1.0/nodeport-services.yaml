@@ -7,6 +7,7 @@ spec:
   ports:
   - name: web
     port: 9093
+    protocol: TCP
     nodePort: 30903
   type: "NodePort"
 ---
@@ -32,4 +33,5 @@ spec:
   ports:
   - name: service
     port: 80
+    protocol: TCP
     nodePort: 30902
