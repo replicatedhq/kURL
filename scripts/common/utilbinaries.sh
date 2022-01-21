@@ -115,9 +115,15 @@ function get_patch_yaml() {
                 ;;
             load-balancer-address)
                 ;;
+            # Legacy Command
             preflight-ignore)
                 ;;
-            preflight-ignore-warnings)
+            host-preflight-ignore)
+                ;;
+            # Legacy Command
+            host-preflight-ignore-warnings)
+                ;;
+            host-preflight-enforce-warnings)
                 ;;
             preserve-docker-config)
                 ;;
@@ -157,8 +163,12 @@ function get_patch_yaml() {
             skip-system-package-install)
                 SKIP_SYSTEM_PACKAGE_INSTALL=1
                 ;;
+            # legacy command alias
             exclude-builtin-preflights)
-                EXCLUDE_BUILTIN_PREFLIGHTS=1
+                EXCLUDE_BUILTIN_HOST_PREFLIGHTS=1
+                ;;
+            exclude-builtin-host-preflights)
+                EXCLUDE_BUILTIN_HOST_PREFLIGHTS=1
                 ;;
             ipv6)
                 IPV6_ONLY=1

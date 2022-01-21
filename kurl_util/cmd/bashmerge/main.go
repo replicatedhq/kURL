@@ -167,16 +167,21 @@ func parseBashFlags(installer *kurlv1beta1.Installer, bashFlags string) error {
 				installer.Spec.Kurl = &kurlv1beta1.Kurl{}
 			}
 			installer.Spec.Kurl.IgnoreRemoteUpgradePrompt = true
-		case "preflight-ignore":
+		case "host-preflight-ignore", "preflight-ignore":
 			if installer.Spec.Kurl == nil {
 				installer.Spec.Kurl = &kurlv1beta1.Kurl{}
 			}
-			installer.Spec.Kurl.PreflightIgnore = true
+			installer.Spec.Kurl.HostPreflightIgnore = true
+		// Legacy flag; this flag was a no-op as the installer always ignored host preflights
 		case "preflight-ignore-warnings":
 			if installer.Spec.Kurl == nil {
 				installer.Spec.Kurl = &kurlv1beta1.Kurl{}
 			}
-			installer.Spec.Kurl.PreflightIgnoreWarnings = true
+		case "host-preflight-enforce-warnings":
+			if installer.Spec.Kurl == nil {
+				installer.Spec.Kurl = &kurlv1beta1.Kurl{}
+			}
+			installer.Spec.Kurl.HostPreflightEnforceWarnings = true
 		case "preserve-docker-config":
 			if installer.Spec.Docker == nil {
 				installer.Spec.Docker = &kurlv1beta1.Docker{}
@@ -212,11 +217,11 @@ func parseBashFlags(installer *kurlv1beta1.Installer, bashFlags string) error {
 				installer.Spec.Kurl = &kurlv1beta1.Kurl{}
 			}
 			installer.Spec.Kurl.SkipSystemPackageInstall = true
-		case "exclude-builtin-preflights":
+		case "exclude-builtin-host-preflights", "exclude-builtin-preflights":
 			if installer.Spec.Kurl == nil {
 				installer.Spec.Kurl = &kurlv1beta1.Kurl{}
 			}
-			installer.Spec.Kurl.ExcludeBuiltinPreflights = true
+			installer.Spec.Kurl.ExcludeBuiltinHostPreflights = true
 		case "yes":
 			continue
 		case "auto-upgrades-enabled":

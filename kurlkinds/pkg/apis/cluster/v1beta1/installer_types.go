@@ -121,13 +121,13 @@ type Kurl struct {
 	Nameserver                   string                             `json:"nameserver,omitempty" yaml:"nameserver,omitempty"`
 	NoProxy                      bool                               `json:"noProxy,omitempty" yaml:"noProxy,omitempty"`
 	HostPreflights               *troubleshootv1beta2.HostPreflight `json:"hostPreflights,omitempty" yaml:"hostPreflights,omitempty"`
-	PreflightIgnore              bool                               `json:"preflightIgnore,omitempty" yaml:"preflightIgnore,omitempty"`
-	PreflightIgnoreWarnings      bool                               `json:"preflightIgnoreWarnings,omitempty" yaml:"preflightIgnoreWarnings,omitempty"`
+	HostPreflightIgnore          bool                               `json:"hostPreflightIgnore,omitempty" yaml:"hostPreflightIgnore,omitempty"`
+	HostPreflightEnforceWarnings bool                               `json:"hostPreflightEnforceWarnings,omitempty" yaml:"hostPreflightEnforceWarnings,omitempty"`
 	PrivateAddress               string                             `json:"privateAddress,omitempty" yaml:"privateAddress,omitempty"`
 	ProxyAddress                 string                             `json:"proxyAddress,omitempty" yaml:"proxyAddress,omitempty"`
 	PublicAddress                string                             `json:"publicAddress,omitempty" yaml:"publicAddress,omitempty"`
 	SkipSystemPackageInstall     bool                               `json:"skipSystemPackageInstall,omitempty" yaml:"skipSystemPackageInstall,omitempty"`
-	ExcludeBuiltinPreflights     bool                               `json:"excludeBuiltinPreflights,omitempty" yaml:"excludeBuiltinPreflights,omitempty"`
+	ExcludeBuiltinHostPreflights bool                               `json:"excludeBuiltinHostPreflights,omitempty" yaml:"excludeBuiltinHostPreflights,omitempty"`
 	IPv6                         bool                               `json:"ipv6,omitempty" yaml:"ipv6,omitempty"`
 }
 
