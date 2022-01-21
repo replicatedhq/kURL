@@ -1597,7 +1597,7 @@ export class InstallerStore {
     this.pool = pool;
   }
 
-  @instrumented
+  @instrumented()
   public async getInstaller(installerID: string): Promise<Installer|undefined> {
     if (installerID === "latest") {
       return await Installer.latest();
@@ -1623,7 +1623,7 @@ export class InstallerStore {
     return i;
   }
 
-  @instrumented
+  @instrumented()
   public async saveAnonymousInstaller(installer: Installer): Promise<void> {
     if (!installer.id) {
       throw new Error("Installer ID is required");
@@ -1641,7 +1641,7 @@ export class InstallerStore {
     await this.pool.query(q, v);
   }
 
-  @instrumented
+  @instrumented()
   public async saveTeamInstaller(installer: Installer): Promise<void> {
     if (!installer.id) {
       throw new Error("Installer ID is required");
