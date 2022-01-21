@@ -3,10 +3,10 @@ module github.com/replicatedhq/kurl
 go 1.17
 
 require (
-	github.com/DataDog/datadog-go v4.8.1+incompatible
+	github.com/DataDog/datadog-go v4.8.3+incompatible
 	github.com/Masterminds/sprig v2.22.0+incompatible
 	github.com/apparentlymart/go-cidr v1.1.0
-	github.com/aws/aws-sdk-go v1.40.18
+	github.com/aws/aws-sdk-go v1.42.22
 	github.com/briandowns/spinner v1.18.0
 	github.com/bugsnag/bugsnag-go/v2 v2.1.2
 	github.com/chzyer/readline v0.0.0-20180603132655-2972be24d48e
