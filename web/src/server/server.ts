@@ -3,7 +3,7 @@ import {Inject} from "@tsed/di";
 import Bugsnag from "@bugsnag/js";
 import * as cors from "cors";
 import * as path from "path";
-import rateLimit from "express-rate-limit";
+import * as RateLimit from "express-rate-limit";
 import * as express from "express";
 import { ErrorMiddleware } from "./errors";
 
@@ -56,9 +56,10 @@ export class Server {
 
     if (process.env["IGNORE_RATE_LIMITS"] !== "1") {
       // this limiter applies to all requests to the service.
-      const globalLimiter = rateLimit({
+      const globalLimiter = new RateLimit({
         windowMs: 1000, // 1 second
         max: 10000, // limit each IP to 10000 requests per windowMs
+        delayMs: 0, // disable delaying - full speed until the max limit is reached
       });
       this.app.use(globalLimiter);
     }
