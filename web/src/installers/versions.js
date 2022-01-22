@@ -24,8 +24,6 @@ module.exports.InstallerVersions = {
     "1.17.7",
     "1.17.3",
     "1.16.4",
-    // cron-kubernetes-update-122
-    "1.22.5",
     // cron-kubernetes-update-121
     "1.21.8",
     "1.21.5", 
