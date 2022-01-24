@@ -23,7 +23,7 @@
     "lodash": "^4.17.21",
     "monkit": "~0.4.0",
     "newrelic": "^8.6.0",
-    "node-fetch": "^2.6.1",
+    "node-fetch": "^2.6.7",
     "object-hash": "^2.2.0",
     "pino": "^6.13.0",
     "pino-pretty": "^7.3.0",
