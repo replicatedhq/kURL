@@ -212,7 +212,7 @@ func NewHostPreflightCmd(cli CLI) *cobra.Command {
 			<-progressContext.Done()
 
 			if err != nil {
-				return errors.Wrap(err, "run preflight")
+				return errors.Wrap(err, "run host preflight")
 			}
 
 			printPreflightResults(cmd.OutOrStdout(), results)
@@ -233,7 +233,7 @@ func NewHostPreflightCmd(cli CLI) *cobra.Command {
 
 			switch {
 			case preflightIsFail(results):
-				return errors.New("preflights have failures")
+				return errors.New("host preflights have failures")
 			case preflightIsWarn(results):
 				if v.GetBool("ignore-warnings") {
 					fmt.Fprintln(cmd.ErrOrStderr(), "Warnings ignored by CLI flag \"ignore-warnings\"")
@@ -245,15 +245,15 @@ func NewHostPreflightCmd(cli CLI) *cobra.Command {
 		},
 	}
 
-	cmd.Flags().Bool("ignore-warnings", false, "ignore preflight warnings")
+	cmd.Flags().Bool("ignore-warnings", false, "ignore host preflight warnings")
 	cmd.Flags().Bool("is-join", false, "set to true if this node is joining an existing cluster (non-primary implies join)")
 	cmd.Flags().Bool("is-primary", true, "set to true if this node is a primary")
 	cmd.Flags().Bool("is-upgrade", false, "set to true if this is an upgrade")
-	cmd.Flags().Bool("exclude-builtin", false, "set to true to exclude builtin preflights")
+	cmd.Flags().Bool("exclude-builtin", false, "set to true to exclude builtin host preflights")
 	cmd.Flags().Bool("use-exit-codes", true, "set to false to return an error instead of an exit code")
 	cmd.Flags().StringSlice("primary-host", nil, "host or IP of a control plane node running a Kubernetes API server and etcd peer")
 	cmd.Flags().StringSlice("secondary-host", nil, "host or IP of a secondary node running kubelet")
-	cmd.Flags().StringSlice("spec", nil, "preflight specs")
+	cmd.Flags().StringSlice("spec", nil, "host preflight specs")
 	// cmd.MarkFlagRequired("spec")
 	cmd.MarkFlagFilename("spec", "yaml", "yml")
 
