@@ -121,7 +121,7 @@ function get_patch_yaml() {
             host-preflight-ignore)
                 ;;
             # Legacy Command
-            host-preflight-ignore-warnings)
+            preflight-ignore-warnings)
                 ;;
             host-preflight-enforce-warnings)
                 ;;
