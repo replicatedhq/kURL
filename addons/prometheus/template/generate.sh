@@ -13,6 +13,8 @@ function get_latest_release_version() {
 }
 
 function generate() {
+    local capabilities="--kube-version v1.22 -a networking.k8s.io/v1 -a rbac.authorization.k8s.io/v1 -a apiregistration.k8s.io/v1"
+    
     # make the base set of files
     mkdir -p "../${VERSION}-${CHARTVERSION}"
     cp -r ./base/* "../${VERSION}-${CHARTVERSION}"
@@ -20,11 +22,11 @@ function generate() {
     mkdir -p "../${VERSION}-${CHARTVERSION}/operator"
 
     # get a copy of the stack with CRDs
-    helm template replaceme prometheus-community/kube-prometheus-stack --version "$CHARTVERSION" --values ./values.yaml -n monitoring --include-crds > "../$VERSION-$CHARTVERSION/crds/crds-all.yaml"
+    helm template replaceme prometheus-community/kube-prometheus-stack $capabilities --version "$CHARTVERSION" --values ./values.yaml -n monitoring --include-crds > "../$VERSION-$CHARTVERSION/crds/crds-all.yaml"
     # get a copy of the stack without CRDs
-    helm template replaceme prometheus-community/kube-prometheus-stack --version "$CHARTVERSION" --values ./values.yaml -n monitoring > "../$VERSION-$CHARTVERSION/operator/default.yaml"
+    helm template replaceme prometheus-community/kube-prometheus-stack $capabilities --version "$CHARTVERSION" --values ./values.yaml -n monitoring > "../$VERSION-$CHARTVERSION/operator/default.yaml"
     # get the prometheus adapter
-    helm template replaceme prometheus-community/prometheus-adapter -n monitoring --include-crds > "../$VERSION-$CHARTVERSION/operator/adapter.yaml"
+    helm template replaceme prometheus-community/prometheus-adapter $capabilities -n monitoring --include-crds > "../$VERSION-$CHARTVERSION/operator/adapter.yaml"
 
     # remove non-CRD yaml from crds
     diff -U $(wc -l < "../$VERSION-$CHARTVERSION/crds/crds-all.yaml") "../$VERSION-$CHARTVERSION/crds/crds-all.yaml" "../$VERSION-$CHARTVERSION/operator/default.yaml" | sed '/^--- \.\.\//d' | sed -n 's/^-//p' > "../$VERSION-$CHARTVERSION/crds/crds.yaml" || true
