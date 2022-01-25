@@ -43,6 +43,7 @@ require (
 	k8s.io/apimachinery v0.23.1
 	k8s.io/client-go v12.0.0+incompatible
 	k8s.io/code-generator v0.22.4
+	kubevirt.io/api v0.49.0
 	kubevirt.io/client-go v0.49.0
 	sigs.k8s.io/controller-runtime v0.11.0
 	sigs.k8s.io/controller-tools v0.8.0
@@ -223,7 +224,6 @@ require (
 	k8s.io/klog/v2 v2.30.0 // indirect
 	k8s.io/kube-openapi v0.0.0-20211115234752-e816edb12b65 // indirect
 	k8s.io/utils v0.0.0-20210930125809-cb0fa318a74b // indirect
-	kubevirt.io/api v0.0.0-20220111180619-bd15f69822b9 // indirect
 	kubevirt.io/containerized-data-importer-api v1.41.0 // indirect
 	kubevirt.io/controller-lifecycle-operator-sdk v0.2.1 // indirect
 	periph.io/x/periph v3.6.8+incompatible // indirect
