@@ -11,7 +11,7 @@ import (
 	"github.com/pkg/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
-	kubevirtv1 "kubevirt.io/client-go/apis/core/v1"
+	kubevirtv1 "kubevirt.io/api/core/v1"
 )
 
 // CleanUpVMIs deletes "Succeeded" VMIs
