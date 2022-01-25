@@ -807,8 +807,8 @@
       version: 1.5.12
     registry:
       version: 2.7.1
-    prometheus:
-      version: 0.49.0-17.1.3
+    prometheus: 
+      version: "0.53.x"
     kotsadm:
       version: latest
     velero:
@@ -831,8 +831,8 @@
       version: 1.2.2
     registry:
       version: 2.7.1
-    prometheus:
-      version: 0.49.0-17.1.3
+    prometheus: 
+      version: "0.53.x"
     kotsadm:
       version: latest
       disableS3: true
@@ -856,8 +856,8 @@
       version: 1.5.12
     registry:
       version: 2.7.1
-    prometheus:
-      version: 0.49.0-17.1.3
+    prometheus: 
+      version: "0.53.x"
     kotsadm:
       version: latest
     velero:
