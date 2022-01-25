@@ -1,3 +1,4 @@
+# shellcheck disable=SC2148
 
 function antrea_pre_init() {
     local src="$DIR/addons/antrea/$ANTREA_VERSION"
@@ -9,6 +10,12 @@ function antrea_pre_init() {
 
     if commandExists kubectl; then
         EXISTING_POD_CIDR=$(kubectl -n kube-system get cm kubeadm-config -oyaml 2>/dev/null | grep podSubnet | awk '{ print $NF }')
+    fi
+
+    # Encryption uses wireGuard, which does not require the 3rd
+    # ipsec container in the antrea-agent daemonset.
+    if [ ! "$ANTREA_DISABLE_ENCRYPTION" = "1" ] && ! modprobe wireguard; then
+        bail "Antrea with inter-node encryption enabled requires the wireguard kernel module be available. https://www.wireguard.com/install/"
     fi
 }
 
@@ -40,12 +47,8 @@ function antrea() {
             sed -i "/#serviceCIDRv6:.*/a\    serviceCIDRv6: $SERVICE_CIDR" "$dst/plaintext.yaml"
         fi
     else
-        # Encryption with IPv6 uses wireGuard, which does not require the 3rd
-        # ipsec container in the antrea-agent daemonset.
+
         if [ "$IPV6_ONLY" = "1" ]; then
-            if ! modprobe wireguard; then
-                bail "Antrea with inter-node encryption enabled requires the wireguard kernel module be available. https://www.wireguard.com/install/"
-            fi
             cp "$src/plaintext.yaml" "$dst/"
             insert_resources "$dst/kustomization.yaml" plaintext.yaml
             sed -i "/#serviceCIDRv6:.*/a\    serviceCIDRv6: $SERVICE_CIDR" "$dst/plaintext.yaml"

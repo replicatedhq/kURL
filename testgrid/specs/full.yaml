@@ -801,6 +801,7 @@
       version: 1.4.x
     antrea:
       version: 1.4.x
+      isEncryptionDisabled: true
     contour:
       version: 1.19.1
     rook:
@@ -850,6 +851,7 @@
       version: 1.4.x
     antrea:
       version: 1.4.x
+      isEncryptionDisabled: true
     contour:
       version: 1.19.1
     rook:
