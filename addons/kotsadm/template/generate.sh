@@ -35,7 +35,7 @@ function generate() {
     # and update manifest with latest image tags
     export $(curl https://raw.githubusercontent.com/replicatedhq/kots/master/.image.env | sed 's/#.*//g' | xargs)
     sed -i -e "s/__MINIO_TAG__/$MINIO_TAG/g" "${dir}/Manifest"
-    sed -i -e "s/__POSTGRES_TAG__/$POSTGRES_ALPINE_TAG/g" "${dir}/Manifest"
+    find "$dir" -type f -exec sed -i -e "s/__POSTGRES_TAG__/$POSTGRES_ALPINE_TAG/g" {} \;
     sed -i -e "s/__DEX_TAG__/$DEX_TAG/g" "${dir}/Manifest"
 
 }

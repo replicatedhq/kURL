@@ -57,7 +57,7 @@ spec:
             mode: 420
             path: passwd
       containers:
-      - image: postgres:10.18-alpine
+      - image: postgres:10.19-alpine
         name: kotsadm-postgres
         ports:
         - name: postgres
