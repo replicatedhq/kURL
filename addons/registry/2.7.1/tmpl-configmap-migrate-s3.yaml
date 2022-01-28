@@ -11,6 +11,7 @@ data:
     set -euo pipefail
     export S3_BUCKET_NAME=docker-registry
     export S3_HOST=\$OBJECT_STORE_CLUSTER_IP
+    echo 'migration starting ...'
 
     export ARCHIVES_DIR=/var/lib/registry
     export MIGRATION_FILE=\$ARCHIVES_DIR/s3-migration.txt
