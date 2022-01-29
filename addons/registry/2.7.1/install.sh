@@ -149,6 +149,8 @@ function registry_session_secret() {
 # image pulls
 function registry_cred_secrets() {
     if kubernetes_resource_exists kurl secret registry-htpasswd && kubernetes_resource_exists default secret registry-creds ; then
+        kubectl -n kurl patch secret registry-htpasswd -p '{"metadata":{"labels":{"kots.io/kotsadm":"true", "kots.io/backup":"velero"}}}'
+        kubectl -n default patch secret registry-creds -p '{"metadata":{"labels":{"kots.io/kotsadm":"true", "kots.io/backup":"velero"}}}'
         return 0
     fi
     kubectl -n kurl delete secret registry-htpasswd &>/dev/null || true
