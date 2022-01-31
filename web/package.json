@@ -6,7 +6,7 @@
   "license": "Apache License 2.0",
   "dependencies": {
     "@bugsnag/js": "^7.14.1",
-    "@bugsnag/plugin-express": "^7.14.0",
+    "@bugsnag/plugin-express": "^7.16.0",
     "@tsed/common": "^6.98.1",
     "@tsed/core": "^6.92.0",
     "@tsed/di": "^6.92.0",
@@ -50,7 +50,7 @@
     "@typescript-eslint/parser": "^4.29.1",
     "chai": "^4.3.4",
     "eslint": "^8.4.1",
-    "mocha": "^9.1.3",
+    "mocha": "^9.2.0",
     "snyk": "^1.835.0",
     "ts-node": "^10.4.0",
     "typescript": "^4.5.2"
