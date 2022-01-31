@@ -50,7 +50,7 @@ function containerd_install() {
         cp "$DIR/addons/containerd/$CONTAINERD_VERSION/kubeadm-init-config-v1beta2.yaml" "$DIR/kustomize/kubeadm/init-patches/containerd-kubeadm-init-config-v1beta2.yml"
     fi
 
-    if systemctl list-unit-files | grep -q kubelet.service; then
+    if systemctl list-unit-files | grep -v disabled | grep -q kubelet.service; then
         systemctl start kubelet
         # If using the internal load balancer the Kubernetes API server will be unavailable until
         # kubelet starts the HAProxy static pod. This check ensures the Kubernetes API server
