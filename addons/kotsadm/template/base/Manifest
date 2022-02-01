@@ -1,5 +1,4 @@
 image kotsadm-migrations docker.io/kotsadm/kotsadm-migrations:__KOTSADM_TAG__
-image kotsadm-minio minio/minio:__MINIO_TAG__
 image kotsadm docker.io/kotsadm/kotsadm:__KOTSADM_TAG__
 image kurl-proxy docker.io/kotsadm/kurl-proxy:__KOTSADM_TAG__
 image postgres postgres:__POSTGRES_TAG__
