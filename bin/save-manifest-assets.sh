@@ -78,7 +78,7 @@ function build_rhel_8() {
     # packages are included.
     docker run \
         --name "rhel-8-${PACKAGE_NAME}" \
-        centos:8.1.1911 \
+        rockylinux:8.5 \
         /bin/bash -c "\
             set -x
             echo -e \"fastestmirror=1\nmax_parallel_downloads=8\" >> /etc/dnf/dnf.conf && \
@@ -97,7 +97,7 @@ function createrepo_rhel_8() {
     docker run \
         --name "rhel-8-createrepo-${PACKAGE_NAME}" \
         -v "${outdir}/archives":/packages/archives \
-        centos:8.1.1911 \
+        rockylinux:8.5 \
         /bin/bash -c "\
             set -x
             echo -e \"fastestmirror=1\nmax_parallel_downloads=8\" >> /etc/dnf/dnf.conf && \

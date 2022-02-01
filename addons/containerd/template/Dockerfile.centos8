@@ -1,4 +1,4 @@
-FROM centos:8.1.1911
+FROM rockylinux:8.5
 
 RUN echo -e "fastestmirror=1\nmax_parallel_downloads=8" >> /etc/dnf/dnf.conf
 
