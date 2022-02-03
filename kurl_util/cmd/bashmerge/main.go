@@ -14,6 +14,7 @@ import (
 	"github.com/pkg/errors"
 	kurlscheme "github.com/replicatedhq/kurl/kurlkinds/client/kurlclientset/scheme"
 	kurlv1beta1 "github.com/replicatedhq/kurl/kurlkinds/pkg/apis/cluster/v1beta1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	serializer "k8s.io/apimachinery/pkg/runtime/serializer/json"
 	"k8s.io/client-go/kubernetes/scheme"
 )
@@ -36,7 +37,7 @@ func getInstallerConfigFromYaml(yamlPath string) (*kurlv1beta1.Installer, error)
 	}
 
 	if gvk.Group != "cluster.kurl.sh" || gvk.Version != "v1beta1" || gvk.Kind != "Installer" {
-		return nil, errors.Errorf("installer yaml contained unepxected gvk: %s/%s/%s", gvk.Group, gvk.Version, gvk.Kind)
+		return nil, errors.Errorf("installer yaml contained unexpected gvk: %s/%s/%s", gvk.Group, gvk.Version, gvk.Kind)
 	}
 
 	installer := obj.(*kurlv1beta1.Installer)
@@ -253,6 +254,13 @@ func mergeConfig(currentYAMLPath string, bashFlags string) error {
 
 	if err := parseBashFlags(currentConfig, bashFlags); err != nil {
 		return errors.Wrapf(err, "failed to parse flag string %q", bashFlags)
+	}
+
+	// Hack to get around the serialization of this field to "null" in YAML, which is not a valid Object type
+	// int the installer CRD when sending the installer spec back to k8s.
+	// See https://github.com/kubernetes/kubernetes/issues/67610
+	if currentConfig.Spec.Kurl != nil && currentConfig.Spec.Kurl.HostPreflights != nil {
+		currentConfig.Spec.Kurl.HostPreflights.ObjectMeta.CreationTimestamp = metav1.Now()
 	}
 
 	s := serializer.NewYAMLSerializer(serializer.DefaultMetaFactory, scheme.Scheme, scheme.Scheme)
