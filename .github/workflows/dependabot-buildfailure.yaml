@@ -59,8 +59,6 @@ jobs:
             -L "https://api.app.shortcut.com/api/v3/stories")"
           NEW_STORY_ID="$(echo "${NEW_STORY}"| jq -r '.id')"
 
-          gh pr comment --repo "${GITHUB_REPO}" "${PR_NUMBER}" --body "[sc-${NEW_STORY_ID}]"
-
           echo "::notice ::shortcut story created"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
