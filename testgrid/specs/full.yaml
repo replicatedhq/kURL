@@ -1,3 +1,19 @@
+- name: RKE2 Minimal Install
+  installerSpec:
+    rke2:
+      version: latest
+    registry:
+      version: latest
+    kotsadm:
+      uiBindPort: 30880
+      version: latest
+    openebs:
+      version: latest
+      isLocalPVEnabled: true
+      localPVStorageClassName: default
+      isCstorEnabled: false
+    minio:
+      version: latest
 - name: k3s
   installerSpec:
     k3s:
