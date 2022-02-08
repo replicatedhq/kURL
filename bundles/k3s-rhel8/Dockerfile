@@ -1,5 +1,5 @@
 # THIS ONLY DOWNLOADS THE SELINUX POLICY, not the k3s cli
-FROM centos:8
+FROM rockylinux:8
 
 RUN echo -e "fastestmirror=1\nmax_parallel_downloads=8" >> /etc/dnf/dnf.conf
 
@@ -7,7 +7,6 @@ RUN yum install -y gettext # envsubst
 RUN yum install -y yum-utils # yumdownloader
 RUN yum install -y createrepo
 
-RUN yum-config-manager --add-repo http://mirror.centos.org/centos/8-stream/AppStream/x86_64/os/
 RUN yum install -y modulemd-tools
 
 RUN mkdir -p /packages/archives
