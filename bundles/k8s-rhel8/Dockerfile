@@ -1,4 +1,4 @@
-FROM centos:8
+FROM rockylinux:8
 ARG KUBERNETES_VERSION
 COPY ./kubernetes.repo /etc/yum.repos.d/kubernetes.repo
 RUN mkdir -p /packages/archives
