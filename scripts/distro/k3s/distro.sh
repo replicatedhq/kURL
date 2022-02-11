@@ -1,6 +1,7 @@
 # TODO (dan): consolidate this with the rke2 distro
 function k3s_discover_private_ip() {
-    echo "$(cat /var/lib/rancher/k3s/agent/pod-manifests/etcd.yaml 2>/dev/null | grep initial-cluster | grep -o "${HOSTNAME}-[a-z0-9]*=https*://[^\",]*" | sed -n -e 's/.*https*:\/\/\(.*\):.*/\1/p')"
+    k3s_load_known_vars
+    echo $PRIVATE_ADDRESS
 }
 
 function k3s_get_kubeconfig() {
