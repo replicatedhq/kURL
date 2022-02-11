@@ -408,6 +408,14 @@ function rke2_main() {
     apply_installer_crd
     kurl_init_config
     ${K8S_DISTRO}_addon_for_each addon_install
+
+    ${K8S_DISTRO}_registry_containerd_configure "${DOCKER_REGISTRY_IP}"
+    if [ "$CONTAINERD_NEEDS_RESTART" = "1" ]; then
+        ${K8S_DISTRO}_containerd_restart
+        spinner_kubernetes_api_healthy
+        CONTAINERD_NEEDS_RESTART=0
+    fi
+
     rke2_post_init
     rke2_outro                           
     package_cleanup
