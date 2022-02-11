@@ -256,6 +256,7 @@ EOF
 }
 
 function k3s_post_init() {
+    k3s_save_known_vars
     kurl_config
 }
 
@@ -596,4 +597,15 @@ EOF
     fi
 
     source /etc/profile
+}
+
+KNOWN_VARS_FILE="$KURL_INSTALL_DIRECTORY/kurl.env"
+function k3s_load_known_vars() {
+    if [ -f "$KNOWN_VARS_FILE" ]; then
+        source $KNOWN_VARS_FILE
+    fi
+}
+
+function k3s_save_known_vars() {
+    echo "PRIVATE_ADDRESS=$PRIVATE_ADDRESS" > $KNOWN_VARS_FILE
 }
