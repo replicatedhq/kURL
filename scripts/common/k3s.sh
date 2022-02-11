@@ -255,6 +255,10 @@ EOF
     printf "${RED}\n\nCONTINUING AT YOUR OWN RISK....${NC}\n\n"
 }
 
+function k3s_post_init() {
+    kurl_config
+}
+
 function k3s_outro() {
     echo
     # if [ -z "$PUBLIC_ADDRESS" ]; then
@@ -391,7 +395,7 @@ function k3s_main() {
     apply_installer_crd
     kurl_init_config
     ${K8S_DISTRO}_addon_for_each addon_install
-    # post_init                          # TODO(dan): more kubeadm token setup
+    k3s_post_init
     k3s_outro                            
     package_cleanup
     # report_install_success # TODO(dan) remove reporting for now.
@@ -466,8 +470,6 @@ function k3s_host_packages_ok() {
         echo "k3s command missing - will install host components"
         return 1
     fi
-
-    kubelet --version | grep -q "$(echo $k3s_version | sed "s/-/+/")"
 }
 
 function k3s_get_host_packages_online() {

@@ -268,6 +268,10 @@ EOF
     printf "${RED}\n\nCONTINUING AT YOUR OWN RISK....${NC}\n\n"
 }
 
+function rke2_post_init() {
+    kurl_config
+}
+
 function rke2_outro() {
     echo
     # if [ -z "$PUBLIC_ADDRESS" ]; then
@@ -404,7 +408,7 @@ function rke2_main() {
     apply_installer_crd
     kurl_init_config
     ${K8S_DISTRO}_addon_for_each addon_install
-    # post_init                          # TODO(dan): more kubeadm token setup
+    rke2_post_init
     rke2_outro                           
     package_cleanup
     # report_install_success # TODO(dan) remove reporting for now.

@@ -268,7 +268,7 @@ EOF
     fi
 }
 
-function post_init() {
+function kubeadm_post_init() {
     BOOTSTRAP_TOKEN_EXPIRY=$(kubeadm token list | grep $BOOTSTRAP_TOKEN | awk '{print $3}')
     kurl_config
     uninstall_docker
@@ -492,7 +492,7 @@ function main() {
     ${K8S_DISTRO}_addon_for_each addon_install
     maybe_cleanup_rook
     helmfile_sync
-    post_init
+    kubeadm_post_init
     outro
     package_cleanup
 
