@@ -57,7 +57,6 @@ function init() {
 
     local addr="$PRIVATE_ADDRESS"
     local port="6443"
-    API_SERVICE_ADDRESS="$PRIVATE_ADDRESS:6443"
     if [ "$HA_CLUSTER" = "1" ]; then
         addr="$LOAD_BALANCER_ADDRESS"
         port="$LOAD_BALANCER_PORT"
