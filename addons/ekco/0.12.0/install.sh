@@ -33,8 +33,13 @@ function ekco_pre_init() {
     if [ "$EKCO_ENABLE_INTERNAL_LOAD_BALANCER" = "1" ]; then
         EKCO_ENABLE_INTERNAL_LOAD_BALANCER_BOOL=true
         HA_CLUSTER=1
-        LOAD_BALANCER_ADDRESS=localhost
         LOAD_BALANCER_PORT="6444"
+
+        if [ -z "$PRIVATE_ADDRESS" ]; then
+          LOAD_BALANCER_ADDRESS=localhost
+        else
+          LOAD_BALANCER_ADDRESS="$PRIVATE_ADDRESS"
+        fi
     fi
 }
 
