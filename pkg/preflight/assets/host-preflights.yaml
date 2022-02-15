@@ -62,7 +62,8 @@ spec:
     - tcpConnect:
         collectorName: "Kubernetes API TCP Connection Status"
         address: '{{kurl .Installer.Spec.Kubernetes.MasterAddress }}'
-        exclude: '{{kurl and .Installer.Spec.Kubernetes.Version .Installer.Spec.Kubernetes.MasterAddress .IsJoin | not }}'
+        # run the collector if 1. there is a master address set AND this is a node joining the cluster AND this is not an EKCO internalLB install
+        exclude: '{{kurl and .Installer.Spec.Kubernetes.Version .Installer.Spec.Kubernetes.MasterAddress .IsJoin (and .Installer.Spec.Ekco.Version .Installer.Spec.Ekco.EnableInternalLoadBalancer | not) | not }}'
     - filesystemPerformance:
         collectorName: Filesystem Latency Two Minute Benchmark
         exclude: '{{kurl and .IsPrimary (not .IsUpgrade) | not }}'
@@ -343,7 +344,8 @@ spec:
     - tcpConnect:
         checkName: "Kubernetes API TCP Connection Status"
         collectorName: "Kubernetes API TCP Connection Status"
-        exclude: '{{kurl and .Installer.Spec.Kubernetes.Version .Installer.Spec.Kubernetes.MasterAddress .IsJoin | not }}'
+        # run the analyzer if 1. there is a master address set AND this is a node joining the cluster AND this is not an EKCO internalLB install
+        exclude: '{{kurl and .Installer.Spec.Kubernetes.Version .Installer.Spec.Kubernetes.MasterAddress .IsJoin (and .Installer.Spec.Ekco.Version .Installer.Spec.Ekco.EnableInternalLoadBalancer | not) | not }}'
         outcomes:
           - fail:
               when: "connection-refused"
