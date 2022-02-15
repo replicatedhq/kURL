@@ -6,12 +6,6 @@ spec:
   template:
     spec:
       containers:
-      - name: server
-        env:
-        - name: KURL_BUCKET
-          value: "kurl-sh"
-        - name: ENVIRONMENT
-          value: development
       - name: kurl
         env:
         - name: KURL_URL
@@ -39,8 +33,14 @@ spec:
         - name: JWT_SIGNING_KEY
           value: jwt-signing-key
         - name: REPLICATED_APP_URL
-          value: http://replicated-app:3000
+          value: https://replicated-app-$OKTETO_NAMESPACE.replicated.okteto.dev
         - name: KURL_BIN_UTILS_FILE
           value: kurl-bin-utils-latest.tar.gz
         - name: DIST_URL
-          value: http://kurl-dist-server
+          value: https://kurl-dist-server-$OKTETO_NAMESPACE.replicated.okteto.dev
+      - name: server
+        env:
+        - name: KURL_BUCKET
+          value: "kurl-sh"
+        - name: ENVIRONMENT
+          value: development
