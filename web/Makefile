@@ -67,8 +67,3 @@ build_and_push:
 
 generate-versions:
 	`npm bin`/ts-node generate-versions.ts
-
-reset-local-db:
-	kubectl scale deploy mysql --replicas=0
-	sudo rm -r /opt/kurl/db
-	kubectl scale deploy mysql --replicas=1

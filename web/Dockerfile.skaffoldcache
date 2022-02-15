@@ -1,8 +1,0 @@
-FROM node:14
-EXPOSE 3000 8092
-
-ADD ./package.json /src/package.json
-ADD ./package-lock.json /src/package-lock.json
-ADD ./Makefile /src/Makefile
-WORKDIR /src
-RUN make deps

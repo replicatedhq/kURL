@@ -1,0 +1,13 @@
+name: kurl
+command: make deps build run
+image: okteto.dev/replicated-kurl:${OKTETO_NAMESPACE}
+workdir: /src
+sync:
+  - .:/src
+resources:
+  limits:
+    cpu: "2"
+    memory: 4Gi
+externalVolumes:
+  - dev-cache:npm-cache:/cache/.npm
+  - dev-cache:kurl-webpack-cache:/src/node_modules/.cache

@@ -4,12 +4,13 @@ metadata:
   name: kurl
   labels:
     app: kurl
+  annotations:
+    dev.okteto.com/auto-ingress: "true"
 spec:
-  type: NodePort
+  type: ClusterIP
   ports:
     - name: server
       port: 8092
       targetPort: server
-      nodePort: 30092
   selector:
     app: kurl

@@ -11,6 +11,5 @@ RUN mkdir -p /src
 COPY scripts /src/scripts
 COPY Makefile /src/Makefile
 
-COPY dist/ /usr/share/nginx/html/
 RUN make -C /src dist/install.tmpl dist/join.tmpl dist/upgrade.tmpl dist/tasks.tmpl
 RUN mv /src/dist/* /usr/share/nginx/html/
