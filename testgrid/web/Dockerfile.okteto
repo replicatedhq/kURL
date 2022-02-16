@@ -1,17 +1,16 @@
 FROM node:10.19.0
 EXPOSE 30880 9229
 
+WORKDIR /src
+
 ENV npm_config_cache /cache/.npm
 
-RUN mkdir /src
-WORKDIR /src
 ADD testgrid/web/Makefile /src
 ADD testgrid/web/package.json /src
 ADD testgrid/web/package-lock.json /src
 RUN --mount=type=cache,target=/cache/.npm npm_config_cache=/cache/.npm make deps
 
 ADD testgrid/web /src/
-WORKDIR /src
 
 EXPOSE 30880
 ENTRYPOINT ["make", "serve"]
