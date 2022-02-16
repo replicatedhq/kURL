@@ -1,11 +1,11 @@
 FROM golang:1.17
 
-ENV PROJECT_PATH=/go/src/github.com/replicatedhq/kurl
+ENV PROJECT_PATH=/go/src/github.com/replicatedhq/kurl/testgrid/tgapi
 WORKDIR $PROJECT_PATH
 
 ## Get deps
 ADD go.mod go.sum $PROJECT_PATH
-RUN --mount=target=/root/.cache,type=cache go mod download
+RUN --mount=target=/root/.cache,type=cache make modules
 
 ## Now add the project and compile
 COPY testgrid/tgapi $PROJECT_PATH
