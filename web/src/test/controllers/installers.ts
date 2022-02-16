@@ -9,7 +9,7 @@ metadata:
   name: everyOption
 spec:
   kubernetes:
-    version: latest
+    version: 1.23.3
     serviceCidrRange: /12
     serviceCIDR: 100.1.1.1/12
     HACluster: false
@@ -68,7 +68,7 @@ spec:
     version: latest
     publishPort: 20
   prometheus:
-    version: latest
+    version: 0.53.1-30.1.0
   fluentd:
     version: latest
     fullEFKStack: false
@@ -597,9 +597,7 @@ spec:
 kind: Installer
 metadata:
   name: ''
-spec:
-  kubernetes:
-    version: ''
+spec: {}
 `);
       });
     });
@@ -808,9 +806,9 @@ spec:
         const yaml = `
 spec:
   kubernetes:
-    version: latest
+    version: 1.23.3
   prometheus:
-    version: latest
+    version: 0.53.1-30.1.0
     serviceType: thisisatest`;
         const i = Installer.parse(yaml);
         const out = await i.validate();
@@ -824,7 +822,7 @@ spec:
         const yaml = `
 spec:
   kubernetes:
-    version: latest
+    version: 1.21.9
   prometheus:
     version: 0.47.0-15.3.1
     serviceType: ClusterIP`;
@@ -840,10 +838,106 @@ spec:
         const yaml = `
 spec:
   kubernetes:
-    version: latest
+    version: 1.21.9
   prometheus:
     version: 0.48.1-16.10.0
     serviceType: ClusterIP`;
+        const i = Installer.parse(yaml);
+        const out = await i.validate();
+
+        expect(out).to.deep.equal(undefined);
+      });
+    });
+
+    describe("Prometheus version that is incompatible with k8s version", () => {
+      it("=> ErrorResponse", async () => {
+        const yaml = `
+spec:
+  kubernetes:
+    version: 1.23.3
+  prometheus:
+    version: 0.47.0-15.3.1`;
+        const i = Installer.parse(yaml);
+        const out = await i.validate();
+
+        expect(out).to.deep.equal({ error: { message: "Prometheus versions less than or equal to 0.49.0-17.1.3 are not compatible with Kubernetes 1.22+" } });
+      });
+    });
+
+    describe("incompatible k3s addons", () => {
+      it("=> ErrorResponse", async () => {
+        const yaml = `
+spec:
+  k3s:
+    version: v1.23.3+k3s1
+  kotsadm:
+    version: 1.63.0
+  containerd:
+    version: 1.4.6
+  contour: 
+    version: 1.20.0`;
+        const i = Installer.parse(yaml);
+        const out = await i.validate();
+
+        expect(out).to.deep.equal({ error: { message: "The following add-ons are not compatible with k3s: contour, containerd" } });
+      });
+    });
+
+    describe("valid k3s spec", () => {
+      it("=> ErrorResponse", async () => {
+        const yaml = `
+spec:
+  k3s:
+    version: v1.23.3+k3s1
+  registry: 
+    version: 2.7.1
+  kotsadm: 
+    version: 1.63.0
+    disableS3: true`;
+        const i = Installer.parse(yaml);
+        const out = await i.validate();
+
+        expect(out).to.deep.equal(undefined);
+      });
+    });
+
+    describe("incompatible rke2 addons", () => {
+      it("=> ErrorResponse", async () => {
+        const yaml = `
+spec:
+  rke2:
+    version: v1.22.6+rke2r1
+  kotsadm:
+    version: 1.63.0
+  containerd:
+    version: 1.4.6
+  contour: 
+    version: 1.20.0`;
+        const i = Installer.parse(yaml);
+        const out = await i.validate();
+
+        expect(out).to.deep.equal({ error: { message: "The following add-ons are not compatible with rke2: contour, containerd" } });
+      });
+    });
+
+    describe("valid rke2 spec", () => {
+      it("=> ErrorResponse", async () => {
+        const yaml = `
+spec:
+  rke2:
+    version: v1.22.6+rke2r1
+  registry: 
+    version: 2.7.1
+  kotsadm: 
+    version: 1.63.0
+    disableS3: true
+  velero:
+    version: 1.6.0
+  openebs:
+    version: 1.12.0
+    isLocalPVEnabled: true
+    localPVStorageClassName: default
+    isCstorEnabled: false`;
         const i = Installer.parse(yaml);
         const out = await i.validate();
 

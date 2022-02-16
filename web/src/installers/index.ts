@@ -682,7 +682,7 @@ export const goldpingerSchema = {
 };
 
 export interface InstallerSpec {
-  kubernetes: KubernetesConfig;
+  kubernetes?: KubernetesConfig;
   rke2?: RKE2Config;
   k3s?: K3SConfig;
   docker?: DockerConfig;
@@ -784,6 +784,69 @@ export class Installer {
     i.spec.prometheus = { version: this.toDotXVersion(installerVersions.prometheus[0]) };
 
     return i;
+  }
+
+  public static async k3s(kurlVersion?: string): Promise<Installer> {
+    const i = new Installer();
+
+    const distUrl = getDistUrl();
+
+    const installerVersions = await getInstallerVersions(distUrl, kurlVersion);
+
+    i.id = "k3s";
+    i.spec.k3s = { version: "v1.23.3+k3s1" };
+    i.spec.registry = { version: this.toDotXVersion(installerVersions.registry[0]) };
+    i.spec.kotsadm = {
+      version: this.toDotXVersion(installerVersions.kotsadm[0]),
+      disableS3: true,
+    };
+
+    return i;
+  }
+
+  public static async rke2(kurlVersion?: string): Promise<Installer> {
+    const i = new Installer();
+
+    const distUrl = getDistUrl();
+
+    const installerVersions = await getInstallerVersions(distUrl, kurlVersion);
+
+    i.id = "rke2";
+    i.spec.rke2 = { version: "v1.22.6+rke2r1" };
+    i.spec.registry = { version: this.toDotXVersion(installerVersions.registry[0]) };
+    i.spec.kotsadm = {
+      version: this.toDotXVersion(installerVersions.kotsadm[0]),
+      disableS3: true,
+    };
+    i.spec.openebs = {
+      version: this.toDotXVersion(installerVersions.openebs[0]),
+      isLocalPVEnabled: true,
+      localPVStorageClassName: "default",
+      isCstorEnabled: false,
+    };
+
+    return i;
+  }
+
+  public static getK3sCompatibleAddons(): string[] {
+    return [
+      "kotsadm",
+      "minio",
+      "openebs",
+      "registry",
+      "rook"
+    ];
+  }
+
+  public static getRke2CompatibleAddons(): string[] {
+    return [
+      "kotsadm",
+      "minio",
+      "openebs",
+      "velero",
+      "registry",
+      "rook"
+    ];
   }
 
   // Return an ordered list of all addon fields in the spec.
@@ -1113,13 +1176,10 @@ export class Installer {
       },
       spec: {} as InstallerSpec,
     };
-    if (this.spec.kubernetes) {
-      obj.spec.kubernetes = _.cloneDeep(this.spec.kubernetes);
-    }
 
     // add spec properties in order they should be rendered in yaml
     _.each(specSchema.properties, (val, key) => {
-      if (this.spec[key]) {
+      if (this.spec[key] && this.spec[key].version) {
         obj.spec[key] = _.cloneDeep(this.spec[key]);
       }
     });
@@ -1259,10 +1319,18 @@ export class Installer {
     if (this.spec.goldpinger && !(await Installer.hasVersion("goldpinger", this.spec.goldpinger.version, installerVersion)) && !this.hasS3Override("goldpinger")) {
       return {error: {message: `Goldpinger version "${_.escape(this.spec.goldpinger.version)}" is not supported${installerVersion ? " for installer version " + _.escape(installerVersion) : ""}`}};
     }
-    // Rook 1.0.4. is incompatible with Kubernetes 1.20+
+
+    // Rook 1.0.4 is incompatible with Kubernetes 1.20+
     if (this.spec.rook && this.spec.rook.version === "1.0.4") {
       if (this.spec.kubernetes && semver.gte(this.spec.kubernetes.version, "1.20.0")) {
         return {error: {message: "Rook 1.0.4 is not compatible with Kubernetes 1.20+"}};
+      }
+    }
+
+    // Prometheus versions <= 0.49.0-17.1.3 are incompatible with Kubernetes 1.22+
+    if (this.spec.prometheus && semver.lte(this.spec.prometheus.version, "0.49.0")) {
+      if (this.spec.kubernetes && semver.gte(this.spec.kubernetes.version, "1.22.0")) {
+        return {error: {message: "Prometheus versions less than or equal to 0.49.0-17.1.3 are not compatible with Kubernetes 1.22+"}};
       }
     }
 
@@ -1276,6 +1344,34 @@ export class Installer {
       if (installerVersions.prometheus.indexOf(this.spec.prometheus.version) != -1 &&
         installerVersions.prometheus.indexOf(this.spec.prometheus.version) > installerVersions.prometheus.indexOf("0.48.1-16.10.0")) {
         return {error: {message: `Prometheus service types are supported for version "0.48.1-16.10.0" and later, not "${this.spec.prometheus.version}"`}};
+      }
+    }
+
+    // K3s is only compatible with a subset of addons
+    if (this.spec.k3s && this.spec.k3s.version) {
+      const compatibleAddons = Installer.getK3sCompatibleAddons();
+      const incompatibleAddons: string[] = [];
+      _.each(specSchema.properties, (val, key) => {
+        if (key !== "k3s" && this.spec[key] && this.spec[key].version && !compatibleAddons.includes(key)) {
+          incompatibleAddons.push(key);
+        }
+      });
+      if (incompatibleAddons.length > 0) {
+        return {error: {message: `The following add-ons are not compatible with k3s: ${incompatibleAddons.join(", ")}`}};
+      }
+    }
+
+    // RKE2 is only compatible with a subset of addons
+    if (this.spec.rke2 && this.spec.rke2.version) {
+      const compatibleAddons = Installer.getRke2CompatibleAddons();
+      const incompatibleAddons: string[] = [];
+      _.each(specSchema.properties, (val, key) => {
+        if (key !== "rke2" && this.spec[key] && this.spec[key].version && !compatibleAddons.includes(key)) {
+          incompatibleAddons.push(key);
+        }
+      });
+      if (incompatibleAddons.length > 0) {
+        return {error: {message: `The following add-ons are not compatible with rke2: ${incompatibleAddons.join(", ")}`}};
       }
     }
   }
@@ -1444,6 +1540,12 @@ export class InstallerStore {
   public async getInstaller(installerID: string): Promise<Installer|undefined> {
     if (installerID === "latest") {
       return await Installer.latest();
+    }
+    if (installerID === "k3s") {
+      return await Installer.k3s();
+    }
+    if (installerID === "rke2") {
+      return await Installer.rke2();
     }
 
     const q = "SELECT yaml, team_id FROM kurl_installer WHERE kurl_installer_id = ?";
