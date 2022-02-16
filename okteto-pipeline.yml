@@ -11,7 +11,6 @@ deploy:
   - kubectl apply -k kustomize/overlays/okteto
 
   ## Test Grid
-  - envsubst < testgrid/migrations/kustomize/overlays/okteto/testgrid-postgres.tmpl.yaml > testgrid/migrations/kustomize/overlays/okteto/testgrid-postgres.yaml
   - envsubst < testgrid/tgapi/kustomize/overlays/okteto/deployment.tmpl.yaml > testgrid/tgapi/kustomize/overlays/okteto/deployment.yaml
 
   - okteto build -f ./testgrid/migrations/Dockerfile.okteto -t okteto.dev/replicated-tgdb:${OKTETO_GIT_COMMIT} .

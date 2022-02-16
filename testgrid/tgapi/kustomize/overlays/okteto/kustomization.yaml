@@ -3,6 +3,7 @@ bases:
 
 patchesStrategicMerge:
   - ./deployment.yaml
+  - ./service.yaml
 
 resources:
   - ./secret.yaml

@@ -6,7 +6,7 @@ metadata:
   labels:
     app: testgrid-postgres
 spec:
-  type: NodePort
+  type: ClusterIP
   ports:
   - name: postgres
     port: 5432
