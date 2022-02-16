@@ -51,6 +51,7 @@
     "webpack-merge": "^5.8.0"
   },
   "dependencies": {
+    "@pmmmwh/react-refresh-webpack-plugin": "^0.5.4",
     "@sentry/browser": "^6.16.1",
     "accounting": "^0.4.1",
     "lodash": "^4.17.21",
