@@ -5,7 +5,7 @@ WORKDIR $PROJECT_PATH
 
 ## Get deps
 ADD go.mod go.sum $PROJECT_PATH
-RUN --mount=target=/root/.cache,type=cache make modules
+RUN --mount=target=/root/.cache,type=cache go mod download
 
 ## Now add the project and compile
 COPY testgrid/tgapi $PROJECT_PATH

@@ -4,6 +4,8 @@ metadata:
   name: testgrid-web
   labels:
     app: testgrid-web
+  annotations:
+    dev.okteto.com/auto-ingress: "true"
 spec:
   type: ClusterIP
   ports:
