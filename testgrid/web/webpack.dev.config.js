@@ -46,9 +46,11 @@ module.exports = {
 
   devServer: {
     port: 30880,
+    compress: true,
     host: "0.0.0.0",
     hot: true,
     hotOnly: true,
+    allowedHosts: ["all"],
     historyApiFallback: {
       verbose: true,
     },
