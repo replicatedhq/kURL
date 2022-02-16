@@ -893,9 +893,7 @@ spec:
     version: 2.7.1
   kotsadm: 
     version: 1.63.0
-    disableS3: true
-  velero:
-    version: 1.6.0`;
+    disableS3: true`;
         const i = Installer.parse(yaml);
         const out = await i.validate();
 
@@ -933,6 +931,8 @@ spec:
   kotsadm: 
     version: 1.63.0
     disableS3: true
+  velero:
+    version: 1.6.0
   openebs:
     version: 1.12.0
     isLocalPVEnabled: true
