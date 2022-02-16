@@ -100,6 +100,12 @@ fs.readdir(specDir, (err, files) => {
   supportedVersions.kubernetes = preferredVersions.kubernetes;
   supportedVersions.kubernetes.unshift("latest");
 
+  supportedVersions.rke2 = preferredVersions.rke2;
+  supportedVersions.rke2.unshift("latest");
+
+  supportedVersions.k3s = preferredVersions.k3s;
+  supportedVersions.k3s.unshift("latest");
+
   supportedVersions.docker = preferredVersions.docker;
   supportedVersions.docker.unshift("latest");
 
