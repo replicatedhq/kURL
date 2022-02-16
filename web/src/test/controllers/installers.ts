@@ -822,7 +822,7 @@ spec:
         const yaml = `
 spec:
   kubernetes:
-    version: latest
+    version: 1.21.9
   prometheus:
     version: 0.47.0-15.3.1
     serviceType: ClusterIP`;
@@ -838,7 +838,7 @@ spec:
         const yaml = `
 spec:
   kubernetes:
-    version: latest
+    version: 1.21.9
   prometheus:
     version: 0.48.1-16.10.0
     serviceType: ClusterIP`;
