@@ -9,7 +9,7 @@ metadata:
   name: everyOption
 spec:
   kubernetes:
-    version: latest
+    version: 1.23.3
     serviceCidrRange: /12
     serviceCIDR: 100.1.1.1/12
     HACluster: false
@@ -68,7 +68,7 @@ spec:
     version: latest
     publishPort: 20
   prometheus:
-    version: latest
+    version: 0.53.1-30.1.0
   fluentd:
     version: latest
     fullEFKStack: false
@@ -806,9 +806,9 @@ spec:
         const yaml = `
 spec:
   kubernetes:
-    version: latest
+    version: 1.23.3
   prometheus:
-    version: latest
+    version: 0.53.1-30.1.0
     serviceType: thisisatest`;
         const i = Installer.parse(yaml);
         const out = await i.validate();
@@ -846,6 +846,21 @@ spec:
         const out = await i.validate();
 
         expect(out).to.deep.equal(undefined);
+      });
+    });
+
+    describe("Prometheus version that is incompatible with k8s version", () => {
+      it("=> ErrorResponse", async () => {
+        const yaml = `
+spec:
+  kubernetes:
+    version: 1.23.3
+  prometheus:
+    version: 0.47.0-15.3.1`;
+        const i = Installer.parse(yaml);
+        const out = await i.validate();
+
+        expect(out).to.deep.equal({ error: { message: "Prometheus versions less than or equal to 0.49.0-17.1.3 are not compatible with Kubernetes 1.22+" } });
       });
     });
 

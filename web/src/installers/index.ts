@@ -1322,14 +1322,14 @@ export class Installer {
 
     // Rook 1.0.4 is incompatible with Kubernetes 1.20+
     if (this.spec.rook && this.spec.rook.version === "1.0.4") {
-      if (this.spec.kubernetes && (this.spec.kubernetes.version === "latest" || semver.gte(this.spec.kubernetes.version, "1.20.0"))) {
+      if (this.spec.kubernetes && semver.gte(this.spec.kubernetes.version, "1.20.0")) {
         return {error: {message: "Rook 1.0.4 is not compatible with Kubernetes 1.20+"}};
       }
     }
 
     // Prometheus versions <= 0.49.0-17.1.3 are incompatible with Kubernetes 1.22+
-    if (this.spec.prometheus && semver.valid(this.spec.prometheus.version) && semver.lte(this.spec.prometheus.version, "0.49.0")) {
-      if (this.spec.kubernetes && (this.spec.kubernetes.version === "latest" || semver.gte(this.spec.kubernetes.version, "1.22.0"))) {
+    if (this.spec.prometheus && semver.lte(this.spec.prometheus.version, "0.49.0")) {
+      if (this.spec.kubernetes && semver.gte(this.spec.kubernetes.version, "1.22.0")) {
         return {error: {message: "Prometheus versions less than or equal to 0.49.0-17.1.3 are not compatible with Kubernetes 1.22+"}};
       }
     }
