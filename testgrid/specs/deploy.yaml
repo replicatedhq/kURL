@@ -26,13 +26,26 @@
       version: latest
     registry:
       version: latest
-    prometheus:
-      version: latest
     kotsadm:
       uiBindPort: 30880
       version: latest
     minio:
       version: latest
+- name: rke2
+  installerSpec:
+    rke2:
+      version: latest
+    registry:
+      version: latest
+    kotsadm:
+      uiBindPort: 30880
+      version: latest
+      disableS3: true
+    openebs:
+      version: latest
+      isLocalPVEnabled: true
+      localPVStorageClassName: default
+      isCstorEnabled: false
 - name: k8s119
   installerSpec:
     kubernetes:

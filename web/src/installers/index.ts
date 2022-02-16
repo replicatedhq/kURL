@@ -834,7 +834,8 @@ export class Installer {
       "minio",
       "openebs",
       "registry",
-      "rook"
+      "rook",
+      "sonobuoy"
     ];
   }
 
@@ -845,7 +846,8 @@ export class Installer {
       "openebs",
       "velero",
       "registry",
-      "rook"
+      "rook",
+      "sonobuoy"
     ];
   }
 

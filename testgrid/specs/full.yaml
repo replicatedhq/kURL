@@ -20,8 +20,6 @@
       version: latest
     registry:
       version: latest
-    prometheus:
-      version: latest
     kotsadm:
       uiBindPort: 30880
       version: latest
@@ -32,8 +30,6 @@
     k3s:
       version: latest
     registry:
-      version: latest
-    prometheus:
       version: latest
     kotsadm:
       uiBindPort: 30880
