@@ -14,4 +14,4 @@ RUN --mount=target=/root/.cache,type=cache make build
 EXPOSE 3000
 EXPOSE 6060
 
-ADD ./bin/tgapi /tgapi
+RUN mv ./bin/tgapi /tgapi
