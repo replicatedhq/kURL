@@ -5,12 +5,12 @@ ENV npm_config_cache /cache/.npm
 
 RUN mkdir /src
 WORKDIR /src
-ADD Makefile /src
-ADD package.json /src
-ADD package-lock.json /src
+ADD testgrid/web/Makefile /src
+ADD testgrid/web/package.json /src
+ADD testgrid/web/package-lock.json /src
 RUN --mount=type=cache,target=/cache/.npm npm_config_cache=/cache/.npm make deps
 
-ADD . /src/
+ADD testgrid/web /src/
 WORKDIR /src
 
 EXPOSE 30880
