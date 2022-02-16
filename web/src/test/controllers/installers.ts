@@ -597,9 +597,7 @@ spec:
 kind: Installer
 metadata:
   name: ''
-spec:
-  kubernetes:
-    version: ''
+spec: {}
 `);
       });
     });
@@ -844,6 +842,87 @@ spec:
   prometheus:
     version: 0.48.1-16.10.0
     serviceType: ClusterIP`;
+        const i = Installer.parse(yaml);
+        const out = await i.validate();
+
+        expect(out).to.deep.equal(undefined);
+      });
+    });
+
+    describe("incompatible k3s addons", () => {
+      it("=> ErrorResponse", async () => {
+        const yaml = `
+spec:
+  k3s:
+    version: v1.23.3+k3s1
+  kotsadm:
+    version: 1.63.0
+  containerd:
+    version: 1.4.6
+  contour: 
+    version: 1.20.0`;
+        const i = Installer.parse(yaml);
+        const out = await i.validate();
+
+        expect(out).to.deep.equal({ error: { message: "The following add-ons are not compatible with k3s: contour, containerd" } });
+      });
+    });
+
+    describe("valid k3s spec", () => {
+      it("=> ErrorResponse", async () => {
+        const yaml = `
+spec:
+  k3s:
+    version: v1.23.3+k3s1
+  registry: 
+    version: 2.7.1
+  kotsadm: 
+    version: 1.63.0
+    disableS3: true
+  velero:
+    version: 1.6.0`;
+        const i = Installer.parse(yaml);
+        const out = await i.validate();
+
+        expect(out).to.deep.equal(undefined);
+      });
+    });
+
+    describe("incompatible rke2 addons", () => {
+      it("=> ErrorResponse", async () => {
+        const yaml = `
+spec:
+  rke2:
+    version: v1.22.6+rke2r1
+  kotsadm:
+    version: 1.63.0
+  containerd:
+    version: 1.4.6
+  contour: 
+    version: 1.20.0`;
+        const i = Installer.parse(yaml);
+        const out = await i.validate();
+
+        expect(out).to.deep.equal({ error: { message: "The following add-ons are not compatible with rke2: contour, containerd" } });
+      });
+    });
+
+    describe("valid rke2 spec", () => {
+      it("=> ErrorResponse", async () => {
+        const yaml = `
+spec:
+  rke2:
+    version: v1.22.6+rke2r1
+  registry: 
+    version: 2.7.1
+  kotsadm: 
+    version: 1.63.0
+    disableS3: true
+  openebs:
+    version: 1.12.0
+    isLocalPVEnabled: true
+    localPVStorageClassName: default
+    isCstorEnabled: false`;
         const i = Installer.parse(yaml);
         const out = await i.validate();
 
