@@ -46,11 +46,13 @@ module.exports = {
 
   devServer: {
     port: 30880,
-    compress: true,
     host: "0.0.0.0",
     hot: true,
     hotOnly: true,
     allowedHosts: ["all"],
+    client: {
+      webSocketURL: "auto://0.0.0.0/ws",
+    },
     historyApiFallback: {
       verbose: true,
     },
