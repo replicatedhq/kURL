@@ -4,7 +4,8 @@ bases:
   - ../../../dist_server/kustomize/base
 
 resources:
-  - ./nodeport.yaml
+  - ./clusterip.yaml
+  - ./okteto-cache-volume.yaml
 
 patches:
   - ./deployment.yaml
