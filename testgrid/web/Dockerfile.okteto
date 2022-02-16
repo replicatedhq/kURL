@@ -1,16 +1,17 @@
 FROM node:10.19.0
 EXPOSE 30880 9229
 
+ENV npm_config_cache /cache/.npm
+
 RUN mkdir /src
 WORKDIR /src
 ADD Makefile /src
 ADD package.json /src
 ADD package-lock.json /src
-RUN make deps
+RUN --mount=type=cache,target=/cache/.npm npm_config_cache=/cache/.npm make deps
 
 ADD . /src/
 WORKDIR /src
 
 EXPOSE 30880
 ENTRYPOINT ["make", "serve"]
-

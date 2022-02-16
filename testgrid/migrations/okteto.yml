@@ -1,0 +1,9 @@
+name: tgdb
+command: bash
+workdir: /go/src/github.com/replicatedhq/kurl/testgrid/migrations
+sync:
+  - .:/go/src/github.com/replicatedhq/kurl/testgrid/migrations
+resources:
+  limits:
+    cpu: "0.5"
+    memory: 1Gi

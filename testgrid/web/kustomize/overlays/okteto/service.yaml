@@ -5,11 +5,10 @@ metadata:
   labels:
     app: testgrid-web
 spec:
-  type: NodePort
+  type: ClusterIP
   ports:
   - name: http
     port: 30880
     targetPort: http
-    nodePort: 30880
   selector:
     app: testgrid-web

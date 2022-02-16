@@ -1,0 +1,12 @@
+name: tgweb
+command: bash
+image: okteto.dev/replicated-tgweb:${OKTETO_NAMESPACE}
+workdir: /src
+sync:
+  - .:/src
+resources:
+  limits:
+    cpu: "2"
+    memory: 4Gi
+externalVolumes:
+  - dev-cache:npm-cache:/cache/.npm

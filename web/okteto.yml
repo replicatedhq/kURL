@@ -7,3 +7,4 @@ sync:
 externalVolumes:
   - dev-cache:npm-cache:/cache/.npm
   - dev-cache:kurl-webpack-cache:/src/node_modules/.cache
+  - dev-cache:go-cache:/root/.cache/go-build
