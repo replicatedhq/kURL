@@ -833,7 +833,6 @@ export class Installer {
       "kotsadm",
       "minio",
       "openebs",
-      "velero",
       "registry",
       "rook"
     ];
@@ -844,6 +843,7 @@ export class Installer {
       "kotsadm",
       "minio",
       "openebs",
+      "velero",
       "registry",
       "rook"
     ];
@@ -1352,7 +1352,7 @@ export class Installer {
       const compatibleAddons = Installer.getK3sCompatibleAddons();
       const incompatibleAddons: string[] = [];
       _.each(specSchema.properties, (val, key) => {
-        if (key !== "k3s" && this.spec[key] && this.spec[key].version && compatibleAddons.indexOf(key) == -1) {
+        if (key !== "k3s" && this.spec[key] && this.spec[key].version && !compatibleAddons.includes(key)) {
           incompatibleAddons.push(key);
         }
       });
@@ -1366,7 +1366,7 @@ export class Installer {
       const compatibleAddons = Installer.getRke2CompatibleAddons();
       const incompatibleAddons: string[] = [];
       _.each(specSchema.properties, (val, key) => {
-        if (key !== "rke2" && this.spec[key] && this.spec[key].version && compatibleAddons.indexOf(key) == -1) {
+        if (key !== "rke2" && this.spec[key] && this.spec[key].version && !compatibleAddons.includes(key)) {
           incompatibleAddons.push(key);
         }
       });
