@@ -164,7 +164,11 @@ EOF
     yum makecache --disablerepo=* --enablerepo=kurl.local
 
     # shellcheck disable=SC2086
-    yum --disablerepo=* --enablerepo=kurl.local install -y "${packages[@]}"
+    if [[ "${packages[*]}" == *"containerd.io"* && -n $(uname -r | grep "el8") ]]; then
+        yum --disablerepo=* --enablerepo=kurl.local install --allowerasing -y "${packages[@]}"
+    else
+        yum --disablerepo=* --enablerepo=kurl.local install -y "${packages[@]}"
+    fi
     yum clean metadata --disablerepo=* --enablerepo=kurl.local
     rm /etc/yum.repos.d/kurl.local.repo
 
