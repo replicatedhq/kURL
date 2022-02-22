@@ -27,6 +27,22 @@ function rook_ceph_osd_pods_gone() {
     return 0
 }
 
+function prometheus_pods_gone() {
+    if kubectl -n monitoring get pods -l app=prometheus 2>&1 | grep 'prometheus' &>/dev/null ; then
+        if kubectl -n monitoring get pods -l app.kubernetes.io/name=prometheus 2>&1 | grep 'prometheus' &>/dev/null ; then # the labels changed with prometheus 0.53+
+            return 1
+        fi
+    fi
+    return 0
+}
+
+function ekco_pods_gone() {
+    if kubectl -n kurl get pods -l app=ekc-operator 2>&1 | grep 'ekc' &>/dev/null ; then
+        return 1
+    fi
+    return 0
+}
+
 function remove_rook_ceph() {
     # make sure there aren't any PVs using rook before deleting it
     all_pv_drivers="$(kubectl get pv -o=jsonpath='{.items[*].spec.csi.driver}')"
@@ -43,6 +59,8 @@ function remove_rook_ceph() {
     # scale ekco to 0 replicas if it exists
     if kubernetes_resource_exists kurl deployment ekc-operator; then
         kubectl -n kurl scale deploy ekc-operator --replicas=0
+        echo "Waiting for ekco pods to be removed"
+        spinner_until 120 ekco_pods_gone
     fi
 
     # remove all rook-ceph CR objects
@@ -86,7 +104,18 @@ function rook_ceph_to_longhorn() {
 
     # set prometheus scale if it exists
     if kubectl get namespace monitoring &>/dev/null; then
-        kubectl patch prometheus -n monitoring  k8s --type='json' --patch '[{"op": "replace", "path": "/spec/replicas", value: 0}]'
+        if kubectl get prometheus -n monitoring k8s &>/dev/null; then
+            # before scaling down prometheus, scale down ekco as it will otherwise restore the prometheus scale
+            if kubernetes_resource_exists kurl deployment ekc-operator; then
+                kubectl -n kurl scale deploy ekc-operator --replicas=0
+                echo "Waiting for ekco pods to be removed"
+                spinner_until 120 ekco_pods_gone
+            fi
+
+            kubectl patch prometheus -n monitoring  k8s --type='json' --patch '[{"op": "replace", "path": "/spec/replicas", value: 0}]'
+            echo "Waiting for prometheus pods to be removed"
+            spinner_until 120 prometheus_pods_gone
+        fi
     fi
 
     # get the list of StorageClasses that use rook-ceph
@@ -105,9 +134,15 @@ function rook_ceph_to_longhorn() {
         $BIN_PVMIGRATE --source-sc "$rook_sc" --dest-sc longhorn --rsync-image "$KURL_UTIL_IMAGE" --set-defaults
     done
 
-    # reset prometheus scale
+    # reset prometheus (and ekco) scale
     if kubectl get namespace monitoring &>/dev/null; then
-        kubectl patch prometheus -n monitoring  k8s --type='json' --patch '[{"op": "replace", "path": "/spec/replicas", value: 2}]'
+        if kubectl get prometheus -n monitoring k8s &>/dev/null; then
+            if kubernetes_resource_exists kurl deployment ekc-operator; then
+                kubectl -n kurl scale deploy ekc-operator --replicas=1
+            fi
+
+            kubectl patch prometheus -n monitoring  k8s --type='json' --patch '[{"op": "replace", "path": "/spec/replicas", value: 2}]'
+        fi
     fi
 
     # print success message
