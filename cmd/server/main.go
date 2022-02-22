@@ -28,12 +28,16 @@ import (
 	"github.com/containers/image/v5/types"
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
+	"github.com/replicatedcom/saaskit/tracing/datadog"
 	"golang.org/x/net/publicsuffix"
 )
 
 const upstream = "http://localhost:3000"
 
 func main() {
+	datadog.StartTracer("kurl", os.Getenv("VERSION"))
+	defer datadog.StopTracer()
+
 	log.Printf("Commit %s", os.Getenv("VERSION"))
 
 	if bugsnagKey := os.Getenv("BUGSNAG_KEY"); bugsnagKey != "" {
