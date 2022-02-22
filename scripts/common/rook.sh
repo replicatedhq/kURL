@@ -80,6 +80,13 @@ function remove_rook_ceph() {
     printf "Data within /var/lib/rook, /opt/replicated/rook and any bound disks has not been freed.\n"
 }
 
+function prometheus_pods_gone() {
+    if kubectl -n monitoring get pods -l app=prometheus 2>&1 | grep 'prometheus' &>/dev/null ; then
+        return 1
+    fi
+    return 0
+}
+
 # scale down prometheus, move all 'rook-ceph' PVCs to 'longhorn', scale up prometheus
 function rook_ceph_to_longhorn() {
     report_addon_start "rook-ceph-to-longhorn" "v1"
@@ -87,6 +94,8 @@ function rook_ceph_to_longhorn() {
     # set prometheus scale if it exists
     if kubectl get namespace monitoring &>/dev/null; then
         kubectl patch prometheus -n monitoring  k8s --type='json' --patch '[{"op": "replace", "path": "/spec/replicas", value: 0}]'
+        echo "Waiting for prometheus pods to be removed"
+        spinner_until 120 prometheus_pods_gone
     fi
 
     # get the list of StorageClasses that use rook-ceph
