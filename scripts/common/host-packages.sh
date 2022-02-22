@@ -164,6 +164,14 @@ EOF
     yum makecache --disablerepo=* --enablerepo=kurl.local
 
     # shellcheck disable=SC2086
+    if [[ "${packages[*]}" == *"openssl"* && -n $(uname -r | grep "el7") ]]; then
+        installed_version=$(yum list available | grep "openssl-libs" | awk '{print $2}' | cut -c 3-)
+        # if there is already an openssl-libs package installed, swap with the package version needed for RHEL7
+        if [[ -n "${installed_version}" ]]; then
+            yum swap openssl-libs-$installed_version openssl-libs-1.0.2k-22.el7_9 -y
+        fi
+    fi
+    # shellcheck disable=SC2086
     if [[ "${packages[*]}" == *"containerd.io"* && -n $(uname -r | grep "el8") ]]; then
         yum --disablerepo=* --enablerepo=kurl.local install --allowerasing -y "${packages[@]}"
     else
