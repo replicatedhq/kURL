@@ -11,7 +11,7 @@
     "@tsed/core": "^6.92.0",
     "@tsed/di": "^6.92.0",
     "@tsed/logger": "^6.0.0",
-    "@tsed/platform-express": "^6.100.0",
+    "@tsed/platform-express": "^6.103.2",
     "ajv": "^8.8.2",
     "aws-sdk": "^2.1061.0",
     "base64url": "^3.0.1",
