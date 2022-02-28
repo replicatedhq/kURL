@@ -281,10 +281,11 @@ type Helm struct {
 }
 
 type Longhorn struct {
-	S3Override     string `json:"s3Override,omitempty" yaml:"s3Override,omitempty"`
-	Version        string `json:"version" yaml:"version"`
-	UiBindPort     int    `json:"uiBindPort,omitempty" yaml:"uiBindPort,omitempty"`
-	UiReplicaCount int    `json:"uiReplicaCount,omitempty" yaml:"uiReplicaCount,omitempty"`
+	S3Override                        string `json:"s3Override,omitempty" yaml:"s3Override,omitempty"`
+	StorageOverProvisioningPercentage int    `json:"storageOverProvisioningPercentage,omitempty" yaml:"storageOverProvisioningPercentage,omitempty"`
+	Version                           string `json:"version" yaml:"version"`
+	UiBindPort                        int    `json:"uiBindPort,omitempty" yaml:"uiBindPort,omitempty"`
+	UiReplicaCount                    int    `json:"uiReplicaCount,omitempty" yaml:"uiReplicaCount,omitempty"`
 }
 
 type Sonobuoy struct {

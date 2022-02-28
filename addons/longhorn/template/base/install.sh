@@ -1,11 +1,22 @@
+# shellcheck disable=SC2148
+
 DID_MIGRATE_ROOK_PVCS=
 
 function longhorn_pre_init() {
+    local re='^[0-9]+$'
+
     if [ -z "$LONGHORN_UI_BIND_PORT" ]; then
         LONGHORN_UI_BIND_PORT="30880"
     fi
     if [ -z "$LONGHORN_UI_REPLICA_COUNT" ]; then
         LONGHORN_UI_REPLICA_COUNT="0"
+    fi
+    # Error check that someone didn't add the percent sign to this integer
+    if [ -n "$LONGHORN_STORAGE_OVER_PROVISIONING_PERCENTAGE" ] && ! [[ $LONGHORN_STORAGE_OVER_PROVISIONING_PERCENTAGE =~ $re ]]; then
+        bail "You entered ${LONGHORN_STORAGE_OVER_PROVISIONING_PERCENTAGE} for LONGHORN_STORAGE_OVER_PROVISIONING_PERCENTAGE, but it must be an integer. e.g. 200"
+    fi
+    if [ -z "$LONGHORN_STORAGE_OVER_PROVISIONING_PERCENTAGE" ]; then
+        LONGHORN_STORAGE_OVER_PROVISIONING_PERCENTAGE="200"
     fi
 }
 
@@ -35,6 +46,7 @@ function longhorn() {
 
     render_yaml_file "$src/tmpl-ui-service.yaml" > "$dst/ui-service.yaml"
     render_yaml_file "$src/tmpl-ui-deployment.yaml" > "$dst/ui-deployment.yaml"
+    render_yaml_file "$src/tmpl-defaults-cm.yaml" > "$dst/defaults-cm.yaml"
 
     kubectl apply -f "$dst/crds.yaml"
     echo "Waiting for Longhorn CRDs to be created"
@@ -139,7 +151,7 @@ function maybe_init_hosts() {
         local desired=$(kubectl get daemonsets -n longhorn-system longhorn-manager --no-headers | tr -s ' ' | cut -d ' ' -f2)
         local ready=$(kubectl get daemonsets -n longhorn-system longhorn-manager --no-headers | tr -s ' ' | cut -d ' ' -f4)
 
-        if [ "$desired" = "$ready" ] && [ -n "$desired" ] && [ "$desired" > "1" ]; then
+        if [ "$desired" = "$ready" ] && [ -n "$desired" ] && [ "$desired" -ge "1" ]; then
             return
         fi
 

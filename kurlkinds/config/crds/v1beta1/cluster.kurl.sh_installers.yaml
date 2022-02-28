@@ -291,7 +291,11 @@ spec:
                     type: array
                   airgap:
                     type: boolean
-                  excludeBuiltinPreflights:
+                  excludeBuiltinHostPreflights:
+                    type: boolean
+                  hostPreflightEnforceWarnings:
+                    type: boolean
+                  hostPreflightIgnore:
                     type: boolean
                   hostPreflights:
                     description: HostPreflight is the Schema for the hostpreflights
@@ -1704,10 +1708,6 @@ spec:
                     type: string
                   noProxy:
                     type: boolean
-                  preflightIgnore:
-                    type: boolean
-                  preflightIgnoreWarnings:
-                    type: boolean
                   privateAddress:
                     type: string
                   proxyAddress:
@@ -1721,6 +1721,8 @@ spec:
                 properties:
                   s3Override:
                     type: string
+                  storageOverProvisioningPercentage:
+                    type: integer
                   uiBindPort:
                     type: integer
                   uiReplicaCount:
