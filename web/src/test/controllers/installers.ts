@@ -872,6 +872,7 @@ spec:
     version: v1.23.3+k3s1
   kotsadm:
     version: 1.63.0
+    uiBindPort: 30880
   containerd:
     version: 1.4.6
   contour: 
@@ -880,6 +881,40 @@ spec:
         const out = await i.validate();
 
         expect(out).to.deep.equal({ error: { message: "The following add-ons are not compatible with k3s: contour, containerd" } });
+      });
+    });
+
+    describe("k3s invalid bind port for KOTS", () => {
+        it("=> ErrorResponse", async () => {
+          const yaml = `
+  spec:
+    k3s:
+      version: v1.23.3+k3s1
+    kotsadm:
+      version: 1.63.0`;
+          const i = Installer.parse(yaml);
+          const out = await i.validate();
+  
+          expect(out).to.deep.equal({ error: { message: "Nodeports for this distro must use a NodePort between 30000-32767" } });
+        });
+      });
+
+    describe("valid k3s spec", () => {
+      it("=> ErrorResponse", async () => {
+        const yaml = `
+spec:
+  k3s:
+    version: v1.23.3+k3s1
+  registry: 
+    version: 2.7.1
+  kotsadm: 
+    version: 1.63.0
+    uiBindPort: 30880
+    disableS3: true`;
+        const i = Installer.parse(yaml);
+        const out = await i.validate();
+
+        expect(out).to.deep.equal(undefined);
       });
     });
 
@@ -893,6 +928,7 @@ spec:
     version: 2.7.1
   kotsadm: 
     version: 1.63.0
+    uiBindPort: 30880
     disableS3: true`;
         const i = Installer.parse(yaml);
         const out = await i.validate();
@@ -909,6 +945,7 @@ spec:
     version: v1.22.6+rke2r1
   kotsadm:
     version: 1.63.0
+    uiBindPort: 30880
   containerd:
     version: 1.4.6
   contour: 
@@ -920,6 +957,22 @@ spec:
       });
     });
 
+    describe("rke2 invalid bind port for KOTS", () => {
+        it("=> ErrorResponse", async () => {
+          const yaml = `
+  spec:
+    rke2:
+      version: v1.22.6+rke2r1
+    kotsadm:
+      version: 1.63.0
+      uiBindPort: 8800`;
+          const i = Installer.parse(yaml);
+          const out = await i.validate();
+  
+          expect(out).to.deep.equal({ error: { message: "Nodeports for this distro must use a NodePort between 30000-32767" } });
+        });
+      });
+
     describe("valid rke2 spec", () => {
       it("=> ErrorResponse", async () => {
         const yaml = `
@@ -930,6 +983,7 @@ spec:
     version: 2.7.1
   kotsadm: 
     version: 1.63.0
+    uiBindPort: 30880
     disableS3: true
   velero:
     version: 1.6.0
