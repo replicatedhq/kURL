@@ -798,6 +798,7 @@ export class Installer {
     i.spec.registry = { version: this.toDotXVersion(installerVersions.registry[0]) };
     i.spec.kotsadm = {
       version: this.toDotXVersion(installerVersions.kotsadm[0]),
+      uiBindPort: 30880,
       disableS3: true,
     };
 
@@ -816,6 +817,7 @@ export class Installer {
     i.spec.registry = { version: this.toDotXVersion(installerVersions.registry[0]) };
     i.spec.kotsadm = {
       version: this.toDotXVersion(installerVersions.kotsadm[0]),
+      uiBindPort: 30880,
       disableS3: true,
     };
     i.spec.openebs = {
@@ -1375,6 +1377,15 @@ export class Installer {
       if (incompatibleAddons.length > 0) {
         return {error: {message: `The following add-ons are not compatible with rke2: ${incompatibleAddons.join(", ")}`}};
       }
+    }
+
+    // K3S and RKE2 can only use Nodeports 30000-32767
+    if ((this.spec.k3s && this.spec.k3s.version ) || (this.spec.rke2 && this.spec.rke2.version) ) {
+        if (this.spec.kotsadm && this.spec.kotsadm.version) {
+            if ( !this.spec.kotsadm.uiBindPort || 30000 > this.spec.kotsadm.uiBindPort || this.spec.kotsadm.uiBindPort > 32767) {
+                return {error: {message: `Nodeports for this distro must use a NodePort between 30000-32767`}};
+            }
+        }
     }
   }
 
