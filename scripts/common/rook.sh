@@ -29,10 +29,12 @@ function rook_ceph_osd_pods_gone() {
 
 function prometheus_pods_gone() {
     if kubectl -n monitoring get pods -l app=prometheus 2>&1 | grep 'prometheus' &>/dev/null ; then
-        if kubectl -n monitoring get pods -l app.kubernetes.io/name=prometheus 2>&1 | grep 'prometheus' &>/dev/null ; then # the labels changed with prometheus 0.53+
-            return 1
-        fi
+        return 1
     fi
+    if kubectl -n monitoring get pods -l app.kubernetes.io/name=prometheus 2>&1 | grep 'prometheus' &>/dev/null ; then # the labels changed with prometheus 0.53+
+        return 1
+    fi
+
     return 0
 }
 
