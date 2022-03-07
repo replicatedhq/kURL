@@ -1181,7 +1181,7 @@ export class Installer {
 
     // add spec properties in order they should be rendered in yaml
     _.each(specSchema.properties, (val, key) => {
-      if (this.spec[key] && this.spec[key].version) {
+      if (this.spec[key]) {
         obj.spec[key] = _.cloneDeep(this.spec[key]);
       }
     });
