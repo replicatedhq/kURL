@@ -267,14 +267,6 @@ spec:
     applicationSlug: sentry-enterprise
 `;
 
-const kotsNoSlug = `
-spec:
-  kubernetes:
-    version: latest
-  kotsadm:
-    version: 0.9.9
-`;
-
 const kotsNoVersion = `
 spec:
   kubernetes:
@@ -407,6 +399,14 @@ spec:
     version: 1.16.4
   sonobuoy:
     version: 0.50.0
+`;
+
+const kurlInstallerVersion = `
+spec:
+  kubernetes:
+    version: 1.19.7
+  kurl:
+    installerVersion: v2022.03.04-1
 `;
 
 describe("Installer", () => {
@@ -598,6 +598,22 @@ kind: Installer
 metadata:
   name: ''
 spec: {}
+`);
+      });
+
+      it("preserves kurl addon installerVersion", () => {
+        const parsed = Installer.parse(kurlInstallerVersion);
+        const yaml = parsed.toYAML();
+
+        expect(yaml).to.equal(`apiVersion: cluster.kurl.sh/v1beta1
+kind: Installer
+metadata:
+  name: ''
+spec:
+  kubernetes:
+    version: 1.19.7
+  kurl:
+    installerVersion: v2022.03.04-1
 `);
       });
     });
