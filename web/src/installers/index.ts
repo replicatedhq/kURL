@@ -1051,9 +1051,7 @@ export class Installer {
   constructor(
     public readonly teamID?: string,
   ) {
-    this.spec = {
-      kubernetes: { version: "" },
-    };
+    this.spec = {};
   }
 
   public clone(): Installer {
