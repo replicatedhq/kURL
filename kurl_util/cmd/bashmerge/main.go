@@ -158,6 +158,8 @@ func parseBashFlags(installer *kurlv1beta1.Installer, bashFlags string) error {
 			continue
 		case "kurl-registry-ip":
 			continue
+		case "labels":
+			continue
 		case "ignore-remote-load-images-prompt":
 			if installer.Spec.Kurl == nil {
 				installer.Spec.Kurl = &kurlv1beta1.Kurl{}

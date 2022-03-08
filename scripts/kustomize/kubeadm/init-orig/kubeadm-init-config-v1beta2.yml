@@ -17,6 +17,6 @@ nodeRegistration:
   taints: [] # prevent the default master taint
   name: $HOSTNAME
   kubeletExtraArgs:
-    node-labels: "kurl.sh/cluster=true"
+    node-labels: "kurl.sh/cluster=true,$NODE_LABELS"
     hostname-override: $HOSTNAME
     node-ip: $PRIVATE_ADDRESS
