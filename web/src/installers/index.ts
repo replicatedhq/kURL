@@ -405,11 +405,15 @@ export const ekcoConfigSchema = {
 export interface KurlConfig {
   additionalNoProxyAddresses: string[];
   airgap?: boolean;
+  excludeBuiltinHostPreflights?: boolean;
+  excludeBuiltinPreflights?: boolean;
   hostnameCheck?: string;
   ignoreRemoteLoadImagesPrompt?: boolean;
   ignoreRemoteUpgradePrompt?: boolean;
   ipv6?: boolean;
   hostPreflights?: object;
+  hostPreflightIgnore?: boolean;
+  hostPreflightEnforceWarnings?: boolean;
   licenseURL?: string;
   nameserver?: string;
   noProxy?: string;
@@ -419,7 +423,6 @@ export interface KurlConfig {
   proxyAddress?: string;
   publicAddress?: string;
   skipSystemPackageInstall?: boolean;
-  excludeBuiltinPreflights?: boolean;
   bypassFirewalldWarning?: boolean; // this is not in the installer crd
   hardFailOnFirewalld?: boolean; // this is not in the installer crd
   task?: string; // this is not in the installer crd
@@ -431,21 +434,24 @@ export const kurlConfigSchema = {
   properties: {
     additionalNoProxyAddresses: { type: "array", items: { type: "string" }, description: "Addresses that can be reached without a proxy" },
     airgap: { type: "boolean", flag: "airgap", description: "Indicates if this install is an airgap install" },
+    excludeBuiltinHostPreflights: { type: "boolean", flag: "exclude-builtin-host-preflights" , description: "Excludes the default built-in host preflights for kURL." },
     hostnameCheck: { type: "string", flag: "hostname-check" , description: "Used as a check during an upgrade to ensure the script will run only on the given hostname" },
     hostPreflights: { type: "object", description: "Used to add additional host preflight checks."},
+    hostPreflightIgnore: { type: "boolean", flag: "host-preflight-ignore" , description: "Ignore host preflight failures and warnings" },
+    hostPreflightEnforceWarnings: { type: "boolean", flag: "host-preflight-enforce-warnings" , description: "Fail on host preflight warnings as well as failures" },
     ignoreRemoteLoadImagesPrompt: { type: "boolean", flag: "ignore-remote-load-images-prompt" , description: "Bypass prompt to load images on remotes. This is useful for automating upgrades." },
     ignoreRemoteUpgradePrompt: { type: "boolean", flag: "ignore-remote-upgrade-prompt" , description: "Bypass prompt to upgrade remotes. This is useful for automating upgrades." },
     ipv6: { type: "boolean", description: "Install on IPv6 enabled hosts - see https://kurl.sh/docs/install-with-kurl/ipv6" },
     licenseURL: { type: "string", description: "A URL to a licensing agreement that will presented during installation and needs to be accepted or the install will exit." },
     nameserver: { type: "string" },
     noProxy: { type: "boolean", flag: "no-proxy" , description: "Don’t detect or configure a proxy" },
-    preflightIgnore: { type: "boolean", flag: "preflight-ignore" , description: "Ignore preflight failures and warnings" },
-    preflightIgnoreWarnings: { type: "boolean", flag: "preflight-ignore-warnings" , description: "Ignore preflight warnings" },
+    preflightIgnore: { type: "boolean", flag: "preflight-ignore" , description: "DEPRECATED: Ignore preflight failures and warnings. See `host-preflight-ignore` for replacement." },
+    preflightIgnoreWarnings: { type: "boolean", flag: "preflight-ignore-warnings" , description: "DEPRECATED: Ignore preflight warnings.  See `host-preflight-enforce-warnings` for replacement." },
     privateAddress: { type: "string", flag: "private-address" , description: "The local address of the host (different for each host in the cluster)" },
     proxyAddress: { type: "string", flag: "http-proxy" , description: "The address of the proxy to use for outbound connections" },
     publicAddress: { type: "string", flag: "public-address" , description: "The public address of the host (different for each host in the cluster), will be added as a CNAME to the k8s API server cert so you can use kubectl with this address" },
     skipSystemPackageInstall: { type: "boolean", flag: "skip-system-package-install" , description: "Skip the installation of system packages." },
-    excludeBuiltinPreflights: { type: "boolean", flag: "exclude-builtin-preflights" , description: "Excludes the default built-in host preflights for kURL." },
+    excludeBuiltinPreflights: { type: "boolean", flag: "exclude-builtin-preflights" , description: "DEPRECATED: Excludes the default built-in host preflights for kURL. See `exclude-builtin-host-preflights` for replacement." },
     bypassFirewalldWarning: { type: "boolean", flag: "bypass-firewalld-warning" , description: "Continue installing even if the firewalld service is active" },
     hardFailOnFirewalld: { type: "boolean", flag: "hard-fail-on-firewalld" , description: "Exit the install script if the firewalld service is active" },
     installerVersion: { type: "string", description: "The upstream version of kURL to use as part of the installation - see https://kurl.sh/docs/install-with-kurl/#versioned-releases" },
@@ -619,6 +625,7 @@ export const helmConfigSchema = {
 
 export interface LonghornConfig {
   s3Override?: string;
+  storageOverProvisioningPercentage?: number;
   uiBindPort?: number;
   uiReplicaCount?: number;
   version: string;
@@ -628,6 +635,7 @@ export const LonghornSchema = {
   type: "object",
   properties: {
     s3Override: { type: "string", flag: "s3-override", description: "Override the download location for addon package distribution (used for CI/CD testing alpha addons)" },
+    storageOverProvisioningPercentage: { type: "number", flag: "longhorn-storage-over-provisioning-percentage", description: "Determines the amount of PVC capacity that Longhorn will allow to be provisioned based on the real, available disk space. Default is 200 See Longhorn Documentation for a thorough explanation." },
     uiBindPort: { type: "number", flag: "longhorn-ui-bind-port", description: "This is the port where the Longhorn UI can be reached via the browser" },
     uiReplicaCount: { type: "number", flag: "longhorn-ui-replica-count", description: "The number of pods to deploy for the Longhorn UI (default is 0)" },
     version: { type: "string" },
