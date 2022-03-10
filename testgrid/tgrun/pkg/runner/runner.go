@@ -259,12 +259,14 @@ func createSecret(singleTest types.SingleRun, tempDir string) error {
 export TESTGRID_APIENDPOINT='%s'
 export TEST_ID='%s'
 export KURL_URL='%s'
+export KURL_FLAGS='%s'
 export KURL_UPGRADE_URL='%s'
 export SUPPORTBUNDLE_SPEC='%s'
 `,
 		singleTest.TestGridAPIEndpoint,
 		singleTest.ID,
 		singleTest.KurlURL,
+		singleTest.KurlFlags,
 		singleTest.UpgradeURL,
 		singleTest.SupportbundleYAML,
 	)
