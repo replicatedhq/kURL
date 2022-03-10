@@ -98,20 +98,20 @@ spec:
     additionalNoProxyAddresses:
     - 10.128.0.3
     airgap: false
+    excludeBuiltinHostPreflights: false
     hostnameCheck: 2.2.2.2
+    hostPreflightIgnore: true
+    hostPreflightEnforceWarnings: true
     ignoreRemoteLoadImagesPrompt: false
     ignoreRemoteUpgradePrompt: false
     ipv6: false
     licenseURL: https://www.sec.gov/Archives/edgar/data/1029786/00011931250557724/dex104.htm
     nameserver: 8.8.8.8
     noProxy: false
-    preflightIgnore: true
-    preflightIgnoreWarnings: true
     privateAddress: 10.38.1.1
     proxyAddress: 1.1.1.1
     publicAddress: 101.38.1.1
     skipSystemPackageInstall: false
-    excludeBuiltinPreflights: false
     bypassFirewalldWarning: false
     hardFailOnFirewalld: false
   collectd:
@@ -139,6 +139,7 @@ spec:
     additionalImages:
     - postgres
   longhorn:
+    storageOverProvisioningPercentage: 200
     uiBindPort: 30880
     uiReplicaCount: 0
     version: 1.1.0
@@ -1032,7 +1033,7 @@ spec:
     describe("every option", () => {
       it(`=> service-cidr-range=/12 ...`, () => {
         const i = Installer.parse(everyOption);
-        expect(i.flags()).to.equal(`service-cidr-range=/12 service-cidr=100.1.1.1/12 ha=0 kuberenetes-master-address=192.168.1.1 load-balancer-address=10.128.10.1 container-log-max-size=256Ki container-log-max-files=4 bootstrap-token=token bootstrap-token-ttl=10min kubeadm-token-ca-hash=hash control-plane=0 cert-key=key bypass-storagedriver-warnings=0 hard-fail-on-loopback=0 no-ce-on-ee=0 docker-registry-ip=192.168.0.1 additional-no-proxy=129.168.0.2 no-docker=0 pod-cidr=39.1.2.3 pod-cidr-range=/12 disable-weave-encryption=0 storage-class-name=default ceph-replica-count=1 rook-block-storage-enabled=1 rook-block-device-filter=sd[a-z] rook-bypass-upgrade-warning=1 rook-hostpath-requires-privileged=1 openebs-namespace=openebs openebs-localpv-enabled=1 openebs-localpv-storage-class-name=default openebs-cstor-enabled=1 openebs-cstor-storage-class-name=cstor minio-namespace=minio minio-hostpath=/sentry contour-tls-minimum-protocol-version=1.3 contour-http-port=3080 contour-https-port=3443 registry-publish-port=20 fluentd-full-efk-stack=0 kotsadm-application-slug=sentry kotsadm-ui-bind-port=8800 kotsadm-hostname=1.1.1.1 kotsadm-application-namespaces=kots velero-namespace=velero velero-disable-cli=0 velero-disable-restic=0 velero-local-bucket=local velero-restic-requires-privileged=0 ekco-node-unreachable-toleration-duration=10m ekco-min-ready-master-node-count=3 ekco-min-ready-worker-node-count=1 ekco-should-disable-reboot-service=0 ekco-rook-should-use-all-nodes=0 airgap=0 hostname-check=2.2.2.2 ignore-remote-load-images-prompt=0 ignore-remote-upgrade-prompt=0 no-proxy=0 preflight-ignore=1 preflight-ignore-warnings=1 private-address=10.38.1.1 http-proxy=1.1.1.1 public-address=101.38.1.1 skip-system-package-install=0 exclude-builtin-preflights=0 bypass-firewalld-warning=0 hard-fail-on-firewalld=0 helmfile-spec=${helmfileSpec} longhorn-ui-bind-port=30880 longhorn-ui-replica-count=0`);
+        expect(i.flags()).to.equal(`service-cidr-range=/12 service-cidr=100.1.1.1/12 ha=0 kuberenetes-master-address=192.168.1.1 load-balancer-address=10.128.10.1 container-log-max-size=256Ki container-log-max-files=4 bootstrap-token=token bootstrap-token-ttl=10min kubeadm-token-ca-hash=hash control-plane=0 cert-key=key bypass-storagedriver-warnings=0 hard-fail-on-loopback=0 no-ce-on-ee=0 docker-registry-ip=192.168.0.1 additional-no-proxy=129.168.0.2 no-docker=0 pod-cidr=39.1.2.3 pod-cidr-range=/12 disable-weave-encryption=0 storage-class-name=default ceph-replica-count=1 rook-block-storage-enabled=1 rook-block-device-filter=sd[a-z] rook-bypass-upgrade-warning=1 rook-hostpath-requires-privileged=1 openebs-namespace=openebs openebs-localpv-enabled=1 openebs-localpv-storage-class-name=default openebs-cstor-enabled=1 openebs-cstor-storage-class-name=cstor minio-namespace=minio minio-hostpath=/sentry contour-tls-minimum-protocol-version=1.3 contour-http-port=3080 contour-https-port=3443 registry-publish-port=20 fluentd-full-efk-stack=0 kotsadm-application-slug=sentry kotsadm-ui-bind-port=8800 kotsadm-hostname=1.1.1.1 kotsadm-application-namespaces=kots velero-namespace=velero velero-disable-cli=0 velero-disable-restic=0 velero-local-bucket=local velero-restic-requires-privileged=0 ekco-node-unreachable-toleration-duration=10m ekco-min-ready-master-node-count=3 ekco-min-ready-worker-node-count=1 ekco-should-disable-reboot-service=0 ekco-rook-should-use-all-nodes=0 airgap=0 exclude-builtin-host-preflights=0 hostname-check=2.2.2.2 host-preflight-ignore=1 host-preflight-enforce-warnings=1 ignore-remote-load-images-prompt=0 ignore-remote-upgrade-prompt=0 no-proxy=0 private-address=10.38.1.1 http-proxy=1.1.1.1 public-address=101.38.1.1 skip-system-package-install=0 bypass-firewalld-warning=0 hard-fail-on-firewalld=0 helmfile-spec=repositories:\n- name: nginx-stable\n  url: https://helm.nginx.com/stable\nreleases:\n- name: test-nginx-ingress\n  chart: nginx-stable/nginx-ingress\n  values:\n  - controller:\n      service:\n        type: NodePort\n        httpPort:\n          nodePort: 30080\n        httpsPort:\n          nodePort: 30443\n longhorn-storage-over-provisioning-percentage=200 longhorn-ui-bind-port=30880 longhorn-ui-replica-count=0`);
       });
     });
   });
