@@ -6,7 +6,9 @@ metadata:
 kubernetesVersion: v$KUBERNETES_VERSION
 certificatesDir: /etc/kubernetes/pki
 clusterName: kubernetes
-controllerManager: {}
+controllerManager: 
+  extraArgs:
+    profiling: '"false"' 
 useHyperKubeImage: false
 dns:
   type: CoreDNS
@@ -21,5 +23,9 @@ apiServer:
   extraArgs:
     service-node-port-range: "80-60000"
     tls-cipher-suites: TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+    profiling: '"false"'
   certSANs:
   - "$PRIVATE_ADDRESS"
+scheduler:
+  extraArgs:
+    profiling: '"false"'
