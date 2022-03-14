@@ -126,6 +126,7 @@ kind: KubeletConfiguration
 shutdownGracePeriod: 30s
 shutdownGracePeriodCriticalPods: 10s
 tlsCipherSuites: [TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384]
+protectKernelDefaults: true
 EOF
     else
         cat << EOF >> $KUBEADM_CONF_FILE
@@ -133,6 +134,7 @@ apiVersion: kubelet.config.k8s.io/v1beta1
 kind: KubeletConfiguration
 cgroupDriver: systemd
 tlsCipherSuites: [TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384]
+protectKernelDefaults: true
 EOF
     fi
 
