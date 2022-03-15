@@ -129,6 +129,7 @@ type Kurl struct {
 	SkipSystemPackageInstall     bool                               `json:"skipSystemPackageInstall,omitempty" yaml:"skipSystemPackageInstall,omitempty"`
 	ExcludeBuiltinHostPreflights bool                               `json:"excludeBuiltinHostPreflights,omitempty" yaml:"excludeBuiltinHostPreflights,omitempty"`
 	IPv6                         bool                               `json:"ipv6,omitempty" yaml:"ipv6,omitempty"`
+	CisCompliance                bool                               `json:"cisCompliance,omitempty" yaml:"cisCompliance,omitempty"`
 }
 
 type Minio struct {
