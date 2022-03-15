@@ -104,6 +104,19 @@ metadata:
 `,
 		},
 		{
+			name: "parent key doesn't exist",
+			yamlContent: `apiVersion: troubleshoot.sh/v1beta2
+kind: HostPreflight
+`,
+			yamlPath: "metadata_namespace",
+			value:    `longhorn`,
+			want: `apiVersion: troubleshoot.sh/v1beta2
+kind: HostPreflight
+metadata:
+  namespace: longhorn
+`,
+		},
+		{
 			name: "add to empty array",
 			yamlContent: `apiVersion: troubleshoot.sh/v1beta2
 kind: HostPreflight
@@ -228,6 +241,142 @@ spec:
 		t.Run(tt.name, func(t *testing.T) {
 			req := require.New(t)
 			got, err := addFieldToContent([]byte(tt.yamlContent), tt.yamlPath, tt.value)
+			req.Equal(tt.want, got)
+			req.NoError(err)
+		})
+	}
+}
+
+func Test_removeFieldFromContent(t *testing.T) {
+	tests := []struct {
+		name        string
+		yamlContent string
+		yamlPath    string
+		want        string
+	}{
+		{
+			name: "basic remove field length 1",
+			yamlContent: `apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: test
+  namespace: test
+`,
+			yamlPath: "metadata",
+			want: `apiVersion: v1
+kind: ServiceAccount
+`,
+		},
+		{
+			name: "basic remove field length 2",
+			yamlContent: `apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: test
+  namespace: test
+`,
+			yamlPath: "metadata_namespace",
+			want: `apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: test
+`,
+		},
+		{
+			name: "key doesn't exist length 1",
+			yamlContent: `apiVersion: v1
+kind: ServiceAccount
+`,
+			yamlPath: "metadata",
+			want: `apiVersion: v1
+kind: ServiceAccount
+`,
+		},
+		{
+			name: "key doesn't exist length 2",
+			yamlContent: `apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: test
+`,
+			yamlPath: "metadata_namespace",
+			want: `apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: test
+`,
+		},
+		{
+			name: "parent key doesn't exist length 2",
+			yamlContent: `apiVersion: v1
+kind: ServiceAccount
+`,
+			yamlPath: "metadata_namespace",
+			want: `apiVersion: v1
+kind: ServiceAccount
+`,
+		},
+		{
+			name: "last child key",
+			yamlContent: `apiVersion: v1
+kind: ServiceAccount
+metadata:
+  namespace: test
+`,
+			yamlPath: "metadata_namespace",
+			want: `apiVersion: v1
+kind: ServiceAccount
+metadata: {}
+`,
+		},
+		{
+			name: "multi yaml docs length 1",
+			yamlContent: `apiVersion: v1
+kind: ServiceAccount
+metadata:
+  namespace: test
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: test
+  name: test
+`,
+			yamlPath: "metadata",
+			want: `apiVersion: v1
+kind: ServiceAccount
+---
+apiVersion: v1
+kind: ConfigMap
+`,
+		},
+		{
+			name: "multi yaml docs length 2",
+			yamlContent: `apiVersion: v1
+kind: ServiceAccount
+metadata:
+  namespace: test
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: test
+`,
+			yamlPath: "metadata_namespace",
+			want: `apiVersion: v1
+kind: ServiceAccount
+metadata: {}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata: {}
+`,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			req := require.New(t)
+			got, err := removeFieldFromContent([]byte(tt.yamlContent), tt.yamlPath)
 			req.Equal(tt.want, got)
 			req.NoError(err)
 		})

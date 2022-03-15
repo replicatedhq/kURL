@@ -82,13 +82,14 @@ type Fluentd struct {
 }
 
 type Kotsadm struct {
-	ApplicationNamespace string `json:"applicationNamespace,omitempty" yaml:"applicationNamespace,omitempty"`
-	ApplicationSlug      string `json:"applicationSlug,omitempty" yaml:"applicationSlug,omitempty"`
-	Hostname             string `json:"hostname,omitempty" yaml:"hostname,omitempty"`
-	S3Override           string `json:"s3Override,omitempty" yaml:"s3Override,omitempty"`
-	DisableS3            bool   `json:"disableS3,omitempty" yaml:"disableS3,omitempty"`
-	UiBindPort           int    `json:"uiBindPort,omitempty" yaml:"uiBindPort,omitempty"`
-	Version              string `json:"version" yaml:"version"`
+	ApplicationNamespace    string `json:"applicationNamespace,omitempty" yaml:"applicationNamespace,omitempty"`
+	ApplicationSlug         string `json:"applicationSlug,omitempty" yaml:"applicationSlug,omitempty"`
+	ApplicationVersionLabel string `json:"applicationVersionLabel,omitempty" yaml:"applicationVersionLabel,omitempty"`
+	Hostname                string `json:"hostname,omitempty" yaml:"hostname,omitempty"`
+	S3Override              string `json:"s3Override,omitempty" yaml:"s3Override,omitempty"`
+	DisableS3               bool   `json:"disableS3,omitempty" yaml:"disableS3,omitempty"`
+	UiBindPort              int    `json:"uiBindPort,omitempty" yaml:"uiBindPort,omitempty"`
+	Version                 string `json:"version" yaml:"version"`
 }
 
 type Kubernetes struct {
