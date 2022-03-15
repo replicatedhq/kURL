@@ -291,6 +291,8 @@ spec:
                     type: array
                   airgap:
                     type: boolean
+                  cisCompliance:
+                    type: boolean
                   excludeBuiltinHostPreflights:
                     type: boolean
                   hostPreflightEnforceWarnings:
