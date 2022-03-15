@@ -24,7 +24,7 @@ apiServer:
     service-node-port-range: "80-60000"
     tls-cipher-suites: TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
     profiling: '"false"'
-    kubelet-certificate-authority: '"/etc/kubernetes/pki/ca.crt"' 
+    kubelet-certificate-authority: /etc/kubernetes/pki/ca.crt
   certSANs:
   - "$PRIVATE_ADDRESS"
 scheduler:
