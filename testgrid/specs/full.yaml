@@ -1089,3 +1089,34 @@
     ekco:
       version: latest
   flags: "disktype=ssd, gpu=enabled"
+- name: ekco-podimageoverrides
+  installerSpec:
+    kubernetes:
+      version: "1.23.x"
+    containerd:
+      version: "latest"
+    weave:
+      version: "latest"
+    longhorn:
+      version: "latest"
+    minio:
+      version: "2020-01-25T02-50-51Z"
+    kotsadm:
+      version: 1.59.0
+    ekco:
+      version: "latest"
+      podImageOverrides:
+        - kotsadm/kotsadm:v1.59.0=docker.io/kotsadm/kotsadm:v1.59.3
+        - kotsadm/kotsadm-migrations:v1.59.0=docker.io/kotsadm/kotsadm-migrations:v1.59.3
+        - kotsadm/kurl-proxy:v1.59.0=docker.io/kotsadm/kurl-proxy:v1.59.3
+  postInstallScript: |
+    sleep 120
+
+    pod_image="$(kubectl get po -l app=kotsadm -o jsonpath='{.items[].spec.containers[].image}')"
+
+    if ! echo "$pod_image" | grep 'v1\.59\.3' ; then
+      echo "Pod image override failed: $pod_image"
+      exit 1
+    fi
+
+    echo "Pod image override success: $pod_image"
