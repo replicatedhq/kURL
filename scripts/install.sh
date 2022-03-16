@@ -100,6 +100,38 @@ function init() {
             patch-load-balancer-address.yaml
     fi
 
+    # conditional kubelet configuration fields
+    if [ "$KUBERNETES_TARGET_VERSION_MINOR" -ge "21" ]; then
+        insert_patches_strategic_merge \
+            $kustomize_kubeadm_init/kustomization.yaml \
+            patch-kubelet-21.yaml
+    else
+        insert_patches_strategic_merge \
+            $kustomize_kubeadm_init/kustomization.yaml \
+            patch-kubelet-pre21.yaml
+    fi
+    if [ "$CIS_COMPLIANCE" == "1" ]; then
+        insert_patches_strategic_merge \
+            $kustomize_kubeadm_init/kustomization.yaml \
+            patch-kubelet-cis-compliance.yaml
+    fi
+    if [ -n "$CONTAINER_LOG_MAX_SIZE" ]; then
+        insert_patches_strategic_merge \
+            $kustomize_kubeadm_init/kustomization.yaml \
+            patch-kubelet-container-log-max-size.yaml
+
+        render_yaml_file $kustomize_kubeadm_init/patch-kubelet-container-log-max-size.tpl > $kustomize_kubeadm_init/patch-kubelet-container-log-max-size.yaml
+
+        echo  >> $KUBEADM_CONF_FILE
+    fi
+    if [ -n "$CONTAINER_LOG_MAX_FILES" ]; then
+        insert_patches_strategic_merge \
+            $kustomize_kubeadm_init/kustomization.yaml \
+            patch-kubelet-container-log-max-files.yaml
+
+        render_yaml_file $kustomize_kubeadm_init/patch-kubelet-container-log-max-files.tpl > $kustomize_kubeadm_init/patch-kubelet-container-log-max-files.yaml
+    fi
+
     # Add kubeadm init patches from addons.
     for patch in $(ls -1 ${kustomize_kubeadm_init}-patches/* 2>/dev/null || echo); do
         patch_basename="$(basename $patch)"
@@ -118,32 +150,6 @@ function init() {
     cp $KUBEADM_CONF_FILE $KUBEADM_CONF_DIR/kubeadm_conf_copy_in
     $DIR/bin/yamlutil -r -fp $KUBEADM_CONF_DIR/kubeadm_conf_copy_in -yf metadata
     mv $KUBEADM_CONF_DIR/kubeadm_conf_copy_in $KUBEADM_CONF_FILE
-
-    if [ "$KUBERNETES_TARGET_VERSION_MINOR" -ge "21" ]; then
-        cat << EOF >> $KUBEADM_CONF_FILE
-apiVersion: kubelet.config.k8s.io/v1beta1
-kind: KubeletConfiguration
-shutdownGracePeriod: 30s
-shutdownGracePeriodCriticalPods: 10s
-tlsCipherSuites: [TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384]
-EOF
-    else
-        cat << EOF >> $KUBEADM_CONF_FILE
-apiVersion: kubelet.config.k8s.io/v1beta1
-kind: KubeletConfiguration
-cgroupDriver: systemd
-tlsCipherSuites: [TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384]
-EOF
-    fi
-
-    # conditional kubelet configuration fields
-    if [ -n "$CONTAINER_LOG_MAX_SIZE" ]; then
-        echo "containerLogMaxSize: $CONTAINER_LOG_MAX_SIZE" >> $KUBEADM_CONF_FILE
-    fi
-    if [ -n "$CONTAINER_LOG_MAX_FILES" ]; then
-        echo "containerLogMaxFiles: $CONTAINER_LOG_MAX_FILES" >> $KUBEADM_CONF_FILE
-    fi
-    echo "---" >> $KUBEADM_CONF_FILE
 
     # When no_proxy changes kubeadm init rewrites the static manifests and fails because the api is
     # restarting. Trigger the restart ahead of time and wait for it to be healthy.
