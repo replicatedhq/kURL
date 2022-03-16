@@ -195,6 +195,7 @@ func convertToBash(kurlValues map[string]interface{}, fieldsSet map[string]bool)
 		"K3S.Version":                                "K3S_VERSION",
 		"Kotsadm.ApplicationNamespace":               "KOTSADM_APPLICATION_NAMESPACES",
 		"Kotsadm.ApplicationSlug":                    "KOTSADM_APPLICATION_SLUG",
+		"Kotsadm.ApplicationVersionLabel":            "KOTSADM_APPLICATION_VERSION_LABEL",
 		"Kotsadm.Hostname":                           "KOTSADM_HOSTNAME",
 		"Kotsadm.S3Override":                         "KOTSADM_S3_OVERRIDE",
 		"Kotsadm.DisableS3":                          "KOTSADM_DISABLE_S3",

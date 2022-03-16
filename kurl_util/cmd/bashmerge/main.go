@@ -225,6 +225,11 @@ func parseBashFlags(installer *kurlv1beta1.Installer, bashFlags string) error {
 				installer.Spec.Kurl = &kurlv1beta1.Kurl{}
 			}
 			installer.Spec.Kurl.ExcludeBuiltinHostPreflights = true
+		case "app-version-label":
+			if installer.Spec.Kotsadm == nil {
+				installer.Spec.Kotsadm = &kurlv1beta1.Kotsadm{}
+			}
+			installer.Spec.Kotsadm.ApplicationVersionLabel = split[1]
 		case "yes":
 			continue
 		case "auto-upgrades-enabled":

@@ -148,7 +148,7 @@ function init() {
     # this uses a go binary found in kurl/cmd/yamlutil to strip the metadata field from the yaml
     #
     cp $KUBEADM_CONF_FILE $KUBEADM_CONF_DIR/kubeadm_conf_copy_in
-    $DIR/bin/yamlutil -r -fp $KUBEADM_CONF_DIR/kubeadm_conf_copy_in -yf metadata
+    $DIR/bin/yamlutil -r -fp $KUBEADM_CONF_DIR/kubeadm_conf_copy_in -yp metadata
     mv $KUBEADM_CONF_DIR/kubeadm_conf_copy_in $KUBEADM_CONF_FILE
 
     # When no_proxy changes kubeadm init rewrites the static manifests and fails because the api is

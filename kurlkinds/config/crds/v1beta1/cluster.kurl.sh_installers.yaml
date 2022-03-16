@@ -233,6 +233,8 @@ spec:
                     type: string
                   applicationSlug:
                     type: string
+                  applicationVersionLabel:
+                    type: string
                   disableS3:
                     type: boolean
                   hostname:
