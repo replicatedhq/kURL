@@ -75,6 +75,7 @@ function join() {
 
     # ensure that /etc/kubernetes/audit.yaml exists
     cp $kustomize_kubeadm_join/audit.yaml /etc/kubernetes/audit.yaml
+    mkdir -p /etc/kubernetes/auditlog
 
     set +e
     (set -x; kubeadm join --config /opt/replicated/kubeadm.conf --ignore-preflight-errors=all)
