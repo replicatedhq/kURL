@@ -173,6 +173,9 @@ function get_patch_yaml() {
             exclude-builtin-host-preflights)
                 EXCLUDE_BUILTIN_HOST_PREFLIGHTS=1
                 ;;
+            app-version-label)
+                KOTSADM_APPLICATION_VERSION_LABEL="$_value"
+                ;;
             ipv6)
                 IPV6_ONLY=1
                 ;;

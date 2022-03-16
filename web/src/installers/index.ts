@@ -329,6 +329,7 @@ export interface KotsadmConfig {
   uiBindPort?: number;
   hostname?: string;
   applicationNamespace?: string;
+  applicationVersionLabel?: string;
 }
 
 export const kotsadmConfigSchema = {
@@ -337,10 +338,11 @@ export const kotsadmConfigSchema = {
     version: { type: "string" },
     s3Override: { type: "string", flag: "s3-override", description: "Override the download location for addon package distribution (used for CI/CD testing alpha addons)" },
     disableS3: { type: "boolean", flag: "disable-s3", description: "Migrate application archives and support bundles from S3 and use a local volume in the kotsadm statefulset instead. The migration process is irreversible and will replace the kotsadm deployment with a statefulset. Defaults to 'false'" },
-    applicationSlug: { type: "string", flag: "kotsadm-application-slug", description: "The slug shown on the app settings page of vendor web" },
     uiBindPort: { type: "number", flag: "kotsadm-ui-bind-port", description: "This is the port where the kots admin panel can be interacted with via browser" },
     hostname: { type: "string", flag: "kotsadm-hostname", description: "The hostname that the admin console will be exposed on" },
-    applicationNamespace: { type: "string", flag: "kotsadm-application-namespaces", description: "An additional namespace that should be pre-created during the install (For applications that install to other namespaces outside of the one where kotsadm is running)" },
+    applicationSlug: { type: "string", flag: "app-slug", description: "The slug shown on the app settings page of vendor web" },
+    applicationNamespace: { type: "string", flag: "app-namespace", description: "An additional namespace that should be pre-created during the install (For applications that install to other namespaces outside of the one where kotsadm is running)" },
+    applicationVersionLabel: { type: "string", flag: "app-version-label", description: "The application version label to be installed. If not specified, the latest version will be installed." },
   },
   required: ["version"],
   additionalProperties: false,
