@@ -327,11 +327,19 @@ exportKubeconfig() {
     local kubeconfig
     kubeconfig="$(${K8S_DISTRO}_get_kubeconfig)"
 
-    current_user_sudo_group
-    if [ -n "$FOUND_SUDO_GROUP" ]; then
-        chown root:$FOUND_SUDO_GROUP ${kubeconfig}
+    # To meet CIS_COMPLIANCE, the ${kubeconfig} needs to be owned by root:root, 
+    # permissions were set to 444 so users other than root can have access to kubectl
+    if [ "$CIS_COMPLIANCE" == "1" ]; then
+        chown root:root ${kubeconfig}
+        chmod 444 ${kubeconfig}
+    else
+        current_user_sudo_group
+        if [ -n "$FOUND_SUDO_GROUP" ]; then
+            chown root:$FOUND_SUDO_GROUP ${kubeconfig}
+        fi
+        chmod 440 ${kubeconfig}
     fi
-    chmod 440 ${kubeconfig}
+    
     if ! grep -q "kubectl completion bash" /etc/profile; then
         echo "export KUBECONFIG=${kubeconfig}" >> /etc/profile
         echo "source <(kubectl completion bash)" >> /etc/profile
@@ -511,7 +519,8 @@ function current_user_sudo_group() {
 
 function kubeconfig_setup_outro() {
     current_user_sudo_group
-    if [ -n "$FOUND_SUDO_GROUP" ]; then
+    # If opt-in to have CIS_COMPLIANCE FOUND_SUDO_GROUP is not required for kubectl access
+    if [ "$CIS_COMPLIANCE" == "1" ] || [ -n "$FOUND_SUDO_GROUP" ]; then
         printf "To access the cluster with kubectl, reload your shell:\n"
         printf "\n"
         printf "${GREEN}    bash -l${NC}\n"
