@@ -24,21 +24,20 @@ apiServer:
     service-node-port-range: "80-60000"
     tls-cipher-suites: TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
     profiling: '"false"'
-# TODO improve this
-    audit-log-path: /tmp/k8s-audit.log
+    audit-log-path: /auditlog/k8s-audit.log
     audit-policy-file: /etc/kubernetes/audit.yaml
-    audit-log-maxage: '"1"'
+    audit-log-maxage: '"3"'
     audit-log-maxsize: '"100"'
-    audit-log-maxbackup: '"1"'
+    audit-log-maxbackup: '"3"'
   extraVolumes:
     - name: audit
       hostPath: /etc/kubernetes/audit.yaml
       mountPath: /etc/kubernetes/audit.yaml
       readOnly: true
       pathType: File
-    - name: tmp
-      hostPath: /tmp
-      mountPath: /tmp
+    - name: auditlog
+      hostPath: /etc/kubernetes/auditlog
+      mountPath: /auditlog
       pathType: Directory
   certSANs:
   - "$PRIVATE_ADDRESS"

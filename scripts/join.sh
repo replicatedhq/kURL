@@ -73,6 +73,9 @@ function join() {
     $DIR/bin/yamlutil -r -fp $KUBEADM_CONF_DIR/kubeadm_conf_copy_in -yp metadata
     mv $KUBEADM_CONF_DIR/kubeadm_conf_copy_in $KUBEADM_CONF_FILE
 
+    # ensure that /etc/kubernetes/audit.yaml exists
+    cp $kustomize_kubeadm_join/audit.yaml /etc/kubernetes/audit.yaml
+
     set +e
     (set -x; kubeadm join --config /opt/replicated/kubeadm.conf --ignore-preflight-errors=all)
     _status=$?
