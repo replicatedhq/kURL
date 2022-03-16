@@ -28,7 +28,7 @@ One optional add-on available for Metrics & Monitoring is Prometheus via the [Pr
 
 # Releases
 
-For details on each release, see the [changelog](https://docs.replicated.com/release-notes/rn-kubernetes-installer). For Replicated vendors, detailed release notes are available at [Kubernetes Installer Release Notes](https://github.com/replicatedhq/kURL/releases) on the Replicated documentation site.
+For details on each release, see the [changelog](https://github.com/replicatedhq/kURL/releases). For Replicated vendors, detailed release notes are available at [Kubernetes Installer Release Notes](https://docs.replicated.com/release-notes/rn-kubernetes-installer) on the Replicated documentation site.
 
 Release assets and changelog are available on the [GitHub Releases](https://github.com/replicatedhq/kURL/releases) page.
 
