@@ -327,9 +327,18 @@ exportKubeconfig() {
     local kubeconfig
     kubeconfig="$(${K8S_DISTRO}_get_kubeconfig)"
 
-    chown root:root ${kubeconfig}
-    chmod 444 ${kubeconfig}
     
+    if [ "$CIS_COMPLIANCE" == "1" ]; then
+        chown root:root ${kubeconfig}
+        chmod 444 ${kubeconfig}
+    else
+        current_user_sudo_group
+        if [ -n "$FOUND_SUDO_GROUP" ]; then
+            chown root:$FOUND_SUDO_GROUP ${kubeconfig}
+        fi
+        chmod 440 ${kubeconfig}
+    fi
+
     if ! grep -q "kubectl completion bash" /etc/profile; then
         echo "export KUBECONFIG=${kubeconfig}" >> /etc/profile
         echo "source <(kubectl completion bash)" >> /etc/profile
