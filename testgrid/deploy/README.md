@@ -31,8 +31,7 @@ terraform destroy
 ### Tested versions
 ```bash
 Terraform v1.0.4
-+ provider registry.terraform.io/hashicorp/aws v2.52.0
-+ provider registry.terraform.io/hashicorp/template v2.2.0
++ provider registry.terraform.io/hashicorp/aws v4.5.0
 + provider registry.terraform.io/packethost/packet v3.1.0
 + provider registry.terraform.io/equinix/metal v3.1.0
 ```
