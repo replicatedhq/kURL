@@ -114,6 +114,10 @@ function init() {
         insert_patches_strategic_merge \
             $kustomize_kubeadm_init/kustomization.yaml \
             patch-kubelet-cis-compliance.yaml
+        
+        insert_patches_strategic_merge \
+            $kustomize_kubeadm_init/kustomization.yaml \
+            patch-cluster-config-cis-compliance.yaml
     fi
     if [ -n "$CONTAINER_LOG_MAX_SIZE" ]; then
         insert_patches_strategic_merge \
@@ -206,6 +210,11 @@ function init() {
     spinner_kubernetes_api_stable
 
     exportKubeconfig
+
+    if [ "$CIS_COMPLIANCE" == "1" ]; then
+        kubectl apply -f $kustomize_kubeadm_init/pod-security-policy-privileged.yaml
+    fi 
+
     KUBEADM_TOKEN_CA_HASH=$(cat /tmp/kubeadm-init | grep 'discovery-token-ca-cert-hash' | awk '{ print $2 }' | head -1)
 
     wait_for_nodes
