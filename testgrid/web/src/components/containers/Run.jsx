@@ -12,7 +12,7 @@ class Run extends React.Component {
   constructor(props) {
     super(props);
 
-    let currentPage = 0, pageSize = 500;
+    let currentPage = 0, pageSize = 1000;
     const params = queryString.parse(this.props.location.search);
     if (params.currentPage) {
       currentPage = parseInt(params.currentPage);
