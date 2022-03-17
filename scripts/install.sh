@@ -218,7 +218,7 @@ function init() {
         old_admission_plugins='--enable-admission-plugins=NodeRestriction'
         new_admission_plugins='--enable-admission-plugins=NodeRestriction,PodSecurityPolicy'
         sed -i "s%$old_admission_plugins%$new_admission_plugins%g"  /etc/kubernetes/manifests/kube-apiserver.yaml
-        wait_for_kube_apiserver
+        spinner_kubernetes_api_stable
     fi 
 
     wait_for_nodes
