@@ -219,6 +219,17 @@ function has_default_namespace() {
     kubectl get ns | grep -q '^default' 2>/dev/null
 }
 
+function wait_for_kube_apiserver(){
+        if ! spinner_until 120 get_kube_apiserver_succeeds ; then
+        # this should exit script on non-zero exit code and print error message
+        kubectl get pod -n kube-system -l component=kube-apiserver 1>/dev/null
+    fi
+}
+
+function get_kube_apiserver_succeeds() {
+    kubectl get pod -n kube-system -l component=kube-apiserver >/dev/null 2>&1
+}
+
 # Label nodes as provisioned by kurl installation
 # (these labels should have been added by kurl installation.
 #  See kubeadm-init and kubeadm-join yaml files.

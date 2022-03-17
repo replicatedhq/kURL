@@ -4,5 +4,5 @@ metadata:
   name: kubeadm-cluster-configuration
 apiServer:
   extraArgs:
-    enable-admission-plugins: NodeRestriction,PodSecurityPolicy
+    enable-admission-plugins: NodeRestriction
     insecure-port: '"0"'
