@@ -273,44 +273,46 @@ export default class InstanceTable extends React.Component {
 
   render() {
     const osArray = this.getOSArray(this.props.instancesMap);
-    const rows = Object.keys(this.props.instancesMap).map(kurlUrl => {
+    const rows = Object.keys(this.props.instancesMap).map((kurlUrl) => {
+      const testInstance = this.props.instancesMap[kurlUrl];
       return (
         <tr key={kurlUrl}>
+          <td><strong>{testInstance[0].testName}</strong></td>
           <td>
-            <span className="url" onClick={() => this.viewInstanceInstaller(this.props.instancesMap[kurlUrl][0])}>{kurlUrl}</span>
-            {this.props.instancesMap[kurlUrl][0].kurlFlags &&
+            <div className="url" onClick={() => this.viewInstanceInstaller(testInstance[0])}>{kurlUrl}</div>
+            {testInstance[0].kurlFlags &&
               <div>
                 <span>{' Flags: '}</span>
-                <span>{this.props.instancesMap[kurlUrl][0].kurlFlags}</span>
+                <span>{testInstance[0].kurlFlags}</span>
               </div>
               }
-            {this.props.instancesMap[kurlUrl][0].upgradeUrl &&
+            {testInstance[0].upgradeUrl &&
               <div>
                 <span>{' -> '}</span>
-                <span className="url" onClick={() => this.viewUpgradeInstaller(this.props.instancesMap[kurlUrl][0])}>{this.props.instancesMap[kurlUrl][0].upgradeUrl}</span>
+                <span className="url" onClick={() => this.viewUpgradeInstaller(testInstance[0])}>{testInstance[0].upgradeUrl}</span>
               </div>
               }
-            {this.props.instancesMap[kurlUrl][0].supportbundleYaml &&
+            {testInstance[0].supportbundleYaml &&
               <div>
                 <br/>
-                <span className="url" onClick={() => this.viewSupportbundleYaml(this.props.instancesMap[kurlUrl][0])}>Support Bundle YAML</span>
+                <span className="url" onClick={() => this.viewSupportbundleYaml(testInstance[0])}>Support Bundle YAML</span>
               </div>
               }
-            {this.props.instancesMap[kurlUrl][0].postInstallScript &&
+            {testInstance[0].postInstallScript &&
               <div>
                 <br/>
-                <span className="url" onClick={() => this.viewPostInstallScript(this.props.instancesMap[kurlUrl][0])}>Post-Install Script</span>
+                <span className="url" onClick={() => this.viewPostInstallScript(testInstance[0])}>Post-Install Script</span>
               </div>
               }
-            {this.props.instancesMap[kurlUrl][0].postUpgradeScript &&
+            {testInstance[0].postUpgradeScript &&
               <div>
                 <br/>
-                <span className="url" onClick={() => this.viewPostUpgradeScript(this.props.instancesMap[kurlUrl][0])}>Post-Upgrade Script</span>
+                <span className="url" onClick={() => this.viewPostUpgradeScript(testInstance[0])}>Post-Upgrade Script</span>
               </div>
               }
           </td>
           {osArray.map(osKey => {
-            const instance = find(this.props.instancesMap[kurlUrl], i => (osKey == `${i.osName}-${i.osVersion}`));
+            const instance = find(testInstance, i => (osKey == `${i.osName}-${i.osVersion}`));
             if (instance) {
               const status = this.getInstanceStatus(instance);
               const failureReason = this.getInstanceFailureReason(instance);
@@ -357,6 +359,7 @@ export default class InstanceTable extends React.Component {
         <table>
           <thead>
             <tr>
+              <th>Test Name</th>
               <th>kURL URL</th>
               {osArray.map(key => (
                 <th key={key}>{key}</th>
