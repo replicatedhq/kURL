@@ -184,7 +184,7 @@ function init() {
 
     # ensure that /etc/kubernetes/audit.yaml exists
     cp $kustomize_kubeadm_init/audit.yaml /etc/kubernetes/audit.yaml
-    mkdir -p /etc/kubernetes/auditlog
+    mkdir -p /var/log/apiserver
 
     set -o pipefail
     kubeadm init \

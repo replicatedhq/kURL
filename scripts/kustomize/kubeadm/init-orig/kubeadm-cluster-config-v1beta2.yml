@@ -36,7 +36,7 @@ apiServer:
       readOnly: true
       pathType: File
     - name: auditlog
-      hostPath: /etc/kubernetes/auditlog
+      hostPath: /var/log/apiserver
       mountPath: /auditlog
       pathType: Directory
   certSANs:
