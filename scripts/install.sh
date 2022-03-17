@@ -114,6 +114,10 @@ function init() {
         insert_patches_strategic_merge \
             $kustomize_kubeadm_init/kustomization.yaml \
             patch-kubelet-cis-compliance.yaml
+        
+        insert_patches_strategic_merge \
+            $kustomize_kubeadm_init/kustomization.yaml \
+            patch-cluster-config-cis-compliance.yaml
     fi
     if [ -n "$CONTAINER_LOG_MAX_SIZE" ]; then
         insert_patches_strategic_merge \
@@ -207,6 +211,15 @@ function init() {
 
     exportKubeconfig
     KUBEADM_TOKEN_CA_HASH=$(cat /tmp/kubeadm-init | grep 'discovery-token-ca-cert-hash' | awk '{ print $2 }' | head -1)
+
+    if [ "$CIS_COMPLIANCE" == "1" ]; then
+        kubectl apply -f $kustomize_kubeadm_init/pod-security-policy-privileged.yaml
+        # patch 'PodSecurityPolicy' to kube-apiserver and wait for kube-apiserver to reconcile
+        old_admission_plugins='--enable-admission-plugins=NodeRestriction'
+        new_admission_plugins='--enable-admission-plugins=NodeRestriction,PodSecurityPolicy'
+        sed -i "s%$old_admission_plugins%$new_admission_plugins%g"  /etc/kubernetes/manifests/kube-apiserver.yaml
+        spinner_kubernetes_api_stable
+    fi 
 
     wait_for_nodes
     enable_rook_ceph_operator

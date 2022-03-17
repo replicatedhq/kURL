@@ -1,0 +1,8 @@
+apiVersion: kubeadm.k8s.io/v1beta2
+kind: ClusterConfiguration
+metadata:
+  name: kubeadm-cluster-configuration
+apiServer:
+  extraArgs:
+    enable-admission-plugins: NodeRestriction
+    insecure-port: '"0"'

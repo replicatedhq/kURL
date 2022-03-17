@@ -289,6 +289,7 @@ function spinner_containerd_is_healthy() {
 # With AWS NLB kubectl commands may fail to connect to the Kubernetes API immediately after a single
 # successful health check
 function spinner_kubernetes_api_stable() {
+    echo "Waiting for kubernetes api health to report ok"
     for i in {1..10}; do
         sleep 1
         spinner_kubernetes_api_healthy
