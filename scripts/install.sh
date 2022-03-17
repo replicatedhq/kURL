@@ -186,6 +186,10 @@ function init() {
         mv -f /etc/kubernetes/pki/apiserver.key /tmp/
     fi
 
+    # ensure that /etc/kubernetes/audit.yaml exists
+    cp $kustomize_kubeadm_init/audit.yaml /etc/kubernetes/audit.yaml
+    mkdir -p /var/log/apiserver
+
     set -o pipefail
     kubeadm init \
         --ignore-preflight-errors=all \
