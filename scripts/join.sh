@@ -89,6 +89,14 @@ function join() {
 
     if [ "$MASTER" = "1" ]; then
         exportKubeconfig
+
+        if [ "$CIS_COMPLIANCE" == "1" ]; then
+            # create an 'etcd' user and group and ensure that it owns the etcd data directory (we don't care what userid these have, as etcd will still run as root)
+            useradd etcd || true
+            groupadd etcd || true
+            chown -R etcd:etcd /var/lib/etcd
+        fi
+
         logSuccess "Master node joined successfully"
     else
         logSuccess "Node joined successfully"
