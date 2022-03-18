@@ -223,7 +223,12 @@ function init() {
         new_admission_plugins='--enable-admission-plugins=NodeRestriction,PodSecurityPolicy'
         sed -i "s%$old_admission_plugins%$new_admission_plugins%g"  /etc/kubernetes/manifests/kube-apiserver.yaml
         spinner_kubernetes_api_stable
-    fi 
+
+        # create an 'etcd' user and group and ensure that it owns the etcd data directory (we don't care what userid these have, as etcd will still run as root)
+        useradd etcd || true
+        groupadd etcd || true
+        chown -R etcd:etcd /var/lib/etcd
+    fi
 
     wait_for_nodes
     enable_rook_ceph_operator
