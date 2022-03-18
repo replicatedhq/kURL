@@ -26,9 +26,9 @@ apiServer:
     profiling: '"false"'
     audit-log-path: /auditlog/k8s-audit.log
     audit-policy-file: /etc/kubernetes/audit.yaml
-    audit-log-maxage: '"3"'
+    audit-log-maxage: '"30"'
     audit-log-maxsize: '"100"'
-    audit-log-maxbackup: '"3"'
+    audit-log-maxbackup: '"10"'
   extraVolumes:
     - name: audit
       hostPath: /etc/kubernetes/audit.yaml
