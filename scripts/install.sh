@@ -329,7 +329,8 @@ function kurl_config() {
         --from-literal=upload_certs_expiration="$CERT_KEY_EXPIRY" \
         --from-literal=service_cidr="$SERVICE_CIDR" \
         --from-literal=pod_cidr="$POD_CIDR" \
-        --from-literal=kurl_install_directory="$KURL_INSTALL_DIRECTORY_FLAG"
+        --from-literal=kurl_install_directory="$KURL_INSTALL_DIRECTORY_FLAG" \
+        --from-literal=kurl_cis_compliance="$CIS_COMPLIANCE"
 }
 
 function outro() {
