@@ -1133,7 +1133,7 @@
   postInstallScript: |
     echo "running CIS Kubernetes Benchmark Checks"
     curl -L https://github.com/aquasecurity/kube-bench/releases/download/v0.6.2/kube-bench_0.6.2_linux_amd64.tar.gz | tar -xz
-    ./kube-bench --config-dir=`pwd`/cfg --config=`pwd`/cfg/config.yaml --noremediations --exit-code=1		
+    ./kube-bench --config-dir=`pwd`/cfg --config=`pwd`/cfg/config.yaml --exit-code=1		
 - name: k8s122x_123x_upgrade_cis_benchmarks_checks
   installerSpec:
     kubernetes:
@@ -1154,4 +1154,4 @@
   postUpgradeScript: |
     echo "running  CIS Kubernetes Benchmark Checks"
     curl -L https://github.com/aquasecurity/kube-bench/releases/download/v0.6.2/kube-bench_0.6.2_linux_amd64.tar.gz | tar -xz
-    ./kube-bench --config-dir=`pwd`/cfg --config=`pwd`/cfg/config.yaml --noremediations --exit-code=1
+    ./kube-bench --config-dir=`pwd`/cfg --config=`pwd`/cfg/config.yaml --exit-code=1
