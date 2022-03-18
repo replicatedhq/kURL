@@ -37,3 +37,4 @@ data:
     host_task_namespace: kurl
     enable_internal_load_balancer: $EKCO_ENABLE_INTERNAL_LOAD_BALANCER_BOOL
     pod_image_overrides: \"$EKCO_POD_IMAGE_OVERRIDES\"
+    auto_approve_kubelet_csrs: true

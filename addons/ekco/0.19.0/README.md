@@ -21,3 +21,4 @@ This addon deploys it to the `kurl` namespace.
 - `host-task-image`: The image to use for host tasks, such as updating the haproxy configuration on all nodes.
 - `host-task-namespace`: The namespace host task pods will run in.
 - `pod-image-overrides`: List of images to be replaced in pod specs
+- `auto-approve-kubelet-csrs`: Enable automatic approval of kubelet-serving csrs
