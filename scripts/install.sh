@@ -275,6 +275,11 @@ function init() {
     labelNodes
     kubectl cluster-info
 
+    #approve csrs on the masters if cis compliance is enabled
+    if [ "$CIS_COMPLIANCE" == "1" ]; then
+        kubectl get csr | grep 'Pending' | grep 'kubelet-serving' | awk '{ print $1 }' | xargs -I {} kubectl certificate approve {}
+    fi
+
     # create kurl namespace if it doesn't exist
     kubectl get ns kurl 2>/dev/null 1>/dev/null || kubectl create ns kurl 1>/dev/null
 
