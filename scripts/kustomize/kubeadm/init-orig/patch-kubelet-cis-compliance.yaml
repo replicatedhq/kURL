@@ -3,3 +3,4 @@ kind: KubeletConfiguration
 metadata:
   name: kubelet-configuration
 protectKernelDefaults: true
+serverTLSBootstrap: true
