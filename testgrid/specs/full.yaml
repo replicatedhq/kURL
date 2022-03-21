@@ -1120,3 +1120,38 @@
     fi
 
     echo "Pod image override success: $pod_image"
+- name: k8s123x_cis_benchmarks_checks
+  installerSpec:
+    kubernetes:
+      version: "1.23.x"
+    containerd:
+      version: "latest"
+    weave:
+      version: "latest"
+    kurl:
+      cisCompliance: true
+  postInstallScript: |
+    echo "running CIS Kubernetes Benchmark Checks"
+    curl -L https://github.com/aquasecurity/kube-bench/releases/download/v0.6.2/kube-bench_0.6.2_linux_amd64.tar.gz | tar -xz
+    ./kube-bench --config-dir=`pwd`/cfg --config=`pwd`/cfg/config.yaml --exit-code=1		
+- name: k8s122x_123x_upgrade_cis_benchmarks_checks
+  installerSpec:
+    kubernetes:
+      version: "1.22.x"
+    containerd:
+      version: "latest"
+    weave:
+      version: "latest"
+  upgradeSpec:
+    kubernetes:
+      version: "1.23.x"
+    containerd:
+      version: "latest"
+    weave:
+      version: "latest"
+    kurl:
+      cisCompliance: true		
+  postUpgradeScript: |
+    echo "running  CIS Kubernetes Benchmark Checks"
+    curl -L https://github.com/aquasecurity/kube-bench/releases/download/v0.6.2/kube-bench_0.6.2_linux_amd64.tar.gz | tar -xz
+    ./kube-bench --config-dir=`pwd`/cfg --config=`pwd`/cfg/config.yaml --exit-code=1
