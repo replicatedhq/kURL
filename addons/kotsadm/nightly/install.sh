@@ -73,6 +73,7 @@ function kotsadm() {
     kotsadm_cacerts_file
     kotsadm_kubelet_client_secret
     kotsadm_metadata_configmap $src $dst
+    kotsadm_confg_configmap $dst
 
     if [ -z "$KOTSADM_HOSTNAME" ]; then
         KOTSADM_HOSTNAME="$PUBLIC_ADDRESS"
@@ -317,6 +318,25 @@ function kotsadm_metadata_configmap() {
         kubectl create configmap kotsadm-application-metadata --from-file="$dst/application.yaml" --dry-run=client -oyaml > "$dst/kotsadm-application-metadata.yaml"
         insert_resources $dst/kustomization.yaml kotsadm-application-metadata.yaml
     fi
+}
+
+function kotsadm_confg_configmap() {
+    local dst="$1"
+
+    if ! kubernetes_resource_exists default configmap kotsadm-confg; then
+        kubectl -n default create configmap kotsadm-confg
+        kubectl -n default label configmap kotsadm-confg --overwrite kots.io/kotsadm=true kots.io/backup=velero
+    fi
+
+    kubectl -n default get configmap kotsadm-confg -oyaml > "$dst/kotsadm-confg.yaml"
+
+    if [ -n "$KOTSADM_APPLICATION_VERSION_LABEL" ]; then
+        "${DIR}"/bin/yamlutil -a -fp "$dst/kotsadm-confg.yaml" -yp data_app-version-label -v "$KOTSADM_APPLICATION_VERSION_LABEL"
+    else
+        "${DIR}"/bin/yamlutil -r -fp "$dst/kotsadm-confg.yaml" -yp data_app-version-label
+    fi
+
+    insert_resources "$dst/kustomization.yaml" kotsadm-confg.yaml
 }
 
 function kotsadm_kurl_proxy() {
