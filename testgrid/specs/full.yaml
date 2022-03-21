@@ -1128,6 +1128,8 @@
       version: "latest"
     weave:
       version: "latest"
+    ekco: 
+      version: "latest"
     kurl:
       cisCompliance: true
   postInstallScript: |
@@ -1148,6 +1150,8 @@
     containerd:
       version: "latest"
     weave:
+      version: "latest"
+    ekco: 
       version: "latest"
     kurl:
       cisCompliance: true		
