@@ -1044,7 +1044,7 @@
       version: latest
     ekco:
       version: latest
-  flags: "disktype=ssd, gpu=enabled"
+  flags: "disktype=ssd,gpu=enabled"
 - name: k8s122-with-flags
   installerSpec:
     kubernetes:
@@ -1066,7 +1066,7 @@
       version: latest
     ekco:
       version: latest
-  flags: "disktype=ssd, gpu=enabled"
+  flags: "disktype=ssd,gpu=enabled"
 - name: k8s123-with-flags
   installerSpec:
     kubernetes:
@@ -1088,7 +1088,7 @@
       version: latest
     ekco:
       version: latest
-  flags: "disktype=ssd, gpu=enabled"
+  flags: "disktype=ssd,gpu=enabled"
 - name: ekco-podimageoverrides
   installerSpec:
     kubernetes:
