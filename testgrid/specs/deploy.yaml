@@ -177,3 +177,11 @@
     ekco:
       version: latest
   airgap: true
+- name: minimal
+  installerSpec:
+    containerd:
+      version: latest
+    kubernetes:
+      version: 1.23.x
+    weave:
+      version: latest
