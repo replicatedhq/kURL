@@ -56,8 +56,8 @@ function run_install() {
 
     echo "running kurl install"
 
-    if [ -z "$KURL_FLAGS" ]; then
-        KURL_LABELS = labels=$KURL_FLAGS
+    if [ ! -z "$KURL_FLAGS" ]; then
+        KURL_LABELS="labels=$KURL_FLAGS"
     fi
     echo $KURL_LABELS
 
@@ -128,8 +128,8 @@ function run_upgrade() {
 
     echo "running kurl upgrade"
 
-    if [ -z "$KURL_FLAGS" ]; then
-        KURL_LABELS = labels=$KURL_FLAGS
+    if [ ! -z "$KURL_FLAGS" ]; then
+        KURL_LABELS="labels=$KURL_FLAGS"
     fi
     echo $KURL_LABELS
 
