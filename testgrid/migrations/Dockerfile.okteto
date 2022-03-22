@@ -1,0 +1,9 @@
+FROM schemahero/schemahero:0.13.0-alpha.1 as schemahero
+RUN mkdir -p /home/schemahero
+WORKDIR /home/schemahero
+
+USER root
+RUN apt-get install -y build-essential
+USER schemahero
+
+COPY tables tables

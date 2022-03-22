@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: tgapi
+  labels:
+    app: tgapi
+  annotations:
+    dev.okteto.com/auto-ingress: "true"        
+spec:
+  type: ClusterIP
+  ports:
+  - name: tgapi
+    port: 3000
+    targetPort: http
+  selector:
+    app: tgapi
