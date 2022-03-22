@@ -9,7 +9,7 @@ function command_exists() {
 function setup_runner() {
     setenforce 0 || true # rhel variants
     sysctl vm.overcommit_memory=1
-    sysctl kernel.panic=30
+    sysctl kernel.panic=10
     sysctl kernel.panic_on_oops=1
 
     echo "$TEST_ID" > /tmp/testgrid-id
