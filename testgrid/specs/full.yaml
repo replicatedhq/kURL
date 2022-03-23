@@ -172,6 +172,8 @@
   installerSpec:
     kubernetes:
       version: 1.21.x
+      containerLogMaxSize: "5Mi"
+      containerLogMaxFiles: 5
     containerd:
       version: 1.4.6
     weave:
