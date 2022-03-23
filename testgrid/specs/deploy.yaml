@@ -8,6 +8,8 @@
       version: latest
     kubernetes:
       version: latest
+      containerLogMaxSize: "5Mi"
+      containerLogMaxFiles: 5
     prometheus:
       version: latest
     registry:
