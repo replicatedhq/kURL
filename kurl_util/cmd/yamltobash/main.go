@@ -210,6 +210,7 @@ func convertToBash(kurlValues map[string]interface{}, fieldsSet map[string]bool)
 		"Kubernetes.ContainerLogMaxFiles":            "CONTAINER_LOG_MAX_FILES",
 		"Kubernetes.KubeadmToken":                    "KUBEADM_TOKEN",
 		"Kubernetes.KubeadmTokenCAHash":              "KUBEADM_TOKEN_CA_HASH",
+		"Kubernetes.KubeReserved":                    "KUBE_RESERVED",
 		"Kubernetes.LoadBalancerAddress":             "LOAD_BALANCER_ADDRESS",
 		"Kubernetes.MasterAddress":                   "KUBERNETES_MASTER_ADDR",
 		"Kubernetes.UseStandardNodePortRange":        "USE_STANDARD_PORT_RANGE",

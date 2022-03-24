@@ -119,7 +119,7 @@ function init() {
             $kustomize_kubeadm_init/kustomization.yaml \
             patch-cluster-config-cis-compliance.yaml
     fi
-    if [ "$RESERVE_COMPUTE_RESOURCES" == "1" ]; then
+    if [ "$KUBE_RESERVED" == "1" ]; then
         # gets the memory and CPU capacity of the worker node
         MEMORY_MI=$(free -m | grep Mem | awk '{print $2}')
         CPU_MILLICORES=$(($(nproc) * 1000))

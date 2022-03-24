@@ -108,6 +108,7 @@ type Kubernetes struct {
 	ServiceCIDR              string `json:"serviceCIDR,omitempty" yaml:"serviceCIDR,omitempty"`
 	ServiceCidrRange         string `json:"serviceCidrRange,omitempty" yaml:"serviceCidrRange,omitempty"`
 	UseStandardNodePortRange bool   `json:"useStandardNodePortRange,omitempty" yaml:"useStandardNodePortRange,omitempty"`
+	KubeReserved             bool   `json:"kubeReserved,omitempty" yaml:"kubeReserved,omitempty"`
 	Version                  string `json:"version" yaml:"version"`
 }
 
