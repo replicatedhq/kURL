@@ -1,0 +1,15 @@
+apiVersion: kubelet.config.k8s.io/v1beta1
+kind: KubeletConfiguration
+metadata:
+  name: kubelet-configuration
+# systemReserved: $SYSTEM_RESERVED
+kubeReserved:
+  cpu: $cpu_millicores_to_reserve,
+  ephemeralStorage: "1Gi"
+  memory: $mebibytes_to_reserve
+# evictionHard: 
+#   memory:
+#     available: $EVICTION_HARD_MEMORY_AVAILABLE
+#   nodefs:
+#     available: EVICTION_HARD_NODEFS_AVAILABLE
+#     inodesFree: EVICTION_HARD_NODEFS_INODESFREE
