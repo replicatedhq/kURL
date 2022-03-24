@@ -125,8 +125,6 @@ function init() {
             patch-kubelet-container-log-max-size.yaml
 
         render_yaml_file $kustomize_kubeadm_init/patch-kubelet-container-log-max-size.tpl > $kustomize_kubeadm_init/patch-kubelet-container-log-max-size.yaml
-
-        echo  >> $KUBEADM_CONF_FILE
     fi
     if [ -n "$CONTAINER_LOG_MAX_FILES" ]; then
         insert_patches_strategic_merge \
