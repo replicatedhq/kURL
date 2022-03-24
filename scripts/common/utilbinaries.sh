@@ -91,6 +91,8 @@ function get_patch_yaml() {
                 ;;
             ha)
                 ;;
+            kubernetes-cis-compliance)
+                ;;
             ignore-remote-load-images-prompt)
                 ;;
             ignore-remote-upgrade-prompt)

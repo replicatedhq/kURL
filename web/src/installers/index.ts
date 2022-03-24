@@ -24,6 +24,7 @@ export interface KubernetesConfig {
   serviceCIDR?: string;
   HACluster?: boolean;
   masterAddress?: string;
+  cisCompliance?: boolean;
   loadBalancerAddress?: string;
   containerLogMaxSize?: string;
   containerLogMaxFiles?: number;
@@ -53,6 +54,7 @@ export const kubernetesConfigSchema = {
     useStandardNodePortRange: { type: "boolean" },
     controlPlane: { type: "boolean", flag: "control-plane", description: "Used during a join script to indicate that the node will be an additional master (read-only)" },
     certKey: { type: "string", flag: "cert-key", description: "A secret needed for new master nodes to join an existing cluster (read-only)" },
+    cisCompliance: { type: "boolean", flag: "kubernetes-cis-compliance", description: "Indicates if this install should meet all CIS compliance requirements" },
   },
   required: [ "version" ],
   additionalProperties: false,
@@ -407,7 +409,6 @@ export const ekcoConfigSchema = {
 export interface KurlConfig {
   additionalNoProxyAddresses: string[];
   airgap?: boolean;
-  cisCompliance?: boolean;
   excludeBuiltinHostPreflights?: boolean;
   excludeBuiltinPreflights?: boolean;
   hostnameCheck?: string;
@@ -437,7 +438,6 @@ export const kurlConfigSchema = {
   properties: {
     additionalNoProxyAddresses: { type: "array", items: { type: "string" }, description: "Addresses that can be reached without a proxy" },
     airgap: { type: "boolean", flag: "airgap", description: "Indicates if this install is an airgap install" },
-    cisCompliance: { type: "boolean", flag: "cis-compliance", description: "Indicates if this install should meet all CIS compliance requirements" },
     excludeBuiltinHostPreflights: { type: "boolean", flag: "exclude-builtin-host-preflights" , description: "Excludes the default built-in host preflights for kURL." },
     hostnameCheck: { type: "string", flag: "hostname-check" , description: "Used as a check during an upgrade to ensure the script will run only on the given hostname" },
     hostPreflights: { type: "object", description: "Used to add additional host preflight checks."},

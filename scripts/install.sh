@@ -110,7 +110,7 @@ function init() {
             $kustomize_kubeadm_init/kustomization.yaml \
             patch-kubelet-pre21.yaml
     fi
-    if [ "$CIS_COMPLIANCE" == "1" ]; then
+    if [ "$KUBERNETES_CIS_COMPLIANCE" == "1" ]; then
         insert_patches_strategic_merge \
             $kustomize_kubeadm_init/kustomization.yaml \
             patch-kubelet-cis-compliance.yaml
@@ -214,7 +214,7 @@ function init() {
     exportKubeconfig
     KUBEADM_TOKEN_CA_HASH=$(cat /tmp/kubeadm-init | grep 'discovery-token-ca-cert-hash' | awk '{ print $2 }' | head -1)
 
-    if [ "$CIS_COMPLIANCE" == "1" ]; then
+    if [ "$KUBERNETES_CIS_COMPLIANCE" == "1" ]; then
         kubectl apply -f $kustomize_kubeadm_init/pod-security-policy-privileged.yaml
         # patch 'PodSecurityPolicy' to kube-apiserver and wait for kube-apiserver to reconcile
         old_admission_plugins='--enable-admission-plugins=NodeRestriction'
@@ -274,7 +274,7 @@ function init() {
     kubectl cluster-info
 
     #approve csrs on the masters if cis compliance is enabled
-    if [ "$CIS_COMPLIANCE" == "1" ]; then
+    if [ "$KUBERNETES_CIS_COMPLIANCE" == "1" ]; then
         kubectl get csr | grep 'Pending' | grep 'kubelet-serving' | awk '{ print $1 }' | xargs -I {} kubectl certificate approve {}
     fi
 
@@ -333,7 +333,7 @@ function kurl_config() {
         --from-literal=service_cidr="$SERVICE_CIDR" \
         --from-literal=pod_cidr="$POD_CIDR" \
         --from-literal=kurl_install_directory="$KURL_INSTALL_DIRECTORY_FLAG" \
-        --from-literal=kurl_cis_compliance="$CIS_COMPLIANCE"
+        --from-literal=kubernetes_cis_compliance="$KUBERNETES_CIS_COMPLIANCE"
 }
 
 function outro() {

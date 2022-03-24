@@ -37,6 +37,7 @@ spec:
     serviceCIDR: 1.1.1.1
     serviceCIDRRange: "/24"
     version: latest
+    cisCompliance: true
   kurl:
     additionalNoProxyAddresses:
       - 1.1.1.1

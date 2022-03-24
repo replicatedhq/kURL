@@ -258,6 +258,8 @@ spec:
                     type: string
                   certKey:
                     type: string
+                  cisCompliance:
+                    type: boolean
                   containerLogMaxFiles:
                     type: integer
                   containerLogMaxSize:
@@ -292,8 +294,6 @@ spec:
                       type: string
                     type: array
                   airgap:
-                    type: boolean
-                  cisCompliance:
                     type: boolean
                   excludeBuiltinHostPreflights:
                     type: boolean
