@@ -147,6 +147,9 @@ func parseBashFlags(installer *kurlv1beta1.Installer, bashFlags string) error {
 			if split[1] == "localhost:6444" && installer.Spec.Ekco != nil {
 				installer.Spec.Ekco.EnableInternalLoadBalancer = true
 			}
+		case "kubernetes-cis-compliance":
+			installer.Spec.Kubernetes = &kurlv1beta1.Kubernetes{}
+			installer.Spec.Kubernetes.CisCompliance = true
 		case "kubernetes-version":
 			if installer.Spec.Kubernetes == nil {
 				installer.Spec.Kubernetes = &kurlv1beta1.Kubernetes{}

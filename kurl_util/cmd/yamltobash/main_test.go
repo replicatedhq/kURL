@@ -286,9 +286,9 @@ metadata:
 spec:
   kurl:
     licenseURL: hello.com
-    cisCompliance: true
   kubernetes:
     version: 1.19.3
+    cisCompliance: true
   docker:
     version: 19.03.10
     hardFailOnLoopback: false
@@ -300,7 +300,7 @@ spec:
 				"Docker.HardFailOnLoopback": true,
 				"Weave.Version":             true,
 				"Kurl.LicenseURL":           true,
-				"Kurl.CisCompliance":        true,
+				"Kubernetes.CisCompliance":  true,
 			},
 		},
 	}

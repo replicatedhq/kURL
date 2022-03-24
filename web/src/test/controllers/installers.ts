@@ -22,6 +22,7 @@ spec:
     kubeadmTokenCAHash: hash
     controlPlane: false
     certKey: key
+    cisCompliance: false
   docker:
     version: latest
     bypassStorageDriverWarnings: false

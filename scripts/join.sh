@@ -90,7 +90,7 @@ function join() {
     if [ "$MASTER" = "1" ]; then
         exportKubeconfig
 
-        if [ "$CIS_COMPLIANCE" == "1" ]; then
+        if [ "$KUBERNETES_CIS_COMPLIANCE" == "1" ]; then
             # create an 'etcd' user and group and ensure that it owns the etcd data directory (we don't care what userid these have, as etcd will still run as root)
             useradd etcd || true
             groupadd etcd || true

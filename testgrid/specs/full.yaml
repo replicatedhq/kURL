@@ -1126,14 +1126,13 @@
   installerSpec:
     kubernetes:
       version: "1.23.x"
+      cisCompliance: true
     containerd:
       version: "latest"
     weave:
       version: "latest"
     ekco: 
       version: "latest"
-    kurl:
-      cisCompliance: true
   postInstallScript: |
     echo "running CIS Kubernetes Benchmark Checks"
     curl -L https://github.com/aquasecurity/kube-bench/releases/download/v0.6.2/kube-bench_0.6.2_linux_amd64.tar.gz | tar -xz
@@ -1149,14 +1148,13 @@
   upgradeSpec:
     kubernetes:
       version: "1.23.x"
+      cisCompliance: true		
     containerd:
       version: "latest"
     weave:
       version: "latest"
     ekco: 
       version: "latest"
-    kurl:
-      cisCompliance: true		
   postUpgradeScript: |
     echo "running  CIS Kubernetes Benchmark Checks"
     curl -L https://github.com/aquasecurity/kube-bench/releases/download/v0.6.2/kube-bench_0.6.2_linux_amd64.tar.gz | tar -xz

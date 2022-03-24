@@ -46,6 +46,7 @@ func Test_parseBashFlags(t *testing.T) {
 						MasterAddress:       "1.1.1.1",
 						HACluster:           true,
 						ControlPlane:        true,
+						CisCompliance:       true,
 						KubeadmToken:        "token",
 						KubeadmTokenCAHash:  "hash",
 						LoadBalancerAddress: "1.1.1.1",
@@ -72,6 +73,7 @@ func Test_parseBashFlags(t *testing.T) {
 				"control-plane " +
 				"docker-registry-ip=1.1.1.1 " +
 				"ha " +
+				"kubernetes-cis-compliance " +
 				"preserve-docker-config " +
 				"preserve-firewalld-config " +
 				"preserve-iptables-config " +
@@ -101,6 +103,7 @@ func Test_parseBashFlags(t *testing.T) {
 						MasterAddress:       "2.2.2.2",
 						HACluster:           false,
 						ControlPlane:        false,
+						CisCompliance:       false,
 						KubeadmToken:        "badtoken",
 						KubeadmTokenCAHash:  "badhash",
 						LoadBalancerAddress: "2.2.2.2",
@@ -134,6 +137,7 @@ func Test_parseBashFlags(t *testing.T) {
 						MasterAddress:       "1.1.1.1",
 						HACluster:           true,
 						ControlPlane:        true,
+						CisCompliance:       true,
 						KubeadmToken:        "token",
 						KubeadmTokenCAHash:  "hash",
 						LoadBalancerAddress: "1.1.1.1",
@@ -160,6 +164,7 @@ func Test_parseBashFlags(t *testing.T) {
 				"control-plane " +
 				"docker-registry-ip=1.1.1.1 " +
 				"ha " +
+				"kubernetes-cis-compliance " +
 				"preserve-docker-config " +
 				"preserve-firewalld-config " +
 				"preserve-iptables-config " +

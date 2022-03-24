@@ -24,6 +24,7 @@ export interface KubernetesConfig {
   serviceCIDR?: string;
   HACluster?: boolean;
   masterAddress?: string;
+  cisCompliance?: boolean;
   loadBalancerAddress?: string;
   containerLogMaxSize?: string;
   containerLogMaxFiles?: number;
@@ -53,6 +54,7 @@ export const kubernetesConfigSchema = {
     useStandardNodePortRange: { type: "boolean" },
     controlPlane: { type: "boolean", flag: "control-plane", description: "Used during a join script to indicate that the node will be an additional master (read-only)" },
     certKey: { type: "string", flag: "cert-key", description: "A secret needed for new master nodes to join an existing cluster (read-only)" },
+    cisCompliance: { type: "boolean", flag: "kubernetes-cis-compliance", description: "Enables CIS compliance" },
   },
   required: [ "version" ],
   additionalProperties: false,
@@ -407,7 +409,6 @@ export const ekcoConfigSchema = {
 export interface KurlConfig {
   additionalNoProxyAddresses: string[];
   airgap?: boolean;
-  cisCompliance?: boolean;
   excludeBuiltinHostPreflights?: boolean;
   excludeBuiltinPreflights?: boolean;
   hostnameCheck?: string;
