@@ -359,9 +359,11 @@ function velero_patch_internal_pvc_snapshots() {
         export VELERO_PVC_STORAGE_CLASS="longhorn"
     fi
 
-    # create the PVC
-    render_yaml_file "$src/tmpl-internal-snaps-pvc.yaml" > "$dst/internal-snaps-pvc.yaml"
-    insert_resources "$dst/kustomization.yaml" internal-snaps-pvc.yaml
+    # create the PVC if it does not already exist
+    if (! kubernetes_resource_exists "$VELERO_NAMESPACE" pvc velero-internal-snapshots ) ; then
+          render_yaml_file "$src/tmpl-internal-snaps-pvc.yaml" > "$dst/internal-snaps-pvc.yaml"
+          insert_resources "$dst/kustomization.yaml" internal-snaps-pvc.yaml
+    fi
 
     # add patch to add the pvc in the correct location for the velero deployment
     render_yaml_file "$src/tmpl-internal-snaps-deployment-patch.yaml" > "$dst/internal-snaps-deployment-patch.yaml"
