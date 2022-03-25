@@ -264,7 +264,7 @@ spec:
                     type: string
                   controlPlane:
                     type: boolean
-                  kubeReserved:
+                  kubernetesReserved:
                     type: boolean
                   kubeadmToken:
                     type: string

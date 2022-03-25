@@ -53,6 +53,8 @@ function configure_coredns() {
 function init() {
     logStep "Initialize Kubernetes"
 
+    echo "hello world ==========================================="
+
     kubernetes_maybe_generate_bootstrap_token
 
     local addr="$PRIVATE_ADDRESS"
@@ -119,13 +121,16 @@ function init() {
             $kustomize_kubeadm_init/kustomization.yaml \
             patch-cluster-config-cis-compliance.yaml
     fi
-    if [ "$KUBE_RESERVED" == "1" ]; then
+    if [ "$KUBERNETES_RESERVED" == "1" ]; then
+        echo "kubernetes_reserved"
         # gets the memory and CPU capacity of the worker node
         MEMORY_MI=$(free -m | grep Mem | awk '{print $2}')
         CPU_MILLICORES=$(($(nproc) * 1000))
         # calculates the amount of each resource to reserve
         mebibytes_to_reserve=$(get_memory_mebibytes_to_reserve $MEMORY_MI)
         cpu_millicores_to_reserve=$(get_cpu_millicores_to_reserve $CPU_MILLICORES)
+
+        echo $cpu_millicores_to_reserve
 
         insert_patches_strategic_merge \
             $kustomize_kubeadm_init/kustomization.yaml \
