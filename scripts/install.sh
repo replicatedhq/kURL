@@ -119,6 +119,20 @@ function init() {
             $kustomize_kubeadm_init/kustomization.yaml \
             patch-cluster-config-cis-compliance.yaml
     fi
+    if [ "$KUBERNETES_RESERVED" == "1" ]; then
+        # gets the memory and CPU capacity of the worker node
+        MEMORY_MI=$(free -m | grep Mem | awk '{print $2}')
+        CPU_MILLICORES=$(($(nproc) * 1000))
+        # calculates the amount of each resource to reserve
+        mebibytes_to_reserve=$(get_memory_mebibytes_to_reserve $MEMORY_MI)
+        cpu_millicores_to_reserve=$(get_cpu_millicores_to_reserve $CPU_MILLICORES)
+
+        insert_patches_strategic_merge \
+            $kustomize_kubeadm_init/kustomization.yaml \
+            patch-kubelet-reserve-compute-resources.yaml
+
+        render_yaml_file $kustomize_kubeadm_init/patch-kubelet-reserve-compute-resources.tpl > $kustomize_kubeadm_init/patch-kubelet-reserve-compute-resources.yaml
+    fi
     if [ -n "$CONTAINER_LOG_MAX_SIZE" ]; then
         insert_patches_strategic_merge \
             $kustomize_kubeadm_init/kustomization.yaml \

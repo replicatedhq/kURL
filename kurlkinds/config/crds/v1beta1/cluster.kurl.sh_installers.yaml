@@ -266,6 +266,8 @@ spec:
                     type: string
                   controlPlane:
                     type: boolean
+                  kubernetesReserved:
+                    type: boolean
                   kubeadmToken:
                     type: string
                   kubeadmTokenCAHash:
