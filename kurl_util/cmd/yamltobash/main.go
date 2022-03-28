@@ -218,6 +218,7 @@ func convertToBash(kurlValues map[string]interface{}, fieldsSet map[string]bool)
 		"Kubernetes.S3Override":                      "SERVICE_S3_OVERRIDE",
 		"Kubernetes.ServiceCIDR":                     "SERVICE_CIDR",
 		"Kubernetes.ServiceCidrRange":                "SERVICE_CIDR_RANGE",
+		"Kubernetes.SystemReservedResources":         "SYSTEM_RESERVED",
 		"Kubernetes.UseStandardNodePortRange":        "USE_STANDARD_PORT_RANGE",
 		"Kubernetes.Version":                         "KUBERNETES_VERSION",
 		"Kurl.AdditionalNoProxyAddresses":            "ADDITIONAL_NO_PROXY_ADDRESSES",

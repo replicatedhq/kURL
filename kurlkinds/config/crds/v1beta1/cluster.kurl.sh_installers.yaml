@@ -284,6 +284,8 @@ spec:
                     type: string
                   serviceCidrRange:
                     type: string
+                  systemReservedResources:
+                    type: string
                   useStandardNodePortRange:
                     type: boolean
                   version:
