@@ -1,5 +1,5 @@
 var path = require("path");
-var webpack = require("webpack");
+const BundleAnalyzerPlugin = require("webpack-bundle-analyzer").BundleAnalyzerPlugin;
 
 var srcPath = path.join(__dirname, "src");
 var distPath = path.join(__dirname, "dist");
@@ -28,10 +28,6 @@ module.exports = {
     ],
   },
 
-  plugins: [
-    new webpack.HotModuleReplacementPlugin(),
-  ],
-
   optimization: {
     moduleIds: "named",
   },
@@ -42,16 +38,5 @@ module.exports = {
     filename: "testgrid.js",
   },
 
-  devtool: "eval-source-map",
-
-  devServer: {
-    port: 8080,
-    host: "0.0.0.0",
-    hot: true,
-    hotOnly: true,
-    historyApiFallback: {
-      verbose: true,
-    },
-    disableHostCheck: true,
-  },
+  devtool: "eval-source-map"
 };

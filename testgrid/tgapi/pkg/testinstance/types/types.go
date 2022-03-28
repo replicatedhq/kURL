@@ -5,6 +5,7 @@ import "time"
 type TestInstance struct {
 	ID            string     `json:"id"`
 	RefID         string     `json:"refId"`
+	TestName      string     `json:"testName"`
 	EnqueuedAt    *time.Time `json:"enqueuedAt"`
 	DequeuedAt    *time.Time `json:"dequeuedAt"`
 	StartedAt     *time.Time `json:"startedAt"`

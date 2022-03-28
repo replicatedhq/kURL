@@ -13,6 +13,24 @@ depcheck:
 serve:
 	npm start
 
+.PHONY: build
+build:
+	@echo "nothing to do"
+
+.PHONY: run
+run: serve
+
+.PHONY: build-okteto
+build-okteto: deps
+build-okteto:
+	node \
+		--max_old_space_size=6144 \
+		./node_modules/webpack/bin/webpack.js \
+		--config webpack.config.js \
+		--env okteto \
+		--mode development
+	cp _redirects dist
+
 .PHONY: build-staging
 build-staging: deps
 build-staging:

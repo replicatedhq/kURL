@@ -163,7 +163,7 @@ func Run(schedulerOptions types.SchedulerOptions) error {
 		}
 
 		for _, operatingSystem := range operatingSystems {
-			testName := randSeq(16)
+			id := randSeq(16)
 
 			isUnsupported := false
 			if stringInSlice(operatingSystem.ID, instance.UnsupportedOSIDs) {
@@ -171,7 +171,8 @@ func Run(schedulerOptions types.SchedulerOptions) error {
 			}
 
 			plannedInstance := tghandlers.PlannedInstance{
-				ID: testName,
+				ID:       id,
+				TestName: instance.Name,
 
 				KurlYAML:  string(installerYAML),
 				KurlURL:   string(installerURL),

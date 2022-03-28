@@ -23,3 +23,9 @@
 	id, testrun_ref, enqueued_at, dequeued_at, started_at, running_at, finished_at, is_success, failure_reason, is_unsupported, output, sonobuoy_results, kurl_yaml, kurl_url, kurl_flags, os_name, os_version, os_image, os_preinit)
 	VALUES (1, 1, '2022-02-21 19:10:25-07', '2022-02-21 19:10:25-07', '2022-02-21 19:10:25-07', '2022-02-21 19:10:25-07', '2022-02-21 19:10:25-07', true, 'none', false, 'something', 'whoknows', '{"testing":"value"}', 'someurl', 'mylabels', 'rhel', '8.x', 'rhel', 'somepreinit');
    ```
+
+# Run Testgrid on Okteto
+
+1. Change directories to the root of the project
+1. Run `okteto pipeline deploy -f testgrid/okteto-pipeline.yaml`
+1. To "queue" a run `./bin/tgrun queue --os-spec hack/os-spec.yaml --spec hack/test-spec.yaml --ref ethan-1 --api-token this-is-super-secret --api-endpoint https://tgapi-${OKTETO_NAMESPACE}.replicated.okteto.dev`

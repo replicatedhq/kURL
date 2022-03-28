@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: migrations
+  labels:
+    app: migrations
+    tags.datadoghq.com/env: "dev"
+spec:
+  selector:
+    matchLabels:
+      app: migrations
+  template:
+    metadata:
+      labels:
+        app: migrations
+        tags.datadoghq.com/env: "dev"
+    spec:
+      volumes:
+        - name: migrations
+          emptyDir:
+            medium: Memory
+      containers:
+      - image: tgmigrations
+        name: pause
+        command:
+          - sleep
+          - infinity
+      initContainers:
+      - image: tgmigrations
+        name: migrations-plan
+        volumeMounts:
+          - name: migrations
+            mountPath: /home/schemahero/migrations
+        args: ["plan"]
+        env:
+          - name: SCHEMAHERO_DRIVER
+            value: postgres
+          - name: SCHEMAHERO_SPEC_FILE
+            value: /home/schemahero/tables
+          - name: SCHEMAHERO_OUT
+            value: /home/schemahero/migrations/plan.yaml
+          - name: SCHEMAHERO_URI
+            value: postgres://testgrid:password@testgrid-postgres:5432/testgrid?sslmode=disable
+      - image: tgmigrations
+        name: migrations-apply
+        volumeMounts:
+          - name: migrations
+            mountPath: /home/schemahero/migrations
+        args: ["apply"]
+        env:
+          - name: SCHEMAHERO_DRIVER
+            value: postgres
+          - name: SCHEMAHERO_DDL
+            value: /home/schemahero/migrations/plan.yaml
+          - name: SCHEMAHERO_URI
+            value: postgres://testgrid:password@testgrid-postgres:5432/testgrid?sslmode=disable
