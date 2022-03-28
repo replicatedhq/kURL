@@ -4,5 +4,5 @@ metadata:
   name: kubelet-configuration
 kubeReserved:
   cpu: "$cpu_millicores_to_reserve"m
-  ephemeralStorage: "1Gi"
+  ephemeral-storage: "1Gi"
   memory: "$mebibytes_to_reserve"Mi
