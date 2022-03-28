@@ -850,7 +850,6 @@ function get_resource_to_reserve_in_range() {
         resources_to_reserve=$(((($total_resource_on_instance < $end_range ? \
             $total_resource_on_instance : $end_range) - $start_range) * $percentage / 100 / 100))
     fi
-    echo $resources_to_reserve
 }
 
 # Calculates the amount of memory to reserve for the kubelet in mebibytes from the total memory available on the instance.
@@ -883,7 +882,6 @@ function get_memory_mebibytes_to_reserve() {
             $(get_resource_to_reserve_in_range $total_memory_on_instance $start_range $end_range $percentage_to_reserve_for_range)))
         done
     fi
-    echo $memory_to_reserve
 }
 
 # Calculates the amount of CPU to reserve for the kubelet in millicores from the total number of vCPUs available on the instance.
@@ -910,5 +908,4 @@ function get_cpu_millicores_to_reserve() {
         cpu_to_reserve=$(($cpu_to_reserve + \
             $(get_resource_to_reserve_in_range $total_cpu_on_instance $start_range $end_range $percentage_to_reserve_for_range)))
     done
-    echo $cpu_to_reserve
 }
