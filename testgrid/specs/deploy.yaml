@@ -206,8 +206,8 @@
   installerSpec:
     kubernetes:
       version: "1.23.x"
-      kubernetesReserved: true
-      evictionThreshold: '{"memory.available":  "234Mi", "nodefs.available": "11%", "nodefs.inodesFree": "6%"}'
+      kubeReserved: true
+      evictionThresholdResources: '{"memory.available":  "234Mi", "nodefs.available": "11%", "nodefs.inodesFree": "6%"}'
       systemReservedResources: '{ "cpu": "123m", "memory": "123Mi", "ephemeral-storage": "1.23Gi" }'
     containerd:
       version: "latest"

@@ -93,26 +93,26 @@ type Kotsadm struct {
 }
 
 type Kubernetes struct {
-	BootstrapToken           string `json:"bootstrapToken,omitempty" yaml:"bootstrapToken,omitempty"`
-	BootstrapTokenTTL        string `json:"bootstrapTokenTTL,omitempty" yaml:"bootstrapTokenTTL,omitempty"`
-	CertKey                  string `json:"certKey,omitempty" yaml:"certKey,omitempty"`
-	ControlPlane             bool   `json:"controlPlane,omitempty" yaml:"controlPlane,omitempty"`
-	HACluster                bool   `json:"HACluster,omitempty" yaml:"HACluster,omitempty"`
-	ContainerLogMaxSize      string `json:"containerLogMaxSize,omitempty" yaml:"containerLogMaxSize,omitempty"`
-	ContainerLogMaxFiles     int    `json:"containerLogMaxFiles,omitempty" yaml:"containerLogMaxFiles,omitempty"`
-	KubeadmToken             string `json:"kubeadmToken,omitempty" yaml:"kubeadmToken,omitempty"`
-	KubeadmTokenCAHash       string `json:"kubeadmTokenCAHash,omitempty" yaml:"kubeadmTokenCAHash,omitempty"`
-	LoadBalancerAddress      string `json:"loadBalancerAddress,omitempty" yaml:"loadBalancerAddress,omitempty"`
-	MasterAddress            string `json:"masterAddress,omitempty" yaml:"masterAddress,omitempty"`
-	S3Override               string `json:"s3Override,omitempty" yaml:"s3Override,omitempty"`
-	ServiceCIDR              string `json:"serviceCIDR,omitempty" yaml:"serviceCIDR,omitempty"`
-	ServiceCidrRange         string `json:"serviceCidrRange,omitempty" yaml:"serviceCidrRange,omitempty"`
-	UseStandardNodePortRange bool   `json:"useStandardNodePortRange,omitempty" yaml:"useStandardNodePortRange,omitempty"`
-	KubernetesReserved       bool   `json:"kubernetesReserved,omitempty" yaml:"kubernetesReserved,omitempty"`
-	EvictionThreshold        string `json:"evictionThreshold,omitempty" yaml:"evictionThreshold,omitempty"`
-	SystemReservedResources  string `json:"systemReservedResources,omitempty" yaml:"systemReservedResources,omitempty"`
-	Version                  string `json:"version" yaml:"version"`
-	CisCompliance            bool   `json:"cisCompliance,omitempty" yaml:"cisCompliance,omitempty"`
+	BootstrapToken             string `json:"bootstrapToken,omitempty" yaml:"bootstrapToken,omitempty"`
+	BootstrapTokenTTL          string `json:"bootstrapTokenTTL,omitempty" yaml:"bootstrapTokenTTL,omitempty"`
+	CertKey                    string `json:"certKey,omitempty" yaml:"certKey,omitempty"`
+	ControlPlane               bool   `json:"controlPlane,omitempty" yaml:"controlPlane,omitempty"`
+	HACluster                  bool   `json:"HACluster,omitempty" yaml:"HACluster,omitempty"`
+	ContainerLogMaxSize        string `json:"containerLogMaxSize,omitempty" yaml:"containerLogMaxSize,omitempty"`
+	ContainerLogMaxFiles       int    `json:"containerLogMaxFiles,omitempty" yaml:"containerLogMaxFiles,omitempty"`
+	KubeadmToken               string `json:"kubeadmToken,omitempty" yaml:"kubeadmToken,omitempty"`
+	KubeadmTokenCAHash         string `json:"kubeadmTokenCAHash,omitempty" yaml:"kubeadmTokenCAHash,omitempty"`
+	LoadBalancerAddress        string `json:"loadBalancerAddress,omitempty" yaml:"loadBalancerAddress,omitempty"`
+	MasterAddress              string `json:"masterAddress,omitempty" yaml:"masterAddress,omitempty"`
+	S3Override                 string `json:"s3Override,omitempty" yaml:"s3Override,omitempty"`
+	ServiceCIDR                string `json:"serviceCIDR,omitempty" yaml:"serviceCIDR,omitempty"`
+	ServiceCidrRange           string `json:"serviceCidrRange,omitempty" yaml:"serviceCidrRange,omitempty"`
+	UseStandardNodePortRange   bool   `json:"useStandardNodePortRange,omitempty" yaml:"useStandardNodePortRange,omitempty"`
+	KubeReserved               bool   `json:"kubeReserved,omitempty" yaml:"kubeReserved,omitempty"`
+	EvictionThresholdResources string `json:"evictionThresholdResources,omitempty" yaml:"evictionThresholdResources,omitempty"`
+	SystemReservedResources    string `json:"systemReservedResources,omitempty" yaml:"systemReservedResources,omitempty"`
+	Version                    string `json:"version" yaml:"version"`
+	CisCompliance              bool   `json:"cisCompliance,omitempty" yaml:"cisCompliance,omitempty"`
 }
 
 type Kurl struct {

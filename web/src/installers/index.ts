@@ -34,8 +34,8 @@ export interface KubernetesConfig {
   useStandardNodePortRange?: boolean;
   controlPlane?: boolean;
   certKey?: string;
-  kubernetesReserved?: boolean;
-  evictionThreshold?: string;
+  kubeReserved?: boolean;
+  evictionThresholdResources?: string;
   systemReservedResources?: string;
 }
 
@@ -58,8 +58,8 @@ export const kubernetesConfigSchema = {
     controlPlane: { type: "boolean", flag: "control-plane", description: "Used during a join script to indicate that the node will be an additional master (read-only)" },
     certKey: { type: "string", flag: "cert-key", description: "A secret needed for new master nodes to join an existing cluster (read-only)" },
     cisCompliance: { type: "boolean", flag: "kubernetes-cis-compliance", description: "Indicates if this install should meet all CIS compliance requirements" },
-    kubernetesReserved: {type: "boolean", flag: "kubernetes-reserved", description: "Reserved CPU, memory and disk for kubernetes"},
-    evictionThreshold: { type: "string", flag: "eviction-threshold", description: "Provided as eviction-threshold to kubelet configuration as described in https://kubernetes.io/docs/reference/config-api/kubelet-config.v1beta1/#kubelet-config-k8s-io-v1beta1-KubeletConfiguration" },
+    kubeReserved: {type: "boolean", flag: "kubernetes-reserved", description: "Reserved CPU, memory and disk for kubernetes"},
+    evictionThresholdResources: { type: "string", flag: "eviction-threshold", description: "Provided as eviction-threshold to kubelet configuration as described in https://kubernetes.io/docs/reference/config-api/kubelet-config.v1beta1/#kubelet-config-k8s-io-v1beta1-KubeletConfiguration" },
     systemReservedResources: { type: "string", flag: "system-reserved-resources", description: "Provided as system-reserved to kubelet configuration as described in https://kubernetes.io/docs/reference/config-api/kubelet-config.v1beta1/#kubelet-config-k8s-io-v1beta1-KubeletConfiguration" },
   },
   required: [ "version" ],
