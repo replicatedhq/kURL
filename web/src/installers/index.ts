@@ -36,6 +36,7 @@ export interface KubernetesConfig {
   certKey?: string;
   kubernetesReserved?: boolean;
   evictionThreshold?: string;
+  systemReservedResources?: string;
 }
 
 export const kubernetesConfigSchema = {
@@ -59,6 +60,7 @@ export const kubernetesConfigSchema = {
     cisCompliance: { type: "boolean", flag: "kubernetes-cis-compliance", description: "Indicates if this install should meet all CIS compliance requirements" },
     kubernetesReserved: {type: "boolean", flag: "kubernetes-reserved", description: "Reserved CPU, memory and disk for kubernetes"},
     evictionThreshold: { type: "string", flag: "eviction-threshold", description: "Provided as eviction-threshold to kubelet configuration as described in https://kubernetes.io/docs/reference/config-api/kubelet-config.v1beta1/#kubelet-config-k8s-io-v1beta1-KubeletConfiguration" },
+    systemReservedResources: { type: "string", flag: "system-reserved-resources", description: "Provided as system-reserved to kubelet configuration as described in https://kubernetes.io/docs/reference/config-api/kubelet-config.v1beta1/#kubelet-config-k8s-io-v1beta1-KubeletConfiguration" },
   },
   required: [ "version" ],
   additionalProperties: false,

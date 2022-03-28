@@ -141,6 +141,13 @@ function init() {
 
         render_yaml_file $kustomize_kubeadm_init/patch-kubelet-eviction-threshold.tpl > $kustomize_kubeadm_init/patch-kubelet-eviction-threshold.yaml
     fi
+    if [ -n "$SYSTEM_RESERVED" ]; then
+        insert_patches_strategic_merge \
+            $kustomize_kubeadm_init/kustomization.yaml \
+            patch-kubelet-system-reserved.yaml
+
+        render_yaml_file $kustomize_kubeadm_init/patch-kubelet-system-reserved.tpl > $kustomize_kubeadm_init/patch-kubelet-system-reserved.yaml
+    fi
 
     if [ -n "$CONTAINER_LOG_MAX_SIZE" ]; then
         insert_patches_strategic_merge \

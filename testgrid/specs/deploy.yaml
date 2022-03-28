@@ -208,6 +208,7 @@
       version: "1.23.x"
       kubernetesReserved: true
       evictionThreshold: '{"memory.available":  "234Mi", "nodefs.available": "11%", "nodefs.inodesFree": "6%"}'
+      systemReservedResources: '{ "cpu": "123m", "memory": "123Mi", "ephemeral-storage": "1.23Gi" }'
     containerd:
       version: "latest"
     weave:
@@ -219,3 +220,7 @@
     sudo cat /var/lib/kubelet/config.yaml | grep "ephemeral-storage: 1Gi"
     sudo cat /var/lib/kubelet/config.yaml | grep -A 4 evictionHard
     sudo cat /var/lib/kubelet/config.yaml | grep "memory.available: 234Mi"
+    sudo cat /var/lib/kubelet/config.yaml | grep -A 4 systemReserved
+    sudo cat /var/lib/kubelet/config.yaml | grep "cpu: 123m"
+    sudo cat /var/lib/kubelet/config.yaml | grep "ephemeral-storage: 1.23Gi"
+    sudo cat /var/lib/kubelet/config.yaml | grep "memory: 123Mi"

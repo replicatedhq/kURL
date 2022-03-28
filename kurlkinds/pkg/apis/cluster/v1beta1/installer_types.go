@@ -110,6 +110,7 @@ type Kubernetes struct {
 	UseStandardNodePortRange bool   `json:"useStandardNodePortRange,omitempty" yaml:"useStandardNodePortRange,omitempty"`
 	KubernetesReserved       bool   `json:"kubernetesReserved,omitempty" yaml:"kubernetesReserved,omitempty"`
 	EvictionThreshold        string `json:"evictionThreshold,omitempty" yaml:"evictionThreshold,omitempty"`
+	SystemReservedResources  string `json:"systemReservedResources,omitempty" yaml:"systemReservedResources,omitempty"`
 	Version                  string `json:"version" yaml:"version"`
 	CisCompliance            bool   `json:"cisCompliance,omitempty" yaml:"cisCompliance,omitempty"`
 }
