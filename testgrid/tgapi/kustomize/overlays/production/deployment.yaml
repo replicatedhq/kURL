@@ -11,7 +11,6 @@ spec:
       containers:
         - name: tgapi
           image: 799720048698.dkr.ecr.us-east-1.amazonaws.com/tgapi
-          command: ["/tgapi", "run"]
           envFrom:
             - secretRef:
                 name: tgapi

@@ -16,6 +16,7 @@ spec:
         - name: tgapi
           image: tgapi
           imagePullPolicy: IfNotPresent
+          command: ["/tgapi", "run"]
           ports:
             - name: http
               containerPort: 3000

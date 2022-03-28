@@ -25,20 +25,6 @@ spec:
         command:
           - sleep
           - infinity
-        volumeMounts:
-          - name: migrations
-            mountPath: /home/schemahero/migrations
-        env:
-          - name: SCHEMAHERO_DRIVER
-            value: postgres
-          - name: SCHEMAHERO_SPEC_FILE
-            value: /home/schemahero/tables
-          - name: SCHEMAHERO_OUT
-            value: /home/schemahero/migrations/plan.yaml
-          - name: SCHEMAHERO_DDL
-            value: /home/schemahero/migrations/plan.yaml
-          - name: SCHEMAHERO_URI
-            value: postgres://testgrid:password@testgrid-postgres:5432/testgrid?sslmode=disable
       initContainers:
       - image: tgmigrations
         name: migrations-plan

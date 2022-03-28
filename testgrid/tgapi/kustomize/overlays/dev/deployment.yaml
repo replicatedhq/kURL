@@ -7,7 +7,6 @@ spec:
     spec:
       containers:
         - name: tgapi
-          command: ["/tgapi", "run"]
           envFrom:
             - secretRef:
                 name: tgapi

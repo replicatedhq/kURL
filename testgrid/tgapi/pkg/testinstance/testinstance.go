@@ -49,10 +49,10 @@ limit 1) returning id, test_name, dequeued_at, testrun_ref, kurl_yaml, kurl_url,
 	row := db.QueryRow(query)
 
 	testInstance := types.TestInstance{}
-	var kurlFlags, upgradeYAML, upgradeURL, supportbundleYAML, postInstallScript, postUpgradeScript, osPreInit sql.NullString
+	var testName, kurlFlags, upgradeYAML, upgradeURL, supportbundleYAML, postInstallScript, postUpgradeScript, osPreInit sql.NullString
 	if err := row.Scan(
 		&testInstance.ID,
-		&testInstance.TestName,
+		&testName,
 		&testInstance.RefID,
 		&testInstance.KurlYAML,
 		&testInstance.KurlURL,
@@ -70,6 +70,7 @@ limit 1) returning id, test_name, dequeued_at, testrun_ref, kurl_yaml, kurl_url,
 		return nil, errors.Wrap(err, "failed to query test instance")
 	}
 
+	testInstance.TestName = testName.String
 	testInstance.KurlFlags = kurlFlags.String
 	testInstance.UpgradeYAML = upgradeYAML.String
 	testInstance.UpgradeURL = upgradeURL.String
@@ -99,10 +100,10 @@ limit 1) returning id, test_name, dequeued_at, testrun_ref, kurl_yaml, kurl_url,
 	row := db.QueryRow(query)
 
 	testInstance := types.TestInstance{}
-	var kurlFlags, upgradeYAML, upgradeURL, supportbundleYAML, postInstallScript, postUpgradeScript, osPreInit sql.NullString
+	var testName, kurlFlags, upgradeYAML, upgradeURL, supportbundleYAML, postInstallScript, postUpgradeScript, osPreInit sql.NullString
 	if err := row.Scan(
 		&testInstance.ID,
-		&testInstance.TestName,
+		&testName,
 		&testInstance.RefID,
 		&testInstance.KurlYAML,
 		&testInstance.KurlURL,
@@ -120,6 +121,7 @@ limit 1) returning id, test_name, dequeued_at, testrun_ref, kurl_yaml, kurl_url,
 		return nil, errors.Wrap(err, "failed to query test instance")
 	}
 
+	testInstance.TestName = testName.String
 	testInstance.KurlFlags = kurlFlags.String
 	testInstance.UpgradeYAML = upgradeYAML.String
 	testInstance.UpgradeURL = upgradeURL.String
@@ -278,11 +280,11 @@ WHERE ti.testrun_ref = $1`
 		var startedAt sql.NullTime
 		var finishedAt sql.NullTime
 		var isSuccess, isUnsupported sql.NullBool
-		var kurlFlags, upgradeYAML, upgradeURL, supportbundleYAML, postInstallScript, postUpgradeScript, failureReason sql.NullString
+		var testName, kurlFlags, upgradeYAML, upgradeURL, supportbundleYAML, postInstallScript, postUpgradeScript, failureReason sql.NullString
 
 		if err := rows.Scan(
 			&testInstance.ID,
-			&testInstance.TestName,
+			&testName,
 			&testInstance.KurlYAML,
 			&testInstance.KurlURL,
 			&kurlFlags,
@@ -318,6 +320,7 @@ WHERE ti.testrun_ref = $1`
 			testInstance.FinishedAt = &finishedAt.Time
 		}
 
+		testInstance.TestName = testName.String
 		testInstance.IsSuccess = isSuccess.Bool
 		testInstance.FailureReason = failureReason.String
 		testInstance.IsUnsupported = isUnsupported.Bool
