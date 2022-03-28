@@ -119,6 +119,7 @@ function init() {
             $kustomize_kubeadm_init/kustomization.yaml \
             patch-cluster-config-cis-compliance.yaml
     fi
+
     if [ "$KUBERNETES_RESERVED" == "1" ]; then
         # gets the memory and CPU capacity of the worker node
         MEMORY_MI=$(free -m | grep Mem | awk '{print $2}')
@@ -133,6 +134,14 @@ function init() {
 
         render_yaml_file $kustomize_kubeadm_init/patch-kubelet-reserve-compute-resources.tpl > $kustomize_kubeadm_init/patch-kubelet-reserve-compute-resources.yaml
     fi
+    if [ -n "$EVICTION_THRESHOLD" ]; then
+        insert_patches_strategic_merge \
+            $kustomize_kubeadm_init/kustomization.yaml \
+            patch-kubelet-eviction-threshold.yaml
+
+        render_yaml_file $kustomize_kubeadm_init/patch-kubelet-eviction-threshold.tpl > $kustomize_kubeadm_init/patch-kubelet-eviction-threshold.yaml
+    fi
+
     if [ -n "$CONTAINER_LOG_MAX_SIZE" ]; then
         insert_patches_strategic_merge \
             $kustomize_kubeadm_init/kustomization.yaml \

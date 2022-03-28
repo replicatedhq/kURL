@@ -187,3 +187,35 @@
       version: 1.23.x
     weave:
       version: latest
+- name: k8s123x_cis_benchmarks_checks
+  installerSpec:
+    kubernetes:
+      version: "1.23.x"
+      cisCompliance: true
+    containerd:
+      version: "latest"
+    weave:
+      version: "latest"
+    ekco:
+      version: "latest"
+  postInstallScript: |
+    echo "running CIS Kubernetes Benchmark Checks"
+    curl -L https://github.com/aquasecurity/kube-bench/releases/download/v0.6.2/kube-bench_0.6.2_linux_amd64.tar.gz | tar -xz
+    ./kube-bench --config-dir=`pwd`/cfg --config=`pwd`/cfg/config.yaml --exit-code=1
+- name: k8s123x_reserved_resources
+  installerSpec:
+    kubernetes:
+      version: "1.23.x"
+      kubernetesReserved: true
+      evictionThreshold: '{"memory.available":  "234Mi", "nodefs.available": "11%", "nodefs.inodesFree": "6%"}'
+    containerd:
+      version: "latest"
+    weave:
+      version: "latest"
+  postInstallScript: |
+    set -eo pipefail
+    echo "validating kubelet config contains reserved resources"
+    sudo cat /var/lib/kubelet/config.yaml | grep -A 4 kubeReserved
+    sudo cat /var/lib/kubelet/config.yaml | grep "ephemeral-storage: 1Gi"
+    sudo cat /var/lib/kubelet/config.yaml | grep -A 4 evictionHard
+    sudo cat /var/lib/kubelet/config.yaml | grep "memory.available: 234Mi"
