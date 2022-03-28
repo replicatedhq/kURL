@@ -266,12 +266,14 @@ spec:
                     type: string
                   controlPlane:
                     type: boolean
-                  kubernetesReserved:
-                    type: boolean
+                  evictionThreshold:
+                    type: string
                   kubeadmToken:
                     type: string
                   kubeadmTokenCAHash:
                     type: string
+                  kubernetesReserved:
+                    type: boolean
                   loadBalancerAddress:
                     type: string
                   masterAddress:
