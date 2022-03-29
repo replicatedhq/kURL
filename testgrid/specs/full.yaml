@@ -1108,15 +1108,12 @@
     ekco:
       version: "latest"
       podImageOverrides:
-        - kotsadm/kotsadm:v1.59.0=docker.io/kotsadm/kotsadm:v1.59.3
-        - kotsadm/kotsadm-migrations:v1.59.0=docker.io/kotsadm/kotsadm-migrations:v1.59.3
-        - kotsadm/kurl-proxy:v1.59.0=docker.io/kotsadm/kurl-proxy:v1.59.3
+        - minio/minio:RELEASE.2020-01-25T02-50-51Z=docker.io/minio/minio:RELEASE.2022-03-26T06-49-28Z
   postInstallScript: |
     sleep 120
 
-    pod_image="$(kubectl get po -l app=kotsadm -o jsonpath='{.items[].spec.containers[].image}')"
-
-    if ! echo "$pod_image" | grep 'v1\.59\.3' ; then
+    pod_image="$(kubectl -n minio get po -l app=minio -o jsonpath='{.items[].spec.containers[].image}')"
+    if ! echo "$pod_image" | grep '2022-03-26T06-49-28Z' ; then
       echo "Pod image override failed: $pod_image"
       exit 1
     fi
