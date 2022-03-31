@@ -1,6 +1,8 @@
 
 export GO111MODULE=on
 
+export PATH := /usr/local/kubebuilder/bin:${PATH}
+
 # Image URL to use all building/pushing image targets
 IMG ?= controller:latest
 
@@ -72,5 +74,5 @@ update-kubebuilder:
 	# curl -fsSL https://go.kubebuilder.io/dl/${KUBEBUILDER_VERSION}/${os}/${arch} | tar -xz -C /tmp/
 	curl -fsSL https://github.com/kubernetes-sigs/kubebuilder/releases/download/v${KUBEBUILDER_VERSION}/kubebuilder_${KUBEBUILDER_VERSION}_${os}_${arch}.tar.gz | tar -xz -C /tmp/
 
-	rm -rf ${GOPATH}/bin/kubebuilder
-	mv /tmp/kubebuilder_${KUBEBUILDER_VERSION}_${os}_${arch}/bin/kubebuilder ${GOPATH}/bin/kubebuilder
+	sudo rm -rf /usr/local/kubebuilder
+	sudo mv /tmp/kubebuilder_${KUBEBUILDER_VERSION}_${os}_${arch} /usr/local/kubebuilder
