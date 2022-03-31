@@ -27,3 +27,7 @@ vendor
 *.swp
 *.swo
 *~
+
+# exclude kurl kinds crd
+# this is generated using "make manifests"
+config/crds/
