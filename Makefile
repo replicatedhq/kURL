@@ -418,6 +418,7 @@ build/krew:
 
 build/kurlkinds:
 	mkdir -p build/kurlkinds
+	${MAKE} -C kurlkinds deps generate
 	cp kurlkinds/config/crds/v1beta1/cluster.kurl.sh_installers.yaml build/kurlkinds
 
 build/kustomize:
