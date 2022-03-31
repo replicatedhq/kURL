@@ -115,7 +115,7 @@ function load_all_images() {
 
 function generate_admin_user() {
     # get the last IP address from the SANs because that will be load balancer if defined, else public address if defined, else local
-    local ip=$(echo "Q" | openssl s_client -connect=${PRIVATE_ADDRESS}:6443 | openssl x509 -noout -text | grep DNS | awk '{ print $NF }' | awk -F ':' '{ print $2 }')
+    local ip=$(echo "Q" | openssl s_client -connect ${PRIVATE_ADDRESS}:6443 | openssl x509 -noout -text | grep DNS | awk '{ print $NF }' | awk -F ':' '{ print $2 }')
 
     if ! isValidIpv4 "$ip"; then
         bail "Failed to parse IP from Kubernetes API Server SANs"
@@ -124,7 +124,7 @@ function generate_admin_user() {
     local address="https://${ip}:6443"
     local username="${SUDO_USER}"
 
-    openssl req -newkey rsa:2048 -nodes -keyout "${username}.key" -out "${username}.csr" -subj="/CN=${username}/O=system:masters"
+    openssl req -newkey rsa:2048 -nodes -keyout "${username}.key" -out "${username}.csr" -subj "/CN=${username}/O=system:masters"
     openssl x509 -req -days 365 -sha256 -in "${username}.csr" -CA /etc/kubernetes/pki/ca.crt -CAkey /etc/kubernetes/pki/ca.key -set_serial 1 -out "${username}.crt"
 
     # kubectl will create the conf file
