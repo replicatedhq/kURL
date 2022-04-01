@@ -78,7 +78,7 @@ function migrate_rgw_to_minio() {
     MINIO_ACCESS_KEY_SECRET=$(kubectl -n ${MINIO_NAMESPACE} get secret minio-credentials -ojsonpath='{ .data.MINIO_SECRET_KEY }' | base64 --decode)
     MINIO_CLUSTER_IP=$(kubectl -n ${MINIO_NAMESPACE} get service minio | tail -n1 | awk '{ print $3}')
 
-    get_shared    
+    get_shared
 
     kubectl delete pod sync-object-store --force --grace-period=0 &>/dev/null || true
 
