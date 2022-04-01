@@ -1264,3 +1264,10 @@
       shouldDisableRebootServices: false
       shouldDisableClearNodes: false
       shouldEnablePurgeNodes: false
+  unsupportedOSIDs:
+    - amzn-20
+    - ol-79
+    - ol-85
+    - ubuntu-1604
+    - ubuntu-1804
+    - ubuntu-2004
