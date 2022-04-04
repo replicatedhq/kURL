@@ -118,7 +118,7 @@ export class Installers {
 
     response.set("X-Kurl-Hash", installer.hash());
     response.status(200);
-    return this.templates.renderInstallScript(installer, kurlVersion);
+    return this.templates.renderInstallScript(installer, installer.spec.kurl?.installerVersion);
   }
 
   /**

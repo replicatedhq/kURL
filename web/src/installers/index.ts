@@ -801,6 +801,14 @@ export class Installer {
     i.spec.registry = { version: this.toDotXVersion(installerVersions.registry[0]) };
     i.spec.prometheus = { version: this.toDotXVersion(installerVersions.prometheus[0]) };
 
+    if (kurlVersion) {
+      if (i.spec.kurl) {
+        i.spec.kurl.installerVersion = kurlVersion
+      } else {
+        i.spec.kurl = {additionalNoProxyAddresses: [], installerVersion: kurlVersion}
+      }
+    }
+
     return i;
   }
 
