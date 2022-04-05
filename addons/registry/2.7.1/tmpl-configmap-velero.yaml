@@ -8,7 +8,7 @@ metadata:
 data:
   backup.sh: |-
     #!/bin/sh
-    set -euo pipefail
+    set -eu
     echo 'backup starting ...'
     if [ -z "\${OBJECT_STORE_HOSTNAME-}" ]; then
       export OBJECT_STORE_HOSTNAME=\$OBJECT_STORE_CLUSTER_IP # included for backwards compatibility for snapshot restores with pre-ipv6 snapshot restores
@@ -23,7 +23,7 @@ data:
 
   restore.sh: |-
     #!/bin/sh
-    set -euo pipefail
+    set -eu
 
     if [ -z "\${OBJECT_STORE_HOSTNAME-}" ]; then
       export OBJECT_STORE_HOSTNAME=\$OBJECT_STORE_CLUSTER_IP # included for backwards compatibility for snapshot restores with pre-ipv6 snapshot restores
