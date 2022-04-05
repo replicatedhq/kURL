@@ -10,7 +10,7 @@ data:
     #!/bin/sh
     set -euo pipefail
     echo 'backup starting ...'
-    if [ -z "\$OBJECT_STORE_HOSTNAME" ]; then
+    if [ -z "\${OBJECT_STORE_HOSTNAME-}" ]; then
       export OBJECT_STORE_HOSTNAME=\$OBJECT_STORE_CLUSTER_IP # included for backwards compatibility for snapshot restores with pre-ipv6 snapshot restores
     fi
     export S3_DIR=/backup/s3/
@@ -25,7 +25,7 @@ data:
     #!/bin/sh
     set -euo pipefail
 
-    if [ -z "\$OBJECT_STORE_HOSTNAME" ]; then
+    if [ -z "\${OBJECT_STORE_HOSTNAME-}" ]; then
       export OBJECT_STORE_HOSTNAME=\$OBJECT_STORE_CLUSTER_IP # included for backwards compatibility for snapshot restores with pre-ipv6 snapshot restores
     fi
 
