@@ -145,6 +145,11 @@ export class Installers {
       response.status(404);
       return notFoundResponse;
     }
+
+    if (!kurlVersion && installer.spec.kurl) {
+      kurlVersion = installer.spec.kurl.installerVersion
+    }
+
     installer = await installer.resolve();
 
     try {
