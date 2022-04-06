@@ -52,6 +52,11 @@ export class Installers {
       response.status(404);
       return notFoundResponse;
     }
+
+    if (!kurlVersion && installer.spec.kurl) {
+      kurlVersion = installer.spec.kurl.installerVersion
+    }
+
     installer = await installer.resolve();
 
     response.set("X-Kurl-Hash", installer.hash());
@@ -79,6 +84,11 @@ export class Installers {
       response.status(404);
       return notFoundResponse;
     }
+
+    if (!kurlVersion && installer.spec.kurl) {
+      kurlVersion = installer.spec.kurl.installerVersion
+    }
+
     installer = await installer.resolve();
 
     response.set("X-Kurl-Hash", installer.hash());
@@ -100,6 +110,11 @@ export class Installers {
       response.status(404);
       return notFoundResponse;
     }
+
+    if (!kurlVersion && installer.spec.kurl) {
+      kurlVersion = installer.spec.kurl.installerVersion
+    }
+
     installer = await installer.resolve();
 
     response.set("X-Kurl-Hash", installer.hash());
