@@ -6,7 +6,7 @@ require (
 	github.com/DataDog/datadog-go v4.8.3+incompatible
 	github.com/Masterminds/sprig v2.22.0+incompatible
 	github.com/apparentlymart/go-cidr v1.1.0
-	github.com/aws/aws-sdk-go v1.42.44
+	github.com/aws/aws-sdk-go v1.43.34
 	github.com/briandowns/spinner v1.18.0
 	github.com/bugsnag/bugsnag-go/v2 v2.1.2
 	github.com/chzyer/readline v0.0.0-20180603132655-2972be24d48e
@@ -23,29 +23,29 @@ require (
 	github.com/onsi/gomega v1.17.0
 	github.com/pelletier/go-toml v1.9.4
 	github.com/pkg/errors v0.9.1
-	github.com/replicatedhq/pvmigrate v0.4.3
+	github.com/replicatedhq/pvmigrate v0.4.4
 	github.com/replicatedhq/troubleshoot v0.28.0
 	github.com/replicatedhq/yaml/v3 v3.0.0-beta5-replicatedhq
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/afero v1.8.0
 	github.com/spf13/cobra v1.3.0
 	github.com/spf13/viper v1.10.1
-	github.com/stretchr/testify v1.7.0
+	github.com/stretchr/testify v1.7.1
 	github.com/vishvananda/netlink v1.1.1-0.20201029203352-d40f9887b852
 	github.com/vmware-tanzu/velero v1.6.2
 	go.uber.org/zap v1.20.0
 	golang.org/x/crypto v0.0.0-20211215153901-e495a2d5b3d3
 	golang.org/x/lint v0.0.0-20210508222113-6edffad5e616
-	golang.org/x/net v0.0.0-20211216030914-fe4d6282115f
+	golang.org/x/net v0.0.0-20220127200216-cd36cc0744dd
 	gopkg.in/yaml.v2 v2.4.0
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
-	k8s.io/api v0.23.1
-	k8s.io/apimachinery v0.23.1
+	k8s.io/api v0.23.5
+	k8s.io/apimachinery v0.23.5
 	k8s.io/client-go v12.0.0+incompatible
 	k8s.io/code-generator v0.22.4
 	kubevirt.io/api v0.49.0
 	kubevirt.io/client-go v0.49.0
-	sigs.k8s.io/controller-runtime v0.11.0
+	sigs.k8s.io/controller-runtime v0.11.2
 	sigs.k8s.io/controller-tools v0.8.0
 )
 
@@ -204,7 +204,7 @@ require (
 	golang.org/x/oauth2 v0.0.0-20211104180415-d3ed0bb246c8 // indirect
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c // indirect
 	golang.org/x/sys v0.0.0-20220114195835-da31bd327af9 // indirect
-	golang.org/x/term v0.0.0-20210615171337-6886f2dfbf5b // indirect
+	golang.org/x/term v0.0.0-20210927222741-03fcf44c2211 // indirect
 	golang.org/x/text v0.3.7 // indirect
 	golang.org/x/time v0.0.0-20210723032227-1f47c861a9ac // indirect
 	golang.org/x/tools v0.1.6-0.20210820212750-d4cc65f0b2ff // indirect
@@ -218,18 +218,18 @@ require (
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/ini.v1 v1.66.2 // indirect
 	gopkg.in/square/go-jose.v2 v2.5.1 // indirect
-	k8s.io/apiextensions-apiserver v0.23.0 // indirect
+	k8s.io/apiextensions-apiserver v0.23.5 // indirect
 	k8s.io/apiserver v0.23.0 // indirect
 	k8s.io/cli-runtime v0.23.1 // indirect
 	k8s.io/component-base v0.23.0 // indirect
 	k8s.io/klog/v2 v2.30.0 // indirect
 	k8s.io/kube-openapi v0.0.0-20211115234752-e816edb12b65 // indirect
-	k8s.io/utils v0.0.0-20210930125809-cb0fa318a74b // indirect
+	k8s.io/utils v0.0.0-20211116205334-6203023598ed // indirect
 	kubevirt.io/containerized-data-importer-api v1.41.0 // indirect
 	kubevirt.io/controller-lifecycle-operator-sdk v0.2.1 // indirect
 	periph.io/x/periph v3.6.8+incompatible // indirect
 	sigs.k8s.io/kustomize v2.0.3+incompatible // indirect
-	sigs.k8s.io/structured-merge-diff/v4 v4.2.0 // indirect
+	sigs.k8s.io/structured-merge-diff/v4 v4.2.1 // indirect
 	sigs.k8s.io/yaml v1.3.0 // indirect
 )
 
