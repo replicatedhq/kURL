@@ -1276,6 +1276,8 @@ github.com/replicatedhq/pvmigrate v0.4.2 h1:mR0ZXMpscfvHZaPhp3i5BC8co+zXhspMctRU
 github.com/replicatedhq/pvmigrate v0.4.2/go.mod h1:aZKHDuup3W29uYaLmu1LjYAIn6yORCGAuTCJV1zkr9U=
 github.com/replicatedhq/pvmigrate v0.4.3 h1:S+fQuw55n+VdwD/XjPuEYe98ryKMeIq0pD9QqsXPHvY=
 github.com/replicatedhq/pvmigrate v0.4.3/go.mod h1:aZKHDuup3W29uYaLmu1LjYAIn6yORCGAuTCJV1zkr9U=
+github.com/replicatedhq/pvmigrate v0.4.4 h1:1xIi1Nadv4huJjuclMnGAtDs5yxnX8hT7SUKJcFOo3E=
+github.com/replicatedhq/pvmigrate v0.4.4/go.mod h1:tcOluIOzScw8OIiCxKTwfIOZjFeoBDQ+gRBAuV77lQE=
 github.com/replicatedhq/termui/v3 v3.1.1-0.20200811145416-f40076d26851/go.mod h1:JDxG6+uubnk9/BZ2yUsyAJJwlptjrnmB2MPF5d2Xe/8=
 github.com/replicatedhq/troubleshoot v0.28.0 h1:0B7ibyxur/ao1+PSQPLh2GnjonIfUxUXoiwaoGSXMag=
 github.com/replicatedhq/troubleshoot v0.28.0/go.mod h1:+3kZt9nOgbMy+F6fGp66qtjmenVclYIcXrpRQZ4KZzc=
@@ -1397,6 +1399,7 @@ github.com/stretchr/testify v1.5.1/go.mod h1:5W2xD1RspED5o8YsWQXVCued0rvSQ+mT+I5
 github.com/stretchr/testify v1.6.1/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
 github.com/stretchr/testify v1.7.0 h1:nwc3DEeHmmLAfoZucVR881uASk0Mfjw8xYJ99tb5CcY=
 github.com/stretchr/testify v1.7.0/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
+github.com/stretchr/testify v1.7.1/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
 github.com/subosito/gotenv v1.2.0 h1:Slr1R9HxAlEKefgq5jn9U+DnETlIUa6HfgEzj0g5d7s=
 github.com/subosito/gotenv v1.2.0/go.mod h1:N0PQaV/YGNqwC0u51sEeR/aUtSLEXKX9iv69rRypqCw=
 github.com/sylabs/release-tools v0.1.0/go.mod h1:pqP/z/11/rYMQ0OM/Nn7TxGijw7KfZwW9UolD/J1TUo=
@@ -2220,6 +2223,7 @@ k8s.io/utils v0.0.0-20201110183641-67b214c5f920/go.mod h1:jPW/WVKK9YHAvNhRxK0md/
 k8s.io/utils v0.0.0-20210111153108-fddb29f9d009/go.mod h1:jPW/WVKK9YHAvNhRxK0md/EJ228hCsBRufyofKtW8HA=
 k8s.io/utils v0.0.0-20210930125809-cb0fa318a74b h1:wxEMGetGMur3J1xuGLQY7GEQYg9bZxKn3tKo5k/eYcs=
 k8s.io/utils v0.0.0-20210930125809-cb0fa318a74b/go.mod h1:jPW/WVKK9YHAvNhRxK0md/EJ228hCsBRufyofKtW8HA=
+k8s.io/utils v0.0.0-20211116205334-6203023598ed/go.mod h1:jPW/WVKK9YHAvNhRxK0md/EJ228hCsBRufyofKtW8HA=
 kubevirt.io/api v0.0.0-20220111180619-bd15f69822b9/go.mod h1:aQbwZbjpFeYiWZJmgPzId0Re3Qjx+I/k1k6/hOzmcHY=
 kubevirt.io/api v0.49.0 h1:KQsZHxsU4kyTT/rF8HHMhyqs3lNggliS+wEozcOe+uU=
 kubevirt.io/api v0.49.0/go.mod h1:aQbwZbjpFeYiWZJmgPzId0Re3Qjx+I/k1k6/hOzmcHY=
@@ -2252,6 +2256,7 @@ sigs.k8s.io/structured-merge-diff/v4 v4.0.2/go.mod h1:bJZC9H9iH24zzfZ/41RGcq60oK
 sigs.k8s.io/structured-merge-diff/v4 v4.1.2/go.mod h1:j/nl6xW8vLS49O8YvXW1ocPhZawJtm+Yrr7PPRQ0Vg4=
 sigs.k8s.io/structured-merge-diff/v4 v4.2.0 h1:kDvPBbnPk+qYmkHmSo8vKGp438IASWofnbbUKDE/bv0=
 sigs.k8s.io/structured-merge-diff/v4 v4.2.0/go.mod h1:j/nl6xW8vLS49O8YvXW1ocPhZawJtm+Yrr7PPRQ0Vg4=
+sigs.k8s.io/structured-merge-diff/v4 v4.2.1/go.mod h1:j/nl6xW8vLS49O8YvXW1ocPhZawJtm+Yrr7PPRQ0Vg4=
 sigs.k8s.io/yaml v1.1.0/go.mod h1:UJmg0vDUVViEyp3mgSv9WPwZCDxu4rQW1olrI1uml+o=
 sigs.k8s.io/yaml v1.2.0/go.mod h1:yfXDCHCao9+ENCvLSE62v9VSji2MKu5jeNfTrofGhJc=
 sigs.k8s.io/yaml v1.3.0 h1:a2VclLzOGrwOHDiV8EfBGhvjHvP46CtW5j6POvhYGGo=
