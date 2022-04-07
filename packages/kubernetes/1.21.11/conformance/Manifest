@@ -1,0 +1,2 @@
+image conformance k8s.gcr.io/conformance:v1.21.11
+image nginx k8s.gcr.io/e2e-test-images/nginx:1.14-1
