@@ -197,6 +197,9 @@ function collect_debug_info_after_kurl() {
     echo "running pods after completion:";
     kubectl get pods -A || true
     echo "";
+    echo "node descriptions after completion:";
+    kubectl describe nodes || true
+    echo "";
 }
 
 function run_tasks_join_token() {
