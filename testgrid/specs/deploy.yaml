@@ -162,7 +162,7 @@
     kubernetes:
       version: 1.21.x
     containerd:
-      version: 1.5.x
+      version: 1.4.x
     weave:
       version: 2.8.x
     contour:
