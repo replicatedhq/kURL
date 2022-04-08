@@ -254,7 +254,7 @@
     contour:
       version: latest
     containerd:
-      version: 1.4.6
+      version: 1.5.11
 - name: k8s119x_containerd148
   installerSpec:
     kubernetes:
@@ -276,7 +276,7 @@
     ekco:
       version: 0.6.0
     containerd:
-      version: 1.4.8
+      version: 1.4.13
   unsupportedOSIDs:
   - ubuntu-1604
 - name: k8s119x_containerd139
@@ -483,7 +483,7 @@
     weave:
       version: latest
     containerd:
-      version: latest
+      version: 1.4.6
     helm:
       helmfileSpec: |-
         repositories:
@@ -509,7 +509,7 @@
     weave:
       version: latest
     containerd:
-      version: 1.4.6
+      version: 1.5.11
     helm:
       helmfileSpec: |-
         repositories:
@@ -655,7 +655,7 @@
     kotsadm:
       version: 1.38.0
     containerd:
-      version: 1.4.6
+      version: 1.4.12
 - name: k8s121
   installerSpec:
     kubernetes:
@@ -773,7 +773,7 @@
     kotsadm:
       version: 1.38.0
     containerd:
-      version: 1.4.6
+      version: 1.5.10
 - name: remove_all_object_storage
   installerSpec:
     kubernetes:
@@ -837,7 +837,7 @@
     kubernetes:
       version: 1.22.x
     containerd:
-      version: 1.4.x
+      version: 1.5.x
     weave:
       version: latest
     contour:
@@ -862,7 +862,7 @@
     kubernetes:
       version: 1.22.x
     containerd:
-      version: 1.4.x
+      version: 1.5.x
     antrea:
       version: 1.4.x
       isEncryptionDisabled: true
@@ -897,7 +897,7 @@
     kotsadm:
       version: latest
     containerd:
-      version: latest
+      version: 1.4.x
     velero:
       version: 1.6.x
   upgradeSpec:
@@ -913,7 +913,7 @@
       version: latest
       s3Disabled: true
     containerd:
-      version: latest
+      version: 1.5.x
     velero:
       version: 1.7.x
 - name: "K8s 1.23x Rook"
@@ -1006,7 +1006,7 @@
     kotsadm:
       version: latest
     containerd:
-      version: latest
+      version: 1.4.x
     velero:
       version: 1.6.x
   upgradeSpec:
@@ -1022,7 +1022,7 @@
       version: latest
       s3Disabled: true
     containerd:
-      version: latest
+      version: 1.5.x
     velero:
       version: 1.7.x
 - name: k8s121-with-flags
