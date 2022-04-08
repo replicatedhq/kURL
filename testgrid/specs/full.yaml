@@ -1101,17 +1101,17 @@
       version: "latest"
     longhorn:
       version: "latest"
-    goldpinger:
-      version: "3.2.0-5.0.0"
+    contour:
+      version: "1.20.0"
     ekco:
       version: "latest"
       podImageOverrides:
-        - bloomberg/goldpinger:v3.2.0=docker.io/bloomberg/goldpinger:v3.4.1
+        - ghcr.io/projectcontour/contour:v1.20.0=ghcr.io/projectcontour/contour:v1.20.1
   postInstallScript: |
     sleep 120
 
-    pod_image="$(kubectl -n kurl get po -l app.kubernetes.io/name=goldpinger -o jsonpath='{.items[].spec.containers[].image}')"
-    if ! echo "$pod_image" | grep 'v3.4.1' ; then
+    pod_image="$(kubectl -n projectcontour get po -l app=contour -o jsonpath='{.items[].spec.containers[].image}')"
+    if ! echo "$pod_image" | grep 'v1.20.1' ; then
       echo "Pod image override failed: $pod_image"
       exit 1
     fi
