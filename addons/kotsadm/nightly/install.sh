@@ -112,7 +112,8 @@ function kotsadm() {
 
     kotsadm_kurl_proxy "$src" "$dst"
 
-    kotsadm_ready_spinner
+    kotsadm_ready_spinner "app=kotsadm-postgres"
+    kotsadm_ready_spinner "app=kotsadm"
 
     kubectl label pvc kotsadm-postgres-kotsadm-postgres-0 velero.io/exclude-from-backup- kots.io/backup=velero --overwrite
 
@@ -480,20 +481,21 @@ function kotsadm_scale_down() {
 }
 
 function kotsadm_health_check() {
+    local selector=$1
     # Get pods below will initially return only 0 lines
     # Then it will return 1 line: "PodScheduled=True"
     # Finally, it will return 4 lines.  And this is when we want to grep until "Ready=False" is not shown, and '1/1 Running' is
-    if [ $(kubectl get pods -l app=kotsadm -o jsonpath="{range .items[*]}{range .status.conditions[*]}{ .type }={ .status }{'\n'}{end}{end}" 2>/dev/null | wc -l) -ne 4 ]; then
+    if [ $(kubectl get pods -l ${selector} -o jsonpath="{range .items[*]}{range .status.conditions[*]}{ .type }={ .status }{'\n'}{end}{end}" 2>/dev/null | wc -l) -ne 4 ]; then
         # if this returns more than 4 lines, there are multiple copies of the pod running, which is a failure
         return 1
     fi
 
-    if [[ -n $(kubectl get pods -l app=kotsadm --field-selector=status.phase=Running -o jsonpath="{range .items[*]}{range .status.conditions[*]}{ .type }={ .status }{'\n'}{end}{end}" 2>/dev/null | grep -q Ready=False) ]]; then
+    if [[ -n $(kubectl get pods -l ${selector} --field-selector=status.phase=Running -o jsonpath="{range .items[*]}{range .status.conditions[*]}{ .type }={ .status }{'\n'}{end}{end}" 2>/dev/null | grep -q Ready=False) ]]; then
         # if there is a pod with Ready=False, then kotsadm is not ready
         return 1
     fi
 
-    if [[ -z $(kubectl get pods -l app=kotsadm --field-selector=status.phase=Running 2>/dev/null | grep '1/1' | grep 'Running') ]]; then
+    if [[ -z $(kubectl get pods -l ${selector} --field-selector=status.phase=Running 2>/dev/null | grep '1/1' | grep 'Running') ]]; then
         # when kotsadm is ready, it will be '1/1 Running'
         return 1
     fi
@@ -502,8 +504,8 @@ function kotsadm_health_check() {
 
 function kotsadm_ready_spinner() {
     sleep 1 # ensure that kubeadm has had time to begin applying and scheduling the kotsadm pods
-    if ! spinner_until 120 kotsadm_health_check; then
-      kubectl logs -l app=kotsadm --all-containers --tail 10
+    if ! spinner_until 180 kotsadm_health_check $1; then
+      kubectl logs -l $1 --all-containers --tail 10
       bail "The kotsadm statefulset in the kotsadm addon failed to deploy successfully."
     fi
 }
