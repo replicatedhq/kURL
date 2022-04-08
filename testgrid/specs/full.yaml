@@ -254,7 +254,7 @@
     contour:
       version: latest
     containerd:
-      version: 1.5.11
+      version: 1.4.x
 - name: k8s119x_containerd148
   installerSpec:
     kubernetes:
@@ -509,7 +509,7 @@
     weave:
       version: latest
     containerd:
-      version: 1.5.11
+      version: 1.4.x
     helm:
       helmfileSpec: |-
         repositories:
@@ -837,7 +837,7 @@
     kubernetes:
       version: 1.22.x
     containerd:
-      version: 1.5.x
+      version: 1.4.x
     weave:
       version: latest
     contour:
@@ -862,7 +862,7 @@
     kubernetes:
       version: 1.22.x
     containerd:
-      version: 1.5.x
+      version: 1.4.x
     antrea:
       version: 1.4.x
       isEncryptionDisabled: true
@@ -913,7 +913,7 @@
       version: latest
       s3Disabled: true
     containerd:
-      version: 1.5.x
+      version: 1.4.x
     velero:
       version: 1.7.x
 - name: "K8s 1.23x Rook"
@@ -1022,7 +1022,7 @@
       version: latest
       s3Disabled: true
     containerd:
-      version: 1.5.x
+      version: 1.4.x
     velero:
       version: 1.7.x
 - name: k8s121-with-flags
