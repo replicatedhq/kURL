@@ -136,7 +136,11 @@ export async function manifestFromInstaller(i: Installer, kurlUrl: string, repli
   if (kurlVersion) {
     kurlUtilImage = `replicated/kurl-util:${kurlVersion}`;
     kurlBinUtils = `kurl-bin-utils-${kurlVersion}.tar.gz`;
-    i.spec.kurl = {additionalNoProxyAddresses: [], installerVersion: kurlVersion}
+    if (i.spec.kurl) {
+      i.spec.kurl.installerVersion = kurlVersion;
+    } else {
+      i.spec.kurl = {additionalNoProxyAddresses: [], installerVersion: kurlVersion}
+    }
   }
   const installerVersions = await getInstallerVersions(distUrl, kurlVersion);
   return {
