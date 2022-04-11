@@ -40,7 +40,7 @@ jobs:
           check
 
       - name: Setup Go
-        uses: actions/setup-go@v2
+        uses: actions/setup-go@v3
         if: ${{ steps.check.outputs.addons_available == 'true' }}
         with:
           go-version: 1.17
