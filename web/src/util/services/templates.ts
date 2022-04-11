@@ -104,14 +104,18 @@ export class Templates {
   }
 
   public async tmplFromUpstream(kurlVersion: string, script: string): Promise<((data?: Manifest) => string)> {
+    const body = await this.fetchScriptTemplate(kurlVersion, script);
+    return _.template(body, this.templateOpts);
+  }
+
+  public async fetchScriptTemplate(kurlVersion: string, script: string): Promise<string> {
     const res = await fetch(getPackageUrl(this.distURL, kurlVersion, script));
     if (res.status === 404) {
       throw new HTTPError(404, "version not found");
     } else if (res.status !== 200) {
       throw new HTTPError(500, `unexpected http status ${res.statusText}`);
     }
-    const body = await res.text();
-    return _.template(body, this.templateOpts);
+    return await res.text();
   }
 }
 
@@ -136,6 +140,11 @@ export async function manifestFromInstaller(i: Installer, kurlUrl: string, repli
   if (kurlVersion) {
     kurlUtilImage = `replicated/kurl-util:${kurlVersion}`;
     kurlBinUtils = `kurl-bin-utils-${kurlVersion}.tar.gz`;
+    if (i.spec.kurl) {
+      i.spec.kurl.installerVersion = kurlVersion;
+    } else {
+      i.spec.kurl = {additionalNoProxyAddresses: [], installerVersion: kurlVersion}
+    }
   }
   const installerVersions = await getInstallerVersions(distUrl, kurlVersion);
   return {

@@ -52,6 +52,11 @@ export class Installers {
       response.status(404);
       return notFoundResponse;
     }
+
+    if (!kurlVersion && installer.spec.kurl) {
+      kurlVersion = installer.spec.kurl.installerVersion
+    }
+
     installer = await installer.resolve();
 
     response.set("X-Kurl-Hash", installer.hash());
@@ -79,6 +84,11 @@ export class Installers {
       response.status(404);
       return notFoundResponse;
     }
+
+    if (!kurlVersion && installer.spec.kurl) {
+      kurlVersion = installer.spec.kurl.installerVersion
+    }
+
     installer = await installer.resolve();
 
     response.set("X-Kurl-Hash", installer.hash());
@@ -100,6 +110,11 @@ export class Installers {
       response.status(404);
       return notFoundResponse;
     }
+
+    if (!kurlVersion && installer.spec.kurl) {
+      kurlVersion = installer.spec.kurl.installerVersion
+    }
+
     installer = await installer.resolve();
 
     response.set("X-Kurl-Hash", installer.hash());
@@ -118,7 +133,7 @@ export class Installers {
 
     response.set("X-Kurl-Hash", installer.hash());
     response.status(200);
-    return this.templates.renderInstallScript(installer, kurlVersion);
+    return this.templates.renderInstallScript(installer, installer.spec.kurl?.installerVersion);
   }
 
   /**
@@ -145,6 +160,11 @@ export class Installers {
       response.status(404);
       return notFoundResponse;
     }
+
+    if (!kurlVersion && installer.spec.kurl) {
+      kurlVersion = installer.spec.kurl.installerVersion
+    }
+
     installer = await installer.resolve();
 
     try {
