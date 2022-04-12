@@ -178,6 +178,7 @@ function find_common_versions() {
         VERSIONS+=("$version")
     done
 
+    export GREATEST_VERSION="${VERSIONS[0]}"
     local DEFAULT_VERSION="1.4.6"
     VERSIONS=("$DEFAULT_VERSION" "${VERSIONS[@]/$DEFAULT_VERSION}")
 
@@ -217,7 +218,7 @@ function main() {
         generate_version "$version"
     done
 
-    echo "::set-output name=containerd_version::$VERSIONS"    
+    echo "::set-output name=containerd_version::$GREATEST_VERSION"
 
     update_available_versions
 }
