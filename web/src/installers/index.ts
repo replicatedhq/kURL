@@ -1434,7 +1434,9 @@ export class Installer {
     let kubernetesVersion = "";
     await Promise.all(_.each(_.keys(this.spec), async (config: string) => {
       const version = this.spec[config].version;
-      if (version) {
+      if (this.spec[config].s3Override) {
+        pkgs.push(this.spec[config].s3Override)
+      } else if (version) {
         pkgs.push(Installer.generatePackageName(config, this.spec[config].version));
 
         const installerVersions = await getInstallerVersions(getDistUrl(), kurlVersion);
