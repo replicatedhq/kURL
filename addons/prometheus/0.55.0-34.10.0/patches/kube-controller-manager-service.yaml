@@ -1,0 +1,7 @@
+---
+- op: add
+  path: /spec/ports/0/port
+  value: 10252
+- op: add
+  path: /spec/ports/0/targetPort
+  value: 10252

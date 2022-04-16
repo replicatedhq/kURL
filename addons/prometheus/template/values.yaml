@@ -965,8 +965,8 @@ kubeControllerManager:
   ##
   service:
     enabled: true
-    port: 10252
-    targetPort: 10252
+    port: 10257 # 10252 prior to k8s 1.22
+    targetPort: 10257 # 10252 prior to k8s 1.22
     # selector:
     #   component: kube-controller-manager
 
@@ -1177,8 +1177,8 @@ kubeScheduler:
   ##
   service:
     enabled: true
-    port: 10251
-    targetPort: 10251
+    port: 10259 # 10251 prior to k8s 1.22
+    targetPort: 10259 # 10251 prior to k8s 1.22
     # selector:
     #   component: kube-scheduler
 
