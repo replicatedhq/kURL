@@ -1,7 +1,7 @@
 # shellcheck disable=SC2148
 
 function prometheus() {
-    local src="$DIR/addons/prometheus/__PROMETHEUS_VERSION__"
+    local src="$DIR/addons/prometheus/0.55.0-34.10.0"
     local dst="$DIR/kustomize/prometheus"
 
     local operatorsrc="$src/operator"
@@ -86,7 +86,7 @@ function prometheus() {
 }
 
 function prometheus_pre_init() {
-    local src="$DIR/addons/prometheus/__PROMETHEUS_VERSION__/patches"
+    local src="$DIR/addons/prometheus/0.55.0-34.10.0/patches"
     local dst="$DIR/kustomize/kubeadm/init-patches"
 
     # expose metrics

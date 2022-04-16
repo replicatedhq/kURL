@@ -1,0 +1,16 @@
+resources:
+- crds.yaml
+
+patchesJson6902:
+- target:
+    group: "apiextensions.k8s.io"
+    version: v1 # apiVersion
+    kind: CustomResourceDefinition
+    name: alertmanagers.monitoring.coreos.com
+  path: preserveUnknown.yaml
+- target:
+    group: "apiextensions.k8s.io"
+    version: v1 # apiVersion
+    kind: CustomResourceDefinition
+    name: prometheuses.monitoring.coreos.com
+  path: preserveUnknown.yaml
