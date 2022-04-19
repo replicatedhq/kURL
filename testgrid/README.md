@@ -1,14 +1,14 @@
-# TestGride
-Testgrid is a an automation testing platform for kurl.
-Testgrid spins up vms and installs kurl + kubernetes and runs conformance tests.
-## TestGride components and Architecture
-- TestGride has three main components.
+# Testgrid
+Testgrid is a an automation testing platform for kURL.
+Testgrid installs kURL specs on a set of linux os versions and runs conformance tests.
+## Testgrid components and Architecture
+- Testgrid has three main components.
    - TGAPI: API is the main player that store and retrive the data to and from the database
    - Web: is the web interface for tests
-   - TGrun: runner that pull the queued tests and start to test them
+   - TGrun: a daemon that polls the api for queued runs and starts new vms and tests.
 
 ![test-gride-architecture](./assets/testgride-architecture.drawio.png)
-# Run Testgrid local
+# Run Testgrid Locally
 ## Prerequests
 - Have docker running locally
 - Have some k8s cluster running
@@ -19,26 +19,6 @@ Testgrid spins up vms and installs kurl + kubernetes and runs conformance tests.
    export GOARCH=amd64
 ```
 ## Run Testgride using skaffold
-- If you are using ``longhorn`` to provision the PVC you will need to do the following changes to ``web`` service
-
-  1- Change the port in the ``Dockerfile.skaffold`` to ``30881`` as port ``30880`` is used by ``longhorn``
-  2- In ``webpack.dev.config.js`` file change the port in the following code to be ``30881`` instead 0f ``8080``
-  ```
-  devServer: {
-    port: 8080,
-    host: "0.0.0.0",
-    hot: true,
-    hotOnly: true,
-    historyApiFallback: {
-      verbose: true,
-    },
-    disableHostCheck: true,
-  },
-  ```
-  3- In env/development.js file make sure to use the localhost domain for the API as we will do port-forward later to the localhost
-  ```
-   API_ENDPOINT: `http://localhost:{port}/api/v1`
-  ```
 
 - Build tgapi: `(cd tgapi && make build)`
 
