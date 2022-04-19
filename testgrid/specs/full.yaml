@@ -773,7 +773,7 @@
     kotsadm:
       version: 1.38.0
     containerd:
-      version: 1.5.10
+      version: 1.4.6
 - name: remove_all_object_storage
   installerSpec:
     kubernetes:
