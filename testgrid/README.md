@@ -3,9 +3,10 @@ Testgrid is a an automation testing platform for kurl.
 Testgrid spins up vms and installs kurl + kubernetes and runs conformance tests.
 ## TestGride components and Architecture
 - TestGride has three main components.
- - TGAPI: API is the main player that store and retrive the data to and from the database
- - Web: is the web interface for tests
- - TGrun: runner that pull the queued tests and start to test them
+   - TGAPI: API is the main player that store and retrive the data to and from the database
+   - Web: is the web interface for tests
+   - TGrun: runner that pull the queued tests and start to test them
+
 ![test-gride-architecture](./assets/testgride-architecture.drawio.png)
 # Run Testgrid local
 ## Prerequests
