@@ -5,6 +5,3 @@ image postgres postgres:10.19-alpine
 image dex docker.io/kotsadm/dex:v2.30.2
 
 asset kots.tar.gz https://github.com/replicatedhq/kots/releases/download/v1.69.1/kots_linux_amd64.tar.gz
-
-yum nfs-utils
-apt nfs-common
