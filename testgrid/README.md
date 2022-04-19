@@ -1,28 +1,72 @@
+# TestGride
+Testgrid is a an automation testing platform for kurl.
+Testgrid spins up vms and installs kurl + kubernetes and runs conformance tests.
+## TestGride components and Architecture
+- TestGride has three main components.
+ - TGAPI: API is the main player that store and retrive the data to and from the database
+ - Web: is the web interface for tests
+ - TGrun: runner that pull the queued tests and start to test them
+![test-gride-architecture](./assets/testgride-architecture.drawio.png)
 # Run Testgrid local
-
-1. Have docker running locally
-1. Have some k8s cluster running
-1. Install [SchemaHero](https://schemahero.io/docs/installing/kubectl/)
-1. Set `GOOS` and `GOARCH`
-   ```
+## Prerequests
+- Have docker running locally
+- Have some k8s cluster running
+- Install [SchemaHero](https://schemahero.io/docs/installing/kubectl/)
+- Set `GOOS` and `GOARCH`
+```bash
    export GOOS=linux
    export GOARCH=amd64
-   ``` 
-1. Build tgapi: `(cd tgapi && make build)`
-1. Build tgrun: `(cd tgrun && make build)`
-1. Build web: `(cd web && make build-staging)` - This will fail. Not sure if needed.
-1. Install skaffold: `brew install skaffold`
-1. `skaffold run --default-repo ttl.sh/yourname-testgrid` - This takes time! Go make some coffee. Throw something on your bbq smoker. Go talk to your neighbour!
-1. Setup port-forwards `kubectl port-forward svc/testgrid-web 30880:30880` and `kubectl port-forward svc/tgapi 30110:3000`
-1. Insert some data in the postgres db
-   ```
-   INSERT INTO public.testrun(
-	ref, created_at)
-	VALUES (1, '2022-02-21 19:10:25-07');
-   INSERT INTO public.testinstance(
-	id, testrun_ref, enqueued_at, dequeued_at, started_at, running_at, finished_at, is_success, failure_reason, is_unsupported, output, sonobuoy_results, kurl_yaml, kurl_url, kurl_flags, os_name, os_version, os_image, os_preinit)
-	VALUES (1, 1, '2022-02-21 19:10:25-07', '2022-02-21 19:10:25-07', '2022-02-21 19:10:25-07', '2022-02-21 19:10:25-07', '2022-02-21 19:10:25-07', true, 'none', false, 'something', 'whoknows', '{"testing":"value"}', 'someurl', 'mylabels', 'rhel', '8.x', 'rhel', 'somepreinit');
-   ```
+```
+## Run Testgride using skaffold
+- If you are using ``longhorn`` to provision the PVC you will need to do the following changes to ``web`` service
+
+  1- Change the port in the ``Dockerfile.skaffold`` to ``30881`` as port ``30880`` is used by ``longhorn``
+  2- In ``webpack.dev.config.js`` file change the port in the following code to be ``30881`` instead 0f ``8080``
+  ```
+  devServer: {
+    port: 8080,
+    host: "0.0.0.0",
+    hot: true,
+    hotOnly: true,
+    historyApiFallback: {
+      verbose: true,
+    },
+    disableHostCheck: true,
+  },
+  ```
+  3- In env/development.js file make sure to use the localhost domain for the API as we will do port-forward later to the localhost
+  ```
+   API_ENDPOINT: `http://localhost:{port}/api/v1`
+  ```
+
+- Build tgapi: `(cd tgapi && make build)`
+
+- Build tgrun: `(cd tgrun && make build)`
+
+- Install skaffold: https://skaffold.dev/docs/install/
+
+- From the TESTGRID folder run the following command
+```bash
+skaffold run --default-repo ttl.sh/yourname-testgrid
+```
+- This might take time
+
+- Setup port-forwards
+``` bash
+kubectl port-forward svc/tgapi 30110:3000 &
+kubectl port-forward svc/testgrid-web 30881:30881
+```
+
+- Now you are ready to do your first test. 
+
+- From tgrun folder run the following command
+```
+./bin/tgrun queue --os-spec hack/os-spec.yaml --spec hack/test-spec.yaml --ref test-1 --api-token this-is-super-secret --api-endpoint http://localhost:30110
+```
+
+- From the web service you should be able to see the pending test.
+
+- Now time to setup your runner by using ``terraform`` go indide the ``deploy` folder and follow the steps from the readme file.
 
 # Run Testgrid on Okteto
 
