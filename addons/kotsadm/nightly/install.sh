@@ -160,6 +160,7 @@ function kotsadm_outro() {
 
     if [ -n "$KOTSADM_PASSWORD" ]; then
         printf "Login with password (will not be shown again): ${GREEN}$KOTSADM_PASSWORD${NC}\n"
+        printf "This password has been set for you by default. It is recommended that you change this password; this can be done with the following command: ${GREEN}kubectl kots reset-password default${NC}\n"
     else
         printf "You can log in with your existing password. If you need to reset it, run ${GREEN}kubectl kots reset-password default${NC}\n"
     fi
