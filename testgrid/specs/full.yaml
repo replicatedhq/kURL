@@ -802,7 +802,7 @@
       version: latest
     kotsadm:
       version: latest
-      s3Disabled: true
+      disableS3: true
     containerd:
       version: latest
     velero:
@@ -970,7 +970,7 @@
       version: latest
     kotsadm:
       version: latest
-      s3Disabled: true
+      disableS3: true
     containerd:
       version: 1.4.x
     velero:
@@ -1003,7 +1003,7 @@
       version: latest
     kotsadm:
       version: latest
-      s3Disabled: true
+      disableS3: true
     containerd:
       version: 1.4.x
     velero:
@@ -1113,7 +1113,7 @@
       version: latest
     kotsadm:
       version: latest
-      s3Disabled: true
+      disableS3: true
     containerd:
       version: 1.4.x
     velero:
@@ -1146,7 +1146,7 @@
       version: latest
     kotsadm:
       version: latest
-      s3Disabled: true
+      disableS3: true
     containerd:
       version: 1.4.x
     velero:
@@ -1164,7 +1164,7 @@
       version: latest
     kotsadm:
       version: latest
-      s3Disabled: true
+      disableS3: true
     containerd:
       version: latest
   upgradeSpec:
@@ -1178,7 +1178,7 @@
       version: latest
     kotsadm:
       version: latest
-      s3Disabled: true
+      disableS3: true
     containerd:
       version: latest
 - name: "Upgrade to 1.23 minimal airgap"
@@ -1193,7 +1193,7 @@
       version: latest
     kotsadm:
       version: latest
-      s3Disabled: true
+      disableS3: true
     containerd:
       version: latest
   upgradeSpec:
@@ -1207,7 +1207,7 @@
       version: latest
     kotsadm:
       version: latest
-      s3Disabled: true
+      disableS3: true
     containerd:
       version: latest
   airgap: true
