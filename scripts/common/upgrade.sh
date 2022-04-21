@@ -83,7 +83,8 @@ function upgrade_kubernetes_local_master_patch() {
     kubernetes_drain "$node"
  
     spinner_kubernetes_api_stable
-    kubeadm upgrade apply "v$k8sVersion" --yes --force
+    # ignore-preflight-errors, do not fail on fail to pull images for airgap
+    kubeadm upgrade apply "v$k8sVersion" --yes --force --ignore-preflight-errors=all
 
     kubernetes_install_host_packages "$k8sVersion"
     systemctl daemon-reload
@@ -182,7 +183,8 @@ function upgrade_kubernetes_local_master_minor() {
     kubernetes_drain "$node"
 
     spinner_kubernetes_api_stable
-    kubeadm upgrade apply "v$k8sVersion" --yes --force
+    # ignore-preflight-errors, do not fail on fail to pull images for airgap
+    kubeadm upgrade apply "v$k8sVersion" --yes --force --ignore-preflight-errors=all
     upgrade_etcd_image_18 "$k8sVersion"
 
     kubernetes_install_host_packages "$k8sVersion"

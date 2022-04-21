@@ -883,6 +883,65 @@
   airgap: true
   unsupportedOSIDs:
   - ubuntu-1604
+- name: "Migrate from Docker to Containerd"
+  installerSpec:
+    kubernetes:
+      version: 1.23.x
+    weave:
+      version: latest
+    longhorn:
+      version: latest
+    registry:
+      version: latest
+    kotsadm:
+      version: latest
+      disableS3: true
+    docker:
+      version: latest
+  upgradeSpec:
+    kubernetes:
+      version: 1.23.x
+    weave:
+      version: latest
+    longhorn:
+      version: latest
+    registry:
+      version: latest
+    kotsadm:
+      version: latest
+      disableS3: true
+    containerd:
+      version: latest
+- name: "Migrate from Docker to Containerd airgap"
+  installerSpec:
+    kubernetes:
+      version: 1.23.x
+    weave:
+      version: latest
+    longhorn:
+      version: latest
+    registry:
+      version: latest
+    kotsadm:
+      version: latest
+      disableS3: true
+    docker:
+      version: latest
+  upgradeSpec:
+    kubernetes:
+      version: 1.23.x
+    weave:
+      version: latest
+    longhorn:
+      version: latest
+    registry:
+      version: latest
+    kotsadm:
+      version: latest
+      disableS3: true
+    containerd:
+      version: latest
+  airgap: true
 - name: "Upgrade to 1.22"
   installerSpec:
     kubernetes:
@@ -896,8 +955,8 @@
       version: latest
     kotsadm:
       version: latest
-    containerd:
-      version: 1.4.x
+    docker:
+      version: 19.03.x
     velero:
       version: 1.6.x
   upgradeSpec:
@@ -916,6 +975,40 @@
       version: 1.4.x
     velero:
       version: 1.7.x
+- name: "Upgrade to 1.22 airgap"
+  installerSpec:
+    kubernetes:
+      version: 1.20.x
+    weave:
+      version: latest
+    rook:
+      isBlockStorageEnabled: true
+      version: 1.5.x
+    registry:
+      version: latest
+    kotsadm:
+      version: latest
+    docker:
+      version: 19.03.x
+    velero:
+      version: 1.6.x
+  upgradeSpec:
+    kubernetes:
+      version: 1.22.x
+    weave:
+      version: latest
+    longhorn:
+      version: latest
+    registry:
+      version: latest
+    kotsadm:
+      version: latest
+      s3Disabled: true
+    containerd:
+      version: 1.4.x
+    velero:
+      version: 1.7.x
+  airgap: true
 - name: "K8s 1.23x Rook"
   installerSpec:
     kubernetes:
@@ -1005,8 +1098,8 @@
       version: latest
     kotsadm:
       version: latest
-    containerd:
-      version: 1.4.x
+    docker:
+      version: 20.10.x
     velero:
       version: 1.6.x
   upgradeSpec:
@@ -1025,6 +1118,99 @@
       version: 1.4.x
     velero:
       version: 1.7.x
+- name: "Upgrade to 1.23 airgap"
+  installerSpec:
+    kubernetes:
+      version: 1.21.x
+    weave:
+      version: latest
+    rook:
+      isBlockStorageEnabled: true
+      version: 1.5.x
+    registry:
+      version: latest
+    kotsadm:
+      version: latest
+    docker:
+      version: 20.10.x
+    velero:
+      version: 1.6.x
+  upgradeSpec:
+    kubernetes:
+      version: 1.23.x
+    weave:
+      version: latest
+    longhorn:
+      version: latest
+    registry:
+      version: latest
+    kotsadm:
+      version: latest
+      s3Disabled: true
+    containerd:
+      version: 1.4.x
+    velero:
+      version: 1.7.x
+  airgap: true
+- name: "Upgrade to 1.23 minimal"
+  installerSpec:
+    kubernetes:
+      version: 1.22.x
+    weave:
+      version: latest
+    longhorn:
+      version: latest
+    registry:
+      version: latest
+    kotsadm:
+      version: latest
+      s3Disabled: true
+    containerd:
+      version: latest
+  upgradeSpec:
+    kubernetes:
+      version: 1.23.x
+    weave:
+      version: latest
+    longhorn:
+      version: latest
+    registry:
+      version: latest
+    kotsadm:
+      version: latest
+      s3Disabled: true
+    containerd:
+      version: latest
+- name: "Upgrade to 1.23 minimal airgap"
+  installerSpec:
+    kubernetes:
+      version: 1.22.x
+    weave:
+      version: latest
+    longhorn:
+      version: latest
+    registry:
+      version: latest
+    kotsadm:
+      version: latest
+      s3Disabled: true
+    containerd:
+      version: latest
+  upgradeSpec:
+    kubernetes:
+      version: 1.23.x
+    weave:
+      version: latest
+    longhorn:
+      version: latest
+    registry:
+      version: latest
+    kotsadm:
+      version: latest
+      s3Disabled: true
+    containerd:
+      version: latest
+  airgap: true
 - name: k8s121-with-flags
   installerSpec:
     kubernetes:
