@@ -893,6 +893,8 @@
       version: latest
     registry:
       version: latest
+    ekco:
+      version: latest
     kotsadm:
       version: latest
       disableS3: true
@@ -906,6 +908,8 @@
     longhorn:
       version: latest
     registry:
+      version: latest
+    ekco:
       version: latest
     kotsadm:
       version: latest
@@ -922,6 +926,8 @@
       version: latest
     registry:
       version: latest
+    ekco:
+      version: latest
     kotsadm:
       version: latest
       disableS3: true
@@ -935,6 +941,8 @@
     longhorn:
       version: latest
     registry:
+      version: latest
+    ekco:
       version: latest
     kotsadm:
       version: latest

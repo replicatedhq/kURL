@@ -1,5 +1,7 @@
 
 CONTAINERD_NEEDS_RESTART=0
+CONTAINERD_DID_MIGRATE_FROM_DOCKER=0
+
 function containerd_install() {
     local src="$DIR/addons/containerd/$CONTAINERD_VERSION"
 
@@ -43,6 +45,12 @@ function containerd_install() {
         systemctl daemon-reload
         restart_systemd_and_wait containerd
         CONTAINERD_NEEDS_RESTART=0
+    fi
+
+    if [ "$AIRGAP" = "1" ] && [ "$CONTAINERD_DID_MIGRATE_FROM_DOCKER" = "1" ]; then
+        logStep "Migrating images from Docker to Containerd..."
+        containerd_migrate_images_from_docker
+        logSuccess "Images migrated successfully"
     fi
 
     # Explicitly configure kubelet to use containerd instead of detecting dockershim socket
@@ -178,4 +186,47 @@ function containerd_migrate_from_docker() {
     containerdFlags="--container-runtime=remote --container-runtime-endpoint=unix:///run/containerd/containerd.sock"
     sed -i "s@\(KUBELET_KUBEADM_ARGS=\".*\)\"@\1 $containerdFlags\" @" /var/lib/kubelet/kubeadm-flags.env
     systemctl daemon-reload
+}
+
+    CONTAINERD_DID_MIGRATE_FROM_DOCKER=1
+}
+
+function containerd_can_migrate_images_from_docker() {
+    local images_kb="$(du -d0 -c /var/lib/docker/overlay2 | grep total | awk '{print $1}')"
+    local available_kb="$(df --output=avail /var/lib/containerd/ | awk 'NR > 1')"
+
+    if [ -z "$images_kb" ]; then
+        logWarn "Unable to determine size of Docker images"
+        return 0
+    elif [ -z "$available_kb" ]; then
+        logWarn "Unable to determine available disk space"
+        return 0
+    else
+        local images_kb_x2="$(expr $images_kb + $images_kb)"
+        if [ "$available_kb" -lt "$images_kb_x2" ]; then
+            local images_human="$(du -d0 -ch /var/lib/docker/overlay2 | grep total | awk '{print $1}')"
+            local available_human="$(df --output=avail -h /var/lib/containerd/ | awk 'NR > 1' | xargs)"
+            logFail "There is not enough available disk space (${available_human}) to migrate images (${images_human}) from Docker to Containerd."
+            logFail "Please make sure there is at least 2 x size of Docker images available disk space."
+            return 1
+        fi
+    fi
+    return 0
+}
+
+function containerd_migrate_images_from_docker() {
+    if ! containerd_can_migrate_images_from_docker ; then
+        exit 1
+    fi
+
+    local tmpdir="$(mktemp -d)"
+    local imagefile=
+    for image in $(docker images --format '{{.Repository}}:{{.Tag}}' | grep -v '^<none>'); do
+        imagefile="${tmpdir}/$(echo $image | tr -cd '[:alnum:]').tar"
+        (set -x; docker save $image -o "$imagefile")
+    done
+    for image in $tmpdir/* ; do
+        (set -x; ctr -n=k8s.io images import $image)
+    done
+    rm -rf "$tmpdir"
 }
