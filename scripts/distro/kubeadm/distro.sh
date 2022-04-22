@@ -35,6 +35,13 @@ function kubeadm_get_server_ca_key() {
 function kubeadm_addon_for_each() {
     local cmd="$1"
 
+    if [ "$cmd" = "addon_pre_init" ] || [ "$cmd" = "addon_join" ]; then
+        if [ -n "$DOCKER_VERSION" ] ; then
+            $cmd docker "$DOCKER_VERSION"
+        elif [ -n "$CONTAINERD_VERSION" ]; then
+            $cmd containerd "$CONTAINERD_VERSION"
+        fi
+    fi
     $cmd aws "$AWS_VERSION"
     $cmd nodeless "$NODELESS_VERSION"
     $cmd calico "$CALICO_VERSION" "$CALICO_S3_OVERRIDE"

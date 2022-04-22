@@ -2,6 +2,24 @@
 CONTAINERD_NEEDS_RESTART=0
 CONTAINERD_DID_MIGRATE_FROM_DOCKER=0
 
+function containerd_pre_init() {
+    local src="$DIR/addons/containerd/$CONTAINERD_VERSION"
+
+    # Explicitly configure kubelet to use containerd instead of detecting dockershim socket
+    if [ -d "$DIR/kustomize/kubeadm/init-patches" ]; then
+        cp "$src/kubeadm-init-config-v1beta2.yaml" "$DIR/kustomize/kubeadm/init-patches/containerd-kubeadm-init-config-v1beta2.yml"
+    fi
+}
+
+function containerd_join() {
+    local src="$DIR/addons/containerd/$CONTAINERD_VERSION"
+
+    # Explicitly configure kubelet to use containerd instead of detecting dockershim socket
+    if [ -d "$DIR/kustomize/kubeadm/join-patches" ]; then
+        cp "$src/kubeadm-join-config-v1beta2.yaml" "$DIR/kustomize/kubeadm/join-patches/containerd-kubeadm-join-config-v1beta2.yml"
+    fi
+}
+
 function containerd_install() {
     local src="$DIR/addons/containerd/$CONTAINERD_VERSION"
 
@@ -51,11 +69,6 @@ function containerd_install() {
         logStep "Migrating images from Docker to Containerd..."
         containerd_migrate_images_from_docker
         logSuccess "Images migrated successfully"
-    fi
-
-    # Explicitly configure kubelet to use containerd instead of detecting dockershim socket
-    if [ -d "$DIR/kustomize/kubeadm/init-patches" ]; then
-        cp "$DIR/addons/containerd/$CONTAINERD_VERSION/kubeadm-init-config-v1beta2.yaml" "$DIR/kustomize/kubeadm/init-patches/containerd-kubeadm-init-config-v1beta2.yml"
     fi
 
     if systemctl list-unit-files | grep -v disabled | grep -q kubelet.service; then
