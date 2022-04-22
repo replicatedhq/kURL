@@ -106,8 +106,6 @@
       version: 0.6.0
     containerd:
       version: 1.4.9
-  unsupportedOSIDs:
-  - ubuntu-1604
 - name: k8s120x_openebs_minio
   installerSpec:
     kubernetes:
@@ -277,8 +275,6 @@
       version: 0.6.0
     containerd:
       version: 1.4.13
-  unsupportedOSIDs:
-  - ubuntu-1604
 - name: k8s119x_containerd139
   installerSpec:
     kubernetes:
@@ -301,8 +297,6 @@
       version: 0.6.0
     containerd:
       version: 1.4.9
-  unsupportedOSIDs:
-  - ubuntu-1604
 - name: k8s119
   installerSpec:
     kubernetes:
@@ -370,8 +364,6 @@
       version: 0.6.0
     containerd:
       version: 1.4.12
-  unsupportedOSIDs:
-  - ubuntu-1604
 - name: k8s119_containerd146-airgap
   installerSpec:
     kubernetes:
@@ -419,8 +411,6 @@
       version: 1.4.10
     certManager:
       version: 1.0.3
-  unsupportedOSIDs:
-  - ubuntu-1604
 - name: k8s119_ctrd_longhorn
   installerSpec:
     kubernetes:
@@ -541,8 +531,6 @@
       httpsPort: 8443
     containerd:
       version: 1.4.11
-  unsupportedOSIDs:
-  - ubuntu-1604
 - name: k8s119_nameserver_collectd_rook_block
   installerSpec:
     kubernetes:
@@ -830,8 +818,6 @@
       version: 1.7.x
     ekco:
       version: latest
-  unsupportedOSIDs:
-  - ubuntu-1604
 - name: "K8s 1.22x Longhorn, disableS3"
   installerSpec:
     kubernetes:
@@ -855,8 +841,6 @@
       version: 1.7.x
     ekco:
       version: latest
-  unsupportedOSIDs:
-  - ubuntu-1604
 - name: "K8s 1.22x Airgap"
   installerSpec:
     kubernetes:
@@ -881,8 +865,6 @@
     ekco:
       version: latest
   airgap: true
-  unsupportedOSIDs:
-  - ubuntu-1604
 - name: "Migrate from Docker to Containerd"
   installerSpec:
     kubernetes:
@@ -1040,8 +1022,6 @@
       version: 1.7.x
     ekco:
       version: latest
-  unsupportedOSIDs:
-  - ubuntu-1604
 - name: "K8s 1.23x Longhorn, disableS3"
   installerSpec:
     kubernetes:
@@ -1065,8 +1045,6 @@
       version: 1.7.x
     ekco:
       version: latest
-  unsupportedOSIDs:
-  - ubuntu-1604
 - name: "K8s 1.23x Airgap"
   installerSpec:
     kubernetes:
@@ -1091,8 +1069,6 @@
     ekco:
       version: latest
   airgap: true
-  unsupportedOSIDs:
-  - ubuntu-1604
 - name: "Upgrade to 1.23"
   installerSpec:
     kubernetes:
