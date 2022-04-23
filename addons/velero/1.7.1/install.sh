@@ -24,6 +24,8 @@ function velero_pre_init() {
 
 # runs on first install, and on version upgrades only
 function velero() {
+    velero_host_init
+
     local src="$DIR/addons/velero/$VELERO_VERSION"
     local dst="$DIR/kustomize/velero"
 
@@ -77,6 +79,35 @@ function velero() {
 
 function velero_join() {
     velero_binary
+    velero_host_init
+}
+
+function velero_host_init() {
+    velero_install_nfs_utils_if_missing 
+}
+
+function velero_install_nfs_utils_if_missing() {
+    local src="$DIR/addons/velero/$VELERO_VERSION"
+
+    if ! systemctl list-units | grep -q nfs-utils ; then
+        case "$LSB_DIST" in
+            ubuntu)
+                dpkg_install_host_archives "$src" nfs-common
+                ;;
+
+            centos|rhel|amzn|ol)
+                yum_install_host_archives "$src" nfs-utils
+                ;;
+        esac
+    fi
+
+    if ! systemctl -q is-active nfs-utils; then
+        systemctl start nfs-utils
+    fi
+
+    if ! systemctl -q is-enabled nfs-utils; then
+        systemctl enable nfs-utils
+    fi
 }
 
 function velero_install() {

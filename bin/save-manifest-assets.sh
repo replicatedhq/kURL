@@ -167,7 +167,7 @@ pkgs_rhel7=()
 pkgs_rhel8=()
 pkgs_ol7=()
 
-while read -r line; do
+while read -r line || [ -n "$line" ]; do
     if [ -z "$line" ]; then
         continue
     fi

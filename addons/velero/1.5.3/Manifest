@@ -7,3 +7,6 @@ image local-volume-provider replicated/local-volume-provider:v0.1.0
 image local-volume-fileserver replicated/local-volume-fileserver:v0.1.0
 
 asset velero.tar.gz https://github.com/vmware-tanzu/velero/releases/download/v1.5.3/velero-v1.5.3-linux-amd64.tar.gz
+
+yum nfs-utils
+apt nfs-common
