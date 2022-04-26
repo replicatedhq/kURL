@@ -186,19 +186,6 @@ function docker_get_host_packages_online() {
     fi
 }
 
-function containerd_get_host_packages_online() {
-    local version="$1"
-
-    if [ "$AIRGAP" != "1" ] && [ -n "$DIST_URL" ]; then
-        rm -rf $DIR/packages/containerd/${version} # Cleanup broken/incompatible packages from failed runs
-
-        local package="containerd-${version}.tar.gz"
-        package_download "${package}" $CONTAINERD_S3_OVERRIDE
-        tar xf "$(package_filepath "${package}")"
-        # rm containerd-${version}.tar.gz
-    fi
-}
-
 function canonical_image_name() {
     local image="$1"
     if echo "$image" | grep -vq '/' ; then

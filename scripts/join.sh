@@ -149,11 +149,11 @@ function main() {
     configure_no_proxy
     ${K8S_DISTRO}_addon_for_each addon_fetch
     host_preflights "${MASTER:-0}" "1" "0"
-    install_cri
-    get_common
-    get_shared
-    setup_kubeadm_kustomize
     install_host_dependencies
+    get_common
+    setup_kubeadm_kustomize
+    install_cri
+    get_shared
     ${K8S_DISTRO}_addon_for_each addon_join
     helm_load
     kubernetes_host
