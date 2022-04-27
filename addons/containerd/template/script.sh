@@ -179,8 +179,6 @@ function find_common_versions() {
     done
 
     export GREATEST_VERSION="${VERSIONS[0]}"
-    local DEFAULT_VERSION="1.4.6"
-    VERSIONS=("$DEFAULT_VERSION" "${VERSIONS[@]/$DEFAULT_VERSION}")
 
     echo "Found ${#VERSIONS[*]} containerd versions >=1.3 available for all operating systems: ${VERSIONS[*]}"
 }

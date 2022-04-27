@@ -54,11 +54,6 @@
     curl -L -o centos2ol.sh https://raw.githubusercontent.com/oracle/centos2ol/main/centos2ol.sh
     chmod +x centos2ol.sh
     bash centos2ol.sh -r
-- id: ubuntu-1604
-  name: Ubuntu
-  version: "16.04"
-  vmimageuri: https://testgrid-images.s3.amazonaws.com/ubuntu/16.04/ubuntu-16.04-kernel-4.15.0-122-generic.qcow2
-  preinit: ""
 - id: ubuntu-1804
   name: Ubuntu
   version: "18.04"
