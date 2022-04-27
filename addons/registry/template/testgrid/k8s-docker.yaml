@@ -91,7 +91,7 @@
       s3Override: "__testdist__"
     kotsadm:
       version: latest
-      s3Disabled: true
+      disableS3: true
     containerd:
       version: latest
     velero:

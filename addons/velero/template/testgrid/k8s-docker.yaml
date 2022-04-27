@@ -23,7 +23,7 @@
       version: "latest"
     kotsadm:
       version: latest
-      s3Disabled: true
+      disableS3: true
     velero:
       version: "__testver__"
       s3Override: "__testdist__"
@@ -68,7 +68,7 @@
       version: latest
     kotsadm:
       version: latest
-      s3Disabled: true
+      disableS3: true
     containerd:
       version: latest
     velero:
