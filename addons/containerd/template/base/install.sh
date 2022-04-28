@@ -71,6 +71,8 @@ function containerd_install() {
         logSuccess "Images migrated successfully"
     fi
 
+    load_images $src/images
+
     if systemctl list-unit-files | grep -v disabled | grep -q kubelet.service; then
         systemctl start kubelet
         # If using the internal load balancer the Kubernetes API server will be unavailable until
@@ -78,8 +80,6 @@ function containerd_install() {
         # is available before proceeeding.
         try_5m kubectl --kubeconfig=/etc/kubernetes/kubelet.conf get nodes
     fi
-
-    load_images $src/images
 }
 
 function containerd_configure() {
@@ -199,7 +199,6 @@ function containerd_migrate_from_docker() {
     containerdFlags="--container-runtime=remote --container-runtime-endpoint=unix:///run/containerd/containerd.sock"
     sed -i "s@\(KUBELET_KUBEADM_ARGS=\".*\)\"@\1 $containerdFlags\" @" /var/lib/kubelet/kubeadm-flags.env
     systemctl daemon-reload
-}
 
     CONTAINERD_DID_MIGRATE_FROM_DOCKER=1
 }
