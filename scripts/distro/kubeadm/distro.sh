@@ -36,7 +36,7 @@ function kubeadm_addon_for_each() {
     local cmd="$1"
 
     if [ "$cmd" != "addon_install" ]; then # this is run in install_cri
-        $cmd containerd "$CONTAINERD_VERSION"
+        $cmd containerd "$CONTAINERD_VERSION" "$CONTAINERD_S3_OVERRIDE"
     fi
     $cmd aws "$AWS_VERSION"
     $cmd nodeless "$NODELESS_VERSION"
