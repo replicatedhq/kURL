@@ -199,7 +199,6 @@ function containerd_migrate_from_docker() {
     containerdFlags="--container-runtime=remote --container-runtime-endpoint=unix:///run/containerd/containerd.sock"
     sed -i "s@\(KUBELET_KUBEADM_ARGS=\".*\)\"@\1 $containerdFlags\" @" /var/lib/kubelet/kubeadm-flags.env
     systemctl daemon-reload
-}
 
     CONTAINERD_DID_MIGRATE_FROM_DOCKER=1
 }
