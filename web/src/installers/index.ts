@@ -364,6 +364,7 @@ export interface VeleroConfig {
   disableRestic?: boolean;
   localBucket?: string;
   resticRequiresPrivileged?: boolean;
+  resticTimeout?: string;
 }
 
 export const veleroConfigSchema = {
@@ -376,6 +377,7 @@ export const veleroConfigSchema = {
     disableRestic: { type: "boolean", flag: "velero-disable-restic", description: "Don’t install the restic integration" },
     localBucket: { type: "string", flag : "velero-local-bucket", description: "Name of the bucket to create snapshots in the local object store"},
     resticRequiresPrivileged: { type: "boolean", flag: "velero-restic-requires-privileged", description: "Runs Restic container in privileged mode" },
+    resticTimeout: { type: "string", flag: "velero-restic-timeout", description: "How long backups/restores of pod volumes should be allowed to run before timing out" },
   },
   required: ["version"],
   additionalProperties: false,

@@ -244,12 +244,8 @@ function velero_patch_args() {
     local src="$1"
     local dst="$2"
 
-    if [ "${VELERO_DISABLE_RESTIC}" = "1" ]; then
+    if [ "${VELERO_DISABLE_RESTIC}" = "1" ] || [ -z "${VELERO_RESTIC_TIMEOUT}" ]; then
         return 0
-    fi
-
-    if [ -z "${VELERO_RESTIC_TIMEOUT}" ]; then
-        VELERO_RESTIC_TIMEOUT=240m  # default restic timeout
     fi
 
     render_yaml_file "$src/velero-args-json-patch.yaml" > "$dst/velero-args-json-patch.yaml"

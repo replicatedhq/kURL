@@ -22,6 +22,8 @@ function velero() {
 
     velero_patch_restic_privilege "$src" "$dst"
 
+    velero_patch_args "$src" "$dst"
+
     velero_kotsadm_restore_config "$src" "$dst"
 
     velero_patch_http_proxy "$src" "$dst"
@@ -141,6 +143,18 @@ function velero_patch_restic_privilege() {
         render_yaml_file "$src/restic-daemonset-privileged.yaml" > "$dst/restic-daemonset-privileged.yaml"
         insert_patches_strategic_merge "$dst/kustomization.yaml" restic-daemonset-privileged.yaml
     fi
+}
+
+function velero_patch_args() {
+    local src="$1"
+    local dst="$2"
+
+    if [ "${VELERO_DISABLE_RESTIC}" = "1" ] || [ -z "${VELERO_RESTIC_TIMEOUT}" ]; then
+        return 0
+    fi
+
+    render_yaml_file "$src/velero-args-json-patch.yaml" > "$dst/velero-args-json-patch.yaml"
+    insert_patches_json_6902 "$dst/kustomization.yaml"  velero-args-json-patch.yaml apps v1 Deployment velero ${VELERO_NAMESPACE}
 }
 
 function velero_binary() {

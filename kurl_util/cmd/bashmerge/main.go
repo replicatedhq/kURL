@@ -250,6 +250,11 @@ func parseBashFlags(installer *kurlv1beta1.Installer, bashFlags string) error {
 				installer.Spec.Kurl = &kurlv1beta1.Kurl{}
 			}
 			installer.Spec.Kurl.IPv6 = true
+		case "velero-restic-timeout":
+			if installer.Spec.Velero == nil {
+				installer.Spec.Velero = &kurlv1beta1.Velero{}
+			}
+			installer.Spec.Velero.ResticTimeout = split[1]
 		default:
 			return errors.New(fmt.Sprintf("string %s is not a bash flag", split[0]))
 		}
