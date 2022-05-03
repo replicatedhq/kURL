@@ -107,11 +107,11 @@ Exists on the server at `/var/lib/kurl`.
 
 #### Installation Lifecycle
 
-![kURL sh Installation Lifecycle](https://user-images.githubusercontent.com/371319/166290254-f73a4232-5227-45b5-a673-cc742e626e57.png)
+![kURL.sh Installation Lifecycle](https://user-images.githubusercontent.com/371319/166572837-a2491c1e-b543-4d42-ac72-6362f3f2b3f6.png)
 
 #### Join Lifecycle
 
-![kURL sh Join Lifecycle](https://user-images.githubusercontent.com/371319/166290269-b6451622-2890-491e-98cc-6f20997c8b13.png)
+![kURL.sh Join Lifecycle](https://user-images.githubusercontent.com/371319/166572499-17604a58-f694-4cb3-bfa7-5ec605648108.png)
 
 ## Add-ons
 
