@@ -141,7 +141,7 @@ Add-ons are components that make up a kURL cluster.
 
 #### addon_fetch
 
-Fetch the add-on package from the object store or from the air-gap bundle.
+Fetch the add-on package from the object store or from the air-gap bundle and extract into `/var/lib/kurl/addons`.
 This step is typically skipped if the add-on version has not changed since the previous run.
 
 #### addon_load
@@ -161,6 +161,9 @@ Operations that are performed in the pre-init script include installing host pac
 Kubectl apply this add-on to the cluster.
 This step is typically skipped if the add-on version and configuration has not changed since the previous run.
 
+#### addon_already_applied
+
+This step run instead of addon_install if the add-on version and configuration has already been applied.
 #### addon_join
 
 Operations that are performed in the join script include installing host packages or Kustomizing the Kubernetes distribution.
