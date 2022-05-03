@@ -111,7 +111,7 @@ Exists on the server at `/var/lib/kurl`.
 
 #### Join Lifecycle
 
-![kURL.sh Join Lifecycle](https://user-images.githubusercontent.com/371319/166572499-17604a58-f694-4cb3-bfa7-5ec605648108.png)
+![kURL.sh Join Lifecycle](https://user-images.githubusercontent.com/371319/166573513-4070e330-cc56-4881-a7be-e563dd9f9595.png)
 
 ## Add-ons
 
