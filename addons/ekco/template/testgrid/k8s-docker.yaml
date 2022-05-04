@@ -70,16 +70,18 @@
 - name: Upgrade HA add ekco
   installerSpec:
     kubernetes:
-      version: "latest"
+      version: "1.19.3"
     weave:
       version: "latest"
     containerd:
       version: "latest"
     longhorn:
       version: "latest"
+    ekco:
+      version: "0.10.1"
   upgradeSpec:
     kubernetes:
-      version: "latest"
+      version: "1.21.8"
     weave:
       version: "latest"
     containerd:
@@ -89,4 +91,5 @@
     ekco:
       version: "__testver__"
       s3Override: "__testdist__"
+      enableInternalLoadBalancer: true
   flags: "ha"
