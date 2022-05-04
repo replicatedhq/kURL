@@ -204,20 +204,20 @@ function containerd_migrate_from_docker() {
 }
 
 function containerd_can_migrate_images_from_docker() {
-    local images_kb="$(du -d0 -c /var/lib/docker/overlay2 | grep total | awk '{print $1}')"
+    local images_kb="$(du -sc /var/lib/docker/overlay2 | grep total | awk '{print $1}')"
     local available_kb="$(df --output=avail /var/lib/containerd/ | awk 'NR > 1')"
 
     if [ -z "$images_kb" ]; then
         logWarn "Unable to determine size of Docker images"
         return 0
     elif [ -z "$available_kb" ]; then
-        logWarn "Unable to determine available disk space"
+        logWarn "Unable to determine available disk space in /var/lib/containerd/"
         return 0
     else
         local images_kb_x2="$(expr $images_kb + $images_kb)"
         if [ "$available_kb" -lt "$images_kb_x2" ]; then
-            local images_human="$(du -d0 -ch /var/lib/docker/overlay2 | grep total | awk '{print $1}')"
-            local available_human="$(df --output=avail -h /var/lib/containerd/ | awk 'NR > 1' | xargs)"
+            local images_human="$(echo "$images_kb" | awk '{print int($1/1024/1024+0.5) "GB"}')"
+            local available_human="$(echo "$available_kb" | awk '{print int($1/1024/1024+0.5) "GB"}')"
             logFail "There is not enough available disk space (${available_human}) to migrate images (${images_human}) from Docker to Containerd."
             logFail "Please make sure there is at least 2 x size of Docker images available disk space."
             return 1
@@ -231,7 +231,16 @@ function containerd_migrate_images_from_docker() {
         exit 1
     fi
 
-    local tmpdir="$(mktemp -d)"
+    # we must always clean up $tmpdir since it can take up a lot of space
+    local errcode=0
+    local tmpdir="$(mktemp -d -p /var/lib/containerd)"
+    _containerd_migrate_images_from_docker "$tmpdir" || errcode="$?"
+    rm -rf "$tmpdir"
+    return "$errcode"
+}
+
+function _containerd_migrate_images_from_docker() {
+    local tmpdir="$1"
     local imagefile=
     for image in $(docker images --format '{{.Repository}}:{{.Tag}}' | grep -v '^<none>'); do
         imagefile="${tmpdir}/$(echo $image | tr -cd '[:alnum:]').tar"
@@ -240,5 +249,4 @@ function containerd_migrate_images_from_docker() {
     for image in $tmpdir/* ; do
         (set -x; ctr -n=k8s.io images import $image)
     done
-    rm -rf "$tmpdir"
 }
