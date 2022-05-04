@@ -1216,7 +1216,7 @@
       version: latest
     ekco:
       version: latest
-  flags: "disktype=ssd,gpu=enabled"
+  flags: "labels=disktype=ssd,gpu=enabled"
 - name: k8s122-with-flags
   installerSpec:
     kubernetes:
@@ -1238,7 +1238,7 @@
       version: latest
     ekco:
       version: latest
-  flags: "disktype=ssd,gpu=enabled"
+  flags: "labels=disktype=ssd,gpu=enabled"
 - name: k8s123-with-flags
   installerSpec:
     kubernetes:
@@ -1260,7 +1260,24 @@
       version: latest
     ekco:
       version: latest
-  flags: "disktype=ssd,gpu=enabled"
+  flags: "labels=disktype=ssd,gpu=enabled"
+- name: k8s123-all-the-flags
+  installerSpec:
+    kubernetes:
+      version: 1.23.x
+    containerd:
+      version: latest
+    weave:
+      version: 2.8.x
+    longhorn:
+      version: latest
+    registry:
+      version: latest
+    kotsadm:
+      version: latest
+    ekco:
+      version: latest
+  flags: "labels=disktype=ssd,gpu=enabled exclude-builtin-host-preflights" # TODO: add more flags here
 - name: ekco-podimageoverrides
   installerSpec:
     kubernetes:
