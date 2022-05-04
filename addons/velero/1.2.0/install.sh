@@ -95,5 +95,5 @@ function velero_patch_args() {
     fi
 
     render_yaml_file "$src/velero-args-json-patch.yaml" > "$dst/velero-args-json-patch.yaml"
-    insert_patches_json_6902 "$dst/kustomization.yaml"  velero-args-json-patch.yaml apps v1 Deployment velero ${VELERO_NAMESPACE}
+    insert_patches_json_6902 "$dst/kustomization.yaml" velero-args-json-patch.yaml apps v1 Deployment velero ${VELERO_NAMESPACE}
 }
