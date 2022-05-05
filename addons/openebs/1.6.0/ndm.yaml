@@ -68,6 +68,7 @@ spec:
       # kubectl label node <node-name> "openebs.io/nodegroup"="storage-node"
       #nodeSelector:
       #  "openebs.io/nodegroup": "storage-node"
+      priorityClassName: system-node-critical
       serviceAccountName: openebs-maya-operator
       hostNetwork: true
       containers:
