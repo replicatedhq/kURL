@@ -19,4 +19,4 @@ jobs:
       env:
         IMAGE: ${{ github.event.inputs.image }}
       run: |
-        make -C $IMAGE build scan
+        make -C $IMAGE
