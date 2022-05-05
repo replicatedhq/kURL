@@ -1,7 +1,6 @@
 SHELL := /bin/bash
 
 IMAGE := kurlsh/rook-ceph:v1.0.4-14.2.21
-WHITELIST := "(GHSA\-|perl\-Pod\-Escapes|libldb,1\.5\.4\-2\.el7)"
 
 DATE := $(shell date '+%Y%m%d')
 
@@ -31,8 +30,17 @@ build:
 
 .PHONY: scan
 scan:
-	../../../../../bin/image-scan.sh $(IMAGE)-$(GIT_SHA)-$(DATE) $(WHITELIST)
+	trivy image \
+		--exit-code=1 \
+		--severity="MEDIUM,HIGH,CRITICAL" \
+		--ignore-unfixed \
+		--ignore-policy=.trivyignore.rego \
+		$(IMAGE)-$(GIT_SHA)-$(DATE)
 
 .PHONY: push
 push:
 	docker push $(IMAGE)-$(GIT_SHA)-$(DATE)
+
+.PHONY: deps
+deps:
+	curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin v0.27.1
