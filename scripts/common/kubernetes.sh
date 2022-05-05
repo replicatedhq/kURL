@@ -252,18 +252,30 @@ function kubernetes_has_remotes() {
     return 1
 }
 
+# Fetch the load balancer endpoint from the cluster.
+function existing_kubernetes_api_address() {
+    kubectl get cm -n kube-system kurl-config -o jsonpath='{ .data.kubernetes_api_address }'
+}
+
+# During the upgrade user might change the load balancer endpoint or want to use EKCO internal load balancer. So, we
+# to be checking the api endpoint status on the existing api server endpoint as the new endpoint is only available after
+# finishing the upgrade.
 function kubernetes_api_address() {
-    local addr="$LOAD_BALANCER_ADDRESS"
-    local port="$LOAD_BALANCER_PORT"
+    if [ -n "$upgrading_kubernetes" ]; then
+        existing_kubernetes_api_address
+    else
+        local addr="$LOAD_BALANCER_ADDRESS"
+        local port="$LOAD_BALANCER_PORT"
 
-    if [ -z "$addr" ]; then
-        addr="$PRIVATE_ADDRESS"
-        port="6443"
+        if [ -z "$addr" ]; then
+            addr="$PRIVATE_ADDRESS"
+            port="6443"
+        fi
+
+        addr=$(${DIR}/bin/kurl format-address ${addr})
+
+        echo "${addr}:${port}"
     fi
-
-    addr=$(${DIR}/bin/kurl format-address ${addr})
-
-    echo "${addr}:${port}"
 }
 
 function kubernetes_api_is_healthy() {
