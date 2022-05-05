@@ -193,6 +193,7 @@ type Velero struct {
 	DisableRestic            bool   `json:"disableRestic,omitempty" yaml:"disableRestic,omitempty"`
 	LocalBucket              string `json:"localBucket,omitempty" yaml:"localBucket,omitempty"`
 	ResticRequiresPrivileged bool   `json:"resticRequiresPrivileged,omitempty" yaml:"resticRequiresPrivileged,omitempty"`
+	ResticTimeout            string `json:"resticTimeout,omitempty" yaml:"resticTimeout,omitempty"`
 	Version                  string `json:"version" yaml:"version"`
 }
 

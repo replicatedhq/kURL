@@ -181,6 +181,9 @@ function get_patch_yaml() {
             ipv6)
                 IPV6_ONLY=1
                 ;;
+            velero-restic-timeout)
+                VELERO_RESTIC_TIMEOUT="$_value"
+                ;;
             *)
                 echo >&2 "Error: unknown parameter \"$_param\""
                 exit 1
