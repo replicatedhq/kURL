@@ -26,6 +26,7 @@ spec:
         openebs.io/component-name: openebs-snapshot-operator
         openebs.io/version: 1.12.0
     spec:
+      priorityClassName: system-cluster-critical
       serviceAccountName: openebs-maya-operator
       containers:
       - name: openebs-snapshot-controller

@@ -109,6 +109,7 @@ spec:
         openebs.io/component-name: maya-apiserver
         openebs.io/version: 1.6.0
     spec:
+      priorityClassName: system-cluster-critical
       serviceAccountName: openebs-maya-operator
       containers:
       - name: maya-apiserver
@@ -269,6 +270,7 @@ spec:
         openebs.io/component-name: admission-webhook
         openebs.io/version: 1.6.0
     spec:
+      priorityClassName: system-cluster-critical
       serviceAccountName: openebs-maya-operator
       containers:
         - name: admission-webhook
@@ -310,6 +312,7 @@ spec:
         openebs.io/component-name: ndm-operator
         openebs.io/version: 1.6.0
     spec:
+      priorityClassName: system-cluster-critical
       serviceAccountName: openebs-maya-operator
       containers:
         - name: node-disk-operator

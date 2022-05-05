@@ -4639,6 +4639,7 @@ spec:
         openebs.io/component-name: cspc-operator
         openebs.io/version: 2.6.0
     spec:
+      priorityClassName: system-cluster-critical
       serviceAccountName: openebs-maya-operator
       containers:
       - name: cspc-operator
@@ -4703,6 +4704,7 @@ spec:
         openebs.io/component-name: cvc-operator
         openebs.io/version: 2.6.0
     spec:
+      priorityClassName: system-cluster-critical
       serviceAccountName: openebs-maya-operator
       containers:
       - name: cvc-operator
@@ -4775,6 +4777,7 @@ spec:
         openebs.io/component-name: cstor-admission-webhook
         openebs.io/version: 2.6.0
     spec:
+      priorityClassName: system-cluster-critical
       serviceAccountName: openebs-maya-operator
       containers:
       - name: admission-webhook
