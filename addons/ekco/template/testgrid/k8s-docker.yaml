@@ -67,3 +67,29 @@
     fi
 
     echo "Pod image override success: $pod_image"
+- name: Upgrade HA add ekco
+  installerSpec:
+    kubernetes:
+      version: "1.19.3"
+    weave:
+      version: "latest"
+    containerd:
+      version: "latest"
+    longhorn:
+      version: "latest"
+    ekco:
+      version: "0.10.1"
+  upgradeSpec:
+    kubernetes:
+      version: "1.21.8"
+    weave:
+      version: "latest"
+    containerd:
+      version: "latest"
+    longhorn:
+      version: "latest"
+    ekco:
+      version: "__testver__"
+      s3Override: "__testdist__"
+      enableInternalLoadBalancer: true
+  flags: "ha"

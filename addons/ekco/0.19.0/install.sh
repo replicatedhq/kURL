@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 function ekco_pre_init() {
+    # noop change
     if [ -z "$EKCO_NODE_UNREACHABLE_TOLERATION_DURATION" ]; then
         EKCO_NODE_UNREACHABLE_TOLERATION_DURATION=5m
     fi
