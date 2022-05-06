@@ -53,6 +53,7 @@ type InstallerSpec struct {
 	Sonobuoy        *Sonobuoy        `json:"sonobuoy,omitempty" yaml:"sonobuoy,omitempty"`
 	UFWConfig       *UFWConfig       `json:"ufwConfig,omitempty" yaml:"ufwConfig,omitempty"`
 	Goldpinger      *Goldpinger      `json:"goldpinger,omitempty" yaml:"goldpinger,omitempty"`
+	AWS             *AWS             `json:"aws,omitempty" yaml:"aws,omitempty"`
 }
 
 type Contour struct {
@@ -113,6 +114,7 @@ type Kubernetes struct {
 	SystemReservedResources    string `json:"systemReservedResources,omitempty" yaml:"systemReservedResources,omitempty"`
 	Version                    string `json:"version" yaml:"version"`
 	CisCompliance              bool   `json:"cisCompliance,omitempty" yaml:"cisCompliance,omitempty"`
+	ClusterName                string `json:"clusterName,omitempty" yaml:"clusterName,omitempty"`
 }
 
 type Kurl struct {
@@ -308,6 +310,11 @@ type UFWConfig struct {
 type Goldpinger struct {
 	S3Override string `json:"s3Override,omitempty" yaml:"s3Override,omitempty"`
 	Version    string `json:"version" yaml:"version"`
+}
+
+type AWS struct {
+	Version             string `json:"version" yaml:"version"`
+	DefaultStorageClass bool   `json:"defaultStorageClass,omitempty" yaml:"defaultStorageClass,omitempty"`
 }
 
 // InstallerStatus defines the observed state of Installer

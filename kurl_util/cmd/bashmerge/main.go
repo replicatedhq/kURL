@@ -90,6 +90,11 @@ func parseBashFlags(installer *kurlv1beta1.Installer, bashFlags string) error {
 				installer.Spec.Kurl = &kurlv1beta1.Kurl{}
 			}
 			installer.Spec.Kurl.Airgap = true
+		case "aws-default-storage-class":
+			if installer.Spec.AWS == nil {
+				installer.Spec.AWS = &kurlv1beta1.AWS{}
+			}
+			installer.Spec.AWS.DefaultStorageClass = true
 		case "cert-key":
 			if installer.Spec.Kubernetes == nil {
 				installer.Spec.Kubernetes = &kurlv1beta1.Kubernetes{}
@@ -152,6 +157,11 @@ func parseBashFlags(installer *kurlv1beta1.Installer, bashFlags string) error {
 				installer.Spec.Kubernetes = &kurlv1beta1.Kubernetes{}
 			}
 			installer.Spec.Kubernetes.CisCompliance = true
+		case "kubernetes-cluster-name":
+			if installer.Spec.Kubernetes == nil {
+				installer.Spec.Kubernetes = &kurlv1beta1.Kubernetes{}
+			}
+			installer.Spec.Kubernetes.ClusterName = split[1]
 		case "kubernetes-version":
 			if installer.Spec.Kubernetes == nil {
 				installer.Spec.Kubernetes = &kurlv1beta1.Kubernetes{}

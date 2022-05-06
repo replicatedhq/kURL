@@ -205,6 +205,7 @@ func convertToBash(kurlValues map[string]interface{}, fieldsSet map[string]bool)
 		"Kubernetes.BootstrapTokenTTL":               "BOOTSTRAP_TOKEN_TTL",
 		"Kubernetes.CertKey":                         "CERT_KEY",
 		"Kubernetes.CisCompliance":                   "KUBERNETES_CIS_COMPLIANCE",
+		"Kubernetes.ClusterName":                     "KUBERNETES_CLUSTER_NAME",
 		"Kubernetes.ControlPlane":                    "MASTER",
 		"Kubernetes.ContainerLogMaxSize":             "CONTAINER_LOG_MAX_SIZE",
 		"Kubernetes.ContainerLogMaxFiles":            "CONTAINER_LOG_MAX_FILES",
@@ -301,6 +302,8 @@ func convertToBash(kurlValues map[string]interface{}, fieldsSet map[string]bool)
 		"Antrea.Version":                             "ANTREA_VERSION",
 		"Goldpinger.Version":                         "GOLDPINGER_VERSION",
 		"Goldpinger.S3Override":                      "GOLDPINGER_S3_OVERRIDE",
+		"AWS.Version":                                "AWS_VERSION",
+		"AWS.DefaultStorageClass":                    "AWS_DEFAULT_STORAGE_CLASS",
 	}
 
 	finalDictionary := make(map[string]string)

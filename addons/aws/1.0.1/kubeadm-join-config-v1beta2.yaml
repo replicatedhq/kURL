@@ -1,0 +1,10 @@
+---
+kind: JoinConfiguration
+apiVersion: kubeadm.k8s.io/v1beta2
+metadata:
+  name: kubeadm-join-configuration
+nodeRegistration:
+  name: $NODE_NAME
+  kubeletExtraArgs:
+    node-ip: $PRIVATE_ADDRESS
+    cloud-provider: aws

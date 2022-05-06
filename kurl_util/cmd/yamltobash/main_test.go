@@ -289,6 +289,7 @@ spec:
   kubernetes:
     version: 1.19.3
     cisCompliance: true
+    cluster: mycluster
   docker:
     version: 19.03.10
     hardFailOnLoopback: false
@@ -301,6 +302,7 @@ spec:
 				"Weave.Version":             true,
 				"Kurl.LicenseURL":           true,
 				"Kubernetes.CisCompliance":  true,
+				"Kubernetes.ClusterName":    true,
 			},
 		},
 	}

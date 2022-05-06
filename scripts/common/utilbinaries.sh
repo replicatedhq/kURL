@@ -93,6 +93,10 @@ function get_patch_yaml() {
                 ;;
             kubernetes-cis-compliance)
                 ;;
+            kubernetes-cluster-name)
+                ;;
+            aws-default-storage-class)
+                ;;
             ignore-remote-load-images-prompt)
                 ;;
             ignore-remote-upgrade-prompt)
