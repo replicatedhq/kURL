@@ -706,14 +706,14 @@ export const goldpingerSchema = {
 export interface AWS{
   version: string;
   storageClass: string;
-  defaultStorageClass?: boolean;
+  excludeDefaultStorageClass?: boolean;
 }
 
 export const awsSchema = {
   type: "object",
   properties: {
     version: { type: "string" },
-    defaultStorageClass: { type: "boolean", flag: "aws-default-storage-class", description: "Use default storage class aws-ebs provided by aws cloud provider"},
+    excludeDefaultStorageClass: { type: "boolean", flag: "aws-exclude-default-storage-class", description: "Exclude default storage class aws-ebs provided by aws cloud provider"},
   },
   required: [ "version" ],
 };

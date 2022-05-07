@@ -1,10 +1,11 @@
 
 function aws() {
+
     local dst="$DIR/kustomize/aws"
     cp "$DIR/addons/aws/1.0.1/kustomization.yaml" "$DIR/kustomize/aws/kustomization.yaml"
     cp "$DIR/addons/aws/1.0.1/storageclass.yaml" "$DIR/kustomize/aws/storageclass.yaml"
 
-    if [ "$AWS_DEFAULT_STORAGE_CLASS" == "1" ]; then
+    if [ "$AWS_EXCLUDE_DEFAULT_STORAGE_CLASS" != "1" ]; then
         insert_resources "$dst/kustomization.yaml" storageclass.yaml
     fi
 
