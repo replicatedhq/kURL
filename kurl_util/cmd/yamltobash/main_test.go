@@ -289,7 +289,7 @@ spec:
   kubernetes:
     version: 1.19.3
     cisCompliance: true
-    cluster: mycluster
+    clusterName: mycluster
   docker:
     version: 19.03.10
     hardFailOnLoopback: false
