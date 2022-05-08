@@ -6,5 +6,4 @@ metadata:
 nodeRegistration:
   name: $NODE_NAME
   kubeletExtraArgs:
-    node-ip: $PRIVATE_ADDRESS
     cloud-provider: aws

@@ -5,7 +5,7 @@ metadata:
   name: kubeadm-cluster-configuration
 kubernetesVersion: v$KUBERNETES_VERSION
 certificatesDir: /etc/kubernetes/pki
-clusterName: kubernetes
+clusterName: $KUBERNETES_CLUSTER_NAME
 controllerManager: 
   extraArgs:
     profiling: '"false"' 

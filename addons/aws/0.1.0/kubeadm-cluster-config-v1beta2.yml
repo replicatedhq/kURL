@@ -6,7 +6,6 @@ metadata:
 clusterName: $KUBERNETES_CLUSTER_NAME
 networking:
   podSubnet: $POD_CIDR
-  serviceSubnet: $SERVICE_CIDR
 apiServer:
   extraArgs:
     cloud-provider: aws
@@ -14,5 +13,4 @@ apiServer:
 controllerManager:
   extraArgs:
     cloud-provider: aws
-    configure-cloud-routes: '"true"'
     address: 0.0.0.0

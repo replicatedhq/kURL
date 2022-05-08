@@ -303,7 +303,7 @@ func convertToBash(kurlValues map[string]interface{}, fieldsSet map[string]bool)
 		"Goldpinger.Version":                         "GOLDPINGER_VERSION",
 		"Goldpinger.S3Override":                      "GOLDPINGER_S3_OVERRIDE",
 		"AWS.Version":                                "AWS_VERSION",
-		"AWS.ExcludeDefaultStorageClass":             "AWS_EXCLUDE_DEFAULT_STORAGE_CLASS",
+		"AWS.ExcludeStorageClass":                    "AWS_EXCLUDE_STORAGE_CLASS",
 	}
 
 	finalDictionary := make(map[string]string)

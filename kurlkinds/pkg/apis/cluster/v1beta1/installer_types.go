@@ -313,8 +313,8 @@ type Goldpinger struct {
 }
 
 type AWS struct {
-	Version                    string `json:"version" yaml:"version"`
-	ExcludeDefaultStorageClass bool   `json:"excludeDefaultStorageClass,omitempty" yaml:"excludeDefaultStorageClass,omitempty"`
+	Version             string `json:"version" yaml:"version"`
+	ExcludeStorageClass bool   `json:"excludeStorageClass,omitempty" yaml:"excludeStorageClass,omitempty"`
 }
 
 // InstallerStatus defines the observed state of Installer

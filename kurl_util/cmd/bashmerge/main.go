@@ -90,11 +90,11 @@ func parseBashFlags(installer *kurlv1beta1.Installer, bashFlags string) error {
 				installer.Spec.Kurl = &kurlv1beta1.Kurl{}
 			}
 			installer.Spec.Kurl.Airgap = true
-		case "aws-exclude-default-storage-class":
+		case "aws-exclude-storage-class":
 			if installer.Spec.AWS == nil {
 				installer.Spec.AWS = &kurlv1beta1.AWS{}
 			}
-			installer.Spec.AWS.ExcludeDefaultStorageClass = true
+			installer.Spec.AWS.ExcludeStorageClass = true
 		case "cert-key":
 			if installer.Spec.Kubernetes == nil {
 				installer.Spec.Kubernetes = &kurlv1beta1.Kubernetes{}
