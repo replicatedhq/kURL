@@ -52,6 +52,7 @@ func Test_parseBashFlags(t *testing.T) {
 						LoadBalancerAddress: "1.1.1.1",
 						Version:             "1.18.1",
 						CertKey:             "secret",
+						ClusterName:         "kubernetes",
 					},
 					Kurl: &kurlv1beta1.Kurl{
 						Airgap:         true,
@@ -74,6 +75,7 @@ func Test_parseBashFlags(t *testing.T) {
 				"docker-registry-ip=1.1.1.1 " +
 				"ha " +
 				"kubernetes-cis-compliance " +
+				"kubernetes-cluster-name=kubernetes " +
 				"preserve-docker-config " +
 				"preserve-firewalld-config " +
 				"preserve-iptables-config " +
@@ -109,6 +111,7 @@ func Test_parseBashFlags(t *testing.T) {
 						LoadBalancerAddress: "2.2.2.2",
 						Version:             "1.15.0",
 						CertKey:             "badsecret",
+						ClusterName:         "kubernetes",
 					},
 					Kurl: &kurlv1beta1.Kurl{
 						Airgap:                     false,
@@ -143,6 +146,7 @@ func Test_parseBashFlags(t *testing.T) {
 						LoadBalancerAddress: "1.1.1.1",
 						Version:             "1.18.1",
 						CertKey:             "secret",
+						ClusterName:         "kubernetes",
 					},
 					Kurl: &kurlv1beta1.Kurl{
 						Airgap:        true,
@@ -165,6 +169,7 @@ func Test_parseBashFlags(t *testing.T) {
 				"docker-registry-ip=1.1.1.1 " +
 				"ha " +
 				"kubernetes-cis-compliance " +
+				"kubernetes-cluster-name=kubernetes " +
 				"preserve-docker-config " +
 				"preserve-firewalld-config " +
 				"preserve-iptables-config " +

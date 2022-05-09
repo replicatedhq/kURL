@@ -24,6 +24,7 @@ export interface KubernetesConfig {
   serviceCIDR?: string;
   HACluster?: boolean;
   masterAddress?: string;
+  clusterName?: string;
   cisCompliance?: boolean;
   loadBalancerAddress?: string;
   containerLogMaxSize?: string;
@@ -48,6 +49,7 @@ export const kubernetesConfigSchema = {
     serviceCIDR: { type: "string", flag: "service-cidr", description: "This defines subnet for kubernetes" },
     HACluster: { type: "boolean", flag: "ha", description: "Create the cluster as a high availability cluster (note that this needs a valid load balancer address and additional nodes to be a truly HA cluster)" },
     masterAddress: { type: "string", flag: "kuberenetes-master-address", description: "The address of the internal Kubernetes API server, used during join scripts (read-only)" },
+    clusterName: { type: "string", flag: "kubernetes-cluster-name", description: "The name of the Kubernetes cluster (default \"kubernetes\")"},
     loadBalancerAddress: { type: "string", flag: "load-balancer-address", description: "Used for High Availability installs, indicates the address of the external load balancer" },
     containerLogMaxSize: { type: "string", flag: "container-log-max-size", description: "A quantity defining the maximum size of the container log file before it is rotated. For example: \"5Mi\" or \"256Ki\". This does not work with Docker. For Docker, check out https://docs.docker.com/config/containers/logging/json-file." },
     containerLogMaxFiles: { type: "number", flag: "container-log-max-files", description: "Specifies the maximum number of container log files that can be present for a container. This does not work with Docker. For Docker, check out https://docs.docker.com/config/containers/logging/json-file." },
@@ -701,6 +703,20 @@ export const goldpingerSchema = {
   additionalProperties: false,
 };
 
+export interface AWS {
+  version: string;
+  excludeStorageClass?: boolean;
+}
+
+export const awsSchema = {
+  type: "object",
+  properties: {
+    version: { type: "string" },
+    excludeStorageClass: { type: "boolean", flag: "aws-exclude-storage-class", description: "Exclude aws-ebs provisioner storage class provided by the AWS add-on"},
+  },
+  required: [ "version" ],
+};
+
 export interface InstallerSpec {
   kubernetes?: KubernetesConfig;
   rke2?: RKE2Config;
@@ -732,6 +748,7 @@ export interface InstallerSpec {
   sonobuoy?: SonobuoyConfig;
   ufw?: UFWConfig;
   goldpinger?: GoldpingerConfig;
+  aws?: AWS;
 }
 
 const specSchema = {
@@ -768,6 +785,7 @@ const specSchema = {
     sonobuoy: sonobuoySchema,
     ufw: ufwConfigSchema,
     goldpinger: goldpingerSchema,
+    aws: awsSchema,
   },
   additionalProperites: false,
 };
