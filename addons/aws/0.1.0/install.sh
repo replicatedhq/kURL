@@ -25,7 +25,9 @@ function aws_join() {
 
 function verify_node_name() {
     if [ "$(hostname -f)" != "$(hostname)" ]; then
-        logFail "Hostname $(hostname -f) is different from fqdn $(hostname)"
+        logFail "Its important that the name of the Node matches the private DNS entry for the instance in EC2."
+        logFail "You can use hostnamectl to set the instance hostname to the FQDN that matches the EC2 private DNS entry."
+        logFail "Hostname $(hostname) is different from fqdn $(hostname -f)"
         printf "Continue? "
         if ! confirmN ; then
             bail "aws addon install is aborted."

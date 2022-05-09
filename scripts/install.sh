@@ -519,10 +519,6 @@ function main() {
         exit 0
     fi
 
-    if [ -z "$KUBERNETES_CLUSTER_NAME" ]; then
-        KUBERNETES_CLUSTER_NAME=kubernetes
-    fi
-
     export KUBECONFIG=/etc/kubernetes/admin.conf
 
     is_ha

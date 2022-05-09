@@ -3,7 +3,6 @@ apiVersion: kubeadm.k8s.io/v1beta2
 kind: ClusterConfiguration
 metadata:
   name: kubeadm-cluster-configuration
-clusterName: $KUBERNETES_CLUSTER_NAME
 apiServer:
   extraArgs:
     cloud-provider: aws

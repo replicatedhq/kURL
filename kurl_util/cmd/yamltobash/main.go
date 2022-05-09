@@ -417,6 +417,8 @@ func addBashVariablesFromYaml(yamlPath, bashPath string) error {
 		return errors.Wrap(err, "failed to load installer yaml")
 	}
 
+	insertDefaults(installerConfig)
+
 	yamlDictionary := createMap(installerConfig)
 
 	bashDictionary, err := convertToBash(yamlDictionary, fieldsSet)
@@ -430,6 +432,16 @@ func addBashVariablesFromYaml(yamlPath, bashPath string) error {
 	}
 
 	return nil
+}
+
+func insertDefaults(installerConfig *kurlv1beta1.Installer) {
+	if installerConfig.Spec.Kubernetes == nil {
+		installerConfig.Spec.Kubernetes = &kurlv1beta1.Kubernetes{}
+	}
+
+	if installerConfig.Spec.Kubernetes.ClusterName == "" {
+		installerConfig.Spec.Kubernetes.ClusterName = "kubernetes"
+	}
 }
 
 func main() {
