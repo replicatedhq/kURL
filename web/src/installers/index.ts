@@ -1319,6 +1319,9 @@ export class Installer {
     if (this.spec.openebs && !(await Installer.hasVersion("openebs", this.spec.openebs.version, installerVersion)) && !this.hasS3Override("openebs")) {
       return {error: {message: `OpenEBS version "${_.escape(this.spec.openebs.version)}" is not supported${installerVersion ? " for installer version " + _.escape(installerVersion) : ""}`}};
     }
+    if (this.spec.openebs && (this.spec.kubernetes && semver.gte(this.spec.kubernetes.version, "1.22.0"))) {
+      return {error: {message: "Openebs add-on is not compatible with Kubernetes versions 1.22+"}};
+    }
     if (this.spec.minio && !(await Installer.hasVersion("minio", this.spec.minio.version, installerVersion)) && !this.hasS3Override("minio")) {
       return {error: {message: `Minio version "${_.escape(this.spec.minio.version)}" is not supported${installerVersion ? " for installer version " + _.escape(installerVersion) : ""}`}};
     }

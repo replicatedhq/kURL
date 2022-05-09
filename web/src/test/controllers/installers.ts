@@ -9,7 +9,7 @@ metadata:
   name: everyOption
 spec:
   kubernetes:
-    version: 1.23.3
+    version: 1.21.11
     serviceCidrRange: /12
     serviceCIDR: 100.1.1.1/12
     HACluster: false
@@ -1016,6 +1016,42 @@ spec:
         const out = await i.validate();
 
         expect(out).to.deep.equal(undefined);
+      });
+    });
+
+  describe("supported kubeadm + openebs spec", () => {
+      it("=> ErrorResponse", async () => {
+        const yaml = `
+spec:
+  kubernetes:
+    version: 1.21.11
+  openebs:
+    version: 1.12.0
+    isLocalPVEnabled: true
+    localPVStorageClassName: default
+    isCstorEnabled: false`;
+        const i = Installer.parse(yaml);
+        const out = await i.validate();
+
+        expect(out).to.deep.equal(undefined);
+      });
+    });
+
+  describe("openebs version that is incompatible with k8s version", () => {
+      it("=> ErrorResponse", async () => {
+        const yaml = `
+spec:
+  kubernetes:
+    version: 1.22.8
+  openebs:
+    version: 1.12.0
+    isLocalPVEnabled: true
+    localPVStorageClassName: default
+    isCstorEnabled: false`;
+        const i = Installer.parse(yaml);
+        const out = await i.validate();
+
+        expect(out).to.deep.equal({ error: { message: "Openebs add-on is not compatible with Kubernetes versions 1.22+" } });
       });
     });
   });
