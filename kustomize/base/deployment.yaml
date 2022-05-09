@@ -37,8 +37,10 @@ spec:
         resources:
           requests:
             cpu: 100m
+            memory: 90Mi
           limits:
             cpu: 2
+            memory: 150Mi
         volumeMounts:
         - name: images
           mountPath: "/images"
