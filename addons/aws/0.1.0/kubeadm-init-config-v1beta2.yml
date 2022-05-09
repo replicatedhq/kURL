@@ -4,6 +4,5 @@ kind: InitConfiguration
 metadata:
   name: kubeadm-init-configuration
 nodeRegistration:
-  name: $NODE_NAME
   kubeletExtraArgs:
     cloud-provider: aws

@@ -4,6 +4,5 @@ apiVersion: kubeadm.k8s.io/v1beta2
 metadata:
   name: kubeadm-join-configuration
 nodeRegistration:
-  name: $NODE_NAME
   kubeletExtraArgs:
     cloud-provider: aws

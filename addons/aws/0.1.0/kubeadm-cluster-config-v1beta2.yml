@@ -4,8 +4,6 @@ kind: ClusterConfiguration
 metadata:
   name: kubeadm-cluster-configuration
 clusterName: $KUBERNETES_CLUSTER_NAME
-networking:
-  podSubnet: $POD_CIDR
 apiServer:
   extraArgs:
     cloud-provider: aws
@@ -13,4 +11,3 @@ apiServer:
 controllerManager:
   extraArgs:
     cloud-provider: aws
-    address: 0.0.0.0
