@@ -36,11 +36,15 @@ var getImages = () => {
                 if (parts[0] !== 'image') {
                     return;
                 }
+                let imageName = parts[2];
+                if (imageName.split('/').length === 1) {
+                    imageName = `library/${imageName}`
+                }
                 const image = {
                     addon: addon,
                     version: version,
                     name: parts[1],
-                    image: parts[2],
+                    image: imageName,
                     trivyignore: trivyignore,
                 };
                 images.push(image);
