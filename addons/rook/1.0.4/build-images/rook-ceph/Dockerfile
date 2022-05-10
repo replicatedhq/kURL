@@ -6,12 +6,24 @@ FROM ceph/ceph:v14.2.0
 
 RUN yum install -y \
     bind-license \
+    binutils \
     curl \
+    cyrus-sasl-lib \
+    expat \
     glib2 \
     glibc \
     glibc-common \
+    krb5-libs \
     libcurl \
+    libldb \
     libwbclient \
+    libxml2 \
+    libxml2-python \
+    nettle \
+    nss \
+    nss-sysinit \
+    nss-tools \
+    openldap \
     openssl \
     openssl-libs \
     perl \
@@ -24,14 +36,12 @@ RUN yum install -y \
     python-rtslib \
     python3 \
     python3-libs \
+    rpm \
+    rpm-build-libs \
+    rpm-libs \
+    rpm-python \
     samba-client-libs \
     sudo \
-    libldb \
-    nettle \
-    nss \
-    nss-sysinit \
-    nss-tools \
-    openldap \
   && yum clean all
 
 COPY --from=base /tini /tini

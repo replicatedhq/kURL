@@ -26,10 +26,10 @@ var getImages = () => {
             if (!fs.existsSync(manifestFile)) {
                 return;
             }
-            const whitelistFile = `${specDir}/${addon}/${version}/.scan-action-whitelist.json`;
-            let whitelist = '';
-            if (fs.existsSync(whitelistFile)) {
-                whitelist = JSON.stringify(JSON.parse(fs.readFileSync(whitelistFile, 'utf-8'))); // remove newlines
+            const trivyignoreFile = `${specDir}/${addon}/${version}/.trivyignore.rego`;
+            let trivyignore = '';
+            if (fs.existsSync(trivyignoreFile)) {
+                trivyignore = Buffer.from(fs.readFileSync(trivyignoreFile, 'utf-8')).toString('base64'); // remove newlines
             }
             fs.readFileSync(manifestFile, 'utf-8').split(/\r?\n/).forEach((line) => {
                 const parts = line.split(' ');
@@ -41,7 +41,7 @@ var getImages = () => {
                     version: version,
                     name: parts[1],
                     image: parts[2],
-                    whitelist: whitelist,
+                    trivyignore: trivyignore,
                 };
                 images.push(image);
             });
