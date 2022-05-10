@@ -42,7 +42,7 @@ jobs:
           format: 'sarif'
           output: 'scan-output.sarif'
           vuln-type: 'os'
-          severity: 'CRITICAL,HIGH,MEDIUM'
+          severity: 'HIGH,CRITICAL'
           ignore-unfixed: true
           exit-code: '1'
           ignore-policy: ${{ matrix.trivyignore && '.trivyignore.rego' }}
