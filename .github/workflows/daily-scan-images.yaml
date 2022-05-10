@@ -12,7 +12,7 @@ jobs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
       - uses: actions/setup-node@v2
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Install dependencies
         working-directory: ./bin/scan-images/
         run: npm install
@@ -31,7 +31,7 @@ jobs:
       max-parallel: 5
     steps:
       - uses: actions/setup-node@v2
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: "${{ matrix.addon }}:${{ matrix.version }} - ${{ matrix.name }} : Write Trivy ignore file"
         run: if [ -n '${{ matrix.trivyignore }}' ]; then echo '${{ matrix.trivyignore }}' | base64 -d > .trivyignore.rego ; fi
       - name: "${{ matrix.addon }}:${{ matrix.version }} - ${{ matrix.name }} : Scan image"

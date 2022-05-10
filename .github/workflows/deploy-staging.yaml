@@ -11,7 +11,7 @@ jobs:
     outputs:
       version_tag: ${{ steps.set-tag.outputs.version_tag }}
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - id: set-tag
       run: |
         git fetch --tags -f
@@ -23,7 +23,7 @@ jobs:
     needs:
     - get-tag
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - run: |
         echo "$DOCKERHUB_DOCKER_PASS" | docker login -u $DOCKERHUB_DOCKER_USER --password-stdin
         export KURL_UTIL_IMAGE=$KURL_UTIL_IMAGE_ALPHA
@@ -47,7 +47,7 @@ jobs:
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - id: set-matrix
       name: Build image matrix
@@ -70,7 +70,7 @@ jobs:
       fail-fast: true
       max-parallel: 20
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
       with:
         fetch-depth: 0
 
@@ -118,7 +118,7 @@ jobs:
     - get-tag
     - kurl-util-image
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - uses: actions/setup-node@v2
       with:
         node-version: '12'
@@ -137,7 +137,7 @@ jobs:
     needs:
     - get-tag
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - uses: actions/setup-node@v2
       with:
@@ -183,7 +183,7 @@ jobs:
     - kurl-util-image
     - build-upload-packages
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: kustomize
       run: |
@@ -236,7 +236,7 @@ jobs:
         time: "3m"
 
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     - name: setup-go
       uses: actions/setup-go@v2
