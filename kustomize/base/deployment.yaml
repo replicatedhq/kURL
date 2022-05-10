@@ -45,6 +45,13 @@ spec:
         - name: images
           mountPath: "/images"
       - name: kurl
+        resources:
+          requests:
+            cpu: 20m
+            memory: 50Mi
+          limits:
+            cpu: 100m
+            memory: 150Mi
         image: replicated/kurl
         imagePullPolicy: IfNotPresent
         ports:
