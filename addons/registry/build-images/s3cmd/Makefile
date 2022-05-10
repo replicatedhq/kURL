@@ -32,7 +32,7 @@ build:
 scan:
 	trivy image \
 		--exit-code=1 \
-		--severity="MEDIUM,HIGH,CRITICAL" \
+		--severity="HIGH,CRITICAL" \
 		--ignore-unfixed \
 		$(IMAGE):$(GIT_SHA)-$(DATE)
 
