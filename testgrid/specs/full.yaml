@@ -1275,6 +1275,7 @@
       version: latest
     kotsadm:
       version: latest
+      disableS3: true
     ekco:
       version: latest
   flags: "labels=disktype=ssd,gpu=enabled exclude-builtin-host-preflights" # TODO: add more flags here
