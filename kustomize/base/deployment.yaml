@@ -36,11 +36,11 @@ spec:
           containerPort: 3001
         resources:
           requests:
-            cpu: 100m
-            memory: 90Mi
+            cpu: 300m
+            memory: 100Mi
           limits:
-            cpu: 2
-            memory: 150Mi
+            cpu: 1.7
+            memory: 450Mi
         volumeMounts:
         - name: images
           mountPath: "/images"
@@ -48,10 +48,10 @@ spec:
         resources:
           requests:
             cpu: 20m
-            memory: 50Mi
+            memory: 120Mi
           limits:
-            cpu: 100m
-            memory: 150Mi
+            cpu: 40m
+            memory: 180Mi
         image: replicated/kurl
         imagePullPolicy: IfNotPresent
         ports:
