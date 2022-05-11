@@ -171,8 +171,10 @@ func Run(schedulerOptions types.SchedulerOptions) error {
 			}
 
 			plannedInstance := tghandlers.PlannedInstance{
-				ID:       id,
-				TestName: instance.Name,
+				ID:                id,
+				TestName:          instance.Name,
+				NumPrimaryNodes:   instance.NumPrimaryNodes,
+				NumSecondaryNodes: instance.NumSecondaryNodes,
 
 				KurlYAML:  string(installerYAML),
 				KurlURL:   string(installerURL),
@@ -193,7 +195,6 @@ func Run(schedulerOptions types.SchedulerOptions) error {
 
 				IsUnsupported: isUnsupported,
 			}
-
 			plannedInstances = append(plannedInstances, plannedInstance)
 		}
 	}

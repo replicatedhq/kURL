@@ -84,7 +84,9 @@ func MainRunLoop(runnerOptions types.RunnerOptions) error {
 
 		for _, dequeuedInstance := range dequeueInstanceResponse {
 			singleTest := types.SingleRun{
-				ID: dequeuedInstance.ID,
+				ID:                dequeuedInstance.ID,
+				NumPrimaryNodes:   dequeuedInstance.NumPrimaryNodes,
+				NumSecondaryNodes: dequeuedInstance.NumSecondaryNodes,
 
 				OperatingSystemName:    dequeuedInstance.OperatingSystemName,
 				OperatingSystemVersion: dequeuedInstance.OperatingSystemVersion,

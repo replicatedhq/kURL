@@ -21,8 +21,10 @@ type StartRefResponse struct {
 }
 
 type PlannedInstance struct {
-	ID       string
-	TestName string
+	ID                string
+	TestName          string
+	NumPrimaryNodes   int
+	NumSecondaryNodes int
 
 	KurlYAML  string
 	KurlURL   string
@@ -100,6 +102,8 @@ func StartRef(w http.ResponseWriter, r *http.Request) {
 			plannedInstance.OperatingSystemVersion,
 			plannedInstance.OperatingSystemImage,
 			plannedInstance.OperatingSystemPreInit,
+			plannedInstance.NumPrimaryNodes,
+			plannedInstance.NumSecondaryNodes,
 		)
 		if err != nil {
 			logger.Error(err)

@@ -64,4 +64,3 @@
   version: "20.04"
   vmimageuri: https://cloud-images.ubuntu.com/focal/current/focal-server-cloudimg-amd64.img
   preinit: ""
-
