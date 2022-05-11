@@ -50,7 +50,6 @@ func QueueCmd() *cobra.Command {
 	cmd.MarkFlagRequired("spec")
 	cmd.Flags().String("os-spec", "", "run test against the provided os spec yaml")
 	cmd.MarkFlagRequired("os-spec")
-
 	cmd.MarkFlagRequired("ref")
 
 	return cmd

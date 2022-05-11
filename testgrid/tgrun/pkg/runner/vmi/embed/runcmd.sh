@@ -202,6 +202,30 @@ function collect_debug_info_after_kurl() {
     echo "";
 }
 
+function remove_first_element()
+{
+  local list=("$@")
+  local rest_of_list=("${list[@]:1}")
+  echo "${rest_of_list[@]}"
+}
+
+function remove_last_element()
+{
+  local list=("$@")
+  local rest_of_list=("${list[@]:0:${#list[@]}-1}")
+  echo "${rest_of_list[@]}"
+}
+
+function store_join_command() {
+    joincommand=$(curl -fsSL https://kurl.sh/version/v2022.04.08-1/latest/tasks.sh | sudo bash -s join_token ha)
+    secondaryJoin=$(echo $joincommand | grep -o -P '(?<=nodes:).*(?=To)' | xargs echo -n)
+    secondaryJoin=$(remove_first_element $secondaryJoin)
+    secondaryJoin=$(remove_last_element $secondaryJoin)
+    secondaryJoin=$(echo $secondaryJoin | base64 | tr -d '\n' )
+    primaryJoin=$(echo $joincommand | grep -o -P '(?<=To add MASTER nodes to this installation, run the following script on your other nodes:).*(?=)')
+    curl -X POST -d "{\"primaryJoin\": \"${primaryJoin}\",\"secondaryJoin\": \"${secondaryJoin}\"}" "$TESTGRID_APIENDPOINT/v1/instance/$TEST_ID/join-command"
+}
+
 function run_tasks_join_token() {
     # TODO: rke2 and k3s
     if command_exists "kubeadm" ; then
@@ -400,6 +424,25 @@ function send_logs() {
     curl -X POST --data-binary "@/var/log/cloud-init-output.log" "$TESTGRID_APIENDPOINT/v1/instance/$TEST_ID/logs"
 }
 
+function wait_for_cluster_ready() {
+    while true
+    do
+        ready_count=$(kubectl get nodes -o jsonpath='{.items[*].status.conditions[?(@.type=="Ready")].status}' | grep -o "True" | wc -l)
+        #later we will check the dynamic value of the number of nodes
+        if [ "$ready_count" -eq "$NUM_NODES" ]; then
+            echo "cluster is ready"
+            break
+        fi
+        echo "cluster is not ready"
+        i=$((i+1))
+        if [ $i -gt 10 ]; then
+            report_failure "cluster_not_ready"
+            exit 0
+        fi
+        sleep 120
+    done
+}
+
 function main() {
     curl -X POST "$TESTGRID_APIENDPOINT/v1/instance/$TEST_ID/running"
 
@@ -407,7 +450,6 @@ function main() {
 
     run_install
     send_logs
-
     if [ $KURL_EXIT_STATUS -ne 0 ]; then
         send_logs
         report_failure "kurl_install"
@@ -418,6 +460,8 @@ function main() {
     run_post_install_script
 
     run_tasks_join_token
+    store_join_command
+    wait_for_cluster_ready
 
     if [ "$KURL_UPGRADE_URL" != "" ]; then
         run_upgrade

@@ -1,4 +1,4 @@
-package runner
+package vmi
 
 import (
 	_ "embed" // my justification is https://golang.org/pkg/embed/
@@ -6,3 +6,6 @@ import (
 
 //go:embed embed/runcmd.sh
 var runcmdSh string
+
+//go:embed embed/secondarynodecmd.sh
+var secondarynodecmd string

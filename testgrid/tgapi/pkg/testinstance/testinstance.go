@@ -22,12 +22,12 @@ type KurlInstallerMetadata struct {
 	Name string `json:"name" yaml:"name"`
 }
 
-func Create(id, testName, refID, kurlYAML, kurlURL, kurlFlags, upgradeYAML, upgradeURL, supportbundleYAML, postInstallScript, postUpgradeScript, osName, osVersion, osImage, osPreInit string) error {
+func Create(id, testName, refID, kurlYAML, kurlURL, kurlFlags, upgradeYAML, upgradeURL, supportbundleYAML, postInstallScript, postUpgradeScript, osName, osVersion, osImage, osPreInit string, numPrimaryNode int, numSecondaryNode int) error {
 	pg := persistence.MustGetPGSession()
 
-	query := `insert into testinstance (id, test_name, enqueued_at, testrun_ref, kurl_yaml, kurl_url, kurl_flags, upgrade_yaml, upgrade_url, supportbundle_yaml, post_install_script, post_upgrade_script, os_name, os_version, os_image, os_preinit)
-values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)`
-	if _, err := pg.Exec(query, id, testName, time.Now(), refID, kurlYAML, kurlURL, kurlFlags, upgradeYAML, upgradeURL, supportbundleYAML, postInstallScript, postUpgradeScript, osName, osVersion, osImage, osPreInit); err != nil {
+	query := `insert into testinstance (id, test_name, enqueued_at, testrun_ref, kurl_yaml, kurl_url, kurl_flags, upgrade_yaml, upgrade_url, supportbundle_yaml, post_install_script, post_upgrade_script, os_name, os_version, os_image, os_preinit, num_primary_nodes, num_secondary_nodes)
+values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)`
+	if _, err := pg.Exec(query, id, testName, time.Now(), refID, kurlYAML, kurlURL, kurlFlags, upgradeYAML, upgradeURL, supportbundleYAML, postInstallScript, postUpgradeScript, osName, osVersion, osImage, osPreInit, numPrimaryNode, numSecondaryNode); err != nil {
 		return errors.Wrap(err, "failed to insert")
 	}
 
@@ -43,8 +43,8 @@ set dequeued_at = now() where id in (
 select id from testinstance
 where dequeued_at is null
 order by enqueued_at asc
-limit 1) returning id, test_name, dequeued_at, testrun_ref, kurl_yaml, kurl_url, kurl_flags, upgrade_yaml, upgrade_url, supportbundle_yaml, post_install_script, post_upgrade_script, os_name, os_version, os_image, os_preinit
-) select id, test_name, testrun_ref, kurl_yaml, kurl_url, kurl_flags, upgrade_yaml, upgrade_url, supportbundle_yaml, post_install_script, post_upgrade_script, os_name, os_version, os_image, os_preinit from updated`
+limit 1) returning id, test_name, num_primary_nodes, num_secondary_nodes, dequeued_at, testrun_ref, kurl_yaml, kurl_url, kurl_flags, upgrade_yaml, upgrade_url, supportbundle_yaml, post_install_script, post_upgrade_script, os_name, os_version, os_image, os_preinit
+) select id, test_name, num_primary_nodes, num_secondary_nodes, testrun_ref, kurl_yaml, kurl_url, kurl_flags, upgrade_yaml, upgrade_url, supportbundle_yaml, post_install_script, post_upgrade_script, os_name, os_version, os_image, os_preinit from updated`
 
 	row := db.QueryRow(query)
 
@@ -53,6 +53,8 @@ limit 1) returning id, test_name, dequeued_at, testrun_ref, kurl_yaml, kurl_url,
 	if err := row.Scan(
 		&testInstance.ID,
 		&testName,
+		&testInstance.NumPrimaryNodes,
+		&testInstance.NumSecondaryNodes,
 		&testInstance.RefID,
 		&testInstance.KurlYAML,
 		&testInstance.KurlURL,
@@ -441,4 +443,77 @@ from testinstance`
 	}
 
 	return pendingRuns, running, timedOut, nil
+}
+
+func AddNodeJoinCommand(id string, primaryJoin string, secondaryJoin string) error {
+	db := persistence.MustGetPGSession()
+	query := `update testinstance set primary_join_command = $2, secondary_join_command = $3 where id = $1`
+
+	if _, err := db.Exec(query, id, primaryJoin, secondaryJoin); err != nil {
+		return errors.Wrap(err, "failed to update")
+	}
+
+	return nil
+}
+
+func GetNodeJoinCommand(id string) (string, string, error) {
+	db := persistence.MustGetPGSession()
+
+	query := `select primary_join_command, secondary_join_command from testinstance where id = $1`
+	row := db.QueryRow(query, id)
+
+	var primaryJoin, secondaryJoin sql.NullString
+	if err := row.Scan(&primaryJoin, &secondaryJoin); err != nil {
+		return "", "", errors.Wrap(err, "failed to scan")
+	}
+
+	return primaryJoin.String, secondaryJoin.String, nil
+}
+
+func GetRunStatus(id string) (bool, error) {
+	db := persistence.MustGetPGSession()
+
+	query := `select is_success from testinstance where id = $1`
+	row := db.QueryRow(query, id)
+
+	var is_success bool
+	if err := row.Scan(&is_success); err != nil {
+		return false, errors.Wrap(err, "failed to scan")
+	}
+
+	return is_success, nil
+}
+
+func AddClusterNode(instanceId string, id string, nodeType string, status string) error {
+	db := persistence.MustGetPGSession()
+	query := `insert into clusternode (testinstance_id, id, node_type, status, created_at) values ($1, $2, $3, $4, $5)`
+
+	if _, err := db.Exec(query, instanceId, id, nodeType, status, time.Now()); err != nil {
+		return errors.Wrap(err, "failed to insert")
+	}
+
+	return nil
+}
+
+func UpdateNodeStatus(id string, status string) error {
+	db := persistence.MustGetPGSession()
+	query := `update clusternode set status = $2 where id = $1`
+
+	if _, err := db.Exec(query, id, status); err != nil {
+		return errors.Wrap(err, "failed to update")
+	}
+
+	return nil
+}
+
+func NodeLogs(id string, logs []byte) error {
+	db := persistence.MustGetPGSession()
+
+	query := `update clusternode set output = $2 where id = $1`
+
+	if _, err := db.Exec(query, id, logs); err != nil {
+		return errors.Wrap(err, "failed to update")
+	}
+
+	return nil
 }

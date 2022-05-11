@@ -42,6 +42,12 @@ func RunCmd() *cobra.Command {
 			r.HandleFunc("/v1/instance/{instanceId}/start", handlers.StartInstance).Methods("POST")     // called when vm image has been loaded and k8s object created
 			r.HandleFunc("/v1/instance/{instanceId}/running", handlers.RunningInstance).Methods("POST") // called by script running within vm
 			r.HandleFunc("/v1/instance/{instanceId}/finish", handlers.FinishInstance).Methods("POST")
+			r.HandleFunc("/v1/instance/{instanceId}/join-command", handlers.AddNodeJoinCommand).Methods("POST")
+			r.HandleFunc("/v1/instance/{instanceId}/join-command", handlers.GetNodeJoinCommand).Methods("GET")
+			r.HandleFunc("/v1/instance/{instanceId}/status", handlers.GetRunStatus).Methods("GET")
+			r.HandleFunc("/v1/instance/{instanceId}/cluster-node", handlers.AddClusterNode).Methods("POST")
+			r.HandleFunc("/v1/instance/{nodeId}/node-status", handlers.UpdateNodeStatus).Methods("PUT")
+			r.HandleFunc("/v1/instance/{nodeId}/node-logs", handlers.NodeLogs).Methods("PUT")
 
 			r.HandleFunc("/v1/instance/{instanceId}/logs", handlers.InstanceLogs).Methods("POST")
 			r.HandleFunc("/v1/instance/{instanceId}/bundle", handlers.InstanceBundle).Methods("POST")
