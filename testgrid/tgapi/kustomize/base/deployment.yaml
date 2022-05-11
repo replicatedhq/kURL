@@ -16,10 +16,10 @@ spec:
         - name: tgapi
           resources:
             requests:
-              cpu: 70m
+              cpu: 100m
               memory: 250Mi
             limits:
-              cpu: 100m
+              cpu: 1
               memory: 500Mi
           image: tgapi
           imagePullPolicy: IfNotPresent
