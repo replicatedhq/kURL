@@ -118,7 +118,7 @@ func execute(singleTest types.SingleRun, uploadProxyURL, tempDir string) error {
 			return errors.Wrap(err, "failed to create vm for primary node "+strconv.Itoa(i))
 		}
 	}
-	//create secondary nodes
+	// create secondary nodes
 	for i := 0; i < singleTest.NumSecondaryNodes; i++ {
 		secondaryNodeName := fmt.Sprintf("%s-%d", vmi.SecondaryNode, i)
 		fmt.Println("  [creating secondary node", secondaryNodeName, "]")
@@ -126,5 +126,12 @@ func execute(singleTest types.SingleRun, uploadProxyURL, tempDir string) error {
 			return errors.Wrap(err, "failed to create vm for secondary node "+strconv.Itoa(i))
 		}
 	}
+
+	// mark the instance started
+	// we do this after the data volume is uploaded
+	if err := reportStarted(singleTest); err != nil {
+		return errors.Wrap(err, "failed to report test started")
+	}
+
 	return nil
 }
