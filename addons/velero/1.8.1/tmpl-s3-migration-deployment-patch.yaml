@@ -1,0 +1,46 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: velero
+  namespace: ${VELERO_NAMESPACE}
+  labels:
+    app: velero
+spec:
+  template:
+    spec:
+      initContainers:
+      - name: migrate-s3
+        image: kurlsh/s3cmd:7f7dc75-20210331
+        imagePullPolicy: IfNotPresent
+        command:
+        - /migrate-s3.sh
+        volumeMounts:
+        - mountPath: /var/lib/velero
+          name: velero-internal-snapshots
+        - name: velero-migrate-s3-config
+          mountPath: /migrate-s3.sh
+          subPath: migrate-s3.sh
+        env:
+        - name: AWS_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              key: access-key-id
+              name: velero-s3-migration
+        - name: AWS_SECRET_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              key: secret-access-key
+              name: velero-s3-migration
+        - name: OBJECT_STORE_CLUSTER_IP
+          valueFrom:
+            secretKeyRef:
+              key: object-store-cluster-ip
+              name: velero-s3-migration
+        - name: S3_BUCKET_NAME  
+          value: ${VELERO_LOCAL_BUCKET}
+      volumes:
+      - name: velero-migrate-s3-config
+        configMap:
+          name: velero-migrate-s3-config
+          defaultMode: 0777
