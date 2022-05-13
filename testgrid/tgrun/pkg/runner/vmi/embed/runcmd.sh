@@ -217,7 +217,7 @@ function remove_last_element()
 }
 
 function store_join_command() {
-    joincommand=$(curl -fsSL https://kurl.sh/version/v2022.04.08-1/latest/tasks.sh | sudo bash -s join_token ha)
+    joincommand=$(curl -fsSL "$KURL_URL"/tasks.sh | sudo bash -s join_token ha)
     secondaryJoin=$(echo $joincommand | grep -o -P '(?<=nodes:).*(?=To)' | xargs echo -n)
     secondaryJoin=$(remove_first_element $secondaryJoin)
     secondaryJoin=$(remove_last_element $secondaryJoin)

@@ -8,6 +8,23 @@ function green()
   echo -e "\033[32m$text\033[0m"
 }
 
+function setup_runner() {
+    setenforce 0 || true # rhel variants
+    sysctl vm.overcommit_memory=1
+    sysctl kernel.panic=10
+    sysctl kernel.panic_on_oops=1
+
+    echo "$TEST_ID" > /tmp/testgrid-id
+
+    if [ ! -c /dev/urandom ]; then
+        /bin/mknod -m 0666 /dev/urandom c 1 9 && /bin/chown root:root /dev/urandom
+    fi
+
+    echo "OS INFO:"
+    cat /etc/*-release
+    echo ""
+}
+
 function get_join_command()
 {
   joinCommand=$(curl -X GET -f "$TESTGRID_APIENDPOINT/v1/instance/$TEST_ID/join-command")
@@ -83,6 +100,8 @@ function wait_for_initprimary_done()
 
 function main() 
 {
+  green "setup runner"
+  setup_runner
   green "report node in waiting for join command"
   report_status_update "waiting_join_command"
   green "wait for join command"
