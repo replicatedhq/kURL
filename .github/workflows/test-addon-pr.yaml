@@ -10,6 +10,10 @@ on:
 
   workflow_dispatch: {}
 
+concurrency: 
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   test-addons:
     if: ${{ github.repository_owner == 'replicatedhq' && github.actor != 'dependabot' }}
