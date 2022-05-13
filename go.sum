@@ -1225,8 +1225,6 @@ github.com/prometheus/tsdb v0.7.1/go.mod h1:qhTCs0VvXwvX/y3TZrWD7rabWM+ijKTux40T
 github.com/rcrowley/go-metrics v0.0.0-20181016184325-3113b8401b8a/go.mod h1:bCqnVzQkZxMG4s8nGwiZ5l3QUCyqpo9Y+/ZMZ9VjZe4=
 github.com/replicatedhq/pvmigrate v0.4.4 h1:1xIi1Nadv4huJjuclMnGAtDs5yxnX8hT7SUKJcFOo3E=
 github.com/replicatedhq/pvmigrate v0.4.4/go.mod h1:tcOluIOzScw8OIiCxKTwfIOZjFeoBDQ+gRBAuV77lQE=
-github.com/replicatedhq/troubleshoot v0.28.0 h1:0B7ibyxur/ao1+PSQPLh2GnjonIfUxUXoiwaoGSXMag=
-github.com/replicatedhq/troubleshoot v0.28.0/go.mod h1:+3kZt9nOgbMy+F6fGp66qtjmenVclYIcXrpRQZ4KZzc=
 github.com/replicatedhq/troubleshoot v0.32.0 h1:f2isUH0BM5aJmOGlcjJ4Ngbnb8HKb2EhqrHGNKx0wUE=
 github.com/replicatedhq/troubleshoot v0.32.0/go.mod h1:+3kZt9nOgbMy+F6fGp66qtjmenVclYIcXrpRQZ4KZzc=
 github.com/replicatedhq/yaml/v3 v3.0.0-beta5-replicatedhq h1:PwPggruelq2336c1Ayg5STFqgbn/QB1tWLQwrVlU7ZQ=
