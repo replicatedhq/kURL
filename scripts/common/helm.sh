@@ -1,10 +1,13 @@
 
 function install_helm() {
-    if [ "$MASTER" = "1" ]; then
-        cp -f $DIR/helm/helm /usr/local/bin/
-        cp -f $DIR/helm/helmfile /usr/local/bin/
+    if [ -n "$HELM_HELMFILE_SPEC" ] && kubernetes_is_master; then
 
-        path_add "/usr/local/bin"
+        BIN_HELM=./bin/helm
+        BIN_HELMFILE=./bin/helmfile
+
+        cp -f $DIR/helm/helm ./bin
+        cp -f $DIR/helm/helmfile ./bin
+
     fi
 }
 
@@ -22,11 +25,11 @@ function helmfile_sync() {
     printf "${HELM_HELMFILE_SPEC}" > helmfile-tmp.yaml
 
     if [ "$AIRGAP" != "1" ]; then
-        helmfile --file helmfile-tmp.yaml deps  # || report_helm_failure  #TODO (dan): add reporting
+        $BIN_HELMFILE --file helmfile-tmp.yaml deps  # || report_helm_failure  #TODO (dan): add reporting
     fi    
     # TODO (dan): To support air gap case, we might need to modify the helmfile to always run the local chart
     
-    helmfile --file helmfile-tmp.yaml sync  # || report_helm_failure  #TODO (dan): add reporting
+    $BIN_HELMFILE --file helmfile-tmp.yaml sync  # || report_helm_failure  #TODO (dan): add reporting
 
     rm helmfile-tmp.yaml
 
