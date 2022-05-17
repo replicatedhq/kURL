@@ -5,14 +5,14 @@ function download_util_binaries() {
         tar xzf "$(package_filepath "${KURL_BIN_UTILS_FILE}")"
     fi
 
-    BIN_SYSTEM_CONFIG=./bin/config
-    BIN_YAMLUTIL=./bin/yamlutil
-    BIN_DOCKER_CONFIG=./bin/docker-config
-    BIN_SUBNET=./bin/subnet
-    BIN_INSTALLERMERGE=./bin/installermerge
-    BIN_YAMLTOBASH=./bin/yamltobash
-    BIN_BASHTOYAML=./bin/bashmerge
-    BIN_PVMIGRATE=./bin/pvmigrate
+    BIN_SYSTEM_CONFIG=$DIR/bin/config
+    BIN_YAMLUTIL=$DIR/bin/yamlutil
+    BIN_DOCKER_CONFIG=$DIR/bin/docker-config
+    BIN_SUBNET=$DIR/bin/subnet
+    BIN_INSTALLERMERGE=$DIR/bin/installermerge
+    BIN_YAMLTOBASH=$DIR/bin/yamltobash
+    BIN_BASHTOYAML=$DIR/bin/bashmerge
+    BIN_PVMIGRATE=$DIR/bin/pvmigrate
 
     mkdir -p /tmp/kurl-bin-utils/scripts
     CONFIGURE_SELINUX_SCRIPT=/tmp/kurl-bin-utils/scripts/configure_selinux.sh

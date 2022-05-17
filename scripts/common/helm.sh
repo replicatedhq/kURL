@@ -2,11 +2,11 @@
 function install_helm() {
     if [ -n "$HELM_HELMFILE_SPEC" ] && kubernetes_is_master; then
 
-        BIN_HELM=./bin/helm
-        BIN_HELMFILE=./bin/helmfile
+        BIN_HELM=$DIR/bin/helm
+        BIN_HELMFILE=$DIR/bin/helmfile
 
-        cp -f $DIR/helm/helm ./bin
-        cp -f $DIR/helm/helmfile ./bin
+        cp -f $DIR/helm/helm $DIR/bin
+        cp -f $DIR/helm/helmfile $DIR/bin
 
     fi
 }
