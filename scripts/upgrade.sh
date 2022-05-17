@@ -12,6 +12,7 @@ DIR=.
 . $DIR/scripts/common/common.sh
 . $DIR/scripts/common/discover.sh
 . $DIR/scripts/common/docker.sh
+. $DIR/scripts/common/helm.sh
 . $DIR/scripts/common/host-packages.sh
 . $DIR/scripts/common/plugins.sh
 . $DIR/scripts/common/kubernetes.sh
@@ -134,6 +135,7 @@ function main() {
     get_shared
     ${K8S_DISTRO}_addon_for_each addon_join
     maybe_upgrade
+    install_helm
     outro
     package_cleanup
 
