@@ -15,3 +15,7 @@ addons-gen.json
 *.spdx
 *.swp
 sbom/
+
+
+# ide 
+.vscode
