@@ -10,6 +10,6 @@ export const getClusterNodes=(instanceId)=>{
 export const getNodeLogs=(nodeId)=>{
     return axios({
         method: 'GET',
-        url: `${window.env.API_ENDPOINT}/instance/${nodeId}/logs`,
+        url: `${window.env.API_ENDPOINT}/instance/${nodeId}/node-logs`,
     });
 }
