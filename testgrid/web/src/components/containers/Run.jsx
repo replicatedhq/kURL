@@ -41,6 +41,9 @@ class Run extends React.Component {
     if (params.kurlLogsInstanceId && params.nodeId) {
       const instance = this.findInstanceInMap(params.kurlLogsInstanceId);
       this.instancesTable?.current?.viewNodeLogs(params.nodeId, instance);
+    } else if(params.kurlLogsInstanceId) {
+      const instance = this.findInstanceInMap(params.kurlLogsInstanceId);
+      this.instancesTable?.current?.viewInstanceLogs(instance);
     } else if (params.sonobuoyResultsInstanceId) {
       const instance = this.findInstanceInMap(params.sonobuoyResultsInstanceId);
       this.instancesTable?.current?.viewInstanceSonobuoyResults(instance);
