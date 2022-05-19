@@ -157,7 +157,7 @@ dist/docker-%.tar.gz:
 	${MAKE} build/packages/docker/$*/ubuntu-18.04
 	${MAKE} build/packages/docker/$*/ubuntu-20.04
 	${MAKE} build/packages/docker/$*/rhel-7
-	${MAKE} build/packages/docker/$*/amzn-force
+	${MAKE} build/packages/docker/$*/rhel-7-force
 	${MAKE} build/packages/docker/$*/rhel-8
 	mkdir -p dist
 	curl -L https://github.com/opencontainers/runc/releases/download/v1.0.0-rc95/runc.amd64 > build/packages/docker/$*/runc
@@ -477,15 +477,15 @@ build/packages/docker/%/rhel-7:
 	docker rm docker-rhel7-$*
 
 build/packages/docker/18.09.8/rhel-8:
-	${MAKE} build/packages/docker/18.09.8/amzn-force
+	${MAKE} build/packages/docker/18.09.8/rhel-7-force
 
 build/packages/docker/19.03.4/rhel-8:
-	${MAKE} build/packages/docker/19.03.4/amzn-force
+	${MAKE} build/packages/docker/19.03.4/rhel-7-force
 
 build/packages/docker/19.03.10/rhel-8:
-	${MAKE} build/packages/docker/19.03.10/amzn-force
+	${MAKE} build/packages/docker/19.03.10/rhel-7-force
 
-build/packages/docker/%/amzn-force:
+build/packages/docker/%/rhel-7-force:
 	docker build \
 		--build-arg DOCKER_VERSION=$* \
 		-t kurl/rhel-7-force-docker:$* \
