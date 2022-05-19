@@ -519,28 +519,6 @@ func NodeLogs(id string, logs []byte) error {
 	return nil
 }
 
-func GetClusterNodes(instanceId string) ([]types.ClusterNode, error) {
-	db := persistence.MustGetPGSession()
-
-	query := `select id, node_type, status from clusternode where testinstance_id = $1`
-	rows, err := db.Query(query, instanceId)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to query")
-	}
-
-	nodes := []types.ClusterNode{}
-	for rows.Next() {
-		var node types.ClusterNode
-		if err := rows.Scan(&node.ID, &node.NodeType, &node.Status); err != nil {
-			return nil, errors.Wrap(err, "failed to scan")
-		}
-
-		nodes = append(nodes, node)
-	}
-
-	return nodes, nil
-}
-
 func GetNodeLogs(id string) (string, error) {
 	db := persistence.MustGetPGSession()
 

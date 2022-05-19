@@ -74,20 +74,6 @@ func NodeLogs(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func GetClusterNodes(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Access-Control-Allow-Headers", "content-type, origin, accept, authorization")
-
-	instanceID := mux.Vars(r)["instanceId"]
-	clusterNodes, err := testinstance.GetClusterNodes(instanceID)
-	if err != nil {
-		logger.Error(err)
-		JSON(w, 500, nil)
-		return
-	}
-	JSON(w, 200, clusterNodes)
-}
-
 func GetNodeLogs(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Headers", "content-type, origin, accept, authorization")

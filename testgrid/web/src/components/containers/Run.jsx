@@ -38,9 +38,9 @@ class Run extends React.Component {
     await this.loadUniqueAddons();
 
     const params = queryString.parse(this.props.location.search);
-    if (params.kurlLogsInstanceId) {
+    if (params.kurlLogsInstanceId && params.nodeId) {
       const instance = this.findInstanceInMap(params.kurlLogsInstanceId);
-      this.instancesTable?.current?.viewInstanceLogs(instance);
+      this.instancesTable?.current?.viewNodeLogs(params.nodeId, instance);
     } else if (params.sonobuoyResultsInstanceId) {
       const instance = this.findInstanceInMap(params.sonobuoyResultsInstanceId);
       this.instancesTable?.current?.viewInstanceSonobuoyResults(instance);

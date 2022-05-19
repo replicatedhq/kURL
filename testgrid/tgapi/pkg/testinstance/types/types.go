@@ -34,9 +34,3 @@ type TestInstance struct {
 	OSImage   string `json:"-"`
 	OSPreInit string `json:"-"`
 }
-
-type ClusterNode struct {
-	ID       string `json:"id"`
-	NodeType string `json:"nodeType"`
-	Status   string `json:"status"`
-}

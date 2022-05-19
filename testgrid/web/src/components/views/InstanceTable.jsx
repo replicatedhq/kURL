@@ -113,6 +113,10 @@ export default class InstanceTable extends React.Component {
       if ("kurlLogsInstanceId" in searchParams) {
         delete searchParams["kurlLogsInstanceId"];
       }
+      if ("nodeId" in searchParams) {
+         delete searchParams["nodeId"];
+      }
+       
       this.props.history?.replace({
         pathname: this.props.location?.pathname,
         search: queryString.stringify(searchParams),
@@ -274,8 +278,19 @@ export default class InstanceTable extends React.Component {
   }
 
   viewNodeLogs = (nodeId, instance) => {
+    if (this.props.location) {
+      const searchParams = queryString.parse(this.props.location?.search);
+      searchParams.kurlLogsInstanceId = instance.id;
+      searchParams.nodeId = nodeId;
+
+      this.props.history?.replace({
+        pathname: this.props.location?.pathname,
+        search: queryString.stringify(searchParams),
+        hash: this.props.location?.hash,
+      });
+    }
+    this.setState({ loadingLogs: true, showLogsModal: true, selectedInstance: instance, selectedNode: nodeId});
     getNodeLogs(nodeId).then(logs => {
-      this.setState({ loadingLogs: true, showLogsModal: true, selectedInstance: instance, selectedNode: nodeId});
        this.setState({
           instanceLogs: logs.data.logs,
           loadingLogs: false,
@@ -339,7 +354,7 @@ export default class InstanceTable extends React.Component {
               const secondaryNodes = []
               for (var i = 0; i < instance.numSecondaryNodes ; i++) {
                   let nodeId = `${instance.id}-secondary-${i}`
-                  secondaryNodes.push(<button  key={i} type="button" className="btn xsmall primary u-width--full u-marginBottom--5" onClick={() => this.viewNodeLogs(nodeId, instance)}>{"Logs secondary-"+i}</button>)
+                  secondaryNodes.push(<button  key={i} type="button" className="btn xsmall primary u-width--full u-marginBottom--5" onClick={() => this.viewNodeLogs(nodeId, instance)}>{"Logs Secondary-"+i+ " Node"}</button>)
               }
               return (
                 <td
@@ -357,12 +372,14 @@ export default class InstanceTable extends React.Component {
                       </div>
                     }
                   </div>
-                  <div className="flex flex1 alignItems--center">
+                  {(instance.startedAt && !instance.isUnsupported) &&
+                  <div className="flex flex1 alignItems--center cluster-node">
                     <div className="flex-column flex1 alignItems--flexEnd">
-                     <button type="button" className="btn xsmall primary u-width--full u-marginBottom--5" onClick={() => this.viewNodeLogs(initialPrimaryId, instance)}>initialprimary Logs</button>
+                     <button type="button" className="btn xsmall primary u-width--full u-marginBottom--5" onClick={() => this.viewNodeLogs(initialPrimaryId, instance)}>Logs Initialprimary Node</button>
                      {secondaryNodes}
                     </div>
                   </div>
+                  }
                 </td>
               );
             }
