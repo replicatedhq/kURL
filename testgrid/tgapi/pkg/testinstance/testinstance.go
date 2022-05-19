@@ -245,7 +245,7 @@ where id = $1`
 func List(refID string, limit int, offset int, addons map[string]string) ([]types.TestInstance, error) {
 	db := persistence.MustGetPGSession()
 
-	query := `SELECT ti.id, ti.test_name, ti.kurl_yaml, ti.kurl_url, ti.kurl_flags, ti.upgrade_yaml, ti.upgrade_url, ti.supportbundle_yaml, ti.post_install_script, ti.post_upgrade_script, ti.os_name, ti.os_version, ti.os_image, ti.enqueued_at, ti.dequeued_at, ti.started_at, ti.finished_at, ti.is_success, ti.failure_reason, ti.is_unsupported
+	query := `SELECT ti.id, ti.test_name, ti.kurl_yaml, ti.kurl_url, ti.kurl_flags, ti.upgrade_yaml, ti.upgrade_url, ti.supportbundle_yaml, ti.post_install_script, ti.post_upgrade_script, ti.os_name, ti.os_version, ti.os_image, ti.enqueued_at, ti.dequeued_at, ti.started_at, ti.finished_at, ti.is_success, ti.failure_reason, ti.is_unsupported, ti.num_primary_nodes, ti.num_secondary_nodes
 FROM testinstance ti
 WHERE ti.testrun_ref = $1`
 
@@ -283,7 +283,6 @@ WHERE ti.testrun_ref = $1`
 		var finishedAt sql.NullTime
 		var isSuccess, isUnsupported sql.NullBool
 		var testName, kurlFlags, upgradeYAML, upgradeURL, supportbundleYAML, postInstallScript, postUpgradeScript, failureReason sql.NullString
-
 		if err := rows.Scan(
 			&testInstance.ID,
 			&testName,
@@ -305,6 +304,8 @@ WHERE ti.testrun_ref = $1`
 			&isSuccess,
 			&failureReason,
 			&isUnsupported,
+			&testInstance.NumPrimaryNodes,
+			&testInstance.NumSecondaryNodes,
 		); err != nil {
 			return nil, errors.Wrap(err, "failed to scan")
 		}
@@ -516,4 +517,18 @@ func NodeLogs(id string, logs []byte) error {
 	}
 
 	return nil
+}
+
+func GetNodeLogs(id string) (string, error) {
+	db := persistence.MustGetPGSession()
+
+	query := `select output from clusternode where id = $1`
+	row := db.QueryRow(query, id)
+
+	var logs sql.NullString
+	if err := row.Scan(&logs); err != nil {
+		return "", errors.Wrap(err, "failed to scan")
+	}
+
+	return logs.String, nil
 }

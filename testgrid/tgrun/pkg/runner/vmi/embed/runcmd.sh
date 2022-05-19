@@ -422,6 +422,7 @@ function report_failure() {
 
 function send_logs() {
     curl -X POST --data-binary "@/var/log/cloud-init-output.log" "$TESTGRID_APIENDPOINT/v1/instance/$TEST_ID/logs"
+    curl -X PUT -f --data-binary "@/var/log/cloud-init-output.log" "$TESTGRID_APIENDPOINT/v1/instance/$NODE_ID/node-logs"
 }
 
 function wait_for_cluster_ready() {

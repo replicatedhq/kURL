@@ -20,6 +20,10 @@ type StatusUpdateRequest struct {
 	Status string `json:"status"`
 }
 
+type GetNodeLogsResponse struct {
+	Logs string `json:"logs"`
+}
+
 func AddClusterNode(w http.ResponseWriter, r *http.Request) {
 	instanceID := mux.Vars(r)["instanceId"]
 	clusterNodeRequest := ClusterNodeRequest{}
@@ -68,4 +72,20 @@ func NodeLogs(w http.ResponseWriter, r *http.Request) {
 		JSON(w, 500, nil)
 		return
 	}
+}
+
+func GetNodeLogs(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Headers", "content-type, origin, accept, authorization")
+
+	nodeID := mux.Vars(r)["nodeId"]
+	logs, err := testinstance.GetNodeLogs(nodeID)
+	if err != nil {
+		logger.Error(err)
+		JSON(w, 500, nil)
+		return
+	}
+	getNodeLogsResponse := GetNodeLogsResponse{}
+	getNodeLogsResponse.Logs = logs
+	JSON(w, 200, getNodeLogsResponse)
 }
