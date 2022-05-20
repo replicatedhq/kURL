@@ -115,6 +115,7 @@ func createSecret(singleTest types.SingleRun, nodeName string, tempDir string) e
 	if strings.HasPrefix(nodeName, SecondaryNode) || strings.HasPrefix(nodeName, PrimaryNode) {
 		runcmdB64 = base64.StdEncoding.EncodeToString([]byte(secondarynodecmd))
 	}
+	commonShB64 := base64.StdEncoding.EncodeToString([]byte(commonSh))
 	varsSh := fmt.Sprintf(`
 export TESTGRID_APIENDPOINT='%s'
 export TEST_ID='%s'
@@ -153,6 +154,7 @@ runcmd:
   - [ bash, -c, 'sudo mkdir -p /opt/kurl-testgrid' ]
   - [ bash, -c, 'echo %s | base64 -d > /opt/kurl-testgrid/preinit.sh' ]
   - [ bash, -c, 'echo %s | base64 -d > /opt/kurl-testgrid/vars.sh' ]
+  - [ bash, -c, 'echo %s | base64 -d > /opt/kurl-testgrid/common.sh' ]
   - [ bash, -c, 'echo %s | base64 -d > /opt/kurl-testgrid/runcmd.sh' ]
   - [ bash, -c, '[ %d -eq 0 ] || echo %s | base64 -d > /opt/kurl-testgrid/postinstall.sh' ]
   - [ bash, -c, '[ %d -eq 0 ] || echo %s | base64 -d > /opt/kurl-testgrid/postupgrade.sh' ]
@@ -166,6 +168,7 @@ power_state:
 `,
 		base64.StdEncoding.EncodeToString([]byte(singleTest.OperatingSystemPreInit)),
 		varsB64,
+		commonShB64,
 		runcmdB64,
 		len(singleTest.PostInstallScript),
 		postInstallB64,
