@@ -15,6 +15,7 @@ DIR=.
 . $DIR/scripts/common/utilbinaries.sh
 . $DIR/scripts/common/rook.sh
 . $DIR/scripts/common/longhorn.sh
+. $DIR/scripts/common/reporting.sh
 . $DIR/scripts/distro/interface.sh
 . $DIR/scripts/distro/kubeadm/distro.sh
 . $DIR/scripts/distro/rke2/distro.sh
