@@ -55,7 +55,7 @@
     "@sentry/browser": "^6.16.1",
     "accounting": "^0.4.1",
     "lodash": "^4.17.21",
-    "moment": "^2.29.1",
+    "moment": "^2.29.3",
     "monaco-editor": "^0.26.1",
     "monaco-editor-webpack-plugin": "^4.2.0",
     "parse-ansi": "^1.0.3",
