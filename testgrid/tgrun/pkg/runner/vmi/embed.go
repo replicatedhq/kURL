@@ -12,3 +12,6 @@ var commonSh string
 
 //go:embed embed/secondarynodecmd.sh
 var secondarynodecmd string
+
+//go:embed embed/primarynodecmd.sh
+var primarynodecmd string

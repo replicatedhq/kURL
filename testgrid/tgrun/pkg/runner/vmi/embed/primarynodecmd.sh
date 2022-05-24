@@ -38,3 +38,5 @@ function main()
   green "send log"
   send_logs
 }
+
+main

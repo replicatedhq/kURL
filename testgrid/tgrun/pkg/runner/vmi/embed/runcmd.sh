@@ -222,7 +222,13 @@ function store_join_command() {
     secondaryJoin=$(remove_first_element $secondaryJoin)
     secondaryJoin=$(remove_last_element $secondaryJoin)
     secondaryJoin=$(echo $secondaryJoin | base64 | tr -d '\n' )
-    primaryJoin=$(echo $joincommand | grep -o -P '(?<=To add MASTER nodes to this installation, run the following script on your other nodes:).*(?=)')
+
+    primaryJoin=$(echo $joincommand | grep -o -P '(?<=nodes:).*(?=)') # return from secondary till the end
+    primaryJoin=$(echo $primaryJoin | grep -o -P '(?<=nodes:).*(?=)') # take the primary command only
+    primaryJoin=$(remove_first_element $primaryJoin)
+    primaryJoin=$(remove_last_element $primaryJoin)
+    primaryJoin=$(echo $primaryJoin | base64 | tr -d '\n' )
+
     curl -X POST -d "{\"primaryJoin\": \"${primaryJoin}\",\"secondaryJoin\": \"${secondaryJoin}\"}" "$TESTGRID_APIENDPOINT/v1/instance/$TEST_ID/join-command"
 }
 
@@ -436,11 +442,11 @@ function wait_for_cluster_ready() {
         fi
         echo "cluster is not ready"
         i=$((i+1))
-        if [ $i -gt 10 ]; then
+        if [ $i -gt 20 ]; then
             report_failure "cluster_not_ready"
             exit 0
         fi
-        sleep 120
+        sleep 60
     done
 }
 
@@ -462,6 +468,7 @@ function main() {
 
     run_tasks_join_token
     store_join_command
+    send_logs
     wait_for_cluster_ready
 
     if [ "$KURL_UPGRADE_URL" != "" ]; then

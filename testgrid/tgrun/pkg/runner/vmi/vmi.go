@@ -112,8 +112,10 @@ func getEmptyDiskVolume(name string, capacity resource.Quantity) kubevirtv1.Volu
 func createSecret(singleTest types.SingleRun, nodeName string, tempDir string) error {
 	name, nodeId := fmt.Sprintf("%s-%s", singleTest.ID, nodeName), fmt.Sprintf("%s-%s", singleTest.ID, nodeName)
 	runcmdB64 := base64.StdEncoding.EncodeToString([]byte(runcmdSh))
-	if strings.HasPrefix(nodeName, SecondaryNode) || strings.HasPrefix(nodeName, PrimaryNode) {
+	if strings.HasPrefix(nodeName, SecondaryNode) {
 		runcmdB64 = base64.StdEncoding.EncodeToString([]byte(secondarynodecmd))
+	} else if strings.HasPrefix(nodeName, PrimaryNode) {
+		runcmdB64 = base64.StdEncoding.EncodeToString([]byte(primarynodecmd))
 	}
 	commonShB64 := base64.StdEncoding.EncodeToString([]byte(commonSh))
 	varsSh := fmt.Sprintf(`

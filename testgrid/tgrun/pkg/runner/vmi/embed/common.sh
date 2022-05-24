@@ -48,7 +48,8 @@ function wait_for_join_commandready()
     do
         joinCommand=$(get_join_command)
         secondaryJoin=$(echo "$joinCommand" | sed 's/{.*secondaryJoin":"*\([0-9a-zA-Z]*\)"*,*.*}/\1/')
-        if [ "$secondaryJoin" != "" ]; then
+        primaryJoin=$(echo "$joinCommand" | sed 's/{.*primaryJoin":"*\([0-9a-zA-Z]*\)"*,*.*}/\1/')
+        if [ "$secondaryJoin" != "" ] && [ "$primaryJoin" != "" ]; then
             echo "$secondaryJoin"
             break
         fi
