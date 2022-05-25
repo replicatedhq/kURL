@@ -654,6 +654,7 @@ spec:
       { slug: "", answer: false},
       { slug: " ", answer: false},
       { slug: "big-bank-beta", answer: true},
+      { slug: "big-bank-beta-1.0.1+whatever@mysha123", answer: true},
       { slug: _.range(0, 255).map(() => "a").join(""), answer: true },
       { slug: _.range(0, 256).map(() => "a").join(""), answer: false },
     ].forEach((test) => {

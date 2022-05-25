@@ -1071,7 +1071,7 @@ export class Installer {
   }
 
   public static isValidSlug(id: string): boolean {
-    return /^[0-9a-zA-Z-_]{1,255}$/.test(id);
+    return /^[0-9a-zA-Z-_.@+]{1,255}$/.test(id);
   }
 
   public static slugIsReserved(id: string): boolean {
