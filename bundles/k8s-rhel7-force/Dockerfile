@@ -8,6 +8,7 @@ RUN yumdownloader --resolve --destdir=/packages/archives -y \
 	kubelet-${KUBERNETES_VERSION} \
 	kubectl-${KUBERNETES_VERSION} \
 	kubernetes-cni \
+	ncurses-compat-libs \
 	git
 
 CMD cp -r /packages/archives/* /out/
