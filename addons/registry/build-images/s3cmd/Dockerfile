@@ -7,8 +7,11 @@ RUN apk add --no-cache \
   && ln -s /usr/bin/python3 /usr/bin/python
 
 # Install s3cmd
-ENV S3CMD_VERSION=2.1.0
-RUN wget https://github.com/s3tools/s3cmd/releases/download/v${S3CMD_VERSION}/s3cmd-${S3CMD_VERSION}.tar.gz \
+RUN S3CMD_VERSION=$(wget -qO- https://api.github.com/repos/s3tools/s3cmd/releases/latest | \
+    grep '"name":' | \
+    grep -Eo "[0-9]+\.[0-9]+\.[0-9]+" | \
+    head -1) \
+  && wget https://github.com/s3tools/s3cmd/releases/download/v${S3CMD_VERSION}/s3cmd-${S3CMD_VERSION}.tar.gz \
   && tar -xzvf s3cmd-${S3CMD_VERSION}.tar.gz \
   && mv s3cmd-${S3CMD_VERSION}/s3cmd /usr/local/bin/s3cmd \
   && mv s3cmd-${S3CMD_VERSION}/S3 /usr/local/bin/S3 \
