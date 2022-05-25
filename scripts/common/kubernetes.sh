@@ -94,7 +94,9 @@ function kubernetes_install_host_packages() {
         logSuccess "Kubernetes host packages already installed"
         # less command is broken if libtinfo.so.5 is missing in amazon linux 2
         if [ "$LSB_DIST" == "amzn" ] && [ "$AIRGAP" != "1" ] && ! file_exists "/usr/lib64/libtinfo.so.5"; then
-            install_host_packages "${DIR}/packages/kubernetes/${k8sVersion}" ncurses-compat-libs
+            if [ -d "$DIR/packages/kubernetes/${k8sVersion}" ]; then
+                install_host_packages "${DIR}/packages/kubernetes/${k8sVersion}" ncurses-compat-libs
+            fi
         fi
 
         return
