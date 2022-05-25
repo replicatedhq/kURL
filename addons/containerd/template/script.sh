@@ -178,9 +178,21 @@ function find_common_versions() {
         VERSIONS+=("$version")
     done
 
+    echo "Found ${#VERSIONS[*]} containerd versions >=1.3 available for all operating systems: ${VERSIONS[*]}"
+
+    VERSIONS+=("1.2.13")
+
     export GREATEST_VERSION="${VERSIONS[0]}"
 
-    echo "Found ${#VERSIONS[*]} containerd versions >=1.3 available for all operating systems: ${VERSIONS[*]}"
+    # Move 1.6.x to the back so it's not the latest
+    local V6=()
+    for v in ${VERSIONS[@]}; do
+        if [[ $v == 1\.6\.* ]]; then
+            VERSIONS=("${VERSIONS[@]/$v}")
+            V6+=("${v}")
+        fi
+    done
+    VERSIONS=("${VERSIONS[@]}" "${V6[@]}")
 }
 
 function generate_version() {
@@ -206,14 +218,16 @@ function update_available_versions() {
     for version in ${VERSIONS[@]}; do
         v="${v}\"${version}\", "
     done
-    sed -i "/cron-containerd-update/c\  containerd: [${v}\"1.2.13\"], \/\/ cron-containerd-update" ../../../web/src/installers/versions.js
+    sed -i "/cron-containerd-update/c\  containerd: [${v}], \/\/ cron-containerd-update" ../../../web/src/installers/versions.js
 }
 
 function main() {
     find_common_versions
 
     for version in ${VERSIONS[*]}; do
-        generate_version "$version"
+        if [ "$version" != "1.2.13" ]; then
+            generate_version "$version"
+        fi
     done
 
     echo "::set-output name=containerd_version::$GREATEST_VERSION"

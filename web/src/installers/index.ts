@@ -1379,6 +1379,13 @@ export class Installer {
       }
     }
 
+    // Containerd 1.6 is incompatible with Weave
+    if (this.spec.containerd && this.spec.containerd.version === "1.6.4") {
+      if (this.spec.weave) {
+        return {error: {message: "Containerd 1.6.x is not compatible with Weave"}};
+      }
+    }
+
     // Prometheus versions <= 0.49.0-17.1.3 are incompatible with Kubernetes 1.22+
     if (this.spec.prometheus && semver.lte(this.spec.prometheus.version, "0.49.0")) {
       if (this.spec.kubernetes && semver.gte(this.spec.kubernetes.version, "1.22.0")) {

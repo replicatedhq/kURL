@@ -252,7 +252,7 @@
     contour:
       version: latest
     containerd:
-      version: 1.5.11
+      version: 1.6.4
 - name: k8s119x_containerd148
   installerSpec:
     kubernetes:
@@ -800,7 +800,7 @@
     kubernetes:
       version: 1.22.x
     containerd:
-      version: 1.4.x
+      version: 1.6.x
     antrea:
       version: 1.4.x
       isEncryptionDisabled: true
@@ -846,7 +846,7 @@
     kubernetes:
       version: 1.22.x
     containerd:
-      version: 1.5.x
+      version: 1.6.x
     antrea:
       version: 1.4.x
       isEncryptionDisabled: true
