@@ -450,12 +450,20 @@ function wait_for_cluster_ready() {
     done
 }
 
+function useHA() {
+    if [ "$NUM_PRIMARY_NODES" -gt 1 ]; then
+        echo "kurl install finished with ha"
+        cat install.sh | timeout 30m bash -s $AIRGAP_FLAG ${KURL_FLAGS[@]} ha
+    fi
+}
 function main() {
     curl -X POST "$TESTGRID_APIENDPOINT/v1/instance/$TEST_ID/running"
 
     setup_runner
 
     run_install
+    send_logs
+    useHA
     send_logs
     if [ $KURL_EXIT_STATUS -ne 0 ]; then
         send_logs

@@ -127,6 +127,7 @@ export KURL_UPGRADE_URL='%s'
 export SUPPORTBUNDLE_SPEC='%s'
 export OS_NAME='%s'
 export NUM_NODES='%d'
+export NUM_PRIMARY_NODES='%d'
 export NODE_ID='%s'
 `,
 		singleTest.TestGridAPIEndpoint,
@@ -137,6 +138,7 @@ export NODE_ID='%s'
 		singleTest.SupportbundleYAML,
 		singleTest.OperatingSystemName,
 		max(singleTest.NumPrimaryNodes+singleTest.NumSecondaryNodes, 1),
+		max(singleTest.NumPrimaryNodes, 1),
 		nodeId,
 	)
 
