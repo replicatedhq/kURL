@@ -342,7 +342,7 @@ exportKubeconfig() {
     
     if ! grep -q "kubectl completion bash" /etc/profile; then
         echo "export KUBECONFIG=${kubeconfig}" >> /etc/profile
-        echo "source <(kubectl completion bash)" >> /etc/profile
+        echo "if  type _init_completion >/dev/null 2>&1; then source <(kubectl completion bash); fi" >> /etc/profile
     fi
 }
 
