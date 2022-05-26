@@ -233,6 +233,25 @@ func Test_parseBashFlags(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "ekco-enable-internal-load-balancer",
+			oldInstaller: &kurlv1beta1.Installer{
+				Spec: kurlv1beta1.InstallerSpec{
+					Ekco: &kurlv1beta1.Ekco{
+						Version: "0.19.0",
+					},
+				},
+			},
+			bashFlags: "ekco-enable-internal-load-balancer",
+			mergedInstaller: &kurlv1beta1.Installer{
+				Spec: kurlv1beta1.InstallerSpec{
+					Ekco: &kurlv1beta1.Ekco{
+						Version:                    "0.19.0",
+						EnableInternalLoadBalancer: true,
+					},
+				},
+			},
+		},
 	}
 
 	for _, test := range tests {

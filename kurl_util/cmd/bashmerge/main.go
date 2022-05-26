@@ -144,6 +144,10 @@ func parseBashFlags(installer *kurlv1beta1.Installer, bashFlags string) error {
 				installer.Spec.Kubernetes = &kurlv1beta1.Kubernetes{}
 			}
 			installer.Spec.Kubernetes.LoadBalancerAddress = split[1]
+		case "ekco-enable-internal-load-balancer":
+			if installer.Spec.Ekco != nil {
+				installer.Spec.Ekco.EnableInternalLoadBalancer = true
+			}
 		case "kubernetes-master-address":
 			if installer.Spec.Kubernetes == nil {
 				installer.Spec.Kubernetes = &kurlv1beta1.Kubernetes{}
