@@ -32,12 +32,6 @@ const teamWithGeneratedIDResponse = {
   },
 };
 
-const slugCharactersResponse = {
-  error: {
-    message: "Only base64 URL characters may be used for custom named installers",
-  },
-};
-
 const slugReservedResponse = {
   error: {
     message: "The requested custom installer name is reserved",
@@ -259,10 +253,6 @@ export class Installers {
     if (Installer.isSHA(id)) {
       response.status(400);
       return teamWithGeneratedIDResponse;
-    }
-    if (!Installer.isValidSlug(id)) {
-      response.status(400);
-      return slugCharactersResponse;
     }
     if (Installer.slugIsReserved(id)) {
       response.status(400);
