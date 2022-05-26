@@ -427,7 +427,6 @@ function report_failure() {
 }
 
 function send_logs() {
-    curl -X POST --data-binary "@/var/log/cloud-init-output.log" "$TESTGRID_APIENDPOINT/v1/instance/$TEST_ID/logs"
     curl -X PUT -f --data-binary "@/var/log/cloud-init-output.log" "$TESTGRID_APIENDPOINT/v1/instance/$NODE_ID/node-logs"
 }
 
@@ -450,28 +449,39 @@ function wait_for_cluster_ready() {
     done
 }
 
-function useHA() {
+function install_using_ha() {
     if [ "$NUM_PRIMARY_NODES" -gt 1 ]; then
         echo "kurl install finished with ha"
         cat install.sh | timeout 30m bash -s $AIRGAP_FLAG ${KURL_FLAGS[@]} ha
+        KURL_EXIT_STATUS=$?
     fi
 }
-function main() {
-    curl -X POST "$TESTGRID_APIENDPOINT/v1/instance/$TEST_ID/running"
 
-    setup_runner
-
-    run_install
-    send_logs
-    useHA
-    send_logs
+function check_command_run_success() {
     if [ $KURL_EXIT_STATUS -ne 0 ]; then
-        send_logs
+        echo "kurl install failed"
         report_failure "kurl_install"
         collect_support_bundle
         exit 1
     fi
+}
 
+# change flags from string to array with space as delimiter
+function create_flags_array() {
+    IFS=' ' read -r -a KURL_FLAGS <<< "${KURL_FLAGS}"
+}
+
+function main() {
+    curl -X POST "$TESTGRID_APIENDPOINT/v1/instance/$TEST_ID/running"
+    setup_runner
+ 
+    create_flags_array
+    run_install
+    check_command_run_success
+    send_logs
+    install_using_ha
+    check_command_run_success
+    send_logs
     run_post_install_script
 
     run_tasks_join_token

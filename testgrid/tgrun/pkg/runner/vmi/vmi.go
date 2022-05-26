@@ -122,7 +122,7 @@ func createSecret(singleTest types.SingleRun, nodeName string, tempDir string) e
 export TESTGRID_APIENDPOINT='%s'
 export TEST_ID='%s'
 export KURL_URL='%s'
-export KURL_FLAGS=( %s )
+export KURL_FLAGS='%s'
 export KURL_UPGRADE_URL='%s'
 export SUPPORTBUNDLE_SPEC='%s'
 export OS_NAME='%s'
