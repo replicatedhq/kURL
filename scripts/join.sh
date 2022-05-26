@@ -99,7 +99,7 @@ function join() {
 
         if [ $KUBERNETES_CURRENT_VERSION_MAJOR -ge 1 ] && [ $KUBERNETES_CURRENT_VERSION_MINOR -ge 24 ]; then
           local node=$(hostname | tr '[:upper:]' '[:lower:]')
-          kubectl label node "$node" node-role.kubernetes.io/master= 2>/dev/null || true
+          kubectl label --overwrite node "$node" node-role.kubernetes.io/master= 2>/dev/null || true
         fi
 
         if [ "$KUBERNETES_CIS_COMPLIANCE" == "1" ]; then
