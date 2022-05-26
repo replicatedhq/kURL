@@ -112,18 +112,22 @@ func getEmptyDiskVolume(name string, capacity resource.Quantity) kubevirtv1.Volu
 func createSecret(singleTest types.SingleRun, nodeName string, tempDir string) error {
 	name, nodeId := fmt.Sprintf("%s-%s", singleTest.ID, nodeName), fmt.Sprintf("%s-%s", singleTest.ID, nodeName)
 	runcmdB64 := base64.StdEncoding.EncodeToString([]byte(runcmdSh))
-	if strings.HasPrefix(nodeName, SecondaryNode) || strings.HasPrefix(nodeName, PrimaryNode) {
+	if strings.HasPrefix(nodeName, SecondaryNode) {
 		runcmdB64 = base64.StdEncoding.EncodeToString([]byte(secondarynodecmd))
+	} else if strings.HasPrefix(nodeName, PrimaryNode) {
+		runcmdB64 = base64.StdEncoding.EncodeToString([]byte(primarynodecmd))
 	}
+	commonShB64 := base64.StdEncoding.EncodeToString([]byte(commonSh))
 	varsSh := fmt.Sprintf(`
 export TESTGRID_APIENDPOINT='%s'
 export TEST_ID='%s'
 export KURL_URL='%s'
-export KURL_FLAGS=( %s )
+export KURL_FLAGS='%s'
 export KURL_UPGRADE_URL='%s'
 export SUPPORTBUNDLE_SPEC='%s'
 export OS_NAME='%s'
 export NUM_NODES='%d'
+export NUM_PRIMARY_NODES='%d'
 export NODE_ID='%s'
 `,
 		singleTest.TestGridAPIEndpoint,
@@ -134,6 +138,7 @@ export NODE_ID='%s'
 		singleTest.SupportbundleYAML,
 		singleTest.OperatingSystemName,
 		max(singleTest.NumPrimaryNodes+singleTest.NumSecondaryNodes, 1),
+		max(singleTest.NumPrimaryNodes, 1),
 		nodeId,
 	)
 
@@ -153,6 +158,7 @@ runcmd:
   - [ bash, -c, 'sudo mkdir -p /opt/kurl-testgrid' ]
   - [ bash, -c, 'echo %s | base64 -d > /opt/kurl-testgrid/preinit.sh' ]
   - [ bash, -c, 'echo %s | base64 -d > /opt/kurl-testgrid/vars.sh' ]
+  - [ bash, -c, 'echo %s | base64 -d > /opt/kurl-testgrid/common.sh' ]
   - [ bash, -c, 'echo %s | base64 -d > /opt/kurl-testgrid/runcmd.sh' ]
   - [ bash, -c, '[ %d -eq 0 ] || echo %s | base64 -d > /opt/kurl-testgrid/postinstall.sh' ]
   - [ bash, -c, '[ %d -eq 0 ] || echo %s | base64 -d > /opt/kurl-testgrid/postupgrade.sh' ]
@@ -166,6 +172,7 @@ power_state:
 `,
 		base64.StdEncoding.EncodeToString([]byte(singleTest.OperatingSystemPreInit)),
 		varsB64,
+		commonShB64,
 		runcmdB64,
 		len(singleTest.PostInstallScript),
 		postInstallB64,

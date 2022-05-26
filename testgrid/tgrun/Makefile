@@ -27,4 +27,3 @@ fmt:
 .PHONY: vet
 vet:
 	go vet ./...
-
