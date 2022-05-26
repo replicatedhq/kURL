@@ -1352,6 +1352,9 @@ export class Installer {
     if (this.spec.containerd && this.spec.docker) {
       return {error: {message: `This spec contains both docker and containerd, please specifiy only one CRI`}};
     }
+    if (this.spec.docker && this.spec.kubernetes && semver.gte(this.spec.kubernetes.version, "1.24.0")) {
+      return {error: {message: "Docker is not supported with Kubernetes versions 1.24+, please choose Containerd"}};
+    }
     if (this.spec.collectd && !(await Installer.hasVersion("collectd", this.spec.collectd.version, installerVersion)) && !this.hasS3Override("collectd")) {
       return {error: {message: `Collectd version "${_.escape(this.spec.collectd.version)}" is not supported${installerVersion ? " for installer version " + _.escape(installerVersion) : ""}`}};
     }

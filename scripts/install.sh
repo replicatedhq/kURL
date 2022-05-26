@@ -259,6 +259,19 @@ function init() {
     fi
 
     wait_for_nodes
+
+    # once the node is up, apply the master label only on primaries
+    # get the kubernetes version
+    local kubernetes_version=$(kubectl version --short | grep -i server | awk '{ print $3 }' | sed 's/^v*//')
+    semverParse $kubernetes_version
+    KUBERNETES_CURRENT_VERSION_MAJOR="$major"
+    KUBERNETES_CURRENT_VERSION_MINOR="$minor"
+
+    if [ $KUBERNETES_CURRENT_VERSION_MAJOR -ge 1 ] && [ $KUBERNETES_CURRENT_VERSION_MINOR -ge 24 ]; then
+        local node=$(hostname | tr '[:upper:]' '[:lower:]')
+        kubectl label node "$node" node-role.kubernetes.io/master= 2>/dev/null || true
+    fi
+
     enable_rook_ceph_operator
 
     DID_INIT_KUBERNETES=1
