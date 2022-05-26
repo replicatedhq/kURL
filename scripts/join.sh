@@ -94,12 +94,10 @@ function join() {
         # get the kubernetes version
         local kubernetes_version=$(kubectl version --short | grep -i server | awk '{ print $3 }' | sed 's/^v*//')
         semverParse $kubernetes_version
-        KUBERNETES_CURRENT_VERSION_MAJOR="$major"
-        KUBERNETES_CURRENT_VERSION_MINOR="$minor"
 
-        if [ $KUBERNETES_CURRENT_VERSION_MAJOR -ge 1 ] && [ $KUBERNETES_CURRENT_VERSION_MINOR -ge 24 ]; then
+        if [ $major -ge 1 ] && [ $minor -ge 24 ]; then
           local node=$(hostname | tr '[:upper:]' '[:lower:]')
-          kubectl label --overwrite node "$node" node-role.kubernetes.io/master= 2>/dev/null || true
+          kubectl label --overwrite node "$node" node-role.kubernetes.io/master=
         fi
 
         if [ "$KUBERNETES_CIS_COMPLIANCE" == "1" ]; then
