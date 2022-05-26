@@ -298,7 +298,7 @@ function prompt_for_private_ip() {
         _regex_ipv6="^[[:digit:]]+: ([^[:space:]]+)[[:space:]]+inet6 ([[:alnum:]:]+)"
         while read -r _line; do
             [[ $_line =~ $_regex_ipv6 ]]
-            if [ "${BASH_REMATCH[1]}" != "lo" ] && [ "${BASH_REMATCH[1]}" != "kube-ipvs0" ] && [ "${BASH_REMATCH[1]}" != "docker0" ] && [ "${BASH_REMATCH[1]}" != "weave" ]; then
+            if [ "${BASH_REMATCH[1]}" != "lo" ] && [ "${BASH_REMATCH[1]}" != "kube-ipvs0" ] && [ "${BASH_REMATCH[1]}" != "docker0" ] && [ "${BASH_REMATCH[1]}" != "weave" ] && [ "${BASH_REMATCH[1]}" != "antrea-gw0" ]; then
                 _iface_names[$((_count))]=${BASH_REMATCH[1]}
                 _iface_addrs[$((_count))]=${BASH_REMATCH[2]}
                 let "_count += 1"
@@ -308,7 +308,7 @@ function prompt_for_private_ip() {
         _regex_ipv4="^[[:digit:]]+: ([^[:space:]]+)[[:space:]]+[[:alnum:]]+ ([[:digit:].]+)"
         while read -r _line; do
             [[ $_line =~ $_regex_ipv4 ]]
-            if [ "${BASH_REMATCH[1]}" != "lo" ] && [ "${BASH_REMATCH[1]}" != "kube-ipvs0" ] && [ "${BASH_REMATCH[1]}" != "docker0" ] && [ "${BASH_REMATCH[1]}" != "weave" ]; then
+            if [ "${BASH_REMATCH[1]}" != "lo" ] && [ "${BASH_REMATCH[1]}" != "kube-ipvs0" ] && [ "${BASH_REMATCH[1]}" != "docker0" ] && [ "${BASH_REMATCH[1]}" != "weave" ] && [ "${BASH_REMATCH[1]}" != "antrea-gw0" ]; then
                 _iface_names[$((_count))]=${BASH_REMATCH[1]}
                 _iface_addrs[$((_count))]=${BASH_REMATCH[2]}
                 let "_count += 1"

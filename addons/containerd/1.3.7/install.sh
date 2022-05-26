@@ -78,7 +78,8 @@ function containerd_install() {
         # If using the internal load balancer the Kubernetes API server will be unavailable until
         # kubelet starts the HAProxy static pod. This check ensures the Kubernetes API server
         # is available before proceeeding.
-        try_5m kubectl --kubeconfig=/etc/kubernetes/kubelet.conf get nodes
+        # ".." is needed becasue addons can have a CRD names "nodes", like nodes.longhorn.io
+        try_5m kubectl --kubeconfig=/etc/kubernetes/kubelet.conf get nodes..
     fi
 }
 

@@ -208,8 +208,12 @@ function generate_version() {
     # version, so the correct pause image used by containerd must be included in its bundle.
     if echo "$version" | grep -qE "1\.3\."; then
         echo "image pause k8s.gcr.io/pause:3.1" >> "../$version/Manifest"
-    else
+    elif echo "$version" | grep -qE "1\.4\."; then
         echo "image pause k8s.gcr.io/pause:3.2" >> "../$version/Manifest"
+    elif echo "$version" | grep -qE "1\.5\."; then
+        echo "image pause k8s.gcr.io/pause:3.5" >> "../$version/Manifest"
+    else
+        echo "image pause k8s.gcr.io/pause:3.6" >> "../$version/Manifest"
     fi
 }
 
