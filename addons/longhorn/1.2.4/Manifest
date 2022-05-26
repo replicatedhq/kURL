@@ -1,0 +1,16 @@
+yum iscsi-initiator-utils
+yum nfs-utils
+apt open-iscsi
+apt nfs-common
+
+image csi-attacher longhornio/csi-attacher:v3.2.1
+image csi-provisioner longhornio/csi-provisioner:v2.1.2
+image csi-resizer longhornio/csi-resizer:v1.2.0
+image csi-snapshotter longhornio/csi-snapshotter:v3.0.3
+image csi-node-driver-registrar longhornio/csi-node-driver-registrar:v2.3.0
+image backing-image-manager longhornio/backing-image-manager:v2_20210820
+image longhorn-engine longhornio/longhorn-engine:v1.2.4
+image longhorn-instance-manager longhornio/longhorn-instance-manager:v1_20220303
+image longhorn-manager longhornio/longhorn-manager:v1.2.4
+image longhorn-share-manager longhornio/longhorn-share-manager:v1_20211020
+image longhorn-ui longhornio/longhorn-ui:v1.2.4
