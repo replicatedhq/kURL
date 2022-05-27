@@ -1456,6 +1456,8 @@
       version: "1.23.5"
     docker:
       version: "20.10.5"
+    weave:
+      version: "2.6.5"
   postInstallScript: |
     echo "this is text to test less command after installation" > test-less.txt
     less test-less.txt > /dev/null
