@@ -102,6 +102,8 @@ K8S_DISTRO=kubeadm
 function main() {
     export KUBECONFIG=/etc/kubernetes/admin.conf
     require_root_user
+    # ensure /usr/local/bin/kubectl-plugin is in the path
+    path_add "/usr/local/bin"
     get_patch_yaml "$@"
     maybe_read_kurl_config_from_cluster
 
