@@ -259,6 +259,10 @@ function init() {
     fi
 
     wait_for_nodes
+
+    local node=$(hostname | tr '[:upper:]' '[:lower:]')
+    kubectl label --overwrite node "$node" node-role.kubernetes.io/master=
+
     enable_rook_ceph_operator
 
     DID_INIT_KUBERNETES=1

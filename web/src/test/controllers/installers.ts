@@ -1041,6 +1041,21 @@ spec:
         expect(out).to.deep.equal({ error: { message: "Openebs add-on is not compatible with Kubernetes versions 1.22+" } });
       });
     });
+
+  describe("docker is not supported with k8s version 1.24.0", () => {
+      it("=> ErrorResponse", async () => {
+        const yaml = `
+spec:
+  kubernetes:
+    version: 1.24.0
+  docker:
+    version: 20.10.5`;
+        const i = Installer.parse(yaml);
+        const out = await i.validate();
+
+        expect(out).to.deep.equal({ error: { message: "Docker is not supported with Kubernetes versions 1.24+, please choose Containerd" } });
+      });
+    });
   });
 
   describe("hasS3Override", () => {
