@@ -670,7 +670,7 @@ build/bin/kurl:
 code: build/kustomize build/addons
 
 build/bin/server: cmd/server/main.go
-	go build $(LDFLAGS) -o build/bin/server $(BUILDFLAGS) cmd/server/main.go
+	CGO_ENABLED=0 go build $(LDFLAGS) -o build/bin/server $(BUILDFLAGS) cmd/server/main.go
 
 .PHONY: web
 web: build/bin/server
