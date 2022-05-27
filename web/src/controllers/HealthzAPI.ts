@@ -19,7 +19,7 @@ export class HealthzAPI {
      * @returns {{version: string|undefined}}
      */
   @Get("")
-  @instrumented
+  @instrumented()
   public async healthz(
     @Res() response: Express.Response,
   ): Promise<Health> {

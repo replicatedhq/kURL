@@ -77,7 +77,7 @@ export class Installers {
    * @returns string
    */
   @Post("/")
-  @instrumented
+  @instrumented()
   public async createInstaller(
     @Res() response: Express.Response,
     @Req() request: Express.Request,
@@ -207,7 +207,7 @@ export class Installers {
    * @returns string | ErrorResponse
    */
   @Post("/validate")
-  @instrumented
+  @instrumented()
   public async validateInstaller(
     @Res() response: Express.Response,
     @Req() request: Express.Request,
