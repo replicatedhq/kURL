@@ -1,8 +1,6 @@
-FROM node:12-slim
+FROM node:12-alpine3.15
 
-RUN DEBIAN_FRONTEND=noninteractive apt-get update -qq \
-  && apt-get install --no-install-recommends -y ca-certificates \
-  && update-ca-certificates
+RUN apk add ca-certificates && update-ca-certificates
 
 ARG version=unknown
 ENV VERSION=$version

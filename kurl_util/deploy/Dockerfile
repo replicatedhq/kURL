@@ -11,9 +11,9 @@ COPY Makefile Makefile
 
 RUN make build/bin
 
-FROM debian:buster-slim
+FROM ubuntu:jammy
 
-RUN DEBIAN_FRONTEND=noninteractive apt-get update -qq && apt-get install -y --no-install-recommends \
+RUN apt-get update -qq && apt-get install -y --no-install-recommends \
     libzstd1 \
     \
     curl \
