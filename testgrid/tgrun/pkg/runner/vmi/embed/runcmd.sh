@@ -462,6 +462,7 @@ function check_command_run_success() {
         echo "kurl install failed"
         report_failure "kurl_install"
         collect_support_bundle
+        send_logs
         exit 1
     fi
 }
