@@ -260,14 +260,8 @@ function init() {
 
     wait_for_nodes
 
-    # once the node is up, apply the master label only on primaries
-    # get the kubernetes version
-    local kubernetes_version=$(kubectl version --short | grep -i server | awk '{ print $3 }' | sed 's/^v*//')
-    semverParse $kubernetes_version
-    if [ $major -ge 1 ] && [ $minor -ge 24 ]; then
-        local node=$(hostname | tr '[:upper:]' '[:lower:]')
-        kubectl label --overwrite node "$node" node-role.kubernetes.io/master=
-    fi
+    local node=$(hostname | tr '[:upper:]' '[:lower:]')
+    kubectl label --overwrite node "$node" node-role.kubernetes.io/master=
 
     enable_rook_ceph_operator
 

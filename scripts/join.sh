@@ -90,15 +90,8 @@ function join() {
     if [ "$MASTER" = "1" ]; then
         exportKubeconfig
 
-        # once the node is up, apply the master label only on primaries
-        # get the kubernetes version
-        local kubernetes_version=$(kubectl version --short | grep -i server | awk '{ print $3 }' | sed 's/^v*//')
-        semverParse $kubernetes_version
-
-        if [ $major -ge 1 ] && [ $minor -ge 24 ]; then
-          local node=$(hostname | tr '[:upper:]' '[:lower:]')
-          kubectl label --overwrite node "$node" node-role.kubernetes.io/master=
-        fi
+        local node=$(hostname | tr '[:upper:]' '[:lower:]')
+        kubectl label --overwrite node "$node" node-role.kubernetes.io/master=
 
         if [ "$KUBERNETES_CIS_COMPLIANCE" == "1" ]; then
             # create an 'etcd' user and group and ensure that it owns the etcd data directory (we don't care what userid these have, as etcd will still run as root)
