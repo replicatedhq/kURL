@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -x
+source /opt/kurl-testgrid/common.sh
 
 function run_install() {
     AIRGAP=
