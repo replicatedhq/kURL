@@ -24,6 +24,10 @@ type GetNodeLogsResponse struct {
 	Logs string `json:"logs"`
 }
 
+type GetNodeStatusResponse struct {
+	Status string `json:"status"`
+}
+
 func AddClusterNode(w http.ResponseWriter, r *http.Request) {
 	instanceID := mux.Vars(r)["instanceId"]
 	clusterNodeRequest := ClusterNodeRequest{}
@@ -88,4 +92,17 @@ func GetNodeLogs(w http.ResponseWriter, r *http.Request) {
 	getNodeLogsResponse := GetNodeLogsResponse{}
 	getNodeLogsResponse.Logs = logs
 	JSON(w, 200, getNodeLogsResponse)
+}
+
+func GetNodeStatus(w http.ResponseWriter, r *http.Request) {
+	nodeID := mux.Vars(r)["nodeId"]
+	status, err := testinstance.GetNodeStatus(nodeID)
+	if err != nil {
+		logger.Error(err)
+		JSON(w, 500, nil)
+		return
+	}
+	getNodeStatusResponse := GetNodeStatusResponse{}
+	getNodeStatusResponse.Status = status
+	JSON(w, 200, status)
 }

@@ -532,3 +532,17 @@ func GetNodeLogs(id string) (string, error) {
 
 	return logs.String, nil
 }
+
+func GetNodeStatus(id string) (string, error) {
+	db := persistence.MustGetPGSession()
+
+	query := `select status from clusternode where id = $1`
+	row := db.QueryRow(query, id)
+
+	var status sql.NullString
+	if err := row.Scan(&status); err != nil {
+		return "", errors.Wrap(err, "failed to scan")
+	}
+
+	return status.String, nil
+}
