@@ -25,11 +25,11 @@ function helmfile_sync() {
     printf "${HELM_HELMFILE_SPEC}" > helmfile-tmp.yaml
 
     if [ "$AIRGAP" != "1" ]; then
-        $BIN_HELMFILE --file helmfile-tmp.yaml deps  # || report_helm_failure  #TODO (dan): add reporting
+        $BIN_HELMFILE -b $BIN_HELM --file helmfile-tmp.yaml deps  # || report_helm_failure  #TODO (dan): add reporting
     fi    
     # TODO (dan): To support air gap case, we might need to modify the helmfile to always run the local chart
     
-    $BIN_HELMFILE --file helmfile-tmp.yaml sync  # || report_helm_failure  #TODO (dan): add reporting
+    $BIN_HELMFILE -b $BIN_HELM --file helmfile-tmp.yaml sync  # || report_helm_failure  #TODO (dan): add reporting
 
     rm helmfile-tmp.yaml
 
