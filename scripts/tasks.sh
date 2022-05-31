@@ -209,7 +209,6 @@ function reset() {
     rm -rf /etc/kubernetes
     rm -rf /opt/cni
     rm -rf /opt/replicated
-    rm -f /usr/local/bin/helm /usr/local/bin/helmfile
     rm -f /usr/bin/kubeadm /usr/bin/kubelet /usr/bin/kubectl /usr/bin/crtctl
     rm -f /usr/local/bin/kustomize*
     rm -rf /var/lib/calico
