@@ -42,6 +42,16 @@ spec:
         volumeMounts:
         - name: images
           mountPath: "/images"
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /healthz
+            port: server
+            scheme: HTTP
+          initialDelaySeconds: 2
+          periodSeconds: 2
+          successThreshold: 1
+          timeoutSeconds: 1
       - name: kurl
         image: replicated/kurl
         imagePullPolicy: IfNotPresent
@@ -51,3 +61,13 @@ spec:
         env:
         - name: REPLICATED_APP_URL
           value: https://replicated.app
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /healthz
+            port: kurl
+            scheme: HTTP
+          initialDelaySeconds: 2
+          periodSeconds: 2
+          successThreshold: 1
+          timeoutSeconds: 1
