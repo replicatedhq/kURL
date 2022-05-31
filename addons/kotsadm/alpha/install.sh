@@ -121,7 +121,7 @@ function kotsadm() {
 
     # Migrate existing hostpath and nfs snapshot minio to velero lvp plugin
     if [ "$KOTSADM_DISABLE_S3" == "1" ] && [ -n "$VELERO_VERSION" ] ; then
-        kubectl kots velero migrate-minio-filesystems -n default
+        /usr/local/bin/kubectl-kots velero migrate-minio-filesystems -n default
     fi
 }
 

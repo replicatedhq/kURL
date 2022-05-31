@@ -23,6 +23,9 @@ DIR=.
 
 K8S_DISTRO=
 function tasks() {
+    # ensure /usr/local/bin/kubectl-plugin is in the path
+    path_add "/usr/local/bin"
+
     DOCKER_VERSION="$(get_docker_version)"
 
     K8S_DISTRO=kubeadm
