@@ -8,7 +8,13 @@ function green()
   echo -e "\033[32m$text\033[0m"
 }
 
-function setup_runner() {
+function command_exists() 
+{
+    command -v "$@" > /dev/null 2>&1
+}
+
+function setup_runner() 
+{
     setenforce 0 || true # rhel variants
     sysctl vm.overcommit_memory=1
     sysctl kernel.panic=10
@@ -67,11 +73,12 @@ function wait_for_join_commandready()
 function wait_for_initprimary_done()
 {
   i=0
+  primaryNodeId="${TEST_ID}-initialprimary"
   while true
     do
-        response=$(curl -X GET -f "$TESTGRID_APIENDPOINT/v1/instance/$TEST_ID/status")
-        runStatus=$(echo "$response" | sed 's/{.*isSuccess":"*\([0-9a-zA-Z]*\)"*,*.*}/\1/')
-        if [[ "$runStatus" = "true" ]]; then
+        response=$(curl -X GET -f "$TESTGRID_APIENDPOINT/v1/instance/$primaryNodeId/node-status")
+        primaryNodeStatus=$(echo "$response" | sed 's/{.*status":"*\([0-9a-zA-Z]*\)"*,*.*}/\1/')
+        if [[ "$primaryNodeStatus" = "success" ]]; then
             echo "initprimary status finsihed the test"
             break
         fi

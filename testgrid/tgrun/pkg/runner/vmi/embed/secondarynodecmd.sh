@@ -23,9 +23,14 @@ function main()
   
   green "run join command"
   runJoinCommand
+  if [ $KURL_EXIT_STATUS -ne 0 ]; then
+    report_status_update "failed"
+    send_logs
+    exit 1
+  fi
 
   green "report success join"
-  report_status_update "joined" 
+  report_status_update "joined"
 
   green "send logs after join"
   send_logs
@@ -35,6 +40,8 @@ function main()
   
   green "send log"
   send_logs
+
+  report_status_update "success"
 }
 
 main

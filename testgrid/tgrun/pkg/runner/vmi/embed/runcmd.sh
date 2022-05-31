@@ -1,27 +1,6 @@
 #!/bin/bash
 
-set -x
-
-function command_exists() {
-    command -v "$@" > /dev/null 2>&1
-}
-
-function setup_runner() {
-    setenforce 0 || true # rhel variants
-    sysctl vm.overcommit_memory=1
-    sysctl kernel.panic=10
-    sysctl kernel.panic_on_oops=1
-
-    echo "$TEST_ID" > /tmp/testgrid-id
-
-    if [ ! -c /dev/urandom ]; then
-        /bin/mknod -m 0666 /dev/urandom c 1 9 && /bin/chown root:root /dev/urandom
-    fi
-
-    echo "OS INFO:"
-    cat /etc/*-release
-    echo ""
-}
+source /opt/kurl-testgrid/common.sh
 
 function run_install() {
     AIRGAP=
@@ -217,7 +196,7 @@ function remove_last_element()
 }
 
 function store_join_command() {
-    joincommand=$(curl -fsSL "$KURL_URL"/tasks.sh | sudo bash -s join_token ha)
+    joincommand=$(cat tasks.sh | sudo bash -s join_token $AIRGAP_FLAG ha)
     secondaryJoin=$(echo $joincommand | grep -o -P '(?<=nodes:).*(?=To)' | xargs echo -n)
     secondaryJoin=$(remove_first_element $secondaryJoin)
     secondaryJoin=$(remove_last_element $secondaryJoin)
@@ -426,10 +405,6 @@ function report_failure() {
     curl -X POST -d "{\"success\": false, \"failureReason\": \"${failure}\"}" "$TESTGRID_APIENDPOINT/v1/instance/$TEST_ID/finish"
 }
 
-function send_logs() {
-    curl -X PUT -f --data-binary "@/var/log/cloud-init-output.log" "$TESTGRID_APIENDPOINT/v1/instance/$NODE_ID/node-logs"
-}
-
 function wait_for_cluster_ready() {
     while true
     do
@@ -518,6 +493,7 @@ function main() {
     run_analyzers
 
     send_logs
+    report_status_update "success" # used to update the initialprimary node in the clusernode table
     report_success "$failureReason"
     exit 0
 }

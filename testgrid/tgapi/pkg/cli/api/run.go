@@ -49,6 +49,7 @@ func RunCmd() *cobra.Command {
 			r.HandleFunc("/v1/instance/{instanceId}/cluster-node", handlers.AddClusterNode).Methods("POST")
 			r.HandleFunc("/v1/instance/{nodeId}/node-status", handlers.UpdateNodeStatus).Methods("PUT")
 			r.HandleFunc("/v1/instance/{nodeId}/node-logs", handlers.NodeLogs).Methods("PUT")
+			r.HandleFunc("/v1/instance/{nodeId}/node-status", handlers.GetNodeStatus).Methods("GET")
 
 			r.HandleFunc("/v1/instance/{instanceId}/logs", handlers.InstanceLogs).Methods("POST")
 			r.HandleFunc("/v1/instance/{instanceId}/bundle", handlers.InstanceBundle).Methods("POST")
