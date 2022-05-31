@@ -1,0 +1,34 @@
+---
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: ekco-rook-ceph
+rules:
+  - apiGroups: [""]
+    resources:
+      - pods
+    verbs:
+      - list
+  - apiGroups: [""]
+    resources:
+      - pods/exec
+    verbs:
+      - create
+  - apiGroups: ["apps"]
+    resources:
+      - deployments
+      - daemonsets
+    verbs:
+      - list
+      - delete
+      - get
+      - update
+  - apiGroups: ["ceph.rook.io"]
+    resources:
+      - cephclusters
+      - cephblockpools
+      - cephfilesystems
+      - cephobjectstores
+    verbs:
+      - get
+      - update
