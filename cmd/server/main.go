@@ -17,6 +17,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"sync/atomic"
 	"syscall"
 	"time"
 
@@ -32,6 +33,8 @@ import (
 )
 
 const upstream = "http://localhost:3000"
+
+var activeStreams int64 = 0
 
 func main() {
 	log.Printf("Commit %s", os.Getenv("VERSION"))
@@ -86,6 +89,8 @@ func init() {
 }
 
 func bundle(w http.ResponseWriter, r *http.Request) {
+	atomic.AddInt64(&activeStreams, 1)
+	defer atomic.AddInt64(&activeStreams, -1)
 
 	if r.Method == "OPTIONS" {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
@@ -434,12 +439,14 @@ func allowRegistry(image string) bool {
 }
 
 type HealthzResponse struct {
-	IsAlive bool `json:"is_alive"`
+	IsAlive       bool  `json:"is_alive"`
+	ActiveStreams int64 `json:"active_streams"`
 }
 
 func healthz(w http.ResponseWriter, r *http.Request) {
 	healthzResponse := HealthzResponse{
-		IsAlive: true,
+		IsAlive:       true,
+		ActiveStreams: atomic.LoadInt64(&activeStreams),
 	}
 	response, err := json.Marshal(healthzResponse)
 	if err != nil {
