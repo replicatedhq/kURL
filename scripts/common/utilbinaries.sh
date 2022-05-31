@@ -89,6 +89,8 @@ function get_patch_yaml() {
                 ;;
             docker-registry-ip)
                 ;;
+            ekco-enable-internal-load-balancer)
+                ;;
             ha)
                 ;;
             kubernetes-cis-compliance)
