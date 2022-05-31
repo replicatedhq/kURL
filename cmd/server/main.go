@@ -48,6 +48,7 @@ func main() {
 
 	r.HandleFunc("/bundle/{installerID}", http.HandlerFunc(bundle))
 	r.HandleFunc("/bundle/version/{kurlVersion}/{installerID}", http.HandlerFunc(bundle))
+	r.HandleFunc("/healthz", http.HandlerFunc(healthz))
 
 	upstreamURL, err := url.Parse(upstream)
 	if err != nil {
@@ -85,6 +86,7 @@ func init() {
 }
 
 func bundle(w http.ResponseWriter, r *http.Request) {
+
 	if r.Method == "OPTIONS" {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.Header().Set("Access-Control-Allow-Methods", "GET")
@@ -429,4 +431,23 @@ func allowRegistry(image string) bool {
 	}
 
 	return false
+}
+
+type HealthzResponse struct {
+	IsAlive bool `json:"is_alive"`
+}
+
+func healthz(w http.ResponseWriter, r *http.Request) {
+	healthzResponse := HealthzResponse{
+		IsAlive: true,
+	}
+	response, err := json.Marshal(healthzResponse)
+	if err != nil {
+		w.WriteHeader(500)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	w.Write(response)
 }
