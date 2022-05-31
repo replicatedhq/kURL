@@ -396,6 +396,7 @@ export interface EkcoConfig {
   shouldEnablePurgeNodes?: boolean;
   rookShouldUseAllNodes?: boolean;
   podImageOverrides?: Array<string>;
+  enableInternalLoadBalancer?: boolean;
 }
 
 export const ekcoConfigSchema = {
@@ -411,6 +412,7 @@ export const ekcoConfigSchema = {
     shouldEnablePurgeNodes: { type: "boolean", description: "Watch for unreachable nodes and automatically remove them from the cluster" },
     rookShouldUseAllNodes: { type: "boolean", flag: "ekco-rook-should-use-all-nodes" , description: "This will disable management of nodes in the CephCluster resource. If false, ekco will add nodes to the storage list and remove them when a node is purged" },
     podImageOverrides: { type: "array", items: { type: "string" }, flag: "pod-image-overrides", description: "Switch images in a pod when created" },
+    enableInternalLoadBalancer: { type: "boolean", flag: "ekco-enable-internal-load-balancer" , description: "Run haproxy on all nodes and forward to all Kubernetes API server pods" },
   },
   required: ["version"],
   // additionalProperties: false,
