@@ -275,10 +275,8 @@ export class Installers {
       }
     }
 
-    i = await i.resolve();
-
     if (!skipValidation) {
-      const err = await i.validate();
+      const err = await (await i.resolve()).validate();
       if (err) {
         response.status(400);
         return err;
