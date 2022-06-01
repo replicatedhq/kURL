@@ -14,7 +14,6 @@ import { Installer, InstallerObject, InstallerStore } from "../installers";
 import decode from "../util/jwt";
 import { getInstallerVersions } from "../installers/installer-versions";
 import { getDistUrl } from "../util/package";
-import { ServerError } from "../server/errors";
 
 interface ErrorResponse {
   error: any;
@@ -139,8 +138,9 @@ export class Installers {
     @Res() response: Express.Response,
     @Req() request: Express.Request,
     @PathParams("id") id: string,
+    @QueryParams("skipValidation") skipValidation: boolean,
   ): Promise<string | ErrorResponse> {
-    return await this.doMakeInstaller(response, request, id, "");
+    return await this.doMakeInstaller(response, request, id, "", skipValidation);
   }
 
   /**
@@ -158,8 +158,9 @@ export class Installers {
     @Req() request: Express.Request,
     @PathParams("id") id: string,
     @PathParams("slug") slug: string,
+    @QueryParams("skipValidation") skipValidation: boolean,
   ): Promise<string | ErrorResponse> {
-    return await this.doMakeInstaller(response, request, id, slug);
+    return await this.doMakeInstaller(response, request, id, slug, skipValidation);
   }
 
   /**
@@ -230,7 +231,7 @@ export class Installers {
     return "";
   }
 
-  async doMakeInstaller( response: Express.Response, request: Express.Request, id: string, slug: string): Promise<string | ErrorResponse> {
+  async doMakeInstaller( response: Express.Response, request: Express.Request, id: string, slug: string, skipValidation: boolean): Promise<string | ErrorResponse> {
     const auth = request.header("Authorization");
     if (!auth) {
       response.status(401);
@@ -274,10 +275,12 @@ export class Installers {
       }
     }
 
-    const err = await (await i.resolve()).validate();
-    if (err) {
-      response.status(400);
-      return err;
+    if (!skipValidation) {
+      const err = await (await i.resolve()).validate();
+      if (err) {
+        response.status(400);
+        return err;
+      }
     }
 
     await this.installerStore.saveTeamInstaller(i);
