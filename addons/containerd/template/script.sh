@@ -178,9 +178,21 @@ function find_common_versions() {
         VERSIONS+=("$version")
     done
 
+    echo "Found ${#VERSIONS[*]} containerd versions >=1.3 available for all operating systems: ${VERSIONS[*]}"
+
+    VERSIONS+=("1.2.13")
+
     export GREATEST_VERSION="${VERSIONS[0]}"
 
-    echo "Found ${#VERSIONS[*]} containerd versions >=1.3 available for all operating systems: ${VERSIONS[*]}"
+    # Move 1.6.x to the back so it's not the latest
+    local V6=()
+    for v in ${VERSIONS[@]}; do
+        if [[ $v == 1\.6\.* ]]; then
+            VERSIONS=("${VERSIONS[@]/$v}")
+            V6+=("${v}")
+        fi
+    done
+    VERSIONS=("${VERSIONS[@]}" "${V6[@]}")
 }
 
 function generate_version() {
@@ -196,8 +208,12 @@ function generate_version() {
     # version, so the correct pause image used by containerd must be included in its bundle.
     if echo "$version" | grep -qE "1\.3\."; then
         echo "image pause k8s.gcr.io/pause:3.1" >> "../$version/Manifest"
-    else
+    elif echo "$version" | grep -qE "1\.4\."; then
         echo "image pause k8s.gcr.io/pause:3.2" >> "../$version/Manifest"
+    elif echo "$version" | grep -qE "1\.5\."; then
+        echo "image pause k8s.gcr.io/pause:3.5" >> "../$version/Manifest"
+    else
+        echo "image pause k8s.gcr.io/pause:3.6" >> "../$version/Manifest"
     fi
 }
 
@@ -206,14 +222,16 @@ function update_available_versions() {
     for version in ${VERSIONS[@]}; do
         v="${v}\"${version}\", "
     done
-    sed -i "/cron-containerd-update/c\  containerd: [${v}\"1.2.13\"], \/\/ cron-containerd-update" ../../../web/src/installers/versions.js
+    sed -i "/cron-containerd-update/c\  containerd: [${v}], \/\/ cron-containerd-update" ../../../web/src/installers/versions.js
 }
 
 function main() {
     find_common_versions
 
     for version in ${VERSIONS[*]}; do
-        generate_version "$version"
+        if [ "$version" != "1.2.13" ]; then
+            generate_version "$version"
+        fi
     done
 
     echo "::set-output name=containerd_version::$GREATEST_VERSION"

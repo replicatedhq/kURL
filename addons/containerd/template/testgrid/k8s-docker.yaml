@@ -1,8 +1,9 @@
 - installerSpec:
     kubernetes:
       version: "latest"
-    weave:
+    antrea:
       version: "latest"
+      isEncryptionDisabled: true
     containerd:
       version: "__testver__"
       s3Override: "__testdist__"
@@ -15,8 +16,9 @@
 - installerSpec:
     kubernetes:
       version: "latest"
-    weave:
+    antrea:
       version: "latest"
+      isEncryptionDisabled: true
     containerd:
       version: "latest"
     minio:
@@ -28,8 +30,9 @@
   upgradeSpec:
     kubernetes:
       version: "latest"
-    weave:
+    antrea:
       version: "latest"
+      isEncryptionDisabled: true
     containerd:
       version: "__testver__"
       s3Override: "__testdist__"
@@ -43,8 +46,9 @@
   installerSpec:
     kubernetes:
       version: 1.23.x
-    weave:
+    antrea:
       version: latest
+      isEncryptionDisabled: true
     longhorn:
       version: latest
     registry:
@@ -59,8 +63,9 @@
   upgradeSpec:
     kubernetes:
       version: 1.23.x
-    weave:
+    antrea:
       version: latest
+      isEncryptionDisabled: true
     longhorn:
       version: latest
     registry:
@@ -77,8 +82,9 @@
   installerSpec:
     kubernetes:
       version: 1.23.x
-    weave:
+    antrea:
       version: latest
+      isEncryptionDisabled: true
     longhorn:
       version: latest
     registry:
@@ -93,8 +99,9 @@
   upgradeSpec:
     kubernetes:
       version: 1.23.x
-    weave:
+    antrea:
       version: latest
+      isEncryptionDisabled: true
     longhorn:
       version: latest
     registry:

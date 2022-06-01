@@ -252,7 +252,7 @@
     contour:
       version: latest
     containerd:
-      version: 1.4.x
+      version: 1.6.4
 - name: k8s119x_containerd148
   installerSpec:
     kubernetes:
@@ -499,7 +499,7 @@
     weave:
       version: latest
     containerd:
-      version: 1.4.x
+      version: 1.5.11
     helm:
       helmfileSpec: |-
         repositories:
@@ -800,7 +800,7 @@
     kubernetes:
       version: 1.22.x
     containerd:
-      version: 1.4.x
+      version: 1.6.x
     antrea:
       version: 1.4.x
       isEncryptionDisabled: true
@@ -823,7 +823,7 @@
     kubernetes:
       version: 1.22.x
     containerd:
-      version: 1.4.x
+      version: 1.5.x
     weave:
       version: latest
     contour:
@@ -846,7 +846,7 @@
     kubernetes:
       version: 1.22.x
     containerd:
-      version: 1.4.x
+      version: 1.6.x
     antrea:
       version: 1.4.x
       isEncryptionDisabled: true
@@ -995,7 +995,7 @@
       version: latest
       disableS3: true
     containerd:
-      version: 1.4.x
+      version: 1.5.x
     velero:
       version: 1.7.x
   airgap: true
@@ -1132,7 +1132,7 @@
       version: latest
       disableS3: true
     containerd:
-      version: 1.4.x
+      version: 1.5.x
     velero:
       version: 1.7.x
   airgap: true

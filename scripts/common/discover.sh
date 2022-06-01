@@ -31,7 +31,7 @@ detectLsbDist() {
         # CentOS 6 example: CentOS release 6.9 (Final)
         # CentOS 7 example: CentOS Linux release 7.5.1804 (Core)
         _dist="$(cat /etc/centos-release | cut -d" " -f1)"
-        _version="$(cat /etc/centos-release | sed 's/Linux //' | cut -d" " -f3 | cut -d "." -f1-2)"
+        _version="$(cat /etc/centos-release | sed 's/Linux //' | sed 's/Stream //' | cut -d" " -f3 | cut -d "." -f1-2)"
     elif [ -f /etc/os-release ] && [ -r /etc/os-release ]; then
         _dist="$(. /etc/os-release && echo "$ID")"
         _version="$(. /etc/os-release && echo "$VERSION_ID")"

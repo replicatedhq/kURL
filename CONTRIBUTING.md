@@ -6,7 +6,8 @@ We welcome contributions to kURL. We appreciate your time and help.
 
 ## Testing kURL
 
-1. Set up a 'test server' to test kURL ([some options](#test-environments))
+1. Set up a 'test server' to test kURL ([some options](#test-environments)).
+Note that remote host must have `rsync` binary installed.
 1. Build packages for target OS: 
     ```bash
     # Local workstation
