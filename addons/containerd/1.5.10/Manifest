@@ -1,0 +1,8 @@
+yum libzstd
+asset runc https://github.com/opencontainers/runc/releases/download/v1.0.0-rc95/runc.amd64
+dockerout rhel-7 addons/containerd/template/Dockerfile.centos7 1.5.10
+dockerout rhel-7-force addons/containerd/template/Dockerfile.centos7-force 1.5.10
+dockerout rhel-8 addons/containerd/template/Dockerfile.centos8 1.5.10
+dockerout ubuntu-18.04 addons/containerd/template/Dockerfile.ubuntu18 1.5.10
+dockerout ubuntu-20.04 addons/containerd/template/Dockerfile.ubuntu20 1.5.10
+image pause k8s.gcr.io/pause:3.2
