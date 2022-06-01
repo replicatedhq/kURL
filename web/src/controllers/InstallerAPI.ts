@@ -275,7 +275,7 @@ export class Installers {
       }
     }
 
-    await i.resolve();
+    i = await i.resolve();
 
     if (!skipValidation) {
       const err = await i.validate();
