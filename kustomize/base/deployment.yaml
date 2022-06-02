@@ -6,6 +6,10 @@ spec:
   selector:
     matchLabels:
       app: kurl
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 3
   template:
     metadata:
       labels:
@@ -27,10 +31,6 @@ spec:
       - name: images
         emptyDir: {}
       terminationGracePeriodSeconds: 900 # allow 15 minutes for shutdowns to allow airgap downloads to complete
-      strategy:
-        type: RollingUpdate
-        rollingUpdate:
-          maxSurge: 3
       containers:
       - name: server
         image: replicated/kurl
