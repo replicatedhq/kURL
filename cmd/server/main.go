@@ -14,6 +14,7 @@ import (
 	"net/http/httputil"
 	"net/url"
 	"os"
+	"os/signal"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -63,9 +64,29 @@ func main() {
 	http.Handle("/", r)
 
 	log.Println("Listening on :3001")
-	err = http.ListenAndServe(":3001", bugsnag.Handler(nil))
+	server := &http.Server{Addr: ":3001", Handler: bugsnag.Handler(nil)}
+
+	go func() {
+		exit := make(chan os.Signal, 1) // reserve buffer size one to avoid blocking the notifier
+		signal.Notify(exit, os.Interrupt, syscall.SIGTERM)
+
+		<-exit // wait for shutdown signal, then terminate server
+		log.Printf("Shutting down server after recieving SIGINT or SIGTERM, %d bundle downloads remain\n", atomic.LoadInt64(&activeStreams))
+
+		err := server.Shutdown(context.TODO())
+		if err != nil {
+			log.Print(err)
+		}
+		os.Exit(0)
+	}()
+
+	err = server.ListenAndServe()
 	if err != nil {
-		log.Fatal(err)
+		if err != http.ErrServerClosed {
+			log.Fatal(err)
+		} else {
+			log.Println("No longer accepting new connections")
+		}
 	}
 }
 
