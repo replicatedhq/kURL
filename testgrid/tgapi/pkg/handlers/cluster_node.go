@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"strings"
@@ -39,7 +40,7 @@ func AddClusterNode(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := testinstance.AddClusterNode(instanceID, clusterNodeRequest.NodeId, clusterNodeRequest.NodeType, clusterNodeRequest.Status); err != nil {
-		logger.Error(err)
+		logger.Error(fmt.Errorf("failed to add cluster node %s for instance %s: %w", clusterNodeRequest.NodeId, instanceID, err))
 		JSON(w, 500, nil)
 		return
 	}

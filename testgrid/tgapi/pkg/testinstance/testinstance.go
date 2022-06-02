@@ -84,57 +84,6 @@ limit 1) returning id, test_name, num_primary_nodes, num_secondary_nodes, dequeu
 	return &testInstance, nil
 }
 
-func GetOldEnqueued() (*types.TestInstance, error) {
-	db := persistence.MustGetPGSession()
-
-	query := `with updated as (
-update testinstance
-set dequeued_at = now(), started_at = null where id in (
-select id from testinstance
-where finished_at is null
-AND dequeued_at <  now() - INTERVAL '12 hours'
-AND dequeued_at >  now() - INTERVAL '24 hours'
-AND enqueued_at >  now() - INTERVAL '24 hours'
-order by enqueued_at asc
-limit 1) returning id, test_name, dequeued_at, testrun_ref, kurl_yaml, kurl_url, kurl_flags, upgrade_yaml, upgrade_url, supportbundle_yaml, post_install_script, post_upgrade_script, os_name, os_version, os_image, os_preinit
-) select id, test_name, testrun_ref, kurl_yaml, kurl_url, kurl_flags, upgrade_yaml, upgrade_url, supportbundle_yaml, post_install_script, post_upgrade_script, os_name, os_version, os_image, os_preinit from updated`
-
-	row := db.QueryRow(query)
-
-	testInstance := types.TestInstance{}
-	var testName, kurlFlags, upgradeYAML, upgradeURL, supportbundleYAML, postInstallScript, postUpgradeScript, osPreInit sql.NullString
-	if err := row.Scan(
-		&testInstance.ID,
-		&testName,
-		&testInstance.RefID,
-		&testInstance.KurlYAML,
-		&testInstance.KurlURL,
-		&kurlFlags,
-		&upgradeYAML,
-		&upgradeURL,
-		&supportbundleYAML,
-		&postInstallScript,
-		&postUpgradeScript,
-		&testInstance.OSName,
-		&testInstance.OSVersion,
-		&testInstance.OSImage,
-		&osPreInit,
-	); err != nil {
-		return nil, errors.Wrap(err, "failed to query test instance")
-	}
-
-	testInstance.TestName = testName.String
-	testInstance.KurlFlags = kurlFlags.String
-	testInstance.UpgradeYAML = upgradeYAML.String
-	testInstance.UpgradeURL = upgradeURL.String
-	testInstance.SupportbundleYAML = supportbundleYAML.String
-	testInstance.PostInstallScript = postInstallScript.String
-	testInstance.PostUpgradeScript = postUpgradeScript.String
-	testInstance.OSPreInit = osPreInit.String
-
-	return &testInstance, nil
-}
-
 func Start(id string) error {
 	db := persistence.MustGetPGSession()
 
