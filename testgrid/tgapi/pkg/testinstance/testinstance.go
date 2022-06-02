@@ -507,7 +507,7 @@ func UpdateNodeStatus(id string, status string) error {
 	return nil
 }
 
-func NodeLogs(id string, logs []byte) error {
+func NodeLogs(id string, logs string) error {
 	db := persistence.MustGetPGSession()
 
 	query := `update clusternode set output = $2 where id = $1`
