@@ -36,11 +36,11 @@ spec:
           containerPort: 3001
         resources:
           requests:
-            cpu: 300m
-            memory: 100Mi
+            cpu: 350m
+            memory: 200Mi
           limits:
-            cpu: 1.7
-            memory: 450Mi
+            cpu: 2
+            memory: 1600Mi
         volumeMounts:
         - name: images
           mountPath: "/images"
