@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
+	"strings"
 
 	"github.com/gorilla/mux"
 	"github.com/replicatedhq/kurl/testgrid/tgapi/pkg/logger"
@@ -71,7 +72,9 @@ func NodeLogs(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	nodeID := mux.Vars(r)["nodeId"]
-	if err := testinstance.NodeLogs(nodeID, logs); err != nil {
+
+	cleanLogs := strings.ToValidUTF8(string(logs), " ")
+	if err := testinstance.NodeLogs(nodeID, cleanLogs); err != nil {
 		logger.Error(err)
 		JSON(w, 500, nil)
 		return
