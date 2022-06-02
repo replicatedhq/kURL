@@ -8,6 +8,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/replicatedhq/kurl/testgrid/tgapi/pkg/handlers"
+	"github.com/replicatedhq/kurl/testgrid/tgapi/pkg/metrics"
 	"github.com/replicatedhq/kurl/testgrid/tgapi/pkg/middleware"
 	"github.com/replicatedhq/kurl/testgrid/tgapi/pkg/persistence"
 	"github.com/spf13/cobra"
@@ -72,6 +73,8 @@ func RunCmd() *cobra.Command {
 			); err != nil {
 				log.Printf("Failed to initialize statsd client: %v", err)
 			}
+
+			go metrics.PollTestStats()
 
 			log.Fatal(srv.ListenAndServe())
 
