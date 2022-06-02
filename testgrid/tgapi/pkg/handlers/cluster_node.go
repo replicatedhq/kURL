@@ -104,5 +104,5 @@ func GetNodeStatus(w http.ResponseWriter, r *http.Request) {
 	}
 	getNodeStatusResponse := GetNodeStatusResponse{}
 	getNodeStatusResponse.Status = status
-	JSON(w, 200, status)
+	JSON(w, 200, getNodeStatusResponse)
 }
