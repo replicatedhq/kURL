@@ -77,6 +77,7 @@ func main() {
 		if err != nil {
 			log.Print(err)
 		}
+		log.Println("All server connections closed, exiting")
 		os.Exit(0)
 	}()
 
