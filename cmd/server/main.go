@@ -18,6 +18,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"sync"
 	"sync/atomic"
 	"syscall"
 	"time"
@@ -66,11 +67,13 @@ func main() {
 	log.Println("Listening on :3001")
 	server := &http.Server{Addr: ":3001", Handler: bugsnag.Handler(nil)}
 
+	exitMutex := sync.Mutex{}
 	go func() {
 		exit := make(chan os.Signal, 1) // reserve buffer size one to avoid blocking the notifier
 		signal.Notify(exit, os.Interrupt, syscall.SIGTERM)
 
 		<-exit // wait for shutdown signal, then terminate server
+		exitMutex.Lock()
 		log.Printf("Shutting down server after recieving SIGINT or SIGTERM, %d bundle downloads remain\n", atomic.LoadInt64(&activeStreams))
 
 		err := server.Shutdown(context.TODO())
@@ -87,6 +90,7 @@ func main() {
 			log.Fatal(err)
 		} else {
 			log.Println("No longer accepting new connections")
+			exitMutex.Lock() // if the server shutdown handler is still running, don't return from main or the program will exit
 		}
 	}
 }
