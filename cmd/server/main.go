@@ -95,6 +95,7 @@ func main() {
 	}
 }
 
+// BundleManifest is returned by the typescript API and determines what should be in the airgap bundle
 type BundleManifest struct {
 	Layers []string          `json:"layers"`
 	Files  map[string]string `json:"files"`
@@ -145,7 +146,7 @@ func bundle(w http.ResponseWriter, r *http.Request) {
 	request, err := http.NewRequest("GET", installerURL, nil)
 	if err != nil {
 		err = errors.Wrapf(err, "error building request for %s", installerURL)
-		handleHttpError(w, r, err, http.StatusInternalServerError)
+		handleHTTPError(w, r, err, http.StatusInternalServerError)
 		return
 	}
 	// forward request headers for metrics
@@ -158,14 +159,14 @@ func bundle(w http.ResponseWriter, r *http.Request) {
 	resp, err := http.DefaultClient.Do(request)
 	if err != nil {
 		err = errors.Wrapf(err, "error fetching %s", installerURL)
-		handleHttpError(w, r, err, http.StatusInternalServerError)
+		handleHTTPError(w, r, err, http.StatusInternalServerError)
 		return
 	}
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		err = errors.Wrapf(err, "error reading response body from %s", installerURL)
-		handleHttpError(w, r, err, http.StatusInternalServerError)
+		handleHTTPError(w, r, err, http.StatusInternalServerError)
 		return
 	}
 	if resp.StatusCode == http.StatusNotFound {
@@ -176,7 +177,7 @@ func bundle(w http.ResponseWriter, r *http.Request) {
 	err = json.Unmarshal(body, bundle)
 	if err != nil {
 		err = errors.Wrapf(err, "error unmarshaling installer bundle manifest from %s: %s", installerURL, body)
-		handleHttpError(w, r, err, http.StatusInternalServerError)
+		handleHTTPError(w, r, err, http.StatusInternalServerError)
 		return
 	}
 
@@ -184,14 +185,14 @@ func bundle(w http.ResponseWriter, r *http.Request) {
 		resp, err := http.Head(srcURL)
 		if err != nil {
 			err = errors.Wrapf(err, "error http head %s for installer %s bundle", srcURL, installerID)
-			handleHttpError(w, r, err, http.StatusInternalServerError)
+			handleHTTPError(w, r, err, http.StatusInternalServerError)
 			return
 		}
 		resp.Body.Close()
 		if resp.StatusCode != http.StatusOK {
 			err := errors.Errorf("unexpected response status code %d", resp.StatusCode)
 			err = errors.Wrapf(err, "error http head %s for installer %s bundle", srcURL, installerID)
-			handleHttpError(w, r, err, http.StatusInternalServerError)
+			handleHTTPError(w, r, err, http.StatusInternalServerError)
 			return
 		}
 	}
@@ -199,7 +200,7 @@ func bundle(w http.ResponseWriter, r *http.Request) {
 	for _, image := range bundle.Images {
 		if !allowRegistry(image) {
 			err := errors.Errorf("Unsupported image registry %s", image)
-			handleHttpError(w, r, err, http.StatusUnprocessableEntity)
+			handleHTTPError(w, r, err, http.StatusUnprocessableEntity)
 			return
 		}
 	}
@@ -421,7 +422,7 @@ func pipeFile(dst *tar.Writer, fileName, destPath string) error {
 	return errors.Wrapf(err, "copy file %s contents", header.Name)
 }
 
-func handleHttpError(w http.ResponseWriter, r *http.Request, err error, code int) {
+func handleHTTPError(w http.ResponseWriter, r *http.Request, err error, code int) {
 	log.Println(err)
 	http.Error(w, http.StatusText(code), code)
 	bugsnag.Notify(err, r.Context())
@@ -464,6 +465,7 @@ func allowRegistry(image string) bool {
 	return false
 }
 
+// HealthzResponse is the response struct for the healthz endpoint
 type HealthzResponse struct {
 	IsAlive       bool  `json:"is_alive"`
 	ActiveStreams int64 `json:"active_streams"`
