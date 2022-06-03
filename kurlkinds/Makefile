@@ -57,6 +57,10 @@ test-crd:
 	kubectl apply -f config/test/cluster.kurl.sh_example.yaml
 	kubectl delete crd installers.cluster.kurl.sh
 
+.PHONY: schemas
+schemas: fmt generate
+	go build ${LDFLAGS} -o bin/schemagen ./schemagen
+	./bin/schemagen --output-dir ./schemas
 
 # get/update controller-gen
 update-controller-gen:
