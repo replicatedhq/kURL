@@ -60,7 +60,6 @@ spec:
       - name: kurl
         image: replicated/kurl
         imagePullPolicy: IfNotPresent
-        command: ["node", "--no-deprecation", "bin/kurl", "serve"]
         ports:
         - name: kurl
           containerPort: 3000
