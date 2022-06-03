@@ -44,15 +44,17 @@ export async function main(argv: any): Promise<void> {
 
   await initMysqlPool();
 
-  process.on('SIGTERM', () => {
-    console.log("SIGTERM received")
-  })
-
   try {
     $log.debug("Start server...");
     const platform = await PlatformExpress.bootstrap(Server, {
       // extra settings
     });
+
+    process.on('SIGTERM', async () => {
+      console.log("SIGTERM received");
+      await platform.stop();
+      process.exit(0);
+    })
 
     await platform.listen();
     $log.debug("Server initialized");
