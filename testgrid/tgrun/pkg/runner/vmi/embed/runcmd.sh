@@ -484,7 +484,7 @@ function main() {
     run_tasks_join_token
     store_join_command
     send_logs
-    report_status_update "JoinCommandStored"
+    report_status_update "joinCommandStored"
     wait_for_cluster_ready
 
     if [ "$KURL_UPGRADE_URL" != "" ]; then

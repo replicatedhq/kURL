@@ -60,7 +60,7 @@ function wait_for_join_commandready()
   while true
     do
         primaryNodeStatus=$(get_initprimary_status)
-        if [[ "$primaryNodeStatus" = "JoinCommandStored" ]] ; then
+        if [[ "$primaryNodeStatus" = "joinCommandStored" ]] ; then
             echo "join command is ready"
             break
         elif [[ "$primaryNodeStatus" = "failed" ]] ; then

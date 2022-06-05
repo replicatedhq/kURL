@@ -16,7 +16,7 @@ function main()
   setup_runner
 
   green "report node in waiting for join command"
-  report_status_update "WaitJoinCommand"
+  report_status_update "waitJoinCommand"
 
   green "wait for join command"
   wait_for_join_commandready
