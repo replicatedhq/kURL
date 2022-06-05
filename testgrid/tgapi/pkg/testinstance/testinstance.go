@@ -436,7 +436,7 @@ func GetRunStatus(id string) (bool, error) {
 
 func AddClusterNode(instanceId string, id string, nodeType string, status string) error {
 	db := persistence.MustGetPGSession()
-	query := `insert into clusternode (testinstance_id, id, node_type, status, created_at) values ($1, $2, $3, $4, $5)`
+	query := `insert into clusternode (testinstance_id, id, node_type, status, created_at) values ($1, $2, $3, $4, $5) ON CONFLICT (id) DO UPDATE SET status = $4, created_at = $5`
 
 	if _, err := db.Exec(query, instanceId, id, nodeType, status, time.Now()); err != nil {
 		return errors.Wrap(err, "failed to insert")

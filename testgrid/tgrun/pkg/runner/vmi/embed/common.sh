@@ -41,6 +41,13 @@ function report_status_update()
   curl -X PUT -f -H "Content-Type: application/json" -d "{\"status\": \"$1\"}" "$TESTGRID_APIENDPOINT/v1/instance/$NODE_ID/node-status"
 }
 
+function get_initprimary_status()
+{
+  primaryNodeId="${TEST_ID}-initialprimary"
+  response=$(curl -X GET -f "$TESTGRID_APIENDPOINT/v1/instance/$primaryNodeId/node-status")
+  primaryNodeStatus=$(echo "$response" | sed 's/{.*status":"*\([0-9a-zA-Z]*\)"*,*.*}/\1/')
+  echo "$primaryNodeStatus"
+}
 function get_join_command()
 {
   joinCommand=$(curl -X GET -f "$TESTGRID_APIENDPOINT/v1/instance/$TEST_ID/join-command")
@@ -52,12 +59,14 @@ function wait_for_join_commandready()
   i=0
   while true
     do
-        joinCommand=$(get_join_command)
-        secondaryJoin=$(echo "$joinCommand" | sed 's/{.*secondaryJoin":"*\([0-9a-zA-Z]*\)"*,*.*}/\1/')
-        primaryJoin=$(echo "$joinCommand" | sed 's/{.*primaryJoin":"*\([0-9a-zA-Z]*\)"*,*.*}/\1/')
-        if [ "$secondaryJoin" != "" ] && [ "$primaryJoin" != "" ]; then
+        primaryNodeStatus=$(get_initprimary_status)
+        if [[ "$primaryNodeStatus" = "JoinCommandStored" ]] ; then
             echo "join command is ready"
             break
+        elif [[ "$primaryNodeStatus" = "failed" ]] ; then
+            report_status_update "failed"
+            send_logs
+            exit 1    
         fi
         i=$((i+1))
         if [ $i -gt 20 ]; then
@@ -73,14 +82,16 @@ function wait_for_join_commandready()
 function wait_for_initprimary_done()
 {
   i=0
-  primaryNodeId="${TEST_ID}-initialprimary"
   while true
     do
-        response=$(curl -X GET -f "$TESTGRID_APIENDPOINT/v1/instance/$primaryNodeId/node-status")
-        primaryNodeStatus=$(echo "$response" | sed 's/{.*status":"*\([0-9a-zA-Z]*\)"*,*.*}/\1/')
+        primaryNodeStatus=$(get_initprimary_status)
         if [[ "$primaryNodeStatus" = "success" ]]; then
             echo "initprimary status finsihed the test"
             break
+        elif [[ "$primaryNodeStatus" = "failed" ]] ; then
+          report_status_update "failed"
+          send_logs
+          exit 1 
         fi
         i=$((i+1))
         if [ $i -gt 20 ]; then
