@@ -29,7 +29,7 @@ function run_install() {
             echo "failed to unpack airgap file with status $tar_exit_status"
             send_logs
             report_failure "airgap_download"
-            check_command_run_success "failed"
+            report_status_update "failed"
             exit 1
         fi
     else
@@ -97,7 +97,7 @@ function run_upgrade() {
             echo "failed to unpack airgap file with status $tar_exit_status"
             send_logs
             report_failure "airgap_download"
-            check_command_run_success "failed"
+            report_status_update "failed"
             exit 1
         fi
     else
@@ -136,7 +136,7 @@ function run_post_install_script() {
 
     if [ "$exit_status" -ne 0 ]; then
         report_failure "post_install_script"
-        check_command_run_success "failed"
+        report_status_update "failed"
         collect_support_bundle
         exit 1
     fi
@@ -154,7 +154,7 @@ function run_post_upgrade_script() {
 
     if [ "$exit_status" -ne 0 ]; then
         report_failure "post_upgrade_script"
-        check_command_run_success "failed"
+        report_status_update "failed"
         collect_support_bundle
         exit 1
     fi
@@ -218,7 +218,7 @@ function store_join_command() {
         echo "failed to store join command with status $exit_status"
         send_logs
         report_failure "join_command"
-        check_command_run_success "failed"
+        report_status_update "failed"
         exit 1
     fi
 }
@@ -309,7 +309,7 @@ function disable_internet() {
         traceroute www.google.com
         send_logs
         report_failure "airgap_instance"
-        check_command_run_success "failed"
+        report_status_update "failed"
         exit 1
     fi
 
@@ -339,7 +339,7 @@ function run_sonobuoy() {
         collect_debug_info_sonobuoy
         send_logs
         report_failure "sonobuoy_run"
-        check_command_run_success "failed"
+        report_status_update "failed"
         exit 1
     fi
 
@@ -358,7 +358,7 @@ function run_sonobuoy() {
         collect_debug_info_sonobuoy
         send_logs
         report_failure "sonobuoy_retrieve"
-        check_command_run_success "failed"
+        report_status_update "failed"
         exit 1
     fi
 }
@@ -377,13 +377,13 @@ function run_analyzers() {
         echo "failed troubleshoot analysis with errors"
         send_logs
         report_failure "troubleshoot_analysis"
-        check_command_run_success "failed"
+        report_status_update "failed"
         exit 1
     elif grep -q '"severity": "warn"' ./analyzer-results.json ; then
         echo "failed troubleshoot analysis with warnings"
         send_logs
         report_failure "troubleshoot_analysis"
-        check_command_run_success "failed"
+        report_status_update "failed"
         exit 1
     fi
 }
@@ -453,7 +453,7 @@ function check_command_run_success() {
     if [ $KURL_EXIT_STATUS -ne 0 ]; then
         echo "kurl install failed"
         report_failure "kurl_install"
-        check_command_run_success "failed"
+        report_status_update "failed"
         collect_support_bundle
         send_logs
         exit 1
@@ -495,7 +495,7 @@ function main() {
     if [ $KURL_EXIT_STATUS -ne 0 ]; then
         send_logs
         report_failure "kurl_upgrade"
-        check_command_run_success "failed"
+        report_status_update "failed"
         collect_support_bundle
         exit 1
     fi
