@@ -212,6 +212,12 @@ dist/goldpinger-%.tar.gz: build/addons
 	mkdir -p dist
 	tar cf - -C build addons/goldpinger/$* | gzip > dist/goldpinger-$*.tar.gz
 
+dist/local-path-storage-%.tar.gz: build/addons
+	mkdir -p build/addons/local-path-storage/$*/images
+	bin/save-manifest-assets.sh "local-path-storage-$*" addons/local-path-storage/$*/Manifest $(CURDIR)/build/addons/local-path-storage/$*
+	mkdir -p dist
+	tar cf - -C build addons/local-path-storage/$* | gzip > dist/local-path-storage-$*.tar.gz
+
 
 dist/kubernetes-%.tar.gz:
 	# conformance packages do not exist for versions of k8s prior to 1.17

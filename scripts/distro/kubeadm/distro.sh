@@ -47,6 +47,7 @@ function kubeadm_addon_for_each() {
     $cmd ekco "$EKCO_VERSION" "$EKCO_S3_OVERRIDE"
     $cmd openebs "$OPENEBS_VERSION" "$OPENEBS_S3_OVERRIDE"
     $cmd longhorn "$LONGHORN_VERSION" "$LONGHORN_S3_OVERRIDE"
+    $cmd local-path-storage "$LOCAL_PATH_STORAGE_VERSION" "$LOCAL_PATH_STORAGE_S3_OVERRIDE"
     $cmd aws "$AWS_VERSION" "$AWS_S3_OVERRIDE"
     $cmd minio "$MINIO_VERSION" "$MINIO_S3_OVERRIDE"
     $cmd contour "$CONTOUR_VERSION" "$CONTOUR_S3_OVERRIDE"
