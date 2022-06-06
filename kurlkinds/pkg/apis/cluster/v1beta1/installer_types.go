@@ -54,7 +54,7 @@ type InstallerSpec struct {
 	UFWConfig        *UFWConfig        `json:"ufwConfig,omitempty" yaml:"ufwConfig,omitempty"`
 	Goldpinger       *Goldpinger       `json:"goldpinger,omitempty" yaml:"goldpinger,omitempty"`
 	AWS              *AWS              `json:"aws,omitempty" yaml:"aws,omitempty"`
-	LocalPathStorage *LocalPathStorage `json:"LocalPathStorage,omitempty" yaml:"localPathStorage,omitempty"`
+	LocalPathStorage *LocalPathStorage `json:"localPathStorage,omitempty" yaml:"localPathStorage,omitempty"`
 }
 
 type Contour struct {

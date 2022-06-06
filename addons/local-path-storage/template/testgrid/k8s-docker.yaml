@@ -10,6 +10,6 @@
       version: "latest"
     kotsadm:
       version: "latest"
-    local-path-storage:
+    localPathStorage:
       version: "__testver__"
       s3Override: "__testdist__"
