@@ -4,7 +4,7 @@ function local-path-storage_join() {
 }
 
 function local-path-storage() {
-    local src="$DIR/addons/local-path-storage/__releasever__"
+    local src="$DIR/addons/local-path-storage/0.0.22"
     local dst="$DIR/kustomize/local-path-storage"
 
     local-path-storage_host_init
