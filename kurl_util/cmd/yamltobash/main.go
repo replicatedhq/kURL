@@ -239,6 +239,8 @@ func convertToBash(kurlValues map[string]interface{}, fieldsSet map[string]bool)
 		"Kurl.PublicAddress":                         "PUBLIC_ADDRESS",
 		"Kurl.SkipSystemPackageInstall":              "SKIP_SYSTEM_PACKAGE_INSTALL",
 		"Kurl.ExcludeBuiltinHostPreflights":          "EXCLUDE_BUILTIN_HOST_PREFLIGHTS",
+		"LocalPathStorage.S3Override":                "LOCAL_PATH_STORAGE_S3_OVERRIDE",
+		"LocalPathStorage.Version":                   "LOCAL_PATH_STORAGE_VERSION",
 		"Longhorn.S3Override":                        "LONGHORN_S3_OVERRIDE",
 		"Longhorn.StorageOverProvisioningPercentage": "LONGHORN_STORAGE_OVER_PROVISIONING_PERCENTAGE",
 		"Longhorn.UiBindPort":                        "LONGHORN_UI_BIND_PORT",
@@ -303,6 +305,7 @@ func convertToBash(kurlValues map[string]interface{}, fieldsSet map[string]bool)
 		"Goldpinger.Version":                         "GOLDPINGER_VERSION",
 		"Goldpinger.S3Override":                      "GOLDPINGER_S3_OVERRIDE",
 		"AWS.Version":                                "AWS_VERSION",
+		"AWS.S3Override":                             "AWS_S3_OVERRIDE",
 		"AWS.ExcludeStorageClass":                    "AWS_EXCLUDE_STORAGE_CLASS",
 	}
 

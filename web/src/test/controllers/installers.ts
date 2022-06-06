@@ -153,6 +153,8 @@ spec:
   aws:
     version: 1.0.1
     excludeStorageClass: true
+  localPathStorage:
+    version: 0.0.22
 `;
 
 // Used for validation in all options test case
@@ -1321,6 +1323,14 @@ spec:
       const out = await i.validate();
 
       expect(out).to.deep.equal({ error: { message: "spec/helm must have required property 'helmfileSpec'" } });
+    });
+  });
+
+  describe("localPathStorage", () => {
+    it("should parse the version", () => {
+      const i = Installer.parse(everyOption);
+
+      expect(i.spec.localPathStorage?.version).to.equal("0.0.22");
     });
   });
 

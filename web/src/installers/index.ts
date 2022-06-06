@@ -707,6 +707,7 @@ export const goldpingerSchema = {
 
 export interface AWS {
   version: string;
+  s3Override?: string;
   excludeStorageClass?: boolean;
 }
 
@@ -714,7 +715,23 @@ export const awsSchema = {
   type: "object",
   properties: {
     version: { type: "string" },
+    s3Override: { type: "string", flag: "s3-override", description: "Override the download location for addon package distribution (used for CI/CD testing alpha addons)" },
     excludeStorageClass: { type: "boolean", flag: "aws-exclude-storage-class", description: "Exclude aws-ebs provisioner storage class provided by the AWS add-on"},
+  },
+  required: [ "version" ],
+};
+
+export interface LocalPathStorageConfig {
+  version: string;
+  s3Override?: string;
+  excludeStorageClass?: boolean;
+}
+
+export const localPathStorageSchema = {
+  type: "object",
+  properties: {
+    version: { type: "string" },
+    s3Override: { type: "string", flag: "s3-override", description: "Override the download location for addon package distribution (used for CI/CD testing alpha addons)" },
   },
   required: [ "version" ],
 };
@@ -751,6 +768,7 @@ export interface InstallerSpec {
   ufw?: UFWConfig;
   goldpinger?: GoldpingerConfig;
   aws?: AWS;
+  localPathStorage?: LocalPathStorageConfig;
 }
 
 const specSchema = {
@@ -788,6 +806,7 @@ const specSchema = {
     ufw: ufwConfigSchema,
     goldpinger: goldpingerSchema,
     aws: awsSchema,
+    localPathStorage: localPathStorageSchema,
   },
   additionalProperites: false,
 };
@@ -1370,6 +1389,9 @@ export class Installer {
     }
     if (this.spec.goldpinger && !(await Installer.hasVersion("goldpinger", this.spec.goldpinger.version, installerVersion)) && !this.hasS3Override("goldpinger")) {
       return {error: {message: `Goldpinger version "${_.escape(this.spec.goldpinger.version)}" is not supported${installerVersion ? " for installer version " + _.escape(installerVersion) : ""}`}};
+    }
+    if (this.spec.localPathStorage && !(await Installer.hasVersion("localPathStorage", this.spec.localPathStorage.version, installerVersion)) && !this.hasS3Override("localPathStorage")) {
+      return {error: {message: `Local Path Storage version "${_.escape(this.spec.localPathStorage.version)}" is not supported${installerVersion ? " for installer version " + _.escape(installerVersion) : ""}`}};
     }
 
     // Rook 1.0.4 is incompatible with Kubernetes 1.20+
