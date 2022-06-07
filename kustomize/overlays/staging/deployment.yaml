@@ -11,19 +11,6 @@ spec:
       containers:
       - name: server
         image: 923411875752.dkr.ecr.us-east-1.amazonaws.com/kurl
-        resources:
-          requests:
-            cpu: 100m
-          limits:
-            cpu: 2
-        envFrom:
-        - secretRef:
-            name: kurl-secrets
-        env:
-        - name: ENVIRONMENT
-          value: staging
-      - name: kurl
-        image: 923411875752.dkr.ecr.us-east-1.amazonaws.com/kurl
         envFrom:
         - secretRef:
             name: kurl-secrets
@@ -34,6 +21,21 @@ spec:
           limits:
             cpu: 2
             memory: 1600Mi
+        env:
+        - name: ENVIRONMENT
+          value: staging
+      - name: kurl
+        image: 923411875752.dkr.ecr.us-east-1.amazonaws.com/kurl
+        envFrom:
+        - secretRef:
+            name: kurl-secrets
+        resources:
+          requests:
+            cpu: 20m
+            memory: 120Mi
+          limits:
+            cpu: 40m
+            memory: 180Mi
         env:
         - name: AWS_REGION
           value: us-east-1
