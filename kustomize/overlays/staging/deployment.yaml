@@ -27,6 +27,13 @@ spec:
         envFrom:
         - secretRef:
             name: kurl-secrets
+        resources:
+          requests:
+            cpu: 350m
+            memory: 200Mi
+          limits:
+            cpu: 2
+            memory: 1600Mi
         env:
         - name: AWS_REGION
           value: us-east-1
