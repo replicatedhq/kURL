@@ -11,7 +11,7 @@ function local-path-storage() {
 
     cp "$src/local-path-storage.yaml" "$dst/"
 
-    cp "$src/tmpl-kustomization.yaml" "$dst/"
+    cp "$src/kustomization.yaml" "$dst/"
 
     if local_path_storage_has_default_storageclass && ! local_path_storage_is_default_storageclass ; then
         printf "${YELLOW}Existing default storage class that is not Local Path Storage detected${NC}\n"
