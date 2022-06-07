@@ -4,14 +4,14 @@ function local-path-storage_join() {
 }
 
 function local-path-storage() {
-    local src="$DIR/addons/local-path-storage/__releasever__"
+    local src="$DIR/addons/local-path-storage/0.0.22"
     local dst="$DIR/kustomize/local-path-storage"
 
     local-path-storage_host_init
 
     cp "$src/local-path-storage.yaml" "$dst/"
 
-    cp "$src/tmpl-kustomization.yaml" "$dst/"
+    cp "$src/kustomization.yaml" "$dst/"
 
     if local_path_storage_has_default_storageclass && ! local_path_storage_is_default_storageclass ; then
         printf "${YELLOW}Existing default storage class that is not Local Path Storage detected${NC}\n"

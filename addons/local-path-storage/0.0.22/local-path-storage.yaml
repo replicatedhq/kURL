@@ -124,7 +124,7 @@ data:
     spec:
       containers:
       - name: helper-pod
-        image: busybox
+        image: busybox:1
         imagePullPolicy: IfNotPresent
 
 

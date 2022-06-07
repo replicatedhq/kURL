@@ -20,6 +20,11 @@ function generate() {
     # get the raw yaml for the release
     curl --silent "https://raw.githubusercontent.com/rancher/local-path-provisioner/v$VERSION/deploy/local-path-storage.yaml" > "../${VERSION}/local-path-storage.yaml"
 
+    # change `busybox` to `busybox:1`
+    sed -i "s/busybox/busybox:1/g" "../${VERSION}/local-path-storage.yaml"
+
+    sed -i "s/__releasever__/${VERSION}/g" "../${VERSION}/install.sh"
+
     # get the images for the release
     echo "image local-path-provisioner rancher/local-path-provisioner:v${VERSION}" >> "../${VERSION}/Manifest"
 }
