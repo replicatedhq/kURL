@@ -24,8 +24,15 @@ function init_manifest_file() {
 
     cat <<EOT >> $file
 yum libzstd
-asset runc https://github.com/opencontainers/runc/releases/download/v1.0.0-rc95/runc.amd64
 EOT
+
+    if echo "$version" | grep -qE "1\.3\."; then
+        echo "asset runc https://github.com/opencontainers/runc/releases/download/v1.0.0-rc95/runc.amd64" >> $file
+    elif echo "$version" | grep -qE "1\.4\."; then
+        echo "asset runc https://github.com/opencontainers/runc/releases/download/v1.0.0-rc95/runc.amd64" >> $file
+    else
+        echo "asset runc https://github.com/opencontainers/runc/releases/download/v1.1.2/runc.amd64" >> $file
+    fi
 }
 
 function add_supported_os_to_manifest_file() {
