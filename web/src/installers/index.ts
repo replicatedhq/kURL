@@ -721,13 +721,13 @@ export const awsSchema = {
   required: [ "version" ],
 };
 
-export interface LocalPathStorageConfig {
+export interface LocalPathProvisionerConfig {
   version: string;
   s3Override?: string;
   excludeStorageClass?: boolean;
 }
 
-export const localPathStorageSchema = {
+export const localPathProvisionerSchema = {
   type: "object",
   properties: {
     version: { type: "string" },
@@ -768,7 +768,7 @@ export interface InstallerSpec {
   ufw?: UFWConfig;
   goldpinger?: GoldpingerConfig;
   aws?: AWS;
-  localPathStorage?: LocalPathStorageConfig;
+  localPathProvisioner?: LocalPathProvisionerConfig;
 }
 
 const specSchema = {
@@ -806,7 +806,7 @@ const specSchema = {
     ufw: ufwConfigSchema,
     goldpinger: goldpingerSchema,
     aws: awsSchema,
-    localPathStorage: localPathStorageSchema,
+    localPathProvisioner: localPathProvisionerSchema,
   },
   additionalProperites: false,
 };
@@ -1390,8 +1390,8 @@ export class Installer {
     if (this.spec.goldpinger && !(await Installer.hasVersion("goldpinger", this.spec.goldpinger.version, installerVersion)) && !this.hasS3Override("goldpinger")) {
       return {error: {message: `Goldpinger version "${_.escape(this.spec.goldpinger.version)}" is not supported${installerVersion ? " for installer version " + _.escape(installerVersion) : ""}`}};
     }
-    if (this.spec.localPathStorage && !(await Installer.hasVersion("localPathStorage", this.spec.localPathStorage.version, installerVersion)) && !this.hasS3Override("localPathStorage")) {
-      return {error: {message: `Local Path Storage version "${_.escape(this.spec.localPathStorage.version)}" is not supported${installerVersion ? " for installer version " + _.escape(installerVersion) : ""}`}};
+    if (this.spec.localPathProvisioner && !(await Installer.hasVersion("localPathProvisioner", this.spec.localPathProvisioner.version, installerVersion)) && !this.hasS3Override("localPathProvisioner")) {
+      return {error: {message: `Local Path Storage version "${_.escape(this.spec.localPathProvisioner.version)}" is not supported${installerVersion ? " for installer version " + _.escape(installerVersion) : ""}`}};
     }
 
     // Rook 1.0.4 is incompatible with Kubernetes 1.20+

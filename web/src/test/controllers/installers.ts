@@ -153,7 +153,7 @@ spec:
   aws:
     version: 1.0.1
     excludeStorageClass: true
-  localPathStorage:
+  localPathProvisioner:
     version: 0.0.22
 `;
 
@@ -1326,11 +1326,11 @@ spec:
     });
   });
 
-  describe("localPathStorage", () => {
+  describe("localPathProvisioner", () => {
     it("should parse the version", () => {
       const i = Installer.parse(everyOption);
 
-      expect(i.spec.localPathStorage?.version).to.equal("0.0.22");
+      expect(i.spec.localPathProvisioner?.version).to.equal("0.0.22");
     });
   });
 

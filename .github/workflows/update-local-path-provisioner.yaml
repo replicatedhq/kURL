@@ -1,11 +1,11 @@
-name: cron-local-path-storage-update
+name: cron-local-path-provisioner-update
 on:
   schedule:
   - cron: '0 4 * * *'
   workflow_dispatch: {}
 
 jobs:
-  build-pr-local-path-storage:
+  build-pr-local-path-provisioner:
     runs-on: ubuntu-18.04
     steps:
     - uses: actions/checkout@v2
@@ -18,7 +18,7 @@ jobs:
 
     - name: Create Local Path Storage Update
       id: update
-      working-directory: ./addons/local-path-storage/template
+      working-directory: ./addons/local-path-provisioner/template
       run: |
         ./script.sh
 
@@ -28,15 +28,15 @@ jobs:
       with:
         token: ${{ secrets.AUTOMATED_PR_GH_PAT }}
         commit-message: Create new Local Path Storage version
-        title: 'Automated Local Path Storage version update ${{ steps.update.outputs.local-path-storage_version }}'
-        branch: automation/update-local-path-storage
+        title: 'Automated Local Path Storage version update ${{ steps.update.outputs.local-path-provisioner_version }}'
+        branch: automation/update-local-path-provisioner
         delete-branch: true
         labels: |
           automated-pr
-          local-path-storage
+          local-path-provisioner
         draft: false
         base: "main"
-        body: "Automated changes by the [cron-local-path-storage-update](https://github.com/replicatedhq/kURL/blob/main/.github/workflows/update-local-path-storage.yaml) GitHub action"
+        body: "Automated changes by the [cron-local-path-provisioner-update](https://github.com/replicatedhq/kURL/blob/main/.github/workflows/update-local-path-provisioner.yaml) GitHub action"
 
     - name: Check outputs
       run: |

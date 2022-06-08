@@ -18,10 +18,10 @@ function generate() {
     cp -r ./base/* "../${VERSION}"
 
     # get the raw yaml for the release
-    curl --silent "https://raw.githubusercontent.com/rancher/local-path-provisioner/v$VERSION/deploy/local-path-storage.yaml" > "../${VERSION}/local-path-storage.yaml"
+    curl --silent "https://raw.githubusercontent.com/rancher/local-path-provisioner/v$VERSION/deploy/local-path-storage.yaml" > "../${VERSION}/local-path-provisioner.yaml"
 
     # change `busybox` to `busybox:1`
-    sed -i "s/busybox/busybox:1/g" "../${VERSION}/local-path-storage.yaml"
+    sed -i "s/busybox/busybox:1/g" "../${VERSION}/local-path-provisioner.yaml"
 
     sed -i "s/__releasever__/${VERSION}/g" "../${VERSION}/install.sh"
 
@@ -30,7 +30,7 @@ function generate() {
 }
 
 function add_as_latest() {
-    sed -i "/cron-local-path-storage-update/a\    \"${VERSION}\"\," ../../../web/src/installers/versions.js
+    sed -i "/cron-local-path-provisioner-update/a\    \"${VERSION}\"\," ../../../web/src/installers/versions.js
 }
 
 function main() {
@@ -38,10 +38,10 @@ function main() {
 
     if [ -d "../${VERSION}" ]; then
         if [ $# -ge 1 ] && [ "$1" == "force" ]; then
-            echo "forcibly updating existing version of local-path-storage"
+            echo "forcibly updating existing version of local-path-provisioner"
             rm -rf "../${VERSION}"
         else
-            echo "not updating existing version of local-path-storage"
+            echo "not updating existing version of local-path-provisioner"
             return
         fi
     else
@@ -50,7 +50,7 @@ function main() {
 
     generate
 
-    echo "::set-output name=local-path-storage_version::$VERSION"
+    echo "::set-output name=local-path-provisioner_version::$VERSION"
 }
 
 main "$@"
