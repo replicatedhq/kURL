@@ -224,7 +224,7 @@
     sudo cat /var/lib/kubelet/config.yaml | grep "cpu: 123m"
     sudo cat /var/lib/kubelet/config.yaml | grep "ephemeral-storage: 1.23Gi"
     sudo cat /var/lib/kubelet/config.yaml | grep "memory: 123Mi"
-- name: local-path-storage
+- name: local-path-provisioner
   installerSpec:
     containerd:
       version: latest
@@ -236,7 +236,7 @@
       version: latest
     registry:
       version: latest
-    localPathStorage:
+    localPathProvisioner:
       version: latest
     weave:
       version: latest

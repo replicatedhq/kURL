@@ -1,0 +1,5 @@
+namespace: local-path-provisioner
+
+resources:
+- local-path-provisioner.yaml
+

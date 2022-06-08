@@ -54,7 +54,7 @@ type InstallerSpec struct {
 	UFWConfig        *UFWConfig        `json:"ufwConfig,omitempty" yaml:"ufwConfig,omitempty"`
 	Goldpinger       *Goldpinger       `json:"goldpinger,omitempty" yaml:"goldpinger,omitempty"`
 	AWS              *AWS              `json:"aws,omitempty" yaml:"aws,omitempty"`
-	LocalPathStorage *LocalPathStorage `json:"localPathStorage,omitempty" yaml:"localPathStorage,omitempty"`
+	LocalPathProvisioner *LocalPathProvisioner `json:"localPathProvisioner,omitempty" yaml:"localPathProvisioner,omitempty"`
 }
 
 type Contour struct {
@@ -319,7 +319,7 @@ type AWS struct {
 	ExcludeStorageClass bool   `json:"excludeStorageClass,omitempty" yaml:"excludeStorageClass,omitempty"`
 }
 
-type LocalPathStorage struct {
+type LocalPathProvisioner struct {
 	S3Override string `json:"s3Override,omitempty" yaml:"s3Override,omitempty"`
 	Version    string `json:"version" yaml:"version"`
 }
