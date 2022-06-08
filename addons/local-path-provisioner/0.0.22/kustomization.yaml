@@ -1,4 +1,4 @@
-namespace: local-path-provisioner
+namespace: local-path-storage
 
 resources:
 - local-path-provisioner.yaml
