@@ -1,7 +1,6 @@
 - name: hack
   numPrimaryNodes: 1
   numSecondaryNodes: 0
-  flags: "ha"
   installerSpec:
     kubernetes:
       version: "latest"
