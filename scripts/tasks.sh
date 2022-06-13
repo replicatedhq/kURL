@@ -82,6 +82,7 @@ function tasks() {
 }
 
 function load_all_images() {
+    printf "loading all infrastructure images\n"
     # get params - specifically need kurl-install-directory, as they impact load images scripts
     shift # the first param is load_images/load-images
     while [ "$1" != "" ]; do
