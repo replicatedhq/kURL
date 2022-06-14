@@ -14,12 +14,14 @@ function add_as_latest() {
 }
 
 function generate() {
-    local dir="../${VERSION}"
+    local dir="../${VERSION#"RELEASE."}"
 
     mkdir -p "$dir"
 
     cp -r base/* "$dir/"
     sed -i "s/__MINIO_VERSION__/$VERSION/g" "$dir/Manifest"
+    sed -i "s/__MINIO_VERSION__/$VERSION/g" "$dir/deployment.yaml"
+    sed -i "s/__MINIO_VERSION__/$VERSION/g" "$dir/install.sh"
 }
 
 function main() {

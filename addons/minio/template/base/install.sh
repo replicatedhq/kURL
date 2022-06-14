@@ -11,7 +11,7 @@ function minio_pre_init() {
 }
 
 function minio() {
-    local src="$DIR/addons/minio/2022-06-11T19-55-32Z"
+    local src="$DIR/addons/minio/__MINIO_VERSION__"
     local dst="$DIR/kustomize/minio"
 
     render_yaml_file "$src/tmpl-kustomization.yaml" > "$dst/kustomization.yaml"
