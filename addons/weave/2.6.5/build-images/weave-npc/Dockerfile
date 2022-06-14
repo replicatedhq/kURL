@@ -1,6 +1,6 @@
-# https://github.com/weaveworks/weave/blob/v2.8.1/prog/weave-npc/Dockerfile.template
+# https://github.com/weaveworks/weave/blob/v2.6.5/prog/weave-npc/Dockerfile.template
 
-FROM weaveworks/weave-npc:2.8.1 AS base
+FROM weaveworks/weave-npc:2.6.5 AS base
 
 FROM alpine:3.16
 
