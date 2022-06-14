@@ -5,4 +5,4 @@
 1. Select your branch with updated Dockerfile
 1. Enter addons/weave/2.6.5/build-images/weave-kube and click Run Workflow
 1. Enter addons/weave/2.6.5/build-images/weave-npc and click Run Workflow
-1. Update Manifest and weave-daemonset-k8s-1.11.yaml with new images
+1. Update Manifest and daemonset.yaml with new images

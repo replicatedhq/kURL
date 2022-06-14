@@ -1,6 +1,6 @@
 SHELL := /bin/bash
 
-IMAGE := kurlsh/weave-npc:2.8.1
+IMAGE := kurlsh/weave-npc:2.6.5
 
 DATE := $(shell date '+%Y%m%d')
 
