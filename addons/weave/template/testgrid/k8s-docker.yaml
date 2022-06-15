@@ -1,4 +1,5 @@
-- installerSpec:
+- name: "weave latest single node"
+  installerSpec:
     kubernetes:
       version: "latest"
     docker:
@@ -6,3 +7,25 @@
     weave:
       version: "__testver__"
       s3Override: "__testdist__"
+- name: "weave latest multi node"
+  installerSpec:
+    kubernetes:
+      version: "latest"
+    docker:
+      version: "latest"
+    weave:
+      version: "__testver__"
+      s3Override: "__testdist__"
+  numPrimaryNodes: 1
+  numSecondaryNodes: 2
+- name: "weave 2.6.5 single node"
+  installerSpec:
+    kubernetes:
+      version: "latest"
+    docker:
+      version: "latest"
+    weave:
+      version: "2.6.5"
+      s3Override: "__testdist__"
+  numPrimaryNodes: 1
+  numSecondaryNodes: 2
