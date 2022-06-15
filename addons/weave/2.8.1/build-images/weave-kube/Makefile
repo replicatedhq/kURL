@@ -35,6 +35,7 @@ scan:
 		--severity="HIGH,CRITICAL" \
 		--ignore-unfixed \
 		--ignore-policy=.trivyignore.rego \
+		--vuln-type=os \
 		$(IMAGE)-$(GIT_SHA)-$(DATE)
 
 .PHONY: push
