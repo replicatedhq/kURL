@@ -61,10 +61,8 @@ spec:
           type: text
         - name: primary_join_command
           type: text
-          default: "Null"
         - name: secondary_join_command
           type: text
-          default: "Null"
         - name: num_primary_nodes
           type: int
         - name: num_secondary_nodes
