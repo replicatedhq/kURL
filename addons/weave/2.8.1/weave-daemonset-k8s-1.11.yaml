@@ -108,7 +108,7 @@ items:
         name: weave-net
       namespace: kube-system
     spec:
-      # Wait 5 seconds to let pod connect before rolling next pod
+      # Wait 5 seconds to let pod connect before rolling next pod. 
       selector:
         matchLabels:
           name: weave-net
