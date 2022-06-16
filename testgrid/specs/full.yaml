@@ -744,3 +744,33 @@
       version: 1.38.0
     containerd:
       version: 1.4.4
+- name: k8s121x_openebs_containerd
+  installerSpec:
+    kubernetes:
+      version: "1.21.x"
+    weave:
+      version: "2.6.x"
+    contour:
+      version: "1.21.x"
+    containerd:
+      version: "1.5.x"
+    velero:
+      version: "1.8.x"
+    kotsadm:
+      version: "1.71.x"
+    minio:
+      version: "2020-01-25T02-50-51Z"
+    ekco:
+      version: latest
+    openebs:
+      version: "2.6.x"
+      isLocalPVEnabled: true
+      localPVStorageClassName: default
+    registry:
+      version: "2.7.x"
+    certManager:
+      version: "1.0.x"
+    prometheus:
+      version: "0.53.x"
+    metricsServer:
+      version: "0.4.x"
