@@ -1461,3 +1461,23 @@
   postInstallScript: |
     echo "this is text to test less command after installation" > test-less.txt
     less test-less.txt > /dev/null
+- name: "weave 2.6.5 multinode"
+  installerSpec:
+    kubernetes:
+      version: "1.23.6"
+    weave: 
+      version: "2.6.5"
+    containerd: 
+      version: "1.5.11"
+  numPrimaryNodes: 1
+  numSecondaryNodes: 2
+- name: "weave 2.8.1 multinode"
+  installerSpec:
+    kubernetes:
+      version: "1.23.6"
+    weave: 
+      version: "2.8.1"
+    containerd: 
+      version: "1.5.11"
+  numPrimaryNodes: 1
+  numSecondaryNodes: 2
