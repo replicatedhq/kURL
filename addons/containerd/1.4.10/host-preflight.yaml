@@ -1,0 +1,25 @@
+apiVersion: troubleshoot.sh/v1beta2
+kind: HostPreflight
+metadata:
+  name: kurl-builtin
+spec:
+  collectors:
+    - hostOS: {}
+  analyzers:
+    - hostOS:
+        outcomes:
+          - pass:
+              when: "centos = 7"
+              message: "containerd addon supports centos 7"
+          - pass:
+              when: "centos = 8"
+              message: "containerd addon supports centos 8"
+          - fail:
+              when: "ubuntu = 16.04"
+              message: "containerd addon does not support ubuntu 16.04"
+          - pass:
+              when: "ubuntu = 18.04"
+              message: "containerd addon supports ubuntu 18.04"
+          - pass:
+              when: "ubuntu = 20.04"
+              message: "containerd addon supports ubuntu 20.04"

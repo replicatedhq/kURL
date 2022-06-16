@@ -60,7 +60,7 @@ func TestNewHostPreflightCmd(t *testing.T) {
 			},
 			isWarn:  true,
 			stdout:  yellow("[WARN]") + " Number of CPUs: At least 4 CPU cores are required\n",
-			stderr:  "Error: preflights have warnings\n",
+			stderr:  "Error: host preflights have warnings\n",
 			wantErr: true,
 		},
 		{
@@ -90,7 +90,7 @@ func TestNewHostPreflightCmd(t *testing.T) {
 			},
 			isFail: true,
 			stdout: red("[FAIL]") + " Number of CPUs: At least 4 CPU cores are required\n",
-			stderr: "Error: preflights have failures\n",
+			stderr: "Error: host preflights have failures\n",
 		},
 	}
 	for _, tt := range tests {
@@ -131,7 +131,7 @@ func TestNewHostPreflightCmd(t *testing.T) {
 			bOut, bErr := bytes.NewBufferString(""), bytes.NewBufferString("")
 			cmd.SetOut(bOut)
 			cmd.SetErr(bErr)
-			args := []string{installerFilename}
+			args := []string{installerFilename, "--use-exit-codes=false"}
 			if tt.ignoreWarnings {
 				args = append(args, "--ignore-warnings")
 			}
@@ -139,7 +139,7 @@ func TestNewHostPreflightCmd(t *testing.T) {
 
 			err = cmd.Execute()
 			if tt.isFail {
-				assert.EqualError(t, err, "preflights have failures")
+				assert.EqualError(t, err, "host preflights have failures")
 			} else if tt.wantErr {
 				require.Error(t, err)
 			} else {

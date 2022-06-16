@@ -7,6 +7,7 @@ spec:
   - diskUsage:
       collectorName: "Longhorn Disk Usage"
       path: /var/lib/longhorn
+      exclude: '{{kurl .IsUpgrade }}'
 
   analyzers:
   - diskUsage:
@@ -24,4 +25,4 @@ spec:
           when: "used/total > 60%"
           message: The disk containing directory /var/lib/longhorn is more than 60% full
       - pass:
-          message: The disk containing directory /var/lib/longhorn has at least 20Gi disk space available and is at least 50Gi in size
+          message: The disk containing directory /var/lib/longhorn has at least 50Gi of total space and is less than 60% full

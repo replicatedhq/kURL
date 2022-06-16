@@ -1,0 +1,15 @@
+version: '3.2'
+
+services:
+
+  nodejs:
+    build:
+      context: ./
+      dockerfile: ./Dockerfile.skaffold
+    working_dir: /src
+    volumes:
+      - ".:/src"
+      - /src/node_modules
+    ports:
+     - 30881:30881  
+    restart: "always"

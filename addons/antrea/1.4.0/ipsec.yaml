@@ -4017,7 +4017,7 @@ data:
     # - vxlan
     # - gre
     # - stt
-    tunnelType: gre
+    tunnelType: geneve
 
     # Determines how tunnel traffic is encrypted. Currently encryption only works with encap mode.
     # It has the following options:
@@ -4027,7 +4027,7 @@ data:
     #                    the PSK value must be passed to Antrea Agent through an environment
     #                    variable: ANTREA_IPSEC_PSK.
     # - wireGuard:       Enable WireGuard for tunnel traffic encryption.
-    trafficEncryptionMode: ipsec
+    trafficEncryptionMode: wireguard
 
     # Default MTU to use for the host gateway interface and the network interface of each Pod.
     # If omitted, antrea-agent will discover the MTU of the Node's primary interface and

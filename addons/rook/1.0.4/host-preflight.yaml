@@ -42,4 +42,4 @@ spec:
           when: "available < 25Gi"
           message: The disk containing directory /opt/replicated/rook has less than 25Gi of available space
       - pass:
-          message: The disk containing directory /opt/replicated/rook has at least 25Gi disk space available
+          message: The disk containing directory /opt/replicated/rook has at least 25Gi of disk space available and is less than 80% full

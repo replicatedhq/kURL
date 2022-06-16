@@ -13,6 +13,7 @@ spec:
           when: count < 2
       - pass:
           message: This server has at least 4 CPU cores
+      strict: ""
   collectors:
   - cpu:
       exclude: ""

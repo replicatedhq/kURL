@@ -3,6 +3,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: velero
+  namespace: ${VELERO_NAMESPACE}
   labels:
     app: velero
 spec:

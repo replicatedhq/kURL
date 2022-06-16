@@ -1,3 +1,4 @@
+# shellcheck disable=SC2148
 # Gather any additional information required from the user that could not be discovered and was not
 # passed with a flag
 
@@ -234,7 +235,9 @@ function prompt_for_load_balancer_address() {
         LOAD_BALANCER_PORT=6443
     fi
 
-    $BIN_BASHTOYAML -c $MERGED_YAML_SPEC -f "load-balancer-address=${LOAD_BALANCER_ADDRESS}:${LOAD_BALANCER_PORT}"
+    if [ -n "$LOAD_BALANCER_ADDRESS" ]; then
+        $BIN_BASHTOYAML -c "$MERGED_YAML_SPEC" -f "load-balancer-address=${LOAD_BALANCER_ADDRESS}:${LOAD_BALANCER_PORT}"
+    fi
 }
 
 # if remote nodes are in the cluster and this is an airgap install, prompt the user to run the
@@ -290,15 +293,30 @@ function prompt_airgap_preload_images() {
 
 function prompt_for_private_ip() {
     _count=0
-    _regex="^[[:digit:]]+: ([^[:space:]]+)[[:space:]]+[[:alnum:]]+ ([[:digit:].]+)"
-    while read -r _line; do
-        [[ $_line =~ $_regex ]]
-        if [ "${BASH_REMATCH[1]}" != "lo" ] && [ "${BASH_REMATCH[1]}" != "kube-ipvs0" ] && [ "${BASH_REMATCH[1]}" != "docker0" ] && [ "${BASH_REMATCH[1]}" != "weave" ]; then
-            _iface_names[$((_count))]=${BASH_REMATCH[1]}
-            _iface_addrs[$((_count))]=${BASH_REMATCH[2]}
-            let "_count += 1"
-        fi
-    done <<< "$(ip -4 -o addr)"
+
+    if [ "$IPV6_ONLY" = "1" ]; then
+        _regex_ipv6="^[[:digit:]]+: ([^[:space:]]+)[[:space:]]+inet6 ([[:alnum:]:]+)"
+        while read -r _line; do
+            [[ $_line =~ $_regex_ipv6 ]]
+            if [ "${BASH_REMATCH[1]}" != "lo" ] && [ "${BASH_REMATCH[1]}" != "kube-ipvs0" ] && [ "${BASH_REMATCH[1]}" != "docker0" ] && [ "${BASH_REMATCH[1]}" != "weave" ] && [ "${BASH_REMATCH[1]}" != "antrea-gw0" ]; then
+                _iface_names[$((_count))]=${BASH_REMATCH[1]}
+                _iface_addrs[$((_count))]=${BASH_REMATCH[2]}
+                let "_count += 1"
+            fi
+        done <<< "$(ip -6 -o addr)"
+    else
+        _regex_ipv4="^[[:digit:]]+: ([^[:space:]]+)[[:space:]]+[[:alnum:]]+ ([[:digit:].]+)"
+        while read -r _line; do
+            [[ $_line =~ $_regex_ipv4 ]]
+            if [ "${BASH_REMATCH[1]}" != "lo" ] && [ "${BASH_REMATCH[1]}" != "kube-ipvs0" ] && [ "${BASH_REMATCH[1]}" != "docker0" ] && [ "${BASH_REMATCH[1]}" != "weave" ] && [ "${BASH_REMATCH[1]}" != "antrea-gw0" ]; then
+                _iface_names[$((_count))]=${BASH_REMATCH[1]}
+                _iface_addrs[$((_count))]=${BASH_REMATCH[2]}
+                let "_count += 1"
+            fi
+        done <<< "$(ip -4 -o addr)"
+    fi
+
+
     if [ "$_count" -eq "0" ]; then
         echo >&2 "Error: The installer couldn't discover any valid network interfaces on this machine."
         echo >&2 "Check your network configuration and re-run this script again."

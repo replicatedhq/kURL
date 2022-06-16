@@ -37,13 +37,15 @@ function _object_store_create_bucket() {
     local string="PUT\n\n\n${d}\n${acl}\n/$bucket"
     local sig=$(echo -en "${string}" | openssl sha1 -hmac "${OBJECT_STORE_SECRET_KEY}" -binary | base64)
 
+    local addr=$($DIR/bin/kurl format-address "$OBJECT_STORE_CLUSTER_IP")
     curl -fsSL -X PUT  \
+        --globoff \
         --noproxy "*" \
         -H "Host: $OBJECT_STORE_CLUSTER_IP" \
         -H "Date: $d" \
         -H "$acl" \
         -H "Authorization: AWS $OBJECT_STORE_ACCESS_KEY:$sig" \
-        "http://$OBJECT_STORE_CLUSTER_IP/$bucket" >/dev/null 2>&1
+        "http://$addr/$bucket" >/dev/null 2>&1
 }
 
 function object_store_bucket_exists() {
@@ -53,13 +55,15 @@ function object_store_bucket_exists() {
     local string="HEAD\n\n\n${d}\n${acl}\n/$bucket"
     local sig=$(echo -en "${string}" | openssl sha1 -hmac "${OBJECT_STORE_SECRET_KEY}" -binary | base64)
 
+    local addr=$($DIR/bin/kurl format-address "$OBJECT_STORE_CLUSTER_IP")
     curl -fsSL -I \
+        --globoff \
         --noproxy "*" \
         -H "Host: $OBJECT_STORE_CLUSTER_IP" \
         -H "Date: $d" \
         -H "$acl" \
         -H "Authorization: AWS $OBJECT_STORE_ACCESS_KEY:$sig" \
-        "http://$OBJECT_STORE_CLUSTER_IP/$bucket" >/dev/null 2>&1
+        "http://$addr/$bucket" >/dev/null 2>&1
 }
 
 function migrate_rgw_to_minio() {
@@ -74,7 +78,7 @@ function migrate_rgw_to_minio() {
     MINIO_ACCESS_KEY_SECRET=$(kubectl -n ${MINIO_NAMESPACE} get secret minio-credentials -ojsonpath='{ .data.MINIO_SECRET_KEY }' | base64 --decode)
     MINIO_CLUSTER_IP=$(kubectl -n ${MINIO_NAMESPACE} get service minio | tail -n1 | awk '{ print $3}')
 
-    get_shared    
+    get_shared
 
     kubectl delete pod sync-object-store --force --grace-period=0 &>/dev/null || true
 
@@ -111,7 +115,7 @@ EOF
     # complete in case there is a lot of data
     echo "Waiting up to 5 minutes for sync-object-store pod to complete"
     spinner_until 300 kubernetes_pod_completed sync-object-store default || true
-    kubectl logs -f sync-object-store
+    kubectl logs -f sync-object-store || true
 
     if kubernetes_pod_succeeded sync-object-store default; then
         printf "\n${GREEN}Object store data synced successfully${NC}\n"
@@ -132,10 +136,11 @@ EOF
         fi
     fi
 
+    local minioIP=$($DIR/bin/kurl format-address "$MINIO_CLUSTER_IP")
     # Update registry to use minio
     if kubernetes_resource_exists kurl configmap registry-config; then
         echo "Updating registry to use minio"
-        kubectl -n kurl get configmap registry-config -ojsonpath='{ .data.config\.yml }' | sed "s/regionendpoint: http.*/regionendpoint: http:\/\/${MINIO_CLUSTER_IP}/" > config.yml
+        kubectl -n kurl get configmap registry-config -ojsonpath='{ .data.config\.yml }' | sed "s/regionendpoint: http.*/regionendpoint: http:\/\/${minioIP}/" > config.yml
         kubectl -n kurl delete configmap registry-config
         kubectl -n kurl create configmap registry-config --from-file=config.yml=config.yml
         rm config.yml
@@ -153,7 +158,7 @@ EOF
         echo "Updating velero to use minio"
         s3Url=$(kubectl -n velero get backupstoragelocation default -ojsonpath='{ .spec.config.s3Url }')
         if [ "$s3Url" = "http://${RGW_HOST}" ]; then
-            kubectl -n velero patch backupstoragelocation default --type=merge -p "{\"spec\":{\"config\":{\"s3Url\":\"http://${MINIO_HOST}\",\"publicUrl\":\"http://${MINIO_CLUSTER_IP}\"}}}"
+            kubectl -n velero patch backupstoragelocation default --type=merge -p "{\"spec\":{\"config\":{\"s3Url\":\"http://${MINIO_HOST}\",\"publicUrl\":\"http://${minioIP}\"}}}"
 
             while read -r resticrepo; do
                 oldResticIdentifier=$(kubectl -n velero get resticrepositories "$resticrepo" -ojsonpath="{ .spec.resticIdentifier }")

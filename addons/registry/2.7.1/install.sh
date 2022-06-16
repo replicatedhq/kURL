@@ -25,10 +25,13 @@ function registry_install() {
     regsitry_init_service   # need this again because kustomize folder is cleaned before install
     registry_session_secret
 
-    # Only create registry deployment with object store if rook or minio exists and the registry pvc
+    # Only create registry deployment with object store if rook or minio exists IN THE INSTALLER SPEC and the registry pvc
     # doesn't already exist.
-    if ! registry_pvc_exists && object_store_exists && [ "$REGISTRY_USE_PVC_STORAGE" != "1" ]; then
+    if ! registry_pvc_exists && object_store_exists; then
         registry_object_store_bucket
+        # shellcheck disable=SC2034  # used in the deployment template
+        objectStoreIP=$($DIR/bin/kurl format-address $OBJECT_STORE_CLUSTER_IP)
+        objectStoreHostname=$(echo $OBJECT_STORE_CLUSTER_HOST | sed 's/http:\/\///')
         render_yaml_file "$DIR/addons/registry/2.7.1/tmpl-deployment-objectstore.yaml" > "$DIR/kustomize/registry/deployment-objectstore.yaml"
         insert_resources "$DIR/kustomize/registry/kustomization.yaml" deployment-objectstore.yaml
 
@@ -55,8 +58,14 @@ function registry_install() {
     fi
 }
 
+# The regsitry will migrate from object store to pvc is there isn't already a PVC, the object store was remove from the installer, BUT
+# it is still detected as running in the cluster. The latter 2 conditions happen during a CSI migration.
 function registry_will_migrate_pvc() {
-    if ! registry_pvc_exists && object_store_running && [ "$REGISTRY_USE_PVC_STORAGE" = "1" ]; then
+    # If KOTSADM_DISABLE_S3 is not set, don't allow the migration
+    if [ "$KOTSADM_DISABLE_S3" != 1 ]; then 
+        return 1
+    fi
+    if ! registry_pvc_exists && ! object_store_exists && object_store_running ; then
         return 0
     fi
     return 1
@@ -140,6 +149,8 @@ function registry_session_secret() {
 # image pulls
 function registry_cred_secrets() {
     if kubernetes_resource_exists kurl secret registry-htpasswd && kubernetes_resource_exists default secret registry-creds ; then
+        kubectl -n kurl patch secret registry-htpasswd -p '{"metadata":{"labels":{"kots.io/kotsadm":"true", "kots.io/backup":"velero"}}}'
+        kubectl -n default patch secret registry-creds -p '{"metadata":{"labels":{"kots.io/kotsadm":"true", "kots.io/backup":"velero"}}}'
         return 0
     fi
     kubectl -n kurl delete secret registry-htpasswd &>/dev/null || true
@@ -155,8 +166,13 @@ function registry_cred_secrets() {
     kubectl -n kurl patch secret registry-htpasswd -p '{"metadata":{"labels":{"kots.io/kotsadm":"true", "kots.io/backup":"velero"}}}'
     rm htpasswd
 
+    local server="$DOCKER_REGISTRY_IP"
+    if [ "$IPV6_ONLY" = "1" ]; then
+        server="registry.kurl.svc.cluster.local"
+    fi
+
     kubectl -n default create secret docker-registry registry-creds \
-        --docker-server="$DOCKER_REGISTRY_IP" \
+        --docker-server="$server" \
         --docker-username="$user" \
         --docker-password="$password"
     kubectl -n default patch secret registry-creds -p '{"metadata":{"labels":{"kots.io/kotsadm":"true", "kots.io/backup":"velero"}}}'

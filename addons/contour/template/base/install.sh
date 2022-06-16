@@ -23,6 +23,7 @@ function contour() {
 
     cp "$src/contour.yaml" "$dst/"
     cp "$src/patches/job-image.yaml" "$dst/"
+    cp "$src/patches/resource-limits.yaml" "$dst/"
 
     render_yaml_file "$src/tmpl-configmap.yaml" > "$dst/configmap.yaml"
     render_yaml_file "$src/tmpl-kustomization.yaml" > "$dst/kustomization.yaml"
@@ -34,7 +35,7 @@ function contour() {
         kubectl delete namespace heptio-contour
     fi
 
-    kubectl create namespace "$CONTOUR_NAMESPACE" 2>/dev/null || true
+    kubectl create --save-config namespace "$CONTOUR_NAMESPACE" 2>/dev/null || true
 
     kubectl apply -k "$dst/"
 }

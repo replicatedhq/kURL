@@ -36,7 +36,7 @@ data:
         disable: true
       s3:
         region: "us-east-1"
-        regionendpoint: http://$OBJECT_STORE_CLUSTER_IP
+        regionendpoint: http://$objectStoreIP
         bucket: docker-registry
       cache:
         blobdescriptor: inmemory
@@ -55,7 +55,8 @@ type: Opaque
 stringData:
   access-key-id: ${OBJECT_STORE_ACCESS_KEY}
   secret-access-key: ${OBJECT_STORE_SECRET_KEY}
-  object-store-cluster-ip: ${OBJECT_STORE_CLUSTER_IP}
+  object-store-hostname: ${objectStoreHostname}
+  object-store-cluster-ip: ${objectStoreHostname} # included for backwards compatibility for snapshot restores with pre-ipv6 snapshot restores
 ---
 apiVersion: apps/v1
 kind: Deployment

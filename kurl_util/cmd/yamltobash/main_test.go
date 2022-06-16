@@ -288,6 +288,8 @@ spec:
     licenseURL: hello.com
   kubernetes:
     version: 1.19.3
+    cisCompliance: true
+    clusterName: mycluster
   docker:
     version: 19.03.10
     hardFailOnLoopback: false
@@ -299,6 +301,8 @@ spec:
 				"Docker.HardFailOnLoopback": true,
 				"Weave.Version":             true,
 				"Kurl.LicenseURL":           true,
+				"Kubernetes.CisCompliance":  true,
+				"Kubernetes.ClusterName":    true,
 			},
 		},
 	}

@@ -1,0 +1,11 @@
+
+bases:
+  - ../../base
+  - ../../../dist_server/kustomize/base
+
+resources:
+  - ./clusterip.yaml
+  - ./okteto-cache-volume.yaml
+
+patches:
+  - ./deployment.yaml

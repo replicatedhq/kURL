@@ -5,14 +5,14 @@ function download_util_binaries() {
         tar xzf "$(package_filepath "${KURL_BIN_UTILS_FILE}")"
     fi
 
-    BIN_SYSTEM_CONFIG=./bin/config
-    BIN_YAMLUTIL=./bin/yamlutil
-    BIN_DOCKER_CONFIG=./bin/docker-config
-    BIN_SUBNET=./bin/subnet
-    BIN_INSTALLERMERGE=./bin/installermerge
-    BIN_YAMLTOBASH=./bin/yamltobash
-    BIN_BASHTOYAML=./bin/bashmerge
-    BIN_PVMIGRATE=./bin/pvmigrate
+    BIN_SYSTEM_CONFIG=$DIR/bin/config
+    BIN_YAMLUTIL=$DIR/bin/yamlutil
+    BIN_DOCKER_CONFIG=$DIR/bin/docker-config
+    BIN_SUBNET=$DIR/bin/subnet
+    BIN_INSTALLERMERGE=$DIR/bin/installermerge
+    BIN_YAMLTOBASH=$DIR/bin/yamltobash
+    BIN_BASHTOYAML=$DIR/bin/bashmerge
+    BIN_PVMIGRATE=$DIR/bin/pvmigrate
 
     mkdir -p /tmp/kurl-bin-utils/scripts
     CONFIGURE_SELINUX_SCRIPT=/tmp/kurl-bin-utils/scripts/configure_selinux.sh
@@ -89,7 +89,15 @@ function get_patch_yaml() {
                 ;;
             docker-registry-ip)
                 ;;
+            ekco-enable-internal-load-balancer)
+                ;;
             ha)
+                ;;
+            kubernetes-cis-compliance)
+                ;;
+            kubernetes-cluster-name)
+                ;;
+            aws-exclude-storage-class)
                 ;;
             ignore-remote-load-images-prompt)
                 ;;
@@ -113,11 +121,20 @@ function get_patch_yaml() {
                     KURL_INSTALL_DIRECTORY="$(realpath ${_value})/kurl"
                 fi
                 ;;
+            labels)
+                NODE_LABELS="$_value"
+                ;;
             load-balancer-address)
                 ;;
+            # Legacy Command
             preflight-ignore)
                 ;;
+            host-preflight-ignore)
+                ;;
+            # Legacy Command
             preflight-ignore-warnings)
+                ;;
+            host-preflight-enforce-warnings)
                 ;;
             preserve-docker-config)
                 ;;
@@ -156,6 +173,22 @@ function get_patch_yaml() {
                 ;;
             skip-system-package-install)
                 SKIP_SYSTEM_PACKAGE_INSTALL=1
+                ;;
+            # legacy command alias
+            exclude-builtin-preflights)
+                EXCLUDE_BUILTIN_HOST_PREFLIGHTS=1
+                ;;
+            exclude-builtin-host-preflights)
+                EXCLUDE_BUILTIN_HOST_PREFLIGHTS=1
+                ;;
+            app-version-label)
+                KOTSADM_APPLICATION_VERSION_LABEL="$_value"
+                ;;
+            ipv6)
+                IPV6_ONLY=1
+                ;;
+            velero-restic-timeout)
+                VELERO_RESTIC_TIMEOUT="$_value"
                 ;;
             *)
                 echo >&2 "Error: unknown parameter \"$_param\""

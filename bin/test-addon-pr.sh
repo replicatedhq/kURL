@@ -87,6 +87,11 @@ run_addon() {
 
   for version in $versions
   do
+    if [ "$version" = "template" ]; then
+      echo "Skipping template for $name"
+      continue
+    fi
+
     echo "Testing Modified Addon: $name-$version"
 
     # Build Packages

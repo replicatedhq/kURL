@@ -9,7 +9,7 @@ jobs:
   staging-docker-image-tgapi:
     runs-on: ubuntu-18.04
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - run: |
         docker build -f testgrid/tgapi/deploy/Dockerfile \
@@ -31,7 +31,7 @@ jobs:
     runs-on: ubuntu-18.04
     needs: staging-docker-image-tgapi
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: kustomize
       run: |
@@ -59,7 +59,7 @@ jobs:
 
     - name: release
       run: |
-        cd ~ && git clone --single-branch -b master git@github.com:replicatedcom/gitops-deploy
+        cd ~ && git clone --single-branch -b main git@github.com:replicatedcom/gitops-deploy
         mkdir -p ~/gitops-deploy/testgrid
         mv ${GITHUB_WORKSPACE}/testgrid/kustomize/overlays/staging/testgrid.yaml gitops-deploy/testgrid/testgrid.yaml
         cd ~/gitops-deploy
@@ -72,7 +72,7 @@ jobs:
   production-docker-image-tgapi:
     runs-on: ubuntu-18.04
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - run: |
         docker build -f testgrid/tgapi/deploy/Dockerfile \
@@ -93,7 +93,7 @@ jobs:
   docker-image-tgrun:
     runs-on: ubuntu-18.04
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: tgrun-build
         run: |
           docker build -f testgrid/tgrun/Dockerfile \
@@ -114,7 +114,7 @@ jobs:
     runs-on: ubuntu-18.04
     needs: production-docker-image-tgapi
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: kustomize
       run: |

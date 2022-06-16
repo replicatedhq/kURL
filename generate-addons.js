@@ -81,7 +81,11 @@ fs.readdir(specDir, (err, files) => {
         sv.pop();
       }
 
-      sv.sort(semverCompare);
+      // minio tags are not valid semvers
+      if (file !== "minio") {
+        sv.sort(semverCompare);
+      }
+
       if (hasAlphaVersion) {
         sv.push("alpha");
       }
@@ -99,6 +103,12 @@ fs.readdir(specDir, (err, files) => {
 
   supportedVersions.kubernetes = preferredVersions.kubernetes;
   supportedVersions.kubernetes.unshift("latest");
+
+  supportedVersions.rke2 = preferredVersions.rke2;
+  supportedVersions.rke2.unshift("latest");
+
+  supportedVersions.k3s = preferredVersions.k3s;
+  supportedVersions.k3s.unshift("latest");
 
   supportedVersions.docker = preferredVersions.docker;
   supportedVersions.docker.unshift("latest");

@@ -6,21 +6,15 @@ on:
       image:
         description: path to a Makefile that builds the image
         required: true
-        default: addons/rook/1.0.4/build-images/ceph
+        default: addons/registry/build-images/s3cmd
 
 jobs:
   build:
     runs-on: ubuntu-20.04
     steps:
-    - uses: actions/checkout@v2
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USER }}
-        password: ${{ secrets.DOCKERHUB_PASSWORD }}
-    - name: Install grype
-      run: curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sudo sh -s -- -b /usr/local/bin
-    - name: Install jq
-      run: sudo apt-get install -y jq
+    - uses: actions/checkout@v3
+    - name: Install Trivy
+      run: curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sudo sh -s -- -b /usr/local/bin v0.27.1
     - name: Build image ${{ github.event.inputs.image }}
       env:
         IMAGE: ${{ github.event.inputs.image }}

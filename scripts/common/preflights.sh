@@ -44,11 +44,14 @@ function require64Bit() {
 
 function bailIfUnsupportedOS() {
     case "$LSB_DIST$DIST_VERSION" in
-        ubuntu16.04|ubuntu18.04|ubuntu20.04)
+        ubuntu16.04)
+            logWarn "Install is not supported on Ubuntu 16.04. Installation of Kubernetes will be best effort."
             ;;
-        rhel7.4|rhel7.5|rhel7.6|rhel7.7|rhel7.8|rhel7.9|rhel8.0|rhel8.1|rhel8.2|rhel8.3|rhel8.4)
+        ubuntu18.04|ubuntu20.04)
             ;;
-        centos7.4|centos7.5|centos7.6|centos7.7|centos7.8|centos7.9|centos8.0|centos8.1|centos8.2|centos8.3|centos8.4)
+        rhel7.4|rhel7.5|rhel7.6|rhel7.7|rhel7.8|rhel7.9|rhel8.0|rhel8.1|rhel8.2|rhel8.3|rhel8.4|rhel8.5)
+            ;;
+        centos7.4|centos7.5|centos7.6|centos7.7|centos7.8|centos7.9|centos8|centos8.0|centos8.1|centos8.2|centos8.3|centos8.4)
             ;;
         amzn2)
             ;;
@@ -343,7 +346,7 @@ selinux_enforced() {
 
 function kotsadm_prerelease() {
     if [ -n "$TESTGRID_ID" ]; then
-        printf "\n${YELLOW}This is a prerelease version of kotsadm and should not be run in production. Continuing because this is testgrid.${NC} "
+        printf "\n${YELLOW}This is a prerelease version of kotsadm and should not be run in production. Continuing because this is testgrid.${NC}\n"
         return 0
     fi
 
@@ -516,7 +519,7 @@ function host_preflights() {
 
     mkdir -p "${DIR}/${HOST_PREFLIGHTS_RESULTS_OUTPUT_DIR}"
 
-    if [ "${PREFLIGHT_IGNORE_WARNINGS}" = "1" ] || ! prompts_can_prompt ; then
+    if [ ! "${HOST_PREFLIGHT_ENFORCE_WARNINGS}" = "1" ] ; then
         opts="${opts} --ignore-warnings"
     fi
     if [ "${is_primary}" != "1" ]; then
@@ -539,15 +542,18 @@ function host_preflights() {
       opts="${opts} --spec=${VENDOR_PREFLIGHT_SPEC}"
     fi
 
-    # Adding kurl addon preflight checks
-    for spec in $("${K8S_DISTRO}_addon_for_each" addon_preflight); do
-        opts="${opts} --spec=${spec}"
-    done
-
-    # Add containerd preflight checks separately since it's a special addon and is not part of the addons array
-    for spec in $(addon_preflight containerd "$CONTAINERD_VERSION"); do
-        opts="${opts} --spec=${spec}"
-    done
+    if [ "$EXCLUDE_BUILTIN_HOST_PREFLIGHTS" == "1" ]; then
+        opts="${opts} --exclude-builtin"
+    else
+        # Adding kurl addon preflight checks
+        for spec in $("${K8S_DISTRO}_addon_for_each" addon_preflight); do
+            opts="${opts} --spec=${spec}"
+        done
+        # Add containerd preflight checks separately since it's a special addon and is not part of the addons array
+        for spec in $(addon_preflight containerd "$CONTAINERD_VERSION"); do
+            opts="${opts} --spec=${spec}"
+        done
+    fi
 
     if [ -n "$PRIMARY_HOST" ]; then
         opts="${opts} --primary-host=${PRIMARY_HOST}"
@@ -557,61 +563,31 @@ function host_preflights() {
     fi
 
     logStep "Running host preflights"
-    if [ "${PREFLIGHT_IGNORE}" = "1" ]; then
+    if [ "${HOST_PREFLIGHT_IGNORE}" = "1" ]; then
         "${DIR}"/bin/kurl host preflight "${MERGED_YAML_SPEC}" ${opts} | tee "${out_file}"
         host_preflights_mkresults "${out_file}" "${opts}"
 
         # TODO: report preflight fail
     else
-        # interactive terminal
-        if prompts_can_prompt; then
-            set +e
-            "${DIR}"/bin/kurl host preflight "${MERGED_YAML_SPEC}" ${opts} </dev/tty | tee "${out_file}"
-            local kurl_exit_code="${PIPESTATUS[0]}"
-            set -e
+        set +e
+        "${DIR}"/bin/kurl host preflight "${MERGED_YAML_SPEC}" ${opts} | tee "${out_file}"
+        local kurl_exit_code="${PIPESTATUS[0]}"
+        set -e
 
-            host_preflights_mkresults "${out_file}" "${opts}"
+        host_preflights_mkresults "${out_file}" "${opts}"
 
-            case $kurl_exit_code in
-                3)
-                    logWarn "Host preflights have warnings"
-
-                    # report_install_fail "preflight"
-                    # bail "Use the \"preflight-ignore-warnings\" flag to proceed."
-                    # printf "${YELLOW}Host preflights have warnings. Do you want to proceed anyway? ${NC} "
-                    # if ! confirmY ; then
-                    #     report_install_fail "preflight"
-                    #     bail "Use the \"preflight-ignore-warnings\" flag to proceed."
-                    # fi
-                    return 0
-                    ;;  
-                1)
-                    logFail "Host preflights have failures"
-
-                    # printf "${RED}Host preflights have failures. Do you want to proceed anyway? ${NC} "
-                    # if ! confirmN ; then
-                    #     report_install_fail "preflight"
-                    #     bail "Use the \"preflight-ignore\" flag to proceed."
-                    # fi
-                    return 0
-                    ;;
-            esac                                       
-        # non-interactive terminal
-        else
-            set +e
-            "${DIR}"/bin/kurl host preflight "${MERGED_YAML_SPEC}" ${opts} | tee "${out_file}"
-            local kurl_exit_code="${PIPESTATUS[0]}"
-            set -e
-
-            host_preflights_mkresults "${out_file}" "${opts}"
-
-            if [ "${kurl_exit_code}" != "0" ] ; then
-                # report_install_fail "preflight"
-                # bail "Use the \"preflight-ignore\" flag to proceed."
-                logFail "Host preflights failed"
+        case $kurl_exit_code in
+            3)
+                bail "Host preflights have warnings that block the installation."
+                ;;  
+            2)
+                logWarn "Host preflights have warnings"
                 return 0
-            fi
-        fi
+                ;;
+            1)
+                bail "Host preflights have failures that block the installation."
+                ;;
+        esac                                       
     fi
     logStep "Host preflights success"
 }

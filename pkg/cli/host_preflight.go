@@ -29,6 +29,12 @@ const HostPreflightCmdExample = `
   # Installer spec from STDIN
   $ kubectl get installer 6abe39c -oyaml | kurl host preflight -`
 
+const (
+	PREFLIGHTS_WARNING_CODE        = 3
+	PREFLIGHTS_IGNORE_WARNING_CODE = 2
+	PREFLIGHTS_ERROR_CODE          = 1
+)
+
 func NewHostPreflightCmd(cli CLI) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:          "preflight [installer spec file|-]",
@@ -67,10 +73,15 @@ func NewHostPreflightCmd(cli CLI) *cobra.Command {
 				RemoteHosts:    remotes,
 			}
 
-			builtin := preflight.Builtin()
-			preflightSpec, err := decodePreflightSpec(builtin, data)
-			if err != nil {
-				return errors.Wrap(err, "builtin")
+			preflightSpec := &troubleshootv1beta2.HostPreflight{}
+
+			if !v.GetBool("exclude-builtin") {
+				builtin := preflight.Builtin()
+				s, err := decodePreflightSpec(builtin, data)
+				if err != nil {
+					return errors.Wrap(err, "builtin")
+				}
+				preflightSpec = s
 			}
 
 			for _, filename := range v.GetStringSlice("spec") {
@@ -91,6 +102,7 @@ func NewHostPreflightCmd(cli CLI) *cobra.Command {
 			if data.IsJoin && data.IsPrimary && !data.IsUpgrade {
 				// Check connection to kubelet on all remotes
 				for _, remote := range remotes {
+					remote = formatAddress(remote)
 					name := fmt.Sprintf("kubelet %s", remote)
 
 					preflightSpec.Spec.Collectors = append(preflightSpec.Spec.Collectors, &v1beta2.HostCollect{
@@ -134,17 +146,13 @@ func NewHostPreflightCmd(cli CLI) *cobra.Command {
 										Message: fmt.Sprintf("Successfully connected to kubelet %s:10250", remote),
 									},
 								},
-								{
-									Warn: &v1beta2.SingleOutcome{
-										Message: fmt.Sprintf("Unexpected TCP connection status for kubelet %s:10250", remote),
-									},
-								},
 							},
 						},
 					})
 				}
 				// Check connection to etcd on all primaries
 				for _, primary := range data.PrimaryHosts {
+					primary = formatAddress(primary)
 					name := fmt.Sprintf("etcd peer %s", primary)
 
 					preflightSpec.Spec.Collectors = append(preflightSpec.Spec.Collectors, &v1beta2.HostCollect{
@@ -188,11 +196,6 @@ func NewHostPreflightCmd(cli CLI) *cobra.Command {
 										Message: fmt.Sprintf("Successfully connected to etcd peer %s:2380", primary),
 									},
 								},
-								{
-									Warn: &v1beta2.SingleOutcome{
-										Message: fmt.Sprintf("Unexpected TCP connection status for etcd peer %s:2380", primary),
-									},
-								},
 							},
 						},
 					})
@@ -209,14 +212,28 @@ func NewHostPreflightCmd(cli CLI) *cobra.Command {
 			<-progressContext.Done()
 
 			if err != nil {
-				return errors.Wrap(err, "run preflight")
+				return errors.Wrap(err, "run host preflight")
 			}
 
 			printPreflightResults(cmd.OutOrStdout(), results)
 
+			if v.GetBool("use-exit-codes") {
+				switch {
+				case preflightIsFail(results):
+					os.Exit(PREFLIGHTS_ERROR_CODE)
+				case preflightIsWarn(results):
+					if v.GetBool("ignore-warnings") {
+						os.Exit(PREFLIGHTS_IGNORE_WARNING_CODE)
+					} else {
+						os.Exit(PREFLIGHTS_WARNING_CODE)
+					}
+				}
+				return nil
+			}
+
 			switch {
 			case preflightIsFail(results):
-				return errors.New("preflights have failures")
+				return errors.New("host preflights have failures")
 			case preflightIsWarn(results):
 				if v.GetBool("ignore-warnings") {
 					fmt.Fprintln(cmd.ErrOrStderr(), "Warnings ignored by CLI flag \"ignore-warnings\"")
@@ -228,13 +245,15 @@ func NewHostPreflightCmd(cli CLI) *cobra.Command {
 		},
 	}
 
-	cmd.Flags().Bool("ignore-warnings", false, "ignore preflight warnings")
+	cmd.Flags().Bool("ignore-warnings", false, "ignore host preflight warnings")
 	cmd.Flags().Bool("is-join", false, "set to true if this node is joining an existing cluster (non-primary implies join)")
 	cmd.Flags().Bool("is-primary", true, "set to true if this node is a primary")
 	cmd.Flags().Bool("is-upgrade", false, "set to true if this is an upgrade")
+	cmd.Flags().Bool("exclude-builtin", false, "set to true to exclude builtin host preflights")
+	cmd.Flags().Bool("use-exit-codes", true, "set to false to return an error instead of an exit code")
 	cmd.Flags().StringSlice("primary-host", nil, "host or IP of a control plane node running a Kubernetes API server and etcd peer")
 	cmd.Flags().StringSlice("secondary-host", nil, "host or IP of a secondary node running kubelet")
-	cmd.Flags().StringSlice("spec", nil, "preflight specs")
+	cmd.Flags().StringSlice("spec", nil, "host preflight specs")
 	// cmd.MarkFlagRequired("spec")
 	cmd.MarkFlagFilename("spec", "yaml", "yml")
 

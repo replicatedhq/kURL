@@ -84,7 +84,9 @@ func MainRunLoop(runnerOptions types.RunnerOptions) error {
 
 		for _, dequeuedInstance := range dequeueInstanceResponse {
 			singleTest := types.SingleRun{
-				ID: dequeuedInstance.ID,
+				ID:                dequeuedInstance.ID,
+				NumPrimaryNodes:   dequeuedInstance.NumPrimaryNodes,
+				NumSecondaryNodes: dequeuedInstance.NumSecondaryNodes,
 
 				OperatingSystemName:    dequeuedInstance.OperatingSystemName,
 				OperatingSystemVersion: dequeuedInstance.OperatingSystemVersion,
@@ -95,6 +97,7 @@ func MainRunLoop(runnerOptions types.RunnerOptions) error {
 
 				KurlYAML:          dequeuedInstance.KurlYAML,
 				KurlURL:           dequeuedInstance.KurlURL,
+				KurlFlags:         dequeuedInstance.KurlFlags,
 				UpgradeURL:        dequeuedInstance.UpgradeURL,
 				SupportbundleYAML: dequeuedInstance.SupportbundleYAML,
 				PostInstallScript: dequeuedInstance.PostInstallScript,

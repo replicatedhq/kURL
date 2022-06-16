@@ -13,6 +13,7 @@ import Loader from "../shared/Loader";
 
 import "../../assets/scss/components/InstanceTable.scss";
 
+import { getNodeLogs } from "./dataFetchers";
 export default class InstanceTable extends React.Component {
   constructor(props) {
     super(props);
@@ -21,6 +22,7 @@ export default class InstanceTable extends React.Component {
       showInstallerModal: false,
       showLogsModal: false,
       selectedInstance: null,
+      selectedNode: null,
       instanceLogs: "",
       loadingLogs: false,
       sonobuoyResults: "",
@@ -111,6 +113,10 @@ export default class InstanceTable extends React.Component {
       if ("kurlLogsInstanceId" in searchParams) {
         delete searchParams["kurlLogsInstanceId"];
       }
+      if ("nodeId" in searchParams) {
+         delete searchParams["nodeId"];
+      }
+       
       this.props.history?.replace({
         pathname: this.props.location?.pathname,
         search: queryString.stringify(searchParams),
@@ -271,43 +277,90 @@ export default class InstanceTable extends React.Component {
     }
   }
 
+  viewNodeLogs = (nodeId, instance) => {
+    if (this.props.location) {
+      const searchParams = queryString.parse(this.props.location?.search);
+      searchParams.kurlLogsInstanceId = instance.id;
+      searchParams.nodeId = nodeId;
+
+      this.props.history?.replace({
+        pathname: this.props.location?.pathname,
+        search: queryString.stringify(searchParams),
+        hash: this.props.location?.hash,
+      });
+    }
+    this.setState({ loadingLogs: true, showLogsModal: true, selectedInstance: instance, selectedNode: nodeId});
+    getNodeLogs(nodeId).then(logs => {
+       this.setState({
+          instanceLogs: logs.data.logs,
+          loadingLogs: false,
+        }, () => {
+          if (this.props.location?.hash !== "") {
+            setTimeout(() => {
+              const selectedLine = parseInt(this.props.location.hash.substring(2));
+              this.goToLineInEditor(this.logsAceEditor, selectedLine);
+            }, 200);
+          }
+        });
+    })
+  }
+
   render() {
     const osArray = this.getOSArray(this.props.instancesMap);
-    const rows = Object.keys(this.props.instancesMap).map(kurlUrl => {
+    const rows = Object.keys(this.props.instancesMap).map((kurlUrl) => {
+      const testInstance = this.props.instancesMap[kurlUrl];
       return (
         <tr key={kurlUrl}>
+          <td><strong>{testInstance[0].testName}</strong></td>
           <td>
-            <span className="url" onClick={() => this.viewInstanceInstaller(this.props.instancesMap[kurlUrl][0])}>{kurlUrl}</span>
-            {this.props.instancesMap[kurlUrl][0].upgradeUrl &&
+            <div className="url" onClick={() => this.viewInstanceInstaller(testInstance[0])}>{kurlUrl}</div>
+            {testInstance[0].kurlFlags &&
+              <div>
+                <span>{' Flags: '}</span>
+                <span>{testInstance[0].kurlFlags}</span>
+              </div>
+              }
+            {testInstance[0].upgradeUrl &&
               <div>
                 <span>{' -> '}</span>
-                <span className="url" onClick={() => this.viewUpgradeInstaller(this.props.instancesMap[kurlUrl][0])}>{this.props.instancesMap[kurlUrl][0].upgradeUrl}</span>
+                <span className="url" onClick={() => this.viewUpgradeInstaller(testInstance[0])}>{testInstance[0].upgradeUrl}</span>
               </div>
               }
-            {this.props.instancesMap[kurlUrl][0].supportbundleYaml &&
+            {testInstance[0].supportbundleYaml &&
               <div>
                 <br/>
-                <span className="url" onClick={() => this.viewSupportbundleYaml(this.props.instancesMap[kurlUrl][0])}>Support Bundle YAML</span>
+                <span className="url" onClick={() => this.viewSupportbundleYaml(testInstance[0])}>Support Bundle YAML</span>
               </div>
               }
-            {this.props.instancesMap[kurlUrl][0].postInstallScript &&
+            {testInstance[0].postInstallScript &&
               <div>
                 <br/>
-                <span className="url" onClick={() => this.viewPostInstallScript(this.props.instancesMap[kurlUrl][0])}>Post-Install Script</span>
+                <span className="url" onClick={() => this.viewPostInstallScript(testInstance[0])}>Post-Install Script</span>
               </div>
               }
-            {this.props.instancesMap[kurlUrl][0].postUpgradeScript &&
+            {testInstance[0].postUpgradeScript &&
               <div>
                 <br/>
-                <span className="url" onClick={() => this.viewPostUpgradeScript(this.props.instancesMap[kurlUrl][0])}>Post-Upgrade Script</span>
+                <span className="url" onClick={() => this.viewPostUpgradeScript(testInstance[0])}>Post-Upgrade Script</span>
               </div>
               }
           </td>
           {osArray.map(osKey => {
-            const instance = find(this.props.instancesMap[kurlUrl], i => (osKey == `${i.osName}-${i.osVersion}`));
+            const instance = find(testInstance, i => (osKey == `${i.osName}-${i.osVersion}`));
             if (instance) {
               const status = this.getInstanceStatus(instance);
               const failureReason = this.getInstanceFailureReason(instance);
+              const initialPrimaryId = instance.id+"-initialprimary";
+              const secondaryNodes = []
+              const primaryNodes = []
+              for (var i = 0; i < instance.numSecondaryNodes ; i++) {
+                  let nodeId = `${instance.id}-secondary-${i}`
+                  secondaryNodes.push(<button  key={i} type="button" className="btn xsmall primary u-width--full u-marginBottom--5" onClick={() => this.viewNodeLogs(nodeId, instance)}>{"Logs Secondary-"+i+ " Node"}</button>)
+              }
+              for (var i = 1; i < instance.numPrimaryNodes; i++) {
+                let nodeId = `${instance.id}-primary-${i}`
+                primaryNodes.push(<button key={i} type="button" className="btn xsmall primary u-width--full u-marginBottom--5" onClick={() => this.viewNodeLogs(nodeId, instance)}>{"Logs primary-" + i + " Node"}</button>)
+              }
               return (
                 <td
                   key={`${kurlUrl}-${osKey}-${instance.id}`}
@@ -317,13 +370,22 @@ export default class InstanceTable extends React.Component {
                     <span className={`status-text ${status} flex1`}>{status}<br/><small>{failureReason}</small></span>
                     {(instance.startedAt && !instance.isUnsupported) &&
                       <div className="flex-column flex1 alignItems--flexEnd">
-                        <button type="button" className="btn xsmall primary u-width--full u-marginBottom--5" onClick={() => this.viewInstanceLogs(instance)}>kURL Logs</button>
+                        
                         {instance.finishedAt &&
                           <button type="button" className="btn xsmall secondary blue u-width--full" onClick={() => this.viewInstanceSonobuoyResults(instance)}>Sonobuoy</button>
                         }
                       </div>
                     }
                   </div>
+                  {(instance.startedAt && !instance.isUnsupported) &&
+                  <div className="flex flex1 alignItems--center cluster-node">
+                    <div className="flex-column flex1 alignItems--flexEnd">
+                     <button type="button" className="btn xsmall primary u-width--full u-marginBottom--5" onClick={() => this.viewNodeLogs(initialPrimaryId, instance)}>Logs Initialprimary Node</button>
+                     {primaryNodes}
+                     {secondaryNodes}
+                    </div>
+                  </div>
+                  }
                 </td>
               );
             }
@@ -351,6 +413,7 @@ export default class InstanceTable extends React.Component {
         <table>
           <thead>
             <tr>
+              <th>Test Name</th>
               <th>kURL URL</th>
               {osArray.map(key => (
                 <th key={key}>{key}</th>
@@ -405,7 +468,7 @@ export default class InstanceTable extends React.Component {
           className="Modal XLargeSize flex-column u-height--fourFifths"
         >
           <div className="Modal-header">
-              <p>Logs for: <a href={this.state.selectedInstance?.kurlUrl} target="_blank" rel="noreferrer">{this.state.selectedInstance?.kurlUrl}</a> / {this.state.selectedInstance?.osName}-{this.state.selectedInstance?.osVersion} <span className={`status-text ${this.getInstanceStatus(this.state.selectedInstance)}`}>({this.getInstanceStatus(this.state.selectedInstance)})</span></p>
+              <p>Logs for: <a href={this.state.selectedInstance?.kurlUrl} target="_blank" rel="noreferrer">{this.state.selectedInstance?.kurlUrl}</a> / {this.state.selectedInstance?.osName}-{this.state.selectedInstance?.osVersion} <span className={`status-text ${this.getInstanceStatus(this.state.selectedInstance)}`}>node/{this.state.selectedNode}({this.getInstanceStatus(this.state.selectedInstance)})</span></p>
           </div>
           {this.state.loadingLogs ? 
             <Loader />

@@ -1,6 +1,7 @@
 # TODO (dan): consolidate this with the rke2 distro
 function k3s_discover_private_ip() {
-    echo "$(cat /var/lib/rancher/k3s/agent/pod-manifests/etcd.yaml 2>/dev/null | grep initial-cluster | grep -o "${HOSTNAME}-[a-z0-9]*=https*://[^\",]*" | sed -n -e 's/.*https*:\/\/\(.*\):.*/\1/p')"
+    k3s_load_known_vars
+    echo $PRIVATE_ADDRESS
 }
 
 function k3s_get_kubeconfig() {
@@ -33,6 +34,12 @@ function k3s_addon_for_each() {
     if [ -n "$METRICS_SERVER_VERSION" ] && [ -z "$METRICS_SERVER_IGNORE" ]; then
         logWarn "⚠️  Metrics Server is distributed as part of K3S; the version specified in the installer will be ignored."
         METRICS_SERVER_IGNORE=true
+    fi
+
+
+    if [ -n "$LOCAL_PATH_PROVISIONER_VERSION" ] && [ -z "$LOCAL_PATH_PROVISIONER_IGNORE" ]; then
+        logWarn "⚠️  Local Path Storage is distributed as part of K3S; the version specified in the installer will be ignored."
+        LOCAL_PATH_PROVISIONER_IGNORE=true
     fi
 
     $cmd aws "$AWS_VERSION"

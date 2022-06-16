@@ -4,6 +4,8 @@ function kotsadm() {
     local src="$DIR/addons/kotsadm/nightly"
     local dst="$DIR/kustomize/kotsadm"
 
+    validate_object_storage
+
     kotsadm_rename_postgres_pvc_1-12-2 "$src"
 
     cp "$src/kustomization.yaml" "$dst/"
@@ -71,6 +73,7 @@ function kotsadm() {
     kotsadm_cacerts_file
     kotsadm_kubelet_client_secret
     kotsadm_metadata_configmap $src $dst
+    kotsadm_confg_configmap $dst
 
     if [ -z "$KOTSADM_HOSTNAME" ]; then
         KOTSADM_HOSTNAME="$PUBLIC_ADDRESS"
@@ -80,7 +83,7 @@ function kotsadm() {
     fi
 
     cat "$src/tmpl-start-kotsadm-web.sh" | sed "s/###_HOSTNAME_###/$KOTSADM_HOSTNAME:8800/g" > "$dst/start-kotsadm-web.sh"
-    kubectl create configmap kotsadm-web-scripts --from-file="$dst/start-kotsadm-web.sh" --dry-run -oyaml > "$dst/kotsadm-web-scripts.yaml"
+    kubectl create configmap kotsadm-web-scripts --from-file="$dst/start-kotsadm-web.sh" --dry-run=client -oyaml > "$dst/kotsadm-web-scripts.yaml"
 
     kubectl delete pod kotsadm-migrations &> /dev/null || true;
     kubectl delete deployment kotsadm-web &> /dev/null || true; # replaced by 'kotsadm' deployment in 1.12.0
@@ -109,7 +112,8 @@ function kotsadm() {
 
     kotsadm_kurl_proxy "$src" "$dst"
 
-    kotsadm_ready_spinner
+    kotsadm_ready_spinner "app=kotsadm-postgres"
+    kotsadm_ready_spinner "app=kotsadm"
 
     kubectl label pvc kotsadm-postgres-kotsadm-postgres-0 velero.io/exclude-from-backup- kots.io/backup=velero --overwrite
 
@@ -118,6 +122,25 @@ function kotsadm() {
     # Migrate existing hostpath and nfs snapshot minio to velero lvp plugin
     if [ "$KOTSADM_DISABLE_S3" == "1" ] && [ -n "$VELERO_VERSION" ] ; then
         kubectl kots velero migrate-minio-filesystems -n default
+    fi
+}
+
+function kotsadm_already_applied() {
+
+    # This prints in the outro regardless of being already applied
+    if [ -z "$KOTSADM_HOSTNAME" ]; then
+        KOTSADM_HOSTNAME="$PUBLIC_ADDRESS"
+    fi
+    if [ -z "$KOTSADM_HOSTNAME" ]; then
+        KOTSADM_HOSTNAME="$PRIVATE_ADDRESS"
+    fi
+}
+
+# TODO (dans): remove this when the KOTS default state is set disableS3=true
+# Having no object storage in your spec and not setting disableS3 to true is invalid and not supported
+function validate_object_storage() {
+    if ! object_store_exists && [ "$KOTSADM_DISABLE_S3" != 1 ]; then 
+        bail "KOTS must have an object storage provider as part of the installer spec (e.g. Rook or Minio), or must have 'kotsadm.disableS3=true' set in the installer"
     fi
 }
 
@@ -137,6 +160,7 @@ function kotsadm_outro() {
 
     if [ -n "$KOTSADM_PASSWORD" ]; then
         printf "Login with password (will not be shown again): ${GREEN}$KOTSADM_PASSWORD${NC}\n"
+        printf "This password has been set for you by default. It is recommended that you change this password; this can be done with the following command: ${GREEN}kubectl kots reset-password default${NC}\n"
     else
         printf "You can log in with your existing password. If you need to reset it, run ${GREEN}kubectl kots reset-password default${NC}\n"
     fi
@@ -293,9 +317,28 @@ function kotsadm_metadata_configmap() {
     fi
     if test -s "$src/application.yaml"; then
         cp "$src/application.yaml" "$dst/"
-        kubectl create configmap kotsadm-application-metadata --from-file="$dst/application.yaml" --dry-run -oyaml > "$dst/kotsadm-application-metadata.yaml"
+        kubectl create configmap kotsadm-application-metadata --from-file="$dst/application.yaml" --dry-run=client -oyaml > "$dst/kotsadm-application-metadata.yaml"
         insert_resources $dst/kustomization.yaml kotsadm-application-metadata.yaml
     fi
+}
+
+function kotsadm_confg_configmap() {
+    local dst="$1"
+
+    if ! kubernetes_resource_exists default configmap kotsadm-confg; then
+        kubectl -n default create configmap kotsadm-confg
+        kubectl -n default label configmap kotsadm-confg --overwrite kots.io/kotsadm=true kots.io/backup=velero
+    fi
+
+    kubectl -n default get configmap kotsadm-confg -oyaml > "$dst/kotsadm-confg.yaml"
+
+    if [ -n "$KOTSADM_APPLICATION_VERSION_LABEL" ]; then
+        "${DIR}"/bin/yamlutil -a -fp "$dst/kotsadm-confg.yaml" -yp data_app-version-label -v "$KOTSADM_APPLICATION_VERSION_LABEL"
+    else
+        "${DIR}"/bin/yamlutil -r -fp "$dst/kotsadm-confg.yaml" -yp data_app-version-label
+    fi
+
+    insert_resources "$dst/kustomization.yaml" kotsadm-confg.yaml
 }
 
 function kotsadm_kurl_proxy() {
@@ -439,20 +482,21 @@ function kotsadm_scale_down() {
 }
 
 function kotsadm_health_check() {
+    local selector=$1
     # Get pods below will initially return only 0 lines
     # Then it will return 1 line: "PodScheduled=True"
     # Finally, it will return 4 lines.  And this is when we want to grep until "Ready=False" is not shown, and '1/1 Running' is
-    if [ $(kubectl get pods -l app=kotsadm -o jsonpath="{range .items[*]}{range .status.conditions[*]}{ .type }={ .status }{'\n'}{end}{end}" 2>/dev/null | wc -l) -ne 4 ]; then
+    if [ $(kubectl get pods -l ${selector} -o jsonpath="{range .items[*]}{range .status.conditions[*]}{ .type }={ .status }{'\n'}{end}{end}" 2>/dev/null | wc -l) -ne 4 ]; then
         # if this returns more than 4 lines, there are multiple copies of the pod running, which is a failure
         return 1
     fi
 
-    if [[ -n $(kubectl get pods -l app=kotsadm --field-selector=status.phase=Running -o jsonpath="{range .items[*]}{range .status.conditions[*]}{ .type }={ .status }{'\n'}{end}{end}" 2>/dev/null | grep -q Ready=False) ]]; then
+    if [[ -n $(kubectl get pods -l ${selector} --field-selector=status.phase=Running -o jsonpath="{range .items[*]}{range .status.conditions[*]}{ .type }={ .status }{'\n'}{end}{end}" 2>/dev/null | grep -q Ready=False) ]]; then
         # if there is a pod with Ready=False, then kotsadm is not ready
         return 1
     fi
 
-    if [[ -z $(kubectl get pods -l app=kotsadm --field-selector=status.phase=Running 2>/dev/null | grep '1/1' | grep 'Running') ]]; then
+    if [[ -z $(kubectl get pods -l ${selector} --field-selector=status.phase=Running 2>/dev/null | grep '1/1' | grep 'Running') ]]; then
         # when kotsadm is ready, it will be '1/1 Running'
         return 1
     fi
@@ -461,8 +505,8 @@ function kotsadm_health_check() {
 
 function kotsadm_ready_spinner() {
     sleep 1 # ensure that kubeadm has had time to begin applying and scheduling the kotsadm pods
-    if ! spinner_until 120 kotsadm_health_check; then
-      kubectl logs -l app=kotsadm --all-containers --tail 10
+    if ! spinner_until 180 kotsadm_health_check $1; then
+      kubectl logs -l $1 --all-containers --tail 10
       bail "The kotsadm statefulset in the kotsadm addon failed to deploy successfully."
     fi
 }
@@ -483,7 +527,7 @@ function kotsadm_cacerts_file() {
         "/etc/ssl/cert.pem" \                                   # Alpine Linux
     )
 
-    for cert_file in ${sslDirectories[@]};  do
+    for cert_file in "${sslDirectories[@]}";  do
         if [ -f "$cert_file" ]; then
             KOTSADM_TRUSTED_CERT_MOUNT="${cert_file}"
             break

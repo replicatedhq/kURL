@@ -12,16 +12,26 @@ commandExists() {
     command -v "$@" > /dev/null 2>&1
 }
 
+# default s3 endpoint does not have AAAA records so IPv6 installs have to choose
+# an arbitrary regional dualstack endpoint. If S3 transfer acceleration is ever
+# enabled on the kurl-sh bucket the s3.accelerate.amazonaws.com endpoint can be
+# used for both IPv4 and IPv6.
 function get_dist_url() {
+    local url="$DIST_URL"
     if [ -n "${KURL_VERSION}" ]; then
-        echo "${DIST_URL}/${KURL_VERSION}"
+        url="${DIST_URL}/${KURL_VERSION}"
+    fi
+
+    if [ "$IPV6_ONLY" = "1" ]; then
+        echo "$url" | sed 's/s3\.amazonaws\.com/s3.dualstack.us-east-1.amazonaws.com/'
     else
-        echo "${DIST_URL}"
+        echo "$url"
     fi
 }
 
 function package_download() {
     local package="$1"
+    local url_override="$2"
 
     if [ -z "${DIST_URL}" ]; then
         logWarn "DIST_URL not set, will not download $1"
@@ -49,7 +59,11 @@ function package_download() {
     local filepath="$(package_filepath "${package}")"
 
     echo "Downloading package ${package}"
-    curl -fL -o "${filepath}" "$(get_dist_url)/${package}"
+    if [ -z "$url_override" ]; then
+        curl -fL -o "${filepath}" "$(get_dist_url)/${package}"
+    else
+        curl -fL -o "${filepath}" "${url_override}"
+    fi
 
     checksum="$(md5sum "${filepath}" | awk '{print $1}')"
     echo "${package} ${newetag} ${checksum}" >> assets/Manifest
@@ -313,14 +327,22 @@ exportKubeconfig() {
     local kubeconfig
     kubeconfig="$(${K8S_DISTRO}_get_kubeconfig)"
 
-    current_user_sudo_group
-    if [ -n "$FOUND_SUDO_GROUP" ]; then
-        chown root:$FOUND_SUDO_GROUP ${kubeconfig}
+    # To meet KUBERNETES_CIS_COMPLIANCE, the ${kubeconfig} needs to be owned by root:root, 
+    # permissions were set to 444 so users other than root can have access to kubectl
+    if [ "$KUBERNETES_CIS_COMPLIANCE" == "1" ]; then
+        chown root:root ${kubeconfig}
+        chmod 444 ${kubeconfig}
+    else
+        current_user_sudo_group
+        if [ -n "$FOUND_SUDO_GROUP" ]; then
+            chown root:$FOUND_SUDO_GROUP ${kubeconfig}
+        fi
+        chmod 440 ${kubeconfig}
     fi
-    chmod 440 ${kubeconfig}
+    
     if ! grep -q "kubectl completion bash" /etc/profile; then
         echo "export KUBECONFIG=${kubeconfig}" >> /etc/profile
-        echo "source <(kubectl completion bash)" >> /etc/profile
+        echo "if  type _init_completion >/dev/null 2>&1; then source <(kubectl completion bash); fi" >> /etc/profile
     fi
 }
 
@@ -353,8 +375,7 @@ function report_install_docker() {
 }
 
 function report_install_containerd() {
-    containerd_get_host_packages_online "$CONTAINERD_VERSION"
-    addon_install containerd "$CONTAINERD_VERSION"
+    addon_install "containerd" "$CONTAINERD_VERSION"
 }
 
 function load_images() {
@@ -497,7 +518,8 @@ function current_user_sudo_group() {
 
 function kubeconfig_setup_outro() {
     current_user_sudo_group
-    if [ -n "$FOUND_SUDO_GROUP" ]; then
+    # If opt-in to have KUBERNETES_CIS_COMPLIANCE FOUND_SUDO_GROUP is not required for kubectl access
+    if [ "$KUBERNETES_CIS_COMPLIANCE" == "1" ] || [ -n "$FOUND_SUDO_GROUP" ]; then
         printf "To access the cluster with kubectl, reload your shell:\n"
         printf "\n"
         printf "${GREEN}    bash -l${NC}\n"
@@ -684,6 +706,13 @@ function get_skip_system_package_install_flag() {
     echo " skip-system-package-install"
 }
 
+function get_exclude_builtin_host_preflights_flag() {
+    if [ "${EXCLUDE_BUILTIN_HOST_PREFLIGHTS}" != "1" ]; then
+        return
+    fi
+    echo " exclude-builtin-host-preflights"
+}
+
 function get_additional_no_proxy_addresses_flag() {
     local has_proxy="$1"
     local no_proxy_addresses="$2"
@@ -709,6 +738,12 @@ function get_remotes_flags() {
     while read -r secondary; do
         printf " secondary-host=$secondary"
     done < <(kubectl get node --no-headers --selector='!node-role.kubernetes.io/master' -owide | awk '{ print $6 }')
+}
+
+function get_ipv6_flag() {
+    if [ "$IPV6_ONLY" = "1" ]; then
+        echo " ipv6"
+    fi
 }
 
 function systemd_restart_succeeded() {

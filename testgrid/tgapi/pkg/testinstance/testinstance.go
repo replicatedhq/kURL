@@ -22,12 +22,12 @@ type KurlInstallerMetadata struct {
 	Name string `json:"name" yaml:"name"`
 }
 
-func Create(id, refID, kurlYAML, kurlURL, upgradeYAML, upgradeURL, supportbundleYAML, postInstallScript, postUpgradeScript, osName, osVersion, osImage, osPreInit string) error {
+func Create(id, testName, refID, kurlYAML, kurlURL, kurlFlags, upgradeYAML, upgradeURL, supportbundleYAML, postInstallScript, postUpgradeScript, osName, osVersion, osImage, osPreInit string, numPrimaryNode int, numSecondaryNode int) error {
 	pg := persistence.MustGetPGSession()
 
-	query := `insert into testinstance (id, enqueued_at, testrun_ref, kurl_yaml, kurl_url, upgrade_yaml, upgrade_url, supportbundle_yaml, post_install_script, post_upgrade_script, os_name, os_version, os_image, os_preinit)
-values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)`
-	if _, err := pg.Exec(query, id, time.Now(), refID, kurlYAML, kurlURL, upgradeYAML, upgradeURL, supportbundleYAML, postInstallScript, postUpgradeScript, osName, osVersion, osImage, osPreInit); err != nil {
+	query := `insert into testinstance (id, test_name, enqueued_at, testrun_ref, kurl_yaml, kurl_url, kurl_flags, upgrade_yaml, upgrade_url, supportbundle_yaml, post_install_script, post_upgrade_script, os_name, os_version, os_image, os_preinit, num_primary_nodes, num_secondary_nodes)
+values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)`
+	if _, err := pg.Exec(query, id, testName, time.Now(), refID, kurlYAML, kurlURL, kurlFlags, upgradeYAML, upgradeURL, supportbundleYAML, postInstallScript, postUpgradeScript, osName, osVersion, osImage, osPreInit, numPrimaryNode, numSecondaryNode); err != nil {
 		return errors.Wrap(err, "failed to insert")
 	}
 
@@ -43,17 +43,22 @@ set dequeued_at = now() where id in (
 select id from testinstance
 where dequeued_at is null
 order by enqueued_at asc
-limit 1) returning id, dequeued_at, testrun_ref, kurl_yaml, kurl_url, upgrade_yaml, upgrade_url, supportbundle_yaml, post_install_script, post_upgrade_script, os_name, os_version, os_image, os_preinit
-) select id, testrun_ref, kurl_yaml, kurl_url, upgrade_yaml, upgrade_url, supportbundle_yaml, post_install_script, post_upgrade_script, os_name, os_version, os_image, os_preinit from updated`
+limit 1) returning id, test_name, num_primary_nodes, num_secondary_nodes, dequeued_at, testrun_ref, kurl_yaml, kurl_url, kurl_flags, upgrade_yaml, upgrade_url, supportbundle_yaml, post_install_script, post_upgrade_script, os_name, os_version, os_image, os_preinit
+) select id, test_name, num_primary_nodes, num_secondary_nodes, testrun_ref, kurl_yaml, kurl_url, kurl_flags, upgrade_yaml, upgrade_url, supportbundle_yaml, post_install_script, post_upgrade_script, os_name, os_version, os_image, os_preinit from updated`
 
 	row := db.QueryRow(query)
 
 	testInstance := types.TestInstance{}
-	var upgradeYAML, upgradeURL, supportbundleYAML, postInstallScript, postUpgradeScript, osPreInit sql.NullString
-	if err := row.Scan(&testInstance.ID,
+	var testName, kurlFlags, upgradeYAML, upgradeURL, supportbundleYAML, postInstallScript, postUpgradeScript, osPreInit sql.NullString
+	if err := row.Scan(
+		&testInstance.ID,
+		&testName,
+		&testInstance.NumPrimaryNodes,
+		&testInstance.NumSecondaryNodes,
 		&testInstance.RefID,
 		&testInstance.KurlYAML,
 		&testInstance.KurlURL,
+		&kurlFlags,
 		&upgradeYAML,
 		&upgradeURL,
 		&supportbundleYAML,
@@ -67,52 +72,8 @@ limit 1) returning id, dequeued_at, testrun_ref, kurl_yaml, kurl_url, upgrade_ya
 		return nil, errors.Wrap(err, "failed to query test instance")
 	}
 
-	testInstance.UpgradeYAML = upgradeYAML.String
-	testInstance.UpgradeURL = upgradeURL.String
-	testInstance.SupportbundleYAML = supportbundleYAML.String
-	testInstance.PostInstallScript = postInstallScript.String
-	testInstance.PostUpgradeScript = postUpgradeScript.String
-	testInstance.OSPreInit = osPreInit.String
-
-	return &testInstance, nil
-}
-
-func GetOldEnqueued() (*types.TestInstance, error) {
-	db := persistence.MustGetPGSession()
-
-	query := `with updated as (
-update testinstance
-set dequeued_at = now(), started_at = null where id in (
-select id from testinstance
-where finished_at is null
-AND dequeued_at <  now() - INTERVAL '12 hours'
-AND dequeued_at >  now() - INTERVAL '24 hours'
-AND enqueued_at >  now() - INTERVAL '24 hours'
-order by enqueued_at asc
-limit 1) returning id, dequeued_at, testrun_ref, kurl_yaml, kurl_url, upgrade_yaml, upgrade_url, supportbundle_yaml, post_install_script, post_upgrade_script, os_name, os_version, os_image, os_preinit
-) select id, testrun_ref, kurl_yaml, kurl_url, upgrade_yaml, upgrade_url, supportbundle_yaml, post_install_script, post_upgrade_script, os_name, os_version, os_image, os_preinit from updated`
-
-	row := db.QueryRow(query)
-
-	testInstance := types.TestInstance{}
-	var upgradeYAML, upgradeURL, supportbundleYAML, postInstallScript, postUpgradeScript, osPreInit sql.NullString
-	if err := row.Scan(&testInstance.ID,
-		&testInstance.RefID,
-		&testInstance.KurlYAML,
-		&testInstance.KurlURL,
-		&upgradeYAML,
-		&upgradeURL,
-		&supportbundleYAML,
-		&postInstallScript,
-		&postUpgradeScript,
-		&testInstance.OSName,
-		&testInstance.OSVersion,
-		&testInstance.OSImage,
-		&osPreInit,
-	); err != nil {
-		return nil, errors.Wrap(err, "failed to query test instance")
-	}
-
+	testInstance.TestName = testName.String
+	testInstance.KurlFlags = kurlFlags.String
 	testInstance.UpgradeYAML = upgradeYAML.String
 	testInstance.UpgradeURL = upgradeURL.String
 	testInstance.SupportbundleYAML = supportbundleYAML.String
@@ -233,7 +194,7 @@ where id = $1`
 func List(refID string, limit int, offset int, addons map[string]string) ([]types.TestInstance, error) {
 	db := persistence.MustGetPGSession()
 
-	query := `SELECT ti.id, ti.kurl_yaml, ti.kurl_url, ti.upgrade_yaml, ti.upgrade_url, ti.supportbundle_yaml, ti.post_install_script, ti.post_upgrade_script, ti.os_name, ti.os_version, ti.os_image, ti.enqueued_at, ti.dequeued_at, ti.started_at, ti.finished_at, ti.is_success, ti.failure_reason, ti.is_unsupported
+	query := `SELECT ti.id, ti.test_name, ti.kurl_yaml, ti.kurl_url, ti.kurl_flags, ti.upgrade_yaml, ti.upgrade_url, ti.supportbundle_yaml, ti.post_install_script, ti.post_upgrade_script, ti.os_name, ti.os_version, ti.os_image, ti.enqueued_at, ti.dequeued_at, ti.started_at, ti.finished_at, ti.is_success, ti.failure_reason, ti.is_unsupported, ti.num_primary_nodes, ti.num_secondary_nodes
 FROM testinstance ti
 WHERE ti.testrun_ref = $1`
 
@@ -270,12 +231,13 @@ WHERE ti.testrun_ref = $1`
 		var startedAt sql.NullTime
 		var finishedAt sql.NullTime
 		var isSuccess, isUnsupported sql.NullBool
-		var upgradeYAML, upgradeURL, supportbundleYAML, postInstallScript, postUpgradeScript, failureReason sql.NullString
-
+		var testName, kurlFlags, upgradeYAML, upgradeURL, supportbundleYAML, postInstallScript, postUpgradeScript, failureReason sql.NullString
 		if err := rows.Scan(
 			&testInstance.ID,
+			&testName,
 			&testInstance.KurlYAML,
 			&testInstance.KurlURL,
+			&kurlFlags,
 			&upgradeYAML,
 			&upgradeURL,
 			&supportbundleYAML,
@@ -291,6 +253,8 @@ WHERE ti.testrun_ref = $1`
 			&isSuccess,
 			&failureReason,
 			&isUnsupported,
+			&testInstance.NumPrimaryNodes,
+			&testInstance.NumSecondaryNodes,
 		); err != nil {
 			return nil, errors.Wrap(err, "failed to scan")
 		}
@@ -308,9 +272,11 @@ WHERE ti.testrun_ref = $1`
 			testInstance.FinishedAt = &finishedAt.Time
 		}
 
+		testInstance.TestName = testName.String
 		testInstance.IsSuccess = isSuccess.Bool
 		testInstance.FailureReason = failureReason.String
 		testInstance.IsUnsupported = isUnsupported.Bool
+		testInstance.KurlFlags = kurlFlags.String
 		testInstance.UpgradeYAML = upgradeYAML.String
 		testInstance.UpgradeURL = upgradeURL.String
 		testInstance.SupportbundleYAML = supportbundleYAML.String
@@ -427,4 +393,119 @@ from testinstance`
 	}
 
 	return pendingRuns, running, timedOut, nil
+}
+
+func AddNodeJoinCommand(id string, primaryJoin string, secondaryJoin string) error {
+	db := persistence.MustGetPGSession()
+	query := `update testinstance set primary_join_command = $2, secondary_join_command = $3 where id = $1`
+
+	if _, err := db.Exec(query, id, primaryJoin, secondaryJoin); err != nil {
+		return errors.Wrap(err, "failed to update")
+	}
+
+	return nil
+}
+
+func GetNodeJoinCommand(id string) (string, string, error) {
+	db := persistence.MustGetPGSession()
+
+	query := `select primary_join_command, secondary_join_command from testinstance where id = $1`
+	row := db.QueryRow(query, id)
+
+	var primaryJoin, secondaryJoin sql.NullString
+	if err := row.Scan(&primaryJoin, &secondaryJoin); err != nil {
+		return "", "", errors.Wrap(err, "failed to scan")
+	}
+
+	return primaryJoin.String, secondaryJoin.String, nil
+}
+
+func GetRunStatus(id string) (bool, error) {
+	db := persistence.MustGetPGSession()
+
+	query := `select is_success from testinstance where id = $1`
+	row := db.QueryRow(query, id)
+
+	var is_success bool
+	if err := row.Scan(&is_success); err != nil {
+		return false, errors.Wrap(err, "failed to scan")
+	}
+
+	return is_success, nil
+}
+
+func AddClusterNode(instanceId string, id string, nodeType string, status string) error {
+	db := persistence.MustGetPGSession()
+	query := `insert into clusternode (testinstance_id, id, node_type, status, created_at) values ($1, $2, $3, $4, $5) ON CONFLICT (id) DO UPDATE SET status = $4, created_at = $5`
+
+	if _, err := db.Exec(query, instanceId, id, nodeType, status, time.Now()); err != nil {
+		return errors.Wrap(err, "failed to insert")
+	}
+
+	return nil
+}
+
+func UpdateNodeStatus(id string, status string) error {
+	db := persistence.MustGetPGSession()
+	query := `update clusternode set status = $2 where id = $1`
+
+	if _, err := db.Exec(query, id, status); err != nil {
+		return errors.Wrap(err, "failed to update")
+	}
+
+	return nil
+}
+
+func NodeLogs(id string, logs string) error {
+	db := persistence.MustGetPGSession()
+
+	query := `update clusternode set output = $2 where id = $1`
+
+	if _, err := db.Exec(query, id, logs); err != nil {
+		return errors.Wrap(err, "failed to update")
+	}
+
+	return nil
+}
+
+func GetNodeLogs(id string) (string, error) {
+	db := persistence.MustGetPGSession()
+
+	query := `select output from clusternode where id = $1`
+	row := db.QueryRow(query, id)
+
+	var logs sql.NullString
+	if err := row.Scan(&logs); err != nil {
+		return "", errors.Wrap(err, "failed to scan")
+	}
+
+	return logs.String, nil
+}
+
+func GetNodeStatus(id string) (string, error) {
+	db := persistence.MustGetPGSession()
+
+	query := `select status from clusternode where id = $1`
+	row := db.QueryRow(query, id)
+
+	var status sql.NullString
+	if err := row.Scan(&status); err != nil {
+		return "", errors.Wrap(err, "failed to scan")
+	}
+
+	return status.String, nil
+}
+
+func Healthz() error {
+	db := persistence.MustGetPGSession()
+
+	query := `select 1`
+	row := db.QueryRow(query)
+
+	var status int
+	if err := row.Scan(&status); err != nil {
+		return errors.Wrap(err, "failed to scan")
+	}
+
+	return nil
 }

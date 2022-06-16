@@ -11,6 +11,5 @@
   "dependencies": {
     "semver": "^7.3.5",
     "yargs": "^16.2.0"
-  },
-  "devDependencies": {}
+  }
 }

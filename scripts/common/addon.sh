@@ -159,6 +159,7 @@ function addon_outro() {
         common_flags="${common_flags}$(get_kurl_install_directory_flag "${KURL_INSTALL_DIRECTORY_FLAG}")"
         common_flags="${common_flags}$(get_force_reapply_addons_flag)"
         common_flags="${common_flags}$(get_skip_system_package_install_flag)"
+        common_flags="${common_flags}$(get_exclude_builtin_host_preflights_flag)"
 
         printf "\n${YELLOW}Run this script on all remote nodes to apply changes${NC}\n"
         if [ "$AIRGAP" = "1" ]; then

@@ -1,0 +1,10 @@
+name: kurl-dist-server
+command: bash
+sync:
+  - .:/go/src/github.com/replicatedhq/kURL
+resources:
+  limits:
+    cpu: "2"
+    memory: 4Gi
+externalVolumes:
+  - dev-cache:go-cache:/root/.cache/go-build

@@ -9,7 +9,7 @@ metadata:
   name: everyOption
 spec:
   kubernetes:
-    version: latest
+    version: 1.21.11
     serviceCidrRange: /12
     serviceCIDR: 100.1.1.1/12
     HACluster: false
@@ -22,6 +22,8 @@ spec:
     kubeadmTokenCAHash: hash
     controlPlane: false
     certKey: key
+    cisCompliance: false
+    clusterName: kubernetes
   docker:
     version: latest
     bypassStorageDriverWarnings: false
@@ -68,16 +70,17 @@ spec:
     version: latest
     publishPort: 20
   prometheus:
-    version: latest
+    version: 0.53.1-30.1.0
   fluentd:
     version: latest
     fullEFKStack: false
   kotsadm:
     version: latest
-    applicationSlug: sentry
     uiBindPort: 8800
-    applicationNamespace: kots
     hostname: 1.1.1.1
+    applicationSlug: sentry
+    applicationNamespace: kots
+    applicationVersionLabel: 0.1.0
   velero:
     version: latest
     namespace: velero
@@ -85,6 +88,7 @@ spec:
     disableRestic: false
     localBucket: local
     resticRequiresPrivileged: false
+    resticTimeout: 12h
   ekco:
     version: latest
     nodeUnreachableToleration: 10m
@@ -94,18 +98,21 @@ spec:
     shouldDisableClearNodes: false
     shouldEnablePurgeNodes: false
     rookShouldUseAllNodes: false
+    enableInternalLoadBalancer: true
   kurl:
     additionalNoProxyAddresses:
     - 10.128.0.3
     airgap: false
+    excludeBuiltinHostPreflights: false
     hostnameCheck: 2.2.2.2
+    hostPreflightIgnore: true
+    hostPreflightEnforceWarnings: true
     ignoreRemoteLoadImagesPrompt: false
     ignoreRemoteUpgradePrompt: false
+    ipv6: false
     licenseURL: https://www.sec.gov/Archives/edgar/data/1029786/00011931250557724/dex104.htm
     nameserver: 8.8.8.8
     noProxy: false
-    preflightIgnore: true
-    preflightIgnoreWarnings: true
     privateAddress: 10.38.1.1
     proxyAddress: 1.1.1.1
     publicAddress: 101.38.1.1
@@ -137,11 +144,17 @@ spec:
     additionalImages:
     - postgres
   longhorn:
+    storageOverProvisioningPercentage: 200
     uiBindPort: 30880
     uiReplicaCount: 0
     version: 1.1.0
   sonobuoy:
     version: 0.50.0
+  aws:
+    version: 1.0.1
+    excludeStorageClass: true
+  localPathProvisioner:
+    version: 0.0.22
 `;
 
 // Used for validation in all options test case
@@ -263,14 +276,6 @@ spec:
   kotsadm:
     version: 0.9.9
     applicationSlug: sentry-enterprise
-`;
-
-const kotsNoSlug = `
-spec:
-  kubernetes:
-    version: latest
-  kotsadm:
-    version: 0.9.9
 `;
 
 const kotsNoVersion = `
@@ -407,6 +412,14 @@ spec:
     version: 0.50.0
 `;
 
+const kurlInstallerVersion = `
+spec:
+  kubernetes:
+    version: 1.19.7
+  kurl:
+    installerVersion: v2022.03.04-1
+`;
+
 describe("Installer", () => {
   describe("parse", () => {
     it("parses yaml with type meta and name", () => {
@@ -524,7 +537,7 @@ describe("Installer", () => {
       - name: nginx
         repo: nginx.com`;
 
-        const helm2 = `spec:
+      const helm2 = `spec:
   kubernetes:
     version: latest
   helm:
@@ -535,6 +548,27 @@ describe("Installer", () => {
 
       const a = Installer.parse(helm1).hash();
       const b = Installer.parse(helm2).hash();
+
+      expect(a).not.to.equal(b);
+    });
+
+    it("hashes specs with kurl.hostPreflights values differently", () => {
+      const spec1 = `spec:
+  kubernetes:
+    version: latest
+  kurl:
+    hostPreflights:
+      one: two`;
+
+      const spec2 = `spec:
+  kubernetes:
+    version: latest
+  kurl:
+    hostPreflights:
+      three: four`;
+
+      const a = Installer.parse(spec1).hash();
+      const b = Installer.parse(spec2).hash();
 
       expect(a).not.to.equal(b);
     });
@@ -574,9 +608,23 @@ spec:
 kind: Installer
 metadata:
   name: ''
+spec: {}
+`);
+      });
+
+      it("preserves kurl addon installerVersion", () => {
+        const parsed = Installer.parse(kurlInstallerVersion);
+        const yaml = parsed.toYAML();
+
+        expect(yaml).to.equal(`apiVersion: cluster.kurl.sh/v1beta1
+kind: Installer
+metadata:
+  name: ''
 spec:
   kubernetes:
-    version: ''
+    version: 1.19.7
+  kurl:
+    installerVersion: v2022.03.04-1
 `);
       });
     });
@@ -597,23 +645,6 @@ spec:
     ].forEach((test) => {
       it(`${test.id} => ${test.answer}`, () => {
         const output = Installer.isSHA(test.id);
-
-        expect(output).to.equal(test.answer);
-      });
-    });
-  });
-
-  describe("Installer.isValidSlug", () => {
-    [
-      { slug: "ok", answer: true },
-      { slug: "", answer: false},
-      { slug: " ", answer: false},
-      { slug: "big-bank-beta", answer: true},
-      { slug: _.range(0, 255).map(() => "a").join(""), answer: true },
-      { slug: _.range(0, 256).map(() => "a").join(""), answer: false },
-    ].forEach((test) => {
-      it(`"${test.slug}" => ${test.answer}`, () => {
-        const output = Installer.isValidSlug(test.slug);
 
         expect(output).to.equal(test.answer);
       });
@@ -785,9 +816,9 @@ spec:
         const yaml = `
 spec:
   kubernetes:
-    version: latest
+    version: 1.23.3
   prometheus:
-    version: latest
+    version: 0.53.1-30.1.0
     serviceType: thisisatest`;
         const i = Installer.parse(yaml);
         const out = await i.validate();
@@ -801,7 +832,7 @@ spec:
         const yaml = `
 spec:
   kubernetes:
-    version: latest
+    version: 1.21.9
   prometheus:
     version: 0.47.0-15.3.1
     serviceType: ClusterIP`;
@@ -817,7 +848,7 @@ spec:
         const yaml = `
 spec:
   kubernetes:
-    version: latest
+    version: 1.21.9
   prometheus:
     version: 0.48.1-16.10.0
     serviceType: ClusterIP`;
@@ -825,6 +856,207 @@ spec:
         const out = await i.validate();
 
         expect(out).to.deep.equal(undefined);
+      });
+    });
+
+    describe("Prometheus version that is incompatible with k8s version", () => {
+      it("=> ErrorResponse", async () => {
+        const yaml = `
+spec:
+  kubernetes:
+    version: 1.23.3
+  prometheus:
+    version: 0.47.0-15.3.1`;
+        const i = Installer.parse(yaml);
+        const out = await i.validate();
+
+        expect(out).to.deep.equal({ error: { message: "Prometheus versions less than or equal to 0.49.0-17.1.3 are not compatible with Kubernetes 1.22+" } });
+      });
+    });
+
+    describe("incompatible k3s addons", () => {
+      it("=> ErrorResponse", async () => {
+        const yaml = `
+spec:
+  k3s:
+    version: v1.23.3+k3s1
+  kotsadm:
+    version: 1.63.0
+    uiBindPort: 30880
+  containerd:
+    version: 1.4.6
+  contour: 
+    version: 1.20.0`;
+        const i = Installer.parse(yaml);
+        const out = await i.validate();
+
+        expect(out).to.deep.equal({ error: { message: "The following add-ons are not compatible with k3s: contour, containerd" } });
+      });
+    });
+
+    describe("k3s invalid bind port for KOTS", () => {
+        it("=> ErrorResponse", async () => {
+          const yaml = `
+  spec:
+    k3s:
+      version: v1.23.3+k3s1
+    kotsadm:
+      version: 1.63.0`;
+          const i = Installer.parse(yaml);
+          const out = await i.validate();
+  
+          expect(out).to.deep.equal({ error: { message: "Nodeports for this distro must use a NodePort between 30000-32767" } });
+        });
+      });
+
+    describe("valid k3s spec", () => {
+      it("=> ErrorResponse", async () => {
+        const yaml = `
+spec:
+  k3s:
+    version: v1.23.3+k3s1
+  registry: 
+    version: 2.7.1
+  kotsadm: 
+    version: 1.63.0
+    uiBindPort: 30880
+    disableS3: true`;
+        const i = Installer.parse(yaml);
+        const out = await i.validate();
+
+        expect(out).to.deep.equal(undefined);
+      });
+    });
+
+    describe("valid k3s spec", () => {
+      it("=> ErrorResponse", async () => {
+        const yaml = `
+spec:
+  k3s:
+    version: v1.23.3+k3s1
+  registry: 
+    version: 2.7.1
+  kotsadm: 
+    version: 1.63.0
+    uiBindPort: 30880
+    disableS3: true`;
+        const i = Installer.parse(yaml);
+        const out = await i.validate();
+
+        expect(out).to.deep.equal(undefined);
+      });
+    });
+
+    describe("incompatible rke2 addons", () => {
+      it("=> ErrorResponse", async () => {
+        const yaml = `
+spec:
+  rke2:
+    version: v1.22.6+rke2r1
+  kotsadm:
+    version: 1.63.0
+    uiBindPort: 30880
+  containerd:
+    version: 1.4.6
+  contour: 
+    version: 1.20.0`;
+        const i = Installer.parse(yaml);
+        const out = await i.validate();
+
+        expect(out).to.deep.equal({ error: { message: "The following add-ons are not compatible with rke2: contour, containerd" } });
+      });
+    });
+
+    describe("rke2 invalid bind port for KOTS", () => {
+        it("=> ErrorResponse", async () => {
+          const yaml = `
+  spec:
+    rke2:
+      version: v1.22.6+rke2r1
+    kotsadm:
+      version: 1.63.0
+      uiBindPort: 8800`;
+          const i = Installer.parse(yaml);
+          const out = await i.validate();
+  
+          expect(out).to.deep.equal({ error: { message: "Nodeports for this distro must use a NodePort between 30000-32767" } });
+        });
+      });
+
+    describe("valid rke2 spec", () => {
+      it("=> ErrorResponse", async () => {
+        const yaml = `
+spec:
+  rke2:
+    version: v1.22.6+rke2r1
+  registry: 
+    version: 2.7.1
+  kotsadm: 
+    version: 1.63.0
+    uiBindPort: 30880
+    disableS3: true
+  velero:
+    version: 1.6.0
+  openebs:
+    version: 1.12.0
+    isLocalPVEnabled: true
+    localPVStorageClassName: default
+    isCstorEnabled: false`;
+        const i = Installer.parse(yaml);
+        const out = await i.validate();
+
+        expect(out).to.deep.equal(undefined);
+      });
+    });
+
+  describe("supported kubeadm + openebs spec", () => {
+      it("=> ErrorResponse", async () => {
+        const yaml = `
+spec:
+  kubernetes:
+    version: 1.21.11
+  openebs:
+    version: 1.12.0
+    isLocalPVEnabled: true
+    localPVStorageClassName: default
+    isCstorEnabled: false`;
+        const i = Installer.parse(yaml);
+        const out = await i.validate();
+
+        expect(out).to.deep.equal(undefined);
+      });
+    });
+
+  describe("openebs version that is incompatible with k8s version", () => {
+      it("=> ErrorResponse", async () => {
+        const yaml = `
+spec:
+  kubernetes:
+    version: 1.22.8
+  openebs:
+    version: 1.12.0
+    isLocalPVEnabled: true
+    localPVStorageClassName: default
+    isCstorEnabled: false`;
+        const i = Installer.parse(yaml);
+        const out = await i.validate();
+
+        expect(out).to.deep.equal({ error: { message: "Openebs add-on is not compatible with Kubernetes versions 1.22+" } });
+      });
+    });
+
+  describe("docker is not supported with k8s version 1.24.0", () => {
+      it("=> ErrorResponse", async () => {
+        const yaml = `
+spec:
+  kubernetes:
+    version: 1.24.0
+  docker:
+    version: 20.10.5`;
+        const i = Installer.parse(yaml);
+        const out = await i.validate();
+
+        expect(out).to.deep.equal({ error: { message: "Docker is not supported with Kubernetes versions 1.24+, please choose Containerd" } });
       });
     });
   });
@@ -845,7 +1077,7 @@ spec:
     describe("every option", () => {
       it(`=> service-cidr-range=/12 ...`, () => {
         const i = Installer.parse(everyOption);
-        expect(i.flags()).to.equal(`service-cidr-range=/12 service-cidr=100.1.1.1/12 ha=0 kuberenetes-master-address=192.168.1.1 load-balancer-address=10.128.10.1 container-log-max-size=256Ki container-log-max-files=4 bootstrap-token=token bootstrap-token-ttl=10min kubeadm-token-ca-hash=hash control-plane=0 cert-key=key bypass-storagedriver-warnings=0 hard-fail-on-loopback=0 no-ce-on-ee=0 docker-registry-ip=192.168.0.1 additional-no-proxy=129.168.0.2 no-docker=0 pod-cidr=39.1.2.3 pod-cidr-range=/12 disable-weave-encryption=0 storage-class-name=default ceph-replica-count=1 rook-block-storage-enabled=1 rook-block-device-filter=sd[a-z] rook-bypass-upgrade-warning=1 rook-hostpath-requires-privileged=1 openebs-namespace=openebs openebs-localpv-enabled=1 openebs-localpv-storage-class-name=default openebs-cstor-enabled=1 openebs-cstor-storage-class-name=cstor minio-namespace=minio minio-hostpath=/sentry contour-tls-minimum-protocol-version=1.3 contour-http-port=3080 contour-https-port=3443 registry-publish-port=20 fluentd-full-efk-stack=0 kotsadm-application-slug=sentry kotsadm-ui-bind-port=8800 kotsadm-hostname=1.1.1.1 kotsadm-application-namespaces=kots velero-namespace=velero velero-disable-cli=0 velero-disable-restic=0 velero-local-bucket=local velero-restic-requires-privileged=0 ekco-node-unreachable-toleration-duration=10m ekco-min-ready-master-node-count=3 ekco-min-ready-worker-node-count=1 ekco-should-disable-reboot-service=0 ekco-rook-should-use-all-nodes=0 airgap=0 hostname-check=2.2.2.2 ignore-remote-load-images-prompt=0 ignore-remote-upgrade-prompt=0 no-proxy=0 preflight-ignore=1 preflight-ignore-warnings=1 private-address=10.38.1.1 http-proxy=1.1.1.1 public-address=101.38.1.1 skip-system-package-install=0 bypass-firewalld-warning=0 hard-fail-on-firewalld=0 helmfile-spec=${helmfileSpec} longhorn-ui-bind-port=30880 longhorn-ui-replica-count=0`);
+        expect(i.flags()).to.equal(`service-cidr-range=/12 service-cidr=100.1.1.1/12 ha=0 kuberenetes-master-address=192.168.1.1 kubernetes-cluster-name=kubernetes load-balancer-address=10.128.10.1 container-log-max-size=256Ki container-log-max-files=4 bootstrap-token=token bootstrap-token-ttl=10min kubeadm-token-ca-hash=hash control-plane=0 cert-key=key kubernetes-cis-compliance=0 bypass-storagedriver-warnings=0 hard-fail-on-loopback=0 no-ce-on-ee=0 docker-registry-ip=192.168.0.1 additional-no-proxy=129.168.0.2 no-docker=0 pod-cidr=39.1.2.3 pod-cidr-range=/12 disable-weave-encryption=0 storage-class-name=default ceph-replica-count=1 rook-block-storage-enabled=1 rook-block-device-filter=sd[a-z] rook-bypass-upgrade-warning=1 rook-hostpath-requires-privileged=1 openebs-namespace=openebs openebs-localpv-enabled=1 openebs-localpv-storage-class-name=default openebs-cstor-enabled=1 openebs-cstor-storage-class-name=cstor minio-namespace=minio minio-hostpath=/sentry contour-tls-minimum-protocol-version=1.3 contour-http-port=3080 contour-https-port=3443 registry-publish-port=20 fluentd-full-efk-stack=0 kotsadm-ui-bind-port=8800 kotsadm-hostname=1.1.1.1 app-slug=sentry app-namespace=kots app-version-label=0.1.0 velero-namespace=velero velero-disable-cli=0 velero-disable-restic=0 velero-local-bucket=local velero-restic-requires-privileged=0 velero-restic-timeout=12h ekco-node-unreachable-toleration-duration=10m ekco-min-ready-master-node-count=3 ekco-min-ready-worker-node-count=1 ekco-should-disable-reboot-service=0 ekco-rook-should-use-all-nodes=0 ekco-enable-internal-load-balancer=1 airgap=0 exclude-builtin-host-preflights=0 hostname-check=2.2.2.2 host-preflight-ignore=1 host-preflight-enforce-warnings=1 ignore-remote-load-images-prompt=0 ignore-remote-upgrade-prompt=0 no-proxy=0 private-address=10.38.1.1 http-proxy=1.1.1.1 public-address=101.38.1.1 skip-system-package-install=0 bypass-firewalld-warning=0 hard-fail-on-firewalld=0 helmfile-spec=repositories:\n- name: nginx-stable\n  url: https://helm.nginx.com/stable\nreleases:\n- name: test-nginx-ingress\n  chart: nginx-stable/nginx-ingress\n  values:\n  - controller:\n      service:\n        type: NodePort\n        httpPort:\n          nodePort: 30080\n        httpsPort:\n          nodePort: 30443\n longhorn-storage-over-provisioning-percentage=200 longhorn-ui-bind-port=30880 longhorn-ui-replica-count=0 aws-exclude-storage-class=1`);
       });
     });
   });
@@ -1091,6 +1323,14 @@ spec:
       const out = await i.validate();
 
       expect(out).to.deep.equal({ error: { message: "spec/helm must have required property 'helmfileSpec'" } });
+    });
+  });
+
+  describe("localPathProvisioner", () => {
+    it("should parse the version", () => {
+      const i = Installer.parse(everyOption);
+
+      expect(i.spec.localPathProvisioner?.version).to.equal("0.0.22");
     });
   });
 

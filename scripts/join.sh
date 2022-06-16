@@ -55,7 +55,7 @@ function join() {
     if [ "$MASTER" = "1" ]; then
         insert_patches_strategic_merge \
             $kustomize_kubeadm_join/kustomization.yaml \
-            patch-certificate-key.yaml
+            patch-control-plane.yaml
     fi
     # Add kubeadm join patches from addons.
     for patch in $(ls -1 ${kustomize_kubeadm_join}-patches/* 2>/dev/null || echo); do
@@ -70,8 +70,12 @@ function join() {
     render_yaml_file $KUBEADM_CONF_DIR/kubeadm-join-raw.yaml > $KUBEADM_CONF_FILE
 
     cp $KUBEADM_CONF_FILE $KUBEADM_CONF_DIR/kubeadm_conf_copy_in
-    $DIR/bin/yamlutil -r -fp $KUBEADM_CONF_DIR/kubeadm_conf_copy_in -yf metadata
+    $DIR/bin/yamlutil -r -fp $KUBEADM_CONF_DIR/kubeadm_conf_copy_in -yp metadata
     mv $KUBEADM_CONF_DIR/kubeadm_conf_copy_in $KUBEADM_CONF_FILE
+
+    # ensure that /etc/kubernetes/audit.yaml exists
+    cp $kustomize_kubeadm_join/audit.yaml /etc/kubernetes/audit.yaml
+    mkdir -p /var/log/apiserver
 
     set +e
     (set -x; kubeadm join --config /opt/replicated/kubeadm.conf --ignore-preflight-errors=all)
@@ -85,6 +89,17 @@ function join() {
 
     if [ "$MASTER" = "1" ]; then
         exportKubeconfig
+
+        local node=$(hostname | tr '[:upper:]' '[:lower:]')
+        kubectl label --overwrite node "$node" node-role.kubernetes.io/master=
+
+        if [ "$KUBERNETES_CIS_COMPLIANCE" == "1" ]; then
+            # create an 'etcd' user and group and ensure that it owns the etcd data directory (we don't care what userid these have, as etcd will still run as root)
+            useradd etcd || true
+            groupadd etcd || true
+            chown -R etcd:etcd /var/lib/etcd
+        fi
+
         logSuccess "Master node joined successfully"
     else
         logSuccess "Node joined successfully"
@@ -111,6 +126,8 @@ K8S_DISTRO=kubeadm
 function main() {
     export KUBECONFIG=/etc/kubernetes/admin.conf
     require_root_user
+    # ensure /usr/local/bin/kubectl-plugin is in the path
+    path_add "/usr/local/bin"
     get_patch_yaml "$@"
     maybe_read_kurl_config_from_cluster
 
@@ -137,11 +154,11 @@ function main() {
     configure_no_proxy
     ${K8S_DISTRO}_addon_for_each addon_fetch
     host_preflights "${MASTER:-0}" "1" "0"
-    install_cri
-    get_common
-    get_shared
-    setup_kubeadm_kustomize
     install_host_dependencies
+    get_common
+    setup_kubeadm_kustomize
+    install_cri
+    get_shared
     ${K8S_DISTRO}_addon_for_each addon_join
     helm_load
     kubernetes_host

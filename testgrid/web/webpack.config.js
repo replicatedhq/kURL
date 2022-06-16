@@ -12,6 +12,8 @@ module.exports = (env) => {
     appEnv = require("./env/production.js");
   } else if (env.staging) {
     appEnv = require("./env/staging.js");
+  } else if (env.okteto) {
+    appEnv = require("./env/okteto.js");
   } else {
     appEnv = require("./env/development.js");
   }
@@ -146,6 +148,9 @@ module.exports = (env) => {
     return merge(common, prod);
   } else if (env.staging) {
     const staging = require("./webpack.staging.config");
+    return merge(common, staging);
+  } else if (env.okteto) {
+    const staging = require("./webpack.okteto.config");
     return merge(common, staging);
   } else {
     const dev = require("./webpack.dev.config");

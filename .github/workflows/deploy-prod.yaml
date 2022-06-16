@@ -9,9 +9,9 @@ jobs:
   production-docker-image:
     runs-on: ubuntu-18.04
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
-    - uses: actions/setup-node@v2
+    - uses: actions/setup-node@v3
       with:
         node-version: '12'
 
@@ -48,7 +48,7 @@ jobs:
   kurl-util-image:
     runs-on: ubuntu-18.04
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - run: |
         export VERSION_TAG=$(echo $GITHUB_REF | awk -F'/' '{ print $NF }')
         export KURL_UTIL_IMAGE=replicated/kurl-util:${VERSION_TAG}
@@ -66,7 +66,7 @@ jobs:
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - id: set-matrix
       name: Build image matrix
@@ -86,11 +86,11 @@ jobs:
       fail-fast: true
       max-parallel: 20
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
       with:
         fetch-depth: 0
 
-    - uses: actions/setup-go@v2
+    - uses: actions/setup-go@v3
       with:
         go-version: 1.17
 
@@ -118,8 +118,8 @@ jobs:
     - production-docker-image
     - kurl-util-image
     steps:
-    - uses: actions/checkout@v2
-    - uses: actions/setup-node@v2
+    - uses: actions/checkout@v3
+    - uses: actions/setup-node@v3
       with:
         node-version: '12'
     - run: make -C web deps
@@ -140,7 +140,7 @@ jobs:
     - kurl-util-image
     - build-upload-packages
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: kustomize
       run: |
         export VERSION_TAG=$(echo $GITHUB_REF | awk -F'/' '{ print $NF }')
@@ -185,15 +185,15 @@ jobs:
     - kurl-util-image
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     # Node and Go are needed by the SBOM generator
-    - uses: actions/setup-node@v2
+    - uses: actions/setup-node@v3
       with:
         node-version: '12'
 
     - name: setup-go
-      uses: actions/setup-go@v2
+      uses: actions/setup-go@v3
       with:
         go-version: 1.17
 
@@ -276,10 +276,10 @@ jobs:
         time: "3m"
 
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     - name: setup-go
-      uses: actions/setup-go@v2
+      uses: actions/setup-go@v3
       with:
         go-version: 1.17
 

@@ -1,4 +1,5 @@
-- installerSpec:
+- name: "Velero Minimal"
+  installerSpec:
     kubernetes:
       version: "latest"
     weave:
@@ -7,6 +8,69 @@
       version: "latest"
     docker:
       version: "latest"
+    velero:
+      version: "__testver__"
+      s3Override: "__testdist__"
+- name: "Velero DisableS3 - Rook"
+  installerSpec:
+    kubernetes:
+      version: "latest"
+    weave:
+      version: "latest"
+    rook:
+      version: "1.5.x"
+    containerd:
+      version: "latest"
+    kotsadm:
+      version: latest
+      disableS3: true
+    velero:
+      version: "__testver__"
+      s3Override: "__testdist__"
+- name: "Velero Longhorn only"
+  installerSpec:
+    kubernetes:
+      version: "latest"
+    weave:
+      version: "latest"
+    longhorn:
+      version: "latest"
+    containerd:
+      version: "latest"
+    velero:
+      version: "__testver__"
+      s3Override: "__testdist__"
+- name: "Velero Remove Object Storage"
+  installerSpec:
+    kubernetes:
+      version: 1.20.x
+    weave:
+      version: latest
+    rook:
+      isBlockStorageEnabled: true
+      version: 1.5.x
+    registry:
+      version: latest
+    kotsadm:
+      version: latest
+    containerd:
+      version: latest
+    velero:
+      version: 1.6.x
+  upgradeSpec:
+    kubernetes:
+      version: 1.21.x
+    weave:
+      version: latest
+    longhorn:
+      version: latest
+    registry:
+      version: latest
+    kotsadm:
+      version: latest
+      disableS3: true
+    containerd:
+      version: latest
     velero:
       version: "__testver__"
       s3Override: "__testdist__"

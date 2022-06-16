@@ -15,6 +15,7 @@ DIR=.
 . $DIR/scripts/common/utilbinaries.sh
 . $DIR/scripts/common/rook.sh
 . $DIR/scripts/common/longhorn.sh
+. $DIR/scripts/common/reporting.sh
 . $DIR/scripts/distro/interface.sh
 . $DIR/scripts/distro/kubeadm/distro.sh
 . $DIR/scripts/distro/rke2/distro.sh
@@ -22,6 +23,9 @@ DIR=.
 
 K8S_DISTRO=
 function tasks() {
+    # ensure /usr/local/bin/kubectl-plugin is in the path
+    path_add "/usr/local/bin"
+
     DOCKER_VERSION="$(get_docker_version)"
 
     K8S_DISTRO=kubeadm
@@ -78,6 +82,7 @@ function tasks() {
 }
 
 function load_all_images() {
+    printf "loading all infrastructure images\n"
     # get params - specifically need kurl-install-directory, as they impact load images scripts
     shift # the first param is load_images/load-images
     while [ "$1" != "" ]; do
@@ -115,7 +120,7 @@ function load_all_images() {
 
 function generate_admin_user() {
     # get the last IP address from the SANs because that will be load balancer if defined, else public address if defined, else local
-    local ip=$(echo "Q" | openssl s_client -connect=${PRIVATE_ADDRESS}:6443 | openssl x509 -noout -text | grep DNS | awk '{ print $NF }' | awk -F ':' '{ print $2 }')
+    local ip=$(echo "Q" | openssl s_client -connect ${PRIVATE_ADDRESS}:6443 | openssl x509 -noout -text | grep DNS | awk '{ print $NF }' | awk -F ':' '{ print $2 }')
 
     if ! isValidIpv4 "$ip"; then
         bail "Failed to parse IP from Kubernetes API Server SANs"
@@ -124,7 +129,7 @@ function generate_admin_user() {
     local address="https://${ip}:6443"
     local username="${SUDO_USER}"
 
-    openssl req -newkey rsa:2048 -nodes -keyout "${username}.key" -out "${username}.csr" -subj="/CN=${username}/O=system:masters"
+    openssl req -newkey rsa:2048 -nodes -keyout "${username}.key" -out "${username}.csr" -subj "/CN=${username}/O=system:masters"
     openssl x509 -req -days 365 -sha256 -in "${username}.csr" -CA /etc/kubernetes/pki/ca.crt -CAkey /etc/kubernetes/pki/ca.key -set_serial 1 -out "${username}.crt"
 
     # kubectl will create the conf file
@@ -205,7 +210,6 @@ function reset() {
     rm -rf /etc/kubernetes
     rm -rf /opt/cni
     rm -rf /opt/replicated
-    rm -f /usr/local/bin/helm /usr/local/bin/helmfile
     rm -f /usr/bin/kubeadm /usr/bin/kubelet /usr/bin/kubectl /usr/bin/crtctl
     rm -f /usr/local/bin/kustomize*
     rm -rf /var/lib/calico
@@ -270,6 +274,9 @@ function join_token() {
             ha)
                 HA_CLUSTER="1"
                 ;;
+            ipv6)
+                IPV6_ONLY="1"
+                ;;
             *)
                 echo >&2 "Error: unknown parameter \"$_param\""
                 exit 1
@@ -315,6 +322,7 @@ function join_token() {
     fi
     common_flags="${common_flags}$(get_kurl_install_directory_flag "${kurl_install_directory}")"
     common_flags="${common_flags}$(get_remotes_flags)"
+    common_flags="${common_flags}$(get_ipv6_flag)"
 
     local prefix=
     prefix="$(build_installer_prefix "${installer_id}" "${KURL_VERSION}" "${kurl_url}" "")"

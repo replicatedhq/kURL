@@ -14,6 +14,7 @@ import (
 	"github.com/pkg/errors"
 	kurlscheme "github.com/replicatedhq/kurl/kurlkinds/client/kurlclientset/scheme"
 	kurlv1beta1 "github.com/replicatedhq/kurl/kurlkinds/pkg/apis/cluster/v1beta1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	serializer "k8s.io/apimachinery/pkg/runtime/serializer/json"
 	"k8s.io/client-go/kubernetes/scheme"
 )
@@ -36,7 +37,7 @@ func getInstallerConfigFromYaml(yamlPath string) (*kurlv1beta1.Installer, error)
 	}
 
 	if gvk.Group != "cluster.kurl.sh" || gvk.Version != "v1beta1" || gvk.Kind != "Installer" {
-		return nil, errors.Errorf("installer yaml contained unepxected gvk: %s/%s/%s", gvk.Group, gvk.Version, gvk.Kind)
+		return nil, errors.Errorf("installer yaml contained unexpected gvk: %s/%s/%s", gvk.Group, gvk.Version, gvk.Kind)
 	}
 
 	installer := obj.(*kurlv1beta1.Installer)
@@ -89,6 +90,11 @@ func parseBashFlags(installer *kurlv1beta1.Installer, bashFlags string) error {
 				installer.Spec.Kurl = &kurlv1beta1.Kurl{}
 			}
 			installer.Spec.Kurl.Airgap = true
+		case "aws-exclude-storage-class":
+			if installer.Spec.AWS == nil {
+				installer.Spec.AWS = &kurlv1beta1.AWS{}
+			}
+			installer.Spec.AWS.ExcludeStorageClass = true
 		case "cert-key":
 			if installer.Spec.Kubernetes == nil {
 				installer.Spec.Kubernetes = &kurlv1beta1.Kubernetes{}
@@ -138,6 +144,10 @@ func parseBashFlags(installer *kurlv1beta1.Installer, bashFlags string) error {
 				installer.Spec.Kubernetes = &kurlv1beta1.Kubernetes{}
 			}
 			installer.Spec.Kubernetes.LoadBalancerAddress = split[1]
+		case "ekco-enable-internal-load-balancer":
+			if installer.Spec.Ekco != nil {
+				installer.Spec.Ekco.EnableInternalLoadBalancer = true
+			}
 		case "kubernetes-master-address":
 			if installer.Spec.Kubernetes == nil {
 				installer.Spec.Kubernetes = &kurlv1beta1.Kubernetes{}
@@ -146,6 +156,16 @@ func parseBashFlags(installer *kurlv1beta1.Installer, bashFlags string) error {
 			if split[1] == "localhost:6444" && installer.Spec.Ekco != nil {
 				installer.Spec.Ekco.EnableInternalLoadBalancer = true
 			}
+		case "kubernetes-cis-compliance":
+			if installer.Spec.Kubernetes == nil {
+				installer.Spec.Kubernetes = &kurlv1beta1.Kubernetes{}
+			}
+			installer.Spec.Kubernetes.CisCompliance = true
+		case "kubernetes-cluster-name":
+			if installer.Spec.Kubernetes == nil {
+				installer.Spec.Kubernetes = &kurlv1beta1.Kubernetes{}
+			}
+			installer.Spec.Kubernetes.ClusterName = split[1]
 		case "kubernetes-version":
 			if installer.Spec.Kubernetes == nil {
 				installer.Spec.Kubernetes = &kurlv1beta1.Kubernetes{}
@@ -157,6 +177,8 @@ func parseBashFlags(installer *kurlv1beta1.Installer, bashFlags string) error {
 			continue
 		case "kurl-registry-ip":
 			continue
+		case "labels":
+			continue
 		case "ignore-remote-load-images-prompt":
 			if installer.Spec.Kurl == nil {
 				installer.Spec.Kurl = &kurlv1beta1.Kurl{}
@@ -167,16 +189,21 @@ func parseBashFlags(installer *kurlv1beta1.Installer, bashFlags string) error {
 				installer.Spec.Kurl = &kurlv1beta1.Kurl{}
 			}
 			installer.Spec.Kurl.IgnoreRemoteUpgradePrompt = true
-		case "preflight-ignore":
+		case "host-preflight-ignore", "preflight-ignore":
 			if installer.Spec.Kurl == nil {
 				installer.Spec.Kurl = &kurlv1beta1.Kurl{}
 			}
-			installer.Spec.Kurl.PreflightIgnore = true
+			installer.Spec.Kurl.HostPreflightIgnore = true
+		// Legacy flag; this flag was a no-op as the installer always ignored host preflights
 		case "preflight-ignore-warnings":
 			if installer.Spec.Kurl == nil {
 				installer.Spec.Kurl = &kurlv1beta1.Kurl{}
 			}
-			installer.Spec.Kurl.PreflightIgnoreWarnings = true
+		case "host-preflight-enforce-warnings":
+			if installer.Spec.Kurl == nil {
+				installer.Spec.Kurl = &kurlv1beta1.Kurl{}
+			}
+			installer.Spec.Kurl.HostPreflightEnforceWarnings = true
 		case "preserve-docker-config":
 			if installer.Spec.Docker == nil {
 				installer.Spec.Docker = &kurlv1beta1.Docker{}
@@ -212,6 +239,16 @@ func parseBashFlags(installer *kurlv1beta1.Installer, bashFlags string) error {
 				installer.Spec.Kurl = &kurlv1beta1.Kurl{}
 			}
 			installer.Spec.Kurl.SkipSystemPackageInstall = true
+		case "exclude-builtin-host-preflights", "exclude-builtin-preflights":
+			if installer.Spec.Kurl == nil {
+				installer.Spec.Kurl = &kurlv1beta1.Kurl{}
+			}
+			installer.Spec.Kurl.ExcludeBuiltinHostPreflights = true
+		case "app-version-label":
+			if installer.Spec.Kotsadm == nil {
+				installer.Spec.Kotsadm = &kurlv1beta1.Kotsadm{}
+			}
+			installer.Spec.Kotsadm.ApplicationVersionLabel = split[1]
 		case "yes":
 			continue
 		case "auto-upgrades-enabled":
@@ -222,6 +259,16 @@ func parseBashFlags(installer *kurlv1beta1.Installer, bashFlags string) error {
 			continue
 		case "force-reapply-addons":
 			continue
+		case "ipv6":
+			if installer.Spec.Kurl == nil {
+				installer.Spec.Kurl = &kurlv1beta1.Kurl{}
+			}
+			installer.Spec.Kurl.IPv6 = true
+		case "velero-restic-timeout":
+			if installer.Spec.Velero == nil {
+				installer.Spec.Velero = &kurlv1beta1.Velero{}
+			}
+			installer.Spec.Velero.ResticTimeout = split[1]
 		default:
 			return errors.New(fmt.Sprintf("string %s is not a bash flag", split[0]))
 		}
@@ -238,6 +285,13 @@ func mergeConfig(currentYAMLPath string, bashFlags string) error {
 
 	if err := parseBashFlags(currentConfig, bashFlags); err != nil {
 		return errors.Wrapf(err, "failed to parse flag string %q", bashFlags)
+	}
+
+	// Hack to get around the serialization of this field to "null" in YAML, which is not a valid Object type
+	// int the installer CRD when sending the installer spec back to k8s.
+	// See https://github.com/kubernetes/kubernetes/issues/67610
+	if currentConfig.Spec.Kurl != nil && currentConfig.Spec.Kurl.HostPreflights != nil {
+		currentConfig.Spec.Kurl.HostPreflights.ObjectMeta.CreationTimestamp = metav1.Now()
 	}
 
 	s := serializer.NewYAMLSerializer(serializer.DefaultMetaFactory, scheme.Scheme, scheme.Scheme)

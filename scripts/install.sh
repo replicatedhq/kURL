@@ -55,10 +55,15 @@ function init() {
 
     kubernetes_maybe_generate_bootstrap_token
 
+    local addr="$PRIVATE_ADDRESS"
+    local port="6443"
     API_SERVICE_ADDRESS="$PRIVATE_ADDRESS:6443"
     if [ "$HA_CLUSTER" = "1" ]; then
-        API_SERVICE_ADDRESS="$LOAD_BALANCER_ADDRESS:$LOAD_BALANCER_PORT"
+        addr="$LOAD_BALANCER_ADDRESS"
+        port="$LOAD_BALANCER_PORT"
     fi
+    addr=$($DIR/bin/kurl format-address "$addr")
+    API_SERVICE_ADDRESS="$addr:$port"
 
     local oldLoadBalancerAddress=$(kubernetes_load_balancer_address)
     if commandExists ekco_handle_load_balancer_address_change_pre_init; then
@@ -95,6 +100,70 @@ function init() {
             patch-load-balancer-address.yaml
     fi
 
+    # conditional kubelet configuration fields
+    if [ "$KUBERNETES_TARGET_VERSION_MINOR" -ge "21" ]; then
+        insert_patches_strategic_merge \
+            $kustomize_kubeadm_init/kustomization.yaml \
+            patch-kubelet-21.yaml
+    else
+        insert_patches_strategic_merge \
+            $kustomize_kubeadm_init/kustomization.yaml \
+            patch-kubelet-pre21.yaml
+    fi
+    if [ "$KUBERNETES_CIS_COMPLIANCE" == "1" ]; then
+        insert_patches_strategic_merge \
+            $kustomize_kubeadm_init/kustomization.yaml \
+            patch-kubelet-cis-compliance.yaml
+        
+        insert_patches_strategic_merge \
+            $kustomize_kubeadm_init/kustomization.yaml \
+            patch-cluster-config-cis-compliance.yaml
+    fi
+
+    if [ "$KUBE_RESERVED" == "1" ]; then
+        # gets the memory and CPU capacity of the worker node
+        MEMORY_MI=$(free -m | grep Mem | awk '{print $2}')
+        CPU_MILLICORES=$(($(nproc) * 1000))
+        # calculates the amount of each resource to reserve
+        mebibytes_to_reserve=$(get_memory_mebibytes_to_reserve $MEMORY_MI)
+        cpu_millicores_to_reserve=$(get_cpu_millicores_to_reserve $CPU_MILLICORES)
+
+        insert_patches_strategic_merge \
+            $kustomize_kubeadm_init/kustomization.yaml \
+            patch-kubelet-reserve-compute-resources.yaml
+
+        render_yaml_file $kustomize_kubeadm_init/patch-kubelet-reserve-compute-resources.tpl > $kustomize_kubeadm_init/patch-kubelet-reserve-compute-resources.yaml
+    fi
+    if [ -n "$EVICTION_THRESHOLD" ]; then
+        insert_patches_strategic_merge \
+            $kustomize_kubeadm_init/kustomization.yaml \
+            patch-kubelet-eviction-threshold.yaml
+
+        render_yaml_file $kustomize_kubeadm_init/patch-kubelet-eviction-threshold.tpl > $kustomize_kubeadm_init/patch-kubelet-eviction-threshold.yaml
+    fi
+    if [ -n "$SYSTEM_RESERVED" ]; then
+        insert_patches_strategic_merge \
+            $kustomize_kubeadm_init/kustomization.yaml \
+            patch-kubelet-system-reserved.yaml
+
+        render_yaml_file $kustomize_kubeadm_init/patch-kubelet-system-reserved.tpl > $kustomize_kubeadm_init/patch-kubelet-system-reserved.yaml
+    fi
+
+    if [ -n "$CONTAINER_LOG_MAX_SIZE" ]; then
+        insert_patches_strategic_merge \
+            $kustomize_kubeadm_init/kustomization.yaml \
+            patch-kubelet-container-log-max-size.yaml
+
+        render_yaml_file $kustomize_kubeadm_init/patch-kubelet-container-log-max-size.tpl > $kustomize_kubeadm_init/patch-kubelet-container-log-max-size.yaml
+    fi
+    if [ -n "$CONTAINER_LOG_MAX_FILES" ]; then
+        insert_patches_strategic_merge \
+            $kustomize_kubeadm_init/kustomization.yaml \
+            patch-kubelet-container-log-max-files.yaml
+
+        render_yaml_file $kustomize_kubeadm_init/patch-kubelet-container-log-max-files.tpl > $kustomize_kubeadm_init/patch-kubelet-container-log-max-files.yaml
+    fi
+
     # Add kubeadm init patches from addons.
     for patch in $(ls -1 ${kustomize_kubeadm_init}-patches/* 2>/dev/null || echo); do
         patch_basename="$(basename $patch)"
@@ -111,32 +180,8 @@ function init() {
     # this uses a go binary found in kurl/cmd/yamlutil to strip the metadata field from the yaml
     #
     cp $KUBEADM_CONF_FILE $KUBEADM_CONF_DIR/kubeadm_conf_copy_in
-    $DIR/bin/yamlutil -r -fp $KUBEADM_CONF_DIR/kubeadm_conf_copy_in -yf metadata
+    $DIR/bin/yamlutil -r -fp $KUBEADM_CONF_DIR/kubeadm_conf_copy_in -yp metadata
     mv $KUBEADM_CONF_DIR/kubeadm_conf_copy_in $KUBEADM_CONF_FILE
-
-    if [ "$KUBERNETES_TARGET_VERSION_MINOR" -ge "21" ]; then
-        cat << EOF >> $KUBEADM_CONF_FILE
-apiVersion: kubelet.config.k8s.io/v1beta1
-kind: KubeletConfiguration
-shutdownGracePeriod: 30s
-shutdownGracePeriodCriticalPods: 10s
-EOF
-    else
-        cat << EOF >> $KUBEADM_CONF_FILE
-apiVersion: kubelet.config.k8s.io/v1beta1
-kind: KubeletConfiguration
-cgroupDriver: systemd
-EOF
-    fi
-
-    # conditional kubelet configuration fields
-    if [ -n "$CONTAINER_LOG_MAX_SIZE" ]; then
-        echo "containerLogMaxSize: $CONTAINER_LOG_MAX_SIZE" >> $KUBEADM_CONF_FILE
-    fi
-    if [ -n "$CONTAINER_LOG_MAX_FILES" ]; then
-        echo "containerLogMaxFiles: $CONTAINER_LOG_MAX_FILES" >> $KUBEADM_CONF_FILE
-    fi
-    echo "---" >> $KUBEADM_CONF_FILE
 
     # When no_proxy changes kubeadm init rewrites the static manifests and fails because the api is
     # restarting. Trigger the restart ahead of time and wait for it to be healthy.
@@ -169,6 +214,10 @@ EOF
         mv -f /etc/kubernetes/pki/apiserver.key /tmp/
     fi
 
+    # ensure that /etc/kubernetes/audit.yaml exists
+    cp $kustomize_kubeadm_init/audit.yaml /etc/kubernetes/audit.yaml
+    mkdir -p /var/log/apiserver
+
     set -o pipefail
     kubeadm init \
         --ignore-preflight-errors=all \
@@ -182,7 +231,8 @@ EOF
     kubectl uncordon "$node"
 
     if [ -n "$LOAD_BALANCER_ADDRESS" ]; then
-        spinner_until 120 cert_has_san "$PRIVATE_ADDRESS:6443" "$LOAD_BALANCER_ADDRESS"
+        addr=$($DIR/bin/kurl format-address "$PRIVATE_ADDRESS")
+        spinner_until 120 cert_has_san "$addr:6443" "$LOAD_BALANCER_ADDRESS"
     fi
 
     if commandExists ekco_cleanup_bootstrap_internal_lb; then
@@ -194,7 +244,25 @@ EOF
     exportKubeconfig
     KUBEADM_TOKEN_CA_HASH=$(cat /tmp/kubeadm-init | grep 'discovery-token-ca-cert-hash' | awk '{ print $2 }' | head -1)
 
+    if [ "$KUBERNETES_CIS_COMPLIANCE" == "1" ]; then
+        kubectl apply -f $kustomize_kubeadm_init/pod-security-policy-privileged.yaml
+        # patch 'PodSecurityPolicy' to kube-apiserver and wait for kube-apiserver to reconcile
+        old_admission_plugins='--enable-admission-plugins=NodeRestriction'
+        new_admission_plugins='--enable-admission-plugins=NodeRestriction,PodSecurityPolicy'
+        sed -i "s%$old_admission_plugins%$new_admission_plugins%g"  /etc/kubernetes/manifests/kube-apiserver.yaml
+        spinner_kubernetes_api_stable
+
+        # create an 'etcd' user and group and ensure that it owns the etcd data directory (we don't care what userid these have, as etcd will still run as root)
+        useradd etcd || true
+        groupadd etcd || true
+        chown -R etcd:etcd /var/lib/etcd
+    fi
+
     wait_for_nodes
+
+    local node=$(hostname | tr '[:upper:]' '[:lower:]')
+    kubectl label --overwrite node "$node" node-role.kubernetes.io/master=
+
     enable_rook_ceph_operator
 
     DID_INIT_KUBERNETES=1
@@ -239,6 +307,11 @@ EOF
     labelNodes
     kubectl cluster-info
 
+    #approve csrs on the masters if cis compliance is enabled
+    if [ "$KUBERNETES_CIS_COMPLIANCE" == "1" ]; then
+        kubectl get csr | grep 'Pending' | grep 'kubelet-serving' | awk '{ print $1 }' | xargs -I {} kubectl certificate approve {}
+    fi
+
     # create kurl namespace if it doesn't exist
     kubectl get ns kurl 2>/dev/null 1>/dev/null || kubectl create ns kurl 1>/dev/null
 
@@ -260,7 +333,7 @@ EOF
     fi
 }
 
-function post_init() {
+function kubeadm_post_init() {
     BOOTSTRAP_TOKEN_EXPIRY=$(kubeadm token list | grep $BOOTSTRAP_TOKEN | awk '{print $3}')
     kurl_config
     uninstall_docker
@@ -293,7 +366,8 @@ function kurl_config() {
         --from-literal=upload_certs_expiration="$CERT_KEY_EXPIRY" \
         --from-literal=service_cidr="$SERVICE_CIDR" \
         --from-literal=pod_cidr="$POD_CIDR" \
-        --from-literal=kurl_install_directory="$KURL_INSTALL_DIRECTORY_FLAG"
+        --from-literal=kurl_install_directory="$KURL_INSTALL_DIRECTORY_FLAG" \
+        --from-literal=kubernetes_cis_compliance="$KUBERNETES_CIS_COMPLIANCE"
 }
 
 function outro() {
@@ -312,6 +386,7 @@ function outro() {
     common_flags="${common_flags}$(get_additional_no_proxy_addresses_flag "${PROXY_ADDRESS}" "${SERVICE_CIDR},${POD_CIDR}")"
     common_flags="${common_flags}$(get_kurl_install_directory_flag "${KURL_INSTALL_DIRECTORY_FLAG}")"
     common_flags="${common_flags}$(get_remotes_flags)"
+    common_flags="${common_flags}$(get_ipv6_flag)"
 
     KUBEADM_TOKEN_CA_HASH=$(cat /tmp/kubeadm-init | grep 'discovery-token-ca-cert-hash' | awk '{ print $2 }' | head -1)
 
@@ -419,6 +494,8 @@ K8S_DISTRO=kubeadm
 
 function main() {
     require_root_user
+    # ensure /usr/local/bin/kubectl-plugin is in the path
+    path_add "/usr/local/bin"
     get_patch_yaml "$@"
     maybe_read_kurl_config_from_cluster
 
@@ -483,7 +560,7 @@ function main() {
     ${K8S_DISTRO}_addon_for_each addon_install
     maybe_cleanup_rook
     helmfile_sync
-    post_init
+    kubeadm_post_init
     outro
     package_cleanup
 

@@ -6,7 +6,7 @@
 # Declare variables to be passed into your templates.
 image:
   repository: bloomberg/goldpinger
-  tag: v3.2.0
+  # tag: v3.2.0 # oringally uncommented (replicated)
   pullPolicy: IfNotPresent
   ## Optionally specify an array of imagePullSecrets.
   ## Secrets must be manually created in the namespace.

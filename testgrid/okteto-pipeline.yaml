@@ -1,0 +1,19 @@
+icon: https://github.com/okteto/polling/raw/master/icon.png
+
+deploy:
+  - okteto build -f testgrid/migrations/fixtures/deploy/Dockerfile -t okteto.dev/kurl-tgdb:${OKTETO_GIT_COMMIT} testgrid/migrations
+  - okteto build -f testgrid/migrations/Dockerfile.okteto -t okteto.dev/kurl-tgmigrations:${OKTETO_GIT_COMMIT} testgrid/migrations
+  - okteto build -f testgrid/tgapi/Dockerfile.okteto -t okteto.dev/kurl-tgapi:${OKTETO_GIT_COMMIT} .
+  - okteto build -f testgrid/web/Dockerfile.okteto -t okteto.dev/kurl-tgweb:${OKTETO_GIT_COMMIT} --build-arg OKTETO_NAMESPACE=${OKTETO_NAMESPACE} testgrid/web
+  - okteto build -f testgrid/web/Dockerfile.dev.okteto -t okteto.dev/kurl-tgweb:${OKTETO_NAMESPACE} testgrid/web
+
+  - cd testgrid/kustomize/overlays/okteto && kustomize edit set image tgdb=okteto.dev/kurl-tgdb:${OKTETO_GIT_COMMIT}
+  - cd testgrid/kustomize/overlays/okteto && kustomize edit set image tgmigrations=okteto.dev/kurl-tgmigrations:${OKTETO_GIT_COMMIT}
+  - cd testgrid/kustomize/overlays/okteto && kustomize edit set image tgapi=okteto.dev/kurl-tgapi:${OKTETO_GIT_COMMIT}
+  - cd testgrid/kustomize/overlays/okteto && kustomize edit set image tgweb=okteto.dev/kurl-tgweb:${OKTETO_GIT_COMMIT}
+
+  - kubectl apply -k testgrid/kustomize/overlays/okteto
+
+devs:
+  - testgrid/tgapi/okteto.yaml
+  - testgrid/web/okteto.yaml

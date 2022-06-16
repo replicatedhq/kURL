@@ -30,8 +30,16 @@ build:
 
 .PHONY: scan
 scan:
-	../../../../bin/image-scan.sh $(IMAGE):$(GIT_SHA)-$(DATE) $(WHITELIST)
+	trivy image \
+		--exit-code=1 \
+		--severity="HIGH,CRITICAL" \
+		--ignore-unfixed \
+		$(IMAGE):$(GIT_SHA)-$(DATE)
 
 .PHONY: push
 push:
-	docker push $(IMAGE):$(GIT_SHA)-$(DATE)
+	docker push $(IMAGE)-$(GIT_SHA)-$(DATE)
+
+.PHONY: deps
+deps:
+	curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin v0.27.1

@@ -62,7 +62,8 @@ spec:
     - tcpConnect:
         collectorName: "Kubernetes API TCP Connection Status"
         address: '{{kurl .Installer.Spec.Kubernetes.MasterAddress }}'
-        exclude: '{{kurl and .Installer.Spec.Kubernetes.Version .Installer.Spec.Kubernetes.MasterAddress .IsJoin | not }}'
+        # run the collector if 1. there is a master address set AND this is a node joining the cluster AND this is not an EKCO internalLB install
+        exclude: '{{kurl and .Installer.Spec.Kubernetes.Version .Installer.Spec.Kubernetes.MasterAddress .IsJoin (and .Installer.Spec.Ekco.Version .Installer.Spec.Ekco.EnableInternalLoadBalancer | not) | not }}'
     - filesystemPerformance:
         collectorName: Filesystem Latency Two Minute Benchmark
         exclude: '{{kurl and .IsPrimary (not .IsUpgrade) | not }}'
@@ -82,23 +83,23 @@ spec:
     - cpu:
         checkName: "Number of CPUs"
         outcomes:
-          - warn:
-              when: "count < 4"
-              message: At least 4 CPU cores are recommended
           - fail:
               when: "count < 2"
               message: At least 2 CPU cores are required, and 4 CPU cores are recommended
+          - warn:
+              when: "count < 4"
+              message: At least 4 CPU cores are recommended
           - pass:
               message: This server has at least 4 CPU cores
     - memory:
         checkName: "Amount of Memory"
         outcomes:
-          - warn:
-              when: "< 8G"
-              message: At least 8G of memory is recommended
           - fail:
               when: "< 4G"
               message: At least 4G of memory is required, and 8G of memory is recommended
+          - warn:
+              when: "< 8G"
+              message: At least 8G of memory is recommended
           - pass:
               message: The system has at least 8G of memory
     - diskUsage:
@@ -118,7 +119,7 @@ spec:
               when: "available < 10Gi"
               message: The disk containing directory /var/lib/kubelet has less than 10Gi of disk space available
           - pass:
-              message: The disk containing directory /var/lib/kubelet has at least 10Gi of disk space available and is not nearly full
+              message: The disk containing directory /var/lib/kubelet has at least 30Gi of total space, has at least 10Gi of disk space available, and is less than 60% full
     - diskUsage:
         checkName: "Ephemeral Disk Usage /var/lib/docker"
         collectorName: "Ephemeral Disk Usage /var/lib/docker"
@@ -137,7 +138,7 @@ spec:
               when: "available < 10Gi"
               message: The disk containing directory /var/lib/docker has less than 10Gi of disk space available
           - pass:
-              message: The disk containing directory /var/lib/docker has at least 10Gi of disk space available and is not nearly full
+              message: The disk containing directory /var/lib/docker has at least 30Gi of total space, has at least 10Gi of disk space available, and is less than 60% full.
     - tcpLoadBalancer:
         checkName: "Kubernetes API Server Load Balancer"
         collectorName: "Kubernetes API Server Load Balancer"
@@ -343,7 +344,8 @@ spec:
     - tcpConnect:
         checkName: "Kubernetes API TCP Connection Status"
         collectorName: "Kubernetes API TCP Connection Status"
-        exclude: '{{kurl and .Installer.Spec.Kubernetes.Version .Installer.Spec.Kubernetes.MasterAddress .IsJoin | not }}'
+        # run the analyzer if 1. there is a master address set AND this is a node joining the cluster AND this is not an EKCO internalLB install
+        exclude: '{{kurl and .Installer.Spec.Kubernetes.Version .Installer.Spec.Kubernetes.MasterAddress .IsJoin (and .Installer.Spec.Ekco.Version .Installer.Spec.Ekco.EnableInternalLoadBalancer | not) | not }}'
         outcomes:
           - fail:
               when: "connection-refused"
@@ -357,8 +359,6 @@ spec:
           - pass:
               when: "connected"
               message: Successfully connected to the Kubernetes API at address {{kurl .Installer.Spec.Kubernetes.MasterAddress }}
-          - warn:
-              message: Unexpected TCP connection status
     - filesystemPerformance:
         collectorName: Filesystem Latency Two Minute Benchmark
         exclude: '{{kurl and .IsPrimary (not .IsUpgrade) | not }}'
@@ -367,11 +367,7 @@ spec:
               when: "p99 < 10ms"
               message: "Write latency is ok (p99 target < 10ms, actual: {{ .P99 }})"
           - warn:
-              when: "p99 < 20ms"
-              message: "Write latency is high. p99 target < 10ms, actual:{{ .String }}"
-          - fail:
-              when: "p99 >= 20ms"
-              message: "Write latency is too high. p99 target < 10ms, actual:{{ .String }}"
+              message: "Write latency is high. p99 target >= 10ms, actual:{{ .String }}"
     - time:
         checkName: "NTP Status"
         outcomes:

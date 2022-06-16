@@ -1,16 +1,18 @@
-- installerSpec:
+- name: regsitry_latest_rook
+  installerSpec:
     kubernetes:
       version: "latest"
     weave:
       version: "latest"
     rook:
-      version: "latest"
+      version: 1.5.x
     docker:
       version: "latest"
     registry:
       version: "__testver__"
       s3Override: "__testdist__"
-- installerSpec:
+- name: regsitry_latest_longhorn
+  installerSpec:
     kubernetes:
       version: "latest"
     weave:
@@ -22,7 +24,8 @@
     registry:
       version: "__testver__"
       s3Override: "__testdist__"
-- installerSpec:
+- name: regsitry_latest_upgrade
+  installerSpec:
     kubernetes:
       version: "latest"
     weave:
@@ -45,7 +48,8 @@
     registry:
       version: "__testver__"
       s3Override: "__testdist__"
-- installerSpec:
+- name: registry_publish_port
+  installerSpec:
     kubernetes:
       version: "latest"
     weave:
@@ -58,3 +62,37 @@
       publishPort: 8443
       version: "__testver__"
       s3Override: "__testdist__"
+- name: registry_remove_all_object_storage
+  installerSpec:
+    kubernetes:
+      version: 1.20.x
+    weave:
+      version: latest
+    rook:
+      isBlockStorageEnabled: true
+      version: 1.5.x
+    registry:
+      version: latest
+    kotsadm:
+      version: latest
+    containerd:
+      version: latest
+    velero:
+      version: 1.6.x
+  upgradeSpec:
+    kubernetes:
+      version: 1.21.x
+    weave:
+      version: latest
+    longhorn:
+      version: latest
+    registry:
+      version: "__testver__"
+      s3Override: "__testdist__"
+    kotsadm:
+      version: latest
+      disableS3: true
+    containerd:
+      version: latest
+    velero:
+      version: 1.7.x

@@ -9,6 +9,8 @@ function velero_pre_init() {
 }
 
 function velero() {
+    velero_host_init
+
     local src="$DIR/addons/velero/1.5.1"
     local dst="$DIR/kustomize/velero"
 
@@ -44,6 +46,8 @@ function velero() {
         fi
     fi
 
+    velero_patch_args "$src" "$dst"
+
     velero_kotsadm_local_backend
 
     kubectl apply -k "$dst"
@@ -58,6 +62,35 @@ function velero() {
 
 function velero_join() {
     velero_binary
+    velero_host_init
+}
+
+function velero_host_init() {
+    velero_install_nfs_utils_if_missing 
+}
+
+function velero_install_nfs_utils_if_missing() {
+    local src="$DIR/addons/velero/$VELERO_VERSION"
+
+    if ! systemctl list-units | grep -q nfs-utils ; then
+        case "$LSB_DIST" in
+            ubuntu)
+                dpkg_install_host_archives "$src" nfs-common
+                ;;
+
+            centos|rhel|amzn|ol)
+                yum_install_host_archives "$src" nfs-utils
+                ;;
+        esac
+    fi
+
+    if ! systemctl -q is-active nfs-utils; then
+        systemctl start nfs-utils
+    fi
+
+    if ! systemctl -q is-enabled nfs-utils; then
+        systemctl enable nfs-utils
+    fi
 }
 
 function velero_already_applied() {
@@ -112,6 +145,18 @@ function velero_kotsadm_local_backend() {
 
     render_yaml_file "$src/tmpl-kotsadm-local-backend.yaml" > "$dst/kotsadm-local-backend.yaml"
     insert_resources "$dst/kustomization.yaml" kotsadm-local-backend.yaml
+}
+
+function velero_patch_args() {
+    local src="$1"
+    local dst="$2"
+
+    if [ "${VELERO_DISABLE_RESTIC}" = "1" ] || [ -z "${VELERO_RESTIC_TIMEOUT}" ]; then
+        return 0
+    fi
+
+    render_yaml_file "$src/velero-args-json-patch.yaml" > "$dst/velero-args-json-patch.yaml"
+    insert_patches_json_6902 "$dst/kustomization.yaml" velero-args-json-patch.yaml apps v1 Deployment velero ${VELERO_NAMESPACE}
 }
 
 function velero_kotsadm_restore_config() {

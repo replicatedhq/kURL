@@ -1,5 +1,4 @@
 import * as pino from "pino";
-import * as stream from "stream";
 import * as fs from "fs";
 
 export const TSEDVerboseLogging =

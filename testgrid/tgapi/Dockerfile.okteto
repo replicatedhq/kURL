@@ -1,0 +1,40 @@
+# syntax=docker/dockerfile:1.3
+FROM golang:1.17
+
+EXPOSE 3000
+EXPOSE 6060
+EXPOSE 2345
+
+ENV GOCACHE "/.cache/gocache/"
+ENV GOMODCACHE "/.cache/gomodcache/"
+ENV PROJECT_PATH=/go/src/github.com/replicatedhq/kurl
+
+WORKDIR $PROJECT_PATH
+
+RUN --mount=target=/tmp/.cache/gomodcache,id=gomodcache,type=cache \
+    --mount=target=/tmp/.cache/gocache,id=gocache,type=cache \
+    go install github.com/go-delve/delve/cmd/dlv@v1.8.0
+
+## Get deps
+COPY go.mod go.sum Makefile ./
+RUN --mount=target=$GOMODCACHE,id=kurl-gomodcache,type=cache go mod download
+
+## Now add the project and compile
+COPY pkg pkg
+COPY testgrid/tgapi testgrid/tgapi
+COPY testgrid/tgrun testgrid/tgrun
+
+WORKDIR $PROJECT_PATH/testgrid/tgapi
+
+RUN --mount=target=$GOCACHE,id=kurl-gocache,type=cache \
+    --mount=target=$GOMODCACHE,id=kurl-gomodcache,type=cache \
+    make build
+
+RUN --mount=target=/tmp/.cache/gocache,id=kurl-gocache,type=cache \
+    --mount=target=/tmp/.cache/gomodcache,id=kurl-gomodcache,type=cache \
+    mkdir -p $GOCACHE \
+    && cp -r /tmp/.cache/gocache/* $GOCACHE \
+    && mkdir -p $GOMODCACHE \
+    && cp -r /tmp/.cache/gomodcache/* $GOMODCACHE
+
+CMD ["make", "run"]

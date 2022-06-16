@@ -1,23 +1,3 @@
-- name: latest
-  installerSpec:
-    kubernetes:
-      version: latest
-    docker:
-      version: latest
-    weave:
-      version: latest
-    contour:
-      version: latest
-    rook:
-      version: latest
-    registry:
-      version: latest
-    prometheus:
-      version: latest
-    ekco:
-      version: latest
-    kotsadm:
-      version: latest
 - name: longhorn
   installerSpec:
     contour:
@@ -28,6 +8,8 @@
       version: latest
     kubernetes:
       version: latest
+      containerLogMaxSize: "5Mi"
+      containerLogMaxFiles: 5
     prometheus:
       version: latest
     registry:
@@ -46,13 +28,26 @@
       version: latest
     registry:
       version: latest
-    prometheus:
-      version: latest
     kotsadm:
       uiBindPort: 30880
       version: latest
     minio:
       version: latest
+- name: rke2
+  installerSpec:
+    rke2:
+      version: latest
+    registry:
+      version: latest
+    kotsadm:
+      uiBindPort: 30880
+      version: latest
+      disableS3: true
+    openebs:
+      version: latest
+      isLocalPVEnabled: true
+      localPVStorageClassName: default
+      isCstorEnabled: false
 - name: k8s119
   installerSpec:
     kubernetes:
@@ -167,7 +162,7 @@
     kubernetes:
       version: 1.21.x
     containerd:
-      version: latest
+      version: 1.5.x
     weave:
       version: 2.8.x
     contour:
@@ -184,3 +179,68 @@
     ekco:
       version: latest
   airgap: true
+- name: minimal
+  installerSpec:
+    containerd:
+      version: latest
+    kubernetes:
+      version: 1.23.x
+    weave:
+      version: latest
+- name: k8s123x_cis_benchmarks_checks
+  installerSpec:
+    kubernetes:
+      version: "1.23.x"
+      cisCompliance: true
+    containerd:
+      version: "1.4.x"
+    weave:
+      version: "latest"
+    ekco:
+      version: "latest"
+  postInstallScript: |
+    echo "running CIS Kubernetes Benchmark Checks"
+    curl -L https://github.com/aquasecurity/kube-bench/releases/download/v0.6.2/kube-bench_0.6.2_linux_amd64.tar.gz | tar -xz
+    ./kube-bench --config-dir=`pwd`/cfg --config=`pwd`/cfg/config.yaml --exit-code=1
+- name: k8s123x_reserved_resources
+  installerSpec:
+    kubernetes:
+      version: "1.23.x"
+      kubeReserved: true
+      evictionThresholdResources: '{"memory.available":  "234Mi", "nodefs.available": "11%", "nodefs.inodesFree": "6%"}'
+      systemReservedResources: '{ "cpu": "123m", "memory": "123Mi", "ephemeral-storage": "1.23Gi" }'
+    containerd:
+      version: "latest"
+    weave:
+      version: "latest"
+  postInstallScript: |
+    set -eo pipefail
+    echo "validating kubelet config contains reserved resources"
+    sudo cat /var/lib/kubelet/config.yaml | grep -A 4 kubeReserved
+    sudo cat /var/lib/kubelet/config.yaml | grep "ephemeral-storage: 1Gi"
+    sudo cat /var/lib/kubelet/config.yaml | grep -A 4 evictionHard
+    sudo cat /var/lib/kubelet/config.yaml | grep "memory.available: 234Mi"
+    sudo cat /var/lib/kubelet/config.yaml | grep -A 4 systemReserved
+    sudo cat /var/lib/kubelet/config.yaml | grep "cpu: 123m"
+    sudo cat /var/lib/kubelet/config.yaml | grep "ephemeral-storage: 1.23Gi"
+    sudo cat /var/lib/kubelet/config.yaml | grep "memory: 123Mi"
+- name: local-path-provisioner
+  installerSpec:
+    containerd:
+      version: latest
+    ekco:
+      version: latest
+    kubernetes:
+      version: latest
+    prometheus:
+      version: latest
+    registry:
+      version: latest
+    localPathProvisioner:
+      version: latest
+    weave:
+      version: latest
+    minio:
+      version: latest
+    kotsadm:
+      version: latest

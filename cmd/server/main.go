@@ -14,9 +14,12 @@ import (
 	"net/http/httputil"
 	"net/url"
 	"os"
+	"os/signal"
 	"path/filepath"
 	"runtime"
 	"strings"
+	"sync"
+	"sync/atomic"
 	"syscall"
 	"time"
 
@@ -33,6 +36,8 @@ import (
 
 const upstream = "http://localhost:3000"
 
+var activeStreams int64 = 0
+
 func main() {
 	log.Printf("Commit %s", os.Getenv("VERSION"))
 
@@ -48,6 +53,7 @@ func main() {
 
 	r.HandleFunc("/bundle/{installerID}", http.HandlerFunc(bundle))
 	r.HandleFunc("/bundle/version/{kurlVersion}/{installerID}", http.HandlerFunc(bundle))
+	r.HandleFunc("/healthz", http.HandlerFunc(healthz))
 
 	upstreamURL, err := url.Parse(upstream)
 	if err != nil {
@@ -59,9 +65,33 @@ func main() {
 	http.Handle("/", r)
 
 	log.Println("Listening on :3001")
-	err = http.ListenAndServe(":3001", bugsnag.Handler(nil))
+	server := &http.Server{Addr: ":3001", Handler: bugsnag.Handler(nil)}
+
+	exitMutex := sync.Mutex{}
+	go func() {
+		exit := make(chan os.Signal, 1) // reserve buffer size one to avoid blocking the notifier
+		signal.Notify(exit, os.Interrupt, syscall.SIGTERM)
+
+		<-exit // wait for shutdown signal, then terminate server
+		exitMutex.Lock()
+		log.Printf("Shutting down server after recieving SIGINT or SIGTERM, %d bundle downloads remain\n", atomic.LoadInt64(&activeStreams))
+
+		err := server.Shutdown(context.TODO())
+		if err != nil {
+			log.Print(err)
+		}
+		log.Println("All server connections closed, exiting")
+		os.Exit(0)
+	}()
+
+	err = server.ListenAndServe()
 	if err != nil {
-		log.Fatal(err)
+		if err != http.ErrServerClosed {
+			log.Fatal(err)
+		} else {
+			log.Println("No longer accepting new connections")
+			exitMutex.Lock() // if the server shutdown handler is still running, don't return from main or the program will exit
+		}
 	}
 }
 
@@ -85,6 +115,9 @@ func init() {
 }
 
 func bundle(w http.ResponseWriter, r *http.Request) {
+	atomic.AddInt64(&activeStreams, 1)
+	defer atomic.AddInt64(&activeStreams, -1)
+
 	if r.Method == "OPTIONS" {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.Header().Set("Access-Control-Allow-Methods", "GET")
@@ -429,4 +462,25 @@ func allowRegistry(image string) bool {
 	}
 
 	return false
+}
+
+type HealthzResponse struct {
+	IsAlive       bool  `json:"is_alive"`
+	ActiveStreams int64 `json:"active_streams"`
+}
+
+func healthz(w http.ResponseWriter, r *http.Request) {
+	healthzResponse := HealthzResponse{
+		IsAlive:       true,
+		ActiveStreams: atomic.LoadInt64(&activeStreams),
+	}
+	response, err := json.Marshal(healthzResponse)
+	if err != nil {
+		w.WriteHeader(500)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	w.Write(response)
 }

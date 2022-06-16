@@ -1,4 +1,5 @@
-- installerSpec:
+- name: Minimal Latest, Rook
+  installerSpec:
     kubernetes:
       version: "latest"
     weave:
@@ -10,3 +11,85 @@
     ekco:
       version: "__testver__"
       s3Override: "__testdist__"
+- name: Kubernetes 1.22, Internal LB, Rook
+  installerSpec:
+    kubernetes:
+      version: "1.22.x"
+    weave:
+      version: "latest"
+    rook:
+      version: "1.5.x"
+    containerd:
+      version: "latest"
+    ekco:
+      version: "__testver__"
+      s3Override: "__testdist__"
+      minReadyMasterNodeCount: 1
+      autoUpgradeSchedule: Sat 17:30
+      enableInternalLoadBalancer: true
+- name: Kubernetes 1.21, Longhorn, Internal LB
+  installerSpec:
+    kubernetes:
+      version: "1.21.x"
+    weave:
+      version: "latest"
+    longhorn:
+      version: "1.2.x"
+    containerd:
+      version: "latest"
+    ekco:
+      version: "__testver__"
+      s3Override: "__testdist__"
+      enableInternalLoadBalancer: true
+- name: podImageOverrides
+  installerSpec:
+    kubernetes:
+      version: "1.23.x"
+    containerd:
+      version: "latest"
+    weave:
+      version: "latest"
+    longhorn:
+      version: "latest"
+    contour:
+      version: "1.20.0"
+    ekco:
+      version: "latest"
+      podImageOverrides:
+        - ghcr.io/projectcontour/contour:v1.20.0=ghcr.io/projectcontour/contour:v1.20.1
+  postInstallScript: |
+    sleep 120
+
+    pod_image="$(kubectl -n projectcontour get po -l app=contour -o jsonpath='{.items[].spec.containers[].image}')"
+    if ! echo "$pod_image" | grep 'v1.20.1' ; then
+      echo "Pod image override failed: $pod_image"
+      exit 1
+    fi
+
+    echo "Pod image override success: $pod_image"
+- name: Upgrade HA add ekco
+  installerSpec:
+    kubernetes:
+      version: "1.19.3"
+    weave:
+      version: "latest"
+    containerd:
+      version: "latest"
+    longhorn:
+      version: "latest"
+    ekco:
+      version: "0.10.1"
+  upgradeSpec:
+    kubernetes:
+      version: "1.21.8"
+    weave:
+      version: "latest"
+    containerd:
+      version: "latest"
+    longhorn:
+      version: "latest"
+    ekco:
+      version: "__testver__"
+      s3Override: "__testdist__"
+      enableInternalLoadBalancer: true
+  flags: "ha"

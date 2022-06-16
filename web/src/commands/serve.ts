@@ -50,6 +50,12 @@ export async function main(argv: any): Promise<void> {
       // extra settings
     });
 
+    process.on('SIGTERM', async () => {
+      console.log("SIGTERM received");
+      await platform.stop();
+      process.exit(0);
+    })
+
     await platform.listen();
     $log.debug("Server initialized");
   } catch (er) {

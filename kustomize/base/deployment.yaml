@@ -6,6 +6,10 @@ spec:
   selector:
     matchLabels:
       app: kurl
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 3
   template:
     metadata:
       labels:
@@ -26,6 +30,7 @@ spec:
       volumes:
       - name: images
         emptyDir: {}
+      terminationGracePeriodSeconds: 900 # allow 15 minutes for shutdowns to allow airgap downloads to complete
       containers:
       - name: server
         image: replicated/kurl
@@ -42,12 +47,33 @@ spec:
         volumeMounts:
         - name: images
           mountPath: "/images"
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /healthz
+            port: server
+            scheme: HTTP
+          initialDelaySeconds: 2
+          periodSeconds: 2
+          successThreshold: 1
+          timeoutSeconds: 1
       - name: kurl
         image: replicated/kurl
         imagePullPolicy: IfNotPresent
+        command: ["node", "--no-deprecation", "bin/kurl", "serve"]
         ports:
         - name: kurl
           containerPort: 3000
         env:
         - name: REPLICATED_APP_URL
           value: https://replicated.app
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /healthz
+            port: kurl
+            scheme: HTTP
+          initialDelaySeconds: 2
+          periodSeconds: 2
+          successThreshold: 1
+          timeoutSeconds: 1

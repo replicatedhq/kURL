@@ -1,0 +1,2854 @@
+{
+  "description": "Installer is the Schema for the installers API",
+  "type": "object",
+  "properties": {
+    "apiVersion": {
+      "description": "APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources",
+      "type": "string"
+    },
+    "kind": {
+      "description": "Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds",
+      "type": "string"
+    },
+    "metadata": {
+      "type": "object"
+    },
+    "spec": {
+      "type": "object",
+      "properties": {
+        "antrea": {
+          "type": "object",
+          "required": [
+            "version"
+          ],
+          "properties": {
+            "isEncryptionDisabled": {
+              "type": "boolean"
+            },
+            "podCIDR": {
+              "type": "string"
+            },
+            "podCidrRange": {
+              "type": "string"
+            },
+            "s3Override": {
+              "type": "string"
+            },
+            "version": {
+              "type": "string"
+            }
+          }
+        },
+        "aws": {
+          "type": "object",
+          "required": [
+            "version"
+          ],
+          "properties": {
+            "excludeStorageClass": {
+              "type": "boolean"
+            },
+            "version": {
+              "type": "string"
+            }
+          }
+        },
+        "calico": {
+          "type": "object",
+          "required": [
+            "version"
+          ],
+          "properties": {
+            "s3Override": {
+              "type": "string"
+            },
+            "version": {
+              "type": "string"
+            }
+          }
+        },
+        "certManager": {
+          "type": "object",
+          "required": [
+            "version"
+          ],
+          "properties": {
+            "s3Override": {
+              "type": "string"
+            },
+            "version": {
+              "type": "string"
+            }
+          }
+        },
+        "collectd": {
+          "type": "object",
+          "required": [
+            "version"
+          ],
+          "properties": {
+            "s3Override": {
+              "type": "string"
+            },
+            "version": {
+              "type": "string"
+            }
+          }
+        },
+        "containerd": {
+          "type": "object",
+          "required": [
+            "version"
+          ],
+          "properties": {
+            "preserveConfig": {
+              "type": "boolean"
+            },
+            "s3Override": {
+              "type": "string"
+            },
+            "tomlConfig": {
+              "type": "string"
+            },
+            "version": {
+              "type": "string"
+            }
+          }
+        },
+        "contour": {
+          "type": "object",
+          "required": [
+            "version"
+          ],
+          "properties": {
+            "httpPort": {
+              "type": "integer"
+            },
+            "httpsPort": {
+              "type": "integer"
+            },
+            "s3Override": {
+              "type": "string"
+            },
+            "tlsMinimumProtocolVersion": {
+              "type": "string"
+            },
+            "version": {
+              "type": "string"
+            }
+          }
+        },
+        "docker": {
+          "type": "object",
+          "required": [
+            "version"
+          ],
+          "properties": {
+            "bypassStorageDriverWarning": {
+              "type": "boolean"
+            },
+            "daemonConfig": {
+              "type": "string"
+            },
+            "dockerRegistryIP": {
+              "type": "string"
+            },
+            "hardFailOnLoopback": {
+              "type": "boolean"
+            },
+            "noCEOnEE": {
+              "type": "boolean"
+            },
+            "preserveConfig": {
+              "type": "boolean"
+            },
+            "s3Override": {
+              "type": "string"
+            },
+            "version": {
+              "type": "string"
+            }
+          }
+        },
+        "ekco": {
+          "type": "object",
+          "required": [
+            "version"
+          ],
+          "properties": {
+            "autoUpgradeSchedule": {
+              "type": "string"
+            },
+            "enableInternalLoadBalancer": {
+              "type": "boolean"
+            },
+            "minReadyMasterNodeCount": {
+              "type": "integer"
+            },
+            "minReadyWorkerNodeCount": {
+              "type": "integer"
+            },
+            "nodeUnreachableToleration": {
+              "type": "string"
+            },
+            "podImageOverrides": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "rookShouldUseAllNodes": {
+              "type": "boolean"
+            },
+            "s3Override": {
+              "type": "string"
+            },
+            "shouldDisableClearNodes": {
+              "type": "boolean"
+            },
+            "shouldDisableRebootServices": {
+              "type": "boolean"
+            },
+            "shouldEnablePurgeNodes": {
+              "type": "boolean"
+            },
+            "version": {
+              "type": "string"
+            }
+          }
+        },
+        "firewalldConfig": {
+          "type": "object",
+          "properties": {
+            "bypassFirewalldWarning": {
+              "type": "boolean"
+            },
+            "disableFirewalld": {
+              "type": "boolean"
+            },
+            "firewalld": {
+              "type": "string"
+            },
+            "firewalldCmds": {
+              "type": "array",
+              "items": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "hardFailOnFirewalld": {
+              "type": "boolean"
+            },
+            "preserveConfig": {
+              "type": "boolean"
+            }
+          }
+        },
+        "fluentd": {
+          "type": "object",
+          "required": [
+            "version"
+          ],
+          "properties": {
+            "fluentdConfPath": {
+              "type": "string"
+            },
+            "fullEFKStack": {
+              "type": "boolean"
+            },
+            "s3Override": {
+              "type": "string"
+            },
+            "version": {
+              "type": "string"
+            }
+          }
+        },
+        "goldpinger": {
+          "type": "object",
+          "required": [
+            "version"
+          ],
+          "properties": {
+            "s3Override": {
+              "type": "string"
+            },
+            "version": {
+              "type": "string"
+            }
+          }
+        },
+        "helm": {
+          "type": "object",
+          "required": [
+            "helmfileSpec"
+          ],
+          "properties": {
+            "additionalImages": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "helmfileSpec": {
+              "type": "string"
+            }
+          }
+        },
+        "iptablesConfig": {
+          "type": "object",
+          "properties": {
+            "iptablesCmds": {
+              "type": "array",
+              "items": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "preserveConfig": {
+              "type": "boolean"
+            }
+          }
+        },
+        "k3s": {
+          "type": "object",
+          "required": [
+            "version"
+          ],
+          "properties": {
+            "version": {
+              "type": "string"
+            }
+          }
+        },
+        "kotsadm": {
+          "type": "object",
+          "required": [
+            "version"
+          ],
+          "properties": {
+            "applicationNamespace": {
+              "type": "string"
+            },
+            "applicationSlug": {
+              "type": "string"
+            },
+            "applicationVersionLabel": {
+              "type": "string"
+            },
+            "disableS3": {
+              "type": "boolean"
+            },
+            "hostname": {
+              "type": "string"
+            },
+            "s3Override": {
+              "type": "string"
+            },
+            "uiBindPort": {
+              "type": "integer"
+            },
+            "version": {
+              "type": "string"
+            }
+          }
+        },
+        "kubernetes": {
+          "type": "object",
+          "required": [
+            "version"
+          ],
+          "properties": {
+            "HACluster": {
+              "type": "boolean"
+            },
+            "bootstrapToken": {
+              "type": "string"
+            },
+            "bootstrapTokenTTL": {
+              "type": "string"
+            },
+            "certKey": {
+              "type": "string"
+            },
+            "cisCompliance": {
+              "type": "boolean"
+            },
+            "clusterName": {
+              "type": "string"
+            },
+            "containerLogMaxFiles": {
+              "type": "integer"
+            },
+            "containerLogMaxSize": {
+              "type": "string"
+            },
+            "controlPlane": {
+              "type": "boolean"
+            },
+            "evictionThresholdResources": {
+              "type": "string"
+            },
+            "kubeReserved": {
+              "type": "boolean"
+            },
+            "kubeadmToken": {
+              "type": "string"
+            },
+            "kubeadmTokenCAHash": {
+              "type": "string"
+            },
+            "loadBalancerAddress": {
+              "type": "string"
+            },
+            "masterAddress": {
+              "type": "string"
+            },
+            "s3Override": {
+              "type": "string"
+            },
+            "serviceCIDR": {
+              "type": "string"
+            },
+            "serviceCidrRange": {
+              "type": "string"
+            },
+            "systemReservedResources": {
+              "type": "string"
+            },
+            "useStandardNodePortRange": {
+              "type": "boolean"
+            },
+            "version": {
+              "type": "string"
+            }
+          }
+        },
+        "kurl": {
+          "type": "object",
+          "properties": {
+            "additionalNoProxyAddresses": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "airgap": {
+              "type": "boolean"
+            },
+            "excludeBuiltinHostPreflights": {
+              "type": "boolean"
+            },
+            "hostPreflightEnforceWarnings": {
+              "type": "boolean"
+            },
+            "hostPreflightIgnore": {
+              "type": "boolean"
+            },
+            "hostPreflights": {
+              "description": "HostPreflight is the Schema for the hostpreflights API",
+              "type": "object",
+              "properties": {
+                "apiVersion": {
+                  "description": "APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources",
+                  "type": "string"
+                },
+                "kind": {
+                  "description": "Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds",
+                  "type": "string"
+                },
+                "metadata": {
+                  "type": "object"
+                },
+                "spec": {
+                  "description": "HostPreflightSpec defines the desired state of HostPreflight",
+                  "type": "object",
+                  "properties": {
+                    "analyzers": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "blockDevices": {
+                            "type": "object",
+                            "required": [
+                              "includeUnmountedPartitions",
+                              "minimumAcceptableSize",
+                              "outcomes"
+                            ],
+                            "properties": {
+                              "checkName": {
+                                "type": "string"
+                              },
+                              "exclude": {
+                                "type": "string"
+                              },
+                              "includeUnmountedPartitions": {
+                                "type": "boolean"
+                              },
+                              "minimumAcceptableSize": {
+                                "type": "integer",
+                                "format": "int64"
+                              },
+                              "outcomes": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "fail": {
+                                      "type": "object",
+                                      "properties": {
+                                        "message": {
+                                          "type": "string"
+                                        },
+                                        "uri": {
+                                          "type": "string"
+                                        },
+                                        "when": {
+                                          "type": "string"
+                                        }
+                                      }
+                                    },
+                                    "pass": {
+                                      "type": "object",
+                                      "properties": {
+                                        "message": {
+                                          "type": "string"
+                                        },
+                                        "uri": {
+                                          "type": "string"
+                                        },
+                                        "when": {
+                                          "type": "string"
+                                        }
+                                      }
+                                    },
+                                    "warn": {
+                                      "type": "object",
+                                      "properties": {
+                                        "message": {
+                                          "type": "string"
+                                        },
+                                        "uri": {
+                                          "type": "string"
+                                        },
+                                        "when": {
+                                          "type": "string"
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                              },
+                              "strict": {
+                                "type": "string"
+                              }
+                            }
+                          },
+                          "certificate": {
+                            "type": "object",
+                            "required": [
+                              "outcomes"
+                            ],
+                            "properties": {
+                              "checkName": {
+                                "type": "string"
+                              },
+                              "collectorName": {
+                                "type": "string"
+                              },
+                              "exclude": {
+                                "type": "string"
+                              },
+                              "outcomes": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "fail": {
+                                      "type": "object",
+                                      "properties": {
+                                        "message": {
+                                          "type": "string"
+                                        },
+                                        "uri": {
+                                          "type": "string"
+                                        },
+                                        "when": {
+                                          "type": "string"
+                                        }
+                                      }
+                                    },
+                                    "pass": {
+                                      "type": "object",
+                                      "properties": {
+                                        "message": {
+                                          "type": "string"
+                                        },
+                                        "uri": {
+                                          "type": "string"
+                                        },
+                                        "when": {
+                                          "type": "string"
+                                        }
+                                      }
+                                    },
+                                    "warn": {
+                                      "type": "object",
+                                      "properties": {
+                                        "message": {
+                                          "type": "string"
+                                        },
+                                        "uri": {
+                                          "type": "string"
+                                        },
+                                        "when": {
+                                          "type": "string"
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                              },
+                              "strict": {
+                                "type": "string"
+                              }
+                            }
+                          },
+                          "cpu": {
+                            "type": "object",
+                            "required": [
+                              "outcomes"
+                            ],
+                            "properties": {
+                              "checkName": {
+                                "type": "string"
+                              },
+                              "exclude": {
+                                "type": "string"
+                              },
+                              "outcomes": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "fail": {
+                                      "type": "object",
+                                      "properties": {
+                                        "message": {
+                                          "type": "string"
+                                        },
+                                        "uri": {
+                                          "type": "string"
+                                        },
+                                        "when": {
+                                          "type": "string"
+                                        }
+                                      }
+                                    },
+                                    "pass": {
+                                      "type": "object",
+                                      "properties": {
+                                        "message": {
+                                          "type": "string"
+                                        },
+                                        "uri": {
+                                          "type": "string"
+                                        },
+                                        "when": {
+                                          "type": "string"
+                                        }
+                                      }
+                                    },
+                                    "warn": {
+                                      "type": "object",
+                                      "properties": {
+                                        "message": {
+                                          "type": "string"
+                                        },
+                                        "uri": {
+                                          "type": "string"
+                                        },
+                                        "when": {
+                                          "type": "string"
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                              },
+                              "strict": {
+                                "type": "string"
+                              }
+                            }
+                          },
+                          "diskUsage": {
+                            "type": "object",
+                            "required": [
+                              "outcomes"
+                            ],
+                            "properties": {
+                              "checkName": {
+                                "type": "string"
+                              },
+                              "collectorName": {
+                                "type": "string"
+                              },
+                              "exclude": {
+                                "type": "string"
+                              },
+                              "outcomes": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "fail": {
+                                      "type": "object",
+                                      "properties": {
+                                        "message": {
+                                          "type": "string"
+                                        },
+                                        "uri": {
+                                          "type": "string"
+                                        },
+                                        "when": {
+                                          "type": "string"
+                                        }
+                                      }
+                                    },
+                                    "pass": {
+                                      "type": "object",
+                                      "properties": {
+                                        "message": {
+                                          "type": "string"
+                                        },
+                                        "uri": {
+                                          "type": "string"
+                                        },
+                                        "when": {
+                                          "type": "string"
+                                        }
+                                      }
+                                    },
+                                    "warn": {
+                                      "type": "object",
+                                      "properties": {
+                                        "message": {
+                                          "type": "string"
+                                        },
+                                        "uri": {
+                                          "type": "string"
+                                        },
+                                        "when": {
+                                          "type": "string"
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                              },
+                              "strict": {
+                                "type": "string"
+                              }
+                            }
+                          },
+                          "filesystemPerformance": {
+                            "type": "object",
+                            "required": [
+                              "outcomes"
+                            ],
+                            "properties": {
+                              "checkName": {
+                                "type": "string"
+                              },
+                              "collectorName": {
+                                "type": "string"
+                              },
+                              "exclude": {
+                                "type": "string"
+                              },
+                              "outcomes": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "fail": {
+                                      "type": "object",
+                                      "properties": {
+                                        "message": {
+                                          "type": "string"
+                                        },
+                                        "uri": {
+                                          "type": "string"
+                                        },
+                                        "when": {
+                                          "type": "string"
+                                        }
+                                      }
+                                    },
+                                    "pass": {
+                                      "type": "object",
+                                      "properties": {
+                                        "message": {
+                                          "type": "string"
+                                        },
+                                        "uri": {
+                                          "type": "string"
+                                        },
+                                        "when": {
+                                          "type": "string"
+                                        }
+                                      }
+                                    },
+                                    "warn": {
+                                      "type": "object",
+                                      "properties": {
+                                        "message": {
+                                          "type": "string"
+                                        },
+                                        "uri": {
+                                          "type": "string"
+                                        },
+                                        "when": {
+                                          "type": "string"
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                              },
+                              "strict": {
+                                "type": "string"
+                              }
+                            }
+                          },
+                          "hostOS": {
+                            "type": "object",
+                            "required": [
+                              "outcomes"
+                            ],
+                            "properties": {
+                              "checkName": {
+                                "type": "string"
+                              },
+                              "exclude": {
+                                "type": "string"
+                              },
+                              "outcomes": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "fail": {
+                                      "type": "object",
+                                      "properties": {
+                                        "message": {
+                                          "type": "string"
+                                        },
+                                        "uri": {
+                                          "type": "string"
+                                        },
+                                        "when": {
+                                          "type": "string"
+                                        }
+                                      }
+                                    },
+                                    "pass": {
+                                      "type": "object",
+                                      "properties": {
+                                        "message": {
+                                          "type": "string"
+                                        },
+                                        "uri": {
+                                          "type": "string"
+                                        },
+                                        "when": {
+                                          "type": "string"
+                                        }
+                                      }
+                                    },
+                                    "warn": {
+                                      "type": "object",
+                                      "properties": {
+                                        "message": {
+                                          "type": "string"
+                                        },
+                                        "uri": {
+                                          "type": "string"
+                                        },
+                                        "when": {
+                                          "type": "string"
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                              },
+                              "strict": {
+                                "type": "string"
+                              }
+                            }
+                          },
+                          "hostServices": {
+                            "type": "object",
+                            "required": [
+                              "outcomes"
+                            ],
+                            "properties": {
+                              "checkName": {
+                                "type": "string"
+                              },
+                              "exclude": {
+                                "type": "string"
+                              },
+                              "outcomes": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "fail": {
+                                      "type": "object",
+                                      "properties": {
+                                        "message": {
+                                          "type": "string"
+                                        },
+                                        "uri": {
+                                          "type": "string"
+                                        },
+                                        "when": {
+                                          "type": "string"
+                                        }
+                                      }
+                                    },
+                                    "pass": {
+                                      "type": "object",
+                                      "properties": {
+                                        "message": {
+                                          "type": "string"
+                                        },
+                                        "uri": {
+                                          "type": "string"
+                                        },
+                                        "when": {
+                                          "type": "string"
+                                        }
+                                      }
+                                    },
+                                    "warn": {
+                                      "type": "object",
+                                      "properties": {
+                                        "message": {
+                                          "type": "string"
+                                        },
+                                        "uri": {
+                                          "type": "string"
+                                        },
+                                        "when": {
+                                          "type": "string"
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                              },
+                              "strict": {
+                                "type": "string"
+                              }
+                            }
+                          },
+                          "http": {
+                            "type": "object",
+                            "required": [
+                              "outcomes"
+                            ],
+                            "properties": {
+                              "checkName": {
+                                "type": "string"
+                              },
+                              "collectorName": {
+                                "type": "string"
+                              },
+                              "exclude": {
+                                "type": "string"
+                              },
+                              "outcomes": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "fail": {
+                                      "type": "object",
+                                      "properties": {
+                                        "message": {
+                                          "type": "string"
+                                        },
+                                        "uri": {
+                                          "type": "string"
+                                        },
+                                        "when": {
+                                          "type": "string"
+                                        }
+                                      }
+                                    },
+                                    "pass": {
+                                      "type": "object",
+                                      "properties": {
+                                        "message": {
+                                          "type": "string"
+                                        },
+                                        "uri": {
+                                          "type": "string"
+                                        },
+                                        "when": {
+                                          "type": "string"
+                                        }
+                                      }
+                                    },
+                                    "warn": {
+                                      "type": "object",
+                                      "properties": {
+                                        "message": {
+                                          "type": "string"
+                                        },
+                                        "uri": {
+                                          "type": "string"
+                                        },
+                                        "when": {
+                                          "type": "string"
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                              },
+                              "strict": {
+                                "type": "string"
+                              }
+                            }
+                          },
+                          "httpLoadBalancer": {
+                            "type": "object",
+                            "required": [
+                              "outcomes"
+                            ],
+                            "properties": {
+                              "checkName": {
+                                "type": "string"
+                              },
+                              "collectorName": {
+                                "type": "string"
+                              },
+                              "exclude": {
+                                "type": "string"
+                              },
+                              "outcomes": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "fail": {
+                                      "type": "object",
+                                      "properties": {
+                                        "message": {
+                                          "type": "string"
+                                        },
+                                        "uri": {
+                                          "type": "string"
+                                        },
+                                        "when": {
+                                          "type": "string"
+                                        }
+                                      }
+                                    },
+                                    "pass": {
+                                      "type": "object",
+                                      "properties": {
+                                        "message": {
+                                          "type": "string"
+                                        },
+                                        "uri": {
+                                          "type": "string"
+                                        },
+                                        "when": {
+                                          "type": "string"
+                                        }
+                                      }
+                                    },
+                                    "warn": {
+                                      "type": "object",
+                                      "properties": {
+                                        "message": {
+                                          "type": "string"
+                                        },
+                                        "uri": {
+                                          "type": "string"
+                                        },
+                                        "when": {
+                                          "type": "string"
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                              },
+                              "strict": {
+                                "type": "string"
+                              }
+                            }
+                          },
+                          "ipv4Interfaces": {
+                            "type": "object",
+                            "required": [
+                              "outcomes"
+                            ],
+                            "properties": {
+                              "checkName": {
+                                "type": "string"
+                              },
+                              "exclude": {
+                                "type": "string"
+                              },
+                              "outcomes": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "fail": {
+                                      "type": "object",
+                                      "properties": {
+                                        "message": {
+                                          "type": "string"
+                                        },
+                                        "uri": {
+                                          "type": "string"
+                                        },
+                                        "when": {
+                                          "type": "string"
+                                        }
+                                      }
+                                    },
+                                    "pass": {
+                                      "type": "object",
+                                      "properties": {
+                                        "message": {
+                                          "type": "string"
+                                        },
+                                        "uri": {
+                                          "type": "string"
+                                        },
+                                        "when": {
+                                          "type": "string"
+                                        }
+                                      }
+                                    },
+                                    "warn": {
+                                      "type": "object",
+                                      "properties": {
+                                        "message": {
+                                          "type": "string"
+                                        },
+                                        "uri": {
+                                          "type": "string"
+                                        },
+                                        "when": {
+                                          "type": "string"
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                              },
+                              "strict": {
+                                "type": "string"
+                              }
+                            }
+                          },
+                          "kernelModules": {
+                            "type": "object",
+                            "required": [
+                              "outcomes"
+                            ],
+                            "properties": {
+                              "checkName": {
+                                "type": "string"
+                              },
+                              "exclude": {
+                                "type": "string"
+                              },
+                              "outcomes": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "fail": {
+                                      "type": "object",
+                                      "properties": {
+                                        "message": {
+                                          "type": "string"
+                                        },
+                                        "uri": {
+                                          "type": "string"
+                                        },
+                                        "when": {
+                                          "type": "string"
+                                        }
+                                      }
+                                    },
+                                    "pass": {
+                                      "type": "object",
+                                      "properties": {
+                                        "message": {
+                                          "type": "string"
+                                        },
+                                        "uri": {
+                                          "type": "string"
+                                        },
+                                        "when": {
+                                          "type": "string"
+                                        }
+                                      }
+                                    },
+                                    "warn": {
+                                      "type": "object",
+                                      "properties": {
+                                        "message": {
+                                          "type": "string"
+                                        },
+                                        "uri": {
+                                          "type": "string"
+                                        },
+                                        "when": {
+                                          "type": "string"
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                              },
+                              "strict": {
+                                "type": "string"
+                              }
+                            }
+                          },
+                          "memory": {
+                            "type": "object",
+                            "required": [
+                              "outcomes"
+                            ],
+                            "properties": {
+                              "checkName": {
+                                "type": "string"
+                              },
+                              "exclude": {
+                                "type": "string"
+                              },
+                              "outcomes": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "fail": {
+                                      "type": "object",
+                                      "properties": {
+                                        "message": {
+                                          "type": "string"
+                                        },
+                                        "uri": {
+                                          "type": "string"
+                                        },
+                                        "when": {
+                                          "type": "string"
+                                        }
+                                      }
+                                    },
+                                    "pass": {
+                                      "type": "object",
+                                      "properties": {
+                                        "message": {
+                                          "type": "string"
+                                        },
+                                        "uri": {
+                                          "type": "string"
+                                        },
+                                        "when": {
+                                          "type": "string"
+                                        }
+                                      }
+                                    },
+                                    "warn": {
+                                      "type": "object",
+                                      "properties": {
+                                        "message": {
+                                          "type": "string"
+                                        },
+                                        "uri": {
+                                          "type": "string"
+                                        },
+                                        "when": {
+                                          "type": "string"
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                              },
+                              "strict": {
+                                "type": "string"
+                              }
+                            }
+                          },
+                          "systemPackages": {
+                            "type": "object",
+                            "required": [
+                              "outcomes"
+                            ],
+                            "properties": {
+                              "checkName": {
+                                "type": "string"
+                              },
+                              "collectorName": {
+                                "type": "string"
+                              },
+                              "exclude": {
+                                "type": "string"
+                              },
+                              "outcomes": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "fail": {
+                                      "type": "object",
+                                      "properties": {
+                                        "message": {
+                                          "type": "string"
+                                        },
+                                        "uri": {
+                                          "type": "string"
+                                        },
+                                        "when": {
+                                          "type": "string"
+                                        }
+                                      }
+                                    },
+                                    "pass": {
+                                      "type": "object",
+                                      "properties": {
+                                        "message": {
+                                          "type": "string"
+                                        },
+                                        "uri": {
+                                          "type": "string"
+                                        },
+                                        "when": {
+                                          "type": "string"
+                                        }
+                                      }
+                                    },
+                                    "warn": {
+                                      "type": "object",
+                                      "properties": {
+                                        "message": {
+                                          "type": "string"
+                                        },
+                                        "uri": {
+                                          "type": "string"
+                                        },
+                                        "when": {
+                                          "type": "string"
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                              },
+                              "strict": {
+                                "type": "string"
+                              }
+                            }
+                          },
+                          "tcpConnect": {
+                            "type": "object",
+                            "required": [
+                              "outcomes"
+                            ],
+                            "properties": {
+                              "checkName": {
+                                "type": "string"
+                              },
+                              "collectorName": {
+                                "type": "string"
+                              },
+                              "exclude": {
+                                "type": "string"
+                              },
+                              "outcomes": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "fail": {
+                                      "type": "object",
+                                      "properties": {
+                                        "message": {
+                                          "type": "string"
+                                        },
+                                        "uri": {
+                                          "type": "string"
+                                        },
+                                        "when": {
+                                          "type": "string"
+                                        }
+                                      }
+                                    },
+                                    "pass": {
+                                      "type": "object",
+                                      "properties": {
+                                        "message": {
+                                          "type": "string"
+                                        },
+                                        "uri": {
+                                          "type": "string"
+                                        },
+                                        "when": {
+                                          "type": "string"
+                                        }
+                                      }
+                                    },
+                                    "warn": {
+                                      "type": "object",
+                                      "properties": {
+                                        "message": {
+                                          "type": "string"
+                                        },
+                                        "uri": {
+                                          "type": "string"
+                                        },
+                                        "when": {
+                                          "type": "string"
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                              },
+                              "strict": {
+                                "type": "string"
+                              }
+                            }
+                          },
+                          "tcpLoadBalancer": {
+                            "type": "object",
+                            "required": [
+                              "outcomes"
+                            ],
+                            "properties": {
+                              "checkName": {
+                                "type": "string"
+                              },
+                              "collectorName": {
+                                "type": "string"
+                              },
+                              "exclude": {
+                                "type": "string"
+                              },
+                              "outcomes": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "fail": {
+                                      "type": "object",
+                                      "properties": {
+                                        "message": {
+                                          "type": "string"
+                                        },
+                                        "uri": {
+                                          "type": "string"
+                                        },
+                                        "when": {
+                                          "type": "string"
+                                        }
+                                      }
+                                    },
+                                    "pass": {
+                                      "type": "object",
+                                      "properties": {
+                                        "message": {
+                                          "type": "string"
+                                        },
+                                        "uri": {
+                                          "type": "string"
+                                        },
+                                        "when": {
+                                          "type": "string"
+                                        }
+                                      }
+                                    },
+                                    "warn": {
+                                      "type": "object",
+                                      "properties": {
+                                        "message": {
+                                          "type": "string"
+                                        },
+                                        "uri": {
+                                          "type": "string"
+                                        },
+                                        "when": {
+                                          "type": "string"
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                              },
+                              "strict": {
+                                "type": "string"
+                              }
+                            }
+                          },
+                          "tcpPortStatus": {
+                            "type": "object",
+                            "required": [
+                              "outcomes"
+                            ],
+                            "properties": {
+                              "checkName": {
+                                "type": "string"
+                              },
+                              "collectorName": {
+                                "type": "string"
+                              },
+                              "exclude": {
+                                "type": "string"
+                              },
+                              "outcomes": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "fail": {
+                                      "type": "object",
+                                      "properties": {
+                                        "message": {
+                                          "type": "string"
+                                        },
+                                        "uri": {
+                                          "type": "string"
+                                        },
+                                        "when": {
+                                          "type": "string"
+                                        }
+                                      }
+                                    },
+                                    "pass": {
+                                      "type": "object",
+                                      "properties": {
+                                        "message": {
+                                          "type": "string"
+                                        },
+                                        "uri": {
+                                          "type": "string"
+                                        },
+                                        "when": {
+                                          "type": "string"
+                                        }
+                                      }
+                                    },
+                                    "warn": {
+                                      "type": "object",
+                                      "properties": {
+                                        "message": {
+                                          "type": "string"
+                                        },
+                                        "uri": {
+                                          "type": "string"
+                                        },
+                                        "when": {
+                                          "type": "string"
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                              },
+                              "strict": {
+                                "type": "string"
+                              }
+                            }
+                          },
+                          "time": {
+                            "type": "object",
+                            "required": [
+                              "outcomes"
+                            ],
+                            "properties": {
+                              "checkName": {
+                                "type": "string"
+                              },
+                              "exclude": {
+                                "type": "string"
+                              },
+                              "outcomes": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "fail": {
+                                      "type": "object",
+                                      "properties": {
+                                        "message": {
+                                          "type": "string"
+                                        },
+                                        "uri": {
+                                          "type": "string"
+                                        },
+                                        "when": {
+                                          "type": "string"
+                                        }
+                                      }
+                                    },
+                                    "pass": {
+                                      "type": "object",
+                                      "properties": {
+                                        "message": {
+                                          "type": "string"
+                                        },
+                                        "uri": {
+                                          "type": "string"
+                                        },
+                                        "when": {
+                                          "type": "string"
+                                        }
+                                      }
+                                    },
+                                    "warn": {
+                                      "type": "object",
+                                      "properties": {
+                                        "message": {
+                                          "type": "string"
+                                        },
+                                        "uri": {
+                                          "type": "string"
+                                        },
+                                        "when": {
+                                          "type": "string"
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                              },
+                              "strict": {
+                                "type": "string"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "collectors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "blockDevices": {
+                            "type": "object",
+                            "properties": {
+                              "collectorName": {
+                                "type": "string"
+                              },
+                              "exclude": {
+                                "type": "string"
+                              }
+                            }
+                          },
+                          "certificate": {
+                            "type": "object",
+                            "required": [
+                              "certificatePath",
+                              "keyPath"
+                            ],
+                            "properties": {
+                              "certificatePath": {
+                                "type": "string"
+                              },
+                              "collectorName": {
+                                "type": "string"
+                              },
+                              "exclude": {
+                                "type": "string"
+                              },
+                              "keyPath": {
+                                "type": "string"
+                              }
+                            }
+                          },
+                          "cpu": {
+                            "type": "object",
+                            "properties": {
+                              "collectorName": {
+                                "type": "string"
+                              },
+                              "exclude": {
+                                "type": "string"
+                              }
+                            }
+                          },
+                          "diskUsage": {
+                            "type": "object",
+                            "required": [
+                              "path"
+                            ],
+                            "properties": {
+                              "collectorName": {
+                                "type": "string"
+                              },
+                              "exclude": {
+                                "type": "string"
+                              },
+                              "path": {
+                                "type": "string"
+                              }
+                            }
+                          },
+                          "filesystemPerformance": {
+                            "description": "FilesystemPerformance benchmarks sequential write latency on a single file. The optional background IOPS feature attempts to mimic real-world conditions by running read and write workloads prior to and during benchmark execution.",
+                            "type": "object",
+                            "required": [
+                              "backgroundIOPSWarmupSeconds",
+                              "backgroundReadIOPS",
+                              "backgroundReadIOPSJobs",
+                              "backgroundWriteIOPS",
+                              "backgroundWriteIOPSJobs",
+                              "enableBackgroundIOPS"
+                            ],
+                            "properties": {
+                              "backgroundIOPSWarmupSeconds": {
+                                "description": "How long to run the background IOPS read and write workloads prior to starting the benchmarks.",
+                                "type": "integer"
+                              },
+                              "backgroundReadIOPS": {
+                                "description": "The target read IOPS to run while benchmarking. This is a limit and there is no guarantee it will be reached. This is the total IOPS for all background read jobs.",
+                                "type": "integer"
+                              },
+                              "backgroundReadIOPSJobs": {
+                                "description": "Number of threads to use for background read IOPS. This should be set high enough to reach the target specified in BackgrounReadIOPS.",
+                                "type": "integer"
+                              },
+                              "backgroundWriteIOPS": {
+                                "description": "The target write IOPS to run while benchmarking. This is a limit and there is no guarantee it will be reached. This is the total IOPS for all background write jobs.",
+                                "type": "integer"
+                              },
+                              "backgroundWriteIOPSJobs": {
+                                "description": "Number of threads to use for background write IOPS. This should be set high enough to reach the target specified in BackgroundWriteIOPS. Example: If BackgroundWriteIOPS is 100 and write latency is 10ms then a single job would barely be able to reach 100 IOPS so this should be at least 2.",
+                                "type": "integer"
+                              },
+                              "collectorName": {
+                                "type": "string"
+                              },
+                              "datasync": {
+                                "description": "Whether to call datasync on the file after each write. Skipped if Sync is also true. Does not apply to background IOPS task.",
+                                "type": "boolean"
+                              },
+                              "directory": {
+                                "description": "The directory where the benchmark will create files.",
+                                "type": "string"
+                              },
+                              "enableBackgroundIOPS": {
+                                "description": "Enable the background IOPS feature.",
+                                "type": "boolean"
+                              },
+                              "exclude": {
+                                "type": "string"
+                              },
+                              "fileSize": {
+                                "description": "The size of the file used in the benchmark. The number of IO operations for the benchmark will be FileSize / OperationSizeBytes. Accepts valid Kubernetes resource units such as Mi.",
+                                "type": "string"
+                              },
+                              "operationSize": {
+                                "description": "The size of each write operation performed while benchmarking. This does not apply to the background IOPS feature if enabled, since those must be fixed at 4096.",
+                                "type": "integer",
+                                "format": "int64"
+                              },
+                              "sync": {
+                                "description": "Whether to call sync on the file after each write. Does not apply to background IOPS task.",
+                                "type": "boolean"
+                              },
+                              "timeout": {
+                                "description": "Total timeout, including background IOPS setup and warmup if enabled.",
+                                "type": "string"
+                              }
+                            }
+                          },
+                          "hostOS": {
+                            "type": "object",
+                            "properties": {
+                              "collectorName": {
+                                "type": "string"
+                              },
+                              "exclude": {
+                                "type": "string"
+                              }
+                            }
+                          },
+                          "hostServices": {
+                            "type": "object",
+                            "properties": {
+                              "collectorName": {
+                                "type": "string"
+                              },
+                              "exclude": {
+                                "type": "string"
+                              }
+                            }
+                          },
+                          "http": {
+                            "type": "object",
+                            "properties": {
+                              "collectorName": {
+                                "type": "string"
+                              },
+                              "exclude": {
+                                "type": "string"
+                              },
+                              "get": {
+                                "type": "object",
+                                "required": [
+                                  "url"
+                                ],
+                                "properties": {
+                                  "headers": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "insecureSkipVerify": {
+                                    "type": "boolean"
+                                  },
+                                  "url": {
+                                    "type": "string"
+                                  }
+                                }
+                              },
+                              "post": {
+                                "type": "object",
+                                "required": [
+                                  "url"
+                                ],
+                                "properties": {
+                                  "body": {
+                                    "type": "string"
+                                  },
+                                  "headers": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "insecureSkipVerify": {
+                                    "type": "boolean"
+                                  },
+                                  "url": {
+                                    "type": "string"
+                                  }
+                                }
+                              },
+                              "put": {
+                                "type": "object",
+                                "required": [
+                                  "url"
+                                ],
+                                "properties": {
+                                  "body": {
+                                    "type": "string"
+                                  },
+                                  "headers": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "insecureSkipVerify": {
+                                    "type": "boolean"
+                                  },
+                                  "url": {
+                                    "type": "string"
+                                  }
+                                }
+                              }
+                            }
+                          },
+                          "httpLoadBalancer": {
+                            "type": "object",
+                            "required": [
+                              "address",
+                              "path",
+                              "port"
+                            ],
+                            "properties": {
+                              "address": {
+                                "type": "string"
+                              },
+                              "collectorName": {
+                                "type": "string"
+                              },
+                              "exclude": {
+                                "type": "string"
+                              },
+                              "path": {
+                                "type": "string"
+                              },
+                              "port": {
+                                "type": "integer"
+                              },
+                              "timeout": {
+                                "type": "string"
+                              }
+                            }
+                          },
+                          "ipv4Interfaces": {
+                            "type": "object",
+                            "properties": {
+                              "collectorName": {
+                                "type": "string"
+                              },
+                              "exclude": {
+                                "type": "string"
+                              }
+                            }
+                          },
+                          "kernelModules": {
+                            "type": "object",
+                            "properties": {
+                              "collectorName": {
+                                "type": "string"
+                              },
+                              "exclude": {
+                                "type": "string"
+                              }
+                            }
+                          },
+                          "kubernetes": {
+                            "type": "object",
+                            "properties": {
+                              "collectorName": {
+                                "type": "string"
+                              },
+                              "exclude": {
+                                "type": "string"
+                              }
+                            }
+                          },
+                          "memory": {
+                            "type": "object",
+                            "properties": {
+                              "collectorName": {
+                                "type": "string"
+                              },
+                              "exclude": {
+                                "type": "string"
+                              }
+                            }
+                          },
+                          "systemPackages": {
+                            "type": "object",
+                            "properties": {
+                              "amzn": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string"
+                                }
+                              },
+                              "amzn2": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string"
+                                }
+                              },
+                              "centos": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string"
+                                }
+                              },
+                              "centos7": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string"
+                                }
+                              },
+                              "centos8": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string"
+                                }
+                              },
+                              "collectorName": {
+                                "type": "string"
+                              },
+                              "exclude": {
+                                "type": "string"
+                              },
+                              "ol": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string"
+                                }
+                              },
+                              "ol7": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string"
+                                }
+                              },
+                              "ol8": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string"
+                                }
+                              },
+                              "rhel": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string"
+                                }
+                              },
+                              "rhel7": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string"
+                                }
+                              },
+                              "rhel8": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string"
+                                }
+                              },
+                              "ubuntu": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string"
+                                }
+                              },
+                              "ubuntu16": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string"
+                                }
+                              },
+                              "ubuntu18": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string"
+                                }
+                              },
+                              "ubuntu20": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string"
+                                }
+                              }
+                            }
+                          },
+                          "tcpConnect": {
+                            "type": "object",
+                            "required": [
+                              "address"
+                            ],
+                            "properties": {
+                              "address": {
+                                "type": "string"
+                              },
+                              "collectorName": {
+                                "type": "string"
+                              },
+                              "exclude": {
+                                "type": "string"
+                              },
+                              "timeout": {
+                                "type": "string"
+                              }
+                            }
+                          },
+                          "tcpLoadBalancer": {
+                            "type": "object",
+                            "required": [
+                              "address",
+                              "port"
+                            ],
+                            "properties": {
+                              "address": {
+                                "type": "string"
+                              },
+                              "collectorName": {
+                                "type": "string"
+                              },
+                              "exclude": {
+                                "type": "string"
+                              },
+                              "port": {
+                                "type": "integer"
+                              },
+                              "timeout": {
+                                "type": "string"
+                              }
+                            }
+                          },
+                          "tcpPortStatus": {
+                            "type": "object",
+                            "required": [
+                              "port"
+                            ],
+                            "properties": {
+                              "collectorName": {
+                                "type": "string"
+                              },
+                              "exclude": {
+                                "type": "string"
+                              },
+                              "interface": {
+                                "type": "string"
+                              },
+                              "port": {
+                                "type": "integer"
+                              }
+                            }
+                          },
+                          "time": {
+                            "type": "object",
+                            "properties": {
+                              "collectorName": {
+                                "type": "string"
+                              },
+                              "exclude": {
+                                "type": "string"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "remoteCollectors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "blockDevices": {
+                            "type": "object",
+                            "properties": {
+                              "collectorName": {
+                                "type": "string"
+                              },
+                              "exclude": {
+                                "type": "string"
+                              }
+                            }
+                          },
+                          "certificate": {
+                            "type": "object",
+                            "required": [
+                              "certificatePath",
+                              "keyPath"
+                            ],
+                            "properties": {
+                              "certificatePath": {
+                                "type": "string"
+                              },
+                              "collectorName": {
+                                "type": "string"
+                              },
+                              "exclude": {
+                                "type": "string"
+                              },
+                              "keyPath": {
+                                "type": "string"
+                              }
+                            }
+                          },
+                          "cpu": {
+                            "type": "object",
+                            "properties": {
+                              "collectorName": {
+                                "type": "string"
+                              },
+                              "exclude": {
+                                "type": "string"
+                              }
+                            }
+                          },
+                          "diskUsage": {
+                            "type": "object",
+                            "required": [
+                              "path"
+                            ],
+                            "properties": {
+                              "collectorName": {
+                                "type": "string"
+                              },
+                              "exclude": {
+                                "type": "string"
+                              },
+                              "path": {
+                                "type": "string"
+                              }
+                            }
+                          },
+                          "filesystemPerformance": {
+                            "description": "RemoteFilesystemPerformance benchmarks sequential write latency on a single file. The optional background IOPS feature attempts to mimic real-world conditions by running read and write workloads prior to and during benchmark execution.",
+                            "type": "object",
+                            "required": [
+                              "backgroundIOPSWarmupSeconds",
+                              "backgroundReadIOPS",
+                              "backgroundReadIOPSJobs",
+                              "backgroundWriteIOPS",
+                              "backgroundWriteIOPSJobs",
+                              "enableBackgroundIOPS"
+                            ],
+                            "properties": {
+                              "backgroundIOPSWarmupSeconds": {
+                                "description": "How long to run the background IOPS read and write workloads prior to starting the benchmarks.",
+                                "type": "integer"
+                              },
+                              "backgroundReadIOPS": {
+                                "description": "The target read IOPS to run while benchmarking. This is a limit and there is no guarantee it will be reached. This is the total IOPS for all background read jobs.",
+                                "type": "integer"
+                              },
+                              "backgroundReadIOPSJobs": {
+                                "description": "Number of threads to use for background read IOPS. This should be set high enough to reach the target specified in BackgrounReadIOPS.",
+                                "type": "integer"
+                              },
+                              "backgroundWriteIOPS": {
+                                "description": "The target write IOPS to run while benchmarking. This is a limit and there is no guarantee it will be reached. This is the total IOPS for all background write jobs.",
+                                "type": "integer"
+                              },
+                              "backgroundWriteIOPSJobs": {
+                                "description": "Number of threads to use for background write IOPS. This should be set high enough to reach the target specified in BackgroundWriteIOPS. Example: If BackgroundWriteIOPS is 100 and write latency is 10ms then a single job would barely be able to reach 100 IOPS so this should be at least 2.",
+                                "type": "integer"
+                              },
+                              "collectorName": {
+                                "type": "string"
+                              },
+                              "datasync": {
+                                "description": "Whether to call datasync on the file after each write. Skipped if Sync is also true. Does not apply to background IOPS task.",
+                                "type": "boolean"
+                              },
+                              "directory": {
+                                "description": "The directory where the benchmark will create files.",
+                                "type": "string"
+                              },
+                              "enableBackgroundIOPS": {
+                                "description": "Enable the background IOPS feature.",
+                                "type": "boolean"
+                              },
+                              "exclude": {
+                                "type": "string"
+                              },
+                              "fileSize": {
+                                "description": "The size of the file used in the benchmark. The number of IO operations for the benchmark will be FileSize / OperationSizeBytes. Accepts valid Kubernetes resource units such as Mi.",
+                                "type": "string"
+                              },
+                              "operationSize": {
+                                "description": "The size of each write operation performed while benchmarking. This does not apply to the background IOPS feature if enabled, since those must be fixed at 4096.",
+                                "type": "integer",
+                                "format": "int64"
+                              },
+                              "sync": {
+                                "description": "Whether to call sync on the file after each write. Does not apply to background IOPS task.",
+                                "type": "boolean"
+                              },
+                              "timeout": {
+                                "description": "Total timeout, including background IOPS setup and warmup if enabled.",
+                                "type": "string"
+                              }
+                            }
+                          },
+                          "hostServices": {
+                            "type": "object",
+                            "properties": {
+                              "collectorName": {
+                                "type": "string"
+                              },
+                              "exclude": {
+                                "type": "string"
+                              }
+                            }
+                          },
+                          "http": {
+                            "type": "object",
+                            "properties": {
+                              "collectorName": {
+                                "type": "string"
+                              },
+                              "exclude": {
+                                "type": "string"
+                              },
+                              "get": {
+                                "type": "object",
+                                "required": [
+                                  "url"
+                                ],
+                                "properties": {
+                                  "headers": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "insecureSkipVerify": {
+                                    "type": "boolean"
+                                  },
+                                  "url": {
+                                    "type": "string"
+                                  }
+                                }
+                              },
+                              "post": {
+                                "type": "object",
+                                "required": [
+                                  "url"
+                                ],
+                                "properties": {
+                                  "body": {
+                                    "type": "string"
+                                  },
+                                  "headers": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "insecureSkipVerify": {
+                                    "type": "boolean"
+                                  },
+                                  "url": {
+                                    "type": "string"
+                                  }
+                                }
+                              },
+                              "put": {
+                                "type": "object",
+                                "required": [
+                                  "url"
+                                ],
+                                "properties": {
+                                  "body": {
+                                    "type": "string"
+                                  },
+                                  "headers": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "insecureSkipVerify": {
+                                    "type": "boolean"
+                                  },
+                                  "url": {
+                                    "type": "string"
+                                  }
+                                }
+                              }
+                            }
+                          },
+                          "httpLoadBalancer": {
+                            "type": "object",
+                            "required": [
+                              "address",
+                              "path",
+                              "port"
+                            ],
+                            "properties": {
+                              "address": {
+                                "type": "string"
+                              },
+                              "collectorName": {
+                                "type": "string"
+                              },
+                              "exclude": {
+                                "type": "string"
+                              },
+                              "path": {
+                                "type": "string"
+                              },
+                              "port": {
+                                "type": "integer"
+                              },
+                              "timeout": {
+                                "type": "string"
+                              }
+                            }
+                          },
+                          "ipv4Interfaces": {
+                            "type": "object",
+                            "properties": {
+                              "collectorName": {
+                                "type": "string"
+                              },
+                              "exclude": {
+                                "type": "string"
+                              }
+                            }
+                          },
+                          "kernelModules": {
+                            "type": "object",
+                            "properties": {
+                              "collectorName": {
+                                "type": "string"
+                              },
+                              "exclude": {
+                                "type": "string"
+                              }
+                            }
+                          },
+                          "memory": {
+                            "type": "object",
+                            "properties": {
+                              "collectorName": {
+                                "type": "string"
+                              },
+                              "exclude": {
+                                "type": "string"
+                              }
+                            }
+                          },
+                          "systemPackages": {
+                            "type": "object",
+                            "properties": {
+                              "collectorName": {
+                                "type": "string"
+                              },
+                              "exclude": {
+                                "type": "string"
+                              }
+                            }
+                          },
+                          "tcpConnect": {
+                            "type": "object",
+                            "required": [
+                              "address"
+                            ],
+                            "properties": {
+                              "address": {
+                                "type": "string"
+                              },
+                              "collectorName": {
+                                "type": "string"
+                              },
+                              "exclude": {
+                                "type": "string"
+                              },
+                              "timeout": {
+                                "type": "string"
+                              }
+                            }
+                          },
+                          "tcpLoadBalancer": {
+                            "type": "object",
+                            "required": [
+                              "address",
+                              "port"
+                            ],
+                            "properties": {
+                              "address": {
+                                "type": "string"
+                              },
+                              "collectorName": {
+                                "type": "string"
+                              },
+                              "exclude": {
+                                "type": "string"
+                              },
+                              "port": {
+                                "type": "integer"
+                              },
+                              "timeout": {
+                                "type": "string"
+                              }
+                            }
+                          },
+                          "tcpPortStatus": {
+                            "type": "object",
+                            "required": [
+                              "port"
+                            ],
+                            "properties": {
+                              "collectorName": {
+                                "type": "string"
+                              },
+                              "exclude": {
+                                "type": "string"
+                              },
+                              "interface": {
+                                "type": "string"
+                              },
+                              "port": {
+                                "type": "integer"
+                              }
+                            }
+                          },
+                          "time": {
+                            "type": "object",
+                            "properties": {
+                              "collectorName": {
+                                "type": "string"
+                              },
+                              "exclude": {
+                                "type": "string"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "status": {
+                  "description": "HostPreflightStatus defines the observed state of HostPreflight",
+                  "type": "object"
+                }
+              }
+            },
+            "hostnameCheck": {
+              "type": "string"
+            },
+            "ignoreRemoteLoadImagesPrompt": {
+              "type": "boolean"
+            },
+            "ignoreRemoteUpgradePrompt": {
+              "type": "boolean"
+            },
+            "installerVersion": {
+              "type": "string"
+            },
+            "ipv6": {
+              "type": "boolean"
+            },
+            "licenseURL": {
+              "type": "string"
+            },
+            "nameserver": {
+              "type": "string"
+            },
+            "noProxy": {
+              "type": "boolean"
+            },
+            "privateAddress": {
+              "type": "string"
+            },
+            "proxyAddress": {
+              "type": "string"
+            },
+            "publicAddress": {
+              "type": "string"
+            },
+            "skipSystemPackageInstall": {
+              "type": "boolean"
+            }
+          }
+        },
+        "longhorn": {
+          "type": "object",
+          "required": [
+            "version"
+          ],
+          "properties": {
+            "s3Override": {
+              "type": "string"
+            },
+            "storageOverProvisioningPercentage": {
+              "type": "integer"
+            },
+            "uiBindPort": {
+              "type": "integer"
+            },
+            "uiReplicaCount": {
+              "type": "integer"
+            },
+            "version": {
+              "type": "string"
+            }
+          }
+        },
+        "metricsServer": {
+          "type": "object",
+          "required": [
+            "version"
+          ],
+          "properties": {
+            "s3Override": {
+              "type": "string"
+            },
+            "version": {
+              "type": "string"
+            }
+          }
+        },
+        "minio": {
+          "type": "object",
+          "required": [
+            "version"
+          ],
+          "properties": {
+            "claimSize": {
+              "type": "string"
+            },
+            "hostPath": {
+              "type": "string"
+            },
+            "namespace": {
+              "type": "string"
+            },
+            "s3Override": {
+              "type": "string"
+            },
+            "version": {
+              "type": "string"
+            }
+          }
+        },
+        "openebs": {
+          "type": "object",
+          "required": [
+            "version"
+          ],
+          "properties": {
+            "cstorStorageClassName": {
+              "type": "string"
+            },
+            "isCstorEnabled": {
+              "type": "boolean"
+            },
+            "isLocalPVEnabled": {
+              "type": "boolean"
+            },
+            "localPVStorageClassName": {
+              "type": "string"
+            },
+            "namespace": {
+              "type": "string"
+            },
+            "s3Override": {
+              "type": "string"
+            },
+            "version": {
+              "type": "string"
+            }
+          }
+        },
+        "prometheus": {
+          "type": "object",
+          "required": [
+            "version"
+          ],
+          "properties": {
+            "s3Override": {
+              "type": "string"
+            },
+            "serviceType": {
+              "type": "string"
+            },
+            "version": {
+              "type": "string"
+            }
+          }
+        },
+        "registry": {
+          "type": "object",
+          "required": [
+            "version"
+          ],
+          "properties": {
+            "publishPort": {
+              "type": "integer"
+            },
+            "s3Override": {
+              "type": "string"
+            },
+            "version": {
+              "type": "string"
+            }
+          }
+        },
+        "rke2": {
+          "type": "object",
+          "required": [
+            "version"
+          ],
+          "properties": {
+            "version": {
+              "type": "string"
+            }
+          }
+        },
+        "rook": {
+          "type": "object",
+          "required": [
+            "version"
+          ],
+          "properties": {
+            "blockDeviceFilter": {
+              "type": "string"
+            },
+            "bypassUpgradeWarning": {
+              "type": "boolean"
+            },
+            "cephReplicaCount": {
+              "type": "integer"
+            },
+            "hostpathRequiresPrivileged": {
+              "type": "boolean"
+            },
+            "isBlockStorageEnabled": {
+              "type": "boolean"
+            },
+            "isSharedFilesystemDisabled": {
+              "type": "boolean"
+            },
+            "s3Override": {
+              "type": "string"
+            },
+            "storageClassName": {
+              "type": "string"
+            },
+            "version": {
+              "type": "string"
+            }
+          }
+        },
+        "selinuxConfig": {
+          "type": "object",
+          "properties": {
+            "chconCmds": {
+              "type": "array",
+              "items": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "disableSelinux": {
+              "type": "boolean"
+            },
+            "preserveConfig": {
+              "type": "boolean"
+            },
+            "selinux": {
+              "type": "string"
+            },
+            "semanageCmds": {
+              "type": "array",
+              "items": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "type": {
+              "type": "string"
+            }
+          }
+        },
+        "sonobuoy": {
+          "type": "object",
+          "required": [
+            "version"
+          ],
+          "properties": {
+            "s3Override": {
+              "type": "string"
+            },
+            "version": {
+              "type": "string"
+            }
+          }
+        },
+        "ufwConfig": {
+          "type": "object",
+          "properties": {
+            "bypassUFWWarning": {
+              "type": "boolean"
+            },
+            "disableUFW": {
+              "type": "boolean"
+            },
+            "hardFailOnUFW": {
+              "type": "boolean"
+            }
+          }
+        },
+        "velero": {
+          "type": "object",
+          "required": [
+            "version"
+          ],
+          "properties": {
+            "disableCLI": {
+              "type": "boolean"
+            },
+            "disableRestic": {
+              "type": "boolean"
+            },
+            "localBucket": {
+              "type": "string"
+            },
+            "namespace": {
+              "type": "string"
+            },
+            "resticRequiresPrivileged": {
+              "type": "boolean"
+            },
+            "resticTimeout": {
+              "type": "string"
+            },
+            "s3Override": {
+              "type": "string"
+            },
+            "version": {
+              "type": "string"
+            }
+          }
+        },
+        "weave": {
+          "type": "object",
+          "required": [
+            "version"
+          ],
+          "properties": {
+            "isEncryptionDisabled": {
+              "type": "boolean"
+            },
+            "noMasqLocal": {
+              "description": "NoMasqLocal if not present defaults to true, which will expose the original client IP address in the X-Forwarded-For header.",
+              "type": "boolean"
+            },
+            "podCIDR": {
+              "type": "string"
+            },
+            "podCidrRange": {
+              "type": "string"
+            },
+            "s3Override": {
+              "type": "string"
+            },
+            "version": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "status": {
+      "description": "InstallerStatus defines the observed state of Installer",
+      "type": "object"
+    }
+  }
+}

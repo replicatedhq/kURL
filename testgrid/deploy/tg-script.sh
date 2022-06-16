@@ -73,4 +73,5 @@ docker create -ti --name dummy replicated/tgrun:latest bash
 docker cp dummy:/bin/tgrun /bin/tgrun
 docker rm -f dummy
 
+systemctl enable tgrun
 systemctl start tgrun

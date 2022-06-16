@@ -18,7 +18,7 @@ export default async function(envName: string, ssmName: string, encrypted = fals
       WithDecryption: encrypted,
     };
 
-    return await monkit.instrument("ssmClient.getParameters", async () => {
+    return await monkit.instrument({name: "ssmClient.getParameters"}, async () => {
       const result = await ssmClient.getParameters(params).promise();
       if (!result.Parameters || result.Parameters.length === 0) {
         logger.error(`Parameter ${ssmName} was not found in SSM`);

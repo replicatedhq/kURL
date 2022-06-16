@@ -26,6 +26,10 @@ type GetRunResponse struct {
 	FailureCount int64                `json:"failure_count"`
 }
 
+type GetStatusResponse struct {
+	IsSuccess bool `json:"isSuccess"`
+}
+
 func GetRun(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Headers", "content-type, origin, accept, authorization")
@@ -42,7 +46,7 @@ func GetRun(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if getRunRequest.PageSize == 0 {
-		getRunRequest.PageSize = 500
+		getRunRequest.PageSize = 1000
 	}
 
 	instances, err := testinstance.List(mux.Vars(r)["refId"], getRunRequest.PageSize, getRunRequest.CurrentPage*getRunRequest.PageSize, getRunRequest.Addons)
@@ -86,4 +90,17 @@ func GetRun(w http.ResponseWriter, r *http.Request) {
 	}
 
 	JSON(w, 200, getRunResponse)
+}
+
+func GetRunStatus(w http.ResponseWriter, r *http.Request) {
+	instanceID := mux.Vars(r)["instanceId"]
+	isSuccess, err := testinstance.GetRunStatus(instanceID)
+	if err != nil {
+		logger.Error(err)
+		JSON(w, 500, err)
+		return
+	}
+	getStatusResponse := GetStatusResponse{}
+	getStatusResponse.IsSuccess = isSuccess
+	JSON(w, 200, getStatusResponse)
 }

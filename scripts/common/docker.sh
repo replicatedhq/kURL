@@ -107,7 +107,11 @@ function uninstall_docker() {
             ;;
 
         centos|rhel|amzn|ol)
-            rpm --erase docker-ce docker-ce-cli docker-ce-rootless-extras
+            local dockerPackages=("docker-ce" "docker-ce-cli")
+            if rpm -qa | grep -q 'docker-ce-rootless-extras'; then
+                dockerPackages+=("docker-ce-rootless-extras")
+            fi
+            rpm --erase ${dockerPackages[@]}
             ;;
     esac
 
@@ -179,19 +183,6 @@ function docker_get_host_packages_online() {
         package_download "${package}"
         tar xf "$(package_filepath "${package}")"
         # rm docker-${version}.tar.gz
-    fi
-}
-
-function containerd_get_host_packages_online() {
-    local version="$1"
-
-    if [ "$AIRGAP" != "1" ] && [ -n "$DIST_URL" ]; then
-        rm -rf $DIR/packages/containerd/${version} # Cleanup broken/incompatible packages from failed runs
-
-        local package="containerd-${version}.tar.gz"
-        package_download "${package}"
-        tar xf "$(package_filepath "${package}")"
-        # rm containerd-${version}.tar.gz
     fi
 }
 

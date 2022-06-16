@@ -1,5 +1,7 @@
-- installerSpec:
-    name: hack
+- name: hack
+  numPrimaryNodes: 1
+  numSecondaryNodes: 0
+  installerSpec:
     kubernetes:
       version: "latest"
     weave:
@@ -20,6 +22,7 @@
       version: "latest"
     ekco:
       version: "latest"
+      enableInternalLoadBalancer: true # this must be present if you need to install with ha
     fluentd:
       version: "latest"
     minio:

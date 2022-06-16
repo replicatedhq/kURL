@@ -60,7 +60,7 @@ function rke2_init() {
 #     # this uses a go binary found in kurl/cmd/yamlutil to strip the metadata field from the yaml
 #     #
 #     cp $KUBEADM_CONF_FILE $KUBEADM_CONF_DIR/kubeadm_conf_copy_in
-#     $DIR/bin/yamlutil -r -fp $KUBEADM_CONF_DIR/kubeadm_conf_copy_in -yf metadata
+#     $DIR/bin/yamlutil -r -fp $KUBEADM_CONF_DIR/kubeadm_conf_copy_in -yp metadata
 #     mv $KUBEADM_CONF_DIR/kubeadm_conf_copy_in $KUBEADM_CONF_FILE
 
 #     cat << EOF >> $KUBEADM_CONF_FILE
@@ -268,6 +268,10 @@ EOF
     printf "${RED}\n\nCONTINUING AT YOUR OWN RISK....${NC}\n\n"
 }
 
+function rke2_post_init() {
+    kurl_config
+}
+
 function rke2_outro() {
     echo
     # if [ -z "$PUBLIC_ADDRESS" ]; then
@@ -404,7 +408,15 @@ function rke2_main() {
     apply_installer_crd
     kurl_init_config
     ${K8S_DISTRO}_addon_for_each addon_install
-    # post_init                          # TODO(dan): more kubeadm token setup
+
+    ${K8S_DISTRO}_registry_containerd_configure "${DOCKER_REGISTRY_IP}"
+    if [ "$CONTAINERD_NEEDS_RESTART" = "1" ]; then
+        ${K8S_DISTRO}_containerd_restart
+        spinner_kubernetes_api_healthy
+        CONTAINERD_NEEDS_RESTART=0
+    fi
+
+    rke2_post_init
     rke2_outro                           
     package_cleanup
     # report_install_success # TODO(dan) remove reporting for now.

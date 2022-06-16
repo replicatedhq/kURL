@@ -1,0 +1,8 @@
+[Unit]
+Description=Schedule kURL auto-upgrades
+
+[Timer]
+OnCalendar=$EKCO_AUTO_UPGRADE_SCHEDULE
+
+[Install]
+WantedBy=timers.target

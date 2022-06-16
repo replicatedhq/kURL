@@ -10,10 +10,22 @@ function velero_pre_init() {
     # if [ -z "$VELERO_REQUESTED_CLAIM_SIZE" ]; then
     #     VELERO_REQUESTED_CLAIM_SIZE="50Gi"
     # fi
+
+    # If someone is trying to use only Rook 1.0.4, RWX volumes are not supported
+    if [ "$ROOK_VERSION" = "1.0.4" ] && [ -z "$LONGHORN_VERSION" ] && [ "$KOTSADM_DISABLE_S3" == 1 ]; then
+        bail "Rook 1.0.4 does not support RWX volumes used for Internal snapshot storage. Please upgrade to Rook 1.4.3 or higher."
+    fi
+
+    # If someone uses OpenEBS as their primary CSI provider, bail because it doesn't support RWX volumes
+    if [ -z "$ROOK_VERSION" ] && [ -z "$LONGHORN_VERSION" ] && [ "$KOTSADM_DISABLE_S3" == 1 ]; then
+        bail "Only Rook and Longhorn are supported for Velero Internal backup storage."
+    fi
 }
 
 # runs on first install, and on version upgrades only
 function velero() {
+    velero_host_init
+
     local src="$DIR/addons/velero/$VELERO_VERSION"
     local dst="$DIR/kustomize/velero"
 
@@ -27,6 +39,8 @@ function velero() {
 
     velero_patch_restic_privilege "$src" "$dst"
 
+    velero_patch_args "$src" "$dst"
+
     velero_kotsadm_restore_config "$src" "$dst"
 
     velero_patch_http_proxy "$src" "$dst"
@@ -34,8 +48,7 @@ function velero() {
     velero_change_storageclass "$src" "$dst"
 
     # If we already migrated, or we on a new install that has the disableS3 flag set, we need a PVC attached
-    # TODO (dans): remove beta fla
-    if kubernetes_resource_exists "$VELERO_NAMESPACE" pvc velero-internal-snapshots || { [ "$KOTSADM_DISABLE_S3" == "1" ] && [ -n "$BETA_VELERO_USE_INTERNAL_PVC" ]; }; then
+    if kubernetes_resource_exists "$VELERO_NAMESPACE" pvc velero-internal-snapshots || [ "$KOTSADM_DISABLE_S3" == "1" ]; then
         velero_patch_internal_pvc_snapshots "$src" "$dst"
     fi
 
@@ -49,7 +62,7 @@ function velero() {
     kubectl label -n default --overwrite service/kubernetes velero.io/exclude-from-backup=true
 
     # Bail if the migrationn fails, preventing the original object store from being deleted
-    if velero_should_migrate_from_object_store; then
+    if velero_did_migrate_from_object_store; then
         logWarn "Velero will migrate from object store to pvc"
         try_5m velero_pvc_migrated
         logSuccess "Velero migration complete"
@@ -68,13 +81,41 @@ function velero() {
 
 function velero_join() {
     velero_binary
+    velero_host_init
+}
+
+function velero_host_init() {
+    velero_install_nfs_utils_if_missing 
+}
+
+function velero_install_nfs_utils_if_missing() {
+    local src="$DIR/addons/velero/$VELERO_VERSION"
+
+    if ! systemctl list-units | grep -q nfs-utils ; then
+        case "$LSB_DIST" in
+            ubuntu)
+                dpkg_install_host_archives "$src" nfs-common
+                ;;
+
+            centos|rhel|amzn|ol)
+                yum_install_host_archives "$src" nfs-utils
+                ;;
+        esac
+    fi
+
+    if ! systemctl -q is-active nfs-utils; then
+        systemctl start nfs-utils
+    fi
+
+    if ! systemctl -q is-enabled nfs-utils; then
+        systemctl enable nfs-utils
+    fi
 }
 
 function velero_install() {
     local src="$1"
     local dst="$2"
 
-    # TODO: remove this from the migration
     # Pre-apply CRDs since kustomize reorders resources. Grep to strip out sailboat emoji.
     "$src"/assets/velero-v"${VELERO_VERSION}"-linux-amd64/velero install --crds-only | grep -v 'Velero is installed'
 
@@ -87,19 +128,19 @@ function velero_install() {
     local bslArgs="--no-default-backup-location"
     if ! kubernetes_resource_exists "$VELERO_NAMESPACE" backupstoragelocation default; then
 
-        # TODO (dans): remove the BETA flag when this is GA
         # Only use the PVC backup location for new installs where disableS3 is set to TRUE
-        if [ -n "$BETA_VELERO_USE_INTERNAL_PVC" ] && [ "$KOTSADM_DISABLE_S3" == 1 ] ; then
+        if [ "$KOTSADM_DISABLE_S3" == 1 ] ; then
             bslArgs="--provider replicated.com/pvc --bucket velero-internal-snapshots --backup-location-config storageSize=${VELERO_PVC_SIZE},resticRepoPrefix=/var/velero-local-volume-provider/velero-internal-snapshots/restic"
-        elif object_store_bucket_exists; then
-            bslArgs="--provider aws --bucket $VELERO_LOCAL_BUCKET --backup-location-config region=us-east-1,s3Url=${OBJECT_STORE_CLUSTER_HOST},publicUrl=http://${OBJECT_STORE_CLUSTER_IP},s3ForcePathStyle=true"  
+        elif object_store_exists; then
+            local ip=$($DIR/bin/kurl format-address $OBJECT_STORE_CLUSTER_IP)
+            bslArgs="--provider aws --bucket $VELERO_LOCAL_BUCKET --backup-location-config region=us-east-1,s3Url=${OBJECT_STORE_CLUSTER_HOST},publicUrl=http://${ip},s3ForcePathStyle=true"
         fi
     fi
 
     # we need a secret file if it's already set for some other provider, OR
     # If we have object storage AND are NOT actively opting out of the existing functionality
     local secretArgs="--no-secret"
-    if kubernetes_resource_exists "$VELERO_NAMESPACE" secret cloud-credentials || { object_store_bucket_exists && ! { [ -n "$BETA_VELERO_USE_INTERNAL_PVC" ] && [ "$KOTSADM_DISABLE_S3" == 1 ]; }; }; then
+    if kubernetes_resource_exists "$VELERO_NAMESPACE" secret cloud-credentials || { object_store_exists && ! [ "$KOTSADM_DISABLE_S3" == 1 ]; }; then
         velero_credentials
         secretArgs="--secret-file velero-credentials"
     fi
@@ -124,7 +165,7 @@ function velero_already_applied() {
     # If we need to migrate, we're going to need to basically reconstruct the original install 
     # underneath the migration
     if velero_should_migrate_from_object_store; then
-        
+
         render_yaml_file "$src/tmpl-kustomization.yaml" > "$dst/kustomization.yaml"
 
         determine_velero_pvc_size
@@ -132,6 +173,7 @@ function velero_already_applied() {
         velero_binary 
         velero_install "$src" "$dst"
         velero_patch_restic_privilege "$src" "$dst"
+        velero_patch_args "$src" "$dst"
         velero_kotsadm_restore_config "$src" "$dst"
         velero_patch_internal_pvc_snapshots "$src" "$dst"
         velero_patch_http_proxy "$src" "$dst"
@@ -148,7 +190,7 @@ function velero_already_applied() {
     fi
 
     # Bail if the migration fails, preventing the original object store from being deleted
-    if velero_should_migrate_from_object_store; then
+    if velero_did_migrate_from_object_store; then
         logWarn "Velero will migrate from object store to pvc"
         try_5m velero_pvc_migrated
         logSuccess "Velero migration complete"
@@ -196,6 +238,18 @@ function velero_patch_restic_privilege() {
         render_yaml_file "$src/restic-daemonset-privileged.yaml" > "$dst/restic-daemonset-privileged.yaml"
         insert_patches_strategic_merge "$dst/kustomization.yaml" restic-daemonset-privileged.yaml
     fi
+}
+
+function velero_patch_args() {
+    local src="$1"
+    local dst="$2"
+
+    if [ "${VELERO_DISABLE_RESTIC}" = "1" ] || [ -z "${VELERO_RESTIC_TIMEOUT}" ]; then
+        return 0
+    fi
+
+    render_yaml_file "$src/velero-args-json-patch.yaml" > "$dst/velero-args-json-patch.yaml"
+    insert_patches_json_6902 "$dst/kustomization.yaml" velero-args-json-patch.yaml apps v1 Deployment velero ${VELERO_NAMESPACE}
 }
 
 function velero_binary() {
@@ -268,21 +322,37 @@ EOF
 }
 
 function velero_should_migrate_from_object_store() {
-    # TODO (dans): remove this feature flag when/if we decide to ship migration
-    if [ -z "$BETA_VELERO_USE_INTERNAL_PVC" ]; then 
-        return 1
-    fi
-
     # If KOTSADM_DISABLE_S3 is set, force the migration
     if [ "$KOTSADM_DISABLE_S3" != 1 ]; then 
         return 1
     fi
+
+    # if the PVC already exists, we've already migrated
+    if kubernetes_resource_exists "${VELERO_NAMESPACE}" pvc velero-internal-snapshots; then 
+        return 1
+    fi
+
     # if an object store isn't installed don't migrate
     # TODO (dans): this doeesn't support minio in a non-standard namespace
     if (! kubernetes_resource_exists rook-ceph deployment rook-ceph-rgw-rook-ceph-store-a) && (! kubernetes_resource_exists minio deployment minio); then 
         return 1
     fi
+
+    # If there isn't a cloud-credentials, this isn't an existing install or it isn't using object storage; there is nothing to migrate.
+    if ! kubernetes_resource_exists "$VELERO_NAMESPACE" secret cloud-credentials; then
+        return 1
+    fi
+
     return 0
+}
+
+function velero_did_migrate_from_object_store() {
+    
+    # If KOTSADM_DISABLE_S3 is set, force the migration
+    if [ -f "$DIR/kustomize/velero/kustomization.yaml" ] && cat "$DIR/kustomize/velero/kustomization.yaml" | grep -q "s3-migration-deployment-patch.yaml"; then
+        return 0
+    fi
+    return 1
 }
 
 function velero_migrate_from_object_store() {
@@ -329,8 +399,8 @@ function velero_patch_internal_pvc_snapshots() {
     local src="$1"
     local dst="$2"
 
-    # If we are migrating from Rook to Longhorn, longhorn is not yes the default storage class.
-    export VELERO_PVC_STORAGE_CLASS="default" # this is the rook-ceph default storage class
+    # If we are migrating from Rook to Longhorn, longhorn is not yet the default storage class.
+    export VELERO_PVC_STORAGE_CLASS="rook-cephfs" # this is the rook-ceph storage class for RWX access
     if [ -n "$LONGHORN_VERSION" ]; then
         export VELERO_PVC_STORAGE_CLASS="longhorn"
     fi
@@ -340,11 +410,11 @@ function velero_patch_internal_pvc_snapshots() {
     insert_resources "$dst/kustomization.yaml" internal-snaps-pvc.yaml
 
     # add patch to add the pvc in the correct location for the velero deployment
-    cp "$src/internal-snaps-deployment-patch.yaml" "$dst/internal-snaps-deployment-patch.yaml"
+    render_yaml_file "$src/tmpl-internal-snaps-deployment-patch.yaml" > "$dst/internal-snaps-deployment-patch.yaml"
     insert_patches_strategic_merge "$dst/kustomization.yaml" internal-snaps-deployment-patch.yaml
 
     # add patch to add the pvc in the correct location for the restic daemonset
-    cp "$src/internal-snaps-ds-patch.yaml" "$dst/internal-snaps-ds-patch.yaml"
+    render_yaml_file "$src/tmpl-internal-snaps-ds-patch.yaml" > "$dst/internal-snaps-ds-patch.yaml"
     insert_patches_strategic_merge "$dst/kustomization.yaml" internal-snaps-ds-patch.yaml
 
 }

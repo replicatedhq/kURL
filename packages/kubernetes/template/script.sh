@@ -2,23 +2,41 @@
 
 set -euo pipefail
 
-# Populate VERSIONS array with 1.20+ and 1.19 and 1.18 latest versions available
+# Populate VERSIONS array latest kURL-support versions (1.19, 1.20, 1.21) available
 VERSIONS=()
 function find_available_versions() {
     docker build -t k8s - < Dockerfile
-    VERSIONS=($(docker run k8s apt list -a kubelet 2>/dev/null | grep -Eo '1\.[2-9][0-9]\.[0-9]+' | sort -rV | uniq))
-    echo "Found ${#VERSIONS[*]} versions for Kubernetes 1.20+: ${VERSIONS[*]}"
+    # VERSIONS=($(docker run k8s apt list -a kubelet 2>/dev/null | grep -Eo '1\.[2][0-9]\.[0-9]+' | sort -rV | uniq))
+    # echo "Found ${#VERSIONS[*]} versions for Kubernetes 1.20+: ${VERSIONS[*]}"
 
-    local versions119=($(docker run k8s apt list -a kubelet 2>/dev/null | grep -Eo '1\.19\.[0-9]+' | sort -rV | uniq))
-    if [ ${#versions119[@]} -gt 0 ]; then
-        echo "Found latest version for Kubernetes 1.19: ${versions119[0]}"
-        VERSIONS+=("${versions119[0]}")
+    local versions124=($(docker run k8s apt list -a kubelet 2>/dev/null | grep -Eo '1\.24\.[0-9]+' | sort -rV | uniq))
+    if [ ${#versions124[@]} -gt 0 ]; then
+        echo "Found latest version for Kubernetes 1.24: ${versions124[0]}"
+        VERSIONS+=("${versions124[0]}")
     fi
 
-    local versions118=($(docker run k8s apt list -a kubelet 2>/dev/null | grep -Eo '1\.18\.[0-9]+' | sort -rV | uniq))
-    if [ ${#versions118[@]} -gt 0 ]; then
-        echo "Found latest version for Kubernetes 1.18: ${versions118[0]}"
-        VERSIONS+=("${versions118[0]}")
+    local versions123=($(docker run k8s apt list -a kubelet 2>/dev/null | grep -Eo '1\.23\.[0-9]+' | sort -rV | uniq))
+    if [ ${#versions123[@]} -gt 0 ]; then
+        echo "Found latest version for Kubernetes 1.23: ${versions123[0]}"
+        VERSIONS+=("${versions123[0]}")
+    fi
+
+    local versions122=($(docker run k8s apt list -a kubelet 2>/dev/null | grep -Eo '1\.22\.[0-9]+' | sort -rV | uniq))
+    if [ ${#versions122[@]} -gt 0 ]; then
+        echo "Found latest version for Kubernetes 1.22: ${versions122[0]}"
+        VERSIONS+=("${versions122[0]}")
+    fi
+
+    local versions121=($(docker run k8s apt list -a kubelet 2>/dev/null | grep -Eo '1\.21\.[0-9]+' | sort -rV | uniq))
+    if [ ${#versions121[@]} -gt 0 ]; then
+        echo "Found latest version for Kubernetes 1.21: ${versions121[0]}"
+        VERSIONS+=("${versions121[0]}")
+    fi
+
+    local versions120=($(docker run k8s apt list -a kubelet 2>/dev/null | grep -Eo '1\.20\.[0-9]+' | sort -rV | uniq))
+    if [ ${#versions120[@]} -gt 0 ]; then
+        echo "Found latest version for Kubernetes 1.20: ${versions120[0]}"
+        VERSIONS+=("${versions120[0]}")
     fi
 
     echo "Found ${#VERSIONS[*]} versions for Kubernetes: ${VERSIONS[*]}"
@@ -41,17 +59,26 @@ function generate_version_directory() {
     done < <(/tmp/kubeadm config images list --kubernetes-version=${version})
 
     # hardcode existing versions to 1.20.0 since it's tested
-    local criToolsVersion=$(curl -s https://api.github.com/repos/kubernetes-sigs/cri-tools/releases | \
+    local criToolsVersion=$(curl -H "Authorization: token ${GITHUB_TOKEN}" -s https://api.github.com/repos/kubernetes-sigs/cri-tools/releases | \
         grep '"tag_name": ' | \
         grep -Eo "1\.20\.[0-9]+" | \
         head -1)
     # Kubernetes 1.21+ gets latest crictl release with same minor
     local minor=$(echo "$version" | awk -F'.' '{ print $2 }')
     if [ "$minor" -ge 20 ]; then
-        criToolsVersion=$(curl -s https://api.github.com/repos/kubernetes-sigs/cri-tools/releases | \
+        criToolsVersion=$(curl -H "Authorization: token ${GITHUB_TOKEN}" -s https://api.github.com/repos/kubernetes-sigs/cri-tools/releases | \
             grep '"tag_name": ' | \
-            grep -Eo "1\.${minor}\.[0-9]+" | \
+            ( grep -Eo "1\.${minor}\.[0-9]+" || true ) | \
             head -1)
+    fi
+
+    # Fallback: Kubernetes 1.23 doesn't have a version of criTools as of 2021-12-13
+    # Any latest version of criTools will work for any version of Kubernetes >=1.16, so this is a safe operation
+    if [ -z "$criToolsVersion" ]; then
+        criToolsVersion=$(curl -H "Authorization: token ${GITHUB_TOKEN}" -s https://api.github.com/repos/kubernetes-sigs/cri-tools/releases | \
+        grep '"tag_name": ' | \
+        grep -Eo "1\.[2-9][0-9]\.[0-9]+"| \
+        head -1)
     fi
 
     echo "" >> "../$version/Manifest"
@@ -95,24 +122,41 @@ function generate_conformance_package() {
 }
 
 function update_available_versions() {
-    local versions120=( $( for i in "${VERSIONS[@]}" ; do echo $i ; done | grep '^1.2' ) )
-    if [ ${#versions120[@]} -gt 0 ]; then
-        sed -i "/cron-kubernetes-update-120/c\    \"$(echo ${versions120[*]} | sed 's/ /", "/g')\", \/\/ cron-kubernetes-update-120" ../../../web/src/installers/versions.js
-    fi
-
-    local version119=( $( for i in "${VERSIONS[@]}" ; do echo $i ; done | grep '^1.19' ) )
-    if [ ${#version119[@]} -gt 0 ]; then
-        if ! sed '0,/cron-kubernetes-update-119/d' ../../../web/src/installers/versions.js | sed '/\],/,$d' | grep -q "${version119[0]}" ; then
-            sed -i "/cron-kubernetes-update-119/a\    \"${version119[0]}\"\," ../../../web/src/installers/versions.js
+    local version124=( $( for i in "${VERSIONS[@]}" ; do echo $i ; done | grep '^1.24' ) )
+    if [ ${#version124[@]} -gt 0 ]; then
+        if ! sed '0,/cron-kubernetes-update-124/d' ../../../web/src/installers/versions.js | sed '/\],/,$d' | grep -q "${version124[0]}" ; then
+            sed -i "/cron-kubernetes-update-124/a\    \"${version124[0]}\"\," ../../../web/src/installers/versions.js
         fi
     fi
 
-    local version118=( $( for i in "${VERSIONS[@]}" ; do echo $i ; done | grep '^1.18' ) )
-    if [ ${#version118[@]} -gt 0 ]; then
-        if ! sed '0,/cron-kubernetes-update-118/d' ../../../web/src/installers/versions.js | sed '/\],/,$d' | grep -q "${version118[0]}" ; then
-            sed -i "/cron-kubernetes-update-118/a\    \"${version118[0]}\"\," ../../../web/src/installers/versions.js
+    local version123=( $( for i in "${VERSIONS[@]}" ; do echo $i ; done | grep '^1.23' ) )
+    if [ ${#version123[@]} -gt 0 ]; then
+        if ! sed '0,/cron-kubernetes-update-123/d' ../../../web/src/installers/versions.js | sed '/\],/,$d' | grep -q "${version123[0]}" ; then
+            sed -i "/cron-kubernetes-update-123/a\    \"${version123[0]}\"\," ../../../web/src/installers/versions.js
         fi
     fi
+
+    local version122=( $( for i in "${VERSIONS[@]}" ; do echo $i ; done | grep '^1.22' ) )
+    if [ ${#version122[@]} -gt 0 ]; then
+        if ! sed '0,/cron-kubernetes-update-122/d' ../../../web/src/installers/versions.js | sed '/\],/,$d' | grep -q "${version122[0]}" ; then
+            sed -i "/cron-kubernetes-update-122/a\    \"${version122[0]}\"\," ../../../web/src/installers/versions.js
+        fi
+    fi
+
+    local version121=( $( for i in "${VERSIONS[@]}" ; do echo $i ; done | grep '^1.21' ) )
+    if [ ${#version121[@]} -gt 0 ]; then
+        if ! sed '0,/cron-kubernetes-update-121/d' ../../../web/src/installers/versions.js | sed '/\],/,$d' | grep -q "${version121[0]}" ; then
+            sed -i "/cron-kubernetes-update-121/a\    \"${version121[0]}\"\," ../../../web/src/installers/versions.js
+        fi
+    fi
+
+    local version120=( $( for i in "${VERSIONS[@]}" ; do echo $i ; done | grep '^1.20' ) )
+    if [ ${#version120[@]} -gt 0 ]; then
+        if ! sed '0,/cron-kubernetes-update-120/d' ../../../web/src/installers/versions.js | sed '/\],/,$d' | grep -q "${version120[0]}" ; then
+            sed -i "/cron-kubernetes-update-120/a\    \"${version120[0]}\"\," ../../../web/src/installers/versions.js
+        fi
+    fi
+
 }
 
 function main() {

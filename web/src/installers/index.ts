@@ -11,6 +11,7 @@ import { Forbidden } from "../server/errors";
 import {getDistUrl, getPackageUrl} from "../util/package";
 import fetch from "node-fetch";
 import { getInstallerVersions } from "./installer-versions";
+import * as hash from "object-hash";
 
 interface ErrorResponse {
   error: any;
@@ -23,6 +24,8 @@ export interface KubernetesConfig {
   serviceCIDR?: string;
   HACluster?: boolean;
   masterAddress?: string;
+  clusterName?: string;
+  cisCompliance?: boolean;
   loadBalancerAddress?: string;
   containerLogMaxSize?: string;
   containerLogMaxFiles?: number;
@@ -32,6 +35,9 @@ export interface KubernetesConfig {
   useStandardNodePortRange?: boolean;
   controlPlane?: boolean;
   certKey?: string;
+  kubeReserved?: boolean;
+  evictionThresholdResources?: string;
+  systemReservedResources?: string;
 }
 
 export const kubernetesConfigSchema = {
@@ -43,6 +49,7 @@ export const kubernetesConfigSchema = {
     serviceCIDR: { type: "string", flag: "service-cidr", description: "This defines subnet for kubernetes" },
     HACluster: { type: "boolean", flag: "ha", description: "Create the cluster as a high availability cluster (note that this needs a valid load balancer address and additional nodes to be a truly HA cluster)" },
     masterAddress: { type: "string", flag: "kuberenetes-master-address", description: "The address of the internal Kubernetes API server, used during join scripts (read-only)" },
+    clusterName: { type: "string", flag: "kubernetes-cluster-name", description: "The name of the Kubernetes cluster (default \"kubernetes\")"},
     loadBalancerAddress: { type: "string", flag: "load-balancer-address", description: "Used for High Availability installs, indicates the address of the external load balancer" },
     containerLogMaxSize: { type: "string", flag: "container-log-max-size", description: "A quantity defining the maximum size of the container log file before it is rotated. For example: \"5Mi\" or \"256Ki\". This does not work with Docker. For Docker, check out https://docs.docker.com/config/containers/logging/json-file." },
     containerLogMaxFiles: { type: "number", flag: "container-log-max-files", description: "Specifies the maximum number of container log files that can be present for a container. This does not work with Docker. For Docker, check out https://docs.docker.com/config/containers/logging/json-file." },
@@ -52,6 +59,10 @@ export const kubernetesConfigSchema = {
     useStandardNodePortRange: { type: "boolean" },
     controlPlane: { type: "boolean", flag: "control-plane", description: "Used during a join script to indicate that the node will be an additional master (read-only)" },
     certKey: { type: "string", flag: "cert-key", description: "A secret needed for new master nodes to join an existing cluster (read-only)" },
+    cisCompliance: { type: "boolean", flag: "kubernetes-cis-compliance", description: "Indicates if this install should meet all CIS compliance requirements" },
+    kubeReserved: {type: "boolean", flag: "kubernetes-reserved", description: "Reserved CPU, memory and disk for kubernetes"},
+    evictionThresholdResources: { type: "string", flag: "eviction-threshold", description: "Provided as evictionHard to kubelet configuration as described in https://kubernetes.io/docs/reference/config-api/kubelet-config.v1beta1/#kubelet-config-k8s-io-v1beta1-KubeletConfiguration" },
+    systemReservedResources: { type: "string", flag: "system-reserved-resources", description: "Provided as systemReserved to kubelet configuration as described in https://kubernetes.io/docs/reference/config-api/kubelet-config.v1beta1/#kubelet-config-k8s-io-v1beta1-KubeletConfiguration" },
   },
   required: [ "version" ],
   additionalProperties: false,
@@ -328,6 +339,7 @@ export interface KotsadmConfig {
   uiBindPort?: number;
   hostname?: string;
   applicationNamespace?: string;
+  applicationVersionLabel?: string;
 }
 
 export const kotsadmConfigSchema = {
@@ -336,10 +348,11 @@ export const kotsadmConfigSchema = {
     version: { type: "string" },
     s3Override: { type: "string", flag: "s3-override", description: "Override the download location for addon package distribution (used for CI/CD testing alpha addons)" },
     disableS3: { type: "boolean", flag: "disable-s3", description: "Migrate application archives and support bundles from S3 and use a local volume in the kotsadm statefulset instead. The migration process is irreversible and will replace the kotsadm deployment with a statefulset. Defaults to 'false'" },
-    applicationSlug: { type: "string", flag: "kotsadm-application-slug", description: "The slug shown on the app settings page of vendor web" },
     uiBindPort: { type: "number", flag: "kotsadm-ui-bind-port", description: "This is the port where the kots admin panel can be interacted with via browser" },
     hostname: { type: "string", flag: "kotsadm-hostname", description: "The hostname that the admin console will be exposed on" },
-    applicationNamespace: { type: "string", flag: "kotsadm-application-namespaces", description: "An additional namespace that should be pre-created during the install (For applications that install to other namespaces outside of the one where kotsadm is running)" },
+    applicationSlug: { type: "string", flag: "app-slug", description: "The slug shown on the app settings page of vendor web" },
+    applicationNamespace: { type: "string", flag: "app-namespace", description: "An additional namespace that should be pre-created during the install (For applications that install to other namespaces outside of the one where kotsadm is running)" },
+    applicationVersionLabel: { type: "string", flag: "app-version-label", description: "The application version label to be installed. If not specified, the latest version will be installed." },
   },
   required: ["version"],
   additionalProperties: false,
@@ -353,6 +366,7 @@ export interface VeleroConfig {
   disableRestic?: boolean;
   localBucket?: string;
   resticRequiresPrivileged?: boolean;
+  resticTimeout?: string;
 }
 
 export const veleroConfigSchema = {
@@ -365,6 +379,7 @@ export const veleroConfigSchema = {
     disableRestic: { type: "boolean", flag: "velero-disable-restic", description: "Don’t install the restic integration" },
     localBucket: { type: "string", flag : "velero-local-bucket", description: "Name of the bucket to create snapshots in the local object store"},
     resticRequiresPrivileged: { type: "boolean", flag: "velero-restic-requires-privileged", description: "Runs Restic container in privileged mode" },
+    resticTimeout: { type: "string", flag: "velero-restic-timeout", description: "How long backups/restores of pod volumes should be allowed to run before timing out" },
   },
   required: ["version"],
   additionalProperties: false,
@@ -381,6 +396,7 @@ export interface EkcoConfig {
   shouldEnablePurgeNodes?: boolean;
   rookShouldUseAllNodes?: boolean;
   podImageOverrides?: Array<string>;
+  enableInternalLoadBalancer?: boolean;
 }
 
 export const ekcoConfigSchema = {
@@ -396,6 +412,7 @@ export const ekcoConfigSchema = {
     shouldEnablePurgeNodes: { type: "boolean", description: "Watch for unreachable nodes and automatically remove them from the cluster" },
     rookShouldUseAllNodes: { type: "boolean", flag: "ekco-rook-should-use-all-nodes" , description: "This will disable management of nodes in the CephCluster resource. If false, ekco will add nodes to the storage list and remove them when a node is purged" },
     podImageOverrides: { type: "array", items: { type: "string" }, flag: "pod-image-overrides", description: "Switch images in a pod when created" },
+    enableInternalLoadBalancer: { type: "boolean", flag: "ekco-enable-internal-load-balancer" , description: "Run haproxy on all nodes and forward to all Kubernetes API server pods" },
   },
   required: ["version"],
   // additionalProperties: false,
@@ -404,10 +421,15 @@ export const ekcoConfigSchema = {
 export interface KurlConfig {
   additionalNoProxyAddresses: string[];
   airgap?: boolean;
+  excludeBuiltinHostPreflights?: boolean;
+  excludeBuiltinPreflights?: boolean;
   hostnameCheck?: string;
   ignoreRemoteLoadImagesPrompt?: boolean;
   ignoreRemoteUpgradePrompt?: boolean;
+  ipv6?: boolean;
   hostPreflights?: object;
+  hostPreflightIgnore?: boolean;
+  hostPreflightEnforceWarnings?: boolean;
   licenseURL?: string;
   nameserver?: string;
   noProxy?: string;
@@ -428,19 +450,24 @@ export const kurlConfigSchema = {
   properties: {
     additionalNoProxyAddresses: { type: "array", items: { type: "string" }, description: "Addresses that can be reached without a proxy" },
     airgap: { type: "boolean", flag: "airgap", description: "Indicates if this install is an airgap install" },
+    excludeBuiltinHostPreflights: { type: "boolean", flag: "exclude-builtin-host-preflights" , description: "Excludes the default built-in host preflights for kURL." },
     hostnameCheck: { type: "string", flag: "hostname-check" , description: "Used as a check during an upgrade to ensure the script will run only on the given hostname" },
     hostPreflights: { type: "object", description: "Used to add additional host preflight checks."},
+    hostPreflightIgnore: { type: "boolean", flag: "host-preflight-ignore" , description: "Ignore host preflight failures and warnings" },
+    hostPreflightEnforceWarnings: { type: "boolean", flag: "host-preflight-enforce-warnings" , description: "Fail on host preflight warnings as well as failures" },
     ignoreRemoteLoadImagesPrompt: { type: "boolean", flag: "ignore-remote-load-images-prompt" , description: "Bypass prompt to load images on remotes. This is useful for automating upgrades." },
     ignoreRemoteUpgradePrompt: { type: "boolean", flag: "ignore-remote-upgrade-prompt" , description: "Bypass prompt to upgrade remotes. This is useful for automating upgrades." },
+    ipv6: { type: "boolean", description: "Install on IPv6 enabled hosts - see https://kurl.sh/docs/install-with-kurl/ipv6" },
     licenseURL: { type: "string", description: "A URL to a licensing agreement that will presented during installation and needs to be accepted or the install will exit." },
     nameserver: { type: "string" },
     noProxy: { type: "boolean", flag: "no-proxy" , description: "Don’t detect or configure a proxy" },
-    preflightIgnore: { type: "boolean", flag: "preflight-ignore" , description: "Ignore preflight failures and warnings" },
-    preflightIgnoreWarnings: { type: "boolean", flag: "preflight-ignore-warnings" , description: "Ignore preflight warnings" },
+    preflightIgnore: { type: "boolean", flag: "preflight-ignore" , description: "DEPRECATED: Ignore preflight failures and warnings. See `host-preflight-ignore` for replacement." },
+    preflightIgnoreWarnings: { type: "boolean", flag: "preflight-ignore-warnings" , description: "DEPRECATED: Ignore preflight warnings.  See `host-preflight-enforce-warnings` for replacement." },
     privateAddress: { type: "string", flag: "private-address" , description: "The local address of the host (different for each host in the cluster)" },
     proxyAddress: { type: "string", flag: "http-proxy" , description: "The address of the proxy to use for outbound connections" },
     publicAddress: { type: "string", flag: "public-address" , description: "The public address of the host (different for each host in the cluster), will be added as a CNAME to the k8s API server cert so you can use kubectl with this address" },
     skipSystemPackageInstall: { type: "boolean", flag: "skip-system-package-install" , description: "Skip the installation of system packages." },
+    excludeBuiltinPreflights: { type: "boolean", flag: "exclude-builtin-preflights" , description: "DEPRECATED: Excludes the default built-in host preflights for kURL. See `exclude-builtin-host-preflights` for replacement." },
     bypassFirewalldWarning: { type: "boolean", flag: "bypass-firewalld-warning" , description: "Continue installing even if the firewalld service is active" },
     hardFailOnFirewalld: { type: "boolean", flag: "hard-fail-on-firewalld" , description: "Exit the install script if the firewalld service is active" },
     installerVersion: { type: "string", description: "The upstream version of kURL to use as part of the installation - see https://kurl.sh/docs/install-with-kurl/#versioned-releases" },
@@ -614,6 +641,7 @@ export const helmConfigSchema = {
 
 export interface LonghornConfig {
   s3Override?: string;
+  storageOverProvisioningPercentage?: number;
   uiBindPort?: number;
   uiReplicaCount?: number;
   version: string;
@@ -623,6 +651,7 @@ export const LonghornSchema = {
   type: "object",
   properties: {
     s3Override: { type: "string", flag: "s3-override", description: "Override the download location for addon package distribution (used for CI/CD testing alpha addons)" },
+    storageOverProvisioningPercentage: { type: "number", flag: "longhorn-storage-over-provisioning-percentage", description: "Determines the amount of PVC capacity that Longhorn will allow to be provisioned based on the real, available disk space. Default is 200 See Longhorn Documentation for a thorough explanation." },
     uiBindPort: { type: "number", flag: "longhorn-ui-bind-port", description: "This is the port where the Longhorn UI can be reached via the browser" },
     uiReplicaCount: { type: "number", flag: "longhorn-ui-replica-count", description: "The number of pods to deploy for the Longhorn UI (default is 0)" },
     version: { type: "string" },
@@ -676,8 +705,39 @@ export const goldpingerSchema = {
   additionalProperties: false,
 };
 
+export interface AWS {
+  version: string;
+  s3Override?: string;
+  excludeStorageClass?: boolean;
+}
+
+export const awsSchema = {
+  type: "object",
+  properties: {
+    version: { type: "string" },
+    s3Override: { type: "string", flag: "s3-override", description: "Override the download location for addon package distribution (used for CI/CD testing alpha addons)" },
+    excludeStorageClass: { type: "boolean", flag: "aws-exclude-storage-class", description: "Exclude aws-ebs provisioner storage class provided by the AWS add-on"},
+  },
+  required: [ "version" ],
+};
+
+export interface LocalPathProvisionerConfig {
+  version: string;
+  s3Override?: string;
+  excludeStorageClass?: boolean;
+}
+
+export const localPathProvisionerSchema = {
+  type: "object",
+  properties: {
+    version: { type: "string" },
+    s3Override: { type: "string", flag: "s3-override", description: "Override the download location for addon package distribution (used for CI/CD testing alpha addons)" },
+  },
+  required: [ "version" ],
+};
+
 export interface InstallerSpec {
-  kubernetes: KubernetesConfig;
+  kubernetes?: KubernetesConfig;
   rke2?: RKE2Config;
   k3s?: K3SConfig;
   docker?: DockerConfig;
@@ -707,6 +767,8 @@ export interface InstallerSpec {
   sonobuoy?: SonobuoyConfig;
   ufw?: UFWConfig;
   goldpinger?: GoldpingerConfig;
+  aws?: AWS;
+  localPathProvisioner?: LocalPathProvisionerConfig;
 }
 
 const specSchema = {
@@ -743,6 +805,8 @@ const specSchema = {
     sonobuoy: sonobuoySchema,
     ufw: ufwConfigSchema,
     goldpinger: goldpingerSchema,
+    aws: awsSchema,
+    localPathProvisioner: localPathProvisionerSchema,
   },
   additionalProperites: false,
 };
@@ -768,7 +832,7 @@ export class Installer {
     const installerVersions = await getInstallerVersions(distUrl, kurlVersion);
 
     i.id = "latest";
-    i.spec.kubernetes = { version: "1.21.x" };
+    i.spec.kubernetes = { version: "1.23.x" };
     i.spec.containerd = { version: this.toDotXVersion(installerVersions.containerd[0]) };
     i.spec.weave = { version: this.toDotXVersion(installerVersions.weave[0]) };
     i.spec.longhorn = { version: this.toDotXVersion(installerVersions.longhorn[0]) };
@@ -778,7 +842,82 @@ export class Installer {
     i.spec.registry = { version: this.toDotXVersion(installerVersions.registry[0]) };
     i.spec.prometheus = { version: this.toDotXVersion(installerVersions.prometheus[0]) };
 
+    if (kurlVersion) {
+      if (i.spec.kurl) {
+        i.spec.kurl.installerVersion = kurlVersion
+      } else {
+        i.spec.kurl = {additionalNoProxyAddresses: [], installerVersion: kurlVersion}
+      }
+    }
+
     return i;
+  }
+
+  public static async k3s(kurlVersion?: string): Promise<Installer> {
+    const i = new Installer();
+
+    const distUrl = getDistUrl();
+
+    const installerVersions = await getInstallerVersions(distUrl, kurlVersion);
+
+    i.id = "k3s";
+    i.spec.k3s = { version: "v1.23.3+k3s1" };
+    i.spec.registry = { version: this.toDotXVersion(installerVersions.registry[0]) };
+    i.spec.kotsadm = {
+      version: this.toDotXVersion(installerVersions.kotsadm[0]),
+      uiBindPort: 30880,
+      disableS3: true,
+    };
+
+    return i;
+  }
+
+  public static async rke2(kurlVersion?: string): Promise<Installer> {
+    const i = new Installer();
+
+    const distUrl = getDistUrl();
+
+    const installerVersions = await getInstallerVersions(distUrl, kurlVersion);
+
+    i.id = "rke2";
+    i.spec.rke2 = { version: "v1.22.6+rke2r1" };
+    i.spec.registry = { version: this.toDotXVersion(installerVersions.registry[0]) };
+    i.spec.kotsadm = {
+      version: this.toDotXVersion(installerVersions.kotsadm[0]),
+      uiBindPort: 30880,
+      disableS3: true,
+    };
+    i.spec.openebs = {
+      version: this.toDotXVersion(installerVersions.openebs[0]),
+      isLocalPVEnabled: true,
+      localPVStorageClassName: "default",
+      isCstorEnabled: false,
+    };
+
+    return i;
+  }
+
+  public static getK3sCompatibleAddons(): string[] {
+    return [
+      "kotsadm",
+      "minio",
+      "openebs",
+      "registry",
+      "rook",
+      "sonobuoy"
+    ];
+  }
+
+  public static getRke2CompatibleAddons(): string[] {
+    return [
+      "kotsadm",
+      "minio",
+      "openebs",
+      "velero",
+      "registry",
+      "rook",
+      "sonobuoy"
+    ];
   }
 
   // Return an ordered list of all addon fields in the spec.
@@ -952,10 +1091,6 @@ export class Installer {
     return /^[0-9a-f]{7}$/.test(id);
   }
 
-  public static isValidSlug(id: string): boolean {
-    return /^[0-9a-zA-Z-_]{1,255}$/.test(id);
-  }
-
   public static slugIsReserved(id: string): boolean {
     return _.includes([
       "latest",
@@ -981,9 +1116,7 @@ export class Installer {
   constructor(
     public readonly teamID?: string,
   ) {
-    this.spec = {
-      kubernetes: { version: "" },
-    };
+    this.spec = {};
   }
 
   public clone(): Installer {
@@ -1048,7 +1181,11 @@ export class Installer {
           return;
         }
 
-        fields.push(`${fieldKey}=${val}`);
+        if (val === Object(val)) { // not a primative type
+          fields.push(`${fieldKey}=${hash(val)}`);
+        } else {
+          fields.push(`${fieldKey}=${val}`);
+        }
       });
     });
 
@@ -1104,9 +1241,6 @@ export class Installer {
       },
       spec: {} as InstallerSpec,
     };
-    if (this.spec.kubernetes) {
-      obj.spec.kubernetes = _.cloneDeep(this.spec.kubernetes);
-    }
 
     // add spec properties in order they should be rendered in yaml
     _.each(specSchema.properties, (val, key) => {
@@ -1220,6 +1354,9 @@ export class Installer {
     if (this.spec.openebs && !(await Installer.hasVersion("openebs", this.spec.openebs.version, installerVersion)) && !this.hasS3Override("openebs")) {
       return {error: {message: `OpenEBS version "${_.escape(this.spec.openebs.version)}" is not supported${installerVersion ? " for installer version " + _.escape(installerVersion) : ""}`}};
     }
+    if (this.spec.openebs && (this.spec.kubernetes && semver.gte(this.spec.kubernetes.version, "1.22.0"))) {
+      return {error: {message: "Openebs add-on is not compatible with Kubernetes versions 1.22+"}};
+    }
     if (this.spec.minio && !(await Installer.hasVersion("minio", this.spec.minio.version, installerVersion)) && !this.hasS3Override("minio")) {
       return {error: {message: `Minio version "${_.escape(this.spec.minio.version)}" is not supported${installerVersion ? " for installer version " + _.escape(installerVersion) : ""}`}};
     }
@@ -1231,6 +1368,9 @@ export class Installer {
     }
     if (this.spec.containerd && this.spec.docker) {
       return {error: {message: `This spec contains both docker and containerd, please specifiy only one CRI`}};
+    }
+    if (this.spec.docker && this.spec.kubernetes && semver.gte(this.spec.kubernetes.version, "1.24.0")) {
+      return {error: {message: "Docker is not supported with Kubernetes versions 1.24+, please choose Containerd"}};
     }
     if (this.spec.collectd && !(await Installer.hasVersion("collectd", this.spec.collectd.version, installerVersion)) && !this.hasS3Override("collectd")) {
       return {error: {message: `Collectd version "${_.escape(this.spec.collectd.version)}" is not supported${installerVersion ? " for installer version " + _.escape(installerVersion) : ""}`}};
@@ -1250,10 +1390,28 @@ export class Installer {
     if (this.spec.goldpinger && !(await Installer.hasVersion("goldpinger", this.spec.goldpinger.version, installerVersion)) && !this.hasS3Override("goldpinger")) {
       return {error: {message: `Goldpinger version "${_.escape(this.spec.goldpinger.version)}" is not supported${installerVersion ? " for installer version " + _.escape(installerVersion) : ""}`}};
     }
-    // Rook 1.0.4. is incompatible with Kubernetes 1.20+
+    if (this.spec.localPathProvisioner && !(await Installer.hasVersion("localPathProvisioner", this.spec.localPathProvisioner.version, installerVersion)) && !this.hasS3Override("localPathProvisioner")) {
+      return {error: {message: `Local Path Storage version "${_.escape(this.spec.localPathProvisioner.version)}" is not supported${installerVersion ? " for installer version " + _.escape(installerVersion) : ""}`}};
+    }
+
+    // Rook 1.0.4 is incompatible with Kubernetes 1.20+
     if (this.spec.rook && this.spec.rook.version === "1.0.4") {
       if (this.spec.kubernetes && semver.gte(this.spec.kubernetes.version, "1.20.0")) {
         return {error: {message: "Rook 1.0.4 is not compatible with Kubernetes 1.20+"}};
+      }
+    }
+
+    // Containerd 1.6 is incompatible with Weave
+    if (this.spec.containerd && this.spec.containerd.version === "1.6.4") {
+      if (this.spec.weave) {
+        return {error: {message: "Containerd 1.6.x is not compatible with Weave"}};
+      }
+    }
+
+    // Prometheus versions <= 0.49.0-17.1.3 are incompatible with Kubernetes 1.22+
+    if (this.spec.prometheus && semver.lte(this.spec.prometheus.version, "0.49.0")) {
+      if (this.spec.kubernetes && semver.gte(this.spec.kubernetes.version, "1.22.0")) {
+        return {error: {message: "Prometheus versions less than or equal to 0.49.0-17.1.3 are not compatible with Kubernetes 1.22+"}};
       }
     }
 
@@ -1268,6 +1426,43 @@ export class Installer {
         installerVersions.prometheus.indexOf(this.spec.prometheus.version) > installerVersions.prometheus.indexOf("0.48.1-16.10.0")) {
         return {error: {message: `Prometheus service types are supported for version "0.48.1-16.10.0" and later, not "${this.spec.prometheus.version}"`}};
       }
+    }
+
+    // K3s is only compatible with a subset of addons
+    if (this.spec.k3s && this.spec.k3s.version) {
+      const compatibleAddons = Installer.getK3sCompatibleAddons();
+      const incompatibleAddons: string[] = [];
+      _.each(specSchema.properties, (val, key) => {
+        if (key !== "k3s" && this.spec[key] && this.spec[key].version && !compatibleAddons.includes(key)) {
+          incompatibleAddons.push(key);
+        }
+      });
+      if (incompatibleAddons.length > 0) {
+        return {error: {message: `The following add-ons are not compatible with k3s: ${incompatibleAddons.join(", ")}`}};
+      }
+    }
+
+    // RKE2 is only compatible with a subset of addons
+    if (this.spec.rke2 && this.spec.rke2.version) {
+      const compatibleAddons = Installer.getRke2CompatibleAddons();
+      const incompatibleAddons: string[] = [];
+      _.each(specSchema.properties, (val, key) => {
+        if (key !== "rke2" && this.spec[key] && this.spec[key].version && !compatibleAddons.includes(key)) {
+          incompatibleAddons.push(key);
+        }
+      });
+      if (incompatibleAddons.length > 0) {
+        return {error: {message: `The following add-ons are not compatible with rke2: ${incompatibleAddons.join(", ")}`}};
+      }
+    }
+
+    // K3S and RKE2 can only use Nodeports 30000-32767
+    if ((this.spec.k3s && this.spec.k3s.version ) || (this.spec.rke2 && this.spec.rke2.version) ) {
+        if (this.spec.kotsadm && this.spec.kotsadm.version) {
+            if ( !this.spec.kotsadm.uiBindPort || 30000 > this.spec.kotsadm.uiBindPort || this.spec.kotsadm.uiBindPort > 32767) {
+                return {error: {message: `Nodeports for this distro must use a NodePort between 30000-32767`}};
+            }
+        }
     }
   }
 
@@ -1292,7 +1487,9 @@ export class Installer {
     let kubernetesVersion = "";
     await Promise.all(_.each(_.keys(this.spec), async (config: string) => {
       const version = this.spec[config].version;
-      if (version) {
+      if (this.spec[config].s3Override) {
+        pkgs.push(this.spec[config].s3Override)
+      } else if (version) {
         pkgs.push(Installer.generatePackageName(config, this.spec[config].version));
 
         const installerVersions = await getInstallerVersions(getDistUrl(), kurlVersion);
@@ -1431,10 +1628,16 @@ export class InstallerStore {
     this.pool = pool;
   }
 
-  @instrumented
+  @instrumented()
   public async getInstaller(installerID: string): Promise<Installer|undefined> {
     if (installerID === "latest") {
       return await Installer.latest();
+    }
+    if (installerID === "k3s") {
+      return await Installer.k3s();
+    }
+    if (installerID === "rke2") {
+      return await Installer.rke2();
     }
 
     const q = "SELECT yaml, team_id FROM kurl_installer WHERE kurl_installer_id = ?";
@@ -1451,7 +1654,7 @@ export class InstallerStore {
     return i;
   }
 
-  @instrumented
+  @instrumented()
   public async saveAnonymousInstaller(installer: Installer): Promise<void> {
     if (!installer.id) {
       throw new Error("Installer ID is required");
@@ -1469,7 +1672,7 @@ export class InstallerStore {
     await this.pool.query(q, v);
   }
 
-  @instrumented
+  @instrumented()
   public async saveTeamInstaller(installer: Installer): Promise<void> {
     if (!installer.id) {
       throw new Error("Installer ID is required");

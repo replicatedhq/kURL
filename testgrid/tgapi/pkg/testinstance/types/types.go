@@ -3,18 +3,22 @@ package types
 import "time"
 
 type TestInstance struct {
-	ID            string     `json:"id"`
-	RefID         string     `json:"refId"`
-	EnqueuedAt    *time.Time `json:"enqueuedAt"`
-	DequeuedAt    *time.Time `json:"dequeuedAt"`
-	StartedAt     *time.Time `json:"startedAt"`
-	FinishedAt    *time.Time `json:"finishedAt"`
-	IsSuccess     bool       `json:"isSuccess"`
-	FailureReason string     `json:"failureReason"`
-	IsUnsupported bool       `json:"isUnsupported"`
+	ID                string     `json:"id"`
+	RefID             string     `json:"refId"`
+	TestName          string     `json:"testName"`
+	NumPrimaryNodes   int        `json:"numPrimaryNodes"`
+	NumSecondaryNodes int        `json:"numSecondaryNodes"`
+	EnqueuedAt        *time.Time `json:"enqueuedAt"`
+	DequeuedAt        *time.Time `json:"dequeuedAt"`
+	StartedAt         *time.Time `json:"startedAt"`
+	FinishedAt        *time.Time `json:"finishedAt"`
+	IsSuccess         bool       `json:"isSuccess"`
+	FailureReason     string     `json:"failureReason"`
+	IsUnsupported     bool       `json:"isUnsupported"`
 
-	KurlYAML string `json:"kurlYaml"`
-	KurlURL  string `json:"kurlUrl"`
+	KurlYAML  string `json:"kurlYaml"`
+	KurlURL   string `json:"kurlUrl"`
+	KurlFlags string `json:"kurlFlags"`
 
 	UpgradeYAML string `json:"upgradeYaml"`
 	UpgradeURL  string `json:"upgradeUrl"`

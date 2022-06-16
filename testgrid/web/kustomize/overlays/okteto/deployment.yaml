@@ -1,0 +1,12 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: testgrid-web
+spec:
+  template:
+    spec:
+      containers:
+        - name: testgrid-web
+          ports:
+            - name: http
+              containerPort: 8080

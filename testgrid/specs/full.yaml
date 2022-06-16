@@ -1,10 +1,24 @@
+- name: RKE2 Minimal Install
+  installerSpec:
+    rke2:
+      version: latest
+    registry:
+      version: latest
+    kotsadm:
+      uiBindPort: 30880
+      version: latest
+    openebs:
+      version: latest
+      isLocalPVEnabled: true
+      localPVStorageClassName: default
+      isCstorEnabled: false
+    minio:
+      version: latest
 - name: k3s
   installerSpec:
     k3s:
       version: latest
     registry:
-      version: latest
-    prometheus:
       version: latest
     kotsadm:
       uiBindPort: 30880
@@ -17,18 +31,16 @@
       version: latest
     registry:
       version: latest
-    prometheus:
-      version: latest
     kotsadm:
       uiBindPort: 30880
       version: latest
     minio:
       version: latest
   airgap: true
-- name: k8s1164_docker19034
+- name: k8s121x_docker19034
   installerSpec:
     kubernetes:
-      version: 1.16.4
+      version: 1.21.x
     docker:
       daemonConfig: "{\n\t\"exec-opts\": [\"native.cgroupdriver=systemd\"],\n\t\"default-address-pools\":
         [ {\"base\":\"10.69.0.0/16\",\"size\":16} ]\n}"
@@ -49,11 +61,11 @@
     ekco:
       version: 0.7.0
   unsupportedOSIDs:
-  - ubuntu-2004
-- name: k8s117
+  - ubuntu-2004 # docker 19.03.4 is not available on ubuntu 20.04
+- name: k8s119x
   installerSpec:
     kubernetes:
-      version: 1.17.x
+      version: 1.19.x
     docker:
       version: 19.03.10
     antrea:
@@ -72,10 +84,10 @@
       version: 1.2.0
     ekco:
       version: 0.6.0
-- name: k8s117_containerd137
+- name: k8s119_containerd149
   installerSpec:
     kubernetes:
-      version: 1.17.x
+      version: 1.19.x
     weave:
       version: 2.6.4
     contour:
@@ -93,8 +105,8 @@
     ekco:
       version: 0.6.0
     containerd:
-      version: 1.3.7
-- name: k8s117_openebs_minio
+      version: 1.4.9
+- name: k8s120x_openebs_minio
   installerSpec:
     kubernetes:
       version: 1.17.13
@@ -109,7 +121,7 @@
     prometheus:
       version: 0.33.0
     kotsadm:
-      version: latest
+      version: 1.57.x # greater versions fail with --dry-run=client when running create configmap kotsadm-application-metadata
     velero:
       version: 1.2.0
     minio:
@@ -130,18 +142,18 @@
   - centos-83
   - centos-84
   - ol-84
-- name: k8s118
+- name: k8s120x_docker
   installerSpec:
     kubernetes:
-      version: 1.18.x
+      version: 1.20.x
     docker:
       version: 19.03.10
     weave:
       version: 2.6.5
     contour:
       version: 1.0.1
-    rook:
-      version: 1.0.4
+    longhorn:
+      version: 1.2.2
     registry:
       version: 2.7.1
     prometheus:
@@ -150,20 +162,24 @@
       version: latest
     velero:
       version: 1.2.0
+    minio: 
+      version: latest
     ekco:
-      version: 0.6.0
-- name: k8s1184
+      version: latest
+- name: k8s121x_containerd
   installerSpec:
     kubernetes:
-      version: 1.18.4
-    docker:
-      version: 19.03.10
+      version: 1.21.x
+      containerLogMaxSize: "5Mi"
+      containerLogMaxFiles: 5
+    containerd:
+      version: 1.4.6
     weave:
       version: 2.6.5
     contour:
       version: 1.0.1
-    rook:
-      version: 1.0.4
+    longhorn:
+      version: 1.2.2
     registry:
       version: 2.7.1
     prometheus:
@@ -172,12 +188,14 @@
       version: latest
     velero:
       version: 1.2.0
+    minio: 
+      version: latest      
     ekco:
-      version: 0.6.0
-- name: k8s1184-airgap
+      version: latest
+- name: k8s119x-airgap
   installerSpec:
     kubernetes:
-      version: 1.18.4
+      version: 1.19.x
     docker:
       version: 19.03.10
     weave:
@@ -225,7 +243,7 @@
     contour:
       version: 1.0.1
     containerd:
-      version: 1.4.3
+      version: 1.4.6
   upgradeSpec:
     kubernetes:
       version: 1.20.2
@@ -234,11 +252,11 @@
     contour:
       version: latest
     containerd:
-      version: 1.4.3
-- name: k8s1184_containerd137
+      version: 1.6.4
+- name: k8s119x_containerd148
   installerSpec:
     kubernetes:
-      version: 1.18.4
+      version: 1.19.x
     weave:
       version: 2.6.5
     contour:
@@ -256,11 +274,11 @@
     ekco:
       version: 0.6.0
     containerd:
-      version: 1.3.7
-- name: k8s118_containerd139
+      version: 1.4.13
+- name: k8s119x_containerd139
   installerSpec:
     kubernetes:
-      version: 1.18.x
+      version: 1.19.x
     weave:
       version: 2.6.5
     contour:
@@ -278,7 +296,7 @@
     ekco:
       version: 0.6.0
     containerd:
-      version: 1.3.9
+      version: 1.4.9
 - name: k8s119
   installerSpec:
     kubernetes:
@@ -324,7 +342,7 @@
     ekco:
       version: 0.6.0
   airgap: true
-- name: k8s119_containerd146
+- name: k8s119_containerd1412
   installerSpec:
     kubernetes:
       version: 1.19.x
@@ -345,7 +363,7 @@
     ekco:
       version: 0.6.0
     containerd:
-      version: 1.4.6
+      version: 1.4.12
 - name: k8s119_containerd146-airgap
   installerSpec:
     kubernetes:
@@ -390,7 +408,7 @@
     ekco:
       version: 0.7.0
     containerd:
-      version: 1.3.7
+      version: 1.4.10
     certManager:
       version: 1.0.3
 - name: k8s119_ctrd_longhorn
@@ -414,7 +432,7 @@
     ekco:
       version: 0.7.0
     containerd:
-      version: 1.4.3
+      version: 1.4.6
     certManager:
       version: 1.0.3
     longhorn:
@@ -441,7 +459,7 @@
     ekco:
       version: 0.7.0
     containerd:
-      version: 1.4.3
+      version: 1.4.6
     certManager:
       version: 1.0.3
     longhorn:
@@ -455,7 +473,7 @@
     weave:
       version: latest
     containerd:
-      version: latest
+      version: 1.4.6
     helm:
       helmfileSpec: |-
         repositories:
@@ -481,7 +499,7 @@
     weave:
       version: latest
     containerd:
-      version: latest
+      version: 1.5.11
     helm:
       helmfileSpec: |-
         repositories:
@@ -501,10 +519,10 @@
                   nodePort: 30080
                 httpsPort:
                   nodePort: 30443
-- name: k8s119_minimal_containerd137
+- name: k8s120_minimal_containerd1411
   installerSpec:
     kubernetes:
-      version: 1.19.9
+      version: 1.20.x
     antrea:
       version: 0.13.1
     contour:
@@ -512,7 +530,7 @@
       httpPort: 8080
       httpsPort: 8443
     containerd:
-      version: 1.3.7
+      version: 1.4.11
 - name: k8s119_nameserver_collectd_rook_block
   installerSpec:
     kubernetes:
@@ -572,7 +590,7 @@
     ekco:
       version: latest
     containerd:
-      version: 1.4.4
+      version: 1.4.6
     longhorn:
       version: 1.1.2
 - name: k8s120-airgap
@@ -596,7 +614,7 @@
     ekco:
       version: latest
     containerd:
-      version: 1.4.4
+      version: 1.4.6
     longhorn:
       version: 1.1.2
   airgap: true
@@ -612,7 +630,7 @@
     kotsadm:
       version: 1.38.0
     containerd:
-      version: 1.4.4
+      version: 1.4.6
   upgradeSpec:
     kubernetes:
       version: 1.20.2
@@ -625,7 +643,7 @@
     kotsadm:
       version: 1.38.0
     containerd:
-      version: 1.4.4
+      version: 1.4.12
 - name: k8s121
   installerSpec:
     kubernetes:
@@ -730,7 +748,7 @@
     kotsadm:
       version: 1.38.0
     containerd:
-      version: 1.4.4
+      version: 1.4.6
   upgradeSpec:
     kubernetes:
       version: 1.20.x
@@ -743,7 +761,726 @@
     kotsadm:
       version: 1.38.0
     containerd:
-      version: 1.4.4
+      version: 1.4.6
+- name: remove_all_object_storage
+  installerSpec:
+    kubernetes:
+      version: 1.20.x
+    weave:
+      version: latest
+    rook:
+      isBlockStorageEnabled: true
+      version: 1.5.x
+    registry:
+      version: latest
+    kotsadm:
+      version: latest
+    containerd:
+      version: latest
+    velero:
+      version: 1.6.x
+  upgradeSpec:
+    kubernetes:
+      version: 1.21.x
+    weave:
+      version: latest
+    longhorn:
+      version: latest
+    registry:
+      version: latest
+    kotsadm:
+      version: latest
+      disableS3: true
+    containerd:
+      version: latest
+    velero:
+      version: 1.7.x
+- name: "K8s 1.22x Rook"
+  installerSpec:
+    kubernetes:
+      version: 1.22.x
+    containerd:
+      version: 1.6.x
+    antrea:
+      version: 1.4.x
+      isEncryptionDisabled: true
+    contour:
+      version: 1.19.1
+    rook:
+      version: 1.5.12
+    registry:
+      version: 2.7.1
+    prometheus: 
+      version: "0.53.x"
+    kotsadm:
+      version: latest
+    velero:
+      version: 1.7.x
+    ekco:
+      version: latest
+- name: "K8s 1.22x Longhorn, disableS3"
+  installerSpec:
+    kubernetes:
+      version: 1.22.x
+    containerd:
+      version: 1.5.x
+    weave:
+      version: latest
+    contour:
+      version: 1.19.1
+    longhorn:
+      version: 1.2.2
+    registry:
+      version: 2.7.1
+    prometheus: 
+      version: "0.53.x"
+    kotsadm:
+      version: latest
+      disableS3: true
+    velero:
+      version: 1.7.x
+    ekco:
+      version: latest
+- name: "K8s 1.22x Airgap"
+  installerSpec:
+    kubernetes:
+      version: 1.22.x
+    containerd:
+      version: 1.6.x
+    antrea:
+      version: 1.4.x
+      isEncryptionDisabled: true
+    contour:
+      version: 1.19.1
+    rook:
+      version: 1.5.12
+    registry:
+      version: 2.7.1
+    prometheus: 
+      version: "0.53.x"
+    kotsadm:
+      version: latest
+    velero:
+      version: 1.7.x
+    ekco:
+      version: latest
+  airgap: true
+- name: "Migrate from Docker to Containerd"
+  installerSpec:
+    kubernetes:
+      version: 1.23.x
+    weave:
+      version: latest
+    longhorn:
+      version: latest
+    registry:
+      version: latest
+    ekco:
+      version: latest
+    kotsadm:
+      version: latest
+      disableS3: true
+    docker:
+      version: latest
+  upgradeSpec:
+    kubernetes:
+      version: 1.23.x
+    weave:
+      version: latest
+    longhorn:
+      version: latest
+    registry:
+      version: latest
+    ekco:
+      version: latest
+    kotsadm:
+      version: latest
+      disableS3: true
+    containerd:
+      version: latest
+- name: "Migrate from Docker to Containerd airgap"
+  installerSpec:
+    kubernetes:
+      version: 1.23.x
+    weave:
+      version: latest
+    longhorn:
+      version: latest
+    registry:
+      version: latest
+    ekco:
+      version: latest
+    kotsadm:
+      version: latest
+      disableS3: true
+    docker:
+      version: latest
+  upgradeSpec:
+    kubernetes:
+      version: 1.23.x
+    weave:
+      version: latest
+    longhorn:
+      version: latest
+    registry:
+      version: latest
+    ekco:
+      version: latest
+    kotsadm:
+      version: latest
+      disableS3: true
+    containerd:
+      version: latest
+  airgap: true
+- name: "Upgrade to 1.22"
+  installerSpec:
+    kubernetes:
+      version: 1.20.x
+    weave:
+      version: latest
+    rook:
+      isBlockStorageEnabled: true
+      version: 1.5.x
+    registry:
+      version: latest
+    kotsadm:
+      version: latest
+    docker:
+      version: 19.03.x
+    velero:
+      version: 1.6.x
+  upgradeSpec:
+    kubernetes:
+      version: 1.22.x
+    weave:
+      version: latest
+    longhorn:
+      version: latest
+    registry:
+      version: latest
+    kotsadm:
+      version: latest
+      disableS3: true
+    containerd:
+      version: 1.4.x
+    velero:
+      version: 1.7.x
+- name: "Upgrade to 1.22 airgap"
+  installerSpec:
+    kubernetes:
+      version: 1.20.x
+    weave:
+      version: latest
+    rook:
+      isBlockStorageEnabled: true
+      version: 1.5.x
+    registry:
+      version: latest
+    kotsadm:
+      version: latest
+    docker:
+      version: 19.03.x
+    velero:
+      version: 1.6.x
+  upgradeSpec:
+    kubernetes:
+      version: 1.22.x
+    weave:
+      version: latest
+    longhorn:
+      version: latest
+    registry:
+      version: latest
+    kotsadm:
+      version: latest
+      disableS3: true
+    containerd:
+      version: 1.5.x
+    velero:
+      version: 1.7.x
+  airgap: true
+- name: "K8s 1.23x Rook"
+  installerSpec:
+    kubernetes:
+      version: 1.23.x
+    containerd:
+      version: 1.4.x
+    antrea:
+      version: 1.4.x
+      isEncryptionDisabled: true
+    contour:
+      version: 1.19.1
+    rook:
+      version: 1.5.12
+    registry:
+      version: 2.7.1
+    prometheus: 
+      version: "0.53.x"
+    kotsadm:
+      version: latest
+    velero:
+      version: 1.7.x
+    ekco:
+      version: latest
+- name: "K8s 1.23x Longhorn, disableS3"
+  installerSpec:
+    kubernetes:
+      version: 1.23.x
+    containerd:
+      version: 1.4.x
+    weave:
+      version: latest
+    contour:
+      version: 1.19.1
+    longhorn:
+      version: 1.2.2
+    registry:
+      version: 2.7.1
+    prometheus: 
+      version: "0.53.x"
+    kotsadm:
+      version: latest
+      disableS3: true
+    velero:
+      version: 1.7.x
+    ekco:
+      version: latest
+- name: "K8s 1.23x Airgap"
+  installerSpec:
+    kubernetes:
+      version: 1.23.x
+    containerd:
+      version: 1.4.x
+    antrea:
+      version: 1.4.x
+      isEncryptionDisabled: true
+    contour:
+      version: 1.19.1
+    rook:
+      version: 1.5.12
+    registry:
+      version: 2.7.1
+    prometheus: 
+      version: "0.53.x"
+    kotsadm:
+      version: latest
+    velero:
+      version: 1.7.x
+    ekco:
+      version: latest
+  airgap: true
+- name: "Upgrade to 1.23"
+  installerSpec:
+    kubernetes:
+      version: 1.21.x
+    weave:
+      version: latest
+    rook:
+      isBlockStorageEnabled: true
+      version: 1.5.x
+    registry:
+      version: latest
+    kotsadm:
+      version: latest
+    docker:
+      version: 20.10.x
+    velero:
+      version: 1.6.x
+  upgradeSpec:
+    kubernetes:
+      version: 1.23.x
+    weave:
+      version: latest
+    longhorn:
+      version: latest
+    registry:
+      version: latest
+    kotsadm:
+      version: latest
+      disableS3: true
+    containerd:
+      version: 1.4.x
+    velero:
+      version: 1.7.x
+- name: "Upgrade to 1.23 airgap"
+  installerSpec:
+    kubernetes:
+      version: 1.21.x
+    weave:
+      version: latest
+    rook:
+      isBlockStorageEnabled: true
+      version: 1.5.x
+    registry:
+      version: latest
+    kotsadm:
+      version: latest
+    docker:
+      version: 20.10.x
+    velero:
+      version: 1.6.x
+  upgradeSpec:
+    kubernetes:
+      version: 1.23.x
+    weave:
+      version: latest
+    longhorn:
+      version: latest
+    registry:
+      version: latest
+    kotsadm:
+      version: latest
+      disableS3: true
+    containerd:
+      version: 1.5.x
+    velero:
+      version: 1.7.x
+  airgap: true
+- name: "Upgrade to 1.23 minimal"
+  installerSpec:
+    kubernetes:
+      version: 1.22.x
+    weave:
+      version: latest
+    longhorn:
+      version: latest
+    registry:
+      version: latest
+    kotsadm:
+      version: latest
+      disableS3: true
+    containerd:
+      version: latest
+  upgradeSpec:
+    kubernetes:
+      version: 1.23.x
+    weave:
+      version: latest
+    longhorn:
+      version: latest
+    registry:
+      version: latest
+    kotsadm:
+      version: latest
+      disableS3: true
+    containerd:
+      version: latest
+- name: "Upgrade to 1.23 minimal airgap"
+  installerSpec:
+    kubernetes:
+      version: 1.22.x
+    weave:
+      version: latest
+    longhorn:
+      version: latest
+    registry:
+      version: latest
+    kotsadm:
+      version: latest
+      disableS3: true
+    containerd:
+      version: latest
+  upgradeSpec:
+    kubernetes:
+      version: 1.23.x
+    weave:
+      version: latest
+    longhorn:
+      version: latest
+    registry:
+      version: latest
+    kotsadm:
+      version: latest
+      disableS3: true
+    containerd:
+      version: latest
+  airgap: true
+- name: k8s121-with-flags
+  installerSpec:
+    kubernetes:
+      version: 1.21.x
+    containerd:
+      version: latest
+    weave:
+      version: 2.8.x
+    contour:
+      version: latest
+    rook:
+      isBlockStorageEnabled: true
+      version: 1.5.x
+    registry:
+      version: latest
+    kotsadm:
+      version: latest
+    velero:
+      version: latest
+    ekco:
+      version: latest
+  flags: "labels=disktype=ssd,gpu=enabled"
+- name: k8s122-with-flags
+  installerSpec:
+    kubernetes:
+      version: 1.22.x
+    containerd:
+      version: latest
+    weave:
+      version: 2.8.x
+    contour:
+      version: latest
+    rook:
+      isBlockStorageEnabled: true
+      version: 1.5.x
+    registry:
+      version: latest
+    kotsadm:
+      version: latest
+    velero:
+      version: latest
+    ekco:
+      version: latest
+  flags: "labels=disktype=ssd,gpu=enabled"
+- name: k8s123-with-flags
+  installerSpec:
+    kubernetes:
+      version: 1.23.x
+    containerd:
+      version: latest
+    weave:
+      version: 2.8.x
+    contour:
+      version: latest
+    rook:
+      isBlockStorageEnabled: true
+      version: 1.5.x
+    registry:
+      version: latest
+    kotsadm:
+      version: latest
+    velero:
+      version: latest
+    ekco:
+      version: latest
+  flags: "labels=disktype=ssd,gpu=enabled"
+- name: k8s123-all-the-flags
+  installerSpec:
+    kubernetes:
+      version: 1.23.x
+    containerd:
+      version: latest
+    weave:
+      version: 2.8.x
+    longhorn:
+      version: latest
+    registry:
+      version: latest
+    kotsadm:
+      version: latest
+      disableS3: true
+    ekco:
+      version: latest
+  flags: "labels=disktype=ssd,gpu=enabled exclude-builtin-host-preflights" # TODO: add more flags here
+- name: ekco-podimageoverrides
+  installerSpec:
+    kubernetes:
+      version: "1.23.x"
+    containerd:
+      version: "latest"
+    weave:
+      version: "latest"
+    longhorn:
+      version: "latest"
+    contour:
+      version: "1.20.0"
+    ekco:
+      version: "latest"
+      podImageOverrides:
+        - ghcr.io/projectcontour/contour:v1.20.0=ghcr.io/projectcontour/contour:v1.20.1
+  postInstallScript: |
+    sleep 120
+
+    pod_image="$(kubectl -n projectcontour get po -l app=contour -o jsonpath='{.items[].spec.containers[].image}')"
+    if ! echo "$pod_image" | grep 'v1.20.1' ; then
+      echo "Pod image override failed: $pod_image"
+      exit 1
+    fi
+
+    echo "Pod image override success: $pod_image"
+- name: k8s123x_cis_benchmarks_checks
+  installerSpec:
+    kubernetes:
+      version: "1.23.x"
+      cisCompliance: true
+    containerd:
+      version: "latest"
+    weave:
+      version: "latest"
+    ekco: 
+      version: "latest"
+  postInstallScript: |
+    echo "running CIS Kubernetes Benchmark Checks"
+    curl -L https://github.com/aquasecurity/kube-bench/releases/download/v0.6.2/kube-bench_0.6.2_linux_amd64.tar.gz | tar -xz
+    ./kube-bench --config-dir=`pwd`/cfg --config=`pwd`/cfg/config.yaml --exit-code=1		
+- name: k8s122x_123x_upgrade_cis_benchmarks_checks
+  installerSpec:
+    kubernetes:
+      version: "1.22.x"
+    containerd:
+      version: "latest"
+    weave:
+      version: "latest"
+  upgradeSpec:
+    kubernetes:
+      version: "1.23.x"
+      cisCompliance: true		
+    containerd:
+      version: "latest"
+    weave:
+      version: "latest"
+    ekco: 
+      version: "latest"
+  postUpgradeScript: |
+    echo "running  CIS Kubernetes Benchmark Checks"
+    curl -L https://github.com/aquasecurity/kube-bench/releases/download/v0.6.2/kube-bench_0.6.2_linux_amd64.tar.gz | tar -xz
+    ./kube-bench --config-dir=`pwd`/cfg --config=`pwd`/cfg/config.yaml --exit-code=1
+- name: k8s123x_reserved_resources
+  installerSpec:
+    kubernetes:
+      version: "1.23.x"
+      kubeReserved: true
+      evictionThresholdResources: '{"memory.available":  "234Mi", "nodefs.available": "11%", "nodefs.inodesFree": "6%"}'
+      systemReservedResources: '{ "cpu": "123m", "memory": "123Mi", "ephemeral-storage": "1.23Gi" }'
+    containerd:
+      version: "latest"
+    weave:
+      version: "latest"
+  postInstallScript: |
+    set -eo pipefail
+    echo "validating kubelet config contains reserved resources"
+    sudo cat /var/lib/kubelet/config.yaml | grep -A 4 kubeReserved
+    sudo cat /var/lib/kubelet/config.yaml | grep "ephemeral-storage: 1Gi"
+    sudo cat /var/lib/kubelet/config.yaml | grep -A 4 evictionHard
+    sudo cat /var/lib/kubelet/config.yaml | grep "memory.available: 234Mi"
+    sudo cat /var/lib/kubelet/config.yaml | grep -A 4 systemReserved
+    sudo cat /var/lib/kubelet/config.yaml | grep "cpu: 123m"
+    sudo cat /var/lib/kubelet/config.yaml | grep "ephemeral-storage: 1.23Gi"
+    sudo cat /var/lib/kubelet/config.yaml | grep "memory: 123Mi"
+- name: "Cust1 Upgrade - no HA"
+  installerSpec:
+    kubernetes:
+      version: "1.19.x"
+    docker:
+      version: "19.03.10"
+      daemonConfig: |
+        {
+          "exec-opts": ["native.cgroupdriver=systemd"],
+          "log-opts": {
+              "max-size": "100m",
+              "max-file": "3"
+              }
+        }
+    weave:
+      version: "2.6.5"
+    rook:
+      version: "1.0.4"
+    contour:
+      version: "1.7.0"
+      tlsMinimumProtocolVersion: "1.2"
+    registry:
+      version: "2.7.1"
+    prometheus:
+      version: "0.49.0-17.1.3"
+    velero:
+      version: "1.6.0"
+    kotsadm:
+      version: "1.57.0"
+    goldpinger:
+      version: "3.2.0-4.1.1"
+    openebs:
+      version: "1.6.0"
+      namespace: "openebs"
+      isLocalPVEnabled: true
+      localPVStorageClassName: openebs
+      isCstorEnabled: false
+    ekco:
+      version: "0.10.2"
+      nodeUnreachableToleration: 5m
+      minReadyMasterNodeCount: 2
+      minReadyWorkerNodeCount: 0
+      rookShouldUseAllNodes: false
+      shouldDisableRebootServices: false
+      shouldDisableClearNodes: false
+      shouldEnablePurgeNodes: false
+  upgradeSpec:
+    kubernetes:
+      version: "1.21.9"
+      containerLogMaxFiles: 5
+      containerLogMaxSize: 5Mi
+    containerd:
+      version: "1.4.6"
+    weave:
+      version: "2.6.5"
+    longhorn:
+      version: "1.1.2"
+    minio:
+      version: "2020-01-25T02-50-51Z"
+    contour:
+      version: "1.7.0"
+    registry:
+      version: "2.7.1"
+    prometheus:
+      version: "0.49.0-17.1.3"
+    velero:
+      version: "1.6.0"
+    kotsadm:
+      version: "1.57.0"
+    goldpinger:
+      version: "3.2.0-4.1.1"
+    openebs:
+      version: "1.12.0"
+      namespace: openebs
+      isLocalPVEnabled: true
+      localPVStorageClassName: openebs
+      isCstorEnabled: false
+    ekco:
+      version: "0.16.0"
+      nodeUnreachableToleration: 5m
+      minReadyMasterNodeCount: 2
+      minReadyWorkerNodeCount: 0
+      rookShouldUseAllNodes: false
+      shouldDisableRebootServices: false
+      shouldDisableClearNodes: false
+      shouldEnablePurgeNodes: false
+- name: less_command
+  installerSpec:
+    kubernetes:
+      version: "1.23.5"
+    docker:
+      version: "20.10.5"
+    weave:
+      version: "2.6.5"
+  postInstallScript: |
+    echo "this is text to test less command after installation" > test-less.txt
+    less test-less.txt > /dev/null
+- name: "weave 2.6.5 multinode"
+  installerSpec:
+    kubernetes:
+      version: "1.23.6"
+    weave: 
+      version: "2.6.5"
+    containerd: 
+      version: "1.5.11"
+  numPrimaryNodes: 1
+  numSecondaryNodes: 2
+- name: "weave 2.8.1 multinode"
+  installerSpec:
+    kubernetes:
+      version: "1.23.6"
+    weave: 
+      version: "2.8.1"
+    containerd: 
+      version: "1.5.11"
+  numPrimaryNodes: 1
+  numSecondaryNodes: 2
 - name: k8s121x_openebs_containerd
   installerSpec:
     kubernetes:

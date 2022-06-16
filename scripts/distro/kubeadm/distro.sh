@@ -35,6 +35,9 @@ function kubeadm_get_server_ca_key() {
 function kubeadm_addon_for_each() {
     local cmd="$1"
 
+    if [ "$cmd" != "addon_install" ]; then # this is run in install_cri
+        $cmd containerd "$CONTAINERD_VERSION" "$CONTAINERD_S3_OVERRIDE"
+    fi
     $cmd aws "$AWS_VERSION"
     $cmd nodeless "$NODELESS_VERSION"
     $cmd calico "$CALICO_VERSION" "$CALICO_S3_OVERRIDE"
@@ -44,6 +47,8 @@ function kubeadm_addon_for_each() {
     $cmd ekco "$EKCO_VERSION" "$EKCO_S3_OVERRIDE"
     $cmd openebs "$OPENEBS_VERSION" "$OPENEBS_S3_OVERRIDE"
     $cmd longhorn "$LONGHORN_VERSION" "$LONGHORN_S3_OVERRIDE"
+    $cmd local-path-provisioner "$LOCAL_PATH_PROVISIONER_VERSION" "$LOCAL_PATH_PROVISIONER_S3_OVERRIDE"
+    $cmd aws "$AWS_VERSION" "$AWS_S3_OVERRIDE"
     $cmd minio "$MINIO_VERSION" "$MINIO_S3_OVERRIDE"
     $cmd contour "$CONTOUR_VERSION" "$CONTOUR_S3_OVERRIDE"
     $cmd registry "$REGISTRY_VERSION" "$REGISTRY_S3_OVERRIDE"
@@ -162,13 +167,20 @@ function kubeadm_containerd_restart() {
 function kubeadm_registry_containerd_configure() {
     local registry_ip="$1"
 
-    if grep -q "plugins.\"io.containerd.grpc.v1.cri\".registry.configs.\"${registry_ip}\".tls" /etc/containerd/config.toml; then
-        echo "Registry ${registry_ip} TLS already configured for containerd"
+    local server="$registry_ip"
+    if [ "$IPV6_ONLY" = "1" ]; then
+        server="registry.kurl.svc.cluster.local"
+        sed -i '/registry\.kurl\.svc\.cluster\.local/d' /etc/hosts
+        echo "$registry_ip $server" >> /etc/hosts
+    fi
+
+    if grep -q "plugins.\"io.containerd.grpc.v1.cri\".registry.configs.\"${server}\".tls" /etc/containerd/config.toml; then
+        echo "Registry ${server} TLS already configured for containerd"
         return 0
     fi
 
     cat >> /etc/containerd/config.toml <<EOF
-[plugins."io.containerd.grpc.v1.cri".registry.configs."${registry_ip}".tls]
+[plugins."io.containerd.grpc.v1.cri".registry.configs."${server}".tls]
   ca_file = "/etc/kubernetes/pki/ca.crt"
 EOF
 
@@ -176,6 +188,6 @@ EOF
 }
 
 function kubeadm_api_is_healthy() {
-    curl --noproxy "*" --fail --silent --insecure "https://$(kubernetes_api_address)/healthz" >/dev/null
+    curl --globoff --noproxy "*" --fail --silent --insecure "https://$(kubernetes_api_address)/healthz" >/dev/null
 }
     

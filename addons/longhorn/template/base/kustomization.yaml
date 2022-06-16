@@ -7,3 +7,4 @@ patchesStrategicMerge:
 - ui-service.yaml
 - manager-priority.yaml
 - driver-priority.yaml
+- defaults-cm.yaml

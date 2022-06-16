@@ -50,7 +50,6 @@ jobs:
             -H "Content-Type: application/json" \
             -H "Shortcut-Token: ${SHORTCUT_API_TOKEN}" \
             -d "{ \
-              \"group_id\": \"6125060f-c490-4005-8dd7-165aa0b9cc18\", \
               \"project_id\": 28614, \
               \"story_type\": \"chore\", \
               \"workflow_state_id\": 500122316, \
@@ -59,8 +58,6 @@ jobs:
               \"description\": \"${STORY_DESCRIPTION}\" }" \
             -L "https://api.app.shortcut.com/api/v3/stories")"
           NEW_STORY_ID="$(echo "${NEW_STORY}"| jq -r '.id')"
-
-          gh pr comment --repo "${GITHUB_REPO}" "${PR_NUMBER}" --body "[sc-${NEW_STORY_ID}]"
 
           echo "::notice ::shortcut story created"
         env:

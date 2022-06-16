@@ -60,7 +60,7 @@ function k3s_init() {
 #     # this uses a go binary found in kurl/cmd/yamlutil to strip the metadata field from the yaml
 #     #
 #     cp $KUBEADM_CONF_FILE $KUBEADM_CONF_DIR/kubeadm_conf_copy_in
-#     $DIR/bin/yamlutil -r -fp $KUBEADM_CONF_DIR/kubeadm_conf_copy_in -yf metadata
+#     $DIR/bin/yamlutil -r -fp $KUBEADM_CONF_DIR/kubeadm_conf_copy_in -yp metadata
 #     mv $KUBEADM_CONF_DIR/kubeadm_conf_copy_in $KUBEADM_CONF_FILE
 
 #     cat << EOF >> $KUBEADM_CONF_FILE
@@ -255,6 +255,11 @@ EOF
     printf "${RED}\n\nCONTINUING AT YOUR OWN RISK....${NC}\n\n"
 }
 
+function k3s_post_init() {
+    k3s_save_known_vars
+    kurl_config
+}
+
 function k3s_outro() {
     echo
     # if [ -z "$PUBLIC_ADDRESS" ]; then
@@ -391,7 +396,15 @@ function k3s_main() {
     apply_installer_crd
     kurl_init_config
     ${K8S_DISTRO}_addon_for_each addon_install
-    # post_init                          # TODO(dan): more kubeadm token setup
+
+    ${K8S_DISTRO}_registry_containerd_configure "${DOCKER_REGISTRY_IP}"
+    if [ "$CONTAINERD_NEEDS_RESTART" = "1" ]; then
+        ${K8S_DISTRO}_containerd_restart
+        spinner_kubernetes_api_healthy
+        CONTAINERD_NEEDS_RESTART=0
+    fi
+
+    k3s_post_init
     k3s_outro                            
     package_cleanup
     # report_install_success # TODO(dan) remove reporting for now.
@@ -466,8 +479,6 @@ function k3s_host_packages_ok() {
         echo "k3s command missing - will install host components"
         return 1
     fi
-
-    kubelet --version | grep -q "$(echo $k3s_version | sed "s/-/+/")"
 }
 
 function k3s_get_host_packages_online() {
@@ -586,4 +597,15 @@ EOF
     fi
 
     source /etc/profile
+}
+
+KNOWN_VARS_FILE="$KURL_INSTALL_DIRECTORY/kurl.env"
+function k3s_load_known_vars() {
+    if [ -f "$KNOWN_VARS_FILE" ]; then
+        source $KNOWN_VARS_FILE
+    fi
+}
+
+function k3s_save_known_vars() {
+    echo "PRIVATE_ADDRESS=$PRIVATE_ADDRESS" > $KNOWN_VARS_FILE
 }

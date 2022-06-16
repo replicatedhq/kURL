@@ -49,13 +49,18 @@ client-gen:
 manifests:
 	controller-gen \
 		rbac:roleName=manager-role webhook crd output:crd:artifacts:config=config/crds/v1beta1 paths=./pkg/apis/...
-	sed -i 's/type: BoolString/type: string/' config/crds/v1beta1/cluster.kurl.sh_installers.yaml
+	sed -i'.orig' -e 's/type: BoolString/type: string/' config/crds/v1beta1/cluster.kurl.sh_installers.yaml
+	rm config/crds/v1beta1/cluster.kurl.sh_installers.yaml.orig
 
 test-crd:
 	kubectl apply -f config/crds/v1beta1/cluster.kurl.sh_installers.yaml
 	kubectl apply -f config/test/cluster.kurl.sh_example.yaml
 	kubectl delete crd installers.cluster.kurl.sh
 
+.PHONY: schemas
+schemas: fmt generate
+	go build ${LDFLAGS} -o bin/schemagen ./schemagen
+	./bin/schemagen --output-dir ./schemas
 
 # get/update controller-gen
 update-controller-gen:
@@ -71,7 +76,7 @@ update-kubebuilder: KUBEBUILDER_VERSION = 2.3.1
 update-kubebuilder:
 	# download kubebuilder and extract it to tmp
 	# curl -fsSL https://go.kubebuilder.io/dl/${KUBEBUILDER_VERSION}/${os}/${arch} | tar -xz -C /tmp/
-	curl -fsSL https://github.com/kubernetes-sigs/kubebuilder/releases/download/v${KUBEBUILDER_VERSION}/kubebuilder_${KUBEBUILDER_VERSION}_linux_amd64.tar.gz | tar -xz -C /tmp/
+	curl -fsSL https://github.com/kubernetes-sigs/kubebuilder/releases/download/v${KUBEBUILDER_VERSION}/kubebuilder_${KUBEBUILDER_VERSION}_${os}_${arch}.tar.gz | tar -xz -C /tmp/
 
 	sudo rm -rf /usr/local/kubebuilder
 	sudo mv /tmp/kubebuilder_${KUBEBUILDER_VERSION}_${os}_${arch} /usr/local/kubebuilder

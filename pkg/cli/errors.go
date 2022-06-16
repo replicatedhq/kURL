@@ -4,4 +4,4 @@ import (
 	"github.com/pkg/errors"
 )
 
-var ErrWarn = errors.New("preflights have warnings")
+var ErrWarn = errors.New("host preflights have warnings")

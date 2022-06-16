@@ -132,6 +132,11 @@ function rook_operator_deploy() {
         insert_patches_strategic_merge "$dst/kustomization.yaml" patches/deployment-priority-class.yaml
     fi
 
+    if [ "$IPV6_ONLY" = "1" ]; then
+        sed -i "/\[global\].*/a\    ms bind ipv6 = true" "$dst/configmap-rook-config-override.yaml"
+        sed -i "/\[global\].*/a\    ms bind ipv4 = false" "$dst/configmap-rook-config-override.yaml"
+    fi
+
     kubectl -n rook-ceph apply -k "$dst"
 }
 
@@ -336,6 +341,8 @@ function rook_object_store_output() {
     export OBJECT_STORE_CLUSTER_IP
     OBJECT_STORE_CLUSTER_IP=$(kubectl -n rook-ceph get service rook-ceph-rgw-rook-ceph-store | tail -n1 | awk '{ print $3}')
     export OBJECT_STORE_CLUSTER_HOST="http://rook-ceph-rgw-rook-ceph-store.rook-ceph"
+    # same as OBJECT_STORE_CLUSTER_IP for IPv4, wrapped in brackets for IPv6
+    export OBJECT_STORE_CLUSTER_IP_BRACKETED=$($DIR/bin/kurl format-address "$OBJECT_STORE_CLUSTER_IP")
 }
 
 # deprecated, use object_store_create_bucket
@@ -349,16 +356,17 @@ function rook_create_bucket() {
     sig=$(echo -en "${string}" | openssl sha1 -hmac "${OBJECT_STORE_SECRET_KEY}" -binary | base64)
 
     curl -X PUT  \
+        --globoff \
         --noproxy "*" \
         -H "Host: $OBJECT_STORE_CLUSTER_IP" \
         -H "Date: $d" \
         -H "$acl" \
         -H "Authorization: AWS $OBJECT_STORE_ACCESS_KEY:$sig" \
-        "http://$OBJECT_STORE_CLUSTER_IP/$bucket" >/dev/null
+        "http://$OBJECT_STORE_CLUSTER_IP_BRACKETED/$bucket" >/dev/null
 }
 
 function rook_rgw_is_healthy() {
-    curl --noproxy "*" --fail --silent --insecure "http://${OBJECT_STORE_CLUSTER_IP}" > /dev/null
+    curl --globoff --noproxy "*" --fail --silent --insecure "http://${OBJECT_STORE_CLUSTER_IP_BRACKETED}" > /dev/null
 }
 
 function rook_version() {

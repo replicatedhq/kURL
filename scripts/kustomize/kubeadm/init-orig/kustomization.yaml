@@ -5,3 +5,4 @@ resources:
 - kubeadm-cluster-config-v1beta2.yml
 - kubeadm-init-config-v1beta2.yml
 - kubeproxy-config-v1alpha1.yml
+- kubelet-config-v1beta1.yaml

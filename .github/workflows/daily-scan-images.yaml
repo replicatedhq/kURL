@@ -11,8 +11,8 @@ jobs:
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
-      - uses: actions/setup-node@v2
-      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v3
       - name: Install dependencies
         working-directory: ./bin/scan-images/
         run: npm install
@@ -30,18 +30,24 @@ jobs:
       fail-fast: false
       max-parallel: 5
     steps:
-      - uses: actions/setup-node@v2
-      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v3
+      - name: "${{ matrix.addon }}:${{ matrix.version }} - ${{ matrix.name }} : Write Trivy ignore file"
+        run: if [ -n '${{ matrix.trivyignore }}' ]; then echo '${{ matrix.trivyignore }}' | base64 -d > .trivyignore.rego ; fi
       - name: "${{ matrix.addon }}:${{ matrix.version }} - ${{ matrix.name }} : Scan image"
         id: scan
-        uses: anchore/scan-action@v3.1.0
+        uses: aquasecurity/trivy-action@0.3.0
         with:
-          image: ${{ matrix.image }}
-          fail-build: false
-      - name: Install dependencies
-        working-directory: ./bin/scan-images/
-        run: npm install
-      - name: "${{ matrix.addon }}:${{ matrix.version }} - ${{ matrix.name }} : Write whitelist file"
-        run: if [ -n '${{ matrix.whitelist }}' ]; then echo '${{ matrix.whitelist }}' > whitelist.json ; fi
-      - name: "${{ matrix.addon }}:${{ matrix.version }} - ${{ matrix.name }} : Analyze vulnerabilities report"
-        run: ./bin/scan-images/analyze.js ${{ steps.scan.outputs.vulnerabilities }} --whitelist ./whitelist.json
+          image-ref: ${{ matrix.image }}
+          format: 'sarif'
+          output: 'scan-output.sarif'
+          vuln-type: 'os'
+          severity: 'HIGH,CRITICAL'
+          ignore-unfixed: true
+          exit-code: '1'
+          ignore-policy: ${{ matrix.trivyignore && '.trivyignore.rego' }}
+      - name: Upload SARIF report
+        uses: github/codeql-action/upload-sarif@v2
+        if: ${{ always() }}
+        with:
+          sarif_file: scan-output.sarif

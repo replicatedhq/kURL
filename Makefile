@@ -36,7 +36,7 @@ endef
 
 # support for building on macos
 SED_INPLACE=-i
-SKIP_LDD_CHECK=
+SKIP_LDD_CHECK=${SKIP_DYNAMIC_CHECK}
 ifeq "darwin" "$(shell uname | tr '[:upper:]' '[:lower:]')"
 SED_INPLACE=-i.bak
 SKIP_LDD_CHECK=1
@@ -157,7 +157,7 @@ dist/docker-%.tar.gz:
 	${MAKE} build/packages/docker/$*/ubuntu-18.04
 	${MAKE} build/packages/docker/$*/ubuntu-20.04
 	${MAKE} build/packages/docker/$*/rhel-7
-	${MAKE} build/packages/docker/$*/rhel-7-force
+	${MAKE} build/packages/docker/$*/amzn-force
 	${MAKE} build/packages/docker/$*/rhel-8
 	mkdir -p dist
 	curl -L https://github.com/opencontainers/runc/releases/download/v1.0.0-rc95/runc.amd64 > build/packages/docker/$*/runc
@@ -211,6 +211,12 @@ dist/goldpinger-%.tar.gz: build/addons
 	bin/save-manifest-assets.sh "goldpinger-$*" addons/goldpinger/$*/Manifest $(CURDIR)/build/addons/goldpinger/$*
 	mkdir -p dist
 	tar cf - -C build addons/goldpinger/$* | gzip > dist/goldpinger-$*.tar.gz
+
+dist/local-path-provisioner-%.tar.gz: build/addons
+	mkdir -p build/addons/local-path-provisioner/$*/images
+	bin/save-manifest-assets.sh "local-path-provisioner-$*" addons/local-path-provisioner/$*/Manifest $(CURDIR)/build/addons/local-path-provisioner/$*
+	mkdir -p dist
+	tar cf - -C build addons/local-path-provisioner/$* | gzip > dist/local-path-provisioner-$*.tar.gz
 
 
 dist/kubernetes-%.tar.gz:
@@ -418,6 +424,7 @@ build/krew:
 
 build/kurlkinds:
 	mkdir -p build/kurlkinds
+	${MAKE} -C kurlkinds deps generate
 	cp kurlkinds/config/crds/v1beta1/cluster.kurl.sh_installers.yaml build/kurlkinds
 
 build/kustomize:
@@ -476,15 +483,15 @@ build/packages/docker/%/rhel-7:
 	docker rm docker-rhel7-$*
 
 build/packages/docker/18.09.8/rhel-8:
-	${MAKE} build/packages/docker/18.09.8/rhel-7-force
+	${MAKE} build/packages/docker/18.09.8/amzn-force
 
 build/packages/docker/19.03.4/rhel-8:
-	${MAKE} build/packages/docker/19.03.4/rhel-7-force
+	${MAKE} build/packages/docker/19.03.4/amzn-force
 
 build/packages/docker/19.03.10/rhel-8:
-	${MAKE} build/packages/docker/19.03.10/rhel-7-force
+	${MAKE} build/packages/docker/19.03.10/amzn-force
 
-build/packages/docker/%/rhel-7-force:
+build/packages/docker/%/amzn-force:
 	docker build \
 		--build-arg DOCKER_VERSION=$* \
 		-t kurl/rhel-7-force-docker:$* \
@@ -669,7 +676,7 @@ build/bin/kurl:
 code: build/kustomize build/addons
 
 build/bin/server: cmd/server/main.go
-	go build $(LDFLAGS) -o build/bin/server $(BUILDFLAGS) cmd/server/main.go
+	CGO_ENABLED=0 go build $(LDFLAGS) -o build/bin/server $(BUILDFLAGS) cmd/server/main.go
 
 .PHONY: web
 web: build/bin/server

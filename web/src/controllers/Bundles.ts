@@ -74,6 +74,7 @@ export class Bundle {
 
     // if installer.spec.kurl is set, fallback to installer.spec.kurl.installerVersion if kurlVersion was not set in the URL
     kurlVersion = installer.spec.kurl ? (kurlVersion || installer.spec.kurl.installerVersion) : kurlVersion;
+    const distURL = this.distURL;
 
     try {
       await this.metricsStore.saveSaasScriptEvent({
@@ -90,7 +91,12 @@ export class Bundle {
     response.type("application/json");
 
     const ret: BundleManifest = {layers: [], files: {}, images: []};
-    ret.layers = (await installer.packages(kurlVersion)).map((pkg) => getPackageUrl(this.distURL, kurlVersion, `${pkg}.tar.gz`));
+    ret.layers = (await installer.packages(kurlVersion)).map((pkg) => function (pkg: string) {
+      if (pkg.startsWith("http")) { // if it starts with http, it's an s3override URL and should be used directly
+        return pkg;
+      }
+      return getPackageUrl(distURL, kurlVersion, `${pkg}.tar.gz`);
+    }(pkg));
 
     ret.images = _.map(_.get(installer.spec, "ekco.podImageOverrides"), (override: string) => {
       const parts = _.split(override, "=");

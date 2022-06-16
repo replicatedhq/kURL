@@ -39,7 +39,10 @@ type OperatingSystemImage struct {
 
 type Instance struct {
 	Name              string                             `json:"name" yaml:"name"`
+	NumPrimaryNodes   int                                `json:"numPrimaryNodes" yaml:"numPrimaryNodes"`
+	NumSecondaryNodes int                                `json:"numSecondaryNodes" yaml:"numSecondaryNodes"`
 	InstallerSpec     kurlv1beta1.InstallerSpec          `json:"installerSpec" yaml:"installerSpec"`
+	Flags             string                             `json:"flags,omitempty" yaml:"flags,omitempty"`
 	UpgradeSpec       *kurlv1beta1.InstallerSpec         `json:"upgradeSpec,omitempty" yaml:"upgradeSpec,omitempty"`
 	SupportbundleSpec *troubleshootv1beta2.SupportBundle `json:"supportbundleSpec,omitempty" yaml:"supportbundleSpec,omitempty"`
 	PostInstallScript string                             `json:"postInstallScript,omitempty" yaml:"postInstallScript,omitempty"`
