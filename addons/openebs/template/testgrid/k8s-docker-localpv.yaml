@@ -30,7 +30,7 @@
       isLocalPVEnabled: true
       localPVStorageClassName: default
       namespace: openebs
-      version: "1.12.0"
+      version: "2.6.0"
   upgradeSpec:
     kubernetes:
       version: "latest"

@@ -1,0 +1,3 @@
+yum iscsi-initiator-utils
+apt open-iscsi
+image upgrade openebs/upgrade:__OPENEBS_APP_VERSION__

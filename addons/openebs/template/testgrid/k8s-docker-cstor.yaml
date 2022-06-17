@@ -15,7 +15,7 @@
       namespace: openebs
       version: "__testver__"
       s3Override: "__testdist__"
-- installerSpec: # upgrade from 1.12.0 to the tested version
+- installerSpec: # upgrade from 2.6.0 to the tested version
     kubernetes:
       version: "latest"
     weave:
@@ -30,7 +30,7 @@
       cstorStorageClassName: default
       isCstorEnabled: true
       namespace: openebs
-      version: "1.12.0"
+      version: "2.6.0"
   upgradeSpec:
     kubernetes:
       version: "latest"

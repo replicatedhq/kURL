@@ -316,6 +316,9 @@ module.exports.InstallerVersions = {
   openebs: [
     "1.12.0",
     "1.6.0",
+    // cron-openebs-update-3
+    // cron-openebs-update-2
+    "2.12.9",
     "2.6.0",
   ],
   minio: [

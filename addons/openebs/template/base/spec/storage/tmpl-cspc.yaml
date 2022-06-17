@@ -1,0 +1,26 @@
+apiVersion: openebs.io/v1alpha1
+kind: StoragePoolClaim
+metadata:
+  name: cstor-disk
+spec:
+  name: cstor-disk
+  type: disk
+  minPools: 1
+  maxPools: ${OPENEBS_CSTOR_MAX_POOLS}
+  poolSpec:
+    poolType: striped
+
+apiVersion: cstor.openebs.io/v1
+kind: CStorPoolCluster
+metadata:
+  name: cstor-disk
+spec:
+  pools:
+    - nodeSelector:
+        kubernetes.io/hostname: "worker-1"
+      dataRaidGroups:
+      - blockDevices:
+          - blockDeviceName: "blockdevice-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+          - blockDeviceName: "blockdevice-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+      poolConfig:
+        dataRaidGroupType: "mirror"

@@ -1,0 +1,1014 @@
+---
+# Source: openebs/charts/cstor/templates/csi-controller-rbac.yaml
+kind: ServiceAccount
+apiVersion: v1
+metadata:
+  name: openebs-cstor-csi-controller-sa
+  labels:
+    chart: cstor-2.12.1
+    heritage: Helm
+    openebs.io/version: "2.12.0"
+    name: "openebs-cstor-csi-controller"
+    release: openebs
+    component: "openebs-cstor-csi-controller"
+    openebs.io/component-name: "openebs-cstor-csi-controller"
+  namespace: __OPENEBS_NAMESPACE__
+---
+# Source: openebs/charts/cstor/templates/csi-node-rbac.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: openebs-cstor-csi-node-sa
+  labels:
+    chart: cstor-2.12.1
+    heritage: Helm
+    openebs.io/version: "2.12.0"
+    name: "openebs-cstor-csi-node"
+    release: openebs
+    component: "openebs-cstor-csi-node"
+    openebs.io/component-name: "openebs-cstor-csi-node"
+  namespace: __OPENEBS_NAMESPACE__
+---
+# Source: openebs/charts/cstor/templates/rbac.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: openebs-cstor-operator
+  labels:
+    chart: cstor-2.12.1
+    heritage: Helm
+    openebs.io/version: "2.12.0"
+---
+# Source: openebs/charts/cstor/templates/csi-iscsiadm-config.yaml
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: openebs-cstor-csi-iscsiadm
+data:
+  iscsiadm: |
+    #!/bin/sh
+    if [ -x /host/sbin/iscsiadm ]; then
+      chroot /host /sbin/iscsiadm "$@"
+    elif [ -x /host/usr/local/sbin/iscsiadm ]; then
+      chroot /host /usr/local/sbin/iscsiadm "$@"
+    elif [ -x /host/bin/iscsiadm ]; then
+      chroot /host /bin/iscsiadm "$@"
+    elif [ -x /host/usr/local/bin/iscsiadm ]; then
+      chroot /host /usr/local/bin/iscsiadm "$@"
+    else
+      chroot /host iscsiadm "$@"
+    fi
+---
+# Source: openebs/charts/cstor/templates/csi-controller-rbac.yaml
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: openebs-cstor-csi-snapshotter-role
+  labels:
+    chart: cstor-2.12.1
+    heritage: Helm
+    openebs.io/version: "2.12.0"
+    name: "openebs-cstor-csi-controller"
+    release: openebs
+    component: "openebs-cstor-csi-controller"
+    openebs.io/component-name: "openebs-cstor-csi-controller"
+rules:
+  - apiGroups: [""]
+    resources: ["persistentvolumes"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: [""]
+    resources: ["persistentvolumeclaims"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["storage.k8s.io"]
+    resources: ["storageclasses"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: [""]
+    resources: ["events"]
+    verbs: ["list", "watch", "create", "update", "patch"]
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["get", "list"]
+  - apiGroups: ["snapshot.storage.k8s.io"]
+    resources: ["volumesnapshotclasses"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["snapshot.storage.k8s.io"]
+    resources: ["volumesnapshotcontents"]
+    verbs: ["create", "get", "list", "watch", "update", "delete"]
+  - apiGroups: ["snapshot.storage.k8s.io"]
+    resources: ["volumesnapshotcontents/status"]
+    verbs: ["update"]
+  - apiGroups: ["snapshot.storage.k8s.io"]
+    resources: ["volumesnapshots"]
+    verbs: ["get", "list", "watch", "update"]
+  - apiGroups: ["snapshot.storage.k8s.io"]
+    resources: ["volumesnapshots/status"]
+    verbs: ["update"]
+  - apiGroups: ["coordination.k8s.io"]
+    resources: ["leases"]
+    verbs: ["get", "watch", "list", "delete", "update", "create"]
+  - apiGroups: ["apiextensions.k8s.io"]
+    resources: ["customresourcedefinitions"]
+    verbs: ["create", "list", "watch", "delete", "get", "update"]
+---
+# Source: openebs/charts/cstor/templates/csi-controller-rbac.yaml
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: openebs-cstor-csi-provisioner-role
+  labels:
+    chart: cstor-2.12.1
+    heritage: Helm
+    openebs.io/version: "2.12.0"
+    name: "openebs-cstor-csi-controller"
+    release: openebs
+    component: "openebs-cstor-csi-controller"
+    openebs.io/component-name: "openebs-cstor-csi-controller"
+rules:
+  - apiGroups: [""]
+    resources: ["secrets","namespaces"]
+    verbs: ["get", "list"]
+  - apiGroups: [ "" ]
+    resources: [ "pods" ]
+    verbs: [ "get", "list", "watch" ]
+  - apiGroups: [""]
+    resources: ["persistentvolumes", "services"]
+    verbs: ["get", "list", "watch", "create", "delete", "update", "patch"]
+  - apiGroups: [""]
+    resources: ["persistentvolumeclaims"]
+    verbs: ["get", "list", "watch", "update"]
+  - apiGroups: [""]
+    resources: ["persistentvolumeclaims/status"]
+    verbs: ["update", "patch"]
+  - apiGroups: ["storage.k8s.io"]
+    resources: ["storageclasses", "csinodes"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: [""]
+    resources: ["events"]
+    verbs: ["list", "watch", "create", "update", "patch"]
+  - apiGroups: ["snapshot.storage.k8s.io"]
+    resources: ["volumesnapshots"]
+    verbs: ["get", "list"]
+  - apiGroups: ["storage.k8s.io"]
+    resources: ["volumeattachments"]
+    verbs: ["get", "list", "watch", "create", "delete", "update", "patch"]
+  - apiGroups: ["snapshot.storage.k8s.io"]
+    resources: ["volumesnapshotcontents"]
+    verbs: ["get", "list"]
+  - apiGroups: ["coordination.k8s.io"]
+    resources: ["leases"]
+    verbs: ["*"]
+  - apiGroups: ["*"]
+    resources: ["cstorvolumeattachments", "cstorvolumes","cstorvolumeconfigs"]
+    verbs: ["*"]
+---
+# Source: openebs/charts/cstor/templates/csi-controller-rbac.yaml
+############################## CSI- Attacher #######################
+# Attacher must be able to work with PVs, nodes and VolumeAttachments
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: openebs-cstor-csi-attacher-role
+  labels:
+    chart: cstor-2.12.1
+    heritage: Helm
+    openebs.io/version: "2.12.0"
+    name: "openebs-cstor-csi-controller"
+    release: openebs
+    component: "openebs-cstor-csi-controller"
+    openebs.io/component-name: "openebs-cstor-csi-controller"
+rules:
+  - apiGroups: [""]
+    resources: ["persistentvolumes"]
+    verbs: ["get", "list", "watch", "update"]
+  - apiGroups: [""]
+    resources: ["nodes"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["csi.storage.k8s.io"]
+    resources: ["csinodeinfos"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["storage.k8s.io"]
+    resources: ["volumeattachments", "csinodes"]
+    verbs: ["get", "list", "watch", "update"]
+  - apiGroups: [ "storage.k8s.io" ]
+    resources: [ "volumeattachments/status" ]
+    verbs: [ "patch" ]
+---
+# Source: openebs/charts/cstor/templates/csi-controller-rbac.yaml
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: openebs-cstor-csi-cluster-registrar-role
+  labels:
+    chart: cstor-2.12.1
+    heritage: Helm
+    openebs.io/version: "2.12.0"
+    name: "openebs-cstor-csi-controller"
+    release: openebs
+    component: "openebs-cstor-csi-controller"
+    openebs.io/component-name: "openebs-cstor-csi-controller"
+rules:
+  - apiGroups: ["csi.storage.k8s.io"]
+    resources: ["csidrivers"]
+    verbs: ["create", "delete"]
+---
+# Source: openebs/charts/cstor/templates/csi-node-rbac.yaml
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: openebs-cstor-csi-registrar-role
+  labels:
+    chart: cstor-2.12.1
+    heritage: Helm
+    openebs.io/version: "2.12.0"
+    name: "openebs-cstor-csi-node"
+    release: openebs
+    component: "openebs-cstor-csi-node"
+    openebs.io/component-name: "openebs-cstor-csi-node"
+rules:
+  - apiGroups: [""]
+    resources: ["events"]
+    verbs: ["get", "list", "watch", "create", "update", "patch"]
+  - apiGroups: [""]
+    resources: ["persistentvolumes", "nodes", "services"]
+    verbs: ["get", "list", "patch"]
+  - apiGroups: ["*"]
+    resources: ["cstorvolumeattachments", "cstorvolumes","cstorvolumeconfigs"]
+    verbs: ["get", "list", "watch", "create", "update", "delete", "patch"]
+---
+# Source: openebs/charts/cstor/templates/rbac.yaml
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: openebs-cstor-operator
+  labels:
+    chart: cstor-2.12.1
+    heritage: Helm
+    openebs.io/version: "2.12.0"
+rules:
+  - apiGroups: ["*"]
+    resources: ["nodes", "nodes/proxy"]
+    verbs: ["*"]
+  - apiGroups: ["*"]
+    resources: ["namespaces", "services", "pods", "deployments", "deployments/finalizers", "replicationcontrollers", "replicasets", "events", "endpoints", "configmaps", "secrets", "jobs", "cronjobs"]
+    verbs: ["*"]
+  - apiGroups: ["*"]
+    resources: ["statefulsets", "daemonsets"]
+    verbs: ["*"]
+  - apiGroups: ["*"]
+    resources: ["resourcequotas", "limitranges"]
+    verbs: ["list", "watch"]
+  - apiGroups: ["*"]
+    resources: ["certificatesigningrequests"]
+    verbs: ["list", "watch"]
+  - apiGroups: ["*"]
+    resources: ["storageclasses", "persistentvolumeclaims", "persistentvolumes"]
+    verbs: ["*"]
+  - apiGroups: ["apiextensions.k8s.io"]
+    resources: ["customresourcedefinitions"]
+    verbs: [ "get", "list", "create", "update", "delete", "patch"]
+  - apiGroups: ["openebs.io"]
+    resources: ["*"]
+    verbs: ["*" ]
+  - apiGroups: ["cstor.openebs.io"]
+    resources: ["*"]
+    verbs: ["*" ]
+  - apiGroups: ["coordination.k8s.io"]
+    resources: ["leases"]
+    verbs: ["get", "watch", "list", "delete", "update", "create"]
+  - apiGroups: ["admissionregistration.k8s.io"]
+    resources: ["validatingwebhookconfigurations", "mutatingwebhookconfigurations"]
+    verbs: ["get", "create", "list", "delete", "update", "patch"]
+  - nonResourceURLs: ["/metrics"]
+    verbs: ["get"]
+  - apiGroups: ["*"]
+    resources: ["upgradetasks","migrationtasks"]
+    verbs: ["*"]
+  - apiGroups: ["*"]
+    resources: ["poddisruptionbudgets"]
+    verbs: ["get", "list", "create", "delete", "watch"]
+---
+# Source: openebs/charts/cstor/templates/rbac.yaml
+# Define Role that allows operations required for migration of snapshots
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: openebs-cstor-migration
+  labels:
+    chart: cstor-2.12.1
+    heritage: Helm
+    openebs.io/version: "2.12.0"
+rules:
+  - apiGroups: ["snapshot.storage.k8s.io"]
+    resources: ["volumesnapshotclasses"]
+    verbs: ["get", "list"]
+  - apiGroups: ["snapshot.storage.k8s.io"]
+    resources: ["volumesnapshotcontents"]
+    verbs: ["create", "get", "list"]
+  - apiGroups: ["snapshot.storage.k8s.io"]
+    resources: ["volumesnapshots"]
+    verbs: ["create", "get", "list"]
+---
+# Source: openebs/charts/cstor/templates/csi-controller-rbac.yaml
+# cstor csi roles and bindings
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: openebs-cstor-csi-snapshotter-binding
+  labels:
+    chart: cstor-2.12.1
+    heritage: Helm
+    openebs.io/version: "2.12.0"
+    name: "openebs-cstor-csi-controller"
+    release: openebs
+    component: "openebs-cstor-csi-controller"
+    openebs.io/component-name: "openebs-cstor-csi-controller"
+subjects:
+  - kind: ServiceAccount
+    name: openebs-cstor-csi-controller-sa
+    namespace: __OPENEBS_NAMESPACE__
+roleRef:
+  kind: ClusterRole
+  name: openebs-cstor-csi-snapshotter-role
+  apiGroup: rbac.authorization.k8s.io
+---
+# Source: openebs/charts/cstor/templates/csi-controller-rbac.yaml
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: openebs-cstor-csi-provisioner-binding
+  labels:
+    chart: cstor-2.12.1
+    heritage: Helm
+    openebs.io/version: "2.12.0"
+    name: "openebs-cstor-csi-controller"
+    release: openebs
+    component: "openebs-cstor-csi-controller"
+    openebs.io/component-name: "openebs-cstor-csi-controller"
+subjects:
+  - kind: ServiceAccount
+    name: openebs-cstor-csi-controller-sa
+    namespace: __OPENEBS_NAMESPACE__
+roleRef:
+  kind: ClusterRole
+  name: openebs-cstor-csi-provisioner-role
+  apiGroup: rbac.authorization.k8s.io
+---
+# Source: openebs/charts/cstor/templates/csi-controller-rbac.yaml
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: openebs-cstor-csi-attacher-binding
+  labels:
+    chart: cstor-2.12.1
+    heritage: Helm
+    openebs.io/version: "2.12.0"
+    name: "openebs-cstor-csi-controller"
+    release: openebs
+    component: "openebs-cstor-csi-controller"
+    openebs.io/component-name: "openebs-cstor-csi-controller"
+subjects:
+  - kind: ServiceAccount
+    name: openebs-cstor-csi-controller-sa
+    namespace: __OPENEBS_NAMESPACE__
+roleRef:
+  kind: ClusterRole
+  name: openebs-cstor-csi-attacher-role
+  apiGroup: rbac.authorization.k8s.io
+---
+# Source: openebs/charts/cstor/templates/csi-controller-rbac.yaml
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: openebs-cstor-csi-cluster-registrar-binding
+  labels:
+    chart: cstor-2.12.1
+    heritage: Helm
+    openebs.io/version: "2.12.0"
+    name: "openebs-cstor-csi-controller"
+    release: openebs
+    component: "openebs-cstor-csi-controller"
+    openebs.io/component-name: "openebs-cstor-csi-controller"
+subjects:
+  - kind: ServiceAccount
+    name: openebs-cstor-csi-controller-sa
+    namespace: __OPENEBS_NAMESPACE__
+roleRef:
+  kind: ClusterRole
+  name: openebs-cstor-csi-cluster-registrar-role
+  apiGroup: rbac.authorization.k8s.io
+---
+# Source: openebs/charts/cstor/templates/csi-node-rbac.yaml
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: openebs-cstor-csi-registrar-binding
+  labels:
+    chart: cstor-2.12.1
+    heritage: Helm
+    openebs.io/version: "2.12.0"
+    name: "openebs-cstor-csi-node"
+    release: openebs
+    component: "openebs-cstor-csi-node"
+    openebs.io/component-name: "openebs-cstor-csi-node"
+subjects:
+  - kind: ServiceAccount
+    name: openebs-cstor-csi-node-sa
+    namespace: __OPENEBS_NAMESPACE__
+roleRef:
+  kind: ClusterRole
+  name: openebs-cstor-csi-registrar-role
+  apiGroup: rbac.authorization.k8s.io
+---
+# Source: openebs/charts/cstor/templates/rbac.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: openebs-cstor-operator
+  labels:
+    chart: cstor-2.12.1
+    heritage: Helm
+    openebs.io/version: "2.12.0"
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: openebs-cstor-operator
+subjects:
+- kind: ServiceAccount
+  name: openebs-cstor-operator
+  namespace: __OPENEBS_NAMESPACE__
+---
+# Source: openebs/charts/cstor/templates/rbac.yaml
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: openebs-cstor-migration
+  labels:
+    chart: cstor-2.12.1
+    heritage: Helm
+    openebs.io/version: "2.12.0"
+subjects:
+- kind: ServiceAccount
+  name: openebs-cstor-operator
+  namespace: __OPENEBS_NAMESPACE__
+roleRef:
+  kind: ClusterRole
+  name: openebs-cstor-migration
+  apiGroup: rbac.authorization.k8s.io
+---
+# Source: openebs/charts/cstor/templates/cvc-operator-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: openebs-cstor-cvc-operator-svc
+  labels:
+    chart: cstor-2.12.1
+    heritage: Helm
+    openebs.io/version: "2.12.0"
+    name: "cvc-operator"
+    release: openebs
+    component: "cvc-operator"
+    openebs.io/component-name: "cvc-operator-svc"
+spec:
+  ports:
+    - name: api
+      port: 5757
+      protocol: TCP
+      targetPort: 5757
+  selector:
+    name: cvc-operator
+  sessionAffinity: None
+---
+# Source: openebs/charts/cstor/templates/csi-node.yaml
+kind: DaemonSet
+apiVersion: apps/v1
+metadata:
+  name: openebs-cstor-csi-node
+  labels:
+    chart: cstor-2.12.1
+    heritage: Helm
+    openebs.io/version: "2.12.0"
+    name: "openebs-cstor-csi-node"
+    release: openebs
+    component: "openebs-cstor-csi-node"
+    openebs.io/component-name: "openebs-cstor-csi-node"
+spec:
+  selector:
+    matchLabels:
+      name: "openebs-cstor-csi-node"
+      release: openebs
+      component: "openebs-cstor-csi-node"
+  template:
+    metadata:
+      labels:
+        chart: cstor-2.12.1
+        heritage: Helm
+        openebs.io/version: "2.12.0"
+        name: "openebs-cstor-csi-node"
+        release: openebs
+        component: "openebs-cstor-csi-node"
+        openebs.io/component-name: "openebs-cstor-csi-node"
+    spec:
+      priorityClassName: openebs-cstor-csi-node-critical
+      serviceAccount: openebs-cstor-csi-node-sa
+      hostNetwork: true
+      containers:
+        - name: csi-node-driver-registrar
+          image: "k8s.gcr.io/sig-storage/csi-node-driver-registrar:v2.3.0"
+          imagePullPolicy: IfNotPresent
+          resources:
+            {}
+          args:
+            - "--v=5"
+            - "--csi-address=$(ADDRESS)"
+            - "--kubelet-registration-path=$(DRIVER_REG_SOCK_PATH)"
+          lifecycle:
+            preStop:
+              exec:
+                command: ["/bin/sh", "-c", "rm -rf /registration/cstor.csi.openebs.io /registration/cstor.csi.openebs.io-reg.sock"]
+          env:
+            - name: ADDRESS
+              value: /plugin/csi.sock
+            - name: DRIVER_REG_SOCK_PATH
+              value: /var/lib/kubelet/plugins/cstor.csi.openebs.io/csi.sock
+            - name: KUBE_NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            - name: NODE_DRIVER
+              value: openebs-cstor-csi
+          volumeMounts:
+            - name: plugin-dir
+              mountPath: /plugin
+            - name: registration-dir
+              mountPath: /registration
+        - name: cstor-csi-plugin
+          securityContext:
+            privileged: true
+            allowPrivilegeEscalation: true
+          image: "openebs/cstor-csi-driver:2.12.0"
+          imagePullPolicy: IfNotPresent
+          args:
+            - "--nodeid=$(OPENEBS_NODE_ID)"
+            - "--endpoint=$(OPENEBS_CSI_ENDPOINT)"
+            - "--url=$(OPENEBS_CSI_API_URL)"
+            - "--plugin=$(OPENEBS_NODE_DRIVER)"
+          env:
+            - name: OPENEBS_NODE_ID
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            - name: OPENEBS_CSI_ENDPOINT
+              value: unix:///plugin/csi.sock
+            - name: OPENEBS_NODE_DRIVER
+              value: node
+            - name: OPENEBS_CSI_API_URL
+              value: https://openebs.io
+              # OpenEBS namespace where the openebs cstor operator components
+              # has been installed
+            - name: OPENEBS_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+              # Enable/Disable auto-remount feature, when volumes
+              # recovers from the read-only state
+            - name: REMOUNT
+              value: "true"
+          volumeMounts:
+            - name: plugin-dir
+              mountPath: /plugin
+            - name: device-dir
+              mountPath: /dev
+            - name: pods-mount-dir
+              mountPath: /var/lib/kubelet/
+              # needed so that any mounts setup inside this container are
+              # propagated back to the host machine.
+              mountPropagation: "Bidirectional"
+            - name: host-root
+              mountPath: /host
+              mountPropagation: "HostToContainer"
+            - name: chroot-iscsiadm
+              mountPath: /sbin/iscsiadm
+              subPath: iscsiadm
+      volumes:
+        - name: device-dir
+          hostPath:
+            path: /dev
+            type: Directory
+        - name: registration-dir
+          hostPath:
+            path: /var/lib/kubelet/plugins_registry/
+            type: DirectoryOrCreate
+        - name: plugin-dir
+          hostPath:
+            path: /var/lib/kubelet/plugins/cstor.csi.openebs.io/
+            type: DirectoryOrCreate
+        - name: pods-mount-dir
+          hostPath:
+            path: /var/lib/kubelet/
+            type: Directory
+        - name: chroot-iscsiadm
+          configMap:
+            defaultMode: 0555
+            name: openebs-cstor-csi-iscsiadm
+        - name: host-root
+          hostPath:
+            path: /
+            type: Directory
+---
+# Source: openebs/charts/cstor/templates/admission-server.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: openebs-cstor-admission-server
+  labels:
+    chart: cstor-2.12.1
+    heritage: Helm
+    openebs.io/version: "2.12.0"
+    app: "cstor-admission-webhook"
+    release: openebs
+    component: "cstor-admission-webhook"
+    openebs.io/component-name: "cstor-admission-webhook"
+spec:
+  replicas: 
+  strategy:
+    type: Recreate
+    rollingUpdate: null
+  selector:
+    matchLabels:
+      app: "cstor-admission-webhook"
+      release: openebs
+      component: "cstor-admission-webhook"
+  template:
+    metadata:
+      labels:
+        chart: cstor-2.12.1
+        heritage: Helm
+        openebs.io/version: "2.12.0"
+        app: "cstor-admission-webhook"
+        release: openebs
+        component: "cstor-admission-webhook"
+        openebs.io/component-name: "cstor-admission-webhook"
+    spec:
+      serviceAccountName: openebs-cstor-operator
+      containers:
+        - name: openebs-cstor-admission-webhook
+          image: "openebs/cstor-webhook:2.12.0"
+          imagePullPolicy: IfNotPresent
+          resources:
+            {}
+          args:
+            - -alsologtostderr
+            - -v=2
+            - 2>&1
+          env:
+            - name: OPENEBS_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: ADMISSION_WEBHOOK_FAILURE_POLICY
+              value: Fail
+---
+# Source: openebs/charts/cstor/templates/cspc-operator.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: openebs-cstor-cspc-operator
+  labels:
+    chart: cstor-2.12.1
+    heritage: Helm
+    openebs.io/version: "2.12.0"
+    name: "cspc-operator"
+    release: openebs
+    component: "cspc-operator"
+    openebs.io/component-name: "cspc-operator"
+spec:
+  selector:
+    matchLabels:
+      name: "cspc-operator"
+      release: openebs
+      component: "cspc-operator"
+  replicas: 
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        chart: cstor-2.12.1
+        heritage: Helm
+        openebs.io/version: "2.12.0"
+        name: "cspc-operator"
+        release: openebs
+        component: "cspc-operator"
+        openebs.io/component-name: "cspc-operator"
+    spec:
+      serviceAccountName: openebs-cstor-operator
+      containers:
+        - name: openebs-cstor-cspc-operator
+          imagePullPolicy: IfNotPresent
+          image: "openebs/cspc-operator:2.12.0"
+          resources:
+            {}
+          env:
+            - name: OPENEBS_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: OPENEBS_SERVICEACCOUNT_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.serviceAccountName
+            - name: CSPC_OPERATOR_POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            # OPENEBS_IO_BASE_DIR is used to configure base directory for openebs on host path.
+            # Where OpenEBS can store required files. Default base path will be /var/openebs
+            # - name: OPENEBS_IO_BASE_DIR
+            #   value: "/var/openebs"
+            # OPENEBS_IO_CSTOR_POOL_SPARSE_DIR can be used to specify the hostpath
+            # to be used for saving the shared content between the side cars
+            # of cstor pool pod. This ENV is also used to indicate the location
+            # of the sparse devices.
+            # The default path used is /var/openebs/sparse
+            #- name: OPENEBS_IO_CSTOR_POOL_SPARSE_DIR
+            #  value: "/var/openebs/sparse"
+            - name: OPENEBS_IO_CSPI_MGMT_IMAGE
+              value: "openebs/cstor-pool-manager:2.12.0"
+            - name: OPENEBS_IO_CSTOR_POOL_IMAGE
+              value: "openebs/cstor-pool:2.12.0"
+            - name:  OPENEBS_IO_CSTOR_POOL_EXPORTER_IMAGE
+              value: "openebs/m-exporter:2.12.0"
+            - name: RESYNC_INTERVAL
+              value: "30"
+---
+# Source: openebs/charts/cstor/templates/cvc-operator.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: openebs-cstor-cvc-operator
+  labels:
+    chart: cstor-2.12.1
+    heritage: Helm
+    openebs.io/version: "2.12.0"
+    name: "cvc-operator"
+    release: openebs
+    component: "cvc-operator"
+    openebs.io/component-name: "cvc-operator"
+spec:
+  selector:
+    matchLabels:
+      name: "cvc-operator"
+      release: openebs
+      component: "cvc-operator"
+  replicas: 
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        chart: cstor-2.12.1
+        heritage: Helm
+        openebs.io/version: "2.12.0"
+        name: "cvc-operator"
+        release: openebs
+        component: "cvc-operator"
+        openebs.io/component-name: "cvc-operator"
+    spec:
+      serviceAccountName: openebs-cstor-operator
+      containers:
+        - name: openebs-cstor-cvc-operator
+          imagePullPolicy: IfNotPresent
+          image: "openebs/cvc-operator:2.12.0"
+          args:
+            - "--v=2"
+            - "--leader-election=false"
+            - "--bind=$(OPENEBS_CVC_POD_IP)"
+          resources:
+            {}
+          env:
+            # OPENEBS_IO_BASE_DIR is used to configure base directory for openebs on host path.
+            # Where OpenEBS can store required files. Default base path will be /var/openebs
+            # - name: OPENEBS_IO_BASE_DIR
+            #   value: "/var/openebs"
+            # OPENEBS_IO_CSTOR_TARGET_DIR can be used to specify the hostpath
+            # that to be used for saving the core dump of cstor volume pod.
+            # The default path used is /var/openebs/sparse
+            #- name: OPENEBS_IO_CSTOR_TARGET_DIR
+            #  value: "/var/openebs/sparse"
+            - name: OPENEBS_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: OPENEBS_SERVICEACCOUNT_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.serviceAccountName
+            - name: OPENEBS_CVC_POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: OPENEBS_IO_CSTOR_TARGET_IMAGE
+              value: "openebs/cstor-istgt:2.12.0"
+            - name:  OPENEBS_IO_CSTOR_VOLUME_MGMT_IMAGE
+              value: "openebs/cstor-volume-manager:2.12.0"
+            - name:  OPENEBS_IO_VOLUME_MONITOR_IMAGE
+              value: "openebs/m-exporter:2.12.0"
+---
+# Source: openebs/charts/cstor/templates/csi-controller.yaml
+kind: StatefulSet
+apiVersion: apps/v1
+metadata:
+  name: openebs-cstor-csi-controller
+  labels:
+    chart: cstor-2.12.1
+    heritage: Helm
+    openebs.io/version: "2.12.0"
+    name: "openebs-cstor-csi-controller"
+    release: openebs
+    component: "openebs-cstor-csi-controller"
+    openebs.io/component-name: "openebs-cstor-csi-controller"
+spec:
+  selector:
+    matchLabels:
+      name: "openebs-cstor-csi-controller"
+      release: openebs
+      component: "openebs-cstor-csi-controller"
+  serviceName: "openebs-csi"
+  replicas: 
+  template:
+    metadata:
+      labels:
+        chart: cstor-2.12.1
+        heritage: Helm
+        openebs.io/version: "2.12.0"
+        name: "openebs-cstor-csi-controller"
+        release: openebs
+        component: "openebs-cstor-csi-controller"
+        openebs.io/component-name: "openebs-cstor-csi-controller"
+    spec:
+      priorityClassName: openebs-cstor-csi-controller-critical
+      serviceAccount: openebs-cstor-csi-controller-sa
+      containers:
+        - name: csi-resizer
+          image: "k8s.gcr.io/sig-storage/csi-resizer:v1.2.0"
+          resources:
+            {}
+          args:
+            - "--v=5"
+            - "--csi-address=$(ADDRESS)"
+            - "--leader-election"
+          env:
+            - name: ADDRESS
+              value: /var/lib/csi/sockets/pluginproxy/csi.sock
+          imagePullPolicy: IfNotPresent
+          volumeMounts:
+            - name: socket-dir
+              mountPath: /var/lib/csi/sockets/pluginproxy/
+        - name: csi-snapshotter
+          image: "k8s.gcr.io/sig-storage/csi-snapshotter:v3.0.3"
+          args:
+            - "--csi-address=$(ADDRESS)"
+          env:
+            - name: ADDRESS
+              value: /var/lib/csi/sockets/pluginproxy/csi.sock
+          imagePullPolicy: IfNotPresent
+          volumeMounts:
+            - name: socket-dir
+              mountPath: /var/lib/csi/sockets/pluginproxy/
+        - name: snapshot-controller
+          image: "k8s.gcr.io/sig-storage/snapshot-controller:v3.0.3"
+          args:
+            - "--v=5"
+            - "--leader-election=false"
+          imagePullPolicy: IfNotPresent
+        - name: csi-provisioner
+          image: "k8s.gcr.io/sig-storage/csi-provisioner:v3.0.0"
+          imagePullPolicy: IfNotPresent
+          args:
+            - "--csi-address=$(ADDRESS)"
+            - "--v=5"
+            - "--feature-gates=Topology=true"
+            - "--extra-create-metadata=true"
+            - "--metrics-address=:22011"
+            - "--timeout=250s"
+            - "--default-fstype=ext4"
+          env:
+            - name: MY_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: ADDRESS
+              value: /var/lib/csi/sockets/pluginproxy/csi.sock
+          volumeMounts:
+            - name: socket-dir
+              mountPath: /var/lib/csi/sockets/pluginproxy/
+        - name: csi-attacher
+          image: "k8s.gcr.io/sig-storage/csi-attacher:v3.1.0"
+          imagePullPolicy: IfNotPresent
+          args:
+            - "--v=5"
+            - "--csi-address=$(ADDRESS)"
+          env:
+            - name: ADDRESS
+              value: /var/lib/csi/sockets/pluginproxy/csi.sock
+          volumeMounts:
+            - name: socket-dir
+              mountPath: /var/lib/csi/sockets/pluginproxy/
+        - name: cstor-csi-plugin
+          image: "openebs/cstor-csi-driver:2.12.0"
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: OPENEBS_CONTROLLER_DRIVER
+              value: controller
+            - name: OPENEBS_CSI_ENDPOINT
+              value: unix:///var/lib/csi/sockets/pluginproxy/csi.sock
+            - name: OPENEBS_CSI_API_URL
+              value: https://openebs.io
+              # OpenEBS namespace where the openebs cstor operator components
+              # has been installed
+            - name: OPENEBS_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: OPENEBS_IO_INSTALLER_TYPE
+              value: "cstor-helm"
+            - name: OPENEBS_IO_ENABLE_ANALYTICS
+              value: "true"
+          args :
+            - "--endpoint=$(OPENEBS_CSI_ENDPOINT)"
+            - "--url=$(OPENEBS_CSI_API_URL)"
+            - "--plugin=$(OPENEBS_CONTROLLER_DRIVER)"
+          volumeMounts:
+            - name: socket-dir
+              mountPath: /var/lib/csi/sockets/pluginproxy/
+      volumes:
+        - name: socket-dir
+          emptyDir: {}
+---
+# Source: openebs/charts/cstor/templates/csi-driver.yaml
+apiVersion: storage.k8s.io/v1
+kind: CSIDriver
+metadata:
+  name: cstor.csi.openebs.io
+spec:
+  # Supports persistent inline volumes.
+  volumeLifecycleModes:
+    - Persistent
+    # Not yet supported but added just to support upgrade control plane seamlessly
+    - Ephemeral
+  # To determine at runtime which mode a volume uses, pod info and its
+  # "csi.storage.k8s.io/ephemeral" entry are needed.
+  podInfoOnMount: true
+  attachRequired: false
+---
+# Source: openebs/charts/cstor/templates/priority-class.yaml
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: openebs-cstor-csi-controller-critical
+value: 900000000
+globalDefault: false
+description: "This priority class should be used for the CStor CSI driver controller deployment only."
+---
+# Source: openebs/charts/cstor/templates/priority-class.yaml
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: openebs-cstor-csi-node-critical
+value: 900001000
+globalDefault: false
+description: "This priority class should be used for the CStor CSI driver node deployment only."
+---
+# Source: openebs/charts/cstor/templates/cleanup-webhook.yaml
+# HELM first deletes RBAC, then it tries to delete other resources like CSPC and PVC. 
+# We've got validating webhook on CSPC and PVC.
+# But even that the policy of this webhook is Ignore, it fails because the ServiceAccount 
+# does not have permission to access resources like BDC anymore which are used for validation.
+# Therefore we first need to delete webhook so we can delete the rest of the deployments.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: openebs-cstor-webhook-cleanup
+  namespace: __OPENEBS_NAMESPACE__
+  annotations:
+    "helm.sh/hook": pre-delete
+    "helm.sh/hook-delete-policy": hook-succeeded
+  labels:
+    app: cstor
+spec:
+  template:
+    metadata:
+      name: openebs-cstor-webhook-cleanup
+      labels:
+        app: cstor
+    spec:
+      serviceAccountName: openebs-cstor-operator
+      containers:
+        - name: kubectl
+          image: "bitnami/kubectl:1.24"
+          command:
+          - /bin/sh
+          - -c
+          - >
+              kubectl delete validatingWebhookConfiguration openebs-cstor-validation-webhook || true;
+      restartPolicy: OnFailure
