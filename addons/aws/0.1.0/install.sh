@@ -9,7 +9,12 @@ function aws() {
         insert_resources "$dst/kustomization.yaml" storageclass.yaml
     fi
 
-    kubectl apply -k "$DIR/kustomize/aws/"
+    if  [ -s "$DIR/kustomize/aws/kustomization.yaml" ]; then
+        kubectl apply -k "$DIR/kustomize/aws/"
+    else 
+        echo "Nothing to apply"
+    fi
+
 }
 
 function aws_pre_init() {
