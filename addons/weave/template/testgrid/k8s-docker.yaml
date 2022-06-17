@@ -18,3 +18,15 @@
       s3Override: "__testdist__"
   numPrimaryNodes: 1
   numSecondaryNodes: 2
+- name: "weave airgap latest multi node"
+  installerSpec:
+    kubernetes:
+      version: "latest"
+    docker:
+      version: "latest"
+    weave:
+      version: "__testver__"
+      s3Override: "__testdist__"
+  numPrimaryNodes: 1
+  numSecondaryNodes: 2
+  airgap: true

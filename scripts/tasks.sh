@@ -395,9 +395,15 @@ function get_weave_version() {
     local weave_version=$(KUBECONFIG=/etc/kubernetes/admin.conf kubectl get daemonset -n kube-system weave-net -o jsonpath="{..spec.containers[0].image}" | sed 's/^.*://')
     if [ -z "$weave_version" ]; then
         if [ -n "$DOCKER_VERSION" ]; then
-            weave_version=$(docker image ls | grep weaveworks/weave-npc | awk '{ print $2 }' | head -1)
+            weave_version=$(docker image ls | grep kurlsh/weave-npc | awk '{ print $2 }' | head -1)
+            if [ -z "$weave_version" ]; then
+                weave_version=$(docker image ls | grep weaveworks/weave-npc | awk '{ print $2 }' | head -1)
+            fi
         else
-            weave_version=$(crictl images list | grep weaveworks/weave-npc | awk '{ print $2 }' | head -1)
+            weave_version=$(crictl images list | grep kurlsh/weave-npc | awk '{ print $2 }' | head -1)
+            if [ -z "$weave_version" ]; then
+                weave_version=$(crictl images list | grep weaveworks/weave-npc | awk '{ print $2 }' | head -1)
+            fi
         fi
         if [ -z "$weave_version" ]; then
             # if we don't know the exact weave tag, use a sane default
