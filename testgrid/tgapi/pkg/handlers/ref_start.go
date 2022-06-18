@@ -25,6 +25,8 @@ type PlannedInstance struct {
 	TestName          string
 	NumPrimaryNodes   int
 	NumSecondaryNodes int
+	Memory            string
+	CPU               string
 
 	KurlYAML  string
 	KurlURL   string
@@ -104,6 +106,8 @@ func StartRef(w http.ResponseWriter, r *http.Request) {
 			plannedInstance.OperatingSystemPreInit,
 			plannedInstance.NumPrimaryNodes,
 			plannedInstance.NumSecondaryNodes,
+			plannedInstance.Memory,
+			plannedInstance.CPU,
 		)
 		if err != nil {
 			logger.Error(err)

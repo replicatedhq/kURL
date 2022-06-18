@@ -22,12 +22,17 @@ type KurlInstallerMetadata struct {
 	Name string `json:"name" yaml:"name"`
 }
 
-func Create(id, testName, refID, kurlYAML, kurlURL, kurlFlags, upgradeYAML, upgradeURL, supportbundleYAML, postInstallScript, postUpgradeScript, osName, osVersion, osImage, osPreInit string, numPrimaryNode int, numSecondaryNode int) error {
+func Create(id, testName, refID, kurlYAML, kurlURL, kurlFlags, upgradeYAML, upgradeURL, supportbundleYAML, postInstallScript, postUpgradeScript, osName, osVersion, osImage, osPreInit string, numPrimaryNode int, numSecondaryNode int, memory string, cpu string) error {
 	pg := persistence.MustGetPGSession()
-
-	query := `insert into testinstance (id, test_name, enqueued_at, testrun_ref, kurl_yaml, kurl_url, kurl_flags, upgrade_yaml, upgrade_url, supportbundle_yaml, post_install_script, post_upgrade_script, os_name, os_version, os_image, os_preinit, num_primary_nodes, num_secondary_nodes)
-values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)`
-	if _, err := pg.Exec(query, id, testName, time.Now(), refID, kurlYAML, kurlURL, kurlFlags, upgradeYAML, upgradeURL, supportbundleYAML, postInstallScript, postUpgradeScript, osName, osVersion, osImage, osPreInit, numPrimaryNode, numSecondaryNode); err != nil {
+	if len(memory) == 0 {
+		memory = "16Gi" // default to 16Gi
+	}
+	if len(cpu) == 0 {
+		cpu = "4" // default to 4
+	}
+	query := `insert into testinstance (id, test_name, enqueued_at, testrun_ref, kurl_yaml, kurl_url, kurl_flags, upgrade_yaml, upgrade_url, supportbundle_yaml, post_install_script, post_upgrade_script, os_name, os_version, os_image, os_preinit, num_primary_nodes, num_secondary_nodes, memory, cpu)
+values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20)`
+	if _, err := pg.Exec(query, id, testName, time.Now(), refID, kurlYAML, kurlURL, kurlFlags, upgradeYAML, upgradeURL, supportbundleYAML, postInstallScript, postUpgradeScript, osName, osVersion, osImage, osPreInit, numPrimaryNode, numSecondaryNode, memory, cpu); err != nil {
 		return errors.Wrap(err, "failed to insert")
 	}
 
@@ -282,6 +287,7 @@ WHERE ti.testrun_ref = $1`
 		testInstance.SupportbundleYAML = supportbundleYAML.String
 		testInstance.PostInstallScript = postInstallScript.String
 		testInstance.PostUpgradeScript = postUpgradeScript.String
+		testInstance.RefID = refID
 
 		testInstances = append(testInstances, testInstance)
 	}

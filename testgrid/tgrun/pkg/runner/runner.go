@@ -39,8 +39,8 @@ func reportStarted(singleTest types.SingleRun) error {
 		OSVersion: singleTest.OperatingSystemVersion,
 		OSImage:   singleTest.OperatingSystemImage,
 
-		Memory: "16Gi",
-		CPU:    "4",
+		Memory: singleTest.Memory,
+		CPU:    singleTest.CPU,
 
 		KurlSpec: singleTest.KurlYAML,
 		KurlRef:  singleTest.KurlRef,

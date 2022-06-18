@@ -228,8 +228,8 @@ func createK8sNode(singleTest types.SingleRun, nodeName string, tempDir string) 
 				},
 				Resources: kubevirtv1.ResourceRequirements{
 					Requests: corev1.ResourceList{
-						corev1.ResourceName(corev1.ResourceMemory): resource.MustParse("16Gi"),
-						corev1.ResourceName(corev1.ResourceCPU):    resource.MustParse("4"),
+						corev1.ResourceName(corev1.ResourceMemory): resource.MustParse(singleTest.Memory),
+						corev1.ResourceName(corev1.ResourceCPU):    resource.MustParse(singleTest.CPU),
 					},
 				},
 				Devices: kubevirtv1.Devices{

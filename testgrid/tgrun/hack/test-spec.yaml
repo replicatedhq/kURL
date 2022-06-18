@@ -1,6 +1,8 @@
 - name: hack
   numPrimaryNodes: 1
   numSecondaryNodes: 0
+  memory: "16Gi"
+  cpu: "4"
   installerSpec:
     kubernetes:
       version: "latest"
