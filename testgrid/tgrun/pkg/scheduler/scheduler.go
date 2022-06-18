@@ -175,6 +175,8 @@ func Run(schedulerOptions types.SchedulerOptions) error {
 				TestName:          instance.Name,
 				NumPrimaryNodes:   instance.NumPrimaryNodes,
 				NumSecondaryNodes: instance.NumSecondaryNodes,
+				Memory:            instance.Memory,
+				CPU:               instance.CPU,
 
 				KurlYAML:  string(installerYAML),
 				KurlURL:   string(installerURL),

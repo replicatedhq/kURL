@@ -9,6 +9,8 @@ type SingleRun struct {
 	ID                string
 	NumPrimaryNodes   int
 	NumSecondaryNodes int
+	Memory            string
+	CPU               string
 
 	OperatingSystemName    string
 	OperatingSystemVersion string

@@ -67,3 +67,7 @@ spec:
           type: int
         - name: num_secondary_nodes
           type: int
+        - name: memory
+          type: varchar(11)
+        - name: cpu
+          type: varchar(11)
