@@ -38,7 +38,7 @@
   "devDependencies": {
     "@types/chai": "^4.2.21",
     "@types/express": "^4.0.35",
-    "@types/express-serve-static-core": "^4.17.26",
+    "@types/express-serve-static-core": "^4.17.29",
     "@types/lodash": "^4.14.172",
     "@types/node-fetch": "^2.5.12",
     "@types/object-hash": "^2.2.1",
