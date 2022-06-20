@@ -36,7 +36,7 @@ jobs:
         run: if [ -n '${{ matrix.trivyignore }}' ]; then echo '${{ matrix.trivyignore }}' | base64 -d > .trivyignore.rego ; fi
       - name: "${{ matrix.addon }}:${{ matrix.version }} - ${{ matrix.name }} : Scan image"
         id: scan
-        uses: aquasecurity/trivy-action@0.3.0
+        uses: aquasecurity/trivy-action@0.4.1
         with:
           image-ref: ${{ matrix.image }}
           format: 'sarif'
