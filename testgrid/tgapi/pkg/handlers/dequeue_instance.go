@@ -13,6 +13,8 @@ type DequeueInstanceResponse struct {
 	ID                string `json:"id"`
 	NumPrimaryNodes   int    `json:"numPrimaryNodes"`
 	NumSecondaryNodes int    `json:"numSecondaryNodes"`
+	Memory            string `json:"memory"`
+	CPU               string `json:"cpu"`
 
 	OperatingSystemName    string `json:"operatingSystemName"`
 	OperatingSystemVersion string `json:"operatingSystemVersion"`
@@ -45,6 +47,8 @@ func DequeueInstance(w http.ResponseWriter, r *http.Request) {
 		ID:                testInstance.ID,
 		NumPrimaryNodes:   testInstance.NumPrimaryNodes,
 		NumSecondaryNodes: testInstance.NumSecondaryNodes,
+		Memory:            testInstance.Memory,
+		CPU:               testInstance.CPU,
 
 		OperatingSystemName:    testInstance.OSName,
 		OperatingSystemVersion: testInstance.OSVersion,

@@ -8,6 +8,8 @@ type TestInstance struct {
 	TestName          string     `json:"testName"`
 	NumPrimaryNodes   int        `json:"numPrimaryNodes"`
 	NumSecondaryNodes int        `json:"numSecondaryNodes"`
+	Memory            string     `json:"memory"`
+	CPU               string     `json:"cpu"`
 	EnqueuedAt        *time.Time `json:"enqueuedAt"`
 	DequeuedAt        *time.Time `json:"dequeuedAt"`
 	StartedAt         *time.Time `json:"startedAt"`

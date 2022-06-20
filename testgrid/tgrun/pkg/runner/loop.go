@@ -87,6 +87,8 @@ func MainRunLoop(runnerOptions types.RunnerOptions) error {
 				ID:                dequeuedInstance.ID,
 				NumPrimaryNodes:   dequeuedInstance.NumPrimaryNodes,
 				NumSecondaryNodes: dequeuedInstance.NumSecondaryNodes,
+				Memory:            dequeuedInstance.Memory,
+				CPU:               dequeuedInstance.CPU,
 
 				OperatingSystemName:    dequeuedInstance.OperatingSystemName,
 				OperatingSystemVersion: dequeuedInstance.OperatingSystemVersion,

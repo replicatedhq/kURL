@@ -48,8 +48,8 @@ set dequeued_at = now() where id in (
 select id from testinstance
 where dequeued_at is null
 order by enqueued_at asc
-limit 1) returning id, test_name, num_primary_nodes, num_secondary_nodes, dequeued_at, testrun_ref, kurl_yaml, kurl_url, kurl_flags, upgrade_yaml, upgrade_url, supportbundle_yaml, post_install_script, post_upgrade_script, os_name, os_version, os_image, os_preinit
-) select id, test_name, num_primary_nodes, num_secondary_nodes, testrun_ref, kurl_yaml, kurl_url, kurl_flags, upgrade_yaml, upgrade_url, supportbundle_yaml, post_install_script, post_upgrade_script, os_name, os_version, os_image, os_preinit from updated`
+limit 1) returning id, test_name, num_primary_nodes, num_secondary_nodes, memory, cpu, dequeued_at, testrun_ref, kurl_yaml, kurl_url, kurl_flags, upgrade_yaml, upgrade_url, supportbundle_yaml, post_install_script, post_upgrade_script, os_name, os_version, os_image, os_preinit
+) select id, test_name, num_primary_nodes, num_secondary_nodes, memory, cpu, testrun_ref, kurl_yaml, kurl_url, kurl_flags, upgrade_yaml, upgrade_url, supportbundle_yaml, post_install_script, post_upgrade_script, os_name, os_version, os_image, os_preinit from updated`
 
 	row := db.QueryRow(query)
 
@@ -60,6 +60,8 @@ limit 1) returning id, test_name, num_primary_nodes, num_secondary_nodes, dequeu
 		&testName,
 		&testInstance.NumPrimaryNodes,
 		&testInstance.NumSecondaryNodes,
+		&testInstance.Memory,
+		&testInstance.CPU,
 		&testInstance.RefID,
 		&testInstance.KurlYAML,
 		&testInstance.KurlURL,
