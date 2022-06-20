@@ -131,9 +131,11 @@ test_addon() {
   sed -i "s#__testver__#${version}#g" /tmp/test-spec
   sed -i "s#__testdist__#${dist}#g" /tmp/test-spec
 
+  local ref="pr-${PR_NUMBER}-${GITHUB_SHA:0:7}-${name}-${version}-${specname}"
+  echo "::set-output name=ref::${ref}"
   # Run testgrid plan
   ./testgrid/tgrun/bin/tgrun queue --staging \
-    --ref "pr-${PR_NUMBER}-${GITHUB_SHA:0:7}-${name}-${version}-${specname}" \
+    --ref $ref \
     --spec /tmp/test-spec \
     --os-spec ./testgrid/specs/os.yaml
   echo "Submitted TestGrid Ref pr-${PR_NUMBER}-${GITHUB_SHA:0:7}-${name}-${version}-${specname}"
