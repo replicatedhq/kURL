@@ -1,3 +1,3 @@
-image weave-kube weaveworks/weave-kube:2.8.1
-image weave-npc weaveworks/weave-npc:2.8.1
-image weaveexec weaveworks/weaveexec:2.8.1
+image weave-kube kurlsh/weave-kube:2.8.1-45e04df-20220616
+image weave-npc kurlsh/weave-npc:2.8.1-45e04df-20220616
+image weaveexec kurlsh/weaveexec:2.8.1-45e04df-20220616
