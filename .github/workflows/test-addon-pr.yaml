@@ -74,11 +74,11 @@ jobs:
       - name: Testgrid Outcome
         if: ${{ steps.check.outputs.addons_available == 'true' }}
         run: |
-          sleep 120
+          sleep 180
           
           for (( ; ; ))
           do
-            result=$(curl 'https://api.testgrid.kurl.sh/api/v1/runs' | jq '.runs[] | select(.id=="${{ steps.queue.outputs.ref }}")')
+            result=$(curl 'https://api.testgrid.kurl.sh/api/v1/runs' 2>/dev/null | jq '.runs[] | select(.id=="${{ steps.queue.outputs.ref }}")')
             if [ $(echo $result | jq '.pending_runs') != 0 ] 
             then
               echo "Pending... (sleep 20)"
