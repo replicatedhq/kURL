@@ -22,8 +22,8 @@ function build_rhel_7() {
         centos:7.4.1708 \
         /bin/bash -c "\
             set -x
-            yum --disablerepo=epel -y update ca-certificates && \
-            yum --enablerepo=epel install -y epel-release && \
+            yum update -y ca-certificates && \
+            yum install -y epel-release && \
             mkdir -p /packages/archives && \
             yumdownloader --installroot=/tmp/empty-directory --releasever=/ --resolve --destdir=/packages/archives -y ${packages[*]}"
     sudo docker cp "rhel-7-${PACKAGE_NAME}":/packages/archives "${outdir}"
@@ -44,8 +44,8 @@ function build_rhel_7_force() {
         centos:7.4.1708 \
         /bin/bash -c "\
             set -x
-            yum --disablerepo=epel -y update ca-certificates && \
-            yum --enablerepo=epel install -y epel-release && \
+            yum update -y ca-certificates && \
+            yum install -y epel-release && \
             mkdir -p /packages/archives && \
             yumdownloader --resolve --destdir=/packages/archives -y ${packages[*]}"
     sudo docker cp "rhel-7-force-${PACKAGE_NAME}":/packages/archives "${outdir}"
