@@ -1,0 +1,9 @@
+image alertmanager quay.io/prometheus/alertmanager:v0.24.0
+image grafana grafana/grafana:8.5.3
+image k8s-sidecar quay.io/kiwigrid/k8s-sidecar:1.15.6
+image kube-state-metrics registry.k8s.io/kube-state-metrics/kube-state-metrics:v2.5.0
+image node-exporter quay.io/prometheus/node-exporter:v1.3.1
+image prometheus quay.io/prometheus/prometheus:v2.36.1
+image prometheus-adapter k8s.gcr.io/prometheus-adapter/prometheus-adapter:v0.9.1
+image prometheus-config-reloader quay.io/prometheus-operator/prometheus-config-reloader:v0.57.0
+image prometheus-operator quay.io/prometheus-operator/prometheus-operator:v0.57.0
