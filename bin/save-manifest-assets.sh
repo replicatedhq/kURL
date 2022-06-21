@@ -22,6 +22,7 @@ function build_rhel_7() {
         centos:7.4.1708 \
         /bin/bash -c "\
             set -x
+            yum --disablerepo=epel -y update ca-certificates && \
             yum install -y epel-release && \
             mkdir -p /packages/archives && \
             yumdownloader --installroot=/tmp/empty-directory --releasever=/ --resolve --destdir=/packages/archives -y ${packages[*]}"
@@ -43,6 +44,7 @@ function build_rhel_7_force() {
         centos:7.4.1708 \
         /bin/bash -c "\
             set -x
+            yum --disablerepo=epel -y update ca-certificates && \
             yum install -y epel-release && \
             mkdir -p /packages/archives && \
             yumdownloader --resolve --destdir=/packages/archives -y ${packages[*]}"
