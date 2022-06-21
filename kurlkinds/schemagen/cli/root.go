@@ -67,7 +67,10 @@ func generateSchemas(v *viper.Viper) error {
 		return errors.Wrap(err, "failed to read installer crd")
 	}
 	if err := generateSchemaFromCRD(installerContent, filepath.Join(workdir, v.GetString("output-dir"), "installer-kurl-v1beta1.json")); err != nil {
-		return errors.Wrap(err, "failed to write installer schema")
+		return errors.Wrap(err, "failed to write installer schema for kurl.sh")
+	}
+	if err := generateSchemaFromCRD(installerContent, filepath.Join(workdir, v.GetString("output-dir"), "installer-cluster-v1beta1.json")); err != nil {
+		return errors.Wrap(err, "failed to write installer schema cluster.kurl.sh")
 	}
 
 	return nil
