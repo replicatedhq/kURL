@@ -279,7 +279,7 @@ done < "${MANIFEST_PATH}"
 if [ "${#pkgs_rhel7[@]}" -gt "0" ]; then
     build_rhel_7 "${pkgs_rhel7[@]}"
 fi
-if [ "$(ls -A "${OUT_DIR}/rhel-7")" ]; then
+if [ -d "${OUT_DIR}/rhel-7" ] && [ "$(ls -A "${OUT_DIR}/rhel-7")" ]; then
     createrepo_rhel_7
 fi
 if [ "${#pkgs_rhel7[@]}" -gt "0" ]; then
@@ -288,12 +288,12 @@ fi
 if [ "${#pkgs_rhel8[@]}" -gt "0" ]; then
     build_rhel_8 "${pkgs_rhel8[@]}"
 fi
-if [ "$(ls -A "${OUT_DIR}/rhel-8")" ]; then
+if [ -d "${OUT_DIR}/rhel-8" ] && [ "$(ls -A "${OUT_DIR}/rhel-8")" ]; then
     createrepo_rhel_8
 fi
 if [ "${#pkgs_ol7[@]}" -gt "0" ]; then
     build_ol_7 "${pkgs_ol7[@]}"
 fi
-if [ "$(ls -A "${OUT_DIR}/ol-7")" ]; then
+if [ -d "${OUT_DIR}/ol-7" ] && [ "$(ls -A "${OUT_DIR}/ol-7")" ]; then
     createrepo_ol_7
 fi
