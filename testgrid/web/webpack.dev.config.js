@@ -51,6 +51,14 @@ module.exports = {
     hotOnly: true,
     historyApiFallback: {
       verbose: true,
+      rewrites: [
+        {
+          from: /^\/run\/.*$/,
+          to: function() {
+            return '/index.html';
+          }
+        }
+      ]
     },
     disableHostCheck: true,
   },

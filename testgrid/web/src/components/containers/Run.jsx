@@ -51,12 +51,12 @@ class Run extends React.Component {
   }
 
   findInstanceInMap = id => {
-    const kurlUrls = Object.keys(this.state.instancesMap);
-    for (let k = 0; k < kurlUrls.length; k++) {
-      const kurlUrl = kurlUrls[k];
-      const kurlUrlInstances = this.state.instancesMap[kurlUrl];
-      for (let i = 0; i < kurlUrlInstances.length; i++) {
-        const instance = kurlUrlInstances[i];
+    const testIds = Object.keys(this.state.instancesMap);
+    for (let k = 0; k < testIds.length; k++) {
+      const testId = testIds[k];
+      const testInstances = this.state.instancesMap[testId];
+      for (let i = 0; i < testInstances.length; i++) {
+        const instance = testInstances[i];
         if (instance.id === id) {
           return instance;
         }
@@ -100,7 +100,7 @@ class Run extends React.Component {
       const resJson = await res.json();
   
       this.setState({
-        instancesMap: groupBy(resJson.instances, "kurlUrl"),
+        instancesMap: groupBy(resJson.instances, "testId"),
         totalCount: resJson.total,
         isLoading: false,
       })

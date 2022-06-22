@@ -162,6 +162,8 @@ func Run(schedulerOptions types.SchedulerOptions) error {
 			installerURL = []byte(installerURLString)
 		}
 
+		testID := randSeq(16)
+
 		for _, operatingSystem := range operatingSystems {
 			id := randSeq(16)
 
@@ -172,6 +174,7 @@ func Run(schedulerOptions types.SchedulerOptions) error {
 
 			plannedInstance := tghandlers.PlannedInstance{
 				ID:                id,
+				TestID:            testID,
 				TestName:          instance.Name,
 				NumPrimaryNodes:   instance.NumPrimaryNodes,
 				NumSecondaryNodes: instance.NumSecondaryNodes,

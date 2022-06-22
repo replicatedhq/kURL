@@ -22,6 +22,7 @@ type StartRefResponse struct {
 
 type PlannedInstance struct {
 	ID                string
+	TestID            string
 	TestName          string
 	NumPrimaryNodes   int
 	NumSecondaryNodes int
@@ -90,6 +91,7 @@ func StartRef(w http.ResponseWriter, r *http.Request) {
 	for _, plannedInstance := range startRefRequest.Instances {
 		err := testinstance.Create(
 			plannedInstance.ID,
+			plannedInstance.TestID,
 			plannedInstance.TestName,
 			refID,
 			plannedInstance.KurlYAML,

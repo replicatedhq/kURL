@@ -22,6 +22,7 @@
     "@babel/preset-react": "^7.14.5",
     "@typescript-eslint/parser": "^5.9.1",
     "autoprefixer": "^10.4.2",
+    "axios": "^0.27",
     "babel-loader": "^8.2.3",
     "cross-env": "^7.0.3",
     "css-loader": "^6.5.1",
@@ -47,9 +48,8 @@
     "webpack": "^5.64.4",
     "webpack-bundle-analyzer": "^4.4.2",
     "webpack-cli": "^4.9.1",
-    "webpack-dev-server": "^4.9.0",
-    "webpack-merge": "^5.8.0",
-    "axios": "^0.27"
+    "webpack-dev-server": "^3.11.3",
+    "webpack-merge": "^5.8.0"
   },
   "dependencies": {
     "@sentry/browser": "^6.16.1",

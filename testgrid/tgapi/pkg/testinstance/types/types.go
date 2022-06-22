@@ -3,20 +3,17 @@ package types
 import "time"
 
 type TestInstance struct {
-	ID                string     `json:"id"`
-	RefID             string     `json:"refId"`
-	TestName          string     `json:"testName"`
-	NumPrimaryNodes   int        `json:"numPrimaryNodes"`
-	NumSecondaryNodes int        `json:"numSecondaryNodes"`
-	Memory            string     `json:"memory"`
-	CPU               string     `json:"cpu"`
-	EnqueuedAt        *time.Time `json:"enqueuedAt"`
-	DequeuedAt        *time.Time `json:"dequeuedAt"`
-	StartedAt         *time.Time `json:"startedAt"`
-	FinishedAt        *time.Time `json:"finishedAt"`
-	IsSuccess         bool       `json:"isSuccess"`
-	FailureReason     string     `json:"failureReason"`
-	IsUnsupported     bool       `json:"isUnsupported"`
+	ID            string     `json:"id"`
+	RefID         string     `json:"refId"`
+	TestID        string     `json:"testId"`
+	TestName      string     `json:"testName"`
+	EnqueuedAt    *time.Time `json:"enqueuedAt"`
+	DequeuedAt    *time.Time `json:"dequeuedAt"`
+	StartedAt     *time.Time `json:"startedAt"`
+	FinishedAt    *time.Time `json:"finishedAt"`
+	IsSuccess     bool       `json:"isSuccess"`
+	FailureReason string     `json:"failureReason"`
+	IsUnsupported bool       `json:"isUnsupported"`
 
 	KurlYAML  string `json:"kurlYaml"`
 	KurlURL   string `json:"kurlUrl"`
@@ -24,6 +21,11 @@ type TestInstance struct {
 
 	UpgradeYAML string `json:"upgradeYaml"`
 	UpgradeURL  string `json:"upgradeUrl"`
+
+	NumPrimaryNodes   int    `json:"numPrimaryNodes"`
+	NumSecondaryNodes int    `json:"numSecondaryNodes"`
+	Memory            string `json:"memory"`
+	CPU               string `json:"cpu"`
 
 	SupportbundleYAML string `json:"supportbundleYaml"`
 	PostInstallScript string `json:"postInstallScript"`

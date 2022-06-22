@@ -38,8 +38,8 @@ export default class InstanceTable extends React.Component {
 
   getOSArray = instancesMap => {
     const osMap = {};
-    Object.keys(instancesMap).forEach(kurlUrl => {
-      instancesMap[kurlUrl].forEach(instance => {
+    Object.keys(instancesMap).forEach(testId => {
+      instancesMap[testId].forEach(instance => {
         osMap[`${instance.osName}-${instance.osVersion}`] = true;
       });
     });
@@ -307,13 +307,13 @@ export default class InstanceTable extends React.Component {
 
   render() {
     const osArray = this.getOSArray(this.props.instancesMap);
-    const rows = Object.keys(this.props.instancesMap).map((kurlUrl) => {
-      const testInstance = this.props.instancesMap[kurlUrl];
+    const rows = Object.keys(this.props.instancesMap).map((testId) => {
+      const testInstance = this.props.instancesMap[testId];
       return (
-        <tr key={kurlUrl}>
+        <tr key={testId}>
           <td><strong>{testInstance[0].testName}</strong></td>
           <td>
-            <div className="url" onClick={() => this.viewInstanceInstaller(testInstance[0])}>{kurlUrl}</div>
+            <div className="url" onClick={() => this.viewInstanceInstaller(testInstance[0])}>{testId}</div>
             {testInstance[0].kurlFlags &&
               <div>
                 <span>{' Flags: '}</span>
@@ -363,7 +363,7 @@ export default class InstanceTable extends React.Component {
               }
               return (
                 <td
-                  key={`${kurlUrl}-${osKey}-${instance.id}`}
+                  key={`${testId}-${osKey}-${instance.id}`}
                   className={status}
                 >
                   <div className="flex flex1 alignItems--center">
@@ -389,7 +389,7 @@ export default class InstanceTable extends React.Component {
                 </td>
               );
             }
-            return <td key={`${kurlUrl}-${osKey}`}>-</td>;
+            return <td key={`${testId}-${osKey}`}>-</td>;
           })}
         </tr>
       )

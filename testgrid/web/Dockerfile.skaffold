@@ -1,10 +1,10 @@
-FROM node:10.19.0
+FROM node:14
 
 WORKDIR /src
 ADD package*.json ./
 ADD Makefile ./
 RUN make deps
-ADD . .
+COPY . .
 
 EXPOSE 30881
 ENTRYPOINT ["make", "serve"]
