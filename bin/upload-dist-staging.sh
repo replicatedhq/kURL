@@ -50,19 +50,8 @@ function build_and_upload() {
     MD5="$(openssl md5 -binary "dist/${package}" | base64)"
 
     echo "uploading package ${package} to ${S3_BUCKET}"
-    local n=1
-    while true; do
-        aws s3 cp "dist/${package}" "s3://${S3_BUCKET}/staging/${package}" \
-            --metadata md5="${MD5}",gitsha="${GITSHA}" --region us-east-1 && break || {
-                if [[ $n -lt 5 ]]; then
-                    ((n++))
-                    echo "uploading package ${package} to ${S3_BUCKET} failed, attempt ${n}/5"
-                else
-                    echo "uploading package ${package} to ${S3_BUCKET} failed all 5 attempts"
-                    exit 1
-                fi
-            }
-    done
+    retry 5 aws s3 cp "dist/${package}" "s3://${S3_BUCKET}/staging/${package}" \
+            --metadata md5="${MD5}",gitsha="${GITSHA}" --region us-east-1
 
     echo "cleaning up after uploading ${package}"
     make clean
@@ -94,6 +83,26 @@ function deploy() {
     else
         echo "s3://${S3_BUCKET}/staging/${package} no changes in package"
     fi
+}
+
+function retry {
+    local retries=$1
+    shift
+
+    local count=0
+    until "$@"; do
+        exit=$?
+        wait=$((2 ** $count))
+        count=$(($count + 1))
+        if [ $count -lt $retries ]; then
+            echo "Retry $count/$retries exited $exit, retrying in $wait seconds..."
+            sleep $wait
+        else
+            echo "Retry $count/$retries exited $exit, no more retries left."
+            return $exit
+        fi
+    done
+    return 0
 }
 
 function main() {
