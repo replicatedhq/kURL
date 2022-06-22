@@ -313,7 +313,7 @@ export default class InstanceTable extends React.Component {
         <tr key={testId}>
           <td><strong>{testInstance[0].testName}</strong></td>
           <td>
-            <div className="url" onClick={() => this.viewInstanceInstaller(testInstance[0])}>{testId}</div>
+            <div className="url" onClick={() => this.viewInstanceInstaller(testInstance[0])}>{testInstance[0].kurlUrl}</div>
             {testInstance[0].kurlFlags &&
               <div>
                 <span>{' Flags: '}</span>
