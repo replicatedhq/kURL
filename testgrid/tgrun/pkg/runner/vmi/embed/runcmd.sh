@@ -3,6 +3,8 @@
 source /opt/kurl-testgrid/common.sh
 
 function run_install() {
+    echo "preparing test at '$(date)'"
+
     AIRGAP=
     if echo "$KURL_URL" | grep -q "\.tar\.gz$" ; then
         AIRGAP=1
@@ -37,7 +39,8 @@ function run_install() {
         curl -fsSL "$KURL_URL/tasks.sh" > tasks.sh
     fi
 
-    echo "running kurl install"
+    echo "running kurl install at '$(date)'"
+    send_logs
 
     cat install.sh | timeout 30m bash -s $AIRGAP_FLAG ${KURL_FLAGS[@]}
     KURL_EXIT_STATUS=$?
