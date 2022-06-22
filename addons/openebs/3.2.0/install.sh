@@ -18,8 +18,7 @@ function openebs() {
     local dst="$DIR/kustomize/openebs"
 
     render_yaml_file "$src/tmpl-kustomization.yaml" > "$dst/kustomization.yaml"
-    render_yaml_file "$src/tmpl-namespace.yaml" > "$dst/namespace.yaml"
-    cp "$src/operator.yaml" "$dst/"
+    cp "$src/openebs-operator.yaml" "$dst/"
 
     secure_openebs
 
