@@ -53,34 +53,12 @@ function build_and_upload() {
     MD5="$(openssl md5 -binary "dist/${package}" | base64)"
 
     echo "uploading package ${package} to s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${VERSION_TAG}/"
-    local n=1
-    while true; do
-        aws s3 cp "dist/${package}" "s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${VERSION_TAG}/${package}" \
-                --metadata md5="${MD5}",gitsha="${VERSION_TAG}" --region us-east-1 && break || {
-                if [[ $n -lt 5 ]]; then
-                    ((n++))
-                    echo "uploading package ${package} to s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${VERSION_TAG}/ failed, attempt ${n}/5"
-                else
-                    echo "uploading package ${package} to s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${VERSION_TAG}/ failed all 5 attempts"
-                    exit 1
-                fi
-            }
-    done
+    retry 5 aws s3 cp "dist/${package}" "s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${VERSION_TAG}/${package}" \
+        --metadata md5="${MD5}",gitsha="${VERSION_TAG}" --region us-east-1
 
     echo "copying package ${package} to s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${package}"
-    local m=1
-    while true; do
-        aws s3 cp "s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${VERSION_TAG}/${package}" "s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${package}" \
-                --metadata md5="${MD5}",gitsha="${GITSHA}" --region us-east-1 && break || {
-                if [[ $m -lt 5 ]]; then
-                    ((m++))
-                    echo "copying package ${package} to s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${package} failed, attempt ${m}/5"
-                else
-                    echo "copying package ${package} to s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${package} failed all 5 attempts"
-                    exit 1
-                fi
-            }
-    done
+    retry 5 aws s3 cp "s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${VERSION_TAG}/${package}" "s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${package}" \
+        --metadata md5="${MD5}",gitsha="${GITSHA}" --region us-east-1
 
     echo "cleaning up after uploading ${package}"
     make clean
@@ -94,10 +72,10 @@ function copy_package_staging() {
 
     local md5=
     md5="$(aws s3api head-object --bucket "${S3_BUCKET}" --key "staging/${package}" | grep '"md5":' | sed 's/[",:]//g' | awk '{print $2}')"
-    aws s3 cp "s3://${S3_BUCKET}/staging/${package}" "s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${VERSION_TAG}/${package}" \
-        --metadata md5="${md5}",gitsha="${GITSHA}"
-    aws s3 cp "s3://${S3_BUCKET}/staging/${package}" "s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${package}" \
-        --metadata md5="${md5}",gitsha="${GITSHA}"
+    retry 5 aws s3 cp "s3://${S3_BUCKET}/staging/${package}" "s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${VERSION_TAG}/${package}" \
+        --metadata md5="${md5}",gitsha="${GITSHA}" --region us-east-1
+    retry 5 aws s3 cp "s3://${S3_BUCKET}/staging/${package}" "s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${package}" \
+        --metadata md5="${md5}",gitsha="${GITSHA}" --region us-east-1
 }
 
 function copy_package_dist() {
@@ -105,8 +83,8 @@ function copy_package_dist() {
 
     local md5=
     md5="$(aws s3api head-object --bucket "${S3_BUCKET}" --key "${PACKAGE_PREFIX}/${package}" | grep '"md5":' | sed 's/[",:]//g' | awk '{print $2}')"
-    aws s3 cp "s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${package}" "s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${VERSION_TAG}/${package}" \
-        --metadata md5="${md5}",gitsha="${GITSHA}"
+    retry 5 aws s3 cp "s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${package}" "s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${VERSION_TAG}/${package}" \
+        --metadata md5="${md5}",gitsha="${GITSHA}" --region us-east-1
 }
 
 function deploy() {
@@ -142,6 +120,26 @@ function deploy() {
             echo "s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${package} no changes in versioned package"
         fi
     fi
+}
+
+function retry {
+    local retries=$1
+    shift
+
+    local count=0
+    until "$@"; do
+        exit=$?
+        wait=$((2 ** $count))
+        count=$(($count + 1))
+        if [ $count -lt $retries ]; then
+            echo "Retry $count/$retries exited $exit, retrying in $wait seconds..."
+            sleep $wait
+        else
+            echo "Retry $count/$retries exited $exit, no more retries left."
+            return $exit
+        fi
+    done
+    return 0
 }
 
 function main() {
