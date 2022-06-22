@@ -48,12 +48,41 @@ function package_has_changes() {
 function build_and_upload() {
     local package="$1"
 
+    echo "building package ${package}"
     make "dist/${package}"
     MD5="$(openssl md5 -binary "dist/${package}" | base64)"
-    aws s3 cp "dist/${package}" "s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${VERSION_TAG}/${package}" \
-        --metadata md5="${MD5}",gitsha="${VERSION_TAG}"
-    aws s3 cp "s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${VERSION_TAG}/${package}" "s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${package}" \
-        --metadata md5="${MD5}",gitsha="${GITSHA}"
+
+    echo "uploading package ${package} to s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${VERSION_TAG}/"
+    local n=1
+    while true; do
+        aws s3 cp "dist/${package}" "s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${VERSION_TAG}/${package}" \
+                --metadata md5="${MD5}",gitsha="${VERSION_TAG}" && break || {
+                if [[ $n -lt 5 ]]; then
+                    ((n++))
+                    echo "uploading package ${package} to s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${VERSION_TAG}/ failed, attempt ${n}/5"
+                else
+                    echo "uploading package ${package} to s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${VERSION_TAG}/ failed all 5 attempts"
+                    exit 1
+                fi
+            }
+    done
+
+    echo "copying package ${package} to s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${package}"
+    local m=1
+    while true; do
+        aws s3 cp "s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${VERSION_TAG}/${package}" "s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${package}" \
+                --metadata md5="${MD5}",gitsha="${GITSHA}" && break || {
+                if [[ $m -lt 5 ]]; then
+                    ((m++))
+                    echo "copying package ${package} to s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${package} failed, attempt ${m}/5"
+                else
+                    echo "copying package ${package} to s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${package} failed all 5 attempts"
+                    exit 1
+                fi
+            }
+    done
+
+    echo "cleaning up after uploading ${package}"
     make clean
     if [ -n "$DOCKER_PRUNE" ]; then
         docker system prune --all --force
