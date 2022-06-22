@@ -27,6 +27,8 @@ function openebs() {
     openebs_do_upgrade
 
     if [ "$OPENEBS_LOCALPV" = "1" ]; then
+        report_addon_start "openebs-localpv" "1.12.0"
+
         cp "$src/localpv-provisioner.yaml" "$dst/"
         insert_resources "$dst/kustomization.yaml" localpv-provisioner.yaml
 
@@ -39,9 +41,13 @@ function openebs() {
         fi
 
         kubectl apply -k "$dst/"
+
+        report_addon_success "openebs-localpv" "1.12.0"
     fi
 
     if [ "$OPENEBS_CSTOR" = "1" ]; then
+        report_addon_start "openebs-cstor" "1.12.0"
+
         openebs_iscsi
 
         cp "$src/ndm.yaml" "$dst/"
@@ -94,6 +100,8 @@ function openebs() {
 
         # add replicas for pre-existing volumes if needed
         openebs_cstor_scale_volumes
+
+        report_addon_success "openebs-cstor" "1.12.0"
     fi
 }
 
