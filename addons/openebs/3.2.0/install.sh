@@ -23,13 +23,13 @@ function openebs() {
     secure_openebs
 
     if [ "$OPENEBS_NAMESPACE" != "openebs" ]; then
-        logFail "the only supported namespace for OpenEBS 3.2.0 is 'openebs', not $OPENEBS_NAMESPACE."
+        bail "the only supported namespace for OpenEBS 3.2.0 is 'openebs', not $OPENEBS_NAMESPACE."
     fi
 
     if [ "$OPENEBS_CSTOR" = "1" ]; then
         report_addon_start "openebs-cstor" "3.2.0"
 
-        logFail "cstor is not yet supported on OpenEBS 3.2.0."
+        bail "cstor is not yet supported on OpenEBS 3.2.0."
 
         report_addon_success "openebs-cstor" "3.2.0"
     fi
