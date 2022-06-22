@@ -56,7 +56,7 @@ function build_and_upload() {
     local n=1
     while true; do
         aws s3 cp "dist/${package}" "s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${VERSION_TAG}/${package}" \
-                --metadata md5="${MD5}",gitsha="${VERSION_TAG}" && break || {
+                --metadata md5="${MD5}",gitsha="${VERSION_TAG}" --region us-east-1 && break || {
                 if [[ $n -lt 5 ]]; then
                     ((n++))
                     echo "uploading package ${package} to s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${VERSION_TAG}/ failed, attempt ${n}/5"
@@ -71,7 +71,7 @@ function build_and_upload() {
     local m=1
     while true; do
         aws s3 cp "s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${VERSION_TAG}/${package}" "s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${package}" \
-                --metadata md5="${MD5}",gitsha="${GITSHA}" && break || {
+                --metadata md5="${MD5}",gitsha="${GITSHA}" --region us-east-1 && break || {
                 if [[ $m -lt 5 ]]; then
                     ((m++))
                     echo "copying package ${package} to s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${package} failed, attempt ${m}/5"
