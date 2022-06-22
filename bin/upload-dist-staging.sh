@@ -45,10 +45,26 @@ function package_has_changes() {
 function build_and_upload() {
     local package="$1"
 
+    echo "building package ${package}"
     make "dist/${package}"
     MD5="$(openssl md5 -binary "dist/${package}" | base64)"
-    aws s3 cp "dist/${package}" "s3://${S3_BUCKET}/staging/${package}" \
-        --metadata md5="${MD5}",gitsha="${GITSHA}"
+
+    echo "uploading package ${package} to ${S3_BUCKET}"
+    local n=1
+    while true; do
+        aws s3 cp "dist/${package}" "s3://${S3_BUCKET}/staging/${package}" \
+            --metadata md5="${MD5}",gitsha="${GITSHA}" && break || {
+                if [[ $n -lt 5 ]]; then
+                    ((n++))
+                    echo "uploading package ${package} to ${S3_BUCKET} failed, attempt ${n}/5"
+                else
+                    echo "uploading package ${package} to ${S3_BUCKET} failed all 5 attempts"
+                    exit 1
+                fi
+            }
+    done
+
+    echo "cleaning up after uploading ${package}"
     make clean
     if [ -n "$DOCKER_PRUNE" ]; then
         docker system prune --all --force
