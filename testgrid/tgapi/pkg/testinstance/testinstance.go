@@ -19,6 +19,9 @@ const testInstanceFields = `id, test_id, test_name, testrun_ref, kurl_yaml, kurl
 	`post_upgrade_script, os_name, os_version, os_image, os_preinit, enqueued_at, dequeued_at, ` +
 	`started_at, finished_at, is_success, failure_reason, is_unsupported`
 
+const MemoryDefault = "16Gi"
+const CPUDefault = "4"
+
 type KurlInstaller struct {
 	APIVersion string                 `json:"apiVersion" yaml:"apiVersion"`
 	Kind       string                 `json:"kind" yaml:"kind"`
@@ -33,10 +36,10 @@ type KurlInstallerMetadata struct {
 func Create(id, testID, testName, refID, kurlYAML, kurlURL, kurlFlags, upgradeYAML, upgradeURL, supportbundleYAML, postInstallScript, postUpgradeScript, osName, osVersion, osImage, osPreInit string, numPrimaryNode int, numSecondaryNode int, memory string, cpu string) error {
 	pg := persistence.MustGetPGSession()
 	if len(memory) == 0 {
-		memory = "16Gi" // default to 16Gi
+		memory = MemoryDefault
 	}
 	if len(cpu) == 0 {
-		cpu = "4" // default to 4
+		cpu = CPUDefault
 	}
 	query := `insert into testinstance (id, test_id, test_name, enqueued_at, testrun_ref, kurl_yaml, kurl_url, kurl_flags, upgrade_yaml, upgrade_url, supportbundle_yaml, post_install_script, post_upgrade_script, os_name, os_version, os_image, os_preinit, num_primary_nodes, num_secondary_nodes, memory, cpu)
 values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21)`
@@ -291,6 +294,13 @@ func rowToTestInstance(row scannable) (types.TestInstance, error) {
 	testInstance.IsUnsupported = isUnsupported.Bool
 
 	testInstance.TestID = getOrCreateTestID(testInstance)
+
+	if len(testInstance.Memory) == 0 {
+		testInstance.Memory = MemoryDefault
+	}
+	if len(testInstance.CPU) == 0 {
+		testInstance.CPU = CPUDefault
+	}
 
 	return testInstance, nil
 }
