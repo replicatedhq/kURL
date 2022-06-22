@@ -13,6 +13,8 @@ spec:
           type: varchar(255)
         - name: testrun_ref
           type: varchar(255)
+        - name: test_id
+          type: varchar(255)
         - name: test_name
           type: varchar(255)
         - name: enqueued_at

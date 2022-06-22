@@ -162,6 +162,8 @@ func Run(schedulerOptions types.SchedulerOptions) error {
 			installerURL = []byte(installerURLString)
 		}
 
+		testID := randSeq(16)
+
 		for _, operatingSystem := range operatingSystems {
 			id := randSeq(16)
 
@@ -172,6 +174,7 @@ func Run(schedulerOptions types.SchedulerOptions) error {
 
 			plannedInstance := tghandlers.PlannedInstance{
 				ID:                id,
+				TestID:            testID,
 				TestName:          instance.Name,
 				NumPrimaryNodes:   instance.NumPrimaryNodes,
 				NumSecondaryNodes: instance.NumSecondaryNodes,
@@ -289,7 +292,8 @@ func sendStartInstancesRequest(schedulerOptions types.SchedulerOptions, plannedI
 		return errors.Wrap(err, "failed to marshal request")
 	}
 
-	req, err := http.NewRequest("POST", fmt.Sprintf("%s/v1/ref/%s/start", schedulerOptions.APIEndpoint, schedulerOptions.Ref), bytes.NewReader(b))
+	u := fmt.Sprintf("%s/v1/ref/%s/start", schedulerOptions.APIEndpoint, schedulerOptions.Ref)
+	req, err := http.NewRequest("POST", u, bytes.NewReader(b))
 	if err != nil {
 		return errors.Wrap(err, "failed to create request to start run")
 	}

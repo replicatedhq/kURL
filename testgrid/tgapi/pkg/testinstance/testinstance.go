@@ -1,8 +1,11 @@
 package testinstance
 
 import (
+	"crypto/md5"
 	"database/sql"
 	"fmt"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/pkg/errors"
@@ -10,6 +13,14 @@ import (
 	"github.com/replicatedhq/kurl/testgrid/tgapi/pkg/testinstance/types"
 	yaml "gopkg.in/yaml.v2"
 )
+
+const testInstanceFields = `id, test_id, test_name, testrun_ref, kurl_yaml, kurl_url, kurl_flags, upgrade_yaml, ` +
+	`upgrade_url, num_primary_nodes, num_secondary_nodes, memory, cpu, supportbundle_yaml, post_install_script, ` +
+	`post_upgrade_script, os_name, os_version, os_image, os_preinit, enqueued_at, dequeued_at, ` +
+	`started_at, finished_at, is_success, failure_reason, is_unsupported`
+
+const MemoryDefault = "16Gi"
+const CPUDefault = "4"
 
 type KurlInstaller struct {
 	APIVersion string                 `json:"apiVersion" yaml:"apiVersion"`
@@ -22,17 +33,17 @@ type KurlInstallerMetadata struct {
 	Name string `json:"name" yaml:"name"`
 }
 
-func Create(id, testName, refID, kurlYAML, kurlURL, kurlFlags, upgradeYAML, upgradeURL, supportbundleYAML, postInstallScript, postUpgradeScript, osName, osVersion, osImage, osPreInit string, numPrimaryNode int, numSecondaryNode int, memory string, cpu string) error {
+func Create(id, testID, testName, refID, kurlYAML, kurlURL, kurlFlags, upgradeYAML, upgradeURL, supportbundleYAML, postInstallScript, postUpgradeScript, osName, osVersion, osImage, osPreInit string, numPrimaryNode int, numSecondaryNode int, memory string, cpu string) error {
 	pg := persistence.MustGetPGSession()
 	if len(memory) == 0 {
-		memory = "16Gi" // default to 16Gi
+		memory = MemoryDefault
 	}
 	if len(cpu) == 0 {
-		cpu = "4" // default to 4
+		cpu = CPUDefault
 	}
-	query := `insert into testinstance (id, test_name, enqueued_at, testrun_ref, kurl_yaml, kurl_url, kurl_flags, upgrade_yaml, upgrade_url, supportbundle_yaml, post_install_script, post_upgrade_script, os_name, os_version, os_image, os_preinit, num_primary_nodes, num_secondary_nodes, memory, cpu)
-values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20)`
-	if _, err := pg.Exec(query, id, testName, time.Now(), refID, kurlYAML, kurlURL, kurlFlags, upgradeYAML, upgradeURL, supportbundleYAML, postInstallScript, postUpgradeScript, osName, osVersion, osImage, osPreInit, numPrimaryNode, numSecondaryNode, memory, cpu); err != nil {
+	query := `insert into testinstance (id, test_id, test_name, enqueued_at, testrun_ref, kurl_yaml, kurl_url, kurl_flags, upgrade_yaml, upgrade_url, supportbundle_yaml, post_install_script, post_upgrade_script, os_name, os_version, os_image, os_preinit, num_primary_nodes, num_secondary_nodes, memory, cpu)
+values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21)`
+	if _, err := pg.Exec(query, id, testID, testName, time.Now(), refID, kurlYAML, kurlURL, kurlFlags, upgradeYAML, upgradeURL, supportbundleYAML, postInstallScript, postUpgradeScript, osName, osVersion, osImage, osPreInit, numPrimaryNode, numSecondaryNode, memory, cpu); err != nil {
 		return errors.Wrap(err, "failed to insert")
 	}
 
@@ -42,51 +53,21 @@ values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $
 func GetNextEnqueued() (*types.TestInstance, error) {
 	db := persistence.MustGetPGSession()
 
-	query := `with updated as (
-update testinstance
-set dequeued_at = now() where id in (
-select id from testinstance
-where dequeued_at is null
-order by enqueued_at asc
-limit 1) returning id, test_name, num_primary_nodes, num_secondary_nodes, memory, cpu, dequeued_at, testrun_ref, kurl_yaml, kurl_url, kurl_flags, upgrade_yaml, upgrade_url, supportbundle_yaml, post_install_script, post_upgrade_script, os_name, os_version, os_image, os_preinit
-) select id, test_name, num_primary_nodes, num_secondary_nodes, memory, cpu, testrun_ref, kurl_yaml, kurl_url, kurl_flags, upgrade_yaml, upgrade_url, supportbundle_yaml, post_install_script, post_upgrade_script, os_name, os_version, os_image, os_preinit from updated`
+	query := fmt.Sprintf(
+		`with updated as (
+			update testinstance set dequeued_at = now() where id in (
+				select id from testinstance where dequeued_at is null order by enqueued_at asc limit 1
+			) returning %s
+		) select %s from updated`,
+		testInstanceFields, testInstanceFields,
+	)
 
 	row := db.QueryRow(query)
 
-	testInstance := types.TestInstance{}
-	var testName, kurlFlags, upgradeYAML, upgradeURL, supportbundleYAML, postInstallScript, postUpgradeScript, osPreInit sql.NullString
-	if err := row.Scan(
-		&testInstance.ID,
-		&testName,
-		&testInstance.NumPrimaryNodes,
-		&testInstance.NumSecondaryNodes,
-		&testInstance.Memory,
-		&testInstance.CPU,
-		&testInstance.RefID,
-		&testInstance.KurlYAML,
-		&testInstance.KurlURL,
-		&kurlFlags,
-		&upgradeYAML,
-		&upgradeURL,
-		&supportbundleYAML,
-		&postInstallScript,
-		&postUpgradeScript,
-		&testInstance.OSName,
-		&testInstance.OSVersion,
-		&testInstance.OSImage,
-		&osPreInit,
-	); err != nil {
-		return nil, errors.Wrap(err, "failed to query test instance")
+	testInstance, err := rowToTestInstance(row)
+	if err != nil {
+		return nil, errors.Wrap(err, "row to test instance")
 	}
-
-	testInstance.TestName = testName.String
-	testInstance.KurlFlags = kurlFlags.String
-	testInstance.UpgradeYAML = upgradeYAML.String
-	testInstance.UpgradeURL = upgradeURL.String
-	testInstance.SupportbundleYAML = supportbundleYAML.String
-	testInstance.PostInstallScript = postInstallScript.String
-	testInstance.PostUpgradeScript = postUpgradeScript.String
-	testInstance.OSPreInit = osPreInit.String
 
 	return &testInstance, nil
 }
@@ -201,9 +182,10 @@ where id = $1`
 func List(refID string, limit int, offset int, addons map[string]string) ([]types.TestInstance, error) {
 	db := persistence.MustGetPGSession()
 
-	query := `SELECT ti.id, ti.test_name, ti.kurl_yaml, ti.kurl_url, ti.kurl_flags, ti.upgrade_yaml, ti.upgrade_url, ti.supportbundle_yaml, ti.post_install_script, ti.post_upgrade_script, ti.os_name, ti.os_version, ti.os_image, ti.enqueued_at, ti.dequeued_at, ti.started_at, ti.finished_at, ti.is_success, ti.failure_reason, ti.is_unsupported, ti.num_primary_nodes, ti.num_secondary_nodes
-FROM testinstance ti
-WHERE ti.testrun_ref = $1`
+	query := fmt.Sprintf(
+		`SELECT %s FROM testinstance WHERE testrun_ref = $1`,
+		testInstanceFields,
+	)
 
 	// filter addons
 	for addon, version := range addons {
@@ -231,65 +213,10 @@ WHERE ti.testrun_ref = $1`
 	testInstances := []types.TestInstance{}
 
 	for rows.Next() {
-		testInstance := types.TestInstance{}
-
-		var enqueuedAt sql.NullTime
-		var dequeuedAt sql.NullTime
-		var startedAt sql.NullTime
-		var finishedAt sql.NullTime
-		var isSuccess, isUnsupported sql.NullBool
-		var testName, kurlFlags, upgradeYAML, upgradeURL, supportbundleYAML, postInstallScript, postUpgradeScript, failureReason sql.NullString
-		if err := rows.Scan(
-			&testInstance.ID,
-			&testName,
-			&testInstance.KurlYAML,
-			&testInstance.KurlURL,
-			&kurlFlags,
-			&upgradeYAML,
-			&upgradeURL,
-			&supportbundleYAML,
-			&postInstallScript,
-			&postUpgradeScript,
-			&testInstance.OSName,
-			&testInstance.OSVersion,
-			&testInstance.OSImage,
-			&enqueuedAt,
-			&dequeuedAt,
-			&startedAt,
-			&finishedAt,
-			&isSuccess,
-			&failureReason,
-			&isUnsupported,
-			&testInstance.NumPrimaryNodes,
-			&testInstance.NumSecondaryNodes,
-		); err != nil {
-			return nil, errors.Wrap(err, "failed to scan")
+		testInstance, err := rowToTestInstance(rows)
+		if err != nil {
+			return nil, errors.Wrap(err, "row to test instance")
 		}
-
-		if enqueuedAt.Valid {
-			testInstance.EnqueuedAt = &enqueuedAt.Time
-		}
-		if dequeuedAt.Valid {
-			testInstance.DequeuedAt = &dequeuedAt.Time
-		}
-		if startedAt.Valid {
-			testInstance.StartedAt = &startedAt.Time
-		}
-		if finishedAt.Valid {
-			testInstance.FinishedAt = &finishedAt.Time
-		}
-
-		testInstance.TestName = testName.String
-		testInstance.IsSuccess = isSuccess.Bool
-		testInstance.FailureReason = failureReason.String
-		testInstance.IsUnsupported = isUnsupported.Bool
-		testInstance.KurlFlags = kurlFlags.String
-		testInstance.UpgradeYAML = upgradeYAML.String
-		testInstance.UpgradeURL = upgradeURL.String
-		testInstance.SupportbundleYAML = supportbundleYAML.String
-		testInstance.PostInstallScript = postInstallScript.String
-		testInstance.PostUpgradeScript = postUpgradeScript.String
-		testInstance.RefID = refID
 
 		testInstances = append(testInstances, testInstance)
 	}
@@ -297,10 +224,91 @@ WHERE ti.testrun_ref = $1`
 	return testInstances, nil
 }
 
+func rowToTestInstance(row scannable) (types.TestInstance, error) {
+	testInstance := types.TestInstance{}
+
+	var enqueuedAt, dequeuedAt, startedAt, finishedAt sql.NullTime
+	var isSuccess, isUnsupported sql.NullBool
+	var testID, testName, kurlFlags, upgradeYAML, upgradeURL, supportbundleYAML, postInstallScript, postUpgradeScript, failureReason, osPreInit, memory, cpu sql.NullString
+	var numPrimaryNodes, numSecondaryNodes sql.NullInt64
+	if err := row.Scan(
+		&testInstance.ID,
+		&testID,
+		&testName,
+		&testInstance.RefID,
+		&testInstance.KurlYAML,
+		&testInstance.KurlURL,
+		&kurlFlags,
+		&upgradeYAML,
+		&upgradeURL,
+		&numPrimaryNodes,
+		&numSecondaryNodes,
+		&memory,
+		&cpu,
+		&supportbundleYAML,
+		&postInstallScript,
+		&postUpgradeScript,
+		&testInstance.OSName,
+		&testInstance.OSVersion,
+		&testInstance.OSImage,
+		&osPreInit,
+		&enqueuedAt,
+		&dequeuedAt,
+		&startedAt,
+		&finishedAt,
+		&isSuccess,
+		&failureReason,
+		&isUnsupported,
+	); err != nil {
+		return testInstance, errors.Wrap(err, "failed to scan")
+	}
+
+	if enqueuedAt.Valid {
+		testInstance.EnqueuedAt = &enqueuedAt.Time
+	}
+	if dequeuedAt.Valid {
+		testInstance.DequeuedAt = &dequeuedAt.Time
+	}
+	if startedAt.Valid {
+		testInstance.StartedAt = &startedAt.Time
+	}
+	if finishedAt.Valid {
+		testInstance.FinishedAt = &finishedAt.Time
+	}
+
+	testInstance.TestID = testID.String
+	testInstance.TestName = testName.String
+	testInstance.KurlFlags = kurlFlags.String
+	testInstance.UpgradeYAML = upgradeYAML.String
+	testInstance.UpgradeURL = upgradeURL.String
+	testInstance.NumPrimaryNodes = int(numPrimaryNodes.Int64)
+	testInstance.NumSecondaryNodes = int(numSecondaryNodes.Int64)
+	testInstance.Memory = memory.String
+	testInstance.CPU = cpu.String
+	testInstance.SupportbundleYAML = supportbundleYAML.String
+	testInstance.PostInstallScript = postInstallScript.String
+	testInstance.PostUpgradeScript = postUpgradeScript.String
+	testInstance.OSPreInit = osPreInit.String
+	testInstance.IsSuccess = isSuccess.Bool
+	testInstance.FailureReason = failureReason.String
+	testInstance.IsUnsupported = isUnsupported.Bool
+
+	testInstance.TestID = getOrCreateTestID(testInstance)
+
+	if len(testInstance.Memory) == 0 {
+		testInstance.Memory = MemoryDefault
+	}
+	if len(testInstance.CPU) == 0 {
+		testInstance.CPU = CPUDefault
+	}
+
+	return testInstance, nil
+}
+
 func Total(refID string, addons map[string]string) (int, error) {
 	db := persistence.MustGetPGSession()
 
-	query := `select count(DISTINCT kurl_url) as total from testinstance where testrun_ref = $1`
+	query := `select count(DISTINCT test_id) as total from testinstance where testrun_ref = $1`
 
 	// filter addons
 	for addon, version := range addons {
@@ -507,13 +515,37 @@ func GetNodeStatus(id string) (string, error) {
 func Healthz() error {
 	db := persistence.MustGetPGSession()
 
-	query := `select 1`
-	row := db.QueryRow(query)
-
-	var status int
-	if err := row.Scan(&status); err != nil {
-		return errors.Wrap(err, "failed to scan")
+	err := db.Ping()
+	if err != nil {
+		return errors.Wrap(err, "failed to ping")
 	}
 
 	return nil
+}
+
+// getOrCreateTestID returns the test ID or generates a unique test ID if unset
+// for runs prior to adding test ID to the database
+func getOrCreateTestID(instance types.TestInstance) string {
+	if instance.TestID != "" {
+		return instance.TestID
+	}
+	unique := strings.Join(
+		[]string{
+			instance.KurlURL,
+			instance.UpgradeURL,
+			strconv.Itoa(instance.NumPrimaryNodes),
+			strconv.Itoa(instance.NumSecondaryNodes),
+			instance.KurlFlags,
+			instance.PostInstallScript,
+			instance.PostUpgradeScript,
+			instance.Memory,
+			instance.CPU,
+		},
+		"_",
+	)
+	return fmt.Sprintf("%x", md5.Sum([]byte(unique)))
+}
+
+type scannable interface {
+	Scan(dest ...interface{}) error
 }
