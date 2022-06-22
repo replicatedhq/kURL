@@ -515,12 +515,9 @@ func GetNodeStatus(id string) (string, error) {
 func Healthz() error {
 	db := persistence.MustGetPGSession()
 
-	query := `select 1`
-	row := db.QueryRow(query)
-
-	var status int
-	if err := row.Scan(&status); err != nil {
-		return errors.Wrap(err, "failed to scan")
+	err := db.Ping()
+	if err != nil {
+		return errors.Wrap(err, "failed to ping")
 	}
 
 	return nil
