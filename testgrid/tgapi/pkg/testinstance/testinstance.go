@@ -308,7 +308,7 @@ func rowToTestInstance(row scannable) (types.TestInstance, error) {
 func Total(refID string, addons map[string]string) (int, error) {
 	db := persistence.MustGetPGSession()
 
-	query := `select count(DISTINCT kurl_url) as total from testinstance where testrun_ref = $1`
+	query := `select count(DISTINCT test_id) as total from testinstance where testrun_ref = $1`
 
 	// filter addons
 	for addon, version := range addons {
