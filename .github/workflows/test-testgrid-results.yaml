@@ -3,9 +3,6 @@ name: test-testgrid-results
 on:
   schedule:
     - cron: "0/15 * * * *"
-  push:
-    branches:
-      - seanrester/sc-47380/move-kots-kurl-add-on-from-kurl-to-kots-project
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}

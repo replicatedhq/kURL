@@ -70,27 +70,3 @@ jobs:
           message: ${{ steps.queue.outputs.msg }}
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           allow-repeats: false
-
-      - name: Testgrid Outcome
-        if: ${{ steps.check.outputs.addons_available == 'true' }}
-        run: |
-          sleep 180
-          
-          for (( ; ; ))
-          do
-            result=$(curl 'https://api.testgrid.kurl.sh/api/v1/runs' 2>/dev/null | jq '.runs[] | select(.id=="${{ steps.queue.outputs.ref }}")')
-            if [ $(echo $result | jq '.pending_runs') != 0 ] 
-            then
-              echo "Pending... (sleep 20)"
-              sleep 20
-              continue
-            fi
-            if [ $(echo $result | jq '.failure_count') != 0 ]
-            then
-              echo "Testgrid failed"
-              exit 1
-            fi
-
-            echo "Testgrid passed"
-            exit 0
-          done

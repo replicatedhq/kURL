@@ -17,8 +17,6 @@ __nccwpck_require__.r(__webpack_exports__);
 
 
 
-// console.log("::group::context\n", JSON.stringify(context), "\n::endgroup::");
-
 const octokit = (0,_actions_github__WEBPACK_IMPORTED_MODULE_1__.getOctokit)((0,_actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput)('GITHUB_TOKEN'));
 const {owner, repo} = _actions_github__WEBPACK_IMPORTED_MODULE_1__.context.repo
 const pullRequests = await octokit.rest.pulls.list({
@@ -26,8 +24,6 @@ const pullRequests = await octokit.rest.pulls.list({
   repo,
   state: 'open'
 });
-
-// console.log("::group::pullRequests\n", pullRequests, "\n::endgroup::");
 
 const httpClient = new _actions_http_client__WEBPACK_IMPORTED_MODULE_2__.HttpClient();
 
@@ -37,10 +33,7 @@ const pullRequestPromises = pullRequests.data.map(async pullRequest => {
   const responseBody = JSON.parse(await response.readBody());
 
   let passing = true;
-  if(responseBody.total === 0) {
-    // If we're blocking pull requests that don't pass the testgrid check, what about pull requests that don't need testgrid checks?
-    return;
-  } else {
+  if(responseBody.total !== 0) {
     for (const run of responseBody.runs) {
       if (run.pending_runs > 0) {
         console.log(`PR #${prNumber} has pending runs`);
