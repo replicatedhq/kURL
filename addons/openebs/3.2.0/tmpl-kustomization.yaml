@@ -1,0 +1,4 @@
+namespace: ${OPENEBS_NAMESPACE}
+
+resources:
+- openebs-operator.yaml
