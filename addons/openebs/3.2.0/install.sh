@@ -47,7 +47,10 @@ function openebs() {
 
         kubectl apply -k "$dst/"
 
+        echo "awaiting localpv provisioner deployment health"
         spinnerPodRunning "$OPENEBS_NAMESPACE" "openebs-localpv-provisioner"
+
+        echo "awaiting ndm operator deployment health"
         spinnerPodRunning "$OPENEBS_NAMESPACE" "openebs-ndm-operator"
 
         report_addon_success "openebs-localpv" "3.2.0"
