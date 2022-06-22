@@ -53,7 +53,7 @@ function build_and_upload() {
     local n=1
     while true; do
         aws s3 cp "dist/${package}" "s3://${S3_BUCKET}/staging/${package}" \
-            --metadata md5="${MD5}",gitsha="${GITSHA}" && break || {
+            --metadata md5="${MD5}",gitsha="${GITSHA}" --region us-east-1 && break || {
                 if [[ $n -lt 5 ]]; then
                     ((n++))
                     echo "uploading package ${package} to ${S3_BUCKET} failed, attempt ${n}/5"
