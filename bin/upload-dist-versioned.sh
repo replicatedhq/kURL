@@ -57,7 +57,7 @@ function build_and_upload() {
         --metadata md5="${MD5}",gitsha="${VERSION_TAG}" --region us-east-1
 
     echo "copying package ${package} to s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${package}"
-    retry 5 aws copy-object --copy-source "s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${VERSION_TAG}/${package}" --bucket "${S3_BUCKET}" --key "${PACKAGE_PREFIX}/${package}" \
+    retry 5 aws s3api copy-object --copy-source "s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${VERSION_TAG}/${package}" --bucket "${S3_BUCKET}" --key "${PACKAGE_PREFIX}/${package}" \
         --metadata md5="${MD5}",gitsha="${GITSHA}" --region us-east-1
 
     echo "cleaning up after uploading ${package}"
@@ -74,11 +74,11 @@ function copy_package_staging() {
     md5="$(aws s3api head-object --bucket "${S3_BUCKET}" --key "staging/${package}" | grep '"md5":' | sed 's/[",:]//g' | awk '{print $2}')"
 
     echo "copying package ${package} to s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${VERSION_TAG}/"
-    retry 5 aws copy-object --copy-source "s3://${S3_BUCKET}/staging/${package}" --bucket "${S3_BUCKET}" --key "${PACKAGE_PREFIX}/${VERSION_TAG}/${package}" \
+    retry 5 aws s3api copy-object --copy-source "s3://${S3_BUCKET}/staging/${package}" --bucket "${S3_BUCKET}" --key "${PACKAGE_PREFIX}/${VERSION_TAG}/${package}" \
         --metadata md5="${md5}",gitsha="${GITSHA}" --region us-east-1
 
     echo "copying package ${package} to s3://${S3_BUCKET}/${PACKAGE_PREFIX}/"
-    retry 5 aws copy-object --copy-source "s3://${S3_BUCKET}/staging/${package}" --bucket "${S3_BUCKET}" --key "${PACKAGE_PREFIX}/${package}" \
+    retry 5 aws s3api copy-object --copy-source "s3://${S3_BUCKET}/staging/${package}" --bucket "${S3_BUCKET}" --key "${PACKAGE_PREFIX}/${package}" \
         --metadata md5="${md5}",gitsha="${GITSHA}" --region us-east-1
 }
 
@@ -89,7 +89,7 @@ function copy_package_dist() {
     md5="$(aws s3api head-object --bucket "${S3_BUCKET}" --key "${PACKAGE_PREFIX}/${package}" | grep '"md5":' | sed 's/[",:]//g' | awk '{print $2}')"
 
     echo "copying package ${package} to s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${VERSION_TAG}/"
-    retry 5 aws copy-object --copy-source "s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${package}" --bucket "${S3_BUCKET}" --key "${PACKAGE_PREFIX}/${VERSION_TAG}/${package}" \
+    retry 5 aws s3api copy-object --copy-source "s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${package}" --bucket "${S3_BUCKET}" --key "${PACKAGE_PREFIX}/${VERSION_TAG}/${package}" \
         --metadata md5="${md5}",gitsha="${GITSHA}" --region us-east-1
 }
 
