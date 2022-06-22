@@ -292,7 +292,8 @@ func sendStartInstancesRequest(schedulerOptions types.SchedulerOptions, plannedI
 		return errors.Wrap(err, "failed to marshal request")
 	}
 
-	req, err := http.NewRequest("POST", fmt.Sprintf("%s/v1/ref/%s/start", schedulerOptions.APIEndpoint, schedulerOptions.Ref), bytes.NewReader(b))
+	u := fmt.Sprintf("%s/v1/ref/%s/start", schedulerOptions.APIEndpoint, schedulerOptions.Ref)
+	req, err := http.NewRequest("POST", u, bytes.NewReader(b))
 	if err != nil {
 		return errors.Wrap(err, "failed to create request to start run")
 	}

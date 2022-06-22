@@ -20,12 +20,6 @@ func MustGetPGSession() *sql.DB {
 		panic(err)
 	}
 
-	err = db.Ping()
-	if err != nil {
-		fmt.Printf("error pinging postgres: %v\n", err)
-		panic(err)
-	}
-
 	DB = db
 	return db
 }

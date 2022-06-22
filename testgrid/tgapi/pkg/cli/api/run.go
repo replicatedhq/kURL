@@ -4,8 +4,10 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"time"
 
+	ghandlers "github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/replicatedhq/kurl/testgrid/tgapi/pkg/handlers"
 	"github.com/replicatedhq/kurl/testgrid/tgapi/pkg/metrics"
@@ -23,13 +25,16 @@ func RunCmd() *cobra.Command {
 			viper.BindPFlags(cmd.Flags())
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			r := mux.NewRouter()
-			r.Use(mux.CORSMethodMiddleware(r))
+			rRoot := mux.NewRouter()
+			rRoot.Use(mux.CORSMethodMiddleware(rRoot))
+
+			rRoot.HandleFunc("/healthz", handlers.Healthz).Methods("GET")
+
+			r := rRoot.NewRoute().Subrouter()
+			r.Use(loggingMiddleware)
 
 			rAuth := r.NewRoute().Subrouter()
 			rAuth.Use(middleware.APITokenAuthentication(viper.GetString("api-token")))
-
-			r.HandleFunc("/healthz", handlers.Healthz).Methods("GET")
 
 			r.HandleFunc("/api/v1/config", handlers.WebConfig).Methods("GET", "OPTIONS")
 			r.HandleFunc("/api/v1/runs", handlers.ListRuns).Methods("GET", "OPTIONS")
@@ -59,7 +64,7 @@ func RunCmd() *cobra.Command {
 			r.HandleFunc("/v1/dequeue/instance", handlers.DequeueInstance).Methods("GET")
 
 			srv := &http.Server{
-				Handler:      r,
+				Handler:      rRoot,
 				Addr:         ":3000",
 				WriteTimeout: 15 * time.Second,
 				ReadTimeout:  15 * time.Second,
@@ -85,4 +90,8 @@ func RunCmd() *cobra.Command {
 	cmd.Flags().String("api-token", "", "API token for authentication")
 
 	return cmd
+}
+
+func loggingMiddleware(next http.Handler) http.Handler {
+	return ghandlers.LoggingHandler(os.Stdout, next)
 }
