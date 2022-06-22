@@ -128,3 +128,17 @@ func Total(searchRef string) (int, error) {
 
 	return total, nil
 }
+
+func GetRunByID(id string) (types.TestRunInstance, error) {
+	db := persistence.MustGetPGSession()
+	query := `SELECT ti.id, ti.test_name, ti.kurl_yaml, ti.kurl_url, ti.kurl_flags, ti.upgrade_yaml, ti.upgrade_url, ti.supportbundle_yaml, ti.post_install_script, ti.post_upgrade_script, ti.os_name, ti.os_version, ti.os_image, ti.enqueued_at, ti.dequeued_at, ti.started_at, ti.finished_at, ti.is_success, ti.failure_reason, ti.is_unsupported, ti.num_primary_nodes, ti.num_secondary_nodes, ti.memory, ti.cpu
+FROM testinstance ti
+WHERE ti.id = $1`
+	row := db.QueryRow(query, id)
+	run := types.TestRunInstance{}
+	if err := row.Scan(&run.ID, &run.TestName, &run.KurlYAML, &run.KurlURL, &run.KurlFlags, &run.UpgradeYAML, &run.UpgradeURL, &run.SupportbundleYAML, &run.PostInstallScript, &run.PostUpgradeScript, &run.OSName, &run.OSVersion, &run.OSImage, &run.EnqueuedAt, &run.DequeuedAt, &run.StartedAt, &run.FinishedAt, &run.IsSuccess, &run.FailureReason, &run.IsUnsupported, &run.NumPrimaryNodes, &run.NumSecondaryNodes, &run.Memory, &run.CPU); err != nil {
+		return run, errors.Wrap(err, "failed to scan")
+	}
+
+	return run, nil
+}

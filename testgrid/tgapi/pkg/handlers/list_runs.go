@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/gorilla/mux"
 	"github.com/replicatedhq/kurl/testgrid/tgapi/pkg/logger"
 	"github.com/replicatedhq/kurl/testgrid/tgapi/pkg/testrun"
 	"github.com/replicatedhq/kurl/testgrid/tgapi/pkg/testrun/types"
@@ -63,4 +64,17 @@ func ListRuns(w http.ResponseWriter, r *http.Request) {
 	}
 
 	JSON(w, 200, listRunsResponse)
+}
+
+func ListRunsByID(w http.ResponseWriter, r *http.Request) {
+	id := mux.Vars(r)["runId"]
+
+	testRun, err := testrun.GetRunByID(id)
+	if err != nil {
+		logger.Error(err)
+		JSON(w, 500, nil)
+		return
+	}
+
+	JSON(w, 200, testRun)
 }
