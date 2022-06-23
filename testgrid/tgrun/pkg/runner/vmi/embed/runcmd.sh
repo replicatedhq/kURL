@@ -42,8 +42,13 @@ function run_install() {
     echo "running kurl install at '$(date)'"
     send_logs
 
-    cat install.sh | timeout 30m bash -s $AIRGAP_FLAG ${KURL_FLAGS[@]}
-    KURL_EXIT_STATUS=$?
+    if [ "$NUM_PRIMARY_NODES" -gt 1 ]; then
+        cat install.sh | timeout 30m bash -s $AIRGAP_FLAG ${KURL_FLAGS[@]} ekco-enable-internal-load-balancer
+        KURL_EXIT_STATUS=$?
+    else
+        cat install.sh | timeout 30m bash -s $AIRGAP_FLAG ${KURL_FLAGS[@]}
+        KURL_EXIT_STATUS=$?
+    fi
 
     export KUBECONFIG=/etc/kubernetes/admin.conf
     export PATH=$PATH:/usr/local/bin
@@ -81,6 +86,9 @@ function run_install() {
     fi
 
     collect_debug_info_after_kurl || true
+
+    echo "kurl install complete at '$(date)'"
+    send_logs
 }
 
 function run_upgrade() {
@@ -108,7 +116,8 @@ function run_upgrade() {
         curl -fsSL "$KURL_UPGRADE_URL/tasks.sh" > tasks.sh
     fi
 
-    echo "running kurl upgrade"
+    echo "running kurl upgrade at '$(date)'"
+    send_logs
 
     cat install.sh | timeout 30m bash -s $AIRGAP_UPGRADE_FLAG ${KURL_FLAGS[@]}
     KURL_EXIT_STATUS=$?
@@ -125,6 +134,9 @@ function run_upgrade() {
     fi
 
     collect_debug_info_after_kurl || true
+
+    echo "kurl upgrade complete at '$(date)'"
+    send_logs
 }
 
 function run_post_install_script() {
@@ -444,25 +456,6 @@ function wait_for_cluster_ready() {
     done
 }
 
-function install_using_ha() {
-    if [ "$NUM_PRIMARY_NODES" -gt 1 ]; then
-        echo "kurl install finished with ha"
-        cat install.sh | timeout 30m bash -s $AIRGAP_FLAG ${KURL_FLAGS[@]} ha
-        KURL_EXIT_STATUS=$?
-    fi
-}
-
-function check_command_run_success() {
-    if [ $KURL_EXIT_STATUS -ne 0 ]; then
-        echo "kurl install failed"
-        report_failure "kurl_install"
-        report_status_update "failed"
-        collect_support_bundle
-        send_logs
-        exit 1
-    fi
-}
-
 # change flags from string to array with space as delimiter
 function create_flags_array() {
     IFS=' ' read -r -a KURL_FLAGS <<< "${KURL_FLAGS}"
@@ -477,11 +470,16 @@ function main() {
 
     create_flags_array
     run_install
-    check_command_run_success
-    send_logs
-    install_using_ha
-    check_command_run_success
-    send_logs
+    
+    if [ $KURL_EXIT_STATUS -ne 0 ]; then
+        echo "kurl install failed"
+        report_failure "kurl_install"
+        report_status_update "failed"
+        collect_support_bundle
+        send_logs
+        exit 1
+    fi
+
     run_post_install_script
 
     run_tasks_join_token
@@ -492,18 +490,16 @@ function main() {
 
     if [ "$KURL_UPGRADE_URL" != "" ]; then
         run_upgrade
-        send_logs
-    fi
 
-    if [ $KURL_EXIT_STATUS -ne 0 ]; then
-        send_logs
-        report_failure "kurl_upgrade"
-        report_status_update "failed"
-        collect_support_bundle
-        exit 1
-    fi
+        if [ $KURL_EXIT_STATUS -ne 0 ]; then
+            echo "kurl upgrade failed"
+            report_failure "kurl_upgrade"
+            report_status_update "failed"
+            collect_support_bundle
+            send_logs
+            exit 1
+        fi
 
-    if [ "$KURL_UPGRADE_URL" != "" ]; then
         run_post_upgrade_script
     fi
 
