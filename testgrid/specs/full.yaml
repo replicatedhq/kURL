@@ -619,6 +619,7 @@
       version: 1.1.2
   airgap: true
 - name: k8s1205_rook_upgrade
+  cpu: 5
   installerSpec:
     kubernetes:
       version: 1.18.4
@@ -737,6 +738,7 @@
       version: 0.10.1
   airgap: true
 - name: k8s1205_rook_to_longhorn
+  cpu: 5
   installerSpec:
     kubernetes:
       version: 1.20.x
@@ -763,6 +765,7 @@
     containerd:
       version: 1.4.6
 - name: remove_all_object_storage
+  cpu: 5
   installerSpec:
     kubernetes:
       version: 1.20.x
@@ -933,6 +936,7 @@
       version: latest
   airgap: true
 - name: "Upgrade to 1.22"
+  cpu: 5
   installerSpec:
     kubernetes:
       version: 1.20.x
@@ -966,6 +970,7 @@
     velero:
       version: 1.7.x
 - name: "Upgrade to 1.22 airgap"
+  cpu: 5
   installerSpec:
     kubernetes:
       version: 1.20.x
@@ -1070,6 +1075,7 @@
       version: latest
   airgap: true
 - name: "Upgrade to 1.23"
+  cpu: 5
   installerSpec:
     kubernetes:
       version: 1.21.x
@@ -1103,6 +1109,7 @@
     velero:
       version: 1.7.x
 - name: "Upgrade to 1.23 airgap"
+  cpu: 5
   installerSpec:
     kubernetes:
       version: 1.21.x

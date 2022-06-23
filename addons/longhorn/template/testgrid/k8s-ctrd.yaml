@@ -44,6 +44,7 @@
       s3Override: "__testdist__"
 
 - name: upgrade-from-latest-rook
+  cpu: 5
   installerSpec:
     kubernetes:
       version: "latest"
@@ -71,6 +72,7 @@
       s3Override: "__testdist__"
 
 - name: upgrade-from-rook-1.5
+  cpu: 5
   installerSpec:
     kubernetes:
       version: "latest"

@@ -1,4 +1,5 @@
-- installerSpec:
+- name: Rook minimal
+  installerSpec:
     kubernetes:
       version: "latest"
     weave:
@@ -13,7 +14,8 @@
       version: "__testver__"
       s3Override: "__testdist__"
       isBlockStorageEnabled: true
-- installerSpec:
+- name: Upgrade from 1.4.3
+  installerSpec:
     kubernetes:
       version: "latest"
     weave:
@@ -43,7 +45,8 @@
       s3Override: "__testdist__"
       isBlockStorageEnabled: true
       bypassUpgradeWarning: true
-- installerSpec:
+- name: Disable shared filesystem
+  installerSpec:
     kubernetes:
       version: "latest"
     weave:
@@ -59,7 +62,8 @@
       s3Override: "__testdist__"
       isSharedFilesystemDisabled: true
       isBlockStorageEnabled: true
-- installerSpec:
+- name: Upgrade from 1.0.4
+  installerSpec:
     kubernetes:
       version: "latest"
     weave:
