@@ -24,6 +24,7 @@ type PlannedInstance struct {
 	ID                string
 	TestID            string
 	TestName          string
+	Priority          int
 	NumPrimaryNodes   int
 	NumSecondaryNodes int
 	Memory            string
@@ -93,6 +94,7 @@ func StartRef(w http.ResponseWriter, r *http.Request) {
 			plannedInstance.ID,
 			plannedInstance.TestID,
 			plannedInstance.TestName,
+			plannedInstance.Priority,
 			refID,
 			plannedInstance.KurlYAML,
 			plannedInstance.KurlURL,

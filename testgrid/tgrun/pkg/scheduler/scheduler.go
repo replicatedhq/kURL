@@ -32,12 +32,12 @@ func Run(schedulerOptions types.SchedulerOptions) error {
 
 	plannedInstances := []tghandlers.PlannedInstance{}
 
-	operatingSystems, err := getOses(schedulerOptions)
+	operatingSystems, err := getOses(schedulerOptions.OSSpec)
 	if err != nil {
 		return err
 	}
 
-	kurlPlans, err := getKurlPlans(schedulerOptions)
+	kurlPlans, err := getKurlPlans(schedulerOptions.Spec)
 	if err != nil {
 		return err
 	}
@@ -176,6 +176,7 @@ func Run(schedulerOptions types.SchedulerOptions) error {
 				ID:                id,
 				TestID:            testID,
 				TestName:          instance.Name,
+				Priority:          schedulerOptions.Priority,
 				NumPrimaryNodes:   instance.NumPrimaryNodes,
 				NumSecondaryNodes: instance.NumSecondaryNodes,
 				Memory:            instance.Memory,
@@ -213,12 +214,10 @@ func Run(schedulerOptions types.SchedulerOptions) error {
 	return nil
 }
 
-func getKurlPlans(schedulerOptions types.SchedulerOptions) ([]types.Instance, error) {
-	if schedulerOptions.Spec == "" {
+func getKurlPlans(spec string) ([]types.Instance, error) {
+	if spec == "" {
 		return nil, errors.New("spec required")
 	}
-
-	spec := schedulerOptions.Spec
 
 	if _, err := os.Stat(spec); err == nil {
 		b, err := ioutil.ReadFile(spec)
@@ -256,14 +255,12 @@ func getKurlPlans(schedulerOptions types.SchedulerOptions) ([]types.Instance, er
 	return kurlPlans, nil
 }
 
-func getOses(schedulerOptions types.SchedulerOptions) ([]types.OperatingSystemImage, error) {
-	if schedulerOptions.OSSpec == "" {
+func getOses(spec string) ([]types.OperatingSystemImage, error) {
+	if spec == "" {
 		return nil, errors.New("os spec required")
 	}
 
 	var oses []types.OperatingSystemImage
-
-	spec := schedulerOptions.OSSpec
 
 	if _, err := os.Stat(spec); err == nil {
 		b, err := ioutil.ReadFile(spec)

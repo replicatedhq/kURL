@@ -8,6 +8,11 @@ spec:
   schema:
     postgres:
       primaryKey: [id]
+      indexes:
+        - name: idx_priority
+          columns:
+            - priority desc
+            - enqueued_at asc
       columns:
         - name: id
           type: varchar(255)
@@ -17,6 +22,11 @@ spec:
           type: varchar(255)
         - name: test_name
           type: varchar(255)
+        - name: priority
+          type: int
+          default: "0"
+          constraints:
+            notNull: true
         - name: enqueued_at
           type: timestamp without timezone
         - name: dequeued_at
