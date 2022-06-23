@@ -15,6 +15,7 @@ type SchedulerOptions struct {
 	KurlVersion  string
 	Spec         string
 	OSSpec       string
+	Priority     int
 }
 
 type TestRun struct {

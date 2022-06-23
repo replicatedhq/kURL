@@ -29,6 +29,7 @@ func QueueCmd() *cobra.Command {
 				KurlVersion:  v.GetString("kurl-version"),
 				Spec:         v.GetString("spec"),
 				OSSpec:       v.GetString("os-spec"),
+				Priority:     v.GetInt("priority"),
 			}
 
 			if err := scheduler.Run(schedulerOptions); err != nil {
@@ -50,7 +51,7 @@ func QueueCmd() *cobra.Command {
 	cmd.MarkFlagRequired("spec")
 	cmd.Flags().String("os-spec", "", "run test against the provided os spec yaml")
 	cmd.MarkFlagRequired("os-spec")
-	cmd.MarkFlagRequired("ref")
+	cmd.Flags().Int("priority", 0, "run priority (higher priority runs first)")
 
 	return cmd
 }

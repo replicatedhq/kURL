@@ -131,11 +131,18 @@ test_addon() {
   sed -i "s#__testver__#${version}#g" /tmp/test-spec
   sed -i "s#__testdist__#${dist}#g" /tmp/test-spec
 
+  # if this is triggered by automation, lower the priority
+  local priority=0
+  if [ "$GITHUB_ACTOR" = "replicated-ci-kurl" ]; then
+    priority=-1
+  fi
+
   # Run testgrid plan
   ./testgrid/tgrun/bin/tgrun queue --staging \
     --ref "pr-${PR_NUMBER}-${GITHUB_SHA:0:7}-${name}-${version}-${specname}" \
     --spec /tmp/test-spec \
-    --os-spec ./testgrid/specs/os.yaml
+    --os-spec ./testgrid/specs/os.yaml \
+    --priority "$priority"
   echo "Submitted TestGrid Ref pr-${PR_NUMBER}-${GITHUB_SHA:0:7}-${name}-${version}-${specname}"
   MSG="$MSG https://testgrid.kurl.sh/run/pr-${PR_NUMBER}-${GITHUB_SHA:0:7}-${name}-${version}-${specname}"
 }
