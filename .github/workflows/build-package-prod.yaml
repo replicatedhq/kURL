@@ -29,6 +29,6 @@ jobs:
           MD5="$(openssl md5 -binary dist/$PKG | base64)"
           GITSHA="$(git rev-parse HEAD)"
           aws s3 cp dist/$PKG s3://kurl-sh/dist/${tag}/$PKG \
-            --metadata md5="${MD5}",gitsha="${GITSHA}"
+            --metadata-directive REPLACE --metadata md5="${MD5}",gitsha="${GITSHA}"
           aws s3 cp s3://kurl-sh/dist/${tag}/$PKG s3://kurl-sh/dist/$PKG \
-            --metadata md5="${MD5}",gitsha="${GITSHA}"
+            --metadata-directive REPLACE --metadata md5="${MD5}",gitsha="${GITSHA}"
