@@ -619,7 +619,7 @@
       version: 1.1.2
   airgap: true
 - name: k8s1205_rook_upgrade
-  cpu: 5
+  cpu: 6
   installerSpec:
     kubernetes:
       version: 1.18.4
@@ -632,6 +632,8 @@
       version: 1.38.0
     containerd:
       version: 1.4.6
+    ekco:
+      version: latest
   upgradeSpec:
     kubernetes:
       version: 1.20.2
@@ -645,6 +647,8 @@
       version: 1.38.0
     containerd:
       version: 1.4.12
+    ekco:
+      version: latest
 - name: k8s121
   installerSpec:
     kubernetes:
@@ -738,7 +742,7 @@
       version: 0.10.1
   airgap: true
 - name: k8s1205_rook_to_longhorn
-  cpu: 5
+  cpu: 6
   installerSpec:
     kubernetes:
       version: 1.20.x
@@ -751,6 +755,8 @@
       version: 1.38.0
     containerd:
       version: 1.4.6
+    ekco:
+      version: latest
   upgradeSpec:
     kubernetes:
       version: 1.20.x
@@ -764,8 +770,10 @@
       version: 1.38.0
     containerd:
       version: 1.4.6
+    ekco:
+      version: latest
 - name: remove_all_object_storage
-  cpu: 5
+  cpu: 6
   installerSpec:
     kubernetes:
       version: 1.20.x
@@ -782,6 +790,8 @@
       version: latest
     velero:
       version: 1.6.x
+    ekco:
+      version: latest
   upgradeSpec:
     kubernetes:
       version: 1.21.x
@@ -798,6 +808,8 @@
       version: latest
     velero:
       version: 1.7.x
+    ekco:
+      version: latest
 - name: "K8s 1.22x Rook"
   installerSpec:
     kubernetes:
@@ -936,7 +948,7 @@
       version: latest
   airgap: true
 - name: "Upgrade to 1.22"
-  cpu: 5
+  cpu: 6
   installerSpec:
     kubernetes:
       version: 1.20.x
@@ -953,6 +965,8 @@
       version: 19.03.x
     velero:
       version: 1.6.x
+    ekco:
+      version: latest
   upgradeSpec:
     kubernetes:
       version: 1.22.x
@@ -969,8 +983,10 @@
       version: 1.4.x
     velero:
       version: 1.7.x
+    ekco:
+      version: latest
 - name: "Upgrade to 1.22 airgap"
-  cpu: 5
+  cpu: 6
   installerSpec:
     kubernetes:
       version: 1.20.x
@@ -987,6 +1003,8 @@
       version: 19.03.x
     velero:
       version: 1.6.x
+    ekco:
+      version: latest
   upgradeSpec:
     kubernetes:
       version: 1.22.x
@@ -1003,6 +1021,8 @@
       version: 1.5.x
     velero:
       version: 1.7.x
+    ekco:
+      version: latest
   airgap: true
 - name: "K8s 1.23x Rook"
   installerSpec:
@@ -1075,7 +1095,7 @@
       version: latest
   airgap: true
 - name: "Upgrade to 1.23"
-  cpu: 5
+  cpu: 6
   installerSpec:
     kubernetes:
       version: 1.21.x
@@ -1092,6 +1112,8 @@
       version: 20.10.x
     velero:
       version: 1.6.x
+    ekco:
+      version: latest
   upgradeSpec:
     kubernetes:
       version: 1.23.x
@@ -1108,8 +1130,10 @@
       version: 1.4.x
     velero:
       version: 1.7.x
+    ekco:
+      version: latest
 - name: "Upgrade to 1.23 airgap"
-  cpu: 5
+  cpu: 6
   installerSpec:
     kubernetes:
       version: 1.21.x
@@ -1126,6 +1150,8 @@
       version: 20.10.x
     velero:
       version: 1.6.x
+    ekco:
+      version: latest
   upgradeSpec:
     kubernetes:
       version: 1.23.x
@@ -1142,6 +1168,8 @@
       version: 1.5.x
     velero:
       version: 1.7.x
+    ekco:
+      version: latest
   airgap: true
 - name: "Upgrade to 1.23 minimal"
   installerSpec:
@@ -1158,6 +1186,8 @@
       disableS3: true
     containerd:
       version: latest
+    ekco:
+      version: latest
   upgradeSpec:
     kubernetes:
       version: 1.23.x
@@ -1171,6 +1201,8 @@
       version: latest
       disableS3: true
     containerd:
+      version: latest
+    ekco:
       version: latest
 - name: "Upgrade to 1.23 minimal airgap"
   installerSpec:
@@ -1187,6 +1219,8 @@
       disableS3: true
     containerd:
       version: latest
+    ekco:
+      version: latest
   upgradeSpec:
     kubernetes:
       version: 1.23.x
@@ -1200,6 +1234,8 @@
       version: latest
       disableS3: true
     containerd:
+      version: latest
+    ekco:
       version: latest
   airgap: true
 - name: k8s121-with-flags
