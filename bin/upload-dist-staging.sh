@@ -51,7 +51,7 @@ function build_and_upload() {
 
     echo "uploading package ${package} to ${S3_BUCKET}"
     retry 5 aws s3 cp "dist/${package}" "s3://${S3_BUCKET}/staging/${package}" \
-            --metadata md5="${MD5}",gitsha="${GITSHA}" --region us-east-1
+        --metadata-directive REPLACE --metadata md5="${MD5}",gitsha="${GITSHA}" --region us-east-1
 
     echo "cleaning up after uploading ${package}"
     make clean
