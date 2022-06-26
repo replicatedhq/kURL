@@ -54,7 +54,7 @@ function build_and_upload() {
 
     echo "uploading package ${package} to s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${VERSION_TAG}/"
     retry 5 aws s3 cp "dist/${package}" "s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${VERSION_TAG}/${package}" \
-        --metadata md5="${MD5}",gitsha="${VERSION_TAG}" --region us-east-1
+        --metadata-directive REPLACE --metadata md5="${MD5}",gitsha="${VERSION_TAG}" --region us-east-1
 
     echo "copying package ${package} to s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${package}"
     retry 5 aws s3api copy-object --copy-source "${S3_BUCKET}/${PACKAGE_PREFIX}/${VERSION_TAG}/${package}" --bucket "${S3_BUCKET}" --key "${PACKAGE_PREFIX}/${package}" \
