@@ -905,7 +905,7 @@ spec:
       serviceAccountName: openebs
       containers:
         - name: kubectl
-          image: "bitnami/kubectl:1.24"
+          image: "bitnami/kubectl:1.20"
           command:
           - /bin/sh
           - -c

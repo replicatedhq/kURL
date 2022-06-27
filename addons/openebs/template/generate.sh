@@ -16,7 +16,8 @@ function generate() {
     local tmpdir=
 
     # localpv
-    tmpdir="$(mktemp -d -p "$dir")"
+    tmpdir="$dir/tmpdir"
+    mkdir -p "$tmpdir"
     helm template -n '__OPENEBS_NAMESPACE__' openebs openebs/openebs --version "$chart_version" \
         --include-crds \
         --set defaultStorageConfig.enabled=false \
@@ -29,27 +30,10 @@ function generate() {
     mv "$tmpdir/CustomResourceDefinitions.yaml" "$dir/spec/crds/crds.yaml"
     rm -rf "$tmpdir"
 
-    # cstor
-    tmpdir="$(mktemp -d -p "$dir")"
-    helm show values openebs/openebs --version "$chart_version" > "$tmpdir/values-cstor.yaml"
-    sed -i 's/  enabled: true *$/  enabled: false/' "$tmpdir/values-cstor.yaml" # disable everything
-    sed -i 's/  create: true *$/  create: false/' "$tmpdir/values-cstor.yaml" # disable everything
-    helm template -n '__OPENEBS_NAMESPACE__' openebs openebs/openebs --version "$chart_version" \
-        --values "$tmpdir/values-cstor.yaml" \
-        --set cstor.enabled=true \
-        | sed -e '/ namespace: default/d'\
-        > "$tmpdir/cstor.tmpl.yaml"
-
-    $ksplit_path crdsplit "$tmpdir/"
-    mv "$tmpdir/AllResources.yaml" "$dir/spec/cstor.tmpl.yaml"
-    rm -rf "$tmpdir"
-
     # get images in files
-    tmpdir="$(mktemp -d -p "$dir")"
+    mkdir -p "$tmpdir"
     grep 'image: ' "$dir/spec/openebs.tmpl.yaml" | sed 's/ *image: "*\(.*\)\/\(.*\):\([^"]*\)"*/image \2 \1\/\2:\3/' >> "$tmpdir/Manifest"
     cat "$dir/spec/openebs.tmpl.yaml" | sed -e '/ name: .*_IMAGE/,/ value: .*$/!d' | grep ' value: ' | sed 's/ *value: "*\(.*\)\/\(.*\):\([^"]*\)"*/image \2 \1\/\2:\3/' >> "$tmpdir/Manifest"
-    grep 'image: ' "$dir/spec/cstor.tmpl.yaml" | sed 's/ *image: "*\(.*\)\/\(.*\):\([^"]*\)"*/image \2 \1\/\2:\3/' >> "$tmpdir/Manifest"
-    cat "$dir/spec/cstor.tmpl.yaml" | sed -e '/ name: .*_IMAGE/,/ value: .*$/!d' | grep ' value: ' | sed 's/ *value: "*\(.*\)\/\(.*\):\([^"]*\)"*/image \2 \1\/\2:\3/' >> "$tmpdir/Manifest"
     cat "$tmpdir/Manifest" | sort | uniq >> "$dir/Manifest"
     rm -rf "$tmpdir"
 }
@@ -74,7 +58,6 @@ function get_latest_release_version() {
 }
 
 function add_as_latest() {
-    local version_major=$(echo "$chart_version" | cut -d. -f1)
     if ! sed "0,/cron-openebs-update-$version_major/d" ../../../web/src/installers/versions.js | sed '/\],/,$d' | grep -q "$chart_version" ; then
         sed -i "/cron-openebs-update-$version_major$/a\    \"$chart_version\"\," ../../../web/src/installers/versions.js
     fi
@@ -114,6 +97,8 @@ function main() {
 
     get_latest_release_version # --version=^2.0.0
 
+    local version_major=$(echo "$chart_version" | cut -d. -f1)
+
     if [ -d "../$chart_version" ]; then
         if [ "$force_flag" == "1" ]; then
             echo "forcibly updating existing version of openebs"
@@ -130,7 +115,7 @@ function main() {
     generate
     add_as_latest
 
-    echo "::set-output name=openebs_version::$chart_version"
+    echo "::set-output name=openebs_version_$version_major::$chart_version"
 }
 
 main "$@"

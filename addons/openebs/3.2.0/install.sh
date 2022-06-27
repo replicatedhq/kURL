@@ -6,7 +6,7 @@ function openebs_pre_init() {
         OPENEBS_LOCALPV_STORAGE_CLASS=openebs-localpv
     fi
 
-    export OPENEBS_APP_VERSION="__OPENEBS_APP_VERSION__"
+    export OPENEBS_APP_VERSION="3.2.0"
     export PREVIOUS_OPENEBS_VERSION="$(openebs_get_running_version)"
 
     openebs_bail_unsupported_upgrade

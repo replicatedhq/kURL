@@ -3,4 +3,4 @@ kind: StorageClass
 metadata:
   name: ${OPENEBS_LOCALPV_STORAGE_CLASS}
   annotations:
-    storageclass.kubernetes.io/is-default-class: \"true\"
+    storageclass.kubernetes.io/is-default-class: "true"
