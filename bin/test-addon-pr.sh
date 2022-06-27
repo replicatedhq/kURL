@@ -137,14 +137,16 @@ test_addon() {
     priority=-1
   fi
 
+  local ref="pr-${PR_NUMBER}-${GITHUB_SHA:0:7}-${name}-${version}-${specname}-$(date --utc +%FT%TZ)"
+
   # Run testgrid plan
   ./testgrid/tgrun/bin/tgrun queue --staging \
-    --ref "pr-${PR_NUMBER}-${GITHUB_SHA:0:7}-${name}-${version}-${specname}" \
+    --ref "$ref" \
     --spec /tmp/test-spec \
     --os-spec ./testgrid/specs/os.yaml \
     --priority "$priority"
-  echo "Submitted TestGrid Ref pr-${PR_NUMBER}-${GITHUB_SHA:0:7}-${name}-${version}-${specname}"
-  MSG="$MSG https://testgrid.kurl.sh/run/pr-${PR_NUMBER}-${GITHUB_SHA:0:7}-${name}-${version}-${specname}"
+  echo "Submitted TestGrid Ref $ref"
+  MSG="$MSG https://testgrid.kurl.sh/run/$ref"
 }
 
 MSG="Testgrid Run(s) Executing @ "
