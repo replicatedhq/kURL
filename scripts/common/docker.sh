@@ -94,12 +94,13 @@ function uninstall_docker() {
         return
     fi
 
+    logStep "Uninstalling Docker..."
+
     docker rm -f $(docker ps -a -q) || true
     # The rm -rf /var/lib/docker command below may fail with device busy error, so remove as much
     # data as possible now
     docker system prune --all --volumes --force
 
-    logStep "Uninstalling Docker..."
     case "$LSB_DIST" in
         ubuntu)
             export DEBIAN_FRONTEND=noninteractive

@@ -168,7 +168,10 @@ function containerd_migrate_from_docker() {
     elif [ -f /opt/ekco/shutdown.sh ]; then
         bash /opt/ekco/shutdown.sh
     else
-        printf "${RED}EKCO shutdown script not available. Migration to containerd may fail\n${NC}"
+        logFail "EKCO shutdown script not available. Migration to containerd may fail\n"
+        if ! confirmN ; then
+            bail "Migration to Containerd has been aborted."
+        fi
     fi
 
     local node=$(hostname | tr '[:upper:]' '[:lower:]')
