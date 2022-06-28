@@ -28,6 +28,10 @@ function package_has_changes() {
         return 0
     fi
 
+    echo "+++ HEAD OBJECT"
+    aws s3api head-object --bucket "${S3_BUCKET}" --key "${key}"
+    echo "--- HEAD OBJECT"
+
     local upstream_gitsha=
     upstream_gitsha="$(aws s3api head-object --bucket "${S3_BUCKET}" --key "${key}" | grep '"gitsha":' | sed 's/[",:]//g' | awk '{print $2}')"
 
