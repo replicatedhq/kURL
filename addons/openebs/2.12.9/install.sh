@@ -5,6 +5,9 @@ function openebs_pre_init() {
     if [ -z "$OPENEBS_LOCALPV_STORAGE_CLASS" ]; then
         OPENEBS_LOCALPV_STORAGE_CLASS=openebs-localpv
     fi
+    if [ "$OPENEBS_CSTOR" = "1" ]; then
+        bail "cstor is not supported on OpenEBS $OPENEBS_APP_VERSION."
+    fi
 
     export OPENEBS_APP_VERSION="2.12.2"
     export PREVIOUS_OPENEBS_VERSION="$(openebs_get_running_version)"
@@ -53,16 +56,6 @@ function openebs_apply_operator() {
     render_yaml_file_2 "$src/tmpl-namespace.yaml" > "$dst/namespace.yaml"
     cat "$src/openebs.tmpl.yaml" | sed "s/__OPENEBS_NAMESPACE__/$OPENEBS_NAMESPACE/" > "$dst/openebs.yaml"
 
-    if [ "$OPENEBS_CSTOR" = "1" ]; then
-        openebs_iscsi
-
-        kubectl apply -k "$dst/"
-        openebs_cspc_upgrade # upgrade the CSPC pools
-
-        cat "$src/cstor.tmpl.yaml" | sed "s/__OPENEBS_NAMESPACE__/$OPENEBS_NAMESPACE/" > "$dst/cstor.yaml"
-        insert_resources "$dst/kustomization.yaml" cstor.yaml
-    fi
-
     kubectl apply -k "$dst/"
 
     logStep "Waiting for OpenEBS operator to apply CustomResourceDefinitions"
@@ -74,7 +67,7 @@ function openebs_apply_operator() {
 
 function openebs_apply_storageclasses() {
     # allow vendor to add custom storageclasses rather than the ones built into add-on
-    if [ "$OPENEBS_CSTOR" != "1" ] && [ "$OPENEBS_LOCALPV" != "1" ]; then
+    if [ "$OPENEBS_LOCALPV" != "1" ]; then
         return
     fi
 
@@ -84,14 +77,6 @@ function openebs_apply_storageclasses() {
     mkdir -p "$dst"
 
     cp "$src/kustomization.yaml" "$dst/"
-
-    if [ "$OPENEBS_CSTOR" = "1" ]; then
-        report_addon_start "openebs-cstor" "$OPENEBS_APP_VERSION"
-
-        bail "cstor is not yet supported on OpenEBS $OPENEBS_APP_VERSION."
-
-        report_addon_success "openebs-cstor" "$OPENEBS_APP_VERSION"
-    fi
 
     if [ "$OPENEBS_LOCALPV" = "1" ]; then
         report_addon_start "openebs-localpv" "$OPENEBS_APP_VERSION"
