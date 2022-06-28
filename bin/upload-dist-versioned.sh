@@ -27,6 +27,7 @@ function package_has_changes() {
 
     if [ -z "${path}" ]; then
         # if no path then we can't calculate changes
+        echo "Path empty for package ${package}"
         return 0
     fi
 
@@ -35,10 +36,11 @@ function package_has_changes() {
 
     if [ -z "${upstream_gitsha}" ]; then
         # if package doesn't exist or have a gitsha it has changes
+        echo "Upstream gitsha empty for package ${package}"
         return 0
     fi
 
-    if git diff --quiet "${upstream_gitsha}" -- "${path}" "${VERSION_TAG}" -- "${path}" ; then
+    if ( set -x; git diff --quiet "${upstream_gitsha}" -- "${path}" "${VERSION_TAG}" -- "${path}" ) ; then
         return 1
     else
         return 0
