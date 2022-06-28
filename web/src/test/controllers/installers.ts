@@ -1052,7 +1052,7 @@ spec:
   kubernetes:
     version: 1.22.8
   openebs:
-    version: 3.2.0
+    version: 2.12.9
     isLocalPVEnabled: true
     localPVStorageClassName: default
     isCstorEnabled: false`;
