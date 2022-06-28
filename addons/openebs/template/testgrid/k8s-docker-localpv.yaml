@@ -1,6 +1,7 @@
-- installerSpec:
+- name: basic localpv
+  installerSpec:
     kubernetes:
-      version: "latest"
+      version: "1.21.x"
     weave:
       version: "latest"
     docker:
@@ -15,9 +16,10 @@
       namespace: openebs
       version: "__testver__"
       s3Override: "__testdist__"
-- installerSpec:
+- name: localpv upgrade
+  installerSpec:
     kubernetes:
-      version: "latest"
+      version: "1.21.x"
     weave:
       version: "latest"
     docker:
@@ -30,10 +32,29 @@
       isLocalPVEnabled: true
       localPVStorageClassName: default
       namespace: openebs
-      version: "1.12.0"
+      version: "2.6.0"
   upgradeSpec:
     kubernetes:
+      version: "1.21.x"
+    weave:
       version: "latest"
+    docker:
+      version: "latest"
+    minio:
+      version: "latest"
+    kotsadm:
+      version: "latest"
+    openebs:
+      isLocalPVEnabled: true
+      localPVStorageClassName: default
+      namespace: openebs
+      version: "__testver__"
+      s3Override: "__testdist__"
+- name: airgap localpv
+  airgap: true
+  installerSpec:
+    kubernetes:
+      version: "1.21.x"
     weave:
       version: "latest"
     docker:
