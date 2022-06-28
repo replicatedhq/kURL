@@ -105,15 +105,10 @@ function openebs_get_running_version() {
     fi
 }
 
+# upgrading non-cstor openebs works from 1.x
 function openebs_bail_unsupported_upgrade() {
     if [ -z "$PREVIOUS_OPENEBS_VERSION" ]; then
         return 0
-    fi
-
-    semverCompare "$PREVIOUS_OPENEBS_VERSION" "2.0.0"
-    if [ "$SEMVER_COMPARE_RESULT" = "-1" ]; then
-        logFail "Upgrades from versions prior to 2.x of OpenEBS are unsupported."
-        bail "Please first upgrade to 2.6.0."
     fi
 }
 
@@ -148,6 +143,10 @@ function openebs_migrate_pre_helm_resources() {
     kubectl -n "$OPENEBS_NAMESPACE" delete daemonset openebs-ndm 2>/dev/null || true
     kubectl -n "$OPENEBS_NAMESPACE" delete deployment openebs-provisioner 2>/dev/null || true
     kubectl -n "$OPENEBS_NAMESPACE" delete deployment openebs-snapshot-operator 2>/dev/null || true
+
+    # cleanup admission webhook
+    kubectl delete validatingWebhookConfiguration openebs-validation-webhook-cfg 2>/dev/null || true
+    kubectl -n "$OPENEBS_NAMESPACE" delete deployment openebs-admission-server 2>/dev/null || true
 }
 
 function openebs_migrate_post_helm_resources() {
