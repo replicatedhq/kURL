@@ -56,7 +56,7 @@ spec:
     bypassUpgradeWarning: true
     hostpathRequiresPrivileged: true
   openebs:
-    version: latest
+    version: 2.6.0
     namespace: openebs
     isLocalPVEnabled: true
     localPVStorageClassName: default
@@ -1041,7 +1041,42 @@ spec:
         const i = Installer.parse(yaml);
         const out = await i.validate();
 
-        expect(out).to.deep.equal({ error: { message: "Openebs add-on is not compatible with Kubernetes versions 1.22+" } });
+        expect(out).to.deep.equal({ error: { message: "Openebs version \"1.12.0\" is not compatible with Kubernetes versions 1.22+" } });
+      });
+    });
+
+    describe("newest openebs version that is once again compatible with k8s version", () => {
+      it("=> ErrorResponse", async () => {
+        const yaml = `
+spec:
+  kubernetes:
+    version: 1.22.8
+  openebs:
+    version: 2.12.9
+    isLocalPVEnabled: true
+    localPVStorageClassName: default
+    isCstorEnabled: false`;
+        const i = Installer.parse(yaml);
+        const out = await i.validate();
+
+        expect(out).to.deep.equal(undefined);
+      });
+    });
+
+    describe("openebs version that is incompatible with cstor", () => {
+      it("=> ErrorResponse", async () => {
+        const yaml = `
+spec:
+  kubernetes:
+    version: 1.21.8
+  openebs:
+    version: 2.12.9
+    isCstorEnabled: true
+    cstorStorageClassName: "abcd"`;
+        const i = Installer.parse(yaml);
+        const out = await i.validate();
+
+        expect(out).to.deep.equal({ error: { message: "Openebs version \"2.12.9\" does not support cstor in kURL" } });
       });
     });
 
