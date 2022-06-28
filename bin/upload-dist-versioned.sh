@@ -27,6 +27,7 @@ function package_has_changes() {
 
     if [ -z "${path}" ]; then
         # if no path then we can't calculate changes
+        echo "Path empty for package ${package}"
         return 0
     fi
 
@@ -35,10 +36,11 @@ function package_has_changes() {
 
     if [ -z "${upstream_gitsha}" ]; then
         # if package doesn't exist or have a gitsha it has changes
+        echo "Upstream gitsha empty for package ${package}"
         return 0
     fi
 
-    if git diff --quiet "${upstream_gitsha}" -- "${path}" "${VERSION_TAG}" -- "${path}" ; then
+    if ( set -x; git diff --quiet "${upstream_gitsha}" -- "${path}" "${VERSION_TAG}" -- "${path}" ) ; then
         return 1
     else
         return 0
@@ -52,11 +54,11 @@ function build_and_upload() {
     make "dist/${package}"
     MD5="$(openssl md5 -binary "dist/${package}" | base64)"
 
-    echo "uploading package ${package} to s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${VERSION_TAG}/"
+    echo "uploading package ${package} to s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${VERSION_TAG}/ with metadata md5=\"${MD5}\",gitsha=\"${VERSION_TAG}\""
     retry 5 aws s3 cp "dist/${package}" "s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${VERSION_TAG}/${package}" \
         --metadata-directive REPLACE --metadata md5="${MD5}",gitsha="${VERSION_TAG}" --region us-east-1
 
-    echo "copying package ${package} to s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${package}"
+    echo "copying package ${package} to s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${package} with metadata md5=\"${MD5}\",gitsha=\"${GITSHA}\""
     retry 5 aws s3api copy-object --copy-source "${S3_BUCKET}/${PACKAGE_PREFIX}/${VERSION_TAG}/${package}" --bucket "${S3_BUCKET}" --key "${PACKAGE_PREFIX}/${package}" \
         --metadata-directive REPLACE --metadata md5="${MD5}",gitsha="${GITSHA}" --region us-east-1
 
@@ -73,11 +75,11 @@ function copy_package_staging() {
     local md5=
     md5="$(aws s3api head-object --bucket "${S3_BUCKET}" --key "staging/${package}" | grep '"md5":' | sed 's/[",:]//g' | awk '{print $2}')"
 
-    echo "copying package ${package} to s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${VERSION_TAG}/"
+    echo "copying package ${package} to s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${VERSION_TAG}/ with metadata md5=\"${MD5}\",gitsha=\"${GITSHA}\""
     retry 5 aws s3api copy-object --copy-source "${S3_BUCKET}/staging/${package}" --bucket "${S3_BUCKET}" --key "${PACKAGE_PREFIX}/${VERSION_TAG}/${package}" \
         --metadata-directive REPLACE --metadata md5="${md5}",gitsha="${GITSHA}" --region us-east-1
 
-    echo "copying package ${package} to s3://${S3_BUCKET}/${PACKAGE_PREFIX}/"
+    echo "copying package ${package} to s3://${S3_BUCKET}/${PACKAGE_PREFIX}/ with metadata md5=\"${MD5}\",gitsha=\"${GITSHA}\""
     retry 5 aws s3api copy-object --copy-source "${S3_BUCKET}/staging/${package}" --bucket "${S3_BUCKET}" --key "${PACKAGE_PREFIX}/${package}" \
         --metadata-directive REPLACE --metadata md5="${md5}",gitsha="${GITSHA}" --region us-east-1
 }
@@ -88,7 +90,7 @@ function copy_package_dist() {
     local md5=
     md5="$(aws s3api head-object --bucket "${S3_BUCKET}" --key "${PACKAGE_PREFIX}/${package}" | grep '"md5":' | sed 's/[",:]//g' | awk '{print $2}')"
 
-    echo "copying package ${package} to s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${VERSION_TAG}/"
+    echo "copying package ${package} to s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${VERSION_TAG}/ with metadata md5=\"${MD5}\",gitsha=\"${GITSHA}\""
     retry 5 aws s3api copy-object --copy-source "${S3_BUCKET}/${PACKAGE_PREFIX}/${package}" --bucket "${S3_BUCKET}" --key "${PACKAGE_PREFIX}/${VERSION_TAG}/${package}" \
         --metadata-directive REPLACE --metadata md5="${md5}",gitsha="${GITSHA}" --region us-east-1
 }

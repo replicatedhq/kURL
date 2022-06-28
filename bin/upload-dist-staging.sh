@@ -24,6 +24,7 @@ function package_has_changes() {
 
     if [ -z "${path}" ]; then
         # if no path then we can't calculate changes
+        echo "Path empty for package ${package}"
         return 0
     fi
 
@@ -32,10 +33,11 @@ function package_has_changes() {
 
     if [ -z "${upstream_gitsha}" ]; then
         # if package doesn't exist or have a gitsha it has changes
+        echo "Upstream gitsha empty for package ${package}"
         return 0
     fi
 
-    if git diff --quiet "${upstream_gitsha}" -- "${path}" "${GITSHA}" -- "${path}" ; then
+    if ( set -x; git diff --quiet "${upstream_gitsha}" -- "${path}" "${GITSHA}" -- "${path}" ) ; then
         return 1
     else
         return 0
@@ -49,7 +51,7 @@ function build_and_upload() {
     make "dist/${package}"
     MD5="$(openssl md5 -binary "dist/${package}" | base64)"
 
-    echo "uploading package ${package} to ${S3_BUCKET}"
+    echo "uploading package ${package} to ${S3_BUCKET} with metadata md5=\"${MD5}\",gitsha=\"${GITSHA}\""
     retry 5 aws s3 cp "dist/${package}" "s3://${S3_BUCKET}/staging/${package}" \
         --metadata-directive REPLACE --metadata md5="${MD5}",gitsha="${GITSHA}" --region us-east-1
 
