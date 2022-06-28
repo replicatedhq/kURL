@@ -14,6 +14,7 @@ function require() {
 
 require AWS_ACCESS_KEY_ID "${AWS_ACCESS_KEY_ID}"
 require AWS_SECRET_ACCESS_KEY "${AWS_SECRET_ACCESS_KEY}"
+require AWS_REGION "${AWS_REGION}"
 require S3_BUCKET "${S3_BUCKET}"
 require VERSION_TAG "${VERSION_TAG}"
 
@@ -56,11 +57,11 @@ function build_and_upload() {
 
     echo "uploading package ${package} to s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${VERSION_TAG}/ with metadata md5=\"${MD5}\",gitsha=\"${VERSION_TAG}\""
     retry 5 aws s3 cp "dist/${package}" "s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${VERSION_TAG}/${package}" \
-        --metadata-directive REPLACE --metadata md5="${MD5}",gitsha="${VERSION_TAG}" --region us-east-1
+        --metadata-directive REPLACE --metadata md5="${MD5}",gitsha="${VERSION_TAG}"
 
     echo "copying package ${package} to s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${package} with metadata md5=\"${MD5}\",gitsha=\"${GITSHA}\""
     retry 5 aws s3api copy-object --copy-source "${S3_BUCKET}/${PACKAGE_PREFIX}/${VERSION_TAG}/${package}" --bucket "${S3_BUCKET}" --key "${PACKAGE_PREFIX}/${package}" \
-        --metadata-directive REPLACE --metadata md5="${MD5}",gitsha="${GITSHA}" --region us-east-1
+        --metadata-directive REPLACE --metadata md5="${MD5}",gitsha="${GITSHA}"
 
     echo "cleaning up after uploading ${package}"
     make clean
@@ -77,11 +78,11 @@ function copy_package_staging() {
 
     echo "copying package ${package} to s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${VERSION_TAG}/ with metadata md5=\"${MD5}\",gitsha=\"${GITSHA}\""
     retry 5 aws s3api copy-object --copy-source "${S3_BUCKET}/staging/${package}" --bucket "${S3_BUCKET}" --key "${PACKAGE_PREFIX}/${VERSION_TAG}/${package}" \
-        --metadata-directive REPLACE --metadata md5="${md5}",gitsha="${GITSHA}" --region us-east-1
+        --metadata-directive REPLACE --metadata md5="${md5}",gitsha="${GITSHA}"
 
     echo "copying package ${package} to s3://${S3_BUCKET}/${PACKAGE_PREFIX}/ with metadata md5=\"${MD5}\",gitsha=\"${GITSHA}\""
     retry 5 aws s3api copy-object --copy-source "${S3_BUCKET}/staging/${package}" --bucket "${S3_BUCKET}" --key "${PACKAGE_PREFIX}/${package}" \
-        --metadata-directive REPLACE --metadata md5="${md5}",gitsha="${GITSHA}" --region us-east-1
+        --metadata-directive REPLACE --metadata md5="${md5}",gitsha="${GITSHA}"
 }
 
 function copy_package_dist() {
@@ -92,7 +93,7 @@ function copy_package_dist() {
 
     echo "copying package ${package} to s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${VERSION_TAG}/ with metadata md5=\"${MD5}\",gitsha=\"${GITSHA}\""
     retry 5 aws s3api copy-object --copy-source "${S3_BUCKET}/${PACKAGE_PREFIX}/${package}" --bucket "${S3_BUCKET}" --key "${PACKAGE_PREFIX}/${VERSION_TAG}/${package}" \
-        --metadata-directive REPLACE --metadata md5="${md5}",gitsha="${GITSHA}" --region us-east-1
+        --metadata-directive REPLACE --metadata md5="${md5}",gitsha="${GITSHA}"
 }
 
 function deploy() {

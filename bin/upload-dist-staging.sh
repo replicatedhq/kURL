@@ -14,6 +14,7 @@ function require() {
 
 require AWS_ACCESS_KEY_ID "${AWS_ACCESS_KEY_ID}"
 require AWS_SECRET_ACCESS_KEY "${AWS_SECRET_ACCESS_KEY}"
+require AWS_REGION "${AWS_REGION}"
 require S3_BUCKET "${S3_BUCKET}"
 
 GITSHA="$(git rev-parse HEAD)"
@@ -27,10 +28,6 @@ function package_has_changes() {
         echo "Path empty for package ${package}"
         return 0
     fi
-
-    echo "+++ HEAD OBJECT"
-    aws s3api head-object --bucket "${S3_BUCKET}" --key "${key}"
-    echo "--- HEAD OBJECT"
 
     local upstream_gitsha=
     upstream_gitsha="$(aws s3api head-object --bucket "${S3_BUCKET}" --key "${key}" | grep '"gitsha":' | sed 's/[",:]//g' | awk '{print $2}')"
@@ -57,7 +54,7 @@ function build_and_upload() {
 
     echo "uploading package ${package} to ${S3_BUCKET} with metadata md5=\"${MD5}\",gitsha=\"${GITSHA}\""
     retry 5 aws s3 cp "dist/${package}" "s3://${S3_BUCKET}/staging/${package}" \
-        --metadata-directive REPLACE --metadata md5="${MD5}",gitsha="${GITSHA}" --region us-east-1
+        --metadata-directive REPLACE --metadata md5="${MD5}",gitsha="${GITSHA}"
 
     echo "cleaning up after uploading ${package}"
     make clean
