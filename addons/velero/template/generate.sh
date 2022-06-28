@@ -11,7 +11,7 @@ function get_latest_release_version() {
         grep -i "^location" | \
         grep -Eo "1\.[0-9]+\.[0-9]+")
 
-    declare -g "$VAR_NAME=$version"
+    export "$VAR_NAME=$version"
 }
 
 function generate() {
@@ -45,13 +45,20 @@ function main() {
     get_latest_release_version AZURE_PLUGIN_VERSION https://github.com/vmware-tanzu/velero-plugin-for-microsoft-azure/releases/latest 
     get_latest_release_version GCP_PLUGIN_VERSION https://github.com/vmware-tanzu/velero-plugin-for-gcp/releases/latest 
 
+    echo "Found velero version ${VELERO_VERSION}"
+    echo "Found plugins AWS ${AWS_PLUGIN_VERSION} AZURE ${AZURE_PLUGIN_VERSION} GCP ${GCP_PLUGIN_VERSION}"
+
+    local IS_NEW_VERSION=1
     if [ -d "../${VELERO_VERSION}" ]; then
-        exit 0
+        rm -rf "../${VELERO_VERSION}"
+        IS_NEW_VERSION=0
     fi
 
     generate
 
-    add_as_latest
+    if [ "$IS_NEW_VERSION" == "1" ] ; then
+        add_as_latest
+    fi
 
     echo "::set-output name=velero_version::$VELERO_VERSION"
 }
