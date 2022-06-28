@@ -51,7 +51,7 @@ function build_and_upload() {
     make "dist/${package}"
     MD5="$(openssl md5 -binary "dist/${package}" | base64)"
 
-    echo "uploading package ${package} to ${S3_BUCKET}"
+    echo "uploading package ${package} to ${S3_BUCKET} with metadata md5=\"${MD5}\",gitsha=\"${GITSHA}\""
     retry 5 aws s3 cp "dist/${package}" "s3://${S3_BUCKET}/staging/${package}" \
         --metadata-directive REPLACE --metadata md5="${MD5}",gitsha="${GITSHA}" --region us-east-1
 
