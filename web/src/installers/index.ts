@@ -1294,7 +1294,7 @@ export class Installer {
 
     if (this.spec.kubernetes) {
       if (!(await Installer.hasVersion("kubernetes", this.spec.kubernetes.version, installerVersion)) && !this.hasS3Override("kubernetes")) {
-        return {error: {message: `Kubernetes version ${_.escape(this.spec.kubernetes.version)} is not supported${installerVersion ? " for installer version " + _.escape(installerVersion) : ""}`}};
+        return {error: {message: `Kubernetes version "${_.escape(this.spec.kubernetes.version)}" is not supported${installerVersion ? " for installer version " + _.escape(installerVersion) : ""}`}};
       }
       if (this.spec.kubernetes.serviceCidrRange && !Installer.isValidCidrRange(this.spec.kubernetes.serviceCidrRange)) {
         return {error: {message: `Kubernetes serviceCidrRange "${_.escape(this.spec.kubernetes.serviceCidrRange)}" is invalid`}};
