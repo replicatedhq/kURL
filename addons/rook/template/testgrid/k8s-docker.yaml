@@ -34,6 +34,37 @@
     kotsadm:
       version: "latest"
     rook:
+      version: "1.4.3"
+      isBlockStorageEnabled: true
+  upgradeSpec:
+    kubernetes:
+      version: "latest"
+    weave:
+      version: "latest"
+    docker:
+      version: "latest"
+    minio:
+      version: "latest"
+    kotsadm:
+      version: "latest"
+    rook:
+      version: "__testver__"
+      s3Override: "__testdist__"
+      isBlockStorageEnabled: true
+      bypassUpgradeWarning: true
+- name: Upgrade from 1.5.10
+  installerSpec:
+    kubernetes:
+      version: "latest"
+    weave:
+      version: "latest"
+    docker:
+      version: "latest"
+    minio:
+      version: "latest"
+    kotsadm:
+      version: "latest"
+    rook:
       version: "1.5.10"
       isBlockStorageEnabled: true
   upgradeSpec:
