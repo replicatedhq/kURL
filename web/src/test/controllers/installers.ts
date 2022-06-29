@@ -731,7 +731,7 @@ spec:
     version: "0.15.3"
 `;
         const badK8sOut = await Installer.parse(badK8s).validate();
-        expect(badK8sOut).to.deep.equal({ error: { message: "Kubernetes version 0.15.3 is not supported" } });
+        expect(badK8sOut).to.deep.equal({ error: { message: `Kubernetes version "0.15.3" is not supported` } });
       });
     });
 
