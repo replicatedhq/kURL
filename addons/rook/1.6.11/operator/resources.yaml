@@ -15,6 +15,7 @@ spec:
     plural: cephblockpools
     singular: cephblockpool
   scope: Namespaced
+  preserveUnknownFields: false
   versions:
     - name: v1
       schema:
@@ -344,6 +345,7 @@ spec:
     plural: cephclients
     singular: cephclient
   scope: Namespaced
+  preserveUnknownFields: false
   versions:
     - name: v1
       schema:
@@ -416,6 +418,7 @@ spec:
     plural: cephclusters
     singular: cephcluster
   scope: Namespaced
+  preserveUnknownFields: false
   versions:
     - additionalPrinterColumns:
         - description: Directory used on the K8s nodes
@@ -3769,6 +3772,7 @@ spec:
     plural: cephfilesystemmirrors
     singular: cephfilesystemmirror
   scope: Namespaced
+  preserveUnknownFields: false
   versions:
     - name: v1
       schema:
@@ -4399,6 +4403,7 @@ spec:
     plural: cephfilesystems
     singular: cephfilesystem
   scope: Namespaced
+  preserveUnknownFields: false
   versions:
     - additionalPrinterColumns:
         - description: Number of desired active MDS daemons
@@ -5357,6 +5362,7 @@ spec:
       - nfs
     singular: cephnfs
   scope: Namespaced
+  preserveUnknownFields: false
   versions:
     - name: v1
       schema:
@@ -6020,6 +6026,7 @@ spec:
     plural: cephobjectrealms
     singular: cephobjectrealm
   scope: Namespaced
+  preserveUnknownFields: false
   versions:
     - name: v1
       schema:
@@ -6087,6 +6094,7 @@ spec:
     plural: cephobjectstores
     singular: cephobjectstore
   scope: Namespaced
+  preserveUnknownFields: false
   versions:
     - name: v1
       schema:
@@ -7244,6 +7252,7 @@ spec:
       - objectuser
     singular: cephobjectstoreuser
   scope: Namespaced
+  preserveUnknownFields: false
   versions:
     - name: v1
       schema:
@@ -7312,6 +7321,7 @@ spec:
     plural: cephobjectzonegroups
     singular: cephobjectzonegroup
   scope: Namespaced
+  preserveUnknownFields: false
   versions:
     - name: v1
       schema:
@@ -7374,6 +7384,7 @@ spec:
     plural: cephobjectzones
     singular: cephobjectzone
   scope: Namespaced
+  preserveUnknownFields: false
   versions:
     - name: v1
       schema:
@@ -7712,6 +7723,7 @@ spec:
     plural: cephrbdmirrors
     singular: cephrbdmirror
   scope: Namespaced
+  preserveUnknownFields: false
   versions:
     - name: v1
       schema:
@@ -8364,6 +8376,7 @@ spec:
       - obc
       - obcs
   scope: Namespaced
+  preserveUnknownFields: false
   versions:
     - name: v1alpha1
       served: true
@@ -8411,6 +8424,7 @@ spec:
       - ob
       - obs
   scope: Cluster
+  preserveUnknownFields: false
   versions:
     - name: v1alpha1
       served: true
@@ -8484,6 +8498,7 @@ spec:
       - vrc
     singular: volumereplicationclass
   scope: Cluster
+  preserveUnknownFields: false
   versions:
     - additionalPrinterColumns:
         - jsonPath: .spec.provisioner
@@ -8550,6 +8565,7 @@ spec:
       - vr
     singular: volumereplication
   scope: Namespaced
+  preserveUnknownFields: false
   versions:
     - additionalPrinterColumns:
         - jsonPath: .metadata.creationTimestamp
@@ -8708,6 +8724,7 @@ spec:
       - rv
     singular: volume
   scope: Namespaced
+  preserveUnknownFields: false
   versions:
     - name: v1alpha2
       schema:
