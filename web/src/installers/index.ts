@@ -888,7 +888,7 @@ export class Installer {
       disableS3: true,
     };
     i.spec.openebs = {
-      version: this.toDotXVersion(installerVersions.openebs[0]),
+      version: this.toDotXVersion(this.greatest(installerVersions.openebs)),
       isLocalPVEnabled: true,
       localPVStorageClassName: "default",
       isCstorEnabled: false,
@@ -1566,6 +1566,19 @@ export class Installer {
 
       if (!latest  || semver.gt(version, latest)) {
         ret[minor] = version;
+      }
+    });
+
+    return ret;
+  }
+
+  public static greatest(versions: string[]): string {
+    let ret: string = "0.0.0";
+    versions.forEach((version: string) => {
+      const minor = semver.minor(version);
+
+      if (!ret || semver.gt(version, ret)) {
+        ret = version;
       }
     });
 
