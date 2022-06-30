@@ -118,6 +118,7 @@ func createSecret(singleTest types.SingleRun, nodeName string, tempDir string) e
 		runcmdB64 = base64.StdEncoding.EncodeToString([]byte(primarynodecmd))
 	}
 	commonShB64 := base64.StdEncoding.EncodeToString([]byte(commonSh))
+	mainScriptB64 := base64.StdEncoding.EncodeToString([]byte(mainscript))
 	varsSh := fmt.Sprintf(`
 export TESTGRID_APIENDPOINT='%s'
 export TEST_ID='%s'
@@ -160,10 +161,11 @@ runcmd:
   - [ bash, -c, 'echo %s | base64 -d > /opt/kurl-testgrid/vars.sh' ]
   - [ bash, -c, 'echo %s | base64 -d > /opt/kurl-testgrid/common.sh' ]
   - [ bash, -c, 'echo %s | base64 -d > /opt/kurl-testgrid/runcmd.sh' ]
+  - [ bash, -c, 'echo %s | base64 -d > /opt/kurl-testgrid/mainscript.sh' ]
   - [ bash, -c, '[ %d -eq 0 ] || echo %s | base64 -d > /opt/kurl-testgrid/postinstall.sh' ]
   - [ bash, -c, '[ %d -eq 0 ] || echo %s | base64 -d > /opt/kurl-testgrid/postupgrade.sh' ]
   - [ bash, -c, 'sudo bash /opt/kurl-testgrid/preinit.sh' ]
-  - [ bash, -c, 'sudo bash -c ". /opt/kurl-testgrid/vars.sh && bash /opt/kurl-testgrid/runcmd.sh"' ]
+  - [ bash, -c, 'sudo bash -c ". /opt/kurl-testgrid/vars.sh && bash /opt/kurl-testgrid/mainscript.sh"' ]
   - [ bash, -c, 'sleep 10 && sudo poweroff' ]
 
 power_state:
@@ -174,6 +176,7 @@ power_state:
 		varsB64,
 		commonShB64,
 		runcmdB64,
+		mainScriptB64,
 		len(singleTest.PostInstallScript),
 		postInstallB64,
 		len(singleTest.PostUpgradeScript),

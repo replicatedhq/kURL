@@ -15,3 +15,6 @@ var secondarynodecmd string
 
 //go:embed embed/primarynodecmd.sh
 var primarynodecmd string
+
+//go:embed embed/mainscript.sh
+var mainscript string
