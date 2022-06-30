@@ -1,4 +1,5 @@
-- installerSpec:
+- name: basic containerd and antrea
+  installerSpec:
     kubernetes:
       version: "latest"
     antrea:
