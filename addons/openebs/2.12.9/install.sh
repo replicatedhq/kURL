@@ -32,6 +32,9 @@ function openebs() {
     openebs_migrate_post_helm_resources
 
     openebs_apply_storageclasses
+
+    # if there is a validatingWebhookConfiguration, wait for the service to be ready
+    openebs_await_admissionserver
 }
 
 function openebs_apply_crds() {
@@ -93,9 +96,11 @@ function openebs_apply_storageclasses() {
     fi
 
     kubectl apply -k "$dst/"
+}
 
+function openebs_await_admissionserver() {
     sleep 1
-    if kubernetes_resource_exists openebs service admission-server-svc; then
+    if kubectl get validatingWebhookConfiguration openebs-validation-webhook-cfg &>/dev/null; then
         logStep "Waiting for OpenEBS admission controller service to be ready"
         spinner_until 120 kubernetes_service_healthy "$OPENEBS_NAMESPACE" admission-server-svc
         logSuccess "OpenEBS admission controller service is ready"
