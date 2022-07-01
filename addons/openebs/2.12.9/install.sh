@@ -104,6 +104,9 @@ function openebs_await_admissionserver() {
         logStep "Waiting for OpenEBS admission controller service to be ready"
         spinner_until 120 kubernetes_service_healthy "$OPENEBS_NAMESPACE" admission-server-svc
         logSuccess "OpenEBS admission controller service is ready"
+    else
+        echo "for debugging purposes"
+        kubectl get validatingWebhookConfiguration
     fi
 }
 
