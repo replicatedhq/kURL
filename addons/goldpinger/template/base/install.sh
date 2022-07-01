@@ -13,17 +13,20 @@ function goldpinger() {
 
     kubectl apply -k "$dst/"
 
-    echo "Waiting for Goldpinger  Daemonset to be ready"
+    logStep "Waiting for Goldpinger Daemonset to be ready"
     spinner_until 180 goldpinger_daemonset
-
+    logSuccess "Goldpinger is ready and monitoring node network health"
 }
 
 function goldpinger_daemonset() {
     local desired=$(kubectl get daemonsets -n kurl goldpinger --no-headers | tr -s ' ' | cut -d ' ' -f2)
     local ready=$(kubectl get daemonsets -n kurl goldpinger --no-headers | tr -s ' ' | cut -d ' ' -f4)
+    local uptodate=$(kubectl get daemonsets -n kurl goldpinger --no-headers | tr -s ' ' | cut -d ' ' -f5)
 
     if [ "$desired" = "$ready" ] ; then
-        return 0
+        if [ "$desired" = "$uptodate" ] ; then
+            return 0
+        fi
     fi
     return 1
 }
