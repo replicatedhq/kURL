@@ -1,0 +1,136 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: volumes.rook.io
+spec:
+  preserveUnknownFields: false
+
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: volumereplicationclasses.replication.storage.openshift.io
+spec:
+  preserveUnknownFields: false
+
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: volumereplications.replication.storage.openshift.io
+spec:
+  preserveUnknownFields: false
+
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: objectbucketclaims.objectbucket.io
+spec:
+  preserveUnknownFields: false
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: objectbuckets.objectbucket.io
+spec:
+  preserveUnknownFields: false
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: cephblockpools.ceph.rook.io
+spec:
+  preserveUnknownFields: false
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: cephclients.ceph.rook.io
+spec:
+  preserveUnknownFields: false
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: cephclusters.ceph.rook.io
+spec:
+  preserveUnknownFields: false
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: cephfilesystemmirrors.ceph.rook.io
+spec:
+  preserveUnknownFields: false
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: cephfilesystems.ceph.rook.io
+spec:
+  preserveUnknownFields: false
+
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: cephobjectrealms.ceph.rook.io
+spec:
+  preserveUnknownFields: false
+
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: cephobjectstores.ceph.rook.io
+spec:
+  preserveUnknownFields: false
+
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: cephobjectstoreusers.ceph.rook.io
+spec:
+  preserveUnknownFields: false
+
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: cephobjectzonegroups.ceph.rook.io
+spec:
+  preserveUnknownFields: false
+
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: cephobjectzones.ceph.rook.io
+spec:
+  preserveUnknownFields: false
+
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: cephrbdmirrors.ceph.rook.io
+spec:
+  preserveUnknownFields: false
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: objectbucketclaims.objectbucket.io
+spec:
+  preserveUnknownFields: false
+
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: cephnfses.ceph.rook.io
+spec:
+  preserveUnknownFields: false

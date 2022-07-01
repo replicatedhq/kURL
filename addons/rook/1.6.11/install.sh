@@ -185,8 +185,11 @@ function rook_cluster_deploy() {
 function rook_cluster_deploy_upgrade() {
     local ceph_image="ceph/ceph:v15.2.13"
     local ceph_version=
+    if ! spinner_until 120 rook_ceph_healthy ; then
+        kubectl -n rook-ceph exec deploy/rook-ceph-tools -- ceph status
+        bail "Refusing to start to update cluster rook-ceph, Ceph is not healthy"
+    fi
     ceph_version="$(echo "${ceph_image}" | awk 'BEGIN { FS=":v" } ; {print $2}')"
-
     if rook_ceph_version_deployed "${ceph_version}" ; then
         echo "Cluster rook-ceph up to date"
         rook_patch_insecure_clients
@@ -194,7 +197,6 @@ function rook_cluster_deploy_upgrade() {
     fi
 
     echo "Awaiting rook-ceph operator"
-
     if ! spinner_until 600 rook_version_deployed ; then
         local rook_versions=
         rook_versions="$(kubectl -n rook-ceph get deployment -l rook_cluster=rook-ceph -o jsonpath='{range .items[*]}{"rook-version="}{.metadata.labels.rook-version}{"\n"}{end}' | sort | uniq)"
@@ -204,12 +206,14 @@ function rook_cluster_deploy_upgrade() {
         fi
     fi
 
-    logStep "Upgrading rook-ceph cluster"
-
-    if ! rook_ceph_healthy ; then
+    echo "Awaiting rook-ceph health"
+    # CRD changes makes rook to restart and it takes time to reconcile
+    if ! spinner_until 600 rook_ceph_healthy ; then
+        kubectl -n rook-ceph exec deploy/rook-ceph-tools -- ceph status
         bail "Refusing to update cluster rook-ceph, Ceph is not healthy"
     fi
 
+    logStep "Upgrading rook-ceph cluster"
     kubectl -n rook-ceph patch cephcluster/rook-ceph --type='json' -p='[{"op": "replace", "path": "/spec/cephVersion/image", "value":"'"${ceph_image}"'"}]'
 
     if ! spinner_until 600 rook_ceph_version_deployed "${ceph_version}" ; then

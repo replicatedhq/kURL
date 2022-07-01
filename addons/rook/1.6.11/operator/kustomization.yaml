@@ -13,3 +13,4 @@ resources:
 
 patchesStrategicMerge:
 - patches/deployment-tolerations.yaml
+- patches/crds.yaml
