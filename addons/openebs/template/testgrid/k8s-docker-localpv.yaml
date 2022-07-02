@@ -79,7 +79,7 @@
     export OBJECT_STORE_SECRET_KEY=$(kubectl -n minio get secret minio-credentials -ojsonpath='{ .data.MINIO_SECRET_KEY }' | base64 --decode)
     OBJECT_STORE_CLUSTER_IP=$(kubectl -n minio get service minio | tail -n1 | awk '{ print $3}')
     
-    echo "Printing postinstallscript env for testing    
+    echo "Printing postinstallscript env for testing"
     env
   
     object_store_create_bucket rwtest
