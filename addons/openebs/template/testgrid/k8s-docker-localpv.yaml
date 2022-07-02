@@ -16,6 +16,81 @@
       namespace: openebs
       version: "__testver__"
       s3Override: "__testdist__"
+  postInstallScript: |
+    
+    function object_store_create_bucket() {
+      local bucket=$1
+      local acl="x-amz-acl:private"
+      local d=$(LC_TIME="en_US.UTF-8" TZ="UTC" date +"%a, %d %b %Y %T %z")
+      local string="PUT\n\n\n${d}\n${acl}\n/$bucket"
+      local sig=$(echo -en "${string}" | openssl sha1 -hmac "${OBJECT_STORE_SECRET_KEY}" -binary | base64)
+
+      curl -fsSL -X PUT  \
+        --globoff \
+        --noproxy "*" \
+        -H "Host: $OBJECT_STORE_CLUSTER_IP" \
+        -H "Date: $d" \
+        -H "$acl" \
+        -H "Authorization: AWS $OBJECT_STORE_ACCESS_KEY:$sig" \
+        "http://$MINIO_ADDR/$bucket"
+    }
+    
+    function object_store_write_object() {
+      local bucket=$1
+      local file=$2
+      local resource="/${bucket}/${file}"
+      local contentType="application/x-compressed-tar"
+      local d=$(LC_TIME="en_US.UTF-8" TZ="UTC" date +"%a, %d %b %Y %T %z")
+      local string="PUT\n\n${contentType}\n${dateValue}\n${resource}"
+      local sig=$(echo -en "${string}" | openssl sha1 -hmac "${OBJECT_STORE_SECRET_KEY}" -binary | base64)
+    
+      curl -vv -X PUT -T "${file}" \
+        --globoff \
+        --noproxy "*" \
+        -H "Host: $OBJECT_STORE_CLUSTER_IP" \
+        -H "Date: $d" \
+        -H "Content-Type: ${contentType}" \
+        -H "Authorization: AWS $OBJECT_STORE_ACCESS_KEY:$sig" \
+        "http://$MINIO_ADDR/$resource"
+    }
+    
+    function object_store_get_object() {
+      local bucket=$1
+      local file=$2
+      local resource="/${bucket}/${file}"
+      local contentType="application/x-compressed-tar"
+      local d=$(LC_TIME="en_US.UTF-8" TZ="UTC" date +"%a, %d %b %Y %T %z")
+      local string="GET\n\n${contentType}\n${dateValue}\n${resource}"
+      local sig=$(echo -en "${string}" | openssl sha1 -hmac "${OBJECT_STORE_SECRET_KEY}" -binary | base64)
+    
+      curl -vv -X GET -o "${file}" \
+        --globoff \
+        --noproxy "*" \
+        -H "Host: $OBJECT_STORE_CLUSTER_IP" \
+        -H "Date: $d" \
+        -H "Content-Type: ${contentType}" \
+        -H "Authorization: AWS $OBJECT_STORE_ACCESS_KEY:$sig" \
+        "http://$MINIO_ADDR/$resource"
+    }
+    
+    # get minio access info
+    export MINIO_ADDR=$(kubectl get endpoints -n minio minio | grep -v NAME | awk '{ print $2 }')
+    export OBJECT_STORE_ACCESS_KEY=$(kubectl -n ${MINIO_NAMESPACE} get secret minio-credentials -ojsonpath='{ .data.MINIO_ACCESS_KEY }' | base64 --decode)
+    export OBJECT_STORE_SECRET_KEY=$(kubectl -n ${MINIO_NAMESPACE} get secret minio-credentials -ojsonpath='{ .data.MINIO_SECRET_KEY }' | base64 --decode)
+    OBJECT_STORE_CLUSTER_IP=$(kubectl -n ${MINIO_NAMESPACE} get service minio | tail -n1 | awk '{ print $3}')
+    
+    echo "Printing postinstallscript env for testing    
+    env
+  
+    object_store_create_bucket rwtest
+    
+    echo "Hello, World!" > testfile.txt
+    object_store_write_object rwtest testfile.txt
+    mv testfile.txt testfile.bak
+    object_store_read_object rwtest testfile.txt
+    diff testfile.txt testfile.bak
+    
+
 - name: localpv upgrade from 2.6.0
   installerSpec:
     kubernetes:
