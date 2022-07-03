@@ -87,7 +87,7 @@
     echo "Hello, World!" > testfile.txt
     object_store_write_object rwtest testfile.txt
     mv testfile.txt testfile.bak
-    object_store_read_object rwtest testfile.txt
+    object_store_get_object rwtest testfile.txt
     diff testfile.txt testfile.bak
     
 
