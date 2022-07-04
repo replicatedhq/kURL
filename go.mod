@@ -6,7 +6,7 @@ require (
 	github.com/DataDog/datadog-go v4.8.3+incompatible
 	github.com/Masterminds/sprig v2.22.0+incompatible
 	github.com/apparentlymart/go-cidr v1.1.0
-	github.com/aws/aws-sdk-go v1.44.19
+	github.com/aws/aws-sdk-go v1.44.47
 	github.com/briandowns/spinner v1.18.0
 	github.com/bugsnag/bugsnag-go/v2 v2.1.2
 	github.com/chzyer/readline v0.0.0-20180603132655-2972be24d48e
@@ -15,6 +15,7 @@ require (
 	github.com/fatih/color v1.13.0
 	github.com/foomo/htpasswd v0.0.0-20200116085101-e3a90e78da9c
 	github.com/golang/mock v1.6.0
+	github.com/gorilla/handlers v1.5.1
 	github.com/gorilla/mux v1.8.0
 	github.com/itchyny/gojq v0.12.6
 	github.com/lib/pq v1.10.6
@@ -40,6 +41,7 @@ require (
 	gopkg.in/yaml.v2 v2.4.0
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
 	k8s.io/api v0.23.5
+	k8s.io/apiextensions-apiserver v0.23.5
 	k8s.io/apimachinery v0.23.5
 	k8s.io/client-go v12.0.0+incompatible
 	k8s.io/code-generator v0.22.4
@@ -115,7 +117,6 @@ require (
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/googleapis/gax-go/v2 v2.1.1 // indirect
 	github.com/googleapis/gnostic v0.5.5 // indirect
-	github.com/gorilla/handlers v1.5.1 // indirect
 	github.com/gorilla/websocket v1.4.2 // indirect
 	github.com/gregjones/httpcache v0.0.0-20181110185634-c63ab54fda8f // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
@@ -218,7 +219,6 @@ require (
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/ini.v1 v1.66.2 // indirect
 	gopkg.in/square/go-jose.v2 v2.5.1 // indirect
-	k8s.io/apiextensions-apiserver v0.23.5 // indirect
 	k8s.io/apiserver v0.23.0 // indirect
 	k8s.io/cli-runtime v0.23.1 // indirect
 	k8s.io/component-base v0.23.0 // indirect
