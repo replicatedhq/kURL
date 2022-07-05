@@ -21,7 +21,7 @@ require (
 	github.com/mattn/go-isatty v0.0.14
 	github.com/minio/minio-go v6.0.14+incompatible
 	github.com/onsi/gomega v1.17.0
-	github.com/pelletier/go-toml v1.9.4
+	github.com/pelletier/go-toml v1.9.5
 	github.com/pkg/errors v0.9.1
 	github.com/replicatedhq/pvmigrate v0.4.4
 	github.com/replicatedhq/troubleshoot v0.32.0
