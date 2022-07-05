@@ -126,7 +126,7 @@ func TestNewHostPreflightCmd(t *testing.T) {
 				Return(mockPreflightRunner).
 				Times(1)
 
-			cmd := NewHostPreflightCmd(mockCLI)
+			cmd := newHostPreflightCmd(mockCLI)
 
 			bOut, bErr := bytes.NewBufferString(""), bytes.NewBufferString("")
 			cmd.SetOut(bOut)

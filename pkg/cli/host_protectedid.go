@@ -7,7 +7,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func NewHostProtectedidCmd(cli CLI) *cobra.Command {
+func newHostProtectedidCmd(cli CLI) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "protectedid",
 		Short: "Prints the kURL host protected machine id",

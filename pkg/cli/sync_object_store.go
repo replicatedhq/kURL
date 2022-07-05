@@ -9,7 +9,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func NewSyncObjectStoreCmd(cli CLI) *cobra.Command {
+func newSyncObjectStoreCmd(cli CLI) *cobra.Command {
 	var srcHost string
 	var srcAccessKeyID string
 	var srcAccessKeySecret string
