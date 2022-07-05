@@ -39,11 +39,6 @@ spec:
         ports:
         - name: server
           containerPort: 3001
-        resources:
-          requests:
-            cpu: 100m
-          limits:
-            cpu: 2
         volumeMounts:
         - name: images
           mountPath: "/images"
