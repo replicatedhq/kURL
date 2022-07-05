@@ -7,6 +7,7 @@ import (
 //go:embed assets/host-preflights.yaml
 var builtin string
 
+// Builtin returns the default set of kURL host preflights
 func Builtin() string {
 	return builtin
 }

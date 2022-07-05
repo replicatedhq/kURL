@@ -30,9 +30,9 @@ const hostPreflightCmdExample = `
   $ kubectl get installer 6abe39c -oyaml | kurl host preflight -`
 
 const (
-	PreflightsWarningCode       = 3
-	PreflightsIgnoreWarningCode = 2
-	PreflightsErrorCode         = 1
+	preflightsWarningCode       = 3
+	preflightsIgnoreWarningCode = 2
+	preflightsErrorCode         = 1
 )
 
 func newHostPreflightCmd(cli CLI) *cobra.Command {
@@ -220,12 +220,12 @@ func newHostPreflightCmd(cli CLI) *cobra.Command {
 			if v.GetBool("use-exit-codes") {
 				switch {
 				case preflightIsFail(results):
-					os.Exit(PreflightsErrorCode)
+					os.Exit(preflightsErrorCode)
 				case preflightIsWarn(results):
 					if v.GetBool("ignore-warnings") {
-						os.Exit(PreflightsIgnoreWarningCode)
+						os.Exit(preflightsIgnoreWarningCode)
 					} else {
-						os.Exit(PreflightsWarningCode)
+						os.Exit(preflightsWarningCode)
 					}
 				}
 				return nil

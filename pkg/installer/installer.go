@@ -11,6 +11,7 @@ func init() {
 	kurlclientsetscheme.AddToScheme(scheme.Scheme)
 }
 
+// DecodeSpec decodes kURL installer spec yaml files
 func DecodeSpec(data []byte) (*clusterv1beta1.Installer, error) {
 	decode := scheme.Codecs.UniversalDeserializer().Decode
 	obj, gvk, err := decode(data, nil, nil)

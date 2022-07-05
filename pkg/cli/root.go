@@ -6,6 +6,7 @@ import (
 
 const rootCmdLong = ``
 
+// NewKurlCmd creates a CLI for the kURL custom Kubernetes distro creator
 func NewKurlCmd(cli CLI) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "kurl",
