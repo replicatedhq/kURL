@@ -40,15 +40,15 @@ require (
 	golang.org/x/net v0.0.0-20220225172249-27dd8689420f
 	gopkg.in/yaml.v2 v2.4.0
 	gopkg.in/yaml.v3 v3.0.1
-	k8s.io/api v0.23.5
-	k8s.io/apiextensions-apiserver v0.23.5
-	k8s.io/apimachinery v0.23.5
+	k8s.io/api v0.24.0
+	k8s.io/apiextensions-apiserver v0.24.0
+	k8s.io/apimachinery v0.24.0
 	k8s.io/client-go v12.0.0+incompatible
 	k8s.io/code-generator v0.22.4
 	kubevirt.io/api v0.49.0
 	kubevirt.io/client-go v0.49.0
 	sigs.k8s.io/controller-runtime v0.11.2
-	sigs.k8s.io/controller-tools v0.8.0
+	sigs.k8s.io/controller-tools v0.9.2
 )
 
 require (
@@ -208,7 +208,7 @@ require (
 	golang.org/x/term v0.0.0-20210927222741-03fcf44c2211 // indirect
 	golang.org/x/text v0.3.7 // indirect
 	golang.org/x/time v0.0.0-20210723032227-1f47c861a9ac // indirect
-	golang.org/x/tools v0.1.6-0.20210820212750-d4cc65f0b2ff // indirect
+	golang.org/x/tools v0.1.10-0.20220218145154-897bd77cd717 // indirect
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
 	gomodules.xyz/jsonpatch/v2 v2.2.0 // indirect
 	google.golang.org/api v0.63.0 // indirect
@@ -222,9 +222,9 @@ require (
 	k8s.io/apiserver v0.23.0 // indirect
 	k8s.io/cli-runtime v0.23.1 // indirect
 	k8s.io/component-base v0.23.0 // indirect
-	k8s.io/klog/v2 v2.30.0 // indirect
+	k8s.io/klog/v2 v2.60.1 // indirect
 	k8s.io/kube-openapi v0.0.0-20211115234752-e816edb12b65 // indirect
-	k8s.io/utils v0.0.0-20211116205334-6203023598ed // indirect
+	k8s.io/utils v0.0.0-20220210201930-3a6ce19ff2f9 // indirect
 	kubevirt.io/containerized-data-importer-api v1.41.0 // indirect
 	kubevirt.io/controller-lifecycle-operator-sdk v0.2.1 // indirect
 	periph.io/x/periph v3.6.8+incompatible // indirect
