@@ -19,7 +19,7 @@ spec:
             cpu: 550m
             memory: 200Mi
           limits:
-            cpu: 2.5
+            cpu: 2.2
             memory: 1600Mi
         env:
         - name: ENVIRONMENT
@@ -31,10 +31,10 @@ spec:
             name: kurl-secrets
         resources:
           requests:
-            cpu: 50m
+            cpu: 200m
             memory: 120Mi
           limits:
-            cpu: 100m
+            cpu: 400m
             memory: 180Mi
         env:
         - name: AWS_REGION
