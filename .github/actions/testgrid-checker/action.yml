@@ -1,4 +1,4 @@
-name: TestGird Checker
+name: TestGrid Checker
 description: 'Check the TestGrid status for pull requests'
 inputs:
   GITHUB_TOKEN:
