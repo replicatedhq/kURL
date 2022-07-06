@@ -31,10 +31,10 @@ spec:
             name: kurl-secrets
         resources:
           requests:
-            cpu: 300m
+            cpu: 200m
             memory: 120Mi
           limits:
-            cpu: 750m
+            cpu: 400m
             memory: 180Mi
         env:
         - name: AWS_REGION
