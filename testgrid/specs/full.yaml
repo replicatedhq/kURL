@@ -1554,3 +1554,23 @@
       version: "0.53.x"
     metricsServer:
       version: "0.4.x"
+- name: kotsadm/minio/registry with local path provisioner
+  installerSpec:
+    containerd:
+      version: latest
+    ekco:
+      version: latest
+    kubernetes:
+      version: "1.23.x"
+    prometheus:
+      version: latest
+    registry:
+      version: latest
+    localPathProvisioner:
+      version: latest
+    weave:
+      version: latest
+    minio:
+      version: latest
+    kotsadm:
+      version: latest

@@ -224,14 +224,14 @@
     sudo cat /var/lib/kubelet/config.yaml | grep "cpu: 123m"
     sudo cat /var/lib/kubelet/config.yaml | grep "ephemeral-storage: 1.23Gi"
     sudo cat /var/lib/kubelet/config.yaml | grep "memory: 123Mi"
-- name: local-path-provisioner
+- name: kotsadm/minio/registry with local path provisioner
   installerSpec:
     containerd:
       version: latest
     ekco:
       version: latest
     kubernetes:
-      version: latest
+      version: "1.23.x"
     prometheus:
       version: latest
     registry:
