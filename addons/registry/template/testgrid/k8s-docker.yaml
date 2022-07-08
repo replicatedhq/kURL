@@ -11,6 +11,21 @@
     registry:
       version: "__testver__"
       s3Override: "__testdist__"
+  postInstallScript: |
+    # setup docker config
+    mkdir -p ~/.docker
+    kubectl get secret registry-creds -o jsonpath='{.data.\.dockerconfigjson}' | base64 --decode > ~/.docker/config.json
+    
+    # the registry image with the local registry address
+    DOCKER_REGISTRY_IP=$(kubectl -n kurl get service registry -o=jsonpath='{@.spec.clusterIP}' 2>/dev/null || echo "")
+    docker tag registry:__testver__ $DOCKER_REGISTRY_IP/registry:testtag
+    
+    # push this to the registry
+    docker push $DOCKER_REGISTRY_IP/registry:testtag
+    
+    # pull it from the registry
+    docker pull $DOCKER_REGISTRY_IP/registry:testtag
+
 - name: registry_latest_longhorn
   installerSpec:
     kubernetes:
@@ -24,6 +39,21 @@
     registry:
       version: "__testver__"
       s3Override: "__testdist__"
+  postInstallScript: |
+    # setup docker config
+    mkdir -p ~/.docker
+    kubectl get secret registry-creds -o jsonpath='{.data.\.dockerconfigjson}' | base64 --decode > ~/.docker/config.json
+    
+    # the registry image with the local registry address
+    DOCKER_REGISTRY_IP=$(kubectl -n kurl get service registry -o=jsonpath='{@.spec.clusterIP}' 2>/dev/null || echo "")
+    docker tag registry:__testver__ $DOCKER_REGISTRY_IP/registry:testtag
+    
+    # push this to the registry
+    docker push $DOCKER_REGISTRY_IP/registry:testtag
+    
+    # pull it from the registry
+    docker pull $DOCKER_REGISTRY_IP/registry:testtag
+
 - name: registry_latest_upgrade
   installerSpec:
     kubernetes:
@@ -48,6 +78,25 @@
     registry:
       version: "__testver__"
       s3Override: "__testdist__"
+  postInstallScript: |
+    # setup docker config
+    mkdir -p ~/.docker
+    kubectl get secret registry-creds -o jsonpath='{.data.\.dockerconfigjson}' | base64 --decode > ~/.docker/config.json
+    
+    # pull a registry image for use with this test (because the version will change as 'latest' changes)
+    docker pull registry:1.7.1
+    
+    # the registry image with the local registry address
+    DOCKER_REGISTRY_IP=$(kubectl -n kurl get service registry -o=jsonpath='{@.spec.clusterIP}' 2>/dev/null || echo "")
+    docker tag registry:1.7.1 $DOCKER_REGISTRY_IP/registry:testtag
+    
+    # push this to the registry
+    docker push $DOCKER_REGISTRY_IP/registry:testtag
+  postUpgradeScript: |
+    DOCKER_REGISTRY_IP=$(kubectl -n kurl get service registry -o=jsonpath='{@.spec.clusterIP}' 2>/dev/null || echo "")
+    # pull it from the registry
+    docker pull $DOCKER_REGISTRY_IP/registry:testtag
+
 - name: registry_oldest_upgrade
   installerSpec:
     kubernetes:
@@ -72,6 +121,22 @@
     registry:
       version: "__testver__"
       s3Override: "__testdist__"
+  postInstallScript: |
+    # setup docker config
+    mkdir -p ~/.docker
+    kubectl get secret registry-creds -o jsonpath='{.data.\.dockerconfigjson}' | base64 --decode > ~/.docker/config.json
+    
+    # the registry image with the local registry address
+    DOCKER_REGISTRY_IP=$(kubectl -n kurl get service registry -o=jsonpath='{@.spec.clusterIP}' 2>/dev/null || echo "")
+    docker tag registry:1.7.1 $DOCKER_REGISTRY_IP/registry:testtag
+    
+    # push this to the registry
+    docker push $DOCKER_REGISTRY_IP/registry:testtag
+  postUpgradeScript: |
+    DOCKER_REGISTRY_IP=$(kubectl -n kurl get service registry -o=jsonpath='{@.spec.clusterIP}' 2>/dev/null || echo "")
+    # pull it from the registry
+    docker pull $DOCKER_REGISTRY_IP/registry:testtag
+
 - name: registry_publish_port
   installerSpec:
     kubernetes:
@@ -101,8 +166,6 @@
       version: latest
     containerd:
       version: latest
-    velero:
-      version: 1.6.x
   upgradeSpec:
     kubernetes:
       version: 1.21.x
@@ -118,8 +181,6 @@
       disableS3: true
     containerd:
       version: latest
-    velero:
-      version: 1.7.x
 - name: registry_airgap_localpathprovisioner
   airgap: true
   installerSpec:
@@ -127,7 +188,7 @@
       version: "1.23.x"
     weave:
       version: "latest"
-    local-path-provisioner:
+    localPathProvisioner:
       version: "latest"
     minio:
       version: "latest"
@@ -136,3 +197,17 @@
     registry:
       version: "__testver__"
       s3Override: "__testdist__"
+  postInstallScript: |
+    # setup docker config
+    mkdir -p ~/.docker
+    kubectl get secret registry-creds -o jsonpath='{.data.\.dockerconfigjson}' | base64 --decode > ~/.docker/config.json
+    
+    # the registry image with the local registry address
+    DOCKER_REGISTRY_IP=$(kubectl -n kurl get service registry -o=jsonpath='{@.spec.clusterIP}' 2>/dev/null || echo "")
+    docker tag registry:__testver__ $DOCKER_REGISTRY_IP/registry:testtag
+    
+    # push this to the registry
+    docker push $DOCKER_REGISTRY_IP/registry:testtag
+    
+    # pull it from the registry
+    docker pull $DOCKER_REGISTRY_IP/registry:testtag

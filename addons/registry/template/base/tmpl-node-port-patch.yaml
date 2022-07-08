@@ -1,0 +1,15 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: registry
+  labels:
+    app: registry
+spec:
+  type: NodePort
+  ports:
+  - port: 443
+    nodePort: $REGISTRY_PUBLISH_PORT
+    name: registry
+    targetPort: 443
+    protocol: TCP
