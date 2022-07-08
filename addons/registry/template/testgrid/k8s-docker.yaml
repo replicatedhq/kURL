@@ -1,4 +1,4 @@
-- name: regsitry_latest_rook
+- name: registry_latest_rook
   installerSpec:
     kubernetes:
       version: "latest"
@@ -11,7 +11,7 @@
     registry:
       version: "__testver__"
       s3Override: "__testdist__"
-- name: regsitry_latest_longhorn
+- name: registry_latest_longhorn
   installerSpec:
     kubernetes:
       version: "latest"
@@ -24,7 +24,7 @@
     registry:
       version: "__testver__"
       s3Override: "__testdist__"
-- name: regsitry_latest_upgrade
+- name: registry_latest_upgrade
   installerSpec:
     kubernetes:
       version: "latest"
@@ -36,6 +36,30 @@
       version: "latest"
     registry:
       version: "latest"
+  upgradeSpec:
+    kubernetes:
+      version: "latest"
+    weave:
+      version: "latest"
+    longhorn:
+      version: "latest"
+    docker:
+      version: "latest"
+    registry:
+      version: "__testver__"
+      s3Override: "__testdist__"
+- name: registry_oldest_upgrade
+  installerSpec:
+    kubernetes:
+      version: "latest"
+    weave:
+      version: "latest"
+    longhorn:
+      version: "latest"
+    docker:
+      version: "latest"
+    registry:
+      version: "2.7.1"
   upgradeSpec:
     kubernetes:
       version: "latest"
@@ -96,3 +120,19 @@
       version: latest
     velero:
       version: 1.7.x
+- name: registry_airgap_localpathprovisioner
+  airgap: true
+  installerSpec:
+    kubernetes:
+      version: "1.23.x"
+    weave:
+      version: "latest"
+    local-path-provisioner:
+      version: "latest"
+    minio:
+      version: "latest"
+    docker:
+      version: "latest"
+    registry:
+      version: "__testver__"
+      s3Override: "__testdist__"
