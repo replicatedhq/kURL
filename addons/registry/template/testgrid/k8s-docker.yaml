@@ -23,6 +23,9 @@
     # push this to the registry
     docker push $DOCKER_REGISTRY_IP/registry:testtag
     
+    # remove this image from the registry, so that the pull is real
+    docker rmi $DOCKER_REGISTRY_IP/registry:testtag
+    
     # pull it from the registry
     docker pull $DOCKER_REGISTRY_IP/registry:testtag
 
@@ -51,6 +54,9 @@
     # push this to the registry
     docker push $DOCKER_REGISTRY_IP/registry:testtag
     
+    # remove this image from the registry, so that the pull is real
+    docker rmi $DOCKER_REGISTRY_IP/registry:testtag
+    
     # pull it from the registry
     docker pull $DOCKER_REGISTRY_IP/registry:testtag
 
@@ -66,6 +72,8 @@
       version: "latest"
     registry:
       version: "latest"
+    goldpinger:
+      version: "3.5.1-5.2.0" # this provides an image to use for push/pull tests
   upgradeSpec:
     kubernetes:
       version: "latest"
@@ -79,19 +87,23 @@
       version: "__testver__"
       s3Override: "__testdist__"
   postInstallScript: |
+    # wait for the pod to be ready
+    sleep 60s
+    kubectl get pods -n kurl
+    
     # setup docker config
     mkdir -p ~/.docker
     kubectl get secret registry-creds -o jsonpath='{.data.\.dockerconfigjson}' | base64 --decode > ~/.docker/config.json
     
-    # pull a registry image for use with this test (because the version will change as 'latest' changes)
-    docker pull registry:1.7.1
-    
-    # the registry image with the local registry address
+    # the test image with the local registry address
     DOCKER_REGISTRY_IP=$(kubectl -n kurl get service registry -o=jsonpath='{@.spec.clusterIP}' 2>/dev/null || echo "")
-    docker tag registry:1.7.1 $DOCKER_REGISTRY_IP/registry:testtag
+    docker tag bloomberg/goldpinger:v3.5.1 $DOCKER_REGISTRY_IP/registry:testtag
     
     # push this to the registry
     docker push $DOCKER_REGISTRY_IP/registry:testtag
+    
+    # remove this image from the registry, so that the pull is real
+    docker rmi $DOCKER_REGISTRY_IP/registry:testtag
   postUpgradeScript: |
     DOCKER_REGISTRY_IP=$(kubectl -n kurl get service registry -o=jsonpath='{@.spec.clusterIP}' 2>/dev/null || echo "")
     # pull it from the registry
@@ -122,16 +134,23 @@
       version: "__testver__"
       s3Override: "__testdist__"
   postInstallScript: |
+    # wait for the pod to be ready
+    sleep 60s
+    kubectl get pods -n kurl
+    
     # setup docker config
     mkdir -p ~/.docker
     kubectl get secret registry-creds -o jsonpath='{.data.\.dockerconfigjson}' | base64 --decode > ~/.docker/config.json
     
     # the registry image with the local registry address
     DOCKER_REGISTRY_IP=$(kubectl -n kurl get service registry -o=jsonpath='{@.spec.clusterIP}' 2>/dev/null || echo "")
-    docker tag registry:1.7.1 $DOCKER_REGISTRY_IP/registry:testtag
+    docker tag registry:2.7.1 $DOCKER_REGISTRY_IP/registry:testtag
     
     # push this to the registry
     docker push $DOCKER_REGISTRY_IP/registry:testtag
+    
+    # remove this image from the registry, so that the pull is real
+    docker rmi $DOCKER_REGISTRY_IP/registry:testtag
   postUpgradeScript: |
     DOCKER_REGISTRY_IP=$(kubectl -n kurl get service registry -o=jsonpath='{@.spec.clusterIP}' 2>/dev/null || echo "")
     # pull it from the registry
@@ -208,6 +227,9 @@
     
     # push this to the registry
     docker push $DOCKER_REGISTRY_IP/registry:testtag
+    
+    # remove this image from the registry, so that the pull is real
+    docker rmi $DOCKER_REGISTRY_IP/registry:testtag
     
     # pull it from the registry
     docker pull $DOCKER_REGISTRY_IP/registry:testtag
