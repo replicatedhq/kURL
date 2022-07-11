@@ -38,7 +38,7 @@ scan:
 
 .PHONY: push
 push:
-	docker push $(IMAGE)-$(GIT_SHA)-$(DATE)
+	docker push $(IMAGE):$(GIT_SHA)-$(DATE)
 
 .PHONY: deps
 deps:
