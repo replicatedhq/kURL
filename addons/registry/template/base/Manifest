@@ -1,0 +1,2 @@
+image registry registry:__registry_version__
+image s3cmd kurlsh/s3cmd:7f7dc75-20210331

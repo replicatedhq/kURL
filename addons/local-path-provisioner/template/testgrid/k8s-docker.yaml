@@ -41,7 +41,7 @@
       version: "latest"
     minio:
       version: "2020-01-25T02-50-51Z"
-    local-path-provisioner:
+    localPathProvisioner:
       version: "0.22.0"
   upgradeSpec:
     kubernetes:
@@ -54,6 +54,6 @@
       version: "latest"
     kotsadm:
       version: "latest"
-    local-path-provisioner:
+    localPathProvisioner:
       version: "__testver__"
       s3Override: "__testdist__"

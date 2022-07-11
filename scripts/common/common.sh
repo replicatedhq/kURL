@@ -233,6 +233,7 @@ labelNodes() {
     done
 }
 
+# warning - this only waits for the pod to be running, not for it to be 1/1 or otherwise accepting connections
 spinnerPodRunning() {
     namespace=$1
     podPrefix=$2
