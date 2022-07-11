@@ -291,35 +291,3 @@ function registry_healthy() {
     echo "waiting for the registry to start"
     spinner_until 120 deployment_fully_updated kurl registry
 }
-
-# TODO move this to common
-function deployment_fully_updated() {
-    local namespace=$1
-    local deployment=$2
-
-    local desiredReplicas
-    desiredReplicas=$(kubectl get deployment -n "$namespace" "$deployment" -o jsonpath='{.status.replicas}')
-
-    local availableReplicas
-    availableReplicas=$(kubectl get deployment -n "$namespace" "$deployment" -o jsonpath='{.status.availableReplicas}')
-
-    local readyReplicas
-    readyReplicas=$(kubectl get deployment -n "$namespace" "$deployment" -o jsonpath='{.status.readyReplicas}')
-
-    local updatedReplicas
-    updatedReplicas=$(kubectl get deployment -n "$namespace" "$deployment" -o jsonpath='{.status.updatedReplicas}')
-
-    if [ "$desiredReplicas" != "$availableReplicas" ] ; then
-        return 1
-    fi
-
-    if [ "$desiredReplicas" != "$readyReplicas" ] ; then
-        return 1
-    fi
-
-    if [ "$desiredReplicas" != "$updatedReplicas" ] ; then
-        return 1
-    fi
-
-    return 0
-}
