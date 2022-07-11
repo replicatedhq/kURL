@@ -24,7 +24,7 @@ require (
 	github.com/onsi/gomega v1.17.0
 	github.com/pelletier/go-toml v1.9.5
 	github.com/pkg/errors v0.9.1
-	github.com/replicatedhq/pvmigrate v0.4.4
+	github.com/replicatedhq/pvmigrate v0.4.5
 	github.com/replicatedhq/troubleshoot v0.32.0
 	github.com/replicatedhq/yaml/v3 v3.0.0-beta5-replicatedhq
 	github.com/sirupsen/logrus v1.8.1
@@ -35,19 +35,19 @@ require (
 	github.com/vishvananda/netlink v1.1.1-0.20210330154013-f5de75959ad5
 	github.com/vmware-tanzu/velero v1.6.2
 	go.uber.org/zap v1.21.0
-	golang.org/x/crypto v0.0.0-20211215153901-e495a2d5b3d3
+	golang.org/x/crypto v0.0.0-20220214200702-86341886e292
 	golang.org/x/lint v0.0.0-20210508222113-6edffad5e616
 	golang.org/x/net v0.0.0-20220225172249-27dd8689420f
 	gopkg.in/yaml.v2 v2.4.0
 	gopkg.in/yaml.v3 v3.0.1
-	k8s.io/api v0.24.0
+	k8s.io/api v0.24.1
 	k8s.io/apiextensions-apiserver v0.24.0
-	k8s.io/apimachinery v0.24.0
+	k8s.io/apimachinery v0.24.1
 	k8s.io/client-go v12.0.0+incompatible
 	k8s.io/code-generator v0.22.4
 	kubevirt.io/api v0.49.0
 	kubevirt.io/client-go v0.49.0
-	sigs.k8s.io/controller-runtime v0.11.2
+	sigs.k8s.io/controller-runtime v0.12.1
 	sigs.k8s.io/controller-tools v0.9.2
 )
 
@@ -207,7 +207,7 @@ require (
 	golang.org/x/sys v0.0.0-20220520151302-bc2c85ada10a // indirect
 	golang.org/x/term v0.0.0-20210927222741-03fcf44c2211 // indirect
 	golang.org/x/text v0.3.7 // indirect
-	golang.org/x/time v0.0.0-20210723032227-1f47c861a9ac // indirect
+	golang.org/x/time v0.0.0-20220210224613-90d013bbcef8 // indirect
 	golang.org/x/tools v0.1.10-0.20220218145154-897bd77cd717 // indirect
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
 	gomodules.xyz/jsonpatch/v2 v2.2.0 // indirect
@@ -223,7 +223,7 @@ require (
 	k8s.io/cli-runtime v0.23.1 // indirect
 	k8s.io/component-base v0.23.0 // indirect
 	k8s.io/klog/v2 v2.60.1 // indirect
-	k8s.io/kube-openapi v0.0.0-20211115234752-e816edb12b65 // indirect
+	k8s.io/kube-openapi v0.0.0-20220328201542-3ee0da9b0b42 // indirect
 	k8s.io/utils v0.0.0-20220210201930-3a6ce19ff2f9 // indirect
 	kubevirt.io/containerized-data-importer-api v1.41.0 // indirect
 	kubevirt.io/controller-lifecycle-operator-sdk v0.2.1 // indirect
