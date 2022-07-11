@@ -34,14 +34,11 @@ jobs:
           --build-arg version=${GITHUB_SHA:0:7} \
           --build-arg version_tag=${VERSION_TAG} \
           -t 799720048698.dkr.ecr.us-east-1.amazonaws.com/kurl:${GITHUB_SHA:0:7} .
-
-    - run: |
-        aws ecr get-login-password --region us-east-1 | docker login \
-          --username AWS \
-          --password-stdin 799720048698.dkr.ecr.us-east-1.amazonaws.com
-      env:
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_PROD_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_PROD_SECRET_ACCESS_KEY }}
+    - uses: docker/login-action@v2
+      with:
+        registry: 799720048698.dkr.ecr.us-east-1.amazonaws.com
+        username: ${{ secrets.AWS_PROD_ACCESS_KEY_ID }}
+        password: ${{ secrets.AWS_PROD_SECRET_ACCESS_KEY }}
 
     - run: docker push 799720048698.dkr.ecr.us-east-1.amazonaws.com/kurl:${GITHUB_SHA:0:7}
 
@@ -49,14 +46,14 @@ jobs:
     runs-on: ubuntu-18.04
     steps:
     - uses: actions/checkout@v3
+    - uses: docker/login-action@v2
+      with:
+        username: ${{ secrets.DOCKERHUB_DOCKER_USER }}
+        password: ${{ secrets.DOCKERHUB_DOCKER_PASS }}
     - run: |
         export VERSION_TAG=$(echo $GITHUB_REF | awk -F'/' '{ print $NF }')
         export KURL_UTIL_IMAGE=replicated/kurl-util:${VERSION_TAG}
-        echo "$DOCKERHUB_DOCKER_PASS" | docker login -u $DOCKERHUB_DOCKER_USER --password-stdin
         make -C kurl_util build-and-push-kurl-util-image
-      env:
-        DOCKERHUB_DOCKER_PASS: ${{ secrets.DOCKERHUB_DOCKER_PASS }}
-        DOCKERHUB_DOCKER_USER: ${{ secrets.DOCKERHUB_DOCKER_USER }}
 
   build-matrix:
     runs-on: ubuntu-18.04
