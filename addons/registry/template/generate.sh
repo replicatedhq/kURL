@@ -10,6 +10,11 @@ function get_latest_version() {
         sed 's/v//')
 }
 
+S3CMD_TAG=
+function s3cmd_get_tag() {
+    S3CMD_TAG="$(. ../../../bin/s3cmd-get-latest-tag.sh)"
+}
+
 function generate() {
     # make the base set of files
     mkdir -p "../${VERSION}"
@@ -20,6 +25,9 @@ function generate() {
     sed -i "s/__registry_version__/$VERSION/g" "../$VERSION/install.sh"
     sed -i "s/__registry_version__/$VERSION/g" "../$VERSION/deployment-pvc.yaml"
     sed -i "s/__registry_version__/$VERSION/g" "../$VERSION/tmpl-deployment-objectstore.yaml"
+    sed -i "s/__S3CMD_TAG__/$S3CMD_TAG/g" "../$VERSION/Manifest"
+    sed -i "s/__S3CMD_TAG__/$S3CMD_TAG/g" "../$VERSION/patch-deployment-migrate-s3.yaml"
+    sed -i "s/__S3CMD_TAG__/$S3CMD_TAG/g" "../$VERSION/patch-deployment-velero.yaml"
 }
 
 function add_as_latest() {
@@ -40,6 +48,8 @@ function main() {
     else
         add_as_latest
     fi
+
+    s3cmd_get_tag
 
     generate
 
