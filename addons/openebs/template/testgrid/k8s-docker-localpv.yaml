@@ -18,6 +18,7 @@
       s3Override: "__testdist__"
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
+    minio_object_store_info
     validate_read_write_object_store rwtest testfile.txt
 
 - name: localpv upgrade from 2.6.0
@@ -54,9 +55,11 @@
       s3Override: "__testdist__"
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
+    minio_object_store_info
     validate_read_write_object_store rwtest testfile.txt
   postUpgradeScript: |
     source /opt/kurl-testgrid/testhelpers.sh
+    minio_object_store_info
     validate_testfile rwtest testfile.txt
 
 - name: airgap localpv
@@ -80,6 +83,7 @@
       s3Override: "__testdist__"
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
+    minio_object_store_info
     validate_read_write_object_store rwtest testfile.txt
 
 - name: localpv upgrade from 1.12.0
@@ -116,7 +120,9 @@
       s3Override: "__testdist__"
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
+    minio_object_store_info
     validate_read_write_object_store rwtest testfile.txt
   postUpgradeScript: |
     source /opt/kurl-testgrid/testhelpers.sh
+    minio_object_store_info
     validate_testfile rwtest testfile.txt
