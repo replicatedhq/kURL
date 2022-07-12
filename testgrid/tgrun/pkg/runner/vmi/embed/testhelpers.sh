@@ -1,3 +1,4 @@
+set -euo pipefail
 
 # object store functions (create bucket, write object, get object)
 function object_store_bucket_exists() {
@@ -99,10 +100,12 @@ function make_testfile() {
     local bucket=$1
     local file=$2
 
-    echo "writing $file to $bucket bucket"
-    echo "Hello, World!" > "$file"
-    date >> "$file"
-    object_store_write_object "$bucket" "$file"
+    echo "writing ${file} to ${bucket} bucket"
+    echo "Hello, World!" > "${file}"
+    date >> "${file}"
+    echo "${file} contents:"
+    cat "${file}"
+    object_store_write_object "${bucket}" "${file}"
 }
 
 # given a bucket that a file is stored in, and the local name of the file, gets the file from the bucket and compares it to the local copy
@@ -115,11 +118,16 @@ function validate_testfile() {
     object_store_get_object "${bucket}" "${file}"
 
     echo "comparing retrieved ${file} with local copy"
-    diff "${file}" "${file}.bak"
-    echo "file was successfully stored and retrieved"
-    cat "${file}" "${file}.bak"
-
-    rm "${file}.bak"
+    if diff "${file}" "${file}.bak"; then
+        echo "${file} was successfully stored and retrieved"
+        rm "${file}.bak"
+    else
+        echo "${file} contents:"
+        cat "${file}"
+        echo "${file}.bak contents:"
+        cat "${file}.bak"
+        return 1
+    fi
 }
 
 # create the provided bucket if it does not yet exist, write a file to it, and read that file back
