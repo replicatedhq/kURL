@@ -18,3 +18,6 @@ var primarynodecmd string
 
 //go:embed embed/mainscript.sh
 var mainscript string
+
+//go:embed embed/testhelpers.sh
+var testHelpers string
