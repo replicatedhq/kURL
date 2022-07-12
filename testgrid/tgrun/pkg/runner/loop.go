@@ -55,7 +55,8 @@ func MainRunLoop(runnerOptions types.RunnerOptions) error {
 		// hit the API and get the next
 		resp, err := http.DefaultClient.Get(fmt.Sprintf("%s/v1/dequeue/instance", runnerOptions.APIEndpoint))
 		if err != nil {
-			return errors.Wrap(err, "failed to get next run")
+			fmt.Printf("Failed to get next run: %s\n", err)
+			continue
 		}
 		defer resp.Body.Close()
 		body, err := ioutil.ReadAll(resp.Body)
