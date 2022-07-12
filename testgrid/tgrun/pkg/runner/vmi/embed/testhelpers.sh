@@ -93,3 +93,43 @@ function minio_object_store_info() {
     export OBJECT_STORE_SECRET_KEY=$(kubectl -n minio get secret minio-credentials -ojsonpath='{ .data.MINIO_SECRET_KEY }' | base64 --decode)
     export OBJECT_STORE_CLUSTER_IP=$(kubectl -n minio get service minio | tail -n1 | awk '{ print $3}')
 }
+
+# creates a file named after the second parameter and uploads it to the bucket in the first parameter
+function make_testfile() {
+    local bucket=$1
+    local file=$2
+
+    echo "writing $file to $bucket bucket"
+    echo "Hello, World!" > "$file"
+    date >> "$file"
+    object_store_write_object "$bucket" "$file"
+}
+
+# given a bucket that a file is stored in, and the local name of the file, gets the file from the bucket and compares it to the local copy
+function validate_testfile() {
+    local bucket=$1
+    local file=$2
+
+    echo "retrieving ${file} from ${bucket} bucket"
+    mv "${file}" "${file}.bak"
+    object_store_get_object "${bucket}" "${file}"
+
+    echo "comparing retrieved ${file} with local copy"
+    diff "${file}" "${file}.bak"
+    echo "file was successfully stored and retrieved"
+    cat "${file}" "${file}.bak"
+
+    rm "${file}.bak"
+}
+
+# create the provided bucket if it does not yet exist, write a file to it, and read that file back
+function validate_read_write_object_store() {
+    local bucket=$1
+    local file=$2
+
+    object_store_create_bucket "$bucket"
+
+    make_testfile "$bucket" "$file"
+
+    validate_testfile "$bucket" "$file"
+}
