@@ -24,6 +24,7 @@ import (
 var lastScheduledInstance = time.Now().Add(-time.Minute)
 
 const Namespace = "default"
+const sleepTime = time.Second * 5
 
 func MainRunLoop(runnerOptions types.RunnerOptions) error {
 	fmt.Println("beginning main run loop")
@@ -48,14 +49,16 @@ func MainRunLoop(runnerOptions types.RunnerOptions) error {
 		}
 
 		if !canSchedule {
-			time.Sleep(time.Second * 15)
+			time.Sleep(sleepTime)
 			continue
 		}
 
 		// hit the API and get the next
 		resp, err := http.DefaultClient.Get(fmt.Sprintf("%s/v1/dequeue/instance", runnerOptions.APIEndpoint))
 		if err != nil {
-			return errors.Wrap(err, "failed to get next run")
+			fmt.Printf("Failed to get next run: %s\n", err)
+			time.Sleep(sleepTime)
+			continue
 		}
 		defer resp.Body.Close()
 		body, err := ioutil.ReadAll(resp.Body)
@@ -71,7 +74,7 @@ func MainRunLoop(runnerOptions types.RunnerOptions) error {
 		}
 
 		if len(dequeueInstanceResponse) == 0 {
-			time.Sleep(time.Second * 15)
+			time.Sleep(sleepTime)
 			continue
 		}
 
