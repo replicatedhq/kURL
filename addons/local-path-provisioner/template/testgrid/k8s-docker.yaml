@@ -50,7 +50,7 @@
     minio:
       version: "2020-01-25T02-50-51Z"
     localPathProvisioner:
-      version: "0.22.0"
+      version: "0.0.22"
   upgradeSpec:
     kubernetes:
       version: "latest"
