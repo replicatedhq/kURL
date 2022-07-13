@@ -1,4 +1,3 @@
-set -euo pipefail
 
 # object store functions (create bucket, write object, get object)
 function object_store_bucket_exists() {
