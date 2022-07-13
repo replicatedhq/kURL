@@ -1,3 +1,4 @@
+import fetch from "node-fetch";
 import * as _ from "lodash";
 import { Service } from "@tsed/common";
 import { Installer } from "../../installers";

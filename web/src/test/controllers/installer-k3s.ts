@@ -1,5 +1,5 @@
-import {describe, it} from "mocha";
-import {expect} from "chai";
+import { describe, it } from "mocha";
+import { expect } from "chai";
 import { Installer } from "../../installers";
 
 describe("Installer (K3S)", () => {
