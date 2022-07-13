@@ -8,6 +8,7 @@ RUN apk add --update \
     iptables \
     ipset \
     ulogd \
+    apk-tools \
   && rm -rf /var/cache/apk/* \
   && mknod /var/log/ulogd.pcap p
 
