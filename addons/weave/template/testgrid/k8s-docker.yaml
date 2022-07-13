@@ -4,14 +4,30 @@
       version: "latest"
     docker:
       version: "latest"
+    goldpinger:
+      version: "latest"
     weave:
       version: "__testver__"
       s3Override: "__testdist__"
+    postInstallScript: |
+      echo "host iptables version"
+      iptables --version
+      
+      echo "weave iptables version"
+      kubectl exec -n kube-system daemonset/weave-net -c weave -- iptables --version
+      
+      echo "host iptables list"
+      iptables -L
+      
+      echo "weave iptables list"
+      kubectl exec -n kube-system daemonset/weave-net -c weave -- iptables -L
 - name: "weave latest multi node"
   installerSpec:
     kubernetes:
       version: "latest"
     docker:
+      version: "latest"
+    goldpinger:
       version: "latest"
     weave:
       version: "__testver__"
@@ -23,6 +39,8 @@
     kubernetes:
       version: "latest"
     docker:
+      version: "latest"
+    goldpinger:
       version: "latest"
     weave:
       version: "__testver__"
