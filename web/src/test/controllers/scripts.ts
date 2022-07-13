@@ -56,26 +56,26 @@ spec:
     version: 0.50.0
 `;
 
-let installer = Installer.parse(yaml);
+const installer = Installer.parse(yaml);
 
 
   it("should inject installerVersion provided as url parameter", async () => {
     
     const installerVersionsMock = sinon.mock(installerVersions);
 
-    let installerStoreStub = sinon.stub(installerStore, "getInstaller");
+    const installerStoreStub = sinon.stub(installerStore, "getInstaller");
     installerStoreStub.withArgs(installerID).resolves(
       installer
     );
 
-    let metricStoreStub = sinon.stub(metricsStore, "saveSaasScriptEvent");
-    let GetInstallScriptEvent = { id: installerID, installerID: installerID, timestamp: new Date(), isAirgap: false, clientIP: "CLIENT_IP", userAgent: "USER_AGENT" };
+    const metricStoreStub = sinon.stub(metricsStore, "saveSaasScriptEvent");
+    const GetInstallScriptEvent = { id: installerID, installerID: installerID, timestamp: new Date(), isAirgap: false, clientIP: "CLIENT_IP", userAgent: "USER_AGENT" };
     metricStoreStub.withArgs(GetInstallScriptEvent).resolves();
 
-    let templatesStub = sinon.stub(templates, "fetchScriptTemplate");
+    const templatesStub = sinon.stub(templates, "fetchScriptTemplate");
     templatesStub.withArgs(urlInstallerVersion, "install.tmpl").resolves(tmpl);
 
-    let resolveStub = sinon.stub(Installer, "resolveVersion");
+    const resolveStub = sinon.stub(Installer, "resolveVersion");
     resolveStub.withArgs(sinon.match.any, sinon.match.any, sinon.match.any).resolves("Version");
 
     installerVersionsMock.expects("getInstallerVersions").withArgs(sinon.match.any, urlInstallerVersion).returns({
@@ -98,20 +98,20 @@ let installer = Installer.parse(yaml);
   it("should overwrite installerVersion is spec with version in url", async () => {
     const installerVersionsMock = sinon.mock(installerVersions);
 
-    let installerStoreStub = sinon.stub(installerStore, "getInstaller");
+    const installerStoreStub = sinon.stub(installerStore, "getInstaller");
     installer.spec.kurl = {additionalNoProxyAddresses: [], installerVersion: specInstallerVersion}
     installerStoreStub.withArgs(installerID).resolves(
       installer
     );
 
-    let metricStoreStub = sinon.stub(metricsStore, "saveSaasScriptEvent");
-    let GetInstallScriptEvent = { id: installerID, installerID: installerID, timestamp: new Date(), isAirgap: false, clientIP: "CLIENT_IP", userAgent: "USER_AGENT" };
+    const metricStoreStub = sinon.stub(metricsStore, "saveSaasScriptEvent");
+    const GetInstallScriptEvent = { id: installerID, installerID: installerID, timestamp: new Date(), isAirgap: false, clientIP: "CLIENT_IP", userAgent: "USER_AGENT" };
     metricStoreStub.withArgs(GetInstallScriptEvent).resolves();
 
-    let templatesStub = sinon.stub(templates, "fetchScriptTemplate");
+    const templatesStub = sinon.stub(templates, "fetchScriptTemplate");
     templatesStub.withArgs(urlInstallerVersion, "install.tmpl").resolves(tmpl);
 
-    let resolveStub = sinon.stub(Installer, "resolveVersion");
+    const resolveStub = sinon.stub(Installer, "resolveVersion");
     resolveStub.withArgs(sinon.match.any, sinon.match.any, sinon.match.any).resolves("Version");
 
     installerVersionsMock.expects("getInstallerVersions").withArgs(sinon.match.any, urlInstallerVersion).returns({
@@ -134,20 +134,20 @@ let installer = Installer.parse(yaml);
   it("should use installerVersion in spec if none in url", async () => {
     const installerVersionsMock = sinon.mock(installerVersions);
 
-    let installerStoreStub = sinon.stub(installerStore, "getInstaller");
+    const installerStoreStub = sinon.stub(installerStore, "getInstaller");
     installer.spec.kurl = {additionalNoProxyAddresses: [], installerVersion: specInstallerVersion}
     installerStoreStub.withArgs(installerID).resolves(
       installer
     );
 
-    let metricStoreStub = sinon.stub(metricsStore, "saveSaasScriptEvent");
-    let GetInstallScriptEvent = { id: installerID, installerID: installerID, timestamp: new Date(), isAirgap: false, clientIP: "CLIENT_IP", userAgent: "USER_AGENT" };
+    const metricStoreStub = sinon.stub(metricsStore, "saveSaasScriptEvent");
+    const GetInstallScriptEvent = { id: installerID, installerID: installerID, timestamp: new Date(), isAirgap: false, clientIP: "CLIENT_IP", userAgent: "USER_AGENT" };
     metricStoreStub.withArgs(GetInstallScriptEvent).resolves();
 
-    let templatesStub = sinon.stub(templates, "fetchScriptTemplate");
+    const templatesStub = sinon.stub(templates, "fetchScriptTemplate");
     templatesStub.withArgs(specInstallerVersion, "install.tmpl").resolves(tmpl);
 
-    let resolveStub = sinon.stub(Installer, "resolveVersion");
+    const resolveStub = sinon.stub(Installer, "resolveVersion");
     resolveStub.withArgs(sinon.match.any, sinon.match.any, sinon.match.any).resolves("Version");
 
     installerVersionsMock.expects("getInstallerVersions").withArgs(sinon.match.any, specInstallerVersion).returns({

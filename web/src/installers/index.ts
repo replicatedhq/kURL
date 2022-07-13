@@ -9,7 +9,6 @@ import { MysqlWrapper } from "../util/services/mysql";
 import { instrumented } from "monkit";
 import { Forbidden } from "../server/errors";
 import {getDistUrl, getPackageUrl} from "../util/package";
-import fetch from "node-fetch";
 import { getInstallerVersions } from "./installer-versions";
 import * as hash from "object-hash";
 
@@ -1573,10 +1572,8 @@ export class Installer {
   }
 
   public static greatest(versions: string[]): string {
-    let ret: string = "0.0.0";
+    let ret = "0.0.0";
     versions.forEach((version: string) => {
-      const minor = semver.minor(version);
-
       if (!ret || semver.gt(version, ret)) {
         ret = version;
       }

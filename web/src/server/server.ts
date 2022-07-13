@@ -1,16 +1,16 @@
-import {Configuration, PlatformApplication, Context, OverrideProvider, PlatformLogMiddleware} from "@tsed/common";
-import {Inject} from "@tsed/di";
+import { Configuration, PlatformApplication, Context, OverrideProvider, PlatformLogMiddleware } from "@tsed/common";
+import { Inject } from "@tsed/di";
 import Bugsnag from "@bugsnag/js";
 import * as cors from "cors";
 import * as path from "path";
-import * as RateLimit from "express-rate-limit";
+import { rateLimit } from "express-rate-limit";
 import * as express from "express";
 import { ErrorMiddleware } from "./errors";
 
 @Configuration({
   rootDir: path.resolve(__dirname),
   mount: {
-    "/": "${rootDir}/../controllers/**/*.ts",
+    "/": [ "${rootDir}/../controllers/**/*.ts" ],
   },
   acceptMimes: ["application/json", "application/yaml", "text/yaml"],
   port: 3000,
@@ -56,10 +56,9 @@ export class Server {
 
     if (process.env["IGNORE_RATE_LIMITS"] !== "1") {
       // this limiter applies to all requests to the service.
-      const globalLimiter = new RateLimit({
+      const globalLimiter = rateLimit({
         windowMs: 1000, // 1 second
         max: 10000, // limit each IP to 10000 requests per windowMs
-        delayMs: 0, // disable delaying - full speed until the max limit is reached
       });
       this.app.use(globalLimiter);
     }
@@ -82,16 +81,10 @@ export class CustomPlatformLogMiddleware extends PlatformLogMiddleware {
    * Called when the `$onResponse` is called by Ts.ED (through Express.end).
    */
   protected onLogEnd(ctx: Context): void {
-    const {debug, logRequest, logEnd} = this.settings;
+    const { logRequest, logEnd } = this.settings;
 
     if (logEnd !== false) {
-      if (debug) {
-        ctx.logger.debug({
-          event: "request.end",
-          status: ctx.response.statusCode,
-          // data: ctx.data // data is too noisy
-        });
-      } else if (logRequest) {
+      if (logRequest) {
         ctx.logger.info({
           event: "request.end",
           status: ctx.response.statusCode

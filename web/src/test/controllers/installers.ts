@@ -158,7 +158,7 @@ spec:
 `;
 
 // Used for validation in all options test case
-const helmfileSpec=`repositories:
+const helmfileSpec = `repositories:
 - name: nginx-stable
   url: https://helm.nginx.com/stable
 releases:

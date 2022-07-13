@@ -1,4 +1,3 @@
-import fetch from "node-fetch";
 import * as Express from "express";
 import * as _ from "lodash";
 import {

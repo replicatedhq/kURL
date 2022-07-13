@@ -1,5 +1,4 @@
 import * as StatsdClient from "statsd-client";
-import fetch from "node-fetch";
 
 import {
   getRegistry, ReadableRegistry,
