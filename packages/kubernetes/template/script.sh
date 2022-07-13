@@ -2,12 +2,10 @@
 
 set -euo pipefail
 
-# Populate VERSIONS array latest kURL-support versions (1.19, 1.20, 1.21) available
+# Populate VERSIONS array latest kURL-support versions (1.21, 1.22, 1.23, 1.24) available
 VERSIONS=()
 function find_available_versions() {
     docker build -t k8s - < Dockerfile
-    # VERSIONS=($(docker run k8s apt list -a kubelet 2>/dev/null | grep -Eo '1\.[2][0-9]\.[0-9]+' | sort -rV | uniq))
-    # echo "Found ${#VERSIONS[*]} versions for Kubernetes 1.20+: ${VERSIONS[*]}"
 
     local versions124=($(docker run k8s apt list -a kubelet 2>/dev/null | grep -Eo '1\.24\.[0-9]+' | sort -rV | uniq))
     if [ ${#versions124[@]} -gt 0 ]; then
@@ -33,12 +31,6 @@ function find_available_versions() {
         VERSIONS+=("${versions121[0]}")
     fi
 
-    local versions120=($(docker run k8s apt list -a kubelet 2>/dev/null | grep -Eo '1\.20\.[0-9]+' | sort -rV | uniq))
-    if [ ${#versions120[@]} -gt 0 ]; then
-        echo "Found latest version for Kubernetes 1.20: ${versions120[0]}"
-        VERSIONS+=("${versions120[0]}")
-    fi
-
     echo "Found ${#VERSIONS[*]} versions for Kubernetes: ${VERSIONS[*]}"
 }
 
@@ -58,19 +50,11 @@ function generate_version_directory() {
         echo "image ${name} ${image}" >> "../$version/Manifest"
     done < <(/tmp/kubeadm config images list --kubernetes-version=${version})
 
-    # hardcode existing versions to 1.20.0 since it's tested
+    local minor=$(echo "$version" | awk -F'.' '{ print $2 }')
     local criToolsVersion=$(curl -H "Authorization: token ${GITHUB_TOKEN}" -s https://api.github.com/repos/kubernetes-sigs/cri-tools/releases | \
         grep '"tag_name": ' | \
-        grep -Eo "1\.20\.[0-9]+" | \
+        ( grep -Eo "1\.${minor}\.[0-9]+" || true ) | \
         head -1)
-    # Kubernetes 1.21+ gets latest crictl release with same minor
-    local minor=$(echo "$version" | awk -F'.' '{ print $2 }')
-    if [ "$minor" -ge 20 ]; then
-        criToolsVersion=$(curl -H "Authorization: token ${GITHUB_TOKEN}" -s https://api.github.com/repos/kubernetes-sigs/cri-tools/releases | \
-            grep '"tag_name": ' | \
-            ( grep -Eo "1\.${minor}\.[0-9]+" || true ) | \
-            head -1)
-    fi
 
     # Fallback: Kubernetes 1.23 doesn't have a version of criTools as of 2021-12-13
     # Any latest version of criTools will work for any version of Kubernetes >=1.16, so this is a safe operation
@@ -147,13 +131,6 @@ function update_available_versions() {
     if [ ${#version121[@]} -gt 0 ]; then
         if ! sed '0,/cron-kubernetes-update-121/d' ../../../web/src/installers/versions.js | sed '/\],/,$d' | grep -q "${version121[0]}" ; then
             sed -i "/cron-kubernetes-update-121/a\    \"${version121[0]}\"\," ../../../web/src/installers/versions.js
-        fi
-    fi
-
-    local version120=( $( for i in "${VERSIONS[@]}" ; do echo $i ; done | grep '^1.20' ) )
-    if [ ${#version120[@]} -gt 0 ]; then
-        if ! sed '0,/cron-kubernetes-update-120/d' ../../../web/src/installers/versions.js | sed '/\],/,$d' | grep -q "${version120[0]}" ; then
-            sed -i "/cron-kubernetes-update-120/a\    \"${version120[0]}\"\," ../../../web/src/installers/versions.js
         fi
     fi
 

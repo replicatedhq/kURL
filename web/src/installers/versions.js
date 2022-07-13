@@ -2,7 +2,6 @@
 // first version of each is "latest"
 module.exports.InstallerVersions = {
   kubernetes: [
-    // cron-kubernetes-update-119
     "1.19.16",
     "1.19.15",
     "1.19.13",
@@ -47,7 +46,6 @@ module.exports.InstallerVersions = {
     "1.21.2", 
     "1.21.1", 
     "1.21.0",
-    // cron-kubernetes-update-120
     "1.20.15",
     "1.20.14",
     "1.20.11", 
