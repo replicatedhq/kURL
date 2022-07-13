@@ -14,7 +14,10 @@ addons/*/*/assets
 addons/*/*/images
 addons/*/*/rhel-*
 addons/*/*/ubuntu-*
-packages/
+packages/*/*/assets
+packages/*/*/images
+packages/*/*/rhel-*
+packages/*/*/ubuntu-*
 
 *.key
 *.spdx
