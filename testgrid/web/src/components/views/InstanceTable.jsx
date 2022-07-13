@@ -353,11 +353,11 @@ export default class InstanceTable extends React.Component {
               const initialPrimaryId = instance.id+"-initialprimary";
               const secondaryNodes = []
               const primaryNodes = []
-              for (var i = 0; i < instance.numSecondaryNodes ; i++) {
+              for (let i = 0; i < instance.numSecondaryNodes ; i++) {
                   let nodeId = `${instance.id}-secondary-${i}`
                   secondaryNodes.push(<button  key={i} type="button" className="btn xsmall primary u-width--full u-marginBottom--5" onClick={() => this.viewNodeLogs(nodeId, instance)}>{"Logs Secondary-"+i+ " Node"}</button>)
               }
-              for (var i = 1; i < instance.numPrimaryNodes; i++) {
+              for (let i = 1; i < instance.numPrimaryNodes; i++) {
                 let nodeId = `${instance.id}-primary-${i}`
                 primaryNodes.push(<button key={i} type="button" className="btn xsmall primary u-width--full u-marginBottom--5" onClick={() => this.viewNodeLogs(nodeId, instance)}>{"Logs primary-" + i + " Node"}</button>)
               }

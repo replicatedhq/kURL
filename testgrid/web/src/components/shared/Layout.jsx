@@ -13,7 +13,7 @@ const Layout = ({ children, title }) => {
     <div className="flex flex1">
       <div className="suite-banner">
         <div className="flex flex-row justifyContent--spaceBetween">
-          <ReplLogoWhite />
+          <img src={ReplLogoWhite} />
           <div>
             <a href="https://blog.replicated.com/kurl-with-replicated-kots/" target="_blank" rel="noopener noreferrer">Learn more about how kURL works with Replicated KOTS<span className="banner-arrow"></span></a>
           </div>

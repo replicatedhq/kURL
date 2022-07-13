@@ -141,7 +141,7 @@ class Run extends React.Component {
     for (let i = 0; i < addonsArr.length; i++) {
       const addon = addonsArr[i];
       addons[addon] = this.state.addons[addon];
-    };
+    }
 
     return addons;
   }

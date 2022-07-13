@@ -47,8 +47,7 @@ module.exports = {
   devServer: {
     port: 30881,
     host: "0.0.0.0",
-    hot: true,
-    hotOnly: true,
+    hot: "only",
     historyApiFallback: {
       verbose: true,
       rewrites: [
@@ -60,6 +59,6 @@ module.exports = {
         }
       ]
     },
-    disableHostCheck: true,
+    allowedHosts: "all",
   },
 };

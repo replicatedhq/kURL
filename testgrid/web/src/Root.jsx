@@ -15,6 +15,6 @@ class Root extends React.Component {
       </div>
     );
   }
-};
+}
 
 export default Root;
