@@ -402,4 +402,3 @@ function rook_patch_insecure_clients {
         logWarn "Mon is still allowing insecure clients"
     fi
 }
-

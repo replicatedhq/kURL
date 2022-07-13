@@ -47,4 +47,3 @@ function local-path-provisioner_host_init() {
   mkdir -p /opt/local-path-provisioner
   chmod 700 /opt/local-path-provisioner
 }
-
