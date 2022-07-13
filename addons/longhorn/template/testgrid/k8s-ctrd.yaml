@@ -13,6 +13,10 @@
     longhorn:
       version: "__testver__"
       s3Override: "__testdist__"
+  postInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    minio_object_store_info
+    validate_read_write_object_store rwtest testfile.txt
 
 - name: upgrade-from-latest-longhorn
   installerSpec:
@@ -40,6 +44,15 @@
     longhorn:
       version: "__testver__"
       s3Override: "__testdist__"
+  postInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    minio_object_store_info
+    validate_read_write_object_store rwtest testfile.txt
+  postUpgradeScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    minio_object_store_info
+    validate_testfile rwtest testfile.txt
+    validate_read_write_object_store postupgrade upgradefile.txt
 
 - name: upgrade-from-latest-rook
   cpu: 6
@@ -72,6 +85,15 @@
       s3Override: "__testdist__"
     ekco:
       version: "latest"
+  postInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rook_ecph_object_store_info
+    validate_read_write_object_store rwtest testfile.txt
+  postUpgradeScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    minio_object_store_info
+    validate_testfile rwtest testfile.txt
+    validate_read_write_object_store postupgrade upgradefile.txt
 
 - name: upgrade-from-rook-1.5
   cpu: 6
@@ -105,6 +127,15 @@
       s3Override: "__testdist__"
     ekco:
       version: "latest"
+  postInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rook_ecph_object_store_info
+    validate_read_write_object_store rwtest testfile.txt
+  postUpgradeScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    minio_object_store_info
+    validate_testfile rwtest testfile.txt
+    validate_read_write_object_store postupgrade upgradefile.txt
 
 - name: upgrade-from-oldest-longhorn
   installerSpec:
@@ -132,6 +163,10 @@
     longhorn:
       version: "__testver__"
       s3Override: "__testdist__"
+  postInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    minio_object_store_info
+    validate_read_write_object_store rwtest testfile.txt
 
 - name: airgap-install
   airgap: true
@@ -149,3 +184,7 @@
     longhorn:
       version: "__testver__"
       s3Override: "__testdist__"
+  postInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    minio_object_store_info
+    validate_read_write_object_store rwtest testfile.txt

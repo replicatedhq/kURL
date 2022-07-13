@@ -14,6 +14,13 @@
       version: "__testver__"
       s3Override: "__testdist__"
       isBlockStorageEnabled: true
+  postInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rook_ecph_object_store_info
+    validate_read_write_object_store rwtest testfile.txt
+    
+    minio_object_store_info
+    validate_read_write_object_store rwtest minio.txt
 - name: Upgrade from 1.4.3
   installerSpec:
     kubernetes:
@@ -45,6 +52,23 @@
       s3Override: "__testdist__"
       isBlockStorageEnabled: true
       bypassUpgradeWarning: true
+  postInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rook_ecph_object_store_info
+    validate_read_write_object_store rwtest testfile.txt
+    
+    minio_object_store_info
+    validate_read_write_object_store rwtest minio.txt
+  postUpgradeScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rook_ecph_object_store_info
+    validate_testfile rwtest testfile.txt
+    validate_read_write_object_store postupgrade upgradefile.txt
+
+    minio_object_store_info
+    validate_testfile rwtest minio.txt
+    validate_read_write_object_store postupgrade minioupgrade.txt
+
 - name: Disable shared filesystem
   installerSpec:
     kubernetes:
@@ -62,6 +86,14 @@
       s3Override: "__testdist__"
       isSharedFilesystemDisabled: true
       isBlockStorageEnabled: true
+  postInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rook_ecph_object_store_info
+    validate_read_write_object_store rwtest testfile.txt
+    
+    minio_object_store_info
+    validate_read_write_object_store rwtest minio.txt
+
 - name: Upgrade from 1.0.4
   installerSpec:
     kubernetes:
@@ -91,6 +123,22 @@
       version: "__testver__"
       s3Override: "__testdist__"
       bypassUpgradeWarning: true
+  postInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rook_ecph_object_store_info
+    validate_read_write_object_store rwtest testfile.txt
+    
+    minio_object_store_info
+    validate_read_write_object_store rwtest minio.txt
+  postUpgradeScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rook_ecph_object_store_info
+    validate_testfile rwtest testfile.txt
+    validate_read_write_object_store postupgrade upgradefile.txt
+
+    minio_object_store_info
+    validate_testfile rwtest minio.txt
+    validate_read_write_object_store postupgrade minioupgrade.txt
 
     
 

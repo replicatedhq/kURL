@@ -13,6 +13,11 @@
     localPathProvisioner:
       version: "__testver__"
       s3Override: "__testdist__"
+  postInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    minio_object_store_info
+    validate_read_write_object_store rwtest testfile.txt
+
 - name: airgap install
   airgap: true
   installerSpec:
@@ -29,7 +34,10 @@
     localPathProvisioner:
       version: "__testver__"
       s3Override: "__testdist__"
-
+  postInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    minio_object_store_info
+    validate_read_write_object_store rwtest testfile.txt
 
 - name: upgrade from oldest local-path-provisioner
   installerSpec:
@@ -42,7 +50,7 @@
     minio:
       version: "2020-01-25T02-50-51Z"
     localPathProvisioner:
-      version: "0.22.0"
+      version: "0.0.22"
   upgradeSpec:
     kubernetes:
       version: "latest"
@@ -57,3 +65,12 @@
     localPathProvisioner:
       version: "__testver__"
       s3Override: "__testdist__"
+  postInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    minio_object_store_info
+    validate_read_write_object_store rwtest testfile.txt
+  postUpgradeScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    minio_object_store_info
+    validate_testfile rwtest testfile.txt
+    validate_read_write_object_store postupgrade upgradefile.txt
