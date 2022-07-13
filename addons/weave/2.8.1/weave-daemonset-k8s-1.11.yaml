@@ -151,7 +151,7 @@ items:
                       apiVersion: v1
                       fieldPath: spec.nodeName
                 - name: EXEC_IMAGE
-                  value: "kurlsh/weaveexec:2.8.1-45e04df-20220616"
+                  value: "kurlsh/weaveexec:2.8.1-5a904da-20220713"
               image: 'kurlsh/weave-kube:2.8.1-45e04df-20220616'
               readinessProbe:
                 httpGet:
