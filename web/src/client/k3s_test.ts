@@ -1,5 +1,5 @@
-import {describe, it} from "mocha";
-import {expect} from "chai";
+import { describe, it } from "mocha";
+import { expect } from "chai";
 import { KurlClient } from ".";
 
 const kurlURL = process.env.KURL_URL || "http://localhost:30092";

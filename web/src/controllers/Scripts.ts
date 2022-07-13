@@ -11,7 +11,6 @@ import { Templates } from "../util/services/templates";
 import { MetricsStore } from "../util/services/metrics";
 import { logger } from "../logger";
 import * as requestIP from "request-ip";
-import { ServerError } from "../server/errors";
 
 interface ErrorResponse {
   error: any;

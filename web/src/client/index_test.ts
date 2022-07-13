@@ -3,7 +3,6 @@ import {expect} from "chai";
 import { KurlClient } from "./";
 import { Installer } from "../installers";
 import * as jwt from "jsonwebtoken";
-import * as url from "url";
 import * as _ from "lodash";
 
 const kurlURL = process.env.KURL_URL || "http://localhost:30092";

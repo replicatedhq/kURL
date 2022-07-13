@@ -1,4 +1,5 @@
-import * as pino from "pino";
+import { DestinationStream, LoggerOptions, pino } from "pino";
+import pretty from "pino-pretty";
 import * as fs from "fs";
 
 export const TSEDVerboseLogging =
@@ -13,15 +14,21 @@ function initLoggerFromEnv(): pino.Logger {
   const dest = process.env.LOG_FILE ?
     fs.createWriteStream(process.env.LOG_FILE) :
     process.stdout;
-
+  
   const component = "kurl";
-  const options = {
+  const options: LoggerOptions = {
     name: component,
     level: pinoLevel,
-    prettyPrint: !!process.env.PINO_LOG_PRETTY,
   };
 
-  return pino(options, dest).child({
+  let stream: DestinationStream = dest;
+  if (process.env.PINO_LOG_PRETTY) {
+    stream = pretty({
+      destination: dest,
+    })
+  }
+
+  return pino(options, stream).child({
     version: process.env.VERSION,
     component,
   });

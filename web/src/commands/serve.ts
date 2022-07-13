@@ -17,7 +17,7 @@ exports.builder = {
   },
 };
 
-exports.handler = (argv) => {
+exports.handler = (argv: any) => {
   main(argv).catch((err) => {
     console.log(`Failed with error ${util.inspect(err)}`);
     process.exit(1);

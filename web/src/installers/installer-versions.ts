@@ -1,5 +1,4 @@
 import * as _ from "lodash";
-import fetch from "node-fetch";
 import Bugsnag from "@bugsnag/js";
 import { HTTPError } from "../server/errors";
 import { getPackageUrl } from "../util/package";
