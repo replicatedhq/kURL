@@ -3,7 +3,7 @@
 
 FROM weaveworks/weaveexec:2.8.1 AS base
 
-FROM alpine:3.14
+FROM alpine:3.16
 
 RUN apk add --update --upgrade \
     curl \
