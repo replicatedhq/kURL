@@ -1,4 +1,4 @@
-FROM node:12-alpine3.15
+FROM node:14-alpine3.16
 
 RUN apk add ca-certificates && update-ca-certificates
 
