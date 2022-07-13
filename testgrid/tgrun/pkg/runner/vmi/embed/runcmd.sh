@@ -144,7 +144,7 @@ function run_post_install_script() {
         return # file does not exist
     fi
 
-    bash -ex /opt/kurl-testgrid/postinstall.sh
+    bash -euxo pipefail /opt/kurl-testgrid/postinstall.sh
     local exit_status="$?"
 
     send_logs
@@ -162,7 +162,7 @@ function run_post_upgrade_script() {
         return # file does not exist
     fi
 
-    bash -ex /opt/kurl-testgrid/postupgrade.sh
+    bash -euxo pipefail /opt/kurl-testgrid/postupgrade.sh
     local exit_status="$?"
 
     send_logs
