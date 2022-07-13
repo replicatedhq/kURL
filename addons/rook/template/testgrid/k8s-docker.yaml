@@ -63,9 +63,11 @@
     source /opt/kurl-testgrid/testhelpers.sh
     rook_ecph_object_store_info
     validate_testfile rwtest testfile.txt
+    validate_read_write_object_store postupgrade upgradefile.txt
 
     minio_object_store_info
     validate_testfile rwtest minio.txt
+    validate_read_write_object_store postupgrade minioupgrade.txt
 
 - name: Disable shared filesystem
   installerSpec:
@@ -132,9 +134,11 @@
     source /opt/kurl-testgrid/testhelpers.sh
     rook_ecph_object_store_info
     validate_testfile rwtest testfile.txt
+    validate_read_write_object_store postupgrade upgradefile.txt
 
     minio_object_store_info
     validate_testfile rwtest minio.txt
+    validate_read_write_object_store postupgrade minioupgrade.txt
 
     
 

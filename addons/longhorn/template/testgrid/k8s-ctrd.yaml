@@ -52,6 +52,7 @@
     source /opt/kurl-testgrid/testhelpers.sh
     minio_object_store_info
     validate_testfile rwtest testfile.txt
+    validate_read_write_object_store postupgrade upgradefile.txt
 
 - name: upgrade-from-latest-rook
   cpu: 6
@@ -92,6 +93,7 @@
     source /opt/kurl-testgrid/testhelpers.sh
     minio_object_store_info
     validate_testfile rwtest testfile.txt
+    validate_read_write_object_store postupgrade upgradefile.txt
 
 - name: upgrade-from-rook-1.5
   cpu: 6
@@ -133,6 +135,7 @@
     source /opt/kurl-testgrid/testhelpers.sh
     minio_object_store_info
     validate_testfile rwtest testfile.txt
+    validate_read_write_object_store postupgrade upgradefile.txt
 
 - name: upgrade-from-oldest-longhorn
   installerSpec:

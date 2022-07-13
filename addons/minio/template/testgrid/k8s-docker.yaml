@@ -53,6 +53,7 @@
     source /opt/kurl-testgrid/testhelpers.sh
     minio_object_store_info
     validate_testfile rwtest testfile.txt
+    validate_read_write_object_store postupgrade upgradefile.txt
 
 
 # installation with specified PVC size
@@ -127,6 +128,7 @@
     source /opt/kurl-testgrid/testhelpers.sh
     minio_object_store_info
     validate_testfile rwtest testfile.txt
+    validate_read_write_object_store postupgrade upgradefile.txt
 
 # upgrade from 2020-01-25T02-50-51Z
 - name: upgrade minio from 2020-01-25T02-50-51Z
@@ -161,3 +163,4 @@
     source /opt/kurl-testgrid/testhelpers.sh
     minio_object_store_info
     validate_testfile rwtest testfile.txt
+    validate_read_write_object_store postupgrade upgradefile.txt
