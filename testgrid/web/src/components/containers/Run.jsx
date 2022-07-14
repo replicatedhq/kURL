@@ -1,6 +1,7 @@
 import * as React from "react";
+import { useState, useEffect } from "react";
+import { useLocation, useNavigate, useSearchParams, useParams } from 'react-router-dom';
 import * as groupBy from "lodash/groupBy";
-import * as queryString from "query-string";
 
 import InstanceTable from "../views/InstanceTable";
 import Loader from "../shared/Loader";
@@ -8,214 +9,158 @@ import Pager from "../shared/Pager";
 
 import "../../assets/scss/components/Run.scss";
 
-class Run extends React.Component {
-  constructor(props) {
-    super(props);
+const Run = () => {
+  const [searchParams] = useSearchParams();
+  const params = useParams();
+  const location = useLocation();
+  const navigate = useNavigate();
 
-    let currentPage = 0, pageSize = 1000;
-    const params = queryString.parse(this.props.location.search);
-    if (params.currentPage) {
-      currentPage = parseInt(params.currentPage);
-    }
-    if (params.pageSize) {
-      pageSize = parseInt(params.pageSize);
-    }
+  const [isLoading, setIsLoading] = useState(false);
+  const [instancesMap, setInstancesMap] = useState({});
+  const [addons, setAddons] = useState({});
+  const [totalCount, setTotalCount] = useState(0);
+  const [currentPage, doSetCurrentPage]  = useState(parseInt(searchParams.get("currentPage")) || 0);
+  const [pageSize] = useState(parseInt(searchParams.get("pageSize")) || 1000);
 
-    this.state = {
-      instancesMap: {},
-      isLoading: true,
-      currentPage,
-      pageSize,
-      totalCount: 0,
-      addons: {},
-    };
+  useEffect(() => {
+    loadUniqueAddons();
+  }, []);
 
-    this.instancesTable = React.createRef();
+  useEffect(() => {
+    loadRunInstances();
+  }, [currentPage, pageSize, addons]);
+
+  const setCurrentPage = (page) => {
+    doSetCurrentPage(page);
+    navigate({
+      pathname: location.pathname,
+      search: searchParams.toString(),
+    }, {replace: true});
   }
 
-  async componentDidMount() {
-    await this.loadRunInstances();
-    await this.loadUniqueAddons();
-
-    const params = queryString.parse(this.props.location.search);
-    if (params.kurlLogsInstanceId && params.nodeId) {
-      const instance = this.findInstanceInMap(params.kurlLogsInstanceId);
-      this.instancesTable?.current?.viewNodeLogs(params.nodeId, instance);
-    } else if(params.kurlLogsInstanceId) {
-      const instance = this.findInstanceInMap(params.kurlLogsInstanceId);
-      this.instancesTable?.current?.viewInstanceLogs(instance);
-    } else if (params.sonobuoyResultsInstanceId) {
-      const instance = this.findInstanceInMap(params.sonobuoyResultsInstanceId);
-      this.instancesTable?.current?.viewInstanceSonobuoyResults(instance);
-    }
-  }
-
-  findInstanceInMap = id => {
-    const testIds = Object.keys(this.state.instancesMap);
-    for (let k = 0; k < testIds.length; k++) {
-      const testId = testIds[k];
-      const testInstances = this.state.instancesMap[testId];
-      for (let i = 0; i < testInstances.length; i++) {
-        const instance = testInstances[i];
-        if (instance.id === id) {
-          return instance;
-        }
-      }
-    }
-    return null;
-  }
-
-  onGotoPage = (page, event) => {
-    event.preventDefault();
-
-    const searchParams = queryString.parse(this.props.location.search);
-    if (page > 0) {
-      searchParams.currentPage = `${page}`;
-    } else if ("currentPage" in searchParams) {
-      delete searchParams["currentPage"];
-    }
-    
-    this.props.history.replace({
-      pathname: this.props.location.pathname,
-      search: queryString.stringify(searchParams),
-    });
-
-    this.setState({ currentPage: page });
-    this.loadRunInstances(page, this.state.pageSize);
-  }
-
-  loadRunInstances = async (currentPage = this.state.currentPage, pageSize = this.state.pageSize) => {
+  const loadRunInstances = async () => {
     try {
-      this.setState({ isLoading: true });
+      setIsLoading(true);
 
-      const res = await fetch(`${window.env.API_ENDPOINT}/run/${this.props.match.params.runId}`, {
+      const res = await fetch(`${window.env.API_ENDPOINT}/run/${params.runId}`, {
         method: "POST",
         body: JSON.stringify({
           currentPage,
           pageSize,
-          addons: this.state.addons,
+          addons: addons,
         })
       });
-  
+
       const resJson = await res.json();
-  
-      this.setState({
-        instancesMap: groupBy(resJson.instances, "testId"),
-        totalCount: resJson.total,
-        isLoading: false,
-      })
+
+      setIsLoading(false);
+      setInstancesMap(groupBy(resJson.instances, "testId"));
+      setTotalCount(resJson.total);
 
       return true;
     } catch(err) {
       console.error(err);
-      this.setState({ isLoading: false });
+      setIsLoading(false);
       return false;
     }
   }
 
-  loadUniqueAddons = async () => {
+  const loadUniqueAddons = async () => {
     try {
-      this.setState({ isLoading: true });
+      setIsLoading(true);
 
-      const res = await fetch(`${window.env.API_ENDPOINT}/run/${this.props.match.params.runId}/addons`);
+      const res = await fetch(`${window.env.API_ENDPOINT}/run/${params.runId}/addons`);
       const resJson = await res.json();
-  
-      this.setState({
-        addons: this.getAddonsMap(resJson.addons),
-        isLoading: false,
-      })
+
+      setIsLoading(false);
+      setAddons(getAddonsMap(resJson.addons));
     } catch(err) {
       console.error(err);
-      this.setState({ isLoading: false });
+      setIsLoading(false);
     }
   }
 
-  getAddonsMap = addonsArr => {
+  const getAddonsMap = addonsArr => {
     if (!addonsArr) {
       return {};
     }
 
     addonsArr.sort();
 
-    const addons = {};
+    const nextAddons = {};
     for (let i = 0; i < addonsArr.length; i++) {
       const addon = addonsArr[i];
-      addons[addon] = this.state.addons[addon];
+      nextAddons[addon] = addons[addon];
     }
 
-    return addons;
+    return nextAddons;
   }
 
-  setAddonVersion = (addon, version) => {
-    const addons = { ...this.state.addons };
+  const setAddonVersion = (addon, version) => {
+    const addons = { ...addons };
     addons[addon] = version;
-    this.setState({ addons });
+    setAddons(addons);
   }
 
-  searchAddons = async () => {
-    const success = await this.loadRunInstances();
+  const searchAddons = async () => {
+    const success = await loadRunInstances();
     if (success) {
-      this.setState({ currentPage: 0 });
+      setCurrentPage(0);
     }
   }
 
-  render() {
-    if (this.state.isLoading) {
-      return (
-        <div style={{ marginTop: 24 }}>
-          <Loader />
-        </div>
-      );
-    }
-
+  if (isLoading) {
     return (
-      <div className="RunContainer">
-        <div className="flex alignItems--center u-borderBottom--gray u-marginBottom--20 u-paddingBottom--small">
-          <div className="u-marginRight--20 u-cursor--pointer" onClick={() => this.props.history.push("/")}>
-            <span className="arrow left u-marginRight--5"></span>
-            <span className="u-color--astral">Runs</span>
-          </div>
-          <span className="u-fontSize--jumbo2 u-fontWeight--bold u-color--tuna">kURL Test Run: {`${this.props.match.params.runId}`}</span>
-        </div>
-        
-        {/* Addons search */}
-        <div className="u-width--threeQuarters u-marginBottom--20 u-borderAll--gray u-padding--row">
-          <div className="flex flexWrap--wrap u-marginBottom--10" >
-            {this.state.addons && Object.keys(this.state.addons).map(addon => (
-              <div key={addon} className="flex u-marginBottom--10 alignItems--center u-width--fourth">
-                <span className="flex1 u-marginRight--10 u-fontWeight--bold">{addon}</span>
-                <input
-                  className="Input flex2 u-marginRight--20"
-                  type="text"
-                  placeholder="Version"
-                  value={this.state.addons[addon]}
-                  onChange={e => this.setAddonVersion(addon, e.target.value)}
-                />
-              </div>
-            ))}
-          </div>
-          <button type="button" className="btn primary" onClick={this.searchAddons}>Search</button>
-        </div>
-
-        <InstanceTable
-          ref={this.instancesTable}
-          instancesMap={this.state.instancesMap}
-          history={this.props.history}
-          location={this.props.location}
-        />
-
-        <Pager
-          pagerType="instances"
-          currentPage={parseInt(this.state.currentPage) || 0}
-          pageSize={this.state.pageSize}
-          totalCount={this.state.totalCount}
-          loading={false}
-          currentPageLength={Object.keys(this.state.instancesMap).length}
-          goToPage={this.onGotoPage}
-        />
+      <div style={{ marginTop: 24 }}>
+        <Loader />
       </div>
     );
   }
+
+  return (
+    <div className="RunContainer">
+      <div className="flex alignItems--center u-borderBottom--gray u-marginBottom--20 u-paddingBottom--small">
+        <div className="u-marginRight--20 u-cursor--pointer" onClick={() => navigate("/")}>
+          <span className="arrow left u-marginRight--5"></span>
+          <span className="u-color--astral">Runs</span>
+        </div>
+        <span className="u-fontSize--jumbo2 u-fontWeight--bold u-color--tuna">kURL Test Run: {`${params.runId}`}</span>
+      </div>
+
+      {/* Addons search */}
+      <div className="u-width--threeQuarters u-marginBottom--20 u-borderAll--gray u-padding--row">
+        <div className="flex flexWrap--wrap u-marginBottom--10" >
+          {addons && Object.keys(addons).map(addon => (
+            <div key={addon} className="flex u-marginBottom--10 alignItems--center u-width--fourth">
+              <span className="flex1 u-marginRight--10 u-fontWeight--bold">{addon}</span>
+              <input
+                className="Input flex2 u-marginRight--20"
+                type="text"
+                placeholder="Version"
+                value={addons[addon]}
+                onChange={e => setAddonVersion(addon, e.target.value)}
+              />
+            </div>
+          ))}
+        </div>
+        <button type="button" className="btn primary" onClick={searchAddons}>Search</button>
+      </div>
+
+      <InstanceTable
+        instancesMap={instancesMap}
+      />
+
+      <Pager
+        pagerType="instances"
+        currentPage={currentPage}
+        pageSize={pageSize}
+        totalCount={totalCount}
+        loading={false}
+        currentPageLength={Object.keys(instancesMap).length}
+        goToPage={setCurrentPage}
+      />
+    </div>
+  );
 }
 
 export default Run;
