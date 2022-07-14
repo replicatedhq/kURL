@@ -57,7 +57,6 @@
     "monaco-editor-webpack-plugin": "^7.0.1",
     "parse-ansi": "^1.0.3",
     "prop-types": "^15.8.1",
-    "query-string": "^7.1.1",
     "react": "^18.2.0",
     "react-ace": "^10.1.0",
     "react-dom": "^18.2.0",
