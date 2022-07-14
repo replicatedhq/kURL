@@ -147,7 +147,6 @@ const Run = () => {
       </div>
 
       <InstanceTable
-        ref={this.instancesTable}
         instancesMap={instancesMap}
       />
 

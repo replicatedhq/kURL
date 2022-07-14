@@ -36,20 +36,20 @@ const InstanceTable = (props) => {
   const [showPostInstallScript, setShowPostInstallScript] = useState(false);
   const [showPostUpgradeScript, setShowPostUpgradeScript] = useState(false);
 
-  // TODO: this does not work
+  let logsAceEditor = null;
+
   useEffect(() => {
-    if (searchParams.kurlLogsInstanceId && searchParams.nodeId) {
-      const instance = findInstanceInMap(searchParams.kurlLogsInstanceId);
-      viewNodeLogs(searchParams.nodeId, instance);
-      console.log("HERE1 ");
-    } else if(searchParams.kurlLogsInstanceId) {
-      const instance = findInstanceInMap(searchParams.kurlLogsInstanceId);
+    if (searchParams.get("kurlLogsInstanceId") && searchParams.get('nodeId')) {
+      const instance = findInstanceInMap(searchParams.get("kurlLogsInstanceId"));
+      if (instance) {
+        viewNodeLogs(searchParams.get('nodeId'), instance);
+      }
+    } else if(searchParams.get("kurlLogsInstanceId")) {
+      const instance = findInstanceInMap(searchParams.get("kurlLogsInstanceId"));
       viewInstanceLogs(instance);
-      console.log("HERE2 ");
-    } else if (searchParams.sonobuoyResultsInstanceId) {
-      const instance = findInstanceInMap(searchParams.sonobuoyResultsInstanceId);
+    } else if (searchParams.get("sonobuoyResultsInstanceId")) {
+      const instance = findInstanceInMap(searchParams.get("sonobuoyResultsInstanceId"));
       viewInstanceSonobuoyResults(instance);
-      console.log("HERE3 ");
     }
   }, []);
 
@@ -164,7 +164,7 @@ const InstanceTable = (props) => {
         if (location?.hash) {
           setTimeout(() => {
             const selectedLine = parseInt(location.hash.substring(2));
-            goToLineInEditor(this.logsAceEditor, selectedLine);
+            goToLineInEditor(logsAceEditor, selectedLine);
           }, 200);
         }
       })
@@ -197,7 +197,7 @@ const InstanceTable = (props) => {
       if (location?.hash) {
         setTimeout(() => {
           const selectedLine = parseInt(location.hash.substring(2));
-          goToLineInEditor(this.logsAceEditor, selectedLine);
+          goToLineInEditor(logsAceEditor, selectedLine);
         }, 200);
       }
     });
@@ -479,7 +479,7 @@ const InstanceTable = (props) => {
           <div className="Modal-body flex1 flex-column">
             <div className="AceEditor-wrapper">
               <AceEditor
-                ref={input => (this.logsAceEditor = input)}
+                ref={input => (logsAceEditor = input)}
                 mode="text"
                 theme="chrome"
                 className="flex1 flex"
@@ -493,7 +493,7 @@ const InstanceTable = (props) => {
                   useSoftTabs: true,
                   tabSize: 2,
                 }}
-                onSelectionChange={() => onSelectionChange(this.logsAceEditor)}
+                onSelectionChange={() => onSelectionChange(logsAceEditor)}
                 setOptions={{
                   scrollPastEnd: false,
                   showGutter: true,
