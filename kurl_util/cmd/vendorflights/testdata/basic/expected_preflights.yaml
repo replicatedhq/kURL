@@ -6,15 +6,12 @@ spec:
   analyzers:
   - cpu:
       checkName: Number of CPUs
-      exclude: ""
       outcomes:
       - fail:
           message: This server has at least 4 CPU cores
           when: count < 2
       - pass:
           message: This server has at least 4 CPU cores
-      strict: ""
   collectors:
-  - cpu:
-      exclude: ""
+  - cpu: {}
 status: {}
