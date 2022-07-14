@@ -96,4 +96,3 @@ function weave_ready_spinner() {
       bail "The weave addon failed to deploy successfully."
     fi
 }
-
