@@ -96,12 +96,6 @@ const Run = () => {
     return nextAddons;
   }
 
-  const onGotoPage = (page, event) => {
-    event.preventDefault();
-
-    setCurrentPage(page);
-  }
-
   const setAddonVersion = (addon, version) => {
     const addons = { ...addons };
     addons[addon] = version;
@@ -164,7 +158,7 @@ const Run = () => {
         totalCount={totalCount}
         loading={false}
         currentPageLength={Object.keys(instancesMap).length}
-        goToPage={onGotoPage}
+        goToPage={setCurrentPage}
       />
     </div>
   );
