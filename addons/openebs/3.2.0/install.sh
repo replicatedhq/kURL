@@ -170,10 +170,3 @@ function openebs_migrate_post_helm_resources() {
     # name changed from openebs-maya-operator > openebs
     kubectl delete clusterrolebinding openebs-maya-operator 2>/dev/null || true
 }
-
-function kubernetes_service_healthy() {
-    local namespace=$1
-    local name=$2
-
-    kubectl -n "$namespace" get endpoints "$name" | grep -v "NAME" | grep -v "<none>" &>/dev/null
-}

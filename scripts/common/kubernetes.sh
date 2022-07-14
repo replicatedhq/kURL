@@ -943,3 +943,11 @@ function file_exists() {
         return 1
     fi
 }
+
+# checks if the service in ns $1 with name $2 has endpoints
+function kubernetes_service_healthy() {
+    local namespace=$1
+    local name=$2
+
+    kubectl --no-headers -n "$namespace" get endpoints "$name" | grep -v "<none>" &>/dev/null
+}
