@@ -21,30 +21,30 @@
     
     echo "weave iptables list"
     kubectl exec -n kube-system daemonset/weave-net -c weave -- iptables -L
-- name: "weave latest multi node"
-  installerSpec:
-    kubernetes:
-      version: "latest"
-    docker:
-      version: "latest"
-    goldpinger:
-      version: "latest"
-    weave:
-      version: "__testver__"
-      s3Override: "__testdist__"
-  numPrimaryNodes: 1
-  numSecondaryNodes: 2
-- name: "weave airgap latest multi node"
-  installerSpec:
-    kubernetes:
-      version: "latest"
-    docker:
-      version: "latest"
-    goldpinger:
-      version: "latest"
-    weave:
-      version: "__testver__"
-      s3Override: "__testdist__"
-  numPrimaryNodes: 1
-  numSecondaryNodes: 2
-  airgap: true
+#- name: "weave latest multi node"
+#  installerSpec:
+#    kubernetes:
+#      version: "latest"
+#    docker:
+#      version: "latest"
+#    goldpinger:
+#      version: "latest"
+#    weave:
+#      version: "__testver__"
+#      s3Override: "__testdist__"
+#  numPrimaryNodes: 1
+#  numSecondaryNodes: 2
+#- name: "weave airgap latest multi node"
+#  installerSpec:
+#    kubernetes:
+#      version: "latest"
+#    docker:
+#      version: "latest"
+#    goldpinger:
+#      version: "latest"
+#    weave:
+#      version: "__testver__"
+#      s3Override: "__testdist__"
+#  numPrimaryNodes: 1
+#  numSecondaryNodes: 2
+#  airgap: true
