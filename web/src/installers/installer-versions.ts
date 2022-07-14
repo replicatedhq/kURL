@@ -1,3 +1,4 @@
+import fetch from "node-fetch";
 import * as _ from "lodash";
 import Bugsnag from "@bugsnag/js";
 import { HTTPError } from "../server/errors";
@@ -29,7 +30,7 @@ export async function getInstallerVersions(distUrl: string, kurlVersion?: string
   } else if (res.status !== 200) {
     throw new HTTPError(500, `unexpected addon supported versions http status ${res.statusText} from url ${url}`);
   }
-  const body = await res.json();
+  const body = (await res.json()) as any;
   if (!_.get(body, "supportedVersions.kubernetes") || (body.supportedVersions as IInstallerVersions).kubernetes.length === 0) {
     throw new HTTPError(500, `unexpected addon supported versions response body from url ${url}`);
   }

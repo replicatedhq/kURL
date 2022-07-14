@@ -1,3 +1,4 @@
+import fetch from "node-fetch";
 import * as StatsdClient from "statsd-client";
 
 import {

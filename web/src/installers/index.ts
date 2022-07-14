@@ -1,3 +1,4 @@
+import fetch from "node-fetch";
 import * as crypto from "crypto";
 import * as yaml from "js-yaml";
 import * as _ from "lodash";
