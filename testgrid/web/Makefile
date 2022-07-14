@@ -9,6 +9,10 @@ depcheck:
 	# npm install depcheck -g
 	depcheck . --specials=webpack,babel,bin,eslint
 
+.PHONY: lint
+lint:
+	npx eslint ./src --ext .js,.jsx,.ts,.tsx
+
 .PHONY: serve
 serve:
 	npm start

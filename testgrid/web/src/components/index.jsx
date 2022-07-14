@@ -1,6 +1,5 @@
 import * as React from "react";
-import * as autobind from "react-autobind";
-import { BrowserRouter, Route, Switch } from "react-router-dom";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
 import ErrorBoundary from "./containers/ErrorBoundary";
 import NotFound from "./shared/NotFound";
 import Home from "./containers/Home";
@@ -12,7 +11,6 @@ import "../assets/scss/index.scss";
 class Root extends React.Component {
   constructor(props) {
     super(props);
-    autobind(this);
   }
 
   render() {
@@ -20,11 +18,11 @@ class Root extends React.Component {
       <BrowserRouter>
         <ErrorBoundary>
           <Layout title={"kURL Test Grid"}>
-            <Switch>
-              <Route exact path="/" component={Home} />
-              <Route exact path="/run/:runId" component={Run} />
-              <Route path="*" component={NotFound} />
-            </Switch>
+            <Routes>
+              <Route exact path="/" element={<Home />} />
+              <Route exact path="/run/:runId" element={<Run />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
           </Layout>
         </ErrorBoundary>
       </BrowserRouter>
