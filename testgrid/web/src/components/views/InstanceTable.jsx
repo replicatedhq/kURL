@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 
 import * as Modal from "react-modal";
@@ -36,7 +36,7 @@ const InstanceTable = (props) => {
   const [showPostInstallScript, setShowPostInstallScript] = useState(false);
   const [showPostUpgradeScript, setShowPostUpgradeScript] = useState(false);
 
-  let logsAceEditor = null;
+  const logsAceEditor = useRef();
 
   useEffect(() => {
     if (searchParams.get("kurlLogsInstanceId") && searchParams.get('nodeId')) {
@@ -165,7 +165,7 @@ const InstanceTable = (props) => {
           setTimeout(() => {
             const selectedLine = parseInt(location.hash.substring(2));
             goToLineInEditor(logsAceEditor, selectedLine);
-          }, 200);
+          }, 1000);
         }
       })
       .catch((err) => {
@@ -198,7 +198,7 @@ const InstanceTable = (props) => {
         setTimeout(() => {
           const selectedLine = parseInt(location.hash.substring(2));
           goToLineInEditor(logsAceEditor, selectedLine);
-        }, 200);
+        }, 1000);
       }
     });
   }
@@ -273,19 +273,12 @@ const InstanceTable = (props) => {
   }
 
   const goToLineInEditor = (editorRef, line) => {
-    editorRef?.editor?.gotoLine(line);
-    const activeMarkers = [{
-      startRow: line - 1,
-      endRow: line,
-      className: "active-highlight",
-      type: "background"
-    }];
-    setActiveMarkers(activeMarkers);
+    editorRef?.current?.editor?.gotoLine(line);
   }
 
   const onSelectionChange = editorRef => {
-    const column = editorRef?.editor?.selection?.anchor.column;
-    const row = editorRef?.editor?.selection?.anchor.row;
+    const column = editorRef?.current?.editor?.selection?.anchor.column;
+    const row = editorRef?.current?.editor?.selection?.anchor.row;
     if (column === 0) {
       const activeMarkers = [{
         startRow: row - 1,
@@ -479,7 +472,7 @@ const InstanceTable = (props) => {
           <div className="Modal-body flex1 flex-column">
             <div className="AceEditor-wrapper">
               <AceEditor
-                ref={input => (logsAceEditor = input)}
+                ref={logsAceEditor}
                 mode="text"
                 theme="chrome"
                 className="flex1 flex"
