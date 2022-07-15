@@ -28,11 +28,11 @@ function longhorn() {
     cp "$src/crds.yaml" "$dst/"
 
     if longhorn_has_default_storageclass && ! longhorn_is_default_storageclass ; then
-        printf "${YELLOW}Existing default storage class that is not Longhorn detected${NC}\n"
-        printf "${YELLOW}Longhorn will still be installed as the non-default storage class.${NC}\n"
+        logWarn "Existing default storage class that is not Longhorn detected"
+        logWarn "Longhorn will still be installed as the non-default storage class."
         LONGHORN_IS_DEFAULT_STORAGECLASS=false
     else
-        printf "Longhorn will be installed as the default storage class.\n"
+        echo "Longhorn will be installed as the default storage class"
         LONGHORN_IS_DEFAULT_STORAGECLASS=true
     fi
     export LONGHORN_IS_DEFAULT_STORAGECLASS
