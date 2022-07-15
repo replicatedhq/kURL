@@ -949,5 +949,5 @@ function kubernetes_service_healthy() {
     local namespace=$1
     local name=$2
 
-    kubectl --no-headers -n "$namespace" get endpoints "$name" | grep -v "<none>" &>/dev/null
+    kubectl -n "$namespace" get endpoints "$name" --no-headers | grep -v "<none>" &>/dev/null
 }
