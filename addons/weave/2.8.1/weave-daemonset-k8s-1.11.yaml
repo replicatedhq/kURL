@@ -120,7 +120,7 @@ items:
         spec:
           initContainers:
             - name: weave-init
-              image: 'kurlsh/weave-kube:2.8.1'
+              image: 'weaveworks/weave-kube:2.8.1'
               command:
                 - /home/weave/init.sh
               env:
@@ -151,8 +151,8 @@ items:
                       apiVersion: v1
                       fieldPath: spec.nodeName
                 - name: EXEC_IMAGE
-                  value: "kurlsh/weaveexec:2.8.1"
-              image: 'kurlsh/weave-kube:2.8.1'
+                  value: "weaveworks/weaveexec:2.8.1"
+              image: 'weaveworks/weave-kube:2.8.1'
               readinessProbe:
                 httpGet:
                   host: 127.0.0.1
@@ -182,7 +182,7 @@ items:
                     fieldRef:
                       apiVersion: v1
                       fieldPath: spec.nodeName
-              image: 'kurlsh/weave-npc:2.8.1'
+              image: 'weaveworks/weave-npc:2.8.1'
 #npc-args
               resources:
                 requests:
