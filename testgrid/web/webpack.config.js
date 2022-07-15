@@ -53,6 +53,7 @@ module.exports = (env) => {
         {
           test: /\.(png|jpg|ico|svg)$/,
           loader: "file-loader",
+          exclude: /src\/assets\/scss\//,
         },
         {
           test: /\.woff(2)?(\?v=\d+\.\d+\.\d+)?$/,
