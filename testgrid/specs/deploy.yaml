@@ -48,6 +48,8 @@
       isLocalPVEnabled: true
       localPVStorageClassName: default
       isCstorEnabled: false
+  unsupportedOSIDs:
+    - ubuntu-2004
 - name: k8s119-minimal
   installerSpec:
     kubernetes:

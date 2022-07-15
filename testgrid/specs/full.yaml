@@ -14,6 +14,9 @@
       isCstorEnabled: false
     minio:
       version: latest
+  unsupportedOSIDs:
+    - ubuntu-1804
+    - ubuntu-2004
 - name: k3s
   installerSpec:
     k3s:
