@@ -4,9 +4,9 @@ function weave_pre_init() {
 }
 
 function weave() {
-    cp "$DIR/addons/weave/2.6.5/kustomization.yaml" "$DIR/kustomize/weave/kustomization.yaml"
-    cp "$DIR/addons/weave/2.6.5/rbac.yaml" "$DIR/kustomize/weave/rbac.yaml"
-    cp "$DIR/addons/weave/2.6.5/daemonset.yaml" "$DIR/kustomize/weave/daemonset.yaml"
+    cp "$DIR/addons/weave/2.6.5-20220616/kustomization.yaml" "$DIR/kustomize/weave/kustomization.yaml"
+    cp "$DIR/addons/weave/2.6.5-20220616/rbac.yaml" "$DIR/kustomize/weave/rbac.yaml"
+    cp "$DIR/addons/weave/2.6.5-20220616/daemonset.yaml" "$DIR/kustomize/weave/daemonset.yaml"
 
     if [ "$ENCRYPT_NETWORK" != "0" ]; then
         # don't change existing secrets because pods that start after will have a different value
@@ -34,17 +34,17 @@ function weave_resource_secret() {
     insert_resources "$DIR/kustomize/weave/kustomization.yaml" secret.yaml
 
     WEAVE_PASSWORD=$(< /dev/urandom tr -dc A-Za-z0-9 | head -c9)
-    render_yaml_file "$DIR/addons/weave/2.6.5/tmpl-secret.yaml" > "$DIR/kustomize/weave/secret.yaml"
+    render_yaml_file "$DIR/addons/weave/2.6.5-20220616/tmpl-secret.yaml" > "$DIR/kustomize/weave/secret.yaml"
 }
 
 function weave_patch_encrypt() {
     insert_patches_strategic_merge "$DIR/kustomize/weave/kustomization.yaml" encrypt.yaml
-    cp "$DIR/addons/weave/2.6.5/encrypt.yaml" "$DIR/kustomize/weave/encrypt.yaml"
+    cp "$DIR/addons/weave/2.6.5-20220616/encrypt.yaml" "$DIR/kustomize/weave/encrypt.yaml"
 }
 
 function weave_patch_ip_alloc_range() {
     insert_patches_strategic_merge "$DIR/kustomize/weave/kustomization.yaml" ip-alloc-range.yaml
-    render_yaml_file "$DIR/addons/weave/2.6.5/tmpl-ip-alloc-range.yaml" > "$DIR/kustomize/weave/ip-alloc-range.yaml"
+    render_yaml_file "$DIR/addons/weave/2.6.5-20220616/tmpl-ip-alloc-range.yaml" > "$DIR/kustomize/weave/ip-alloc-range.yaml"
 }
 
 function weave_patch_no_masq_local() {
