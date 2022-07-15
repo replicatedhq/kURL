@@ -13,8 +13,10 @@ function goldpinger() {
 
     kubectl apply -k "$dst/"
 
-    logStep "Waiting for Goldpinger Daemonset to be ready"
+    logStep "Waiting for the Goldpinger Daemonset to be ready"
     spinner_until 180 goldpinger_daemonset
+    logStep "Waiting for the Goldpinger service to be ready"
+    spinner_until 120 kubernetes_service_healthy kurl goldpinger
     logSuccess "Goldpinger is ready and monitoring node network health"
 }
 
