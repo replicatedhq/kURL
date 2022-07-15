@@ -25,34 +25,69 @@ function get_ksplit() {
 function generate() {
     # make the base set of files
     mkdir -p "../${VERSION}"
-    mkdir -p "../${VERSION}/yaml"
+    mkdir -p "../${VERSION}/tmp"
     cp -r ./base/* "../${VERSION}"
 
     # get the raw yaml for the release
-    curl --silent "https://raw.githubusercontent.com/longhorn/longhorn/v$VERSION/deploy/longhorn.yaml" > "../${VERSION}/yaml/longhorn.yaml"
+    curl --silent "https://raw.githubusercontent.com/longhorn/longhorn/v$VERSION/deploy/longhorn.yaml" > "../${VERSION}/tmp/longhorn.yaml"
 
     # cd to allow ksplit to include the path, and then cd back
-    cd ..
-    $KSPLITPATH crdsplit "${VERSION}/yaml/"
-    cd template
+
+    ( cd ..; $KSPLITPATH crdsplit "${VERSION}/tmp/" )
 
     # disable upgrade checker
-    sed -i 's/upgrade-checker:/upgrade-checker: false/' "../${VERSION}/yaml/AllResources.yaml"
+    sed -i 's/upgrade-checker:/upgrade-checker: false/' "../${VERSION}/tmp/AllResources.yaml"
 
     # add priority-class
-    sed -i 's/priority-class:/priority-class: system-node-critical/' "../${VERSION}/yaml/AllResources.yaml"
+    sed -i 's/priority-class:/priority-class: system-node-critical/' "../${VERSION}/tmp/AllResources.yaml"
 
-    mv "../${VERSION}/yaml/AllResources.yaml" "../${VERSION}/AllResources.yaml"
-    mv "../${VERSION}/yaml/CustomResourceDefinitions.yaml" "../${VERSION}/crds.yaml"
-    rmdir "../${VERSION}/yaml"
+    split_resources "../${VERSION}/tmp/AllResources.yaml" "../${VERSION}/yaml" "../${VERSION}/yaml/kustomization.yaml"
+
+    mv "../${VERSION}/yaml/storageclass.yaml" "../${VERSION}/template/storageclass.yaml"
+    sed -i 's/is-default-class: "true"/is-default-class: "$LONGHORN_IS_DEFAULT_STORAGECLASS"/' "../${VERSION}/template/storageclass.yaml"
+
+    mv "../${VERSION}/tmp/CustomResourceDefinitions.yaml" "../${VERSION}/crds.yaml"
+    rm -rf "../${VERSION}/tmp"
 
     # get the images for the release
     curl --silent "https://raw.githubusercontent.com/longhorn/longhorn/v$VERSION/deploy/longhorn-images.txt" | sed 's/\(.*\)\/\(.*\):\([^"]*\)/image \2 \1\/\2:\3/' >> "../${VERSION}/Manifest"
 
 }
 
+function split_resources() {
+    local combined="$1"
+    local outdir="$2"
+    local kustomization_file="$3"
+    local tmpdir="$(mktemp -d -p $outdir)"
+    csplit --quiet --prefix="$tmpdir/out" -b ".%03d.yaml" $combined "/^---$/+1" "{*}"
+    for tmpfile in "$tmpdir"/*.yaml ; do
+        if grep -q "# Source: " "$tmpfile" ; then
+            local source="$(basename "$(grep "# Source: " "$tmpfile" | sed 's/# Source: //')")"
+            local filename="$outdir/$source"
+            if [ ! -f "$filename" ]; then
+                insert_resources "$kustomization_file" "$source"
+            fi
+            mv "$tmpfile" "$filename"
+        fi
+    done
+    rm -rf "$tmpdir"
+}
+
+function insert_resources() {
+    local kustomization_file="$1"
+    local resource_file="$2"
+
+    if ! grep -q "resources:" "$kustomization_file"; then
+        echo "resources:" >> "$kustomization_file"
+    fi
+
+    sed -i "/resources:.*/a - $resource_file" "$kustomization_file"
+}
+
 function add_as_latest() {
-    sed -i "/cron-longhorn-update/a\    \"${VERSION}\"\," ../../../web/src/installers/versions.js
+    if ! sed '0,/cron-longhorn-update/d' ../../../web/src/installers/versions.js | sed '/\],/,$d' | grep -q "${VERSION}" ; then
+        sed -i "/cron-longhorn-update/a\    \"${VERSION}\"\," ../../../web/src/installers/versions.js
+    fi
 }
 
 function main() {

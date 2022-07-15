@@ -1,8 +1,13 @@
+# Source: longhorn/templates/storageclass.yaml
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: longhorn-storageclass
   namespace: longhorn-system
+  labels:
+    app.kubernetes.io/name: longhorn
+    app.kubernetes.io/instance: longhorn
+    app.kubernetes.io/version: v1.3.0
 data:
   storageclass.yaml: |
     kind: StorageClass
@@ -10,12 +15,15 @@ data:
     metadata:
       name: longhorn
       annotations:
-        storageclass.kubernetes.io/is-default-class: "true"
+        storageclass.kubernetes.io/is-default-class: "$LONGHORN_IS_DEFAULT_STORAGECLASS"
     provisioner: driver.longhorn.io
     allowVolumeExpansion: true
-    reclaimPolicy: Delete
+    reclaimPolicy: "Delete"
     volumeBindingMode: Immediate
     parameters:
       numberOfReplicas: "3"
-      staleReplicaTimeout: "2880"
+      staleReplicaTimeout: "30"
       fromBackup: ""
+      fsType: "ext4"
+      dataLocality: "disabled"
+---

@@ -1,0 +1,8 @@
+resources:
+
+patchesStrategicMerge:
+- patch-ui-deployment.yaml
+- patch-ui-service.yaml
+- patch-manager-priority.yaml
+- patch-driver-priority.yaml
+- patch-defaults-cm.yaml

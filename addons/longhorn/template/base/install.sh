@@ -24,29 +24,27 @@ function longhorn() {
     local src="$DIR/addons/longhorn/$LONGHORN_VERSION"
     local dst="$DIR/kustomize/longhorn"
 
-    cp "$src/kustomization.yaml" "$dst/"
+    cp -r "$src/yaml" "$dst/yaml"
     cp "$src/crds.yaml" "$dst/"
-    cp "$src/AllResources.yaml" "$dst/"
-    cp "$src/manager-priority.yaml" "$dst/"
-    cp "$src/driver-priority.yaml" "$dst/"
 
     if longhorn_has_default_storageclass && ! longhorn_is_default_storageclass ; then
         printf "${YELLOW}Existing default storage class that is not Longhorn detected${NC}\n"
         printf "${YELLOW}Longhorn will still be installed as the non-default storage class.${NC}\n"
+        LONGHORN_IS_DEFAULT_STORAGECLASS=false
     else
         printf "Longhorn will be installed as the default storage class.\n"
-        cp "$src/storageclass-default-configmap.yaml" "$dst/storageclass-configmap.yaml"
-        insert_patches_strategic_merge "$dst/kustomization.yaml" "storageclass-configmap.yaml"
+        LONGHORN_IS_DEFAULT_STORAGECLASS=true
     fi
+    export LONGHORN_IS_DEFAULT_STORAGECLASS
+    render_yaml_file "$src/template/storageclass.yaml" > "$dst/yaml/storageclass.yaml"
 
-    check_mount_propagation $src
+    check_mount_propagation "$src" "$dst"
 
     longhorn_host_init_common "$DIR/addons/longhorn/$LONGHORN_VERSION"
 
-
-    render_yaml_file "$src/tmpl-ui-service.yaml" > "$dst/ui-service.yaml"
-    render_yaml_file "$src/tmpl-ui-deployment.yaml" > "$dst/ui-deployment.yaml"
-    render_yaml_file "$src/tmpl-defaults-cm.yaml" > "$dst/defaults-cm.yaml"
+    render_yaml_file "$src/template/patch-ui-service.yaml" > "$dst/yaml/patch-ui-service.yaml"
+    render_yaml_file "$src/template/patch-ui-deployment.yaml" > "$dst/yaml/patch-ui-deployment.yaml"
+    render_yaml_file "$src/template/patch-defaults-cm.yaml" > "$dst/yaml/patch-defaults-cm.yaml"
 
     kubectl apply -f "$dst/crds.yaml"
     echo "Waiting for Longhorn CRDs to be created"
@@ -61,7 +59,7 @@ function longhorn() {
     spinner_until 120 kubernetes_resource_exists default crd backingimages.longhorn.io
     spinner_until 120 kubernetes_resource_exists default crd backingimagemanagers.longhorn.io
 
-    kubectl apply -k "$dst/"
+    kubectl apply -k "$dst/yaml/"
 
     echo "Waiting for Longhorn Manager to create Storage Class"
     spinner_until 120 kubernetes_resource_exists longhorn-system sc longhorn
@@ -110,18 +108,19 @@ function longhorn_join() {
 
 function check_mount_propagation() {
     local src=$1
+    local dst=$2
 
     kubectl get ns longhorn-system >/dev/null 2>&1 || kubectl create ns longhorn-system >/dev/null 2>&1
     kubectl delete -n longhorn-system ds longhorn-environment-check 2>/dev/null || true
 
-    render_yaml_file "$src/tmpl-mount-propagation.yaml" > "$src/mount-propagation.yaml"
-    kubectl apply -f "$src/mount-propagation.yaml"
+    render_yaml_file "$src/template/mount-propagation.yaml" > "$dst/yaml/mount-propagation.yaml"
+    kubectl apply -f "$dst/yaml/mount-propagation.yaml"
     echo "Waiting for the Longhorn Mount Propagation Check Daemonset to be ready"
     spinner_until 120 longhorn_daemonset_is_ready longhorn-environment-check
 
     validate_longhorn_ds
 
-    kubectl delete -f "$src/mount-propagation.yaml"
+    kubectl delete -f "$dst/yaml/mount-propagation.yaml"
 }
 
 # pass if at least one node will support longhorn, but with a warning if there are nodes that won't
