@@ -1,0 +1,10 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: longhorn-ui
+  name: longhorn-ui
+  namespace: longhorn-system
+spec:
+  replicas: ${LONGHORN_UI_REPLICA_COUNT}
+

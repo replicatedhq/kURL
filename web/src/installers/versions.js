@@ -402,6 +402,7 @@ module.exports.InstallerVersions = {
   ],
   longhorn: [
     // cron-longhorn-update
+    "1.3.0",
     "1.2.4",
     "1.2.2",
     "1.1.2",
