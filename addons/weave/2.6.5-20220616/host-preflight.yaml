@@ -1,0 +1,112 @@
+apiVersion: troubleshoot.sh/v1beta2
+kind: HostPreflight
+metadata:
+  name: weave
+spec:
+  collectors:
+    - tcpPortStatus:
+        collectorName: "Weave Network Policy Controller Metrics Server TCP Port Status"
+        port: 6781
+        exclude: '{{kurl .IsUpgrade }}'
+    - tcpPortStatus:
+        collectorName: "Weave Net Metrics Server TCP Port Status"
+        port: 6782
+        exclude: '{{kurl .IsUpgrade }}'
+    - tcpPortStatus:
+        collectorName: "Weave Net Control TCP Port Status"
+        port: 6783
+        exclude: '{{kurl .IsUpgrade }}'
+{{kurl- if and .IsJoin (not .IsUpgrade)}}
+  {{kurl- range .RemoteHosts}}
+    - tcpConnect:
+        collectorName: "weave {{kurl . }}"
+        address: '{{kurl . }}:6783'
+        timeout: 5s
+  {{kurl- end}}
+{{kurl- end}}
+
+  analyzers:
+    - tcpPortStatus:
+        checkName: "Weave Network Policy Controller Metrics Server TCP Port Status"
+        collectorName: "Weave Net Metrics Server TCP Port Status"
+        exclude: '{{kurl .IsUpgrade }}'
+        outcomes:
+          - fail:
+              when: "connection-refused"
+              message: Connection to port 6781 was refused. This is likely to be a routing problem since this preflight configures a test server to listen on this port.
+          - fail:
+              when: "address-in-use"
+              message: Another process was already listening on port 6781.
+          - pass:
+              when: "connection-timeout"
+              message: Port 6781 is available
+          - fail:
+              when: "error"
+              message: Unexpected port status
+          - pass:
+              when: "connected"
+              message: Port 6781 is available
+    - tcpPortStatus:
+        checkName: "Weave Net Metrics Server TCP Port Status"
+        collectorName: "Weave Net Metrics Server TCP Port Status"
+        exclude: '{{kurl .IsUpgrade }}'
+        outcomes:
+          - fail:
+              when: "connection-refused"
+              message: Connection to port 6782 was refused. This is likely to be a routing problem since this preflight configures a test server to listen on this port.
+          - fail:
+              when: "address-in-use"
+              message: Another process was already listening on port 6782.
+          - pass:
+              when: "connection-timeout"
+              message: Port 6782 is available
+          - fail:
+              when: "error"
+              message: Unexpected port status
+          - pass:
+              when: "connected"
+              message: Port 6782 is available
+    - tcpPortStatus:
+        checkName: "Weave Net Control TCP Port Status"
+        collectorName: "Weave Net Control TCP Port Status"
+        exclude: '{{kurl .IsUpgrade }}'
+        outcomes:
+          - fail:
+              when: "connection-refused"
+              message: Connection to port 6783 was refused. This is likely to be a routing problem since this preflight configures a test server to listen on this port.
+          - warn:
+              when: "address-in-use"
+              message: Another process was already listening on port 6783.
+          - fail:
+              when: "connection-timeout"
+              message: Timed out connecting to port 6783. Check your firewall.
+          - fail:
+              when: "error"
+              message: Unexpected port status
+          - pass:
+              when: "connected"
+              message: Port 6783 is open
+          - warn:
+              message: Unexpected port status
+{{kurl- if and .IsJoin (not .IsUpgrade)}}
+  {{kurl- range .RemoteHosts}}
+    - tcpConnect:
+        checkName: "weave {{kurl . }}:6783 TCP connection status"
+        collectorName: "weave {{kurl . }}"
+        outcomes:
+          - warn:
+              when: "connection-refused"
+              message: Connection to weave {{kurl . }}:6783 was refused
+          - warn:
+              when: "connection-timeout"
+              message: Timed out connecting to weave {{kurl . }}:6783
+          - warn:
+              when: "error"
+              message: Unexpected error connecting to weave {{kurl . }}:6783
+          - pass:
+              when: "connected"
+              message: Successfully connected to weave {{kurl . }}:6783
+          - warn:
+              message: Unexpected TCP connection status for weave {{kurl . }}:6783
+  {{kurl- end}}
+{{kurl- end}}
