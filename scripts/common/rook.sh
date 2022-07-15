@@ -104,6 +104,13 @@ function remove_rook_ceph() {
 function rook_ceph_to_longhorn() {
     report_addon_start "rook-ceph-to-longhorn" "v1"
 
+    # patch ceph so that it does not consume new devices that longhorn creates
+    echo "Patching CephCluster storage.useAllDevices=false"
+    kubectl -n rook-ceph patch cephcluster rook-ceph --type json --patch '[{"op": "replace", "path": "/spec/storage/useAllDevices", value: false}]'
+    sleep 1
+    echo "Waiting for CephCluster to update"
+    spinner_until 300 rook_osd_phase_ready || true # don't fail
+
     # set prometheus scale if it exists
     if kubectl get namespace monitoring &>/dev/null; then
         if kubectl get prometheus -n monitoring k8s &>/dev/null; then
@@ -161,4 +168,8 @@ function maybe_cleanup_rook() {
             report_addon_success "rook-ceph-removal" "v1"
         fi
     fi
+}
+
+function rook_osd_phase_ready() {
+    [ "$(kubectl -n rook-ceph get cephcluster rook-ceph --template '{{.status.phase}}')" = 'Ready' ]
 }
