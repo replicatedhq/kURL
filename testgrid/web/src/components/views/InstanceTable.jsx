@@ -5,6 +5,7 @@ import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import * as Modal from "react-modal";
 import * as find from "lodash/find";
 import * as startCase from "lodash/startCase";
+import * as debounce from "lodash/debounce";
 import * as parseAnsi from "parse-ansi";
 
 import MonacoEditor from "react-monaco-editor";
@@ -239,7 +240,7 @@ const InstanceTable = (props) => {
     try {
       return JSON.stringify(JSON.parse(value), null, 4);
     } catch(err) {
-      console.log(err);
+      console.error(err);
       return "";
     }
   }
@@ -276,25 +277,21 @@ const InstanceTable = (props) => {
     editorRef?.current?.editor?.gotoLine(line);
   }
 
-  const onSelectionChange = editorRef => {
-    const column = editorRef?.current?.editor?.selection?.anchor.column;
-    const row = editorRef?.current?.editor?.selection?.anchor.row;
+  const onSelectionChange = debounce(selection => {
+    // debounce will trigger this after editor is already removed
+    if (!logsAceEditor.current) {
+      return;
+    }
+    const column = selection.anchor.column;
+    const row = selection.anchor.row;
     if (column === 0) {
-      const activeMarkers = [{
-        startRow: row - 1,
-        endRow: row,
-        className: "active-highlight",
-        type: "background"
-      }];
-      setActiveMarkers(activeMarkers);
-
       navigate({
         pathname: location.pathname,
         search: searchParams.toString(),
         hash: `#L${row}`,
       }, {replace: true});
     }
-  }
+  }, 1000);
 
   const osArray = getOSArray(props.instancesMap);
   const rows = Object.keys(props.instancesMap).map((testId) => {
@@ -486,7 +483,7 @@ const InstanceTable = (props) => {
                   useSoftTabs: true,
                   tabSize: 2,
                 }}
-                onSelectionChange={() => onSelectionChange(logsAceEditor)}
+                onSelectionChange={(selection) => onSelectionChange(selection)}
                 setOptions={{
                   scrollPastEnd: false,
                   showGutter: true,
