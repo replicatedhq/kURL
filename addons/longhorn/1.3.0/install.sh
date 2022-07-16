@@ -59,6 +59,9 @@ function longhorn() {
     spinner_until 120 kubernetes_resource_exists default crd backingimages.longhorn.io
     spinner_until 120 kubernetes_resource_exists default crd backingimagemanagers.longhorn.io
 
+    # service name changed to longhorn-ui
+    kubectl -n longhorn-system delete svc longhorn-frontend --ignore-not-found
+
     kubectl apply -k "$dst/yaml/"
 
     echo "Waiting for Longhorn Manager to create Storage Class"
