@@ -1,4 +1,4 @@
-# Source: longhorn/templates/daemonset-sa.yaml
+# Source: longhorn/templates/services.yaml
 apiVersion: v1
 kind: Service
 metadata:
@@ -6,16 +6,16 @@ metadata:
     app.kubernetes.io/name: longhorn
     app.kubernetes.io/instance: longhorn
     app.kubernetes.io/version: v1.3.0
-    app: longhorn-manager
-  name: longhorn-backend
+    app: longhorn-admission-webhook
+  name: longhorn-admission-webhook
   namespace: longhorn-system
 spec:
   type: ClusterIP
   sessionAffinity: ClientIP
   selector:
-    app: longhorn-manager
+    app: longhorn-admission-webhook
   ports:
-  - name: manager
-    port: 9500
-    targetPort: manager
+  - name: admission-webhook
+    port: 9443
+    targetPort: admission-wh
 ---

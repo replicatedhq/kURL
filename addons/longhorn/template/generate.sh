@@ -63,14 +63,24 @@ function split_resources() {
     for tmpfile in "$tmpdir"/*.yaml ; do
         if grep -q "# Source: " "$tmpfile" ; then
             local source="$(basename "$(grep "# Source: " "$tmpfile" | sed 's/# Source: //')")"
-            local filename="$outdir/$source"
-            if [ ! -f "$filename" ]; then
-                insert_resources "$kustomization_file" "$source"
-            fi
+            local filename="$(unique_filename "$outdir/$source")"
+            insert_resources "$kustomization_file" "$source"
             mv "$tmpfile" "$filename"
         fi
     done
     rm -rf "$tmpdir"
+}
+
+function unique_filename() {
+    local filename="$1"
+    local extension="$(echo "$filename" | rev | cut -d'.' -f1 | rev)"
+    local base="${filename::-(${#extension}+1)}"
+    local i=0
+    while [ -f "$filename" ]; do
+        let "i=i+1"
+        filename="$base.$i.$extension"
+    done
+    echo "$filename"
 }
 
 function insert_resources() {

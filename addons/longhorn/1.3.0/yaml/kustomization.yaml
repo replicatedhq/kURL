@@ -1,9 +1,17 @@
 resources:
 - deployment-webhook.yaml
+- deployment-webhook.yaml
+- deployment-ui.yaml
 - deployment-driver.yaml
+- daemonset-sa.yaml
+- services.yaml
+- services.yaml
+- services.yaml
 - services.yaml
 - deployment-ui.yaml
 - daemonset-sa.yaml
+- psp.yaml
+- psp.yaml
 - clusterrolebinding.yaml
 - clusterrole.yaml
 - storageclass.yaml
