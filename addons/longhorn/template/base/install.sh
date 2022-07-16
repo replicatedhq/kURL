@@ -42,7 +42,7 @@ function longhorn() {
 
     longhorn_host_init_common "$DIR/addons/longhorn/$LONGHORN_VERSION"
 
-    render_yaml_file "$src/template/patch-ui-service.yaml" > "$dst/yaml/patch-ui-service.yaml"
+    render_yaml_file "$src/template/ui-service.yaml" > "$dst/yaml/ui-service.yaml"
     render_yaml_file "$src/template/patch-ui-deployment.yaml" > "$dst/yaml/patch-ui-deployment.yaml"
     render_yaml_file "$src/template/patch-defaults-cm.yaml" > "$dst/yaml/patch-defaults-cm.yaml"
 
@@ -58,9 +58,6 @@ function longhorn() {
     spinner_until 120 kubernetes_resource_exists default crd sharemanagers.longhorn.io
     spinner_until 120 kubernetes_resource_exists default crd backingimages.longhorn.io
     spinner_until 120 kubernetes_resource_exists default crd backingimagemanagers.longhorn.io
-
-    # service name changed to longhorn-ui
-    kubectl -n longhorn-system delete svc longhorn-frontend --ignore-not-found
 
     kubectl apply -k "$dst/yaml/"
 
