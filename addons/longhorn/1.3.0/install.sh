@@ -42,7 +42,7 @@ function longhorn() {
 
     longhorn_host_init_common "$DIR/addons/longhorn/$LONGHORN_VERSION"
 
-    render_yaml_file "$src/template/ui-service.yaml" > "$dst/yaml/ui-service.yaml"
+    render_yaml_file "$src/template/patch-ui-service.yaml" > "$dst/yaml/patch-ui-service.yaml"
     render_yaml_file "$src/template/patch-ui-deployment.yaml" > "$dst/yaml/patch-ui-deployment.yaml"
     render_yaml_file "$src/template/patch-defaults-cm.yaml" > "$dst/yaml/patch-defaults-cm.yaml"
 

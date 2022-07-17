@@ -1,7 +1,7 @@
 resources:
-- ui-service.yaml
 
 patchesStrategicMerge:
+- patch-ui-service.yaml
 - patch-ui-deployment.yaml
 - patch-manager-priority.yaml
 - patch-driver-priority.yaml

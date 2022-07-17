@@ -1,26 +1,26 @@
 resources:
+- deployment-webhook.1.yaml
 - deployment-webhook.yaml
-- deployment-webhook.yaml
-- deployment-ui.yaml
+- deployment-ui.1.yaml
 - deployment-driver.yaml
-- daemonset-sa.yaml
-- services.yaml
-- services.yaml
-- services.yaml
+- daemonset-sa.1.yaml
+- services.3.yaml
+- services.2.yaml
+- services.1.yaml
 - services.yaml
 - deployment-ui.yaml
 - daemonset-sa.yaml
-- psp.yaml
-- psp.yaml
+- psp.2.yaml
+- psp.1.yaml
 - clusterrolebinding.yaml
 - clusterrole.yaml
 - storageclass.yaml
 - default-setting.yaml
 - serviceaccount.yaml
 - psp.yaml
-- ui-service.yaml
 
 patchesStrategicMerge:
+- patch-ui-service.yaml
 - patch-ui-deployment.yaml
 - patch-manager-priority.yaml
 - patch-driver-priority.yaml

@@ -64,8 +64,8 @@ function split_resources() {
         if grep -q "# Source: " "$tmpfile" ; then
             local source="$(basename "$(grep "# Source: " "$tmpfile" | sed 's/# Source: //')")"
             local filename="$(unique_filename "$outdir/$source")"
-            insert_resources "$kustomization_file" "$source"
             mv "$tmpfile" "$filename"
+            insert_resources "$kustomization_file" "$(basename $filename)"
         fi
     done
     rm -rf "$tmpdir"
