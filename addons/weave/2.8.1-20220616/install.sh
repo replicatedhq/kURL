@@ -41,6 +41,7 @@ function weave() {
     kubectl apply -k "${dst}/"
     weave_ready_spinner
     check_network
+    kubectl describe daemonset -n kube-system weave-net
 }
 
 function weave_resource_secret() {
