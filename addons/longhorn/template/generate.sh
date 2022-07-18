@@ -60,7 +60,10 @@ function split_resources() {
     local kustomization_file="$3"
     local tmpdir="$(mktemp -d -p $outdir)"
     csplit --quiet --prefix="$tmpdir/out" -b ".%03d.yaml" $combined "/^---$/+1" "{*}"
-    for tmpfile in "$tmpdir"/*.yaml ; do
+    local files=("$tmpdir"/*.yaml)
+    # reverse iterate over files so they are in order in kustomize resources
+    for ((i=${#files[@]}-1; i>=0; i--)); do
+        local tmpfile="${files[$i]}"
         if grep -q "# Source: " "$tmpfile" ; then
             local source="$(basename "$(grep "# Source: " "$tmpfile" | sed 's/# Source: //')")"
             local filename="$(unique_filename "$outdir/$source")"

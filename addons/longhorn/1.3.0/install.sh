@@ -36,15 +36,15 @@ function longhorn() {
         LONGHORN_IS_DEFAULT_STORAGECLASS=true
     fi
     export LONGHORN_IS_DEFAULT_STORAGECLASS
-    render_yaml_file "$src/template/storageclass.yaml" > "$dst/yaml/storageclass.yaml"
+    render_yaml_file_2 "$src/template/storageclass.yaml" > "$dst/yaml/storageclass.yaml"
 
     check_mount_propagation "$src" "$dst"
 
     longhorn_host_init_common "$DIR/addons/longhorn/$LONGHORN_VERSION"
 
-    render_yaml_file "$src/template/patch-ui-service.yaml" > "$dst/yaml/patch-ui-service.yaml"
-    render_yaml_file "$src/template/patch-ui-deployment.yaml" > "$dst/yaml/patch-ui-deployment.yaml"
-    render_yaml_file "$src/template/patch-defaults-cm.yaml" > "$dst/yaml/patch-defaults-cm.yaml"
+    render_yaml_file_2 "$src/template/patch-ui-service.yaml" > "$dst/yaml/patch-ui-service.yaml"
+    render_yaml_file_2 "$src/template/patch-ui-deployment.yaml" > "$dst/yaml/patch-ui-deployment.yaml"
+    render_yaml_file_2 "$src/template/patch-defaults-cm.yaml" > "$dst/yaml/patch-defaults-cm.yaml"
 
     kubectl apply -f "$dst/crds.yaml"
     echo "Waiting for Longhorn CRDs to be created"
@@ -62,7 +62,9 @@ function longhorn() {
     kubectl apply -k "$dst/yaml/"
 
     echo "Waiting for Longhorn Manager to create Storage Class"
-    spinner_until 120 kubernetes_resource_exists longhorn-system sc longhorn
+    if ! spinner_until 120 kubernetes_resource_exists longhorn-system sc longhorn ; then
+        bail "Longhorn Manager failed to create Storage Class"
+    fi
 
     echo "Checking if all nodes have Longhorn Manager Daemonset prerequisites"
     maybe_init_hosts

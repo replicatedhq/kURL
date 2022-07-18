@@ -6,16 +6,11 @@ metadata:
     app.kubernetes.io/name: longhorn
     app.kubernetes.io/instance: longhorn
     app.kubernetes.io/version: v1.3.0
-    app: longhorn-conversion-webhook
-  name: longhorn-conversion-webhook
+  name: longhorn-replica-manager
   namespace: longhorn-system
 spec:
-  type: ClusterIP
-  sessionAffinity: ClientIP
+  clusterIP: None
   selector:
-    app: longhorn-conversion-webhook
-  ports:
-  - name: conversion-webhook
-    port: 9443
-    targetPort: conversion-wh
+    longhorn.io/component: instance-manager
+    longhorn.io/instance-manager-type: replica
 ---

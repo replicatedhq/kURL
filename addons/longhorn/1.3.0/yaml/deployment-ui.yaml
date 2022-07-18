@@ -1,21 +1,51 @@
 # Source: longhorn/templates/deployment-ui.yaml
-kind: Service
-apiVersion: v1
+apiVersion: apps/v1
+kind: Deployment
 metadata:
   labels:
     app.kubernetes.io/name: longhorn
     app.kubernetes.io/instance: longhorn
     app.kubernetes.io/version: v1.3.0
     app: longhorn-ui
-  name: longhorn-frontend
+  name: longhorn-ui
   namespace: longhorn-system
 spec:
-  type: ClusterIP
+  replicas: 1
   selector:
-    app: longhorn-ui
-  ports:
-  - name: http
-    port: 80
-    targetPort: http
-    nodePort: null
+    matchLabels:
+      app: longhorn-ui
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: longhorn
+        app.kubernetes.io/instance: longhorn
+        app.kubernetes.io/version: v1.3.0
+        app: longhorn-ui
+    spec:
+      containers:
+      - name: longhorn-ui
+        image: longhornio/longhorn-ui:v1.3.0
+        imagePullPolicy: IfNotPresent
+        volumeMounts:
+        - name : nginx-cache
+          mountPath: /var/cache/nginx/
+        - name : nginx-config
+          mountPath: /var/config/nginx/
+        - name: var-run
+          mountPath: /var/run/
+        ports:
+        - containerPort: 8000
+          name: http
+        env:
+          - name: LONGHORN_MANAGER_IP
+            value: "http://longhorn-backend:9500"
+          - name: LONGHORN_UI_PORT
+            value: "8000"
+      volumes:
+      - emptyDir: {}
+        name: nginx-cache
+      - emptyDir: {}
+        name: nginx-config
+      - emptyDir: {}
+        name: var-run
 ---
