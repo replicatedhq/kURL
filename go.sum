@@ -1360,8 +1360,8 @@ github.com/rcrowley/go-metrics v0.0.0-20181016184325-3113b8401b8a/go.mod h1:bCqn
 github.com/replicatedhq/pvmigrate v0.4.5 h1:GhUQ5dhu7wg6TUC1MylWAovC3ibD8ZUHQvXwRAkMlp8=
 github.com/replicatedhq/pvmigrate v0.4.5/go.mod h1:vxVIIhC1XqLzT0dGrYxhiF46UB6W0WjmqtOgJvSUqcw=
 github.com/replicatedhq/termui/v3 v3.1.1-0.20200811145416-f40076d26851/go.mod h1:JDxG6+uubnk9/BZ2yUsyAJJwlptjrnmB2MPF5d2Xe/8=
-github.com/replicatedhq/troubleshoot v0.37.1 h1:dwDPaEkk5448AjRq47dIGJGiM4UE3sLWrTx0EFT6/rs=
-github.com/replicatedhq/troubleshoot v0.37.1/go.mod h1:MW3vvDRGXx7pQLUvfYld7CClhyJwk7ulIwEJd339+gc=
+github.com/replicatedhq/troubleshoot v0.38.0 h1:WOxjSQff7GCEe9hEXzK2RQ/t4B5BHrJ+jxjCkKJxemo=
+github.com/replicatedhq/troubleshoot v0.38.0/go.mod h1:MW3vvDRGXx7pQLUvfYld7CClhyJwk7ulIwEJd339+gc=
 github.com/replicatedhq/yaml/v3 v3.0.0-beta5-replicatedhq h1:PwPggruelq2336c1Ayg5STFqgbn/QB1tWLQwrVlU7ZQ=
 github.com/replicatedhq/yaml/v3 v3.0.0-beta5-replicatedhq/go.mod h1:Txa7LopbYCU8aRgmNe0n+y/EPMz50NbCPcVVJBquwag=
 github.com/rivo/uniseg v0.2.0 h1:S1pD9weZBuJdFmowNwbpi7BJ8TNftyUImj/0WQi72jY=
