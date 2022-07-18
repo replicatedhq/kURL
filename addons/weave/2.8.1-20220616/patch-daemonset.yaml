@@ -18,15 +18,5 @@ spec:
               value: "--log-level=info" # default log level is debug
             - name: CHECKPOINT_DISABLE
               value: "1"
-            - name: IPTABLES_BACKEND
-              value: "nft"
         - name: weave-npc
           args: ["--log-level", "info"] # default log level is debug
-          env:
-            - name: IPTABLES_BACKEND
-              value: "nft"
-      initContainers:
-        - name: weave-init
-          env:
-            - name: IPTABLES_BACKEND
-              value: "nft"

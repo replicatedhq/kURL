@@ -28,6 +28,13 @@ function weave() {
       weave_patch_no_masq_local
     fi
 
+    # force the use of nftables on rhel/centos/ol 8
+    if [ "$LSB_DIST" == "centos" ] || [ "$LSB_DIST" == "rhel" ] || [ "$LSB_DIST" == "ol" ]; then
+        if [ "$DIST_VERSION_MAJOR" == "8" ]; then
+            insert_patches_strategic_merge "${dst}/kustomization.yaml" patch-daemonset-nftables.yaml
+        fi
+    fi
+
     kubectl apply -k "${dst}/"
     weave_ready_spinner
     check_network
