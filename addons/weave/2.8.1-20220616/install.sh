@@ -32,6 +32,8 @@ function weave() {
     # force the use of nftables on rhel/centos/ol 8
     if [ "$LSB_DIST" == "centos" ] || [ "$LSB_DIST" == "rhel" ] || [ "$LSB_DIST" == "ol" ]; then
         if [ "$DIST_VERSION_MAJOR" == "8" ]; then
+            echo "including nftables patch"
+            cat "${dst}/patch-daemonset-nftables.yaml"
             insert_patches_strategic_merge "${dst}/kustomization.yaml" patch-daemonset-nftables.yaml
         fi
     fi
