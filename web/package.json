@@ -25,7 +25,7 @@
     "newrelic": "^8.15.0",
     "node-fetch": "^2.6.7",
     "object-hash": "^3.0.0",
-    "pino": "^8.1.0",
+    "pino": "^8.2.0",
     "pino-pretty": "^8.1.0",
     "promise-mysql": "^5.2.0",
     "request-ip": "^3.3.0",
