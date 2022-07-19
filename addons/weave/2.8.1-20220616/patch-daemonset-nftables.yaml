@@ -11,13 +11,13 @@ spec:
         - name: weave
           env:
             - name: IPTABLES_BACKEND
-              value: "nft"
+              value: "legacy"
         - name: weave-npc
           env:
             - name: IPTABLES_BACKEND
-              value: "nft"
+              value: "legacy"
       initContainers:
         - name: weave-init
           env:
             - name: IPTABLES_BACKEND
-              value: "nft"
+              value: "legacy"
