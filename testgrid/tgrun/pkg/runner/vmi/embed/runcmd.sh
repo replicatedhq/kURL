@@ -365,7 +365,9 @@ function run_sonobuoy() {
         exit 1
     fi
 
-    RESULTS=$(/usr/local/bin/sonobuoy retrieve)
+    # fix flake
+    until /usr/local/bin/sonobuoy retrieve .; do sleep 10; done
+    RESULTS=`ls | grep *_sonobuoy_*.tar.gz`
     if [ -n "$RESULTS" ]; then
         echo "completed sonobuoy run"
         /usr/local/bin/sonobuoy results "$RESULTS" > ./sonobuoy-results.txt
