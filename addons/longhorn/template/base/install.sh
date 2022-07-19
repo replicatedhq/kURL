@@ -3,21 +3,24 @@
 DID_MIGRATE_ROOK_PVCS=
 
 function longhorn_pre_init() {
-    local re='^[0-9]+$'
-
     if [ -z "$LONGHORN_UI_BIND_PORT" ]; then
         LONGHORN_UI_BIND_PORT="30880"
     fi
     if [ -z "$LONGHORN_UI_REPLICA_COUNT" ]; then
         LONGHORN_UI_REPLICA_COUNT="0"
     fi
+
     # Error check that someone didn't add the percent sign to this integer
+    local re='^[0-9]+$'
     if [ -n "$LONGHORN_STORAGE_OVER_PROVISIONING_PERCENTAGE" ] && ! [[ $LONGHORN_STORAGE_OVER_PROVISIONING_PERCENTAGE =~ $re ]]; then
         bail "You entered ${LONGHORN_STORAGE_OVER_PROVISIONING_PERCENTAGE} for LONGHORN_STORAGE_OVER_PROVISIONING_PERCENTAGE, but it must be an integer. e.g. 200"
     fi
     if [ -z "$LONGHORN_STORAGE_OVER_PROVISIONING_PERCENTAGE" ]; then
         LONGHORN_STORAGE_OVER_PROVISIONING_PERCENTAGE="200"
     fi
+
+    # Can only upgrade 1 minor version at a time
+    longhorn_bail_upgrade_unsupported
 }
 
 function longhorn() {
@@ -38,7 +41,7 @@ function longhorn() {
     export LONGHORN_IS_DEFAULT_STORAGECLASS
     render_yaml_file_2 "$src/template/storageclass.yaml" > "$dst/yaml/storageclass.yaml"
 
-    check_mount_propagation "$src" "$dst"
+    longhorn_check_mount_propagation "$src" "$dst"
 
     longhorn_host_init_common "$DIR/addons/longhorn/$LONGHORN_VERSION"
 
@@ -67,12 +70,12 @@ function longhorn() {
     fi
 
     echo "Checking if all nodes have Longhorn Manager Daemonset prerequisites"
-    maybe_init_hosts
+    longhorn_maybe_init_hosts
 
     echo "Waiting for Longhorn Manager Daemonset to be ready"
     spinner_until 180 longhorn_daemonset_is_ready longhorn-manager
 
-    maybe_migrate_from_rook
+    longhorn_maybe_migrate_from_rook
 }
 
 function longhorn_is_default_storageclass() {
@@ -108,7 +111,7 @@ function longhorn_join() {
     longhorn_host_init_common "$DIR/addons/longhorn/$LONGHORN_VERSION"
 }
 
-function check_mount_propagation() {
+function longhorn_check_mount_propagation() {
     local src=$1
     local dst=$2
 
@@ -120,14 +123,14 @@ function check_mount_propagation() {
     echo "Waiting for the Longhorn Mount Propagation Check Daemonset to be ready"
     spinner_until 120 longhorn_daemonset_is_ready longhorn-environment-check
 
-    validate_longhorn_ds
+    longhorn_validate_ds
 
     kubectl delete -f "$dst/yaml/mount-propagation.yaml"
 }
 
 # pass if at least one node will support longhorn, but with a warning if there are nodes that won't
 # only fail if there is no chance that longhorn will work on any nodes, as installations may have dedicated 'storage' vs 'not-storage' nodes
-function validate_longhorn_ds() {
+function longhorn_validate_ds() {
     local allpods=$(kubectl get daemonsets -n longhorn-system longhorn-environment-check --no-headers | tr -s ' ' | cut -d ' ' -f4)
     local bidirectional=$(kubectl get pods -n longhorn-system -l app=longhorn-environment-check -o=jsonpath='{.items[*].spec.containers[0].volumeMounts[*]}' | grep -o 'Bidirectional' | wc -l)
 
@@ -147,7 +150,7 @@ function validate_longhorn_ds() {
 }
 
 # if this is a multinode cluster, we need to prepare all hosts to run the daemonset
-function maybe_init_hosts() {
+function longhorn_maybe_init_hosts() {
     while true; do
         local desired=$(kubectl get daemonsets -n longhorn-system longhorn-manager --no-headers | tr -s ' ' | cut -d ' ' -f2)
         local ready=$(kubectl get daemonsets -n longhorn-system longhorn-manager --no-headers | tr -s ' ' | cut -d ' ' -f4)
@@ -189,11 +192,38 @@ function maybe_init_hosts() {
 }
 
 # if rook-ceph is installed but is not specified in the kURL spec, migrate data from rook-ceph to longhorn
-function maybe_migrate_from_rook() {
+function longhorn_maybe_migrate_from_rook() {
     if [ -z "$ROOK_VERSION" ]; then
         if kubectl get ns | grep -q rook-ceph; then
             rook_ceph_to_longhorn
             export DID_MIGRATE_ROOK_PVCS="1" # used to automatically delete rook-ceph if object store data was also migrated
         fi
     fi
+}
+
+function longhorn_bail_upgrade_unsupported() {
+    local current_version="$(longhorn_current_version)"
+    semverParse "${current_version}"
+    local current_version_minor="${minor}"
+
+    if [ -z "$current_version" ]; then
+        return
+    fi
+
+    semverParse "${LONGHORN_VERSION}"
+    local next_version_minor="${minor}"
+
+    local previous_version_minor="$((next_version_minor-1))"
+
+    if [ "$current_version_minor" -lt "$previous_version_minor" ]; then
+        logFail "Upgrades to Longhorn version ${LONGHORN_VERSION} from versions prior to 1.${previous_version_minor}.x are unsupported."
+        bail "Please upgrade to the previous minor version first."
+    fi
+}
+
+function longhorn_current_version() {
+    kubectl -n longhorn-system get daemonset longhorn-manager 2>/dev/null \
+        -o jsonpath='{.spec.template.spec.containers[0].image}' \
+        | awk -F':' 'NR==1 { print $2 }' \
+        | sed 's/v\([^-]*\).*/\1/'
 }

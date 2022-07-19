@@ -6,3 +6,5 @@ metadata:
 data:
   default-setting.yaml: |-
     storage-over-provisioning-percentage: ${LONGHORN_STORAGE_OVER_PROVISIONING_PERCENTAGE}
+    upgrade-checker: false
+    priority-class: system-node-critical
