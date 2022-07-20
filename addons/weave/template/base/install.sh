@@ -40,7 +40,7 @@ function weave_resource_secret() {
     insert_resources "${dst}/kustomization.yaml" secret.yaml
 
     WEAVE_PASSWORD=$(< /dev/urandom tr -dc A-Za-z0-9 | head -c9)
-    render_yaml_file "${src}/tmpl-secret.yaml" > "${dst}/secret.yaml"
+    render_yaml_file_2 "${src}/tmpl-secret.yaml" > "${dst}/secret.yaml"
 }
 
 function weave_patch_encrypt() {
@@ -56,7 +56,7 @@ function weave_patch_ip_alloc_range() {
     local dst="${DIR}/kustomize/weave"
 
     insert_patches_strategic_merge "${dst}/kustomization.yaml" patch-ip-alloc-range.yaml
-    render_yaml_file "${src}/tmpl-patch-ip-alloc-range.yaml" > "${dst}/patch-ip-alloc-range.yaml"
+    render_yaml_file_2 "${src}/tmpl-patch-ip-alloc-range.yaml" > "${dst}/patch-ip-alloc-range.yaml"
 }
 
 function weave_patch_no_masq_local() {
@@ -64,7 +64,7 @@ function weave_patch_no_masq_local() {
     local dst="${DIR}/kustomize/weave"
 
     insert_patches_strategic_merge "${dst}/kustomization.yaml" patch-no-masq-local.yaml
-    render_yaml_file "${src}/tmpl-patch-no-masq-local.yaml" > "${dst}/patch-no-masq-local.yaml"
+    render_yaml_file_2 "${src}/tmpl-patch-no-masq-local.yaml" > "${dst}/patch-no-masq-local.yaml"
 }
 
 function weave_warn_if_sleeve() {

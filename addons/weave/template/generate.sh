@@ -22,7 +22,9 @@ function get_images_patch_version() {
 }
 
 function add_as_latest() {
-    sed -i "/cron-weave-update/a\    \"${ADDON_VERSION}\"\," ../../../web/src/installers/versions.js
+    if ! sed '0,/cron-weave-update/d' ../../../web/src/installers/versions.js | sed '/\],/,$d' | grep -q "${ADDON_VERSION}" ; then
+        sed -i "/cron-weave-update/a\    \"${ADDON_VERSION}\"\," ../../../web/src/installers/versions.js
+    fi
 }
 
 function generate() {
