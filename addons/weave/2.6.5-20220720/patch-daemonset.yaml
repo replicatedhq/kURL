@@ -19,6 +19,6 @@ spec:
             - name: CHECKPOINT_DISABLE
               value: "1"
             - name: EXEC_IMAGE
-              value: "weaveworks/weaveexec:__WEAVE_VERSION__"
+              value: "kurlsh/weaveexec:2.6.5-20220720-8ee5741"
         - name: weave-npc
           args: ["--log-level", "info"] # default log level is debug

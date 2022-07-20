@@ -1,8 +1,14 @@
 name: cron-weave-update
+
 on:
   schedule:
   - cron: '0 4 * * *'
-  workflow_dispatch: {}
+
+  workflow_dispatch:
+    inputs:
+      version:
+        description: version to build
+
 
 jobs:
   build-pr-weave:
@@ -15,7 +21,9 @@ jobs:
     - name: Create Weave Update
       id: update
       working-directory: ./addons/weave/template
-      run: ./generate.sh
+      run: ./generate.sh $VERSION
+      env:
+        VERSION: ${{ github.event.inputs.version }}
 
     - name: Create Pull Request # creates a PR if there are differences
       uses: peter-evans/create-pull-request@v4.0.4

@@ -5,9 +5,10 @@ FROM weaveworks/weave-npc:2.6.5 AS base
 FROM alpine:3.16
 
 RUN apk add --update \
-    iptables \
     ipset \
     ulogd \
+  && apk add --repository https://dl-cdn.alpinelinux.org/alpine/v3.15/main \
+    iptables=1.8.7-r1 \
   && rm -rf /var/cache/apk/* \
   && mknod /var/log/ulogd.pcap p
 
