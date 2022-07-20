@@ -1,7 +1,10 @@
 name: cron-weave-update
+
 on:
   schedule:
   - cron: '0 4 * * *'
+
+  workflow_dispatch:
     inputs:
       version:
         description: version to build
