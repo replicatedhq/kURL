@@ -12,13 +12,21 @@ function get_latest_version() {
         head -1)
 }
 
-IMAGE_PATCH_VERSION=
 function get_images_patch_version() {
-    IMAGE_PATCH_VERSION=$(docker run quay.io/skopeo/stable --override-os linux \
-        list-tags "docker://kurlsh/weave-kube" | \
+    local image="$1"
+    docker run quay.io/skopeo/stable --override-os linux \
+        list-tags "docker://${image}" | \
         jq -r '.Tags | .[]' | \
         grep "${VERSION}" | \
-        grep -E "\-2[0-9]{7}-")
+        grep -E "\-2[0-9]{7}-"
+}
+
+function get_addon_version() {
+    local versions="$@"
+    # sort in reverse to get the newest version and strip off the git sha suffix
+    echo $versions | xargs -n1 | sort -r | xargs \
+        | awk '{print $1}' \
+        | sed -e 's/-[0-9a-f]\{7\}$//'
 }
 
 function add_as_latest() {
@@ -39,25 +47,37 @@ function generate() {
     curl -L --fail "https://github.com/weaveworks/weave/releases/download/v$VERSION/weave-daemonset-k8s-1.11.yaml" \
         > "$dir/weave-daemonset-k8s-1.11.yaml"
 
-    if [ -n "$IMAGE_PATCH_VERSION" ]; then
-        sed -i "s/weaveworks\/\(weave[^:]*\):$VERSION/kurlsh\/\1:${IMAGE_PATCH_VERSION}/" "$dir/Manifest"
-        sed -i "s/weaveworks\/\(weave[^:]*\):$VERSION/kurlsh\/\1:${IMAGE_PATCH_VERSION}/" "$dir/weave-daemonset-k8s-1.11.yaml"
-        sed -i "s/weaveworks\/\(weave[^:]*\):$VERSION/kurlsh\/\1:${IMAGE_PATCH_VERSION}/" "$dir/patch-daemonset.yaml"
+    if [ -n "$WEAVE_KUBE_IMAGE_PATCH_VERSION" ]; then
+        sed -i "s/weaveworks\/weave-kube:$VERSION/kurlsh\/weave-kube:${WEAVE_KUBE_IMAGE_PATCH_VERSION}/" "$dir/Manifest"
+        sed -i "s/weaveworks\/weave-kube:$VERSION/kurlsh\/weave-kube:${WEAVE_KUBE_IMAGE_PATCH_VERSION}/" "$dir/weave-daemonset-k8s-1.11.yaml"
+    fi
+
+    if [ -n "$WEAVE_NPC_IMAGE_PATCH_VERSION" ]; then
+        sed -i "s/weaveworks\/weave-npc:$VERSION/kurlsh\/weave-npc:${WEAVE_NPC_IMAGE_PATCH_VERSION}/" "$dir/Manifest"
+        sed -i "s/weaveworks\/weave-npc:$VERSION/kurlsh\/weave-npc:${WEAVE_NPC_IMAGE_PATCH_VERSION}/" "$dir/weave-daemonset-k8s-1.11.yaml"
+    fi
+
+    if [ -n "$WEAVE_EXEC_IMAGE_PATCH_VERSION" ]; then
+        sed -i "s/weaveworks\/weaveexec:$VERSION/kurlsh\/weaveexec:${WEAVE_EXEC_IMAGE_PATCH_VERSION}/" "$dir/Manifest"
+        sed -i "s/weaveworks\/weaveexec:$VERSION/kurlsh\/weaveexec:${WEAVE_EXEC_IMAGE_PATCH_VERSION}/" "$dir/patch-daemonset.yaml"
     fi
 }
 
+WEAVE_KUBE_IMAGE_PATCH_VERSION=
+WEAVE_NPC_IMAGE_PATCH_VERSION=
+WEAVE_EXEC_IMAGE_PATCH_VERSION=
 function main() {
     VERSION=${1-}
     if [ -z "$VERSION" ]; then
         get_latest_version
     fi
-    ADDON_VERSION="$VERSION"
 
-    get_images_patch_version
+    WEAVE_KUBE_IMAGE_PATCH_VERSION="$(get_images_patch_version "kurlsh/weave-kube")"
+    WEAVE_NPC_IMAGE_PATCH_VERSION="$(get_images_patch_version "kurlsh/weave-npc")"
+    WEAVE_EXEC_IMAGE_PATCH_VERSION="$(get_images_patch_version "kurlsh/weaveexec")"
 
-    if [ -n "$IMAGE_PATCH_VERSION" ]; then
-        ADDON_VERSION="$(echo "$IMAGE_PATCH_VERSION" | sed -e 's/-[0-9a-f]\{7\}$//')"
-    fi
+    ADDON_VERSION="$(get_addon_version "$VERSION" "$WEAVE_KUBE_IMAGE_PATCH_VERSION" "$WEAVE_NPC_IMAGE_PATCH_VERSION" "$WEAVE_EXEC_IMAGE_PATCH_VERSION")"
+    ADDON_VERSION="$(echo "$ADDON_VERSION" | sed -e 's/-[0-9a-f]\{7\}$//')"
 
     if [ -d "../$ADDON_VERSION" ]; then
         echo "Weave ${ADDON_VERSION} add-on already exists"
