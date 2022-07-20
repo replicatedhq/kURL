@@ -2,9 +2,12 @@
 
 set -euo pipefail
 
-ADDON_VERSION=
-
 VERSION=
+ADDON_VERSION=
+WEAVE_KUBE_IMAGE_PATCH_VERSION=
+WEAVE_NPC_IMAGE_PATCH_VERSION=
+WEAVE_EXEC_IMAGE_PATCH_VERSION=
+
 function get_latest_version() {
     VERSION=$(curl -s https://api.github.com/repos/weaveworks/weave/releases/latest | \
         grep '"name":' | \
@@ -63,9 +66,6 @@ function generate() {
     fi
 }
 
-WEAVE_KUBE_IMAGE_PATCH_VERSION=
-WEAVE_NPC_IMAGE_PATCH_VERSION=
-WEAVE_EXEC_IMAGE_PATCH_VERSION=
 function main() {
     VERSION=${1-}
     if [ -z "$VERSION" ]; then
