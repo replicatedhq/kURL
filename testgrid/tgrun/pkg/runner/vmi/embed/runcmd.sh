@@ -483,8 +483,10 @@ function wait_for_cluster_ready() {
         echo "cluster is not ready"
         i=$((i+1))
         if [ $i -gt 20 ]; then
+            send_logs
             report_failure "cluster_not_ready"
-            exit 0
+            report_status_update "failed"
+            exit 1
         fi
         sleep 60
     done
@@ -507,10 +509,10 @@ function main() {
     
     if [ $KURL_EXIT_STATUS -ne 0 ]; then
         echo "kurl install failed"
+        send_logs
         report_failure "kurl_install"
         report_status_update "failed"
         collect_support_bundle
-        send_logs
         exit 1
     fi
 
@@ -531,10 +533,10 @@ function main() {
 
         if [ $KURL_EXIT_STATUS -ne 0 ]; then
             echo "kurl upgrade failed"
+            send_logs
             report_failure "kurl_upgrade"
             report_status_update "failed"
             collect_support_bundle
-            send_logs
             exit 1
         fi
 
