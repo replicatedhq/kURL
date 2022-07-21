@@ -63,6 +63,8 @@ func RunCmd() *cobra.Command {
 
 			r.HandleFunc("/v1/dequeue/instance", handlers.DequeueInstance).Methods("GET")
 
+			r.HandleFunc("/v1/runner/status", handlers.RunnerStatus).Methods("POST")
+
 			srv := &http.Server{
 				Handler:      rRoot,
 				Addr:         ":3000",

@@ -42,6 +42,9 @@ func MainRunLoop(runnerOptions types.RunnerOptions) error {
 		if err := CleanUpData(); err != nil {
 			fmt.Println("PV clean up ERROR: ", err)
 		}
+		if err := ReportMetrics(runnerOptions); err != nil {
+			fmt.Println("Metrics reporting ERROR: ", err)
+		}
 
 		canSchedule, err := canScheduleNewVM()
 		if err != nil {
