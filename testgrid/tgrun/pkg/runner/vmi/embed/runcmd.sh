@@ -119,7 +119,7 @@ function run_upgrade() {
     echo "running kurl upgrade at '$(date)'"
     send_logs
 
-    cat install.sh | timeout 30m bash -s $AIRGAP_UPGRADE_FLAG ${KURL_FLAGS[@]}
+    cat install.sh | timeout 45m bash -s $AIRGAP_UPGRADE_FLAG ${KURL_FLAGS[@]}
     KURL_EXIT_STATUS=$?
 
     if [ "$KURL_EXIT_STATUS" -eq 0 ]; then
