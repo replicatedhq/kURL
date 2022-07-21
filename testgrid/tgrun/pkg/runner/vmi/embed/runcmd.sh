@@ -214,6 +214,30 @@ function remove_last_element()
   echo "${rest_of_list[@]}"
 }
 
+function store_airgap_command() {
+    joincommand=$(cat tasks.sh | sudo bash -s join_token $AIRGAP_FLAG ha)
+    secondaryJoin=$(echo $joincommand | grep -o -P '(?<=following:).*(?=To)' | xargs echo -n)
+    secondaryJoin=$(remove_first_element $secondaryJoin)
+    secondaryJoin=$(remove_last_element $secondaryJoin)
+    secondaryJoin=$(echo $secondaryJoin | base64 | tr -d '\n' )
+
+    primaryJoin=$(echo $joincommand | grep -o -P '(?<=following:).*(?=)') # return from secondary till the end
+    primaryJoin=$(echo $primaryJoin | grep -o -P '(?<=following:).*(?=)') # take the primary command only
+    primaryJoin=$(remove_first_element $primaryJoin)
+    primaryJoin=$(remove_last_element $primaryJoin)
+    primaryJoin=$(echo $primaryJoin | base64 | tr -d '\n' )
+
+    curl -X POST -d "{\"primaryJoin\": \"${primaryJoin}\",\"secondaryJoin\": \"${secondaryJoin}\"}" "$TESTGRID_APIENDPOINT/v1/instance/$TEST_ID/join-command"
+    local exit_status="$?"
+    if [ "$exit_status" -ne 0 ]; then
+        echo "failed to store join command with status $exit_status"
+        send_logs
+        report_failure "join_command"
+        report_status_update "failed"
+        exit 1
+    fi
+}
+
 function store_join_command() {
     joincommand=$(cat tasks.sh | sudo bash -s join_token $AIRGAP_FLAG ha)
     secondaryJoin=$(echo $joincommand | grep -o -P '(?<=nodes:).*(?=To)' | xargs echo -n)
@@ -447,6 +471,7 @@ function report_failure() {
 }
 
 function wait_for_cluster_ready() {
+    i=0
     while true
     do
         ready_count=$(kubectl get nodes -o jsonpath='{.items[*].status.conditions[?(@.type=="Ready")].status}' | grep -o "True" | wc -l)
@@ -492,7 +517,11 @@ function main() {
     run_post_install_script
 
     run_tasks_join_token
-    store_join_command
+    if [ $(is_airgap) = "1" ]; then
+      store_airgap_command
+    else
+      store_join_command
+    fi
     send_logs
     report_status_update "joinCommandStored"
     wait_for_cluster_ready
