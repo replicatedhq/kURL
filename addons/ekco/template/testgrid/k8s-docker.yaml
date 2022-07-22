@@ -11,22 +11,26 @@
     ekco:
       version: "__testver__"
       s3Override: "__testdist__"
-- name: Kubernetes 1.22, Internal LB, Rook
+- name: Kubernetes 1.23, Internal LB, Rook, Multi node
   installerSpec:
     kubernetes:
-      version: "1.22.x"
+      version: 1.23.x
     weave:
       version: "latest"
     rook:
       version: "1.5.x"
     containerd:
       version: "latest"
+    kotsadm:
+      version: latest
+      disableS3: true
     ekco:
       version: "__testver__"
       s3Override: "__testdist__"
       minReadyMasterNodeCount: 1
       autoUpgradeSchedule: Sat 17:30
       enableInternalLoadBalancer: true
+  numPrimaryNodes: 3
 - name: Kubernetes 1.21, Longhorn, Internal LB
   installerSpec:
     kubernetes:
@@ -54,7 +58,8 @@
     contour:
       version: "1.20.0"
     ekco:
-      version: "latest"
+      version: "__testver__"
+      s3Override: "__testdist__"
       podImageOverrides:
         - ghcr.io/projectcontour/contour:v1.20.0=ghcr.io/projectcontour/contour:v1.20.1
   postInstallScript: |
@@ -71,6 +76,7 @@
   installerSpec:
     kubernetes:
       version: "1.19.3"
+      loadBalancerUseFirstPrimary: true
     weave:
       version: "latest"
     containerd:
