@@ -97,8 +97,6 @@ function get_patch_yaml() {
                 ;;
             kubernetes-cluster-name)
                 ;;
-            kubernetes-enable-internal-load-balancer)
-                ;;
             aws-exclude-storage-class)
                 ;;
             ignore-remote-load-images-prompt)
@@ -112,6 +110,8 @@ function get_patch_yaml() {
             kubeadm-token)
                 ;;
             kubeadm-token-ca-hash)
+                ;;
+            kubernetes-load-balancer-use-first-primary)
                 ;;
             kubernetes-master-address)
                 ;;

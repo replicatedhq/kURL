@@ -27,6 +27,7 @@ export interface KubernetesConfig {
   clusterName?: string;
   cisCompliance?: boolean;
   loadBalancerAddress?: string;
+  loadBalancerUseFirstPrimary?: boolean;
   containerLogMaxSize?: string;
   containerLogMaxFiles?: number;
   bootstrapToken?: string;
@@ -38,7 +39,6 @@ export interface KubernetesConfig {
   kubeReserved?: boolean;
   evictionThresholdResources?: string;
   systemReservedResources?: string;
-  enableInternalLoadBalancer?: boolean;
 }
 
 export const kubernetesConfigSchema = {
@@ -52,6 +52,7 @@ export const kubernetesConfigSchema = {
     masterAddress: { type: "string", flag: "kuberenetes-master-address", description: "The address of the internal Kubernetes API server, used during join scripts (read-only)" },
     clusterName: { type: "string", flag: "kubernetes-cluster-name", description: "The name of the Kubernetes cluster (default \"kubernetes\")"},
     loadBalancerAddress: { type: "string", flag: "load-balancer-address", description: "Used for High Availability installs, indicates the address of the external load balancer" },
+    loadBalancerUseFirstPrimary: { type: "boolean", flag: "kubernetes-load-balancer-use-first-primary" , description: "Use first primary address as control plane endpoint in HA cluster" },
     containerLogMaxSize: { type: "string", flag: "container-log-max-size", description: "A quantity defining the maximum size of the container log file before it is rotated. For example: \"5Mi\" or \"256Ki\". This does not work with Docker. For Docker, check out https://docs.docker.com/config/containers/logging/json-file." },
     containerLogMaxFiles: { type: "number", flag: "container-log-max-files", description: "Specifies the maximum number of container log files that can be present for a container. This does not work with Docker. For Docker, check out https://docs.docker.com/config/containers/logging/json-file." },
     bootstrapToken: { type: "string", flag: "bootstrap-token", description: "A secret needed for new nodes to join an existing cluster" },
@@ -64,7 +65,6 @@ export const kubernetesConfigSchema = {
     kubeReserved: {type: "boolean", flag: "kubernetes-reserved", description: "Reserved CPU, memory and disk for kubernetes"},
     evictionThresholdResources: { type: "string", flag: "eviction-threshold", description: "Provided as evictionHard to kubelet configuration as described in https://kubernetes.io/docs/reference/config-api/kubelet-config.v1beta1/#kubelet-config-k8s-io-v1beta1-KubeletConfiguration" },
     systemReservedResources: { type: "string", flag: "system-reserved-resources", description: "Provided as systemReserved to kubelet configuration as described in https://kubernetes.io/docs/reference/config-api/kubelet-config.v1beta1/#kubelet-config-k8s-io-v1beta1-KubeletConfiguration" },
-    enableInternalLoadBalancer: { type: "boolean", flag: "kubernetes-enable-internal-load-balancer" , description: "Use first primary address as control plane endpoint in HA cluster" },
   },
   required: [ "version" ],
   additionalProperties: false,
