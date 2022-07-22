@@ -40,7 +40,9 @@ function generate() {
 }
 
 function add_as_latest() {
-    sed -i "/cron-velero-update/a\    \"${VELERO_VERSION}\"\," ../../../web/src/installers/versions.js
+    if ! sed '0,/cron-velero-update/d' ../../../web/src/installers/versions.js | sed '/\],/,$d' | grep -q "${VELERO_VERSION}" ; then
+        sed -i "/cron-velero-update/a\    \"${VELERO_VERSION}\"\," ../../../web/src/installers/versions.js
+    fi
 }
 
 VELERO_VERSION=""
