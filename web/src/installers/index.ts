@@ -38,6 +38,7 @@ export interface KubernetesConfig {
   kubeReserved?: boolean;
   evictionThresholdResources?: string;
   systemReservedResources?: string;
+  enableInternalLoadBalancer?: boolean;
 }
 
 export const kubernetesConfigSchema = {
@@ -63,6 +64,7 @@ export const kubernetesConfigSchema = {
     kubeReserved: {type: "boolean", flag: "kubernetes-reserved", description: "Reserved CPU, memory and disk for kubernetes"},
     evictionThresholdResources: { type: "string", flag: "eviction-threshold", description: "Provided as evictionHard to kubelet configuration as described in https://kubernetes.io/docs/reference/config-api/kubelet-config.v1beta1/#kubelet-config-k8s-io-v1beta1-KubeletConfiguration" },
     systemReservedResources: { type: "string", flag: "system-reserved-resources", description: "Provided as systemReserved to kubelet configuration as described in https://kubernetes.io/docs/reference/config-api/kubelet-config.v1beta1/#kubelet-config-k8s-io-v1beta1-KubeletConfiguration" },
+    enableInternalLoadBalancer: { type: "boolean", flag: "kubernetes-enable-internal-load-balancer" , description: "Use first primary address as control plane endpoint in HA cluster" },
   },
   required: [ "version" ],
   additionalProperties: false,

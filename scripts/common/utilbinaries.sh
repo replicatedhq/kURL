@@ -97,6 +97,8 @@ function get_patch_yaml() {
                 ;;
             kubernetes-cluster-name)
                 ;;
+            kubernetes-enable-internal-load-balancer)
+                ;;
             aws-exclude-storage-class)
                 ;;
             ignore-remote-load-images-prompt)

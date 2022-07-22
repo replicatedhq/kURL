@@ -104,6 +104,7 @@ type Kubernetes struct {
 	ContainerLogMaxFiles       int    `json:"containerLogMaxFiles,omitempty" yaml:"containerLogMaxFiles,omitempty"`
 	KubeadmToken               string `json:"kubeadmToken,omitempty" yaml:"kubeadmToken,omitempty"`
 	KubeadmTokenCAHash         string `json:"kubeadmTokenCAHash,omitempty" yaml:"kubeadmTokenCAHash,omitempty"`
+	EnableInternalLoadBalancer bool   `json:"enableInternalLoadBalancer,omitempty" yaml:"enableInternalLoadBalancer,omitempty"`
 	LoadBalancerAddress        string `json:"loadBalancerAddress,omitempty" yaml:"loadBalancerAddress,omitempty"`
 	MasterAddress              string `json:"masterAddress,omitempty" yaml:"masterAddress,omitempty"`
 	S3Override                 string `json:"s3Override,omitempty" yaml:"s3Override,omitempty"`
