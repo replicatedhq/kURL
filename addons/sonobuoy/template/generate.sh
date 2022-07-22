@@ -4,7 +4,7 @@ set -euo pipefail
 
 VERSION=""
 function get_latest_release_version() {
-    VERSION=$(curl -I https://github.com/vmware-tanzu/sonobuoy/releases/latest | \
+    VERSION=$(curl -sI https://github.com/vmware-tanzu/sonobuoy/releases/latest | \
         grep -i "^location" | \
         grep -Eo "0\.[0-9]+\.[0-9]+")
 }
@@ -18,9 +18,9 @@ function generate() {
     # insert images into manifest
     local tmpdir=
     tmpdir="$(mktemp -d)"
-    curl -L -o "${tmpdir}/sonobuoy.tar.gz" https://github.com/vmware-tanzu/sonobuoy/releases/download/v${VERSION}/sonobuoy_${VERSION}_linux_amd64.tar.gz && \
-        tar xzvf "${tmpdir}/sonobuoy.tar.gz" -C "${tmpdir}"
-    "${tmpdir}/sonobuoy" gen --kube-conformance-image-version latest | \
+    curl -sL -o "${tmpdir}/sonobuoy.tar.gz" https://github.com/vmware-tanzu/sonobuoy/releases/download/v${VERSION}/sonobuoy_${VERSION}_linux_amd64.tar.gz && \
+        tar xzf "${tmpdir}/sonobuoy.tar.gz" -C "${tmpdir}"
+    "${tmpdir}/sonobuoy" gen --kubernetes-version latest | \
         grep ' image: ' | \
         grep -v conformance | \
         sed 's/ *image: "*\(.*\)\/\(.*\):\([^"]*\)"*/image \2 \1\/\2:\3/' >> "../${VERSION}/Manifest"
@@ -37,6 +37,7 @@ function main() {
     get_latest_release_version
 
     if [ -d "../${VERSION}" ]; then
+        echo "Sonobuoy ${VERSION} add-on already exists"
         exit 0
     fi
 
