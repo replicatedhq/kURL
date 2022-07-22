@@ -31,7 +31,9 @@ function generate() {
 }
 
 function add_as_latest() {
-    sed -i "/cron-registry-update/a\    \"${VERSION}\"\," ../../../web/src/installers/versions.js
+    if ! sed '0,/cron-registry-update/d' ../../../web/src/installers/versions.js | sed '/\],/,$d' | grep -q "${VERSION}" ; then
+        sed -i "/cron-registry-update/a\    \"${VERSION}\"\," ../../../web/src/installers/versions.js
+    fi
 }
 
 function main() {
