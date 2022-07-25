@@ -28,7 +28,7 @@ require (
 	github.com/replicatedhq/troubleshoot v0.38.0
 	github.com/replicatedhq/yaml/v3 v3.0.0-beta5-replicatedhq
 	github.com/sirupsen/logrus v1.9.0
-	github.com/spf13/afero v1.9.0
+	github.com/spf13/afero v1.9.2
 	github.com/spf13/cobra v1.5.0
 	github.com/spf13/viper v1.12.0
 	github.com/stretchr/testify v1.8.0
