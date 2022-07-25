@@ -8,7 +8,7 @@
     "@bugsnag/js": "^7.17.0",
     "@bugsnag/plugin-express": "^7.17.0",
     "@tsed/common": "^6.116.6",
-    "@tsed/core": "^6.116.6",
+    "@tsed/core": "^6.120.0",
     "@tsed/di": "^6.116.6",
     "@tsed/logger": "^6.2.0",
     "@tsed/platform-express": "^6.116.6",
