@@ -19,7 +19,7 @@ function kubernetes_host() {
     fi
 
     load_images "$DIR/packages/kubernetes/$KUBERNETES_VERSION/images"
-    if [ -d "$DIR/packages/kubernetes-conformance/$KUBERNETES_VERSION/images" ]; then
+    if [ -n "$SONOBUOY_VERSION" ] && [ -d "$DIR/packages/kubernetes-conformance/$KUBERNETES_VERSION/images" ]; then
         load_images "$DIR/packages/kubernetes-conformance/$KUBERNETES_VERSION/images"
     fi
 
