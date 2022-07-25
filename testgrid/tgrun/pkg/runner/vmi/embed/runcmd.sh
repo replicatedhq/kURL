@@ -297,7 +297,10 @@ function check_airgap() {
 
 function disable_internet() {
     echo "disabling internet"
-    if [[ "$OS_NAME" == "CentOS" ]]; then
+
+    local os_id="$(. /etc/os-release && echo "$ID")"
+    local os_version_id="$(. /etc/os-release && echo "$VERSION_ID")"
+    if [ "$OS_NAME" = "CentOS" ] && [ "$os_id" = "centos" ] && [ "$os_version_id" = "8" ]; then
       ##
       # Centos 8 has reached to EOL, It means that CentOS 8 will no longer receive development resources from the official CentOS project. 
       # After Dec 31st, 2021, if you need to update your CentOS, you need to change the mirrors to vault.centos.org where they will be archived permanently
@@ -305,6 +308,7 @@ function disable_internet() {
       sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-*
       sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-*
     fi
+
     # get the list of testgrid API IPs
     command -v dig >/dev/null 2>&1 || { yum -y install bind-utils; }
     command -v iptables >/dev/null 2>&1 || { yum -y install iptables; }
