@@ -71,7 +71,7 @@ function upgrade_kubernetes_local_master_patch() {
     fi
 
     load_images "$DIR/packages/kubernetes/$k8sVersion/images"
-    if [ -d "$DIR/packages/kubernetes-conformance/$k8sVersion/images" ]; then
+    if [ -n "$SONOBUOY_VERSION" ] && [ -d "$DIR/packages/kubernetes-conformance/$k8sVersion/images" ]; then
         load_images "$DIR/packages/kubernetes-conformance/$k8sVersion/images"
     fi
 
@@ -175,7 +175,7 @@ function upgrade_kubernetes_local_master_minor() {
     fi
 
     load_images "$DIR/packages/kubernetes/$k8sVersion/images"
-    if [ -d "$DIR/packages/kubernetes-conformance/$k8sVersion/images" ]; then
+    if [ -n "$SONOBUOY_VERSION" ] && [ -d "$DIR/packages/kubernetes-conformance/$k8sVersion/images" ]; then
         load_images "$DIR/packages/kubernetes-conformance/$k8sVersion/images"
     fi
 

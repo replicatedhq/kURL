@@ -220,7 +220,7 @@ function rke2_install() {
         sleep 2
     done
 
-    if [ -d "$DIR/packages/kubernetes-conformance/${k8s_semver}/images" ]; then
+    if [ -n "$SONOBUOY_VERSION" ] && [ -d "$DIR/packages/kubernetes-conformance/${k8s_semver}/images" ]; then
         load_images "$DIR/packages/kubernetes-conformance/${k8s_semver}/images"
     fi
 

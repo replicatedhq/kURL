@@ -60,9 +60,9 @@ function generate_version_directory() {
     # Any latest version of criTools will work for any version of Kubernetes >=1.16, so this is a safe operation
     if [ -z "$criToolsVersion" ]; then
         criToolsVersion=$(curl -H "Authorization: token ${GITHUB_TOKEN}" -s https://api.github.com/repos/kubernetes-sigs/cri-tools/releases | \
-        grep '"tag_name": ' | \
-        grep -Eo "1\.[2-9][0-9]\.[0-9]+"| \
-        head -1)
+            grep '"tag_name": ' | \
+            grep -Eo "1\.[2-9][0-9]\.[0-9]+"| \
+            head -1)
     fi
 
     echo "" >> "../$version/Manifest"
@@ -81,28 +81,47 @@ function generate_conformance_package() {
     rm -f "../$version/conformance/Manifest"
 
     # add conformance image for sonobuoy to manifest
+    # TODO: in the future change this image to registry.k8s.io
     echo "image conformance k8s.gcr.io/conformance:v${version}" > "../$version/conformance/Manifest"
 
-    # image required for sonobuoy --mode=quick
-    local minor=$(echo "$version" | awk -F'.' '{ print $2 }')
-    if [ "$minor" -ge "21" ]; then
-        echo "image nginx k8s.gcr.io/e2e-test-images/nginx:1.14-1" >> "../$version/conformance/Manifest"
-    else
-        echo "image nginx-1.14-alpine docker.io/library/nginx:1.14-alpine" >> "../$version/conformance/Manifest"
-    fi
 
-    # NOTE: full conformance suite images are not yet included in this package
-    # local tmpdir=
-    # tmpdir="$(mktemp -d)"
-    # curl -L -o "${tmpdir}/sonobuoy.tar.gz" https://github.com/vmware-tanzu/sonobuoy/releases/download/v${VERSION}/sonobuoy_${VERSION}_linux_amd64.tar.gz && \
-    #     tar xzvf "${tmpdir}/sonobuoy.tar.gz" -C "${tmpdir}"
-    # "${tmpdir}/sonobuoy" images pull --dry-run 2>&1 \
-    #     | grep 'Pulling image:' \
-    #     | sed 's/^.*Pulling image: \(.*\)"$/\1/' \
-    #     | grep -v authenticated \
-    #     | grep -v invalid \
-    #     | sed -E "s/^(.*)\/([^:]+):(.+)/image \2-\3 \1\/\2:\3/" >> "../${VERSION}/Manifest"
-    # rm -r "${tmpdir}"
+    # --mode quick image
+    local image="$(docker run --rm --entrypoint e2e.test "k8s.gcr.io/conformance:v${version}" --list-images | grep "nginx" | sort -n | head -n 1)"
+    local name="$(echo "$image" | awk -F'[/:]' '{ i = 2; for (--i; i >= 0; i--){ printf "%s-",$(NF-i)} print "" }' | sed 's/\./-/' | sed 's/-$//')"
+    echo "image $name $image" >> "../$version/conformance/Manifest"
+
+    # The following code will add all conformance images to manifest but it adds too much to the bundle
+
+    # sonobuoy_pull_images "$version" || true
+
+    # local image=
+    # for image in $(docker run --rm --entrypoint e2e.test "k8s.gcr.io/conformance:v${version}" --list-images) ; do
+    #     if docker inspect "$image" >/dev/null 2>&1 ; then
+    #         local name="$(echo "$image" | awk -F'[/:]' '{ i = 2; for (--i; i >= 0; i--){ printf "%s-",$(NF-i)} print "" }' | sed 's/\./-/' | sed 's/-$//')"
+    #         echo "image $name $image" >> "../$version/conformance/Manifest"
+    #     fi
+    # done
+}
+
+function sonobuoy_pull_images() {
+    local version="$1"
+    local tmpdir="$(mktemp -d)"
+    download_sonobuoy "$tmpdir"
+
+    "${tmpdir}/sonobuoy" images pull --kubernetes-version "v${version}"
+}
+
+function download_sonobuoy() {
+    local tmpdir="$1"
+    local sonobuoy_version="$(get_latest_sonobuoy_release_version)"
+    curl -sL -o "${tmpdir}/sonobuoy.tar.gz" https://github.com/vmware-tanzu/sonobuoy/releases/download/v${sonobuoy_version}/sonobuoy_${sonobuoy_version}_linux_amd64.tar.gz && \
+        tar xzf "${tmpdir}/sonobuoy.tar.gz" -C "${tmpdir}"
+}
+
+function get_latest_sonobuoy_release_version() {
+    curl -sI https://github.com/vmware-tanzu/sonobuoy/releases/latest | \
+        grep -i "^location" | \
+        grep -Eo "0\.[0-9]+\.[0-9]+"
 }
 
 function update_available_versions() {
