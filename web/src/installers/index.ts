@@ -27,6 +27,7 @@ export interface KubernetesConfig {
   clusterName?: string;
   cisCompliance?: boolean;
   loadBalancerAddress?: string;
+  loadBalancerUseFirstPrimary?: boolean;
   containerLogMaxSize?: string;
   containerLogMaxFiles?: number;
   bootstrapToken?: string;
@@ -51,6 +52,7 @@ export const kubernetesConfigSchema = {
     masterAddress: { type: "string", flag: "kuberenetes-master-address", description: "The address of the internal Kubernetes API server, used during join scripts (read-only)" },
     clusterName: { type: "string", flag: "kubernetes-cluster-name", description: "The name of the Kubernetes cluster (default \"kubernetes\")"},
     loadBalancerAddress: { type: "string", flag: "load-balancer-address", description: "Used for High Availability installs, indicates the address of the external load balancer" },
+    loadBalancerUseFirstPrimary: { type: "boolean", flag: "kubernetes-load-balancer-use-first-primary" , description: "DEPRECATED: Use first primary address as control plane endpoint in HA cluster. Use ekco-enable-internal-load-balancer instead.", deprecated: true, hidden: true },
     containerLogMaxSize: { type: "string", flag: "container-log-max-size", description: "A quantity defining the maximum size of the container log file before it is rotated. For example: \"5Mi\" or \"256Ki\". This does not work with Docker. For Docker, check out https://docs.docker.com/config/containers/logging/json-file." },
     containerLogMaxFiles: { type: "number", flag: "container-log-max-files", description: "Specifies the maximum number of container log files that can be present for a container. This does not work with Docker. For Docker, check out https://docs.docker.com/config/containers/logging/json-file." },
     bootstrapToken: { type: "string", flag: "bootstrap-token", description: "A secret needed for new nodes to join an existing cluster" },
@@ -461,13 +463,13 @@ export const kurlConfigSchema = {
     licenseURL: { type: "string", description: "A URL to a licensing agreement that will presented during installation and needs to be accepted or the install will exit." },
     nameserver: { type: "string" },
     noProxy: { type: "boolean", flag: "no-proxy" , description: "Don’t detect or configure a proxy" },
-    preflightIgnore: { type: "boolean", flag: "preflight-ignore" , description: "DEPRECATED: Ignore preflight failures and warnings. See `host-preflight-ignore` for replacement." },
-    preflightIgnoreWarnings: { type: "boolean", flag: "preflight-ignore-warnings" , description: "DEPRECATED: Ignore preflight warnings.  See `host-preflight-enforce-warnings` for replacement." },
+    preflightIgnore: { type: "boolean", flag: "preflight-ignore" , description: "DEPRECATED: Ignore preflight failures and warnings. See `host-preflight-ignore` for replacement.", deprecated: true },
+    preflightIgnoreWarnings: { type: "boolean", flag: "preflight-ignore-warnings" , description: "DEPRECATED: Ignore preflight warnings.  See `host-preflight-enforce-warnings` for replacement.", deprecated: true },
     privateAddress: { type: "string", flag: "private-address" , description: "The local address of the host (different for each host in the cluster)" },
     proxyAddress: { type: "string", flag: "http-proxy" , description: "The address of the proxy to use for outbound connections" },
     publicAddress: { type: "string", flag: "public-address" , description: "The public address of the host (different for each host in the cluster), will be added as a CNAME to the k8s API server cert so you can use kubectl with this address" },
     skipSystemPackageInstall: { type: "boolean", flag: "skip-system-package-install" , description: "Skip the installation of system packages." },
-    excludeBuiltinPreflights: { type: "boolean", flag: "exclude-builtin-preflights" , description: "DEPRECATED: Excludes the default built-in host preflights for kURL. See `exclude-builtin-host-preflights` for replacement." },
+    excludeBuiltinPreflights: { type: "boolean", flag: "exclude-builtin-preflights" , description: "DEPRECATED: Excludes the default built-in host preflights for kURL. See `exclude-builtin-host-preflights` for replacement.", deprecated: true },
     bypassFirewalldWarning: { type: "boolean", flag: "bypass-firewalld-warning" , description: "Continue installing even if the firewalld service is active" },
     hardFailOnFirewalld: { type: "boolean", flag: "hard-fail-on-firewalld" , description: "Exit the install script if the firewalld service is active" },
     installerVersion: { type: "string", description: "The upstream version of kURL to use as part of the installation - see https://kurl.sh/docs/install-with-kurl/#versioned-releases" },

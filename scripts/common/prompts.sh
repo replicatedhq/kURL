@@ -199,6 +199,14 @@ function prompt_for_load_balancer_address() {
         LOAD_BALANCER_ADDRESS="$lastLoadBalancerAddress"
     fi
 
+    if [ -z "$LOAD_BALANCER_ADDRESS" ] && [ "$KUBERNETES_LOAD_BALANCER_USE_FIRST_PRIMARY" = "1" ]; then
+        # EKCO_ENABLE_INTERNAL_LOAD_BALANCER takes precedence
+        if [ -z "$EKCO_VERSION" ] || [ "$EKCO_ENABLE_INTERNAL_LOAD_BALANCER" != "1" ]; then
+            LOAD_BALANCER_ADDRESS="$PRIVATE_ADDRESS"
+            LOAD_BALANCER_PORT=6443
+        fi
+    fi
+
     if [ -z "$LOAD_BALANCER_ADDRESS" ]; then
         if ! prompts_can_prompt ; then
             bail "kubernetes.loadBalancerAddress required"

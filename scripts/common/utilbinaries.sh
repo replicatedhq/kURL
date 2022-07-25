@@ -111,6 +111,8 @@ function get_patch_yaml() {
                 ;;
             kubeadm-token-ca-hash)
                 ;;
+            kubernetes-load-balancer-use-first-primary)
+                ;;
             kubernetes-master-address)
                 ;;
             kubernetes-version)
