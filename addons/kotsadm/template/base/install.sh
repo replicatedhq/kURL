@@ -112,8 +112,8 @@ function kotsadm() {
 
     kotsadm_kurl_proxy "$src" "$dst"
 
-    kotsadm_ready_spinner "app=kotsadm-postgres"
-    kotsadm_ready_spinner "app=kotsadm"
+    kotsadm_postgres_ready_spinner
+    kotsadm_ready_spinner
 
     kubectl label pvc kotsadm-postgres-kotsadm-postgres-0 velero.io/exclude-from-backup- kots.io/backup=velero --overwrite
 
@@ -505,9 +505,17 @@ function kotsadm_health_check() {
 
 function kotsadm_ready_spinner() {
     sleep 1 # ensure that kubeadm has had time to begin applying and scheduling the kotsadm pods
-    if ! spinner_until 180 kotsadm_health_check $1; then
-      kubectl logs -l $1 --all-containers --tail 10
+    if ! spinner_until 180 kotsadm_health_check "app=kotsadm"; then
+      kubectl logs -l "app=kotsadm" --all-containers --tail 10
       bail "The kotsadm statefulset in the kotsadm addon failed to deploy successfully."
+    fi
+}
+
+function kotsadm_postgres_ready_spinner() {
+    sleep 1 # ensure that kubeadm has had time to begin applying and scheduling the kotsadm pods
+    if ! spinner_until 300 kotsadm_health_check "app=kotsadm-postgres"; then
+      kubectl logs -l "app=kotsadm-postgres" --all-containers --tail 10
+      bail "The kotsadm-postgres statefulset in the kotsadm addon failed to deploy successfully."
     fi
 }
 
