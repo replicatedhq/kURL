@@ -185,16 +185,3 @@ To run `make watchrsync`, you'll need to perform the following additional steps.
 
 1. `export GOOS=linux`
 2. If you have an M1 or other arm Macbook, you'll also need `export GOARCH=amd64`
-
-## Building Add-on Images
-
-Building images can be triggered with the "build-image" github action specifying the "image" var as follows:
-
-```bash
-image=addons/rook/1.0.4/build-images/ceph
-curl -H "Authorization: token $GH_PAT" \
-  -H 'Accept: application/json' \
-  -d "{\"event_type\": \"build-image\", \"client_payload\": {\"image\": \"${image}\"}}" \
-  "https://api.github.com/repos/replicatedhq/kurl/dispatches"
-```
-
