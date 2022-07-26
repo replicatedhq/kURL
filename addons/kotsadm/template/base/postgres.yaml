@@ -262,7 +262,10 @@ data:
 
     while ! pg_isready -U $POSTGRES_USER -h 127.0.0.1 -p $PGPORT; do sleep 1; done
     psql -U $POSTGRES_USER -c '\connect template1' -c "drop database $POSTGRES_DB with (force)"
-    pg_ctl stop -m smart
+    pg_ctl stop -w
+
+    $PGBINOLD/pg_ctl start -w -D $PGDATAOLD
+    $PGBINOLD/pg_ctl stop -w -D $PGDATAOLD
 
     cd $POSTGRES_UPGRADE_DIR
     pg_upgrade -U $POSTGRES_USER -v
