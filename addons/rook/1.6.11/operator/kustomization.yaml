@@ -1,16 +1,14 @@
 resources:
 - toolbox.yaml
-- deployment.yaml
-- rolebinding.yaml
+- psp.yaml
+- serviceaccount.yaml
+- clusterrole.yaml
 - role.yaml
 - clusterrolebinding.yaml
-- clusterrole.yaml
-- resources.yaml
-- serviceaccount.yaml
-- psp.yaml
+- rolebinding.yaml
+- deployment.yaml
 - namespace.yaml
 - configmap-rook-config-override.yaml
 
 patchesStrategicMerge:
 - patches/deployment-tolerations.yaml
-- patches/crds.yaml
