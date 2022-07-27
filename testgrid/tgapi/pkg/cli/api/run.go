@@ -13,6 +13,7 @@ import (
 	"github.com/replicatedhq/kurl/testgrid/tgapi/pkg/metrics"
 	"github.com/replicatedhq/kurl/testgrid/tgapi/pkg/middleware"
 	"github.com/replicatedhq/kurl/testgrid/tgapi/pkg/persistence"
+	"github.com/replicatedhq/kurl/testgrid/tgapi/pkg/version"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -73,6 +74,7 @@ func RunCmd() *cobra.Command {
 			}
 
 			fmt.Printf("Starting tgapi on port %d...\n", 3000)
+			version.Print()
 
 			if _, err := persistence.InitStatsd(
 				"8125",
