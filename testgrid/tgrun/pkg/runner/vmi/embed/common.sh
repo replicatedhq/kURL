@@ -8,12 +8,12 @@ function green()
   echo -e "\033[32m$text\033[0m"
 }
 
-function command_exists() 
+function command_exists()
 {
     command -v "$@" > /dev/null 2>&1
 }
 
-function setup_runner() 
+function setup_runner()
 {
     setenforce 0 || true # rhel variants
     sysctl vm.overcommit_memory=1
@@ -31,7 +31,7 @@ function setup_runner()
     echo ""
 }
 
-function send_logs() 
+function send_logs()
 {
   cat /var/log/cloud-init-output.log | grep -v '"__CURSOR" :' > /tmp/testgrid-node-logs # strip junk
   curl -X PUT -f --data-binary "@/tmp/testgrid-node-logs" "$TESTGRID_APIENDPOINT/v1/instance/$NODE_ID/node-logs"
@@ -49,66 +49,46 @@ function get_initprimary_status()
   primaryNodeStatus=$(echo "$response" | sed 's/{.*status":"*\([0-9a-zA-Z]*\)"*,*.*}/\1/')
   echo "$primaryNodeStatus"
 }
+
 function get_join_command()
 {
   joinCommand=$(curl -X GET -f "$TESTGRID_APIENDPOINT/v1/instance/$TEST_ID/join-command")
-  echo "${joinCommand}" 
+  echo "${joinCommand}"
 }
 
 function wait_for_join_commandready()
 {
   i=0
-  while true
-    do
-        primaryNodeStatus=$(get_initprimary_status)
-        if [[ "$primaryNodeStatus" = "joinCommandStored" ]] ; then
-            echo "join command is ready"
-            break
-        elif [[ "$primaryNodeStatus" = "failed" ]] ; then
-            report_status_update "failed"
-            send_logs
-            exit 1    
-        fi
-        i=$((i+1))
-        if [ $i -gt 20 ]; then
-            report_status_update "failed"
-            send_logs
-            exit 1
-        fi
-        sleep 60
-    done
-  echo 
-}
-
-function wait_for_initprimary_done()
-{
-  i=0
-  while true
-    do
-        primaryNodeStatus=$(get_initprimary_status)
-        if [[ "$primaryNodeStatus" = "success" ]]; then
-            echo "initprimary status finsihed the test"
-            break
-        elif [[ "$primaryNodeStatus" = "failed" ]] ; then
-          report_status_update "failed"
-          send_logs
-          exit 1 
-        fi
-        i=$((i+1))
-        if [ $i -gt 20 ]; then
-            report_status_update "failed"
-            send_logs
-            exit 1
-        fi
-        sleep 60
-    done
+  while true; do
+    primaryNodeStatus=$(get_initprimary_status)
+    if [[ "$primaryNodeStatus" = "joinCommandStored" ]] ; then
+      echo "join command is ready"
+      break
+    elif [[ "$primaryNodeStatus" = "failed" ]] ; then
+      echo "primaryNodeStatus failed"
+      report_status_update "failed"
+      send_logs
+      exit 1
+    fi
+    echo "join command not ready"
+    i=$((i+1))
+    # it could take up to 30 minutes to run the initial primary install script
+    # especially for OL which takes about 10 minutes to run centos2ol script
+    if [ $i -gt 30 ]; then
+      echo "wait_for_join_commandready timeout"
+      report_status_update "failed"
+      send_logs
+      exit 1
+    fi
+    sleep 60
+  done
 }
 
 function is_airgap()
 {
-  airgap=
+  airgap=0
   if echo "$KURL_URL" | grep -q "\.tar\.gz$" ; then
-      airgap=1
+    airgap=1
   fi
   echo $airgap
 }

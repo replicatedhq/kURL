@@ -45,18 +45,8 @@ function main()
   fi
   
   green "report success join"
-  report_status_update "joined"
-
-  green "send logs after join"
-  send_logs
-  
-  green "wait for initprimary done"
-  wait_for_initprimary_done
-  
-  green "send log"
-  send_logs
-
   report_status_update "success"
+  send_logs
 }
 
 main
