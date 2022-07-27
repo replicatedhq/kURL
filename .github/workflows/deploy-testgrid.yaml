@@ -6,6 +6,7 @@ on:
     - main
     paths:
     - 'testgrid/**'
+    - '.github/workflows/deploy-testgrid.yaml'
 
 jobs:
   staging-docker-image-tgapi:
@@ -76,8 +77,8 @@ jobs:
 
     - run: |
         docker build -f testgrid/tgapi/deploy/Dockerfile \
-          --build-arg version=${GITHUB_SHA:0:7} \
-          --build-arg buildtime="${date}" \
+          --build-arg gitsha=${GITHUB_SHA:0:7} \
+          --build-arg buildtime=`date -u +"%Y-%m-%dT%H:%M:%SZ"` \
           -t 799720048698.dkr.ecr.us-east-1.amazonaws.com/tgapi:${GITHUB_SHA:0:7} \
           .
 
@@ -97,7 +98,7 @@ jobs:
         run: |
           docker build -f testgrid/tgrun/Dockerfile \
             --build-arg gitsha=${GITHUB_SHA:0:7} \
-            --build-arg buildtime="${date}" \
+            --build-arg buildtime=`date -u +"%Y-%m-%dT%H:%M:%SZ"` \
             -t replicated/tgrun:latest \
             -t replicated/tgrun:${GITHUB_SHA:0:7} \
             .
