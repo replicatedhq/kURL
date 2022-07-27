@@ -6,6 +6,7 @@ on:
     - main
     paths:
     - 'testgrid/**'
+    - '.github/workflows/deploy-testgrid.yaml'
 
 jobs:
   staging-docker-image-tgapi:
