@@ -2,6 +2,8 @@
 
 EKCO_HAPROXY_IMAGE=haproxy:2.6.2-alpine3.16
 
+# noop
+
 function ekco_pre_init() {
     if [ -z "$EKCO_NODE_UNREACHABLE_TOLERATION_DURATION" ]; then
         EKCO_NODE_UNREACHABLE_TOLERATION_DURATION=5m
