@@ -257,7 +257,7 @@ function ekco_bootstrap_internal_lb() {
         docker run --rm \
             --entrypoint="/usr/bin/ekco" \
             --volume '/etc:/host/etc' \
-            replicated/ekco:v$EKCO_VERSION \
+            emosbaugh/ekco:alpha \
             generate-haproxy-manifest \
                 --primary-host=${backends} \
                 --file=/host/etc/kubernetes/manifests/haproxy.yaml \
@@ -266,7 +266,7 @@ function ekco_bootstrap_internal_lb() {
         mkdir -p /etc/kubernetes/manifests
         ctr --namespace k8s.io run --rm \
             --mount "type=bind,src=/etc,dst=/host/etc,options=rbind:rw" \
-            docker.io/replicated/ekco:v$EKCO_VERSION \
+            docker.io/emosbaugh/ekco:alpha \
             haproxy-manifest \
             ekco generate-haproxy-manifest \
                 --primary-host=${backends} \
@@ -283,7 +283,7 @@ function ekco_bootstrap_internal_lb() {
         mkdir -p /etc/haproxy
         docker run --rm \
             --entrypoint="/usr/bin/ekco" \
-            replicated/ekco:v$EKCO_VERSION \
+            emosbaugh/ekco:alpha \
             generate-haproxy-config --primary-host=${backends} \
             > /etc/haproxy/haproxy.cfg
 
@@ -292,7 +292,7 @@ function ekco_bootstrap_internal_lb() {
     else
         mkdir -p /etc/haproxy
         ctr --namespace k8s.io run --rm \
-            docker.io/replicated/ekco:v$EKCO_VERSION \
+            docker.io/emosbaugh/ekco:alpha \
             haproxy-cfg \
             ekco generate-haproxy-config --primary-host=${backends} \
             > /etc/haproxy/haproxy.cfg

@@ -8,7 +8,7 @@ spec:
     kubernetes.io/hostname: $NODE
   containers:
   - name: regen
-    image: replicated/ekco:v$EKCO_VERSION
+    image: emosbaugh/ekco:alpha
     command:
     - ekco
     - regen-cert
