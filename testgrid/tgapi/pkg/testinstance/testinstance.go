@@ -53,20 +53,26 @@ values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $
 func GetNextEnqueued() (*types.TestInstance, error) {
 	db := persistence.MustGetPGSession()
 
-	query := fmt.Sprintf(
-		`with updated as (
-			update testinstance set dequeued_at = now() where id in (
-				select id from testinstance where dequeued_at is null order by priority desc, enqueued_at asc limit 1
-			) returning %s
-		) select %s from updated`,
-		testInstanceFields, testInstanceFields,
-	)
+	tx, err := db.Begin()
+	if err != nil {
+		return nil, errors.Wrap(err, "begin transaction")
+	}
+	defer tx.Rollback()
 
-	row := db.QueryRow(query)
+	row := tx.QueryRow(fmt.Sprintf("select %s from testinstance where dequeued_at is null order by priority desc, enqueued_at asc limit 1 for update", testInstanceFields))
 
 	testInstance, err := rowToTestInstance(row)
 	if err != nil {
 		return nil, errors.Wrap(err, "row to test instance")
+	}
+
+	_, err = tx.Exec("update testinstance set dequeued_at = now() where id = $1", testInstance.ID)
+	if err != nil {
+		return nil, errors.Wrap(err, "set dequeued_at = now()")
+	}
+
+	if err := tx.Commit(); err != nil {
+		return nil, errors.Wrap(err, "commit transaction")
 	}
 
 	return &testInstance, nil

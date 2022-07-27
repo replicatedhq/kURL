@@ -479,7 +479,7 @@ function wait_for_cluster_ready() {
     while true
     do
         ready_count=$(kubectl get nodes -o jsonpath='{.items[*].status.conditions[?(@.type=="Ready")].status}' | grep -o "True" | wc -l)
-        #later we will check the dynamic value of the number of nodes
+        # later we will check the dynamic value of the number of nodes
         if [ "$ready_count" -eq "$NUM_NODES" ]; then
             echo "cluster is ready"
             break
@@ -490,6 +490,7 @@ function wait_for_cluster_ready() {
             send_logs
             report_failure "cluster_not_ready"
             report_status_update "failed"
+            collect_support_bundle
             exit 1
         fi
         sleep 60
@@ -523,7 +524,7 @@ function main() {
     run_post_install_script
 
     run_tasks_join_token
-    if [ $(is_airgap) = "1" ]; then
+    if [ "$(is_airgap)" = "1" ]; then
       store_airgap_command
     else
       store_join_command
