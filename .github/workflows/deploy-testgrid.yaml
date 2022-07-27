@@ -16,7 +16,8 @@ jobs:
 
     - run: |
         docker build -f testgrid/tgapi/deploy/Dockerfile \
-          --build-arg version=${GITHUB_SHA:0:7} \
+          --build-arg gitsha=${GITHUB_SHA:0:7} \
+          --build-arg buildtime=`date -u +"%Y-%m-%dT%H:%M:%SZ"` \
           -t 923411875752.dkr.ecr.us-east-1.amazonaws.com/tgapi:${GITHUB_SHA:0:7} \
           .
 
