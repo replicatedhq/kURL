@@ -32,7 +32,7 @@ function main()
   wait_for_join_commandready
   
   green "run join command"
-  if [ $(is_airgap) = "1" ]; then
+  if [ "$(is_airgap)" = "1" ]; then
     runAirgapJoinCommand 
   else
     runJoinCommand

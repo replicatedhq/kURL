@@ -523,7 +523,7 @@ function main() {
     run_post_install_script
 
     run_tasks_join_token
-    if [ $(is_airgap) = "1" ]; then
+    if [ "$(is_airgap)" = "1" ]; then
       store_airgap_command
     else
       store_join_command

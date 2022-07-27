@@ -7,6 +7,7 @@ function runJoinCommand()
   joinCommand=$(get_join_command)
   secondaryJoin=$(echo "$joinCommand" | sed 's/{.*secondaryJoin":"*\([0-9a-zA-Z=]*\)"*,*.*}/\1/' | base64 -d)
   eval $secondaryJoin
+  KURL_EXIT_STATUS=$?
 }
 
 function runAirgapJoinCommand()
@@ -32,7 +33,7 @@ function main()
   green "$secondaryJoin"
   
   green "run join command"
-  if [ $(is_airgap) = "1" ]; then
+  if [ "$(is_airgap)" = "1" ]; then
     runAirgapJoinCommand 
   else
     runJoinCommand
