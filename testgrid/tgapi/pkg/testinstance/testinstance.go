@@ -66,7 +66,7 @@ func GetNextEnqueued() (*types.TestInstance, error) {
 		return nil, errors.Wrap(err, "row to test instance")
 	}
 
-	_, err = tx.Exec("update testinstance set dequeued_at = now() where id = ?", testInstance.ID)
+	_, err = tx.Exec("update testinstance set dequeued_at = now() where id = $1", testInstance.ID)
 	if err != nil {
 		return nil, errors.Wrap(err, "set dequeued_at = now()")
 	}
