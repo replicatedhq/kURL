@@ -5,11 +5,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"os"
 	"path/filepath"
 	"regexp"
 	"strconv"
+	"time"
 
 	"github.com/pkg/errors"
 	tghandlers "github.com/replicatedhq/kurl/testgrid/tgapi/pkg/handlers"
@@ -109,8 +111,20 @@ func execute(singleTest types.SingleRun, uploadProxyURL, tempDir string) error {
 	if err = vmi.Create(singleTest, vmi.InitPrimaryNode, vmi.InitPrimaryNode, tempDir, osImagePath, uploadProxyURL); err != nil {
 		return errors.Wrap(err, "failed to create vm for init primary node")
 	}
+
+	// always schedule initial primary before additional nodes
+	for {
+		canSchedule, err := canScheduleNewVM()
+		if err != nil {
+			log.Println(errors.Wrap(err, "failed to check if can schedule"))
+		}
+		if canSchedule {
+			break
+		}
+		time.Sleep(sleepTime)
+	}
+
 	// create primary nodes where we exclude the initial primary node so I will start with 1
-	// todo to use goroutine to create the nodes
 	for i := 1; i < singleTest.NumPrimaryNodes; i++ {
 		primaryNodeName := fmt.Sprintf("%s-%d", vmi.PrimaryNode, i)
 		fmt.Println("  [creating primary node", primaryNodeName, "]")
