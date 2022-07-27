@@ -14,7 +14,15 @@ WORKDIR /go/src/github.com/replicatedhq/kurl/testgrid/tgrun
 RUN go mod download
 RUN go mod verify
 
-RUN CGO_ENABLED=0 go build -o /go/bin/tgrun ./cmd/run
+ARG gitsha=unknown
+ENV GIT_SHA=$gitsha
+
+ARG buildtime=unknown
+ENV BUILD_TIME=$buildtime
+
+RUN CGO_ENABLED=0 go build -o /go/bin/tgrun \
+    -ldflags "-X github.com/replicatedhq/kurl/testgrid/tgrun/pkg/version.gitSHA=${GIT_SHA} -X github.com/replicatedhq/kurl/testgrid/tgrun/pkg/version.buildTime=${BUILD_TIME}" \
+    ./cmd/run
 
 ############################
 FROM scratch

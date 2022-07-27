@@ -1,8 +1,11 @@
 package run
 
 import (
+	"fmt"
+
 	"github.com/replicatedhq/kurl/testgrid/tgrun/pkg/runner"
 	runnertypes "github.com/replicatedhq/kurl/testgrid/tgrun/pkg/runner/types"
+	"github.com/replicatedhq/kurl/testgrid/tgrun/pkg/version"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -23,6 +26,9 @@ func RunCmd() *cobra.Command {
 				APIEndpoint: v.GetString("api-endpoint"),
 				APIToken:    v.GetString("api-token"),
 			}
+
+			fmt.Printf("starting tgrun:\n")
+			version.Print()
 
 			if err := runner.MainRunLoop(runnerOptions); err != nil {
 				return err
