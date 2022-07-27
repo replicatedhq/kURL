@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/pkg/errors"
@@ -24,7 +25,7 @@ import (
 var lastScheduledInstance = time.Now().Add(-time.Minute)
 
 const Namespace = "default"
-const sleepTime = time.Second * 5
+const sleepTime = time.Second * 30
 
 func MainRunLoop(runnerOptions types.RunnerOptions) error {
 	fmt.Println("beginning main run loop")
@@ -138,7 +139,7 @@ func canScheduleNewVM() (bool, error) {
 
 	// if there are pending pods, hold off until there are no longer pending pods
 	for _, pod := range pods.Items {
-		if pod.Status.Phase == v1.PodPending {
+		if strings.HasPrefix(pod.Name, "virt-launcher-") && pod.Status.Phase == v1.PodPending {
 			return false, nil
 		}
 	}
