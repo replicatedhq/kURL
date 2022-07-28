@@ -95,3 +95,8 @@ rules:
     verbs:
       - get
       - update
+  - apiGroups: [""]
+    resources:
+      - pods/exec
+    verbs:
+      - create
