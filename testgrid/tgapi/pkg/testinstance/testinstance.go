@@ -50,7 +50,7 @@ values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $
 	return nil
 }
 
-func GetNextEnqueued() (*types.TestInstance, error) {
+func GetNextEnqueued(refID string) (*types.TestInstance, error) {
 	db := persistence.MustGetPGSession()
 
 	tx, err := db.Begin()
@@ -59,7 +59,16 @@ func GetNextEnqueued() (*types.TestInstance, error) {
 	}
 	defer tx.Rollback()
 
-	row := tx.QueryRow(fmt.Sprintf("select %s from testinstance where dequeued_at is null order by priority desc, enqueued_at asc limit 1 for update", testInstanceFields))
+	var query string
+	args := []interface{}{}
+	if refID != "" {
+		query = fmt.Sprintf("select %s from testinstance where dequeued_at is null and testrun_ref = $1 order by priority desc, enqueued_at asc limit 1 for update", testInstanceFields)
+		args = append(args, refID)
+	} else {
+		query = fmt.Sprintf("select %s from testinstance where dequeued_at is null order by priority desc, enqueued_at asc limit 1 for update", testInstanceFields)
+	}
+
+	row := tx.QueryRow(query, args...)
 
 	testInstance, err := rowToTestInstance(row)
 	if err != nil {

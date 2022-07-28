@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/kurl/testgrid/tgapi/pkg/testinstance"
 )
@@ -32,7 +33,16 @@ type DequeueInstanceResponse struct {
 }
 
 func DequeueInstance(w http.ResponseWriter, r *http.Request) {
-	testInstance, err := testinstance.GetNextEnqueued()
+	dequeueInstance(w, "")
+}
+
+func DequeueInstanceWithRef(w http.ResponseWriter, r *http.Request) {
+	refID := mux.Vars(r)["refId"]
+	dequeueInstance(w, refID)
+}
+
+func dequeueInstance(w http.ResponseWriter, refID string) {
+	testInstance, err := testinstance.GetNextEnqueued(refID)
 	if err != nil {
 		if errors.Cause(err) != sql.ErrNoRows {
 			w.WriteHeader(500)
