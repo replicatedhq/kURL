@@ -63,6 +63,7 @@ func RunCmd() *cobra.Command {
 			r.HandleFunc("/v1/instance/{instanceId}/sonobuoy", handlers.InstanceSonobuoyResults).Methods("POST")
 
 			r.HandleFunc("/v1/dequeue/instance", handlers.DequeueInstance).Methods("GET")
+			r.HandleFunc("/v1/dequeue/ref/{refId}/instance", handlers.DequeueInstanceWithRef).Methods("GET")
 
 			r.HandleFunc("/v1/runner/status", handlers.RunnerStatus).Methods("POST")
 
