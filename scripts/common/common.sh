@@ -324,15 +324,15 @@ parseDockerVersion() {
     DOCKER_VERSION_RELEASE=$2
 }
 
-exportKubeconfig() {
+function exportKubeconfig() {
     local kubeconfig
     kubeconfig="$(${K8S_DISTRO}_get_kubeconfig)"
 
-    # To meet KUBERNETES_CIS_COMPLIANCE, the ${kubeconfig} needs to be owned by root:root, 
-    # permissions were set to 444 so users other than root can have access to kubectl
+    # To meet KUBERNETES_CIS_COMPLIANCE, the ${kubeconfig} needs to be owned by root:root
+    # and permissions set to 600 so users other than root cannot have access to kubectl
     if [ "$KUBERNETES_CIS_COMPLIANCE" == "1" ]; then
         chown root:root ${kubeconfig}
-        chmod 444 ${kubeconfig}
+        chmod 400 ${kubeconfig}
     else
         current_user_sudo_group
         if [ -n "$FOUND_SUDO_GROUP" ]; then
@@ -342,7 +342,9 @@ exportKubeconfig() {
     fi
     
     if ! grep -q "kubectl completion bash" /etc/profile; then
-        echo "export KUBECONFIG=${kubeconfig}" >> /etc/profile
+        if [ "$KUBERNETES_CIS_COMPLIANCE" != "1" ]; then
+            echo "export KUBECONFIG=${kubeconfig}" >> /etc/profile
+        fi
         echo "if  type _init_completion >/dev/null 2>&1; then source <(kubectl completion bash); fi" >> /etc/profile
     fi
 }
@@ -519,8 +521,8 @@ function current_user_sudo_group() {
 
 function kubeconfig_setup_outro() {
     current_user_sudo_group
-    # If opt-in to have KUBERNETES_CIS_COMPLIANCE FOUND_SUDO_GROUP is not required for kubectl access
-    if [ "$KUBERNETES_CIS_COMPLIANCE" == "1" ] || [ -n "$FOUND_SUDO_GROUP" ]; then
+    # If opt-in to have KUBERNETES_CIS_COMPLIANCE FOUND_SUDO_GROUP is required for kubectl access
+    if [ "$KUBERNETES_CIS_COMPLIANCE" != "1" ] && [ -n "$FOUND_SUDO_GROUP" ]; then
         printf "To access the cluster with kubectl, reload your shell:\n"
         printf "\n"
         printf "${GREEN}    bash -l${NC}\n"

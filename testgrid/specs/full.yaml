@@ -1360,13 +1360,13 @@
       version: "latest"
     weave:
       version: "latest"
-    ekco: 
+    ekco:
       version: "latest"
   postInstallScript: |
     echo "running CIS Kubernetes Benchmark Checks"
     kube_bench_version="$(curl -s https://api.github.com/repos/aquasecurity/kube-bench/releases/latest | grep '"tag_name":' | sed -E 's/.*"v([^"]+)".*/\1/')"
     curl -L https://github.com/aquasecurity/kube-bench/releases/download/v${kube_bench_version}/kube-bench_${kube_bench_version}_linux_amd64.tar.gz | tar -xz
-    ./kube-bench --config-dir=`pwd`/cfg --config=`pwd`/cfg/config.yaml --exit-code=1		
+    ./kube-bench --config-dir=`pwd`/cfg --config=`pwd`/cfg/config.yaml --exit-code=1
 - name: k8s122x_123x_upgrade_cis_benchmarks_checks
   installerSpec:
     kubernetes:
@@ -1375,15 +1375,17 @@
       version: "latest"
     weave:
       version: "latest"
+    ekco:
+      version: "latest"
   upgradeSpec:
     kubernetes:
       version: "1.23.x"
-      cisCompliance: true		
+      cisCompliance: true
     containerd:
       version: "latest"
     weave:
       version: "latest"
-    ekco: 
+    ekco:
       version: "latest"
   postUpgradeScript: |
     echo "running  CIS Kubernetes Benchmark Checks"
