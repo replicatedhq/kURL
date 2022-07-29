@@ -153,7 +153,7 @@ spec:
           mountPath: /scripts
         env:
         - name: PGPORT
-          value: 50432 # run on different port to avoid unintended client connections.
+          value: "50432" # run on different port to avoid unintended client connections.
         - name: PGDATA
           value: /var/lib/postgresql/data/pg14data
         - name: POSTGRES_USER
