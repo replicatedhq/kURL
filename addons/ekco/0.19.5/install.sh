@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+# noop
+
 EKCO_HAPROXY_IMAGE=haproxy:2.6.2-alpine3.16
 
 function ekco_pre_init() {
