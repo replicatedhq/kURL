@@ -84,6 +84,32 @@ function wait_for_join_commandready()
   done
 }
 
+function wait_for_initprimary_done()
+{
+  i=0
+  while true; do
+    primaryNodeStatus=$(get_initprimary_status)
+    if [[ "$primaryNodeStatus" = "success" ]]; then
+      echo "initprimary status finsihed the test"
+      break
+    elif [[ "$primaryNodeStatus" = "failed" ]] ; then
+      echo "primaryNodeStatus failed"
+      report_status_update "failed"
+      send_logs
+      exit 1
+    fi
+    echo "initprimary not ready"
+    i=$((i+1))
+    if [ $i -gt 20 ]; then
+      echo "wait_for_initprimary_done timeout"
+      report_status_update "failed"
+      send_logs
+      exit 1
+    fi
+    sleep 60
+  done
+}
+
 function is_airgap()
 {
   airgap=0

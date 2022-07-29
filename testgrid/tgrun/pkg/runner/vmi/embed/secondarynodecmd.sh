@@ -2,7 +2,7 @@
 
 source /opt/kurl-testgrid/common.sh
 
-function runJoinCommand() 
+function runJoinCommand()
 {
   joinCommand=$(get_join_command)
   secondaryJoin=$(echo "$joinCommand" | sed 's/{.*secondaryJoin":"*\([0-9a-zA-Z=]*\)"*,*.*}/\1/' | base64 -d)
@@ -20,21 +20,21 @@ function runAirgapJoinCommand()
   KURL_EXIT_STATUS=$?
 }
 
-function main() 
+function main()
 {
   green "setup runner"
   setup_runner
-  
+
   green "report node in waiting for join command"
   report_status_update "waiting_join_command"
 
   green "wait for join command"
   secondaryJoin=$(wait_for_join_commandready)
   green "$secondaryJoin"
-  
+
   green "run join command"
   if [ "$(is_airgap)" = "1" ]; then
-    runAirgapJoinCommand 
+    runAirgapJoinCommand
   else
     runJoinCommand
   fi
@@ -45,6 +45,13 @@ function main()
   fi
 
   green "report success join"
+  report_status_update "joined"
+  send_logs
+
+  # must stick around as part of the cluster until the test is complete
+  green "wait for initprimary done"
+  wait_for_initprimary_done
+
   report_status_update "success"
   send_logs
 }
