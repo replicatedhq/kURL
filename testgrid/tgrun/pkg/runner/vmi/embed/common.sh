@@ -16,9 +16,11 @@ function command_exists()
 function setup_runner()
 {
     setenforce 0 || true # rhel variants
-    sysctl vm.overcommit_memory=1
-    sysctl kernel.panic=10
-    sysctl kernel.panic_on_oops=1
+
+    echo "vm.overcommit_memory = 1" > /etc/sysctl.d/99-custom.conf
+    echo "kernel.panic = 10" >> /etc/sysctl.d/99-custom.conf
+    echo "kernel.panic_on_oops = 1" >> /etc/sysctl.d/99-custom.conf
+    sysctl -p /etc/sysctl.d/99-custom.conf
 
     echo "$TEST_ID" > /tmp/testgrid-id
 
