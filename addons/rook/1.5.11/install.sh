@@ -393,6 +393,18 @@ function rook_patch_insecure_clients {
     # Disabling rook global_id reclaim
     kubectl -n rook-ceph exec deploy/rook-ceph-tools -- ceph config set mon auth_allow_insecure_global_id_reclaim false
 
+    # restart all mons waiting for ok-to-stop
+    for mon in $(kubectl -n rook-ceph exec deploy/rook-ceph-tools -- ceph health detail | grep 'mon\.[a-z][a-z]* has auth_allow_insecure_global_id_reclaim' | grep -o 'mon\.[a-z][a-z]*') ; do
+        echo "Awaiting $mon ok-to-stop"
+        if ! spinner_until 120 kubectl -n rook-ceph exec deploy/rook-ceph-tools -- ceph mon ok-to-stop "$mon" >/dev/null 2>&1 ; then
+            logWarn "Failed to detect mon $mon ok-to-stop"
+        else
+            local mon_id="$(echo "$mon" | awk -F'.' '{ print $2 }')"
+            local mon_pod="$(kubectl -n rook-ceph get pods -l ceph_daemon_type=mon -l mon="$mon_id" --no-headers | awk '{ print $1 }')"
+            kubectl -n rook-ceph delete pod "$mon_pod"
+        fi
+    done
+
     # Checking to ensure ceph status
     if ! spinner_until 120 rook_clients_secure; then
         logWarn "Mon is still allowing insecure clients"
