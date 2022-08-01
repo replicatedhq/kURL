@@ -392,7 +392,7 @@ function rook_patch_insecure_clients {
     echo "Patching allowance of insecure rook clients"
 
     # upgrade first before applying auth_allow_insecure_global_id_reclaim policy
-    if ! kubectl -n rook-ceph get configmap rook-config-override -oyaml | grep -q auth_allow_insecure_global_id_reclaim ; then
+    if ! kubectl -n rook-ceph get configmap rook-config-override -ojsonpath='{.data.config}' | grep -q 'auth_allow_insecure_global_id_reclaim = true' ; then
         local dst="${DIR}/kustomize/rook/operator"
         sed -i 's/auth_allow_insecure_global_id_reclaim = true/auth_allow_insecure_global_id_reclaim = false/' "$dst/configmap-rook-config-override.yaml"
         kubectl -n rook-ceph apply -f "$dst/configmap-rook-config-override.yaml"
