@@ -1,0 +1,15 @@
+name: import-external-addons
+
+on:
+  workflow_dispatch:
+
+jobs:
+  import-external-addons:
+    concurrency: importer-external-addons
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/importer-external-addons
+        with:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_PROD_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_PROD_SECRET_ACCESS_KEY }}

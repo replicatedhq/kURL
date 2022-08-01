@@ -52,7 +52,7 @@ The browser UI for creating and viewing kURL installers.
 #### Go API Proxy
 
 This API proxies most requests directly to the Typescript API.
-Additionally, this API is interacts with the object store and is responsible for assembling and streaming air-gap bundles back to the end-user.
+Additionally, this API interacts with the object store and is responsible for assembling and streaming air-gap bundles back to the end-user.
 
 #### Typescript API
 
