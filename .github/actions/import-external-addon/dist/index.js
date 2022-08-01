@@ -25,13 +25,10 @@ const awsConfig = {
   AWS_ACCESS_KEY_ID: (0,_actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput)('AWS_ACCESS_KEY_ID', { required: true }),
   AWS_SECRET_ACCESS_KEY: (0,_actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput)('AWS_SECRET_ACCESS_KEY', { required: true }),
 };
-// const bucket = 'kurl-sh'
-// temporarily test with a different bucket so we don't mess things up
-const bucket = 'kots-kurl-addons-production-1658439274'
-
+const bucket = 'kurl-sh';
 const addonRegistryUrls = [
   'https://kots-kurl-addons-production-1658439274.s3.amazonaws.com/versions.json'
-]
+];
 
 const client = new _actions_http_client__WEBPACK_IMPORTED_MODULE_2__.HttpClient();
 
@@ -52,7 +49,6 @@ for(const addonRegistryUrl of addonRegistryUrls) {
     if(addon) {
       (0,_actions_core__WEBPACK_IMPORTED_MODULE_0__.info)(`Skipping existing addon ${addonBundleName}.`);
     } else {
-      hasChanges = true;
       (0,_actions_core__WEBPACK_IMPORTED_MODULE_0__.info)(`Importing new addon ${addonBundleName}.`);
 
       (0,_actions_core__WEBPACK_IMPORTED_MODULE_0__.info)(`..Downloading addon: ${addonBundleName}`);
@@ -77,6 +73,7 @@ for(const addonRegistryUrl of addonRegistryUrls) {
       addonRegistryKurl[addonBundleName] = {
         kurlVersionCompatibility: externalAddon.kurlVersionCompatibility
       }
+      hasChanges = true;
     }
   }
 
