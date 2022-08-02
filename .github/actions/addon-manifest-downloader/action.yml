@@ -13,5 +13,5 @@ inputs:
 runs:
   using: composite
   steps:
-    - run: ${{ github.action_path }}/bin/save-manifest-assets.sh ${{ inputs.package-name }} ${{ inputs.manifest-path }} ${{ inputs.output-path }}
+    - run: ${{ github.action_path }}/../../../bin/save-manifest-assets.sh ${{ inputs.package-name }} ${{ inputs.manifest-path }} ${{ inputs.output-path }}
       shell: bash
