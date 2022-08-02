@@ -1,4 +1,4 @@
-name: addon-packer
+name: addon-manifest-downloader
 description: 'Packages an addon for use with kURL.'
 inputs:
   package-name:
