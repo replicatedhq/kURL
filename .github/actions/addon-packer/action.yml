@@ -1,0 +1,17 @@
+name: addon-packer
+description: 'Packages an addon for use with kURL.'
+inputs:
+  package-name:
+    required: true
+    description: 'Name of the package being created.'
+  manifest-path:
+    required: true
+    description: 'Path to the manifest for the package.'
+  output-path:
+    required: true
+    description: 'Path where the addon should be created.'
+runs:
+  using: composite
+  steps:
+    - run: bin/save-manifest-assets.sh ${{ inputs.package-name }} ${{ inputs.manifest-path }} ${{ inputs.output-path }}
+      shell: bash
