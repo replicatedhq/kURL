@@ -354,7 +354,7 @@ module.exports.InstallerVersions = {
   ],
   ekco: [
     // cron-ekco-update
-    "0.19.8",
+    "0.19.9",
     "0.19.6",
     "0.19.3",
     "0.19.2",
