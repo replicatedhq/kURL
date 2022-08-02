@@ -1,45 +1,22 @@
 
 function rook_pre_init() {
-    local current_version='' current_version_minor='' current_version_patch=''
-    local next_version_minor='' next_version_patch=''
+    local current_version="$(rook_version)"
 
     export SKIP_ROOK_INSTALL
+    if rook_should_skip_rook_install "$current_version" "$ROOK_VERSION" ; then
+        SKIP_ROOK_INSTALL=1
 
-    current_version="$(rook_version)"
-    semverParse "${current_version}"
-    current_version_major="${major}"
-    current_version_minor="${minor}"
-    current_version_patch="${patch}"
-
-    semverParse "${ROOK_VERSION}"
-    next_version_minor="${minor}"
-    next_version_patch="${patch}"
-
-    if [ -n "${current_version}" ]; then
-        if [ "${current_version_minor}" != "${next_version_minor}" ]; then
-            if [ "${current_version_minor}" -gt "${next_version_minor}" ]; then
-                echo "Rook ${current_version} is already installed, will not downgrade to ${ROOK_VERSION}"
-                SKIP_ROOK_INSTALL=1
-            # upgrades from version 1.0.4 unsupported
-            elif [ "${current_version_major}" = "1" ] && [ "${current_version_minor}" = "0" ]; then
-                echo "Rook ${current_version} is already installed, will not upgrade to ${ROOK_VERSION}"
-                SKIP_ROOK_INSTALL=1
-                if [ "$KUBERNETES_TARGET_VERSION_MINOR" -ge 20 ]; then
-                    KUBERNETES_UPGRADE="0"
-                    KUBERNETES_VERSION=$(kubectl version --short | grep -i server | awk '{ print $3 }' | sed 's/^v*//')
-                    parse_kubernetes_target_version
-                    # There's no guarantee the packages from this version of Kubernetes are still available
-                    SKIP_KUBERNETES_HOST=1
-                fi
-            fi
-        elif [ "${current_version_patch}" -gt "${next_version_patch}" ]; then
-            echo "Rook ${current_version} is already installed, will not downgrade to ${ROOK_VERSION}"
-            SKIP_ROOK_INSTALL=1
+        if [ "$KUBERNETES_TARGET_VERSION_MINOR" -ge 20 ] && [ "$current_version" = "1.0.4" ]; then
+            KUBERNETES_UPGRADE="0"
+            KUBERNETES_VERSION=$(kubectl version --short | grep -i server | awk '{ print $3 }' | sed 's/^v*//')
+            parse_kubernetes_target_version
+            # There's no guarantee the packages from this version of Kubernetes are still available
+            SKIP_KUBERNETES_HOST=1
         fi
     fi
 
     if [ "${ROOK_BYPASS_UPGRADE_WARNING}" != "1" ]; then
-        if [ -z "${SKIP_ROOK_INSTALL}" ] && [ -n "${current_version}" ] && [ "${current_version}" != "${ROOK_VERSION}" ]; then
+        if [ "$SKIP_ROOK_INSTALL" != "1" ] && [ -n "$current_version" ] && [ "$current_version" != "$ROOK_VERSION" ]; then
             logWarn "WARNING: This installer will upgrade Rook to version ${ROOK_VERSION}."
             logWarn "Upgrading a Rook cluster is not without risk, including data loss."
             logWarn "The Rook cluster's storage may be unavailable for short periods during the upgrade process."
@@ -58,7 +35,7 @@ function rook() {
 
     rook_lvm2
 
-    if [ -n "$SKIP_ROOK_INSTALL" ]; then
+    if [ "$SKIP_ROOK_INSTALL" = "1" ]; then
         local version
         version=$(rook_version)
         echo "Rook $version is already installed, will not upgrade to ${ROOK_VERSION}"
@@ -66,6 +43,7 @@ function rook() {
         return 0
     fi
 
+    rook_operator_crds_deploy
     rook_operator_deploy
     rook_set_ceph_pool_replicas
     rook_ready_spinner # creating the cluster before the operator is ready fails
@@ -95,8 +73,8 @@ function rook() {
     rook_object_store_output
 
     echo "Awaiting rook-ceph object store health"
-    if ! spinner_until 120 rook_rgw_is_healthy; then
-        bail "Failed to detect healthy Rook RGW"
+    if ! spinner_until 120 rook_rgw_is_healthy ; then
+        bail "Failed to detect healthy rook-ceph object store"
     fi
 }
 
@@ -106,6 +84,24 @@ function rook_join() {
 
 function rook_already_applied() {
     rook_object_store_output
+}
+
+function rook_operator_crds_deploy() {
+    local src="${DIR}/addons/rook/${ROOK_VERSION}"
+    local dst="${DIR}/kustomize/rook"
+
+    mkdir -p "${dst}"
+    cp "$src/crds.yaml" "$dst/crds.yaml"
+
+    # https://rook.io/docs/rook/v1.6/ceph-upgrade.html#1-update-common-resources-and-crds
+    # NOTE: If your Rook-Ceph cluster was initially installed with rook v1.4 or lower, the above
+    # command will return errors due to updates from Kubernetes’ v1beta1 Custom Resource
+    # Definitions. The error will contain text similar to ... spec.preserveUnknownFields: Invalid
+    # value....
+    if ! kubectl apply -f "$dst/crds.yaml" ; then
+        kubectl replace -f "$dst/crds.yaml"
+        kubectl apply -f "$dst/crds.yaml"
+    fi
 }
 
 function rook_operator_deploy() {
@@ -132,10 +128,15 @@ function rook_operator_deploy() {
         insert_patches_strategic_merge "$dst/kustomization.yaml" patches/deployment-priority-class.yaml
     fi
 
+    if [ "$IPV6_ONLY" = "1" ]; then
+        sed -i "/\[global\].*/a\    ms bind ipv6 = true" "$dst/configmap-rook-config-override.yaml"
+        sed -i "/\[global\].*/a\    ms bind ipv4 = false" "$dst/configmap-rook-config-override.yaml"
+    fi
+
     # upgrade first before applying auth_allow_insecure_global_id_reclaim policy
     rook_maybe_auth_allow_insecure_global_id_reclaim
 
-    kubectl -n rook-ceph apply -k "$dst"
+    kubectl -n rook-ceph apply -k "$dst/"
 }
 
 function rook_cluster_deploy() {
@@ -181,7 +182,16 @@ function rook_cluster_deploy() {
 }
 
 function rook_cluster_deploy_upgrade() {
-    local ceph_image="ceph/ceph:v15.2.11"
+    # Prior to calling this function the following steps have been taken in the upgrade process:
+    # 1. https://rook.io/docs/rook/v1.6/ceph-upgrade.html#1-update-common-resources-and-crds
+    #    rook_operator_crds_deploy
+    #    rook_operator_deploy
+    # 2. https://rook.io/docs/rook/v1.5/ceph-upgrade.html#2-update-ceph-csi-versions
+    #    Not needed, using default CSI images
+    # 3. https://rook.io/docs/rook/v1.6/ceph-upgrade.html#3-update-the-rook-operator
+    #    rook_operator_deploy
+
+    local ceph_image="ceph/ceph:v15.2.13"
     local ceph_version=
     ceph_version="$(echo "${ceph_image}" | awk 'BEGIN { FS=":v" } ; {print $2}')"
 
@@ -191,6 +201,7 @@ function rook_cluster_deploy_upgrade() {
         return 0
     fi
 
+    # 4. https://rook.io/docs/rook/v1.6/ceph-upgrade.html#4-wait-for-the-upgrade-to-complete
     echo "Awaiting rook-ceph operator"
 
     if ! spinner_until 600 rook_version_deployed ; then
@@ -202,16 +213,35 @@ function rook_cluster_deploy_upgrade() {
         fi
     fi
 
-    logStep "Upgrading rook-ceph cluster"
+    # 5. https://rook.io/docs/rook/v1.6/ceph-upgrade.html#5-verify-the-updated-cluster
+    echo "Awaiting Ceph healthy"
 
-    if ! rook_ceph_healthy ; then
+    # CRD changes makes rook to restart and it takes time to reconcile
+    if ! spinner_until 600 rook_ceph_healthy ; then
+        kubectl -n rook-ceph exec deploy/rook-ceph-tools -- ceph status
         bail "Refusing to update cluster rook-ceph, Ceph is not healthy"
     fi
 
+    # https://rook.io/docs/rook/v1.6/ceph-upgrade.html#ceph-version-upgrades
+    logStep "Upgrading rook-ceph cluster"
+
+    # https://rook.io/docs/rook/v1.6/ceph-upgrade.html#1-update-the-main-ceph-daemons
+
     kubectl -n rook-ceph patch cephcluster/rook-ceph --type='json' -p='[{"op": "replace", "path": "/spec/cephVersion/image", "value":"'"${ceph_image}"'"}]'
+
+    # https://rook.io/docs/rook/v1.6/ceph-upgrade.html#2-wait-for-the-daemon-pod-updates-to-complete
 
     if ! spinner_until 600 rook_ceph_version_deployed "${ceph_version}" ; then
         bail "New Ceph version failed to deploy"
+    fi
+
+    # https://rook.io/docs/rook/v1.6/ceph-upgrade.html#3-verify-the-updated-cluster
+
+    echo "Awaiting Ceph healthy"
+
+    if ! spinner_until 300 rook_ceph_healthy ; then
+        kubectl -n rook-ceph exec deploy/rook-ceph-tools -- ceph status
+        bail "Failed to verify the updated cluster, Ceph is not healthy"
     fi
 
     rook_patch_insecure_clients
@@ -220,30 +250,22 @@ function rook_cluster_deploy_upgrade() {
 }
 
 function rook_dashboard_ready_spinner() {
-    # wait for ceph dashboard password to be generated
     echo "Awaiting rook-ceph dashboard password"
-    local delay=0.75
-    local spinstr='|/-\'
-    while ! kubectl -n rook-ceph get secret rook-ceph-dashboard-password >/dev/null 2>&1 ; do
-        local temp=${spinstr#?}
-        printf " [%c]  " "$spinstr"
-        local spinstr=$temp${spinstr%"$temp"}
-        sleep $delay
-        printf "\b\b\b\b\b\b"
-    done
+
+    spinner_until 300 kubernetes_resource_exists rook-ceph secret rook-ceph-dashboard-password
 }
 
 function rook_ready_spinner() {
     echo "Awaiting rook-ceph pods"
 
-    spinnerPodRunning rook-ceph rook-ceph-operator
-    spinnerPodRunning rook-ceph rook-discover
+    spinner_until 60 kubernetes_resource_exists rook-ceph deployment rook-ceph-operator
+    spinner_until 60 kubernetes_resource_exists rook-ceph daemonset rook-discover
+    spinner_until 300 deployment_fully_updated rook-ceph rook-ceph-operator
+    spinner_until 60 daemonset_fully_updated rook-ceph rook-discover
 }
 
 function rook_ceph_healthy() {
-    local tools_pod=
-    tools_pod="$(kubectl -n rook-ceph get pod -l "app=rook-ceph-tools" -o jsonpath='{.items[0].metadata.name}')"
-    if kubectl -n rook-ceph exec "${tools_pod}" -- ceph status | grep -qE '(HEALTH_OK|HEALTH_WARN)' ; then
+    if kubectl -n rook-ceph exec deploy/rook-ceph-tools -- ceph status | grep -qE '(HEALTH_OK|HEALTH_WARN)' ; then
         return 0
     fi
     return 1
@@ -284,10 +306,6 @@ function rook_ceph_version_deployed() {
     return 0
 }
 
-function rook_is_1() {
-    kubectl -n rook-ceph get cephblockpools replicapool >/dev/null 2>&1
-}
-
 # CEPH_POOL_REPLICAS is undefined when this function is called unless set explicitly with a flag.
 # If set by flag use that value.
 # Else if the replicapool cephbockpool CR in the rook-ceph namespace is found, set CEPH_POOL_REPLICAS to that.
@@ -312,19 +330,6 @@ function rook_set_ceph_pool_replicas() {
     set -e
 }
 
-function rook_configure_linux_3() {
-    if [ "$KERNEL_MAJOR" -eq "3" ]; then
-        modprobe rbd
-        echo 'rbd' > /etc/modules-load.d/replicated-rook.conf
-
-        echo "net.bridge.bridge-nf-call-ip6tables = 1" > /etc/sysctl.d/k8s.conf
-        echo "net.bridge.bridge-nf-call-iptables = 1" >> /etc/sysctl.d/k8s.conf
-        echo "net.ipv4.conf.all.forwarding = 1" >> /etc/sysctl.d/k8s.conf
-
-        sysctl --system
-    fi
-}
-
 function rook_object_store_output() {
     # Rook operator creates this secret from the user CRD just applied
     while ! kubectl -n rook-ceph get secret rook-ceph-object-user-rook-ceph-store-kurl >/dev/null 2>&1 ; do
@@ -339,6 +344,8 @@ function rook_object_store_output() {
     export OBJECT_STORE_CLUSTER_IP
     OBJECT_STORE_CLUSTER_IP=$(kubectl -n rook-ceph get service rook-ceph-rgw-rook-ceph-store | tail -n1 | awk '{ print $3}')
     export OBJECT_STORE_CLUSTER_HOST="http://rook-ceph-rgw-rook-ceph-store.rook-ceph"
+    # same as OBJECT_STORE_CLUSTER_IP for IPv4, wrapped in brackets for IPv6
+    export OBJECT_STORE_CLUSTER_IP_BRACKETED=$($DIR/bin/kurl format-address "$OBJECT_STORE_CLUSTER_IP")
 }
 
 # deprecated, use object_store_create_bucket
@@ -352,16 +359,17 @@ function rook_create_bucket() {
     sig=$(echo -en "${string}" | openssl sha1 -hmac "${OBJECT_STORE_SECRET_KEY}" -binary | base64)
 
     curl -X PUT  \
+        --globoff \
         --noproxy "*" \
         -H "Host: $OBJECT_STORE_CLUSTER_IP" \
         -H "Date: $d" \
         -H "$acl" \
         -H "Authorization: AWS $OBJECT_STORE_ACCESS_KEY:$sig" \
-        "http://$OBJECT_STORE_CLUSTER_IP/$bucket" >/dev/null
+        "http://$OBJECT_STORE_CLUSTER_IP_BRACKETED/$bucket" >/dev/null
 }
 
 function rook_rgw_is_healthy() {
-    curl --noproxy "*" --fail --silent --insecure "http://${OBJECT_STORE_CLUSTER_IP}" > /dev/null
+    curl --globoff --noproxy "*" --fail --silent --insecure "http://${OBJECT_STORE_CLUSTER_IP_BRACKETED}" > /dev/null
 }
 
 function rook_version() {
@@ -416,6 +424,40 @@ function rook_clients_secure {
         return 1
     fi
     return 0
+}
+
+# do not downgrade rook or upgrade more than one minor version at a time
+function rook_should_skip_rook_install() {
+    local current_version="$1"
+    local next_version="$2"
+
+    local current_version_minor='' current_version_patch=''
+    local next_version_minor='' next_version_patch=''
+
+    semverParse "${current_version}"
+    current_version_minor="${minor}"
+    current_version_patch="${patch}"
+
+    semverParse "${next_version}"
+    next_version_minor="${minor}"
+    next_version_patch="${patch}"
+
+    if [ -n "${current_version}" ]; then
+        if [ "${current_version_minor}" != "${next_version_minor}" ]; then
+            if [ "${current_version_minor}" -gt "${next_version_minor}" ]; then
+                echo "Rook ${current_version} is already installed, will not downgrade to ${next_version}"
+                return 0
+            # only upgrades from prior minor versions supported
+            elif [ "${current_version_minor}" -lt "$((next_version_minor-1))" ]; then
+                echo "Rook ${current_version} is already installed, will not upgrade to ${next_version}"
+                return 0
+            fi
+        elif [ "${current_version_patch}" -gt "${next_version_patch}" ]; then
+            echo "Rook ${current_version} is already installed, will not downgrade to ${next_version}"
+            return 0
+        fi
+    fi
+    return 1
 }
 
 function rook_maybe_auth_allow_insecure_global_id_reclaim() {

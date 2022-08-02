@@ -137,6 +137,9 @@ function rook_operator_deploy() {
         sed -i "/\[global\].*/a\    ms bind ipv4 = false" "$dst/configmap-rook-config-override.yaml"
     fi
 
+    # upgrade first before applying auth_allow_insecure_global_id_reclaim policy
+    rook_maybe_auth_allow_insecure_global_id_reclaim
+
     kubectl -n rook-ceph apply -k "$dst"
 }
 
@@ -385,20 +388,92 @@ function rook_lvm2() {
     install_host_archives "$src" lvm2
 }
 
-function rook_clients_secure {
-    if [[ $(kubectl -n rook-ceph exec deploy/rook-ceph-tools -- ceph status | grep "mon is allowing insecure global_id reclaim") ]]; then 
-      return 1
-    fi
-}
-
 function rook_patch_insecure_clients {
-
     echo "Patching allowance of insecure rook clients"
+
+    # upgrade first before applying auth_allow_insecure_global_id_reclaim policy
+    if kubectl -n rook-ceph get configmap rook-config-override -ojsonpath='{.data.config}' | grep -q 'auth_allow_insecure_global_id_reclaim = true' ; then
+        local dst="${DIR}/kustomize/rook/operator"
+        sed -i 's/auth_allow_insecure_global_id_reclaim = true/auth_allow_insecure_global_id_reclaim = false/' "$dst/configmap-rook-config-override.yaml"
+        kubectl -n rook-ceph apply -f "$dst/configmap-rook-config-override.yaml"
+    fi
+
     # Disabling rook global_id reclaim
     kubectl -n rook-ceph exec deploy/rook-ceph-tools -- ceph config set mon auth_allow_insecure_global_id_reclaim false
 
-    # Checking to ensure ceph status  
+    # restart all mons waiting for ok-to-stop
+    for mon in $(kubectl -n rook-ceph exec deploy/rook-ceph-tools -- ceph health detail | grep 'mon\.[a-z][a-z]* has auth_allow_insecure_global_id_reclaim' | grep -o 'mon\.[a-z][a-z]*') ; do
+        echo "Awaiting $mon ok-to-stop"
+        if ! spinner_until 120 kubectl -n rook-ceph exec deploy/rook-ceph-tools -- ceph mon ok-to-stop "$mon" >/dev/null 2>&1 ; then
+            logWarn "Failed to detect mon $mon ok-to-stop"
+        else
+            local mon_id="$(echo "$mon" | awk -F'.' '{ print $2 }')"
+            local mon_pod="$(kubectl -n rook-ceph get pods -l ceph_daemon_type=mon -l mon="$mon_id" --no-headers | awk '{ print $1 }')"
+            kubectl -n rook-ceph delete pod "$mon_pod"
+        fi
+    done
+
+    # Checking to ensure ceph status
     if ! spinner_until 120 rook_clients_secure; then
         logWarn "Mon is still allowing insecure clients"
     fi
+}
+
+function rook_clients_secure {
+    if kubectl -n rook-ceph exec deploy/rook-ceph-tools -- ceph health detail | grep -q AUTH_INSECURE_GLOBAL_ID_RECLAIM ; then
+        return 1
+    fi
+    return 0
+}
+
+function rook_maybe_auth_allow_insecure_global_id_reclaim() {
+    local dst="${DIR}/kustomize/rook/operator"
+
+    local ceph_version="$(rook_detect_ceph_version)"
+    if rook_should_auth_allow_insecure_global_id_reclaim "$ceph_version" ; then
+        sed -i 's/auth_allow_insecure_global_id_reclaim = false/auth_allow_insecure_global_id_reclaim = true/' "$dst/configmap-rook-config-override.yaml"
+        return
+    fi
+}
+
+function rook_should_auth_allow_insecure_global_id_reclaim() {
+    local ceph_version="$1"
+
+    if [ -z "$ceph_version" ]; then
+        # rook ceph not deployed, allow since not upgrading
+        return 0
+    fi
+
+    # https://docs.ceph.com/en/latest/security/CVE-2021-20288/
+    semverParse "$ceph_version"
+    local ceph_version_major="$major"
+    local ceph_version_minor="$minor"
+    local ceph_version_patch="$patch"
+
+    case "$ceph_version_major" in
+    # Pacific v16.2.1 (and later)
+    "16")
+        if [ "$ceph_version_patch" -lt "1" ]; then
+            return 0
+        fi
+        ;;
+    # Octopus v15.2.11 (and later)
+    "15")
+        if [ "$ceph_version_patch" -lt "11" ]; then
+            return 0
+        fi
+        ;;
+    # Nautilus v14.2.20 (and later)
+    "14")
+        if [ "$ceph_version_patch" -lt "20" ]; then
+            return 0
+        fi
+        ;;
+    esac
+
+    return 1
+}
+
+function rook_detect_ceph_version() {
+    kubectl -n rook-ceph get deployment rook-ceph-mgr-a -o jsonpath='{.metadata.labels.ceph-version}' 2>/dev/null | awk -F'-' '{ print $1 }'
 }

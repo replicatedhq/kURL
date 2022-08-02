@@ -21,6 +21,7 @@
     
     minio_object_store_info
     validate_read_write_object_store rwtest minio.txt
+
 - name: Upgrade from 1.4.3
   installerSpec:
     kubernetes:
@@ -35,6 +36,54 @@
       version: "latest"
     rook:
       version: "1.4.3"
+      isBlockStorageEnabled: true
+  upgradeSpec:
+    kubernetes:
+      version: "latest"
+    weave:
+      version: "latest"
+    docker:
+      version: "latest"
+    minio:
+      version: "latest"
+    kotsadm:
+      version: "latest"
+    rook:
+      version: "__testver__"
+      s3Override: "__testdist__"
+      isBlockStorageEnabled: true
+      bypassUpgradeWarning: true
+  postInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rook_ecph_object_store_info
+    validate_read_write_object_store rwtest testfile.txt
+    
+    minio_object_store_info
+    validate_read_write_object_store rwtest minio.txt
+  postUpgradeScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rook_ecph_object_store_info
+    validate_testfile rwtest testfile.txt
+    validate_read_write_object_store postupgrade upgradefile.txt
+
+    minio_object_store_info
+    validate_testfile rwtest minio.txt
+    validate_read_write_object_store postupgrade minioupgrade.txt
+
+- name: Upgrade from 1.5.10
+  installerSpec:
+    kubernetes:
+      version: "latest"
+    weave:
+      version: "latest"
+    docker:
+      version: "latest"
+    minio:
+      version: "latest"
+    kotsadm:
+      version: "latest"
+    rook:
+      version: "1.5.10"
       isBlockStorageEnabled: true
   upgradeSpec:
     kubernetes:
@@ -139,6 +188,3 @@
     minio_object_store_info
     validate_testfile rwtest minio.txt
     validate_read_write_object_store postupgrade minioupgrade.txt
-
-    
-

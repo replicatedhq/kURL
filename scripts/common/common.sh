@@ -866,3 +866,46 @@ function deployment_fully_updated() {
 
     return 0
 }
+
+# this waits for a daemonset to have all replicas up-to-date and available
+function daemonset_fully_updated() {
+    local namespace=$1
+    local daemonset=$2
+
+    local desiredNumberScheduled
+    desiredNumberScheduled=$(kubectl get daemonset -n "$namespace" "$daemonset" -o jsonpath='{.status.desiredNumberScheduled}')
+
+    local currentNumberScheduled
+    currentNumberScheduled=$(kubectl get daemonset -n "$namespace" "$daemonset" -o jsonpath='{.status.currentNumberScheduled}')
+
+    local numberAvailable
+    numberAvailable=$(kubectl get daemonset -n "$namespace" "$daemonset" -o jsonpath='{.status.numberAvailable}')
+
+    local numberReady
+    numberReady=$(kubectl get daemonset -n "$namespace" "$daemonset" -o jsonpath='{.status.numberReady}')
+
+    local updatedNumberScheduled
+    updatedNumberScheduled=$(kubectl get daemonset -n "$namespace" "$daemonset" -o jsonpath='{.status.updatedNumberScheduled}')
+
+    if [ "$desiredNumberScheduled" != "$numberAvailable" ] ; then
+        return 1
+    fi
+
+    if [ "$desiredNumberScheduled" != "$currentNumberScheduled" ] ; then
+        return 1
+    fi
+
+    if [ "$desiredNumberScheduled" != "$numberAvailable" ] ; then
+        return 1
+    fi
+
+    if [ "$desiredNumberScheduled" != "$numberReady" ] ; then
+        return 1
+    fi
+
+    if [ "$desiredNumberScheduled" != "$updatedNumberScheduled" ] ; then
+        return 1
+    fi
+
+    return 0
+}
