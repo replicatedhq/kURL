@@ -239,6 +239,36 @@ func List(refID string, limit int, offset int, addons map[string]string) ([]type
 	return testInstances, nil
 }
 
+// ListFinishedWithinDuration returns a list of test instances that have completed within the specified duration from now.
+func ListFinishedWithinDuration(duration time.Duration) ([]types.TestInstance, error) {
+	db := persistence.MustGetPGSession()
+
+	query := fmt.Sprintf(
+		`SELECT %s FROM testinstance WHERE finished_at > $1`,
+		testInstanceFields,
+	)
+
+	args := []interface{}{time.Now().Add(-duration)}
+
+	rows, err := db.Query(query, args...)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to query")
+	}
+
+	testInstances := []types.TestInstance{}
+
+	for rows.Next() {
+		testInstance, err := rowToTestInstance(rows)
+		if err != nil {
+			return nil, errors.Wrap(err, "row to test instance")
+		}
+
+		testInstances = append(testInstances, testInstance)
+	}
+
+	return testInstances, nil
+}
+
 func rowToTestInstance(row scannable) (types.TestInstance, error) {
 	testInstance := types.TestInstance{}
 
