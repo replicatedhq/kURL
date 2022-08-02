@@ -12,6 +12,11 @@ jobs:
       with:
         fetch-depth: 0
 
+    # for installing github.com/go-ksplit/ksplit
+    - uses: actions/setup-go@v3
+      with:
+        go-version: 1.17
+
     - name: Create Longhorn Update
       id: update
       working-directory: ./addons/longhorn/template
