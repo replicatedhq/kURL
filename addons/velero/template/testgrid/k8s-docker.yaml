@@ -63,7 +63,7 @@
       version: latest
     rook:
       isBlockStorageEnabled: true
-      version: 1.5.x
+      version: 1.6.x
     registry:
       version: latest
     kotsadm:

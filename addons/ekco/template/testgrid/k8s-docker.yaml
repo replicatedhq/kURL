@@ -18,7 +18,7 @@
     weave:
       version: "latest"
     rook:
-      version: "1.5.x"
+      version: "1.6.x"
     containerd:
       version: "latest"
     kotsadm:
