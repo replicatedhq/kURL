@@ -70,7 +70,7 @@
       version: latest
     rook:
       isBlockStorageEnabled: true
-      version: 1.5.x
+      version: 1.6.x
     registry:
       version: latest
     kotsadm:
@@ -84,14 +84,14 @@
     kubernetes:
       version: 1.21.x
     containerd:
-      version: 1.5.x
+      version: 1.6.x
     weave:
       version: 2.8.x
     contour:
       version: latest
     rook:
       isBlockStorageEnabled: true
-      version: 1.5.x
+      version: 1.6.x
     registry:
       version: latest
     kotsadm:
@@ -113,7 +113,7 @@
       version: latest
     rook:
       isBlockStorageEnabled: true
-      version: 1.5.x
+      version: 1.6.x
     registry:
       version: latest
     kotsadm:
@@ -127,14 +127,14 @@
     kubernetes:
       version: 1.22.x
     containerd:
-      version: 1.5.x
+      version: 1.6.x
     weave:
       version: 2.8.x
     contour:
       version: latest
     rook:
       isBlockStorageEnabled: true
-      version: 1.5.x
+      version: 1.6.x
     registry:
       version: latest
     kotsadm:
@@ -244,7 +244,7 @@
       version: latest
     rook:
       isBlockStorageEnabled: true
-      version: 1.5.x
+      version: 1.6.x
     registry:
       version: latest
     kotsadm:
