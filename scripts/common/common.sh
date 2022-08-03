@@ -60,13 +60,34 @@ function package_download() {
 
     echo "Downloading package ${package}"
     if [ -z "$url_override" ]; then
-        curl -fL -o "${filepath}" "$(get_dist_url)/${package}"
+        package_download_url_with_retry "$(get_dist_url)/${package}" "${filepath}"
     else
-        curl -fL -o "${filepath}" "${url_override}"
+        package_download_url_with_retry "${url_override}" "${filepath}"
     fi
 
     checksum="$(md5sum "${filepath}" | awk '{print $1}')"
     echo "${package} ${newetag} ${checksum}" >> assets/Manifest
+}
+
+function package_download_url_with_retry() {
+    local url="$1"
+    local filepath="$2"
+    local max_retries="${3:-10}"
+
+    local errcode=
+    local i=0
+    while [ $i -ne "$max_retries" ]; do
+        errcode=0
+        curl -fL -o "${filepath}" -C - "$url" || errcode="$?"
+        # 18 transfer closed with outstanding read data remaining
+        # 56 recv failure (connection reset by peer)
+        if [ "$errcode" -eq "18" ] || [ "$errcode" -eq "56" ]; then
+            i=$(($i+1))
+            continue
+        fi
+        return "$errcode"
+    done
+    return "$errcode"
 }
 
 function package_filepath() {
