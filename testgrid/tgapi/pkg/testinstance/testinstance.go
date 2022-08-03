@@ -17,7 +17,7 @@ import (
 const testInstanceFields = `id, test_id, test_name, testrun_ref, kurl_yaml, kurl_url, kurl_flags, upgrade_yaml, ` +
 	`upgrade_url, num_primary_nodes, num_secondary_nodes, memory, cpu, supportbundle_yaml, post_install_script, ` +
 	`post_upgrade_script, os_name, os_version, os_image, os_preinit, enqueued_at, dequeued_at, ` +
-	`started_at, finished_at, is_success, failure_reason, is_unsupported`
+	`started_at, finished_at, is_success, failure_reason, is_unsupported, is_skipped`
 
 const MemoryDefault = "16Gi"
 const CPUDefault = "4"
@@ -192,6 +192,23 @@ where id = $1`
 	return nil
 }
 
+func SkipEnqueuedByRef(refID string) error {
+	db := persistence.MustGetPGSession()
+
+	query := `
+update testinstance set
+is_success = false, is_skipped = true,
+dequeued_at = now(), started_at = now(), running_at = now(), finished_at = now()
+where dequeued_at is null and testrun_ref = $1`
+
+	_, err := db.Exec(query, refID)
+	if err != nil {
+		return errors.Wrap(err, "db exec")
+	}
+
+	return nil
+}
+
 // List returns a list of test instances.
 // Note: pagination (limit and offset) are applied to instances with distinct kurl URLs (instances with same kurl URL count as 1)
 func List(refID string, limit int, offset int, addons map[string]string) ([]types.TestInstance, error) {
@@ -243,7 +260,7 @@ func rowToTestInstance(row scannable) (types.TestInstance, error) {
 	testInstance := types.TestInstance{}
 
 	var enqueuedAt, dequeuedAt, startedAt, finishedAt sql.NullTime
-	var isSuccess, isUnsupported sql.NullBool
+	var isSuccess, isUnsupported, isSkipped sql.NullBool
 	var testID, testName, kurlFlags, upgradeYAML, upgradeURL, supportbundleYAML, postInstallScript, postUpgradeScript, failureReason, osPreInit, memory, cpu sql.NullString
 	var numPrimaryNodes, numSecondaryNodes sql.NullInt64
 	if err := row.Scan(
@@ -274,6 +291,7 @@ func rowToTestInstance(row scannable) (types.TestInstance, error) {
 		&isSuccess,
 		&failureReason,
 		&isUnsupported,
+		&isSkipped,
 	); err != nil {
 		return testInstance, errors.Wrap(err, "failed to scan")
 	}
@@ -307,6 +325,7 @@ func rowToTestInstance(row scannable) (types.TestInstance, error) {
 	testInstance.IsSuccess = isSuccess.Bool
 	testInstance.FailureReason = failureReason.String
 	testInstance.IsUnsupported = isUnsupported.Bool
+	testInstance.IsSkipped = isSkipped.Bool
 
 	testInstance.TestID = getOrCreateTestID(testInstance)
 

@@ -70,8 +70,8 @@ select
 	ref,
 	created_at,
 	COUNT(id) as total,
-	COUNT(id) FILTER (WHERE is_success AND (NOT is_unsupported OR is_unsupported IS NULL)) AS successes,
-	COUNT(id) FILTER (WHERE NOT is_success AND (NOT is_unsupported OR is_unsupported IS NULL) AND finished_at IS NOT NULL) as failures,
+	COUNT(id) FILTER (WHERE is_success AND (NOT is_unsupported OR is_unsupported IS NULL) AND (NOT is_skipped OR is_skipped IS NULL)) AS successes,
+	COUNT(id) FILTER (WHERE NOT is_success AND (NOT is_unsupported OR is_unsupported IS NULL) AND (NOT is_skipped OR is_skipped IS NULL) AND finished_at IS NOT NULL) as failures,
 	MAX(started_at) as latest_started,
 	MAX(finished_at) as latest_completion,
 	COUNT(id) FILTER (WHERE finished_at IS NULL) as pending_runs

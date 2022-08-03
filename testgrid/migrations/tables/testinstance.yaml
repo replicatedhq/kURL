@@ -43,6 +43,8 @@ spec:
           type: varchar(255)
         - name: is_unsupported
           type: boolean
+        - name: is_skipped
+          type: boolean
         - name: output
           type: text
         - name: sonobuoy_results
