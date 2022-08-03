@@ -5,6 +5,7 @@ on:
     branches:
     - main
     paths:
+    - 'go.*'
     - 'testgrid/**'
     - '.github/workflows/deploy-testgrid.yaml'
 
