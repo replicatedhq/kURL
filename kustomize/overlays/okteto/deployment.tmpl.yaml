@@ -10,7 +10,7 @@ spec:
         imagePullPolicy: Always
         env:
         - name: KURL_URL
-          value: https://kurl-$OKTETO_NAMESPACE.replicated.okteto.dev
+          value: https://kurl-$OKTETO_NAMESPACE.okteto.repldev.com
         - name: KURL_BUCKET
           value: "kurl-sh"
         - name: TSED_SUPPRESS_ACCESSLOG
@@ -34,11 +34,11 @@ spec:
         - name: JWT_SIGNING_KEY
           value: jwt-signing-key
         - name: REPLICATED_APP_URL
-          value: https://replicated-app-$OKTETO_NAMESPACE.replicated.okteto.dev
+          value: https://replicated-app-$OKTETO_NAMESPACE.okteto.repldev.com
         - name: KURL_BIN_UTILS_FILE
           value: kurl-bin-utils-latest.tar.gz
         - name: DIST_URL
-          value: https://kurl-dist-server-$OKTETO_NAMESPACE.replicated.okteto.dev
+          value: https://kurl-dist-server-$OKTETO_NAMESPACE.okteto.repldev.com
       - name: server
         imagePullPolicy: Always
         env:

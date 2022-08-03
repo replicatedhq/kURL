@@ -47,7 +47,7 @@ kubectl port-forward svc/testgrid-web 30881:30881
 
 1. Change directories to the root of the project
 1. Run `okteto pipeline deploy -f testgrid/okteto-pipeline.yaml`
-1. To "queue" a run `./bin/tgrun queue --os-spec hack/os-spec.yaml --spec hack/test-spec.yaml --ref ethan-1 --api-token this-is-super-secret --api-endpoint https://tgapi-${OKTETO_NAMESPACE}.replicated.okteto.dev`
+1. To "queue" a run `./bin/tgrun queue --os-spec hack/os-spec.yaml --spec hack/test-spec.yaml --ref ethan-1 --api-token this-is-super-secret --api-endpoint https://tgapi-${OKTETO_NAMESPACE}.okteto.repldev.com`
 
 # Support for multi node clusters
 
