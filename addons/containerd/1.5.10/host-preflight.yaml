@@ -23,3 +23,6 @@ spec:
           - pass:
               when: "ubuntu = 20.04"
               message: "containerd addon supports ubuntu 20.04"
+          - pass:
+              when: "ubuntu = 22.04"
+              message: "containerd addon supports ubuntu 22.04"
