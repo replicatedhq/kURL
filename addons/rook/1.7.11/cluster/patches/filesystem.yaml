@@ -1,0 +1,21 @@
+---
+apiVersion: ceph.rook.io/v1
+kind: CephFilesystem
+metadata:
+  name: myfs
+  namespace: rook-ceph
+spec:
+  metadataPool:
+    replicated:
+      size: 1
+      requireSafeReplicaSize: false
+  metadataServer:
+    priorityClassName: system-cluster-critical
+    resources:
+      value:
+        limits:
+          cpu: "500m"
+          memory: "1024Mi"
+        requests:
+          cpu: "500m"
+          memory: "1024Mi"

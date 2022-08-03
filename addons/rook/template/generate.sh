@@ -2,10 +2,10 @@
 
 set -euo pipefail
 
-function get_latest_16x_version() {
+function get_latest_17x_version() {
     curl -s https://api.github.com/repos/rook/rook/releases | \
         grep '"tag_name": ' | \
-        grep -Eo "1\.6\.[0-9]+" | \
+        grep -Eo "1\.7\.[0-9]+" | \
         head -1
 }
 
@@ -49,7 +49,18 @@ function generate() {
 
     local ceph_image=
     ceph_image="$(grep ' image: '  "${dir}/cluster/cluster.yaml" | sed -E 's/ *image: "*([^" ]+).*/\1/')"
-    sed -i "s/__CEPH_IMAGE__/$(echo "${ceph_image}" | sed 's/\//\\\//')/" "${dir}/install.sh"
+
+    # Upgrading passed v16.2.6 based on this note in the Rook docs
+    # https://www.rook.io/docs/rook/v1.6/ceph-upgrade.html#ceph-version-upgrades
+    # WARNING: There is a notice from Ceph for users upgrading to Ceph Pacific v16.2.6 or lower from an earlier major version of Ceph. If you are upgrading to Ceph Pacific (v16), please upgrade to v16.2.7 or higher if possible.
+    if echo "$ceph_image" | grep ":v16\.2" ; then
+        local ceph_version_patch="$(echo "$ceph_image" | grep -o "v[0-9]*\.[0-9]*\.[0-9]*" | sed "s/v[0-9]*\.[0-9]*\.\([0-9]*\).*/\1/")"
+        if [ "$ceph_version_patch" -lt "7" ]; then
+            ceph_image="$(echo "$ceph_image" | sed "s/v[0-9]*\.[0-9]*\.[0-9]*/v16.2.7/")"
+        fi
+    fi
+
+    sed -i "s/__CEPH_IMAGE__/$(echo "${ceph_image}" | sed 's/\//\\\//g')/" "${dir}/install.sh"
 
     # get images in files
     {   grep ' image: '  "${dir}/operator/deployment.yaml" | sed -E 's/ *image: "*([^\/]+\/)?([^\/]+)\/([^:]+):([^" ]+).*/image \2-\3 \1\2\/\3:\4/' ; \
@@ -100,7 +111,7 @@ function add_as_latest() {
 function main() {
     VERSION=${1-}
     if [ -z "$VERSION" ]; then
-        VERSION="$(get_latest_16x_version)"
+        VERSION="$(get_latest_17x_version)"
     fi
 
     if [ -d "../$VERSION" ]; then
