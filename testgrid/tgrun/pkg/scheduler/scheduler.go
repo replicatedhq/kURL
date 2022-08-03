@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/pkg/errors"
@@ -19,7 +20,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-var urlRegexp = regexp.MustCompile(`(https://[\w.]+)/([\w]+)`)
+var urlRegexp = regexp.MustCompile(`(https?://[\w.-]+)/([\w]+)`)
 
 type kurlErrResp struct {
 	Error struct {
@@ -69,6 +70,9 @@ func Run(schedulerOptions types.SchedulerOptions) error {
 		apiUrl := "https://kurl.sh/installer"
 		if schedulerOptions.Staging {
 			apiUrl = "https://staging.kurl.sh/installer"
+		}
+		if u := os.Getenv("KURL_API_ENDPOINT"); u != "" {
+			apiUrl = fmt.Sprintf("%s/installer", strings.TrimRight(u, "/"))
 		}
 
 		req, err := http.NewRequest("POST", apiUrl, bytes.NewReader(installerYAML))
