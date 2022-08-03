@@ -253,6 +253,9 @@ const InstanceTable = (props) => {
       if (instance.isUnsupported) {
         return "Unsupported";
       }
+      if (instance.isSkipped) {
+        return "Skipped";
+      }
       return instance.isSuccess ? "Passed" : "Failed";
     }
     if (instance.startedAt) {
@@ -355,7 +358,7 @@ const InstanceTable = (props) => {
               >
                 <div className="flex flex1 alignItems--center">
                   <span className={`status-text ${status} flex1`}>{status}<br/><small>{failureReason}</small></span>
-                  {(instance.startedAt && !instance.isUnsupported) &&
+                  {(instance.startedAt && !instance.isUnsupported && !instance.isSkipped) &&
                     <div className="flex-column flex1 alignItems--flexEnd">
 
                       {instance.finishedAt &&
@@ -364,7 +367,7 @@ const InstanceTable = (props) => {
                     </div>
                   }
                 </div>
-                {(instance.startedAt && !instance.isUnsupported) &&
+                {(instance.startedAt && !instance.isUnsupported && !instance.isSkipped) &&
                 <div className="flex flex1 alignItems--center cluster-node">
                   <div className="flex-column flex1 alignItems--flexEnd">
                     <button type="button" className="btn xsmall primary u-width--full u-marginBottom--5" onClick={() => viewNodeLogs(initialPrimaryId, instance)}>Logs Initialprimary Node</button>
