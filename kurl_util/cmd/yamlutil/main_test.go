@@ -152,23 +152,23 @@ metadata:
 spec:
   analyzers: []
   collectors:
-  - systemPackages:
-      amzn:
-      - iscsi-initiator-utils
-      - nfs-utils
-      centos:
-      - iscsi-initiator-utils
-      - nfs-utils
-      collectorName: longhorn
-      ol:
-      - iscsi-initiator-utils
-      - nfs-utils
-      rhel:
-      - iscsi-initiator-utils
-      - nfs-utils
-      ubuntu:
-      - open-iscsi
-      - nfs-common
+    - systemPackages:
+        amzn:
+          - iscsi-initiator-utils
+          - nfs-utils
+        centos:
+          - iscsi-initiator-utils
+          - nfs-utils
+        collectorName: longhorn
+        ol:
+          - iscsi-initiator-utils
+          - nfs-utils
+        rhel:
+          - iscsi-initiator-utils
+          - nfs-utils
+        ubuntu:
+          - open-iscsi
+          - nfs-common
 `,
 		},
 		{
@@ -211,29 +211,29 @@ metadata:
   name: kurl-builtin
 spec:
   analyzers:
-  - blockDevices:
-      includeUnmountedPartitions: true
-      outcomes:
-      - pass:
-          message: One available block device
-          when: '{{kurl if (and .Installer.Spec.Rook.Version .Installer.Spec.Rook.BlockDeviceFilter) }}{{kurl .Installer.Spec.Rook.BlockDeviceFilter }}{{kurl else }}.*{{kurl end }} == 1'
-      - pass:
-          message: Multiple available block devices
-          when: '{{kurl if (and .Installer.Spec.Rook.Version .Installer.Spec.Rook.BlockDeviceFilter) }}{{kurl .Installer.Spec.Rook.BlockDeviceFilter }}{{kurl else }}.*{{kurl end }} > 1'
-      - fail:
-          message: No available block devices
-  - systemPackages:
-      collectorName: longhorn
-      outcomes:
-      - fail:
-          message: Package {{ .Name }} is not installed.
-          when: '{{ not .IsInstalled }}'
-      - pass:
-          message: Package {{ .Name }} is installed.
+    - blockDevices:
+        includeUnmountedPartitions: true
+        outcomes:
+          - pass:
+              message: One available block device
+              when: '{{kurl if (and .Installer.Spec.Rook.Version .Installer.Spec.Rook.BlockDeviceFilter) }}{{kurl .Installer.Spec.Rook.BlockDeviceFilter }}{{kurl else }}.*{{kurl end }} == 1'
+          - pass:
+              message: Multiple available block devices
+              when: '{{kurl if (and .Installer.Spec.Rook.Version .Installer.Spec.Rook.BlockDeviceFilter) }}{{kurl .Installer.Spec.Rook.BlockDeviceFilter }}{{kurl else }}.*{{kurl end }} > 1'
+          - fail:
+              message: No available block devices
+    - systemPackages:
+        collectorName: longhorn
+        outcomes:
+          - fail:
+              message: Package {{ .Name }} is not installed.
+              when: '{{ not .IsInstalled }}'
+          - pass:
+              message: Package {{ .Name }} is installed.
   collectors:
-  - diskUsage:
-      collectorName: Ephemeral Disk Usage /opt/replicated/rook
-      path: /opt/replicated/rook
+    - diskUsage:
+        collectorName: Ephemeral Disk Usage /opt/replicated/rook
+        path: /opt/replicated/rook
 `,
 		},
 	}
@@ -241,8 +241,8 @@ spec:
 		t.Run(tt.name, func(t *testing.T) {
 			req := require.New(t)
 			got, err := addFieldToContent([]byte(tt.yamlContent), tt.yamlPath, tt.value)
-			req.Equal(tt.want, got)
 			req.NoError(err)
+			req.Equal(tt.want, got)
 		})
 	}
 }

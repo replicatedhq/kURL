@@ -11,8 +11,8 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
-	replyaml "github.com/replicatedhq/yaml/v3" // using replicatedhq/yaml/v3 because that allows setting line length
 	"gopkg.in/yaml.v2"
+	yamlv3 "gopkg.in/yaml.v3"
 )
 
 func readFile(path string) []byte {
@@ -35,9 +35,8 @@ func readFile(path string) []byte {
 
 func marshalIndent(in interface{}, indent int) ([]byte, error) {
 	var buf bytes.Buffer
-	enc := replyaml.NewEncoder(&buf)
+	enc := yamlv3.NewEncoder(&buf)
 	enc.SetIndent(indent)
-	enc.SetLineLength(-1)
 	err := enc.Encode(in)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to encode with indent %d", indent)
@@ -104,7 +103,7 @@ func addFieldToContent(content []byte, yamlPath, value string) (string, error) {
 			parsedObj[fields[0]].(map[interface{}]interface{})[fields[1]] = parsedVal
 		}
 
-		b, err := marshalIndent(&parsedObj, 2)
+		b, err := marshalIndent(parsedObj, 2)
 		if err != nil {
 			return "", errors.Wrap(err, "failed to marshal")
 		}
@@ -236,9 +235,7 @@ func jsonField(readFile func(string) []byte, filePath, jsonPath string) (string,
 		}
 	}
 
-	if parsedInterface, ok := parsed.(map[interface{}]interface{}); ok {
-		parsed = convertToStringMaps(parsedInterface)
-	}
+	parsed = convertToStringMaps(parsed)
 
 	// convert the remaining object to json
 	jsonObj, err := json.Marshal(parsed)
@@ -248,20 +245,27 @@ func jsonField(readFile func(string) []byte, filePath, jsonPath string) (string,
 	return string(jsonObj), nil
 }
 
-func convertToStringMaps(startMap map[interface{}]interface{}) map[string]interface{} {
-	converted := map[string]interface{}{}
-	for key, val := range startMap {
-		if valMap, ok := val.(map[interface{}]interface{}); ok { // this does not handle the case of map[interface]interface within arrays, but that is not needed yet
-			val = convertToStringMaps(valMap)
+func convertToStringMaps(start interface{}) interface{} {
+	switch t := start.(type) {
+	case []interface{}:
+		converted := make([]interface{}, len(t), len(t))
+		for k, v := range t {
+			converted[k] = convertToStringMaps(v)
 		}
-		if keyString, ok := key.(string); ok {
-			converted[keyString] = val
-		} else {
-			strKey := fmt.Sprintf("%v", key)
-			converted[strKey] = val
+		return converted
+	case map[interface{}]interface{}:
+		converted := map[string]interface{}{}
+		for key, val := range t {
+			if keyString, ok := key.(string); ok {
+				converted[keyString] = convertToStringMaps(val)
+			} else {
+				strKey := fmt.Sprintf("%v", key)
+				converted[strKey] = convertToStringMaps(val)
+			}
 		}
+		return converted
 	}
-	return converted
+	return start
 }
 
 func main() {
