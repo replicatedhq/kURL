@@ -1,6 +1,6 @@
-image kotsadm-migrations docker.io/kotsadm/kotsadm-migrations:alpha
-image kotsadm docker.io/kotsadm/kotsadm:alpha
-image kurl-proxy docker.io/kotsadm/kurl-proxy:alpha
+image kotsadm-migrations docker.io/kotsadm/kotsadm-migrations:v1.79.0
+image kotsadm docker.io/kotsadm/kotsadm:v1.79.0
+image kurl-proxy docker.io/kotsadm/kurl-proxy:v1.79.0
 image postgres-10 postgres:10.21-alpine
 image postgres-14 postgres:14.4-alpine
 image dex docker.io/kotsadm/dex:v2.32.0
