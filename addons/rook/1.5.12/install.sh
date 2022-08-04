@@ -429,6 +429,11 @@ function rook_clients_secure {
 function rook_maybe_auth_allow_insecure_global_id_reclaim() {
     local dst="${DIR}/kustomize/rook/operator"
 
+    if ! kubectl -n rook-ceph get cephcluster rook-ceph >/dev/null 2>&1 ; then
+        # rook ceph not deployed, do not allow since not upgrading
+        return
+    fi
+
     local ceph_version="$(rook_detect_ceph_version)"
     if rook_should_auth_allow_insecure_global_id_reclaim "$ceph_version" ; then
         sed -i 's/auth_allow_insecure_global_id_reclaim = false/auth_allow_insecure_global_id_reclaim = true/' "$dst/configmap-rook-config-override.yaml"
@@ -440,8 +445,8 @@ function rook_should_auth_allow_insecure_global_id_reclaim() {
     local ceph_version="$1"
 
     if [ -z "$ceph_version" ]; then
-        # rook ceph not deployed, allow since not upgrading
-        return 0
+        # rook ceph not deployed, do not allow since not upgrading
+        return 1
     fi
 
     # https://docs.ceph.com/en/latest/security/CVE-2021-20288/
