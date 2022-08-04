@@ -16,6 +16,7 @@ export default class RunTable extends React.Component {
                     <td>{run.last_response && moment(run.last_response).format("MMM D, YYYY h:mma")}</td>
                     <td>{`${run.success_count}`}</td>
                     <td>{`${run.failure_count}`}</td>
+                    <td>{`${run.running_runs}`}</td>
                     <td>{`${run.pending_runs}`}</td>
                 </tr>
             )
@@ -30,6 +31,7 @@ export default class RunTable extends React.Component {
                         <th>Last Instance Completed At</th>
                         <th>Successes</th>
                         <th>Failures</th>
+                        <th>Running</th>
                         <th>Pending</th>
                     </tr>
                 </thead>
