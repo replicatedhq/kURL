@@ -30,7 +30,7 @@ jobs:
         ./testgrid/tgrun/bin/tgrun queue --staging \
           --ref "STAGING-daily-$(date --utc +%FT%TZ)" \
           --spec ./testgrid/specs/full.yaml \
-          --os-spec ./testgrid/specs/os.yaml \
+          --os-spec ./testgrid/specs/os-firstlast.yaml \
           --priority -2
 
     - name: testgrid-queue-prod
@@ -41,4 +41,4 @@ jobs:
         ./testgrid/tgrun/bin/tgrun queue \
           --ref "PROD-daily-$(date --utc +%FT%TZ)" \
           --spec ./testgrid/specs/full.yaml \
-          --os-spec ./testgrid/specs/os.yaml
+          --os-spec ./testgrid/specs/os-firstlast.yaml
