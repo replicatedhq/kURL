@@ -54,9 +54,10 @@ function package_download() {
         return
     fi
 
-    sed -i "/^$(printf '%s' "${package}").*/d" assets/Manifest # remove from manifest
-
     local filepath="$(package_filepath "${package}")"
+
+    sed -i "/^$(printf '%s' "${package}").*/d" assets/Manifest # remove from manifest
+    rm -f "${filepath}" # remove the file
 
     echo "Downloading package ${package}"
     if [ -z "$url_override" ]; then
