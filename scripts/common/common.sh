@@ -54,9 +54,10 @@ function package_download() {
         return
     fi
 
-    sed -i "/^$(printf '%s' "${package}").*/d" assets/Manifest # remove from manifest
-
     local filepath="$(package_filepath "${package}")"
+
+    sed -i "/^$(printf '%s' "${package}").*/d" assets/Manifest # remove from manifest
+    rm -f "${filepath}" # remove the file
 
     echo "Downloading package ${package}"
     if [ -z "$url_override" ]; then
@@ -78,7 +79,7 @@ function package_download_url_with_retry() {
     local i=0
     while [ $i -ne "$max_retries" ]; do
         errcode=0
-        curl -fL -o "${filepath}" -C - "$url" || errcode="$?"
+        curl -fL -o "${filepath}" "${url}" || errcode="$?"
         # 18 transfer closed with outstanding read data remaining
         # 56 recv failure (connection reset by peer)
         if [ "$errcode" -eq "18" ] || [ "$errcode" -eq "56" ]; then
