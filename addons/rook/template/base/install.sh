@@ -80,10 +80,24 @@ function rook() {
 
 function rook_join() {
     rook_lvm2
+
+    if kubernetes_is_master ; then
+        # If a node has been added patch mds with preferred pod anti-affinity
+        local ready_node_count="$(kubectl get nodes --no-headers 2>/dev/null | grep ' Ready' | wc -l)"
+        if [ "$ready_node_count" -gt "1" ]; then
+            rook_cephfilesystem_patch_multinode
+        fi
+    fi
 }
 
 function rook_already_applied() {
     rook_object_store_output
+
+    # If a node has been added patch mds with preferred pod anti-affinity
+    local ready_node_count="$(kubectl get nodes --no-headers 2>/dev/null | grep ' Ready' | wc -l)"
+    if [ "$ready_node_count" -gt "1" ]; then
+        rook_cephfilesystem_patch_multinode
+    fi
 }
 
 function rook_operator_crds_deploy() {
@@ -143,13 +157,6 @@ function rook_cluster_deploy() {
     local src="${DIR}/addons/rook/${ROOK_VERSION}/cluster"
     local dst="${DIR}/kustomize/rook/cluster"
 
-    # Don't redeploy cluster - ekco may have made changes based on num of nodes in cluster
-    if kubectl -n rook-ceph get cephcluster rook-ceph >/dev/null 2>&1 ; then
-        echo "Cluster rook-ceph already deployed"
-        rook_cluster_deploy_upgrade
-        return 0
-    fi
-
     mkdir -p "${DIR}/kustomize/rook"
     rm -rf "$dst"
     cp -r "$src" "$dst"
@@ -162,9 +169,15 @@ function rook_cluster_deploy() {
     if [ "${ROOK_SHARED_FILESYSTEM_DISABLED}" != "1" ]; then
         insert_resources "$dst/kustomization.yaml" cephfs-storageclass.yaml
         insert_resources "$dst/kustomization.yaml" filesystem.yaml
-        insert_patches_strategic_merge "$dst/kustomization.yaml" patches/cephfs-storageclass.yaml
         insert_patches_strategic_merge "$dst/kustomization.yaml" patches/filesystem.yaml
-        insert_patches_json_6902 "$dst/kustomization.yaml" patches/filesystem-Json6902.yaml ceph.rook.io v1 CephFilesystem myfs rook-ceph
+
+        # anti-affinity rules prevent MDS pods from co-scheduling on a single node installation
+        local ready_node_count="$(kubectl get nodes --no-headers 2>/dev/null | grep ' Ready' | wc -l)"
+        if [ "$ready_node_count" -le "1" ]; then
+            insert_patches_strategic_merge "$dst/kustomization.yaml" patches/filesystem-singlenode.yaml
+        fi
+
+        insert_patches_json_6902 "$dst/kustomization.yaml" patches/filesystem-Json6902.yaml ceph.rook.io v1 CephFilesystem rook-shared-fs rook-ceph
     fi
 
     # patches
@@ -176,6 +189,13 @@ function rook_cluster_deploy() {
     insert_patches_strategic_merge "$dst/kustomization.yaml" patches/rbd-storageclass.yaml
     if [ "$KUBERNETES_TARGET_VERSION_MINOR" -lt "17" ]; then
         sed -i 's/system-cluster-critical/rook-critical/g' "$dst/patches/cluster.yaml" "$dst/patches/object.yaml" "$dst/patches/filesystem.yaml"
+    fi
+
+    # Don't redeploy cluster - ekco may have made changes based on num of nodes in cluster
+    if kubectl -n rook-ceph get cephcluster rook-ceph >/dev/null 2>&1 ; then
+        echo "Cluster rook-ceph already deployed"
+        rook_cluster_deploy_upgrade
+        return 0
     fi
 
     kubectl -n rook-ceph apply -k "$dst/"
@@ -220,6 +240,14 @@ function rook_cluster_deploy_upgrade() {
     if ! spinner_until 600 rook_ceph_healthy ; then
         kubectl -n rook-ceph exec deploy/rook-ceph-tools -- ceph status
         bail "Refusing to update cluster rook-ceph, Ceph is not healthy"
+    fi
+
+    # When upgrading we need both MDS pods and anti-affinity rules prevent them from co-scheduling
+    local ready_node_count="$(kubectl get nodes --no-headers 2>/dev/null | grep ' Ready' | wc -l)"
+    if [ "$ready_node_count" -le "1" ]; then
+        rook_cephfilesystem_patch_singlenode
+    else
+        rook_cephfilesystem_patch_multinode
     fi
 
     # https://rook.io/docs/rook/v1.6/ceph-upgrade.html#ceph-version-upgrades
@@ -515,4 +543,86 @@ function rook_should_auth_allow_insecure_global_id_reclaim() {
 
 function rook_detect_ceph_version() {
     kubectl -n rook-ceph get deployment rook-ceph-mgr-a -o jsonpath='{.metadata.labels.ceph-version}' 2>/dev/null | awk -F'-' '{ print $1 }'
+}
+
+# rook_cephfilesystem_patch_singlenode will change the
+# requiredDuringSchedulingIgnoredDuringExecution podAntiAffinity rule to the more lenient
+# preferredDuringSchedulingIgnoredDuringExecution equivalent. This will allow Rook to continue with
+# the upgrade.
+function rook_cephfilesystem_patch_singlenode() {
+    if ! kubectl -n rook-ceph get cephfilesystem rook-shared-fs -o jsonpath='{.spec.metadataServer.placement.podAntiAffinity}' | grep -q requiredDuringSchedulingIgnoredDuringExecution ; then
+        # already patched
+        return
+    fi
+
+    local src="$DIR/addons/rook/$ROOK_VERSION/cluster"
+    rook_cephfilesystem_patch "$src/patches/filesystem-singlenode.yaml"
+}
+
+# rook_cephfilesystem_patch_multinode will revert the
+# preferredDuringSchedulingIgnoredDuringExecution podAntiAffinity rule to the more strict
+# requiredDuringSchedulingIgnoredDuringExecution equivalent.
+function rook_cephfilesystem_patch_multinode() {
+    if kubectl -n rook-ceph get cephfilesystem rook-shared-fs -o jsonpath='{.spec.metadataServer.placement.podAntiAffinity}' | grep -q requiredDuringSchedulingIgnoredDuringExecution ; then
+        # already patched
+        return
+    fi
+
+    local src="$DIR/addons/rook/$ROOK_VERSION/cluster"
+    rook_cephfilesystem_patch "$src/patches/filesystem-multinode.yaml"
+}
+
+function rook_cephfilesystem_patch() {
+    local patch="$1"
+
+    local cephfs_generation="$(kubectl -n rook-ceph get cephfilesystem rook-shared-fs -o jsonpath='{.metadata.generation}')"
+    local mds_observedgeneration="$(rook_mds_deployments_observedgeneration)"
+
+    kubectl -n rook-ceph patch cephfilesystem rook-shared-fs --type merge --patch-file "$patch"
+
+    local cephfs_nextgeneration="$(kubectl -n rook-ceph get cephfilesystem rook-shared-fs -o jsonpath='{.metadata.generation}')"
+    if [ "$cephfs_generation" = "$cephfs_nextgeneration" ]; then
+        # no change
+        return
+    fi
+
+    echo "Awaiting Rook MDS deployments to roll out"
+    if ! spinner_until 300 rook_mds_deployments_updated "$mds_observedgeneration" ; then
+        kubectl -n rook-ceph get deploy -l app=rook-ceph-mds
+        bail "Refusing to update cluster rook-ceph, MDS deployments did not roll out"
+    fi
+
+
+    echo "Awaiting Rook MDS deployments up-to-date"
+    if ! spinner_until 300 rook_mds_deployments_uptodate ; then
+        kubectl -n rook-ceph get deploy -l app=rook-ceph-mds
+        bail "Refusing to update cluster rook-ceph, MDS deployments not up-to-date"
+    fi
+
+    echo "Awaiting Ceph healthy"
+    if ! spinner_until 120 rook_ceph_healthy ; then
+        kubectl -n rook-ceph exec deploy/rook-ceph-tools -- ceph status
+        bail "Refusing to update cluster rook-ceph, Ceph is not healthy"
+    fi
+}
+
+function rook_mds_deployments_uptodate() {
+    local replicas="$(kubectl -n rook-ceph get deploy -l app=rook-ceph-mds -o jsonpath='{.items[*].status.replicas}')"
+    local ready_replicas="$(kubectl -n rook-ceph get deploy -l app=rook-ceph-mds -o jsonpath='{.items[*].status.readyReplicas}')"
+    local updated_replicas="$(kubectl -n rook-ceph get deploy -l app=rook-ceph-mds -o jsonpath='{.items[*].status.updatedReplicas}')"
+    [ -n "$replicas" ] && [ "$replicas" = "$ready_replicas" ] && [ "$replicas" = "$updated_replicas" ]
+}
+
+function rook_mds_deployments_updated() {
+    local previous="$1"
+    for line in $previous; do
+        if rook_mds_deployments_observedgeneration | grep -q "$line" ; then
+            return 1
+        fi
+    done
+    return 0
+}
+
+function rook_mds_deployments_observedgeneration() {
+    kubectl -n rook-ceph get deploy -l app=rook-ceph-mds -o jsonpath='{range .items[*]}{.metadata.name}={.status.observedGeneration}{"\n"}{end}'
 }

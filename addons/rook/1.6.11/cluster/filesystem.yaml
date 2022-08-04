@@ -7,7 +7,7 @@
 apiVersion: ceph.rook.io/v1
 kind: CephFilesystem
 metadata:
-  name: myfs
+  name: rook-shared-fs
   namespace: rook-ceph # namespace:cluster
 spec:
   # The metadata pool spec. Must use replication.
