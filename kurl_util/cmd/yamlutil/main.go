@@ -235,7 +235,9 @@ func jsonField(readFile func(string) []byte, filePath, jsonPath string) (string,
 		}
 	}
 
-	parsed = convertToStringMaps(parsed)
+	if parsedInterface, ok := parsed.(map[interface{}]interface{}); ok {
+		parsed = convertToStringMaps(parsedInterface)
+	}
 
 	// convert the remaining object to json
 	jsonObj, err := json.Marshal(parsed)
@@ -245,27 +247,20 @@ func jsonField(readFile func(string) []byte, filePath, jsonPath string) (string,
 	return string(jsonObj), nil
 }
 
-func convertToStringMaps(start interface{}) interface{} {
-	switch t := start.(type) {
-	case []interface{}:
-		converted := make([]interface{}, len(t), len(t))
-		for k, v := range t {
-			converted[k] = convertToStringMaps(v)
+func convertToStringMaps(startMap map[interface{}]interface{}) map[string]interface{} {
+	converted := map[string]interface{}{}
+	for key, val := range startMap {
+		if valMap, ok := val.(map[interface{}]interface{}); ok { // this does not handle the case of map[interface]interface within arrays, but that is not needed yet
+			val = convertToStringMaps(valMap)
 		}
-		return converted
-	case map[interface{}]interface{}:
-		converted := map[string]interface{}{}
-		for key, val := range t {
-			if keyString, ok := key.(string); ok {
-				converted[keyString] = convertToStringMaps(val)
-			} else {
-				strKey := fmt.Sprintf("%v", key)
-				converted[strKey] = convertToStringMaps(val)
-			}
+		if keyString, ok := key.(string); ok {
+			converted[keyString] = val
+		} else {
+			strKey := fmt.Sprintf("%v", key)
+			converted[strKey] = val
 		}
-		return converted
 	}
-	return start
+	return converted
 }
 
 func main() {
