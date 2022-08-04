@@ -143,7 +143,7 @@ test_addon() {
   ./testgrid/tgrun/bin/tgrun queue --staging \
     --ref "$ref" \
     --spec /tmp/test-spec \
-    --os-spec ./testgrid/specs/os.yaml \
+    --os-spec ./testgrid/specs/os-firstlast.yaml \
     --priority "$priority"
   echo "Submitted TestGrid Ref $ref"
   MSG="$MSG https://testgrid.kurl.sh/run/$ref"

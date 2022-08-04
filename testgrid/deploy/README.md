@@ -47,7 +47,7 @@ You can exec into a VM with `kubectl virt console <vmi name>`, and the password 
 1. Click on any server
 1. Click SSH access, copy the command, and SSH into the server
 1. Find the upload proxy IP: kubectl -n cdi get service cdi-uploadproxy --no-headers | awk '{ print $3 }'
-1. Download the VM image. Pick image from testgrid/specs/os.yaml. `curl -LO https://cloud.centos.org/centos/8/x86_64/images/CentOS-8-GenericCloud-8.3.2011-20201204.2.x86_64.qcow2`
+1. Download the VM image. Pick image from testgrid/specs/os-full.yaml. `curl -LO https://cloud.centos.org/centos/8/x86_64/images/CentOS-8-GenericCloud-8.3.2011-20201204.2.x86_64.qcow2`
 1. Create a PVC from the image: `kubectl virt image-upload --uploadproxy-url=https://<upload proxy IP> --insecure --pvc-name=areed-disk --pvc-size=100Gi --image-path=`pwd`/CentOS-8-GenericCloud-8.3.2011-20201204.2.x86_64.qcow2`
 1. Create virtualmachineinstance with config and `kubectl apply` it
 ```
