@@ -80,7 +80,7 @@ func GetRun(w http.ResponseWriter, r *http.Request) {
 				getRunResponse.LastStart = instance.StartedAt
 			}
 		}
-		if !instance.IsUnsupported && instance.FinishedAt != nil {
+		if !instance.IsUnsupported && !instance.IsSkipped && instance.FinishedAt != nil {
 			if instance.IsSuccess {
 				getRunResponse.SuccessCount++
 			} else {
