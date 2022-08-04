@@ -491,6 +491,11 @@ function rook_should_skip_rook_install() {
 function rook_maybe_auth_allow_insecure_global_id_reclaim() {
     local dst="${DIR}/kustomize/rook/operator"
 
+    if ! kubectl -n rook-ceph get cephcluster rook-ceph >/dev/null 2>&1 ; then
+        # rook ceph not deployed, do not allow since not upgrading
+        return
+    fi
+
     local ceph_version="$(rook_detect_ceph_version)"
     if rook_should_auth_allow_insecure_global_id_reclaim "$ceph_version" ; then
         sed -i 's/auth_allow_insecure_global_id_reclaim = false/auth_allow_insecure_global_id_reclaim = true/' "$dst/configmap-rook-config-override.yaml"
@@ -502,8 +507,8 @@ function rook_should_auth_allow_insecure_global_id_reclaim() {
     local ceph_version="$1"
 
     if [ -z "$ceph_version" ]; then
-        # rook ceph not deployed, allow since not upgrading
-        return 0
+        # rook ceph not deployed, do not allow since not upgrading
+        return 1
     fi
 
     # https://docs.ceph.com/en/latest/security/CVE-2021-20288/
@@ -573,7 +578,7 @@ function rook_cephfilesystem_patch() {
     local cephfs_generation="$(kubectl -n rook-ceph get cephfilesystem rook-shared-fs -o jsonpath='{.metadata.generation}')"
     local mds_observedgeneration="$(rook_mds_deployments_observedgeneration)"
 
-    kubectl -n rook-ceph patch cephfilesystem rook-shared-fs --type merge --patch-file "$patch"
+    kubectl -n rook-ceph patch cephfilesystem rook-shared-fs --type merge --patch "$(cat "$patch")"
 
     local cephfs_nextgeneration="$(kubectl -n rook-ceph get cephfilesystem rook-shared-fs -o jsonpath='{.metadata.generation}')"
     if [ "$cephfs_generation" = "$cephfs_nextgeneration" ]; then

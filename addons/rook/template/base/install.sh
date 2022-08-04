@@ -578,7 +578,7 @@ function rook_cephfilesystem_patch() {
     local cephfs_generation="$(kubectl -n rook-ceph get cephfilesystem rook-shared-fs -o jsonpath='{.metadata.generation}')"
     local mds_observedgeneration="$(rook_mds_deployments_observedgeneration)"
 
-    kubectl -n rook-ceph patch cephfilesystem rook-shared-fs --type merge --patch-file "$patch"
+    kubectl -n rook-ceph patch cephfilesystem rook-shared-fs --type merge --patch "$(cat "$patch")"
 
     local cephfs_nextgeneration="$(kubectl -n rook-ceph get cephfilesystem rook-shared-fs -o jsonpath='{.metadata.generation}')"
     if [ "$cephfs_generation" = "$cephfs_nextgeneration" ]; then
