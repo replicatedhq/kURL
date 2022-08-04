@@ -10,12 +10,11 @@ function get_latest_version() {
 }
 
 function add_as_latest() {
-    sed -i "/cron-minio-update/a\    \"${VERSION#"RELEASE."}\"\," ../../../web/src/installers/versions.js
+    sed -i "/cron-minio-update/a\    \"${DIR_NAME}\"\," ../../../web/src/installers/versions.js
 }
 
 function generate() {
-    local dir_name=${VERSION#"RELEASE."}
-    local dir="../${dir_name}"
+    local dir="../${DIR_NAME}"
 
     mkdir -p "$dir"
     cp -r base/* "$dir/"
@@ -24,7 +23,7 @@ function generate() {
     sed -i "s/__MINIO_VERSION__/$VERSION/g" "$dir/deployment.yaml"
     sed -i "s/__MINIO_VERSION__/$VERSION/g" "$dir/install.sh"
 
-    sed -i "s/__MINIO_DIR_NAME__/$dir_name/g" "$dir/install.sh"
+    sed -i "s/__MINIO_DIR_NAME__/$DIR_NAME/g" "$dir/install.sh"
 }
 
 function main() {
@@ -33,7 +32,9 @@ function main() {
         get_latest_version
     fi
 
-    if [ -d "../$VERSION" ]; then
+    DIR_NAME=${VERSION#"RELEASE."}
+
+    if [ -d "../${DIR_NAME}" ]; then
         echo "MinIO ${VERSION} add-on already exists"
         exit 0
     fi
