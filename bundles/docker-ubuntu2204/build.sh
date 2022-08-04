@@ -64,6 +64,6 @@ docker build \
     bundles/docker-ubuntu2204
 docker rm -f docker-ubuntu2204-${DOCKER_VERSION} 2>/dev/null || true
 docker create --name docker-ubuntu2204-${DOCKER_VERSION} kurl/ubuntu-2204-docker:${DOCKER_VERSION}
-mkdir -p build/packages/docker/${DOCKER_VERSION}/ubuntu-20.04
+mkdir -p build/packages/docker/${DOCKER_VERSION}/ubuntu-22.04
 docker cp docker-ubuntu2204-${DOCKER_VERSION}:/packages/archives/. "$OUTPATH"
 docker rm docker-ubuntu2204-${DOCKER_VERSION}
