@@ -17,7 +17,7 @@ function test_rook_should_skip_rook_install() {
 }
 
 function test_rook_should_auth_allow_insecure_global_id_reclaim() {
-    assertEquals 'rook_should_auth_allow_insecure_global_id_reclaim ""' "0" "$(rook_should_auth_allow_insecure_global_id_reclaim "" >/dev/null; echo $?)"
+    assertEquals 'rook_should_auth_allow_insecure_global_id_reclaim ""' "1" "$(rook_should_auth_allow_insecure_global_id_reclaim "" >/dev/null; echo $?)"
     assertEquals 'rook_should_auth_allow_insecure_global_id_reclaim "16.2.0"' "0" "$(rook_should_auth_allow_insecure_global_id_reclaim "16.2.0" >/dev/null; echo $?)"
     assertEquals 'rook_should_auth_allow_insecure_global_id_reclaim "16.2.1"' "1" "$(rook_should_auth_allow_insecure_global_id_reclaim "16.2.1" >/dev/null; echo $?)"
     assertEquals 'rook_should_auth_allow_insecure_global_id_reclaim "15.2.10"' "0" "$(rook_should_auth_allow_insecure_global_id_reclaim "15.2.10" >/dev/null; echo $?)"
