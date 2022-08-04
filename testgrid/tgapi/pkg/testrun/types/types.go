@@ -11,4 +11,5 @@ type TestRun struct {
 	FailureCount int64      `json:"failure_count"`
 	TotalRuns    int64      `json:"total_runs"`
 	PendingRuns  int64      `json:"pending_runs"`
+	RunningRuns  int64      `json:"running_runs"`
 }
