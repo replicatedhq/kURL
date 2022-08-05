@@ -80,7 +80,7 @@ jobs:
     - build-matrix
     strategy:
       matrix: ${{fromJSON(needs.build-matrix.outputs.matrix)}}
-      fail-fast: true
+      fail-fast: false
       max-parallel: 20
     steps:
     - uses: actions/checkout@v3
