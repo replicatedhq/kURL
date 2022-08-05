@@ -1,4 +1,4 @@
-# change
+
 function rook_pre_init() {
     local current_version="$(rook_version)"
 
