@@ -34,4 +34,9 @@
   version: "20.04"
   vmimageuri: https://cloud-images.ubuntu.com/focal/current/focal-server-cloudimg-amd64.img
   preinit: ""
+- id: ubuntu-2204
+  name: Ubuntu
+  version: "22.04"
+  vmimageuri: https://cloud-images.ubuntu.com/jammy/current/jammy-server-cloudimg-amd64.img
+  preinit: ""
 

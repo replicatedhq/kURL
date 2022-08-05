@@ -47,7 +47,7 @@ function bailIfUnsupportedOS() {
         ubuntu16.04)
             logWarn "Install is not supported on Ubuntu 16.04. Installation of Kubernetes will be best effort."
             ;;
-        ubuntu18.04|ubuntu20.04)
+        ubuntu18.04|ubuntu20.04|ubuntu22.04)
             ;;
         rhel7.4|rhel7.5|rhel7.6|rhel7.7|rhel7.8|rhel7.9|rhel8.0|rhel8.1|rhel8.2|rhel8.3|rhel8.4|rhel8.5|rhel8.6)
             ;;

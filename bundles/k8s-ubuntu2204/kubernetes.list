@@ -1,0 +1,2 @@
+# https://packages.cloud.google.com/apt/dists doesn't have kubernetes-bionic
+deb http://apt.kubernetes.io/ kubernetes-xenial main

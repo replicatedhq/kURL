@@ -110,6 +110,7 @@ function find_common_versions() {
     docker build -t ubuntu16 -f Dockerfile.ubuntu16 .
     docker build -t ubuntu18 -f Dockerfile.ubuntu18 .
     docker build -t ubuntu20 -f Dockerfile.ubuntu20 .
+    docker build -t ubuntu22 -f Dockerfile.ubuntu22 .
 
     CENTOS7_VERSIONS=($(docker run --rm -i centos7 yum list --showduplicates containerd.io | grep -Eo '1\.[[:digit:]]+\.[[:digit:]]+' | grep -vE '1\.[012]\.' | sort -rV | uniq))
     echo "Found ${#CENTOS7_VERSIONS[*]} containerd versions for CentOS 7: ${CENTOS7_VERSIONS[*]}"
@@ -126,8 +127,11 @@ function find_common_versions() {
     UBUNTU20_VERSIONS=($(docker run --rm -i ubuntu20 apt-cache madison containerd.io | grep -Eo '1\.[[:digit:]]+\.[[:digit:]]+' | grep -vE '1\.[012]\.' | sort -rV | uniq))
     echo "Found ${#UBUNTU20_VERSIONS[*]} containerd versions for Ubuntu 20: ${UBUNTU20_VERSIONS[*]}"
 
+    UBUNTU22_VERSIONS=($(docker run --rm -i ubuntu22 apt-cache madison containerd.io | grep -Eo '1\.[[:digit:]]+\.[[:digit:]]+' | grep -vE '1\.[012]\.' | sort -rV | uniq))
+    echo "Found ${#UBUNTU22_VERSIONS[*]} containerd versions for Ubuntu 22: ${UBUNTU22_VERSIONS[*]}"
+
     # Get the intersection of versions available for all operating systems
-    local ALL_VERSIONS=("${CENTOS7_VERSIONS[@]}" "${CENTOS8_VERSIONS[@]}" "${UBUNTU16_VERSIONS[@]}" "${UBUNTU18_VERSIONS[@]}" "${UBUNTU20_VERSIONS[@]}")
+    local ALL_VERSIONS=("${CENTOS7_VERSIONS[@]}" "${CENTOS8_VERSIONS[@]}" "${UBUNTU16_VERSIONS[@]}" "${UBUNTU18_VERSIONS[@]}" "${UBUNTU20_VERSIONS[@]}" "${UBUNTU22_VERSIONS[@]}")
     ALL_VERSIONS=($(echo "${ALL_VERSIONS[@]}" | tr ' ' '\n' | sort -rV | uniq -d | tr '\n' ' ')) # remove duplicates
 
     for version in ${ALL_VERSIONS[@]}; do
@@ -173,6 +177,14 @@ function find_common_versions() {
         else
             add_supported_os_to_preflight_file $version "ubuntu" "20.04"
             add_supported_os_to_manifest_file $version "ubuntu-20.04" "Dockerfile.ubuntu20"
+        fi
+
+        if ! contains "$version" ${UBUNTU22_VERSIONS[*]}; then
+            echo "Ubuntu 22 lacks version $version"
+            add_unsupported_os_to_preflight_file $version "ubuntu" "22.04"
+        else
+            add_supported_os_to_preflight_file $version "ubuntu" "22.04"
+            add_supported_os_to_manifest_file $version "ubuntu-22.04" "Dockerfile.ubuntu22"
         fi
 
         VERSIONS+=("$version")
