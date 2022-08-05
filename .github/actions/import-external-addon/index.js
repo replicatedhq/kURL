@@ -15,7 +15,7 @@ const addonRegistryUrls = [
 
 const client = new HttpClient();
 
-const addonRegistryKurl = await client.get(`https://${bucket}.s3.amazonaws.com/dist/external/addon-registry.json`)
+const addonRegistryKurl = await client.get(`https://${bucket}.s3.amazonaws.com/external/addon-registry.json`)
   .then(response => response.readBody())
   .then(response => JSON.parse(response));
 
@@ -45,7 +45,7 @@ for(const addonRegistryUrl of addonRegistryUrls) {
       info(`..Uploading addon: ${addonBundleName}`)
       try {
         await exec('aws',
-          ['s3', 'cp', addonBundleName, `s3://${bucket}/dist/external/`],
+          ['s3', 'cp', addonBundleName, `s3://${bucket}/external/`],
           {
             env: awsConfig
           });
@@ -64,7 +64,7 @@ for(const addonRegistryUrl of addonRegistryUrls) {
     try {
       await fs.writeFile('addon-registry.json', JSON.stringify(addonRegistryKurl))
       await exec('aws',
-        ['s3', 'cp', 'addon-registry.json', `s3://${bucket}/dist/external/`],
+        ['s3', 'cp', 'addon-registry.json', `s3://${bucket}/external/`],
         {
           env: awsConfig,
           ignoreReturnCode: true
