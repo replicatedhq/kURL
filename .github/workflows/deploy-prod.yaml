@@ -204,7 +204,7 @@ jobs:
     - name: Generate Changelog
       run: |
         git fetch --tags -f
-        lastTag=$(git tag | grep '^v20' | grep -v "$GIT_TAG" | sort | tail -1)
+        lastTag=$(git tag | grep '^v20' | grep -v 'v2022\.09\.04' | grep -v "$GIT_TAG" | sort | tail -1)
         docker run --rm \
           --env CHANGELOG_GITHUB_TOKEN \
           -v `pwd`:/usr/local/src/your-app \
