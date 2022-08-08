@@ -9,6 +9,7 @@ spec:
     - cpu: {}
     - memory: {}
     - hostServices: {}
+    - hostOS: {}
     - diskUsage:
         collectorName: "Ephemeral Disk Usage /var/lib/kubelet"
         path: /var/lib/kubelet
@@ -376,13 +377,20 @@ spec:
                 message: "System clock is not synchronized"
             - warn:
                 when: "ntp == unsynchronized+active"
-                message: System clock not yet synchronized                
+                message: System clock not yet synchronized
             - pass:
                 when: "ntp == synchronized+active"
                 message: "System clock is synchronized"
-            - warn: 
+            - warn:
                 when: "timezone != UTC"
                 message: "Non UTC timezone can interfere with system function"
             - pass:
                 when: "timezone == UTC"
                 message: "Timezone is set to UTC"
+    - hostOS:
+        checkName: "Docker Not Supported Ubuntu 22.04"
+        exclude: '{{kurl not .Installer.Spec.Docker.Version}}'
+        outcomes:
+          - fail:
+              when: "ubuntu = 22.04"
+              message: "docker addon does not support ubuntu 22.04"
