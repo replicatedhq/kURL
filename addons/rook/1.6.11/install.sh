@@ -260,6 +260,7 @@ function rook_cluster_deploy_upgrade() {
     # https://rook.io/docs/rook/v1.6/ceph-upgrade.html#2-wait-for-the-daemon-pod-updates-to-complete
 
     if ! spinner_until 600 rook_ceph_version_deployed "${ceph_version}" ; then
+        kubectl -n rook-ceph get deployment -l rook_cluster=rook-ceph -o jsonpath='{range .items[*]}{"ceph-version="}{.metadata.labels.ceph-version}{"\n"}{end}'
         bail "New Ceph version failed to deploy"
     fi
 
