@@ -80,8 +80,7 @@ function containerd_install() {
         # is available before proceeeding.
         # ".." is needed becasue addons can have a CRD names "nodes", like nodes.longhorn.io
         # not sure if 5m is too less of a time for nodes to come up. try increasing it.
-        try_5m kubectl --kubeconfig=/etc/kubernetes/kubelet.conf get nodes..
-        try_5m kubectl --kubeconfig=/etc/kubernetes/kubelet.conf get nodes..
+        try_10m kubectl --kubeconfig=/etc/kubernetes/kubelet.conf get nodes..
     fi
 }
 

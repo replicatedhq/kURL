@@ -451,6 +451,27 @@ function try_5m() {
     done
 }
 
+# try a command every 2 seconds until it succeeds, up to 300 tries max; useful for kubectl commands
+# where the Kubernetes API could be restarting
+function try_10m() {
+    local fn="$1"
+    local args=${@:2}
+
+    n=0
+    while ! $fn $args 2>/dev/null ; do
+        n="$(( $n + 1 ))"
+        if [ "$n" -ge "300" ]; then
+            # for the final try print the error and let it exit
+            echo ""
+            try_output="$($fn $args 2>&1)" || true
+            echo "$try_output"
+            bail "spent 5m attempting to run \"$fn $args\" without success"
+        fi
+        sleep 2
+    done
+}
+
+
 # try a command every 2 seconds until it succeeds, up to 30 tries max; useful for kubectl commands
 # where the Kubernetes API could be restarting
 # does not redirect stderr to /dev/null
