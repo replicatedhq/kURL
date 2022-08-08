@@ -79,6 +79,8 @@ function containerd_install() {
         # kubelet starts the HAProxy static pod. This check ensures the Kubernetes API server
         # is available before proceeeding.
         # ".." is needed becasue addons can have a CRD names "nodes", like nodes.longhorn.io
+        # not sure if 5m is too less of a time for nodes to come up. try increasing it.
+        try_5m kubectl --kubeconfig=/etc/kubernetes/kubelet.conf get nodes..
         try_5m kubectl --kubeconfig=/etc/kubernetes/kubelet.conf get nodes..
     fi
 }
