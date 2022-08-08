@@ -28,7 +28,7 @@ jobs:
           PKG: ${{ github.event.client_payload.package || github.event.inputs.package }}
         run: |
           git fetch --tags
-          tag=$(git tag | grep '^v20' | sort | tail -1)
+          tag=$(git tag | grep '^v20' | grep -v 'v2022\.09\.04' | sort | tail -1)
           git checkout $tag
           export KURL_UTIL_IMAGE=replicated/kurl-util:$tag # required if this is the common package
           make dist/$PKG

@@ -14,7 +14,7 @@ jobs:
         name: Build image matrix
         run: |
           git fetch --tags
-          tag=$(git tag | grep '^v20' | sort | tail -1)
+          tag=$(git tag | grep '^v20' | grep -v 'v2022\.09\.04' | sort | tail -1)
           export KURL_UTIL_IMAGE=replicated/kur-util:${tag}
           export KURL_BIN_UTILS_FILE=kurl-bin-utils-${tag}.tar.gz
           OUTPUT=`bin/list-all-packages-actions-matrix.sh "${{ github.event.inputs.index }}"`
@@ -42,7 +42,7 @@ jobs:
           BATCH: ${{ matrix.batch }}
         run: |
           git fetch --tags
-          tag=$(git tag | grep '^v20' | sort | tail -1)
+          tag=$(git tag | grep '^v20' | grep -v 'v2022\.09\.04' | sort | tail -1)
           git checkout $tag
           export KURL_UTIL_IMAGE=replicated/kurl-util:$tag # required if this is the common package
 

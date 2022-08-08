@@ -24,7 +24,7 @@ jobs:
           PKG: ${{ github.event.client_payload.package || github.event.inputs.package }}
         run: |
           git fetch --tags -f
-          export VERSION_TAG=$(git tag | grep '^v20' | sort | tail -1)-dirty
+          export VERSION_TAG=$(git tag | grep '^v20' | grep -v 'v2022\.09\.04' | sort | tail -1)-dirty
           export KURL_UTIL_IMAGE=replicated/kurl-util:${VERSION_TAG}
 
           make dist/$PKG
