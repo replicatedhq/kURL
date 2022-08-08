@@ -49,12 +49,6 @@ const unauthenticatedResponse = {
   },
 };
 
-const forbiddenResponse = {
-  error: {
-    message: "Forbidden",
-  },
-};
-
 @Controller("/installer")
 export class Installers {
 
@@ -131,6 +125,7 @@ export class Installers {
    * @param request
    * @param response
    * @param id
+   * @param skipValidation
    * @returns string
    */
   @Put("/:id")
@@ -150,6 +145,7 @@ export class Installers {
    * @param response
    * @param id
    * @param slug
+   * @param skipValidation
    * @returns string
    */
   @Put("/:id/:slug")
@@ -168,6 +164,7 @@ export class Installers {
    * @param request
    * @param response
    * @param id
+   * @param resolve
    * @returns string
    */
   @Get("/:id")

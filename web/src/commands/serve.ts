@@ -7,6 +7,7 @@ import BugsnagPluginExpress from "@bugsnag/plugin-express";
 import { initMysqlPool } from "../util/persistence/mysql";
 import { Server } from "../server/server";
 import * as metrics from "../metrics";
+import {startExternalAddonPulling} from "../installers/installer-versions"
 
 exports.name = "serve";
 exports.describe = "Run the server";
@@ -26,6 +27,7 @@ exports.handler = (argv: any) => {
 
 export async function main(argv: any): Promise<void> {
   sourceMapSupport.install();
+  await startExternalAddonPulling();
 
   if (process.env["NEW_RELIC_LICENSE_KEY"]) {
     require("newrelic");

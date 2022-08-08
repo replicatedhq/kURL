@@ -4,14 +4,41 @@ import Bugsnag from "@bugsnag/js";
 import { HTTPError } from "../server/errors";
 import { getPackageUrl } from "../util/package";
 import { InstallerVersions } from "./versions";
+import * as semver from "semver";
+import {logger} from "../logger";
 
 interface IInstallerVersions {
   [addon: string]: string[];
 }
 
 const installerVersionsCache: { [url: string]: IInstallerVersions } = {};
+let externalAddons = {};
+let externalAddonTimer;
 
-export async function getInstallerVersions(distUrl: string, kurlVersion?: string): Promise<IInstallerVersions> {
+function mergeAddonVersions(internalAddonVersions: IInstallerVersions, kurlVersion?: string) {
+  const addons: IInstallerVersions = {};
+  Object.keys(externalAddons).forEach(externalAddonName => {
+    const fileName = externalAddonName.slice(0, externalAddonName.length - 7);
+    const [name, version] = fileName.split("-");
+    if(!kurlVersion || semver.gte(version, kurlVersion)) {
+      if(!addons[name]) {
+        addons[name] = [version]
+      } else {
+        addons[name].unshift(version);
+      }
+    }
+  });
+  Object.keys(internalAddonVersions).forEach(internalAddonName => {
+    if(!addons[internalAddonName]) {
+      addons[internalAddonName] = internalAddonVersions[internalAddonName];
+    } else {
+      addons[internalAddonName].push(...internalAddonVersions[internalAddonName]);
+    }
+  });
+  return addons;
+}
+
+async function getInternalAddonVersions(distUrl: string, kurlVersion?: string) {
   if (!kurlVersion) {
     return InstallerVersions;
   }
@@ -41,3 +68,25 @@ export async function getInstallerVersions(distUrl: string, kurlVersion?: string
   installerVersionsCache[url] = installerVersions;
   return installerVersionsCache[url];
 }
+
+async function externalAddonHandler() {
+  try {
+    const response = await fetch("https://kurl-sh.s3.amazonaws.com/external/addon-registry.json");
+    externalAddons = await response.json();
+  } catch (error) {
+    logger.error(error, "failed to pull external addon registry.");
+  }
+}
+
+export async function startExternalAddonPulling() {
+  if(!externalAddonTimer) {
+    await externalAddonHandler();
+    externalAddonTimer = setInterval(externalAddonHandler, 15 * 60 * 1000);
+  }
+}
+
+export async function getInstallerVersions(distUrl: string, kurlVersion?: string): Promise<IInstallerVersions> {
+  const internalAddonVersions = await getInternalAddonVersions(distUrl, kurlVersion);
+  return mergeAddonVersions(internalAddonVersions, kurlVersion);
+}
+
