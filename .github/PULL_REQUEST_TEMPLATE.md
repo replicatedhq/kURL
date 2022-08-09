@@ -3,18 +3,7 @@
 1. If this is your first time, please read our contributor guidelines here:
 https://github.com/replicatedhq/kURL/blob/main/CONTRIBUTING.md.
 2. If the PR is unfinished, please mark it as a draft.
--->
-
-#### What type of PR is this?
-
-<!--
-Please choose from one of the following:
-type::bug
-type::docs
-type::feature
-type::security
-type::chore
-type::tests
+3. Set the label on the pull request.
 -->
 
 #### What this PR does / why we need it:
