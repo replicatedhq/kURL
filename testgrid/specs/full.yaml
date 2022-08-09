@@ -17,6 +17,7 @@
   unsupportedOSIDs:
     - ubuntu-1804
     - ubuntu-2004
+    - ubuntu-2204
 - name: k3s
   installerSpec:
     k3s:
@@ -65,6 +66,7 @@
       version: 0.7.0
   unsupportedOSIDs:
   - ubuntu-2004 # docker 19.03.4 is not available on ubuntu 20.04
+  - ubuntu-2204 # docker 19.x is not available on ubuntu 22.04
 - name: k8s119x
   installerSpec:
     kubernetes:
@@ -145,6 +147,7 @@
   - centos-83
   - centos-84
   - ol-84
+  - ubuntu-2204 # docker 20.10.5 is not available on ubuntu 22.04
 - name: k8s120x_docker
   installerSpec:
     kubernetes:
@@ -165,10 +168,12 @@
       version: latest
     velero:
       version: 1.2.0
-    minio: 
+    minio:
       version: latest
     ekco:
       version: latest
+  unsupportedOSIDs:
+  - ubuntu-2204 # docker 19.x is not available on ubuntu 22.04
 - name: k8s121x_containerd
   installerSpec:
     kubernetes:
@@ -191,10 +196,12 @@
       version: latest
     velero:
       version: 1.2.0
-    minio: 
-      version: latest      
+    minio:
+      version: latest
     ekco:
       version: latest
+  unsupportedOSIDs:
+  - ubuntu-2204 # containerd 1.4.x is not available on ubuntu 22.04
 - name: k8s119x-airgap
   installerSpec:
     kubernetes:
@@ -218,6 +225,8 @@
     ekco:
       version: 0.6.0
   airgap: true
+  unsupportedOSIDs:
+  - ubuntu-2204 # docker 19.x is not available on ubuntu 22.04
 - name: k8s1184_1202
   installerSpec:
     kubernetes:
@@ -237,6 +246,8 @@
       version: 2.8.1
     contour:
       version: latest
+  unsupportedOSIDs:
+  - ubuntu-2204 # docker 20.10.5 is not available on ubuntu 22.04
 - name: k8s1184_1202_containerd
   installerSpec:
     kubernetes:
@@ -256,6 +267,8 @@
       version: latest
     containerd:
       version: 1.6.4
+  unsupportedOSIDs:
+  - ubuntu-2204 # containerd 1.4.x is not supported on ubuntu 22.04
 - name: k8s119x_containerd148
   installerSpec:
     kubernetes:
@@ -278,6 +291,8 @@
       version: 0.6.0
     containerd:
       version: 1.4.13
+  unsupportedOSIDs:
+  - ubuntu-2204 # containerd 1.4.x is not supported on ubuntu 22.04
 - name: k8s119x_containerd139
   installerSpec:
     kubernetes:
@@ -300,6 +315,8 @@
       version: 0.6.0
     containerd:
       version: 1.4.9
+  unsupportedOSIDs:
+  - ubuntu-2204 # containerd 1.4.x is not supported on ubuntu 22.04
 - name: k8s119
   installerSpec:
     kubernetes:
@@ -322,6 +339,8 @@
       version: 1.2.0
     ekco:
       version: 0.6.0
+  unsupportedOSIDs:
+  - ubuntu-2204 # docker 19.x is not available on ubuntu 22.04
 - name: k8s119-airgap
   installerSpec:
     kubernetes:
@@ -345,6 +364,8 @@
     ekco:
       version: 0.6.0
   airgap: true
+  unsupportedOSIDs:
+  - ubuntu-2204 # docker 19.x is not available on ubuntu 22.04
 - name: k8s119_containerd1412
   installerSpec:
     kubernetes:
@@ -367,6 +388,8 @@
       version: 0.6.0
     containerd:
       version: 1.4.12
+  unsupportedOSIDs:
+  - ubuntu-2204 # containerd 1.4.x is not supported on ubuntu 22.04
 - name: k8s119_containerd146-airgap
   installerSpec:
     kubernetes:
@@ -390,6 +413,8 @@
     containerd:
       version: 1.4.6
   airgap: true
+  unsupportedOSIDs:
+  - ubuntu-2204 # containerd 1.4.x is not supported on ubuntu 22.04
 - name: k8s119_containerd_rook_block
   installerSpec:
     kubernetes:
@@ -414,6 +439,8 @@
       version: 1.4.10
     certManager:
       version: 1.0.3
+  unsupportedOSIDs:
+  - ubuntu-2204 # containerd 1.4.x is not supported on ubuntu 22.04
 - name: k8s119_ctrd_longhorn
   installerSpec:
     kubernetes:
@@ -441,6 +468,8 @@
     longhorn:
       version: 1.1.2
       uiBindPort: 30080
+  unsupportedOSIDs:
+  - ubuntu-2204 # containerd 1.4.x is not supported on ubuntu 22.04
 - name: k8s119_ctrd_longhorn-airgap
   installerSpec:
     kubernetes:
@@ -469,6 +498,8 @@
       version: 1.1.2
       uiBindPort: 30080
   airgap: true
+  unsupportedOSIDs:
+  - ubuntu-2204 # containerd 1.4.x is not supported on ubuntu 22.04
 - name: k8s119_helm
   installerSpec:
     kubernetes:
@@ -534,6 +565,8 @@
       httpsPort: 8443
     containerd:
       version: 1.4.11
+  unsupportedOSIDs:
+  - ubuntu-2204 # containerd 1.4.x is not supported on ubuntu 22.04
 - name: k8s119_nameserver_collectd_rook_block
   installerSpec:
     kubernetes:
@@ -553,6 +586,8 @@
       nameserver: 8.8.8.8
     collectd:
       version: v5
+  unsupportedOSIDs:
+  - ubuntu-2204 # docker 19.x is not supported on ubuntu 22.04
 - name: k8s119_selinux
   installerSpec:
     kubernetes:
@@ -572,6 +607,8 @@
         - s0-s0:c0.c1023
         - my_staff_u
       type: targeted
+  unsupportedOSIDs:
+  - ubuntu-2204 # docker 19.x is not supported on ubuntu 22.04
 - name: k8s120
   installerSpec:
     kubernetes:
@@ -596,6 +633,8 @@
       version: 1.4.6
     longhorn:
       version: 1.1.2
+  unsupportedOSIDs:
+  - ubuntu-2204 # containerd 1.4.x is not supported on ubuntu 22.04
 - name: k8s120-airgap
   installerSpec:
     kubernetes:
@@ -621,6 +660,8 @@
     longhorn:
       version: 1.1.2
   airgap: true
+  unsupportedOSIDs:
+  - ubuntu-2204 # containerd 1.4.x is not supported on ubuntu 22.04
 - name: k8s1205_rook_upgrade
   cpu: 6
   installerSpec:
@@ -652,6 +693,8 @@
       version: 1.4.12
     ekco:
       version: latest
+  unsupportedOSIDs:
+  - ubuntu-2204 # containerd 1.4.x is not supported on ubuntu 22.04
 - name: k8s121
   installerSpec:
     kubernetes:
@@ -673,6 +716,8 @@
       version: latest
     ekco:
       version: latest
+  unsupportedOSIDs:
+  - ubuntu-2204 # docker 20.10.5 (latest) is not supported on ubuntu 22.04
 - name: k8s121-airgap
   installerSpec:
     kubernetes:
@@ -695,6 +740,8 @@
     ekco:
       version: latest
   airgap: true
+  unsupportedOSIDs:
+  - ubuntu-2204 # docker 20.10.5 (latest) is not supported on ubuntu 22.04
 - name: k8s1210_openebs260_minio
   installerSpec:
     kubernetes:
@@ -719,6 +766,8 @@
       version: 2.6.0
     ekco:
       version: 0.10.1
+  unsupportedOSIDs:
+  - ubuntu-2204 # docker 20.10.5 (latest) is not supported on ubuntu 22.04
 - name: k8s1210_openebs260_minio-airgap
   installerSpec:
     kubernetes:
@@ -744,6 +793,8 @@
     ekco:
       version: 0.10.1
   airgap: true
+  unsupportedOSIDs:
+  - ubuntu-2204 # docker 20.10.5 (latest) is not supported on ubuntu 22.04
 - name: k8s1205_rook_to_longhorn
   cpu: 6
   installerSpec:
@@ -775,6 +826,8 @@
       version: 1.4.6
     ekco:
       version: latest
+  unsupportedOSIDs:
+  - ubuntu-2204 # containerd 1.4.x is not supported on ubuntu 22.04
 - name: remove_all_object_storage
   cpu: 6
   installerSpec:
@@ -828,7 +881,7 @@
       version: 1.6.11
     registry:
       version: 2.7.1
-    prometheus: 
+    prometheus:
       version: "0.53.x"
     kotsadm:
       version: latest
@@ -850,7 +903,7 @@
       version: 1.2.2
     registry:
       version: 2.7.1
-    prometheus: 
+    prometheus:
       version: "0.53.x"
     kotsadm:
       version: latest
@@ -874,7 +927,7 @@
       version: 1.6.11
     registry:
       version: 2.7.1
-    prometheus: 
+    prometheus:
       version: "0.53.x"
     kotsadm:
       version: latest
@@ -988,6 +1041,8 @@
       version: 1.7.x
     ekco:
       version: latest
+  unsupportedOSIDs:
+  - ubuntu-2204 # containerd 1.4.x is not supported on ubuntu 22.04
 - name: "Upgrade to 1.22 airgap"
   cpu: 6
   installerSpec:
@@ -1042,7 +1097,7 @@
       version: 1.6.11
     registry:
       version: 2.7.1
-    prometheus: 
+    prometheus:
       version: "0.53.x"
     kotsadm:
       version: latest
@@ -1050,6 +1105,8 @@
       version: 1.7.x
     ekco:
       version: latest
+  unsupportedOSIDs:
+  - ubuntu-2204 # containerd 1.4.x is not supported on ubuntu 22.04
 - name: "K8s 1.23x Longhorn, disableS3"
   installerSpec:
     kubernetes:
@@ -1064,7 +1121,7 @@
       version: 1.2.2
     registry:
       version: 2.7.1
-    prometheus: 
+    prometheus:
       version: "0.53.x"
     kotsadm:
       version: latest
@@ -1073,6 +1130,8 @@
       version: 1.7.x
     ekco:
       version: latest
+  unsupportedOSIDs:
+  - ubuntu-2204 # containerd 1.4.x is not supported on ubuntu 22.04
 - name: "K8s 1.23x Airgap"
   installerSpec:
     kubernetes:
@@ -1088,7 +1147,7 @@
       version: 1.6.11
     registry:
       version: 2.7.1
-    prometheus: 
+    prometheus:
       version: "0.53.x"
     kotsadm:
       version: latest
@@ -1097,6 +1156,8 @@
     ekco:
       version: latest
   airgap: true
+  unsupportedOSIDs:
+  - ubuntu-2204 # containerd 1.4.x is not supported on ubuntu 22.04
 - name: "Upgrade to 1.23"
   cpu: 6
   installerSpec:
@@ -1135,6 +1196,8 @@
       version: 1.7.x
     ekco:
       version: latest
+  unsupportedOSIDs:
+  - ubuntu-2204 # containerd 1.4.x is not supported on ubuntu 22.04
 - name: "Upgrade to 1.23 airgap"
   cpu: 6
   installerSpec:
@@ -1500,6 +1563,8 @@
       shouldDisableRebootServices: false
       shouldDisableClearNodes: false
       shouldEnablePurgeNodes: false
+  unsupportedOSIDs:
+  - ubuntu-2204 # containerd 1.4.x is not supported on ubuntu 22.04
 - name: less_command
   installerSpec:
     kubernetes:
@@ -1511,13 +1576,15 @@
   postInstallScript: |
     echo "this is text to test less command after installation" > test-less.txt
     less test-less.txt > /dev/null
+  unsupportedOSIDs:
+  - ubuntu-2204 # docker 20.10.5 (latest) is not supported on ubuntu 22.04
 - name: "weave 2.6.5 multinode"
   installerSpec:
     kubernetes:
       version: "1.23.6"
-    weave: 
+    weave:
       version: "2.6.5"
-    containerd: 
+    containerd:
       version: "1.5.11"
   numPrimaryNodes: 1
   numSecondaryNodes: 2
@@ -1525,9 +1592,9 @@
   installerSpec:
     kubernetes:
       version: "1.23.6"
-    weave: 
+    weave:
       version: "2.8.1"
-    containerd: 
+    containerd:
       version: "1.5.11"
   numPrimaryNodes: 1
   numSecondaryNodes: 2

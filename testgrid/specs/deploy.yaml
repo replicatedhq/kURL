@@ -50,6 +50,7 @@
       isCstorEnabled: false
   unsupportedOSIDs:
     - ubuntu-2004
+    - ubuntu-2204
 - name: k8s119-minimal
   installerSpec:
     kubernetes:
@@ -58,6 +59,8 @@
       version: 19.03.x
     weave:
       version: latest
+  unsupportedOSIDs:
+    - ubuntu-2204 # docker 19.x is not available on ubuntu 22.04
 - name: k8s121
   installerSpec:
     kubernetes:
@@ -163,6 +166,8 @@
       version: "latest"
     ekco:
       version: "latest"
+  unsupportedOSIDs:
+    - ubuntu-2204 # containerd 1.4.x is not supported on ubuntu 22.04
   postInstallScript: |
     echo "running CIS Kubernetes Benchmark Checks"
     kube_bench_version="$(curl -s https://api.github.com/repos/aquasecurity/kube-bench/releases/latest | grep '"tag_name":' | sed -E 's/.*"v([^"]+)".*/\1/')"
