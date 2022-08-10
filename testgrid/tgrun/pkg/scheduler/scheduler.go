@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/pkg/errors"
@@ -19,7 +20,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-var urlRegexp = regexp.MustCompile(`(https://[\w.]+)/([\w]+)`)
+var urlRegexp = regexp.MustCompile(`(https?://[\w.-]+)/([\w]+)`)
 
 type kurlErrResp struct {
 	Error struct {
@@ -32,12 +33,12 @@ func Run(schedulerOptions types.SchedulerOptions) error {
 
 	plannedInstances := []tghandlers.PlannedInstance{}
 
-	operatingSystems, err := getOses(schedulerOptions)
+	operatingSystems, err := getOses(schedulerOptions.OSSpec)
 	if err != nil {
 		return err
 	}
 
-	kurlPlans, err := getKurlPlans(schedulerOptions)
+	kurlPlans, err := getKurlPlans(schedulerOptions.Spec)
 	if err != nil {
 		return err
 	}
@@ -69,6 +70,9 @@ func Run(schedulerOptions types.SchedulerOptions) error {
 		apiUrl := "https://kurl.sh/installer"
 		if schedulerOptions.Staging {
 			apiUrl = "https://staging.kurl.sh/installer"
+		}
+		if u := os.Getenv("KURL_API_ENDPOINT"); u != "" {
+			apiUrl = fmt.Sprintf("%s/installer", strings.TrimRight(u, "/"))
 		}
 
 		req, err := http.NewRequest("POST", apiUrl, bytes.NewReader(installerYAML))
@@ -162,6 +166,8 @@ func Run(schedulerOptions types.SchedulerOptions) error {
 			installerURL = []byte(installerURLString)
 		}
 
+		testID := randSeq(16)
+
 		for _, operatingSystem := range operatingSystems {
 			id := randSeq(16)
 
@@ -171,8 +177,14 @@ func Run(schedulerOptions types.SchedulerOptions) error {
 			}
 
 			plannedInstance := tghandlers.PlannedInstance{
-				ID:       id,
-				TestName: instance.Name,
+				ID:                id,
+				TestID:            testID,
+				TestName:          instance.Name,
+				Priority:          schedulerOptions.Priority,
+				NumPrimaryNodes:   instance.NumPrimaryNodes,
+				NumSecondaryNodes: instance.NumSecondaryNodes,
+				Memory:            instance.Memory,
+				CPU:               instance.CPU,
 
 				KurlYAML:  string(installerYAML),
 				KurlURL:   string(installerURL),
@@ -193,7 +205,6 @@ func Run(schedulerOptions types.SchedulerOptions) error {
 
 				IsUnsupported: isUnsupported,
 			}
-
 			plannedInstances = append(plannedInstances, plannedInstance)
 		}
 	}
@@ -207,12 +218,10 @@ func Run(schedulerOptions types.SchedulerOptions) error {
 	return nil
 }
 
-func getKurlPlans(schedulerOptions types.SchedulerOptions) ([]types.Instance, error) {
-	if schedulerOptions.Spec == "" {
+func getKurlPlans(spec string) ([]types.Instance, error) {
+	if spec == "" {
 		return nil, errors.New("spec required")
 	}
-
-	spec := schedulerOptions.Spec
 
 	if _, err := os.Stat(spec); err == nil {
 		b, err := ioutil.ReadFile(spec)
@@ -250,14 +259,12 @@ func getKurlPlans(schedulerOptions types.SchedulerOptions) ([]types.Instance, er
 	return kurlPlans, nil
 }
 
-func getOses(schedulerOptions types.SchedulerOptions) ([]types.OperatingSystemImage, error) {
-	if schedulerOptions.OSSpec == "" {
+func getOses(spec string) ([]types.OperatingSystemImage, error) {
+	if spec == "" {
 		return nil, errors.New("os spec required")
 	}
 
 	var oses []types.OperatingSystemImage
-
-	spec := schedulerOptions.OSSpec
 
 	if _, err := os.Stat(spec); err == nil {
 		b, err := ioutil.ReadFile(spec)
@@ -286,7 +293,8 @@ func sendStartInstancesRequest(schedulerOptions types.SchedulerOptions, plannedI
 		return errors.Wrap(err, "failed to marshal request")
 	}
 
-	req, err := http.NewRequest("POST", fmt.Sprintf("%s/v1/ref/%s/start", schedulerOptions.APIEndpoint, schedulerOptions.Ref), bytes.NewReader(b))
+	u := fmt.Sprintf("%s/v1/ref/%s/start", schedulerOptions.APIEndpoint, schedulerOptions.Ref)
+	req, err := http.NewRequest("POST", u, bytes.NewReader(b))
 	if err != nil {
 		return errors.Wrap(err, "failed to create request to start run")
 	}

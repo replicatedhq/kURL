@@ -1,0 +1,2 @@
+image busybox busybox:1
+image local-path-provisioner rancher/local-path-provisioner:v0.0.22

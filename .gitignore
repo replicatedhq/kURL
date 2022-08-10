@@ -10,8 +10,20 @@ supported-versions-gen.json
 addons-gen.json
 .envrc
 .github/workflows/payloads
+addons/*/*/assets
+addons/*/*/images
+addons/*/*/rhel-*
+addons/*/*/ubuntu-*
+packages/*/*/assets
+packages/*/*/images
+packages/*/*/rhel-*
+packages/*/*/ubuntu-*
 
 *.key
 *.spdx
 *.swp
 sbom/
+
+
+# ide 
+.vscode

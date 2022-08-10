@@ -15,6 +15,7 @@ type SchedulerOptions struct {
 	KurlVersion  string
 	Spec         string
 	OSSpec       string
+	Priority     int
 }
 
 type TestRun struct {
@@ -39,6 +40,10 @@ type OperatingSystemImage struct {
 
 type Instance struct {
 	Name              string                             `json:"name" yaml:"name"`
+	NumPrimaryNodes   int                                `json:"numPrimaryNodes" yaml:"numPrimaryNodes"`
+	NumSecondaryNodes int                                `json:"numSecondaryNodes" yaml:"numSecondaryNodes"`
+	Memory            string                             `json:"memory" yaml:"memory"`
+	CPU               string                             `json:"cpu" yaml:"cpu"`
 	InstallerSpec     kurlv1beta1.InstallerSpec          `json:"installerSpec" yaml:"installerSpec"`
 	Flags             string                             `json:"flags,omitempty" yaml:"flags,omitempty"`
 	UpgradeSpec       *kurlv1beta1.InstallerSpec         `json:"upgradeSpec,omitempty" yaml:"upgradeSpec,omitempty"`

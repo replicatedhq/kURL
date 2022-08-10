@@ -259,6 +259,10 @@ function init() {
     fi
 
     wait_for_nodes
+
+    local node=$(hostname | tr '[:upper:]' '[:lower:]')
+    kubectl label --overwrite node "$node" node-role.kubernetes.io/master=
+
     enable_rook_ceph_operator
 
     DID_INIT_KUBERNETES=1
@@ -490,6 +494,8 @@ K8S_DISTRO=kubeadm
 
 function main() {
     require_root_user
+    # ensure /usr/local/bin/kubectl-plugin is in the path
+    path_add "/usr/local/bin"
     get_patch_yaml "$@"
     maybe_read_kurl_config_from_cluster
 

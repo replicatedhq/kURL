@@ -1,8 +1,10 @@
-- installerSpec:
+- name: basic containerd and antrea
+  installerSpec:
     kubernetes:
       version: "latest"
-    weave:
+    antrea:
       version: "latest"
+      isEncryptionDisabled: true
     containerd:
       version: "__testver__"
       s3Override: "__testdist__"
@@ -15,8 +17,9 @@
 - installerSpec:
     kubernetes:
       version: "latest"
-    weave:
+    antrea:
       version: "latest"
+      isEncryptionDisabled: true
     containerd:
       version: "latest"
     minio:
@@ -28,8 +31,9 @@
   upgradeSpec:
     kubernetes:
       version: "latest"
-    weave:
+    antrea:
       version: "latest"
+      isEncryptionDisabled: true
     containerd:
       version: "__testver__"
       s3Override: "__testdist__"
@@ -39,3 +43,76 @@
       version: "latest"
     rook:
       version: "latest"
+- name: "Migrate from Docker to Containerd"
+  installerSpec:
+    kubernetes:
+      version: 1.23.x
+    antrea:
+      version: latest
+      isEncryptionDisabled: true
+    longhorn:
+      version: latest
+    registry:
+      version: latest
+    ekco:
+      version: latest
+    kotsadm:
+      version: latest
+      disableS3: true
+    docker:
+      version: latest
+  upgradeSpec:
+    kubernetes:
+      version: 1.23.x
+    antrea:
+      version: latest
+      isEncryptionDisabled: true
+    longhorn:
+      version: latest
+    registry:
+      version: latest
+    ekco:
+      version: latest
+    kotsadm:
+      version: latest
+      disableS3: true
+    containerd:
+      version: "__testver__"
+      s3Override: "__testdist__"
+- name: "Migrate from Docker to Containerd airgap"
+  installerSpec:
+    kubernetes:
+      version: 1.23.x
+    antrea:
+      version: latest
+      isEncryptionDisabled: true
+    longhorn:
+      version: latest
+    registry:
+      version: latest
+    ekco:
+      version: latest
+    kotsadm:
+      version: latest
+      disableS3: true
+    docker:
+      version: latest
+  upgradeSpec:
+    kubernetes:
+      version: 1.23.x
+    antrea:
+      version: latest
+      isEncryptionDisabled: true
+    longhorn:
+      version: latest
+    registry:
+      version: latest
+    ekco:
+      version: latest
+    kotsadm:
+      version: latest
+      disableS3: true
+    containerd:
+      version: "__testver__"
+      s3Override: "__testdist__"
+  airgap: true

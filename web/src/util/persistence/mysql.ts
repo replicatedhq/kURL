@@ -1,6 +1,5 @@
 import * as mysql from "promise-mysql";
-import { gauge } from "monkit";
-
+import * as Registry from "monkit";
 import param from "../params";
 import { logger } from "../../logger";
 
@@ -42,10 +41,11 @@ export async function updatePoolGauges(): Promise<void> {
     idleCount,
     activeCount,
   } = getMysqlPoolMetrics(pool);
-  gauge("id.MySQLPool.waiting.count").set(waitingCount);
-  gauge("id.MySQLPool.total.count").set(totalCount);
-  gauge("id.MySQLPool.idle.count").set(idleCount);
-  gauge("id.MySQLPool.active.count").set(activeCount);
+  const registry = new Registry.ReadableRegistry();
+  registry.gauge("id.MySQLPool.waiting.count").set(waitingCount);
+  registry.gauge("id.MySQLPool.total.count").set(totalCount);
+  registry.gauge("id.MySQLPool.idle.count").set(idleCount);
+  registry.gauge("id.MySQLPool.active.count").set(activeCount);
 }
 
 let mysqlPool: mysql.Pool;

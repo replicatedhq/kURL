@@ -199,6 +199,14 @@ function prompt_for_load_balancer_address() {
         LOAD_BALANCER_ADDRESS="$lastLoadBalancerAddress"
     fi
 
+    if [ -z "$LOAD_BALANCER_ADDRESS" ] && [ "$KUBERNETES_LOAD_BALANCER_USE_FIRST_PRIMARY" = "1" ]; then
+        # EKCO_ENABLE_INTERNAL_LOAD_BALANCER takes precedence
+        if [ -z "$EKCO_VERSION" ] || [ "$EKCO_ENABLE_INTERNAL_LOAD_BALANCER" != "1" ]; then
+            LOAD_BALANCER_ADDRESS="$PRIVATE_ADDRESS"
+            LOAD_BALANCER_PORT=6443
+        fi
+    fi
+
     if [ -z "$LOAD_BALANCER_ADDRESS" ]; then
         if ! prompts_can_prompt ; then
             bail "kubernetes.loadBalancerAddress required"
@@ -298,7 +306,7 @@ function prompt_for_private_ip() {
         _regex_ipv6="^[[:digit:]]+: ([^[:space:]]+)[[:space:]]+inet6 ([[:alnum:]:]+)"
         while read -r _line; do
             [[ $_line =~ $_regex_ipv6 ]]
-            if [ "${BASH_REMATCH[1]}" != "lo" ] && [ "${BASH_REMATCH[1]}" != "kube-ipvs0" ] && [ "${BASH_REMATCH[1]}" != "docker0" ] && [ "${BASH_REMATCH[1]}" != "weave" ]; then
+            if [ "${BASH_REMATCH[1]}" != "lo" ] && [ "${BASH_REMATCH[1]}" != "kube-ipvs0" ] && [ "${BASH_REMATCH[1]}" != "docker0" ] && [ "${BASH_REMATCH[1]}" != "weave" ] && [ "${BASH_REMATCH[1]}" != "antrea-gw0" ]; then
                 _iface_names[$((_count))]=${BASH_REMATCH[1]}
                 _iface_addrs[$((_count))]=${BASH_REMATCH[2]}
                 let "_count += 1"
@@ -308,7 +316,7 @@ function prompt_for_private_ip() {
         _regex_ipv4="^[[:digit:]]+: ([^[:space:]]+)[[:space:]]+[[:alnum:]]+ ([[:digit:].]+)"
         while read -r _line; do
             [[ $_line =~ $_regex_ipv4 ]]
-            if [ "${BASH_REMATCH[1]}" != "lo" ] && [ "${BASH_REMATCH[1]}" != "kube-ipvs0" ] && [ "${BASH_REMATCH[1]}" != "docker0" ] && [ "${BASH_REMATCH[1]}" != "weave" ]; then
+            if [ "${BASH_REMATCH[1]}" != "lo" ] && [ "${BASH_REMATCH[1]}" != "kube-ipvs0" ] && [ "${BASH_REMATCH[1]}" != "docker0" ] && [ "${BASH_REMATCH[1]}" != "weave" ] && [ "${BASH_REMATCH[1]}" != "antrea-gw0" ]; then
                 _iface_names[$((_count))]=${BASH_REMATCH[1]}
                 _iface_addrs[$((_count))]=${BASH_REMATCH[2]}
                 let "_count += 1"

@@ -1,4 +1,5 @@
-- installerSpec:
+- name: fresh install
+  installerSpec:
     kubernetes:
       version: "latest"
     weave:
@@ -12,3 +13,98 @@
     goldpinger:
       version: "__testver__"
       s3Override: "__testdist__"
+  postInstallScript: |
+    # find the goldpinger endpoint
+    export GP_ENDPOINT=$(kubectl get endpoints -n kurl goldpinger | grep -v NAME | awk '{ print $2 }')
+    
+    # print goldpinger output (and fail if unable to connect to the service)
+    curl $GP_ENDPOINT/check_all
+    curl $GP_ENDPOINT/metrics
+
+- name: upgrade from latest
+  installerSpec:
+    kubernetes:
+      version: "latest"
+    weave:
+      version: "latest"
+    containerd:
+      version: "latest"
+    goldpinger:
+      version: "latest"
+  upgradeSpec:
+    kubernetes:
+      version: "latest"
+    weave:
+      version: "latest"
+    longhorn:
+      version: "latest"
+    containerd:
+      version: "latest"
+    prometheus:
+      version: "latest"
+    goldpinger:
+      version: "__testver__"
+      s3Override: "__testdist__"
+  postUpgradeScript: |
+    # find the goldpinger endpoint
+    export GP_ENDPOINT=$(kubectl get endpoints -n kurl goldpinger | grep -v NAME | awk '{ print $2 }')
+    
+    # print goldpinger output (and fail if unable to connect to the service)
+    curl $GP_ENDPOINT/check_all
+    curl $GP_ENDPOINT/metrics
+
+- name: upgrade from oldest
+  installerSpec:
+    kubernetes:
+      version: "latest"
+    weave:
+      version: "latest"
+    containerd:
+      version: "latest"
+    goldpinger:
+      version: "3.2.0-4.1.1"
+  upgradeSpec:
+    kubernetes:
+      version: "latest"
+    weave:
+      version: "latest"
+    longhorn:
+      version: "latest"
+    containerd:
+      version: "latest"
+    prometheus:
+      version: "latest"
+    goldpinger:
+      version: "__testver__"
+      s3Override: "__testdist__"
+  postUpgradeScript: |
+    # find the goldpinger endpoint
+    export GP_ENDPOINT=$(kubectl get endpoints -n kurl goldpinger | grep -v NAME | awk '{ print $2 }')
+    
+    # print goldpinger output (and fail if unable to connect to the service)
+    curl $GP_ENDPOINT/check_all
+    curl $GP_ENDPOINT/metrics
+
+- name: airgap fresh install
+  airgap: true
+  installerSpec:
+    kubernetes:
+      version: "latest"
+    weave:
+      version: "latest"
+    longhorn:
+      version: "latest"
+    containerd:
+      version: "latest"
+    prometheus:
+      version: "latest"
+    goldpinger:
+      version: "__testver__"
+      s3Override: "__testdist__"
+  postInstallScript: |
+    # find the goldpinger endpoint
+    export GP_ENDPOINT=$(kubectl get endpoints -n kurl goldpinger | grep -v NAME | awk '{ print $2 }')
+    
+    # print goldpinger output (and fail if unable to connect to the service)
+    curl $GP_ENDPOINT/check_all
+    curl $GP_ENDPOINT/metrics

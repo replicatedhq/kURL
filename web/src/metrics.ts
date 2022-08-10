@@ -1,8 +1,8 @@
-import * as StatsdClient from "statsd-client";
 import fetch from "node-fetch";
+import * as StatsdClient from "statsd-client";
 
 import {
-  getRegistry,
+  getRegistry, ReadableRegistry,
   StatsdReporter,
   StatusPageReporter,
 } from "monkit";
@@ -16,7 +16,7 @@ export function startStatsdReporter(
 ): void {
   logger.info(`starting statsd reporter ${statsdHost}:${statsdPort} at interval ${intervalMs}ms`);
   const reporter = new StatsdReporter(
-    getRegistry(),
+    <ReadableRegistry>getRegistry(),
     prefix,
     new StatsdClient({host: statsdHost, port: statsdPort}),
   );
@@ -38,7 +38,7 @@ export function startStatusPageReporter(
   logger.info(`starting statusPage reporter ${url}/${pageId} at interval ${intervalMs}ms`);
 
   const reporter = new StatusPageReporter(
-    getRegistry(),
+    <ReadableRegistry>getRegistry(),
     url,
     pageId,
     statusPageToken,

@@ -1,8 +1,6 @@
 const webpack = require("webpack");
 const { merge } = require("webpack-merge");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
-const FaviconsWebpackPlugin = require("favicons-webpack-plugin");
-const HtmlWebpackTemplate = require("html-webpack-template");
 const MonacoWebpackPlugin = require("monaco-editor-webpack-plugin");
 const ESLintPlugin = require("eslint-webpack-plugin");
 
@@ -53,22 +51,9 @@ module.exports = (env) => {
           ],
         },
         {
-          test: /\.(png|jpg|ico)$/,
+          test: /\.(png|jpg|ico|svg)$/,
           loader: "file-loader",
-        },
-        {
-          test: /\.svg$/,
-          use: [
-            {
-              loader: "babel-loader"
-            },
-            {
-              loader: "react-svg-loader",
-              options: {
-                jsx: true,
-              },
-            },
-          ],
+          exclude: /src\/assets\/scss\//,
         },
         {
           test: /\.woff(2)?(\?v=\d+\.\d+\.\d+)?$/,
@@ -93,6 +78,13 @@ module.exports = (env) => {
         {
           test: /\.json$/,
           loader: 'json-loader'
+        },
+        {
+          test: /\.ejs$/,
+          loader: 'ejs-loader',
+          options: {
+            esModule: false
+          }
         }
       ]
     },
@@ -104,8 +96,9 @@ module.exports = (env) => {
       }),
       new ESLintPlugin(),
       new HtmlWebpackPlugin({
-        template: HtmlWebpackTemplate,
+        template: "./src/index.ejs",
         title: "kurl.sh test grid",
+        favicon: "./src/assets/images/favicon-64.png",
         appMountId: "app",
         externals: [
           {
@@ -126,12 +119,11 @@ module.exports = (env) => {
           }
         ],
         scripts: appEnv.WEBPACK_SCRIPTS,
-        inject: true,
+        inject: "body",
         window: {
           env: appEnv,
         },
       }),
-      new FaviconsWebpackPlugin("./src/assets/images/favicon-64.png"),
 			new webpack.ContextReplacementPlugin(
 				/graphql-language-service-interface[\\/]dist$/,
 				new RegExp(`^\\./.*\\.js$`)

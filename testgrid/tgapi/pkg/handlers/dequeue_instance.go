@@ -5,12 +5,17 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/kurl/testgrid/tgapi/pkg/testinstance"
 )
 
 type DequeueInstanceResponse struct {
-	ID string `json:"id"`
+	ID                string `json:"id"`
+	NumPrimaryNodes   int    `json:"numPrimaryNodes"`
+	NumSecondaryNodes int    `json:"numSecondaryNodes"`
+	Memory            string `json:"memory"`
+	CPU               string `json:"cpu"`
 
 	OperatingSystemName    string `json:"operatingSystemName"`
 	OperatingSystemVersion string `json:"operatingSystemVersion"`
@@ -28,28 +33,32 @@ type DequeueInstanceResponse struct {
 }
 
 func DequeueInstance(w http.ResponseWriter, r *http.Request) {
-	testInstance, err := testinstance.GetNextEnqueued()
+	dequeueInstance(w, "")
+}
+
+func DequeueInstanceWithRef(w http.ResponseWriter, r *http.Request) {
+	refID := mux.Vars(r)["refId"]
+	dequeueInstance(w, refID)
+}
+
+func dequeueInstance(w http.ResponseWriter, refID string) {
+	testInstance, err := testinstance.GetNextEnqueued(refID)
 	if err != nil {
 		if errors.Cause(err) != sql.ErrNoRows {
 			w.WriteHeader(500)
 			fmt.Printf("error dequeing instance: %s\n", err.Error())
 			return
 		}
-
-		testInstance, err = testinstance.GetOldEnqueued()
-		if err != nil {
-			if errors.Cause(err) != sql.ErrNoRows {
-				w.WriteHeader(500)
-				fmt.Printf("error dequeing old instance: %s\n", err.Error())
-				return
-			}
-			JSON(w, 200, []DequeueInstanceResponse{})
-			return
-		}
+		JSON(w, 200, []DequeueInstanceResponse{})
+		return
 	}
 
 	dequeueInstanceResponse := DequeueInstanceResponse{
-		ID: testInstance.ID,
+		ID:                testInstance.ID,
+		NumPrimaryNodes:   testInstance.NumPrimaryNodes,
+		NumSecondaryNodes: testInstance.NumSecondaryNodes,
+		Memory:            testInstance.Memory,
+		CPU:               testInstance.CPU,
 
 		OperatingSystemName:    testInstance.OSName,
 		OperatingSystemVersion: testInstance.OSVersion,

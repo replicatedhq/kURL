@@ -8,13 +8,25 @@ spec:
   schema:
     postgres:
       primaryKey: [id]
+      indexes:
+        - name: idx_priority
+          columns:
+            - priority desc
+            - enqueued_at asc
       columns:
         - name: id
           type: varchar(255)
         - name: testrun_ref
           type: varchar(255)
+        - name: test_id
+          type: varchar(255)
         - name: test_name
           type: varchar(255)
+        - name: priority
+          type: int
+          default: "0"
+          constraints:
+            notNull: true
         - name: enqueued_at
           type: timestamp without timezone
         - name: dequeued_at
@@ -30,6 +42,8 @@ spec:
         - name: failure_reason
           type: varchar(255)
         - name: is_unsupported
+          type: boolean
+        - name: is_skipped
           type: boolean
         - name: output
           type: text
@@ -59,4 +73,15 @@ spec:
           type: text
         - name: os_preinit
           type: text
-    
+        - name: primary_join_command
+          type: text
+        - name: secondary_join_command
+          type: text
+        - name: num_primary_nodes
+          type: int
+        - name: num_secondary_nodes
+          type: int
+        - name: memory
+          type: varchar(11)
+        - name: cpu
+          type: varchar(11)

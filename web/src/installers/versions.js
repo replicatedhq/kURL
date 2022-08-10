@@ -2,7 +2,6 @@
 // first version of each is "latest"
 module.exports.InstallerVersions = {
   kubernetes: [
-    // cron-kubernetes-update-119
     "1.19.16",
     "1.19.15",
     "1.19.13",
@@ -24,15 +23,24 @@ module.exports.InstallerVersions = {
     "1.17.7",
     "1.17.3",
     "1.16.4",
+    // cron-kubernetes-update-124
+    "1.24.3",
+    "1.24.0",
     // cron-kubernetes-update-123
+    "1.23.9",
+    "1.23.6",
     "1.23.5",
     "1.23.3",
     "1.23.2",
     // cron-kubernetes-update-122
+    "1.22.12",
+    "1.22.9",
     "1.22.8",
     "1.22.6",
     "1.22.5",
     // cron-kubernetes-update-121
+    "1.21.14",
+    "1.21.12",
     "1.21.11",
     "1.21.9",
     "1.21.8",
@@ -42,7 +50,6 @@ module.exports.InstallerVersions = {
     "1.21.2", 
     "1.21.1", 
     "1.21.0",
-    // cron-kubernetes-update-120
     "1.20.15",
     "1.20.14",
     "1.20.11", 
@@ -73,12 +80,16 @@ module.exports.InstallerVersions = {
     "19.03.4",
     "18.09.8",
   ],
-  containerd: ["1.4.6", "1.4.13", "1.4.12", "1.4.11", "1.4.10", "1.4.9", "1.4.8", "1.4.4", "1.4.3", "1.3.9", "1.3.7", "1.2.13"], // cron-containerd-update
+  containerd: ["1.5.11", "1.5.10", "1.4.13", "1.4.12", "1.4.11", "1.4.10", "1.4.9", "1.4.8", "1.4.6", "1.4.4", "1.4.3", "1.3.9", "1.3.7", "1.2.13", "1.6.6", "1.6.4", ], // cron-containerd-update
   weave: [
+    "2.6.5-20220720",
+    "2.6.5-20220616",
     "2.6.5",
     "2.6.4",
     "2.5.2",
     // cron-weave-update
+    "2.8.1-20220720",
+    "2.8.1-20220616",
     "2.8.1",
     "2.7.0",
   ],
@@ -95,6 +106,7 @@ module.exports.InstallerVersions = {
   rook: [
     "1.0.4",
     // cron-rook-update
+    "1.6.11",
     "1.5.12",
     "1.5.11",
     "1.5.10",
@@ -103,12 +115,18 @@ module.exports.InstallerVersions = {
     "1.4.3",
     "1.0.4-14.2.21",
   ],
-  contour: ["1.20.1", "1.20.0", "1.19.1", "1.18.0", "1.16.0", "1.15.1", "1.14.1", "1.14.0", "1.13.1", "1.13.0", "1.12.0", "1.11.0", "1.10.1", "1.7.0", "1.0.1", "0.14.0"], // cron-contour-update
+  contour: ["1.22.0", "1.21.1", "1.21.0", "1.20.1", "1.20.0", "1.19.1", "1.18.0", "1.16.0", "1.15.1", "1.14.1", "1.14.0", "1.13.1", "1.13.0", "1.12.0", "1.11.0", "1.10.1", "1.7.0", "1.0.1", "0.14.0"], // cron-contour-update
   registry: [
+    // cron-registry-update
+    "2.8.1",
     "2.7.1",
   ],
   prometheus: [
     // cron-prometheus-update
+    "0.58.0-39.4.0",
+    "0.57.0-36.2.0",
+    "0.57.0-36.0.3",
+    "0.56.2-35.2.0",
     "0.53.1-30.1.0",
     "0.49.0-17.1.3",
     "0.49.0-17.1.1",
@@ -130,6 +148,22 @@ module.exports.InstallerVersions = {
   ],
   kotsadm: [
     // auto-kotsadm-update
+    "1.80.0",
+    "1.79.0",
+    "1.78.0",
+    "1.77.0",
+    "1.76.1",
+    "1.76.0",
+    "1.75.0",
+    "1.74.0",
+    "1.73.0",
+    "1.72.2",
+    "1.72.1",
+    "1.72.0",
+    "1.71.0",
+    "1.70.1",
+    "1.70.0",
+    "1.69.1",
     "1.69.0",
     "1.68.0",
     "1.67.0",
@@ -291,6 +325,8 @@ module.exports.InstallerVersions = {
   ],
   velero: [
     // cron-velero-update
+    "1.9.0",
+    "1.8.1",
     "1.7.1",
     "1.6.2",
     "1.6.1",
@@ -303,9 +339,18 @@ module.exports.InstallerVersions = {
   openebs: [
     "1.12.0",
     "1.6.0",
+    // cron-openebs-update-3
+    "3.2.0",
+    // cron-openebs-update-2
+    "2.12.9",
     "2.6.0",
   ],
   minio: [
+    // cron-minio-update
+    "2022-08-02T23-59-16Z",
+    "2022-07-17T15-43-14Z",
+    "2022-07-06T20-29-49Z",
+    "2022-06-11T19-55-32Z",
     "2020-01-25T02-50-51Z",
   ],
   collectd: [
@@ -313,6 +358,12 @@ module.exports.InstallerVersions = {
     "0.0.1",
   ],
   ekco: [
+    // cron-ekco-update
+    "0.19.9",
+    "0.19.6",
+    "0.19.3",
+    "0.19.2",
+    "0.19.1",
     "0.19.0",
     "0.18.0",
     "0.17.0",
@@ -350,6 +401,7 @@ module.exports.InstallerVersions = {
   ],
   longhorn: [
     // cron-longhorn-update
+    "1.2.4",
     "1.2.2",
     "1.1.2",
     "1.1.1",
@@ -357,6 +409,8 @@ module.exports.InstallerVersions = {
   ],
   sonobuoy: [
     // cron-sonobuoy-update
+    "0.56.8",
+    "0.56.7",
     "0.55.1",
     "0.53.0",
     "0.52.0",
@@ -364,9 +418,17 @@ module.exports.InstallerVersions = {
   ],
   goldpinger: [
     // cron-goldpinger-update
+    "3.5.1-5.2.0",
     "3.3.0-5.1.0",
     "3.2.0-5.0.0",
     "3.2.0-4.2.1",
     "3.2.0-4.1.1",
+  ],
+  localPathProvisioner: [
+    // cron-local-path-provisioner-update
+    "0.0.22",
+  ],
+  aws: [
+    "0.1.0",
   ],
 };

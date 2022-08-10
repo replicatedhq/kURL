@@ -22,7 +22,7 @@ const Footer = () => {
         <div className="KurlFooter flex flex1">
           <div className="flex flex-auto alignItems--center">
             <div className="FooterItem-wrapper flex justifyContent--center alignItems--center">
-              <KurlLogo className="u-marginRight--normal" />
+              <img src={KurlLogo} className="u-marginRight--normal" />
               <span className="FooterItem">Contributed by <a href="https://replicated.com/" target="_blank" rel="noopener noreferrer">Replicated </a></span>
             </div>
           </div>

@@ -12,6 +12,7 @@ DIR=.
 . $DIR/scripts/common/common.sh
 . $DIR/scripts/common/discover.sh
 . $DIR/scripts/common/docker.sh
+. $DIR/scripts/common/helm.sh
 . $DIR/scripts/common/host-packages.sh
 . $DIR/scripts/common/plugins.sh
 . $DIR/scripts/common/kubernetes.sh
@@ -101,6 +102,8 @@ K8S_DISTRO=kubeadm
 function main() {
     export KUBECONFIG=/etc/kubernetes/admin.conf
     require_root_user
+    # ensure /usr/local/bin/kubectl-plugin is in the path
+    path_add "/usr/local/bin"
     get_patch_yaml "$@"
     maybe_read_kurl_config_from_cluster
 
@@ -127,12 +130,14 @@ function main() {
     configure_no_proxy
     ${K8S_DISTRO}_addon_for_each addon_fetch
     host_preflights "${MASTER:-0}" "1" "1"
-    install_cri
-    get_common
-    get_shared
-    maybe_upgrade
     install_host_dependencies
+    get_common
+    setup_kubeadm_kustomize
+    install_cri
+    get_shared
     ${K8S_DISTRO}_addon_for_each addon_join
+    maybe_upgrade
+    install_helm
     outro
     package_cleanup
 

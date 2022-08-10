@@ -98,7 +98,7 @@ run_addon() {
     echo "Building Package: $name-$version.tag.gz"
 
     make "dist/${name}-${version}.tar.gz"
-    aws s3 cp "dist/${name}-${version}.tar.gz" "s3://${S3_BUCKET}/pr/${PR_NUMBER}-${GITHUB_SHA:0:7}-${name}-${version}.tar.gz"
+    aws s3 cp "dist/${name}-${version}.tar.gz" "s3://${S3_BUCKET}/pr/${PR_NUMBER}-${GITHUB_SHA:0:7}-${name}-${version}.tar.gz" --region us-east-1
 
     echo "Package pushed to:  s3://${S3_BUCKET}/pr/${PR_NUMBER}-${GITHUB_SHA:0:7}-${name}-${version}.tar.gz"
 
@@ -131,13 +131,22 @@ test_addon() {
   sed -i "s#__testver__#${version}#g" /tmp/test-spec
   sed -i "s#__testdist__#${dist}#g" /tmp/test-spec
 
+  # if this is triggered by automation, lower the priority
+  local priority=0
+  if [ "$GITHUB_ACTOR" = "replicated-ci-kurl" ]; then
+    priority=-1
+  fi
+
+  local ref="pr-${PR_NUMBER}-${GITHUB_SHA:0:7}-${name}-${version}-${specname}-$(date --utc +%FT%TZ)"
+
   # Run testgrid plan
   ./testgrid/tgrun/bin/tgrun queue --staging \
-    --ref "pr-${PR_NUMBER}-${GITHUB_SHA:0:7}-${name}-${version}-${specname}" \
+    --ref "$ref" \
     --spec /tmp/test-spec \
-    --os-spec ./testgrid/specs/os.yaml
-  echo "Submitted TestGrid Ref pr-${PR_NUMBER}-${GITHUB_SHA:0:7}-${name}-${version}-${specname}"
-  MSG="$MSG https://testgrid.kurl.sh/run/pr-${PR_NUMBER}-${GITHUB_SHA:0:7}-${name}-${version}-${specname}"
+    --os-spec ./testgrid/specs/os-firstlast.yaml \
+    --priority "$priority"
+  echo "Submitted TestGrid Ref $ref"
+  MSG="$MSG https://testgrid.kurl.sh/run/$ref"
 }
 
 MSG="Testgrid Run(s) Executing @ "

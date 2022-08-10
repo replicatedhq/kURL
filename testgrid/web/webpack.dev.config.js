@@ -45,13 +45,20 @@ module.exports = {
   devtool: "eval-source-map",
 
   devServer: {
-    port: 8080,
+    port: 30881,
     host: "0.0.0.0",
-    hot: true,
-    hotOnly: true,
+    hot: "only",
     historyApiFallback: {
       verbose: true,
+      rewrites: [
+        {
+          from: /^\/run\/.*$/,
+          to: function() {
+            return '/index.html';
+          }
+        }
+      ]
     },
-    disableHostCheck: true,
+    allowedHosts: "all",
   },
 };

@@ -4,26 +4,29 @@ on:
   push:
     branches:
     - main
+    paths:
+    - 'go.*'
+    - 'testgrid/**'
+    - '.github/workflows/deploy-testgrid.yaml'
 
 jobs:
   staging-docker-image-tgapi:
     runs-on: ubuntu-18.04
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - run: |
         docker build -f testgrid/tgapi/deploy/Dockerfile \
-          --build-arg version=${GITHUB_SHA:0:7} \
+          --build-arg gitsha=${GITHUB_SHA:0:7} \
+          --build-arg buildtime=`date -u +"%Y-%m-%dT%H:%M:%SZ"` \
           -t 923411875752.dkr.ecr.us-east-1.amazonaws.com/tgapi:${GITHUB_SHA:0:7} \
           .
 
-    - run: |
-        aws ecr get-login-password --region us-east-1 | docker login \
-          --username AWS \
-          --password-stdin 923411875752.dkr.ecr.us-east-1.amazonaws.com
-      env:
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_STAGING_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_STAGING_SECRET_ACCESS_KEY }}
+    - uses: docker/login-action@v2
+      with:
+        registry: 923411875752.dkr.ecr.us-east-1.amazonaws.com
+        username: ${{ secrets.AWS_STAGING_ACCESS_KEY_ID }}
+        password: ${{ secrets.AWS_STAGING_SECRET_ACCESS_KEY }}
 
     - run: docker push 923411875752.dkr.ecr.us-east-1.amazonaws.com/tgapi:${GITHUB_SHA:0:7}
 
@@ -31,7 +34,7 @@ jobs:
     runs-on: ubuntu-18.04
     needs: staging-docker-image-tgapi
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: kustomize
       run: |
@@ -72,35 +75,36 @@ jobs:
   production-docker-image-tgapi:
     runs-on: ubuntu-18.04
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - run: |
         docker build -f testgrid/tgapi/deploy/Dockerfile \
-          --build-arg version=${GITHUB_SHA:0:7} \
+          --build-arg gitsha=${GITHUB_SHA:0:7} \
+          --build-arg buildtime=`date -u +"%Y-%m-%dT%H:%M:%SZ"` \
           -t 799720048698.dkr.ecr.us-east-1.amazonaws.com/tgapi:${GITHUB_SHA:0:7} \
           .
 
-    - run: |
-        aws ecr get-login-password --region us-east-1 | docker login \
-          --username AWS \
-          --password-stdin 799720048698.dkr.ecr.us-east-1.amazonaws.com
-      env:
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_PROD_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_PROD_SECRET_ACCESS_KEY }}
+    - uses: docker/login-action@v2
+      with:
+        registry: 799720048698.dkr.ecr.us-east-1.amazonaws.com
+        username: ${{ secrets.AWS_PROD_ACCESS_KEY_ID }}
+        password: ${{ secrets.AWS_PROD_SECRET_ACCESS_KEY }}
 
     - run: docker push 799720048698.dkr.ecr.us-east-1.amazonaws.com/tgapi:${GITHUB_SHA:0:7}
 
   docker-image-tgrun:
     runs-on: ubuntu-18.04
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: tgrun-build
         run: |
           docker build -f testgrid/tgrun/Dockerfile \
+            --build-arg gitsha=${GITHUB_SHA:0:7} \
+            --build-arg buildtime=`date -u +"%Y-%m-%dT%H:%M:%SZ"` \
             -t replicated/tgrun:latest \
             -t replicated/tgrun:${GITHUB_SHA:0:7} \
             .
-      - uses: azure/docker-login@v1
+      - uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKERHUB_DOCKER_USER }}
           password: ${{ secrets.DOCKERHUB_DOCKER_PASS }}
@@ -114,7 +118,7 @@ jobs:
     runs-on: ubuntu-18.04
     needs: production-docker-image-tgapi
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: kustomize
       run: |

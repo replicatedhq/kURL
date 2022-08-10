@@ -1,3 +1,4 @@
+import fetch from "node-fetch";
 import * as crypto from "crypto";
 import * as yaml from "js-yaml";
 import * as _ from "lodash";
@@ -9,7 +10,6 @@ import { MysqlWrapper } from "../util/services/mysql";
 import { instrumented } from "monkit";
 import { Forbidden } from "../server/errors";
 import {getDistUrl, getPackageUrl} from "../util/package";
-import fetch from "node-fetch";
 import { getInstallerVersions } from "./installer-versions";
 import * as hash from "object-hash";
 
@@ -24,8 +24,10 @@ export interface KubernetesConfig {
   serviceCIDR?: string;
   HACluster?: boolean;
   masterAddress?: string;
+  clusterName?: string;
   cisCompliance?: boolean;
   loadBalancerAddress?: string;
+  loadBalancerUseFirstPrimary?: boolean;
   containerLogMaxSize?: string;
   containerLogMaxFiles?: number;
   bootstrapToken?: string;
@@ -48,7 +50,9 @@ export const kubernetesConfigSchema = {
     serviceCIDR: { type: "string", flag: "service-cidr", description: "This defines subnet for kubernetes" },
     HACluster: { type: "boolean", flag: "ha", description: "Create the cluster as a high availability cluster (note that this needs a valid load balancer address and additional nodes to be a truly HA cluster)" },
     masterAddress: { type: "string", flag: "kuberenetes-master-address", description: "The address of the internal Kubernetes API server, used during join scripts (read-only)" },
+    clusterName: { type: "string", flag: "kubernetes-cluster-name", description: "The name of the Kubernetes cluster (default \"kubernetes\")"},
     loadBalancerAddress: { type: "string", flag: "load-balancer-address", description: "Used for High Availability installs, indicates the address of the external load balancer" },
+    loadBalancerUseFirstPrimary: { type: "boolean", flag: "kubernetes-load-balancer-use-first-primary" , description: "DEPRECATED: Use first primary address as control plane endpoint in HA cluster. Use ekco-enable-internal-load-balancer instead.", deprecated: true, hidden: true },
     containerLogMaxSize: { type: "string", flag: "container-log-max-size", description: "A quantity defining the maximum size of the container log file before it is rotated. For example: \"5Mi\" or \"256Ki\". This does not work with Docker. For Docker, check out https://docs.docker.com/config/containers/logging/json-file." },
     containerLogMaxFiles: { type: "number", flag: "container-log-max-files", description: "Specifies the maximum number of container log files that can be present for a container. This does not work with Docker. For Docker, check out https://docs.docker.com/config/containers/logging/json-file." },
     bootstrapToken: { type: "string", flag: "bootstrap-token", description: "A secret needed for new nodes to join an existing cluster" },
@@ -364,6 +368,7 @@ export interface VeleroConfig {
   disableRestic?: boolean;
   localBucket?: string;
   resticRequiresPrivileged?: boolean;
+  resticTimeout?: string;
 }
 
 export const veleroConfigSchema = {
@@ -376,6 +381,7 @@ export const veleroConfigSchema = {
     disableRestic: { type: "boolean", flag: "velero-disable-restic", description: "Don’t install the restic integration" },
     localBucket: { type: "string", flag : "velero-local-bucket", description: "Name of the bucket to create snapshots in the local object store"},
     resticRequiresPrivileged: { type: "boolean", flag: "velero-restic-requires-privileged", description: "Runs Restic container in privileged mode" },
+    resticTimeout: { type: "string", flag: "velero-restic-timeout", description: "How long backups/restores of pod volumes should be allowed to run before timing out" },
   },
   required: ["version"],
   additionalProperties: false,
@@ -392,6 +398,7 @@ export interface EkcoConfig {
   shouldEnablePurgeNodes?: boolean;
   rookShouldUseAllNodes?: boolean;
   podImageOverrides?: Array<string>;
+  enableInternalLoadBalancer?: boolean;
 }
 
 export const ekcoConfigSchema = {
@@ -407,6 +414,7 @@ export const ekcoConfigSchema = {
     shouldEnablePurgeNodes: { type: "boolean", description: "Watch for unreachable nodes and automatically remove them from the cluster" },
     rookShouldUseAllNodes: { type: "boolean", flag: "ekco-rook-should-use-all-nodes" , description: "This will disable management of nodes in the CephCluster resource. If false, ekco will add nodes to the storage list and remove them when a node is purged" },
     podImageOverrides: { type: "array", items: { type: "string" }, flag: "pod-image-overrides", description: "Switch images in a pod when created" },
+    enableInternalLoadBalancer: { type: "boolean", flag: "ekco-enable-internal-load-balancer" , description: "Run haproxy on all nodes and forward to all Kubernetes API server pods" },
   },
   required: ["version"],
   // additionalProperties: false,
@@ -455,13 +463,13 @@ export const kurlConfigSchema = {
     licenseURL: { type: "string", description: "A URL to a licensing agreement that will presented during installation and needs to be accepted or the install will exit." },
     nameserver: { type: "string" },
     noProxy: { type: "boolean", flag: "no-proxy" , description: "Don’t detect or configure a proxy" },
-    preflightIgnore: { type: "boolean", flag: "preflight-ignore" , description: "DEPRECATED: Ignore preflight failures and warnings. See `host-preflight-ignore` for replacement." },
-    preflightIgnoreWarnings: { type: "boolean", flag: "preflight-ignore-warnings" , description: "DEPRECATED: Ignore preflight warnings.  See `host-preflight-enforce-warnings` for replacement." },
+    preflightIgnore: { type: "boolean", flag: "preflight-ignore" , description: "DEPRECATED: Ignore preflight failures and warnings. See `host-preflight-ignore` for replacement.", deprecated: true },
+    preflightIgnoreWarnings: { type: "boolean", flag: "preflight-ignore-warnings" , description: "DEPRECATED: Ignore preflight warnings.  See `host-preflight-enforce-warnings` for replacement.", deprecated: true },
     privateAddress: { type: "string", flag: "private-address" , description: "The local address of the host (different for each host in the cluster)" },
     proxyAddress: { type: "string", flag: "http-proxy" , description: "The address of the proxy to use for outbound connections" },
     publicAddress: { type: "string", flag: "public-address" , description: "The public address of the host (different for each host in the cluster), will be added as a CNAME to the k8s API server cert so you can use kubectl with this address" },
     skipSystemPackageInstall: { type: "boolean", flag: "skip-system-package-install" , description: "Skip the installation of system packages." },
-    excludeBuiltinPreflights: { type: "boolean", flag: "exclude-builtin-preflights" , description: "DEPRECATED: Excludes the default built-in host preflights for kURL. See `exclude-builtin-host-preflights` for replacement." },
+    excludeBuiltinPreflights: { type: "boolean", flag: "exclude-builtin-preflights" , description: "DEPRECATED: Excludes the default built-in host preflights for kURL. See `exclude-builtin-host-preflights` for replacement.", deprecated: true },
     bypassFirewalldWarning: { type: "boolean", flag: "bypass-firewalld-warning" , description: "Continue installing even if the firewalld service is active" },
     hardFailOnFirewalld: { type: "boolean", flag: "hard-fail-on-firewalld" , description: "Exit the install script if the firewalld service is active" },
     installerVersion: { type: "string", description: "The upstream version of kURL to use as part of the installation - see https://kurl.sh/docs/install-with-kurl/#versioned-releases" },
@@ -699,6 +707,37 @@ export const goldpingerSchema = {
   additionalProperties: false,
 };
 
+export interface AWS {
+  version: string;
+  s3Override?: string;
+  excludeStorageClass?: boolean;
+}
+
+export const awsSchema = {
+  type: "object",
+  properties: {
+    version: { type: "string" },
+    s3Override: { type: "string", flag: "s3-override", description: "Override the download location for addon package distribution (used for CI/CD testing alpha addons)" },
+    excludeStorageClass: { type: "boolean", flag: "aws-exclude-storage-class", description: "Exclude aws-ebs provisioner storage class provided by the AWS add-on"},
+  },
+  required: [ "version" ],
+};
+
+export interface LocalPathProvisionerConfig {
+  version: string;
+  s3Override?: string;
+  excludeStorageClass?: boolean;
+}
+
+export const localPathProvisionerSchema = {
+  type: "object",
+  properties: {
+    version: { type: "string" },
+    s3Override: { type: "string", flag: "s3-override", description: "Override the download location for addon package distribution (used for CI/CD testing alpha addons)" },
+  },
+  required: [ "version" ],
+};
+
 export interface InstallerSpec {
   kubernetes?: KubernetesConfig;
   rke2?: RKE2Config;
@@ -730,6 +769,8 @@ export interface InstallerSpec {
   sonobuoy?: SonobuoyConfig;
   ufw?: UFWConfig;
   goldpinger?: GoldpingerConfig;
+  aws?: AWS;
+  localPathProvisioner?: LocalPathProvisionerConfig;
 }
 
 const specSchema = {
@@ -766,6 +807,8 @@ const specSchema = {
     sonobuoy: sonobuoySchema,
     ufw: ufwConfigSchema,
     goldpinger: goldpingerSchema,
+    aws: awsSchema,
+    localPathProvisioner: localPathProvisionerSchema,
   },
   additionalProperites: false,
 };
@@ -847,7 +890,7 @@ export class Installer {
       disableS3: true,
     };
     i.spec.openebs = {
-      version: this.toDotXVersion(installerVersions.openebs[0]),
+      version: this.toDotXVersion(this.greatest(installerVersions.openebs)),
       isLocalPVEnabled: true,
       localPVStorageClassName: "default",
       isCstorEnabled: false,
@@ -1048,10 +1091,6 @@ export class Installer {
 
   public static isSHA(id: string): boolean {
     return /^[0-9a-f]{7}$/.test(id);
-  }
-
-  public static isValidSlug(id: string): boolean {
-    return /^[0-9a-zA-Z-_]{1,255}$/.test(id);
   }
 
   public static slugIsReserved(id: string): boolean {
@@ -1257,7 +1296,7 @@ export class Installer {
 
     if (this.spec.kubernetes) {
       if (!(await Installer.hasVersion("kubernetes", this.spec.kubernetes.version, installerVersion)) && !this.hasS3Override("kubernetes")) {
-        return {error: {message: `Kubernetes version ${_.escape(this.spec.kubernetes.version)} is not supported${installerVersion ? " for installer version " + _.escape(installerVersion) : ""}`}};
+        return {error: {message: `Kubernetes version "${_.escape(this.spec.kubernetes.version)}" is not supported${installerVersion ? " for installer version " + _.escape(installerVersion) : ""}`}};
       }
       if (this.spec.kubernetes.serviceCidrRange && !Installer.isValidCidrRange(this.spec.kubernetes.serviceCidrRange)) {
         return {error: {message: `Kubernetes serviceCidrRange "${_.escape(this.spec.kubernetes.serviceCidrRange)}" is invalid`}};
@@ -1317,6 +1356,12 @@ export class Installer {
     if (this.spec.openebs && !(await Installer.hasVersion("openebs", this.spec.openebs.version, installerVersion)) && !this.hasS3Override("openebs")) {
       return {error: {message: `OpenEBS version "${_.escape(this.spec.openebs.version)}" is not supported${installerVersion ? " for installer version " + _.escape(installerVersion) : ""}`}};
     }
+    if (this.spec.openebs && (this.spec.kubernetes && semver.gte(this.spec.kubernetes.version, "1.22.0") && semver.lt(this.spec.openebs.version, "2.12.9"))) {
+      return {error: {message: `Openebs version "${_.escape(this.spec.openebs.version)}" is not compatible with Kubernetes versions 1.22+`}};
+    }
+    if (this.spec.openebs && (this.spec.openebs.isCstorEnabled && semver.gte(this.spec.openebs.version, "2.12.9"))) {
+      return {error: {message: `Openebs version "${_.escape(this.spec.openebs.version)}" does not support cstor in kURL`}};
+    }
     if (this.spec.minio && !(await Installer.hasVersion("minio", this.spec.minio.version, installerVersion)) && !this.hasS3Override("minio")) {
       return {error: {message: `Minio version "${_.escape(this.spec.minio.version)}" is not supported${installerVersion ? " for installer version " + _.escape(installerVersion) : ""}`}};
     }
@@ -1328,6 +1373,9 @@ export class Installer {
     }
     if (this.spec.containerd && this.spec.docker) {
       return {error: {message: `This spec contains both docker and containerd, please specifiy only one CRI`}};
+    }
+    if (this.spec.docker && this.spec.kubernetes && semver.gte(this.spec.kubernetes.version, "1.24.0")) {
+      return {error: {message: "Docker is not supported with Kubernetes versions 1.24+, please choose Containerd"}};
     }
     if (this.spec.collectd && !(await Installer.hasVersion("collectd", this.spec.collectd.version, installerVersion)) && !this.hasS3Override("collectd")) {
       return {error: {message: `Collectd version "${_.escape(this.spec.collectd.version)}" is not supported${installerVersion ? " for installer version " + _.escape(installerVersion) : ""}`}};
@@ -1347,11 +1395,21 @@ export class Installer {
     if (this.spec.goldpinger && !(await Installer.hasVersion("goldpinger", this.spec.goldpinger.version, installerVersion)) && !this.hasS3Override("goldpinger")) {
       return {error: {message: `Goldpinger version "${_.escape(this.spec.goldpinger.version)}" is not supported${installerVersion ? " for installer version " + _.escape(installerVersion) : ""}`}};
     }
+    if (this.spec.localPathProvisioner && !(await Installer.hasVersion("localPathProvisioner", this.spec.localPathProvisioner.version, installerVersion)) && !this.hasS3Override("localPathProvisioner")) {
+      return {error: {message: `Local Path Storage version "${_.escape(this.spec.localPathProvisioner.version)}" is not supported${installerVersion ? " for installer version " + _.escape(installerVersion) : ""}`}};
+    }
 
     // Rook 1.0.4 is incompatible with Kubernetes 1.20+
     if (this.spec.rook && this.spec.rook.version === "1.0.4") {
       if (this.spec.kubernetes && semver.gte(this.spec.kubernetes.version, "1.20.0")) {
         return {error: {message: "Rook 1.0.4 is not compatible with Kubernetes 1.20+"}};
+      }
+    }
+
+    // Containerd 1.6 is incompatible with Weave
+    if (this.spec.containerd && this.spec.containerd.version === "1.6.4") {
+      if (this.spec.weave) {
+        return {error: {message: "Containerd 1.6.x is not compatible with Weave"}};
       }
     }
 
@@ -1516,6 +1574,17 @@ export class Installer {
     return ret;
   }
 
+  public static greatest(versions: string[]): string {
+    let ret = "0.0.0";
+    versions.forEach((version: string) => {
+      if (!ret || semver.gt(version, ret)) {
+        ret = version;
+      }
+    });
+
+    return ret;
+  }
+
   public async isLatest(): Promise<boolean> {
     return _.isEqual(this.spec, (await Installer.latest()).spec);
   }
@@ -1575,7 +1644,7 @@ export class InstallerStore {
     this.pool = pool;
   }
 
-  @instrumented
+  @instrumented()
   public async getInstaller(installerID: string): Promise<Installer|undefined> {
     if (installerID === "latest") {
       return await Installer.latest();
@@ -1601,7 +1670,7 @@ export class InstallerStore {
     return i;
   }
 
-  @instrumented
+  @instrumented()
   public async saveAnonymousInstaller(installer: Installer): Promise<void> {
     if (!installer.id) {
       throw new Error("Installer ID is required");
@@ -1619,7 +1688,7 @@ export class InstallerStore {
     await this.pool.query(q, v);
   }
 
-  @instrumented
+  @instrumented()
   public async saveTeamInstaller(installer: Installer): Promise<void> {
     if (!installer.id) {
       throw new Error("Installer ID is required");

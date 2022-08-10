@@ -1,0 +1,757 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  labels:
+    longhorn-manager: Engine
+  name: engines.longhorn.io
+spec:
+  group: longhorn.io
+  names:
+    kind: Engine
+    listKind: EngineList
+    plural: engines
+    shortNames:
+    - lhe
+    singular: engine
+  scope: Namespaced
+  versions:
+  - name: v1beta1
+    served: true
+    storage: true
+    schema:
+      openAPIV3Schema:
+        type: object
+        properties:
+          spec:
+            x-kubernetes-preserve-unknown-fields: true
+          status:
+            x-kubernetes-preserve-unknown-fields: true
+    subresources:
+      status: {}
+    additionalPrinterColumns:
+    - name: State
+      type: string
+      description: The current state of the engine
+      jsonPath: .status.currentState
+    - name: Node
+      type: string
+      description: The node that the engine is on
+      jsonPath: .spec.nodeID
+    - name: InstanceManager
+      type: string
+      description: The instance manager of the engine
+      jsonPath: .status.instanceManagerName
+    - name: Image
+      type: string
+      description: The current image of the engine
+      jsonPath: .status.currentImage
+    - name: Age
+      type: date
+      jsonPath: .metadata.creationTimestamp
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  labels:
+    longhorn-manager: Replica
+  name: replicas.longhorn.io
+spec:
+  group: longhorn.io
+  names:
+    kind: Replica
+    listKind: ReplicaList
+    plural: replicas
+    shortNames:
+    - lhr
+    singular: replica
+  scope: Namespaced
+  versions:
+  - name: v1beta1
+    served: true
+    storage: true
+    schema:
+      openAPIV3Schema:
+        type: object
+        properties:
+          spec:
+            x-kubernetes-preserve-unknown-fields: true
+          status:
+            x-kubernetes-preserve-unknown-fields: true
+    subresources:
+      status: {}
+    additionalPrinterColumns:
+    - name: State
+      type: string
+      description: The current state of the replica
+      jsonPath: .status.currentState
+    - name: Node
+      type: string
+      description: The node that the replica is on
+      jsonPath: .spec.nodeID
+    - name: Disk
+      type: string
+      description: The disk that the replica is on
+      jsonPath: .spec.diskID
+    - name: InstanceManager
+      type: string
+      description: The instance manager of the replica
+      jsonPath: .status.instanceManagerName
+    - name: Image
+      type: string
+      description: The current image of the replica
+      jsonPath: .status.currentImage
+    - name: Age
+      type: date
+      jsonPath: .metadata.creationTimestamp
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  labels:
+    longhorn-manager: Setting
+  name: settings.longhorn.io
+spec:
+  group: longhorn.io
+  names:
+    kind: Setting
+    listKind: SettingList
+    plural: settings
+    shortNames:
+    - lhs
+    singular: setting
+  scope: Namespaced
+  versions:
+  - name: v1beta1
+    served: true
+    storage: true
+    schema:
+      openAPIV3Schema:
+        x-kubernetes-preserve-unknown-fields: true
+    additionalPrinterColumns:
+    - name: Value
+      type: string
+      description: The value of the setting
+      jsonPath: .value
+    - name: Age
+      type: date
+      jsonPath: .metadata.creationTimestamp
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  labels:
+    longhorn-manager: Volume
+  name: volumes.longhorn.io
+spec:
+  group: longhorn.io
+  names:
+    kind: Volume
+    listKind: VolumeList
+    plural: volumes
+    shortNames:
+    - lhv
+    singular: volume
+  scope: Namespaced
+  versions:
+  - name: v1beta1
+    served: true
+    storage: true
+    schema:
+      openAPIV3Schema:
+        type: object
+        properties:
+          spec:
+            x-kubernetes-preserve-unknown-fields: true
+          status:
+            x-kubernetes-preserve-unknown-fields: true
+    subresources:
+      status: {}
+    additionalPrinterColumns:
+    - name: State
+      type: string
+      description: The state of the volume
+      jsonPath: .status.state
+    - name: Robustness
+      type: string
+      description: The robustness of the volume
+      jsonPath: .status.robustness
+    - name: Scheduled
+      type: string
+      description: The scheduled condition of the volume
+      jsonPath: .status.conditions['scheduled']['status']
+    - name: Size
+      type: string
+      description: The size of the volume
+      jsonPath: .spec.size
+    - name: Node
+      type: string
+      description: The node that the volume is currently attaching to
+      jsonPath: .status.currentNodeID
+    - name: Age
+      type: date
+      jsonPath: .metadata.creationTimestamp
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  labels:
+    longhorn-manager: EngineImage
+  name: engineimages.longhorn.io
+spec:
+  group: longhorn.io
+  names:
+    kind: EngineImage
+    listKind: EngineImageList
+    plural: engineimages
+    shortNames:
+    - lhei
+    singular: engineimage
+  scope: Namespaced
+  versions:
+  - name: v1beta1
+    served: true
+    storage: true
+    schema:
+      openAPIV3Schema:
+        type: object
+        properties:
+          spec:
+            x-kubernetes-preserve-unknown-fields: true
+          status:
+            x-kubernetes-preserve-unknown-fields: true
+    subresources:
+      status: {}
+    additionalPrinterColumns:
+    - name: State
+      type: string
+      description: State of the engine image
+      jsonPath: .status.state
+    - name: Image
+      type: string
+      description: The Longhorn engine image
+      jsonPath: .spec.image
+    - name: RefCount
+      type: integer
+      description: Number of volumes are using the engine image
+      jsonPath: .status.refCount
+    - name: BuildDate
+      type: date
+      description: The build date of the engine image
+      jsonPath: .status.buildDate
+    - name: Age
+      type: date
+      jsonPath: .metadata.creationTimestamp
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  labels:
+    longhorn-manager: Node
+  name: nodes.longhorn.io
+spec:
+  group: longhorn.io
+  names:
+    kind: Node
+    listKind: NodeList
+    plural: nodes
+    shortNames:
+    - lhn
+    singular: node
+  scope: Namespaced
+  versions:
+  - name: v1beta1
+    served: true
+    storage: true
+    schema:
+      openAPIV3Schema:
+        type: object
+        properties:
+          spec:
+            x-kubernetes-preserve-unknown-fields: true
+          status:
+            x-kubernetes-preserve-unknown-fields: true
+    subresources:
+      status: {}
+    additionalPrinterColumns:
+    - name: Ready
+      type: string
+      description: Indicate whether the node is ready
+      jsonPath: .status.conditions['Ready']['status']
+    - name: AllowScheduling
+      type: boolean
+      description: Indicate whether the user disabled/enabled replica scheduling for the node
+      jsonPath: .spec.allowScheduling
+    - name: Schedulable
+      type: string
+      description: Indicate whether Longhorn can schedule replicas on the node
+      jsonPath: .status.conditions['Schedulable']['status']
+    - name: Age
+      type: date
+      jsonPath: .metadata.creationTimestamp
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  labels:
+    longhorn-manager: InstanceManager
+  name: instancemanagers.longhorn.io
+spec:
+  group: longhorn.io
+  names:
+    kind: InstanceManager
+    listKind: InstanceManagerList
+    plural: instancemanagers
+    shortNames:
+    - lhim
+    singular: instancemanager
+  scope: Namespaced
+  versions:
+  - name: v1beta1
+    served: true
+    storage: true
+    schema:
+      openAPIV3Schema:
+        type: object
+        properties:
+          spec:
+            x-kubernetes-preserve-unknown-fields: true
+          status:
+            x-kubernetes-preserve-unknown-fields: true
+    subresources:
+      status: {}
+    additionalPrinterColumns:
+    - name: State
+      type: string
+      description: The state of the instance manager
+      jsonPath: .status.currentState
+    - name: Type
+      type: string
+      description: The type of the instance manager (engine or replica)
+      jsonPath: .spec.type
+    - name: Node
+      type: string
+      description: The node that the instance manager is running on
+      jsonPath: .spec.nodeID
+    - name: Age
+      type: date
+      jsonPath: .metadata.creationTimestamp
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  labels:
+    longhorn-manager: ShareManager
+  name: sharemanagers.longhorn.io
+spec:
+  group: longhorn.io
+  names:
+    kind: ShareManager
+    listKind: ShareManagerList
+    plural: sharemanagers
+    shortNames:
+      - lhsm
+    singular: sharemanager
+  scope: Namespaced
+  versions:
+  - name: v1beta1
+    served: true
+    storage: true
+    schema:
+      openAPIV3Schema:
+        type: object
+        properties:
+          spec:
+            x-kubernetes-preserve-unknown-fields: true
+          status:
+            x-kubernetes-preserve-unknown-fields: true
+    subresources:
+      status: {}
+    additionalPrinterColumns:
+      - name: State
+        type: string
+        description: The state of the share manager
+        jsonPath: .status.state
+      - name: Node
+        type: string
+        description: The node that the share manager is owned by
+        jsonPath: .status.ownerID
+      - name: Age
+        type: date
+        jsonPath: .metadata.creationTimestamp
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  labels:
+    longhorn-manager: BackingImage
+  name: backingimages.longhorn.io
+spec:
+  group: longhorn.io
+  names:
+    kind: BackingImage
+    listKind: BackingImageList
+    plural: backingimages
+    shortNames:
+      - lhbi
+    singular: backingimage
+  scope: Namespaced
+  versions:
+    - name: v1beta1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              x-kubernetes-preserve-unknown-fields: true
+            status:
+              x-kubernetes-preserve-unknown-fields: true
+      subresources:
+        status: {}
+      additionalPrinterColumns:
+        - name: Image
+          type: string
+          description: The backing image name
+          jsonPath: .spec.image
+        - name: Age
+          type: date
+          jsonPath: .metadata.creationTimestamp
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  labels:
+    longhorn-manager: BackingImageManager
+  name: backingimagemanagers.longhorn.io
+spec:
+  group: longhorn.io
+  names:
+    kind: BackingImageManager
+    listKind: BackingImageManagerList
+    plural: backingimagemanagers
+    shortNames:
+    - lhbim
+    singular: backingimagemanager
+  scope: Namespaced
+  versions:
+  - name: v1beta1
+    served: true
+    storage: true
+    schema:
+      openAPIV3Schema:
+        type: object
+        properties:
+          spec:
+            x-kubernetes-preserve-unknown-fields: true
+          status:
+            x-kubernetes-preserve-unknown-fields: true
+    subresources:
+      status: {}
+    additionalPrinterColumns:
+    - name: State
+      type: string
+      description: The current state of the manager
+      jsonPath: .status.currentState
+    - name: Image
+      type: string
+      description: The image the manager pod will use
+      jsonPath: .spec.image
+    - name: Node
+      type: string
+      description: The node the manager is on
+      jsonPath: .spec.nodeID
+    - name: DiskUUID
+      type: string
+      description: The disk the manager is responsible for
+      jsonPath: .spec.diskUUID
+    - name: DiskPath
+      type: string
+      description: The disk path the manager is using
+      jsonPath: .spec.diskPath
+    - name: Age
+      type: date
+      jsonPath: .metadata.creationTimestamp
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  labels:
+    longhorn-manager: BackingImageDataSource
+  name: backingimagedatasources.longhorn.io
+spec:
+  group: longhorn.io
+  names:
+    kind: BackingImageDataSource
+    listKind: BackingImageDataSourceList
+    plural: backingimagedatasources
+    shortNames:
+    - lhbids
+    singular: backingimagedatasource
+  scope: Namespaced
+  versions:
+  - name: v1beta1
+    served: true
+    storage: true
+    schema:
+      openAPIV3Schema:
+        type: object
+        properties:
+          spec:
+            x-kubernetes-preserve-unknown-fields: true
+          status:
+            x-kubernetes-preserve-unknown-fields: true
+    subresources:
+      status: {}
+    additionalPrinterColumns:
+    - name: State
+      type: string
+      description: The current state of the pod used to provisione the backing image file from source
+      jsonPath: .status.currentState
+    - name: SourceType
+      type: string
+      description: The data source type
+      jsonPath: .spec.sourceType
+    - name: Node
+      type: string
+      description: The node the backing image file will be prepared on
+      jsonPath: .spec.nodeID
+    - name: DiskUUID
+      type: string
+      description: The disk the backing image file will be prepared on
+      jsonPath: .spec.diskUUID
+    - name: Age
+      type: date
+      jsonPath: .metadata.creationTimestamp
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  labels:
+    longhorn-manager: BackupTarget
+  name: backuptargets.longhorn.io
+spec:
+  group: longhorn.io
+  names:
+    kind: BackupTarget
+    listKind: BackupTargetList
+    plural: backuptargets
+    shortNames:
+    - lhbt
+    singular: backuptarget
+  scope: Namespaced
+  versions:
+  - name: v1beta1
+    served: true
+    storage: true
+    schema:
+      openAPIV3Schema:
+        type: object
+        properties:
+          spec:
+            x-kubernetes-preserve-unknown-fields: true
+          status:
+            x-kubernetes-preserve-unknown-fields: true
+    subresources:
+      status: {}
+    additionalPrinterColumns:
+    - name: URL
+      type: string
+      description: The backup target URL
+      jsonPath: .spec.backupTargetURL
+    - name: Credential
+      type: string
+      description: The backup target credential secret
+      jsonPath: .spec.credentialSecret
+    - name: Interval
+      type: string
+      description: The backup target poll interval
+      jsonPath: .spec.pollInterval
+    - name: Available
+      type: boolean
+      description: Indicate whether the backup target is available or not
+      jsonPath: .status.available
+    - name: LastSyncedAt
+      type: string
+      description: The backup target last synced time
+      jsonPath: .status.lastSyncedAt
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  labels:
+    longhorn-manager: BackupVolume
+  name: backupvolumes.longhorn.io
+spec:
+  group: longhorn.io
+  names:
+    kind: BackupVolume
+    listKind: BackupVolumeList
+    plural: backupvolumes
+    shortNames:
+    - lhbv
+    singular: backupvolume
+  scope: Namespaced
+  versions:
+  - name: v1beta1
+    served: true
+    storage: true
+    schema:
+      openAPIV3Schema:
+        type: object
+        properties:
+          spec:
+            x-kubernetes-preserve-unknown-fields: true
+          status:
+            x-kubernetes-preserve-unknown-fields: true
+    subresources:
+      status: {}
+    additionalPrinterColumns:
+    - name: CreatedAt
+      type: string
+      description: The backup volume creation time
+      jsonPath: .status.createdAt
+    - name: LastBackupName
+      type: string
+      description: The backup volume last backup name
+      jsonPath: .status.lastBackupName
+    - name: LastBackupAt
+      type: string
+      description: The backup volume last backup time
+      jsonPath: .status.lastBackupAt
+    - name: LastSyncedAt
+      type: string
+      description: The backup volume last synced time
+      jsonPath: .status.lastSyncedAt
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  labels:
+    longhorn-manager: Backup
+  name: backups.longhorn.io
+spec:
+  group: longhorn.io
+  names:
+    kind: Backup
+    listKind: BackupList
+    plural: backups
+    shortNames:
+    - lhb
+    singular: backup
+  scope: Namespaced
+  versions:
+  - name: v1beta1
+    served: true
+    storage: true
+    schema:
+      openAPIV3Schema:
+        type: object
+        properties:
+          spec:
+            x-kubernetes-preserve-unknown-fields: true
+          status:
+            x-kubernetes-preserve-unknown-fields: true
+    subresources:
+      status: {}
+    additionalPrinterColumns:
+    - name: SnapshotName
+      type: string
+      description: The snapshot name
+      jsonPath: .status.snapshotName
+    - name: SnapshotSize
+      type: string
+      description: The snapshot size
+      jsonPath: .status.size
+    - name: SnapshotCreatedAt
+      type: string
+      description: The snapshot creation time
+      jsonPath: .status.snapshotCreatedAt
+    - name: State
+      type: string
+      description: The backup state
+      jsonPath: .status.state
+    - name: LastSyncedAt
+      type: string
+      description: The backup last synced time
+      jsonPath: .status.lastSyncedAt
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  labels:
+    longhorn-manager: RecurringJob
+  name: recurringjobs.longhorn.io
+spec:
+  group: longhorn.io
+  names:
+    kind: RecurringJob
+    listKind: RecurringJobList
+    plural: recurringjobs
+    shortNames:
+    - lhrj
+    singular: recurringjob
+  scope: Namespaced
+  versions:
+  - name: v1beta1
+    served: true
+    storage: true
+    schema:
+      openAPIV3Schema:
+        type: object
+        properties:
+          metadata:
+            type: object
+            properties:
+              name:
+                type: string
+          spec:
+            type: object
+            properties:
+              groups:
+                type: array
+                items:
+                  type: string
+              task:
+                type: string
+                pattern: "^snapshot|backup$"
+              cron:
+                type: string
+              retain:
+                type: integer
+              concurrency:
+                type: integer
+              labels:
+                x-kubernetes-preserve-unknown-fields: true
+          status:
+            x-kubernetes-preserve-unknown-fields: true
+    subresources:
+      status: {}
+    additionalPrinterColumns:
+    - name: Groups
+      type: string
+      description: Sets groupings to the jobs. When set to "default" group will be added to the volume label when no other job label exist in volume.
+      jsonPath: .spec.groups
+    - name: Task
+      type: string
+      description: Should be one of "backup" or "snapshot".
+      jsonPath: .spec.task
+    - name: Cron
+      type: string
+      description: The cron expression represents recurring job scheduling.
+      jsonPath: .spec.cron
+    - name: Retain
+      type: integer
+      description: The number of snapshots/backups to keep for the volume.
+      jsonPath: .spec.retain
+    - name: Concurrency
+      type: integer
+      description: The concurrent job to run by each cron job.
+      jsonPath: .spec.concurrency
+    - name: Age
+      type: date
+      jsonPath: .metadata.creationTimestamp
+    - name: Labels
+      type: string
+      description: Specify the labels
+      jsonPath: .spec.labels

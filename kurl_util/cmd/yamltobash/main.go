@@ -205,6 +205,7 @@ func convertToBash(kurlValues map[string]interface{}, fieldsSet map[string]bool)
 		"Kubernetes.BootstrapTokenTTL":               "BOOTSTRAP_TOKEN_TTL",
 		"Kubernetes.CertKey":                         "CERT_KEY",
 		"Kubernetes.CisCompliance":                   "KUBERNETES_CIS_COMPLIANCE",
+		"Kubernetes.ClusterName":                     "KUBERNETES_CLUSTER_NAME",
 		"Kubernetes.ControlPlane":                    "MASTER",
 		"Kubernetes.ContainerLogMaxSize":             "CONTAINER_LOG_MAX_SIZE",
 		"Kubernetes.ContainerLogMaxFiles":            "CONTAINER_LOG_MAX_FILES",
@@ -214,6 +215,7 @@ func convertToBash(kurlValues map[string]interface{}, fieldsSet map[string]bool)
 		"Kubernetes.KubeadmTokenCAHash":              "KUBEADM_TOKEN_CA_HASH",
 		"Kubernetes.KubeReserved":                    "KUBE_RESERVED",
 		"Kubernetes.LoadBalancerAddress":             "LOAD_BALANCER_ADDRESS",
+		"Kubernetes.LoadBalancerUseFirstPrimary":     "KUBERNETES_LOAD_BALANCER_USE_FIRST_PRIMARY",
 		"Kubernetes.MasterAddress":                   "KUBERNETES_MASTER_ADDR",
 		"Kubernetes.S3Override":                      "SERVICE_S3_OVERRIDE",
 		"Kubernetes.ServiceCIDR":                     "SERVICE_CIDR",
@@ -238,6 +240,8 @@ func convertToBash(kurlValues map[string]interface{}, fieldsSet map[string]bool)
 		"Kurl.PublicAddress":                         "PUBLIC_ADDRESS",
 		"Kurl.SkipSystemPackageInstall":              "SKIP_SYSTEM_PACKAGE_INSTALL",
 		"Kurl.ExcludeBuiltinHostPreflights":          "EXCLUDE_BUILTIN_HOST_PREFLIGHTS",
+		"LocalPathProvisioner.S3Override":            "LOCAL_PATH_PROVISIONER_S3_OVERRIDE",
+		"LocalPathProvisioner.Version":               "LOCAL_PATH_PROVISIONER_VERSION",
 		"Longhorn.S3Override":                        "LONGHORN_S3_OVERRIDE",
 		"Longhorn.StorageOverProvisioningPercentage": "LONGHORN_STORAGE_OVER_PROVISIONING_PERCENTAGE",
 		"Longhorn.UiBindPort":                        "LONGHORN_UI_BIND_PORT",
@@ -285,6 +289,7 @@ func convertToBash(kurlValues map[string]interface{}, fieldsSet map[string]bool)
 		"Velero.LocalBucket":                         "VELERO_LOCAL_BUCKET",
 		"Velero.Namespace":                           "VELERO_LOCAL_BUCKET",
 		"Velero.ResticRequiresPrivileged":            "VELERO_RESTIC_REQUIRES_PRIVILEGED",
+		"Velero.ResticTimeout":                       "VELERO_RESTIC_TIMEOUT",
 		"Velero.S3Override":                          "VELERO_S3_OVERRIDE",
 		"Velero.Version":                             "VELERO_VERSION",
 		"Weave.IsEncryptionDisabled":                 "ENCRYPT_NETWORK",
@@ -300,6 +305,9 @@ func convertToBash(kurlValues map[string]interface{}, fieldsSet map[string]bool)
 		"Antrea.Version":                             "ANTREA_VERSION",
 		"Goldpinger.Version":                         "GOLDPINGER_VERSION",
 		"Goldpinger.S3Override":                      "GOLDPINGER_S3_OVERRIDE",
+		"AWS.Version":                                "AWS_VERSION",
+		"AWS.S3Override":                             "AWS_S3_OVERRIDE",
+		"AWS.ExcludeStorageClass":                    "AWS_EXCLUDE_STORAGE_CLASS",
 	}
 
 	finalDictionary := make(map[string]string)
@@ -413,6 +421,8 @@ func addBashVariablesFromYaml(yamlPath, bashPath string) error {
 		return errors.Wrap(err, "failed to load installer yaml")
 	}
 
+	insertDefaults(installerConfig)
+
 	yamlDictionary := createMap(installerConfig)
 
 	bashDictionary, err := convertToBash(yamlDictionary, fieldsSet)
@@ -426,6 +436,16 @@ func addBashVariablesFromYaml(yamlPath, bashPath string) error {
 	}
 
 	return nil
+}
+
+func insertDefaults(installerConfig *kurlv1beta1.Installer) {
+	if installerConfig.Spec.Kubernetes == nil {
+		installerConfig.Spec.Kubernetes = &kurlv1beta1.Kubernetes{}
+	}
+
+	if installerConfig.Spec.Kubernetes.ClusterName == "" {
+		installerConfig.Spec.Kubernetes.ClusterName = "kubernetes"
+	}
 }
 
 func main() {

@@ -63,6 +63,7 @@ function upgrade_kubernetes_patch() {
 function upgrade_kubernetes_local_master_patch() {
     local k8sVersion="$1"
     local node="$(get_local_node_name)"
+    local upgrading_kubernetes=true
 
     if [ "$AIRGAP" != "1" ] && [ -n "$DIST_URL" ]; then
         kubernetes_get_host_packages_online "$k8sVersion"
@@ -70,7 +71,7 @@ function upgrade_kubernetes_local_master_patch() {
     fi
 
     load_images "$DIR/packages/kubernetes/$k8sVersion/images"
-    if [ -d "$DIR/packages/kubernetes-conformance/$k8sVersion/images" ]; then
+    if [ -n "$SONOBUOY_VERSION" ] && [ -d "$DIR/packages/kubernetes-conformance/$k8sVersion/images" ]; then
         load_images "$DIR/packages/kubernetes-conformance/$k8sVersion/images"
     fi
 
@@ -83,7 +84,8 @@ function upgrade_kubernetes_local_master_patch() {
     kubernetes_drain "$node"
  
     spinner_kubernetes_api_stable
-    kubeadm upgrade apply "v$k8sVersion" --yes --force
+    # ignore-preflight-errors, do not fail on fail to pull images for airgap
+    kubeadm upgrade apply "v$k8sVersion" --yes --force --ignore-preflight-errors=all
 
     kubernetes_install_host_packages "$k8sVersion"
     systemctl daemon-reload
@@ -138,10 +140,13 @@ function upgrade_kubernetes_remote_node_patch() {
     confirmY
     kubernetes_drain "$nodeName"
 
+    maybe_patch_node_cri_socket_annotation "$nodeName"
+
     local common_flags
     common_flags="${common_flags}$(get_docker_registry_ip_flag "${DOCKER_REGISTRY_IP}")"
     common_flags="${common_flags}$(get_additional_no_proxy_addresses_flag "${NO_PROXY_ADDRESSES}" "${NO_PROXY_ADDRESSES}")"
     common_flags="${common_flags}$(get_kurl_install_directory_flag "${KURL_INSTALL_DIRECTORY_FLAG}")"
+
     printf "\n\n\tRun the upgrade script on remote node to proceed: ${GREEN}$nodeName${NC}\n\n"
 
     if [ "$AIRGAP" = "1" ]; then
@@ -162,6 +167,7 @@ function upgrade_kubernetes_remote_node_patch() {
 function upgrade_kubernetes_local_master_minor() {
     local k8sVersion="$1"
     local node="$(get_local_node_name)"
+    local upgrading_kubernetes=true
 
     if [ "$AIRGAP" != "1" ] && [ -n "$DIST_URL" ]; then
         kubernetes_get_host_packages_online "$k8sVersion"
@@ -169,7 +175,7 @@ function upgrade_kubernetes_local_master_minor() {
     fi
 
     load_images "$DIR/packages/kubernetes/$k8sVersion/images"
-    if [ -d "$DIR/packages/kubernetes-conformance/$k8sVersion/images" ]; then
+    if [ -n "$SONOBUOY_VERSION" ] && [ -d "$DIR/packages/kubernetes-conformance/$k8sVersion/images" ]; then
         load_images "$DIR/packages/kubernetes-conformance/$k8sVersion/images"
     fi
 
@@ -182,7 +188,8 @@ function upgrade_kubernetes_local_master_minor() {
     kubernetes_drain "$node"
 
     spinner_kubernetes_api_stable
-    kubeadm upgrade apply "v$k8sVersion" --yes --force
+    # ignore-preflight-errors, do not fail on fail to pull images for airgap
+    kubeadm upgrade apply "v$k8sVersion" --yes --force --ignore-preflight-errors=all
     upgrade_etcd_image_18 "$k8sVersion"
 
     kubernetes_install_host_packages "$k8sVersion"
@@ -239,11 +246,12 @@ function upgrade_kubernetes_remote_node_minor() {
     confirmY
     kubernetes_drain "$nodeName"
 
+    maybe_patch_node_cri_socket_annotation "$nodeName"
+
     local common_flags
     common_flags="${common_flags}$(get_docker_registry_ip_flag "${DOCKER_REGISTRY_IP}")"
     common_flags="${common_flags}$(get_additional_no_proxy_addresses_flag "${NO_PROXY_ADDRESSES}" "${NO_PROXY_ADDRESSES}")"
     common_flags="${common_flags}$(get_kurl_install_directory_flag "${KURL_INSTALL_DIRECTORY_FLAG}")"
-
 
     printf "\n\n\tRun the upgrade script on remote node to proceed: ${GREEN}$nodeName${NC}\n\n"
 
@@ -277,4 +285,19 @@ function upgrade_etcd_image_18() {
     fi
     local etcd_tag=$(kubeadm config images list 2>/dev/null | grep etcd | awk -F':' '{ print $NF }')
     sed -i "s/image: k8s.gcr.io\/etcd:.*/image: k8s.gcr.io\/etcd:$etcd_tag/" /etc/kubernetes/manifests/etcd.yaml
+}
+
+# Workaround to fix "kubeadm upgrade node" error:
+#   "error execution phase preflight: docker is required for container runtime: exec: "docker": executable file not found in $PATH"
+# See https://github.com/kubernetes/kubeadm/issues/2364
+function maybe_patch_node_cri_socket_annotation() {
+    local nodeName="$1"
+
+    if [ -n "$DOCKER_VERSION" ] || [ -z "$CONTAINERD_VERSION" ]; then
+        return
+    fi
+
+    if kubectl get node "$nodeName" -o yaml | grep " kubeadm.alpha.kubernetes.io/cri-socket: " | grep -q "dockershim.sock" ; then
+        kubectl annotate node "$nodeName" --overwrite "kubeadm.alpha.kubernetes.io/cri-socket=unix:///run/containerd/containerd.sock"
+    fi
 }

@@ -25,6 +25,8 @@ function openebs() {
     openebs_spc_cspc_migration
 
     if [ "$OPENEBS_CSTOR" = "1" ]; then
+        report_addon_start "openebs-cstor" "2.6.0"
+
         openebs_iscsi
 
         kubectl apply -k "$dst/"
@@ -80,9 +82,13 @@ function openebs() {
 
         # add replicas for pre-existing volumes if needed
         openebs_cstor_scale_volumes
+
+        report_addon_success "openebs-cstor" "2.6.0"
     fi
 
     if [ "$OPENEBS_LOCALPV" = "1" ]; then
+        report_addon_start "openebs-localpv" "2.6.0"
+
         render_yaml_file "$src/tmpl-localpv-storage-class.yaml" > "$dst/localpv-storage-class.yaml"
         insert_resources "$dst/kustomization.yaml" localpv-storage-class.yaml
 
@@ -92,6 +98,8 @@ function openebs() {
         fi
 
         kubectl apply -k "$dst/"
+
+        report_addon_success "openebs-localpv" "2.6.0"
     fi
 }
 
@@ -150,7 +158,7 @@ function openebs_cstor_max_pools() {
             echo "Node $nodeName is able to join the cstor-disk pool"
             OPENEBS_CSTOR_MAX_POOLS=$((OPENEBS_CSTOR_MAX_POOLS+1))
         fi
-    done < <(kubectl -n "$OPENEBS_NAMESPACE" get blockdevices --no-headers 2>/dev/null | grep Unclaimed | awk '{ print $2 }')
+    done < <(kubectl -n "$OPENEBS_NAMESPACE" get blockdevices --no-headers 2>/dev/null | grep Unclaimed | awk '{ print $2 }' | sort | uniq)
 
     if [ $OPENEBS_CSTOR_MAX_POOLS -lt 1 ]; then
         OPENEBS_CSTOR_MAX_POOLS=1
@@ -453,7 +461,7 @@ function openebs_upgrade_cstor() {
     pvs=$(kubectl get pv --template '{{range .items}}{{.metadata.name}}{{"\n"}}{{end}}')
 
     echo "" > /tmp/openebs-volume-upgrade.yaml.part
-    for value in $pools; do
+    for value in $pvs; do
       echo "        - \"$value\"" >> /tmp/openebs-volume-upgrade.yaml.part
     done
 

@@ -11,8 +11,8 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
-	replyaml "github.com/replicatedhq/yaml/v3" // using replicatedhq/yaml/v3 because that allows setting line length
 	"gopkg.in/yaml.v2"
+	yamlv3 "gopkg.in/yaml.v3"
 )
 
 func readFile(path string) []byte {
@@ -35,9 +35,8 @@ func readFile(path string) []byte {
 
 func marshalIndent(in interface{}, indent int) ([]byte, error) {
 	var buf bytes.Buffer
-	enc := replyaml.NewEncoder(&buf)
+	enc := yamlv3.NewEncoder(&buf)
 	enc.SetIndent(indent)
-	enc.SetLineLength(-1)
 	err := enc.Encode(in)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to encode with indent %d", indent)
@@ -104,7 +103,7 @@ func addFieldToContent(content []byte, yamlPath, value string) (string, error) {
 			parsedObj[fields[0]].(map[interface{}]interface{})[fields[1]] = parsedVal
 		}
 
-		b, err := marshalIndent(&parsedObj, 2)
+		b, err := marshalIndent(parsedObj, 2)
 		if err != nil {
 			return "", errors.Wrap(err, "failed to marshal")
 		}

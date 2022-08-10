@@ -43,15 +43,17 @@ func Test_parseBashFlags(t *testing.T) {
 						PreserveConfig: true,
 					},
 					Kubernetes: &kurlv1beta1.Kubernetes{
-						MasterAddress:       "1.1.1.1",
-						HACluster:           true,
-						ControlPlane:        true,
-						CisCompliance:       true,
-						KubeadmToken:        "token",
-						KubeadmTokenCAHash:  "hash",
-						LoadBalancerAddress: "1.1.1.1",
-						Version:             "1.18.1",
-						CertKey:             "secret",
+						MasterAddress:               "1.1.1.1",
+						HACluster:                   true,
+						ControlPlane:                true,
+						CisCompliance:               true,
+						KubeadmToken:                "token",
+						KubeadmTokenCAHash:          "hash",
+						LoadBalancerAddress:         "1.1.1.1",
+						LoadBalancerUseFirstPrimary: true,
+						Version:                     "1.18.1",
+						CertKey:                     "secret",
+						ClusterName:                 "kubernetes",
 					},
 					Kurl: &kurlv1beta1.Kurl{
 						Airgap:         true,
@@ -74,6 +76,7 @@ func Test_parseBashFlags(t *testing.T) {
 				"docker-registry-ip=1.1.1.1 " +
 				"ha " +
 				"kubernetes-cis-compliance " +
+				"kubernetes-cluster-name=kubernetes " +
 				"preserve-docker-config " +
 				"preserve-firewalld-config " +
 				"preserve-iptables-config " +
@@ -84,6 +87,7 @@ func Test_parseBashFlags(t *testing.T) {
 				"kubernetes-version=1.18.1 " +
 				"installer-spec-file=in.yaml " +
 				"load-balancer-address=1.1.1.1 " +
+				"kubernetes-load-balancer-use-first-primary " +
 				"public-address=1.1.1.1 " +
 				"private-address=1.2.3.4 ",
 			wantError: false,
@@ -109,6 +113,7 @@ func Test_parseBashFlags(t *testing.T) {
 						LoadBalancerAddress: "2.2.2.2",
 						Version:             "1.15.0",
 						CertKey:             "badsecret",
+						ClusterName:         "kubernetes",
 					},
 					Kurl: &kurlv1beta1.Kurl{
 						Airgap:                     false,
@@ -143,6 +148,7 @@ func Test_parseBashFlags(t *testing.T) {
 						LoadBalancerAddress: "1.1.1.1",
 						Version:             "1.18.1",
 						CertKey:             "secret",
+						ClusterName:         "kubernetes",
 					},
 					Kurl: &kurlv1beta1.Kurl{
 						Airgap:        true,
@@ -165,6 +171,7 @@ func Test_parseBashFlags(t *testing.T) {
 				"docker-registry-ip=1.1.1.1 " +
 				"ha " +
 				"kubernetes-cis-compliance " +
+				"kubernetes-cluster-name=kubernetes " +
 				"preserve-docker-config " +
 				"preserve-firewalld-config " +
 				"preserve-iptables-config " +
@@ -224,6 +231,25 @@ func Test_parseBashFlags(t *testing.T) {
 				Spec: kurlv1beta1.InstallerSpec{
 					Kubernetes: &kurlv1beta1.Kubernetes{
 						Version: "1.17.3",
+					},
+				},
+			},
+		},
+		{
+			name: "ekco-enable-internal-load-balancer",
+			oldInstaller: &kurlv1beta1.Installer{
+				Spec: kurlv1beta1.InstallerSpec{
+					Ekco: &kurlv1beta1.Ekco{
+						Version: "0.19.0",
+					},
+				},
+			},
+			bashFlags: "ekco-enable-internal-load-balancer",
+			mergedInstaller: &kurlv1beta1.Installer{
+				Spec: kurlv1beta1.InstallerSpec{
+					Ekco: &kurlv1beta1.Ekco{
+						Version:                    "0.19.0",
+						EnableInternalLoadBalancer: true,
 					},
 				},
 			},

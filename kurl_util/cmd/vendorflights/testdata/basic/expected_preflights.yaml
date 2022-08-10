@@ -6,7 +6,6 @@ spec:
   analyzers:
   - cpu:
       checkName: Number of CPUs
-      exclude: ""
       outcomes:
       - fail:
           message: This server has at least 4 CPU cores
@@ -14,6 +13,5 @@ spec:
       - pass:
           message: This server has at least 4 CPU cores
   collectors:
-  - cpu:
-      exclude: ""
+  - cpu: {}
 status: {}

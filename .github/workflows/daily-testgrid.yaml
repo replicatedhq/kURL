@@ -10,10 +10,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     - name: setup-go
-      uses: actions/setup-go@v2
+      uses: actions/setup-go@v3
       with:
         go-version: 1.17
 
@@ -30,7 +30,8 @@ jobs:
         ./testgrid/tgrun/bin/tgrun queue --staging \
           --ref "STAGING-daily-$(date --utc +%FT%TZ)" \
           --spec ./testgrid/specs/full.yaml \
-          --os-spec ./testgrid/specs/os.yaml
+          --os-spec ./testgrid/specs/os-firstlast.yaml \
+          --priority -2
 
     - name: testgrid-queue-prod
       env:
@@ -40,4 +41,4 @@ jobs:
         ./testgrid/tgrun/bin/tgrun queue \
           --ref "PROD-daily-$(date --utc +%FT%TZ)" \
           --spec ./testgrid/specs/full.yaml \
-          --os-spec ./testgrid/specs/os.yaml
+          --os-spec ./testgrid/specs/os-firstlast.yaml

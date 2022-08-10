@@ -8,8 +8,8 @@ spec:
   type: NodePort
   ports:
   - name: http
-    port: 30880
+    port: 30881
     targetPort: http
-    nodePort: 30880
+    nodePort: 30881
   selector:
     app: testgrid-web

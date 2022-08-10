@@ -24,6 +24,8 @@ function velero_pre_init() {
 
 # runs on first install, and on version upgrades only
 function velero() {
+    velero_host_init
+
     local src="$DIR/addons/velero/$VELERO_VERSION"
     local dst="$DIR/kustomize/velero"
 
@@ -36,6 +38,8 @@ function velero() {
     velero_install "$src" "$dst"
 
     velero_patch_restic_privilege "$src" "$dst"
+
+    velero_patch_args "$src" "$dst"
 
     velero_kotsadm_restore_config "$src" "$dst"
 
@@ -77,6 +81,35 @@ function velero() {
 
 function velero_join() {
     velero_binary
+    velero_host_init
+}
+
+function velero_host_init() {
+    velero_install_nfs_utils_if_missing 
+}
+
+function velero_install_nfs_utils_if_missing() {
+    local src="$DIR/addons/velero/$VELERO_VERSION"
+
+    if ! systemctl list-units | grep -q nfs-utils ; then
+        case "$LSB_DIST" in
+            ubuntu)
+                dpkg_install_host_archives "$src" nfs-common
+                ;;
+
+            centos|rhel|amzn|ol)
+                yum_install_host_archives "$src" nfs-utils
+                ;;
+        esac
+    fi
+
+    if ! systemctl -q is-active nfs-utils; then
+        systemctl start nfs-utils
+    fi
+
+    if ! systemctl -q is-enabled nfs-utils; then
+        systemctl enable nfs-utils
+    fi
 }
 
 function velero_install() {
@@ -117,7 +150,7 @@ function velero_install() {
         $bslArgs \
         $secretArgs \
         --namespace $VELERO_NAMESPACE \
-        --plugins velero/velero-plugin-for-aws:v1.3.0,velero/velero-plugin-for-gcp:v1.3.0,velero/velero-plugin-for-microsoft-azure:v1.3.1,replicated/local-volume-provider:v0.3.0,"$KURL_UTIL_IMAGE" \
+        --plugins velero/velero-plugin-for-aws:v1.3.0,velero/velero-plugin-for-gcp:v1.3.0,velero/velero-plugin-for-microsoft-azure:v1.3.1,replicated/local-volume-provider:v0.3.3,"$KURL_UTIL_IMAGE" \
         --use-volume-snapshots=false \
         --dry-run -o yaml > "$dst/velero.yaml" 
 
@@ -140,6 +173,7 @@ function velero_already_applied() {
         velero_binary 
         velero_install "$src" "$dst"
         velero_patch_restic_privilege "$src" "$dst"
+        velero_patch_args "$src" "$dst"
         velero_kotsadm_restore_config "$src" "$dst"
         velero_patch_internal_pvc_snapshots "$src" "$dst"
         velero_patch_http_proxy "$src" "$dst"
@@ -204,6 +238,18 @@ function velero_patch_restic_privilege() {
         render_yaml_file "$src/restic-daemonset-privileged.yaml" > "$dst/restic-daemonset-privileged.yaml"
         insert_patches_strategic_merge "$dst/kustomization.yaml" restic-daemonset-privileged.yaml
     fi
+}
+
+function velero_patch_args() {
+    local src="$1"
+    local dst="$2"
+
+    if [ "${VELERO_DISABLE_RESTIC}" = "1" ] || [ -z "${VELERO_RESTIC_TIMEOUT}" ]; then
+        return 0
+    fi
+
+    render_yaml_file "$src/velero-args-json-patch.yaml" > "$dst/velero-args-json-patch.yaml"
+    insert_patches_json_6902 "$dst/kustomization.yaml" velero-args-json-patch.yaml apps v1 Deployment velero ${VELERO_NAMESPACE}
 }
 
 function velero_binary() {

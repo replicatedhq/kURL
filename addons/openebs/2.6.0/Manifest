@@ -25,6 +25,7 @@ image openebs-k8s-provisioner openebs/openebs-k8s-provisioner:2.6.0
 image provisioner-localpv openebs/provisioner-localpv:2.6.0
 image snapshot-controller openebs/snapshot-controller:2.6.0
 image snapshot-provisioner openebs/snapshot-provisioner:2.6.0
+image upgrade openebs/upgrade:2.6.0
 
 yum iscsi-initiator-utils
 apt open-iscsi

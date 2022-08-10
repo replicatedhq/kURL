@@ -1,6 +1,5 @@
 import * as React from "react";
 import * as Sentry from "@sentry/browser";
-import { Flex, Box } from "reflexbox";
 
 export default class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -29,14 +28,10 @@ export default class ErrorBoundary extends React.Component {
   render() {
     if (this.state.error) {
       return (
-        <Flex align="center" column justify="center" w={1} p={2} style={{height: "100%"}}>
-          <Box py={60} auto style={{height: "100%"}}>
-            <div className="center">
-              <h3>Something unfortunate just happened.</h3>
-              <div style={{height: "40px"}}></div>
-            </div>
-          </Box>
-        </Flex>
+        <div className="center">
+          <h3>Something unfortunate just happened.</h3>
+          <div style={{height: "40px"}}></div>
+        </div>
       );
     } else {
       return this.props.children;

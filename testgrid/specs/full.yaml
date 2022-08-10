@@ -14,6 +14,10 @@
       isCstorEnabled: false
     minio:
       version: latest
+  unsupportedOSIDs:
+    - ubuntu-1804
+    - ubuntu-2004
+    - ubuntu-2204
 - name: k3s
   installerSpec:
     k3s:
@@ -62,6 +66,7 @@
       version: 0.7.0
   unsupportedOSIDs:
   - ubuntu-2004 # docker 19.03.4 is not available on ubuntu 20.04
+  - ubuntu-2204 # docker 19.x is not available on ubuntu 22.04
 - name: k8s119x
   installerSpec:
     kubernetes:
@@ -106,8 +111,6 @@
       version: 0.6.0
     containerd:
       version: 1.4.9
-  unsupportedOSIDs:
-  - ubuntu-1604
 - name: k8s120x_openebs_minio
   installerSpec:
     kubernetes:
@@ -144,6 +147,7 @@
   - centos-83
   - centos-84
   - ol-84
+  - ubuntu-2204 # docker 20.10.5 is not available on ubuntu 22.04
 - name: k8s120x_docker
   installerSpec:
     kubernetes:
@@ -164,10 +168,12 @@
       version: latest
     velero:
       version: 1.2.0
-    minio: 
+    minio:
       version: latest
     ekco:
       version: latest
+  unsupportedOSIDs:
+  - ubuntu-2204 # docker 19.x is not available on ubuntu 22.04
 - name: k8s121x_containerd
   installerSpec:
     kubernetes:
@@ -190,10 +196,12 @@
       version: latest
     velero:
       version: 1.2.0
-    minio: 
-      version: latest      
+    minio:
+      version: latest
     ekco:
       version: latest
+  unsupportedOSIDs:
+  - ubuntu-2204 # containerd 1.4.x is not available on ubuntu 22.04
 - name: k8s119x-airgap
   installerSpec:
     kubernetes:
@@ -217,6 +225,8 @@
     ekco:
       version: 0.6.0
   airgap: true
+  unsupportedOSIDs:
+  - ubuntu-2204 # docker 19.x is not available on ubuntu 22.04
 - name: k8s1184_1202
   installerSpec:
     kubernetes:
@@ -236,6 +246,8 @@
       version: 2.8.1
     contour:
       version: latest
+  unsupportedOSIDs:
+  - ubuntu-2204 # docker 20.10.5 is not available on ubuntu 22.04
 - name: k8s1184_1202_containerd
   installerSpec:
     kubernetes:
@@ -254,7 +266,9 @@
     contour:
       version: latest
     containerd:
-      version: 1.4.x
+      version: 1.6.4
+  unsupportedOSIDs:
+  - ubuntu-2204 # containerd 1.4.x is not supported on ubuntu 22.04
 - name: k8s119x_containerd148
   installerSpec:
     kubernetes:
@@ -278,7 +292,7 @@
     containerd:
       version: 1.4.13
   unsupportedOSIDs:
-  - ubuntu-1604
+  - ubuntu-2204 # containerd 1.4.x is not supported on ubuntu 22.04
 - name: k8s119x_containerd139
   installerSpec:
     kubernetes:
@@ -302,7 +316,7 @@
     containerd:
       version: 1.4.9
   unsupportedOSIDs:
-  - ubuntu-1604
+  - ubuntu-2204 # containerd 1.4.x is not supported on ubuntu 22.04
 - name: k8s119
   installerSpec:
     kubernetes:
@@ -325,6 +339,8 @@
       version: 1.2.0
     ekco:
       version: 0.6.0
+  unsupportedOSIDs:
+  - ubuntu-2204 # docker 19.x is not available on ubuntu 22.04
 - name: k8s119-airgap
   installerSpec:
     kubernetes:
@@ -348,6 +364,8 @@
     ekco:
       version: 0.6.0
   airgap: true
+  unsupportedOSIDs:
+  - ubuntu-2204 # docker 19.x is not available on ubuntu 22.04
 - name: k8s119_containerd1412
   installerSpec:
     kubernetes:
@@ -371,7 +389,7 @@
     containerd:
       version: 1.4.12
   unsupportedOSIDs:
-  - ubuntu-1604
+  - ubuntu-2204 # containerd 1.4.x is not supported on ubuntu 22.04
 - name: k8s119_containerd146-airgap
   installerSpec:
     kubernetes:
@@ -395,6 +413,8 @@
     containerd:
       version: 1.4.6
   airgap: true
+  unsupportedOSIDs:
+  - ubuntu-2204 # containerd 1.4.x is not supported on ubuntu 22.04
 - name: k8s119_containerd_rook_block
   installerSpec:
     kubernetes:
@@ -405,7 +425,7 @@
       version: 1.7.0
     rook:
       isBlockStorageEnabled: true
-      version: 1.5.12
+      version: 1.6.11
     registry:
       version: 2.7.1
     fluentd:
@@ -420,7 +440,7 @@
     certManager:
       version: 1.0.3
   unsupportedOSIDs:
-  - ubuntu-1604
+  - ubuntu-2204 # containerd 1.4.x is not supported on ubuntu 22.04
 - name: k8s119_ctrd_longhorn
   installerSpec:
     kubernetes:
@@ -448,6 +468,8 @@
     longhorn:
       version: 1.1.2
       uiBindPort: 30080
+  unsupportedOSIDs:
+  - ubuntu-2204 # containerd 1.4.x is not supported on ubuntu 22.04
 - name: k8s119_ctrd_longhorn-airgap
   installerSpec:
     kubernetes:
@@ -476,6 +498,8 @@
       version: 1.1.2
       uiBindPort: 30080
   airgap: true
+  unsupportedOSIDs:
+  - ubuntu-2204 # containerd 1.4.x is not supported on ubuntu 22.04
 - name: k8s119_helm
   installerSpec:
     kubernetes:
@@ -509,7 +533,7 @@
     weave:
       version: latest
     containerd:
-      version: 1.4.x
+      version: 1.5.11
     helm:
       helmfileSpec: |-
         repositories:
@@ -542,7 +566,7 @@
     containerd:
       version: 1.4.11
   unsupportedOSIDs:
-  - ubuntu-1604
+  - ubuntu-2204 # containerd 1.4.x is not supported on ubuntu 22.04
 - name: k8s119_nameserver_collectd_rook_block
   installerSpec:
     kubernetes:
@@ -553,7 +577,7 @@
       version: 2.8.1
     rook:
       isBlockStorageEnabled: true
-      version: 1.5.12
+      version: 1.6.11
     registry:
       version: 2.7.1
     kotsadm:
@@ -562,6 +586,8 @@
       nameserver: 8.8.8.8
     collectd:
       version: v5
+  unsupportedOSIDs:
+  - ubuntu-2204 # docker 19.x is not supported on ubuntu 22.04
 - name: k8s119_selinux
   installerSpec:
     kubernetes:
@@ -581,6 +607,8 @@
         - s0-s0:c0.c1023
         - my_staff_u
       type: targeted
+  unsupportedOSIDs:
+  - ubuntu-2204 # docker 19.x is not supported on ubuntu 22.04
 - name: k8s120
   installerSpec:
     kubernetes:
@@ -605,6 +633,8 @@
       version: 1.4.6
     longhorn:
       version: 1.1.2
+  unsupportedOSIDs:
+  - ubuntu-2204 # containerd 1.4.x is not supported on ubuntu 22.04
 - name: k8s120-airgap
   installerSpec:
     kubernetes:
@@ -630,7 +660,10 @@
     longhorn:
       version: 1.1.2
   airgap: true
+  unsupportedOSIDs:
+  - ubuntu-2204 # containerd 1.4.x is not supported on ubuntu 22.04
 - name: k8s1205_rook_upgrade
+  cpu: 6
   installerSpec:
     kubernetes:
       version: 1.18.4
@@ -643,6 +676,8 @@
       version: 1.38.0
     containerd:
       version: 1.4.6
+    ekco:
+      version: latest
   upgradeSpec:
     kubernetes:
       version: 1.20.2
@@ -651,11 +686,15 @@
     rook:
       bypassUpgradeWarning: true
       isBlockStorageEnabled: true
-      version: 1.5.12
+      version: 1.6.11
     kotsadm:
       version: 1.38.0
     containerd:
       version: 1.4.12
+    ekco:
+      version: latest
+  unsupportedOSIDs:
+  - ubuntu-2204 # containerd 1.4.x is not supported on ubuntu 22.04
 - name: k8s121
   installerSpec:
     kubernetes:
@@ -677,6 +716,8 @@
       version: latest
     ekco:
       version: latest
+  unsupportedOSIDs:
+  - ubuntu-2204 # docker 20.10.5 (latest) is not supported on ubuntu 22.04
 - name: k8s121-airgap
   installerSpec:
     kubernetes:
@@ -699,6 +740,8 @@
     ekco:
       version: latest
   airgap: true
+  unsupportedOSIDs:
+  - ubuntu-2204 # docker 20.10.5 (latest) is not supported on ubuntu 22.04
 - name: k8s1210_openebs260_minio
   installerSpec:
     kubernetes:
@@ -723,6 +766,8 @@
       version: 2.6.0
     ekco:
       version: 0.10.1
+  unsupportedOSIDs:
+  - ubuntu-2204 # docker 20.10.5 (latest) is not supported on ubuntu 22.04
 - name: k8s1210_openebs260_minio-airgap
   installerSpec:
     kubernetes:
@@ -748,7 +793,10 @@
     ekco:
       version: 0.10.1
   airgap: true
+  unsupportedOSIDs:
+  - ubuntu-2204 # docker 20.10.5 (latest) is not supported on ubuntu 22.04
 - name: k8s1205_rook_to_longhorn
+  cpu: 6
   installerSpec:
     kubernetes:
       version: 1.20.x
@@ -761,6 +809,8 @@
       version: 1.38.0
     containerd:
       version: 1.4.6
+    ekco:
+      version: latest
   upgradeSpec:
     kubernetes:
       version: 1.20.x
@@ -773,8 +823,13 @@
     kotsadm:
       version: 1.38.0
     containerd:
-      version: 1.5.10
+      version: 1.4.6
+    ekco:
+      version: latest
+  unsupportedOSIDs:
+  - ubuntu-2204 # containerd 1.4.x is not supported on ubuntu 22.04
 - name: remove_all_object_storage
+  cpu: 6
   installerSpec:
     kubernetes:
       version: 1.20.x
@@ -782,7 +837,7 @@
       version: latest
     rook:
       isBlockStorageEnabled: true
-      version: 1.5.x
+      version: 1.6.x
     registry:
       version: latest
     kotsadm:
@@ -791,6 +846,8 @@
       version: latest
     velero:
       version: 1.6.x
+    ekco:
+      version: latest
   upgradeSpec:
     kubernetes:
       version: 1.21.x
@@ -802,27 +859,29 @@
       version: latest
     kotsadm:
       version: latest
-      s3Disabled: true
+      disableS3: true
     containerd:
       version: latest
     velero:
       version: 1.7.x
+    ekco:
+      version: latest
 - name: "K8s 1.22x Rook"
   installerSpec:
     kubernetes:
       version: 1.22.x
     containerd:
-      version: 1.4.x
+      version: 1.6.x
     antrea:
       version: 1.4.x
       isEncryptionDisabled: true
     contour:
       version: 1.19.1
     rook:
-      version: 1.5.12
+      version: 1.6.11
     registry:
       version: 2.7.1
-    prometheus: 
+    prometheus:
       version: "0.53.x"
     kotsadm:
       version: latest
@@ -830,14 +889,12 @@
       version: 1.7.x
     ekco:
       version: latest
-  unsupportedOSIDs:
-  - ubuntu-1604
 - name: "K8s 1.22x Longhorn, disableS3"
   installerSpec:
     kubernetes:
       version: 1.22.x
     containerd:
-      version: 1.4.x
+      version: 1.5.x
     weave:
       version: latest
     contour:
@@ -846,7 +903,7 @@
       version: 1.2.2
     registry:
       version: 2.7.1
-    prometheus: 
+    prometheus:
       version: "0.53.x"
     kotsadm:
       version: latest
@@ -855,24 +912,22 @@
       version: 1.7.x
     ekco:
       version: latest
-  unsupportedOSIDs:
-  - ubuntu-1604
 - name: "K8s 1.22x Airgap"
   installerSpec:
     kubernetes:
       version: 1.22.x
     containerd:
-      version: 1.4.x
+      version: 1.6.x
     antrea:
       version: 1.4.x
       isEncryptionDisabled: true
     contour:
       version: 1.19.1
     rook:
-      version: 1.5.12
+      version: 1.6.11
     registry:
       version: 2.7.1
-    prometheus: 
+    prometheus:
       version: "0.53.x"
     kotsadm:
       version: latest
@@ -881,9 +936,75 @@
     ekco:
       version: latest
   airgap: true
-  unsupportedOSIDs:
-  - ubuntu-1604
+- name: "Migrate from Docker to Containerd"
+  installerSpec:
+    kubernetes:
+      version: 1.23.x
+    weave:
+      version: latest
+    longhorn:
+      version: latest
+    registry:
+      version: latest
+    ekco:
+      version: latest
+    kotsadm:
+      version: latest
+      disableS3: true
+    docker:
+      version: latest
+  upgradeSpec:
+    kubernetes:
+      version: 1.23.x
+    weave:
+      version: latest
+    longhorn:
+      version: latest
+    registry:
+      version: latest
+    ekco:
+      version: latest
+    kotsadm:
+      version: latest
+      disableS3: true
+    containerd:
+      version: latest
+- name: "Migrate from Docker to Containerd airgap"
+  installerSpec:
+    kubernetes:
+      version: 1.23.x
+    weave:
+      version: latest
+    longhorn:
+      version: latest
+    registry:
+      version: latest
+    ekco:
+      version: latest
+    kotsadm:
+      version: latest
+      disableS3: true
+    docker:
+      version: latest
+  upgradeSpec:
+    kubernetes:
+      version: 1.23.x
+    weave:
+      version: latest
+    longhorn:
+      version: latest
+    registry:
+      version: latest
+    ekco:
+      version: latest
+    kotsadm:
+      version: latest
+      disableS3: true
+    containerd:
+      version: latest
+  airgap: true
 - name: "Upgrade to 1.22"
+  cpu: 6
   installerSpec:
     kubernetes:
       version: 1.20.x
@@ -891,15 +1012,17 @@
       version: latest
     rook:
       isBlockStorageEnabled: true
-      version: 1.5.x
+      version: 1.6.x
     registry:
       version: latest
     kotsadm:
       version: latest
-    containerd:
-      version: 1.4.x
+    docker:
+      version: 19.03.x
     velero:
       version: 1.6.x
+    ekco:
+      version: latest
   upgradeSpec:
     kubernetes:
       version: 1.22.x
@@ -911,11 +1034,54 @@
       version: latest
     kotsadm:
       version: latest
-      s3Disabled: true
+      disableS3: true
     containerd:
       version: 1.4.x
     velero:
       version: 1.7.x
+    ekco:
+      version: latest
+  unsupportedOSIDs:
+  - ubuntu-2204 # containerd 1.4.x is not supported on ubuntu 22.04
+- name: "Upgrade to 1.22 airgap"
+  cpu: 6
+  installerSpec:
+    kubernetes:
+      version: 1.20.x
+    weave:
+      version: latest
+    rook:
+      isBlockStorageEnabled: true
+      version: 1.6.x
+    registry:
+      version: latest
+    kotsadm:
+      version: latest
+    docker:
+      version: 19.03.x
+    velero:
+      version: 1.6.x
+    ekco:
+      version: latest
+  upgradeSpec:
+    kubernetes:
+      version: 1.22.x
+    weave:
+      version: latest
+    longhorn:
+      version: latest
+    registry:
+      version: latest
+    kotsadm:
+      version: latest
+      disableS3: true
+    containerd:
+      version: 1.5.x
+    velero:
+      version: 1.7.x
+    ekco:
+      version: latest
+  airgap: true
 - name: "K8s 1.23x Rook"
   installerSpec:
     kubernetes:
@@ -928,10 +1094,10 @@
     contour:
       version: 1.19.1
     rook:
-      version: 1.5.12
+      version: 1.6.11
     registry:
       version: 2.7.1
-    prometheus: 
+    prometheus:
       version: "0.53.x"
     kotsadm:
       version: latest
@@ -940,7 +1106,7 @@
     ekco:
       version: latest
   unsupportedOSIDs:
-  - ubuntu-1604
+  - ubuntu-2204 # containerd 1.4.x is not supported on ubuntu 22.04
 - name: "K8s 1.23x Longhorn, disableS3"
   installerSpec:
     kubernetes:
@@ -955,7 +1121,7 @@
       version: 1.2.2
     registry:
       version: 2.7.1
-    prometheus: 
+    prometheus:
       version: "0.53.x"
     kotsadm:
       version: latest
@@ -965,7 +1131,7 @@
     ekco:
       version: latest
   unsupportedOSIDs:
-  - ubuntu-1604
+  - ubuntu-2204 # containerd 1.4.x is not supported on ubuntu 22.04
 - name: "K8s 1.23x Airgap"
   installerSpec:
     kubernetes:
@@ -978,10 +1144,10 @@
     contour:
       version: 1.19.1
     rook:
-      version: 1.5.12
+      version: 1.6.11
     registry:
       version: 2.7.1
-    prometheus: 
+    prometheus:
       version: "0.53.x"
     kotsadm:
       version: latest
@@ -991,8 +1157,9 @@
       version: latest
   airgap: true
   unsupportedOSIDs:
-  - ubuntu-1604
+  - ubuntu-2204 # containerd 1.4.x is not supported on ubuntu 22.04
 - name: "Upgrade to 1.23"
+  cpu: 6
   installerSpec:
     kubernetes:
       version: 1.21.x
@@ -1000,15 +1167,17 @@
       version: latest
     rook:
       isBlockStorageEnabled: true
-      version: 1.5.x
+      version: 1.6.x
     registry:
       version: latest
     kotsadm:
       version: latest
-    containerd:
-      version: 1.4.x
+    docker:
+      version: 20.10.x
     velero:
       version: 1.6.x
+    ekco:
+      version: latest
   upgradeSpec:
     kubernetes:
       version: 1.23.x
@@ -1020,11 +1189,121 @@
       version: latest
     kotsadm:
       version: latest
-      s3Disabled: true
+      disableS3: true
     containerd:
       version: 1.4.x
     velero:
       version: 1.7.x
+    ekco:
+      version: latest
+  unsupportedOSIDs:
+  - ubuntu-2204 # containerd 1.4.x is not supported on ubuntu 22.04
+- name: "Upgrade to 1.23 airgap"
+  cpu: 6
+  installerSpec:
+    kubernetes:
+      version: 1.21.x
+    weave:
+      version: latest
+    rook:
+      isBlockStorageEnabled: true
+      version: 1.6.x
+    registry:
+      version: latest
+    kotsadm:
+      version: latest
+    docker:
+      version: 20.10.x
+    velero:
+      version: 1.6.x
+    ekco:
+      version: latest
+  upgradeSpec:
+    kubernetes:
+      version: 1.23.x
+    weave:
+      version: latest
+    longhorn:
+      version: latest
+    registry:
+      version: latest
+    kotsadm:
+      version: latest
+      disableS3: true
+    containerd:
+      version: 1.5.x
+    velero:
+      version: 1.7.x
+    ekco:
+      version: latest
+  airgap: true
+- name: "Upgrade to 1.23 minimal"
+  installerSpec:
+    kubernetes:
+      version: 1.22.x
+    weave:
+      version: latest
+    longhorn:
+      version: latest
+    registry:
+      version: latest
+    kotsadm:
+      version: latest
+      disableS3: true
+    containerd:
+      version: latest
+    ekco:
+      version: latest
+  upgradeSpec:
+    kubernetes:
+      version: 1.23.x
+    weave:
+      version: latest
+    longhorn:
+      version: latest
+    registry:
+      version: latest
+    kotsadm:
+      version: latest
+      disableS3: true
+    containerd:
+      version: latest
+    ekco:
+      version: latest
+- name: "Upgrade to 1.23 minimal airgap"
+  installerSpec:
+    kubernetes:
+      version: 1.22.x
+    weave:
+      version: latest
+    longhorn:
+      version: latest
+    registry:
+      version: latest
+    kotsadm:
+      version: latest
+      disableS3: true
+    containerd:
+      version: latest
+    ekco:
+      version: latest
+  upgradeSpec:
+    kubernetes:
+      version: 1.23.x
+    weave:
+      version: latest
+    longhorn:
+      version: latest
+    registry:
+      version: latest
+    kotsadm:
+      version: latest
+      disableS3: true
+    containerd:
+      version: latest
+    ekco:
+      version: latest
+  airgap: true
 - name: k8s121-with-flags
   installerSpec:
     kubernetes:
@@ -1037,7 +1316,7 @@
       version: latest
     rook:
       isBlockStorageEnabled: true
-      version: 1.5.x
+      version: 1.6.x
     registry:
       version: latest
     kotsadm:
@@ -1046,7 +1325,7 @@
       version: latest
     ekco:
       version: latest
-  flags: "disktype=ssd,gpu=enabled"
+  flags: "labels=disktype=ssd,gpu=enabled"
 - name: k8s122-with-flags
   installerSpec:
     kubernetes:
@@ -1059,7 +1338,7 @@
       version: latest
     rook:
       isBlockStorageEnabled: true
-      version: 1.5.x
+      version: 1.6.x
     registry:
       version: latest
     kotsadm:
@@ -1068,7 +1347,7 @@
       version: latest
     ekco:
       version: latest
-  flags: "disktype=ssd,gpu=enabled"
+  flags: "labels=disktype=ssd,gpu=enabled"
 - name: k8s123-with-flags
   installerSpec:
     kubernetes:
@@ -1081,7 +1360,7 @@
       version: latest
     rook:
       isBlockStorageEnabled: true
-      version: 1.5.x
+      version: 1.6.x
     registry:
       version: latest
     kotsadm:
@@ -1090,7 +1369,25 @@
       version: latest
     ekco:
       version: latest
-  flags: "disktype=ssd,gpu=enabled"
+  flags: "labels=disktype=ssd,gpu=enabled"
+- name: k8s123-all-the-flags
+  installerSpec:
+    kubernetes:
+      version: 1.23.x
+    containerd:
+      version: latest
+    weave:
+      version: 2.8.x
+    longhorn:
+      version: latest
+    registry:
+      version: latest
+    kotsadm:
+      version: latest
+      disableS3: true
+    ekco:
+      version: latest
+  flags: "labels=disktype=ssd,gpu=enabled exclude-builtin-host-preflights" # TODO: add more flags here
 - name: ekco-podimageoverrides
   installerSpec:
     kubernetes:
@@ -1126,12 +1423,13 @@
       version: "latest"
     weave:
       version: "latest"
-    ekco: 
+    ekco:
       version: "latest"
   postInstallScript: |
     echo "running CIS Kubernetes Benchmark Checks"
-    curl -L https://github.com/aquasecurity/kube-bench/releases/download/v0.6.2/kube-bench_0.6.2_linux_amd64.tar.gz | tar -xz
-    ./kube-bench --config-dir=`pwd`/cfg --config=`pwd`/cfg/config.yaml --exit-code=1		
+    kube_bench_version="$(curl -s https://api.github.com/repos/aquasecurity/kube-bench/releases/latest | grep '"tag_name":' | sed -E 's/.*"v([^"]+)".*/\1/')"
+    curl -L https://github.com/aquasecurity/kube-bench/releases/download/v${kube_bench_version}/kube-bench_${kube_bench_version}_linux_amd64.tar.gz | tar -xz
+    ./kube-bench --config-dir=`pwd`/cfg --config=`pwd`/cfg/config.yaml --exit-code=1
 - name: k8s122x_123x_upgrade_cis_benchmarks_checks
   installerSpec:
     kubernetes:
@@ -1140,19 +1438,22 @@
       version: "latest"
     weave:
       version: "latest"
+    ekco:
+      version: "latest"
   upgradeSpec:
     kubernetes:
       version: "1.23.x"
-      cisCompliance: true		
+      cisCompliance: true
     containerd:
       version: "latest"
     weave:
       version: "latest"
-    ekco: 
+    ekco:
       version: "latest"
   postUpgradeScript: |
     echo "running  CIS Kubernetes Benchmark Checks"
-    curl -L https://github.com/aquasecurity/kube-bench/releases/download/v0.6.2/kube-bench_0.6.2_linux_amd64.tar.gz | tar -xz
+    kube_bench_version="$(curl -s https://api.github.com/repos/aquasecurity/kube-bench/releases/latest | grep '"tag_name":' | sed -E 's/.*"v([^"]+)".*/\1/')"
+    curl -L https://github.com/aquasecurity/kube-bench/releases/download/v${kube_bench_version}/kube-bench_${kube_bench_version}_linux_amd64.tar.gz | tar -xz
     ./kube-bench --config-dir=`pwd`/cfg --config=`pwd`/cfg/config.yaml --exit-code=1
 - name: k8s123x_reserved_resources
   installerSpec:
@@ -1262,3 +1563,68 @@
       shouldDisableRebootServices: false
       shouldDisableClearNodes: false
       shouldEnablePurgeNodes: false
+  unsupportedOSIDs:
+  - ubuntu-2204 # containerd 1.4.x is not supported on ubuntu 22.04
+- name: less_command
+  installerSpec:
+    kubernetes:
+      version: "1.23.5"
+    docker:
+      version: "20.10.5"
+    weave:
+      version: "2.6.5"
+  postInstallScript: |
+    echo "this is text to test less command after installation" > test-less.txt
+    less test-less.txt > /dev/null
+  unsupportedOSIDs:
+  - ubuntu-2204 # docker 20.10.5 (latest) is not supported on ubuntu 22.04
+- name: "weave 2.6.5 multinode"
+  installerSpec:
+    kubernetes:
+      version: "1.23.6"
+    weave:
+      version: "2.6.5"
+    containerd:
+      version: "1.5.11"
+  numPrimaryNodes: 1
+  numSecondaryNodes: 2
+- name: "weave 2.8.1 multinode"
+  installerSpec:
+    kubernetes:
+      version: "1.23.6"
+    weave:
+      version: "2.8.1"
+    containerd:
+      version: "1.5.11"
+  numPrimaryNodes: 1
+  numSecondaryNodes: 2
+- name: k8s121x_openebs_containerd
+  installerSpec:
+    kubernetes:
+      version: "1.21.x"
+    weave:
+      version: "2.6.x"
+    contour:
+      version: "1.21.x"
+    containerd:
+      version: "1.5.x"
+    velero:
+      version: "1.8.x"
+    kotsadm:
+      version: "1.71.x"
+    minio:
+      version: "2020-01-25T02-50-51Z"
+    ekco:
+      version: latest
+    openebs:
+      version: "2.6.x"
+      isLocalPVEnabled: true
+      localPVStorageClassName: default
+    registry:
+      version: "2.7.x"
+    certManager:
+      version: "1.0.x"
+    prometheus:
+      version: "0.53.x"
+    metricsServer:
+      version: "0.4.x"

@@ -14,6 +14,7 @@ function require() {
 
 require AWS_ACCESS_KEY_ID "${AWS_ACCESS_KEY_ID}"
 require AWS_SECRET_ACCESS_KEY "${AWS_SECRET_ACCESS_KEY}"
+require AWS_REGION "${AWS_REGION}"
 require S3_BUCKET "${S3_BUCKET}"
 
 GITSHA="$(git rev-parse HEAD)"
@@ -24,6 +25,7 @@ function package_has_changes() {
 
     if [ -z "${path}" ]; then
         # if no path then we can't calculate changes
+        echo "Path empty for package ${package}"
         return 0
     fi
 
@@ -32,10 +34,11 @@ function package_has_changes() {
 
     if [ -z "${upstream_gitsha}" ]; then
         # if package doesn't exist or have a gitsha it has changes
+        echo "Upstream gitsha empty for package ${package}"
         return 0
     fi
 
-    if git diff --quiet "${upstream_gitsha}" -- "${path}" "${GITSHA}" -- "${path}" ; then
+    if ( set -x; git diff --quiet "${upstream_gitsha}" -- "${path}" "${GITSHA}" -- "${path}" ) ; then
         return 1
     else
         return 0
@@ -45,10 +48,15 @@ function package_has_changes() {
 function build_and_upload() {
     local package="$1"
 
+    echo "building package ${package}"
     make "dist/${package}"
     MD5="$(openssl md5 -binary "dist/${package}" | base64)"
-    aws s3 cp "dist/${package}" "s3://${S3_BUCKET}/staging/${package}" \
-        --metadata md5="${MD5}",gitsha="${GITSHA}"
+
+    echo "uploading package ${package} to ${S3_BUCKET} with metadata md5=\"${MD5}\",gitsha=\"${GITSHA}\""
+    retry 5 aws s3 cp "dist/${package}" "s3://${S3_BUCKET}/staging/${package}" \
+        --metadata-directive REPLACE --metadata md5="${MD5}",gitsha="${GITSHA}"
+
+    echo "cleaning up after uploading ${package}"
     make clean
     if [ -n "$DOCKER_PRUNE" ]; then
         docker system prune --all --force
@@ -78,6 +86,26 @@ function deploy() {
     else
         echo "s3://${S3_BUCKET}/staging/${package} no changes in package"
     fi
+}
+
+function retry {
+    local retries=$1
+    shift
+
+    local count=0
+    until "$@"; do
+        exit=$?
+        wait=$((2 ** $count))
+        count=$(($count + 1))
+        if [ $count -lt $retries ]; then
+            echo "Retry $count/$retries exited $exit, retrying in $wait seconds..."
+            sleep $wait
+        else
+            echo "Retry $count/$retries exited $exit, no more retries left."
+            return $exit
+        fi
+    done
+    return 0
 }
 
 function main() {

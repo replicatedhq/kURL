@@ -22,6 +22,7 @@ spec:
         openebs.io/component-name: openebs-provisioner
         openebs.io/version: 1.6.0
     spec:
+      priorityClassName: system-cluster-critical
       serviceAccountName: openebs-maya-operator
       containers:
       - name: openebs-provisioner

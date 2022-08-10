@@ -46,18 +46,23 @@ jobs:
             exit 0
           fi
 
+          # 28614 == Project id "Kubernetes Installer (kURL)"
+          # 500123931 == Workflow state "Untriaged"
           NEW_STORY="$(curl -X POST \
             -H "Content-Type: application/json" \
             -H "Shortcut-Token: ${SHORTCUT_API_TOKEN}" \
             -d "{ \
               \"project_id\": 28614, \
               \"story_type\": \"chore\", \
-              \"workflow_state_id\": 500122316, \
+              \"workflow_state_id\": 500123931, \
               \"labels\": [{ \"name\": \"requester/dependabot\" }], \
               \"name\": \"${STORY_NAME}\", \
               \"description\": \"${STORY_DESCRIPTION}\" }" \
             -L "https://api.app.shortcut.com/api/v3/stories")"
           NEW_STORY_ID="$(echo "${NEW_STORY}"| jq -r '.id')"
+
+          # this is required as the script uses this comment to determine if it has already opened a shortcut story
+          gh pr comment --repo "${GITHUB_REPO}" "${PR_NUMBER}" --body "[sc-${NEW_STORY_ID}]"
 
           echo "::notice ::shortcut story created"
         env:

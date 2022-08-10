@@ -9,12 +9,13 @@ metadata:
   name: everyOption
 spec:
   kubernetes:
-    version: 1.23.3
+    version: 1.21.11
     serviceCidrRange: /12
     serviceCIDR: 100.1.1.1/12
     HACluster: false
     masterAddress: 192.168.1.1
     loadBalancerAddress: 10.128.10.1
+    loadBalancerUseFirstPrimary: true
     containerLogMaxSize: 256Ki
     containerLogMaxFiles: 4
     bootstrapToken: token
@@ -23,6 +24,7 @@ spec:
     controlPlane: false
     certKey: key
     cisCompliance: false
+    clusterName: kubernetes
   docker:
     version: latest
     bypassStorageDriverWarnings: false
@@ -55,7 +57,7 @@ spec:
     bypassUpgradeWarning: true
     hostpathRequiresPrivileged: true
   openebs:
-    version: latest
+    version: 2.6.0
     namespace: openebs
     isLocalPVEnabled: true
     localPVStorageClassName: default
@@ -87,6 +89,7 @@ spec:
     disableRestic: false
     localBucket: local
     resticRequiresPrivileged: false
+    resticTimeout: 12h
   ekco:
     version: latest
     nodeUnreachableToleration: 10m
@@ -96,6 +99,7 @@ spec:
     shouldDisableClearNodes: false
     shouldEnablePurgeNodes: false
     rookShouldUseAllNodes: false
+    enableInternalLoadBalancer: true
   kurl:
     additionalNoProxyAddresses:
     - 10.128.0.3
@@ -147,10 +151,15 @@ spec:
     version: 1.1.0
   sonobuoy:
     version: 0.50.0
+  aws:
+    version: 1.0.1
+    excludeStorageClass: true
+  localPathProvisioner:
+    version: 0.0.22
 `;
 
 // Used for validation in all options test case
-const helmfileSpec=`repositories:
+const helmfileSpec = `repositories:
 - name: nginx-stable
   url: https://helm.nginx.com/stable
 releases:
@@ -643,23 +652,6 @@ spec:
     });
   });
 
-  describe("Installer.isValidSlug", () => {
-    [
-      { slug: "ok", answer: true },
-      { slug: "", answer: false},
-      { slug: " ", answer: false},
-      { slug: "big-bank-beta", answer: true},
-      { slug: _.range(0, 255).map(() => "a").join(""), answer: true },
-      { slug: _.range(0, 256).map(() => "a").join(""), answer: false },
-    ].forEach((test) => {
-      it(`"${test.slug}" => ${test.answer}`, () => {
-        const output = Installer.isValidSlug(test.slug);
-
-        expect(output).to.equal(test.answer);
-      });
-    });
-  });
-
   describe("Installer.isValidCidrRange", () => {
     [
       { cidrRange: "/12", answer: true },
@@ -740,7 +732,7 @@ spec:
     version: "0.15.3"
 `;
         const badK8sOut = await Installer.parse(badK8s).validate();
-        expect(badK8sOut).to.deep.equal({ error: { message: "Kubernetes version 0.15.3 is not supported" } });
+        expect(badK8sOut).to.deep.equal({ error: { message: `Kubernetes version "0.15.3" is not supported` } });
       });
     });
 
@@ -1017,6 +1009,92 @@ spec:
         expect(out).to.deep.equal(undefined);
       });
     });
+
+  describe("supported kubeadm + openebs spec", () => {
+      it("=> ErrorResponse", async () => {
+        const yaml = `
+spec:
+  kubernetes:
+    version: 1.21.11
+  openebs:
+    version: 1.12.0
+    isLocalPVEnabled: true
+    localPVStorageClassName: default
+    isCstorEnabled: false`;
+        const i = Installer.parse(yaml);
+        const out = await i.validate();
+
+        expect(out).to.deep.equal(undefined);
+      });
+    });
+
+  describe("openebs version that is incompatible with k8s version", () => {
+      it("=> ErrorResponse", async () => {
+        const yaml = `
+spec:
+  kubernetes:
+    version: 1.22.8
+  openebs:
+    version: 1.12.0
+    isLocalPVEnabled: true
+    localPVStorageClassName: default
+    isCstorEnabled: false`;
+        const i = Installer.parse(yaml);
+        const out = await i.validate();
+
+        expect(out).to.deep.equal({ error: { message: "Openebs version \"1.12.0\" is not compatible with Kubernetes versions 1.22+" } });
+      });
+    });
+
+    describe("newest openebs version that is once again compatible with k8s version", () => {
+      it("=> ErrorResponse", async () => {
+        const yaml = `
+spec:
+  kubernetes:
+    version: 1.22.8
+  openebs:
+    version: 2.12.9
+    isLocalPVEnabled: true
+    localPVStorageClassName: default
+    isCstorEnabled: false`;
+        const i = Installer.parse(yaml);
+        const out = await i.validate();
+
+        expect(out).to.deep.equal(undefined);
+      });
+    });
+
+    describe("openebs version that is incompatible with cstor", () => {
+      it("=> ErrorResponse", async () => {
+        const yaml = `
+spec:
+  kubernetes:
+    version: 1.21.8
+  openebs:
+    version: 2.12.9
+    isCstorEnabled: true
+    cstorStorageClassName: "abcd"`;
+        const i = Installer.parse(yaml);
+        const out = await i.validate();
+
+        expect(out).to.deep.equal({ error: { message: "Openebs version \"2.12.9\" does not support cstor in kURL" } });
+      });
+    });
+
+  describe("docker is not supported with k8s version 1.24.0", () => {
+      it("=> ErrorResponse", async () => {
+        const yaml = `
+spec:
+  kubernetes:
+    version: 1.24.0
+  docker:
+    version: 20.10.5`;
+        const i = Installer.parse(yaml);
+        const out = await i.validate();
+
+        expect(out).to.deep.equal({ error: { message: "Docker is not supported with Kubernetes versions 1.24+, please choose Containerd" } });
+      });
+    });
   });
 
   describe("hasS3Override", () => {
@@ -1035,7 +1113,7 @@ spec:
     describe("every option", () => {
       it(`=> service-cidr-range=/12 ...`, () => {
         const i = Installer.parse(everyOption);
-        expect(i.flags()).to.equal(`service-cidr-range=/12 service-cidr=100.1.1.1/12 ha=0 kuberenetes-master-address=192.168.1.1 load-balancer-address=10.128.10.1 container-log-max-size=256Ki container-log-max-files=4 bootstrap-token=token bootstrap-token-ttl=10min kubeadm-token-ca-hash=hash control-plane=0 cert-key=key kubernetes-cis-compliance=0 bypass-storagedriver-warnings=0 hard-fail-on-loopback=0 no-ce-on-ee=0 docker-registry-ip=192.168.0.1 additional-no-proxy=129.168.0.2 no-docker=0 pod-cidr=39.1.2.3 pod-cidr-range=/12 disable-weave-encryption=0 storage-class-name=default ceph-replica-count=1 rook-block-storage-enabled=1 rook-block-device-filter=sd[a-z] rook-bypass-upgrade-warning=1 rook-hostpath-requires-privileged=1 openebs-namespace=openebs openebs-localpv-enabled=1 openebs-localpv-storage-class-name=default openebs-cstor-enabled=1 openebs-cstor-storage-class-name=cstor minio-namespace=minio minio-hostpath=/sentry contour-tls-minimum-protocol-version=1.3 contour-http-port=3080 contour-https-port=3443 registry-publish-port=20 fluentd-full-efk-stack=0 kotsadm-ui-bind-port=8800 kotsadm-hostname=1.1.1.1 app-slug=sentry app-namespace=kots app-version-label=0.1.0 velero-namespace=velero velero-disable-cli=0 velero-disable-restic=0 velero-local-bucket=local velero-restic-requires-privileged=0 ekco-node-unreachable-toleration-duration=10m ekco-min-ready-master-node-count=3 ekco-min-ready-worker-node-count=1 ekco-should-disable-reboot-service=0 ekco-rook-should-use-all-nodes=0 airgap=0 exclude-builtin-host-preflights=0 hostname-check=2.2.2.2 host-preflight-ignore=1 host-preflight-enforce-warnings=1 ignore-remote-load-images-prompt=0 ignore-remote-upgrade-prompt=0 no-proxy=0 private-address=10.38.1.1 http-proxy=1.1.1.1 public-address=101.38.1.1 skip-system-package-install=0 bypass-firewalld-warning=0 hard-fail-on-firewalld=0 helmfile-spec=repositories:\n- name: nginx-stable\n  url: https://helm.nginx.com/stable\nreleases:\n- name: test-nginx-ingress\n  chart: nginx-stable/nginx-ingress\n  values:\n  - controller:\n      service:\n        type: NodePort\n        httpPort:\n          nodePort: 30080\n        httpsPort:\n          nodePort: 30443\n longhorn-storage-over-provisioning-percentage=200 longhorn-ui-bind-port=30880 longhorn-ui-replica-count=0`);
+        expect(i.flags()).to.equal(`service-cidr-range=/12 service-cidr=100.1.1.1/12 ha=0 kuberenetes-master-address=192.168.1.1 kubernetes-cluster-name=kubernetes load-balancer-address=10.128.10.1 kubernetes-load-balancer-use-first-primary=1 container-log-max-size=256Ki container-log-max-files=4 bootstrap-token=token bootstrap-token-ttl=10min kubeadm-token-ca-hash=hash control-plane=0 cert-key=key kubernetes-cis-compliance=0 bypass-storagedriver-warnings=0 hard-fail-on-loopback=0 no-ce-on-ee=0 docker-registry-ip=192.168.0.1 additional-no-proxy=129.168.0.2 no-docker=0 pod-cidr=39.1.2.3 pod-cidr-range=/12 disable-weave-encryption=0 storage-class-name=default ceph-replica-count=1 rook-block-storage-enabled=1 rook-block-device-filter=sd[a-z] rook-bypass-upgrade-warning=1 rook-hostpath-requires-privileged=1 openebs-namespace=openebs openebs-localpv-enabled=1 openebs-localpv-storage-class-name=default openebs-cstor-enabled=1 openebs-cstor-storage-class-name=cstor minio-namespace=minio minio-hostpath=/sentry contour-tls-minimum-protocol-version=1.3 contour-http-port=3080 contour-https-port=3443 registry-publish-port=20 fluentd-full-efk-stack=0 kotsadm-ui-bind-port=8800 kotsadm-hostname=1.1.1.1 app-slug=sentry app-namespace=kots app-version-label=0.1.0 velero-namespace=velero velero-disable-cli=0 velero-disable-restic=0 velero-local-bucket=local velero-restic-requires-privileged=0 velero-restic-timeout=12h ekco-node-unreachable-toleration-duration=10m ekco-min-ready-master-node-count=3 ekco-min-ready-worker-node-count=1 ekco-should-disable-reboot-service=0 ekco-rook-should-use-all-nodes=0 ekco-enable-internal-load-balancer=1 airgap=0 exclude-builtin-host-preflights=0 hostname-check=2.2.2.2 host-preflight-ignore=1 host-preflight-enforce-warnings=1 ignore-remote-load-images-prompt=0 ignore-remote-upgrade-prompt=0 no-proxy=0 private-address=10.38.1.1 http-proxy=1.1.1.1 public-address=101.38.1.1 skip-system-package-install=0 bypass-firewalld-warning=0 hard-fail-on-firewalld=0 helmfile-spec=repositories:\n- name: nginx-stable\n  url: https://helm.nginx.com/stable\nreleases:\n- name: test-nginx-ingress\n  chart: nginx-stable/nginx-ingress\n  values:\n  - controller:\n      service:\n        type: NodePort\n        httpPort:\n          nodePort: 30080\n        httpsPort:\n          nodePort: 30443\n longhorn-storage-over-provisioning-percentage=200 longhorn-ui-bind-port=30880 longhorn-ui-replica-count=0 aws-exclude-storage-class=1`);
       });
     });
   });
@@ -1281,6 +1359,14 @@ spec:
       const out = await i.validate();
 
       expect(out).to.deep.equal({ error: { message: "spec/helm must have required property 'helmfileSpec'" } });
+    });
+  });
+
+  describe("localPathProvisioner", () => {
+    it("should parse the version", () => {
+      const i = Installer.parse(everyOption);
+
+      expect(i.spec.localPathProvisioner?.version).to.equal("0.0.22");
     });
   });
 

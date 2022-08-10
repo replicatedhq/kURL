@@ -38,8 +38,9 @@ func CleanUpVMIs() error {
 			}
 		}
 
-		// cleanup VMIs that have been running for more than one hour - the in-script timeout is 30m
-		if vmi.Status.Phase == kubevirtv1.Running && time.Since(vmi.CreationTimestamp.Time).Minutes() > 60 {
+		// cleanup VMIs that have been running for more than 1.5 hours
+		// the in-script timeout for install is 30m, upgrade is 45m
+		if vmi.Status.Phase == kubevirtv1.Running && time.Since(vmi.CreationTimestamp.Time).Minutes() > 90 {
 			if apiEndpoint := vmi.Annotations["testgrid.kurl.sh/apiendpoint"]; apiEndpoint != "" {
 				url := fmt.Sprintf("%s/v1/instance/%s/finish", apiEndpoint, vmi.Name)
 				data := `{"success": false, "failureReason": "timeout"}`

@@ -22,6 +22,7 @@ function build_rhel_7() {
         centos:7.4.1708 \
         /bin/bash -c "\
             set -x
+            yum update -y ca-certificates && \
             yum install -y epel-release && \
             mkdir -p /packages/archives && \
             yumdownloader --installroot=/tmp/empty-directory --releasever=/ --resolve --destdir=/packages/archives -y ${packages[*]}"
@@ -43,6 +44,7 @@ function build_rhel_7_force() {
         centos:7.4.1708 \
         /bin/bash -c "\
             set -x
+            yum update -y ca-certificates && \
             yum install -y epel-release && \
             mkdir -p /packages/archives && \
             yumdownloader --resolve --destdir=/packages/archives -y ${packages[*]}"
@@ -167,7 +169,7 @@ pkgs_rhel7=()
 pkgs_rhel8=()
 pkgs_ol7=()
 
-while read -r line; do
+while read -r line || [ -n "$line" ]; do
     if [ -z "$line" ]; then
         continue
     fi
@@ -196,8 +198,20 @@ while read -r line; do
             ;;
 
         apt)
-            mkdir -p $OUT_DIR/ubuntu-20.04 $OUT_DIR/ubuntu-18.04 $OUT_DIR/ubuntu-16.04
+            mkdir -p $OUT_DIR/ubuntu-22.04 $OUT_DIR/ubuntu-20.04 $OUT_DIR/ubuntu-18.04 $OUT_DIR/ubuntu-16.04
             package=$(echo $line | awk '{ print $2 }')
+
+            docker rm -f ubuntu-2204-${package} 2>/dev/null || true
+            docker run \
+                --name ubuntu-2204-${package} \
+                ubuntu:22.04 \
+                /bin/bash -c "\
+                    mkdir -p /packages/archives && \
+                    apt update -y \
+                    && apt install -d --no-install-recommends -y $package \
+                    -oDebug::NoLocking=1 -o=dir::cache=/packages/"
+            docker cp ubuntu-2204-${package}:/packages/archives $OUT_DIR/ubuntu-22.04
+            sudo chown -R $UID $OUT_DIR/ubuntu-22.04
 
             docker rm -f ubuntu-2004-${package} 2>/dev/null || true
             docker run \
@@ -277,7 +291,7 @@ done < "${MANIFEST_PATH}"
 if [ "${#pkgs_rhel7[@]}" -gt "0" ]; then
     build_rhel_7 "${pkgs_rhel7[@]}"
 fi
-if [ "$(ls -A "${OUT_DIR}/rhel-7")" ]; then
+if [ -d "${OUT_DIR}/rhel-7" ] && [ "$(ls -A "${OUT_DIR}/rhel-7")" ]; then
     createrepo_rhel_7
 fi
 if [ "${#pkgs_rhel7[@]}" -gt "0" ]; then
@@ -286,12 +300,12 @@ fi
 if [ "${#pkgs_rhel8[@]}" -gt "0" ]; then
     build_rhel_8 "${pkgs_rhel8[@]}"
 fi
-if [ "$(ls -A "${OUT_DIR}/rhel-8")" ]; then
+if [ -d "${OUT_DIR}/rhel-8" ] && [ "$(ls -A "${OUT_DIR}/rhel-8")" ]; then
     createrepo_rhel_8
 fi
 if [ "${#pkgs_ol7[@]}" -gt "0" ]; then
     build_ol_7 "${pkgs_ol7[@]}"
 fi
-if [ "$(ls -A "${OUT_DIR}/ol-7")" ]; then
+if [ -d "${OUT_DIR}/ol-7" ] && [ "$(ls -A "${OUT_DIR}/ol-7")" ]; then
     createrepo_ol_7
 fi

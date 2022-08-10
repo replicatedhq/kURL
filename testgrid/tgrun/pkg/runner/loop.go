@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/pkg/errors"
@@ -24,6 +25,7 @@ import (
 var lastScheduledInstance = time.Now().Add(-time.Minute)
 
 const Namespace = "default"
+const sleepTime = time.Second * 30
 
 func MainRunLoop(runnerOptions types.RunnerOptions) error {
 	fmt.Println("beginning main run loop")
@@ -41,6 +43,9 @@ func MainRunLoop(runnerOptions types.RunnerOptions) error {
 		if err := CleanUpData(); err != nil {
 			fmt.Println("PV clean up ERROR: ", err)
 		}
+		if err := ReportMetrics(runnerOptions); err != nil {
+			fmt.Println("Metrics reporting ERROR: ", err)
+		}
 
 		canSchedule, err := canScheduleNewVM()
 		if err != nil {
@@ -48,14 +53,16 @@ func MainRunLoop(runnerOptions types.RunnerOptions) error {
 		}
 
 		if !canSchedule {
-			time.Sleep(time.Second * 15)
+			time.Sleep(sleepTime)
 			continue
 		}
 
 		// hit the API and get the next
 		resp, err := http.DefaultClient.Get(fmt.Sprintf("%s/v1/dequeue/instance", runnerOptions.APIEndpoint))
 		if err != nil {
-			return errors.Wrap(err, "failed to get next run")
+			fmt.Printf("Failed to get next run: %s\n", err)
+			time.Sleep(sleepTime)
+			continue
 		}
 		defer resp.Body.Close()
 		body, err := ioutil.ReadAll(resp.Body)
@@ -71,7 +78,7 @@ func MainRunLoop(runnerOptions types.RunnerOptions) error {
 		}
 
 		if len(dequeueInstanceResponse) == 0 {
-			time.Sleep(time.Second * 15)
+			time.Sleep(sleepTime)
 			continue
 		}
 
@@ -84,7 +91,11 @@ func MainRunLoop(runnerOptions types.RunnerOptions) error {
 
 		for _, dequeuedInstance := range dequeueInstanceResponse {
 			singleTest := types.SingleRun{
-				ID: dequeuedInstance.ID,
+				ID:                dequeuedInstance.ID,
+				NumPrimaryNodes:   dequeuedInstance.NumPrimaryNodes,
+				NumSecondaryNodes: dequeuedInstance.NumSecondaryNodes,
+				Memory:            dequeuedInstance.Memory,
+				CPU:               dequeuedInstance.CPU,
 
 				OperatingSystemName:    dequeuedInstance.OperatingSystemName,
 				OperatingSystemVersion: dequeuedInstance.OperatingSystemVersion,
@@ -128,7 +139,7 @@ func canScheduleNewVM() (bool, error) {
 
 	// if there are pending pods, hold off until there are no longer pending pods
 	for _, pod := range pods.Items {
-		if pod.Status.Phase == v1.PodPending {
+		if strings.HasPrefix(pod.Name, "virt-launcher-") && pod.Status.Phase == v1.PodPending {
 			return false, nil
 		}
 	}

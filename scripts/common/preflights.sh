@@ -44,15 +44,18 @@ function require64Bit() {
 
 function bailIfUnsupportedOS() {
     case "$LSB_DIST$DIST_VERSION" in
-        ubuntu16.04|ubuntu18.04|ubuntu20.04)
+        ubuntu16.04)
+            logWarn "Install is not supported on Ubuntu 16.04. Installation of Kubernetes will be best effort."
             ;;
-        rhel7.4|rhel7.5|rhel7.6|rhel7.7|rhel7.8|rhel7.9|rhel8.0|rhel8.1|rhel8.2|rhel8.3|rhel8.4|rhel8.5)
+        ubuntu18.04|ubuntu20.04|ubuntu22.04)
             ;;
-        centos7.4|centos7.5|centos7.6|centos7.7|centos7.8|centos7.9|centos8.0|centos8.1|centos8.2|centos8.3|centos8.4)
+        rhel7.4|rhel7.5|rhel7.6|rhel7.7|rhel7.8|rhel7.9|rhel8.0|rhel8.1|rhel8.2|rhel8.3|rhel8.4|rhel8.5|rhel8.6)
+            ;;
+        centos7.4|centos7.5|centos7.6|centos7.7|centos7.8|centos7.9|centos8|centos8.0|centos8.1|centos8.2|centos8.3|centos8.4)
             ;;
         amzn2)
             ;;
-        ol7.4|ol7.5|ol7.6|ol7.7|ol7.8|ol7.9|ol8.0|ol8.1|ol8.2|ol8.3|ol8.4|ol8.5)
+        ol7.4|ol7.5|ol7.6|ol7.7|ol7.8|ol7.9|ol8.0|ol8.1|ol8.2|ol8.3|ol8.4|ol8.5|ol8.6)
             ;;
         *)
             bail "Kubernetes install is not supported on ${LSB_DIST} ${DIST_VERSION}"
@@ -343,7 +346,7 @@ selinux_enforced() {
 
 function kotsadm_prerelease() {
     if [ -n "$TESTGRID_ID" ]; then
-        printf "\n${YELLOW}This is a prerelease version of kotsadm and should not be run in production. Continuing because this is testgrid.${NC} "
+        printf "\n${YELLOW}This is a prerelease version of kotsadm and should not be run in production. Continuing because this is testgrid.${NC}\n"
         return 0
     fi
 

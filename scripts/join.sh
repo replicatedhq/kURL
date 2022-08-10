@@ -90,6 +90,9 @@ function join() {
     if [ "$MASTER" = "1" ]; then
         exportKubeconfig
 
+        local node=$(hostname | tr '[:upper:]' '[:lower:]')
+        kubectl label --overwrite node "$node" node-role.kubernetes.io/master=
+
         if [ "$KUBERNETES_CIS_COMPLIANCE" == "1" ]; then
             # create an 'etcd' user and group and ensure that it owns the etcd data directory (we don't care what userid these have, as etcd will still run as root)
             useradd etcd || true
@@ -123,6 +126,8 @@ K8S_DISTRO=kubeadm
 function main() {
     export KUBECONFIG=/etc/kubernetes/admin.conf
     require_root_user
+    # ensure /usr/local/bin/kubectl-plugin is in the path
+    path_add "/usr/local/bin"
     get_patch_yaml "$@"
     maybe_read_kurl_config_from_cluster
 
@@ -149,11 +154,11 @@ function main() {
     configure_no_proxy
     ${K8S_DISTRO}_addon_for_each addon_fetch
     host_preflights "${MASTER:-0}" "1" "0"
-    install_cri
-    get_common
-    get_shared
-    setup_kubeadm_kustomize
     install_host_dependencies
+    get_common
+    setup_kubeadm_kustomize
+    install_cri
+    get_shared
     ${K8S_DISTRO}_addon_for_each addon_join
     helm_load
     kubernetes_host

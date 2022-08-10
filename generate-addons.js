@@ -81,7 +81,11 @@ fs.readdir(specDir, (err, files) => {
         sv.pop();
       }
 
-      sv.sort(semverCompare);
+      // minio tags are not valid semvers
+      if (file !== "minio") {
+        sv.sort(semverCompare);
+      }
+
       if (hasAlphaVersion) {
         sv.push("alpha");
       }

@@ -19,7 +19,7 @@ function kubernetes_host() {
     fi
 
     load_images "$DIR/packages/kubernetes/$KUBERNETES_VERSION/images"
-    if [ -d "$DIR/packages/kubernetes-conformance/$KUBERNETES_VERSION/images" ]; then
+    if [ -n "$SONOBUOY_VERSION" ] && [ -d "$DIR/packages/kubernetes-conformance/$KUBERNETES_VERSION/images" ]; then
         load_images "$DIR/packages/kubernetes-conformance/$KUBERNETES_VERSION/images"
     fi
 
@@ -92,6 +92,13 @@ function kubernetes_install_host_packages() {
 
     if kubernetes_host_commands_ok "$k8sVersion"; then
         logSuccess "Kubernetes host packages already installed"
+        # less command is broken if libtinfo.so.5 is missing in amazon linux 2
+        if [ "$LSB_DIST" == "amzn" ] && [ "$AIRGAP" != "1" ] && ! file_exists "/usr/lib64/libtinfo.so.5"; then
+            if [ -d "$DIR/packages/kubernetes/${k8sVersion}" ]; then
+                install_host_packages "${DIR}/packages/kubernetes/${k8sVersion}" ncurses-compat-libs
+            fi
+        fi
+        
         return
     fi
 
@@ -252,18 +259,30 @@ function kubernetes_has_remotes() {
     return 1
 }
 
+# Fetch the load balancer endpoint from the cluster.
+function existing_kubernetes_api_address() {
+    kubectl get cm -n kube-system kurl-config -o jsonpath='{ .data.kubernetes_api_address }'
+}
+
+# During the upgrade user might change the load balancer endpoint or want to use EKCO internal load balancer. So, we
+# to be checking the api endpoint status on the existing api server endpoint as the new endpoint is only available after
+# finishing the upgrade.
 function kubernetes_api_address() {
-    local addr="$LOAD_BALANCER_ADDRESS"
-    local port="$LOAD_BALANCER_PORT"
+    if [ -n "$upgrading_kubernetes" ]; then
+        existing_kubernetes_api_address
+    else
+        local addr="$LOAD_BALANCER_ADDRESS"
+        local port="$LOAD_BALANCER_PORT"
 
-    if [ -z "$addr" ]; then
-        addr="$PRIVATE_ADDRESS"
-        port="6443"
+        if [ -z "$addr" ]; then
+            addr="$PRIVATE_ADDRESS"
+            port="6443"
+        fi
+
+        addr=$(${DIR}/bin/kurl format-address ${addr})
+
+        echo "${addr}:${port}"
     fi
-
-    addr=$(${DIR}/bin/kurl format-address ${addr})
-
-    echo "${addr}:${port}"
 }
 
 function kubernetes_api_is_healthy() {
@@ -545,6 +564,10 @@ function list_all_required_images() {
 
     if [ -n "$LONGHORN_VERSION" ]; then
         find addons/longhorn/$LONGHORN_VERSION -type f -name Manifest 2>/dev/null | xargs cat | grep -E '^image' | grep -v no_remote_load | awk '{ print $3 }'
+    fi
+
+    if [ -n "$LOCAL_PATH_PROVISIONER_VERSION" ]; then
+        find addons/local-path-provisioner/$LOCAL_PATH_PROVISIONER_VERSION -type f -name Manifest 2>/dev/null | xargs cat | grep -E '^image' | grep -v no_remote_load | awk '{ print $3 }'
     fi
 
     if [ -n "$MINIO_VERSION" ]; then
@@ -911,4 +934,20 @@ function get_cpu_millicores_to_reserve() {
             $(get_resource_to_reserve_in_range $total_cpu_on_instance $start_range $end_range $percentage_to_reserve_for_range)))
     done
     echo $cpu_to_reserve
+}
+
+function file_exists() {
+    local filename=$1
+
+    if ! test -f "$filename"; then
+        return 1
+    fi
+}
+
+# checks if the service in ns $1 with name $2 has endpoints
+function kubernetes_service_healthy() {
+    local namespace=$1
+    local name=$2
+
+    kubectl -n "$namespace" get endpoints "$name" --no-headers | grep -v "<none>" &>/dev/null
 }

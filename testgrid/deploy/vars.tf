@@ -23,8 +23,14 @@ variable "device_count" {
 }
 
 variable "reservation_ids" {
-  type        = list(string)
-  default     = ["860b9195-f454-45d5-8dd0-c24bcb2c4c1f", "021b3a89-6036-494b-a471-206dccb9c685"]
+  type = list(string)
+  default = [
+    "860b9195-f454-45d5-8dd0-c24bcb2c4c1f",
+    "021b3a89-6036-494b-a471-206dccb9c685",
+    "84579f65-3eea-41f9-8c4f-38adfd422ea2",
+    "3a076987-1e9d-4ddd-83d2-aa4c960a4278",
+    "333ef1aa-e265-451a-9e86-138b1f359459"
+  ]
   description = "The ids of hardware reservation which the devices occupy"
 }
 

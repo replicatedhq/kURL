@@ -8,6 +8,10 @@ function report_install_start() {
     # this includes the install ID, time, kurl URL, and linux distribution name + version.
     # TODO: HA status, server CPU count and memory size.
 
+    if [ -f "/tmp/testgrid-id" ]; then
+        TESTGRID_ID=$(cat /tmp/testgrid-id)
+    fi
+
     # if airgapped, don't create an installation ID and return early
     if [ "$AIRGAP" == "1" ]; then
         return 0
@@ -20,10 +24,6 @@ function report_install_start() {
 
     INSTALLATION_ID=$(< /dev/urandom tr -dc a-z0-9 | head -c16)
     local started=$(date -u +"%Y-%m-%dT%H:%M:%SZ") # rfc3339
-
-    if [ -f "/tmp/testgrid-id" ]; then
-        TESTGRID_ID=$(cat /tmp/testgrid-id)
-    fi
 
      # Determine if it is the first kurl install 
      if kubernetes_resource_exists kube-system configmap kurl-config; then
@@ -198,8 +198,6 @@ function collect_support_bundle() {
     if [ -n "$PROMPT_RESULT" ]; then
         issue_description="$PROMPT_RESULT"
     fi
-
-    path_add "/usr/local/bin" #ensure /usr/local/bin/kubectl-support_bundle is in the path
 
     # collect support bundle
     printf "Collecting support bundle now:"

@@ -1,0 +1,49 @@
+name: cron-openebs-update
+on:
+  schedule:
+  - cron: '0 4 * * *'
+  workflow_dispatch: {}
+
+jobs:
+  build-pr-openebs:
+    runs-on: ubuntu-18.04
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+
+    # for installing github.com/go-ksplit/ksplit
+    - uses: actions/setup-go@v3
+      with:
+        go-version: 1.17
+
+    - name: Create OpenEBS 2.x Update
+      id: update
+      working-directory: ./addons/openebs/template
+      run: ./generate.sh --version=^2.0.0
+
+    - name: Create OpenEBS 3.x Update
+      id: update
+      working-directory: ./addons/openebs/template
+      run: ./generate.sh
+
+    - name: Create Pull Request # creates a PR if there are differences
+      uses: peter-evans/create-pull-request@v4.0.4
+      id: cpr
+      with:
+        token: ${{ secrets.AUTOMATED_PR_GH_PAT }}
+        commit-message: Create new OpenEBS version
+        title: 'Automated OpenEBS version update ${{ steps.update.outputs.openebs_version_2 }} ${{ steps.update.outputs.openebs_version_3 }}'
+        branch: automation/update-openebs
+        delete-branch: true
+        labels: |
+          automated-pr
+          openebs
+        draft: false
+        base: "main"
+        body: "Automated changes by the [cron-openebs-update](https://github.com/replicatedhq/kURL/blob/main/.github/workflows/update-openebs.yaml) GitHub action"
+
+    - name: Check outputs
+      run: |
+        echo "Pull Request Number - ${{ steps.cpr.outputs.pull-request-number }}"
+        echo "Pull Request URL - ${{ steps.cpr.outputs.pull-request-url }}"

@@ -94,12 +94,13 @@ function uninstall_docker() {
         return
     fi
 
+    logStep "Uninstalling Docker..."
+
     docker rm -f $(docker ps -a -q) || true
     # The rm -rf /var/lib/docker command below may fail with device busy error, so remove as much
     # data as possible now
     docker system prune --all --volumes --force
 
-    logStep "Uninstalling Docker..."
     case "$LSB_DIST" in
         ubuntu)
             export DEBIAN_FRONTEND=noninteractive
@@ -183,19 +184,6 @@ function docker_get_host_packages_online() {
         package_download "${package}"
         tar xf "$(package_filepath "${package}")"
         # rm docker-${version}.tar.gz
-    fi
-}
-
-function containerd_get_host_packages_online() {
-    local version="$1"
-
-    if [ "$AIRGAP" != "1" ] && [ -n "$DIST_URL" ]; then
-        rm -rf $DIR/packages/containerd/${version} # Cleanup broken/incompatible packages from failed runs
-
-        local package="containerd-${version}.tar.gz"
-        package_download "${package}" $CONTAINERD_S3_OVERRIDE
-        tar xf "$(package_filepath "${package}")"
-        # rm containerd-${version}.tar.gz
     fi
 }
 

@@ -108,7 +108,7 @@ items:
         name: weave-net
       namespace: kube-system
     spec:
-      # Wait 5 seconds to let pod connect before rolling next pod
+      # Wait 5 seconds to let pod connect before rolling next pod. 
       selector:
         matchLabels:
           name: weave-net
@@ -150,6 +150,8 @@ items:
                     fieldRef:
                       apiVersion: v1
                       fieldPath: spec.nodeName
+                - name: EXEC_IMAGE
+                  value: "weaveworks/weaveexec:2.8.1"
               image: 'weaveworks/weave-kube:2.8.1'
               readinessProbe:
                 httpGet:

@@ -21,8 +21,14 @@ type StartRefResponse struct {
 }
 
 type PlannedInstance struct {
-	ID       string
-	TestName string
+	ID                string
+	TestID            string
+	TestName          string
+	Priority          int
+	NumPrimaryNodes   int
+	NumSecondaryNodes int
+	Memory            string
+	CPU               string
 
 	KurlYAML  string
 	KurlURL   string
@@ -86,7 +92,9 @@ func StartRef(w http.ResponseWriter, r *http.Request) {
 	for _, plannedInstance := range startRefRequest.Instances {
 		err := testinstance.Create(
 			plannedInstance.ID,
+			plannedInstance.TestID,
 			plannedInstance.TestName,
+			plannedInstance.Priority,
 			refID,
 			plannedInstance.KurlYAML,
 			plannedInstance.KurlURL,
@@ -100,6 +108,10 @@ func StartRef(w http.ResponseWriter, r *http.Request) {
 			plannedInstance.OperatingSystemVersion,
 			plannedInstance.OperatingSystemImage,
 			plannedInstance.OperatingSystemPreInit,
+			plannedInstance.NumPrimaryNodes,
+			plannedInstance.NumSecondaryNodes,
+			plannedInstance.Memory,
+			plannedInstance.CPU,
 		)
 		if err != nil {
 			logger.Error(err)

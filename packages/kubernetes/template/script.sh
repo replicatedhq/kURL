@@ -2,12 +2,16 @@
 
 set -euo pipefail
 
-# Populate VERSIONS array latest kURL-support versions (1.19, 1.20, 1.21) available
+# Populate VERSIONS array latest kURL-support versions (1.21, 1.22, 1.23, 1.24) available
 VERSIONS=()
 function find_available_versions() {
     docker build -t k8s - < Dockerfile
-    # VERSIONS=($(docker run k8s apt list -a kubelet 2>/dev/null | grep -Eo '1\.[2][0-9]\.[0-9]+' | sort -rV | uniq))
-    # echo "Found ${#VERSIONS[*]} versions for Kubernetes 1.20+: ${VERSIONS[*]}"
+
+    local versions124=($(docker run k8s apt list -a kubelet 2>/dev/null | grep -Eo '1\.24\.[0-9]+' | sort -rV | uniq))
+    if [ ${#versions124[@]} -gt 0 ]; then
+        echo "Found latest version for Kubernetes 1.24: ${versions124[0]}"
+        VERSIONS+=("${versions124[0]}")
+    fi
 
     local versions123=($(docker run k8s apt list -a kubelet 2>/dev/null | grep -Eo '1\.23\.[0-9]+' | sort -rV | uniq))
     if [ ${#versions123[@]} -gt 0 ]; then
@@ -25,12 +29,6 @@ function find_available_versions() {
     if [ ${#versions121[@]} -gt 0 ]; then
         echo "Found latest version for Kubernetes 1.21: ${versions121[0]}"
         VERSIONS+=("${versions121[0]}")
-    fi
-
-    local versions120=($(docker run k8s apt list -a kubelet 2>/dev/null | grep -Eo '1\.20\.[0-9]+' | sort -rV | uniq))
-    if [ ${#versions120[@]} -gt 0 ]; then
-        echo "Found latest version for Kubernetes 1.20: ${versions120[0]}"
-        VERSIONS+=("${versions120[0]}")
     fi
 
     echo "Found ${#VERSIONS[*]} versions for Kubernetes: ${VERSIONS[*]}"
@@ -52,27 +50,19 @@ function generate_version_directory() {
         echo "image ${name} ${image}" >> "../$version/Manifest"
     done < <(/tmp/kubeadm config images list --kubernetes-version=${version})
 
-    # hardcode existing versions to 1.20.0 since it's tested
+    local minor=$(echo "$version" | awk -F'.' '{ print $2 }')
     local criToolsVersion=$(curl -H "Authorization: token ${GITHUB_TOKEN}" -s https://api.github.com/repos/kubernetes-sigs/cri-tools/releases | \
         grep '"tag_name": ' | \
-        grep -Eo "1\.20\.[0-9]+" | \
+        ( grep -Eo "1\.${minor}\.[0-9]+" || true ) | \
         head -1)
-    # Kubernetes 1.21+ gets latest crictl release with same minor
-    local minor=$(echo "$version" | awk -F'.' '{ print $2 }')
-    if [ "$minor" -ge 20 ]; then
-        criToolsVersion=$(curl -H "Authorization: token ${GITHUB_TOKEN}" -s https://api.github.com/repos/kubernetes-sigs/cri-tools/releases | \
-            grep '"tag_name": ' | \
-            ( grep -Eo "1\.${minor}\.[0-9]+" || true ) | \
-            head -1)
-    fi
 
     # Fallback: Kubernetes 1.23 doesn't have a version of criTools as of 2021-12-13
     # Any latest version of criTools will work for any version of Kubernetes >=1.16, so this is a safe operation
     if [ -z "$criToolsVersion" ]; then
         criToolsVersion=$(curl -H "Authorization: token ${GITHUB_TOKEN}" -s https://api.github.com/repos/kubernetes-sigs/cri-tools/releases | \
-        grep '"tag_name": ' | \
-        grep -Eo "1\.[2-9][0-9]\.[0-9]+"| \
-        head -1)
+            grep '"tag_name": ' | \
+            grep -Eo "1\.[2-9][0-9]\.[0-9]+"| \
+            head -1)
     fi
 
     echo "" >> "../$version/Manifest"
@@ -91,31 +81,57 @@ function generate_conformance_package() {
     rm -f "../$version/conformance/Manifest"
 
     # add conformance image for sonobuoy to manifest
+    # TODO: in the future change this image to registry.k8s.io
     echo "image conformance k8s.gcr.io/conformance:v${version}" > "../$version/conformance/Manifest"
 
-    # image required for sonobuoy --mode=quick
-    local minor=$(echo "$version" | awk -F'.' '{ print $2 }')
-    if [ "$minor" -ge "21" ]; then
-        echo "image nginx k8s.gcr.io/e2e-test-images/nginx:1.14-1" >> "../$version/conformance/Manifest"
-    else
-        echo "image nginx-1.14-alpine docker.io/library/nginx:1.14-alpine" >> "../$version/conformance/Manifest"
-    fi
 
-    # NOTE: full conformance suite images are not yet included in this package
-    # local tmpdir=
-    # tmpdir="$(mktemp -d)"
-    # curl -L -o "${tmpdir}/sonobuoy.tar.gz" https://github.com/vmware-tanzu/sonobuoy/releases/download/v${VERSION}/sonobuoy_${VERSION}_linux_amd64.tar.gz && \
-    #     tar xzvf "${tmpdir}/sonobuoy.tar.gz" -C "${tmpdir}"
-    # "${tmpdir}/sonobuoy" images pull --dry-run 2>&1 \
-    #     | grep 'Pulling image:' \
-    #     | sed 's/^.*Pulling image: \(.*\)"$/\1/' \
-    #     | grep -v authenticated \
-    #     | grep -v invalid \
-    #     | sed -E "s/^(.*)\/([^:]+):(.+)/image \2-\3 \1\/\2:\3/" >> "../${VERSION}/Manifest"
-    # rm -r "${tmpdir}"
+    # --mode quick image
+    local image="$(docker run --rm --entrypoint e2e.test "k8s.gcr.io/conformance:v${version}" --list-images | grep "nginx" | sort -n | head -n 1)"
+    local name="$(echo "$image" | awk -F'[/:]' '{ i = 2; for (--i; i >= 0; i--){ printf "%s-",$(NF-i)} print "" }' | sed 's/\./-/' | sed 's/-$//')"
+    echo "image $name $image" >> "../$version/conformance/Manifest"
+
+    # The following code will add all conformance images to manifest but it adds too much to the bundle
+
+    # sonobuoy_pull_images "$version" || true
+
+    # local image=
+    # for image in $(docker run --rm --entrypoint e2e.test "k8s.gcr.io/conformance:v${version}" --list-images) ; do
+    #     if docker inspect "$image" >/dev/null 2>&1 ; then
+    #         local name="$(echo "$image" | awk -F'[/:]' '{ i = 2; for (--i; i >= 0; i--){ printf "%s-",$(NF-i)} print "" }' | sed 's/\./-/' | sed 's/-$//')"
+    #         echo "image $name $image" >> "../$version/conformance/Manifest"
+    #     fi
+    # done
+}
+
+function sonobuoy_pull_images() {
+    local version="$1"
+    local tmpdir="$(mktemp -d)"
+    download_sonobuoy "$tmpdir"
+
+    "${tmpdir}/sonobuoy" images pull --kubernetes-version "v${version}"
+}
+
+function download_sonobuoy() {
+    local tmpdir="$1"
+    local sonobuoy_version="$(get_latest_sonobuoy_release_version)"
+    curl -sL -o "${tmpdir}/sonobuoy.tar.gz" https://github.com/vmware-tanzu/sonobuoy/releases/download/v${sonobuoy_version}/sonobuoy_${sonobuoy_version}_linux_amd64.tar.gz && \
+        tar xzf "${tmpdir}/sonobuoy.tar.gz" -C "${tmpdir}"
+}
+
+function get_latest_sonobuoy_release_version() {
+    curl -sI https://github.com/vmware-tanzu/sonobuoy/releases/latest | \
+        grep -i "^location" | \
+        grep -Eo "0\.[0-9]+\.[0-9]+"
 }
 
 function update_available_versions() {
+    local version124=( $( for i in "${VERSIONS[@]}" ; do echo $i ; done | grep '^1.24' ) )
+    if [ ${#version124[@]} -gt 0 ]; then
+        if ! sed '0,/cron-kubernetes-update-124/d' ../../../web/src/installers/versions.js | sed '/\],/,$d' | grep -q "${version124[0]}" ; then
+            sed -i "/cron-kubernetes-update-124/a\    \"${version124[0]}\"\," ../../../web/src/installers/versions.js
+        fi
+    fi
+
     local version123=( $( for i in "${VERSIONS[@]}" ; do echo $i ; done | grep '^1.23' ) )
     if [ ${#version123[@]} -gt 0 ]; then
         if ! sed '0,/cron-kubernetes-update-123/d' ../../../web/src/installers/versions.js | sed '/\],/,$d' | grep -q "${version123[0]}" ; then
@@ -134,13 +150,6 @@ function update_available_versions() {
     if [ ${#version121[@]} -gt 0 ]; then
         if ! sed '0,/cron-kubernetes-update-121/d' ../../../web/src/installers/versions.js | sed '/\],/,$d' | grep -q "${version121[0]}" ; then
             sed -i "/cron-kubernetes-update-121/a\    \"${version121[0]}\"\," ../../../web/src/installers/versions.js
-        fi
-    fi
-
-    local version120=( $( for i in "${VERSIONS[@]}" ; do echo $i ; done | grep '^1.20' ) )
-    if [ ${#version120[@]} -gt 0 ]; then
-        if ! sed '0,/cron-kubernetes-update-120/d' ../../../web/src/installers/versions.js | sed '/\],/,$d' | grep -q "${version120[0]}" ; then
-            sed -i "/cron-kubernetes-update-120/a\    \"${version120[0]}\"\," ../../../web/src/installers/versions.js
         fi
     fi
 

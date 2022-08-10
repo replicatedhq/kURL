@@ -8,13 +8,13 @@ jobs:
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - id: set-matrix
         name: Build image matrix
         run: |
           git fetch --tags -f
-          export VERSION_TAG=$(git tag | grep '^v20' | sort | tail -1)-dirty
+          export VERSION_TAG=$(git tag | grep '^v20' | grep -v 'v2022\.09\.04' | sort | tail -1)-dirty
           export KURL_UTIL_IMAGE=replicated/kurl-util:${VERSION_TAG}
           export KURL_BIN_UTILS_FILE=kurl-bin-utils-${VERSION_TAG}.tar.gz
           export KURL_BIN_UTILS_FILE_LATEST=kurl-bin-utils-latest.tar.gz
@@ -30,20 +30,21 @@ jobs:
       fail-fast: false
       max-parallel: 20
     steps:
-      - uses: actions/setup-go@v2
+      - uses: actions/setup-go@v3
         with:
           go-version: 1.17
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: "${{ matrix.batch }} : Build batch"
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_PROD_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_PROD_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: "us-east-1"
           BATCH: ${{ matrix.batch }}
         run: |
           git fetch --tags -f
-          export VERSION_TAG=$(git tag | grep '^v20' | sort | tail -1)-dirty
+          export VERSION_TAG=$(git tag | grep '^v20' | grep -v 'v2022\.09\.04' | sort | tail -1)-dirty
           export KURL_UTIL_IMAGE=replicated/kurl-util:${VERSION_TAG}
 
           failed_pkgs=
@@ -63,9 +64,9 @@ jobs:
             MD5="$(openssl md5 -binary dist/$PKG | base64)"
             GITSHA="$(git rev-parse HEAD)"
             aws s3 cp dist/$PKG s3://kurl-sh/staging/${VERSION_TAG}/$PKG \
-              --metadata md5="${MD5}",gitsha="${GITSHA}"
+              --metadata-directive REPLACE --metadata md5="${MD5}",gitsha="${GITSHA}"
             aws s3 cp s3://kurl-sh/staging/${VERSION_TAG}/$PKG s3://kurl-sh/staging/$PKG \
-              --metadata md5="${MD5}",gitsha="${GITSHA}"
+              --metadata-directive REPLACE --metadata md5="${MD5}",gitsha="${GITSHA}"
           done
 
           if [ -n "${failed_pkgs}" ]; then

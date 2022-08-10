@@ -11,11 +11,13 @@ RUN --mount=target=/root/.cache,type=cache go mod download
 COPY . $PROJECT_PATH
 RUN --mount=target=/root/.cache,type=cache make web
 
-FROM node:14
+FROM node:14-alpine3.16
 
 WORKDIR /src
 
 ENV npm_config_cache /cache/.npm
+
+RUN  apk add --no-cache make bash
 
 ADD web/Makefile .
 ADD web/package.json .

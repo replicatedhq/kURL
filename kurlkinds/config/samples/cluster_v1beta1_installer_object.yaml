@@ -38,6 +38,7 @@ spec:
     serviceCIDRRange: "/24"
     version: latest
     cisCompliance: true
+    clusterName: clustername
   kurl:
     additionalNoProxyAddresses:
       - 1.1.1.1

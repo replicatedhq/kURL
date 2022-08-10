@@ -1,12 +1,31 @@
-- installerSpec:
+- name: latest
+  installerSpec:
     kubernetes:
-      version: "latest"
+      version: "1.23.x"
+    containerd:
+      version: latest
     weave:
-      version: "latest"
-    rook:
-      version: "latest"
-    docker:
-      version: "latest"
+      version: "2.8.x"
+    longhorn:
+      version: latest
+    ekco:
+      version: latest
     sonobuoy:
       version: "__testver__"
       s3Override: "__testdist__"
+- name: latest-airgap
+  installerSpec:
+    kubernetes:
+      version: "1.23.x"
+    containerd:
+      version: latest
+    weave:
+      version: "2.8.x"
+    longhorn:
+      version: latest
+    ekco:
+      version: latest
+    sonobuoy:
+      version: "__testver__"
+      s3Override: "__testdist__"
+  airgap: true

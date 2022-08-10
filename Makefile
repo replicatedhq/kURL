@@ -157,7 +157,7 @@ dist/docker-%.tar.gz:
 	${MAKE} build/packages/docker/$*/ubuntu-18.04
 	${MAKE} build/packages/docker/$*/ubuntu-20.04
 	${MAKE} build/packages/docker/$*/rhel-7
-	${MAKE} build/packages/docker/$*/rhel-7-force
+	${MAKE} build/packages/docker/$*/amzn-force
 	${MAKE} build/packages/docker/$*/rhel-8
 	mkdir -p dist
 	curl -L https://github.com/opencontainers/runc/releases/download/v1.0.0-rc95/runc.amd64 > build/packages/docker/$*/runc
@@ -212,6 +212,12 @@ dist/goldpinger-%.tar.gz: build/addons
 	mkdir -p dist
 	tar cf - -C build addons/goldpinger/$* | gzip > dist/goldpinger-$*.tar.gz
 
+dist/local-path-provisioner-%.tar.gz: build/addons
+	mkdir -p build/addons/local-path-provisioner/$*/images
+	bin/save-manifest-assets.sh "local-path-provisioner-$*" addons/local-path-provisioner/$*/Manifest $(CURDIR)/build/addons/local-path-provisioner/$*
+	mkdir -p dist
+	tar cf - -C build addons/local-path-provisioner/$* | gzip > dist/local-path-provisioner-$*.tar.gz
+
 
 dist/kubernetes-%.tar.gz:
 	# conformance packages do not exist for versions of k8s prior to 1.17
@@ -224,6 +230,7 @@ dist/kubernetes-%.tar.gz:
 	${MAKE} build/packages/kubernetes/$*/ubuntu-16.04
 	${MAKE} build/packages/kubernetes/$*/ubuntu-18.04
 	${MAKE} build/packages/kubernetes/$*/ubuntu-20.04
+	${MAKE} build/packages/kubernetes/$*/ubuntu-22.04
 	${MAKE} build/packages/kubernetes/$*/rhel-7
 	${MAKE} build/packages/kubernetes/$*/rhel-7-force
 	${MAKE} build/packages/kubernetes/$*/rhel-8
@@ -477,15 +484,15 @@ build/packages/docker/%/rhel-7:
 	docker rm docker-rhel7-$*
 
 build/packages/docker/18.09.8/rhel-8:
-	${MAKE} build/packages/docker/18.09.8/rhel-7-force
+	${MAKE} build/packages/docker/18.09.8/amzn-force
 
 build/packages/docker/19.03.4/rhel-8:
-	${MAKE} build/packages/docker/19.03.4/rhel-7-force
+	${MAKE} build/packages/docker/19.03.4/amzn-force
 
 build/packages/docker/19.03.10/rhel-8:
-	${MAKE} build/packages/docker/19.03.10/rhel-7-force
+	${MAKE} build/packages/docker/19.03.10/amzn-force
 
-build/packages/docker/%/rhel-7-force:
+build/packages/docker/%/amzn-force:
 	docker build \
 		--build-arg DOCKER_VERSION=$* \
 		-t kurl/rhel-7-force-docker:$* \
@@ -544,6 +551,18 @@ build/packages/kubernetes/%/ubuntu-20.04:
 	mkdir -p build/packages/kubernetes/$*/ubuntu-20.04
 	docker cp k8s-ubuntu2004-$*:/packages/archives/. build/packages/kubernetes/$*/ubuntu-20.04/
 	docker rm k8s-ubuntu2004-$*
+
+build/packages/kubernetes/%/ubuntu-22.04:
+	docker build \
+		--build-arg KUBERNETES_VERSION=$* \
+		-t kurl/ubuntu-2204-k8s:$* \
+		-f bundles/k8s-ubuntu2204/Dockerfile \
+		bundles/k8s-ubuntu2204
+	-docker rm -f k8s-ubuntu2204-$* 2>/dev/null
+	docker create --name k8s-ubuntu2204-$* kurl/ubuntu-2204-k8s:$*
+	mkdir -p build/packages/kubernetes/$*/ubuntu-22.04
+	docker cp k8s-ubuntu2204-$*:/packages/archives/. build/packages/kubernetes/$*/ubuntu-22.04/
+	docker rm k8s-ubuntu2204-$*
 
 build/packages/kubernetes/%/rhel-7:
 	docker build \
@@ -670,7 +689,7 @@ build/bin/kurl:
 code: build/kustomize build/addons
 
 build/bin/server: cmd/server/main.go
-	go build $(LDFLAGS) -o build/bin/server $(BUILDFLAGS) cmd/server/main.go
+	CGO_ENABLED=0 go build $(LDFLAGS) -o build/bin/server $(BUILDFLAGS) cmd/server/main.go
 
 .PHONY: web
 web: build/bin/server
@@ -705,6 +724,7 @@ test-shell:
 	./scripts/common/common-test.sh
 	./scripts/common/docker-test.sh
 	./scripts/common/kubernetes-test.sh
+	./addons/rook/template/test/install.sh
 
 .PHONY: kurl-util-image
 kurl-util-image:

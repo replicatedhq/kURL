@@ -1,23 +1,25 @@
-- installerSpec:
+- name: "prometheus minimal"
+  installerSpec:
     kubernetes:
       version: "latest"
     weave:
       version: "latest"
     rook:
-      version: "1.5.9"
+      version: "1.6.x"
       isBlockStorageEnabled: true
     docker:
       version: "latest"
     prometheus:
       version: "__testver__"
       s3Override: "__testdist__"
-- installerSpec:
+- name: "promethus upgrade from 0.33.0"
+  installerSpec:
     kubernetes:
       version: "latest"
     weave:
       version: "latest"
     rook:
-      version: "1.5.9"
+      version: "1.6.x"
       isBlockStorageEnabled: true
     docker:
       version: "latest"
@@ -29,20 +31,21 @@
     weave:
       version: "latest"
     rook:
-      version: "1.5.9"
+      version: "1.6.x"
       isBlockStorageEnabled: true
     docker:
       version: "latest"
     prometheus:
       version: "__testver__"
       s3Override: "__testdist__"
-- installerSpec:
+- name: "prometheus upgrade from latest"
+  installerSpec:
     kubernetes:
       version: "latest"
     weave:
       version: "latest"
     rook:
-      version: "1.5.9"
+      version: "1.6.x"
       isBlockStorageEnabled: true
     docker:
       version: "latest"
@@ -54,14 +57,15 @@
     weave:
       version: "latest"
     rook:
-      version: "1.5.9"
+      version: "1.6.x"
       isBlockStorageEnabled: true
     docker:
       version: "latest"
     prometheus:
       version: "__testver__"
       s3Override: "__testdist__"
-- installerSpec:
+- name: "prometheus with longhorn and containerd"
+  installerSpec:
     kubernetes:
       version: "1.21.x"
     weave:
@@ -73,3 +77,18 @@
     prometheus:
       version: "__testver__"
       s3Override: "__testdist__"
+- name: "prometheus minimal airgap"
+  installerSpec:
+    kubernetes:
+      version: "latest"
+    weave:
+      version: "latest"
+    rook:
+      version: "1.6.x"
+      isBlockStorageEnabled: true
+    docker:
+      version: "latest"
+    prometheus:
+      version: "__testver__"
+      s3Override: "__testdist__"
+  airgap: true

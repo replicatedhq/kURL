@@ -1,0 +1,7 @@
+image kotsadm-migrations docker.io/kotsadm/kotsadm-migrations:v1.76.1
+image kotsadm docker.io/kotsadm/kotsadm:v1.76.1
+image kurl-proxy docker.io/kotsadm/kurl-proxy:v1.76.1
+image postgres postgres:10.21-alpine
+image dex docker.io/kotsadm/dex:v2.32.0
+
+asset kots.tar.gz https://github.com/replicatedhq/kots/releases/download/v1.76.1/kots_linux_amd64.tar.gz

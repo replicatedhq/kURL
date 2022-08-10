@@ -17,7 +17,7 @@ exports.builder = {
   },
 };
 
-exports.handler = (argv) => {
+exports.handler = (argv: any) => {
   main(argv).catch((err) => {
     console.log(`Failed with error ${util.inspect(err)}`);
     process.exit(1);
@@ -49,6 +49,12 @@ export async function main(argv: any): Promise<void> {
     const platform = await PlatformExpress.bootstrap(Server, {
       // extra settings
     });
+
+    process.on('SIGTERM', async () => {
+      console.log("SIGTERM received");
+      await platform.stop();
+      process.exit(0);
+    })
 
     await platform.listen();
     $log.debug("Server initialized");

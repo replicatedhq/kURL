@@ -15,6 +15,7 @@ DIR=.
 . $DIR/scripts/common/utilbinaries.sh
 . $DIR/scripts/common/rook.sh
 . $DIR/scripts/common/longhorn.sh
+. $DIR/scripts/common/reporting.sh
 . $DIR/scripts/distro/interface.sh
 . $DIR/scripts/distro/kubeadm/distro.sh
 . $DIR/scripts/distro/rke2/distro.sh
@@ -22,6 +23,9 @@ DIR=.
 
 K8S_DISTRO=
 function tasks() {
+    # ensure /usr/local/bin/kubectl-plugin is in the path
+    path_add "/usr/local/bin"
+
     DOCKER_VERSION="$(get_docker_version)"
 
     K8S_DISTRO=kubeadm
@@ -78,6 +82,7 @@ function tasks() {
 }
 
 function load_all_images() {
+    printf "loading all infrastructure images\n"
     # get params - specifically need kurl-install-directory, as they impact load images scripts
     shift # the first param is load_images/load-images
     while [ "$1" != "" ]; do
@@ -205,7 +210,6 @@ function reset() {
     rm -rf /etc/kubernetes
     rm -rf /opt/cni
     rm -rf /opt/replicated
-    rm -f /usr/local/bin/helm /usr/local/bin/helmfile
     rm -f /usr/bin/kubeadm /usr/bin/kubelet /usr/bin/kubectl /usr/bin/crtctl
     rm -f /usr/local/bin/kustomize*
     rm -rf /var/lib/calico
@@ -391,9 +395,15 @@ function get_weave_version() {
     local weave_version=$(KUBECONFIG=/etc/kubernetes/admin.conf kubectl get daemonset -n kube-system weave-net -o jsonpath="{..spec.containers[0].image}" | sed 's/^.*://')
     if [ -z "$weave_version" ]; then
         if [ -n "$DOCKER_VERSION" ]; then
-            weave_version=$(docker image ls | grep weaveworks/weave-npc | awk '{ print $2 }' | head -1)
+            weave_version=$(docker image ls | grep kurlsh/weave-npc | awk '{ print $2 }' | head -1)
+            if [ -z "$weave_version" ]; then
+                weave_version=$(docker image ls | grep weaveworks/weave-npc | awk '{ print $2 }' | head -1)
+            fi
         else
-            weave_version=$(crictl images list | grep weaveworks/weave-npc | awk '{ print $2 }' | head -1)
+            weave_version=$(crictl images list | grep kurlsh/weave-npc | awk '{ print $2 }' | head -1)
+            if [ -z "$weave_version" ]; then
+                weave_version=$(crictl images list | grep weaveworks/weave-npc | awk '{ print $2 }' | head -1)
+            fi
         fi
         if [ -z "$weave_version" ]; then
             # if we don't know the exact weave tag, use a sane default

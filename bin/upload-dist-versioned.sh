@@ -14,6 +14,7 @@ function require() {
 
 require AWS_ACCESS_KEY_ID "${AWS_ACCESS_KEY_ID}"
 require AWS_SECRET_ACCESS_KEY "${AWS_SECRET_ACCESS_KEY}"
+require AWS_REGION "${AWS_REGION}"
 require S3_BUCKET "${S3_BUCKET}"
 require VERSION_TAG "${VERSION_TAG}"
 
@@ -27,6 +28,7 @@ function package_has_changes() {
 
     if [ -z "${path}" ]; then
         # if no path then we can't calculate changes
+        echo "Path empty for package ${package}"
         return 0
     fi
 
@@ -35,10 +37,11 @@ function package_has_changes() {
 
     if [ -z "${upstream_gitsha}" ]; then
         # if package doesn't exist or have a gitsha it has changes
+        echo "Upstream gitsha empty for package ${package}"
         return 0
     fi
 
-    if git diff --quiet "${upstream_gitsha}" -- "${path}" "${VERSION_TAG}" -- "${path}" ; then
+    if ( set -x; git diff --quiet "${upstream_gitsha}" -- "${path}" "${VERSION_TAG}" -- "${path}" ) ; then
         return 1
     else
         return 0
@@ -48,12 +51,19 @@ function package_has_changes() {
 function build_and_upload() {
     local package="$1"
 
+    echo "building package ${package}"
     make "dist/${package}"
     MD5="$(openssl md5 -binary "dist/${package}" | base64)"
-    aws s3 cp "dist/${package}" "s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${VERSION_TAG}/${package}" \
-        --metadata md5="${MD5}",gitsha="${VERSION_TAG}"
-    aws s3 cp "s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${VERSION_TAG}/${package}" "s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${package}" \
-        --metadata md5="${MD5}",gitsha="${GITSHA}"
+
+    echo "uploading package ${package} to s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${VERSION_TAG}/ with metadata md5=\"${MD5}\",gitsha=\"${VERSION_TAG}\""
+    retry 5 aws s3 cp "dist/${package}" "s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${VERSION_TAG}/${package}" \
+        --metadata-directive REPLACE --metadata md5="${MD5}",gitsha="${VERSION_TAG}"
+
+    echo "copying package ${package} to s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${package} with metadata md5=\"${MD5}\",gitsha=\"${GITSHA}\""
+    retry 5 aws s3api copy-object --copy-source "${S3_BUCKET}/${PACKAGE_PREFIX}/${VERSION_TAG}/${package}" --bucket "${S3_BUCKET}" --key "${PACKAGE_PREFIX}/${package}" \
+        --metadata-directive REPLACE --metadata md5="${MD5}",gitsha="${GITSHA}"
+
+    echo "cleaning up after uploading ${package}"
     make clean
     if [ -n "$DOCKER_PRUNE" ]; then
         docker system prune --all --force
@@ -65,10 +75,14 @@ function copy_package_staging() {
 
     local md5=
     md5="$(aws s3api head-object --bucket "${S3_BUCKET}" --key "staging/${package}" | grep '"md5":' | sed 's/[",:]//g' | awk '{print $2}')"
-    aws s3 cp "s3://${S3_BUCKET}/staging/${package}" "s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${VERSION_TAG}/${package}" \
-        --metadata md5="${md5}",gitsha="${GITSHA}"
-    aws s3 cp "s3://${S3_BUCKET}/staging/${package}" "s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${package}" \
-        --metadata md5="${md5}",gitsha="${GITSHA}"
+
+    echo "copying package ${package} to s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${VERSION_TAG}/ with metadata md5=\"${MD5}\",gitsha=\"${GITSHA}\""
+    retry 5 aws s3api copy-object --copy-source "${S3_BUCKET}/staging/${package}" --bucket "${S3_BUCKET}" --key "${PACKAGE_PREFIX}/${VERSION_TAG}/${package}" \
+        --metadata-directive REPLACE --metadata md5="${md5}",gitsha="${GITSHA}"
+
+    echo "copying package ${package} to s3://${S3_BUCKET}/${PACKAGE_PREFIX}/ with metadata md5=\"${MD5}\",gitsha=\"${GITSHA}\""
+    retry 5 aws s3api copy-object --copy-source "${S3_BUCKET}/staging/${package}" --bucket "${S3_BUCKET}" --key "${PACKAGE_PREFIX}/${package}" \
+        --metadata-directive REPLACE --metadata md5="${md5}",gitsha="${GITSHA}"
 }
 
 function copy_package_dist() {
@@ -76,8 +90,10 @@ function copy_package_dist() {
 
     local md5=
     md5="$(aws s3api head-object --bucket "${S3_BUCKET}" --key "${PACKAGE_PREFIX}/${package}" | grep '"md5":' | sed 's/[",:]//g' | awk '{print $2}')"
-    aws s3 cp "s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${package}" "s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${VERSION_TAG}/${package}" \
-        --metadata md5="${md5}",gitsha="${GITSHA}"
+
+    echo "copying package ${package} to s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${VERSION_TAG}/ with metadata md5=\"${MD5}\",gitsha=\"${GITSHA}\""
+    retry 5 aws s3api copy-object --copy-source "${S3_BUCKET}/${PACKAGE_PREFIX}/${package}" --bucket "${S3_BUCKET}" --key "${PACKAGE_PREFIX}/${VERSION_TAG}/${package}" \
+        --metadata-directive REPLACE --metadata md5="${md5}",gitsha="${GITSHA}"
 }
 
 function deploy() {
@@ -113,6 +129,26 @@ function deploy() {
             echo "s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${package} no changes in versioned package"
         fi
     fi
+}
+
+function retry {
+    local retries=$1
+    shift
+
+    local count=0
+    until "$@"; do
+        exit=$?
+        wait=$((2 ** $count))
+        count=$(($count + 1))
+        if [ $count -lt $retries ]; then
+            echo "Retry $count/$retries exited $exit, retrying in $wait seconds..."
+            sleep $wait
+        else
+            echo "Retry $count/$retries exited $exit, no more retries left."
+            return $exit
+        fi
+    done
+    return 0
 }
 
 function main() {

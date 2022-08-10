@@ -4,6 +4,9 @@ on:
   push:
     branches:
     - main
+    paths:
+    - '**'
+    - '!testgrid/**'
 
 jobs:
   get-tag:
@@ -11,11 +14,11 @@ jobs:
     outputs:
       version_tag: ${{ steps.set-tag.outputs.version_tag }}
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - id: set-tag
       run: |
         git fetch --tags -f
-        export VERSION_TAG=$(git tag | grep '^v20' | sort | tail -1)-dirty
+        export VERSION_TAG=$(git tag | grep '^v20' | grep -v 'v2022\.09\.04' | sort | tail -1)-dirty
         echo "::set-output name=version_tag::${VERSION_TAG}"
 
   kurl-util-image:
@@ -23,9 +26,12 @@ jobs:
     needs:
     - get-tag
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
+    - uses: docker/login-action@v2
+      with:
+        username: ${{ secrets.DOCKERHUB_DOCKER_USER }}
+        password: ${{ secrets.DOCKERHUB_DOCKER_PASS }}
     - run: |
-        echo "$DOCKERHUB_DOCKER_PASS" | docker login -u $DOCKERHUB_DOCKER_USER --password-stdin
         export KURL_UTIL_IMAGE=$KURL_UTIL_IMAGE_ALPHA
         make -C kurl_util build-and-push-kurl-util-image
 
@@ -34,8 +40,6 @@ jobs:
 
         make -C kurl_util push-kurl-util-image
       env:
-        DOCKERHUB_DOCKER_PASS: ${{ secrets.DOCKERHUB_DOCKER_PASS }}
-        DOCKERHUB_DOCKER_USER: ${{ secrets.DOCKERHUB_DOCKER_USER }}
         KURL_UTIL_IMAGE_ALPHA: replicated/kurl-util:alpha
         VERSION_TAG: ${{ needs.get-tag.outputs.version_tag }}
 
@@ -47,7 +51,7 @@ jobs:
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - id: set-matrix
       name: Build image matrix
@@ -67,14 +71,14 @@ jobs:
     - build-matrix
     strategy:
       matrix: ${{fromJSON(needs.build-matrix.outputs.matrix)}}
-      fail-fast: true
+      fail-fast: false
       max-parallel: 20
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
       with:
         fetch-depth: 0
 
-    - uses: actions/setup-go@v2
+    - uses: actions/setup-go@v3
       with:
         go-version: 1.17
 
@@ -96,6 +100,7 @@ jobs:
         S3_BUCKET: kurl-sh
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_PROD_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_PROD_SECRET_ACCESS_KEY }}
+        AWS_REGION: "us-east-1"
         DOCKER_PRUNE: '1'
         VERSION_TAG: ${{ needs.get-tag.outputs.version_tag }}
 
@@ -109,6 +114,7 @@ jobs:
         S3_BUCKET: kurl-sh
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_PROD_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_PROD_SECRET_ACCESS_KEY }}
+        AWS_REGION: "us-east-1"
         PACKAGE_PREFIX: staging
         VERSION_TAG: ${{ needs.get-tag.outputs.version_tag }}
 
@@ -118,10 +124,10 @@ jobs:
     - get-tag
     - kurl-util-image
     steps:
-    - uses: actions/checkout@v2
-    - uses: actions/setup-node@v2
+    - uses: actions/checkout@v3
+    - uses: actions/setup-node@v3
       with:
-        node-version: '12'
+        node-version: '14'
     - run: make -C web deps
     - run: npm install
     - run: make generate-addons
@@ -129,6 +135,7 @@ jobs:
         S3_BUCKET: kurl-sh
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_PROD_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_PROD_SECRET_ACCESS_KEY }}
+        AWS_DEFAULT_REGION: "us-east-1"
         DIST_FOLDER: "staging"
         VERSION_TAG: ${{ needs.get-tag.outputs.version_tag }}
 
@@ -137,11 +144,11 @@ jobs:
     needs:
     - get-tag
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
-    - uses: actions/setup-node@v2
+    - uses: actions/setup-node@v3
       with:
-        node-version: '12'
+        node-version: '14'
 
     - run: make -C web deps build
 
@@ -165,13 +172,11 @@ jobs:
       env:
         VERSION_TAG: ${{ needs.get-tag.outputs.version_tag }}
 
-    - run: |
-        aws ecr get-login-password --region us-east-1 | docker login \
-          --username AWS \
-          --password-stdin 923411875752.dkr.ecr.us-east-1.amazonaws.com
-      env:
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_STAGING_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_STAGING_SECRET_ACCESS_KEY }}
+    - uses: docker/login-action@v2
+      with:
+        registry: 923411875752.dkr.ecr.us-east-1.amazonaws.com
+        username: ${{ secrets.AWS_STAGING_ACCESS_KEY_ID }}
+        password: ${{ secrets.AWS_STAGING_SECRET_ACCESS_KEY }}
 
     - run: docker push 923411875752.dkr.ecr.us-east-1.amazonaws.com/kurl:${GITHUB_SHA:0:7}
 
@@ -183,7 +188,7 @@ jobs:
     - kurl-util-image
     - build-upload-packages
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: kustomize
       run: |
@@ -236,10 +241,10 @@ jobs:
         time: "3m"
 
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     - name: setup-go
-      uses: actions/setup-go@v2
+      uses: actions/setup-go@v3
       with:
         go-version: 1.17
 

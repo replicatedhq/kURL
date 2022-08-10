@@ -9,11 +9,11 @@ jobs:
   production-docker-image:
     runs-on: ubuntu-18.04
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
-    - uses: actions/setup-node@v2
+    - uses: actions/setup-node@v3
       with:
-        node-version: '12'
+        node-version: '14'
 
     - run: make -C web deps build
 
@@ -34,29 +34,26 @@ jobs:
           --build-arg version=${GITHUB_SHA:0:7} \
           --build-arg version_tag=${VERSION_TAG} \
           -t 799720048698.dkr.ecr.us-east-1.amazonaws.com/kurl:${GITHUB_SHA:0:7} .
-
-    - run: |
-        aws ecr get-login-password --region us-east-1 | docker login \
-          --username AWS \
-          --password-stdin 799720048698.dkr.ecr.us-east-1.amazonaws.com
-      env:
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_PROD_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_PROD_SECRET_ACCESS_KEY }}
+    - uses: docker/login-action@v2
+      with:
+        registry: 799720048698.dkr.ecr.us-east-1.amazonaws.com
+        username: ${{ secrets.AWS_PROD_ACCESS_KEY_ID }}
+        password: ${{ secrets.AWS_PROD_SECRET_ACCESS_KEY }}
 
     - run: docker push 799720048698.dkr.ecr.us-east-1.amazonaws.com/kurl:${GITHUB_SHA:0:7}
 
   kurl-util-image:
     runs-on: ubuntu-18.04
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
+    - uses: docker/login-action@v2
+      with:
+        username: ${{ secrets.DOCKERHUB_DOCKER_USER }}
+        password: ${{ secrets.DOCKERHUB_DOCKER_PASS }}
     - run: |
         export VERSION_TAG=$(echo $GITHUB_REF | awk -F'/' '{ print $NF }')
         export KURL_UTIL_IMAGE=replicated/kurl-util:${VERSION_TAG}
-        echo "$DOCKERHUB_DOCKER_PASS" | docker login -u $DOCKERHUB_DOCKER_USER --password-stdin
         make -C kurl_util build-and-push-kurl-util-image
-      env:
-        DOCKERHUB_DOCKER_PASS: ${{ secrets.DOCKERHUB_DOCKER_PASS }}
-        DOCKERHUB_DOCKER_USER: ${{ secrets.DOCKERHUB_DOCKER_USER }}
 
   build-matrix:
     runs-on: ubuntu-18.04
@@ -66,7 +63,7 @@ jobs:
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - id: set-matrix
       name: Build image matrix
@@ -83,14 +80,14 @@ jobs:
     - build-matrix
     strategy:
       matrix: ${{fromJSON(needs.build-matrix.outputs.matrix)}}
-      fail-fast: true
+      fail-fast: false
       max-parallel: 20
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
       with:
         fetch-depth: 0
 
-    - uses: actions/setup-go@v2
+    - uses: actions/setup-go@v3
       with:
         go-version: 1.17
 
@@ -111,6 +108,7 @@ jobs:
         S3_BUCKET: kurl-sh
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_PROD_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_PROD_SECRET_ACCESS_KEY }}
+        AWS_REGION: "us-east-1"
 
   build-addons:
     runs-on: ubuntu-18.04
@@ -118,10 +116,10 @@ jobs:
     - production-docker-image
     - kurl-util-image
     steps:
-    - uses: actions/checkout@v2
-    - uses: actions/setup-node@v2
+    - uses: actions/checkout@v3
+    - uses: actions/setup-node@v3
       with:
-        node-version: '12'
+        node-version: '14'
     - run: make -C web deps
     - run: npm install
     - run: |
@@ -131,6 +129,7 @@ jobs:
         S3_BUCKET: kurl-sh
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_PROD_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_PROD_SECRET_ACCESS_KEY }}
+        AWS_DEFAULT_REGION: "us-east-1"
         DIST_FOLDER: "dist"
 
   deploy-production-eks:
@@ -140,7 +139,7 @@ jobs:
     - kurl-util-image
     - build-upload-packages
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: kustomize
       run: |
         export VERSION_TAG=$(echo $GITHUB_REF | awk -F'/' '{ print $NF }')
@@ -185,15 +184,15 @@ jobs:
     - kurl-util-image
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     # Node and Go are needed by the SBOM generator
-    - uses: actions/setup-node@v2
+    - uses: actions/setup-node@v3
       with:
-        node-version: '12'
+        node-version: '14'
 
     - name: setup-go
-      uses: actions/setup-go@v2
+      uses: actions/setup-go@v3
       with:
         go-version: 1.17
 
@@ -205,7 +204,7 @@ jobs:
     - name: Generate Changelog
       run: |
         git fetch --tags -f
-        lastTag=$(git tag | grep '^v20' | grep -v "$GIT_TAG" | sort | tail -1)
+        lastTag=$(git tag | grep '^v20' | grep -v 'v2022\.09\.04' | grep -v "$GIT_TAG" | sort | tail -1)
         docker run --rm \
           --env CHANGELOG_GITHUB_TOKEN \
           -v `pwd`:/usr/local/src/your-app \
@@ -276,10 +275,10 @@ jobs:
         time: "3m"
 
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     - name: setup-go
-      uses: actions/setup-go@v2
+      uses: actions/setup-go@v3
       with:
         go-version: 1.17
 

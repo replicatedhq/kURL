@@ -90,6 +90,11 @@ func parseBashFlags(installer *kurlv1beta1.Installer, bashFlags string) error {
 				installer.Spec.Kurl = &kurlv1beta1.Kurl{}
 			}
 			installer.Spec.Kurl.Airgap = true
+		case "aws-exclude-storage-class":
+			if installer.Spec.AWS == nil {
+				installer.Spec.AWS = &kurlv1beta1.AWS{}
+			}
+			installer.Spec.AWS.ExcludeStorageClass = true
 		case "cert-key":
 			if installer.Spec.Kubernetes == nil {
 				installer.Spec.Kubernetes = &kurlv1beta1.Kubernetes{}
@@ -139,6 +144,15 @@ func parseBashFlags(installer *kurlv1beta1.Installer, bashFlags string) error {
 				installer.Spec.Kubernetes = &kurlv1beta1.Kubernetes{}
 			}
 			installer.Spec.Kubernetes.LoadBalancerAddress = split[1]
+		case "ekco-enable-internal-load-balancer":
+			if installer.Spec.Ekco != nil {
+				installer.Spec.Ekco.EnableInternalLoadBalancer = true
+			}
+		case "kubernetes-load-balancer-use-first-primary":
+			if installer.Spec.Kubernetes == nil {
+				installer.Spec.Kubernetes = &kurlv1beta1.Kubernetes{}
+			}
+			installer.Spec.Kubernetes.LoadBalancerUseFirstPrimary = true
 		case "kubernetes-master-address":
 			if installer.Spec.Kubernetes == nil {
 				installer.Spec.Kubernetes = &kurlv1beta1.Kubernetes{}
@@ -152,6 +166,11 @@ func parseBashFlags(installer *kurlv1beta1.Installer, bashFlags string) error {
 				installer.Spec.Kubernetes = &kurlv1beta1.Kubernetes{}
 			}
 			installer.Spec.Kubernetes.CisCompliance = true
+		case "kubernetes-cluster-name":
+			if installer.Spec.Kubernetes == nil {
+				installer.Spec.Kubernetes = &kurlv1beta1.Kubernetes{}
+			}
+			installer.Spec.Kubernetes.ClusterName = split[1]
 		case "kubernetes-version":
 			if installer.Spec.Kubernetes == nil {
 				installer.Spec.Kubernetes = &kurlv1beta1.Kubernetes{}
@@ -250,6 +269,11 @@ func parseBashFlags(installer *kurlv1beta1.Installer, bashFlags string) error {
 				installer.Spec.Kurl = &kurlv1beta1.Kurl{}
 			}
 			installer.Spec.Kurl.IPv6 = true
+		case "velero-restic-timeout":
+			if installer.Spec.Velero == nil {
+				installer.Spec.Velero = &kurlv1beta1.Velero{}
+			}
+			installer.Spec.Velero.ResticTimeout = split[1]
 		default:
 			return errors.New(fmt.Sprintf("string %s is not a bash flag", split[0]))
 		}

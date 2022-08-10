@@ -6,7 +6,11 @@ type RunnerOptions struct {
 }
 
 type SingleRun struct {
-	ID string
+	ID                string
+	NumPrimaryNodes   int
+	NumSecondaryNodes int
+	Memory            string
+	CPU               string
 
 	OperatingSystemName    string
 	OperatingSystemVersion string

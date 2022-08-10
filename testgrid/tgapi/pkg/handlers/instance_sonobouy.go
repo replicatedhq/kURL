@@ -38,6 +38,9 @@ func InstanceSonobuoyResults(w http.ResponseWriter, r *http.Request) {
 		line := scanner.Text()
 		if strings.HasPrefix(line, "Status:") {
 			isSuccess = strings.HasSuffix(line, "passed")
+			if !isSuccess {
+				break
+			}
 		}
 	}
 

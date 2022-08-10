@@ -14,7 +14,6 @@ import { Installer, InstallerObject, InstallerStore } from "../installers";
 import decode from "../util/jwt";
 import { getInstallerVersions } from "../installers/installer-versions";
 import { getDistUrl } from "../util/package";
-import { ServerError } from "../server/errors";
 
 interface ErrorResponse {
   error: any;
@@ -29,12 +28,6 @@ const invalidYAMLResponse = {
 const teamWithGeneratedIDResponse = {
   error: {
     message: "Name is indistinguishable from a generated ID.",
-  },
-};
-
-const slugCharactersResponse = {
-  error: {
-    message: "Only base64 URL characters may be used for custom named installers",
   },
 };
 
@@ -83,7 +76,7 @@ export class Installers {
    * @returns string
    */
   @Post("/")
-  @instrumented
+  @instrumented()
   public async createInstaller(
     @Res() response: Express.Response,
     @Req() request: Express.Request,
@@ -145,8 +138,9 @@ export class Installers {
     @Res() response: Express.Response,
     @Req() request: Express.Request,
     @PathParams("id") id: string,
+    @QueryParams("skipValidation") skipValidation: boolean,
   ): Promise<string | ErrorResponse> {
-    return await this.doMakeInstaller(response, request, id, "");
+    return await this.doMakeInstaller(response, request, id, "", skipValidation);
   }
 
   /**
@@ -164,8 +158,9 @@ export class Installers {
     @Req() request: Express.Request,
     @PathParams("id") id: string,
     @PathParams("slug") slug: string,
+    @QueryParams("skipValidation") skipValidation: boolean,
   ): Promise<string | ErrorResponse> {
-    return await this.doMakeInstaller(response, request, id, slug);
+    return await this.doMakeInstaller(response, request, id, slug, skipValidation);
   }
 
   /**
@@ -213,7 +208,7 @@ export class Installers {
    * @returns string | ErrorResponse
    */
   @Post("/validate")
-  @instrumented
+  @instrumented()
   public async validateInstaller(
     @Res() response: Express.Response,
     @Req() request: Express.Request,
@@ -236,7 +231,7 @@ export class Installers {
     return "";
   }
 
-  async doMakeInstaller( response: Express.Response, request: Express.Request, id: string, slug: string): Promise<string | ErrorResponse> {
+  async doMakeInstaller( response: Express.Response, request: Express.Request, id: string, slug: string, skipValidation: boolean): Promise<string | ErrorResponse> {
     const auth = request.header("Authorization");
     if (!auth) {
       response.status(401);
@@ -260,10 +255,6 @@ export class Installers {
       response.status(400);
       return teamWithGeneratedIDResponse;
     }
-    if (!Installer.isValidSlug(id)) {
-      response.status(400);
-      return slugCharactersResponse;
-    }
     if (Installer.slugIsReserved(id)) {
       response.status(400);
       return slugReservedResponse;
@@ -284,10 +275,12 @@ export class Installers {
       }
     }
 
-    const err = await (await i.resolve()).validate();
-    if (err) {
-      response.status(400);
-      return err;
+    if (!skipValidation) {
+      const err = await (await i.resolve()).validate();
+      if (err) {
+        response.status(400);
+        return err;
+      }
     }
 
     await this.installerStore.saveTeamInstaller(i);

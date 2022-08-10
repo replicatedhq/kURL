@@ -1,0 +1,2 @@
+image ekco docker.io/replicated/ekco:v__EKCO_VERSION__
+image haproxy haproxy:__HAPROXY_VERSION__

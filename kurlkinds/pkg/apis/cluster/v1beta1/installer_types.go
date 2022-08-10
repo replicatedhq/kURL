@@ -23,36 +23,38 @@ import (
 )
 
 type InstallerSpec struct {
-	Kubernetes      *Kubernetes      `json:"kubernetes,omitempty" yaml:"kubernetes,omitempty"`
-	RKE2            *RKE2            `json:"rke2,omitempty" yaml:"rke2,omitempty"`
-	K3S             *K3S             `json:"k3s,omitempty" yaml:"k3s,omitempty"`
-	Docker          *Docker          `json:"docker,omitempty" yaml:"docker,omitempty"`
-	Weave           *Weave           `json:"weave,omitempty" yaml:"weave,omitempty"`
-	Antrea          *Antrea          `json:"antrea,omitempty" yaml:"antrea,omitempty"`
-	Calico          *Calico          `json:"calico,omitempty" yaml:"calico,omitempty"`
-	Contour         *Contour         `json:"contour,omitempty" yaml:"contour,omitempty"`
-	Rook            *Rook            `json:"rook,omitempty" yaml:"rook,omitempty"`
-	Registry        *Registry        `json:"registry,omitempty" yaml:"registry,omitempty"`
-	Prometheus      *Prometheus      `json:"prometheus,omitempty" yaml:"prometheus,omitempty"`
-	Fluentd         *Fluentd         `json:"fluentd,omitempty" yaml:"fluentd,omitempty"`
-	Kotsadm         *Kotsadm         `json:"kotsadm,omitempty" yaml:"kotsadm,omitempty"`
-	Velero          *Velero          `json:"velero,omitempty" yaml:"velero,omitempty"`
-	Minio           *Minio           `json:"minio,omitempty" yaml:"minio,omitempty"`
-	OpenEBS         *OpenEBS         `json:"openebs,omitempty" yaml:"openebs,omitempty"`
-	Kurl            *Kurl            `json:"kurl,omitempty" yaml:"kurl,omitempty"`
-	SelinuxConfig   *SelinuxConfig   `json:"selinuxConfig,omitempty" yaml:"selinuxConfig,omitempty"`
-	IptablesConfig  *IptablesConfig  `json:"iptablesConfig,omitempty" yaml:"iptablesConfig,omitempty"`
-	FirewalldConfig *FirewalldConfig `json:"firewalldConfig,omitempty" yaml:"firewalldConfig,omitempty"`
-	Ekco            *Ekco            `json:"ekco,omitempty" yaml:"ekco,omitempty"`
-	Containerd      *Containerd      `json:"containerd,omitempty" yaml:"containerd,omitempty"`
-	Collectd        *Collectd        `json:"collectd,omitempty" yaml:"collectd,omitempty"`
-	CertManager     *CertManager     `json:"certManager,omitempty" yaml:"certManager,omitempty"`
-	MetricsServer   *MetricsServer   `json:"metricsServer,omitempty" yaml:"metricsServer,omitempty"`
-	Helm            *Helm            `json:"helm,omitempty" yaml:"helm,omitempty"`
-	Longhorn        *Longhorn        `json:"longhorn,omitempty" yaml:"longhorn,omitempty"`
-	Sonobuoy        *Sonobuoy        `json:"sonobuoy,omitempty" yaml:"sonobuoy,omitempty"`
-	UFWConfig       *UFWConfig       `json:"ufwConfig,omitempty" yaml:"ufwConfig,omitempty"`
-	Goldpinger      *Goldpinger      `json:"goldpinger,omitempty" yaml:"goldpinger,omitempty"`
+	Kubernetes           *Kubernetes           `json:"kubernetes,omitempty" yaml:"kubernetes,omitempty"`
+	RKE2                 *RKE2                 `json:"rke2,omitempty" yaml:"rke2,omitempty"`
+	K3S                  *K3S                  `json:"k3s,omitempty" yaml:"k3s,omitempty"`
+	Docker               *Docker               `json:"docker,omitempty" yaml:"docker,omitempty"`
+	Weave                *Weave                `json:"weave,omitempty" yaml:"weave,omitempty"`
+	Antrea               *Antrea               `json:"antrea,omitempty" yaml:"antrea,omitempty"`
+	Calico               *Calico               `json:"calico,omitempty" yaml:"calico,omitempty"`
+	Contour              *Contour              `json:"contour,omitempty" yaml:"contour,omitempty"`
+	Rook                 *Rook                 `json:"rook,omitempty" yaml:"rook,omitempty"`
+	Registry             *Registry             `json:"registry,omitempty" yaml:"registry,omitempty"`
+	Prometheus           *Prometheus           `json:"prometheus,omitempty" yaml:"prometheus,omitempty"`
+	Fluentd              *Fluentd              `json:"fluentd,omitempty" yaml:"fluentd,omitempty"`
+	Kotsadm              *Kotsadm              `json:"kotsadm,omitempty" yaml:"kotsadm,omitempty"`
+	Velero               *Velero               `json:"velero,omitempty" yaml:"velero,omitempty"`
+	Minio                *Minio                `json:"minio,omitempty" yaml:"minio,omitempty"`
+	OpenEBS              *OpenEBS              `json:"openebs,omitempty" yaml:"openebs,omitempty"`
+	Kurl                 *Kurl                 `json:"kurl,omitempty" yaml:"kurl,omitempty"`
+	SelinuxConfig        *SelinuxConfig        `json:"selinuxConfig,omitempty" yaml:"selinuxConfig,omitempty"`
+	IptablesConfig       *IptablesConfig       `json:"iptablesConfig,omitempty" yaml:"iptablesConfig,omitempty"`
+	FirewalldConfig      *FirewalldConfig      `json:"firewalldConfig,omitempty" yaml:"firewalldConfig,omitempty"`
+	Ekco                 *Ekco                 `json:"ekco,omitempty" yaml:"ekco,omitempty"`
+	Containerd           *Containerd           `json:"containerd,omitempty" yaml:"containerd,omitempty"`
+	Collectd             *Collectd             `json:"collectd,omitempty" yaml:"collectd,omitempty"`
+	CertManager          *CertManager          `json:"certManager,omitempty" yaml:"certManager,omitempty"`
+	MetricsServer        *MetricsServer        `json:"metricsServer,omitempty" yaml:"metricsServer,omitempty"`
+	Helm                 *Helm                 `json:"helm,omitempty" yaml:"helm,omitempty"`
+	Longhorn             *Longhorn             `json:"longhorn,omitempty" yaml:"longhorn,omitempty"`
+	Sonobuoy             *Sonobuoy             `json:"sonobuoy,omitempty" yaml:"sonobuoy,omitempty"`
+	UFWConfig            *UFWConfig            `json:"ufwConfig,omitempty" yaml:"ufwConfig,omitempty"`
+	Goldpinger           *Goldpinger           `json:"goldpinger,omitempty" yaml:"goldpinger,omitempty"`
+	AWS                  *AWS                  `json:"aws,omitempty" yaml:"aws,omitempty"`
+	LocalPathProvisioner *LocalPathProvisioner `json:"localPathProvisioner,omitempty" yaml:"localPathProvisioner,omitempty"`
 }
 
 type Contour struct {
@@ -93,26 +95,28 @@ type Kotsadm struct {
 }
 
 type Kubernetes struct {
-	BootstrapToken             string `json:"bootstrapToken,omitempty" yaml:"bootstrapToken,omitempty"`
-	BootstrapTokenTTL          string `json:"bootstrapTokenTTL,omitempty" yaml:"bootstrapTokenTTL,omitempty"`
-	CertKey                    string `json:"certKey,omitempty" yaml:"certKey,omitempty"`
-	ControlPlane               bool   `json:"controlPlane,omitempty" yaml:"controlPlane,omitempty"`
-	HACluster                  bool   `json:"HACluster,omitempty" yaml:"HACluster,omitempty"`
-	ContainerLogMaxSize        string `json:"containerLogMaxSize,omitempty" yaml:"containerLogMaxSize,omitempty"`
-	ContainerLogMaxFiles       int    `json:"containerLogMaxFiles,omitempty" yaml:"containerLogMaxFiles,omitempty"`
-	KubeadmToken               string `json:"kubeadmToken,omitempty" yaml:"kubeadmToken,omitempty"`
-	KubeadmTokenCAHash         string `json:"kubeadmTokenCAHash,omitempty" yaml:"kubeadmTokenCAHash,omitempty"`
-	LoadBalancerAddress        string `json:"loadBalancerAddress,omitempty" yaml:"loadBalancerAddress,omitempty"`
-	MasterAddress              string `json:"masterAddress,omitempty" yaml:"masterAddress,omitempty"`
-	S3Override                 string `json:"s3Override,omitempty" yaml:"s3Override,omitempty"`
-	ServiceCIDR                string `json:"serviceCIDR,omitempty" yaml:"serviceCIDR,omitempty"`
-	ServiceCidrRange           string `json:"serviceCidrRange,omitempty" yaml:"serviceCidrRange,omitempty"`
-	UseStandardNodePortRange   bool   `json:"useStandardNodePortRange,omitempty" yaml:"useStandardNodePortRange,omitempty"`
-	KubeReserved               bool   `json:"kubeReserved,omitempty" yaml:"kubeReserved,omitempty"`
-	EvictionThresholdResources string `json:"evictionThresholdResources,omitempty" yaml:"evictionThresholdResources,omitempty"`
-	SystemReservedResources    string `json:"systemReservedResources,omitempty" yaml:"systemReservedResources,omitempty"`
-	Version                    string `json:"version" yaml:"version"`
-	CisCompliance              bool   `json:"cisCompliance,omitempty" yaml:"cisCompliance,omitempty"`
+	BootstrapToken              string `json:"bootstrapToken,omitempty" yaml:"bootstrapToken,omitempty"`
+	BootstrapTokenTTL           string `json:"bootstrapTokenTTL,omitempty" yaml:"bootstrapTokenTTL,omitempty"`
+	CertKey                     string `json:"certKey,omitempty" yaml:"certKey,omitempty"`
+	ControlPlane                bool   `json:"controlPlane,omitempty" yaml:"controlPlane,omitempty"`
+	HACluster                   bool   `json:"HACluster,omitempty" yaml:"HACluster,omitempty"`
+	ContainerLogMaxSize         string `json:"containerLogMaxSize,omitempty" yaml:"containerLogMaxSize,omitempty"`
+	ContainerLogMaxFiles        int    `json:"containerLogMaxFiles,omitempty" yaml:"containerLogMaxFiles,omitempty"`
+	KubeadmToken                string `json:"kubeadmToken,omitempty" yaml:"kubeadmToken,omitempty"`
+	KubeadmTokenCAHash          string `json:"kubeadmTokenCAHash,omitempty" yaml:"kubeadmTokenCAHash,omitempty"`
+	LoadBalancerAddress         string `json:"loadBalancerAddress,omitempty" yaml:"loadBalancerAddress,omitempty"`
+	LoadBalancerUseFirstPrimary bool   `json:"loadBalancerUseFirstPrimary,omitempty" yaml:"loadBalancerUseFirstPrimary,omitempty"`
+	MasterAddress               string `json:"masterAddress,omitempty" yaml:"masterAddress,omitempty"`
+	S3Override                  string `json:"s3Override,omitempty" yaml:"s3Override,omitempty"`
+	ServiceCIDR                 string `json:"serviceCIDR,omitempty" yaml:"serviceCIDR,omitempty"`
+	ServiceCidrRange            string `json:"serviceCidrRange,omitempty" yaml:"serviceCidrRange,omitempty"`
+	UseStandardNodePortRange    bool   `json:"useStandardNodePortRange,omitempty" yaml:"useStandardNodePortRange,omitempty"`
+	KubeReserved                bool   `json:"kubeReserved,omitempty" yaml:"kubeReserved,omitempty"`
+	EvictionThresholdResources  string `json:"evictionThresholdResources,omitempty" yaml:"evictionThresholdResources,omitempty"`
+	SystemReservedResources     string `json:"systemReservedResources,omitempty" yaml:"systemReservedResources,omitempty"`
+	Version                     string `json:"version" yaml:"version"`
+	CisCompliance               bool   `json:"cisCompliance,omitempty" yaml:"cisCompliance,omitempty"`
+	ClusterName                 string `json:"clusterName,omitempty" yaml:"clusterName,omitempty"`
 }
 
 type Kurl struct {
@@ -193,6 +197,7 @@ type Velero struct {
 	DisableRestic            bool   `json:"disableRestic,omitempty" yaml:"disableRestic,omitempty"`
 	LocalBucket              string `json:"localBucket,omitempty" yaml:"localBucket,omitempty"`
 	ResticRequiresPrivileged bool   `json:"resticRequiresPrivileged,omitempty" yaml:"resticRequiresPrivileged,omitempty"`
+	ResticTimeout            string `json:"resticTimeout,omitempty" yaml:"resticTimeout,omitempty"`
 	Version                  string `json:"version" yaml:"version"`
 }
 
@@ -305,6 +310,17 @@ type UFWConfig struct {
 }
 
 type Goldpinger struct {
+	S3Override string `json:"s3Override,omitempty" yaml:"s3Override,omitempty"`
+	Version    string `json:"version" yaml:"version"`
+}
+
+type AWS struct {
+	S3Override          string `json:"s3Override,omitempty" yaml:"s3Override,omitempty"`
+	Version             string `json:"version" yaml:"version"`
+	ExcludeStorageClass bool   `json:"excludeStorageClass,omitempty" yaml:"excludeStorageClass,omitempty"`
+}
+
+type LocalPathProvisioner struct {
 	S3Override string `json:"s3Override,omitempty" yaml:"s3Override,omitempty"`
 	Version    string `json:"version" yaml:"version"`
 }

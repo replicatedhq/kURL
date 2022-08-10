@@ -55,7 +55,11 @@ th, td {
     color: #999999;
   }
 
-  &.Unsupported {
+  &.Unsupported, &.Skipped {
     color: #FFC300;
   }
+}
+
+.cluster-node {
+  padding-top: 10px;
 }

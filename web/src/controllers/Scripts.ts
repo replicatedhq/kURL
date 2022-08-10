@@ -11,7 +11,6 @@ import { Templates } from "../util/services/templates";
 import { MetricsStore } from "../util/services/metrics";
 import { logger } from "../logger";
 import * as requestIP from "request-ip";
-import { ServerError } from "../server/errors";
 
 interface ErrorResponse {
   error: any;
@@ -40,7 +39,7 @@ export class Installers {
    */
   @Get("/version/:kurlVersion/:installerID/join.sh")
   @Get("/:installerID/join.sh")
-  @instrumented
+  @instrumented()
   public async getJoin(
     @Res() response: Express.Response,
     @PathParams("installerID") installerID: string,
@@ -72,7 +71,7 @@ export class Installers {
    */
   @Get("/version/:kurlVersion/:installerID/upgrade.sh")
   @Get("/:installerID/upgrade.sh")
-  @instrumented
+  @instrumented()
   public async getUpgrade(
     @Res() response: Express.Response,
     @PathParams("installerID") installerID: string,
@@ -98,7 +97,7 @@ export class Installers {
 
   @Get("/version/:kurlVersion/:installerID/tasks.sh")
   @Get("/:installerID/tasks.sh")
-  @instrumented
+  @instrumented()
   public async getTasks(
     @Res() response: Express.Response,
     @PathParams("installerID") installerID: string,
@@ -147,7 +146,7 @@ export class Installers {
   @Get("/:installerID/install.sh")
   @Get("/version/:kurlVersion/:installerID")
   @Get("/:installerID")
-  @instrumented
+  @instrumented()
   public async getInstaller(
     @Res() response: Express.Response,
     @Req() request: Express.Request,

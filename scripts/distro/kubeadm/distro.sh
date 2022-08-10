@@ -35,6 +35,9 @@ function kubeadm_get_server_ca_key() {
 function kubeadm_addon_for_each() {
     local cmd="$1"
 
+    if [ "$cmd" != "addon_install" ]; then # this is run in install_cri
+        $cmd containerd "$CONTAINERD_VERSION" "$CONTAINERD_S3_OVERRIDE"
+    fi
     $cmd aws "$AWS_VERSION"
     $cmd nodeless "$NODELESS_VERSION"
     $cmd calico "$CALICO_VERSION" "$CALICO_S3_OVERRIDE"
@@ -44,6 +47,8 @@ function kubeadm_addon_for_each() {
     $cmd ekco "$EKCO_VERSION" "$EKCO_S3_OVERRIDE"
     $cmd openebs "$OPENEBS_VERSION" "$OPENEBS_S3_OVERRIDE"
     $cmd longhorn "$LONGHORN_VERSION" "$LONGHORN_S3_OVERRIDE"
+    $cmd local-path-provisioner "$LOCAL_PATH_PROVISIONER_VERSION" "$LOCAL_PATH_PROVISIONER_S3_OVERRIDE"
+    $cmd aws "$AWS_VERSION" "$AWS_S3_OVERRIDE"
     $cmd minio "$MINIO_VERSION" "$MINIO_S3_OVERRIDE"
     $cmd contour "$CONTOUR_VERSION" "$CONTOUR_S3_OVERRIDE"
     $cmd registry "$REGISTRY_VERSION" "$REGISTRY_S3_OVERRIDE"
@@ -83,6 +88,13 @@ function kubeadm_weave_reset() {
 
     DOCKER_BRIDGE=docker0
 
+    WEAVEEXEC_IMAGE="weaveworks/weaveexec"
+
+    kurlshWeaveVersionPattern='^[0-9]+\.[0-9]+\.[0-9]+-(.*)-(20)[0-9]{6}$'
+    if [[ $WEAVE_TAG =~ $kurlshWeaveVersionPattern ]] ; then
+        WEAVEEXEC_IMAGE="kurlsh/weaveexec"
+    fi
+
     # https://github.com/weaveworks/weave/blob/v2.8.1/weave#L461
     for NETDEV in $BRIDGE $DATAPATH ; do
         if [ -d /sys/class/net/$NETDEV ] ; then
@@ -90,12 +102,12 @@ function kubeadm_weave_reset() {
                 ip link del $NETDEV
             else
                 if [ -n "$DOCKER_VERSION" ]; then
-                    docker run --rm --pid host --net host --privileged --entrypoint=/usr/bin/weaveutil weaveworks/weaveexec:$WEAVE_TAG delete-datapath $NETDEV
+                    docker run --rm --pid host --net host --privileged --entrypoint=/usr/bin/weaveutil $WEAVEEXEC_IMAGE:$WEAVE_TAG delete-datapath $NETDEV
                 else
                     # --pid host
                     local guid=$(< /dev/urandom tr -dc A-Za-z0-9 | head -c16)
                     # TODO(ethan): rke2 containerd.sock path is incorrect
-                    ctr -n=k8s.io run --rm --net-host --privileged docker.io/weaveworks/weaveexec:$WEAVE_TAG $guid /usr/bin/weaveutil delete-datapath $NETDEV
+                    ctr -n=k8s.io run --rm --net-host --privileged docker.io/$WEAVEEXEC_IMAGE:$WEAVE_TAG $guid /usr/bin/weaveutil delete-datapath $NETDEV
                 fi
             fi
         fi
@@ -115,7 +127,7 @@ function kubeadm_weave_reset() {
     kubeadm_run_iptables -t filter -D INPUT -i $DOCKER_BRIDGE -p tcp --dport 53  -j ACCEPT  >/dev/null 2>&1 || true
 
     if [ -n "$DOCKER_VERSION" ]; then
-        DOCKER_BRIDGE_IP=$(docker run --rm --pid host --net host --privileged -v /var/run/docker.sock:/var/run/docker.sock --entrypoint=/usr/bin/weaveutil weaveworks/weaveexec:$WEAVE_TAG bridge-ip $DOCKER_BRIDGE)
+        DOCKER_BRIDGE_IP=$(docker run --rm --pid host --net host --privileged -v /var/run/docker.sock:/var/run/docker.sock --entrypoint=/usr/bin/weaveutil $WEAVEEXEC_IMAGE:$WEAVE_TAG bridge-ip $DOCKER_BRIDGE)
 
         kubeadm_run_iptables -t filter -D INPUT -i $DOCKER_BRIDGE -p tcp --dst $DOCKER_BRIDGE_IP --dport $PORT          -j DROP >/dev/null 2>&1 || true
         kubeadm_run_iptables -t filter -D INPUT -i $DOCKER_BRIDGE -p udp --dst $DOCKER_BRIDGE_IP --dport $PORT          -j DROP >/dev/null 2>&1 || true
