@@ -388,14 +388,14 @@ spec:
                 when: "timezone == UTC"
                 message: "Timezone is set to UTC"
     - hostOS:
-        checkName: "Docker Not Supported on Ubuntu 22.04"
+        checkName: "Docker Support"
         exclude: '{{kurl not .Installer.Spec.Docker.Version}}'
         outcomes:
           - fail:
               when: "ubuntu = 22.04"
               message: "Docker addon does not support ubuntu 22.04"
     - hostOS:
-        checkName: "Collectd Not Supported on Ubuntu 22.04"
+        checkName: "Collectd Support"
         exclude: '{{kurl not .Installer.Spec.Collectd.Version}}'
         outcomes:
           - fail:
