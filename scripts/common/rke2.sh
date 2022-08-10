@@ -290,7 +290,7 @@ function rke2_outro() {
 
     # local common_flags
     # common_flags="${common_flags}$(get_docker_registry_ip_flag "${DOCKER_REGISTRY_IP}")"
-    # common_flags="${common_flags}$(get_additional_no_proxy_addresses_flag "${PROXY_ADDRESS}" "${SERVICE_CIDR},${POD_CIDR}")"
+    # common_flags="${common_flags}$(get_additional_no_proxy_addresses_flag "${PROXY_ADDRESS}" "${ADDITIONAL_NO_PROXY_ADDRESSES},${SERVICE_CIDR},${POD_CIDR}")"
     # common_flags="${common_flags}$(get_kurl_install_directory_flag "${KURL_INSTALL_DIRECTORY_FLAG}")"
 
     # TODO(dan): move this somewhere into the k8s distro

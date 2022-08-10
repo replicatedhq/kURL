@@ -312,11 +312,15 @@ function join_token() {
 
     local service_cidr=$(kubectl -n kube-system get cm kurl-config -ojsonpath='{ .data.service_cidr }')
     local pod_cidr=$(kubectl -n kube-system get cm kurl-config -ojsonpath='{ .data.pod_cidr }')
+    local additional_no_proxy_addresses=$(kubectl -n kube-system get cm kurl-config -ojsonpath='{ .data.additional_no_proxy_addresses }')
     local kurl_install_directory=$(kubectl -n kube-system get cm kurl-config -ojsonpath='{ .data.kurl_install_directory }')
     local docker_registry_ip=$(kubectl -n kurl get service registry -o=jsonpath='{@.spec.clusterIP}' 2>/dev/null || echo "")
 
     local common_flags
     common_flags="${common_flags}$(get_docker_registry_ip_flag "${docker_registry_ip}")"
+    if [ -n "$additional_no_proxy_addresses" ]; then
+        common_flags="${common_flags}$(get_additional_no_proxy_addresses_flag "1" "${ADDITIONAL_NO_PROXY_ADDRESSES}")"
+    fi
     if [ -n "$service_cidr" ] && [ -n "$pod_cidr" ]; then
         common_flags="${common_flags}$(get_additional_no_proxy_addresses_flag "1" "${service_cidr},${pod_cidr}")"
     fi
