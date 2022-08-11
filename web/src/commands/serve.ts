@@ -7,6 +7,7 @@ import BugsnagPluginExpress from "@bugsnag/plugin-express";
 import { initMysqlPool } from "../util/persistence/mysql";
 import { Server } from "../server/server";
 import * as metrics from "../metrics";
+import {startExternalAddonPulling} from "../installers/installer-versions"
 
 exports.name = "serve";
 exports.describe = "Run the server";
@@ -39,6 +40,7 @@ export async function main(argv: any): Promise<void> {
       appVersion: process.env["VERSION"],
     });
   }
+  await startExternalAddonPulling();
 
   metrics.bootstrapFromEnv();
 

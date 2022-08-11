@@ -1057,16 +1057,16 @@ export class Installer {
   public static async resolveVersion(config: string, version: string, kurlVersion?: string): Promise<string> {
     const distUrl = getDistUrl();
 
-    const installerversions = await getInstallerVersions(distUrl, kurlVersion);
+    const installerVersions = await getInstallerVersions(distUrl, kurlVersion);
 
     if (version === "latest") {
-      return _.first(installerversions[config]) || "latest";
+      return _.first(installerVersions[config]) || "latest";
     }
     if (!version.endsWith(".x")) {
       return version
     }
 
-    let addonInstallerVersions = installerversions[config] || [];
+    let addonInstallerVersions = installerVersions[config] || [];
 
     if (config in Installer.replaceVersions) {
       Object.keys(Installer.replaceVersions[config]).forEach((k: string) => {
