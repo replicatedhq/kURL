@@ -27,7 +27,6 @@ exports.handler = (argv: any) => {
 
 export async function main(argv: any): Promise<void> {
   sourceMapSupport.install();
-  await startExternalAddonPulling();
 
   if (process.env["NEW_RELIC_LICENSE_KEY"]) {
     require("newrelic");
@@ -41,6 +40,7 @@ export async function main(argv: any): Promise<void> {
       appVersion: process.env["VERSION"],
     });
   }
+  await startExternalAddonPulling();
 
   metrics.bootstrapFromEnv();
 
