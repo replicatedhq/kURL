@@ -146,7 +146,7 @@ EOF
         rm config.yml
     fi
     if kubernetes_resource_exists kurl secret registry-s3-secret; then
-        kubectl -n kurl patch secret registry-s3-secret -p "{\"stringData\":{\"access-key-id\":\"${MINIO_ACCESS_KEY_ID}\",\"secret-access-key\":\"${MINIO_ACCESS_KEY_SECRET}\",\"object-store-cluster-ip\":\"${MINIO_CLUSTER_IP}\"}}"
+        kubectl -n kurl patch secret registry-s3-secret -p "{\"stringData\":{\"access-key-id\":\"${MINIO_ACCESS_KEY_ID}\",\"secret-access-key\":\"${MINIO_ACCESS_KEY_SECRET}\",\"object-store-cluster-ip\":\"${MINIO_CLUSTER_IP}\",\"object-store-hostname\":\"http://${MINIO_HOST}\"}}"
     fi
     if kubernetes_resource_exists kurl deployment registry; then
         kubectl -n kurl rollout restart deployment registry
