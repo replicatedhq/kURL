@@ -18,7 +18,7 @@ let externalAddonTimer;
 function mergeAddonVersions(internalAddonVersions: IInstallerVersions, kurlVersion?: string) {
   const addons: IInstallerVersions = {};
   Object.keys(externalAddons).forEach(externalAddonName => {
-    const fileName = externalAddonName.slice(0, externalAddonName.length - 7);
+    const fileName = externalAddonName.slice(0, externalAddonName.length - 7); // trim off .tar.gz
     const [name, version] = fileName.split("-");
     if(!kurlVersion || semver.gte(version, kurlVersion)) {
       if(!addons[name]) {
