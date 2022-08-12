@@ -21,6 +21,9 @@ import (
 // this is modified by unit test functions to add mock command/response entries
 var execFunction func(coreClient corev1client.CoreV1Interface, clientConfig *restclient.Config, ns, pod, container string, command ...string) (int, string, string, error) = k8sutil.SyncExec
 
+// this is the config used to exec commands in a pod
+var conf *restclient.Config
+
 // determine if the rook-ceph-toolbox deployment exists; if it does ensure scale is proper; if it does not create it with the rook image used by the operator
 func startToolbox(ctx context.Context, client kubernetes.Interface) error {
 	existingToolbox, err := client.AppsV1().Deployments("rook-ceph").Get(ctx, "rook-ceph-tools", metav1.GetOptions{})
@@ -79,6 +82,20 @@ func operatorImage(ctx context.Context, client kubernetes.Interface) (string, er
 	return existingOperator.Spec.Template.Spec.Containers[0].Image, nil
 }
 
+func cacheConfig() (*restclient.Config, error) {
+	if conf != nil {
+		return conf, nil
+	}
+
+	k8sConfig, err := config.GetConfig()
+	if err != nil {
+		return nil, fmt.Errorf("unable to get rest config: %w", err)
+	}
+	conf = k8sConfig
+
+	return k8sConfig, nil
+}
+
 // run a specified command in the toolbox, and return the output if the command ran, and an error otherwise
 func runToolboxCommand(ctx context.Context, client kubernetes.Interface, inContainer []string) (string, error) {
 	pods, err := client.CoreV1().Pods("rook-ceph").List(ctx, metav1.ListOptions{LabelSelector: "app=rook-ceph-tools"})
@@ -96,7 +113,7 @@ func runToolboxCommand(ctx context.Context, client kubernetes.Interface, inConta
 
 	prettyCmd := strings.Join(inContainer, " ")
 	podName := pods.Items[0].Name
-	k8sConfig, err := config.GetConfig()
+	k8sConfig, err := cacheConfig()
 	if err != nil {
 		return "", fmt.Errorf("unable to get rest config to exec in container: %w", err)
 	}
