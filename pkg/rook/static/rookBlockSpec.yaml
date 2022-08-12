@@ -1,0 +1,27 @@
+apiVersion: ceph.rook.io/v1
+kind: CephCluster
+metadata:
+  name: rook-ceph
+  namespace: rook-ceph
+spec:
+  cephVersion:
+    image: kurlsh/ceph:v14.2.0-9065b09-20210625
+  dashboard:
+    enabled: true
+  dataDirHostPath: /var/lib/rook
+  mon:
+    allowMultiplePerNode: false
+    count: 1
+    preferredCount: 3
+  network:
+    hostNetwork: false
+  rbdMirroring:
+    workers: 0
+  storage:
+    config: null
+    nodes:
+      - config: null
+        name: laverya-rook-testing
+        resources: {}
+    useAllDevices: true
+    useAllNodes: true
