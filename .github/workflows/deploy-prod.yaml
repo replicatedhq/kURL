@@ -33,14 +33,14 @@ jobs:
         docker build -f deploy/Dockerfile-slim \
           --build-arg version=${GITHUB_SHA:0:7} \
           --build-arg version_tag=${VERSION_TAG} \
-          -t 799720048698.dkr.ecr.us-east-1.amazonaws.com/kurl:${GITHUB_SHA:0:7} .
+          -t 799720048698.dkr.ecr.us-east-1.amazonaws.com/kurl:${VERSION_TAG} .
     - uses: docker/login-action@v2
       with:
         registry: 799720048698.dkr.ecr.us-east-1.amazonaws.com
         username: ${{ secrets.AWS_PROD_ACCESS_KEY_ID }}
         password: ${{ secrets.AWS_PROD_SECRET_ACCESS_KEY }}
 
-    - run: docker push 799720048698.dkr.ecr.us-east-1.amazonaws.com/kurl:${GITHUB_SHA:0:7}
+    - run: docker push 799720048698.dkr.ecr.us-east-1.amazonaws.com/kurl:${VERSION_TAG}
 
   kurl-util-image:
     runs-on: ubuntu-18.04
@@ -151,7 +151,7 @@ jobs:
           sudo mv kustomize_*_linux_amd64 /usr/local/bin/kustomize && \
           sudo chmod +x /usr/local/bin/kustomize
         pushd kustomize/overlays/production
-        kustomize edit set image 799720048698.dkr.ecr.us-east-1.amazonaws.com/kurl:${GITHUB_SHA:0:7}
+        kustomize edit set image 799720048698.dkr.ecr.us-east-1.amazonaws.com/kurl:${VERSION_TAG}
         kustomize build . | sed "s/__VERSION_TAG__/${VERSION_TAG}/g" > kurl.yaml
         popd
 
