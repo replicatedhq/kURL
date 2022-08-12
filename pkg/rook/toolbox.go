@@ -3,18 +3,18 @@ package rook
 import (
 	"context"
 	"fmt"
-	"github.com/replicatedhq/kurl/pkg/k8sutil"
-	corev1client "k8s.io/client-go/kubernetes/typed/core/v1"
-	restclient "k8s.io/client-go/rest"
-	"sigs.k8s.io/controller-runtime/pkg/client/config"
 	"strings"
 
+	"github.com/replicatedhq/kurl/pkg/k8sutil"
 	"github.com/replicatedhq/kurl/pkg/rook/static"
 	appsv1 "k8s.io/api/apps/v1"
 	autoscalingv1 "k8s.io/api/autoscaling/v1"
 	k8sErrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
+	corev1client "k8s.io/client-go/kubernetes/typed/core/v1"
+	restclient "k8s.io/client-go/rest"
+	"sigs.k8s.io/controller-runtime/pkg/client/config"
 	yaml "sigs.k8s.io/yaml"
 )
 
@@ -30,9 +30,18 @@ func startToolbox(ctx context.Context, client kubernetes.Interface) error {
 	if err == nil {
 		// toolbox exists
 		if existingToolbox.Status.Replicas == 0 {
+			// toolbox needs to be scaled up
 			_, err = client.AppsV1().Deployments("rook-ceph").UpdateScale(ctx, "rook-ceph-tools", &autoscalingv1.Scale{Spec: autoscalingv1.ScaleSpec{Replicas: 1}}, metav1.UpdateOptions{})
-			return fmt.Errorf("unable to scale up rook-ceph-tools deployment: %w", err)
+			if err != nil {
+				return fmt.Errorf("unable to scale up rook-ceph-tools deployment: %w", err)
+			}
+
+			err = awaitDeploymentScale(ctx, client, "rook-ceph", "rook-ceph-tools", 1)
+			if err != nil {
+				return fmt.Errorf("unable to wait for rook-ceph-tools to scale up: %w", err)
+			}
 		}
+
 		return nil
 	}
 	if !k8sErrors.IsNotFound(err) {
