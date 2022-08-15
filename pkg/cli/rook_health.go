@@ -1,12 +1,11 @@
 package cli
 
 import (
-	"context"
 	"fmt"
+
 	"github.com/replicatedhq/kurl/pkg/rook"
 	"github.com/spf13/cobra"
 	"k8s.io/client-go/kubernetes"
-	"os"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 )
 
@@ -18,20 +17,20 @@ func NewRookHealthCmd(cli CLI) *cobra.Command {
 			k8sConfig := config.GetConfigOrDie()
 			clientSet := kubernetes.NewForConfigOrDie(k8sConfig)
 
-			rook.InitWriter(os.Stdout)
+			rook.InitWriter(cmd.OutOrStdout())
 
-			healthy, errMsg, err := rook.RookHealth(context.TODO(), clientSet)
+			healthy, errMsg, err := rook.RookHealth(cmd.Context(), clientSet)
 			if err != nil {
-				fmt.Printf("failed to check rook health: %s", err.Error())
-				return nil
+				return fmt.Errorf("failed to check rook health: %w", err)
 			}
 			if !healthy {
-				fmt.Printf("rook unhealthy: %s", errMsg)
-				return nil
+				return fmt.Errorf("rook unhealthy: %s", errMsg)
 			}
 
+			fmt.Printf("Rook is healthy")
 			return nil
 		},
+		SilenceUsage: true,
 	}
 	return cmd
 }

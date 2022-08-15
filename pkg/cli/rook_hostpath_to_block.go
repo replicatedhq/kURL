@@ -3,7 +3,6 @@ package cli
 import (
 	"github.com/replicatedhq/kurl/pkg/rook"
 	"github.com/spf13/cobra"
-	"os"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 )
 
@@ -14,11 +13,13 @@ func NewHostpathToBlockCmd(cli CLI) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			k8sConfig := config.GetConfigOrDie()
 
-			rook.InitWriter(os.Stdout)
+			rook.InitWriter(cmd.OutOrStdout())
 
-			err := rook.HostpathToOsd(k8sConfig)
+			err := rook.HostpathToOsd(cmd.Context(), k8sConfig)
 			return err
 		},
+		SilenceUsage: true,
 	}
+
 	return cmd
 }

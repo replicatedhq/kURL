@@ -1,3 +1,4 @@
+# this file is a reference for what a cephcluster configured to use block storage may look like
 apiVersion: ceph.rook.io/v1
 kind: CephCluster
 metadata:
@@ -19,8 +20,9 @@ spec:
     workers: 0
   storage:
     config: null
-    directories:
+    nodes:
       - config: null
-        path: /opt/replicated/rook
-    useAllDevices: false
+        name: laverya-rook-testing
+        resources: {}
+    useAllDevices: true
     useAllNodes: true

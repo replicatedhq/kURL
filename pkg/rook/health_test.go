@@ -2,10 +2,11 @@ package rook
 
 import (
 	"encoding/json"
+	"testing"
+
 	"github.com/replicatedhq/kurl/pkg/rook/cephtypes"
 	"github.com/replicatedhq/kurl/pkg/rook/testfiles"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func Test_isStatusHealthy(t *testing.T) {

@@ -16,11 +16,9 @@ import (
 
 var loopSleep = time.Second * 5
 
-func HostpathToOsd(config *rest.Config) error {
+func HostpathToOsd(ctx context.Context, config *rest.Config) error {
 	client := kubernetes.NewForConfigOrDie(config)
 	cephClient := cephv1.NewForConfigOrDie(config)
-
-	ctx := context.TODO()
 
 	out("Adding blockdevice-based Rook OSDs and removing all Hostpath-based OSDs to allow upgrading Rook")
 	// start rook-ceph-tools deployment if not present
