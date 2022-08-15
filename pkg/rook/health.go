@@ -157,14 +157,15 @@ func safeToRemoveOSD(ctx context.Context, client kubernetes.Interface, osd int64
 	return isSafe, remainingPGs, nil
 }
 
+var safeToRemoveOSDRegex = regexp.MustCompile(`OSD\(s\) \d+ are safe to destroy without reducing data durability\.`)
+var pendingPgsOnOSDRegex = regexp.MustCompile(`Error EBUSY: OSD\(s\) \d+ have (\d+) pgs currently mapped to them\.`)
+
 // parse the output of `ceph osd safe-to-destroy osd.<num>` and return if the OSD is safe to destroy and how many PGs remain
 func parseSafeToRemoveOSD(output string) (bool, int) {
-	safeToRemoveOSDRegex := regexp.MustCompile(`OSD\(s\) \d+ are safe to destroy without reducing data durability\.`)
 	if safeToRemoveOSDRegex.MatchString(output) {
 		return true, 0
 	}
 
-	pendingPgsOnOSDRegex := regexp.MustCompile(`Error EBUSY: OSD\(s\) \d+ have (\d+) pgs currently mapped to them\.`)
 	pendingPgsMatch := pendingPgsOnOSDRegex.FindStringSubmatch(output)
 	if pendingPgsMatch != nil && len(pendingPgsMatch) >= 2 {
 		pgnum, err := strconv.ParseInt(pendingPgsMatch[1], 10, 32)

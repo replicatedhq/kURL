@@ -110,19 +110,23 @@ func enableBlockDevices(ctx context.Context, client kubernetes.Interface, cephCl
 	return nil
 }
 
-// later rook imports do not have the structs for directory storage, so any update removes it
 func patchCephcluster(ctx context.Context, cephClient *cephv1.CephV1Client) error {
-	cluster, err := cephClient.CephClusters("rook-ceph").Get(ctx, "rook-ceph", metav1.GetOptions{})
+	enableBlockDisableDirectories := `
+[
+  {
+    "op": "replace",
+    "path": "/spec/storage/useAllDevices",
+    "value": true
+  },
+  {
+    "op": "remove",
+    "path": "/spec/storage/directories"
+  }
+]
+`
+	_, err := cephClient.CephClusters("rook-ceph").Patch(ctx, "rook-ceph", types.JSONPatchType, []byte(enableBlockDisableDirectories), metav1.PatchOptions{})
 	if err != nil {
-		return fmt.Errorf("unable to get cephcluster to modify: %w", err)
-	}
-
-	truebool := true
-	cluster.Spec.Storage.UseAllDevices = &truebool
-
-	_, err = cephClient.CephClusters("rook-ceph").Update(ctx, cluster, metav1.UpdateOptions{})
-	if err != nil {
-		return fmt.Errorf("unable to update cephcluster: %w", err)
+		return fmt.Errorf("unable to patch cephcluster: %w", err)
 	}
 
 	return nil
