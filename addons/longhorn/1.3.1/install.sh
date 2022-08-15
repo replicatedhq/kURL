@@ -1,6 +1,7 @@
 # shellcheck disable=SC2148
 
-DID_MIGRATE_ROOK_PVCS=
+export SKIP_LONGHORN_INSTALL=0
+export DID_MIGRATE_ROOK_PVCS=0
 
 function longhorn_pre_init() {
     if [ -z "$LONGHORN_UI_BIND_PORT" ]; then
@@ -20,10 +21,21 @@ function longhorn_pre_init() {
     fi
 
     # Can only upgrade 1 minor version at a time
-    longhorn_bail_upgrade_unsupported
+    if ! longhorn_can_upgrade ; then
+        if ! confirmY ; then
+            bail "Please upgrade to the previous minor version first."
+        fi
+        SKIP_LONGHORN_INSTALL=1
+    fi
 }
 
 function longhorn() {
+    if [ "$SKIP_LONGHORN_INSTALL" = "1" ]; then
+        local current_version
+        current_version=$(longhorn_current_version)
+        echo "Longhorn $current_version is already installed, will not upgrade to ${LONGHORN_VERSION}"
+    fi
+
     local src="$DIR/addons/longhorn/$LONGHORN_VERSION"
     local dst="$DIR/kustomize/longhorn"
 
@@ -98,8 +110,10 @@ function longhorn_has_default_storageclass() {
 
 function longhorn_daemonset_is_ready() {
     local dsname=$1
-    local desired=$(kubectl get daemonsets -n longhorn-system $dsname --no-headers | tr -s ' ' | cut -d ' ' -f2)
-    local ready=$(kubectl get daemonsets -n longhorn-system $dsname --no-headers | tr -s ' ' | cut -d ' ' -f4)
+    local desired=
+    local ready=
+    desired=$(kubectl get daemonsets -n longhorn-system "$dsname" --no-headers | tr -s ' ' | cut -d ' ' -f2)
+    ready=$(kubectl get daemonsets -n longhorn-system "$dsname" --no-headers | tr -s ' ' | cut -d ' ' -f4)
 
     if [ "$desired" = "$ready" ] && [ -n "$desired" ] && [ "$desired" != "0" ]; then
         return 0
@@ -131,8 +145,10 @@ function longhorn_check_mount_propagation() {
 # pass if at least one node will support longhorn, but with a warning if there are nodes that won't
 # only fail if there is no chance that longhorn will work on any nodes, as installations may have dedicated 'storage' vs 'not-storage' nodes
 function longhorn_validate_ds() {
-    local allpods=$(kubectl get daemonsets -n longhorn-system longhorn-environment-check --no-headers | tr -s ' ' | cut -d ' ' -f4)
-    local bidirectional=$(kubectl get pods -n longhorn-system -l app=longhorn-environment-check -o=jsonpath='{.items[*].spec.containers[0].volumeMounts[*]}' | grep -o 'Bidirectional' | wc -l)
+    local allpods=
+    local bidirectional=
+    allpods=$(kubectl get daemonsets -n longhorn-system longhorn-environment-check --no-headers | tr -s ' ' | cut -d ' ' -f4)
+    bidirectional=$(kubectl get pods -n longhorn-system -l app=longhorn-environment-check -o=jsonpath='{.items[*].spec.containers[0].volumeMounts[*]}' | grep -o 'Bidirectional' | wc -l)
 
     if [ "$allpods" == "" ] || [ "$allpods" -eq "0" ]; then
         logWarn "unable to determine health and status of longhorn-environment-check daemonset"
@@ -152,15 +168,17 @@ function longhorn_validate_ds() {
 # if this is a multinode cluster, we need to prepare all hosts to run the daemonset
 function longhorn_maybe_init_hosts() {
     while true; do
-        local desired=$(kubectl get daemonsets -n longhorn-system longhorn-manager --no-headers | tr -s ' ' | cut -d ' ' -f2)
-        local ready=$(kubectl get daemonsets -n longhorn-system longhorn-manager --no-headers | tr -s ' ' | cut -d ' ' -f4)
+        local desired=
+        local ready=
+        desired=$(kubectl get daemonsets -n longhorn-system longhorn-manager --no-headers | tr -s ' ' | cut -d ' ' -f2)
+        ready=$(kubectl get daemonsets -n longhorn-system longhorn-manager --no-headers | tr -s ' ' | cut -d ' ' -f4)
 
         if [ "$desired" = "$ready" ] && [ -n "$desired" ] && [ "$desired" -ge "1" ]; then
             return
         fi
 
-        while read -r podName; do            
-            if kubectl -n longhorn-system logs -p $podName | grep -q 'please make sure you have iscsiadm/open-iscsi installed on the host'; then
+        while read -r pod_name; do
+            if kubectl -n longhorn-system logs -p "$pod_name" | grep -q 'please make sure you have iscsiadm/open-iscsi installed on the host'; then
                 printf "\nRun this script on all nodes to install Longhorn prerequisites:\n"
                 if [ "$AIRGAP" = "1" ]; then
                     printf "\n\t${GREEN}cat ./tasks.sh | sudo bash -s longhorn-node-initilize airgap${NC}\n\n"
@@ -196,19 +214,23 @@ function longhorn_maybe_migrate_from_rook() {
     if [ -z "$ROOK_VERSION" ]; then
         if kubectl get ns | grep -q rook-ceph; then
             rook_ceph_to_longhorn
-            export DID_MIGRATE_ROOK_PVCS="1" # used to automatically delete rook-ceph if object store data was also migrated
+            export DID_MIGRATE_ROOK_PVCS=1 # used to automatically delete rook-ceph if object store data was also migrated
         fi
     fi
 }
 
-function longhorn_bail_upgrade_unsupported() {
-    local current_version="$(longhorn_current_version)"
-    semverParse "${current_version}"
-    local current_version_minor="${minor}"
+# do not upgrade more than one minor version at a time
+function longhorn_can_upgrade() {
+    local current_version=
+    current_version="$(longhorn_current_version)"
 
     if [ -z "$current_version" ]; then
-        return
+        return 0
     fi
+
+    semverParse "${current_version}"
+    # shellcheck disable=SC2154
+    local current_version_minor="${minor}"
 
     semverParse "${LONGHORN_VERSION}"
     local next_version_minor="${minor}"
@@ -216,9 +238,10 @@ function longhorn_bail_upgrade_unsupported() {
     local previous_version_minor="$((next_version_minor-1))"
 
     if [ "$current_version_minor" -lt "$previous_version_minor" ]; then
-        logFail "Upgrades to Longhorn version ${LONGHORN_VERSION} from versions prior to 1.${previous_version_minor}.x are unsupported."
-        bail "Please upgrade to the previous minor version first."
+        logWarn "Upgrades to Longhorn version ${LONGHORN_VERSION} from versions prior to 1.${previous_version_minor}.x are unsupported."
+        return 1
     fi
+    return 0
 }
 
 function longhorn_current_version() {
