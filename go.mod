@@ -26,6 +26,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/replicatedhq/pvmigrate v0.5.0
 	github.com/replicatedhq/troubleshoot v0.40.0
+	github.com/rook/rook v1.6.11
 	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/afero v1.9.2
 	github.com/spf13/cobra v1.5.0
@@ -48,6 +49,7 @@ require (
 	kubevirt.io/client-go v0.55.0
 	sigs.k8s.io/controller-runtime v0.12.3
 	sigs.k8s.io/controller-tools v0.9.2
+	sigs.k8s.io/yaml v1.3.0
 )
 
 require (
@@ -76,6 +78,8 @@ require (
 	github.com/containers/libtrust v0.0.0-20200511145503-9c3a6c22cd9a // indirect
 	github.com/containers/ocicrypt v1.1.4 // indirect
 	github.com/containers/storage v1.40.0 // indirect
+	github.com/coreos/go-systemd v0.0.0-20191104093116-d3cd4ed1dbcf // indirect
+	github.com/coreos/pkg v0.0.0-20180928190104-399ea9e2e55f // indirect
 	github.com/coreos/prometheus-operator v0.38.0 // indirect
 	github.com/cyphar/filepath-securejoin v0.2.3 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
@@ -88,10 +92,10 @@ require (
 	github.com/evanphx/json-patch v4.12.0+incompatible // indirect
 	github.com/felixge/httpsnoop v1.0.1 // indirect
 	github.com/fsnotify/fsnotify v1.5.4 // indirect
-	github.com/ghodss/yaml v1.0.0 // indirect
+	github.com/ghodss/yaml v1.0.1-0.20190212211648-25d852aebe32 // indirect
 	github.com/go-errors/errors v1.0.1 // indirect
-	github.com/go-ini/ini v1.25.4 // indirect
-	github.com/go-kit/kit v0.9.0 // indirect
+	github.com/go-ini/ini v1.62.0 // indirect
+	github.com/go-kit/kit v0.10.0 // indirect
 	github.com/go-logfmt/logfmt v0.5.0 // indirect
 	github.com/go-logr/logr v1.2.3 // indirect
 	github.com/go-logr/zapr v1.2.0 // indirect
@@ -127,7 +131,7 @@ require (
 	github.com/hashicorp/go-safetemp v1.0.0 // indirect
 	github.com/hashicorp/go-version v1.3.0 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
-	github.com/hashicorp/yamux v0.0.0-20180604194846-3520598351bb // indirect
+	github.com/hashicorp/yamux v0.0.0-20181012175058-2f1d1f20f75d // indirect
 	github.com/huandu/xstrings v1.3.2 // indirect
 	github.com/imdario/mergo v0.3.12 // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
@@ -135,7 +139,7 @@ require (
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
-	github.com/k8snetworkplumbingwg/network-attachment-definition-client v0.0.0-20191119172530-79f836b90111 // indirect
+	github.com/k8snetworkplumbingwg/network-attachment-definition-client v1.1.0 // indirect
 	github.com/kardianos/osext v0.0.0-20190222173326-2bc1f35cddc0 // indirect
 	github.com/klauspost/compress v1.15.2 // indirect
 	github.com/klauspost/pgzip v1.2.5 // indirect
@@ -160,7 +164,7 @@ require (
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/monochromegane/go-gitignore v0.0.0-20200626010858-205db1a8cc00 // indirect
-	github.com/oklog/run v1.0.0 // indirect
+	github.com/oklog/run v1.1.0 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.0.3-0.20211202193544-a5463b7f9c84 // indirect
 	github.com/opencontainers/runc v1.1.3 // indirect
@@ -196,7 +200,7 @@ require (
 	github.com/vbatts/tar-split v0.11.2 // indirect
 	github.com/vbauerster/mpb/v7 v7.4.1 // indirect
 	github.com/vishvananda/netns v0.0.0-20210104183010-2eb08e3e575f // indirect
-	github.com/xlab/treeprint v0.0.0-20181112141820-a009c3971eca // indirect
+	github.com/xlab/treeprint v1.0.0 // indirect
 	github.com/yusufpapurcu/wmi v1.2.2 // indirect
 	go.etcd.io/bbolt v1.3.6 // indirect
 	go.mozilla.org/pkcs7 v0.0.0-20200128120323-432b2356ecb1 // indirect
@@ -235,12 +239,10 @@ require (
 	sigs.k8s.io/kustomize/api v0.11.4 // indirect
 	sigs.k8s.io/kustomize/kyaml v0.13.6 // indirect
 	sigs.k8s.io/structured-merge-diff/v4 v4.2.1 // indirect
-	sigs.k8s.io/yaml v1.3.0 // indirect
 )
 
 replace (
 	// from github.com/replicatedhq/troubleshoot and github.com/kubevirt/client-go
-	github.com/StackExchange/wmi => github.com/yusufpapurcu/wmi v1.2.2
 	github.com/go-ole/go-ole => github.com/go-ole/go-ole v1.2.6 // needed for arm builds
 	github.com/openshift/api => github.com/openshift/api v0.0.0-20210105115604-44119421ec6b
 	k8s.io/api => k8s.io/api v0.23.9
