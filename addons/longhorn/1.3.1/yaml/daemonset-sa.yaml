@@ -5,7 +5,7 @@ metadata:
   labels:
     app.kubernetes.io/name: longhorn
     app.kubernetes.io/instance: longhorn
-    app.kubernetes.io/version: v1.3.0
+    app.kubernetes.io/version: v1.3.1
     app: longhorn-manager
   name: longhorn-manager
   namespace: longhorn-system
@@ -18,16 +18,16 @@ spec:
       labels:
         app.kubernetes.io/name: longhorn
         app.kubernetes.io/instance: longhorn
-        app.kubernetes.io/version: v1.3.0
+        app.kubernetes.io/version: v1.3.1
         app: longhorn-manager
     spec:
       initContainers:
       - name: wait-longhorn-admission-webhook
-        image: longhornio/longhorn-manager:v1.3.0
+        image: longhornio/longhorn-manager:v1.3.1
         command: ['sh', '-c', 'while [ $(curl -m 1 -s -o /dev/null -w "%{http_code}" -k https://longhorn-admission-webhook:9443/v1/healthz) != "200" ]; do echo waiting; sleep 2; done']
       containers:
       - name: longhorn-manager
-        image: longhornio/longhorn-manager:v1.3.0
+        image: longhornio/longhorn-manager:v1.3.1
         imagePullPolicy: IfNotPresent
         securityContext:
           privileged: true
@@ -36,15 +36,15 @@ spec:
         - -d
         - daemon
         - --engine-image
-        - "longhornio/longhorn-engine:v1.3.0"
+        - "longhornio/longhorn-engine:v1.3.1"
         - --instance-manager-image
-        - "longhornio/longhorn-instance-manager:v1_20220611"
+        - "longhornio/longhorn-instance-manager:v1_20220808"
         - --share-manager-image
-        - "longhornio/longhorn-share-manager:v1_20220531"
+        - "longhornio/longhorn-share-manager:v1_20220808"
         - --backing-image-manager-image
-        - "longhornio/backing-image-manager:v3_20220609"
+        - "longhornio/backing-image-manager:v3_20220808"
         - --manager-image
-        - "longhornio/longhorn-manager:v1.3.0"
+        - "longhornio/longhorn-manager:v1.3.1"
         - --service-account
         - longhorn-service-account
         ports:

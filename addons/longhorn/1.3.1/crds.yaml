@@ -8,7 +8,7 @@ metadata:
   labels:
     app.kubernetes.io/name: longhorn
     app.kubernetes.io/instance: longhorn
-    app.kubernetes.io/version: v1.3.0
+    app.kubernetes.io/version: v1.3.1
     longhorn-manager: ""
   name: backingimagedatasources.longhorn.io
 spec:
@@ -179,7 +179,7 @@ metadata:
   labels:
     app.kubernetes.io/name: longhorn
     app.kubernetes.io/instance: longhorn
-    app.kubernetes.io/version: v1.3.0
+    app.kubernetes.io/version: v1.3.1
     longhorn-manager: ""
   name: backingimagemanagers.longhorn.io
 spec:
@@ -364,7 +364,7 @@ metadata:
   labels:
     app.kubernetes.io/name: longhorn
     app.kubernetes.io/instance: longhorn
-    app.kubernetes.io/version: v1.3.0
+    app.kubernetes.io/version: v1.3.1
     longhorn-manager: ""
   name: backingimages.longhorn.io
 spec:
@@ -539,7 +539,7 @@ metadata:
   labels:
     app.kubernetes.io/name: longhorn
     app.kubernetes.io/instance: longhorn
-    app.kubernetes.io/version: v1.3.0
+    app.kubernetes.io/version: v1.3.1
     longhorn-manager: ""
   name: backups.longhorn.io
 spec:
@@ -732,7 +732,7 @@ metadata:
   labels:
     app.kubernetes.io/name: longhorn
     app.kubernetes.io/instance: longhorn
-    app.kubernetes.io/version: v1.3.0
+    app.kubernetes.io/version: v1.3.1
     longhorn-manager: ""
   name: backuptargets.longhorn.io
 spec:
@@ -915,7 +915,7 @@ metadata:
   labels:
     app.kubernetes.io/name: longhorn
     app.kubernetes.io/instance: longhorn
-    app.kubernetes.io/version: v1.3.0
+    app.kubernetes.io/version: v1.3.1
     longhorn-manager: ""
   name: backupvolumes.longhorn.io
 spec:
@@ -1079,10 +1079,11 @@ metadata:
   labels:
     app.kubernetes.io/name: longhorn
     app.kubernetes.io/instance: longhorn
-    app.kubernetes.io/version: v1.3.0
+    app.kubernetes.io/version: v1.3.1
     longhorn-manager: ""
   name: engineimages.longhorn.io
 spec:
+  preserveUnknownFields: false
   conversion:
     strategy: Webhook
     webhook:
@@ -1114,7 +1115,7 @@ spec:
       jsonPath: .spec.image
       name: Image
       type: string
-    - description: Number of volumes are using the engine image
+    - description: Number of resources using the engine image
       jsonPath: .status.refCount
       name: RefCount
       type: integer
@@ -1156,7 +1157,7 @@ spec:
       jsonPath: .spec.image
       name: Image
       type: string
-    - description: Number of volumes are using the engine image
+    - description: Number of resources using the engine image
       jsonPath: .status.refCount
       name: RefCount
       type: integer
@@ -1270,7 +1271,7 @@ metadata:
   labels:
     app.kubernetes.io/name: longhorn
     app.kubernetes.io/instance: longhorn
-    app.kubernetes.io/version: v1.3.0
+    app.kubernetes.io/version: v1.3.1
     longhorn-manager: ""
   name: engines.longhorn.io
 spec:
@@ -1591,7 +1592,7 @@ metadata:
   labels:
     app.kubernetes.io/name: longhorn
     app.kubernetes.io/instance: longhorn
-    app.kubernetes.io/version: v1.3.0
+    app.kubernetes.io/version: v1.3.1
     longhorn-manager: ""
   name: instancemanagers.longhorn.io
 spec:
@@ -1761,10 +1762,11 @@ metadata:
   labels:
     app.kubernetes.io/name: longhorn
     app.kubernetes.io/instance: longhorn
-    app.kubernetes.io/version: v1.3.0
+    app.kubernetes.io/version: v1.3.1
     longhorn-manager: ""
   name: nodes.longhorn.io
 spec:
+  preserveUnknownFields: false
   conversion:
     strategy: Webhook
     webhook:
@@ -1991,7 +1993,7 @@ metadata:
   labels:
     app.kubernetes.io/name: longhorn
     app.kubernetes.io/instance: longhorn
-    app.kubernetes.io/version: v1.3.0
+    app.kubernetes.io/version: v1.3.1
     longhorn-manager: ""
   name: orphans.longhorn.io
 spec:
@@ -2257,7 +2259,7 @@ metadata:
   labels:
     app.kubernetes.io/name: longhorn
     app.kubernetes.io/instance: longhorn
-    app.kubernetes.io/version: v1.3.0
+    app.kubernetes.io/version: v1.3.1
     longhorn-manager: ""
   name: replicas.longhorn.io
 spec:
@@ -2449,7 +2451,7 @@ metadata:
   labels:
     app.kubernetes.io/name: longhorn
     app.kubernetes.io/instance: longhorn
-    app.kubernetes.io/version: v1.3.0
+    app.kubernetes.io/version: v1.3.1
     longhorn-manager: ""
   name: settings.longhorn.io
 spec:
@@ -2540,7 +2542,7 @@ metadata:
   labels:
     app.kubernetes.io/name: longhorn
     app.kubernetes.io/instance: longhorn
-    app.kubernetes.io/version: v1.3.0
+    app.kubernetes.io/version: v1.3.1
     longhorn-manager: ""
   name: sharemanagers.longhorn.io
 spec:
@@ -2651,7 +2653,7 @@ metadata:
   labels:
     app.kubernetes.io/name: longhorn
     app.kubernetes.io/instance: longhorn
-    app.kubernetes.io/version: v1.3.0
+    app.kubernetes.io/version: v1.3.1
     longhorn-manager: ""
   name: snapshots.longhorn.io
 spec:
@@ -2775,10 +2777,11 @@ metadata:
   labels:
     app.kubernetes.io/name: longhorn
     app.kubernetes.io/instance: longhorn
-    app.kubernetes.io/version: v1.3.0
+    app.kubernetes.io/version: v1.3.1
     longhorn-manager: ""
   name: volumes.longhorn.io
 spec:
+  preserveUnknownFields: false
   conversion:
     strategy: Webhook
     webhook:

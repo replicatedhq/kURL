@@ -5,22 +5,22 @@ metadata:
   labels:
     app.kubernetes.io/name: longhorn
     app.kubernetes.io/instance: longhorn
-    app.kubernetes.io/version: v1.3.0
-    app: longhorn-conversion-webhook
-  name: longhorn-conversion-webhook
+    app.kubernetes.io/version: v1.3.1
+    app: longhorn-admission-webhook
+  name: longhorn-admission-webhook
   namespace: longhorn-system
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: longhorn-conversion-webhook
+      app: longhorn-admission-webhook
   template:
     metadata:
       labels:
         app.kubernetes.io/name: longhorn
         app.kubernetes.io/instance: longhorn
-        app.kubernetes.io/version: v1.3.0
-        app: longhorn-conversion-webhook
+        app.kubernetes.io/version: v1.3.1
+        app: longhorn-admission-webhook
     spec:
       affinity:
         podAntiAffinity:
@@ -32,22 +32,29 @@ spec:
                 - key: app
                   operator: In
                   values:
-                  - longhorn-conversion-webhook
+                  - longhorn-admission-webhook
               topologyKey: kubernetes.io/hostname
+      initContainers:
+      - name: wait-longhorn-conversion-webhook
+        image: longhornio/longhorn-manager:v1.3.1
+        command: ['sh', '-c', 'while [ $(curl -m 1 -s -o /dev/null -w "%{http_code}" -k https://longhorn-conversion-webhook:9443/v1/healthz) != "200" ]; do echo waiting; sleep 2; done']
+        imagePullPolicy: IfNotPresent
+        securityContext:
+          runAsUser: 2000
       containers:
-      - name: longhorn-conversion-webhook
-        image: longhornio/longhorn-manager:v1.3.0
+      - name: longhorn-admission-webhook
+        image: longhornio/longhorn-manager:v1.3.1
         imagePullPolicy: IfNotPresent
         securityContext:
           runAsUser: 2000
         command:
         - longhorn-manager
-        - conversion-webhook
+        - admission-webhook
         - --service-account
         - longhorn-service-account
         ports:
         - containerPort: 9443
-          name: conversion-wh
+          name: admission-wh
         readinessProbe:
           tcpSocket:
             port: 9443
@@ -56,5 +63,8 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
       serviceAccountName: longhorn-service-account
----

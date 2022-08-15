@@ -1,22 +1,18 @@
-# Source: longhorn/templates/psp.yaml
+# Source: longhorn/templates/clusterrolebinding.yaml
 apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
+kind: ClusterRoleBinding
 metadata:
-  name: longhorn-psp-binding
+  name: longhorn-bind
   labels:
     app.kubernetes.io/name: longhorn
     app.kubernetes.io/instance: longhorn
-    app.kubernetes.io/version: v1.3.0
-  namespace: longhorn-system
+    app.kubernetes.io/version: v1.3.1
 roleRef:
   apiGroup: rbac.authorization.k8s.io
-  kind: Role
-  name: longhorn-psp-role
+  kind: ClusterRole
+  name: longhorn-role
 subjects:
 - kind: ServiceAccount
   name: longhorn-service-account
-  namespace: longhorn-system
-- kind: ServiceAccount
-  name: default
   namespace: longhorn-system
 ---

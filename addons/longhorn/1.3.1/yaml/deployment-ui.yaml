@@ -5,7 +5,7 @@ metadata:
   labels:
     app.kubernetes.io/name: longhorn
     app.kubernetes.io/instance: longhorn
-    app.kubernetes.io/version: v1.3.0
+    app.kubernetes.io/version: v1.3.1
     app: longhorn-ui
   name: longhorn-ui
   namespace: longhorn-system
@@ -19,12 +19,12 @@ spec:
       labels:
         app.kubernetes.io/name: longhorn
         app.kubernetes.io/instance: longhorn
-        app.kubernetes.io/version: v1.3.0
+        app.kubernetes.io/version: v1.3.1
         app: longhorn-ui
     spec:
       containers:
       - name: longhorn-ui
-        image: longhornio/longhorn-ui:v1.3.0
+        image: longhornio/longhorn-ui:v1.3.1
         imagePullPolicy: IfNotPresent
         volumeMounts:
         - name : nginx-cache

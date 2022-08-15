@@ -5,17 +5,17 @@ metadata:
   labels:
     app.kubernetes.io/name: longhorn
     app.kubernetes.io/instance: longhorn
-    app.kubernetes.io/version: v1.3.0
-    app: longhorn-conversion-webhook
-  name: longhorn-conversion-webhook
+    app.kubernetes.io/version: v1.3.1
+    app: longhorn-admission-webhook
+  name: longhorn-admission-webhook
   namespace: longhorn-system
 spec:
   type: ClusterIP
   sessionAffinity: ClientIP
   selector:
-    app: longhorn-conversion-webhook
+    app: longhorn-admission-webhook
   ports:
-  - name: conversion-webhook
+  - name: admission-webhook
     port: 9443
-    targetPort: conversion-wh
+    targetPort: admission-wh
 ---

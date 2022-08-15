@@ -5,7 +5,7 @@ metadata:
   labels:
     app.kubernetes.io/name: longhorn
     app.kubernetes.io/instance: longhorn
-    app.kubernetes.io/version: v1.3.0
+    app.kubernetes.io/version: v1.3.1
   name: longhorn-engine-manager
   namespace: longhorn-system
 spec:
