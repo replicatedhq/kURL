@@ -24,11 +24,54 @@ func RookHealth(ctx context.Context, client kubernetes.Interface) (bool, string,
 	return health, msg, nil
 }
 
+// WaitForRookHealth waits for rook-ceph to report that it is healthy
+func WaitForRookHealth(ctx context.Context, client kubernetes.Interface) error {
+	out("Waiting for Rook-Ceph to be healthy")
+	errCount := 0
+	var isHealthy bool
+	var healthMessage string
+	for {
+		cephStatus, err := currentStatus(ctx, client)
+		if err != nil {
+			errCount++
+			if errCount >= 5 {
+				return fmt.Errorf("failed to wait for Rook health 5x in a row: %w", err)
+			}
+		} else {
+			errCount = 0 // only fail for _consecutive_ errors
+
+			isHealthy, healthMessage = isStatusHealthy(cephStatus)
+			if isHealthy {
+				return nil
+			} else {
+				// print a status message
+				spinLine(progressMessage(cephStatus))
+			}
+		}
+
+		select {
+		case <-time.After(loopSleep):
+		case <-ctx.Done():
+			return fmt.Errorf("timed out waiting rook to become healthy, currently %q", healthMessage)
+		}
+	}
+}
+
 func isStatusHealthy(status cephtypes.CephStatus) (bool, string) {
 	statusMessage := []string{}
 
 	if status.Health.Status != "HEALTH_OK" {
-		statusMessage = append(statusMessage, fmt.Sprintf("health is %s not HEALTH_OK", status.Health.Status))
+		isOnlyTooManyPgs := false
+
+		if len(status.Health.Checks) == 1 {
+			if _, ok := status.Health.Checks["TOO_MANY_PGS"]; ok {
+				// this is not an error we need to stop upgrades for
+				isOnlyTooManyPgs = true
+			}
+		}
+		if !isOnlyTooManyPgs {
+			statusMessage = append(statusMessage, fmt.Sprintf("health is %s not HEALTH_OK", status.Health.Status))
+		}
 	}
 
 	if status.Pgmap.RecoveringBytesPerSec != 0 {
@@ -100,7 +143,7 @@ func waitForOSDDown(ctx context.Context, client kubernetes.Interface) error {
 	}
 }
 
-func waitForHealth(ctx context.Context, client kubernetes.Interface, osdToRemove int64) error {
+func waitForOkToRemoveOSD(ctx context.Context, client kubernetes.Interface, osdToRemove int64) error {
 	errCount := 0
 	safeErrCount := 0
 	var isHealthy bool

@@ -8,7 +8,7 @@ NC='\033[0m' # No Color
 KUBEADM_CONF_DIR=/opt/replicated
 KUBEADM_CONF_FILE="$KUBEADM_CONF_DIR/kubeadm.conf"
 
-commandExists() {
+function commandExists() {
     command -v "$@" > /dev/null 2>&1
 }
 
@@ -121,7 +121,7 @@ function package_cleanup() {
     rm -rf "${DIR}/packages"
 }
 
-insertOrReplaceJsonParam() {
+function insertOrReplaceJsonParam() {
     if ! [ -f "$1" ]; then
         # If settings file does not exist
         mkdir -p "$(dirname "$1")"
@@ -145,7 +145,7 @@ insertOrReplaceJsonParam() {
     fi
 }
 
-semverParse() {
+function semverParse() {
     major="${1%%.*}"
     minor="${1#$major.}"
     minor="${minor%%.*}"
@@ -154,7 +154,7 @@ semverParse() {
 }
 
 SEMVER_COMPARE_RESULT=
-semverCompare() {
+function semverCompare() {
     semverParse "$1"
     _a_major="${major:-0}"
     _a_minor="${minor:-0}"
@@ -190,31 +190,31 @@ semverCompare() {
     SEMVER_COMPARE_RESULT=0
 }
 
-log() {
+function log() {
     printf "%s\n" "$1" 1>&2
 }
 
-logSuccess() {
+function logSuccess() {
     printf "${GREEN}✔ $1${NC}\n" 1>&2
 }
 
-logStep() {
+function logStep() {
     printf "${BLUE}⚙  $1${NC}\n" 1>&2
 }
 
-logSubstep() {
+function logSubstep() {
     printf "\t${LIGHT_BLUE}- $1${NC}\n" 1>&2
 }
 
-logFail() {
+function logFail() {
     printf "${RED}$1${NC}\n" 1>&2
 }
 
-logWarn() {
+function logWarn() {
     printf "${YELLOW}$1${NC}\n" 1>&2
 }
 
-bail() {
+function bail() {
     logFail "$@"
     exit 1
 }
@@ -246,7 +246,7 @@ function has_default_namespace() {
 #  See kubeadm-init and kubeadm-join yaml files.
 #  This bit will ensure the labels are added for pre-existing cluster
 #  during a kurl upgrade.)
-labelNodes() {
+function labelNodes() {
     for NODE in $(kubectl get nodes --no-headers | awk '{print $1}');do
         kurl_label=$(kubectl describe nodes $NODE | grep "kurl.sh\/cluster=true") || true
         if [[ -z $kurl_label ]];then
@@ -256,7 +256,7 @@ labelNodes() {
 }
 
 # warning - this only waits for the pod to be running, not for it to be 1/1 or otherwise accepting connections
-spinnerPodRunning() {
+function spinnerPodRunning() {
     namespace=$1
     podPrefix=$2
 
@@ -273,7 +273,7 @@ spinnerPodRunning() {
 }
 
 COMPARE_DOCKER_VERSIONS_RESULT=
-compareDockerVersions() {
+function compareDockerVersions() {
     # reset
     COMPARE_DOCKER_VERSIONS_RESULT=
     compareDockerVersionsIgnorePatch "$1" "$2"
@@ -296,7 +296,7 @@ compareDockerVersions() {
 }
 
 COMPARE_DOCKER_VERSIONS_RESULT=
-compareDockerVersionsIgnorePatch() {
+function compareDockerVersionsIgnorePatch() {
     # reset
     COMPARE_DOCKER_VERSIONS_RESULT=
     parseDockerVersion "$1"
@@ -328,7 +328,7 @@ DOCKER_VERSION_MAJOR=
 DOCKER_VERSION_MINOR=
 DOCKER_VERSION_PATCH=
 DOCKER_VERSION_RELEASE=
-parseDockerVersion() {
+function parseDockerVersion() {
     # reset
     DOCKER_VERSION_MAJOR=
     DOCKER_VERSION_MINOR=
@@ -581,11 +581,11 @@ function kubeconfig_setup_outro() {
     printf "You will likely need to use sudo to copy and chown "$(${K8S_DISTRO}_get_kubeconfig)".\n"
 }
 
-splitHostPort() {
+function splitHostPort() {
     oIFS="$IFS"; IFS=":" read -r HOST PORT <<< "$1"; IFS="$oIFS"
 }
 
-isValidIpv4() {
+function isValidIpv4() {
     if echo "$1" | grep -qs '^[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*$'; then
         return 0
     else
@@ -593,7 +593,7 @@ isValidIpv4() {
     fi
 }
 
-isValidIpv6() {
+function isValidIpv6() {
     if echo "$1" | grep -qs "^\([0-9a-fA-F]\{0,4\}:\)\{1,7\}[0-9a-fA-F]\{0,4\}$"; then
         return 0
     else

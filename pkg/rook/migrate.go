@@ -28,12 +28,11 @@ func HostpathToOsd(ctx context.Context, config *rest.Config) error {
 	}
 
 	// ensure rook is healthy before starting
-	ok, msg, err := RookHealth(ctx, client)
+	minuteContext, minuteCancel := context.WithTimeout(ctx, time.Minute)
+	defer minuteCancel()
+	err = WaitForRookHealth(minuteContext, client)
 	if err != nil {
-		return fmt.Errorf("unable to determine rook health before starting migration: %w", err)
-	}
-	if !ok {
-		return fmt.Errorf("not migrating rook from Hostpath to OSD: Rook was not healthy %q", msg)
+		return fmt.Errorf("rook failed to become healthy within a minute, aborting migration: %w", err)
 	}
 
 	out("Rook is currently healthy, checking if a migration from directory-based storage is required")
@@ -163,7 +162,7 @@ func safeRemoveOSD(ctx context.Context, client kubernetes.Interface, osdNum int6
 
 	out(fmt.Sprintf("Waiting for health to stabilize and data to migrate after reweighting osd.%d", osdNum))
 	// wait for health
-	err = waitForHealth(ctx, client, osdNum)
+	err = waitForOkToRemoveOSD(ctx, client, osdNum)
 	if err != nil {
 		return fmt.Errorf("failed to wait for rook to become healthy after reweighting osd %d: %w", osdNum, err)
 	}
@@ -187,7 +186,7 @@ func safeRemoveOSD(ctx context.Context, client kubernetes.Interface, osdNum int6
 	out(fmt.Sprintf("Removed osd was marked out by Rook at %s", time.Now().Format(time.RFC3339)))
 
 	// ensure health is still green
-	err = waitForHealth(ctx, client, osdNum)
+	err = waitForOkToRemoveOSD(ctx, client, osdNum)
 	if err != nil {
 		return fmt.Errorf("failed to wait for rook to become healthy after scaling down osd %d: %w", osdNum, err)
 	}
