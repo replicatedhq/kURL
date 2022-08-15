@@ -34,6 +34,7 @@ function longhorn() {
         local current_version
         current_version=$(longhorn_current_version)
         echo "Longhorn $current_version is already installed, will not upgrade to ${LONGHORN_VERSION}"
+        return 0
     fi
 
     local src="$DIR/addons/longhorn/$LONGHORN_VERSION"
