@@ -1,7 +1,8 @@
 # shellcheck disable=SC2148
 
-export SKIP_LONGHORN_INSTALL=0
-export DID_MIGRATE_ROOK_PVCS=0
+export SKIP_LONGHORN_INSTALL
+export DID_MIGRATE_ROOK_PVCS
+export LONGHORN_IS_DEFAULT_STORAGECLASS
 
 function longhorn_pre_init() {
     if [ -z "$LONGHORN_UI_BIND_PORT" ]; then
@@ -51,7 +52,6 @@ function longhorn() {
         echo "Longhorn will be installed as the default storage class"
         LONGHORN_IS_DEFAULT_STORAGECLASS=true
     fi
-    export LONGHORN_IS_DEFAULT_STORAGECLASS
     render_yaml_file_2 "$src/template/storageclass.yaml" > "$dst/yaml/storageclass.yaml"
 
     longhorn_check_mount_propagation "$src" "$dst"
@@ -215,7 +215,7 @@ function longhorn_maybe_migrate_from_rook() {
     if [ -z "$ROOK_VERSION" ]; then
         if kubectl get ns | grep -q rook-ceph; then
             rook_ceph_to_longhorn
-            export DID_MIGRATE_ROOK_PVCS=1 # used to automatically delete rook-ceph if object store data was also migrated
+            DID_MIGRATE_ROOK_PVCS=1 # used to automatically delete rook-ceph if object store data was also migrated
         fi
     fi
 }
