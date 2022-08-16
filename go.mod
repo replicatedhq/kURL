@@ -21,7 +21,7 @@ require (
 	github.com/lib/pq v1.10.6
 	github.com/mattn/go-isatty v0.0.14
 	github.com/minio/minio-go v6.0.14+incompatible
-	github.com/onsi/gomega v1.18.1
+	github.com/onsi/gomega v1.20.0
 	github.com/pelletier/go-toml v1.9.5
 	github.com/pkg/errors v0.9.1
 	github.com/replicatedhq/pvmigrate v0.5.0
