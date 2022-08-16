@@ -172,6 +172,21 @@ EOF
         fi
     fi
     # shellcheck disable=SC2086
+    # When migrating from Docker to Containerd add-on, Docker is packaged with a higher version of
+    # Containerd. We must downgrade Containerd to the version specified as we package the
+    # corresponding version of the pause image. If we do not downgrade Containerd, Kubelet will
+    # fail to start in airgapped installations with pause image not found.
+    if commandExists docker && [ -n "$CONTAINERD_VERSION" ] && [[ "${packages[*]}" == *"containerd.io"* ]]; then
+        local next_version=
+        local previous_version=
+        next_version="$(basename "${fullpath}"/containerd.io*.rpm | grep -o '[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*')"
+        previous_version="$(ctr -v | grep -o '[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*')"
+        logStep "Downgrading containerd, $previous_version -> $next_version"
+        if semverCompare "$next_version" "$previous_version" && [ "$SEMVER_COMPARE_RESULT" -lt "0" ]; then
+            yum --disablerepo=* --enablerepo=kurl.local downgrade --allowerasing -y "${packages[@]}"
+        fi
+        logSuccess "Downgraded containerd"
+    fi
     if [[ "${packages[*]}" == *"containerd.io"* && -n $(uname -r | grep "el8") ]]; then
         yum --disablerepo=* --enablerepo=kurl.local install --allowerasing -y "${packages[@]}"
     else
