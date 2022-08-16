@@ -110,22 +110,32 @@ func enableBlockDevices(ctx context.Context, client kubernetes.Interface, cephCl
 }
 
 func patchCephcluster(ctx context.Context, cephClient *cephv1.CephV1Client) error {
-	enableBlockDisableDirectories := `
+	enableBlockUseAll := `
 [
   {
     "op": "replace",
     "path": "/spec/storage/useAllDevices",
     "value": true
-  },
+  }
+]
+`
+
+	disableDirectories := `
+[
   {
     "op": "remove",
     "path": "/spec/storage/directories"
   }
 ]
 `
-	_, err := cephClient.CephClusters("rook-ceph").Patch(ctx, "rook-ceph", types.JSONPatchType, []byte(enableBlockDisableDirectories), metav1.PatchOptions{})
+	_, err := cephClient.CephClusters("rook-ceph").Patch(ctx, "rook-ceph", types.JSONPatchType, []byte(enableBlockUseAll), metav1.PatchOptions{})
 	if err != nil {
 		return fmt.Errorf("unable to patch cephcluster: %w", err)
+	}
+
+	_, err = cephClient.CephClusters("rook-ceph").Patch(ctx, "rook-ceph", types.JSONPatchType, []byte(disableDirectories), metav1.PatchOptions{})
+	if err != nil {
+		out("Got error %q when disabling hostpath storage, but continuing anyways")
 	}
 
 	return nil
