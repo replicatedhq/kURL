@@ -203,7 +203,7 @@ jobs:
           sudo mv kustomize_*_linux_amd64 /usr/local/bin/kustomize && \
           sudo chmod +x /usr/local/bin/kustomize
         pushd kustomize/overlays/staging
-        kustomize edit set image 923411875752.dkr.ecr.us-east-1.amazonaws.com/kurl:${GITHUB_SHA:0:7}
+        kustomize edit set image 923411875752.dkr.ecr.us-east-1.amazonaws.com/kurl:${VERSION_TAG}-${GITHUB_SHA:0:7}
         kustomize build . | sed "s/__VERSION_TAG__/${VERSION_TAG}/g" > kurl.yaml
         popd
       env:
