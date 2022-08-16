@@ -609,9 +609,6 @@ function rook_cephfilesystem_patch() {
         return
     fi
 
-    # Don't bother waiting for the cluster to update as it will when we patch the Ceph version.
-    return
-
     echo "Awaiting Rook MDS deployments to roll out"
     if ! spinner_until 300 rook_mds_deployments_updated "$mds_observedgeneration" ; then
         kubectl -n rook-ceph get deploy -l app=rook-ceph-mds
@@ -632,6 +629,13 @@ function rook_cephfilesystem_patch() {
     kubectl -n rook-ceph get pods -l app=rook-ceph-mds
     kubectl -n rook-ceph get deploy -l app=rook-ceph-mds -o jsonpath='{range .items[*]}{.metadata.name}={.status.observedGeneration}{"\n"}{end}'
     # TODO: remove these debug lines
+
+    echo "Awaiting Rook MDS daemons ok-to-stop"
+    if ! spinner_until 300 rook_mds_daemons_oktostop ; then
+        kubectl -n rook-ceph exec deployment/rook-ceph-tools -- ceph mds ok-to-stop a
+        kubectl -n rook-ceph exec deployment/rook-ceph-tools -- ceph mds ok-to-stop b
+        bail "Refusing to update cluster rook-ceph, MDS daemons not ok-to-stop"
+    fi
 
     echo "Awaiting Ceph healthy"
     if ! spinner_until 120 rook_ceph_healthy ; then
@@ -660,4 +664,15 @@ function rook_mds_deployments_updated() {
 
 function rook_mds_deployments_observedgeneration() {
     kubectl -n rook-ceph get deploy -l app=rook-ceph-mds -o jsonpath='{range .items[*]}{.metadata.name}={.status.observedGeneration}{"\n"}{end}'
+}
+
+function rook_mds_daemons_oktostop() {
+    local ids=
+    ids="$(kubectl -n rook-ceph get deploy -l app=rook-ceph-mds -oname | sed 's/.*-rook-shared-fs-\(.*\)/\1/')"
+    for id in $ids; do
+        if ! kubectl -n rook-ceph exec deploy/rook-ceph-tools -- ceph mds ok-to-stop "$id" ; then
+            return 1
+        fi
+    done
+    return 0
 }
