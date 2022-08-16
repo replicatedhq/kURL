@@ -3,8 +3,6 @@ CONTAINERD_NEEDS_RESTART=0
 CONTAINERD_DID_MIGRATE_FROM_DOCKER=0
 
 function containerd_pre_init() {
-    #TODO remove this before commit
-    echo "just to get the testgrid to run"
     local src="$DIR/addons/containerd/$CONTAINERD_VERSION"
 
     # Explicitly configure kubelet to use containerd instead of detecting dockershim socket

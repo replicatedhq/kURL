@@ -171,7 +171,6 @@ EOF
             yum swap openssl-libs-$installed_version openssl-libs-1.0.2k-22.el7_9 -y
         fi
     fi
-    # shellcheck disable=SC2086
     # When migrating from Docker to Containerd add-on, Docker is packaged with a higher version of
     # Containerd. We must downgrade Containerd to the version specified as we package the
     # corresponding version of the pause image. If we do not downgrade Containerd, Kubelet will
@@ -187,6 +186,7 @@ EOF
         fi
         logSuccess "Downgraded containerd"
     fi
+    # shellcheck disable=SC2086
     if [[ "${packages[*]}" == *"containerd.io"* && -n $(uname -r | grep "el8") ]]; then
         yum --disablerepo=* --enablerepo=kurl.local install --allowerasing -y "${packages[@]}"
     else
