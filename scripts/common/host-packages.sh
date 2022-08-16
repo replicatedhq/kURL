@@ -182,7 +182,11 @@ EOF
         previous_version="$(ctr -v | grep -o '[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*')"
         logStep "Downgrading containerd, $previous_version -> $next_version"
         if semverCompare "$next_version" "$previous_version" && [ "$SEMVER_COMPARE_RESULT" -lt "0" ]; then
-            yum --disablerepo=* --enablerepo=kurl.local downgrade --allowerasing -y "${packages[@]}"
+            if uname -r | grep -q "el8" ; then
+                yum --disablerepo=* --enablerepo=kurl.local downgrade --allowerasing -y "${packages[@]}"
+            else
+                yum --disablerepo=* --enablerepo=kurl.local downgrade -y "${packages[@]}"
+            fi
         fi
         logSuccess "Downgraded containerd"
     fi
