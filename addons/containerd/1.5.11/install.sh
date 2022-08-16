@@ -294,6 +294,7 @@ EOF
     # corresponding version of the pause image. If we do not downgrade Containerd, Kubelet will
     # fail to start in airgapped installations with pause image not found.
     if commandExists docker && [ -n "$CONTAINERD_VERSION" ] && [[ "${packages[*]}" == *"containerd.io"* ]]; then
+        echo "Downgrade containerd started"
         local next_version=
         local previous_version=
         next_version="$(basename "${fullpath}"/containerd.io*.rpm | grep -o '[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*')"
@@ -306,6 +307,7 @@ EOF
                 yum --disablerepo=* --enablerepo=kurl.local downgrade -y "${packages[@]}"
             fi
         fi
+        echo "Downgraded containerd successfully"
         logSuccess "Downgraded containerd"
     fi
     # shellcheck disable=SC2086
