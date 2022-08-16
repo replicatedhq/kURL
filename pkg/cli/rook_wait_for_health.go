@@ -24,7 +24,7 @@ func NewRookWaitForHealthCmd(cli CLI) *cobra.Command {
 				return fmt.Errorf("failed to check rook health: %w", err)
 			}
 
-			fmt.Printf("Rook is healthy")
+			fmt.Fprintln(cmd.OutOrStdout(), "Rook is healthy")
 			return nil
 		},
 		SilenceUsage: true,
