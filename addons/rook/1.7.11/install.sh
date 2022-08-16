@@ -609,6 +609,9 @@ function rook_cephfilesystem_patch() {
         return
     fi
 
+    # Don't bother waiting for the cluster to update as it will when we patch the Ceph version.
+    return
+
     echo "Awaiting Rook MDS deployments to roll out"
     if ! spinner_until 300 rook_mds_deployments_updated "$mds_observedgeneration" ; then
         kubectl -n rook-ceph get deploy -l app=rook-ceph-mds
