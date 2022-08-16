@@ -178,7 +178,10 @@ jobs:
         username: ${{ secrets.AWS_STAGING_ACCESS_KEY_ID }}
         password: ${{ secrets.AWS_STAGING_SECRET_ACCESS_KEY }}
 
-    - run: docker push 923411875752.dkr.ecr.us-east-1.amazonaws.com/kurl:${VERSION_TAG}-${GITHUB_SHA:0:7}
+    - run: |
+        docker push 923411875752.dkr.ecr.us-east-1.amazonaws.com/kurl:${VERSION_TAG}-${GITHUB_SHA:0:7}
+      env:
+        VERSION_TAG: ${{ needs.get-tag.outputs.version_tag }}
 
   deploy-staging-eks:
     runs-on: ubuntu-18.04
