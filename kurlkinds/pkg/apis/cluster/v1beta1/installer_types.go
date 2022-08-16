@@ -253,7 +253,7 @@ type Ekco struct {
 	ShouldDisableClearNodes     bool     `json:"shouldDisableClearNodes,omitempty" yaml:"shouldDisableClearNodes,omitempty"`
 	ShouldEnablePurgeNodes      bool     `json:"shouldEnablePurgeNodes,omitempty" yaml:"shouldEnablePurgeNodes,omitempty"`
 	Version                     string   `json:"version" yaml:"version"`
-	AutoUpgradeSchedule         string   `json:"autoUpgradeSchedule,omitempty" yaml:"autoUpgradeSchedule,omitempty"`
+	AutoUpgradeSchedule         string   `json:"autoUpgradeSchedule,omitempty" yaml:"autoUpgradeSchedule,omitempty"` // no longer supported
 	EnableInternalLoadBalancer  bool     `json:"enableInternalLoadBalancer,omitempty" yaml:"enableInternalLoadBalancer,omitempty"`
 	PodImageOverrides           []string `json:"podImageOverrides,omitempty" yaml:"podImageOverrides,omitempty"`
 }

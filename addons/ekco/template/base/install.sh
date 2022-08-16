@@ -50,11 +50,6 @@ function ekco() {
     if [ "$EKCO_SHOULD_INSTALL_REBOOT_SERVICE" = "1" ]; then
         ekco_install_reboot_service "$src"
     fi
-    if [ -n "$EKCO_AUTO_UPGRADE_SCHEDULE" ] && [ "$AUTO_UPGRADES_ENABLED" = "1" ]; then
-        ekco_install_upgrade_service "$src"
-    else
-        ekco_remove_upgrade_service
-    fi
 
     ekco_install_purge_node_command "$src"
 
@@ -119,45 +114,6 @@ function ekco_install_reboot_service() {
     systemctl daemon-reload
     systemctl enable ekco-reboot.service
     systemctl start ekco-reboot.service
-}
-
-function ekco_install_upgrade_service() {
-    local src="$1"
-
-    if [ "$AIRGAP" = "1" ]; then
-        echo "Auto-upgrade service will not be installed in airgap mode"
-        return 0
-    fi
-    if [ -z "$KURL_URL" ] || [ -z "$INSTALLER_ID" ]; then
-        echo "Auto-upgrade service will not be installed without KURL_URL and INSTALLER_ID"
-        return 0
-    fi
-
-    mkdir -p /opt/ekco
-    render_file "$src/upgrade/ekco-upgrade.service" > /etc/systemd/system/ekco-upgrade.service
-    render_file "$src/upgrade/ekco-upgrade.timer" > /etc/systemd/system/ekco-upgrade.timer
-    cp "$src/upgrade/upgrade.sh" /opt/ekco/upgrade.sh
-    chmod u+x /opt/ekco/upgrade.sh
-
-    local latest=$(curl -I $KURL_URL/$INSTALLER_ID | grep -i 'X-Kurl-Hash' | awk '{ print $2 }' | tr -d '\r')
-    echo "$(date -u +"%Y-%m-%dT%H:%M:%SZ") $latest" >> /opt/ekco/upgrades.txt
-
-    systemctl daemon-reload
-    systemctl enable ekco-upgrade.timer
-    systemctl start ekco-upgrade.timer
-}
-
-function ekco_remove_upgrade_service() {
-    if systemctl is-active -q ekco-upgrade.timer 2>/dev/null; then
-        systemctl stop ekco-upgrade.timer
-    fi
-    if systemctl is-enabled -q ekco-upgrade.timer 2>/dev/null; then
-        systemctl disable ekco-upgrade.timer
-    fi
-    rm_file /etc/systemd/system/ekco-upgrade.service
-    rm_file /etc/systemd/system/ekco-upgrade.timer
-    rm_file /opt/ekco/upgrade.sh
-    rm_file /opt/ekco/upgrades.txt
 }
 
 function ekco_install_purge_node_command() {

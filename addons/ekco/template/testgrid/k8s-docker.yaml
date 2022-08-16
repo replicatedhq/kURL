@@ -28,7 +28,6 @@
       version: "__testver__"
       s3Override: "__testdist__"
       minReadyMasterNodeCount: 1
-      autoUpgradeSchedule: Sat 17:30
       enableInternalLoadBalancer: true
   numPrimaryNodes: 3
 - name: Kubernetes 1.21, Longhorn, Internal LB
