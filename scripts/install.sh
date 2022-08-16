@@ -557,6 +557,7 @@ function main() {
     configure_no_proxy
     install_cri
     get_shared
+    # report_upgrade_rook
     report_upgrade_kubernetes
     report_kubernetes_install
     export SUPPORT_BUNDLE_READY=1 # allow ctrl+c and ERR traps to collect support bundles now that k8s is installed

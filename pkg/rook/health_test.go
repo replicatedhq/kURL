@@ -46,6 +46,12 @@ func Test_isStatusHealthy(t *testing.T) {
 			health:  false,
 			message: "health is HEALTH_WARN not HEALTH_OK and 18863356 bytes are being recovered per second, 0 desired and 0.000000% of PGs are inactive, 42.455066% are degraded, and 2.081463% are misplaced, 0 required for all",
 		},
+		{
+			name:    "ceph has too many PGs per OSD",
+			status:  testfiles.TooManyPGSPerOSD,
+			health:  true,
+			message: "",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -83,6 +89,11 @@ func Test_parseSafeToRemoveOSD(t *testing.T) {
 		{
 			name:   "osd 6 is safe to remove",
 			output: "OSD(s) 6 are safe to destroy without reducing data durability.",
+			want:   true,
+		},
+		{
+			name:   "osd 0 is safe to remove",
+			output: "OSD(s) 0 are safe to destroy without reducing data durability.",
 			want:   true,
 		},
 		{

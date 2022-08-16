@@ -13,6 +13,7 @@ func AddCommands(cmd *cobra.Command, cli CLI) {
 	rookCmd := NewRookCmd(cli)
 	rookCmd.AddCommand(NewHostpathToBlockCmd(cli))
 	rookCmd.AddCommand(NewRookHealthCmd(cli))
+	rookCmd.AddCommand(NewRookWaitForHealthCmd(cli))
 	cmd.AddCommand(rookCmd)
 
 	cmd.AddCommand(NewSyncObjectStoreCmd(cli))
