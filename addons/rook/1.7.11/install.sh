@@ -85,26 +85,10 @@ function rook() {
 
 function rook_join() {
     rook_lvm2
-
-    if kubernetes_is_master ; then
-        # If a node has been added patch mds with preferred pod anti-affinity
-        local ready_node_count
-        ready_node_count="$(kubectl get nodes --no-headers 2>/dev/null | grep -c ' Ready')"
-        if [ "$ready_node_count" -gt "1" ]; then
-            rook_cephfilesystem_patch_multinode
-        fi
-    fi
 }
 
 function rook_already_applied() {
     rook_object_store_output
-
-    # If a node has been added patch mds with preferred pod anti-affinity
-    local ready_node_count
-    ready_node_count="$(kubectl get nodes --no-headers 2>/dev/null | grep -c ' Ready')"
-    if [ "$ready_node_count" -gt "1" ]; then
-        rook_cephfilesystem_patch_multinode
-    fi
 }
 
 function rook_operator_crds_deploy() {
@@ -178,7 +162,7 @@ function rook_cluster_deploy() {
         insert_resources "$dst/kustomization.yaml" filesystem.yaml
         insert_patches_strategic_merge "$dst/kustomization.yaml" patches/filesystem.yaml
 
-        # anti-affinity rules prevent MDS pods from co-scheduling on a single node installation
+        # MDS pod anti-affinity rules prevent them from co-scheduling on single-node installations
         local ready_node_count
         ready_node_count="$(kubectl get nodes --no-headers 2>/dev/null | grep -c ' Ready')"
         if [ "$ready_node_count" -le "1" ]; then
@@ -200,6 +184,7 @@ function rook_cluster_deploy() {
     fi
 
     # Don't redeploy cluster - ekco may have made changes based on num of nodes in cluster
+    # This must come after the yaml is rendered as it relies on dst.
     if kubectl -n rook-ceph get cephcluster rook-ceph >/dev/null 2>&1 ; then
         echo "Cluster rook-ceph already deployed"
         rook_cluster_deploy_upgrade
@@ -250,13 +235,11 @@ function rook_cluster_deploy_upgrade() {
         bail "Refusing to update cluster rook-ceph, Ceph is not healthy"
     fi
 
-    # When upgrading we need both MDS pods and anti-affinity rules prevent them from co-scheduling
+    # When upgrading we need both MDS pods and anti-affinity rules prevent them from co-scheduling on single-node installations
     local ready_node_count
     ready_node_count="$(kubectl get nodes --no-headers 2>/dev/null | grep -c ' Ready')"
     if [ "$ready_node_count" -le "1" ]; then
         rook_cephfilesystem_patch_singlenode
-    else
-        rook_cephfilesystem_patch_multinode
     fi
 
     # https://rook.io/docs/rook/v1.6/ceph-upgrade.html#ceph-version-upgrades
@@ -576,19 +559,6 @@ function rook_cephfilesystem_patch_singlenode() {
 
     local src="$DIR/addons/rook/$ROOK_VERSION/cluster"
     rook_cephfilesystem_patch "$src/patches/filesystem-singlenode.yaml"
-}
-
-# rook_cephfilesystem_patch_multinode will revert the
-# preferredDuringSchedulingIgnoredDuringExecution podAntiAffinity rule to the more strict
-# requiredDuringSchedulingIgnoredDuringExecution equivalent.
-function rook_cephfilesystem_patch_multinode() {
-    if kubectl -n rook-ceph get cephfilesystem rook-shared-fs -o jsonpath='{.spec.metadataServer.placement.podAntiAffinity}' | grep -q requiredDuringSchedulingIgnoredDuringExecution ; then
-        # already patched
-        return
-    fi
-
-    local src="$DIR/addons/rook/$ROOK_VERSION/cluster"
-    rook_cephfilesystem_patch "$src/patches/filesystem-multinode.yaml"
 }
 
 function rook_cephfilesystem_patch() {
