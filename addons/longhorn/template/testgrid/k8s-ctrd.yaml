@@ -148,7 +148,7 @@
     minio:
       version: "2020-01-25T02-50-51Z"
     longhorn:
-      version: "1.1.0"
+      version: "1.1.2" # 1.1.0 is failing in testgrid
   upgradeSpec:
     kubernetes:
       version: "latest"

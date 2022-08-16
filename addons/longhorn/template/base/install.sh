@@ -23,6 +23,7 @@ function longhorn_pre_init() {
 
     # Can only upgrade 1 minor version at a time
     if ! longhorn_can_upgrade ; then
+        printf "${YELLOW}Continue without upgrading longhorn? ${NC}"
         if ! confirmY ; then
             bail "Please upgrade to the previous minor version first."
         fi
@@ -240,6 +241,7 @@ function longhorn_can_upgrade() {
 
     if [ "$current_version_minor" -lt "$previous_version_minor" ]; then
         logWarn "Upgrades to Longhorn version ${LONGHORN_VERSION} from versions prior to 1.${previous_version_minor}.x are unsupported."
+        logWarn "Individual upgrades from one version to the next are required for upgrading multiple minor versions"
         return 1
     fi
     return 0
