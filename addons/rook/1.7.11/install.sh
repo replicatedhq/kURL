@@ -272,7 +272,9 @@ function rook_cluster_deploy_upgrade() {
         kubectl -n rook-ceph get deployment -l rook_cluster=rook-ceph -o jsonpath='{range .items[*]}{"ceph-version="}name={.metadata.name}, ceph-version={.metadata.labels.ceph-version}{"\n"}{end}'
         # TODO: remove these debug lines
         kubectl -n rook-ceph get deploy -l app=rook-ceph-mds
-        kubectl -n rook-ceph logs deployment/rook-ceph-operator
+        kubectl -n rook-ceph exec deployment/rook-ceph-tools -- ceph status
+        kubectl -n rook-ceph exec deployment/rook-ceph-tools -- ceph mds ok-to-stop a
+        kubectl -n rook-ceph exec deployment/rook-ceph-tools -- ceph mds ok-to-stop b
         # TODO: remove these debug lines
         bail "New Ceph version failed to deploy"
     fi
