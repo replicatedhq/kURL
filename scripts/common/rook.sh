@@ -175,7 +175,7 @@ function rook_osd_phase_ready() {
 }
 
 function current_rook_version() {
-    kubectl -n rook-ceph get deploy rook-ceph-operator -oyaml 2>/dev/null \
+    kubectl -n rook-ceph get deploy rook-ceph-operator -oyaml \
         | grep ' image: ' \
         | awk -F':' 'NR==1 { print $3 }' \
         | sed 's/v\([^-]*\).*/\1/'
@@ -196,13 +196,13 @@ function report_upgrade_rook() {
 # checks the currently installed rook version and the desired rook version
 # if the current version is 1.0-3.x and the desired version is 1.4.9+, returns true
 function should_upgrade_rook_10_to_14() {
-    # rook is not currently installed, so no upgrade
-    if ! is_rook_1 ; then
+    # rook is not requested to be installed, so no upgrade
+    if [ -z "${ROOK_VERSION}" ]; then
         return 1
     fi
 
-    # rook is not requested to be installed, so no upgrade
-    if [ -z "${ROOK_VERSION}" ]; then
+    # rook is not currently installed, so no upgrade
+    if ! is_rook_1 ; then
         return 1
     fi
 
