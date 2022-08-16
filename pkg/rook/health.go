@@ -217,5 +217,5 @@ func parseSafeToRemoveOSD(output string) (bool, int) {
 		}
 	}
 
-	return false, -1
+	return true, -1
 }
