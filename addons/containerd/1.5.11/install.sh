@@ -250,3 +250,71 @@ function _containerd_migrate_images_from_docker() {
         (set -x; ctr -n=k8s.io images import $image)
     done
 }
+function _yum_install_host_packages() {
+    if [ "${SKIP_SYSTEM_PACKAGE_INSTALL}" == "1" ]; then
+        logStep "Skipping installation of host packages: ${packages[*]}"
+        return
+    fi
+
+    local dir="$1"
+    local dir_prefix="$2"
+    local packages=("${@:3}")
+
+    logStep "Installing host packages ${packages[*]}"
+    echo "YUM INSTALLING HOST PACKAGES FROM CONTAINERD ADDON"
+
+    local fullpath=
+    fullpath="$(_yum_get_host_packages_path "${dir}" "${dir_prefix}")"
+    if ! test -n "$(shopt -s nullglob; echo "${fullpath}"/*.rpm)" ; then
+        echo "Will not install host packages ${packages[*]}, no packages found."
+        return 0
+    fi
+    cat > /etc/yum.repos.d/kurl.local.repo <<EOF
+[kurl.local]
+name=kURL Local Repo
+baseurl=file://${fullpath}
+enabled=1
+gpgcheck=0
+repo_gpgcheck=0
+EOF
+    # We always use the same repo and we are kinda abusing yum here so we have to clear the cache.
+    yum clean metadata --disablerepo=* --enablerepo=kurl.local
+    yum makecache --disablerepo=* --enablerepo=kurl.local
+
+    # shellcheck disable=SC2086
+    if [[ "${packages[*]}" == *"openssl"* && -n $(uname -r | grep "el7") ]]; then
+        installed_version=$(yum list available | grep "openssl-libs" | awk '{print $2}' | cut -c 3-)
+        # if there is already an openssl-libs package installed, swap with the package version needed for RHEL7
+        if [[ -n "${installed_version}" ]]; then
+            yum swap openssl-libs-$installed_version openssl-libs-1.0.2k-22.el7_9 -y
+        fi
+    fi
+    # When migrating from Docker to Containerd add-on, Docker is packaged with a higher version of
+    # Containerd. We must downgrade Containerd to the version specified as we package the
+    # corresponding version of the pause image. If we do not downgrade Containerd, Kubelet will
+    # fail to start in airgapped installations with pause image not found.
+    if commandExists docker && [ -n "$CONTAINERD_VERSION" ] && [[ "${packages[*]}" == *"containerd.io"* ]]; then
+        local next_version=
+        local previous_version=
+        next_version="$(basename "${fullpath}"/containerd.io*.rpm | grep -o '[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*')"
+        previous_version="$(ctr -v | grep -o '[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*')"
+        logStep "Downgrading containerd, $previous_version -> $next_version"
+        if semverCompare "$next_version" "$previous_version" && [ "$SEMVER_COMPARE_RESULT" -lt "0" ]; then
+            yum --disablerepo=* --enablerepo=kurl.local downgrade --allowerasing -y "${packages[@]}"
+        fi
+        logSuccess "Downgraded containerd"
+    fi
+    # shellcheck disable=SC2086
+    if [[ "${packages[*]}" == *"containerd.io"* && -n $(uname -r | grep "el8") ]]; then
+        yum --disablerepo=* --enablerepo=kurl.local install --allowerasing -y "${packages[@]}"
+    else
+        yum --disablerepo=* --enablerepo=kurl.local install -y "${packages[@]}"
+    fi
+    yum clean metadata --disablerepo=* --enablerepo=kurl.local
+    rm /etc/yum.repos.d/kurl.local.repo
+
+    reset_dnf_module_kurl_local
+
+    logSuccess "Host packages ${packages[*]} installed"
+}
+
