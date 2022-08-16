@@ -10,6 +10,8 @@
       version: "latest"
     kotsadm:
       version: "latest"
+    ekco:
+      version: "latest"
     rook:
       version: "__testver__"
       s3Override: "__testdist__"
@@ -34,6 +36,8 @@
       version: "latest"
     kotsadm:
       version: "latest"
+    ekco:
+      version: "latest"
     rook:
       version: "1.4.3"
       isBlockStorageEnabled: true
@@ -47,6 +51,8 @@
     minio:
       version: "latest"
     kotsadm:
+      version: "latest"
+    ekco:
       version: "latest"
     rook:
       version: "__testver__"
@@ -82,6 +88,8 @@
       version: "latest"
     kotsadm:
       version: "latest"
+    ekco:
+      version: "latest"
     rook:
       version: "1.5.10"
       isBlockStorageEnabled: true
@@ -95,6 +103,8 @@
     minio:
       version: "latest"
     kotsadm:
+      version: "latest"
+    ekco:
       version: "latest"
     rook:
       version: "__testver__"
@@ -130,6 +140,8 @@
       version: "latest"
     kotsadm:
       version: "latest"
+    ekco:
+      version: "latest"
     rook:
       version: "1.6.11"
       isBlockStorageEnabled: true
@@ -143,6 +155,8 @@
     minio:
       version: "latest"
     kotsadm:
+      version: "latest"
+    ekco:
       version: "latest"
     rook:
       version: "__testver__"
@@ -178,6 +192,8 @@
       version: "latest"
     kotsadm:
       version: "latest"
+    ekco:
+      version: "latest"
     rook:
       version: "__testver__"
       s3Override: "__testdist__"
@@ -203,6 +219,8 @@
       version: "latest"
     kotsadm:
       version: "latest"
+    ekco:
+      version: "latest"
     rook:
       version: "1.0.4"
   upgradeSpec:
@@ -215,6 +233,8 @@
     minio:
       version: "latest"
     kotsadm:
+      version: "latest"
+    ekco:
       version: "latest"
     rook:
       version: "__testver__"
