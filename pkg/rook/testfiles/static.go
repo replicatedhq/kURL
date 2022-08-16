@@ -19,7 +19,7 @@ var RebalanceCephStatusFull []byte
 var RebalanceCephStatusMultinode []byte
 
 //go:embed tooManyPgsPerOsd.json
-var TooManyPGSPerOSd []byte
+var TooManyPGSPerOSD []byte
 
 // lists of pods to use in migrate unit tests
 //go:embed "6 blockdevice pods.json"

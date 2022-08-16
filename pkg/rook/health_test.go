@@ -48,7 +48,7 @@ func Test_isStatusHealthy(t *testing.T) {
 		},
 		{
 			name:    "ceph has too many PGs per OSD",
-			status:  testfiles.TooManyPGSPerOSd,
+			status:  testfiles.TooManyPGSPerOSD,
 			health:  true,
 			message: "",
 		},
