@@ -174,7 +174,7 @@ function rook_osd_phase_ready() {
     [ "$(kubectl -n rook-ceph get cephcluster rook-ceph --template '{{.status.phase}}')" = 'Ready' ]
 }
 
-function rook_version() {
+function current_rook_version() {
     kubectl -n rook-ceph get deploy rook-ceph-operator -oyaml 2>/dev/null \
         | grep ' image: ' \
         | awk -F':' 'NR==1 { print $3 }' \
@@ -206,7 +206,7 @@ function should_upgrade_rook_10_to_14() {
         return 1
     fi
 
-    current_version="$(rook_version)"
+    current_version="$(current_rook_version)"
     semverParse "${current_version}"
     current_rook_version_major="${major}"
     current_rook_version_minor="${minor}"
