@@ -148,7 +148,7 @@
     minio:
       version: "2020-01-25T02-50-51Z"
     longhorn:
-      version: "1.1.0"
+      version: "1.1.2" # 1.1.0 is failing in testgrid
   upgradeSpec:
     kubernetes:
       version: "latest"
@@ -167,6 +167,47 @@
     source /opt/kurl-testgrid/testhelpers.sh
     minio_object_store_info
     validate_read_write_object_store rwtest testfile.txt
+  postUpgradeScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    minio_object_store_info
+    validate_testfile rwtest testfile.txt
+    validate_read_write_object_store postupgrade upgradefile.txt
+
+- name: upgrade-from-oldest-longhorn-1.2.x
+  installerSpec:
+    kubernetes:
+      version: "latest"
+    weave:
+      version: "latest"
+    containerd:
+      version: "latest"
+    minio:
+      version: "2020-01-25T02-50-51Z"
+    longhorn:
+      version: "1.2.2"
+  upgradeSpec:
+    kubernetes:
+      version: "latest"
+    weave:
+      version: "latest"
+    containerd:
+      version: "latest"
+    minio:
+      version: "latest"
+    kotsadm:
+      version: "latest"
+    longhorn:
+      version: "__testver__"
+      s3Override: "__testdist__"
+  postInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    minio_object_store_info
+    validate_read_write_object_store rwtest testfile.txt
+  postUpgradeScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    minio_object_store_info
+    validate_testfile rwtest testfile.txt
+    validate_read_write_object_store postupgrade upgradefile.txt
 
 - name: airgap-install
   airgap: true
