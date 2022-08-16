@@ -217,5 +217,6 @@ func parseSafeToRemoveOSD(output string) (bool, int) {
 		}
 	}
 
-	return true, -1
+	out(fmt.Sprintf("Unable to parse %q", output))
+	return false, -1
 }

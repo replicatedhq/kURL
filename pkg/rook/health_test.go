@@ -92,6 +92,11 @@ func Test_parseSafeToRemoveOSD(t *testing.T) {
 			want:   true,
 		},
 		{
+			name:   "osd 0 is safe to remove",
+			output: "OSD(s) 0 are safe to destroy without reducing data durability.",
+			want:   true,
+		},
+		{
 			name:    "unparseable content",
 			output:  "this is some other format of message",
 			want:    false,
