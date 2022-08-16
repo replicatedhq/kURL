@@ -82,7 +82,7 @@
       version: "latest"
     weave:
       version: "latest"
-    docker:
+    containerd:
       version: "latest"
     minio:
       version: "latest"
@@ -98,7 +98,7 @@
       version: "latest"
     weave:
       version: "latest"
-    docker:
+    containerd:
       version: "latest"
     minio:
       version: "latest"
@@ -134,7 +134,7 @@
       version: "latest"
     weave:
       version: "latest"
-    docker:
+    containerd:
       version: "latest"
     minio:
       version: "latest"
@@ -150,7 +150,7 @@
       version: "latest"
     weave:
       version: "latest"
-    docker:
+    containerd:
       version: "latest"
     minio:
       version: "latest"
