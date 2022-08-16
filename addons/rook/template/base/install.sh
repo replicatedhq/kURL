@@ -237,7 +237,7 @@ function rook_cluster_deploy_upgrade() {
         rook_versions="$(kubectl -n rook-ceph get deployment -l rook_cluster=rook-ceph -o jsonpath='{range .items[*]}{"rook-version="}{.metadata.labels.rook-version}{"\n"}{end}' | sort | uniq)"
         if [ -n "${rook_versions}" ] && [ "$(echo "${rook_versions}" | wc -l)" -gt "1" ]; then
             logWarn "Detected multiple Rook versions"
-            logWarn "${rook_versions}"
+            kubectl -n rook-ceph get deployment -l rook_cluster=rook-ceph -o jsonpath='{range .items[*]}name={.metadata.name}, rook-version={.metadata.labels.rook-version}{"\n"}{end}'
         fi
     fi
 
@@ -269,7 +269,8 @@ function rook_cluster_deploy_upgrade() {
     # https://rook.io/docs/rook/v1.6/ceph-upgrade.html#2-wait-for-the-daemon-pod-updates-to-complete
 
     if ! spinner_until 600 rook_ceph_version_deployed "${ceph_version}" ; then
-        kubectl -n rook-ceph get deployment -l rook_cluster=rook-ceph -o jsonpath='{range .items[*]}{"ceph-version="}name={.metadata.name}, ceph-version={.metadata.labels.ceph-version}{"\n"}{end}'
+        logWarn "Detected multiple Ceph versions"
+        kubectl -n rook-ceph get deployment -l rook_cluster=rook-ceph -o jsonpath='{range .items[*]}name={.metadata.name}, ceph-version={.metadata.labels.ceph-version}{"\n"}{end}'
         # TODO: remove these debug lines
         kubectl -n rook-ceph get deploy -l app=rook-ceph-mds
         kubectl -n rook-ceph exec deployment/rook-ceph-tools -- ceph status
@@ -603,6 +604,8 @@ function rook_cephfilesystem_patch() {
 
     kubectl -n rook-ceph patch cephfilesystem rook-shared-fs --type merge --patch "$(cat "$patch")"
 
+    # return
+
     cephfs_nextgeneration="$(kubectl -n rook-ceph get cephfilesystem rook-shared-fs -o jsonpath='{.metadata.generation}')"
     if [ "$cephfs_generation" = "$cephfs_nextgeneration" ]; then
         # no change
@@ -624,6 +627,10 @@ function rook_cephfilesystem_patch() {
         kubectl -n rook-ceph get deploy -l app=rook-ceph-mds
         bail "Refusing to update cluster rook-ceph, MDS deployments not up-to-date"
     fi
+
+    # allow the mds daemon to come up
+    sleep 60
+
     # TODO: remove these debug lines
     kubectl -n rook-ceph get deploy -l app=rook-ceph-mds
     kubectl -n rook-ceph get pods -l app=rook-ceph-mds
@@ -670,7 +677,7 @@ function rook_mds_daemons_oktostop() {
     local ids=
     ids="$(kubectl -n rook-ceph get deploy -l app=rook-ceph-mds -oname | sed 's/.*-rook-shared-fs-\(.*\)/\1/')"
     for id in $ids; do
-        if ! kubectl -n rook-ceph exec deploy/rook-ceph-tools -- ceph mds ok-to-stop "$id" ; then
+        if ! kubectl -n rook-ceph exec deploy/rook-ceph-tools -- ceph mds ok-to-stop "$id" >/dev/null 2>&1 ; then
             return 1
         fi
     done
