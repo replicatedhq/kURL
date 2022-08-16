@@ -40,7 +40,9 @@ jobs:
         username: ${{ secrets.AWS_PROD_ACCESS_KEY_ID }}
         password: ${{ secrets.AWS_PROD_SECRET_ACCESS_KEY }}
 
-    - run: docker push 799720048698.dkr.ecr.us-east-1.amazonaws.com/kurl:${VERSION_TAG}-${GITHUB_SHA:0:7}
+    - run: |
+        export VERSION_TAG=$(echo $GITHUB_REF | awk -F'/' '{ print $NF }')
+        docker push 799720048698.dkr.ecr.us-east-1.amazonaws.com/kurl:${VERSION_TAG}-${GITHUB_SHA:0:7}
 
   kurl-util-image:
     runs-on: ubuntu-18.04
