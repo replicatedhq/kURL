@@ -254,12 +254,6 @@ function rook_cluster_deploy_upgrade() {
     if ! spinner_until 600 rook_ceph_version_deployed "${ceph_version}" ; then
         logWarn "Detected multiple Ceph versions"
         kubectl -n rook-ceph get deployment -l rook_cluster=rook-ceph -o jsonpath='{range .items[*]}name={.metadata.name}, ceph-version={.metadata.labels.ceph-version}{"\n"}{end}'
-        # TODO: remove these debug lines
-        kubectl -n rook-ceph get deploy -l app=rook-ceph-mds
-        kubectl -n rook-ceph exec deployment/rook-ceph-tools -- ceph status
-        kubectl -n rook-ceph exec deployment/rook-ceph-tools -- ceph mds ok-to-stop a
-        kubectl -n rook-ceph exec deployment/rook-ceph-tools -- ceph mds ok-to-stop b
-        # TODO: remove these debug lines
         bail "New Ceph version failed to deploy"
     fi
 
@@ -568,9 +562,6 @@ function rook_cephfilesystem_patch() {
 
     cephfs_generation="$(kubectl -n rook-ceph get cephfilesystem rook-shared-fs -o jsonpath='{.metadata.generation}')"
     mds_observedgeneration="$(rook_mds_deployments_observedgeneration)"
-    # TODO: remove these debug lines
-    kubectl -n rook-ceph get deploy -l app=rook-ceph-mds -o jsonpath='{range .items[*]}{.metadata.name}={.status.observedGeneration}{"\n"}{end}'
-    # TODO: remove these debug lines
 
     kubectl -n rook-ceph patch cephfilesystem rook-shared-fs --type merge --patch "$(cat "$patch")"
 
@@ -587,10 +578,6 @@ function rook_cephfilesystem_patch() {
         kubectl -n rook-ceph get deploy -l app=rook-ceph-mds
         bail "Refusing to update cluster rook-ceph, MDS deployments did not roll out"
     fi
-    # TODO: remove these debug lines
-    kubectl -n rook-ceph get deploy -l app=rook-ceph-mds
-    kubectl -n rook-ceph get pods -l app=rook-ceph-mds
-    # TODO: remove these debug lines
 
     echo "Awaiting Rook MDS deployments up-to-date"
     if ! spinner_until 300 rook_mds_deployments_uptodate ; then
@@ -600,12 +587,6 @@ function rook_cephfilesystem_patch() {
 
     # allow the mds daemon to come up
     sleep 60
-
-    # TODO: remove these debug lines
-    kubectl -n rook-ceph get deploy -l app=rook-ceph-mds
-    kubectl -n rook-ceph get pods -l app=rook-ceph-mds
-    kubectl -n rook-ceph get deploy -l app=rook-ceph-mds -o jsonpath='{range .items[*]}{.metadata.name}={.status.observedGeneration}{"\n"}{end}'
-    # TODO: remove these debug lines
 
     echo "Awaiting Rook MDS daemons ok-to-stop"
     if ! spinner_until 300 rook_mds_daemons_oktostop ; then
