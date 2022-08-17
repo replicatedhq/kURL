@@ -104,7 +104,7 @@ func Test_runToolboxCommand(t *testing.T) {
 			setToolboxExecFunc(tt.responses)
 			conf = &restclient.Config{} // set the rest client so that runToolboxCommand does not attempt to fetch it
 
-			got, err := runToolboxCommand(context.TODO(), clientset, tt.command)
+			got, _, err := runToolboxCommand(context.TODO(), clientset, tt.command)
 			if tt.wanterr != "" {
 				req.Error(err)
 				req.EqualError(err, tt.wanterr)

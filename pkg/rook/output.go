@@ -27,7 +27,7 @@ func out(out string) {
 	}
 	rewriteType = rewriteNone
 	if outputWriter != nil {
-		fmt.Fprintln(outputWriter, out)
+		fmt.Fprintf(outputWriter, "%s\n", out)
 	}
 }
 
@@ -43,7 +43,7 @@ func spinLine(newLine string) {
 		fmt.Fprintf(outputWriter, "\033[2K\r%s", newLine)
 	} else {
 		rewriteType = rewriteLine
-		fmt.Fprintf(outputWriter, newLine)
+		fmt.Fprintf(outputWriter, "%s", newLine)
 	}
 }
 

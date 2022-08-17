@@ -227,50 +227,6 @@ function should_upgrade_rook_10_to_14() {
     return 1
 }
 
-# returns zero only when all pods in the rook-ceph namespace share the same rook-version label and that label matches the version provided
-function is_rook_rollout_complete() {
-    local desired_version=$1
-
-    local current_versions
-    current_versions=$(kubectl -n rook-ceph get deployment -l rook_cluster=rook-ceph -o jsonpath='{range .items[*]}{.metadata.labels.rook-version}{"\n"}{end}' | sort | uniq)
-
-    local num_versions
-    num_versions=$(echo "$current_versions" | wc -w)
-
-    if [ "$num_versions" -ne "1" ]; then
-        # there's more than one version present
-        return 1
-    fi
-
-    if [ "$current_versions" != "$desired_version" ]; then
-        # the current version is not the version we are upgrading to, so the rollout has not yet started
-        return 1
-    fi
-    return 0
-}
-
-# returns zero only when all pods in the rook-ceph namespace share the same ceph-version label and that label matches the version provided
-function is_ceph_rollout_complete() {
-    local desired_version=$1
-
-    local current_versions
-    current_versions=$(kubectl -n rook-ceph get deployment -l rook_cluster=rook-ceph -o jsonpath='{range .items[*]}{.metadata.labels.ceph-version}{"\n"}{end}' | sort | uniq)
-
-    local num_versions
-    num_versions=$(echo "$current_versions" | wc -w)
-
-    if [ "$num_versions" -ne "1" ]; then
-        # there's more than one version present
-        return 1
-    fi
-
-    if [ "$current_versions" != "$desired_version" ]; then
-        # the current version is not the version we are upgrading to, so the rollout has not yet started
-        return 1
-    fi
-    return 0
-}
-
 function rook_ceph_tools_exec() {
     local args=$1
 
@@ -303,16 +259,15 @@ function rook_10_to_14() {
     # first update rbac and other resources for 1.1
     # todo store these files ourselves
     curl -sSL https://raw.githubusercontent.com/rook/rook/v1.1.9/cluster/examples/kubernetes/ceph/upgrade-from-v1.0-create.yaml \
-      | sed 's/ROOK_SYSTEM_NAMESPACE/rook-ceph/g' | sed 's/ROOK_NAMESPACE/rook-ceph/g' | kubectl create -f -
+      | sed 's/ROOK_SYSTEM_NAMESPACE/rook-ceph/g' | sed 's/ROOK_NAMESPACE/rook-ceph/g' | kubectl create -f - || true # resources may already be present
     curl -sSL https://raw.githubusercontent.com/rook/rook/v1.1.9/cluster/examples/kubernetes/ceph/upgrade-from-v1.0-apply.yaml \
       | sed 's/ROOK_SYSTEM_NAMESPACE/rook-ceph/g' | sed 's/ROOK_NAMESPACE/rook-ceph/g' | kubectl apply -f -
 
-    kubectl delete crd volumesnapshotclasses.snapshot.storage.k8s.io volumesnapshotcontents.snapshot.storage.k8s.io volumesnapshots.snapshot.storage.k8s.io
+    kubectl delete crd volumesnapshotclasses.snapshot.storage.k8s.io volumesnapshotcontents.snapshot.storage.k8s.io volumesnapshots.snapshot.storage.k8s.io || true # resources may not be present
     kubectl -n rook-ceph set image deploy/rook-ceph-operator rook-ceph-operator=rook/ceph:v1.1.9
     kubectl -n rook-ceph set image deploy/rook-ceph-tools rook-ceph-tools=rook/ceph:v1.1.9
     echo "Waiting for Rook 1.1.9 to rollout throughout the cluster, this may take some time"
-    # todo show progress somehow
-    spinner_until -1 is_rook_rollout_complete "v1.1.9"
+    $DIR/bin/kurl rook wait-for-rook-version "v1.1.9"
     # todo make sure that the RGW isn't getting stuck
     echo "Rook 1.1.9 has been rolled out throughout the cluster"
 
@@ -323,14 +278,15 @@ function rook_10_to_14() {
     # todo store these files ourselves
     curl -sSL https://raw.githubusercontent.com/rook/rook/v1.1.9/cluster/examples/kubernetes/ceph/upgrade-from-v1.0-crds.yaml | kubectl apply -f -
 
-    # todo upgrade ceph image to 14.2.5 here
     echo "Upgrading ceph to v14.2.5"
     kubectl -n rook-ceph patch CephCluster rook-ceph --type=merge -p '{"spec": {"cephVersion": {"image": "ceph/ceph:v14.2.5-20191210"}}}'
-    spinner_until -1 is_ceph_rollout_complete "14.2.5"
+    $DIR/bin/kurl rook wait-for-ceph-version "14.2.5"
 
+    # todo change osd pool default size, and restart operator
+
+    $DIR/bin/kurl rook wait-for-health
     logSuccess "Upgraded to Rook 1.1.9 successfully"
     logStep "Upgrading to Rook 1.2.7"
-    $DIR/bin/kurl rook wait-for-health
 
     echo "Updating resources for Rook 1.2.7"
     # apply RBAC not contained in the git repo for some reason
@@ -368,17 +324,16 @@ EOM
     kubectl -n rook-ceph set image deploy/rook-ceph-operator rook-ceph-operator=rook/ceph:v1.2.7
     kubectl -n rook-ceph set image deploy/rook-ceph-tools rook-ceph-tools=rook/ceph:v1.2.7
     echo "Waiting for Rook 1.2.7 to rollout throughout the cluster, this may take some time"
-    # todo show progress somehow
-    spinner_until -1 is_rook_rollout_complete "v1.2.7"
+    $DIR/bin/kurl rook wait-for-rook-version "v1.2.7"
     echo "Rook 1.2.7 has been rolled out throughout the cluster"
     $DIR/bin/kurl rook wait-for-health
 
     echo "Upgrading CRDs to Rook 1.2"
     curl -sSL https://raw.githubusercontent.com/rook/rook/v1.2.7/cluster/examples/kubernetes/ceph/upgrade-from-v1.1-crds.yaml | kubectl apply -f -
 
+    $DIR/bin/kurl rook wait-for-health
     logSuccess "Upgraded to Rook 1.2.7 successfully"
     logStep "Upgrading to Rook 1.3.11"
-    $DIR/bin/kurl rook wait-for-health
 
     echo "Updating resources for Rook 1.3.11"
     curl -sSL https://raw.githubusercontent.com/rook/rook/v1.3.11/cluster/examples/kubernetes/ceph/upgrade-from-v1.2-apply.yaml | kubectl apply -f -
@@ -386,11 +341,10 @@ EOM
     kubectl -n rook-ceph set image deploy/rook-ceph-operator rook-ceph-operator=rook/ceph:v1.3.11
     kubectl -n rook-ceph set image deploy/rook-ceph-tools rook-ceph-tools=rook/ceph:v1.3.11
     echo "Waiting for Rook 1.3.11 to rollout throughout the cluster, this may take some time"
-    # todo show progress somehow
-    spinner_until -1 is_rook_rollout_complete "v1.3.11"
+    $DIR/bin/kurl rook wait-for-rook-version "v1.3.11"
     echo "Rook 1.3.11 has been rolled out throughout the cluster"
-    $DIR/bin/kurl rook wait-for-health
 
+    $DIR/bin/kurl rook wait-for-health
     logSuccess "Upgraded to Rook 1.3.11 successfully"
     logStep "Upgrading to Rook 1.4.9"
 
@@ -401,7 +355,20 @@ EOM
     kubectl -n rook-ceph set image deploy/rook-ceph-operator rook-ceph-operator=rook/ceph:v1.4.9
     kubectl -n rook-ceph set image deploy/rook-ceph-tools rook-ceph-tools=rook/ceph:v1.4.9
     echo "Waiting for Rook 1.4.9 to rollout throughout the cluster, this may take some time"
-    # todo show progress somehow
-    spinner_until -1 is_rook_rollout_complete "v1.4.9"
+    $DIR/bin/kurl rook wait-for-rook-version "v1.4.9"
+
+    # todo update rook-ceph-tools deployment spec
+
+    $DIR/bin/kurl rook wait-for-health
+
     echo "Rook 1.4.9 has been rolled out throughout the cluster"
+
+    echo "Upgrading ceph to v15.2.8"
+    kubectl -n rook-ceph patch CephCluster rook-ceph --type=merge -p '{"spec": {"cephVersion": {"image": "ceph/ceph:v15.2.8-20201217"}}}'
+    $DIR/bin/kurl rook wait-for-ceph-version "15.2.8"
+
+    $DIR/bin/kurl rook wait-for-health
+
+    logSuccess "Upgraded to Rook 1.4.9 successfully"
+    logSuccess "Successfully upgraded Rook-Ceph from 1.0.x to 1.4.x"
 }
