@@ -1,12 +1,16 @@
 package rook
 
 import (
+	"context"
 	"encoding/json"
 	"testing"
+	"time"
 
 	"github.com/replicatedhq/kurl/pkg/rook/cephtypes"
 	"github.com/replicatedhq/kurl/pkg/rook/testfiles"
 	"github.com/stretchr/testify/require"
+	"k8s.io/client-go/kubernetes/fake"
+	restclient "k8s.io/client-go/rest"
 )
 
 func Test_isStatusHealthy(t *testing.T) {
@@ -109,6 +113,88 @@ func Test_parseSafeToRemoveOSD(t *testing.T) {
 			got, pgs := parseSafeToRemoveOSD(tt.output)
 			req.Equal(tt.want, got)
 			req.Equal(tt.wantPgs, pgs)
+		})
+	}
+}
+
+func Test_waitForOkToRemoveOSD(t *testing.T) {
+	loopSleep = time.Millisecond * 20
+	backgroundComplete := false
+	tests := []struct {
+		name           string
+		osdToRemove    int64
+		responses      execResponses
+		backgroundFunc func()
+	}{
+		{
+			name: "basic progression",
+			responses: map[string]struct {
+				errcode        int
+				stdout, stderr string
+				err            error
+			}{
+				`ceph - status - --format - json-pretty - rook-ceph - rook-ceph-tools-785466cbdd-wk8rx - rook-ceph-tools`: {
+					stdout: string(testfiles.RebalanceCephStatusMultinode),
+				},
+			},
+			osdToRemove: 4,
+			backgroundFunc: func() {
+				time.Sleep(time.Millisecond * 100)
+
+				// start returning a healthy status, and a 'not ok to remove osd 4' response
+				setToolboxExecFunc(map[string]struct {
+					errcode        int
+					stdout, stderr string
+					err            error
+				}{
+					`ceph - status - --format - json-pretty - rook-ceph - rook-ceph-tools-785466cbdd-wk8rx - rook-ceph-tools`: {
+						stdout: string(testfiles.HealthyCephStatus1),
+					},
+					`ceph - osd - safe-to-destroy - osd.4 - rook-ceph - rook-ceph-tools-785466cbdd-wk8rx - rook-ceph-tools`: {
+						stderr: "Error EBUSY: OSD(s) 4 have 49 pgs currently mapped to them.",
+					},
+				})
+
+				time.Sleep(time.Millisecond * 100)
+
+				// ok to remove
+				setToolboxExecFunc(map[string]struct {
+					errcode        int
+					stdout, stderr string
+					err            error
+				}{
+					`ceph - status - --format - json-pretty - rook-ceph - rook-ceph-tools-785466cbdd-wk8rx - rook-ceph-tools`: {
+						stdout: string(testfiles.HealthyCephStatus1),
+					},
+					`ceph - osd - safe-to-destroy - osd.4 - rook-ceph - rook-ceph-tools-785466cbdd-wk8rx - rook-ceph-tools`: {
+						stderr: "OSD(s) 4 are safe to destroy without reducing data durability.",
+					},
+				})
+				backgroundComplete = true
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			req := require.New(t)
+			clientset := fake.NewSimpleClientset(append(runtimeFromPodlistJson(testfiles.SixBlockDevicePods), runtimeFromDeploymentlistJson(testfiles.Rook6OSDDeployments)...)...)
+			InitWriter(testWriter{t: t})
+
+			testCtx, cancelfunc := context.WithTimeout(context.Background(), time.Minute) // if your test takes more than 1m, there are issues
+			defer cancelfunc()
+			setToolboxExecFunc(tt.responses)
+			conf = &restclient.Config{} // set the rest client so that runToolboxCommand does not attempt to fetch it
+
+			if tt.backgroundFunc != nil {
+				go tt.backgroundFunc()
+			} else {
+				backgroundComplete = true
+			}
+
+			err := waitForOkToRemoveOSD(testCtx, clientset, tt.osdToRemove)
+			req.NoError(err)
+
+			req.Equal(true, backgroundComplete) // the background function should have marked this as complete
 		})
 	}
 }

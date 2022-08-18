@@ -106,10 +106,10 @@ func cacheConfig() (*restclient.Config, error) {
 }
 
 // run a specified command in the toolbox, and return the output if the command ran, and an error otherwise
-func runToolboxCommand(ctx context.Context, client kubernetes.Interface, inContainer []string) (string, error) {
+func runToolboxCommand(ctx context.Context, client kubernetes.Interface, inContainer []string) (string, string, error) {
 	pods, err := client.CoreV1().Pods("rook-ceph").List(ctx, metav1.ListOptions{LabelSelector: "app=rook-ceph-tools"})
 	if err != nil {
-		return "", fmt.Errorf("unable to find rook-ceph-tools pod: %w", err)
+		return "", "", fmt.Errorf("unable to find rook-ceph-tools pod: %w", err)
 	}
 	if len(pods.Items) != 1 {
 		podnames := []string{}
@@ -117,22 +117,22 @@ func runToolboxCommand(ctx context.Context, client kubernetes.Interface, inConta
 			podnames = append(podnames, pod.Name)
 		}
 
-		return "", fmt.Errorf("found %d rook-ceph-tools pods, with names %q, expected 1", len(pods.Items), strings.Join(podnames, ", "))
+		return "", "", fmt.Errorf("found %d rook-ceph-tools pods, with names %q, expected 1", len(pods.Items), strings.Join(podnames, ", "))
 	}
 
 	prettyCmd := strings.Join(inContainer, " ")
 	podName := pods.Items[0].Name
 	k8sConfig, err := cacheConfig()
 	if err != nil {
-		return "", fmt.Errorf("unable to get rest config to exec in container: %w", err)
+		return "", "", fmt.Errorf("unable to get rest config to exec in container: %w", err)
 	}
 
 	exitCode, stdout, stderr, err := execFunction(client.CoreV1(), k8sConfig, "rook-ceph", podName, pods.Items[0].Spec.Containers[0].Name, inContainer...)
 	if err != nil {
-		return "", fmt.Errorf("failed to run %q in %s: %w", prettyCmd, podName, err)
+		return "", "", fmt.Errorf("failed to run %q in %s: %w", prettyCmd, podName, err)
 	}
 	if exitCode != 0 {
-		return stderr, fmt.Errorf("failed to run %q in %s with stderr %q", prettyCmd, podName, stderr)
+		return stdout, stderr, fmt.Errorf("failed to run %q in %s with stderr %q", prettyCmd, podName, stderr)
 	}
-	return stdout, nil
+	return stdout, stderr, nil
 }

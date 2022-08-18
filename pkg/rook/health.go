@@ -95,7 +95,7 @@ func currentStatus(ctx context.Context, client kubernetes.Interface) (cephtypes.
 		return cephtypes.CephStatus{}, fmt.Errorf("failed to start toolbox, required for rook health checks: %w", err)
 	}
 
-	healthJSON, err := runToolboxCommand(ctx, client, []string{"ceph", "status", "--format", "json-pretty"})
+	healthJSON, _, err := runToolboxCommand(ctx, client, []string{"ceph", "status", "--format", "json-pretty"})
 	if err != nil {
 		return cephtypes.CephStatus{}, fmt.Errorf("failed to run 'ceph status --format json-pretty': %w", err)
 	}
@@ -191,7 +191,7 @@ func waitForOkToRemoveOSD(ctx context.Context, client kubernetes.Interface, osdT
 
 // safeToRemoveOSD determines if the OSD is safe to remove
 func safeToRemoveOSD(ctx context.Context, client kubernetes.Interface, osd int64) (bool, int, error) {
-	safetodestroy, err := runToolboxCommand(ctx, client, []string{"ceph", "osd", "safe-to-destroy", fmt.Sprintf("osd.%d", osd)})
+	_, safetodestroy, err := runToolboxCommand(ctx, client, []string{"ceph", "osd", "safe-to-destroy", fmt.Sprintf("osd.%d", osd)})
 	if err != nil {
 		return false, -1, fmt.Errorf("unable to check if osd %d is safe to destroy: %w", osd, err)
 	}

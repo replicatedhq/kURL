@@ -165,7 +165,7 @@ func safeRemoveOSD(ctx context.Context, client kubernetes.Interface, osdNum int6
 	out(fmt.Sprintf("Reweighting osd.%d to 0", osdNum))
 	// reweight hostpath OSDs to 0
 	// ceph osd reweight osd.<num> 0
-	_, err := runToolboxCommand(ctx, client, []string{"ceph", "osd", "reweight", fmt.Sprintf("osd.%d", osdNum), "0"})
+	_, _, err := runToolboxCommand(ctx, client, []string{"ceph", "osd", "reweight", fmt.Sprintf("osd.%d", osdNum), "0"})
 	if err != nil {
 		return fmt.Errorf("failed to run 'ceph osd reweight osd.%d 0': %w", osdNum, err)
 	}
@@ -204,10 +204,17 @@ func safeRemoveOSD(ctx context.Context, client kubernetes.Interface, osdNum int6
 	out(fmt.Sprintf("Purging hostpath osd.%d as all data has been migrated to other devices", osdNum))
 	// purge hostpath OSDs
 	// osd purge <osdnum> --yes-i-really-mean-it
-	_, err = runToolboxCommand(ctx, client, []string{"ceph", "osd", "purge", fmt.Sprintf("%d", osdNum), "--yes-i-really-mean-it"})
+	_, _, err = runToolboxCommand(ctx, client, []string{"ceph", "osd", "purge", fmt.Sprintf("%d", osdNum), "--yes-i-really-mean-it"})
 	if err != nil {
 		return fmt.Errorf("failed to run 'ceph osd purge %d --yes-i-really-mean-it': %w", osdNum, err)
 	}
+
+	// delete the osd deployment so that it doesn't show up as a deployment running an old rook version during upgrades
+	err = client.AppsV1().Deployments("rook-ceph").Delete(ctx, fmt.Sprintf("rook-ceph-osd-%d", osdNum), metav1.DeleteOptions{})
+	if err != nil {
+		return fmt.Errorf("failed to delete deployment for osd %d: %w", osdNum, err)
+	}
+
 	out(fmt.Sprintf("Successfully purged osd.%d", osdNum))
 	return nil
 }
