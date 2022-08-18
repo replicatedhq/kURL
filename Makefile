@@ -117,10 +117,10 @@ dist/rook-%.tar.gz: build/addons
 	tar cf - -C build addons/rook/$* | gzip > dist/rook-$*.tar.gz
 
 dist/rookupgrade-%.tar.gz: build/addons
-	mkdir -p build/addons/rook/$*/images
+	mkdir -p build/addons/rookupgrade/$*/images
 	bin/save-manifest-assets.sh "rookupgrade-$*" addons/rookupgrade/$*/Manifest $(CURDIR)/build/addons/rookupgrade/$*
 	mkdir -p dist
-	tar cf - -C build addons/rookupgrade/$* | gzip > dist/rookupgrade*.tar.gz
+	tar cf - -C build addons/rookupgrade/$* | gzip > dist/rookupgrade-$*.tar.gz
 
 dist/contour-%.tar.gz: build/addons
 	mkdir -p build/addons/contour/$*/images
