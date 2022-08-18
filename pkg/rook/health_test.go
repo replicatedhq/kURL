@@ -10,6 +10,7 @@ import (
 	"github.com/replicatedhq/kurl/pkg/rook/testfiles"
 	"github.com/stretchr/testify/require"
 	"k8s.io/client-go/kubernetes/fake"
+	restclient "k8s.io/client-go/rest"
 )
 
 func Test_isStatusHealthy(t *testing.T) {
@@ -182,6 +183,7 @@ func Test_waitForOkToRemoveOSD(t *testing.T) {
 			testCtx, cancelfunc := context.WithTimeout(context.Background(), time.Minute) // if your test takes more than 1m, there are issues
 			defer cancelfunc()
 			setToolboxExecFunc(tt.responses)
+			conf = &restclient.Config{} // set the rest client so that runToolboxCommand does not attempt to fetch it
 
 			if tt.backgroundFunc != nil {
 				go tt.backgroundFunc()
