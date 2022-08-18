@@ -26,7 +26,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/replicatedhq/pvmigrate v0.5.0
 	github.com/replicatedhq/troubleshoot v0.40.0
-	github.com/rook/rook v1.6.11
+	github.com/rook/rook v1.7.11
 	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/afero v1.9.2
 	github.com/spf13/cobra v1.5.0
@@ -43,7 +43,7 @@ require (
 	k8s.io/api v0.24.3
 	k8s.io/apiextensions-apiserver v0.24.3
 	k8s.io/apimachinery v0.24.3
-	k8s.io/client-go v12.0.0+incompatible
+	k8s.io/client-go v0.24.3
 	k8s.io/code-generator v0.24.3
 	kubevirt.io/api v0.55.0
 	kubevirt.io/client-go v0.55.0
@@ -72,6 +72,7 @@ require (
 	github.com/blang/semver v3.5.1+incompatible // indirect
 	github.com/bugsnag/panicwrap v1.3.4 // indirect
 	github.com/c9s/goprocinfo v0.0.0-20170724085704-0010a05ce49f // indirect
+	github.com/cenkalti/backoff/v3 v3.0.0 // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
 	github.com/containerd/cgroups v1.0.3 // indirect
 	github.com/containerd/stargz-snapshotter/estargz v0.11.4 // indirect
@@ -112,6 +113,7 @@ require (
 	github.com/golang/glog v1.0.0 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
+	github.com/golang/snappy v0.0.4 // indirect
 	github.com/google/btree v1.0.1 // indirect
 	github.com/google/go-cmp v0.5.8 // indirect
 	github.com/google/go-intervals v0.0.2 // indirect
@@ -128,9 +130,14 @@ require (
 	github.com/hashicorp/go-hclog v1.2.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/hashicorp/go-plugin v1.4.3 // indirect
+	github.com/hashicorp/go-retryablehttp v0.6.7 // indirect
+	github.com/hashicorp/go-rootcerts v1.0.2 // indirect
 	github.com/hashicorp/go-safetemp v1.0.0 // indirect
+	github.com/hashicorp/go-sockaddr v1.0.2 // indirect
 	github.com/hashicorp/go-version v1.3.0 // indirect
-	github.com/hashicorp/hcl v1.0.0 // indirect
+	github.com/hashicorp/hcl v1.0.1-vault-3 // indirect
+	github.com/hashicorp/vault/api v1.1.2-0.20210713235431-1fc8af4c041f // indirect
+	github.com/hashicorp/vault/sdk v0.2.2-0.20210825150427-9b1f4d486f5d // indirect
 	github.com/hashicorp/yamux v0.0.0-20181012175058-2f1d1f20f75d // indirect
 	github.com/huandu/xstrings v1.3.2 // indirect
 	github.com/imdario/mergo v0.3.12 // indirect
@@ -156,7 +163,7 @@ require (
 	github.com/mistifyio/go-zfs v2.1.2-0.20190413222219-f784269be439+incompatible // indirect
 	github.com/mitchellh/copystructure v1.2.0 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
-	github.com/mitchellh/go-testing-interface v1.0.0 // indirect
+	github.com/mitchellh/go-testing-interface v1.14.0 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/mitchellh/reflectwalk v1.0.2 // indirect
 	github.com/moby/spdystream v0.2.0 // indirect
@@ -177,6 +184,7 @@ require (
 	github.com/pborman/uuid v1.2.0 // indirect
 	github.com/pelletier/go-toml/v2 v2.0.1 // indirect
 	github.com/peterbourgon/diskv v2.0.1+incompatible // indirect
+	github.com/pierrec/lz4 v2.5.2+incompatible // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/proglottis/gpgme v0.1.1 // indirect
 	github.com/prometheus/client_golang v1.12.1 // indirect
@@ -184,6 +192,7 @@ require (
 	github.com/prometheus/common v0.32.1 // indirect
 	github.com/prometheus/procfs v0.7.3 // indirect
 	github.com/rivo/uniseg v0.2.0 // indirect
+	github.com/ryanuber/go-glob v1.0.0 // indirect
 	github.com/segmentio/ksuid v1.0.4 // indirect
 	github.com/shirou/gopsutil v3.21.11+incompatible // indirect
 	github.com/spf13/cast v1.5.0 // indirect
@@ -273,4 +282,41 @@ replace (
 	k8s.io/sample-controller => k8s.io/sample-controller v0.23.9
 	sigs.k8s.io/controller-runtime => sigs.k8s.io/controller-runtime v0.11.2 // k8s 1.23
 	sigs.k8s.io/controller-tools => sigs.k8s.io/controller-tools v0.8.0 // k8s 1.23
+)
+
+replace (
+	// from https://github.com/rook/rook/blob/v1.7.11/go.mod
+	github.com/googleapis/gnostic => github.com/googleapis/gnostic v0.4.1
+	github.com/kubernetes-incubator/external-storage => github.com/libopenstorage/external-storage v0.20.4-openstorage-rc3
+	github.com/portworx/sched-ops => github.com/portworx/sched-ops v0.20.4-openstorage-rc3
+	google.golang.org/grpc => google.golang.org/grpc v1.27.1
+)
+
+// from https://github.com/rook/rook/blob/v1.7.11/go.mod
+exclude (
+	// This tag doesn't exist, but is imported by github.com/portworx/sched-ops.
+	github.com/kubernetes-incubator/external-storage v0.20.4-openstorage-rc2
+	// Exclude pre-go-mod kubernetes tags, because they are older
+	// than v0.x releases but are picked when updating dependencies.
+	k8s.io/client-go v1.4.0
+	k8s.io/client-go v1.5.0
+	k8s.io/client-go v1.5.1
+	k8s.io/client-go v1.5.2
+	k8s.io/client-go v10.0.0+incompatible
+	k8s.io/client-go v11.0.0+incompatible
+	k8s.io/client-go v11.0.1-0.20190409021438-1a26190bd76a+incompatible
+	k8s.io/client-go v12.0.0+incompatible
+	k8s.io/client-go v2.0.0+incompatible
+	k8s.io/client-go v2.0.0-alpha.1+incompatible
+	k8s.io/client-go v3.0.0+incompatible
+	k8s.io/client-go v3.0.0-beta.0+incompatible
+	k8s.io/client-go v4.0.0+incompatible
+	k8s.io/client-go v4.0.0-beta.0+incompatible
+	k8s.io/client-go v5.0.0+incompatible
+	k8s.io/client-go v5.0.1+incompatible
+	k8s.io/client-go v6.0.0+incompatible
+	k8s.io/client-go v7.0.0+incompatible
+	k8s.io/client-go v8.0.0+incompatible
+	k8s.io/client-go v9.0.0+incompatible
+	k8s.io/client-go v9.0.0-invalid+incompatible
 )
