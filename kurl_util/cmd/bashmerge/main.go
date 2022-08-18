@@ -256,7 +256,7 @@ func parseBashFlags(installer *kurlv1beta1.Installer, bashFlags string) error {
 			installer.Spec.Kotsadm.ApplicationVersionLabel = split[1]
 		case "yes":
 			continue
-		case "auto-upgrades-enabled":
+		case "auto-upgrades-enabled": // no longer supported
 			continue
 		case "primary-host":
 			continue

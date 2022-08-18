@@ -153,8 +153,7 @@ function get_patch_yaml() {
             yes)
                 ASSUME_YES=1
                 ;;
-            auto-upgrades-enabled)
-                AUTO_UPGRADES_ENABLED=1
+            auto-upgrades-enabled) # no longer supported
                 ;;
             primary-host)
                 if [ -z "$PRIMARY_HOST" ]; then

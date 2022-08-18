@@ -4,8 +4,8 @@ set -euo pipefail
 
 VERSION=""
 
-function get_latest_release_version() {
-    VERSION="$(docker run quay.io/skopeo/stable --override-os linux \
+function get_latest_version() {
+    docker run quay.io/skopeo/stable --override-os linux \
         list-tags "docker://replicated/ekco" | \
         jq -r '.Tags | .[]' | \
         grep '^v[0-9]*\.[0-9]*\.[0-9]*' | \
@@ -13,7 +13,6 @@ function get_latest_release_version() {
         sed '/-/!{s/$/_/}' | sort -rV | sed 's/_$//' | \
         sed 's/^v//' | \
         head -n 1
-    )"
 }
 
 function get_latest_haproxy_version() {
@@ -29,7 +28,8 @@ function get_latest_haproxy_version() {
 function generate() {
     local dir="../${VERSION}"
 
-    local haproxy_version="$(get_latest_haproxy_version)"
+    local haproxy_version=
+    haproxy_version="$(get_latest_haproxy_version)"
 
     # make the base set of files
     mkdir -p "$dir"
@@ -48,14 +48,16 @@ function add_as_latest() {
 }
 
 function main() {
-    VERSION="${1:-}"
-
+    VERSION="${1-}"
+    if [ "${1-}" == "force" ]; then
+        VERSION=
+    fi
     if [ -z "${VERSION}" ]; then
-        get_latest_release_version
+        VERSION="$(get_latest_version)"
     fi
 
     if [ -d "../${VERSION}" ]; then
-        if [ "${1:-}" = "force" ] || [ "${2:-}" = "force" ]; then
+        if [ "${1-}" == "force" ] || [ "${2-}" == "force" ]; then
             echo "forcibly updating existing version of ekco"
             rm -rf "../${VERSION}"
         else

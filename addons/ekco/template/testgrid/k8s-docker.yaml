@@ -11,6 +11,8 @@
     ekco:
       version: "__testver__"
       s3Override: "__testdist__"
+  unsupportedOSIDs:
+  - ubuntu-2204 # docker 19.x is not available on ubuntu 22.04
 - name: Kubernetes 1.23, Internal LB, Rook, Multi node
   installerSpec:
     kubernetes:
@@ -28,7 +30,6 @@
       version: "__testver__"
       s3Override: "__testdist__"
       minReadyMasterNodeCount: 1
-      autoUpgradeSchedule: Sat 17:30
       enableInternalLoadBalancer: true
   numPrimaryNodes: 3
 - name: Kubernetes 1.21, Longhorn, Internal LB
