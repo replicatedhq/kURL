@@ -230,7 +230,6 @@ function should_upgrade_rook_10_to_14() {
 function rook_ceph_tools_exec() {
     local args=$1
 
-    local tools_pod=
     if kubectl -n rook-ceph exec deploy/rook-ceph-tools -- bash -s "$args" ; then
         return 0
     fi
@@ -246,8 +245,11 @@ function rook_10_to_14() {
     $DIR/bin/kurl rook hostpath-to-block
 
     logStep "Downloading images required for this upgrade"
-    # todo download images and load them so that they aren't being pulled dynamically
+    addon_fetch rookupgrade 10to14
+    addon_load rookupgrade 10to14
     logSuccess "Images loaded for Rook 1.1.9, 1.2.7, 1.3.11 and 1.4.9"
+
+    local upgrade_files_path="$DIR/addons/rookupgrade/10to14"
 
     echo "Rescaling pgs per pool"
     rook_ceph_tools_exec "ceph osd pool ls | grep rook-ceph-store | xargs -I {} ceph osd pool set {} pg_num 16"
@@ -257,24 +259,11 @@ function rook_10_to_14() {
     logStep "Upgrading to Rook 1.1.9"
 
     # first update rbac and other resources for 1.1
-    # todo store these files ourselves
-    curl -sSL https://raw.githubusercontent.com/rook/rook/v1.1.9/cluster/examples/kubernetes/ceph/upgrade-from-v1.0-create.yaml \
-      | sed 's/ROOK_SYSTEM_NAMESPACE/rook-ceph/g' | sed 's/ROOK_NAMESPACE/rook-ceph/g' | kubectl create -f - || true # resources may already be present
-    curl -sSL https://raw.githubusercontent.com/rook/rook/v1.1.9/cluster/examples/kubernetes/ceph/upgrade-from-v1.0-apply.yaml \
-      | sed 's/ROOK_SYSTEM_NAMESPACE/rook-ceph/g' | sed 's/ROOK_NAMESPACE/rook-ceph/g' | kubectl apply -f -
+    kubectl create -f "$upgrade_files_path/upgrade-from-v1.0-create.yaml" || true # resources may already be present
+    kubectl apply -f "$upgrade_files_path/upgrade-from-v1.0-apply.yaml"
 
     # change the default osd pool size from 3 to 1
-    kubectl apply -f - << EOM
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: rook-config-override
-  namespace: rook-ceph
-data:
-  config: |
-    [global]
-    osd pool default size = 1
-EOM
+    kubectl apply -f "$upgrade_files_path/rook-config-override.yaml"
 
     kubectl delete crd volumesnapshotclasses.snapshot.storage.k8s.io volumesnapshotcontents.snapshot.storage.k8s.io volumesnapshots.snapshot.storage.k8s.io || true # resources may not be present
     kubectl -n rook-ceph set image deploy/rook-ceph-operator rook-ceph-operator=rook/ceph:v1.1.9
@@ -288,8 +277,7 @@ EOM
     rook_ceph_tools_exec "ceph osd pool ls | xargs -I {} ceph osd pool set {} pg_autoscale_mode on"
 
     echo "Upgrading CRDs to Rook 1.1"
-    # todo store these files ourselves
-    curl -sSL https://raw.githubusercontent.com/rook/rook/v1.1.9/cluster/examples/kubernetes/ceph/upgrade-from-v1.0-crds.yaml | kubectl apply -f -
+    kubectl apply -f "$upgrade_files_path/upgrade-from-v1.0-crds.yaml"
 
     echo "Upgrading ceph to v14.2.5"
     kubectl -n rook-ceph patch CephCluster rook-ceph --type=merge -p '{"spec": {"cephVersion": {"image": "ceph/ceph:v14.2.5-20191210"}}}'
@@ -301,36 +289,8 @@ EOM
 
     echo "Updating resources for Rook 1.2.7"
     # apply RBAC not contained in the git repo for some reason
-    kubectl apply -f - << EOM
-kind: ClusterRoleBinding
-apiVersion: rbac.authorization.k8s.io/v1beta1
-metadata:
-  name: rook-ceph-osd
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: rook-ceph-osd
-subjects:
-- kind: ServiceAccount
-  name: rook-ceph-osd
-  namespace: rook-ceph
----
-kind: ClusterRole
-apiVersion: rbac.authorization.k8s.io/v1beta1
-metadata:
-  name: rook-ceph-osd
-  namespace: rook-ceph
-rules:
-- apiGroups:
-  - ""
-  resources:
-  - nodes
-  verbs:
-  - get
-  - list
-EOM
-    curl -sSL https://raw.githubusercontent.com/rook/rook/v1.2.7/cluster/examples/kubernetes/ceph/upgrade-from-v1.1-apply.yaml | kubectl apply -f -
-
+    kubectl apply -f "$upgrade_files_path/rook-ceph-osd-rbac.yaml"
+    kubectl apply -f "$upgrade_files_path/upgrade-from-v1.1-apply.yaml"
 
     kubectl -n rook-ceph set image deploy/rook-ceph-operator rook-ceph-operator=rook/ceph:v1.2.7
     kubectl -n rook-ceph set image deploy/rook-ceph-tools rook-ceph-tools=rook/ceph:v1.2.7
@@ -340,15 +300,15 @@ EOM
     $DIR/bin/kurl rook wait-for-health
 
     echo "Upgrading CRDs to Rook 1.2"
-    curl -sSL https://raw.githubusercontent.com/rook/rook/v1.2.7/cluster/examples/kubernetes/ceph/upgrade-from-v1.1-crds.yaml | kubectl apply -f -
+    kubectl apply -f "$upgrade_files_path/upgrade-from-v1.1-crds.yaml"
 
     $DIR/bin/kurl rook wait-for-health
     logSuccess "Upgraded to Rook 1.2.7 successfully"
     logStep "Upgrading to Rook 1.3.11"
 
     echo "Updating resources for Rook 1.3.11"
-    curl -sSL https://raw.githubusercontent.com/rook/rook/v1.3.11/cluster/examples/kubernetes/ceph/upgrade-from-v1.2-apply.yaml | kubectl apply -f -
-    curl -sSL https://raw.githubusercontent.com/rook/rook/v1.3.11/cluster/examples/kubernetes/ceph/upgrade-from-v1.2-crds.yaml | kubectl apply -f -
+    kubectl apply -f "$upgrade_files_path/upgrade-from-v1.2-apply.yaml"
+    kubectl apply -f "$upgrade_files_path/upgrade-from-v1.2-crds.yaml"
     kubectl -n rook-ceph set image deploy/rook-ceph-operator rook-ceph-operator=rook/ceph:v1.3.11
     kubectl -n rook-ceph set image deploy/rook-ceph-tools rook-ceph-tools=rook/ceph:v1.3.11
     echo "Waiting for Rook 1.3.11 to rollout throughout the cluster, this may take some time"
@@ -360,66 +320,11 @@ EOM
     logStep "Upgrading to Rook 1.4.9"
 
     echo "Updating resources for Rook 1.4.9"
-    curl -sSL https://raw.githubusercontent.com/rook/rook/v1.4.9/cluster/examples/kubernetes/ceph/upgrade-from-v1.3-delete.yaml | kubectl delete -f -
-    curl -sSL https://raw.githubusercontent.com/rook/rook/v1.4.9/cluster/examples/kubernetes/ceph/upgrade-from-v1.3-apply.yaml | kubectl apply -f -
-    curl -sSL https://raw.githubusercontent.com/rook/rook/v1.4.9/cluster/examples/kubernetes/ceph/upgrade-from-v1.3-crds.yaml | kubectl apply -f -
+    kubectl delete -f "$upgrade_files_path/upgrade-from-v1.3-delete.yaml"
+    kubectl apply -f "$upgrade_files_path/upgrade-from-v1.3-apply.yaml"
+    kubectl apply -f "$upgrade_files_path/upgrade-from-v1.3-crds.yaml"
     kubectl -n rook-ceph set image deploy/rook-ceph-operator rook-ceph-operator=rook/ceph:v1.4.9
-    kubectl apply -f << EOM
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: rook-ceph-tools
-  namespace: rook-ceph
-  labels:
-    app: rook-ceph-tools
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: rook-ceph-tools
-  template:
-    metadata:
-      labels:
-        app: rook-ceph-tools
-    spec:
-      dnsPolicy: ClusterFirstWithHostNet
-      containers:
-      - name: rook-ceph-tools
-        image: rook/ceph:v1.4.9
-        command: ["/tini"]
-        args: ["-g", "--", "/usr/local/bin/toolbox.sh"]
-        imagePullPolicy: IfNotPresent
-        env:
-          - name: ROOK_CEPH_USERNAME
-            valueFrom:
-              secretKeyRef:
-                name: rook-ceph-mon
-                key: ceph-username
-          - name: ROOK_CEPH_SECRET
-            valueFrom:
-              secretKeyRef:
-                name: rook-ceph-mon
-                key: ceph-secret
-        volumeMounts:
-          - mountPath: /etc/ceph
-            name: ceph-config
-          - name: mon-endpoint-volume
-            mountPath: /etc/rook
-      volumes:
-        - name: mon-endpoint-volume
-          configMap:
-            name: rook-ceph-mon-endpoints
-            items:
-            - key: data
-              path: mon-endpoints
-        - name: ceph-config
-          emptyDir: {}
-      tolerations:
-        - key: "node.kubernetes.io/unreachable"
-          operator: "Exists"
-          effect: "NoExecute"
-          tolerationSeconds: 5
-EOM
+    kubectl apply -f "$upgrade_files_path/rook-ceph-tools-14.yaml"
 
     echo "Waiting for Rook 1.4.9 to rollout throughout the cluster, this may take some time"
     $DIR/bin/kurl rook wait-for-rook-version "v1.4.9"
