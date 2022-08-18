@@ -6,20 +6,20 @@ image rook-ceph-149 rook/ceph:v1.4.9
 image ceph-ceph-1425 ceph/ceph:v14.2.5
 image ceph-ceph-1528 ceph/ceph:v15.2.8
 
-image cephcsi-cephcsi quay.io/cephcsi/cephcsi:v1.2.2
-image cephcsi-cephcsi quay.io/cephcsi/cephcsi:v2.1.2
-image cephcsi-cephcsi quay.io/cephcsi/cephcsi:v3.1.1
+image cephcsi-cephcsi-122 quay.io/cephcsi/cephcsi:v1.2.2
+image cephcsi-cephcsi-212 quay.io/cephcsi/cephcsi:v2.1.2
+image cephcsi-cephcsi-311 quay.io/cephcsi/cephcsi:v3.1.1
 
-image k8scsi-csi-attacher quay.io/k8scsi/csi-attacher:v1.2.0
-image k8scsi-csi-attacher quay.io/k8scsi/csi-attacher:v2.1.0
+image k8scsi-csi-attacher-120 quay.io/k8scsi/csi-attacher:v1.2.0
+image k8scsi-csi-attacher-210 quay.io/k8scsi/csi-attacher:v2.1.0
 
-image k8scsi-csi-node-driver-registrar quay.io/k8scsi/csi-node-driver-registrar:v1.1.0
-image k8scsi-csi-node-driver-registrar quay.io/k8scsi/csi-node-driver-registrar:v1.2.0
+image k8scsi-csi-node-driver-registrar-110 quay.io/k8scsi/csi-node-driver-registrar:v1.1.0
+image k8scsi-csi-node-driver-registrar-120 quay.io/k8scsi/csi-node-driver-registrar:v1.2.0
 
-image k8scsi-csi-provisioner quay.io/k8scsi/csi-provisioner:v1.4.0
-image k8scsi-csi-provisioner quay.io/k8scsi/csi-provisioner:v1.6.0
+image k8scsi-csi-provisioner-140 quay.io/k8scsi/csi-provisioner:v1.4.0
+image k8scsi-csi-provisioner-160 quay.io/k8scsi/csi-provisioner:v1.6.0
 
 image k8scsi-csi-resizer quay.io/k8scsi/csi-resizer:v0.4.0
 
-image k8scsi-csi-snapshotter quay.io/k8scsi/csi-snapshotter:v1.2.2
-image k8scsi-csi-snapshotter quay.io/k8scsi/csi-snapshotter:v2.1.1
+image k8scsi-csi-snapshotter-122 quay.io/k8scsi/csi-snapshotter:v1.2.2
+image k8scsi-csi-snapshotter-211 quay.io/k8scsi/csi-snapshotter:v2.1.1
