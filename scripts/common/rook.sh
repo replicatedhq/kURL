@@ -263,6 +263,19 @@ function rook_10_to_14() {
     curl -sSL https://raw.githubusercontent.com/rook/rook/v1.1.9/cluster/examples/kubernetes/ceph/upgrade-from-v1.0-apply.yaml \
       | sed 's/ROOK_SYSTEM_NAMESPACE/rook-ceph/g' | sed 's/ROOK_NAMESPACE/rook-ceph/g' | kubectl apply -f -
 
+    # change the default osd pool size from 3 to 1
+    kubectl apply -f - << EOM
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: rook-config-override
+  namespace: rook-ceph
+data:
+  config: |
+    [global]
+    osd pool default size = 1
+EOM
+
     kubectl delete crd volumesnapshotclasses.snapshot.storage.k8s.io volumesnapshotcontents.snapshot.storage.k8s.io volumesnapshots.snapshot.storage.k8s.io || true # resources may not be present
     kubectl -n rook-ceph set image deploy/rook-ceph-operator rook-ceph-operator=rook/ceph:v1.1.9
     kubectl -n rook-ceph set image deploy/rook-ceph-tools rook-ceph-tools=rook/ceph:v1.1.9
@@ -281,8 +294,6 @@ function rook_10_to_14() {
     echo "Upgrading ceph to v14.2.5"
     kubectl -n rook-ceph patch CephCluster rook-ceph --type=merge -p '{"spec": {"cephVersion": {"image": "ceph/ceph:v14.2.5-20191210"}}}'
     $DIR/bin/kurl rook wait-for-ceph-version "14.2.5"
-
-    # todo change osd pool default size, and restart operator
 
     $DIR/bin/kurl rook wait-for-health
     logSuccess "Upgraded to Rook 1.1.9 successfully"
@@ -353,11 +364,65 @@ EOM
     curl -sSL https://raw.githubusercontent.com/rook/rook/v1.4.9/cluster/examples/kubernetes/ceph/upgrade-from-v1.3-apply.yaml | kubectl apply -f -
     curl -sSL https://raw.githubusercontent.com/rook/rook/v1.4.9/cluster/examples/kubernetes/ceph/upgrade-from-v1.3-crds.yaml | kubectl apply -f -
     kubectl -n rook-ceph set image deploy/rook-ceph-operator rook-ceph-operator=rook/ceph:v1.4.9
-    kubectl -n rook-ceph set image deploy/rook-ceph-tools rook-ceph-tools=rook/ceph:v1.4.9
+    kubectl apply -f << EOM
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rook-ceph-tools
+  namespace: rook-ceph
+  labels:
+    app: rook-ceph-tools
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rook-ceph-tools
+  template:
+    metadata:
+      labels:
+        app: rook-ceph-tools
+    spec:
+      dnsPolicy: ClusterFirstWithHostNet
+      containers:
+      - name: rook-ceph-tools
+        image: rook/ceph:v1.4.9
+        command: ["/tini"]
+        args: ["-g", "--", "/usr/local/bin/toolbox.sh"]
+        imagePullPolicy: IfNotPresent
+        env:
+          - name: ROOK_CEPH_USERNAME
+            valueFrom:
+              secretKeyRef:
+                name: rook-ceph-mon
+                key: ceph-username
+          - name: ROOK_CEPH_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: rook-ceph-mon
+                key: ceph-secret
+        volumeMounts:
+          - mountPath: /etc/ceph
+            name: ceph-config
+          - name: mon-endpoint-volume
+            mountPath: /etc/rook
+      volumes:
+        - name: mon-endpoint-volume
+          configMap:
+            name: rook-ceph-mon-endpoints
+            items:
+            - key: data
+              path: mon-endpoints
+        - name: ceph-config
+          emptyDir: {}
+      tolerations:
+        - key: "node.kubernetes.io/unreachable"
+          operator: "Exists"
+          effect: "NoExecute"
+          tolerationSeconds: 5
+EOM
+
     echo "Waiting for Rook 1.4.9 to rollout throughout the cluster, this may take some time"
     $DIR/bin/kurl rook wait-for-rook-version "v1.4.9"
-
-    # todo update rook-ceph-tools deployment spec
 
     $DIR/bin/kurl rook wait-for-health
 
