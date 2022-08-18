@@ -500,6 +500,18 @@ function kotsadm_health_check() {
         # when kotsadm is ready, it will be '1/1 Running'
         return 1
     fi
+
+    # If this pod is in CrashLoopBackOff and has been restarted at least five
+    # times the delete the pod in order to reset the exponential backoff timer.
+    # This is needed to prevent kubelet from waiting five minutes before restarting the
+    # pod.
+    crashed_pod=$(kubectl get pods -l ${selector} | awk '($3 == "CrashLoopBackOff" && $4 >= 5) {print $1}')
+    if [[ -n $crashed_pod ]]; then
+        # reset exponential backoff timer for pod
+        kubectl delete pod --grace-period=0 --force "$crashed_pod"
+        return 1
+    fi
+
     return 0
 }
 
@@ -513,7 +525,7 @@ function kotsadm_ready_spinner() {
 
 function kotsadm_postgres_ready_spinner() {
     sleep 1 # ensure that kubeadm has had time to begin applying and scheduling the kotsadm pods
-    if ! spinner_until 300 kotsadm_health_check "app=kotsadm-postgres"; then
+    if ! spinner_until 600 kotsadm_health_check "app=kotsadm-postgres"; then
       kubectl logs -l "app=kotsadm-postgres" --all-containers --tail 10
       bail "The kotsadm-postgres statefulset in the kotsadm addon failed to deploy successfully."
     fi
