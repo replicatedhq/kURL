@@ -327,6 +327,7 @@ module.exports.InstallerVersions = {
   ],
   velero: [
     // cron-velero-update
+    "1.9.1",
     "1.9.0",
     "1.8.1",
     "1.7.1",
