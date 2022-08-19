@@ -5,7 +5,7 @@
     weave:
       version: "latest"
     rook:
-      version: 1.6.x
+      version: 1.7.x
     containerd:
       version: "latest"
     kotsadm:
@@ -125,7 +125,7 @@
     weave:
       version: "latest"
     rook:
-      version: 1.6.x
+      version: 1.7.x
     containerd:
       version: "latest"
     kotsadm:
