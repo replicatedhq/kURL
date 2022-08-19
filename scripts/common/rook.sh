@@ -240,18 +240,21 @@ function rook_ceph_tools_exec() {
     return 1
 }
 
+function rook_10_to_14_images() {
+    logStep "Downloading images required for this upgrade"
+    addon_fetch rookupgrade 10to14
+    addon_load rookupgrade 10to14
+    logSuccess "Images loaded for Rook 1.1.9, 1.2.7, 1.3.11 and 1.4.9"
+}
+
 # upgrades Rook progressively from 1.0.x to 1.4.x
 function rook_10_to_14() {
     logStep "Upgrading Rook-Ceph from 1.0.x to 1.4.x"
     echo "This involves upgrading from 1.0.x to 1.1, 1.1 to 1.2, 1.2 to 1.3, and 1.3 to 1.4"
     echo "This may take some time"
+    rook_10_to_14_images
 
     $DIR/bin/kurl rook hostpath-to-block
-
-    logStep "Downloading images required for this upgrade"
-    addon_fetch rookupgrade 10to14
-    addon_load rookupgrade 10to14
-    logSuccess "Images loaded for Rook 1.1.9, 1.2.7, 1.3.11 and 1.4.9"
 
     local upgrade_files_path="$DIR/addons/rookupgrade/10to14"
 

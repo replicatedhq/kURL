@@ -693,6 +693,8 @@ function install_host_dependencies_longhorn() {
 function rook_tasks_10_to_14() {
     export KUBECONFIG=/etc/kubernetes/admin.conf
 
+    download_util_binaries
+
     export ROOK_VERSION=v1.4.9
     if should_upgrade_rook_10_to_14; then
         report_upgrade_rook_10_to_14
