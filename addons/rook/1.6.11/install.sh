@@ -1,17 +1,21 @@
+# shellcheck disable=SC2148
 
 function rook_pre_init() {
-    local current_version="$(rook_version)"
+    local current_version
+    current_version="$(rook_version)"
 
     export SKIP_ROOK_INSTALL
     if rook_should_skip_rook_install "$current_version" "$ROOK_VERSION" ; then
         SKIP_ROOK_INSTALL=1
 
+        # If we do not upgrade Rook then the previous Rook version 1.0.4 is not compatible with Kubernetes 1.20+
         if [ "$KUBERNETES_TARGET_VERSION_MINOR" -ge 20 ] && [ "$current_version" = "1.0.4" ]; then
-            KUBERNETES_UPGRADE="0"
+            export KUBERNETES_UPGRADE=0
+            export KUBERNETES_VERSION
             KUBERNETES_VERSION=$(kubectl version --short | grep -i server | awk '{ print $3 }' | sed 's/^v*//')
             parse_kubernetes_target_version
             # There's no guarantee the packages from this version of Kubernetes are still available
-            SKIP_KUBERNETES_HOST=1
+            export SKIP_KUBERNETES_HOST=1
         fi
     fi
 
@@ -60,6 +64,7 @@ function rook() {
     fi
 
     semverParse "$ROOK_VERSION"
+    # shellcheck disable=SC2154
     local rook_major_minior_version="${major}.${minor}"
 
     printf "\n\n${GREEN}Rook Ceph 1.4+ requires a secondary, unformatted block device attached to the host.${NC}\n"
@@ -143,13 +148,6 @@ function rook_cluster_deploy() {
     local src="${DIR}/addons/rook/${ROOK_VERSION}/cluster"
     local dst="${DIR}/kustomize/rook/cluster"
 
-    # Don't redeploy cluster - ekco may have made changes based on num of nodes in cluster
-    if kubectl -n rook-ceph get cephcluster rook-ceph >/dev/null 2>&1 ; then
-        echo "Cluster rook-ceph already deployed"
-        rook_cluster_deploy_upgrade
-        return 0
-    fi
-
     mkdir -p "${DIR}/kustomize/rook"
     rm -rf "$dst"
     cp -r "$src" "$dst"
@@ -162,9 +160,16 @@ function rook_cluster_deploy() {
     if [ "${ROOK_SHARED_FILESYSTEM_DISABLED}" != "1" ]; then
         insert_resources "$dst/kustomization.yaml" cephfs-storageclass.yaml
         insert_resources "$dst/kustomization.yaml" filesystem.yaml
-        insert_patches_strategic_merge "$dst/kustomization.yaml" patches/cephfs-storageclass.yaml
         insert_patches_strategic_merge "$dst/kustomization.yaml" patches/filesystem.yaml
-        insert_patches_json_6902 "$dst/kustomization.yaml" patches/filesystem-Json6902.yaml ceph.rook.io v1 CephFilesystem myfs rook-ceph
+
+        # MDS pod anti-affinity rules prevent them from co-scheduling on single-node installations
+        local ready_node_count
+        ready_node_count="$(kubectl get nodes --no-headers 2>/dev/null | grep -c ' Ready')"
+        if [ "$ready_node_count" -le "1" ]; then
+            insert_patches_strategic_merge "$dst/kustomization.yaml" patches/filesystem-singlenode.yaml
+        fi
+
+        insert_patches_json_6902 "$dst/kustomization.yaml" patches/filesystem-Json6902.yaml ceph.rook.io v1 CephFilesystem rook-shared-fs rook-ceph
     fi
 
     # patches
@@ -176,6 +181,14 @@ function rook_cluster_deploy() {
     insert_patches_strategic_merge "$dst/kustomization.yaml" patches/rbd-storageclass.yaml
     if [ "$KUBERNETES_TARGET_VERSION_MINOR" -lt "17" ]; then
         sed -i 's/system-cluster-critical/rook-critical/g' "$dst/patches/cluster.yaml" "$dst/patches/object.yaml" "$dst/patches/filesystem.yaml"
+    fi
+
+    # Don't redeploy cluster - ekco may have made changes based on num of nodes in cluster
+    # This must come after the yaml is rendered as it relies on dst.
+    if kubectl -n rook-ceph get cephcluster rook-ceph >/dev/null 2>&1 ; then
+        echo "Cluster rook-ceph already deployed"
+        rook_cluster_deploy_upgrade
+        return 0
     fi
 
     kubectl -n rook-ceph apply -k "$dst/"
@@ -209,7 +222,7 @@ function rook_cluster_deploy_upgrade() {
         rook_versions="$(kubectl -n rook-ceph get deployment -l rook_cluster=rook-ceph -o jsonpath='{range .items[*]}{"rook-version="}{.metadata.labels.rook-version}{"\n"}{end}' | sort | uniq)"
         if [ -n "${rook_versions}" ] && [ "$(echo "${rook_versions}" | wc -l)" -gt "1" ]; then
             logWarn "Detected multiple Rook versions"
-            logWarn "${rook_versions}"
+            kubectl -n rook-ceph get deployment -l rook_cluster=rook-ceph -o jsonpath='{range .items[*]}name={.metadata.name}, rook-version={.metadata.labels.rook-version}{"\n"}{end}'
         fi
     fi
 
@@ -222,6 +235,13 @@ function rook_cluster_deploy_upgrade() {
         bail "Refusing to update cluster rook-ceph, Ceph is not healthy"
     fi
 
+    # When upgrading we need both MDS pods and anti-affinity rules prevent them from co-scheduling on single-node installations
+    local ready_node_count
+    ready_node_count="$(kubectl get nodes --no-headers 2>/dev/null | grep -c ' Ready')"
+    if [ "$ready_node_count" -le "1" ]; then
+        rook_cephfilesystem_patch_singlenode
+    fi
+
     # https://rook.io/docs/rook/v1.6/ceph-upgrade.html#ceph-version-upgrades
     logStep "Upgrading rook-ceph cluster"
 
@@ -232,6 +252,8 @@ function rook_cluster_deploy_upgrade() {
     # https://rook.io/docs/rook/v1.6/ceph-upgrade.html#2-wait-for-the-daemon-pod-updates-to-complete
 
     if ! spinner_until 600 rook_ceph_version_deployed "${ceph_version}" ; then
+        logWarn "Detected multiple Ceph versions"
+        kubectl -n rook-ceph get deployment -l rook_cluster=rook-ceph -o jsonpath='{range .items[*]}name={.metadata.name}, ceph-version={.metadata.labels.ceph-version}{"\n"}{end}'
         bail "New Ceph version failed to deploy"
     fi
 
@@ -345,7 +367,8 @@ function rook_object_store_output() {
     OBJECT_STORE_CLUSTER_IP=$(kubectl -n rook-ceph get service rook-ceph-rgw-rook-ceph-store | tail -n1 | awk '{ print $3}')
     export OBJECT_STORE_CLUSTER_HOST="http://rook-ceph-rgw-rook-ceph-store.rook-ceph"
     # same as OBJECT_STORE_CLUSTER_IP for IPv4, wrapped in brackets for IPv6
-    export OBJECT_STORE_CLUSTER_IP_BRACKETED=$($DIR/bin/kurl format-address "$OBJECT_STORE_CLUSTER_IP")
+    export OBJECT_STORE_CLUSTER_IP_BRACKETED
+    OBJECT_STORE_CLUSTER_IP_BRACKETED=$("$DIR"/bin/kurl format-address "$OBJECT_STORE_CLUSTER_IP")
 }
 
 # deprecated, use object_store_create_bucket
@@ -407,8 +430,9 @@ function rook_patch_insecure_clients {
         if ! spinner_until 120 kubectl -n rook-ceph exec deploy/rook-ceph-tools -- ceph mon ok-to-stop "$mon" >/dev/null 2>&1 ; then
             logWarn "Failed to detect mon $mon ok-to-stop"
         else
-            local mon_id="$(echo "$mon" | awk -F'.' '{ print $2 }')"
-            local mon_pod="$(kubectl -n rook-ceph get pods -l ceph_daemon_type=mon -l mon="$mon_id" --no-headers | awk '{ print $1 }')"
+            local mon_id mon_pod
+            mon_id="$(echo "$mon" | awk -F'.' '{ print $2 }')"
+            mon_pod="$(kubectl -n rook-ceph get pods -l ceph_daemon_type=mon -l mon="$mon_id" --no-headers | awk '{ print $1 }')"
             kubectl -n rook-ceph delete pod "$mon_pod"
         fi
     done
@@ -468,7 +492,8 @@ function rook_maybe_auth_allow_insecure_global_id_reclaim() {
         return
     fi
 
-    local ceph_version="$(rook_detect_ceph_version)"
+    local ceph_version
+    ceph_version="$(rook_detect_ceph_version)"
     if rook_should_auth_allow_insecure_global_id_reclaim "$ceph_version" ; then
         sed -i 's/auth_allow_insecure_global_id_reclaim = false/auth_allow_insecure_global_id_reclaim = true/' "$dst/configmap-rook-config-override.yaml"
         return
@@ -486,7 +511,6 @@ function rook_should_auth_allow_insecure_global_id_reclaim() {
     # https://docs.ceph.com/en/latest/security/CVE-2021-20288/
     semverParse "$ceph_version"
     local ceph_version_major="$major"
-    local ceph_version_minor="$minor"
     local ceph_version_patch="$patch"
 
     case "$ceph_version_major" in
@@ -515,4 +539,96 @@ function rook_should_auth_allow_insecure_global_id_reclaim() {
 
 function rook_detect_ceph_version() {
     kubectl -n rook-ceph get deployment rook-ceph-mgr-a -o jsonpath='{.metadata.labels.ceph-version}' 2>/dev/null | awk -F'-' '{ print $1 }'
+}
+
+# rook_cephfilesystem_patch_singlenode will change the
+# requiredDuringSchedulingIgnoredDuringExecution podAntiAffinity rule to the more lenient
+# preferredDuringSchedulingIgnoredDuringExecution equivalent. This will allow Rook to continue with
+# the upgrade.
+function rook_cephfilesystem_patch_singlenode() {
+    if ! kubectl -n rook-ceph get cephfilesystem rook-shared-fs -o jsonpath='{.spec.metadataServer.placement.podAntiAffinity}' | grep -q requiredDuringSchedulingIgnoredDuringExecution ; then
+        # already patched
+        return
+    fi
+
+    local src="$DIR/addons/rook/$ROOK_VERSION/cluster"
+    rook_cephfilesystem_patch "$src/patches/filesystem-singlenode.yaml"
+}
+
+function rook_cephfilesystem_patch() {
+    local patch="$1"
+
+    local cephfs_generation mds_observedgeneration cephfs_nextgeneration
+
+    cephfs_generation="$(kubectl -n rook-ceph get cephfilesystem rook-shared-fs -o jsonpath='{.metadata.generation}')"
+    mds_observedgeneration="$(rook_mds_deployments_observedgeneration)"
+
+    kubectl -n rook-ceph patch cephfilesystem rook-shared-fs --type merge --patch "$(cat "$patch")"
+
+    cephfs_nextgeneration="$(kubectl -n rook-ceph get cephfilesystem rook-shared-fs -o jsonpath='{.metadata.generation}')"
+    if [ "$cephfs_generation" = "$cephfs_nextgeneration" ]; then
+        # no change
+        return
+    fi
+
+    echo "Awaiting Rook MDS deployments to roll out"
+    if ! spinner_until 300 rook_mds_deployments_updated "$mds_observedgeneration" ; then
+        kubectl -n rook-ceph get deploy -l app=rook-ceph-mds
+        bail "Refusing to update cluster rook-ceph, MDS deployments did not roll out"
+    fi
+
+    echo "Awaiting Rook MDS deployments up-to-date"
+    if ! spinner_until 300 rook_mds_deployments_uptodate ; then
+        kubectl -n rook-ceph get deploy -l app=rook-ceph-mds
+        bail "Refusing to update cluster rook-ceph, MDS deployments not up-to-date"
+    fi
+
+    # allow the mds daemon to come up
+    sleep 60
+
+    echo "Awaiting Rook MDS daemons ok-to-stop"
+    if ! spinner_until 300 rook_mds_daemons_oktostop ; then
+        kubectl -n rook-ceph exec deployment/rook-ceph-tools -- ceph mds ok-to-stop a
+        kubectl -n rook-ceph exec deployment/rook-ceph-tools -- ceph mds ok-to-stop b
+        bail "Refusing to update cluster rook-ceph, MDS daemons not ok-to-stop"
+    fi
+
+    echo "Awaiting Ceph healthy"
+    if ! spinner_until 120 rook_ceph_healthy ; then
+        kubectl -n rook-ceph exec deploy/rook-ceph-tools -- ceph status
+        bail "Refusing to update cluster rook-ceph, Ceph is not healthy"
+    fi
+}
+
+function rook_mds_deployments_uptodate() {
+    local replicas ready_replicas updated_replicas
+    replicas="$(kubectl -n rook-ceph get deploy -l app=rook-ceph-mds -o jsonpath='{.items[*].status.replicas}')"
+    ready_replicas="$(kubectl -n rook-ceph get deploy -l app=rook-ceph-mds -o jsonpath='{.items[*].status.readyReplicas}')"
+    updated_replicas="$(kubectl -n rook-ceph get deploy -l app=rook-ceph-mds -o jsonpath='{.items[*].status.updatedReplicas}')"
+    [ -n "$replicas" ] && [ "$replicas" = "$ready_replicas" ] && [ "$replicas" = "$updated_replicas" ]
+}
+
+function rook_mds_deployments_updated() {
+    local previous="$1"
+    for line in $previous; do
+        if rook_mds_deployments_observedgeneration | grep -q "$line" ; then
+            return 1
+        fi
+    done
+    return 0
+}
+
+function rook_mds_deployments_observedgeneration() {
+    kubectl -n rook-ceph get deploy -l app=rook-ceph-mds -o jsonpath='{range .items[*]}{.metadata.name}={.status.observedGeneration}{"\n"}{end}'
+}
+
+function rook_mds_daemons_oktostop() {
+    local ids=
+    ids="$(kubectl -n rook-ceph get deploy -l app=rook-ceph-mds -oname | sed 's/.*-rook-shared-fs-\(.*\)/\1/')"
+    for id in $ids; do
+        if ! kubectl -n rook-ceph exec deploy/rook-ceph-tools -- ceph mds ok-to-stop "$id" >/dev/null 2>&1 ; then
+            return 1
+        fi
+    done
+    return 0
 }

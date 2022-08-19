@@ -10,6 +10,8 @@
       version: "latest"
     kotsadm:
       version: "latest"
+    ekco:
+      version: "latest"
     rook:
       version: "__testver__"
       s3Override: "__testdist__"
@@ -18,9 +20,11 @@
     source /opt/kurl-testgrid/testhelpers.sh
     rook_ecph_object_store_info
     validate_read_write_object_store rwtest testfile.txt
-    
+
     minio_object_store_info
     validate_read_write_object_store rwtest minio.txt
+  unsupportedOSIDs:
+    - ubuntu-2204
 
 - name: Upgrade from 1.4.3
   installerSpec:
@@ -33,6 +37,8 @@
     minio:
       version: "latest"
     kotsadm:
+      version: "latest"
+    ekco:
       version: "latest"
     rook:
       version: "1.4.3"
@@ -48,6 +54,8 @@
       version: "latest"
     kotsadm:
       version: "latest"
+    ekco:
+      version: "latest"
     rook:
       version: "__testver__"
       s3Override: "__testdist__"
@@ -57,7 +65,61 @@
     source /opt/kurl-testgrid/testhelpers.sh
     rook_ecph_object_store_info
     validate_read_write_object_store rwtest testfile.txt
-    
+
+    minio_object_store_info
+    validate_read_write_object_store rwtest minio.txt
+  postUpgradeScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rook_ecph_object_store_info
+    validate_testfile rwtest testfile.txt
+    validate_read_write_object_store postupgrade upgradefile.txt
+
+    minio_object_store_info
+    validate_testfile rwtest minio.txt
+    validate_read_write_object_store postupgrade minioupgrade.txt
+  unsupportedOSIDs:
+    - ubuntu-2204
+
+- name: Upgrade from 1.5.10
+  installerSpec:
+    kubernetes:
+      version: "latest"
+    weave:
+      version: "latest"
+    containerd:
+      version: "latest"
+    minio:
+      version: "latest"
+    kotsadm:
+      version: "latest"
+    ekco:
+      version: "latest"
+    rook:
+      version: "1.5.10"
+      isBlockStorageEnabled: true
+  upgradeSpec:
+    kubernetes:
+      version: "latest"
+    weave:
+      version: "latest"
+    containerd:
+      version: "latest"
+    minio:
+      version: "latest"
+    kotsadm:
+      version: "latest"
+    ekco:
+      version: "latest"
+    rook:
+      version: "__testver__"
+      s3Override: "__testdist__"
+      isBlockStorageEnabled: true
+      bypassUpgradeWarning: true
+  postInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rook_ecph_object_store_info
+    validate_read_write_object_store rwtest testfile.txt
+
     minio_object_store_info
     validate_read_write_object_store rwtest minio.txt
   postUpgradeScript: |
@@ -70,31 +132,35 @@
     validate_testfile rwtest minio.txt
     validate_read_write_object_store postupgrade minioupgrade.txt
 
-- name: Upgrade from 1.5.10
+- name: Upgrade from 1.6.11
   installerSpec:
     kubernetes:
       version: "latest"
     weave:
       version: "latest"
-    docker:
+    containerd:
       version: "latest"
     minio:
       version: "latest"
     kotsadm:
       version: "latest"
+    ekco:
+      version: "latest"
     rook:
-      version: "1.5.10"
+      version: "1.6.11"
       isBlockStorageEnabled: true
   upgradeSpec:
     kubernetes:
       version: "latest"
     weave:
       version: "latest"
-    docker:
+    containerd:
       version: "latest"
     minio:
       version: "latest"
     kotsadm:
+      version: "latest"
+    ekco:
       version: "latest"
     rook:
       version: "__testver__"
@@ -105,7 +171,7 @@
     source /opt/kurl-testgrid/testhelpers.sh
     rook_ecph_object_store_info
     validate_read_write_object_store rwtest testfile.txt
-    
+
     minio_object_store_info
     validate_read_write_object_store rwtest minio.txt
   postUpgradeScript: |
@@ -130,6 +196,8 @@
       version: "latest"
     kotsadm:
       version: "latest"
+    ekco:
+      version: "latest"
     rook:
       version: "__testver__"
       s3Override: "__testdist__"
@@ -139,9 +207,11 @@
     source /opt/kurl-testgrid/testhelpers.sh
     rook_ecph_object_store_info
     validate_read_write_object_store rwtest testfile.txt
-    
+
     minio_object_store_info
     validate_read_write_object_store rwtest minio.txt
+  unsupportedOSIDs:
+    - ubuntu-2204
 
 - name: Upgrade from 1.0.4
   installerSpec:
@@ -154,6 +224,8 @@
     minio:
       version: "latest"
     kotsadm:
+      version: "latest"
+    ekco:
       version: "latest"
     rook:
       version: "1.0.4"
@@ -168,6 +240,8 @@
       version: "latest"
     kotsadm:
       version: "latest"
+    ekco:
+      version: "latest"
     rook:
       version: "__testver__"
       s3Override: "__testdist__"
@@ -176,7 +250,7 @@
     source /opt/kurl-testgrid/testhelpers.sh
     rook_ecph_object_store_info
     validate_read_write_object_store rwtest testfile.txt
-    
+
     minio_object_store_info
     validate_read_write_object_store rwtest minio.txt
   postUpgradeScript: |
@@ -188,3 +262,5 @@
     minio_object_store_info
     validate_testfile rwtest minio.txt
     validate_read_write_object_store postupgrade minioupgrade.txt
+  unsupportedOSIDs:
+    - ubuntu-2204

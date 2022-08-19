@@ -2,10 +2,10 @@
 
 set -euo pipefail
 
-function get_latest_16x_version() {
+function get_latest_17x_version() {
     curl -s https://api.github.com/repos/rook/rook/releases | \
         grep '"tag_name": ' | \
-        grep -Eo "1\.6\.[0-9]+" | \
+        grep -Eo "1\.7\.[0-9]+" | \
         head -1
 }
 
@@ -22,6 +22,7 @@ function generate() {
 
     # split operator files
     helm template replaceme rook-release/rook-ceph --version "${VERSION}" --values ./values.yaml -n rook-ceph --include-crds > "${dir}/operator/combined.yaml"
+    # remove non-utf8 characters
     sed -i 's/[“”]/"/g' "${dir}/operator/combined.yaml"
     split_resources "${dir}/operator/combined.yaml" "${dir}/operator" "${dir}/operator/kustomization.yaml"
     rm "${dir}/operator/combined.yaml"
@@ -38,9 +39,13 @@ function generate() {
 
     # download cluster resources
     curl -fsSL -o "${dir}/cluster/cephfs-storageclass.yaml" "${github_content_url}/cluster/examples/kubernetes/ceph/csi/cephfs/storageclass.yaml"
+    # change CephFilesystem name from myfs to rook-shared-fs
+    sed -i 's/myfs/rook-shared-fs/g' "${dir}/cluster/cephfs-storageclass.yaml"
     curl -fsSL -o "${dir}/cluster/cluster.yaml" "${github_content_url}/cluster/examples/kubernetes/ceph/cluster.yaml"
     insert_resources "${dir}/cluster/kustomization.yaml" "cluster.yaml"
     curl -fsSL -o "${dir}/cluster/filesystem.yaml" "${github_content_url}/cluster/examples/kubernetes/ceph/filesystem.yaml"
+    # change CephFilesystem name from myfs to rook-shared-fs
+    sed -i 's/myfs/rook-shared-fs/g' "${dir}/cluster/filesystem.yaml"
     curl -fsSL -o "${dir}/cluster/object.yaml" "${github_content_url}/cluster/examples/kubernetes/ceph/object.yaml"
     insert_resources "${dir}/cluster/kustomization.yaml" "object.yaml"
     curl -fsSL -o "${dir}/cluster/tmpl-rbd-storageclass.yaml" "${github_content_url}/cluster/examples/kubernetes/ceph/csi/rbd/storageclass.yaml"
@@ -49,7 +54,18 @@ function generate() {
 
     local ceph_image=
     ceph_image="$(grep ' image: '  "${dir}/cluster/cluster.yaml" | sed -E 's/ *image: "*([^" ]+).*/\1/')"
-    sed -i "s/__CEPH_IMAGE__/$(echo "${ceph_image}" | sed 's/\//\\\//')/" "${dir}/install.sh"
+
+    # Upgrading passed v16.2.6 based on this note in the Rook docs
+    # https://www.rook.io/docs/rook/v1.6/ceph-upgrade.html#ceph-version-upgrades
+    # WARNING: There is a notice from Ceph for users upgrading to Ceph Pacific v16.2.6 or lower from an earlier major version of Ceph. If you are upgrading to Ceph Pacific (v16), please upgrade to v16.2.7 or higher if possible.
+    if echo "$ceph_image" | grep -q ":v16\.2" ; then
+        local ceph_version_patch="$(echo "$ceph_image" | grep -o "v[0-9]*\.[0-9]*\.[0-9]*" | sed "s/v[0-9]*\.[0-9]*\.\([0-9]*\).*/\1/")"
+        if [ "$ceph_version_patch" -lt "7" ]; then
+            ceph_image="$(echo "$ceph_image" | sed "s/v[0-9]*\.[0-9]*\.[0-9]*/v16.2.7/")"
+        fi
+    fi
+
+    sed -i "s/__CEPH_IMAGE__/$(echo "${ceph_image}" | sed 's/\//\\\//g')/" "${dir}/install.sh"
 
     # get images in files
     {   grep ' image: '  "${dir}/operator/deployment.yaml" | sed -E 's/ *image: "*([^\/]+\/)?([^\/]+)\/([^:]+):([^" ]+).*/image \2-\3 \1\2\/\3:\4/' ; \
@@ -98,13 +114,16 @@ function add_as_latest() {
 }
 
 function main() {
-    VERSION=${1-}
+    VERSION="${1-}"
+    if [ "${1-}" == "force" ]; then
+        VERSION=
+    fi
     if [ -z "$VERSION" ]; then
-        VERSION="$(get_latest_16x_version)"
+        VERSION="$(get_latest_17x_version)"
     fi
 
     if [ -d "../$VERSION" ]; then
-        if [ "$1" == "force" ] || [ "$2" == "force" ]; then
+        if [ "${1-}" == "force" ] || [ "${2-}" == "force" ]; then
             echo "forcibly updating existing version of Rook"
             rm -rf "../$VERSION"
         else
