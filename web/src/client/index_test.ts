@@ -175,6 +175,7 @@ spec:
     shouldDisableClearNodes: false
     shouldEnablePurgeNodes: false
     rookShouldUseAllNodes: false
+    rookShouldDisableReconcileMDSPlacement: false
 `;
 
 const rookBlock = `

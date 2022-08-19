@@ -108,5 +108,6 @@ spec:
     minReadyWorkerNodeCount: 2
     nodeUnreachableToleration: "20 min"
     rookShouldUseAllNodes: true
+    rookShouldDisableReconcileMDSPlacement: false
     shouldDisableRebootServices: true
     version: "latest"

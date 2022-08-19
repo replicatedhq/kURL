@@ -1534,6 +1534,7 @@
       minReadyMasterNodeCount: 2
       minReadyWorkerNodeCount: 0
       rookShouldUseAllNodes: false
+      rookShouldDisableReconcileMDSPlacement: false
       shouldDisableRebootServices: false
       shouldDisableClearNodes: false
       shouldEnablePurgeNodes: false
@@ -1574,6 +1575,7 @@
       minReadyMasterNodeCount: 2
       minReadyWorkerNodeCount: 0
       rookShouldUseAllNodes: false
+      rookShouldDisableReconcileMDSPlacement: false
       shouldDisableRebootServices: false
       shouldDisableClearNodes: false
       shouldEnablePurgeNodes: false

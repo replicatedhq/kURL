@@ -244,18 +244,19 @@ type FirewalldConfig struct {
 }
 
 type Ekco struct {
-	MinReadyMasterNodeCount     int      `json:"minReadyMasterNodeCount,omitempty" yaml:"minReadyMasterNodeCount,omitempty"`
-	MinReadyWorkerNodeCount     int      `json:"minReadyWorkerNodeCount,omitempty" yaml:"minReadyWorkerNodeCount,omitempty"`
-	NodeUnreachableToleration   string   `json:"nodeUnreachableToleration,omitempty" yaml:"nodeUnreachableToleration,omitempty"`
-	RookShouldUseAllNodes       bool     `json:"rookShouldUseAllNodes,omitempty" yaml:"rookShouldUseAllNodes,omitempty"`
-	S3Override                  string   `json:"s3Override,omitempty" yaml:"s3Override,omitempty"`
-	ShouldDisableRebootServices bool     `json:"shouldDisableRebootServices,omitempty" yaml:"shouldDisableRebootServices,omitempty"`
-	ShouldDisableClearNodes     bool     `json:"shouldDisableClearNodes,omitempty" yaml:"shouldDisableClearNodes,omitempty"`
-	ShouldEnablePurgeNodes      bool     `json:"shouldEnablePurgeNodes,omitempty" yaml:"shouldEnablePurgeNodes,omitempty"`
-	Version                     string   `json:"version" yaml:"version"`
-	AutoUpgradeSchedule         string   `json:"autoUpgradeSchedule,omitempty" yaml:"autoUpgradeSchedule,omitempty"` // no longer supported
-	EnableInternalLoadBalancer  bool     `json:"enableInternalLoadBalancer,omitempty" yaml:"enableInternalLoadBalancer,omitempty"`
-	PodImageOverrides           []string `json:"podImageOverrides,omitempty" yaml:"podImageOverrides,omitempty"`
+	MinReadyMasterNodeCount                int      `json:"minReadyMasterNodeCount,omitempty" yaml:"minReadyMasterNodeCount,omitempty"`
+	MinReadyWorkerNodeCount                int      `json:"minReadyWorkerNodeCount,omitempty" yaml:"minReadyWorkerNodeCount,omitempty"`
+	NodeUnreachableToleration              string   `json:"nodeUnreachableToleration,omitempty" yaml:"nodeUnreachableToleration,omitempty"`
+	RookShouldUseAllNodes                  bool     `json:"rookShouldUseAllNodes,omitempty" yaml:"rookShouldUseAllNodes,omitempty"`
+	RookShouldDisableReconcileMDSPlacement bool     `json:"rookShouldDisableReconcileMDSPlacement,omitempty" yaml:"rookShouldDisableReconcileMDSPlacement,omitempty"`
+	S3Override                             string   `json:"s3Override,omitempty" yaml:"s3Override,omitempty"`
+	ShouldDisableRebootServices            bool     `json:"shouldDisableRebootServices,omitempty" yaml:"shouldDisableRebootServices,omitempty"`
+	ShouldDisableClearNodes                bool     `json:"shouldDisableClearNodes,omitempty" yaml:"shouldDisableClearNodes,omitempty"`
+	ShouldEnablePurgeNodes                 bool     `json:"shouldEnablePurgeNodes,omitempty" yaml:"shouldEnablePurgeNodes,omitempty"`
+	Version                                string   `json:"version" yaml:"version"`
+	AutoUpgradeSchedule                    string   `json:"autoUpgradeSchedule,omitempty" yaml:"autoUpgradeSchedule,omitempty"` // no longer supported
+	EnableInternalLoadBalancer             bool     `json:"enableInternalLoadBalancer,omitempty" yaml:"enableInternalLoadBalancer,omitempty"`
+	PodImageOverrides                      []string `json:"podImageOverrides,omitempty" yaml:"podImageOverrides,omitempty"`
 }
 
 type Calico struct {

@@ -64,11 +64,11 @@ schemas: fmt generate
 
 # get/update controller-gen
 update-controller-gen:
-	go install sigs.k8s.io/controller-tools/cmd/controller-gen@v0.7.0
+	go install sigs.k8s.io/controller-tools/cmd/controller-gen@v0.8.0
 
 # get/update client-gen
 update-client-gen:
-	go install k8s.io/code-generator/cmd/client-gen@v0.21.3
+	go install k8s.io/code-generator/cmd/client-gen@v0.23.9
 
 update-kubebuilder: os = $(shell go env GOOS)
 update-kubebuilder: arch = $(shell go env GOARCH)

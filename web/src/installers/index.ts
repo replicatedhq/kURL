@@ -397,6 +397,7 @@ export interface EkcoConfig {
   shouldDisableClearNodes?: boolean;
   shouldEnablePurgeNodes?: boolean;
   rookShouldUseAllNodes?: boolean;
+  rookShouldDisableReconcileMDSPlacement?: boolean;
   podImageOverrides?: Array<string>;
   enableInternalLoadBalancer?: boolean;
 }
@@ -413,6 +414,7 @@ export const ekcoConfigSchema = {
     shouldDisableClearNodes: { type: "boolean", description: "Do not watch for unreachable nodes and force delete pods on them stuck in the terminating state" },
     shouldEnablePurgeNodes: { type: "boolean", description: "Watch for unreachable nodes and automatically remove them from the cluster" },
     rookShouldUseAllNodes: { type: "boolean", flag: "ekco-rook-should-use-all-nodes" , description: "This will disable management of nodes in the CephCluster resource. If false, ekco will add nodes to the storage list and remove them when a node is purged" },
+    rookShouldDisableReconcileMDSPlacement: { type: "boolean", flag: "ekco-rook-should-disable-reconcile-mds-placement" , description: "This will disable reconciliation of CephFilesystem MDS placement when the cluster is scaled beyond one node" },
     podImageOverrides: { type: "array", items: { type: "string" }, flag: "pod-image-overrides", description: "Switch images in a pod when created" },
     enableInternalLoadBalancer: { type: "boolean", flag: "ekco-enable-internal-load-balancer" , description: "Run haproxy on all nodes and forward to all Kubernetes API server pods" },
   },
