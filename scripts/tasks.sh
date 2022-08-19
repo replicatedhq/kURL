@@ -19,7 +19,7 @@ DIR=.
 . $DIR/scripts/distro/interface.sh
 . $DIR/scripts/distro/kubeadm/distro.sh
 . $DIR/scripts/distro/rke2/distro.sh
-. $DIR/scripts/distro/rke2/addon.sh
+. $DIR/scripts/common/addon.sh
 # Magic end
 
 K8S_DISTRO=
@@ -695,7 +695,7 @@ function rook_tasks_10_to_14() {
 
     download_util_binaries
 
-    export ROOK_VERSION=v1.4.9
+    export ROOK_VERSION="1.4.9"
     if should_upgrade_rook_10_to_14; then
         report_upgrade_rook_10_to_14
     else

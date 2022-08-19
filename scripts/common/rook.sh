@@ -205,6 +205,11 @@ function should_upgrade_rook_10_to_14() {
         return 1
     fi
 
+    # this upgrade process does not yet support airgap
+    if [ "$AIRGAP" = "1" ]; then
+        return 1
+    fi
+
     # rook is not currently installed, so no upgrade
     if ! is_rook_1 ; then
         return 1
