@@ -29,32 +29,44 @@ func Test_isStatusHealthy(t *testing.T) {
 		{
 			name:    "ceph finished rebalancing",
 			status:  testfiles.RebalanceCephStatus1,
-			health:  true,
-			message: "",
+			health:  false,
+			message: "1 tasks in progress, first task \"Rebalancing after osd.0 marked out\" is 0.000000% complete",
 		},
 		{
 			name:    "ceph rebalancing",
 			status:  testfiles.RebalanceCephStatus2,
 			health:  false,
-			message: "health is HEALTH_WARN not HEALTH_OK and 1099 bytes are being recovered per second, 0 desired and 0.142857% of PGs are inactive, 0.181073% are degraded, and 64.709807% are misplaced, 0 required for all",
+			message: "health is HEALTH_WARN not HEALTH_OK and 1099 bytes are being recovered per second, 0 desired and 0.142857% of PGs are inactive, 0.181073% are degraded, and 64.709807% are misplaced, 0 required for all and 1 tasks in progress, first task \"Rebalancing after osd.0 marked out\" is 0.737395% complete",
 		},
 		{
 			name:    "ceph health_err due to full osd", // this message could very much be improved
 			status:  testfiles.RebalanceCephStatusFull,
 			health:  false,
-			message: "health is HEALTH_ERR not HEALTH_OK and 0.000000% of PGs are inactive, 0.516218% are degraded, and 0.000000% are misplaced, 0 required for all",
+			message: "health is HEALTH_ERR not HEALTH_OK and 0.000000% of PGs are inactive, 0.516218% are degraded, and 0.000000% are misplaced, 0 required for all and 1 tasks in progress, first task \"Rebalancing after osd.0 marked out\" is 0.998120% complete",
 		},
 		{
 			name:    "ceph rebalancing multinode",
 			status:  testfiles.RebalanceCephStatusMultinode,
 			health:  false,
-			message: "health is HEALTH_WARN not HEALTH_OK and 18863356 bytes are being recovered per second, 0 desired and 0.000000% of PGs are inactive, 42.455066% are degraded, and 2.081463% are misplaced, 0 required for all",
+			message: "health is HEALTH_WARN not HEALTH_OK and 18863356 bytes are being recovered per second, 0 desired and 0.000000% of PGs are inactive, 42.455066% are degraded, and 2.081463% are misplaced, 0 required for all and 1 tasks in progress, first task \"Rebalancing after osd.0 marked out\" is 0.648239% complete",
 		},
 		{
 			name:    "ceph has too many PGs per OSD",
 			status:  testfiles.TooManyPGSPerOSD,
 			health:  true,
 			message: "",
+		},
+		{
+			name:    "ceph has no replicas",
+			status:  testfiles.NoReplicasCephStatus,
+			health:  true,
+			message: "",
+		},
+		{
+			name:    "ceph is in the process of scaling PGs",
+			status:  testfiles.AutoscalerInProgressCephStatus,
+			health:  false,
+			message: "706767 bytes are being recovered per second, 0 desired and 7 tasks in progress, first task \"PG autoscaler decreasing pool 7 PGs from 100 to 32 (60s)      [===.........................] (remaining: 7m)\" is 0.117647% complete",
 		},
 	}
 	for _, tt := range tests {
