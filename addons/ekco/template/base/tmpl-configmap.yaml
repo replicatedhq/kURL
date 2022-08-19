@@ -10,6 +10,7 @@ data:
     min_ready_master_nodes: $EKCO_MIN_READY_MASTER_NODE_COUNT
     min_ready_worker_nodes: $EKCO_MIN_READY_WORKER_NODE_COUNT
     maintain_rook_storage_nodes: $EKCO_SHOULD_MAINTAIN_ROOK_STORAGE_NODES
+    reconcile_rook_mds_placement: $EKCO_RECONCILE_ROOK_MDS_PLACEMENT
     ceph_block_pool: replicapool
     ceph_filesystem: rook-shared-fs
     ceph_object_store: rook-ceph-store

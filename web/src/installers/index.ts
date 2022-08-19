@@ -397,6 +397,7 @@ export interface EkcoConfig {
   shouldDisableClearNodes?: boolean;
   shouldEnablePurgeNodes?: boolean;
   rookShouldUseAllNodes?: boolean;
+  rookShouldDisableReconcileMDSPlacement?: boolean;
   podImageOverrides?: Array<string>;
   enableInternalLoadBalancer?: boolean;
 }
@@ -413,6 +414,7 @@ export const ekcoConfigSchema = {
     shouldDisableClearNodes: { type: "boolean", description: "Do not watch for unreachable nodes and force delete pods on them stuck in the terminating state" },
     shouldEnablePurgeNodes: { type: "boolean", description: "Watch for unreachable nodes and automatically remove them from the cluster" },
     rookShouldUseAllNodes: { type: "boolean", flag: "ekco-rook-should-use-all-nodes" , description: "This will disable management of nodes in the CephCluster resource. If false, ekco will add nodes to the storage list and remove them when a node is purged" },
+    rookShouldDisableReconcileMDSPlacement: { type: "boolean", flag: "ekco-rook-should-disable-reconcile-mds-placement" , description: "This will disable reconciliation of CephFilesystem MDS placement when the cluster is scaled beyond one node" },
     podImageOverrides: { type: "array", items: { type: "string" }, flag: "pod-image-overrides", description: "Switch images in a pod when created" },
     enableInternalLoadBalancer: { type: "boolean", flag: "ekco-enable-internal-load-balancer" , description: "Run haproxy on all nodes and forward to all Kubernetes API server pods" },
   },
@@ -1541,7 +1543,8 @@ export class Installer {
     let retClean = "";
     if (versions) {
       versions.forEach((version: string) => {
-        const clean = version.replace(/\.0(\d)\./, ".$1.");
+        let clean = version.replace(/\.0(\d)\./, ".$1."); // fix docker versions e.g. 19.03.15
+        clean = clean.replace(/(\d+\.\d+\.\d+)-/, "$1+"); // we have a bad habit of using prerelease identifier as a patch which resolves lower e.g. weave 2.8.1-20220720
         if (!semver.valid(clean)) {
           return;
         }

@@ -200,6 +200,9 @@
                 "type": "string"
               }
             },
+            "rookShouldDisableReconcileMDSPlacement": {
+              "type": "boolean"
+            },
             "rookShouldUseAllNodes": {
               "type": "boolean"
             },
@@ -408,6 +411,9 @@
             "loadBalancerAddress": {
               "type": "string"
             },
+            "loadBalancerUseFirstPrimary": {
+              "type": "boolean"
+            },
             "masterAddress": {
               "type": "string"
             },
@@ -484,7 +490,16 @@
                               "outcomes"
                             ],
                             "properties": {
+                              "annotations": {
+                                "type": "object",
+                                "additionalProperties": {
+                                  "type": "string"
+                                }
+                              },
                               "checkName": {
+                                "type": "string"
+                              },
+                              "collectorName": {
                                 "type": "string"
                               },
                               "exclude": {
@@ -558,6 +573,12 @@
                               "outcomes"
                             ],
                             "properties": {
+                              "annotations": {
+                                "type": "object",
+                                "additionalProperties": {
+                                  "type": "string"
+                                }
+                              },
                               "checkName": {
                                 "type": "string"
                               },
@@ -628,7 +649,16 @@
                               "outcomes"
                             ],
                             "properties": {
+                              "annotations": {
+                                "type": "object",
+                                "additionalProperties": {
+                                  "type": "string"
+                                }
+                              },
                               "checkName": {
+                                "type": "string"
+                              },
+                              "collectorName": {
                                 "type": "string"
                               },
                               "exclude": {
@@ -695,6 +725,12 @@
                               "outcomes"
                             ],
                             "properties": {
+                              "annotations": {
+                                "type": "object",
+                                "additionalProperties": {
+                                  "type": "string"
+                                }
+                              },
                               "checkName": {
                                 "type": "string"
                               },
@@ -765,6 +801,12 @@
                               "outcomes"
                             ],
                             "properties": {
+                              "annotations": {
+                                "type": "object",
+                                "additionalProperties": {
+                                  "type": "string"
+                                }
+                              },
                               "checkName": {
                                 "type": "string"
                               },
@@ -835,7 +877,16 @@
                               "outcomes"
                             ],
                             "properties": {
+                              "annotations": {
+                                "type": "object",
+                                "additionalProperties": {
+                                  "type": "string"
+                                }
+                              },
                               "checkName": {
+                                "type": "string"
+                              },
+                              "collectorName": {
                                 "type": "string"
                               },
                               "exclude": {
@@ -902,7 +953,16 @@
                               "outcomes"
                             ],
                             "properties": {
+                              "annotations": {
+                                "type": "object",
+                                "additionalProperties": {
+                                  "type": "string"
+                                }
+                              },
                               "checkName": {
+                                "type": "string"
+                              },
+                              "collectorName": {
                                 "type": "string"
                               },
                               "exclude": {
@@ -969,6 +1029,12 @@
                               "outcomes"
                             ],
                             "properties": {
+                              "annotations": {
+                                "type": "object",
+                                "additionalProperties": {
+                                  "type": "string"
+                                }
+                              },
                               "checkName": {
                                 "type": "string"
                               },
@@ -1039,6 +1105,12 @@
                               "outcomes"
                             ],
                             "properties": {
+                              "annotations": {
+                                "type": "object",
+                                "additionalProperties": {
+                                  "type": "string"
+                                }
+                              },
                               "checkName": {
                                 "type": "string"
                               },
@@ -1109,7 +1181,16 @@
                               "outcomes"
                             ],
                             "properties": {
+                              "annotations": {
+                                "type": "object",
+                                "additionalProperties": {
+                                  "type": "string"
+                                }
+                              },
                               "checkName": {
+                                "type": "string"
+                              },
+                              "collectorName": {
                                 "type": "string"
                               },
                               "exclude": {
@@ -1176,7 +1257,16 @@
                               "outcomes"
                             ],
                             "properties": {
+                              "annotations": {
+                                "type": "object",
+                                "additionalProperties": {
+                                  "type": "string"
+                                }
+                              },
                               "checkName": {
+                                "type": "string"
+                              },
+                              "collectorName": {
                                 "type": "string"
                               },
                               "exclude": {
@@ -1243,7 +1333,16 @@
                               "outcomes"
                             ],
                             "properties": {
+                              "annotations": {
+                                "type": "object",
+                                "additionalProperties": {
+                                  "type": "string"
+                                }
+                              },
                               "checkName": {
+                                "type": "string"
+                              },
+                              "collectorName": {
                                 "type": "string"
                               },
                               "exclude": {
@@ -1310,6 +1409,12 @@
                               "outcomes"
                             ],
                             "properties": {
+                              "annotations": {
+                                "type": "object",
+                                "additionalProperties": {
+                                  "type": "string"
+                                }
+                              },
                               "checkName": {
                                 "type": "string"
                               },
@@ -1380,6 +1485,12 @@
                               "outcomes"
                             ],
                             "properties": {
+                              "annotations": {
+                                "type": "object",
+                                "additionalProperties": {
+                                  "type": "string"
+                                }
+                              },
                               "checkName": {
                                 "type": "string"
                               },
@@ -1450,6 +1561,12 @@
                               "outcomes"
                             ],
                             "properties": {
+                              "annotations": {
+                                "type": "object",
+                                "additionalProperties": {
+                                  "type": "string"
+                                }
+                              },
                               "checkName": {
                                 "type": "string"
                               },
@@ -1520,6 +1637,12 @@
                               "outcomes"
                             ],
                             "properties": {
+                              "annotations": {
+                                "type": "object",
+                                "additionalProperties": {
+                                  "type": "string"
+                                }
+                              },
                               "checkName": {
                                 "type": "string"
                               },
@@ -1590,7 +1713,16 @@
                               "outcomes"
                             ],
                             "properties": {
+                              "annotations": {
+                                "type": "object",
+                                "additionalProperties": {
+                                  "type": "string"
+                                }
+                              },
                               "checkName": {
+                                "type": "string"
+                              },
+                              "collectorName": {
                                 "type": "string"
                               },
                               "exclude": {
@@ -1952,6 +2084,30 @@
                             "type": "object",
                             "properties": {
                               "collectorName": {
+                                "type": "string"
+                              },
+                              "exclude": {
+                                "type": "string"
+                              }
+                            }
+                          },
+                          "run": {
+                            "type": "object",
+                            "required": [
+                              "args",
+                              "command"
+                            ],
+                            "properties": {
+                              "args": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string"
+                                }
+                              },
+                              "collectorName": {
+                                "type": "string"
+                              },
+                              "command": {
                                 "type": "string"
                               },
                               "exclude": {
