@@ -87,18 +87,9 @@ func isStatusHealthy(status cephtypes.CephStatus) (bool, string) {
 		statusMessage = append(statusMessage, fmt.Sprintf("%f%% of PGs are inactive, %f%% are degraded, and %f%% are misplaced, 0 required for all", status.Pgmap.InactivePgsRatio*100, status.Pgmap.DegradedRatio*100, status.Pgmap.MisplacedRatio*100))
 	}
 
-	if len(status.ProgressEvents) != 0 {
-		// only show the first progress event, as there may be quite a few
-		eventKeys := []string{}
-		for key, _ := range status.ProgressEvents {
-			eventKeys = append(eventKeys, key)
-		}
-		sort.Strings(eventKeys)
-		firstEvent := status.ProgressEvents[eventKeys[0]]
-
-		firstEvent.Message = strings.ReplaceAll(firstEvent.Message, "\n", "")
-
-		statusMessage = append(statusMessage, fmt.Sprintf("%d tasks in progress, first task %q is %f%% complete", len(status.ProgressEvents), firstEvent.Message, firstEvent.Progress))
+	progressEventsMessage := progressEventsString(status)
+	if progressEventsMessage != "" {
+		statusMessage = append(statusMessage, progressEventsMessage)
 	}
 
 	if len(statusMessage) != 0 {
@@ -127,7 +118,30 @@ func currentStatus(ctx context.Context, client kubernetes.Interface) (cephtypes.
 	return cephStatus, nil
 }
 
+func progressEventsString(status cephtypes.CephStatus) string {
+	if len(status.ProgressEvents) != 0 {
+		// only show the first progress event, as there may be quite a few
+		eventKeys := []string{}
+		for key, _ := range status.ProgressEvents {
+			eventKeys = append(eventKeys, key)
+		}
+		sort.Strings(eventKeys)
+		firstEvent := status.ProgressEvents[eventKeys[0]]
+
+		firstEvent.Message = strings.ReplaceAll(firstEvent.Message, "\n", "")
+
+		return fmt.Sprintf("%d tasks in progress, first task %q is %f%% complete", len(status.ProgressEvents), firstEvent.Message, firstEvent.Progress)
+	}
+
+	return ""
+}
+
 func progressMessage(status cephtypes.CephStatus) string {
+	progressEventsMessage := progressEventsString(status)
+	if progressEventsMessage != "" {
+		return progressEventsMessage
+	}
+
 	if status.Pgmap.InactivePgsRatio != 0 || status.Pgmap.DegradedRatio != 0 || status.Pgmap.MisplacedRatio != 0 {
 		return fmt.Sprintf("%f%% of PGs are inactive, %f%% are degraded, and %f%% are misplaced; recovering at %d B/sec", status.Pgmap.InactivePgsRatio*100, status.Pgmap.DegradedRatio*100, status.Pgmap.MisplacedRatio*100, status.Pgmap.RecoveringBytesPerSec)
 	}
