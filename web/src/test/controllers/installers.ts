@@ -1323,11 +1323,6 @@ spec:
       const out = Installer.resolveLatestPatchVersion("1.43.x", InstallerVersions["kotsadm"]);
       expect(out).to.equal("1.43.2");
     });
-
-    it("should resolve latest weave patch version", () => {
-      const out = Installer.resolveLatestPatchVersion("2.8.x", InstallerVersions["weave"]);
-      expect(out).to.match(/2.8.1-\d{8}/);
-    });
   });
 
   describe("collectd", () => {

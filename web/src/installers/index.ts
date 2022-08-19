@@ -1543,8 +1543,7 @@ export class Installer {
     let retClean = "";
     if (versions) {
       versions.forEach((version: string) => {
-        let clean = version.replace(/\.0(\d)\./, ".$1."); // fix docker versions e.g. 19.03.15
-        clean = clean.replace(/(\d+\.\d+\.\d+)-/, "$1+"); // we have a bad habit of using prerelease identifier as a patch which resolves lower e.g. weave 2.8.1-20220720
+        const clean = version.replace(/\.0(\d)\./, ".$1.");
         if (!semver.valid(clean)) {
           return;
         }
