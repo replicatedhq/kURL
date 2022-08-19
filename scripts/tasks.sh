@@ -19,6 +19,7 @@ DIR=.
 . $DIR/scripts/distro/interface.sh
 . $DIR/scripts/distro/kubeadm/distro.sh
 . $DIR/scripts/distro/rke2/distro.sh
+. $DIR/scripts/distro/rke2/addon.sh
 # Magic end
 
 K8S_DISTRO=
@@ -71,6 +72,9 @@ function tasks() {
             ;;
         longhorn-node-initilize|longhorn_node_initilize)
             install_host_dependencies_longhorn $@
+            ;;
+        rook-10-to-14|rook_10_to_14)
+            rook_tasks_10_to_14
             ;;
         *)
             bail "Unknown task: $1"
@@ -684,6 +688,17 @@ function install_host_dependencies_longhorn() {
     pushd_install_directory
 
     longhorn_host_init_common "${DIR}/packages/host/longhorn"
+}
+
+function rook_tasks_10_to_14() {
+    export KUBECONFIG=/etc/kubernetes/admin.conf
+
+    export ROOK_VERSION=v1.4.9
+    if should_upgrade_rook_10_to_14; then
+        report_upgrade_rook_10_to_14
+    else
+        echo "Not upgrading rook because it is not installed or the currently installed version is not 1.0.x"
+    fi
 }
 
 tasks "$@"

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -61,15 +62,19 @@ func isStatusHealthy(status cephtypes.CephStatus) (bool, string) {
 	statusMessage := []string{}
 
 	if status.Health.Status != "HEALTH_OK" {
-		isOnlyTooManyPgs := false
+		unaccountedChecks := len(status.Health.Checks)
 
-		if len(status.Health.Checks) == 1 {
-			if _, ok := status.Health.Checks["TOO_MANY_PGS"]; ok {
-				// this is not an error we need to stop upgrades for
-				isOnlyTooManyPgs = true
-			}
+		if _, ok := status.Health.Checks["TOO_MANY_PGS"]; ok {
+			// this is not an error we need to stop upgrades for (this will show up after upgrading from 1.0 until autoscaling pgs is enabled)
+			unaccountedChecks -= 1
 		}
-		if !isOnlyTooManyPgs {
+
+		if _, ok := status.Health.Checks["POOL_NO_REDUNDANCY"]; ok {
+			// this is not an error we need to stop upgrades for (it will always be present on single node installs)
+			unaccountedChecks -= 1
+		}
+
+		if unaccountedChecks != 0 {
 			statusMessage = append(statusMessage, fmt.Sprintf("health is %s not HEALTH_OK", status.Health.Status))
 		}
 	}
@@ -80,6 +85,20 @@ func isStatusHealthy(status cephtypes.CephStatus) (bool, string) {
 
 	if status.Pgmap.InactivePgsRatio != 0 || status.Pgmap.DegradedRatio != 0 || status.Pgmap.MisplacedRatio != 0 {
 		statusMessage = append(statusMessage, fmt.Sprintf("%f%% of PGs are inactive, %f%% are degraded, and %f%% are misplaced, 0 required for all", status.Pgmap.InactivePgsRatio*100, status.Pgmap.DegradedRatio*100, status.Pgmap.MisplacedRatio*100))
+	}
+
+	if len(status.ProgressEvents) != 0 {
+		// only show the first progress event, as there may be quite a few
+		eventKeys := []string{}
+		for key, _ := range status.ProgressEvents {
+			eventKeys = append(eventKeys, key)
+		}
+		sort.Strings(eventKeys)
+		firstEvent := status.ProgressEvents[eventKeys[0]]
+
+		firstEvent.Message = strings.ReplaceAll(firstEvent.Message, "\n", "")
+
+		statusMessage = append(statusMessage, fmt.Sprintf("%d tasks in progress, first task %q is %f%% complete", len(status.ProgressEvents), firstEvent.Message, firstEvent.Progress))
 	}
 
 	if len(statusMessage) != 0 {

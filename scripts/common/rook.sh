@@ -182,15 +182,19 @@ function current_rook_version() {
 }
 
 # checks if rook should be upgraded before upgrading k8s. If it should, reports that as an addon, and starts the upgrade process.
-function report_upgrade_rook() {
+function maybe_report_upgrade_rook_10_to_14() {
     if should_upgrade_rook_10_to_14; then
-        ROOK_10_TO_14_VERSION="v1.0.0" # if you change this code, change the version
-        report_addon_start "rook_10_to_14" "$ROOK_10_TO_14_VERSION"
-        export REPORTING_CONTEXT_INFO="rook_10_to_14 $ROOK_10_TO_14_VERSION"
-        rook_10_to_14
-        export REPORTING_CONTEXT_INFO=""
-        report_addon_success "rook_10_to_14" "$ROOK_10_TO_14_VERSION"
+        report_upgrade_rook_10_to_14
     fi
+}
+
+function report_upgrade_rook_10_to_14() {
+    ROOK_10_TO_14_VERSION="v1.0.0" # if you change this code, change the version
+    report_addon_start "rook_10_to_14" "$ROOK_10_TO_14_VERSION"
+    export REPORTING_CONTEXT_INFO="rook_10_to_14 $ROOK_10_TO_14_VERSION"
+    rook_10_to_14
+    export REPORTING_CONTEXT_INFO=""
+    report_addon_success "rook_10_to_14" "$ROOK_10_TO_14_VERSION"
 }
 
 # checks the currently installed rook version and the desired rook version
@@ -273,9 +277,6 @@ function rook_10_to_14() {
     # todo make sure that the RGW isn't getting stuck
     echo "Rook 1.1.9 has been rolled out throughout the cluster"
 
-    echo "Enabling pg pool autoscaling"
-    rook_ceph_tools_exec "ceph osd pool ls | xargs -I {} ceph osd pool set {} pg_autoscale_mode on"
-
     echo "Upgrading CRDs to Rook 1.1"
     kubectl apply -f "$upgrade_files_path/upgrade-from-v1.0-crds.yaml"
 
@@ -335,7 +336,10 @@ function rook_10_to_14() {
 
     echo "Upgrading ceph to v15.2.8"
     kubectl -n rook-ceph patch CephCluster rook-ceph --type=merge -p '{"spec": {"cephVersion": {"image": "ceph/ceph:v15.2.8-20201217"}}}'
-    $DIR/bin/kurl rook wait-for-ceph-version "15.2.8"
+    $DIR/bin/kurl rook wait-for-ceph-version "15.2.8-0"
+
+    echo "Enabling pg pool autoscaling"
+    rook_ceph_tools_exec "ceph osd pool ls | xargs -I {} ceph osd pool set {} pg_autoscale_mode on"
 
     $DIR/bin/kurl rook wait-for-health
 
