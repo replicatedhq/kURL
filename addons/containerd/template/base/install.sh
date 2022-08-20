@@ -80,7 +80,6 @@ function containerd_install() {
         # is available before proceeeding.
         # "nodes.v1." is needed becasue addons can have a CRD names "nodes", like nodes.longhorn.io
         try_5m kubectl --kubeconfig=/etc/kubernetes/kubelet.conf get nodes.v1.
-
     fi
 }
 
