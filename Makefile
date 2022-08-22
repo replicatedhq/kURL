@@ -218,11 +218,11 @@ dist/goldpinger-%.tar.gz: build/addons
 	mkdir -p dist
 	tar cf - -C build addons/goldpinger/$* | gzip > dist/goldpinger-$*.tar.gz
 
-dist/local-path-provisioner-%.tar.gz: build/addons
-	mkdir -p build/addons/local-path-provisioner/$*/images
-	bin/save-manifest-assets.sh "local-path-provisioner-$*" addons/local-path-provisioner/$*/Manifest $(CURDIR)/build/addons/local-path-provisioner/$*
+dist/local-path-storage-%.tar.gz: build/addons
+	mkdir -p build/addons/local-path-storage/$*/images
+	bin/save-manifest-assets.sh "local-path-storage-$*" addons/local-path-storage/$*/Manifest $(CURDIR)/build/addons/local-path-storage/$*
 	mkdir -p dist
-	tar cf - -C build addons/local-path-provisioner/$* | gzip > dist/local-path-provisioner-$*.tar.gz
+	tar cf - -C build addons/local-path-storage/$* | gzip > dist/local-path-storage-$*.tar.gz
 
 
 dist/kubernetes-%.tar.gz:

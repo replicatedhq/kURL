@@ -10,7 +10,7 @@
       version: "latest"
     kotsadm:
       version: "latest"
-    localPathProvisioner:
+    localPathStorage:
       version: "__testver__"
       s3Override: "__testdist__"
   postInstallScript: |
@@ -31,7 +31,7 @@
       version: "latest"
     kotsadm:
       version: "latest"
-    localPathProvisioner:
+    localPathStorage:
       version: "__testver__"
       s3Override: "__testdist__"
   postInstallScript: |

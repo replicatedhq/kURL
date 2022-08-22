@@ -321,7 +321,7 @@ type AWS struct {
 	ExcludeStorageClass bool   `json:"excludeStorageClass,omitempty" yaml:"excludeStorageClass,omitempty"`
 }
 
-type LocalPathProvisioner struct {
+type LocalPathStorage struct {
 	S3Override string `json:"s3Override,omitempty" yaml:"s3Override,omitempty"`
 	Version    string `json:"version" yaml:"version"`
 }

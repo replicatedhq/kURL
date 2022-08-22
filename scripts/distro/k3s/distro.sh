@@ -37,9 +37,9 @@ function k3s_addon_for_each() {
     fi
 
 
-    if [ -n "$LOCAL_PATH_PROVISIONER_VERSION" ] && [ -z "$LOCAL_PATH_PROVISIONER_IGNORE" ]; then
+    if [ -n "$LOCAL_PATH_STORAGE_VERSION" ] && [ -z "$LOCAL_PATH_STORAGE_IGNORE" ]; then
         logWarn "⚠️  Local Path Storage is distributed as part of K3S; the version specified in the installer will be ignored."
-        LOCAL_PATH_PROVISIONER_IGNORE=true
+        LOCAL_PATH_STORAGE_IGNORE=true
     fi
 
     $cmd aws "$AWS_VERSION"
