@@ -4,7 +4,7 @@
       version: "1.23.x"
     weave:
       version: "latest"
-    docker:
+    containerd:
       version: "latest"
     minio:
       version: "latest"
@@ -27,7 +27,7 @@
       version: "1.21.x"
     weave:
       version: "latest"
-    docker:
+    containerd:
       version: "latest"
     minio:
       version: "2020-01-25T02-50-51Z"
@@ -41,7 +41,7 @@
       version: "1.23.x"
     weave:
       version: "latest"
-    docker:
+    containerd:
       version: "latest"
     minio:
       version: "latest"
@@ -70,7 +70,7 @@
       version: "1.23.x"
     weave:
       version: "latest"
-    docker:
+    containerd:
       version: "latest"
     minio:
       version: "latest"
@@ -128,3 +128,5 @@
     minio_object_store_info
     validate_testfile rwtest testfile.txt
     validate_read_write_object_store postupgrade upgradefile.txt
+  unsupportedOSIDs:
+    - ubuntu-2204
