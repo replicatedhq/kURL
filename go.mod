@@ -45,7 +45,7 @@ require (
 	k8s.io/apimachinery v0.24.3
 	k8s.io/client-go v0.24.3
 	k8s.io/code-generator v0.24.3
-	kubevirt.io/api v0.55.0
+	kubevirt.io/api v0.56.0
 	kubevirt.io/client-go v0.55.0
 	sigs.k8s.io/controller-runtime v0.12.3
 	sigs.k8s.io/controller-tools v0.9.2
