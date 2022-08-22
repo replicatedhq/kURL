@@ -1,4 +1,4 @@
-namespace: local-path-storage
+namespace: $CONTOUR_NAMESPACE
 
 resources:
 - local-path-storage.yaml
