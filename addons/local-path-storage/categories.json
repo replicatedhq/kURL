@@ -1,6 +1,0 @@
-{
-  "name": "local-path-storage",
-  "fulfills": ["PVC Provisioner"],
-  "requires": ["CNI Plugin", "Container Runtime"],
-  "recommends": []
-}
