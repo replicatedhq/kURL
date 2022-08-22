@@ -5,7 +5,7 @@ on: [ pull_request ]
 jobs:
 
   validate-go-mod:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/setup-go@v3
         with:
@@ -22,7 +22,7 @@ jobs:
       - run: go mod tidy -compat=1.17
 
   build-kurl-utils:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/setup-go@v3
         with:
@@ -39,7 +39,7 @@ jobs:
       - run: make -C kurl_util deps test build
 
   build-web:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v3
 
@@ -50,14 +50,14 @@ jobs:
       - run: make -C web deps test build
 
   test-shell:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     steps:
     - uses: actions/checkout@v3
     - run: sudo apt-get install -y shunit2
     - run: make test-shell shunit2
 
   build-kurlkinds:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/setup-go@v3
         with:
@@ -75,7 +75,7 @@ jobs:
           make -C kurlkinds deps test manager
 
   build-bin-kurl:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/setup-go@v3
         with:
@@ -92,7 +92,7 @@ jobs:
       - run: make deps test build/bin/kurl
 
   build-testgrid:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     needs: validate-go-mod
     steps:
     - uses: actions/setup-go@v3
