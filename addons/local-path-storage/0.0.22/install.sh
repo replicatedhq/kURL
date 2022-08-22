@@ -1,13 +1,7 @@
 
-function local-path-storage_join() {
-  local-path-storage_host_init
-}
-
 function local-path-storage() {
     local src="$DIR/addons/local-path-storage/__releasever__"
     local dst="$DIR/kustomize/local-path-storage"
-
-    local-path-storage_host_init
 
     cp "$src/local-path-storage.yaml" "$dst/"
 
@@ -41,9 +35,4 @@ function has_default_storageclass() {
         return 0
     fi
     return 1
-}
-
-function local-path-storage_host_init() {
-  mkdir -p /opt/local-path-storage
-  chmod 700 /opt/local-path-storage
 }

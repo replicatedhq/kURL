@@ -1391,9 +1391,6 @@ export class Installer {
     if (this.spec.goldpinger && !(await Installer.hasVersion("goldpinger", this.spec.goldpinger.version, installerVersion)) && !this.hasS3Override("goldpinger")) {
       return {error: {message: `Goldpinger version "${_.escape(this.spec.goldpinger.version)}" is not supported${installerVersion ? " for installer version " + _.escape(installerVersion) : ""}`}};
     }
-    if (this.spec.localPathStorage && !(await Installer.hasVersion("localPathStorage", this.spec.localPathStorage.version, installerVersion)) && !this.hasS3Override("localPathStorage")) {
-      return {error: {message: `Local Path Storage version "${_.escape(this.spec.localPathStorage.version)}" is not supported${installerVersion ? " for installer version " + _.escape(installerVersion) : ""}`}};
-    }
 
     // Rook 1.0.4 is incompatible with Kubernetes 1.20+
     if (this.spec.rook && this.spec.rook.version === "1.0.4") {
