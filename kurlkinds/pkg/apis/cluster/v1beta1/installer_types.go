@@ -315,6 +315,7 @@ type Goldpinger struct {
 }
 
 type AWS struct {
+	S3Override          string `json:"s3Override,omitempty" yaml:"s3Override,omitempty"`
 	Version             string `json:"version" yaml:"version"`
 	ExcludeStorageClass bool   `json:"excludeStorageClass,omitempty" yaml:"excludeStorageClass,omitempty"`
 }

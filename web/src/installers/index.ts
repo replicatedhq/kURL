@@ -712,6 +712,7 @@ export const goldpingerSchema = {
 export interface AWS {
   version: string;
   excludeStorageClass?: boolean;
+  s3Override?: string;
 }
 
 export const awsSchema = {
@@ -719,6 +720,7 @@ export const awsSchema = {
   properties: {
     version: { type: "string" },
     excludeStorageClass: { type: "boolean", flag: "aws-exclude-storage-class", description: "Exclude aws-ebs provisioner storage class provided by the AWS add-on"},
+    s3Override: { type: "string", flag: "s3-override", description: "Override the download location for addon package distribution (used for CI/CD testing alpha addons)" },
   },
   required: [ "version" ],
 };
