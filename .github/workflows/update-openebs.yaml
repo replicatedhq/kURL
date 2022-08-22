@@ -18,12 +18,10 @@ jobs:
         go-version: 1.17
 
     - name: Create OpenEBS 2.x Update
-      id: update
       working-directory: ./addons/openebs/template
       run: ./generate.sh --version=^2.0.0
 
     - name: Create OpenEBS 3.x Update
-      id: update
       working-directory: ./addons/openebs/template
       run: ./generate.sh
 
