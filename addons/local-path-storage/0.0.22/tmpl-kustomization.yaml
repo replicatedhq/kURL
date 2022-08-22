@@ -1,5 +1,0 @@
-namespace: $CONTOUR_NAMESPACE
-
-resources:
-- local-path-storage.yaml
-
