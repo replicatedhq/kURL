@@ -13,7 +13,7 @@ function local-path-storage() {
 
     cp "$src/tmpl-kustomization.yaml" "$dst/"
 
-    if local_path_storage_has_default_storageclass && ! local_path_storage_is_default_storageclass ; then
+    if has_default_storageclass && ! local_path_storage_is_default_storageclass ; then
         printf "${YELLOW}Existing default storage class that is not Local Path Storage detected${NC}\n"
         printf "${YELLOW}Local Path Storage will still be installed as the non-default storage class.${NC}\n"
     else
@@ -33,7 +33,7 @@ function local_path_storage_is_default_storageclass() {
     return 1
 }
 
-function local_path_storage_has_default_storageclass() {
+function has_default_storageclass() {
     local hasDefaultStorageClass
     hasDefaultStorageClass=$(kubectl get sc -o jsonpath='{.items[*].metadata.annotations.storageclass\.kubernetes\.io/is-default-class}')
 
