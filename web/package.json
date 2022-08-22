@@ -13,7 +13,7 @@
     "@tsed/logger": "^6.2.1",
     "@tsed/platform-express": "^6.123.1",
     "ajv": "^8.11.0",
-    "aws-sdk": "^2.1188.0",
+    "aws-sdk": "^2.1199.0",
     "base64url": "^3.0.1",
     "cors": "^2.8.5",
     "express": "^4.18.1",
