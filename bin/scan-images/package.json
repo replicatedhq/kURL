@@ -4,12 +4,16 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha --recursive *-test.js"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "semver": "^7.3.5",
     "yargs": "^16.2.0"
+  },
+  "devDependencies": {
+    "chai": "^4.3.6",
+    "mocha": "^10.0.0"
   }
 }
