@@ -689,7 +689,7 @@ build/bin: build/bin/kurl
 
 build/bin/kurl:
 	CGO_ENABLED=0 go build $(LDFLAGS) -o build/bin/kurl $(BUILDFLAGS) ./cmd/kurl
-	[ -n "${SKIP_LDD_CHECK}" ] || ldd build/bin/kurl | grep -q "not a dynamic executable" # confirm that there are no linked libs
+	[ -n "${SKIP_LDD_CHECK}" ] || ldd build/bin/kurl 2>&1 | grep -q "not a dynamic executable" # confirm that there are no linked libs
 
 .PHONY: code
 code: build/kustomize build/addons

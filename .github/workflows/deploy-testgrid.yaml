@@ -11,7 +11,7 @@ on:
 
 jobs:
   staging-docker-image-tgapi:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     steps:
     - uses: actions/checkout@v3
 
@@ -31,7 +31,7 @@ jobs:
     - run: docker push 923411875752.dkr.ecr.us-east-1.amazonaws.com/tgapi:${GITHUB_SHA:0:7}
 
   deploy-staging-eks-tgapi:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     needs: staging-docker-image-tgapi
     steps:
     - uses: actions/checkout@v3
@@ -73,7 +73,7 @@ jobs:
           git push origin main
 
   production-docker-image-tgapi:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     steps:
     - uses: actions/checkout@v3
 
@@ -93,7 +93,7 @@ jobs:
     - run: docker push 799720048698.dkr.ecr.us-east-1.amazonaws.com/tgapi:${GITHUB_SHA:0:7}
 
   docker-image-tgrun:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v3
       - name: tgrun-build
@@ -115,7 +115,7 @@ jobs:
           docker push replicated/tgrun:${GITHUB_SHA:0:7}
 
   deploy-production-eks-tgapi:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     needs: production-docker-image-tgapi
     steps:
     - uses: actions/checkout@v3
