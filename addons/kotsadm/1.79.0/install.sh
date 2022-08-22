@@ -505,7 +505,7 @@ function kotsadm_health_check() {
     # times the delete the pod in order to reset the exponential backoff timer.
     # This is needed to prevent kubelet from waiting five minutes before restarting the
     # pod.
-    crashed_pod=$(kubectl get pods -l ${selector} | awk '($3 == "CrashLoopBackOff" && $4 >= 5) {print $1}')
+    crashed_pod=$(kubectl get pods -l ${selector} | awk '($3 ~ "CrashLoopBackOff" && $4 >= 5) {print $1}')
     if [[ -n $crashed_pod ]]; then
         # reset exponential backoff timer for pod
         kubectl delete pod --grace-period=0 --force "$crashed_pod"
