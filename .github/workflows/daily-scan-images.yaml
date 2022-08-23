@@ -7,7 +7,7 @@ on:
 
 jobs:
   build-matrix:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
@@ -24,7 +24,7 @@ jobs:
 
   scan-image:
     needs: build-matrix
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     strategy:
       matrix: ${{fromJSON(needs.build-matrix.outputs.matrix)}}
       fail-fast: false
@@ -36,18 +36,16 @@ jobs:
         run: if [ -n '${{ matrix.trivyignore }}' ]; then echo '${{ matrix.trivyignore }}' | base64 -d > .trivyignore.rego ; fi
       - name: "${{ matrix.addon }}:${{ matrix.version }} - ${{ matrix.name }} : Scan image"
         id: scan
-        uses: aquasecurity/trivy-action@0.6.2
+        uses: aquasecurity/trivy-action@0.7.1
         with:
           image-ref: ${{ matrix.image }}
           format: 'sarif'
           output: 'scan-output.sarif'
           vuln-type: 'os'
-          severity: 'HIGH,CRITICAL'
+          severity: 'CRITICAL,HIGH'
           ignore-unfixed: true
-          exit-code: '1'
           ignore-policy: ${{ matrix.trivyignore && '.trivyignore.rego' }}
       - name: Upload SARIF report
         uses: github/codeql-action/upload-sarif@v2
-        if: ${{ always() }}
         with:
           sarif_file: scan-output.sarif
