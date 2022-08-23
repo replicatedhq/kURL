@@ -11,6 +11,8 @@
     velero:
       version: "__testver__"
       s3Override: "__testdist__"
+  unsupportedOSIDs:
+  - ubuntu-2204 # docker is not available on ubuntu 22.04
 - name: "Velero Minimal Airgap"
   airgap: true
   installerSpec:
@@ -25,6 +27,8 @@
     velero:
       version: "__testver__"
       s3Override: "__testdist__"
+  unsupportedOSIDs:
+  - ubuntu-2204 # docker is not available on ubuntu 22.04
 - name: "Velero DisableS3 - Rook"
   installerSpec:
     kubernetes:
