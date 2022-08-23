@@ -33,27 +33,14 @@ jobs:
           check
 
   test-addons:
-    runs-on: ubuntu-20.04
     needs: check-addons
     strategy:
-      matrix:
-        addons: ${{ fromJSON(needs.check-addons.outputs.addons) }}
+      matrix: ${{ fromJSON(needs.check-addons.outputs.addons) }}
       fail-fast: false
       max-parallel: 5
-
-    steps:
-      - name: Normalize outputs
-        id: normalize
-        run: |
-          pr_number="$(echo "$GITHUB_REF" | cut -d"/" -f3)"
-
-          echo "::set-output name=addon::$(echo "${{ matrix.addons }}" | cut -f1 -d/)"
-          echo "::set-output name=version::$(echo "${{ matrix.addons }}" | cut -f2 -d/)"
-          echo "::set-output name=prefix::pr-${pr_number}-${GITHUB_SHA:0:7}"
-
-      - uses: actions/checkout@v3
-      - uses: ./.github/workflows/test-addon
-        with:
-          addon: ${{ steps.normalize.outputs.addon }}
-          version: ${{ steps.normalize.outputs.version }}
-          prefix: ${{ steps.normalize.outputs.prefix }}
+    uses: ./.github/workflows/test-addon.yaml
+    with:
+      addon: ${{ matrix.addon }}
+      version: ${{ matrix.version }}
+      prefix: ${{ matrix.prefix }}
+    secrets: inherit
