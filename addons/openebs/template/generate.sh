@@ -23,6 +23,11 @@ function generate() {
         --set defaultStorageConfig.enabled=false \
         --set localprovisioner.enableDeviceClass=false \
         --set localprovisioner.enableHostpathClass=false \
+        --set release.version="$chart_version" \
+        --set localprovisioner.imageTag="$chart_version" \
+        --set helper.imageTag="$chart_version" \
+        --set ndm.imageTag=2.0.0 \
+        --set ndmOperator.imageTag=2.0.0 \
         > "$tmpdir/openebs.tmpl.yaml"
 
     $ksplit_path crdsplit "$tmpdir/"
@@ -97,7 +102,8 @@ function main() {
 
     get_latest_release_version # --version=^2.0.0
 
-    local version_major=$(echo "$chart_version" | cut -d. -f1)
+    local version_major=
+    version_major=$(echo "$chart_version" | cut -d. -f1)
 
     if [ -d "../$chart_version" ]; then
         if [ "$force_flag" == "1" ]; then
