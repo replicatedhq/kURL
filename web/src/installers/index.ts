@@ -1053,6 +1053,7 @@ export class Installer {
   // replace problematic versions that do not sort because of semver pre-release
   private static replaceVersions = {
     "rook": {"1.0.4": "1.0.4-0.0.0"},
+    "weave": {"2.6.5": "2.6.5-0.0.0", "2.8.1": "2.8.1-0.0.0"},
     "prometheus": {"0.46.0": "0.46.0-0.0.0"},
   };
 
@@ -1069,14 +1070,7 @@ export class Installer {
     }
 
     let addonInstallerVersions = installerVersions[config] || [];
-
-    if (config in Installer.replaceVersions) {
-      Object.keys(Installer.replaceVersions[config]).forEach((k: string) => {
-        addonInstallerVersions = addonInstallerVersions.map(function(version: string): string {
-          return version === k ? Installer.replaceVersions[config][k] : version;
-        });
-      });
-    }
+    addonInstallerVersions = Installer.replaceAddonVersions(config, addonInstallerVersions);
 
     let match = Installer.resolveLatestPatchVersion(version, addonInstallerVersions);
     if (config in Installer.replaceVersions) {
@@ -1533,6 +1527,18 @@ export class Installer {
     return version.replace(/^(\d+\.\d+\.).*$/, "$1x");
   }
 
+  public static replaceAddonVersions(addon: string, versions: string[]): string[] {
+    let next = versions;
+    if (addon in Installer.replaceVersions) {
+      Object.keys(Installer.replaceVersions[addon]).forEach((k: string) => {
+        next = versions.map(function(version: string): string {
+          return version === k ? Installer.replaceVersions[addon][k] : version;
+        });
+      });
+    }
+    return next;
+  }
+
   public static resolveLatestPatchVersion(xVersion: string, versions: string[]): string {
     const version = xVersion
       .replace(/\.0(\d)\./, ".$1.") // replace weird docker versions prefixed with 0
@@ -1543,7 +1549,7 @@ export class Installer {
     let retClean = "";
     if (versions) {
       versions.forEach((version: string) => {
-        const clean = version.replace(/\.0(\d)\./, ".$1.");
+        const clean = version.replace(/\.0(\d)\./, ".$1."); // fix docker versions e.g. 19.03.15
         if (!semver.valid(clean)) {
           return;
         }
