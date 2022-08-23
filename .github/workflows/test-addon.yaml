@@ -39,6 +39,15 @@ jobs:
         with:
           go-version: 1.17
 
+      - uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+          key: ${{ runner.os }}-go-tgrun-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-tgrun-
+
       - name: Tgrun Build
         working-directory: ./testgrid/tgrun
         run: make build-cli

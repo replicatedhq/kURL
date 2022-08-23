@@ -23,6 +23,7 @@ function check() {
   # Defaults from GH Action
   require GITHUB_BASE_REF "${GITHUB_BASE_REF}"
   require GITHUB_REF "${GITHUB_REF}"
+  require GITHUB_SHA "${GITHUB_SHA}"
 
   PR_NUMBER="$(echo "$GITHUB_REF" | cut -d"/" -f3)"
 
@@ -37,10 +38,17 @@ function check() {
   done
 
   if [ "${#ADDONS_AVAILBLE[@]}" -gt "0" ]; then
-    echo "Modified addons detected ${ADDONS_AVAILBLE[*]}. Continuing with action..."
-    echo "::set-output name=addons::$(printf '%s\n' "${ADDONS_AVAILBLE[@]}" | jq -R . | jq -sc .)"
+    echo "Modified addons detected. Continuing with action..."
+    echo "::set-output name=addons::{\"include\":[$(join_array_by ',' "${ADDONS_AVAILBLE[@]}")]}"
   else
     echo "No changed addons detected, addon is currently in the ADDON_DENY_LIST, or addon does not have a TestGrid template."
+  fi
+}
+
+function join_array_by {
+  local d=${1-} f=${2-}
+  if shift 2; then
+    printf %s "$f" "${@/#/$d}"
   fi
 }
 
@@ -61,12 +69,15 @@ function check_addon() {
   local versions=
   versions=$(modified_versions "$addon")
 
+  local prefix=
+  prefix="pr-$(echo "$GITHUB_REF" | cut -d"/" -f3)-${GITHUB_SHA:0:7}"
+
   # check if there is a valid version (files in the root don't count) & template files
   for version in $versions
   do
     shopt -s nullglob
     if compgen -G "./addons/$addon/template/testgrid/*.yaml" > /dev/null; then
-      ADDONS_AVAILBLE+=("$addon/$version")
+      ADDONS_AVAILBLE+=('{"addon":"'"$addon"'","version":"'"$version"'","prefix":"'"$prefix"'"}')
 
       echo "Found Modified Addon: $addon-$version"
     fi
