@@ -135,7 +135,7 @@ metadata:
     heritage: Helm
     component: ndm
     openebs.io/component-name: ndm
-    openebs.io/version: 3.2.0
+    openebs.io/version: 3.3.0
 spec:
   updateStrategy:
     type: "RollingUpdate"
@@ -152,7 +152,7 @@ spec:
         component: ndm
         openebs.io/component-name: ndm
         name: openebs-ndm
-        openebs.io/version: 3.2.0
+        openebs.io/version: 3.3.0
     spec:
       serviceAccountName: openebs
       hostNetwork: true
@@ -160,7 +160,7 @@ spec:
       # API service is enabled
       containers:
       - name: openebs-ndm
-        image: "openebs/node-disk-manager:1.9.0"
+        image: "openebs/node-disk-manager:2.0.0"
         args:
           - -v=4
           - --feature-gates=GPTBasedUUID
@@ -264,7 +264,7 @@ metadata:
     heritage: Helm
     component: localpv-provisioner
     openebs.io/component-name: openebs-localpv-provisioner
-    openebs.io/version: 3.2.0
+    openebs.io/version: 3.3.0
 spec:
   replicas: 1
   strategy:
@@ -282,12 +282,12 @@ spec:
         component: localpv-provisioner
         name: openebs-localpv-provisioner
         openebs.io/component-name: openebs-localpv-provisioner
-        openebs.io/version: 3.2.0
+        openebs.io/version: 3.3.0
     spec:
       serviceAccountName: openebs
       containers:
       - name: openebs-localpv-provisioner
-        image: "openebs/provisioner-localpv:3.2.0"
+        image: "openebs/provisioner-localpv:3.3.0"
         imagePullPolicy: IfNotPresent
         args:
           - "--bd-time-out=$(BDC_BD_BIND_RETRIES)"
@@ -329,7 +329,7 @@ spec:
         - name: OPENEBS_IO_BASE_PATH
           value: "/var/openebs/local"
         - name: OPENEBS_IO_HELPER_IMAGE
-          value: "openebs/linux-utils:3.2.0"
+          value: "openebs/linux-utils:3.3.0"
         - name: OPENEBS_IO_INSTALLER_TYPE
           value: "charts-helm"
         # LEADER_ELECTION_ENABLED is used to enable/disable leader election. By default
@@ -363,7 +363,7 @@ metadata:
     heritage: Helm
     component: ndm-operator
     openebs.io/component-name: ndm-operator
-    openebs.io/version: 3.2.0
+    openebs.io/version: 3.3.0
     name: ndm-operator
 spec:
   replicas: 1
@@ -382,12 +382,12 @@ spec:
         component: ndm-operator
         name: ndm-operator
         openebs.io/component-name: ndm-operator
-        openebs.io/version: 3.2.0
+        openebs.io/version: 3.3.0
     spec:
       serviceAccountName: openebs
       containers:
       - name: openebs-ndm-operator
-        image: "openebs/node-disk-operator:1.9.0"
+        image: "openebs/node-disk-operator:2.0.0"
         imagePullPolicy: IfNotPresent
         livenessProbe:
           httpGet:
@@ -417,4 +417,4 @@ spec:
         - name: OPERATOR_NAME
           value: "node-disk-operator"
         - name: CLEANUP_JOB_IMAGE
-          value: "openebs/linux-utils:3.2.0"
+          value: "openebs/linux-utils:3.3.0"
