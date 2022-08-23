@@ -6,21 +6,27 @@ on:
       addon:
         description: Add-on directory name
         required: true
+        type: string
       version:
         description: Add-on version directory name
         required: true
+        type: string
       prefix:
         description: Prefix for s3 asset and ref. For identification.
+        type: string
   workflow_dispatch:
     inputs:
       addon:
         description: Add-on directory name
         required: true
+        type: string
       version:
         description: Add-on version directory name
         required: true
+        type: string
       prefix:
         description: Prefix for s3 asset and ref. For identification.
+        type: string
 
 jobs:
   test-addon:
