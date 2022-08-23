@@ -4,6 +4,9 @@
 
 set -eo pipefail
 
+# These addons aren't part of the spec. (containerd doesn't use addon.sh)
+ADDON_DENY_LIST="aws calico nodeless"
+
 function require() {
    if [ -z "$2" ]; then
        echo "validation failed: $1 unset"
@@ -11,125 +14,108 @@ function require() {
    fi
 }
 
-# Defaults from GH Action
-require GITHUB_BASE_REF "${GITHUB_BASE_REF}"
-require GITHUB_REF "${GITHUB_REF}"
-require GITHUB_SHA "${GITHUB_SHA}"
-
-# From GH Action Defition
-require AWS_ACCESS_KEY_ID "${AWS_ACCESS_KEY_ID}"
-require AWS_SECRET_ACCESS_KEY "${AWS_SECRET_ACCESS_KEY}"
-require S3_BUCKET "${S3_BUCKET}"
-
-# These addons aren't part of the spec. (containerd doesn't use addon.sh)
-ADDON_DENY_LIST="aws calico nodeless"
-
-PR_NUMBER=$(echo $GITHUB_REF | cut -d"/" -f3)
-
 # Checks if there is an update to a addon that meets all of the right criteria and reports to the action
 # - Not an update to the template or build-images
 # - Not an update to a readme
 # - Not a addon in the ADDON_DENY_LIST (not part of the spec)
-ADDON_AVAILBLE=
-check() {
+ADDONS_AVAILBLE=()
+function check() {
+  # Defaults from GH Action
+  require GITHUB_BASE_REF "${GITHUB_BASE_REF}"
+  require GITHUB_REF "${GITHUB_REF}"
+
+  PR_NUMBER="$(echo "$GITHUB_REF" | cut -d"/" -f3)"
+
   echo "Checking PR#${PR_NUMBER}..."
 
   # Take the base branch and figure out which addons changed. Verify each.
   for addon in $(git diff --dirstat=files,0 "origin/${GITHUB_BASE_REF}" -- addons/ "origin/${GITHUB_BASE_REF}" -- addons/ | sed 's/^[ 0-9.]\+% addons\///g' | grep -v template | grep -v build-images | cut -f -1 -d"/" | uniq )
   do
     if ! [[ " $ADDON_DENY_LIST " =~ .*\ $addon\ .* ]]; then
-      check_addon $addon
+      check_addon "$addon"
     fi
   done
 
-  if [ -n "${ADDON_AVAILBLE}" ]; then
-    echo "Modified addons detected. Continuing with action..."
-    echo "::set-output name=addons_available::true"    
+  if [ "${#ADDONS_AVAILBLE[@]}" -gt "0" ]; then
+    echo "Modified addons detected ${ADDONS_AVAILBLE[*]}. Continuing with action..."
+    echo "::set-output name=addons::$(printf '%s\n' "${ADDONS_AVAILBLE[@]}" | jq -R . | jq -sc .)"
   else
     echo "No changed addons detected, addon is currently in the ADDON_DENY_LIST, or addon does not have a TestGrid template."
-    echo "::set-output name=addons_available::false"
   fi
 }
 
-modified_versions() {
-  local name=$1
+function modified_versions() {
+  local addon=$1
 
   # Get the version that's changed (filter out templates and build-images)
-  local versions=$(git diff --dirstat=files,0 "origin/${GITHUB_BASE_REF}" -- "addons/${name}" "origin/${GITHUB_BASE_REF}" -- "addons/${name}" | sed 's/^[ 0-9.]\+% addons\///g' | grep -v template | grep -v build-images | cut -f2 -d"/" | uniq |  sort -r )
+  local versions=
+  versions=$(git diff --dirstat=files,0 "origin/${GITHUB_BASE_REF}" -- "addons/${addon}" "origin/${GITHUB_BASE_REF}" -- "addons/${addon}" | sed 's/^[ 0-9.]\+% addons\///g' | grep -v template | grep -v build-images | cut -f2 -d"/" | uniq |  sort -r )
 
-  echo $versions
+  echo "$versions"
 }
 
-check_addon() {
-  local name=$1
+function check_addon() {
+  local addon=$1
 
   # Get the version that's changed (filter out templates and build-images)
-  local versions=$(modified_versions $name)
+  local versions=
+  versions=$(modified_versions "$addon")
 
-  # check if there is a valid version (files in the root don't count) & template files 
+  # check if there is a valid version (files in the root don't count) & template files
   for version in $versions
   do
     shopt -s nullglob
-    if compgen -G "./addons/$name/template/testgrid/*.yaml" > /dev/null; then
-      ADDON_AVAILBLE=true
+    if compgen -G "./addons/$addon/template/testgrid/*.yaml" > /dev/null; then
+      ADDONS_AVAILBLE+=("$addon/$version")
 
-      echo "Found Modified Addon: $name-$version"
+      echo "Found Modified Addon: $addon-$version"
     fi
     shopt -u nullglob
   done
 }
 
-run_addon() {
-  local name=$1
+function run_addon() {
+  local addon="$1"
+  local version="$2"
+  local prefix="$3"
 
-  # Get the version that's changed
-  local versions=$(modified_versions $name)
+  echo "Testing Modified Addon: $addon-$version"
 
-  for version in $versions
-  do
-    if [ "$version" = "template" ]; then
-      echo "Skipping template for $name"
-      continue
-    fi
+  # Build Packages
+  echo "Building Package: $addon-$version.tag.gz"
 
-    echo "Testing Modified Addon: $name-$version"
+  local key="pr/${prefix}-${addon}-${version}.tar.gz"
 
-    # Build Packages
-    echo "Building Package: $name-$version.tag.gz"
+  make "dist/${addon}-${version}.tar.gz"
+  aws s3 cp "dist/${addon}-${version}.tar.gz" "s3://${S3_BUCKET}/$key" --region us-east-1
 
-    make "dist/${name}-${version}.tar.gz"
-    aws s3 cp "dist/${name}-${version}.tar.gz" "s3://${S3_BUCKET}/pr/${PR_NUMBER}-${GITHUB_SHA:0:7}-${name}-${version}.tar.gz" --region us-east-1
+  echo "Package pushed to: s3://${S3_BUCKET}/$key"
 
-    echo "Package pushed to:  s3://${S3_BUCKET}/pr/${PR_NUMBER}-${GITHUB_SHA:0:7}-${name}-${version}.tar.gz"
+  # make clean to free up space
+  make clean
 
-    # make clean to free up space
-    make clean
-
-    # Run for each template (if available)
-    shopt -s nullglob
-    for test_spec in ./addons/$name/template/testgrid/*.yaml;
-    do
-      test_addon $name $version $test_spec
-    done
-    shopt -u nullglob
+  # Run for each template (if available)
+  shopt -s nullglob
+  for test_spec in ./addons/"$addon"/template/testgrid/*.yaml; do
+    test_addon "$addon" "$version" "$test_spec" "$key"
   done
+  shopt -u nullglob
 }
 
-test_addon() {
-  local name=$1
-  local version=$2
-  local test_spec=$3
+function test_addon() {
+  local addon="$1"
+  local version="$2"
+  local test_spec="$3"
+  local key="$4"
 
-  cp $test_spec /tmp/test-spec
+  cp "$test_spec" /tmp/test-spec
 
   echo "Found test spec template $test_spec."
 
-  local specname=$(basename "$test_spec" ".yaml") # get the filename of the test spec, to be included in the test ref
-
   # Substitute
-  local dist="https://${S3_BUCKET}.s3.amazonaws.com/pr/${PR_NUMBER}-${GITHUB_SHA:0:7}-${name}-${version}.tar.gz"
+  local s3_url="https://${S3_BUCKET}.s3.amazonaws.com/${key}"
   sed -i "s#__testver__#${version}#g" /tmp/test-spec
-  sed -i "s#__testdist__#${dist}#g" /tmp/test-spec
+  sed -i "s#__testdist__#${s3_url}#g" /tmp/test-spec
 
   # if this is triggered by automation, lower the priority
   local priority=0
@@ -137,7 +123,11 @@ test_addon() {
     priority=-1
   fi
 
-  local ref="pr-${PR_NUMBER}-${GITHUB_SHA:0:7}-${name}-${version}-${specname}-$(date --utc +%FT%TZ)"
+  # include the following in the ref for uniqueness:
+  # - the filename of the test spec
+  # - datetime
+  local ref=
+  ref="${prefix}-${addon}-${version}-$(basename "$test_spec" ".yaml")-$(date --utc +%FT%TZ)"
 
   # Run testgrid plan
   ./testgrid/tgrun/bin/tgrun queue --staging \
@@ -150,18 +140,20 @@ test_addon() {
 }
 
 MSG="Testgrid Run(s) Executing @ "
-run() {
-  echo "Test PR#${PR_NUMBER}..."
+function run() {
+  local addon="$1"
+  local version="$2"
+  local prefix="$3"
 
-  # Take the base branch and figure out which addons changed. Verify each.
-  for addon in $(git diff --dirstat=files,0 "origin/${GITHUB_BASE_REF}" -- addons/ "origin/${GITHUB_BASE_REF}" -- addons/ | sed 's/^[ 0-9.]\+% addons\///g' | grep -v template | grep -v build-images | cut -f -1 -d"/" | uniq )
-  do
-    if ! [[ " $ADDON_DENY_LIST " =~ .*\ $addon\ .* ]]; then
-      run_addon $addon
-    fi
-  done
+  # From GH Action Defition
+  require AWS_ACCESS_KEY_ID "${AWS_ACCESS_KEY_ID}"
+  require AWS_SECRET_ACCESS_KEY "${AWS_SECRET_ACCESS_KEY}"
+  require S3_BUCKET "${S3_BUCKET}"
 
-  
+  echo "Test Addon ${addon}-${version}"
+
+  run_addon "$addon" "$version" "$prefix"
+
   echo "::set-output name=msg::${MSG}"
   echo "Run completed."
 }
