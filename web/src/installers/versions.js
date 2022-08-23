@@ -432,10 +432,6 @@ module.exports.InstallerVersions = {
     "3.2.0-4.2.1",
     "3.2.0-4.1.1",
   ],
-  localPathProvisioner: [
-    // cron-local-path-provisioner-update
-    "0.0.22",
-  ],
   aws: [
     "0.1.0",
   ],

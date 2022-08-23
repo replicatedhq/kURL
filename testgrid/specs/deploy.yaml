@@ -195,26 +195,6 @@
     sudo cat /var/lib/kubelet/config.yaml | grep "cpu: 123m"
     sudo cat /var/lib/kubelet/config.yaml | grep "ephemeral-storage: 1.23Gi"
     sudo cat /var/lib/kubelet/config.yaml | grep "memory: 123Mi"
-- name: local-path-provisioner
-  installerSpec:
-    containerd:
-      version: latest
-    ekco:
-      version: latest
-    kubernetes:
-      version: 1.23.x
-    prometheus:
-      version: latest
-    registry:
-      version: latest
-    localPathProvisioner:
-      version: latest
-    weave:
-      version: latest
-    minio:
-      version: latest
-    kotsadm:
-      version: latest
 - name: k8s124-longhorn
   installerSpec:
     kubernetes:

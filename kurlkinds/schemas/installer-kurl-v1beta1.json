@@ -2712,20 +2712,6 @@
             }
           }
         },
-        "localPathProvisioner": {
-          "type": "object",
-          "required": [
-            "version"
-          ],
-          "properties": {
-            "s3Override": {
-              "type": "string"
-            },
-            "version": {
-              "type": "string"
-            }
-          }
-        },
         "longhorn": {
           "type": "object",
           "required": [

@@ -218,12 +218,6 @@ dist/goldpinger-%.tar.gz: build/addons
 	mkdir -p dist
 	tar cf - -C build addons/goldpinger/$* | gzip > dist/goldpinger-$*.tar.gz
 
-dist/local-path-provisioner-%.tar.gz: build/addons
-	mkdir -p build/addons/local-path-provisioner/$*/images
-	bin/save-manifest-assets.sh "local-path-provisioner-$*" addons/local-path-provisioner/$*/Manifest $(CURDIR)/build/addons/local-path-provisioner/$*
-	mkdir -p dist
-	tar cf - -C build addons/local-path-provisioner/$* | gzip > dist/local-path-provisioner-$*.tar.gz
-
 
 dist/kubernetes-%.tar.gz:
 	# conformance packages do not exist for versions of k8s prior to 1.17
