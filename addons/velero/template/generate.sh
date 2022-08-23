@@ -63,6 +63,8 @@ AZURE_PLUGIN_VERSION=""
 GCP_PLUGIN_VERSION=""
 S3CMD_TAG=""
 function main() {
+    set -x
+
     get_latest_release_version VELERO_VERSION https://github.com/vmware-tanzu/velero/releases/latest
 
     get_latest_release_version AWS_PLUGIN_VERSION https://github.com/vmware-tanzu/velero-plugin-for-aws/releases/latest
