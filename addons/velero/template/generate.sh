@@ -14,6 +14,18 @@ function get_latest_release_version() {
     export "$VAR_NAME=$version"
 }
 
+function get_latest_tag_version() {
+    VAR_NAME=$1
+    local url=$2
+    local version
+
+    version=$(curl -fsSL "$url" | \
+        grep -m1 '"name": "v' | \
+        grep -Eo "[0-9]+\.[0-9]+\.[0-9]+")
+
+    export "$VAR_NAME=$version"
+}
+
 function get_s3cmd_tag() {
     S3CMD_TAG="$(. ../../../bin/s3cmd-get-latest-tag.sh)"
 }
@@ -56,7 +68,7 @@ function main() {
     get_latest_release_version AWS_PLUGIN_VERSION https://github.com/vmware-tanzu/velero-plugin-for-aws/releases/latest
     get_latest_release_version AZURE_PLUGIN_VERSION https://github.com/vmware-tanzu/velero-plugin-for-microsoft-azure/releases/latest
     get_latest_release_version GCP_PLUGIN_VERSION https://github.com/vmware-tanzu/velero-plugin-for-gcp/releases/latest
-    get_latest_release_version LOCAL_VOLUME_PROVIDER_VERSION https://github.com/replicatedhq/local-volume-provider/releases/latest
+    get_latest_tag_version LOCAL_VOLUME_PROVIDER_VERSION https://api.github.com/repos/replicatedhq/local-volume-provider/tags
 
     get_s3cmd_tag
 
