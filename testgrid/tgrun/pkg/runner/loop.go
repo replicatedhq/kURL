@@ -7,19 +7,15 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
-	"path/filepath"
 	"strings"
 	"time"
 
 	"github.com/pkg/errors"
 	tghandlers "github.com/replicatedhq/kurl/testgrid/tgapi/pkg/handlers"
+	"github.com/replicatedhq/kurl/testgrid/tgrun/pkg/runner/helpers"
 	"github.com/replicatedhq/kurl/testgrid/tgrun/pkg/runner/types"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/kubernetes"
-	restclient "k8s.io/client-go/rest"
-	"k8s.io/client-go/tools/clientcmd"
-	"kubevirt.io/client-go/kubecli"
 )
 
 var lastScheduledInstance = time.Now().Add(-time.Minute)
@@ -127,7 +123,7 @@ func MainRunLoop(runnerOptions types.RunnerOptions) error {
 // the current cluster can handle scheduling another
 // test instance at this time
 func canScheduleNewVM() (bool, error) {
-	clientset, err := GetClientset()
+	clientset, err := helpers.GetClientset()
 	if err != nil {
 		return false, errors.Wrap(err, "failed to get clientset")
 	}
@@ -148,7 +144,7 @@ func canScheduleNewVM() (bool, error) {
 }
 
 func getUploadProxyURL() (string, error) {
-	clientset, err := GetClientset()
+	clientset, err := helpers.GetClientset()
 	if err != nil {
 		return "", errors.Wrap(err, "failed to get clientset")
 	}
@@ -168,54 +164,4 @@ func getUploadProxyURL() (string, error) {
 	}
 
 	return fmt.Sprintf("https://%s", svc.Spec.ClusterIP), nil
-}
-
-func GetRestConfig() (*restclient.Config, error) {
-	kubeconfig := filepath.Join(homeDir(), ".kube", "config")
-
-	if os.Getenv("KUBECONFIG") != "" {
-		kubeconfig = os.Getenv("KUBECONFIG")
-	}
-
-	// use the current context in kubeconfig
-	config, err := clientcmd.BuildConfigFromFlags("", kubeconfig)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to build config")
-	}
-	return config, nil
-}
-
-func GetClientset() (*kubernetes.Clientset, error) {
-	config, err := GetRestConfig()
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to get restconfig")
-	}
-
-	clientset, err := kubernetes.NewForConfig(config)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to create clientset")
-	}
-
-	return clientset, nil
-}
-
-func GetKubevirtClientset() (kubecli.KubevirtClient, error) {
-	config, err := GetRestConfig()
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to get restconfig")
-	}
-
-	virtClient, err := kubecli.GetKubevirtClientFromRESTConfig(config)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to create kubevirt clientset")
-	}
-
-	return virtClient, nil
-}
-
-func homeDir() string {
-	if h := os.Getenv("HOME"); h != "" {
-		return h
-	}
-	return os.Getenv("USERPROFILE") // windows
 }

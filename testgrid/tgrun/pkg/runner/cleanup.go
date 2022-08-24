@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
+	"github.com/replicatedhq/kurl/testgrid/tgrun/pkg/runner/helpers"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	kubevirtv1 "kubevirt.io/api/core/v1"
@@ -16,7 +17,7 @@ import (
 
 // CleanUpVMIs deletes "Succeeded" VMIs
 func CleanUpVMIs() error {
-	virtClient, err := GetKubevirtClientset()
+	virtClient, err := helpers.GetKubevirtClientset()
 	if err != nil {
 		return errors.Wrap(err, "failed to get clientset")
 	}
@@ -58,6 +59,8 @@ func CleanUpVMIs() error {
 			} else {
 				fmt.Printf("Delete long-running vmi %s\n", vmi.Name)
 			}
+
+			// get the
 		}
 	}
 
@@ -66,7 +69,7 @@ func CleanUpVMIs() error {
 
 // CleanUpData cleans stale PV/PVC/Secrets and localpath to reclaim space
 func CleanUpData() error {
-	clientset, err := GetClientset()
+	clientset, err := helpers.GetClientset()
 	if err != nil {
 		return errors.Wrap(err, "failed to get clientset")
 	}

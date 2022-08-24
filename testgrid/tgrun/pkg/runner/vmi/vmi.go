@@ -2,13 +2,12 @@ package vmi
 
 import (
 	"bytes"
+	"context"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"math/rand"
 	"net/http"
-	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
@@ -16,6 +15,7 @@ import (
 
 	"github.com/pkg/errors"
 	tghandlers "github.com/replicatedhq/kurl/testgrid/tgapi/pkg/handlers"
+	"github.com/replicatedhq/kurl/testgrid/tgrun/pkg/runner/helpers"
 	"github.com/replicatedhq/kurl/testgrid/tgrun/pkg/runner/types"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -41,12 +41,12 @@ func Create(singleTest types.SingleRun, nodeName string, nodeType string, tempDi
 	}
 	fmt.Printf("   [pvc created]\n")
 
-	if err := createSecret(singleTest, nodeName, tempDir); err != nil {
+	if err := createSecret(singleTest, nodeName); err != nil {
 		return errors.Wrap(err, "create secret failed")
 	}
 	fmt.Printf("   [secret created]\n")
 
-	if err := createK8sNode(singleTest, nodeName, tempDir); err != nil {
+	if err := createK8sNode(singleTest, nodeName); err != nil {
 		return errors.Wrap(err, "node creation failed")
 	}
 	fmt.Printf("   [vmi created]\n")
@@ -109,7 +109,12 @@ func getEmptyDiskVolume(name string, capacity resource.Quantity) kubevirtv1.Volu
 	}
 }
 
-func createSecret(singleTest types.SingleRun, nodeName string, tempDir string) error {
+func createSecret(singleTest types.SingleRun, nodeName string) error {
+	client, err := helpers.GetClientset()
+	if err != nil {
+		return fmt.Errorf("failed to get clientset: %w", err)
+	}
+
 	name, nodeId := fmt.Sprintf("%s-%s", singleTest.ID, nodeName), fmt.Sprintf("%s-%s", singleTest.ID, nodeName)
 	runcmdB64 := base64.StdEncoding.EncodeToString([]byte(runcmdSh))
 	if strings.HasPrefix(nodeName, SecondaryNode) {
@@ -186,27 +191,33 @@ power_state:
 		postUpgradeB64,
 	)
 
-	file := filepath.Join(tempDir, "startup-script.sh")
-
-	if err := ioutil.WriteFile(file, []byte(script), 0755); err != nil {
-		return errors.Wrap(err, "failed to write secret to file")
+	startupSecret := corev1.Secret{
+		TypeMeta: metav1.TypeMeta{
+			APIVersion: "v1",
+			Kind:       "Secret",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name: fmt.Sprintf("cloud-init-%s", name),
+		},
+		StringData: map[string]string{
+			"userdata": script,
+		},
+		Type: corev1.SecretTypeOpaque,
 	}
-	defer os.Remove(file)
-
-	cmd := exec.Command("kubectl", "create", "secret", "generic",
-		fmt.Sprintf("cloud-init-%s", name),
-		fmt.Sprintf("--from-file=userdata=%s", file),
-	)
-	output, err := cmd.CombinedOutput()
+	_, err = client.CoreV1().Secrets("default").Create(context.TODO(), &startupSecret, metav1.CreateOptions{})
 	if err != nil {
-		fmt.Printf("%s\n", output)
-		return errors.Wrap(err, "kubectl create secret failed")
+		return fmt.Errorf("failed to create secret: %w", err)
 	}
 
 	return nil
 }
 
-func createK8sNode(singleTest types.SingleRun, nodeName string, tempDir string) error {
+func createK8sNode(singleTest types.SingleRun, nodeName string) error {
+	virtClient, err := helpers.GetKubevirtClientset()
+	if err != nil {
+		return fmt.Errorf("failed to get clientset: %w", err)
+	}
+
 	name := fmt.Sprintf("%s-%s", singleTest.ID, nodeName)
 	pvcName := fmt.Sprintf("%s-%s", singleTest.PVCName, nodeName)
 	vmi := kubevirtv1.VirtualMachineInstance{
@@ -287,25 +298,11 @@ func createK8sNode(singleTest types.SingleRun, nodeName string, tempDir string) 
 		},
 	}
 
-	b, err := json.Marshal(vmi)
+	_, err = virtClient.VirtualMachineInstance("default").Create(&vmi)
 	if err != nil {
-		return errors.Wrap(err, "failed to marshal vmi")
-	}
-	if err := ioutil.WriteFile(filepath.Join(tempDir, "vmi.yaml"), b, 0644); err != nil {
-		return errors.Wrap(err, "failed to write file")
+		return fmt.Errorf("failed to create VMI %s: %w", name, err)
 	}
 
-	cmd := exec.Command("kubectl",
-		"apply",
-		"-f",
-		filepath.Join(tempDir, "vmi.yaml"),
-	)
-
-	output, err := cmd.CombinedOutput()
-	if err != nil {
-		fmt.Printf("%s\n", output)
-		return errors.Wrap(err, "kubectl apply vmi failed")
-	}
 	return nil
 }
 
