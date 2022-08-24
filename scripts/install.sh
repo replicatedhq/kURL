@@ -50,6 +50,29 @@ function configure_coredns() {
     kubectl -n kube-system rollout restart deployment/coredns
 }
 
+function save_kubeadm_conf(){
+  if [[ -f $KUBEADM_CONF_FILE ]]; then
+    kurl_current_installer_id="$(KUBECONFIG="$(kubeadm_get_kubeconfig)" kubectl -n kube-system get cm kurl-config -ojsonpath='{ .data.installer_id }' 2>/dev/null || echo "prev")"
+    kubeadm_conf_filename=$(basename $KUBEADM_CONF_FILE)
+    kubeadm_conf_file_tmp="${kubeadm_conf_filename%.*}-$kurl_current_installer_id.conf"
+    cp $KUBEADM_CONF_FILE /tmp/"$kubeadm_conf_file_tmp"
+    echo "$kubeadm_conf_file_tmp"
+    return
+  fi
+  echo ""
+}
+
+function kubeadm_skip_kubelet_restart(){
+  kubeadm_prev_conf_file=$1
+  kube_minor_version=$(cut -d '.' -f 2 <<< "$KUBERNETES_VERSION")
+  if cmp --silent -- "$KUBEADM_CONF_FILE" "$kubeadm_prev_conf_file" && [[ $kube_minor_version -ge 22 ]]; then
+    echo "--skip-phases=kubelet-start"
+    return 0
+  fi
+  echo ""
+  return 1 # don't restart kubelet
+}
+
 function init() {
     logStep "Initialize Kubernetes"
 
@@ -174,6 +197,10 @@ function init() {
     done
     mkdir -p "$KUBEADM_CONF_DIR"
     kubectl kustomize $kustomize_kubeadm_init > $KUBEADM_CONF_DIR/kubeadm-init-raw.yaml
+
+    # Save previous kubeadm.conf before overwriting it
+    kubeadm_conf_file_prev=$(save_kubeadm_conf)
+
     render_yaml_file $KUBEADM_CONF_DIR/kubeadm-init-raw.yaml > $KUBEADM_CONF_FILE
 
     # kustomize requires assests have a metadata field while kubeadm config will reject yaml containing it
@@ -218,13 +245,28 @@ function init() {
     cp $kustomize_kubeadm_init/audit.yaml /etc/kubernetes/audit.yaml
     mkdir -p /var/log/apiserver
 
-    set -o pipefail
-    kubeadm init \
+    # Do not restart kubelet if kubeadm config has NOT changed
+    kubeadm_skip_phases_opt=$(kubeadm_skip_kubelet_restart kubeadm_conf_file_prev)
+    if [[ -n $kubeadm_skip_phases_opt ]]; then
+      echo "Will not restart kubelet"
+      set -o pipefail
+      kubeadm init \
+        "$kubeadm_skip_phases_opt" \
         --ignore-preflight-errors=all \
         --config $KUBEADM_CONF_FILE \
         $UPLOAD_CERTS \
         | tee /tmp/kubeadm-init
-    set +o pipefail
+      set +o pipefail
+    else
+      set -o pipefail
+      kubeadm init \
+        "$kubeadm_skip_phases_opt" \
+        --ignore-preflight-errors=all \
+        --config $KUBEADM_CONF_FILE \
+        $UPLOAD_CERTS \
+        | tee /tmp/kubeadm-init
+      set +o pipefail
+    fi
 
     # Node would be cordoned if migrated from docker to containerd
     local node=$(hostname | tr '[:upper:]' '[:lower:]')
