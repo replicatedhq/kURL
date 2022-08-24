@@ -260,7 +260,6 @@ function init() {
     else
       set -o pipefail
       kubeadm init \
-        "$kubeadm_skip_phases_opt" \
         --ignore-preflight-errors=all \
         --config $KUBEADM_CONF_FILE \
         $UPLOAD_CERTS \
