@@ -24,11 +24,17 @@ import (
 )
 
 const (
-	InitPrimaryNode = "initialprimary"
-	SecondaryNode   = "secondary"
-	PrimaryNode     = "primary"
-	serialLen       = 16
-	serialCharset   = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	InitPrimaryNode       = "initialprimary"
+	SecondaryNode         = "secondary"
+	PrimaryNode           = "primary"
+	serialLen             = 16
+	serialCharset         = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	ApiEndpointAnnotation = "testgrid.kurl.sh/apiendpoint"
+	KurlURLAnnotation     = "testgrid.kurl.sh/kurlurl"
+	OSImageAnnotation     = "testgrid.kurl.sh/osimage"
+	OSVersionAnnotation   = "testgrid.kurl.sh/osversion"
+	OSNameAnnotation      = "testgrid.kurl.sh/osname"
+	RunIDAnnotation       = "testgrid.kurl.sh/runid"
 )
 
 var zero = int64(0)
@@ -57,8 +63,20 @@ func Create(singleTest types.SingleRun, nodeName string, nodeType string, tempDi
 	return nil
 }
 
+func SendLogs(apiEndpoint, nodeID string) error {
+	if err := createSendlogsSecret(apiEndpoint, nodeID); err != nil {
+		return fmt.Errorf("unable to create sendlogs secret: %w", err)
+	}
+
+	if err := createSendlogsNode(nodeID); err != nil {
+		return fmt.Errorf("unable to create sendlogs node: %w", err)
+	}
+
+	return nil
+}
+
 func createPvc(singleTest types.SingleRun, nodeName string, tempDir string, osImagePath string, uploadProxyURL string) error {
-	name := fmt.Sprintf("%s-%s", singleTest.PVCName, nodeName)
+	name := fmt.Sprintf("%s-%s-disk", singleTest.PVCName, nodeName)
 	cmd := exec.Command("kubectl",
 		"virt",
 		"image-upload",
@@ -109,6 +127,63 @@ func getEmptyDiskVolume(name string, capacity resource.Quantity) kubevirtv1.Volu
 	}
 }
 
+func createSendlogsSecret(apiEndpoint, nodeID string) error {
+	client, err := helpers.GetClientset()
+	if err != nil {
+		return fmt.Errorf("failed to get clientset: %w", err)
+	}
+
+	finalizeB64 := base64.StdEncoding.EncodeToString(finalizeLogs)
+
+	varsSh := fmt.Sprintf(`
+export TESTGRID_APIENDPOINT='%s'
+export NODE_ID='%s'
+`, apiEndpoint, nodeID)
+	varsB64 := base64.StdEncoding.EncodeToString([]byte(varsSh))
+
+	script := fmt.Sprintf(`#cloud-config
+
+password: kurl
+chpasswd: { expire: False }
+
+output: { all: "| tee -a /var/log/cloud-init-sendlogs-output.log" }
+
+runcmd:
+  - [ bash, -c, 'sudo mkdir -p /opt/kurl-testgrid' ]
+  - [ bash, -c, 'echo %s | base64 -d > /opt/kurl-testgrid/vars.sh' ]
+  - [ bash, -c, 'echo %s | base64 -d > /opt/kurl-testgrid/finalizelogs.sh' ]
+  - [ bash, -c, 'sudo bash -c ". /opt/kurl-testgrid/vars.sh && bash /opt/kurl-testgrid/finalizelogs.sh"' ]
+  - [ bash, -c, 'sleep 10 && sudo poweroff' ]
+
+power_state:
+  mode: poweroff
+  condition: True
+`,
+		varsB64,
+		finalizeB64,
+	)
+
+	startupSecret := corev1.Secret{
+		TypeMeta: metav1.TypeMeta{
+			APIVersion: "v1",
+			Kind:       "Secret",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name: fmt.Sprintf("cloud-init-%s-sendlogs", nodeID),
+		},
+		StringData: map[string]string{
+			"userdata": script,
+		},
+		Type: corev1.SecretTypeOpaque,
+	}
+	_, err = client.CoreV1().Secrets("default").Create(context.TODO(), &startupSecret, metav1.CreateOptions{})
+	if err != nil {
+		return fmt.Errorf("failed to create secret: %w", err)
+	}
+
+	return nil
+}
+
 func createSecret(singleTest types.SingleRun, nodeName string) error {
 	client, err := helpers.GetClientset()
 	if err != nil {
@@ -116,15 +191,15 @@ func createSecret(singleTest types.SingleRun, nodeName string) error {
 	}
 
 	name, nodeId := fmt.Sprintf("%s-%s", singleTest.ID, nodeName), fmt.Sprintf("%s-%s", singleTest.ID, nodeName)
-	runcmdB64 := base64.StdEncoding.EncodeToString([]byte(runcmdSh))
+	runcmdB64 := base64.StdEncoding.EncodeToString(runcmdSh)
 	if strings.HasPrefix(nodeName, SecondaryNode) {
-		runcmdB64 = base64.StdEncoding.EncodeToString([]byte(secondarynodecmd))
+		runcmdB64 = base64.StdEncoding.EncodeToString(secondarynodecmd)
 	} else if strings.HasPrefix(nodeName, PrimaryNode) {
-		runcmdB64 = base64.StdEncoding.EncodeToString([]byte(primarynodecmd))
+		runcmdB64 = base64.StdEncoding.EncodeToString(primarynodecmd)
 	}
-	commonShB64 := base64.StdEncoding.EncodeToString([]byte(commonSh))
-	mainScriptB64 := base64.StdEncoding.EncodeToString([]byte(mainscript))
-	testHelpersB64 := base64.StdEncoding.EncodeToString([]byte(testHelpers))
+	commonShB64 := base64.StdEncoding.EncodeToString(commonSh)
+	mainScriptB64 := base64.StdEncoding.EncodeToString(mainscript)
+	testHelpersB64 := base64.StdEncoding.EncodeToString(testHelpers)
 	varsSh := fmt.Sprintf(`
 export TESTGRID_APIENDPOINT='%s'
 export TEST_ID='%s'
@@ -219,7 +294,7 @@ func createK8sNode(singleTest types.SingleRun, nodeName string) error {
 	}
 
 	name := fmt.Sprintf("%s-%s", singleTest.ID, nodeName)
-	pvcName := fmt.Sprintf("%s-%s", singleTest.PVCName, nodeName)
+	pvcName := fmt.Sprintf("%s-%s-disk", singleTest.PVCName, nodeName)
 	vmi := kubevirtv1.VirtualMachineInstance{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "kubevirt.io/v1alpha3",
@@ -231,11 +306,12 @@ func createK8sNode(singleTest types.SingleRun, nodeName string) error {
 				"kubevirt.io/domain": name,
 			},
 			Annotations: map[string]string{
-				"testgrid.kurl.sh/osname":      singleTest.OperatingSystemName,
-				"testgrid.kurl.sh/osversion":   singleTest.OperatingSystemVersion,
-				"testgrid.kurl.sh/osimage":     singleTest.OperatingSystemImage,
-				"testgrid.kurl.sh/kurlurl":     singleTest.KurlURL,
-				"testgrid.kurl.sh/apiendpoint": singleTest.TestGridAPIEndpoint,
+				OSNameAnnotation:      singleTest.OperatingSystemName,
+				OSVersionAnnotation:   singleTest.OperatingSystemVersion,
+				OSImageAnnotation:     singleTest.OperatingSystemImage,
+				KurlURLAnnotation:     singleTest.KurlURL,
+				ApiEndpointAnnotation: singleTest.TestGridAPIEndpoint,
+				RunIDAnnotation:       singleTest.ID,
 			},
 		},
 		Spec: kubevirtv1.VirtualMachineInstanceSpec{
@@ -245,8 +321,8 @@ func createK8sNode(singleTest types.SingleRun, nodeName string) error {
 				},
 				Resources: kubevirtv1.ResourceRequirements{
 					Requests: corev1.ResourceList{
-						corev1.ResourceName(corev1.ResourceMemory): resource.MustParse(singleTest.Memory),
-						corev1.ResourceName(corev1.ResourceCPU):    resource.MustParse(singleTest.CPU),
+						corev1.ResourceMemory: resource.MustParse(singleTest.Memory),
+						corev1.ResourceCPU:    resource.MustParse(singleTest.CPU),
 					},
 				},
 				Devices: kubevirtv1.Devices{
@@ -301,6 +377,92 @@ func createK8sNode(singleTest types.SingleRun, nodeName string) error {
 	_, err = virtClient.VirtualMachineInstance("default").Create(&vmi)
 	if err != nil {
 		return fmt.Errorf("failed to create VMI %s: %w", name, err)
+	}
+
+	return nil
+}
+
+func createSendlogsNode(nodeID string) error {
+	virtClient, err := helpers.GetKubevirtClientset()
+	if err != nil {
+		return fmt.Errorf("failed to get clientset: %w", err)
+	}
+
+	pvcName := fmt.Sprintf("%s-disk", nodeID)
+	vmi := kubevirtv1.VirtualMachineInstance{
+		TypeMeta: metav1.TypeMeta{
+			APIVersion: "kubevirt.io/v1alpha3",
+			Kind:       "VirtualMachineInstance",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name: fmt.Sprintf("%s-sendlogs", nodeID),
+			Labels: map[string]string{
+				"kubevirt.io/domain": fmt.Sprintf("%s-sendlogs", nodeID),
+			},
+		},
+		Spec: kubevirtv1.VirtualMachineInstanceSpec{
+			Domain: kubevirtv1.DomainSpec{
+				Machine: &kubevirtv1.Machine{
+					Type: "",
+				},
+				Resources: kubevirtv1.ResourceRequirements{
+					Requests: corev1.ResourceList{
+						corev1.ResourceMemory: resource.MustParse("1Gi"),
+						corev1.ResourceCPU:    resource.MustParse("100m"),
+					},
+				},
+				Devices: kubevirtv1.Devices{
+					Disks: []kubevirtv1.Disk{
+						{
+							Name: "pvcdisk",
+							DiskDevice: kubevirtv1.DiskDevice{
+								Disk: &kubevirtv1.DiskTarget{
+									Bus: "virtio",
+								},
+							},
+						},
+						{
+							Name: "cloudinitdisk",
+							DiskDevice: kubevirtv1.DiskDevice{
+								CDRom: &kubevirtv1.CDRomTarget{
+									Bus: "sata",
+								},
+							},
+						},
+						getEmptyDisk("emptydisk1"),
+					},
+				},
+			},
+			TerminationGracePeriodSeconds: &zero,
+			Volumes: []kubevirtv1.Volume{
+				{
+					Name: "pvcdisk",
+					VolumeSource: kubevirtv1.VolumeSource{
+						PersistentVolumeClaim: &kubevirtv1.PersistentVolumeClaimVolumeSource{
+							PersistentVolumeClaimVolumeSource: corev1.PersistentVolumeClaimVolumeSource{
+								ClaimName: pvcName,
+							},
+						},
+					},
+				},
+				{
+					Name: "cloudinitdisk",
+					VolumeSource: kubevirtv1.VolumeSource{
+						CloudInitNoCloud: &kubevirtv1.CloudInitNoCloudSource{
+							UserDataSecretRef: &corev1.LocalObjectReference{
+								Name: fmt.Sprintf("cloud-init-%s-sendlogs", nodeID),
+							},
+						},
+					},
+				},
+				getEmptyDiskVolume("emptydisk1", resource.MustParse("50Gi")),
+			},
+		},
+	}
+
+	_, err = virtClient.VirtualMachineInstance("default").Create(&vmi)
+	if err != nil {
+		return fmt.Errorf("failed to create VMI %s: %w", fmt.Sprintf("%s-sendlogs", nodeID), err)
 	}
 
 	return nil

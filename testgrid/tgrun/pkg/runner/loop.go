@@ -98,7 +98,7 @@ func MainRunLoop(runnerOptions types.RunnerOptions) error {
 				OperatingSystemImage:   dequeuedInstance.OperatingSystemImage,
 				OperatingSystemPreInit: dequeuedInstance.OperatingSystemPreInit,
 
-				PVCName: fmt.Sprintf("%s-disk", dequeuedInstance.ID),
+				PVCName: dequeuedInstance.ID,
 
 				KurlYAML:          dequeuedInstance.KurlYAML,
 				KurlURL:           dequeuedInstance.KurlURL,
