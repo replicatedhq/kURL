@@ -54,8 +54,9 @@ function save_kubeadm_conf(){
   if [[ -f $KUBEADM_CONF_FILE ]]; then
     kurl_current_installer_id="$(KUBECONFIG="$(kubeadm_get_kubeconfig)" kubectl -n kube-system get cm kurl-config -ojsonpath='{ .data.installer_id }' 2>/dev/null || echo "prev")"
     kubeadm_conf_filename=$(basename $KUBEADM_CONF_FILE)
-    kubeadm_conf_file_tmp="${kubeadm_conf_filename%.*}-$kurl_current_installer_id.conf"
-    cp $KUBEADM_CONF_FILE /tmp/"$kubeadm_conf_file_tmp"
+    # copy file to /tmp/kubeadm-{installer_id}.conf
+    kubeadm_conf_file_tmp="/tmp/${kubeadm_conf_filename%.*}-${kurl_current_installer_id:-prev}.conf"
+    cp $KUBEADM_CONF_FILE "$kubeadm_conf_file_tmp"
     echo "$kubeadm_conf_file_tmp"
     return 0
   fi
