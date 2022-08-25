@@ -64,9 +64,16 @@ function save_kubeadm_conf(){
 }
 
 function kubeadm_skip_kubelet_restart(){
-  kubeadm_prev_conf_file=$1
+  kubeadm_conf_prev_file=$1
+  kubeadm_conf_compare_file="/tmp/kubeadm-compare.conf"
   kube_minor_version=$(cut -d '.' -f 2 <<< "$KUBERNETES_VERSION")
-  if cmp --silent -- "$KUBEADM_CONF_FILE" "$kubeadm_prev_conf_file" && [[ $kube_minor_version -ge 21 ]]; then
+
+  # the bootstrap token in kubeadm.conf will always change
+  # remove 'token:' line from files and compare
+  sed -i "/token:/d" "$kubeadm_conf_prev_file"
+  cp "$KUBEADM_CONF_FILE" "$kubeadm_conf_compare_file"
+  sed -i "/token:/d" "$kubeadm_conf_compare_file"
+  if cmp --silent -- "$kubeadm_conf_compare_file" "$kubeadm_conf_prev_file" && [[ $kube_minor_version -ge 21 ]]; then
     echo "--skip-phases=kubelet-start"
     return 0
   fi
