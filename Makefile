@@ -773,3 +773,7 @@ sbom/assets/kurl-sbom.tgz: generate-sbom
 sbom: sbom/assets/kurl-sbom.tgz
 	cosign sign-blob -key ./cosign.key sbom/assets/kurl-sbom.tgz > ./sbom/assets/kurl-sbom.tgz.sig
 	cosign public-key -key ./cosign.key -outfile ./sbom/assets/key.pub
+
+.PHONY: tag-and-release
+tag-and-release:
+	@./bin/tag-and-release.sh
