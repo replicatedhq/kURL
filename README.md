@@ -35,10 +35,10 @@ Release assets and changelog are available on the [GitHub Releases](https://gith
 Releases are created by a GitHub Workflow when a tag is pushed.
 The tag should follow the date format `vYYYY.MM.DD-#`.
 
-See the following example:
+A new release can be tagged by running the following command:
 
 ```
-git tag -a v2021.06.22-0 -m "Release v2021.06.22-0" && git push origin v2021.06.22-0
+make tag-and-release
 ```
 
 # Software Bill of Materials
