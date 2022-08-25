@@ -17,7 +17,7 @@
       version: "latest"
     weave:
       version: "latest"
-    localPathProvisioner:
+    longhorn:
       version: latest
     containerd:
       version: "latest"
@@ -138,7 +138,7 @@
       version: "latest"
     weave:
       version: "latest"
-    localPathProvisioner:
+    longhorn:
       version: latest
     containerd:
       version: "latest"

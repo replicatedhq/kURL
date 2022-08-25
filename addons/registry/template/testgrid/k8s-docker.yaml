@@ -207,7 +207,7 @@
       version: "1.23.x"
     weave:
       version: "latest"
-    localPathProvisioner:
+    longhorn:
       version: "latest"
     minio:
       version: "latest"
