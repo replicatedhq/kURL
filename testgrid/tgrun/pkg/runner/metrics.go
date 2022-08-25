@@ -10,6 +10,7 @@ import (
 
 	"github.com/pkg/errors"
 	tghandlers "github.com/replicatedhq/kurl/testgrid/tgapi/pkg/handlers"
+	"github.com/replicatedhq/kurl/testgrid/tgrun/pkg/runner/helpers"
 	"github.com/replicatedhq/kurl/testgrid/tgrun/pkg/runner/types"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	kubevirtv1 "kubevirt.io/api/core/v1"
@@ -52,7 +53,7 @@ func ReportMetrics(runnerOptions types.RunnerOptions) error {
 
 // countRunningVMIs gets a count of the number of running VMIs
 func countRunningVMIs() (int, error) {
-	virtClient, err := GetKubevirtClientset()
+	virtClient, err := helpers.GetKubevirtClientset()
 	if err != nil {
 		return 0, errors.Wrap(err, "failed to get clientset")
 	}
@@ -73,7 +74,7 @@ func countRunningVMIs() (int, error) {
 }
 
 func getFreeResources() (float64, float64, error) {
-	clientset, err := GetClientset()
+	clientset, err := helpers.GetClientset()
 	if err != nil {
 		return 0, 0, errors.Wrap(err, "failed to get clientset")
 	}

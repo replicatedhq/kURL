@@ -9,6 +9,8 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
+	"github.com/replicatedhq/kurl/testgrid/tgrun/pkg/runner/helpers"
+	runnerVmi "github.com/replicatedhq/kurl/testgrid/tgrun/pkg/runner/vmi"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	kubevirtv1 "kubevirt.io/api/core/v1"
@@ -16,7 +18,7 @@ import (
 
 // CleanUpVMIs deletes "Succeeded" VMIs
 func CleanUpVMIs() error {
-	virtClient, err := GetKubevirtClientset()
+	virtClient, err := helpers.GetKubevirtClientset()
 	if err != nil {
 		return errors.Wrap(err, "failed to get clientset")
 	}
@@ -41,22 +43,34 @@ func CleanUpVMIs() error {
 		// cleanup VMIs that have been running for more than 1.5 hours
 		// the in-script timeout for install is 30m, upgrade is 45m
 		if vmi.Status.Phase == kubevirtv1.Running && time.Since(vmi.CreationTimestamp.Time).Minutes() > 90 {
-			if apiEndpoint := vmi.Annotations["testgrid.kurl.sh/apiendpoint"]; apiEndpoint != "" {
-				url := fmt.Sprintf("%s/v1/instance/%s/finish", apiEndpoint, vmi.Name)
+			if apiEndpoint := vmi.Annotations[runnerVmi.ApiEndpointAnnotation]; apiEndpoint != "" {
+				url := fmt.Sprintf("%s/v1/instance/%s/finish", apiEndpoint, vmi.Annotations[runnerVmi.TestIDAnnotation])
 				data := `{"success": false, "failureReason": "timeout"}`
 				resp, err := http.Post(url, "application/json", strings.NewReader(data))
 				if err != nil {
 					fmt.Printf("Failed to post timeout failure to testgrid api for vmi %s: %v\n", vmi.Name, err)
 				} else {
+					if resp.StatusCode != 200 {
+						fmt.Printf("Failed to post timeout failure to testgrid api for vmi %s: got %d\n", vmi.Name, resp.StatusCode)
+					}
+
 					resp.Body.Close()
 				}
 			}
 
-			err := virtClient.VirtualMachineInstance(Namespace).Delete(vmi.Name, &metav1.DeleteOptions{})
+			err = virtClient.VirtualMachineInstance(Namespace).Delete(vmi.Name, &metav1.DeleteOptions{})
 			if err != nil {
 				fmt.Printf("Failed to delete long-running vmi %s: %v\n", vmi.Name, err)
 			} else {
 				fmt.Printf("Delete long-running vmi %s\n", vmi.Name)
+			}
+
+			// make a VMI to send the logs and nothing else
+			err = runnerVmi.SendLogs(vmi.Annotations[runnerVmi.ApiEndpointAnnotation], vmi.Name)
+			if err != nil {
+				fmt.Printf("Failed to send logs of deleted long-running vmi %s: %v\n", vmi.Name, err)
+			} else {
+				fmt.Printf("Sent logs for long-running vmi %s\n", vmi.Name)
 			}
 		}
 	}
@@ -66,7 +80,7 @@ func CleanUpVMIs() error {
 
 // CleanUpData cleans stale PV/PVC/Secrets and localpath to reclaim space
 func CleanUpData() error {
-	clientset, err := GetClientset()
+	clientset, err := helpers.GetClientset()
 	if err != nil {
 		return errors.Wrap(err, "failed to get clientset")
 	}
@@ -151,7 +165,7 @@ func cleanupSecrets(clientset *kubernetes.Clientset) error {
 
 	for _, sec := range secrets.Items {
 		// Delete stale secrets older then 5 hours
-		if len(sec.Name) > 6 && sec.Name[:5] == "cloud" && time.Since(sec.CreationTimestamp.Time).Hours() > 5 {
+		if strings.HasPrefix(sec.Name, "cloud") && time.Since(sec.CreationTimestamp.Time).Hours() > 5 {
 			clientset.CoreV1().Secrets(Namespace).Delete(context.TODO(), sec.Name, metav1.DeleteOptions{})
 			fmt.Printf("Deleted stale secret %s\n", sec.Name)
 		}

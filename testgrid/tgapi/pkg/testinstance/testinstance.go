@@ -140,12 +140,9 @@ func SetInstanceFinishedAndSuccess(id string, isSuccess bool, failureReason stri
 	db := persistence.MustGetPGSession()
 
 	var query string
-	if isSuccess {
-		// Failure cannot change to success.
+	if isSuccess || failureReason == "timeout" {
+		// Failure cannot change to success, and timeout cannot change anything.
 		query = `update testinstance set is_success = $2, finished_at = now(), failure_reason = $3 where id = $1 and finished_at is null`
-	} else if failureReason == "timeout" {
-		// Timeout cannot change success to failure.
-		query = `update testinstance set is_success = $2, finished_at = now(), failure_reason = $3 where id = $1 and is_success != true`
 	} else {
 		// Success can change to failure unless timeout.
 		query = `update testinstance set is_success = $2, finished_at = now(), failure_reason = $3 where id = $1`
