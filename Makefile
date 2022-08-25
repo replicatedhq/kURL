@@ -162,6 +162,7 @@ dist/docker-%.tar.gz:
 	${MAKE} build/packages/docker/$*/ubuntu-16.04
 	${MAKE} build/packages/docker/$*/ubuntu-18.04
 	${MAKE} build/packages/docker/$*/ubuntu-20.04
+	${MAKE} build/packages/docker/$*/ubuntu-22.04
 	${MAKE} build/packages/docker/$*/rhel-7
 	${MAKE} build/packages/docker/$*/amzn-force
 	${MAKE} build/packages/docker/$*/rhel-8
@@ -470,6 +471,9 @@ build/packages/docker/%/ubuntu-18.04:
 
 build/packages/docker/%/ubuntu-20.04:
 	./bundles/docker-ubuntu2004/build.sh $* `pwd`/build/packages/docker/$*/ubuntu-20.04
+
+build/packages/docker/%/ubuntu-22.04:
+	./bundles/docker-ubuntu2204/build.sh $* `pwd`/build/packages/docker/$*/ubuntu-22.04
 
 build/packages/docker/%/rhel-7:
 	docker build \

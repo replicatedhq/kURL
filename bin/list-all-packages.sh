@@ -57,6 +57,7 @@ function list_other() {
     echo "docker-19.03.10.tar.gz bundles/"
     echo "docker-19.03.15.tar.gz bundles/"
     echo "docker-20.10.5.tar.gz bundles/"
+    echo "docker-20.10.17.tar.gz bundles/"
 }
 
 function list_all() {
