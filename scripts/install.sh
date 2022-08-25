@@ -57,7 +57,7 @@ function save_kubeadm_conf(){
     kubeadm_conf_file_tmp="${kubeadm_conf_filename%.*}-$kurl_current_installer_id.conf"
     cp $KUBEADM_CONF_FILE /tmp/"$kubeadm_conf_file_tmp"
     echo "$kubeadm_conf_file_tmp"
-    return
+    return 0
   fi
   echo ""
 }
@@ -65,12 +65,11 @@ function save_kubeadm_conf(){
 function kubeadm_skip_kubelet_restart(){
   kubeadm_prev_conf_file=$1
   kube_minor_version=$(cut -d '.' -f 2 <<< "$KUBERNETES_VERSION")
-  if cmp --silent -- "$KUBEADM_CONF_FILE" "$kubeadm_prev_conf_file" && [[ $kube_minor_version -ge 22 ]]; then
+  if cmp --silent -- "$KUBEADM_CONF_FILE" "$kubeadm_prev_conf_file" && [[ $kube_minor_version -ge 21 ]]; then
     echo "--skip-phases=kubelet-start"
     return 0
   fi
   echo ""
-  return 1 # don't restart kubelet
 }
 
 function init() {
