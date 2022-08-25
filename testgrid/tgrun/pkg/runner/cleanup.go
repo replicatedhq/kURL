@@ -44,7 +44,7 @@ func CleanUpVMIs() error {
 		// the in-script timeout for install is 30m, upgrade is 45m
 		if vmi.Status.Phase == kubevirtv1.Running && time.Since(vmi.CreationTimestamp.Time).Minutes() > 90 {
 			if apiEndpoint := vmi.Annotations[runnerVmi.ApiEndpointAnnotation]; apiEndpoint != "" {
-				url := fmt.Sprintf("%s/v1/instance/%s/finish", apiEndpoint, vmi.Annotations[runnerVmi.RunIDAnnotation])
+				url := fmt.Sprintf("%s/v1/instance/%s/finish", apiEndpoint, vmi.Annotations[runnerVmi.TestIDAnnotation])
 				data := `{"success": false, "failureReason": "timeout"}`
 				resp, err := http.Post(url, "application/json", strings.NewReader(data))
 				if err != nil {

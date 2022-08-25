@@ -34,7 +34,7 @@ const (
 	OSImageAnnotation     = "testgrid.kurl.sh/osimage"
 	OSVersionAnnotation   = "testgrid.kurl.sh/osversion"
 	OSNameAnnotation      = "testgrid.kurl.sh/osname"
-	RunIDAnnotation       = "testgrid.kurl.sh/runid"
+	TestIDAnnotation      = "testgrid.kurl.sh/testid"
 )
 
 var zero = int64(0)
@@ -311,7 +311,7 @@ func createK8sNode(singleTest types.SingleRun, nodeName string) error {
 				OSImageAnnotation:     singleTest.OperatingSystemImage,
 				KurlURLAnnotation:     singleTest.KurlURL,
 				ApiEndpointAnnotation: singleTest.TestGridAPIEndpoint,
-				RunIDAnnotation:       singleTest.ID,
+				TestIDAnnotation:      singleTest.ID,
 			},
 		},
 		Spec: kubevirtv1.VirtualMachineInstanceSpec{
