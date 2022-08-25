@@ -200,14 +200,14 @@
       disableS3: true
     containerd:
       version: latest
-- name: registry_airgap_localpathprovisioner
+- name: registry_airgap_longhorn
   airgap: true
   installerSpec:
     kubernetes:
       version: "1.23.x"
     weave:
       version: "latest"
-    localPathProvisioner:
+    longhorn:
       version: "latest"
     minio:
       version: "latest"
