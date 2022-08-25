@@ -80,7 +80,7 @@ export class CustomPlatformLogMiddleware extends PlatformLogMiddleware {
   /**
    * Called when the `$onResponse` is called by Ts.ED (through Express.end).
    */
-  protected onLogEnd(ctx: Context): void {
+  public onLogEnd(ctx: Context): void {
     const { logRequest, logEnd } = this.settings;
 
     if (logEnd !== false) {
