@@ -60,7 +60,7 @@
       version: latest
       disableS3: true
     docker:
-      version: latest
+      version: 20.10.17
   upgradeSpec:
     kubernetes:
       version: 1.23.x
@@ -96,7 +96,7 @@
       version: latest
       disableS3: true
     docker:
-      version: latest
+      version: 20.10.17
   upgradeSpec:
     kubernetes:
       version: 1.23.x
