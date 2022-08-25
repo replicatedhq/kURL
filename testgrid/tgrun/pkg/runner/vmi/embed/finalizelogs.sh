@@ -6,4 +6,6 @@ function send_logs()
   curl -X PUT -f --data-binary "@/tmp/testgrid-node-logs" "$TESTGRID_APIENDPOINT/v1/instance/$NODE_ID/node-logs"
 }
 
+echo "END OF LOGS" >> /var/log/cloud-init-output.log
+
 send_logs

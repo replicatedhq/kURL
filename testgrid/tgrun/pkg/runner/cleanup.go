@@ -38,6 +38,16 @@ func CleanUpVMIs() error {
 			} else {
 				fmt.Printf("Delete successful vmi %s\n", vmi.Name)
 			}
+
+			if !strings.HasSuffix(vmi.Name, "sendlogs") {
+				// make a VMI to send the logs and nothing else
+				err = runnerVmi.SendLogs(vmi.Annotations[runnerVmi.ApiEndpointAnnotation], vmi.Name)
+				if err != nil {
+					fmt.Printf("Failed to send logs of successful vmi %s: %v\n", vmi.Name, err)
+				} else {
+					fmt.Printf("Sent logs for successful vmi %s\n", vmi.Name)
+				}
+			}
 		}
 
 		// cleanup VMIs that have been running for more than 1.5 hours
@@ -65,12 +75,14 @@ func CleanUpVMIs() error {
 				fmt.Printf("Delete long-running vmi %s\n", vmi.Name)
 			}
 
-			// make a VMI to send the logs and nothing else
-			err = runnerVmi.SendLogs(vmi.Annotations[runnerVmi.ApiEndpointAnnotation], vmi.Name)
-			if err != nil {
-				fmt.Printf("Failed to send logs of deleted long-running vmi %s: %v\n", vmi.Name, err)
-			} else {
-				fmt.Printf("Sent logs for long-running vmi %s\n", vmi.Name)
+			if !strings.HasSuffix(vmi.Name, "sendlogs") {
+				// make a VMI to send the logs and nothing else
+				err = runnerVmi.SendLogs(vmi.Annotations[runnerVmi.ApiEndpointAnnotation], vmi.Name)
+				if err != nil {
+					fmt.Printf("Failed to send logs of deleted long-running vmi %s: %v\n", vmi.Name, err)
+				} else {
+					fmt.Printf("Sent logs for long-running vmi %s\n", vmi.Name)
+				}
 			}
 		}
 	}
