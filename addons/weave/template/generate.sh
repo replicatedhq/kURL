@@ -20,20 +20,22 @@ function get_images_patch_version() {
     docker run quay.io/skopeo/stable --override-os linux \
         list-tags "docker://${image}" | \
         jq -r '.Tags | .[]' | \
-        grep "${VERSION}" | \
-        grep -E "\-2[0-9]{7}-"
+        grep -F "${VERSION}" | \
+        grep -E "\-2[0-9]{7}-" | \
+        sort -r | \
+        head -n1
 }
 
 function get_addon_version() {
-    local versions="$@"
+    local versions="$*"
     # sort in reverse to get the newest version and strip off the git sha suffix
-    echo $versions | xargs -n1 | sort -r | xargs \
+    echo "$versions" | xargs -n1 | sort -r | xargs \
         | awk '{print $1}' \
         | sed -e 's/-[0-9a-f]\{7\}$//'
 }
 
 function add_as_latest() {
-    if ! sed '0,/cron-weave-update/d' ../../../web/src/installers/versions.js | sed '/\],/,$d' | grep -q "${ADDON_VERSION}" ; then
+    if ! sed '0,/cron-weave-update/d' ../../../web/src/installers/versions.js | sed '/\],/,$d' | grep -Fq "${ADDON_VERSION}" ; then
         sed -i "/cron-weave-update/a\    \"${ADDON_VERSION}\"\," ../../../web/src/installers/versions.js
     fi
 }
