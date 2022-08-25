@@ -255,7 +255,7 @@ function init() {
     # Do not restart kubelet if kubeadm config has NOT changed
     kubeadm_skip_phases_opt=$(kubeadm_skip_kubelet_restart "$kubeadm_conf_file_prev")
     if [[ -n $kubeadm_skip_phases_opt ]]; then
-      echo "Will not restart kubelet"
+      echo "No changes in kubeadm.conf compared to previous installation: kubelet will not be restarted"
       set -o pipefail
       kubeadm init \
         "$kubeadm_skip_phases_opt" \
