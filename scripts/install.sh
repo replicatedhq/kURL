@@ -80,6 +80,13 @@ function kubeadm_skip_kubelet_restart(){
   echo ""
 }
 
+function warn_kubelet_restart() {
+  if [ -n "$1" ]; then
+    # kubeadm.conf has changed during an upgrade
+    printf "%sWARN: kubelet will be restarted" "${YELLOW}"
+  fi
+}
+
 function init() {
     logStep "Initialize Kubernetes"
 
@@ -255,7 +262,6 @@ function init() {
     # Do not restart kubelet if kubeadm config has NOT changed
     kubeadm_skip_phases_opt=$(kubeadm_skip_kubelet_restart "$kubeadm_conf_file_prev")
     if [[ -n $kubeadm_skip_phases_opt ]]; then
-      echo "No changes in kubeadm.conf compared to previous installation: kubelet will not be restarted"
       set -o pipefail
       kubeadm init \
         "$kubeadm_skip_phases_opt" \
@@ -265,6 +271,10 @@ function init() {
         | tee /tmp/kubeadm-init
       set +o pipefail
     else
+      # you end up in this path if
+      # 1. kubeadm.conf has changed during an upgrade
+      # 2. new install
+      warn_kubelet_restart "$kubeadm_conf_file_prev"
       set -o pipefail
       kubeadm init \
         --ignore-preflight-errors=all \
