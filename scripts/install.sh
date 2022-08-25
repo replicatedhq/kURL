@@ -245,7 +245,7 @@ function init() {
     mkdir -p /var/log/apiserver
 
     # Do not restart kubelet if kubeadm config has NOT changed
-    kubeadm_skip_phases_opt=$(kubeadm_skip_kubelet_restart kubeadm_conf_file_prev)
+    kubeadm_skip_phases_opt=$(kubeadm_skip_kubelet_restart "$kubeadm_conf_file_prev")
     if [[ -n $kubeadm_skip_phases_opt ]]; then
       echo "Will not restart kubelet"
       set -o pipefail
