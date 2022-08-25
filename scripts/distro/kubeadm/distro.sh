@@ -89,7 +89,7 @@ function kubeadm_weave_reset() {
 
     WEAVEEXEC_IMAGE="weaveworks/weaveexec"
 
-    kurlshWeaveVersionPattern='^[0-9]+\.[0-9]+\.[0-9]+-(.*)-(20)[0-9]{6}$'
+    kurlshWeaveVersionPattern='^[0-9]+\.[0-9]+\.[0-9]+(.*)-(20)[0-9]{6}(.*)$'
     if [[ $WEAVE_TAG =~ $kurlshWeaveVersionPattern ]] ; then
         WEAVEEXEC_IMAGE="kurlsh/weaveexec"
     fi
