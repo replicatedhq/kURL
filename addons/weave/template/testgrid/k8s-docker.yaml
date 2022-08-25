@@ -2,8 +2,8 @@
   installerSpec:
     kubernetes:
       version: "latest"
-    docker:
-      version: "latest"
+    containerd:
+      version: "1.5.x"
     weave:
       version: "__testver__"
       s3Override: "__testdist__"
@@ -23,8 +23,8 @@
   installerSpec:
     kubernetes:
       version: "latest"
-    docker:
-      version: "latest"
+    containerd:
+      version: "1.5.x"
     weave:
       version: "__testver__"
       s3Override: "__testdist__"
@@ -34,8 +34,8 @@
   installerSpec:
     kubernetes:
       version: "latest"
-    docker:
-      version: "latest"
+    containerd:
+      version: "1.5.x"
     weave:
       version: "__testver__"
       s3Override: "__testdist__"
