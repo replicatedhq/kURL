@@ -236,15 +236,6 @@ function should_upgrade_rook_10_to_14() {
     return 1
 }
 
-function rook_ceph_tools_exec() {
-    local args=$1
-
-    if kubectl -n rook-ceph exec deploy/rook-ceph-tools -- bash -s "$args" ; then
-        return 0
-    fi
-    return 1
-}
-
 function rook_10_to_14_images() {
     logStep "Downloading images required for this upgrade"
     addon_fetch rookupgrade 10to14
@@ -262,11 +253,6 @@ function rook_10_to_14() {
     $DIR/bin/kurl rook hostpath-to-block
 
     local upgrade_files_path="$DIR/addons/rookupgrade/10to14"
-
-    echo "Rescaling pgs per pool"
-    rook_ceph_tools_exec "ceph osd pool ls | grep rook-ceph-store | xargs -I {} ceph osd pool set {} pg_num 16"
-    rook_ceph_tools_exec "ceph osd pool ls | grep -v rook-ceph-store | xargs -I {} ceph osd pool set {} pg_num 32"
-    $DIR/bin/kurl rook wait-for-health
 
     logStep "Upgrading to Rook 1.1.9"
 
@@ -347,6 +333,12 @@ function rook_10_to_14() {
     $DIR/bin/kurl rook wait-for-ceph-version "15.2.8-0"
 
     echo "Enabling pg pool autoscaling"
+    kubectl -n rook-ceph exec deploy/rook-ceph-tools -- ceph osd pool ls | \
+      xargs -I {} kubectl -n rook-ceph exec deploy/rook-ceph-tools -- \
+      ceph osd pool set {} pg_autoscale_mode on
+    echo "Current pg pool autoscaling status:"
+    kubectl -n rook-ceph exec deploy/rook-ceph-tools -- ceph osd pool autoscale-status
+
     rook_ceph_tools_exec "ceph osd pool ls | xargs -I {} ceph osd pool set {} pg_autoscale_mode on"
 
     $DIR/bin/kurl rook wait-for-health

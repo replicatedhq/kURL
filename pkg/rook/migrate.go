@@ -281,7 +281,7 @@ func waitForBlockOSDs(ctx context.Context, client kubernetes.Interface) error {
 			}
 		}
 
-		spinLine(fmt.Sprintf("Waiting for %d block device OSDs to be added to the cluster, have %d", desiredBlockCount, blockOSDCount))
+		updatedLine(fmt.Sprintf("Waiting for %d block device OSDs to be added to the cluster, have %d", desiredBlockCount, blockOSDCount))
 		select {
 		case <-time.After(loopSleep):
 		case <-ctx.Done():

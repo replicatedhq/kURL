@@ -48,7 +48,7 @@ func WaitForRookOrCephVersion(ctx context.Context, client kubernetes.Interface, 
 				versionMessages = append(versionMessages, fmt.Sprintf("deployments %s still running %s", strings.Join(names, ", "), ver))
 			}
 
-			spinLine(strings.Join(versionMessages, " and "))
+			updatedLine(strings.Join(versionMessages, " and "))
 		}
 
 		select {
