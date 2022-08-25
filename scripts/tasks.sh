@@ -76,6 +76,9 @@ function tasks() {
         rook-10-to-14|rook_10_to_14)
             rook_tasks_10_to_14
             ;;
+        rook-10-to-14-images|rook_10_to_14_images)
+            rook_tasks_10_to_14_images
+            ;;
         *)
             bail "Unknown task: $1"
             ;;
@@ -701,6 +704,13 @@ function rook_tasks_10_to_14() {
     else
         echo "Not upgrading rook because it is not installed or the currently installed version is not 1.0.x"
     fi
+}
+
+function rook_tasks_10_to_14_images() {
+    export KUBECONFIG=/etc/kubernetes/admin.conf
+
+    download_util_binaries
+    rook_10_to_14_images
 }
 
 tasks "$@"

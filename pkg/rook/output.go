@@ -14,6 +14,7 @@ const (
 	rewriteNone = iota
 	rewriteSpinner
 	rewriteLine
+	rewriteNewline
 )
 
 func InitWriter(wr io.Writer) {
@@ -44,6 +45,23 @@ func spinLine(newLine string) {
 	} else {
 		rewriteType = rewriteLine
 		fmt.Fprintf(outputWriter, "%s", newLine)
+	}
+}
+
+var previousUpdatedLine string
+
+// when first called, writes a new line with the provided string.
+// on second+ consecutive calls in a row, writes a new line if the content has changed.
+// useful for "waiting for X, Y and Z to complete" style messages.
+func updatedLine(newLine string) {
+	if outputWriter == nil || newLine == "" {
+		return
+	}
+
+	if rewriteType != rewriteNewline || newLine != previousUpdatedLine {
+		rewriteType = rewriteNewline
+		previousUpdatedLine = newLine
+		fmt.Fprintf(outputWriter, "%s\n", newLine)
 	}
 }
 

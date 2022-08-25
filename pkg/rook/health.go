@@ -130,7 +130,7 @@ func progressEventsString(status cephtypes.CephStatus) string {
 
 		firstEvent.Message = strings.ReplaceAll(firstEvent.Message, "\n", "")
 
-		return fmt.Sprintf("%d tasks in progress, first task %q is %f%% complete", len(status.ProgressEvents), firstEvent.Message, firstEvent.Progress)
+		return fmt.Sprintf("%d tasks in progress, first task %q is %f%% complete", len(status.ProgressEvents), firstEvent.Message, firstEvent.Progress*100)
 	}
 
 	return ""
@@ -206,7 +206,7 @@ func waitForOkToRemoveOSD(ctx context.Context, client kubernetes.Interface, osdT
 					if isOkToRemove {
 						return nil
 					}
-					spinLine(fmt.Sprintf("Waiting for %d PGs to be moved off of osd.%d before removing it", offendingPgs, osdToRemove))
+					updatedLine(fmt.Sprintf("Waiting for %d PGs to be moved off of osd.%d before removing it", offendingPgs, osdToRemove))
 				}
 			} else {
 				// print a status message
