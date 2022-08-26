@@ -16,6 +16,8 @@ import (
 	kubevirtv1 "kubevirt.io/api/core/v1"
 )
 
+const cleanupAfterMinutes = 90
+
 // CleanUpVMIs deletes "Succeeded" VMIs
 func CleanUpVMIs() error {
 	virtClient, err := helpers.GetKubevirtClientset()
@@ -31,7 +33,7 @@ func CleanUpVMIs() error {
 	for _, vmi := range vmiList.Items {
 		// cleanup succeeded VMIs
 		// leaving them for a few hours for debug cases
-		if vmi.Status.Phase == kubevirtv1.Succeeded && time.Since(vmi.CreationTimestamp.Time).Hours() > 3 {
+		if vmi.Status.Phase == kubevirtv1.Succeeded && time.Since(vmi.CreationTimestamp.Time).Minutes() > cleanupAfterMinutes {
 			err := virtClient.VirtualMachineInstance(Namespace).Delete(vmi.Name, &metav1.DeleteOptions{})
 			if err != nil {
 				fmt.Printf("Failed to delete successful vmi %s: %v\n", vmi.Name, err)
@@ -50,9 +52,9 @@ func CleanUpVMIs() error {
 			}
 		}
 
-		// cleanup VMIs that have been running for more than 1.5 hours
+		// cleanup VMIs that have not succeeded after 1.5 hours
 		// the in-script timeout for install is 30m, upgrade is 45m
-		if vmi.Status.Phase == kubevirtv1.Running && time.Since(vmi.CreationTimestamp.Time).Minutes() > 90 {
+		if vmi.Status.Phase != kubevirtv1.Succeeded && time.Since(vmi.CreationTimestamp.Time).Minutes() > cleanupAfterMinutes {
 			if apiEndpoint := vmi.Annotations[runnerVmi.ApiEndpointAnnotation]; apiEndpoint != "" {
 				url := fmt.Sprintf("%s/v1/instance/%s/finish", apiEndpoint, vmi.Annotations[runnerVmi.TestIDAnnotation])
 				data := `{"success": false, "failureReason": "timeout"}`
