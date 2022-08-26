@@ -22,24 +22,60 @@ jobs:
           OUTPUT=`./bin/scan-images/matrix.js`
           echo "::set-output name=matrix::$OUTPUT"
 
-  scan-image:
+  scan-images:
+    name: ${{ matrix.addon }}:${{ matrix.version }} - ${{ matrix.name }}
     needs: build-matrix
     runs-on: ubuntu-20.04
     strategy:
-      matrix: ${{fromJSON(needs.build-matrix.outputs.matrix)}}
+      matrix: ${{ fromJSON(needs.build-matrix.outputs.matrix) }}
       fail-fast: false
       max-parallel: 5
     steps:
-      - name: "${{ matrix.addon }}:${{ matrix.version }} - ${{ matrix.name }} : Write Trivy ignore file"
+      - name: "Write Trivy ignore file"
         run: if [ -n '${{ matrix.trivyignore }}' ]; then echo '${{ matrix.trivyignore }}' | base64 -d > .trivyignore.rego ; fi
-      - name: "${{ matrix.addon }}:${{ matrix.version }} - ${{ matrix.name }} : Scan image"
-        id: scan
+      - name: "Generate artifact"
         uses: aquasecurity/trivy-action@0.7.1
         with:
           image-ref: ${{ matrix.image }}
+          vuln-type: 'os'
+          format: 'json'
+          output: 'trivy.json'
+          severity: 'CRITICAL,HIGH'
+          ignore-unfixed: true
+          ignore-policy: ${{ matrix.trivyignore && '.trivyignore.rego' }}
           exit-code: '1'
+      - name: "Upload artifact"
+        uses: actions/upload-artifact@v3
+        if: ${{ failure() }}
+        with:
+          name: ${{ matrix.addon }}-${{ matrix.version }}-${{ matrix.name }}
+          path: trivy.json
+      - name: "Display results"
+        uses: aquasecurity/trivy-action@0.7.1
+        if: ${{ failure() }}
+        with:
+          image-ref: ${{ matrix.image }}
           vuln-type: 'os'
           format: 'table'
           severity: 'CRITICAL,HIGH'
           ignore-unfixed: true
           ignore-policy: ${{ matrix.trivyignore && '.trivyignore.rego' }}
+          exit-code: '1'
+
+  collect-results:
+    needs: scan-images
+    runs-on: ubuntu-20.04
+    if: ${{ failure() }}
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v3
+        with:
+          path: scan-results/
+      - name: Collect results
+        run: |
+          jq -s '.' scan-results/*/trivy.json > trivy.json
+      - name: "Upload artifact"
+        uses: actions/upload-artifact@v3
+        with:
+          name: trivy results
+          path: trivy.json
