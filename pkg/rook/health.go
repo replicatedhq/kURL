@@ -74,6 +74,11 @@ func isStatusHealthy(status cephtypes.CephStatus) (bool, string) {
 			unaccountedChecks -= 1
 		}
 
+		if _, ok := status.Health.Checks["RECENT_CRASH"]; ok {
+			// recent crash errors aren't likely to go away while we're waiting
+			unaccountedChecks -= 1
+		}
+
 		if unaccountedChecks != 0 {
 			statusMessage = append(statusMessage, fmt.Sprintf("health is %s not HEALTH_OK", status.Health.Status))
 		}

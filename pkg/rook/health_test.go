@@ -68,6 +68,12 @@ func Test_isStatusHealthy(t *testing.T) {
 			health:  false,
 			message: "706767 bytes are being recovered per second, 0 desired and 7 tasks in progress, first task \"PG autoscaler decreasing pool 7 PGs from 100 to 32 (60s)      [===.........................] (remaining: 7m)\" is 11.764706% complete",
 		},
+		{
+			name:    "ceph has recent crashes",
+			status:  testfiles.RecentCrashCephStatus,
+			health:  true,
+			message: "",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

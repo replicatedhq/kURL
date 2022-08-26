@@ -1,0 +1,130 @@
+{
+  "fsid": "08c717cd-d3e6-46e4-b17a-e11570deab0a",
+  "health": {
+    "status": "HEALTH_WARN",
+    "checks": {
+      "RECENT_CRASH": {
+        "severity": "HEALTH_WARN",
+        "summary": {
+          "message": "1 daemons have recently crashed",
+          "count": 1
+        },
+        "muted": false
+      }
+    },
+    "mutes": []
+  },
+  "election_epoch": 224,
+  "quorum": [
+    0,
+    1,
+    2
+  ],
+  "quorum_names": [
+    "a",
+    "b",
+    "c"
+  ],
+  "quorum_age": 1265,
+  "monmap": {
+    "epoch": 4,
+    "min_mon_release_name": "octopus",
+    "num_mons": 3
+  },
+  "osdmap": {
+    "epoch": 1384,
+    "num_osds": 3,
+    "num_up_osds": 3,
+    "osd_up_since": 1661800103,
+    "num_in_osds": 3,
+    "osd_in_since": 1661795363,
+    "num_remapped_pgs": 0
+  },
+  "pgmap": {
+    "pgs_by_state": [
+      {
+        "state_name": "active+clean",
+        "count": 137
+      }
+    ],
+    "num_pgs": 137,
+    "num_pools": 9,
+    "num_objects": 10167,
+    "data_bytes": 41260681381,
+    "bytes_used": 127056822272,
+    "bytes_avail": 191844499456,
+    "bytes_total": 318901321728,
+    "read_bytes_sec": 3838,
+    "write_bytes_sec": 7762,
+    "read_op_per_sec": 4,
+    "write_op_per_sec": 1
+  },
+  "fsmap": {
+    "epoch": 1,
+    "by_rank": [],
+    "up:standby": 0
+  },
+  "mgrmap": {
+    "available": true,
+    "num_standbys": 0,
+    "modules": [
+      "dashboard",
+      "iostat",
+      "pg_autoscaler",
+      "prometheus",
+      "restful",
+      "rook"
+    ],
+    "services": {
+      "dashboard": "http://rook-ceph-mgr-a-544bf86ff9-l6glx:7000/",
+      "prometheus": "http://rook-ceph-mgr-a-544bf86ff9-l6glx:9283/"
+    }
+  },
+  "servicemap": {
+    "epoch": 19,
+    "modified": "2022-08-29T19:09:23.148055+0000",
+    "services": {
+      "rgw": {
+        "daemons": {
+          "summary": "",
+          "rook.ceph.store.a": {
+            "start_epoch": 14,
+            "start_stamp": "2022-08-29T18:49:30.213057+0000",
+            "gid": 184453,
+            "addr": "10.32.15.9:0/3824971677",
+            "metadata": {
+              "arch": "x86_64",
+              "ceph_release": "octopus",
+              "ceph_version": "ceph version 15.2.8 (bdf3eebcd22d7d0b3dd4d5501bee5bac354d5b55) octopus (stable)",
+              "ceph_version_short": "15.2.8",
+              "container_hostname": "rook-ceph-rgw-rook-ceph-store-a-645dff5c6c-5tnhn",
+              "container_image": "ceph/ceph:v15.2.8-20201217",
+              "cpu": "Intel(R) Xeon(R) CPU @ 2.20GHz",
+              "distro": "centos",
+              "distro_description": "CentOS Linux 8",
+              "distro_version": "8",
+              "frontend_config#0": "beast port=8080",
+              "frontend_type#0": "beast",
+              "hostname": "laverya-rook-centos-worker",
+              "kernel_description": "#1 SMP Wed Aug 10 16:21:17 UTC 2022",
+              "kernel_version": "3.10.0-1160.76.1.el7.x86_64",
+              "mem_swap_kb": "0",
+              "mem_total_kb": "16262944",
+              "num_handles": "1",
+              "os": "Linux",
+              "pid": "1",
+              "pod_name": "rook-ceph-rgw-rook-ceph-store-a-645dff5c6c-5tnhn",
+              "pod_namespace": "rook-ceph",
+              "zone_id": "c15502ad-4756-45ae-a82c-c8b89761a6e8",
+              "zone_name": "rook-ceph-store",
+              "zonegroup_id": "d1872700-bc9a-4492-a611-cd569c8b296d",
+              "zonegroup_name": "rook-ceph-store"
+            },
+            "task_status": {}
+          }
+        }
+      }
+    }
+  },
+  "progress_events": {}
+}
