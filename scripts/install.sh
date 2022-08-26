@@ -272,7 +272,7 @@ function init() {
       set +o pipefail
     else
       # you end up in this path if
-      # 1. kubeadm.conf has changed during an upgrade
+      # 1. kubeadm.conf has changed or
       # 2. new install
       warn_kubelet_restart "$kubeadm_conf_file_prev"
       set -o pipefail
