@@ -701,11 +701,11 @@ watchrsync:
 
 .PHONY: deps
 deps:
-	go install golang.org/x/lint/golint
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(shell go env GOPATH)/bin
 
 .PHONY: lint
 lint:
-	golint ./cmd/... ./pkg/... # TODO -set_exit_status
+	golangci-lint run ./... || true # TODO: remove this when passing
 
 .PHONY: vet
 vet:
