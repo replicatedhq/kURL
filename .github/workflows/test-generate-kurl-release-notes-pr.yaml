@@ -16,5 +16,5 @@ jobs:
       run: |
         curl -H "Authorization: token $GH_PAT" \
           -H 'Accept: application/json' \
-          -d "{\"event_type\": \"app-manager-release-notes\", \"client_payload\": {\"version\": \"main\" }}" \
+          -d "{\"event_type\": \"kubernetes-installer-release-notes\", \"client_payload\": {\"version\": \"main\" }}" \
           "https://api.github.com/repos/replicatedhq/replicated-docs/dispatches"

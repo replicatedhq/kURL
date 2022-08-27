@@ -19,7 +19,7 @@ jobs:
         export VERSION_TAG=$(echo $GITHUB_REF | awk -F'/' '{ print $NF }')
         curl -H "Authorization: token $GH_PAT" \
           -H 'Accept: application/json' \
-          -d "{\"event_type\": \"app-manager-release-notes\", \"client_payload\": {\"version\": \"${VERSION_TAG}\" }}" \
+          -d "{\"event_type\": \"kubernetes-installer-release-notes\", \"client_payload\": {\"version\": \"${VERSION_TAG}\" }}" \
           "https://api.github.com/repos/replicatedhq/replicated-docs/dispatches"
 
   production-docker-image:
