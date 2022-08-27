@@ -1,0 +1,20 @@
+name: test-generating-kurl-pr
+
+on:
+  pull_request:
+
+jobs:
+  generate-kurl-release-notes-pr:
+    runs-on: ubuntu-20.04
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Generate kURL Release Notes PR
+      env:
+        GH_PAT: ${{ secrets.AUTOMATED_PR_GH_PAT }}
+      run: |
+        curl -H "Authorization: token $GH_PAT" \
+          -H 'Accept: application/json' \
+          -d "{\"event_type\": \"app-manager-release-notes\", \"client_payload\": {\"version\": \"main\" }}" \
+          "https://api.github.com/repos/replicatedhq/replicated-docs/dispatches"
