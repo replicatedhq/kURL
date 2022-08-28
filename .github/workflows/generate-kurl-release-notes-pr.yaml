@@ -1,0 +1,18 @@
+name: deploy-production
+
+on:
+  pull_request:
+
+jobs:
+  generate-kurl-release-notes-pr:
+    runs-on: ubuntu-20.04
+    steps:
+    - name: Generate kURL Release Notes PR
+      env:
+        GH_PAT: ${{ secrets.AUTOMATED_PR_GH_PAT }}
+      run: |
+        export VERSION_TAG="v2022.08.25-0"
+        curl -H "Authorization: token $GH_PAT" \
+          -H 'Accept: application/json' \
+          -d "{\"event_type\": \"kubernetes-installer-release-notes\", \"client_payload\": {\"version\": \"${VERSION_TAG}\" }}" \
+          "https://api.github.com/repos/replicatedhq/replicated-docs/dispatches"
