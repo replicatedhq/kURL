@@ -9,7 +9,7 @@
     "@bugsnag/plugin-express": "^7.17.0",
     "@tsed/common": "^6.128.7",
     "@tsed/core": "^6.128.7",
-    "@tsed/di": "^6.128.7",
+    "@tsed/di": "^6.129.0",
     "@tsed/logger": "^6.2.2",
     "@tsed/platform-express": "^6.128.7",
     "ajv": "^8.11.0",
