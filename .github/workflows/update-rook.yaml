@@ -29,7 +29,7 @@ jobs:
         labels: |
           automated-pr
           rook
-          type::feature
+          type::chore
         draft: false
         base: "main"
         body: "Automated changes by the [cron-rook-update](https://github.com/replicatedhq/kURL/blob/main/.github/workflows/update-rook.yaml) GitHub action"

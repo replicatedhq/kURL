@@ -37,7 +37,7 @@ jobs:
         labels: |
           automated-pr
           openebs
-          type::feature
+          type::chore
         draft: false
         base: "main"
         body: "Automated changes by the [cron-openebs-update](https://github.com/replicatedhq/kURL/blob/main/.github/workflows/update-openebs.yaml) GitHub action"
