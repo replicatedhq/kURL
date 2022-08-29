@@ -29,10 +29,15 @@ jobs:
         labels: |
           automated-pr
           minio
+          type::chore
         draft: false
         base: "main"
-        body: "Automated changes by the [cron-minio-update](https://github.com/replicatedhq/kURL/blob/main/.github/workflows/update-minio.yaml) GitHub action"
-
+        body: |
+          Automated changes by the [cron-minio-update](https://github.com/replicatedhq/kURL/blob/main/.github/workflows/update-minio.yaml) GitHub action
+          
+          ```release-note
+            Adds [MinIO add-on](https://kurl.sh/docs/add-ons/minio) version ${{ steps.update.outputs.minio_version }}
+          ```
     - name: Check outputs
       run: |
         echo "Pull Request Number - ${{ steps.cpr.outputs.pull-request-number }}"

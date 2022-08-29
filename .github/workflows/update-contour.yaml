@@ -29,9 +29,15 @@ jobs:
         labels: |
           automated-pr
           contour
+          type::chore
         draft: false
         base: "main"
-        body: "Automated changes by the [cron-contour-update](https://github.com/replicatedhq/kURL/blob/main/.github/workflows/update-contour.yaml) GitHub action"
+        body: |
+          Automated changes by the [cron-contour-update](https://github.com/replicatedhq/kURL/blob/main/.github/workflows/update-contour.yaml) GitHub action
+          
+          ```release-note
+            Adds [Contour add-on](https://kurl.sh/docs/add-ons/contour) version ${{ steps.update.outputs.contour_version }}
+          ```
 
     - name: Check outputs
       run: |

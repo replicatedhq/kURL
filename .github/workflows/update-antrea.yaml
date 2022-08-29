@@ -29,9 +29,15 @@ jobs:
         labels: |
           automated-pr
           antrea
+          type::chore
         draft: false
         base: "main"
-        body: "Automated changes by the [cron-antrea-update](https://github.com/replicatedhq/kURL/blob/main/.github/workflows/update-antrea.yaml) GitHub action"
+        body: |
+          Automated changes by the [cron-antrea-update](https://github.com/replicatedhq/kURL/blob/main/.github/workflows/update-antrea.yaml) GitHub action
+          
+          ```release-note
+            Adds [Antrea add-on](https://kurl.sh/docs/add-ons/antrea) version ${{ steps.update.outputs.antrea_version }}
+          ```
 
     - name: Check outputs
       run: |

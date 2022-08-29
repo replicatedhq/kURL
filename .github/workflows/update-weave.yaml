@@ -37,10 +37,15 @@ jobs:
         labels: |
           automated-pr
           weave
+          type::chore
         draft: false
         base: "main"
-        body: "Automated changes by the [cron-weave-update](https://github.com/replicatedhq/kURL/blob/main/.github/workflows/update-weave.yaml) GitHub action"
-
+        body: |
+          Automated changes by the [cron-weave-update](https://github.com/replicatedhq/kURL/blob/main/.github/workflows/update-weave.yaml) GitHub action
+          
+          ```release-note
+            Adds [Weave add-on](https://kurl.sh/docs/add-ons/weave) version ${{ steps.update.outputs.weave_version }}
+          ```
     - name: Check outputs
       run: |
         echo "Pull Request Number - ${{ steps.cpr.outputs.pull-request-number }}"
