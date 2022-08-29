@@ -36,7 +36,7 @@ jobs:
           Automated changes by the [cron-veler-update](https://github.com/replicatedhq/kURL/blob/main/.github/workflows/update-veler.yaml) GitHub action
           
           ```release-note
-            Adds [Velero add-on](https://kurl.sh/docs/add-ons/velero) version ${{ steps.update.outputs.velero_version }}
+            Adds [Velero add-on](https://kurl.sh/docs/add-ons/velero) version ${{ steps.update.outputs.velero_version }}.
           ```
     - name: Check outputs
       run: |

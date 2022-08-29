@@ -36,7 +36,7 @@ jobs:
           Automated changes by the [cron-sonobouy-update](https://github.com/replicatedhq/kURL/blob/main/.github/workflows/update-sonobouy.yaml) GitHub action
           
           ```release-note
-            Adds [Sonobouy add-on](https://kurl.sh/docs/add-ons/sonobouy) version ${{ steps.update.outputs.sonobouy_version }}
+            Adds [Sonobouy add-on](https://kurl.sh/docs/add-ons/sonobouy) version ${{ steps.update.outputs.sonobouy_version }}.
           ```
     - name: Check outputs
       run: |
