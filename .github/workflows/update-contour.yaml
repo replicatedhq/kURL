@@ -36,7 +36,7 @@ jobs:
           Automated changes by the [cron-contour-update](https://github.com/replicatedhq/kURL/blob/main/.github/workflows/update-contour.yaml) GitHub action
           
           ```release-note
-            Added [Contour](https://kurl.sh/docs/add-ons/contour) ${{ steps.update.outputs.contour_version }}
+            Adds [Contour add-on](https://kurl.sh/docs/add-ons/contour) version ${{ steps.update.outputs.contour_version }}
           ```
 
     - name: Check outputs

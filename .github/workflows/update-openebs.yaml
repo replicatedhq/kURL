@@ -44,7 +44,7 @@ jobs:
           Automated changes by the [cron-openebs-update](https://github.com/replicatedhq/kURL/blob/main/.github/workflows/update-openebs.yaml) GitHub action
           
           ```release-note
-            Added [OpenEBS](https://kurl.sh/docs/add-ons/openebs) ${{ steps.update.outputs.openebs_version }}
+            Adds [OpenEBS add-on](https://kurl.sh/docs/add-ons/openebs) version ${{ steps.update.outputs.openebs_version }}
           ```
     - name: Check outputs
       run: |
