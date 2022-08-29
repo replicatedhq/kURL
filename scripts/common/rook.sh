@@ -184,17 +184,16 @@ function current_rook_version() {
 # checks if rook should be upgraded before upgrading k8s. If it should, and the user confirms this, reports that as an addon, and starts the upgrade process.
 function maybe_report_upgrade_rook_10_to_14() {
     if should_upgrade_rook_10_to_14; then
-        printf "Upgrading Rook will take some time and will place additional load on your server.\n"
-        if ! [ "$ROOK_BLOCK_STORAGE_ENABLED" = "1" ]; then # this check should probably be moved to golang (as a 'are there actually disks' check instead of a 'does the spec require disks' check
-            printf "In order to complete this migration, you will need to attach a blank disk to each node in the cluster for Rook to use.\n"
+        echo "Upgrading Rook will take some time and will place additional load on your server."
+        if [ "$ROOK_BLOCK_STORAGE_ENABLED" != "1" ]; then # this check should probably be moved to golang (as a 'are there actually disks' check instead of a 'does the spec require disks' check
+            echo "In order to complete this migration, you will need to attach a blank disk to each node in the cluster for Rook to use."
         fi
         printf "Would you like to continue? "
 
         if ! confirmN; then
-            printf "Not upgrading Rook\n"
+            echo "Not upgrading Rook"
             return 0
         fi
-
         report_upgrade_rook_10_to_14
     fi
 }
