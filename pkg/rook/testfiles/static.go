@@ -27,6 +27,9 @@ var AutoscalerInProgressCephStatus []byte
 //go:embed noreplicasCephStatus.json
 var NoReplicasCephStatus []byte
 
+//go:embed recentCrashCephStatus.json
+var RecentCrashCephStatus []byte
+
 // lists of pods to use in migrate unit tests
 //go:embed "6 blockdevice pods.json"
 var SixBlockDevicePods []byte
