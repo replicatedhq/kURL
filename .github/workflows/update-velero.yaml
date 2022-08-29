@@ -29,6 +29,7 @@ jobs:
         labels: |
           automated-pr
           velero
+          type::feature
         draft: false
         base: "main"
         body: "Automated changes by the [cron-velero-update](https://github.com/replicatedhq/kURL/blob/main/.github/workflows/update-velero.yaml) GitHub action"

@@ -29,6 +29,7 @@ jobs:
         labels: |
           automated-pr
           minio
+          type::feature
         draft: false
         base: "main"
         body: "Automated changes by the [cron-minio-update](https://github.com/replicatedhq/kURL/blob/main/.github/workflows/update-minio.yaml) GitHub action"

@@ -29,6 +29,7 @@ jobs:
         labels: |
           automated-pr
           antrea
+          type::feature
         draft: false
         base: "main"
         body: "Automated changes by the [cron-antrea-update](https://github.com/replicatedhq/kURL/blob/main/.github/workflows/update-antrea.yaml) GitHub action"

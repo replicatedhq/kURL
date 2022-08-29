@@ -35,6 +35,7 @@ jobs:
         labels: |
           automated-pr
           longhorn
+          type::feature
         draft: false
         base: "main"
         body: "Automated changes by the [cron-longhorn-update](https://github.com/replicatedhq/kURL/blob/main/.github/workflows/update-longhorn.yaml) GitHub action"

@@ -30,6 +30,7 @@ jobs:
         labels: |
           kotsadm
           automated-pr
+          type::feature
         draft: false
         base: "main"
         body: "Automated changes by the [auto-kotsadm-update](https://github.com/replicatedhq/kURL/blob/main/.github/workflows/update-kotsadm.yaml) GitHub action"

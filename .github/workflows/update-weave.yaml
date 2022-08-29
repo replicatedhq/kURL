@@ -37,6 +37,7 @@ jobs:
         labels: |
           automated-pr
           weave
+          type::feature
         draft: false
         base: "main"
         body: "Automated changes by the [cron-weave-update](https://github.com/replicatedhq/kURL/blob/main/.github/workflows/update-weave.yaml) GitHub action"

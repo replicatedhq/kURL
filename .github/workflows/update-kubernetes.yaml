@@ -31,6 +31,7 @@ jobs:
         labels: |
           automated-pr
           kubernetes
+          type::feature
         draft: false
         base: "main"
         body: "Automated changes by the [cron-kubernetes-update](https://github.com/replicatedhq/kURL/blob/main/.github/workflows/update-kubernetes.yaml) GitHub action"

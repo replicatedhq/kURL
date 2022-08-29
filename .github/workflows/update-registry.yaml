@@ -30,6 +30,7 @@ jobs:
         labels: |
           automated-pr
           registry
+          type::feature
         draft: false
         base: "main"
         body: "Automated changes by the [cron-registry-update](https://github.com/replicatedhq/kURL/blob/main/.github/workflows/update-registry.yaml) GitHub action"

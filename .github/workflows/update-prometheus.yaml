@@ -31,6 +31,7 @@ jobs:
         labels: |
           automated-pr
           prometheus
+          type::feature
         draft: false
         base: "main"
         body: "Automated changes by the [cron-prometheus-update](https://github.com/replicatedhq/kURL/blob/main/.github/workflows/update-prometheus.yaml) GitHub action"

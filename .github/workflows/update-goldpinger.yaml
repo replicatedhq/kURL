@@ -31,6 +31,7 @@ jobs:
         labels: |
           automated-pr
           goldpinger
+          type::feature
         draft: false
         base: "main"
         body: "Automated changes by the [cron-goldpinger-update](https://github.com/replicatedhq/kURL/blob/main/.github/workflows/update-goldpinger.yaml) GitHub action"

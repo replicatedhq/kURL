@@ -29,6 +29,7 @@ jobs:
         labels: |
           automated-pr
           sonobuoy
+          type::feature
         draft: false
         base: "main"
         body: "Automated changes by the [cron-sonobuoy-update](https://github.com/replicatedhq/kURL/blob/main/.github/workflows/update-sonobuoy.yaml) GitHub action"
