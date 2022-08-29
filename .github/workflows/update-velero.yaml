@@ -32,8 +32,12 @@ jobs:
           type::chore
         draft: false
         base: "main"
-        body: "Automated changes by the [cron-velero-update](https://github.com/replicatedhq/kURL/blob/main/.github/workflows/update-velero.yaml) GitHub action"
-
+        body: |
+          Automated changes by the [cron-veler-update](https://github.com/replicatedhq/kURL/blob/main/.github/workflows/update-veler.yaml) GitHub action
+          
+          ```release-note
+            Added [Velero](https://kurl.sh/docs/add-ons/veler) ${{ steps.update.outputs.veler_version }}
+          ```
     - name: Check outputs
       run: |
         echo "Pull Request Number - ${{ steps.cpr.outputs.pull-request-number }}"

@@ -33,7 +33,12 @@ jobs:
           type::chore
         draft: false
         base: "main"
-        body: "Automated changes by the [cron-ekco-update](https://github.com/replicatedhq/kURL/blob/main/.github/workflows/update-ekco.yaml) GitHub action"
+        body: |
+          Automated changes by the [cron-ekco-update](https://github.com/replicatedhq/kURL/blob/main/.github/workflows/update-ekco.yaml) GitHub action
+          
+          ```release-note
+            Added [EKCO](https://kurl.sh/docs/add-ons/ekco) ${{ steps.update.outputs.ekco_version }}
+          ```
 
     - name: Check outputs
       run: |

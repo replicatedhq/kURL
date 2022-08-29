@@ -33,8 +33,12 @@ jobs:
           type::chore
         draft: false
         base: "main"
-        body: "Automated changes by the [cron-registry-update](https://github.com/replicatedhq/kURL/blob/main/.github/workflows/update-registry.yaml) GitHub action"
-
+        body: |
+          Automated changes by the [cron-registry-update](https://github.com/replicatedhq/kURL/blob/main/.github/workflows/update-registry.yaml) GitHub action
+          
+          ```release-note
+            Added [Registry](https://kurl.sh/docs/add-ons/registry) ${{ steps.update.outputs.registry_version }}
+          ```
     - name: Check outputs
       run: |
         echo "Pull Request Number - ${{ steps.cpr.outputs.pull-request-number }}"

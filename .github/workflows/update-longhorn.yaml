@@ -38,8 +38,12 @@ jobs:
           type::chore
         draft: false
         base: "main"
-        body: "Automated changes by the [cron-longhorn-update](https://github.com/replicatedhq/kURL/blob/main/.github/workflows/update-longhorn.yaml) GitHub action"
-
+        body: |
+          Automated changes by the [cron-longhorn-update](https://github.com/replicatedhq/kURL/blob/main/.github/workflows/update-longhorn.yaml) GitHub action
+          
+          ```release-note
+            Added [Longhorn](https://kurl.sh/docs/add-ons/longhorn) ${{ steps.update.outputs.longhorn_version }}
+          ```
     - name: Check outputs
       run: |
         echo "Pull Request Number - ${{ steps.cpr.outputs.pull-request-number }}"

@@ -34,7 +34,12 @@ jobs:
           type::chore
         draft: false
         base: "main"
-        body: "Automated changes by the [cron-kubernetes-update](https://github.com/replicatedhq/kURL/blob/main/.github/workflows/update-kubernetes.yaml) GitHub action"
+        body: |
+          Automated changes by the [cron-kubernetes-update](https://github.com/replicatedhq/kURL/blob/main/.github/workflows/update-kubernetes.yaml) GitHub action
+          
+          ```release-note
+            Added [Kubernetes](https://kurl.sh/docs/add-ons/kubernetes) ${{ steps.update.outputs.kubernetes_version }}
+          ```
 
     - name: Check outputs
       run: |

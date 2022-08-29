@@ -32,8 +32,12 @@ jobs:
           type::chore
         draft: false
         base: "main"
-        body: "Automated changes by the [cron-rook-update](https://github.com/replicatedhq/kURL/blob/main/.github/workflows/update-rook.yaml) GitHub action"
-
+        body: |
+          Automated changes by the [cron-rook-update](https://github.com/replicatedhq/kURL/blob/main/.github/workflows/update-rook.yaml) GitHub action
+          
+          ```release-note
+            Added [Rook](https://kurl.sh/docs/add-ons/rook) ${{ steps.update.outputs.rook_version }}
+          ```
     - name: Check outputs
       run: |
         echo "Pull Request Number - ${{ steps.cpr.outputs.pull-request-number }}"

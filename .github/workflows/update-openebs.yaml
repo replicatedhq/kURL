@@ -40,8 +40,12 @@ jobs:
           type::chore
         draft: false
         base: "main"
-        body: "Automated changes by the [cron-openebs-update](https://github.com/replicatedhq/kURL/blob/main/.github/workflows/update-openebs.yaml) GitHub action"
-
+        body: |
+          Automated changes by the [cron-openebs-update](https://github.com/replicatedhq/kURL/blob/main/.github/workflows/update-openebs.yaml) GitHub action
+          
+          ```release-note
+            Added [OpenEBS](https://kurl.sh/docs/add-ons/openebs) ${{ steps.update.outputs.openebs_version }}
+          ```
     - name: Check outputs
       run: |
         echo "Pull Request Number - ${{ steps.cpr.outputs.pull-request-number }}"

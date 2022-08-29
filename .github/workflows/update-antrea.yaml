@@ -32,7 +32,12 @@ jobs:
           type::chore
         draft: false
         base: "main"
-        body: "Automated changes by the [cron-antrea-update](https://github.com/replicatedhq/kURL/blob/main/.github/workflows/update-antrea.yaml) GitHub action"
+        body: |
+          Automated changes by the [cron-antrea-update](https://github.com/replicatedhq/kURL/blob/main/.github/workflows/update-antrea.yaml) GitHub action
+          
+          ```release-note
+            Added [Antrea](https://kurl.sh/docs/add-ons/antrea) ${{ steps.update.outputs.antrea_version }}
+          ```
 
     - name: Check outputs
       run: |
