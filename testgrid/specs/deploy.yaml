@@ -56,11 +56,9 @@
     kubernetes:
       version: 1.19.x
     docker:
-      version: 19.03.x
+      version: 20.10.x
     weave:
       version: latest
-  unsupportedOSIDs:
-    - ubuntu-2204 # docker 19.x is not available on ubuntu 22.04
 - name: k8s121
   installerSpec:
     kubernetes:
