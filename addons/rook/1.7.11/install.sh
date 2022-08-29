@@ -89,6 +89,7 @@ function rook_join() {
 
 function rook_already_applied() {
     rook_object_store_output
+    rook_set_ceph_pool_replicas
 }
 
 function rook_operator_crds_deploy() {
