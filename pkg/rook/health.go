@@ -148,7 +148,11 @@ func progressMessage(status cephtypes.CephStatus) string {
 	}
 
 	if status.Pgmap.InactivePgsRatio != 0 || status.Pgmap.DegradedRatio != 0 || status.Pgmap.MisplacedRatio != 0 {
-		return fmt.Sprintf("%f%% of PGs are inactive, %f%% are degraded, and %f%% are misplaced; recovering at %d B/sec", status.Pgmap.InactivePgsRatio*100, status.Pgmap.DegradedRatio*100, status.Pgmap.MisplacedRatio*100, status.Pgmap.RecoveringBytesPerSec)
+		msg := fmt.Sprintf("%f%% of PGs are inactive, %f%% are degraded, and %f%% are misplaced; recovering at %d B/sec", status.Pgmap.InactivePgsRatio*100, status.Pgmap.DegradedRatio*100, status.Pgmap.MisplacedRatio*100, status.Pgmap.RecoveringBytesPerSec)
+		if status.Pgmap.ReadBytesSec+status.Pgmap.WriteBytesSec > 0 {
+			msg += fmt.Sprintf(" (plus %d B/sec of application reads and writes)", status.Pgmap.ReadBytesSec+status.Pgmap.WriteBytesSec)
+		}
+		return msg
 	}
 
 	return ""
