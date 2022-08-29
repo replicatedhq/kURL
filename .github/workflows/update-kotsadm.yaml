@@ -37,7 +37,7 @@ jobs:
           Automated changes by the [cron-kotsadm-update](https://github.com/replicatedhq/kURL/blob/main/.github/workflows/update-kotsadm.yaml) GitHub action
           
           ```release-note
-            Adds [KOTS add-on](https://kurl.sh/docs/add-ons/kotsadm) version ${{ steps.update.outputs.kotsadm_version }}
+            Adds [KOTS add-on](https://kurl.sh/docs/add-ons/kotsadm) version ${{ steps.update.outputs.kotsadm_version }}.
           ```
     - name: Check outputs
       run: |
