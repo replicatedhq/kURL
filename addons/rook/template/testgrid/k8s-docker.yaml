@@ -23,8 +23,6 @@
 
     minio_object_store_info
     validate_read_write_object_store rwtest minio.txt
-  unsupportedOSIDs:
-    - ubuntu-2204
 
 - name: Upgrade from 1.4.3
   installerSpec:
@@ -77,8 +75,6 @@
     minio_object_store_info
     validate_testfile rwtest minio.txt
     validate_read_write_object_store postupgrade minioupgrade.txt
-  unsupportedOSIDs:
-    - ubuntu-2204
 
 - name: Upgrade from 1.5.10
   installerSpec:
@@ -210,8 +206,6 @@
 
     minio_object_store_info
     validate_read_write_object_store rwtest minio.txt
-  unsupportedOSIDs:
-    - ubuntu-2204
 
 - name: Upgrade from 1.0.4
   installerSpec:
@@ -262,5 +256,3 @@
     minio_object_store_info
     validate_testfile rwtest minio.txt
     validate_read_write_object_store postupgrade minioupgrade.txt
-  unsupportedOSIDs:
-    - ubuntu-2204
