@@ -1,4 +1,0 @@
-bases:
-  - ../../../tgapi/kustomize/overlays/okteto
-  - ../../../web/kustomize/overlays/okteto
-  - ../../../migrations/kustomize/overlays/okteto

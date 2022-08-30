@@ -91,25 +91,6 @@ jobs:
 
       - run: make deps test build/bin/kurl
 
-  build-testgrid:
-    runs-on: ubuntu-20.04
-    needs: validate-go-mod
-    steps:
-    - uses: actions/setup-go@v3
-      with:
-        go-version: 1.19
-    - name: setup env
-      run: |
-        echo "GOPATH=$(go env GOPATH)" >> $GITHUB_ENV
-        echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
-      shell: bash
-
-    - uses: actions/checkout@v3
-
-    - run: make -C testgrid/tgrun test build
-    - run: make -C testgrid/tgapi test build
-    - run: make -C testgrid/web deps build-staging
-
   build-test-success:
     runs-on: ubuntu-latest
     needs:
@@ -119,6 +100,5 @@ jobs:
     - test-shell
     - build-kurlkinds
     - build-bin-kurl
-    - build-testgrid
     steps:
     - run: echo "::notice ::build test success"

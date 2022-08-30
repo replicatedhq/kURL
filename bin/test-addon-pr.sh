@@ -141,11 +141,12 @@ function test_addon() {
   ref="${prefix}-${addon}-${version}-$(basename "$test_spec" ".yaml")-$(date --utc +%FT%TZ)"
 
   # Run testgrid plan
-  ./testgrid/tgrun/bin/tgrun queue --staging \
-    --ref "$ref" \
-    --spec /tmp/test-spec \
-    --os-spec ./testgrid/specs/os-firstlast.yaml \
-    --priority "$priority"
+  docker run --rm -e TESTGRID_API_TOKEN -v `pwd`:/wrk -w /wrk \
+    replicated/tgrun:latest queue --staging \
+      --ref "$ref" \
+      --spec /tmp/test-spec \
+      --os-spec ./testgrid/specs/os-firstlast.yaml \
+      --priority "$priority"
   echo "Submitted TestGrid Ref $ref"
   MSG="$MSG https://testgrid.kurl.sh/run/$ref"
 }
