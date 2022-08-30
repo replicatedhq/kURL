@@ -721,8 +721,6 @@
       version: latest
     ekco:
       version: latest
-  unsupportedOSIDs:
-  - ubuntu-2204 # docker 20.10.5 (latest) is not supported on ubuntu 22.04
 - name: k8s121-airgap
   installerSpec:
     kubernetes:
@@ -745,8 +743,6 @@
     ekco:
       version: latest
   airgap: true
-  unsupportedOSIDs:
-  - ubuntu-2204 # docker 20.10.5 (latest) is not supported on ubuntu 22.04
 - name: k8s1210_openebs260_minio
   installerSpec:
     kubernetes:
@@ -970,8 +966,6 @@
       disableS3: true
     containerd:
       version: latest
-  unsupportedOSIDs:
-  - ubuntu-2204 # docker latest (20.10.5) is not supported on ubuntu 22.04
 - name: "Migrate from Docker to Containerd airgap"
   installerSpec:
     kubernetes:
@@ -1006,8 +1000,6 @@
     containerd:
       version: latest
   airgap: true
-  unsupportedOSIDs:
-  - ubuntu-2204 # docker latest (20.10.5) is not available on ubuntu 22.04
 - name: "Upgrade to 1.22"
   cpu: 6
   installerSpec:
