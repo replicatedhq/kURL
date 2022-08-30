@@ -159,9 +159,9 @@ dist/kotsadm-%.tar.gz: build/addons
 	tar cf - -C build addons/kotsadm/$* | gzip > dist/kotsadm-$*.tar.gz
 
 dist/docker-%.tar.gz:
-	${MAKE} build/packages/docker/$*/ubuntu-16.04
 	${MAKE} build/packages/docker/$*/ubuntu-18.04
 	${MAKE} build/packages/docker/$*/ubuntu-20.04
+	${MAKE} build/packages/docker/$*/ubuntu-22.04
 	${MAKE} build/packages/docker/$*/rhel-7
 	${MAKE} build/packages/docker/$*/amzn-force
 	${MAKE} build/packages/docker/$*/rhel-8
@@ -218,7 +218,6 @@ dist/goldpinger-%.tar.gz: build/addons
 	mkdir -p dist
 	tar cf - -C build addons/goldpinger/$* | gzip > dist/goldpinger-$*.tar.gz
 
-
 dist/kubernetes-%.tar.gz:
 	# conformance packages do not exist for versions of k8s prior to 1.17
 	$(eval major = $(shell echo "$*" | sed -E 's/^v?([0-9]+)\.([0-9]+).*$$/\1/'))
@@ -227,7 +226,6 @@ dist/kubernetes-%.tar.gz:
 		${MAKE} dist/kubernetes-conformance-$*.tar.gz ; \
 	} || true ;
 	${MAKE} build/packages/kubernetes/$*/images
-	${MAKE} build/packages/kubernetes/$*/ubuntu-16.04
 	${MAKE} build/packages/kubernetes/$*/ubuntu-18.04
 	${MAKE} build/packages/kubernetes/$*/ubuntu-20.04
 	${MAKE} build/packages/kubernetes/$*/ubuntu-22.04
@@ -444,18 +442,6 @@ build/shared: kurl-util-image
 	mkdir -p build/shared
 	docker save $(KURL_UTIL_IMAGE) > build/shared/kurl-util.tar
 
-build/packages/docker/%/ubuntu-16.04:
-	docker build \
-		--build-arg DOCKER_VERSION=$* \
-		-t kurl/ubuntu-1604-docker:$* \
-		-f bundles/docker-ubuntu1604/Dockerfile \
-		bundles/docker-ubuntu1604
-	-docker rm -f docker-ubuntu1604-$* 2>/dev/null
-	docker create --name docker-ubuntu1604-$* kurl/ubuntu-1604-docker:$*
-	mkdir -p build/packages/docker/$*/ubuntu-16.04
-	docker cp docker-ubuntu1604-$*:/packages/archives/. build/packages/docker/$*/ubuntu-16.04
-	docker rm docker-ubuntu1604-$*
-
 build/packages/docker/%/ubuntu-18.04:
 	docker build \
 		--build-arg DOCKER_VERSION=$* \
@@ -470,6 +456,9 @@ build/packages/docker/%/ubuntu-18.04:
 
 build/packages/docker/%/ubuntu-20.04:
 	./bundles/docker-ubuntu2004/build.sh $* `pwd`/build/packages/docker/$*/ubuntu-20.04
+
+build/packages/docker/%/ubuntu-22.04:
+	./bundles/docker-ubuntu2204/build.sh $* `pwd`/build/packages/docker/$*/ubuntu-22.04
 
 build/packages/docker/%/rhel-7:
 	docker build \
@@ -515,18 +504,6 @@ build/packages/docker/%/rhel-8:
 	mkdir -p build/packages/docker/$*/rhel-8
 	docker cp docker-rhel8-$*:/packages/archives/. build/packages/docker/$*/rhel-8
 	docker rm docker-rhel8-$*
-
-build/packages/kubernetes/%/ubuntu-16.04:
-	docker build \
-		--build-arg KUBERNETES_VERSION=$* \
-		-t kurl/ubuntu-1604-k8s:$* \
-		-f bundles/k8s-ubuntu1604/Dockerfile \
-		bundles/k8s-ubuntu1604
-	-docker rm -f k8s-ubuntu1604-$* 2>/dev/null
-	docker create --name k8s-ubuntu1604-$* kurl/ubuntu-1604-k8s:$*
-	mkdir -p build/packages/kubernetes/$*/ubuntu-16.04
-	docker cp k8s-ubuntu1604-$*:/packages/archives/. build/packages/kubernetes/$*/ubuntu-16.04/
-	docker rm k8s-ubuntu1604-$*
 
 build/packages/kubernetes/%/ubuntu-18.04:
 	docker build \

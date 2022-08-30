@@ -120,7 +120,7 @@
     kubernetes:
       version: 1.17.13
     docker:
-      version: 20.10.5
+      version: latest
     weave:
       version: 2.5.2
     contour:
@@ -151,7 +151,6 @@
   - centos-83
   - centos-84
   - ol-84
-  - ubuntu-2204 # docker 20.10.5 is not available on ubuntu 22.04
 - name: k8s120x_docker
   installerSpec:
     kubernetes:
@@ -753,7 +752,7 @@
     kubernetes:
       version: 1.20.5
     docker:
-      version: 20.10.5
+      version: latest
     weave:
       version: 2.8.1
     registry:
@@ -772,14 +771,12 @@
       version: 2.6.0
     ekco:
       version: 0.10.1
-  unsupportedOSIDs:
-  - ubuntu-2204 # docker 20.10.5 (latest) is not supported on ubuntu 22.04
 - name: k8s1210_openebs260_minio-airgap
   installerSpec:
     kubernetes:
       version: 1.20.5
     docker:
-      version: 20.10.5
+      version: latest
     weave:
       version: 2.8.1
     registry:
@@ -799,8 +796,6 @@
     ekco:
       version: 0.10.1
   airgap: true
-  unsupportedOSIDs:
-  - ubuntu-2204 # docker 20.10.5 (latest) is not supported on ubuntu 22.04
 - name: k8s1205_rook_to_longhorn
   cpu: 6
   installerSpec:
@@ -1586,14 +1581,12 @@
     kubernetes:
       version: "1.23.5"
     docker:
-      version: "20.10.5"
+      version: latest
     weave:
       version: "2.6.5"
   postInstallScript: |
-    echo "this is text to test less command after installation" > test-less.txt
+    echo "this is to test less command after installation" > test-less.txt
     less test-less.txt > /dev/null
-  unsupportedOSIDs:
-  - ubuntu-2204 # docker 20.10.5 (latest) is not supported on ubuntu 22.04
 - name: "weave 2.6.5 multinode"
   installerSpec:
     kubernetes:
