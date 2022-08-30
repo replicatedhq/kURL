@@ -34,7 +34,7 @@
     "html-webpack-plugin": "^5.5.0",
     "json-loader": "^0.5.7",
     "postcss-loader": "^7.0.1",
-    "sass": "^1.54.5",
+    "sass": "^1.54.6",
     "sass-loader": "^13.0.2",
     "screen": "^0.2.10",
     "source-map-loader": "^4.0.0",
