@@ -56,6 +56,14 @@
     kubernetes:
       version: 1.19.x
     docker:
+      version: 19.03.x
+    weave:
+      version: latest
+- name: k8s123-minimal
+  installerSpec:
+    kubernetes:
+      version: 1.23.x
+    docker:
       version: 20.10.x
     weave:
       version: latest

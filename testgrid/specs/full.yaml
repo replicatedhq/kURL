@@ -41,14 +41,14 @@
     minio:
       version: latest
   airgap: true
-- name: k8s121x_docker201017
+- name: k8s121x_docker19034
   installerSpec:
     kubernetes:
       version: 1.21.x
     docker:
       daemonConfig: "{\n\t\"exec-opts\": [\"native.cgroupdriver=systemd\"],\n\t\"default-address-pools\":
         [ {\"base\":\"10.69.0.0/16\",\"size\":16} ]\n}"
-      version: 20.10.17
+      version: 19.03.4
     weave:
       version: 2.8.1
     contour:
@@ -64,12 +64,15 @@
       version: 1.5.1
     ekco:
       version: 0.7.0
+  unsupportedOSIDs:
+  - ubuntu-2004 # docker 19.03.4 is not available on ubuntu 20.04
+  - ubuntu-2204 # docker 19.x is not available on ubuntu 22.04
 - name: k8s119x
   installerSpec:
     kubernetes:
       version: 1.19.x
     docker:
-      version: 20.10.17
+      version: 19.03.10
     antrea:
       version: 0.13.1
     contour:
@@ -86,6 +89,8 @@
       version: 1.2.0
     ekco:
       version: 0.6.0
+  unsupportedOSIDs:
+  - ubuntu-2204 # docker 19.x is not available on ubuntu 22.04
 - name: k8s119_containerd149
   installerSpec:
     kubernetes:
@@ -115,7 +120,7 @@
     kubernetes:
       version: 1.17.13
     docker:
-      version: 20.10.17
+      version: latest
     weave:
       version: 2.5.2
     contour:
@@ -151,7 +156,7 @@
     kubernetes:
       version: 1.20.x
     docker:
-      version: 20.10.17
+      version: 19.03.10
     weave:
       version: 2.6.5
     contour:
@@ -170,6 +175,8 @@
       version: latest
     ekco:
       version: latest
+  unsupportedOSIDs:
+  - ubuntu-2204 # docker 19.x is not available on ubuntu 22.04
 - name: k8s121x_containerd
   installerSpec:
     kubernetes:
@@ -203,7 +210,7 @@
     kubernetes:
       version: 1.19.x
     docker:
-      version: 20.10.17
+      version: 19.03.10
     weave:
       version: 2.6.5
     contour:
@@ -221,12 +228,14 @@
     ekco:
       version: 0.6.0
   airgap: true
+  unsupportedOSIDs:
+  - ubuntu-2204 # docker 19.x is not available on ubuntu 22.04
 - name: k8s1184_1202
   installerSpec:
     kubernetes:
       version: 1.18.4
     docker:
-      version: 20.10.17
+      version: 20.10.5
     weave:
       version: 2.6.5
     contour:
@@ -240,6 +249,8 @@
       version: 2.8.1
     contour:
       version: latest
+  unsupportedOSIDs:
+  - ubuntu-2204 # docker 20.10.5 is not available on ubuntu 22.04
 - name: k8s1184_1202_containerd
   installerSpec:
     kubernetes:
@@ -314,7 +325,7 @@
     kubernetes:
       version: 1.19.x
     docker:
-      version: 20.10.17
+      version: 19.03.15
     antrea:
       version: 0.13.1
     contour:
@@ -331,12 +342,14 @@
       version: 1.2.0
     ekco:
       version: 0.6.0
+  unsupportedOSIDs:
+  - ubuntu-2204 # docker 19.x is not available on ubuntu 22.04
 - name: k8s119-airgap
   installerSpec:
     kubernetes:
       version: 1.19.x
     docker:
-      version: 20.10.17
+      version: 19.03.15
     antrea:
       version: 0.13.1
     contour:
@@ -354,6 +367,8 @@
     ekco:
       version: 0.6.0
   airgap: true
+  unsupportedOSIDs:
+  - ubuntu-2204 # docker 19.x is not available on ubuntu 22.04
 - name: k8s119_containerd1412
   installerSpec:
     kubernetes:
@@ -562,7 +577,7 @@
     kubernetes:
       version: 1.19.3
     docker:
-      version: 20.10.17
+      version: 19.03.15
     weave:
       version: 2.8.1
     rook:
@@ -576,12 +591,14 @@
       nameserver: 8.8.8.8
     collectd:
       version: v5
+  unsupportedOSIDs:
+  - ubuntu-2204 # docker 19.x and collectd-v5 are not supported on ubuntu 22.04
 - name: k8s119_selinux
   installerSpec:
     kubernetes:
       version: 1.19.3
     docker:
-      version: 20.10.17
+      version: 19.03.15
     weave:
       version: 2.8.1
     selinuxConfig:
@@ -595,6 +612,8 @@
         - s0-s0:c0.c1023
         - my_staff_u
       type: targeted
+  unsupportedOSIDs:
+  - ubuntu-2204 # docker 19.x is not supported on ubuntu 22.04
 - name: k8s120
   installerSpec:
     kubernetes:
@@ -702,6 +721,8 @@
       version: latest
     ekco:
       version: latest
+  unsupportedOSIDs:
+  - ubuntu-2204 # docker 20.10.5 (latest) is not supported on ubuntu 22.04
 - name: k8s121-airgap
   installerSpec:
     kubernetes:
@@ -724,12 +745,14 @@
     ekco:
       version: latest
   airgap: true
+  unsupportedOSIDs:
+  - ubuntu-2204 # docker 20.10.5 (latest) is not supported on ubuntu 22.04
 - name: k8s1210_openebs260_minio
   installerSpec:
     kubernetes:
       version: 1.20.5
     docker:
-      version: 20.10.17
+      version: latest
     weave:
       version: 2.8.1
     registry:
@@ -753,7 +776,7 @@
     kubernetes:
       version: 1.20.5
     docker:
-      version: 20.10.17
+      version: latest
     weave:
       version: 2.8.1
     registry:
@@ -947,6 +970,8 @@
       disableS3: true
     containerd:
       version: latest
+  unsupportedOSIDs:
+  - ubuntu-2204 # docker latest (20.10.5) is not supported on ubuntu 22.04
 - name: "Migrate from Docker to Containerd airgap"
   installerSpec:
     kubernetes:
@@ -981,6 +1006,8 @@
     containerd:
       version: latest
   airgap: true
+  unsupportedOSIDs:
+  - ubuntu-2204 # docker latest (20.10.5) is not available on ubuntu 22.04
 - name: "Upgrade to 1.22"
   cpu: 6
   installerSpec:
@@ -996,7 +1023,7 @@
     kotsadm:
       version: latest
     docker:
-      version: 20.10.17
+      version: 19.03.x
     velero:
       version: 1.6.x
     ekco:
@@ -1036,7 +1063,7 @@
     kotsadm:
       version: latest
     docker:
-      version: 20.10.17
+      version: 19.03.x
     velero:
       version: 1.6.x
     ekco:
@@ -1060,6 +1087,8 @@
     ekco:
       version: latest
   airgap: true
+  unsupportedOSIDs:
+  - ubuntu-2204 # docker 19.x is not available on ubuntu 22.04
 - name: "K8s 1.23x Rook"
   installerSpec:
     kubernetes:
@@ -1215,6 +1244,8 @@
     ekco:
       version: latest
   airgap: true
+  unsupportedOSIDs:
+  - ubuntu-2204 # docker 20.10.x is not supported on ubuntu 22.04
 - name: "Upgrade to 1.23 minimal"
   installerSpec:
     kubernetes:
@@ -1460,7 +1491,7 @@
     kubernetes:
       version: "1.19.x"
     docker:
-      version: "20.10.17"
+      version: "19.03.10"
       daemonConfig: |
         {
           "exec-opts": ["native.cgroupdriver=systemd"],
@@ -1550,11 +1581,11 @@
     kubernetes:
       version: "1.23.5"
     docker:
-      version: "20.10.17"
+      version: latest
     weave:
       version: "2.6.5"
   postInstallScript: |
-    echo "this is text to test less command after installation" > test-less.txt
+    echo "this is to test less command after installation" > test-less.txt
     less test-less.txt > /dev/null
 - name: "weave 2.6.5 multinode"
   installerSpec:
