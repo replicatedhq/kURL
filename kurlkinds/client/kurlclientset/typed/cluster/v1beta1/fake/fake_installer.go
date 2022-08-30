@@ -116,7 +116,7 @@ func (c *FakeInstallers) UpdateStatus(ctx context.Context, installer *v1beta1.In
 // Delete takes name of the installer and deletes it. Returns an error if one occurs.
 func (c *FakeInstallers) Delete(ctx context.Context, name string, opts v1.DeleteOptions) error {
 	_, err := c.Fake.
-		Invokes(testing.NewDeleteAction(installersResource, c.ns, name), &v1beta1.Installer{})
+		Invokes(testing.NewDeleteActionWithOptions(installersResource, c.ns, name, opts), &v1beta1.Installer{})
 
 	return err
 }

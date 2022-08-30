@@ -10,6 +10,15 @@ updates:
     schedule:
       interval: "weekly"
 
+  - package-ecosystem: "gomod"
+    directory: "/kurlkinds"
+    labels:
+      - "dependencies"
+      - "go"
+      - "type::chore"
+    schedule:
+      interval: "weekly"
+
   - package-ecosystem: "npm"
     directory: "/web"
     labels:
