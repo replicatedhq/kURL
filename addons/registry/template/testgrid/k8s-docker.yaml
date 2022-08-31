@@ -11,8 +11,6 @@
     registry:
       version: "__testver__"
       s3Override: "__testdist__"
-  unsupportedOSIDs:
-  - ubuntu-2204 # docker is not available on ubuntu 22.04
   postInstallScript: |
     # setup docker config
     mkdir -p ~/.docker
@@ -44,8 +42,6 @@
     registry:
       version: "__testver__"
       s3Override: "__testdist__"
-  unsupportedOSIDs:
-  - ubuntu-2204 # docker is not available on ubuntu 22.04
   postInstallScript: |
     # setup docker config
     mkdir -p ~/.docker
@@ -90,8 +86,6 @@
     registry:
       version: "__testver__"
       s3Override: "__testdist__"
-  unsupportedOSIDs:
-  - ubuntu-2204 # docker is not available on ubuntu 22.04
   postInstallScript: |
     # wait for the pod to be ready
     sleep 60s
@@ -139,8 +133,6 @@
     registry:
       version: "__testver__"
       s3Override: "__testdist__"
-  unsupportedOSIDs:
-  - ubuntu-2204 # docker is not available on ubuntu 22.04
   postInstallScript: |
     # wait for the pod to be ready
     sleep 60s
@@ -224,8 +216,6 @@
     registry:
       version: "__testver__"
       s3Override: "__testdist__"
-  unsupportedOSIDs:
-  - ubuntu-2204 # docker is not available on ubuntu 22.04
   postInstallScript: |
     # setup docker config
     mkdir -p ~/.docker
