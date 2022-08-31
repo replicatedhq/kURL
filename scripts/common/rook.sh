@@ -21,17 +21,17 @@ function is_rook_1() {
 }
 
 function rook_ceph_osd_pods_gone() {
-    if kubectl -n rook-ceph get pods -l app=rook-ceph-osd 2>&1 | grep 'rook-ceph-osd' &>/dev/null ; then
+    if kubectl -n rook-ceph get pods -l app=rook-ceph-osd 2>/dev/null | grep 'rook-ceph-osd' &>/dev/null ; then
         return 1
     fi
     return 0
 }
 
 function prometheus_pods_gone() {
-    if kubectl -n monitoring get pods -l app=prometheus 2>&1 | grep 'prometheus' &>/dev/null ; then
+    if kubectl -n monitoring get pods -l app=prometheus 2>/dev/null | grep 'prometheus' &>/dev/null ; then
         return 1
     fi
-    if kubectl -n monitoring get pods -l app.kubernetes.io/name=prometheus 2>&1 | grep 'prometheus' &>/dev/null ; then # the labels changed with prometheus 0.53+
+    if kubectl -n monitoring get pods -l app.kubernetes.io/name=prometheus 2>/dev/null | grep 'prometheus' &>/dev/null ; then # the labels changed with prometheus 0.53+
         return 1
     fi
 
@@ -39,7 +39,7 @@ function prometheus_pods_gone() {
 }
 
 function ekco_pods_gone() {
-    if kubectl -n kurl get pods -l app=ekc-operator 2>&1 | grep 'ekc' &>/dev/null ; then
+    if kubectl -n kurl get pods -l app=ekc-operator 2>/dev/null | grep 'ekc' &>/dev/null ; then
         return 1
     fi
     return 0
@@ -113,7 +113,7 @@ function rook_ceph_to_longhorn() {
 
     # set prometheus scale if it exists
     if kubectl get namespace monitoring &>/dev/null; then
-        if kubectl get prometheus -n monitoring k8s &>/dev/null; then
+        if kubectl -n monitoring get prometheus k8s &>/dev/null; then
             # before scaling down prometheus, scale down ekco as it will otherwise restore the prometheus scale
             if kubernetes_resource_exists kurl deployment ekc-operator; then
                 kubectl -n kurl scale deploy ekc-operator --replicas=0
@@ -121,7 +121,7 @@ function rook_ceph_to_longhorn() {
                 spinner_until 120 ekco_pods_gone
             fi
 
-            kubectl patch prometheus -n monitoring  k8s --type='json' --patch '[{"op": "replace", "path": "/spec/replicas", value: 0}]'
+            kubectl -n monitoring patch prometheus k8s --type='json' --patch '[{"op": "replace", "path": "/spec/replicas", value: 0}]'
             echo "Waiting for prometheus pods to be removed"
             spinner_until 120 prometheus_pods_gone
         fi
