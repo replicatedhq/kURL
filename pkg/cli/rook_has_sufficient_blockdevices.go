@@ -2,6 +2,7 @@ package cli
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/replicatedhq/kurl/pkg/rook"
 	"github.com/spf13/cobra"
@@ -12,7 +13,7 @@ import (
 func NewRookHasSufficientBlockDevicesCmd(cli CLI) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "has-sufficient-blockdevices",
-		Short: "Returns the 0 if there are enough block devices in the cluster, 1 otherwise",
+		Short: "Exits 0 if there are enough block devices in the cluster, 1 otherwise",
 		RunE: func(cmd *cobra.Command, args []string) error {
 
 			k8sConfig := config.GetConfigOrDie()
@@ -29,7 +30,8 @@ func NewRookHasSufficientBlockDevicesCmd(cli CLI) *cobra.Command {
 				return nil
 			}
 
-			return fmt.Errorf("insufficient block device OSDs")
+			os.Exit(1)
+			return nil
 		},
 		SilenceUsage: true,
 	}
