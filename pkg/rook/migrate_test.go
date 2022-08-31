@@ -34,10 +34,10 @@ func Test_countRookOSDs(t *testing.T) {
 		block     int
 	}{
 		{
-			name:      "6 blockdevice osds",
+			name:      "6 blockdevice osds on 3 nodes",
 			resources: runtimeFromPodlistJson(testfiles.SixBlockDevicePods),
 			hostpath:  0,
-			block:     6,
+			block:     3,
 		},
 		{
 			name:      "one hostpath osd",

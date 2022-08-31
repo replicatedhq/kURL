@@ -44,7 +44,7 @@ func HostpathToOsd(ctx context.Context, config *rest.Config) error {
 		out("No directory OSDs exist, and so no migration is required.")
 		return nil
 	}
-	out(fmt.Sprintf("%d directory OSDs exist, and %d block-based OSDs. Continuing with migration.", dirOSDs, blockOSDs))
+	out(fmt.Sprintf("%d directory OSDs exist, and %d nodes with block-based OSDs. Continuing with migration.", dirOSDs, blockOSDs))
 
 	// change cephcluster to use OSDs not hostpath (if not already done)
 	err = enableBlockDevices(ctx, client, cephClient)
@@ -281,7 +281,7 @@ func waitForBlockOSDs(ctx context.Context, client kubernetes.Interface) error {
 			}
 		}
 
-		updatedLine(fmt.Sprintf("Waiting for %d block device OSDs to be added to the cluster, have %d", desiredBlockCount, blockOSDCount))
+		updatedLine(fmt.Sprintf("Waiting for block device OSDs to be added to the cluster on %d nodes, have %d", desiredBlockCount, blockOSDCount))
 		select {
 		case <-time.After(loopSleep):
 		case <-ctx.Done():
@@ -305,7 +305,9 @@ func getRookOSDs(ctx context.Context, client kubernetes.Interface) ([]RookOSD, e
 
 	osds := []RookOSD{}
 	for _, pod := range pods.Items {
-		newOSD := RookOSD{}
+		newOSD := RookOSD{
+			Node: pod.Status.HostIP,
+		}
 
 		osdNum, err := strconv.ParseInt(pod.Labels["ceph-osd-id"], 10, 32)
 		if err != nil {
@@ -319,7 +321,6 @@ func getRookOSDs(ctx context.Context, client kubernetes.Interface) ([]RookOSD, e
 					newOSD.IsHostpath = true
 				}
 			}
-
 		}
 
 		osds = append(osds, newOSD)
@@ -328,23 +329,24 @@ func getRookOSDs(ctx context.Context, client kubernetes.Interface) ([]RookOSD, e
 	return osds, nil
 }
 
-// returns the number of hostpath-based osds, the number of block device based osds, and an error.
+// returns the number of nodes with hostpath-based osds, the number of nodes with block device based osds, and an error.
 func countRookOSDs(ctx context.Context, client kubernetes.Interface) (int, int, error) {
 	osds, err := getRookOSDs(ctx, client)
 	if err != nil {
 		return -1, -1, fmt.Errorf("unable to get rook osds: %w", err)
 	}
 
-	hostpathOSDs, blockOSDs := 0, 0
+	blockOSDsHosts := map[string]struct{}{}
+	hostpathOSDsHosts := map[string]struct{}{}
 	for _, osd := range osds {
 		if osd.IsHostpath {
-			hostpathOSDs++
+			hostpathOSDsHosts[osd.Node] = struct{}{}
 		} else {
-			blockOSDs++
+			blockOSDsHosts[osd.Node] = struct{}{}
 		}
 	}
 
-	return hostpathOSDs, blockOSDs, nil
+	return len(hostpathOSDsHosts), len(blockOSDsHosts), nil
 }
 
 func countNodes(ctx context.Context, client kubernetes.Interface) (int, error) {
