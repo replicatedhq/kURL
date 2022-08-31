@@ -141,7 +141,7 @@ function test_addon() {
   ref="${prefix}-${addon}-${version}-$(basename "$test_spec" ".yaml")-$(date --utc +%FT%TZ)"
 
   # Run testgrid plan
-  docker run --rm -e TESTGRID_API_TOKEN -v `pwd`:/wrk -w /wrk \
+  docker run --rm -e TESTGRID_API_TOKEN -v `pwd`:/wrk -v /tmp/test-spec:/tmp/test-spec -w /wrk \
     replicated/tgrun:latest queue --staging \
       --ref "$ref" \
       --spec /tmp/test-spec \
@@ -166,6 +166,7 @@ function run() {
 
   run_addon "$addon" "$version" "$prefix"
 
+  echo "::set-output name=msg::${MSG}"
   echo "::notice ::${MSG}"
   echo "Run completed."
 }

@@ -101,10 +101,7 @@ function longhorn_is_default_storageclass() {
 }
 
 function longhorn_has_default_storageclass() {
-    local hasDefaultStorageClass
-    hasDefaultStorageClass=$(kubectl get sc -o jsonpath='{.items[*].metadata.annotations.storageclass\.kubernetes\.io/is-default-class}')
-
-    if [ "$hasDefaultStorageClass" = "true" ] ; then
+    if kubectl get sc -o jsonpath='{.items[*].metadata.annotations.storageclass\.kubernetes\.io/is-default-class}' | grep -q "true" ; then
         return 0
     fi
     return 1

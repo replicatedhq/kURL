@@ -99,7 +99,7 @@
   cpu: 6
   installerSpec:
     kubernetes:
-      version: "latest"
+      version: "1.23.x"
     weave:
       version: "latest"
     containerd:
@@ -113,7 +113,7 @@
       version: "latest"
   upgradeSpec:
     kubernetes:
-      version: "latest"
+      version: "1.23.x"
     weave:
       version: "latest"
     containerd:
