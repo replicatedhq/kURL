@@ -1652,7 +1652,7 @@
     weave:
       version: "latest"
     rook:
-      version: "1.4.9"
+      version: "1.5.12"
     prometheus:
       version: "latest"
     minio:
@@ -1675,7 +1675,7 @@
     validate_read_write_object_store postupgrade minioupgrade.txt
 
     operatorVersion=$(kubectl get deployment -n rook-ceph rook-ceph-operator -o jsonpath='{.spec.template.spec.containers[0].image}')
-    echo $operatorVersion | grep 1.4.9
+    echo $operatorVersion | grep 1.5.12
 
     k8sVersion=$(kubectl get nodes -o jsonpath='{.items[0].status.nodeInfo.kubeletVersion}')
     echo $k8sVersion | grep 1.20
