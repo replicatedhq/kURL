@@ -1676,16 +1676,6 @@
 
     operatorVersion=$(kubectl get deployment -n rook-ceph rook-ceph-operator -o jsonpath='{.spec.template.spec.containers[0].image}')
     echo $operatorVersion | grep 1.4.9
-    is149=$?
-    if [ $ is149 -ne 0 ]; then
-      echo "Rook operator was running $operatorVersion not 1.4.9"
-      return 1 #failure
-    fi
 
-    k8sversion=$(kubectl get nodes -o jsonpath='{.items[0].status.nodeInfo.kubeletVersion}')
+    k8sVersion=$(kubectl get nodes -o jsonpath='{.items[0].status.nodeInfo.kubeletVersion}')
     echo $k8sVersion | grep 1.20
-    is120=$?
-    if [ $ is120 -ne 0 ]; then
-      echo "Kubernetes was still running $k8sVersion not 1.20.x"
-      return 1 #failure
-    fi
