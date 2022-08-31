@@ -357,6 +357,28 @@ func countNodes(ctx context.Context, client kubernetes.Interface) (int, error) {
 	return len(nodes.Items), nil
 }
 
+// HasSufficientBlockOSDs returns true if there are enough block-device based OSDs attached to the cluster at present, false otherwise.
+// 'enough' is min(nodecount, 3).
+// this is the same requirement as in waitForBlockOSDs.
+func HasSufficientBlockOSDs(ctx context.Context, client kubernetes.Interface) (bool, error) {
+	nodeCount, err := countNodes(ctx, client)
+	if err != nil {
+		return false, fmt.Errorf("unable to count nodes: %w", err)
+	}
+
+	desiredBlockCount := 3
+	if nodeCount < 3 {
+		desiredBlockCount = nodeCount
+	}
+
+	_, blockOSDCount, err := countRookOSDs(ctx, client)
+	if err != nil {
+		return false, fmt.Errorf("unable to count OSDs: %w", err)
+	}
+
+	return blockOSDCount >= desiredBlockCount, nil
+}
+
 // returns the list of OSDs that are hostpath OSDs
 func hostOSDs(osds []RookOSD) (hostOSDNums []int64) {
 	for _, osd := range osds {
