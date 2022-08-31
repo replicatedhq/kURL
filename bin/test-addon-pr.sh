@@ -166,6 +166,7 @@ function run() {
 
   run_addon "$addon" "$version" "$prefix"
 
+  echo "::set-output name=msg::${MSG}"
   echo "::notice ::${MSG}"
   echo "Run completed."
 }
