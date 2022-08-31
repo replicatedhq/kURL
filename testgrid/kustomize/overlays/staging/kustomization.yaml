@@ -1,3 +1,0 @@
-bases:
-  - ../../../tgapi/kustomize/overlays/staging
-  - ../../../migrations/kustomize/overlays/staging

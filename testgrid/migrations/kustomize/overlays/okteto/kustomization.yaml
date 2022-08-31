@@ -1,3 +1,0 @@
-resources:
-  - ./postgres.yaml
-  - ./migrations.yaml

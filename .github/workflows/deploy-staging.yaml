@@ -246,15 +246,6 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v3
 
-    - name: setup-go
-      uses: actions/setup-go@v3
-      with:
-        go-version: 1.19
-
-    - name: Tgrun Build
-      working-directory: ./testgrid/tgrun
-      run: make build
-
     - name: Tgrun Queue
       id: queue
       env:
@@ -262,9 +253,11 @@ jobs:
         VERSION_TAG: ${{ needs.get-tag.outputs.version_tag }}
       run: |
         REF="STAGING-release-${VERSION_TAG}-$(date '+%Y%m%d%H%M%S')"
-        ./testgrid/tgrun/bin/tgrun queue --staging \
-          --ref "${REF}" \
-          --spec ./testgrid/specs/deploy.yaml \
-          --os-spec ./testgrid/specs/os-latest.yaml
+        docker pull replicated/tgrun:latest
+        docker run --rm -e TESTGRID_API_TOKEN -v `pwd`:/wrk -w /wrk \
+          replicated/tgrun:latest queue --staging \
+            --ref "${REF}" \
+            --spec ./testgrid/specs/deploy.yaml \
+            --os-spec ./testgrid/specs/os-latest.yaml
         MSG="Testgrid Run(s) Executing @ https://testgrid.kurl.sh/run/${REF}"
         echo "::set-output name=msg::${MSG}"
