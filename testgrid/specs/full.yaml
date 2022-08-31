@@ -1629,3 +1629,53 @@
       version: "0.53.x"
     metricsServer:
       version: "0.4.x"
+- name: rook-upgrade-to-1.4
+  flags: "yes"
+  installerSpec:
+    kubernetes:
+      version: 1.19.x
+    containerd:
+      version: "latest"
+    weave:
+      version: "latest"
+    rook:
+      version: "latest"
+    prometheus:
+      version: "latest"
+    minio:
+      version: "latest"
+  upgradeSpec:
+    kubernetes:
+      version: 1.20.x
+    containerd:
+      version: "latest"
+    weave:
+      version: "latest"
+    rook:
+      version: "1.5.12"
+    prometheus:
+      version: "latest"
+    minio:
+      version: "latest"
+  postInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rook_ecph_object_store_info
+    validate_read_write_object_store rwtest testfile.txt
+
+    minio_object_store_info
+    validate_read_write_object_store rwtest minio.txt
+  postUpgradeScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rook_ecph_object_store_info
+    validate_testfile rwtest testfile.txt
+    validate_read_write_object_store postupgrade upgradefile.txt
+
+    minio_object_store_info
+    validate_testfile rwtest minio.txt
+    validate_read_write_object_store postupgrade minioupgrade.txt
+
+    operatorVersion=$(kubectl get deployment -n rook-ceph rook-ceph-operator -o jsonpath='{.spec.template.spec.containers[0].image}')
+    echo $operatorVersion | grep 1.5.12
+
+    k8sVersion=$(kubectl get nodes -o jsonpath='{.items[0].status.nodeInfo.kubeletVersion}')
+    echo $k8sVersion | grep 1.20

@@ -551,13 +551,13 @@ function main() {
     install_host_dependencies
     get_common
     setup_kubeadm_kustomize
+    maybe_report_upgrade_rook_10_to_14
     ${K8S_DISTRO}_addon_for_each addon_pre_init
     discover_pod_subnet
     discover_service_subnet
     configure_no_proxy
     install_cri
     get_shared
-    maybe_report_upgrade_rook_10_to_14
     report_upgrade_kubernetes
     report_kubernetes_install
     export SUPPORT_BUNDLE_READY=1 # allow ctrl+c and ERR traps to collect support bundles now that k8s is installed
