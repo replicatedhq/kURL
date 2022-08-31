@@ -112,6 +112,9 @@ function uninstall_docker() {
             if rpm -qa | grep -q 'docker-ce-rootless-extras'; then
                 dockerPackages+=("docker-ce-rootless-extras")
             fi
+            if rpm -qa | grep -q 'docker-scan-plugin'; then
+                dockerPackages+=("docker-scan-plugin")
+            fi
             rpm --erase ${dockerPackages[@]}
             ;;
     esac
