@@ -14,3 +14,6 @@ spec:
           - fail:
               when: "ol = 7"
               message: "containerd-1.2.13 is not supported on Oracle Linux 7"
+          - fail:
+              when: "ubuntu = 22.04"
+              message: "containerd-1.2.13 is not supported on Ubuntu 22.04"
