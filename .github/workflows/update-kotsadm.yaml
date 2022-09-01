@@ -30,7 +30,7 @@ jobs:
         labels: |
           kotsadm
           automated-pr
-          type::chore
+          type::feature
         draft: false
         base: "main"
         body: |
