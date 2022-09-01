@@ -71,26 +71,32 @@ func Test_getRookOSDs(t *testing.T) {
 			rookOsds: []RookOSD{
 				{
 					Num:        3,
+					Node:       "10.128.0.101",
 					IsHostpath: false,
 				},
 				{
 					Num:        4,
+					Node:       "10.128.0.108",
 					IsHostpath: false,
 				},
 				{
 					Num:        5,
+					Node:       "10.128.0.112",
 					IsHostpath: false,
 				},
 				{
 					Num:        6,
+					Node:       "10.128.0.101",
 					IsHostpath: false,
 				},
 				{
 					Num:        7,
+					Node:       "10.128.0.108",
 					IsHostpath: false,
 				},
 				{
 					Num:        8,
+					Node:       "10.128.0.112",
 					IsHostpath: false,
 				},
 			},
@@ -101,6 +107,7 @@ func Test_getRookOSDs(t *testing.T) {
 			rookOsds: []RookOSD{
 				{
 					Num:        0,
+					Node:       "10.128.15.193",
 					IsHostpath: true,
 				},
 			},
