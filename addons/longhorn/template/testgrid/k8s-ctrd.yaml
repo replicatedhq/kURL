@@ -54,7 +54,7 @@
     validate_testfile rwtest testfile.txt
     validate_read_write_object_store postupgrade upgradefile.txt
 
-- name: upgrade-from-latest-rook
+- name: upgrade-from-rook-1.0.x
   cpu: 6
   installerSpec:
     kubernetes:
@@ -71,7 +71,7 @@
       version: "latest"
   upgradeSpec:
     kubernetes:
-      version: "1.23.x"
+      version: "1.19.x"
     weave:
       version: "latest"
     containerd:
@@ -140,7 +140,7 @@
 - name: upgrade-from-oldest-longhorn
   installerSpec:
     kubernetes:
-      version: "1.23.x"
+      version: "1.21.x" # 1.1.2 does not support versions higher than 1.21
     weave:
       version: "latest"
     containerd:
@@ -151,7 +151,7 @@
       version: "1.1.2" # 1.1.0 is failing in testgrid
   upgradeSpec:
     kubernetes:
-      version: "1.23.x"
+      version: "1.21.x"
     weave:
       version: "latest"
     containerd:
