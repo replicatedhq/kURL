@@ -658,14 +658,14 @@ build/bin: build/bin/kurl
 	${MAKE} -C kurl_util build
 	cp -r kurl_util/bin build
 
-build/bin/kurl:
+build/bin/kurl: pkg/cli/commands.go go.mod go.sum
 	CGO_ENABLED=0 go build $(LDFLAGS) -o build/bin/kurl $(BUILDFLAGS) ./cmd/kurl
 	[ -n "${SKIP_LDD_CHECK}" ] || ldd build/bin/kurl 2>&1 | grep -q "not a dynamic executable" # confirm that there are no linked libs
 
 .PHONY: code
 code: build/kustomize build/addons
 
-build/bin/server: cmd/server/main.go
+build/bin/server: cmd/server/main.go go.mod go.sum
 	CGO_ENABLED=0 go build $(LDFLAGS) -o build/bin/server $(BUILDFLAGS) cmd/server/main.go
 
 .PHONY: web
