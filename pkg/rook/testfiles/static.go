@@ -3,6 +3,7 @@ package testfiles
 import _ "embed"
 
 // for health unit tests
+
 //go:embed healthyCephStatus1.json
 var HealthyCephStatus1 []byte
 
@@ -31,6 +32,7 @@ var NoReplicasCephStatus []byte
 var RecentCrashCephStatus []byte
 
 // lists of pods to use in migrate unit tests
+
 //go:embed "6 blockdevice pods.json"
 var SixBlockDevicePods []byte
 
@@ -38,8 +40,14 @@ var SixBlockDevicePods []byte
 var HostpathPods []byte
 
 // lists of deployments to be used in toolbox unit tests
+
 //go:embed "rook-6osd-deployments.json"
 var Rook6OSDDeployments []byte
 
 //go:embed "rook-hostpath-deployments.json"
 var RookHostpathDeployments []byte
+
+// lists of nodes to be used in unit tests
+
+//go:embed "upgradedNode.json"
+var UpgradedNode []byte
