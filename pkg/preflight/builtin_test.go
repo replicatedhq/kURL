@@ -212,7 +212,7 @@ func TestBuiltinExecuteTemplate(t *testing.T) {
 			spec: clusterv1beta1.Installer{
 				Spec: clusterv1beta1.InstallerSpec{
 					Docker: &clusterv1beta1.Docker{
-						Version: "latest",
+						Version: "20.10.17",
 					},
 				},
 			},
