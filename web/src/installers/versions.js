@@ -361,6 +361,7 @@ module.exports.InstallerVersions = {
   ],
   minio: [
     // cron-minio-update
+    "2022-09-01T23-53-36Z",
     "2022-08-22T23-53-06Z",
     "2022-08-02T23-59-16Z",
     "2022-07-17T15-43-14Z",
