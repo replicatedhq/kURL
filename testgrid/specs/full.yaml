@@ -847,7 +847,7 @@
       version: latest
   upgradeSpec:
     kubernetes:
-      version: 1.21.x
+      version: 1.23.x
     weave:
       version: latest
     longhorn:

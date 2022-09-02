@@ -27,7 +27,7 @@
     ekco:
       version: latest
     kubernetes:
-      version: latest
+      version: 1.23.x
     prometheus:
       version: latest
     registry:
