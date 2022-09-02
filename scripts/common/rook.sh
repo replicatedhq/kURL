@@ -260,8 +260,11 @@ function rook_10_to_14() {
     echo "This may take some time"
     rook_10_to_14_images
 
+    local thisHostname=
+    thisHostname=$(hostname)
+
     local nodesMissingImages=
-    nodesMissingImages=$($DIR/bin/kurl cluster nodes-missing-images docker.io/rook/ceph:v1.1.9 docker.io/rook/ceph:v1.2.7 docker.io/rook/ceph:v1.3.11 docker.io/rook/ceph:v1.4.9)
+    nodesMissingImages=$($DIR/bin/kurl cluster nodes-missing-images docker.io/rook/ceph:v1.1.9 docker.io/rook/ceph:v1.2.7 docker.io/rook/ceph:v1.3.11 docker.io/rook/ceph:v1.4.9 --exclude_host $thisHostname)
     if [ -n "$nodesMissingImages" ]; then
         local prefix=
         prefix="$(build_installer_prefix "${INSTALLER_ID}" "${KURL_VERSION}" "${KURL_URL}" "${PROXY_ADDRESS}")"

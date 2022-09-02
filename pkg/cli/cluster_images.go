@@ -11,6 +11,8 @@ import (
 )
 
 func NewClusterNodesMissingImageCmd(cli CLI) *cobra.Command {
+	var excludeHost string
+
 	cmd := &cobra.Command{
 		Use:   "nodes-missing-images image...",
 		Short: "Lists nodes missing the provided image(s). If a node is missing multiple images, it is only returned once.",
@@ -24,10 +26,23 @@ func NewClusterNodesMissingImageCmd(cli CLI) *cobra.Command {
 				return fmt.Errorf("failed to determine what nodes were missing images: %w", err)
 			}
 
+			if excludeHost != "" {
+				for idx, item := range nodesMissingImages {
+					if item == excludeHost {
+						// exclude this index from nodesMissingImages
+						nodesMissingImages = append(nodesMissingImages[:idx], nodesMissingImages[idx+1:]...)
+						break
+					}
+				}
+			}
+
 			fmt.Printf("%s\n", strings.Join(nodesMissingImages, " "))
 			return nil
 		},
 		SilenceUsage: true,
 	}
+
+	cmd.Flags().StringVar(&excludeHost, "exclude_host", "", "A hostname that will be excluded from the output")
+
 	return cmd
 }
