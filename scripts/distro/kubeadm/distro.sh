@@ -180,7 +180,7 @@ function kubeadm_registry_containerd_configure() {
         echo "$registry_ip $server" >> /etc/hosts
     fi
 
-    if grep -q "plugins.\"io.containerd.grpc.v1.cri\".registry.configs.\"${server}\".tls" /etc/containerd/config.toml; then
+    if grep -Fq "plugins.\"io.containerd.grpc.v1.cri\".registry.configs.\"${server}\".tls" /etc/containerd/config.toml; then
         echo "Registry ${server} TLS already configured for containerd"
         return 0
     fi
