@@ -5,15 +5,58 @@ metadata:
 spec:
   hostCollectors:
     - hostOS: {}
+    - systemPackages:
+        collectorName: system-packages
+        ubuntu:
+          - docker-ce
+        centos:
+          - docker-ce
   analyzers:
+    - systemPackages:
+        collectorName: "System Packages"
+        outcomes:
+        - fail:
+            when: '{{ .IsInstalled }}'
+            message: "Docker ({{ .Name }}) to containerd-1.2.13 migration is not supported"
     - hostOS:
+        checkName: "Containerd-1.2.13 Support"
         outcomes:
           - fail:
-              when: "centos = 7"
-              message: "containerd-1.2.13 is not supported on CentOS 7"
+              when: "centos = 7.4"
+              message: "containerd-1.2.13 is not supported on CentOS 7.4"
           - fail:
-              when: "ol = 7"
-              message: "containerd-1.2.13 is not supported on Oracle Linux 7"
+              when: "centos = 7.5"
+              message: "containerd-1.2.13 is not supported on CentOS 7.5"
+          - fail:
+              when: "centos = 7.6"
+              message: "containerd-1.2.13 is not supported on CentOS 7.6"
+          - fail:
+              when: "centos = 7.7"
+              message: "containerd-1.2.13 is not supported on CentOS 7.7"
+          - fail:
+              when: "centos = 7.8"
+              message: "containerd-1.2.13 is not supported on CentOS 7.8"
+          - fail:
+              when: "centos = 7.9"
+              message: "containerd-1.2.13 is not supported on CentOS 7.9"
+          - fail:
+              when: "ol = 7.4"
+              message: "containerd-1.2.13 is not supported on Oracle Linux 7.4"
+          - fail:
+              when: "ol = 7.5"
+              message: "containerd-1.2.13 is not supported on Oracle Linux 7.5"
+          - fail:
+              when: "ol = 7.6"
+              message: "containerd-1.2.13 is not supported on Oracle Linux 7.6"
+          - fail:
+              when: "ol = 7.7"
+              message: "containerd-1.2.13 is not supported on Oracle Linux 7.7"
+          - fail:
+              when: "ol = 7.8"
+              message: "containerd-1.2.13 is not supported on Oracle Linux 7.8"
+          - fail:
+              when: "ol = 7.9"
+              message: "containerd-1.2.13 is not supported on Oracle Linux 7.9"
           - fail:
               when: "ubuntu = 22.04"
               message: "containerd-1.2.13 is not supported on Ubuntu 22.04"

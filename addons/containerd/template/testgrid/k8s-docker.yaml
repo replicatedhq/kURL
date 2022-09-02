@@ -80,6 +80,7 @@
     - centos-78
     - centos-79
     - ol-79
+    - ubuntu-2204
 - name: "Migrate from Docker to Containerd"
   installerSpec:
     kubernetes:
