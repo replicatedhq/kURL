@@ -394,3 +394,11 @@ spec:
           - fail:
               when: "ubuntu = 22.04"
               message: "Collectd addon not supported on ubuntu 22.04"
+    - hostOS:
+        checkName: "Docker Support"
+        exclude: '{{kurl and .Installer.Spec.Docker.Version (semverCompare "< 20.10.17" .Installer.Spec.Docker.Version) | not }}'
+        outcomes:
+          - fail:
+              when: "ubuntu = 22.04"
+              message: "Docker version < 20.10.17 not supported on ubuntu 22.04"
+
