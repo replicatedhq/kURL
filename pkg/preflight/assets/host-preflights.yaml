@@ -400,5 +400,4 @@ spec:
         outcomes:
           - fail:
               when: "ubuntu = 22.04"
-              message: "Docker version < 20.10.17 not supported on ubuntu 22.04"
-
+              message: "Docker versions < 20.10.17 not supported on ubuntu 22.04"
