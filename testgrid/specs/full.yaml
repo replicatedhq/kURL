@@ -1679,17 +1679,17 @@
 
     k8sVersion=$(kubectl get nodes -o jsonpath='{.items[0].status.nodeInfo.kubeletVersion}')
     echo $k8sVersion | grep 1.20
-- name: "k8s_latest containerd 1.5.x upgrade to latest"
+- name: "k8s_124x containerd 1.5.x upgrade to latest"
   installerSpec:
     kubernetes:
-      version: latest
+      version: 1.24.x
     weave:
       version: latest
     containerd:
       version: 1.5.x
   upgradeSpec:
     kubernetes:
-      version: latest
+      version: 1.24.x
     weave:
       version: latest
     containerd:
