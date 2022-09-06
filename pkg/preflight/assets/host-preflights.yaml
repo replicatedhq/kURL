@@ -401,3 +401,10 @@ spec:
           - fail:
               when: "ubuntu = 22.04"
               message: "Docker versions < 20.10.17 not supported on ubuntu 22.04"
+    # hijack hostOS analyzer in order to analyze the kURL Installer spec
+    - hostOS:
+        checkName: "Containerd and Weave Compatibility"
+        exclude: '{{kurl or (not .Installer.Spec.Weave.Version) (not .Installer.Spec.Containerd.Version) (semverCompare "1.6.0 - 1.6.4" .Installer.Spec.Containerd.Version | not) }}'
+        outcomes:
+          - fail:
+              message: "Weave is not compatible with containerd versions 1.6.0 - 1.6.4"

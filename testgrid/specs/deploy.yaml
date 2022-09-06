@@ -169,13 +169,11 @@
       version: "1.23.x"
       cisCompliance: true
     containerd:
-      version: "1.4.x"
+      version: "latest"
     weave:
       version: "latest"
     ekco:
       version: "latest"
-  unsupportedOSIDs:
-    - ubuntu-2204 # containerd 1.4.x is not supported on ubuntu 22.04
   postInstallScript: |
     echo "running CIS Kubernetes Benchmark Checks"
     kube_bench_version="$(curl -s https://api.github.com/repos/aquasecurity/kube-bench/releases/latest | grep '"tag_name":' | sed -E 's/.*"v([^"]+)".*/\1/')"
@@ -230,7 +228,7 @@
     kubernetes:
       version: 1.24.x
     containerd:
-      version: 1.5.x
+      version: latest
     weave:
       version: 2.8.x
     contour:

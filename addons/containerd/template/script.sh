@@ -195,16 +195,6 @@ function find_common_versions() {
     VERSIONS+=("1.2.13")
 
     export GREATEST_VERSION="${VERSIONS[0]}"
-
-    # Move 1.6.x to the back so it's not the latest
-    local V6=()
-    for v in ${VERSIONS[@]}; do
-        if [[ $v == 1\.6\.* ]]; then
-            VERSIONS=("${VERSIONS[@]/$v}")
-            V6+=("${v}")
-        fi
-    done
-    VERSIONS=("${VERSIONS[@]}" "${V6[@]}")
 }
 
 function generate_version() {
