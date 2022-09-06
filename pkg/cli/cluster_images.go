@@ -36,7 +36,7 @@ func NewClusterNodesMissingImageCmd(cli CLI) *cobra.Command {
 				}
 			}
 
-			fmt.Printf("%s\n", strings.Join(nodesMissingImages, " "))
+			fmt.Fprintf(cmd.OutOrStdout(), "%s\n", strings.Join(nodesMissingImages, " "))
 			return nil
 		},
 		SilenceUsage: true,
