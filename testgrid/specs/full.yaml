@@ -1586,7 +1586,7 @@
     weave:
       version: "2.6.5"
     containerd:
-      version: "1.5.11"
+      version: "latest"
   numPrimaryNodes: 1
   numSecondaryNodes: 2
 - name: "weave 2.8.1 multinode"
@@ -1596,7 +1596,7 @@
     weave:
       version: "2.8.1"
     containerd:
-      version: "1.5.11"
+      version: "latest"
   numPrimaryNodes: 1
   numSecondaryNodes: 2
 - name: k8s121x_openebs_containerd
@@ -1608,7 +1608,7 @@
     contour:
       version: "1.21.x"
     containerd:
-      version: "1.5.x"
+      version: "latest"
     velero:
       version: "1.8.x"
     kotsadm:
@@ -1679,3 +1679,18 @@
 
     k8sVersion=$(kubectl get nodes -o jsonpath='{.items[0].status.nodeInfo.kubeletVersion}')
     echo $k8sVersion | grep 1.20
+- name: "k8s_latest containerd 1.5.x upgrade to latest"
+  installerSpec:
+    kubernetes:
+      version: latest
+    weave:
+      version: latest
+    containerd:
+      version: 1.5.x
+  upgradeSpec:
+    kubernetes:
+      version: latest
+    weave:
+      version: latest
+    containerd:
+      version: latest

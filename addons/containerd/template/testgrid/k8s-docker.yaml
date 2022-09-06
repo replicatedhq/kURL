@@ -1,8 +1,8 @@
-- name: basic containerd and antrea
+- name: basic containerd and weave
   installerSpec:
     kubernetes:
       version: "latest"
-    antrea:
+    weave:
       version: "latest"
       isEncryptionDisabled: true
     containerd:
@@ -14,10 +14,11 @@
       version: "latest"
     rook:
       version: "latest"
-- installerSpec:
+- name: "Upgrade Containerd from current to __testver__"
+  installerSpec:
     kubernetes:
       version: "latest"
-    antrea:
+    weave:
       version: "latest"
       isEncryptionDisabled: true
     containerd:
@@ -31,7 +32,7 @@
   upgradeSpec:
     kubernetes:
       version: "latest"
-    antrea:
+    weave:
       version: "latest"
       isEncryptionDisabled: true
     containerd:
@@ -47,7 +48,7 @@
   installerSpec:
     kubernetes:
       version: 1.23.x
-    antrea:
+    weave:
       version: latest
       isEncryptionDisabled: true
     longhorn:
@@ -64,7 +65,7 @@
   upgradeSpec:
     kubernetes:
       version: 1.23.x
-    antrea:
+    weave:
       version: latest
       isEncryptionDisabled: true
     longhorn:
@@ -83,7 +84,7 @@
   installerSpec:
     kubernetes:
       version: 1.23.x
-    antrea:
+    weave:
       version: latest
       isEncryptionDisabled: true
     longhorn:
@@ -100,7 +101,7 @@
   upgradeSpec:
     kubernetes:
       version: 1.23.x
-    antrea:
+    weave:
       version: latest
       isEncryptionDisabled: true
     longhorn:
