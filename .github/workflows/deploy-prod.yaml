@@ -6,8 +6,21 @@ on:
     - "v*.*.*"
 
 jobs:
+  verify-tag:
+    runs-on: ubuntu-20.04
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Verify version tag
+      run: |
+        export VERSION_TAG=$(echo $GITHUB_REF | awk -F'/' '{ print $NF }')
+        ./bin/verify-tag.sh "${VERSION_TAG}"
+
   generate-kurl-release-notes-pr:
     runs-on: ubuntu-20.04
+    needs:
+    - verify-tag
     steps:
     - name: Checkout
       uses: actions/checkout@v2
@@ -24,6 +37,8 @@ jobs:
 
   production-docker-image:
     runs-on: ubuntu-20.04
+    needs:
+    - verify-tag
     steps:
     - uses: actions/checkout@v3
 
@@ -62,6 +77,8 @@ jobs:
 
   kurl-util-image:
     runs-on: ubuntu-20.04
+    needs:
+    - verify-tag
     steps:
     - uses: actions/checkout@v3
     - uses: docker/login-action@v2
