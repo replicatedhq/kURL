@@ -15,7 +15,7 @@ jobs:
     - name: Verify version tag
       run: |
         export VERSION_TAG=$(echo $GITHUB_REF | awk -F'/' '{ print $NF }')
-        OUTPUT=`bin/verify-tag.sh "${VERSION_TAG}"`
+        ./bin/verify-tag.sh "${VERSION_TAG}"
 
   generate-kurl-release-notes-pr:
     runs-on: ubuntu-20.04
