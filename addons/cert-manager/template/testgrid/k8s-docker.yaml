@@ -10,7 +10,6 @@
       version: "__testver__"
       s3Override: "__testdist__"
   postInstallScript: |
-    sleep 30s
     kubectl get crds
     kubectl get all -n cert-manager
     # todo validate that cert-manager is actually working (TBD how)
@@ -40,7 +39,6 @@
     kubectl get crds
     kubectl get all -n cert-manager
   postUpgradeScript: |
-    sleep 30s
     # todo validate that cert-manager is actually working (TBD how)
     kubectl get pods -n cert-manager
 
