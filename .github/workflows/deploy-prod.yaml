@@ -8,21 +8,19 @@ on:
 jobs:
   verify-tag:
     runs-on: ubuntu-20.04
-    outputs:
-        result: ${{ steps.verify-tag-id.outputs.result }}
     steps:
     - name: Checkout
       uses: actions/checkout@v2
 
-    - id: verify-tag-id
-      name: Verify version tag
+    - name: Verify version tag
       run: |
-          export VERSION_TAG=$(echo $GITHUB_REF | awk -F'/' '{ print $NF }')
-          OUTPUT=`bin/verify-tag.sh "${VERSION_TAG}"`
-          echo "::set-output name=result::$OUTPUT"
+        export VERSION_TAG=$(echo $GITHUB_REF | awk -F'/' '{ print $NF }')
+        OUTPUT=`bin/verify-tag.sh "${VERSION_TAG}"`
 
   generate-kurl-release-notes-pr:
     runs-on: ubuntu-20.04
+    needs:
+    - verify-tag
     steps:
     - name: Checkout
       uses: actions/checkout@v2
@@ -39,6 +37,8 @@ jobs:
 
   production-docker-image:
     runs-on: ubuntu-20.04
+    needs:
+    - verify-tag
     steps:
     - uses: actions/checkout@v3
 
@@ -77,6 +77,8 @@ jobs:
 
   kurl-util-image:
     runs-on: ubuntu-20.04
+    needs:
+    - verify-tag
     steps:
     - uses: actions/checkout@v3
     - uses: docker/login-action@v2
