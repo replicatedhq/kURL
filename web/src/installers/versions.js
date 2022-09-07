@@ -412,6 +412,7 @@ module.exports.InstallerVersions = {
   ],
   certManager: [
     "1.0.3",
+    "1.9.1",
   ],
   metricsServer: [
     "0.3.7",
