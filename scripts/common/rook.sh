@@ -260,6 +260,22 @@ function rook_10_to_14() {
     echo "This may take some time"
     rook_10_to_14_images
 
+    local thisHostname=
+    thisHostname=$(hostname)
+
+    local nodesMissingImages=
+    nodesMissingImages=$($DIR/bin/kurl cluster nodes-missing-images docker.io/rook/ceph:v1.1.9 docker.io/rook/ceph:v1.2.7 docker.io/rook/ceph:v1.3.11 docker.io/rook/ceph:v1.4.9 --exclude_host $thisHostname)
+    if [ -n "$nodesMissingImages" ]; then
+        local prefix=
+        prefix="$(build_installer_prefix "${INSTALLER_ID}" "${KURL_VERSION}" "${KURL_URL}" "${PROXY_ADDRESS}")"
+
+        echo "The nodes $nodesMissingImages appear to be missing images required for the Rook 1.0 to 1.4 migration."
+        echo "Please run the following on each of these nodes before continuing:"
+        printf "\n\t${GREEN}${prefix}tasks.sh | sudo bash -s rook_10_to_14_images${NC}\n\n"
+        printf "Are you ready to continue? "
+        confirmY
+    fi
+
     $DIR/bin/kurl rook hostpath-to-block
 
     local upgrade_files_path="$DIR/addons/rookupgrade/10to14"

@@ -19,6 +19,10 @@ func AddCommands(cmd *cobra.Command, cli CLI) {
 	rookCmd.AddCommand(NewRookHasSufficientBlockDevicesCmd(cli))
 	cmd.AddCommand(rookCmd)
 
+	clusterCmd := NewClusterCmd(cli)
+	clusterCmd.AddCommand(NewClusterNodesMissingImageCmd(cli))
+	cmd.AddCommand(clusterCmd)
+
 	cmd.AddCommand(NewSyncObjectStoreCmd(cli))
 
 	cmd.AddCommand(NewFormatAddressCmd(cli))
