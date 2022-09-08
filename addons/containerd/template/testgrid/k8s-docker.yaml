@@ -44,6 +44,36 @@
       version: "latest"
     rook:
       version: "latest"
+- name: Upgrade Containerd from oldest (1.3.x) to __testver__
+  installerSpec:
+    kubernetes:
+      version: "latest"
+    antrea:
+      version: "latest"
+      isEncryptionDisabled: true
+    containerd:
+      version: "1.3.9"
+    minio:
+      version: "latest"
+    kotsadm:
+      version: "latest"
+    rook:
+      version: "latest"
+  upgradeSpec:
+    kubernetes:
+      version: "latest"
+    antrea:
+      version: "latest"
+      isEncryptionDisabled: true
+    containerd:
+      version: "__testver__"
+      s3Override: "__testdist__"
+    minio:
+      version: "latest"
+    kotsadm:
+      version: "latest"
+    rook:
+      version: "latest"
 - name: "Migrate from Docker to Containerd"
   installerSpec:
     kubernetes:
