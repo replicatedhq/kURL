@@ -215,11 +215,6 @@ function should_upgrade_rook_10_to_14() {
         return 1
     fi
 
-    # this upgrade process does not yet support airgap
-    if [ "$AIRGAP" = "1" ]; then
-        return 1
-    fi
-
     # rook is not currently installed, so no upgrade
     if ! is_rook_1 ; then
         return 1
@@ -248,7 +243,14 @@ function should_upgrade_rook_10_to_14() {
 
 function rook_10_to_14_images() {
     logStep "Downloading images required for Rook 1.1.9, 1.2.7, 1.3.11 and 1.4.9 that will be used as part of this upgrade"
-    addon_fetch rookupgrade 10to14
+
+    if [ "$AIRGAP" = "1" ]; then
+        # check if the files are already present - if they are,
+        addon_fetch_airgap rookupgrade 10to14
+    else
+        addon_fetch rookupgrade 10to14
+    fi
+
     addon_load rookupgrade 10to14
     logSuccess "Images loaded for Rook 1.1.9, 1.2.7, 1.3.11 and 1.4.9"
 }

@@ -231,3 +231,44 @@ function addon_set_has_been_applied() {
         kubectl patch configmaps -n kurl kurl-current-config --type merge -p "{\"data\":{\"addons-$name\":\"$current\"}}"
     fi
 }
+
+function addon_fetch_airgap() {
+    local name=$1
+    local version=$2
+    local package="$name-$version.tar.gz"
+
+    if [ -f "$(package_filepath "${package}")" ]; then
+        # the package already exists, no need to download it
+        printf "The package %s %s is already available locally.\n" "$name" "$version"
+    else
+        # prompt the user to give us the package
+        printf "The package %s %s is not available locally, and is required.\n" "$name" "$version"
+        printf "You can download it from TODO with the following command:\n"
+        printf "TODO COMMAND\n"
+
+        if ! prompts_can_prompt; then
+            # we can't ask the user to give us the file because there are no prompts, but we can say where to put it for a future run
+            printf "Please move this file to %s before rerunning the installer.\n" "$(package_filepath "${package}")"
+            return 0
+        fi
+
+        printf "If you have this file, please provide the path to the file on the server.\n"
+        printf "If you do not have the file, leave the prompt empty and this package will be skipped.\n"
+        printf "%s %s filepath:" "$name" "$version"
+        prompt
+        if [ -n "$PROMPT_RESULT" ]; then
+            local loadedPackagePath="$PROMPT_RESULT"
+            cp "$loadedPackagePath" "$(package_filepath "${package}")"
+            return
+        else
+            printf "Skipping package %s %s\n" "$name" "$version"
+            return 0
+        fi
+    fi
+
+    tar xf "$(package_filepath "${package}")"
+
+    . $DIR/addons/$name/$version/install.sh
+
+    return 0
+}
