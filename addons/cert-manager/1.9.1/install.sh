@@ -19,10 +19,10 @@ cert-manager() {
   kubectl apply -k  "$dst"
 
   # wait for deployments to be ready
-  printf "awaiting cert-manager deployment"
+  printf "awaiting cert-manager deployment\n"
   spinner_until 120 deployment_fully_updated cert-manager cert-manager
-  printf "awaiting cert-manager-cainjector deployment"
+  printf "awaiting cert-manager-cainjector deployment\n"
   spinner_until 120 deployment_fully_updated cert-manager cert-manager-cainjector
-  printf "awaiting cert-manager-webhook deployment"
+  printf "awaiting cert-manager-webhook deployment\n"
   spinner_until 120 deployment_fully_updated cert-manager cert-manager-webhook
 }
