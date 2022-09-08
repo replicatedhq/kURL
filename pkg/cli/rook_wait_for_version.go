@@ -11,7 +11,7 @@ import (
 
 func NewRookWaitForRookVersionCmd(cli CLI) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "wait-for-rook-version version",
+		Use:   "wait-for-rook-version VERSION",
 		Short: "Waits for all deployments to be using the specified rook version, and prints deployments that are still on an old version",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -36,7 +36,7 @@ func NewRookWaitForRookVersionCmd(cli CLI) *cobra.Command {
 }
 func NewRookWaitForCephVersionCmd(cli CLI) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "wait-for-ceph-version version",
+		Use:   "wait-for-ceph-version VERSION",
 		Short: "Waits for all deployments to be using the specified ceph version, and prints deployments that are still on an old version",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {

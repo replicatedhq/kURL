@@ -14,7 +14,7 @@ func NewClusterNodesMissingImageCmd(cli CLI) *cobra.Command {
 	var excludeHost string
 
 	cmd := &cobra.Command{
-		Use:   "nodes-missing-images image...",
+		Use:   "nodes-missing-images IMAGE...",
 		Short: "Lists nodes missing the provided image(s). If a node is missing multiple images, it is only returned once.",
 		Args:  cobra.MinimumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
