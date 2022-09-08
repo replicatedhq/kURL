@@ -38,17 +38,6 @@ jobs:
 
       - run: make -C kurl_util deps test build
 
-  build-web:
-    runs-on: ubuntu-20.04
-    steps:
-      - uses: actions/checkout@v3
-
-      - uses: actions/setup-node@v3
-        with:
-          node-version: '14'
-
-      - run: make -C web deps test build
-
   test-shell:
     runs-on: ubuntu-20.04
     steps:
@@ -96,7 +85,6 @@ jobs:
     needs:
     - validate-go-mod
     - build-kurl-utils
-    - build-web
     - test-shell
     - build-kurlkinds
     - build-bin-kurl

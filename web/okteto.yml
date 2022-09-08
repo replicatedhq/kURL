@@ -1,9 +1,0 @@
-name: kurl
-command: bash
-image: okteto.dev/replicated-kurl:${OKTETO_NAMESPACE}
-workdir: /src
-sync:
-  - .:/src
-externalVolumes:
-  - dev-cache:npm-cache:/cache/.npm
-  - dev-cache:kurl-webpack-cache:/src/node_modules/.cache

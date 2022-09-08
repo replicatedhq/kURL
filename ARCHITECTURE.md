@@ -47,6 +47,8 @@ The kURL API is made up of 5 services.
 
 #### Web
 
+https://github.com/replicatedhq/kurl-api
+
 The browser UI for creating and viewing kURL installers.
 
 #### Go API Proxy
