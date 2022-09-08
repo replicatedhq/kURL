@@ -23,14 +23,15 @@ cert-manager() {
   kubectl apply -k  "$dst"
 
   # wait for deployments to be ready
-  printf "awaiting cert-manager deployment\n"
+  echo "awaiting cert-manager deployment"
   spinner_until 120 deployment_fully_updated cert-manager cert-manager
-  printf "awaiting cert-manager-cainjector deployment\n"
+  echo "awaiting cert-manager-cainjector deployment"
   spinner_until 120 deployment_fully_updated cert-manager cert-manager-cainjector
-  printf "awaiting cert-manager-webhook deployment\n"
+  echo "awaiting cert-manager-webhook deployment"
   spinner_until 120 deployment_fully_updated cert-manager cert-manager-webhook
 
   if [ -f "$dst/existingIssuers.yaml" ]; then
+    # ignore errors applying the previous issuers as they may be v1beta1 and thus unsupported by the new version of cert-manager
     kubectl apply -f "$dst/existingIssuers.yaml" || true
     rm "$dst/existingIssuers.yaml"
   fi

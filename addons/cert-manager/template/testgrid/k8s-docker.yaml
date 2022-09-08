@@ -35,15 +35,14 @@
       version: "__testver__"
       s3Override: "__testdist__"
   postInstallScript: |
-    sleep 30s
     kubectl get crds
     kubectl get all -n cert-manager
     kubectl create -f https://raw.githubusercontent.com/cert-manager/website/master/content/docs/tutorials/acme/example/staging-issuer.yaml
-    kubectl get issuers
+    kubectl get issuers letsencrypt-staging
   postUpgradeScript: |
     # todo validate that cert-manager is actually working (TBD how)
     kubectl get pods -n cert-manager
-    kubectl get issuers
+    kubectl get issuers letsencrypt-staging
 
 - name: airgap install
   airgap: true
