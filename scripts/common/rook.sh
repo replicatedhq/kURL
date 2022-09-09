@@ -245,8 +245,9 @@ function rook_10_to_14_images() {
     logStep "Downloading images required for Rook 1.1.9, 1.2.7, 1.3.11 and 1.4.9 that will be used as part of this upgrade"
 
     if [ "$AIRGAP" = "1" ]; then
-        # check if the files are already present - if they are,
-        addon_fetch_airgap rookupgrade 10to14
+        if ! addon_fetch_airgap rookupgrade 10to14; then
+            return 1
+        fi
     else
         addon_fetch rookupgrade 10to14
     fi
@@ -260,7 +261,10 @@ function rook_10_to_14() {
     logStep "Upgrading Rook-Ceph from 1.0.x to 1.4.x"
     echo "This involves upgrading from 1.0.x to 1.1, 1.1 to 1.2, 1.2 to 1.3, and 1.3 to 1.4"
     echo "This may take some time"
-    rook_10_to_14_images
+    if ! rook_10_to_14_images; then
+        echo "Cancelling Rook 1.0 to 1.4 upgrade"
+        return 0
+    fi
 
     $DIR/bin/kurl rook hostpath-to-block
 

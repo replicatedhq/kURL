@@ -232,6 +232,9 @@ function addon_set_has_been_applied() {
     fi
 }
 
+# check if the files are already present - if they are, use that
+# if they are not, prompt the user to provide them
+# if the user does not provide the files, return 1
 function addon_fetch_airgap() {
     local name=$1
     local version=$2
@@ -243,8 +246,8 @@ function addon_fetch_airgap() {
     else
         # prompt the user to give us the package
         printf "The package %s %s is not available locally, and is required.\n" "$name" "$version"
-        printf "You can download it from TODO with the following command:\n"
-        printf "TODO COMMAND\n"
+        printf "You can download it from %s with the following command:\n" "$(get_dist_url)/${package}"
+        printf "\n${GREEN}    curl -o %s %s${NC}\n\n" "${package}" "$(get_dist_url)/${package}"
 
         if ! prompts_can_prompt; then
             # we can't ask the user to give us the file because there are no prompts, but we can say where to put it for a future run
@@ -254,18 +257,20 @@ function addon_fetch_airgap() {
 
         printf "If you have this file, please provide the path to the file on the server.\n"
         printf "If you do not have the file, leave the prompt empty and this package will be skipped.\n"
-        printf "%s %s filepath:" "$name" "$version"
+        printf "%s %s filepath: " "$name" "$version"
         prompt
         if [ -n "$PROMPT_RESULT" ]; then
             local loadedPackagePath="$PROMPT_RESULT"
             cp "$loadedPackagePath" "$(package_filepath "${package}")"
-            return
         else
             printf "Skipping package %s %s\n" "$name" "$version"
-            return 0
+            printf "You can provide the path to this file the next time the installer is run,"
+            printf "or move it to %s to be detected automatically.\n" "$(package_filepath "${package}")"
+            return 1
         fi
     fi
 
+    printf "Unpacking %s %s...\n" "$name" "$version"
     tar xf "$(package_filepath "${package}")"
 
     . $DIR/addons/$name/$version/install.sh
