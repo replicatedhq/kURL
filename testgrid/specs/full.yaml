@@ -829,7 +829,7 @@
   cpu: 6
   installerSpec:
     kubernetes:
-      version: 1.20.x
+      version: 1.23.x
     weave:
       version: latest
     rook:
@@ -1161,7 +1161,7 @@
   cpu: 6
   installerSpec:
     kubernetes:
-      version: 1.21.x
+      version: 1.23.x
     weave:
       version: latest
     rook:
@@ -1201,7 +1201,7 @@
   cpu: 6
   installerSpec:
     kubernetes:
-      version: 1.21.x
+      version: 1.23.x
     weave:
       version: latest
     rook:
