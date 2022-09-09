@@ -262,7 +262,7 @@ function rook_10_to_14() {
     echo "This involves upgrading from 1.0.x to 1.1, 1.1 to 1.2, 1.2 to 1.3, and 1.3 to 1.4"
     echo "This may take some time"
     if ! rook_10_to_14_images; then
-        echo "Cancelling Rook 1.0 to 1.4 upgrade"
+        logWarn "Cancelling Rook 1.0 to 1.4 upgrade"
         return 0
     fi
 

@@ -247,12 +247,12 @@ function addon_fetch_airgap() {
         # prompt the user to give us the package
         printf "The package %s %s is not available locally, and is required.\n" "$name" "$version"
         printf "You can download it from %s with the following command:\n" "$(get_dist_url)/${package}"
-        printf "\n${GREEN}    curl -o %s %s${NC}\n\n" "${package}" "$(get_dist_url)/${package}"
+        printf "\n${GREEN}    curl -LO %s${NC}\n\n" "$(get_dist_url)/${package}"
 
         if ! prompts_can_prompt; then
             # we can't ask the user to give us the file because there are no prompts, but we can say where to put it for a future run
             printf "Please move this file to %s before rerunning the installer.\n" "$(package_filepath "${package}")"
-            return 0
+            return 1
         fi
 
         printf "If you have this file, please provide the path to the file on the server.\n"
