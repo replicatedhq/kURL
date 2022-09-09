@@ -44,7 +44,7 @@
       version: "latest"
     rook:
       version: "latest"
-- name: Upgrade Containerd from oldest (1.3.x) to __testver__
+- name: Upgrade Containerd from oldest (1.5.x) to __testver__
   installerSpec:
     kubernetes:
       version: "latest"
@@ -52,7 +52,7 @@
       version: "latest"
       isEncryptionDisabled: true
     containerd:
-      version: "1.3.9"
+      version: "1.5.11"
     minio:
       version: "latest"
     kotsadm:
