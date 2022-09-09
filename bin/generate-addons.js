@@ -2,6 +2,7 @@ const fs = require("fs");
 const path = require("path");
 const semverCompare = require('semver/functions/rcompare')
 const AWS = require('aws-sdk');
+const installerVersions = require("../web/src/installers/versions");
 
 const ID = process.env.AWS_ACCESS_KEY_ID;
 const SECRET = process.env.AWS_SECRET_ACCESS_KEY;
@@ -39,7 +40,7 @@ const uploadFile = (file) => {
   });
 }
 
-const preferredVersions = JSON.parse(fs.readFileSync("./web/versions.json"));
+const preferredVersions = installerVersions.InstallerVersions;
 let addons = [];
 let supportedVersions = new Object();
 const specDir = "./addons";

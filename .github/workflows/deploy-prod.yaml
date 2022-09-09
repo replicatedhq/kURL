@@ -14,7 +14,7 @@ jobs:
 
     - name: Verify version tag
       run: |
-        export VERSION_TAG=$(echo $GITHUB_REF | awk -F'/' '{ print $NF }')
+        export VERSION_TAG=$GITHUB_REF_NAME
         ./bin/verify-tag.sh "${VERSION_TAG}"
 
   generate-kurl-release-notes-pr:
@@ -29,51 +29,11 @@ jobs:
       env:
         GH_PAT: ${{ secrets.AUTOMATED_PR_GH_PAT }}
       run: |
-        export VERSION_TAG=$(echo $GITHUB_REF | awk -F'/' '{ print $NF }')
+        export VERSION_TAG=$GITHUB_REF_NAME
         curl -H "Authorization: token $GH_PAT" \
           -H 'Accept: application/json' \
           -d "{\"event_type\": \"kubernetes-installer-release-notes\", \"client_payload\": {\"version\": \"${VERSION_TAG}\" }}" \
           "https://api.github.com/repos/replicatedhq/replicated-docs/dispatches"
-
-  production-docker-image:
-    runs-on: ubuntu-20.04
-    needs:
-    - verify-tag
-    steps:
-    - uses: actions/checkout@v3
-
-    - uses: actions/setup-node@v3
-      with:
-        node-version: '14'
-
-    - run: make -C web deps build
-
-    - run: make web
-
-    - run: |
-        export VERSION_TAG=$(echo $GITHUB_REF | awk -F'/' '{ print $NF }')
-        npm i -g npm @bugsnag/source-maps
-        bugsnag-source-maps upload-node \
-          --api-key ${{ secrets.BUGSNAG_API_KEY }} \
-          --app-version ${GITHUB_SHA:0:7} \
-          --directory ./web/build \
-          --overwrite
-
-    - run: |
-        export VERSION_TAG=$(echo $GITHUB_REF | awk -F'/' '{ print $NF }')
-        docker build -f deploy/Dockerfile-slim \
-          --build-arg version=${GITHUB_SHA:0:7} \
-          --build-arg version_tag=${VERSION_TAG} \
-          -t 799720048698.dkr.ecr.us-east-1.amazonaws.com/kurl:${VERSION_TAG}-${GITHUB_SHA:0:7} .
-    - uses: docker/login-action@v2
-      with:
-        registry: 799720048698.dkr.ecr.us-east-1.amazonaws.com
-        username: ${{ secrets.AWS_PROD_ACCESS_KEY_ID }}
-        password: ${{ secrets.AWS_PROD_SECRET_ACCESS_KEY }}
-
-    - run: |
-        export VERSION_TAG=$(echo $GITHUB_REF | awk -F'/' '{ print $NF }')
-        docker push 799720048698.dkr.ecr.us-east-1.amazonaws.com/kurl:${VERSION_TAG}-${GITHUB_SHA:0:7}
 
   kurl-util-image:
     runs-on: ubuntu-20.04
@@ -86,14 +46,13 @@ jobs:
         username: ${{ secrets.DOCKERHUB_DOCKER_USER }}
         password: ${{ secrets.DOCKERHUB_DOCKER_PASS }}
     - run: |
-        export VERSION_TAG=$(echo $GITHUB_REF | awk -F'/' '{ print $NF }')
+        export VERSION_TAG=$GITHUB_REF_NAME
         export KURL_UTIL_IMAGE=replicated/kurl-util:${VERSION_TAG}
         make -C kurl_util build-and-push-kurl-util-image
 
   build-matrix:
     runs-on: ubuntu-20.04
     needs:
-    - production-docker-image
     - kurl-util-image
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
@@ -103,7 +62,7 @@ jobs:
     - id: set-matrix
       name: Build image matrix
       run: |
-        export VERSION_TAG=$(echo $GITHUB_REF | awk -F'/' '{ print $NF }')
+        export VERSION_TAG=$GITHUB_REF_NAME
         export KURL_UTIL_IMAGE=replicated/kurl-util:${VERSION_TAG}
         export KURL_BIN_UTILS_FILE=kurl-bin-utils-${VERSION_TAG}.tar.gz
         OUTPUT=`bin/list-all-packages-actions-matrix.sh "${{ github.event.inputs.index }}"`
@@ -134,7 +93,7 @@ jobs:
       shell: bash
 
     - run: |
-        export VERSION_TAG=$(echo $GITHUB_REF | awk -F'/' '{ print $NF }')
+        export VERSION_TAG=$GITHUB_REF_NAME
         export KURL_UTIL_IMAGE=replicated/kurl-util:${VERSION_TAG}
         export KURL_BIN_UTILS_FILE=kurl-bin-utils-${VERSION_TAG}.tar.gz
 
@@ -148,17 +107,15 @@ jobs:
   build-addons:
     runs-on: ubuntu-20.04
     needs:
-    - production-docker-image
     - kurl-util-image
     steps:
     - uses: actions/checkout@v3
     - uses: actions/setup-node@v3
       with:
         node-version: '14'
-    - run: make -C web deps
     - run: npm install
     - run: |
-        export VERSION_TAG=$(echo $GITHUB_REF | awk -F'/' '{ print $NF }')
+        export VERSION_TAG=$GITHUB_REF_NAME
         make generate-addons
       env:
         S3_BUCKET: kurl-sh
@@ -167,55 +124,9 @@ jobs:
         AWS_DEFAULT_REGION: "us-east-1"
         DIST_FOLDER: "dist"
 
-  deploy-production-eks:
-    runs-on: ubuntu-20.04
-    needs:
-    - production-docker-image
-    - kurl-util-image
-    - build-upload-packages
-    steps:
-    - uses: actions/checkout@v3
-    - name: kustomize
-      run: |
-        export VERSION_TAG=$(echo $GITHUB_REF | awk -F'/' '{ print $NF }')
-        curl -s https://api.github.com/repos/kubernetes-sigs/kustomize/releases/tags/v2.0.0 | \
-          grep browser_download | \
-          grep linux | \
-          cut -d '"' -f 4 | \
-          xargs sudo curl -O -L && \
-          sudo mv kustomize_*_linux_amd64 /usr/local/bin/kustomize && \
-          sudo chmod +x /usr/local/bin/kustomize
-        pushd kustomize/overlays/production
-        kustomize edit set image 799720048698.dkr.ecr.us-east-1.amazonaws.com/kurl:${VERSION_TAG}-${GITHUB_SHA:0:7}
-        kustomize build . | sed "s/__VERSION_TAG__/${VERSION_TAG}/g" > kurl.yaml
-        popd
-
-    - name: ssh-key
-      env:
-        GITOPS_DEPLOY_KEY: ${{ secrets.GITOPS_DEPLOY_KEY }}
-      run: |
-        mkdir -p ~/.ssh
-        echo "$GITOPS_DEPLOY_KEY" > ~/.ssh/id_rsa
-        chmod 400 ~/.ssh/id_rsa
-        echo 'github.com ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAq2A7hRGmdnm9tUDbO9IDSwBK6TbQa+PXYPCPy6rbTrTtw7PHkccKrpp0yVhp5HdEIcKr6pLlVDBfOLX9QUsyCOV0wzfjIJNlGEYsdlLJizHhbn2mUjvSAHQqZETYP81eFzLQNnPHt4EVVUh7VfDESU84KezmD5QlWpXLmvU31/yMf+Se8xhHTvKSCZIFImWwoG6mbUoWf9nzpIoaSjB+weqqUUmpaaasXVal72J+UX2B+2RPW3RcT0eOzQgqlJL3RKrTJvdsjE3JEAvGq3lGHSZXy28G3skua2SmVi/w4yCE6gbODqnTWlg7+wC604ydGXA8VJiS5ap43JXiUFFAaQ==' \
-          >> ~/.ssh/known_hosts
-
-    - name: release
-      run: |
-        cd ~ && git clone --single-branch -b release git@github.com:replicatedcom/gitops-deploy
-        mkdir -p ~/gitops-deploy/kurl
-        mv ${GITHUB_WORKSPACE}/kustomize/overlays/production/kurl.yaml gitops-deploy/kurl/kurl.yaml
-        cd ~/gitops-deploy
-        git config user.email "kurl-github-actions@replicated.com"
-        git config user.name "kURL GitHub Actions"
-        git add .
-        git commit --allow-empty -m "https://github.com/replicatedhq/kURL/actions/runs/${GITHUB_RUN_ID}" && \
-          git push origin release
-
   github-release:
     runs-on: ubuntu-20.04
     needs:
-    - production-docker-image
     - kurl-util-image
     steps:
     - name: Checkout
@@ -274,7 +185,6 @@ jobs:
         draft: false
         prerelease: false
 
-
     - name: Get Cosign Key
       run: | 
         echo $COSIGN_KEY | base64 -d > ./cosign.key
@@ -306,7 +216,7 @@ jobs:
     - name: Set VERSION file in s3
       run: |
         export VERSION_TAG=$GITHUB_REF_NAME
-        echo "$VERSION_TAG" | aws s3 cp - s3://$S3_BUCKET/$DIST_FOLDER/VERSION
+        echo -n "$VERSION_TAG" | aws s3 cp - s3://$S3_BUCKET/$DIST_FOLDER/VERSION
       env:
         S3_BUCKET: kurl-sh
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_PROD_ACCESS_KEY_ID }}

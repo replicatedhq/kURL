@@ -665,14 +665,6 @@ build/bin/kurl: pkg/cli/commands.go go.mod go.sum
 .PHONY: code
 code: build/kustomize build/addons
 
-build/bin/server: cmd/server/main.go go.mod go.sum
-	CGO_ENABLED=0 go build $(LDFLAGS) -o build/bin/server $(BUILDFLAGS) cmd/server/main.go
-
-.PHONY: web
-web: build/bin/server
-	mkdir -p web/build
-	cp -r build/bin web
-
 watchrsync:
 	bin/watchrsync.js
 
@@ -709,8 +701,7 @@ kurl-util-image:
 
 .PHONY: generate-addons
 generate-addons:
-	make -C web generate-versions
-	node generate-addons.js
+	node bin/generate-addons.js
 
 .PHONY: generate-mocks
 generate-mocks:
@@ -727,9 +718,6 @@ common-test:
 .PHONY: init-sbom
 init-sbom:
 	mkdir -p sbom/spdx sbom/assets
-	# remove directory that breaks go sbom generation 
-	- rm -rf web/node_modules/snyk/dist/gosrc
-	- rm -rf web/node_modules/snyk-go-plugin/gosrc
 
 .PHONY: install-spdx-sbom-generator
 install-spdx-sbom-generator: init-sbom
