@@ -819,7 +819,7 @@ export class Installer {
     const installerVersions = await getInstallerVersions(distUrl, kurlVersion);
 
     i.id = "latest";
-    i.spec.kubernetes = { version: "1.23.x" };
+    i.spec.kubernetes = { version: "1.24.x" };
     i.spec.containerd = { version: this.toDotXVersion(installerVersions.containerd[0]) };
     i.spec.weave = { version: this.toDotXVersion(installerVersions.weave[0]) };
     i.spec.longhorn = { version: this.toDotXVersion(installerVersions.longhorn[0]) };

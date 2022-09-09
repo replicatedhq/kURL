@@ -11,10 +11,10 @@
     ekco:
       version: "__testver__"
       s3Override: "__testdist__"
-- name: Kubernetes 1.23, Internal LB, Rook, Multi node
+- name: Kubernetes 1.24, Internal LB, Rook, Multi node
   installerSpec:
     kubernetes:
-      version: 1.23.x
+      version: 1.24.x
     weave:
       version: "latest"
     rook:
@@ -47,7 +47,7 @@
 - name: podImageOverrides
   installerSpec:
     kubernetes:
-      version: "1.23.x"
+      version: "1.24.x"
     containerd:
       version: "latest"
     weave:
