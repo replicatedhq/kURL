@@ -47,7 +47,7 @@
 - name: "Migrate from Docker to Containerd"
   installerSpec:
     kubernetes:
-      version: 1.24.x
+      version: 1.23.x
     weave:
       version: latest
       isEncryptionDisabled: true
@@ -83,7 +83,7 @@
 - name: "Migrate from Docker to Containerd airgap"
   installerSpec:
     kubernetes:
-      version: 1.24.x
+      version: 1.23.x
     weave:
       version: latest
       isEncryptionDisabled: true

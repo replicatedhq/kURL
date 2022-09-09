@@ -107,7 +107,7 @@
       version: "1.24.x"
     weave:
       version: "latest"
-    docker:
+    containerd:
       version: "latest"
     minio:
       version: "latest"

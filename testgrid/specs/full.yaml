@@ -936,7 +936,7 @@
 - name: "Migrate from Docker to Containerd"
   installerSpec:
     kubernetes:
-      version: 1.24.x
+      version: 1.23.x
     weave:
       version: latest
     longhorn:
@@ -952,7 +952,7 @@
       version: latest
   upgradeSpec:
     kubernetes:
-      version: 1.24.x
+      version: 1.23.x
     weave:
       version: latest
     longhorn:
@@ -969,7 +969,7 @@
 - name: "Migrate from Docker to Containerd airgap"
   installerSpec:
     kubernetes:
-      version: 1.24.x
+      version: 1.23.x
     weave:
       version: latest
     longhorn:
@@ -985,7 +985,7 @@
       version: latest
   upgradeSpec:
     kubernetes:
-      version: 1.24.x
+      version: 1.23.x
     weave:
       version: latest
     longhorn:
@@ -1572,7 +1572,7 @@
   installerSpec:
     kubernetes:
       version: "1.24.x"
-    docker:
+    containerd:
       version: latest
     weave:
       version: "2.6.5"
