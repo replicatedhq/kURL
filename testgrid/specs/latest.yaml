@@ -2,7 +2,7 @@
   installerSpec:
     kubernetes:
       version: latest
-    docker:
+    containerd:
       version: latest
     weave:
       version: latest

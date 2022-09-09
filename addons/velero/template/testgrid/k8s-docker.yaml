@@ -6,7 +6,7 @@
       version: "latest"
     rook:
       version: "latest"
-    docker:
+    containerd:
       version: "latest"
     velero:
       version: "__testver__"
@@ -20,7 +20,7 @@
       version: "latest"
     rook:
       version: "latest"
-    docker:
+    containerd:
       version: "latest"
     velero:
       version: "__testver__"

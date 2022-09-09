@@ -6,7 +6,7 @@
       version: "latest"
     rook:
       version: 1.7.x
-    docker:
+    containerd:
       version: "latest"
     registry:
       version: "__testver__"
@@ -37,7 +37,7 @@
       version: "latest"
     longhorn:
       version: "latest"
-    docker:
+    containerd:
       version: "latest"
     registry:
       version: "__testver__"
@@ -68,7 +68,7 @@
       version: "latest"
     longhorn:
       version: "latest"
-    docker:
+    containerd:
       version: "latest"
     registry:
       version: "latest"
@@ -81,7 +81,7 @@
       version: "latest"
     longhorn:
       version: "latest"
-    docker:
+    containerd:
       version: "latest"
     registry:
       version: "__testver__"
@@ -117,7 +117,7 @@
       version: "latest"
     longhorn:
       version: "latest"
-    docker:
+    containerd:
       version: "latest"
     registry:
       version: "2.7.1"
@@ -128,7 +128,7 @@
       version: "latest"
     longhorn:
       version: "latest"
-    docker:
+    containerd:
       version: "latest"
     registry:
       version: "__testver__"
@@ -211,7 +211,7 @@
       version: "latest"
     minio:
       version: "latest"
-    docker:
+    containerd:
       version: "latest"
     registry:
       version: "__testver__"

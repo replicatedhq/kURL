@@ -3,7 +3,7 @@
       version: "latest"
     weave:
       version: "latest"
-    docker:
+    containerd:
       version: "latest"
     collectd:
       version: "__testver__"

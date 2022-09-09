@@ -20,7 +20,7 @@
       version: "latest"
     weave:
       version: "latest"
-    docker:
+    containerd:
       version: "latest"
     certManager:
       version: "1.0.3"
@@ -29,7 +29,7 @@
       version: "latest"
     weave:
       version: "latest"
-    docker:
+    containerd:
       version: "latest"
     certManager:
       version: "__testver__"

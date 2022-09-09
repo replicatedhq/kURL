@@ -4,7 +4,7 @@
       version: "latest"
     weave:
       version: "latest"
-    docker:
+    containerd:
       version: "latest"
     minio:
       version: "latest"
@@ -30,7 +30,7 @@
       version: "latest"
     weave:
       version: "latest"
-    docker:
+    containerd:
       version: "latest"
     minio:
       version: "latest"
@@ -46,7 +46,7 @@
       version: "latest"
     weave:
       version: "latest"
-    docker:
+    containerd:
       version: "latest"
     minio:
       version: "latest"
@@ -186,7 +186,7 @@
       version: "latest"
     weave:
       version: "latest"
-    docker:
+    containerd:
       version: "latest"
     minio:
       version: "latest"
@@ -210,7 +210,7 @@
 - name: Upgrade from 1.0.4
   installerSpec:
     kubernetes:
-      version: "latest"
+      version: "1.19.x"
     weave:
       version: "latest"
     docker:
@@ -225,7 +225,7 @@
       version: "1.0.4"
   upgradeSpec:
     kubernetes:
-      version: "latest"
+      version: "1.19.x"
     weave:
       version: "latest"
     docker:
