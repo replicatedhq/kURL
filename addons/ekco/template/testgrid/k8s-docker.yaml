@@ -6,7 +6,7 @@
       version: "latest"
     rook:
       version: "latest"
-    docker:
+    containerd:
       version: "latest"
     ekco:
       version: "__testver__"

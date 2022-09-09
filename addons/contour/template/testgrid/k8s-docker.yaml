@@ -3,7 +3,7 @@
       version: "latest"
     weave:
       version: "latest"
-    docker:
+    containerd:
       version: "latest"
     contour:
       version: "latest"
@@ -12,7 +12,7 @@
       version: "latest"
     weave:
       version: "latest"
-    docker:
+    containerd:
       version: "latest"
     contour:
       version: "__testver__"
@@ -43,7 +43,7 @@
       version: "latest"
     weave:
       version: "latest"
-    docker:
+    containerd:
       version: "latest"
     contour:
       version: "__testver__"

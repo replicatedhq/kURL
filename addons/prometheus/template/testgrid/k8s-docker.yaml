@@ -7,7 +7,7 @@
     rook:
       version: "1.7.x"
       isBlockStorageEnabled: true
-    docker:
+    containerd:
       version: "latest"
     prometheus:
       version: "__testver__"
@@ -21,7 +21,7 @@
     rook:
       version: "1.7.x"
       isBlockStorageEnabled: true
-    docker:
+    containerd:
       version: "latest"
     prometheus:
       version: "0.33.0"
@@ -33,7 +33,7 @@
     rook:
       version: "1.7.x"
       isBlockStorageEnabled: true
-    docker:
+    containerd:
       version: "latest"
     prometheus:
       version: "__testver__"
@@ -47,7 +47,7 @@
     rook:
       version: "1.7.x"
       isBlockStorageEnabled: true
-    docker:
+    containerd:
       version: "latest"
     prometheus:
       version: "latest"
@@ -59,7 +59,7 @@
     rook:
       version: "1.7.x"
       isBlockStorageEnabled: true
-    docker:
+    containerd:
       version: "latest"
     prometheus:
       version: "__testver__"
@@ -86,7 +86,7 @@
     rook:
       version: "1.7.x"
       isBlockStorageEnabled: true
-    docker:
+    containerd:
       version: "latest"
     prometheus:
       version: "__testver__"

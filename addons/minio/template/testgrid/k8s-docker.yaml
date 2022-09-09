@@ -10,7 +10,7 @@
       localPVStorageClassName: default
       namespace: openebs
       version: "3.2.x"
-    docker:
+    containerd:
       version: "latest"
     minio:
       version: "__testver__"
