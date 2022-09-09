@@ -256,6 +256,8 @@ type Ekco struct {
 	AutoUpgradeSchedule                    string   `json:"autoUpgradeSchedule,omitempty" yaml:"autoUpgradeSchedule,omitempty"` // no longer supported
 	EnableInternalLoadBalancer             bool     `json:"enableInternalLoadBalancer,omitempty" yaml:"enableInternalLoadBalancer,omitempty"`
 	PodImageOverrides                      []string `json:"podImageOverrides,omitempty" yaml:"podImageOverrides,omitempty"`
+	ShouldDisableRestartFailedEnvoyPods    bool     `json:"shouldDisableRestartFailedEnvoyPods,omitempty" yaml:"shouldDisableRestartFailedEnvoyPods,omitempty"`
+	EnvoyPodsNotReadyDuration              string   `json:"envoyPodsNotReadyDuration,omitempty" yaml:"envoyPodsNotReadyDuration,omitempty"`
 }
 
 type Calico struct {

@@ -185,6 +185,9 @@
             "enableInternalLoadBalancer": {
               "type": "boolean"
             },
+            "envoyPodsNotReadyDuration": {
+              "type": "string"
+            },
             "minReadyMasterNodeCount": {
               "type": "integer"
             },
@@ -213,6 +216,9 @@
               "type": "boolean"
             },
             "shouldDisableRebootServices": {
+              "type": "boolean"
+            },
+            "shouldDisableRestartFailedEnvoyPods": {
               "type": "boolean"
             },
             "shouldEnablePurgeNodes": {

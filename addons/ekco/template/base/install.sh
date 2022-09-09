@@ -35,6 +35,13 @@ function ekco_pre_init() {
     if [ "$ROOK_VERSION" = "1.0.4" ]; then
         EKCO_ROOK_PRIORITY_CLASS="node-critical"
     fi
+    EKCO_RESTART_FAILED_ENVOY_PODS=true
+    if [ "$EKCO_SHOULD_DISABLE_RESTART_FAILED_ENVOY_PODS" = "1" ]; then
+        EKCO_RESTART_FAILED_ENVOY_PODS=false
+    fi
+    if [ -z "$EKCO_ENVOY_PODS_NOT_READY_DURATION" ]; then
+        EKCO_ENVOY_PODS_NOT_READY_DURATION="5m"
+    fi
 
     EKCO_ENABLE_INTERNAL_LOAD_BALANCER_BOOL=false
     if [ "$EKCO_ENABLE_INTERNAL_LOAD_BALANCER" = "1" ]; then
