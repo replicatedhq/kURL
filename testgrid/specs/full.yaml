@@ -1694,3 +1694,36 @@
       version: latest
     containerd:
       version: latest
+- name: "Migrate from Docker to Containerd and Kubernetes from 1.23 to 1.24"
+  installerSpec:
+    kubernetes:
+      version: 1.23.x
+    weave:
+      version: latest
+    longhorn:
+      version: latest
+    registry:
+      version: latest
+    ekco:
+      version: latest
+    kotsadm:
+      version: latest
+      disableS3: true
+    docker:
+      version: latest
+  upgradeSpec:
+    kubernetes:
+      version: 1.24.x
+    weave:
+      version: latest
+    longhorn:
+      version: latest
+    registry:
+      version: latest
+    ekco:
+      version: latest
+    kotsadm:
+      version: latest
+      disableS3: true
+    containerd:
+      version: latest
