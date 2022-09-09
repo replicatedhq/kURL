@@ -3,7 +3,7 @@ module github.com/replicatedhq/kurl/kurlkinds
 go 1.19
 
 require (
-	github.com/onsi/gomega v1.20.1
+	github.com/onsi/gomega v1.20.2
 	github.com/pkg/errors v0.9.1
 	github.com/replicatedhq/troubleshoot v0.41.0
 	github.com/spf13/cobra v1.5.0
