@@ -44,6 +44,9 @@
       version: "latest"
     rook:
       version: "latest"
+  postInstallScript: |
+    containerd --version | grep "__testver__"
+
 - name: Upgrade Containerd from oldest (1.5.x) to __testver__
   installerSpec:
     kubernetes:
@@ -74,6 +77,9 @@
       version: "latest"
     rook:
       version: "latest"
+  postInstallScript: |
+    containerd --version | grep "__testver__"
+
 - name: "Migrate from Docker to Containerd"
   installerSpec:
     kubernetes:
