@@ -215,11 +215,6 @@ function should_upgrade_rook_10_to_14() {
         return 1
     fi
 
-    # this upgrade process does not yet support airgap
-    if [ "$AIRGAP" = "1" ]; then
-        return 1
-    fi
-
     # rook is not currently installed, so no upgrade
     if ! is_rook_1 ; then
         return 1
@@ -248,7 +243,15 @@ function should_upgrade_rook_10_to_14() {
 
 function rook_10_to_14_images() {
     logStep "Downloading images required for Rook 1.1.9, 1.2.7, 1.3.11 and 1.4.9 that will be used as part of this upgrade"
-    addon_fetch rookupgrade 10to14
+
+    if [ "$AIRGAP" = "1" ]; then
+        if ! addon_fetch_airgap rookupgrade 10to14; then
+            return 1
+        fi
+    else
+        addon_fetch rookupgrade 10to14
+    fi
+
     addon_load rookupgrade 10to14
     logSuccess "Images loaded for Rook 1.1.9, 1.2.7, 1.3.11 and 1.4.9"
 }
@@ -258,7 +261,10 @@ function rook_10_to_14() {
     logStep "Upgrading Rook-Ceph from 1.0.x to 1.4.x"
     echo "This involves upgrading from 1.0.x to 1.1, 1.1 to 1.2, 1.2 to 1.3, and 1.3 to 1.4"
     echo "This may take some time"
-    rook_10_to_14_images
+    if ! rook_10_to_14_images; then
+        logWarn "Cancelling Rook 1.0 to 1.4 upgrade"
+        return 0
+    fi
 
     local thisHostname=
     thisHostname=$(hostname)
@@ -314,6 +320,7 @@ function rook_10_to_14() {
 
     echo "Upgrading ceph to v14.2.5"
     kubectl -n rook-ceph patch CephCluster rook-ceph --type=merge -p '{"spec": {"cephVersion": {"image": "ceph/ceph:v14.2.5-20191210"}}}'
+    kubectl patch deployment -n rook-ceph csi-rbdplugin-provisioner -p '{"spec": {"template": {"spec":{"containers":[{"name":"csi-snapshotter","imagePullPolicy":"IfNotPresent"}]}}}}'
     $DIR/bin/kurl rook wait-for-ceph-version "14.2.5"
 
     $DIR/bin/kurl rook wait-for-health

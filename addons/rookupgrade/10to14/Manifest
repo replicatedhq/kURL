@@ -6,6 +6,9 @@ image rook-ceph-149 rook/ceph:v1.4.9
 image ceph-ceph-1425 ceph/ceph:v14.2.5
 image ceph-ceph-1528 ceph/ceph:v15.2.8
 
+image ceph-ceph-1425-2019 docker.io/ceph/ceph:v14.2.5-20191210
+image ceph-ceph-1528-2020 docker.io/ceph/ceph:v15.2.8-20201217
+
 image cephcsi-cephcsi-122 quay.io/cephcsi/cephcsi:v1.2.2
 image cephcsi-cephcsi-212 quay.io/cephcsi/cephcsi:v2.1.2
 image cephcsi-cephcsi-311 quay.io/cephcsi/cephcsi:v3.1.1
