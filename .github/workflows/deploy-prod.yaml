@@ -227,7 +227,6 @@ jobs:
   testgrid-run:
     runs-on: ubuntu-20.04
     needs:
-    - deploy-production-eks
     - set-current-version
     steps:
 
