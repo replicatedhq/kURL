@@ -842,7 +842,7 @@
     containerd:
       version: latest
     velero:
-      version: 1.6.x
+      version: 1.8.x
     ekco:
       version: latest
   upgradeSpec:
@@ -860,7 +860,7 @@
     containerd:
       version: latest
     velero:
-      version: 1.7.x
+      version: 1.9.x
     ekco:
       version: latest
 - name: "K8s 1.22x Rook"
@@ -1174,7 +1174,7 @@
     docker:
       version: 20.10.x
     velero:
-      version: 1.6.x
+      version: 1.8.x
     ekco:
       version: latest
   upgradeSpec:
@@ -1192,7 +1192,7 @@
     containerd:
       version: 1.4.x
     velero:
-      version: 1.7.x
+      version: 1.9.x
     ekco:
       version: latest
   unsupportedOSIDs:
@@ -1214,7 +1214,7 @@
     docker:
       version: 20.10.x
     velero:
-      version: 1.6.x
+      version: 1.8.x
     ekco:
       version: latest
   upgradeSpec:
@@ -1232,7 +1232,7 @@
     containerd:
       version: 1.5.x
     velero:
-      version: 1.7.x
+      version: 1.9.x
     ekco:
       version: latest
   airgap: true
