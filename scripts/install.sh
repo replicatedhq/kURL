@@ -115,9 +115,15 @@ function init() {
             $kustomize_kubeadm_init/kustomization.yaml \
             patch-kubelet-cis-compliance.yaml
         
-        insert_patches_strategic_merge \
-            $kustomize_kubeadm_init/kustomization.yaml \
-            patch-cluster-config-cis-compliance.yaml
+        if [ "$KUBERNETES_TARGET_VERSION_MINOR" -ge "20" ]; then
+            insert_patches_strategic_merge \
+                $kustomize_kubeadm_init/kustomization.yaml \
+                patch-cluster-config-cis-compliance.yaml
+	else
+            insert_patches_strategic_merge \
+                $kustomize_kubeadm_init/kustomization.yaml \
+                patch-cluster-config-cis-compliance-insecure-port.yaml
+	fi
     fi
 
     if [ "$KUBE_RESERVED" == "1" ]; then

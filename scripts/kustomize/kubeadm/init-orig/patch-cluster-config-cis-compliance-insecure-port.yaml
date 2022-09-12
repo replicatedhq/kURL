@@ -5,4 +5,5 @@ metadata:
 apiServer:
   extraArgs:
     enable-admission-plugins: NodeRestriction
+    insecure-port: '"0"'
     kubelet-certificate-authority: /etc/kubernetes/pki/ca.crt
