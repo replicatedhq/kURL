@@ -23,11 +23,6 @@ function generate() {
         --set defaultStorageConfig.enabled=false \
         --set localprovisioner.enableDeviceClass=false \
         --set localprovisioner.enableHostpathClass=false \
-        --set release.version="$chart_version" \
-        --set localprovisioner.imageTag="$chart_version" \
-        --set helper.imageTag="$chart_version" \
-        --set ndm.imageTag=2.0.0 \
-        --set ndmOperator.imageTag=2.0.0 \
         > "$tmpdir/openebs.tmpl.yaml"
 
     $ksplit_path crdsplit "$tmpdir/"
