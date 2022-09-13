@@ -62,25 +62,29 @@ func isStatusHealthy(status cephtypes.CephStatus) (bool, string) {
 	statusMessage := []string{}
 
 	if status.Health.Status != "HEALTH_OK" {
-		unaccountedChecks := len(status.Health.Checks)
-
 		if _, ok := status.Health.Checks["TOO_MANY_PGS"]; ok {
 			// this is not an error we need to stop upgrades for (this will show up after upgrading from 1.0 until autoscaling pgs is enabled)
-			unaccountedChecks -= 1
+			delete(status.Health.Checks, "TOO_MANY_PGS")
 		}
 
 		if _, ok := status.Health.Checks["POOL_NO_REDUNDANCY"]; ok {
 			// this is not an error we need to stop upgrades for (it will always be present on single node installs)
-			unaccountedChecks -= 1
+			delete(status.Health.Checks, "POOL_NO_REDUNDANCY")
 		}
 
 		if _, ok := status.Health.Checks["RECENT_CRASH"]; ok {
 			// recent crash errors aren't likely to go away while we're waiting
-			unaccountedChecks -= 1
+			delete(status.Health.Checks, "RECENT_CRASH")
 		}
 
-		if unaccountedChecks != 0 {
-			statusMessage = append(statusMessage, fmt.Sprintf("health is %s not HEALTH_OK", status.Health.Status))
+		if len(status.Health.Checks) != 0 {
+			unhealthReasons := []string{}
+			for _, v := range status.Health.Checks {
+				unhealthReasons = append(unhealthReasons, v.Summary.Message)
+			}
+			sort.Strings(unhealthReasons)
+
+			statusMessage = append(statusMessage, fmt.Sprintf("health is %s because %q", status.Health.Status, strings.Join(unhealthReasons, " and ")))
 		}
 	}
 
