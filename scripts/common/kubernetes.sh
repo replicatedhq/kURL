@@ -947,3 +947,9 @@ function kubernetes_service_healthy() {
 
     kubectl -n "$namespace" get endpoints "$name" --no-headers | grep -v "<none>" &>/dev/null
 }
+
+function kubernetes_version_minor() {
+    local k8sVersion="$1"
+    # shellcheck disable=SC2001
+    echo "$k8sVersion" | sed 's/v\?[0-9]*\.\([0-9]*\)\.[0-9]*/\1/'
+}

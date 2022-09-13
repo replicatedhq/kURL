@@ -96,10 +96,14 @@ function uninstall_docker() {
 
     logStep "Uninstalling Docker..."
 
-    docker rm -f $(docker ps -a -q) || true
+    if [ "$(docker ps -aq | wc -l)" != "0" ] ; then
+        docker ps -aq | xargs docker rm -f || true
+    fi
     # The rm -rf /var/lib/docker command below may fail with device busy error, so remove as much
     # data as possible now
     docker system prune --all --volumes --force
+
+    systemctl disable docker.service --now
 
     case "$LSB_DIST" in
         ubuntu)
@@ -119,7 +123,7 @@ function uninstall_docker() {
             ;;
     esac
 
-    rm -rf /var/lib/docker || true
+    rm -rf /var/lib/docker /var/lib/dockershim || true
     rm -f /var/run/dockershim.sock
     rm -f /var/run/docker.sock
     echo "Docker successfully uninstalled."

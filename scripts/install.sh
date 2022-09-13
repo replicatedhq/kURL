@@ -342,7 +342,6 @@ function init() {
 function kubeadm_post_init() {
     BOOTSTRAP_TOKEN_EXPIRY=$(kubeadm token list | grep $BOOTSTRAP_TOKEN | awk '{print $3}')
     kurl_config
-    uninstall_docker
 }
 
 function kubernetes_maybe_generate_bootstrap_token() {
@@ -572,6 +571,7 @@ function main() {
     maybe_cleanup_rook
     helmfile_sync
     kubeadm_post_init
+    uninstall_docker
     outro
     package_cleanup
 
