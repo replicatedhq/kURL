@@ -90,6 +90,7 @@ function rook_join() {
 function rook_already_applied() {
     rook_object_store_output
     rook_set_ceph_pool_replicas
+    $DIR/bin/kurl rook wait-for-health 120
 }
 
 function rook_operator_crds_deploy() {
@@ -231,7 +232,7 @@ function rook_cluster_deploy_upgrade() {
     echo "Awaiting Ceph healthy"
 
     # CRD changes makes rook to restart and it takes time to reconcile
-    if ! spinner_until 600 rook_ceph_healthy ; then
+    if ! $DIR/bin/kurl rook wait-for-health 600 ; then
         kubectl -n rook-ceph exec deploy/rook-ceph-tools -- ceph status
         bail "Refusing to update cluster rook-ceph, Ceph is not healthy"
     fi
@@ -262,7 +263,7 @@ function rook_cluster_deploy_upgrade() {
 
     echo "Awaiting Ceph healthy"
 
-    if ! spinner_until 300 rook_ceph_healthy ; then
+    if ! $DIR/bin/kurl rook wait-for-health 300 ; then
         kubectl -n rook-ceph exec deploy/rook-ceph-tools -- ceph status
         bail "Failed to verify the updated cluster, Ceph is not healthy"
     fi
@@ -285,13 +286,6 @@ function rook_ready_spinner() {
     spinner_until 60 kubernetes_resource_exists rook-ceph daemonset rook-discover
     spinner_until 300 deployment_fully_updated rook-ceph rook-ceph-operator
     spinner_until 60 daemonset_fully_updated rook-ceph rook-discover
-}
-
-function rook_ceph_healthy() {
-    if kubectl -n rook-ceph exec deploy/rook-ceph-tools -- ceph status | grep -qE '(HEALTH_OK|HEALTH_WARN)' ; then
-        return 0
-    fi
-    return 1
 }
 
 # rook_version_deployed check that there is only one rook-version reported across the cluster
@@ -595,7 +589,7 @@ function rook_cephfilesystem_patch() {
     fi
 
     echo "Awaiting Ceph healthy"
-    if ! spinner_until 120 rook_ceph_healthy ; then
+    if ! $DIR/bin/kurl rook wait-for-health 120 ; then
         kubectl -n rook-ceph exec deploy/rook-ceph-tools -- ceph status
         bail "Refusing to update cluster rook-ceph, Ceph is not healthy"
     fi
