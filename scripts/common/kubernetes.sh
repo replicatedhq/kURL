@@ -316,13 +316,26 @@ function spinner_kubernetes_api_stable() {
 }
 
 function kubernetes_drain() {
-    kubectl drain "$1" \
+    if kubernetes_has_remotes ; then
+      kubectl drain "$1" \
         --delete-local-data \
         --ignore-daemonsets \
         --force \
         --grace-period=30 \
         --timeout=120s \
-        --pod-selector 'app notin (rook-ceph-mon,rook-ceph-osd,rook-ceph-osd-prepare,rook-ceph-operator,rook-ceph-agent),k8s-app!=kube-dns' || true
+        --pod-selector 'app notin (rook-ceph-mon,rook-ceph-osd,rook-ceph-osd-prepare,rook-ceph-operator,rook-ceph-agent),k8s-app!=kube-dns, name notin (restic)' || true
+    else
+      # On single node installs ignore pod disruption budgets
+      kubectl drain "$1" \
+        --delete-local-data \
+        --ignore-daemonsets \
+        --force \
+        --grace-period=30 \
+        --timeout=120s \
+        --disable-eviction \
+        --pod-selector 'app notin (rook-ceph-mon,rook-ceph-osd,rook-ceph-osd-prepare,rook-ceph-operator,rook-ceph-agent),k8s-app!=kube-dns, name notin (restic)' || true
+
+    fi
 }
 
 function kubernetes_node_has_version() {
