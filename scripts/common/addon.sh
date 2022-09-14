@@ -251,7 +251,7 @@ function addon_fetch_airgap() {
 
         if ! prompts_can_prompt; then
             # we can't ask the user to give us the file because there are no prompts, but we can say where to put it for a future run
-            printf "Please move this file to /var/lib/kurl/%s before rerunning the installer.\n" "$(package_filepath "${package}")"
+            printf "Please move this file to %s before rerunning the installer.\n" "$(package_filepath "${package}")"
             return 1
         fi
 

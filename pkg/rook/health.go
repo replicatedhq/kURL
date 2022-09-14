@@ -77,11 +77,6 @@ func isStatusHealthy(status cephtypes.CephStatus) (bool, string) {
 			delete(status.Health.Checks, "RECENT_CRASH")
 		}
 
-		if _, ok := status.Health.Checks["POOL_PG_NUM_NOT_POWER_OF_TWO"]; ok {
-			// this is something that will be fixed by enabling pg num autoscaling, but is not present at the beginning
-			delete(status.Health.Checks, "POOL_PG_NUM_NOT_POWER_OF_TWO")
-		}
-
 		if len(status.Health.Checks) != 0 {
 			unhealthReasons := []string{}
 			for _, v := range status.Health.Checks {
