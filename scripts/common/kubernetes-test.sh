@@ -43,4 +43,9 @@ quay.io/org/image-6"
     assertEquals "quay.io/org/image-5:2.0" "1" "$(kubernetes_node_has_image "node-1" "quay.io/org/image-5:2.0"; echo $?)"
 }
 
+function test_kubernetes_version_minor() {
+    assertEquals "v1.20.0" "20" "$(kubernetes_version_minor "v1.20.0")"
+    assertEquals "v1.20.0" "20" "$(kubernetes_version_minor "1.20.0")"
+}
+
 . shunit2
