@@ -74,6 +74,12 @@ func Test_isStatusHealthy(t *testing.T) {
 			health:  true,
 			message: "",
 		},
+		{
+			name:    "non power of two pg num",
+			status:  testfiles.NonPowerOfTwoCephStatus,
+			health:  true,
+			message: "",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
