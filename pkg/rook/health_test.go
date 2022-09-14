@@ -36,19 +36,19 @@ func Test_isStatusHealthy(t *testing.T) {
 			name:    "ceph rebalancing",
 			status:  testfiles.RebalanceCephStatus2,
 			health:  false,
-			message: "health is HEALTH_WARN not HEALTH_OK and 1099 bytes are being recovered per second, 0 desired and 0.142857% of PGs are inactive, 0.181073% are degraded, and 64.709807% are misplaced, 0 required for all and 1 tasks in progress, first task \"Rebalancing after osd.0 marked out\" is 73.739493% complete",
+			message: "health is HEALTH_WARN because \"Degraded data redundancy: 19/10493 objects degraded (0.181%), 17 pgs degraded and Reduced data availability: 1 pg peering\" and 1099 bytes are being recovered per second, 0 desired and 0.142857% of PGs are inactive, 0.181073% are degraded, and 64.709807% are misplaced, 0 required for all and 1 tasks in progress, first task \"Rebalancing after osd.0 marked out\" is 73.739493% complete",
 		},
 		{
 			name:    "ceph health_err due to full osd", // this message could very much be improved
 			status:  testfiles.RebalanceCephStatusFull,
 			health:  false,
-			message: "health is HEALTH_ERR not HEALTH_OK and 0.000000% of PGs are inactive, 0.516218% are degraded, and 0.000000% are misplaced, 0 required for all and 1 tasks in progress, first task \"Rebalancing after osd.0 marked out\" is 99.811995% complete",
+			message: "health is HEALTH_ERR because \"1 full osd(s) and 7 pool(s) full and Degraded data redundancy (low space): 2 pgs recovery_toofull and Degraded data redundancy: 388/75162 objects degraded (0.516%), 2 pgs degraded, 2 pgs undersized\" and 0.000000% of PGs are inactive, 0.516218% are degraded, and 0.000000% are misplaced, 0 required for all and 1 tasks in progress, first task \"Rebalancing after osd.0 marked out\" is 99.811995% complete",
 		},
 		{
 			name:    "ceph rebalancing multinode",
 			status:  testfiles.RebalanceCephStatusMultinode,
 			health:  false,
-			message: "health is HEALTH_WARN not HEALTH_OK and 18863356 bytes are being recovered per second, 0 desired and 0.000000% of PGs are inactive, 42.455066% are degraded, and 2.081463% are misplaced, 0 required for all and 1 tasks in progress, first task \"Rebalancing after osd.0 marked out\" is 64.823943% complete",
+			message: "health is HEALTH_WARN because \"Degraded data redundancy: 28841/67933 objects degraded (42.455%), 100 pgs degraded, 65 pgs undersized\" and 18863356 bytes are being recovered per second, 0 desired and 0.000000% of PGs are inactive, 42.455066% are degraded, and 2.081463% are misplaced, 0 required for all and 1 tasks in progress, first task \"Rebalancing after osd.0 marked out\" is 64.823943% complete",
 		},
 		{
 			name:    "ceph has too many PGs per OSD",

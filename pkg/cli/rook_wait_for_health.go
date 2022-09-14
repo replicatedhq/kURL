@@ -1,7 +1,10 @@
 package cli
 
 import (
+	"context"
 	"fmt"
+	"strconv"
+	"time"
 
 	"github.com/replicatedhq/kurl/pkg/rook"
 	"github.com/spf13/cobra"
@@ -11,15 +14,29 @@ import (
 
 func NewRookWaitForHealthCmd(cli CLI) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "wait-for-health",
+		Use:   "wait-for-health [TIMEOUT]",
 		Short: "Waits for Rook to report that it is healthy, and prints what it's waiting for",
+		Args:  cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			k8sConfig := config.GetConfigOrDie()
 			clientSet := kubernetes.NewForConfigOrDie(k8sConfig)
 
 			rook.InitWriter(cmd.OutOrStdout())
 
-			err := rook.WaitForRookHealth(cmd.Context(), clientSet)
+			ctx := cmd.Context()
+
+			if len(args) == 1 {
+				// a timeout was provided, use it
+				timeout, err := strconv.ParseInt(args[0], 10, 64)
+				if err != nil {
+					return fmt.Errorf("failed to parse %q as an integer number of seconds: %w", args[0], err)
+				}
+				var cancel context.CancelFunc
+				ctx, cancel = context.WithTimeout(ctx, time.Second*time.Duration(timeout))
+				defer cancel()
+			}
+
+			err := rook.WaitForRookHealth(ctx, clientSet)
 			if err != nil {
 				return fmt.Errorf("failed to check rook health: %w", err)
 			}
