@@ -29,7 +29,7 @@ jobs:
         token: ${{ secrets.AUTOMATED_PR_GH_PAT }}
         commit-message: Create new OpenEBS version
         title: 'Automated OpenEBS version update ${{ steps.update.outputs.openebs_version }}'
-        branch: automation/update-openebs
+        branch: automation/update-openebs-2
         delete-branch: true
         labels: |
           automated-pr
