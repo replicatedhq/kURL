@@ -31,6 +31,9 @@ var NoReplicasCephStatus []byte
 //go:embed recentCrashCephStatus.json
 var RecentCrashCephStatus []byte
 
+//go:embed nonPowerOfTwoCephStatus.json
+var NonPowerOfTwoCephStatus []byte
+
 // lists of pods to use in migrate unit tests
 
 //go:embed "6 blockdevice pods.json"
