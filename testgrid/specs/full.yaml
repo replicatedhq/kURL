@@ -1190,13 +1190,11 @@
       version: latest
       disableS3: true
     containerd:
-      version: 1.4.x
+      version: latest
     velero:
       version: 1.9.x
     ekco:
       version: latest
-  unsupportedOSIDs:
-  - ubuntu-2204 # containerd 1.4.x is not supported on ubuntu 22.04
 - name: "Upgrade to 1.24 airgap"
   cpu: 6
   installerSpec:
@@ -1236,8 +1234,6 @@
     ekco:
       version: latest
   airgap: true
-  unsupportedOSIDs:
-  - ubuntu-2204 # docker 20.10.x is not supported on ubuntu 22.04
 - name: "Upgrade to 1.24 minimal"
   installerSpec:
     kubernetes:
