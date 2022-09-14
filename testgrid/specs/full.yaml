@@ -1716,7 +1716,7 @@
     # download the file that the airgap upgrade requires, and place it in the correct location
     curl -LO https://kurl-sh.s3.amazonaws.com/staging/rookupgrade-10to14.tar.gz
     mkdir -p /var/lib/kurl/assets
-    mv rookupgrade-10to14.tar.gz /var/lib/kurl/addons
+    mv rookupgrade-10to14.tar.gz /var/lib/kurl/assets
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     rook_ecph_object_store_info
