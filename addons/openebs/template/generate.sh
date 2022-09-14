@@ -116,7 +116,7 @@ function main() {
     generate
     add_as_latest
 
-    echo "::set-output name=openebs_version_$version_major::$chart_version"
+    echo "::set-output name=openebs_version::$chart_version"
 }
 
 main "$@"
