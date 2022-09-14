@@ -21,9 +21,9 @@
     curl -L -o centos2ol.sh https://raw.githubusercontent.com/oracle/centos2ol/main/centos2ol.sh
     chmod +x centos2ol.sh
     bash centos2ol.sh -r
-- id: ol-85
+- id: ol-8x
   name: Oracle Linux
-  version: "8.5"
+  version: "8.x"
   vmimageuri: https://cloud.centos.org/centos/8/x86_64/images/CentOS-8-GenericCloud-8.4.2105-20210603.0.x86_64.qcow2
   preinit: |
     curl -L -o centos2ol.sh https://raw.githubusercontent.com/oracle/centos2ol/main/centos2ol.sh
