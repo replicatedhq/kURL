@@ -316,26 +316,17 @@ function spinner_kubernetes_api_stable() {
 }
 
 function kubernetes_drain() {
-    if kubernetes_has_remotes ; then
-      kubectl drain "$1" \
-        --delete-local-data \
-        --ignore-daemonsets \
-        --force \
-        --grace-period=30 \
-        --timeout=120s \
-        --pod-selector 'app notin (rook-ceph-mon,rook-ceph-osd,rook-ceph-osd-prepare,rook-ceph-operator,rook-ceph-agent),k8s-app!=kube-dns, name notin (restic)' || true
-    else
-      # On single node installs ignore pod disruption budgets
-      kubectl drain "$1" \
-        --delete-local-data \
-        --ignore-daemonsets \
-        --force \
-        --grace-period=30 \
-        --timeout=120s \
-        --disable-eviction \
-        --pod-selector 'app notin (rook-ceph-mon,rook-ceph-osd,rook-ceph-osd-prepare,rook-ceph-operator,rook-ceph-agent),k8s-app!=kube-dns, name notin (restic)' || true
-
-    fi
+    # Respect pod disruption budgets for applications running on the node but
+    # if we can't evict the pod(s) after --skip-wait-for-delete-timeout seconds then
+    # force delete the pod(s) to allow the node to be drained.
+    kubectl drain "$1" \
+      --delete-local-data \
+      --ignore-daemonsets \
+      --force \
+      --grace-period=30 \
+      --skip-wait-for-delete-timeout=90 \
+      --timeout=120s \
+      --pod-selector 'app notin (rook-ceph-mon,rook-ceph-osd,rook-ceph-osd-prepare,rook-ceph-operator,rook-ceph-agent),k8s-app!=kube-dns, name notin (restic)' || true
 }
 
 function kubernetes_node_has_version() {
