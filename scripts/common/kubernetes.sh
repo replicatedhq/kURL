@@ -316,9 +316,17 @@ function spinner_kubernetes_api_stable() {
 }
 
 function kubernetes_drain() {
+    local deleteEmptydirDataFlag="--delete-emptydir-data"
+    local k8sVersion=
+    k8sVersion=$(grep ' image: ' /etc/kubernetes/manifests/kube-apiserver.yaml | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')
+    local k8sVersionMinor=
+    k8sVersionMinor=$(kubernetes_version_minor "$k8sVersion")
+    if [ "$k8sVersionMinor" -lt "20" ]; then
+        deleteEmptydirDataFlag="--delete-local-data"
+    fi
     if kubernetes_has_remotes ; then
         kubectl drain "$1" \
-            --delete-local-data \
+            "$deleteEmptydirDataFlag" \
             --ignore-daemonsets \
             --force \
             --grace-period=30 \
@@ -328,7 +336,7 @@ function kubernetes_drain() {
         # On single node installs force drain to delete pods or
         # else the command will timeout when evicting pods with pod disruption budgets
         kubectl drain "$1" \
-            --delete-local-data \
+            "$deleteEmptydirDataFlag" \
             --ignore-daemonsets \
             --force \
             --grace-period=30 \
