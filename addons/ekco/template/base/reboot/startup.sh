@@ -8,9 +8,9 @@ fi
 export KUBECONFIG=/etc/kubernetes/kubelet.conf
 
 # wait for Kubernetes API
-master=$(cat /etc/kubernetes/kubelet.conf | grep ' server:' | awk '{ print $2 }')
+master=$(grep ' server: ' /etc/kubernetes/kubelet.conf | awk '{ print $2 }' | sed 's/"//g')
 while [ "$(curl --noproxy "*" -sk $master/healthz)" != "ok" ]; do
         sleep 1
 done
 
-kubectl uncordon $(hostname | tr '[:upper:]' '[:lower:]')
+kubectl uncordon "$(hostname | tr '[:upper:]' '[:lower:]')"

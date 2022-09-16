@@ -259,9 +259,9 @@ function kubernetes_has_remotes() {
     return 1
 }
 
-# Fetch the load balancer endpoint from the cluster.
+# Fetch the load balancer endpoint from the kubelet.conf.
 function existing_kubernetes_api_address() {
-    kubectl get cm -n kube-system kurl-config -o jsonpath='{ .data.kubernetes_api_address }'
+    grep ' server: ' /etc/kubernetes/kubelet.conf | awk '{ print $2 }' | sed 's/"//g'
 }
 
 # During the upgrade user might change the load balancer endpoint or want to use EKCO internal load balancer. So, we
@@ -281,7 +281,7 @@ function kubernetes_api_address() {
 
         addr=$(${DIR}/bin/kurl format-address ${addr})
 
-        echo "${addr}:${port}"
+        echo "https://${addr}:${port}"
     fi
 }
 
