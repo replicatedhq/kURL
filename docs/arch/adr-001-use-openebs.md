@@ -9,7 +9,7 @@ We will use [OpenEBS Local PV Hostpath](https://openebs.io/docs/user-guides/loca
 
 ## Status
 
-Proposed
+Accepted
 
 
 ## Consequences
