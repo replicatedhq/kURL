@@ -226,7 +226,6 @@ function ekco_bootstrap_internal_lb() {
             --volume '/etc:/host/etc' \
             replicated/ekco:v$EKCO_VERSION \
             generate-haproxy-manifest \
-                --primary-host=${backends} \
                 --file=/host/etc/kubernetes/manifests/haproxy.yaml \
                 --image="${EKCO_HAPROXY_IMAGE}"
     else
@@ -236,7 +235,6 @@ function ekco_bootstrap_internal_lb() {
             docker.io/replicated/ekco:v$EKCO_VERSION \
             haproxy-manifest \
             ekco generate-haproxy-manifest \
-                --primary-host=${backends} \
                 --file=/host/etc/kubernetes/manifests/haproxy.yaml \
                 --image="${EKCO_HAPROXY_IMAGE}"
     fi
