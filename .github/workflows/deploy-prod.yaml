@@ -255,7 +255,8 @@ jobs:
           replicated/tgrun:latest queue \
             --ref "${REF}" \
             --spec ./testgrid/specs/deploy.yaml \
-            --os-spec ./testgrid/specs/os-latest.yaml
+            --os-spec ./testgrid/specs/os-latest.yaml \
+            --priority 1
         MSG="Testgrid Run(s) Executing @ https://testgrid.kurl.sh/run/${REF}"
         echo "::set-output name=msg::${MSG}"
         echo "::notice ::${MSG}"
