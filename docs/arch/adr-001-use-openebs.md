@@ -1,6 +1,6 @@
 # ADR 1: Use OpenEBS Local PV Hostpath for Single Node kURL Installations
 
-The initial default kURL installation specification defaulted to [Longhorn](https://longhorn.io/) as the volume provisioner. However, the experience with Longhorn has not lived up to our expecatations. Namely, the instability, slow performance and lack of community support for Longhorn has forced us to switch to another storage provisioner.
+The initial kURL installation specification defaulted to [Longhorn](https://longhorn.io/) as the volume provisioner. However, the experience with Longhorn has not lived up to our expecatations. Namely, the instability, slow performance and lack of community support for Longhorn has forced us to switch to another storage provisioner.
 
 ## Decision
 
@@ -22,10 +22,10 @@ Proposed
     - Backup and Recovery via Velero
 
 - For Single node Kubernetes installations, the end-user assumes the risk of data loss in the event of a node failure. Local volumes are only available from the node where the persistent volume was created.
-- In general for highly available Kubernetes cluster Rook is the recommend storage provisioner however, there are valid use cases that fit well for using local pv hostpath on multi node Kubernetes clusters. They are:
+- In general, for highly available Kubernetes clusters, Rook is the recommend storage provisioner however, there are valid use cases that fit well for using local PV hostpath on multi node Kubernetes clusters. They are:
     1. When a workload has builtin data replication features
     2. When a workload leverages a Storage appliance for data replication and failover. For example, a storage subsystem that is mounted on a path in the node which is then used as the hostpath local persistent volume on multiple nodes
-- The requirements for using OpenEBS local PV hostpath are few:
+- The requirements for using OpenEBS local PV hostpath are minimal:
     - Kubernetes 1.18 version and higher
     - No minimum CPU and Memory the [local-provisioner deployment](https://github.com/openebs/charts/blob/d-master/charts/openebs/templates/deployment-local-provisioner.yaml)
 - Limitations
