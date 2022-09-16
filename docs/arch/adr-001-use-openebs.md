@@ -15,7 +15,7 @@ Proposed
 ## Consequences
 
 
-- Using OpenEBS Loval PV Hostpath affords us a better out of the box experience for Replicated vendors and end-users underpinned by the following benefits:
+- Using OpenEBS Local PV Hostpath affords us a better out of the box experience for Replicated vendors and end-users underpinned by the following benefits:
     - Dynamic local volume provisioning
     - Near disk performance for local volumes
     - Data protection through snapshots and clones
