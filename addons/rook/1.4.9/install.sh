@@ -106,6 +106,7 @@ function rook_join() {
 
 function rook_already_applied() {
     rook_object_store_output
+    $DIR/bin/kurl rook wait-for-health 120
 }
 
 function rook_operator_deploy() {
@@ -200,7 +201,8 @@ function rook_cluster_deploy_upgrade() {
 
     logStep "Upgrading rook-ceph cluster"
 
-    if ! rook_ceph_healthy ; then
+    if ! $DIR/bin/kurl rook wait-for-health 120 ; then
+        kubectl -n rook-ceph exec deploy/rook-ceph-tools -- ceph status
         bail "Refusing to update cluster rook-ceph, Ceph is not healthy"
     fi
 

@@ -106,6 +106,7 @@ function rook_join() {
 
 function rook_already_applied() {
     rook_object_store_output
+    $DIR/bin/kurl rook wait-for-health 120
 }
 
 function rook_operator_deploy() {
@@ -209,7 +210,8 @@ function rook_cluster_deploy_upgrade() {
 
     logStep "Upgrading rook-ceph cluster"
 
-    if ! rook_ceph_healthy ; then
+    if ! $DIR/bin/kurl rook wait-for-health 120 ; then
+        kubectl -n rook-ceph exec deploy/rook-ceph-tools -- ceph status
         bail "Refusing to update cluster rook-ceph, Ceph is not healthy"
     fi
 
@@ -243,15 +245,6 @@ function rook_ready_spinner() {
 
     spinnerPodRunning rook-ceph rook-ceph-operator
     spinnerPodRunning rook-ceph rook-discover
-}
-
-function rook_ceph_healthy() {
-    local tools_pod=
-    tools_pod="$(kubectl -n rook-ceph get pod -l "app=rook-ceph-tools" -o jsonpath='{.items[0].metadata.name}')"
-    if kubectl -n rook-ceph exec "${tools_pod}" -- ceph status | grep -qE '(HEALTH_OK|HEALTH_WARN)' ; then
-        return 0
-    fi
-    return 1
 }
 
 # rook_version_deployed check that there is only one rook-version reported across the cluster
