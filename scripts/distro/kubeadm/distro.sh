@@ -2,7 +2,7 @@
 function kubeadm_discover_private_ip() {
     local private_address
 
-    private_address="$(cat /etc/kubernetes/manifests/kube-apiserver.yaml 2>/dev/null | grep advertise-address | awk -F'=' '{ print $2 }')"
+    private_address="$(grep 'advertise-address' /etc/kubernetes/manifests/kube-apiserver.yaml 2>/dev/null | awk -F'=' '{ print $2 }')"
 
     # This is needed on k8s 1.18.x as $PRIVATE_ADDRESS is found to have a newline
     echo "${private_address}" | tr -d '\n'

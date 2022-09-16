@@ -72,7 +72,7 @@ function rke2_init() {
 
 #     # When no_proxy changes kubeadm init rewrites the static manifests and fails because the api is
 #     # restarting. Trigger the restart ahead of time and wait for it to be healthy.
-#     if [ -f "/etc/kubernetes/manifests/kube-apiserver.yaml" ] && [ -n "$no_proxy" ] && ! cat /etc/kubernetes/manifests/kube-apiserver.yaml | grep -q "$no_proxy"; then
+#     if [ -f "/etc/kubernetes/manifests/kube-apiserver.yaml" ] && [ -n "$no_proxy" ] && ! grep -Fq "$no_proxy" /etc/kubernetes/manifests/kube-apiserver.yaml ; then
 #         kubeadm init phase control-plane apiserver --config $KUBEADM_CONF_FILE
 #         sleep 2
 #         if ! spinner_until 60 kubernetes_api_is_healthy; then
