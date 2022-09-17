@@ -1,7 +1,9 @@
 package cli
 
 import (
+	"context"
 	"fmt"
+	"time"
 
 	"github.com/replicatedhq/kurl/pkg/rook"
 	"github.com/spf13/cobra"
@@ -10,6 +12,7 @@ import (
 )
 
 func NewRookWaitForRookVersionCmd(cli CLI) *cobra.Command {
+	timeoutSeconds := 0
 	cmd := &cobra.Command{
 		Use:   "wait-for-rook-version VERSION",
 		Short: "Waits for all deployments to be using the specified rook version, and prints deployments that are still on an old version",
@@ -20,9 +23,16 @@ func NewRookWaitForRookVersionCmd(cli CLI) *cobra.Command {
 			k8sConfig := config.GetConfigOrDie()
 			clientSet := kubernetes.NewForConfigOrDie(k8sConfig)
 
+			ctx := cmd.Context()
+			if timeoutSeconds != 0 {
+				newCtx, cancel := context.WithTimeout(ctx, time.Duration(timeoutSeconds)*time.Second)
+				defer cancel()
+				ctx = newCtx
+			}
+
 			rook.InitWriter(cmd.OutOrStdout())
 
-			err := rook.WaitForRookOrCephVersion(cmd.Context(), clientSet, rookVersion, "rook-version", "Rook")
+			err := rook.WaitForRookOrCephVersion(ctx, clientSet, rookVersion, "rook-version", "Rook")
 			if err != nil {
 				return fmt.Errorf("failed to wait for Rook %q: %w", rookVersion, err)
 			}
@@ -32,9 +42,12 @@ func NewRookWaitForRookVersionCmd(cli CLI) *cobra.Command {
 		},
 		SilenceUsage: true,
 	}
+	cmd.Flags().IntVar(&timeoutSeconds, "timeout", 0, "the maximum time to wait for the rook version to be deployed")
 	return cmd
 }
+
 func NewRookWaitForCephVersionCmd(cli CLI) *cobra.Command {
+	timeoutSeconds := 0
 	cmd := &cobra.Command{
 		Use:   "wait-for-ceph-version VERSION",
 		Short: "Waits for all deployments to be using the specified ceph version, and prints deployments that are still on an old version",
@@ -45,9 +58,16 @@ func NewRookWaitForCephVersionCmd(cli CLI) *cobra.Command {
 			k8sConfig := config.GetConfigOrDie()
 			clientSet := kubernetes.NewForConfigOrDie(k8sConfig)
 
+			ctx := cmd.Context()
+			if timeoutSeconds != 0 {
+				newCtx, cancel := context.WithTimeout(ctx, time.Duration(timeoutSeconds)*time.Second)
+				defer cancel()
+				ctx = newCtx
+			}
+
 			rook.InitWriter(cmd.OutOrStdout())
 
-			err := rook.WaitForRookOrCephVersion(cmd.Context(), clientSet, rookVersion, "ceph-version", "Ceph")
+			err := rook.WaitForRookOrCephVersion(ctx, clientSet, rookVersion, "ceph-version", "Ceph")
 			if err != nil {
 				return fmt.Errorf("failed to wait for Ceph %q: %w", rookVersion, err)
 			}
@@ -57,5 +77,6 @@ func NewRookWaitForCephVersionCmd(cli CLI) *cobra.Command {
 		},
 		SilenceUsage: true,
 	}
+	cmd.Flags().IntVar(&timeoutSeconds, "timeout", 0, "the maximum time to wait for the rook version to be deployed")
 	return cmd
 }
