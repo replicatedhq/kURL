@@ -2,11 +2,10 @@
 
 set -euo pipefail
 
-VERSION=""
 function get_latest_release_version() {
-    VERSION=$(curl -sI https://github.com/vmware-tanzu/sonobuoy/releases/latest | \
+    curl -sI https://github.com/vmware-tanzu/sonobuoy/releases/latest | \
         grep -i "^location" | \
-        grep -Eo "0\.[0-9]+\.[0-9]+")
+        grep -Eo "0\.[0-9]+\.[0-9]+"
 }
 
 function generate() {
@@ -33,19 +32,53 @@ function add_as_latest() {
     fi
 }
 
-function main() {
-    get_latest_release_version
+function parse_flags() {
+    for i in "$@"; do
+        case ${1} in
+            --force)
+                force_flag="1"
+                shift
+                ;;
+            --version=*)
+                version_flag="${i#*=}"
+                shift
+                ;;
+            *)
+                echo "Unknown flag $1"
+                exit 1
+                ;;
+        esac
+    done
+}
 
-    if [ -d "../${VERSION}" ]; then
-        echo "Sonobuoy ${VERSION} add-on already exists"
-        exit 0
+function main() {
+    local force_flag=
+    local version_flag=
+
+    parse_flags "$@"
+
+    local VERSION=
+    if [ -n "$version_flag" ]; then
+        VERSION="$version_flag"
+    else
+        VERSION="$(get_latest_release_version)"
+    fi
+
+    if [ -d "../$VERSION" ]; then
+        if [ "$force_flag" == "1" ]; then
+            echo "Forcibly updating existing version of Sonobuoy"
+            rm -rf "../$VERSION"
+        else
+            echo "Sonobuoy $VERSION add-on already exists"
+            exit 0
+        fi
     fi
 
     generate
 
     add_as_latest
 
-    echo "::set-output name=sonobuoy_version::${VERSION}"
+    echo "::set-output name=sonobuoy_version::$VERSION"
 }
 
 main "$@"
