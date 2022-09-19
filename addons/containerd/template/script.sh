@@ -103,31 +103,33 @@ function copy_generated_files() {
     fi
 }
 
+UNSUPPORTED_CONTAINERD_MINORS="01234"
+
 VERSIONS=()
 function find_common_versions() {
-    docker build -t centos7 -f Dockerfile.centos7 .
-    docker build -t centos8 -f Dockerfile.centos8 .
-    docker build -t ubuntu16 -f Dockerfile.ubuntu16 .
-    docker build -t ubuntu18 -f Dockerfile.ubuntu18 .
-    docker build -t ubuntu20 -f Dockerfile.ubuntu20 .
-    docker build -t ubuntu22 -f Dockerfile.ubuntu22 .
+    docker build --pull -t centos7 -f Dockerfile.centos7 .
+    docker build --pull -t centos8 -f Dockerfile.centos8 .
+    docker build --pull -t ubuntu16 -f Dockerfile.ubuntu16 .
+    docker build --pull -t ubuntu18 -f Dockerfile.ubuntu18 .
+    docker build --pull -t ubuntu20 -f Dockerfile.ubuntu20 .
+    docker build --pull -t ubuntu22 -f Dockerfile.ubuntu22 .
 
-    CENTOS7_VERSIONS=($(docker run --rm -i centos7 yum list --showduplicates containerd.io | grep -Eo '1\.[[:digit:]]+\.[[:digit:]]+' | grep -vE '1\.[012]\.' | sort -rV | uniq))
+    CENTOS7_VERSIONS=($(docker run --rm -i centos7 yum list --showduplicates containerd.io | grep -Eo '1\.[[:digit:]]+\.[[:digit:]]+' | grep -vE '1\.['"$UNSUPPORTED_CONTAINERD_MINORS"']\.' | sort -rV | uniq))
     echo "Found ${#CENTOS7_VERSIONS[*]} containerd versions for CentOS 7: ${CENTOS7_VERSIONS[*]}"
 
-    CENTOS8_VERSIONS=($(docker run --rm -i centos8 yum list --showduplicates containerd.io | grep -Eo '1\.[[:digit:]]+\.[[:digit:]]+' | grep -vE '1\.[012]\.' | sort -rV | uniq))
+    CENTOS8_VERSIONS=($(docker run --rm -i centos8 yum list --showduplicates containerd.io | grep -Eo '1\.[[:digit:]]+\.[[:digit:]]+' | grep -vE '1\.['"$UNSUPPORTED_CONTAINERD_MINORS"']\.' | sort -rV | uniq))
     echo "Found ${#CENTOS8_VERSIONS[*]} containerd versions for CentOS 8: ${CENTOS8_VERSIONS[*]}"
 
-    UBUNTU16_VERSIONS=($(docker run --rm -i ubuntu16 apt-cache madison containerd.io | grep -Eo '1\.[[:digit:]]+\.[[:digit:]]+' | grep -vE '1\.[012]\.' | sort -rV | uniq))
+    UBUNTU16_VERSIONS=($(docker run --rm -i ubuntu16 apt-cache madison containerd.io | grep -Eo '1\.[[:digit:]]+\.[[:digit:]]+' | grep -vE '1\.['"$UNSUPPORTED_CONTAINERD_MINORS"']\.' | sort -rV | uniq || true)) # no supported versions
     echo "Found ${#UBUNTU16_VERSIONS[*]} containerd versions for Ubuntu 16: ${UBUNTU16_VERSIONS[*]}"
 
-    UBUNTU18_VERSIONS=($(docker run --rm -i ubuntu18 apt-cache madison containerd.io | grep -Eo '1\.[[:digit:]]+\.[[:digit:]]+' | grep -vE '1\.[012]\.' | sort -rV | uniq))
+    UBUNTU18_VERSIONS=($(docker run --rm -i ubuntu18 apt-cache madison containerd.io | grep -Eo '1\.[[:digit:]]+\.[[:digit:]]+' | grep -vE '1\.['"$UNSUPPORTED_CONTAINERD_MINORS"']\.' | sort -rV | uniq))
     echo "Found ${#UBUNTU18_VERSIONS[*]} containerd versions for Ubuntu 18: ${UBUNTU18_VERSIONS[*]}"
 
-    UBUNTU20_VERSIONS=($(docker run --rm -i ubuntu20 apt-cache madison containerd.io | grep -Eo '1\.[[:digit:]]+\.[[:digit:]]+' | grep -vE '1\.[012]\.' | sort -rV | uniq))
+    UBUNTU20_VERSIONS=($(docker run --rm -i ubuntu20 apt-cache madison containerd.io | grep -Eo '1\.[[:digit:]]+\.[[:digit:]]+' | grep -vE '1\.['"$UNSUPPORTED_CONTAINERD_MINORS"']\.' | sort -rV | uniq))
     echo "Found ${#UBUNTU20_VERSIONS[*]} containerd versions for Ubuntu 20: ${UBUNTU20_VERSIONS[*]}"
 
-    UBUNTU22_VERSIONS=($(docker run --rm -i ubuntu22 apt-cache madison containerd.io | grep -Eo '1\.[[:digit:]]+\.[[:digit:]]+' | grep -vE '1\.[012]\.' | sort -rV | uniq))
+    UBUNTU22_VERSIONS=($(docker run --rm -i ubuntu22 apt-cache madison containerd.io | grep -Eo '1\.[[:digit:]]+\.[[:digit:]]+' | grep -vE '1\.['"$UNSUPPORTED_CONTAINERD_MINORS"']\.' | sort -rV | uniq))
     echo "Found ${#UBUNTU22_VERSIONS[*]} containerd versions for Ubuntu 22: ${UBUNTU22_VERSIONS[*]}"
 
     # Get the intersection of versions available for all operating systems
@@ -192,8 +194,6 @@ function find_common_versions() {
 
     echo "Found ${#VERSIONS[*]} containerd versions >=1.3 available for all operating systems: ${VERSIONS[*]}"
 
-    VERSIONS+=("1.2.13")
-
     export GREATEST_VERSION="${VERSIONS[0]}"
 }
 
@@ -224,7 +224,7 @@ function update_available_versions() {
     for version in ${VERSIONS[@]}; do
         v="${v}\"${version}\", "
     done
-    sed -i "/cron-containerd-update/c\  containerd: [${v}], \/\/ cron-containerd-update" ../../../web/src/installers/versions.js
+    sed -i "/cron-containerd-update/c\    ${v}\/\/ cron-containerd-update" ../../../web/src/installers/versions.js
 }
 
 function main() {
