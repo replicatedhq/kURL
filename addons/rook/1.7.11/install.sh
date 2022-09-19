@@ -253,6 +253,8 @@ function rook_cluster_deploy_upgrade() {
         bail "New Ceph version failed to deploy"
     fi
 
+    rook_patch_insecure_clients
+
     # https://rook.io/docs/rook/v1.6/ceph-upgrade.html#3-verify-the-updated-cluster
 
     echo "Awaiting Ceph healthy"
@@ -261,8 +263,6 @@ function rook_cluster_deploy_upgrade() {
         kubectl -n rook-ceph exec deploy/rook-ceph-tools -- ceph status
         bail "Failed to verify the updated cluster, Ceph is not healthy"
     fi
-
-    rook_patch_insecure_clients
 
     logSuccess "Rook-ceph cluster upgraded"
 }
