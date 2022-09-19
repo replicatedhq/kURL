@@ -32,5 +32,5 @@ Accepted
     - Volume size is not enforced by OpenEBS. This means that an application could fill up the disk on the node and potentially cause an outage.
 - [kurl-api](https://github.com/replicatedhq/kURL-api/pull/12) will need to change so that the `latest` spec is returned with OpenEBS
 - Update [kurl.sh](https://github.com/replicatedhq/kurl.sh/pull/868) to show OpenEBS as the default sotrage provisioner add-on
-- Update the [vendor portal](https://github.com/replicatedhq/vandoor/pull/2381) so that the defalt kURL spec shows OpenEBS configured as local PV instead of Longhorn
+- Update the [vendor portal](https://github.com/replicatedhq/vandoor/pull/2381) so that the default kURL spec shows OpenEBS configured as local PV instead of Longhorn
 
