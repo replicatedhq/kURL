@@ -81,7 +81,7 @@
       version: latest
     rook:
       isBlockStorageEnabled: true
-      version: 1.7.x
+      version: 1.8.x
     registry:
       version: latest
     kotsadm:
@@ -102,7 +102,7 @@
       version: latest
     rook:
       isBlockStorageEnabled: true
-      version: 1.7.x
+      version: 1.8.x
     registry:
       version: latest
     kotsadm:
@@ -124,7 +124,7 @@
       version: latest
     rook:
       isBlockStorageEnabled: true
-      version: 1.7.x
+      version: 1.8.x
     registry:
       version: latest
     kotsadm:
@@ -145,7 +145,7 @@
       version: latest
     rook:
       isBlockStorageEnabled: true
-      version: 1.7.x
+      version: 1.8.x
     registry:
       version: latest
     kotsadm:
@@ -235,7 +235,7 @@
       version: latest
     rook:
       isBlockStorageEnabled: true
-      version: 1.7.x
+      version: 1.8.x
     registry:
       version: latest
     kotsadm:

@@ -68,6 +68,10 @@
     validate_read_write_object_store rwtest minio.txt
   postUpgradeScript: |
     source /opt/kurl-testgrid/testhelpers.sh
+
+    operatorVersion=$(kubectl get deployment -n rook-ceph rook-ceph-operator -o jsonpath='{.spec.template.spec.containers[0].image}')
+    echo $operatorVersion | grep __testver__
+
     rook_ecph_object_store_info
     validate_testfile rwtest testfile.txt
     validate_read_write_object_store postupgrade upgradefile.txt
@@ -120,6 +124,10 @@
     validate_read_write_object_store rwtest minio.txt
   postUpgradeScript: |
     source /opt/kurl-testgrid/testhelpers.sh
+
+    operatorVersion=$(kubectl get deployment -n rook-ceph rook-ceph-operator -o jsonpath='{.spec.template.spec.containers[0].image}')
+    echo $operatorVersion | grep __testver__
+
     rook_ecph_object_store_info
     validate_testfile rwtest testfile.txt
     validate_read_write_object_store postupgrade upgradefile.txt
@@ -172,6 +180,10 @@
     validate_read_write_object_store rwtest minio.txt
   postUpgradeScript: |
     source /opt/kurl-testgrid/testhelpers.sh
+
+    operatorVersion=$(kubectl get deployment -n rook-ceph rook-ceph-operator -o jsonpath='{.spec.template.spec.containers[0].image}')
+    echo $operatorVersion | grep __testver__
+
     rook_ecph_object_store_info
     validate_testfile rwtest testfile.txt
     validate_read_write_object_store postupgrade upgradefile.txt
@@ -224,6 +236,10 @@
     validate_read_write_object_store rwtest minio.txt
   postUpgradeScript: |
     source /opt/kurl-testgrid/testhelpers.sh
+
+    operatorVersion=$(kubectl get deployment -n rook-ceph rook-ceph-operator -o jsonpath='{.spec.template.spec.containers[0].image}')
+    echo $operatorVersion | grep __testver__
+
     rook_ecph_object_store_info
     validate_testfile rwtest testfile.txt
     validate_read_write_object_store postupgrade upgradefile.txt
@@ -301,6 +317,10 @@
     validate_read_write_object_store rwtest minio.txt
   postUpgradeScript: |
     source /opt/kurl-testgrid/testhelpers.sh
+
+    operatorVersion=$(kubectl get deployment -n rook-ceph rook-ceph-operator -o jsonpath='{.spec.template.spec.containers[0].image}')
+    echo $operatorVersion | grep __testver__
+
     rook_ecph_object_store_info
     validate_testfile rwtest testfile.txt
     validate_read_write_object_store postupgrade upgradefile.txt

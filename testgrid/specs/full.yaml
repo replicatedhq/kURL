@@ -428,7 +428,7 @@
       version: 1.7.0
     rook:
       isBlockStorageEnabled: true
-      version: 1.7.x
+      version: 1.8.x
     registry:
       version: 2.7.1
     fluentd:
@@ -582,7 +582,7 @@
       version: 2.8.1
     rook:
       isBlockStorageEnabled: true
-      version: 1.7.x
+      version: 1.8.x
     registry:
       version: 2.7.1
     kotsadm:
@@ -691,7 +691,7 @@
     rook:
       bypassUpgradeWarning: true
       isBlockStorageEnabled: true
-      version: 1.7.x
+      version: 1.8.x
     kotsadm:
       version: 1.38.0
     containerd:
@@ -834,7 +834,7 @@
       version: latest
     rook:
       isBlockStorageEnabled: true
-      version: 1.7.x
+      version: 1.8.x
     registry:
       version: latest
     kotsadm:
@@ -875,7 +875,7 @@
     contour:
       version: 1.19.1
     rook:
-      version: 1.7.x
+      version: 1.8.x
     registry:
       version: 2.7.1
     prometheus:
@@ -921,7 +921,7 @@
     contour:
       version: 1.19.1
     rook:
-      version: 1.7.x
+      version: 1.8.x
     registry:
       version: 2.7.1
     prometheus:
@@ -1009,7 +1009,7 @@
       version: latest
     rook:
       isBlockStorageEnabled: true
-      version: 1.7.x
+      version: 1.8.x
     registry:
       version: latest
     kotsadm:
@@ -1049,7 +1049,7 @@
       version: latest
     rook:
       isBlockStorageEnabled: true
-      version: 1.7.x
+      version: 1.8.x
     registry:
       version: latest
     kotsadm:
@@ -1093,7 +1093,7 @@
     contour:
       version: 1.19.1
     rook:
-      version: 1.7.x
+      version: 1.8.x
     registry:
       version: 2.7.1
     prometheus:
@@ -1143,7 +1143,7 @@
     contour:
       version: 1.19.1
     rook:
-      version: 1.7.x
+      version: 1.8.x
     registry:
       version: 2.7.1
     prometheus:
@@ -1166,7 +1166,7 @@
       version: latest
     rook:
       isBlockStorageEnabled: true
-      version: 1.7.x
+      version: 1.8.x
     registry:
       version: latest
     kotsadm:
@@ -1204,7 +1204,7 @@
       version: latest
     rook:
       isBlockStorageEnabled: true
-      version: 1.7.x
+      version: 1.8.x
     registry:
       version: latest
     kotsadm:
@@ -1313,7 +1313,7 @@
       version: latest
     rook:
       isBlockStorageEnabled: true
-      version: 1.7.x
+      version: 1.8.x
     registry:
       version: latest
     kotsadm:
@@ -1335,7 +1335,7 @@
       version: latest
     rook:
       isBlockStorageEnabled: true
-      version: 1.7.x
+      version: 1.8.x
     registry:
       version: latest
     kotsadm:
@@ -1357,7 +1357,7 @@
       version: latest
     rook:
       isBlockStorageEnabled: true
-      version: 1.7.x
+      version: 1.8.x
     registry:
       version: latest
     kotsadm:
@@ -1639,7 +1639,7 @@
     weave:
       version: "latest"
     rook:
-      version: "latest"
+      version: "1.0.4"
     prometheus:
       version: "latest"
     minio:
@@ -1652,7 +1652,7 @@
     weave:
       version: "latest"
     rook:
-      version: "1.5.12"
+      version: "1.4.x"
     prometheus:
       version: "latest"
     minio:
