@@ -1577,7 +1577,7 @@
       version: "0.53.x"
     metricsServer:
       version: "0.4.x"
-- name: rook-upgrade-to-1.4
+- name: rook-upgrade-to-1.5
   flags: "yes"
   installerSpec:
     kubernetes:
@@ -1600,7 +1600,7 @@
     weave:
       version: "latest"
     rook:
-      version: "1.4.x"
+      version: "1.5.12"
     prometheus:
       version: "latest"
     minio:
