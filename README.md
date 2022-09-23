@@ -26,7 +26,7 @@ kURL offers several optional [add-ons](https://kurl.sh/add-ons) for Kubernetes c
 
 One optional add-on available for object storage is [MinIO](https://github.com/minio/minio). Use of MinIO is governed by the GNU AGPLv3 license that can be found in their [License](https://github.com/minio/minio/blob/master/LICENSE) file.
 
-One optional add-on available for Metrics & Monitoring is Prometheus via the [Prometheus Operator](https://github.com/prometheus-operator/prometheus-operator), which includes Grafana. Use of Grafana is currently governed by the GNU AGPL v3 license that can be found in their [License](https://github.com/grafana/grafana/blob/main/LICENSE) file. 
+One optional add-on available for Metrics & Monitoring is Prometheus via the [Prometheus Operator](https://github.com/prometheus-operator/prometheus-operator), which includes Grafana. Use of Grafana is currently governed by the GNU AGPL v3 license that can be found in their [License](https://github.com/grafana/grafana/blob/main/LICENSE) file.
 
 # Releases
 
@@ -45,15 +45,13 @@ make tag-and-release
 
 # Software Bill of Materials
 Signed SBOMs for kURL Go and Javascript dependencies are combined into a tar file and are included with each release.
-- **kots-sbom.tgz** contains SBOMs for Go  and Javascript dependencies
-- **kots-sbom.tgz.sig** is the digital signature for kots-sbom.tgz
-- **key.pub** is the public key from the key pair used to sign kots-sbom.tgz 
- 
-The following example illustrates using [cosign](https://github.com/sigstore/cosign) to verify that **kots-sbom.tgz** has 
+- **kurl-sbom.tgz** contains SBOMs for Go  and Javascript dependencies
+- **kurl-sbom.tgz.sig** is the digital signature for kurl-sbom.tgz
+- **key.pub** is the public key from the key pair used to sign kurl-sbom.tgz
+
+The following example illustrates using [cosign](https://github.com/sigstore/cosign) to verify that **kurl-sbom.tgz** has
 not been tampered with.
 ```shell
-$ cosign verify-blob -key key.pub -signature kots-sbom.tgz.sig kots-sbom.tgz
+$ cosign verify-blob -key key.pub -signature kurl-sbom.tgz.sig kurl-sbom.tgz
 Verified OK
 ```
-
-
