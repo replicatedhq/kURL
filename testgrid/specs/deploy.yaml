@@ -245,3 +245,22 @@
     ekco:
       version: latest
   airgap: true
+- name: "k8s_125x airgap"
+  airgap: true
+  installerSpec:
+    kubernetes:
+      version: 1.24.x
+    weave:
+      version: latest
+    containerd:
+      version: latest
+    openebs:
+      version: latest
+      isLocalPVEnabled: true
+      localPVStorageClassName: default
+    prometheus:
+      version: latest
+    minio:
+      version: latest
+    kotsadm:
+      version: latest
