@@ -282,6 +282,7 @@ function ekco_cleanup_bootstrap_internal_lb() {
     fi
 }
 
+
 function ekco_handle_load_balancer_address_change_kubeconfigs() {
     # The change-load-balancer command will restart kubelet on all remote nodes after updating
     # kubeconfigs. When kubelet restarts on the node where the ekco pod is scheduled, the connection
