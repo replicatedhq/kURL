@@ -66,6 +66,6 @@ jobs:
       - name: Post TG URL
         uses: mshick/add-pr-comment@v1
         with:
-          message: ${{ steps.queue.outputs.msg }}
+          message: ${{ steps.queue.outputs.message }}
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           allow-repeats: false
