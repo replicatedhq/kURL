@@ -24,10 +24,15 @@ inputs:
     required: true
     description: 'Testgrid API token.'
     type: string
+outputs:
+  message:
+    description: 'Message to the end-user including links to the Testgrid runs.'
+    value: "${{ steps.test-addon.outputs.message }}"
 runs:
   using: composite
   steps:
-    - run: |
+    - id: test-addon
+      run: |
         ${{ github.action_path }}/../../../bin/test-addon.sh \
           "${{ inputs.addon }}" \
           "${{ inputs.version }}" \

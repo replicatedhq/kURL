@@ -71,7 +71,7 @@ function main() {
   done
   shopt -u nullglob
 
-  echo "::set-output name=msg::${MSG}"
+  echo "::set-output name=message::${MSG}"
   echo "::notice ::${MSG}"
   echo "Run completed."
 }
