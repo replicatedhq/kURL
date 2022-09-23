@@ -56,11 +56,11 @@ jobs:
         id: queue
         uses: ./.github/actions/addon-testgrid-tester
         with:
-          addon: "${{ env.addon }"
-          version: "${{ env.version }"
+          addon: "${{ env.addon }}"
+          version: "${{ env.version }}"
           package-url: "${{ steps.build.outputs.addon_package_url }}"
-          testgrid-spec-path: "addons/${{ env.addon }/template/testgrid"
-          testgrid-run-prefix: "${{ env.prefix }"
+          testgrid-spec-path: "addons/${{ env.addon }}/template/testgrid"
+          testgrid-run-prefix: "${{ env.prefix }}"
           testgrid-api-token: "${{ secrets.TESTGRID_PROD_API_TOKEN }}"
 
       - name: Post TG URL
