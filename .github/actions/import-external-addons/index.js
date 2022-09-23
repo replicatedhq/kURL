@@ -9,9 +9,9 @@ const awsConfig = {
   AWS_SECRET_ACCESS_KEY: getInput('AWS_SECRET_ACCESS_KEY', { required: true }),
 };
 const bucket = 'kurl-sh';
-const addonRegistryUrls = [
-  'https://kots-kurl-addons-production-1658439274.s3.amazonaws.com/versions.json'
-];
+const addonRegistryUrls = {
+  kotsadm: 'https://kots-kurl-addons-production-1658439274.s3.amazonaws.com/versions.json'
+};
 
 const client = new HttpClient();
 
@@ -19,15 +19,16 @@ const addonRegistryKurl = await client.get(`https://${bucket}.s3.amazonaws.com/e
   .then(response => response.readBody())
   .then(response => JSON.parse(response));
 
-for(const addonRegistryUrl of addonRegistryUrls) {
+Object.keys(addonRegistryUrls).forEach(addonName => {
   info(`Scanning for addons in ${addonRegistryUrl}`)
+  const addonRegistryUrl = addonRegistryUrls[addonName];
   const externalAddonRegistry = await client.get(addonRegistryUrl)
     .then(response => response.readBody())
     .then(response => JSON.parse(response));
 
   let hasChanges = false;
-  for(const externalAddon of externalAddonRegistry) {
-    const addonBundleName = `${externalAddon.addonName}-${externalAddon.addonVersion}.tar.gz`;
+  for(const externalAddonVersion of externalAddonRegistry) {
+    const addonBundleName = `${addonName}-${externalAddonVersion.version}.tar.gz`;
     const addon = addonRegistryKurl[addonBundleName];
     if(addon) {
       info(`Skipping existing addon ${addonBundleName}.`);
@@ -36,7 +37,7 @@ for(const addonRegistryUrl of addonRegistryUrls) {
 
       info(`..Downloading addon: ${addonBundleName}`);
       try {
-        await exec('curl', ['-o', addonBundleName, '-L', externalAddon.addonUrl]);
+        await exec('curl', ['-o', addonBundleName, '-L', externalAddonVersion.url]);
       } catch (err) {
         error(err);
         continue;
@@ -53,8 +54,12 @@ for(const addonRegistryUrl of addonRegistryUrls) {
         error(err);
         continue;
       }
-      addonRegistryKurl[addonBundleName] = {
-        kurlVersionCompatibility: externalAddon.kurlVersionCompatibility
+      if(!(addonName in addonRegistryKurl)) {
+        addonRegistryKurl[addonName] = [];
+      }
+      addonRegistryKurl[addonName] = {
+        version: externalAddonVersion.version,
+        kurlVersionCompatibilityRange: externalAddonVersion.kurlVersionCompatibilityRange,
       }
       hasChanges = true;
     }
@@ -73,4 +78,4 @@ for(const addonRegistryUrl of addonRegistryUrls) {
       error(err);
     }
   }
-}
+});

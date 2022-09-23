@@ -1,0 +1,39 @@
+name: addon-testgrid-tester
+description: 'Runs add-on testgrid test specs.'
+inputs:
+  addon:
+    required: true
+    description: 'Name of the add-on.'
+    type: string
+  version:
+    required: true
+    description: 'Version of the add-on.'
+    type: string
+  package-url:
+    required: true
+    description: 'URL of the built add-on package.'
+    type: string
+  testgrid-spec-path:
+    required: true
+    description: 'Path to directory where *.yaml testgrid specs reside.'
+    type: string
+  testgrid-run-prefix:
+    description: 'Prefix for testgrid ref (for identification).'
+    type: string
+  testgrid-api-token:
+    required: true
+    description: 'Testgrid API token.'
+    type: string
+runs:
+  using: composite
+  steps:
+    - run: |
+        ${{ github.action_path }}/../../../bin/test-addon.sh \
+          "${{ inputs.addon }}" \
+          "${{ inputs.version }}" \
+          "${{ inputs.package-url }}" \
+          "${{ inputs.testgrid-spec-path }}" \
+          "${{ inputs.testgrid-run-prefix }}"
+      env:
+        TESTGRID_API_TOKEN: ${{ inputs.testgrid-api-token }}
+      shell: bash

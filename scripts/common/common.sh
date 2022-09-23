@@ -29,6 +29,18 @@ function get_dist_url() {
     fi
 }
 
+# Retrieves the external add-on cache url prefix for add-on packages.
+# External add-ons are cached for all stages in the same bucket and same directory.
+function get_external_addon_url() {
+    local url="https://kurl-sh.s3.amazonaws.com/external"
+
+    if [ "$IPV6_ONLY" = "1" ]; then
+        echo "$url" | sed 's/s3\.amazonaws\.com/s3.dualstack.us-east-1.amazonaws.com/'
+    else
+        echo "$url"
+    fi
+}
+
 function package_download() {
     local package="$1"
     local url_override="$2"
@@ -48,7 +60,15 @@ function package_download() {
         etag=
     fi
 
-    local newetag="$(curl -IfsSL "$(get_dist_url)/${package}" | grep -i 'etag:' | sed -r 's/.*"(.*)".*/\1/')"
+    local package_url=
+    package_url="$(get_dist_url)/${package}"
+
+    # if the package does not exist as a "normal" add-on, try the external add-on cache
+    if ! curl -IfsSL -o /dev/null "$package_url" ; then
+        package_url="$(get_external_addon_url)/${package}"
+    fi
+
+    local newetag="$(curl -IfsSL "$package_url" | grep -i 'etag:' | sed -r 's/.*"(.*)".*/\1/')"
     if [ -n "${etag}" ] && [ "${etag}" = "${newetag}" ]; then
         echo "Package ${package} already exists, not downloading"
         return
@@ -61,7 +81,7 @@ function package_download() {
 
     echo "Downloading package ${package}"
     if [ -z "$url_override" ]; then
-        package_download_url_with_retry "$(get_dist_url)/${package}" "${filepath}"
+        package_download_url_with_retry "$package_url" "${filepath}"
     else
         package_download_url_with_retry "${url_override}" "${filepath}"
     fi
