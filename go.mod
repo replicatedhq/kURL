@@ -26,7 +26,7 @@ require (
 	github.com/spf13/viper v1.13.0
 	github.com/stretchr/testify v1.8.0
 	github.com/vishvananda/netlink v1.1.1-0.20210330154013-f5de75959ad5
-	github.com/vmware-tanzu/velero v1.9.1
+	github.com/vmware-tanzu/velero v1.9.2
 	golang.org/x/crypto v0.0.0-20220525230936-793ad666bf5e
 	golang.org/x/lint v0.0.0-20210508222113-6edffad5e616
 	gopkg.in/yaml.v2 v2.4.0
