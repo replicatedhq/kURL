@@ -49,7 +49,7 @@ jobs:
           S3_BUCKET: "kurl-sh"
         run: |
           ./bin/build-addon-package.sh "${{ env.addon }}" "${{ env.version }}" \
-            "addons/$ADDON/$VERSION/Manifest" \
+            "addons/${{ env.addon }}/${{ env.version }}/Manifest" \
             "${{ env.prefix }}"
 
       - name: tgrun queue
