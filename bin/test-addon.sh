@@ -15,6 +15,7 @@ function run_testgrid_test() {
   local s3_url="$3"
   local test_spec="$4"
   local prefix="$5"
+  local priority="$6"
 
   cp "$test_spec" /tmp/test-spec
 
@@ -23,12 +24,6 @@ function run_testgrid_test() {
   # Substitute
   sed -i "s#__testver__#${version}#g" /tmp/test-spec
   sed -i "s#__testdist__#${s3_url}#g" /tmp/test-spec
-
-  # if this is triggered by automation, lower the priority
-  local priority=0
-  if [ "$GITHUB_ACTOR" = "replicated-ci-kurl" ]; then
-    priority=-1
-  fi
 
   # include the following in the ref for uniqueness:
   # - the filename of the test spec
@@ -53,6 +48,12 @@ function main() {
   local s3_url="$3"
   local testgrid_spec_path="$4"
   local prefix="$5"
+  local priority="${6:-0}"
+
+  # if this is triggered by automation, lower the priority
+  if [ "$priority" = "0" ] && [ "$GITHUB_ACTOR" = "replicated-ci-kurl" ]; then
+    priority=-1
+  fi
 
   # From GH Action Defition
   require TESTGRID_API_TOKEN "$TESTGRID_API_TOKEN"
@@ -64,10 +65,10 @@ function main() {
   # Run for each template (if available)
   shopt -s nullglob
   for test_spec in "$testgrid_spec_path"/*.yaml; do
-    run_testgrid_test "$addon" "$version" "$s3_url" "$test_spec" "$prefix"
+    run_testgrid_test "$addon" "$version" "$s3_url" "$test_spec" "$prefix" "$priority"
   done
   for test_spec in "$testgrid_spec_path"/*.yml; do
-    run_testgrid_test "$addon" "$version" "$s3_url" "$test_spec" "$prefix"
+    run_testgrid_test "$addon" "$version" "$s3_url" "$test_spec" "$prefix" "$priority"
   done
   shopt -u nullglob
 

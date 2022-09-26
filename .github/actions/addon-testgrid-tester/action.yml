@@ -24,6 +24,11 @@ inputs:
     required: true
     description: 'Testgrid API token.'
     type: string
+  priority:
+    required: true
+    description: 'Testgrid run priority.'
+    type: number
+    default: 0
 outputs:
   message:
     description: 'Message to the end-user including links to the Testgrid runs.'
@@ -38,7 +43,8 @@ runs:
           "${{ inputs.version }}" \
           "${{ inputs.package-url }}" \
           "${{ inputs.testgrid-spec-path }}" \
-          "${{ inputs.testgrid-run-prefix }}"
+          "${{ inputs.testgrid-run-prefix }}" \
+          "${{ inputs.priority }}"
       env:
         TESTGRID_API_TOKEN: ${{ inputs.testgrid-api-token }}
       shell: bash
