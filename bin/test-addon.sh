@@ -14,16 +14,20 @@ function run_testgrid_test() {
   local version="$2"
   local s3_url="$3"
   local test_spec="$4"
-  local prefix="$5"
-  local priority="$6"
+  local testgrid_os_spec_path="$5"
+  local prefix="$6"
+  local priority="$7"
 
-  cp "$test_spec" /tmp/test-spec
+  local tmpdir=
+  tmpdir="$(mktemp -d)"
+  cp "$test_spec" "$tmpdir/test-spec"
+  cp "$testgrid_os_spec_path" "$tmpdir/os-spec"
 
   echo "Found test spec template $test_spec"
 
   # Substitute
-  sed -i "s#__testver__#${version}#g" /tmp/test-spec
-  sed -i "s#__testdist__#${s3_url}#g" /tmp/test-spec
+  sed -i "s#__testver__#${version}#g" "$tmpdir/test-spec"
+  sed -i "s#__testdist__#${s3_url}#g" "$tmpdir/test-spec"
 
   # include the following in the ref for uniqueness:
   # - the filename of the test spec
@@ -32,11 +36,11 @@ function run_testgrid_test() {
   ref="$prefix-$addon-$version-$(basename "$test_spec" ".yaml")-$(date --utc +%FT%TZ)"
 
   # Run testgrid plan
-  docker run --rm -e TESTGRID_API_TOKEN -v "$(pwd)":/wrk -v /tmp/test-spec:/tmp/test-spec -w /wrk \
+  docker run --rm -e TESTGRID_API_TOKEN -v "$tmpdir:/wrk" -w /wrk \
     replicated/tgrun:latest queue --staging \
       --ref "$ref" \
-      --spec /tmp/test-spec \
-      --os-spec ./testgrid/specs/os-firstlast.yaml \
+      --spec /wrk/test-spec \
+      --os-spec /wrk/os-spec \
       --priority "$priority"
   echo "Submitted TestGrid Ref $ref"
   MSG="$MSG https://testgrid.kurl.sh/run/$ref"
@@ -47,8 +51,9 @@ function main() {
   local version="$2"
   local s3_url="$3"
   local testgrid_spec_path="$4"
-  local prefix="$5"
-  local priority="${6:-0}"
+  local testgrid_os_spec_path="$5"
+  local prefix="$6"
+  local priority="${7:-0}"
 
   # if this is triggered by automation, lower the priority
   if [ "$priority" = "0" ] && [ "$GITHUB_ACTOR" = "replicated-ci-kurl" ]; then
@@ -65,10 +70,10 @@ function main() {
   # Run for each template (if available)
   shopt -s nullglob
   for test_spec in "$testgrid_spec_path"/*.yaml; do
-    run_testgrid_test "$addon" "$version" "$s3_url" "$test_spec" "$prefix" "$priority"
+    run_testgrid_test "$addon" "$version" "$s3_url" "$test_spec" "$testgrid_os_spec_path" "$prefix" "$priority"
   done
   for test_spec in "$testgrid_spec_path"/*.yml; do
-    run_testgrid_test "$addon" "$version" "$s3_url" "$test_spec" "$prefix" "$priority"
+    run_testgrid_test "$addon" "$version" "$s3_url" "$test_spec" "$testgrid_os_spec_path" "$prefix" "$priority"
   done
   shopt -u nullglob
 

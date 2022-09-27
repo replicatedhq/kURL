@@ -43,6 +43,7 @@ runs:
           "${{ inputs.version }}" \
           "${{ inputs.package-url }}" \
           "${{ inputs.testgrid-spec-path }}" \
+          "${{ github.action_path }}/../../../testgrid/specs/os-firstlast.yaml" \
           "${{ inputs.testgrid-run-prefix }}" \
           "${{ inputs.priority }}"
       env:
