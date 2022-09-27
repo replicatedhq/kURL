@@ -22,7 +22,7 @@ function build_addon() {
   tmpdir="$(mktemp -d)"
   local addon_dir="addons/$addon/$version"
   mkdir -p "$tmpdir/$addon_dir"
-  cp -r "$addon_dir" "$tmpdir/$addon_dir"
+  cp -r "$addon_dir/." "$tmpdir/$addon_dir"
   ./bin/save-manifest-assets.sh "$addon-$version" "$manifest_path" "$tmpdir/$addon_dir"
   tar cf - -C "$tmpdir" "$addon_dir" | gzip > "$tmpdir/$addon-$version.tar.gz"
 
