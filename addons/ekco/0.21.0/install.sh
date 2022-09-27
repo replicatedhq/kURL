@@ -274,6 +274,7 @@ function ekco_bootstrap_internal_lb() {
 }
 
 function ekco_cleanup_bootstrap_internal_lb() {
+    
     if commandExists docker; then
         docker rm -f bootstrap-lb &>/dev/null || true
     else
