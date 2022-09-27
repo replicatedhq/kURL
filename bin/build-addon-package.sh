@@ -12,7 +12,7 @@ function require() {
 function build_addon() {
   local addon="$1"
   local version="$2"
-  local manifest_path="$3"
+  local addon_path="$3"
   local prefix="$4"
 
   local s3_key="pr/${prefix}-$addon-$version.tar.gz"
@@ -21,9 +21,9 @@ function build_addon() {
   local tmpdir=
   tmpdir="$(mktemp -d)"
   local addon_dir="addons/$addon/$version"
+  ./bin/save-manifest-assets.sh "$addon-$version" "$addon_path/Manifest" "$tmpdir/$addon_dir"
   mkdir -p "$tmpdir/$addon_dir"
-  cp -r "$addon_dir/." "$tmpdir/$addon_dir"
-  ./bin/save-manifest-assets.sh "$addon-$version" "$manifest_path" "$tmpdir/$addon_dir"
+  cp -r "$addon_path/." "$tmpdir/$addon_dir/"
   tar cf - -C "$tmpdir" "$addon_dir" | gzip > "$tmpdir/$addon-$version.tar.gz"
 
   aws s3 cp "$tmpdir/$addon-$version.tar.gz" "s3://${S3_BUCKET}/$s3_key" --region us-east-1
@@ -35,7 +35,7 @@ function build_addon() {
 function main() {
   local addon="$1"
   local version="$2"
-  local manifest_path="$3"
+  local addon_path="$3"
   local prefix="$4"
 
   # From GH Action Defition
@@ -45,7 +45,7 @@ function main() {
 
   echo "Build Addon $addon-$version"
 
-  build_addon "$addon" "$version" "$manifest_path" "$prefix"
+  build_addon "$addon" "$version" "$addon_path" "$prefix"
 
   echo "Build complete."
 }
