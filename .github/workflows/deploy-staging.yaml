@@ -155,6 +155,17 @@ jobs:
         AWS_DEFAULT_REGION: "us-east-1"
         DIST_FOLDER: "staging"
         VERSION_TAG: ${{ needs.get-tag.outputs.version_tag }}
+    - name: Purge s3-staging.kurl.sh cache
+      run: |
+        curl -X POST "https://api.cloudflare.com/client/v4/zones/$CF_KURL_ZONE/purge_cache" \
+             -H "X-Auth-Email: $CF_EMAIL" \
+             -H "Authorization: Bearer $CF_API_KEY" \
+             -H "Content-Type: application/json" \
+             --data '{"hosts":["s3-staging.kurl.sh"]}'
+      env:
+        CF_EMAIL: ${{ secrets.CF_EMAIL }}
+        CF_API_KEY: ${{ secrets.CF_API_KEY }}
+        CF_KURL_ZONE: ${{ secrets.CF_KURL_ZONE }}
 
   testgrid-run:
     runs-on: ubuntu-20.04
