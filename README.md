@@ -3,8 +3,7 @@
 </div>
 <br/>
 
-kURL
-====================================
+# kURL
 
 [![FOSSA Status](https://app.fossa.com/api/projects/custom%2B5995%2Fgithub.com%2Freplicatedhq%2Fkurl.svg?type=small)](https://app.fossa.com/projects/custom%2B5995%2Fgithub.com%2Freplicatedhq%2Fkurl?ref=badge_small)
 
@@ -14,23 +13,28 @@ kURL relies on `kubeadm` to bring up the Kubernetes control plane, but there are
 The purpose of this installer is to automate those tasks so that any user can deploy a Kubernetes cluster with a single script.
 
 ## Getting Started
+
 For more information please see [kurl.sh/docs/](https://kurl.sh/docs/)
 
-# Community
+## Community
 
 For questions about using kURL, there's a [Replicated Community](https://help.replicated.com/community) forum, and a [#kurl channel in Kubernetes Slack](https://kubernetes.slack.com/channels/kurl).
 
-# Notifications
+## Notifications
 
-kURL offers several optional [add-ons](https://kurl.sh/add-ons) for Kubernetes cluster creation. These open-source technology add-ons are distributed under various open-source licenses.
+kURL offers several optional [add-ons](https://kurl.sh/add-ons) for Kubernetes cluster creation.
+These open-source technology add-ons are distributed under various open-source licenses.
 
-One optional add-on available for object storage is [MinIO](https://github.com/minio/minio). Use of MinIO is governed by the GNU AGPLv3 license that can be found in their [License](https://github.com/minio/minio/blob/master/LICENSE) file.
+One optional add-on available for object storage is [MinIO](https://github.com/minio/minio).
+Use of MinIO is governed by the GNU AGPLv3 license that can be found in their [License](https://github.com/minio/minio/blob/master/LICENSE) file.
 
-One optional add-on available for Metrics & Monitoring is Prometheus via the [Prometheus Operator](https://github.com/prometheus-operator/prometheus-operator), which includes Grafana. Use of Grafana is currently governed by the GNU AGPL v3 license that can be found in their [License](https://github.com/grafana/grafana/blob/main/LICENSE) file.
+One optional add-on available for Metrics & Monitoring is Prometheus via the [Prometheus Operator](https://github.com/prometheus-operator/prometheus-operator), which includes Grafana.
+Use of Grafana is currently governed by the GNU AGPL v3 license that can be found in their [License](https://github.com/grafana/grafana/blob/main/LICENSE) file.
 
-# Releases
+## Releases
 
-For details on each release, see the [changelog](https://github.com/replicatedhq/kURL/releases). For Replicated vendors, detailed release notes are available at [Kubernetes Installer Release Notes](https://docs.replicated.com/release-notes/rn-kubernetes-installer) on the Replicated documentation site.
+For details on each release, see the [changelog](https://github.com/replicatedhq/kURL/releases).
+For Replicated vendors, detailed release notes are available at [Kubernetes Installer Release Notes](https://docs.replicated.com/release-notes/rn-kubernetes-installer) on the Replicated documentation site.
 
 Release assets and changelog are available on the [GitHub Releases](https://github.com/replicatedhq/kURL/releases) page.
 
@@ -39,18 +43,21 @@ The tag should follow the date format `vYYYY.MM.DD-#`.
 
 A new release can be tagged by running the following command:
 
-```
-make tag-and-release
+```shell
+$ make tag-and-release
 ```
 
-# Software Bill of Materials
+## Software Bill of Materials
+
 Signed SBOMs for kURL Go and Javascript dependencies are combined into a tar file and are included with each release.
+
 - **kurl-sbom.tgz** contains SBOMs for Go  and Javascript dependencies
 - **kurl-sbom.tgz.sig** is the digital signature for kurl-sbom.tgz
 - **key.pub** is the public key from the key pair used to sign kurl-sbom.tgz
 
 The following example illustrates using [cosign](https://github.com/sigstore/cosign) to verify that **kurl-sbom.tgz** has
 not been tampered with.
+
 ```shell
 $ cosign verify-blob -key key.pub -signature kurl-sbom.tgz.sig kurl-sbom.tgz
 Verified OK
