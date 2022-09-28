@@ -30,13 +30,14 @@ jobs:
           automated-pr
           containerd
           type::chore
+          kurl::type::feature
         draft: false
         base: "main"
         body: |
           Automated changes by the [cron-containerd-update](https://github.com/replicatedhq/kURL/blob/main/.github/workflows/update-containerd.yaml) GitHub action
           
           ```release-note
-            Adds [Containerd add-on](https://kurl.sh/docs/add-ons/containerd) version ${{ steps.update.outputs.containerd_version }}.
+          Adds [Containerd add-on](https://kurl.sh/docs/add-ons/containerd) version ${{ steps.update.outputs.containerd_version }}.
           ```
 
     - name: Check outputs

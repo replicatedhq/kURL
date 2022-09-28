@@ -31,13 +31,14 @@ jobs:
           automated-pr
           ekco
           type::chore
+          kurl::type::feature
         draft: false
         base: "main"
         body: |
           Automated changes by the [cron-ekco-update](https://github.com/replicatedhq/kURL/blob/main/.github/workflows/update-ekco.yaml) GitHub action
           
           ```release-note
-            Adds [EKCO add-on](https://kurl.sh/docs/add-ons/ekco) version ${{ steps.update.outputs.ekco_version }}.
+          Adds [EKCO add-on](https://kurl.sh/docs/add-ons/ekco) version ${{ steps.update.outputs.ekco_version }}.
           ```
 
     - name: Check outputs
