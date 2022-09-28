@@ -30,13 +30,14 @@ jobs:
           automated-pr
           rook
           type::chore
+          kurl::type::feature
         draft: false
         base: "main"
         body: |
           Automated changes by the [cron-rook-update](https://github.com/replicatedhq/kURL/blob/main/.github/workflows/update-rook.yaml) GitHub action
           
           ```release-note
-            Adds [Rook add-on](https://kurl.sh/docs/add-ons/rook) verison ${{ steps.update.outputs.rook_version }}.
+          Adds [Rook add-on](https://kurl.sh/docs/add-ons/rook) verison ${{ steps.update.outputs.rook_version }}.
           ```
     - name: Check outputs
       run: |

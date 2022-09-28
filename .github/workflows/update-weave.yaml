@@ -38,13 +38,14 @@ jobs:
           automated-pr
           weave
           type::chore
+          kurl::type::feature
         draft: false
         base: "main"
         body: |
           Automated changes by the [cron-weave-update](https://github.com/replicatedhq/kURL/blob/main/.github/workflows/update-weave.yaml) GitHub action
           
           ```release-note
-            Adds [Weave add-on](https://kurl.sh/docs/add-ons/weave) version ${{ steps.update.outputs.weave_version }}.
+          Adds [Weave add-on](https://kurl.sh/docs/add-ons/weave) version ${{ steps.update.outputs.weave_version }}.
           ```
     - name: Check outputs
       run: |

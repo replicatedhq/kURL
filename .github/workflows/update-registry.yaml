@@ -31,13 +31,14 @@ jobs:
           automated-pr
           registry
           type::chore
+          kurl::type::feature
         draft: false
         base: "main"
         body: |
           Automated changes by the [cron-registry-update](https://github.com/replicatedhq/kURL/blob/main/.github/workflows/update-registry.yaml) GitHub action
           
           ```release-note
-            Adds [Registry add-on](https://kurl.sh/docs/add-ons/registry) version ${{ steps.update.outputs.registry_version }}.
+          Adds [Registry add-on](https://kurl.sh/docs/add-ons/registry) version ${{ steps.update.outputs.registry_version }}.
           ```
     - name: Check outputs
       run: |

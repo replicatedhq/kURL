@@ -32,13 +32,14 @@ jobs:
           automated-pr
           goldpinger
           type::chore
+          kurl::type::feature
         draft: false
         base: "main"
         body: |
           Automated changes by the [cron-goldpinger-update](https://github.com/replicatedhq/kURL/blob/main/.github/workflows/update-goldpinger.yaml) GitHub action
           
           ```release-note
-            Adds [Goldpinger add-on](https://kurl.sh/docs/add-ons/goldpinger) version ${{ steps.update.outputs.goldpinger_version }}.
+          Adds [Goldpinger add-on](https://kurl.sh/docs/add-ons/goldpinger) version ${{ steps.update.outputs.goldpinger_version }}.
           ```
     - name: Check outputs
       run: |

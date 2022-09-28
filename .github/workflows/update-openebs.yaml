@@ -35,13 +35,14 @@ jobs:
           automated-pr
           openebs
           type::chore
+          kurl::type::feature
         draft: false
         base: "main"
         body: |
           Automated changes by the [cron-openebs-update](https://github.com/replicatedhq/kURL/blob/main/.github/workflows/update-openebs.yaml) GitHub action
 
           ```release-note
-            Adds [OpenEBS add-on](https://kurl.sh/docs/add-ons/openebs) version ${{ steps.update.outputs.openebs_version }}.
+          Adds [OpenEBS add-on](https://kurl.sh/docs/add-ons/openebs) version ${{ steps.update.outputs.openebs_version }}.
           ```
     - name: Check outputs
       run: |
@@ -78,13 +79,14 @@ jobs:
           automated-pr
           openebs
           type::chore
+          kurl::type::feature
         draft: false
         base: "main"
         body: |
           Automated changes by the [cron-openebs-update](https://github.com/replicatedhq/kURL/blob/main/.github/workflows/update-openebs.yaml) GitHub action
 
           ```release-note
-            Adds [OpenEBS add-on](https://kurl.sh/docs/add-ons/openebs) version ${{ steps.update.outputs.openebs_version }}.
+          Adds [OpenEBS add-on](https://kurl.sh/docs/add-ons/openebs) version ${{ steps.update.outputs.openebs_version }}.
           ```
     - name: Check outputs
       run: |
