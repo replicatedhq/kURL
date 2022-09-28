@@ -62,7 +62,7 @@ function addon_fetch() {
     if [ "$AIRGAP" != "1" ]; then
         if [ -n "$s3Override" ]; then
             rm -rf $DIR/addons/$name/$version # Cleanup broken/incompatible addons from failed runs
-            addon_fetch_no_cache "$s3Override"
+            addon_fetch_cache "$name-$version.tar.gz" "$s3Override"
         elif [ -n "$DIST_URL" ]; then
             rm -rf $DIR/addons/$name/$version # Cleanup broken/incompatible addons from failed runs
             addon_fetch_cache "$name-$version.tar.gz"
@@ -139,8 +139,9 @@ function addon_fetch_no_cache() {
 
 function addon_fetch_cache() {
     local package=$1
+    local url_override=$2
 
-    package_download "${package}"
+    package_download "${package}" "${url_override}"
 
     tar xf "$(package_filepath "${package}")"
 

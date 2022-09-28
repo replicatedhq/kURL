@@ -29,18 +29,6 @@ function get_dist_url() {
     fi
 }
 
-# Retrieves the external add-on cache url prefix for add-on packages.
-# External add-ons are cached for all stages in the same bucket and same directory.
-function get_external_addon_url() {
-    local url="https://kurl-sh.s3.amazonaws.com/external"
-
-    if [ "$IPV6_ONLY" = "1" ]; then
-        echo "$url" | sed 's/s3\.amazonaws\.com/s3.dualstack.us-east-1.amazonaws.com/'
-    else
-        echo "$url"
-    fi
-}
-
 function package_download() {
     local package="$1"
     local url_override="$2"
@@ -53,28 +41,31 @@ function package_download() {
     mkdir -p assets
     touch assets/Manifest
 
-    local etag="$(cat assets/Manifest | grep "${package}" | awk 'NR == 1 {print $2}')"
-    local checksum="$(cat assets/Manifest | grep "${package}" | awk 'NR == 1 {print $3}')"
+    local etag=
+    local checksum=
+    etag="$(grep -F "${package}" assets/Manifest | awk 'NR == 1 {print $2}')"
+    checksum="$(grep -F "${package}" assets/Manifest | awk 'NR == 1 {print $3}')"
 
     if [ -n "${etag}" ] && ! package_matches_checksum "${package}" "${checksum}" ; then
         etag=
     fi
 
     local package_url=
-    package_url="$(get_dist_url)/${package}"
-
-    # if the package does not exist as a "normal" add-on, try the external add-on cache
-    if ! curl -IfsSL -o /dev/null "$package_url" ; then
-        package_url="$(get_external_addon_url)/${package}"
+    if [ -z "$url_override" ]; then
+        package_url="$(get_dist_url)/${package}"
+    else
+        package_url="${url_override}"
     fi
 
-    local newetag="$(curl -IfsSL "$package_url" | grep -i 'etag:' | sed -r 's/.*"(.*)".*/\1/')"
+    local newetag=
+    newetag="$(curl -IfsSL "$package_url" | grep -i 'etag:' | sed -r 's/.*"(.*)".*/\1/')"
     if [ -n "${etag}" ] && [ "${etag}" = "${newetag}" ]; then
         echo "Package ${package} already exists, not downloading"
         return
     fi
 
-    local filepath="$(package_filepath "${package}")"
+    local filepath=
+    filepath="$(package_filepath "${package}")"
 
     sed -i "/^$(printf '%s' "${package}").*/d" assets/Manifest # remove from manifest
     rm -f "${filepath}" # remove the file
