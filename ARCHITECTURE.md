@@ -173,3 +173,13 @@ Operations that are performed in the join script include installing host package
 #### addon_outro
 
 Print end-user messages to the screen.
+
+### External Add-ons
+
+kURL maintains a list of externally built and hosted add-ons (current only "kotsadm").
+
+kURL automation, more specifically the `import-external-addons` GitHub action, polls this list for newly available versions.
+
+New versions are published to the external add-on registry and packages are copied from the source and stored in the kURL S3 bucket.
+
+The kURL API merges the external add-on registry with its internal list of add-on versions, making them available to the end-user.
