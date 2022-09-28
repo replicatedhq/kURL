@@ -35,3 +35,20 @@ jobs:
             --metadata-directive REPLACE --metadata md5="${MD5}",gitsha="${GITSHA}"
           aws s3 cp s3://kurl-sh/staging/${VERSION_TAG}/$PKG s3://kurl-sh/staging/$PKG \
             --metadata-directive REPLACE --metadata md5="${MD5}",gitsha="${GITSHA}"
+
+      - name: purge package cache
+        env:
+          PKG: ${{ github.event.client_payload.package || github.event.inputs.package }}
+          CF_EMAIL: ${{ secrets.CF_EMAIL }}
+          CF_API_KEY: ${{ secrets.CF_API_KEY }}
+          CF_KURL_ZONE: ${{ secrets.CF_KURL_ZONE }}
+        run: |
+          git fetch --tags -f
+          export VERSION_TAG=$(git tag | grep '^v20' | grep -v 'v2022\.09\.04' | sort | tail -1)-dirty
+          
+          echo "purging s3-staging.kurl.sh/staging/${VERSION_TAG}/$PKG and s3-staging.kurl.sh/staging/$PKG"
+          curl -X POST "https://api.cloudflare.com/client/v4/zones/$CF_KURL_ZONE/purge_cache" \
+             -H "X-Auth-Email: $CF_EMAIL" \
+             -H "Authorization: Bearer $CF_API_KEY" \
+             -H "Content-Type: application/json" \
+             --data '{"prefixes":["s3-staging.kurl.sh/staging/${VERSION_TAG}/$PKG", "s3-staging.kurl.sh/staging/$PKG"]}'
