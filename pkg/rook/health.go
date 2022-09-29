@@ -135,7 +135,22 @@ func progressEventsString(status cephtypes.CephStatus) string {
 			eventKeys = append(eventKeys, key)
 		}
 		sort.Strings(eventKeys)
-		firstEvent := status.ProgressEvents[eventKeys[0]]
+
+		var firstEvent struct {
+			Message  string  `json:"message"`
+			Progress float64 `json:"progress"`
+		}
+		for _, event := range eventKeys {
+			// we do not consider a global recovery event to be enough to make ceph be 'unhealthy'
+			if !strings.Contains(status.ProgressEvents[event].Message, "Global Recovery Event") {
+				firstEvent = status.ProgressEvents[event]
+				break
+			}
+		}
+
+		if firstEvent.Message == "" {
+			return ""
+		}
 
 		firstEvent.Message = strings.ReplaceAll(firstEvent.Message, "\n", "")
 

@@ -1,0 +1,153 @@
+{
+  "fsid": "9d7018dc-721a-4229-90ab-bb63ae1d5d1e",
+  "health": {
+    "status": "HEALTH_WARN",
+    "checks": {
+      "POOL_NO_REDUNDANCY": {
+        "severity": "HEALTH_WARN",
+        "summary": {
+          "message": "11 pool(s) have no replicas configured",
+          "count": 11
+        },
+        "muted": false
+      }
+    },
+    "mutes": []
+  },
+  "election_epoch": 5,
+  "quorum": [
+    0
+  ],
+  "quorum_names": [
+    "a"
+  ],
+  "quorum_age": 579,
+  "monmap": {
+    "epoch": 1,
+    "min_mon_release_name": "pacific",
+    "num_mons": 1
+  },
+  "osdmap": {
+    "epoch": 133,
+    "num_osds": 1,
+    "num_up_osds": 1,
+    "osd_up_since": 1664340482,
+    "num_in_osds": 1,
+    "osd_in_since": 1664338986,
+    "num_remapped_pgs": 0
+  },
+  "pgmap": {
+    "pgs_by_state": [
+      {
+        "state_name": "active+clean",
+        "count": 177
+      }
+    ],
+    "num_pgs": 177,
+    "num_pools": 11,
+    "num_objects": 540,
+    "data_bytes": 288443880,
+    "bytes_used": 294387712,
+    "bytes_avail": 53388509184,
+    "bytes_total": 53682896896,
+    "read_bytes_sec": 2388,
+    "write_bytes_sec": 6908,
+    "read_op_per_sec": 3,
+    "write_op_per_sec": 0
+  },
+  "fsmap": {
+    "epoch": 28,
+    "id": 1,
+    "up": 1,
+    "in": 1,
+    "max": 1,
+    "by_rank": [
+      {
+        "filesystem_id": 1,
+        "rank": 0,
+        "name": "rook-shared-fs-b",
+        "status": "up:active",
+        "gid": 14278
+      },
+      {
+        "filesystem_id": 1,
+        "rank": 0,
+        "name": "rook-shared-fs-a",
+        "status": "up:standby-replay",
+        "gid": 14444
+      }
+    ],
+    "up:standby": 0
+  },
+  "mgrmap": {
+    "available": true,
+    "num_standbys": 0,
+    "modules": [
+      "dashboard",
+      "iostat",
+      "nfs",
+      "prometheus",
+      "restful"
+    ],
+    "services": {
+      "dashboard": "https://***HIDDEN***:8443/",
+      "prometheus": "http://***HIDDEN***:9283/"
+    }
+  },
+  "servicemap": {
+    "epoch": 14,
+    "modified": "2022-09-28T04:51:41.638280+0000",
+    "services": {
+      "rgw": {
+        "daemons": {
+          "summary": "",
+          "14390": {
+            "start_epoch": 10,
+            "start_stamp": "2022-09-28T04:48:29.402492+0000",
+            "gid": 14390,
+            "addr": "***HIDDEN***:0/2146332328",
+            "metadata": {
+              "arch": "x86_64",
+              "ceph_release": "pacific",
+              "ceph_version": "ceph version 16.2.9 (4c3647a322c0ff5a1dd2344e039859dcbd28c830) pacific (stable)",
+              "ceph_version_short": "16.2.9",
+              "container_hostname": "rook-ceph-rgw-rook-ceph-store-a-848d9884-g4wxc",
+              "container_image": "quay.io/ceph/ceph:v16.2.9",
+              "cpu": "AMD EPYC Processor (with IBPB)",
+              "distro": "centos",
+              "distro_description": "CentOS Stream 8",
+              "distro_version": "8",
+              "frontend_config#0": "beast port=8080",
+              "frontend_type#0": "beast",
+              "hostname": "laffpxovptdabkpm-initialprimary",
+              "id": "rook.ceph.store.a",
+              "kernel_description": "#1 SMP Tue Mar 31 23:36:51 UTC 2020",
+              "kernel_version": "3.10.0-1127.el7.x86_64",
+              "mem_swap_kb": "0",
+              "mem_total_kb": "16266188",
+              "num_handles": "1",
+              "os": "Linux",
+              "pid": "1",
+              "pod_name": "rook-ceph-rgw-rook-ceph-store-a-848d9884-g4wxc",
+              "pod_namespace": "rook-ceph",
+              "realm_id": "fcb25ba7-1782-412d-9b7e-e7677b210c09",
+              "realm_name": "rook-ceph-store",
+              "zone_id": "5dc03d73-94a4-4f90-be58-379a36c8df6b",
+              "zone_name": "rook-ceph-store",
+              "zonegroup_id": "2f176f8e-32bf-41e4-aef2-7c8bc10bbd68",
+              "zonegroup_name": "rook-ceph-store"
+            },
+            "task_status": {}
+          }
+        }
+      }
+    }
+  },
+  "progress_events": {
+    "892b0e95-7768-4a40-ae05-79c7091984dc": {
+      "message": "Global Recovery Event (0s)\n      [............................] ",
+      "progress": 0,
+      "add_to_ceph_s": true
+    }
+  }
+}
