@@ -6,6 +6,11 @@ PACKAGE_NAME=$1
 MANIFEST_PATH=$2
 OUT_DIR=$3
 
+if ! test -f "$MANIFEST_PATH"; then
+    echo "$MANIFEST_PATH does not exist"
+    exit 1
+fi
+
 mkdir -p "$OUT_DIR"
 
 function build_rhel_7() {
