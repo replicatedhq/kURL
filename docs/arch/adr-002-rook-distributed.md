@@ -30,7 +30,8 @@ For Single node cluster deployments, the default storage provisioner will be del
 
 ## Decision
 
-We will recommend [Rook](https://rook.io/docs/rook/v1.10/Getting-Started/intro/) as the default storage provisioner for multi-node embedded clusters. We won't recommend Rook deployments for single-node embedded clusters.
+We will recommend [Rook](https://rook.io/docs/rook/v1.10/Getting-Started/intro/) as the default storage provisioner for multi-node embedded clusters.
+We won't recommend Rook deployments for single-node embedded clusters.
 
 ## Status
 
