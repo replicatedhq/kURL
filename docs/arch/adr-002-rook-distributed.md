@@ -1,6 +1,9 @@
 # ADR 2: Use Rook as provisioner for Multi Node kURL Installations
 
-The initial kURL installation specification defaulted to [Longhorn](https://longhorn.io/) as the volume provisioner for both Single and Multi-node deployments. However, the experience with Longhorn has not lived up to our expectations. Namely, the instability, slow performance, and lack of community support for Longhorn have forced us to switch to another storage provisioner. For Single node cluster deployments, the default storage provisioner will be delivered, as per linked ADR, by [OpenEBS](https://github.com/replicatedhq/kURL/blob/main/docs/arch/adr-001-use-openebs.md) while for Multi-node clusters this role starts to be fulfilled by [Rook](https://rook.io/docs/rook/v1.10/Getting-Started/intro/).
+The initial kURL installation specification defaulted to [Longhorn](https://longhorn.io/) as the volume provisioner for both Single and Multi-node deployments.
+However, the experience with Longhorn has not lived up to our expectations.
+Namely, the instability, slow performance, and lack of community support for Longhorn have forced us to switch to another storage provisioner.
+For Single node cluster deployments, the default storage provisioner will be delivered, as per linked ADR, by [OpenEBS](https://github.com/replicatedhq/kURL/blob/main/docs/arch/adr-001-use-openebs.md) while for Multi-node clusters this role starts to be fulfilled by [Rook](https://rook.io/docs/rook/v1.10/Getting-Started/intro/).
 
 - These are some of the benefits of using Rook as our default Storage Provisioner:
     - Active and engaging community
