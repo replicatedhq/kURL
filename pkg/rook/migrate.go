@@ -14,7 +14,7 @@ import (
 	"k8s.io/client-go/rest"
 )
 
-var loopSleep = time.Second * 5
+var loopSleep = time.Second * 1
 
 func HostpathToOsd(ctx context.Context, config *rest.Config) error {
 	client := kubernetes.NewForConfigOrDie(config)
