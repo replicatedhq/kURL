@@ -6,7 +6,6 @@ export const findVersion = (kotsAddonVersions, version) => {
   if (!kotsAddonVersions) {
     return;
   }
-  console.log(kotsAddonVersions);
   return kotsAddonVersions.find(el => el.version === version.version);
 };
 
