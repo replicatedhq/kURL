@@ -1,0 +1,14 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: ekco-rook-ceph
+  namespace: rook-ceph
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: ekco-rook-ceph
+subjects:
+  - kind: ServiceAccount
+    name: ekco
+    namespace: kurl
