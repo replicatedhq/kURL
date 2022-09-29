@@ -43,4 +43,4 @@ Accepted
 - The hardware requirements must be stated in the documentation
 - Users need to be informed employing documentation and "warnings" in kurl.sh that deploying Rook in a Single node cluster is not recommended
 - Our recommendation for Rook in multi-node deployments should be implemented through documentation and "advises" in kurl.sh
-- As our Storage provisioner recommendation differs from a single-node to a multi-node setup a migration path will need to be implemented and maintained by the team
+- As our Storage provisioner recommendation differs from a single-node to a multi-node setup an automatic migration will need to be implemented and maintained by the team (possibly as part of Ekco operator)
