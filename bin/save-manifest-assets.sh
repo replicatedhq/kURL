@@ -183,18 +183,28 @@ while read -r line || [ -n "$line" ]; do
 
     case "$kind" in
         image)
-            filename=$(echo $line | awk '{ print $2 }')
-            image=$(echo $line | awk '{ print $3 }')
-            try_5_times docker pull $image
-            mkdir -p $OUT_DIR/images
-            docker save $image | gzip > $OUT_DIR/images/${filename}.tar.gz
+            filename=$(echo "$line" | awk '{ print $2 }')
+            image=$(echo "$line" | awk '{ print $3 }')
+            # we support both remote images and tar archives
+            if echo "$image" | grep -q '\.tar$' ; then
+                gzip -c "$image" > "$OUT_DIR/images/${filename}.tar.gz"
+            else
+                try_5_times docker pull "$image"
+                mkdir -p "$OUT_DIR/images"
+                docker save "$image" | gzip > "$OUT_DIR/images/${filename}.tar.gz"
+            fi
             ;;
 
         asset)
-            mkdir -p $OUT_DIR/assets
-            filename=$(echo $line | awk '{ print $2 }')
-            url=$(echo $line | awk '{ print $3 }')
-            curl -fL -o "$OUT_DIR/assets/$filename" "$url"
+            mkdir -p "$OUT_DIR/assets"
+            filename=$(echo "$line" | awk '{ print $2 }')
+            asset=$(echo "$line" | awk '{ print $3 }')
+            # we support both http and local assets
+            if echo "$asset" | grep -q '^https://' ; then
+                curl -fL -o "$OUT_DIR/assets/$filename" "$asset"
+            else
+                cp "$asset" "$OUT_DIR/assets/$filename"
+            fi
             ;;
 
         apt)
