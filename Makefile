@@ -280,6 +280,7 @@ build/templates/install.tmpl: build/install.sh
 	mkdir -p build/templates
 	sed 's/^KURL_URL=.*/KURL_URL="{{= KURL_URL }}"/' "build/install.sh" | \
 		sed 's/^DIST_URL=.*/DIST_URL="{{= DIST_URL }}"/' | \
+		sed 's/^FALLBACK_URL=.*/FALLBACK_URL="{{= FALLBACK_URL }}"/' | \
 		sed 's/^INSTALLER_ID=.*/INSTALLER_ID="{{= INSTALLER_ID }}"/' | \
 		sed 's/^KURL_VERSION=.*/KURL_VERSION="{{= KURL_VERSION }}"/' | \
 		sed 's/^REPLICATED_APP_URL=.*/REPLICATED_APP_URL="{{= REPLICATED_APP_URL }}"/' | \
@@ -312,6 +313,7 @@ build/templates/join.tmpl: build/join.sh
 	mkdir -p build/templates
 	sed 's/^KURL_URL=.*/KURL_URL="{{= KURL_URL }}"/' "build/join.sh" | \
 		sed 's/^DIST_URL=.*/DIST_URL="{{= DIST_URL }}"/' | \
+		sed 's/^FALLBACK_URL=.*/FALLBACK_URL="{{= FALLBACK_URL }}"/' | \
 		sed 's/^INSTALLER_ID=.*/INSTALLER_ID="{{= INSTALLER_ID }}"/' | \
 		sed 's/^KURL_VERSION=.*/KURL_VERSION="{{= KURL_VERSION }}"/' | \
 		sed 's/^REPLICATED_APP_URL=.*/REPLICATED_APP_URL="{{= REPLICATED_APP_URL }}"/' | \
@@ -344,6 +346,7 @@ build/templates/upgrade.tmpl: build/upgrade.sh
 	mkdir -p build/templates
 	sed 's/^KURL_URL=.*/KURL_URL="{{= KURL_URL }}"/' "build/upgrade.sh" | \
 		sed 's/^DIST_URL=.*/DIST_URL="{{= DIST_URL }}"/' | \
+		sed 's/^FALLBACK_URL=.*/FALLBACK_URL="{{= FALLBACK_URL }}"/' | \
 		sed 's/^INSTALLER_ID=.*/INSTALLER_ID="{{= INSTALLER_ID }}"/' | \
 		sed 's/^KURL_VERSION=.*/KURL_VERSION="{{= KURL_VERSION }}"/' | \
 		sed 's/^REPLICATED_APP_URL=.*/REPLICATED_APP_URL="{{= REPLICATED_APP_URL }}"/' | \
@@ -376,6 +379,7 @@ build/templates/tasks.tmpl: build/tasks.sh
 	mkdir -p build/templates
 	sed 's/^KURL_URL=.*/KURL_URL="{{= KURL_URL }}"/' "build/tasks.sh" | \
 		sed 's/^DIST_URL=.*/DIST_URL="{{= DIST_URL }}"/' | \
+		sed 's/^FALLBACK_URL=.*/FALLBACK_URL="{{= FALLBACK_URL }}"/' | \
 		sed 's/^INSTALLER_ID=.*/INSTALLER_ID="{{= INSTALLER_ID }}"/' | \
 		sed 's/^KURL_VERSION=.*/KURL_VERSION="{{= KURL_VERSION }}"/' | \
 		sed 's/^REPLICATED_APP_URL=.*/REPLICATED_APP_URL="{{= REPLICATED_APP_URL }}"/' | \
