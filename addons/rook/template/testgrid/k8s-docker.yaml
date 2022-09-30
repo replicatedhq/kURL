@@ -16,8 +16,6 @@
       version: "__testver__"
       s3Override: "__testdist__"
       isBlockStorageEnabled: true
-  unsupportedOSIDs:
-    - centos-74 # Rook > 1.7 not supported on 3.10 kernel
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     rook_ecph_object_store_info
@@ -61,8 +59,6 @@
       s3Override: "__testdist__"
       isBlockStorageEnabled: true
       bypassUpgradeWarning: true
-  unsupportedOSIDs:
-    - centos-74 # Rook > 1.7 not supported on 3.10 kernel
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     rook_ecph_object_store_info
@@ -103,8 +99,6 @@
       s3Override: "__testdist__"
       isSharedFilesystemDisabled: true
       isBlockStorageEnabled: true
-  unsupportedOSIDs:
-    - centos-74 # Rook > 1.7 not supported on 3.10 kernel
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     rook_ecph_object_store_info
