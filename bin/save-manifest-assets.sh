@@ -6,6 +6,11 @@ PACKAGE_NAME=$1
 MANIFEST_PATH=$2
 OUT_DIR=$3
 
+if ! test -f "$MANIFEST_PATH"; then
+    echo "$MANIFEST_PATH does not exist"
+    exit 1
+fi
+
 mkdir -p "$OUT_DIR"
 
 function build_rhel_7() {
@@ -183,6 +188,7 @@ while read -r line || [ -n "$line" ]; do
 
     case "$kind" in
         image)
+            mkdir -p "$OUT_DIR/images"
             filename=$(echo "$line" | awk '{ print $2 }')
             image=$(echo "$line" | awk '{ print $3 }')
             # we support both remote images and tar archives
@@ -190,7 +196,6 @@ while read -r line || [ -n "$line" ]; do
                 gzip -c "$image" > "$OUT_DIR/images/${filename}.tar.gz"
             else
                 try_5_times docker pull "$image"
-                mkdir -p "$OUT_DIR/images"
                 docker save "$image" | gzip > "$OUT_DIR/images/${filename}.tar.gz"
             fi
             ;;
