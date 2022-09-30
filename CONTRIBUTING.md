@@ -36,6 +36,7 @@ Note that remote host must have `rsync` binary installed.
     ```bash
     KURL_URL=
     DIST_URL=
+    FALLBACK_URL=
     INSTALLER_ID=
     REPLICATED_APP_URL=https://replicated.app
     KURL_UTIL_IMAGE=replicated/kurl-util:alpha

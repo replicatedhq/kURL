@@ -12,14 +12,23 @@ function commandExists() {
     command -v "$@" > /dev/null 2>&1
 }
 
-# default s3 endpoint does not have AAAA records so IPv6 installs have to choose
-# an arbitrary regional dualstack endpoint. If S3 transfer acceleration is ever
-# enabled on the kurl-sh bucket the s3.accelerate.amazonaws.com endpoint can be
-# used for both IPv4 and IPv6.
 function get_dist_url() {
     local url="$DIST_URL"
     if [ -n "${KURL_VERSION}" ]; then
         url="${DIST_URL}/${KURL_VERSION}"
+    fi
+    echo "$url"
+}
+
+# default s3 endpoint does not have AAAA records so IPv6 installs have to choose
+# an arbitrary regional dualstack endpoint. If S3 transfer acceleration is ever
+# enabled on the kurl-sh bucket the s3.accelerate.amazonaws.com endpoint can be
+# used for both IPv4 and IPv6.
+# this is not required for get_dist_url as *.kurl.sh endpoints have IPv6 addresses.
+function get_dist_url_fallback() {
+    local url="$FALLBACK_URL"
+    if [ -n "${KURL_VERSION}" ]; then
+        url="${FALLBACK_URL}/${KURL_VERSION}"
     fi
 
     if [ "$IPV6_ONLY" = "1" ]; then
@@ -72,7 +81,11 @@ function package_download() {
 
     echo "Downloading package ${package}"
     if [ -z "$url_override" ]; then
-        package_download_url_with_retry "$package_url" "${filepath}"
+        if [ -z "$FALLBACK_URL" ]; then
+            package_download_url_with_retry "$package_url" "${filepath}"
+        else
+            package_download_url_with_retry "$package_url" "${filepath}" || package_download_url_with_retry "$(get_dist_url_fallback)/${package}" "${filepath}"
+        fi
     else
         package_download_url_with_retry "${url_override}" "${filepath}"
     fi
