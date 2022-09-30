@@ -144,6 +144,9 @@ function rook_operator_deploy() {
     rook_maybe_auth_allow_insecure_global_id_reclaim
 
     # disable bluefs_buffered_io for rook 1.8.x
+    # See:
+    #   - https://github.com/rook/rook/issues/10160#issuecomment-1168303067
+    #   - https://tracker.ceph.com/issues/54019
     rook_maybe_bluefs_buffered_io
 
     kubectl -n rook-ceph apply -k "$dst/"
