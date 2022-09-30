@@ -5,7 +5,7 @@ go 1.19
 require (
 	github.com/onsi/gomega v1.20.2
 	github.com/pkg/errors v0.9.1
-	github.com/replicatedhq/troubleshoot v0.42.0
+	github.com/replicatedhq/troubleshoot v0.43.1
 	github.com/spf13/cobra v1.5.0
 	github.com/spf13/viper v1.13.0
 	golang.org/x/net v0.0.0-20220826154423-83b083e8dc8b
