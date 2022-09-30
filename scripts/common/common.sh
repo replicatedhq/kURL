@@ -525,7 +525,11 @@ function spinner_until() {
 
 function get_common() {
     if [ "$AIRGAP" != "1" ] && [ -n "$DIST_URL" ]; then
-        curl -sSOL "$(get_dist_url)/common.tar.gz"
+        if [ -z "$FALLBACK_URL" ]; then
+            curl -sSOL "$(get_dist_url)/common.tar.gz"
+        else
+            curl -sSOL "$(get_dist_url)/common.tar.gz" || curl -sSOL "$(get_dist_url_fallback)/common.tar.gz"
+        fi
         tar xf common.tar.gz
         rm common.tar.gz
     fi
