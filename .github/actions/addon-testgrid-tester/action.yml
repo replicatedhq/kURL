@@ -17,6 +17,9 @@ inputs:
     required: true
     description: 'Path to directory where *.yaml testgrid specs reside.'
     type: string
+  testgrid-os-spec-path:
+    description: 'Path to testgrid os spec yaml file.'
+    type: string
   testgrid-run-prefix:
     description: 'Prefix for testgrid ref (for identification).'
     type: string
@@ -38,12 +41,16 @@ runs:
   steps:
     - id: test-addon
       run: |
+        testgrid_os_spec_path="${{ inputs.testgrid-os-spec-path }}"
+        if [ -z "$testgrid_os_spec_path" ]; then
+          testgrid_os_spec_path="${{ github.action_path }}/../../../testgrid/specs/os-firstlast.yaml"
+        fi
         ${{ github.action_path }}/../../../bin/test-addon.sh \
           "${{ inputs.addon }}" \
           "${{ inputs.version }}" \
           "${{ inputs.package-url }}" \
           "${{ inputs.testgrid-spec-path }}" \
-          "${{ github.action_path }}/../../../testgrid/specs/os-firstlast.yaml" \
+          "$testgrid_os_spec_path" \
           "${{ inputs.testgrid-run-prefix }}" \
           "${{ inputs.priority }}"
       env:
