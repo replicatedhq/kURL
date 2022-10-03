@@ -32,6 +32,13 @@ function rook_pre_init() {
             fi
         fi
     fi
+
+    # check Rook prerequisistes
+    if rook_should_fail_install; then
+        logFail "Unable to install Rook ${ROOK_VERSION}."
+        return 1
+    fi
+
 }
 
 function rook() {
@@ -462,15 +469,30 @@ function rook_should_skip_rook_install() {
     return 1
 }
 
+function rook_should_fail_install() {
+    semverParse "$ROOK_VERSION"
+    local rook_minor_version="${minor}"
+
+    # Beginning with Rook 1.8, network block devices (NBD) kernel module is required
+    if [ "$rook_minor_version" -gt "7" ]; then
+        if ! modprobe nbd; then
+            logFail "network block device (nbd) kernel module is not avaialbe on this Operating System (${LSB_DIST}-${DIST_VERSION})."
+            return 1
+        fi
+    fi
+    return 0
+}
+
 function rook_maybe_bluefs_buffered_io() {
     local dst="${DIR}/kustomize/rook/operator"
 
     semverParse "$ROOK_VERSION"
-    local rook_major_minior_version="${major}.${minor}"
-    if [ "$rook_major_minior_version" = "1.8" ]; then
+    local rook_major_minor_version="${major}.${minor}"
+    if [ "$rook_major_minor_version" = "1.8" ]; then
         sed -i "/\[global\].*/a\    bluefs_buffered_io = false" "$dst/configmap-rook-config-override.yaml"
     fi
 }
+
 function rook_maybe_auth_allow_insecure_global_id_reclaim() {
     local dst="${DIR}/kustomize/rook/operator"
 
