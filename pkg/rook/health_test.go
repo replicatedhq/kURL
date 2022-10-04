@@ -74,6 +74,12 @@ func Test_isStatusHealthy(t *testing.T) {
 			health:  true,
 			message: "",
 		},
+		{
+			name:    "Global recovery event is not unhealthy",
+			status:  testfiles.GlobalRecoveryEventStatus,
+			health:  true,
+			message: "",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
