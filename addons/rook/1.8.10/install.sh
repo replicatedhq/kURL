@@ -32,6 +32,13 @@ function rook_pre_init() {
             fi
         fi
     fi
+
+    # check Rook prerequisistes
+    if rook_should_fail_install; then
+        logFail "Unable to install Rook ${ROOK_VERSION}."
+        return 1
+    fi
+
 }
 
 function rook() {
@@ -144,6 +151,9 @@ function rook_operator_deploy() {
     rook_maybe_auth_allow_insecure_global_id_reclaim
 
     # disable bluefs_buffered_io for rook 1.8.x
+    # See:
+    #   - https://github.com/rook/rook/issues/10160#issuecomment-1168303067
+    #   - https://tracker.ceph.com/issues/54019
     rook_maybe_bluefs_buffered_io
 
     kubectl -n rook-ceph apply -k "$dst/"
@@ -221,14 +231,9 @@ function rook_cluster_deploy_upgrade() {
 
     # 4. https://rook.io/docs/rook/v1.6/ceph-upgrade.html#4-wait-for-the-upgrade-to-complete
     echo "Awaiting rook-ceph operator"
-
-    if ! spinner_until 600 rook_version_deployed ; then
-        local rook_versions=
-        rook_versions="$(kubectl -n rook-ceph get deployment -l rook_cluster=rook-ceph -o jsonpath='{range .items[*]}{"rook-version="}{.metadata.labels.rook-version}{"\n"}{end}' | sort | uniq)"
-        if [ -n "${rook_versions}" ] && [ "$(echo "${rook_versions}" | wc -l)" -gt "1" ]; then
-            logWarn "Detected multiple Rook versions"
-            kubectl -n rook-ceph get deployment -l rook_cluster=rook-ceph -o jsonpath='{range .items[*]}name={.metadata.name}, rook-version={.metadata.labels.rook-version}{"\n"}{end}'
-        fi
+    if ! $DIR/bin/kurl rook wait-for-rook-version "$ROOK_VERSION" --timeout=600 ; then
+        logWarn "Detected multiple Rook versions"
+        kubectl -n rook-ceph get deployment -l rook_cluster=rook-ceph -o jsonpath='{range .items[*]}name={.metadata.name}, rook-version={.metadata.labels.rook-version}{"\n"}{end}'
     fi
 
     # 5. https://rook.io/docs/rook/v1.6/ceph-upgrade.html#5-verify-the-updated-cluster
@@ -255,12 +260,13 @@ function rook_cluster_deploy_upgrade() {
     kubectl -n rook-ceph patch cephcluster/rook-ceph --type='json' -p='[{"op": "replace", "path": "/spec/cephVersion/image", "value":"'"${ceph_image}"'"}]'
 
     # https://rook.io/docs/rook/v1.6/ceph-upgrade.html#2-wait-for-the-daemon-pod-updates-to-complete
-
-    if ! spinner_until 600 rook_ceph_version_deployed "${ceph_version}" ; then
+    if ! $DIR/bin/kurl rook wait-for-ceph-version "${ceph_version}-0" --timeout=600 ; then
         logWarn "Detected multiple Ceph versions"
         kubectl -n rook-ceph get deployment -l rook_cluster=rook-ceph -o jsonpath='{range .items[*]}name={.metadata.name}, ceph-version={.metadata.labels.ceph-version}{"\n"}{end}'
         bail "New Ceph version failed to deploy"
     fi
+
+    rook_patch_insecure_clients
 
     # https://rook.io/docs/rook/v1.6/ceph-upgrade.html#3-verify-the-updated-cluster
 
@@ -270,8 +276,6 @@ function rook_cluster_deploy_upgrade() {
         kubectl -n rook-ceph exec deploy/rook-ceph-tools -- ceph status
         bail "Failed to verify the updated cluster, Ceph is not healthy"
     fi
-
-    rook_patch_insecure_clients
 
     logSuccess "Rook-ceph cluster upgraded"
 }
@@ -289,23 +293,6 @@ function rook_ready_spinner() {
     spinner_until 60 kubernetes_resource_exists rook-ceph daemonset rook-discover
     spinner_until 300 deployment_fully_updated rook-ceph rook-ceph-operator
     spinner_until 60 daemonset_fully_updated rook-ceph rook-discover
-}
-
-# rook_version_deployed check that there is only one rook-version reported across the cluster
-function rook_version_deployed() {
-    # wait for our version to start reporting
-    if ! kubectl -n rook-ceph get deployment -l rook_cluster=rook-ceph -o jsonpath='{range .items[*]}{"rook-version="}{.metadata.labels.rook-version}{"\n"}{end}' | grep -q "${ROOK_VERSION}" ; then
-        return 1
-    fi
-    # wait for our version to be the only one reporting
-    if [ "$(kubectl -n rook-ceph get deployment -l rook_cluster=rook-ceph -o jsonpath='{range .items[*]}{"rook-version="}{.metadata.labels.rook-version}{"\n"}{end}' | sort | uniq | wc -l)" != "1" ]; then
-        return 1
-    fi
-    # sanity check
-    if ! kubectl -n rook-ceph get deployment -l rook_cluster=rook-ceph -o jsonpath='{range .items[*]}{"rook-version="}{.metadata.labels.rook-version}{"\n"}{end}' | grep -q "${ROOK_VERSION}" ; then
-        return 1
-    fi
-    return 0
 }
 
 # rook_ceph_version_deployed check that there is only one ceph-version reported across the cluster
@@ -482,15 +469,30 @@ function rook_should_skip_rook_install() {
     return 1
 }
 
+function rook_should_fail_install() {
+    semverParse "$ROOK_VERSION"
+    local rook_minor_version="${minor}"
+
+    # Beginning with Rook 1.8, network block devices (NBD) kernel module is required
+    if [ "$rook_minor_version" -gt "7" ]; then
+        if ! modprobe nbd; then
+            logFail "network block device (nbd) kernel module is not avaialbe on this Operating System (${LSB_DIST}-${DIST_VERSION})."
+            return 1
+        fi
+    fi
+    return 0
+}
+
 function rook_maybe_bluefs_buffered_io() {
     local dst="${DIR}/kustomize/rook/operator"
 
     semverParse "$ROOK_VERSION"
-    local rook_major_minior_version="${major}.${minor}"
-    if [ "$rook_major_minior_version" = "1.8" ]; then
+    local rook_major_minor_version="${major}.${minor}"
+    if [ "$rook_major_minor_version" = "1.8" ]; then
         sed -i "/\[global\].*/a\    bluefs_buffered_io = false" "$dst/configmap-rook-config-override.yaml"
     fi
 }
+
 function rook_maybe_auth_allow_insecure_global_id_reclaim() {
     local dst="${DIR}/kustomize/rook/operator"
 
