@@ -477,7 +477,7 @@ function rook_should_fail_install() {
     if [ "$rook_minor_version" -gt "7" ]; then
 
         # Centos 7.4 Kernel not supported: 3.10.0-693.2.2.el7.x86_64
-        if [ "$kernel_version" = "3.10.0-693.2.2.el7.x86_64" ] ; then
+        if [ "$kernel_version" == "3.10.0-693.2.2.el7.x86_64" ] ; then
             logFail "Rook Pre-init: ${LSB_DIST}-${DIST_VERSION} Kernel $kernel_version is not supported."
             return 0
         fi
