@@ -33,10 +33,9 @@ function rook_pre_init() {
         fi
     fi
 
-    # check Rook prerequisistes
+    # check Rook prerequisites
     if rook_should_fail_install; then
-        logFail "Unable to install Rook ${ROOK_VERSION}."
-        return 1
+        bail "Rook ${ROOK_VERSION} will not be installed due to failed preflight checks."
     fi
 
 }
@@ -476,11 +475,11 @@ function rook_should_fail_install() {
     # Beginning with Rook 1.8, network block devices (NBD) kernel module is required
     if [ "$rook_minor_version" -gt "7" ]; then
         if ! modprobe nbd; then
-            logFail "network block device (nbd) kernel module is not avaialbe on this Operating System (${LSB_DIST}-${DIST_VERSION})."
-            return 1
+            logFail "Rook Pre-init: network block device (nbd) kernel module is not avaialbe on this Operating System (${LSB_DIST}-${DIST_VERSION})."
+            return 0
         fi
     fi
-    return 0
+    return 1
 }
 
 function rook_maybe_bluefs_buffered_io() {
