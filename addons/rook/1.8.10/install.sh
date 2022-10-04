@@ -471,11 +471,14 @@ function rook_should_skip_rook_install() {
 function rook_should_fail_install() {
     semverParse "$ROOK_VERSION"
     local rook_minor_version="${minor}"
+    local kernel_version=$(uname -r)
 
-    # Beginning with Rook 1.8, network block devices (NBD) kernel module is required
+    # Beginning with Rook 1.8, certain old kernels are not supported
     if [ "$rook_minor_version" -gt "7" ]; then
-        if ! modprobe nbd; then
-            logFail "Rook Pre-init: network block device (nbd) kernel module is not avaialbe on this Operating System (${LSB_DIST}-${DIST_VERSION})."
+
+        # Centos 7.4 Kernel not supported: 3.10.0-693.2.2.el7.x86_64
+        if [ "$kernel_version" = "3.10.0-693.2.2.el7.x86_64" ] ; then
+            logFail "Rook Pre-init: ${LSB_DIST}-${DIST_VERSION} Kernel $kernel_version is not supported."
             return 0
         fi
     fi
