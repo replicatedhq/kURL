@@ -473,6 +473,9 @@ function rook_should_fail_install() {
     local rook_minor_version="${minor}"
     local kernel_version=$(uname -r)
 
+    # TODO remove me after debug
+    echo "***DEBUG***: OS Kernel Version: $kernel_version"
+
     # Beginning with Rook 1.8, certain old kernels are not supported
     if [ "$rook_minor_version" -gt "7" ]; then
 
