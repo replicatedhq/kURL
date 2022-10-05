@@ -174,6 +174,7 @@ function rook_cluster_deploy() {
     if [ "${ROOK_SHARED_FILESYSTEM_DISABLED}" != "1" ]; then
         insert_resources "$dst/kustomization.yaml" cephfs-storageclass.yaml
         insert_resources "$dst/kustomization.yaml" filesystem.yaml
+        insert_patches_strategic_merge "$dst/kustomization.yaml" patches/cephfs-storageclass.yaml
         insert_patches_strategic_merge "$dst/kustomization.yaml" patches/filesystem.yaml
 
         # MDS pod anti-affinity rules prevent them from co-scheduling on single-node installations
