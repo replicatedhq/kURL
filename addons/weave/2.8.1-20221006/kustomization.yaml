@@ -1,0 +1,5 @@
+resources:
+- weave-daemonset-k8s-1.11.yaml
+
+patchesStrategicMerge:
+- patch-daemonset.yaml
