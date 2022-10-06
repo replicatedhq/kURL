@@ -62,6 +62,7 @@ jobs:
           testgrid-spec-path: "addons/${{ env.addon }}/template/testgrid"
           testgrid-run-prefix: "${{ env.prefix }}"
           testgrid-api-token: "${{ secrets.TESTGRID_PROD_API_TOKEN }}"
+          staging: true
 
       - name: Post TG URL
         uses: mshick/add-pr-comment@v1

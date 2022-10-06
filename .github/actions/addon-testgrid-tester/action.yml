@@ -32,6 +32,10 @@ inputs:
     description: 'Testgrid run priority.'
     type: number
     default: 0
+  staging:
+    description: 'Run the tests on staging instead of production.'
+    type: boolean
+    default: false
 outputs:
   message:
     description: 'Message to the end-user including links to the Testgrid runs.'
@@ -52,7 +56,8 @@ runs:
           "${{ inputs.testgrid-spec-path }}" \
           "$testgrid_os_spec_path" \
           "${{ inputs.testgrid-run-prefix }}" \
-          "${{ inputs.priority }}"
+          "${{ inputs.priority }}" \
+          "${{ inputs.staging && '1' || '0' }}"
       env:
         TESTGRID_API_TOKEN: ${{ inputs.testgrid-api-token }}
       shell: bash
