@@ -38,6 +38,9 @@ function rook_pre_init() {
         bail "Rook ${ROOK_VERSION} will not be installed due to failed preflight checks."
     fi
 
+    # Disable EKCO updates
+    disable_ekco_operator
+
 }
 
 function rook() {
@@ -469,6 +472,15 @@ function rook_should_skip_rook_install() {
     return 1
 }
 
+function disable_ekco_operator() {
+    echo "Rook-preinit: Scaling down EKCO deployment to 0 replicas"
+    if kubernetes_resource_exists kurl deployment ekc-operator; then
+        kubernetes_scale_down "kurl" "deployment" "ekc-operator"
+        echo "Waiting for ekco pods to be removed"
+        spinner_until 120 ekco_pods_gone
+    fi
+}
+
 function rook_should_fail_install() {
     semverParse "$ROOK_VERSION"
     local rook_minor_version="${minor}"
@@ -482,7 +494,18 @@ function rook_should_fail_install() {
             logFail "Rook Pre-init: ${LSB_DIST}-${DIST_VERSION} Kernel $kernel_version is not supported."
             return 0
         fi
+
+        # Check compatibility with EKCO add-on
+        if [ -n "$EKCO_VERSION" ]; then
+            semverParse "$EKCO_VERSION"
+            local ekco_minor_version="${minor}"
+            if [ "$ekco_minor_version" -lt 22 ]; then
+                logFail "Rook Pre-init: Rook ${ROOK_VERSION} is only compatible with EKCO add-on version 0.22.0 and above."
+                return 0
+            fi
+        fi
     fi
+
     return 1
 }
 
