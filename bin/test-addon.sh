@@ -17,6 +17,7 @@ function run_testgrid_test() {
   local testgrid_os_spec_path="$5"
   local prefix="$6"
   local priority="$7"
+  local staging="$8"
 
   local tmpdir=
   tmpdir="$(mktemp -d)"
@@ -35,13 +36,19 @@ function run_testgrid_test() {
   local ref=
   ref="$prefix-$addon-$version-$(basename "$test_spec" ".yaml")-$(date --utc +%FT%TZ)"
 
+  local staging_flag=
+  if [ "$staging" = "1" ]; then
+    staging_flag="--staging"
+  fi
+
   # Run testgrid plan
-  docker run --rm -e TESTGRID_API_TOKEN -v "$tmpdir:/wrk" -w /wrk \
-    replicated/tgrun:latest queue --staging \
+  ( set -x ; docker run --rm -e TESTGRID_API_TOKEN -v "$tmpdir:/wrk" -w /wrk \
+    replicated/tgrun:latest queue \
+      "$staging_flag" \
       --ref "$ref" \
       --spec /wrk/test-spec \
       --os-spec /wrk/os-spec \
-      --priority "$priority"
+      --priority "$priority" )
   echo "Submitted TestGrid Ref $ref"
   MSG="$MSG https://testgrid.kurl.sh/run/$ref"
 }
@@ -54,6 +61,7 @@ function main() {
   local testgrid_os_spec_path="$5"
   local prefix="$6"
   local priority="${7:-0}"
+  local staging="$8"
 
   # if this is triggered by automation, lower the priority
   if [ "$priority" = "0" ] && [ "$GITHUB_ACTOR" = "replicated-ci-kurl" ]; then
@@ -70,10 +78,10 @@ function main() {
   # Run for each template (if available)
   shopt -s nullglob
   for test_spec in "$testgrid_spec_path"/*.yaml; do
-    run_testgrid_test "$addon" "$version" "$s3_url" "$test_spec" "$testgrid_os_spec_path" "$prefix" "$priority"
+    run_testgrid_test "$addon" "$version" "$s3_url" "$test_spec" "$testgrid_os_spec_path" "$prefix" "$priority" "$staging"
   done
   for test_spec in "$testgrid_spec_path"/*.yml; do
-    run_testgrid_test "$addon" "$version" "$s3_url" "$test_spec" "$testgrid_os_spec_path" "$prefix" "$priority"
+    run_testgrid_test "$addon" "$version" "$s3_url" "$test_spec" "$testgrid_os_spec_path" "$prefix" "$priority" "$staging"
   done
   shopt -u nullglob
 
