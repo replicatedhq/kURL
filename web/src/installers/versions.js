@@ -172,8 +172,6 @@ module.exports.InstallerVersions = {
     "1.7.4",
   ],
   kotsadm: [
-    // auto-kotsadm-update
-    "1.86.1",
     "1.86.0",
     "1.85.0",
     "1.84.0",
@@ -353,8 +351,6 @@ module.exports.InstallerVersions = {
     "0.9.11",
     "0.9.10",
     "0.9.9",
-    "alpha",
-    "nightly",
   ],
   velero: [
     // cron-velero-update

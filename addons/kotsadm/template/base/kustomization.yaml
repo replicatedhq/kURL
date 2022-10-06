@@ -1,4 +1,0 @@
-resources:
-- postgres.yaml
-- kotsadm.yaml
-- kotsadm-web-scripts.yaml
