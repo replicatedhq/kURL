@@ -1,7 +1,7 @@
 - name: basic localpv
   installerSpec:
     kubernetes:
-      version: "1.24.x"
+      version: "1.25.x"
     weave:
       version: "latest"
     containerd:
@@ -67,7 +67,7 @@
   airgap: true
   installerSpec:
     kubernetes:
-      version: "1.24.x"
+      version: "1.25.x"
     weave:
       version: "latest"
     containerd:
