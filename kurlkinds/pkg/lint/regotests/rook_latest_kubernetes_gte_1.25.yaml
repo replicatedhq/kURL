@@ -1,0 +1,13 @@
+# rook latest is 1.0.4 at the time of writing, when latest gets update this test will start
+# failing. keeping it here to assure "latest" is correctly translated into "1.0.4".
+installer:
+  spec: 
+    kubernetes: 
+      version: 1.25.x
+    containerd: 
+      version: latest
+    rook: 
+      version: latest
+output:
+  - message: rook 1.0.4 is not compatible with kubernetes 1.20+
+    field: spec.rook.version

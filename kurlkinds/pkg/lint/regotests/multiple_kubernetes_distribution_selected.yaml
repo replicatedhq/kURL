@@ -1,0 +1,17 @@
+installer:
+  spec:
+    kubernetes:
+      version: 1.19.2
+    rke2:
+      version: latest
+    k3s:
+      version: latest
+    docker:
+      version: latest
+output:
+  - message: multiple kubernetes distributions selected
+    field: spec
+  - message: container runtime is incompatible with rke2
+    field: spec.rke2
+  - message: container runtime is incompatible with k3s
+    field: spec.k3s

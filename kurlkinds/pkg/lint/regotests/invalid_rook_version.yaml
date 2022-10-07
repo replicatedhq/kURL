@@ -1,0 +1,9 @@
+installer:
+  spec:
+    rke2:
+      version: latest
+    rook:
+      version: 0.1.0
+output:
+  - message: unknown rook version 0.1.0
+    field: spec.rook.version

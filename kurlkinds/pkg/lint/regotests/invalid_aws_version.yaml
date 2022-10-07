@@ -1,0 +1,9 @@
+installer:
+  spec:
+    rke2:
+      version: latest
+    aws:
+      version: 0.0.0
+output:
+  - message: unknown aws version 0.0.0
+    field: spec.aws.version

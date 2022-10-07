@@ -1,0 +1,9 @@
+installer:
+  spec:
+    k3s:
+      version: latest
+    docker:
+      version: latest
+output:
+  - message: container runtime is incompatible with k3s
+    field: spec.k3s

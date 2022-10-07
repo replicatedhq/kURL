@@ -1,0 +1,9 @@
+installer:
+  spec:
+    kubernetes:
+      version: 1.0.0
+    containerd:
+      version: latest
+output:
+  - message: unknown kubernetes version 1.0.0
+    field: spec.kubernetes.version

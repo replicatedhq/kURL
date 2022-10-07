@@ -1,0 +1,9 @@
+installer:
+  spec:
+    rke2:
+      version: latest
+    contour:
+      version: 0.1.0
+output:
+  - message: unknown contour version 0.1.0
+    field: spec.contour.version

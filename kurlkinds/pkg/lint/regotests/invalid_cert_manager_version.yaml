@@ -1,0 +1,9 @@
+installer:
+  spec:
+    rke2:
+      version: latest
+    certManager:
+      version: 8.1.0
+output:
+  - message: unknown certManager version 8.1.0
+    field: spec.certManager.version

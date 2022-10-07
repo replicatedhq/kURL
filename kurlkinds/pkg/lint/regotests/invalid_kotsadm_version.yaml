@@ -1,0 +1,11 @@
+installer:
+  spec:
+    kubernetes:
+      version: latest
+    containerd:
+      version: latest
+    kotsadm:
+      version: 6.6.6
+output:
+  - message: unknown kotsadm version 6.6.6
+    field: spec.kotsadm.version

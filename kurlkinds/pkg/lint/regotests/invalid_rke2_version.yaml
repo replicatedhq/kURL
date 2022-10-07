@@ -1,0 +1,7 @@
+installer:
+  spec:
+    rke2:
+      version: 1.0.0
+output:
+  - message: unknown rke2 version 1.0.0
+    field: spec.rke2.version

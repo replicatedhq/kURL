@@ -1,0 +1,9 @@
+installer:
+  spec:
+    rke2:
+      version: latest
+    collectd:
+      version: 0.1.0
+output:
+  - message: unknown collectd version 0.1.0
+    field: spec.collectd.version

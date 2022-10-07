@@ -1,0 +1,41 @@
+installer:
+  spec: 
+    kubernetes: 
+      version: 1.25.x
+    weave: 
+      version: 2.6.x
+    contour: 
+      version: 1.22.x
+    prometheus: 
+      version: 0.59.x
+    registry: 
+      version: 2.8.x
+    containerd: 
+      version: 1.6.x
+    velero: 
+      version: latest
+    kotsadm: 
+      version: latest
+    ekco: 
+      version: latest
+    fluentd: 
+      version: latest
+    minio: 
+      version: 2022-10-05T14-58-27Z
+    openebs: 
+      version: 3.3.x
+      isLocalPVEnabled: true
+      localPVStorageClassName: default
+    collectd: 
+      version: latest
+    metricsServer: 
+      version: latest
+    certManager: 
+      version: latest
+    sonobuoy: 
+      version: latest
+    goldpinger: 
+      version: latest
+    aws: 
+      version: latest
+output: []

@@ -1,0 +1,9 @@
+installer:
+  spec:
+    kubernetes:
+      version: latest
+    docker:
+      version: 1.0.0
+output:
+  - message: unknown docker version 1.0.0
+    field: spec.docker.version

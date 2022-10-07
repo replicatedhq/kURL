@@ -1,0 +1,7 @@
+installer:
+  spec:
+    docker:
+      version: latest
+output:
+  - message: no kubernetes distribution selected
+    field: spec

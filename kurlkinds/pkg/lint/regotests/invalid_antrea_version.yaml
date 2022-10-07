@@ -1,0 +1,11 @@
+installer:
+  spec:
+    kubernetes:
+      version: 1.24.x
+    antrea:
+      version: 0.0.1
+    containerd:
+      version: latest
+output:
+  - message: unknown antrea version 0.0.1
+    field: spec.antrea.version
