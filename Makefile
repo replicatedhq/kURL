@@ -678,6 +678,8 @@ test-shell:
 	./scripts/common/common-test.sh
 	./scripts/common/docker-test.sh
 	./scripts/common/kubernetes-test.sh
+	./scripts/common/proxy-test.sh
+	./scripts/common/yaml-test.sh
 	./addons/rook/template/test/install.sh
 
 .PHONY: kurl-util-image
