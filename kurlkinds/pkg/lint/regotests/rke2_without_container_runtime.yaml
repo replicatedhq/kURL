@@ -1,0 +1,5 @@
+installer:
+  spec:
+    rke2:
+      version: latest
+output: []

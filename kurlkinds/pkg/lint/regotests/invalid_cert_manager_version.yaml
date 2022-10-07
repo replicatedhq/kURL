@@ -1,0 +1,12 @@
+installer:
+  spec:
+    kubernetes:
+      version: latest
+    containerd:
+      version: latest
+    certManager:
+      version: 8.1.0
+output:
+  - message: unknown certManager version 8.1.0
+    field: spec.certManager.version
+    type: unknown-addon

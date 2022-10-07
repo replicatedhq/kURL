@@ -1,0 +1,10 @@
+installer:
+  spec:
+    kubernetes:
+      version: 1.24.x
+    docker:
+      version: latest
+output:
+  - message: kubernetes >= v1.24 does not work with docker
+    field: spec.docker
+    type: incompatibility

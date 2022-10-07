@@ -1,0 +1,15 @@
+installer:
+  spec:
+    k3s:
+      version: latest
+    fluentd:
+      version: latest
+    longhorn:
+      version: latest
+output:
+  - message: k3s is not compatible with fluentd
+    field: spec.fluentd
+    type: incompatibility
+  - message: k3s is not compatible with longhorn
+    field: spec.longhorn
+    type: incompatibility

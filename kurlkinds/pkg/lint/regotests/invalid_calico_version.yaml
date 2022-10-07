@@ -1,0 +1,12 @@
+installer:
+  spec:
+    kubernetes:
+      version: latest
+    containerd:
+      version: latest
+    calico:
+      version: 0.1.0
+output:
+  - message: unknown calico version 0.1.0
+    field: spec.calico.version
+    type: unknown-addon

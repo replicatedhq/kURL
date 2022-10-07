@@ -1,0 +1,38 @@
+installer:
+  spec:
+    kubernetes:
+      version: 1.19.2
+    rke2:
+      version: latest
+    k3s:
+      version: latest
+    docker:
+      version: latest
+output:
+  - message: multiple kubernetes distributions selected
+    field: spec
+    type: misconfiguration
+  - message: container runtime is incompatible with rke2
+    field: spec.rke2
+    type: incompatibility
+  - message: container runtime is incompatible with k3s
+    field: spec.k3s
+    type: incompatibility
+  - message: rke2 is not compatible with docker
+    field: spec.docker
+    type: incompatibility
+  - message: k3s is not compatible with docker
+    field: spec.docker
+    type: incompatibility
+  - message: rke2 is not compatible with k3s
+    field: spec.k3s
+    type: incompatibility
+  - message: rke2 is not compatible with kubernetes
+    field: spec.kubernetes
+    type: incompatibility
+  - message: k3s is not compatible with kubernetes
+    field: spec.kubernetes
+    type: incompatibility
+  - message: k3s is not compatible with rke2
+    field: spec.rke2
+    type: incompatibility

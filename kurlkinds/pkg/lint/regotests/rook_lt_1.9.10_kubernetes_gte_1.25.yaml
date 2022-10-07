@@ -1,0 +1,12 @@
+installer:
+  spec: 
+    kubernetes: 
+      version: 1.25.x
+    containerd: 
+      version: latest
+    rook: 
+      version: 1.8.10
+output:
+  - message: rook versions <= 1.9.10 are not compatible with kubernetes 1.25+
+    field: spec.rook.version
+    type: incompatibility

@@ -1,0 +1,8 @@
+installer:
+  spec:
+    kubernetes:
+      version: 1.19.2
+output:
+  - message: no container runtime selected
+    field: spec
+    type: misconfiguration

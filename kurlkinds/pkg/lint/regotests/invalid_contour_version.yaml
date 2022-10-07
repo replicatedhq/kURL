@@ -1,0 +1,12 @@
+installer:
+  spec:
+    kubernetes:
+      version: latest
+    containerd:
+      version: latest
+    contour:
+      version: 0.1.0
+output:
+  - message: unknown contour version 0.1.0
+    field: spec.contour.version
+    type: unknown-addon

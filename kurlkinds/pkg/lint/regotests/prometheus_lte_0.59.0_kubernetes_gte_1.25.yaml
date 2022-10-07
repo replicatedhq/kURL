@@ -1,0 +1,12 @@
+installer:
+  spec:
+    kubernetes:
+      version: 1.25.2
+    containerd:
+      version: latest
+    prometheus:
+      version: 0.58.0-39.12.1
+output:
+  - message: prometheus <= 0.59.0 is not compatible with kubernetes 1.25+
+    field: spec.prometheus.version
+    type: incompatibility

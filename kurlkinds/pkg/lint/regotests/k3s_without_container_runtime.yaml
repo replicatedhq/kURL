@@ -1,0 +1,5 @@
+installer:
+  spec:
+    k3s:
+      version: latest
+output: []

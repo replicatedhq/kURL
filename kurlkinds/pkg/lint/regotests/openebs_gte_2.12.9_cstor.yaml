@@ -1,0 +1,13 @@
+installer:
+  spec: 
+    kubernetes: 
+      version: latest
+    containerd: 
+      version: latest
+    openebs: 
+      version: 3.3.0
+      isCstorEnabled: true
+output: 
+  - message: openebs version 3.3.0 does not support cstor in kurl
+    field: spec.openebs.isCstorEnabled
+    type: misconfiguration

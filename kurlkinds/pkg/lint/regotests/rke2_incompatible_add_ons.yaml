@@ -1,0 +1,47 @@
+installer:
+  spec:
+    rke2:
+      version: latest
+    longhorn:
+      version: latest
+    metricsServer:
+      version: latest
+    goldpinger:
+      version: latest
+    contour:
+      version: latest
+    collected:
+      version: latest
+    weave:
+      version: latest
+    aws:
+      version: latest
+    minio:
+      version: latest
+    openebs:
+      version: latest
+    velero:
+      version: latest
+    rook:
+      version: latest
+    sonobuoy:
+      version: latest
+output:
+  - message: rke2 is not compatible with longhorn
+    field: spec.longhorn
+    type: incompatibility
+  - message: rke2 is not compatible with metricsServer
+    field: spec.metricsServer
+    type: incompatibility
+  - message: rke2 is not compatible with goldpinger
+    field: spec.goldpinger
+    type: incompatibility
+  - message: rke2 is not compatible with contour
+    field: spec.contour
+    type: incompatibility
+  - message: rke2 is not compatible with weave
+    field: spec.weave
+    type: incompatibility
+  - message: rke2 is not compatible with aws
+    field: spec.aws
+    type: incompatibility

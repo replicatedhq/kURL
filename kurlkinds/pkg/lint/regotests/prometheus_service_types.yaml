@@ -1,0 +1,13 @@
+installer:
+  spec:
+    kubernetes:
+      version: latest
+    containerd:
+      version: latest
+    prometheus:
+      version: latest
+      serviceType: "LoadBalancer"
+output:
+  - message: prometheus service types are NodePort and ClusterIP, not LoadBalancer
+    field: spec.prometheus.serviceType
+    type: misconfiguration

@@ -1,0 +1,20 @@
+installer:
+  spec:
+    kubernetes:
+      version: 1.24.x
+    weave:
+      version: 0.0.1
+    containerd:
+      version: 0.0.1
+    ekco:
+      version: 0.0.1
+output:
+  - message: unknown weave version 0.0.1
+    field: spec.weave.version
+    type: unknown-addon
+  - message: unknown containerd version 0.0.1
+    field: spec.containerd.version
+    type: unknown-addon
+  - message: unknown ekco version 0.0.1
+    field: spec.ekco.version
+    type: unknown-addon

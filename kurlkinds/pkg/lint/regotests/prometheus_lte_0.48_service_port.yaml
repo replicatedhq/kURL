@@ -1,0 +1,13 @@
+installer:
+  spec:
+    kubernetes:
+      version: latest
+    containerd:
+      version: latest
+    prometheus:
+      version: 0.48.1-16.10.0
+      serviceType: "NodePort"
+output:
+  - message: prometheus service types supported for v0.48.1-16.10.0 and later
+    field: spec.prometheus.serviceType
+    type: misconfiguration

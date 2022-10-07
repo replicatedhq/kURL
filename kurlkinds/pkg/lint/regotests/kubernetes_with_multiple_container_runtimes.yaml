@@ -1,0 +1,12 @@
+installer:
+  spec:
+    kubernetes:
+      version: 1.19.2
+    docker:
+      version: latest
+    containerd:
+      version: latest
+output:
+  - message: multiple container runtimes selected
+    field: spec
+    type: misconfiguration

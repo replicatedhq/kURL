@@ -1,0 +1,7 @@
+installer:
+  spec:
+    kubernetes:
+      version: 1.24.x
+    containerd:
+      version: latest
+output: []

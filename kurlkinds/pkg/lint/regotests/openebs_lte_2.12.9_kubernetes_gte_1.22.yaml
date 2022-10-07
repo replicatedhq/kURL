@@ -1,0 +1,12 @@
+installer:
+  spec: 
+    kubernetes: 
+      version: 1.25.x
+    containerd: 
+      version: latest
+    openebs: 
+      version: 2.12.9
+output: 
+  - message: openebs version <= 2.12.9  not compatible with kubernetes 1.22+
+    field: spec.openebs.version
+    type: incompatibility

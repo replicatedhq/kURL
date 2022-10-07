@@ -1,0 +1,12 @@
+installer:
+  spec:
+    kubernetes:
+      version: latest
+    containerd:
+      version: latest
+    longhorn:
+      version: 0.1.0
+output:
+  - message: unknown longhorn version 0.1.0
+    field: spec.longhorn.version
+    type: unknown-addon
