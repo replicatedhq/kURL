@@ -48,7 +48,7 @@ spec:
 
 ## Status
 
-Proposed
+Accepted
 
 ## Consequences
 
