@@ -285,12 +285,12 @@ function velero_patch_http_proxy() {
     local dst="$2"
 
     if [ -n "$PROXY_ADDRESS" ]; then
-        render_yaml_file "$src/tmpl-velero-deployment-proxy.yaml" > "$dst/velero-deployment-proxy.yaml"
+        render_yaml_file_2 "$src/tmpl-velero-deployment-proxy.yaml" > "$dst/velero-deployment-proxy.yaml"
         insert_patches_strategic_merge "$dst/kustomization.yaml" velero-deployment-proxy.yaml
     fi
 
     if [ -n "$PROXY_ADDRESS" ] && [ "$VELERO_DISABLE_RESTIC" != "1" ]; then
-        render_yaml_file "$src/tmpl-restic-daemonset-proxy.yaml" > "$dst/restic-daemonset-proxy.yaml"
+        render_yaml_file_2 "$src/tmpl-restic-daemonset-proxy.yaml" > "$dst/restic-daemonset-proxy.yaml"
         insert_patches_strategic_merge "$dst/kustomization.yaml" restic-daemonset-proxy.yaml
     fi
 }

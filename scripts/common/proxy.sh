@@ -101,7 +101,7 @@ function configure_no_proxy_preinstall() {
     fi
 
     # filter duplicates
-    addresses=$(echo "$addresses" | sed 's/,/\n/g' | sort | uniq | paste -s --delimiters=",")
+    addresses=$(unique_no_proxy_addresses "$addresses")
 
     # kubeadm requires this in the environment to reach K8s masters
     export no_proxy="$addresses"
@@ -161,10 +161,14 @@ function configure_no_proxy() {
     fi
 
     # filter duplicates
-    addresses=$(echo "$addresses" | sed 's/,/\n/g' | sort | uniq | paste -s --delimiters=",")
+    addresses=$(unique_no_proxy_addresses "$addresses")
 
     # kubeadm requires this in the environment to reach K8s masters
     export no_proxy="$addresses"
     NO_PROXY_ADDRESSES="$addresses"
     echo "Exported no_proxy: $no_proxy"
+}
+
+function unique_no_proxy_addresses() {
+    echo "$1" | sed 's/,/\n/g' | sed '/^\s*$/d' | sort | uniq | paste -s --delimiters=","
 }
