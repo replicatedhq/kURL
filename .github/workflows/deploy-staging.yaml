@@ -7,6 +7,7 @@ on:
     paths:
     - '**'
     - '!testgrid/**'
+    - '!docs/**'
 
 jobs:
   get-tag:
