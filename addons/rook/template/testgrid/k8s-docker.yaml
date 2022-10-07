@@ -51,8 +51,9 @@
         requests:
           storage: 1Gi
     EOF
-    sleep 5
-    kubectl -n default get pvc cephfs-pvc default-pvc | grep -q Bound
+    sleep 10
+    kubectl -n default get pvc default-pvc | grep Bound
+    kubectl -n default get pvc cephfs-pvc | grep Bound
     kubectl -n default delete pvc cephfs-pvc default-pvc
 
 - name: Upgrade from 1.7.11
@@ -138,8 +139,9 @@
         requests:
           storage: 1Gi
     EOF
-    sleep 5
-    kubectl -n default get pvc cephfs-pvc default-pvc | grep -q Bound
+    sleep 10
+    kubectl -n default get pvc default-pvc | grep Bound
+    kubectl -n default get pvc cephfs-pvc | grep Bound
     kubectl -n default delete pvc cephfs-pvc default-pvc
 
 - name: Disable shared filesystem
@@ -184,9 +186,9 @@
         requests:
           storage: 1Gi
     EOF
-    sleep 5
-    kubectl -n default get pvc default-pvc | grep -q Bound
-    kubectl -n default delete pvc cephfs-pvc default-pvc
+    sleep 10
+    kubectl -n default get pvc default-pvc | grep Bound
+    kubectl -n default delete pvc default-pvc
 
     # Ensure Cephfs storage class is not applied
-    ! kubectl get sc | grep -q rook-cephfs
+    ! kubectl get sc | grep rook-cephfs
