@@ -201,7 +201,7 @@
     sudo cat /var/lib/kubelet/config.yaml | grep "cpu: 123m"
     sudo cat /var/lib/kubelet/config.yaml | grep "ephemeral-storage: 1.23Gi"
     sudo cat /var/lib/kubelet/config.yaml | grep "memory: 123Mi"
-- name: k8s125-longhorn
+- name: k8s125-openebs
   installerSpec:
     kubernetes:
       version: 1.25.x
@@ -211,8 +211,10 @@
       version: 2.8.x
     contour:
       version: latest
-    longhorn:
+    openebs:
       version: latest
+      isLocalPVEnabled: true
+      localPVStorageClassName: default
     minio:
       version: latest
     registry:
