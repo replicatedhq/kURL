@@ -26,6 +26,35 @@
     minio_object_store_info
     validate_read_write_object_store rwtest minio.txt
 
+    # validate data pools
+    cat <<EOF | kubectl apply -f -
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: cephfs-pvc
+    spec:
+      accessModes:
+      - ReadWriteMany
+      resources:
+        requests:
+          storage: 1Gi
+      storageClassName: rook-cephfs
+    ---
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: default-pvc
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: 1Gi
+    EOF
+    sleep 5
+    kubectl -n default get pvc cephfs-pvc default-pvc | grep -q Bound
+    kubectl -n default delete pvc cephfs-pvc default-pvc
+
 - name: Upgrade from 1.7.11
   installerSpec:
     kubernetes:
@@ -84,6 +113,35 @@
     validate_testfile rwtest minio.txt
     validate_read_write_object_store postupgrade minioupgrade.txt
 
+    # validate data pools
+    cat <<EOF | kubectl apply -f -
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: cephfs-pvc
+    spec:
+      accessModes:
+      - ReadWriteMany
+      resources:
+        requests:
+          storage: 1Gi
+      storageClassName: rook-cephfs
+    ---
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: default-pvc
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: 1Gi
+    EOF
+    sleep 5
+    kubectl -n default get pvc cephfs-pvc default-pvc | grep -q Bound
+    kubectl -n default delete pvc cephfs-pvc default-pvc
+
 - name: Disable shared filesystem
   installerSpec:
     kubernetes:
@@ -112,3 +170,23 @@
 
     minio_object_store_info
     validate_read_write_object_store rwtest minio.txt
+
+    # validate data pools
+    cat <<EOF | kubectl apply -f -
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: default-pvc
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: 1Gi
+    EOF
+    sleep 5
+    kubectl -n default get pvc default-pvc | grep -q Bound
+    kubectl -n default delete pvc cephfs-pvc default-pvc
+
+    # Ensure Cephfs storage class is not applied
+    ! kubectl get sc | grep -q rook-cephfs
