@@ -1,5 +1,7 @@
 # ADR 3: kURL External Add-On Capability
 
+## Context
+
 Today, a new add-on version cannot be released independently of the entire kURL project.
 As a result, when the github.com/replicatedhq/kots project is released, a kURL release must follow.
 Any changed staged for a kURL release must be ready or the KOTS release will be blocked.
@@ -10,6 +12,8 @@ Additionally, a maintainer of the kURL project must be available to make the rel
 We will add support for releasing add-ons independent of the kURL project.
 Some add-ons will continue to be released with kURL.
 The KOTS add-on will be the first to leverage this new feature.
+
+## Solution
 
 An external add-on will publish a versions.json file to a publicly accessible URL with metadata describing versions it has published.
 This data will contain the version, url of the add-on package, and the kURL version compatibility range.

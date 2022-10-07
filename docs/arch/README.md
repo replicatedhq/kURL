@@ -33,7 +33,7 @@ Use this template in any new ADRs.  Replace the help text as you write the ADR.
 ```
 # ADR N: Brief Decision Title
 
-Context goes here.
+## Context
 
 Describe the forces at play, including technological, political, social, and project local.
 These forces are likely in tension, and should be called out as such. The language in this
@@ -44,6 +44,14 @@ section is value-neutral. It is simply describing facts.
 This section describes our response to these forces. It is stated in full sentences,
 with active voice. "We will ..."
 
+## Solution
+
+Optional.
+
+More details explaining our response.
+The "how".
+This is our opportunity to elaborate on the decision's design and implementation.
+Once again in full sentences, with active voice.
 
 ## Status
 
