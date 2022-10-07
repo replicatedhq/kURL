@@ -176,6 +176,8 @@ Print end-user messages to the screen.
 
 ### External Add-ons
 
+[adr-003-external-addons.md](/docs/arch/adr-003-external-addons.md)
+
 kURL maintains a list of externally built and hosted add-ons (current only "kotsadm").
 
 kURL automation, more specifically the `import-external-addons` GitHub action, polls this list for newly available versions.
