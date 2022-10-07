@@ -52,7 +52,7 @@ Proposed
 
 ## Consequences
 
-Once an version is published to an external versions.json file, kURL will copy that add-on package version to its object storage bucket.
+Once a version is published to an external versions.json file, kURL will copy that add-on package version to its object storage bucket.
 That version is immutable and will never be overwritten.
 
 Add-ons share common functions from the kURL source code as well as export environment variables that are shared by the kURL core as well as other add-ons.

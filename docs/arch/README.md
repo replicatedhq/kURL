@@ -48,7 +48,7 @@ with active voice. "We will ..."
 
 Optional.
 
-More details explaining our response.
+Further details explaining our decision.
 The "how".
 This is our opportunity to elaborate on the decision's design and implementation.
 Once again in full sentences, with active voice.
