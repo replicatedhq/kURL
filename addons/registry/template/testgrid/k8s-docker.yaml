@@ -1,7 +1,7 @@
 - name: registry_latest_rook
   installerSpec:
     kubernetes:
-      version: "latest"
+      version: "1.24.x"
     weave:
       version: "latest"
     rook:
@@ -32,7 +32,7 @@
 - name: registry_latest_longhorn
   installerSpec:
     kubernetes:
-      version: "latest"
+      version: "1.24.x"
     weave:
       version: "latest"
     longhorn:
@@ -63,11 +63,13 @@
 - name: registry_latest_upgrade
   installerSpec:
     kubernetes:
-      version: "latest"
+      version: "1.25.x"
     weave:
       version: "latest"
-    longhorn:
-      version: "latest"
+    openebs:
+      version: "3.3.0"
+      isLocalPVEnabled: true
+      localPVStorageClassName: default
     containerd:
       version: "latest"
     registry:
@@ -76,11 +78,13 @@
       version: "3.5.1-5.2.0" # this provides an image to use for push/pull tests
   upgradeSpec:
     kubernetes:
-      version: "latest"
+      version: "1.25.x"
     weave:
       version: "latest"
-    longhorn:
-      version: "latest"
+    openebs:
+      version: "3.3.0"
+      isLocalPVEnabled: true
+      localPVStorageClassName: default
     containerd:
       version: "latest"
     registry:
@@ -112,7 +116,7 @@
 - name: registry_oldest_upgrade
   installerSpec:
     kubernetes:
-      version: "latest"
+      version: "1.19.x"
     weave:
       version: "latest"
     longhorn:
@@ -123,7 +127,7 @@
       version: "2.7.1"
   upgradeSpec:
     kubernetes:
-      version: "latest"
+      version: "1.19.x"
     weave:
       version: "latest"
     longhorn:
@@ -159,11 +163,13 @@
 - name: registry_publish_port
   installerSpec:
     kubernetes:
-      version: "latest"
+      version: "1.25.x"
     weave:
       version: "latest"
-    longhorn:
-      version: "latest"
+    openebs:
+      version: "3.3.0"
+      isLocalPVEnabled: true
+      localPVStorageClassName: default
     containerd:
       version: "latest"
     registry:
@@ -173,7 +179,7 @@
 - name: registry_remove_all_object_storage
   installerSpec:
     kubernetes:
-      version: 1.20.x
+      version: 1.24.x
     weave:
       version: latest
     rook:
@@ -187,7 +193,7 @@
       version: latest
   upgradeSpec:
     kubernetes:
-      version: 1.21.x
+      version: 1.24.x
     weave:
       version: latest
     longhorn:
@@ -200,15 +206,17 @@
       disableS3: true
     containerd:
       version: latest
-- name: registry_airgap_longhorn
+- name: registry_airgap_openebs
   airgap: true
   installerSpec:
     kubernetes:
-      version: "1.24.x"
+      version: "1.25.x"
     weave:
       version: "latest"
-    longhorn:
-      version: "latest"
+    openebs:
+      version: "3.3.0"
+      isLocalPVEnabled: true
+      localPVStorageClassName: default
     minio:
       version: "latest"
     containerd:

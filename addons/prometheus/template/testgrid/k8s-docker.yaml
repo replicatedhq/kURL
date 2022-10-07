@@ -16,7 +16,7 @@
 - name: "prometheus upgrade from 0.33.0"
   installerSpec:
     kubernetes:
-      version: "latest"
+      version: "1.19.x"
     weave:
       version: "latest"
     rook:
@@ -28,7 +28,7 @@
       version: "0.33.0"
   upgradeSpec:
     kubernetes:
-      version: "latest"
+      version: "1.19.x"
     weave:
       version: "latest"
     rook:
@@ -42,7 +42,7 @@
 - name: "prometheus upgrade from latest"
   installerSpec:
     kubernetes:
-      version: "1.24.x"
+      version: "1.25.x"
     weave:
       version: "latest"
     openebs:
@@ -70,7 +70,7 @@
 - name: "prometheus with longhorn and containerd"
   installerSpec:
     kubernetes:
-      version: "1.21.x"
+      version: "1.24.x"
     weave:
       version: "latest"
     longhorn:
@@ -83,7 +83,7 @@
 - name: "prometheus minimal airgap"
   installerSpec:
     kubernetes:
-      version: "latest"
+      version: "1.24.x"
     weave:
       version: "latest"
     rook:
