@@ -1123,18 +1123,12 @@
       version: 1.24.x
     weave:
       version: latest
-<<<<<<< HEAD
     openebs:
       version: latest
       isLocalPVEnabled: true
       localPVStorageClassName: default
     minio:
       version: latest
-=======
-    rook:
-      isBlockStorageEnabled: true
-      version: 1.8.x
->>>>>>> 478aacc1 (test: default to rook 1.8.x and validate rook version after upgrade)
     registry:
       version: latest
     kotsadm:

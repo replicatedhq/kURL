@@ -39,6 +39,8 @@ function rook_pre_init() {
     fi
 
     # Disable EKCO updates
+    # Disallow the EKCO operator from updating Rook custom resources during a Rook upgrade
+    # EKCO will be enabled (i.e. deployment scaled up) again when the EKCO add-on is applied
     disable_ekco_operator
 
 }
