@@ -2,10 +2,10 @@
 
 set -euo pipefail
 
-function get_latest_17x_version() {
+function get_latest_18x_version() {
     curl -s https://api.github.com/repos/rook/rook/releases | \
         grep '"tag_name": ' | \
-        grep -Eo "1\.7\.[0-9]+" | \
+        grep -Eo "1\.8\.[0-9]+" | \
         head -1
 }
 
@@ -34,21 +34,21 @@ function generate() {
     local github_content_url="https://raw.githubusercontent.com/rook/rook/v${VERSION}"
 
     # download additional operator resources
-    curl -fsSL -o "${dir}/operator/toolbox.yaml" "${github_content_url}/cluster/examples/kubernetes/ceph/toolbox.yaml"
+    curl -fsSL -o "${dir}/operator/toolbox.yaml" "${github_content_url}/deploy/examples/toolbox.yaml"
     insert_resources "${dir}/operator/kustomization.yaml" "toolbox.yaml"
 
     # download cluster resources
-    curl -fsSL -o "${dir}/cluster/cephfs-storageclass.yaml" "${github_content_url}/cluster/examples/kubernetes/ceph/csi/cephfs/storageclass.yaml"
+    curl -fsSL -o "${dir}/cluster/cephfs-storageclass.yaml" "${github_content_url}/deploy/examples/csi/cephfs/storageclass.yaml"
     # change CephFilesystem name from myfs to rook-shared-fs
     sed -i 's/myfs/rook-shared-fs/g' "${dir}/cluster/cephfs-storageclass.yaml"
-    curl -fsSL -o "${dir}/cluster/cluster.yaml" "${github_content_url}/cluster/examples/kubernetes/ceph/cluster.yaml"
+    curl -fsSL -o "${dir}/cluster/cluster.yaml" "${github_content_url}/deploy/examples/cluster.yaml"
     insert_resources "${dir}/cluster/kustomization.yaml" "cluster.yaml"
-    curl -fsSL -o "${dir}/cluster/filesystem.yaml" "${github_content_url}/cluster/examples/kubernetes/ceph/filesystem.yaml"
+    curl -fsSL -o "${dir}/cluster/filesystem.yaml" "${github_content_url}/deploy/examples/filesystem.yaml"
     # change CephFilesystem name from myfs to rook-shared-fs
     sed -i 's/myfs/rook-shared-fs/g' "${dir}/cluster/filesystem.yaml"
-    curl -fsSL -o "${dir}/cluster/object.yaml" "${github_content_url}/cluster/examples/kubernetes/ceph/object.yaml"
+    curl -fsSL -o "${dir}/cluster/object.yaml" "${github_content_url}/deploy/examples/object.yaml"
     insert_resources "${dir}/cluster/kustomization.yaml" "object.yaml"
-    curl -fsSL -o "${dir}/cluster/tmpl-rbd-storageclass.yaml" "${github_content_url}/cluster/examples/kubernetes/ceph/csi/rbd/storageclass.yaml"
+    curl -fsSL -o "${dir}/cluster/tmpl-rbd-storageclass.yaml" "${github_content_url}/deploy/examples/csi/rbd/storageclass.yaml"
     sed -i 's/`/'"'"'/g' "${dir}/cluster/tmpl-rbd-storageclass.yaml" # escape backtics because they do not eval well
     sed -i -E "s/^( *)name: rook-ceph-block/\1name: \"\$\{STORAGE_CLASS:-default\}\"/" "${dir}/cluster/tmpl-rbd-storageclass.yaml"
 
@@ -70,7 +70,7 @@ function generate() {
     # get images in files
     {   grep ' image: '  "${dir}/operator/deployment.yaml" | sed -E 's/ *image: "*([^\/]+\/)?([^\/]+)\/([^:]+):([^" ]+).*/image \2-\3 \1\2\/\3:\4/' ; \
         grep ' image: '  "${dir}/cluster/cluster.yaml" | sed -E 's/ *image: "*([^\/]+\/)?([^\/]+)\/([^:]+):([^" ]+).*/image \2-\3 \1\2\/\3:\4/' ; \
-        curl -fsSL "${github_content_url}/cluster/examples/kubernetes/ceph/operator.yaml" | grep '_IMAGE: ' | sed -E 's/.*_IMAGE: "*([^\/]+\/)?([^\/]+)\/([^:]+):([^" ]+).*/image \2-\3 \1\2\/\3:\4/' ; \
+        curl -fsSL "${github_content_url}/deploy/examples/operator.yaml" | grep '_IMAGE: ' | sed -E 's/.*_IMAGE: "*([^\/]+\/)?([^\/]+)\/([^:]+):([^" ]+).*/image \2-\3 \1\2\/\3:\4/' ; \
     } >> "${dir}/Manifest"
 }
 
@@ -119,7 +119,7 @@ function main() {
         VERSION=
     fi
     if [ -z "$VERSION" ]; then
-        VERSION="$(get_latest_17x_version)"
+        VERSION="$(get_latest_18x_version)"
     fi
 
     if [ -d "../$VERSION" ]; then

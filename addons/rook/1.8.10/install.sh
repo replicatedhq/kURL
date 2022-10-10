@@ -39,8 +39,6 @@ function rook_pre_init() {
     fi
 
     # Disable EKCO updates
-    # Disallow the EKCO operator from updating Rook custom resources during a Rook upgrade
-    # EKCO will be enabled (i.e. deployment scaled up) again when the EKCO add-on is applied
     disable_ekco_operator
 
 }
@@ -224,7 +222,7 @@ function rook_cluster_deploy_upgrade() {
     # 3. https://rook.io/docs/rook/v1.6/ceph-upgrade.html#3-update-the-rook-operator
     #    rook_operator_deploy
 
-    local ceph_image="__CEPH_IMAGE__"
+    local ceph_image="quay.io/ceph/ceph:v16.2.9"
     local ceph_version=
     ceph_version="$(echo "${ceph_image}" | awk 'BEGIN { FS=":v" } ; {print $2}')"
 
