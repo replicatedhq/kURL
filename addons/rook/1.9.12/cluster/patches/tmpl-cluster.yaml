@@ -7,6 +7,8 @@ metadata:
 spec:
   mon:
     count: 1
+  mgr:
+    count: 1
   resources:
     mgr:
       requests:
