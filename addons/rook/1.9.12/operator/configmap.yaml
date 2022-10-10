@@ -1,0 +1,38 @@
+# Source: rook-ceph/templates/configmap.yaml
+# Operator settings that can be updated without an operator restart
+# Operator settings that require an operator restart are found in the operator env vars
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: rook-ceph-operator-config
+data:
+  ROOK_LOG_LEVEL: "INFO"
+  ROOK_CEPH_COMMANDS_TIMEOUT_SECONDS: "15"
+  ROOK_OBC_WATCH_OPERATOR_NAMESPACE: "true"
+  ROOK_CSI_ENABLE_RBD: "true"
+  ROOK_CSI_ENABLE_CEPHFS: "true"
+  CSI_ENABLE_CEPHFS_SNAPSHOTTER: "true"
+  CSI_ENABLE_RBD_SNAPSHOTTER: "true"
+  CSI_PLUGIN_ENABLE_SELINUX_HOST_MOUNT: "false"
+  CSI_ENABLE_ENCRYPTION: "false"
+  CSI_ENABLE_OMAP_GENERATOR: "false"
+  CSI_ENABLE_HOST_NETWORK: "true"
+  CSI_PLUGIN_PRIORITY_CLASSNAME: "system-node-critical"
+  CSI_PROVISIONER_PRIORITY_CLASSNAME: "system-cluster-critical"
+  CSI_RBD_FSGROUPPOLICY: "ReadWriteOnceWithFSType"
+  CSI_CEPHFS_FSGROUPPOLICY: "ReadWriteOnceWithFSType"
+  CSI_NFS_FSGROUPPOLICY: "ReadWriteOnceWithFSType"
+  ROOK_CSI_ENABLE_GRPC_METRICS: "true"
+  CSI_ENABLE_VOLUME_REPLICATION: "false"
+  CSI_ENABLE_CSIADDONS: "false"
+  ROOK_CSI_ENABLE_NFS: "false"
+  CSI_FORCE_CEPHFS_KERNEL_CLIENT: "true"
+  CSI_GRPC_TIMEOUT_SECONDS: "150"
+  CSI_PROVISIONER_REPLICAS: "2"
+  CSI_RBD_PROVISIONER_RESOURCE: "- name : csi-provisioner\n  resource:\n    requests:\n      memory: 128Mi\n      cpu: 100m\n    limits:\n      memory: 256Mi\n      cpu: 200m\n- name : csi-resizer\n  resource:\n    requests:\n      memory: 128Mi\n      cpu: 100m\n    limits:\n      memory: 256Mi\n      cpu: 200m\n- name : csi-attacher\n  resource:\n    requests:\n      memory: 128Mi\n      cpu: 100m\n    limits:\n      memory: 256Mi\n      cpu: 200m\n- name : csi-snapshotter\n  resource:\n    requests:\n      memory: 128Mi\n      cpu: 100m\n    limits:\n      memory: 256Mi\n      cpu: 200m\n- name : csi-rbdplugin\n  resource:\n    requests:\n      memory: 512Mi\n      cpu: 250m\n    limits:\n      memory: 1Gi\n      cpu: 500m\n- name : csi-omap-generator\n  resource:\n    requests:\n      memory: 512Mi\n      cpu: 250m\n    limits:\n      memory: 1Gi\n      cpu: 500m\n- name : liveness-prometheus\n  resource:\n    requests:\n      memory: 128Mi\n      cpu: 50m\n    limits:\n      memory: 256Mi\n      cpu: 100m\n"
+  CSI_RBD_PLUGIN_RESOURCE: "- name : driver-registrar\n  resource:\n    requests:\n      memory: 128Mi\n      cpu: 50m\n    limits:\n      memory: 256Mi\n      cpu: 100m\n- name : csi-rbdplugin\n  resource:\n    requests:\n      memory: 512Mi\n      cpu: 250m\n    limits:\n      memory: 1Gi\n      cpu: 500m\n- name : liveness-prometheus\n  resource:\n    requests:\n      memory: 128Mi\n      cpu: 50m\n    limits:\n      memory: 256Mi\n      cpu: 100m\n"
+  CSI_CEPHFS_PROVISIONER_RESOURCE: "- name : csi-provisioner\n  resource:\n    requests:\n      memory: 128Mi\n      cpu: 100m\n    limits:\n      memory: 256Mi\n      cpu: 200m\n- name : csi-resizer\n  resource:\n    requests:\n      memory: 128Mi\n      cpu: 100m\n    limits:\n      memory: 256Mi\n      cpu: 200m\n- name : csi-attacher\n  resource:\n    requests:\n      memory: 128Mi\n      cpu: 100m\n    limits:\n      memory: 256Mi\n      cpu: 200m\n- name : csi-snapshotter\n  resource:\n    requests:\n      memory: 128Mi\n      cpu: 100m\n    limits:\n      memory: 256Mi\n      cpu: 200m\n- name : csi-cephfsplugin\n  resource:\n    requests:\n      memory: 512Mi\n      cpu: 250m\n    limits:\n      memory: 1Gi\n      cpu: 500m\n- name : liveness-prometheus\n  resource:\n    requests:\n      memory: 128Mi\n      cpu: 50m\n    limits:\n      memory: 256Mi\n      cpu: 100m\n"
+  CSI_CEPHFS_PLUGIN_RESOURCE: "- name : driver-registrar\n  resource:\n    requests:\n      memory: 128Mi\n      cpu: 50m\n    limits:\n      memory: 256Mi\n      cpu: 100m\n- name : csi-cephfsplugin\n  resource:\n    requests:\n      memory: 512Mi\n      cpu: 250m\n    limits:\n      memory: 1Gi\n      cpu: 500m\n- name : liveness-prometheus\n  resource:\n    requests:\n      memory: 128Mi\n      cpu: 50m\n    limits:\n      memory: 256Mi\n      cpu: 100m\n"
+  CSI_NFS_PROVISIONER_RESOURCE: "- name : csi-provisioner\n  resource:\n    requests:\n      memory: 128Mi\n      cpu: 100m\n    limits:\n      memory: 256Mi\n      cpu: 200m\n- name : csi-nfsplugin\n  resource:\n    requests:\n      memory: 512Mi\n      cpu: 250m\n    limits:\n      memory: 1Gi\n      cpu: 500m\n"
+  CSI_NFS_PLUGIN_RESOURCE: "- name : driver-registrar\n  resource:\n    requests:\n      memory: 128Mi\n      cpu: 50m\n    limits:\n      memory: 256Mi\n      cpu: 100m\n- name : csi-nfsplugin\n  resource:\n    requests:\n      memory: 512Mi\n      cpu: 250m\n    limits:\n      memory: 1Gi\n      cpu: 500m\n"
+---
