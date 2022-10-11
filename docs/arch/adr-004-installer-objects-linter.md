@@ -30,7 +30,7 @@ The frontend validation will be possible by employing an HTTP endpoint.
 
 ## Status
 
-Proposed
+Accepted
 
 ## Consequences
 
