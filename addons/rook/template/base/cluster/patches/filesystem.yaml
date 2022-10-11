@@ -11,10 +11,9 @@ spec:
       requireSafeReplicaSize: false
   metadataServer:
     resources:
-      value:
-        limits:
-          cpu: "500m"
-          memory: "1024Mi"
-        requests:
-          cpu: "500m"
-          memory: "1024Mi"
+      limits:
+        cpu: "500m"
+        memory: "1024Mi"
+      requests:
+        cpu: "500m"
+        memory: "1024Mi"
