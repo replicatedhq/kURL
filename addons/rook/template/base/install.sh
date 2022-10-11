@@ -150,7 +150,7 @@ function rook_operator_deploy() {
     # upgrade first before applying auth_allow_insecure_global_id_reclaim policy
     rook_maybe_auth_allow_insecure_global_id_reclaim
 
-    # disable bluefs_buffered_io for rook 1.8.x
+    # disable bluefs_buffered_io for rook 1.8.x and 1.9.x
     # See:
     #   - https://github.com/rook/rook/issues/10160#issuecomment-1168303067
     #   - https://tracker.ceph.com/issues/54019
@@ -508,7 +508,7 @@ function rook_maybe_bluefs_buffered_io() {
 
     semverParse "$ROOK_VERSION"
     local rook_major_minor_version="${major}.${minor}"
-    if [ "$rook_major_minor_version" = "1.8" ]; then
+    if [ "$rook_major_minor_version" = "1.8" ] || [ "$rook_major_minor_version" = "1.9" ]; then
         sed -i "/\[global\].*/a\    bluefs_buffered_io = false" "$dst/configmap-rook-config-override.yaml"
     fi
 }
