@@ -1,3 +1,12 @@
 csi:
   enableGrpcMetrics: true
+  # Historically the csi plugin and provisioner pods have not had resource requests and limits.
+  # In order to prevent upgrades from failing to schedule pods because of lack of capacity we will
+  # omit these.
+  csiRBDProvisionerResource: ""
+  csiRBDPluginResource: ""
+  csiCephFSProvisionerResource: ""
+  csiCephFSPluginResource: ""
+  csiNFSProvisionerResource: ""
+  csiNFSPluginResource: ""
 enableDiscoveryDaemon: true
