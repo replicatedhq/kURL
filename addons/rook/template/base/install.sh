@@ -494,8 +494,8 @@ function rook_should_fail_install() {
     if [ -n "$EKCO_VERSION" ]; then
         semverParse "$EKCO_VERSION"
         local ekco_minor_version="${minor}"
-        if [ "$ekco_minor_version" -lt 22 ]; then # TODO: change to 23
-            logFail "Rook Pre-init: Rook ${ROOK_VERSION} is only compatible with EKCO add-on version 0.22.0 and above."
+        if [ "$ekco_minor_version" -lt 23 ]; then
+            logFail "Rook Pre-init: Rook ${ROOK_VERSION} is only compatible with EKCO add-on version 0.23.0 and above."
             return 0
         fi
     fi
