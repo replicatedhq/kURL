@@ -427,8 +427,7 @@
     contour:
       version: 1.7.0
     rook:
-      isBlockStorageEnabled: true
-      version: 1.8.x
+      version: 1.9.x
     registry:
       version: 2.7.1
     fluentd:
@@ -581,8 +580,7 @@
     weave:
       version: 2.8.1
     rook:
-      isBlockStorageEnabled: true
-      version: 1.8.x
+      version: 1.9.x
     registry:
       version: 2.7.1
     kotsadm:
@@ -690,8 +688,7 @@
       version: 2.8.1
     rook:
       bypassUpgradeWarning: true
-      isBlockStorageEnabled: true
-      version: 1.8.x
+      version: 1.9.x
     kotsadm:
       version: 1.38.0
     containerd:
@@ -833,8 +830,7 @@
     weave:
       version: latest
     rook:
-      isBlockStorageEnabled: true
-      version: 1.8.x
+      version: 1.9.x
     registry:
       version: latest
     kotsadm:
@@ -875,7 +871,7 @@
     contour:
       version: 1.19.1
     rook:
-      version: 1.8.x
+      version: 1.9.x
     registry:
       version: 2.7.1
     prometheus:
@@ -923,7 +919,7 @@
     contour:
       version: 1.19.1
     rook:
-      version: 1.8.x
+      version: 1.9.x
     registry:
       version: 2.7.1
     prometheus:
@@ -1014,7 +1010,7 @@
     contour:
       version: 1.19.1
     rook:
-      version: 1.8.x
+      version: 1.9.x
     registry:
       version: 2.7.1
     prometheus:
@@ -1064,7 +1060,7 @@
     contour:
       version: 1.19.1
     rook:
-      version: 1.8.x
+      version: 1.9.x
     registry:
       version: 2.7.1
     prometheus:
@@ -1086,8 +1082,7 @@
     weave:
       version: latest
     rook:
-      isBlockStorageEnabled: true
-      version: 1.8.x
+      version: 1.9.x
     registry:
       version: latest
     kotsadm:
@@ -1246,8 +1241,7 @@
     contour:
       version: latest
     rook:
-      isBlockStorageEnabled: true
-      version: 1.8.x
+      version: 1.9.x
     registry:
       version: latest
     kotsadm:
@@ -1268,8 +1262,7 @@
     contour:
       version: latest
     rook:
-      isBlockStorageEnabled: true
-      version: 1.8.x
+      version: 1.9.x
     registry:
       version: latest
     kotsadm:
@@ -1290,8 +1283,7 @@
     contour:
       version: latest
     rook:
-      isBlockStorageEnabled: true
-      version: 1.8.x
+      version: 1.9.x
     registry:
       version: latest
     kotsadm:

@@ -5,7 +5,7 @@
     weave:
       version: "latest"
     rook:
-      version: 1.7.x
+      version: 1.9.x
     containerd:
       version: "latest"
     registry:
@@ -213,8 +213,7 @@
     weave:
       version: latest
     rook:
-      isBlockStorageEnabled: true
-      version: 1.7.x
+      version: 1.9.x
     registry:
       version: latest
     kotsadm:
