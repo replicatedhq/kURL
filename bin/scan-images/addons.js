@@ -5,6 +5,15 @@ const skipAddons = [
     "rookupgrade",
 ];
 
+// maintainerImages contains a list of images we maintain.
+// The scan action will only report failures for images in this list.
+const maintainerImages = {
+    ekco: ["ekco", "haproxy"],
+    registry: ["s3cmd"],
+    velero: ["local-volume-provider", "s3cmd"],
+    weave: ["weave-kube", "weave-npc", "weaveexec"],
+};
+
 var getImages = rootDir => {
     const images = [];
     fs.readdirSync(rootDir).forEach((addon) => {
@@ -37,16 +46,22 @@ var getImages = rootDir => {
                 if (parts[0] !== 'image') {
                     return;
                 }
+                const name = parts[1];
                 let imageName = parts[2];
                 if (imageName.split('/').length === 1) {
                     imageName = `library/${imageName}`
                 }
+                let maintainer = false;
+                if (maintainerImages[addon] && maintainerImages[addon].includes(name)) {
+                    maintainer = true;
+                }
                 const image = {
                     addon: addon,
                     version: version,
-                    name: parts[1],
+                    name: name,
                     image: imageName,
                     trivyignore: trivyignore,
+                    maintainer: maintainer,
                 };
                 images.push(image);
             });

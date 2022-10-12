@@ -34,7 +34,9 @@ jobs:
       - name: "Write Trivy ignore file"
         run: if [ -n '${{ matrix.trivyignore }}' ]; then echo '${{ matrix.trivyignore }}' | base64 -d > .trivyignore.rego ; fi
       - name: "Generate artifact"
+        id: trivy
         uses: aquasecurity/trivy-action@0.7.1
+        continue-on-error: ${{ ! matrix.maintainer }}
         with:
           image-ref: ${{ matrix.image }}
           vuln-type: 'os'
@@ -46,13 +48,14 @@ jobs:
           exit-code: '1'
       - name: "Upload artifact"
         uses: actions/upload-artifact@v3
-        if: ${{ failure() }}
+        if: ${{ always() && steps.trivy.outcome == 'failure' }}
         with:
           name: ${{ matrix.addon }}-${{ matrix.version }}-${{ matrix.name }}
           path: trivy.json
       - name: "Display results"
         uses: aquasecurity/trivy-action@0.7.1
-        if: ${{ failure() }}
+        if: ${{ always() && steps.trivy.outcome == 'failure' }}
+        continue-on-error: ${{ ! matrix.maintainer }}
         with:
           image-ref: ${{ matrix.image }}
           vuln-type: 'os'
