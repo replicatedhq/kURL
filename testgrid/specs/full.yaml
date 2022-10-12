@@ -1456,6 +1456,7 @@
       minReadyWorkerNodeCount: 0
       rookShouldUseAllNodes: false
       rookShouldDisableReconcileMDSPlacement: false
+      rookShouldDisableReconcileCephCSIResources: false
       shouldDisableRebootServices: false
       shouldDisableClearNodes: false
       shouldEnablePurgeNodes: false
@@ -1499,6 +1500,7 @@
       minReadyWorkerNodeCount: 0
       rookShouldUseAllNodes: false
       rookShouldDisableReconcileMDSPlacement: false
+      rookShouldDisableReconcileCephCSIResources: false
       shouldDisableRebootServices: false
       shouldDisableClearNodes: false
       shouldEnablePurgeNodes: false
