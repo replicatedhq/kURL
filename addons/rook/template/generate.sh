@@ -2,10 +2,10 @@
 
 set -euo pipefail
 
-function get_latest_18x_version() {
+function get_latest_19x_version() {
     curl -s https://api.github.com/repos/rook/rook/releases | \
         grep '"tag_name": ' | \
-        grep -Eo "1\.8\.[0-9]+" | \
+        grep -Eo "1\.9\.[0-9]+" | \
         head -1
 }
 
@@ -119,7 +119,7 @@ function main() {
         VERSION=
     fi
     if [ -z "$VERSION" ]; then
-        VERSION="$(get_latest_18x_version)"
+        VERSION="$(get_latest_19x_version)"
     fi
 
     if [ -d "../$VERSION" ]; then

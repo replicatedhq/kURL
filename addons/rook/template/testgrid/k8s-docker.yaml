@@ -1,7 +1,7 @@
 - name: Rook minimal
   installerSpec:
     kubernetes:
-      version: "latest"
+      version: "1.24.x"
     weave:
       version: "latest"
     containerd:
@@ -15,9 +15,8 @@
     rook:
       version: "__testver__"
       s3Override: "__testdist__"
-      isBlockStorageEnabled: true
   unsupportedOSIDs:
-    - centos-74 # Rook 1.8 not supported on 3.10.0-693.el7.x86_64 kernel
+    - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     rook_ecph_object_store_info
@@ -56,10 +55,10 @@
     kubectl -n default get pvc cephfs-pvc | grep Bound
     kubectl -n default delete pvc cephfs-pvc default-pvc
 
-- name: Upgrade from 1.7.11
+- name: Upgrade from 1.8.10
   installerSpec:
     kubernetes:
-      version: "latest"
+      version: "1.24.x"
     weave:
       version: "latest"
     containerd:
@@ -71,11 +70,10 @@
     ekco:
       version: "latest"
     rook:
-      version: "1.7.11"
-      isBlockStorageEnabled: true
+      version: "1.8.10"
   upgradeSpec:
     kubernetes:
-      version: "latest"
+      version: "1.24.x"
     weave:
       version: "latest"
     containerd:
@@ -89,7 +87,6 @@
     rook:
       version: "__testver__"
       s3Override: "__testdist__"
-      isBlockStorageEnabled: true
       bypassUpgradeWarning: true
   unsupportedOSIDs:
     - centos-74 # Rook 1.8 not supported on 3.10.0-693.el7.x86_64 kernel
@@ -147,7 +144,7 @@
 - name: Disable shared filesystem
   installerSpec:
     kubernetes:
-      version: "latest"
+      version: "1.24.x"
     weave:
       version: "latest"
     containerd:
@@ -162,7 +159,6 @@
       version: "__testver__"
       s3Override: "__testdist__"
       isSharedFilesystemDisabled: true
-      isBlockStorageEnabled: true
   unsupportedOSIDs:
     - centos-74 # Rook 1.8 not supported on 3.10.0-693.el7.x86_64 kernel
   postInstallScript: |
