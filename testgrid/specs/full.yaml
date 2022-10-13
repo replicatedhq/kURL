@@ -899,7 +899,7 @@
     registry:
       version: 2.7.1
     prometheus:
-      version: "0.53.x"
+      version: latest
     kotsadm:
       version: latest
       disableS3: true
@@ -1026,7 +1026,7 @@
 - name: "K8s 1.25x OpenEBS, disableS3"
   installerSpec:
     kubernetes:
-      version: 1.24.x
+      version: 1.25.x
     containerd:
       version: latest
     weave:
@@ -1040,7 +1040,7 @@
     registry:
       version: 2.7.1
     prometheus:
-      version: "0.53.x"
+      version: latest
     kotsadm:
       version: latest
       disableS3: true
@@ -1128,8 +1128,8 @@
       version: latest
     kotsadm:
       version: latest
-    docker:
-      version: 20.10.x
+    containerd:
+      version: latest
     velero:
       version: 1.8.x
     ekco:
@@ -1149,7 +1149,7 @@
       version: latest
       disableS3: true
     containerd:
-      version: 1.5.x
+      version: latest
     velero:
       version: 1.9.x
     ekco:
