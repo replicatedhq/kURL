@@ -37,10 +37,6 @@ function rook_pre_init() {
     if rook_should_fail_install; then
         bail "Rook ${ROOK_VERSION} will not be installed due to failed preflight checks."
     fi
-
-    # Disable EKCO updates
-    disable_ekco_operator
-
 }
 
 function rook() {
@@ -55,6 +51,11 @@ function rook() {
         rook_object_store_output
         return 0
     fi
+
+    # Disable EKCO updates
+    # Disallow the EKCO operator from updating Rook custom resources during a Rook upgrade
+    # EKCO will be enabled (i.e. deployment scaled up) again when the EKCO add-on is applied
+    disable_ekco_operator
 
     rook_operator_crds_deploy
     rook_operator_deploy
