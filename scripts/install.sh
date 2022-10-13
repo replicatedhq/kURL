@@ -17,6 +17,7 @@ DIR=.
 . $DIR/scripts/common/host-packages.sh
 . $DIR/scripts/common/k3s.sh
 . $DIR/scripts/common/kubernetes.sh
+. $DIR/scripts/common/monitoring.sh
 . $DIR/scripts/common/object_store.sh
 . $DIR/scripts/common/plugins.sh
 . $DIR/scripts/common/preflights.sh
@@ -570,6 +571,7 @@ function main() {
     export SUPPORT_BUNDLE_READY=1 # allow ctrl+c and ERR traps to collect support bundles now that k8s is installed
     kurl_init_config
     ${K8S_DISTRO}_addon_for_each addon_install
+    maybe_apply_prometheus_monitor
     maybe_cleanup_rook
     helmfile_sync
     kubeadm_post_init
