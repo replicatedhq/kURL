@@ -1,3 +1,5 @@
+# To work with Kubernetes 1.25
+pspEnable: false
 csi:
   enableGrpcMetrics: true
   # Historically the csi plugin and provisioner pods have not had resource requests and limits.
