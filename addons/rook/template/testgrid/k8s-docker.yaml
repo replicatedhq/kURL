@@ -1,7 +1,7 @@
 - name: Rook minimal
   installerSpec:
     kubernetes:
-      version: "1.24.x"
+      version: "1.25.x"
     weave:
       version: "latest"
     containerd:
@@ -58,7 +58,7 @@
 - name: Upgrade from 1.8.10
   installerSpec:
     kubernetes:
-      version: "1.24.x"
+      version: "1.25.x"
     weave:
       version: "latest"
     containerd:
@@ -73,7 +73,7 @@
       version: "1.8.10"
   upgradeSpec:
     kubernetes:
-      version: "1.24.x"
+      version: "1.25.x"
     weave:
       version: "latest"
     containerd:
@@ -144,7 +144,7 @@
 - name: Disable shared filesystem
   installerSpec:
     kubernetes:
-      version: "1.24.x"
+      version: "1.25.x"
     weave:
       version: "latest"
     containerd:
