@@ -116,9 +116,10 @@ function ekco_already_applied() {
 }
 
 function maybe_scaleup_ekco_operator() {
-    ekcoReplicas=$(kubectl get deployment -n kurl ekc-operator -o jsonpath='{.status.replicas}')
+    local ekcoReplicas=
+    ekcoReplicas=$(kubectl -n kurl get deployment ekc-operator -o jsonpath='{.spec.replicas}')
 
-    if [ "$ekcoReplicas" -eq 0 ]; then
+    if [ -z "$ekcoReplicas" ] || [ "$ekcoReplicas" -eq 0 ]; then
         echo "Scaling up EKCO operator deployment"
         kubectl -n kurl scale deploy ekc-operator --replicas=1
     fi
