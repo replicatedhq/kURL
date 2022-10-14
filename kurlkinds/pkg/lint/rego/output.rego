@@ -13,30 +13,6 @@
 # limitations under the License.
 package kurl.installer
 
-# reports an error in case the kubernetes distribution is k3s and the user has
-# selected also a container runtime. for k3s no container runtime can be selected.
-lint[output] {
-	input.spec.k3s.version
-	count(container_runtimes) > 0
-	output :=  {
-		"type": "incompatibility",
-		"message": "container runtime is incompatible with k3s",
-		"field": "spec.k3s"
-	}
-}
-
-# reports an error in case the kubernetes distribution is rke2 and the user has
-# also chosen a container runtime. for rke2 no container runtime can be selected.
-lint[output] {
-	input.spec.rke2.version
-	count(container_runtimes) > 0
-	output :=  {
-		"type": "incompatibility",
-		"message": "container runtime is incompatible with rke2",
-		"field": "spec.rke2"
-	}
-}
-
 # reports an error if user has selected the kubernetes distribution but has not
 # selected a container runtime. a container runtime is necessary to run the kube
 # distribution.

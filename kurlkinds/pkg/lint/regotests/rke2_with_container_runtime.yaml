@@ -1,10 +1,10 @@
 installer:
   spec:
-    k3s:
+    rke2:
       version: latest
     docker:
       version: latest
 output:
-  - message: k3s is not compatible with docker
+  - message: rke2 is not compatible with docker
     field: spec.docker
     type: incompatibility
