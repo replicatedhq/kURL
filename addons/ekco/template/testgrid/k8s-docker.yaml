@@ -1,16 +1,18 @@
 - name: Minimal Latest, Rook
   installerSpec:
     kubernetes:
-      version: "latest"
+      version: "1.24.x"
     weave:
       version: "latest"
     rook:
-      version: "latest"
+      version: "1.9.x"
     containerd:
       version: "latest"
     ekco:
       version: "__testver__"
       s3Override: "__testdist__"
+  unsupportedOSIDs:
+    - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
 - name: Kubernetes 1.24, Internal LB, Rook, Multi node
   installerSpec:
     kubernetes:
@@ -18,7 +20,7 @@
     weave:
       version: "latest"
     rook:
-      version: "1.7.x"
+      version: "1.9.x"
     containerd:
       version: "latest"
     kotsadm:
@@ -30,14 +32,16 @@
       minReadyMasterNodeCount: 1
       enableInternalLoadBalancer: true
   numPrimaryNodes: 3
+  unsupportedOSIDs:
+    - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
 - name: Kubernetes 1.21, Longhorn, Internal LB
   installerSpec:
     kubernetes:
-      version: "1.21.x"
+      version: "1.24.x"
     weave:
       version: "latest"
     longhorn:
-      version: "1.2.x"
+      version: "latest"
     containerd:
       version: "latest"
     ekco:
@@ -47,13 +51,15 @@
 - name: podImageOverrides
   installerSpec:
     kubernetes:
-      version: "1.24.x"
+      version: "1.25.x"
     containerd:
       version: "latest"
     weave:
       version: "latest"
-    longhorn:
+    openebs:
       version: "latest"
+      isLocalPVEnabled: true
+      localPVStorageClassName: default
     contour:
       version: "1.20.0"
     ekco:
@@ -74,25 +80,29 @@
 - name: Upgrade HA add ekco
   installerSpec:
     kubernetes:
-      version: "1.19.3"
+      version: "1.23.x"
       loadBalancerUseFirstPrimary: true
     weave:
       version: "latest"
     containerd:
       version: "latest"
-    longhorn:
+    openebs:
       version: "latest"
+      isLocalPVEnabled: true
+      localPVStorageClassName: default
     ekco:
       version: "0.10.1"
   upgradeSpec:
     kubernetes:
-      version: "1.21.8"
+      version: "1.25.x"
     weave:
       version: "latest"
     containerd:
       version: "latest"
-    longhorn:
+    openebs:
       version: "latest"
+      isLocalPVEnabled: true
+      localPVStorageClassName: default
     ekco:
       version: "__testver__"
       s3Override: "__testdist__"
