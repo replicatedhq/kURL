@@ -132,6 +132,7 @@ function prometheus_rook_ceph() {
 
     if kubectl get ns | grep -q rook-ceph; then
             insert_resources "$dst/kustomization.yaml" rook-ceph-rolebindings.yaml
+            insert_resources "$dst/kustomization.yaml" rook-ceph-servicemonitor.yaml
     fi
 }
 
