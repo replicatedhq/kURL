@@ -9,7 +9,7 @@ installer:
     docker:
       version: latest
 output:
-  - message: Only one kubernetes distribution (kubernetes, k3s, or rke2) can be selected
+  - message: Only one kubernetes distribution (Kubernetes, K3S, or RKE2) can be selected
     field: spec
     type: misconfiguration
   - message: RKE2 is not compatible with add-on docker
@@ -30,6 +30,6 @@ output:
   - message: K3S is not compatible with add-on rke2
     field: spec.rke2
     type: incompatibility
-  - message: No CNI plugin (weave or antrea) selected
+  - message: No CNI plugin (Weave or Antrea) selected
     field: spec
     type: misconfiguration

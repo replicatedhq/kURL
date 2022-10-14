@@ -5,6 +5,6 @@ installer:
     containerd:
       version: latest
 output:
-  - message: No CNI plugin (weave or antrea) selected
+  - message: No CNI plugin (Weave or Antrea) selected
     field: spec
     type: misconfiguration

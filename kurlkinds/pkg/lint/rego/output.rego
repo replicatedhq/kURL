@@ -21,7 +21,7 @@ lint[output] {
 	count(container_runtimes) == 0
 	output :=  {
 		"type": "misconfiguration",
-		"message": "No container runtime (docker or containerd) selected",
+		"message": "No container runtime (Docker or Containerd) selected",
 		"field": "spec"
 	}
 }
@@ -45,7 +45,7 @@ lint[output] {
 	not input.spec.antrea.version
 	output :=  {
 		"type": "misconfiguration",
-		"message": "No CNI plugin (weave or antrea) selected",
+		"message": "No CNI plugin (Weave or Antrea) selected",
 		"field": "spec"
 	}
 }
@@ -55,7 +55,7 @@ lint[output] {
 	count(kube_distributions) == 0
 	output := {
 		"type": "misconfiguration",
-		"message": "No kubernetes distribution (kubernetes, k3s, or rke2) selected",
+		"message": "No kubernetes distribution (Kubernetes, K3S, or RKE2) selected",
 		"field": "spec"
 	}
 }
@@ -65,7 +65,7 @@ lint[output] {
 	count(kube_distributions) > 1
 	output := {
 		"type": "misconfiguration",
-		"message": "Only one kubernetes distribution (kubernetes, k3s, or rke2) can be selected",
+		"message": "Only one kubernetes distribution (Kubernetes, K3S, or RKE2) can be selected",
 		"field": "spec"
 	}
 }
@@ -222,7 +222,7 @@ lint[output] {
 	is_addon_version_lower_than_or_equal("prometheus", "0.49.0")
 	output := {
 		"type": "incompatibility",
-		"message": "Prometheus versions <= 0.49.0-17.1.3 are not compatible with kubernetes 1.22+",
+		"message": "Prometheus versions <= 0.49.0-17.1.3 are not compatible with Kubernetes 1.22+",
 		"field": "spec.prometheus.version"
 	}
 }

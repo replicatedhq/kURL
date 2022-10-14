@@ -5,6 +5,6 @@ installer:
     weave:
       version: latest
 output:
-  - message: No container runtime (docker or containerd) selected
+  - message: No container runtime (Docker or Containerd) selected
     field: spec
     type: misconfiguration
