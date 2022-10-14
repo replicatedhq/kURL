@@ -4,6 +4,8 @@ installer:
       version: latest
     containerd:
       version: latest
+    weave:
+      version: latest
     longhorn:
       version: 0.1.0
 output:

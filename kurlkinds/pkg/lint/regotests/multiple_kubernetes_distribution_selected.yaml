@@ -30,3 +30,6 @@ output:
   - message: K3S is not compatible with add-on rke2
     field: spec.rke2
     type: incompatibility
+  - message: No CNI plugin (weave or antrea) selected
+    field: spec
+    type: misconfiguration

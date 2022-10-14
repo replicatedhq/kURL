@@ -2,6 +2,8 @@ installer:
   spec:
     kubernetes:
       version: 1.0.0
+    weave:
+      version: latest
     containerd:
       version: latest
 output:

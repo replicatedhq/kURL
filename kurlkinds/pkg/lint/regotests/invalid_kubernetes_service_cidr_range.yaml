@@ -3,6 +3,8 @@ installer:
     kubernetes:
       serviceCidrRange: x.a.b.c
       version: 1.24.x
+    weave:
+      version: latest
     containerd:
       version: latest
 output:

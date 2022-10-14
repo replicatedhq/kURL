@@ -1,10 +1,10 @@
 installer:
   spec:
     kubernetes:
-      version: 1.19.2
-    weave:
+      version: latest
+    containerd:
       version: latest
 output:
-  - message: No container runtime (docker or containerd) selected
+  - message: No CNI plugin (weave or antrea) selected
     field: spec
     type: misconfiguration

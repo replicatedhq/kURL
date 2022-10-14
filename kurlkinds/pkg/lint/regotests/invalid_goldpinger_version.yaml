@@ -4,6 +4,8 @@ installer:
       version: latest
     containerd:
       version: latest
+    weave:
+      version: latest
     goldpinger:
       version: 8.1.0
 output:

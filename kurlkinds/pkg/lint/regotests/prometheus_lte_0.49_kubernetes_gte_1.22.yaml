@@ -4,6 +4,8 @@ installer:
       version: 1.22.5
     containerd:
       version: latest
+    weave:
+      version: latest
     prometheus:
       version: 0.46.0
 output:

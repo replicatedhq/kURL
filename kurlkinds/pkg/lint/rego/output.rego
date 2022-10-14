@@ -37,6 +37,19 @@ lint[output] {
 	}
 }
 
+# generates an error if kubernetes is the selected distribution but no cni plugin has
+# been selected by the user.
+lint[output] {
+	input.spec.kubernetes.version
+	not input.spec.weave.version
+	not input.spec.antrea.version
+	output :=  {
+		"type": "misconfiguration",
+		"message": "No CNI plugin (weave or antrea) selected",
+		"field": "spec"
+	}
+}
+
 # checks if there is at least one selected kubernetes distro (kubernetes, k3s, or rke2).
 lint[output] {
 	count(kube_distributions) == 0

@@ -4,6 +4,8 @@ installer:
       version: latest
     containerd:
       version: latest
+    weave:
+      version: latest
     contour:
       version: 0.1.0
 output:

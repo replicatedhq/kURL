@@ -4,6 +4,8 @@ installer:
       version: 1.25.x
     containerd: 
       version: latest
+    weave:
+      version: latest
     rook: 
       version: 1.8.10
 output:

@@ -4,6 +4,8 @@ installer:
       version: latest
     containerd:
       version: latest
+    weave:
+      version: latest
     fluentd:
       version: 0.0.1
 output:
