@@ -4,7 +4,6 @@ resources:
 - configmap.yaml
 - clusterrole.yaml
 - clusterrolebinding.yaml
-- psp.yaml
 - role.yaml
 - cluster-rbac.yaml
 - rolebinding.yaml
