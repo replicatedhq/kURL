@@ -6,6 +6,6 @@ installer:
       version: latest
       uiBindPort: 32768
 output:
-  - message: nodeports for rke2 distro must use a NodePort between 30000-32767
+  - message: NodePorts for RKE2 must use a NodePort between 30000-32767
     field: spec.kotsadm.uiBindPort
     type: misconfiguration

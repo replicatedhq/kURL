@@ -7,6 +7,6 @@ installer:
     openebs: 
       version: 2.12.9
 output: 
-  - message: openebs version <= 2.12.9  not compatible with kubernetes 1.22+
+  - message: OpenEBS versions <= 2.12.9 are not compatible with Kubernetes 1.22+
     field: spec.openebs.version
     type: incompatibility

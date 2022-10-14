@@ -7,6 +7,6 @@ installer:
     containerd:
       version: latest
 output:
-  - message: unknown antrea version 0.0.1
+  - message: Unknown antrea add-on version 0.0.1
     field: spec.antrea.version
     type: unknown-addon

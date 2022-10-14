@@ -8,6 +8,6 @@ installer:
       version: 0.48.1-16.10.0
       serviceType: "NodePort"
 output:
-  - message: prometheus service types supported for v0.48.1-16.10.0 and later
+  - message: Prometheus service types is supported only for versions 0.48.1-16.10.0+
     field: spec.prometheus.serviceType
     type: misconfiguration

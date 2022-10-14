@@ -7,6 +7,6 @@ installer:
     longhorn:
       version: 0.1.0
 output:
-  - message: unknown longhorn version 0.1.0
+  - message: Unknown longhorn add-on version 0.1.0
     field: spec.longhorn.version
     type: unknown-addon

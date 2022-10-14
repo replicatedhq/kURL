@@ -7,9 +7,9 @@ installer:
     longhorn:
       version: latest
 output:
-  - message: k3s is not compatible with fluentd
+  - message: K3S is not compatible with add-on fluentd
     field: spec.fluentd
     type: incompatibility
-  - message: k3s is not compatible with longhorn
+  - message: K3S is not compatible with add-on longhorn
     field: spec.longhorn
     type: incompatibility

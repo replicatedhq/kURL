@@ -5,6 +5,6 @@ installer:
     openebs:
       version: 0.1.0
 output:
-  - message: unknown openebs version 0.1.0
+  - message: Unknown openebs add-on version 0.1.0
     field: spec.openebs.version
     type: unknown-addon

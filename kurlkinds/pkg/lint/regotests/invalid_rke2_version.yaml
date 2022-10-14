@@ -3,6 +3,6 @@ installer:
     rke2:
       version: 1.0.0
 output:
-  - message: unknown rke2 version 1.0.0
+  - message: Unknown rke2 add-on version 1.0.0
     field: spec.rke2.version
     type: unknown-addon

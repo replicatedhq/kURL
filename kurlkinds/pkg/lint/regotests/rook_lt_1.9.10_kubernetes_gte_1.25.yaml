@@ -7,6 +7,6 @@ installer:
     rook: 
       version: 1.8.10
 output:
-  - message: rook versions <= 1.9.10 are not compatible with kubernetes 1.25+
+  - message: Rook versions <= 1.9.10 are not compatible with Kubernetes 1.25+
     field: spec.rook.version
     type: incompatibility

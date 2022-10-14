@@ -9,6 +9,6 @@ installer:
     containerd:
       version: latest
 output:
-  - message: weave pod cidr range is invalid
+  - message: Invalid Weave pod CIDR
     field: spec.weave.podCidrRange
     type: misconfiguration

@@ -7,6 +7,6 @@ installer:
     containerd:
       version: latest
 output:
-  - message: unknown weave version 0.0.1
+  - message: Unknown weave add-on version 0.0.1
     field: spec.weave.version
     type: unknown-addon

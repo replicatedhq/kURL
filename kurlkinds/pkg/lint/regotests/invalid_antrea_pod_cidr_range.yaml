@@ -9,6 +9,6 @@ installer:
     containerd:
       version: latest
 output:
-  - message: antrea pod cidr range is invalid
+  - message: Invalid Antrea pod CIDR
     field: spec.antrea.podCidrRange
     type: misconfiguration

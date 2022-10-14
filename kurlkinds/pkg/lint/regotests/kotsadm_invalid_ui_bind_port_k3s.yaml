@@ -6,6 +6,6 @@ installer:
       version: latest
       uiBindPort: 29999
 output:
-  - message: nodeports for k3s distro must use a NodePort between 30000-32767
+  - message: NodePorts for K3s must use a NodePort between 30000-32767
     field: spec.kotsadm.uiBindPort
     type: misconfiguration

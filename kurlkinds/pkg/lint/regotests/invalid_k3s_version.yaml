@@ -3,6 +3,6 @@ installer:
     k3s:
       version: 0.0.1
 output:
-  - message: unknown k3s version 0.0.1
+  - message: Unknown k3s add-on version 0.0.1
     field: spec.k3s.version
     type: unknown-addon

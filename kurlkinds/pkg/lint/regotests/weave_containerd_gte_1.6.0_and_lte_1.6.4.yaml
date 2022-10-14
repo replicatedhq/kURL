@@ -8,6 +8,6 @@ installer:
     weave: 
       version: latest
 output:
-  - message: weave is not compatible with containerd versions 1.6.0 - 1.6.4
+  - message: Containerd versions 1.6.0 - 1.6.4 are not compatible with Weave
     field: spec.containerd.version
     type: incompatibility

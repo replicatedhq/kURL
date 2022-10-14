@@ -5,6 +5,6 @@ installer:
     containerd:
       version: latest
 output:
-  - message: unknown kubernetes version 1.0.0
+  - message: Unknown kubernetes add-on version 1.0.0
     field: spec.kubernetes.version
     type: unknown-addon

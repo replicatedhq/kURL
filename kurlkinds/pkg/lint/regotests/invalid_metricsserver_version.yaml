@@ -7,6 +7,6 @@ installer:
     metricsServer:
       version: 0.1.0
 output:
-  - message: unknown metricsServer version 0.1.0
+  - message: Unknown metricsServer add-on version 0.1.0
     field: spec.metricsServer.version
     type: unknown-addon

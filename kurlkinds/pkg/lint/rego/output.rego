@@ -21,7 +21,7 @@ lint[output] {
 	count(container_runtimes) == 0
 	output :=  {
 		"type": "misconfiguration",
-		"message": "no container runtime selected",
+		"message": "No container runtime (docker or containerd) selected",
 		"field": "spec"
 	}
 }
@@ -32,7 +32,7 @@ lint[output] {
 	count(container_runtimes) > 1
 	output := {
 		"type": "misconfiguration",
-		"message": "multiple container runtimes selected",
+		"message": "Multiple container runtimes selected",
 		"field": "spec"
 	}
 }
@@ -42,7 +42,7 @@ lint[output] {
 	count(kube_distributions) == 0
 	output := {
 		"type": "misconfiguration",
-		"message": "no kubernetes distribution selected",
+		"message": "No kubernetes distribution (kubernetes, k3s, or rke2) selected",
 		"field": "spec"
 	}
 }
@@ -52,7 +52,7 @@ lint[output] {
 	count(kube_distributions) > 1
 	output := {
 		"type": "misconfiguration",
-		"message": "multiple kubernetes distributions selected",
+		"message": "Only one kubernetes distribution (kubernetes, k3s, or rke2) can be selected",
 		"field": "spec"
 	}
 }
@@ -64,7 +64,7 @@ lint[output] {
 	not valid_runtime_for_kubernetes
 	output := {
 		"type": "incompatibility",
-		"message": "kubernetes >= v1.24 does not work with docker",
+		"message": "Kubernetes 1.24+ does not support Docker runtime, Containerd is recommended",
 		"field": "spec.docker"
 	}
 }
@@ -74,7 +74,7 @@ lint[output] {
 	not valid_kubernetes_service_cidr_range_override
 	output := {
 		"type": "misconfiguration",
-		"message": "service cidr range is invalid",
+		"message": "Invalid Kubernetes services CIDR",
 		"field": "spec.kubernetes.serviceCidrRange"
 	}
 }
@@ -84,7 +84,7 @@ lint[output] {
 	not valid_pod_cidr_range_override("weave")
 	output := {
 		"type": "misconfiguration",
-		"message": "weave pod cidr range is invalid",
+		"message": "Invalid Weave pod CIDR",
 		"field": "spec.weave.podCidrRange"
 	}
 }
@@ -94,7 +94,7 @@ lint[output] {
 	not valid_pod_cidr_range_override("antrea")
 	output := {
 		"type": "misconfiguration",
-		"message": "antrea pod cidr range is invalid",
+		"message": "Invalid Antrea pod CIDR",
 		"field": "spec.antrea.podCidrRange"
 	}
 }
@@ -105,7 +105,7 @@ lint[output] {
 	input.spec.antrea.version
 	output := {
 		"type": "misconfiguration",
-		"message": "multiple cni plugins selected",
+		"message": "Multiple CNI plugins selected, choose or Weave or Antrea",
 		"field": "spec"
 	}
 }
@@ -116,7 +116,7 @@ lint[output] {
 	is_addon_version_lower_than("rook", "1.1.0")
 	output := {
 		"type": "incompatibility",
-		"message": "rook <= 1.1.0 is not compatible with kubernetes 1.20+",
+		"message": "Rook versions <= 1.1.0 are not compatible with Kubernetes versions 1.20+",
 		"field": "spec.rook.version"
 	}
 }
@@ -128,7 +128,7 @@ lint[output] {
 	is_addon_version_lower_than("longhorn", "1.4.0")
 	output := {
 		"type": "incompatibility",
-		"message": "longhorn <= 1.4.0 are not compatible with kubernetes 1.25+",
+		"message": "Longhorn versions <= 1.4.0 are not compatible with Kubernetes versions 1.25+",
 		"field": "spec.longhorn.version"
 	}
 }
@@ -140,7 +140,7 @@ lint[output] {
 	not valid_add_on_version(name)
 	output := {
 		"type": "unknown-addon",
-		"message": sprintf("unknown %v version %v", [name, input.spec[name].version]),
+		"message": sprintf("Unknown %v add-on version %v", [name, input.spec[name].version]),
 		"field": sprintf("spec.%v.version", [name])
 	}
 }
@@ -152,7 +152,7 @@ lint[output] {
 	is_addon_version_lower_than_or_equal("containerd", "1.6.4")
 	output := {
 		"type": "incompatibility",
-		"message": "weave is not compatible with containerd versions 1.6.0 - 1.6.4",
+		"message": "Containerd versions 1.6.0 - 1.6.4 are not compatible with Weave",
 		"field": "spec.containerd.version"
 	}
 }
@@ -163,7 +163,7 @@ lint[output] {
 	is_addon_version_lower_than_or_equal("openebs", "2.12.9")
 	output := {
 		"type": "incompatibility",
-		"message": "openebs version <= 2.12.9  not compatible with kubernetes 1.22+",
+		"message": "OpenEBS versions <= 2.12.9 are not compatible with Kubernetes 1.22+",
 		"field": "spec.openebs.version"
 	}
 }
@@ -184,7 +184,7 @@ lint[output] {
 	input.spec.openebs.isCstorEnabled
 	is_addon_version_greater_than_or_equal("openebs", "2.12.9")
 	version := input.spec.openebs.version
-	message := sprintf("openebs version %v does not support cstor in kurl", [version])
+	message := sprintf("OpenEBS version %v does not support cStor in kurl", [version])
 	output := {
 		"type": "misconfiguration",
 		"message": message,
@@ -198,7 +198,7 @@ lint[output] {
 	is_addon_version_lower_than_or_equal("rook", "1.9.10")
 	output := {
 		"type": "incompatibility",
-		"message": "rook versions <= 1.9.10 are not compatible with kubernetes 1.25+",
+		"message": "Rook versions <= 1.9.10 are not compatible with Kubernetes 1.25+",
 		"field": "spec.rook.version"
 	}
 }
@@ -209,7 +209,7 @@ lint[output] {
 	is_addon_version_lower_than_or_equal("prometheus", "0.49.0")
 	output := {
 		"type": "incompatibility",
-		"message": "prometheus <= 0.49.0-17.1.3 is not compatible with kubernetes 1.22+",
+		"message": "Prometheus versions <= 0.49.0-17.1.3 are not compatible with kubernetes 1.22+",
 		"field": "spec.prometheus.version"
 	}
 }
@@ -220,7 +220,7 @@ lint[output] {
 	is_addon_version_lower_than_or_equal("prometheus", "0.59.0")
 	output := {
 		"type": "incompatibility",
-		"message": "prometheus <= 0.59.0 is not compatible with kubernetes 1.25+",
+		"message": "Prometheus versions <= 0.59.0 are not compatible with Kubernetes 1.25+",
 		"field": "spec.prometheus.version"
 	}
 }
@@ -230,7 +230,7 @@ lint[output] {
 	svc_type := input.spec.prometheus.serviceType
 	svc_type != "NodePort"
 	svc_type != "ClusterIP"
-	msg := sprintf("prometheus service types are NodePort and ClusterIP, not %v", [svc_type])
+	msg := sprintf("Prometheus service types are NodePort and ClusterIP, not %v", [svc_type])
 	output := {
 		"type": "misconfiguration",
 		"message": msg,
@@ -244,7 +244,7 @@ lint[output] {
 	is_addon_version_lower_than("prometheus", "0.48.1")
 	output := {
 		"type": "misconfiguration",
-		"message": "prometheus service types supported for v0.48.1-16.10.0 and later",
+		"message": "Prometheus service types is supported only for versions 0.48.1-16.10.0+",
 		"field": "spec.prometheus.serviceType"
 	}
 }
@@ -256,7 +256,7 @@ lint[output] {
 	not add_on_compatible_with_k3s(addon)
 	output := {
 		"type": "incompatibility",
-		"message": sprintf("k3s is not compatible with %v", [addon]),
+		"message": sprintf("K3S is not compatible with add-on %v", [addon]),
 		"field": sprintf("spec.%v", [addon])
 	}
 }
@@ -268,7 +268,7 @@ lint[output] {
 	not add_on_compatible_with_rke2(addon)
 	output := {
 		"type": "incompatibility",
-		"message": sprintf("rke2 is not compatible with %v", [addon]),
+		"message": sprintf("RKE2 is not compatible with add-on %v", [addon]),
 		"field": sprintf("spec.%v", [addon])
 	}
 }
@@ -279,7 +279,7 @@ lint[output] {
 	port_out_of_range(input.spec.kotsadm.uiBindPort, 30000, 32767)
 	output := {
 		"type": "misconfiguration",
-		"message": "nodeports for k3s distro must use a NodePort between 30000-32767",
+		"message": "NodePorts for K3s must use a NodePort between 30000-32767",
 		"field": "spec.kotsadm.uiBindPort"
 	}
 }
@@ -290,7 +290,7 @@ lint[output] {
 	port_out_of_range(input.spec.kotsadm.uiBindPort, 30000, 32767)
 	output := {
 		"type": "misconfiguration",
-		"message": "nodeports for rke2 distro must use a NodePort between 30000-32767",
+		"message": "NodePorts for RKE2 must use a NodePort between 30000-32767",
 		"field": "spec.kotsadm.uiBindPort"
 	}
 }

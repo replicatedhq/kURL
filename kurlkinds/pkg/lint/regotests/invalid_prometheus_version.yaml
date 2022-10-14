@@ -7,6 +7,6 @@ installer:
     prometheus:
       version: 0.1.0
 output:
-  - message: unknown prometheus version 0.1.0
+  - message: Unknown prometheus add-on version 0.1.0
     field: spec.prometheus.version
     type: unknown-addon

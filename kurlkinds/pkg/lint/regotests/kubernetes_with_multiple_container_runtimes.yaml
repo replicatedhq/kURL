@@ -7,6 +7,6 @@ installer:
     containerd:
       version: latest
 output:
-  - message: multiple container runtimes selected
+  - message: Multiple container runtimes selected
     field: spec
     type: misconfiguration

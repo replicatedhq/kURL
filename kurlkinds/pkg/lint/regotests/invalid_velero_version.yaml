@@ -5,6 +5,6 @@ installer:
     velero:
       version: 0.1.0
 output:
-  - message: unknown velero version 0.1.0
+  - message: Unknown velero add-on version 0.1.0
     field: spec.velero.version
     type: unknown-addon

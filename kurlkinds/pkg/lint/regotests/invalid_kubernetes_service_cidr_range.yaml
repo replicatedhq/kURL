@@ -6,6 +6,6 @@ installer:
     containerd:
       version: latest
 output:
-  - message: service cidr range is invalid
+  - message: Invalid Kubernetes services CIDR
     field: spec.kubernetes.serviceCidrRange
     type: misconfiguration

@@ -5,6 +5,6 @@ installer:
     containerd:
       version: 0.0.1
 output:
-  - message: unknown containerd version 0.0.1
+  - message: Unknown containerd add-on version 0.0.1
     field: spec.containerd.version
     type: unknown-addon

@@ -9,6 +9,6 @@ installer:
     containerd:
       version: latest
 output:
-  - message: multiple cni plugins selected
+  - message: Multiple CNI plugins selected, choose or Weave or Antrea
     field: spec
     type: misconfiguration

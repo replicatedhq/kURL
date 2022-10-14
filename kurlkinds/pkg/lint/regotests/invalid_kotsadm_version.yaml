@@ -7,6 +7,6 @@ installer:
     kotsadm:
       version: 6.6.6
 output:
-  - message: unknown kotsadm version 6.6.6
+  - message: Unknown kotsadm add-on version 6.6.6
     field: spec.kotsadm.version
     type: unknown-addon

@@ -27,21 +27,21 @@ installer:
     sonobuoy:
       version: latest
 output:
-  - message: rke2 is not compatible with longhorn
+  - message: RKE2 is not compatible with add-on longhorn
     field: spec.longhorn
     type: incompatibility
-  - message: rke2 is not compatible with metricsServer
+  - message: RKE2 is not compatible with add-on metricsServer
     field: spec.metricsServer
     type: incompatibility
-  - message: rke2 is not compatible with goldpinger
+  - message: RKE2 is not compatible with add-on goldpinger
     field: spec.goldpinger
     type: incompatibility
-  - message: rke2 is not compatible with contour
+  - message: RKE2 is not compatible with add-on contour
     field: spec.contour
     type: incompatibility
-  - message: rke2 is not compatible with weave
+  - message: RKE2 is not compatible with add-on weave
     field: spec.weave
     type: incompatibility
-  - message: rke2 is not compatible with aws
+  - message: RKE2 is not compatible with add-on aws
     field: spec.aws
     type: incompatibility

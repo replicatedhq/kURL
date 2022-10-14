@@ -5,6 +5,6 @@ installer:
     docker:
       version: latest
 output:
-  - message: k3s is not compatible with docker
+  - message: K3S is not compatible with add-on docker
     field: spec.docker
     type: incompatibility

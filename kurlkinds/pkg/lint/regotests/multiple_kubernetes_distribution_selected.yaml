@@ -9,24 +9,24 @@ installer:
     docker:
       version: latest
 output:
-  - message: multiple kubernetes distributions selected
+  - message: Only one kubernetes distribution (kubernetes, k3s, or rke2) can be selected
     field: spec
     type: misconfiguration
-  - message: rke2 is not compatible with docker
+  - message: RKE2 is not compatible with add-on docker
     field: spec.docker
     type: incompatibility
-  - message: k3s is not compatible with docker
+  - message: K3S is not compatible with add-on docker
     field: spec.docker
     type: incompatibility
-  - message: rke2 is not compatible with k3s
+  - message: RKE2 is not compatible with add-on k3s
     field: spec.k3s
     type: incompatibility
-  - message: rke2 is not compatible with kubernetes
+  - message: RKE2 is not compatible with add-on kubernetes
     field: spec.kubernetes
     type: incompatibility
-  - message: k3s is not compatible with kubernetes
+  - message: K3S is not compatible with add-on kubernetes
     field: spec.kubernetes
     type: incompatibility
-  - message: k3s is not compatible with rke2
+  - message: K3S is not compatible with add-on rke2
     field: spec.rke2
     type: incompatibility
