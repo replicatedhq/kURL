@@ -3,6 +3,7 @@ name: test-testgrid-results
 on:
   schedule:
     - cron: "0/15 * * * *"
+  workflow_dispatch: {}
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
