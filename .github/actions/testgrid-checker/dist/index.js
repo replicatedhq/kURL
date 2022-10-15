@@ -29,19 +29,24 @@ const httpClient = new _actions_http_client__WEBPACK_IMPORTED_MODULE_2__.HttpCli
 
 const pullRequestPromises = pullRequests.data.map(async pullRequest => {
   const prNumber = pullRequest.number;
-  const response = await httpClient.get(`https://api.testgrid.kurl.sh/api/v1/runs?searchRef=pr-${prNumber}`);
+  const prHeadSha = pullRequest.merge_commit_sha.slice(0,7);
+  const response = await httpClient.get(`https://api.testgrid.kurl.sh/api/v1/runs?searchRef=pr-${prNumber}-${prHeadSha}`);
   const responseBody = JSON.parse(await response.readBody());
 
   let passing = true;
   if(responseBody.total !== 0) {
     for (const run of responseBody.runs) {
       if (run.pending_runs > 0) {
-        console.log(`PR #${prNumber} has pending runs`);
+        console.log(`PR "${pullRequest.title}" #${prNumber} commit ${prHeadSha} has pending runs`);
         return;
       }
       if (run.failure_count > 0) {
-        console.log(`PR #${prNumber} has failed runs`);
+        console.log(`PR "${pullRequest.title}" #${prNumber} commit ${prHeadSha} has failed runs`);
         passing = false;
+        break;
+      }
+      if (run.success_count > 0) {
+        console.log(`PR "${pullRequest.title}" #${prNumber} commit ${prHeadSha} is passing`);
         break;
       }
     }

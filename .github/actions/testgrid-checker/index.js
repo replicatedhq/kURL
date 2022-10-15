@@ -14,7 +14,7 @@ const httpClient = new HttpClient();
 
 const pullRequestPromises = pullRequests.data.map(async pullRequest => {
   const prNumber = pullRequest.number;
-  const prHeadSha = pullRequest.head.sha.slice(0,5);
+  const prHeadSha = pullRequest.merge_commit_sha.slice(0,7);
   const response = await httpClient.get(`https://api.testgrid.kurl.sh/api/v1/runs?searchRef=pr-${prNumber}-${prHeadSha}`);
   const responseBody = JSON.parse(await response.readBody());
 
@@ -22,16 +22,16 @@ const pullRequestPromises = pullRequests.data.map(async pullRequest => {
   if(responseBody.total !== 0) {
     for (const run of responseBody.runs) {
       if (run.pending_runs > 0) {
-        console.log(`PR #${prNumber} commit ${prHeadSha} has pending runs`);
+        console.log(`PR "${pullRequest.title}" #${prNumber} commit ${prHeadSha} has pending runs`);
         return;
       }
       if (run.failure_count > 0) {
-        console.log(`PR #${prNumber} commit ${prHeadSha} has failed runs`);
+        console.log(`PR "${pullRequest.title}" #${prNumber} commit ${prHeadSha} has failed runs`);
         passing = false;
         break;
       }
       if (run.success_count > 0) {
-        console.log(`PR #${prNumber} commit ${prHeadSha} is passing`);
+        console.log(`PR "${pullRequest.title}" #${prNumber} commit ${prHeadSha} is passing`);
         break;
       }
     }
