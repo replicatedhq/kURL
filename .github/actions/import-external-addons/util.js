@@ -1,4 +1,4 @@
-import * as semver from 'semver';
+import semver from 'semver';
 import fs from 'node:fs';
 import { createHash } from 'node:crypto';
 
@@ -7,6 +7,10 @@ export const findVersion = (kotsAddonVersions, version) => {
     return;
   }
   return kotsAddonVersions.find(el => el.version === version.version);
+};
+
+export const isVersionReleasing = (existing, next) => {
+  return existing && existing.isPrerelease && !next.isPrerelease ?  true : false;
 };
 
 export const appendVersion = (kotsAddonVersions, version) => {
