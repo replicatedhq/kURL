@@ -50,4 +50,4 @@ Reduced testing surface area, resulting in savings of both time and cost from Te
 
 Airgapped environments must have access to package repositories or the end customer will have to manually install the required packages, possibly resulting in longer time to a live installation.
 
-Any unforseen challenges installing host packages from remote repositories in a secure environemnt.
+Any unforseen challenges installing host packages from remote repositories in a secure environment.
