@@ -1,0 +1,10 @@
+installer:
+  spec:
+    kubernetes:
+      serviceCidrRange: 10.0.10.0/16
+      version: 1.24.x
+    containerd:
+      version: latest
+    weave:
+      version: latest
+output: []

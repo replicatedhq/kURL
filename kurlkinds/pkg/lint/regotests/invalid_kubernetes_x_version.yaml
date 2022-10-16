@@ -1,0 +1,12 @@
+installer:
+  spec:
+    kubernetes:
+      version: 99.99.x
+    containerd:
+      version: latest
+    weave:
+      version: latest
+output:
+  - message: Unknown kubernetes add-on version 99.99.x
+    field: spec.kubernetes.version
+    type: unknown-addon

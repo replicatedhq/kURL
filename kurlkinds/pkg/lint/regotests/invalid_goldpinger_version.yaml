@@ -1,0 +1,14 @@
+installer:
+  spec:
+    kubernetes:
+      version: latest
+    containerd:
+      version: latest
+    weave:
+      version: latest
+    goldpinger:
+      version: 8.1.0
+output:
+  - message: Unknown goldpinger add-on version 8.1.0
+    field: spec.goldpinger.version
+    type: unknown-addon

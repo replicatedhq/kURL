@@ -1,0 +1,14 @@
+installer:
+  spec:
+    kubernetes:
+      version: latest
+    containerd:
+      version: latest
+    weave:
+      version: latest
+    certManager:
+      version: 8.1.0
+output:
+  - message: Unknown certManager add-on version 8.1.0
+    field: spec.certManager.version
+    type: unknown-addon

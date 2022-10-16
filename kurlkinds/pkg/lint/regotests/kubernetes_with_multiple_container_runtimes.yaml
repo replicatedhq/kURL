@@ -1,0 +1,14 @@
+installer:
+  spec:
+    kubernetes:
+      version: 1.19.2
+    docker:
+      version: latest
+    containerd:
+      version: latest
+    weave:
+      version: latest
+output:
+  - message: Multiple container runtimes selected
+    field: spec
+    type: misconfiguration

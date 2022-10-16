@@ -1,0 +1,12 @@
+installer:
+  spec:
+    kubernetes:
+      version: latest
+    containerd:
+      version: latest
+    weave:
+      version: latest
+    kotsadm:
+      version: 99999.99999.99999
+      s3Override: "https://path.to.the/version.tar.gz"
+output: []

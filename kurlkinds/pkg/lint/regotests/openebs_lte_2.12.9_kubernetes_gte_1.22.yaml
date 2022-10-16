@@ -1,0 +1,14 @@
+installer:
+  spec: 
+    kubernetes: 
+      version: 1.25.x
+    containerd: 
+      version: latest
+    weave:
+      version: latest
+    openebs: 
+      version: 2.12.9
+output: 
+  - message: OpenEBS versions <= 2.12.9 are not compatible with Kubernetes 1.22+
+    field: spec.openebs.version
+    type: incompatibility

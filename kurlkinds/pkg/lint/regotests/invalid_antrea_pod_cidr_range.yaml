@@ -1,0 +1,14 @@
+installer:
+  spec:
+    kubernetes:
+      serviceCidrRange: 10.0.10.0/16
+      version: 1.24.x
+    antrea:
+      podCidrRange: a.b.c.d/e
+      version: latest
+    containerd:
+      version: latest
+output:
+  - message: Invalid Antrea pod CIDR
+    field: spec.antrea.podCidrRange
+    type: misconfiguration

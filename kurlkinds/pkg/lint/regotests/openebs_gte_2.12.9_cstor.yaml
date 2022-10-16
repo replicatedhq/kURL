@@ -1,0 +1,15 @@
+installer:
+  spec: 
+    kubernetes: 
+      version: latest
+    containerd: 
+      version: latest
+    weave:
+      version: latest
+    openebs: 
+      version: 3.3.0
+      isCstorEnabled: true
+output: 
+  - message: OpenEBS version 3.3.0 does not support cStor in kurl
+    field: spec.openebs.isCstorEnabled
+    type: misconfiguration

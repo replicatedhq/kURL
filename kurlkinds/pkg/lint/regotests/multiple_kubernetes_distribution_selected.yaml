@@ -1,0 +1,35 @@
+installer:
+  spec:
+    kubernetes:
+      version: 1.19.2
+    rke2:
+      version: latest
+    k3s:
+      version: latest
+    docker:
+      version: latest
+output:
+  - message: Only one kubernetes distribution (Kubernetes, K3S, or RKE2) can be selected
+    field: spec
+    type: misconfiguration
+  - message: RKE2 is not compatible with add-on docker
+    field: spec.docker
+    type: incompatibility
+  - message: K3S is not compatible with add-on docker
+    field: spec.docker
+    type: incompatibility
+  - message: RKE2 is not compatible with add-on k3s
+    field: spec.k3s
+    type: incompatibility
+  - message: RKE2 is not compatible with add-on kubernetes
+    field: spec.kubernetes
+    type: incompatibility
+  - message: K3S is not compatible with add-on kubernetes
+    field: spec.kubernetes
+    type: incompatibility
+  - message: K3S is not compatible with add-on rke2
+    field: spec.rke2
+    type: incompatibility
+  - message: No CNI plugin (Weave or Antrea) selected
+    field: spec
+    type: misconfiguration

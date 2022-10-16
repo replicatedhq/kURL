@@ -1,0 +1,14 @@
+installer:
+  spec:
+    kubernetes:
+      version: latest
+    containerd:
+      version: latest
+    weave:
+      version: latest
+    kotsadm:
+      version: 6.6.6
+output:
+  - message: Unknown kotsadm add-on version 6.6.6
+    field: spec.kotsadm.version
+    type: unknown-addon

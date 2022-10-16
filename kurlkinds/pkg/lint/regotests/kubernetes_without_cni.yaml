@@ -1,0 +1,10 @@
+installer:
+  spec:
+    kubernetes:
+      version: latest
+    containerd:
+      version: latest
+output:
+  - message: No CNI plugin (Weave or Antrea) selected
+    field: spec
+    type: misconfiguration

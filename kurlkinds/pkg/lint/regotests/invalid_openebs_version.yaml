@@ -1,0 +1,10 @@
+installer:
+  spec:
+    rke2:
+      version: latest
+    openebs:
+      version: 0.1.0
+output:
+  - message: Unknown openebs add-on version 0.1.0
+    field: spec.openebs.version
+    type: unknown-addon

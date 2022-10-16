@@ -1,0 +1,14 @@
+installer:
+  spec:
+    kubernetes:
+      version: latest
+    containerd:
+      version: latest
+    weave:
+      version: latest
+    calico:
+      version: 0.1.0
+output:
+  - message: Unknown calico add-on version 0.1.0
+    field: spec.calico.version
+    type: unknown-addon

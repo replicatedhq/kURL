@@ -1,0 +1,12 @@
+installer:
+  spec:
+    kubernetes:
+      version: latest
+    weave:
+      version: latest
+    docker:
+      version: 1.0.0
+output:
+  - message: Unknown docker add-on version 1.0.0
+    field: spec.docker.version
+    type: unknown-addon

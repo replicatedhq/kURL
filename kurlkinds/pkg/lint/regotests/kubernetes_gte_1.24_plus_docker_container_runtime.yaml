@@ -1,0 +1,12 @@
+installer:
+  spec:
+    kubernetes:
+      version: 1.24.x
+    weave:
+      version: latest
+    docker:
+      version: latest
+output:
+  - message: Kubernetes 1.24+ does not support Docker runtime, Containerd is recommended
+    field: spec.docker
+    type: incompatibility

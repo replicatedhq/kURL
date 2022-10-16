@@ -1,0 +1,10 @@
+installer:
+  spec:
+    kubernetes:
+      version: 1.19.2
+    weave:
+      version: latest
+output:
+  - message: No container runtime (Docker or Containerd) selected
+    field: spec
+    type: misconfiguration

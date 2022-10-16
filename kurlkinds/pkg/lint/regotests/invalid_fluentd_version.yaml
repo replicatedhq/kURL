@@ -1,0 +1,14 @@
+installer:
+  spec:
+    kubernetes:
+      version: latest
+    containerd:
+      version: latest
+    weave:
+      version: latest
+    fluentd:
+      version: 0.0.1
+output:
+  - message: Unknown fluentd add-on version 0.0.1
+    field: spec.fluentd.version
+    type: unknown-addon

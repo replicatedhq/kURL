@@ -1,0 +1,10 @@
+installer:
+  spec:
+    rke2:
+      version: latest
+    rook:
+      version: 0.1.0
+output:
+  - message: Unknown rook add-on version 0.1.0
+    field: spec.rook.version
+    type: unknown-addon

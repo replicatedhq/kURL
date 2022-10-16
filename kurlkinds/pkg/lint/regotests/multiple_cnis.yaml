@@ -1,0 +1,14 @@
+installer:
+  spec:
+    kubernetes:
+      version: latest
+    weave:
+      version: latest
+    antrea:
+      version: latest
+    containerd:
+      version: latest
+output:
+  - message: Multiple CNI plugins selected, choose or Weave or Antrea
+    field: spec
+    type: misconfiguration

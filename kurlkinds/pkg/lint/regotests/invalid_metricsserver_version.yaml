@@ -1,0 +1,14 @@
+installer:
+  spec:
+    kubernetes:
+      version: latest
+    containerd:
+      version: latest
+    weave:
+      version: latest
+    metricsServer:
+      version: 0.1.0
+output:
+  - message: Unknown metricsServer add-on version 0.1.0
+    field: spec.metricsServer.version
+    type: unknown-addon

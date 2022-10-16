@@ -1,0 +1,9 @@
+installer:
+  spec: 
+    kubernetes: 
+      version: latest
+    containerd: 
+      version: 1.6.6
+    weave: 
+      version: latest
+output: []

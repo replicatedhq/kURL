@@ -1,0 +1,14 @@
+installer:
+  spec:
+    kubernetes:
+      version: latest
+    containerd:
+      version: latest
+    weave:
+      version: latest
+    ekco:
+      version: 0.0.1
+output:
+  - message: Unknown ekco add-on version 0.0.1
+    field: spec.ekco.version
+    type: unknown-addon

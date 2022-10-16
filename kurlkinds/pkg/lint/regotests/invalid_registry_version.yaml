@@ -1,0 +1,10 @@
+installer:
+  spec:
+    rke2:
+      version: latest
+    registry:
+      version: 0.1.0
+output:
+  - message: Unknown registry add-on version 0.1.0
+    field: spec.registry.version
+    type: unknown-addon

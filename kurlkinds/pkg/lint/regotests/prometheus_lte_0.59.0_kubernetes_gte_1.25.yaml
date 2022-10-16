@@ -1,0 +1,14 @@
+installer:
+  spec:
+    kubernetes:
+      version: 1.25.2
+    containerd:
+      version: latest
+    weave:
+      version: latest
+    prometheus:
+      version: 0.58.0-39.12.1
+output:
+  - message: Prometheus versions <= 0.59.0 are not compatible with Kubernetes 1.25+
+    field: spec.prometheus.version
+    type: incompatibility

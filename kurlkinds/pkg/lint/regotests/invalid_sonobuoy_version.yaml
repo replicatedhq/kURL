@@ -1,0 +1,14 @@
+installer:
+  spec:
+    kubernetes:
+      version: latest
+    containerd:
+      version: latest
+    weave:
+      version: latest
+    sonobuoy:
+      version: 0.0.1
+output:
+  - message: Unknown sonobuoy add-on version 0.0.1
+    field: spec.sonobuoy.version
+    type: unknown-addon

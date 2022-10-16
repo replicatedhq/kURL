@@ -1,0 +1,10 @@
+installer:
+  spec:
+    rke2:
+      version: latest
+    minio:
+      version: 0.1.0
+output:
+  - message: Unknown minio add-on version 0.1.0
+    field: spec.minio.version
+    type: unknown-addon
