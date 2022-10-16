@@ -7,7 +7,7 @@ Today, kURL bundles all host OS packages and their sub-dependencies in the add-o
 For RPM based distributions, kURL sets up a local "kurl.local" repository and overrides the official OS mirrors for dependency resolution when installing these packages.
 Even worse, for APT based distributions, kURL uses the `dpkg` command rather than `apt`, forgoes dependency resolution, and force installs the packages, often breaking the dependency graph.
 
-This negatively affects the end customer, as dependency incompatibilites can result in broken OS packages, and often prevent upgrading the host OS when applying upgrades and security patches.
+This negatively affects the end customer, as dependency incompatibilities can result in broken OS packages, and often prevent upgrading the host OS when applying upgrades and security patches.
 Additionally, this is an unsupported means of installing, likely nullifying enterprise support contracts with the host OS provider.
 Finally, packaging an entirely new dependency chain for each host OS and version results in a significant amount of data (on the order of gigabytes) that must be downloaded and stored by the end customer each time they want to run a kURL install or upgrade.
 
@@ -50,4 +50,4 @@ Reduced testing surface area, resulting in savings of both time and cost from Te
 
 Airgapped environments must have access to package repositories or the end customer will have to manually install the required packages, possibly resulting in longer time to a live installation.
 
-Any unforseen challenges installing host packages from remote repositories in a secure environment.
+Any unforeseen challenges installing host packages from remote repositories in a secure environment.
