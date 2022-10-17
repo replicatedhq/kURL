@@ -2,7 +2,7 @@ const fs = require('fs');
 const semver = require('semver');
 
 const skipAddons = [
-    "rookupgrade",
+    "rookupgrade", "kotsadm",
 ];
 
 // maintainerImages contains a list of images we maintain.
