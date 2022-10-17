@@ -50,16 +50,20 @@ const pullRequestPromises = pullRequests.data.map(async pullRequest => {
         break;
       }
     }
+    await octokit.rest.checks.create({
+      owner,
+      repo,
+      name: 'testgrid-checker',
+      head_sha: pullRequest.head.sha,
+      status: 'completed',
+      conclusion: passing ? 'success' : 'failure',
+    });
+  } else {
+    console.log(`No testgrid run found for "${pullRequest.title}" #${prNumber} commit ${prHeadSha}`)
   }
-  await octokit.rest.checks.create({
-    owner,
-    repo,
-    name: 'testgrid-checker',
-    head_sha: pullRequest.head.sha,
-    status: 'completed',
-    conclusion: passing ? 'success' : 'failure',
-  });
 });
+
+await Promise.all(pullRequestPromises);
 
 await Promise.all(pullRequestPromises);
 
