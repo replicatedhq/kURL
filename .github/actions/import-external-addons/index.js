@@ -2,7 +2,7 @@ import { getInput, info, setFailed } from '@actions/core'
 import { exec } from '@actions/exec'
 import { HttpClient } from '@actions/http-client';
 import fs from 'node:fs/promises';
-import { appendVersion, findVersion, generateChecksum } from './util.js';
+import { appendVersion, findVersion, generateChecksum, isVersionReleasing } from './util.js';
 
 const main = async () => {
   const debug = process.env.DEBUG;
@@ -45,12 +45,22 @@ const main = async () => {
         version: externalAddonVersion.version,
         kurlVersionCompatibilityRange: externalAddonVersion.kurlVersionCompatibilityRange,
         origin: externalAddonVersion.url,
+        isPrerelease: externalAddonVersion.isPrerelease || false,
       };
       const existing = findVersion(addonRegistryKurl[addonName], next);
       if(existing) {
-        // At the moment we treat the version as immutable.
-        // In the future we could check the hash and overwrite.
-        info(`Skipping existing addon ${addonBundleName}.`);
+        if (isVersionReleasing(existing, next)) {
+          info(`Releasing addon ${addonBundleName}.`);
+  
+          // only allow changing isPrerelease property for now
+          existing.isPrerelease = false;
+          addonRegistryKurl[addonName] = appendVersion(addonRegistryKurl[addonName], existing);
+          hasChanges = true;
+        } else {
+          // At the moment we treat the version as immutable.
+          // In the future we could check the hash and overwrite.
+          info(`Skipping existing addon ${addonBundleName}.`);
+        }
       } else {
         info(`Importing new addon ${addonBundleName}.`);
 

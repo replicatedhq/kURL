@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import { it } from 'mocha';
 import os from 'os';
 import fs from 'node:fs/promises';
-import { appendVersion, findVersion, generateChecksum } from '../util';
+import { appendVersion, findVersion, generateChecksum, isVersionReleasing } from '../util.js';
 
 describe ('findVersion', () => {
   it('finds version', () => {
@@ -41,5 +41,27 @@ describe ('generateChecksum', () => {
     expect(checksum1).to.have.length(64);
     const checksum2 = await generateChecksum(filename);
     expect(checksum1).to.equal(checksum2);
+  });
+});
+
+describe ('isVersionReleasing', () => {
+  it('is not releasing', () => {
+    const isReleasing = isVersionReleasing({isPrerelease: false}, {isPrerelease: false});
+    expect(isReleasing).to.be.false;
+  });
+
+  it('is releasing', () => {
+    const isReleasing = isVersionReleasing({isPrerelease: true}, {isPrerelease: false});
+    expect(isReleasing).to.be.true;
+  });
+
+  it('undefined', () => {
+    const isReleasing = isVersionReleasing({}, {isPrerelease: false});
+    expect(isReleasing).to.be.false;
+  });
+
+  it('null', () => {
+    const isReleasing = isVersionReleasing(null, {isPrerelease: false});
+    expect(isReleasing).to.be.false;
   });
 });
