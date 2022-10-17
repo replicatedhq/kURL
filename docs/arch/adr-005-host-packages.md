@@ -49,5 +49,6 @@ Significantly smaller add-on packages and airgap bundles, resulting in reduced d
 Reduced testing surface area, resulting in savings of both time and cost from Testgrid.
 
 Airgapped environments must have access to package repositories or the end customer will have to manually install the required packages, possibly resulting in longer time to a live installation.
+The customer may have to open IP addresses and ports in their corporate/gateway/network allowlist to enable the OS package manager to download the required packages.
 
 Any unforeseen challenges installing host packages from remote repositories in a secure environment.
