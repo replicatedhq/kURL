@@ -1,3 +1,5 @@
+# Grafana Ceph cluster dashboard was sourced and modified from:
+# https://github.com/sysdiglabs/promcat-resources/blob/master/resources/ceph/include/ceph_grafana.json
 apiVersion: v1
 kind: ConfigMap
 metadata:
