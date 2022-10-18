@@ -170,6 +170,10 @@ This step run instead of addon_install if the add-on version and configuration h
 
 Operations that are performed in the join script include installing host packages or Kustomizing the Kubernetes distribution.
 
+#### addon_post_init
+
+Operations that are performed in the post-init script include but not limited to configuring other add-on resources.
+
 #### addon_outro
 
 Print end-user messages to the screen.

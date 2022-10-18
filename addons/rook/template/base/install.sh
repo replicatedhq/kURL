@@ -45,6 +45,15 @@ function rook_pre_init() {
 
 }
 
+function rook_post_init() {
+    local src="${DIR}/addons/rook/${ROOK_VERSION}"
+
+    # apply Prometheus ServiceMonitor CR and Ceph Grafana dashboard
+    if [ -n "$PROMETHEUS_VERSION" ]; then
+        kubectl -n monitoring apply -k "$src/monitoring/"
+    fi
+}
+
 function rook() {
     local src="${DIR}/addons/rook/${ROOK_VERSION}"
 

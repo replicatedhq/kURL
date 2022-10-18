@@ -574,6 +574,7 @@ function main() {
     helmfile_sync
     kubeadm_post_init
     uninstall_docker
+    ${K8S_DISTRO}_addon_for_each addon_post_init
     outro
     package_cleanup
 
