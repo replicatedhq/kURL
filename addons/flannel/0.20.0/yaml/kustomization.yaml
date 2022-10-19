@@ -1,0 +1,5 @@
+resources:
+  - kube-flannel.yml
+
+patches:
+  - kube-flannel-cfg.patch.yaml

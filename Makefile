@@ -100,6 +100,11 @@ dist/weave-%.tar.gz: build/addons
 	mkdir -p dist
 	tar cf - -C build addons/weave/$* | gzip > dist/weave-$*.tar.gz
 
+dist/flannel-%.tar.gz: build/addons
+	bin/save-manifest-assets.sh "flannel-$*" addons/flannel/$*/Manifest $(CURDIR)/build/addons/flannel/$*
+	mkdir -p dist
+	tar cf - -C build addons/flannel/$* | gzip > dist/flannel-$*.tar.gz
+
 dist/antrea-%.tar.gz: build/addons
 	bin/save-manifest-assets.sh "antrea-$*" addons/antrea/$*/Manifest $(CURDIR)/build/addons/antrea/$*
 	mkdir -p dist

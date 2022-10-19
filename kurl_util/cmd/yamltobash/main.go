@@ -305,6 +305,10 @@ func convertToBash(kurlValues map[string]interface{}, fieldsSet map[string]bool)
 		"Antrea.PodCidrRange":                             "ANTREA_POD_CIDR_RANGE",
 		"Antrea.S3Override":                               "ANTREA_S3_OVERRIDE",
 		"Antrea.Version":                                  "ANTREA_VERSION",
+		"Flannel.PodCIDR":                                 "FLANNEL_POD_CIDR",
+		"Flannel.PodCIDRRange":                            "FLANNEL_POD_CIDR_RANGE",
+		"Flannel.S3Override":                              "FLANNEL_S3_OVERRIDE",
+		"Flannel.Version":                                 "FLANNEL_VERSION",
 		"Goldpinger.Version":                              "GOLDPINGER_VERSION",
 		"Goldpinger.S3Override":                           "GOLDPINGER_S3_OVERRIDE",
 		"AWS.Version":                                     "AWS_VERSION",
@@ -363,7 +367,7 @@ func convertToBash(kurlValues map[string]interface{}, fieldsSet map[string]bool)
 			finalDictionary["HA_CLUSTER"] = "1"
 		case yamlKey == "Kurl.Airgap" && bashVal != "":
 			finalDictionary["OFFLINE_DOCKER_INSTALL"] = "1"
-		case yamlKey == "Weave.PodCidrRange" || yamlKey == "Kubernetes.ServiceCidrRange" || yamlKey == "Antrea.PodCidrRange" && bashVal != "":
+		case yamlKey == "Weave.PodCidrRange" || yamlKey == "Kubernetes.ServiceCidrRange" || yamlKey == "Antrea.PodCidrRange" || yamlKey == "Flannel.PodCIDRRange" && bashVal != "":
 			bashVal = strings.Replace(bashVal, "/", "", -1)
 		case yamlKey == "Docker.HardFailOnLoopback" && bashVal == "" && !fieldsSet[yamlKey]:
 			bashVal = "1"
