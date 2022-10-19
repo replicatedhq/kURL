@@ -11,7 +11,7 @@ function minio_pre_init() {
 }
 
 function minio() {
-    local src="$DIR/addons/minio/__MINIO_DIR_NAME__"
+    local src="$DIR/addons/minio/2022-10-20T00-55-09Z"
     local dst="$DIR/kustomize/minio"
 
     local minio_ha_exists=
@@ -21,10 +21,10 @@ function minio() {
 
     if [ -n "$minio_ha_exists" ]; then
         # don't update the statefulset or deployment, just change the images they use
-        kubectl set image -n minio statefulset/ha-minio minio=minio/minio:__MINIO_VERSION__
+        kubectl set image -n minio statefulset/ha-minio minio=minio/minio:RELEASE.2022-10-20T00-55-09Z
 
         # the deployment will have been deleted if data has been migrated to the statefulset, so don't error if the image isn't updated
-        kubectl set image -n minio deployment/minio minio=minio/minio:__MINIO_VERSION__ 2>/dev/null || true
+        kubectl set image -n minio deployment/minio minio=minio/minio:RELEASE.2022-10-20T00-55-09Z 2>/dev/null || true
     else
         # create the statefulset/deployment/service/secret/etc
         render_yaml_file_2 "$src/tmpl-kustomization.yaml" > "$dst/kustomization.yaml"
