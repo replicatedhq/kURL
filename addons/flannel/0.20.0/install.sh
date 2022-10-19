@@ -24,7 +24,7 @@ function flannel() {
 
     flannel_render_config
 
-    kubectl apply -k "$dst/"
+    kubectl -n kube-flannel apply -k "$dst/"
 
     flannel_ready_spinner
     check_network
