@@ -29,6 +29,8 @@ If not the script will exit early with a friendly message to the user detailing 
 
 kURL will treat add-ons that are host packages themselves a bit differently (Containerd, Docker, Kubernetes Kubelet, Collectd).
 These will continue to be bundled along with the add-on archive.
+We will attempt to install these host packages from their hosted package repositories when possible for online installations.
+If not possible, we will install the package distributed in the add-on archive.
 Sub-dependencies will no longer be packaged along with the add-on archive and will be installed from remote repositories.
 
 We will roll this solution out for new host OS versions.
