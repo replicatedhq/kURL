@@ -884,20 +884,18 @@
       version: 1.7.x
     ekco:
       version: latest
-- name: "K8s 1.22x OpenEBS, disableS3"
+- name: "K8s 1.22x Rook, disableS3"
   installerSpec:
     kubernetes:
-      version: 1.25.x
+      version: 1.22.x
     containerd:
       version: 1.5.x
     weave:
       version: latest
     contour:
       version: 1.19.1
-    openebs:
-      version: latest
-      isLocalPVEnabled: true
-      localPVStorageClassName: default
+    rook:
+      version: 1.9.x
     registry:
       version: 2.7.1
     prometheus:
@@ -906,7 +904,7 @@
       version: latest
       disableS3: true
     velero:
-      version: 1.7.x
+      version: latest
     ekco:
       version: latest
 - name: "K8s 1.22x Airgap"
@@ -1025,7 +1023,7 @@
       version: latest
   unsupportedOSIDs:
   - ubuntu-2204 # containerd 1.4.x is not supported on ubuntu 22.04
-- name: "K8s 1.25x OpenEBS, disableS3"
+- name: "K8s 1.25x Rook, disableS3"
   installerSpec:
     kubernetes:
       version: 1.25.x
@@ -1035,10 +1033,8 @@
       version: latest
     contour:
       version: 1.19.1
-    openebs:
-      version: latest
-      isLocalPVEnabled: true
-      localPVStorageClassName: default
+    rook:
+      version: 1.9.x
     registry:
       version: 2.7.1
     prometheus:
@@ -1047,7 +1043,7 @@
       version: latest
       disableS3: true
     velero:
-      version: 1.7.x
+      version: latest
     ekco:
       version: latest
 - name: "K8s 1.24x Airgap"
@@ -1145,11 +1141,12 @@
       version: latest
       isLocalPVEnabled: true
       localPVStorageClassName: default
+    minio:
+      version: latest
     registry:
       version: latest
     kotsadm:
       version: latest
-      disableS3: true
     containerd:
       version: latest
     velero:
@@ -1167,11 +1164,12 @@
       version: latest
       isLocalPVEnabled: true
       localPVStorageClassName: default
+    minio:
+      version: latest
     registry:
       version: latest
     kotsadm:
       version: latest
-      disableS3: true
     containerd:
       version: latest
     ekco:
@@ -1189,7 +1187,6 @@
       version: latest
     kotsadm:
       version: latest
-      disableS3: true
     containerd:
       version: latest
     ekco:
@@ -1204,11 +1201,12 @@
       version: latest
       isLocalPVEnabled: true
       localPVStorageClassName: default
+    minio:
+      version: latest
     registry:
       version: latest
     kotsadm:
       version: latest
-      disableS3: true
     containerd:
       version: latest
     ekco:
@@ -1222,11 +1220,12 @@
       version: latest
       isLocalPVEnabled: true
       localPVStorageClassName: default
+    minio:
+      version: latest
     registry:
       version: latest
     kotsadm:
       version: latest
-      disableS3: true
     containerd:
       version: latest
     ekco:
@@ -1307,11 +1306,12 @@
       version: latest
       isLocalPVEnabled: true
       localPVStorageClassName: default
+    minio:
+      version: latest
     registry:
       version: latest
     kotsadm:
       version: latest
-      disableS3: true
     ekco:
       version: latest
   flags: "labels=disktype=ssd,gpu=enabled exclude-builtin-host-preflights" # TODO: add more flags here
@@ -1698,13 +1698,14 @@
       version: latest
       isLocalPVEnabled: true
       localPVStorageClassName: default
+    minio:
+      version: latest
     registry:
       version: latest
     ekco:
       version: latest
     kotsadm:
       version: latest
-      disableS3: true
     docker:
       version: latest
   upgradeSpec:
@@ -1716,12 +1717,13 @@
       version: latest
       isLocalPVEnabled: true
       localPVStorageClassName: default
+    minio:
+      version: latest
     registry:
       version: latest
     ekco:
       version: latest
     kotsadm:
       version: latest
-      disableS3: true
     containerd:
       version: latest
