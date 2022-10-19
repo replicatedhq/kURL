@@ -1,7 +1,6 @@
 FROM golang:1.19-buster AS build
 
 WORKDIR /go/src/github.com/replicatedhq/kurl
-COPY kurlkinds kurlkinds
 COPY kurl_util kurl_util
 COPY pkg pkg
 COPY cmd cmd

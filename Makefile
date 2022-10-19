@@ -5,6 +5,7 @@ VERSION_PACKAGE = github.com/replicatedhq/kurl/pkg/version
 VERSION_TAG ?= 0.0.1
 DATE = `date -u +"%Y-%m-%dT%H:%M:%SZ"`
 BUILDFLAGS = -tags "netgo containers_image_ostree_stub exclude_graphdriver_devicemapper exclude_graphdriver_btrfs containers_image_openpgp" -installsuffix netgo
+KURL_KINDS_VERSION := $(shell grep "github.com/replicatedhq/kurlkinds" go.mod | cut -d ' ' -f2)
 
 
 GIT_TREE = $(shell git rev-parse --is-inside-work-tree 2>/dev/null)
@@ -408,8 +409,8 @@ build/krew:
 
 build/kurlkinds:
 	mkdir -p build/kurlkinds
-	${MAKE} -C kurlkinds deps generate
-	cp kurlkinds/config/crds/v1beta1/cluster.kurl.sh_installers.yaml build/kurlkinds
+	curl -s -o build/kurlkinds/cluster.kurl.sh_installers.yaml \
+		https://raw.githubusercontent.com/replicatedhq/kurlkinds/$(KURL_KINDS_VERSION)/config/crds/v1beta1/cluster.kurl.sh_installers.yaml
 
 build/kustomize:
 	mkdir -p build

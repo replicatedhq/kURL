@@ -12,9 +12,9 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
-	kurlscheme "github.com/replicatedhq/kurl/kurlkinds/client/kurlclientset/scheme"
-	kurlv1beta1 "github.com/replicatedhq/kurl/kurlkinds/pkg/apis/cluster/v1beta1"
 	kurlversion "github.com/replicatedhq/kurl/pkg/version"
+	kurlscheme "github.com/replicatedhq/kurlkinds/client/kurlclientset/scheme"
+	kurlv1beta1 "github.com/replicatedhq/kurlkinds/pkg/apis/cluster/v1beta1"
 	"k8s.io/client-go/kubernetes/scheme"
 )
 

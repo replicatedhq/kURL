@@ -13,8 +13,8 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
-	kurlscheme "github.com/replicatedhq/kurl/kurlkinds/client/kurlclientset/scheme"
 	kurlversion "github.com/replicatedhq/kurl/pkg/version"
+	kurlscheme "github.com/replicatedhq/kurlkinds/client/kurlclientset/scheme"
 	"gopkg.in/yaml.v2"
 	"k8s.io/client-go/kubernetes/scheme"
 )
