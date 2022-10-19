@@ -16,7 +16,7 @@ require (
 	github.com/minio/minio-go v6.0.14+incompatible
 	github.com/pelletier/go-toml v1.9.5
 	github.com/pkg/errors v0.9.1
-	github.com/replicatedhq/kurl/kurlkinds v0.0.0-20210309182948-b05dbb51b842
+	github.com/replicatedhq/kurlkinds v1.0.0
 	github.com/replicatedhq/pvmigrate v0.5.0
 	github.com/replicatedhq/troubleshoot v0.45.0
 	github.com/rook/rook v1.7.11
@@ -106,7 +106,7 @@ require (
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/google/btree v1.0.1 // indirect
 	github.com/google/gnostic v0.5.7-v3refs // indirect
-	github.com/google/go-cmp v0.5.8 // indirect
+	github.com/google/go-cmp v0.5.9 // indirect
 	github.com/google/go-intervals v0.0.2 // indirect
 	github.com/google/gofuzz v1.2.0 // indirect
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510 // indirect
@@ -175,6 +175,7 @@ require (
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/nsf/termbox-go v0.0.0-20190121233118-02980233997d // indirect
 	github.com/oklog/run v1.1.0 // indirect
+	github.com/onsi/ginkgo/v2 v2.3.0 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.1.0-rc2 // indirect
 	github.com/opencontainers/runc v1.1.4 // indirect
