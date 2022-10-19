@@ -27,9 +27,11 @@ We will update the default kURL installer specification to use Flannel, removing
 Flannel will use the VXLAN backend by default with optional support for IPv6.
 Additionally, we will have the option to add support for Encryption and Network Policies in the future, if required by our customers.
 
-We will deprecate support for both Weave and Antrea.
 We will support a migration path for our end customers from Weave to Flannel.
+We will deprecate and eventually remove the Weave add-on after a determined migration period.
+
 As no production installations currently use Antrea, we will not offer a migration path off of it.
+We will deprecate and remove the Antrea add-on.
 
 ## Status
 
@@ -39,11 +41,9 @@ Proposed
 
 We will no longer support Encryption or Network Policies unless we choose to add support for these in the future.
 
-We will deprecate and eventually remove the Weave add-on after a determined migration period.
+Installations using Weave must migrate to Flannel before the end of the determined migration period.
 
-Installations using Weave today will have to migrate to Flannel with potential downtime.
-
-We will deprecate and remove the Antrea add-on.
+Installations using Weave may experience downtime during a migration to Flannel.
 
 Installations using Antrea will no longer be supported unless a migration path is added in the future.
 
