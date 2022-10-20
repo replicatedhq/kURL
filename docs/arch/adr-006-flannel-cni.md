@@ -35,7 +35,7 @@ We will deprecate and remove the Antrea add-on.
 
 ## Status
 
-Proposed
+Accepted
 
 ## Consequences
 
