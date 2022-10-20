@@ -13,6 +13,13 @@ function flannel_pre_init() {
     local src="$DIR/addons/flannel/$FLANNEL_VERSION"
     local dst="$DIR/kustomize/flannel"
 
+    if flannel_weave_conflict ; then
+        bail "Migrations from Weave to Flannel are not supported"
+    fi
+    if flannel_antrea_conflict ; then
+        bail "Migrations from Antrea to Flannel are not supported"
+    fi
+
     flannel_init_pod_subnet
 }
 
@@ -64,4 +71,12 @@ function flannel_ready_spinner() {
         kubectl logs -n kube-flannel -l app=flannel --all-containers --tail 10
         bail "The Flannel add-on failed to deploy successfully."
     fi
+}
+
+function flannel_weave_conflict() {
+    ls /etc/cni/net.d/*weave** >/dev/null 2>&1
+}
+
+function flannel_antrea_conflict() {
+    ls /etc/cni/net.d/*antrea** >/dev/null 2>&1
 }
