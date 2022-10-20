@@ -351,6 +351,11 @@ function ekco_create_deployment() {
         EKCO_RECONCILE_CEPH_CSI_RESOURCES=false
     fi
 
+    # is contour disabled
+    if [ -z "$CONTOUR_VERSION" ] || ! kubectl get ns projectcontour >/dev/null 2>&1 ; then
+        EKCO_RESTART_FAILED_ENVOY_PODS=false
+    fi
+
     render_yaml_file "$src/tmpl-configmap.yaml" > "$dst/configmap.yaml"
     insert_resources "$dst/kustomization.yaml" configmap.yaml
 
