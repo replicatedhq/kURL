@@ -293,7 +293,8 @@ function ekco_bootstrap_internal_lb() {
 function ekco_cleanup_bootstrap_internal_lb() {
     if commandExists docker; then
         docker rm -f bootstrap-lb &>/dev/null || true
-    else
+    fi
+    if commandExists ctr; then
         ctr --namespace k8s.io task kill -s SIGKILL bootstrap-lb &>/dev/null || true
         ctr --namespace k8s.io containers delete bootstrap-lb &>/dev/null || true
     fi

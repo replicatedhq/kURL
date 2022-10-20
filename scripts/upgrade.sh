@@ -85,8 +85,10 @@ maybe_upgrade() {
         logSuccess "Kubernetes node upgraded to $KUBERNETES_VERSION"
 
         rm -rf $HOME/.kube
+    fi
 
-        return
+    if commandExists ekco_cleanup_bootstrap_internal_lb; then
+        ekco_cleanup_bootstrap_internal_lb
     fi
 }
 
