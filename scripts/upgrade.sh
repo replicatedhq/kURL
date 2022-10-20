@@ -85,8 +85,10 @@ maybe_upgrade() {
         logSuccess "Kubernetes node upgraded to $KUBERNETES_VERSION"
 
         rm -rf $HOME/.kube
+    fi
 
-        return
+    if commandExists ekco_cleanup_bootstrap_internal_lb; then
+        ekco_cleanup_bootstrap_internal_lb
     fi
 }
 
@@ -94,6 +96,11 @@ function outro() {
     printf "\n"
     printf "\t\t${GREEN}Upgrade${NC}\n"
     printf "\t\t${GREEN}  Complete ✔${NC}\n"
+    # we delete $HOME/.kube on k8s upgrade so we need to add it back
+    if [ "${MASTER:-0}" = "1" ]; then
+        printf "\n"
+        kubeconfig_setup_outro
+    fi
     printf "\n"
 }
 

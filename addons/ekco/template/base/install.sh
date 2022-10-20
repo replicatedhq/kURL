@@ -13,15 +13,15 @@ function ekco_pre_init() {
         EKCO_MIN_READY_WORKER_NODE_COUNT=0
     fi
     EKCO_SHOULD_MAINTAIN_ROOK_STORAGE_NODES=true
-    if [ "$EKCO_ROOK_SHOULD_USE_ALL_NODES" = "1" ]; then
+    if [ -z "$ROOK_VERSION" ] || [ "$EKCO_ROOK_SHOULD_USE_ALL_NODES" = "1" ]; then
         EKCO_SHOULD_MAINTAIN_ROOK_STORAGE_NODES=false
     fi
     EKCO_RECONCILE_ROOK_MDS_PLACEMENT=true
-    if [ "$EKCO_ROOK_SHOULD_DISABLE_RECONCILE_MDS_PLACEMENT" = "1" ]; then
+    if [ -z "$ROOK_VERSION" ] || [ "$EKCO_ROOK_SHOULD_DISABLE_RECONCILE_MDS_PLACEMENT" = "1" ]; then
         EKCO_RECONCILE_ROOK_MDS_PLACEMENT=false
     fi
     EKCO_RECONCILE_CEPH_CSI_RESOURCES=true
-    if [ "$EKCO_ROOK_SHOULD_DISABLE_RECONCILE_CEPH_CSI_RESOURCES" = "1" ]; then
+    if [ -z "$ROOK_VERSION" ] || [ "$EKCO_ROOK_SHOULD_DISABLE_RECONCILE_CEPH_CSI_RESOURCES" = "1" ]; then
         EKCO_RECONCILE_CEPH_CSI_RESOURCES=false
     fi
     EKCO_SHOULD_INSTALL_REBOOT_SERVICE=1
@@ -40,7 +40,7 @@ function ekco_pre_init() {
         EKCO_ROOK_PRIORITY_CLASS="node-critical"
     fi
     EKCO_RESTART_FAILED_ENVOY_PODS=true
-    if [ "$EKCO_SHOULD_DISABLE_RESTART_FAILED_ENVOY_PODS" = "1" ]; then
+    if [ -z "$CONTOUR_VERSION" ] || [ "$EKCO_SHOULD_DISABLE_RESTART_FAILED_ENVOY_PODS" = "1" ]; then
         EKCO_RESTART_FAILED_ENVOY_PODS=false
     fi
     if [ -z "$EKCO_ENVOY_PODS_NOT_READY_DURATION" ]; then
@@ -293,7 +293,8 @@ function ekco_bootstrap_internal_lb() {
 function ekco_cleanup_bootstrap_internal_lb() {
     if commandExists docker; then
         docker rm -f bootstrap-lb &>/dev/null || true
-    else
+    fi
+    if commandExists ctr; then
         ctr --namespace k8s.io task kill -s SIGKILL bootstrap-lb &>/dev/null || true
         ctr --namespace k8s.io containers delete bootstrap-lb &>/dev/null || true
     fi
@@ -336,7 +337,7 @@ function ekco_create_deployment() {
     cp "$src/rotate-certs-rbac.yaml" "$dst/rotate-certs-rbac.yaml"
 
     # is rook enabled
-    if kubectl get ns | grep -q rook-ceph; then
+    if kubectl get ns rook-ceph >/dev/null 2>&1 ; then
         cp "$src/rbac-rook.yaml" "$dst/rbac-rook.yaml"
         insert_resources "$dst/kustomization.yaml" rbac-rook.yaml
         cat "$src/rolebinding-rook.yaml" >> "$dst/rolebinding.yaml"
@@ -344,8 +345,6 @@ function ekco_create_deployment() {
         if [ -n "$EKCO_ROOK_PRIORITY_CLASS" ]; then
             kubectl label namespace rook-ceph rook-priority.kurl.sh="" --overwrite
         fi
-    else
-        EKCO_SHOULD_MAINTAIN_ROOK_STORAGE_NODES=false
     fi
 
     render_yaml_file "$src/tmpl-configmap.yaml" > "$dst/configmap.yaml"
