@@ -337,7 +337,7 @@ function ekco_create_deployment() {
     cp "$src/rotate-certs-rbac.yaml" "$dst/rotate-certs-rbac.yaml"
 
     # is rook enabled
-    if kubectl get ns | grep -q rook-ceph; then
+    if [ -n "$ROOK_VERSION" ] && kubectl get ns rook-ceph >/dev/null 2>&1 ; then
         cp "$src/rbac-rook.yaml" "$dst/rbac-rook.yaml"
         insert_resources "$dst/kustomization.yaml" rbac-rook.yaml
         cat "$src/rolebinding-rook.yaml" >> "$dst/rolebinding.yaml"
@@ -347,6 +347,8 @@ function ekco_create_deployment() {
         fi
     else
         EKCO_SHOULD_MAINTAIN_ROOK_STORAGE_NODES=false
+        EKCO_RECONCILE_ROOK_MDS_PLACEMENT=false
+        EKCO_RECONCILE_CEPH_CSI_RESOURCES=false
     fi
 
     render_yaml_file "$src/tmpl-configmap.yaml" > "$dst/configmap.yaml"
