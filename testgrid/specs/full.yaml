@@ -419,6 +419,7 @@
   unsupportedOSIDs:
   - ubuntu-2204 # containerd 1.4.x is not supported on ubuntu 22.04
 - name: k8s119_containerd_rook_block
+  cpu: 6
   installerSpec:
     kubernetes:
       version: 1.19.3
@@ -825,7 +826,7 @@
   unsupportedOSIDs:
   - ubuntu-2204 # containerd 1.4.x is not supported on ubuntu 22.04
 - name: remove_all_object_storage
-  cpu: 6
+  cpu: 7
   installerSpec:
     kubernetes:
       version: 1.23.x
@@ -862,6 +863,7 @@
     ekco:
       version: latest
 - name: "K8s 1.22x Rook"
+  cpu: 6
   installerSpec:
     kubernetes:
       version: 1.22.x
@@ -885,6 +887,7 @@
     ekco:
       version: latest
 - name: "K8s 1.22x Rook, disableS3"
+  cpu: 6
   installerSpec:
     kubernetes:
       version: 1.22.x
@@ -898,8 +901,6 @@
       version: 1.9.x
     registry:
       version: 2.7.1
-    prometheus:
-      version: latest
     kotsadm:
       version: latest
       disableS3: true
@@ -908,6 +909,7 @@
     ekco:
       version: latest
 - name: "K8s 1.22x Airgap"
+  cpu: 6
   installerSpec:
     kubernetes:
       version: 1.22.x
@@ -999,6 +1001,7 @@
       version: latest
   airgap: true
 - name: "K8s 1.24x Rook"
+  cpu: 6
   installerSpec:
     kubernetes:
       version: 1.24.x
@@ -1024,6 +1027,7 @@
   unsupportedOSIDs:
   - ubuntu-2204 # containerd 1.4.x is not supported on ubuntu 22.04
 - name: "K8s 1.25x Rook, disableS3"
+  cpu: 6
   installerSpec:
     kubernetes:
       version: 1.25.x
@@ -1047,6 +1051,7 @@
     ekco:
       version: latest
 - name: "K8s 1.24x Airgap"
+  cpu: 6
   installerSpec:
     kubernetes:
       version: 1.24.x
@@ -1073,7 +1078,7 @@
   unsupportedOSIDs:
   - ubuntu-2204 # containerd 1.4.x is not supported on ubuntu 22.04
 - name: "Upgrade to 1.24"
-  cpu: 6
+  cpu: 7
   installerSpec:
     kubernetes:
       version: 1.23.x
