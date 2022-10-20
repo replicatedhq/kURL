@@ -311,7 +311,7 @@ function maybe_patch_node_cri_socket_annotation() {
 # will remove the erroneous flag from the file.
 function upgrade_maybe_remove_kubeadm_network_plugin_flag() {
     local k8sVersion=$1
-    if [ "$(kubernetes_version_minor)" -lt "24" ]; then
+    if [ "$(kubernetes_version_minor "$k8sVersion")" -lt "24" ]; then
         return
     fi
     sed -i 's/ \?--network-plugin \?[^ "]*//' /var/lib/kubelet/kubeadm-flags.env
