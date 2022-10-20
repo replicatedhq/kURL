@@ -337,7 +337,7 @@ function ekco_create_deployment() {
     cp "$src/rotate-certs-rbac.yaml" "$dst/rotate-certs-rbac.yaml"
 
     # is rook enabled
-    if [ -n "$ROOK_VERSION" ] && kubectl get ns rook-ceph >/dev/null 2>&1 ; then
+    if kubectl get ns rook-ceph >/dev/null 2>&1 ; then
         cp "$src/rbac-rook.yaml" "$dst/rbac-rook.yaml"
         insert_resources "$dst/kustomization.yaml" rbac-rook.yaml
         cat "$src/rolebinding-rook.yaml" >> "$dst/rolebinding.yaml"
@@ -345,14 +345,17 @@ function ekco_create_deployment() {
         if [ -n "$EKCO_ROOK_PRIORITY_CLASS" ]; then
             kubectl label namespace rook-ceph rook-priority.kurl.sh="" --overwrite
         fi
-    else
+    fi
+
+    # is rook disabled
+    if [ -z "$ROOK_VERSION" ]; then
         EKCO_SHOULD_MAINTAIN_ROOK_STORAGE_NODES=false
         EKCO_RECONCILE_ROOK_MDS_PLACEMENT=false
         EKCO_RECONCILE_CEPH_CSI_RESOURCES=false
     fi
 
     # is contour disabled
-    if [ -z "$CONTOUR_VERSION" ] || ! kubectl get ns projectcontour >/dev/null 2>&1 ; then
+    if [ -z "$CONTOUR_VERSION" ]; then
         EKCO_RESTART_FAILED_ENVOY_PODS=false
     fi
 
