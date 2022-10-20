@@ -13,15 +13,15 @@ function ekco_pre_init() {
         EKCO_MIN_READY_WORKER_NODE_COUNT=0
     fi
     EKCO_SHOULD_MAINTAIN_ROOK_STORAGE_NODES=true
-    if [ "$EKCO_ROOK_SHOULD_USE_ALL_NODES" = "1" ]; then
+    if [ -z "$ROOK_VERSION" ] || [ "$EKCO_ROOK_SHOULD_USE_ALL_NODES" = "1" ]; then
         EKCO_SHOULD_MAINTAIN_ROOK_STORAGE_NODES=false
     fi
     EKCO_RECONCILE_ROOK_MDS_PLACEMENT=true
-    if [ "$EKCO_ROOK_SHOULD_DISABLE_RECONCILE_MDS_PLACEMENT" = "1" ]; then
+    if [ -z "$ROOK_VERSION" ] || [ "$EKCO_ROOK_SHOULD_DISABLE_RECONCILE_MDS_PLACEMENT" = "1" ]; then
         EKCO_RECONCILE_ROOK_MDS_PLACEMENT=false
     fi
     EKCO_RECONCILE_CEPH_CSI_RESOURCES=true
-    if [ "$EKCO_ROOK_SHOULD_DISABLE_RECONCILE_CEPH_CSI_RESOURCES" = "1" ]; then
+    if [ -z "$ROOK_VERSION" ] || [ "$EKCO_ROOK_SHOULD_DISABLE_RECONCILE_CEPH_CSI_RESOURCES" = "1" ]; then
         EKCO_RECONCILE_CEPH_CSI_RESOURCES=false
     fi
     EKCO_SHOULD_INSTALL_REBOOT_SERVICE=1
@@ -40,7 +40,7 @@ function ekco_pre_init() {
         EKCO_ROOK_PRIORITY_CLASS="node-critical"
     fi
     EKCO_RESTART_FAILED_ENVOY_PODS=true
-    if [ "$EKCO_SHOULD_DISABLE_RESTART_FAILED_ENVOY_PODS" = "1" ]; then
+    if [ -z "$CONTOUR_VERSION" ] || [ "$EKCO_SHOULD_DISABLE_RESTART_FAILED_ENVOY_PODS" = "1" ]; then
         EKCO_RESTART_FAILED_ENVOY_PODS=false
     fi
     if [ -z "$EKCO_ENVOY_PODS_NOT_READY_DURATION" ]; then
@@ -345,18 +345,6 @@ function ekco_create_deployment() {
         if [ -n "$EKCO_ROOK_PRIORITY_CLASS" ]; then
             kubectl label namespace rook-ceph rook-priority.kurl.sh="" --overwrite
         fi
-    fi
-
-    # is rook disabled
-    if [ -z "$ROOK_VERSION" ]; then
-        EKCO_SHOULD_MAINTAIN_ROOK_STORAGE_NODES=false
-        EKCO_RECONCILE_ROOK_MDS_PLACEMENT=false
-        EKCO_RECONCILE_CEPH_CSI_RESOURCES=false
-    fi
-
-    # is contour disabled
-    if [ -z "$CONTOUR_VERSION" ]; then
-        EKCO_RESTART_FAILED_ENVOY_PODS=false
     fi
 
     render_yaml_file "$src/tmpl-configmap.yaml" > "$dst/configmap.yaml"
