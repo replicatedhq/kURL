@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: regen-cert-$NODE
+spec:
+  restartPolicy: Never
+  nodeSelector:
+    kubernetes.io/hostname: $NODE
+  containers:
+  - name: regen
+    image: replicated/ekco:v$EKCO_VERSION
+    command:
+    - ekco
+    - regen-cert
+    - $ARG
+    volumeMounts:
+    - name: etc-k8s
+      mountPath: /etc/kubernetes
+  volumes:
+  - name: etc-k8s
+    hostPath:
+      path: /etc/kubernetes
+
