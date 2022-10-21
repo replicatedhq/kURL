@@ -42,6 +42,7 @@ function kubeadm_addon_for_each() {
     $cmd nodeless "$NODELESS_VERSION"
     $cmd calico "$CALICO_VERSION" "$CALICO_S3_OVERRIDE"
     $cmd weave "$WEAVE_VERSION" "$WEAVE_S3_OVERRIDE"
+    $cmd flannel "$FLANNEL_VERSION" "$FLANNEL_S3_OVERRIDE"
     $cmd antrea "$ANTREA_VERSION" "$ANTREA_S3_OVERRIDE"
     $cmd rook "$ROOK_VERSION" "$ROOK_S3_OVERRIDE"
     $cmd ekco "$EKCO_VERSION" "$EKCO_S3_OVERRIDE"

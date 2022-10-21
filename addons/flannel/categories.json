@@ -1,0 +1,6 @@
+{
+  "name": "flannel",
+  "fulfills": ["CNI Plugin"],
+  "requires": ["Container Runtime"],
+  "recommends": []
+}

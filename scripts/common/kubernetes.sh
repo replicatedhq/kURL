@@ -1,12 +1,13 @@
 
 function kubernetes_host() {
+    kubernetes_load_modules
+    kubernetes_load_ipv4_modules
+    kubernetes_load_ipv6_modules
+    kubernetes_load_ipvs_modules
+
     if [ "$SKIP_KUBERNETES_HOST" = "1" ]; then
         return 0
     fi
-
-    kubernetes_load_ipvs_modules
-
-    kubernetes_sysctl_config
 
     kubernetes_install_host_packages "$KUBERNETES_VERSION"
 
@@ -39,47 +40,69 @@ function kubernetes_load_ipvs_modules() {
         modprobe nf_conntrack_ipv4
     fi
 
+    rm -f /etc/modules-load.d/replicated-ipvs.conf
+
+    echo "Adding kernel modules ip_vs, ip_vs_rr, ip_vs_wrr, and ip_vs_sh"
     modprobe ip_vs
     modprobe ip_vs_rr
     modprobe ip_vs_wrr
     modprobe ip_vs_sh
 
-    echo 'nf_conntrack_ipv4' > /etc/modules-load.d/replicated-ipvs.conf
-    echo 'ip_vs' >> /etc/modules-load.d/replicated-ipvs.conf
-    echo 'ip_vs_rr' >> /etc/modules-load.d/replicated-ipvs.conf
-    echo 'ip_vs_wrr' >> /etc/modules-load.d/replicated-ipvs.conf
-    echo 'ip_vs_sh' >> /etc/modules-load.d/replicated-ipvs.conf
+    echo "nf_conntrack_ipv4" > /etc/modules-load.d/99-replicated-ipvs.conf
+    # shellcheck disable=SC2129
+    echo "ip_vs" >> /etc/modules-load.d/99-replicated-ipvs.conf
+    echo "ip_vs_rr" >> /etc/modules-load.d/99-replicated-ipvs.conf
+    echo "ip_vs_wrr" >> /etc/modules-load.d/99-replicated-ipvs.conf
+    echo "ip_vs_sh" >> /etc/modules-load.d/99-replicated-ipvs.conf
 }
 
-function kubernetes_sysctl_config() {
+function kubernetes_load_modules() {
+    if ! lsmod | grep -Fq br_netfilter ; then
+        echo "Adding kernel module br_netfilter"
+        modprobe br_netfilter
+    fi
+    echo "br_netfilter" > /etc/modules-load.d/99-replicated.conf
+}
+
+function kubernetes_load_ipv4_modules() {
     if [ "$IPV6_ONLY" = "1" ]; then
-        if ! cat /etc/sysctl.conf | grep "^net.bridge.bridge-nf-call-ip6tables" | tail -n1 | grep -Eq "^net.bridge.bridge-nf-call-ip6tables\s*=\s*1"; then
-            echo "net.bridge.bridge-nf-call-ip6tables = 1" >> /etc/sysctl.conf
-        fi
-        if ! cat /etc/sysctl.conf | grep "^net.ipv6.conf.all.forwarding" | tail -n1 | grep -Eq "^net.ipv6.conf.all.forwarding\s*=\s*1"; then
-            echo "net.ipv6.conf.all.forwarding = 1" >> /etc/sysctl.conf
-        fi
-
-        sysctl --system
-
-        if [ "$(cat /proc/sys/net/ipv6/conf/all/forwarding)" = "0" ]; then
-            bail "Failed to enable IPv6 forwarding."
-        fi
-
         return 0
     fi
 
-    if ! cat /etc/sysctl.conf | grep "^net.bridge.bridge-nf-call-iptables" | tail -n1 | grep -Eq "^net.bridge.bridge-nf-call-iptables\s*=\s*1"; then
-        echo "net.bridge.bridge-nf-call-iptables = 1" >> /etc/sysctl.conf
+    if ! lsmod | grep -q ^ip_tables ; then
+        echo "Adding kernel module ip_tables"
+        modprobe ip_tables
     fi
-    if ! cat /etc/sysctl.conf | grep "^net.ipv4.conf.all.forwarding" | tail -n1 | grep -Eq "^net.ipv4.conf.all.forwarding\s*=\s*1"; then
-        echo "net.ipv4.conf.all.forwarding = 1" >> /etc/sysctl.conf
-    fi
+    echo "ip_tables" > /etc/modules-load.d/99-replicated-ipv4.conf
+
+    echo "net.bridge.bridge-nf-call-iptables = 1" > /etc/sysctl.d/99-replicated-ipv4.conf
+    echo "net.ipv4.conf.all.forwarding = 1" >> /etc/sysctl.d/99-replicated-ipv4.conf
 
     sysctl --system
 
     if [ "$(cat /proc/sys/net/ipv4/ip_forward)" = "0" ]; then
         bail "Failed to enable IP forwarding."
+    fi
+}
+
+function kubernetes_load_ipv6_modules() {
+    if [ "$IPV6_ONLY" != "1" ]; then
+        return 0
+    fi
+
+    if ! lsmod | grep -q ^ip6_tables ; then
+        echo "Adding kernel module ip6_tables"
+        modprobe ip6_tables
+    fi
+    echo "ip6_tables" > /etc/modules-load.d/99-replicated-ipv6.conf
+
+    echo "net.bridge.bridge-nf-call-ip6tables = 1" > /etc/sysctl.d/99-replicated-ipv6.conf
+    echo "net.ipv6.conf.all.forwarding = 1" >> /etc/sysctl.d/99-replicated-ipv6.conf
+
+    sysctl --system
+
+    if [ "$(cat /proc/sys/net/ipv6/conf/all/forwarding)" = "0" ]; then
+        bail "Failed to enable IPv6 forwarding."
     fi
 }
 
