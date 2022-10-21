@@ -311,7 +311,7 @@ function require_cri() {
     fi
 
     if [ -z "$DOCKER_VERSION" ] && [ -z "$CONTAINERD_VERSION" ]; then
-            force_docker
+        force_docker
     fi
 
     return 0

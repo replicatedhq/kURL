@@ -236,7 +236,7 @@ function ekco_bootstrap_internal_lb() {
 
     # Always regenerate the manifests to account for updates.
     # Note: this could cause downtime when kublet syncs the manifests for a new haproxy version
-    if commandExists docker; then
+    if [ -n "$DOCKER_VERSION" ]; then
         mkdir -p /etc/kubernetes/manifests
         docker run --rm \
             --entrypoint="/usr/bin/ekco" \
@@ -261,7 +261,7 @@ function ekco_bootstrap_internal_lb() {
         return 0
     fi
 
-    if commandExists docker; then
+    if [ -n "$DOCKER_VERSION" ]; then
         mkdir -p /etc/haproxy
         docker run --rm \
             --entrypoint="/usr/bin/ekco" \
