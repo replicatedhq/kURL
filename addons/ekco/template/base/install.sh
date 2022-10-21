@@ -258,7 +258,7 @@ function ekco_bootstrap_internal_lb() {
                 --image="$EKCO_HAPROXY_IMAGE"
     else
         mkdir -p /etc/kubernetes/manifests
-        if [ "$AIRGAP" != "1" ]; then
+        if [ "$AIRGAP" != "1" ] && ! ctr -n k8s.io images ls | grep -qF "docker.io/replicated/ekco:v$EKCO_VERSION" ; then
             # the image will not be loaded from the add-on directory and thus will not exist in the dev environment
             ctr -n k8s.io images pull "docker.io/replicated/ekco:v$EKCO_VERSION" >/dev/null
         fi
@@ -299,10 +299,17 @@ function ekco_bootstrap_internal_lb() {
         docker run -d -p "6444:6444" -v /etc/haproxy:/usr/local/etc/haproxy --name bootstrap-lb "${EKCO_HAPROXY_IMAGE}"
     else
         mkdir -p /etc/haproxy
+        local haproxy_image_name=
+        haproxy_image_name="$(canonical_image_name "${EKCO_HAPROXY_IMAGE}")"
+
+        # the image will not be loaded from the add-on directory and thus will not exist in the dev environment
         if [ "$AIRGAP" != "1" ]; then
-            # the image will not be loaded from the add-on directory and thus will not exist in the dev environment
-            ctr -n k8s.io images pull "docker.io/replicated/ekco:v$EKCO_VERSION" >/dev/null
-            ctr -n k8s.io images pull "$(canonical_image_name "${EKCO_HAPROXY_IMAGE}")" >/dev/null
+            if ! ctr -n k8s.io images ls | grep -qF "docker.io/replicated/ekco:v$EKCO_VERSION" ; then
+                ctr -n k8s.io images pull "docker.io/replicated/ekco:v$EKCO_VERSION" >/dev/null
+            fi
+            if ! ctr -n k8s.io images ls | grep -qF "$haproxy_image_name" ; then
+                ctr -n k8s.io images pull "$haproxy_image_name" >/dev/null
+            fi
         fi
         ctr -n k8s.io run --rm \
             "docker.io/replicated/ekco:v$EKCO_VERSION" \
@@ -316,7 +323,7 @@ function ekco_bootstrap_internal_lb() {
             --mount "type=bind,src=/etc/haproxy,dst=/usr/local/etc/haproxy,options=rbind:ro" \
             --net-host \
             --detach \
-            "$(canonical_image_name "${EKCO_HAPROXY_IMAGE}")" \
+            "$haproxy_image_name" \
             bootstrap-lb
     fi
 
