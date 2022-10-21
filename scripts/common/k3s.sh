@@ -405,7 +405,7 @@ function k3s_main() {
     fi
 
     k3s_post_init
-    "${K8S_DISTRO}_addon_for_each addon_post_init"
+    "${K8S_DISTRO}_addon_for_each" addon_post_init
     k3s_outro
     package_cleanup
     # report_install_success # TODO(dan) remove reporting for now.

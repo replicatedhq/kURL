@@ -417,7 +417,7 @@ function rke2_main() {
     fi
 
     rke2_post_init
-    "${K8S_DISTRO}_addon_for_each addon_post_init"
+    "${K8S_DISTRO}_addon_for_each" addon_post_init
     rke2_outro
     package_cleanup
     # report_install_success # TODO(dan) remove reporting for now.
