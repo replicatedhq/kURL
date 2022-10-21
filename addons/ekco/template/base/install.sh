@@ -230,9 +230,20 @@ function ekco_handle_load_balancer_address_change_post_init() {
 # temporarily run haproxy as a container directly with docker or containerd.
 function ekco_bootstrap_internal_lb() {
     local backends="$PRIMARY_HOST"
-    if [ -z "$backends" ]; then
+    if [ -z "$backends" ] && [ "$MASTER" = "1" ]; then
         backends="$PRIVATE_ADDRESS"
     fi
+
+    # Check if load balancer is already bootstrapped before we update the manifests
+    # which will cause the load balancer to restart.
+    local already_bootstrapped=0
+    local last_modified=
+    if curl -skf https://localhost:6444/healthz >/dev/null ; then
+        already_bootstrapped=1
+        last_modified="$(stat -c %Y /etc/kubernetes/manifests/haproxy.yaml)"
+    fi
+
+    echo "Updating the Kubernetes apiserver load balancer"
 
     # Always regenerate the manifests to account for updates.
     # Note: this could cause downtime when kublet syncs the manifests for a new haproxy version
@@ -241,23 +252,38 @@ function ekco_bootstrap_internal_lb() {
         docker run --rm \
             --entrypoint="/usr/bin/ekco" \
             --volume '/etc:/host/etc' \
-            replicated/ekco:v$EKCO_VERSION \
+            "replicated/ekco:v$EKCO_VERSION" \
             generate-haproxy-manifest \
                 --file=/host/etc/kubernetes/manifests/haproxy.yaml \
-                --image="${EKCO_HAPROXY_IMAGE}"
+                --image="$EKCO_HAPROXY_IMAGE"
     else
         mkdir -p /etc/kubernetes/manifests
-        ctr --namespace k8s.io run --rm \
+        if [ "$AIRGAP" != "1" ]; then
+            # the image will not be loaded from the add-on directory and thus will not exist in the dev environment
+            ctr -n k8s.io images pull "docker.io/replicated/ekco:v$EKCO_VERSION" >/dev/null
+        fi
+        ctr -n k8s.io run --rm \
             --mount "type=bind,src=/etc,dst=/host/etc,options=rbind:rw" \
-            docker.io/replicated/ekco:v$EKCO_VERSION \
+            "docker.io/replicated/ekco:v$EKCO_VERSION" \
             haproxy-manifest \
             ekco generate-haproxy-manifest \
                 --file=/host/etc/kubernetes/manifests/haproxy.yaml \
-                --image="${EKCO_HAPROXY_IMAGE}"
+                --image="$EKCO_HAPROXY_IMAGE"
     fi
 
-    # Check if load balancer is already bootstrapped
-    if curl -skf "https://localhost:6444/healthz"; then
+    if [ "$already_bootstrapped" = "1" ]; then
+        echo "Waiting for the Kubernetes apiserver load balancer to restart"
+        if [ "$last_modified" != "$(stat -c %Y /etc/kubernetes/manifests/haproxy.yaml)" ]; then
+            sleep_spinner 60 # allow time for the kubelet to detect the manifest change
+        fi
+        if ! spinner_until 300 curl -skf https://localhost:6444/healthz >/dev/null ; then
+            bail "Failed to restart the Kubernetes apiserver load balancer"
+        fi
+        return 0
+    fi
+
+    # Sanity check as nothing can be done if there are no backends
+    if [ -z "$backends" ]; then
         return 0
     fi
 
@@ -265,28 +291,39 @@ function ekco_bootstrap_internal_lb() {
         mkdir -p /etc/haproxy
         docker run --rm \
             --entrypoint="/usr/bin/ekco" \
-            replicated/ekco:v$EKCO_VERSION \
-            generate-haproxy-config --primary-host=${backends} \
+            "replicated/ekco:v$EKCO_VERSION" \
+            generate-haproxy-config --primary-host="$backends" \
             > /etc/haproxy/haproxy.cfg
 
         docker rm -f bootstrap-lb &>/dev/null || true
         docker run -d -p "6444:6444" -v /etc/haproxy:/usr/local/etc/haproxy --name bootstrap-lb "${EKCO_HAPROXY_IMAGE}"
     else
         mkdir -p /etc/haproxy
-        ctr --namespace k8s.io run --rm \
-            docker.io/replicated/ekco:v$EKCO_VERSION \
+        if [ "$AIRGAP" != "1" ]; then
+            # the image will not be loaded from the add-on directory and thus will not exist in the dev environment
+            ctr -n k8s.io images pull "docker.io/replicated/ekco:v$EKCO_VERSION" >/dev/null
+            ctr -n k8s.io images pull "$(canonical_image_name "${EKCO_HAPROXY_IMAGE}")" >/dev/null
+        fi
+        ctr -n k8s.io run --rm \
+            "docker.io/replicated/ekco:v$EKCO_VERSION" \
             haproxy-cfg \
-            ekco generate-haproxy-config --primary-host=${backends} \
+            ekco generate-haproxy-config --primary-host="$backends" \
             > /etc/haproxy/haproxy.cfg
 
-        ctr --namespace k8s.io task kill -s SIGKILL bootstrap-lb &>/dev/null || true
-        ctr --namespace k8s.io containers delete bootstrap-lb &>/dev/null || true
-        ctr --namespace k8s.io run --rm \
+        ctr -n k8s.io task kill -s SIGKILL bootstrap-lb &>/dev/null || true
+        ctr -n k8s.io containers delete bootstrap-lb &>/dev/null || true
+        ctr -n k8s.io run --rm \
             --mount "type=bind,src=/etc/haproxy,dst=/usr/local/etc/haproxy,options=rbind:ro" \
             --net-host \
             --detach \
             "$(canonical_image_name "${EKCO_HAPROXY_IMAGE}")" \
             bootstrap-lb
+    fi
+
+    # If we are overwriting the haproxy config and missing any backends, we better tell EKCO to
+    # regenerate it. This code may execute before Kubernetes is installed.
+    if [ "$MASTER" = "1" ] && commandExists "kubectl" ; then
+        kubectl -n kurl delete --ignore-not-found configmap update-internallb &>/dev/null || true
     fi
 }
 

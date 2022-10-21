@@ -523,6 +523,26 @@ function spinner_until() {
     done
 }
 
+function sleep_spinner() {
+    local sleepSeconds="${1:-0}"
+
+    local delay=1
+    local elapsed=0
+    local spinstr='|/-\'
+
+    while true ; do
+        elapsed=$(("$elapsed" + "$delay"))
+        if [ "$elapsed" -gt "$sleepSeconds" ]; then
+            return 0
+        fi
+        local temp=${spinstr#?}
+        printf " [%c]  " "$spinstr"
+        local spinstr=$temp${spinstr%"$temp"}
+        sleep $delay
+        printf "\b\b\b\b\b\b"
+    done
+}
+
 function get_common() {
     if [ "$AIRGAP" != "1" ] && [ -n "$DIST_URL" ]; then
         if [ -z "$FALLBACK_URL" ]; then
