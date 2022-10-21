@@ -321,7 +321,7 @@ function init() {
     fi
 
     # create kurl namespace if it doesn't exist
-    kubectl get ns kurl 2>/dev/null 1>/dev/null || kubectl create ns kurl 1>/dev/null
+    kubectl get ns kurl >/dev/null 2>&1 || kubectl create ns kurl --save-config
 
     spinner_until 120 kubernetes_default_service_account_exists
     spinner_until 120 kubernetes_service_exists

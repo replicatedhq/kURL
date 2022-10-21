@@ -159,7 +159,7 @@ function rke2_init() {
     kubectl cluster-info
 
     # create kurl namespace if it doesn't exist
-    kubectl get ns kurl 2>/dev/null 1>/dev/null || kubectl create ns kurl 1>/dev/null
+    kubectl get ns kurl >/dev/null 2>&1 || kubectl create ns kurl --save-config
 
     logSuccess "Cluster Initialized"
 

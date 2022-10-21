@@ -19,4 +19,8 @@ function test_package_download_url_with_retry() {
     rm -rf "$tmpdir"
 }
 
+function test_sleep_spinner() {
+    assertEquals 'sleep_spinner 2' "0" "$(sleep_spinner 2 >/dev/null; echo $?)"
+}
+
 . shunit2
