@@ -80,6 +80,14 @@ function addon_pre_init() {
     fi
 }
 
+function addon_post_init() {
+    local name=$1
+
+    if commandExists "${name}_post_init"; then
+        "${name}_post_init"
+    fi
+}
+
 function addon_preflight() {
     local name=$1
     local version=$2 # will be unset if addon is not part of the installer
