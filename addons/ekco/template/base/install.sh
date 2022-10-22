@@ -56,7 +56,7 @@ function ekco_pre_init() {
     fi
 
     EKCO_MAINTAIN_MINIO=false
-    if [ -n "$MINIO_VERSION" ] && [ -n "$OPENEBS_LOCALPV" ]; then
+    if [ -n "$MINIO_VERSION" ] && [ -n "$OPENEBS_LOCALPV" ] && [ -z "$EKCO_MINIO_SHOULD_DISABLE_MANAGEMENT" ]; then
         EKCO_MAINTAIN_MINIO=true
     fi
 }

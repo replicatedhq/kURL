@@ -259,6 +259,7 @@ type Ekco struct {
 	PodImageOverrides                          []string `json:"podImageOverrides,omitempty" yaml:"podImageOverrides,omitempty"`
 	ShouldDisableRestartFailedEnvoyPods        bool     `json:"shouldDisableRestartFailedEnvoyPods,omitempty" yaml:"shouldDisableRestartFailedEnvoyPods,omitempty"`
 	EnvoyPodsNotReadyDuration                  string   `json:"envoyPodsNotReadyDuration,omitempty" yaml:"envoyPodsNotReadyDuration,omitempty"`
+	MinioShouldDisableManagement               bool     `json:"minioShouldDisableManagement,omitempty" yaml:"minioShouldDisableManagement,omitempty"`
 }
 
 type Calico struct {
