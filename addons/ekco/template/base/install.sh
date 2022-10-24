@@ -399,7 +399,11 @@ function ekco_create_deployment() {
     if [ -n "$MINIO_VERSION" ]; then
         cp "$src/rbac-minio.yaml" "$dst/rbac-minio.yaml"
         insert_resources "$dst/kustomization.yaml" rbac-minio.yaml
-        cat "$src/rolebinding-minio.yaml" >> "$dst/rolebinding.yaml"
+        render_yaml_file_2 "$src/rolebinding-minio.yaml" >> "$dst/rolebinding.yaml"
+
+        if ! kubectl get namespace "$MINIO_NAMESPACE" ; then
+            kubectl create namespace "$MINIO_NAMESPACE"
+        fi
     fi
 
     render_yaml_file "$src/tmpl-configmap.yaml" > "$dst/configmap.yaml"
