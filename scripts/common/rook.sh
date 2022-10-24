@@ -100,9 +100,16 @@ function remove_rook_ceph() {
     printf "Data within /var/lib/rook, /opt/replicated/rook and any bound disks has not been freed.\n"
 }
 
-# scale down prometheus, move all 'rook-ceph' PVCs to 'longhorn', scale up prometheus
-function rook_ceph_to_longhorn() {
-    report_addon_start "rook-ceph-to-longhorn" "v1"
+# scale down prometheus, move all 'rook-ceph' PVCs to provided storage class, scale up prometheus
+# Supported storage class migrations from ceph are 'longhorn' and 'openebs'
+function rook_ceph_to_sc_migration() {
+    local destStorageClass=$1
+    report_addon_start "rook-ceph-to-${destStorageClass}-migration" "v2"
+
+    # we only support migrating to 'longhonr' and 'openebs' storage classes
+    if [ "$destStorageClass" != "longhorn" ] && [ "$destStorageClass" != "openebs" ]; then
+        bail "Ceph to $destStorageClass migration is not supported"
+    fi
 
     # patch ceph so that it does not consume new devices that longhorn creates
     echo "Patching CephCluster storage.useAllDevices=false"
@@ -134,13 +141,13 @@ function rook_ceph_to_longhorn() {
     for rook_sc in $rook_scs
     do
         # run the migration (without setting defaults)
-        $BIN_PVMIGRATE --source-sc "$rook_sc" --dest-sc longhorn --rsync-image "$KURL_UTIL_IMAGE"
+        $BIN_PVMIGRATE --source-sc "$rook_sc" --dest-sc "$destStorageClass" --rsync-image "$KURL_UTIL_IMAGE"
     done
 
     for rook_sc in $rook_default_sc
     do
         # run the migration (setting defaults)
-        $BIN_PVMIGRATE --source-sc "$rook_sc" --dest-sc longhorn --rsync-image "$KURL_UTIL_IMAGE" --set-defaults
+        $BIN_PVMIGRATE --source-sc "$rook_sc" --dest-sc "$destStorageClass" --rsync-image "$KURL_UTIL_IMAGE" --set-defaults
     done
 
     # reset prometheus (and ekco) scale
@@ -155,8 +162,8 @@ function rook_ceph_to_longhorn() {
     fi
 
     # print success message
-    printf "${GREEN}Migration from rook-ceph to longhorn completed successfully!\n${NC}"
-    report_addon_success "rook-ceph-to-longhorn" "v1"
+    printf "${GREEN}Migration from rook-ceph to %s completed successfully!\n${NC}" "$destStorageClass"
+    report_addon_success "rook-ceph-to-$destStorageClass-migration" "v2"
 }
 
 # if PVCs and object store data have both been migrated from rook-ceph and rook-ceph is no longer specified in the kURL spec, remove rook-ceph

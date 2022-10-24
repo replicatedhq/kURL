@@ -570,27 +570,35 @@ function migrate_pvcs() {
     fi
     CEPH_DISK_USAGE_TOTAL=$(kubectl exec -n rook-ceph deployment/$ROOK_CEPH_EXEC_TARGET -- ceph df | grep TOTAL | awk '{ print $8$9 }')
 
-    # check that longhorn is healthy
-    LONGHORN_NODES_STATUS=$(kubectl get nodes.longhorn.io -n longhorn-system -o=jsonpath='{.items[*].status.conditions.Ready.status}')
-    LONGHORN_NODES_SCHEDULABLE=$(kubectl get nodes.longhorn.io -n longhorn-system -o=jsonpath='{.items[*].status.conditions.Schedulable.status}')
-    pat="^True( True)*$" # match "True", "True True" etc but not "False True" or ""
-    if [[ $LONGHORN_NODES_STATUS =~ $pat ]] && [[ $LONGHORN_NODES_SCHEDULABLE =~ $pat ]]; then
-        echo "All Longhorn nodes are ready and schedulable"
-    else
-        if [ "$SKIP_LONGHORN_HEALTH_CHECKS" = "1" ]; then
-            echo "Continuing with unhealthy Longhorn due to skip-longhorn-health-checks flag"
+
+    local non_ceph_storage_class_detected
+    if kubectl get namespace longhorn-system &>/dev/null; then
+        non_ceph_storage_class_detected="longhorn"
+        # check that longhorn is healthy
+        LONGHORN_NODES_STATUS=$(kubectl get nodes.longhorn.io -n longhorn-system -o=jsonpath='{.items[*].status.conditions.Ready.status}')
+        LONGHORN_NODES_SCHEDULABLE=$(kubectl get nodes.longhorn.io -n longhorn-system -o=jsonpath='{.items[*].status.conditions.Schedulable.status}')
+        pat="^True( True)*$" # match "True", "True True" etc but not "False True" or ""
+        if [[ $LONGHORN_NODES_STATUS =~ $pat ]] && [[ $LONGHORN_NODES_SCHEDULABLE =~ $pat ]]; then
+            echo "All Longhorn nodes are ready and schedulable"
         else
-            echo "Longhorn is not healthy, please resolve this before rerunning the script or rerun with the skip-longhorn-health-checks flag:"
-            kubectl get nodes.longhorn.io -n longhorn-system
-            return 1
+            if [ "$SKIP_LONGHORN_HEALTH_CHECKS" = "1" ]; then
+                echo "Continuing with unhealthy Longhorn due to skip-longhorn-health-checks flag"
+            else
+                echo "Longhorn is not healthy, please resolve this before rerunning the script or rerun with the skip-longhorn-health-checks flag:"
+                kubectl get nodes.longhorn.io -n longhorn-system
+                return 1
+            fi
         fi
+    elif kubectl get pods -A -l openebs.io/component-name=openebs-localpv-provisioner &>/dev/null; then
+        non_ceph_storage_class_detected="openebs"
+        # TODO: check openebs storage class is installed
     fi
 
     # provide large warning that this will stop the app
     printf "${YELLOW}"
     printf "WARNING: \n"
     printf "\n"
-    printf "    This command will attempt to move data from rook-ceph to longhorn.\n"
+    printf "    This command will attempt to move data from rook-ceph to %s.\n" "$non_ceph_storage_class_detected"
     printf "\n"
     printf "    As part of this, all pods mounting PVCs will be stopped, taking down the application.\n"
     printf "\n"
@@ -604,7 +612,7 @@ function migrate_pvcs() {
         exit 1
     fi
 
-    rook_ceph_to_longhorn
+    rook_ceph_to_sc_migration "$non_ceph_storage_class_detected"
 }
 
 function migrate_rgw_to_minio_task() {
