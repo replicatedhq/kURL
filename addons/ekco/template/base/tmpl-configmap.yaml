@@ -42,3 +42,6 @@ data:
     auto_approve_kubelet_csrs: true
     restart_failed_envoy_pods: $EKCO_RESTART_FAILED_ENVOY_PODS
     envoy_pods_not_ready_duration: $EKCO_ENVOY_PODS_NOT_READY_DURATION
+    enable_ha_minio: $EKCO_MAINTAIN_MINIO
+    minio_namespace: "${MINIO_NAMESPACE}"
+    minio_util_image: "${KURL_UTIL_IMAGE}"

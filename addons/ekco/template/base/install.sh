@@ -54,6 +54,11 @@ function ekco_pre_init() {
         LOAD_BALANCER_ADDRESS=localhost
         LOAD_BALANCER_PORT="6444"
     fi
+
+    EKCO_MAINTAIN_MINIO=false
+    if [ -n "$MINIO_VERSION" ] && [ -n "$OPENEBS_LOCALPV" ] && [ "$EKCO_MINIO_SHOULD_DISABLE_MANAGEMENT" != "1" ]; then
+        EKCO_MAINTAIN_MINIO=true
+    fi
 }
 
 function ekco() {
@@ -389,6 +394,12 @@ function ekco_create_deployment() {
         if [ -n "$EKCO_ROOK_PRIORITY_CLASS" ]; then
             kubectl label namespace rook-ceph rook-priority.kurl.sh="" --overwrite
         fi
+    fi
+
+    if [ -n "$MINIO_VERSION" ]; then
+        cp "$src/rbac-minio.yaml" "$dst/rbac-minio.yaml"
+        insert_resources "$dst/kustomization.yaml" rbac-minio.yaml
+        cat "$src/rolebinding-minio.yaml" >> "$dst/rolebinding.yaml"
     fi
 
     render_yaml_file "$src/tmpl-configmap.yaml" > "$dst/configmap.yaml"
