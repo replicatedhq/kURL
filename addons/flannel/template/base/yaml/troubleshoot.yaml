@@ -4,7 +4,7 @@ metadata:
   name: flannel-troubleshoot-spec
   labels:
     troubleshoot.io/kind: supportbundle-spec
-data:
+stringData:
   support-bundle-spec: |
     apiVersion: troubleshoot.sh/v1beta2
     kind: SupportBundle
