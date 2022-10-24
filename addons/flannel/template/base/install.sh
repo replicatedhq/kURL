@@ -74,9 +74,9 @@ function flannel_ready_spinner() {
 }
 
 function flannel_weave_conflict() {
-    ls /etc/cni/net.d/*weave** >/dev/null 2>&1
+    ls /etc/cni/net.d/*weave* >/dev/null 2>&1
 }
 
 function flannel_antrea_conflict() {
-    ls /etc/cni/net.d/*antrea** >/dev/null 2>&1
+    ls /etc/cni/net.d/*antrea* >/dev/null 2>&1
 }
