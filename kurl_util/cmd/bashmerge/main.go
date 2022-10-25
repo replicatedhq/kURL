@@ -12,8 +12,8 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
-	kurlscheme "github.com/replicatedhq/kurl/kurlkinds/client/kurlclientset/scheme"
-	kurlv1beta1 "github.com/replicatedhq/kurl/kurlkinds/pkg/apis/cluster/v1beta1"
+	kurlscheme "github.com/replicatedhq/kurlkinds/client/kurlclientset/scheme"
+	kurlv1beta1 "github.com/replicatedhq/kurlkinds/pkg/apis/cluster/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	serializer "k8s.io/apimachinery/pkg/runtime/serializer/json"
 	"k8s.io/client-go/kubernetes/scheme"

@@ -9,8 +9,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/replicatedhq/kurl/kurlkinds/client/kurlclientset/scheme"
 	"github.com/replicatedhq/kurl/pkg/installer"
+	"github.com/replicatedhq/kurlkinds/client/kurlclientset/scheme"
 	serializer "k8s.io/apimachinery/pkg/runtime/serializer/json"
 )
 

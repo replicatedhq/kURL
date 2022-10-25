@@ -45,24 +45,6 @@ jobs:
     - run: sudo apt-get install -y shunit2
     - run: make test-shell shunit2
 
-  build-kurlkinds:
-    runs-on: ubuntu-20.04
-    steps:
-      - uses: actions/setup-go@v3
-        with:
-          go-version: 1.19
-
-      - name: setup env
-        run: |
-          echo "GOPATH=$(go env GOPATH)" >> $GITHUB_ENV
-          echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
-        shell: bash
-
-      - uses: actions/checkout@v3
-
-      - run: |
-          make -C kurlkinds deps test
-
   build-bin-kurl:
     runs-on: ubuntu-20.04
     steps:
@@ -86,7 +68,6 @@ jobs:
     - validate-go-mod
     - build-kurl-utils
     - test-shell
-    - build-kurlkinds
     - build-bin-kurl
     steps:
     - run: echo "::notice ::build test success"

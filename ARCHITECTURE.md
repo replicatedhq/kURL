@@ -100,7 +100,6 @@ Exists on the server at `/var/lib/kurl`.
 | addons/    | Stores addons, including images and assets. |
 | bin/       | Stores utility binaries. |
 | krew/      | Has some plugins we use including support-bundle and preflight. |
-| kurlkinds/ | Contains cluster.kurl.sh CRD |
 | kustomize/ | Scripts output  |
 | packages/  | Host packages |
 | shared/    | Everything else |
