@@ -15,4 +15,5 @@ Accepted
 
 ## Consequences
 
-We recommend the Replicated customers wanting to install on K3s or RKE2 pursue an existing cluster install method for their Kubernetes application.
+* We recommend the Replicated customers wanting to install on K3s or RKE2 pursue an existing cluster install method for their Kubernetes application.
+* Remove K3s and RKE2 documentation from kurl.sh
