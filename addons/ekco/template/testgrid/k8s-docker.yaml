@@ -108,3 +108,20 @@
       s3Override: "__testdist__"
       enableInternalLoadBalancer: true
   flags: "ha"
+- name: HA minio initial installation
+  installerSpec:
+    kubernetes:
+      version: "1.25.x"
+    containerd:
+      version: "latest"
+    weave:
+      version: "latest"
+    openebs:
+      version: "latest"
+      isLocalPVEnabled: true
+      localPVStorageClassName: default
+    minio:
+      version: "latest"
+    ekco:
+      version: "__testver__"
+      s3Override: "__testdist__"

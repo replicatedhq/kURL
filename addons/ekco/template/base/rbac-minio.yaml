@@ -12,6 +12,7 @@ rules:
       - list
       - get
       - create
+      - patch
   - apiGroups: [""]
     resources:
       - pods/exec
