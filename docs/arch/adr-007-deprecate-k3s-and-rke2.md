@@ -1,4 +1,4 @@
-# ADR 7: Remove Support for K3s and RKE2 Add-Ons
+# ADR 7: Deprecate Support for K3s and RKE2 Add-Ons
 
 ## Context
 
