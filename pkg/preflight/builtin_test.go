@@ -6,8 +6,8 @@ import (
 
 	"github.com/itchyny/gojq"
 	"github.com/pkg/errors"
-	clusterv1beta1 "github.com/replicatedhq/kurl/kurlkinds/pkg/apis/cluster/v1beta1"
 	"github.com/replicatedhq/kurl/pkg/installer"
+	clusterv1beta1 "github.com/replicatedhq/kurlkinds/pkg/apis/cluster/v1beta1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	yaml "gopkg.in/yaml.v3"

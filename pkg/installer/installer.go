@@ -2,8 +2,8 @@ package installer
 
 import (
 	"github.com/pkg/errors"
-	kurlclientsetscheme "github.com/replicatedhq/kurl/kurlkinds/client/kurlclientset/scheme"
-	clusterv1beta1 "github.com/replicatedhq/kurl/kurlkinds/pkg/apis/cluster/v1beta1"
+	kurlclientsetscheme "github.com/replicatedhq/kurlkinds/client/kurlclientset/scheme"
+	clusterv1beta1 "github.com/replicatedhq/kurlkinds/pkg/apis/cluster/v1beta1"
 	"k8s.io/client-go/kubernetes/scheme"
 )
 
