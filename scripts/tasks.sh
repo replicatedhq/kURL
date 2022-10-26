@@ -2,7 +2,7 @@
 
 set -e
 
-DIR=./kurl
+DIR=.
 
 # Magic begin: scripts are inlined for distribution. See "make build/tasks.sh"
 . $DIR/scripts/Manifest
