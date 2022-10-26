@@ -592,9 +592,9 @@ function migrate_pvcs() {
     elif kubectl get pods -A -l openebs.io/component-name=openebs-localpv-provisioner &>/dev/null; then
         non_ceph_storage_class_detected=$(kubectl get storageclass | grep openebs | awk '{ print $1}')
 
-        # check OpenEBS localpv-hostpath provisioner is installed
-        if ! kubectl get pods -A -l openebs.io/component-name=openebs-localpv-provisioner &>/dev/null; then
-            echo "The OpenEBS Local PV provisioner is not runnning"
+        # check OpenEBS localpv-provisioner is actually running and ready
+        if [[ -z $(kubectl get pods -A -l openebs.io/component-name=openebs-localpv-provisioner --field-selector=status.phase=Running 2>/dev/null | grep '1/1' | grep 'Running') ]]; then
+            echo "The OpenEBS Local PV provisioner pod is not running and/or not ready"
             return 1
         fi
     fi
