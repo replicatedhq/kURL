@@ -101,12 +101,12 @@ function remove_rook_ceph() {
 }
 
 # scale down prometheus, move all 'rook-ceph' PVCs to provided storage class, scale up prometheus
-# Supported storage class migrations from ceph are 'longhorn' and 'openebs'
+# Supported storage class migrations from ceph are: 'longhorn' and 'openebs'
 function rook_ceph_to_sc_migration() {
     local destStorageClass=$1
     report_addon_start "rook-ceph-to-${destStorageClass}-migration" "v2"
 
-    # we only support migrating to 'longhonr' and 'openebs' storage classes
+    # we only support migrating to 'longhorn' and 'openebs' storage classes
     if [ "$destStorageClass" != "longhorn" ] && [[ "$destStorageClass" != *"openebs"* ]]; then
         bail "Ceph to $destStorageClass migration is not supported"
     fi
