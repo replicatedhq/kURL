@@ -2,7 +2,7 @@
 
 set -e
 
-DIR=.
+DIR=./kurl
 
 # Magic begin: scripts are inlined for distribution. See "make build/tasks.sh"
 . $DIR/scripts/Manifest
@@ -590,8 +590,13 @@ function migrate_pvcs() {
             fi
         fi
     elif kubectl get pods -A -l openebs.io/component-name=openebs-localpv-provisioner &>/dev/null; then
-        non_ceph_storage_class_detected="openebs"
-        # TODO: check openebs storage class is installed
+        non_ceph_storage_class_detected=$(kubectl get storageclass | grep openebs | awk '{ print $1}')
+
+        # check OpenEBS localpv-hostpath provisioner is installed
+        if ! kubectl get pods -A -l openebs.io/component-name=openebs-localpv-provisioner &>/dev/null; then
+            echo "The OpenEBS Local PV provisioner is not runnning"
+            return 1
+        fi
     fi
 
     # provide large warning that this will stop the app

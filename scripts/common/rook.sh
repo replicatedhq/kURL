@@ -107,7 +107,7 @@ function rook_ceph_to_sc_migration() {
     report_addon_start "rook-ceph-to-${destStorageClass}-migration" "v2"
 
     # we only support migrating to 'longhonr' and 'openebs' storage classes
-    if [ "$destStorageClass" != "longhorn" ] && [ "$destStorageClass" != "openebs" ]; then
+    if [ "$destStorageClass" != "longhorn" ] && [[ "$destStorageClass" != *"openebs"* ]]; then
         bail "Ceph to $destStorageClass migration is not supported"
     fi
 

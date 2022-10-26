@@ -35,6 +35,20 @@ function openebs() {
 
     # if there is a validatingWebhookConfiguration, wait for the service to be ready
     openebs_await_admissionserver
+
+    # migrate from Rook/Ceph storage if applicable
+    openebs_maybe_migrate_from_rook
+}
+
+# if rook-ceph is installed but is not specified in the kURL spec, migrate data from 
+# rook-ceph to OpenEBS local pv hostpath
+function openebs_maybe_migrate_from_rook() {
+    if [ -z "$ROOK_VERSION" ]; then
+        if kubectl get ns | grep -q rook-ceph; then
+            rook_ceph_to_sc_migration "$OPENEBS_LOCALPV_STORAGE_CLASS"
+            DID_MIGRATE_ROOK_PVCS=1 # used to automatically delete rook-ceph if object store data was also migrated
+        fi
+    fi
 }
 
 function openebs_apply_crds() {
