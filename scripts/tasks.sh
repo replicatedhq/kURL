@@ -570,6 +570,38 @@ function migrate_pvcs() {
     fi
     CEPH_DISK_USAGE_TOTAL=$(kubectl exec -n rook-ceph deployment/$ROOK_CEPH_EXEC_TARGET -- ceph df | grep TOTAL | awk '{ print $8$9 }')
 
+
+    local non_ceph_storage_class_detected
+    if kubectl get namespace longhorn-system &>/dev/null; then
+        non_ceph_storage_class_detected="longhorn"
+        longhorn_provisioner_is_healthy
+    elif kubectl get pods -A -l openebs.io/component-name=openebs-localpv-provisioner &>/dev/null; then
+        non_ceph_storage_class_detected=$(kubectl get storageclass | grep openebs | awk '{ print $1}')
+        openebs_provisioner_is_healthy
+    fi
+
+    # provide large warning that this will stop the app
+    printf "${YELLOW}"
+    printf "WARNING: \n"
+    printf "\n"
+    printf "    This command will attempt to move data from rook-ceph to %s.\n" "$non_ceph_storage_class_detected"
+    printf "\n"
+    printf "    As part of this, all pods mounting PVCs will be stopped, taking down the application.\n"
+    printf "\n"
+    printf "    Copying the data currently stored within rook-ceph will require at least %s of free space across the cluster.\n" "$CEPH_DISK_USAGE_TOTAL"
+    printf "    It is recommended to take a snapshot or otherwise back up your data before starting this process.\n${NC}"
+    printf "\n"
+    printf "Would you like to continue? "
+
+    if ! confirmN; then
+        printf "Not migrating\n"
+        exit 1
+    fi
+
+    rook_ceph_to_sc_migration "$non_ceph_storage_class_detected"
+}
+
+function longhorn_provisioner_is_healthy() {
     # check that longhorn is healthy
     LONGHORN_NODES_STATUS=$(kubectl get nodes.longhorn.io -n longhorn-system -o=jsonpath='{.items[*].status.conditions.Ready.status}')
     LONGHORN_NODES_SCHEDULABLE=$(kubectl get nodes.longhorn.io -n longhorn-system -o=jsonpath='{.items[*].status.conditions.Schedulable.status}')
@@ -585,26 +617,13 @@ function migrate_pvcs() {
             return 1
         fi
     fi
-
-    # provide large warning that this will stop the app
-    printf "${YELLOW}"
-    printf "WARNING: \n"
-    printf "\n"
-    printf "    This command will attempt to move data from rook-ceph to longhorn.\n"
-    printf "\n"
-    printf "    As part of this, all pods mounting PVCs will be stopped, taking down the application.\n"
-    printf "\n"
-    printf "    Copying the data currently stored within rook-ceph will require at least %s of free space across the cluster.\n" "$CEPH_DISK_USAGE_TOTAL"
-    printf "    It is recommended to take a snapshot or otherwise back up your data before starting this process.\n${NC}"
-    printf "\n"
-    printf "Would you like to continue? "
-
-    if ! confirmN; then
-        printf "Not migrating\n"
-        exit 1
+}
+function openebs_provisioner_is_healthy() {
+    # check OpenEBS localpv-provisioner is actually running and ready
+    if kubectl get pods -A -l openebs.io/component-name=openebs-localpv-provisioner --field-selector=status.phase=Running 2>/dev/null | grep '1/1' | grep -q 'Running' ; then
+        echo "The OpenEBS Local PV provisioner pod is not running and/or not ready"
+        return 1
     fi
-
-    rook_ceph_to_longhorn
 }
 
 function migrate_rgw_to_minio_task() {
