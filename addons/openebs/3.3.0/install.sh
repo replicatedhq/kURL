@@ -40,15 +40,43 @@ function openebs() {
     openebs_maybe_migrate_from_rook
 }
 
-# if rook-ceph is installed but is not specified in the kURL spec, migrate data from
+# if rook-ceph is installed but is not specified in the kURL spec, migrate data from 
 # rook-ceph to OpenEBS local pv hostpath
 function openebs_maybe_migrate_from_rook() {
     if [ -z "$ROOK_VERSION" ]; then
         if kubectl get ns | grep -q rook-ceph; then
+            prompt_migrate_from_rook
             rook_ceph_to_sc_migration "$OPENEBS_LOCALPV_STORAGE_CLASS"
             DID_MIGRATE_ROOK_PVCS=1 # used to automatically delete rook-ceph if object store data was also migrated
         fi
     fi
+}
+
+function prompt_migrate_from_rook() {
+    local ceph_disk_usage_total
+    local rook_ceph_exec_deploy
+
+    if kubectl get deployment -n rook-ceph rook-ceph-tools &>/dev/null; then
+        rook_ceph_exec_deploy=rook-ceph-tools
+    fi
+    ceph_disk_usage_total=$(kubectl exec -n rook-ceph deployment/$rook_ceph_exec_deploy -- ceph df | grep TOTAL | awk '{ print $8$9 }')
+
+    printf "${YELLOW}"
+    printf "\n"
+    printf "    Detected Rook is running. Data migration will be initiated to move data from rook-ceph to storage class %s.\n" "$OPENEBS_LOCALPV_STORAGE_CLASS"
+    printf "\n"
+    printf "    As part of this, all pods mounting PVCs will be stopped, taking down the application.\n"
+    printf "\n"
+    printf "    Copying the data currently stored within rook-ceph will require at least %s of free space across the cluster.\n" "$ceph_disk_usage_total"
+    printf "    It is recommended to take a snapshot or otherwise back up your data before proceeding.\n${NC}"
+    printf "\n"
+    printf "Would you like to continue? "
+
+    if ! confirmN; then
+        printf "Not migrating\n"
+        bail
+    fi
+
 }
 
 function openebs_apply_crds() {
