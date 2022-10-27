@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"flag"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -33,7 +33,7 @@ func main() {
 			Addr: ":8080",
 		}
 		http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-			body, err := ioutil.ReadAll(r.Body)
+			body, err := io.ReadAll(r.Body)
 			if err != nil {
 				log.Println(err.Error())
 				return
@@ -49,7 +49,7 @@ func main() {
 				return
 			}
 			go func() {
-				server.Shutdown(context.Background())
+				_ = server.Shutdown(context.Background())
 				exit <- true
 			}()
 		})
@@ -75,7 +75,7 @@ func main() {
 				log.Println(err.Error())
 				continue
 			}
-			body, err := ioutil.ReadAll(resp.Body)
+			body, err := io.ReadAll(resp.Body)
 			if err != nil {
 				log.Println(err.Error())
 				continue

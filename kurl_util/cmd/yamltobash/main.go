@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"reflect"
@@ -16,12 +15,15 @@ import (
 	kurlversion "github.com/replicatedhq/kurl/pkg/version"
 	kurlscheme "github.com/replicatedhq/kurlkinds/client/kurlclientset/scheme"
 	kurlv1beta1 "github.com/replicatedhq/kurlkinds/pkg/apis/cluster/v1beta1"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 	"gopkg.in/yaml.v2"
+	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/client-go/kubernetes/scheme"
 )
 
 func getInstallerConfigFromYaml(yamlPath string) (*kurlv1beta1.Installer, map[string]bool, error) {
-	yamlData, err := ioutil.ReadFile(yamlPath)
+	yamlData, err := os.ReadFile(yamlPath)
 	if err != nil {
 		return nil, nil, errors.Wrapf(err, "failed to load file %s", yamlPath)
 	}
@@ -79,7 +81,8 @@ func getFieldsSet(yamlDoc []byte) (map[string]bool, error) {
 			if !ok {
 				continue
 			}
-			key := fmt.Sprintf("%s.%s", strings.Title(categoryKey), strings.Title(fieldKey))
+			caser := cases.Title(language.English, cases.NoLower)
+			key := fmt.Sprintf("%s.%s", caser.String(categoryKey), caser.String(fieldKey))
 			out[key] = true
 		}
 	}
@@ -320,13 +323,13 @@ func convertToBash(kurlValues map[string]interface{}, fieldsSet map[string]bool)
 	finalDictionary := make(map[string]string)
 
 	for yamlKey, val := range kurlValues {
-		if checkIfSkippedVariable(yamlKey) == true {
+		if checkIfSkippedVariable(yamlKey) {
 			//certain variables from the crd are handled by go binaries and not parsed into bash variables
 			continue
 		}
 
 		bashKey, ok := bashLookup[yamlKey]
-		if ok == false {
+		if !ok {
 			return nil, fmt.Errorf("%v not found in lookup table, it has not been added to the lookup table or is not in this version of kurlkinds", yamlKey)
 		}
 
@@ -348,7 +351,7 @@ func convertToBash(kurlValues map[string]interface{}, fieldsSet map[string]bool)
 				bashVal = "\"" + ts + "\""
 			}
 		case bool:
-			if t == true {
+			if t {
 				bashVal = "1"
 			} else {
 				bashVal = ""
@@ -385,13 +388,13 @@ func convertToBash(kurlValues map[string]interface{}, fieldsSet map[string]bool)
 	}
 
 	// If preserve and disable flags are set for selinux and firewalld preserve take precedence
-	val, _ := finalDictionary["PRESERVE_FIREWALLD_CONFIG"]
+	val := finalDictionary["PRESERVE_FIREWALLD_CONFIG"]
 
 	if val == "1" {
 		finalDictionary["DISABLE_FIREWALLD"] = ""
 	}
 
-	val, _ = finalDictionary["PRESERVE_SELINUX_CONFIG"]
+	val = finalDictionary["PRESERVE_SELINUX_CONFIG"]
 
 	if val == "1" {
 		finalDictionary["DISABLE_SELINUX"] = ""
@@ -456,7 +459,7 @@ func insertDefaults(installerConfig *kurlv1beta1.Installer) {
 }
 
 func main() {
-	kurlscheme.AddToScheme(scheme.Scheme)
+	utilruntime.Must(kurlscheme.AddToScheme(scheme.Scheme))
 
 	version := flag.Bool("v", false, "Print version info")
 	installerYAMLPath := flag.String("i", "", "installer YAML for kURL script")
@@ -464,7 +467,7 @@ func main() {
 
 	flag.Parse()
 
-	if *version == true {
+	if *version {
 		kurlversion.Print()
 		return
 	}

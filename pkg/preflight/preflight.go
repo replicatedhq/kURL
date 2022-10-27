@@ -8,11 +8,12 @@ import (
 	troubleshootv1beta2 "github.com/replicatedhq/troubleshoot/pkg/apis/troubleshoot/v1beta2"
 	troubleshootclientsetscheme "github.com/replicatedhq/troubleshoot/pkg/client/troubleshootclientset/scheme"
 	"github.com/replicatedhq/troubleshoot/pkg/preflight"
+	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/client-go/kubernetes/scheme"
 )
 
 func init() {
-	troubleshootclientsetscheme.AddToScheme(scheme.Scheme)
+	utilruntime.Must(troubleshootclientsetscheme.AddToScheme(scheme.Scheme))
 }
 
 func Decode(data []byte) (*troubleshootv1beta2.HostPreflight, error) {

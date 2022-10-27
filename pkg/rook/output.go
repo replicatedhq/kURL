@@ -1,10 +1,8 @@
 package rook
 
 import (
-	"context"
 	"fmt"
 	"io"
-	"time"
 )
 
 var outputWriter io.Writer
@@ -83,18 +81,4 @@ func spinner() {
 	}
 	fmt.Fprintf(outputWriter, "[%c]", spinnerchars[spinnerPos%len(spinnerchars)])
 	spinnerPos++
-}
-
-// prints a spinner until the duration has elapsed or the context is cancelled
-func spinWait(ctx context.Context, duration time.Duration) {
-	timeoutCtx, cancel := context.WithTimeout(ctx, duration)
-	defer cancel()
-	for {
-		select {
-		case <-time.After(time.Second):
-			spinner()
-		case <-timeoutCtx.Done():
-			return
-		}
-	}
 }

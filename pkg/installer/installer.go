@@ -4,11 +4,12 @@ import (
 	"github.com/pkg/errors"
 	kurlclientsetscheme "github.com/replicatedhq/kurlkinds/client/kurlclientset/scheme"
 	clusterv1beta1 "github.com/replicatedhq/kurlkinds/pkg/apis/cluster/v1beta1"
+	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/client-go/kubernetes/scheme"
 )
 
 func init() {
-	kurlclientsetscheme.AddToScheme(scheme.Scheme)
+	utilruntime.Must(kurlclientsetscheme.AddToScheme(scheme.Scheme))
 }
 
 func DecodeSpec(data []byte) (*clusterv1beta1.Installer, error) {

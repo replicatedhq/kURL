@@ -4,6 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
+	"testing"
+	"time"
+
 	"github.com/replicatedhq/kurl/pkg/rook/testfiles"
 	"github.com/stretchr/testify/require"
 	appsv1 "k8s.io/api/apps/v1"
@@ -13,9 +17,6 @@ import (
 	"k8s.io/client-go/kubernetes/fake"
 	corev1client "k8s.io/client-go/kubernetes/typed/core/v1"
 	restclient "k8s.io/client-go/rest"
-	"strings"
-	"testing"
-	"time"
 )
 
 type testWriter struct {
@@ -54,7 +55,7 @@ func runtimeFromDeploymentlistJson(deploymentListJson []byte) []runtime.Object {
 	}
 
 	runtimeObjects := []runtime.Object{}
-	for idx, _ := range deploymentList.Items {
+	for idx := range deploymentList.Items {
 		runtimeObjects = append(runtimeObjects, &deploymentList.Items[idx])
 	}
 	return runtimeObjects
@@ -139,7 +140,7 @@ func Test_startToolbox(t *testing.T) {
 			resources: runtimeFromDeploymentlistJson(testfiles.RookHostpathDeployments),
 			backgroundFunc: func(ctx context.Context, k kubernetes.Interface) {
 				// watch for the statefulset to be scaled down, and then delete the pod
-				for true {
+				for {
 					select {
 					case <-time.After(time.Second / 100):
 						// check deployment, maybe set status

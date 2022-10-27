@@ -62,20 +62,14 @@ func isStatusHealthy(status cephtypes.CephStatus) (bool, string) {
 	statusMessage := []string{}
 
 	if status.Health.Status != "HEALTH_OK" {
-		if _, ok := status.Health.Checks["TOO_MANY_PGS"]; ok {
-			// this is not an error we need to stop upgrades for (this will show up after upgrading from 1.0 until autoscaling pgs is enabled)
-			delete(status.Health.Checks, "TOO_MANY_PGS")
-		}
+		// this is not an error we need to stop upgrades for (this will show up after upgrading from 1.0 until autoscaling pgs is enabled)
+		delete(status.Health.Checks, "TOO_MANY_PGS")
 
-		if _, ok := status.Health.Checks["POOL_NO_REDUNDANCY"]; ok {
-			// this is not an error we need to stop upgrades for (it will always be present on single node installs)
-			delete(status.Health.Checks, "POOL_NO_REDUNDANCY")
-		}
+		// this is not an error we need to stop upgrades for (it will always be present on single node installs)
+		delete(status.Health.Checks, "POOL_NO_REDUNDANCY")
 
-		if _, ok := status.Health.Checks["RECENT_CRASH"]; ok {
-			// recent crash errors aren't likely to go away while we're waiting
-			delete(status.Health.Checks, "RECENT_CRASH")
-		}
+		// recent crash errors aren't likely to go away while we're waiting
+		delete(status.Health.Checks, "RECENT_CRASH")
 
 		if len(status.Health.Checks) != 0 {
 			unhealthReasons := []string{}
@@ -131,7 +125,7 @@ func progressEventsString(status cephtypes.CephStatus) string {
 	if len(status.ProgressEvents) != 0 {
 		// only show the first progress event, as there may be quite a few
 		eventKeys := []string{}
-		for key, _ := range status.ProgressEvents {
+		for key := range status.ProgressEvents {
 			eventKeys = append(eventKeys, key)
 		}
 		sort.Strings(eventKeys)
@@ -267,7 +261,7 @@ func parseSafeToRemoveOSD(output string) (bool, int) {
 	}
 
 	pendingPgsMatch := pendingPgsOnOSDRegex.FindStringSubmatch(output)
-	if pendingPgsMatch != nil && len(pendingPgsMatch) >= 2 {
+	if len(pendingPgsMatch) >= 2 {
 		pgnum, err := strconv.ParseInt(pendingPgsMatch[1], 10, 32)
 		if err == nil {
 			return false, int(pgnum)

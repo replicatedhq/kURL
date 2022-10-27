@@ -21,7 +21,7 @@ func runtimeFromNodesJson(nodeListJson []byte) []runtime.Object {
 	}
 
 	runtimeObjects := []runtime.Object{}
-	for idx, _ := range podList.Items {
+	for idx := range podList.Items {
 		runtimeObjects = append(runtimeObjects, &podList.Items[idx])
 	}
 	return runtimeObjects

@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"regexp"
 	"time"
@@ -85,7 +84,7 @@ func NewHostPreflightCmd(cli CLI) *cobra.Command {
 			}
 
 			for _, filename := range v.GetStringSlice("spec") {
-				spec, err := ioutil.ReadFile(filename)
+				spec, err := os.ReadFile(filename)
 				if err != nil {
 					return errors.Wrapf(err, "read spec file %s", filename)
 				}
@@ -255,7 +254,7 @@ func NewHostPreflightCmd(cli CLI) *cobra.Command {
 	cmd.Flags().StringSlice("secondary-host", nil, "host or IP of a secondary node running kubelet")
 	cmd.Flags().StringSlice("spec", nil, "host preflight specs")
 	// cmd.MarkFlagRequired("spec")
-	cmd.MarkFlagFilename("spec", "yaml", "yml")
+	_ = cmd.MarkFlagFilename("spec", "yaml", "yml")
 
 	return cmd
 }
@@ -305,7 +304,7 @@ func writeProgress(w io.Writer, ch <-chan interface{}, cancel func(), isTerminal
 
 func retrieveInstallerSpecDataFromArg(fs afero.Fs, stdin io.Reader, arg string) ([]byte, error) {
 	if arg == "-" {
-		data, err := ioutil.ReadAll(stdin)
+		data, err := io.ReadAll(stdin)
 		if err != nil {
 			return nil, errors.Wrap(err, "read from stdin")
 		}
@@ -357,14 +356,4 @@ func preflightIsWarn(results []*analyze.AnalyzeResult) bool {
 		}
 	}
 	return hasWarn
-}
-
-func preflightIsPass(results []*analyze.AnalyzeResult) bool {
-	for _, result := range results {
-		switch {
-		case result.IsFail, result.IsWarn:
-			return false
-		}
-	}
-	return true
 }
