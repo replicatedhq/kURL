@@ -1709,8 +1709,8 @@ github.com/remyoudompheng/bigfft v0.0.0-20170806203942-52369c62f446/go.mod h1:uY
 github.com/renier/xmlrpc v0.0.0-20170708154548-ce4a1a486c03/go.mod h1:gRAiPF5C5Nd0eyyRdqIu9qTiFSoZzpTq727b5B8fkkU=
 github.com/replicatedhq/kurlkinds v1.0.1 h1:fkiOlZ3KJUrt/Nr/IPovBZW7pSWzq3GA/Jonec59sbQ=
 github.com/replicatedhq/kurlkinds v1.0.1/go.mod h1:ipRic9PDO6+GXPDvO3zGBAMpkg5iPun987VQqQK5S+E=
-github.com/replicatedhq/pvmigrate v0.5.0 h1:nIseRkPw+4/7LUAv7UsmdmaJZfeh7HydTNK9wNPxlg4=
-github.com/replicatedhq/pvmigrate v0.5.0/go.mod h1:GVPgShsnL8Oksp3eP75qZvd7Xx4T2JiEhFmicRs1BI0=
+github.com/replicatedhq/pvmigrate v0.6.0 h1:vj26q3KBYP3D2yKMoEU9+ZE7mP38lDhzA260ZDBbLSY=
+github.com/replicatedhq/pvmigrate v0.6.0/go.mod h1:kCyzLWCfD7jnm7As+g/3jFdXdHWCdFnp5ekh5LfAebs=
 github.com/replicatedhq/termui/v3 v3.1.1-0.20200811145416-f40076d26851 h1:eRlNDHxGfVkPCRXbA4BfQJvt5DHjFiTtWy3R/t4djyY=
 github.com/replicatedhq/termui/v3 v3.1.1-0.20200811145416-f40076d26851/go.mod h1:JDxG6+uubnk9/BZ2yUsyAJJwlptjrnmB2MPF5d2Xe/8=
 github.com/replicatedhq/troubleshoot v0.45.0 h1:2NLxS1lF+BiWp0ZX5xfO7QIa5s11jqg26KmnkslHQBA=
