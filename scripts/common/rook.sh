@@ -119,6 +119,7 @@ function rook_ceph_to_sc_migration() {
     kubectl -n rook-ceph patch cephcluster rook-ceph --type json --patch '[{"op": "replace", "path": "/spec/storage/useAllDevices", value: false}]'
     sleep 1
     echo "Waiting for CephCluster to update"
+    # this will fail for Rook 1.0.4 since '{.status.phase}' is not supported by the CRD
     spinner_until 300 rook_osd_phase_ready || true # don't fail
 
     # set prometheus scale if it exists
@@ -181,6 +182,7 @@ function maybe_cleanup_rook() {
 }
 
 function rook_osd_phase_ready() {
+    # this will fail for Rook 1.0.4 since '{.status.phase}' is not supported by the CRD
     [ "$(kubectl -n rook-ceph get cephcluster rook-ceph --template '{{.status.phase}}')" = 'Ready' ]
 }
 
