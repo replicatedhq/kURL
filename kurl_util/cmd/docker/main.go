@@ -3,7 +3,6 @@ package main
 import (
 	"bytes"
 	"flag"
-	"io/ioutil"
 	"log"
 	"os"
 	"strings"
@@ -12,11 +11,12 @@ import (
 	kurlversion "github.com/replicatedhq/kurl/pkg/version"
 	kurlscheme "github.com/replicatedhq/kurlkinds/client/kurlclientset/scheme"
 	kurlv1beta1 "github.com/replicatedhq/kurlkinds/pkg/apis/cluster/v1beta1"
+	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/client-go/kubernetes/scheme"
 )
 
 func main() {
-	kurlscheme.AddToScheme(scheme.Scheme)
+	utilruntime.Must(kurlscheme.AddToScheme(scheme.Scheme))
 
 	version := flag.Bool("v", false, "Print version info")
 	configPath := flag.String("c", "", "docker config file name")
@@ -24,7 +24,7 @@ func main() {
 
 	flag.Parse()
 
-	if *version == true {
+	if *version {
 		kurlversion.Print()
 		return
 	}
@@ -51,7 +51,7 @@ func saveConfig(configPath string, yamlSpecPath string) error {
 	}
 
 	// TODO: preserve permissions
-	if err := ioutil.WriteFile(configPath, config, 0644); err != nil {
+	if err := os.WriteFile(configPath, config, 0644); err != nil {
 		return errors.Wrapf(err, "failed to write file %s", configPath)
 	}
 
@@ -59,7 +59,7 @@ func saveConfig(configPath string, yamlSpecPath string) error {
 }
 
 func getDockerConfigFromYaml(yamlPath string) ([]byte, error) {
-	yamlData, err := ioutil.ReadFile(yamlPath)
+	yamlData, err := os.ReadFile(yamlPath)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to load file %s", yamlPath)
 	}

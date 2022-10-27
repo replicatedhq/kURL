@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"os"
 	"strings"
@@ -24,7 +24,7 @@ func readFile(path string) []byte {
 
 	defer file.Close()
 
-	configuration, err := ioutil.ReadAll(file)
+	configuration, err := io.ReadAll(file)
 
 	if err != nil {
 		log.Fatal(err)
@@ -52,7 +52,7 @@ func addFieldToFile(readFile func(string) []byte, filePath, yamlPath, value stri
 		log.Fatalf("error: %v", err)
 	}
 
-	err = ioutil.WriteFile(filePath, []byte(modified), 0644)
+	err = os.WriteFile(filePath, []byte(modified), 0644)
 	if err != nil {
 		log.Fatalf("error: %v", err)
 	}
@@ -127,7 +127,7 @@ func removeFieldFromFile(readFile func(string) []byte, filePath, yamlPath string
 		log.Fatalf("error: %v", err)
 	}
 
-	err = ioutil.WriteFile(filePath, []byte(modified), 0644)
+	err = os.WriteFile(filePath, []byte(modified), 0644)
 	if err != nil {
 		log.Fatalf("error: %v", err)
 	}
@@ -203,7 +203,7 @@ func retrieveField(readFile func(string) []byte, filePath, yamlPath string) {
 	concrete = data.(map[interface{}]interface{})
 	data = concrete[fields[1]]
 
-	err = ioutil.WriteFile(filePath, []byte(data.(string)), 0644)
+	err = os.WriteFile(filePath, []byte(data.(string)), 0644)
 
 	if err != nil {
 		log.Fatalf("error: %v", err)
@@ -276,7 +276,7 @@ func main() {
 
 	flag.Parse()
 
-	if *add == true && *yamlPath != "" && *value != "" {
+	if *add && *yamlPath != "" && *value != "" {
 		if *filePath != "" {
 			addFieldToFile(readFile, *filePath, *yamlPath, *value)
 		} else if *yamlContent != "" {
@@ -286,7 +286,7 @@ func main() {
 			}
 			fmt.Printf("%s\n", modified)
 		}
-	} else if *remove == true && *yamlPath != "" {
+	} else if *remove && *yamlPath != "" {
 		if *filePath != "" {
 			removeFieldFromFile(readFile, *filePath, *yamlPath)
 		} else if *yamlContent != "" {
@@ -296,9 +296,9 @@ func main() {
 			}
 			fmt.Printf("%s\n", modified)
 		}
-	} else if *parse == true && *filePath != "" && *yamlPath != "" {
+	} else if *parse && *filePath != "" && *yamlPath != "" {
 		retrieveField(readFile, *filePath, *yamlPath)
-	} else if *json == true && *filePath != "" && *jsonPath != "" {
+	} else if *json && *filePath != "" && *jsonPath != "" {
 		jsonObj, err := jsonField(readFile, *filePath, *jsonPath)
 		if err != nil {
 			log.Fatal(err.Error())

@@ -1,18 +1,18 @@
 package main
 
 import (
-	"io/ioutil"
+	"os"
 	"path"
 	"reflect"
 	"regexp"
 	"testing"
 
 	kurlscheme "github.com/replicatedhq/kurlkinds/client/kurlclientset/scheme"
-	"k8s.io/client-go/kubernetes/scheme"
-
 	kurlv1beta1 "github.com/replicatedhq/kurlkinds/pkg/apis/cluster/v1beta1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
+	"k8s.io/client-go/kubernetes/scheme"
 )
 
 func Test_convertToBash(t *testing.T) {
@@ -387,7 +387,7 @@ func TestEndToEnd(t *testing.T) {
 		},
 	}
 
-	kurlscheme.AddToScheme(scheme.Scheme)
+	utilruntime.Must(kurlscheme.AddToScheme(scheme.Scheme))
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
@@ -399,7 +399,7 @@ func TestEndToEnd(t *testing.T) {
 				return
 			}
 			require.Nil(t, err)
-			b, err := ioutil.ReadFile(envPath)
+			b, err := os.ReadFile(envPath)
 			require.Nil(t, err)
 			actual := string(b)
 			require.Regexp(t, regexp.MustCompile(tc.expectedRegexp), actual)

@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -17,7 +16,7 @@ import (
 // takes the path to installer spec yaml
 func extractPreflightSpec(inputPath string, outputPath string) error {
 
-	data, err := ioutil.ReadFile(inputPath)
+	data, err := os.ReadFile(inputPath)
 	if err != nil {
 		return err
 	}

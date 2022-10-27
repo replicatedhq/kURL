@@ -2,8 +2,8 @@ package main
 
 import (
 	"flag"
-	"io/ioutil"
 	"log"
+	"os"
 
 	"github.com/pelletier/go-toml"
 )
@@ -27,7 +27,7 @@ func main() {
 	}
 
 	str := merge(base, patch)
-	if err := ioutil.WriteFile(basefile, []byte(str), 0644); err != nil {
+	if err := os.WriteFile(basefile, []byte(str), 0644); err != nil {
 		log.Fatalf("Failed to write %s", basefile)
 	}
 }

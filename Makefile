@@ -4,7 +4,8 @@ KURL_BIN_UTILS_FILE ?= kurl-bin-utils-latest.tar.gz
 VERSION_PACKAGE = github.com/replicatedhq/kurl/pkg/version
 VERSION_TAG ?= 0.0.1
 DATE = `date -u +"%Y-%m-%dT%H:%M:%SZ"`
-BUILDFLAGS = -tags "netgo containers_image_ostree_stub exclude_graphdriver_devicemapper exclude_graphdriver_btrfs containers_image_openpgp" -installsuffix netgo
+BUILDTAGS = netgo containers_image_ostree_stub exclude_graphdriver_devicemapper exclude_graphdriver_btrfs containers_image_openpgp
+BUILDFLAGS = -tags "$(BUILDTAGS)" -installsuffix netgo
 KURL_KINDS_VERSION := $(shell grep "github.com/replicatedhq/kurlkinds" go.mod | cut -d ' ' -f2)
 
 
@@ -665,7 +666,7 @@ deps:
 
 .PHONY: lint
 lint:
-	golangci-lint run ./... || true # TODO: remove this when passing
+	golangci-lint --build-tags "${BUILDTAGS}" run ./cmd/... ./pkg/... ./kurl_util/...
 
 .PHONY: vet
 vet:

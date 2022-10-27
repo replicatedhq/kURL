@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -16,13 +15,14 @@ import (
 	kurlversion "github.com/replicatedhq/kurl/pkg/version"
 	kurlscheme "github.com/replicatedhq/kurlkinds/client/kurlclientset/scheme"
 	"gopkg.in/yaml.v2"
+	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/client-go/kubernetes/scheme"
 )
 
 const nbsp = " "
 
 func getInstallerConfigFromYaml(yamlPath string) ([]byte, error) {
-	yamlData, err := ioutil.ReadFile(yamlPath)
+	yamlData, err := os.ReadFile(yamlPath)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to load file %s", yamlPath)
 	}
@@ -304,7 +304,7 @@ func writeSpec(filename string, spec []byte) error {
 }
 
 func main() {
-	kurlscheme.AddToScheme(scheme.Scheme)
+	utilruntime.Must(kurlscheme.AddToScheme(scheme.Scheme))
 
 	version := flag.Bool("v", false, "Print version info")
 	mergedYAMLPath := flag.String("m", "", "combined file name")
@@ -313,7 +313,7 @@ func main() {
 
 	flag.Parse()
 
-	if *version == true {
+	if *version {
 		kurlversion.Print()
 		return
 	}
