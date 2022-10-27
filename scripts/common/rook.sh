@@ -104,10 +104,11 @@ function remove_rook_ceph() {
 # Supported storage class migrations from ceph are: 'longhorn' and 'openebs'
 function rook_ceph_to_sc_migration() {
     local destStorageClass=$1
-    local scProvisioner="$(kubectl get $destStorageClass -ojsonpath='{.provisioner}')"
+    local scProvisioner
+    scProvisioner=$(kubectl get sc "$destStorageClass" -ojsonpath='{.provisioner}')
 
     # we only support migrating to 'longhorn' and 'openebs' storage classes
-    if [ "$scProvisioner" != *"longhorn"* ] && [ "$scProvisioner" != *"openebs"* ]; then
+    if [[ "$scProvisioner" != *"longhorn"* ]] && [[ "$scProvisioner" != *"openebs"* ]]; then
         bail "Ceph to $scProvisioner migration is not supported"
     fi
 
