@@ -666,7 +666,7 @@ deps:
 
 .PHONY: lint
 lint:
-	golangci-lint --build-tags "${BUILDTAGS}" run ./cmd/... ./pkg/... ./kurl_util/...
+	golangci-lint --build-tags "${BUILDTAGS}" run --timeout 5m ./cmd/... ./pkg/... ./kurl_util/...
 
 .PHONY: vet
 vet:
