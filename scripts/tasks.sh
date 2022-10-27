@@ -574,29 +574,10 @@ function migrate_pvcs() {
     local non_ceph_storage_class_detected
     if kubectl get namespace longhorn-system &>/dev/null; then
         non_ceph_storage_class_detected="longhorn"
-        # check that longhorn is healthy
-        LONGHORN_NODES_STATUS=$(kubectl get nodes.longhorn.io -n longhorn-system -o=jsonpath='{.items[*].status.conditions.Ready.status}')
-        LONGHORN_NODES_SCHEDULABLE=$(kubectl get nodes.longhorn.io -n longhorn-system -o=jsonpath='{.items[*].status.conditions.Schedulable.status}')
-        pat="^True( True)*$" # match "True", "True True" etc but not "False True" or ""
-        if [[ $LONGHORN_NODES_STATUS =~ $pat ]] && [[ $LONGHORN_NODES_SCHEDULABLE =~ $pat ]]; then
-            echo "All Longhorn nodes are ready and schedulable"
-        else
-            if [ "$SKIP_LONGHORN_HEALTH_CHECKS" = "1" ]; then
-                echo "Continuing with unhealthy Longhorn due to skip-longhorn-health-checks flag"
-            else
-                echo "Longhorn is not healthy, please resolve this before rerunning the script or rerun with the skip-longhorn-health-checks flag:"
-                kubectl get nodes.longhorn.io -n longhorn-system
-                return 1
-            fi
-        fi
+        longhorn_provisioner_is_healthy
     elif kubectl get pods -A -l openebs.io/component-name=openebs-localpv-provisioner &>/dev/null; then
         non_ceph_storage_class_detected=$(kubectl get storageclass | grep openebs | awk '{ print $1}')
-
-        # check OpenEBS localpv-provisioner is actually running and ready
-        if kubectl get pods -A -l openebs.io/component-name=openebs-localpv-provisioner --field-selector=status.phase=Running 2>/dev/null | grep '1/1' | grep -q 'Running' ; then
-            echo "The OpenEBS Local PV provisioner pod is not running and/or not ready"
-            return 1
-        fi
+        openebs_provisioner_is_healthy
     fi
 
     # provide large warning that this will stop the app
@@ -618,6 +599,31 @@ function migrate_pvcs() {
     fi
 
     rook_ceph_to_sc_migration "$non_ceph_storage_class_detected"
+}
+
+function longhorn_provisioner_is_healthy() {
+    # check that longhorn is healthy
+    LONGHORN_NODES_STATUS=$(kubectl get nodes.longhorn.io -n longhorn-system -o=jsonpath='{.items[*].status.conditions.Ready.status}')
+    LONGHORN_NODES_SCHEDULABLE=$(kubectl get nodes.longhorn.io -n longhorn-system -o=jsonpath='{.items[*].status.conditions.Schedulable.status}')
+    pat="^True( True)*$" # match "True", "True True" etc but not "False True" or ""
+    if [[ $LONGHORN_NODES_STATUS =~ $pat ]] && [[ $LONGHORN_NODES_SCHEDULABLE =~ $pat ]]; then
+        echo "All Longhorn nodes are ready and schedulable"
+    else
+        if [ "$SKIP_LONGHORN_HEALTH_CHECKS" = "1" ]; then
+            echo "Continuing with unhealthy Longhorn due to skip-longhorn-health-checks flag"
+        else
+            echo "Longhorn is not healthy, please resolve this before rerunning the script or rerun with the skip-longhorn-health-checks flag:"
+            kubectl get nodes.longhorn.io -n longhorn-system
+            return 1
+        fi
+    fi
+}
+function openebs_provisioner_is_healthy() {
+    # check OpenEBS localpv-provisioner is actually running and ready
+    if kubectl get pods -A -l openebs.io/component-name=openebs-localpv-provisioner --field-selector=status.phase=Running 2>/dev/null | grep '1/1' | grep -q 'Running' ; then
+        echo "The OpenEBS Local PV provisioner pod is not running and/or not ready"
+        return 1
+    fi
 }
 
 function migrate_rgw_to_minio_task() {
