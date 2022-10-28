@@ -402,7 +402,7 @@ function ekco_create_deployment() {
         render_yaml_file_2 "$src/rolebinding-minio.yaml" >> "$dst/rolebinding.yaml"
 
         if ! kubectl get namespace "$MINIO_NAMESPACE" >/dev/null 2>&1 ; then
-            kubectl create namespace "$MINIO_NAMESPACE"
+            kubectl create --save-config namespace "$MINIO_NAMESPACE"
         fi
     fi
 
