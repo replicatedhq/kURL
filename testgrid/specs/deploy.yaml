@@ -149,7 +149,7 @@
       version: latest
     kubernetes:
       version: 1.24.x
-    weave:
+    flannel:
       version: latest
 - name: minimal-125
   installerSpec:
@@ -157,7 +157,7 @@
       version: latest
     kubernetes:
       version: 1.25.x
-    weave:
+    flannel:
       version: latest
 - name: k8s124x_cis_benchmarks_checks
   installerSpec:
@@ -203,8 +203,8 @@
       version: 1.25.x
     containerd:
       version: latest
-    weave:
-      version: 2.8.x
+    flannel:
+      version: latest
     contour:
       version: latest
     openebs:
@@ -247,7 +247,7 @@
   installerSpec:
     kubernetes:
       version: 1.25.x
-    weave:
+    flannel:
       version: latest
     containerd:
       version: latest
