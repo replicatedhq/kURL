@@ -56,7 +56,7 @@ function prompt_migrate_from_rook() {
     local ceph_disk_usage_total
     local rook_ceph_exec_deploy=rook-ceph-operator
 
-    if [ -z "$CURRENT_KUBERNETES_VERSION" ] || [ -z "$ROOK_VERSION" ]; then
+    if [ -z "$CURRENT_KUBERNETES_VERSION" ] || [ -n "$ROOK_VERSION" ]; then
         # Don't prompt on fresh install
         return 0
     fi
