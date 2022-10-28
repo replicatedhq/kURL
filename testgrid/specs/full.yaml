@@ -73,8 +73,8 @@
       version: 1.19.x
     docker:
       version: 19.03.10
-    antrea:
-      version: 0.13.1
+    weave:
+      version: 2.6.5
     contour:
       version: 1.0.1
     rook:
@@ -255,8 +255,8 @@
   installerSpec:
     kubernetes:
       version: 1.18.4
-    antrea:
-      version: 0.13.1
+    weave:
+      version: 2.6.5
     contour:
       version: 1.0.1
     containerd:
@@ -264,12 +264,12 @@
   upgradeSpec:
     kubernetes:
       version: 1.20.2
-    antrea:
-      version: 0.13.1
+    weave:
+      version: 2.6.5
     contour:
       version: latest
     containerd:
-      version: 1.6.4
+      version: 1.6.x
   unsupportedOSIDs:
   - ubuntu-2204 # containerd 1.4.x is not supported on ubuntu 22.04
 - name: k8s119x_containerd148
@@ -326,8 +326,8 @@
       version: 1.19.x
     docker:
       version: 19.03.15
-    antrea:
-      version: 0.13.1
+    weave:
+      version: 2.6.5
     contour:
       version: 1.0.1
     rook:
@@ -350,8 +350,8 @@
       version: 1.19.x
     docker:
       version: 19.03.15
-    antrea:
-      version: 0.13.1
+    weave:
+      version: 2.6.5
     contour:
       version: 1.0.1
     rook:
@@ -423,8 +423,8 @@
   installerSpec:
     kubernetes:
       version: 1.19.3
-    antrea:
-      version: 0.13.1
+    weave:
+      version: 2.6.5
     contour:
       version: 1.7.0
     rook:
@@ -562,8 +562,8 @@
   installerSpec:
     kubernetes:
       version: 1.20.x
-    antrea:
-      version: 0.13.1
+    weave:
+      version: 2.6.5
     contour:
       version: 1.11.0
       httpPort: 8080
@@ -869,9 +869,8 @@
       version: 1.22.x
     containerd:
       version: 1.6.x
-    antrea:
-      version: 1.4.x
-      isEncryptionDisabled: true
+    flannel:
+      version: latest
     contour:
       version: 1.19.1
     rook:
@@ -915,9 +914,8 @@
       version: 1.22.x
     containerd:
       version: 1.6.x
-    antrea:
-      version: 1.4.x
-      isEncryptionDisabled: true
+    flannel:
+      version: latest
     contour:
       version: 1.19.1
     rook:
@@ -1007,9 +1005,8 @@
       version: 1.24.x
     containerd:
       version: 1.4.x
-    antrea:
-      version: 1.4.x
-      isEncryptionDisabled: true
+    flannel:
+      version: latest
     contour:
       version: 1.19.1
     rook:
@@ -1057,9 +1054,8 @@
       version: 1.24.x
     containerd:
       version: 1.4.x
-    antrea:
-      version: 1.4.x
-      isEncryptionDisabled: true
+    flannel:
+      version: latest
     contour:
       version: 1.19.1
     rook:
@@ -1518,24 +1514,24 @@
   postInstallScript: |
     echo "this is to test less command after installation" > test-less.txt
     less test-less.txt > /dev/null
-- name: "weave 2.6.5 multinode"
+- name: "weave latest multinode"
   installerSpec:
     kubernetes:
       version: "1.25.x"
     weave:
-      version: "2.6.5"
+      version: "latest"
     containerd:
       version: "latest"
     goldpinger:
       version: "latest"
   numPrimaryNodes: 1
   numSecondaryNodes: 2
-- name: "weave 2.8.1 multinode"
+- name: "flannel latest multinode"
   installerSpec:
     kubernetes:
       version: "1.25.x"
-    weave:
-      version: "2.8.1"
+    flannel:
+      version: "latest"
     containerd:
       version: "latest"
     goldpinger:
@@ -1697,7 +1693,7 @@
   installerSpec:
     kubernetes:
       version: 1.23.x
-    weave:
+    flannel:
       version: latest
     openebs:
       version: latest
@@ -1716,7 +1712,7 @@
   upgradeSpec:
     kubernetes:
       version: 1.25.x
-    weave:
+    flannel:
       version: latest
     openebs:
       version: latest
