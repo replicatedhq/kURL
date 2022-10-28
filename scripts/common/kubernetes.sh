@@ -256,7 +256,7 @@ function kubernetes_get_conformance_packages_online() {
 }
 
 function kubernetes_masters() {
-    kubectl get nodes --no-headers --selector="node-role.kubernetes.io/master"
+    kubectl get nodes --no-headers --selector="node-role.kubernetes.io/master" 2>/dev/null
 }
 
 function kubernetes_remote_masters() {

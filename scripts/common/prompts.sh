@@ -243,6 +243,11 @@ function prompt_for_load_balancer_address() {
         LOAD_BALANCER_PORT=6443
     fi
 
+    # localhost:6444 is the address of the internal load balancer
+    if [ "$LOAD_BALANCER_ADDRESS" = "localhost" ] && [ "$LOAD_BALANCER_PORT" = "6444" ]; then
+        EKCO_ENABLE_INTERNAL_LOAD_BALANCER=1
+    fi
+
     if [ -n "$LOAD_BALANCER_ADDRESS" ]; then
         $BIN_BASHTOYAML -c "$MERGED_YAML_SPEC" -f "load-balancer-address=${LOAD_BALANCER_ADDRESS}:${LOAD_BALANCER_PORT}"
     fi
