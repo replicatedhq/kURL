@@ -287,5 +287,3 @@ exclude (
 	k8s.io/client-go v9.0.0+incompatible
 	k8s.io/client-go v9.0.0-invalid+incompatible
 )
-
-replace github.com/replicatedhq/kurl/kurlkinds => ./kurlkinds
