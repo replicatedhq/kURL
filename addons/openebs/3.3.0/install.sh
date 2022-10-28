@@ -13,7 +13,7 @@ function openebs_pre_init() {
     export PREVIOUS_OPENEBS_VERSION="$(openebs_get_running_version)"
 
     openebs_bail_unsupported_upgrade
-    # prompt_migrate_from_rook
+    prompt_migrate_from_rook
 }
 
 function openebs() {
@@ -56,8 +56,13 @@ function prompt_migrate_from_rook() {
     local ceph_disk_usage_total
     local rook_ceph_exec_deploy=rook-ceph-operator
 
+    # skip on new install or when Rook is specified in the kURL spec
     if [ -z "$CURRENT_KUBERNETES_VERSION" ] || [ -n "$ROOK_VERSION" ]; then
-        # Don't prompt on fresh install
+        return 0
+    fi
+
+    # do not proceed if Rook is not installed
+    if ! kubectl get ns | grep -q rook-ceph; then
         return 0
     fi
 
