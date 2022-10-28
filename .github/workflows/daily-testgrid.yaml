@@ -25,7 +25,7 @@ jobs:
             --ref "STAGING-daily-$(date --utc +%FT%TZ)" \
             --spec ./testgrid/specs/full.yaml \
             --os-spec ./testgrid/specs/os-firstlast.yaml \
-            --priority -2
+            --priority -1
 
     - name: testgrid-queue-prod
       env:
@@ -35,4 +35,5 @@ jobs:
           replicated/tgrun:latest queue \
             --ref "PROD-daily-$(date --utc +%FT%TZ)" \
             --spec ./testgrid/specs/full.yaml \
-            --os-spec ./testgrid/specs/os-firstlast.yaml
+            --os-spec ./testgrid/specs/os-firstlast.yaml \
+            --priority -2
