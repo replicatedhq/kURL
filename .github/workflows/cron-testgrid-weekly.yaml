@@ -1,0 +1,27 @@
+name: cron-testgrid-weekly
+on:
+  schedule:
+  - cron: "0 5 * * 6" # “At 05:00 on Saturday.”
+  workflow_dispatch: {}
+
+jobs:
+  testgrid-daily:
+    if: ${{ github.repository_owner == 'replicatedhq' }}
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: pull tgrun image
+      run: docker pull replicated/tgrun:latest
+
+    - name: testgrid-queue-prod
+      env:
+        TESTGRID_API_TOKEN: ${{ secrets.TESTGRID_PROD_API_TOKEN }}
+      run: |
+        docker run --rm -e TESTGRID_API_TOKEN -v `pwd`:/wrk -w /wrk \
+          replicated/tgrun:latest queue \
+            --ref "PROD-weekly-$(date --utc +%FT%TZ)" \
+            --spec ./testgrid/specs/full.yaml \
+            --os-spec ./testgrid/specs/os-firstlast.yaml \
+            --priority -2

@@ -1,4 +1,4 @@
-name: daily-scan-images
+name: cron-scan-images-daily
 
 on:
   schedule:
