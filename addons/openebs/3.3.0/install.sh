@@ -13,7 +13,7 @@ function openebs_pre_init() {
     export PREVIOUS_OPENEBS_VERSION="$(openebs_get_running_version)"
 
     openebs_bail_unsupported_upgrade
-    prompt_migrate_from_rook
+    # prompt_migrate_from_rook
 }
 
 function openebs() {
