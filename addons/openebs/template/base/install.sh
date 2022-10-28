@@ -13,6 +13,7 @@ function openebs_pre_init() {
     export PREVIOUS_OPENEBS_VERSION="$(openebs_get_running_version)"
 
     openebs_bail_unsupported_upgrade
+    prompt_migrate_from_rook
 }
 
 function openebs() {
@@ -45,7 +46,6 @@ function openebs() {
 function openebs_maybe_migrate_from_rook() {
     if [ -z "$ROOK_VERSION" ]; then
         if kubectl get ns | grep -q rook-ceph; then
-            prompt_migrate_from_rook
             rook_ceph_to_sc_migration "$OPENEBS_LOCALPV_STORAGE_CLASS"
             DID_MIGRATE_ROOK_PVCS=1 # used to automatically delete rook-ceph if object store data was also migrated
         fi
@@ -54,7 +54,12 @@ function openebs_maybe_migrate_from_rook() {
 
 function prompt_migrate_from_rook() {
     local ceph_disk_usage_total
-    local rook_ceph_exec_deploy
+    local rook_ceph_exec_deploy=rook-ceph-operator
+
+    if [ -z "$CURRENT_KUBERNETES_VERSION" ] || [ -z "$ROOK_VERSION" ]; then
+        # Don't prompt on fresh install
+        return 0
+    fi
 
     if kubectl get deployment -n rook-ceph rook-ceph-tools &>/dev/null; then
         rook_ceph_exec_deploy=rook-ceph-tools
@@ -63,7 +68,7 @@ function prompt_migrate_from_rook() {
 
     printf "${YELLOW}"
     printf "\n"
-    printf "    Detected Rook is running. Data migration will be initiated to move data from rook-ceph to storage class %s.\n" "$OPENEBS_LOCALPV_STORAGE_CLASS"
+    printf "    Detected Rook is running in the cluster. Data migration will be initiated to move data from rook-ceph to storage class %s.\n" "$OPENEBS_LOCALPV_STORAGE_CLASS"
     printf "\n"
     printf "    As part of this, all pods mounting PVCs will be stopped, taking down the application.\n"
     printf "\n"
@@ -73,8 +78,7 @@ function prompt_migrate_from_rook() {
     printf "Would you like to continue? "
 
     if ! confirmN; then
-        printf "Not migrating\n"
-        bail
+        bail "Not migrating"
     fi
 
 }
