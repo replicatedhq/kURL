@@ -38,7 +38,7 @@
       version: "2.6.0"
   upgradeSpec:
     kubernetes:
-      version: "1.22.x"
+      version: "1.21.x"
     weave:
       version: "latest"
     containerd:
