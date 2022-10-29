@@ -1,7 +1,7 @@
 - name: basic localpv
   installerSpec:
     kubernetes:
-      version: "1.25.x"
+      version: "1.21.x" # this is the latest version of k8s that supports openebs 1.12
     weave:
       version: "latest"
     containerd:
@@ -67,7 +67,7 @@
   airgap: true
   installerSpec:
     kubernetes:
-      version: "1.25.x"
+      version: "1.21.x" # this is the latest version of k8s that supports openebs 1.12
     weave:
       version: "latest"
     containerd:
