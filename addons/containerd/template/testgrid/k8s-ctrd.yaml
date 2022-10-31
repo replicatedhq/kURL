@@ -1,83 +1,103 @@
 - name: basic containerd and weave
   installerSpec:
     kubernetes:
-      version: "latest"
+      version: "1.25.x"
     weave:
-      version: "latest"
+      version: latest
       isEncryptionDisabled: true
     containerd:
       version: "__testver__"
       s3Override: "__testdist__"
+    openebs:
+      version: latest
+      isLocalPVEnabled: true
+      localPVStorageClassName: default
     minio:
-      version: "latest"
+      version: latest
+    ekco:
+      version: latest
     kotsadm:
-      version: "latest"
-    rook:
-      version: "latest"
+      version: latest
 
 - name: "Upgrade Containerd from current to __testver__"
   installerSpec:
     kubernetes:
-      version: "latest"
+      version: "1.25.x"
     weave:
-      version: "latest"
+      version: latest
       isEncryptionDisabled: true
     containerd:
-      version: "latest"
+      version: latest
+    openebs:
+      version: latest
+      isLocalPVEnabled: true
+      localPVStorageClassName: default
     minio:
-      version: "latest"
+      version: latest
+    ekco:
+      version: latest
     kotsadm:
-      version: "latest"
-    rook:
-      version: "latest"
+      version: latest
   upgradeSpec:
     kubernetes:
-      version: "latest"
+      version: "1.25.x"
     weave:
-      version: "latest"
+      version: latest
       isEncryptionDisabled: true
     containerd:
       version: "__testver__"
       s3Override: "__testdist__"
+    openebs:
+      version: latest
+      isLocalPVEnabled: true
+      localPVStorageClassName: default
     minio:
-      version: "latest"
+      version: latest
+    ekco:
+      version: latest
     kotsadm:
-      version: "latest"
-    rook:
-      version: "latest"
+      version: latest
   postUpgradeScript: |
     containerd --version | grep "__testver__"
 
 - name: Upgrade Containerd from oldest (1.5.x) to __testver__
   installerSpec:
     kubernetes:
-      version: "latest"
-    antrea:
-      version: "latest"
+      version: "1.25.x"
+    weave:
+      version: latest
       isEncryptionDisabled: true
     containerd:
       version: "1.5.11"
+    openebs:
+      version: latest
+      isLocalPVEnabled: true
+      localPVStorageClassName: default
     minio:
-      version: "latest"
+      version: latest
+    ekco:
+      version: latest
     kotsadm:
-      version: "latest"
-    rook:
-      version: "latest"
+      version: latest
   upgradeSpec:
     kubernetes:
-      version: "latest"
-    antrea:
-      version: "latest"
+      version: "1.25.x"
+    weave:
+      version: latest
       isEncryptionDisabled: true
     containerd:
       version: "__testver__"
       s3Override: "__testdist__"
+    openebs:
+      version: latest
+      isLocalPVEnabled: true
+      localPVStorageClassName: default
     minio:
-      version: "latest"
+      version: latest
+    ekco:
+      version: latest
     kotsadm:
-      version: "latest"
-    rook:
-      version: "latest"
+      version: latest
   postUpgradeScript: |
     containerd --version | grep "__testver__"
 
@@ -88,15 +108,18 @@
     weave:
       version: latest
       isEncryptionDisabled: true
-    longhorn:
+    openebs:
       version: latest
-    registry:
+      isLocalPVEnabled: true
+      localPVStorageClassName: default
+    minio:
       version: latest
     ekco:
       version: latest
+    registry:
+      version: latest
     kotsadm:
       version: latest
-      disableS3: true
     docker:
       version: latest
   upgradeSpec:
@@ -105,15 +128,18 @@
     weave:
       version: latest
       isEncryptionDisabled: true
-    longhorn:
+    openebs:
       version: latest
-    registry:
+      isLocalPVEnabled: true
+      localPVStorageClassName: default
+    minio:
       version: latest
     ekco:
       version: latest
+    registry:
+      version: latest
     kotsadm:
       version: latest
-      disableS3: true
     containerd:
       version: "__testver__"
       s3Override: "__testdist__"
@@ -124,15 +150,18 @@
     weave:
       version: latest
       isEncryptionDisabled: true
-    longhorn:
+    openebs:
       version: latest
-    registry:
+      isLocalPVEnabled: true
+      localPVStorageClassName: default
+    minio:
       version: latest
     ekco:
       version: latest
+    registry:
+      version: latest
     kotsadm:
       version: latest
-      disableS3: true
     docker:
       version: latest
   upgradeSpec:
@@ -141,15 +170,18 @@
     weave:
       version: latest
       isEncryptionDisabled: true
-    longhorn:
+    openebs:
       version: latest
-    registry:
+      isLocalPVEnabled: true
+      localPVStorageClassName: default
+    minio:
       version: latest
     ekco:
       version: latest
+    registry:
+      version: latest
     kotsadm:
       version: latest
-      disableS3: true
     containerd:
       version: "__testver__"
       s3Override: "__testdist__"

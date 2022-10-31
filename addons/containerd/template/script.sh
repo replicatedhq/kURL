@@ -197,6 +197,32 @@ function find_common_versions() {
     export GREATEST_VERSION="${VERSIONS[0]}"
 }
 
+function find_pause_image() {
+    # The Kubernetes airgap package only includes the default pause image specified by kubeadm for the
+    # version, so the correct pause image used by containerd must be included in its bundle.
+
+    local pause_image=
+    pause_image="$(docker run --rm -i ubuntu20 sh -c \
+        "apt-cache madison containerd.io | grep -F ""$version"" | sed 's/|//g' | awk '{ print \$2 }' | \
+        xargs -I{} apt-get install -y -qq containerd.io={} >/dev/null 2>&1 && \
+        containerd config default | grep sandbox_image | sed 's/[=\"]//g' | awk '{ print \$2 }'")"
+    if [ -n "$pause_image" ]; then
+        echo "$pause_image"
+        return
+    fi
+
+    # fallback
+    if echo "$version" | grep -qE "1\.3\."; then
+        echo "k8s.gcr.io/pause:3.1"
+    elif echo "$version" | grep -qE "1\.4\."; then
+        echo "k8s.gcr.io/pause:3.2"
+    elif echo "$version" | grep -qE "1\.5\."; then
+        echo "k8s.gcr.io/pause:3.5"
+    else
+        echo "k8s.gcr.io/pause:3.6"
+    fi
+}
+
 function generate_version() {
     mkdir -p "../$version"
     cp -r ./base/* "../$version"
@@ -205,18 +231,7 @@ function generate_version() {
 
     copy_generated_files $version
 
-    # Containerd overrides the pod sandbox image with pause:3.1 for 1.3.x and pause:3.2 for 1.4+.
-    # The Kubernetes airgap package only includes the default pause image specified by kubeadm for the
-    # version, so the correct pause image used by containerd must be included in its bundle.
-    if echo "$version" | grep -qE "1\.3\."; then
-        echo "image pause k8s.gcr.io/pause:3.1" >> "../$version/Manifest"
-    elif echo "$version" | grep -qE "1\.4\."; then
-        echo "image pause k8s.gcr.io/pause:3.2" >> "../$version/Manifest"
-    elif echo "$version" | grep -qE "1\.5\."; then
-        echo "image pause k8s.gcr.io/pause:3.5" >> "../$version/Manifest"
-    else
-        echo "image pause k8s.gcr.io/pause:3.6" >> "../$version/Manifest"
-    fi
+    echo "image pause $(find_pause_image)" >> "../$version/Manifest"
 }
 
 function update_available_versions() {
