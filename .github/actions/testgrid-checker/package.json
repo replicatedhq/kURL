@@ -1,5 +1,6 @@
 {
   "name": "version_tag",
+  "type": "module",
   "version": "1.0.0",
   "description": "",
   "scripts": {
@@ -14,6 +15,7 @@
     "@actions/core": "^1.9.1",
     "@actions/github": "^5.0.3",
     "@actions/http-client": "^2.0.1",
+    "@octokit/graphql": "^5.0.4",
     "@vercel/ncc": "^0.33.4"
   }
 }
