@@ -103,6 +103,18 @@ function openebs() {
 
         report_addon_success "openebs-cstor" "1.12.0"
     fi
+
+    # if there is a validatingWebhookConfiguration, wait for the service to be ready
+    openebs_await_admissionserver
+}
+
+function openebs_await_admissionserver() {
+    sleep 1
+    if kubectl get validatingWebhookConfiguration openebs-validation-webhook-cfg &>/dev/null; then
+        logStep "Waiting for OpenEBS admission controller service to be ready"
+        spinner_until 120 kubernetes_service_healthy "$OPENEBS_NAMESPACE" admission-server-svc
+        logSuccess "OpenEBS admission controller service is ready"
+    fi
 }
 
 function openebs_join() {
