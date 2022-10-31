@@ -161,6 +161,12 @@ function containerd_migrate_from_docker() {
         return
     fi
 
+    local kubeconfigFlag="--kubeconfig=/etc/kubernetes/kubelet.conf"
+
+    if ! kubectl "$kubeconfigFlag" get node "$(get_local_node_name)" -o jsonpath='{.status.nodeInfo.containerRuntimeVersion}' 2>/dev/null | grep -q docker ; then
+        return
+    fi
+
     # steps from https://kubernetes.io/docs/tasks/administer-cluster/migrating-from-dockershim/change-runtime-containerd/
 
     echo "Draining node to prepare for migration from docker to containerd"
@@ -176,8 +182,6 @@ function containerd_migrate_from_docker() {
             bail "Migration to Containerd has been aborted."
         fi
     fi
-
-    local kubeconfigFlag="--kubeconfig=/etc/kubernetes/kubelet.conf"
 
     local node=$(hostname | tr '[:upper:]' '[:lower:]')
     kubectl "$kubeconfigFlag" cordon "$node" 
