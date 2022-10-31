@@ -10310,9 +10310,9 @@ var dist_node = __nccwpck_require__(8467);
 
 
 
-const octokit = (0,github.getOctokit)(core.getInput('GITHUB_TOKEN'));
-
 const enablePullRequestAutomerge = async (pullRequestId) => {
+  const octokit = (0,github.getOctokit)(core.getInput('AUTOMERGE_GITHUB_TOKEN') || core.getInput('GITHUB_TOKEN'));
+
   const params = {
     pullRequestId: pullRequestId,
   };
@@ -10362,7 +10362,7 @@ var request_error_dist_node = __nccwpck_require__(537);
 
 
 
-const pullrequests_octokit = (0,github.getOctokit)(core.getInput('GITHUB_TOKEN'));
+const octokit = (0,github.getOctokit)(core.getInput('GITHUB_TOKEN'));
 const { owner, repo } = github.context.repo
 
 const httpClient = new lib.HttpClient();
@@ -10372,7 +10372,7 @@ const checkPullRequest = async pullRequest => {
   const prTitle = pullRequest.title;
   console.log(`PR "${prTitle}" #${prNumber}: checking`);
 
-  const thisPrComments = await pullrequests_octokit.rest.issues.listComments({ owner, repo, issue_number: prNumber });
+  const thisPrComments = await octokit.rest.issues.listComments({ owner, repo, issue_number: prNumber });
 
   let lastTestgridCommentID = 0;
   let lastTestgridCommentPrefix = "";
@@ -10416,7 +10416,7 @@ const checkPullRequest = async pullRequest => {
         break;
       }
     }
-    await pullrequests_octokit.rest.checks.create({
+    await octokit.rest.checks.create({
       owner,
       repo,
       name: 'testgrid-checker',
@@ -10455,8 +10455,8 @@ const approvePullRequest = async (pullRequest, reviewMessage) => {
 
   try {
     const [login, { data: reviews }] = await Promise.all([
-      getLoginForToken(pullrequests_octokit),
-      pullrequests_octokit.rest.pulls.listReviews({ owner, repo, pull_number: prNumber }),
+      getLoginForToken(octokit),
+      octokit.rest.pulls.listReviews({ owner, repo, pull_number: prNumber }),
     ]);
 
     const prHead = pullRequest.head.sha;
@@ -10474,7 +10474,7 @@ const approvePullRequest = async (pullRequest, reviewMessage) => {
     }
 
     console.log(`PR "${prTitle}" #${prNumber}: has not been approved yet, creating approving review`);
-    await pullrequests_octokit.rest.pulls.createReview({
+    await octokit.rest.pulls.createReview({
       owner: owner,
       repo: repo,
       pull_number: prNumber,
@@ -10527,7 +10527,7 @@ const approvePullRequest = async (pullRequest, reviewMessage) => {
 
 async function getLoginForToken() {
   try {
-    const { data: user } = await pullrequests_octokit.rest.users.getAuthenticated();
+    const { data: user } = await octokit.rest.users.getAuthenticated();
     return user.login;
   } catch (error) {
     if (error instanceof request_error_dist_node.RequestError) {

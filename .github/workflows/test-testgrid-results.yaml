@@ -18,4 +18,5 @@ jobs:
           fetch-depth: 0
       - uses: ./.github/actions/testgrid-checker
         with:
-          GITHUB_TOKEN: ${{ secrets.TESTGRID_CHECKER_GH_PAT }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          AUTOMERGE_GITHUB_TOKEN: ${{ secrets.TESTGRID_CHECKER_GH_PAT }}
