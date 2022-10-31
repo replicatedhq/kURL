@@ -2,9 +2,9 @@ import { GraphqlResponseError } from '@octokit/graphql';
 import * as core from '@actions/core';
 import { getOctokit } from '@actions/github'
 
-const octokit = getOctokit(core.getInput('GITHUB_TOKEN'));
-
 export const enablePullRequestAutomerge = async (pullRequestId) => {
+  const octokit = getOctokit(core.getInput('AUTOMERGE_GITHUB_TOKEN') || core.getInput('GITHUB_TOKEN'));
+
   const params = {
     pullRequestId: pullRequestId,
   };

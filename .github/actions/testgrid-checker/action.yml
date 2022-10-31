@@ -3,7 +3,10 @@ description: 'Check the TestGrid status for pull requests'
 inputs:
   GITHUB_TOKEN:
     required: true
-    description: GitHub token
+    description: GitHub token. Can be secrets.GITHUB_TOKEN.
+  AUTOMERGE_GITHUB_TOKEN:
+    required: true
+    description: GitHub token to perform auto-merge action. Likely a PAT.
 runs:
   using: 'node16'
   main: 'dist/index.js'
