@@ -315,9 +315,15 @@ function apply_iptables_config() {
 }
 
 function is_ha() {
-    local master_count=$(kubectl get node --selector='node-role.kubernetes.io/master' 2>/dev/null | grep 'master' | wc -l) #get nodes with the 'master' role, and then search for 'master' to remove the column labels row
+    local master_count=
+    master_count="$(kubernetes_masters | wc -l)"
     if [ "$master_count" -gt 1 ]; then
         HA_CLUSTER=1
+    fi
+    if kubeadm_cluster_configuration >/dev/null 2>&1 ; then
+        if [ -n "$(kubeadm_cluster_configuration | grep 'controlPlaneEndpoint:' | sed 's/controlPlaneEndpoint: \|"//g')" ]; then
+            HA_CLUSTER=1
+        fi
     fi
 }
 
