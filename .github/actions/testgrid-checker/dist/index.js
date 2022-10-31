@@ -10402,6 +10402,10 @@ const checkPullRequest = async pullRequest => {
         console.log(`PR "${prTitle}" #${prNumber}: has pending runs`);
         return;
       }
+      if (run.running_runs > 0) {
+        console.log(`PR "${pullRequest.title}" #${prNumber} has running runs`);
+        return;
+      }
       if (run.failure_count > 0) {
         console.log(`PR "${prTitle}" #${prNumber}: has failed runs`);
         passing = false;
