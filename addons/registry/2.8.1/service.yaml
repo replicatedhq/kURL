@@ -14,4 +14,3 @@ spec:
     protocol: TCP
   selector:
     app: registry
-
