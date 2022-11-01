@@ -444,6 +444,7 @@
       version: 1.0.3
   unsupportedOSIDs:
   - ubuntu-2204 # containerd 1.4.x is not supported on ubuntu 22.04
+  - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
 - name: k8s119_ctrd_longhorn
   installerSpec:
     kubernetes:
@@ -594,6 +595,7 @@
       version: latest
   unsupportedOSIDs:
   - ubuntu-2204 # docker 19.x and collectd-v5 are not supported on ubuntu 22.04
+  - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
 - name: k8s119_selinux
   installerSpec:
     kubernetes:
@@ -700,6 +702,7 @@
       version: latest
   unsupportedOSIDs:
   - ubuntu-2204 # containerd 1.4.x is not supported on ubuntu 22.04
+  - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
 - name: k8s121
   installerSpec:
     kubernetes:
@@ -862,6 +865,8 @@
       version: 1.9.x
     ekco:
       version: latest
+  unsupportedOSIDs:
+  - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
 - name: "K8s 1.22x Rook"
   cpu: 6
   installerSpec:
@@ -885,6 +890,8 @@
       version: 1.7.x
     ekco:
       version: latest
+  unsupportedOSIDs:
+  - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
 - name: "K8s 1.22x Rook, disableS3"
   cpu: 6
   installerSpec:
@@ -907,6 +914,8 @@
       version: latest
     ekco:
       version: latest
+  unsupportedOSIDs:
+  - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
 - name: "K8s 1.22x Airgap"
   cpu: 6
   installerSpec:
@@ -931,6 +940,8 @@
     ekco:
       version: latest
   airgap: true
+  unsupportedOSIDs:
+  - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
 - name: "Migrate from Docker to Containerd"
   installerSpec:
     kubernetes:
@@ -1023,6 +1034,7 @@
       version: latest
   unsupportedOSIDs:
   - ubuntu-2204 # containerd 1.4.x is not supported on ubuntu 22.04
+  - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
 - name: "K8s 1.25x Rook, disableS3"
   cpu: 6
   installerSpec:
@@ -1047,6 +1059,8 @@
       version: latest
     ekco:
       version: latest
+  unsupportedOSIDs:
+  - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
 - name: "K8s 1.24x Airgap"
   cpu: 6
   installerSpec:
@@ -1073,6 +1087,7 @@
   airgap: true
   unsupportedOSIDs:
   - ubuntu-2204 # containerd 1.4.x is not supported on ubuntu 22.04
+  - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
 - name: "Upgrade to 1.24"
   cpu: 7
   installerSpec:
@@ -1110,6 +1125,8 @@
       version: 1.9.x
     ekco:
       version: latest
+  unsupportedOSIDs:
+  - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
 - name: "Upgrade to 1.25 airgap"
   cpu: 6
   installerSpec:
@@ -1253,6 +1270,8 @@
     ekco:
       version: latest
   flags: "labels=disktype=ssd,gpu=enabled"
+  unsupportedOSIDs:
+  - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
 - name: k8s122-with-flags
   installerSpec:
     kubernetes:
@@ -1274,6 +1293,8 @@
     ekco:
       version: latest
   flags: "labels=disktype=ssd,gpu=enabled"
+  unsupportedOSIDs:
+  - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
 - name: k8s124-with-flags
   installerSpec:
     kubernetes:
@@ -1295,6 +1316,8 @@
     ekco:
       version: latest
   flags: "labels=disktype=ssd,gpu=enabled"
+  unsupportedOSIDs:
+  - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
 - name: k8s125-all-the-flags
   installerSpec:
     kubernetes:
