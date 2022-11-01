@@ -35,8 +35,14 @@ function get_addon_version() {
 }
 
 function add_as_latest() {
-    if ! sed '0,/cron-weave-update/d' ../../../web/src/installers/versions.js | sed '/\],/,$d' | grep -Fq "${ADDON_VERSION}" ; then
-        sed -i "/cron-weave-update/a\    \"${ADDON_VERSION}\"\," ../../../web/src/installers/versions.js
+    if echo "${ADDON_VERSION}" | grep -Fq "2.6.5" ; then
+        if ! sed '0,/cron-weave-update-265/d' ../../../web/src/installers/versions.js | sed '/\],/,$d' | grep -Fq "${ADDON_VERSION}" ; then
+            sed -i "/cron-weave-update-265/a\    \"${ADDON_VERSION}\"\," ../../../web/src/installers/versions.js
+        fi
+    else
+        if ! sed '0,/cron-weave-update/d' ../../../web/src/installers/versions.js | sed '/\],/,$d' | grep -Fq "${ADDON_VERSION}" ; then
+            sed -i "/cron-weave-update/a\    \"${ADDON_VERSION}\"\," ../../../web/src/installers/versions.js
+        fi
     fi
 }
 
