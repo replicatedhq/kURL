@@ -11,6 +11,8 @@
     registry:
       version: "__testver__"
       s3Override: "__testdist__"
+  unsupportedOSIDs:
+    - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
   postInstallScript: |
 
     # get the registry address and credentials
@@ -236,6 +238,8 @@
       disableS3: true
     containerd:
       version: latest
+  unsupportedOSIDs:
+    - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
 - name: registry_airgap_openebs
   airgap: true
   installerSpec:

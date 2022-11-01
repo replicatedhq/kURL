@@ -81,6 +81,8 @@
       version: latest
     ekco:
       version: latest
+  unsupportedOSIDs:
+    - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
 - name: k8s121-airgap
   installerSpec:
     kubernetes:
@@ -102,6 +104,8 @@
     ekco:
       version: latest
   airgap: true
+  unsupportedOSIDs:
+    - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
 - name: k8s122
   installerSpec:
     kubernetes:
@@ -122,6 +126,8 @@
       version: latest
     ekco:
       version: latest
+  unsupportedOSIDs:
+    - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
 - name: k8s122-airgap
   installerSpec:
     kubernetes:
@@ -143,6 +149,8 @@
     ekco:
       version: latest
   airgap: true
+  unsupportedOSIDs:
+    - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
 - name: minimal-124
   installerSpec:
     containerd:
@@ -242,6 +250,8 @@
     ekco:
       version: latest
   airgap: true
+  unsupportedOSIDs:
+    - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
 - name: "k8s_125x airgap"
   airgap: true
   installerSpec:
