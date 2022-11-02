@@ -99,8 +99,8 @@ function openebs_apply_storageclasses() {
 }
 
 function openebs_await_admissionserver() {
-    sleep 1
-    if kubectl get validatingWebhookConfiguration openebs-validation-webhook-cfg &>/dev/null; then
+    logStep "Waiting for OpenEBS ValidatingWebhookConfiguration to exist"
+    if spinner_until 60 kubernetes_resource_exists default validatingwebhookconfigurations openebs-validation-webhook-cfg ; then
         logStep "Waiting for OpenEBS admission controller service to be ready"
         spinner_until 120 kubernetes_service_healthy "$OPENEBS_NAMESPACE" admission-server-svc
         logSuccess "OpenEBS admission controller service is ready"
