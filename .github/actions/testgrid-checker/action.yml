@@ -1,12 +1,17 @@
 name: TestGrid Checker
 description: 'Check the TestGrid status for pull requests'
 inputs:
-  GITHUB_TOKEN:
+  APP_ID:
     required: true
-    description: GitHub token. Can be secrets.GITHUB_TOKEN.
-  AUTOMERGE_GITHUB_TOKEN:
+    description: GitHub App ID for https://github.com/organizations/replicatedhq/settings/apps/kurl-testgrid-checker
+    default: "257297"
+  INSTALLATION_ID:
     required: true
-    description: GitHub token to perform auto-merge action. Likely a PAT.
+    description: GitHub Installation ID for https://github.com/organizations/replicatedhq/settings/apps/kurl-testgrid-checker
+    default: "30844914"
+  PRIVATE_KEY:
+    required: true
+    description: App Private Key for https://github.com/organizations/replicatedhq/settings/apps/kurl-testgrid-checker.
 runs:
   using: 'node16'
   main: 'dist/index.js'

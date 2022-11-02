@@ -1,15 +1,11 @@
 import * as core from '@actions/core';
-import { getOctokit, context } from '@actions/github'
-import { HttpClient } from '@actions/http-client'
-import { enablePullRequestAutomerge } from './github.js'
-import { RequestError } from "@octokit/request-error";
-
-const octokit = getOctokit(core.getInput('GITHUB_TOKEN'));
-const { owner, repo } = context.repo
+import { HttpClient } from '@actions/http-client';
+import { GraphqlResponseError } from '@octokit/graphql';
+import { handleError } from './github.js';
 
 const httpClient = new HttpClient();
 
-export const checkPullRequest = async pullRequest => {
+export const checkPullRequest = (octokit, owner, repo) => async pullRequest => {
   const prNumber = pullRequest.number;
   const prTitle = pullRequest.title;
   console.log(`PR "${prTitle}" #${prNumber}: checking`);
@@ -71,8 +67,9 @@ export const checkPullRequest = async pullRequest => {
         console.log(`PR "${prTitle}" #${prNumber}: is passing and has auto-merge label, approving and enabling automerge`);
         try {
           await Promise.all([
-            await approvePullRequest(pullRequest, "Automation (testgrid-checker): passing"),
-            await enablePullRequestAutomerge(pullRequest.node_id),
+            approvePullRequest(octokit, owner, repo, pullRequest, "Automation (testgrid-checker): passing"),
+            enablePullRequestAutomerge(octokit, pullRequest),
+            mergePullRequest(octokit, owner, repo, pullRequest),
           ]);
         } catch (error) {
           // nothing to do as we already logged the error
@@ -89,17 +86,15 @@ export const checkPullRequest = async pullRequest => {
   }
 };
 
-const approvePullRequest = async (pullRequest, reviewMessage) => {
+const approvePullRequest = async (octokit, owner, repo, pullRequest, reviewMessage) => {
   const prNumber = pullRequest.number;
   const prTitle = pullRequest.title;
 
   console.log(`PR "${prTitle}" #${prNumber}: approving`);
 
   try {
-    const [login, { data: reviews }] = await Promise.all([
-      getLoginForToken(octokit),
-      octokit.rest.pulls.listReviews({ owner, repo, pull_number: prNumber }),
-    ]);
+    const login = await getLoginForApp(octokit);
+    const { data: reviews } = await octokit.rest.pulls.listReviews({ owner, repo, pull_number: prNumber });
 
     const prHead = pullRequest.head.sha;
 
@@ -125,59 +120,65 @@ const approvePullRequest = async (pullRequest, reviewMessage) => {
     });
     console.log(`PR "${prTitle}" #${prNumber}: approved`);
   } catch (error) {
-    if (error instanceof RequestError) {
-      switch (error.status) {
-        case 401:
-          core.error(
-            `${error.message}. Please check that the \`github-token\` input ` +
-              "parameter is set correctly."
-          );
-          break;
-        case 403:
-          core.error(
-            `${error.message}. In some cases, the GitHub token used for actions triggered ` +
-              "from `pull_request` events are read-only, which can cause this problem. " +
-              "Switching to the `pull_request_target` event typically resolves this issue."
-          );
-          break;
-        case 404:
-          core.error(
-            `${error.message}. This typically means the token you're using doesn't have ` +
-              "access to this repository. Use the built-in `${{ secrets.GITHUB_TOKEN }}` token " +
-              "or review the scopes assigned to your personal access token."
-          );
-          break;
-        case 422:
-          core.error(
-            `${error.message}. This typically happens when you try to approve the pull ` +
-              "request with the same user account that created the pull request. Try using " +
-              "the built-in `${{ secrets.GITHUB_TOKEN }}` token, or if you're using a personal " +
-              "access token, use one that belongs to a dedicated bot account."
-          );
-          break;
-        default:
-          core.error(`Error (code ${error.status}): ${error.message}`);
-      }
-    } else if (error instanceof Error) {
-      core.error(error);
-    } else {
-      core.error("Unknown error");
-    }
+    handleError(error, "Failed to approve PR");
     throw error;
   }
 }
 
-async function getLoginForToken() {
-  try {
-    const { data: user } = await octokit.rest.users.getAuthenticated();
-    return user.login;
-  } catch (error) {
-    if (error instanceof RequestError) {
-      // If you use the GITHUB_TOKEN provided by GitHub Actions to fetch the current user
-      // you get a 403. For now we'll assume any 403 means this is an Actions token.
-      if (error.status === 403) {
-        return "github-actions[bot]";
+const MAYBE_READY = ["clean", "has_hooks", "unknown", "unstable"];
+
+const mergePullRequest = async (octokit, owner, repo, pullRequest) => {
+  const prNumber = pullRequest.number;
+  const prTitle = pullRequest.title;
+
+  if (pullRequest.mergeable_state == null || MAYBE_READY.includes(pullRequest.mergeable_state)) {
+    console.log(`PR "${prTitle}" #${prNumber}: may be ready for merging, trying to merge`);
+
+    try {
+      await octokit.rest.pulls.merge({
+        owner,
+        repo,
+        prNumber,
+      });
+    } catch (error) {
+      handleError(error, "Failed to merge PR");
+      throw error;
+    }
+  }
+}
+
+export const enablePullRequestAutomerge = async (octokit, pullRequest) => {
+  const pullRequestId = pullRequest.node_id;
+
+  const params = {
+    pullRequestId: pullRequestId,
+  };
+  const query = `mutation ($pullRequestId: ID!) {
+    enablePullRequestAutoMerge(input: {
+      pullRequestId: $pullRequestId
+    }) {
+      pullRequest {
+        autoMergeRequest {
+          enabledAt
+          enabledBy {
+            login
+          }
+        }
       }
+    }
+  }`;
+  try {
+    const response = await octokit.graphql(query, params);
+    return response.enablePullRequestAutoMerge.pullRequest.autoMergeRequest;
+  } catch (error) {
+    if (error instanceof GraphqlResponseError && error.errors?.some(e =>
+      /pull request is in (clean|unstable) status/i.test(e.message)
+    )) {
+      core.error(
+        'Failed to enable automerge: Make sure you have enabled branch protection with at least one status check marked as required.'
+      );
+    } else {
+      handleError(error, 'Failed to enable automerge');
     }
     throw error;
   }
