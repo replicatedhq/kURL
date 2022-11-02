@@ -210,7 +210,8 @@ function longhorn_maybe_init_hosts() {
 
 # if rook-ceph is installed but is not specified in the kURL spec, migrate data from rook-ceph to longhorn
 function longhorn_maybe_migrate_from_rook() {
-    if [ -z "$ROOK_VERSION" ]; then
+    # check that OPENEBS_VERSION is empty as we prefer to migrate to openebs if it is installed
+    if [ -z "$ROOK_VERSION" ] && [ -z "$OPENEBS_VERSION" ]; then
         if kubectl get ns | grep -q rook-ceph; then
             rook_ceph_to_sc_migration "longhorn"
             DID_MIGRATE_ROOK_PVCS=1 # used to automatically delete rook-ceph if object store data was also migrated
