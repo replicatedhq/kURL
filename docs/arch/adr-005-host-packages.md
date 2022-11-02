@@ -47,7 +47,7 @@ Proposed
 kURL will install packages from official mirrors rather than ones included in the add-on archive.
 
 kURL will install the most up-to-date host packages available rather than the ones available at the time the add-on archive was built.
-If the end-customer prefers specific versions, they can run `yum versionlock` or `dpkg --set-selections` to pin those package versions.
+If the end-customer prefers specific versions, they can run `yum versionlock` or `apt-hold` to pin those package versions.
 
 Significantly smaller add-on packages and airgap bundles, resulting in reduced download times for the end customer.
 
