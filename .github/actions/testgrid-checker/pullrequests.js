@@ -136,9 +136,9 @@ const mergePullRequest = async (octokit, owner, repo, pullRequest) => {
 
     try {
       await octokit.rest.pulls.merge({
-        owner,
-        repo,
-        prNumber,
+        owner: owner,
+        repo: repo,
+        pull_number: prNumber,
       });
       console.log(`PR "${prTitle}" #${prNumber}: merged`);
     } catch (error) {
@@ -149,6 +149,8 @@ const mergePullRequest = async (octokit, owner, repo, pullRequest) => {
 }
 
 export const enablePullRequestAutomerge = async (octokit, pullRequest) => {
+  const prNumber = pullRequest.number;
+  const prTitle = pullRequest.title;
   const pullRequestId = pullRequest.node_id;
 
   const params = {
