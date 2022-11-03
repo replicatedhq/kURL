@@ -30,6 +30,7 @@ jobs:
           git fetch --tags
           tag=$(git tag | grep '^v20' | grep -v 'v2022\.09\.04' | sort | tail -1)
           git checkout $tag
+          export VERSION_TAG=$tag # requited if this is the common package
           export KURL_UTIL_IMAGE=replicated/kurl-util:$tag # required if this is the common package
           make dist/$PKG
 
