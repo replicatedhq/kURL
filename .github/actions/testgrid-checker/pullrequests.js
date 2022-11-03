@@ -1,7 +1,7 @@
 import * as core from '@actions/core';
 import { HttpClient } from '@actions/http-client';
 import { GraphqlResponseError } from '@octokit/graphql';
-import { handleError } from './github.js';
+import { getLoginForApp, handleError } from './github.js';
 
 const httpClient = new HttpClient();
 
@@ -72,7 +72,7 @@ export const checkPullRequest = (octokit, owner, repo) => async pullRequest => {
             mergePullRequest(octokit, owner, repo, pullRequest),
           ]);
         } catch (error) {
-          // nothing to do as we already logged the error
+          console.log("ERROR", error);
         }
       } else {
         console.log(`PR "${prTitle}" #${prNumber}: is passing but not labeled for auto-merge`);

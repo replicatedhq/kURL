@@ -1,4 +1,5 @@
 import * as core from '@actions/core';
+import { RequestError } from '@octokit/request-error';
 
 export const getLoginForApp = async (octokit) => {
   const { data: app } = await octokit.rest.apps.getAuthenticated();
