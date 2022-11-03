@@ -22888,16 +22888,19 @@ var core = __nccwpck_require__(2186);
 var lib = __nccwpck_require__(6255);
 // EXTERNAL MODULE: ./node_modules/@octokit/graphql/dist-node/index.js
 var dist_node = __nccwpck_require__(8467);
+// EXTERNAL MODULE: ./node_modules/@octokit/request-error/dist-node/index.js
+var request_error_dist_node = __nccwpck_require__(537);
 ;// CONCATENATED MODULE: ./github.js
 
 
-const github_getLoginForApp = async (octokit) => {
+
+const getLoginForApp = async (octokit) => {
   const { data: app } = await octokit.rest.apps.getAuthenticated();
   return `${app.slug}[bot]`;
 }
 
 const handleError = (error, prefix) => {
-  if (error instanceof RequestError) {
+  if (error instanceof request_error_dist_node.RequestError) {
     core.error(`${prefix}: Error (code ${error.status}): ${error.message}`);
   } else if (error instanceof Error) {
     core.error(`${prefix}: ${error}`);
@@ -22975,13 +22978,13 @@ const checkPullRequest = (octokit, owner, repo) => async pullRequest => {
       if (pullRequest.labels.some(label => label.name === 'auto-merge')) {
         console.log(`PR "${prTitle}" #${prNumber}: is passing and has auto-merge label, approving and enabling automerge`);
         try {
-          await Promise.all([
+          await Promise.allSettled([
             approvePullRequest(octokit, owner, repo, pullRequest, "Automation (testgrid-checker): passing"),
             enablePullRequestAutomerge(octokit, pullRequest),
             mergePullRequest(octokit, owner, repo, pullRequest),
           ]);
         } catch (error) {
-          // nothing to do as we already logged the error
+          console.log("ERROR", error);
         }
       } else {
         console.log(`PR "${prTitle}" #${prNumber}: is passing but not labeled for auto-merge`);
@@ -23049,6 +23052,7 @@ const mergePullRequest = async (octokit, owner, repo, pullRequest) => {
         repo,
         prNumber,
       });
+      console.log(`PR "${prTitle}" #${prNumber}: merged`);
     } catch (error) {
       handleError(error, "Failed to merge PR");
       throw error;
@@ -23077,8 +23081,8 @@ const enablePullRequestAutomerge = async (octokit, pullRequest) => {
     }
   }`;
   try {
-    const response = await octokit.graphql(query, params);
-    return response.enablePullRequestAutoMerge.pullRequest.autoMergeRequest;
+    await octokit.graphql(query, params);
+    console.log(`PR "${prTitle}" #${prNumber}: auto-merge enabled`);
   } catch (error) {
     if (error instanceof dist_node.GraphqlResponseError && error.errors?.some(e =>
       /pull request is in (clean|unstable) status/i.test(e.message)
