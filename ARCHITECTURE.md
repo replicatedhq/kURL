@@ -120,7 +120,7 @@ Add-ons are components that make up a kURL cluster.
 
 ### Categories
 
-1. Kubernetes distribution - Kubeadm, RKE2, K3s
+1. Kubernetes distribution - Kubeadm
 1. CRI - Docker or Containerd
 1. CNI - Flannel, Weave or Antrea
 1. CSI - Longhorn, Rook, OpenEBS

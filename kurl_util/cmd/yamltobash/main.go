@@ -134,7 +134,10 @@ func checkIfSkippedVariable(yamlString string) bool {
 		"SelinuxConfig.ChconCmds",
 		"SelinuxConfig.Selinux",
 		"SelinuxConfig.SemanageCmds",
-		"SelinuxConfig.Type"}
+		"SelinuxConfig.Type",
+		"K3S.Version",  // removed support for k3s
+		"RKE2.Version", // removed support for rke2
+	}
 
 	for _, variable := range skippedVariables {
 		if variable == yamlString {
@@ -200,7 +203,6 @@ func convertToBash(kurlValues map[string]interface{}, fieldsSet map[string]bool)
 		"Helm.AdditionalImages":                           "HELM_ADDITIONAL_IMAGES",
 		"Helm.HelmfileSpec":                               "HELM_HELMFILE_SPEC",
 		"IptablesConfig.PreserveConfig":                   "PRESERVE_IPTABLES_CONFIG",
-		"K3S.Version":                                     "K3S_VERSION",
 		"Kotsadm.ApplicationNamespace":                    "KOTSADM_APPLICATION_NAMESPACES",
 		"Kotsadm.ApplicationSlug":                         "KOTSADM_APPLICATION_SLUG",
 		"Kotsadm.ApplicationVersionLabel":                 "KOTSADM_APPLICATION_VERSION_LABEL",
@@ -273,7 +275,6 @@ func convertToBash(kurlValues map[string]interface{}, fieldsSet map[string]bool)
 		"Registry.PublishPort":                            "REGISTRY_PUBLISH_PORT",
 		"Registry.S3Override":                             "REGISTRY_S3_OVERRIDE",
 		"Registry.Version":                                "REGISTRY_VERSION",
-		"RKE2.Version":                                    "RKE2_VERSION",
 		"Rook.BlockDeviceFilter":                          "ROOK_BLOCK_DEVICE_FILTER",
 		"Rook.BypassUpgradeWarning":                       "ROOK_BYPASS_UPGRADE_WARNING",
 		"Rook.CephReplicaCount":                           "CEPH_POOL_REPLICAS",

@@ -22,35 +22,6 @@
       version: latest
     kotsadm:
       version: latest
-- name: k3s
-  installerSpec:
-    k3s:
-      version: latest
-    registry:
-      version: latest
-    kotsadm:
-      uiBindPort: 30880
-      version: latest
-    minio:
-      version: latest
-- name: rke2
-  installerSpec:
-    rke2:
-      version: latest
-    registry:
-      version: latest
-    kotsadm:
-      uiBindPort: 30880
-      version: latest
-      disableS3: true
-    openebs:
-      version: latest
-      isLocalPVEnabled: true
-      localPVStorageClassName: default
-      isCstorEnabled: false
-  unsupportedOSIDs:
-    - ubuntu-2004
-    - ubuntu-2204
 - name: k8s119-minimal
   installerSpec:
     kubernetes:
