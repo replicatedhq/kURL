@@ -28,7 +28,6 @@ DIR=.
 . $DIR/scripts/common/yaml.sh
 . $DIR/scripts/distro/interface.sh
 . $DIR/scripts/distro/kubeadm/distro.sh
-. $DIR/scripts/distro/rke2/distro.sh
 # Magic end
 
 maybe_upgrade() {

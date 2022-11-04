@@ -240,7 +240,6 @@ function kubernetes_get_conformance_packages_online() {
     fi
 
     # we only build conformance packages for 1.17.0+
-    # this variable is not yet set for rke2 or k3s installs
     if [ -n "$KUBERNETES_TARGET_VERSION_MINOR" ] && [ "$KUBERNETES_TARGET_VERSION_MINOR" -lt "17" ]; then
         return
     fi
@@ -347,6 +346,8 @@ function kubernetes_drain() {
     if [ "$k8sVersionMinor" -lt "20" ]; then
         deleteEmptydirDataFlag="--delete-local-data"
     fi
+    # --pod-selector='app!=csi-attacher,app!=csi-provisioner'
+    # https://longhorn.io/docs/1.3.2/volumes-and-nodes/maintenance/#updating-the-node-os-or-container-runtime
     if kubernetes_has_remotes ; then
         kubectl drain "$1" \
             "$deleteEmptydirDataFlag" \

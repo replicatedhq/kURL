@@ -1445,6 +1445,8 @@ github.com/rcrowley/go-metrics v0.0.0-20181016184325-3113b8401b8a/go.mod h1:bCqn
 github.com/renier/xmlrpc v0.0.0-20170708154548-ce4a1a486c03 h1:Wdi9nwnhFNAlseAOekn6B5G/+GMtks9UKbvRU/CMM/o=
 github.com/replicatedhq/kurlkinds v1.0.4 h1:WZ3/XkfUiVAAwPChSu3RtSAwuyM1uCRbtAo18k7IMNI=
 github.com/replicatedhq/kurlkinds v1.0.4/go.mod h1:i5FPQzNXIW33jWGjHOQTXz4+UTAtZSs14AIcS7R6240=
+github.com/replicatedhq/kurlkinds v1.0.6 h1:4G+H0X2/UKg6KekzeX4NFUbUVNbsizTRVXYCMPFhXJo=
+github.com/replicatedhq/kurlkinds v1.0.6/go.mod h1:i5FPQzNXIW33jWGjHOQTXz4+UTAtZSs14AIcS7R6240=
 github.com/replicatedhq/pvmigrate v0.6.0 h1:vj26q3KBYP3D2yKMoEU9+ZE7mP38lDhzA260ZDBbLSY=
 github.com/replicatedhq/pvmigrate v0.6.0/go.mod h1:kCyzLWCfD7jnm7As+g/3jFdXdHWCdFnp5ekh5LfAebs=
 github.com/replicatedhq/termui/v3 v3.1.1-0.20200811145416-f40076d26851 h1:eRlNDHxGfVkPCRXbA4BfQJvt5DHjFiTtWy3R/t4djyY=

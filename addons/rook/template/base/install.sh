@@ -139,11 +139,6 @@ function rook_operator_deploy() {
     rm -rf "$dst"
     cp -r "$src" "$dst"
 
-    if [ "${K8S_DISTRO}" = "rke2" ]; then
-        ROOK_HOSTPATH_REQUIRES_PRIVILEGED=1
-        insert_patches_strategic_merge "$dst/kustomization.yaml" patches/deployment-rke2.yaml
-    fi
-
     if [ "$ROOK_HOSTPATH_REQUIRES_PRIVILEGED" = "1" ]; then
         insert_patches_strategic_merge "$dst/kustomization.yaml" patches/deployment-privileged.yaml
     fi

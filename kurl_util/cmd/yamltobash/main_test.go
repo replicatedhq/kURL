@@ -167,16 +167,6 @@ func Test_convertToBash(t *testing.T) {
 			},
 		},
 		{
-			name: "RKE2.Version",
-			inputMap: map[string]interface{}{
-				"RKE2.Version": "v1.19.7+rke2r1",
-			},
-			wantedMap: map[string]string{
-				"RKE2_VERSION": "\"v1.19.7+rke2r1\"",
-			},
-			wantError: false,
-		},
-		{
 			name: "Antrea.Encryption",
 			inputMap: map[string]interface{}{
 				"Antrea.IsEncryptionDisabled": true,
@@ -211,6 +201,22 @@ func Test_convertToBash(t *testing.T) {
 			wantedMap: map[string]string{
 				"ROOK_BYPASS_UPGRADE_WARNING": `1`,
 			},
+		},
+		{
+			name: "RKE2.Version",
+			inputMap: map[string]interface{}{
+				"RKE2.Version": "v1.19.7+rke2r1",
+			},
+			wantedMap: map[string]string{},
+			wantError: false,
+		},
+		{
+			name: "K3S.Version",
+			inputMap: map[string]interface{}{
+				"K3S.Version": "v1.19.7+rke2r1",
+			},
+			wantedMap: map[string]string{},
+			wantError: false,
 		},
 	}
 

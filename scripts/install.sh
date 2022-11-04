@@ -15,7 +15,6 @@ DIR=.
 . $DIR/scripts/common/docker.sh
 . $DIR/scripts/common/helm.sh
 . $DIR/scripts/common/host-packages.sh
-. $DIR/scripts/common/k3s.sh
 . $DIR/scripts/common/kubernetes.sh
 . $DIR/scripts/common/object_store.sh
 . $DIR/scripts/common/plugins.sh
@@ -25,14 +24,11 @@ DIR=.
 . $DIR/scripts/common/reporting.sh
 . $DIR/scripts/common/rook.sh
 . $DIR/scripts/common/longhorn.sh
-. $DIR/scripts/common/rke2.sh
 . $DIR/scripts/common/upgrade.sh
 . $DIR/scripts/common/utilbinaries.sh
 . $DIR/scripts/common/yaml.sh
 . $DIR/scripts/distro/interface.sh
-. $DIR/scripts/distro/k3s/distro.sh
 . $DIR/scripts/distro/kubeadm/distro.sh
-. $DIR/scripts/distro/rke2/distro.sh
 # Magic end
 
 function configure_coredns() {
@@ -524,17 +520,6 @@ function main() {
     parse_yaml_into_bash_variables
     MASTER=1 # parse_yaml_into_bash_variables will unset master
     prompt_license
-
-    # ALPHA FLAGS
-    if [ -n "$RKE2_VERSION" ]; then
-        K8S_DISTRO=rke2
-        rke2_main "$@"
-        exit 0
-    elif [ -n "$K3S_VERSION" ]; then
-        K8S_DISTRO=k3s
-        k3s_main "$@"
-        exit 0
-    fi
 
     export KUBECONFIG=/etc/kubernetes/admin.conf
 

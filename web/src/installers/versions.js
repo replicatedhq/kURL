@@ -79,15 +79,6 @@ module.exports.InstallerVersions = {
     "1.20.1", 
     "1.20.0",
   ],
-  rke2: [
-    "v1.22.6+rke2r1",
-    "v1.19.7+rke2r1",
-    "v1.18.13+rke2r1",
-  ],
-  k3s: [
-    "v1.23.3+k3s1",
-    "v1.19.7+k3s1",
-  ],
   docker: [
     "20.10.17",
     "20.10.5",

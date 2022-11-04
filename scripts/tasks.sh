@@ -18,7 +18,6 @@ DIR=.
 . $DIR/scripts/common/reporting.sh
 . $DIR/scripts/distro/interface.sh
 . $DIR/scripts/distro/kubeadm/distro.sh
-. $DIR/scripts/distro/rke2/distro.sh
 . $DIR/scripts/common/addon.sh
 # Magic end
 
@@ -30,11 +29,6 @@ function tasks() {
     DOCKER_VERSION="$(get_docker_version)"
 
     K8S_DISTRO=kubeadm
-    if [ -d "/etc/rancher/rke2" ]; then
-        K8S_DISTRO=rke2
-    elif [ -d "/etc/rancher/k3s" ]; then
-        K8S_DISTRO=k3s
-    fi
 
     case "$1" in
         load-images|load_images)
@@ -115,7 +109,6 @@ function load_all_images() {
             docker load < shared/kurl-util.tar
         fi
     else
-        # TODO(ethan): rke2 containerd.sock path is incorrect
         find addons/ packages/ -type f -wholename '*/images/*.tar.gz' | xargs -I {} bash -c "cat {} | gunzip | ctr -n=k8s.io images import -"
         if [ -f shared/kurl-util.tar ]; then
             ctr -n=k8s.io images import shared/kurl-util.tar
@@ -191,11 +184,6 @@ function reset() {
         printf "Resetting kubeadm\n"
         kubeadm_reset
     fi 
-
-    if commandExists "rke2"; then
-        printf "Resetting rke2\n"
-        rke2_reset
-    fi  
 
     printf "Removing kubernetes packages\n"
     case "$LSB_DIST" in
