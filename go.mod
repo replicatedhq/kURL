@@ -3,6 +3,7 @@ module github.com/replicatedhq/kurl
 go 1.19
 
 require (
+	code.cloudfoundry.org/bytefmt v0.0.0-20211005130812-5bb3c17173e5
 	github.com/Masterminds/sprig v2.22.0+incompatible
 	github.com/apparentlymart/go-cidr v1.1.0
 	github.com/briandowns/spinner v1.19.0
