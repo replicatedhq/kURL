@@ -1,7 +1,7 @@
 # shellcheck disable=SC2148
 
 function prometheus() {
-    local src="$DIR/addons/prometheus/__PROMETHEUS_VERSION__"
+    local src="$DIR/addons/prometheus/0.60.1-41.7.3"
     local dst="$DIR/kustomize/prometheus"
 
     local operatorsrc="$src/operator"

@@ -16,7 +16,7 @@
 - name: "prometheus upgrade from 0.33.0"
   installerSpec:
     kubernetes:
-      version: "1.19.x"
+      version: "1.21.x"
     weave:
       version: "latest"
     rook:
@@ -28,7 +28,7 @@
       version: "0.33.0"
   upgradeSpec:
     kubernetes:
-      version: "1.19.x"
+      version: "1.21.x"
     weave:
       version: "latest"
     rook:
