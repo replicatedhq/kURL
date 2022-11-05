@@ -8,10 +8,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: "Run FOSSA Analyze" 
+      - name: "Run FOSSA Scan"
         uses: fossas/fossa-action@main
         with:
           api-key: 1d5511d63d5a4ccda6d3cef2a7ef08c1 # push-only token, safe to expose
+          debug: true
+      - uses: actions/upload-artifact@v3
+        with:
+          name: fossa.debug.json.gz
+          path: ./fossa.debug.json.gz
       - name: "Run FOSSA Test"
         uses: fossas/fossa-action@main
         with:
