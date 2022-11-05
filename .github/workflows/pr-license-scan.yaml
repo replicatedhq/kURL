@@ -22,3 +22,4 @@ jobs:
         with:
           api-key: 1d5511d63d5a4ccda6d3cef2a7ef08c1 # push-only token, safe to expose
           run-tests: true
+          debug: true
