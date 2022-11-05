@@ -38,13 +38,6 @@ jobs:
 
       - run: make -C kurl_util deps test build
 
-  test-shell:
-    runs-on: ubuntu-20.04
-    steps:
-    - uses: actions/checkout@v3
-    - run: sudo apt-get install -y shunit2
-    - run: make test-shell shunit2
-
   build-bin-kurl:
     runs-on: ubuntu-20.04
     steps:
@@ -62,12 +55,29 @@ jobs:
 
       - run: make deps test build/bin/kurl
 
+  test-shell:
+    runs-on: ubuntu-20.04
+    steps:
+      - run: sudo apt-get install -y shunit2
+      - uses: actions/checkout@v3
+      - run: make test-shell shunit2
+
   build-test-success:
     runs-on: ubuntu-latest
+    if: ${{ always() }}
     needs:
-    - validate-go-mod
-    - build-kurl-utils
-    - test-shell
-    - build-bin-kurl
+      - validate-go-mod
+      - build-kurl-utils
+      - build-bin-kurl
+      - test-shell
     steps:
-    - run: echo "::notice ::build test success"
+      - run: |
+          if   [ "${{ needs.validate-go-mod.result }}" = "failure" ] \
+            || [ "${{ needs.build-kurl-utils.result }}" = "failure" ] \
+            || [ "${{ needs.build-bin-kurl.result }}" = "failure" ] \
+            || [ "${{ needs.test-shell.result }}" = "failure" ]
+          then
+            echo "build test failure"
+            exit 1
+          fi
+          echo "build test success"
