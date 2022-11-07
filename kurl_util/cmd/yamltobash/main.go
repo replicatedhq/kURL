@@ -192,6 +192,7 @@ func convertToBash(kurlValues map[string]interface{}, fieldsSet map[string]bool)
 		"Ekco.ShouldDisableRestartFailedEnvoyPods":        "EKCO_SHOULD_DISABLE_RESTART_FAILED_ENVOY_PODS",
 		"Ekco.EnvoyPodsNotReadyDuration":                  "EKCO_ENVOY_PODS_NOT_READY_DURATION",
 		"Ekco.MinioShouldDisableManagement":               "EKCO_MINIO_SHOULD_DISABLE_MANAGEMENT",
+		"Ekco.ShouldDisableKotsadmManagement":             "EKCO_SHOULD_DISABLE_KOTSADM_MANAGEMENT",
 		"FirewalldConfig.BypassFirewalldWarning":          "BYPASS_FIREWALLD_WARNING",
 		"FirewalldConfig.DisableFirewalld":                "DISABLE_FIREWALLD",
 		"FirewalldConfig.HardFailOnFirewalld":             "HARD_FAIL_ON_FIREWALLD",
