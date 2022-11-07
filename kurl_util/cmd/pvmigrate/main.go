@@ -1,12 +1,14 @@
 package main
 
 import (
+	"bufio"
 	"context"
 	"flag"
 	"fmt"
 	"log"
 	"os"
 	"os/signal"
+	"strings"
 
 	clusterspace "github.com/replicatedhq/kurl/pkg/cluster/space"
 	"github.com/replicatedhq/kurl/pkg/version"
@@ -95,10 +97,11 @@ func checkFreeSpace(ctx context.Context, logger *log.Logger, cfg *rest.Config, c
 			return
 		}
 
-		logger.Println("Some nodes do not have enough disk space for the migration:")
-		logger.Println(nodesWithoutSpace)
-		logger.Print("You can skip this verification with -skip-free-space-check")
-		os.Exit(1)
+		logger.Print("Some nodes do not have enough disk space for the migration:")
+		logger.Printf("\n%s\n\n", strings.Join(nodesWithoutSpace, ","))
+		if !confirm(logger) {
+			os.Exit(1)
+		}
 	}
 
 	rookProvisioners := map[string]bool{
@@ -118,7 +121,30 @@ func checkFreeSpace(ctx context.Context, logger *log.Logger, cfg *rest.Config, c
 		}
 
 		logger.Println("Not enough space in Ceph to migrate data")
-		logger.Print("You can skip this verification with -skip-free-space-check")
-		os.Exit(1)
+		if !confirm(logger) {
+			os.Exit(1)
+		}
+	}
+}
+
+func confirm(logger *log.Logger) bool {
+	logger.Println("Reserved space does not mean used space, depending on how")
+	logger.Println("much is actually used inside each of the PVs the migration")
+	logger.Println("can still succeed.")
+	reader := bufio.NewReader(os.Stdin)
+	for {
+		fmt.Print("Do you wish to proceed ? [y/N]: ")
+		response, err := reader.ReadString('\n')
+		if err != nil {
+			logger.Printf("error reading user input: %s", err)
+			return false
+		}
+
+		response = strings.ToLower(strings.TrimSpace(response))
+		if response == "y" {
+			return true
+		} else if response == "n" || response == "" {
+			return false
+		}
 	}
 }
