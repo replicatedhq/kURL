@@ -15,11 +15,13 @@ import (
 	"gopkg.in/yaml.v2"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/utils/pointer"
 
+	"github.com/google/uuid"
 	"github.com/replicatedhq/kurl/pkg/k8sutil"
 )
 
@@ -81,7 +83,7 @@ func (o *OpenEBSChecker) parseFstabContainerOutput(output []byte) ([]string, err
 	scanner := bufio.NewScanner(buf)
 	for scanner.Scan() {
 		line := scanner.Text()
-		if !strings.HasPrefix(line, "/") {
+		if strings.HasPrefix(line, "#") {
 			continue
 		}
 
@@ -95,6 +97,31 @@ func (o *OpenEBSChecker) parseFstabContainerOutput(output []byte) ([]string, err
 		return nil, fmt.Errorf("failed to locate any mount point")
 	}
 	return mounts, nil
+}
+
+// buildTmpPVC creates a temporary PVC requesting for 1Mi of space.
+func (o *OpenEBSChecker) buildTmpPVC(node string) *corev1.PersistentVolumeClaim {
+	tmp := uuid.New().String()[:5]
+	pvcName := fmt.Sprintf("disk-free-%s-%s", node, tmp)
+	if len(pvcName) > 63 {
+		pvcName = pvcName[0:31] + pvcName[len(pvcName)-32:]
+	}
+
+	return &corev1.PersistentVolumeClaim{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      pvcName,
+			Namespace: "default",
+		},
+		Spec: corev1.PersistentVolumeClaimSpec{
+			StorageClassName: pointer.String(o.dstSC),
+			AccessModes:      []corev1.PersistentVolumeAccessMode{corev1.ReadWriteOnce},
+			Resources: corev1.ResourceRequirements{
+				Requests: corev1.ResourceList{
+					corev1.ResourceStorage: resource.MustParse("1Mi"),
+				},
+			},
+		},
+	}
 }
 
 // OpenEBSVolume represents an OpenEBS volume in a node. Holds space related information and
@@ -121,8 +148,25 @@ func (o *OpenEBSChecker) openEBSVolumes(ctx context.Context) (map[string]OpenEBS
 
 	result := map[string]OpenEBSVolume{}
 	for _, node := range nodes.Items {
-		job := o.buildJob(ctx, node.Name, basePath)
-		out, status, err := k8sutil.RunJob(ctx, o.cli, o.log, job, time.Minute)
+		o.log.Printf("Analyzing free space on node %s", node.Name)
+
+		pvc := o.buildTmpPVC(node.Name)
+		if _, err := o.cli.CoreV1().PersistentVolumeClaims("default").Create(
+			ctx, pvc, metav1.CreateOptions{},
+		); err != nil {
+			return nil, fmt.Errorf("failed to create temporary pvc: %w", err)
+		}
+
+		defer func(pvcName string) {
+			if err := o.cli.CoreV1().PersistentVolumeClaims("default").Delete(
+				context.Background(), pvcName, metav1.DeleteOptions{},
+			); err != nil {
+				o.log.Printf("unable to delete temp volume claim %s: %s", pvc.Name, err)
+			}
+		}(pvc.Name)
+
+		job := o.buildJob(ctx, node.Name, basePath, pvc.Name)
+		out, status, err := k8sutil.RunJob(ctx, o.cli, o.log, job, 5*time.Minute)
 		if err != nil {
 			o.logContainersState(out, status)
 			return nil, fmt.Errorf("failed to run job %s/%s on node %s: %w", job.Namespace, job.Name, node.Name, err)
@@ -219,8 +263,11 @@ func (o *OpenEBSChecker) basePath(ctx context.Context) (string, error) {
 
 // buildJob returns a job scheduled to run in provided node. this job runs a pod with two
 // containers, one to capture the disk size and the other to capture the content of the
-// node fstab. timeout for the job is 30 seconds.
-func (o *OpenEBSChecker) buildJob(ctx context.Context, node, basePath string) *batchv1.Job {
+// node fstab. timeout for the job is 2 minutes as in some cases we need to pull the image
+// and then it takes longer to boostrap the job pod. this job also mounts the provided temp
+// pvc, this is done to make sure that the openebs has created the base path inside the node
+// (it only creates it when some kind of allocation already happened in the node).
+func (o *OpenEBSChecker) buildJob(ctx context.Context, node, basePath, tmpPVC string) *batchv1.Job {
 	schedRules := &corev1.NodeSelector{
 		NodeSelectorTerms: []corev1.NodeSelectorTerm{
 			{
@@ -263,6 +310,14 @@ func (o *OpenEBSChecker) buildJob(ctx context.Context, node, basePath string) *b
 					},
 				},
 			},
+			{
+				Name: "tmp",
+				VolumeSource: corev1.VolumeSource{
+					PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
+						ClaimName: tmpPVC,
+					},
+				},
+			},
 		},
 		Containers: []corev1.Container{
 			{
@@ -274,6 +329,11 @@ func (o *OpenEBSChecker) buildJob(ctx context.Context, node, basePath string) *b
 					{
 						MountPath: "/data",
 						Name:      "openebs",
+						ReadOnly:  true,
+					},
+					{
+						MountPath: "/tmpmount",
+						Name:      "tmp",
 						ReadOnly:  true,
 					},
 				},
@@ -294,7 +354,8 @@ func (o *OpenEBSChecker) buildJob(ctx context.Context, node, basePath string) *b
 		},
 	}
 
-	jobName := fmt.Sprintf("disk-free-%s", node)
+	tmp := uuid.New().String()[:5]
+	jobName := fmt.Sprintf("disk-free-%s-%s", node, tmp)
 	if len(jobName) > 63 {
 		jobName = jobName[0:31] + jobName[len(jobName)-32:]
 	}
@@ -306,7 +367,7 @@ func (o *OpenEBSChecker) buildJob(ctx context.Context, node, basePath string) *b
 		},
 		Spec: batchv1.JobSpec{
 			BackoffLimit:          pointer.Int32(1),
-			ActiveDeadlineSeconds: pointer.Int64(30),
+			ActiveDeadlineSeconds: pointer.Int64(120),
 			Template: corev1.PodTemplateSpec{
 				Spec: podSpec,
 			},
@@ -330,14 +391,14 @@ func (o *OpenEBSChecker) hasEnoughSpace(vol OpenEBSVolume, reserved int64) (int6
 // where the migration can't execute due to a possible lack of disk space.
 func (o *OpenEBSChecker) Check(ctx context.Context) ([]string, error) {
 	o.log.Printf("Analyzing reserved and free disk space per node...")
-	volumes, err := o.openEBSVolumes(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("failed to calculate available disk space per node: %w", err)
-	}
-
 	reservedPerNode, reservedDetached, err := k8sutil.PVSReservationPerNode(ctx, o.cli, o.srcSC)
 	if err != nil {
 		return nil, fmt.Errorf("failed to calculate reserved disk space per node: %w", err)
+	}
+
+	volumes, err := o.openEBSVolumes(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to calculate available disk space per node: %w", err)
 	}
 
 	faultyNodes := map[string]bool{}
