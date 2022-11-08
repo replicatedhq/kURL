@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 	"text/tabwriter"
+	"time"
 
 	"code.cloudfoundry.org/bytefmt"
 	"gopkg.in/yaml.v2"
@@ -122,7 +123,7 @@ func (o *OpenEBSChecker) openEBSVolumes(ctx context.Context) (map[string]OpenEBS
 	result := map[string]OpenEBSVolume{}
 	for _, node := range nodes.Items {
 		job := o.buildJob(ctx, node.Name, basePath)
-		out, status, err := k8sutil.RunJob(ctx, o.cli, o.log, job)
+		out, status, err := k8sutil.RunJob(ctx, o.cli, o.log, job, time.Minute)
 		if err != nil {
 			o.logContainersState(out, status)
 			return nil, fmt.Errorf("failed to run job %s/%s on node %s: %w", job.Namespace, job.Name, node.Name, err)

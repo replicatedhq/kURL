@@ -14,15 +14,34 @@ import (
 	"k8s.io/client-go/kubernetes"
 )
 
+// waitForJob waits for a job to finish. returns a boolean indicating if the job succeeded.
+func waitForJob(ctx context.Context, cli kubernetes.Interface, job *batchv1.Job, timeout time.Duration) (bool, error) {
+	var endAt = time.Now().Add(timeout)
+	for {
+		gotJob, err := cli.BatchV1().Jobs(job.Namespace).Get(ctx, job.Name, metav1.GetOptions{})
+		if err != nil {
+			return false, fmt.Errorf("failed getting job: %w", err)
+		}
+
+		switch {
+		case gotJob.Status.Failed > 0:
+			return false, nil
+		case gotJob.Status.Succeeded > 0:
+			return true, nil
+		default:
+			time.Sleep(time.Second)
+		}
+
+		if time.Now().After(endAt) {
+			return false, fmt.Errorf("timeout waiting for job to finish")
+		}
+	}
+}
+
 // RunJob runs the provided job and awaits until it finishes or the timeout is reached.
 // returns the job's pod logs (indexed by container name) and the state of each of the
 // containers (also indexed by container name).
-func RunJob(
-	ctx context.Context,
-	cli kubernetes.Interface,
-	logger *log.Logger,
-	job *batchv1.Job,
-) (map[string][]byte, map[string]corev1.ContainerState, error) {
+func RunJob(ctx context.Context, cli kubernetes.Interface, logger *log.Logger, job *batchv1.Job, timeout time.Duration) (map[string][]byte, map[string]corev1.ContainerState, error) {
 	job, err := cli.BatchV1().Jobs(job.Namespace).Create(ctx, job, metav1.CreateOptions{})
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to create job: %w", err)
@@ -31,26 +50,16 @@ func RunJob(
 	defer func() {
 		propagation := metav1.DeletePropagationForeground
 		delopts := metav1.DeleteOptions{PropagationPolicy: &propagation}
-		if err = cli.BatchV1().Jobs(job.Namespace).Delete(context.Background(), job.Name, delopts); err != nil {
+		if err = cli.BatchV1().Jobs(job.Namespace).Delete(
+			context.Background(), job.Name, delopts,
+		); err != nil {
 			logger.Printf("failed to delete job: %s", err)
 		}
 	}()
 
-	var hasTimedOut, hasFailed bool
-	for {
-		var gotJob *batchv1.Job
-		if gotJob, err = cli.BatchV1().Jobs(job.Namespace).Get(ctx, job.Name, metav1.GetOptions{}); err != nil {
-			return nil, nil, fmt.Errorf("failed getting job: %w", err)
-		}
-
-		if gotJob.Status.Failed > 0 {
-			hasFailed = true
-			break
-		} else if gotJob.Status.Succeeded > 0 {
-			break
-		}
-
-		time.Sleep(time.Second)
+	worked, err := waitForJob(ctx, cli, job, timeout)
+	if err != nil {
+		return nil, nil, err
 	}
 
 	listOptions := metav1.ListOptions{
@@ -74,7 +83,7 @@ func RunJob(
 	logs := map[string][]byte{}
 	for _, container := range jobPod.Spec.Containers {
 		options := &corev1.PodLogOptions{Container: container.Name}
-		podlogs, err := cli.CoreV1().Pods(jobPod.Namespace).GetLogs(jobPod.Name, options).Stream(ctx)
+		plogs, err := cli.CoreV1().Pods(jobPod.Namespace).GetLogs(jobPod.Name, options).Stream(ctx)
 		if err != nil {
 			return nil, nil, fmt.Errorf("failed to get pod log stream: %w", err)
 		}
@@ -83,9 +92,9 @@ func RunJob(
 			if err := stream.Close(); err != nil {
 				logger.Printf("failed to close pod log stream: %s", err)
 			}
-		}(podlogs)
+		}(plogs)
 
-		output, err := io.ReadAll(podlogs)
+		output, err := io.ReadAll(plogs)
 		if err != nil {
 			return nil, lastContainerStatuses, fmt.Errorf("failed to read pod logs: %w", err)
 		}
@@ -93,13 +102,8 @@ func RunJob(
 		logs[container.Name] = output
 	}
 
-	if hasTimedOut {
-		return logs, lastContainerStatuses, fmt.Errorf("timeout waiting for the pod")
+	if !worked {
+		return logs, lastContainerStatuses, fmt.Errorf("job failed to execute")
 	}
-
-	if hasFailed {
-		return logs, lastContainerStatuses, fmt.Errorf("pod failed")
-	}
-
 	return logs, lastContainerStatuses, nil
 }
