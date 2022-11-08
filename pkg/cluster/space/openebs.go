@@ -123,19 +123,19 @@ func (o *OpenEBSChecker) openEBSVolumes(ctx context.Context) (map[string]OpenEBS
 		pod := o.buildPod(ctx, node.Name, basePath)
 		out, status, err := k8sutil.RunEphemeralPod(ctx, o.cli, o.log, 30*time.Second, pod)
 		if err != nil {
-			o.logPodInfo(out, status)
+			o.logContainersState(out, status)
 			return nil, fmt.Errorf("failed to run pod %s/%s on node %s: %w", pod.Namespace, pod.Name, node.Name, err)
 		}
 
 		free, used, err := o.parseDFContainerOutput(out["df"])
 		if err != nil {
-			o.logPodInfo(out, status)
+			o.logContainersState(out, status)
 			return nil, fmt.Errorf("failed to parse node %s df output: %w", node.Name, err)
 		}
 
 		volumes, err := o.parseFstabContainerOutput(out["fstab"])
 		if err != nil {
-			o.logPodInfo(out, status)
+			o.logContainersState(out, status)
 			return nil, fmt.Errorf("failed to parse node %s fstab output: %w", node.Name, err)
 		}
 
@@ -156,22 +156,32 @@ func (o *OpenEBSChecker) openEBSVolumes(ctx context.Context) (map[string]OpenEBS
 	return result, nil
 }
 
-// logPodInfo prints the provided pod logs and pod status conditions.
-func (o *OpenEBSChecker) logPodInfo(logs map[string][]byte, status *corev1.PodStatus) {
+// logContainersState prints the provided pod logs and pod status conditions.
+func (o *OpenEBSChecker) logContainersState(logs map[string][]byte, states map[string]corev1.ContainerState) {
+	o.log.Println("")
+	defer o.log.Println("")
+
 	for container, clogs := range logs {
 		o.log.Printf("%q container logs:", container)
 		o.log.Print(string(clogs))
 	}
 
-	if status == nil {
+	if len(states) == 0 {
 		return
 	}
 
-	o.log.Printf("Pod conditions:")
+	o.log.Printf("\nContainers state:")
 	tw := tabwriter.NewWriter(o.log.Writer(), 2, 2, 1, ' ', 0)
-	fmt.Fprintf(tw, "TYPE\tSTATUS\tREASON\tMESSAGE\n")
-	for _, cond := range status.Conditions {
-		fmt.Fprintf(tw, "%s\t%s\t%s\t%s\n", cond.Type, cond.Status, cond.Reason, cond.Message)
+	fmt.Fprintf(tw, "Container\tState\tReason\tMessage\n")
+	for name, state := range states {
+		switch {
+		case state.Waiting != nil:
+			fmt.Fprintf(tw, "%s\tWaiting\t%s\t%s\n", name, state.Waiting.Reason, state.Waiting.Message)
+		case state.Running != nil:
+			fmt.Fprintf(tw, "%s\tRunning\tTimeout\tContainer should have succeeded\n", name)
+		case state.Terminated != nil:
+			fmt.Fprintf(tw, "%s\tTerminated\t%s\t%s\n", name, state.Terminated.Reason, state.Terminated.Message)
+		}
 	}
 	tw.Flush()
 }

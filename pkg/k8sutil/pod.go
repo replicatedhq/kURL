@@ -34,7 +34,7 @@ func PodUsesPVC(pod corev1.Pod, pvc corev1.PersistentVolumeClaim) bool {
 // RunEphemeralPod starts provided pod and waits until it finishes. the values returned are the
 // pod logs, its last status, and an error. returned logs and pod status may be nil depending on
 // the type of failure. the pod is deleted at the end.
-func RunEphemeralPod(ctx context.Context, cli kubernetes.Interface, logger *log.Logger, timeout time.Duration, pod *corev1.Pod) (map[string][]byte, *corev1.PodStatus, error) {
+func RunEphemeralPod(ctx context.Context, cli kubernetes.Interface, logger *log.Logger, timeout time.Duration, pod *corev1.Pod) (map[string][]byte, map[string]corev1.ContainerState, error) {
 	pod, err := cli.CoreV1().Pods(pod.Namespace).Create(ctx, pod, metav1.CreateOptions{})
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to create pod: %w", err)
@@ -49,8 +49,8 @@ func RunEphemeralPod(ctx context.Context, cli kubernetes.Interface, logger *log.
 	}()
 
 	startedAt := time.Now()
-	var lastPodStatus corev1.PodStatus
-	var hasTimedOut bool
+	lastContainerStatuses := map[string]corev1.ContainerState{}
+	var hasTimedOut, hasFailed bool
 	for {
 		var gotPod *corev1.Pod
 		if gotPod, err = cli.CoreV1().Pods(pod.Namespace).Get(
@@ -59,8 +59,15 @@ func RunEphemeralPod(ctx context.Context, cli kubernetes.Interface, logger *log.
 			return nil, nil, fmt.Errorf("failed getting pod: %w", err)
 		}
 
-		lastPodStatus = gotPod.Status
+		for _, cs := range gotPod.Status.ContainerStatuses {
+			lastContainerStatuses[cs.Name] = cs.State
+		}
 		if gotPod.Status.Phase == corev1.PodSucceeded {
+			break
+		}
+
+		if gotPod.Status.Phase == corev1.PodFailed {
+			hasFailed = true
 			break
 		}
 
@@ -87,15 +94,19 @@ func RunEphemeralPod(ctx context.Context, cli kubernetes.Interface, logger *log.
 
 		output, err := io.ReadAll(podlogs)
 		if err != nil {
-			return nil, &lastPodStatus, fmt.Errorf("failed to read pod logs: %w", err)
+			return nil, lastContainerStatuses, fmt.Errorf("failed to read pod logs: %w", err)
 		}
 
 		logs[container.Name] = output
 	}
 
 	if hasTimedOut {
-		return logs, &lastPodStatus, fmt.Errorf("timeout waiting for the pod")
+		return logs, lastContainerStatuses, fmt.Errorf("timeout waiting for the pod")
 	}
 
-	return logs, &lastPodStatus, nil
+	if hasFailed {
+		return logs, lastContainerStatuses, fmt.Errorf("pod failed")
+	}
+
+	return logs, lastContainerStatuses, nil
 }
