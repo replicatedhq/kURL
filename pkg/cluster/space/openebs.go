@@ -137,7 +137,7 @@ func (o *OpenEBSChecker) openEBSVolumes(ctx context.Context) (map[string]OpenEBS
 		volumes, err := o.parseFstabContainerOutput(out["fstab"])
 		if err != nil {
 			o.logPodInfo(out, status)
-			return nil, fmt.Errorf("unable to parse node %s fstab: %w", node.Name, err)
+			return nil, fmt.Errorf("failed to parse node %s fstab output: %w", node.Name, err)
 		}
 
 		rootVolume := true
