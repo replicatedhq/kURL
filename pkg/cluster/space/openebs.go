@@ -9,14 +9,15 @@ import (
 	"strconv"
 	"strings"
 	"text/tabwriter"
-	"time"
 
 	"code.cloudfoundry.org/bytefmt"
 	"gopkg.in/yaml.v2"
+	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
+	"k8s.io/utils/pointer"
 
 	"github.com/replicatedhq/kurl/pkg/k8sutil"
 )
@@ -120,11 +121,11 @@ func (o *OpenEBSChecker) openEBSVolumes(ctx context.Context) (map[string]OpenEBS
 
 	result := map[string]OpenEBSVolume{}
 	for _, node := range nodes.Items {
-		pod := o.buildPod(ctx, node.Name, basePath)
-		out, status, err := k8sutil.RunEphemeralPod(ctx, o.cli, o.log, 30*time.Second, pod)
+		job := o.buildJob(ctx, node.Name, basePath)
+		out, status, err := k8sutil.RunJob(ctx, o.cli, o.log, job)
 		if err != nil {
 			o.logContainersState(out, status)
-			return nil, fmt.Errorf("failed to run pod %s/%s on node %s: %w", pod.Namespace, pod.Name, node.Name, err)
+			return nil, fmt.Errorf("failed to run job %s/%s on node %s: %w", job.Namespace, job.Name, node.Name, err)
 		}
 
 		free, used, err := o.parseDFContainerOutput(out["df"])
@@ -216,90 +217,98 @@ func (o *OpenEBSChecker) basePath(ctx context.Context) (string, error) {
 	return "", fmt.Errorf("openebs base path not defined in the storage class")
 }
 
-// buildPod returns a pod that runs a "df" in the openebs hostpath mounted volume and a
-// "cat" on host's /etc/fstab file.
-func (o *OpenEBSChecker) buildPod(ctx context.Context, node, basePath string) *corev1.Pod {
-	podName := fmt.Sprintf("disk-free-%s", node)
-	if len(podName) > 63 {
-		podName = podName[0:31] + podName[len(podName)-32:]
-	}
-
-	typedir := corev1.HostPathDirectory
-	typefile := corev1.HostPathFile
-	return &corev1.Pod{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      podName,
-			Namespace: "default",
-			Labels: map[string]string{
-				"pvmigrate": "volume-bind",
+// buildJob returns a job scheduled to run in provided node. this job runs a pod with two
+// containers, one to capture the disk size and the other to capture the content of the
+// node fstab. timeout for the job is 30 seconds.
+func (o *OpenEBSChecker) buildJob(ctx context.Context, node, basePath string) *batchv1.Job {
+	schedRules := &corev1.NodeSelector{
+		NodeSelectorTerms: []corev1.NodeSelectorTerm{
+			{
+				MatchExpressions: []corev1.NodeSelectorRequirement{
+					{
+						Key:      "kubernetes.io/hostname",
+						Operator: corev1.NodeSelectorOperator("In"),
+						Values:   []string{node},
+					},
+				},
 			},
 		},
-		Spec: corev1.PodSpec{
-			RestartPolicy: corev1.RestartPolicyNever,
-			Affinity: &corev1.Affinity{
-				NodeAffinity: &corev1.NodeAffinity{
-					RequiredDuringSchedulingIgnoredDuringExecution: &corev1.NodeSelector{
-						NodeSelectorTerms: []corev1.NodeSelectorTerm{
-							{
-								MatchExpressions: []corev1.NodeSelectorRequirement{
-									{
-										Key:      "kubernetes.io/hostname",
-										Operator: corev1.NodeSelectorOperator("In"),
-										Values:   []string{node},
-									},
-								},
-							},
-						},
+	}
+
+	typeDir := corev1.HostPathDirectory
+	typeFile := corev1.HostPathFile
+	podSpec := corev1.PodSpec{
+		RestartPolicy: corev1.RestartPolicyNever,
+		Affinity: &corev1.Affinity{
+			NodeAffinity: &corev1.NodeAffinity{
+				RequiredDuringSchedulingIgnoredDuringExecution: schedRules,
+			},
+		},
+		Volumes: []corev1.Volume{
+			{
+				Name: "openebs",
+				VolumeSource: corev1.VolumeSource{
+					HostPath: &corev1.HostPathVolumeSource{
+						Type: &typeDir,
+						Path: basePath,
 					},
 				},
 			},
-			Volumes: []corev1.Volume{
-				{
-					Name: "openebs",
-					VolumeSource: corev1.VolumeSource{
-						HostPath: &corev1.HostPathVolumeSource{
-							Type: &typedir,
-							Path: basePath,
-						},
-					},
-				},
-				{
-					Name: "fstab",
-					VolumeSource: corev1.VolumeSource{
-						HostPath: &corev1.HostPathVolumeSource{
-							Type: &typefile,
-							Path: "/etc/fstab",
-						},
+			{
+				Name: "fstab",
+				VolumeSource: corev1.VolumeSource{
+					HostPath: &corev1.HostPathVolumeSource{
+						Type: &typeFile,
+						Path: "/etc/fstab",
 					},
 				},
 			},
-			Containers: []corev1.Container{
-				{
-					Name:    "df",
-					Image:   o.image,
-					Command: []string{"df"},
-					Args:    []string{"-B1", "/data"},
-					VolumeMounts: []corev1.VolumeMount{
-						{
-							MountPath: "/data",
-							Name:      "openebs",
-							ReadOnly:  true,
-						},
+		},
+		Containers: []corev1.Container{
+			{
+				Name:    "df",
+				Image:   o.image,
+				Command: []string{"df"},
+				Args:    []string{"-B1", "/data"},
+				VolumeMounts: []corev1.VolumeMount{
+					{
+						MountPath: "/data",
+						Name:      "openebs",
+						ReadOnly:  true,
 					},
 				},
-				{
-					Name:    "fstab",
-					Image:   o.image,
-					Command: []string{"cat"},
-					Args:    []string{"/node/etc/fstab"},
-					VolumeMounts: []corev1.VolumeMount{
-						{
-							MountPath: "/node/etc/fstab",
-							Name:      "fstab",
-							ReadOnly:  true,
-						},
+			},
+			{
+				Name:    "fstab",
+				Image:   o.image,
+				Command: []string{"cat"},
+				Args:    []string{"/node/etc/fstab"},
+				VolumeMounts: []corev1.VolumeMount{
+					{
+						MountPath: "/node/etc/fstab",
+						Name:      "fstab",
+						ReadOnly:  true,
 					},
 				},
+			},
+		},
+	}
+
+	jobName := fmt.Sprintf("disk-free-%s", node)
+	if len(jobName) > 63 {
+		jobName = jobName[0:31] + jobName[len(jobName)-32:]
+	}
+
+	return &batchv1.Job{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      jobName,
+			Namespace: "default",
+		},
+		Spec: batchv1.JobSpec{
+			BackoffLimit:          pointer.Int32(1),
+			ActiveDeadlineSeconds: pointer.Int64(30),
+			Template: corev1.PodTemplateSpec{
+				Spec: podSpec,
 			},
 		},
 	}
