@@ -53,7 +53,7 @@ jobs:
 
       - uses: actions/checkout@v3
 
-      - run: make deps test build/bin/kurl
+      - run: make test build/bin/kurl
 
   test-shell:
     runs-on: ubuntu-20.04
