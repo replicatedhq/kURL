@@ -37,7 +37,7 @@ func (k *K8SUtils) PVSReservationPerNode(ctx context.Context, scname string) (ma
 		pv, ok := pvs[pvidx]
 		if !ok {
 			pvcidx := fmt.Sprintf("%s/%s", pvc.Namespace, pvc.Name)
-			return nil, 0, fmt.Errorf("pv for pvc %s not found", pvcidx)
+			return nil, 0, fmt.Errorf("pv %s for pvc %s not found", pvidx, pvcidx)
 		}
 
 		pods, err := k.cli.CoreV1().Pods(pvc.Namespace).List(ctx, metav1.ListOptions{})
