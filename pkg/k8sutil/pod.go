@@ -12,6 +12,25 @@ import (
 	"k8s.io/client-go/kubernetes"
 )
 
+// PodUsesPVC returs true if provided pod has provided pvc among its volumes.
+func PodUsesPVC(pod corev1.Pod, pvc corev1.PersistentVolumeClaim) bool {
+	if pod.Namespace != pvc.Namespace {
+		return false
+	}
+
+	for _, vol := range pod.Spec.Volumes {
+		if vol.PersistentVolumeClaim == nil {
+			continue
+		}
+		if vol.PersistentVolumeClaim.ClaimName != pvc.Name {
+			continue
+		}
+		return true
+	}
+
+	return false
+}
+
 // RunEphemeralPod starts provided pod and waits until it finishes. the values returned are the
 // pod logs, its last status, and an error. returned logs and pod status may be nil depending on
 // the type of failure. the pod is deleted at the end.

@@ -6,7 +6,6 @@ import (
 	"log"
 
 	"github.com/replicatedhq/kurl/pkg/k8sutil"
-	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
@@ -17,25 +16,6 @@ type K8SUtils struct {
 	log *log.Logger
 	cli kubernetes.Interface
 	cfg *rest.Config
-}
-
-// PodUsesPVC returs true if provided pod has provided pvc among its volumes.
-func (k *K8SUtils) PodUsesPVC(pod corev1.Pod, pvc corev1.PersistentVolumeClaim) bool {
-	if pod.Namespace != pvc.Namespace {
-		return false
-	}
-
-	for _, vol := range pod.Spec.Volumes {
-		if vol.PersistentVolumeClaim == nil {
-			continue
-		}
-		if vol.PersistentVolumeClaim.ClaimName != pvc.Name {
-			continue
-		}
-		return true
-	}
-
-	return false
 }
 
 // PVSReservationPerNode return the sum of space of all pvs being served per node. this function
@@ -67,7 +47,7 @@ func (k *K8SUtils) PVSReservationPerNode(ctx context.Context, scname string) (ma
 
 		var inuse bool
 		for _, pod := range pods.Items {
-			if !k.PodUsesPVC(pod, pvc) {
+			if !k8sutil.PodUsesPVC(pod, pvc) {
 				continue
 			}
 
