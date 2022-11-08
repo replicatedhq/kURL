@@ -73,7 +73,7 @@ func (k *K8SUtils) PVSReservationPerNode(ctx context.Context, scname string) (ma
 
 			bytes, dec := pv.Spec.Capacity.Storage().AsInt64()
 			if !dec {
-				return nil, 0, fmt.Errorf("error parsing pv %s storage size", pvidx)
+				return nil, 0, fmt.Errorf("failed to parse pv %s storage size: %w", pvidx, err)
 			}
 			inuse = true
 			attached[pod.Spec.NodeName] += bytes
