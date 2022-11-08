@@ -133,7 +133,7 @@ func confirm(logger *log.Logger) bool {
 	logger.Println("can still succeed.")
 	reader := bufio.NewReader(os.Stdin)
 	for {
-		fmt.Print("Do you wish to proceed ? [y/N]: ")
+		fmt.Print("Do you wish to proceed ? (y/N): ")
 		response, err := reader.ReadString('\n')
 		if err != nil {
 			logger.Printf("failed to read user input: %s", err)

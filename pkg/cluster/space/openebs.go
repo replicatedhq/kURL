@@ -25,12 +25,11 @@ import (
 
 // OpenEBSChecker checks if we have enough disk space on the cluster to migrate volumes to openebs.
 type OpenEBSChecker struct {
-	cli    kubernetes.Interface
-	log    *log.Logger
-	image  string
-	srcSC  string
-	dstSC  string
-	kutils *K8SUtils
+	cli   kubernetes.Interface
+	log   *log.Logger
+	image string
+	srcSC string
+	dstSC string
 }
 
 // parseDFContainerOutput parses the output (log) of the 'disk available' pod. the output of the
@@ -336,7 +335,7 @@ func (o *OpenEBSChecker) Check(ctx context.Context) ([]string, error) {
 		return nil, fmt.Errorf("failed to calculate available disk space per node: %w", err)
 	}
 
-	reservedPerNode, reservedDetached, err := o.kutils.PVSReservationPerNode(ctx, o.srcSC)
+	reservedPerNode, reservedDetached, err := k8sutil.PVSReservationPerNode(ctx, o.cli, o.srcSC)
 	if err != nil {
 		return nil, fmt.Errorf("failed to calculate reserved disk space per node: %w", err)
 	}
@@ -403,11 +402,10 @@ func (o *OpenEBSChecker) Check(ctx context.Context) ([]string, error) {
 // NewOpenEBSChecker returns a disk free analyser for openebs storage local volume provisioner.
 func NewOpenEBSChecker(cli kubernetes.Interface, log *log.Logger, cfg *rest.Config, image, srcSC, dstSC string) *OpenEBSChecker {
 	return &OpenEBSChecker{
-		cli:    cli,
-		log:    log,
-		image:  image,
-		srcSC:  srcSC,
-		dstSC:  dstSC,
-		kutils: NewK8sUtils(log, cli, cfg),
+		cli:   cli,
+		log:   log,
+		image: image,
+		srcSC: srcSC,
+		dstSC: dstSC,
 	}
 }

@@ -17,11 +17,10 @@ import (
 // RookChecker checks if we have enough disk space to migrate volumes to rook. uses the rook-ceph-tool pod to fetch
 // the free space and then compare it with all allocated space for all volumes of source storage class (srcSC).
 type RookChecker struct {
-	cli    kubernetes.Interface
-	cfg    *rest.Config
-	log    *log.Logger
-	kutils *K8SUtils
-	srcSC  string
+	cli   kubernetes.Interface
+	cfg   *rest.Config
+	log   *log.Logger
+	srcSC string
 }
 
 // CephData represents the unmarshaled output of a "ceph df -f json" command output.
@@ -89,7 +88,7 @@ func (r *RookChecker) freeSpace(ctx context.Context) (int64, error) {
 
 // reservedSpace returns the total size of all volumes using the source storage class (srcSC).
 func (r *RookChecker) reservedSpace(ctx context.Context) (int64, error) {
-	usedPerNode, usedDetached, err := r.kutils.PVSReservationPerNode(ctx, r.srcSC)
+	usedPerNode, usedDetached, err := k8sutil.PVSReservationPerNode(ctx, r.cli, r.srcSC)
 	if err != nil {
 		return 0, fmt.Errorf("failed to calculate used disk space per node: %w", err)
 	}
@@ -125,10 +124,9 @@ func (r *RookChecker) Check(ctx context.Context) (bool, error) {
 // NewRookChecker returns a disk free analyser for rook storage provisioner.
 func NewRookChecker(cli kubernetes.Interface, log *log.Logger, cfg *rest.Config, srcSC string) *RookChecker {
 	return &RookChecker{
-		cli:    cli,
-		cfg:    cfg,
-		log:    log,
-		srcSC:  srcSC,
-		kutils: NewK8sUtils(log, cli, cfg),
+		cli:   cli,
+		cfg:   cfg,
+		log:   log,
+		srcSC: srcSC,
 	}
 }
