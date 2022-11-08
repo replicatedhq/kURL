@@ -331,7 +331,7 @@ func (o *OpenEBSChecker) hasEnoughSpace(vol OpenEBSVolume, reserved int64) (int6
 // Check verifies if we have enough disk space to execute the migration. returns a list of nodes
 // where the migration can't execute due to a possible lack of disk space.
 func (o *OpenEBSChecker) Check(ctx context.Context) ([]string, error) {
-	o.log.Printf("Analysing reserved and free disk space per node...")
+	o.log.Printf("Analyzing reserved and free disk space per node...")
 	volumes, err := o.openEBSVolumes(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("error calculating available disk space per node: %w", err)
