@@ -6,6 +6,7 @@ import (
 	"log"
 
 	"github.com/replicatedhq/kurl/pkg/k8sutil"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
@@ -32,7 +33,8 @@ func (k *K8SUtils) PVSReservationPerNode(ctx context.Context, scname string) (ma
 	}
 
 	var detached int64
-	var attached = map[string]int64{}
+	attached := map[string]int64{}
+	cache := map[string][]corev1.Pod{}
 	for pvidx, pvc := range pvcs {
 		pv, ok := pvs[pvidx]
 		if !ok {
@@ -40,13 +42,18 @@ func (k *K8SUtils) PVSReservationPerNode(ctx context.Context, scname string) (ma
 			return nil, 0, fmt.Errorf("pv %s for pvc %s not found", pvidx, pvcidx)
 		}
 
-		pods, err := k.cli.CoreV1().Pods(pvc.Namespace).List(ctx, metav1.ListOptions{})
-		if err != nil {
-			return nil, 0, fmt.Errorf("failed to list pods in namespace %s: %w", pvc.Namespace, err)
+		pods, ok := cache[pvc.Namespace]
+		if !ok {
+			list, err := k.cli.CoreV1().Pods(pvc.Namespace).List(ctx, metav1.ListOptions{})
+			if err != nil {
+				return nil, 0, fmt.Errorf("failed to list pods in namespace %s: %w", pvc.Namespace, err)
+			}
+			cache[pvc.Namespace] = list.Items
+			pods = cache[pvc.Namespace]
 		}
 
 		var inuse bool
-		for _, pod := range pods.Items {
+		for _, pod := range pods {
 			if !k8sutil.PodUsesPVC(pod, pvc) {
 				continue
 			}
