@@ -124,7 +124,7 @@ func (o *OpenEBSChecker) openEBSVolumes(ctx context.Context) (map[string]OpenEBS
 		out, status, err := k8sutil.RunEphemeralPod(ctx, o.cli, o.log, 30*time.Second, pod)
 		if err != nil {
 			o.logPodInfo(out, status)
-			return nil, fmt.Errorf("failed to run pod on node %s: %w", node.Name, err)
+			return nil, fmt.Errorf("failed to run pod %s/%s on node %s: %w", pod.Namespace, pod.Name, node.Name, err)
 		}
 
 		free, used, err := o.parseDFContainerOutput(out["df"])

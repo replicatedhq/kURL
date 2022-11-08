@@ -35,17 +35,16 @@ func PodUsesPVC(pod corev1.Pod, pvc corev1.PersistentVolumeClaim) bool {
 // pod logs, its last status, and an error. returned logs and pod status may be nil depending on
 // the type of failure. the pod is deleted at the end.
 func RunEphemeralPod(ctx context.Context, cli kubernetes.Interface, logger *log.Logger, timeout time.Duration, pod *corev1.Pod) (map[string][]byte, *corev1.PodStatus, error) {
-	podidx := fmt.Sprintf("%s/%s", pod.Namespace, pod.Name)
 	pod, err := cli.CoreV1().Pods(pod.Namespace).Create(ctx, pod, metav1.CreateOptions{})
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed to create pod %s: %w", podidx, err)
+		return nil, nil, fmt.Errorf("failed to create pod: %w", err)
 	}
 
 	defer func() {
 		if err = cli.CoreV1().Pods(pod.Namespace).Delete(
 			context.Background(), pod.Name, metav1.DeleteOptions{},
 		); err != nil {
-			logger.Printf("failed to delete pod %s: %s", podidx, err)
+			logger.Printf("failed to delete pod: %s", err)
 		}
 	}()
 
@@ -57,7 +56,7 @@ func RunEphemeralPod(ctx context.Context, cli kubernetes.Interface, logger *log.
 		if gotPod, err = cli.CoreV1().Pods(pod.Namespace).Get(
 			ctx, pod.Name, metav1.GetOptions{},
 		); err != nil {
-			return nil, nil, fmt.Errorf("failed getting pod %s: %w", podidx, err)
+			return nil, nil, fmt.Errorf("failed getting pod: %w", err)
 		}
 
 		lastPodStatus = gotPod.Status
