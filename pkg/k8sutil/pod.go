@@ -24,7 +24,7 @@ func RunEphemeralPod(ctx context.Context, cli kubernetes.Interface, logger *log.
 
 	defer func() {
 		if err = cli.CoreV1().Pods(pod.Namespace).Delete(
-			ctx, pod.Name, metav1.DeleteOptions{},
+			context.Background(), pod.Name, metav1.DeleteOptions{},
 		); err != nil {
 			logger.Printf("unable to delete pod %s: %s", podidx, err)
 		}
