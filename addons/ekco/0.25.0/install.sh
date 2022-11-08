@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-EKCO_HAPROXY_IMAGE=haproxy:__HAPROXY_VERSION__
+EKCO_HAPROXY_IMAGE=haproxy:2.6.6-alpine3.16
 
 function ekco_pre_init() {
     if [ -z "$EKCO_NODE_UNREACHABLE_TOLERATION_DURATION" ]; then
