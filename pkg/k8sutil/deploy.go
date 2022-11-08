@@ -14,12 +14,12 @@ import (
 func DeploymentPods(ctx context.Context, cli kubernetes.Interface, ns, depname string) ([]corev1.Pod, error) {
 	deploy, err := cli.AppsV1().Deployments(ns).Get(ctx, depname, metav1.GetOptions{})
 	if err != nil {
-		return nil, fmt.Errorf("unable to get deployment: %w", err)
+		return nil, fmt.Errorf("failed to get deployment: %w", err)
 	}
 
 	rss, err := cli.AppsV1().ReplicaSets(ns).List(ctx, metav1.ListOptions{})
 	if err != nil {
-		return nil, fmt.Errorf("unable to get replicaset: %w", err)
+		return nil, fmt.Errorf("failed to get replicaset: %w", err)
 	}
 
 	var chrs *appsv1.ReplicaSet
@@ -31,12 +31,12 @@ func DeploymentPods(ctx context.Context, cli kubernetes.Interface, ns, depname s
 		break
 	}
 	if chrs == nil {
-		return nil, fmt.Errorf("unable to find replicaset for deploy: %s/%s", ns, depname)
+		return nil, fmt.Errorf("failed to find replicaset for deploy: %s/%s", ns, depname)
 	}
 
 	pods, err := cli.CoreV1().Pods(ns).List(ctx, metav1.ListOptions{})
 	if err != nil {
-		return nil, fmt.Errorf("unable to get pods: %w", err)
+		return nil, fmt.Errorf("failed to get pods: %w", err)
 	}
 
 	result := []corev1.Pod{}

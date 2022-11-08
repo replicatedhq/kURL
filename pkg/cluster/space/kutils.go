@@ -23,12 +23,12 @@ type K8SUtils struct {
 func (k *K8SUtils) PVSReservationPerNode(ctx context.Context, scname string) (map[string]int64, int64, error) {
 	pvs, err := k8sutil.PVSByStorageClass(ctx, k.cli, scname)
 	if err != nil {
-		return nil, 0, fmt.Errorf("unable to get pvs: %w", err)
+		return nil, 0, fmt.Errorf("failed to get pvs: %w", err)
 	}
 
 	pvcs, err := k8sutil.PVCSForPVs(ctx, k.cli, pvs)
 	if err != nil {
-		return nil, 0, fmt.Errorf("unable to get pvcs for pvs: %w", err)
+		return nil, 0, fmt.Errorf("failed to get pvcs for pvs: %w", err)
 	}
 
 	var detached int64

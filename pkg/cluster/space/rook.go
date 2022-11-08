@@ -38,7 +38,7 @@ func (r *RookChecker) freeSpace(ctx context.Context) (int64, error) {
 	deployment := "rook-ceph-tools"
 	pods, err := k8sutil.DeploymentPods(ctx, r.cli, namespace, deployment)
 	if err != nil {
-		return 0, fmt.Errorf("unable to find ceph tools pod: %w", err)
+		return 0, fmt.Errorf("failed to find ceph tools pod: %w", err)
 	}
 
 	if len(pods) == 0 {
@@ -50,11 +50,11 @@ func (r *RookChecker) freeSpace(ctx context.Context) (int64, error) {
 	cmd := []string{"ceph", "df", "-f", "json"}
 	ecode, stdout, stderr, err := k8sutil.SyncExec(corecli, r.cfg, namespace, podname, "", cmd...)
 	if err != nil {
-		return 0, fmt.Errorf("error executing command on rook-ceph-tools-pod: %w", err)
+		return 0, fmt.Errorf("failed to execute command on rook-ceph-tools-pod: %w", err)
 	}
 
 	logCommandOutputs := func() {
-		r.log.Printf("unable to get free ceph storage on pod %s:", podname)
+		r.log.Printf("failed to get free ceph storage on pod %s:", podname)
 		r.log.Printf("exit code: %d", ecode)
 		r.log.Printf("stdout:\n %s", stdout)
 		r.log.Printf("stderr:\n %s", stderr)
@@ -72,7 +72,7 @@ func (r *RookChecker) freeSpace(ctx context.Context) (int64, error) {
 
 		if err := json.Unmarshal(line, &cephdata); err != nil {
 			logCommandOutputs()
-			return 0, fmt.Errorf("unable to parse rook ceph tools pod output: %w", err)
+			return 0, fmt.Errorf("failed to parse rook ceph tools pod output: %w", err)
 		}
 
 		parsed = true
@@ -81,7 +81,7 @@ func (r *RookChecker) freeSpace(ctx context.Context) (int64, error) {
 
 	if !parsed {
 		logCommandOutputs()
-		return 0, fmt.Errorf("unable to parse rook ceph tools pod output")
+		return 0, fmt.Errorf("failed to parse rook ceph tools pod output")
 	}
 
 	return cephdata.Stats.TotalAvalBytes, nil
@@ -91,7 +91,7 @@ func (r *RookChecker) freeSpace(ctx context.Context) (int64, error) {
 func (r *RookChecker) reservedSpace(ctx context.Context) (int64, error) {
 	usedPerNode, usedDetached, err := r.kutils.PVSReservationPerNode(ctx, r.srcSC)
 	if err != nil {
-		return 0, fmt.Errorf("error calculating used disk space per node: %w", err)
+		return 0, fmt.Errorf("failed to calculate used disk space per node: %w", err)
 	}
 
 	total := usedDetached
@@ -107,12 +107,12 @@ func (r *RookChecker) Check(ctx context.Context) (bool, error) {
 	r.log.Print("Analysing reserved and free Ceph disk space...")
 	free, err := r.freeSpace(ctx)
 	if err != nil {
-		return false, fmt.Errorf("unable to verify free space: %w", err)
+		return false, fmt.Errorf("failed to verify free space: %w", err)
 	}
 
 	reserved, err := r.reservedSpace(ctx)
 	if err != nil {
-		return false, fmt.Errorf("unable to calculate used space: %w", err)
+		return false, fmt.Errorf("failed to calculate used space: %w", err)
 	}
 
 	r.log.Print("\n")

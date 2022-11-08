@@ -89,7 +89,7 @@ func checkFreeSpace(ctx context.Context, logger *log.Logger, cfg *rest.Config, c
 		dfchecker := clusterspace.NewOpenEBSChecker(cli, logger, cfg, opts.RsyncImage, opts.SourceSCName, opts.DestSCName)
 		nodesWithoutSpace, err := dfchecker.Check(ctx)
 		if err != nil {
-			logger.Printf("error checking nodes free space: %s", err)
+			logger.Printf("failed to check nodes free space: %s", err)
 			os.Exit(1)
 		}
 
@@ -112,7 +112,7 @@ func checkFreeSpace(ctx context.Context, logger *log.Logger, cfg *rest.Config, c
 		rook := clusterspace.NewRookChecker(cli, logger, cfg, opts.SourceSCName)
 		hasSpace, err := rook.Check(ctx)
 		if err != nil {
-			logger.Printf("unable to measure ceph free space: %s", err)
+			logger.Printf("failed to measure ceph free space: %s", err)
 			os.Exit(1)
 		}
 
@@ -136,7 +136,7 @@ func confirm(logger *log.Logger) bool {
 		fmt.Print("Do you wish to proceed ? [y/N]: ")
 		response, err := reader.ReadString('\n')
 		if err != nil {
-			logger.Printf("error reading user input: %s", err)
+			logger.Printf("failed to read user input: %s", err)
 			return false
 		}
 

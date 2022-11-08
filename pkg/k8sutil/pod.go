@@ -38,14 +38,14 @@ func RunEphemeralPod(ctx context.Context, cli kubernetes.Interface, logger *log.
 	podidx := fmt.Sprintf("%s/%s", pod.Namespace, pod.Name)
 	pod, err := cli.CoreV1().Pods(pod.Namespace).Create(ctx, pod, metav1.CreateOptions{})
 	if err != nil {
-		return nil, nil, fmt.Errorf("error creating pod %s: %w", podidx, err)
+		return nil, nil, fmt.Errorf("failed to create pod %s: %w", podidx, err)
 	}
 
 	defer func() {
 		if err = cli.CoreV1().Pods(pod.Namespace).Delete(
 			context.Background(), pod.Name, metav1.DeleteOptions{},
 		); err != nil {
-			logger.Printf("unable to delete pod %s: %s", podidx, err)
+			logger.Printf("failed to delete pod %s: %s", podidx, err)
 		}
 	}()
 
@@ -77,18 +77,18 @@ func RunEphemeralPod(ctx context.Context, cli kubernetes.Interface, logger *log.
 		options := &corev1.PodLogOptions{Container: container.Name}
 		podlogs, err := cli.CoreV1().Pods(pod.Namespace).GetLogs(pod.Name, options).Stream(ctx)
 		if err != nil {
-			return nil, nil, fmt.Errorf("error getting pod log stream: %w", err)
+			return nil, nil, fmt.Errorf("failed to get pod log stream: %w", err)
 		}
 
 		defer func(stream io.ReadCloser) {
 			if err := stream.Close(); err != nil {
-				logger.Printf("unable to close pod log stream: %s", err)
+				logger.Printf("failed to close pod log stream: %s", err)
 			}
 		}(podlogs)
 
 		output, err := io.ReadAll(podlogs)
 		if err != nil {
-			return nil, &lastPodStatus, fmt.Errorf("unable to read pod logs: %w", err)
+			return nil, &lastPodStatus, fmt.Errorf("failed to read pod logs: %w", err)
 		}
 
 		logs[container.Name] = output

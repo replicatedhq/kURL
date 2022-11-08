@@ -65,12 +65,12 @@ func (o *OpenEBSChecker) parseDFContainerOutput(output []byte) (int64, int64, er
 		pos = len(words) - 4
 		usedBytes, err := strconv.ParseInt(words[pos], 10, 64)
 		if err != nil {
-			return 0, 0, fmt.Errorf("error parsing %q as available space: %w", words[pos], err)
+			return 0, 0, fmt.Errorf("failed to parse %q as available space: %w", words[pos], err)
 		}
 
 		return freeBytes, usedBytes, nil
 	}
-	return 0, 0, fmt.Errorf("unable to locate free space info in pod log: %s", string(output))
+	return 0, 0, fmt.Errorf("failed to locate free space info in pod log: %s", string(output))
 }
 
 // parseFstabContainerOutput parses the fstab container output and return all mount points.
@@ -86,12 +86,12 @@ func (o *OpenEBSChecker) parseFstabContainerOutput(output []byte) ([]string, err
 
 		words := strings.Fields(line)
 		if len(words) < 2 {
-			return nil, fmt.Errorf("unable to parse fstab line: %s", line)
+			return nil, fmt.Errorf("failed to parse fstab line: %s", line)
 		}
 		mounts = append(mounts, words[1])
 	}
 	if len(mounts) == 0 {
-		return nil, fmt.Errorf("unable to locate any mount point")
+		return nil, fmt.Errorf("failed to locate any mount point")
 	}
 	return mounts, nil
 }
@@ -110,12 +110,12 @@ type OpenEBSVolume struct {
 func (o *OpenEBSChecker) openEBSVolumes(ctx context.Context) (map[string]OpenEBSVolume, error) {
 	nodes, err := o.cli.CoreV1().Nodes().List(ctx, metav1.ListOptions{})
 	if err != nil {
-		return nil, fmt.Errorf("unable to list nodes: %w", err)
+		return nil, fmt.Errorf("failed to list nodes: %w", err)
 	}
 
 	basePath, err := o.basePath(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("unable to read openebs base path: %w", err)
+		return nil, fmt.Errorf("failed to read openebs base path: %w", err)
 	}
 
 	result := map[string]OpenEBSVolume{}
@@ -124,7 +124,7 @@ func (o *OpenEBSChecker) openEBSVolumes(ctx context.Context) (map[string]OpenEBS
 		out, status, err := k8sutil.RunEphemeralPod(ctx, o.cli, o.log, 30*time.Second, pod)
 		if err != nil {
 			o.logPodInfo(out, status)
-			return nil, fmt.Errorf("unable to run pod on node %s: %w", node.Name, err)
+			return nil, fmt.Errorf("failed to run pod on node %s: %w", node.Name, err)
 		}
 
 		free, used, err := o.parseDFContainerOutput(out["df"])
@@ -181,7 +181,7 @@ func (o *OpenEBSChecker) logPodInfo(logs map[string][]byte, status *corev1.PodSt
 func (o *OpenEBSChecker) basePath(ctx context.Context) (string, error) {
 	sclass, err := o.cli.StorageV1().StorageClasses().Get(ctx, o.dstSC, metav1.GetOptions{})
 	if err != nil {
-		return "", fmt.Errorf("error reading destination storage class: %w", err)
+		return "", fmt.Errorf("failed to read destination storage class: %w", err)
 	}
 
 	cfg, ok := sclass.Annotations["cas.openebs.io/config"]
@@ -194,7 +194,7 @@ func (o *OpenEBSChecker) basePath(ctx context.Context) (string, error) {
 		Value string `yaml:"value"`
 	}{}
 	if err := yaml.Unmarshal([]byte(cfg), &pairs); err != nil {
-		return "", fmt.Errorf("unable to parse openebs config annotation: %w", err)
+		return "", fmt.Errorf("failed to parse openebs config annotation: %w", err)
 	}
 
 	for _, p := range pairs {
@@ -313,12 +313,12 @@ func (o *OpenEBSChecker) Check(ctx context.Context) ([]string, error) {
 	o.log.Printf("Analyzing reserved and free disk space per node...")
 	volumes, err := o.openEBSVolumes(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("error calculating available disk space per node: %w", err)
+		return nil, fmt.Errorf("failed to calculate available disk space per node: %w", err)
 	}
 
 	reservedPerNode, reservedDetached, err := o.kutils.PVSReservationPerNode(ctx, o.srcSC)
 	if err != nil {
-		return nil, fmt.Errorf("error calculating reserved disk space per node: %w", err)
+		return nil, fmt.Errorf("failed to calculate reserved disk space per node: %w", err)
 	}
 
 	faultyNodes := map[string]bool{}
@@ -331,7 +331,7 @@ func (o *OpenEBSChecker) Check(ctx context.Context) ([]string, error) {
 
 		faultyNodes[node] = true
 		o.log.Printf(
-			"Node %q has %s available, unable to migrate %s (%q storage class)",
+			"Node %q has %s available, failed to migrate %s (%q storage class)",
 			node,
 			bytefmt.ByteSize(uint64(free)),
 			bytefmt.ByteSize(uint64(reservedPerNode[node])),
@@ -358,7 +358,7 @@ func (o *OpenEBSChecker) Check(ctx context.Context) ([]string, error) {
 				}
 				o.log.Printf(
 					"Node %q has %s left (after migrating reserved storage), "+
-						"unable to host extra %s of detached PVs",
+						"failed to host extra %s of detached PVs",
 					node,
 					bytefmt.ByteSize(uint64(free)),
 					bytefmt.ByteSize(uint64(reservedDetached)),
