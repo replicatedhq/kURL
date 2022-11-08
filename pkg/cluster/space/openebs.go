@@ -59,7 +59,7 @@ func (o *OpenEBSChecker) parseDFContainerOutput(output []byte) (int64, int64, er
 		pos := len(words) - 3
 		freeBytes, err := strconv.ParseInt(words[pos], 10, 64)
 		if err != nil {
-			return 0, 0, fmt.Errorf("error parsing %q as available space", words[pos])
+			return 0, 0, fmt.Errorf("failed to parse %q as available space: %w", words[pos], err)
 		}
 
 		// pos is now the position where the actual used space is.
