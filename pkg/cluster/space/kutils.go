@@ -62,7 +62,7 @@ func (k *K8SUtils) PVSReservationPerNode(ctx context.Context, scname string) (ma
 
 		pods, err := k.cli.CoreV1().Pods(pvc.Namespace).List(ctx, metav1.ListOptions{})
 		if err != nil {
-			return nil, 0, fmt.Errorf("error listing pods: %w", err)
+			return nil, 0, fmt.Errorf("failed to list pods in namespace %s: %w", pvc.Namespace, err)
 		}
 
 		var inuse bool
