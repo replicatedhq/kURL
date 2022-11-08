@@ -14,7 +14,6 @@ import (
 	"code.cloudfoundry.org/bytefmt"
 	"gopkg.in/yaml.v2"
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
@@ -277,16 +276,6 @@ func (o *OpenEBSChecker) buildPod(ctx context.Context, node, basePath string) *c
 							ReadOnly:  true,
 						},
 					},
-					Resources: corev1.ResourceRequirements{
-						Requests: corev1.ResourceList{
-							corev1.ResourceMemory: resource.MustParse("32Mi"),
-							corev1.ResourceCPU:    resource.MustParse("100m"),
-						},
-						Limits: corev1.ResourceList{
-							corev1.ResourceMemory: resource.MustParse("32Mi"),
-							corev1.ResourceCPU:    resource.MustParse("100m"),
-						},
-					},
 				},
 				{
 					Name:    "fstab",
@@ -298,16 +287,6 @@ func (o *OpenEBSChecker) buildPod(ctx context.Context, node, basePath string) *c
 							MountPath: "/node/etc/fstab",
 							Name:      "fstab",
 							ReadOnly:  true,
-						},
-					},
-					Resources: corev1.ResourceRequirements{
-						Requests: corev1.ResourceList{
-							corev1.ResourceMemory: resource.MustParse("32Mi"),
-							corev1.ResourceCPU:    resource.MustParse("100m"),
-						},
-						Limits: corev1.ResourceList{
-							corev1.ResourceMemory: resource.MustParse("32Mi"),
-							corev1.ResourceCPU:    resource.MustParse("100m"),
 						},
 					},
 				},
