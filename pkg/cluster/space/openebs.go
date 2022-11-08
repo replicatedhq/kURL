@@ -131,7 +131,7 @@ func (o *OpenEBSChecker) openEBSVolumes(ctx context.Context) (map[string]OpenEBS
 		free, used, err := o.parseDFContainerOutput(out["df"])
 		if err != nil {
 			o.logPodInfo(out, status)
-			return nil, fmt.Errorf("unable to parse pod output: %w", err)
+			return nil, fmt.Errorf("failed to parse node %s df output: %w", node.Name, err)
 		}
 
 		volumes, err := o.parseFstabContainerOutput(out["fstab"])
