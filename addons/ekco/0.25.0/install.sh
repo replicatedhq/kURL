@@ -61,7 +61,7 @@ function ekco_pre_init() {
     fi
 
     EKCO_MAINTAIN_KOTSADM=false
-    if [ -n "$KOTSADM_VERSION" ] && [ -n "$OPENEBS_LOCALPV" ] && [ "$EKCO_SHOULD_DISABLE_KOTSADM_MANAGEMENT" != "1" ]; then
+    if [ -n "$KOTSADM_VERSION" ] && [ -n "$OPENEBS_LOCALPV" ] && [ "$EKCO_KOTSADM_SHOULD_DISABLE_MANAGEMENT" != "1" ]; then
         EKCO_MAINTAIN_KOTSADM=true
     fi
 }
