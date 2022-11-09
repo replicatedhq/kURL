@@ -1,0 +1,5 @@
+FROM ubuntu:22.04
+
+WORKDIR /src
+
+RUN apt-get update -q && apt-get install -y -q make curl
