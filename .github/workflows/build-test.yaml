@@ -58,9 +58,8 @@ jobs:
   test-shell:
     runs-on: ubuntu-20.04
     steps:
-      - run: sudo apt-get install -y shunit2
       - uses: actions/checkout@v3
-      - run: make test-shell shunit2
+      - run: make docker-test-shell
 
   build-test-success:
     runs-on: ubuntu-latest

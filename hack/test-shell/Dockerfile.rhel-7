@@ -1,0 +1,5 @@
+FROM centos:7
+
+WORKDIR /src
+
+RUN yum install -y -q make curl

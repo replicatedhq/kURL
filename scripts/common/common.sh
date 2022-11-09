@@ -511,7 +511,7 @@ function spinner_until() {
     local spinstr='|/-\'
 
     while ! $cmd $args; do
-        elapsed=$(($elapsed + $delay))
+        elapsed=$((elapsed + delay))
         if [ "$timeoutSeconds" -ge 0 ] && [ "$elapsed" -gt "$timeoutSeconds" ]; then
             return 1
         fi
@@ -531,7 +531,7 @@ function sleep_spinner() {
     local spinstr='|/-\'
 
     while true ; do
-        elapsed=$(("$elapsed" + "$delay"))
+        elapsed=$((elapsed + delay))
         if [ "$elapsed" -gt "$sleepSeconds" ]; then
             return 0
         fi

@@ -575,6 +575,22 @@ vet:
 test: lint vet
 	go test ${BUILDFLAGS} ./cmd/... ./pkg/...
 
+/usr/local/bin/shunit2:
+	curl -LO https://raw.githubusercontent.com/kward/shunit2/v2.1.8/shunit2
+	install -d /usr/local/bin
+	install -m644 shunit2 /usr/local/bin/shunit2
+
+.PHONY: docker-test-shell
+docker-test-shell:
+	docker build -t kurl-test-shell-rhel-7 -f hack/test-shell/Dockerfile.rhel-7 hack/test-shell
+	docker build -t kurl-test-shell-rhel-8 -f hack/test-shell/Dockerfile.rhel-8 hack/test-shell
+	docker build -t kurl-test-shell-ubuntu-20.04 -f hack/test-shell/Dockerfile.ubuntu-20.04 hack/test-shell
+	docker build -t kurl-test-shell-ubuntu-22.04 -f hack/test-shell/Dockerfile.ubuntu-22.04 hack/test-shell
+	docker run -i --rm -v `pwd`:/src kurl-test-shell-rhel-7 make /usr/local/bin/shunit2 test-shell
+	docker run -i --rm -v `pwd`:/src kurl-test-shell-rhel-8 make /usr/local/bin/shunit2 test-shell
+	docker run -i --rm -v `pwd`:/src kurl-test-shell-ubuntu-20.04 make /usr/local/bin/shunit2 test-shell
+	docker run -i --rm -v `pwd`:/src kurl-test-shell-ubuntu-22.04 make /usr/local/bin/shunit2 test-shell
+
 .PHONY: test-shell
 test-shell:
 	# TODO:
@@ -585,6 +601,7 @@ test-shell:
 	./scripts/common/kubernetes-test.sh
 	./scripts/common/proxy-test.sh
 	./scripts/common/yaml-test.sh
+	./scripts/common/test/common-test.sh
 	./addons/rook/template/test/install.sh
 
 .PHONY: kurl-util-image
@@ -599,13 +616,6 @@ generate-addons:
 generate-mocks:
 	mockgen -source=pkg/cli/cli.go -destination=pkg/cli/mock/mock_cli.go
 	mockgen -source=pkg/preflight/runner.go -destination=pkg/preflight/mock/mock_runner.go
-
-.PHONY: shunit2
-shunit2: common-test #TODO include other tests
-
-.PHONY: common-test
-common-test:
-	./scripts/common/test/common-test.sh
 
 .PHONY: init-sbom
 init-sbom:
