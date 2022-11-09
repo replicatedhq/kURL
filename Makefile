@@ -578,7 +578,7 @@ test: lint vet
 /usr/local/bin/shunit2:
 	curl -LO https://raw.githubusercontent.com/kward/shunit2/v2.1.8/shunit2
 	install -d /usr/local/bin
-	install -m644 shunit2 /usr/local/bin/shunit2
+	install shunit2 /usr/local/bin/shunit2
 
 .PHONY: docker-test-shell
 docker-test-shell:
