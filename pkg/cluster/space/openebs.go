@@ -54,7 +54,7 @@ func (o *OpenEBSChecker) parseDFContainerOutput(output []byte) (int64, int64, er
 
 		// lastpos is where the mount point lives.
 		lastpos := len(words) - 1
-		if words[lastpos] != "/data" {
+		if words[lastpos] != "/data" || len(words) < 5 {
 			continue
 		}
 
@@ -79,6 +79,7 @@ func (o *OpenEBSChecker) parseDFContainerOutput(output []byte) (int64, int64, er
 
 // parseFstabContainerOutput parses the fstab container output and return all mount points.
 func (o *OpenEBSChecker) parseFstabContainerOutput(output []byte) ([]string, error) {
+	seen := map[string]bool{}
 	mounts := []string{}
 	buf := bytes.NewBuffer(output)
 	scanner := bufio.NewScanner(buf)
@@ -89,9 +90,15 @@ func (o *OpenEBSChecker) parseFstabContainerOutput(output []byte) ([]string, err
 		}
 
 		words := strings.Fields(line)
-		if len(words) < 2 {
-			return nil, fmt.Errorf("failed to parse fstab line: %s", line)
+		if len(words) < 2 || !strings.HasPrefix(words[1], "/") {
+			continue
 		}
+
+		if _, ok := seen[words[1]]; ok {
+			continue
+		}
+
+		seen[words[1]] = true
 		mounts = append(mounts, words[1])
 	}
 	if len(mounts) == 0 {

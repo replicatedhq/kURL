@@ -52,7 +52,6 @@ func main() {
 
 	if !skipFreeSpaceCheck {
 		checkFreeSpace(ctx, logger, cfg, cli, opts)
-		os.Exit(0)
 	}
 
 	if err = migrate.Migrate(ctx, logger, cli, opts); err != nil {
