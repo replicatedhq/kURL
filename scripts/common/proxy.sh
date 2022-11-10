@@ -120,7 +120,7 @@ function configure_no_proxy() {
         addresses="${addresses},${ENV_NO_PROXY}"
     fi
     if [ -n "$KOTSADM_VERSION" ]; then
-        addresses="${addresses},kotsadm-api-node"
+        addresses="${addresses},kotsadm-rqlite,kotsadm-api-node"
     fi
     if [ -n "$ROOK_VERSION" ]; then
         addresses="${addresses},.rook-ceph"
