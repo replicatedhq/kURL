@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bufio"
 	"context"
 	"flag"
 	"fmt"
@@ -53,6 +52,7 @@ func main() {
 
 	if !skipFreeSpaceCheck {
 		checkFreeSpace(ctx, logger, cfg, cli, opts)
+		os.Exit(0)
 	}
 
 	if err = migrate.Migrate(ctx, logger, cli, opts); err != nil {
@@ -86,10 +86,15 @@ func checkFreeSpace(ctx context.Context, logger *log.Logger, cfg *rest.Config, c
 	}
 
 	if dstProvisioner == "openebs.io/local" {
-		dfchecker := clusterspace.NewOpenEBSChecker(cli, logger, cfg, opts.RsyncImage, opts.SourceSCName, opts.DestSCName)
+		dfchecker, err := clusterspace.NewOpenEBSChecker(cfg, logger, opts.RsyncImage, opts.SourceSCName, opts.DestSCName)
+		if err != nil {
+			logger.Printf("Failed to create openebs free space checker: %s", err)
+			os.Exit(1)
+		}
+
 		nodesWithoutSpace, err := dfchecker.Check(ctx)
 		if err != nil {
-			logger.Printf("failed to check nodes free space: %s", err)
+			logger.Printf("Failed to check nodes free space: %s", err)
 			os.Exit(1)
 		}
 
@@ -99,9 +104,7 @@ func checkFreeSpace(ctx context.Context, logger *log.Logger, cfg *rest.Config, c
 
 		logger.Print("Some nodes do not have enough disk space for the migration:")
 		logger.Printf("\n%s\n\n", strings.Join(nodesWithoutSpace, ","))
-		if !confirm(logger) {
-			os.Exit(1)
-		}
+		os.Exit(1)
 	}
 
 	rookProvisioners := map[string]bool{
@@ -109,10 +112,15 @@ func checkFreeSpace(ctx context.Context, logger *log.Logger, cfg *rest.Config, c
 		"rook-ceph.cephfs.csi.ceph.com": true,
 	}
 	if _, ok := rookProvisioners[dstProvisioner]; ok {
-		rook := clusterspace.NewRookChecker(cli, logger, cfg, opts.SourceSCName)
-		hasSpace, err := rook.Check(ctx)
+		dfchecker, err := clusterspace.NewRookChecker(cfg, logger, opts.SourceSCName, opts.DestSCName)
 		if err != nil {
-			logger.Printf("failed to measure ceph free space: %s", err)
+			logger.Printf("Failed to create rook free space checker: %s", err)
+			os.Exit(1)
+		}
+
+		hasSpace, err := dfchecker.Check(ctx)
+		if err != nil {
+			logger.Printf("Failed to check Ceph free space: %s", err)
 			os.Exit(1)
 		}
 
@@ -120,31 +128,7 @@ func checkFreeSpace(ctx context.Context, logger *log.Logger, cfg *rest.Config, c
 			return
 		}
 
-		logger.Println("Not enough space in Ceph to migrate data")
-		if !confirm(logger) {
-			os.Exit(1)
-		}
-	}
-}
-
-func confirm(logger *log.Logger) bool {
-	logger.Println("Reserved space does not mean used space, depending on how")
-	logger.Println("much is actually used inside each of the PVs the migration")
-	logger.Println("can still succeed.")
-	reader := bufio.NewReader(os.Stdin)
-	for {
-		fmt.Print("Do you wish to proceed ? (y/N): ")
-		response, err := reader.ReadString('\n')
-		if err != nil {
-			logger.Printf("failed to read user input: %s", err)
-			return false
-		}
-
-		response = strings.ToLower(strings.TrimSpace(response))
-		if response == "y" {
-			return true
-		} else if response == "n" || response == "" {
-			return false
-		}
+		logger.Print("Not enough space in Ceph to migrate data")
+		os.Exit(1)
 	}
 }

@@ -15,6 +15,7 @@ import (
 	"gopkg.in/yaml.v2"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
@@ -27,7 +28,7 @@ import (
 
 // OpenEBSChecker checks if we have enough disk space on the cluster to migrate volumes to openebs.
 type OpenEBSChecker struct {
-	cli   kubernetes.Interface
+	kcli  kubernetes.Interface
 	log   *log.Logger
 	image string
 	srcSC string
@@ -132,11 +133,86 @@ type OpenEBSVolume struct {
 	RootVolume bool
 }
 
+// deleteTmpPVCs deletes the provided pvcs from the default namespace and waits until all their
+// backing pvs dissapear as well (this is mandatory so we don't leave any orphan pv as this would
+// make the pvmigrate to fail). this function has a timeout of 5 minutes, after that an error is
+// returned.
+func (o *OpenEBSChecker) deleteTmpPVCs(ctx context.Context, pvcs []*corev1.PersistentVolumeClaim) error {
+	pvs, err := o.kcli.CoreV1().PersistentVolumes().List(ctx, metav1.ListOptions{})
+	if err != nil {
+		return fmt.Errorf("failed to list persistent volumes: %w", err)
+	}
+
+	pvsByPVCName := map[string]corev1.PersistentVolume{}
+	for _, pv := range pvs.Items {
+		if pv.Spec.ClaimRef == nil {
+			continue
+		}
+		pvsByPVCName[pv.Spec.ClaimRef.Name] = pv
+	}
+
+	for _, pvc := range pvcs {
+		propagation := metav1.DeletePropagationForeground
+		delopts := metav1.DeleteOptions{PropagationPolicy: &propagation}
+		if err := o.kcli.CoreV1().PersistentVolumeClaims("default").Delete(
+			ctx, pvc.Name, delopts,
+		); err != nil {
+			return fmt.Errorf("failed to delete temp pvc %s: %w", pvc.Name, err)
+		}
+	}
+
+	timeout := time.Now().Add(5 * time.Minute)
+	for _, pvc := range pvcs {
+		pv, ok := pvsByPVCName[pvc.Name]
+		if !ok {
+			o.log.Printf("failed to find pv for temp pvc %s", pvc.Name)
+			continue
+		}
+
+		for {
+			// break the loop as soon as we can't find the pv anymore.
+			if _, err := o.kcli.CoreV1().PersistentVolumes().Get(
+				ctx, pv.Name, metav1.GetOptions{},
+			); err != nil && !errors.IsNotFound(err) {
+				return fmt.Errorf("failed to get pv %s: %w", pv.Name, err)
+			} else if err != nil && errors.IsNotFound(err) {
+				break
+			}
+
+			time.Sleep(3 * time.Second)
+			if time.Now().After(timeout) {
+				return fmt.Errorf("failed to delete pvs: timeout")
+			}
+		}
+	}
+	return nil
+}
+
+// nodeIsSchedulable verifies if the node has been flagged with some well known annotations.
+// that could make the node not to be able to schedule our pod.
+func (o *OpenEBSChecker) nodeIsSchedulable(node corev1.Node) error {
+	annotations := map[string]string{
+		"node.kubernetes.io/not-ready":                   "node is not ready",
+		"node.kubernetes.io/unreachable":                 "node is unreachable",
+		"node.kubernetes.io/unschedulable":               "node is unschedulable",
+		"node.kubernetes.io/network-unavailable":         "node has no network",
+		"node.kubernetes.io/out-of-service":              "node is out of service",
+		"node.cloudprovider.kubernetes.io/uninitialized": "node not initialized",
+		"node.cloudprovider.kubernetes.io/shutdown":      "node is shutting down",
+	}
+	for ant, msg := range annotations {
+		if val, ok := node.Annotations[ant]; ok {
+			return fmt.Errorf("annotation %s set with value %s: %s", ant, val, msg)
+		}
+	}
+	return nil
+}
+
 // openEBSVolumes attempts to gather the free and used disk space for the openebs volume in
 // all nodes in the cluster. this function creates a temporary pod in each of the nodes of
 // the cluster, the pod runs a "df" command and we parse its output.
 func (o *OpenEBSChecker) openEBSVolumes(ctx context.Context) (map[string]OpenEBSVolume, error) {
-	nodes, err := o.cli.CoreV1().Nodes().List(ctx, metav1.ListOptions{})
+	nodes, err := o.kcli.CoreV1().Nodes().List(ctx, metav1.ListOptions{})
 	if err != nil {
 		return nil, fmt.Errorf("failed to list nodes: %w", err)
 	}
@@ -146,42 +222,52 @@ func (o *OpenEBSChecker) openEBSVolumes(ctx context.Context) (map[string]OpenEBS
 		return nil, fmt.Errorf("failed to read openebs base path: %w", err)
 	}
 
+	var tmpPVCs []*corev1.PersistentVolumeClaim
+	defer func() {
+		o.log.Printf("Deleting temporary pvcs")
+		if err := o.deleteTmpPVCs(ctx, tmpPVCs); err != nil {
+			o.log.Printf("Failed to delete tmp claims: %s", err)
+		}
+	}()
+
 	result := map[string]OpenEBSVolume{}
 	for _, node := range nodes.Items {
 		o.log.Printf("Analyzing free space on node %s", node.Name)
+		if err := o.nodeIsSchedulable(node); err != nil {
+			return nil, fmt.Errorf("failed to assess node %s: %w", node.Name, err)
+		}
 
 		pvc := o.buildTmpPVC(node.Name)
-		if _, err := o.cli.CoreV1().PersistentVolumeClaims("default").Create(
+		if pvc, err = o.kcli.CoreV1().PersistentVolumeClaims("default").Create(
 			ctx, pvc, metav1.CreateOptions{},
 		); err != nil {
 			return nil, fmt.Errorf("failed to create temporary pvc: %w", err)
 		}
-
-		defer func(pvcName string) {
-			if err := o.cli.CoreV1().PersistentVolumeClaims("default").Delete(
-				context.Background(), pvcName, metav1.DeleteOptions{},
-			); err != nil {
-				o.log.Printf("unable to delete temp volume claim %s: %s", pvc.Name, err)
-			}
-		}(pvc.Name)
+		tmpPVCs = append(tmpPVCs, pvc.DeepCopy())
 
 		job := o.buildJob(ctx, node.Name, basePath, pvc.Name)
-		out, status, err := k8sutil.RunJob(ctx, o.cli, o.log, job, 5*time.Minute)
+		out, status, err := k8sutil.RunJob(ctx, o.kcli, o.log, job, 5*time.Minute)
 		if err != nil {
 			o.logContainersState(out, status)
-			return nil, fmt.Errorf("failed to run job %s/%s on node %s: %w", job.Namespace, job.Name, node.Name, err)
+			return nil, fmt.Errorf(
+				"failed to run job %s/%s on node %s: %w", job.Namespace, job.Name, node.Name, err,
+			)
 		}
 
 		free, used, err := o.parseDFContainerOutput(out["df"])
 		if err != nil {
 			o.logContainersState(out, status)
-			return nil, fmt.Errorf("failed to parse node %s df output: %w", node.Name, err)
+			return nil, fmt.Errorf(
+				"failed to parse node %s df output: %w", node.Name, err,
+			)
 		}
 
 		volumes, err := o.parseFstabContainerOutput(out["fstab"])
 		if err != nil {
 			o.logContainersState(out, status)
-			return nil, fmt.Errorf("failed to parse node %s fstab output: %w", node.Name, err)
+			return nil, fmt.Errorf(
+				"failed to parse node %s fstab output: %w", node.Name, err,
+			)
 		}
 
 		rootVolume := true
@@ -234,7 +320,7 @@ func (o *OpenEBSChecker) logContainersState(logs map[string][]byte, states map[s
 // basePath inspects the destination storage class and checks what is the openebs base path
 // configured for the storage.
 func (o *OpenEBSChecker) basePath(ctx context.Context) (string, error) {
-	sclass, err := o.cli.StorageV1().StorageClasses().Get(ctx, o.dstSC, metav1.GetOptions{})
+	sclass, err := o.kcli.StorageV1().StorageClasses().Get(ctx, o.dstSC, metav1.GetOptions{})
 	if err != nil {
 		return "", fmt.Errorf("failed to read destination storage class: %w", err)
 	}
@@ -391,7 +477,7 @@ func (o *OpenEBSChecker) hasEnoughSpace(vol OpenEBSVolume, reserved int64) (int6
 // where the migration can't execute due to a possible lack of disk space.
 func (o *OpenEBSChecker) Check(ctx context.Context) ([]string, error) {
 	o.log.Printf("Analyzing reserved and free disk space per node...")
-	reservedPerNode, reservedDetached, err := k8sutil.PVSReservationPerNode(ctx, o.cli, o.srcSC)
+	reservedPerNode, reservedDetached, err := k8sutil.PVSReservationPerNode(ctx, o.kcli, o.srcSC)
 	if err != nil {
 		return nil, fmt.Errorf("failed to calculate reserved disk space per node: %w", err)
 	}
@@ -448,25 +534,30 @@ func (o *OpenEBSChecker) Check(ctx context.Context) ([]string, error) {
 		}
 	}
 
-	if len(faultyNodes) == 0 {
-		o.log.Printf("Enough disk space found, moving on")
-		return nil, nil
+	if len(faultyNodes) > 0 {
+		var nodeNames []string
+		for name := range faultyNodes {
+			nodeNames = append(nodeNames, name)
+		}
+		return nodeNames, nil
 	}
 
-	var nodeNames []string
-	for name := range faultyNodes {
-		nodeNames = append(nodeNames, name)
-	}
-	return nodeNames, nil
+	o.log.Printf("Enough disk space found, moving on")
+	return nil, nil
 }
 
 // NewOpenEBSChecker returns a disk free analyser for openebs storage local volume provisioner.
-func NewOpenEBSChecker(cli kubernetes.Interface, log *log.Logger, cfg *rest.Config, image, srcSC, dstSC string) *OpenEBSChecker {
+func NewOpenEBSChecker(cfg *rest.Config, log *log.Logger, image, srcSC, dstSC string) (*OpenEBSChecker, error) {
+	kcli, err := kubernetes.NewForConfig(cfg)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create kubernetes client: %w", err)
+	}
+
 	return &OpenEBSChecker{
-		cli:   cli,
+		kcli:  kcli,
 		log:   log,
 		image: image,
 		srcSC: srcSC,
 		dstSC: dstSC,
-	}
+	}, nil
 }
