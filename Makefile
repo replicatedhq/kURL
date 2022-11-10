@@ -44,9 +44,27 @@ SED_INPLACE=-i.bak
 SKIP_LDD_CHECK=1
 endif
 
+##@ General
+
+# The help target prints out all targets with their descriptions organized
+# beneath their categories. The categories are represented by '##@' and the
+# target descriptions by '##'. The awk commands is responsible for reading the
+# entire set of makefiles included in this invocation, looking for lines of the
+# file as xyz: ## something, and then pretty-format the target and help. Then,
+# if there's a line with ##@ something, that gets pretty-printed as a category.
+# More info on the usage of ANSI control characters for terminal formatting:
+# https://en.wikipedia.org/wiki/ANSI_escape_code#SGR_parameters
+# More info on the awk command:
+# http://linuxcommand.org/lc3_adv_awk.php
+
+.PHONY: help
+help: ## Display this help
+	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m<target>\033[0m\n"} /^[a-zA-Z_0-9-]+:.*?##/ { printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
+
+##@ Build
 
 .PHONY: clean
-clean:
+clean: ## Clean the build directory
 	rm -rf build tmp dist
 
 dist/common.tar.gz: build/kustomize build/shared build/krew build/kurlkinds build/helm
@@ -544,6 +562,7 @@ build/packages/kubernetes/%/rhel-8:
 
 build/templates: build/templates/install.tmpl build/templates/join.tmpl build/templates/upgrade.tmpl build/templates/tasks.tmpl
 
+.PHONY: build/bin ## Build kurl binary
 build/bin: build/bin/kurl
 	rm -rf kurl_util/bin
 	${MAKE} -C kurl_util build
@@ -554,25 +573,60 @@ build/bin/kurl: pkg/cli/commands.go go.mod go.sum
 	[ -n "${SKIP_LDD_CHECK}" ] || ldd build/bin/kurl 2>&1 | grep -q "not a dynamic executable" # confirm that there are no linked libs
 
 .PHONY: code
-code: build/kustomize build/addons
+code: build/kustomize build/addons ## Build kustomize and addons
 
-watchrsync:
+.PHONY: scripts
+scripts: build/install.sh build/join.sh build/upgrade.sh build/tasks.sh ## Build scripts (install.sh,join.sh,upgrade.sh,tasks.sh)
+
+.PHONY: binaries
+binaries: build/krew build/kurlkinds build/helm build/bin ## Build binaries (krew,kinds,helm,kurl)
+
+##@ Development
+
+.PHONY: generate-mocks
+generate-mocks: ## Generate mocks tests for CLI and preflight. More info: https://github.com/golang/mock
+	go install github.com/golang/mock/mockgen@v1.6.0
+	mockgen -source=pkg/cli/cli.go -destination=pkg/cli/mock/mock_cli.go
+	mockgen -source=pkg/preflight/runner.go -destination=pkg/preflight/mock/mock_runner.go
+
+.PHONY: kurl-util-image
+kurl-util-image: ## Download Kurl util image (replicated/kurl-util:alpha)
+	docker pull $(KURL_UTIL_IMAGE)
+
+##@ Remote Development Tests
+
+# NOTE: Before resync you must ensure that the go environment variables are configured with
+# the values which are supported by the project:
+# export GOOS=linux
+# export GOARCH=amd64 # You do not need to export this one if your local env is amd64 already
+# export REMOTES="USER@TARGET_SERVER_IP" # Add here the ssh credentials to connect to the remote server
+.PHONY: watchrsync
+watchrsync: ## Syncronize the code with a remote server. More info: CONTRIBUTING.md
 	bin/watchrsync.js
 
-.PHONY: deps
-deps:
-	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(shell go env GOPATH)/bin
+##@ Tests
+
+GOLANGCI_LINT = $(shell go env GOPATH)/bin/golangci-lint
+golangci-lint:
+	@[ -f $(GOLANGCI_LINT) ] || { \
+	set -e ;\
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b  $(shell go env GOPATH)/bin v1.50.1 ;\
+	}
 
 .PHONY: lint
-lint:
-	golangci-lint --build-tags "${BUILDTAGS}" run --timeout 5m ./cmd/... ./pkg/... ./kurl_util/...
+lint: golangci-lint ## Run golangci-lint and vet linter
+	$(GOLANGCI_LINT) --build-tags "${BUILDTAGS}" run --timeout 5m ./cmd/... ./pkg/... ./kurl_util/...
+
+.PHONY: lint-fix
+lint-fix: golangci-lint ## Run golangci-lint linter and perform small fixes
+	$(GOLANGCI_LINT) run --fix
 
 .PHONY: vet
-vet:
+vet: ## Go vet the code
 	go vet ${BUILDFLAGS} ./cmd/... ./pkg/...
 
 .PHONY: test
-test: lint vet
+test: lint vet ## Check the code with linters and vet
 	go test ${BUILDFLAGS} ./cmd/... ./pkg/...
 
 /usr/local/bin/shunit2:
@@ -581,7 +635,7 @@ test: lint vet
 	install shunit2 /usr/local/bin/shunit2
 
 .PHONY: docker-test-shell
-docker-test-shell:
+docker-test-shell: ## Run tests for code in shell but containerized. (Used in build-test github action)
 	docker build -t kurl-test-shell-rhel-7 -f hack/test-shell/Dockerfile.rhel-7 hack/test-shell
 	docker build -t kurl-test-shell-rhel-8 -f hack/test-shell/Dockerfile.rhel-8 hack/test-shell
 	docker build -t kurl-test-shell-ubuntu-20.04 -f hack/test-shell/Dockerfile.ubuntu-20.04 hack/test-shell
@@ -591,8 +645,11 @@ docker-test-shell:
 	docker run -i --rm -v `pwd`:/src kurl-test-shell-ubuntu-20.04 make /usr/local/bin/shunit2 test-shell
 	docker run -i --rm -v `pwd`:/src kurl-test-shell-ubuntu-22.04 make /usr/local/bin/shunit2 test-shell
 
+# More info about how to install shUnit2
+# https://alexharv074.github.io/2017/07/07/unit-testing-a-bash-script-with-shunit2.html
+# For mac os you can run brew install shunit2
 .PHONY: test-shell
-test-shell:
+test-shell: ## Run tests for code in shell. (Requires shUnit2 to be installed).
 	# TODO:
 	#   - find tests
 	#   - add to ci
@@ -603,12 +660,11 @@ test-shell:
 	./scripts/common/yaml-test.sh
 	./scripts/common/test/common-test.sh
 	./addons/rook/template/test/install.sh
+	./scripts/common/test/common-test.sh
 
-.PHONY: kurl-util-image
-kurl-util-image:
-	docker pull $(KURL_UTIL_IMAGE)
+##@ Release
 
-.PHONY: generate-addons
+.PHONY: generate-addons ## Generate the addons when we deploy to staging and production.
 generate-addons:
 	node bin/generate-addons.js
 
@@ -631,10 +687,10 @@ SPDX_GENERATOR=$(shell command -v spdx-sbom-generator)
 endif
 
 .PHONY: generate-sbom
-generate-sbom: install-spdx-sbom-generator 
+generate-sbom: install-spdx-sbom-generator ## Generate Signed SBOMs dependencies tar file
 	$(SPDX_GENERATOR) -o ./sbom/spdx        
 
-sbom/assets/kurl-sbom.tgz: generate-sbom 
+sbom/assets/kurl-sbom.tgz: generate-sbom
 	tar -czf sbom/assets/kurl-sbom.tgz sbom/spdx/*.spdx
 
 sbom: sbom/assets/kurl-sbom.tgz
@@ -642,5 +698,5 @@ sbom: sbom/assets/kurl-sbom.tgz
 	cosign public-key -key ./cosign.key -outfile ./sbom/assets/key.pub
 
 .PHONY: tag-and-release
-tag-and-release:
+tag-and-release: ## Create tags and release
 	@./bin/tag-and-release.sh
