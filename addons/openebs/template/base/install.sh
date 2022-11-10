@@ -1,3 +1,5 @@
+# shellcheck disable=SC2148
+
 function openebs_pre_init() {
     if [ -z "$OPENEBS_NAMESPACE" ]; then
         OPENEBS_NAMESPACE=openebs
@@ -138,9 +140,13 @@ function openebs_apply_storageclasses() {
         render_yaml_file_2 "$src/tmpl-localpv-storage-class.yaml" > "$dst/localpv-storage-class.yaml"
         insert_resources "$dst/kustomization.yaml" localpv-storage-class.yaml
 
-        if [ "$OPENEBS_LOCALPV_STORAGE_CLASS" = "default" ]; then
+        if openebs_should_be_default_storageclass "$OPENEBS_LOCALPV_STORAGE_CLASS" ; then
+            echo "OpenEBS LocalPV will be installed as the default storage class."
             render_yaml_file_2 "$src/tmpl-patch-localpv-default.yaml" > "$dst/patch-localpv-default.yaml"
             insert_patches_strategic_merge "$dst/kustomization.yaml" patch-localpv-default.yaml
+        else
+            logWarn "Existing default storage class that is not OpenEBS LocalPV detected."
+            logWarn "OpenEBS LocalPV will be installed as the non-default storage class."
         fi
 
         report_addon_success "openebs-localpv" "$OPENEBS_APP_VERSION"
@@ -220,4 +226,40 @@ function openebs_migrate_post_helm_resources() {
     kubectl delete clusterrole openebs-maya-operator 2>/dev/null || true
     # name changed from openebs-maya-operator > openebs
     kubectl delete clusterrolebinding openebs-maya-operator 2>/dev/null || true
+}
+
+function openebs_should_be_default_storageclass() {
+    local storage_class_name="$1"
+    if openebs_is_default_storageclass "$storage_class_name" ; then
+        # if "$storage_class_name" is already the default
+        return 0
+    elif openebs_has_default_storageclass ; then
+        # if there is already a default storage class that is not "$storage_class_name"
+        return 1
+    elif [ "$storage_class_name" = "default" ]; then
+        # if "$storage_class_name" named "default", it should be the default
+        return 0
+    elif [ -n "$LONGHORN_VERSION" ]; then
+        # To maintain backwards compatibility with previous versions of kURL, only make OpenEBS the default
+        # if Longhorn is not installed or the storageclass is explicitly named "default"
+        return 1
+    else
+        # if there is no other storageclass, make "$storage_class_name" the default
+        return 0
+    fi
+}
+
+function openebs_is_default_storageclass() {
+    local storage_class_name="$1"
+    if [ "$(kubectl get sc "$storage_class_name" -o jsonpath='{.metadata.annotations.storageclass\.kubernetes\.io/is-default-class}' 2>/dev/null)" = "true" ]; then
+        return 0
+    fi
+    return 1
+}
+
+function openebs_has_default_storageclass() {
+    if kubectl get sc -o jsonpath='{.items[*].metadata.annotations.storageclass\.kubernetes\.io/is-default-class}' | grep -q "true" ; then
+        return 0
+    fi
+    return 1
 }

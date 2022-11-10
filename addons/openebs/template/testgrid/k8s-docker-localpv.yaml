@@ -12,7 +12,7 @@
       version: "latest"
     openebs:
       isLocalPVEnabled: true
-      localPVStorageClassName: default
+      localPVStorageClassName: openebs
       namespace: openebs
       version: "__testver__"
       s3Override: "__testdist__"
@@ -78,7 +78,7 @@
       version: "latest"
     openebs:
       isLocalPVEnabled: true
-      localPVStorageClassName: default
+      localPVStorageClassName: openebs
       namespace: openebs
       version: "__testver__"
       s3Override: "__testdist__"
