@@ -668,11 +668,6 @@ test-shell: ## Run tests for code in shell. (Requires shUnit2 to be installed).
 generate-addons:
 	node bin/generate-addons.js
 
-.PHONY: generate-mocks
-generate-mocks:
-	mockgen -source=pkg/cli/cli.go -destination=pkg/cli/mock/mock_cli.go
-	mockgen -source=pkg/preflight/runner.go -destination=pkg/preflight/mock/mock_runner.go
-
 .PHONY: init-sbom
 init-sbom:
 	mkdir -p sbom/spdx sbom/assets
