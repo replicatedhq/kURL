@@ -69,6 +69,12 @@ function object_store_bucket_exists() {
 function migrate_rgw_to_minio() {
     report_addon_start "rook-ceph-to-minio" "v1"
 
+    if kubernetes_resource_exists kurl deployment ekc-operator; then
+        kubectl -n kurl scale deploy ekc-operator --replicas=0
+        echo "Waiting for ekco pods to be removed"
+        spinner_until 120 ekco_pods_gone
+    fi
+
     RGW_HOST="rook-ceph-rgw-rook-ceph-store.rook-ceph"
     RGW_ACCESS_KEY_ID=$(kubectl -n rook-ceph get secret rook-ceph-object-user-rook-ceph-store-kurl -o yaml | grep AccessKey | head -1 | awk '{print $2}' | base64 --decode)
     RGW_ACCESS_KEY_SECRET=$(kubectl -n rook-ceph get secret rook-ceph-object-user-rook-ceph-store-kurl -o yaml | grep SecretKey | head -1 | awk '{print $2}' | base64 --decode)
@@ -116,6 +122,11 @@ EOF
     echo "Waiting up to 5 minutes for sync-object-store pod to complete"
     spinner_until 300 kubernetes_pod_completed sync-object-store default || true
     kubectl logs -f sync-object-store || true
+
+    # even if the migration failed, we should ensure ekco is running again
+    if kubernetes_resource_exists kurl deployment ekc-operator; then
+        kubectl -n kurl scale deploy ekc-operator --replicas=1
+    fi
 
     if kubernetes_pod_succeeded sync-object-store default; then
         printf "\n${GREEN}Object store data synced successfully${NC}\n"
