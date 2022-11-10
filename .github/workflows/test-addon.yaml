@@ -65,7 +65,7 @@ jobs:
           staging: true
 
       - name: Post TG URL
-        uses: mshick/add-pr-comment@v1
+        uses: mshick/add-pr-comment@v2
         with:
           message: ${{ steps.queue.outputs.message }}
           repo-token: ${{ secrets.GITHUB_TOKEN }}
