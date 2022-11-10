@@ -349,6 +349,10 @@ func (o *OpenEBSChecker) basePath(ctx context.Context) (string, error) {
 		if p.Name != "BasePath" {
 			continue
 		}
+
+		if !strings.HasPrefix(p.Value, "/") {
+			return "", fmt.Errorf("invalid opeenbs base path: %s", p.Value)
+		}
 		return p.Value, nil
 	}
 	return "", fmt.Errorf("openebs base path not defined in the storage class")

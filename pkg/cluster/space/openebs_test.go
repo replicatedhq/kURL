@@ -1,13 +1,18 @@
 package clusterspace
 
 import (
+	"context"
 	"reflect"
 	"strings"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
 	corev1 "k8s.io/api/core/v1"
+	storagev1 "k8s.io/api/storage/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/client-go/kubernetes/fake"
 	"k8s.io/utils/pointer"
 )
 
@@ -276,6 +281,252 @@ sshfs#user@server:/share  fuse  user,allow_other  0  0
 
 			if !reflect.DeepEqual(tt.expected, output) {
 				t.Errorf("expected %v, received %v", tt.expected, output)
+			}
+		})
+	}
+}
+
+func Test_basePath(t *testing.T) {
+	for _, tt := range []struct {
+		name     string
+		expected string
+		err      string
+		dstSC    string
+		objs     []runtime.Object
+	}{
+		{
+			name:  "no storage class found",
+			dstSC: "does-not-exist",
+			err:   `class: storageclasses.storage.k8s.io "does-not-exist" not found`,
+			objs:  []runtime.Object{},
+		},
+		{
+			name:  "no annotation",
+			dstSC: "default",
+			err:   "annotation not found in storage class",
+			objs: []runtime.Object{
+				&storagev1.StorageClass{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "default",
+					},
+				},
+			},
+		},
+		{
+			name:  "invalid configuration",
+			dstSC: "default",
+			err:   "failed to parse openebs config annotation",
+			objs: []runtime.Object{
+				&storagev1.StorageClass{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "default",
+						Annotations: map[string]string{
+							"cas.openebs.io/config": "...---...<<>>",
+						},
+					},
+				},
+			},
+		},
+		{
+			name:  "no base path config",
+			dstSC: "default",
+			err:   "openebs base path not defined in the storage class",
+			objs: []runtime.Object{
+				&storagev1.StorageClass{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "default",
+						Annotations: map[string]string{
+							"cas.openebs.io/config": "- name: abc\n  value: cba",
+						},
+					},
+				},
+			},
+		},
+		{
+			name:  "empty base path",
+			dstSC: "default",
+			err:   "invalid opeenbs base path",
+			objs: []runtime.Object{
+				&storagev1.StorageClass{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "default",
+						Annotations: map[string]string{
+							"cas.openebs.io/config": "- name: BasePath\n  value: \"\"",
+						},
+					},
+				},
+			},
+		},
+		{
+			name:  "invalid base path",
+			dstSC: "default",
+			err:   "invalid opeenbs base path",
+			objs: []runtime.Object{
+				&storagev1.StorageClass{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "default",
+						Annotations: map[string]string{
+							"cas.openebs.io/config": "- name: BasePath\n  value: invalid",
+						},
+					},
+				},
+			},
+		},
+		{
+			name:     "happy path",
+			dstSC:    "default",
+			expected: "/var/local",
+			objs: []runtime.Object{
+				&storagev1.StorageClass{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "default",
+						Annotations: map[string]string{
+							"cas.openebs.io/config": "- name: BasePath\n  value: /var/local",
+						},
+					},
+				},
+			},
+		},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			fakecli := fake.NewSimpleClientset(tt.objs...)
+			ochecker := OpenEBSChecker{
+				kcli:  fakecli,
+				dstSC: tt.dstSC,
+			}
+
+			bpath, err := ochecker.basePath(context.Background())
+			if err != nil {
+				if len(tt.err) == 0 {
+					t.Errorf("unexpected error: %s", err)
+				} else if !strings.Contains(err.Error(), tt.err) {
+					t.Errorf("expecting %q, %q received instead", tt.err, err)
+				}
+				return
+			}
+
+			if len(tt.err) > 0 {
+				t.Errorf("expecting error %q, nil received instead", tt.err)
+			}
+
+			if bpath != tt.expected {
+				t.Errorf("expected %v, received %v", tt.expected, bpath)
+			}
+		})
+	}
+}
+
+func Test_buildJob(t *testing.T) {
+	nname := "this-is-a-very-long-node-name-this-will-extrapolate-the-limit"
+	ochecker := OpenEBSChecker{image: "myimage:latest"}
+	job := ochecker.buildJob(context.Background(), nname, "/var/local", "tmppvc")
+
+	// check that the job name is within boundaries
+	if len(job.Name) > 63 {
+		t.Errorf("job name is bigger than the limit (63)")
+	}
+
+	// check that the job will run in the default namespace
+	if job.Namespace != "default" {
+		t.Errorf("job not going to run in the default namespace: %s", job.Namespace)
+	}
+
+	// check that the job is being scheduled in the right node
+	affinity := job.Spec.Template.Spec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution
+	if affinity.NodeSelectorTerms[0].MatchExpressions[0].Values[0] != nname {
+		t.Errorf("node has not be set to be scheduled in the node")
+	}
+
+	// assure that the temp pvc is among the volumes
+	var mountName string
+	for _, vol := range job.Spec.Template.Spec.Volumes {
+		pvc := vol.VolumeSource.PersistentVolumeClaim
+		if pvc == nil || pvc.ClaimName != "tmppvc" {
+			continue
+		}
+
+		mountName = vol.Name
+		break
+	}
+	if mountName == "" {
+		t.Errorf("temp pvc not found among volumes")
+	}
+
+	// assure that the temp pvc is mounted
+	var found bool
+	for _, vm := range job.Spec.Template.Spec.Containers[0].VolumeMounts {
+		if vm.Name == mountName {
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Errorf("temp pvc not mounted")
+	}
+
+	// assure all containers are using the image
+	for i, cont := range job.Spec.Template.Spec.Containers {
+		if cont.Image != "myimage:latest" {
+			t.Errorf("image not set in container %d: %s", i, cont.Image)
+		}
+	}
+}
+
+func Test_hasEnoughSpace(t *testing.T) {
+	for _, tt := range []struct {
+		name     string
+		volume   OpenEBSVolume
+		reserved int64
+		hasSpace bool
+		free     int64
+	}{
+		{
+			name: "empty open ebs volume",
+		},
+		{
+			name:     "enough space (different mount point)",
+			reserved: 99,
+			free:     100,
+			hasSpace: true,
+			volume: OpenEBSVolume{
+				Free:       100,
+				Used:       0,
+				RootVolume: false,
+			},
+		},
+		{
+			name:     "enough space (same mount point)",
+			reserved: 50,
+			free:     85,
+			hasSpace: true,
+			volume: OpenEBSVolume{
+				Free:       100,
+				Used:       0,
+				RootVolume: true,
+			},
+		},
+		{
+			name:     "not enough space (same mount point)",
+			reserved: 86,
+			free:     85,
+			hasSpace: false,
+			volume: OpenEBSVolume{
+				Free:       100,
+				Used:       0,
+				RootVolume: true,
+			},
+		},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			ochecker := OpenEBSChecker{}
+			free, hasSpace := ochecker.hasEnoughSpace(tt.volume, tt.reserved)
+
+			if hasSpace != tt.hasSpace {
+				t.Errorf("expected hasSpace to be %v, %v received instead", tt.hasSpace, hasSpace)
+			}
+
+			if free != tt.free {
+				t.Errorf("expected free to be %v, %v received instead", tt.free, free)
 			}
 		})
 	}
