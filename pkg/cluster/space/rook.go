@@ -37,7 +37,7 @@ func (r *RookChecker) freeSpace(ctx context.Context) (int64, error) {
 
 	pool, err := r.rcli.CephV1().CephBlockPools(namespace).Get(ctx, pname, metav1.GetOptions{})
 	if err != nil {
-		return 0, fmt.Errorf("failed to get poll %s: %w", pname, err)
+		return 0, fmt.Errorf("failed to get pool %s: %w", pname, err)
 	}
 
 	// this should never happen but we better this than a division by zero.

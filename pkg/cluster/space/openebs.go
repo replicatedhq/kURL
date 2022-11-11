@@ -28,11 +28,12 @@ import (
 
 // OpenEBSChecker checks if we have enough disk space on the cluster to migrate volumes to openebs.
 type OpenEBSChecker struct {
-	kcli  kubernetes.Interface
-	log   *log.Logger
-	image string
-	srcSC string
-	dstSC string
+	deletePVTimeout time.Duration
+	kcli            kubernetes.Interface
+	log             *log.Logger
+	image           string
+	srcSC           string
+	dstSC           string
 }
 
 // parseDFContainerOutput parses the output (log) of the 'disk available' pod. the output of the
@@ -69,7 +70,7 @@ func (o *OpenEBSChecker) parseDFContainerOutput(output []byte) (int64, int64, er
 		pos = len(words) - 4
 		usedBytes, err := strconv.ParseInt(words[pos], 10, 64)
 		if err != nil {
-			return 0, 0, fmt.Errorf("failed to parse %q as available space: %w", words[pos], err)
+			return 0, 0, fmt.Errorf("failed to parse %q as used space: %w", words[pos], err)
 		}
 
 		return freeBytes, usedBytes, nil
@@ -164,11 +165,17 @@ func (o *OpenEBSChecker) deleteTmpPVCs(ctx context.Context, pvcs []*corev1.Persi
 		if err := o.kcli.CoreV1().PersistentVolumeClaims("default").Delete(
 			ctx, pvc.Name, delopts,
 		); err != nil {
+			if errors.IsNotFound(err) {
+				continue
+			}
 			return fmt.Errorf("failed to delete temp pvc %s: %w", pvc.Name, err)
 		}
 	}
 
-	timeout := time.Now().Add(5 * time.Minute)
+	timeout := time.NewTicker(o.deletePVTimeout)
+	interval := time.NewTicker(5 * time.Second)
+	defer timeout.Stop()
+	defer interval.Stop()
 	for _, pvc := range pvcs {
 		pv, ok := pvsByPVCName[pvc.Name]
 		if !ok {
@@ -186,9 +193,13 @@ func (o *OpenEBSChecker) deleteTmpPVCs(ctx context.Context, pvcs []*corev1.Persi
 				break
 			}
 
-			time.Sleep(3 * time.Second)
-			if time.Now().After(timeout) {
+			select {
+			case <-interval.C:
+				continue
+			case <-timeout.C:
 				return fmt.Errorf("failed to delete pvs: timeout")
+			case <-ctx.Done():
+				return fmt.Errorf("context cancelled")
 			}
 		}
 	}
@@ -508,7 +519,7 @@ func (o *OpenEBSChecker) Check(ctx context.Context) ([]string, error) {
 
 		faultyNodes[node] = true
 		o.log.Printf(
-			"Node %q has %s available, failed to migrate %s (%q storage class)",
+			"Node %q has %s available, failed to migrate %s (reserved in %q storage class)",
 			node,
 			bytefmt.ByteSize(uint64(free)),
 			bytefmt.ByteSize(uint64(reservedPerNode[node])),
@@ -565,10 +576,11 @@ func NewOpenEBSChecker(cfg *rest.Config, log *log.Logger, image, srcSC, dstSC st
 	}
 
 	return &OpenEBSChecker{
-		kcli:  kcli,
-		log:   log,
-		image: image,
-		srcSC: srcSC,
-		dstSC: dstSC,
+		deletePVTimeout: 5 * time.Minute,
+		kcli:            kcli,
+		log:             log,
+		image:           image,
+		srcSC:           srcSC,
+		dstSC:           dstSC,
 	}, nil
 }

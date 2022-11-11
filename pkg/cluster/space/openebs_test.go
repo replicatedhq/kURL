@@ -2,9 +2,12 @@ package clusterspace
 
 import (
 	"context"
+	"io/ioutil"
+	"log"
 	"reflect"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/google/go-cmp/cmp"
 	corev1 "k8s.io/api/core/v1"
@@ -15,6 +18,195 @@ import (
 	"k8s.io/client-go/kubernetes/fake"
 	"k8s.io/utils/pointer"
 )
+
+func Test_deleteTmpPVCs(t *testing.T) {
+	logger := log.New(ioutil.Discard, "", 0)
+	kcli := fake.NewSimpleClientset()
+	ochecker := OpenEBSChecker{
+		deletePVTimeout: 20 * time.Second,
+		kcli:            kcli,
+		log:             logger,
+	}
+
+	// empty list of pvcs
+	err := ochecker.deleteTmpPVCs(context.Background(), []*corev1.PersistentVolumeClaim{})
+	if err != nil {
+		t.Errorf("error deleting empty list of pvs: %s", err)
+	}
+
+	// delete non existing pvc
+	pvcs := []*corev1.PersistentVolumeClaim{
+		{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      "pvc0",
+				Namespace: "namespace",
+			},
+		},
+	}
+	if err := ochecker.deleteTmpPVCs(context.Background(), pvcs); err != nil {
+		t.Errorf("unexpected error deleting empty list of pvs: %s", err)
+	}
+
+	// nil claim ref for a pv
+	var objs []runtime.Object
+	for _, pvc := range pvcs {
+		objs = append(objs, pvc)
+	}
+	objs = append(objs, &corev1.PersistentVolume{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "pv",
+		},
+	})
+	ochecker.kcli = fake.NewSimpleClientset(objs...)
+	if err := ochecker.deleteTmpPVCs(context.Background(), pvcs); err != nil {
+		t.Errorf("unexpected error deleting with pv without claim ref: %s", err)
+	}
+
+	// different pv claimref
+	objs = []runtime.Object{}
+	for _, pvc := range pvcs {
+		objs = append(objs, pvc)
+	}
+	objs = append(objs, &corev1.PersistentVolume{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "pv",
+		},
+		Spec: corev1.PersistentVolumeSpec{
+			ClaimRef: &corev1.ObjectReference{
+				Name: "abc",
+			},
+		},
+	})
+	ochecker.kcli = fake.NewSimpleClientset(objs...)
+	if err := ochecker.deleteTmpPVCs(context.Background(), pvcs); err != nil {
+		t.Errorf("unexpected error deleting with unrelated pv: %s", err)
+	}
+
+	// cancel context before the pv is removed
+	objs = []runtime.Object{}
+	for _, pvc := range pvcs {
+		objs = append(objs, pvc)
+	}
+	objs = append(objs, &corev1.PersistentVolume{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "pv",
+		},
+		Spec: corev1.PersistentVolumeSpec{
+			ClaimRef: &corev1.ObjectReference{
+				Name: "pvc0",
+			},
+		},
+	})
+	ochecker.kcli = fake.NewSimpleClientset(objs...)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	go func() {
+		time.Sleep(3 * time.Second)
+		cancel()
+	}()
+
+	if err := ochecker.deleteTmpPVCs(ctx, pvcs); err == nil || err.Error() != "context cancelled" {
+		t.Errorf("context cancelled error not showing up")
+	}
+
+	// happy path, pv disappear after a while
+	objs = []runtime.Object{}
+	for _, pvc := range pvcs {
+		objs = append(objs, pvc)
+	}
+	objs = append(objs, &corev1.PersistentVolume{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "pv",
+		},
+		Spec: corev1.PersistentVolumeSpec{
+			ClaimRef: &corev1.ObjectReference{
+				Name: "pvc0",
+			},
+		},
+	})
+	ochecker.kcli = fake.NewSimpleClientset(objs...)
+
+	go func() {
+		time.Sleep(10 * time.Second)
+		if err := ochecker.kcli.CoreV1().PersistentVolumes().Delete(
+			context.Background(), "pv", metav1.DeleteOptions{},
+		); err != nil {
+			t.Errorf("failed to delete test pv: %s", err)
+		}
+	}()
+
+	if err := ochecker.deleteTmpPVCs(context.Background(), pvcs); err != nil {
+		t.Errorf("unexpected error deleting pvs: %s", err)
+	}
+
+	// timeout deleting pv
+	objs = []runtime.Object{}
+	for _, pvc := range pvcs {
+		objs = append(objs, pvc)
+	}
+	objs = append(objs, &corev1.PersistentVolume{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "pv",
+		},
+		Spec: corev1.PersistentVolumeSpec{
+			ClaimRef: &corev1.ObjectReference{
+				Name: "pvc0",
+			},
+		},
+	})
+	ochecker.kcli = fake.NewSimpleClientset(objs...)
+	ochecker.deletePVTimeout = 2 * time.Second
+	if err := ochecker.deleteTmpPVCs(context.Background(), pvcs); err == nil || !strings.Contains(err.Error(), "timeout") {
+		t.Errorf("timeout error did now show up")
+	}
+}
+
+func Test_nodeIsScheduleable(t *testing.T) {
+	for _, tt := range []struct {
+		name        string
+		err         bool
+		annotations map[string]string
+	}{
+		{
+			name: "not ready",
+			err:  true,
+			annotations: map[string]string{
+				"node.kubernetes.io/not-ready": "NoExecute",
+			},
+		},
+		{
+			name: "multiple not ready annotations",
+			err:  true,
+			annotations: map[string]string{
+				"node.kubernetes.io/not-ready":              "NoExecute",
+				"node.cloudprovider.kubernetes.io/shutdown": "NoExecute",
+				"node.kubernetes.io/unschedulable":          "NoExecute",
+			},
+		},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			node := corev1.Node{
+				ObjectMeta: metav1.ObjectMeta{
+					Annotations: tt.annotations,
+				},
+			}
+
+			ochecker := OpenEBSChecker{}
+			err := ochecker.nodeIsSchedulable(node)
+			if err != nil {
+				if !tt.err {
+					t.Errorf("unexpected error: %s", err)
+				}
+				return
+			}
+
+			if tt.err {
+				t.Errorf("expecting error nil received instead")
+			}
+		})
+	}
+}
 
 func Test_bulidTmpPVC(t *testing.T) {
 	for _, tt := range []struct {
@@ -97,6 +289,12 @@ func Test_parseDFContainerOutput(t *testing.T) {
 			err: `failed to parse "6.9G" as available spac`,
 		},
 		{
+			name: "human readable return (used)",
+			content: []byte(`Filesystem      Size  Used Avail Use% Mounted on
+/dev/sda2        59G   49G  100  88% /data`),
+			err: `failed to parse "49G" as used spac`,
+		},
+		{
 			name: "strange mount point",
 			content: []byte(`Filesystem      Size  Used Avail Use% Mounted on
 /dev/sda2        59G   49G  6.9G  88% /`),
@@ -115,6 +313,14 @@ func Test_parseDFContainerOutput(t *testing.T) {
 		{
 			name: "happy path",
 			content: []byte(`Filesystem       1B-blocks        Used  Available Use% Mounted on
+/dev/sda2      63087357952 52521754624 7327760384  88% /data`),
+			expectedFree: 7327760384,
+			expectedUsed: 52521754624,
+		},
+		{
+			name: "happy path with an empty line",
+			content: []byte(`Filesystem       1B-blocks        Used  Available Use% Mounted on
+
 /dev/sda2      63087357952 52521754624 7327760384  88% /data`),
 			expectedFree: 7327760384,
 			expectedUsed: 52521754624,
