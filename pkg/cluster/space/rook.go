@@ -133,6 +133,16 @@ func NewRookChecker(cfg *rest.Config, log *log.Logger, srcSC, dstSC string) (*Ro
 		return nil, fmt.Errorf("failed to create rook client: %w", err)
 	}
 
+	if srcSC == "" {
+		return nil, fmt.Errorf("empty source storage class")
+	}
+	if dstSC == "" {
+		return nil, fmt.Errorf("empty destination storage class")
+	}
+	if log == nil {
+		return nil, fmt.Errorf("no logger provided")
+	}
+
 	return &RookChecker{
 		kcli:  kcli,
 		rcli:  rcli,

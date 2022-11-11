@@ -575,6 +575,19 @@ func NewOpenEBSChecker(cfg *rest.Config, log *log.Logger, image, srcSC, dstSC st
 		return nil, fmt.Errorf("failed to create kubernetes client: %w", err)
 	}
 
+	if image == "" {
+		return nil, fmt.Errorf("empty image")
+	}
+	if srcSC == "" {
+		return nil, fmt.Errorf("empty source storage class")
+	}
+	if dstSC == "" {
+		return nil, fmt.Errorf("empty destination storage class")
+	}
+	if log == nil {
+		return nil, fmt.Errorf("no logger provided")
+	}
+
 	return &OpenEBSChecker{
 		deletePVTimeout: 5 * time.Minute,
 		kcli:            kcli,

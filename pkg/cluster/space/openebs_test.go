@@ -16,6 +16,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes/fake"
+	"k8s.io/client-go/rest"
 	"k8s.io/utils/pointer"
 )
 
@@ -735,5 +736,39 @@ func Test_hasEnoughSpace(t *testing.T) {
 				t.Errorf("expected free to be %v, %v received instead", tt.free, free)
 			}
 		})
+	}
+}
+
+func TestNewOpenEBSChecker(t *testing.T) {
+	// test empty logger
+	_, err := NewOpenEBSChecker(&rest.Config{}, nil, "image", "src", "dst")
+	if err == nil || err.Error() != "no logger provided" {
+		t.Errorf("expected failure creating object: %v", err)
+	}
+
+	logger := log.New(ioutil.Discard, "", 0)
+
+	// test empty image
+	_, err = NewOpenEBSChecker(&rest.Config{}, logger, "", "src", "dst")
+	if err == nil || err.Error() != "empty image" {
+		t.Errorf("expected failure creating object: %v", err)
+	}
+
+	// test src storage class
+	_, err = NewOpenEBSChecker(&rest.Config{}, logger, "image", "", "dst")
+	if err == nil || err.Error() != "empty source storage class" {
+		t.Errorf("expected failure creating object: %v", err)
+	}
+
+	// test empty dst sc
+	_, err = NewOpenEBSChecker(&rest.Config{}, logger, "image", "src", "")
+	if err == nil || err.Error() != "empty destination storage class" {
+		t.Errorf("expected failure creating object: %v", err)
+	}
+
+	// happy path
+	_, err = NewOpenEBSChecker(&rest.Config{}, logger, "image", "src", "dst")
+	if err != nil {
+		t.Errorf("unexpected failure creating object: %v", err)
 	}
 }
