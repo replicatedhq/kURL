@@ -242,3 +242,39 @@
       version: latest
     kotsadm:
       version: latest
+- name: "Airgap upgrade from k8s 1.23 to 1.25, and from Docker to Containerd"
+  installerSpec:
+    kubernetes:
+      version: 1.23.x
+    weave:
+      version: latest
+    openebs:
+      version: latest
+      isLocalPVEnabled: true
+      localPVStorageClassName: default
+    minio:
+      version: latest
+    registry:
+      version: latest
+    ekco:
+      version: latest
+    docker:
+      version: latest
+  upgradeSpec:
+    kubernetes:
+      version: 1.25.x
+    weave:
+      version: latest
+    openebs:
+      version: latest
+      isLocalPVEnabled: true
+      localPVStorageClassName: default
+    minio:
+      version: latest
+    registry:
+      version: latest
+    ekco:
+      version: latest
+    containerd:
+      version: latest
+  airgap: true
