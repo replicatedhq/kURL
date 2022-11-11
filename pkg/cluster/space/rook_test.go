@@ -2,7 +2,7 @@ package clusterspace
 
 import (
 	"context"
-	"io/ioutil"
+	"io"
 	"log"
 	"strings"
 	"testing"
@@ -146,7 +146,7 @@ func TestRookCheck(t *testing.T) {
 		},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
-			logger := log.New(ioutil.Discard, "", 0)
+			logger := log.New(io.Discard, "", 0)
 			rcli := rookfake.NewSimpleClientset(tt.rookObjects...)
 			kcli := fake.NewSimpleClientset(tt.coreObjects...)
 
@@ -755,7 +755,7 @@ func TestNewRookChecker(t *testing.T) {
 		t.Errorf("expected failure creating object: %v", err)
 	}
 
-	logger := log.New(ioutil.Discard, "", 0)
+	logger := log.New(io.Discard, "", 0)
 
 	// test src storage class
 	_, err = NewRookChecker(&rest.Config{}, logger, "", "dst")

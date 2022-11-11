@@ -2,7 +2,7 @@ package clusterspace
 
 import (
 	"context"
-	"io/ioutil"
+	"io"
 	"log"
 	"reflect"
 	"strings"
@@ -21,7 +21,7 @@ import (
 )
 
 func Test_deleteTmpPVCs(t *testing.T) {
-	logger := log.New(ioutil.Discard, "", 0)
+	logger := log.New(io.Discard, "", 0)
 	kcli := fake.NewSimpleClientset()
 	ochecker := OpenEBSChecker{
 		deletePVTimeout: 20 * time.Second,
@@ -746,7 +746,7 @@ func TestNewOpenEBSChecker(t *testing.T) {
 		t.Errorf("expected failure creating object: %v", err)
 	}
 
-	logger := log.New(ioutil.Discard, "", 0)
+	logger := log.New(io.Discard, "", 0)
 
 	// test empty image
 	_, err = NewOpenEBSChecker(&rest.Config{}, logger, "", "src", "dst")
