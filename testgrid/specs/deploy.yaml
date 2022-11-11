@@ -254,8 +254,6 @@
       localPVStorageClassName: default
     minio:
       version: latest
-    registry:
-      version: latest
     ekco:
       version: latest
     docker:
@@ -271,10 +269,17 @@
       localPVStorageClassName: default
     minio:
       version: latest
-    registry:
-      version: latest
     ekco:
       version: latest
     containerd:
       version: latest
   airgap: true
+  postInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    minio_object_store_info
+    validate_read_write_object_store rwtest testfile.txt
+  postUpgradeScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    minio_object_store_info
+    validate_testfile rwtest testfile.txt
+    validate_read_write_object_store postupgrade upgradefile.txt
