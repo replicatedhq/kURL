@@ -238,3 +238,28 @@ Snapshot management requires VM t be powered off.
 ### QEMU on MacOS
 
 You might want try to use [UTM](https://mac.getutm.app/).
+
+## FAQ
+
+### The `error sed: 1: "assets/Manifest": command a expects \ followed by text` or `command md5sum not found` has been faced when I try to run the `install.sh` script.
+
+The reason for that is because of the commands `sed -i` used on the script.
+Note that kURL only supports linux environments and then, you are probably trying to run it from a mac os.
+You can workaround by installing `gnu-sed` and `md5sum` with (`brew install gnu-sed`, `brew install md5sum`).
+However, to test the project you must have a `linux/amd64` platform to perform its operations.
+
+### I am unable to run `make lint` or build the project in my local environment (Apple M1/M2)
+
+If you are facing the following error or have issues to build the project that means that you did
+not export the environment variables `export GOOS=linux` and `export GOARCH=amd64` to allow you work within:
+
+```bash
+✗ make lint
+/Users/camilamacedo/go/bin/golangci-lint --build-tags "netgo containers_image_ostree_stub exclude_graphdriver_devicemapper exclude_graphdriver_btrfs containers_image_openpgp" run --timeout 5m ./cmd/... ./pkg/... ./kurl_util/...
+kurl_util/cmd/subnet/main.go:54:48: FAMILY_V4 not declared by package netlink (typecheck)
+	routes, err := netlink.RouteList(nil, netlink.FAMILY_V4)
+	                                              ^
+make: *** [lint] Error 1
+```
+
+
