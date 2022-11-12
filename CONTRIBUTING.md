@@ -43,13 +43,18 @@ Testing can be accomplished on systems capable of hosting supported container ru
    ```
 
 1. Rsync local packages to remote test server.
-    ```bash
-    # Local workstation
-    npm install
-    export REMOTES="USER@TARGET_SERVER_IP"
-    make watchrsync
-    # The job continually synchronizes local builds, keep it running
-    ```
+
+   ```shell
+   npm install
+   export REMOTES="USER@TARGET_SERVER_IP" # Add here the ssh credentials to connect to the remote server
+   make watchrsync
+   # The job continually synchronizes local builds, keep it running
+   ```
+
+   **NOTE:** Note that the scripts, images and binaries will be built under the [build directory](./build) and synchronized
+   to the server under the directory `$HOME/kurl` in your remote server. The scripts used to the tests will be moved
+   to your `$HOME` where they should be executed. For further info see the code at [bin/watchrsync.js](https://github.com/replicatedhq/kURL/blob/799db33f66f91b0680facf7c14e1222798021c57/bin/watchrsync.js#L29-L32).
+
 1. Customize your spec by editing `scripts/Manifest`
 
     Example:
