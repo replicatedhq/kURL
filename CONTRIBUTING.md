@@ -31,6 +31,7 @@ Testing can be accomplished on systems capable of hosting supported container ru
    ```sh
    export GOOS=linux
    export GOARCH=amd64
+   export DOCKER_DEFAULT_PLATFORM=linux/amd64
    ```
    
     ```bash
