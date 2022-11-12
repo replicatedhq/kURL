@@ -204,3 +204,4 @@ Snapshot management requires VM t be powered off.
 
 ### QEMU on MacOS
 
+[code-server]: https://github.com/replicatedhq/codeserver/blob/main/docs/first-time.md
