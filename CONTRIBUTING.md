@@ -32,13 +32,12 @@ Testing can be accomplished on systems capable of hosting supported container ru
    export GOOS=linux
    export GOARCH=amd64
    ```
-   
+
     ```bash
     # Local workstation
-    make build/packages/kubernetes/1.19.3/ubuntu-18.04
-    make build/packages/kubernetes/1.19.3/images
-    make build/packages/docker/19.03.10/ubuntu-18.04
-    make build/packages/docker/19.03.10/images
+    make build/packages/kubernetes/1.25.3/ubuntu-22.04
+    make build/packages/kubernetes/1.25.3/images
+    make build/packages/docker/20.10.17/ubuntu-22.04
     ```
    
 1. Rsync local packages to remote test server.
