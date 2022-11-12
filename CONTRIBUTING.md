@@ -1,8 +1,24 @@
 # Contributing
 
-We welcome contributions to kURL. We appreciate your time and help. 
+We welcome contributions to kURL. We appreciate your time and help.
 
-# Development workflow
+## Supportability
+
+kURL leverages [kubeadm](https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/create-cluster-kubeadm/).
+To test the project, you will need access to a `Linux/amd64` instance.
+You can check [system requirements](https://kurl.sh/docs/install-with-kurl/system-requirements#supported-operating-systems) for further info.
+
+## Pre-requirements
+
+- npm _(i.e. for mac os: `brew install npm`)_
+- [Golang](https://go.dev/doc/install) >= 1.19+
+- Docker
+
+**If your local environment is OSX:** ensure that you install `gnu-sed` and `md5sha1sum` to be able to run the scripts.
+These can be installed with `brew install gnu-sed` + `PATH="$(brew --prefix)/opt/gnu-sed/libexec/gnubin:$PATH"` and `brew install md5sha1sum`.
+The apple-supplied `sed` does not support in-place replace, and OSX does not come with `md5sha1sum`.
+
+## Development Workflow
 
 ### Testing released versions
 
@@ -212,4 +228,3 @@ Snapshot management requires VM t be powered off.
 ### QEMU on MacOS
 
 You might want try to use [UTM](https://mac.getutm.app/).
-
