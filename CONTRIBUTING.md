@@ -4,11 +4,35 @@ We welcome contributions to kURL. We appreciate your time and help.
 
 # Development workflow
 
-## Testing kURL
+### Testing released versions
 
-1. Set up a 'test server' to test kURL ([some options](#test-environments)).
+*For packages that have already been released, you can save time by running `curl -L https://k8s.kurl.sh/dist/kubernetes-1.25.2.tar.gz | tar -xzv -C kurl -f -` and `curl -L https://k8s.kurl.sh/dist/docker-20.10.17.tar.gz | tar -xzv -C kurl -f -` on the test server.*  <br />
+
+- 📌 _Ensure that you have a_ **kurl** _directory already created (`mkdir kurl`) from wherever you run the aforementioned commands.
+  *If using `containerd` building docker packages is not necessary. Instead to build packages run `make dist/containerd-1.6.8.tar.gz && tar xzvf dist/containerd-1.6.8.tar.gz` or to download already built packages `curl -L https://k8s.kurl.sh/dist/containerd-1.6.8.tar.gz | tar -xzv -C kurl -f -`*
+- 📌 *For centos/rhel hosts, `openssl` packages are required. Run `make dist/host-openssl.tar.gz && tar xzvf dist/host-openssl.tar.gz` or to download already built packages `curl -L https://k8s.kurl.sh/dist/host-openssl.tar.gz  | tar -xzv -C kurl -f -`*<br />
+- 📌 *In general, when testing local changes to an add-on, you'll need to install the host package(s) required for the particular add-on you're testing. E.g. if you want to install longhorn-1.2.4 with your local changes then you'll need to install the [required host packages](https://github.com/replicatedhq/kURL/blob/main/addons/longhorn/1.2.4/Manifest#L1-L4) prior to running the kURL installer.*
+
+### Testing kURL using Remote Server 
+
+1. Set up a 'test server' to test kURL
 Note that remote host must have `rsync` binary installed.
+
+Testing can be accomplished on systems capable of hosting supported container runtime. Local or remote Virtual Machine(s) or Instance(s) in a Public cloud provider.
+
+- [Using GCP](#using-gcp)
+- [Using Virtual Box on Mac](#virtual-box-on-mac-os)
+- [Using QEME on Mac](#QEMU-on-MacOS)
+
 1. Build packages for target OS: 
+
+   **NOTE** If your local environment is Apple Silicon M1/M2 ensure that you run before build the packages:
+
+   ```sh
+   export GOOS=linux
+   export GOARCH=amd64
+   ```
+   
     ```bash
     # Local workstation
     make build/packages/kubernetes/1.19.3/ubuntu-18.04
@@ -16,13 +40,8 @@ Note that remote host must have `rsync` binary installed.
     make build/packages/docker/19.03.10/ubuntu-18.04
     make build/packages/docker/19.03.10/images
     ```
-    
-    *For packages that have already been released, you can save time by running `curl -L https://k8s.kurl.sh/dist/kubernetes-1.25.2.tar.gz | tar -xzv -C kurl -f -` and `curl -L https://k8s.kurl.sh/dist/docker-20.10.17.tar.gz | tar -xzv -C kurl -f -` on the test server.*  <br />
-    📌 _Ensure that you have a_ **kurl** _directory already created (`mkdir kurl`) from wherever you run the aforementioned commands._<br /><br />
-    *If using `containerd` building docker packages is not necessary. Instead to build packages run `make dist/containerd-1.6.8.tar.gz && tar xzvf dist/containerd-1.6.8.tar.gz` or to download already built packages `curl -L https://k8s.kurl.sh/dist/containerd-1.6.8.tar.gz | tar -xzv -C kurl -f -`*<br /><br />
-    📌 *For centos/rhel hosts, `openssl` packages are required. Run `make dist/host-openssl.tar.gz && tar xzvf dist/host-openssl.tar.gz` or to download already built packages `curl -L https://k8s.kurl.sh/dist/host-openssl.tar.gz  | tar -xzv -C kurl -f -`*<br />
-    📌 *In general, when testing local changes to an add-on, you'll need to install the host package(s) required for the particular add-on you're testing. E.g. if you want to install longhorn-1.2.4 with your local changes then you'll need to install the [required host packages](https://github.com/replicatedhq/kURL/blob/main/addons/longhorn/1.2.4/Manifest#L1-L4) prior to running the kURL installer.*
-1. Rsync local packages to remote test server. To run the build on MacOS, jump to [Building on MacOS](#building-on-macos).
+   
+1. Rsync local packages to remote test server.
     ```bash
     # Local workstation
     npm install
@@ -183,9 +202,3 @@ Snapshot management requires VM t be powered off.
 
 ### QEMU on MacOS
 
-### Building on MacOs
-
-To run `make watchrsync`, you'll need to perform the following additional steps.
-
-1. `export GOOS=linux`
-2. If you have an M1 or other arm Macbook, you'll also need `export GOARCH=amd64`
