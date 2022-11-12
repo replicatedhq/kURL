@@ -182,7 +182,7 @@ vboxmanage modifyvm $VMNAME --nic1 nat --natpf1 "guestssh,tcp,,2222,,22"
 vboxmanage sharedfolder add $VMNAME --name kurl-dev --automount --auto-mount-point=/home/ubuntu/kurl --hostpath $(pwd)
 ```
 
-**NOTE** This option does not work with Apple Silicon `M1/M2`. [More info](https://forums.virtualbox.org/viewtopic.php?f=2&t=106702#p521862)
+**NOTE** This option does **not** work with Apple Silicon `M1/M2`.
 
 #### Development cycle
 
