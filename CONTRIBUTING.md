@@ -152,7 +152,7 @@ function kurl-dev-clean() {
 }
 ```
 
-### Virtual Box on Mac OS
+### Virtual Box on Mac OS (**Intel only**)
 
 #### Preparation
 
@@ -182,6 +182,8 @@ vboxmanage modifyvm $VMNAME --nic1 nat --natpf1 "guestssh,tcp,,2222,,22"
 vboxmanage sharedfolder add $VMNAME --name kurl-dev --automount --auto-mount-point=/home/ubuntu/kurl --hostpath $(pwd)
 ```
 
+**NOTE** This option does not work with Apple Silicon `M1/M2`. [More info](https://forums.virtualbox.org/viewtopic.php?f=2&t=106702#p521862)
+
 #### Development cycle
 
 ```bash
@@ -202,3 +204,9 @@ Snapshot management requires VM t be powered off.
 
 ### QEMU on MacOS
 
+You might want try to use [UTM](https://mac.getutm.app/).
+
+[kubeadmin]: https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/create-cluster-kubeadm/
+[kurl-system-requirements]: https://kurl.sh/docs/install-with-kurl/system-requirements#supported-operating-systems
+[kurl-docs]: https://github.com/replicatedhq/kurl.sh
+[code-server]: https://github.com/replicatedhq/codeserver/blob/main/docs/first-time.md
