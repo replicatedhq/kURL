@@ -205,8 +205,3 @@ Snapshot management requires VM t be powered off.
 ### QEMU on MacOS
 
 You might want try to use [UTM](https://mac.getutm.app/).
-
-[kubeadmin]: https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/create-cluster-kubeadm/
-[kurl-system-requirements]: https://kurl.sh/docs/install-with-kurl/system-requirements#supported-operating-systems
-[kurl-docs]: https://github.com/replicatedhq/kurl.sh
-[code-server]: https://github.com/replicatedhq/codeserver/blob/main/docs/first-time.md
