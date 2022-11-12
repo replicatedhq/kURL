@@ -12,7 +12,7 @@ We welcome contributions to kURL. We appreciate your time and help.
 - 📌 *For centos/rhel hosts, `openssl` packages are required. Run `make dist/host-openssl.tar.gz && tar xzvf dist/host-openssl.tar.gz` or to download already built packages `curl -L https://k8s.kurl.sh/dist/host-openssl.tar.gz  | tar -xzv -C kurl -f -`*<br />
 - 📌 *In general, when testing local changes to an add-on, you'll need to install the host package(s) required for the particular add-on you're testing. E.g. if you want to install longhorn-1.2.4 with your local changes then you'll need to install the [required host packages](https://github.com/replicatedhq/kURL/blob/main/addons/longhorn/1.2.4/Manifest#L1-L4) prior to running the kURL installer.*
 
-### Testing kURL using Remote Server 
+### Testing kURL using Remote Server
 
 1. Set up a 'test server' to test kURL
 Note that remote host must have `rsync` binary installed.
@@ -93,6 +93,16 @@ Testing can be accomplished on systems capable of hosting supported container ru
     sudo ./install.sh
     ```
     *NOTE: `install.sh` runs are idempotent, consecutive runs on changed spec will update kURL installation.*
+
+### Cleaning up(teardown)
+
+Currently, it is **not** possible to clean up everything that is installed or modified by kURL.
+There is a best effort script that can be run with `sudo bash ./tasks.sh reset`, but it is not always perfect.
+Ideally you will need a new instance/VM for each test scenario.
+
+Contributions and bug reports for things that the reset script does not currently handle are welcomed.
+
+**NOTE** You can run `make clean` to clean up the `build/` directory locally.
 
 ### Running local test versions of Object store and kURL API server
 
