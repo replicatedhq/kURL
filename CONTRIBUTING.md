@@ -106,7 +106,9 @@ Testing can be accomplished on systems capable of hosting supported container ru
 
 ### Using GCP
 
-Convenience functions (change the Default name, the first variable):
+**If you are a Replicated team member then:** ensure that you follow up the doc [Getting Started with your own CodeServer][code-server].
+
+#### :Tips: Convenience functions (change the Default name, the first variable):
 
 ```bash
 ### kURL development helpers:
