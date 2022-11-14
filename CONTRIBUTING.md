@@ -106,7 +106,7 @@ Testing can be accomplished on systems capable of hosting supported container ru
 
 ### Using GCP
 
-**If you are a Replicated team member then:** ensure that you follow up the doc [Getting Started with your own CodeServer][code-server].
+**If you are a Replicated team member then:** ensure that you have followed [Getting Started with your own CodeServer](https://github.com/replicatedhq/codeserver/blob/main/docs/first-time.md).
 
 #### :Tips: Convenience functions (change the Default name, the first variable):
 
@@ -203,5 +203,3 @@ Restoring a snapshot - `vboxmanage snapshot $VMNAME restore initial`
 Snapshot management requires VM t be powered off.
 
 ### QEMU on MacOS
-
-[code-server]: https://github.com/replicatedhq/codeserver/blob/main/docs/first-time.md
