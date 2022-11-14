@@ -39,24 +39,24 @@ Testing can be accomplished on systems capable of hosting supported container ru
 - [Using Virtual Box on Mac](#virtual-box-on-mac-os)
 - [Using QEME on Mac](#QEMU-on-MacOS)
 
-1. Build packages for target OS: 
+1. Build packages for target OS:
+   
+   In the following example we will use a helper targeting the ubuntu. 
+   **Ensure that you follow the steps to test in a remote server running ubuntu 22.04.**
 
-   **NOTE** If your local environment is Apple Silicon M1/M2 ensure that you run the following before building packages:
+   If your local environment is Apple Silicon M1/M2 ensure that you run the following before building packages:
 
    ```sh
    export GOOS=linux
    export GOARCH=amd64
    export DOCKER_DEFAULT_PLATFORM=linux/amd64
    ```
-   
+
+   Then, run from your local machine:
+
     ```bash
-    # Local workstation
-    make build/packages/kubernetes/1.19.3/ubuntu-18.04
-    make build/packages/kubernetes/1.19.3/images
-    make dist/containerd-1.6.8.tar.gz && tar xzvf dist/containerd-1.6.8.tar.gz
-    make dist/weave-2.8.1.tar.gz && tar xzvf dist/weave-2.8.1.tar.gz
-    make dist/openebs-3.3.0.tar.gz && tar xzvf dist/openebs-3.3.0.tar.gz
-    make dist/registry-2.8.1.tar.gz && tar xzvf dist/registry-2.8.1.tar.gz
+    # To build the sample under testdata targeting ubuntu 22.04
+    make build/sample/ubuntu-22.04
    ```
 
 1. Rsync local packages to remote test server.
@@ -72,35 +72,6 @@ Testing can be accomplished on systems capable of hosting supported container ru
    to the server under the directory `$HOME/kurl` in your remote server. The install scripts used for testing will be moved
    to your `$HOME` where they should be executed. For further info see the code at [bin/watchrsync.js](https://github.com/replicatedhq/kURL/blob/799db33f66f91b0680facf7c14e1222798021c57/bin/watchrsync.js#L29-L32).
 
-1. Customize your spec by editing `scripts/Manifest`
-
-    Example:
-    ```bash
-    KURL_URL=
-    DIST_URL=
-    FALLBACK_URL=
-    INSTALLER_ID=
-    REPLICATED_APP_URL=https://replicated.app
-    KURL_UTIL_IMAGE=replicated/kurl-util:alpha
-    KURL_BIN_UTILS_FILE=
-    INSTALLER_YAML="apiVersion: cluster.kurl.sh/v1beta1
-    kind: Installer
-    metadata:
-      name: testing
-    spec:
-      kubernetes:
-        version: 1.25.3
-      weave:
-        version: 2.8.1
-      openebs:
-        version: 3.3.0
-        isLocalPVEnabled: true
-        localPVStorageClassName: default
-      containerd:
-        version: 1.6.9
-      registry:
-        version: 2.8.1"
-    ```
 1. Validate and run installation on test system
     ```bash
     # On test server
@@ -109,6 +80,30 @@ Testing can be accomplished on systems capable of hosting supported container ru
     sudo ./install.sh
     ```
     *NOTE: `install.sh` runs are idempotent, consecutive runs on changed spec will update kURL installation.*
+
+### Customizing the spec to do test upgrades and installs
+
+  When you run the target `make build/sample`, the config spec under [script/Manifest](scripts/Manifest) will be replaced with the sample spec in [testdata/sample/Manifest](./testdata/sample/Manifest).
+  If you would like to test other configurations you must:
+
+  - replace the spec configuration with that which you would like to test in [script/Manifest](scripts/Manifest)
+  - run `make clean` to clean the directories used
+  - ensure that you call the makefile targets to build the bundle assets, i.e:
+
+     ```bash
+       # Here we are building the bundles for k8s 1.25.3 to target ubuntu 22.02 SO
+       make build/packages/kubernetes/1.25.3/ubuntu-22.04
+       make build/packages/kubernetes/1.25.3/images
+     ```
+
+  - build the addons tarball for the specific versions and untar them, i.e:
+
+     ```bash
+       # Here we are building the tarball for containerd version 1.6.9
+       make dist/containerd-1.6.9.tar.gz && tar xzvf dist/containerd-1.6.9.tar.gz
+     ```
+
+  - ensure that all is rsynced with the remote server before running `./install.sh`
 
 ### Cleaning up(teardown)
 
