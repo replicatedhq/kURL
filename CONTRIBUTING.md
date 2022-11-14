@@ -9,7 +9,6 @@ We welcome contributions to kURL. We appreciate your time and help.
 *For packages that have already been released, you can save time by running `curl -L https://k8s.kurl.sh/dist/kubernetes-1.25.2.tar.gz | tar -xzv -C kurl -f -` and `curl -L https://k8s.kurl.sh/dist/docker-20.10.17.tar.gz | tar -xzv -C kurl -f -` on the test server.*  <br />
 
 - 📌 _Ensure that you have a_ **kurl** _directory already created (`mkdir kurl`) from wherever you run the aforementioned commands.
-  *If using `containerd` building docker packages is not necessary. Instead to build packages run `make dist/containerd-1.6.8.tar.gz && tar xzvf dist/containerd-1.6.8.tar.gz` or to download already built packages `curl -L https://k8s.kurl.sh/dist/containerd-1.6.8.tar.gz | tar -xzv -C kurl -f -`*
 - 📌 *For centos/rhel hosts, `openssl` packages are required. Run `make dist/host-openssl.tar.gz && tar xzvf dist/host-openssl.tar.gz` or to download already built packages `curl -L https://k8s.kurl.sh/dist/host-openssl.tar.gz  | tar -xzv -C kurl -f -`*<br />
 - 📌 *In general, when testing local changes to an add-on, you'll need to install the host package(s) required for the particular add-on you're testing. E.g. if you want to install longhorn-1.2.4 with your local changes then you'll need to install the [required host packages](https://github.com/replicatedhq/kURL/blob/main/addons/longhorn/1.2.4/Manifest#L1-L4) prior to running the kURL installer.*
 
@@ -26,7 +25,7 @@ Testing can be accomplished on systems capable of hosting supported container ru
 
 1. Build packages for target OS: 
 
-   **NOTE** If your local environment is Apple Silicon M1/M2 ensure that you run before build the packages:
+   **NOTE** If your local environment is Apple Silicon M1/M2 ensure that you run the following before building packages:
 
    ```sh
    export GOOS=linux
@@ -37,10 +36,12 @@ Testing can be accomplished on systems capable of hosting supported container ru
     # Local workstation
     make build/packages/kubernetes/1.19.3/ubuntu-18.04
     make build/packages/kubernetes/1.19.3/images
-    make build/packages/docker/19.03.10/ubuntu-18.04
-    make build/packages/docker/19.03.10/images
-    ```
-   
+    make dist/containerd-1.6.8.tar.gz && tar xzvf dist/containerd-1.6.8.tar.gz
+    make dist/weave-2.8.1.tar.gz && tar xzvf dist/weave-2.8.1.tar.gz
+    make dist/openebs-3.3.0.tar.gz && tar xzvf dist/openebs-3.3.0.tar.gz
+    make dist/registry-2.8.1.tar.gz && tar xzvf dist/registry-2.8.1.tar.gz
+   ```
+
 1. Rsync local packages to remote test server.
     ```bash
     # Local workstation
@@ -66,19 +67,17 @@ Testing can be accomplished on systems capable of hosting supported container ru
       name: testing
     spec:
       kubernetes:
-        version: 1.19.7
+        version: 1.25.3
       weave:
-        version: 2.7.0
+        version: 2.8.1
       openebs:
-        version: 1.12.0
+        version: 3.3.0
         isLocalPVEnabled: true
         localPVStorageClassName: default
       containerd:
-        version: 1.4.3
-      prometheus:
-        version: 0.33.0
+        version: 1.6.9
       registry:
-        version: 2.7.1"
+        version: 2.8.1"
     ```
 1. Validate and run installation on test system
     ```bash
