@@ -54,7 +54,7 @@ func main() {
 
 	if !skipFreeSpaceCheck {
 		if err := checkFreeSpace(ctx, logger, cfg, cli, opts); err != nil {
-			log.Printf("Failed to check cluster free space: %s", err)
+			logger.Printf("Failed to check cluster free space: %s", err)
 			os.Exit(1)
 		}
 	}
