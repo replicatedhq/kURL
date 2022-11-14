@@ -24,7 +24,7 @@ func TestPVSReservationPerNode(t *testing.T) {
 		objs             []runtime.Object
 	}{
 		{
-			name:             "detached pvc",
+			name:             "should return the space of detached pvc",
 			scname:           "default",
 			expectedPerNode:  map[string]int64{},
 			expectedDetached: 100,
@@ -56,7 +56,7 @@ func TestPVSReservationPerNode(t *testing.T) {
 			},
 		},
 		{
-			name:   "per node",
+			name:   "should parse pvc storage per node",
 			scname: "default",
 			expectedPerNode: map[string]int64{
 				"node-0": 100,
@@ -181,7 +181,7 @@ func TestPVCSForPVs(t *testing.T) {
 		objs     []runtime.Object
 	}{
 		{
-			name: "pv without claimref",
+			name: "should fail if pvc does not havel a claimref",
 			err:  "pv pv0 without associated PVC",
 			input: map[string]corev1.PersistentVolume{
 				"pv0": {
@@ -195,7 +195,7 @@ func TestPVCSForPVs(t *testing.T) {
 			},
 		},
 		{
-			name: "pvc not found",
+			name: "should fail if pvc is not found",
 			err:  "failed to get pvc do-not-exist for pv pv0",
 			input: map[string]corev1.PersistentVolume{
 				"pv0": {
@@ -212,7 +212,7 @@ func TestPVCSForPVs(t *testing.T) {
 			},
 		},
 		{
-			name: "happy path",
+			name: "should be able to find space in detached pvc",
 			input: map[string]corev1.PersistentVolume{
 				"pv0": {
 					ObjectMeta: metav1.ObjectMeta{
@@ -274,12 +274,12 @@ func TestPVSByStorageClass(t *testing.T) {
 		objs     []runtime.Object
 	}{
 		{
-			name:   "storage class not found",
+			name:   "should fail if storage class was not found",
 			scname: "not-found",
 			err:    "failed to get storage class",
 		},
 		{
-			name:   "multiple volumes",
+			name:   "should pass when multiple volumes are present",
 			scname: "default",
 			expected: map[string]corev1.PersistentVolume{
 				"pv0": {
@@ -324,7 +324,7 @@ func TestPVSByStorageClass(t *testing.T) {
 			},
 		},
 		{
-			name:   "multiple volumes of different classes",
+			name:   "should pass when multiple volumes of different classes are present",
 			scname: "default",
 			expected: map[string]corev1.PersistentVolume{
 				"pv0": {

@@ -27,7 +27,7 @@ func TestRookCheck(t *testing.T) {
 		err         string
 	}{
 		{
-			name:  "happy path",
+			name:  "should be able evaluate the disk space",
 			srcSC: "default",
 			coreObjects: []runtime.Object{
 				&storagev1.StorageClass{
@@ -70,7 +70,7 @@ func TestRookCheck(t *testing.T) {
 			},
 		},
 		{
-			name:  "failed to check reserved space due to invalid src storage class",
+			name:  "should fail to check reserved space with an invalid src storage class",
 			srcSC: "i-do-not-exist",
 			err:   `storageclasses.storage.k8s.io "i-do-not-exist" not found`,
 			coreObjects: []runtime.Object{
@@ -114,7 +114,7 @@ func TestRookCheck(t *testing.T) {
 			},
 		},
 		{
-			name:  "fail to check free space due to missing pool",
+			name:  "should fail to check free space when the pool is missing",
 			err:   "failed to verify free space: failed to get pool poolname",
 			srcSC: "default",
 			coreObjects: []runtime.Object{
@@ -185,7 +185,7 @@ func Test_reservedSpace(t *testing.T) {
 		objs     []runtime.Object
 	}{
 		{
-			name:     "single detached pvc",
+			name:     "should pass with a detached volume",
 			srcSC:    "test",
 			expected: 1000000000,
 			objs: []runtime.Object{
@@ -223,7 +223,7 @@ func Test_reservedSpace(t *testing.T) {
 			},
 		},
 		{
-			name:     "multiple detached pvc",
+			name:     "should pass with multiple detached pvc",
 			srcSC:    "test",
 			expected: 5000000000,
 			objs: []runtime.Object{
@@ -283,7 +283,7 @@ func Test_reservedSpace(t *testing.T) {
 			},
 		},
 		{
-			name:     "detached + attached pvc",
+			name:     "should pass and return the sum of detached and attached pvc",
 			srcSC:    "test",
 			expected: 10000000000,
 			objs: []runtime.Object{
@@ -396,7 +396,7 @@ func Test_freeSpace(t *testing.T) {
 		cluster  *rookv1.CephCluster
 	}{
 		{
-			name:     "happy path",
+			name:     "should be able to parse ceph free space",
 			dstSC:    "test",
 			expected: 100,
 			sc: &storagev1.StorageClass{
@@ -436,7 +436,7 @@ func Test_freeSpace(t *testing.T) {
 			},
 		},
 		{
-			name:     "two replicas",
+			name:     "should pass with pool configured for two replicas",
 			dstSC:    "test",
 			expected: 50,
 			sc: &storagev1.StorageClass{
@@ -476,7 +476,7 @@ func Test_freeSpace(t *testing.T) {
 			},
 		},
 		{
-			name:  "pool does not exist",
+			name:  "should fail when the ceph pool does not exist",
 			dstSC: "test",
 			err:   "failed to get pool",
 			sc: &storagev1.StorageClass{
@@ -516,7 +516,7 @@ func Test_freeSpace(t *testing.T) {
 			},
 		},
 		{
-			name:  "zeroed replicas",
+			name:  "should fail with invalid zeroed ceph pool replicas",
 			dstSC: "test",
 			err:   "pool replica size is zeroed",
 			sc: &storagev1.StorageClass{
@@ -556,7 +556,7 @@ func Test_freeSpace(t *testing.T) {
 			},
 		},
 		{
-			name:  "ceph cluster not found",
+			name:  "should fail when ceph cluster is not found",
 			dstSC: "test",
 			err:   "failed to get ceph cluster",
 			sc: &storagev1.StorageClass{
@@ -596,7 +596,7 @@ func Test_freeSpace(t *testing.T) {
 			},
 		},
 		{
-			name:  "nil ceph",
+			name:  "should failed if no ceph status is present",
 			dstSC: "test",
 			err:   "failed to read ceph status (nil)",
 			sc: &storagev1.StorageClass{
@@ -664,7 +664,7 @@ func Test_getPoolAndClusterName(t *testing.T) {
 		sc    *storagev1.StorageClass
 	}{
 		{
-			name:  "happy path",
+			name:  "should be able to find pool and cluster name",
 			dstSC: "test",
 			pname: "poolname",
 			cname: "clustername",
@@ -679,7 +679,7 @@ func Test_getPoolAndClusterName(t *testing.T) {
 			},
 		},
 		{
-			name:  "unknown storage class",
+			name:  "should fail if storage class does not exist",
 			err:   "failed to get storage class test",
 			dstSC: "test",
 			sc: &storagev1.StorageClass{
@@ -693,7 +693,7 @@ func Test_getPoolAndClusterName(t *testing.T) {
 			},
 		},
 		{
-			name:  "no pool name",
+			name:  "should fail if no pool name is present in the storage class",
 			dstSC: "test",
 			err:   "failed to read storage class test pool/cluster",
 			sc: &storagev1.StorageClass{
@@ -706,7 +706,7 @@ func Test_getPoolAndClusterName(t *testing.T) {
 			},
 		},
 		{
-			name:  "no cluster name",
+			name:  "should fail if no cluster name is present in the storage class",
 			dstSC: "test",
 			err:   "failed to read storage class test pool/cluster",
 			sc: &storagev1.StorageClass{

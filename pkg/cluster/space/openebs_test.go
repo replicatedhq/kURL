@@ -170,14 +170,14 @@ func Test_nodeIsScheduleable(t *testing.T) {
 		annotations map[string]string
 	}{
 		{
-			name: "not ready",
+			name: "should fail when node is not ready",
 			err:  true,
 			annotations: map[string]string{
 				"node.kubernetes.io/not-ready": "NoExecute",
 			},
 		},
 		{
-			name: "multiple not ready annotations",
+			name: "should failed when node has multiple not ready annotations",
 			err:  true,
 			annotations: map[string]string{
 				"node.kubernetes.io/not-ready":              "NoExecute",
@@ -218,7 +218,7 @@ func Test_bulidTmpPVC(t *testing.T) {
 		expectedSpec corev1.PersistentVolumeClaimSpec
 	}{
 		{
-			name:         "happy path",
+			name:         "should pass with the full node name",
 			nodeName:     "node0",
 			expectedName: "disk-free-node0-",
 			dstSC:        "xyz",
@@ -233,7 +233,7 @@ func Test_bulidTmpPVC(t *testing.T) {
 			},
 		},
 		{
-			name:         "very long host name",
+			name:         "should trim pvc name if longer than 63 chars",
 			nodeName:     "this-is-a-relly-long-host-name-and-this-should-be-trimmed",
 			expectedName: "disk-free-this-is-a-relly-long-and-this-should-be-trimmed-",
 			dstSC:        "default",
@@ -274,52 +274,52 @@ func Test_parseDFContainerOutput(t *testing.T) {
 		expectedUsed int64
 	}{
 		{
-			name:    "empty",
+			name:    "should fail with empty df result",
 			content: []byte(``),
 			err:     "failed to locate free space info in pod log",
 		},
 		{
-			name:    "invalid return",
+			name:    "should faile with invalid df return",
 			content: []byte(`...---...---...<<<<>>>>>>`),
 			err:     "failed to locate free space info in pod log",
 		},
 		{
-			name: "human readable return",
+			name: "should fail if df returns human readable format",
 			content: []byte(`Filesystem      Size  Used Avail Use% Mounted on
 /dev/sda2        59G   49G  6.9G  88% /data`),
 			err: `failed to parse "6.9G" as available spac`,
 		},
 		{
-			name: "human readable return (used)",
+			name: "should fail if df returns human readable format (used)",
 			content: []byte(`Filesystem      Size  Used Avail Use% Mounted on
 /dev/sda2        59G   49G  100  88% /data`),
 			err: `failed to parse "49G" as used spac`,
 		},
 		{
-			name: "strange mount point",
+			name: "should fail if df return does not contain /data mount point",
 			content: []byte(`Filesystem      Size  Used Avail Use% Mounted on
 /dev/sda2        59G   49G  6.9G  88% /`),
 			err: "failed to locate free space info in pod log",
 		},
 		{
-			name:    "line ending with /data",
+			name:    "should fail if the line ends with /data but the content is invalid",
 			content: []byte(`something weird /data`),
 			err:     "failed to locate free space info in pod log",
 		},
 		{
-			name:    "line ending with /data and five words",
+			name:    "should fail if df result ends with /data but we can't parse the values",
 			content: []byte(`this is a failure /data`),
 			err:     `failed to parse "a" as available space`,
 		},
 		{
-			name: "happy path",
+			name: "should succeed to parse df command output",
 			content: []byte(`Filesystem       1B-blocks        Used  Available Use% Mounted on
 /dev/sda2      63087357952 52521754624 7327760384  88% /data`),
 			expectedFree: 7327760384,
 			expectedUsed: 52521754624,
 		},
 		{
-			name: "happy path with an empty line",
+			name: "should pass even with an empty line among the df result",
 			content: []byte(`Filesystem       1B-blocks        Used  Available Use% Mounted on
 
 /dev/sda2      63087357952 52521754624 7327760384  88% /data`),
@@ -327,14 +327,14 @@ func Test_parseDFContainerOutput(t *testing.T) {
 			expectedUsed: 52521754624,
 		},
 		{
-			name: "happy path (prefixes)",
+			name: "should pass regardless of the number of prefixes in the df result",
 			content: []byte(`Filesystem       1B-blocks        Used  Available Use% Mounted on
 some prefixes go in here /dev/sda2      63087357952 52521754624 7327760384  88% /data`),
 			expectedFree: 7327760384,
 			expectedUsed: 52521754624,
 		},
 		{
-			name: "happy path (oracle linux output)",
+			name: "should be able to parse df result (oracle linux output)",
 			content: []byte(`Filesystem       1B-blocks       Used   Available Use% Mounted on
 /dev/xvda1     85886742528 8500056064 77386686464  10% /data`),
 			expectedFree: 77386686464,
@@ -375,13 +375,13 @@ func Test_parseFstabContainerOutput(t *testing.T) {
 		expected []string
 	}{
 		{
-			name: "oracle linux amazon",
+			name: "should be able to parse oracle linux amazon example fstab",
 			content: []byte(`#
 UUID=d8605abb-d6cd-4a46-a657-b6bd206da2ab     /           xfs    defaults,noatime  1   1`),
 			expected: []string{"/"},
 		},
 		{
-			name: "local vm ubuntu 22.04",
+			name: "should be able to parse ubuntu 22.04 example fstab",
 			content: []byte(`# /etc/fstab: static file system information.
 #
 # Use 'blkid' to print the universally unique identifier for a
@@ -394,7 +394,7 @@ UUID=d8605abb-d6cd-4a46-a657-b6bd206da2ab     /           xfs    defaults,noatim
 			expected: []string{"/"},
 		},
 		{
-			name: "multiple volume mounts",
+			name: "should pass with multiple mount points in the fstab",
 			content: []byte(`# /etc/fstab: static file system information.
 #
 # Use 'blkid' to print the universally unique identifier for a
@@ -408,12 +408,12 @@ UUID=d8605abb-d6cd-4a46-a657-b6bd206da2ab     /           xfs    defaults,noatim
 			expected: []string{"/", "/opt"},
 		},
 		{
-			name:    "empty",
+			name:    "should fail if fstab is empty",
 			content: []byte(``),
 			err:     "failed to locate any mount point",
 		},
 		{
-			name: "with uuid and with none",
+			name: "should pass if fstab contains uuid and with none",
 			content: []byte(`# /etc/fstab: static file system information.
 #
 # <file system> <mount point>   <type>  <options>       <dump>  <pass>
@@ -428,7 +428,7 @@ UUID=cee15eca-5b2e-48ad-9735-eae5ac14bc90  none  swap  sw  0  0
 			expected: []string{"/proc", "/", "/media/cdrom0"},
 		},
 		{
-			name: "with repeated mount point",
+			name: "should dedup repeated mount point",
 			content: []byte(`# FAT ~ Linux calls FAT file systems vfat)
 # /dev/hda1
 UUID=12102C02102CEB83  /media/windows  vfat auto,users,uid=1000,gid=100,dmask=027,fmask=137,utf8  0  0
@@ -502,7 +502,7 @@ func Test_basePath(t *testing.T) {
 		objs     []runtime.Object
 	}{
 		{
-			name:  "no storage class found",
+			name:  "should fail if can't get the storage class",
 			dstSC: "does-not-exist",
 			err:   `class: storageclasses.storage.k8s.io "does-not-exist" not found`,
 			objs:  []runtime.Object{},
@@ -520,7 +520,7 @@ func Test_basePath(t *testing.T) {
 			},
 		},
 		{
-			name:  "invalid configuration",
+			name:  "should fail if the openebs configuration is invalid",
 			dstSC: "default",
 			err:   "failed to parse openebs config annotation",
 			objs: []runtime.Object{
@@ -535,7 +535,7 @@ func Test_basePath(t *testing.T) {
 			},
 		},
 		{
-			name:  "no base path config",
+			name:  "should fail if opeenbs configuration does not contain the base path",
 			dstSC: "default",
 			err:   "openebs base path not defined in the storage class",
 			objs: []runtime.Object{
@@ -550,7 +550,7 @@ func Test_basePath(t *testing.T) {
 			},
 		},
 		{
-			name:  "empty base path",
+			name:  "should fail if opeenbs base path is empty",
 			dstSC: "default",
 			err:   "invalid opeenbs base path",
 			objs: []runtime.Object{
@@ -565,7 +565,7 @@ func Test_basePath(t *testing.T) {
 			},
 		},
 		{
-			name:  "invalid base path",
+			name:  "should fail if openebs base path is not a path",
 			dstSC: "default",
 			err:   "invalid opeenbs base path",
 			objs: []runtime.Object{
@@ -580,7 +580,7 @@ func Test_basePath(t *testing.T) {
 			},
 		},
 		{
-			name:     "happy path",
+			name:     "should be able to parse openebs configuration",
 			dstSC:    "default",
 			expected: "/var/local",
 			objs: []runtime.Object{
@@ -688,10 +688,10 @@ func Test_hasEnoughSpace(t *testing.T) {
 		free     int64
 	}{
 		{
-			name: "empty open ebs volume",
+			name: "should pass with an empty open ebs volume",
 		},
 		{
-			name:     "enough space (different mount point)",
+			name:     "should pass when there is enough space (different mount point)",
 			reserved: 99,
 			free:     100,
 			hasSpace: true,
@@ -702,7 +702,7 @@ func Test_hasEnoughSpace(t *testing.T) {
 			},
 		},
 		{
-			name:     "enough space (same mount point)",
+			name:     "should pass when there is enough space (same mount point)",
 			reserved: 50,
 			free:     85,
 			hasSpace: true,
@@ -713,7 +713,7 @@ func Test_hasEnoughSpace(t *testing.T) {
 			},
 		},
 		{
-			name:     "not enough space (same mount point)",
+			name:     "should not pass when there is not enough space (same mount point)",
 			reserved: 86,
 			free:     85,
 			hasSpace: false,

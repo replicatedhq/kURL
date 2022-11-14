@@ -15,7 +15,7 @@ func TestPodUsesPVC(t *testing.T) {
 		pvc      corev1.PersistentVolumeClaim
 	}{
 		{
-			name:     "uses pvc",
+			name:     "should find pvc in pod",
 			expected: true,
 			pod: corev1.Pod{
 				ObjectMeta: metav1.ObjectMeta{
@@ -43,7 +43,7 @@ func TestPodUsesPVC(t *testing.T) {
 			},
 		},
 		{
-			name:     "nil claimref",
+			name:     "should return false if no claim ref is present in the pv",
 			expected: false,
 			pod: corev1.Pod{
 				ObjectMeta: metav1.ObjectMeta{
@@ -66,7 +66,7 @@ func TestPodUsesPVC(t *testing.T) {
 			},
 		},
 		{
-			name:     "different namespace",
+			name:     "should return false if pvc and pod namespaces are different",
 			expected: false,
 			pod: corev1.Pod{
 				ObjectMeta: metav1.ObjectMeta{
@@ -94,7 +94,7 @@ func TestPodUsesPVC(t *testing.T) {
 			},
 		},
 		{
-			name:     "does not use pvc",
+			name:     "should return false if pod does not use pvc",
 			expected: false,
 			pod: corev1.Pod{
 				ObjectMeta: metav1.ObjectMeta{
