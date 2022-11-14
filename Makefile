@@ -593,6 +593,30 @@ generate-mocks: ## Generate mocks tests for CLI and preflight. More info: https:
 kurl-util-image: ## Download Kurl util image (replicated/kurl-util:alpha)
 	docker pull $(KURL_UTIL_IMAGE)
 
+.PHONY: clean-manifest
+clean-manifest: ## Remove the changes made on the ./scripts/Manifest
+	rm -rf build tmp dist
+	cp ./hack/testdata/manifest/clean ./scripts/Manifest
+
+## It is just a sample to help you out test the project by building all that is required
+## for the sample config file (./hack/testdata/manifest/sample). Note that you can change
+## the versions and customize the test by updating this target or if you prefer you can
+## run the commands manually for your case scenario. You do NOT need to use it at all. You
+## can just update the ./scripts/Manifest config and run the commands manually accordingly.
+.PHONY: build/sample/ubuntu-%
+build/sample/ubuntu-%: ## Build sample config under testdata targeting the ubuntu version informed
+	cp ./hack/testdata/manifest/sample ./scripts/Manifest
+	make clean
+	make build/packages/kubernetes/1.25.3/ubuntu-$*
+	make build/packages/kubernetes/1.25.3/images
+	make dist/containerd-1.6.9.tar.gz && tar xzvf dist/containerd-1.6.9.tar.gz
+	make dist/weave-2.6.5-20221025.tar.gz && tar xzvf dist/weave-2.6.5-20221025.tar.gz
+	make dist/contour-1.23.0.tar.gz && tar xzvf dist/contour-1.23.0.tar.gz
+	make dist/openebs-3.3.0.tar.gz && tar xzvf dist/openebs-3.3.0.tar.gz
+	make dist/prometheus-0.60.1-41.7.3.tar.gz && tar xzvf dist/prometheus-0.60.1-41.7.3.tar.gz
+	make dist/registry-2.8.1.tar.gz && tar xzvf dist/registry-2.8.1.tar.gz
+	make dist/minio-2022-10-20T00-55-09Z.tar.gz && tar xzvf dist/minio-2022-10-20T00-55-09Z.tar.gz
+
 ##@ Remote Development Tests
 
 # NOTE: Before resync you must ensure that the go environment variables are configured with
