@@ -1294,7 +1294,7 @@ github.com/onsi/gomega v1.7.1/go.mod h1:XdKZgCCFLUoM/7CFJVPcG8C1xQ1AJ0vpAezJrB7J
 github.com/onsi/gomega v1.9.0/go.mod h1:Ho0h+IUsWyvy1OpqCwxlQ/21gkhVunqlU8fDGcoTdcA=
 github.com/onsi/gomega v1.10.1/go.mod h1:iN09h71vgCQne3DLsj+A5owkum+a2tYe+TOCB1ybHNo=
 github.com/onsi/gomega v1.10.3/go.mod h1:V9xEwhxec5O8UDM77eCW8vLymOMltsqPVYWrpDsH8xc=
-github.com/onsi/gomega v1.23.0 h1:/oxKu9c2HVap+F3PfKort2Hw5DEU+HGlW8n+tguWsys=
+github.com/onsi/gomega v1.24.0 h1:+0glovB9Jd6z3VR+ScSwQqXVTIfJcGA9UBM8yzQxhqg=
 github.com/opencontainers/go-digest v0.0.0-20170106003457-a6d0ee40d420/go.mod h1:cMLVZDEM3+U2I4VmLI6N8jQYUd2OVphdqWwCJHrFt2s=
 github.com/opencontainers/go-digest v0.0.0-20180430190053-c9281466c8b2/go.mod h1:cMLVZDEM3+U2I4VmLI6N8jQYUd2OVphdqWwCJHrFt2s=
 github.com/opencontainers/go-digest v1.0.0-rc1/go.mod h1:cMLVZDEM3+U2I4VmLI6N8jQYUd2OVphdqWwCJHrFt2s=
@@ -1445,8 +1445,8 @@ github.com/prometheus/tsdb v0.7.1/go.mod h1:qhTCs0VvXwvX/y3TZrWD7rabWM+ijKTux40T
 github.com/rboyer/safeio v0.2.1 h1:05xhhdRNAdS3apYm7JRjOqngf4xruaW959jmRxGDuSU=
 github.com/rcrowley/go-metrics v0.0.0-20181016184325-3113b8401b8a/go.mod h1:bCqnVzQkZxMG4s8nGwiZ5l3QUCyqpo9Y+/ZMZ9VjZe4=
 github.com/renier/xmlrpc v0.0.0-20170708154548-ce4a1a486c03 h1:Wdi9nwnhFNAlseAOekn6B5G/+GMtks9UKbvRU/CMM/o=
-github.com/replicatedhq/kurlkinds v1.0.6 h1:4G+H0X2/UKg6KekzeX4NFUbUVNbsizTRVXYCMPFhXJo=
-github.com/replicatedhq/kurlkinds v1.0.6/go.mod h1:i5FPQzNXIW33jWGjHOQTXz4+UTAtZSs14AIcS7R6240=
+github.com/replicatedhq/kurlkinds v1.0.7 h1:133D8kEXrsYVHQK/VvDd1GWk9RFK0+pxTkZPV8YYUtE=
+github.com/replicatedhq/kurlkinds v1.0.7/go.mod h1:fgI8fsZ8sCzIgiU4Z0YPM2gMKrc7SzYI4IdNxaHOXe8=
 github.com/replicatedhq/pvmigrate v0.6.0 h1:vj26q3KBYP3D2yKMoEU9+ZE7mP38lDhzA260ZDBbLSY=
 github.com/replicatedhq/pvmigrate v0.6.0/go.mod h1:kCyzLWCfD7jnm7As+g/3jFdXdHWCdFnp5ekh5LfAebs=
 github.com/replicatedhq/termui/v3 v3.1.1-0.20200811145416-f40076d26851 h1:eRlNDHxGfVkPCRXbA4BfQJvt5DHjFiTtWy3R/t4djyY=
