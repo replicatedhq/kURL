@@ -51,7 +51,10 @@ func main() {
 	}
 
 	if !skipFreeSpaceCheck {
-		checkFreeSpace(ctx, logger, cfg, cli, opts)
+		if err := checkFreeSpace(ctx, logger, cfg, cli, opts); err != nil {
+			log.Printf("Failed to check cluster free space: %s", err)
+			os.Exit(1)
+		}
 	}
 
 	if err = migrate.Migrate(ctx, logger, cli, opts); err != nil {
@@ -60,12 +63,11 @@ func main() {
 	}
 }
 
-func checkFreeSpace(ctx context.Context, logger *log.Logger, cfg *rest.Config, cli kubernetes.Interface, opts migrate.Options) {
-	logger.Printf("Preparing to run migrations...")
+func checkFreeSpace(ctx context.Context, logger *log.Logger, cfg *rest.Config, cli kubernetes.Interface, opts migrate.Options) error {
+	logger.Printf("Checking if there is enough space to complete the storage migration")
 	sclasses, err := cli.StorageV1().StorageClasses().List(ctx, metav1.ListOptions{})
 	if err != nil {
-		logger.Printf("failed to get storage classes: %s", err)
-		os.Exit(1)
+		return fmt.Errorf("Failed to get storage classes: %w", err)
 	}
 
 	var srcProvisioner string
@@ -81,29 +83,25 @@ func checkFreeSpace(ctx context.Context, logger *log.Logger, cfg *rest.Config, c
 
 	// we skip free space check if any of the provided storage classes don't exist.
 	if srcProvisioner == "" || dstProvisioner == "" {
-		return
+		return nil
 	}
 
 	if dstProvisioner == "openebs.io/local" {
 		dfchecker, err := clusterspace.NewOpenEBSChecker(cfg, logger, opts.RsyncImage, opts.SourceSCName, opts.DestSCName)
 		if err != nil {
-			logger.Printf("Failed to create openebs free space checker: %s", err)
-			os.Exit(1)
+			return fmt.Errorf("Failed to create openebs free space checker: %w", err)
 		}
 
 		nodesWithoutSpace, err := dfchecker.Check(ctx)
 		if err != nil {
-			logger.Printf("Failed to check nodes free space: %s", err)
-			os.Exit(1)
+			return fmt.Errorf("Failed to check nodes free space: %w", err)
 		}
 
 		if len(nodesWithoutSpace) == 0 {
-			return
+			return nil
 		}
 
-		logger.Print("Some nodes do not have enough disk space for the migration:")
-		logger.Printf("\n%s\n\n", strings.Join(nodesWithoutSpace, ","))
-		os.Exit(1)
+		return fmt.Errorf("Some nodes do not have enough disk space for the migration:\n%s\n\n", strings.Join(nodesWithoutSpace, ","))
 	}
 
 	rookProvisioners := map[string]bool{
@@ -113,21 +111,19 @@ func checkFreeSpace(ctx context.Context, logger *log.Logger, cfg *rest.Config, c
 	if _, ok := rookProvisioners[dstProvisioner]; ok {
 		dfchecker, err := clusterspace.NewRookChecker(cfg, logger, opts.SourceSCName, opts.DestSCName)
 		if err != nil {
-			logger.Printf("Failed to create rook free space checker: %s", err)
-			os.Exit(1)
+			return fmt.Errorf("Failed to create Rook/Ceph free space checker: %w", err)
 		}
 
 		hasSpace, err := dfchecker.Check(ctx)
 		if err != nil {
-			logger.Printf("Failed to check Ceph free space: %s", err)
-			os.Exit(1)
+			return fmt.Errorf("Failed to check Rook/Ceph free space: %w", err)
 		}
 
 		if hasSpace {
-			return
+			return nil
 		}
 
-		logger.Print("Not enough space in Ceph to migrate data")
-		os.Exit(1)
+		return fmt.Errorf("Not enough space in Ceph to migrate data")
 	}
+	return nil
 }
