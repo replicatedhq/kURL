@@ -58,6 +58,10 @@ Testing can be accomplished on systems capable of hosting supported container ru
 
 1. Customize your spec by editing `scripts/Manifest`
 
+    To test `install.sh` script you will need to ensure that you properly defined what is the configuration
+    that should be used _(such as it is done via the website https://kurl.sh/). Update the spec `INSTALLER_YAML`
+    into the [scripts/Manifest](./scripts/Manifest) file such as the following example.
+
     Example:
     ```bash
     KURL_URL=
@@ -85,6 +89,12 @@ Testing can be accomplished on systems capable of hosting supported container ru
       registry:
         version: 2.8.1"
     ```
+
+    Assuming you followed up the above steps, you will have a terminal tab open. Then you will check that after you change the manifests, the `rsync` will automatically
+    build the scripts accordingly. You must wait for the message `synced` to test out your changes on the server:
+    
+    ![Screenshot 2022-11-06 at 20 06 35](https://user-images.githubusercontent.com/7708031/200198100-19219107-84dd-4631-a0e4-3200ad5feb99.png)
+
 1. Validate and run installation on test system
     ```bash
     # On test server
