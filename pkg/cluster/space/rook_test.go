@@ -633,7 +633,7 @@ func Test_freeSpace(t *testing.T) {
 			kcli := fake.NewSimpleClientset(tt.sc)
 			rcli := rookfake.NewSimpleClientset(tt.pool, tt.cluster)
 			rchecker := RookChecker{dstSC: tt.dstSC, kcli: kcli, rcli: rcli}
-			result, err := rchecker.freeSpace(context.Background())
+			result, err := rchecker.getFreeSpace(context.Background())
 			if err != nil {
 				if len(tt.err) == 0 {
 					t.Errorf("unexpected error: %s", err)

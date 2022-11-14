@@ -28,8 +28,8 @@ type RookChecker struct {
 	dstSC string
 }
 
-// freeSpace attempts to get the ceph free space. returns the number of available bytes.
-func (r *RookChecker) freeSpace(ctx context.Context) (int64, error) {
+// getFreeSpace attempts to get the ceph free space. returns the number of available bytes.
+func (r *RookChecker) getFreeSpace(ctx context.Context) (int64, error) {
 	pname, cname, err := r.getPoolAndClusterNames(ctx)
 	if err != nil {
 		return 0, fmt.Errorf("failed to get ceph pool: %w", err)
@@ -104,7 +104,7 @@ func (r *RookChecker) getPoolAndClusterNames(ctx context.Context) (string, strin
 func (r *RookChecker) HasEnoughDiskSpace(ctx context.Context) (bool, error) {
 	r.log.Print("Analysing reserved and free Ceph disk space...")
 
-	free, err := r.freeSpace(ctx)
+	free, err := r.getFreeSpace(ctx)
 	if err != nil {
 		return false, fmt.Errorf("failed to verify free space: %w", err)
 	}
