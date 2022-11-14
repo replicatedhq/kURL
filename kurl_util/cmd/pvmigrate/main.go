@@ -69,7 +69,7 @@ func checkFreeSpace(ctx context.Context, logger *log.Logger, cfg *rest.Config, c
 	logger.Printf("Checking if there is enough space to complete the storage migration")
 	sclasses, err := cli.StorageV1().StorageClasses().List(ctx, metav1.ListOptions{})
 	if err != nil {
-		return fmt.Errorf("Failed to get storage classes: %w", err)
+		return fmt.Errorf("failed to get storage classes: %w", err)
 	}
 
 	var srcProvisioner string
@@ -91,19 +91,19 @@ func checkFreeSpace(ctx context.Context, logger *log.Logger, cfg *rest.Config, c
 	if dstProvisioner == openEBSLocalProvisioner {
 		dfchecker, err := clusterspace.NewOpenEBSChecker(cfg, logger, opts.RsyncImage, opts.SourceSCName, opts.DestSCName)
 		if err != nil {
-			return fmt.Errorf("Failed to create openebs free space checker: %w", err)
+			return fmt.Errorf("failed to create openebs free space checker: %w", err)
 		}
 
 		nodes, err := dfchecker.NodesWithoutSpace(ctx)
 		if err != nil {
-			return fmt.Errorf("Failed to check nodes free space: %w", err)
+			return fmt.Errorf("failed to check nodes free space: %w", err)
 		}
 
 		if len(nodes) == 0 {
 			return nil
 		}
 
-		return fmt.Errorf("Some nodes do not have enough disk space for the migration:\n%s\n\n", strings.Join(nodes, ","))
+		return fmt.Errorf("some nodes do not have enough disk space for the migration: %s", strings.Join(nodes, ","))
 	}
 
 	rookProvisioners := map[string]bool{
@@ -113,19 +113,19 @@ func checkFreeSpace(ctx context.Context, logger *log.Logger, cfg *rest.Config, c
 	if _, ok := rookProvisioners[dstProvisioner]; ok {
 		dfchecker, err := clusterspace.NewRookChecker(cfg, logger, opts.SourceSCName, opts.DestSCName)
 		if err != nil {
-			return fmt.Errorf("Failed to create Rook/Ceph free space checker: %w", err)
+			return fmt.Errorf("failed to create Rook/Ceph free space checker: %w", err)
 		}
 
 		hasSpace, err := dfchecker.HasEnoughDiskSpace(ctx)
 		if err != nil {
-			return fmt.Errorf("Failed to check Rook/Ceph free space: %w", err)
+			return fmt.Errorf("failed to check Rook/Ceph free space: %w", err)
 		}
 
 		if hasSpace {
 			return nil
 		}
 
-		return fmt.Errorf("Not enough space in Ceph to migrate data")
+		return fmt.Errorf("not enough space in Ceph to migrate data")
 	}
 	return nil
 }
