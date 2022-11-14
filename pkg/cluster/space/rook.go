@@ -101,7 +101,7 @@ func (r *RookChecker) getPoolAndClusterNames(ctx context.Context) (string, strin
 }
 
 // Check verifies if there is enough ceph disk space to migrate from the source storage class.
-func (r *RookChecker) Check(ctx context.Context) (bool, error) {
+func (r *RookChecker) HasEnoughDiskSpace(ctx context.Context) (bool, error) {
 	r.log.Print("Analysing reserved and free Ceph disk space...")
 
 	free, err := r.freeSpace(ctx)

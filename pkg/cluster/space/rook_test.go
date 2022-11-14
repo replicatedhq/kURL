@@ -158,7 +158,7 @@ func TestRookCheck(t *testing.T) {
 				dstSC: "default",
 			}
 
-			_, err := checker.Check(context.Background())
+			_, err := checker.HasEnoughDiskSpace(context.Background())
 			if err != nil {
 				if len(tt.err) == 0 {
 					t.Errorf("unexpected error: %s", err)

@@ -497,7 +497,7 @@ func (o *OpenEBSChecker) hasEnoughSpace(vol OpenEBSVolume, reserved int64) (int6
 
 // Check verifies if we have enough disk space to execute the migration. returns a list of nodes
 // where the migration can't execute due to a possible lack of disk space.
-func (o *OpenEBSChecker) Check(ctx context.Context) ([]string, error) {
+func (o *OpenEBSChecker) NodesWithoutSpace(ctx context.Context) ([]string, error) {
 	o.log.Printf("Analyzing reserved and free disk space per node...")
 	reservedPerNode, reservedDetached, err := k8sutil.PVSReservationPerNode(ctx, o.kcli, o.srcSC)
 	if err != nil {
@@ -519,7 +519,7 @@ func (o *OpenEBSChecker) Check(ctx context.Context) ([]string, error) {
 
 		faultyNodes[node] = true
 		o.log.Printf(
-			"Node %q has %s available, failed to migrate %s (reserved in %q storage class)",
+			"Node %q has %s available, which is less than the %s that would be migrated from the %q storage class",
 			node,
 			bytefmt.ByteSize(uint64(free)),
 			bytefmt.ByteSize(uint64(reservedPerNode[node])),

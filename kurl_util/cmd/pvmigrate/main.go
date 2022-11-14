@@ -94,16 +94,16 @@ func checkFreeSpace(ctx context.Context, logger *log.Logger, cfg *rest.Config, c
 			return fmt.Errorf("Failed to create openebs free space checker: %w", err)
 		}
 
-		nodesWithoutSpace, err := dfchecker.Check(ctx)
+		nodes, err := dfchecker.NodesWithoutSpace(ctx)
 		if err != nil {
 			return fmt.Errorf("Failed to check nodes free space: %w", err)
 		}
 
-		if len(nodesWithoutSpace) == 0 {
+		if len(nodes) == 0 {
 			return nil
 		}
 
-		return fmt.Errorf("Some nodes do not have enough disk space for the migration:\n%s\n\n", strings.Join(nodesWithoutSpace, ","))
+		return fmt.Errorf("Some nodes do not have enough disk space for the migration:\n%s\n\n", strings.Join(nodes, ","))
 	}
 
 	rookProvisioners := map[string]bool{
@@ -116,7 +116,7 @@ func checkFreeSpace(ctx context.Context, logger *log.Logger, cfg *rest.Config, c
 			return fmt.Errorf("Failed to create Rook/Ceph free space checker: %w", err)
 		}
 
-		hasSpace, err := dfchecker.Check(ctx)
+		hasSpace, err := dfchecker.HasEnoughDiskSpace(ctx)
 		if err != nil {
 			return fmt.Errorf("Failed to check Rook/Ceph free space: %w", err)
 		}
