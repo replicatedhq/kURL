@@ -106,7 +106,9 @@ Testing can be accomplished on systems capable of hosting supported container ru
 
 ### Using GCP
 
-Convenience functions (change the Default name, the first variable):
+**If you are a Replicated team member then:** ensure that you have followed [Getting Started with your own CodeServer](https://github.com/replicatedhq/codeserver/blob/main/docs/first-time.md).
+
+#### :Tips: Convenience functions (change the Default name, the first variable):
 
 ```bash
 ### kURL development helpers:
@@ -205,3 +207,4 @@ Snapshot management requires VM t be powered off.
 ### QEMU on MacOS
 
 You might want try to use [UTM](https://mac.getutm.app/).
+
