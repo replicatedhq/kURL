@@ -18,6 +18,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 )
 
+const openEBSLocalProvisioner = "openebs.io/local"
+
 func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer stop()
@@ -86,7 +88,7 @@ func checkFreeSpace(ctx context.Context, logger *log.Logger, cfg *rest.Config, c
 		return nil
 	}
 
-	if dstProvisioner == "openebs.io/local" {
+	if dstProvisioner == openEBSLocalProvisioner {
 		dfchecker, err := clusterspace.NewOpenEBSChecker(cfg, logger, opts.RsyncImage, opts.SourceSCName, opts.DestSCName)
 		if err != nil {
 			return fmt.Errorf("Failed to create openebs free space checker: %w", err)
