@@ -1,0 +1,18 @@
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: restic
+  namespace: ${VELERO_NAMESPACE}
+spec:
+  template:
+    spec:
+      containers:
+      - name: restic
+        volumeMounts:
+        - mountPath: /var/velero-local-volume-provider/velero-internal-snapshots
+          name: velero-internal-snapshots
+      volumes:
+      - name: velero-internal-snapshots
+        persistentVolumeClaim:
+          claimName: velero-internal-snapshots
