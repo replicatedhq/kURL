@@ -85,7 +85,7 @@ func PVSReservationPerNode(ctx context.Context, cli kubernetes.Interface, scname
 
 		var inuse bool
 		for _, pod := range pods {
-			if !PodUsesPVC(pod, pvc) {
+			if !HasPVC(pod, pvc) {
 				continue
 			}
 

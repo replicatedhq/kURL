@@ -4,8 +4,8 @@ import (
 	corev1 "k8s.io/api/core/v1"
 )
 
-// PodUsesPVC returs true if provided pod has provided pvc among its volumes.
-func PodUsesPVC(pod corev1.Pod, pvc corev1.PersistentVolumeClaim) bool {
+// HasPVC returs true if provided pod has provided pvc among its volumes.
+func HasPVC(pod corev1.Pod, pvc corev1.PersistentVolumeClaim) bool {
 	if pod.Namespace != pvc.Namespace {
 		return false
 	}
