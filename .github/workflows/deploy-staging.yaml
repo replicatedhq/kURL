@@ -8,6 +8,8 @@ on:
     - '**'
     - '!testgrid/**'
     - '!docs/**'
+    - '!CONTRIBUTING.md'
+    - '!README.md'
 
 jobs:
   get-tag:
