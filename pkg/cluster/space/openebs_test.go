@@ -23,7 +23,7 @@ import (
 func Test_deleteTmpPVCs(t *testing.T) {
 	logger := log.New(io.Discard, "", 0)
 	kcli := fake.NewSimpleClientset()
-	ochecker := OpenEBSChecker{
+	ochecker := OpenEBSDiskSpaceValidator{
 		deletePVTimeout: 20 * time.Second,
 		kcli:            kcli,
 		log:             logger,
@@ -193,7 +193,7 @@ func Test_nodeIsScheduleable(t *testing.T) {
 				},
 			}
 
-			ochecker := OpenEBSChecker{}
+			ochecker := OpenEBSDiskSpaceValidator{}
 			err := ochecker.nodeIsSchedulable(node)
 			if err != nil {
 				if !tt.err {
@@ -249,7 +249,7 @@ func Test_bulidTmpPVC(t *testing.T) {
 		},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
-			ochecker := OpenEBSChecker{
+			ochecker := OpenEBSDiskSpaceValidator{
 				dstSC: tt.dstSC,
 			}
 			pvc := ochecker.buildTmpPVC(tt.nodeName)
@@ -342,7 +342,7 @@ some prefixes go in here /dev/sda2      63087357952 52521754624 7327760384  88% 
 		},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
-			ochecker := OpenEBSChecker{}
+			ochecker := OpenEBSDiskSpaceValidator{}
 			free, used, err := ochecker.parseDFContainerOutput(tt.content)
 			if err != nil {
 				if len(tt.err) == 0 {
@@ -471,7 +471,7 @@ sshfs#user@server:/share  fuse  user,allow_other  0  0
 		},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
-			ochecker := OpenEBSChecker{}
+			ochecker := OpenEBSDiskSpaceValidator{}
 			output, err := ochecker.parseFstabContainerOutput(tt.content)
 			if err != nil {
 				if len(tt.err) == 0 {
@@ -597,7 +597,7 @@ func Test_basePath(t *testing.T) {
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			fakecli := fake.NewSimpleClientset(tt.objs...)
-			ochecker := OpenEBSChecker{
+			ochecker := OpenEBSDiskSpaceValidator{
 				kcli:  fakecli,
 				dstSC: tt.dstSC,
 			}
@@ -625,7 +625,7 @@ func Test_basePath(t *testing.T) {
 
 func Test_buildJob(t *testing.T) {
 	nname := "this-is-a-very-long-node-name-this-will-extrapolate-the-limit"
-	ochecker := OpenEBSChecker{image: "myimage:latest"}
+	ochecker := OpenEBSDiskSpaceValidator{image: "myimage:latest"}
 	job := ochecker.buildJob(context.Background(), nname, "/var/local", "tmppvc")
 
 	// check that the job name is within boundaries
@@ -725,7 +725,7 @@ func Test_hasEnoughSpace(t *testing.T) {
 		},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
-			ochecker := OpenEBSChecker{}
+			ochecker := OpenEBSDiskSpaceValidator{}
 			free, hasSpace := ochecker.hasEnoughSpace(tt.volume, tt.reserved)
 
 			if hasSpace != tt.hasSpace {
@@ -741,7 +741,7 @@ func Test_hasEnoughSpace(t *testing.T) {
 
 func TestNewOpenEBSChecker(t *testing.T) {
 	// test empty logger
-	_, err := NewOpenEBSChecker(&rest.Config{}, nil, "image", "src", "dst")
+	_, err := NewOpenEBSDiskSpaceValidator(&rest.Config{}, nil, "image", "src", "dst")
 	if err == nil || err.Error() != "no logger provided" {
 		t.Errorf("expected failure creating object: %v", err)
 	}
@@ -749,25 +749,25 @@ func TestNewOpenEBSChecker(t *testing.T) {
 	logger := log.New(io.Discard, "", 0)
 
 	// test empty image
-	_, err = NewOpenEBSChecker(&rest.Config{}, logger, "", "src", "dst")
+	_, err = NewOpenEBSDiskSpaceValidator(&rest.Config{}, logger, "", "src", "dst")
 	if err == nil || err.Error() != "empty image" {
 		t.Errorf("expected failure creating object: %v", err)
 	}
 
 	// test src storage class
-	_, err = NewOpenEBSChecker(&rest.Config{}, logger, "image", "", "dst")
+	_, err = NewOpenEBSDiskSpaceValidator(&rest.Config{}, logger, "image", "", "dst")
 	if err == nil || err.Error() != "empty source storage class" {
 		t.Errorf("expected failure creating object: %v", err)
 	}
 
 	// test empty dst sc
-	_, err = NewOpenEBSChecker(&rest.Config{}, logger, "image", "src", "")
+	_, err = NewOpenEBSDiskSpaceValidator(&rest.Config{}, logger, "image", "src", "")
 	if err == nil || err.Error() != "empty destination storage class" {
 		t.Errorf("expected failure creating object: %v", err)
 	}
 
 	// happy path
-	_, err = NewOpenEBSChecker(&rest.Config{}, logger, "image", "src", "dst")
+	_, err = NewOpenEBSDiskSpaceValidator(&rest.Config{}, logger, "image", "src", "dst")
 	if err != nil {
 		t.Errorf("unexpected failure creating object: %v", err)
 	}

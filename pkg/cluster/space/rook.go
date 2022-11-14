@@ -18,8 +18,8 @@ const (
 	namespace = "rook-ceph"
 )
 
-// RookChecker checks if we have enough disk space to migrate volumes to rook.
-type RookChecker struct {
+// RookDiskSpaceValidator checks if we have enough disk space to migrate volumes to rook.
+type RookDiskSpaceValidator struct {
 	kcli  kubernetes.Interface
 	rcli  rookcli.Interface
 	cfg   *rest.Config
@@ -29,7 +29,7 @@ type RookChecker struct {
 }
 
 // getFreeSpace attempts to get the ceph free space. returns the number of available bytes.
-func (r *RookChecker) getFreeSpace(ctx context.Context) (int64, error) {
+func (r *RookDiskSpaceValidator) getFreeSpace(ctx context.Context) (int64, error) {
 	pname, cname, err := r.getPoolAndClusterNames(ctx)
 	if err != nil {
 		return 0, fmt.Errorf("failed to get ceph pool: %w", err)
@@ -60,7 +60,7 @@ func (r *RookChecker) getFreeSpace(ctx context.Context) (int64, error) {
 }
 
 // reservedSpace returns the total size of all volumes using the source storage class (srcSC).
-func (r *RookChecker) reservedSpace(ctx context.Context) (int64, error) {
+func (r *RookDiskSpaceValidator) reservedSpace(ctx context.Context) (int64, error) {
 	usedPerNode, usedDetached, err := k8sutil.PVSReservationPerNode(ctx, r.kcli, r.srcSC)
 	if err != nil {
 		return 0, fmt.Errorf("failed to calculate used disk space per node: %w", err)
@@ -76,7 +76,7 @@ func (r *RookChecker) reservedSpace(ctx context.Context) (int64, error) {
 
 // getPoolAndClusterNames returns the replicapool and the rook cluster name a s specified in
 // the destination storage class parameters property.
-func (r *RookChecker) getPoolAndClusterNames(ctx context.Context) (string, string, error) {
+func (r *RookDiskSpaceValidator) getPoolAndClusterNames(ctx context.Context) (string, string, error) {
 	var pname string
 	var cname string
 
@@ -101,7 +101,7 @@ func (r *RookChecker) getPoolAndClusterNames(ctx context.Context) (string, strin
 }
 
 // Check verifies if there is enough ceph disk space to migrate from the source storage class.
-func (r *RookChecker) HasEnoughDiskSpace(ctx context.Context) (bool, error) {
+func (r *RookDiskSpaceValidator) HasEnoughDiskSpace(ctx context.Context) (bool, error) {
 	r.log.Print("Analysing reserved and free Ceph disk space...")
 
 	free, err := r.getFreeSpace(ctx)
@@ -121,8 +121,8 @@ func (r *RookChecker) HasEnoughDiskSpace(ctx context.Context) (bool, error) {
 	return free > reserved, nil
 }
 
-// NewRookChecker returns a disk free analyser for rook storage provisioner.
-func NewRookChecker(cfg *rest.Config, log *log.Logger, srcSC, dstSC string) (*RookChecker, error) {
+// NewRookDiskSpaceValidator returns a disk free analyser for rook storage provisioner.
+func NewRookDiskSpaceValidator(cfg *rest.Config, log *log.Logger, srcSC, dstSC string) (*RookDiskSpaceValidator, error) {
 	kcli, err := kubernetes.NewForConfig(cfg)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create kubernetes client: %w", err)
@@ -143,7 +143,7 @@ func NewRookChecker(cfg *rest.Config, log *log.Logger, srcSC, dstSC string) (*Ro
 		return nil, fmt.Errorf("no logger provided")
 	}
 
-	return &RookChecker{
+	return &RookDiskSpaceValidator{
 		kcli:  kcli,
 		rcli:  rcli,
 		cfg:   cfg,

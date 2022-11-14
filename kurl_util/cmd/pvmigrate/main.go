@@ -89,7 +89,7 @@ func checkFreeSpace(ctx context.Context, logger *log.Logger, cfg *rest.Config, c
 	}
 
 	if dstProvisioner == openEBSLocalProvisioner {
-		dfchecker, err := clusterspace.NewOpenEBSChecker(cfg, logger, opts.RsyncImage, opts.SourceSCName, opts.DestSCName)
+		dfchecker, err := clusterspace.NewOpenEBSDiskSpaceValidator(cfg, logger, opts.RsyncImage, opts.SourceSCName, opts.DestSCName)
 		if err != nil {
 			return fmt.Errorf("failed to create openebs free space checker: %w", err)
 		}
@@ -111,7 +111,7 @@ func checkFreeSpace(ctx context.Context, logger *log.Logger, cfg *rest.Config, c
 		"rook-ceph.cephfs.csi.ceph.com": true,
 	}
 	if _, ok := rookProvisioners[dstProvisioner]; ok {
-		dfchecker, err := clusterspace.NewRookChecker(cfg, logger, opts.SourceSCName, opts.DestSCName)
+		dfchecker, err := clusterspace.NewRookDiskSpaceValidator(cfg, logger, opts.SourceSCName, opts.DestSCName)
 		if err != nil {
 			return fmt.Errorf("failed to create Rook/Ceph free space checker: %w", err)
 		}

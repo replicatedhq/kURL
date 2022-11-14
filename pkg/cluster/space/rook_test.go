@@ -150,7 +150,7 @@ func TestRookCheck(t *testing.T) {
 			rcli := rookfake.NewSimpleClientset(tt.rookObjects...)
 			kcli := fake.NewSimpleClientset(tt.coreObjects...)
 
-			checker := RookChecker{
+			checker := RookDiskSpaceValidator{
 				kcli:  kcli,
 				rcli:  rcli,
 				log:   logger,
@@ -363,7 +363,7 @@ func Test_reservedSpace(t *testing.T) {
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			kcli := fake.NewSimpleClientset(tt.objs...)
-			rchecker := RookChecker{srcSC: tt.srcSC, kcli: kcli}
+			rchecker := RookDiskSpaceValidator{srcSC: tt.srcSC, kcli: kcli}
 			result, err := rchecker.reservedSpace(context.Background())
 			if err != nil {
 				if len(tt.err) == 0 {
@@ -632,7 +632,7 @@ func Test_freeSpace(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			kcli := fake.NewSimpleClientset(tt.sc)
 			rcli := rookfake.NewSimpleClientset(tt.pool, tt.cluster)
-			rchecker := RookChecker{dstSC: tt.dstSC, kcli: kcli, rcli: rcli}
+			rchecker := RookDiskSpaceValidator{dstSC: tt.dstSC, kcli: kcli, rcli: rcli}
 			result, err := rchecker.getFreeSpace(context.Background())
 			if err != nil {
 				if len(tt.err) == 0 {
@@ -721,7 +721,7 @@ func Test_getPoolAndClusterName(t *testing.T) {
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			kcli := fake.NewSimpleClientset(tt.sc)
-			rchecker := RookChecker{dstSC: tt.dstSC, kcli: kcli}
+			rchecker := RookDiskSpaceValidator{dstSC: tt.dstSC, kcli: kcli}
 			pname, cname, err := rchecker.getPoolAndClusterNames(context.Background())
 			if err != nil {
 				if len(tt.err) == 0 {
@@ -750,7 +750,7 @@ func Test_getPoolAndClusterName(t *testing.T) {
 
 func TestNewRookChecker(t *testing.T) {
 	// test empty logger
-	_, err := NewRookChecker(&rest.Config{}, nil, "src", "dst")
+	_, err := NewRookDiskSpaceValidator(&rest.Config{}, nil, "src", "dst")
 	if err == nil || err.Error() != "no logger provided" {
 		t.Errorf("expected failure creating object: %v", err)
 	}
@@ -758,19 +758,19 @@ func TestNewRookChecker(t *testing.T) {
 	logger := log.New(io.Discard, "", 0)
 
 	// test src storage class
-	_, err = NewRookChecker(&rest.Config{}, logger, "", "dst")
+	_, err = NewRookDiskSpaceValidator(&rest.Config{}, logger, "", "dst")
 	if err == nil || err.Error() != "empty source storage class" {
 		t.Errorf("expected failure creating object: %v", err)
 	}
 
 	// test empty dst sc
-	_, err = NewRookChecker(&rest.Config{}, logger, "src", "")
+	_, err = NewRookDiskSpaceValidator(&rest.Config{}, logger, "src", "")
 	if err == nil || err.Error() != "empty destination storage class" {
 		t.Errorf("expected failure creating object: %v", err)
 	}
 
 	// happy path
-	_, err = NewRookChecker(&rest.Config{}, logger, "src", "dst")
+	_, err = NewRookDiskSpaceValidator(&rest.Config{}, logger, "src", "dst")
 	if err != nil {
 		t.Errorf("unexpected failure creating object: %v", err)
 	}
