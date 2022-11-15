@@ -238,3 +238,11 @@ Snapshot management requires VM t be powered off.
 ### QEMU on MacOS
 
 You might want try to use [UTM](https://mac.getutm.app/).
+
+## FAQ
+
+### How can I run the preflight checks to validate the kURL install?
+
+Currently, kURL does not execute the checks after it be installed. However, you might want try out
+run the checks by `kubectl get -oyaml "$(kubectl get installer -oname)" | sudo kurl/bin/kurl host preflight -`. 
+
