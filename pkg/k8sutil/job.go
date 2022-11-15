@@ -50,6 +50,7 @@ func RunJob(ctx context.Context, cli kubernetes.Interface, logger *log.Logger, j
 	defer func() {
 		propagation := metav1.DeletePropagationForeground
 		delopts := metav1.DeleteOptions{PropagationPolicy: &propagation}
+		// Cleanup should use background context so as not to fail if context has already been canceled
 		if err = cli.BatchV1().Jobs(job.Namespace).Delete(
 			context.Background(), job.Name, delopts,
 		); err != nil {
