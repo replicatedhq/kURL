@@ -34,7 +34,7 @@ This script would be able to be called explicitly from `tasks.sh` or after opt-i
 
 ## Status
 
-Proposed
+Accepted
 
 ## Consequences
 
