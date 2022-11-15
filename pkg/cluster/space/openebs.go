@@ -106,6 +106,11 @@ func (o *OpenEBSDiskSpaceValidator) parseFstabContainerOutput(output []byte) ([]
 		seen[words[1]] = true
 		mounts = append(mounts, words[1])
 	}
+
+	if err := scanner.Err(); err != nil {
+		return nil, fmt.Errorf("failed to process container log: %w", err)
+	}
+
 	if len(mounts) == 0 {
 		return nil, fmt.Errorf("failed to locate any mount point")
 	}
