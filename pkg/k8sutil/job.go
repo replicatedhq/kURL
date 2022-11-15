@@ -58,7 +58,7 @@ func RunJob(ctx context.Context, cli kubernetes.Interface, logger *log.Logger, j
 		}
 	}()
 
-	worked, err := waitForJob(ctx, cli, job, timeout)
+	jobSucceeded, err := waitForJob(ctx, cli, job, timeout)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -85,7 +85,10 @@ func RunJob(ctx context.Context, cli kubernetes.Interface, logger *log.Logger, j
 	for _, container := range jobPod.Spec.Containers {
 		options := &corev1.PodLogOptions{Container: container.Name}
 		plogs, err := cli.CoreV1().Pods(jobPod.Namespace).GetLogs(jobPod.Name, options).Stream(ctx)
-		if err != nil {
+		if err != nil && jobSucceeded {
+			// if the job succeed to execute but there is an error to read the container logs we bail.
+			return nil, nil, fmt.Errorf("failed to read container %s logs: %w", container.Name, err)
+		} else if err != nil {
 			message := fmt.Sprintf("failed to get container %s logs: %s", container.Name, err)
 			logger.Print(message)
 			logs[container.Name] = []byte(message)
@@ -106,7 +109,7 @@ func RunJob(ctx context.Context, cli kubernetes.Interface, logger *log.Logger, j
 		logs[container.Name] = output
 	}
 
-	if !worked {
+	if !jobSucceeded {
 		return logs, lastContainerStatuses, fmt.Errorf("job failed to execute")
 	}
 	return logs, lastContainerStatuses, nil
