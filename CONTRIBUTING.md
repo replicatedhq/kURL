@@ -58,10 +58,8 @@ Testing can be accomplished on systems capable of hosting supported container ru
 
 1. Customize your spec by editing `scripts/Manifest`
 
-    To test `install.sh` script you will need to ensure that you properly defined what is the configuration
-    that should be used _(such as it is done via the website https://kurl.sh/). Update the spec `INSTALLER_YAML`
-    into the [scripts/Manifest](./scripts/Manifest) file such as the following example.
-
+    To test the `install.sh` script, you will first need to modify the [scripts/Manifest](./scripts/Manifest) file and set the `INSTALLER_YAML` variable to a valid spec.
+    You can use the website https://kurl.sh/ as a tool to help configure your spec.
     Example:
     ```bash
     KURL_URL=
