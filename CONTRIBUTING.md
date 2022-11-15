@@ -238,3 +238,14 @@ Snapshot management requires VM t be powered off.
 ### QEMU on MacOS
 
 You might want try to use [UTM](https://mac.getutm.app/).
+
+## FAQ
+
+### Why do we need to run the builds and tarballs to do the tests?
+
+All automated builds done by kURL _(add-on, bundles and binaries)_ are uploaded to s3 (see the [code](./bin/save-manifest-assets.sh)).
+Then, when a kURL installation runs the script downloads all which is packaged _(add-on, bundles and binaries)_ (see the [code](./scripts/common/addon.sh)),
+to be installed (see the [code](./scripts/common/host-packages.sh)).
+
+If you are running in the development environment you must either build these bundles
+or install the pre-built ones from s3 as described in the section [Testing released versions](#testing-released-versions).
