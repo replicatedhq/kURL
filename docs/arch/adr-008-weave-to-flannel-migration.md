@@ -40,5 +40,6 @@ Proposed
 
 Users will be able to move from Weave to Flannel, but downtime will need to be scheduled to do so.
 
-If a migration failed, manual remediation would be required.
+A failed migration may result in a cluster down scenario.
+Manual remediation would be required.
 If failures were frequent (either in testing or after deployment) an automatic remediation/rollback script could be created.
