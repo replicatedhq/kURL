@@ -90,8 +90,8 @@ Testing can be accomplished on systems capable of hosting supported container ru
         version: 2.8.1"
     ```
 
-    Assuming you followed up the above steps, you will have a terminal tab open. Then you will check that after you change the manifests, the `rsync` will automatically
-    build the scripts accordingly. You must wait for the message `synced` to test out your changes on the server:
+    After modifying the the Manifest, the `make watchrsync` command will automatically build the scripts and upload them to the remote server.
+    You must wait for the message `synced` to test out your changes on the server:
     
     ![Screenshot 2022-11-06 at 20 06 35](https://user-images.githubusercontent.com/7708031/200198100-19219107-84dd-4631-a0e4-3200ad5feb99.png)
 
