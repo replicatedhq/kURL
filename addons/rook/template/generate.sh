@@ -3,10 +3,12 @@
 set -euo pipefail
 
 function get_latest_19x_version() {
-    curl -s https://api.github.com/repos/rook/rook/releases | \
-        grep '"tag_name": ' | \
-        grep -Eo "1\.9\.[0-9]+" | \
-        head -1
+    helm repo add rook-release https://charts.rook.io/release
+    helm repo update
+    helm search repo rook-release/rook-ceph --version '< 1.10.0' 2>/dev/null | \
+        grep -F 'rook-release/rook-ceph ' | \
+        awk '{ print $2 }' | \
+        grep -Eo "1\.9\.[0-9]+"
 }
 
 function generate() {

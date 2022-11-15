@@ -24,11 +24,13 @@ module.exports.InstallerVersions = {
     "1.17.3",
     "1.16.4",
     // cron-kubernetes-update-125
+    "1.25.4",
     "1.25.3",
     "1.25.2",
     "1.25.1",
     "1.25.0",
     // cron-kubernetes-update-124
+    "1.24.8",
     "1.24.7",
     "1.24.6",
     "1.24.5",
@@ -36,6 +38,7 @@ module.exports.InstallerVersions = {
     "1.24.3",
     "1.24.0",
     // cron-kubernetes-update-123
+    "1.23.14",
     "1.23.13",
     "1.23.12",
     "1.23.11",
@@ -46,6 +49,7 @@ module.exports.InstallerVersions = {
     "1.23.3",
     "1.23.2",
     // cron-kubernetes-update-122
+    "1.22.16",
     "1.22.15",
     "1.22.14",
     "1.22.13",
@@ -359,6 +363,7 @@ module.exports.InstallerVersions = {
   ],
   velero: [
     // cron-velero-update
+    "1.9.3",
     "1.9.2",
     "1.9.1",
     "1.9.0",
