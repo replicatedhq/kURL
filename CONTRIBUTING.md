@@ -114,7 +114,7 @@ Testing can be accomplished on systems capable of hosting supported container ru
 
 Currently, it is **not** possible to clean up everything that is installed or modified by kURL.
 There is a best effort script that can be run with `sudo bash ./tasks.sh reset`, but it is not always perfect.
-Ideally you will need a new instance/VM for each test scenario.
+Ideally you will need a new instance/VM for each test scenario. ([More info](https://kurl.sh/docs/install-with-kurl/managing-nodes#reset-a-node))
 
 Contributions and bug reports for things that the reset script does not currently handle are welcomed.
 
