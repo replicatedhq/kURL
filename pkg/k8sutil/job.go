@@ -86,7 +86,10 @@ func RunJob(ctx context.Context, cli kubernetes.Interface, logger *log.Logger, j
 		options := &corev1.PodLogOptions{Container: container.Name}
 		plogs, err := cli.CoreV1().Pods(jobPod.Namespace).GetLogs(jobPod.Name, options).Stream(ctx)
 		if err != nil {
-			return nil, nil, fmt.Errorf("failed to get pod log stream: %w", err)
+			message := fmt.Sprintf("failed to get container %s logs: %s", container.Name, err)
+			logger.Print(message)
+			logs[container.Name] = []byte(message)
+			continue
 		}
 
 		defer func(stream io.ReadCloser) {

@@ -75,6 +75,10 @@ func (o *OpenEBSDiskSpaceValidator) parseDFContainerOutput(output []byte) (int64
 
 		return freeBytes, usedBytes, nil
 	}
+
+	if err := scanner.Err(); err != nil {
+		return 0, 0, fmt.Errorf("failed to process container log: %w", err)
+	}
 	return 0, 0, fmt.Errorf("failed to locate free space info in pod log: %s", string(output))
 }
 
@@ -145,7 +149,10 @@ type OpenEBSVolume struct {
 // backing pvs dissapear as well (this is mandatory so we don't leave any orphan pv as this would
 // make the pvmigrate to fail). this function has a timeout of 5 minutes, after that an error is
 // returned.
-func (o *OpenEBSDiskSpaceValidator) deleteTmpPVCs(ctx context.Context, pvcs []*corev1.PersistentVolumeClaim) error {
+func (o *OpenEBSDiskSpaceValidator) deleteTmpPVCs(pvcs []*corev1.PersistentVolumeClaim) error {
+	// Cleanup should use background context so as not to fail if context has already been canceled
+	ctx := context.Background()
+
 	pvs, err := o.kcli.CoreV1().PersistentVolumes().List(ctx, metav1.ListOptions{})
 	if err != nil {
 		return fmt.Errorf("failed to list persistent volumes: %w", err)
@@ -159,6 +166,7 @@ func (o *OpenEBSDiskSpaceValidator) deleteTmpPVCs(ctx context.Context, pvcs []*c
 		pvsByPVCName[pv.Spec.ClaimRef.Name] = pv
 	}
 
+	var waitFor []string
 	for _, pvc := range pvcs {
 		propagation := metav1.DeletePropagationForeground
 		delopts := metav1.DeleteOptions{PropagationPolicy: &propagation}
@@ -168,18 +176,20 @@ func (o *OpenEBSDiskSpaceValidator) deleteTmpPVCs(ctx context.Context, pvcs []*c
 			if errors.IsNotFound(err) {
 				continue
 			}
-			return fmt.Errorf("failed to delete temp pvc %s: %w", pvc.Name, err)
+			o.log.Printf("failed to delete temp pvc %s: %s", pvc.Name, err)
+			continue
 		}
+		waitFor = append(waitFor, pvc.Name)
 	}
 
 	timeout := time.NewTicker(o.deletePVTimeout)
 	interval := time.NewTicker(5 * time.Second)
 	defer timeout.Stop()
 	defer interval.Stop()
-	for _, pvc := range pvcs {
-		pv, ok := pvsByPVCName[pvc.Name]
+	for _, pvc := range waitFor {
+		pv, ok := pvsByPVCName[pvc]
 		if !ok {
-			o.log.Printf("failed to find pv for temp pvc %s", pvc.Name)
+			o.log.Printf("failed to find pv for temp pvc %s", pvc)
 			continue
 		}
 
@@ -188,7 +198,7 @@ func (o *OpenEBSDiskSpaceValidator) deleteTmpPVCs(ctx context.Context, pvcs []*c
 			if _, err := o.kcli.CoreV1().PersistentVolumes().Get(
 				ctx, pv.Name, metav1.GetOptions{},
 			); err != nil && !errors.IsNotFound(err) {
-				return fmt.Errorf("failed to get pv %s: %w", pv.Name, err)
+				o.log.Printf("failed to get pv for temp pvc %s: %s", pvc, err)
 			} else if err != nil && errors.IsNotFound(err) {
 				break
 			}
@@ -198,8 +208,6 @@ func (o *OpenEBSDiskSpaceValidator) deleteTmpPVCs(ctx context.Context, pvcs []*c
 				continue
 			case <-timeout.C:
 				return fmt.Errorf("failed to delete pvs: timeout")
-			case <-ctx.Done():
-				return fmt.Errorf("context cancelled")
 			}
 		}
 	}
@@ -243,7 +251,7 @@ func (o *OpenEBSDiskSpaceValidator) openEBSVolumes(ctx context.Context) (map[str
 	var tmpPVCs []*corev1.PersistentVolumeClaim
 	defer func() {
 		o.log.Printf("Deleting temporary pvcs")
-		if err := o.deleteTmpPVCs(ctx, tmpPVCs); err != nil {
+		if err := o.deleteTmpPVCs(tmpPVCs); err != nil {
 			o.log.Printf("Failed to delete tmp claims: %s", err)
 		}
 	}()

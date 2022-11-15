@@ -30,7 +30,7 @@ func Test_deleteTmpPVCs(t *testing.T) {
 	}
 
 	// empty list of pvcs
-	err := ochecker.deleteTmpPVCs(context.Background(), []*corev1.PersistentVolumeClaim{})
+	err := ochecker.deleteTmpPVCs([]*corev1.PersistentVolumeClaim{})
 	if err != nil {
 		t.Errorf("error deleting empty list of pvs: %s", err)
 	}
@@ -40,11 +40,11 @@ func Test_deleteTmpPVCs(t *testing.T) {
 		{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      "pvc0",
-				Namespace: "namespace",
+				Namespace: "default",
 			},
 		},
 	}
-	if err := ochecker.deleteTmpPVCs(context.Background(), pvcs); err != nil {
+	if err := ochecker.deleteTmpPVCs(pvcs); err != nil {
 		t.Errorf("unexpected error deleting empty list of pvs: %s", err)
 	}
 
@@ -59,7 +59,7 @@ func Test_deleteTmpPVCs(t *testing.T) {
 		},
 	})
 	ochecker.kcli = fake.NewSimpleClientset(objs...)
-	if err := ochecker.deleteTmpPVCs(context.Background(), pvcs); err != nil {
+	if err := ochecker.deleteTmpPVCs(pvcs); err != nil {
 		t.Errorf("unexpected error deleting with pv without claim ref: %s", err)
 	}
 
@@ -79,36 +79,8 @@ func Test_deleteTmpPVCs(t *testing.T) {
 		},
 	})
 	ochecker.kcli = fake.NewSimpleClientset(objs...)
-	if err := ochecker.deleteTmpPVCs(context.Background(), pvcs); err != nil {
+	if err := ochecker.deleteTmpPVCs(pvcs); err != nil {
 		t.Errorf("unexpected error deleting with unrelated pv: %s", err)
-	}
-
-	// cancel context before the pv is removed
-	objs = []runtime.Object{}
-	for _, pvc := range pvcs {
-		objs = append(objs, pvc)
-	}
-	objs = append(objs, &corev1.PersistentVolume{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: "pv",
-		},
-		Spec: corev1.PersistentVolumeSpec{
-			ClaimRef: &corev1.ObjectReference{
-				Name: "pvc0",
-			},
-		},
-	})
-	ochecker.kcli = fake.NewSimpleClientset(objs...)
-
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-	go func() {
-		time.Sleep(3 * time.Second)
-		cancel()
-	}()
-
-	if err := ochecker.deleteTmpPVCs(ctx, pvcs); err == nil || err.Error() != "context cancelled" {
-		t.Errorf("context cancelled error not showing up")
 	}
 
 	// happy path, pv disappear after a while
@@ -137,7 +109,7 @@ func Test_deleteTmpPVCs(t *testing.T) {
 		}
 	}()
 
-	if err := ochecker.deleteTmpPVCs(context.Background(), pvcs); err != nil {
+	if err := ochecker.deleteTmpPVCs(pvcs); err != nil {
 		t.Errorf("unexpected error deleting pvs: %s", err)
 	}
 
@@ -158,8 +130,8 @@ func Test_deleteTmpPVCs(t *testing.T) {
 	})
 	ochecker.kcli = fake.NewSimpleClientset(objs...)
 	ochecker.deletePVTimeout = 2 * time.Second
-	if err := ochecker.deleteTmpPVCs(context.Background(), pvcs); err == nil || !strings.Contains(err.Error(), "timeout") {
-		t.Errorf("timeout error did now show up")
+	if err := ochecker.deleteTmpPVCs(pvcs); err == nil || !strings.Contains(err.Error(), "timeout") {
+		t.Errorf("timeout error did now show up: %v", err)
 	}
 }
 
