@@ -241,6 +241,16 @@ You might want try to use [UTM](https://mac.getutm.app/).
 
 ## FAQ
 
+### How can I build the bundles packages for previous k8s versions which supports docker?
+
+Following the targets as an example:
+
+```bash
+    make build/packages/kubernetes/1.19.3/ubuntu-18.04
+    make build/packages/kubernetes/1.19.3/images
+    make build/packages/docker/19.03.10/ubuntu-18.04
+```
+
 ### Why do we need to run the builds and tarballs to do the tests?
 
 All automated builds done by kURL _(add-on, bundles and binaries)_ are uploaded to s3 (see the [code](./bin/save-manifest-assets.sh)).
@@ -249,3 +259,4 @@ to be installed (see the [code](./scripts/common/host-packages.sh)).
 
 If you are running in the development environment you must either build these bundles
 or install the pre-built ones from s3 as described in the section [Testing released versions](#testing-released-versions).
+
