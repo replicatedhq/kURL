@@ -238,3 +238,15 @@ Snapshot management requires VM t be powered off.
 ### QEMU on MacOS
 
 You might want try to use [UTM](https://mac.getutm.app/).
+
+## FAQ
+
+### How can I build the bundles packages for previous k8s versions which supports docker?
+
+Following the targets as an example:
+
+```bash
+    make build/packages/kubernetes/1.19.3/ubuntu-18.04
+    make build/packages/kubernetes/1.19.3/images
+    make build/packages/docker/19.03.10/ubuntu-18.04
+```
