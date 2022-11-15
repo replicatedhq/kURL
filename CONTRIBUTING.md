@@ -238,3 +238,14 @@ Snapshot management requires VM t be powered off.
 ### QEMU on MacOS
 
 You might want try to use [UTM](https://mac.getutm.app/).
+
+## FAQ
+
+### Can I contribute to the project by just rsync the builds from my local env (Apple M1/M2) to a test server into the distribution and version target?
+
+Unfortunately, it is desired by not possible currently. Note that we need to ensure that all scripts, building binaries and images can occur targeting `linux/amd64`.
+
+Following the guidelines, you can do some part of the work via a Mac OS env, such as build the image for `linux/amd64` and run the lint checks. However, you will see that some scripts, for example, to build container tarball, do not work correctly on Mac OS.
+
+In this way, the more straightforward approach if your local environment is Mac OS is to have a `linux/amd64` instance and work with Remote Development. GolangIDEA, for example, provides a feature to connect to the remote server via SSH, which you might find helpful. 
+
