@@ -127,5 +127,7 @@ func checkFreeSpace(ctx context.Context, logger *log.Logger, cfg *rest.Config, c
 
 		return fmt.Errorf("not enough space in Ceph to migrate data")
 	}
+
+	logger.Printf("Skipping disk space check, provisioner %s not supported.", dstProvisioner)
 	return nil
 }
