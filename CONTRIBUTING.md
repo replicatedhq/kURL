@@ -74,6 +74,8 @@ Testing can be accomplished on systems capable of hosting supported container ru
 
 1. Customize your spec by editing `scripts/Manifest`
 
+    To test the `install.sh` script, you will first need to modify the [scripts/Manifest](./scripts/Manifest) file and set the `INSTALLER_YAML` variable to a valid spec.
+    You can use the website https://kurl.sh/ as a tool to help configure your spec.
     Example:
     ```bash
     KURL_URL=
@@ -101,6 +103,12 @@ Testing can be accomplished on systems capable of hosting supported container ru
       registry:
         version: 2.8.1"
     ```
+
+    After modifying the the Manifest, the `make watchrsync` command will automatically build the scripts and upload them to the remote server.
+    You must wait for the message `synced` to test out your changes on the server:
+    
+    ![Screenshot 2022-11-06 at 20 06 35](https://user-images.githubusercontent.com/7708031/200198100-19219107-84dd-4631-a0e4-3200ad5feb99.png)
+
 1. Validate and run installation on test system
     ```bash
     # On test server
@@ -114,7 +122,7 @@ Testing can be accomplished on systems capable of hosting supported container ru
 
 Currently, it is **not** possible to clean up everything that is installed or modified by kURL.
 There is a best effort script that can be run with `sudo bash ./tasks.sh reset`, but it is not always perfect.
-Ideally you will need a new instance/VM for each test scenario.
+Ideally you will need a new instance/VM for each test scenario. ([More info](https://kurl.sh/docs/install-with-kurl/managing-nodes#reset-a-node))
 
 Contributions and bug reports for things that the reset script does not currently handle are welcomed.
 
@@ -248,6 +256,16 @@ Unfortunately, it is desired by not possible currently. Note that we need to ens
 Following the guidelines, you can do some part of the work via a Mac OS env, such as build the image for `linux/amd64` and run the lint checks. However, you will see that some scripts, for example, to build container tarball, do not work correctly on Mac OS.
 
 In this way, the more straightforward approach if your local environment is Mac OS is to have a `linux/amd64` instance and work with Remote Development. GolangIDEA, for example, provides a feature to connect to the remote server via SSH, which you might find helpful. 
+
+### How can I build the bundles packages for previous k8s versions which supports docker?
+
+Following the targets as an example:
+
+```bash
+    make build/packages/kubernetes/1.19.3/ubuntu-18.04
+    make build/packages/kubernetes/1.19.3/images
+    make build/packages/docker/19.03.10/ubuntu-18.04
+```
 
 ### Why do we need to run the builds and tarballs to do the tests?
 
