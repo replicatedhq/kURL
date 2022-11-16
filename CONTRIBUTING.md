@@ -39,10 +39,7 @@ Testing can be accomplished on systems capable of hosting supported container ru
 - [Using Virtual Box on Mac](#virtual-box-on-mac-os)
 - [Using QEME on Mac](#QEMU-on-MacOS)
 
-1. Build packages for target OS:
-   
-   In the following example we will use a helper targeting Ubuntu.
-   **Ensure that you follow the steps to test in a remote server running ubuntu 22.04.**
+1. Build packages for target OS: 
 
    **NOTE** If your local environment is Apple Silicon M1/M2 ensure that you run the following before building packages:
 
@@ -51,12 +48,15 @@ Testing can be accomplished on systems capable of hosting supported container ru
    export GOARCH=amd64
    export DOCKER_DEFAULT_PLATFORM=linux/amd64
    ```
-
-   Then, run from your local machine:
-
+   
     ```bash
-    # To build the sample under the [hack/testdata](./hack/testdata) directory targeting Ubuntu 22.04
-    make build/sample/ubuntu-22.04
+    # Local workstation
+    make build/packages/kubernetes/1.19.3/ubuntu-18.04
+    make build/packages/kubernetes/1.19.3/images
+    make dist/containerd-1.6.8.tar.gz && tar xzvf dist/containerd-1.6.8.tar.gz
+    make dist/weave-2.8.1.tar.gz && tar xzvf dist/weave-2.8.1.tar.gz
+    make dist/openebs-3.3.0.tar.gz && tar xzvf dist/openebs-3.3.0.tar.gz
+    make dist/registry-2.8.1.tar.gz && tar xzvf dist/registry-2.8.1.tar.gz
    ```
 
 1. Rsync local packages to remote test server.
@@ -72,12 +72,44 @@ Testing can be accomplished on systems capable of hosting supported container ru
    to the server under the directory `$HOME/kurl` in your remote server. The install scripts used for testing will be moved
    to your `$HOME` where they should be executed. For further info see the code at [bin/watchrsync.js](https://github.com/replicatedhq/kURL/blob/799db33f66f91b0680facf7c14e1222798021c57/bin/watchrsync.js#L29-L32).
 
-   You must wait for the message `synced` to test out your changes on the server:
+1. Customize your spec by editing `scripts/Manifest`
+
+    To test the `install.sh` script, you will first need to modify the [scripts/Manifest](./scripts/Manifest) file and set the `INSTALLER_YAML` variable to a valid spec.
+    You can use the website https://kurl.sh/ as a tool to help configure your spec.
+    Example:
+    ```bash
+    KURL_URL=
+    DIST_URL=
+    FALLBACK_URL=
+    INSTALLER_ID=
+    REPLICATED_APP_URL=https://replicated.app
+    KURL_UTIL_IMAGE=replicated/kurl-util:alpha
+    KURL_BIN_UTILS_FILE=
+    INSTALLER_YAML="apiVersion: cluster.kurl.sh/v1beta1
+    kind: Installer
+    metadata:
+      name: testing
+    spec:
+      kubernetes:
+        version: 1.25.3
+      weave:
+        version: 2.8.1
+      openebs:
+        version: 3.3.0
+        isLocalPVEnabled: true
+        localPVStorageClassName: default
+      containerd:
+        version: 1.6.9
+      registry:
+        version: 2.8.1"
+    ```
+
+    After modifying the the Manifest, the `make watchrsync` command will automatically build the scripts and upload them to the remote server.
+    You must wait for the message `synced` to test out your changes on the server:
     
-   ![Screenshot 2022-11-06 at 20 06 35](https://user-images.githubusercontent.com/7708031/200198100-19219107-84dd-4631-a0e4-3200ad5feb99.png)
+    ![Screenshot 2022-11-06 at 20 06 35](https://user-images.githubusercontent.com/7708031/200198100-19219107-84dd-4631-a0e4-3200ad5feb99.png)
 
 1. Validate and run installation on test system
-
     ```bash
     # On test server
     # validate your expected changes in install.sh|upgrade.sh and|or addons packages
@@ -85,39 +117,6 @@ Testing can be accomplished on systems capable of hosting supported container ru
     sudo ./install.sh
     ```
     *NOTE: `install.sh` runs are idempotent, consecutive runs on changed spec will update kURL installation.*
-
-### Customizing the spec to do test upgrades and installs
-
-To test the `install.sh` script, you will first need to modify the [scripts/Manifest](./scripts/Manifest) file and set the `INSTALLER_YAML` variable to a valid spec.
-You can use the website https://kurl.sh/ as a tool to help configure your spec.
-
-When we run the target `make build/sample`, the config spec under [script/Manifest](scripts/Manifest) will be replaced with the sample spec in [hack/testdata/sample/Manifest](./hack/testdata/sample/Manifest).
-If you would like to test other configurations you must:
-
-- replace the spec configuration with that which you would like to test in [script/Manifest](scripts/Manifest)
-- run `make clean` to clean the directories used
-- ensure that you call the makefile targets to build the bundle assets, i.e:
-
-```bash
-    # Here we are building the bundles for k8s 1.25.3 to target ubuntu 22.02 SO
-    make build/packages/kubernetes/1.25.3/ubuntu-22.04
-    make build/packages/kubernetes/1.25.3/images
-```
-
-- build the addons tarball for the specific versions and untar them, i.e:
-
-```bash
-    # Here we are building the tarball for containerd version 1.6.9
-    make dist/containerd-1.6.9.tar.gz && tar xzvf dist/containerd-1.6.9.tar.gz
-```
-- After modifying the Manifest, the `make watchrsync` command will automatically build the scripts and upload them to the remote server. 
-Then, ensure that all is rsynced with the remote server before running `./install.sh`
-
-**IMPORTANT** Do **not** use `latest` and `0.0.x` (i.e `3.9.x`). kURL is not responsible to sorting it out.
-
-> The manifest included in the kURL script has already resolved to exact versions by the [kURL API](https://github.com/replicatedhq/kurl-api). If you look at the source code of
-> `https://k8s.kurl.sh/installer/latest` and `https://k8s.kurl.sh/latest` you will be able to check that the versions are sorted out. We can post an installer spec to the [kURL API](https://github.com/replicatedhq/kurl-api) at https://k8s.kurl.sh/installer and you will get back a unique installer url (.i.e https://k8s.kurl.sh/17b7770 ). 
-> Then, when we request that url from the api it will resolve all the versions ("latest" and ".x") and render an install script. Therefore, if we request the bundle https://k8s.kurl.sh/bundle/17b7770.tar.gz the API will resolve the spec and return an archive with all add-on(s), package(s) included in that spec.
 
 ### Cleaning up(teardown)
 
