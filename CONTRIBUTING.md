@@ -242,7 +242,7 @@ You might want try to use [UTM](https://mac.getutm.app/).
 ## Documentation
 
 If you would like to contribute with the docs published in https://kurl.sh/docs/introduction/ then,
-see that they are built from the repository [replicatedhq/kurl.sh][kulr-docs].
+see that they are built from the repository [replicatedhq/kurl.sh](https://github.com/replicatedhq/kurl.sh).
 
 ## FAQ
 
