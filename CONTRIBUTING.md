@@ -302,7 +302,9 @@ Following the targets as an example:
 Currently, kURL does not execute the checks after it be installed. However, you might want try out
 run the checks by `kubectl get -oyaml "$(kubectl get installer -oname)" | sudo kurl/bin/kurl host preflight -`. 
 
-### Why can we not run the scripts under `$HOME/kurl` and the [bin/watchrsync.js](https://github.com/replicatedhq/kURL/blob/799db33f66f91b0680facf7c14e1222798021c57/bin/watchrsync.js#L29-L32) has moved the scripts which can be executed to the `$HOME` directory?
+### Why are the scripts created under `$HOME/kurl` by [bin/watchrsync.js](https://github.com/replicatedhq/kURL/blob/799db33f66f91b0680facf7c14e1222798021c57/bin/watchrsync.js#L29-L32) not usable? Why do we need to run development scripts from the `$HOME` directory instead?
 
-Currently, the kURL scripts does not work with relative paths. The kURL script execute operations in many places using the directory prefixed with `"$DIR"`. In the development environment `"$DIR" == ./kurl` and for production it will be `/var/lib/kurl`. ([example](https://github.com/replicatedhq/kURL/blob/aea79861716d66787f0b31670f1fc74a7ee16d1f/scripts/common/rook.sh#L202))  
+Currently, kURL scripts do not work with relative paths.
+The kURL script executes operations in many places using the directory prefixed with `"$DIR"`.
+In the development environment, `"$DIR" == ./kurl` and in staging/prod DIR is `/var/lib/kurl`.([example](https://github.com/replicatedhq/kURL/blob/aea79861716d66787f0b31670f1fc74a7ee16d1f/scripts/common/rook.sh#L202))
 
