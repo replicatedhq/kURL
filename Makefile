@@ -604,6 +604,20 @@ kurl-util-image: ## Download Kurl util image (replicated/kurl-util:alpha)
 watchrsync: ## Syncronize the code with a remote server. More info: CONTRIBUTING.md
 	bin/watchrsync.js
 
+.PHONY: build/sample/ubuntu-%
+build/sample/ubuntu-%: ## Build sample config under testdata targeting the ubuntu version informed
+	cp ./hack/testdata/sample/Manifest ./scripts/Manifest
+	make clean
+	make build/packages/kubernetes/1.25.3/ubuntu-$*
+	make build/packages/kubernetes/1.25.3/images
+	make dist/containerd-1.6.9.tar.gz && tar xzvf dist/containerd-1.6.9.tar.gz
+	make dist/weave-2.6.5-20221025.tar.gz && tar xzvf dist/weave-2.6.5-20221025.tar.gz
+	make dist/contour-1.23.0.tar.gz && tar xzvf dist/contour-1.23.0.tar.gz
+	make dist/openebs-3.3.0.tar.gz && tar xzvf dist/openebs-3.3.0.tar.gz
+	make dist/prometheus-0.60.1-41.7.3.tar.gz && tar xzvf dist/prometheus-0.60.1-41.7.3.tar.gz
+	make dist/registry-2.8.1.tar.gz && tar xzvf dist/registry-2.8.1.tar.gz
+	make dist/minio-2022-10-20T00-55-09Z.tar.gz && tar xzvf dist/minio-2022-10-20T00-55-09Z.tar.gz
+
 ##@ Tests
 
 GOLANGCI_LINT = $(shell go env GOPATH)/bin/golangci-lint
