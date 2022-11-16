@@ -74,6 +74,8 @@ Testing can be accomplished on systems capable of hosting supported container ru
 
 1. Customize your spec by editing `scripts/Manifest`
 
+    To test the `install.sh` script, you will first need to modify the [scripts/Manifest](./scripts/Manifest) file and set the `INSTALLER_YAML` variable to a valid spec.
+    You can use the website https://kurl.sh/ as a tool to help configure your spec.
     Example:
     ```bash
     KURL_URL=
@@ -101,6 +103,12 @@ Testing can be accomplished on systems capable of hosting supported container ru
       registry:
         version: 2.8.1"
     ```
+
+    After modifying the the Manifest, the `make watchrsync` command will automatically build the scripts and upload them to the remote server.
+    You must wait for the message `synced` to test out your changes on the server:
+    
+    ![Screenshot 2022-11-06 at 20 06 35](https://user-images.githubusercontent.com/7708031/200198100-19219107-84dd-4631-a0e4-3200ad5feb99.png)
+
 1. Validate and run installation on test system
     ```bash
     # On test server
@@ -114,7 +122,7 @@ Testing can be accomplished on systems capable of hosting supported container ru
 
 Currently, it is **not** possible to clean up everything that is installed or modified by kURL.
 There is a best effort script that can be run with `sudo bash ./tasks.sh reset`, but it is not always perfect.
-Ideally you will need a new instance/VM for each test scenario.
+Ideally you will need a new instance/VM for each test scenario. ([More info](https://kurl.sh/docs/install-with-kurl/managing-nodes#reset-a-node))
 
 Contributions and bug reports for things that the reset script does not currently handle are welcomed.
 
@@ -246,6 +254,35 @@ see that they are built from the repository [replicatedhq/kurl.sh](https://githu
 
 ## FAQ
 
+### The `error sed: 1: "assets/Manifest": command a expects \ followed by text` or `command md5sum not found` has been faced when I try to run the `install.sh` script.
+
+The reason for that is because of the commands `sed -i` used on the script.
+Note that kURL only supports linux environments and then, you are probably trying to run it from a mac os.
+You can workaround by installing `gnu-sed` and `md5sum` with (`brew install gnu-sed`, `brew install md5sum`).
+However, to test the project you must have a `linux/amd64` platform to perform its operations.
+
+### I am unable to run `make lint` or build the project in my local environment (Apple M1/M2)
+
+If you are facing the following error or have issues to build the project that means that you did
+not export the environment variables `export GOOS=linux` and `export GOARCH=amd64` to allow you work within:
+
+```bash
+✗ make lint
+/Users/camilamacedo/go/bin/golangci-lint --build-tags "netgo containers_image_ostree_stub exclude_graphdriver_devicemapper exclude_graphdriver_btrfs containers_image_openpgp" run --timeout 5m ./cmd/... ./pkg/... ./kurl_util/...
+kurl_util/cmd/subnet/main.go:54:48: FAMILY_V4 not declared by package netlink (typecheck)
+	routes, err := netlink.RouteList(nil, netlink.FAMILY_V4)
+	                                              ^
+make: *** [lint] Error 1
+```
+
+### Can I contribute to the project by just rsync the builds from my local env (Apple M1/M2) to a test server into the distribution and version target?
+
+Unfortunately, it is desired by not possible currently. Note that we need to ensure that all scripts, building binaries and images can occur targeting `linux/amd64`.
+
+Following the guidelines, you can do some part of the work via a Mac OS env, such as build the image for `linux/amd64` and run the lint checks. However, you will see that some scripts, for example, to build container tarball, do not work correctly on Mac OS.
+
+In this way, the more straightforward approach if your local environment is Mac OS is to have a `linux/amd64` instance and work with Remote Development. GolangIDEA, for example, provides a feature to connect to the remote server via SSH, which you might find helpful. 
+
 ### Why do we need to run the builds and tarballs to do the tests?
 
 All automated builds done by kURL _(add-on, bundles and binaries)_ are uploaded to s3 (see the [code](./bin/save-manifest-assets.sh)).
@@ -255,3 +292,17 @@ to be installed (see the [code](./scripts/common/host-packages.sh)).
 If you are running in the development environment you must either build these bundles
 or install the pre-built ones from s3 as described in the section [Testing released versions](#testing-released-versions).
 
+### How can I build the bundles packages for previous k8s versions which supports docker?
+
+Following the targets as an example:
+
+```bash
+    make build/packages/kubernetes/1.19.3/ubuntu-18.04
+    make build/packages/kubernetes/1.19.3/images
+    make build/packages/docker/19.03.10/ubuntu-18.04
+```
+
+### How can I run the preflight checks to validate the kURL install?
+
+Currently, kURL does not execute the checks after it be installed. However, you might want try out
+run the checks by `kubectl get -oyaml "$(kubectl get installer -oname)" | sudo kurl/bin/kurl host preflight -`. 
