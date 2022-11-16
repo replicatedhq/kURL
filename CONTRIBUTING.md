@@ -136,13 +136,6 @@ Contributions and bug reports for things that the reset script does not currentl
 
 ## Test environments
 
-Testing can be accomplished on systems capable of hosting supported container runtime. Local or remote Virtual Machine(s) or Instance(s) in a Public cloud provider.
-
-- [Using GCP](#using-gcp)
-- [Using Virtual Box on Mac](#virtual-box-on-mac-os)
-- [Using QEME on Mac]
-- [Using Kind and kubeVirt]
-
 ### Using GCP
 
 **If you are a Replicated team member then:** ensure that you have followed [Getting Started with your own CodeServer](https://github.com/replicatedhq/codeserver/blob/main/docs/first-time.md).
@@ -307,3 +300,9 @@ Following the targets as an example:
 
 Currently, kURL does not execute the checks after it be installed. However, you might want try out
 run the checks by `kubectl get -oyaml "$(kubectl get installer -oname)" | sudo kurl/bin/kurl host preflight -`. 
+
+### Why are the scripts created under `$HOME/kurl` by [bin/watchrsync.js](https://github.com/replicatedhq/kURL/blob/799db33f66f91b0680facf7c14e1222798021c57/bin/watchrsync.js#L29-L32) not usable? Why do we need to run development scripts from the `$HOME` directory instead?
+
+Currently, kURL scripts do not work with relative paths.
+The kURL script executes operations in many places using the directory prefixed with `"$DIR"`.
+In the development environment, `"$DIR" == ./kurl` and in staging/prod DIR is `/var/lib/kurl`.([example](https://github.com/replicatedhq/kURL/blob/aea79861716d66787f0b31670f1fc74a7ee16d1f/scripts/common/rook.sh#L202))
