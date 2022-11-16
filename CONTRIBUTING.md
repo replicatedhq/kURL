@@ -136,13 +136,6 @@ Contributions and bug reports for things that the reset script does not currentl
 
 ## Test environments
 
-Testing can be accomplished on systems capable of hosting supported container runtime. Local or remote Virtual Machine(s) or Instance(s) in a Public cloud provider.
-
-- [Using GCP](#using-gcp)
-- [Using Virtual Box on Mac](#virtual-box-on-mac-os)
-- [Using QEME on Mac]
-- [Using Kind and kubeVirt]
-
 ### Using GCP
 
 **If you are a Replicated team member then:** ensure that you have followed [Getting Started with your own CodeServer](https://github.com/replicatedhq/codeserver/blob/main/docs/first-time.md).
