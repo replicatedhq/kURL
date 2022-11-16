@@ -17,6 +17,7 @@ packages/*/*/assets
 packages/*/*/images
 packages/*/*/rhel-*
 packages/*/*/ubuntu-*
+scripts/Manifest
 
 *.key
 *.spdx
