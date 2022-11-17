@@ -147,7 +147,17 @@ function remove_weave() {
 
 function flannel_kubeadm() {
     # search for 'serviceSubnet', add podSubnet above it
-    local pod_cidr_range_line="  podSubnet: ${POD_CIDR_RANGE}"
+    local pod_cidr_range_line=
+    if [ -z "$POD_CIDR_RANGE" ]; then
+        if [ -z "$EXISTING_POD_CIDR" ]; then
+            pod_cidr_range_line="  podSubnet: 10.32.0.0/20"
+        else
+            pod_cidr_range_line="  podSubnet: ${EXISTING_POD_CIDR}"
+        fi
+    else
+        pod_cidr_range_line="  podSubnet: ${POD_CIDR_RANGE}"
+    fi
+
     if grep 'podSubnet:' /opt/replicated/kubeadm.conf; then
         sed -i "s/  podSubnet:.*/${pod_cidr_range_line}/" /opt/replicated/kubeadm.conf
     else
