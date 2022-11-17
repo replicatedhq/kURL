@@ -7,7 +7,7 @@
 #  name: CentOS
 #  version: "7.4"
 #  vmimageuri: https://cloud.centos.org/centos/7/images/CentOS-7-x86_64-GenericCloud-1708.qcow2
-  preinit: ""
+#  preinit: ""
 - id: centos-79
   name: CentOS
   version: "7.9"
