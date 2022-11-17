@@ -6,6 +6,10 @@ spec:
   collectors:
   - blockDevices:
       exclude: '{{kurl .IsUpgrade }}'
+  - tcpPortStatus:
+      collectorName: "Pod csi-rbdplugin Host Port"
+      port: 9090
+      exclude: '{{kurl .IsUpgrade }}'
 
   analyzers:
   - blockDevices:
@@ -21,3 +25,16 @@ spec:
           message: Multiple available block devices
       - fail:
           message: No available block devices
+  - tcpPortStatus:
+      checkName: "Pod csi-rbdplugin Host Port Status"
+      collectorName: "Pod csi-rbdplugin Host Port"
+      exclude: '{{kurl .IsUpgrade }}'
+      outcomes:
+      - pass:
+          when: "connected"
+          message: "Port 9090 is available for use."
+      - fail:
+          when: "address-in-use"
+          message: "Another process is listening on port 9090."
+      - fail:
+          message: "Unexpected error connecting to port 9090."
