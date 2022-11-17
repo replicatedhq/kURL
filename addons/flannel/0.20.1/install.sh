@@ -157,7 +157,7 @@ function flannel_kubeadm() {
     local pod_cidr_range_line=
     if [ -z "$POD_CIDR_RANGE" ]; then
         if [ -z "$EXISTING_POD_CIDR" ]; then
-            pod_cidr_range_line="  podSubnet: 10.32.0.0/20"
+            pod_cidr_range_line="  podSubnet: 10.32.16.0/20"
         else
             pod_cidr_range_line="  podSubnet: ${EXISTING_POD_CIDR}"
         fi
