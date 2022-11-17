@@ -1,7 +1,7 @@
 - name: Rook minimal
   installerSpec:
     kubernetes:
-      version: "1.19.x"
+      version: "1.25.x"
     weave:
       version: "latest"
     containerd:
@@ -15,6 +15,8 @@
     rook:
       version: "__testver__"
       s3Override: "__testdist__"
+  unsupportedOSIDs:
+    - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     rook_ecph_object_store_info
@@ -53,10 +55,96 @@
     kubectl -n default get pvc cephfs-pvc | grep Bound
     kubectl -n default delete pvc cephfs-pvc default-pvc
 
+- name: Upgrade from 1.8.10
+  installerSpec:
+    kubernetes:
+      version: "1.24.x"
+    weave:
+      version: "latest"
+    containerd:
+      version: "latest"
+    minio:
+      version: "latest"
+    kotsadm:
+      version: "latest"
+    ekco:
+      version: "latest"
+    rook:
+      version: "1.8.10"
+  upgradeSpec:
+    kubernetes:
+      version: "1.25.x"
+    weave:
+      version: "latest"
+    containerd:
+      version: "latest"
+    minio:
+      version: "latest"
+    kotsadm:
+      version: "latest"
+    ekco:
+      version: "latest"
+    rook:
+      version: "__testver__"
+      s3Override: "__testdist__"
+      bypassUpgradeWarning: true
+  unsupportedOSIDs:
+    - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
+  postInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rook_ecph_object_store_info
+    validate_read_write_object_store rwtest testfile.txt
+
+    minio_object_store_info
+    validate_read_write_object_store rwtest minio.txt
+  postUpgradeScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+
+    operatorVersion=$(kubectl get deployment -n rook-ceph rook-ceph-operator -o jsonpath='{.spec.template.spec.containers[0].image}')
+    echo $operatorVersion | grep __testver__
+
+    rook_ecph_object_store_info
+    validate_testfile rwtest testfile.txt
+    validate_read_write_object_store postupgrade upgradefile.txt
+
+    minio_object_store_info
+    validate_testfile rwtest minio.txt
+    validate_read_write_object_store postupgrade minioupgrade.txt
+
+    # validate data pools
+    cat <<EOF | kubectl apply -f -
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: cephfs-pvc
+    spec:
+      accessModes:
+      - ReadWriteMany
+      resources:
+        requests:
+          storage: 1Gi
+      storageClassName: rook-cephfs
+    ---
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: default-pvc
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: 1Gi
+    EOF
+    sleep 10
+    kubectl -n default get pvc default-pvc | grep Bound
+    kubectl -n default get pvc cephfs-pvc | grep Bound
+    kubectl -n default delete pvc cephfs-pvc default-pvc
+
 - name: Disable shared filesystem
   installerSpec:
     kubernetes:
-      version: "1.19.x"
+      version: "1.25.x"
     weave:
       version: "latest"
     containerd:
@@ -71,6 +159,8 @@
       version: "__testver__"
       s3Override: "__testdist__"
       isSharedFilesystemDisabled: true
+  unsupportedOSIDs:
+    - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     rook_ecph_object_store_info
