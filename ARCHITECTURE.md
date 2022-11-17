@@ -56,7 +56,7 @@ The browser UI for creating and viewing kURL installers.
 The API for creating kURL URLs and rendering installers.
 The API accepts a kURL Installer spec and returns a URL including a deterministic hash of the spec for installing a cluster based on that spec, for example https://k8s.kurl.sh/5e61e80.
 The API interacts stores these hashes in its relational database for retrieval.
-Additionally, the API is responsible for resolving the add-on version ("latetst" and ".x") and rendering the spec when a script is requested, for example https://k8s.kurl.sh/5e61e80/install.sh or shorthand https://k8s.kurl.sh/5e61e80.
+Additionally, the API is responsible for resolving the add-on version ("latest" and ".x") and rendering the spec when a script is requested, for example https://k8s.kurl.sh/5e61e80/install.sh or shorthand https://k8s.kurl.sh/5e61e80.
 The API reads the current kURL version from the object storage bucket (https://kurl-sh.s3.amazonaws.com/dist/VERSION) and uses that version to lookup add-on version information (e.g. https://kurl-sh.s3.amazonaws.com/dist/v2022.04.19-0/supported-versions-gen.json) for spec resolution.
 
 #### Go API Proxy
@@ -171,7 +171,7 @@ The API makes use of this VERSION file to resolve the scripts and add-on package
 
 ### Production Workflow
 
-Production release are triggerd by running the command `make tag-and-release` or pushing a tag in the format "v*.*.*".
+Production release are triggered by running the command `make tag-and-release` or pushing a tag in the format "v*.*.*".
 Production releases are uploaded to the object storage bucket at prefix `dist`, for example https://kurl-sh.s3.amazonaws.com/dist/v2022.04.19-0/.
 Before building add-on packages, the workflow will first check if there were any changes made to the add-on since the previous production release based on metadata included with the add-on package.
 If no changes were made, the package will be copied from the previous production release to optimize for build times.
@@ -185,7 +185,7 @@ Historical production releases are never removed from the object storage bucket.
 
 Staging releases are triggered on merge to main.
 Staging release versions use the most current release version tag and append prerelease `-dirty`, for example v2022.04.19-0-dirty.
-Due to this versioning scheme, staging releases will overwrite the previous staging release if no production release occured prior.
+Due to this versioning scheme, staging releases will overwrite the previous staging release if no production release occurred prior.
 This is intentional to optimize for storage costs.
 Staging releases are uploaded to the object storage bucket at prefix `staging`, for example https://kurl-sh.s3.amazonaws.com/staging/v2022.04.19-0-dirty/.
 Before building add-on packages, the workflow will first check if there were any changes made to the add-on since the previous staging release based on metadata included with the add-on package.
