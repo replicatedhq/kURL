@@ -159,7 +159,7 @@ function flannel_kubeadm() {
     fi
 
     if grep 'podSubnet:' /opt/replicated/kubeadm.conf; then
-        sed -i "s/  podSubnet:.*/${pod_cidr_range_line}/" /opt/replicated/kubeadm.conf
+        sed -i "s_  podSubnet:.*_${pod_cidr_range_line}_" /opt/replicated/kubeadm.conf
     else
         sed -i "/serviceSubnet/ s/.*/${pod_cidr_range_line}\n&/" /opt/replicated/kubeadm.conf
     fi
