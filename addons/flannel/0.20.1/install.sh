@@ -95,25 +95,35 @@ function flannel_is_single_node() {
 function weave_to_flannel() {
     local dst="$DIR/kustomize/flannel"
 
+    echo "REMOVING WEAVE"
     remove_weave
+
+    echo "UPDATING KUBEADM FOR FLANNEL"
     flannel_kubeadm
 
+    echo "APPLYING FLANNEL"
     kubectl -n kube-flannel apply -k "$dst/"
 
+    sleep 60
+
+    echo "RESTARTING KUBELET"
     sudo systemctl stop kubelet
     sudo iptables -t nat -F && sudo iptables -t mangle -F && sudo iptables -F && sudo iptables -X
     sudo systemctl restart containerd
     sudo systemctl start kubelet
 
     sleep 60
+    echo "RESTARTING kube-system"
     kubectl -n kube-system delete pods --all
 
     sleep 60
+    echo "RESTARTING CSI"
     kubectl -n longhorn-system delete pods --all || true
     kubectl -n rook-ceph delete pods --all || true
     kubectl -n openebs delete pods --all || true
 
     sleep 60
+    echo "RESTARTING ALL OTHER PODS"
     for ns in $(kubectl get ns -o name | grep -Ev '(kube-system|longhorn-system|rook-ceph|openebs|kube-flannel)' | cut -f2 -d'/'); do kubectl delete pods -n "$ns" --all; done
     sleep 60
 }

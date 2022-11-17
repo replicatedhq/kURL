@@ -1,12 +1,3 @@
-- name: "flannel latest single node"
-  installerSpec:
-    kubernetes:
-      version: "1.25.x"
-    containerd:
-      version: "latest"
-    flannel:
-      version: "__testver__"
-      s3Override: "__testdist__"
 - name: "weave to flannel flannel latest single node upgrade"
   installerSpec:
     kubernetes:
