@@ -129,6 +129,10 @@ function weave_to_flannel() {
     for ns in $(kubectl get ns -o name | grep -Ev '(kube-system|longhorn-system|rook-ceph|openebs|kube-flannel)' | cut -f2 -d'/'); do kubectl delete pods -n "$ns" --all; done
     sleep 60
     kubectl get pods -A
+    echo "DESCRIBE FLANNEL PODS"
+    kubectl describe pods -n kube-flannel
+    echo "FLANNEL LOGS"
+    kubectl logs -n kube-flannel -l "app=flannel"
 }
 
 function remove_weave() {
