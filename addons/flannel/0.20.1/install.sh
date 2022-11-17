@@ -116,6 +116,7 @@ function weave_to_flannel() {
     sleep 60
     echo "RESTARTING kube-system"
     kubectl -n kube-system delete pods --all
+    kubectl -n kube-flannel delete pods --all
 
     sleep 60
     echo "RESTARTING CSI"
@@ -127,6 +128,7 @@ function weave_to_flannel() {
     echo "RESTARTING ALL OTHER PODS"
     for ns in $(kubectl get ns -o name | grep -Ev '(kube-system|longhorn-system|rook-ceph|openebs|kube-flannel)' | cut -f2 -d'/'); do kubectl delete pods -n "$ns" --all; done
     sleep 60
+    kubectl get pods -A
 }
 
 function remove_weave() {
