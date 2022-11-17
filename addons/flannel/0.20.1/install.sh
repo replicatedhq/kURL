@@ -105,6 +105,7 @@ function weave_to_flannel() {
     kubectl -n kube-flannel apply -k "$dst/"
 
     sleep 60
+    kubectl get pods -A
 
     echo "RESTARTING KUBELET"
     sudo systemctl stop kubelet
