@@ -240,6 +240,12 @@ Snapshot management requires VM t be powered off.
 
 You might want try to use [UTM](https://mac.getutm.app/).
 
+## Documentation
+
+
+For contributions to the kURL documentation published at https://kurl.sh/docs/introduction/,
+see the source repository at [replicatedhq/kurl.sh](https://github.com/replicatedhq/kurl.sh).
+
 ## FAQ
 
 ### The `error sed: 1: "assets/Manifest": command a expects \ followed by text` or `command md5sum not found` has been faced when I try to run the `install.sh` script.
@@ -300,4 +306,3 @@ run the checks by `kubectl get -oyaml "$(kubectl get installer -oname)" | sudo k
 Currently, kURL scripts do not work with relative paths.
 The kURL script executes operations in many places using the directory prefixed with `"$DIR"`.
 In the development environment, `"$DIR" == ./kurl` and in staging/prod DIR is `/var/lib/kurl`.([example](https://github.com/replicatedhq/kURL/blob/aea79861716d66787f0b31670f1fc74a7ee16d1f/scripts/common/rook.sh#L202))
-
