@@ -80,6 +80,7 @@ jobs:
           openebs
           type::chore
           kurl::type::feature
+          auto-merge
         draft: false
         base: "main"
         body: |
