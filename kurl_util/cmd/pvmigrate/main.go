@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	clusterspace "github.com/replicatedhq/kurl/pkg/cluster/space"
+	"github.com/replicatedhq/kurl/pkg/k8sutil"
 	"github.com/replicatedhq/kurl/pkg/version"
 	"github.com/replicatedhq/pvmigrate/pkg/migrate"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -28,6 +29,7 @@ func main() {
 	version.Print()
 
 	var skipFreeSpaceCheck bool
+	var skipPvAccessModeCheck bool
 	var opts migrate.Options
 	flag.StringVar(&opts.SourceSCName, "source-sc", "", "storage provider name to migrate from")
 	flag.StringVar(&opts.DestSCName, "dest-sc", "", "storage provider name to migrate to")
@@ -37,6 +39,8 @@ func main() {
 	flag.BoolVar(&opts.VerboseCopy, "verbose-copy", false, "show output from the rsync command used to copy data between PVCs")
 	flag.BoolVar(&opts.SkipSourceValidation, "skip-source-validation", false, "migrate from PVCs using a particular StorageClass name, even if that StorageClass does not exist")
 	flag.BoolVar(&skipFreeSpaceCheck, "skip-free-space-check", false, "skips the check for storage free space prior to running the migrations")
+	flag.BoolVar(&skipPvAccessModeCheck, "skip-pv-access-mode-check", false, "skips the volume access modes checks prior to running the migrations")
+
 	flag.Parse()
 
 	logger := log.New(os.Stdout, "", 0)
@@ -54,7 +58,20 @@ func main() {
 
 	if !skipFreeSpaceCheck {
 		if err := checkFreeSpace(ctx, logger, cfg, cli, opts); err != nil {
-			logger.Printf("Failed to check cluster free space: %s", err)
+			logger.Printf("failed to check cluster free space: %s", err)
+			os.Exit(1)
+		}
+	}
+
+	if !skipPvAccessModeCheck {
+		unsupportedPVCs, err := validatePVAccessMode(ctx, logger, cfg, cli, opts)
+		if err != nil {
+			logger.Printf("failed to validate access modes for destination storage provider %s: %s", opts.DestSCName, err)
+			os.Exit(1)
+		}
+
+		if unsupportedPVCs != nil {
+			migrate.PrintPVAccessModeErrors(unsupportedPVCs)
 			os.Exit(1)
 		}
 	}
@@ -63,6 +80,24 @@ func main() {
 		fmt.Printf("%s\n", err.Error())
 		os.Exit(1)
 	}
+}
+
+func validatePVAccessMode(ctx context.Context, logger *log.Logger, cfg *rest.Config, cli kubernetes.Interface, opts migrate.Options) (map[string]map[string]migrate.PVCError, error) {
+	pvm, err := migrate.NewPVMigrator(cfg, logger, opts.SourceSCName, opts.DestSCName)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create PVMigrator type: %s", err)
+	}
+
+	srcPVs, err := k8sutil.PVSByStorageClass(ctx, cli, opts.SourceSCName)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get volumes using storage class %s: %w", opts.SourceSCName, err)
+	}
+	unsupportedPVCs, err := pvm.ValidateVolumeAccessModes(srcPVs)
+	if err != nil {
+		return nil, fmt.Errorf("failed to validate volume access modes for destination storage class %s", opts.DestSCName)
+	}
+
+	return unsupportedPVCs, nil
 }
 
 func checkFreeSpace(ctx context.Context, logger *log.Logger, cfg *rest.Config, cli kubernetes.Interface, opts migrate.Options) error {
