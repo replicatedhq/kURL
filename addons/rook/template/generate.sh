@@ -2,11 +2,11 @@
 
 set -euo pipefail
 
-function get_latest_19x_version() {
-    helm search repo rook-release/rook-ceph --version '< 1.10.0' 2>/dev/null | \
+function get_latest_version() {
+    helm search repo rook-release/rook-ceph 2>/dev/null | \
         grep -F 'rook-release/rook-ceph ' | \
         awk '{ print $2 }' | \
-        grep -Eo "1\.9\.[0-9]+"
+        sed 's/v//'
 }
 
 function generate() {
@@ -55,16 +55,6 @@ function generate() {
     local ceph_image=
     ceph_image="$(grep ' image: '  "${dir}/cluster/cluster.yaml" | sed -E 's/ *image: "*([^" ]+).*/\1/')"
 
-    # Upgrading passed v16.2.6 based on this note in the Rook docs
-    # https://www.rook.io/docs/rook/v1.6/ceph-upgrade.html#ceph-version-upgrades
-    # WARNING: There is a notice from Ceph for users upgrading to Ceph Pacific v16.2.6 or lower from an earlier major version of Ceph. If you are upgrading to Ceph Pacific (v16), please upgrade to v16.2.7 or higher if possible.
-    if echo "$ceph_image" | grep -q ":v16\.2" ; then
-        local ceph_version_patch="$(echo "$ceph_image" | grep -o "v[0-9]*\.[0-9]*\.[0-9]*" | sed "s/v[0-9]*\.[0-9]*\.\([0-9]*\).*/\1/")"
-        if [ "$ceph_version_patch" -lt "7" ]; then
-            ceph_image="$(echo "$ceph_image" | sed "s/v[0-9]*\.[0-9]*\.[0-9]*/v16.2.7/")"
-        fi
-    fi
-
     sed -i "s/__CEPH_IMAGE__/$(echo "${ceph_image}" | sed 's/\//\\\//g')/" "${dir}/install.sh"
 
     # get images in files
@@ -78,17 +68,19 @@ function split_resources() {
     local combined="$1"
     local outdir="$2"
     local kustomization_file="$3"
-    local tmpdir="$(mktemp -d -p $outdir)"
-    csplit --quiet --prefix="$tmpdir/out" -b ".%03d.yaml" $combined "/^---$/+1" "{*}"
+    local tmpdir=
+    tmpdir="$(mktemp -d -p "$outdir")"
+    csplit --quiet --prefix="$tmpdir/out" -b ".%03d.yaml" "$combined" "/^---$/+1" "{*}"
     local files=("$tmpdir"/*.yaml)
     # reverse iterate over files so they are in order in kustomize resources
     for ((i=${#files[@]}-1; i>=0; i--)); do
         local tmpfile="${files[$i]}"
         if grep -q "# Source: " "$tmpfile" ; then
-            local source="$(basename "$(grep "# Source: " "$tmpfile" | sed 's/# Source: //')")"
+            local source=
+            source="$(basename "$(grep "# Source: " "$tmpfile" | sed 's/# Source: //')")"
             local filename="$outdir/$source"
-            if [ ! -f "${filename}" ]; then
-                insert_resources "$kustomization_file" "$(basename $filename)"
+            if [ ! -f "$filename" ]; then
+                insert_resources "$kustomization_file" "$(basename "$filename")"
             fi
             cat "${tmpfile}" >> "${filename}"
         fi
@@ -113,19 +105,40 @@ function add_as_latest() {
     fi
 }
 
+function parse_flags() {
+    for i in "$@"; do
+        case ${1} in
+            --force)
+                force_flag="1"
+                shift
+                ;;
+            --version=*)
+                version_flag="${i#*=}"
+                shift
+                ;;
+            *)
+                echo "Unknown flag $1"
+                exit 1
+                ;;
+        esac
+    done
+}
+
 function main() {
-    VERSION="${1-}"
-    if [ "${1-}" == "force" ]; then
-        VERSION=
-    fi
+    local force_flag=
+    local version_flag=
+
+    parse_flags "$@"
+
+    local VERSION="$version_flag"
     if [ -z "$VERSION" ]; then
         helm repo add rook-release https://charts.rook.io/release
         helm repo update
-        VERSION="$(get_latest_19x_version)"
+        VERSION="$(get_latest_version)"
     fi
 
     if [ -d "../$VERSION" ]; then
-        if [ "${1-}" == "force" ] || [ "${2-}" == "force" ]; then
+        if [ "$force_flag" == "1" ]; then
             echo "forcibly updating existing version of Rook"
             rm -rf "../$VERSION"
         else

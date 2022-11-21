@@ -22,10 +22,11 @@ require (
 	github.com/replicatedhq/kurlkinds v1.0.7
 	github.com/replicatedhq/pvmigrate v0.6.0
 	github.com/replicatedhq/troubleshoot v0.48.1
-	github.com/rook/rook v1.9.12
+	github.com/rook/rook v1.10.6
 	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/afero v1.9.3
 	github.com/spf13/cobra v1.6.1
+	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.14.0
 	github.com/stretchr/testify v1.8.1
 	github.com/vishvananda/netlink v1.1.1-0.20210330154013-f5de75959ad5
@@ -201,7 +202,6 @@ require (
 	github.com/shirou/gopsutil v3.21.11+incompatible // indirect
 	github.com/spf13/cast v1.5.0 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
-	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/subosito/gotenv v1.4.1 // indirect
 	github.com/sylabs/sif/v2 v2.8.1 // indirect
 	github.com/syndtr/gocapability v0.0.0-20200815063812-42c35b437635 // indirect
@@ -252,13 +252,13 @@ require (
 replace github.com/go-ole/go-ole => github.com/go-ole/go-ole v1.2.6 // needed for arm builds
 
 replace (
-	// from https://github.com/rook/rook/blob/v1.9.12/go.mod
+	// from https://github.com/rook/rook/blob/v1.10.6/go.mod
 	github.com/googleapis/gnostic => github.com/googleapis/gnostic v0.4.1
 	github.com/kubernetes-incubator/external-storage => github.com/libopenstorage/external-storage v0.20.4-openstorage-rc3
 	github.com/portworx/sched-ops => github.com/portworx/sched-ops v0.20.4-openstorage-rc3
 )
 
-// from https://github.com/rook/rook/blob/v1.9.12/go.mod
+// from https://github.com/rook/rook/blob/v1.10.6/go.mod
 exclude (
 	// This tag doesn't exist, but is imported by github.com/portworx/sched-ops.
 	github.com/kubernetes-incubator/external-storage v0.20.4-openstorage-rc2
