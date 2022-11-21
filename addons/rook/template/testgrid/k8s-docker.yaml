@@ -55,7 +55,7 @@
     kubectl -n default get pvc cephfs-pvc | grep Bound
     kubectl -n default delete pvc cephfs-pvc default-pvc
 
-- name: Upgrade from 1.8.10
+- name: Upgrade from 1.9.12
   installerSpec:
     kubernetes:
       version: "1.24.x"
@@ -70,7 +70,7 @@
     ekco:
       version: "latest"
     rook:
-      version: "1.8.10"
+      version: "1.9.12"
   upgradeSpec:
     kubernetes:
       version: "1.25.x"
