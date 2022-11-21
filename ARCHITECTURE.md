@@ -34,7 +34,7 @@ spec:
 
 ## kURL URL
 
-A URL can be contructed including the hash to retrieve a kURL script (curl https://k8s.kurl.sh/5e61e80) or air-gap bundle (curl -LO https://k8s.kurl.sh/bundle/5e61e80.tar.gz).
+A URL can be constructed including the hash to retrieve a kURL script (curl https://k8s.kurl.sh/5e61e80) or air-gap bundle (curl -LO https://k8s.kurl.sh/bundle/5e61e80.tar.gz).
 Additionally, a version of kURL can be pinned in that URL (https://k8s.kurl.sh/version/v2022.04.19-0/5e61e80).
 
 ## kURL.sh API
@@ -57,7 +57,8 @@ https://github.com/replicatedhq/kURL-api/tree/main/src
 
 The API for creating kURL URLs and rendering installers.
 The API accepts a kURL Installer spec and returns a URL including a deterministic hash of the spec for installing a cluster based on that spec, for example https://k8s.kurl.sh/5e61e80.
-The API interacts stores these hashes in its relational database for retrieval.
+This reproducible [hash](https://github.com/replicatedhq/kURL-api/blob/f43d0fb1ed770b938dea97de64f39dacdd495c68/src/installers/index.ts#L1022-L1086) is the first 7 characters of the SHA-256 checksum of the sorted spec.
+The API [stores](https://github.com/replicatedhq/kURL-api/blob/f43d0fb1ed770b938dea97de64f39dacdd495c68/src/installers/index.ts#L1521-L1536) these hashes in its relational database for retrieval, as a hash is not reversible.
 Additionally, the API is responsible for [resolving](https://github.com/replicatedhq/kURL-api/blob/f43d0fb1ed770b938dea97de64f39dacdd495c68/src/installers/index.ts#L955-L977) the add-on version ("latest" and ".x") and [rendering](https://github.com/replicatedhq/kURL-api/blob/f43d0fb1ed770b938dea97de64f39dacdd495c68/src/util/services/templates.ts) the spec when a script is requested, for example https://k8s.kurl.sh/5e61e80/install.sh or shorthand https://k8s.kurl.sh/5e61e80.
 The API [reads](https://github.com/replicatedhq/kURL-api/blob/f43d0fb1ed770b938dea97de64f39dacdd495c68/src/util/package/kurl-version.ts) the current kURL version from the object storage bucket (https://kurl-sh.s3.amazonaws.com/dist/VERSION) and uses that version to lookup add-on version information (e.g. https://kurl-sh.s3.amazonaws.com/dist/v2022.04.19-0/supported-versions-gen.json) for spec resolution.
 
@@ -72,6 +73,10 @@ Air-gap packages are assembled from individual add-on package archives (e.g. htt
 #### Relational Database
 
 Stores installer hashes.
+
+The database schema is defined [here](https://github.com/replicatedhq/vandoor/blob/main/migrations/kustomize/schema/kurl-installer.yaml) as a SchemaHero Table.
+
+*NOTE: The schema is currently in a private repository.*
 
 #### Object Store
 
@@ -170,7 +175,7 @@ The kURL API merges the external add-on registry with its internal list of add-o
 ## Deployment and Releases
 
 Upon releasing kURL, scripts and add-on package archives are built and uploaded to to the kURL object storage bucket along with metadata including the Git sha from which they were generated.
-Once complete, the VERSION file is updated to point to the current version of kURL.
+Once complete, the [VERSION](https://kurl-sh.s3.amazonaws.com/dist/VERSION) file is updated with the current version of kURL.
 The Typescript API makes use of this VERSION file to resolve the scripts and add-on packages.
 
 ### Production Workflow
