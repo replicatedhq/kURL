@@ -21,7 +21,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/replicatedhq/kurlkinds v1.0.7
 	github.com/replicatedhq/pvmigrate v0.6.0
-	github.com/replicatedhq/troubleshoot v0.46.0
+	github.com/replicatedhq/troubleshoot v0.47.0
 	github.com/rook/rook v1.9.12
 	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/afero v1.9.2
@@ -75,7 +75,7 @@ require (
 	github.com/containerd/cgroups v1.0.4 // indirect
 	github.com/containerd/containerd v1.6.6 // indirect
 	github.com/containerd/stargz-snapshotter/estargz v0.12.0 // indirect
-	github.com/containers/image/v5 v5.23.0 // indirect
+	github.com/containers/image/v5 v5.23.1 // indirect
 	github.com/containers/libtrust v0.0.0-20200511145503-9c3a6c22cd9a // indirect
 	github.com/containers/ocicrypt v1.1.5 // indirect
 	github.com/containers/storage v1.43.0 // indirect
@@ -243,8 +243,8 @@ require (
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/square/go-jose.v2 v2.6.0 // indirect
 	k8s.io/apiextensions-apiserver v0.25.2 // indirect
-	k8s.io/apiserver v0.25.3 // indirect
-	k8s.io/cli-runtime v0.25.3 // indirect
+	k8s.io/apiserver v0.25.4 // indirect
+	k8s.io/cli-runtime v0.25.4 // indirect
 	k8s.io/klog/v2 v2.80.1 // indirect
 	k8s.io/kube-openapi v0.0.0-20220803162953-67bda5d908f1 // indirect
 	oras.land/oras-go v1.2.1 // indirect
