@@ -134,48 +134,16 @@ Add-ons are components that make up a kURL cluster.
 | addons/[addon]/[version]/Manifest            | Manifest of assets, host packages and container images |
 | addons/[addon]/[version]/install.sh          | Entrypoint to the add-on installation script |
 | addons/[addon]/[version]/host-preflight.yaml | Troubleshoot.sh preflight spec |
-| addons/[addon]/[version]/assets/             | Runtime assets |
-| addons/[addon]/[version]/images/             | Runtime images |
-| addons/[addon]/[version]/[distro-version]/   | Runtime host packages for each supported Linux OS  |
+| addons/[addon]/[version]/assets/             | Runtime assets built during CI |
+| addons/[addon]/[version]/images/             | Runtime images built during CI |
+| addons/[addon]/[version]/[distro-version]/   | Runtime host packages for each supported Linux OS built during CI |
 
 ### Lifecycle
 
-#### addon_fetch
+Add-ons can implement a set of lifecycle hooks that are invoked when creating, joining or upgrading the cluster.
+See the [flow charts](#flow-chart) for more details.
 
-Fetch the add-on package from the object store or from the air-gap bundle and extract into `/var/lib/kurl/addons`.
-This step is typically skipped if the add-on version has not changed since the previous run.
-
-#### addon_load
-
-Load (bash source) the install.sh script.
-
-#### addon_preflights
-
-Run the Troubleshoot.sh preflight spec from host-preflight.yaml.
-
-#### addon_pre_init
-
-Operations that are performed in the pre-init script include installing host packages or Kustomizing the Kubernetes distribution.
-
-#### addon_install
-
-Kubectl apply this add-on to the cluster.
-This step is typically skipped if the add-on version and configuration has not changed since the previous run.
-
-#### addon_already_applied
-
-This step run instead of addon_install if the add-on version and configuration has already been applied.
-#### addon_join
-
-Operations that are performed in the join script include installing host packages or Kustomizing the Kubernetes distribution.
-
-#### addon_post_init
-
-Operations that are performed in the post-init script include but not limited to configuring other add-on resources.
-
-#### addon_outro
-
-Print end-user messages to the screen.
+For more details about each add-on lifecycle hook, see the add-on [README.md](/addons/README.md#lifecycle-hooks)
 
 ### External Add-ons
 
