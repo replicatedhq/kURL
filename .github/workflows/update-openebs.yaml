@@ -17,39 +17,7 @@ jobs:
       with:
         go-version: 1.19
 
-    - name: Create OpenEBS 2.x Update
-      id: update
-      working-directory: ./addons/openebs/template
-      run: ./generate.sh --version=^2.0.0
-
-    - name: Create Pull Request # creates a PR if there are differences
-      uses: peter-evans/create-pull-request@v4.2.0
-      id: cpr
-      with:
-        token: ${{ secrets.AUTOMATED_PR_GH_PAT }}
-        commit-message: Create new OpenEBS version
-        title: 'Automated OpenEBS version update ${{ steps.update.outputs.openebs_version }}'
-        branch: automation/update-openebs-2
-        delete-branch: true
-        labels: |
-          automated-pr
-          openebs
-          type::chore
-          kurl::type::feature
-        draft: false
-        base: "main"
-        body: |
-          Automated changes by the [cron-openebs-update](https://github.com/replicatedhq/kURL/blob/main/.github/workflows/update-openebs.yaml) GitHub action
-
-          ```release-note
-          Adds [OpenEBS add-on](https://kurl.sh/docs/add-ons/openebs) version ${{ steps.update.outputs.openebs_version }}.
-          ```
-    - name: Check outputs
-      run: |
-        echo "Pull Request Number - ${{ steps.cpr.outputs.pull-request-number }}"
-        echo "Pull Request URL - ${{ steps.cpr.outputs.pull-request-url }}"
-
-  build-pr-openebs-3:
+  build-pr-openebs:
     runs-on: ubuntu-20.04
     steps:
     - uses: actions/checkout@v3
@@ -61,7 +29,7 @@ jobs:
       with:
         go-version: 1.19
 
-    - name: Create OpenEBS 3.x Update
+    - name: Create OpenEBS Update
       id: update
       working-directory: ./addons/openebs/template
       run: ./generate.sh
