@@ -3,7 +3,7 @@
 set -euo pipefail
 
 function generate() {
-    local dir="../$chart_version"
+    local dir="../$version"
 
     mkdir -p "$dir"
 
@@ -33,8 +33,8 @@ function generate() {
     # get images in files
     mkdir -p "$tmpdir"
     grep 'image: ' "$dir/spec/openebs.tmpl.yaml" | sed 's/ *image: "*\(.*\)\/\(.*\):\([^"]*\)"*/image \2 \1\/\2:\3/' >> "$tmpdir/Manifest"
-    cat "$dir/spec/openebs.tmpl.yaml" | sed -e '/ name: .*_IMAGE/,/ value: .*$/!d' | grep ' value: ' | sed 's/ *value: "*\(.*\)\/\(.*\):\([^"]*\)"*/image \2 \1\/\2:\3/' >> "$tmpdir/Manifest"
-    cat "$tmpdir/Manifest" | sort | uniq >> "$dir/Manifest"
+    sed -e '/ name: .*_IMAGE/,/ value: .*$/!d' "$dir/spec/openebs.tmpl.yaml" | grep ' value: ' | sed 's/ *value: "*\(.*\)\/\(.*\):\([^"]*\)"*/image \2 \1\/\2:\3/' >> "$tmpdir/Manifest"
+    sort "$tmpdir/Manifest" | uniq >> "$dir/Manifest"
     rm -rf "$tmpdir"
 }
 
@@ -58,8 +58,8 @@ function get_latest_release_version() {
 }
 
 function add_as_latest() {
-    if ! sed "0,/cron-openebs-update-$version_major/d" ../../../web/src/installers/versions.js | sed '/\],/,$d' | grep -q "$chart_version" ; then
-        sed -i "/cron-openebs-update-$version_major$/a\    \"$chart_version\"\," ../../../web/src/installers/versions.js
+    if ! sed "0,/cron-openebs-update-$version_major/d" ../../../web/src/installers/versions.js | sed '/\],/,$d' | grep -qF "$version" ; then
+        sed -i "/cron-openebs-update-$version_major$/a\    \"$version\"\," ../../../web/src/installers/versions.js
     fi
 }
 
@@ -100,10 +100,12 @@ function main() {
     local version_major=
     version_major=$(echo "$chart_version" | cut -d. -f1)
 
-    if [ -d "../$chart_version" ]; then
+    local version="$app_version"
+
+    if [ -d "../$version" ]; then
         if [ "$force_flag" == "1" ]; then
             echo "forcibly updating existing version of openebs"
-            rm -rf "../$chart_version"
+            rm -rf "../$version"
         else
             echo "not updating existing version of openebs"
             return
@@ -116,7 +118,7 @@ function main() {
     generate
     add_as_latest
 
-    echo "::set-output name=openebs_version::$chart_version"
+    echo "::set-output name=openebs_version::$version"
 }
 
 main "$@"
