@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
 
 	"github.com/minio/minio-go"
 	"github.com/spf13/cobra"
@@ -64,13 +65,13 @@ func NewSyncObjectStoreCmd(cli CLI) *cobra.Command {
 		},
 	}
 
-	syncObjectStoreCmd.Flags().StringVar(&srcHost, "source_host", "", "Hostname of the source object store")
-	syncObjectStoreCmd.Flags().StringVar(&srcAccessKeyID, "source_access_key_id", "", "Access key ID for the source object store")
-	syncObjectStoreCmd.Flags().StringVar(&srcAccessKeySecret, "source_access_key_secret", "", "Access key secret for the source object store")
+	syncObjectStoreCmd.Flags().StringVar(&srcHost, "source_host", os.Getenv("SOURCE_HOST"), "Hostname of the source object store")
+	syncObjectStoreCmd.Flags().StringVar(&srcAccessKeyID, "source_access_key_id", os.Getenv("SOURCE_ACCESS_KEY_ID"), "Access key ID for the source object store")
+	syncObjectStoreCmd.Flags().StringVar(&srcAccessKeySecret, "source_access_key_secret", os.Getenv("SOURCE_ACCESS_KEY_SECRET"), "Access key secret for the source object store")
 
-	syncObjectStoreCmd.Flags().StringVar(&dstHost, "dest_host", "", "Hostname of the destination object store")
-	syncObjectStoreCmd.Flags().StringVar(&dstAccessKeyID, "dest_access_key_id", "", "Access key ID for the destination object store")
-	syncObjectStoreCmd.Flags().StringVar(&dstAccessKeySecret, "dest_access_key_secret", "", "Access key secret for the destination object store")
+	syncObjectStoreCmd.Flags().StringVar(&dstHost, "dest_host", os.Getenv("DEST_HOST"), "Hostname of the destination object store")
+	syncObjectStoreCmd.Flags().StringVar(&dstAccessKeyID, "dest_access_key_id", os.Getenv("DEST_ACCESS_KEY_ID"), "Access key ID for the destination object store")
+	syncObjectStoreCmd.Flags().StringVar(&dstAccessKeySecret, "dest_access_key_secret", os.Getenv("DEST_ACCESS_KEY_SECRET"), "Access key secret for the destination object store")
 
 	return syncObjectStoreCmd
 }
