@@ -180,7 +180,7 @@ items:
                     fieldRef:
                       apiVersion: v1
                       fieldPath: spec.nodeName
-              image: 'kurlsh/weave-npc:2.8.1-20221025-5520311'
+              image: 'kurlsh/weave-npc:2.8.1-20221122-59bb72b'
 #npc-args
               resources:
                 requests:
