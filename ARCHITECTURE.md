@@ -34,8 +34,8 @@ spec:
 
 ## kURL URL
 
-A URL can be contructed including the hash to retrieve a kURL script (curl https://kurl.sh/5e61e80) or air-gap bundle (curl -LO https://kurl.sh/bundle/5e61e80.tar.gz).
-Additionally, a version of kURL can be pinned in that URL (https://kurl.sh/version/v2022.04.19/5e61e80).
+A URL can be constructed including the hash to retrieve a kURL script (curl https://k8s.kurl.sh/5e61e80) or air-gap bundle (curl -LO https://k8s.kurl.sh/bundle/5e61e80.tar.gz).
+Additionally, a version of kURL can be pinned in that URL (https://k8s.kurl.sh/version/v2022.04.19-0/5e61e80).
 
 ## kURL.sh API
 
@@ -51,34 +51,49 @@ https://github.com/replicatedhq/kurl-api
 
 The browser UI for creating and viewing kURL installers.
 
-#### Go API Proxy
-
-This API proxies most requests directly to the Typescript API.
-Additionally, this API interacts with the object store and is responsible for assembling and streaming air-gap bundles back to the end-user.
-
 #### Typescript API
 
-The API for creating and consuming installers. Interacts with the relational database.
+https://github.com/replicatedhq/kURL-api/tree/main/src
+
+The API for creating kURL URLs and rendering installers.
+The API accepts a kURL Installer spec and returns a URL including a deterministic hash of the spec for installing a cluster based on that spec, for example https://k8s.kurl.sh/5e61e80.
+This reproducible [hash](https://github.com/replicatedhq/kURL-api/blob/f43d0fb1ed770b938dea97de64f39dacdd495c68/src/installers/index.ts#L1022-L1086) is the first 7 characters of the SHA-256 checksum of the sorted spec.
+The API [stores](https://github.com/replicatedhq/kURL-api/blob/f43d0fb1ed770b938dea97de64f39dacdd495c68/src/installers/index.ts#L1521-L1536) these hashes in its relational database for retrieval, as a hash is not reversible.
+Additionally, the API is responsible for [resolving](https://github.com/replicatedhq/kURL-api/blob/f43d0fb1ed770b938dea97de64f39dacdd495c68/src/installers/index.ts#L955-L977) the add-on version ("latest" and ".x") and [rendering](https://github.com/replicatedhq/kURL-api/blob/f43d0fb1ed770b938dea97de64f39dacdd495c68/src/util/services/templates.ts) the spec when a script is requested, for example https://k8s.kurl.sh/5e61e80/install.sh or shorthand https://k8s.kurl.sh/5e61e80.
+The API [reads](https://github.com/replicatedhq/kURL-api/blob/f43d0fb1ed770b938dea97de64f39dacdd495c68/src/util/package/kurl-version.ts) the current kURL version from the object storage bucket (https://kurl-sh.s3.amazonaws.com/dist/VERSION) and uses that version to lookup add-on version information (e.g. https://kurl-sh.s3.amazonaws.com/dist/v2022.04.19-0/supported-versions-gen.json) for spec resolution.
+
+#### Go API Proxy
+
+https://github.com/replicatedhq/kURL-api/tree/main/cmd/server
+
+This API [proxies](https://github.com/replicatedhq/kURL-api/blob/f43d0fb1ed770b938dea97de64f39dacdd495c68/cmd/server/main.go#L66-L69) most requests directly to the Typescript API.
+Additionally, this API is responsible for [assembling and streaming](https://github.com/replicatedhq/kURL-api/blob/f43d0fb1ed770b938dea97de64f39dacdd495c68/cmd/server/main.go#L212-L396) air-gap bundles back to the end-user.
+Air-gap packages are assembled from individual add-on package archives (e.g. https://kurl-sh.s3.amazonaws.com/dist/v2022.04.19-0/rook-1.0.4.tar.gz) and streamed as a single archive back to the end user when requested (e.g. https://k8s.kurl.sh/bundle/5e61e80.tar.gz).
 
 #### Relational Database
 
 Stores installer hashes.
 
+The database schema is defined [here](https://github.com/replicatedhq/vandoor/blob/main/migrations/kustomize/schema/kurl-installer.yaml) as a SchemaHero Table.
+
+*NOTE: The schema is currently in a private repository.*
+
 #### Object Store
 
-Stores built kURL assets including add-on bundles.
+Stores built kURL assets including add-on package archives.
 
 ### Architecture Diagram
 
-![kURL sh Architecture](https://user-images.githubusercontent.com/371319/166266866-267833a7-b21f-4665-b657-a55d6271b48b.png)
+![kURL.sh Architecture](https://user-images.githubusercontent.com/371319/166266866-267833a7-b21f-4665-b657-a55d6271b48b.png)
 
 ### Object Storage
 
 | Object | Description |
 | ------ | ----------- |
-| s3://[bucket]/[kURL version]/[entrypoint].tmpl           | Script templates rendered by the API. install.sh, join.sh, upgrade.sh and tasks.sh |
-| s3://[bucket]/[kURL version]/[addon-version].tar.gz      | Add-on bundles |
-| s3://[bucket]/[kURL version]/supported-versions-gen.json | Add-on and version information for a given release of kURL. For resolving "latest" and "dot x" versions as well as validating installers. |
+| s3://[bucket]/[(dist\|staging)]/VERSION                                    | The current kURL version, used by the Typescript API to determine what version subdirectory to serve packages from |
+| s3://[bucket]/[(dist\|staging)]/[kURL version]/supported-versions-gen.json | Add-on and version information for a given release of kURL, used by the Typescript API for resolving "latest" and "dot x" versions as well as validating installers |
+| s3://[bucket]/[(dist\|staging)]/[kURL version]/[entrypoint].tmpl           | Script templates rendered by the Typescript API, install.sh, join.sh, upgrade.sh and tasks.sh |
+| s3://[bucket]/[(dist\|staging)]/[kURL version]/[addon-version].tar.gz      | Add-on package archives |
 
 ## kURL Installer
 
@@ -97,7 +112,7 @@ Exists on the server at `/var/lib/kurl`.
 
 | Directory | Description |
 | ----------| ----------- |
-| addons/    | Stores addons, including images and assets. |
+| addons/    | Stores add-ons, including images and assets. |
 | bin/       | Stores utility binaries. |
 | krew/      | Has some plugins we use including support-bundle and preflight. |
 | kustomize/ | Scripts output  |
@@ -156,3 +171,34 @@ kURL automation, more specifically the `import-external-addons` GitHub action, p
 New versions are published to the external add-on registry and packages are copied from the source and stored in the kURL S3 bucket.
 
 The kURL API merges the external add-on registry with its internal list of add-on versions, making them available to the end-user.
+
+## Deployment and Releases
+
+Upon releasing kURL, scripts and add-on package archives are built and uploaded to to the kURL object storage bucket along with metadata including the Git sha from which they were generated.
+Once complete, the [VERSION](https://kurl-sh.s3.amazonaws.com/dist/VERSION) file is updated with the current version of kURL.
+The Typescript API makes use of this VERSION file to resolve the scripts and add-on packages.
+
+### Production Workflow
+
+Production release are triggered by running the command `make tag-and-release` or pushing a tag in the format "v*.*.*".
+Production releases are uploaded to the object storage bucket at prefix `dist`, for example https://kurl-sh.s3.amazonaws.com/dist/v2022.04.19-0/.
+Before building add-on packages, the workflow will first check if there were any changes made to the add-on since the previous production release based on metadata included with the add-on package.
+If no changes were made, the package will be copied from the previous production release to optimize for build times.
+Next, the workflow will check if there were any changes made since the previous staging release and copy from staging if no changes were made.
+The is to account for a scenario where a commit were being tagged other than what is at the HEAD of main.
+If changes were made to both production and staging, the package will be built from source and uploaded.
+Finally, VERSION file is updated at https://kurl-sh.s3.amazonaws.com/dist/VERSION to point to the new production version.
+Historical production releases are never removed from the object storage bucket.
+
+### Staging Workflow
+
+Staging releases are triggered on merge to main.
+Staging release versions use the most current release version tag and append prerelease `-dirty`, for example v2022.04.19-0-dirty.
+Due to this versioning scheme, staging releases will overwrite the previous staging release if no production release occurred prior.
+This is intentional to optimize for storage costs.
+Staging releases are uploaded to the object storage bucket at prefix `staging`, for example https://kurl-sh.s3.amazonaws.com/staging/v2022.04.19-0-dirty/.
+Before building add-on packages, the workflow will first check if there were any changes made to the add-on since the previous staging release based on metadata included with the add-on package.
+If no changes were made, the package will be copied from the previous staging release to optimize for build times.
+If changes were made, the package will be built from source and uploaded.
+Finally, VERSION file is updated at https://kurl-sh.s3.amazonaws.com/staging/VERSION to point to the new staging version.
+Historical staging releases are never removed from the object storage bucket.

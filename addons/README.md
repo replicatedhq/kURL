@@ -22,7 +22,7 @@ See the [flow charts](/ARCHITECTURE.md#flow-chart) in ARCHITECTURE.md for more d
 
 #### addon_fetch
 
-Fetch the add-on package from the object store or from the air-gap bundle and extract into `/var/lib/kurl/addons`.
+Fetch the add-on package archive from the object store or from the air-gap bundle and extract into `/var/lib/kurl/addons`.
 This step is typically skipped if the add-on version has not changed since the previous run.
 
 #### addon_load
