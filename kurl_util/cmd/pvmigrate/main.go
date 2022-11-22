@@ -25,12 +25,11 @@ func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer stop()
 
-	fmt.Printf("Running pvmigrate build:\n")
-	version.Print()
-
 	var skipFreeSpaceCheck bool
 	var skipPvAccessModeCheck bool
+	var dryRun bool
 	var opts migrate.Options
+	var printVersion bool
 	flag.StringVar(&opts.SourceSCName, "source-sc", "", "storage provider name to migrate from")
 	flag.StringVar(&opts.DestSCName, "dest-sc", "", "storage provider name to migrate to")
 	flag.StringVar(&opts.RsyncImage, "rsync-image", "eeacms/rsync:2.3", "the image to use to copy PVCs - must have 'rsync' on the path")
@@ -40,8 +39,17 @@ func main() {
 	flag.BoolVar(&opts.SkipSourceValidation, "skip-source-validation", false, "migrate from PVCs using a particular StorageClass name, even if that StorageClass does not exist")
 	flag.BoolVar(&skipFreeSpaceCheck, "skip-free-space-check", false, "skips the check for storage free space prior to running the migrations")
 	flag.BoolVar(&skipPvAccessModeCheck, "skip-pv-access-mode-check", false, "skips the volume access modes checks prior to running the migrations")
+	flag.BoolVar(&dryRun, "dry-run", false, "run validation checks without running the migrations")
+	flag.BoolVar(&printVersion, "version", false, "Print the version of the client")
+	flag.IntVar(&opts.PodReadyTimeout, "pod-ready-timeout", 90, "length of time to wait (in seconds) for volume validation pod(s) to go into Ready phase")
 
 	flag.Parse()
+
+	if printVersion {
+		fmt.Printf("Running pvmigrate build:\n")
+		version.Print()
+		os.Exit(0)
+	}
 
 	logger := log.New(os.Stdout, "", 0)
 	cfg, err := config.GetConfig()
@@ -56,34 +64,37 @@ func main() {
 		os.Exit(1)
 	}
 
-	if !skipFreeSpaceCheck {
+	if !skipFreeSpaceCheck || dryRun {
 		if err := checkFreeSpace(ctx, logger, cfg, cli, opts); err != nil {
 			logger.Printf("failed to check cluster free space: %s", err)
 			os.Exit(1)
 		}
 	}
 
-	if !skipPvAccessModeCheck {
+	if !skipPvAccessModeCheck || dryRun {
 		unsupportedPVCs, err := validatePVAccessMode(ctx, logger, cfg, cli, opts)
 		if err != nil {
 			logger.Printf("failed to validate access modes for destination storage provider %s: %s", opts.DestSCName, err)
 			os.Exit(1)
 		}
 
-		if unsupportedPVCs != nil {
+		if len(unsupportedPVCs) != 0 {
+			logger.Printf("PVC Access Mode Validation Failed: there are PVCs for storage class %s that cannot be mounted using the destination storage class %s.", opts.SourceSCName, opts.DestSCName)
 			migrate.PrintPVAccessModeErrors(unsupportedPVCs)
-			os.Exit(1)
+			os.Exit(0)
 		}
 	}
 
-	if err = migrate.Migrate(ctx, logger, cli, opts); err != nil {
-		fmt.Printf("%s\n", err.Error())
-		os.Exit(1)
+	if !dryRun {
+		if err = migrate.Migrate(ctx, logger, cli, opts); err != nil {
+			fmt.Printf("%s\n", err.Error())
+			os.Exit(1)
+		}
 	}
 }
 
 func validatePVAccessMode(ctx context.Context, logger *log.Logger, cfg *rest.Config, cli kubernetes.Interface, opts migrate.Options) (map[string]map[string]migrate.PVCError, error) {
-	pvm, err := migrate.NewPVMigrator(cfg, logger, opts.SourceSCName, opts.DestSCName)
+	pvm, err := migrate.NewPVMigrator(cfg, logger, opts.SourceSCName, opts.DestSCName, opts.PodReadyTimeout)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create PVMigrator type: %s", err)
 	}
