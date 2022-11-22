@@ -160,12 +160,6 @@ function rook_operator_deploy() {
     # upgrade first before applying auth_allow_insecure_global_id_reclaim policy
     rook_maybe_auth_allow_insecure_global_id_reclaim
 
-    # disable bluefs_buffered_io for rook ge 1.8.x
-    # See:
-    #   - https://github.com/rook/rook/issues/10160#issuecomment-1168303067
-    #   - https://tracker.ceph.com/issues/54019
-    rook_maybe_bluefs_buffered_io
-
     kubectl -n rook-ceph apply -k "$dst/"
 }
 
@@ -518,17 +512,6 @@ function rook_should_fail_install() {
     fi
 
     return 1
-}
-
-function rook_maybe_bluefs_buffered_io() {
-    local dst="${DIR}/kustomize/rook/operator"
-
-    semverParse "$ROOK_VERSION"
-    local rook_major_version="$major"
-    local rook_minor_version="$minor"
-    if [ "$rook_major_version" = "1" ] && [ "$rook_minor_version" -ge "8" ]; then
-        sed -i "/\[global\].*/a\    bluefs_buffered_io = false" "$dst/configmap-rook-config-override.yaml"
-    fi
 }
 
 function rook_maybe_auth_allow_insecure_global_id_reclaim() {
