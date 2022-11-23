@@ -104,10 +104,14 @@ Testing can be accomplished on systems capable of hosting supported container ru
         version: 2.8.1"
     ```
 
-    After modifying the the Manifest, the `make watchrsync` command will automatically build the scripts and upload them to the remote server.
+    After modifying the Manifest, the `make watchrsync` command will automatically build the scripts and upload them to the remote server.
     You must wait for the message `synced` to test out your changes on the server:
     
     ![Screenshot 2022-11-06 at 20 06 35](https://user-images.githubusercontent.com/7708031/200198100-19219107-84dd-4631-a0e4-3200ad5feb99.png)
+
+   **IMPORTANT** The changes on this file cannot be committed since it is used in production to build the scripts. Be aware that makefile target `test`
+   is called in the ci and will verify if the content of this file is changed via diff with its base under `./hack/testdata/manifest/clean`. Therefore,
+   if you need to change this spec you will also need to ensure that the file `./hack/testdata/manifest/clean` was modified accordingly.
 
 1. Validate and run installation on test system
     ```bash

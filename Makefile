@@ -630,8 +630,8 @@ test: lint vet ## Check the code with linters and vet
 	go test ${BUILDFLAGS} ./cmd/... ./pkg/...
 	## Avoid merge accidentally changes into the scripts/Manifest file
 	cmp --silent ./hack/testdata/manifest/clean ./scripts/Manifest \
-	&& echo '### SUCCESS: No change merged on the script/Manifests! ###' \
-	|| (echo '### WARNING: You cannot merge changes on the script manifest! ###'; exit 1);
+	&& echo '### SUCCESS: No changes merged on the script/Manifests! ###' \
+	|| (echo '### ERROR: You cannot merge changes on the script manifest!. If you want change the spec please ensure that you also change the ./hack/testdata/manifest/clean file. ###'; exit 1);
 
 /usr/local/bin/shunit2:
 	curl -LO https://raw.githubusercontent.com/kward/shunit2/v2.1.8/shunit2
