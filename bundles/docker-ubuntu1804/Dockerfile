@@ -2,13 +2,14 @@
 # More info: https://docs.docker.com/engine/install/ubuntu/#install-using-the-repository
 FROM ubuntu:18.04
 
+ENV DEBIAN_FRONTEND=noninteractive
 # Update the apt package index and install packages to allow apt to use a repository over HTTPS:
-RUN apt-get -y update
-RUN apt-get -y install \
+RUN apt-get -y update && \
+    apt-get -y install \
         ca-certificates \
         curl \
         gnupg \
-        lsb-release
+        lsb-release tzdata
 
 # Add Docker’s official GPG key:
 RUN mkdir -p /etc/apt/keyrings
@@ -32,7 +33,7 @@ RUN apt-get -y update
 ARG DOCKER_VERSION
 
 # Installs spefic docker version informed via the ARG DOCKER_VERSION
-RUN apt-get -d -y install --no-install-recommends \
+RUN apt-get -d -y install --no-install-recommends tzdata \
       docker-ce-cli=$(apt-cache madison docker-ce-cli | grep ${DOCKER_VERSION} | head -1 | awk '{$1=$1};1' | cut -d' ' -f 3) \
       docker-ce=$(apt-cache madison docker-ce | grep ${DOCKER_VERSION} | head -1 | awk '{$1=$1};1' | cut -d' ' -f 3) \
       -oDebug::NoLocking=1 -o=dir::cache=/packages/
