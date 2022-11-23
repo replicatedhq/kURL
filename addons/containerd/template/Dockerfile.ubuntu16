@@ -2,9 +2,10 @@ FROM ubuntu:16.04
 
 ARG VERSION
 ENV VERSION=${VERSION}
+ENV DEBIAN_FRONTEND=noninteractive
 
-RUN apt-get -y update
-RUN apt-get -y install apt-utils apt-transport-https ca-certificates curl software-properties-common
+RUN apt-get -y update && \
+    apt-get -y install apt-utils apt-transport-https ca-certificates curl software-properties-common tzdata
 
 # Add Docker’s official GPG key:
 RUN mkdir -p /etc/apt/keyrings
@@ -18,7 +19,7 @@ RUN echo \
 RUN apt-get -y update
 
 CMD mkdir -p /packages/archives && \
-    apt-get -d -y install \
+    apt-get -d -y install tzdata \
     containerd.io=$(apt-cache madison 'containerd.io' | grep ${VERSION} | head -1 | awk '{$1=$1};1' | cut -d' ' -f 3) \
     -oDebug::NoLocking=1 -o=dir::cache=/packages/ && \
     cp -r /packages/archives/* /out/

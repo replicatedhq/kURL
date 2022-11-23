@@ -1,6 +1,8 @@
 FROM ubuntu:18.04
-RUN apt-get update
-RUN apt-get -y install curl apt-transport-https gnupg git
+
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update && \
+    apt-get -y install curl apt-transport-https gnupg git tzdata
 
 RUN mkdir -p /krew
 WORKDIR /krew
