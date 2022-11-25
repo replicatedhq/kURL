@@ -21,6 +21,8 @@ function generate() {
 
     sed -i "s/__MINIO_VERSION__/$VERSION/g" "$dir/Manifest"
     sed -i "s/__MINIO_VERSION__/$VERSION/g" "$dir/deployment.yaml"
+    sed -i "s/__MINIO_VERSION__/$VERSION/g" "$dir/migrate-fs/pvc/deployment.yaml"
+    sed -i "s/__MINIO_VERSION__/$VERSION/g" "$dir/migrate-fs/hostpath/deployment.yaml"
     sed -i "s/__MINIO_VERSION__/$VERSION/g" "$dir/install.sh"
     sed -i "s/__MINIO_VERSION__/$VERSION/g" "$dir/tmpl-ha-statefulset.yaml"
 

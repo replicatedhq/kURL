@@ -8,11 +8,30 @@ function minio_pre_init() {
     if [ -z "$MINIO_CLAIM_SIZE" ]; then
         MINIO_CLAIM_SIZE="10Gi"
     fi
+
+    # verify if we need to migrate away from the deprecated 'fs' format.
+    local minio_replicas
+    minio_replicas=$(kubectl get --no-headers deploy minio -n "$MINIO_NAMESPACE" -o custom-columns=:.spec.replicas 2>/dev/null)
+    if [ -n "$minio_replicas" ] && [ "$minio_replicas" != "0" ] && minio_uses_fs_format ; then
+        printf "${YELLOW}\n"
+        printf "The installer has detected that the cluster is running a version of minio backed by the now legacy FS format.\n"
+        printf "To be able to upgrade to the new Minio version a migration will be necessary. During this migration, Minio\n"
+        printf "will be unavailable.\n"
+        printf "\n"
+        printf "For further information please check https://github.com/minio/minio/releases/tag/RELEASE.2022-10-29T06-21-33Z\n"
+        printf "${NC}\n"
+        printf "Would you like to proceed with the migration ?"
+        if ! confirmN; then
+            bail "Not migrating"
+        fi
+    fi
 }
 
 function minio() {
     local src="$DIR/addons/minio/__MINIO_DIR_NAME__"
     local dst="$DIR/kustomize/minio"
+
+    minio_migrate_fs_backend
 
     local minio_ha_exists=
     if kubectl get statefulset -n minio ha-minio 2>/dev/null; then
@@ -177,7 +196,7 @@ function minio_wait_for_health() {
 
     MINIO_CLUSTER_IP=$(kubectl -n ${MINIO_NAMESPACE} get service minio | tail -n1 | awk '{ print $3}')
     printf "awaiting minio readiness\n"
-    if ! spinner_until 120 minio_ready; then
+    if ! spinner_until 120 minio_ready "$MINIO_CLUSTER_IP" ; then
         bail "Minio API failed to report healthy"
     fi
     printf "awaiting minio endpoint\n"
@@ -187,7 +206,8 @@ function minio_wait_for_health() {
 }
 
 function minio_ready() {
-    curl --noproxy "*" -s "http://$MINIO_CLUSTER_IP/minio/health/ready"
+    local minio_cluster_ip=$1
+    curl --noproxy "*" -s "http://$minio_cluster_ip/minio/health/ready"
 }
 
 function minio_endpoint_exists() {
@@ -247,7 +267,276 @@ function allow_pvc_resize() {
             fi
 
             # restore the scale (whether the minute of waiting worked or not)
-            kubectl scale deployment -n "$MINIO_NAMESPACE" minio --replicas=$current_scale
+            kubectl scale deployment -n "$MINIO_NAMESPACE" minio --replicas="$current_scale"
         fi
     fi
+}
+
+# minio_ask_user_hostpath_for_migration asks uses for a path to be used during the minio host path migration.
+# this path can't be the same or a subdirectory of MINIO_HOSTPATH.
+function minio_ask_user_hostpath_for_migration() {
+    printf "${YELLOW}\n"
+    printf "The Minio deployment is using a host path mount (volume from the node mounted inside the pod). For the\n"
+    printf "migration to proceed you must provide the installer with a temporary directory path, this path will be\n"
+    printf "used only during the migration and will be freed after.\n"
+    printf "${NC}\n"
+
+    while true; do
+        printf "Temporary migration directory path: "
+        prompt
+
+        local migration_path
+        migration_path=$(realpath "$PROMPT_RESULT")
+        if [ -z "$migration_path" ]; then
+            continue
+        fi
+
+        if [ ! -d "$migration_path" ]; then
+            printf "%s is not a directory\n" "$PROMPT_RESULT"
+            continue
+        fi
+
+        if [[ $migration_path == $MINIO_HOSTPATH/* ]]; then
+            printf "Migration directory path can not be a subdirectory of %s\n" "$MINIO_HOSTPATH"
+            continue
+        fi
+
+        if [ "$migration_path" = "$MINIO_HOSTPATH" ]; then
+            printf "%s is currently in use by Minio\n" "$MINIO_HOSTPATH"
+            continue
+        fi
+
+        break
+    done
+
+    local suffix
+    suffix=$(echo $RANDOM | md5sum | head -c 8)
+    local migration_path
+    migration_path=$(printf "%s/minio-migration-%s" "$PROMPT_RESULT" "$suffix")
+    mkdir "$migration_path"
+    MINIO_MIGRATION_HOSTPATH=$migration_path
+}
+
+# minio_create_fs_migration_deployment creates a minio deployment and make it available through a service called
+# 'minio-migrate-fs-backend'. this new deployment uses the same credentials used by the original minio
+# deployment. if the installation uses host path and not a pvc, a temporary path is requested from the user.
+function minio_create_fs_migration_deployment() {
+    local src="$DIR/addons/minio/__MINIO_DIR_NAME__/migrate-fs"
+    local dst="$DIR/kustomize/minio/migrate-fs"
+
+    if [ -n "$MINIO_HOSTPATH" ]; then
+        minio_ask_user_hostpath_for_migration
+        mkdir -p "$dst/hostpath"
+        render_yaml_file_2 "$src/hostpath/deployment.yaml" > "$dst/hostpath/deployment.yaml"
+        render_yaml_file_2 "$src/hostpath/kustomization.yaml" > "$dst/hostpath/kustomization.yaml"
+        render_yaml_file_2 "$src/hostpath/service.yaml" > "$dst/hostpath/service.yaml"
+        kubectl apply -k "$dst/hostpath/"
+    else
+        mkdir -p "$dst/pvc"
+        render_yaml_file_2 "$src/pvc/deployment.yaml" > "$dst/pvc/deployment.yaml"
+        render_yaml_file_2 "$src/pvc/kustomization.yaml" > "$dst/pvc/kustomization.yaml"
+        render_yaml_file_2 "$src/pvc/service.yaml" > "$dst/pvc/service.yaml"
+        render_yaml_file_2 "$src/pvc/pvc.yaml" > "$dst/pvc/pvc.yaml"
+        kubectl apply -k "$dst/pvc/"
+    fi
+
+    local endpoint
+    endpoint=$(kubectl -n ${MINIO_NAMESPACE} get service minio-migrate-fs-backend | tail -n1 | awk '{ print $3}')
+
+    printf "Awaiting minio fs migration readiness\n"
+    if ! spinner_until 120 minio_ready "$endpoint"; then
+        bail "Minio FS Migration API failed to report healthy"
+    fi
+}
+
+# minio_destroy_fs_migration_deployment deletes the temporary minio deployment used to migrate the object
+# storage.
+function minio_destroy_fs_migration_deployment() {
+    local dst="$DIR/kustomize/minio/migrate-fs"
+    if [ -n "$MINIO_HOSTPATH" ]; then
+        kubectl delete -k "$dst/hostpath"
+        return
+    fi
+    kubectl delete -k "$dst/pvc"
+}
+
+# minio_swap_fs_migration_pvs swaps the pv backing the minio deployment with the pv used during the migration.
+function minio_swap_fs_migration_pvs() {
+    local minio_pv=$1
+    local migration_pv=$2
+    local src="$DIR/addons/minio/__MINIO_DIR_NAME__"
+    local dst="$DIR/kustomize/minio"
+
+    kubectl patch pv "$migration_pv" --type=json -p='[{"op": "remove", "path": "/spec/claimRef"}]'
+    kubectl delete pvc -n "$MINIO_NAMESPACE" minio-pv-claim
+    kubectl patch pv "$minio_pv" --type=json -p='[{"op": "remove", "path": "/spec/claimRef"}]'
+
+    printf "${YELLOW}A backup of the original Minio data has been stored in PersistentVolumeClaim minio-pv-claim-backup${NC}\n"
+
+    MINIO_NEW_VOLUME_NAME="$migration_pv"
+    MINIO_ORIGINAL_VOLUME_NAME="$minio_pv"
+    render_yaml_file_2 "$src/migrate-fs/minio-pvc.yaml" > "$dst/migrate-fs/minio-pvc.yaml"
+    kubectl create --save-config -f "$dst/migrate-fs/minio-pvc.yaml"
+    render_yaml_file_2 "$src/migrate-fs/minio-backup-pvc.yaml" > "$dst/migrate-fs/minio-backup-pvc.yaml"
+    kubectl create --save-config -f "$dst/migrate-fs/minio-backup-pvc.yaml"
+}
+
+# minio_swap_fs_migration_hostpaths moves the host path used during the migration to the host path used by the
+# original minio pod. a backup is kept under hostpath.bkp directory.
+function minio_swap_fs_migration_hostpaths() {
+    local suffix
+    local bkp_location
+    suffix=$(< /dev/urandom tr -dc A-Za-z0-9 | head -c8)
+    bkp_location=$(printf "%s-%s" "$MINIO_HOSTPATH" "$suffix")
+    mv "$MINIO_HOSTPATH" "$bkp_location"
+    printf "${YELLOW}A backup of the original Minio data has been stored at %s${NC}\n" "$bkp_location"
+
+    mv "$MINIO_MIGRATION_HOSTPATH" "$MINIO_HOSTPATH"
+    cp -Rfp "$bkp_location/.kurl" "$MINIO_HOSTPATH/"
+}
+
+# minio_uses_fs_format verifies if minio uses the legacy fs format. greps the file /data/.minio.sys/format.json
+# from within the pod.
+function minio_uses_fs_format() {
+    local format_string
+    format_string=$(kubectl exec -n $MINIO_NAMESPACE deploy/minio -- cat /data/.minio.sys/format.json 2>/dev/null)
+    if [ -z "$format_string" ]; then
+        bail "Failed to read /data/.miniosys/format.json inside minio pod"
+    fi
+    echo "$format_string" | grep -q '"format":"fs"'
+}
+
+# minio_svc_has_no_endpoints validates that the provided service in the provided namespace has no endpoints.
+function minio_svc_has_no_endpoints() {
+    local namespace=$1
+    local service=$2
+    kubectl get endpoints --no-headers -n "$namespace" "$service" -o custom-columns=:subsets | grep -q none
+}
+
+# minio_disable_minio_svc disables the minio service by tweaking its service selector.
+function minio_disable_minio_svc() {
+    kubectl patch svc -n "$MINIO_NAMESPACE" minio -p '{"spec":{"selector":{"app":"does-not-exist"}}}'
+}
+
+# minio_enable_minio_svc sets the minio service selector back to its default.
+function minio_enable_minio_svc() {
+    kubectl patch svc -n "$MINIO_NAMESPACE" minio -p '{"spec":{"selector":{"app":"minio"}}}'
+}
+
+# minio_prepare_volumes_for_migration sets the retention policy of the volumes to "retain" for both minio and its migration deployment.
+function minio_prepare_volumes_for_migration() {
+    local minio_pv=$1
+    local migration_pv=$2
+    # set both of the pv retention policies to 'retain'.
+    kubectl patch pv -n "$MINIO_NAMESPACE" "$minio_pv" -p '{"spec":{"persistentVolumeReclaimPolicy":"Retain"}}'
+    kubectl patch pv -n "$MINIO_NAMESPACE" "$migration_pv" -p '{"spec":{"persistentVolumeReclaimPolicy":"Retain"}}'
+}
+
+# minio_migrate_fs_backend migrates a minio running with 'fs' backend into the new default backend type (xl). spawns a new
+# minio deployment then copies the object buckets from the old deployment into the new one. this function generates
+# unavailability of the original minio service.
+function minio_migrate_fs_backend() {
+    local minio_replicas
+    minio_replicas=$(kubectl get --no-headers deploy minio -n "$MINIO_NAMESPACE" -o custom-columns=:.spec.replicas 2>/dev/null)
+    if [ -z "$minio_replicas" ] || [ "$minio_replicas" = "0" ] || ! minio_uses_fs_format ; then
+        return
+    fi
+
+    local minio_access_key
+    minio_access_key=$(kubernetes_secret_value "$MINIO_NAMESPACE" minio-credentials MINIO_ACCESS_KEY)
+    if [ -z "$minio_access_key" ]; then
+        bail "Failed to read minio access key"
+    fi
+
+    local minio_secret_key
+    minio_secret_key=$(kubernetes_secret_value "$MINIO_NAMESPACE" minio-credentials MINIO_SECRET_KEY)
+    if [ -z "$minio_secret_key" ]; then
+        bail "Failed to read minio access key"
+    fi
+
+    local minio_pod_ip
+    minio_pod_ip=$(kubectl get pods -n "$MINIO_NAMESPACE" -l app=minio --no-headers -o custom-columns=:.status.podIP | head -1)
+    if [ -z "$minio_pod_ip" ]; then
+        bail "Failed to determine minio pod ip address"
+    fi
+
+    minio_disable_minio_svc
+    if ! spinner_until 120 minio_svc_has_no_endpoints "$MINIO_NAMESPACE" "minio" ; then
+        minio_enable_minio_svc
+        bail "Timeout waiting for minio service to be decomissioned"
+    fi
+
+    if ! minio_create_fs_migration_deployment ; then
+        minio_enable_minio_svc
+        bail "Failed to start minio migration deployment"
+    fi
+
+    if ! migrate_object_store \
+        "$MINIO_NAMESPACE" \
+        "$minio_pod_ip:9000" \
+        "$minio_access_key" \
+        "$minio_secret_key" \
+        "minio-migrate-fs-backend" \
+        "$minio_access_key" \
+        "$minio_secret_key"
+    then
+        minio_enable_minio_svc
+        minio_destroy_fs_migration_deployment
+        bail "Failed to migrate data to minio migration deployment"
+    fi
+
+    # scale down minio and wait until it is out of service.
+    kubectl scale deployment -n "$MINIO_NAMESPACE" minio --replicas=0
+    if ! spinner_until 120 deployment_fully_updated minio "$MINIO_NAMESPACE"; then
+        minio_enable_minio_svc
+        minio_destroy_fs_migration_deployment
+        kubectl scale deployment -n "$MINIO_NAMESPACE" minio --replicas="$minio_replicas"
+        bail "Timeout scaling down minio deployment"
+    fi
+
+    if [ -z "$MINIO_HOSTPATH" ]; then
+        # get the pv in use by the minio deployment, we gonna need it later on when we swap the pvs.
+        local minio_pv
+        minio_pv=$(kubectl get pvc --no-headers -n "$MINIO_NAMESPACE" minio-pv-claim -o custom-columns=:.spec.volumeName)
+        if [ -z "$minio_pv" ]; then
+            minio_enable_minio_svc
+            minio_destroy_fs_migration_deployment
+            kubectl -n "$MINIO_NAMESPACE" scale deployment minio --replicas="$minio_replicas"
+            bail "Failed to find minio pv"
+        fi
+
+        # get the pv in use by the fs migration deployment, we gonna need it later on when we swap the pvs.
+        local migration_pv
+        migration_pv=$(kubectl get pvc --no-headers -n "$MINIO_NAMESPACE" minio-migrate-fs-backend-pv-claim -o custom-columns=:.spec.volumeName)
+        if [ -z "$migration_pv" ]; then
+            minio_enable_minio_svc
+            minio_destroy_fs_migration_deployment
+            kubectl -n "$MINIO_NAMESPACE" scale deployment minio --replicas="$minio_replicas"
+            bail "Failed to find minio pv"
+        fi
+
+        if ! minio_prepare_volumes_for_migration "$minio_pv" "$migration_pv" ; then
+            minio_enable_minio_svc
+            minio_destroy_fs_migration_deployment
+            kubectl -n "$MINIO_NAMESPACE" scale deployment minio --replicas="$minio_replicas"
+            bail "Failed to prepare minio volumes for migration"
+        fi
+    fi
+
+    minio_destroy_fs_migration_deployment
+
+    # at this stage we have the data already migrated from the old minio into the new one. we now swap
+    # the volumes. this procedure differs based on the type of storage used (hostpath/pvc).
+    if [ -n "$MINIO_HOSTPATH" ]; then
+        minio_swap_fs_migration_hostpaths
+    else
+        minio_swap_fs_migration_pvs "$minio_pv" "$migration_pv"
+    fi
+
+    # XXX scale minio back up with the same number of replicas. we can't wait for it to be healthy at this
+    # stage because the old image does not support the new default backend type (xl). as the migration
+    # moves on the image references are going to be replaced in the minio deployment and it will come back
+    # online.
+    kubectl -n "$MINIO_NAMESPACE" scale deployment minio --replicas="$minio_replicas"
+    minio_enable_minio_svc
 }

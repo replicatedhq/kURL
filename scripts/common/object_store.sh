@@ -66,6 +66,59 @@ function object_store_bucket_exists() {
         "http://$addr/$bucket" >/dev/null 2>&1
 }
 
+# migrate_object_store creates a pod that migrates data between two different object stores. receives
+# the namespace, the source and destination addresses, access keys and secret keys. returns once the
+# pos has been finished or a timeout of 5 minutes has been reached.
+function migrate_object_store() {
+    local namespace=$1
+    local source_addr=$2
+    local source_access_key=$3
+    local source_secret_key=$4
+    local destination_addr=$5
+    local destination_access_key=$6
+    local destination_secret_key=$7
+
+    kubectl -n "$namespace" delete pod sync-object-store --force --grace-period=0 --ignore-not-found
+
+    cat <<EOF | kubectl apply -f -
+apiVersion: v1
+kind: Pod
+metadata:
+  name: sync-object-store
+  namespace: ${namespace}
+spec:
+  restartPolicy: OnFailure
+  containers:
+  - name: sync-object-store
+    image: $KURL_UTIL_IMAGE
+    command:
+    - /usr/local/bin/kurl
+    - sync-object-store
+    - --source_host=$source_addr
+    - --source_access_key_id=$source_access_key
+    - --source_access_key_secret=$source_secret_key
+    - --dest_host=$destination_addr
+    - --dest_access_key_id=$destination_access_key
+    - --dest_access_key_secret=$destination_secret_key
+EOF
+
+    echo "Waiting up to 2 minutes for sync-object-store pod to start in ${namespace} namespace"
+    if ! spinner_until 120 kubernetes_pod_started sync-object-store "$namespace" ; then
+        bail "sync-object-store pod failed to start within 2 minutes"
+    fi
+
+    echo "Waiting up to 30 minutes for sync-object-store pod to complete"
+    spinner_until 1800 kubernetes_pod_completed sync-object-store "$namespace" || true
+    kubectl logs -n "$namespace" -f sync-object-store || true
+
+    if kubernetes_pod_succeeded sync-object-store "$namespace" ; then
+        printf "\n${GREEN}Object store data synced successfully${NC}\n"
+        kubectl delete pod sync-object-store -n "$namespace" --force --grace-period=0 &> /dev/null
+    else
+        bail "sync-object-store pod failed"
+    fi
+}
+
 function migrate_rgw_to_minio() {
     report_addon_start "rook-ceph-to-minio" "v1"
 
