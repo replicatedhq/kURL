@@ -24,8 +24,28 @@ function init_manifest_file() {
 
     cat <<EOT >> $file
 yum libzstd
-asset runc https://github.com/opencontainers/runc/releases/download/v1.0.0-rc95/runc.amd64
 EOT
+    # Note that containerd requires runc and each release officially uses one specific version in their
+    # tests. Therefore, that is the version of runc which is supported and should be used by each
+    # respective containerd release. More info: https://github.com/containerd/containerd/blob/main/docs/RUNC.md
+    if echo "$version" | grep -qF "1.2."; then
+        # See the runc version used to test the releases 1.2:https://github.com/containerd/containerd/blob/release/1.2/vendor.conf#L23
+        echo "asset runc https://github.com/opencontainers/runc/releases/download/v1.0.0-rc10/runc.amd64" >> $file
+    elif echo "$version" | grep -qF "1.3."; then
+        # See the runc version used to test the releases 1.3:https://github.com/containerd/containerd/blob/release/1.3/vendor.conf#L33
+        echo "asset runc https://github.com/opencontainers/runc/releases/download/v1.0.0-rc10/runc.amd64" >> $file
+    elif echo "$version" | grep -qF "1.4."; then
+        # See the runc version used to test the releases 1.4:https://github.com/containerd/containerd/blob/release/1.4/script/setup/runc-version
+        echo "asset runc https://github.com/opencontainers/runc/releases/download/v1.0.3/runc.amd64" >> $file
+    else
+        # detect runc version from upstream project used to test the containerd release
+        local runc_version="$(curl -sSL https://raw.githubusercontent.com/containerd/containerd/release/"$(echo "$version" | grep -Eo '[[:digit:]]\.[[:digit:]]+')"/script/setup/runc-version)"
+        if [ -z "$runc_version" ]; then
+            echo "Failed to detect runc version"
+            exit 1
+        fi
+        echo "asset runc https://github.com/opencontainers/runc/releases/download/$runc_version/runc.amd64" >> $file
+    fi
 }
 
 function add_supported_os_to_manifest_file() {
