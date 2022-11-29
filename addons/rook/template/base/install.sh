@@ -64,8 +64,7 @@ function rook() {
 
     # Disable EKCO updates
     # Disallow the EKCO operator from updating Rook custom resources during a Rook upgrade
-    # EKCO will be enabled (i.e. deployment scaled up) again when the EKCO add-on is applied
-    disable_ekco_operator
+    rook_disable_ekco_operator
 
     rook_operator_crds_deploy
     rook_operator_deploy
@@ -101,6 +100,8 @@ function rook() {
     if ! spinner_until 120 rook_rgw_is_healthy ; then
         bail "Failed to detect healthy rook-ceph object store"
     fi
+
+    rook_enable_ekco_operator
 }
 
 function rook_join() {
@@ -473,12 +474,19 @@ function rook_should_skip_rook_install() {
     return 1
 }
 
-function disable_ekco_operator() {
-    echo "Rook-preinit: Scaling down EKCO deployment to 0 replicas"
-    if kubernetes_resource_exists kurl deployment ekc-operator; then
-        kubernetes_scale_down "kurl" "deployment" "ekc-operator"
+function rook_disable_ekco_operator() {
+    if kubernetes_resource_exists kurl deployment ekc-operator ; then
+        echo "Scaling down EKCO deployment to 0 replicas"
+        kubernetes_scale_down kurl deployment ekc-operator
         echo "Waiting for ekco pods to be removed"
         spinner_until 120 ekco_pods_gone
+    fi
+}
+
+function rook_enable_ekco_operator() {
+    if kubernetes_resource_exists kurl deployment ekc-operator ; then
+        echo "Scaling up EKCO deployment to 1 replica"
+        kubernetes_scale kurl deployment ekc-operator 1
     fi
 }
 
