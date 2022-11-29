@@ -2,21 +2,35 @@
 
 ## Structure
 
-Each available add-on has a directory with subdirectories (<addon>/<version>) for each available version of the add-on.
-Each add-on is require to define at a minimum two files, `install.sh` and `Manifest`.
+Each available add-on has a directory with subdirectories for each available version of the add-on following the format `/addons/<name>/<version>`.
+Each add-on is required to define at a minimum two files, `install.sh` and `Manifest`.
 
 The Manifest file specifies a list of assets required by the add-on.
 These will be downloaded during CI and saved to the add-on [directory](/ARCHITECTURE.md#directory-structure).
+The built add-on package will include the assets, including images, from the Manifest, saved as tar archives.
+
+Any [other files](/ARCHITECTURE.md#directory-structure) in the `<addon>/<version>` subdirectory will be included in the package built for the add-on.
+The package will be built and uploaded to `s3://[bucket]/[(dist\|staging)]/[kURL version]/<addon>-<version>.tar.gz` during CI.
+It can be downloaded directly from S3 or by redirect from `https://kurl.sh/dist/<name>-<version>.tar.gz`.
+The built package will include the images from the Manifest saved as tar archives.
 
 The install.sh script can implement a set of [Lifecycle Hooks](#lifecycle-hooks).
-
-Any [other files](/ARCHITECTURE.md#directory-structure) in the <addon>/<version> subdirectory will be included in the package built for the add-on.
-The package will be built and uploaded to s3://[bucket]/[(dist\|staging)]/[kURL version]/<addon>-<version>.tar.gz during CI.
+The `install.sh` script must define a function named `<add-on>` that will perform the install.
+For example, `/addons/weave/2.5.2/install.sh` defines the function named `weave`.
 
 ## Runtime
 
-During installation, upgrades and joining additional nodes, the installer will invoke a set of add-on lifecycle hooks.
+During installation, upgrades and joining additional nodes, the installer will first load all assets and container images from the add-on's directory and create the directory `$DIR/kustomize/<add-on>` for rendered add-on scripts.
+It will then source the `<add-on>/install.sh` script and execute a set of add-on [lifecycle hooks](#lifecycle-hooks).
+
+Functions relating to the add-on runtime can be found [here](https://github.com/replicatedhq/kurl/blob/master/scripts/common/addon.sh).
 See the [flow charts](/ARCHITECTURE.md#flow-chart) in ARCHITECTURE.md for more details.
+
+The [add-on](https://github.com/replicatedhq/kurl/blob/master/scripts/common/addon.sh) function in kURL will first load all images from the add-on's `images/` directory and create the directory `<KURL_ROOT>/kustomize/<add-on>`.
+It will then dynamically source the `install.sh` script and execute the function named `<add-on>`.
+
+- For online installs, the add-on package will be downloaded and extracted at runtime.
+- For airgap installs, the add-on package will already be included in the installer bundle.
 
 ### Lifecycle Hooks
 

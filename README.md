@@ -31,6 +31,11 @@ Use of MinIO is governed by the GNU AGPLv3 license that can be found in their [L
 One optional add-on available for Metrics & Monitoring is Prometheus via the [Prometheus Operator](https://github.com/prometheus-operator/prometheus-operator), which includes Grafana.
 Use of Grafana is currently governed by the GNU AGPL v3 license that can be found in their [License](https://github.com/grafana/grafana/blob/main/LICENSE) file.
 
+## Contributing
+
+Contributions are greatly appreciated. See [CONTRIBUTING.md](CONTRIBUTING.md) or more details. 
+Before starting any work, please either comment on an existing issue, or file a new one.
+
 ## Releases
 
 For details on each release, see the [changelog](https://github.com/replicatedhq/kURL/releases).
