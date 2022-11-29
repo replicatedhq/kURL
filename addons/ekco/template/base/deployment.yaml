@@ -3,6 +3,7 @@ kind: Deployment
 metadata:
   name: ekc-operator
 spec:
+  replicas: 1
   selector:
     matchLabels:
       app: ekc-operator

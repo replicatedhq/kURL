@@ -414,11 +414,20 @@ function kubernetes_scale_down() {
     local kind="$2"
     local name="$3"
 
+    kubernetes_scale "$ns" "$kind" "$name" "0"
+}
+
+function kubernetes_scale() {
+    local ns="$1"
+    local kind="$2"
+    local name="$3"
+    local replicas="$4"
+
     if ! kubernetes_resource_exists "$ns" "$kind" "$name"; then
         return 0
     fi
 
-    kubectl -n "$ns" scale "$kind" "$name" --replicas=0
+    kubectl -n "$ns" scale "$kind" "$name" --replicas="$replicas"
 }
 
 function kubernetes_secret_value() {
