@@ -10,6 +10,10 @@ import (
 	"k8s.io/client-go/kubernetes"
 )
 
+const (
+	waitForRookOrCephVersionLoopSleep = 10 * time.Second
+)
+
 // WaitForRookOrCephVersion waits for all deployments to report that they are using the specified rook (or ceph) version (depending on provided label key)
 func WaitForRookOrCephVersion(ctx context.Context, client kubernetes.Interface, desiredVersion string, labelKey string, name string) error {
 	desiredVersion = normalizeRookVersion(desiredVersion)
@@ -53,7 +57,7 @@ func WaitForRookOrCephVersion(ctx context.Context, client kubernetes.Interface, 
 		}
 
 		select {
-		case <-time.After(loopSleep):
+		case <-time.After(waitForRookOrCephVersionLoopSleep):
 		case <-ctx.Done():
 			return fmt.Errorf("timed out waiting for %s %s to roll out", name, desiredVersion)
 		}
