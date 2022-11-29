@@ -65,6 +65,7 @@ function rook() {
     # Disable EKCO updates
     # Disallow the EKCO operator from updating Rook custom resources during a Rook upgrade
     rook_disable_ekco_operator
+    ROOK_DID_DISABLE_EKCO_OPERATOR=1
 
     rook_operator_crds_deploy
     rook_operator_deploy
@@ -100,8 +101,12 @@ function rook() {
     if ! spinner_until 120 rook_rgw_is_healthy ; then
         bail "Failed to detect healthy rook-ceph object store"
     fi
+}
 
-    rook_enable_ekco_operator
+function rook_post_init() {
+    if [ "$ROOK_DID_DISABLE_EKCO_OPERATOR" = "1" ]; then
+        rook_enable_ekco_operator
+    fi
 }
 
 function rook_join() {
