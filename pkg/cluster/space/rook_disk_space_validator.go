@@ -7,7 +7,6 @@ import (
 
 	"code.cloudfoundry.org/bytefmt"
 	rookcli "github.com/rook/rook/pkg/client/clientset/versioned"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 
@@ -20,43 +19,10 @@ const (
 
 // RookDiskSpaceValidator checks if we have enough disk space to migrate volumes to rook.
 type RookDiskSpaceValidator struct {
-	kcli  kubernetes.Interface
-	rcli  rookcli.Interface
-	cfg   *rest.Config
-	log   *log.Logger
-	srcSC string
-	dstSC string
-}
-
-// getFreeSpace attempts to get the ceph free space. returns the number of available bytes.
-func (r *RookDiskSpaceValidator) getFreeSpace(ctx context.Context) (int64, error) {
-	pname, cname, err := r.getPoolAndClusterNames(ctx)
-	if err != nil {
-		return 0, fmt.Errorf("failed to get ceph pool: %w", err)
-	}
-
-	pool, err := r.rcli.CephV1().CephBlockPools(namespace).Get(ctx, pname, metav1.GetOptions{})
-	if err != nil {
-		return 0, fmt.Errorf("failed to get pool %s: %w", pname, err)
-	}
-
-	// this should never happen but we better this than a division by zero.
-	if pool.Spec.Replicated.Size == 0 {
-		return 0, fmt.Errorf("pool replica size is zeroed")
-	}
-
-	cluster, err := r.rcli.CephV1().CephClusters(namespace).Get(ctx, cname, metav1.GetOptions{})
-	if err != nil {
-		return 0, fmt.Errorf("failed to get ceph cluster %s: %w", cname, err)
-	}
-
-	if cluster.Status.CephStatus == nil {
-		return 0, fmt.Errorf("failed to read ceph status (nil)")
-	}
-
-	availint64 := int64(cluster.Status.CephStatus.Capacity.AvailableBytes)
-	replicasint64 := int64(pool.Spec.Replicated.Size)
-	return availint64 / replicasint64, nil
+	kcli            kubernetes.Interface
+	freeSpaceGetter *RookFreeDiskSpaceGetter
+	log             *log.Logger
+	srcSC           string
 }
 
 // reservedSpace returns the total size of all volumes using the source storage class (srcSC).
@@ -74,37 +40,11 @@ func (r *RookDiskSpaceValidator) reservedSpace(ctx context.Context) (int64, erro
 	return total, nil
 }
 
-// getPoolAndClusterNames returns the replicapool and the rook cluster name a s specified in
-// the destination storage class parameters property.
-func (r *RookDiskSpaceValidator) getPoolAndClusterNames(ctx context.Context) (string, string, error) {
-	var pname string
-	var cname string
-
-	sc, err := r.kcli.StorageV1().StorageClasses().Get(ctx, r.dstSC, metav1.GetOptions{})
-	if err != nil {
-		return "", "", fmt.Errorf("failed to get storage class %s: %w", r.dstSC, err)
-	}
-
-	for p, v := range sc.Parameters {
-		switch p {
-		case "pool":
-			pname = v
-		case "clusterID":
-			cname = v
-		}
-	}
-
-	if pname == "" || cname == "" {
-		return "", "", fmt.Errorf("failed to read storage class %s pool/cluster", r.dstSC)
-	}
-	return pname, cname, nil
-}
-
 // Check verifies if there is enough ceph disk space to migrate from the source storage class.
 func (r *RookDiskSpaceValidator) HasEnoughDiskSpace(ctx context.Context) (bool, error) {
 	r.log.Print("Analysing reserved and free Ceph disk space...")
 
-	free, err := r.getFreeSpace(ctx)
+	free, err := r.freeSpaceGetter.GetFreeSpace(ctx)
 	if err != nil {
 		return false, fmt.Errorf("failed to verify free space: %w", err)
 	}
@@ -143,12 +83,15 @@ func NewRookDiskSpaceValidator(cfg *rest.Config, log *log.Logger, srcSC, dstSC s
 		return nil, fmt.Errorf("no logger provided")
 	}
 
+	freeSpaceGetter, err := NewRookFreeDiskSpaceGetter(kcli, rcli, dstSC)
+	if err != nil {
+		return nil, fmt.Errorf("failed to initiate rook volume getter: %w", err)
+	}
+
 	return &RookDiskSpaceValidator{
-		kcli:  kcli,
-		rcli:  rcli,
-		cfg:   cfg,
-		log:   log,
-		srcSC: srcSC,
-		dstSC: dstSC,
+		kcli:            kcli,
+		freeSpaceGetter: freeSpaceGetter,
+		log:             log,
+		srcSC:           srcSC,
 	}, nil
 }
