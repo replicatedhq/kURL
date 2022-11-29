@@ -16,14 +16,13 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes/fake"
-	"k8s.io/client-go/rest"
 	"k8s.io/utils/pointer"
 )
 
 func Test_deleteTmpPVCs(t *testing.T) {
 	logger := log.New(io.Discard, "", 0)
 	kcli := fake.NewSimpleClientset()
-	ochecker := OpenEBSDiskSpaceValidator{
+	ochecker := OpenEBSFreeDiskSpaceGetter{
 		deletePVTimeout: 20 * time.Second,
 		kcli:            kcli,
 		log:             logger,
@@ -165,7 +164,7 @@ func Test_nodeIsScheduleable(t *testing.T) {
 				},
 			}
 
-			ochecker := OpenEBSDiskSpaceValidator{}
+			ochecker := OpenEBSFreeDiskSpaceGetter{}
 			err := ochecker.nodeIsSchedulable(node)
 			if err != nil {
 				if !tt.err {
@@ -185,7 +184,7 @@ func Test_bulidTmpPVC(t *testing.T) {
 	for _, tt := range []struct {
 		name         string
 		nodeName     string
-		dstSC        string
+		scname       string
 		expectedName string
 		expectedSpec corev1.PersistentVolumeClaimSpec
 	}{
@@ -193,7 +192,7 @@ func Test_bulidTmpPVC(t *testing.T) {
 			name:         "should pass with the full node name",
 			nodeName:     "node0",
 			expectedName: "disk-free-node0-",
-			dstSC:        "xyz",
+			scname:       "xyz",
 			expectedSpec: corev1.PersistentVolumeClaimSpec{
 				StorageClassName: pointer.String("xyz"),
 				AccessModes:      []corev1.PersistentVolumeAccessMode{corev1.ReadWriteOnce},
@@ -208,7 +207,7 @@ func Test_bulidTmpPVC(t *testing.T) {
 			name:         "should trim pvc name if longer than 63 chars",
 			nodeName:     "this-is-a-relly-long-host-name-and-this-should-be-trimmed",
 			expectedName: "disk-free-this-is-a-relly-long-and-this-should-be-trimmed-",
-			dstSC:        "default",
+			scname:       "default",
 			expectedSpec: corev1.PersistentVolumeClaimSpec{
 				StorageClassName: pointer.String("default"),
 				AccessModes:      []corev1.PersistentVolumeAccessMode{corev1.ReadWriteOnce},
@@ -221,8 +220,8 @@ func Test_bulidTmpPVC(t *testing.T) {
 		},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
-			ochecker := OpenEBSDiskSpaceValidator{
-				dstSC: tt.dstSC,
+			ochecker := OpenEBSFreeDiskSpaceGetter{
+				scname: tt.scname,
 			}
 			pvc := ochecker.buildTmpPVC(tt.nodeName)
 
@@ -314,7 +313,7 @@ some prefixes go in here /dev/sda2      63087357952 52521754624 7327760384  88% 
 		},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
-			ochecker := OpenEBSDiskSpaceValidator{}
+			ochecker := OpenEBSFreeDiskSpaceGetter{}
 			free, used, err := ochecker.parseDFContainerOutput(tt.content)
 			if err != nil {
 				if len(tt.err) == 0 {
@@ -443,7 +442,7 @@ sshfs#user@server:/share  fuse  user,allow_other  0  0
 		},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
-			ochecker := OpenEBSDiskSpaceValidator{}
+			ochecker := OpenEBSFreeDiskSpaceGetter{}
 			output, err := ochecker.parseFstabContainerOutput(tt.content)
 			if err != nil {
 				if len(tt.err) == 0 {
@@ -470,19 +469,19 @@ func Test_basePath(t *testing.T) {
 		name     string
 		expected string
 		err      string
-		dstSC    string
+		scname   string
 		objs     []runtime.Object
 	}{
 		{
-			name:  "should fail if can't get the storage class",
-			dstSC: "does-not-exist",
-			err:   `class: storageclasses.storage.k8s.io "does-not-exist" not found`,
-			objs:  []runtime.Object{},
+			name:   "should fail if can't get the storage class",
+			scname: "does-not-exist",
+			err:    `class: storageclasses.storage.k8s.io "does-not-exist" not found`,
+			objs:   []runtime.Object{},
 		},
 		{
-			name:  "no annotation",
-			dstSC: "default",
-			err:   "annotation not found in storage class",
+			name:   "no annotation",
+			scname: "default",
+			err:    "annotation not found in storage class",
 			objs: []runtime.Object{
 				&storagev1.StorageClass{
 					ObjectMeta: metav1.ObjectMeta{
@@ -492,9 +491,9 @@ func Test_basePath(t *testing.T) {
 			},
 		},
 		{
-			name:  "should fail if the openebs configuration is invalid",
-			dstSC: "default",
-			err:   "failed to parse openebs config annotation",
+			name:   "should fail if the openebs configuration is invalid",
+			scname: "default",
+			err:    "failed to parse openebs config annotation",
 			objs: []runtime.Object{
 				&storagev1.StorageClass{
 					ObjectMeta: metav1.ObjectMeta{
@@ -507,9 +506,9 @@ func Test_basePath(t *testing.T) {
 			},
 		},
 		{
-			name:  "should fail if opeenbs configuration does not contain the base path",
-			dstSC: "default",
-			err:   "openebs base path not defined in the storage class",
+			name:   "should fail if opeenbs configuration does not contain the base path",
+			scname: "default",
+			err:    "openebs base path not defined in the storage class",
 			objs: []runtime.Object{
 				&storagev1.StorageClass{
 					ObjectMeta: metav1.ObjectMeta{
@@ -522,9 +521,9 @@ func Test_basePath(t *testing.T) {
 			},
 		},
 		{
-			name:  "should fail if opeenbs base path is empty",
-			dstSC: "default",
-			err:   "invalid opeenbs base path",
+			name:   "should fail if opeenbs base path is empty",
+			scname: "default",
+			err:    "invalid opeenbs base path",
 			objs: []runtime.Object{
 				&storagev1.StorageClass{
 					ObjectMeta: metav1.ObjectMeta{
@@ -537,9 +536,9 @@ func Test_basePath(t *testing.T) {
 			},
 		},
 		{
-			name:  "should fail if openebs base path is not a path",
-			dstSC: "default",
-			err:   "invalid opeenbs base path",
+			name:   "should fail if openebs base path is not a path",
+			scname: "default",
+			err:    "invalid opeenbs base path",
 			objs: []runtime.Object{
 				&storagev1.StorageClass{
 					ObjectMeta: metav1.ObjectMeta{
@@ -553,7 +552,7 @@ func Test_basePath(t *testing.T) {
 		},
 		{
 			name:     "should be able to parse openebs configuration",
-			dstSC:    "default",
+			scname:   "default",
 			expected: "/var/local",
 			objs: []runtime.Object{
 				&storagev1.StorageClass{
@@ -569,9 +568,9 @@ func Test_basePath(t *testing.T) {
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			fakecli := fake.NewSimpleClientset(tt.objs...)
-			ochecker := OpenEBSDiskSpaceValidator{
-				kcli:  fakecli,
-				dstSC: tt.dstSC,
+			ochecker := OpenEBSFreeDiskSpaceGetter{
+				kcli:   fakecli,
+				scname: tt.scname,
 			}
 
 			bpath, err := ochecker.basePath(context.Background())
@@ -597,7 +596,7 @@ func Test_basePath(t *testing.T) {
 
 func Test_buildJob(t *testing.T) {
 	nname := "this-is-a-very-long-node-name-this-will-extrapolate-the-limit"
-	ochecker := OpenEBSDiskSpaceValidator{image: "myimage:latest"}
+	ochecker := OpenEBSFreeDiskSpaceGetter{image: "myimage:latest"}
 	job := ochecker.buildJob(context.Background(), nname, "/var/local", "tmppvc")
 
 	// check that the job name is within boundaries
@@ -651,69 +650,9 @@ func Test_buildJob(t *testing.T) {
 	}
 }
 
-func Test_hasEnoughSpace(t *testing.T) {
-	for _, tt := range []struct {
-		name     string
-		volume   OpenEBSVolume
-		reserved int64
-		hasSpace bool
-		free     int64
-	}{
-		{
-			name: "should pass with an empty open ebs volume",
-		},
-		{
-			name:     "should pass when there is enough space (different mount point)",
-			reserved: 99,
-			free:     100,
-			hasSpace: true,
-			volume: OpenEBSVolume{
-				Free:       100,
-				Used:       0,
-				RootVolume: false,
-			},
-		},
-		{
-			name:     "should pass when there is enough space (same mount point)",
-			reserved: 50,
-			free:     85,
-			hasSpace: true,
-			volume: OpenEBSVolume{
-				Free:       100,
-				Used:       0,
-				RootVolume: true,
-			},
-		},
-		{
-			name:     "should not pass when there is not enough space (same mount point)",
-			reserved: 86,
-			free:     85,
-			hasSpace: false,
-			volume: OpenEBSVolume{
-				Free:       100,
-				Used:       0,
-				RootVolume: true,
-			},
-		},
-	} {
-		t.Run(tt.name, func(t *testing.T) {
-			ochecker := OpenEBSDiskSpaceValidator{}
-			free, hasSpace := ochecker.hasEnoughSpace(tt.volume, tt.reserved)
-
-			if hasSpace != tt.hasSpace {
-				t.Errorf("expected hasSpace to be %v, %v received instead", tt.hasSpace, hasSpace)
-			}
-
-			if free != tt.free {
-				t.Errorf("expected free to be %v, %v received instead", tt.free, free)
-			}
-		})
-	}
-}
-
-func TestNewOpenEBSChecker(t *testing.T) {
+func TestNewOpenEBSVolumesGetter(t *testing.T) {
 	// test empty logger
-	_, err := NewOpenEBSDiskSpaceValidator(&rest.Config{}, nil, "image", "src", "dst")
+	_, err := NewOpenEBSFreeDiskSpaceGetter(nil, nil, "image", "scname")
 	if err == nil || err.Error() != "no logger provided" {
 		t.Errorf("expected failure creating object: %v", err)
 	}
@@ -721,25 +660,19 @@ func TestNewOpenEBSChecker(t *testing.T) {
 	logger := log.New(io.Discard, "", 0)
 
 	// test empty image
-	_, err = NewOpenEBSDiskSpaceValidator(&rest.Config{}, logger, "", "src", "dst")
+	_, err = NewOpenEBSFreeDiskSpaceGetter(nil, logger, "", "scname")
 	if err == nil || err.Error() != "empty image" {
 		t.Errorf("expected failure creating object: %v", err)
 	}
 
-	// test src storage class
-	_, err = NewOpenEBSDiskSpaceValidator(&rest.Config{}, logger, "image", "", "dst")
-	if err == nil || err.Error() != "empty source storage class" {
-		t.Errorf("expected failure creating object: %v", err)
-	}
-
-	// test empty dst sc
-	_, err = NewOpenEBSDiskSpaceValidator(&rest.Config{}, logger, "image", "src", "")
-	if err == nil || err.Error() != "empty destination storage class" {
+	// test empty sc name
+	_, err = NewOpenEBSFreeDiskSpaceGetter(nil, logger, "image", "")
+	if err == nil || err.Error() != "empty storage class" {
 		t.Errorf("expected failure creating object: %v", err)
 	}
 
 	// happy path
-	_, err = NewOpenEBSDiskSpaceValidator(&rest.Config{}, logger, "image", "src", "dst")
+	_, err = NewOpenEBSFreeDiskSpaceGetter(nil, logger, "image", "scname")
 	if err != nil {
 		t.Errorf("unexpected failure creating object: %v", err)
 	}
