@@ -281,6 +281,7 @@ build/templates/install.tmpl: build/install.sh
 		sed 's/^KURL_VERSION=.*/KURL_VERSION="{{= KURL_VERSION }}"/' | \
 		sed 's/^REPLICATED_APP_URL=.*/REPLICATED_APP_URL="{{= REPLICATED_APP_URL }}"/' | \
 		sed 's/^STEP_VERSIONS=.*/STEP_VERSIONS={{= STEP_VERSIONS }}/' | \
+		sed 's/^ROOK_STEP_VERSIONS=.*/ROOK_STEP_VERSIONS={{= ROOK_STEP_VERSIONS }}/' | \
 		sed 's/^INSTALLER_YAML=.*/INSTALLER_YAML="{{= INSTALLER_YAML }}"/' | \
 		sed 's/^KURL_UTIL_IMAGE=.*/KURL_UTIL_IMAGE="{{= KURL_UTIL_IMAGE }}"/' | \
 		sed 's/^KURL_BIN_UTILS_FILE=.*/KURL_BIN_UTILS_FILE="{{= KURL_BIN_UTILS_FILE }}"/' | \
@@ -314,6 +315,7 @@ build/templates/join.tmpl: build/join.sh
 		sed 's/^KURL_VERSION=.*/KURL_VERSION="{{= KURL_VERSION }}"/' | \
 		sed 's/^REPLICATED_APP_URL=.*/REPLICATED_APP_URL="{{= REPLICATED_APP_URL }}"/' | \
 		sed 's/^STEP_VERSIONS=.*/STEP_VERSIONS={{= STEP_VERSIONS }}/' | \
+		sed 's/^ROOK_STEP_VERSIONS=.*/ROOK_STEP_VERSIONS={{= ROOK_STEP_VERSIONS }}/' | \
 		sed 's/^INSTALLER_YAML=.*/INSTALLER_YAML="{{= INSTALLER_YAML }}"/' | \
 		sed 's/^KURL_UTIL_IMAGE=.*/KURL_UTIL_IMAGE="{{= KURL_UTIL_IMAGE }}"/' | \
 		sed 's/^KURL_BIN_UTILS_FILE=.*/KURL_BIN_UTILS_FILE="{{= KURL_BIN_UTILS_FILE }}"/' | \
@@ -347,6 +349,7 @@ build/templates/upgrade.tmpl: build/upgrade.sh
 		sed 's/^KURL_VERSION=.*/KURL_VERSION="{{= KURL_VERSION }}"/' | \
 		sed 's/^REPLICATED_APP_URL=.*/REPLICATED_APP_URL="{{= REPLICATED_APP_URL }}"/' | \
 		sed 's/^STEP_VERSIONS=.*/STEP_VERSIONS={{= STEP_VERSIONS }}/' | \
+		sed 's/^ROOK_STEP_VERSIONS=.*/ROOK_STEP_VERSIONS={{= ROOK_STEP_VERSIONS }}/' | \
 		sed 's/^INSTALLER_YAML=.*/INSTALLER_YAML="{{= INSTALLER_YAML }}"/' | \
 		sed 's/^KURL_UTIL_IMAGE=.*/KURL_UTIL_IMAGE="{{= KURL_UTIL_IMAGE }}"/' | \
 		sed 's/^KURL_BIN_UTILS_FILE=.*/KURL_BIN_UTILS_FILE="{{= KURL_BIN_UTILS_FILE }}"/' | \
@@ -380,6 +383,7 @@ build/templates/tasks.tmpl: build/tasks.sh
 		sed 's/^KURL_VERSION=.*/KURL_VERSION="{{= KURL_VERSION }}"/' | \
 		sed 's/^REPLICATED_APP_URL=.*/REPLICATED_APP_URL="{{= REPLICATED_APP_URL }}"/' | \
 		sed 's/^STEP_VERSIONS=.*/STEP_VERSIONS={{= STEP_VERSIONS }}/' | \
+		sed 's/^ROOK_STEP_VERSIONS=.*/ROOK_STEP_VERSIONS={{= ROOK_STEP_VERSIONS }}/' | \
 		sed 's/^INSTALLER_YAML=.*/INSTALLER_YAML="{{= INSTALLER_YAML }}"/' | \
 		sed 's/^KURL_UTIL_IMAGE=.*/KURL_UTIL_IMAGE="{{= KURL_UTIL_IMAGE }}"/' | \
 		sed 's/^KURL_BIN_UTILS_FILE=.*/KURL_BIN_UTILS_FILE="{{= KURL_BIN_UTILS_FILE }}"/' | \
