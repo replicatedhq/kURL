@@ -14,6 +14,7 @@ DIR=.
 . $DIR/scripts/common/host-packages.sh
 . $DIR/scripts/common/utilbinaries.sh
 . $DIR/scripts/common/rook.sh
+. $DIR/scripts/common/rook-upgrade.sh
 . $DIR/scripts/common/longhorn.sh
 . $DIR/scripts/common/reporting.sh
 . $DIR/scripts/distro/interface.sh
@@ -68,10 +69,16 @@ function tasks() {
             install_host_dependencies_longhorn $@
             ;;
         rook-10-to-14|rook_10_to_14)
-            rook_tasks_10_to_14
+            rook_upgrade_tasks_rook_upgrade "from-version=1.0" "to-version=1.4"
             ;;
         rook-10-to-14-images|rook_10_to_14_images)
-            rook_tasks_10_to_14_images
+            rook_upgrade_tasks_load_images "from-version=1.0" "to-version=1.4"
+            ;;
+        rook-upgrade)
+            rook_upgrade_tasks_rook_upgrade "$@"
+            ;;
+        rook-upgrade-load-images)
+            rook_upgrade_tasks_load_images "$@"
             ;;
         *)
             bail "Unknown task: $1"
@@ -698,26 +705,6 @@ function install_host_dependencies_longhorn() {
     pushd_install_directory
 
     longhorn_host_init_common "${DIR}/packages/host/longhorn"
-}
-
-function rook_tasks_10_to_14() {
-    export KUBECONFIG=/etc/kubernetes/admin.conf
-
-    download_util_binaries
-
-    export ROOK_VERSION="1.4.9"
-    if should_upgrade_rook_10_to_14; then
-        report_upgrade_rook_10_to_14
-    else
-        echo "Not upgrading rook because it is not installed or the currently installed version is not 1.0.x"
-    fi
-}
-
-function rook_tasks_10_to_14_images() {
-    export KUBECONFIG=/etc/kubernetes/admin.conf
-
-    download_util_binaries
-    rook_10_to_14_images
 }
 
 tasks "$@"

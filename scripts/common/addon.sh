@@ -123,6 +123,10 @@ function addon_join() {
     fi
 }
 
+function addon_exists() {
+    [ -d "$DIR/addons/$name/$version" ]
+}
+
 function addon_load() {
     local name=$1
     local version=$2
