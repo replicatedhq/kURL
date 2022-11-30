@@ -148,9 +148,8 @@ func NewClusterCheckFreeDiskSpaceCmd(cli CLI) *cobra.Command {
 	var selectedClass *storagev1.StorageClass
 
 	cmd := &cobra.Command{
-		Use:          "check-free-disk-space",
-		Short:        "List and analyse the available disk space for a given Storage Class.",
-		SilenceUsage: true,
+		Use:   "check-free-disk-space",
+		Short: "List and analyse the available disk space for a given Storage Class.",
 		Example: fmt.Sprintf(""+
 			"In the following examples 'openebs' is the name of a storage class backed by the %s storage provisioner while 'rook' is the name of a storage\n"+
 			"class backed by the %s or %s storage provisioners.\n\n"+
@@ -176,11 +175,21 @@ func NewClusterCheckFreeDiskSpaceCmd(cli CLI) *cobra.Command {
 			openEBSLocalProvisioner, rookRBDProvisioner, rookCephFSProvisioner,
 		),
 		PreRunE: func(cmd *cobra.Command, args []string) error {
-			k8sConfig := config.GetConfigOrDie()
-			clientSet = kubernetes.NewForConfigOrDie(k8sConfig)
-			rookClientSet = rookcli.NewForConfigOrDie(k8sConfig)
+			k8sConfig, err := config.GetConfig()
+			if err != nil {
+				return fmt.Errorf("failed to read kubernetes configuration: %w", err)
+			}
 
-			var err error
+			clientSet, err = kubernetes.NewForConfig(k8sConfig)
+			if err != nil {
+				return fmt.Errorf("failed to create kubernetes client: %w", err)
+			}
+
+			rookClientSet, err = rookcli.NewForConfig(k8sConfig)
+			if err != nil {
+				return fmt.Errorf("failed to create rook client: %w", err)
+			}
+
 			if selectedClass, err = getStorageClassByName(cmd.Context(), clientSet, forStorageClass); err != nil {
 				return err
 			}
