@@ -21,7 +21,7 @@ jobs:
     - id: set-tag
       run: |
         git fetch --tags -f
-        export VERSION_TAG=$(git tag | grep '^v20' | grep -v 'v2022\.09\.04' | sort | tail -1)-dirty
+        export VERSION_TAG=$(git tag | grep '^v20' | sort | tail -1)-$(git rev-parse --short HEAD)
         echo "::set-output name=version_tag::${VERSION_TAG}"
 
   kurl-util-image:

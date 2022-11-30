@@ -193,10 +193,10 @@ Historical production releases are never removed from the object storage bucket.
 ### Staging Workflow
 
 Staging releases are triggered on merge to main.
-Staging release versions use the most current release version tag and append prerelease `-dirty`, for example v2022.04.19-0-dirty.
+Staging release versions use the most current release version tag and append the short commit sha `-abcdef0`, for example v2022.04.19-0-5af497c.
 Due to this versioning scheme, staging releases will overwrite the previous staging release if no production release occurred prior.
 This is intentional to optimize for storage costs.
-Staging releases are uploaded to the object storage bucket at prefix `staging`, for example https://kurl-sh.s3.amazonaws.com/staging/v2022.04.19-0-dirty/.
+Staging releases are uploaded to the object storage bucket at prefix `staging`, for example https://kurl-sh.s3.amazonaws.com/staging/v2022.04.19-0-5af497c/.
 Before building add-on packages, the workflow will first check if there were any changes made to the add-on since the previous staging release based on metadata included with the add-on package.
 If no changes were made, the package will be copied from the previous staging release to optimize for build times.
 If changes were made, the package will be built from source and uploaded.
