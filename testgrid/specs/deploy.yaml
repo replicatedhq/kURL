@@ -2,6 +2,8 @@
   installerSpec:
     contour:
       version: latest
+    kurl:
+      installerVersion: ""
     containerd:
       version: latest
     ekco:
@@ -26,6 +28,8 @@
   installerSpec:
     kubernetes:
       version: 1.19.x
+    kurl:
+      installerVersion: ""
     docker:
       version: 19.03.x
     weave:
@@ -36,6 +40,8 @@
   installerSpec:
     kubernetes:
       version: 1.21.x
+    kurl:
+      installerVersion: ""
     containerd:
       version: latest
     weave:
@@ -58,6 +64,8 @@
   installerSpec:
     kubernetes:
       version: 1.21.x
+    kurl:
+      installerVersion: ""
     containerd:
       version: 1.6.x
     weave:
@@ -81,6 +89,8 @@
   installerSpec:
     kubernetes:
       version: 1.22.x
+    kurl:
+      installerVersion: ""
     containerd:
       version: latest
     weave:
@@ -103,6 +113,8 @@
   installerSpec:
     kubernetes:
       version: 1.22.x
+    kurl:
+      installerVersion: ""
     containerd:
       version: 1.6.x
     weave:
@@ -126,6 +138,8 @@
   installerSpec:
     containerd:
       version: latest
+    kurl:
+      installerVersion: ""
     kubernetes:
       version: 1.24.x
     flannel:
@@ -134,6 +148,8 @@
   installerSpec:
     containerd:
       version: latest
+    kurl:
+      installerVersion: ""
     kubernetes:
       version: 1.25.x
     flannel:
@@ -142,6 +158,8 @@
   installerSpec:
     kubernetes:
       version: "1.24.x"
+    kurl:
+      installerVersion: ""
       cisCompliance: true
     containerd:
       version: "latest"
@@ -158,6 +176,8 @@
   installerSpec:
     kubernetes:
       version: "1.25.x"
+    kurl:
+      installerVersion: ""
       kubeReserved: true
       evictionThresholdResources: '{"memory.available":  "234Mi", "nodefs.available": "11%", "nodefs.inodesFree": "6%"}'
       systemReservedResources: '{ "cpu": "123m", "memory": "123Mi", "ephemeral-storage": "1.23Gi" }'
@@ -180,6 +200,8 @@
   installerSpec:
     kubernetes:
       version: 1.25.x
+    kurl:
+      installerVersion: ""
     containerd:
       version: latest
     flannel:
@@ -204,6 +226,8 @@
   installerSpec:
     kubernetes:
       version: 1.24.x
+    kurl:
+      installerVersion: ""
     containerd:
       version: latest
     weave:
@@ -228,6 +252,8 @@
   installerSpec:
     kubernetes:
       version: 1.25.x
+    kurl:
+      installerVersion: ""
     flannel:
       version: latest
     containerd:
@@ -246,6 +272,8 @@
   installerSpec:
     kubernetes:
       version: 1.23.x
+    kurl:
+      installerVersion: ""
     weave:
       version: latest
     openebs:
@@ -261,6 +289,8 @@
   upgradeSpec:
     kubernetes:
       version: 1.25.x
+    kurl:
+      installerVersion: ""
     weave:
       version: latest
     openebs:

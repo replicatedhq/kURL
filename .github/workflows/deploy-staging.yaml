@@ -192,6 +192,7 @@ jobs:
         VERSION_TAG: ${{ needs.get-tag.outputs.version_tag }}
       run: |
         REF="STAGING-release-${VERSION_TAG}-$(date '+%Y%m%d%H%M%S')"
+        sed -i "s/installerVersion: \"\"/installerVersion: \"${VERSION_TAG}\"/g" ./testgrid/specs/deploy.yaml
         docker pull replicated/tgrun:latest
         docker run --rm -e TESTGRID_API_TOKEN -v `pwd`:/wrk -w /wrk \
           replicated/tgrun:latest queue --staging \
