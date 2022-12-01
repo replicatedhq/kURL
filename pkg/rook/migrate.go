@@ -30,7 +30,7 @@ func HostpathToOsd(ctx context.Context, config *rest.Config) error {
 	// ensure rook is healthy before starting
 	minuteContext, minuteCancel := context.WithTimeout(ctx, time.Minute)
 	defer minuteCancel()
-	err = WaitForRookHealth(minuteContext, client)
+	err = WaitForRookHealth(minuteContext, client, nil)
 	if err != nil {
 		return fmt.Errorf("rook failed to become healthy within a minute, aborting migration: %w", err)
 	}

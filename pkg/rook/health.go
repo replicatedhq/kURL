@@ -14,19 +14,24 @@ import (
 	"k8s.io/client-go/kubernetes"
 )
 
-// RookHealth checks if rook-ceph is in a healthy state (by kURL standards), and returns healthy, a message describing why things are unhealthy, and errors encountered determining the status.
-func RookHealth(ctx context.Context, client kubernetes.Interface) (bool, string, error) {
+// RookHealth checks if rook-ceph is in a healthy state (by kURL standards), and returns healthy, a
+// message describing why things are unhealthy, and errors encountered determining the status.
+// Individual checks can be ignored by passing in a list of Ceph health check unique identifiers
+// (https://docs.ceph.com/en/quincy/rados/operations/health-checks/) to ignore.
+func RookHealth(ctx context.Context, client kubernetes.Interface, ignoreChecks []string) (bool, string, error) {
 	cephStatus, err := currentStatus(ctx, client)
 	if err != nil {
 		return false, "", err
 	}
 
-	health, msg := isStatusHealthy(cephStatus)
+	health, msg := isStatusHealthy(cephStatus, ignoreChecks)
 	return health, msg, nil
 }
 
-// WaitForRookHealth waits for rook-ceph to report that it is healthy
-func WaitForRookHealth(ctx context.Context, client kubernetes.Interface) error {
+// WaitForRookHealth waits for rook-ceph to report that it is healthy. Individual checks can be
+// ignored by passing in a list of Ceph health check unique identifiers
+// (https://docs.ceph.com/en/quincy/rados/operations/health-checks/) to ignore.
+func WaitForRookHealth(ctx context.Context, client kubernetes.Interface, ignoreChecks []string) error {
 	out("Waiting for Rook-Ceph to be healthy")
 	errCount := 0
 	var isHealthy bool
@@ -41,7 +46,7 @@ func WaitForRookHealth(ctx context.Context, client kubernetes.Interface) error {
 		} else {
 			errCount = 0 // only fail for _consecutive_ errors
 
-			isHealthy, healthMessage = isStatusHealthy(cephStatus)
+			isHealthy, healthMessage = isStatusHealthy(cephStatus, ignoreChecks)
 			if isHealthy {
 				return nil
 			} else {
@@ -58,11 +63,12 @@ func WaitForRookHealth(ctx context.Context, client kubernetes.Interface) error {
 	}
 }
 
-func isStatusHealthy(status cephtypes.CephStatus) (bool, string) {
+func isStatusHealthy(status cephtypes.CephStatus, ignoreChecks []string) (bool, string) {
 	statusMessage := []string{}
 
 	if status.Health.Status != "HEALTH_OK" {
 		// this is not an error we need to stop upgrades for (this will show up after upgrading from 1.0 until autoscaling pgs is enabled)
+		// TODO: factor this out since it is specific to the upgrade scenario and not general
 		delete(status.Health.Checks, "TOO_MANY_PGS")
 
 		// this is not an error we need to stop upgrades for (it will always be present on single node installs)
@@ -70,6 +76,13 @@ func isStatusHealthy(status cephtypes.CephStatus) (bool, string) {
 
 		// recent crash errors aren't likely to go away while we're waiting
 		delete(status.Health.Checks, "RECENT_CRASH")
+
+		// ignore "pool(s) have non-power-of-two pg_num", as Ceph will continue to work and will not prevent upgrades
+		delete(status.Health.Checks, "POOL_PG_NUM_NOT_POWER_OF_TWO")
+
+		for _, check := range ignoreChecks {
+			delete(status.Health.Checks, check)
+		}
 
 		if len(status.Health.Checks) != 0 {
 			unhealthReasons := []string{}
@@ -209,7 +222,7 @@ func waitForOkToRemoveOSD(ctx context.Context, client kubernetes.Interface, osdT
 		} else {
 			errCount = 0 // only fail for _consecutive_ errors
 
-			isHealthy, healthMessage = isStatusHealthy(cephStatus)
+			isHealthy, healthMessage = isStatusHealthy(cephStatus, nil)
 			if isHealthy {
 				// if the cluster is healthy, check if the osd is safe to remove
 				// if it is not safe to remove, keep waiting
@@ -244,6 +257,13 @@ func waitForOkToRemoveOSD(ctx context.Context, client kubernetes.Interface, osdT
 func safeToRemoveOSD(ctx context.Context, client kubernetes.Interface, osd int64) (bool, int, error) {
 	_, safetodestroy, err := runToolboxCommand(ctx, client, []string{"ceph", "osd", "safe-to-destroy", fmt.Sprintf("osd.%d", osd)})
 	if err != nil {
+		if safetodestroy != "" {
+			// check if we know about this message and it is safe to ignore
+			isSafe, remainingPGs := parseSafeToRemoveOSD(safetodestroy)
+			if remainingPGs != -1 {
+				return isSafe, remainingPGs, nil
+			}
+		}
 		return false, -1, fmt.Errorf("unable to check if osd %d is safe to destroy: %w", osd, err)
 	}
 

@@ -28,11 +28,17 @@ var AutoscalerInProgressCephStatus []byte
 //go:embed noreplicasCephStatus.json
 var NoReplicasCephStatus []byte
 
+//go:embed poolPgNumNotPowerOfTwoCephStatus.json
+var PoolPgNumNotPowerOfTwoCephStatus []byte
+
 //go:embed recentCrashCephStatus.json
 var RecentCrashCephStatus []byte
 
 //go:embed globalRecoveryEventCephStatus.json
 var GlobalRecoveryEventStatus []byte
+
+//go:embed hypotheticalCheckHealthWarnCephStatus.json
+var HypotheticalCheckHealthWarnCephStatus []byte
 
 // lists of pods to use in migrate unit tests
 

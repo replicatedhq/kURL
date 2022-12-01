@@ -13,6 +13,7 @@ import (
 )
 
 func NewRookWaitForHealthCmd(cli CLI) *cobra.Command {
+	var ignoreChecks []string
 	cmd := &cobra.Command{
 		Use:   "wait-for-health [TIMEOUT]",
 		Short: "Waits for Rook to report that it is healthy, and prints what it's waiting for",
@@ -36,7 +37,7 @@ func NewRookWaitForHealthCmd(cli CLI) *cobra.Command {
 				defer cancel()
 			}
 
-			err := rook.WaitForRookHealth(ctx, clientSet)
+			err := rook.WaitForRookHealth(ctx, clientSet, ignoreChecks)
 			if err != nil {
 				return fmt.Errorf("failed to check rook health: %w", err)
 			}
@@ -46,5 +47,6 @@ func NewRookWaitForHealthCmd(cli CLI) *cobra.Command {
 		},
 		SilenceUsage: true,
 	}
+	cmd.Flags().StringSliceVar(&ignoreChecks, "ignore-checks", nil, "a list of Ceph health check unique identifiers to ignore when reporting health")
 	return cmd
 }

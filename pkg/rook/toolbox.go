@@ -105,6 +105,17 @@ func cacheConfig() (*restclient.Config, error) {
 	return k8sConfig, nil
 }
 
+type runToolboxCommandExitCodeError struct {
+	ExitCode      int
+	PodName       string
+	PrettyCommand string
+	Stderr        string
+}
+
+func (e runToolboxCommandExitCodeError) Error() string {
+	return fmt.Errorf("failed to run %q in %s with stderr %q with exit code %d", e.PrettyCommand, e.PodName, e.Stderr, e.ExitCode).Error()
+}
+
 // run a specified command in the toolbox, and return the output if the command ran, and an error otherwise
 func runToolboxCommand(ctx context.Context, client kubernetes.Interface, inContainer []string) (string, string, error) {
 	pods, err := client.CoreV1().Pods("rook-ceph").List(ctx, metav1.ListOptions{LabelSelector: "app=rook-ceph-tools"})
@@ -132,7 +143,7 @@ func runToolboxCommand(ctx context.Context, client kubernetes.Interface, inConta
 		return "", "", fmt.Errorf("failed to run %q in %s: %w", prettyCmd, podName, err)
 	}
 	if exitCode != 0 {
-		return stdout, stderr, fmt.Errorf("failed to run %q in %s with stderr %q", prettyCmd, podName, stderr)
+		return stdout, stderr, runToolboxCommandExitCodeError{exitCode, podName, prettyCmd, stderr}
 	}
 	return stdout, stderr, nil
 }
