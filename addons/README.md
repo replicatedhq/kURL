@@ -83,6 +83,7 @@ To be considered for production, an add-on must adhere to the following requirem
 1. A [Testgrid spec](https://github.com/replicatedhq/kURL/tree/5ce2372da583844137efee28f55498393ea32e8d/addons/flannel/template/testgrid/) with adequate coverage for merging without human approval.
 1. A [host-preflight.yaml](https://github.com/replicatedhq/kURL/blob/5ce2372da583844137efee28f55498393ea32e8d/addons/weave/template/base/host-preflight.yaml) file including system requirements and preflights for successful customer installations.
 1. A [Troubleshoot spec](https://github.com/replicatedhq/kURL/blob/5ce2372da583844137efee28f55498393ea32e8d/addons/flannel/template/base/yaml/troubleshoot.yaml) file with collectors and analyzers for ease of troubleshooting customer issues.
+1. All shell functions defined in the add-on's install.sh script should be prefixed with the name of the add-on to avoid naming collisions, for example `function rook_dashboard_ready_spinner()`.
 
 ### Manifest
 
