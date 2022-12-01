@@ -13,14 +13,13 @@ function rook_upgrade_maybe_report_upgrade_rook() {
         return
     fi
 
-    if ! rook_upgrade_prompt ; then
+    if ! rook_upgrade_prompt "$current_version" "$desired_version" ; then
         bail "Not upgrading Rook"
     fi
-    if ! rook_upgrade_report_upgrade_rook "$current_version" "$desired_version" ; then
-        bail "Rook upgrade failed"
-    fi
+    rook_upgrade_report_upgrade_rook "$current_version" "$desired_version"
 
-    addon_load "rook" "$ROOK_VERSION" # This will undo the overwrite from above prior to running addon_install
+    # shellcheck disable=SC1090
+    addon_source "rook" "$ROOK_VERSION" # This will undo the override from above prior to running addon_install
 }
 
 # rook_upgrade_should_upgrade_rook checks the currently installed rook version and the desired rook
@@ -83,9 +82,13 @@ function rook_upgrade_should_upgrade_rook() {
 
 # rook_upgrade_prompt prompts the user to confirm the rook upgrade.
 function rook_upgrade_prompt() {
-    echo "Upgrading Rook will take some time and will place additional load on your server."
+    local current_version="$1"
+    local desired_version="$2"
+    logWarn "$(printf "This script will upgrade Rook from %s to %s." "$current_version" "$desired_version")"
+    logWarn "Upgrading Rook will take some time and will place additional load on your server."
+    # TODO: my server has a block device but I still see this message
     if ! "$DIR"/bin/kurl rook has-sufficient-blockdevices ; then
-        echo "In order to complete this migration, you will need to attach a blank disk to each node in the cluster for Rook to use."
+        logWarn "In order to complete this migration, you may need to attach a blank disk to each node in the cluster for Rook to use."
     fi
     printf "Would you like to continue? "
 
@@ -128,7 +131,7 @@ function rook_upgrade() {
     rook_upgrade_prompt_missing_images "$from_version" "$to_version"
 
     if rook_upgrade_is_version_included "$from_version" "$to_version" "1.4" ; then
-        addon_load "rookupgrade" "10to14"
+        addon_source "rookupgrade" "10to14"
         rookupgrade_10to14_upgrade
     fi
 
@@ -153,7 +156,8 @@ function rook_upgrade_do_rook_upgrade() {
         if ! addon_exists "rook" "$step" ; then
             continue
         fi
-        addon_load "rook" "$step" # this will overwrite the rook $ROOK_VERSION add-on functions
+        # shellcheck disable=SC1090
+        addon_source "rook" "$step" # this will override the rook $ROOK_VERSION add-on functions
         if commandExists "rook_should_fail_install" ; then
             # NOTE: there is no way to know this is the correct rook version function
             if rook_should_fail_install ; then
@@ -174,7 +178,9 @@ function rook_upgrade_addon_fetch() {
     logStep "Downloading images required for Rook $from_version to $to_version upgrade"
 
     if rook_upgrade_is_version_included "$from_version" "$to_version" "1.4" ; then
-        rook_upgrade_addon_fetch_step "rookupgrade" "10to14"
+        if ! rook_upgrade_addon_fetch_step "rookupgrade" "10to14" ; then
+            return 1
+        fi
     fi
 
     if [ "$(rook_upgrade_compare_rook_versions "$from_version" "1.4")" = "1" ]; then
@@ -183,7 +189,9 @@ function rook_upgrade_addon_fetch() {
             if [ -z "$step" ] || [ "$step" = "0.0.0" ]; then
                 continue
             fi
-            rook_upgrade_addon_fetch_step "rook" "$step"
+            if ! rook_upgrade_addon_fetch_step "rook" "$step" ; then
+                return 1
+            fi
         done <<< "$(rook_upgrade_step_versions "ROOK_STEP_VERSIONS" "$from_version" "$to_version")"
     fi
 
@@ -193,11 +201,11 @@ function rook_upgrade_addon_fetch() {
 # rook_upgrade_addon_fetch_step will fetch an individual add-on version.
 function rook_upgrade_addon_fetch_step() {
     local addon="$1"
-    local version="$1"
+    local version="$2"
 
     if ! addon_exists "$addon" "$version" ; then
-        logFail "Rook version $step not found"
-        return
+        logFail "Rook version $version not found"
+        return 1
     fi
 
     if [ "$AIRGAP" = "1" ]; then
@@ -205,7 +213,9 @@ function rook_upgrade_addon_fetch_step() {
             return 1
         fi
     else
-        addon_fetch "$addon" "$version"
+        if ! addon_fetch "$addon" "$version" ; then
+            return 1
+        fi
     fi
 }
 

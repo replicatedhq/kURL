@@ -19,7 +19,7 @@ function addon_install() {
     if addon_has_been_applied $name && [ -z "$FORCE_REAPPLY_ADDONS" ]; then
         export REPORTING_CONTEXT_INFO="addon already applied $name $version"
         # shellcheck disable=SC1090
-        . $DIR/addons/$name/$version/install.sh
+        addon_source "$name" "$version"
 
         if commandExists ${name}_already_applied; then
             ${name}_already_applied
@@ -28,7 +28,7 @@ function addon_install() {
     else
         export REPORTING_CONTEXT_INFO="addon $name $version"
         # shellcheck disable=SC1090
-        . $DIR/addons/$name/$version/install.sh
+        addon_source "$name" "$version"
         # containerd is a special case because there is also a binary named containerd on the host
         if [ "$name" = "containerd" ]; then
             containerd_install
@@ -69,7 +69,7 @@ function addon_fetch() {
         fi
     fi
 
-    . $DIR/addons/$name/$version/install.sh
+    addon_source "$name" "$version"
 }
 
 function addon_pre_init() {
@@ -124,6 +124,8 @@ function addon_join() {
 }
 
 function addon_exists() {
+    local name=$1
+    local version=$2
     [ -d "$DIR/addons/$name/$version" ]
 }
 
@@ -287,7 +289,14 @@ function addon_fetch_airgap() {
     printf "Unpacking %s %s...\n" "$name" "$version"
     tar xf "$(package_filepath "${package}")"
 
-    . $DIR/addons/$name/$version/install.sh
+    addon_source "$name" "$version"
 
     return 0
+}
+
+function addon_source() {
+    local name=$1
+    local version=$2
+    # shellcheck disable=SC1090
+    . "$DIR/addons/$name/$version/install.sh"
 }
