@@ -154,6 +154,28 @@ function update_available_versions() {
     fi
 }
 
+function generate_step_versions() {
+    local steps=()
+    local version=
+    local max_minor=0
+    while read -r version; do
+        if ! echo "$version" | grep -Eq '[[:digit:]]+\.[[:digit:]]+\.[[:digit:]]+' ; then
+            continue
+        fi
+        local step_minor=
+        step_minor="$(echo "$version" | cut -d. -f2)"
+        steps[$step_minor]="$version"
+        ((step_minor > max_minor)) && max_minor="$step_minor"
+    done <<< "$(find ../ -maxdepth 1 -type d -printf '%P\n' | sort -V)"
+    for (( version=0; version <= max_minor; version++ )); do
+        [ "${steps[version]+abc}" ] && continue
+        steps[$version]="0.0.0"
+    done
+
+    sed -i 's|^STEP_VERSIONS=(.*|STEP_VERSIONS=('"${steps[*]}"')|' ../../../hack/testdata/manifest/clean
+    sed -i 's|^STEP_VERSIONS=(.*|STEP_VERSIONS=('"${steps[*]}"')|' ../../../scripts/Manifest
+}
+
 function main() {
     VERSIONS=("$@")
     if [ ${#VERSIONS[@]} -eq 0 ]; then
@@ -167,6 +189,8 @@ function main() {
     echo "::set-output name=kubernetes_version::${VERSIONS[*]}"
 
     update_available_versions
+
+    generate_step_versions
 }
 
 main "$@"
