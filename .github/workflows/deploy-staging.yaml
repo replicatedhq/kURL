@@ -21,7 +21,7 @@ jobs:
     - id: set-tag
       run: |
         git fetch --tags -f
-        export VERSION_TAG=$(git tag | grep '^v20' | grep -v 'v2022\.09\.04' | sort | tail -1)-dirty
+        export VERSION_TAG=$(git tag | grep '^v20' | sort | tail -1)-$(git rev-parse --short HEAD)
         echo "::set-output name=version_tag::${VERSION_TAG}"
 
   kurl-util-image:
@@ -192,6 +192,7 @@ jobs:
         VERSION_TAG: ${{ needs.get-tag.outputs.version_tag }}
       run: |
         REF="STAGING-release-${VERSION_TAG}-$(date '+%Y%m%d%H%M%S')"
+        sed -i "s/installerVersion: \"\"/installerVersion: \"${VERSION_TAG}\"/g" ./testgrid/specs/deploy.yaml
         docker pull replicated/tgrun:latest
         docker run --rm -e TESTGRID_API_TOKEN -v `pwd`:/wrk -w /wrk \
           replicated/tgrun:latest queue --staging \

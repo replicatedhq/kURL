@@ -14,7 +14,7 @@ jobs:
         name: Build image matrix
         run: |
           git fetch --tags -f
-          export VERSION_TAG=$(git tag | grep '^v20' | grep -v 'v2022\.09\.04' | sort | tail -1)-dirty
+          export VERSION_TAG=$(git tag | grep '^v20' | sort | tail -1)-$(git rev-parse --short HEAD)
           export KURL_UTIL_IMAGE=replicated/kurl-util:${VERSION_TAG}
           export KURL_BIN_UTILS_FILE=kurl-bin-utils-${VERSION_TAG}.tar.gz
           export KURL_BIN_UTILS_FILE_LATEST=kurl-bin-utils-latest.tar.gz
@@ -44,7 +44,7 @@ jobs:
           BATCH: ${{ matrix.batch }}
         run: |
           git fetch --tags -f
-          export VERSION_TAG=$(git tag | grep '^v20' | grep -v 'v2022\.09\.04' | sort | tail -1)-dirty
+          export VERSION_TAG=$(git tag | grep '^v20' | sort | tail -1)-$(git rev-parse --short HEAD)
           export KURL_UTIL_IMAGE=replicated/kurl-util:${VERSION_TAG}
 
           failed_pkgs=
