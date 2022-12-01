@@ -665,6 +665,10 @@ test-shell: ## Run tests for code in shell. (Requires shUnit2 to be installed).
 	./scripts/common/test/common-test.sh
 	./addons/rook/template/test/install.sh
 	./scripts/common/test/common-test.sh
+	./scripts/common/test/discover-test.sh
+	./scripts/common/test/docker-version-test.sh
+	./scripts/common/test/ip-address-test.sh
+	./scripts/common/test/semver-test.sh
 
 ##@ Release
 
