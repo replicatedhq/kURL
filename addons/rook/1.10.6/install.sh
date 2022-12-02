@@ -128,8 +128,8 @@ function rook_operator_crds_deploy() {
     # command will return errors due to updates from Kubernetes’ v1beta1 Custom Resource
     # Definitions. The error will contain text similar to ... spec.preserveUnknownFields: Invalid
     # value....
-    if ! kubectl apply -f "$dst/crds.yaml" ; then
-        kubectl replace -f "$dst/crds.yaml"
+    if ! kubectl apply -f "$dst/crds.yaml" 2>/dev/null ; then
+        kubectl replace --save-config -f "$dst/crds.yaml"
         kubectl apply -f "$dst/crds.yaml"
     fi
 }
@@ -157,12 +157,6 @@ function rook_operator_deploy() {
     # upgrade first before applying auth_allow_insecure_global_id_reclaim policy
     rook_maybe_auth_allow_insecure_global_id_reclaim
 
-    # disable bluefs_buffered_io for rook ge 1.8.x
-    # See:
-    #   - https://github.com/rook/rook/issues/10160#issuecomment-1168303067
-    #   - https://tracker.ceph.com/issues/54019
-    rook_maybe_bluefs_buffered_io
-
     kubectl -n rook-ceph apply -k "$dst/"
 }
 
@@ -180,19 +174,23 @@ function rook_cluster_deploy() {
 
     # conditional cephfs
     if [ "${ROOK_SHARED_FILESYSTEM_DISABLED}" != "1" ]; then
-        insert_resources "$dst/kustomization.yaml" cephfs-storageclass.yaml
-        insert_resources "$dst/kustomization.yaml" filesystem.yaml
-        insert_patches_strategic_merge "$dst/kustomization.yaml" patches/cephfs-storageclass.yaml
-        insert_patches_strategic_merge "$dst/kustomization.yaml" patches/filesystem.yaml
+        mkdir -p "$dst/cephfs"
+        touch "$dst/cephfs/kustomization.yaml"
+        insert_resources "$dst/cephfs/kustomization.yaml" cephfs-storageclass.yaml
+        insert_resources "$dst/cephfs/kustomization.yaml" filesystem.yaml
+        insert_patches_strategic_merge "$dst/cephfs/kustomization.yaml" patches/cephfs-storageclass.yaml
+        insert_patches_strategic_merge "$dst/cephfs/kustomization.yaml" patches/filesystem.yaml
 
         # MDS pod anti-affinity rules prevent them from co-scheduling on single-node installations
         local ready_node_count
         ready_node_count="$(kubectl get nodes --no-headers 2>/dev/null | grep -c ' Ready')"
         if [ "$ready_node_count" -le "1" ]; then
-            insert_patches_strategic_merge "$dst/kustomization.yaml" patches/filesystem-singlenode.yaml
+            insert_patches_strategic_merge "$dst/cephfs/kustomization.yaml" patches/filesystem-singlenode.yaml
         fi
 
-        insert_patches_json_6902 "$dst/kustomization.yaml" patches/filesystem-Json6902.yaml ceph.rook.io v1 CephFilesystem rook-shared-fs rook-ceph
+        insert_patches_json_6902 "$dst/cephfs/kustomization.yaml" patches/filesystem-Json6902.yaml ceph.rook.io v1 CephFilesystem rook-shared-fs rook-ceph
+
+        insert_resources "$dst/kustomization.yaml" cephfs
     fi
 
     # patches
@@ -205,9 +203,14 @@ function rook_cluster_deploy() {
 
     # Don't redeploy cluster - ekco may have made changes based on num of nodes in cluster
     # This must come after the yaml is rendered as it relies on dst.
-    if kubectl -n rook-ceph get cephcluster rook-ceph >/dev/null 2>&1 ; then
+    if kubernetes_resource_exists rook-ceph cephcluster rook-ceph ; then
         echo "Cluster rook-ceph already deployed"
         rook_cluster_deploy_upgrade
+
+        # if we are enabling the shared filesystem for the first time, we need to create the filesystem
+        if [ "${ROOK_SHARED_FILESYSTEM_DISABLED}" != "1" ] && ! kubernetes_resource_exists rook-ceph cephfilesystem rook-shared-fs ; then
+            kubectl -n rook-ceph apply -k "$dst/cephfs/"
+        fi
         return 0
     fi
 
@@ -250,11 +253,13 @@ function rook_cluster_deploy_upgrade() {
         bail "Refusing to update cluster rook-ceph, Ceph is not healthy"
     fi
 
-    # When upgrading we need both MDS pods and anti-affinity rules prevent them from co-scheduling on single-node installations
-    local ready_node_count
-    ready_node_count="$(kubectl get nodes --no-headers 2>/dev/null | grep -c ' Ready')"
-    if [ "$ready_node_count" -le "1" ]; then
-        rook_cephfilesystem_patch_singlenode
+    if kubernetes_resource_exists rook-ceph cephfilesystem rook-shared-fs ; then
+        # When upgrading we need both MDS pods and anti-affinity rules prevent them from co-scheduling on single-node installations
+        local ready_node_count
+        ready_node_count="$(kubectl get nodes --no-headers 2>/dev/null | grep -c ' Ready')"
+        if [ "$ready_node_count" -le "1" ]; then
+            rook_cephfilesystem_patch_singlenode
+        fi
     fi
 
     # https://rook.io/docs/rook/v1.6/ceph-upgrade.html#ceph-version-upgrades
@@ -521,17 +526,6 @@ function rook_should_fail_install() {
     return 1
 }
 
-function rook_maybe_bluefs_buffered_io() {
-    local dst="${DIR}/kustomize/rook/operator"
-
-    semverParse "$ROOK_VERSION"
-    local rook_major_version="$major"
-    local rook_minor_version="$minor"
-    if [ "$rook_major_version" = "1" ] && [ "$rook_minor_version" -ge "8" ]; then
-        sed -i "/\[global\].*/a\    bluefs_buffered_io = false" "$dst/configmap-rook-config-override.yaml"
-    fi
-}
-
 function rook_maybe_auth_allow_insecure_global_id_reclaim() {
     local dst="${DIR}/kustomize/rook/operator"
 
@@ -586,6 +580,13 @@ function rook_should_auth_allow_insecure_global_id_reclaim() {
 }
 
 function rook_detect_ceph_version() {
+    local ceph_version=
+    ceph_version="$(kubectl -n rook-ceph get cephcluster rook-ceph -o jsonpath='{.status.version.version}' 2>/dev/null | awk -F'-' '{ print $1 }')"
+    if [ -n "$ceph_version" ]; then
+        echo "$ceph_version"
+        return
+    fi
+    # if cephcluster not found, try to detect ceph version from the metadata
     kubectl -n rook-ceph get deployment rook-ceph-mgr-a -o jsonpath='{.metadata.labels.ceph-version}' 2>/dev/null | awk -F'-' '{ print $1 }'
 }
 

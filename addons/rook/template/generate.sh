@@ -38,14 +38,14 @@ function generate() {
     insert_resources "${dir}/operator/kustomization.yaml" "toolbox.yaml"
 
     # download cluster resources
-    curl -fsSL -o "${dir}/cluster/cephfs-storageclass.yaml" "${github_content_url}/deploy/examples/csi/cephfs/storageclass.yaml"
+    curl -fsSL -o "${dir}/cluster/cephfs/cephfs-storageclass.yaml" "${github_content_url}/deploy/examples/csi/cephfs/storageclass.yaml"
     # change CephFilesystem name from myfs to rook-shared-fs
-    sed -i 's/myfs/rook-shared-fs/g' "${dir}/cluster/cephfs-storageclass.yaml"
+    sed -i 's/myfs/rook-shared-fs/g' "${dir}/cluster/cephfs/cephfs-storageclass.yaml"
     curl -fsSL -o "${dir}/cluster/cluster.yaml" "${github_content_url}/deploy/examples/cluster.yaml"
     insert_resources "${dir}/cluster/kustomization.yaml" "cluster.yaml"
-    curl -fsSL -o "${dir}/cluster/filesystem.yaml" "${github_content_url}/deploy/examples/filesystem.yaml"
+    curl -fsSL -o "${dir}/cluster/cephfs/filesystem.yaml" "${github_content_url}/deploy/examples/filesystem.yaml"
     # change CephFilesystem name from myfs to rook-shared-fs
-    sed -i 's/myfs/rook-shared-fs/g' "${dir}/cluster/filesystem.yaml"
+    sed -i 's/myfs/rook-shared-fs/g' "${dir}/cluster/cephfs/filesystem.yaml"
     curl -fsSL -o "${dir}/cluster/object.yaml" "${github_content_url}/deploy/examples/object.yaml"
     insert_resources "${dir}/cluster/kustomization.yaml" "object.yaml"
     curl -fsSL -o "${dir}/cluster/tmpl-rbd-storageclass.yaml" "${github_content_url}/deploy/examples/csi/rbd/storageclass.yaml"
