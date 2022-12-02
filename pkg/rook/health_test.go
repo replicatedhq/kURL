@@ -15,10 +15,11 @@ import (
 
 func Test_isStatusHealthy(t *testing.T) {
 	tests := []struct {
-		name    string
-		status  []byte
-		health  bool
-		message string
+		name         string
+		status       []byte
+		ignoreChecks []string
+		health       bool
+		message      string
 	}{
 		{
 			name:    "healthy ceph",
@@ -80,6 +81,25 @@ func Test_isStatusHealthy(t *testing.T) {
 			health:  true,
 			message: "",
 		},
+		{
+			name:    "pool(s) have non-power-of-two pg_num is not unhealthy",
+			status:  testfiles.PoolPgNumNotPowerOfTwoCephStatus,
+			health:  true,
+			message: "",
+		},
+		{
+			name:    "HYPOTHETICAL_CHECK is unhealthy",
+			status:  testfiles.HypotheticalCheckHealthWarnCephStatus,
+			health:  false,
+			message: "health is HEALTH_WARN because \"some warning\"",
+		},
+		{
+			name:         "ignore HYPOTHETICAL_CHECK is not unhealthy",
+			status:       testfiles.HypotheticalCheckHealthWarnCephStatus,
+			health:       true,
+			message:      "",
+			ignoreChecks: []string{"HYPOTHETICAL_CHECK"},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -88,7 +108,7 @@ func Test_isStatusHealthy(t *testing.T) {
 			err := json.Unmarshal(tt.status, &cephStatus)
 			req.NoError(err)
 
-			gotHealth, gotMessage := isStatusHealthy(cephStatus)
+			gotHealth, gotMessage := isStatusHealthy(cephStatus, tt.ignoreChecks)
 			req.Equal(tt.health, gotHealth)
 			req.Equal(tt.message, gotMessage)
 		})

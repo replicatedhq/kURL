@@ -1,0 +1,146 @@
+{
+  "fsid": "79d8caa6-3023-4754-9bac-ba8dee7cd6bb",
+  "health": {
+    "status": "HEALTH_WARN",
+    "checks": {
+      "POOL_PG_NUM_NOT_POWER_OF_TWO": {
+        "severity": "HEALTH_WARN",
+        "summary": {
+          "message": "7 pool(s) have non-power-of-two pg_num"
+        },
+        "detail": [
+          {
+            "message": "pool 'replicapool' pg_num 100 is not a power of two"
+          },
+          {
+            "message": "pool 'rook-ceph-store.rgw.control' pg_num 100 is not a power of two"
+          },
+          {
+            "message": "pool 'rook-ceph-store.rgw.meta' pg_num 100 is not a power of two"
+          },
+          {
+            "message": "pool 'rook-ceph-store.rgw.log' pg_num 100 is not a power of two"
+          },
+          {
+            "message": "pool 'rook-ceph-store.rgw.buckets.index' pg_num 100 is not a power of two"
+          },
+          {
+            "message": "pool '.rgw.root' pg_num 100 is not a power of two"
+          },
+          {
+            "message": "pool 'rook-ceph-store.rgw.buckets.data' pg_num 100 is not a power of two"
+          }
+        ]
+      }
+    },
+    "mutes": []
+  },
+  "election_epoch": 17,
+  "quorum": [
+    0
+  ],
+  "quorum_names": [
+    "a"
+  ],
+  "quorum_age": 1253,
+  "monmap": {
+    "epoch": 2,
+    "min_mon_release_name": "octopus",
+    "num_mons": 1
+  },
+  "osdmap": {
+    "epoch": 562,
+    "num_osds": 1,
+    "num_up_osds": 1,
+    "osd_up_since": 1660921258,
+    "num_in_osds": 1,
+    "osd_in_since": 1660920042,
+    "num_remapped_pgs": 0
+  },
+  "pgmap": {
+    "pgs_by_state": [
+      {
+        "state_name": "active+clean",
+        "count": 113
+      }
+    ],
+    "num_pgs": 113,
+    "num_pools": 9,
+    "num_objects": 442,
+    "data_bytes": 663156793,
+    "bytes_used": 1756561408,
+    "bytes_avail": 104543879168,
+    "bytes_total": 106300440576,
+    "read_bytes_sec": 341,
+    "write_bytes_sec": 2047,
+    "read_op_per_sec": 0,
+    "write_op_per_sec": 0
+  },
+  "fsmap": {
+    "epoch": 1,
+    "by_rank": [],
+    "up:standby": 0
+  },
+  "mgrmap": {
+    "available": true,
+    "num_standbys": 0,
+    "modules": [
+      "dashboard",
+      "iostat",
+      "prometheus",
+      "restful",
+      "rook"
+    ],
+    "services": {
+      "dashboard": "http://rook-ceph-mgr-a-78cb9698bf-rxqq6:7000/",
+      "prometheus": "http://rook-ceph-mgr-a-78cb9698bf-rxqq6:9283/"
+    }
+  },
+  "servicemap": {
+    "epoch": 17,
+    "modified": "2022-08-19T15:17:20.746691+0000",
+    "services": {
+      "rgw": {
+        "daemons": {
+          "summary": "",
+          "rook.ceph.store.a": {
+            "start_epoch": 15,
+            "start_stamp": "2022-08-19T15:01:00.193033+0000",
+            "gid": 74255,
+            "addr": "10.32.0.7:0/2642159149",
+            "metadata": {
+              "arch": "x86_64",
+              "ceph_release": "octopus",
+              "ceph_version": "ceph version 15.2.8 (bdf3eebcd22d7d0b3dd4d5501bee5bac354d5b55) octopus (stable)",
+              "ceph_version_short": "15.2.8",
+              "container_hostname": "rook-ceph-rgw-rook-ceph-store-a-7b5f8677d9-d7vr2",
+              "container_image": "ceph/ceph:v15.2.8-20201217",
+              "cpu": "Intel(R) Xeon(R) CPU @ 2.20GHz",
+              "distro": "centos",
+              "distro_description": "CentOS Linux 8",
+              "distro_version": "8",
+              "frontend_config#0": "beast port=8080",
+              "frontend_type#0": "beast",
+              "hostname": "laverya-singlenode-rook-demo",
+              "kernel_description": "#21-Ubuntu SMP Fri Aug 5 12:17:08 UTC 2022",
+              "kernel_version": "5.15.0-1016-gcp",
+              "mem_swap_kb": "0",
+              "mem_total_kb": "16382208",
+              "num_handles": "1",
+              "os": "Linux",
+              "pid": "1",
+              "pod_name": "rook-ceph-rgw-rook-ceph-store-a-7b5f8677d9-d7vr2",
+              "pod_namespace": "rook-ceph",
+              "zone_id": "bab00533-5315-45d1-8d6d-9160480dafc0",
+              "zone_name": "rook-ceph-store",
+              "zonegroup_id": "ff0846e2-c328-40ec-9456-9e78ecfad9d1",
+              "zonegroup_name": "rook-ceph-store"
+            },
+            "task_status": {}
+          }
+        }
+      }
+    }
+  },
+  "progress_events": {}
+}
