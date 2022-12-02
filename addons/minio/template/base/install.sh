@@ -28,8 +28,6 @@ function minio_pre_init() {
         if ! minio_has_enough_space_for_fs_migration ; then
             bail "Not enough disk space found for minio migration."
         fi
-
-        exit 0
     fi
 }
 
@@ -405,9 +403,9 @@ function minio_swap_fs_migration_pvs() {
     MINIO_NEW_VOLUME_NAME="$migration_pv"
     MINIO_ORIGINAL_VOLUME_NAME="$minio_pv"
     render_yaml_file_2 "$src/migrate-fs/minio-pvc.yaml" > "$dst/migrate-fs/minio-pvc.yaml"
-    kubectl create --save-config -f "$dst/migrate-fs/minio-pvc.yaml"
+    kubectl create -f "$dst/migrate-fs/minio-pvc.yaml"
     render_yaml_file_2 "$src/migrate-fs/minio-backup-pvc.yaml" > "$dst/migrate-fs/minio-backup-pvc.yaml"
-    kubectl create --save-config -f "$dst/migrate-fs/minio-backup-pvc.yaml"
+    kubectl create -f "$dst/migrate-fs/minio-backup-pvc.yaml"
 }
 
 # minio_swap_fs_migration_hostpaths moves the host path used during the migration to the host path used by the
@@ -468,7 +466,18 @@ function minio_has_enough_space_for_fs_migration() {
         return 0
     fi
     # "$DIR"/bin/kurl cluster check-free-disk-space --debug --openebs-image "$KURL_UTIL_IMAGE" --bigger-than "$MINIO_CLAIM_SIZE" 2>&1
-    /home/ubuntu/kurl cluster check-free-disk-space --debug --openebs-image "$KURL_UTIL_IMAGE" --bigger-than "$MINIO_CLAIM_SIZE" 2>&1
+    /home/ubuntu/kurlbin cluster check-free-disk-space --debug --openebs-image "$KURL_UTIL_IMAGE" --bigger-than "$MINIO_CLAIM_SIZE" 2>&1
+}
+
+
+# minio_pods_are_finished returns 0 when there is no more pods with label app=minio in the minio namespace.
+function minio_pods_are_finished() {
+    local pods_count
+    pods_count=$(kubectl get pods -n "$MINIO_NAMESPACE" -l app=minio 2>/dev/null |wc -l)
+    if [ "$pods_count" -eq "0" ]; then
+        return 0
+    fi
+    return 1
 }
 
 # minio_migrate_fs_backend migrates a minio running with 'fs' backend into the new default backend type (xl). spawns a new
@@ -480,6 +489,18 @@ function minio_migrate_fs_backend() {
     if [ -z "$minio_replicas" ] || [ "$minio_replicas" = "0" ] || ! minio_uses_fs_format ; then
         return
     fi
+
+    # we need to guarantee that the minio is working before starting to migrate. i have seen cases where due to the upgrade
+    # logic some pods take a while to come back up and, especially, receive an ip address. let's first make sure we can
+    # reach minio and then move forward. best case scenario we will move forward immediately, worst case scenario we fail
+    # because we can't reach minio (we would fail anyways).
+    local minio_service_ip
+    minio_service_ip=$(kubectl -n ${MINIO_NAMESPACE} get service minio | tail -n1 | awk '{ print $3}')
+    printf "Awaiting installed minio readiness\n"
+    if ! spinner_until 300 minio_ready "$minio_service_ip" ; then
+        bail "Minio API failed to report healthy"
+    fi
+
 
     local minio_access_key
     minio_access_key=$(kubernetes_secret_value "$MINIO_NAMESPACE" minio-credentials MINIO_ACCESS_KEY)
@@ -494,7 +515,7 @@ function minio_migrate_fs_backend() {
     fi
 
     local minio_pod_ip
-    minio_pod_ip=$(kubectl get pods -n "$MINIO_NAMESPACE" -l app=minio --no-headers -o custom-columns=:.status.podIP | head -1)
+    minio_pod_ip=$(kubectl get pods -n "$MINIO_NAMESPACE" -l app=minio --no-headers -o custom-columns=:.status.podIP | grep -v none | head -1)
     if [ -z "$minio_pod_ip" ]; then
         bail "Failed to determine minio pod ip address"
     fi
@@ -531,6 +552,14 @@ function minio_migrate_fs_backend() {
         minio_destroy_fs_migration_deployment
         kubectl scale deployment -n "$MINIO_NAMESPACE" minio --replicas="$minio_replicas"
         bail "Timeout scaling down minio deployment"
+    fi
+
+    # wait until are minio pods have been completely stopped.
+    if ! spinner_until 120 minio_pods_are_finished; then
+        minio_enable_minio_svc
+        minio_destroy_fs_migration_deployment
+        kubectl scale deployment -n "$MINIO_NAMESPACE" minio --replicas="$minio_replicas"
+        bail "Timeout waiting for minio pods to finish"
     fi
 
     if [ -z "$MINIO_HOSTPATH" ]; then
