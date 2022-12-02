@@ -114,9 +114,10 @@ EOF
     if kubernetes_pod_succeeded sync-object-store "$namespace" ; then
         printf "\n${GREEN}Object store data synced successfully${NC}\n"
         kubectl delete pod sync-object-store -n "$namespace" --force --grace-period=0 &> /dev/null
-    else
-        bail "sync-object-store pod failed"
+	return 0
     fi
+
+    return 1
 }
 
 function migrate_rgw_to_minio() {
