@@ -69,4 +69,5 @@ jobs:
         with:
           message: ${{ steps.queue.outputs.message }}
           repo-token: ${{ secrets.GITHUB_TOKEN }}
+          message-id: addon-${{ env.addon }}-${{ env.version }}
           allow-repeats: false
