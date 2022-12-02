@@ -632,8 +632,8 @@ vet: ## Go vet the code
 .PHONY: test
 test: lint vet ## Check the code with linters and vet
 	go test ${BUILDFLAGS} ./cmd/... ./pkg/...
-	## Avoid merge accidentally changes into the scripts/Manifest file
-	cmp --silent ./hack/testdata/manifest/clean ./scripts/Manifest \
+	@## Avoid merge accidentally changes into the scripts/Manifest file
+	@cmp --silent ./hack/testdata/manifest/clean ./scripts/Manifest \
 	&& echo '### SUCCESS: No changes merged on the script/Manifests! ###' \
 	|| (echo '### ERROR: You cannot merge changes on the script manifest!. If you want change the spec please ensure that you also change the ./hack/testdata/manifest/clean file. ###'; exit 1);
 
