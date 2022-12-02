@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"os"
 	"os/signal"
 	"syscall"
 
@@ -76,8 +77,12 @@ func hasEnoughSpace(node string, free, requested int64) (string, bool) {
 // evaluateOpenEBSFreeSpace checks how much space is available in a storage class backed by openEBSLocalProvisioner. biggerThan is
 // used to check if there is enough room in one node (if onNode != "") or in all nodes (onNode == ""). onNode is the node name, image
 // is the image to be used by the openebs disk free checker pod while the biggerThan is expressed in bytes.
-func evaluateOpenEBSFreeSpace(ctx context.Context, kubeCli kubernetes.Interface, image, scname, onNode string, biggerThan int64) error {
+func evaluateOpenEBSFreeSpace(ctx context.Context, kubeCli kubernetes.Interface, image, scname, onNode string, biggerThan int64, debug bool) error {
 	logger := log.New(io.Discard, "", 0)
+	if debug {
+		logger = log.New(os.Stderr, "", 0)
+	}
+
 	freeSpaceGetter, err := clusterspace.NewOpenEBSFreeDiskSpaceGetter(kubeCli, logger, image, scname)
 	if err != nil {
 		return fmt.Errorf("failed to start openebs free space getter: %w", err)
@@ -135,7 +140,12 @@ func evaluateRookFreeSpace(ctx context.Context, kubeCli kubernetes.Interface, ro
 	if free < requested {
 		return fmt.Errorf("not enough space on rook (requested %s, available %s)", requestedString, freeString)
 	}
-	fmt.Printf("Available disk space found in rook: %s\n", freeString)
+
+	message := fmt.Sprintf("Available disk space found in rook: %s", freeString)
+	if requested > 0 {
+		message = fmt.Sprintf("%s (requested %s)", message, requestedString)
+	}
+	fmt.Println(message)
 	return nil
 }
 
@@ -146,10 +156,12 @@ func NewClusterCheckFreeDiskSpaceCmd(cli CLI) *cobra.Command {
 	var clientSet kubernetes.Interface
 	var rookClientSet rookcli.Interface
 	var selectedClass *storagev1.StorageClass
+	var debug bool
 
 	cmd := &cobra.Command{
-		Use:   "check-free-disk-space",
-		Short: "List and analyse the available disk space for a given Storage Class.",
+		Use:          "check-free-disk-space",
+		Short:        "List and analyse the available disk space for a given Storage Class.",
+		SilenceUsage: true,
 		Example: fmt.Sprintf(""+
 			"In the following examples 'openebs' is the name of a storage class backed by the %s storage provisioner while 'rook' is the name of a storage\n"+
 			"class backed by the %s or %s storage provisioners.\n\n"+
@@ -190,6 +202,11 @@ func NewClusterCheckFreeDiskSpaceCmd(cli CLI) *cobra.Command {
 				return fmt.Errorf("failed to create rook client: %w", err)
 			}
 
+			debug, err = cmd.Flags().GetBool("debug")
+			if err != nil {
+				return fmt.Errorf("failed to read persistent debug flag: %w", err)
+			}
+
 			if selectedClass, err = getStorageClassByName(cmd.Context(), clientSet, forStorageClass); err != nil {
 				return err
 			}
@@ -212,7 +229,7 @@ func NewClusterCheckFreeDiskSpaceCmd(cli CLI) *cobra.Command {
 
 			switch selectedClass.Provisioner {
 			case openEBSLocalProvisioner:
-				return evaluateOpenEBSFreeSpace(ctx, clientSet, openEBSImage, selectedClass.Name, openEBSNode, biggerThanBytes)
+				return evaluateOpenEBSFreeSpace(ctx, clientSet, openEBSImage, selectedClass.Name, openEBSNode, biggerThanBytes, debug)
 
 			case rookCephFSProvisioner, rookRBDProvisioner:
 				return evaluateRookFreeSpace(ctx, clientSet, rookClientSet, selectedClass.Name, biggerThanBytes)
