@@ -194,3 +194,8 @@ function current_rook_version() {
         | awk -F':' 'NR==1 { print $3 }' \
         | sed 's/v\([^-]*\).*/\1/'
 }
+
+function current_ceph_version() {
+    kubectl -n rook-ceph get deployment rook-ceph-mgr-a -o jsonpath='{.metadata.labels.ceph-version}' 2>/dev/null \
+        | awk -F'-' '{ print $1 }'
+}

@@ -30,7 +30,7 @@ function rookupgrade_10to14_upgrade() {
         # change the default osd pool size from 3 to 1
         kubectl apply -f "$upgrade_files_path/rook-config-override.yaml"
 
-        kubectl delete crd volumesnapshotclasses.snapshot.storage.k8s.io volumesnapshotcontents.snapshot.storage.k8s.io volumesnapshots.snapshot.storage.k8s.io || true # resources may not be present
+        kubectl delete crd --ignore-not-found volumesnapshotclasses.snapshot.storage.k8s.io volumesnapshotcontents.snapshot.storage.k8s.io volumesnapshots.snapshot.storage.k8s.io
         kubectl -n rook-ceph set image deploy/rook-ceph-operator rook-ceph-operator=rook/ceph:v1.1.9
         kubectl -n rook-ceph set image deploy/rook-ceph-tools rook-ceph-tools=rook/ceph:v1.1.9
         echo "Waiting for Rook 1.1.9 to rollout throughout the cluster, this may take some time"
@@ -41,15 +41,18 @@ function rookupgrade_10to14_upgrade() {
         echo "Upgrading CRDs to Rook 1.1"
         kubectl apply -f "$upgrade_files_path/upgrade-from-v1.0-crds.yaml"
 
-        echo "Upgrading to Ceph 14.2.5"
+        semverCompare "$(current_ceph_version)" "14.2.5"
+        if [ "$SEMVER_COMPARE_RESULT" = "-1" ]; then
+            echo "Upgrading to Ceph 14.2.5"
 
-        kubectl -n rook-ceph patch CephCluster rook-ceph --type=merge -p '{"spec": {"cephVersion": {"image": "ceph/ceph:v14.2.5-20191210"}}}'
-        kubectl patch deployment -n rook-ceph csi-rbdplugin-provisioner -p '{"spec": {"template": {"spec":{"containers":[{"name":"csi-snapshotter","imagePullPolicy":"IfNotPresent"}]}}}}'
-        "$DIR"/bin/kurl rook wait-for-ceph-version "14.2.5"
+            kubectl -n rook-ceph patch CephCluster rook-ceph --type=merge -p '{"spec": {"cephVersion": {"image": "ceph/ceph:v14.2.5-20191210"}}}'
+            kubectl patch deployment -n rook-ceph csi-rbdplugin-provisioner -p '{"spec": {"template": {"spec":{"containers":[{"name":"csi-snapshotter","imagePullPolicy":"IfNotPresent"}]}}}}'
+            "$DIR"/bin/kurl rook wait-for-ceph-version "14.2.5"
 
-        "$DIR"/bin/kurl rook wait-for-health
+            "$DIR"/bin/kurl rook wait-for-health
 
-        echo "Upgraded to Ceph 14.2.5 successfully"
+            echo "Upgraded to Ceph 14.2.5 successfully"
+        fi
 
         logSuccess "Upgraded to Rook 1.1.9 successfully"
     fi

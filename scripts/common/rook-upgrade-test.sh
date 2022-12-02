@@ -14,11 +14,12 @@ function test_rook_upgrade_should_upgrade_rook() {
     assertEquals "1.0.4-14.2.21 to 1.4.9 should succeed" "0" "$(rook_upgrade_should_upgrade_rook "1.0.4-14.2.21" "1.4.9"; echo $?)"
     assertEquals "1.0.4 to patch versions less than 1.4.9 should fail" "1" "$(rook_upgrade_should_upgrade_rook "1.0.4" "1.4.3"; echo $?)"
     assertEquals "failed upgrades on the way to 1.4.9 should succeed" "0" "$(rook_upgrade_should_upgrade_rook "1.3.11" "1.4.9"; echo $?)"
-    assertEquals "1.0.4 to 1.10.6 should succeed" "0" "$(rook_upgrade_should_upgrade_rook "1.0.4" "1.10.6"; echo $?)"
-    assertEquals "1.5.9 to 1.10.6 should succeed" "0" "$(rook_upgrade_should_upgrade_rook "1.5.9" "1.10.6"; echo $?)"
+    assertEquals "1.0.4 to 1.7.11 should succeed" "0" "$(rook_upgrade_should_upgrade_rook "1.0.4" "1.7.11"; echo $?)"
+    assertEquals "1.5.9 to 1.7.11 should succeed" "0" "$(rook_upgrade_should_upgrade_rook "1.5.9" "1.7.11"; echo $?)"
     assertEquals "1.5.9 to 1.5.12 should fail" "1" "$(rook_upgrade_should_upgrade_rook "1.5.9" "1.5.12"; echo $?)"
     assertEquals "1.5.9 to 1.6.11 should fail" "1" "$(rook_upgrade_should_upgrade_rook "1.5.9" "1.6.11"; echo $?)"
     assertEquals "1.5.9 to 1.7.11 should succeed" "0" "$(rook_upgrade_should_upgrade_rook "1.5.9" "1.7.11"; echo $?)"
+    assertEquals "1.5.9 to 1.8.10 should fail" "1" "$(rook_upgrade_should_upgrade_rook "1.5.9" "1.8.10"; echo $?)"
 }
 
 function test_rook_upgrade_list_rook_ceph_images_in_manifest_file() {

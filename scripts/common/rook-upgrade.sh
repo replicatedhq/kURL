@@ -70,12 +70,17 @@ function rook_upgrade_should_upgrade_rook() {
             return 1
         fi
         return 0
-    else
-        # current version must be greater than or equal to desired version - 1 since the add-on itself
-        # can do single version upgrades although this is not true for minor versions less than 4
-        if [ "$current_rook_version_minor" -ge "$((next_rook_version_minor - 1))" ]; then
-            return 1
-        fi
+    fi
+
+    # current version must be greater than or equal to desired version - 1 since the add-on itself
+    # can do single version upgrades although this is not true for minor versions less than 4
+    if [ "$current_rook_version_minor" -ge "$((next_rook_version_minor - 1))" ]; then
+        return 1
+    fi
+
+    # migration not yet supported for minor versions greater than 7
+    if [ "$next_rook_version_minor" -gt "7" ]; then
+        return 1
     fi
 
     return 0
