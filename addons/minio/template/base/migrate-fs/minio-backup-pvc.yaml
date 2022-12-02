@@ -9,4 +9,4 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      storage: ${MINIO_CLAIM_SIZE}
+      storage: ${MINIO_ORIGINAL_CLAIM_SIZE}

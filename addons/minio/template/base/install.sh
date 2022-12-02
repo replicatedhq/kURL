@@ -394,6 +394,11 @@ function minio_swap_fs_migration_pvs() {
     local src="$DIR/addons/minio/__MINIO_DIR_NAME__"
     local dst="$DIR/kustomize/minio"
 
+    MINIO_ORIGINAL_CLAIM_SIZE=$(kubectl get pvc -n "$MINIO_NAMESPACE" minio-pv-claim --no-headers -o custom-columns=:.spec.resources.requests.storage)
+    if [ -z "$MINIO_ORIGINAL_CLAIM_SIZE" ]; then
+        MINIO_ORIGINAL_CLAIM_SIZE="$MINIO_CLAIM_SIZE"
+    fi
+
     kubectl patch pv "$migration_pv" --type=json -p='[{"op": "remove", "path": "/spec/claimRef"}]'
     kubectl delete pvc -n "$MINIO_NAMESPACE" minio-pv-claim
     kubectl patch pv "$minio_pv" --type=json -p='[{"op": "remove", "path": "/spec/claimRef"}]'
