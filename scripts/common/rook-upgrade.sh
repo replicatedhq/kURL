@@ -23,7 +23,8 @@ function rook_upgrade_maybe_report_upgrade_rook() {
 }
 
 # rook_upgrade_should_upgrade_rook checks the currently installed rook version and the desired rook
-# version. If the current version is 1.0-3.x and the desired version is 1.4.9+, returns true.
+# version. If the current version is two minor versions or more less than the desired version, then
+# the function will return true.
 function rook_upgrade_should_upgrade_rook() {
     local current_version="$1"
     local desired_version="$2"
@@ -54,7 +55,7 @@ function rook_upgrade_should_upgrade_rook() {
         return 1
     fi
 
-    # upgrade non needed for minor versions equal
+    # upgrade not needed for minor versions equal
     if [ "$current_rook_version_minor" = "$next_rook_version_minor" ]; then
         return 1
     fi
