@@ -175,7 +175,7 @@ function rook_upgrade_do_rook_upgrade() {
         rook # upgrade to the step version
         ROOK_VERSION="$old_rook_version"
         logSuccess "Upgraded to Rook $step successfully"
-    done <<< "$(rook_upgrade_step_versions "ROOK_STEP_VERSIONS" "$from_version" "$to_version")"
+    done <<< "$(rook_upgrade_step_versions "ROOK_STEP_VERSIONS[@]" "$from_version" "$to_version")"
 }
 
 # rook_upgrade_addon_fetch will fetch all add-on versions from $from_version to $to_version.
@@ -200,7 +200,7 @@ function rook_upgrade_addon_fetch() {
             if ! rook_upgrade_addon_fetch_step "rook" "$step" ; then
                 return 1
             fi
-        done <<< "$(rook_upgrade_step_versions "ROOK_STEP_VERSIONS" "1.4" "$to_version")"
+        done <<< "$(rook_upgrade_step_versions "ROOK_STEP_VERSIONS[@]" "1.4" "$to_version")"
     fi
 
     logSuccess "Images loaded for Rook $from_version to $to_version upgrade"
@@ -249,7 +249,7 @@ function rook_upgrade_prompt_missing_images() {
                 "$images_list" \
                 "$(rook_upgrade_list_rook_ceph_images_in_manifest_file "addons/rook/$step/Manifest")" \
             )"
-        done <<< "$(rook_upgrade_step_versions "ROOK_STEP_VERSIONS" "1.4" "$to_version")"
+        done <<< "$(rook_upgrade_step_versions "ROOK_STEP_VERSIONS[@]" "1.4" "$to_version")"
     fi
 
     if [ -z "$images_list" ]; then
@@ -328,7 +328,7 @@ function rook_upgrade_get_to_version_from_rook_version() {
 # $ROOK_STEP_VERSIONS, for use by other functions.
 # e.g. "1.5.12\n1.6.11\n1.7.11"
 function rook_upgrade_step_versions() {
-    local -n _step_versions=$1
+    declare -a _step_versions=("${!1}")
     local from_version=$2
     local to_version=$3
 

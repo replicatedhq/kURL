@@ -55,11 +55,11 @@ function test_rook_upgrade_is_version_included() {
 function test_rook_upgrade_step_versions() {
     # shellcheck disable=SC2034
     local step_versions=(1.0.4-14.2.21 0.0.0 0.0.0 0.0.0 1.4.9 1.5.12 1.6.11 1.7.11 1.8.10 1.9.12)
-    assertEquals "6 to 6" "1.6.11" "$(rook_upgrade_step_versions "step_versions" "1.6" "1.6")"
-    assertEquals "6 to 9" "$(echo -e "1.6.11\n1.7.11\n1.8.10\n1.9.12")" "$(rook_upgrade_step_versions "step_versions" "1.6" "1.9")"
-    assertEquals "0 to 2" "$(echo -e "1.0.4-14.2.21\n0.0.0\n0.0.0")" "$(rook_upgrade_step_versions "step_versions" "1.0" "1.2")"
-    assertEquals "9 to 10" "1" "$(rook_upgrade_step_versions "step_versions" "1.9" "1.10"; echo $?)"
-    assertEquals "6 to 4" "" "$(rook_upgrade_step_versions "step_versions" "1.6" "1.4")"
+    assertEquals "6 to 6" "1.6.11" "$(rook_upgrade_step_versions "step_versions[@]" "1.6" "1.6")"
+    assertEquals "6 to 9" "$(echo -e "1.6.11\n1.7.11\n1.8.10\n1.9.12")" "$(rook_upgrade_step_versions "step_versions[@]" "1.6" "1.9")"
+    assertEquals "0 to 2" "$(echo -e "1.0.4-14.2.21\n0.0.0\n0.0.0")" "$(rook_upgrade_step_versions "step_versions[@]" "1.0" "1.2")"
+    assertEquals "9 to 10" "1" "$(rook_upgrade_step_versions "step_versions[@]" "1.9" "1.10"; echo $?)"
+    assertEquals "6 to 4" "" "$(rook_upgrade_step_versions "step_versions[@]" "1.6" "1.4")"
 }
 
 function test_rook_upgrade_print_list_of_minor_upgrades() {
