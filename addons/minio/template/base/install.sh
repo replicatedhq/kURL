@@ -24,6 +24,12 @@ function minio_pre_init() {
         if ! confirmN; then
             bail "Not migrating"
         fi
+
+        if ! minio_has_enough_space_for_fs_migration ; then
+            bail "Not enough disk space found for minio migration."
+        fi
+
+        exit 0
     fi
 }
 
@@ -273,13 +279,20 @@ function allow_pvc_resize() {
 }
 
 # minio_ask_user_hostpath_for_migration asks uses for a path to be used during the minio host path migration.
-# this path can't be the same or a subdirectory of MINIO_HOSTPATH.
+# this path can't be the same or a subdirectory of MINIO_HOSTPATH. this function ensures that the migration path
+# has enough space to host the data being migrated over.
 function minio_ask_user_hostpath_for_migration() {
     printf "${YELLOW}\n"
     printf "The Minio deployment is using a host path mount (volume from the node mounted inside the pod). For the\n"
     printf "migration to proceed you must provide the installer with a temporary directory path, this path will be\n"
     printf "used only during the migration and will be freed after.\n"
     printf "${NC}\n"
+
+    local space_needed
+    space_needed=$(du -sB1 "$MINIO_HOSTPATH" | cut -f1)
+    if [ -z "$space_needed" ]; then
+        bail "Failed to calculate how much space is in use by Minio"
+    fi
 
     while true; do
         printf "Temporary migration directory path: "
@@ -306,6 +319,23 @@ function minio_ask_user_hostpath_for_migration() {
             continue
         fi
 
+        printf "Analyzing free disk space on %s\n" "$migration_path"
+        local free_space_cmd_output
+        free_space_cmd_output=$(df -B1 --output=avail "$migration_path" 2>&1)
+
+        local free_space
+        free_space=$(echo "$free_space_cmd_output" | tail -1)
+        if [ -z "$free_space" ]; then
+            printf "Failed to verify the amount of free disk space under %s\n" "$migration_path"
+            printf "Command output:\n%s\n" "$free_space_cmd_output"
+            continue
+        fi
+
+        if [ "$space_needed" -gt "$free_space" ]; then
+            printf "Not enough space to migrate %s bytes from %s to %s" "$space_needed" "$MINIO_HOSTPATH" "$migration_path"
+            continue
+        fi
+
         break
     done
 
@@ -325,7 +355,6 @@ function minio_create_fs_migration_deployment() {
     local dst="$DIR/kustomize/minio/migrate-fs"
 
     if [ -n "$MINIO_HOSTPATH" ]; then
-        minio_ask_user_hostpath_for_migration
         mkdir -p "$dst/hostpath"
         render_yaml_file_2 "$src/hostpath/deployment.yaml" > "$dst/hostpath/deployment.yaml"
         render_yaml_file_2 "$src/hostpath/kustomization.yaml" > "$dst/hostpath/kustomization.yaml"
@@ -430,6 +459,16 @@ function minio_prepare_volumes_for_migration() {
     # set both of the pv retention policies to 'retain'.
     kubectl patch pv -n "$MINIO_NAMESPACE" "$minio_pv" -p '{"spec":{"persistentVolumeReclaimPolicy":"Retain"}}'
     kubectl patch pv -n "$MINIO_NAMESPACE" "$migration_pv" -p '{"spec":{"persistentVolumeReclaimPolicy":"Retain"}}'
+}
+
+# minio_has_enough_space_for_fs_migration verifies if there is enough disk space in the cluster to execute the migration.
+function minio_has_enough_space_for_fs_migration() {
+    if [ -n "$MINIO_HOSTPATH" ]; then
+        minio_ask_user_hostpath_for_migration
+        return 0
+    fi
+    # "$DIR"/bin/kurl cluster check-free-disk-space --debug --openebs-image "$KURL_UTIL_IMAGE" --bigger-than "$MINIO_CLAIM_SIZE" 2>&1
+    /home/ubuntu/kurl cluster check-free-disk-space --debug --openebs-image "$KURL_UTIL_IMAGE" --bigger-than "$MINIO_CLAIM_SIZE" 2>&1
 }
 
 # minio_migrate_fs_backend migrates a minio running with 'fs' backend into the new default backend type (xl). spawns a new
