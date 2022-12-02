@@ -470,8 +470,7 @@ function minio_has_enough_space_for_fs_migration() {
         minio_ask_user_hostpath_for_migration
         return 0
     fi
-    # "$DIR"/bin/kurl cluster check-free-disk-space --debug --openebs-image "$KURL_UTIL_IMAGE" --bigger-than "$MINIO_CLAIM_SIZE" 2>&1
-    /home/ubuntu/kurlbin cluster check-free-disk-space --debug --openebs-image "$KURL_UTIL_IMAGE" --bigger-than "$MINIO_CLAIM_SIZE" 2>&1
+    "$DIR"/bin/kurl cluster check-free-disk-space --debug --openebs-image "$KURL_UTIL_IMAGE" --bigger-than "$MINIO_CLAIM_SIZE" 2>&1
 }
 
 
