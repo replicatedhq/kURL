@@ -330,7 +330,7 @@ function minio_ask_user_hostpath_for_migration() {
         fi
 
         if [ "$space_needed" -gt "$free_space" ]; then
-            printf "Not enough space to migrate %s bytes from %s to %s" "$space_needed" "$MINIO_HOSTPATH" "$migration_path"
+            printf "Not enough space to migrate %s bytes from %s to %s\n" "$space_needed" "$MINIO_HOSTPATH" "$migration_path"
             continue
         fi
 
