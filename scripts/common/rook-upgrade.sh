@@ -122,7 +122,7 @@ function rook_upgrade() {
 
     logStep "Upgrading Rook from $from_version.x to $to_version.x"
     rook_upgrade_print_list_of_minor_upgrades "$from_version" "$to_version"
-    echo "This may take some time"
+    echo "This may take some time."
     if ! rook_upgrade_addon_fetch "$from_version" "$to_version" ; then
         logFail "Cancelling Rook $from_version.x to $to_version.x upgrade"
         return 1
@@ -132,11 +132,12 @@ function rook_upgrade() {
 
     if rook_upgrade_is_version_included "$from_version" "$to_version" "1.4" ; then
         addon_source "rookupgrade" "10to14"
-        rookupgrade_10to14_upgrade
+        rookupgrade_10to14_upgrade "$from_version"
     fi
 
-    if [ "$(rook_upgrade_compare_rook_versions "$from_version" "1.4")" = "1" ]; then
-        rook_upgrade_do_rook_upgrade "$from_version" "$to_version"
+    # if to_version is greater than 1.4, then continue with the upgrade
+    if [ "$(rook_upgrade_compare_rook_versions "$to_version" "1.4")" = "1" ]; then
+        rook_upgrade_do_rook_upgrade "1.4" "$to_version"
     fi
 
     logSuccess "Successfully upgraded Rook from $from_version.x to $to_version.x"
@@ -154,8 +155,13 @@ function rook_upgrade_do_rook_upgrade() {
             continue
         fi
         if ! addon_exists "rook" "$step" ; then
-            continue
+            logFail "Rook version $step not found"
+            return 1
         fi
+        logStep "Upgrading to Rook $step"
+        # temporarily set the ROOK_VERSION since the add-on script relies on it
+        local old_rook_version="$ROOK_VERSION"
+        export ROOK_VERSION="$step"
         # shellcheck disable=SC1090
         addon_source "rook" "$step" # this will override the rook $ROOK_VERSION add-on functions
         if commandExists "rook_should_fail_install" ; then
@@ -167,6 +173,8 @@ function rook_upgrade_do_rook_upgrade() {
         fi
         # NOTE: there is no way to know this is the correct rook version function
         rook # upgrade to the step version
+        ROOK_VERSION="$old_rook_version"
+        logSuccess "Upgraded to Rook $step successfully"
     done <<< "$(rook_upgrade_step_versions "ROOK_STEP_VERSIONS" "$from_version" "$to_version")"
 }
 
@@ -183,7 +191,7 @@ function rook_upgrade_addon_fetch() {
         fi
     fi
 
-    if [ "$(rook_upgrade_compare_rook_versions "$from_version" "1.4")" = "1" ]; then
+    if [ "$(rook_upgrade_compare_rook_versions "$to_version" "1.4")" = "1" ]; then
         local step=
         while read -r step; do
             if [ -z "$step" ] || [ "$step" = "0.0.0" ]; then
@@ -192,7 +200,7 @@ function rook_upgrade_addon_fetch() {
             if ! rook_upgrade_addon_fetch_step "rook" "$step" ; then
                 return 1
             fi
-        done <<< "$(rook_upgrade_step_versions "ROOK_STEP_VERSIONS" "$from_version" "$to_version")"
+        done <<< "$(rook_upgrade_step_versions "ROOK_STEP_VERSIONS" "1.4" "$to_version")"
     fi
 
     logSuccess "Images loaded for Rook $from_version to $to_version upgrade"
@@ -231,7 +239,7 @@ function rook_upgrade_prompt_missing_images() {
         images_list="$(rook_upgrade_list_rook_ceph_images_in_manifest_file "addons/rookupgrade/10to14/Manifest")"
     fi
 
-    if [ "$(rook_upgrade_compare_rook_versions "$from_version" "1.4")" = "1" ]; then
+    if [ "$(rook_upgrade_compare_rook_versions "$to_version" "1.4")" = "1" ]; then
         local step=
         while read -r step; do
             if [ -z "$step" ]; then
@@ -241,7 +249,7 @@ function rook_upgrade_prompt_missing_images() {
                 "$images_list" \
                 "$(rook_upgrade_list_rook_ceph_images_in_manifest_file "addons/rook/$step/Manifest")" \
             )"
-        done <<< "$(rook_upgrade_step_versions "ROOK_STEP_VERSIONS" "$from_version" "$to_version")"
+        done <<< "$(rook_upgrade_step_versions "ROOK_STEP_VERSIONS" "1.4" "$to_version")"
     fi
 
     if [ -z "$images_list" ]; then
@@ -327,7 +335,6 @@ function rook_upgrade_step_versions() {
     # check that both are major version 1
     if  [ "$(rook_upgrade_major_minor_to_major "$from_version")" != "1" ] || \
         [ "$(rook_upgrade_major_minor_to_major "$to_version")" != "1" ] ; then
-
         return 1
     fi
 
@@ -370,7 +377,7 @@ function rook_upgrade_print_list_of_minor_upgrades() {
             printf "1.%s.x to 1.%s" "$minor" "$((minor + 1))"
         fi
     done
-    printf "\n"
+    printf ".\n"
 }
 
 # rook_upgrade_is_version_included returns 0 if the version is included in the range.

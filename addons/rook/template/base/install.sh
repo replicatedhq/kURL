@@ -586,6 +586,13 @@ function rook_should_auth_allow_insecure_global_id_reclaim() {
 }
 
 function rook_detect_ceph_version() {
+    local ceph_version=
+    ceph_version="$(kubectl -n rook-ceph get cephcluster rook-ceph -o jsonpath='{.status.version.version}' 2>/dev/null | awk -F'-' '{ print $1 }')"
+    if [ -n "$ceph_version" ]; then
+        echo "$ceph_version"
+        return
+    fi
+    # if cephcluster not found, try to detect ceph version from the metadata
     kubectl -n rook-ceph get deployment rook-ceph-mgr-a -o jsonpath='{.metadata.labels.ceph-version}' 2>/dev/null | awk -F'-' '{ print $1 }'
 }
 

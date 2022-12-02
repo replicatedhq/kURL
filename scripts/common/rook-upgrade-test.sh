@@ -63,8 +63,8 @@ function test_rook_upgrade_step_versions() {
 }
 
 function test_rook_upgrade_print_list_of_minor_upgrades() {
-    assertEquals "10 to 11" "This involves upgrading from 1.0.x to 1.1" "$(rook_upgrade_print_list_of_minor_upgrades "1.0" "1.1")"
-    assertEquals "10 to 14" "This involves upgrading from 1.0.x to 1.1, 1.1 to 1.2, 1.2 to 1.3, and 1.3 to 1.4" "$(rook_upgrade_print_list_of_minor_upgrades "1.0" "1.4")"
+    assertEquals "10 to 11" "This involves upgrading from 1.0.x to 1.1." "$(rook_upgrade_print_list_of_minor_upgrades "1.0" "1.1")"
+    assertEquals "10 to 14" "This involves upgrading from 1.0.x to 1.1, 1.1 to 1.2, 1.2 to 1.3, and 1.3 to 1.4." "$(rook_upgrade_print_list_of_minor_upgrades "1.0" "1.4")"
 }
 
 function test_rook_upgrade_major_minor_to_major() {
