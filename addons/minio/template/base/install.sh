@@ -484,6 +484,15 @@ function minio_pods_are_finished() {
     return 1
 }
 
+# minio_restore_original_deployment re-enables the original minio service, scales up the original minio deployment and destroy
+# the fs migration deployment.
+function minio_restore_original_deployment() {
+    local minio_replicas="$1"
+    minio_enable_minio_svc || true
+    minio_destroy_fs_migration_deployment || true
+    kubectl scale deployment -n "$MINIO_NAMESPACE" minio --replicas="$minio_replicas" || true
+}
+
 # minio_migrate_fs_backend migrates a minio running with 'fs' backend into the new default backend type (xl). spawns a new
 # minio deployment then copies the object buckets from the old deployment into the new one. this function generates
 # unavailability of the original minio service.
@@ -552,17 +561,13 @@ function minio_migrate_fs_backend() {
     # scale down minio and wait until it is out of service.
     kubectl scale deployment -n "$MINIO_NAMESPACE" minio --replicas=0
     if ! spinner_until 120 deployment_fully_updated minio "$MINIO_NAMESPACE"; then
-        minio_enable_minio_svc
-        minio_destroy_fs_migration_deployment
-        kubectl scale deployment -n "$MINIO_NAMESPACE" minio --replicas="$minio_replicas"
+        minio_restore_original_deployment "$minio_replicas"
         bail "Timeout scaling down minio deployment"
     fi
 
     # wait until are minio pods have been completely stopped.
     if ! spinner_until 120 minio_pods_are_finished; then
-        minio_enable_minio_svc
-        minio_destroy_fs_migration_deployment
-        kubectl scale deployment -n "$MINIO_NAMESPACE" minio --replicas="$minio_replicas"
+        minio_restore_original_deployment "$minio_replicas"
         bail "Timeout waiting for minio pods to finish"
     fi
 
@@ -571,9 +576,7 @@ function minio_migrate_fs_backend() {
         local minio_pv
         minio_pv=$(kubectl get pvc --no-headers -n "$MINIO_NAMESPACE" minio-pv-claim -o custom-columns=:.spec.volumeName)
         if [ -z "$minio_pv" ]; then
-            minio_enable_minio_svc
-            minio_destroy_fs_migration_deployment
-            kubectl -n "$MINIO_NAMESPACE" scale deployment minio --replicas="$minio_replicas"
+            minio_restore_original_deployment "$minio_replicas"
             bail "Failed to find minio pv"
         fi
 
@@ -581,16 +584,12 @@ function minio_migrate_fs_backend() {
         local migration_pv
         migration_pv=$(kubectl get pvc --no-headers -n "$MINIO_NAMESPACE" minio-migrate-fs-backend-pv-claim -o custom-columns=:.spec.volumeName)
         if [ -z "$migration_pv" ]; then
-            minio_enable_minio_svc
-            minio_destroy_fs_migration_deployment
-            kubectl -n "$MINIO_NAMESPACE" scale deployment minio --replicas="$minio_replicas"
+            minio_restore_original_deployment "$minio_replicas"
             bail "Failed to find minio pv"
         fi
 
         if ! minio_prepare_volumes_for_migration "$minio_pv" "$migration_pv" ; then
-            minio_enable_minio_svc
-            minio_destroy_fs_migration_deployment
-            kubectl -n "$MINIO_NAMESPACE" scale deployment minio --replicas="$minio_replicas"
+            minio_restore_original_deployment "$minio_replicas"
             bail "Failed to prepare minio volumes for migration"
         fi
     fi
