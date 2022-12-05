@@ -10,9 +10,9 @@ import (
 	"strings"
 
 	clusterspace "github.com/replicatedhq/kurl/pkg/cluster/space"
-	"github.com/replicatedhq/kurl/pkg/k8sutil"
 	"github.com/replicatedhq/kurl/pkg/version"
 	"github.com/replicatedhq/pvmigrate/pkg/migrate"
+	"github.com/replicatedhq/pvmigrate/pkg/preflight"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
@@ -26,8 +26,8 @@ func main() {
 	defer stop()
 
 	var skipFreeSpaceCheck bool
-	var skipPvAccessModeCheck bool
-	var dryRun bool
+	var skipPreflightValidation bool
+	var preflightValidationOnly bool
 	var opts migrate.Options
 	var printVersion bool
 	flag.StringVar(&opts.SourceSCName, "source-sc", "", "storage provider name to migrate from")
@@ -38,10 +38,10 @@ func main() {
 	flag.BoolVar(&opts.VerboseCopy, "verbose-copy", false, "show output from the rsync command used to copy data between PVCs")
 	flag.BoolVar(&opts.SkipSourceValidation, "skip-source-validation", false, "migrate from PVCs using a particular StorageClass name, even if that StorageClass does not exist")
 	flag.BoolVar(&skipFreeSpaceCheck, "skip-free-space-check", false, "skips the check for storage free space prior to running the migrations")
-	flag.BoolVar(&skipPvAccessModeCheck, "skip-pv-access-mode-check", false, "skips the volume access modes checks prior to running the migrations")
-	flag.BoolVar(&dryRun, "dry-run", false, "run validation checks without running the migrations")
 	flag.BoolVar(&printVersion, "version", false, "Print the version of the client")
-	flag.IntVar(&opts.PodReadyTimeout, "pod-ready-timeout", 90, "length of time to wait (in seconds) for volume validation pod(s) to go into Ready phase")
+	flag.IntVar(&opts.PodReadyTimeout, "pod-ready-timeout", 60, "length of time to wait (in seconds) for volume validation pod(s) to go into Ready phase")
+	flag.BoolVar(&skipPreflightValidation, "skip-preflight-validation", false, "skips pre-migration validation")
+	flag.BoolVar(&preflightValidationOnly, "preflight-validation-only", false, "skip the migration and run preflight validation only")
 
 	flag.Parse()
 
@@ -51,64 +51,40 @@ func main() {
 		os.Exit(0)
 	}
 
-	logger := log.New(os.Stdout, "", 0)
+	logger := log.New(os.Stderr, "", 0)
 	cfg, err := config.GetConfig()
 	if err != nil {
-		logger.Printf("failed to get config: %s\n", err.Error())
-		os.Exit(1)
+		logger.Fatalf("failed to get config: %s\n", err.Error())
 	}
 
 	cli, err := kubernetes.NewForConfig(cfg)
 	if err != nil {
-		logger.Printf("failed to create kubernetes clientset: %s\n", err.Error())
-		os.Exit(1)
+		logger.Fatalf("failed to create kubernetes clientset: %s\n", err.Error())
 	}
 
-	if !skipFreeSpaceCheck || dryRun {
+	if !skipFreeSpaceCheck {
 		if err := checkFreeSpace(ctx, logger, cfg, cli, opts); err != nil {
-			logger.Printf("failed to check cluster free space: %s", err)
-			os.Exit(1)
+			logger.Fatalf("failed to check cluster free space: %s", err)
 		}
 	}
 
-	if !skipPvAccessModeCheck || dryRun {
-		unsupportedPVCs, err := validatePVAccessMode(ctx, logger, cfg, cli, opts)
+	if !skipPreflightValidation {
+		failures, err := preflight.Validate(ctx, logger, cli, opts)
 		if err != nil {
-			logger.Printf("failed to validate access modes for destination storage provider %s: %s", opts.DestSCName, err)
-			os.Exit(1)
+			logger.Fatalf("failed to run preflight validation checks: %s", err)
 		}
 
-		if len(unsupportedPVCs) != 0 {
-			logger.Printf("PVC Access Mode Validation Failed: there are PVCs for storage class %s that cannot be mounted using the destination storage class %s.", opts.SourceSCName, opts.DestSCName)
-			migrate.PrintPVAccessModeErrors(unsupportedPVCs)
-			os.Exit(0)
+		if len(failures) != 0 {
+			preflight.PrintValidationFailures(os.Stdout, failures)
+			os.Exit(1)
 		}
 	}
 
-	if !dryRun {
+	if !preflightValidationOnly {
 		if err = migrate.Migrate(ctx, logger, cli, opts); err != nil {
-			fmt.Printf("%s\n", err.Error())
-			os.Exit(1)
+			logger.Fatalf("%s\n", err.Error())
 		}
 	}
-}
-
-func validatePVAccessMode(ctx context.Context, logger *log.Logger, cfg *rest.Config, cli kubernetes.Interface, opts migrate.Options) (map[string]map[string]migrate.PVCError, error) {
-	pvm, err := migrate.NewPVMigrator(cfg, logger, opts.SourceSCName, opts.DestSCName, opts.PodReadyTimeout)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create PVMigrator type: %s", err)
-	}
-
-	srcPVs, err := k8sutil.PVSByStorageClass(ctx, cli, opts.SourceSCName)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get volumes using storage class %s: %w", opts.SourceSCName, err)
-	}
-	unsupportedPVCs, err := pvm.ValidateVolumeAccessModes(srcPVs)
-	if err != nil {
-		return nil, fmt.Errorf("failed to validate volume access modes for destination storage class %s", opts.DestSCName)
-	}
-
-	return unsupportedPVCs, nil
 }
 
 func checkFreeSpace(ctx context.Context, logger *log.Logger, cfg *rest.Config, cli kubernetes.Interface, opts migrate.Options) error {

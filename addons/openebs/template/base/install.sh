@@ -15,7 +15,7 @@ function openebs_pre_init() {
     export PREVIOUS_OPENEBS_VERSION="$(openebs_get_running_version)"
 
     openebs_bail_unsupported_upgrade
-    prompt_migrate_from_rook
+    openebs_prompt_migrate_from_rook
 }
 
 function openebs() {
@@ -49,61 +49,47 @@ function openebs_maybe_migrate_from_rook() {
     if [ -z "$ROOK_VERSION" ]; then
         if kubectl get ns | grep -q rook-ceph; then
             # show validation errors from pvmigrate
-            # if there are errors, maybe_prompt_migrate_from_rook_dryrun_errors() will bail
-            maybe_prompt_migrate_from_rook_dryrun_errors
-            rook_ceph_to_sc_migration "$OPENEBS_LOCALPV_STORAGE_CLASS"
+            # if there are errors, maybe_rook_to_openebs_migration_checks() will bail
+            maybe_rook_to_openebs_migration_checks
+            rook_ceph_to_sc_migration "$OPENEBS_LOCALPV_STORAGE_CLASS" "1"
             DID_MIGRATE_ROOK_PVCS=1 # used to automatically delete rook-ceph if object store data was also migrated
         fi
     fi
 }
 
-function maybe_prompt_migrate_from_rook_dryrun_errors() {
-    echo "Running Rook to OpenEBS Migration Checks ..."
+function maybe_rook_to_openebs_migration_checks() {
 
     # get the list of StorageClasses that use rook-ceph
     rook_scs=$(kubectl get storageclass | grep rook | grep -v '(default)' | awk '{ print $1}') # any non-default rook StorageClasses
     rook_default_sc=$(kubectl get storageclass | grep rook | grep '(default)' | awk '{ print $1}') # any default rook StorageClasses
 
+    # Ensure openebs-localpv-provisioner deployment is ready
+    printf "awaiting openebs-localpv-provisioner deployment\n"
+    spinner_until 120 deployment_fully_updated openebs openebs-localpv-provisioner
+
+    echo "Running Rook to OpenEBS Migration Checks ..."
     local rook_scs_pvmigrate_dryrun_output
     local rook_default_sc_pvmigrate_dryrun_output
     for rook_sc in $rook_scs
     do
         # run validation checks for non default Rook storage classes
-        rook_scs_pvmigrate_dryrun_output=$($BIN_PVMIGRATE --source-sc "$rook_sc" --dest-sc "$OPENEBS_LOCALPV_STORAGE_CLASS" --dry-run 2>/dev/null)
+        rook_scs_pvmigrate_dryrun_output=$($BIN_PVMIGRATE --source-sc "$rook_sc" --dest-sc "$OPENEBS_LOCALPV_STORAGE_CLASS" --rsync-image "$KURL_UTIL_IMAGE" --preflight-validation-only 2>/dev/null || true)
     done
 
     if [ -n "$rook_default_sc" ] ; then
         # run validation checks for Rook default storage class
-        rook_default_sc_pvmigrate_dryrun_output=$($BIN_PVMIGRATE --source-sc "$rook_default_sc" --dest-sc "$OPENEBS_LOCALPV_STORAGE_CLASS" --dry-run 2>/dev/null)
+        rook_default_sc_pvmigrate_dryrun_output=$($BIN_PVMIGRATE --source-sc "$rook_default_sc" --dest-sc "$OPENEBS_LOCALPV_STORAGE_CLASS" --rsync-image "$KURL_UTIL_IMAGE" --preflight-validation-only 2>/dev/null || true)
     fi
 
     if [ -n "$rook_scs_pvmigrate_dryrun_output" ] || [ -n "$rook_default_sc_pvmigrate_dryrun_output" ] ; then
-        # print warn messages in different color
-        if [[ "$rook_scs_pvmigrate_dryrun_output" != *"------"* ]] || [[ "$rook_default_sc_pvmigrate_dryrun_output" != *"------"* ]] ; then
-            printf "${YELLOW}"
-            printf "\n"
-            printf "$rook_scs_pvmigrate_dryrun_output"
-            printf "\n"
-            printf "$rook_default_sc_pvmigrate_dryrun_output"
-            printf "\n"
-            printf "${NC}"
-            printf "\n"
-            return
-        else
-            printf "${RED}"
-            printf "\n"
-            printf "$rook_scs_pvmigrate_dryrun_output"
-            printf "\n"
-            printf "$rook_default_sc_pvmigrate_dryrun_output"
-            printf "\n"
-            printf "${NC}"
-            printf "\n"
-        fi
+        logFail "$rook_scs_pvmigrate_dryrun_output"
+        logFail "$rook_default_sc_pvmigrate_dryrun_output"
+        
         bail "Cannot upgrade from Rook to OpenEBS due to previous errors."
     fi
 }
 
-function prompt_migrate_from_rook() {
+function openebs_prompt_migrate_from_rook() {
     local ceph_disk_usage_total
     local rook_ceph_exec_deploy=rook-ceph-operator
 
