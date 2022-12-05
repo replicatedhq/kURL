@@ -434,7 +434,8 @@ function minio_swap_fs_migration_hostpaths() {
 # from within the pod.
 function minio_uses_fs_format() {
     # before running this we need to ensure that the minio deployment is fully deployed.
-    if ! spinner_until 120 deployment_fully_updated minio "$MINIO_NAMESPACE"; then
+    printf "Awaiting for minio deployment to rollout\n"
+    if ! spinner_until 600 deployment_fully_updated minio "$MINIO_NAMESPACE"; then
         bail "Timeout awaiting for minio deployment"
     fi
 
