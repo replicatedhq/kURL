@@ -29,6 +29,6 @@ echo "cleaning up old PR files"
 # then filter it for objects with timestamps older than 31 days
 # and then delete those objects older than 31 days
 aws s3api list-objects --bucket "$S3_BUCKET" --prefix 'pr/' --query 'Contents[].{Key: Key, LastModified: LastModified}' | \
-    jq "map(select(.LastModified | .[0:19] + \"Z\" | fromdateiso8601 < $monthAgo)) | .[].Key" | grep -v '"pr/"' \
+    jq "map(select(.LastModified | .[0:19] + \"Z\" | fromdateiso8601 < $monthAgo)) | .[].Key" | grep -v '"pr/"' | \
     xargs -I {} echo "{}"
 #    xargs -I {} aws s3api delete-object --bucket "$S3_BUCKET" --key "{}"
