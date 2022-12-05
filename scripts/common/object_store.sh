@@ -104,7 +104,8 @@ EOF
 
     echo "Waiting up to 2 minutes for sync-object-store pod to start in ${namespace} namespace"
     if ! spinner_until 120 kubernetes_pod_started sync-object-store "$namespace" ; then
-        bail "sync-object-store pod failed to start within 2 minutes"
+        printf "${RED}Failed to start object store migration pod within 2 minutes${NC}\n"
+        return 1
     fi
 
     echo "Waiting up to 30 minutes for sync-object-store pod to complete"
@@ -114,7 +115,7 @@ EOF
     if kubernetes_pod_succeeded sync-object-store "$namespace" ; then
         printf "\n${GREEN}Object store data synced successfully${NC}\n"
         kubectl delete pod sync-object-store -n "$namespace" --force --grace-period=0 &> /dev/null
-	return 0
+        return 0
     fi
 
     return 1
