@@ -11,7 +11,7 @@ function minio_pre_init() {
 
     # verify if we need to migrate away from the deprecated 'fs' format.
     local minio_replicas
-    minio_replicas=$(kubectl get --no-headers deploy minio -n "$MINIO_NAMESPACE" -o custom-columns=:.spec.replicas 2>/dev/null)
+    minio_replicas=$(kubectl get deploy minio -n "$MINIO_NAMESPACE" -o template="{{.spec.replicas}}" 2>/dev/null)
     if [ -n "$minio_replicas" ] && [ "$minio_replicas" != "0" ] && minio_uses_fs_format ; then
         printf "${YELLOW}\n"
         printf "The installer has detected that the cluster is running a version of minio backed by the now legacy FS format.\n"
@@ -368,7 +368,10 @@ function minio_create_fs_migration_deployment() {
     fi
 
     local endpoint
-    endpoint=$(kubectl -n ${MINIO_NAMESPACE} get service minio-migrate-fs-backend | tail -n1 | awk '{ print $3}')
+    endpoint=$(kubectl -n "$MINIO_NAMESPACE" get service minio-migrate-fs-backend -o template="{{.spec.clusterIP}}" 2>/dev/null)
+    if [ -z "$endpoint" ]; then
+        bail "Failed to determine endpoint for the minio migration deployment"
+    fi
 
     printf "Awaiting minio fs migration readiness\n"
     if ! spinner_until 120 minio_ready "$endpoint"; then
@@ -394,7 +397,7 @@ function minio_swap_fs_migration_pvs() {
     local src="$DIR/addons/minio/__MINIO_DIR_NAME__"
     local dst="$DIR/kustomize/minio"
 
-    MINIO_ORIGINAL_CLAIM_SIZE=$(kubectl get pvc -n "$MINIO_NAMESPACE" minio-pv-claim --no-headers -o custom-columns=:.spec.resources.requests.storage)
+    MINIO_ORIGINAL_CLAIM_SIZE=$(kubectl get pvc -n "$MINIO_NAMESPACE" minio-pv-claim -o template="{{.spec.resources.requests.storage}}" 2>/dev/null)
     if [ -z "$MINIO_ORIGINAL_CLAIM_SIZE" ]; then
         MINIO_ORIGINAL_CLAIM_SIZE="$MINIO_CLAIM_SIZE"
     fi
@@ -442,7 +445,7 @@ function minio_uses_fs_format() {
 function minio_svc_has_no_endpoints() {
     local namespace=$1
     local service=$2
-    kubectl get endpoints --no-headers -n "$namespace" "$service" -o custom-columns=:subsets | grep -q none
+    kubectl get endpoints -n "$namespace" "$service" -o template="{{.subsets}}" | grep -q "no value"
 }
 
 # minio_disable_minio_svc disables the minio service by tweaking its service selector.
@@ -476,8 +479,14 @@ function minio_has_enough_space_for_fs_migration() {
 
 # minio_pods_are_finished returns 0 when there is no more pods with label app=minio in the minio namespace.
 function minio_pods_are_finished() {
+    local pods
+    pods="$(kubectl -n "$MINIO_NAMESPACE" get pods --no-headers -l app=minio 2>/dev/null)"
+    if [ "$?" != "0" ]; then
+        return 1
+    fi
+
     local pods_count
-    pods_count=$(kubectl get pods -n "$MINIO_NAMESPACE" -l app=minio 2>/dev/null |wc -l)
+    pods_count="$(echo "$pods" | wc -l)"
     if [ "$pods_count" -eq "0" ]; then
         return 0
     fi
@@ -498,7 +507,7 @@ function minio_restore_original_deployment() {
 # unavailability of the original minio service.
 function minio_migrate_fs_backend() {
     local minio_replicas
-    minio_replicas=$(kubectl get --no-headers deploy minio -n "$MINIO_NAMESPACE" -o custom-columns=:.spec.replicas 2>/dev/null)
+    minio_replicas=$(kubectl get deploy minio -n "$MINIO_NAMESPACE" -o template="{{.spec.replicas}}" 2>/dev/null)
     if [ -z "$minio_replicas" ] || [ "$minio_replicas" = "0" ] || ! minio_uses_fs_format ; then
         return
     fi
@@ -508,7 +517,11 @@ function minio_migrate_fs_backend() {
     # reach minio and then move forward. best case scenario we will move forward immediately, worst case scenario we fail
     # because we can't reach minio (we would fail anyways).
     local minio_service_ip
-    minio_service_ip=$(kubectl -n ${MINIO_NAMESPACE} get service minio | tail -n1 | awk '{ print $3}')
+    minio_service_ip=$(kubectl -n "$MINIO_NAMESPACE" get service minio -o template="{{.spec.clusterIP}}" 2>/dev/null)
+    if [ -z "$minio_service_ip" ]; then
+        bail "Failed to determine minio service ip address"
+    fi
+
     printf "Awaiting installed minio readiness\n"
     if ! spinner_until 300 minio_ready "$minio_service_ip" ; then
         bail "Minio API failed to report healthy"
@@ -528,7 +541,7 @@ function minio_migrate_fs_backend() {
     fi
 
     local minio_pod_ip
-    minio_pod_ip=$(kubectl get pods -n "$MINIO_NAMESPACE" -l app=minio --no-headers -o custom-columns=:.status.podIP | grep -v none | head -1)
+    minio_pod_ip=$(kubectl get pods -n "$MINIO_NAMESPACE" -l app=minio -o template='{{range .items}}{{.status.podIP}}{{"\n"}}{{end}}' | grep -v none | head -1)
     if [ -z "$minio_pod_ip" ]; then
         bail "Failed to determine minio pod ip address"
     fi
@@ -574,7 +587,7 @@ function minio_migrate_fs_backend() {
     if [ -z "$MINIO_HOSTPATH" ]; then
         # get the pv in use by the minio deployment, we gonna need it later on when we swap the pvs.
         local minio_pv
-        minio_pv=$(kubectl get pvc --no-headers -n "$MINIO_NAMESPACE" minio-pv-claim -o custom-columns=:.spec.volumeName)
+        minio_pv=$(kubectl get pvc -n "$MINIO_NAMESPACE" minio-pv-claim -o template="{{.spec.volumeName}}" 2>/dev/null)
         if [ -z "$minio_pv" ]; then
             minio_restore_original_deployment "$minio_replicas"
             bail "Failed to find minio pv"
@@ -582,7 +595,7 @@ function minio_migrate_fs_backend() {
 
         # get the pv in use by the fs migration deployment, we gonna need it later on when we swap the pvs.
         local migration_pv
-        migration_pv=$(kubectl get pvc --no-headers -n "$MINIO_NAMESPACE" minio-migrate-fs-backend-pv-claim -o custom-columns=:.spec.volumeName)
+        migration_pv=$(kubectl get pvc -n "$MINIO_NAMESPACE" minio-pv-claim -o template="{{.spec.volumeName}}" 2>/dev/null)
         if [ -z "$migration_pv" ]; then
             minio_restore_original_deployment "$minio_replicas"
             bail "Failed to find minio pv"
