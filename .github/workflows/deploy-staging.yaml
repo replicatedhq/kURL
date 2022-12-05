@@ -206,7 +206,7 @@ jobs:
   cleanup-s3:
     runs-on: ubuntu-20.04
     needs:
-      - testgrid-run
+      - set-current-version
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -214,7 +214,7 @@ jobs:
 
       - name: cleanup versions in staging S3 more than 30 days old
         run: |
-          bin/cleanup-staging.sh
+          bin/cleanup-staging-s3.sh
         env:
           S3_BUCKET: kurl-sh
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_PROD_ACCESS_KEY_ID }}
