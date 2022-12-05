@@ -486,10 +486,11 @@ function minio_pods_are_finished() {
     fi
 
     local pods_count
-    pods_count="$(echo "$pods" | wc -l)"
+    pods_count="$(echo -n "$pods" | wc -l)"
     if [ "$pods_count" -eq "0" ]; then
         return 0
     fi
+
     return 1
 }
 
@@ -595,7 +596,7 @@ function minio_migrate_fs_backend() {
 
         # get the pv in use by the fs migration deployment, we gonna need it later on when we swap the pvs.
         local migration_pv
-        migration_pv=$(kubectl get pvc -n "$MINIO_NAMESPACE" minio-pv-claim -o template="{{.spec.volumeName}}" 2>/dev/null)
+        migration_pv=$(kubectl get pvc -n "$MINIO_NAMESPACE" minio-migrate-fs-backend-pv-claim -o template="{{.spec.volumeName}}" 2>/dev/null)
         if [ -z "$migration_pv" ]; then
             minio_restore_original_deployment "$minio_replicas"
             bail "Failed to find minio pv"
