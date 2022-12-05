@@ -1708,3 +1708,59 @@
       version: latest
     containerd:
       version: latest
+- id: "Unsure Package Manager (apt get install)"
+  installerSpec:
+    kubernetes:
+      version: latest
+    containerd:
+      version: latest
+    weave:
+      version: latest
+    contour:
+      version: latest
+    rook:
+      version: latest
+    registry:
+      version: latest
+    prometheus:
+      version: latest
+    ekco:
+      version: latest
+    kotsadm:
+      version: latest
+  postInstallScript: |
+    sudo apt update && sudo apt install tree
+  unsupportedOSIDs:
+    - centos-74
+    - centos-79
+    - centos-81
+    - centos-84
+    - ol-79
+    - ol-8x
+- id: "Unsure Package Manager (yum install)"
+  installerSpec:
+    kubernetes:
+      version: latest
+    containerd:
+      version: latest
+    weave:
+      version: latest
+    contour:
+      version: latest
+    rook:
+      version: latest
+    registry:
+      version: latest
+    prometheus:
+      version: latest
+    ekco:
+      version: latest
+    kotsadm:
+      version: latest
+  postInstallScript: |
+    sudo yum update –y && sudo yum install tree -y
+  unsupportedOSIDs:
+    - ubuntu-1804
+    - ubuntu-2004
+    - ubuntu-2204
+
