@@ -68,7 +68,7 @@ function object_store_bucket_exists() {
 
 # migrate_object_store creates a pod that migrates data between two different object stores. receives
 # the namespace, the source and destination addresses, access keys and secret keys. returns once the
-# pos has been finished or a timeout of 5 minutes has been reached.
+# pos has been finished or a timeout of 30 minutes has been reached.
 function migrate_object_store() {
     local namespace=$1
     local source_addr=$2
