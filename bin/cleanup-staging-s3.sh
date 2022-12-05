@@ -6,7 +6,7 @@ require AWS_SECRET_ACCESS_KEY "${AWS_SECRET_ACCESS_KEY}"
 require AWS_REGION "${AWS_REGION}"
 require S3_BUCKET "${S3_BUCKET}"
 
-monthAgo=$(date -v-744H '+%s')
+monthAgo=$(date --date "-744 hour" "+%s")
 
 # get the objects inside versioned staging buckets
 # then filter it for objects with timestamps older than 31 days
