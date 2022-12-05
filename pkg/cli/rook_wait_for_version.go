@@ -72,7 +72,7 @@ func NewRookWaitForCephVersionCmd(cli CLI) *cobra.Command {
 				return fmt.Errorf("failed to wait for Ceph %q: %w", rookVersion, err)
 			}
 
-			fmt.Fprintf(cmd.OutOrStdout(), "\nCeph %q has been rolled out\n", rookVersion)
+			fmt.Fprintf(cmd.OutOrStdout(), "Ceph %q has been rolled out\n", rookVersion)
 			return nil
 		},
 		SilenceUsage: true,
