@@ -433,6 +433,11 @@ function minio_swap_fs_migration_hostpaths() {
 # minio_uses_fs_format verifies if minio uses the legacy fs format. greps the file /data/.minio.sys/format.json
 # from within the pod.
 function minio_uses_fs_format() {
+    # before running this we need to ensure that the minio deployment is fully deployed.
+    if ! spinner_until 120 deployment_fully_updated minio "$MINIO_NAMESPACE"; then
+        bail "Timeout awaiting for minio deployment"
+    fi
+
     local format_string
     format_string=$(kubectl exec -n $MINIO_NAMESPACE deploy/minio -- cat /data/.minio.sys/format.json 2>/dev/null)
     if [ -z "$format_string" ]; then
