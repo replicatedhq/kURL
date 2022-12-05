@@ -64,8 +64,8 @@ function rook() {
 
     # Disable EKCO updates
     # Disallow the EKCO operator from updating Rook custom resources during a Rook upgrade
-    # EKCO will be enabled (i.e. deployment scaled up) again when the EKCO add-on is applied
-    disable_ekco_operator
+    rook_disable_ekco_operator
+    ROOK_DID_DISABLE_EKCO_OPERATOR=1
 
     rook_operator_crds_deploy
     rook_operator_deploy
@@ -100,6 +100,12 @@ function rook() {
     echo "Awaiting rook-ceph object store health"
     if ! spinner_until 120 rook_rgw_is_healthy ; then
         bail "Failed to detect healthy rook-ceph object store"
+    fi
+}
+
+function rook_post_init() {
+    if [ "$ROOK_DID_DISABLE_EKCO_OPERATOR" = "1" ]; then
+        rook_enable_ekco_operator
     fi
 }
 
@@ -153,12 +159,6 @@ function rook_operator_deploy() {
 
     # upgrade first before applying auth_allow_insecure_global_id_reclaim policy
     rook_maybe_auth_allow_insecure_global_id_reclaim
-
-    # disable bluefs_buffered_io for rook ge 1.8.x
-    # See:
-    #   - https://github.com/rook/rook/issues/10160#issuecomment-1168303067
-    #   - https://tracker.ceph.com/issues/54019
-    rook_maybe_bluefs_buffered_io
 
     kubectl -n rook-ceph apply -k "$dst/"
 }
@@ -473,12 +473,19 @@ function rook_should_skip_rook_install() {
     return 1
 }
 
-function disable_ekco_operator() {
-    echo "Rook-preinit: Scaling down EKCO deployment to 0 replicas"
-    if kubernetes_resource_exists kurl deployment ekc-operator; then
-        kubernetes_scale_down "kurl" "deployment" "ekc-operator"
+function rook_disable_ekco_operator() {
+    if kubernetes_resource_exists kurl deployment ekc-operator ; then
+        echo "Scaling down EKCO deployment to 0 replicas"
+        kubernetes_scale_down kurl deployment ekc-operator
         echo "Waiting for ekco pods to be removed"
         spinner_until 120 ekco_pods_gone
+    fi
+}
+
+function rook_enable_ekco_operator() {
+    if kubernetes_resource_exists kurl deployment ekc-operator ; then
+        echo "Scaling up EKCO deployment to 1 replica"
+        kubernetes_scale kurl deployment ekc-operator 1
     fi
 }
 
@@ -505,17 +512,6 @@ function rook_should_fail_install() {
     fi
 
     return 1
-}
-
-function rook_maybe_bluefs_buffered_io() {
-    local dst="${DIR}/kustomize/rook/operator"
-
-    semverParse "$ROOK_VERSION"
-    local rook_major_version="$major"
-    local rook_minor_version="$minor"
-    if [ "$rook_major_version" = "1" ] && [ "$rook_minor_version" -ge "8" ]; then
-        sed -i "/\[global\].*/a\    bluefs_buffered_io = false" "$dst/configmap-rook-config-override.yaml"
-    fi
 }
 
 function rook_maybe_auth_allow_insecure_global_id_reclaim() {
