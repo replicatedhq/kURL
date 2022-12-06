@@ -39,10 +39,7 @@ function prometheus_pods_gone() {
 }
 
 function ekco_pods_gone() {
-    if kubectl -n kurl get pods -l app=ekc-operator 2>/dev/null | grep 'ekc' &>/dev/null ; then
-        return 1
-    fi
-    return 0
+    pods_gone_by_selector kurl app=ekc-operator
 }
 
 function remove_rook_ceph() {

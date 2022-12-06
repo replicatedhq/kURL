@@ -8,17 +8,20 @@ function rookupgrade_10to14_upgrade() {
     # if it is less than or equal we re-apply in cause of a failure mid upgrade
     if [ "$(rook_upgrade_compare_rook_versions "$from_version" "1.1")" != "1" ]; then
         "$DIR"/bin/kurl rook hostpath-to-block
+        "$DIR"/bin/kurl rook wait-for-health
 
         echo "Rescaling pgs per pool"
         # enabling autoscaling at this point doesn't scale down the number of PGs sufficiently in my testing - it will be enabled after installing 1.4.9
-        kubectl -n rook-ceph exec deploy/rook-ceph-tools -- ceph osd pool ls | \
-            grep rook-ceph-store | \
-            xargs -I {} kubectl -n rook-ceph exec deploy/rook-ceph-tools -- \
-            ceph osd pool set {} pg_num 16
-        kubectl -n rook-ceph exec deploy/rook-ceph-tools -- ceph osd pool ls | \
-            grep -v rook-ceph-store | \
-            xargs -I {} kubectl -n rook-ceph exec deploy/rook-ceph-tools -- \
-            ceph osd pool set {} pg_num 32
+        local osd_pools=
+        local non_osd_pools=
+        osd_pools="$(kubectl -n rook-ceph exec deploy/rook-ceph-tools -- ceph osd pool ls | grep rook-ceph-store)"
+        non_osd_pools="$(kubectl -n rook-ceph exec deploy/rook-ceph-tools -- ceph osd pool ls | grep -v rook-ceph-store)"
+        rookupgrade_10to14_scale_down_osd_pool_pg_num "$osd_pools" 16
+        rookupgrade_10to14_scale_down_osd_pool_pg_num "$non_osd_pools" 32
+        # log "Waiting for pool pgs to scale down"
+        # rookupgrade_10to14_osd_pool_wait_for_pg_num "$osd_pools" 16
+        # rookupgrade_10to14_osd_pool_wait_for_pg_num "$non_osd_pools" 32
+
         "$DIR"/bin/kurl rook wait-for-health
 
         logStep "Upgrading to Rook 1.1.9"
@@ -129,4 +132,43 @@ function rookupgrade_10to14_upgrade() {
 
         logSuccess "Upgraded to Rook 1.4.9 successfully"
     fi
+}
+
+# rookupgrade_10to14_scale_down_osd_pool_pg_num will scale a list of pools down to a given pg_num
+function rookupgrade_10to14_scale_down_osd_pool_pg_num() {
+    local pool_names="$1"
+    local pg_num_scale="$2"
+    for pool_name in $pool_names; do
+        local pg_num=
+        pg_num="$(kubectl -n rook-ceph exec deploy/rook-ceph-tools -- \
+            ceph osd pool get "$pool_name" pg_num | awk '{print $2}')"
+        if [ -n "$pg_num" ] && [ "$pg_num_scale" -gt "$pg_num"  ]; then
+            log "Refusing to increase pg_num for pool $pool_name (from $pg_num to $pg_num_scale)"
+            continue
+        fi
+        kubectl -n rook-ceph exec deploy/rook-ceph-tools -- \
+            ceph osd pool set "$pool_name" pg_num "$pg_num_scale"
+    done
+}
+
+# rookupgrade_10to14_osd_pool_wait_for_pg_num waits for a list of pools to have a pg_num less than
+# or equal to the given scale
+function rookupgrade_10to14_osd_pool_wait_for_pg_num() {
+    local pool_names="$1"
+    local pg_num_scale="$2"
+    for pool_name in $pool_names ; do
+        # this takes a really long time
+        spinner_until 1200 rookupgrade_10to14_osd_pool_pg_num_lte "$pool_name" "$pg_num_scale"
+    done
+}
+
+# rookupgrade_10to14_osd_pool_pg_num_lte returns true if the pg_num for a pool is less than or
+# equal to the given value
+function rookupgrade_10to14_osd_pool_pg_num_lte() {
+    local pool_name="$1"
+    local pg_num_scale="$2"
+    local pg_num=
+    pg_num="$(kubectl -n rook-ceph exec deploy/rook-ceph-tools -- \
+        ceph osd pool get "$pool_name" pg_num | awk '{print $2}')"
+    [ -n "$pg_num" ] && [ "$pg_num" -le "$pg_num_scale" ]
 }

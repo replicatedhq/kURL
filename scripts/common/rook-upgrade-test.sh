@@ -32,12 +32,6 @@ function test_rook_upgrade_merge_images_list() {
     assertEquals "trims spaces and removes duplicates" "a b c d" "$(rook_upgrade_merge_images_list " a   b  c d   " " b  d a c d")"
 }
 
-function test_rook_upgrade_get_to_version_from_rook_version() {
-    assertEquals "1.4 => 1.4" "1.4" "$(rook_upgrade_get_to_version_from_rook_version "1.4")"
-    assertEquals "1.11 => 1.10" "1.10" "$(rook_upgrade_get_to_version_from_rook_version "1.11")"
-    assertEquals "2.4 => 2.3" "2.3" "$(rook_upgrade_get_to_version_from_rook_version "2.4")"
-}
-
 function test_rook_upgrade_compare_rook_versions() {
     assertEquals "1.4 is greater than 1.0" "1" "$(rook_upgrade_compare_rook_versions "1.4" "1.0")"
     assertEquals "1.0 is less than 1.4" "-1" "$(rook_upgrade_compare_rook_versions "1.0" "1.4")"

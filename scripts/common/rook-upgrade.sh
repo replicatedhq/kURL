@@ -78,11 +78,6 @@ function rook_upgrade_should_upgrade_rook() {
         return 1
     fi
 
-    # migration not yet supported for minor versions greater than 7
-    if [ "$next_rook_version_minor" -gt "7" ]; then
-        return 1
-    fi
-
     return 0
 }
 
@@ -110,7 +105,7 @@ function rook_upgrade_report_upgrade_rook() {
     from_version="$(rook_upgrade_rook_version_to_major_minor "$current_version")"
 
     local to_version=
-    to_version="$(rook_upgrade_get_to_version_from_rook_version "$desired_version")"
+    to_version="$(rook_upgrade_rook_version_to_major_minor "$desired_version")"
 
     ROOK_UPGRADE_VERSION="v2.0.0" # if you change this code, change the version
     report_addon_start "rook_${from_version}_to_${to_version}" "$ROOK_UPGRADE_VERSION"
@@ -125,6 +120,8 @@ function rook_upgrade_report_upgrade_rook() {
 function rook_upgrade() {
     local from_version="$1"
     local to_version="$2"
+
+    rook_upgrade_disable_ekco_operator
 
     logStep "Upgrading Rook from $from_version.x to $to_version.x"
     rook_upgrade_print_list_of_minor_upgrades "$from_version" "$to_version"
@@ -145,6 +142,8 @@ function rook_upgrade() {
     if [ "$(rook_upgrade_compare_rook_versions "$to_version" "1.4")" = "1" ]; then
         rook_upgrade_do_rook_upgrade "1.4" "$to_version"
     fi
+
+    rook_upgrade_enable_ekco_operator
 
     logSuccess "Successfully upgraded Rook from $from_version.x to $to_version.x"
 }
@@ -310,24 +309,6 @@ function rook_upgrade_list_rook_ceph_images_in_manifest_file() {
         image_list=$image_list" $(canonical_image_name "$image")"
     done
     echo "$image_list" | xargs # trim whitespace
-}
-
-# rook_upgrade_get_to_version_from_rook_version returns the version of Rook that the user is
-# upgrading to minus 1. It will special case rook 1.0 to 1.4 upgrade.
-function rook_upgrade_get_to_version_from_rook_version() {
-    local desired_version="$1"
-    local to_version=
-    to_version="$(rook_upgrade_rook_version_to_major_minor "$desired_version")"
-    if [ "$to_version" != "1.4" ]; then
-        # upgrade to 1 version less than the desired version as the addon_install function will
-        # upgrade to the desired version
-        local to_version_major=
-        local to_version_minor=
-        to_version_major="$(rook_upgrade_major_minor_to_major "$to_version")"
-        to_version_minor="$(rook_upgrade_major_minor_to_minor "$to_version")"
-        to_version="$to_version_major.$((to_version_minor - 1))"
-    fi
-    echo "$to_version"
 }
 
 # rook_upgrade_step_versions returns a list of upgrade steps that need to be performed, based on
@@ -527,5 +508,23 @@ function rook_upgrade_tasks_require_param() {
     local value="$2"
     if [ -z "$value" ]; then
         bail "Error: $param is required"
+    fi
+}
+
+# rook_upgrade_disable_ekco_operator disables the ekco operator if it exists.
+function rook_upgrade_disable_ekco_operator() {
+    if kubernetes_resource_exists kurl deployment ekc-operator ; then
+        echo "Scaling down EKCO deployment to 0 replicas"
+        kubernetes_scale_down kurl deployment ekc-operator
+        echo "Waiting for ekco pods to be removed"
+        spinner_until 120 ekco_pods_gone
+    fi
+}
+
+# rook_upgrade_enable_ekco_operator enables the ekco operator if it exists.
+function rook_upgrade_enable_ekco_operator() {
+    if kubernetes_resource_exists kurl deployment ekc-operator ; then
+        echo "Scaling up EKCO deployment to 1 replica"
+        kubernetes_scale kurl deployment ekc-operator 1
     fi
 }
