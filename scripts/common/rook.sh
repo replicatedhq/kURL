@@ -296,6 +296,8 @@ function rook_10_to_14() {
         confirmY
     fi
 
+    rook_upgrade_disable_ekco_operator
+
     $DIR/bin/kurl rook hostpath-to-block
 
     local upgrade_files_path="$DIR/addons/rookupgrade/10to14"
@@ -401,5 +403,26 @@ function rook_10_to_14() {
     $DIR/bin/kurl rook wait-for-health
 
     logSuccess "Upgraded to Rook 1.4.9 successfully"
+
+    rook_upgrade_enable_ekco_operator
+
     logSuccess "Successfully upgraded Rook-Ceph from 1.0.x to 1.4.x"
+}
+
+# rook_upgrade_disable_ekco_operator disables the ekco operator if it exists.
+function rook_upgrade_disable_ekco_operator() {
+    if kubernetes_resource_exists kurl deployment ekc-operator ; then
+        echo "Scaling down EKCO deployment to 0 replicas"
+        kubernetes_scale_down kurl deployment ekc-operator
+        echo "Waiting for ekco pods to be removed"
+        spinner_until 120 ekco_pods_gone
+    fi
+}
+
+# rook_upgrade_enable_ekco_operator enables the ekco operator if it exists.
+function rook_upgrade_enable_ekco_operator() {
+    if kubernetes_resource_exists kurl deployment ekc-operator ; then
+        echo "Scaling up EKCO deployment to 1 replica"
+        kubernetes_scale kurl deployment ekc-operator 1
+    fi
 }
