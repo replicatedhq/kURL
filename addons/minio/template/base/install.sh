@@ -11,7 +11,7 @@ function minio_pre_init() {
 
     # verify if we need to migrate away from the deprecated 'fs' format.
     local minio_replicas
-    minio_replicas=$(kubectl get deploy minio -n "$MINIO_NAMESPACE" -o template="{{.spec.replicas}}" 2>/dev/null)
+    minio_replicas=$(kubectl get deploy minio -n "$MINIO_NAMESPACE" -o template="{{.spec.replicas}}" 2>/dev/null || true)
     if [ -n "$minio_replicas" ] && [ "$minio_replicas" != "0" ] && minio_uses_fs_format ; then
         printf "${YELLOW}\n"
         printf "The installer has detected that the cluster is running a version of minio backed by the now legacy FS format.\n"
