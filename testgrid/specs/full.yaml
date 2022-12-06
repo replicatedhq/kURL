@@ -1559,6 +1559,8 @@
       version: "latest"
     rook:
       version: "1.0.4"
+    ekco:
+      version: "latest"
     prometheus:
       version: "latest"
     minio:
@@ -1572,6 +1574,8 @@
       version: "latest"
     rook:
       version: "1.5.12"
+    ekco:
+      version: "latest"
     prometheus:
       version: "latest"
     minio:
@@ -1610,6 +1614,8 @@
       version: "latest"
     rook:
       version: "1.0.4"
+    ekco:
+      version: "latest"
     prometheus:
       version: "latest"
     minio:
@@ -1623,6 +1629,8 @@
       version: "latest"
     rook:
       version: "1.5.12"
+    ekco:
+      version: "latest"
     prometheus:
       version: "latest"
     minio:
