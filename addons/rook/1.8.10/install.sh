@@ -39,6 +39,7 @@ function rook_pre_init() {
     fi
 }
 
+ROOK_DID_DISABLE_EKCO_OPERATOR=0
 function rook() {
     local src="${DIR}/addons/rook/${ROOK_VERSION}"
 
@@ -488,22 +489,6 @@ function rook_should_skip_rook_install() {
         fi
     fi
     return 1
-}
-
-function rook_disable_ekco_operator() {
-    if kubernetes_resource_exists kurl deployment ekc-operator ; then
-        echo "Scaling down EKCO deployment to 0 replicas"
-        kubernetes_scale_down kurl deployment ekc-operator
-        echo "Waiting for ekco pods to be removed"
-        spinner_until 120 ekco_pods_gone
-    fi
-}
-
-function rook_enable_ekco_operator() {
-    if kubernetes_resource_exists kurl deployment ekc-operator ; then
-        echo "Scaling up EKCO deployment to 1 replica"
-        kubernetes_scale kurl deployment ekc-operator 1
-    fi
 }
 
 function rook_should_fail_install() {

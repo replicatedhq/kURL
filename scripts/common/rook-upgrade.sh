@@ -121,7 +121,7 @@ function rook_upgrade() {
     local from_version="$1"
     local to_version="$2"
 
-    rook_upgrade_disable_ekco_operator
+    rook_disable_ekco_operator
 
     logStep "Upgrading Rook from $from_version.x to $to_version.x"
     rook_upgrade_print_list_of_minor_upgrades "$from_version" "$to_version"
@@ -143,7 +143,7 @@ function rook_upgrade() {
         rook_upgrade_do_rook_upgrade "1.4" "$to_version"
     fi
 
-    rook_upgrade_enable_ekco_operator
+    rook_enable_ekco_operator
 
     logSuccess "Successfully upgraded Rook from $from_version.x to $to_version.x"
 }
@@ -508,23 +508,5 @@ function rook_upgrade_tasks_require_param() {
     local value="$2"
     if [ -z "$value" ]; then
         bail "Error: $param is required"
-    fi
-}
-
-# rook_upgrade_disable_ekco_operator disables the ekco operator if it exists.
-function rook_upgrade_disable_ekco_operator() {
-    if kubernetes_resource_exists kurl deployment ekc-operator ; then
-        echo "Scaling down EKCO deployment to 0 replicas"
-        kubernetes_scale_down kurl deployment ekc-operator
-        echo "Waiting for ekco pods to be removed"
-        spinner_until 120 ekco_pods_gone
-    fi
-}
-
-# rook_upgrade_enable_ekco_operator enables the ekco operator if it exists.
-function rook_upgrade_enable_ekco_operator() {
-    if kubernetes_resource_exists kurl deployment ekc-operator ; then
-        echo "Scaling up EKCO deployment to 1 replica"
-        kubernetes_scale kurl deployment ekc-operator 1
     fi
 }

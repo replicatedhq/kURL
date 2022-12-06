@@ -42,6 +42,24 @@ function ekco_pods_gone() {
     pods_gone_by_selector kurl app=ekc-operator
 }
 
+# rook_disable_ekco_operator disables the ekco operator if it exists.
+function rook_disable_ekco_operator() {
+    if kubernetes_resource_exists kurl deployment ekc-operator ; then
+        echo "Scaling down EKCO deployment to 0 replicas"
+        kubernetes_scale_down kurl deployment ekc-operator
+        echo "Waiting for ekco pods to be removed"
+        spinner_until 120 ekco_pods_gone
+    fi
+}
+
+# rook_enable_ekco_operator enables the ekco operator if it exists.
+function rook_enable_ekco_operator() {
+    if kubernetes_resource_exists kurl deployment ekc-operator ; then
+        echo "Scaling up EKCO deployment to 1 replica"
+        kubernetes_scale kurl deployment ekc-operator 1
+    fi
+}
+
 function remove_rook_ceph() {
     # make sure there aren't any PVs using rook before deleting it
     all_pv_drivers="$(kubectl get pv -o=jsonpath='{.items[*].spec.csi.driver}')"
