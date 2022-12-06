@@ -439,12 +439,21 @@ function minio_uses_fs_format() {
         bail "Timeout awaiting for minio deployment"
     fi
 
-    local format_string
-    format_string=$(kubectl exec -n $MINIO_NAMESPACE deploy/minio -- cat /data/.minio.sys/format.json 2>/dev/null)
-    if [ -z "$format_string" ]; then
-        bail "Failed to read /data/.miniosys/format.json inside minio pod"
-    fi
-    echo "$format_string" | grep -q '"format":"fs"'
+    printf "Getting Minio storage format\n"
+    for i in $(seq 1 300); do
+        local format_string
+        format_string=$(kubectl exec -n $MINIO_NAMESPACE deploy/minio -- cat /data/.minio.sys/format.json 2>/dev/null)
+        if [ -z "$format_string" ]; then
+            sleep 1
+            continue
+        fi
+
+        if echo "$format_string" | grep -q '"format":"fs"'; then
+            return 0
+        fi
+        return 1
+    done
+    bail "Failed to read /data/.minio.sys/format.json inside minio pod"
 }
 
 # minio_svc_has_no_endpoints validates that the provided service in the provided namespace has no endpoints.
