@@ -96,6 +96,7 @@
 
 # upgrade that changes PVC size
 - name: upgrade minio from latest while increasing PVC claim size
+  flags: "yes"
   installerSpec:
     kubernetes:
       version: "latest"
@@ -132,6 +133,7 @@
 
 # upgrade from 2020-01-25T02-50-51Z
 - name: upgrade minio from 2020-01-25T02-50-51Z
+  flags: "yes"
   installerSpec:
     kubernetes:
       version: "latest"
