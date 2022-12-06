@@ -45,7 +45,7 @@ function rookupgrade_10to14_upgrade() {
         kubectl apply -f "$upgrade_files_path/upgrade-from-v1.0-crds.yaml"
 
         semverCompare "$(current_ceph_version)" "14.2.5"
-        if [ "$SEMVER_COMPARE_RESULT" = "-1" ]; then
+        if [ "$SEMVER_COMPARE_RESULT" != "1" ]; then
             echo "Upgrading to Ceph 14.2.5"
 
             kubectl -n rook-ceph patch CephCluster rook-ceph --type=merge -p '{"spec": {"cephVersion": {"image": "ceph/ceph:v14.2.5-20191210"}}}'
@@ -115,20 +115,23 @@ function rookupgrade_10to14_upgrade() {
         echo "Rook 1.4.9 has been rolled out throughout the cluster"
         "$DIR"/bin/kurl rook wait-for-health
 
-        echo "Upgrading to Ceph 15.2.8"
-        kubectl -n rook-ceph patch CephCluster rook-ceph --type=merge -p '{"spec": {"cephVersion": {"image": "ceph/ceph:v15.2.8-20201217"}}}'
-        "$DIR"/bin/kurl rook wait-for-ceph-version "15.2.8-0"
+        semverCompare "$(current_ceph_version)" "15.2.8"
+        if [ "$SEMVER_COMPARE_RESULT" != "1" ]; then
+            echo "Upgrading to Ceph 15.2.8"
+            kubectl -n rook-ceph patch CephCluster rook-ceph --type=merge -p '{"spec": {"cephVersion": {"image": "ceph/ceph:v15.2.8-20201217"}}}'
+            "$DIR"/bin/kurl rook wait-for-ceph-version "15.2.8-0"
 
-        echo "Enabling pg pool autoscaling"
-        kubectl -n rook-ceph exec deploy/rook-ceph-tools -- ceph osd pool ls | \
-        xargs -I {} kubectl -n rook-ceph exec deploy/rook-ceph-tools -- \
-        ceph osd pool set {} pg_autoscale_mode on
-        echo "Current pg pool autoscaling status:"
-        kubectl -n rook-ceph exec deploy/rook-ceph-tools -- ceph osd pool autoscale-status
+            echo "Enabling pg pool autoscaling"
+            kubectl -n rook-ceph exec deploy/rook-ceph-tools -- ceph osd pool ls | \
+            xargs -I {} kubectl -n rook-ceph exec deploy/rook-ceph-tools -- \
+            ceph osd pool set {} pg_autoscale_mode on
+            echo "Current pg pool autoscaling status:"
+            kubectl -n rook-ceph exec deploy/rook-ceph-tools -- ceph osd pool autoscale-status
 
-        "$DIR"/bin/kurl rook wait-for-health
+            "$DIR"/bin/kurl rook wait-for-health
 
-        echo "Upgraded to Ceph 15.2.8 successfully"
+            echo "Upgraded to Ceph 15.2.8 successfully"
+        fi
 
         logSuccess "Upgraded to Rook 1.4.9 successfully"
     fi

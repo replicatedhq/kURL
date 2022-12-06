@@ -140,7 +140,7 @@ function rook_upgrade() {
 
     # if to_version is greater than 1.4, then continue with the upgrade
     if [ "$(rook_upgrade_compare_rook_versions "$to_version" "1.4")" = "1" ]; then
-        rook_upgrade_do_rook_upgrade "1.4" "$to_version"
+        rook_upgrade_do_rook_upgrade "$(rook_upgrade_max_rook_version "1.4" "$from_version")" "$to_version"
     fi
 
     rook_enable_ekco_operator
@@ -205,7 +205,7 @@ function rook_upgrade_addon_fetch() {
             if ! rook_upgrade_addon_fetch_step "rook" "$step" ; then
                 return 1
             fi
-        done <<< "$(rook_upgrade_step_versions "ROOK_STEP_VERSIONS[@]" "1.4" "$to_version")"
+        done <<< "$(rook_upgrade_step_versions "ROOK_STEP_VERSIONS[@]" "$(rook_upgrade_max_rook_version "1.4" "$from_version")" "$to_version")"
     fi
 
     logSuccess "Images loaded for Rook $from_version to $to_version upgrade"
@@ -254,7 +254,7 @@ function rook_upgrade_prompt_missing_images() {
                 "$images_list" \
                 "$(rook_upgrade_list_rook_ceph_images_in_manifest_file "addons/rook/$step/Manifest")" \
             )"
-        done <<< "$(rook_upgrade_step_versions "ROOK_STEP_VERSIONS[@]" "1.4" "$to_version")"
+        done <<< "$(rook_upgrade_step_versions "ROOK_STEP_VERSIONS[@]" "$(rook_upgrade_max_rook_version "1.4" "$from_version")" "$to_version")"
     fi
 
     if [ -z "$images_list" ]; then
@@ -375,6 +375,17 @@ function rook_upgrade_is_version_included() {
     # if current_version is greater than from_version and current_version is less than or equal to to_version
     [ "$(rook_upgrade_compare_rook_versions "$current_version" "$from_version")" = "1" ] && \
     [ "$(rook_upgrade_compare_rook_versions "$current_version" "$to_version")" != "1" ]
+}
+
+# rook_upgrade_max_rook_version will return the greater of the two versions.
+function rook_upgrade_max_rook_version() {
+    local a="$1"
+    local b="$2"
+    if [ "$(rook_upgrade_compare_rook_versions "$a" "$b")" = "1" ]; then
+        echo "$a"
+    else
+        echo "$b"
+    fi
 }
 
 # rook_upgrade_compare_rook_versions prints 0 if the versions are equal, 1 if the first is greater,

@@ -19,7 +19,6 @@ function test_rook_upgrade_should_upgrade_rook() {
     assertEquals "1.5.9 to 1.5.12 should fail" "1" "$(rook_upgrade_should_upgrade_rook "1.5.9" "1.5.12"; echo $?)"
     assertEquals "1.5.9 to 1.6.11 should fail" "1" "$(rook_upgrade_should_upgrade_rook "1.5.9" "1.6.11"; echo $?)"
     assertEquals "1.5.9 to 1.7.11 should succeed" "0" "$(rook_upgrade_should_upgrade_rook "1.5.9" "1.7.11"; echo $?)"
-    assertEquals "1.5.9 to 1.8.10 should fail" "1" "$(rook_upgrade_should_upgrade_rook "1.5.9" "1.8.10"; echo $?)"
 }
 
 function test_rook_upgrade_list_rook_ceph_images_in_manifest_file() {
@@ -38,6 +37,13 @@ function test_rook_upgrade_compare_rook_versions() {
     assertEquals "1.0 is equal to 1.0" "0" "$(rook_upgrade_compare_rook_versions "1.0" "1.0")"
     assertEquals "2.1 is greater than 1.2" "1" "$(rook_upgrade_compare_rook_versions "2.1" "1.2")"
     assertEquals "1.2 is less than 2.1" "-1" "$(rook_upgrade_compare_rook_versions "1.2" "2.1")"
+}
+
+function test_rook_upgrade_max_rook_version() {
+    assertEquals "1.0 or 1.1 should be 1.1" "1.1" "$(rook_upgrade_max_rook_version "1.0" "1.1")"
+    assertEquals "1.1 or 1.0 should be 1.1" "1.1" "$(rook_upgrade_max_rook_version "1.1" "1.0")"
+    assertEquals "1.0 or 2.0 should be 2.0" "2.0" "$(rook_upgrade_max_rook_version "1.0" "2.0")"
+    assertEquals "1.0 or 1.0 should be 1.0" "1.0" "$(rook_upgrade_max_rook_version "1.0" "1.0")"
 }
 
 function test_rook_upgrade_is_version_included() {
