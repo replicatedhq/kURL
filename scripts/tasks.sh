@@ -69,7 +69,7 @@ function tasks() {
             install_host_dependencies_longhorn $@
             ;;
         rook-10-to-14|rook_10_to_14)
-            rook_upgrade_tasks_rook_upgrade "from-version=1.0" "to-version=1.4"
+            rook_upgrade_tasks_rook_upgrade "to-version=1.4"
             ;;
         rook-10-to-14-images|rook_10_to_14_images)
             rook_upgrade_tasks_load_images "from-version=1.0" "to-version=1.4"

@@ -71,12 +71,14 @@ function test_rook_upgrade_print_list_of_minor_upgrades() {
 function test_rook_upgrade_major_minor_to_major() {
     assertEquals "1.0 to 1" "1" "$(rook_upgrade_major_minor_to_major "1.0")"
     assertEquals "1.2 to 1" "1" "$(rook_upgrade_major_minor_to_major "1.2")"
+    assertEquals "1.2.3 to 1" "1" "$(rook_upgrade_major_minor_to_major "1.2")"
     assertEquals "12.2 to 12" "12" "$(rook_upgrade_major_minor_to_major "12.2")"
 }
 
 function test_rook_upgrade_major_minor_to_minor() {
     assertEquals "1.0 to 0" "0" "$(rook_upgrade_major_minor_to_minor "1.0")"
     assertEquals "1.2 to 2" "2" "$(rook_upgrade_major_minor_to_minor "1.2")"
+    assertEquals "1.2.3 to 2" "2" "$(rook_upgrade_major_minor_to_minor "1.2")"
     assertEquals "12.2 to 2" "2" "$(rook_upgrade_major_minor_to_minor "12.2")"
 }
 
