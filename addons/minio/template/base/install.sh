@@ -376,7 +376,7 @@ function minio_create_fs_migration_deployment() {
     fi
 
     printf "Awaiting minio fs migration readiness\n"
-    if ! spinner_until 120 minio_ready "$endpoint"; then
+    if ! spinner_until 300 minio_ready "$endpoint"; then
         bail "Minio FS Migration API failed to report healthy"
     fi
 
@@ -386,7 +386,7 @@ function minio_create_fs_migration_deployment() {
     fi
 
     printf "Awaiting minio readiness through the temporary service\n"
-    if ! spinner_until 120 minio_ready "$endpoint"; then
+    if ! spinner_until 300 minio_ready "$endpoint"; then
         bail "Minio API failed to report healthy"
     fi
 }
@@ -568,7 +568,7 @@ function minio_migrate_fs_backend() {
     fi
 
     minio_disable_minio_svc
-    if ! spinner_until 120 minio_svc_has_no_endpoints "$MINIO_NAMESPACE" "minio" ; then
+    if ! spinner_until 300 minio_svc_has_no_endpoints "$MINIO_NAMESPACE" "minio" ; then
         minio_enable_minio_svc
         bail "Timeout waiting for minio service to be decomissioned"
     fi
@@ -594,13 +594,13 @@ function minio_migrate_fs_backend() {
 
     # scale down minio and wait until it is out of service.
     kubectl scale deployment -n "$MINIO_NAMESPACE" minio --replicas=0
-    if ! spinner_until 120 deployment_fully_updated minio "$MINIO_NAMESPACE"; then
+    if ! spinner_until 300 deployment_fully_updated minio "$MINIO_NAMESPACE"; then
         minio_restore_original_deployment "$minio_replicas"
         bail "Timeout scaling down minio deployment"
     fi
 
     # wait until are minio pods have been completely stopped.
-    if ! spinner_until 120 minio_pods_are_finished; then
+    if ! spinner_until 300 minio_pods_are_finished; then
         minio_restore_original_deployment "$minio_replicas"
         bail "Timeout waiting for minio pods to finish"
     fi
