@@ -265,7 +265,7 @@ function rook_upgrade_prompt_missing_images() {
 
     local node_missing_images=
     # shellcheck disable=SC2086
-    node_missing_images=$("$DIR"/bin/kurl cluster nodes-missing-images $images_list --exclude_host "$this_hostname")
+    node_missing_images=$("$DIR"/bin/kurl cluster nodes-missing-images --image="$KURL_UTIL_IMAGE" --exclude-host="$this_hostname" $images_list)
     if [ -z "$node_missing_images" ]; then
         return
     fi

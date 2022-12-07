@@ -300,6 +300,9 @@ func (o *OpenEBSFreeDiskSpaceGetter) buildJob(ctx context.Context, node, basePat
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      jobName,
 			Namespace: "default",
+			Labels: map[string]string{
+				"app": "kurl-job-openebs-disk-free",
+			},
 		},
 		Spec: batchv1.JobSpec{
 			BackoffLimit:          pointer.Int32(1),
