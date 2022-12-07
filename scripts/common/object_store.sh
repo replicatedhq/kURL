@@ -102,8 +102,8 @@ spec:
     - --dest_access_key_secret=$destination_secret_key
 EOF
 
-    echo "Waiting up to 2 minutes for sync-object-store pod to start in ${namespace} namespace"
-    if ! spinner_until 120 kubernetes_pod_started sync-object-store "$namespace" ; then
+    echo "Waiting up to 5 minutes for sync-object-store pod to start in ${namespace} namespace"
+    if ! spinner_until 300 kubernetes_pod_started sync-object-store "$namespace" ; then
         printf "${RED}Failed to start object store migration pod within 2 minutes${NC}\n"
         return 1
     fi
