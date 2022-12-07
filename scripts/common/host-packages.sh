@@ -115,15 +115,15 @@ function _dpkg_install_host_packages() {
     fi
 
     # Remove docker packages, if installed to install containerd
-    # It is required because of an bug where the package manager is unable to sort it out and
-    # the installation/upgrade will fails with `dpkg: no, cannot proceed with removal of containerd ... docker.io
-    # depends on containerd (>= 1.2.6-0ubuntu1~)  containerd is to be removed.`
+    # It is required because of an bug where the package manager is unable to sort it out and 
+    # the installation/upgrade will fails with `dpkg: no, cannot proceed with removal of containerd ... docker.io     
+    # depends on containerd (>= 1.2.6-0ubuntu1~)  containerd is to be removed.` 
     # More info: https://bugs.launchpad.net/ubuntu/+source/docker.io/+bug/1940920
-    # https://bugs.launchpad.net/ubuntu/+source/docker.io/+bug/1939140
-    if commandExists docker && [[ "${packages[*]}" == *"containerd.io"* ]]; then
-        # Uninstall docker before install containerd
+    # https://bugs.launchpad.net/ubuntu/+source/docker.io/+bug/1939140       
+    if  commandExists docker && [[ "${packages[*]}" == *"containerd.io"* ]]; then
         logStep "Removing docker packages to install ${packages[*]}..."
-        uninstall_docker
+        export DEBIAN_FRONTEND=noninteractive
+        dpkg --purge docker.io docker-ce docker-ce-cli
     fi
 
     DEBIAN_FRONTEND=noninteractive dpkg --install --force-depends-version --force-confold "${fullpath}"/*.deb

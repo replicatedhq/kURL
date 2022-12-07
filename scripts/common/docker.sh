@@ -108,7 +108,7 @@ function uninstall_docker() {
     case "$LSB_DIST" in
         ubuntu)
             export DEBIAN_FRONTEND=noninteractive
-            dpkg --purge docker.io docker-ce docker-ce-cli
+            dpkg --purge docker-ce docker-ce-cli
             ;;
 
         centos|rhel|amzn|ol)
@@ -128,10 +128,6 @@ function uninstall_docker() {
     rm -f /var/run/docker.sock || true
 
     log "Docker successfully uninstalled."
-
-    if ! commandExists kubectl; then
-        return
-    fi
 
     # With the internal loadbalancer it may take a minute or two after starting kubelet before
     # kubectl commands work
