@@ -22,9 +22,8 @@ function rookupgrade_10to14_upgrade() {
         # rookupgrade_10to14_osd_pool_wait_for_pg_num "$osd_pools" 16
         # rookupgrade_10to14_osd_pool_wait_for_pg_num "$non_osd_pools" 32
 
-        "$DIR"/bin/kurl rook wait-for-health
-
         logStep "Upgrading to Rook 1.1.9"
+        "$DIR"/bin/kurl rook wait-for-health
 
         # first update rbac and other resources for 1.1
         kubectl create --save-config -f "$upgrade_files_path/upgrade-from-v1.0-create.yaml" || true # resources may already be present
@@ -62,6 +61,7 @@ function rookupgrade_10to14_upgrade() {
 
     if [ "$(rook_upgrade_compare_rook_versions "$from_version" "1.2")" != "1" ]; then
         logStep "Upgrading to Rook 1.2.7"
+        "$DIR"/bin/kurl rook wait-for-health
 
         echo "Updating resources for Rook 1.2.7"
         # apply RBAC not contained in the git repo for some reason
@@ -85,6 +85,7 @@ function rookupgrade_10to14_upgrade() {
 
     if [ "$(rook_upgrade_compare_rook_versions "$from_version" "1.3")" != "1" ]; then
         logStep "Upgrading to Rook 1.3.11"
+        "$DIR"/bin/kurl rook wait-for-health
 
         echo "Updating resources for Rook 1.3.11"
         kubectl apply -f "$upgrade_files_path/upgrade-from-v1.2-apply.yaml"
@@ -102,6 +103,7 @@ function rookupgrade_10to14_upgrade() {
 
     if [ "$(rook_upgrade_compare_rook_versions "$from_version" "1.4")" != "1" ]; then
         logStep "Upgrading to Rook 1.4.9"
+        "$DIR"/bin/kurl rook wait-for-health
 
         echo "Updating resources for Rook 1.4.9"
         kubectl delete -f "$upgrade_files_path/upgrade-from-v1.3-delete.yaml"

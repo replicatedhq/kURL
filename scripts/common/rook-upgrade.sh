@@ -87,7 +87,6 @@ function rook_upgrade_prompt() {
     local desired_version="$2"
     logWarn "$(printf "This script will upgrade Rook from %s to %s." "$current_version" "$desired_version")"
     logWarn "Upgrading Rook will take some time and will place additional load on your server."
-    # TODO: my server has a block device but I still see this message
     if ! "$DIR"/bin/kurl rook has-sufficient-blockdevices ; then
         logWarn "In order to complete this migration, you may need to attach a blank disk to each node in the cluster for Rook to use."
     fi
@@ -279,8 +278,8 @@ function rook_upgrade_prompt_missing_images() {
         airgap_flag="airgap"
     fi
 
-    echo "The nodes $node_missing_images appear to be missing images required for the Rook 1.0 to 1.4 migration."
-    echo "Please run the following on each of these nodes before continuing:"
+    printf "The nodes %s appear to be missing images required for the Rook %s to %s migration.\n" "$node_missing_images" "$from_version" "$to_version"
+    printf "Please run the following on each of these nodes before continuing:\n"
     printf "\n\t%b%stasks.sh | sudo bash -s rook-upgrade-load-images from-version=%s to-version=%s %s %b\n\n" \
         "$GREEN" "$prefix" "$from_version" "$to_version" "$airgap_flag" "$NC"
     printf "Are you ready to continue? "
