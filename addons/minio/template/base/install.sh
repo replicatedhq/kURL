@@ -357,6 +357,7 @@ function minio_create_fs_migration_deployment() {
         render_yaml_file_2 "$src/hostpath/deployment.yaml" > "$dst/hostpath/deployment.yaml"
         render_yaml_file_2 "$src/hostpath/kustomization.yaml" > "$dst/hostpath/kustomization.yaml"
         render_yaml_file_2 "$src/hostpath/service.yaml" > "$dst/hostpath/service.yaml"
+        render_yaml_file_2 "$src/hostpath/original-service.yaml" > "$dst/hostpath/original-service.yaml"
         kubectl apply -k "$dst/hostpath/"
     else
         mkdir -p "$dst/pvc"
@@ -364,6 +365,7 @@ function minio_create_fs_migration_deployment() {
         render_yaml_file_2 "$src/pvc/kustomization.yaml" > "$dst/pvc/kustomization.yaml"
         render_yaml_file_2 "$src/pvc/service.yaml" > "$dst/pvc/service.yaml"
         render_yaml_file_2 "$src/pvc/pvc.yaml" > "$dst/pvc/pvc.yaml"
+        render_yaml_file_2 "$src/pvc/original-service.yaml" > "$dst/pvc/original-service.yaml"
         kubectl apply -k "$dst/pvc/"
     fi
 
@@ -376,6 +378,16 @@ function minio_create_fs_migration_deployment() {
     printf "Awaiting minio fs migration readiness\n"
     if ! spinner_until 120 minio_ready "$endpoint"; then
         bail "Minio FS Migration API failed to report healthy"
+    fi
+
+    endpoint=$(kubectl -n "$MINIO_NAMESPACE" get service original-minio -o template="{{.spec.clusterIP}}" 2>/dev/null)
+    if [ -z "$endpoint" ]; then
+        bail "Failed to determine the ip address for the minio temporary service"
+    fi
+
+    printf "Awaiting minio readiness through the temporary service\n"
+    if ! spinner_until 120 minio_ready "$endpoint"; then
+        bail "Minio API failed to report healthy"
     fi
 }
 
@@ -543,7 +555,6 @@ function minio_migrate_fs_backend() {
         bail "Minio API failed to report healthy"
     fi
 
-
     local minio_access_key
     minio_access_key=$(kubernetes_secret_value "$MINIO_NAMESPACE" minio-credentials MINIO_ACCESS_KEY)
     if [ -z "$minio_access_key" ]; then
@@ -554,12 +565,6 @@ function minio_migrate_fs_backend() {
     minio_secret_key=$(kubernetes_secret_value "$MINIO_NAMESPACE" minio-credentials MINIO_SECRET_KEY)
     if [ -z "$minio_secret_key" ]; then
         bail "Failed to read minio access key"
-    fi
-
-    local minio_pod_ip
-    minio_pod_ip=$(kubectl get pods -n "$MINIO_NAMESPACE" -l app=minio -o template='{{range .items}}{{.status.podIP}}{{"\n"}}{{end}}' | grep -v none | head -1)
-    if [ -z "$minio_pod_ip" ]; then
-        bail "Failed to determine minio pod ip address"
     fi
 
     minio_disable_minio_svc
@@ -575,7 +580,7 @@ function minio_migrate_fs_backend() {
 
     if ! migrate_object_store \
         "$MINIO_NAMESPACE" \
-        "$minio_pod_ip:9000" \
+        "original-minio" \
         "$minio_access_key" \
         "$minio_secret_key" \
         "minio-migrate-fs-backend" \
