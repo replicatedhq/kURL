@@ -53,7 +53,7 @@ func NewClusterNodesMissingImageCmd(cli CLI) *cobra.Command {
 
 	cmd.Flags().StringVar(&excludeHost, "exclude-host", "", "A hostname that will be excluded from the output")
 	cmd.Flags().StringVar(&excludeHostDeprecated, "exclude_host", "", "A hostname that will be excluded from the output")
-	cmd.Flags().MarkDeprecated("exclude_host", "use --exclude-host instead")
+	_ = cmd.Flags().MarkDeprecated("exclude_host", "use --exclude-host instead")
 	cmd.Flags().StringVar(&opts.JobImage, "image", cluster.DefaultNodeImagesJobImage, "the image to use to list images - must have 'docker' CLI on the path")
 	cmd.Flags().StringVar(&opts.JobNamespace, "namespace", cluster.DefaultNodeImagesJobNamespace, "the namespace in which to run the discovery job")
 	cmd.Flags().DurationVar(&opts.Timeout, "timeout", cluster.DefaultNodeImagesJobTimeout, "the timeout for the discovery job")
