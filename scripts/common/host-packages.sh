@@ -114,13 +114,6 @@ function _dpkg_install_host_packages() {
         return 0
     fi
 
-    # Remove docker packages, if installed to install containerd
-    if  commandExists docker && [[ "${packages[*]}" == *"containerd.io"* ]]; then
-        logStep "Removing docker packages to install ${packages[*]}..."
-        export DEBIAN_FRONTEND=noninteractive
-        dpkg --purge docker.io docker-ce docker-ce-cli
-    fi
-
     DEBIAN_FRONTEND=noninteractive dpkg --install --force-depends-version --force-confold "${fullpath}"/*.deb
 
     logSuccess "Host packages ${packages[*]} installed"
