@@ -112,7 +112,7 @@ function uninstall_docker() {
             ;;
 
         centos|rhel|amzn|ol)
-            local dockerPackages=("docker-ce" "docker-ce-cli")
+            local dockerPackages=("docker.io", "docker-ce" "docker-ce-cli")
             if rpm -qa | grep -q 'docker-ce-rootless-extras'; then
                 dockerPackages+=("docker-ce-rootless-extras")
             fi
