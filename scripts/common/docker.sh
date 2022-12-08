@@ -128,16 +128,6 @@ function uninstall_docker() {
     rm -f /var/run/docker.sock || true
 
     log "Docker successfully uninstalled."
-
-    if ! commandExists kubectl; then
-        return
-    fi
-
-    # With the internal loadbalancer it may take a minute or two after starting kubelet before
-    # kubectl commands work
-    local node=$(hostname | tr '[:upper:]' '[:lower:]')
-    try_5m kubectl uncordon "$node" --kubeconfig=/etc/kubernetes/kubelet.conf
-
 }
 
 check_docker_storage_driver() {

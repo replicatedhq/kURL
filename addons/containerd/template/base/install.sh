@@ -82,6 +82,15 @@ function containerd_install() {
         # "nodes.v1." is needed becasue addons can have a CRD names "nodes", like nodes.longhorn.io
         try_5m kubectl --kubeconfig=/etc/kubernetes/kubelet.conf get nodes.v1.
     fi
+
+    local node=
+    node="$(get_local_node_name)"
+    # migration from docker to containerd will cordon the node and can leave the node unschedulable
+    if is_node_unschedulable "$node" ; then
+        # With the internal loadbalancer it may take a minute or two after starting kubelet before
+        # kubectl commands work
+        try_5m kubectl uncordon "$node" --kubeconfig=/etc/kubernetes/kubelet.conf
+    fi
 }
 
 function containerd_configure() {

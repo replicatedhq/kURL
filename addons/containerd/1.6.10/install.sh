@@ -82,6 +82,15 @@ function containerd_install() {
         # "nodes.v1." is needed becasue addons can have a CRD names "nodes", like nodes.longhorn.io
         try_5m kubectl --kubeconfig=/etc/kubernetes/kubelet.conf get nodes.v1.
     fi
+
+    local node=
+    node="$(get_local_node_name)"
+    # migration from docker to containerd will cordon the node and can leave the node unschedulable
+    if is_node_unschedulable "$node" ; then
+        # With the internal loadbalancer it may take a minute or two after starting kubelet before
+        # kubectl commands work
+        try_5m kubectl uncordon "$node" --kubeconfig=/etc/kubernetes/kubelet.conf
+    fi
 }
 
 function containerd_configure() {
@@ -265,4 +274,52 @@ function _containerd_migrate_images_from_docker() {
     for image in $tmpdir/* ; do
         (set -x; ctr -n=k8s.io images import $image)
     done
+}
+
+# TODO remove this
+function uninstall_docker() {
+    if ! commandExists docker || [ -n "$DOCKER_VERSION" ] || [ -z "$CONTAINERD_VERSION" ]; then
+        return
+    fi
+
+    logStep "Uninstalling Docker..."
+
+    if [ "$(docker ps -aq | wc -l)" != "0" ] ; then
+        docker ps -aq | xargs docker rm -f || true
+    fi
+    # The rm -rf /var/lib/docker command below may fail with device busy error, so remove as much
+    # data as possible now
+    docker system prune --all --volumes --force || true
+
+    systemctl disable docker.service --now || true
+
+    case "$LSB_DIST" in
+        ubuntu)
+            export DEBIAN_FRONTEND=noninteractive
+            dpkg --purge docker.io docker-ce docker-ce-cli
+            ;;
+
+        centos|rhel|amzn|ol)
+            local dockerPackages=("docker-ce" "docker-ce-cli")
+            if rpm -qa | grep -q 'docker-ce-rootless-extras'; then
+                dockerPackages+=("docker-ce-rootless-extras")
+            fi
+            if rpm -qa | grep -q 'docker-scan-plugin'; then
+                dockerPackages+=("docker-scan-plugin")
+            fi
+            rpm --erase ${dockerPackages[@]}
+            ;;
+    esac
+
+    rm -rf /var/lib/docker /var/lib/dockershim || true
+    rm -f /var/run/dockershim.sock || true
+    rm -f /var/run/docker.sock || true
+
+    log "Docker successfully uninstalled."
+}
+
+# TODO remove this
+function is_node_unschedulable() {
+    local node=$1
+    [ "$(kubectl get node "$node" -o jsonpath='{.spec.unschedulable}')" = "true" ]
 }

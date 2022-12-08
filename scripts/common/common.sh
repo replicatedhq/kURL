@@ -976,3 +976,8 @@ function daemonset_fully_updated() {
 
     return 0
 }
+
+function is_node_unschedulable() {
+    local node=$1
+    [ "$(kubectl get node "$node" -o jsonpath='{.spec.unschedulable}')" = "true" ]
+}
