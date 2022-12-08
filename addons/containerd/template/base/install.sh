@@ -30,6 +30,16 @@ function containerd_install() {
 
     containerd_migrate_from_docker
 
+    if [ "$CONTAINERD_DID_MIGRATE_FROM_DOCKER" != "1" ]; then
+        case "$LSB_DIST" in
+            ubuntu)
+                # Old versions of docker packages may conflict with containerd.io package
+                # https://docs.docker.com/engine/install/ubuntu/#uninstall-old-versions
+                apt-get remove docker docker-engine docker.io containerd runc
+                ;;
+        esac
+    fi
+
     install_host_packages "$src" containerd.io
 
     case "$LSB_DIST" in

@@ -30,6 +30,16 @@ function containerd_install() {
 
     containerd_migrate_from_docker
 
+    if [ "$CONTAINERD_DID_MIGRATE_FROM_DOCKER" != "1" ]; then
+        case "$LSB_DIST" in
+            ubuntu)
+                # Old versions of docker packages may conflict with containerd.io package
+                # https://docs.docker.com/engine/install/ubuntu/#uninstall-old-versions
+                apt-get remove docker docker-engine docker.io containerd runc
+                ;;
+        esac
+    fi
+
     install_host_packages "$src" containerd.io
 
     case "$LSB_DIST" in
@@ -274,6 +284,31 @@ function _containerd_migrate_images_from_docker() {
     for image in $tmpdir/* ; do
         (set -x; ctr -n=k8s.io images import $image)
     done
+}
+
+# TODO remove this
+function _dpkg_install_host_packages() {
+    if [ "${SKIP_SYSTEM_PACKAGE_INSTALL}" == "1" ]; then
+        logStep "Skipping installation of host packages: ${packages[*]}"
+        return
+    fi
+
+    local dir="$1"
+    local dir_prefix="$2"
+    local packages=("${@:3}")
+
+    logStep "Installing host packages ${packages[*]}"
+
+    local fullpath=
+    fullpath="${dir}/ubuntu-${DIST_VERSION}${dir_prefix}"
+    if ! test -n "$(shopt -s nullglob; echo "${fullpath}"/*.deb)" ; then
+        echo "Will not install host packages ${packages[*]}, no packages found."
+        return 0
+    fi
+
+    DEBIAN_FRONTEND=noninteractive dpkg --install --force-depends-version --force-confold "${fullpath}"/*.deb
+
+    logSuccess "Host packages ${packages[*]} installed"
 }
 
 # TODO remove this
