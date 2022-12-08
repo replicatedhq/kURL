@@ -114,13 +114,13 @@ function _dpkg_install_host_packages() {
         return 0
     fi
 
-    # Remove docker packages, if installed to install containerd
+    # Uninstall docker, if installed to install containerd only for new kURL installs
     # It is required because of an bug where the package manager is unable to sort it out and
     # the installation/upgrade will fails with `dpkg: no, cannot proceed with removal of containerd ... docker.io
     # depends on containerd (>= 1.2.6-0ubuntu1~)  containerd is to be removed.`
     # More info: https://bugs.launchpad.net/ubuntu/+source/docker.io/+bug/1940920
     # https://bugs.launchpad.net/ubuntu/+source/docker.io/+bug/1939140
-    if commandExists docker && [[ "${packages[*]}" == *"containerd.io"* ]]; then
+    if commandExists docker && [[ "${packages[*]}" == *"containerd.io"* ]] && [[ -n "${KURL_INSTALL_DIRECTORY_FLAG}" ]]; then
         # Uninstall docker before install containerd
         logStep "Removing docker packages to install ${packages[*]}..."
         uninstall_docker

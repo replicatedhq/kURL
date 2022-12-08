@@ -108,7 +108,7 @@ function uninstall_docker() {
     case "$LSB_DIST" in
         ubuntu)
             export DEBIAN_FRONTEND=noninteractive
-            dpkg --purge docker.io docker-ce docker-ce-cli
+            dpkg --purge docker-ce docker-ce-cli
             ;;
 
         centos|rhel|amzn|ol)
