@@ -101,9 +101,9 @@ function uninstall_docker() {
     fi
     # The rm -rf /var/lib/docker command below may fail with device busy error, so remove as much
     # data as possible now
-    docker system prune --all --volumes --force || true
+    docker system prune --all --volumes --force
 
-    systemctl disable docker.service --now || true
+    systemctl disable docker.service --now
 
     case "$LSB_DIST" in
         ubuntu)
@@ -124,10 +124,9 @@ function uninstall_docker() {
     esac
 
     rm -rf /var/lib/docker /var/lib/dockershim || true
-    rm -f /var/run/dockershim.sock || true
-    rm -f /var/run/docker.sock || true
-
-    log "Docker successfully uninstalled."
+    rm -f /var/run/dockershim.sock
+    rm -f /var/run/docker.sock
+    echo "Docker successfully uninstalled."
 
     # With the internal loadbalancer it may take a minute or two after starting kubelet before
     # kubectl commands work
