@@ -280,9 +280,10 @@ must_disable_selinux() {
 }
 
 function force_docker() {
-    DOCKER_VERSION="19.03.4"
-    echo "NO CRI version was listed in yaml or found on host OS, defaulting to online docker install"
-    echo "THIS FEATURE IS NOT SUPPORTED AND WILL BE DEPRECATED IN FUTURE KURL VERSIONS"
+    DOCKER_VERSION="20.10.17"
+    printf "${YELLOW}NO CRI version was listed in yaml or found on host OS, defaulting to online docker install${NC}\n"
+    printf "${YELLOW}THIS FEATURE IS NOT SUPPORTED AND WILL BE DEPRECATED IN FUTURE KURL VERSIONS${NC}\n"
+    printf "${YELLOW}The installer did not specify a version of Docker or Containerd to include, but having one is required by all kURL installation scripts. The latest supported version ($DOCKER_VERSION) of Docker will be installed.${NC}\n"
 }
 
 function cri_preflights() {
@@ -300,7 +301,7 @@ function require_cri() {
     fi
 
     if [ "$LSB_DIST" = "rhel" ]; then
-        if [ -n "$NO_CE_ON_EE" ]; then
+         if [ -n "$NO_CE_ON_EE" ] && [ -z "$CONTAINERD_VERSION" ]; then
             printf "${RED}Enterprise Linux distributions require Docker Enterprise Edition. Please install Docker before running this installation script.${NC}\n" 1>&2
             return 0
         fi
