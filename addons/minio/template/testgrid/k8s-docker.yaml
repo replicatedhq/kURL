@@ -166,7 +166,6 @@
     minio_object_store_info
     validate_testfile rwtest testfile.txt
     validate_read_write_object_store postupgrade upgradefile.txt
-    dump_longhorn_logs
 
 # upgrade from 2020-01-25T02-50-51Z using openebs
 - name: upgrade minio from 2020-01-25T02-50-51Z (openebs)
