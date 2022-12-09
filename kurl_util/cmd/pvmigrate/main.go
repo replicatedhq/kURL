@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/signal"
 	"strings"
+	"time"
 
 	clusterspace "github.com/replicatedhq/kurl/pkg/cluster/space"
 	"github.com/replicatedhq/kurl/pkg/version"
@@ -39,7 +40,7 @@ func main() {
 	flag.BoolVar(&opts.SkipSourceValidation, "skip-source-validation", false, "migrate from PVCs using a particular StorageClass name, even if that StorageClass does not exist")
 	flag.BoolVar(&skipFreeSpaceCheck, "skip-free-space-check", false, "skips the check for storage free space prior to running the migrations")
 	flag.BoolVar(&printVersion, "version", false, "Print the version of the client")
-	flag.IntVar(&opts.PodReadyTimeout, "pod-ready-timeout", 60, "length of time to wait (in seconds) for volume validation pod(s) to go into Ready phase")
+	flag.DurationVar(&opts.PodReadyTimeout, "pod-ready-timeout", 60*time.Second, "length of time to wait (in seconds) for volume validation pod(s) to go into Ready phase")
 	flag.BoolVar(&skipPreflightValidation, "skip-preflight-validation", false, "skips pre-migration validation")
 	flag.BoolVar(&preflightValidationOnly, "preflight-validation-only", false, "skip the migration and run preflight validation only")
 
