@@ -35,8 +35,9 @@ EOF
 function install_docker() {
     if [ "$SKIP_DOCKER_INSTALL" != "1" ]; then
         if [ -z "$DOCKER_VERSION" ]; then
-            printf "${RED}The installer did not specify a version of Docker to include, but is required by all kURL installation scripts currently. The latest supported version of Docker will be installed.${NC}\n"
-            DOCKER_VERSION="19.03.4"
+            printf "${YELLOW}The installer did not specify a version of Docker or Containerd to include, but is required by all kURL installation scripts. The latest supported version of Docker will be installed.${NC}\n"
+            logStep "Installing docker version 20.10.17"
+            DOCKER_VERSION="20.10.17"
         fi
         init_daemon_json
         docker_get_host_packages_online "$DOCKER_VERSION"
