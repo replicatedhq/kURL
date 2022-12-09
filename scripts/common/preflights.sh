@@ -300,7 +300,7 @@ function require_cri() {
     fi
 
     if [ "$LSB_DIST" = "rhel" ]; then
-        if [ -n "$NO_CE_ON_EE" ]; then
+         if [ -n "$NO_CE_ON_EE" ] && [ -z "$CONTAINERD_VERSION" ]; then
             printf "${RED}Enterprise Linux distributions require Docker Enterprise Edition. Please install Docker before running this installation script.${NC}\n" 1>&2
             return 0
         fi
