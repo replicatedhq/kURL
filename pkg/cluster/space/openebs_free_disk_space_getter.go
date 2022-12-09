@@ -326,7 +326,7 @@ func (o *OpenEBSFreeDiskSpaceGetter) deleteTmpPVCs(pvcs []*corev1.PersistentVolu
 
 	pvsByPVCName := map[string]corev1.PersistentVolume{}
 	for _, pv := range pvs.Items {
-		if pv.Spec.ClaimRef == nil {
+		if pv.Spec.ClaimRef == nil || pv.Spec.ClaimRef.Namespace != "default" {
 			continue
 		}
 		pvsByPVCName[pv.Spec.ClaimRef.Name] = pv
