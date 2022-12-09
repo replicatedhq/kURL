@@ -1,7 +1,0 @@
-namespace: kurl
-
-resources:
-- namespace.yaml
-- rbac.yaml
-- deployment.yaml
-- rotate-certs-rbac.yaml
