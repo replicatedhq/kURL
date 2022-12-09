@@ -15,122 +15,252 @@ import (
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/kubernetes/fake"
 	"k8s.io/utils/pointer"
 )
 
 func Test_deleteTmpPVCs(t *testing.T) {
-	logger := log.New(io.Discard, "", 0)
-	kcli := fake.NewSimpleClientset()
-	ochecker := OpenEBSFreeDiskSpaceGetter{
-		deletePVTimeout: 20 * time.Second,
-		kcli:            kcli,
-		log:             logger,
-	}
-
-	// empty list of pvcs
-	err := ochecker.deleteTmpPVCs([]*corev1.PersistentVolumeClaim{})
-	if err != nil {
-		t.Errorf("error deleting empty list of pvs: %s", err)
-	}
-
-	// delete non existing pvc
-	pvcs := []*corev1.PersistentVolumeClaim{
+	for _, tt := range []struct {
+		name    string
+		objs    []runtime.Object
+		timeout time.Duration
+		pvcs    []*corev1.PersistentVolumeClaim
+		err     string
+		gofn    func(*testing.T, kubernetes.Interface)
+	}{
 		{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      "pvc0",
-				Namespace: "default",
+			name:    "deleting empty list of pvcs should succeed",
+			timeout: time.Second,
+		},
+		{
+			name:    "deleting non existing pvcs should succeed",
+			timeout: time.Second,
+			pvcs: []*corev1.PersistentVolumeClaim{
+				{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "i-do-not-exist",
+						Namespace: "default",
+					},
+				},
 			},
 		},
-	}
-	if err := ochecker.deleteTmpPVCs(pvcs); err != nil {
-		t.Errorf("unexpected error deleting empty list of pvs: %s", err)
-	}
-
-	// nil claim ref for a pv
-	var objs []runtime.Object
-	for _, pvc := range pvcs {
-		objs = append(objs, pvc)
-	}
-	objs = append(objs, &corev1.PersistentVolume{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: "pv",
-		},
-	})
-	ochecker.kcli = fake.NewSimpleClientset(objs...)
-	if err := ochecker.deleteTmpPVCs(pvcs); err != nil {
-		t.Errorf("unexpected error deleting with pv without claim ref: %s", err)
-	}
-
-	// different pv claimref
-	objs = []runtime.Object{}
-	for _, pvc := range pvcs {
-		objs = append(objs, pvc)
-	}
-	objs = append(objs, &corev1.PersistentVolume{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: "pv",
-		},
-		Spec: corev1.PersistentVolumeSpec{
-			ClaimRef: &corev1.ObjectReference{
-				Name: "abc",
+		{
+			name:    "a pv with nil claim ref should not cause it to crash",
+			timeout: time.Second,
+			objs: []runtime.Object{
+				&corev1.PersistentVolumeClaim{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "pvc",
+						Namespace: "default",
+					},
+				},
+				&corev1.PersistentVolume{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "pv",
+					},
+				},
+			},
+			pvcs: []*corev1.PersistentVolumeClaim{
+				{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "pvc",
+						Namespace: "default",
+					},
+				},
 			},
 		},
-	})
-	ochecker.kcli = fake.NewSimpleClientset(objs...)
-	if err := ochecker.deleteTmpPVCs(pvcs); err != nil {
-		t.Errorf("unexpected error deleting with unrelated pv: %s", err)
-	}
-
-	// happy path, pv disappear after a while
-	objs = []runtime.Object{}
-	for _, pvc := range pvcs {
-		objs = append(objs, pvc)
-	}
-	objs = append(objs, &corev1.PersistentVolume{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: "pv",
-		},
-		Spec: corev1.PersistentVolumeSpec{
-			ClaimRef: &corev1.ObjectReference{
-				Name: "pvc0",
+		{
+			name:    "a pv refering to a different pvc should not crash",
+			timeout: time.Second,
+			objs: []runtime.Object{
+				&corev1.PersistentVolumeClaim{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "pvc",
+						Namespace: "default",
+					},
+				},
+				&corev1.PersistentVolume{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "pv",
+					},
+					Spec: corev1.PersistentVolumeSpec{
+						ClaimRef: &corev1.ObjectReference{
+							Name:      "abc",
+							Namespace: "default",
+						},
+					},
+				},
+			},
+			pvcs: []*corev1.PersistentVolumeClaim{
+				{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "pvc",
+						Namespace: "default",
+					},
+				},
 			},
 		},
-	})
-	ochecker.kcli = fake.NewSimpleClientset(objs...)
-
-	go func() {
-		time.Sleep(10 * time.Second)
-		if err := ochecker.kcli.CoreV1().PersistentVolumes().Delete(
-			context.Background(), "pv", metav1.DeleteOptions{},
-		); err != nil {
-			t.Errorf("failed to delete test pv: %s", err)
-		}
-	}()
-
-	if err := ochecker.deleteTmpPVCs(pvcs); err != nil {
-		t.Errorf("unexpected error deleting pvs: %s", err)
-	}
-
-	// timeout deleting pv
-	objs = []runtime.Object{}
-	for _, pvc := range pvcs {
-		objs = append(objs, pvc)
-	}
-	objs = append(objs, &corev1.PersistentVolume{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: "pv",
-		},
-		Spec: corev1.PersistentVolumeSpec{
-			ClaimRef: &corev1.ObjectReference{
-				Name: "pvc0",
+		{
+			name:    "pv dissapear after a while should suceed",
+			timeout: 20 * time.Second,
+			objs: []runtime.Object{
+				&corev1.PersistentVolumeClaim{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "pvc",
+						Namespace: "default",
+					},
+				},
+				&corev1.PersistentVolume{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "pv",
+					},
+					Spec: corev1.PersistentVolumeSpec{
+						ClaimRef: &corev1.ObjectReference{
+							Name:      "pvc",
+							Namespace: "default",
+						},
+					},
+				},
+			},
+			pvcs: []*corev1.PersistentVolumeClaim{
+				{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "pvc",
+						Namespace: "default",
+					},
+				},
+			},
+			gofn: func(t *testing.T, kcli kubernetes.Interface) {
+				time.Sleep(6 * time.Second)
+				if err := kcli.CoreV1().PersistentVolumes().Delete(
+					context.Background(), "pv", metav1.DeleteOptions{},
+				); err != nil {
+					t.Errorf("failed to delete test pv: %s", err)
+				}
 			},
 		},
-	})
-	ochecker.kcli = fake.NewSimpleClientset(objs...)
-	ochecker.deletePVTimeout = 2 * time.Second
-	if err := ochecker.deleteTmpPVCs(pvcs); err == nil || !strings.Contains(err.Error(), "timeout") {
-		t.Errorf("timeout error did now show up: %v", err)
+		{
+			name:    "pv not disappearing should timeout",
+			timeout: 10 * time.Second,
+			err:     "timeout",
+			objs: []runtime.Object{
+				&corev1.PersistentVolumeClaim{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "pvc",
+						Namespace: "default",
+					},
+				},
+				&corev1.PersistentVolume{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "pv",
+					},
+					Spec: corev1.PersistentVolumeSpec{
+						ClaimRef: &corev1.ObjectReference{
+							Name:      "pvc",
+							Namespace: "default",
+						},
+					},
+				},
+			},
+			pvcs: []*corev1.PersistentVolumeClaim{
+				{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "pvc",
+						Namespace: "default",
+					},
+				},
+			},
+		},
+		{
+			name:    "pvs referring to pvcs from different namespaces should not interfere",
+			timeout: 20 * time.Second,
+			objs: []runtime.Object{
+				&corev1.PersistentVolumeClaim{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "pvc",
+						Namespace: "default",
+					},
+				},
+				&corev1.PersistentVolume{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "pv",
+					},
+					Spec: corev1.PersistentVolumeSpec{
+						ClaimRef: &corev1.ObjectReference{
+							Name:      "pvc",
+							Namespace: "default",
+						},
+					},
+				},
+				&corev1.PersistentVolume{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "another-pv",
+					},
+					Spec: corev1.PersistentVolumeSpec{
+						ClaimRef: &corev1.ObjectReference{
+							Name:      "pvc",
+							Namespace: "different-namespace",
+						},
+					},
+				},
+				&corev1.PersistentVolume{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "yet-another-pv",
+					},
+					Spec: corev1.PersistentVolumeSpec{
+						ClaimRef: &corev1.ObjectReference{
+							Name:      "pvc",
+							Namespace: "yet-another-different-namespace",
+						},
+					},
+				},
+			},
+			pvcs: []*corev1.PersistentVolumeClaim{
+				{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "pvc",
+						Namespace: "default",
+					},
+				},
+			},
+			gofn: func(t *testing.T, kcli kubernetes.Interface) {
+				time.Sleep(6 * time.Second)
+				if err := kcli.CoreV1().PersistentVolumes().Delete(
+					context.Background(), "pv", metav1.DeleteOptions{},
+				); err != nil {
+					t.Errorf("failed to delete test pv: %s", err)
+				}
+			},
+		},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			logger := log.New(io.Discard, "", 0)
+			kcli := fake.NewSimpleClientset(tt.objs...)
+			ochecker := OpenEBSFreeDiskSpaceGetter{
+				deletePVTimeout: tt.timeout,
+				kcli:            kcli,
+				log:             logger,
+			}
+
+			if tt.gofn != nil {
+				go tt.gofn(t, kcli)
+			}
+
+			err := ochecker.deleteTmpPVCs(tt.pvcs)
+			if err != nil {
+				if len(tt.err) == 0 {
+					t.Errorf("unexpected error: %s", err)
+				} else if !strings.Contains(err.Error(), tt.err) {
+					t.Errorf("expecting %q, %q received instead", tt.err, err)
+				}
+				return
+			}
+
+			if len(tt.err) > 0 {
+				t.Errorf("expecting error %q, nil received instead", tt.err)
+			}
+		})
 	}
 }
 
