@@ -38,7 +38,7 @@ function install_docker() {
             printf "${RED}The installer did not specify a version of Docker to include, but is required by all kURL installation scripts currently. The latest supported version of Docker will be installed.${NC}\n"
             DOCKER_VERSION="19.03.4"
         else
-            printf "${YELLOW}Kubernetes has deprecated Docker as of 1.20, and it is recommended to use containerd instead.${NC}\n"
+            logWarn "Kubernetes has deprecated Docker as of 1.20, and it is recommended to use containerd instead."
         fi
         init_daemon_json
         docker_get_host_packages_online "$DOCKER_VERSION"
