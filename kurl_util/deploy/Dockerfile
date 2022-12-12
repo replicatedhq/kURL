@@ -31,8 +31,8 @@ RUN . /etc/os-release; apt-get update -qq \
     telnet \
   && curl -fsSL https://download.opensuse.org/repositories/devel:kubic:libcontainers:stable/xUbuntu_${VERSION_ID}/Release.key | gpg --dearmor -o /etc/apt/trusted.gpg.d/devel_kubic_libcontainers_stable.gpg \
   && echo "deb [signed-by=/etc/apt/trusted.gpg.d/devel_kubic_libcontainers_stable.gpg] http://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_${VERSION_ID}/ /"| tee /etc/apt/sources.list.d/devel:kubic:libcontainers:stable.list \
-  && apt-get update -o Acquire::AllowInsecureRepositories=true -qq \
-  && apt-get install -y --allow-unauthenticated --no-install-recommends \
+  && apt-get update -qq \
+  && apt-get install -y --no-install-recommends \
     cri-tools \
   && rm -rf /var/lib/apt/lists/*
 
