@@ -49,6 +49,7 @@ function rook_post_init() {
     fi
 }
 
+ROOK_DID_DISABLE_EKCO_OPERATOR=0
 function rook() {
     local src="${DIR}/addons/rook/${ROOK_VERSION}"
 
@@ -65,6 +66,7 @@ function rook() {
     # Disable EKCO updates
     # Disallow the EKCO operator from updating Rook custom resources during a Rook upgrade
     rook_disable_ekco_operator
+    ROOK_DID_DISABLE_EKCO_OPERATOR=1
 
     rook_operator_crds_deploy
     rook_operator_deploy
@@ -82,14 +84,16 @@ function rook() {
         export CEPH_DASHBOARD_PASSWORD="$cephDashboardPassword"
     fi
 
-    semverParse "$ROOK_VERSION"
-    # shellcheck disable=SC2154
-    local rook_major_minior_version="${major}.${minor}"
+    if ! kubectl -n rook-ceph get pod -l app=rook-ceph-rgw -o jsonpath='{.items[0].status.phase}' | grep -q Running ; then
+        semverParse "$ROOK_VERSION"
+        # shellcheck disable=SC2154
+        local rook_major_minor_version="${major}.${minor}"
 
-    printf "\n\n%bRook Ceph 1.4+ requires a secondary, unformatted block device attached to the host.%b\n" "$GREEN" "$NC"
-    printf "%bIf you are stuck waiting at this step for more than two minutes, you are either missing the device or it is already formatted.%b\n" "$GREEN" "$NC"
-    printf "\t%b * If it is missing, attach it now and it will be picked up; or CTRL+C, attach, and re-start the installer%b\n" "$GREEN" "$NC"
-    printf "\t%b * If the disk is attached, try wiping it using the recommended zap procedure: https://rook.io/docs/rook/v%s/ceph-teardown.html#zapping-devices%b\n\n" "$GREEN" "$rook_major_minior_version" "$NC"
+        printf "\n\n%bRook Ceph 1.4+ requires a secondary, unformatted block device attached to the host.%b\n" "$GREEN" "$NC"
+        printf "%bIf you are stuck waiting at this step for more than two minutes, you are either missing the device or it is already formatted.%b\n" "$GREEN" "$NC"
+        printf "\t%b * If it is missing, attach it now and it will be picked up; or CTRL+C, attach, and re-start the installer%b\n" "$GREEN" "$NC"
+        printf "\t%b * If the disk is attached, try wiping it using the recommended zap procedure: https://rook.io/docs/rook/v%s/ceph-teardown.html#zapping-devices%b\n\n" "$GREEN" "$rook_major_minor_version" "$NC"
+    fi
 
     printf "checking for attached secondary block device (awaiting rook-ceph RGW pod)\n"
     spinnerPodRunning rook-ceph rook-ceph-rgw-rook-ceph-store
@@ -103,7 +107,9 @@ function rook() {
 }
 
 function rook_post_init() {
-    rook_enable_ekco_operator
+    if [ "$ROOK_DID_DISABLE_EKCO_OPERATOR" = "1" ]; then
+        rook_enable_ekco_operator
+    fi
 }
 
 function rook_join() {
@@ -128,8 +134,8 @@ function rook_operator_crds_deploy() {
     # command will return errors due to updates from Kubernetes’ v1beta1 Custom Resource
     # Definitions. The error will contain text similar to ... spec.preserveUnknownFields: Invalid
     # value....
-    if ! kubectl apply -f "$dst/crds.yaml" ; then
-        kubectl replace -f "$dst/crds.yaml"
+    if ! kubectl apply -f "$dst/crds.yaml" 2>/dev/null ; then
+        kubectl replace --save-config -f "$dst/crds.yaml"
         kubectl apply -f "$dst/crds.yaml"
     fi
 }
@@ -180,19 +186,23 @@ function rook_cluster_deploy() {
 
     # conditional cephfs
     if [ "${ROOK_SHARED_FILESYSTEM_DISABLED}" != "1" ]; then
-        insert_resources "$dst/kustomization.yaml" cephfs-storageclass.yaml
-        insert_resources "$dst/kustomization.yaml" filesystem.yaml
-        insert_patches_strategic_merge "$dst/kustomization.yaml" patches/cephfs-storageclass.yaml
-        insert_patches_strategic_merge "$dst/kustomization.yaml" patches/filesystem.yaml
+        mkdir -p "$dst/cephfs"
+        touch "$dst/cephfs/kustomization.yaml"
+        insert_resources "$dst/cephfs/kustomization.yaml" cephfs-storageclass.yaml
+        insert_resources "$dst/cephfs/kustomization.yaml" filesystem.yaml
+        insert_patches_strategic_merge "$dst/cephfs/kustomization.yaml" patches/cephfs-storageclass.yaml
+        insert_patches_strategic_merge "$dst/cephfs/kustomization.yaml" patches/filesystem.yaml
 
         # MDS pod anti-affinity rules prevent them from co-scheduling on single-node installations
         local ready_node_count
         ready_node_count="$(kubectl get nodes --no-headers 2>/dev/null | grep -c ' Ready')"
         if [ "$ready_node_count" -le "1" ]; then
-            insert_patches_strategic_merge "$dst/kustomization.yaml" patches/filesystem-singlenode.yaml
+            insert_patches_strategic_merge "$dst/cephfs/kustomization.yaml" patches/filesystem-singlenode.yaml
         fi
 
-        insert_patches_json_6902 "$dst/kustomization.yaml" patches/filesystem-Json6902.yaml ceph.rook.io v1 CephFilesystem rook-shared-fs rook-ceph
+        insert_patches_json_6902 "$dst/cephfs/kustomization.yaml" patches/filesystem-Json6902.yaml ceph.rook.io v1 CephFilesystem rook-shared-fs rook-ceph
+
+        insert_resources "$dst/kustomization.yaml" cephfs
     fi
 
     # patches
@@ -205,9 +215,14 @@ function rook_cluster_deploy() {
 
     # Don't redeploy cluster - ekco may have made changes based on num of nodes in cluster
     # This must come after the yaml is rendered as it relies on dst.
-    if kubectl -n rook-ceph get cephcluster rook-ceph >/dev/null 2>&1 ; then
+    if kubernetes_resource_exists rook-ceph cephcluster rook-ceph ; then
         echo "Cluster rook-ceph already deployed"
         rook_cluster_deploy_upgrade
+
+        # if we are enabling the shared filesystem for the first time, we need to create the filesystem
+        if [ "${ROOK_SHARED_FILESYSTEM_DISABLED}" != "1" ] && ! kubernetes_resource_exists rook-ceph cephfilesystem rook-shared-fs ; then
+            kubectl -n rook-ceph apply -k "$dst/cephfs/"
+        fi
         return 0
     fi
 
@@ -250,11 +265,13 @@ function rook_cluster_deploy_upgrade() {
         bail "Refusing to update cluster rook-ceph, Ceph is not healthy"
     fi
 
-    # When upgrading we need both MDS pods and anti-affinity rules prevent them from co-scheduling on single-node installations
-    local ready_node_count
-    ready_node_count="$(kubectl get nodes --no-headers 2>/dev/null | grep -c ' Ready')"
-    if [ "$ready_node_count" -le "1" ]; then
-        rook_cephfilesystem_patch_singlenode
+    if kubernetes_resource_exists rook-ceph cephfilesystem rook-shared-fs ; then
+        # When upgrading we need both MDS pods and anti-affinity rules prevent them from co-scheduling on single-node installations
+        local ready_node_count
+        ready_node_count="$(kubectl get nodes --no-headers 2>/dev/null | grep -c ' Ready')"
+        if [ "$ready_node_count" -le "1" ]; then
+            rook_cephfilesystem_patch_singlenode
+        fi
     fi
 
     # https://rook.io/docs/rook/v1.6/ceph-upgrade.html#ceph-version-upgrades
@@ -476,26 +493,6 @@ function rook_should_skip_rook_install() {
     return 1
 }
 
-function rook_disable_ekco_operator() {
-    if kubernetes_resource_exists kurl deployment ekc-operator ; then
-        echo "Scaling down EKCO deployment to 0 replicas"
-        kubernetes_scale_down kurl deployment ekc-operator
-        echo "Waiting for ekco pods to be removed"
-        spinner_until 120 ekco_pods_gone
-        ROOK_DID_DISABLE_EKCO_OPERATOR=1
-    fi
-}
-
-function rook_enable_ekco_operator() {
-    if [ "$ROOK_DID_DISABLE_EKCO_OPERATOR" != "1" ]; then
-        return
-    fi
-    if kubernetes_resource_exists kurl deployment ekc-operator ; then
-        echo "Scaling up EKCO deployment to 1 replica"
-        kubernetes_scale kurl deployment ekc-operator 1
-    fi
-}
-
 function rook_should_fail_install() {
     # Beginning with Rook 1.8, certain old kernels are not supported
     local kernel_version=
@@ -586,6 +583,13 @@ function rook_should_auth_allow_insecure_global_id_reclaim() {
 }
 
 function rook_detect_ceph_version() {
+    local ceph_version=
+    ceph_version="$(kubectl -n rook-ceph get cephcluster rook-ceph -o jsonpath='{.status.version.version}' 2>/dev/null | awk -F'-' '{ print $1 }')"
+    if [ -n "$ceph_version" ]; then
+        echo "$ceph_version"
+        return
+    fi
+    # if cephcluster not found, try to detect ceph version from the metadata
     kubectl -n rook-ceph get deployment rook-ceph-mgr-a -o jsonpath='{.metadata.labels.ceph-version}' 2>/dev/null | awk -F'-' '{ print $1 }'
 }
 

@@ -281,6 +281,7 @@ build/templates/install.tmpl: build/install.sh
 		sed 's/^KURL_VERSION=.*/KURL_VERSION="{{= KURL_VERSION }}"/' | \
 		sed 's/^REPLICATED_APP_URL=.*/REPLICATED_APP_URL="{{= REPLICATED_APP_URL }}"/' | \
 		sed 's/^STEP_VERSIONS=.*/STEP_VERSIONS={{= STEP_VERSIONS }}/' | \
+		sed 's/^ROOK_STEP_VERSIONS=.*/ROOK_STEP_VERSIONS={{= ROOK_STEP_VERSIONS }}/' | \
 		sed 's/^INSTALLER_YAML=.*/INSTALLER_YAML="{{= INSTALLER_YAML }}"/' | \
 		sed 's/^KURL_UTIL_IMAGE=.*/KURL_UTIL_IMAGE="{{= KURL_UTIL_IMAGE }}"/' | \
 		sed 's/^KURL_BIN_UTILS_FILE=.*/KURL_BIN_UTILS_FILE="{{= KURL_BIN_UTILS_FILE }}"/' | \
@@ -314,6 +315,7 @@ build/templates/join.tmpl: build/join.sh
 		sed 's/^KURL_VERSION=.*/KURL_VERSION="{{= KURL_VERSION }}"/' | \
 		sed 's/^REPLICATED_APP_URL=.*/REPLICATED_APP_URL="{{= REPLICATED_APP_URL }}"/' | \
 		sed 's/^STEP_VERSIONS=.*/STEP_VERSIONS={{= STEP_VERSIONS }}/' | \
+		sed 's/^ROOK_STEP_VERSIONS=.*/ROOK_STEP_VERSIONS={{= ROOK_STEP_VERSIONS }}/' | \
 		sed 's/^INSTALLER_YAML=.*/INSTALLER_YAML="{{= INSTALLER_YAML }}"/' | \
 		sed 's/^KURL_UTIL_IMAGE=.*/KURL_UTIL_IMAGE="{{= KURL_UTIL_IMAGE }}"/' | \
 		sed 's/^KURL_BIN_UTILS_FILE=.*/KURL_BIN_UTILS_FILE="{{= KURL_BIN_UTILS_FILE }}"/' | \
@@ -347,6 +349,7 @@ build/templates/upgrade.tmpl: build/upgrade.sh
 		sed 's/^KURL_VERSION=.*/KURL_VERSION="{{= KURL_VERSION }}"/' | \
 		sed 's/^REPLICATED_APP_URL=.*/REPLICATED_APP_URL="{{= REPLICATED_APP_URL }}"/' | \
 		sed 's/^STEP_VERSIONS=.*/STEP_VERSIONS={{= STEP_VERSIONS }}/' | \
+		sed 's/^ROOK_STEP_VERSIONS=.*/ROOK_STEP_VERSIONS={{= ROOK_STEP_VERSIONS }}/' | \
 		sed 's/^INSTALLER_YAML=.*/INSTALLER_YAML="{{= INSTALLER_YAML }}"/' | \
 		sed 's/^KURL_UTIL_IMAGE=.*/KURL_UTIL_IMAGE="{{= KURL_UTIL_IMAGE }}"/' | \
 		sed 's/^KURL_BIN_UTILS_FILE=.*/KURL_BIN_UTILS_FILE="{{= KURL_BIN_UTILS_FILE }}"/' | \
@@ -380,6 +383,7 @@ build/templates/tasks.tmpl: build/tasks.sh
 		sed 's/^KURL_VERSION=.*/KURL_VERSION="{{= KURL_VERSION }}"/' | \
 		sed 's/^REPLICATED_APP_URL=.*/REPLICATED_APP_URL="{{= REPLICATED_APP_URL }}"/' | \
 		sed 's/^STEP_VERSIONS=.*/STEP_VERSIONS={{= STEP_VERSIONS }}/' | \
+		sed 's/^ROOK_STEP_VERSIONS=.*/ROOK_STEP_VERSIONS={{= ROOK_STEP_VERSIONS }}/' | \
 		sed 's/^INSTALLER_YAML=.*/INSTALLER_YAML="{{= INSTALLER_YAML }}"/' | \
 		sed 's/^KURL_UTIL_IMAGE=.*/KURL_UTIL_IMAGE="{{= KURL_UTIL_IMAGE }}"/' | \
 		sed 's/^KURL_BIN_UTILS_FILE=.*/KURL_BIN_UTILS_FILE="{{= KURL_BIN_UTILS_FILE }}"/' | \
@@ -628,8 +632,8 @@ vet: ## Go vet the code
 .PHONY: test
 test: lint vet ## Check the code with linters and vet
 	go test ${BUILDFLAGS} ./cmd/... ./pkg/...
-	## Avoid merge accidentally changes into the scripts/Manifest file
-	cmp --silent ./hack/testdata/manifest/clean ./scripts/Manifest \
+	@## Avoid merge accidentally changes into the scripts/Manifest file
+	@cmp --silent ./hack/testdata/manifest/clean ./scripts/Manifest \
 	&& echo '### SUCCESS: No changes merged on the script/Manifests! ###' \
 	|| (echo '### ERROR: You cannot merge changes on the script manifest!. If you want change the spec please ensure that you also change the ./hack/testdata/manifest/clean file. ###'; exit 1);
 
@@ -662,6 +666,7 @@ test-shell: ## Run tests for code in shell. (Requires shUnit2 to be installed).
 	./scripts/common/kubernetes-test.sh
 	./scripts/common/proxy-test.sh
 	./scripts/common/yaml-test.sh
+	./scripts/common/rook-upgrade-test.sh
 	./addons/rook/template/test/install.sh
 	./scripts/common/test/common-test.sh
 	./scripts/common/test/discover-test.sh

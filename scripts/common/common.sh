@@ -976,3 +976,23 @@ function daemonset_fully_updated() {
 
     return 0
 }
+
+# pods_gone_by_selector returns true if there are no pods matching the given selector
+function pods_gone_by_selector() {
+    local namespace=$1
+    local selector=$2
+    [ "$(pod_count_by_selector "$namespace" "$selector")" = "0" ]
+}
+
+# pod_count_by_selector returns the number of pods matching the given selector or -1 if the command fails
+function pod_count_by_selector() {
+    local namespace=$1
+    local selector=$2
+
+    local pods=
+    if ! pods="$(kubectl -n "$namespace" get pods --no-headers -l "$selector" 2>/dev/null)" ; then
+        echo -1
+    fi
+
+    echo -n "$pods" | wc -l
+}

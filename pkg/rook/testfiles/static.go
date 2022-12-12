@@ -60,3 +60,6 @@ var RookHostpathDeployments []byte
 
 //go:embed "upgradedNode.json"
 var UpgradedNode []byte
+
+//go:embed "upgradedNodeLess50Images.json"
+var UpgradedNodeLess50Images []byte

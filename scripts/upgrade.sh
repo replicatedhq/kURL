@@ -24,6 +24,7 @@ DIR=.
 . $DIR/scripts/common/proxy.sh
 . $DIR/scripts/common/reporting.sh
 . $DIR/scripts/common/rook.sh
+. $DIR/scripts/common/rook-upgrade.sh
 . $DIR/scripts/common/longhorn.sh
 . $DIR/scripts/common/yaml.sh
 . $DIR/scripts/distro/interface.sh

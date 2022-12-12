@@ -23,6 +23,7 @@ DIR=.
 . $DIR/scripts/common/proxy.sh
 . $DIR/scripts/common/reporting.sh
 . $DIR/scripts/common/rook.sh
+. $DIR/scripts/common/rook-upgrade.sh
 . $DIR/scripts/common/longhorn.sh
 . $DIR/scripts/common/upgrade.sh
 . $DIR/scripts/common/utilbinaries.sh
@@ -543,7 +544,7 @@ function main() {
     install_host_dependencies
     get_common
     setup_kubeadm_kustomize
-    maybe_report_upgrade_rook_10_to_14
+    rook_upgrade_maybe_report_upgrade_rook
     ${K8S_DISTRO}_addon_for_each addon_pre_init
     discover_pod_subnet
     discover_service_subnet

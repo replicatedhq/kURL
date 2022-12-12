@@ -38,14 +38,14 @@ function generate() {
     insert_resources "${dir}/operator/kustomization.yaml" "toolbox.yaml"
 
     # download cluster resources
-    curl -fsSL -o "${dir}/cluster/cephfs-storageclass.yaml" "${github_content_url}/deploy/examples/csi/cephfs/storageclass.yaml"
+    curl -fsSL -o "${dir}/cluster/cephfs/cephfs-storageclass.yaml" "${github_content_url}/deploy/examples/csi/cephfs/storageclass.yaml"
     # change CephFilesystem name from myfs to rook-shared-fs
-    sed -i 's/myfs/rook-shared-fs/g' "${dir}/cluster/cephfs-storageclass.yaml"
+    sed -i 's/myfs/rook-shared-fs/g' "${dir}/cluster/cephfs/cephfs-storageclass.yaml"
     curl -fsSL -o "${dir}/cluster/cluster.yaml" "${github_content_url}/deploy/examples/cluster.yaml"
     insert_resources "${dir}/cluster/kustomization.yaml" "cluster.yaml"
-    curl -fsSL -o "${dir}/cluster/filesystem.yaml" "${github_content_url}/deploy/examples/filesystem.yaml"
+    curl -fsSL -o "${dir}/cluster/cephfs/filesystem.yaml" "${github_content_url}/deploy/examples/filesystem.yaml"
     # change CephFilesystem name from myfs to rook-shared-fs
-    sed -i 's/myfs/rook-shared-fs/g' "${dir}/cluster/filesystem.yaml"
+    sed -i 's/myfs/rook-shared-fs/g' "${dir}/cluster/cephfs/filesystem.yaml"
     curl -fsSL -o "${dir}/cluster/object.yaml" "${github_content_url}/deploy/examples/object.yaml"
     insert_resources "${dir}/cluster/kustomization.yaml" "object.yaml"
     curl -fsSL -o "${dir}/cluster/tmpl-rbd-storageclass.yaml" "${github_content_url}/deploy/examples/csi/rbd/storageclass.yaml"
@@ -105,6 +105,28 @@ function add_as_latest() {
     fi
 }
 
+function generate_step_versions() {
+    local steps=()
+    local version=
+    local max_minor=0
+    while read -r version; do
+        if ! echo "$version" | grep -Eq '[[:digit:]]+\.[[:digit:]]+\.[[:digit:]]+' ; then
+            continue
+        fi
+        local step_minor=
+        step_minor="$(echo "$version" | cut -d. -f2)"
+        steps[$step_minor]="$version"
+        ((step_minor > max_minor)) && max_minor="$step_minor"
+    done <<< "$(find ../ -maxdepth 1 -type d -printf '%P\n' | sort -V)"
+    for (( version=0; version <= max_minor; version++ )); do
+        [ "${steps[version]+abc}" ] && continue
+        steps[$version]="0.0.0"
+    done
+
+    sed -i 's|^ROOK_STEP_VERSIONS=(.*|ROOK_STEP_VERSIONS=('"${steps[*]}"')|' ../../../hack/testdata/manifest/clean
+    sed -i 's|^ROOK_STEP_VERSIONS=(.*|ROOK_STEP_VERSIONS=('"${steps[*]}"')|' ../../../scripts/Manifest
+}
+
 function parse_flags() {
     for i in "$@"; do
         case ${1} in
@@ -150,6 +172,8 @@ function main() {
     generate
 
     add_as_latest
+
+    generate_step_versions
 
     echo "::set-output name=rook_version::$VERSION"
 }

@@ -2,6 +2,8 @@ package cli
 
 import (
 	"fmt"
+	"log"
+	"os"
 	"strings"
 
 	"github.com/replicatedhq/kurl/pkg/cluster"
@@ -11,7 +13,8 @@ import (
 )
 
 func NewClusterNodesMissingImageCmd(cli CLI) *cobra.Command {
-	var excludeHost string
+	var excludeHost, excludeHostDeprecated string
+	var opts cluster.NodeImagesJobOptions
 
 	cmd := &cobra.Command{
 		Use:   "nodes-missing-images IMAGE...",
@@ -21,7 +24,13 @@ func NewClusterNodesMissingImageCmd(cli CLI) *cobra.Command {
 			k8sConfig := config.GetConfigOrDie()
 			clientSet := kubernetes.NewForConfigOrDie(k8sConfig)
 
-			nodesMissingImages, err := cluster.NodesMissingImages(cmd.Context(), clientSet, args)
+			logger := log.New(os.Stderr, "", 0)
+
+			if excludeHost == "" {
+				excludeHost = excludeHostDeprecated
+			}
+
+			nodesMissingImages, err := cluster.NodesMissingImages(cmd.Context(), clientSet, logger, args, opts)
 			if err != nil {
 				return fmt.Errorf("failed to determine what nodes were missing images: %w", err)
 			}
@@ -42,7 +51,12 @@ func NewClusterNodesMissingImageCmd(cli CLI) *cobra.Command {
 		SilenceUsage: true,
 	}
 
-	cmd.Flags().StringVar(&excludeHost, "exclude_host", "", "A hostname that will be excluded from the output")
+	cmd.Flags().StringVar(&excludeHost, "exclude-host", "", "A hostname that will be excluded from the output")
+	cmd.Flags().StringVar(&excludeHostDeprecated, "exclude_host", "", "A hostname that will be excluded from the output")
+	_ = cmd.Flags().MarkDeprecated("exclude_host", "use --exclude-host instead")
+	cmd.Flags().StringVar(&opts.JobImage, "image", cluster.DefaultNodeImagesJobImage, "the image to use to list images - must have 'docker' CLI on the path")
+	cmd.Flags().StringVar(&opts.JobNamespace, "namespace", cluster.DefaultNodeImagesJobNamespace, "the namespace in which to run the discovery job")
+	cmd.Flags().DurationVar(&opts.Timeout, "timeout", cluster.DefaultNodeImagesJobTimeout, "the timeout for the discovery job")
 
 	return cmd
 }
