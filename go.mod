@@ -38,9 +38,9 @@ require (
 	golang.org/x/text v0.5.0
 	gopkg.in/yaml.v2 v2.4.0
 	gopkg.in/yaml.v3 v3.0.1
-	k8s.io/api v0.25.4
-	k8s.io/apimachinery v0.25.4
-	k8s.io/client-go v0.25.4
+	k8s.io/api v0.26.0
+	k8s.io/apimachinery v0.26.0
+	k8s.io/client-go v0.26.0
 	k8s.io/code-generator v0.25.4
 	k8s.io/utils v0.0.0-20221108210102-8e77b1f39fe2
 	sigs.k8s.io/controller-runtime v0.13.1
@@ -223,7 +223,7 @@ require (
 	go.starlark.net v0.0.0-20201006213952-227f4aabceb5 // indirect
 	go.uber.org/atomic v1.10.0 // indirect
 	golang.org/x/mod v0.7.0 // indirect
-	golang.org/x/net v0.3.0 // indirect
+	golang.org/x/net v0.3.1-0.20221206200815-1e63c2f08a10 // indirect
 	golang.org/x/oauth2 v0.0.0-20221014153046-6fdb5e3db783 // indirect
 	golang.org/x/sys v0.3.0 // indirect
 	golang.org/x/term v0.3.0 // indirect
