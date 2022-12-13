@@ -74,10 +74,12 @@ function tasks() {
         rook-10-to-14-images|rook_10_to_14_images)
             rook_upgrade_tasks_load_images "from-version=1.0" "to-version=1.4"
             ;;
-        rook-upgrade)
+        rook-upgrade|rook_upgrade)
+            shift # the first param is rook-upgrade|rook_upgrade
             rook_upgrade_tasks_rook_upgrade "$@"
             ;;
-        rook-upgrade-load-images)
+        rook-upgrade-load-images|rook_upgrade_load_images)
+            shift # the first param is rook-upgrade-load-images|rook_upgrade_load_images
             rook_upgrade_tasks_load_images "$@"
             ;;
         *)

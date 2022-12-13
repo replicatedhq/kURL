@@ -125,7 +125,7 @@ function rook_upgrade() {
     logStep "Upgrading Rook from $from_version.x to $to_version.x"
     rook_upgrade_print_list_of_minor_upgrades "$from_version" "$to_version"
     echo "This may take some time."
-    if ! rook_upgrade_addon_fetch "$from_version" "$to_version" ; then
+    if ! rook_upgrade_addon_fetch_and_load "$from_version" "$to_version" ; then
         logFail "Cancelling Rook $from_version.x to $to_version.x upgrade"
         return 1
     fi
@@ -182,15 +182,16 @@ function rook_upgrade_do_rook_upgrade() {
     done <<< "$(rook_upgrade_step_versions "ROOK_STEP_VERSIONS[@]" "$from_version" "$to_version")"
 }
 
-# rook_upgrade_addon_fetch will fetch all add-on versions from $from_version to $to_version.
-function rook_upgrade_addon_fetch() {
+# rook_upgrade_addon_fetch_and_load will fetch all add-on versions from $from_version to
+# $to_version.
+function rook_upgrade_addon_fetch_and_load() {
     local from_version="$1"
     local to_version="$2"
 
     logStep "Downloading images required for Rook $from_version to $to_version upgrade"
 
     if rook_upgrade_is_version_included "$from_version" "$to_version" "1.4" ; then
-        if ! rook_upgrade_addon_fetch_step "rookupgrade" "10to14" ; then
+        if ! rook_upgrade_addon_fetch_and_load_step "rookupgrade" "10to14" ; then
             return 1
         fi
     fi
@@ -201,7 +202,7 @@ function rook_upgrade_addon_fetch() {
             if [ -z "$step" ] || [ "$step" = "0.0.0" ]; then
                 continue
             fi
-            if ! rook_upgrade_addon_fetch_step "rook" "$step" ; then
+            if ! rook_upgrade_addon_fetch_and_load_step "rook" "$step" ; then
                 return 1
             fi
         done <<< "$(rook_upgrade_step_versions "ROOK_STEP_VERSIONS[@]" "$(rook_upgrade_max_rook_version "1.4" "$from_version")" "$to_version")"
@@ -210,15 +211,10 @@ function rook_upgrade_addon_fetch() {
     logSuccess "Images loaded for Rook $from_version to $to_version upgrade"
 }
 
-# rook_upgrade_addon_fetch_step will fetch an individual add-on version.
-function rook_upgrade_addon_fetch_step() {
+# rook_upgrade_addon_fetch_and_load_step will fetch an individual add-on version.
+function rook_upgrade_addon_fetch_and_load_step() {
     local addon="$1"
     local version="$2"
-
-    if ! addon_exists "$addon" "$version" ; then
-        logFail "Rook version $version not found"
-        return 1
-    fi
 
     if [ "$AIRGAP" = "1" ]; then
         if ! addon_fetch_airgap "$addon" "$version" ; then
@@ -228,6 +224,10 @@ function rook_upgrade_addon_fetch_step() {
         if ! addon_fetch "$addon" "$version" ; then
             return 1
         fi
+    fi
+
+    if ! addon_load "$addon" "$version" ; then
+        return 1
     fi
 }
 
@@ -482,7 +482,7 @@ function rook_upgrade_tasks_load_images() {
     export KUBECONFIG=/etc/kubernetes/admin.conf
     download_util_binaries
 
-    if ! rook_upgrade_addon_fetch "$from_version" "$to_version" ; then
+    if ! rook_upgrade_addon_fetch_and_load "$from_version" "$to_version" ; then
         bail "Failed to load images"
     fi
 }
