@@ -7,6 +7,25 @@ function rookupgrade_10to14_upgrade() {
 
     # if it is less than or equal we re-apply in cause of a failure mid upgrade
     if [ "$(rook_upgrade_compare_rook_versions "$from_version" "1.1")" != "1" ]; then
+        "$DIR"/bin/kurl rook wait-for-health
+
+        # If mon count is less than preferred count, update mon count to preferred count. Otherwise
+        # updating to the latest CRDs may reduce the mon count, as preferredCount has been removed
+        # from the CRD in Rook 1.1.
+        # https://github.com/rook/rook/commit/e2fccdf03b4887a90892ef6c493a3f25cbbd23dd
+        local mon_count=
+        local mon_preferred_count=
+        mon_count="$(kubectl -n rook-ceph get cephcluster rook-ceph -o jsonpath='{.spec.mon.count}')"
+        if [ -z "$mon_count" ]; then
+            mon_count=1
+        fi
+        mon_preferred_count="$(kubectl -n rook-ceph get cephcluster rook-ceph -o jsonpath='{.spec.mon.preferredCount}')"
+        if [ -n "$mon_preferred_count" ] && [ "$mon_count" -lt "$mon_preferred_count" ]; then
+            echo "Updating mon count to match preferred mon count $mon_preferred_count"
+            kubectl -n rook-ceph patch cephcluster rook-ceph --type merge -p '{"spec":{"mon":{"count":'"$mon_preferred_count"'}}}'
+            "$DIR"/bin/kurl rook wait-for-health
+        fi
+
         "$DIR"/bin/kurl rook hostpath-to-block
         "$DIR"/bin/kurl rook wait-for-health
 
