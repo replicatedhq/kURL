@@ -57,6 +57,7 @@
 
 # upgrade two versions
 - name: Upgrade from 1.8.10
+  flags: "yes"
   installerSpec:
     kubernetes:
       version: "1.23.x"
@@ -143,6 +144,7 @@
     kubectl -n default delete pvc cephfs-pvc default-pvc
 
 - name: Upgrade from 1.9.12
+  flags: "yes"
   installerSpec:
     kubernetes:
       version: "1.23.x"
