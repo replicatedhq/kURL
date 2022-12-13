@@ -215,11 +215,6 @@ function rook_upgrade_addon_fetch_step() {
     local addon="$1"
     local version="$2"
 
-    if ! addon_exists "$addon" "$version" ; then
-        logFail "Rook version $version not found"
-        return 1
-    fi
-
     if [ "$AIRGAP" = "1" ]; then
         if ! addon_fetch_airgap "$addon" "$version" ; then
             return 1
@@ -228,6 +223,10 @@ function rook_upgrade_addon_fetch_step() {
         if ! addon_fetch "$addon" "$version" ; then
             return 1
         fi
+    fi
+
+    if ! addon_load "$addon" "$version" ; then
+        return 1
     fi
 }
 
