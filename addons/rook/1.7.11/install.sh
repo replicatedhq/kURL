@@ -177,7 +177,7 @@ function rook_cluster_deploy() {
 
         insert_patches_json_6902 "$dst/cephfs/kustomization.yaml" patches/filesystem-Json6902.yaml ceph.rook.io v1 CephFilesystem rook-shared-fs rook-ceph
 
-        insert_resources "$dst/kustomization.yaml" cephfs
+        insert_bases "$dst/kustomization.yaml" cephfs
     fi
 
     # patches
