@@ -540,6 +540,7 @@ function main() {
     else
         host_preflights "1" "0" "1"
     fi
+    uninstall_docker_new_installs_with_containerd
     install_host_dependencies
     get_common
     setup_kubeadm_kustomize
