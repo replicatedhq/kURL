@@ -628,6 +628,7 @@
   unsupportedOSIDs:
   - ubuntu-2204 # containerd 1.4.x is not supported on ubuntu 22.04
 - name: k8s1205_rook_upgrade
+  flags: "yes"
   cpu: 6
   installerSpec:
     kubernetes:
@@ -1638,8 +1639,12 @@
   preInstallScript: |
     # download the file that the airgap upgrade requires, and place it in the correct location
     curl -LO https://kurl-sh.s3.amazonaws.com/staging/rookupgrade-10to14.tar.gz
+    curl -LO https://kurl-sh.s3.amazonaws.com/staging/rook-1.4.9.tar.gz
+    curl -LO https://kurl-sh.s3.amazonaws.com/staging/rook-1.5.12.tar.gz
     mkdir -p /var/lib/kurl/assets
     mv rookupgrade-10to14.tar.gz /var/lib/kurl/assets
+    mv rook-1.4.9.tar.gz /var/lib/kurl/assets
+    mv rook-1.5.12.tar.gz /var/lib/kurl/assets
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     rook_ecph_object_store_info
