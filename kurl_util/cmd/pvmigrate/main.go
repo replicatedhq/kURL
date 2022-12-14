@@ -29,8 +29,11 @@ func main() {
 	var skipFreeSpaceCheck bool
 	var skipPreflightValidation bool
 	var preflightValidationOnly bool
-	var opts migrate.Options
 	var printVersion bool
+	var podReadyTimeout int
+	var deletePVTimeout int
+	var opts migrate.Options
+
 	flag.StringVar(&opts.SourceSCName, "source-sc", "", "storage provider name to migrate from")
 	flag.StringVar(&opts.DestSCName, "dest-sc", "", "storage provider name to migrate to")
 	flag.StringVar(&opts.RsyncImage, "rsync-image", "eeacms/rsync:2.3", "the image to use to copy PVCs - must have 'rsync' on the path")
@@ -40,7 +43,8 @@ func main() {
 	flag.BoolVar(&opts.SkipSourceValidation, "skip-source-validation", false, "migrate from PVCs using a particular StorageClass name, even if that StorageClass does not exist")
 	flag.BoolVar(&skipFreeSpaceCheck, "skip-free-space-check", false, "skips the check for storage free space prior to running the migrations")
 	flag.BoolVar(&printVersion, "version", false, "Print the version of the client")
-	flag.DurationVar(&opts.PodReadyTimeout, "pod-ready-timeout", 60*time.Second, "length of time to wait (in seconds) for volume validation pod(s) to go into Ready phase")
+	flag.IntVar(&podReadyTimeout, "pod-ready-timeout", 60, "length of time to wait (in seconds) for volume validation pod(s) to go into Ready phase")
+	flag.IntVar(&deletePVTimeout, "delete-pv-timeout", 300, "length of time to wait (in seconds) for backing PV to be removed when temporary PVC is deleted")
 	flag.BoolVar(&skipPreflightValidation, "skip-preflight-validation", false, "skips pre-migration validation")
 	flag.BoolVar(&preflightValidationOnly, "preflight-validation-only", false, "skip the migration and run preflight validation only")
 
@@ -51,6 +55,10 @@ func main() {
 		version.Print()
 		os.Exit(0)
 	}
+
+	// update migrate options with flag values
+	opts.PodReadyTimeout = time.Duration(podReadyTimeout) * time.Second
+	opts.DeletePVTimeout = time.Duration(deletePVTimeout) * time.Second
 
 	logger := log.New(os.Stderr, "", 0)
 	cfg, err := config.GetConfig()
@@ -70,6 +78,7 @@ func main() {
 	}
 
 	if !skipPreflightValidation {
+		logger.Printf("Running preflight migration checks (can take a couple of minutes to complete)")
 		failures, err := preflight.Validate(ctx, logger, cli, opts)
 		if err != nil {
 			logger.Fatalf("failed to run preflight validation checks: %s", err)
