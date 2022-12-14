@@ -102,6 +102,9 @@
   postUpgradeScript: |
     source /opt/kurl-testgrid/testhelpers.sh
 
+    # the node isn't ready for long enough after the k8s upgrade for the pods with pvcs to schedule
+    wait_for_minio_ready
+
     operatorVersion=$(kubectl get deployment -n rook-ceph rook-ceph-operator -o jsonpath='{.spec.template.spec.containers[0].image}')
     echo $operatorVersion | grep __testver__
 
@@ -188,6 +191,9 @@
     validate_read_write_object_store rwtest minio.txt
   postUpgradeScript: |
     source /opt/kurl-testgrid/testhelpers.sh
+
+    # the node isn't ready for long enough after the k8s upgrade for the pods with pvcs to schedule
+    wait_for_minio_ready
 
     operatorVersion=$(kubectl get deployment -n rook-ceph rook-ceph-operator -o jsonpath='{.spec.template.spec.containers[0].image}')
     echo $operatorVersion | grep __testver__
