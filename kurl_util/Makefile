@@ -36,20 +36,8 @@ endef
 clean:
 	rm -rf ./bin
 
-.PHONY: deps
-deps:
-	go install golang.org/x/lint/golint
-
-.PHONY: lint
-lint:
-	golint -set_exit_status ./...
-
-.PHONY: vet
-vet:
-	go vet ./...
-
 .PHONY: test
-test: lint vet
+test:
 	go test ./cmd/...
 
 .PHONY: build
