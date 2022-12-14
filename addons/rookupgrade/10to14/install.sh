@@ -7,9 +7,10 @@ function rookupgrade_10to14_upgrade() {
 
     # if it is less than or equal we re-apply in cause of a failure mid upgrade
     if [ "$(rook_upgrade_compare_rook_versions "$from_version" "1.1")" != "1" ]; then
+        # this will start the rook toolbox if it doesn't already exist
         "$DIR"/bin/kurl rook wait-for-health
 
-        # If mon count is less than preferred count, update mon count to preferred count. Otherwise
+        # If mon count is less than actual count, update mon count to actual count. Otherwise
         # updating to the latest CRDs may reduce the mon count, as preferredCount has been removed
         # from the CRD in Rook 1.1.
         # https://github.com/rook/rook/commit/e2fccdf03b4887a90892ef6c493a3f25cbbd23dd
@@ -21,9 +22,13 @@ function rookupgrade_10to14_upgrade() {
         fi
         mon_preferred_count="$(kubectl -n rook-ceph get cephcluster rook-ceph -o jsonpath='{.spec.mon.preferredCount}')"
         if [ -n "$mon_preferred_count" ] && [ "$mon_count" -lt "$mon_preferred_count" ]; then
-            echo "Updating mon count to match preferred mon count $mon_preferred_count"
-            kubectl -n rook-ceph patch cephcluster rook-ceph --type merge -p '{"spec":{"mon":{"count":'"$mon_preferred_count"'}}}'
-            "$DIR"/bin/kurl rook wait-for-health
+            local actual_mon_count=
+            actual_mon_count="$(kubectl -n rook-ceph exec deploy/rook-ceph-operator -- ceph mon stat | grep -o '[0-9]* mons* at' | awk '{ print $1 }')"
+            if [ -n "$actual_mon_count" ] && [ "$mon_count" -lt "$actual_mon_count" ]; then
+                echo "Updating mon count to match actual mon count $actual_mon_count"
+                kubectl -n rook-ceph patch cephcluster rook-ceph --type merge -p '{"spec":{"mon":{"count":'"$actual_mon_count"'}}}'
+                "$DIR"/bin/kurl rook wait-for-health
+            fi
         fi
 
         "$DIR"/bin/kurl rook hostpath-to-block
