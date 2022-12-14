@@ -210,6 +210,7 @@ func waitForOSDDown(ctx context.Context, client kubernetes.Interface) error {
 func waitForOkToRemoveOSD(ctx context.Context, client kubernetes.Interface, osdToRemove int64) error {
 	errCount := 0
 	safeErrCount := 0
+	okCount := 0
 	var isHealthy bool
 	var healthMessage string
 	for {
@@ -235,11 +236,17 @@ func waitForOkToRemoveOSD(ctx context.Context, client kubernetes.Interface, osdT
 				} else {
 					safeErrCount = 0 // only fail for _consecutive_ errors
 					if isOkToRemove {
-						return nil
+						if okCount >= 2 { // require that the cluster be healthy and the OSD be safe to remove 3x in a row before removal
+							return nil
+						}
+						okCount++
+					} else {
+						okCount = 0
 					}
 					updatedLine(fmt.Sprintf("Waiting for %d PGs to be moved off of osd.%d before removing it", offendingPgs, osdToRemove))
 				}
 			} else {
+				okCount = 0
 				// print a status message
 				spinLine(progressMessage(cephStatus))
 			}
