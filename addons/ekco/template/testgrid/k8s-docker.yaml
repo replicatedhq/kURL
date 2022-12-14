@@ -77,6 +77,24 @@
     fi
 
     echo "Pod image override success: $pod_image"
+- name: HAProxy Config File Permission Set to 640
+  installerSpec:
+    kubernetes:
+      version: "1.25.x"
+    containerd:
+      version: "latest"
+    weave:
+      version: "latest"
+    openebs:
+      version: "latest"
+      isLocalPVEnabled: true
+      localPVStorageClassName: default
+    ekco:
+      version: "__testver__"
+      s3Override: "__testdist__"
+      enableInternalLoadBalancer: true
+  preInstallScript: |
+    umask 0027
 - name: Upgrade HA add ekco
   installerSpec:
     kubernetes:

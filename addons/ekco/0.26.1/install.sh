@@ -342,6 +342,15 @@ function ekco_bootstrap_internal_lb() {
     if [ "$MASTER" = "1" ] && commandExists "kubectl" ; then
         kubectl -n kurl delete --ignore-not-found configmap update-internallb &>/dev/null || true
     fi
+
+    # Ensure we can read this directory even when there is a system wide umask policy that prohibits
+    # reading the haproxy config file such as 'umask 0027'.
+    # The kubelet creates a static haproxy pod which mounts haproxy.cfg as a hostpath volume. If
+    # the file does not have read permission for 'others', the haproxy container will not start
+    # during kubeadm init.
+    if [ -f /etc/haproxy/haproxy.cfg ]; then
+        chmod -R o+rX /etc/haproxy
+    fi
 }
 
 function ekco_cleanup_bootstrap_internal_lb() {
