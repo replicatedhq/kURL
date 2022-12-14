@@ -87,7 +87,7 @@
       version: "latest"
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
-    rook_ecph_object_store_info
+    rook_ceph_object_store_info
     validate_read_write_object_store rwtest testfile.txt
   postUpgradeScript: |
     source /opt/kurl-testgrid/testhelpers.sh
@@ -129,7 +129,7 @@
       version: "latest"
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
-    rook_ecph_object_store_info
+    rook_ceph_object_store_info
     validate_read_write_object_store rwtest testfile.txt
   postUpgradeScript: |
     source /opt/kurl-testgrid/testhelpers.sh

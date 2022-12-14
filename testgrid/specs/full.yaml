@@ -1583,14 +1583,14 @@
       version: "latest"
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
-    rook_ecph_object_store_info
+    rook_ceph_object_store_info
     validate_read_write_object_store rwtest testfile.txt
 
     minio_object_store_info
     validate_read_write_object_store rwtest minio.txt
   postUpgradeScript: |
     source /opt/kurl-testgrid/testhelpers.sh
-    rook_ecph_object_store_info
+    rook_ceph_object_store_info
     validate_testfile rwtest testfile.txt
     validate_read_write_object_store postupgrade upgradefile.txt
 
@@ -1647,14 +1647,14 @@
     mv rook-1.5.12.tar.gz /var/lib/kurl/assets
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
-    rook_ecph_object_store_info
+    rook_ceph_object_store_info
     validate_read_write_object_store rwtest testfile.txt
 
     minio_object_store_info
     validate_read_write_object_store rwtest minio.txt
   postUpgradeScript: |
     source /opt/kurl-testgrid/testhelpers.sh
-    rook_ecph_object_store_info
+    rook_ceph_object_store_info
     validate_testfile rwtest testfile.txt
     validate_read_write_object_store postupgrade upgradefile.txt
 

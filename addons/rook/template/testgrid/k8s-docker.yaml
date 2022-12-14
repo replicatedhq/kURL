@@ -19,7 +19,7 @@
     - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
-    rook_ecph_object_store_info
+    rook_ceph_object_store_info
     validate_read_write_object_store rwtest testfile.txt
 
     minio_object_store_info
@@ -57,6 +57,7 @@
 
 # upgrade two versions
 - name: Upgrade from 1.8.10
+  flags: "yes"
   installerSpec:
     kubernetes:
       version: "1.23.x"
@@ -93,7 +94,7 @@
     - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
-    rook_ecph_object_store_info
+    rook_ceph_object_store_info
     validate_read_write_object_store rwtest testfile.txt
 
     minio_object_store_info
@@ -101,10 +102,13 @@
   postUpgradeScript: |
     source /opt/kurl-testgrid/testhelpers.sh
 
+    # the node isn't ready for long enough after the k8s upgrade for the pods with pvcs to schedule
+    wait_for_minio_ready
+
     operatorVersion=$(kubectl get deployment -n rook-ceph rook-ceph-operator -o jsonpath='{.spec.template.spec.containers[0].image}')
     echo $operatorVersion | grep __testver__
 
-    rook_ecph_object_store_info
+    rook_ceph_object_store_info
     validate_testfile rwtest testfile.txt
     validate_read_write_object_store postupgrade upgradefile.txt
 
@@ -143,6 +147,7 @@
     kubectl -n default delete pvc cephfs-pvc default-pvc
 
 - name: Upgrade from 1.9.12
+  flags: "yes"
   installerSpec:
     kubernetes:
       version: "1.23.x"
@@ -179,7 +184,7 @@
     - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
-    rook_ecph_object_store_info
+    rook_ceph_object_store_info
     validate_read_write_object_store rwtest testfile.txt
 
     minio_object_store_info
@@ -187,10 +192,13 @@
   postUpgradeScript: |
     source /opt/kurl-testgrid/testhelpers.sh
 
+    # the node isn't ready for long enough after the k8s upgrade for the pods with pvcs to schedule
+    wait_for_minio_ready
+
     operatorVersion=$(kubectl get deployment -n rook-ceph rook-ceph-operator -o jsonpath='{.spec.template.spec.containers[0].image}')
     echo $operatorVersion | grep __testver__
 
-    rook_ecph_object_store_info
+    rook_ceph_object_store_info
     validate_testfile rwtest testfile.txt
     validate_read_write_object_store postupgrade upgradefile.txt
 
@@ -250,7 +258,7 @@
     - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
-    rook_ecph_object_store_info
+    rook_ceph_object_store_info
     validate_read_write_object_store rwtest testfile.txt
 
     minio_object_store_info
