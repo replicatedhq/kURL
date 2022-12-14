@@ -63,7 +63,7 @@ function rook() {
         export CEPH_DASHBOARD_PASSWORD="$cephDashboardPassword"
     fi
 
-    if ! kubectl -n rook-ceph get pod -l app=rook-ceph-rgw -o jsonpath='{.items[0].status.phase}' | grep -q Running ; then
+    if ! kubectl -n rook-ceph get pod -l app=rook-ceph-rgw -o jsonpath='{.items[0].status.phase}' 2>/dev/null | grep -q Running ; then
         semverParse "$ROOK_VERSION"
         # shellcheck disable=SC2154
         local rook_major_minor_version="${major}.${minor}"
