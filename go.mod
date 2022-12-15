@@ -21,7 +21,6 @@ require (
 	github.com/pelletier/go-toml v1.9.5
 	github.com/pkg/errors v0.9.1
 	github.com/replicatedhq/kurlkinds v1.0.8
-	github.com/replicatedhq/kurlkinds v1.0.7
 	github.com/replicatedhq/pvmigrate v0.7.0
 	github.com/replicatedhq/troubleshoot v0.49.1
 	github.com/rook/rook v1.10.6
