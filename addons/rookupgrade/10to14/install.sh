@@ -145,6 +145,16 @@ function rookupgrade_10to14_upgrade() {
         if [ "$SEMVER_COMPARE_RESULT" != "1" ]; then
             echo "Upgrading to Ceph 15.2.8"
             kubectl -n rook-ceph patch CephCluster rook-ceph --type=merge -p '{"spec": {"cephVersion": {"image": "ceph/ceph:v15.2.8-20201217"}}}'
+
+            # EKCO will scale device_health_metrics to 3 once the cluster is upgraded to Ceph
+            # 15.2.8, but since we have scaled EKCO to 0 replicas it cannot, so we need to do it
+            # manually.
+            echo "Waiting for device_health_metrics pool to be created"
+            if ! rookupgrade_10to14_wait_for_pool_device_health_metrics ; then
+                bail "Timed out waiting for device_health_metrics pool to be created"
+            fi
+            rookupgrade_10to14_maybe_scale_pool_device_health_metrics
+
             "$DIR"/bin/kurl rook wait-for-ceph-version "15.2.8-0"
 
             echo "Enabling pg pool autoscaling"
@@ -200,4 +210,31 @@ function rookupgrade_10to14_osd_pool_pg_num_lte() {
     pg_num="$(kubectl -n rook-ceph exec deploy/rook-ceph-tools -- \
         ceph osd pool get "$pool_name" pg_num | awk '{print $2}')"
     [ -n "$pg_num" ] && [ "$pg_num" -le "$pg_num_scale" ]
+}
+
+# rookupgrade_10to14_wait_for_pool_device_health_metrics will wait for the device_health_metrics
+# pool to be created when upgrading to Ceph 15.2.8
+function rookupgrade_10to14_wait_for_pool_device_health_metrics() {
+    spinner_until 300 rookupgrade_10to14_pool_device_health_metrics_exists
+}
+
+# rookupgrade_10to14_pool_device_health_metrics_exists will return 0 if the device_health_metrics
+# pool exists
+function rookupgrade_10to14_pool_device_health_metrics_exists() {
+    kubectl -n rook-ceph exec deploy/rook-ceph-tools -- ceph osd pool ls | grep -q device_health_metrics
+}
+
+# rookupgrade_10to14_maybe_scale_pool_device_health_metrics will scale the device_health_metrics
+# pool to the same replication of the replicapool, assuming EKCO has already scaled this pool.
+function rookupgrade_10to14_maybe_scale_pool_device_health_metrics() {
+    local replicapool_size=
+    local device_health_metrics_size=
+    device_health_metrics_size="$(kubectl -n rook-ceph exec deploy/rook-ceph-tools -- ceph osd pool get device_health_metrics size | awk '{ print $2 }')"
+    replicapool_size="$(kubectl -n rook-ceph exec deploy/rook-ceph-tools -- ceph osd pool get replicapool size | awk '{ print $2 }')"
+    if [ -n "$device_health_metrics_size" ] && [ -n "$replicapool_size" ] && [ "$replicapool_size" -gt 1 ] && [ "$device_health_metrics_size" -lt "$replicapool_size" ]; then
+        echo "Setting device_health_metrics pool size to $replicapool_size and min_size to 2"
+        kubectl -n rook-ceph exec deploy/rook-ceph-tools -- ceph osd pool set device_health_metrics size "$replicapool_size"
+        # min_size is always 2 for greater than 1 node clusters
+        kubectl -n rook-ceph exec deploy/rook-ceph-tools -- ceph osd pool set device_health_metrics min_size 2
+    fi
 }
