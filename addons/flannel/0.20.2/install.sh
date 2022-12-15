@@ -14,7 +14,9 @@ function flannel_pre_init() {
     local dst="$DIR/kustomize/flannel"
 
     if flannel_weave_conflict ; then
-        bail "Migrations from Weave to Flannel are not supported"
+        if ! flannel_is_single_node; then
+            bail "Migrations from Weave to Flannel are not supported"
+        fi
     fi
     if flannel_antrea_conflict ; then
         bail "Migrations from Antrea to Flannel are not supported"
@@ -31,7 +33,11 @@ function flannel() {
 
     flannel_render_config
 
-    kubectl -n kube-flannel apply -k "$dst/"
+    if flannel_weave_conflict; then
+        weave_to_flannel
+    else
+        kubectl -n kube-flannel apply -k "$dst/"
+    fi
 
     flannel_ready_spinner
     check_network
@@ -79,4 +85,80 @@ function flannel_weave_conflict() {
 
 function flannel_antrea_conflict() {
     ls /etc/cni/net.d/*antrea* >/dev/null 2>&1
+}
+
+function flannel_is_single_node() {
+    nodecount=
+    nodecount=$(kubectl get nodes --no-headers | wc -l)
+    if [ "$nodecount" -eq 1 ]; then
+        return 0
+    else
+        return 1
+    fi
+}
+
+function weave_to_flannel() {
+    local dst="$DIR/kustomize/flannel"
+
+    echo "REMOVING WEAVE"
+    remove_weave
+
+    echo "UPDATING KUBEADM FOR FLANNEL"
+    flannel_kubeadm
+
+    echo "APPLYING FLANNEL"
+    kubectl -n kube-flannel apply -k "$dst/"
+
+    sleep 60
+    echo "RESTARTING KUBELET"
+    sudo systemctl stop kubelet
+    sudo iptables -t nat -F && sudo iptables -t mangle -F && sudo iptables -F && sudo iptables -X
+    sudo systemctl restart containerd
+    sudo systemctl start kubelet
+
+    sleep 60
+    echo "RESTARTING kube-system"
+    kubectl -n kube-system delete pods --all
+    kubectl -n kube-flannel delete pods --all
+
+    sleep 60
+    echo "RESTARTING CSI"
+    kubectl -n longhorn-system delete pods --all || true
+    kubectl -n rook-ceph delete pods --all || true
+    kubectl -n openebs delete pods --all || true
+
+    sleep 60
+    echo "RESTARTING ALL OTHER PODS"
+    for ns in $(kubectl get ns -o name | grep -Ev '(kube-system|longhorn-system|rook-ceph|openebs|kube-flannel)' | cut -f2 -d'/'); do kubectl delete pods -n "$ns" --all; done
+    sleep 60
+}
+
+function remove_weave() {
+    # firstnode only
+    kubectl -n kube-system delete daemonset weave-net
+    kubectl -n kube-system delete rolebinding weave-net
+    kubectl -n kube-system delete role weave-net
+    kubectl delete clusterrolebinding weave-net
+    kubectl delete clusterrole weave-net
+    kubectl -n kube-system delete serviceaccount weave-net
+    kubectl -n kube-system delete secret weave-passwd
+
+    # all nodes
+    sudo rm -f /opt/cni/bin/weave-*
+    sudo rm -rf /etc/cni/net.d
+    sudo ip link delete weave
+
+}
+
+function flannel_kubeadm() {
+    # search for 'serviceSubnet', add podSubnet above it
+    pod_cidr_range_line="  podSubnet: ${POD_CIDR}"
+    if grep 'podSubnet:' /opt/replicated/kubeadm.conf; then
+        sed -i "s_  podSubnet:.*_${pod_cidr_range_line}_" /opt/replicated/kubeadm.conf
+    else
+        sed -i "/serviceSubnet/ s/.*/${pod_cidr_range_line}\n&/" /opt/replicated/kubeadm.conf
+    fi
+
+    sudo kubeadm init phase upload-config kubeadm --config=/opt/replicated/kubeadm.conf
+    sudo kubeadm init phase control-plane controller-manager --config=/opt/replicated/kubeadm.conf
 }
