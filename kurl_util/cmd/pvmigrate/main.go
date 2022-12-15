@@ -47,30 +47,32 @@ func main() {
 	flag.IntVar(&deletePVTimeout, "delete-pv-timeout", 300, "length of time to wait (in seconds) for backing PV to be removed when temporary PVC is deleted")
 	flag.BoolVar(&skipPreflightValidation, "skip-preflight-validation", false, "skips pre-migration validation")
 	flag.BoolVar(&preflightValidationOnly, "preflight-validation-only", false, "skip the migration and run preflight validation only")
-
 	flag.Parse()
 
-	fmt.Printf("Running pvmigrate build:\n")
-	version.Print()
-
-	// if --version flag is set, exit
+	// if --version flag is set, print to stdout and exit
 	if printVersion {
+		fmt.Printf("Running pvmigrate build:\n")
+		version.Print()
 		os.Exit(0)
 	}
+
+	// default to stderr stream
+	logger := log.New(os.Stderr, "", 0)
+	logger.Printf("Running pvmigrate build:\n")
+	version.Fprint(logger.Writer())
 
 	// update migrate options with flag values
 	opts.PodReadyTimeout = time.Duration(podReadyTimeout) * time.Second
 	opts.DeletePVTimeout = time.Duration(deletePVTimeout) * time.Second
 
-	logger := log.New(os.Stderr, "", 0)
 	cfg, err := config.GetConfig()
 	if err != nil {
-		logger.Fatalf("failed to get config: %s\n", err.Error())
+		logger.Fatalf("failed to get config: %s", err)
 	}
 
 	cli, err := kubernetes.NewForConfig(cfg)
 	if err != nil {
-		logger.Fatalf("failed to create kubernetes clientset: %s\n", err.Error())
+		logger.Fatalf("failed to create kubernetes clientset: %s", err)
 	}
 
 	if !skipFreeSpaceCheck {
@@ -94,7 +96,7 @@ func main() {
 
 	if !preflightValidationOnly {
 		if err = migrate.Migrate(ctx, logger, cli, opts); err != nil {
-			logger.Fatalf("%s\n", err.Error())
+			logger.Fatalf("migration failed: %s", err)
 		}
 	}
 }

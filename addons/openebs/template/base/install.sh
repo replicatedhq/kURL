@@ -60,6 +60,8 @@ function openebs_maybe_migrate_from_rook() {
 function openebs_maybe_rook_migration_checks() {
 
     # get the list of StorageClasses that use rook-ceph
+    local rook_scs
+    local rook_default_sc
     rook_scs=$(kubectl get storageclass | grep rook | grep -v '(default)' | awk '{ print $1}') # any non-default rook StorageClasses
     rook_default_sc=$(kubectl get storageclass | grep rook | grep '(default)' | awk '{ print $1}') # any default rook StorageClasses
 
@@ -74,6 +76,9 @@ function openebs_maybe_rook_migration_checks() {
     do
         # run validation checks for non default Rook storage classes
         rook_scs_pvmigrate_dryrun_output=$($BIN_PVMIGRATE --source-sc "$rook_sc" --dest-sc "$OPENEBS_LOCALPV_STORAGE_CLASS" --rsync-image "$KURL_UTIL_IMAGE" --preflight-validation-only || true)
+        if [ $? -ne 0 ]; then
+            break
+        fi
     done
 
     if [ -n "$rook_default_sc" ] ; then
