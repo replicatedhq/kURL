@@ -50,9 +50,11 @@ func main() {
 
 	flag.Parse()
 
+	fmt.Printf("Running pvmigrate build:\n")
+	version.Print()
+
+	// if --version flag is set, exit
 	if printVersion {
-		fmt.Printf("Running pvmigrate build:\n")
-		version.Print()
 		os.Exit(0)
 	}
 
