@@ -163,6 +163,12 @@ function rook_operator_deploy() {
     # upgrade first before applying auth_allow_insecure_global_id_reclaim policy
     rook_maybe_auth_allow_insecure_global_id_reclaim
 
+    # disable bluefs_buffered_io for rook ge 1.8.x
+    # See:
+    #   - https://github.com/rook/rook/issues/10160#issuecomment-1168303067
+    #   - https://tracker.ceph.com/issues/54019
+    rook_maybe_bluefs_buffered_io
+
     kubectl -n rook-ceph apply -k "$dst/"
 }
 
@@ -175,7 +181,7 @@ function rook_cluster_deploy() {
     cp -r "$src" "$dst"
 
     # resources
-    render_yaml_file_2 "$dst/tmpl-rbd-storageclass.yaml" > "$dst/rbd-storageclass.yaml"
+    render_yaml_file_2 "$src/tmpl-rbd-storageclass.yaml" > "$dst/rbd-storageclass.yaml"
     insert_resources "$dst/kustomization.yaml" rbd-storageclass.yaml
 
     # conditional cephfs
@@ -185,6 +191,7 @@ function rook_cluster_deploy() {
         insert_resources "$dst/cephfs/kustomization.yaml" cephfs-storageclass.yaml
         insert_resources "$dst/cephfs/kustomization.yaml" filesystem.yaml
         insert_patches_strategic_merge "$dst/cephfs/kustomization.yaml" patches/cephfs-storageclass.yaml
+        render_yaml_file_2 "$src/cephfs/patches/tmpl-filesystem.yaml" > "$dst/cephfs/patches/filesystem.yaml"
         insert_patches_strategic_merge "$dst/cephfs/kustomization.yaml" patches/filesystem.yaml
 
         # MDS pod anti-affinity rules prevent them from co-scheduling on single-node installations
@@ -194,6 +201,7 @@ function rook_cluster_deploy() {
             insert_patches_strategic_merge "$dst/cephfs/kustomization.yaml" patches/filesystem-singlenode.yaml
         fi
 
+        render_yaml_file_2 "$src/cephfs/patches/tmpl-filesystem-Json6902.yaml" > "$dst/cephfs/patches/filesystem-Json6902.yaml"
         insert_patches_json_6902 "$dst/cephfs/kustomization.yaml" patches/filesystem-Json6902.yaml ceph.rook.io v1 CephFilesystem rook-shared-fs rook-ceph
 
         insert_bases "$dst/kustomization.yaml" cephfs
@@ -510,6 +518,17 @@ function rook_should_fail_install() {
     fi
 
     return 1
+}
+
+function rook_maybe_bluefs_buffered_io() {
+    local dst="${DIR}/kustomize/rook/operator"
+
+    semverParse "$ROOK_VERSION"
+    local rook_major_version="$major"
+    local rook_minor_version="$minor"
+    if [ "$rook_major_version" = "1" ] && [ "$rook_minor_version" -ge "8" ]; then
+        sed -i "/\[global\].*/a\    bluefs_buffered_io = false" "$dst/configmap-rook-config-override.yaml"
+    fi
 }
 
 function rook_maybe_auth_allow_insecure_global_id_reclaim() {
