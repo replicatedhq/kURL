@@ -60,7 +60,7 @@ func ExecContainer(ctx context.Context, opts ExecOptions, terminalSizeQueue remo
 		return 0, errors.Wrap(err, "create exec")
 	}
 
-	if err := executor.Stream(remotecommand.StreamOptions{
+	if err := executor.StreamWithContext(ctx, remotecommand.StreamOptions{
 		Stdin:             opts.In,
 		Stdout:            opts.Out,
 		Stderr:            opts.Err,
