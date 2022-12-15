@@ -22,9 +22,9 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/replicatedhq/kurlkinds v1.0.8
 	github.com/replicatedhq/kurlkinds v1.0.7
+	github.com/replicatedhq/pvmigrate v0.7.0
 	github.com/replicatedhq/troubleshoot v0.49.1
 	github.com/rook/rook v1.10.6
-	github.com/replicatedhq/pvmigrate v0.7.0
 	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/afero v1.9.3
 	github.com/spf13/cobra v1.6.1
