@@ -215,7 +215,7 @@ function rookupgrade_10to14_osd_pool_pg_num_lte() {
 # rookupgrade_10to14_wait_for_pool_device_health_metrics will wait for the device_health_metrics
 # pool to be created when upgrading to Ceph 15.2.8
 function rookupgrade_10to14_wait_for_pool_device_health_metrics() {
-    spinner_until 300 rookupgrade_10to14_pool_device_health_metrics_exists
+    spinner_until 1200 rookupgrade_10to14_pool_device_health_metrics_exists
 }
 
 # rookupgrade_10to14_pool_device_health_metrics_exists will return 0 if the device_health_metrics
