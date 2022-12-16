@@ -1,7 +1,7 @@
 ---
 - op: replace
   path: /spec/dataPools/0/replicated/size
-  value: 1
+  value: ${CEPH_POOL_REPLICAS}
 - op: replace
   path: /spec/dataPools/0/replicated/requireSafeReplicaSize
   value: false
