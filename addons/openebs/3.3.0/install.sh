@@ -75,8 +75,7 @@ function openebs_maybe_rook_migration_checks() {
     for rook_sc in $rook_scs
     do
         # run validation checks for non default Rook storage classes
-        rook_scs_pvmigrate_dryrun_output=$($BIN_PVMIGRATE --source-sc "$rook_sc" --dest-sc "$OPENEBS_LOCALPV_STORAGE_CLASS" --rsync-image "$KURL_UTIL_IMAGE" --preflight-validation-only || true)
-        if [ $? -ne 0 ]; then
+        if ! rook_scs_pvmigrate_dryrun_output=$($BIN_PVMIGRATE --source-sc "$rook_sc" --dest-sc "$OPENEBS_LOCALPV_STORAGE_CLASS" --rsync-image "$KURL_UTIL_IMAGE" --preflight-validation-only) ; then
             break
         fi
     done
