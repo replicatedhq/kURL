@@ -21,6 +21,7 @@ require VERSION_TAG "${VERSION_TAG}"
 GITSHA="$(git rev-parse HEAD)"
 
 PACKAGE_PREFIX="${PACKAGE_PREFIX:-dist}"
+STAGING_PREFIX="${STAGING_PREFIX:-staging}"
 
 function package_has_changes() {
     local key="$1"
@@ -94,6 +95,21 @@ function copy_package_dist() {
     echo "copying package ${package} to s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${VERSION_TAG}/ with metadata md5=\"${MD5}\",gitsha=\"${GITSHA}\""
     retry 5 aws s3api copy-object --copy-source "${S3_BUCKET}/${PACKAGE_PREFIX}/${package}" --bucket "${S3_BUCKET}" --key "${PACKAGE_PREFIX}/${VERSION_TAG}/${package}" \
         --metadata-directive REPLACE --metadata md5="${md5}",gitsha="${GITSHA}"
+}
+
+function copy_staging_release_to_dist() {
+    local version_commit=
+    local staging_release_dir=
+    version_commit="$(git rev-list "${VERSION_TAG}" -n 1 | xargs git rev-parse --short)"
+    staging_release_dir="$(aws s3 ls s3://"${S3_BUCKET}/${STAGING_PREFIX}/" | grep "${version_commit}" | awk '{print $2}')"
+
+    if [ -z "${staging_release_dir}" ]; then
+        echo "Could not find staging release for tag ${VERSION_TAG} (${version_commit})"
+        return 1
+    fi
+
+    echo "copying s3://${S3_BUCKET}/${STAGING_PREFIX}/${staging_release_dir%/} to s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${VERSION_TAG}"
+    retry 5 aws s3 cp --recursive "s3://${S3_BUCKET}/${STAGING_PREFIX}/${staging_release_dir%/}" "s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${VERSION_TAG}"
 }
 
 function deploy() {
