@@ -8,10 +8,12 @@ import (
 	"os"
 	"os/signal"
 	"strings"
+	"time"
 
 	clusterspace "github.com/replicatedhq/kurl/pkg/cluster/space"
 	"github.com/replicatedhq/kurl/pkg/version"
 	"github.com/replicatedhq/pvmigrate/pkg/migrate"
+	"github.com/replicatedhq/pvmigrate/pkg/preflight"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
@@ -24,11 +26,14 @@ func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer stop()
 
-	fmt.Printf("Running pvmigrate build:\n")
-	version.Print()
-
 	var skipFreeSpaceCheck bool
+	var skipPreflightValidation bool
+	var preflightValidationOnly bool
+	var printVersion bool
+	var podReadyTimeout int
+	var deletePVTimeout int
 	var opts migrate.Options
+
 	flag.StringVar(&opts.SourceSCName, "source-sc", "", "storage provider name to migrate from")
 	flag.StringVar(&opts.DestSCName, "dest-sc", "", "storage provider name to migrate to")
 	flag.StringVar(&opts.RsyncImage, "rsync-image", "eeacms/rsync:2.3", "the image to use to copy PVCs - must have 'rsync' on the path")
@@ -37,31 +42,62 @@ func main() {
 	flag.BoolVar(&opts.VerboseCopy, "verbose-copy", false, "show output from the rsync command used to copy data between PVCs")
 	flag.BoolVar(&opts.SkipSourceValidation, "skip-source-validation", false, "migrate from PVCs using a particular StorageClass name, even if that StorageClass does not exist")
 	flag.BoolVar(&skipFreeSpaceCheck, "skip-free-space-check", false, "skips the check for storage free space prior to running the migrations")
+	flag.BoolVar(&printVersion, "version", false, "Print the version of the client")
+	flag.IntVar(&podReadyTimeout, "pod-ready-timeout", 60, "length of time to wait (in seconds) for volume validation pod(s) to go into Ready phase")
+	flag.IntVar(&deletePVTimeout, "delete-pv-timeout", 300, "length of time to wait (in seconds) for backing PV to be removed when temporary PVC is deleted")
+	flag.BoolVar(&skipPreflightValidation, "skip-preflight-validation", false, "skips pre-migration validation")
+	flag.BoolVar(&preflightValidationOnly, "preflight-validation-only", false, "skip the migration and run preflight validation only")
 	flag.Parse()
 
-	logger := log.New(os.Stdout, "", 0)
+	// if --version flag is set, print to stdout and exit
+	if printVersion {
+		fmt.Printf("Running pvmigrate build:\n")
+		version.Print()
+		os.Exit(0)
+	}
+
+	// default to stderr stream
+	logger := log.New(os.Stderr, "", 0)
+	logger.Printf("Running pvmigrate build:\n")
+	version.Fprint(logger.Writer())
+
+	// update migrate options with flag values
+	opts.PodReadyTimeout = time.Duration(podReadyTimeout) * time.Second
+	opts.DeletePVTimeout = time.Duration(deletePVTimeout) * time.Second
+
 	cfg, err := config.GetConfig()
 	if err != nil {
-		logger.Printf("failed to get config: %s\n", err.Error())
-		os.Exit(1)
+		logger.Fatalf("failed to get config: %s", err)
 	}
 
 	cli, err := kubernetes.NewForConfig(cfg)
 	if err != nil {
-		logger.Printf("failed to create kubernetes clientset: %s\n", err.Error())
-		os.Exit(1)
+		logger.Fatalf("failed to create kubernetes clientset: %s", err)
 	}
 
 	if !skipFreeSpaceCheck {
 		if err := checkFreeSpace(ctx, logger, cfg, cli, opts); err != nil {
-			logger.Printf("Failed to check cluster free space: %s", err)
+			logger.Fatalf("failed to check cluster free space: %s", err)
+		}
+	}
+
+	if !skipPreflightValidation {
+		logger.Printf("Running preflight migration checks (can take a couple of minutes to complete)")
+		failures, err := preflight.Validate(ctx, logger, cli, opts)
+		if err != nil {
+			logger.Fatalf("failed to run preflight validation checks: %s", err)
+		}
+
+		if len(failures) != 0 {
+			preflight.PrintValidationFailures(os.Stdout, failures)
 			os.Exit(1)
 		}
 	}
 
-	if err = migrate.Migrate(ctx, logger, cli, opts); err != nil {
-		fmt.Printf("%s\n", err.Error())
-		os.Exit(1)
+	if !preflightValidationOnly {
+		if err = migrate.Migrate(ctx, logger, cli, opts); err != nil {
+			logger.Fatalf("migration failed: %s", err)
+		}
 	}
 }
 

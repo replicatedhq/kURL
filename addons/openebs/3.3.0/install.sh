@@ -15,7 +15,7 @@ function openebs_pre_init() {
     export PREVIOUS_OPENEBS_VERSION="$(openebs_get_running_version)"
 
     openebs_bail_unsupported_upgrade
-    prompt_migrate_from_rook
+    openebs_prompt_migrate_from_rook
 }
 
 function openebs() {
@@ -48,13 +48,55 @@ function openebs() {
 function openebs_maybe_migrate_from_rook() {
     if [ -z "$ROOK_VERSION" ]; then
         if kubectl get ns | grep -q rook-ceph; then
-            rook_ceph_to_sc_migration "$OPENEBS_LOCALPV_STORAGE_CLASS"
+            # show validation errors from pvmigrate
+            # if there are errors, openebs_maybe_rook_migration_checks() will bail
+            openebs_maybe_rook_migration_checks
+            rook_ceph_to_sc_migration "$OPENEBS_LOCALPV_STORAGE_CLASS" "1"
             DID_MIGRATE_ROOK_PVCS=1 # used to automatically delete rook-ceph if object store data was also migrated
         fi
     fi
 }
 
-function prompt_migrate_from_rook() {
+function openebs_maybe_rook_migration_checks() {
+
+    # get the list of StorageClasses that use rook-ceph
+    local rook_scs
+    local rook_default_sc
+    rook_scs=$(kubectl get storageclass | grep rook | grep -v '(default)' | awk '{ print $1}') # any non-default rook StorageClasses
+    rook_default_sc=$(kubectl get storageclass | grep rook | grep '(default)' | awk '{ print $1}') # any default rook StorageClasses
+
+    # Ensure openebs-localpv-provisioner deployment is ready
+    echo "awaiting openebs-localpv-provisioner deployment"
+    spinner_until 120 deployment_fully_updated openebs openebs-localpv-provisioner
+
+    echo "running Rook to OpenEBS migration checks ..."
+    local rook_scs_pvmigrate_dryrun_output
+    local rook_default_sc_pvmigrate_dryrun_output
+    for rook_sc in $rook_scs
+    do
+        # run validation checks for non default Rook storage classes
+        if ! rook_scs_pvmigrate_dryrun_output=$($BIN_PVMIGRATE --source-sc "$rook_sc" --dest-sc "$OPENEBS_LOCALPV_STORAGE_CLASS" --rsync-image "$KURL_UTIL_IMAGE" --preflight-validation-only) ; then
+            break
+        fi
+    done
+
+    if [ -n "$rook_default_sc" ] ; then
+        # run validation checks for Rook default storage class
+        rook_default_sc_pvmigrate_dryrun_output=$($BIN_PVMIGRATE --source-sc "$rook_default_sc" --dest-sc "$OPENEBS_LOCALPV_STORAGE_CLASS" --rsync-image "$KURL_UTIL_IMAGE" --preflight-validation-only || true)
+    fi
+
+    if [ -n "$rook_scs_pvmigrate_dryrun_output" ] || [ -n "$rook_default_sc_pvmigrate_dryrun_output" ] ; then
+        log "$rook_scs_pvmigrate_dryrun_output"
+        log "$rook_default_sc_pvmigrate_dryrun_output"
+        
+        bail "Cannot upgrade from Rook to OpenEBS due to previous error."
+    fi
+
+    echo "Rook to OpenEBS migration checks completed."
+
+}
+
+function openebs_prompt_migrate_from_rook() {
     local ceph_disk_usage_total
     local rook_ceph_exec_deploy=rook-ceph-operator
 

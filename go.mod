@@ -21,7 +21,7 @@ require (
 	github.com/pelletier/go-toml v1.9.5
 	github.com/pkg/errors v0.9.1
 	github.com/replicatedhq/kurlkinds v1.0.8
-	github.com/replicatedhq/pvmigrate v0.6.0
+	github.com/replicatedhq/pvmigrate v0.7.0
 	github.com/replicatedhq/troubleshoot v0.49.1
 	github.com/rook/rook v1.10.6
 	github.com/sirupsen/logrus v1.9.0
@@ -241,6 +241,7 @@ require (
 	k8s.io/cli-runtime v0.25.4 // indirect
 	k8s.io/klog/v2 v2.80.1 // indirect
 	k8s.io/kube-openapi v0.0.0-20221012153701-172d655c2280 // indirect
+	k8s.io/kubernetes v1.25.4 // indirect
 	oras.land/oras-go v1.2.1 // indirect
 	periph.io/x/host/v3 v3.8.0 // indirect
 	sigs.k8s.io/json v0.0.0-20220713155537-f223a00ba0e2 // indirect

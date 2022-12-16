@@ -119,6 +119,7 @@ function remove_rook_ceph() {
 # Supported storage class migrations from ceph are: 'longhorn' and 'openebs'
 function rook_ceph_to_sc_migration() {
     local destStorageClass=$1
+    local didRunValidationChecks=$2
     local scProvisioner
     scProvisioner=$(kubectl get sc "$destStorageClass" -ojsonpath='{.provisioner}')
 
@@ -158,14 +159,24 @@ function rook_ceph_to_sc_migration() {
 
     for rook_sc in $rook_scs
     do
-        # run the migration (without setting defaults)
-        $BIN_PVMIGRATE --source-sc "$rook_sc" --dest-sc "$destStorageClass" --rsync-image "$KURL_UTIL_IMAGE"
+        if [ "$didRunValidationChecks" == "1" ]; then
+            # run the migration w/o validation checks
+            $BIN_PVMIGRATE --source-sc "$rook_sc" --dest-sc "$destStorageClass" --rsync-image "$KURL_UTIL_IMAGE" --skip-free-space-check --skip-preflight-validation
+        else
+            # run the migration (without setting defaults)
+            $BIN_PVMIGRATE --source-sc "$rook_sc" --dest-sc "$destStorageClass" --rsync-image "$KURL_UTIL_IMAGE"
+        fi
     done
 
     for rook_sc in $rook_default_sc
     do
-        # run the migration (setting defaults)
-        $BIN_PVMIGRATE --source-sc "$rook_sc" --dest-sc "$destStorageClass" --rsync-image "$KURL_UTIL_IMAGE" --set-defaults
+        if [ "$didRunValidationChecks" == "1" ]; then
+            # run the migration w/o validation checks
+            $BIN_PVMIGRATE --source-sc "$rook_sc" --dest-sc "$destStorageClass" --rsync-image "$KURL_UTIL_IMAGE" --skip-free-space-check --skip-preflight-validation
+        else
+            # run the migration (without setting defaults)
+            $BIN_PVMIGRATE --source-sc "$rook_sc" --dest-sc "$destStorageClass" --rsync-image "$KURL_UTIL_IMAGE"
+        fi
     done
 
     # reset prometheus (and ekco) scale
