@@ -182,13 +182,19 @@ EOF
         previous_version="$(ctr -v | grep -o '[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*')"
         logStep "Downgrading containerd, $previous_version -> $next_version"
         if semverCompare "$next_version" "$previous_version" && [ "$SEMVER_COMPARE_RESULT" -lt "0" ]; then
-            yum --disablerepo=* --enablerepo=kurl.local downgrade --allowerasing -y "${packages[@]}"
+            if uname -r | grep -q "el8" ; then
+                yum --disablerepo=* --enablerepo=kurl.local downgrade --allowerasing -y "${packages[@]}"
+            else
+                yum --disablerepo=* --enablerepo=kurl.local downgrade -y "${packages[@]}"
+            fi
         fi
         logSuccess "Downgraded containerd"
     fi
     # shellcheck disable=SC2086
-    if [[ "${packages[*]}" == *"containerd.io"* ]]; then
+    if [[ "${packages[*]}" == *"containerd.io"* && -n $(uname -r | grep "el8") ]]; then
         yum --disablerepo=* --enablerepo=kurl.local install --allowerasing -y "${packages[@]}"
+    else
+        yum --disablerepo=* --enablerepo=kurl.local install -y "${packages[@]}"
     fi
     yum clean metadata --disablerepo=* --enablerepo=kurl.local
     rm /etc/yum.repos.d/kurl.local.repo
