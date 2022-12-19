@@ -108,7 +108,7 @@ function _dpkg_apt_get_status_and_maybe_fix_broken_pkgs() {
         logSuccess "Broken packages fixed successfully"
         return
     fi
-    bail "Unable to fix broken packages. It is required manual intervention. Run the command '$sudo apt-get check status' to get further information."
+    bail "Unable to fix broken packages. It is required manual intervention. Run the command '$ apt-get check status' to get further information."
 }
 
 function _dpkg_install_host_packages() {
