@@ -60,7 +60,8 @@ func NodeImages(ctx context.Context, client kubernetes.Interface, logger *log.Lo
 		opts.nodeImagesJobRunner = runNodeImagesJob
 	}
 
-	for _, node := range nodes.Items {
+	for _, n := range nodes.Items {
+		node := n
 		thisNodeImages := map[string]struct{}{}
 		for _, image := range node.Status.Images {
 			for _, name := range image.Names {
