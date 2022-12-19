@@ -226,11 +226,11 @@ function uninstall_docker_new_installs_with_containerd() {
 
      # if k8s is installed already then, the docker should not be uninstalled
      # so that it can be properly migrated to containerd
-     if commandExists kubectl ; then
+     if kubernetes_resource_exists kube-system configmap kurl-config; then
           return
      fi
 
-     logWarn "Docker already exists on this machine and it will be uninstalled to avoid conflicts with containerd.\n"
+     logStep "Uninstalling Docker to avoid conflicts with containerd package.\n"
 
      if [ "$(docker ps -aq | wc -l)" != "0" ] ; then
          docker ps -aq | xargs docker rm -f || true

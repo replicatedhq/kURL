@@ -12,7 +12,7 @@ function preflights() {
     cri_preflights
     kotsadm_prerelease
     host_nameservers_reachable
-
+    allow_remove_docker_new_install
     return 0
 }
 
@@ -604,4 +604,27 @@ function host_preflights_mkresults() {
     echo -e "[version]\n${kurl_version}\n\n[options]\n${opts}\n\n[results]" | cat - "${out_file}" > "${tmp_file}" && mv "${tmp_file}" "${out_file}"
     chmod -R +r "${DIR}/${HOST_PREFLIGHTS_RESULTS_OUTPUT_DIR}/" # make sure the file is readable by kots support bundle
     rm -f "${tmp_file}"
+}
+
+# Uninstall Docker when containerd is selected to be installed and it is a new install
+# So that, is possible to avoid conflicts
+allow_remove_docker_new_install() {
+     # If docker is not installed OR if conatinerd is not in the spec
+     # then, the docker should not be uninstalled
+     if ! commandExists docker || [ -z "$CONTAINERD_VERSION" ]; then
+          return
+     fi
+
+     # if k8s is installed already then, the docker should not be uninstalled
+     # so that it can be properly migrated to containerd
+     if commandExists kubectl ; then
+          return
+     fi
+
+     printf "\n${YELLOW}Docker already exists on this machine and Kubernetes is not installed. In order to avoid conflicts when containerd will be installed do you allow Docker be uninstalled first?${NC} "
+     if confirmY ; then
+          uninstall_docker_new_installs_with_containerd
+     else
+          logWarn "\nThe installation will continue. However, if this script fails due to package conflicts, uninstall Docker and re-run the install script"
+     fi
 }
