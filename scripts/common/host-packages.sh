@@ -104,7 +104,7 @@ function _dpkg_apt_get_status_and_maybe_fix_broken_pkgs() {
 
     logWarn "Attempting to correct broken packages by running sudo apt-get install --fix-broken --yes"
     apt-get install --fix-broken --yes
-    if sudo apt-get check status ; then
+    if apt-get check status ; then
         logSuccess "Broken packages fixed successfully"
         return
     fi
