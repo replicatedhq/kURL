@@ -185,7 +185,7 @@ EOF
             if uname -r | grep -q "el8" ; then
                 yum --disablerepo=* --enablerepo=kurl.local downgrade --allowerasing -y "${packages[@]}"
             else
-                yum --disablerepo=* --enablerepo=kurl.local downgrade --allowerasing -y "${packages[@]}"
+                yum --disablerepo=* --enablerepo=kurl.local downgrade -y "${packages[@]}"
             fi
         fi
         logSuccess "Downgraded containerd"
@@ -194,7 +194,7 @@ EOF
     if [[ "${packages[*]}" == *"containerd.io"* && -n $(uname -r | grep "el8") ]]; then
         yum --disablerepo=* --enablerepo=kurl.local install --allowerasing -y "${packages[@]}"
     else
-        yum --disablerepo=* --enablerepo=kurl.local install --allowerasing -y "${packages[@]}"
+        yum --disablerepo=* --enablerepo=kurl.local install -y "${packages[@]}"
     fi
     yum clean metadata --disablerepo=* --enablerepo=kurl.local
     rm /etc/yum.repos.d/kurl.local.repo
