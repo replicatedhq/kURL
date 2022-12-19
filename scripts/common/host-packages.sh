@@ -97,7 +97,7 @@ function dpkg_install_host_packages() {
 
 function _dpkg_apt_get_status_and_maybe_fix_broken_pkgs() {
     logStep "Checking package manager status"
-    if  sudo apt-get check status ; then
+    if apt-get check status ; then
         logSuccess "Status checked successfully. No broken packages were found."
         return
     fi
