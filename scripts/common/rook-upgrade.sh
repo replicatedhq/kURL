@@ -276,7 +276,11 @@ function rook_upgrade_prompt_missing_images() {
     fi
 
     local prefix=
-    prefix="$(build_installer_prefix "$INSTALLER_ID" "$KURL_VERSION" "$KURL_URL" "$PROXY_ADDRESS")"
+    if [ "$AIRGAP" = "1" ]; then
+        prefix="cat ./"
+    else
+        prefix="$(build_installer_prefix "$INSTALLER_ID" "$KURL_VERSION" "$KURL_URL" "$PROXY_ADDRESS")"
+    fi
 
     local airgap_flag=
     if [ "$AIRGAP" = "1" ]; then
