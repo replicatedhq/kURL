@@ -95,6 +95,22 @@ function dpkg_install_host_packages() {
     _dpkg_install_host_packages "$dir" "$dir_prefix" "${packages[@]}"
 }
 
+function _dpkg_apt_get_status_and_maybe_fix_broken_pkgs() {
+    logStep "Checking package manager status"
+    if apt-get check status ; then
+        logSuccess "Status checked successfully. No broken packages were found."
+        return
+    fi
+
+    logWarn "Attempting to correct broken packages by running sudo apt-get install --fix-broken --yes"
+    apt-get install --fix-broken --yes
+    if apt-get check status ; then
+        logSuccess "Broken packages fixed successfully"
+        return
+    fi
+    bail "Unable to fix broken packages. It is required manual intervention. Run the command '$ apt-get check status' to get further information."
+}
+
 function _dpkg_install_host_packages() {
     if [ "${SKIP_SYSTEM_PACKAGE_INSTALL}" == "1" ]; then
         logStep "Skipping installation of host packages: ${packages[*]}"
@@ -114,9 +130,11 @@ function _dpkg_install_host_packages() {
         return 0
     fi
 
-    DEBIAN_FRONTEND=noninteractive dpkg --install --force-depends-version --force-confold "${fullpath}"/*.deb
+    DEBIAN_FRONTEND=noninteractive dpkg --install --force-depends-version --force-confold --auto-deconfigure "${fullpath}"/*.deb
 
     logSuccess "Host packages ${packages[*]} installed"
+
+    _dpkg_apt_get_status_and_maybe_fix_broken_pkgs
 }
 
 function yum_install_host_archives() {
