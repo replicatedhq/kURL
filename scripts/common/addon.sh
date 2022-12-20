@@ -279,6 +279,10 @@ function addon_fetch_airgap() {
         prompt
         if [ -n "$PROMPT_RESULT" ]; then
             local loadedPackagePath="$PROMPT_RESULT"
+            if [ ! -f "$loadedPackagePath" ]; then
+                logFail "The file $loadedPackagePath does not exist."
+                return 1
+            fi
             mkdir -p "$(dirname "$package_path")"
             cp "$loadedPackagePath" "$package_path"
         else
