@@ -42,9 +42,9 @@ function rookupgrade_10to14_upgrade() {
         non_osd_pools="$(kubectl -n rook-ceph exec deploy/rook-ceph-tools -- ceph osd pool ls | grep -v rook-ceph-store)"
         rookupgrade_10to14_scale_down_osd_pool_pg_num "$osd_pools" 16
         rookupgrade_10to14_scale_down_osd_pool_pg_num "$non_osd_pools" 32
-        # log "Waiting for pool pgs to scale down"
-        # rookupgrade_10to14_osd_pool_wait_for_pg_num "$osd_pools" 16
-        # rookupgrade_10to14_osd_pool_wait_for_pg_num "$non_osd_pools" 32
+        log "Waiting for pool pgs to scale down"
+        rookupgrade_10to14_osd_pool_wait_for_pg_num "$osd_pools" 16
+        rookupgrade_10to14_osd_pool_wait_for_pg_num "$non_osd_pools" 32
 
         logStep "Upgrading to Rook 1.1.9"
         "$DIR"/bin/kurl rook wait-for-health
