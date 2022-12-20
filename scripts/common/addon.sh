@@ -255,8 +255,10 @@ function addon_fetch_airgap() {
     local name=$1
     local version=$2
     local package="$name-$version.tar.gz"
+    local package_path=
+    package_path="$(package_filepath "$package")"
 
-    if [ -f "$(package_filepath "${package}")" ]; then
+    if [ -f "$package_path" ]; then
         # the package already exists, no need to download it
         printf "The package %s %s is already available locally.\n" "$name" "$version"
     else
@@ -267,7 +269,7 @@ function addon_fetch_airgap() {
 
         if ! prompts_can_prompt; then
             # we can't ask the user to give us the file because there are no prompts, but we can say where to put it for a future run
-            printf "Please move this file to /var/lib/kurl/%s before rerunning the installer.\n" "$(package_filepath "${package}")"
+            printf "Please move this file to /var/lib/kurl/%s before rerunning the installer.\n" "$package_path"
             return 1
         fi
 
@@ -277,11 +279,16 @@ function addon_fetch_airgap() {
         prompt
         if [ -n "$PROMPT_RESULT" ]; then
             local loadedPackagePath="$PROMPT_RESULT"
-            cp "$loadedPackagePath" "$(package_filepath "${package}")"
+            if [ ! -f "$loadedPackagePath" ]; then
+                logFail "The file $loadedPackagePath does not exist."
+                return 1
+            fi
+            mkdir -p "$(dirname "$package_path")"
+            cp "$loadedPackagePath" "$package_path"
         else
             printf "Skipping package %s %s\n" "$name" "$version"
             printf "You can provide the path to this file the next time the installer is run,"
-            printf "or move it to %s to be detected automatically.\n" "$(package_filepath "${package}")"
+            printf "or move it to %s to be detected automatically.\n" "$package_path"
             return 1
         fi
     fi
