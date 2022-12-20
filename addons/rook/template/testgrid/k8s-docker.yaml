@@ -1,3 +1,61 @@
+- name: Rook minimal airgap
+  installerSpec:
+    kubernetes:
+      version: "1.24.x"
+    weave:
+      version: "latest"
+    containerd:
+      version: "latest"
+    minio:
+      version: "latest"
+    kotsadm:
+      version: "latest"
+    ekco:
+      version: "latest"
+    rook:
+      version: "__testver__"
+      s3Override: "__testdist__"
+  airgap: true
+  unsupportedOSIDs:
+    - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
+  postInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rook_ceph_object_store_info
+    validate_read_write_object_store rwtest testfile.txt
+
+    minio_object_store_info
+    validate_read_write_object_store rwtest minio.txt
+
+    # validate data pools
+    cat <<EOF | kubectl apply -f -
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: cephfs-pvc
+    spec:
+      accessModes:
+      - ReadWriteMany
+      resources:
+        requests:
+          storage: 1Gi
+      storageClassName: rook-cephfs
+    ---
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: default-pvc
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: 1Gi
+    EOF
+    sleep 10
+    kubectl -n default get pvc default-pvc | grep Bound
+    kubectl -n default get pvc cephfs-pvc | grep Bound
+    kubectl -n default delete pvc cephfs-pvc default-pvc
+
 - name: Rook minimal
   installerSpec:
     kubernetes:
