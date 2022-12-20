@@ -627,6 +627,7 @@ allow_remove_docker_new_install() {
      if confirmY ; then
           uninstall_docker_new_installs_with_containerd
      else
-          logWarn "\nThe installation will continue. However, if this script fails due to package conflicts, uninstall Docker and re-run the install script"
+          logWarn "\nThe installation will continue, however, if this script fails due to package"
+          logWarn "conflicts, please uninstall Docker and re-run the install script."
      fi
 }
