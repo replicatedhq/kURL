@@ -73,7 +73,8 @@ function rook_upgrade_should_upgrade_rook() {
     fi
 
     # for now upgrades not supported to minor versions greater than 7
-    if [ "$next_rook_version_minor" -gt "7" ]; then
+    # unless ALLOW_ROOK_UPGRADE_FULL exported env var is set to 1 for testing
+    if [ "$ALLOW_ROOK_UPGRADE_FULL" != "1" ] && [ "$next_rook_version_minor" -gt "7" ]; then
         return 1
     fi
 
