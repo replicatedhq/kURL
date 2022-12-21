@@ -2,6 +2,7 @@
 
 EKCO_HAPROXY_IMAGE=haproxy:__HAPROXY_VERSION__
 
+EKCO_ROOK_PRIORITY_CLASS=
 function ekco_pre_init() {
     if [ -z "$EKCO_NODE_UNREACHABLE_TOLERATION_DURATION" ]; then
         EKCO_NODE_UNREACHABLE_TOLERATION_DURATION=5m
@@ -87,6 +88,8 @@ function ekco() {
             bail "EKCO failed to deploy the pod-image-overrides.kurl.sh mutating webhook configuration"
         fi
     fi
+
+    ekco_maybe_remove_rook_priority_class_label
 }
 
 function ekco_join() {
@@ -122,16 +125,29 @@ function ekco_already_applied() {
     fi
 
     # check if EKCO deployment needs to be scaled up after a Rook upgrade
-    maybe_scaleup_ekco_operator
+    ekco_maybe_scaleup_operator
+
+    ekco_maybe_remove_rook_priority_class_label
 }
 
-function maybe_scaleup_ekco_operator() {
+function ekco_maybe_scaleup_operator() {
     local ekcoReplicas=
     ekcoReplicas=$(kubectl -n kurl get deployment ekc-operator -o jsonpath='{.spec.replicas}')
 
     if [ -z "$ekcoReplicas" ] || [ "$ekcoReplicas" -eq 0 ]; then
         echo "Scaling up EKCO operator deployment"
         kubectl -n kurl scale deploy ekc-operator --replicas=1
+    fi
+}
+
+# ekco_maybe_remove_rook_priority_class_label will remove the rook-priority.kurl.sh label
+# indicating that the EKCO rook-priority.kurl.sh mutating webhook should no longer be applied
+# to the rook-ceph namespace.
+function ekco_maybe_remove_rook_priority_class_label() {
+    if kubectl get namespace rook-ceph >/dev/null 2>&1 ; then
+        if [ -z "$EKCO_ROOK_PRIORITY_CLASS" ]; then
+            kubectl label namespace rook-ceph rook-priority.kurl.sh-
+        fi
     fi
 }
 

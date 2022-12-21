@@ -73,7 +73,8 @@ function rook_upgrade_should_upgrade_rook() {
     fi
 
     # for now upgrades not supported to minor versions greater than 7
-    if [ "$next_rook_version_minor" -gt "7" ]; then
+    # unless ALLOW_ROOK_UPGRADE_FULL exported env var is set to 1 for testing
+    if [ "$ALLOW_ROOK_UPGRADE_FULL" != "1" ] && [ "$next_rook_version_minor" -gt "7" ]; then
         return 1
     fi
 
@@ -136,6 +137,12 @@ function rook_upgrade() {
     fi
 
     rook_upgrade_prompt_missing_images "$from_version" "$to_version"
+
+    # delete the mutatingwebhookconfiguration and remove the rook-priority.kurl.sh label
+    # as the EKCO rook-priority.kurl.sh mutating webhook is no longer necessary passed Rook
+    # 1.0.4.
+    kubectl label namespace rook-ceph rook-priority.kurl.sh-
+    kubectl delete mutatingwebhookconfigurations rook-priority.kurl.sh --ignore-not-found
 
     if rook_upgrade_is_version_included "$from_version" "$to_version" "1.4" ; then
         addon_source "rookupgrade" "10to14"

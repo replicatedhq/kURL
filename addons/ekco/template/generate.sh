@@ -2,8 +2,6 @@
 
 set -euo pipefail
 
-VERSION=""
-
 function get_latest_version() {
     docker run quay.io/skopeo/stable --override-os linux \
         list-tags "docker://replicated/ekco" | \
@@ -26,7 +24,7 @@ function get_latest_haproxy_version() {
 }
 
 function generate() {
-    local dir="../${VERSION}"
+    local dir="../$VERSION"
 
     local haproxy_version=
     haproxy_version="$(get_latest_haproxy_version)"
@@ -47,21 +45,42 @@ function add_as_latest() {
     fi
 }
 
+function parse_flags() {
+    for i in "$@"; do
+        case ${1} in
+            --force)
+                force_flag="1"
+                shift
+                ;;
+            --version=*)
+                version_flag="${i#*=}"
+                shift
+                ;;
+            *)
+                echo "Unknown flag $1"
+                exit 1
+                ;;
+        esac
+    done
+}
+
 function main() {
-    VERSION="${1-}"
-    if [ "${1-}" == "force" ]; then
-        VERSION=
-    fi
-    if [ -z "${VERSION}" ]; then
+    local force_flag=
+    local version_flag=
+
+    parse_flags "$@"
+
+    local VERSION="$version_flag"
+    if [ -z "$VERSION" ]; then
         VERSION="$(get_latest_version)"
     fi
 
-    if [ -d "../${VERSION}" ]; then
-        if [ "${1-}" == "force" ] || [ "${2-}" == "force" ]; then
-            echo "forcibly updating existing version of ekco"
+    if [ -d "../$VERSION" ]; then
+        if [ "$force_flag" == "1" ]; then
+            echo "forcibly updating existing version of EKCO"
             rm -rf "../${VERSION}"
         else
-            echo "not updating existing version of ekco"
+            echo "not updating existing version of EKCO"
             return
         fi
     fi
