@@ -10,6 +10,7 @@ import (
 	clusterv1beta1 "github.com/replicatedhq/kurlkinds/pkg/apis/cluster/v1beta1"
 )
 
+// TemplateData holds the data needed to run kURL templates
 type TemplateData struct {
 	Installer      clusterv1beta1.Installer
 	IsPrimary      bool
@@ -20,6 +21,7 @@ type TemplateData struct {
 	RemoteHosts    []string
 }
 
+// ExecuteTemplate runs go templates to determine what preflights need to be run etc
 func ExecuteTemplate(name, text string, data TemplateData) ([]byte, error) {
 	zeroNilStructFields(&data.Installer.Spec)
 	t, err := template.New(name).Funcs(sprig.TxtFuncMap()).Delims("{{kurl", "}}").Parse(text)

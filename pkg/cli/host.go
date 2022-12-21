@@ -4,7 +4,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func NewHostCmd(cli CLI) *cobra.Command {
+func newHostCmd(cli CLI) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "host",
 		Short: "Perform operations on the kURL host",

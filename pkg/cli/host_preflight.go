@@ -21,7 +21,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const HostPreflightCmdExample = `
+const hostPreflightCmdExample = `
   # Installer spec from file
   $ kurl host preflight spec.yaml
 
@@ -29,16 +29,16 @@ const HostPreflightCmdExample = `
   $ kubectl get installer 6abe39c -oyaml | kurl host preflight -`
 
 const (
-	PREFLIGHTS_WARNING_CODE        = 3
-	PREFLIGHTS_IGNORE_WARNING_CODE = 2
-	PREFLIGHTS_ERROR_CODE          = 1
+	preflightsWarningCode       = 3
+	preflightsIgnoreWarningCode = 2
+	preflightsErrorCode         = 1
 )
 
-func NewHostPreflightCmd(cli CLI) *cobra.Command {
+func newHostPreflightCmd(cli CLI) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:          "preflight [installer spec file|-]",
 		Short:        "Runs kURL host preflight checks",
-		Example:      HostPreflightCmdExample,
+		Example:      hostPreflightCmdExample,
 		SilenceUsage: true,
 		Args:         cobra.ExactArgs(1),
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
@@ -219,12 +219,12 @@ func NewHostPreflightCmd(cli CLI) *cobra.Command {
 			if v.GetBool("use-exit-codes") {
 				switch {
 				case preflightIsFail(results):
-					os.Exit(PREFLIGHTS_ERROR_CODE)
+					os.Exit(preflightsErrorCode)
 				case preflightIsWarn(results):
 					if v.GetBool("ignore-warnings") {
-						os.Exit(PREFLIGHTS_IGNORE_WARNING_CODE)
+						os.Exit(preflightsIgnoreWarningCode)
 					} else {
-						os.Exit(PREFLIGHTS_WARNING_CODE)
+						os.Exit(preflightsWarningCode)
 					}
 				}
 				return nil

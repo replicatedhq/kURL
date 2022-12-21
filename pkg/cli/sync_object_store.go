@@ -11,7 +11,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-func NewSyncObjectStoreCmd(cli CLI) *cobra.Command {
+func newSyncObjectStoreCmd(cli CLI) *cobra.Command {
 	var srcHost string
 	var srcAccessKeyID string
 	var srcAccessKeySecret string
@@ -69,7 +69,7 @@ func NewSyncObjectStoreCmd(cli CLI) *cobra.Command {
 			for _, srcBucket := range srcBuckets {
 				fmt.Printf("Syncing %s from %s to %s\n", srcBucket.Name, srcHost, dstHost)
 
-				count, err := SyncBucket(ctx, src, dst, srcBucket.Name)
+				count, err := syncBucket(ctx, src, dst, srcBucket.Name)
 				if err != nil {
 					log.Fatal(err)
 				}
@@ -92,7 +92,7 @@ func NewSyncObjectStoreCmd(cli CLI) *cobra.Command {
 	return syncObjectStoreCmd
 }
 
-func SyncBucket(ctx context.Context, src *minio.Client, dst *minio.Client, bucket string) (int, error) {
+func syncBucket(ctx context.Context, src *minio.Client, dst *minio.Client, bucket string) (int, error) {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 

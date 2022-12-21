@@ -2,12 +2,13 @@ package cli
 
 import "github.com/spf13/cobra"
 
+// AddCommands adds version/host/objectstore/newformataddress commands to the cobra object
 func AddCommands(cmd *cobra.Command, cli CLI) {
-	cmd.AddCommand(NewVersionCmd(cli))
+	cmd.AddCommand(newVersionCmd(cli))
 
-	hostCmd := NewHostCmd(cli)
-	hostCmd.AddCommand(NewHostProtectedidCmd(cli))
-	hostCmd.AddCommand(NewHostPreflightCmd(cli))
+	hostCmd := newHostCmd(cli)
+	hostCmd.AddCommand(newHostProtectedidCmd(cli))
+	hostCmd.AddCommand(newHostPreflightCmd(cli))
 	cmd.AddCommand(hostCmd)
 
 	rookCmd := NewRookCmd(cli)
@@ -24,7 +25,7 @@ func AddCommands(cmd *cobra.Command, cli CLI) {
 	clusterCmd.AddCommand(NewClusterCheckFreeDiskSpaceCmd(cli))
 	cmd.AddCommand(clusterCmd)
 
-	cmd.AddCommand(NewSyncObjectStoreCmd(cli))
+	cmd.AddCommand(newSyncObjectStoreCmd(cli))
 
-	cmd.AddCommand(NewFormatAddressCmd(cli))
+	cmd.AddCommand(newFormatAddressCmd(cli))
 }

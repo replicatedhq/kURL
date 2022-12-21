@@ -16,6 +16,7 @@ func init() {
 	utilruntime.Must(troubleshootclientsetscheme.AddToScheme(scheme.Scheme))
 }
 
+// Decode decodes preflight spec yaml files
 func Decode(data []byte) (*troubleshootv1beta2.HostPreflight, error) {
 	decode := scheme.Codecs.UniversalDeserializer().Decode
 	obj, gvk, err := decode(data, nil, nil)
@@ -34,6 +35,7 @@ func Decode(data []byte) (*troubleshootv1beta2.HostPreflight, error) {
 	return spec, nil
 }
 
+// Run collects host preflights and analyzes them, returning the analysis
 func Run(ctx context.Context, spec *troubleshootv1beta2.HostPreflight, progressChan chan interface{}) ([]*analyze.AnalyzeResult, error) {
 	collectResults, err := CollectResults(ctx, spec, progressChan)
 	if err != nil {
@@ -42,6 +44,7 @@ func Run(ctx context.Context, spec *troubleshootv1beta2.HostPreflight, progressC
 	return collectResults.Analyze(), nil
 }
 
+// CollectResults collects host preflights, and returns the CollectResult
 func CollectResults(ctx context.Context, spec *troubleshootv1beta2.HostPreflight, progressChan chan interface{}) (preflight.CollectResult, error) {
 	collectOpts := preflight.CollectOpts{
 		ProgressChan: progressChan,
