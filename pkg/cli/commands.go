@@ -25,7 +25,7 @@ func AddCommands(cmd *cobra.Command, cli CLI) {
 	clusterCmd.AddCommand(NewClusterCheckFreeDiskSpaceCmd(cli))
 	cmd.AddCommand(clusterCmd)
 
-	cmd.AddCommand(NewSyncObjectStoreCmd(cli))
+	cmd.AddCommand(newSyncObjectStoreCmd(cli))
 
 	cmd.AddCommand(newFormatAddressCmd(cli))
 }
