@@ -5,14 +5,14 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"os"
 	"strings"
 
 	"github.com/pkg/errors"
-	replyaml "github.com/replicatedhq/yaml/v3" // using replicatedhq/yaml/v3 because that allows setting line length
 	"gopkg.in/yaml.v2"
+	yamlv3 "gopkg.in/yaml.v3"
 )
 
 func readFile(path string) []byte {
@@ -24,7 +24,7 @@ func readFile(path string) []byte {
 
 	defer file.Close()
 
-	configuration, err := ioutil.ReadAll(file)
+	configuration, err := io.ReadAll(file)
 
 	if err != nil {
 		log.Fatal(err)
@@ -35,9 +35,8 @@ func readFile(path string) []byte {
 
 func marshalIndent(in interface{}, indent int) ([]byte, error) {
 	var buf bytes.Buffer
-	enc := replyaml.NewEncoder(&buf)
+	enc := yamlv3.NewEncoder(&buf)
 	enc.SetIndent(indent)
-	enc.SetLineLength(-1)
 	err := enc.Encode(in)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to encode with indent %d", indent)
@@ -53,7 +52,7 @@ func addFieldToFile(readFile func(string) []byte, filePath, yamlPath, value stri
 		log.Fatalf("error: %v", err)
 	}
 
-	err = ioutil.WriteFile(filePath, []byte(modified), 0644)
+	err = os.WriteFile(filePath, []byte(modified), 0644)
 	if err != nil {
 		log.Fatalf("error: %v", err)
 	}
@@ -104,7 +103,7 @@ func addFieldToContent(content []byte, yamlPath, value string) (string, error) {
 			parsedObj[fields[0]].(map[interface{}]interface{})[fields[1]] = parsedVal
 		}
 
-		b, err := marshalIndent(&parsedObj, 2)
+		b, err := marshalIndent(parsedObj, 2)
 		if err != nil {
 			return "", errors.Wrap(err, "failed to marshal")
 		}
@@ -128,7 +127,7 @@ func removeFieldFromFile(readFile func(string) []byte, filePath, yamlPath string
 		log.Fatalf("error: %v", err)
 	}
 
-	err = ioutil.WriteFile(filePath, []byte(modified), 0644)
+	err = os.WriteFile(filePath, []byte(modified), 0644)
 	if err != nil {
 		log.Fatalf("error: %v", err)
 	}
@@ -204,7 +203,7 @@ func retrieveField(readFile func(string) []byte, filePath, yamlPath string) {
 	concrete = data.(map[interface{}]interface{})
 	data = concrete[fields[1]]
 
-	err = ioutil.WriteFile(filePath, []byte(data.(string)), 0644)
+	err = os.WriteFile(filePath, []byte(data.(string)), 0644)
 
 	if err != nil {
 		log.Fatalf("error: %v", err)
@@ -277,7 +276,7 @@ func main() {
 
 	flag.Parse()
 
-	if *add == true && *yamlPath != "" && *value != "" {
+	if *add && *yamlPath != "" && *value != "" {
 		if *filePath != "" {
 			addFieldToFile(readFile, *filePath, *yamlPath, *value)
 		} else if *yamlContent != "" {
@@ -287,7 +286,7 @@ func main() {
 			}
 			fmt.Printf("%s\n", modified)
 		}
-	} else if *remove == true && *yamlPath != "" {
+	} else if *remove && *yamlPath != "" {
 		if *filePath != "" {
 			removeFieldFromFile(readFile, *filePath, *yamlPath)
 		} else if *yamlContent != "" {
@@ -297,9 +296,9 @@ func main() {
 			}
 			fmt.Printf("%s\n", modified)
 		}
-	} else if *parse == true && *filePath != "" && *yamlPath != "" {
+	} else if *parse && *filePath != "" && *yamlPath != "" {
 		retrieveField(readFile, *filePath, *yamlPath)
-	} else if *json == true && *filePath != "" && *jsonPath != "" {
+	} else if *json && *filePath != "" && *jsonPath != "" {
 		jsonObj, err := jsonField(readFile, *filePath, *jsonPath)
 		if err != nil {
 			log.Fatal(err.Error())

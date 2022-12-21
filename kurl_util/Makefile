@@ -1,7 +1,7 @@
 SHELL := /bin/bash
 KURL_UTIL_IMAGE ?= replicated/kurl-util:alpha
 VERSION_PACKAGE = github.com/replicatedhq/kurl/pkg/version
-VERSION ?= 0.0.1
+VERSION_TAG ?= 0.0.1
 DATE=`date -u +"%Y-%m-%dT%H:%M:%SZ"`
 CURRENT_USER := $(shell id -u -n)
 
@@ -26,7 +26,7 @@ endif
 
 define LDFLAGS
 -ldflags "\
-	-X ${VERSION_PACKAGE}.version=${VERSION} \
+	-X ${VERSION_PACKAGE}.version=${VERSION_TAG} \
 	-X ${VERSION_PACKAGE}.gitSHA=${GIT_SHA} \
 	-X ${VERSION_PACKAGE}.buildTime=${DATE} \
 "
@@ -36,20 +36,8 @@ endef
 clean:
 	rm -rf ./bin
 
-.PHONY: deps
-deps:
-	go install golang.org/x/lint/golint
-
-.PHONY: lint
-lint:
-	golint -set_exit_status ./...
-
-.PHONY: vet
-vet:
-	go vet ./...
-
 .PHONY: test
-test: lint vet
+test:
 	go test ./cmd/...
 
 .PHONY: build

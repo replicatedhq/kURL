@@ -1,12 +1,13 @@
 
 function kubernetes_host() {
+    kubernetes_load_modules
+    kubernetes_load_ipv4_modules
+    kubernetes_load_ipv6_modules
+    kubernetes_load_ipvs_modules
+
     if [ "$SKIP_KUBERNETES_HOST" = "1" ]; then
         return 0
     fi
-
-    kubernetes_load_ipvs_modules
-
-    kubernetes_sysctl_config
 
     kubernetes_install_host_packages "$KUBERNETES_VERSION"
 
@@ -19,7 +20,7 @@ function kubernetes_host() {
     fi
 
     load_images "$DIR/packages/kubernetes/$KUBERNETES_VERSION/images"
-    if [ -d "$DIR/packages/kubernetes-conformance/$KUBERNETES_VERSION/images" ]; then
+    if [ -n "$SONOBUOY_VERSION" ] && [ -d "$DIR/packages/kubernetes-conformance/$KUBERNETES_VERSION/images" ]; then
         load_images "$DIR/packages/kubernetes-conformance/$KUBERNETES_VERSION/images"
     fi
 
@@ -39,47 +40,69 @@ function kubernetes_load_ipvs_modules() {
         modprobe nf_conntrack_ipv4
     fi
 
+    rm -f /etc/modules-load.d/replicated-ipvs.conf
+
+    echo "Adding kernel modules ip_vs, ip_vs_rr, ip_vs_wrr, and ip_vs_sh"
     modprobe ip_vs
     modprobe ip_vs_rr
     modprobe ip_vs_wrr
     modprobe ip_vs_sh
 
-    echo 'nf_conntrack_ipv4' > /etc/modules-load.d/replicated-ipvs.conf
-    echo 'ip_vs' >> /etc/modules-load.d/replicated-ipvs.conf
-    echo 'ip_vs_rr' >> /etc/modules-load.d/replicated-ipvs.conf
-    echo 'ip_vs_wrr' >> /etc/modules-load.d/replicated-ipvs.conf
-    echo 'ip_vs_sh' >> /etc/modules-load.d/replicated-ipvs.conf
+    echo "nf_conntrack_ipv4" > /etc/modules-load.d/99-replicated-ipvs.conf
+    # shellcheck disable=SC2129
+    echo "ip_vs" >> /etc/modules-load.d/99-replicated-ipvs.conf
+    echo "ip_vs_rr" >> /etc/modules-load.d/99-replicated-ipvs.conf
+    echo "ip_vs_wrr" >> /etc/modules-load.d/99-replicated-ipvs.conf
+    echo "ip_vs_sh" >> /etc/modules-load.d/99-replicated-ipvs.conf
 }
 
-function kubernetes_sysctl_config() {
+function kubernetes_load_modules() {
+    if ! lsmod | grep -Fq br_netfilter ; then
+        echo "Adding kernel module br_netfilter"
+        modprobe br_netfilter
+    fi
+    echo "br_netfilter" > /etc/modules-load.d/99-replicated.conf
+}
+
+function kubernetes_load_ipv4_modules() {
     if [ "$IPV6_ONLY" = "1" ]; then
-        if ! cat /etc/sysctl.conf | grep "^net.bridge.bridge-nf-call-ip6tables" | tail -n1 | grep -Eq "^net.bridge.bridge-nf-call-ip6tables\s*=\s*1"; then
-            echo "net.bridge.bridge-nf-call-ip6tables = 1" >> /etc/sysctl.conf
-        fi
-        if ! cat /etc/sysctl.conf | grep "^net.ipv6.conf.all.forwarding" | tail -n1 | grep -Eq "^net.ipv6.conf.all.forwarding\s*=\s*1"; then
-            echo "net.ipv6.conf.all.forwarding = 1" >> /etc/sysctl.conf
-        fi
-
-        sysctl --system
-
-        if [ "$(cat /proc/sys/net/ipv6/conf/all/forwarding)" = "0" ]; then
-            bail "Failed to enable IPv6 forwarding."
-        fi
-
         return 0
     fi
 
-    if ! cat /etc/sysctl.conf | grep "^net.bridge.bridge-nf-call-iptables" | tail -n1 | grep -Eq "^net.bridge.bridge-nf-call-iptables\s*=\s*1"; then
-        echo "net.bridge.bridge-nf-call-iptables = 1" >> /etc/sysctl.conf
+    if ! lsmod | grep -q ^ip_tables ; then
+        echo "Adding kernel module ip_tables"
+        modprobe ip_tables
     fi
-    if ! cat /etc/sysctl.conf | grep "^net.ipv4.conf.all.forwarding" | tail -n1 | grep -Eq "^net.ipv4.conf.all.forwarding\s*=\s*1"; then
-        echo "net.ipv4.conf.all.forwarding = 1" >> /etc/sysctl.conf
-    fi
+    echo "ip_tables" > /etc/modules-load.d/99-replicated-ipv4.conf
+
+    echo "net.bridge.bridge-nf-call-iptables = 1" > /etc/sysctl.d/99-replicated-ipv4.conf
+    echo "net.ipv4.conf.all.forwarding = 1" >> /etc/sysctl.d/99-replicated-ipv4.conf
 
     sysctl --system
 
     if [ "$(cat /proc/sys/net/ipv4/ip_forward)" = "0" ]; then
         bail "Failed to enable IP forwarding."
+    fi
+}
+
+function kubernetes_load_ipv6_modules() {
+    if [ "$IPV6_ONLY" != "1" ]; then
+        return 0
+    fi
+
+    if ! lsmod | grep -q ^ip6_tables ; then
+        echo "Adding kernel module ip6_tables"
+        modprobe ip6_tables
+    fi
+    echo "ip6_tables" > /etc/modules-load.d/99-replicated-ipv6.conf
+
+    echo "net.bridge.bridge-nf-call-ip6tables = 1" > /etc/sysctl.d/99-replicated-ipv6.conf
+    echo "net.ipv6.conf.all.forwarding = 1" >> /etc/sysctl.d/99-replicated-ipv6.conf
+
+    sysctl --system
+
+    if [ "$(cat /proc/sys/net/ipv6/conf/all/forwarding)" = "0" ]; then
+        bail "Failed to enable IPv6 forwarding."
     fi
 }
 
@@ -217,7 +240,6 @@ function kubernetes_get_conformance_packages_online() {
     fi
 
     # we only build conformance packages for 1.17.0+
-    # this variable is not yet set for rke2 or k3s installs
     if [ -n "$KUBERNETES_TARGET_VERSION_MINOR" ] && [ "$KUBERNETES_TARGET_VERSION_MINOR" -lt "17" ]; then
         return
     fi
@@ -233,7 +255,7 @@ function kubernetes_get_conformance_packages_online() {
 }
 
 function kubernetes_masters() {
-    kubectl get nodes --no-headers --selector="node-role.kubernetes.io/master"
+    kubectl get nodes --no-headers --selector="node-role.kubernetes.io/master" 2>/dev/null
 }
 
 function kubernetes_remote_masters() {
@@ -316,13 +338,36 @@ function spinner_kubernetes_api_stable() {
 }
 
 function kubernetes_drain() {
-    kubectl drain "$1" \
-        --delete-local-data \
-        --ignore-daemonsets \
-        --force \
-        --grace-period=30 \
-        --timeout=120s \
-        --pod-selector 'app notin (rook-ceph-mon,rook-ceph-osd,rook-ceph-osd-prepare,rook-ceph-operator,rook-ceph-agent),k8s-app!=kube-dns' || true
+    local deleteEmptydirDataFlag="--delete-emptydir-data"
+    local k8sVersion=
+    k8sVersion=$(grep ' image: ' /etc/kubernetes/manifests/kube-apiserver.yaml | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')
+    local k8sVersionMinor=
+    k8sVersionMinor=$(kubernetes_version_minor "$k8sVersion")
+    if [ "$k8sVersionMinor" -lt "20" ]; then
+        deleteEmptydirDataFlag="--delete-local-data"
+    fi
+    # --pod-selector='app!=csi-attacher,app!=csi-provisioner'
+    # https://longhorn.io/docs/1.3.2/volumes-and-nodes/maintenance/#updating-the-node-os-or-container-runtime
+    if kubernetes_has_remotes ; then
+        kubectl drain "$1" \
+            "$deleteEmptydirDataFlag" \
+            --ignore-daemonsets \
+            --force \
+            --grace-period=30 \
+            --timeout=120s \
+            --pod-selector 'app notin (rook-ceph-mon,rook-ceph-osd,rook-ceph-osd-prepare,rook-ceph-operator,rook-ceph-agent),k8s-app!=kube-dns, name notin (restic)' || true
+    else
+        # On single node installs force drain to delete pods or
+        # else the command will timeout when evicting pods with pod disruption budgets
+        kubectl drain "$1" \
+            "$deleteEmptydirDataFlag" \
+            --ignore-daemonsets \
+            --force \
+            --grace-period=30 \
+            --timeout=120s \
+            --disable-eviction \
+            --pod-selector 'app notin (rook-ceph-mon,rook-ceph-osd,rook-ceph-osd-prepare,rook-ceph-operator,rook-ceph-agent),k8s-app!=kube-dns, name notin (restic)' || true
+    fi
 }
 
 function kubernetes_node_has_version() {
@@ -369,11 +414,20 @@ function kubernetes_scale_down() {
     local kind="$2"
     local name="$3"
 
+    kubernetes_scale "$ns" "$kind" "$name" "0"
+}
+
+function kubernetes_scale() {
+    local ns="$1"
+    local kind="$2"
+    local name="$3"
+    local replicas="$4"
+
     if ! kubernetes_resource_exists "$ns" "$kind" "$name"; then
         return 0
     fi
 
-    kubectl -n "$ns" scale "$kind" "$name" --replicas=0
+    kubectl -n "$ns" scale "$kind" "$name" --replicas="$replicas"
 }
 
 function kubernetes_secret_value() {
@@ -564,10 +618,6 @@ function list_all_required_images() {
 
     if [ -n "$LONGHORN_VERSION" ]; then
         find addons/longhorn/$LONGHORN_VERSION -type f -name Manifest 2>/dev/null | xargs cat | grep -E '^image' | grep -v no_remote_load | awk '{ print $3 }'
-    fi
-
-    if [ -n "$LOCAL_PATH_PROVISIONER_VERSION" ]; then
-        find addons/local-path-provisioner/$LOCAL_PATH_PROVISIONER_VERSION -type f -name Manifest 2>/dev/null | xargs cat | grep -E '^image' | grep -v no_remote_load | awk '{ print $3 }'
     fi
 
     if [ -n "$MINIO_VERSION" ]; then
@@ -942,4 +992,18 @@ function file_exists() {
     if ! test -f "$filename"; then
         return 1
     fi
+}
+
+# checks if the service in ns $1 with name $2 has endpoints
+function kubernetes_service_healthy() {
+    local namespace=$1
+    local name=$2
+
+    kubectl -n "$namespace" get endpoints "$name" --no-headers | grep -v "<none>" &>/dev/null
+}
+
+function kubernetes_version_minor() {
+    local k8sVersion="$1"
+    # shellcheck disable=SC2001
+    echo "$k8sVersion" | sed 's/v\?[0-9]*\.\([0-9]*\)\.[0-9]*/\1/'
 }

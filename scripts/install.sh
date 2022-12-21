@@ -15,7 +15,6 @@ DIR=.
 . $DIR/scripts/common/docker.sh
 . $DIR/scripts/common/helm.sh
 . $DIR/scripts/common/host-packages.sh
-. $DIR/scripts/common/k3s.sh
 . $DIR/scripts/common/kubernetes.sh
 . $DIR/scripts/common/object_store.sh
 . $DIR/scripts/common/plugins.sh
@@ -24,15 +23,13 @@ DIR=.
 . $DIR/scripts/common/proxy.sh
 . $DIR/scripts/common/reporting.sh
 . $DIR/scripts/common/rook.sh
+. $DIR/scripts/common/rook-upgrade.sh
 . $DIR/scripts/common/longhorn.sh
-. $DIR/scripts/common/rke2.sh
 . $DIR/scripts/common/upgrade.sh
 . $DIR/scripts/common/utilbinaries.sh
 . $DIR/scripts/common/yaml.sh
 . $DIR/scripts/distro/interface.sh
-. $DIR/scripts/distro/k3s/distro.sh
 . $DIR/scripts/distro/kubeadm/distro.sh
-. $DIR/scripts/distro/rke2/distro.sh
 # Magic end
 
 function configure_coredns() {
@@ -115,9 +112,15 @@ function init() {
             $kustomize_kubeadm_init/kustomization.yaml \
             patch-kubelet-cis-compliance.yaml
         
-        insert_patches_strategic_merge \
-            $kustomize_kubeadm_init/kustomization.yaml \
-            patch-cluster-config-cis-compliance.yaml
+        if [ "$KUBERNETES_TARGET_VERSION_MINOR" -ge "20" ]; then
+            insert_patches_strategic_merge \
+                $kustomize_kubeadm_init/kustomization.yaml \
+                patch-cluster-config-cis-compliance.yaml
+	else
+            insert_patches_strategic_merge \
+                $kustomize_kubeadm_init/kustomization.yaml \
+                patch-cluster-config-cis-compliance-insecure-port.yaml
+	fi
     fi
 
     if [ "$KUBE_RESERVED" == "1" ]; then
@@ -185,7 +188,7 @@ function init() {
 
     # When no_proxy changes kubeadm init rewrites the static manifests and fails because the api is
     # restarting. Trigger the restart ahead of time and wait for it to be healthy.
-    if [ -f "/etc/kubernetes/manifests/kube-apiserver.yaml" ] && [ -n "$no_proxy" ] && ! cat /etc/kubernetes/manifests/kube-apiserver.yaml | grep -q "$no_proxy"; then
+    if [ -f "/etc/kubernetes/manifests/kube-apiserver.yaml" ] && [ -n "$no_proxy" ] && ! grep -Fq "$no_proxy" /etc/kubernetes/manifests/kube-apiserver.yaml ; then
         kubeadm init phase control-plane apiserver --config $KUBEADM_CONF_FILE
         sleep 2
         if ! spinner_until 60 kubernetes_api_is_healthy; then
@@ -245,12 +248,14 @@ function init() {
     KUBEADM_TOKEN_CA_HASH=$(cat /tmp/kubeadm-init | grep 'discovery-token-ca-cert-hash' | awk '{ print $2 }' | head -1)
 
     if [ "$KUBERNETES_CIS_COMPLIANCE" == "1" ]; then
-        kubectl apply -f $kustomize_kubeadm_init/pod-security-policy-privileged.yaml
-        # patch 'PodSecurityPolicy' to kube-apiserver and wait for kube-apiserver to reconcile
-        old_admission_plugins='--enable-admission-plugins=NodeRestriction'
-        new_admission_plugins='--enable-admission-plugins=NodeRestriction,PodSecurityPolicy'
-        sed -i "s%$old_admission_plugins%$new_admission_plugins%g"  /etc/kubernetes/manifests/kube-apiserver.yaml
-        spinner_kubernetes_api_stable
+        if [ "$KUBERNETES_TARGET_VERSION_MINOR" -le "24" ]; then
+            kubectl apply -f $kustomize_kubeadm_init/pod-security-policy-privileged.yaml
+            # patch 'PodSecurityPolicy' to kube-apiserver and wait for kube-apiserver to reconcile
+            old_admission_plugins='--enable-admission-plugins=NodeRestriction'
+            new_admission_plugins='--enable-admission-plugins=NodeRestriction,PodSecurityPolicy'
+            sed -i "s%$old_admission_plugins%$new_admission_plugins%g"  /etc/kubernetes/manifests/kube-apiserver.yaml
+            spinner_kubernetes_api_stable
+        fi
 
         # create an 'etcd' user and group and ensure that it owns the etcd data directory (we don't care what userid these have, as etcd will still run as root)
         useradd etcd || true
@@ -313,7 +318,7 @@ function init() {
     fi
 
     # create kurl namespace if it doesn't exist
-    kubectl get ns kurl 2>/dev/null 1>/dev/null || kubectl create ns kurl 1>/dev/null
+    kubectl get ns kurl >/dev/null 2>&1 || kubectl create ns kurl --save-config
 
     spinner_until 120 kubernetes_default_service_account_exists
     spinner_until 120 kubernetes_service_exists
@@ -336,7 +341,6 @@ function init() {
 function kubeadm_post_init() {
     BOOTSTRAP_TOKEN_EXPIRY=$(kubeadm token list | grep $BOOTSTRAP_TOKEN | awk '{print $3}')
     kurl_config
-    uninstall_docker
 }
 
 function kubernetes_maybe_generate_bootstrap_token() {
@@ -367,6 +371,7 @@ function kurl_config() {
         --from-literal=service_cidr="$SERVICE_CIDR" \
         --from-literal=pod_cidr="$POD_CIDR" \
         --from-literal=kurl_install_directory="$KURL_INSTALL_DIRECTORY_FLAG" \
+        --from-literal=additional_no_proxy_addresses="$ADDITIONAL_NO_PROXY_ADDRESSES" \
         --from-literal=kubernetes_cis_compliance="$KUBERNETES_CIS_COMPLIANCE"
 }
 
@@ -383,6 +388,9 @@ function outro() {
 
     local common_flags
     common_flags="${common_flags}$(get_docker_registry_ip_flag "${DOCKER_REGISTRY_IP}")"
+    if [ -n "$ADDITIONAL_NO_PROXY_ADDRESSES" ]; then
+        common_flags="${common_flags}$(get_additional_no_proxy_addresses_flag "${PROXY_ADDRESS}" "${ADDITIONAL_NO_PROXY_ADDRESSES}")"
+    fi
     common_flags="${common_flags}$(get_additional_no_proxy_addresses_flag "${PROXY_ADDRESS}" "${SERVICE_CIDR},${POD_CIDR}")"
     common_flags="${common_flags}$(get_kurl_install_directory_flag "${KURL_INSTALL_DIRECTORY_FLAG}")"
     common_flags="${common_flags}$(get_remotes_flags)"
@@ -514,17 +522,6 @@ function main() {
     MASTER=1 # parse_yaml_into_bash_variables will unset master
     prompt_license
 
-    # ALPHA FLAGS
-    if [ -n "$RKE2_VERSION" ]; then
-        K8S_DISTRO=rke2
-        rke2_main "$@"
-        exit 0
-    elif [ -n "$K3S_VERSION" ]; then
-        K8S_DISTRO=k3s
-        k3s_main "$@"
-        exit 0
-    fi
-
     export KUBECONFIG=/etc/kubernetes/admin.conf
 
     is_ha
@@ -544,9 +541,11 @@ function main() {
     else
         host_preflights "1" "0" "1"
     fi
+    uninstall_docker_new_installs_with_containerd
     install_host_dependencies
     get_common
     setup_kubeadm_kustomize
+    rook_upgrade_maybe_report_upgrade_rook
     ${K8S_DISTRO}_addon_for_each addon_pre_init
     discover_pod_subnet
     discover_service_subnet
@@ -561,6 +560,8 @@ function main() {
     maybe_cleanup_rook
     helmfile_sync
     kubeadm_post_init
+    uninstall_docker
+    ${K8S_DISTRO}_addon_for_each addon_post_init
     outro
     package_cleanup
 

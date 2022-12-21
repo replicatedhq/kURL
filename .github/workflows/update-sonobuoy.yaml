@@ -1,12 +1,12 @@
 name: cron-sonobuoy-update
 on:
   schedule:
-  - cron: '0 4 * * *'
+  - cron: "0 4 * * 1,2,3,4,5" # “At 04:00 on Monday, Tuesday, Wednesday, Thursday, and Friday.”
   workflow_dispatch: {}
 
 jobs:
   build-pr-sonobuoy:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     steps:
     - uses: actions/checkout@v3
       with:
@@ -18,7 +18,7 @@ jobs:
       run: ./generate.sh
 
     - name: Create Pull Request # creates a PR if there are differences
-      uses: peter-evans/create-pull-request@v4.0.4
+      uses: peter-evans/create-pull-request@v4.2.3
       id: cpr
       with:
         token: ${{ secrets.AUTOMATED_PR_GH_PAT }}
@@ -29,10 +29,16 @@ jobs:
         labels: |
           automated-pr
           sonobuoy
+          type::chore
+          kurl::type::feature
         draft: false
         base: "main"
-        body: "Automated changes by the [cron-sonobuoy-update](https://github.com/replicatedhq/kURL/blob/main/.github/workflows/update-sonobuoy.yaml) GitHub action"
-
+        body: |
+          Automated changes by the [cron-sonobuoy-update](https://github.com/replicatedhq/kURL/blob/main/.github/workflows/update-sonobuoy.yaml) GitHub action
+          
+          ```release-note
+          Adds [Sonobuoy add-on](https://kurl.sh/docs/add-ons/sonobuoy) version ${{ steps.update.outputs.sonobuoy_version }}.
+          ```
     - name: Check outputs
       run: |
         echo "Pull Request Number - ${{ steps.cpr.outputs.pull-request-number }}"

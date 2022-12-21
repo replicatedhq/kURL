@@ -1,0 +1,598 @@
+{
+  "apiVersion": "v1",
+  "items": [
+    {
+      "apiVersion": "v1",
+      "kind": "Node",
+      "metadata": {
+        "annotations": {
+          "csi.volume.kubernetes.io/nodeid": "{\"rook-ceph.cephfs.csi.ceph.com\":\"laverya-rook-kubernetes-upgrade\",\"rook-ceph.rbd.csi.ceph.com\":\"laverya-rook-kubernetes-upgrade\"}",
+          "kubeadm.alpha.kubernetes.io/cri-socket": "/run/containerd/containerd.sock",
+          "node.alpha.kubernetes.io/ttl": "0",
+          "volumes.kubernetes.io/controller-managed-attach-detach": "true"
+        },
+        "creationTimestamp": "2022-08-31T17:20:36Z",
+        "labels": {
+          "beta.kubernetes.io/arch": "amd64",
+          "beta.kubernetes.io/os": "linux",
+          "kubernetes.io/arch": "amd64",
+          "kubernetes.io/hostname": "laverya-rook-kubernetes-upgrade",
+          "kubernetes.io/os": "linux",
+          "kurl.sh/cluster": "true",
+          "node-role.kubernetes.io/control-plane": "",
+          "node-role.kubernetes.io/master": ""
+        },
+        "managedFields": [
+          {
+            "apiVersion": "v1",
+            "fieldsType": "FieldsV1",
+            "fieldsV1": {
+              "f:status": {
+                "f:conditions": {
+                  "k:{\"type\":\"NetworkUnavailable\"}": {
+                    ".": {},
+                    "f:lastHeartbeatTime": {},
+                    "f:lastTransitionTime": {},
+                    "f:message": {},
+                    "f:reason": {},
+                    "f:status": {},
+                    "f:type": {}
+                  }
+                }
+              }
+            },
+            "manager": "kube-utils",
+            "operation": "Update",
+            "time": "2022-08-31T17:21:01Z"
+          },
+          {
+            "apiVersion": "v1",
+            "fieldsType": "FieldsV1",
+            "fieldsV1": {
+              "f:metadata": {
+                "f:annotations": {
+                  ".": {},
+                  "f:csi.volume.kubernetes.io/nodeid": {},
+                  "f:volumes.kubernetes.io/controller-managed-attach-detach": {}
+                },
+                "f:labels": {
+                  ".": {},
+                  "f:beta.kubernetes.io/arch": {},
+                  "f:beta.kubernetes.io/os": {},
+                  "f:kubernetes.io/arch": {},
+                  "f:kubernetes.io/hostname": {},
+                  "f:kubernetes.io/os": {},
+                  "f:kurl.sh/cluster": {}
+                }
+              },
+              "f:status": {
+                "f:addresses": {
+                  ".": {},
+                  "k:{\"type\":\"Hostname\"}": {
+                    ".": {},
+                    "f:address": {},
+                    "f:type": {}
+                  },
+                  "k:{\"type\":\"InternalIP\"}": {
+                    ".": {},
+                    "f:address": {},
+                    "f:type": {}
+                  }
+                },
+                "f:allocatable": {
+                  ".": {},
+                  "f:cpu": {},
+                  "f:ephemeral-storage": {},
+                  "f:hugepages-1Gi": {},
+                  "f:hugepages-2Mi": {},
+                  "f:memory": {},
+                  "f:pods": {}
+                },
+                "f:capacity": {
+                  ".": {},
+                  "f:cpu": {},
+                  "f:ephemeral-storage": {},
+                  "f:hugepages-1Gi": {},
+                  "f:hugepages-2Mi": {},
+                  "f:memory": {},
+                  "f:pods": {}
+                },
+                "f:conditions": {
+                  ".": {},
+                  "k:{\"type\":\"DiskPressure\"}": {
+                    ".": {},
+                    "f:lastHeartbeatTime": {},
+                    "f:lastTransitionTime": {},
+                    "f:message": {},
+                    "f:reason": {},
+                    "f:status": {},
+                    "f:type": {}
+                  },
+                  "k:{\"type\":\"MemoryPressure\"}": {
+                    ".": {},
+                    "f:lastHeartbeatTime": {},
+                    "f:lastTransitionTime": {},
+                    "f:message": {},
+                    "f:reason": {},
+                    "f:status": {},
+                    "f:type": {}
+                  },
+                  "k:{\"type\":\"PIDPressure\"}": {
+                    ".": {},
+                    "f:lastHeartbeatTime": {},
+                    "f:lastTransitionTime": {},
+                    "f:message": {},
+                    "f:reason": {},
+                    "f:status": {},
+                    "f:type": {}
+                  },
+                  "k:{\"type\":\"Ready\"}": {
+                    ".": {},
+                    "f:lastHeartbeatTime": {},
+                    "f:lastTransitionTime": {},
+                    "f:message": {},
+                    "f:reason": {},
+                    "f:status": {},
+                    "f:type": {}
+                  }
+                },
+                "f:daemonEndpoints": {
+                  "f:kubeletEndpoint": {
+                    "f:Port": {}
+                  }
+                },
+                "f:images": {},
+                "f:nodeInfo": {
+                  "f:architecture": {},
+                  "f:bootID": {},
+                  "f:containerRuntimeVersion": {},
+                  "f:kernelVersion": {},
+                  "f:kubeProxyVersion": {},
+                  "f:kubeletVersion": {},
+                  "f:machineID": {},
+                  "f:operatingSystem": {},
+                  "f:osImage": {},
+                  "f:systemUUID": {}
+                }
+              }
+            },
+            "manager": "kubelet",
+            "operation": "Update",
+            "time": "2022-08-31T17:43:05Z"
+          },
+          {
+            "apiVersion": "v1",
+            "fieldsType": "FieldsV1",
+            "fieldsV1": {
+              "f:metadata": {
+                "f:annotations": {
+                  "f:kubeadm.alpha.kubernetes.io/cri-socket": {}
+                },
+                "f:labels": {
+                  "f:node-role.kubernetes.io/control-plane": {},
+                  "f:node-role.kubernetes.io/master": {}
+                }
+              }
+            },
+            "manager": "kubeadm",
+            "operation": "Update",
+            "time": "2022-08-31T18:08:14Z"
+          },
+          {
+            "apiVersion": "v1",
+            "fieldsType": "FieldsV1",
+            "fieldsV1": {
+              "f:metadata": {
+                "f:annotations": {
+                  "f:node.alpha.kubernetes.io/ttl": {}
+                }
+              }
+            },
+            "manager": "kube-controller-manager",
+            "operation": "Update",
+            "time": "2022-08-31T18:13:20Z"
+          }
+        ],
+        "name": "laverya-rook-kubernetes-upgrade",
+        "resourceVersion": "485847",
+        "uid": "c576c750-26ff-4866-8592-c17e1917d7f3"
+      },
+      "spec": {},
+      "status": {
+        "addresses": [
+          {
+            "address": "10.128.0.67",
+            "type": "InternalIP"
+          },
+          {
+            "address": "laverya-rook-kubernetes-upgrade",
+            "type": "Hostname"
+          }
+        ],
+        "allocatable": {
+          "cpu": "4",
+          "ephemeral-storage": "93478772582",
+          "hugepages-1Gi": "0",
+          "hugepages-2Mi": "0",
+          "memory": "16279808Ki",
+          "pods": "110"
+        },
+        "capacity": {
+          "cpu": "4",
+          "ephemeral-storage": "101430960Ki",
+          "hugepages-1Gi": "0",
+          "hugepages-2Mi": "0",
+          "memory": "16382208Ki",
+          "pods": "110"
+        },
+        "conditions": [
+          {
+            "lastHeartbeatTime": "2022-08-31T17:21:01Z",
+            "lastTransitionTime": "2022-08-31T17:21:01Z",
+            "message": "Weave pod has set this",
+            "reason": "WeaveIsUp",
+            "status": "False",
+            "type": "NetworkUnavailable"
+          },
+          {
+            "lastHeartbeatTime": "2022-09-02T15:52:16Z",
+            "lastTransitionTime": "2022-08-31T17:20:32Z",
+            "message": "kubelet has sufficient memory available",
+            "reason": "KubeletHasSufficientMemory",
+            "status": "False",
+            "type": "MemoryPressure"
+          },
+          {
+            "lastHeartbeatTime": "2022-09-02T15:52:16Z",
+            "lastTransitionTime": "2022-08-31T17:20:32Z",
+            "message": "kubelet has no disk pressure",
+            "reason": "KubeletHasNoDiskPressure",
+            "status": "False",
+            "type": "DiskPressure"
+          },
+          {
+            "lastHeartbeatTime": "2022-09-02T15:52:16Z",
+            "lastTransitionTime": "2022-08-31T17:20:32Z",
+            "message": "kubelet has sufficient PID available",
+            "reason": "KubeletHasSufficientPID",
+            "status": "False",
+            "type": "PIDPressure"
+          },
+          {
+            "lastHeartbeatTime": "2022-09-02T15:52:16Z",
+            "lastTransitionTime": "2022-08-31T18:13:30Z",
+            "message": "kubelet is posting ready status. AppArmor enabled",
+            "reason": "KubeletReady",
+            "status": "True",
+            "type": "Ready"
+          }
+        ],
+        "daemonEndpoints": {
+          "kubeletEndpoint": {
+            "Port": 10250
+          }
+        },
+        "images": [
+          {
+            "names": [
+              "docker.io/rook/ceph:v1.5.12"
+            ],
+            "sizeBytes": 1207092147
+          },
+          {
+            "names": [
+              "quay.io/cephcsi/cephcsi:v3.2.2"
+            ],
+            "sizeBytes": 1164659951
+          },
+          {
+            "names": [
+              "docker.io/ceph/ceph:v15.2.11"
+            ],
+            "sizeBytes": 1118098593
+          },
+          {
+            "names": [
+              "docker.io/kurlsh/rook-ceph:v1.0.4-9065b09-20210625"
+            ],
+            "sizeBytes": 1057682027
+          },
+          {
+            "names": [
+              "docker.io/rook/ceph:v1.4.9"
+            ],
+            "sizeBytes": 1053472661
+          },
+          {
+            "names": [
+              "quay.io/cephcsi/cephcsi:v3.1.1"
+            ],
+            "sizeBytes": 1048444382
+          },
+          {
+            "names": [
+              "quay.io/cephcsi/cephcsi:v1.2.2"
+            ],
+            "sizeBytes": 1011347710
+          },
+          {
+            "names": [
+              "docker.io/rook/ceph:v1.1.9"
+            ],
+            "sizeBytes": 1001768797
+          },
+          {
+            "names": [
+              "docker.io/kurlsh/ceph:v14.2.0-9065b09-20210625"
+            ],
+            "sizeBytes": 987206644
+          },
+          {
+            "names": [
+              "docker.io/ceph/ceph@sha256:37939a3739e4e037dcf1b1f5828058d721d8c6de958212609f9e7d920b9c62bf",
+              "docker.io/ceph/ceph:v15.2.8",
+              "docker.io/ceph/ceph:v15.2.8-20201217"
+            ],
+            "sizeBytes": 965200807
+          },
+          {
+            "names": [
+              "docker.io/rook/ceph:v1.3.11"
+            ],
+            "sizeBytes": 940068931
+          },
+          {
+            "names": [
+              "docker.io/rook/ceph:v1.2.7"
+            ],
+            "sizeBytes": 939977280
+          },
+          {
+            "names": [
+              "quay.io/cephcsi/cephcsi:v2.1.2"
+            ],
+            "sizeBytes": 864132576
+          },
+          {
+            "names": [
+              "docker.io/ceph/ceph:v14.2.5"
+            ],
+            "sizeBytes": 819591352
+          },
+          {
+            "names": [
+              "docker.io/replicated/kurl-util:v2022.08.25-0-dirty"
+            ],
+            "sizeBytes": 463964208
+          },
+          {
+            "names": [
+              "docker.io/grafana/grafana:9.0.5"
+            ],
+            "sizeBytes": 294570330
+          },
+          {
+            "names": [
+              "docker.io/ceph/ceph@sha256:8c86fc6acf47edb6c3e38777b72c3fea2bad5be18c7e88553673205b378d0121",
+              "docker.io/ceph/ceph:v14.2.5-20191210"
+            ],
+            "sizeBytes": 289364517
+          },
+          {
+            "names": [
+              "k8s.gcr.io/etcd:3.4.13-0"
+            ],
+            "sizeBytes": 254659286
+          },
+          {
+            "names": [
+              "quay.io/prometheus/prometheus:v2.37.0"
+            ],
+            "sizeBytes": 215409668
+          },
+          {
+            "names": [
+              "docker.io/kurlsh/weaveexec:2.6.5-20220825-237c19d"
+            ],
+            "sizeBytes": 148574378
+          },
+          {
+            "names": [
+              "docker.io/replicated/ekco:v0.20.0"
+            ],
+            "sizeBytes": 134121639
+          },
+          {
+            "names": [
+              "k8s.gcr.io/kube-apiserver:v1.20.15"
+            ],
+            "sizeBytes": 123119938
+          },
+          {
+            "names": [
+              "docker.io/kurlsh/weave-kube:2.6.5-20220825-237c19d"
+            ],
+            "sizeBytes": 122801082
+          },
+          {
+            "names": [
+              "k8s.gcr.io/kube-apiserver:v1.19.16"
+            ],
+            "sizeBytes": 120150332
+          },
+          {
+            "names": [
+              "k8s.gcr.io/kube-controller-manager:v1.20.15"
+            ],
+            "sizeBytes": 117639508
+          },
+          {
+            "names": [
+              "k8s.gcr.io/kube-controller-manager:v1.19.16"
+            ],
+            "sizeBytes": 112122180
+          },
+          {
+            "names": [
+              "k8s.gcr.io/kube-proxy:v1.20.15"
+            ],
+            "sizeBytes": 101481064
+          },
+          {
+            "names": [
+              "k8s.gcr.io/kube-proxy:v1.19.16"
+            ],
+            "sizeBytes": 100748383
+          },
+          {
+            "names": [
+              "docker.io/bloomberg/goldpinger:v3.5.1"
+            ],
+            "sizeBytes": 80970429
+          },
+          {
+            "names": [
+              "quay.io/kiwigrid/k8s-sidecar:1.19.2"
+            ],
+            "sizeBytes": 80525437
+          },
+          {
+            "names": [
+              "k8s.gcr.io/prometheus-adapter/prometheus-adapter:v0.10.0"
+            ],
+            "sizeBytes": 70135207
+          },
+          {
+            "names": [
+              "docker.io/kurlsh/s3cmd:20220825-237c19d"
+            ],
+            "sizeBytes": 65266747
+          },
+          {
+            "names": [
+              "quay.io/prometheus/alertmanager:v0.24.0"
+            ],
+            "sizeBytes": 61142380
+          },
+          {
+            "names": [
+              "k8s.gcr.io/metrics-server/metrics-server:v0.3.7"
+            ],
+            "sizeBytes": 56610121
+          },
+          {
+            "names": [
+              "quay.io/k8scsi/csi-provisioner:v1.4.0"
+            ],
+            "sizeBytes": 55701441
+          },
+          {
+            "names": [
+              "quay.io/prometheus-operator/prometheus-operator:v0.58.0"
+            ],
+            "sizeBytes": 51267340
+          },
+          {
+            "names": [
+              "k8s.gcr.io/sig-storage/csi-provisioner:v2.0.4"
+            ],
+            "sizeBytes": 51113966
+          },
+          {
+            "names": [
+              "quay.io/k8scsi/csi-provisioner:v1.6.0"
+            ],
+            "sizeBytes": 49524681
+          },
+          {
+            "names": [
+              "k8s.gcr.io/sig-storage/csi-snapshotter:v3.0.2"
+            ],
+            "sizeBytes": 49070085
+          },
+          {
+            "names": [
+              "k8s.gcr.io/sig-storage/csi-attacher:v3.0.2"
+            ],
+            "sizeBytes": 48925146
+          },
+          {
+            "names": [
+              "k8s.gcr.io/sig-storage/csi-resizer:v1.0.1"
+            ],
+            "sizeBytes": 48905182
+          },
+          {
+            "names": null,
+            "sizeBytes": 48892869
+          },
+          {
+            "names": [
+              "k8s.gcr.io/kube-scheduler:v1.20.15"
+            ],
+            "sizeBytes": 48535873
+          },
+          {
+            "names": [
+              "k8s.gcr.io/kube-scheduler:v1.19.16"
+            ],
+            "sizeBytes": 47741243
+          },
+          {
+            "names": [
+              "quay.io/k8scsi/csi-snapshotter:v2.1.1"
+            ],
+            "sizeBytes": 47570909
+          },
+          {
+            "names": [
+              "quay.io/k8scsi/csi-attacher:v1.2.0"
+            ],
+            "sizeBytes": 47472035
+          },
+          {
+            "names": [
+              "quay.io/k8scsi/csi-attacher:v2.1.0"
+            ],
+            "sizeBytes": 47374255
+          },
+          {
+            "names": [
+              "quay.io/k8scsi/csi-resizer:v0.4.0"
+            ],
+            "sizeBytes": 47308195
+          },
+          {
+            "names": [
+              "k8s.gcr.io/coredns:1.7.0"
+            ],
+            "sizeBytes": 45355497
+          },
+          {
+            "names": [
+              "registry.k8s.io/kube-state-metrics/kube-state-metrics:v2.5.0"
+            ],
+            "sizeBytes": 39610629
+          }
+        ],
+        "nodeInfo": {
+          "architecture": "amd64",
+          "bootID": "5d1f8e56-b06f-4418-9e52-63920dec1579",
+          "containerRuntimeVersion": "containerd://1.5.11",
+          "kernelVersion": "5.15.0-1016-gcp",
+          "kubeProxyVersion": "v1.20.15",
+          "kubeletVersion": "v1.20.15",
+          "machineID": "7e4c7af7f8d64fe9ef8757306777e262",
+          "operatingSystem": "linux",
+          "osImage": "Ubuntu 22.04.1 LTS",
+          "systemUUID": "7e4c7af7-f8d6-4fe9-ef87-57306777e262"
+        }
+      }
+    }
+  ],
+  "kind": "List",
+  "metadata": {
+    "resourceVersion": "",
+    "selfLink": ""
+  }
+}

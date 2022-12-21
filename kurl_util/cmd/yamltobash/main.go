@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"reflect"
@@ -13,15 +12,18 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
-	kurlscheme "github.com/replicatedhq/kurl/kurlkinds/client/kurlclientset/scheme"
-	kurlv1beta1 "github.com/replicatedhq/kurl/kurlkinds/pkg/apis/cluster/v1beta1"
 	kurlversion "github.com/replicatedhq/kurl/pkg/version"
+	kurlscheme "github.com/replicatedhq/kurlkinds/client/kurlclientset/scheme"
+	kurlv1beta1 "github.com/replicatedhq/kurlkinds/pkg/apis/cluster/v1beta1"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 	"gopkg.in/yaml.v2"
+	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/client-go/kubernetes/scheme"
 )
 
 func getInstallerConfigFromYaml(yamlPath string) (*kurlv1beta1.Installer, map[string]bool, error) {
-	yamlData, err := ioutil.ReadFile(yamlPath)
+	yamlData, err := os.ReadFile(yamlPath)
 	if err != nil {
 		return nil, nil, errors.Wrapf(err, "failed to load file %s", yamlPath)
 	}
@@ -79,7 +81,8 @@ func getFieldsSet(yamlDoc []byte) (map[string]bool, error) {
 			if !ok {
 				continue
 			}
-			key := fmt.Sprintf("%s.%s", strings.Title(categoryKey), strings.Title(fieldKey))
+			caser := cases.Title(language.English, cases.NoLower)
+			key := fmt.Sprintf("%s.%s", caser.String(categoryKey), caser.String(fieldKey))
 			out[key] = true
 		}
 	}
@@ -131,7 +134,10 @@ func checkIfSkippedVariable(yamlString string) bool {
 		"SelinuxConfig.ChconCmds",
 		"SelinuxConfig.Selinux",
 		"SelinuxConfig.SemanageCmds",
-		"SelinuxConfig.Type"}
+		"SelinuxConfig.Type",
+		"K3S.Version",  // removed support for k3s
+		"RKE2.Version", // removed support for rke2
+	}
 
 	for _, variable := range skippedVariables {
 		if variable == yamlString {
@@ -147,178 +153,185 @@ func convertToBash(kurlValues map[string]interface{}, fieldsSet map[string]bool)
 	}
 
 	bashLookup := map[string]string{
-		"Calico.S3Override":                          "CALICO_S3_OVERRIDE",
-		"Calico.Version":                             "CALICO_VERSION",
-		"Collectd.S3Override":                        "COLLECTD_S3_OVERRIDE",
-		"Collectd.Version":                           "COLLECTD_VERSION",
-		"CertManager.S3Override":                     "CERT_MANAGER_S3_OVERRIDE",
-		"CertManager.Version":                        "CERT_MANAGER_VERSION",
-		"Containerd.PreserveConfig":                  "CONTAINERD_PRESERVE_CONFIG",
-		"Containerd.TomlConfig":                      "CONTAINERD_TOML_CONFIG",
-		"Containerd.S3Override":                      "CONTAINERD_S3_OVERRIDE",
-		"Containerd.Version":                         "CONTAINERD_VERSION",
-		"Contour.HTTPPort":                           "CONTOUR_HTTP_PORT",
-		"Contour.HTTPSPort":                          "CONTOUR_HTTPS_PORT",
-		"Contour.S3Override":                         "CONTOUR_S3_OVERRIDE",
-		"Contour.TLSMinimumProtocolVersion":          "CONTOUR_TLS_MINIMUM_PROTOCOL_VERSION",
-		"Contour.Version":                            "CONTOUR_VERSION",
-		"Docker.BypassStorageDriverWarning":          "BYPASS_STORAGEDRIVER_WARNINGS",
-		"Docker.DockerRegistryIP":                    "DOCKER_REGISTRY_IP",
-		"Docker.HardFailOnLoopback":                  "HARD_FAIL_ON_LOOPBACK",
-		"Docker.NoCEOnEE":                            "NO_CE_ON_EE",
-		"Docker.PreserveConfig":                      "PRESERVE_DOCKER_CONFIG",
-		"Docker.S3Override":                          "DOCKER_S3_OVERRRIDE",
-		"Docker.Version":                             "DOCKER_VERSION",
-		"Ekco.MinReadyMasterNodeCount":               "EKCO_MIN_READY_MASTER_NODE_COUNT",
-		"Ekco.MinReadyWorkerNodeCount":               "EKCO_MIN_READY_WORKER_NODE_COUNT",
-		"Ekco.NodeUnreachableToleration":             "EKCO_NODE_UNREACHABLE_TOLERATION_DURATION",
-		"Ekco.RookShouldUseAllNodes":                 "EKCO_ROOK_SHOULD_USE_ALL_NODES",
-		"Ekco.S3Override":                            "EKCO_S3_OVERRIDE",
-		"Ekco.ShouldDisableRebootServices":           "EKCO_SHOULD_DISABLE_REBOOT_SERVICE",
-		"Ekco.ShouldDisableClearNodes":               "EKCO_SHOULD_DISABLE_CLEAR_NODES",
-		"Ekco.ShouldEnablePurgeNodes":                "EKCO_SHOULD_ENABLE_PURGE_NODES",
-		"Ekco.Version":                               "EKCO_VERSION",
-		"Ekco.AutoUpgradeSchedule":                   "EKCO_AUTO_UPGRADE_SCHEDULE",
-		"Ekco.EnableInternalLoadBalancer":            "EKCO_ENABLE_INTERNAL_LOAD_BALANCER",
-		"Ekco.PodImageOverrides":                     "EKCO_POD_IMAGE_OVERRIDES",
-		"FirewalldConfig.BypassFirewalldWarning":     "BYPASS_FIREWALLD_WARNING",
-		"FirewalldConfig.DisableFirewalld":           "DISABLE_FIREWALLD",
-		"FirewalldConfig.HardFailOnFirewalld":        "HARD_FAIL_ON_FIREWALLD",
-		"FirewalldConfig.PreserveConfig":             "PRESERVE_FIREWALLD_CONFIG",
-		"Fluentd.FullEFKStack":                       "FLUENTD_FULL_EFK_STACK",
-		"Fluentd.FluentdConfPath":                    "FLUENTD_CONF_FILE",
-		"Fluentd.S3Override":                         "FLUENTD_S3_OVERRIDE",
-		"Fluentd.Version":                            "FLUENTD_VERSION",
-		"Helm.AdditionalImages":                      "HELM_ADDITIONAL_IMAGES",
-		"Helm.HelmfileSpec":                          "HELM_HELMFILE_SPEC",
-		"IptablesConfig.PreserveConfig":              "PRESERVE_IPTABLES_CONFIG",
-		"K3S.Version":                                "K3S_VERSION",
-		"Kotsadm.ApplicationNamespace":               "KOTSADM_APPLICATION_NAMESPACES",
-		"Kotsadm.ApplicationSlug":                    "KOTSADM_APPLICATION_SLUG",
-		"Kotsadm.ApplicationVersionLabel":            "KOTSADM_APPLICATION_VERSION_LABEL",
-		"Kotsadm.Hostname":                           "KOTSADM_HOSTNAME",
-		"Kotsadm.S3Override":                         "KOTSADM_S3_OVERRIDE",
-		"Kotsadm.DisableS3":                          "KOTSADM_DISABLE_S3",
-		"Kotsadm.UiBindPort":                         "KOTSADM_UI_BIND_PORT",
-		"Kotsadm.Version":                            "KOTSADM_VERSION",
-		"Kubernetes.BootstrapToken":                  "BOOTSTRAP_TOKEN",
-		"Kubernetes.BootstrapTokenTTL":               "BOOTSTRAP_TOKEN_TTL",
-		"Kubernetes.CertKey":                         "CERT_KEY",
-		"Kubernetes.CisCompliance":                   "KUBERNETES_CIS_COMPLIANCE",
-		"Kubernetes.ClusterName":                     "KUBERNETES_CLUSTER_NAME",
-		"Kubernetes.ControlPlane":                    "MASTER",
-		"Kubernetes.ContainerLogMaxSize":             "CONTAINER_LOG_MAX_SIZE",
-		"Kubernetes.ContainerLogMaxFiles":            "CONTAINER_LOG_MAX_FILES",
-		"Kubernetes.EvictionThresholdResources":      "EVICTION_THRESHOLD",
-		"Kubernetes.HACluster":                       "HA_CLUSTER",
-		"Kubernetes.KubeadmToken":                    "KUBEADM_TOKEN",
-		"Kubernetes.KubeadmTokenCAHash":              "KUBEADM_TOKEN_CA_HASH",
-		"Kubernetes.KubeReserved":                    "KUBE_RESERVED",
-		"Kubernetes.LoadBalancerAddress":             "LOAD_BALANCER_ADDRESS",
-		"Kubernetes.MasterAddress":                   "KUBERNETES_MASTER_ADDR",
-		"Kubernetes.S3Override":                      "SERVICE_S3_OVERRIDE",
-		"Kubernetes.ServiceCIDR":                     "SERVICE_CIDR",
-		"Kubernetes.ServiceCidrRange":                "SERVICE_CIDR_RANGE",
-		"Kubernetes.SystemReservedResources":         "SYSTEM_RESERVED",
-		"Kubernetes.UseStandardNodePortRange":        "USE_STANDARD_PORT_RANGE",
-		"Kubernetes.Version":                         "KUBERNETES_VERSION",
-		"Kurl.AdditionalNoProxyAddresses":            "ADDITIONAL_NO_PROXY_ADDRESSES",
-		"Kurl.Airgap":                                "AIRGAP",
-		"Kurl.IPv6":                                  "IPV6_ONLY",
-		"Kurl.LicenseURL":                            "LICENSE_URL",
-		"Kurl.HostnameCheck":                         "HOSTNAME_CHECK",
-		"Kurl.IgnoreRemoteLoadImagesPrompt":          "KURL_IGNORE_REMOTE_LOAD_IMAGES_PROMPT",
-		"Kurl.IgnoreRemoteUpgradePrompt":             "KURL_IGNORE_REMOTE_UPGRADE_PROMPT",
-		"Kurl.Nameserver":                            "NAMESERVER",
-		"Kurl.NoProxy":                               "NO_PROXY",
-		"Kurl.HostPreflights":                        "HOST_PREFLIGHTS",
-		"Kurl.HostPreflightIgnore":                   "HOST_PREFLIGHT_IGNORE",
-		"Kurl.HostPreflightEnforceWarnings":          "HOST_PREFLIGHT_ENFORCE_WARNINGS",
-		"Kurl.PrivateAddress":                        "PRIVATE_ADDRESS",
-		"Kurl.ProxyAddress":                          "PROXY_ADDRESS",
-		"Kurl.PublicAddress":                         "PUBLIC_ADDRESS",
-		"Kurl.SkipSystemPackageInstall":              "SKIP_SYSTEM_PACKAGE_INSTALL",
-		"Kurl.ExcludeBuiltinHostPreflights":          "EXCLUDE_BUILTIN_HOST_PREFLIGHTS",
-		"LocalPathProvisioner.S3Override":                "LOCAL_PATH_PROVISIONER_S3_OVERRIDE",
-		"LocalPathProvisioner.Version":                   "LOCAL_PATH_PROVISIONER_VERSION",
-		"Longhorn.S3Override":                        "LONGHORN_S3_OVERRIDE",
-		"Longhorn.StorageOverProvisioningPercentage": "LONGHORN_STORAGE_OVER_PROVISIONING_PERCENTAGE",
-		"Longhorn.UiBindPort":                        "LONGHORN_UI_BIND_PORT",
-		"Longhorn.UiReplicaCount":                    "LONGHORN_UI_REPLICA_COUNT",
-		"Longhorn.Version":                           "LONGHORN_VERSION",
-		"MetricsServer.S3Override":                   "METRICS_SERVER_S3_OVERRIDE",
-		"MetricsServer.Version":                      "METRICS_SERVER_VERSION",
-		"Minio.Namespace":                            "MINIO_NAMESPACE",
-		"Minio.ClaimSize":                            "MINIO_CLAIM_SIZE",
-		"Minio.S3Override":                           "MINIO_S3_OVERRIDE",
-		"Minio.HostPath":                             "MINIO_HOSTPATH",
-		"Minio.Version":                              "MINIO_VERSION",
-		"OpenEBS.CstorStorageClassName":              "OPENEBS_CSTOR_STORAGE_CLASS",
-		"OpenEBS.IsCstorEnabled":                     "OPENEBS_CSTOR",
-		"OpenEBS.IsLocalPVEnabled":                   "OPENEBS_LOCALPV",
-		"OpenEBS.LocalPVStorageClassName":            "OPENEBS_LOCALPV_STORAGE_CLASS",
-		"OpenEBS.Namespace":                          "OPENEBS_NAMESPACE",
-		"OpenEBS.S3Override":                         "OPENEBS_S3_OVERRIDE",
-		"OpenEBS.Version":                            "OPENEBS_VERSION",
-		"Prometheus.ServiceType":                     "PROMETHEUS_SERVICE_TYPE",
-		"Prometheus.S3Override":                      "PROMETHEUS_S3_OVERRIDE",
-		"Prometheus.Version":                         "PROMETHEUS_VERSION",
-		"Registry.PublishPort":                       "REGISTRY_PUBLISH_PORT",
-		"Registry.S3Override":                        "REGISTRY_S3_OVERRIDE",
-		"Registry.Version":                           "REGISTRY_VERSION",
-		"RKE2.Version":                               "RKE2_VERSION",
-		"Rook.BlockDeviceFilter":                     "ROOK_BLOCK_DEVICE_FILTER",
-		"Rook.BypassUpgradeWarning":                  "ROOK_BYPASS_UPGRADE_WARNING",
-		"Rook.CephReplicaCount":                      "CEPH_POOL_REPLICAS",
-		"Rook.HostpathRequiresPrivileged":            "ROOK_HOSTPATH_REQUIRES_PRIVILEGED",
-		"Rook.IsBlockStorageEnabled":                 "ROOK_BLOCK_STORAGE_ENABLED",
-		"Rook.IsSharedFilesystemDisabled":            "ROOK_SHARED_FILESYSTEM_DISABLED",
-		"Rook.S3Override":                            "ROOK_S3_OVERRIDE",
-		"Rook.StorageClassName":                      "STORAGE_CLASS",
-		"Rook.Version":                               "ROOK_VERSION",
-		"SelinuxConfig.DisableSelinux":               "DISABLE_SELINUX",
-		"SelinuxConfig.PreserveConfig":               "PRESERVE_SELINUX_CONFIG",
-		"Sonobuoy.S3Override":                        "SONOBUOY_S3_OVERRIDE",
-		"Sonobuoy.Version":                           "SONOBUOY_VERSION",
-		"UFWConfig.BypassUFWWarning":                 "BYPASS_UFW_WARNING",
-		"UFWConfig.DisableUFW":                       "DISABLE_UFW",
-		"UFWConfig.HardFailOnUFW":                    "HARD_FAIL_ON_UFW",
-		"Velero.DisableCLI":                          "VELERO_DISABLE_CLI",
-		"Velero.DisableRestic":                       "VELERO_DISABLE_RESTIC",
-		"Velero.LocalBucket":                         "VELERO_LOCAL_BUCKET",
-		"Velero.Namespace":                           "VELERO_LOCAL_BUCKET",
-		"Velero.ResticRequiresPrivileged":            "VELERO_RESTIC_REQUIRES_PRIVILEGED",
-		"Velero.ResticTimeout":                       "VELERO_RESTIC_TIMEOUT",
-		"Velero.S3Override":                          "VELERO_S3_OVERRIDE",
-		"Velero.Version":                             "VELERO_VERSION",
-		"Weave.IsEncryptionDisabled":                 "ENCRYPT_NETWORK",
-		"Weave.PodCIDR":                              "POD_CIDR",
-		"Weave.PodCidrRange":                         "POD_CIDR_RANGE",
-		"Weave.S3Override":                           "WEAVE_S3_OVERRIDE",
-		"Weave.Version":                              "WEAVE_VERSION",
-		"Weave.NoMasqLocal":                          "NO_MASQ_LOCAL",
-		"Antrea.IsEncryptionDisabled":                "ANTREA_DISABLE_ENCRYPTION",
-		"Antrea.PodCIDR":                             "ANTREA_POD_CIDR",
-		"Antrea.PodCidrRange":                        "ANTREA_POD_CIDR_RANGE",
-		"Antrea.S3Override":                          "ANTREA_S3_OVERRIDE",
-		"Antrea.Version":                             "ANTREA_VERSION",
-		"Goldpinger.Version":                         "GOLDPINGER_VERSION",
-		"Goldpinger.S3Override":                      "GOLDPINGER_S3_OVERRIDE",
-		"AWS.Version":                                "AWS_VERSION",
-		"AWS.S3Override":                             "AWS_S3_OVERRIDE",
-		"AWS.ExcludeStorageClass":                    "AWS_EXCLUDE_STORAGE_CLASS",
+		"Calico.S3Override":                               "CALICO_S3_OVERRIDE",
+		"Calico.Version":                                  "CALICO_VERSION",
+		"Collectd.S3Override":                             "COLLECTD_S3_OVERRIDE",
+		"Collectd.Version":                                "COLLECTD_VERSION",
+		"CertManager.S3Override":                          "CERT_MANAGER_S3_OVERRIDE",
+		"CertManager.Version":                             "CERT_MANAGER_VERSION",
+		"Containerd.PreserveConfig":                       "CONTAINERD_PRESERVE_CONFIG",
+		"Containerd.TomlConfig":                           "CONTAINERD_TOML_CONFIG",
+		"Containerd.S3Override":                           "CONTAINERD_S3_OVERRIDE",
+		"Containerd.Version":                              "CONTAINERD_VERSION",
+		"Contour.HTTPPort":                                "CONTOUR_HTTP_PORT",
+		"Contour.HTTPSPort":                               "CONTOUR_HTTPS_PORT",
+		"Contour.S3Override":                              "CONTOUR_S3_OVERRIDE",
+		"Contour.TLSMinimumProtocolVersion":               "CONTOUR_TLS_MINIMUM_PROTOCOL_VERSION",
+		"Contour.Version":                                 "CONTOUR_VERSION",
+		"Docker.BypassStorageDriverWarning":               "BYPASS_STORAGEDRIVER_WARNINGS",
+		"Docker.DockerRegistryIP":                         "DOCKER_REGISTRY_IP",
+		"Docker.HardFailOnLoopback":                       "HARD_FAIL_ON_LOOPBACK",
+		"Docker.NoCEOnEE":                                 "NO_CE_ON_EE",
+		"Docker.PreserveConfig":                           "PRESERVE_DOCKER_CONFIG",
+		"Docker.S3Override":                               "DOCKER_S3_OVERRRIDE",
+		"Docker.Version":                                  "DOCKER_VERSION",
+		"Ekco.MinReadyMasterNodeCount":                    "EKCO_MIN_READY_MASTER_NODE_COUNT",
+		"Ekco.MinReadyWorkerNodeCount":                    "EKCO_MIN_READY_WORKER_NODE_COUNT",
+		"Ekco.NodeUnreachableToleration":                  "EKCO_NODE_UNREACHABLE_TOLERATION_DURATION",
+		"Ekco.RookShouldUseAllNodes":                      "EKCO_ROOK_SHOULD_USE_ALL_NODES",
+		"Ekco.RookShouldDisableReconcileMDSPlacement":     "EKCO_ROOK_SHOULD_DISABLE_RECONCILE_MDS_PLACEMENT",
+		"Ekco.RookShouldDisableReconcileCephCSIResources": "EKCO_ROOK_SHOULD_DISABLE_RECONCILE_CEPH_CSI_RESOURCES",
+		"Ekco.S3Override":                                 "EKCO_S3_OVERRIDE",
+		"Ekco.ShouldDisableRebootServices":                "EKCO_SHOULD_DISABLE_REBOOT_SERVICE",
+		"Ekco.ShouldDisableClearNodes":                    "EKCO_SHOULD_DISABLE_CLEAR_NODES",
+		"Ekco.ShouldEnablePurgeNodes":                     "EKCO_SHOULD_ENABLE_PURGE_NODES",
+		"Ekco.Version":                                    "EKCO_VERSION",
+		"Ekco.AutoUpgradeSchedule":                        "EKCO_AUTO_UPGRADE_SCHEDULE", // no longer supported
+		"Ekco.EnableInternalLoadBalancer":                 "EKCO_ENABLE_INTERNAL_LOAD_BALANCER",
+		"Ekco.PodImageOverrides":                          "EKCO_POD_IMAGE_OVERRIDES",
+		"Ekco.ShouldDisableRestartFailedEnvoyPods":        "EKCO_SHOULD_DISABLE_RESTART_FAILED_ENVOY_PODS",
+		"Ekco.EnvoyPodsNotReadyDuration":                  "EKCO_ENVOY_PODS_NOT_READY_DURATION",
+		"Ekco.MinioShouldDisableManagement":               "EKCO_MINIO_SHOULD_DISABLE_MANAGEMENT",
+		"Ekco.KotsadmShouldDisableManagement":             "EKCO_KOTSADM_SHOULD_DISABLE_MANAGEMENT",
+		"FirewalldConfig.BypassFirewalldWarning":          "BYPASS_FIREWALLD_WARNING",
+		"FirewalldConfig.DisableFirewalld":                "DISABLE_FIREWALLD",
+		"FirewalldConfig.HardFailOnFirewalld":             "HARD_FAIL_ON_FIREWALLD",
+		"FirewalldConfig.PreserveConfig":                  "PRESERVE_FIREWALLD_CONFIG",
+		"Fluentd.FullEFKStack":                            "FLUENTD_FULL_EFK_STACK",
+		"Fluentd.FluentdConfPath":                         "FLUENTD_CONF_FILE",
+		"Fluentd.S3Override":                              "FLUENTD_S3_OVERRIDE",
+		"Fluentd.Version":                                 "FLUENTD_VERSION",
+		"Helm.AdditionalImages":                           "HELM_ADDITIONAL_IMAGES",
+		"Helm.HelmfileSpec":                               "HELM_HELMFILE_SPEC",
+		"IptablesConfig.PreserveConfig":                   "PRESERVE_IPTABLES_CONFIG",
+		"Kotsadm.ApplicationNamespace":                    "KOTSADM_APPLICATION_NAMESPACES",
+		"Kotsadm.ApplicationSlug":                         "KOTSADM_APPLICATION_SLUG",
+		"Kotsadm.ApplicationVersionLabel":                 "KOTSADM_APPLICATION_VERSION_LABEL",
+		"Kotsadm.Hostname":                                "KOTSADM_HOSTNAME",
+		"Kotsadm.S3Override":                              "KOTSADM_S3_OVERRIDE",
+		"Kotsadm.DisableS3":                               "KOTSADM_DISABLE_S3",
+		"Kotsadm.UiBindPort":                              "KOTSADM_UI_BIND_PORT",
+		"Kotsadm.Version":                                 "KOTSADM_VERSION",
+		"Kubernetes.BootstrapToken":                       "BOOTSTRAP_TOKEN",
+		"Kubernetes.BootstrapTokenTTL":                    "BOOTSTRAP_TOKEN_TTL",
+		"Kubernetes.CertKey":                              "CERT_KEY",
+		"Kubernetes.CisCompliance":                        "KUBERNETES_CIS_COMPLIANCE",
+		"Kubernetes.ClusterName":                          "KUBERNETES_CLUSTER_NAME",
+		"Kubernetes.ControlPlane":                         "MASTER",
+		"Kubernetes.ContainerLogMaxSize":                  "CONTAINER_LOG_MAX_SIZE",
+		"Kubernetes.ContainerLogMaxFiles":                 "CONTAINER_LOG_MAX_FILES",
+		"Kubernetes.EvictionThresholdResources":           "EVICTION_THRESHOLD",
+		"Kubernetes.HACluster":                            "HA_CLUSTER",
+		"Kubernetes.KubeadmToken":                         "KUBEADM_TOKEN",
+		"Kubernetes.KubeadmTokenCAHash":                   "KUBEADM_TOKEN_CA_HASH",
+		"Kubernetes.KubeReserved":                         "KUBE_RESERVED",
+		"Kubernetes.LoadBalancerAddress":                  "LOAD_BALANCER_ADDRESS",
+		"Kubernetes.LoadBalancerUseFirstPrimary":          "KUBERNETES_LOAD_BALANCER_USE_FIRST_PRIMARY",
+		"Kubernetes.MasterAddress":                        "KUBERNETES_MASTER_ADDR",
+		"Kubernetes.S3Override":                           "SERVICE_S3_OVERRIDE",
+		"Kubernetes.ServiceCIDR":                          "SERVICE_CIDR",
+		"Kubernetes.ServiceCidrRange":                     "SERVICE_CIDR_RANGE",
+		"Kubernetes.SystemReservedResources":              "SYSTEM_RESERVED",
+		"Kubernetes.UseStandardNodePortRange":             "USE_STANDARD_PORT_RANGE",
+		"Kubernetes.Version":                              "KUBERNETES_VERSION",
+		"Kurl.AdditionalNoProxyAddresses":                 "ADDITIONAL_NO_PROXY_ADDRESSES",
+		"Kurl.Airgap":                                     "AIRGAP",
+		"Kurl.IPv6":                                       "IPV6_ONLY",
+		"Kurl.LicenseURL":                                 "LICENSE_URL",
+		"Kurl.HostnameCheck":                              "HOSTNAME_CHECK",
+		"Kurl.IgnoreRemoteLoadImagesPrompt":               "KURL_IGNORE_REMOTE_LOAD_IMAGES_PROMPT",
+		"Kurl.IgnoreRemoteUpgradePrompt":                  "KURL_IGNORE_REMOTE_UPGRADE_PROMPT",
+		"Kurl.Nameserver":                                 "NAMESERVER",
+		"Kurl.NoProxy":                                    "NO_PROXY",
+		"Kurl.HostPreflights":                             "HOST_PREFLIGHTS",
+		"Kurl.HostPreflightIgnore":                        "HOST_PREFLIGHT_IGNORE",
+		"Kurl.HostPreflightEnforceWarnings":               "HOST_PREFLIGHT_ENFORCE_WARNINGS",
+		"Kurl.PrivateAddress":                             "PRIVATE_ADDRESS",
+		"Kurl.ProxyAddress":                               "PROXY_ADDRESS",
+		"Kurl.PublicAddress":                              "PUBLIC_ADDRESS",
+		"Kurl.SkipSystemPackageInstall":                   "SKIP_SYSTEM_PACKAGE_INSTALL",
+		"Kurl.ExcludeBuiltinHostPreflights":               "EXCLUDE_BUILTIN_HOST_PREFLIGHTS",
+		"Longhorn.S3Override":                             "LONGHORN_S3_OVERRIDE",
+		"Longhorn.StorageOverProvisioningPercentage":      "LONGHORN_STORAGE_OVER_PROVISIONING_PERCENTAGE",
+		"Longhorn.UiBindPort":                             "LONGHORN_UI_BIND_PORT",
+		"Longhorn.UiReplicaCount":                         "LONGHORN_UI_REPLICA_COUNT",
+		"Longhorn.Version":                                "LONGHORN_VERSION",
+		"MetricsServer.S3Override":                        "METRICS_SERVER_S3_OVERRIDE",
+		"MetricsServer.Version":                           "METRICS_SERVER_VERSION",
+		"Minio.Namespace":                                 "MINIO_NAMESPACE",
+		"Minio.ClaimSize":                                 "MINIO_CLAIM_SIZE",
+		"Minio.S3Override":                                "MINIO_S3_OVERRIDE",
+		"Minio.HostPath":                                  "MINIO_HOSTPATH",
+		"Minio.Version":                                   "MINIO_VERSION",
+		"OpenEBS.CstorStorageClassName":                   "OPENEBS_CSTOR_STORAGE_CLASS",
+		"OpenEBS.IsCstorEnabled":                          "OPENEBS_CSTOR",
+		"OpenEBS.IsLocalPVEnabled":                        "OPENEBS_LOCALPV",
+		"OpenEBS.LocalPVStorageClassName":                 "OPENEBS_LOCALPV_STORAGE_CLASS",
+		"OpenEBS.Namespace":                               "OPENEBS_NAMESPACE",
+		"OpenEBS.S3Override":                              "OPENEBS_S3_OVERRIDE",
+		"OpenEBS.Version":                                 "OPENEBS_VERSION",
+		"Prometheus.ServiceType":                          "PROMETHEUS_SERVICE_TYPE",
+		"Prometheus.S3Override":                           "PROMETHEUS_S3_OVERRIDE",
+		"Prometheus.Version":                              "PROMETHEUS_VERSION",
+		"Registry.PublishPort":                            "REGISTRY_PUBLISH_PORT",
+		"Registry.S3Override":                             "REGISTRY_S3_OVERRIDE",
+		"Registry.Version":                                "REGISTRY_VERSION",
+		"Rook.BlockDeviceFilter":                          "ROOK_BLOCK_DEVICE_FILTER",
+		"Rook.BypassUpgradeWarning":                       "ROOK_BYPASS_UPGRADE_WARNING",
+		"Rook.CephReplicaCount":                           "CEPH_POOL_REPLICAS",
+		"Rook.HostpathRequiresPrivileged":                 "ROOK_HOSTPATH_REQUIRES_PRIVILEGED",
+		"Rook.IsBlockStorageEnabled":                      "ROOK_BLOCK_STORAGE_ENABLED",
+		"Rook.IsSharedFilesystemDisabled":                 "ROOK_SHARED_FILESYSTEM_DISABLED",
+		"Rook.S3Override":                                 "ROOK_S3_OVERRIDE",
+		"Rook.StorageClassName":                           "STORAGE_CLASS",
+		"Rook.Version":                                    "ROOK_VERSION",
+		"SelinuxConfig.DisableSelinux":                    "DISABLE_SELINUX",
+		"SelinuxConfig.PreserveConfig":                    "PRESERVE_SELINUX_CONFIG",
+		"Sonobuoy.S3Override":                             "SONOBUOY_S3_OVERRIDE",
+		"Sonobuoy.Version":                                "SONOBUOY_VERSION",
+		"UFWConfig.BypassUFWWarning":                      "BYPASS_UFW_WARNING",
+		"UFWConfig.DisableUFW":                            "DISABLE_UFW",
+		"UFWConfig.HardFailOnUFW":                         "HARD_FAIL_ON_UFW",
+		"Velero.DisableCLI":                               "VELERO_DISABLE_CLI",
+		"Velero.DisableRestic":                            "VELERO_DISABLE_RESTIC",
+		"Velero.LocalBucket":                              "VELERO_LOCAL_BUCKET",
+		"Velero.Namespace":                                "VELERO_LOCAL_BUCKET",
+		"Velero.ResticRequiresPrivileged":                 "VELERO_RESTIC_REQUIRES_PRIVILEGED",
+		"Velero.ResticTimeout":                            "VELERO_RESTIC_TIMEOUT",
+		"Velero.S3Override":                               "VELERO_S3_OVERRIDE",
+		"Velero.Version":                                  "VELERO_VERSION",
+		"Weave.IsEncryptionDisabled":                      "ENCRYPT_NETWORK",
+		"Weave.PodCIDR":                                   "POD_CIDR",
+		"Weave.PodCidrRange":                              "POD_CIDR_RANGE",
+		"Weave.S3Override":                                "WEAVE_S3_OVERRIDE",
+		"Weave.Version":                                   "WEAVE_VERSION",
+		"Weave.NoMasqLocal":                               "NO_MASQ_LOCAL",
+		"Antrea.IsEncryptionDisabled":                     "ANTREA_DISABLE_ENCRYPTION",
+		"Antrea.PodCIDR":                                  "ANTREA_POD_CIDR",
+		"Antrea.PodCidrRange":                             "ANTREA_POD_CIDR_RANGE",
+		"Antrea.S3Override":                               "ANTREA_S3_OVERRIDE",
+		"Antrea.Version":                                  "ANTREA_VERSION",
+		"Flannel.PodCIDR":                                 "FLANNEL_POD_CIDR",
+		"Flannel.PodCIDRRange":                            "FLANNEL_POD_CIDR_RANGE",
+		"Flannel.S3Override":                              "FLANNEL_S3_OVERRIDE",
+		"Flannel.Version":                                 "FLANNEL_VERSION",
+		"Goldpinger.Version":                              "GOLDPINGER_VERSION",
+		"Goldpinger.S3Override":                           "GOLDPINGER_S3_OVERRIDE",
+		"AWS.Version":                                     "AWS_VERSION",
+		"AWS.S3Override":                                  "AWS_S3_OVERRIDE",
+		"AWS.ExcludeStorageClass":                         "AWS_EXCLUDE_STORAGE_CLASS",
 	}
 
 	finalDictionary := make(map[string]string)
 
 	for yamlKey, val := range kurlValues {
-		if checkIfSkippedVariable(yamlKey) == true {
+		if checkIfSkippedVariable(yamlKey) {
 			//certain variables from the crd are handled by go binaries and not parsed into bash variables
 			continue
 		}
 
 		bashKey, ok := bashLookup[yamlKey]
-		if ok == false {
+		if !ok {
 			return nil, fmt.Errorf("%v not found in lookup table, it has not been added to the lookup table or is not in this version of kurlkinds", yamlKey)
 		}
 
@@ -340,7 +353,7 @@ func convertToBash(kurlValues map[string]interface{}, fieldsSet map[string]bool)
 				bashVal = "\"" + ts + "\""
 			}
 		case bool:
-			if t == true {
+			if t {
 				bashVal = "1"
 			} else {
 				bashVal = ""
@@ -360,7 +373,7 @@ func convertToBash(kurlValues map[string]interface{}, fieldsSet map[string]bool)
 			finalDictionary["HA_CLUSTER"] = "1"
 		case yamlKey == "Kurl.Airgap" && bashVal != "":
 			finalDictionary["OFFLINE_DOCKER_INSTALL"] = "1"
-		case yamlKey == "Weave.PodCidrRange" || yamlKey == "Kubernetes.ServiceCidrRange" || yamlKey == "Antrea.PodCidrRange" && bashVal != "":
+		case yamlKey == "Weave.PodCidrRange" || yamlKey == "Kubernetes.ServiceCidrRange" || yamlKey == "Antrea.PodCidrRange" || yamlKey == "Flannel.PodCIDRRange" && bashVal != "":
 			bashVal = strings.Replace(bashVal, "/", "", -1)
 		case yamlKey == "Docker.HardFailOnLoopback" && bashVal == "" && !fieldsSet[yamlKey]:
 			bashVal = "1"
@@ -377,13 +390,13 @@ func convertToBash(kurlValues map[string]interface{}, fieldsSet map[string]bool)
 	}
 
 	// If preserve and disable flags are set for selinux and firewalld preserve take precedence
-	val, _ := finalDictionary["PRESERVE_FIREWALLD_CONFIG"]
+	val := finalDictionary["PRESERVE_FIREWALLD_CONFIG"]
 
 	if val == "1" {
 		finalDictionary["DISABLE_FIREWALLD"] = ""
 	}
 
-	val, _ = finalDictionary["PRESERVE_SELINUX_CONFIG"]
+	val = finalDictionary["PRESERVE_SELINUX_CONFIG"]
 
 	if val == "1" {
 		finalDictionary["DISABLE_SELINUX"] = ""
@@ -448,7 +461,7 @@ func insertDefaults(installerConfig *kurlv1beta1.Installer) {
 }
 
 func main() {
-	kurlscheme.AddToScheme(scheme.Scheme)
+	utilruntime.Must(kurlscheme.AddToScheme(scheme.Scheme))
 
 	version := flag.Bool("v", false, "Print version info")
 	installerYAMLPath := flag.String("i", "", "installer YAML for kURL script")
@@ -456,7 +469,7 @@ func main() {
 
 	flag.Parse()
 
-	if *version == true {
+	if *version {
 		kurlversion.Print()
 		return
 	}

@@ -1,10 +1,10 @@
 - name: basic localpv
   installerSpec:
     kubernetes:
-      version: "1.23.x"
+      version: "1.25.x"
     weave:
       version: "latest"
-    docker:
+    containerd:
       version: "latest"
     minio:
       version: "latest"
@@ -12,17 +12,23 @@
       version: "latest"
     openebs:
       isLocalPVEnabled: true
-      localPVStorageClassName: default
+      localPVStorageClassName: openebs
       namespace: openebs
       version: "__testver__"
       s3Override: "__testdist__"
+  postInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    minio_object_store_info
+    validate_read_write_object_store rwtest testfile.txt
+
 - name: localpv upgrade from 2.6.0
+  flags: "yes"
   installerSpec:
     kubernetes:
-      version: "1.21.x"
+      version: "1.21.x" # this is the latest version of k8s that supports openebs 2.6
     weave:
       version: "latest"
-    docker:
+    containerd:
       version: "latest"
     minio:
       version: "2020-01-25T02-50-51Z"
@@ -33,10 +39,10 @@
       version: "2.6.0"
   upgradeSpec:
     kubernetes:
-      version: "1.23.x"
+      version: "1.22.x"
     weave:
       version: "latest"
-    docker:
+    containerd:
       version: "latest"
     minio:
       version: "latest"
@@ -48,14 +54,24 @@
       namespace: openebs
       version: "__testver__"
       s3Override: "__testdist__"
+  postInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    minio_object_store_info
+    validate_read_write_object_store rwtest testfile.txt
+  postUpgradeScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    minio_object_store_info
+    validate_testfile rwtest testfile.txt
+    validate_read_write_object_store postupgrade upgradefile.txt
+
 - name: airgap localpv
   airgap: true
   installerSpec:
     kubernetes:
-      version: "1.23.x"
+      version: "1.25.x"
     weave:
       version: "latest"
-    docker:
+    containerd:
       version: "latest"
     minio:
       version: "latest"
@@ -63,14 +79,20 @@
       version: "latest"
     openebs:
       isLocalPVEnabled: true
-      localPVStorageClassName: default
+      localPVStorageClassName: openebs
       namespace: openebs
       version: "__testver__"
       s3Override: "__testdist__"
+  postInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    minio_object_store_info
+    validate_read_write_object_store rwtest testfile.txt
+
 - name: localpv upgrade from 1.12.0
+  flags: "yes"
   installerSpec:
     kubernetes:
-      version: "1.21.x"
+      version: "1.21.x" # this is the latest version of k8s that supports openebs 1.12
     weave:
       version: "latest"
     docker:
@@ -84,7 +106,7 @@
       version: "1.12.0"
   upgradeSpec:
     kubernetes:
-      version: "1.23.x"
+      version: "1.21.x"
     weave:
       version: "latest"
     docker:
@@ -99,3 +121,95 @@
       namespace: openebs
       version: "__testver__"
       s3Override: "__testdist__"
+  postInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    minio_object_store_info
+    validate_read_write_object_store rwtest testfile.txt
+  postUpgradeScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    minio_object_store_info
+    validate_testfile rwtest testfile.txt
+    validate_read_write_object_store postupgrade upgradefile.txt
+
+- name: localpv migrate from rook
+  flags: "yes"
+  installerSpec:
+    kubernetes:
+      version: "1.19.x" # this is the latest version of k8s that supports rook 1.0.4
+    weave:
+      version: "latest"
+    docker:
+      version: "latest"
+    rook:
+      version: "1.0.x"
+    kotsadm:
+      version: "latest"
+  upgradeSpec:
+    kubernetes:
+      version: "1.21.x"
+    weave:
+      version: "latest"
+    docker:
+      version: "latest"
+    openebs:
+      isLocalPVEnabled: true
+      localPVStorageClassName: openebs
+      namespace: openebs
+      version: "__testver__"
+      s3Override: "__testdist__"
+    minio:
+      version: "latest"
+    kotsadm:
+      version: "latest"
+  postInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rook_ceph_object_store_info
+    validate_read_write_object_store rwtest testfile.txt
+  postUpgradeScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    minio_object_store_info
+    validate_testfile rwtest testfile.txt
+    validate_read_write_object_store postupgrade upgradefile.txt
+
+- name: localpv upgrade from latest
+  flags: "yes"
+  installerSpec:
+    kubernetes:
+      version: "1.25.x"
+    weave:
+      version: "latest"
+    containerd:
+      version: "latest"
+    minio:
+      version: "2020-01-25T02-50-51Z"
+    openebs:
+      isLocalPVEnabled: true
+      localPVStorageClassName: default
+      namespace: openebs
+      version: "latest"
+  upgradeSpec:
+    kubernetes:
+      version: "1.25.x"
+    weave:
+      version: "latest"
+    containerd:
+      version: "latest"
+    minio:
+      version: "latest"
+    kotsadm:
+      version: "latest"
+    openebs:
+      isLocalPVEnabled: true
+      localPVStorageClassName: default
+      namespace: openebs
+      version: "__testver__"
+      s3Override: "__testdist__"
+  postInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    minio_object_store_info
+    validate_read_write_object_store rwtest testfile.txt
+  postUpgradeScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    minio_object_store_info
+    validate_testfile rwtest testfile.txt
+    validate_read_write_object_store postupgrade upgradefile.txt

@@ -1,0 +1,25 @@
+FROM ubuntu:22.04
+
+ARG VERSION
+ENV VERSION=${VERSION}
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get -y update && \
+    apt-get -y install apt-utils apt-transport-https ca-certificates curl software-properties-common tzdata
+
+# Add Docker’s official GPG key:
+RUN mkdir -p /etc/apt/keyrings
+RUN curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+
+# Use the following command to set up the repository:
+RUN echo \
+      "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
+      $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+RUN apt-get -y update
+
+CMD mkdir -p /packages/archives && \
+    apt-get -d -y install tzdata \
+    containerd.io=$(apt-cache madison 'containerd.io' | grep ${VERSION} | head -1 | awk '{$1=$1};1' | cut -d' ' -f 3) \
+    -oDebug::NoLocking=1 -o=dir::cache=/packages/ && \
+    cp -r /packages/archives/* /out/

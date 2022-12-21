@@ -2,7 +2,7 @@
 function kubeadm_discover_private_ip() {
     local private_address
 
-    private_address="$(cat /etc/kubernetes/manifests/kube-apiserver.yaml 2>/dev/null | grep advertise-address | awk -F'=' '{ print $2 }')"
+    private_address="$(grep 'advertise-address' /etc/kubernetes/manifests/kube-apiserver.yaml 2>/dev/null | awk -F'=' '{ print $2 }')"
 
     # This is needed on k8s 1.18.x as $PRIVATE_ADDRESS is found to have a newline
     echo "${private_address}" | tr -d '\n'
@@ -42,12 +42,12 @@ function kubeadm_addon_for_each() {
     $cmd nodeless "$NODELESS_VERSION"
     $cmd calico "$CALICO_VERSION" "$CALICO_S3_OVERRIDE"
     $cmd weave "$WEAVE_VERSION" "$WEAVE_S3_OVERRIDE"
+    $cmd flannel "$FLANNEL_VERSION" "$FLANNEL_S3_OVERRIDE"
     $cmd antrea "$ANTREA_VERSION" "$ANTREA_S3_OVERRIDE"
     $cmd rook "$ROOK_VERSION" "$ROOK_S3_OVERRIDE"
     $cmd ekco "$EKCO_VERSION" "$EKCO_S3_OVERRIDE"
     $cmd openebs "$OPENEBS_VERSION" "$OPENEBS_S3_OVERRIDE"
     $cmd longhorn "$LONGHORN_VERSION" "$LONGHORN_S3_OVERRIDE"
-    $cmd local-path-provisioner "$LOCAL_PATH_PROVISIONER_VERSION" "$LOCAL_PATH_PROVISIONER_S3_OVERRIDE"
     $cmd aws "$AWS_VERSION" "$AWS_S3_OVERRIDE"
     $cmd minio "$MINIO_VERSION" "$MINIO_S3_OVERRIDE"
     $cmd contour "$CONTOUR_VERSION" "$CONTOUR_S3_OVERRIDE"
@@ -90,7 +90,7 @@ function kubeadm_weave_reset() {
 
     WEAVEEXEC_IMAGE="weaveworks/weaveexec"
 
-    kurlshWeaveVersionPattern='^[0-9]+\.[0-9]+\.[0-9]+-(.*)-(20)[0-9]{6}$'
+    kurlshWeaveVersionPattern='^[0-9]+\.[0-9]+\.[0-9]+(.*)-(20)[0-9]{6}(.*)$'
     if [[ $WEAVE_TAG =~ $kurlshWeaveVersionPattern ]] ; then
         WEAVEEXEC_IMAGE="kurlsh/weaveexec"
     fi
@@ -106,7 +106,6 @@ function kubeadm_weave_reset() {
                 else
                     # --pid host
                     local guid=$(< /dev/urandom tr -dc A-Za-z0-9 | head -c16)
-                    # TODO(ethan): rke2 containerd.sock path is incorrect
                     ctr -n=k8s.io run --rm --net-host --privileged docker.io/$WEAVEEXEC_IMAGE:$WEAVE_TAG $guid /usr/bin/weaveutil delete-datapath $NETDEV
                 fi
             fi
@@ -181,7 +180,7 @@ function kubeadm_registry_containerd_configure() {
         echo "$registry_ip $server" >> /etc/hosts
     fi
 
-    if grep -q "plugins.\"io.containerd.grpc.v1.cri\".registry.configs.\"${server}\".tls" /etc/containerd/config.toml; then
+    if grep -Fq "plugins.\"io.containerd.grpc.v1.cri\".registry.configs.\"${server}\".tls" /etc/containerd/config.toml; then
         echo "Registry ${server} TLS already configured for containerd"
         return 0
     fi

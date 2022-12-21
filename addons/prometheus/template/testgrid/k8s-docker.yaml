@@ -1,39 +1,40 @@
-- name: "prometheus minimal"
+- name: "prometheus minimal k8s 1.25"
   installerSpec:
     kubernetes:
-      version: "latest"
+      version: "1.25.x"
     weave:
       version: "latest"
-    rook:
-      version: "1.5.9"
-      isBlockStorageEnabled: true
-    docker:
+    openebs:
+      version: "3.3.0"
+      isLocalPVEnabled: true
+      localPVStorageClassName: default
+    containerd:
       version: "latest"
     prometheus:
       version: "__testver__"
       s3Override: "__testdist__"
-- name: "promethus upgrade from 0.33.0"
+- name: "prometheus upgrade from 0.33.0"
   installerSpec:
     kubernetes:
-      version: "latest"
+      version: "1.21.x"
     weave:
       version: "latest"
     rook:
-      version: "1.5.9"
+      version: "1.7.x"
       isBlockStorageEnabled: true
-    docker:
+    containerd:
       version: "latest"
     prometheus:
       version: "0.33.0"
   upgradeSpec:
     kubernetes:
-      version: "latest"
+      version: "1.21.x"
     weave:
       version: "latest"
     rook:
-      version: "1.5.9"
+      version: "1.7.x"
       isBlockStorageEnabled: true
-    docker:
+    containerd:
       version: "latest"
     prometheus:
       version: "__testver__"
@@ -41,25 +42,27 @@
 - name: "prometheus upgrade from latest"
   installerSpec:
     kubernetes:
-      version: "latest"
+      version: "1.25.x"
     weave:
       version: "latest"
-    rook:
-      version: "1.5.9"
-      isBlockStorageEnabled: true
-    docker:
+    openebs:
+      version: "3.3.0"
+      isLocalPVEnabled: true
+      localPVStorageClassName: default
+    containerd:
       version: "latest"
     prometheus:
       version: "latest"
   upgradeSpec:
     kubernetes:
-      version: "latest"
+      version: "1.25.x"
     weave:
       version: "latest"
-    rook:
-      version: "1.5.9"
-      isBlockStorageEnabled: true
-    docker:
+    openebs:
+      version: "3.3.0"
+      isLocalPVEnabled: true
+      localPVStorageClassName: default
+    containerd:
       version: "latest"
     prometheus:
       version: "__testver__"
@@ -67,7 +70,7 @@
 - name: "prometheus with longhorn and containerd"
   installerSpec:
     kubernetes:
-      version: "1.21.x"
+      version: "1.24.x"
     weave:
       version: "latest"
     longhorn:
@@ -80,13 +83,13 @@
 - name: "prometheus minimal airgap"
   installerSpec:
     kubernetes:
-      version: "latest"
+      version: "1.24.x"
     weave:
       version: "latest"
     rook:
-      version: "1.5.9"
+      version: "1.7.x"
       isBlockStorageEnabled: true
-    docker:
+    containerd:
       version: "latest"
     prometheus:
       version: "__testver__"

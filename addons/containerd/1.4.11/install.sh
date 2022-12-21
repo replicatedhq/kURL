@@ -78,8 +78,8 @@ function containerd_install() {
         # If using the internal load balancer the Kubernetes API server will be unavailable until
         # kubelet starts the HAProxy static pod. This check ensures the Kubernetes API server
         # is available before proceeeding.
-        # ".." is needed becasue addons can have a CRD names "nodes", like nodes.longhorn.io
-        try_5m kubectl --kubeconfig=/etc/kubernetes/kubelet.conf get nodes..
+        # "nodes.v1." is needed becasue addons can have a CRD names "nodes", like nodes.longhorn.io
+        try_5m kubectl --kubeconfig=/etc/kubernetes/kubelet.conf get nodes.v1.
     fi
 }
 
@@ -160,6 +160,8 @@ function containerd_migrate_from_docker() {
         return
     fi
 
+    # steps from https://kubernetes.io/docs/tasks/administer-cluster/migrating-from-dockershim/change-runtime-containerd/
+
     echo "Draining node to prepare for migration from docker to containerd"
 
     # Delete pods that depend on other pods on the same node
@@ -174,10 +176,12 @@ function containerd_migrate_from_docker() {
         fi
     fi
 
-    local node=$(hostname | tr '[:upper:]' '[:lower:]')
-    kubectl cordon "$node" --kubeconfig=/etc/kubernetes/kubelet.conf
+    local kubeconfigFlag="--kubeconfig=/etc/kubernetes/kubelet.conf"
 
-    local allPodUIDs=$(kubectl --kubeconfig=/etc/kubernetes/kubelet.conf get pods --all-namespaces -ojsonpath='{ range .items[*]}{.metadata.name}{"\t"}{.metadata.uid}{"\t"}{.metadata.namespace}{"\n"}{end}' )
+    local node=$(hostname | tr '[:upper:]' '[:lower:]')
+    kubectl "$kubeconfigFlag" cordon "$node" 
+
+    local allPodUIDs=$(kubectl "$kubeconfigFlag" get pods --all-namespaces -ojsonpath='{ range .items[*]}{.metadata.name}{"\t"}{.metadata.uid}{"\t"}{.metadata.namespace}{"\n"}{end}')
 
     # Drain remaining pods using only the permissions available to kubelet
     while read -r uid; do
@@ -188,16 +192,23 @@ function containerd_migrate_from_docker() {
         local podName=$(echo "$pod" | awk '{ print $1 }')
         local podNamespace=$(echo "$pod" | awk '{ print $3 }')
         # some may timeout but proceed anyway
-        kubectl --kubeconfig=/etc/kubernetes/kubelet.conf delete pod "$podName" --namespace="$podNamespace" --timeout=60s || true
+        kubectl "$kubeconfigFlag" delete pod "$podName" --namespace="$podNamespace" --timeout=60s || true
     done < <(ls /var/lib/kubelet/pods)
 
     systemctl stop kubelet
 
-    docker rm -f $(docker ps -a -q) || true # Errors if there are not containers found
+    if kubectl "$kubeconfigFlag" get node "$node" -ojsonpath='{.metadata.annotations.kubeadm\.alpha\.kubernetes\.io/cri-socket}' | grep -q "dockershim.sock" ; then
+        kubectl "$kubeconfigFlag" annotate node "$node" --overwrite "kubeadm.alpha.kubernetes.io/cri-socket=unix:///run/containerd/containerd.sock"
+    fi
+
+    if [ "$(docker ps -aq | wc -l)" != "0" ] ; then
+        docker ps -aq | xargs docker rm -f || true
+    fi
 
     # Reconfigure kubelet to use containerd
     containerdFlags="--container-runtime=remote --container-runtime-endpoint=unix:///run/containerd/containerd.sock"
     sed -i "s@\(KUBELET_KUBEADM_ARGS=\".*\)\"@\1 $containerdFlags\" @" /var/lib/kubelet/kubeadm-flags.env
+
     systemctl daemon-reload
 
     CONTAINERD_DID_MIGRATE_FROM_DOCKER=1

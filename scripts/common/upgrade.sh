@@ -71,7 +71,7 @@ function upgrade_kubernetes_local_master_patch() {
     fi
 
     load_images "$DIR/packages/kubernetes/$k8sVersion/images"
-    if [ -d "$DIR/packages/kubernetes-conformance/$k8sVersion/images" ]; then
+    if [ -n "$SONOBUOY_VERSION" ] && [ -d "$DIR/packages/kubernetes-conformance/$k8sVersion/images" ]; then
         load_images "$DIR/packages/kubernetes-conformance/$k8sVersion/images"
     fi
 
@@ -80,8 +80,9 @@ function upgrade_kubernetes_local_master_patch() {
     kubeadm upgrade plan "v${k8sVersion}"
     printf "${YELLOW}Drain local node and apply upgrade? ${NC}"
     confirmY
- 
     kubernetes_drain "$node"
+
+    maybe_patch_node_cri_socket_annotation "$node"
  
     spinner_kubernetes_api_stable
     # ignore-preflight-errors, do not fail on fail to pull images for airgap
@@ -100,6 +101,8 @@ function upgrade_kubernetes_local_master_patch() {
 
 function upgrade_kubeadm() {
     local k8sVersion=$1
+
+    upgrade_maybe_remove_kubeadm_network_plugin_flag "$k8sVersion"
 
     cp -f "$DIR/packages/kubernetes/${k8sVersion}/assets/kubeadm" /usr/bin/
     chmod a+rx /usr/bin/kubeadm
@@ -128,15 +131,14 @@ function upgrade_kubernetes_remote_node_patch() {
     nodeMinor="$minor"
     nodePatch="$patch"
     if [ "$nodeMinor" -gt "$KUBERNETES_TARGET_VERSION_MINOR" ]; then
-        continue
-    fi
-    if [ "$nodeMinor" -eq "$KUBERNETES_TARGET_VERSION_MINOR" ] && [ "$nodePatch" -ge "$KUBERNETES_TARGET_VERSION_PATCH" ]; then
-        continue
+        return
+    elif [ "$nodeMinor" -eq "$KUBERNETES_TARGET_VERSION_MINOR" ] && [ "$nodePatch" -ge "$KUBERNETES_TARGET_VERSION_PATCH" ]; then
+        return
     fi
 
     DOCKER_REGISTRY_IP=$(kubectl -n kurl get service registry -o=jsonpath='{@.spec.clusterIP}' 2>/dev/null || echo "")
 
-    printf "${YELLOW}Drain node $nodeName to prepare for upgrade? ${NC}"
+    printf "\n${YELLOW}Drain node $nodeName to prepare for upgrade? ${NC}"
     confirmY
     kubernetes_drain "$nodeName"
 
@@ -175,7 +177,7 @@ function upgrade_kubernetes_local_master_minor() {
     fi
 
     load_images "$DIR/packages/kubernetes/$k8sVersion/images"
-    if [ -d "$DIR/packages/kubernetes-conformance/$k8sVersion/images" ]; then
+    if [ -n "$SONOBUOY_VERSION" ] && [ -d "$DIR/packages/kubernetes-conformance/$k8sVersion/images" ]; then
         load_images "$DIR/packages/kubernetes-conformance/$k8sVersion/images"
     fi
 
@@ -184,8 +186,9 @@ function upgrade_kubernetes_local_master_minor() {
     kubeadm upgrade plan "v${k8sVersion}"
     printf "${YELLOW}Drain local node and apply upgrade? ${NC}"
     confirmY
-
     kubernetes_drain "$node"
+
+    maybe_patch_node_cri_socket_annotation "$node"
 
     spinner_kubernetes_api_stable
     # ignore-preflight-errors, do not fail on fail to pull images for airgap
@@ -242,7 +245,7 @@ function upgrade_kubernetes_remote_node_minor() {
 
     DOCKER_REGISTRY_IP=$(kubectl -n kurl get service registry -o=jsonpath='{@.spec.clusterIP}' 2>/dev/null || echo "")
 
-    printf "${YELLOW}Drain node $nodeName to prepare for upgrade? ${NC}"
+    printf "\n${YELLOW}Drain node $nodeName to prepare for upgrade? ${NC}"
     confirmY
     kubernetes_drain "$nodeName"
 
@@ -252,6 +255,7 @@ function upgrade_kubernetes_remote_node_minor() {
     common_flags="${common_flags}$(get_docker_registry_ip_flag "${DOCKER_REGISTRY_IP}")"
     common_flags="${common_flags}$(get_additional_no_proxy_addresses_flag "${NO_PROXY_ADDRESSES}" "${NO_PROXY_ADDRESSES}")"
     common_flags="${common_flags}$(get_kurl_install_directory_flag "${KURL_INSTALL_DIRECTORY_FLAG}")"
+    common_flags="${common_flags}$(get_remotes_flags)"
 
     printf "\n\n\tRun the upgrade script on remote node to proceed: ${GREEN}$nodeName${NC}\n\n"
 
@@ -291,13 +295,25 @@ function upgrade_etcd_image_18() {
 #   "error execution phase preflight: docker is required for container runtime: exec: "docker": executable file not found in $PATH"
 # See https://github.com/kubernetes/kubeadm/issues/2364
 function maybe_patch_node_cri_socket_annotation() {
-    local nodeName="$1"
+    local node="$1"
 
     if [ -n "$DOCKER_VERSION" ] || [ -z "$CONTAINERD_VERSION" ]; then
         return
     fi
 
-    if kubectl get node "$nodeName" -o yaml | grep " kubeadm.alpha.kubernetes.io/cri-socket: " | grep -q "dockershim.sock" ; then
-        kubectl annotate node "$nodeName" --overwrite "kubeadm.alpha.kubernetes.io/cri-socket=unix:///run/containerd/containerd.sock"
+    if kubectl get node "$node" -ojsonpath='{.metadata.annotations.kubeadm\.alpha\.kubernetes\.io/cri-socket}' | grep -q "dockershim.sock" ; then
+        kubectl annotate node "$node" --overwrite "kubeadm.alpha.kubernetes.io/cri-socket=unix:///run/containerd/containerd.sock"
     fi
+}
+
+# When there has been a migration from Docker to Containerd the kubeadm-flags.env file may contain
+# the flag "--network-plugin" which has been removed as of Kubernetes 1.24 and causes the Kubelet
+# to fail with "Error: failed to parse kubelet flag: unknown flag: --network-plugin". This function
+# will remove the erroneous flag from the file.
+function upgrade_maybe_remove_kubeadm_network_plugin_flag() {
+    local k8sVersion=$1
+    if [ "$(kubernetes_version_minor "$k8sVersion")" -lt "24" ]; then
+        return
+    fi
+    sed -i 's/ \?--network-plugin \?[^ "]*//' /var/lib/kubelet/kubeadm-flags.env
 }

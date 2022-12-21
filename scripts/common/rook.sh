@@ -1,4 +1,4 @@
-PV_BASE_PATH=/opt/replicated/rook
+# shellcheck disable=SC2148
 
 function disable_rook_ceph_operator() {
     if ! is_rook_1; then
@@ -21,17 +21,17 @@ function is_rook_1() {
 }
 
 function rook_ceph_osd_pods_gone() {
-    if kubectl -n rook-ceph get pods -l app=rook-ceph-osd 2>&1 | grep 'rook-ceph-osd' &>/dev/null ; then
+    if kubectl -n rook-ceph get pods -l app=rook-ceph-osd 2>/dev/null | grep 'rook-ceph-osd' &>/dev/null ; then
         return 1
     fi
     return 0
 }
 
 function prometheus_pods_gone() {
-    if kubectl -n monitoring get pods -l app=prometheus 2>&1 | grep 'prometheus' &>/dev/null ; then
+    if kubectl -n monitoring get pods -l app=prometheus 2>/dev/null | grep 'prometheus' &>/dev/null ; then
         return 1
     fi
-    if kubectl -n monitoring get pods -l app.kubernetes.io/name=prometheus 2>&1 | grep 'prometheus' &>/dev/null ; then # the labels changed with prometheus 0.53+
+    if kubectl -n monitoring get pods -l app.kubernetes.io/name=prometheus 2>/dev/null | grep 'prometheus' &>/dev/null ; then # the labels changed with prometheus 0.53+
         return 1
     fi
 
@@ -39,10 +39,25 @@ function prometheus_pods_gone() {
 }
 
 function ekco_pods_gone() {
-    if kubectl -n kurl get pods -l app=ekc-operator 2>&1 | grep 'ekc' &>/dev/null ; then
-        return 1
+    pods_gone_by_selector kurl app=ekc-operator
+}
+
+# rook_disable_ekco_operator disables the ekco operator if it exists.
+function rook_disable_ekco_operator() {
+    if kubernetes_resource_exists kurl deployment ekc-operator ; then
+        echo "Scaling down EKCO deployment to 0 replicas"
+        kubernetes_scale_down kurl deployment ekc-operator
+        echo "Waiting for ekco pods to be removed"
+        spinner_until 120 ekco_pods_gone
     fi
-    return 0
+}
+
+# rook_enable_ekco_operator enables the ekco operator if it exists.
+function rook_enable_ekco_operator() {
+    if kubernetes_resource_exists kurl deployment ekc-operator ; then
+        echo "Scaling up EKCO deployment to 1 replica"
+        kubernetes_scale kurl deployment ekc-operator 1
+    fi
 }
 
 function remove_rook_ceph() {
@@ -50,11 +65,11 @@ function remove_rook_ceph() {
     all_pv_drivers="$(kubectl get pv -o=jsonpath='{.items[*].spec.csi.driver}')"
     if echo "$all_pv_drivers" | grep "rook" &>/dev/null ; then
         # do stuff
-        printf "${RED}"
+        printf "%b" "$RED"
         printf "ERROR: \n"
         printf "There are still PVs using rook-ceph.\n"
         printf "Remove these PVs before continuing.\n"
-        printf "${NC}"
+        printf "%b" "$NC"
         exit 1
     fi
 
@@ -96,17 +111,35 @@ function remove_rook_ceph() {
     fi
 
     # print success message
-    printf "${GREEN}Removed rook-ceph successfully!\n${NC}"
+    printf "%bRemoved rook-ceph successfully!\n%b" "$GREEN" "$NC"
     printf "Data within /var/lib/rook, /opt/replicated/rook and any bound disks has not been freed.\n"
 }
 
-# scale down prometheus, move all 'rook-ceph' PVCs to 'longhorn', scale up prometheus
-function rook_ceph_to_longhorn() {
-    report_addon_start "rook-ceph-to-longhorn" "v1"
+# scale down prometheus, move all 'rook-ceph' PVCs to provided storage class, scale up prometheus
+# Supported storage class migrations from ceph are: 'longhorn' and 'openebs'
+function rook_ceph_to_sc_migration() {
+    local destStorageClass=$1
+    local didRunValidationChecks=$2
+    local scProvisioner
+    scProvisioner=$(kubectl get sc "$destStorageClass" -ojsonpath='{.provisioner}')
+
+    # we only support migrating to 'longhorn' and 'openebs' storage classes
+    if [[ "$scProvisioner" != *"longhorn"* ]] && [[ "$scProvisioner" != *"openebs"* ]]; then
+        bail "Ceph to $scProvisioner migration is not supported"
+    fi
+
+    report_addon_start "rook-ceph-to-${scProvisioner}-migration" "v2"
+
+    # patch ceph so that it does not consume new devices that longhorn creates
+    echo "Patching CephCluster storage.useAllDevices=false"
+    kubectl -n rook-ceph patch cephcluster rook-ceph --type json --patch '[{"op": "replace", "path": "/spec/storage/useAllDevices", value: false}]'
+    sleep 1
+    echo "Waiting for CephCluster to update"
+    spinner_until 300 rook_osd_phase_ready || true # don't fail
 
     # set prometheus scale if it exists
     if kubectl get namespace monitoring &>/dev/null; then
-        if kubectl get prometheus -n monitoring k8s &>/dev/null; then
+        if kubectl -n monitoring get prometheus k8s &>/dev/null; then
             # before scaling down prometheus, scale down ekco as it will otherwise restore the prometheus scale
             if kubernetes_resource_exists kurl deployment ekc-operator; then
                 kubectl -n kurl scale deploy ekc-operator --replicas=0
@@ -114,7 +147,7 @@ function rook_ceph_to_longhorn() {
                 spinner_until 120 ekco_pods_gone
             fi
 
-            kubectl patch prometheus -n monitoring  k8s --type='json' --patch '[{"op": "replace", "path": "/spec/replicas", value: 0}]'
+            kubectl -n monitoring patch prometheus k8s --type='json' --patch '[{"op": "replace", "path": "/spec/replicas", value: 0}]'
             echo "Waiting for prometheus pods to be removed"
             spinner_until 120 prometheus_pods_gone
         fi
@@ -126,14 +159,24 @@ function rook_ceph_to_longhorn() {
 
     for rook_sc in $rook_scs
     do
-        # run the migration (without setting defaults)
-        $BIN_PVMIGRATE --source-sc "$rook_sc" --dest-sc longhorn --rsync-image "$KURL_UTIL_IMAGE"
+        if [ "$didRunValidationChecks" == "1" ]; then
+            # run the migration w/o validation checks
+            $BIN_PVMIGRATE --source-sc "$rook_sc" --dest-sc "$destStorageClass" --rsync-image "$KURL_UTIL_IMAGE" --skip-free-space-check --skip-preflight-validation
+        else
+            # run the migration (without setting defaults)
+            $BIN_PVMIGRATE --source-sc "$rook_sc" --dest-sc "$destStorageClass" --rsync-image "$KURL_UTIL_IMAGE"
+        fi
     done
 
     for rook_sc in $rook_default_sc
     do
-        # run the migration (setting defaults)
-        $BIN_PVMIGRATE --source-sc "$rook_sc" --dest-sc longhorn --rsync-image "$KURL_UTIL_IMAGE" --set-defaults
+        if [ "$didRunValidationChecks" == "1" ]; then
+            # run the migration w/o validation checks
+            $BIN_PVMIGRATE --source-sc "$rook_sc" --dest-sc "$destStorageClass" --rsync-image "$KURL_UTIL_IMAGE" --skip-free-space-check --skip-preflight-validation --set-defaults
+        else
+            # run the migration (setting defaults)
+            $BIN_PVMIGRATE --source-sc "$rook_sc" --dest-sc "$destStorageClass" --rsync-image "$KURL_UTIL_IMAGE" --set-defaults
+        fi
     done
 
     # reset prometheus (and ekco) scale
@@ -148,8 +191,8 @@ function rook_ceph_to_longhorn() {
     fi
 
     # print success message
-    printf "${GREEN}Migration from rook-ceph to longhorn completed successfully!\n${NC}"
-    report_addon_success "rook-ceph-to-longhorn" "v1"
+    printf "${GREEN}Migration from rook-ceph to %s completed successfully!\n${NC}" "$scProvisioner"
+    report_addon_success "rook-ceph-to-$scProvisioner-migration" "v2"
 }
 
 # if PVCs and object store data have both been migrated from rook-ceph and rook-ceph is no longer specified in the kURL spec, remove rook-ceph
@@ -161,4 +204,24 @@ function maybe_cleanup_rook() {
             report_addon_success "rook-ceph-removal" "v1"
         fi
     fi
+}
+
+function rook_osd_phase_ready() {
+    if [ "$(current_rook_version)" = "1.0.4" ]; then
+        [ "$(kubectl -n rook-ceph get cephcluster rook-ceph --template '{{.status.state}}')" = 'Created' ]
+    else
+        [ "$(kubectl -n rook-ceph get cephcluster rook-ceph --template '{{.status.phase}}')" = 'Ready' ]
+    fi
+}
+
+function current_rook_version() {
+    kubectl -n rook-ceph get deploy rook-ceph-operator -oyaml 2>/dev/null \
+        | grep ' image: ' \
+        | awk -F':' 'NR==1 { print $3 }' \
+        | sed 's/v\([^-]*\).*/\1/'
+}
+
+function current_ceph_version() {
+    kubectl -n rook-ceph get deployment rook-ceph-mgr-a -o jsonpath='{.metadata.labels.ceph-version}' 2>/dev/null \
+        | awk -F'-' '{ print $1 }'
 }

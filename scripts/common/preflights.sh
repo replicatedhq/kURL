@@ -47,18 +47,18 @@ function bailIfUnsupportedOS() {
         ubuntu16.04)
             logWarn "Install is not supported on Ubuntu 16.04. Installation of Kubernetes will be best effort."
             ;;
-        ubuntu18.04|ubuntu20.04)
+        ubuntu18.04|ubuntu20.04|ubuntu22.04)
             ;;
-        rhel7.4|rhel7.5|rhel7.6|rhel7.7|rhel7.8|rhel7.9|rhel8.0|rhel8.1|rhel8.2|rhel8.3|rhel8.4|rhel8.5|rhel8.6)
+        rhel7.4|rhel7.5|rhel7.6|rhel7.7|rhel7.8|rhel7.9|rhel8.0|rhel8.1|rhel8.2|rhel8.3|rhel8.4|rhel8.5|rhel8.6|rhel8.7)
             ;;
         centos7.4|centos7.5|centos7.6|centos7.7|centos7.8|centos7.9|centos8|centos8.0|centos8.1|centos8.2|centos8.3|centos8.4)
             ;;
         amzn2)
             ;;
-        ol7.4|ol7.5|ol7.6|ol7.7|ol7.8|ol7.9|ol8.0|ol8.1|ol8.2|ol8.3|ol8.4|ol8.5|ol8.6)
+        ol7.4|ol7.5|ol7.6|ol7.7|ol7.8|ol7.9|ol8.0|ol8.1|ol8.2|ol8.3|ol8.4|ol8.5|ol8.6|ol8.7)
             ;;
         *)
-            bail "Kubernetes install is not supported on ${LSB_DIST} ${DIST_VERSION}"
+            bail "Kubernetes install is not supported on ${LSB_DIST} ${DIST_VERSION}. The list of supported operating systems can be viewed at https://kurl.sh/docs/install-with-kurl/system-requirements."
             ;;
     esac
 }
@@ -280,9 +280,10 @@ must_disable_selinux() {
 }
 
 function force_docker() {
-    DOCKER_VERSION="19.03.4"
-    echo "NO CRI version was listed in yaml or found on host OS, defaulting to online docker install"
-    echo "THIS FEATURE IS NOT SUPPORTED AND WILL BE DEPRECATED IN FUTURE KURL VERSIONS"
+    DOCKER_VERSION="20.10.17"
+    printf "${YELLOW}NO CRI version was listed in yaml or found on host OS, defaulting to online docker install${NC}\n"
+    printf "${YELLOW}THIS FEATURE IS NOT SUPPORTED AND WILL BE DEPRECATED IN FUTURE KURL VERSIONS${NC}\n"
+    printf "${YELLOW}The installer did not specify a version of Docker or Containerd to include, but having one is required by all kURL installation scripts. The latest supported version ($DOCKER_VERSION) of Docker will be installed.${NC}\n"
 }
 
 function cri_preflights() {
@@ -300,7 +301,7 @@ function require_cri() {
     fi
 
     if [ "$LSB_DIST" = "rhel" ]; then
-        if [ -n "$NO_CE_ON_EE" ]; then
+         if [ -n "$NO_CE_ON_EE" ] && [ -z "$CONTAINERD_VERSION" ]; then
             printf "${RED}Enterprise Linux distributions require Docker Enterprise Edition. Please install Docker before running this installation script.${NC}\n" 1>&2
             return 0
         fi
@@ -311,7 +312,7 @@ function require_cri() {
     fi
 
     if [ -z "$DOCKER_VERSION" ] && [ -z "$CONTAINERD_VERSION" ]; then
-            force_docker
+        force_docker
     fi
 
     return 0

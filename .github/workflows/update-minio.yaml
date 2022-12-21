@@ -1,7 +1,7 @@
 name: cron-minio-update
 on:
   schedule:
-  - cron: '0 4 * * *'
+  - cron: "0 4 * * 1,2,3,4,5" # “At 04:00 on Monday, Tuesday, Wednesday, Thursday, and Friday.”
   workflow_dispatch: {}
 
 jobs:
@@ -18,7 +18,7 @@ jobs:
       run: ./generate.sh
 
     - name: Create Pull Request # creates a PR if there are differences
-      uses: peter-evans/create-pull-request@v4.0.4
+      uses: peter-evans/create-pull-request@v4.2.3
       id: cpr
       with:
         token: ${{ secrets.AUTOMATED_PR_GH_PAT }}
@@ -29,10 +29,16 @@ jobs:
         labels: |
           automated-pr
           minio
+          type::chore
+          kurl::type::feature
         draft: false
         base: "main"
-        body: "Automated changes by the [cron-minio-update](https://github.com/replicatedhq/kURL/blob/main/.github/workflows/update-minio.yaml) GitHub action"
-
+        body: |
+          Automated changes by the [cron-minio-update](https://github.com/replicatedhq/kURL/blob/main/.github/workflows/update-minio.yaml) GitHub action
+          
+          ```release-note
+          Adds [MinIO add-on](https://kurl.sh/docs/add-ons/minio) version ${{ steps.update.outputs.minio_version }}.
+          ```
     - name: Check outputs
       run: |
         echo "Pull Request Number - ${{ steps.cpr.outputs.pull-request-number }}"

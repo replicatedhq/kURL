@@ -1,61 +1,207 @@
-- name: regsitry_latest_rook
+- name: registry_latest_rook
   installerSpec:
     kubernetes:
-      version: "latest"
+      version: "1.24.x"
     weave:
       version: "latest"
     rook:
-      version: 1.5.x
-    docker:
+      version: 1.9.x
+    containerd:
       version: "latest"
     registry:
       version: "__testver__"
       s3Override: "__testdist__"
-- name: regsitry_latest_longhorn
+  unsupportedOSIDs:
+    - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
+  postInstallScript: |
+
+    # get the registry address and credentials
+    DOCKER_REGISTRY_IP=$(kubectl -n kurl get service registry -o=jsonpath='{@.spec.clusterIP}' 2>/dev/null || echo "")
+    DOCKER_AUTH=$(kubectl get secret registry-creds -o jsonpath='{.data.\.dockerconfigjson}' | base64 --decode | sed 's|.*"auth":"\([^"]*\)".*|\1|')
+
+    # tag and push this to the registry
+    ctr -n k8s.io images tag docker.io/library/registry:__testver__ $DOCKER_REGISTRY_IP/registry:testtag
+    ctr -n k8s.io images push --tlscacert /etc/kubernetes/pki/ca.crt --user "$(echo $DOCKER_AUTH | base64 -d)" $DOCKER_REGISTRY_IP/registry:testtag
+
+    # remove this image from the local filesystem, so that the pull is real
+    IMAGE_DIGEST=$(ctr -n k8s.io images ls | grep -F "$DOCKER_REGISTRY_IP/registry:testtag" | awk '{ print $3 }')
+    if [ -n "$IMAGE_DIGEST" ]; then
+      ctr -n k8s.io images ls | grep -F "$IMAGE_DIGEST" | awk '{ print $1 }' | xargs ctr -n k8s.io images delete --sync
+    fi
+
+    # pull it from the registry
+    ctr -n k8s.io images pull --tlscacert /etc/kubernetes/pki/ca.crt --user "$(echo $DOCKER_AUTH | base64 -d)" $DOCKER_REGISTRY_IP/registry:testtag
+
+- name: registry_latest_longhorn
   installerSpec:
     kubernetes:
-      version: "latest"
+      version: "1.24.x"
     weave:
       version: "latest"
     longhorn:
       version: "latest"
-    docker:
+    containerd:
       version: "latest"
     registry:
       version: "__testver__"
       s3Override: "__testdist__"
-- name: regsitry_latest_upgrade
+  postInstallScript: |
+
+    # get the registry address and credentials
+    DOCKER_REGISTRY_IP=$(kubectl -n kurl get service registry -o=jsonpath='{@.spec.clusterIP}' 2>/dev/null || echo "")
+    DOCKER_AUTH=$(kubectl get secret registry-creds -o jsonpath='{.data.\.dockerconfigjson}' | base64 --decode | sed 's|.*"auth":"\([^"]*\)".*|\1|')
+
+    # tag and push this to the registry
+    ctr -n k8s.io images tag docker.io/library/registry:__testver__ $DOCKER_REGISTRY_IP/registry:testtag
+    ctr -n k8s.io images push --tlscacert /etc/kubernetes/pki/ca.crt --user "$(echo $DOCKER_AUTH | base64 -d)" $DOCKER_REGISTRY_IP/registry:testtag
+
+    # remove this image from the local filesystem, so that the pull is real
+    IMAGE_DIGEST=$(ctr -n k8s.io images ls | grep -F "$DOCKER_REGISTRY_IP/registry:testtag" | awk '{ print $3 }')
+    if [ -n "$IMAGE_DIGEST" ]; then
+      ctr -n k8s.io images ls | grep -F "$IMAGE_DIGEST" | awk '{ print $1 }' | xargs ctr -n k8s.io images delete --sync
+    fi
+
+    # pull it from the registry
+    ctr -n k8s.io images pull --tlscacert /etc/kubernetes/pki/ca.crt --user "$(echo $DOCKER_AUTH | base64 -d)" $DOCKER_REGISTRY_IP/registry:testtag
+
+- name: registry_latest_upgrade
   installerSpec:
     kubernetes:
-      version: "latest"
+      version: "1.25.x"
     weave:
       version: "latest"
-    longhorn:
-      version: "latest"
-    docker:
+    openebs:
+      version: "3.3.0"
+      isLocalPVEnabled: true
+      localPVStorageClassName: default
+    containerd:
       version: "latest"
     registry:
       version: "latest"
+    goldpinger:
+      version: "3.5.1-5.2.0" # this provides an image to use for push/pull tests
   upgradeSpec:
     kubernetes:
-      version: "latest"
+      version: "1.25.x"
     weave:
       version: "latest"
-    longhorn:
-      version: "latest"
-    docker:
+    openebs:
+      version: "3.3.0"
+      isLocalPVEnabled: true
+      localPVStorageClassName: default
+    containerd:
       version: "latest"
     registry:
       version: "__testver__"
       s3Override: "__testdist__"
+  postInstallScript: |
+
+    # wait for the pod to be ready
+    sleep 60s
+    kubectl get pods -n kurl
+
+    # get the registry address and credentials
+    DOCKER_REGISTRY_IP=$(kubectl -n kurl get service registry -o=jsonpath='{@.spec.clusterIP}' 2>/dev/null || echo "")
+    DOCKER_AUTH=$(kubectl get secret registry-creds -o jsonpath='{.data.\.dockerconfigjson}' | base64 --decode | sed 's|.*"auth":"\([^"]*\)".*|\1|')
+
+    # tag and push this to the registry
+    ctr -n k8s.io images tag docker.io/bloomberg/goldpinger:v3.5.1 $DOCKER_REGISTRY_IP/registry:testtag
+    ctr -n k8s.io images push --tlscacert /etc/kubernetes/pki/ca.crt --user "$(echo $DOCKER_AUTH | base64 -d)" $DOCKER_REGISTRY_IP/registry:testtag
+
+    # remove this image from the local filesystem, so that the pull is real
+    IMAGE_DIGEST=$(ctr -n k8s.io images ls | grep -F "$DOCKER_REGISTRY_IP/registry:testtag" | awk '{ print $3 }')
+    if [ -n "$IMAGE_DIGEST" ]; then
+      ctr -n k8s.io images ls | grep -F "$IMAGE_DIGEST" | awk '{ print $1 }' | xargs ctr -n k8s.io images delete --sync
+    fi
+
+    # pull it from the registry
+    ctr -n k8s.io images pull --tlscacert /etc/kubernetes/pki/ca.crt --user "$(echo $DOCKER_AUTH | base64 -d)" $DOCKER_REGISTRY_IP/registry:testtag
+  postUpgradeScript: |
+
+    # get the registry address and credentials
+    DOCKER_REGISTRY_IP=$(kubectl -n kurl get service registry -o=jsonpath='{@.spec.clusterIP}' 2>/dev/null || echo "")
+    DOCKER_AUTH=$(kubectl get secret registry-creds -o jsonpath='{.data.\.dockerconfigjson}' | base64 --decode | sed 's|.*"auth":"\([^"]*\)".*|\1|')
+
+    # remove this image from the local filesystem, so that the pull is real
+    IMAGE_DIGEST=$(ctr -n k8s.io images ls | grep -F "$DOCKER_REGISTRY_IP/registry:testtag" | awk '{ print $3 }')
+    if [ -n "$IMAGE_DIGEST" ]; then
+      ctr -n k8s.io images ls | grep -F "$IMAGE_DIGEST" | awk '{ print $1 }' | xargs ctr -n k8s.io images delete --sync
+    fi
+
+    # pull it from the registry
+    ctr -n k8s.io images pull --tlscacert /etc/kubernetes/pki/ca.crt --user "$(echo $DOCKER_AUTH | base64 -d)" $DOCKER_REGISTRY_IP/registry:testtag
+
+- name: registry_oldest_upgrade
+  installerSpec:
+    kubernetes:
+      version: "1.19.x"
+    weave:
+      version: "latest"
+    longhorn:
+      version: "latest"
+    containerd:
+      version: "latest"
+    registry:
+      version: "2.7.1"
+  upgradeSpec:
+    kubernetes:
+      version: "1.19.x"
+    weave:
+      version: "latest"
+    longhorn:
+      version: "latest"
+    containerd:
+      version: "latest"
+    registry:
+      version: "__testver__"
+      s3Override: "__testdist__"
+  postInstallScript: |
+
+    # wait for the pod to be ready
+    sleep 60s
+    kubectl get pods -n kurl
+
+    # get the registry address and credentials
+    DOCKER_REGISTRY_IP=$(kubectl -n kurl get service registry -o=jsonpath='{@.spec.clusterIP}' 2>/dev/null || echo "")
+    DOCKER_AUTH=$(kubectl get secret registry-creds -o jsonpath='{.data.\.dockerconfigjson}' | base64 --decode | sed 's|.*"auth":"\([^"]*\)".*|\1|')
+
+    # tag and push this to the registry
+    ctr -n k8s.io images tag docker.io/library/registry:2.7.1 $DOCKER_REGISTRY_IP/registry:testtag
+    ctr -n k8s.io images push --tlscacert /etc/kubernetes/pki/ca.crt --user "$(echo $DOCKER_AUTH | base64 -d)" $DOCKER_REGISTRY_IP/registry:testtag
+
+    # remove this image from the local filesystem, so that the pull is real
+    IMAGE_DIGEST=$(ctr -n k8s.io images ls | grep -F "$DOCKER_REGISTRY_IP/registry:testtag" | awk '{ print $3 }')
+    if [ -n "$IMAGE_DIGEST" ]; then
+      ctr -n k8s.io images ls | grep -F "$IMAGE_DIGEST" | awk '{ print $1 }' | xargs ctr -n k8s.io images delete --sync
+    fi
+
+    # pull it from the registry
+    ctr -n k8s.io images pull --tlscacert /etc/kubernetes/pki/ca.crt --user "$(echo $DOCKER_AUTH | base64 -d)" $DOCKER_REGISTRY_IP/registry:testtag
+  postUpgradeScript: |
+
+    # get the registry address and credentials
+    DOCKER_REGISTRY_IP=$(kubectl -n kurl get service registry -o=jsonpath='{@.spec.clusterIP}' 2>/dev/null || echo "")
+    DOCKER_AUTH=$(kubectl get secret registry-creds -o jsonpath='{.data.\.dockerconfigjson}' | base64 --decode | sed 's|.*"auth":"\([^"]*\)".*|\1|')
+
+    # remove this image from the local filesystem, so that the pull is real
+    IMAGE_DIGEST=$(ctr -n k8s.io images ls | grep -F "$DOCKER_REGISTRY_IP/registry:testtag" | awk '{ print $3 }')
+    if [ -n "$IMAGE_DIGEST" ]; then
+      ctr -n k8s.io images ls | grep -F "$IMAGE_DIGEST" | awk '{ print $1 }' | xargs ctr -n k8s.io images delete --sync
+    fi
+
+    # pull it from the registry
+    ctr -n k8s.io images pull --tlscacert /etc/kubernetes/pki/ca.crt --user "$(echo $DOCKER_AUTH | base64 -d)" $DOCKER_REGISTRY_IP/registry:testtag
+
 - name: registry_publish_port
   installerSpec:
     kubernetes:
-      version: "latest"
+      version: "1.25.x"
     weave:
       version: "latest"
-    longhorn:
-      version: "latest"
+    openebs:
+      version: "3.3.0"
+      isLocalPVEnabled: true
+      localPVStorageClassName: default
     containerd:
       version: "latest"
     registry:
@@ -63,25 +209,23 @@
       version: "__testver__"
       s3Override: "__testdist__"
 - name: registry_remove_all_object_storage
+  cpu: 5
   installerSpec:
     kubernetes:
-      version: 1.20.x
+      version: 1.24.x
     weave:
       version: latest
     rook:
-      isBlockStorageEnabled: true
-      version: 1.5.x
+      version: 1.9.x
     registry:
       version: latest
     kotsadm:
       version: latest
     containerd:
       version: latest
-    velero:
-      version: 1.6.x
   upgradeSpec:
     kubernetes:
-      version: 1.21.x
+      version: 1.24.x
     weave:
       version: latest
     longhorn:
@@ -94,5 +238,45 @@
       disableS3: true
     containerd:
       version: latest
-    velero:
-      version: 1.7.x
+  unsupportedOSIDs:
+    - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
+- name: registry_airgap_openebs
+  airgap: true
+  installerSpec:
+    kubernetes:
+      version: "1.25.x"
+    weave:
+      version: "latest"
+    openebs:
+      version: "3.3.0"
+      isLocalPVEnabled: true
+      localPVStorageClassName: default
+    minio:
+      version: "latest"
+    containerd:
+      version: "latest"
+    registry:
+      version: "__testver__"
+      s3Override: "__testdist__"
+  postInstallScript: |
+
+    # wait for the pod to be ready
+    sleep 60s
+    kubectl get pods -n kurl
+
+    # get the registry address and credentials
+    DOCKER_REGISTRY_IP=$(kubectl -n kurl get service registry -o=jsonpath='{@.spec.clusterIP}' 2>/dev/null || echo "")
+    DOCKER_AUTH=$(kubectl get secret registry-creds -o jsonpath='{.data.\.dockerconfigjson}' | base64 --decode | sed 's|.*"auth":"\([^"]*\)".*|\1|')
+
+    # tag and push this to the registry
+    ctr -n k8s.io images tag docker.io/library/registry:__testver__ $DOCKER_REGISTRY_IP/registry:testtag
+    ctr -n k8s.io images push --tlscacert /etc/kubernetes/pki/ca.crt --user "$(echo $DOCKER_AUTH | base64 -d)" $DOCKER_REGISTRY_IP/registry:testtag
+
+    # remove this image from the local filesystem, so that the pull is real
+    IMAGE_DIGEST=$(ctr -n k8s.io images ls | grep -F "$DOCKER_REGISTRY_IP/registry:testtag" | awk '{ print $3 }')
+    if [ -n "$IMAGE_DIGEST" ]; then
+      ctr -n k8s.io images ls | grep -F "$IMAGE_DIGEST" | awk '{ print $1 }' | xargs ctr -n k8s.io images delete --sync
+    fi
+
+    # pull it from the registry
+    ctr -n k8s.io images pull --tlscacert /etc/kubernetes/pki/ca.crt --user "$(echo $DOCKER_AUTH | base64 -d)" $DOCKER_REGISTRY_IP/registry:testtag

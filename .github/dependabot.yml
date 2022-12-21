@@ -10,19 +10,11 @@ updates:
     schedule:
       interval: "weekly"
 
-  - package-ecosystem: "npm"
-    directory: "/web"
+  - package-ecosystem: "gomod"
+    directory: "/kurlkinds"
     labels:
       - "dependencies"
-      - "javascript"
-      - "type::chore"
-    schedule:
-      interval: "weekly"
-  - package-ecosystem: "npm"
-    directory: "/testgrid/web"
-    labels:
-      - "dependencies"
-      - "javascript"
+      - "go"
       - "type::chore"
     schedule:
       interval: "weekly"

@@ -6,6 +6,11 @@ PACKAGE_NAME=$1
 MANIFEST_PATH=$2
 OUT_DIR=$3
 
+if ! test -f "$MANIFEST_PATH"; then
+    echo "$MANIFEST_PATH does not exist"
+    exit 1
+fi
+
 mkdir -p "$OUT_DIR"
 
 function build_rhel_7() {
@@ -183,23 +188,45 @@ while read -r line || [ -n "$line" ]; do
 
     case "$kind" in
         image)
-            filename=$(echo $line | awk '{ print $2 }')
-            image=$(echo $line | awk '{ print $3 }')
-            try_5_times docker pull $image
-            mkdir -p $OUT_DIR/images
-            docker save $image | gzip > $OUT_DIR/images/${filename}.tar.gz
+            mkdir -p "$OUT_DIR/images"
+            filename=$(echo "$line" | awk '{ print $2 }')
+            image=$(echo "$line" | awk '{ print $3 }')
+            # we support both remote images and tar archives
+            if echo "$image" | grep -q '\.tar$' ; then
+                gzip -c "$image" > "$OUT_DIR/images/${filename}.tar.gz"
+            else
+                try_5_times docker pull "$image"
+                docker save "$image" | gzip > "$OUT_DIR/images/${filename}.tar.gz"
+            fi
             ;;
 
         asset)
-            mkdir -p $OUT_DIR/assets
-            filename=$(echo $line | awk '{ print $2 }')
-            url=$(echo $line | awk '{ print $3 }')
-            curl -fL -o "$OUT_DIR/assets/$filename" "$url"
+            mkdir -p "$OUT_DIR/assets"
+            filename=$(echo "$line" | awk '{ print $2 }')
+            asset=$(echo "$line" | awk '{ print $3 }')
+            # we support both http and local assets
+            if echo "$asset" | grep -q '^https://' ; then
+                curl -fL -o "$OUT_DIR/assets/$filename" "$asset"
+            else
+                cp "$asset" "$OUT_DIR/assets/$filename"
+            fi
             ;;
 
         apt)
-            mkdir -p $OUT_DIR/ubuntu-20.04 $OUT_DIR/ubuntu-18.04 $OUT_DIR/ubuntu-16.04
+            mkdir -p $OUT_DIR/ubuntu-22.04 $OUT_DIR/ubuntu-20.04 $OUT_DIR/ubuntu-18.04 $OUT_DIR/ubuntu-16.04
             package=$(echo $line | awk '{ print $2 }')
+
+            docker rm -f ubuntu-2204-${package} 2>/dev/null || true
+            docker run \
+                --name ubuntu-2204-${package} \
+                ubuntu:22.04 \
+                /bin/bash -c "\
+                    mkdir -p /packages/archives && \
+                    apt update -y \
+                    && apt install -d --no-install-recommends -y $package \
+                    -oDebug::NoLocking=1 -o=dir::cache=/packages/"
+            docker cp ubuntu-2204-${package}:/packages/archives $OUT_DIR/ubuntu-22.04
+            sudo chown -R $UID $OUT_DIR/ubuntu-22.04
 
             docker rm -f ubuntu-2004-${package} 2>/dev/null || true
             docker run \

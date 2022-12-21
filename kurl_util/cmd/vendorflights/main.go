@@ -4,20 +4,19 @@ import (
 	"bytes"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
 
-	"github.com/replicatedhq/kurl/kurlkinds/client/kurlclientset/scheme"
 	"github.com/replicatedhq/kurl/pkg/installer"
+	"github.com/replicatedhq/kurlkinds/client/kurlclientset/scheme"
 	serializer "k8s.io/apimachinery/pkg/runtime/serializer/json"
 )
 
 // takes the path to installer spec yaml
 func extractPreflightSpec(inputPath string, outputPath string) error {
 
-	data, err := ioutil.ReadFile(inputPath)
+	data, err := os.ReadFile(inputPath)
 	if err != nil {
 		return err
 	}

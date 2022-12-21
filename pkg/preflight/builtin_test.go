@@ -6,8 +6,8 @@ import (
 
 	"github.com/itchyny/gojq"
 	"github.com/pkg/errors"
-	clusterv1beta1 "github.com/replicatedhq/kurl/kurlkinds/pkg/apis/cluster/v1beta1"
 	"github.com/replicatedhq/kurl/pkg/installer"
+	clusterv1beta1 "github.com/replicatedhq/kurlkinds/pkg/apis/cluster/v1beta1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	yaml "gopkg.in/yaml.v3"
@@ -212,7 +212,7 @@ func TestBuiltinExecuteTemplate(t *testing.T) {
 			spec: clusterv1beta1.Installer{
 				Spec: clusterv1beta1.InstallerSpec{
 					Docker: &clusterv1beta1.Docker{
-						Version: "latest",
+						Version: "20.10.17",
 					},
 				},
 			},

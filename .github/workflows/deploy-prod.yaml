@@ -6,62 +6,55 @@ on:
     - "v*.*.*"
 
 jobs:
-  production-docker-image:
-    runs-on: ubuntu-18.04
+  verify-tag:
+    runs-on: ubuntu-20.04
     steps:
-    - uses: actions/checkout@v3
+    - name: Checkout
+      uses: actions/checkout@v2
 
-    - uses: actions/setup-node@v3
-      with:
-        node-version: '12'
+    - name: Verify version tag
+      run: |
+        export VERSION_TAG=$GITHUB_REF_NAME
+        ./bin/verify-tag.sh "${VERSION_TAG}"
 
-    - run: make -C web deps build
+  generate-kurl-release-notes-pr:
+    runs-on: ubuntu-20.04
+    needs:
+    - verify-tag
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
 
-    - run: make web
-
-    - run: |
-        export VERSION_TAG=$(echo $GITHUB_REF | awk -F'/' '{ print $NF }')
-        npm i -g npm @bugsnag/source-maps
-        bugsnag-source-maps upload-node \
-          --api-key ${{ secrets.BUGSNAG_API_KEY }} \
-          --app-version ${GITHUB_SHA:0:7} \
-          --directory ./web/build \
-          --overwrite
-
-    - run: |
-        export VERSION_TAG=$(echo $GITHUB_REF | awk -F'/' '{ print $NF }')
-        docker build -f deploy/Dockerfile-slim \
-          --build-arg version=${GITHUB_SHA:0:7} \
-          --build-arg version_tag=${VERSION_TAG} \
-          -t 799720048698.dkr.ecr.us-east-1.amazonaws.com/kurl:${GITHUB_SHA:0:7} .
-
-    - run: |
-        aws ecr get-login-password --region us-east-1 | docker login \
-          --username AWS \
-          --password-stdin 799720048698.dkr.ecr.us-east-1.amazonaws.com
+    - name: Generate kURL Release Notes PR
       env:
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_PROD_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_PROD_SECRET_ACCESS_KEY }}
-
-    - run: docker push 799720048698.dkr.ecr.us-east-1.amazonaws.com/kurl:${GITHUB_SHA:0:7}
+        GH_PAT: ${{ secrets.AUTOMATED_PR_GH_PAT }}
+      run: |
+        export VERSION_TAG=$GITHUB_REF_NAME
+        curl -H "Authorization: token $GH_PAT" \
+          -H 'Accept: application/json' \
+          -d "{\"event_type\": \"kubernetes-installer-release-notes\", \"client_payload\": {\"version\": \"${VERSION_TAG}\" }}" \
+          "https://api.github.com/repos/replicatedhq/replicated-docs/dispatches"
 
   kurl-util-image:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
+    needs:
+    - verify-tag
     steps:
     - uses: actions/checkout@v3
+    - uses: docker/login-action@v2
+      with:
+        username: ${{ secrets.DOCKERHUB_DOCKER_USER }}
+        password: ${{ secrets.DOCKERHUB_DOCKER_PASS }}
     - run: |
-        export VERSION_TAG=$(echo $GITHUB_REF | awk -F'/' '{ print $NF }')
+        export VERSION_TAG=$GITHUB_REF_NAME
         export KURL_UTIL_IMAGE=replicated/kurl-util:${VERSION_TAG}
-        echo "$DOCKERHUB_DOCKER_PASS" | docker login -u $DOCKERHUB_DOCKER_USER --password-stdin
         make -C kurl_util build-and-push-kurl-util-image
-      env:
-        DOCKERHUB_DOCKER_PASS: ${{ secrets.DOCKERHUB_DOCKER_PASS }}
-        DOCKERHUB_DOCKER_USER: ${{ secrets.DOCKERHUB_DOCKER_USER }}
+        docker tag replicated/kurl-util:${VERSION_TAG} replicated/kurl-util
+        docker push replicated/kurl-util
 
   build-matrix:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     needs:
-    - production-docker-image
     - kurl-util-image
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
@@ -71,19 +64,19 @@ jobs:
     - id: set-matrix
       name: Build image matrix
       run: |
-        export VERSION_TAG=$(echo $GITHUB_REF | awk -F'/' '{ print $NF }')
+        export VERSION_TAG=$GITHUB_REF_NAME
         export KURL_UTIL_IMAGE=replicated/kurl-util:${VERSION_TAG}
         export KURL_BIN_UTILS_FILE=kurl-bin-utils-${VERSION_TAG}.tar.gz
         OUTPUT=`bin/list-all-packages-actions-matrix.sh "${{ github.event.inputs.index }}"`
         echo "::set-output name=matrix::$OUTPUT"
 
   build-upload-packages:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     needs:
     - build-matrix
     strategy:
       matrix: ${{fromJSON(needs.build-matrix.outputs.matrix)}}
-      fail-fast: true
+      fail-fast: false
       max-parallel: 20
     steps:
     - uses: actions/checkout@v3
@@ -92,7 +85,7 @@ jobs:
 
     - uses: actions/setup-go@v3
       with:
-        go-version: 1.17
+        go-version: 1.19
 
     - name: setup env
       id: env
@@ -102,7 +95,7 @@ jobs:
       shell: bash
 
     - run: |
-        export VERSION_TAG=$(echo $GITHUB_REF | awk -F'/' '{ print $NF }')
+        export VERSION_TAG=$GITHUB_REF_NAME
         export KURL_UTIL_IMAGE=replicated/kurl-util:${VERSION_TAG}
         export KURL_BIN_UTILS_FILE=kurl-bin-utils-${VERSION_TAG}.tar.gz
 
@@ -111,78 +104,31 @@ jobs:
         S3_BUCKET: kurl-sh
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_PROD_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_PROD_SECRET_ACCESS_KEY }}
-        AWS_REGION: us-east-1
+        AWS_REGION: "us-east-1"
 
   build-addons:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     needs:
-    - production-docker-image
     - kurl-util-image
     steps:
     - uses: actions/checkout@v3
     - uses: actions/setup-node@v3
       with:
-        node-version: '12'
-    - run: make -C web deps
+        node-version: '14'
     - run: npm install
     - run: |
-        export VERSION_TAG=$(echo $GITHUB_REF | awk -F'/' '{ print $NF }')
+        export VERSION_TAG=$GITHUB_REF_NAME
         make generate-addons
       env:
         S3_BUCKET: kurl-sh
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_PROD_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_PROD_SECRET_ACCESS_KEY }}
+        AWS_DEFAULT_REGION: "us-east-1"
         DIST_FOLDER: "dist"
 
-  deploy-production-eks:
-    runs-on: ubuntu-18.04
-    needs:
-    - production-docker-image
-    - kurl-util-image
-    - build-upload-packages
-    steps:
-    - uses: actions/checkout@v3
-    - name: kustomize
-      run: |
-        export VERSION_TAG=$(echo $GITHUB_REF | awk -F'/' '{ print $NF }')
-        curl -s https://api.github.com/repos/kubernetes-sigs/kustomize/releases/tags/v2.0.0 | \
-          grep browser_download | \
-          grep linux | \
-          cut -d '"' -f 4 | \
-          xargs sudo curl -O -L && \
-          sudo mv kustomize_*_linux_amd64 /usr/local/bin/kustomize && \
-          sudo chmod +x /usr/local/bin/kustomize
-        pushd kustomize/overlays/production
-        kustomize edit set image 799720048698.dkr.ecr.us-east-1.amazonaws.com/kurl:${GITHUB_SHA:0:7}
-        kustomize build . | sed "s/__VERSION_TAG__/${VERSION_TAG}/g" > kurl.yaml
-        popd
-
-    - name: ssh-key
-      env:
-        GITOPS_DEPLOY_KEY: ${{ secrets.GITOPS_DEPLOY_KEY }}
-      run: |
-        mkdir -p ~/.ssh
-        echo "$GITOPS_DEPLOY_KEY" > ~/.ssh/id_rsa
-        chmod 400 ~/.ssh/id_rsa
-        echo 'github.com ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAq2A7hRGmdnm9tUDbO9IDSwBK6TbQa+PXYPCPy6rbTrTtw7PHkccKrpp0yVhp5HdEIcKr6pLlVDBfOLX9QUsyCOV0wzfjIJNlGEYsdlLJizHhbn2mUjvSAHQqZETYP81eFzLQNnPHt4EVVUh7VfDESU84KezmD5QlWpXLmvU31/yMf+Se8xhHTvKSCZIFImWwoG6mbUoWf9nzpIoaSjB+weqqUUmpaaasXVal72J+UX2B+2RPW3RcT0eOzQgqlJL3RKrTJvdsjE3JEAvGq3lGHSZXy28G3skua2SmVi/w4yCE6gbODqnTWlg7+wC604ydGXA8VJiS5ap43JXiUFFAaQ==' \
-          >> ~/.ssh/known_hosts
-
-    - name: release
-      run: |
-        cd ~ && git clone --single-branch -b release git@github.com:replicatedcom/gitops-deploy
-        mkdir -p ~/gitops-deploy/kurl
-        mv ${GITHUB_WORKSPACE}/kustomize/overlays/production/kurl.yaml gitops-deploy/kurl/kurl.yaml
-        cd ~/gitops-deploy
-        git config user.email "kurl-github-actions@replicated.com"
-        git config user.name "kURL GitHub Actions"
-        git add .
-        git commit --allow-empty -m "https://github.com/replicatedhq/kURL/actions/runs/${GITHUB_RUN_ID}" && \
-          git push origin release
-
   github-release:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     needs:
-    - production-docker-image
     - kurl-util-image
     steps:
     - name: Checkout
@@ -191,12 +137,12 @@ jobs:
     # Node and Go are needed by the SBOM generator
     - uses: actions/setup-node@v3
       with:
-        node-version: '12'
+        node-version: '14'
 
     - name: setup-go
       uses: actions/setup-go@v3
       with:
-        go-version: 1.17
+        go-version: 1.19
 
     - name: Get the version
       id: get_tag
@@ -206,7 +152,7 @@ jobs:
     - name: Generate Changelog
       run: |
         git fetch --tags -f
-        lastTag=$(git tag | grep '^v20' | grep -v "$GIT_TAG" | sort | tail -1)
+        lastTag=$(git tag | grep '^v20' | grep -v 'v2022\.09\.04' | grep -v "$GIT_TAG" | sort | tail -1)
         docker run --rm \
           --env CHANGELOG_GITHUB_TOKEN \
           -v `pwd`:/usr/local/src/your-app \
@@ -241,7 +187,6 @@ jobs:
         draft: false
         prerelease: false
 
-
     - name: Get Cosign Key
       run: | 
         echo $COSIGN_KEY | base64 -d > ./cosign.key
@@ -264,11 +209,27 @@ jobs:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
         asset_path: sbom/assets/*
 
+  set-current-version:
+    runs-on: ubuntu-20.04
+    needs:
+    - build-addons
+    - build-upload-packages
+    steps:
+    - name: Set VERSION file in s3
+      run: |
+        export VERSION_TAG=$GITHUB_REF_NAME
+        echo -n "$VERSION_TAG" | aws s3 cp - s3://$S3_BUCKET/$DIST_FOLDER/VERSION
+      env:
+        S3_BUCKET: kurl-sh
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_PROD_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_PROD_SECRET_ACCESS_KEY }}
+        AWS_DEFAULT_REGION: "us-east-1"
+        DIST_FOLDER: "dist"
 
   testgrid-run:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     needs:
-    - deploy-production-eks
+    - set-current-version
     steps:
 
     - name: Sleep for 3 minutes
@@ -279,19 +240,10 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v3
 
-    - name: setup-go
-      uses: actions/setup-go@v3
-      with:
-        go-version: 1.17
-
     - name: Get the version
       id: get_tag
       shell: bash
       run: echo ::set-output name=GIT_TAG::${GITHUB_REF/refs\/tags\//}
-
-    - name: Tgrun Build
-      working-directory: ./testgrid/tgrun
-      run: make build
 
     - name: Tgrun Queue
       id: queue
@@ -300,9 +252,13 @@ jobs:
         GIT_TAG: ${{ steps.get_tag.outputs.GIT_TAG }}
       run: |
         REF="PROD-release-${GIT_TAG}-$(date '+%Y%m%d%H%M%S')"
-        ./testgrid/tgrun/bin/tgrun queue \
-          --ref "${REF}" \
-          --spec ./testgrid/specs/deploy.yaml \
-          --os-spec ./testgrid/specs/os-latest.yaml
+        docker pull replicated/tgrun:latest
+        docker run --rm -e TESTGRID_API_TOKEN -v `pwd`:/wrk -w /wrk \
+          replicated/tgrun:latest queue \
+            --ref "${REF}" \
+            --spec ./testgrid/specs/deploy.yaml \
+            --os-spec ./testgrid/specs/os-latest.yaml \
+            --priority 1
         MSG="Testgrid Run(s) Executing @ https://testgrid.kurl.sh/run/${REF}"
         echo "::set-output name=msg::${MSG}"
+        echo "::notice ::${MSG}"

@@ -18,3 +18,7 @@ func Print() {
 func Fprint(w io.Writer) {
 	fmt.Fprintf(w, "version=%s\nsha=%s\ntime=%s\n", version, gitSHA, buildTime)
 }
+
+func Version() string {
+	return version
+}

@@ -1,3 +1,0 @@
-bases:
-  - ../../../tgapi/kustomize/overlays/production
-  - ../../../migrations/kustomize/overlays/production

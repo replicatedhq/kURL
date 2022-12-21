@@ -2,4 +2,5 @@ image rook kurlsh/rook-ceph:v1.0.4-14.2.21-9065b09-20210625
 image ceph kurlsh/ceph:v14.2.21-9065b09-20210625
 
 yum lvm2
+yumol lvm2
 apt lvm2

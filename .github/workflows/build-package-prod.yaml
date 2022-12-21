@@ -5,24 +5,32 @@ on:
   repository_dispatch:
     types: [build-package-prod]
 
+  workflow_dispatch:
+    inputs:
+      package:
+        description: package to build
+        required: true
+
 jobs:
   build:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/setup-go@v3
         with:
-          go-version: 1.17
+          go-version: 1.19
 
       - uses: actions/checkout@v3
 
       - env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_PROD_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_PROD_SECRET_ACCESS_KEY }}
-          PKG: ${{ github.event.client_payload.package }}
+          AWS_DEFAULT_REGION: "us-east-1"
+          PKG: ${{ github.event.client_payload.package || github.event.inputs.package }}
         run: |
           git fetch --tags
-          tag=$(git tag | grep '^v20' | sort | tail -1)
+          tag=$(git tag | grep '^v20' | grep -v 'v2022\.09\.04' | sort | tail -1)
           git checkout $tag
+          export VERSION_TAG=$tag # requited if this is the common package
           export KURL_UTIL_IMAGE=replicated/kurl-util:$tag # required if this is the common package
           make dist/$PKG
 
@@ -32,3 +40,20 @@ jobs:
             --metadata-directive REPLACE --metadata md5="${MD5}",gitsha="${GITSHA}"
           aws s3 cp s3://kurl-sh/dist/${tag}/$PKG s3://kurl-sh/dist/$PKG \
             --metadata-directive REPLACE --metadata md5="${MD5}",gitsha="${GITSHA}"
+
+      - name: purge package cache
+        env:
+          PKG: ${{ github.event.client_payload.package || github.event.inputs.package }}
+          CF_EMAIL: ${{ secrets.CF_EMAIL }}
+          CF_API_KEY: ${{ secrets.CF_API_KEY }}
+          CF_KURL_ZONE: ${{ secrets.CF_KURL_ZONE }}
+        run: |
+          git fetch --tags
+          tag=$(git tag | grep '^v20' | grep -v 'v2022\.09\.04' | sort | tail -1)
+          
+          echo "purging s3.kurl.sh/dist/${tag}/$PKG and s3.kurl.sh/dist/$PKG"
+          curl -X POST "https://api.cloudflare.com/client/v4/zones/$CF_KURL_ZONE/purge_cache" \
+             -H "X-Auth-Email: $CF_EMAIL" \
+             -H "Authorization: Bearer $CF_API_KEY" \
+             -H "Content-Type: application/json" \
+             --data '{"prefixes":["s3.kurl.sh/dist/${tag}/$PKG", "s3.kurl.sh/dist/$PKG"]}'

@@ -81,13 +81,15 @@ function rook() {
         export CEPH_DASHBOARD_PASSWORD="$cephDashboardPassword"
     fi
 
-    semverParse "$ROOK_VERSION"
-    local rook_major_minior_version="${major}.${minor}"
+    if ! kubectl -n rook-ceph get pod -l app=rook-ceph-rgw -o jsonpath='{.items[0].status.phase}' 2>/dev/null | grep -q Running ; then
+        semverParse "$ROOK_VERSION"
+        local rook_major_minor_version="${major}.${minor}"
 
-    printf "\n\n${GREEN}Rook Ceph 1.4+ requires a secondary, unformatted block device attached to the host.${NC}\n"
-    printf "${GREEN}If you are stuck waiting at this step for more than two minutes, you are either missing the device or it is already formatted.${NC}\n"
-    printf "\t${GREEN} * If it is missing, attach it now and it will be picked up; or CTRL+C, attach, and re-start the installer${NC}\n"
-    printf "\t${GREEN} * If the disk is attached, try wiping it using the recommended zap procedure: https://rook.io/docs/rook/v${rook_major_minior_version}/ceph-teardown.html#zapping-devices${NC}\n\n"
+        printf "\n\n${GREEN}Rook Ceph 1.4+ requires a secondary, unformatted block device attached to the host.${NC}\n"
+        printf "${GREEN}If you are stuck waiting at this step for more than two minutes, you are either missing the device or it is already formatted.${NC}\n"
+        printf "\t${GREEN} * If it is missing, attach it now and it will be picked up; or CTRL+C, attach, and re-start the installer${NC}\n"
+        printf "\t${GREEN} * If the disk is attached, try wiping it using the recommended zap procedure: https://rook.io/docs/rook/v${rook_major_minor_version}/ceph-teardown.html#zapping-devices${NC}\n\n"
+    fi
 
     printf "checking for attached secondary block device (awaiting rook-ceph RGW pod)\n"
     spinnerPodRunning rook-ceph rook-ceph-rgw-rook-ceph-store
@@ -106,6 +108,7 @@ function rook_join() {
 
 function rook_already_applied() {
     rook_object_store_output
+    $DIR/bin/kurl rook wait-for-health 120
 }
 
 function rook_operator_deploy() {
@@ -136,6 +139,9 @@ function rook_operator_deploy() {
         sed -i "/\[global\].*/a\    ms bind ipv6 = true" "$dst/configmap-rook-config-override.yaml"
         sed -i "/\[global\].*/a\    ms bind ipv4 = false" "$dst/configmap-rook-config-override.yaml"
     fi
+
+    # upgrade first before applying auth_allow_insecure_global_id_reclaim policy
+    rook_maybe_auth_allow_insecure_global_id_reclaim
 
     kubectl -n rook-ceph apply -k "$dst"
 }
@@ -206,7 +212,8 @@ function rook_cluster_deploy_upgrade() {
 
     logStep "Upgrading rook-ceph cluster"
 
-    if ! rook_ceph_healthy ; then
+    if ! $DIR/bin/kurl rook wait-for-health 120 ; then
+        kubectl -n rook-ceph exec deploy/rook-ceph-tools -- ceph status
         bail "Refusing to update cluster rook-ceph, Ceph is not healthy"
     fi
 
@@ -240,15 +247,6 @@ function rook_ready_spinner() {
 
     spinnerPodRunning rook-ceph rook-ceph-operator
     spinnerPodRunning rook-ceph rook-discover
-}
-
-function rook_ceph_healthy() {
-    local tools_pod=
-    tools_pod="$(kubectl -n rook-ceph get pod -l "app=rook-ceph-tools" -o jsonpath='{.items[0].metadata.name}')"
-    if kubectl -n rook-ceph exec "${tools_pod}" -- ceph status | grep -qE '(HEALTH_OK|HEALTH_WARN)' ; then
-        return 0
-    fi
-    return 1
 }
 
 # rook_version_deployed check that there is only one rook-version reported across the cluster
@@ -385,20 +383,97 @@ function rook_lvm2() {
     install_host_archives "$src" lvm2
 }
 
-function rook_clients_secure {
-    if [[ $(kubectl -n rook-ceph exec deploy/rook-ceph-tools -- ceph status | grep "mon is allowing insecure global_id reclaim") ]]; then 
-      return 1
-    fi
-}
-
 function rook_patch_insecure_clients {
-
     echo "Patching allowance of insecure rook clients"
+
+    # upgrade first before applying auth_allow_insecure_global_id_reclaim policy
+    if kubectl -n rook-ceph get configmap rook-config-override -ojsonpath='{.data.config}' | grep -q 'auth_allow_insecure_global_id_reclaim = true' ; then
+        local dst="${DIR}/kustomize/rook/operator"
+        sed -i 's/auth_allow_insecure_global_id_reclaim = true/auth_allow_insecure_global_id_reclaim = false/' "$dst/configmap-rook-config-override.yaml"
+        kubectl -n rook-ceph apply -f "$dst/configmap-rook-config-override.yaml"
+    fi
+
     # Disabling rook global_id reclaim
     kubectl -n rook-ceph exec deploy/rook-ceph-tools -- ceph config set mon auth_allow_insecure_global_id_reclaim false
 
-    # Checking to ensure ceph status  
+    # restart all mons waiting for ok-to-stop
+    for mon in $(kubectl -n rook-ceph exec deploy/rook-ceph-tools -- ceph health detail | grep 'mon\.[a-z][a-z]* has auth_allow_insecure_global_id_reclaim' | grep -o 'mon\.[a-z][a-z]*') ; do
+        echo "Awaiting $mon ok-to-stop"
+        if ! spinner_until 120 kubectl -n rook-ceph exec deploy/rook-ceph-tools -- ceph mon ok-to-stop "$mon" >/dev/null 2>&1 ; then
+            logWarn "Failed to detect mon $mon ok-to-stop"
+        else
+            local mon_id="$(echo "$mon" | awk -F'.' '{ print $2 }')"
+            local mon_pod="$(kubectl -n rook-ceph get pods -l ceph_daemon_type=mon -l mon="$mon_id" --no-headers | awk '{ print $1 }')"
+            kubectl -n rook-ceph delete pod "$mon_pod"
+        fi
+    done
+
+    # Checking to ensure ceph status
     if ! spinner_until 120 rook_clients_secure; then
         logWarn "Mon is still allowing insecure clients"
     fi
+}
+
+function rook_clients_secure {
+    if kubectl -n rook-ceph exec deploy/rook-ceph-tools -- ceph health detail | grep -q AUTH_INSECURE_GLOBAL_ID_RECLAIM ; then
+        return 1
+    fi
+    return 0
+}
+
+function rook_maybe_auth_allow_insecure_global_id_reclaim() {
+    local dst="${DIR}/kustomize/rook/operator"
+
+    if ! kubectl -n rook-ceph get cephcluster rook-ceph >/dev/null 2>&1 ; then
+        # rook ceph not deployed, do not allow since not upgrading
+        return
+    fi
+
+    local ceph_version="$(rook_detect_ceph_version)"
+    if rook_should_auth_allow_insecure_global_id_reclaim "$ceph_version" ; then
+        sed -i 's/auth_allow_insecure_global_id_reclaim = false/auth_allow_insecure_global_id_reclaim = true/' "$dst/configmap-rook-config-override.yaml"
+        return
+    fi
+}
+
+function rook_should_auth_allow_insecure_global_id_reclaim() {
+    local ceph_version="$1"
+
+    if [ -z "$ceph_version" ]; then
+        # rook ceph not deployed, do not allow since not upgrading
+        return 1
+    fi
+
+    # https://docs.ceph.com/en/latest/security/CVE-2021-20288/
+    semverParse "$ceph_version"
+    local ceph_version_major="$major"
+    local ceph_version_minor="$minor"
+    local ceph_version_patch="$patch"
+
+    case "$ceph_version_major" in
+    # Pacific v16.2.1 (and later)
+    "16")
+        if [ "$ceph_version_patch" -lt "1" ]; then
+            return 0
+        fi
+        ;;
+    # Octopus v15.2.11 (and later)
+    "15")
+        if [ "$ceph_version_patch" -lt "11" ]; then
+            return 0
+        fi
+        ;;
+    # Nautilus v14.2.20 (and later)
+    "14")
+        if [ "$ceph_version_patch" -lt "20" ]; then
+            return 0
+        fi
+        ;;
+    esac
+
+    return 1
+}
+
+function rook_detect_ceph_version() {
+    kubectl -n rook-ceph get deployment rook-ceph-mgr-a -o jsonpath='{.metadata.labels.ceph-version}' 2>/dev/null | awk -F'-' '{ print $1 }'
 }

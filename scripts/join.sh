@@ -21,12 +21,12 @@ DIR=.
 . $DIR/scripts/common/proxy.sh
 . $DIR/scripts/common/reporting.sh
 . $DIR/scripts/common/rook.sh
+. $DIR/scripts/common/rook-upgrade.sh
 . $DIR/scripts/common/longhorn.sh
 . $DIR/scripts/common/utilbinaries.sh
 . $DIR/scripts/common/yaml.sh
 . $DIR/scripts/distro/interface.sh
 . $DIR/scripts/distro/kubeadm/distro.sh
-. $DIR/scripts/distro/rke2/distro.sh
 # Magic end
 
 function join() {
@@ -36,11 +36,12 @@ function join() {
         # this will stop all the control plane pods except etcd
         rm -f /etc/kubernetes/manifests/kube-*
         if commandExists docker ; then
-            while docker ps | grep -q kube-apiserver ; do
+            while docker ps 2>/dev/null | grep -q kube-apiserver ; do
                 sleep 2
             done
-        elif commandExists crictl ; then
-            while crictl ps | grep -q kube-apiserver ; do
+        fi
+        if commandExists crictl ; then
+            while crictl ps 2>/dev/null | grep -q kube-apiserver ; do
                 sleep 2
             done
         fi

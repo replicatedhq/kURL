@@ -95,6 +95,22 @@ function dpkg_install_host_packages() {
     _dpkg_install_host_packages "$dir" "$dir_prefix" "${packages[@]}"
 }
 
+function _dpkg_apt_get_status_and_maybe_fix_broken_pkgs() {
+    logStep "Checking package manager status"
+    if apt-get check status ; then
+        logSuccess "Status checked successfully. No broken packages were found."
+        return
+    fi
+
+    logWarn "Attempting to correct broken packages by running sudo apt-get install --fix-broken --yes"
+    apt-get install --fix-broken --yes
+    if apt-get check status ; then
+        logSuccess "Broken packages fixed successfully"
+        return
+    fi
+    bail "Unable to fix broken packages. It is required manual intervention. Run the command '$ apt-get check status' to get further information."
+}
+
 function _dpkg_install_host_packages() {
     if [ "${SKIP_SYSTEM_PACKAGE_INSTALL}" == "1" ]; then
         logStep "Skipping installation of host packages: ${packages[*]}"
@@ -114,9 +130,11 @@ function _dpkg_install_host_packages() {
         return 0
     fi
 
-    DEBIAN_FRONTEND=noninteractive dpkg --install --force-depends-version --force-confold "${fullpath}"/*.deb
+    DEBIAN_FRONTEND=noninteractive dpkg --install --force-depends-version --force-confold --auto-deconfigure "${fullpath}"/*.deb
 
     logSuccess "Host packages ${packages[*]} installed"
+
+    _dpkg_apt_get_status_and_maybe_fix_broken_pkgs
 }
 
 function yum_install_host_archives() {
@@ -170,6 +188,25 @@ EOF
         if [[ -n "${installed_version}" ]]; then
             yum swap openssl-libs-$installed_version openssl-libs-1.0.2k-22.el7_9 -y
         fi
+    fi
+    # When migrating from Docker to Containerd add-on, Docker is packaged with a higher version of
+    # Containerd. We must downgrade Containerd to the version specified as we package the
+    # corresponding version of the pause image. If we do not downgrade Containerd, Kubelet will
+    # fail to start in airgapped installations with pause image not found.
+    if commandExists docker && [ -n "$CONTAINERD_VERSION" ] && [[ "${packages[*]}" == *"containerd.io"* ]]; then
+        local next_version=
+        local previous_version=
+        next_version="$(basename "${fullpath}"/containerd.io*.rpm | grep -o '[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*')"
+        previous_version="$(ctr -v | grep -o '[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*')"
+        logStep "Downgrading containerd, $previous_version -> $next_version"
+        if semverCompare "$next_version" "$previous_version" && [ "$SEMVER_COMPARE_RESULT" -lt "0" ]; then
+            if uname -r | grep -q "el8" ; then
+                yum --disablerepo=* --enablerepo=kurl.local downgrade --allowerasing -y "${packages[@]}"
+            else
+                yum --disablerepo=* --enablerepo=kurl.local downgrade -y "${packages[@]}"
+            fi
+        fi
+        logSuccess "Downgraded containerd"
     fi
     # shellcheck disable=SC2086
     if [[ "${packages[*]}" == *"containerd.io"* && -n $(uname -r | grep "el8") ]]; then

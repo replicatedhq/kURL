@@ -19,7 +19,7 @@ function addon_install() {
     if addon_has_been_applied $name && [ -z "$FORCE_REAPPLY_ADDONS" ]; then
         export REPORTING_CONTEXT_INFO="addon already applied $name $version"
         # shellcheck disable=SC1090
-        . $DIR/addons/$name/$version/install.sh
+        addon_source "$name" "$version"
 
         if commandExists ${name}_already_applied; then
             ${name}_already_applied
@@ -28,7 +28,7 @@ function addon_install() {
     else
         export REPORTING_CONTEXT_INFO="addon $name $version"
         # shellcheck disable=SC1090
-        . $DIR/addons/$name/$version/install.sh
+        addon_source "$name" "$version"
         # containerd is a special case because there is also a binary named containerd on the host
         if [ "$name" = "containerd" ]; then
             containerd_install
@@ -62,14 +62,14 @@ function addon_fetch() {
     if [ "$AIRGAP" != "1" ]; then
         if [ -n "$s3Override" ]; then
             rm -rf $DIR/addons/$name/$version # Cleanup broken/incompatible addons from failed runs
-            addon_fetch_no_cache "$s3Override"
+            addon_fetch_cache "$name-$version.tar.gz" "$s3Override"
         elif [ -n "$DIST_URL" ]; then
             rm -rf $DIR/addons/$name/$version # Cleanup broken/incompatible addons from failed runs
             addon_fetch_cache "$name-$version.tar.gz"
         fi
     fi
 
-    . $DIR/addons/$name/$version/install.sh
+    addon_source "$name" "$version"
 }
 
 function addon_pre_init() {
@@ -77,6 +77,14 @@ function addon_pre_init() {
 
     if commandExists ${name}_pre_init; then
         ${name}_pre_init
+    fi
+}
+
+function addon_post_init() {
+    local name=$1
+
+    if commandExists "${name}_post_init"; then
+        "${name}_post_init"
     fi
 }
 
@@ -115,6 +123,12 @@ function addon_join() {
     fi
 }
 
+function addon_exists() {
+    local name=$1
+    local version=$2
+    [ -d "$DIR/addons/$name/$version" ]
+}
+
 function addon_load() {
     local name=$1
     local version=$2
@@ -139,8 +153,9 @@ function addon_fetch_no_cache() {
 
 function addon_fetch_cache() {
     local package=$1
+    local url_override=$2
 
-    package_download "${package}"
+    package_download "${package}" "${url_override}"
 
     tar xf "$(package_filepath "${package}")"
 
@@ -155,11 +170,15 @@ function addon_outro() {
     if [ "$ADDONS_HAVE_HOST_COMPONENTS" = "1" ] && kubernetes_has_remotes; then
         local common_flags
         common_flags="${common_flags}$(get_docker_registry_ip_flag "${DOCKER_REGISTRY_IP}")"
+        if [ -n "$ADDITIONAL_NO_PROXY_ADDRESSES" ]; then
+            common_flags="${common_flags}$(get_additional_no_proxy_addresses_flag "1" "${ADDITIONAL_NO_PROXY_ADDRESSES}")"
+        fi
         common_flags="${common_flags}$(get_additional_no_proxy_addresses_flag "${PROXY_ADDRESS}" "${SERVICE_CIDR},${POD_CIDR}")"
         common_flags="${common_flags}$(get_kurl_install_directory_flag "${KURL_INSTALL_DIRECTORY_FLAG}")"
         common_flags="${common_flags}$(get_force_reapply_addons_flag)"
         common_flags="${common_flags}$(get_skip_system_package_install_flag)"
         common_flags="${common_flags}$(get_exclude_builtin_host_preflights_flag)"
+        common_flags="${common_flags}$(get_remotes_flags)"
 
         printf "\n${YELLOW}Run this script on all remote nodes to apply changes${NC}\n"
         if [ "$AIRGAP" = "1" ]; then
@@ -227,4 +246,64 @@ function addon_set_has_been_applied() {
     else
         kubectl patch configmaps -n kurl kurl-current-config --type merge -p "{\"data\":{\"addons-$name\":\"$current\"}}"
     fi
+}
+
+# check if the files are already present - if they are, use that
+# if they are not, prompt the user to provide them
+# if the user does not provide the files, return 1
+function addon_fetch_airgap() {
+    local name=$1
+    local version=$2
+    local package="$name-$version.tar.gz"
+    local package_path=
+    package_path="$(package_filepath "$package")"
+
+    if [ -f "$package_path" ]; then
+        # the package already exists, no need to download it
+        printf "The package %s %s is already available locally.\n" "$name" "$version"
+    else
+        # prompt the user to give us the package
+        printf "The package %s %s is not available locally, and is required.\n" "$name" "$version"
+        printf "You can download it from %s with the following command:\n" "$(get_dist_url)/${package}"
+        printf "\n${GREEN}    curl -LO %s${NC}\n\n" "$(get_dist_url)/${package}"
+
+        if ! prompts_can_prompt; then
+            # we can't ask the user to give us the file because there are no prompts, but we can say where to put it for a future run
+            printf "Please move this file to /var/lib/kurl/%s before rerunning the installer.\n" "$package_path"
+            return 1
+        fi
+
+        printf "If you have this file, please provide the path to the file on the server.\n"
+        printf "If you do not have the file, leave the prompt empty and this package will be skipped.\n"
+        printf "%s %s filepath: " "$name" "$version"
+        prompt
+        if [ -n "$PROMPT_RESULT" ]; then
+            local loadedPackagePath="$PROMPT_RESULT"
+            if [ ! -f "$loadedPackagePath" ]; then
+                logFail "The file $loadedPackagePath does not exist."
+                return 1
+            fi
+            mkdir -p "$(dirname "$package_path")"
+            cp "$loadedPackagePath" "$package_path"
+        else
+            printf "Skipping package %s %s\n" "$name" "$version"
+            printf "You can provide the path to this file the next time the installer is run,"
+            printf "or move it to %s to be detected automatically.\n" "$package_path"
+            return 1
+        fi
+    fi
+
+    printf "Unpacking %s %s...\n" "$name" "$version"
+    tar xf "$(package_filepath "${package}")"
+
+    addon_source "$name" "$version"
+
+    return 0
+}
+
+function addon_source() {
+    local name=$1
+    local version=$2
+    # shellcheck disable=SC1090
+    . "$DIR/addons/$name/$version/install.sh"
 }

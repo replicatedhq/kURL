@@ -37,6 +37,8 @@ function install_docker() {
         if [ -z "$DOCKER_VERSION" ]; then
             printf "${RED}The installer did not specify a version of Docker to include, but is required by all kURL installation scripts currently. The latest supported version of Docker will be installed.${NC}\n"
             DOCKER_VERSION="19.03.4"
+        else
+            logWarn "Kubernetes has deprecated Docker as of 1.20, and it is recommended to use containerd instead."
         fi
         init_daemon_json
         docker_get_host_packages_online "$DOCKER_VERSION"
@@ -78,14 +80,11 @@ function docker_install() {
 function is_docker_version_supported() {
     case "$LSB_DIST" in
     centos|rhel|ol)
-        if [ "${DIST_VERSION_MAJOR}" = "8" ]; then
-            if [ "$DOCKER_VERSION" = "18.09.8" ] || [ "$DOCKER_VERSION" = "19.03.4" ] || [ "$DOCKER_VERSION" = "19.03.10" ]; then
-                return 1
-            fi
+        if [ "${DIST_VERSION_MAJOR}" = "8" ] && [ -n "$DOCKER_VERSION" ]; then
+            return 1
         fi
         ;;
     esac
-
     return 0
 }
 
@@ -96,10 +95,14 @@ function uninstall_docker() {
 
     logStep "Uninstalling Docker..."
 
-    docker rm -f $(docker ps -a -q) || true
+    if [ "$(docker ps -aq | wc -l)" != "0" ] ; then
+        docker ps -aq | xargs docker rm -f || true
+    fi
     # The rm -rf /var/lib/docker command below may fail with device busy error, so remove as much
     # data as possible now
     docker system prune --all --volumes --force
+
+    systemctl disable docker.service --now
 
     case "$LSB_DIST" in
         ubuntu)
@@ -112,11 +115,14 @@ function uninstall_docker() {
             if rpm -qa | grep -q 'docker-ce-rootless-extras'; then
                 dockerPackages+=("docker-ce-rootless-extras")
             fi
+            if rpm -qa | grep -q 'docker-scan-plugin'; then
+                dockerPackages+=("docker-scan-plugin")
+            fi
             rpm --erase ${dockerPackages[@]}
             ;;
     esac
 
-    rm -rf /var/lib/docker || true
+    rm -rf /var/lib/docker /var/lib/dockershim || true
     rm -f /var/run/dockershim.sock
     rm -f /var/run/docker.sock
     echo "Docker successfully uninstalled."
@@ -199,4 +205,61 @@ function canonical_image_name() {
         image="$image:latest"
     fi
     echo "$image"
+}
+
+# It will only uninstall docker if is a new installation
+# and the installer has containerd set to workaround the bug issue:
+# `dpkg: no, cannot proceed with removal of containerd ... docker.io
+# depends on containerd (>= 1.2.6-0ubuntu1~)  containerd is to be removed.`
+# More info: https://bugs.launchpad.net/ubuntu/+source/docker.io/+bug/1940920
+# https://bugs.launchpad.net/ubuntu/+source/docker.io/+bug/1939140
+function uninstall_docker_new_installs_with_containerd() {
+
+     # If docker is not installed OR if conatinerd is not in the spec
+     # then, the docker should not be uninstalled
+     if ! commandExists docker || [ -z "$CONTAINERD_VERSION" ]; then
+          return
+     fi
+
+     # if k8s is installed already then, the docker should not be uninstalled
+     # so that it can be properly migrated to containerd
+     if commandExists kubectl ; then
+          return
+     fi
+
+     logWarn "Docker already exists on this machine and it will be uninstalled to avoid conflicts with containerd.\n"
+
+     if [ "$(docker ps -aq | wc -l)" != "0" ] ; then
+         docker ps -aq | xargs docker rm -f || true
+     fi
+     # The rm -rf /var/lib/docker command below may fail with device busy error, so remove as much
+     # data as possible now
+     docker system prune --all --volumes --force || true
+     systemctl disable docker.service --now || true
+
+     # Note that the docker.io can only be removed because it is prior install containerd and
+     # it is a new install. Otherwise, this dep is required.
+     # Important: The conflict is only removed when we uninstall docker.io
+     case "$LSB_DIST" in
+         ubuntu)
+             export DEBIAN_FRONTEND=noninteractive
+             dpkg --purge docker.io docker-ce docker-ce-cli
+             ;;
+
+         centos|rhel|amzn|ol)
+             local dockerPackages=("docker.io" "docker-ce" "docker-ce-cli")
+             if rpm -qa | grep -q 'docker-ce-rootless-extras'; then
+                 dockerPackages+=("docker-ce-rootless-extras")
+             fi
+             if rpm -qa | grep -q 'docker-scan-plugin'; then
+                 dockerPackages+=("docker-scan-plugin")
+             fi
+             rpm --erase ${dockerPackages[@]}
+             ;;
+     esac
+
+     rm -rf /var/lib/docker /var/lib/dockershim || true
+     rm -f /var/run/dockershim.sock || true
+     rm -f /var/run/docker.sock || true
+     echo "Docker successfully uninstalled to allow to install containerd."
 }

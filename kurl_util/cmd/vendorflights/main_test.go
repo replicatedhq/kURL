@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"io/fs"
-	"io/ioutil"
 	"os"
 	"testing"
 
@@ -39,9 +38,9 @@ func Test_extractPreflightSpec(t *testing.T) {
 			err := extractPreflightSpec(fmt.Sprintf("testdata/%s/installer.yaml", tt.name), fmt.Sprintf("%s/%s/output.yaml", dir, tt.name))
 			require.Equal(t, tt.wantErr, err != nil)
 			if tt.preflightPresent {
-				expected, err := ioutil.ReadFile(fmt.Sprintf("testdata/%s/expected_preflights.yaml", tt.name))
+				expected, err := os.ReadFile(fmt.Sprintf("testdata/%s/expected_preflights.yaml", tt.name))
 				require.Nil(t, err)
-				actual, err := ioutil.ReadFile(fmt.Sprintf("%s/%s/output.yaml", dir, tt.name))
+				actual, err := os.ReadFile(fmt.Sprintf("%s/%s/output.yaml", dir, tt.name))
 				require.Nil(t, err)
 				require.Equal(t, string(expected), string(actual))
 				return

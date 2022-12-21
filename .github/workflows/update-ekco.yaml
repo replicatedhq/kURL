@@ -1,0 +1,47 @@
+name: cron-ekco-update
+on:
+  schedule:
+  - cron: "0 4 * * 1,2,3,4,5" # “At 04:00 on Monday, Tuesday, Wednesday, Thursday, and Friday.”
+  workflow_dispatch: {}
+
+jobs:
+  build-pr-ekco:
+    runs-on: ubuntu-20.04
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+
+    - name: Create EKCO Update
+      id: update
+      working-directory: ./addons/ekco/template
+      run: |
+        ./generate.sh
+
+    - name: Create Pull Request # creates a PR if there are differences
+      uses: peter-evans/create-pull-request@v4.2.3
+      id: cpr
+      with:
+        token: ${{ secrets.AUTOMATED_PR_GH_PAT }}
+        commit-message: Create new EKCO version
+        title: 'Automated EKCO version update ${{ steps.update.outputs.ekco_version }}'
+        branch: automation/update-ekco
+        delete-branch: true
+        labels: |
+          automated-pr
+          ekco
+          type::chore
+          kurl::type::feature
+        draft: false
+        base: "main"
+        body: |
+          Automated changes by the [cron-ekco-update](https://github.com/replicatedhq/kURL/blob/main/.github/workflows/update-ekco.yaml) GitHub action
+          
+          ```release-note
+          Adds [EKCO add-on](https://kurl.sh/docs/add-ons/ekco) version ${{ steps.update.outputs.ekco_version }}.
+          ```
+
+    - name: Check outputs
+      run: |
+        echo "Pull Request Number - ${{ steps.cpr.outputs.pull-request-number }}"
+        echo "Pull Request URL - ${{ steps.cpr.outputs.pull-request-url }}"

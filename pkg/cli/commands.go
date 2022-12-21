@@ -11,7 +11,21 @@ func AddCommands(cmd *cobra.Command, cli CLI) {
 	hostCmd.AddCommand(newHostPreflightCmd(cli))
 	cmd.AddCommand(hostCmd)
 
-	cmd.AddCommand(newSyncObjectStoreCmd(cli))
+	rookCmd := NewRookCmd(cli)
+	rookCmd.AddCommand(NewHostpathToBlockCmd(cli))
+	rookCmd.AddCommand(NewRookHealthCmd(cli))
+	rookCmd.AddCommand(NewRookWaitForHealthCmd(cli))
+	rookCmd.AddCommand(NewRookWaitForRookVersionCmd(cli))
+	rookCmd.AddCommand(NewRookWaitForCephVersionCmd(cli))
+	rookCmd.AddCommand(NewRookHasSufficientBlockDevicesCmd(cli))
+	cmd.AddCommand(rookCmd)
+
+	clusterCmd := NewClusterCmd(cli)
+	clusterCmd.AddCommand(NewClusterNodesMissingImageCmd(cli))
+	clusterCmd.AddCommand(NewClusterCheckFreeDiskSpaceCmd(cli))
+	cmd.AddCommand(clusterCmd)
+
+	cmd.AddCommand(NewSyncObjectStoreCmd(cli))
 
 	cmd.AddCommand(newFormatAddressCmd(cli))
 }

@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -12,15 +11,16 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
-	kurlscheme "github.com/replicatedhq/kurl/kurlkinds/client/kurlclientset/scheme"
-	kurlv1beta1 "github.com/replicatedhq/kurl/kurlkinds/pkg/apis/cluster/v1beta1"
+	kurlscheme "github.com/replicatedhq/kurlkinds/client/kurlclientset/scheme"
+	kurlv1beta1 "github.com/replicatedhq/kurlkinds/pkg/apis/cluster/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	serializer "k8s.io/apimachinery/pkg/runtime/serializer/json"
+	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/client-go/kubernetes/scheme"
 )
 
 func getInstallerConfigFromYaml(yamlPath string) (*kurlv1beta1.Installer, error) {
-	yamlData, err := ioutil.ReadFile(yamlPath)
+	yamlData, err := os.ReadFile(yamlPath)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to load file %s", yamlPath)
 	}
@@ -148,6 +148,11 @@ func parseBashFlags(installer *kurlv1beta1.Installer, bashFlags string) error {
 			if installer.Spec.Ekco != nil {
 				installer.Spec.Ekco.EnableInternalLoadBalancer = true
 			}
+		case "kubernetes-load-balancer-use-first-primary":
+			if installer.Spec.Kubernetes == nil {
+				installer.Spec.Kubernetes = &kurlv1beta1.Kubernetes{}
+			}
+			installer.Spec.Kubernetes.LoadBalancerUseFirstPrimary = true
 		case "kubernetes-master-address":
 			if installer.Spec.Kubernetes == nil {
 				installer.Spec.Kubernetes = &kurlv1beta1.Kubernetes{}
@@ -251,7 +256,7 @@ func parseBashFlags(installer *kurlv1beta1.Installer, bashFlags string) error {
 			installer.Spec.Kotsadm.ApplicationVersionLabel = split[1]
 		case "yes":
 			continue
-		case "auto-upgrades-enabled":
+		case "auto-upgrades-enabled": // no longer supported
 			continue
 		case "primary-host":
 			continue
@@ -329,7 +334,7 @@ func writeSpec(filename string, spec []byte) error {
 }
 
 func main() {
-	kurlscheme.AddToScheme(scheme.Scheme)
+	utilruntime.Must(kurlscheme.AddToScheme(scheme.Scheme))
 
 	currentYAMLPath := flag.String("c", "", "current yaml file")
 	bashFlags := flag.String("f", "", "bash flag overwrites")

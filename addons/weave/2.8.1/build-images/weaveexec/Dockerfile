@@ -3,16 +3,17 @@
 
 FROM weaveworks/weaveexec:2.8.1 AS base
 
-FROM alpine:3.14
+FROM alpine:3.16
 
-RUN apk add --update --upgrade \
+RUN apk add --update \
     curl \
-    iptables \
     ipset \
     iproute2 \
     conntrack-tools \
     bind-tools \
     ca-certificates \
+  && apk add --repository https://dl-cdn.alpinelinux.org/alpine/v3.15/main \
+    iptables=1.8.7-r1 \
   && rm -rf /var/cache/apk/*
 
 ENTRYPOINT ["/home/weave/sigproxy", "/home/weave/weave"]

@@ -5,7 +5,7 @@
       version: "latest"
     rook:
       version: "latest"
-    docker:
+    containerd:
       version: "latest"
     metricsServer:
       version: "__testver__"

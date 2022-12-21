@@ -26,7 +26,7 @@ all: build scan push
 
 .PHONY: build
 build:
-	docker build --no-cache --pull -t $(IMAGE):$(GIT_SHA)-$(DATE) -f Dockerfile .
+	docker build --no-cache --pull -t $(IMAGE):$(DATE)-$(GIT_SHA) -f Dockerfile .
 
 .PHONY: scan
 scan:
@@ -34,12 +34,14 @@ scan:
 		--exit-code=1 \
 		--severity="HIGH,CRITICAL" \
 		--ignore-unfixed \
-		$(IMAGE):$(GIT_SHA)-$(DATE)
+		$(IMAGE):$(DATE)-$(GIT_SHA)
 
 .PHONY: push
 push:
-	docker push $(IMAGE)-$(GIT_SHA)-$(DATE)
+	docker push $(IMAGE):$(DATE)-$(GIT_SHA)
+	docker tag $(IMAGE):$(DATE)-$(GIT_SHA) $(IMAGE):latest
+	docker push $(IMAGE):latest
 
 .PHONY: deps
 deps:
-	curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin v0.27.1
+	curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin

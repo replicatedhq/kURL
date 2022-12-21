@@ -2,7 +2,7 @@ package cli
 
 import (
 	"bytes"
-	"io/ioutil"
+	"io"
 	"testing"
 
 	"github.com/golang/mock/gomock"
@@ -146,10 +146,10 @@ func TestNewHostPreflightCmd(t *testing.T) {
 				require.NoError(t, err)
 			}
 
-			stdout, err := ioutil.ReadAll(bOut)
+			stdout, err := io.ReadAll(bOut)
 			require.NoError(t, err)
 
-			stderr, err := ioutil.ReadAll(bErr)
+			stderr, err := io.ReadAll(bErr)
 			require.NoError(t, err)
 
 			assert.Equal(t, tt.stdout, string(stdout))

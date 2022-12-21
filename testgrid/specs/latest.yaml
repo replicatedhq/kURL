@@ -2,7 +2,7 @@
   installerSpec:
     kubernetes:
       version: latest
-    docker:
+    containerd:
       version: latest
     weave:
       version: latest
@@ -27,7 +27,7 @@
     ekco:
       version: latest
     kubernetes:
-      version: latest
+      version: 1.24.x
     prometheus:
       version: latest
     registry:

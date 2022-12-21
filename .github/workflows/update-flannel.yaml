@@ -1,0 +1,47 @@
+name: cron-flannel-update
+on:
+  schedule:
+  - cron: "0 4 * * 1,2,3,4,5" # “At 04:00 on Monday, Tuesday, Wednesday, Thursday, and Friday.”
+  workflow_dispatch: {}
+
+jobs:
+  build-pr-flannel:
+    runs-on: ubuntu-20.04
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+
+    - name: Create Flannel Update
+      id: update
+      working-directory: ./addons/flannel/template
+      run: |
+        ./generate.sh
+
+    - name: Create Pull Request # creates a PR if there are differences
+      uses: peter-evans/create-pull-request@v4.2.3
+      id: cpr
+      with:
+        token: ${{ secrets.AUTOMATED_PR_GH_PAT }}
+        commit-message: Create new Flannel version
+        title: 'Automated Flannel version update ${{ steps.update.outputs.flannel_version }}'
+        branch: automation/update-flannel
+        delete-branch: true
+        labels: |
+          automated-pr
+          flannel
+          type::chore
+          kurl::type::feature
+        draft: false
+        base: "main"
+        body: |
+          Automated changes by the [cron-flannel-update](https://github.com/replicatedhq/kURL/blob/main/.github/workflows/update-flannel.yaml) GitHub action
+          
+          ```release-note
+          Adds [Flannel add-on](https://kurl.sh/docs/add-ons/flannel) version ${{ steps.update.outputs.flannel_version }}.
+          ```
+
+    - name: Check outputs
+      run: |
+        echo "Pull Request Number - ${{ steps.cpr.outputs.pull-request-number }}"
+        echo "Pull Request URL - ${{ steps.cpr.outputs.pull-request-url }}"

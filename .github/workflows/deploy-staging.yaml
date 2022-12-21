@@ -4,10 +4,16 @@ on:
   push:
     branches:
     - main
+    paths:
+    - '**'
+    - '!testgrid/**'
+    - '!docs/**'
+    - '!CONTRIBUTING.md'
+    - '!README.md'
 
 jobs:
   get-tag:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     outputs:
       version_tag: ${{ steps.set-tag.outputs.version_tag }}
     steps:
@@ -15,17 +21,20 @@ jobs:
     - id: set-tag
       run: |
         git fetch --tags -f
-        export VERSION_TAG=$(git tag | grep '^v20' | sort | tail -1)-dirty
+        export VERSION_TAG=$(git tag | grep '^v20' | sort | tail -1)-$(git rev-parse --short HEAD)
         echo "::set-output name=version_tag::${VERSION_TAG}"
 
   kurl-util-image:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     needs:
     - get-tag
     steps:
     - uses: actions/checkout@v3
+    - uses: docker/login-action@v2
+      with:
+        username: ${{ secrets.DOCKERHUB_DOCKER_USER }}
+        password: ${{ secrets.DOCKERHUB_DOCKER_PASS }}
     - run: |
-        echo "$DOCKERHUB_DOCKER_PASS" | docker login -u $DOCKERHUB_DOCKER_USER --password-stdin
         export KURL_UTIL_IMAGE=$KURL_UTIL_IMAGE_ALPHA
         make -C kurl_util build-and-push-kurl-util-image
 
@@ -34,13 +43,11 @@ jobs:
 
         make -C kurl_util push-kurl-util-image
       env:
-        DOCKERHUB_DOCKER_PASS: ${{ secrets.DOCKERHUB_DOCKER_PASS }}
-        DOCKERHUB_DOCKER_USER: ${{ secrets.DOCKERHUB_DOCKER_USER }}
         KURL_UTIL_IMAGE_ALPHA: replicated/kurl-util:alpha
         VERSION_TAG: ${{ needs.get-tag.outputs.version_tag }}
 
   build-matrix:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     needs:
     - get-tag
     - kurl-util-image
@@ -61,13 +68,13 @@ jobs:
         VERSION_TAG: ${{ needs.get-tag.outputs.version_tag }}
 
   build-upload-packages:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     needs:
     - get-tag
     - build-matrix
     strategy:
       matrix: ${{fromJSON(needs.build-matrix.outputs.matrix)}}
-      fail-fast: true
+      fail-fast: false
       max-parallel: 20
     steps:
     - uses: actions/checkout@v3
@@ -76,7 +83,7 @@ jobs:
 
     - uses: actions/setup-go@v3
       with:
-        go-version: 1.17
+        go-version: 1.19
 
     - name: setup env
       id: env
@@ -96,7 +103,7 @@ jobs:
         S3_BUCKET: kurl-sh
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_PROD_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_PROD_SECRET_ACCESS_KEY }}
-        AWS_REGION: us-east-1
+        AWS_REGION: "us-east-1"
         DOCKER_PRUNE: '1'
         VERSION_TAG: ${{ needs.get-tag.outputs.version_tag }}
 
@@ -110,12 +117,12 @@ jobs:
         S3_BUCKET: kurl-sh
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_PROD_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_PROD_SECRET_ACCESS_KEY }}
-        AWS_REGION: us-east-1
+        AWS_REGION: "us-east-1"
         PACKAGE_PREFIX: staging
         VERSION_TAG: ${{ needs.get-tag.outputs.version_tag }}
 
   build-addons:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     needs:
     - get-tag
     - kurl-util-image
@@ -123,113 +130,51 @@ jobs:
     - uses: actions/checkout@v3
     - uses: actions/setup-node@v3
       with:
-        node-version: '12'
-    - run: make -C web deps
+        node-version: '14'
     - run: npm install
     - run: make generate-addons
       env:
         S3_BUCKET: kurl-sh
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_PROD_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_PROD_SECRET_ACCESS_KEY }}
+        AWS_DEFAULT_REGION: "us-east-1"
         DIST_FOLDER: "staging"
         VERSION_TAG: ${{ needs.get-tag.outputs.version_tag }}
 
-  staging-docker-image:
-    runs-on: ubuntu-18.04
+  set-current-version:
+    runs-on: ubuntu-20.04
     needs:
     - get-tag
-    steps:
-    - uses: actions/checkout@v3
-
-    - uses: actions/setup-node@v3
-      with:
-        node-version: '12'
-
-    - run: make -C web deps build
-
-    - run: make web
-
-    - run: |
-        npm i -g npm @bugsnag/source-maps
-        bugsnag-source-maps upload-node \
-          --api-key ${{ secrets.BUGSNAG_API_KEY }} \
-          --app-version ${GITHUB_SHA:0:7} \
-          --directory ./web/build \
-          --overwrite
-      env:
-        VERSION_TAG: ${{ needs.get-tag.outputs.version_tag }}
-
-    - run: |
-        docker build -f deploy/Dockerfile-slim \
-          --build-arg version=${GITHUB_SHA:0:7} \
-          --build-arg version_tag=${VERSION_TAG} \
-          -t 923411875752.dkr.ecr.us-east-1.amazonaws.com/kurl:${GITHUB_SHA:0:7} .
-      env:
-        VERSION_TAG: ${{ needs.get-tag.outputs.version_tag }}
-
-    - run: |
-        aws ecr get-login-password --region us-east-1 | docker login \
-          --username AWS \
-          --password-stdin 923411875752.dkr.ecr.us-east-1.amazonaws.com
-      env:
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_STAGING_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_STAGING_SECRET_ACCESS_KEY }}
-
-    - run: docker push 923411875752.dkr.ecr.us-east-1.amazonaws.com/kurl:${GITHUB_SHA:0:7}
-
-  deploy-staging-eks:
-    runs-on: ubuntu-18.04
-    needs:
-    - get-tag
-    - staging-docker-image
-    - kurl-util-image
+    - build-addons
     - build-upload-packages
     steps:
-    - uses: actions/checkout@v3
-
-    - name: kustomize
+    - name: Set VERSION file in s3
       run: |
-        curl -s https://api.github.com/repos/kubernetes-sigs/kustomize/releases/tags/v2.0.0 | \
-          grep browser_download | \
-          grep linux | \
-          cut -d '"' -f 4 | \
-          xargs sudo curl -O -L && \
-          sudo mv kustomize_*_linux_amd64 /usr/local/bin/kustomize && \
-          sudo chmod +x /usr/local/bin/kustomize
-        pushd kustomize/overlays/staging
-        kustomize edit set image 923411875752.dkr.ecr.us-east-1.amazonaws.com/kurl:${GITHUB_SHA:0:7}
-        kustomize build . | sed "s/__VERSION_TAG__/${VERSION_TAG}/g" > kurl.yaml
-        popd
+        echo -n "$VERSION_TAG" | aws s3 cp - s3://$S3_BUCKET/$DIST_FOLDER/VERSION
       env:
+        S3_BUCKET: kurl-sh
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_PROD_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_PROD_SECRET_ACCESS_KEY }}
+        AWS_DEFAULT_REGION: "us-east-1"
+        DIST_FOLDER: "staging"
         VERSION_TAG: ${{ needs.get-tag.outputs.version_tag }}
-
-    - name: ssh-key
+    - name: Purge s3-staging.kurl.sh cache
+      run: |
+        curl -X POST "https://api.cloudflare.com/client/v4/zones/$CF_KURL_ZONE/purge_cache" \
+             -H "X-Auth-Email: $CF_EMAIL" \
+             -H "Authorization: Bearer $CF_API_KEY" \
+             -H "Content-Type: application/json" \
+             --data '{"hosts":["s3-staging.kurl.sh"]}'
       env:
-        GITOPS_DEPLOY_KEY: ${{ secrets.GITOPS_DEPLOY_KEY }}
-      run: |
-        mkdir -p ~/.ssh
-        echo "$GITOPS_DEPLOY_KEY" > ~/.ssh/id_rsa
-        chmod 400 ~/.ssh/id_rsa
-        echo 'github.com ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAq2A7hRGmdnm9tUDbO9IDSwBK6TbQa+PXYPCPy6rbTrTtw7PHkccKrpp0yVhp5HdEIcKr6pLlVDBfOLX9QUsyCOV0wzfjIJNlGEYsdlLJizHhbn2mUjvSAHQqZETYP81eFzLQNnPHt4EVVUh7VfDESU84KezmD5QlWpXLmvU31/yMf+Se8xhHTvKSCZIFImWwoG6mbUoWf9nzpIoaSjB+weqqUUmpaaasXVal72J+UX2B+2RPW3RcT0eOzQgqlJL3RKrTJvdsjE3JEAvGq3lGHSZXy28G3skua2SmVi/w4yCE6gbODqnTWlg7+wC604ydGXA8VJiS5ap43JXiUFFAaQ==' \
-          >> ~/.ssh/known_hosts
-
-    - name: release
-      run: |
-        cd ~ && git clone --single-branch -b main git@github.com:replicatedcom/gitops-deploy
-        mkdir -p ~/gitops-deploy/kurl
-        mv ${GITHUB_WORKSPACE}/kustomize/overlays/staging/kurl.yaml gitops-deploy/kurl/kurl.yaml
-        cd ~/gitops-deploy
-        git config user.email "kurl-github-actions@replicated.com"
-        git config user.name "kURL GitHub Actions"
-        git add .
-        git commit --allow-empty -m "https://github.com/replicatedhq/kURL/actions/runs/${GITHUB_RUN_ID}" && \
-          git push origin main
+        CF_EMAIL: ${{ secrets.CF_EMAIL }}
+        CF_API_KEY: ${{ secrets.CF_API_KEY }}
+        CF_KURL_ZONE: ${{ secrets.CF_KURL_ZONE }}
 
   testgrid-run:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     needs:
     - get-tag
-    - deploy-staging-eks
+    - set-current-version
     steps:
 
     - name: Sleep for 3 minutes
@@ -240,15 +185,6 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v3
 
-    - name: setup-go
-      uses: actions/setup-go@v3
-      with:
-        go-version: 1.17
-
-    - name: Tgrun Build
-      working-directory: ./testgrid/tgrun
-      run: make build
-
     - name: Tgrun Queue
       id: queue
       env:
@@ -256,9 +192,31 @@ jobs:
         VERSION_TAG: ${{ needs.get-tag.outputs.version_tag }}
       run: |
         REF="STAGING-release-${VERSION_TAG}-$(date '+%Y%m%d%H%M%S')"
-        ./testgrid/tgrun/bin/tgrun queue --staging \
-          --ref "${REF}" \
-          --spec ./testgrid/specs/deploy.yaml \
-          --os-spec ./testgrid/specs/os-latest.yaml
+        sed -i "s/installerVersion: \"\"/installerVersion: \"${VERSION_TAG}\"/g" ./testgrid/specs/deploy.yaml
+        docker pull replicated/tgrun:latest
+        docker run --rm -e TESTGRID_API_TOKEN -v `pwd`:/wrk -w /wrk \
+          replicated/tgrun:latest queue --staging \
+            --ref "${REF}" \
+            --spec ./testgrid/specs/deploy.yaml \
+            --os-spec ./testgrid/specs/os-latest.yaml
         MSG="Testgrid Run(s) Executing @ https://testgrid.kurl.sh/run/${REF}"
         echo "::set-output name=msg::${MSG}"
+        echo "::notice ::${MSG}"
+
+  cleanup-s3:
+    runs-on: ubuntu-20.04
+    needs:
+      - set-current-version
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+
+      - name: cleanup versions in staging S3 more than 30 days old
+        run: |
+          bin/cleanup-staging-s3.sh
+        env:
+          S3_BUCKET: kurl-sh
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_PROD_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_PROD_SECRET_ACCESS_KEY }}
+          AWS_REGION: "us-east-1"

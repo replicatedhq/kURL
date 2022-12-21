@@ -32,6 +32,9 @@ function openebs() {
     openebs_migrate_post_helm_resources
 
     openebs_apply_storageclasses
+
+    # if there is a validatingWebhookConfiguration, wait for the service to be ready
+    openebs_await_admissionserver
 }
 
 function openebs_apply_crds() {
@@ -58,7 +61,7 @@ function openebs_apply_operator() {
 
     kubectl apply -k "$dst/"
 
-    logStep "Waiting for OpenEBS operator to apply CustomResourceDefinitions"
+    logStep "Waiting for OpenEBS CustomResourceDefinitions to be ready"
     spinner_until 120 kubernetes_resource_exists default crd blockdevices.openebs.io
 
     openebs_cleanup_kubesystem
@@ -93,6 +96,15 @@ function openebs_apply_storageclasses() {
     fi
 
     kubectl apply -k "$dst/"
+}
+
+function openebs_await_admissionserver() {
+    sleep 1
+    if kubectl get validatingWebhookConfiguration openebs-validation-webhook-cfg &>/dev/null ; then
+        logStep "Waiting for OpenEBS admission controller service to be ready"
+        spinner_until 120 kubernetes_service_healthy "$OPENEBS_NAMESPACE" admission-server-svc
+        logSuccess "OpenEBS admission controller service is ready"
+    fi
 }
 
 function openebs_join() {
@@ -147,6 +159,7 @@ function openebs_migrate_pre_helm_resources() {
     # cleanup admission webhook
     kubectl delete validatingWebhookConfiguration openebs-validation-webhook-cfg 2>/dev/null || true
     kubectl -n "$OPENEBS_NAMESPACE" delete deployment openebs-admission-server 2>/dev/null || true
+    kubectl -n "$OPENEBS_NAMESPACE" delete service admission-server-svc 2>/dev/null || true
 }
 
 function openebs_migrate_post_helm_resources() {

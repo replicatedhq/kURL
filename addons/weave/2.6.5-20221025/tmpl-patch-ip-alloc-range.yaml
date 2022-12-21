@@ -1,0 +1,14 @@
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: weave-net
+  namespace: kube-system
+spec:
+  template:
+    spec:
+      containers:
+        - name: weave
+          env:
+          - name: IPALLOC_RANGE
+            value: $POD_CIDR

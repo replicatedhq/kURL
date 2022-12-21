@@ -34,11 +34,38 @@ function insert_resources() {
     local kustomization_file="$1"
     local resource_file="$2"
 
-    if ! grep -q "resources" "$kustomization_file"; then
+    if ! grep -q "resources[ \"]*:" "$kustomization_file"; then
         echo "resources:" >> "$kustomization_file"
     fi
 
     sed -i "/resources:.*/a - $resource_file" "$kustomization_file"
+}
+
+function insert_bases() {
+    local kustomization_file="$1"
+    local base_file="$2"
+
+    local kubectl_client_minor_version=
+    if commandExists "kubectl" ; then
+        kubectl_client_minor_version="$(kubectl version --short | grep -i client | awk '{ print $3 }' | cut -d '.' -f2)"
+    else
+        kubectl_client_minor_version="$(echo "$KUBERNETES_VERSION" | cut -d '.' -f2)"
+    fi
+
+    # bases was deprecated in kustomize v2.1.0 in favor of resources
+    # https://github.com/kubernetes-sigs/kustomize/blob/661743c7e5bd8c3d9d6866b6bc0a6f0e0b0512eb/site/content/en/blog/releases/v2.1.0.md
+    # https://github.com/kubernetes-sigs/kustomize#kubectl-integration
+    # Kubectl version: v1.14-v1.20, Kustomize version: v2.0.3
+    if [ -n "$kubectl_client_minor_version" ] && [ "$kubectl_client_minor_version" -gt "20" ]; then
+        insert_resources "$kustomization_file" "$base_file"
+        return
+    fi
+
+    if ! grep -q "bases[ \"]*:" "$kustomization_file"; then
+        echo "bases:" >> "$kustomization_file"
+    fi
+
+    sed -i "/bases:.*/a - $base_file" "$kustomization_file"
 }
 
 function insert_patches_json_6902() {

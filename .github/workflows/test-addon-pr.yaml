@@ -4,69 +4,40 @@ name: test-addon-pr.yaml
 on:
   pull_request:
     branches:
-    - main
+      - main
     paths:
-    - 'addons/**'
+      - 'addons/**'
 
   workflow_dispatch: {}
 
-concurrency: 
+concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  test-addons:
+  check-addons:
     if: ${{ github.repository_owner == 'replicatedhq' && github.actor != 'dependabot' }}
-
-    runs-on: ubuntu-latest
-
+    runs-on: ubuntu-20.04
+    outputs:
+      addons: ${{ steps.check.outputs.addons }}
     steps:
-        
-      - name: Checkout
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 0
-
       - name: Check for Modified Addons
         id: check
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_PROD_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_PROD_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: "us-east-1"
-          TESTGRID_API_TOKEN: ${{ secrets.TESTGRID_PROD_API_TOKEN }}
-          S3_BUCKET: "kurl-sh"
         run: |
-          source ./bin/test-addon-pr.sh
-          check
+          ./bin/addon-has-changes-matrix.sh
 
-      - name: Setup Go
-        uses: actions/setup-go@v3
-        if: ${{ steps.check.outputs.addons_available == 'true' }}
-        with:
-          go-version: 1.17
-
-      - name: Tgrun Build
-        if: ${{ steps.check.outputs.addons_available == 'true' }}
-        working-directory: ./testgrid/tgrun
-        run: make build
-
-      - name: Tgrun Queue
-        id: queue
-        if: ${{ steps.check.outputs.addons_available == 'true' }}
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_PROD_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_PROD_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: "us-east-1"
-          TESTGRID_API_TOKEN: ${{ secrets.TESTGRID_PROD_API_TOKEN }}
-          S3_BUCKET: "kurl-sh"
-        run: |
-          source ./bin/test-addon-pr.sh
-          run
-
-      - name: Post TG URL
-        uses: mshick/add-pr-comment@v1
-        if: ${{ steps.check.outputs.addons_available == 'true' }}
-        with:
-          message: ${{ steps.queue.outputs.msg }}
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-          allow-repeats: false
+  test-addons:
+    needs: check-addons
+    strategy:
+      matrix: ${{ fromJSON(needs.check-addons.outputs.addons) }}
+      fail-fast: false
+      max-parallel: 5
+    uses: ./.github/workflows/test-addon.yaml
+    with:
+      addon: ${{ matrix.addon }}
+      version: ${{ matrix.version }}
+      prefix: ${{ matrix.prefix }}
+    secrets: inherit

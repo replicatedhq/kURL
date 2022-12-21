@@ -3,7 +3,7 @@
       version: "latest"
     weave:
       version: "latest"
-    docker:
+    containerd:
       version: "latest"
     contour:
       version: "latest"
@@ -12,7 +12,7 @@
       version: "latest"
     weave:
       version: "latest"
-    docker:
+    containerd:
       version: "latest"
     contour:
       version: "__testver__"
@@ -24,7 +24,7 @@
     sleep 120
     kubectl get po,svc,ing -l app=httpbin
 
-    export private_address="$(cat /etc/kubernetes/manifests/kube-apiserver.yaml 2>/dev/null | grep advertise-address | awk -F'=' '{ print $2 }' | tr -d '\n')"
+    export private_address="$(grep 'advertise-address' /etc/kubernetes/manifests/kube-apiserver.yaml | awk -F'=' '{ print $2 }' | tr -d '\n')"
     echo "Discovered private address: $private_address"
 
     curl -v "http://$private_address:80"
@@ -33,7 +33,7 @@
     sleep 120
     kubectl get pods -A
 
-    export private_address="$(cat /etc/kubernetes/manifests/kube-apiserver.yaml 2>/dev/null | grep advertise-address | awk -F'=' '{ print $2 }' | tr -d '\n')"
+    export private_address="$(grep 'advertise-address' /etc/kubernetes/manifests/kube-apiserver.yaml | awk -F'=' '{ print $2 }' | tr -d '\n')"
     echo "Discovered private address: $private_address"
 
     curl -v "http://$private_address:80"
@@ -43,7 +43,7 @@
       version: "latest"
     weave:
       version: "latest"
-    docker:
+    containerd:
       version: "latest"
     contour:
       version: "__testver__"
@@ -55,7 +55,7 @@
     sleep 120
     kubectl get po,svc,ing -l app=httpbin
 
-    export private_address="$(cat /etc/kubernetes/manifests/kube-apiserver.yaml 2>/dev/null | grep advertise-address | awk -F'=' '{ print $2 }' | tr -d '\n')"
+    export private_address="$(grep 'advertise-address' /etc/kubernetes/manifests/kube-apiserver.yaml | awk -F'=' '{ print $2 }' | tr -d '\n')"
     echo "Discovered private address: $private_address"
 
     curl -v "http://$private_address:80"

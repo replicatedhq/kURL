@@ -196,7 +196,7 @@ function maybe_init_hosts() {
 function maybe_migrate_from_rook() {
     if [ -z "$ROOK_VERSION" ]; then
         if kubectl get ns | grep -q rook-ceph; then
-            rook_ceph_to_longhorn
+            rook_ceph_to_sc_migration "longhorn"
             export DID_MIGRATE_ROOK_PVCS="1" # used to automatically delete rook-ceph if object store data was also migrated
         fi
     fi

@@ -66,8 +66,69 @@ function object_store_bucket_exists() {
         "http://$addr/$bucket" >/dev/null 2>&1
 }
 
+# migrate_object_store creates a pod that migrates data between two different object stores. receives
+# the namespace, the source and destination addresses, access keys and secret keys. returns once the
+# pos has been finished or a timeout of 30 minutes has been reached.
+function migrate_object_store() {
+    local namespace=$1
+    local source_addr=$2
+    local source_access_key=$3
+    local source_secret_key=$4
+    local destination_addr=$5
+    local destination_access_key=$6
+    local destination_secret_key=$7
+
+    kubectl -n "$namespace" delete pod sync-object-store --force --grace-period=0 --ignore-not-found
+
+    cat <<EOF | kubectl apply -f -
+apiVersion: v1
+kind: Pod
+metadata:
+  name: sync-object-store
+  namespace: ${namespace}
+spec:
+  restartPolicy: OnFailure
+  containers:
+  - name: sync-object-store
+    image: $KURL_UTIL_IMAGE
+    command:
+    - /usr/local/bin/kurl
+    - sync-object-store
+    - --source_host=$source_addr
+    - --source_access_key_id=$source_access_key
+    - --source_access_key_secret=$source_secret_key
+    - --dest_host=$destination_addr
+    - --dest_access_key_id=$destination_access_key
+    - --dest_access_key_secret=$destination_secret_key
+EOF
+
+    echo "Waiting up to 5 minutes for sync-object-store pod to start in ${namespace} namespace"
+    if ! spinner_until 300 kubernetes_pod_started sync-object-store "$namespace" ; then
+        printf "${RED}Failed to start object store migration pod within 2 minutes${NC}\n"
+        return 1
+    fi
+
+    echo "Waiting up to 30 minutes for sync-object-store pod to complete"
+    spinner_until 1800 kubernetes_pod_completed sync-object-store "$namespace" || true
+    kubectl logs -n "$namespace" -f sync-object-store || true
+
+    if kubernetes_pod_succeeded sync-object-store "$namespace" ; then
+        printf "\n${GREEN}Object store data synced successfully${NC}\n"
+        kubectl delete pod sync-object-store -n "$namespace" --force --grace-period=0 &> /dev/null
+        return 0
+    fi
+
+    return 1
+}
+
 function migrate_rgw_to_minio() {
     report_addon_start "rook-ceph-to-minio" "v1"
+
+    if kubernetes_resource_exists kurl deployment ekc-operator; then
+        kubectl -n kurl scale deploy ekc-operator --replicas=0
+        echo "Waiting for ekco pods to be removed"
+        spinner_until 120 ekco_pods_gone
+    fi
 
     RGW_HOST="rook-ceph-rgw-rook-ceph-store.rook-ceph"
     RGW_ACCESS_KEY_ID=$(kubectl -n rook-ceph get secret rook-ceph-object-user-rook-ceph-store-kurl -o yaml | grep AccessKey | head -1 | awk '{print $2}' | base64 --decode)
@@ -117,6 +178,11 @@ EOF
     spinner_until 300 kubernetes_pod_completed sync-object-store default || true
     kubectl logs -f sync-object-store || true
 
+    # even if the migration failed, we should ensure ekco is running again
+    if kubernetes_resource_exists kurl deployment ekc-operator; then
+        kubectl -n kurl scale deploy ekc-operator --replicas=1
+    fi
+
     if kubernetes_pod_succeeded sync-object-store default; then
         printf "\n${GREEN}Object store data synced successfully${NC}\n"
         kubectl delete pod sync-object-store --force --grace-period=0 &> /dev/null
@@ -146,7 +212,7 @@ EOF
         rm config.yml
     fi
     if kubernetes_resource_exists kurl secret registry-s3-secret; then
-        kubectl -n kurl patch secret registry-s3-secret -p "{\"stringData\":{\"access-key-id\":\"${MINIO_ACCESS_KEY_ID}\",\"secret-access-key\":\"${MINIO_ACCESS_KEY_SECRET}\",\"object-store-cluster-ip\":\"${MINIO_CLUSTER_IP}\"}}"
+        kubectl -n kurl patch secret registry-s3-secret -p "{\"stringData\":{\"access-key-id\":\"${MINIO_ACCESS_KEY_ID}\",\"secret-access-key\":\"${MINIO_ACCESS_KEY_SECRET}\",\"object-store-cluster-ip\":\"${MINIO_CLUSTER_IP}\",\"object-store-hostname\":\"http://${MINIO_HOST}\"}}"
     fi
     if kubernetes_resource_exists kurl deployment registry; then
         kubectl -n kurl rollout restart deployment registry

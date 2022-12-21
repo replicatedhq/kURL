@@ -24,8 +24,28 @@ function init_manifest_file() {
 
     cat <<EOT >> $file
 yum libzstd
-asset runc https://github.com/opencontainers/runc/releases/download/v1.0.0-rc95/runc.amd64
 EOT
+    # Note that containerd requires runc and each release officially uses one specific version in their
+    # tests. Therefore, that is the version of runc which is supported and should be used by each
+    # respective containerd release. More info: https://github.com/containerd/containerd/blob/main/docs/RUNC.md
+    if echo "$version" | grep -qF "1.2."; then
+        # See the runc version used to test the releases 1.2:https://github.com/containerd/containerd/blob/release/1.2/vendor.conf#L23
+        echo "asset runc https://github.com/opencontainers/runc/releases/download/v1.0.0-rc10/runc.amd64" >> $file
+    elif echo "$version" | grep -qF "1.3."; then
+        # See the runc version used to test the releases 1.3:https://github.com/containerd/containerd/blob/release/1.3/vendor.conf#L33
+        echo "asset runc https://github.com/opencontainers/runc/releases/download/v1.0.0-rc10/runc.amd64" >> $file
+    elif echo "$version" | grep -qF "1.4."; then
+        # See the runc version used to test the releases 1.4:https://github.com/containerd/containerd/blob/release/1.4/script/setup/runc-version
+        echo "asset runc https://github.com/opencontainers/runc/releases/download/v1.0.3/runc.amd64" >> $file
+    else
+        # detect runc version from upstream project used to test the containerd release
+        local runc_version="$(curl -sSL https://raw.githubusercontent.com/containerd/containerd/release/"$(echo "$version" | grep -Eo '[[:digit:]]\.[[:digit:]]+')"/script/setup/runc-version)"
+        if [ -z "$runc_version" ]; then
+            echo "Failed to detect runc version"
+            exit 1
+        fi
+        echo "asset runc https://github.com/opencontainers/runc/releases/download/$runc_version/runc.amd64" >> $file
+    fi
 }
 
 function add_supported_os_to_manifest_file() {
@@ -103,31 +123,37 @@ function copy_generated_files() {
     fi
 }
 
+UNSUPPORTED_CONTAINERD_MINORS="01234"
+
 VERSIONS=()
 function find_common_versions() {
-    docker build -t centos7 -f Dockerfile.centos7 .
-    docker build -t centos8 -f Dockerfile.centos8 .
-    docker build -t ubuntu16 -f Dockerfile.ubuntu16 .
-    docker build -t ubuntu18 -f Dockerfile.ubuntu18 .
-    docker build -t ubuntu20 -f Dockerfile.ubuntu20 .
+    docker build --pull -t centos7 -f Dockerfile.centos7 .
+    docker build --pull -t centos8 -f Dockerfile.centos8 .
+    docker build --pull -t ubuntu16 -f Dockerfile.ubuntu16 .
+    docker build --pull -t ubuntu18 -f Dockerfile.ubuntu18 .
+    docker build --pull -t ubuntu20 -f Dockerfile.ubuntu20 .
+    docker build --pull -t ubuntu22 -f Dockerfile.ubuntu22 .
 
-    CENTOS7_VERSIONS=($(docker run --rm -i centos7 yum list --showduplicates containerd.io | grep -Eo '1\.[[:digit:]]+\.[[:digit:]]+' | grep -vE '1\.[012]\.' | sort -rV | uniq))
+    CENTOS7_VERSIONS=($(docker run --rm -i centos7 yum list --showduplicates containerd.io | grep -Eo '1\.[[:digit:]]+\.[[:digit:]]+' | grep -vE '1\.['"$UNSUPPORTED_CONTAINERD_MINORS"']\.' | sort -rV | uniq))
     echo "Found ${#CENTOS7_VERSIONS[*]} containerd versions for CentOS 7: ${CENTOS7_VERSIONS[*]}"
 
-    CENTOS8_VERSIONS=($(docker run --rm -i centos8 yum list --showduplicates containerd.io | grep -Eo '1\.[[:digit:]]+\.[[:digit:]]+' | grep -vE '1\.[012]\.' | sort -rV | uniq))
+    CENTOS8_VERSIONS=($(docker run --rm -i centos8 yum list --showduplicates containerd.io | grep -Eo '1\.[[:digit:]]+\.[[:digit:]]+' | grep -vE '1\.['"$UNSUPPORTED_CONTAINERD_MINORS"']\.' | sort -rV | uniq))
     echo "Found ${#CENTOS8_VERSIONS[*]} containerd versions for CentOS 8: ${CENTOS8_VERSIONS[*]}"
 
-    UBUNTU16_VERSIONS=($(docker run --rm -i ubuntu16 apt-cache madison containerd.io | grep -Eo '1\.[[:digit:]]+\.[[:digit:]]+' | grep -vE '1\.[012]\.' | sort -rV | uniq))
+    UBUNTU16_VERSIONS=($(docker run --rm -i ubuntu16 apt-cache madison containerd.io | grep -Eo '1\.[[:digit:]]+\.[[:digit:]]+' | grep -vE '1\.['"$UNSUPPORTED_CONTAINERD_MINORS"']\.' | sort -rV | uniq || true)) # no supported versions
     echo "Found ${#UBUNTU16_VERSIONS[*]} containerd versions for Ubuntu 16: ${UBUNTU16_VERSIONS[*]}"
 
-    UBUNTU18_VERSIONS=($(docker run --rm -i ubuntu18 apt-cache madison containerd.io | grep -Eo '1\.[[:digit:]]+\.[[:digit:]]+' | grep -vE '1\.[012]\.' | sort -rV | uniq))
+    UBUNTU18_VERSIONS=($(docker run --rm -i ubuntu18 apt-cache madison containerd.io | grep -Eo '1\.[[:digit:]]+\.[[:digit:]]+' | grep -vE '1\.['"$UNSUPPORTED_CONTAINERD_MINORS"']\.' | sort -rV | uniq))
     echo "Found ${#UBUNTU18_VERSIONS[*]} containerd versions for Ubuntu 18: ${UBUNTU18_VERSIONS[*]}"
 
-    UBUNTU20_VERSIONS=($(docker run --rm -i ubuntu20 apt-cache madison containerd.io | grep -Eo '1\.[[:digit:]]+\.[[:digit:]]+' | grep -vE '1\.[012]\.' | sort -rV | uniq))
+    UBUNTU20_VERSIONS=($(docker run --rm -i ubuntu20 apt-cache madison containerd.io | grep -Eo '1\.[[:digit:]]+\.[[:digit:]]+' | grep -vE '1\.['"$UNSUPPORTED_CONTAINERD_MINORS"']\.' | sort -rV | uniq))
     echo "Found ${#UBUNTU20_VERSIONS[*]} containerd versions for Ubuntu 20: ${UBUNTU20_VERSIONS[*]}"
 
+    UBUNTU22_VERSIONS=($(docker run --rm -i ubuntu22 apt-cache madison containerd.io | grep -Eo '1\.[[:digit:]]+\.[[:digit:]]+' | grep -vE '1\.['"$UNSUPPORTED_CONTAINERD_MINORS"']\.' | sort -rV | uniq))
+    echo "Found ${#UBUNTU22_VERSIONS[*]} containerd versions for Ubuntu 22: ${UBUNTU22_VERSIONS[*]}"
+
     # Get the intersection of versions available for all operating systems
-    local ALL_VERSIONS=("${CENTOS7_VERSIONS[@]}" "${CENTOS8_VERSIONS[@]}" "${UBUNTU16_VERSIONS[@]}" "${UBUNTU18_VERSIONS[@]}" "${UBUNTU20_VERSIONS[@]}")
+    local ALL_VERSIONS=("${CENTOS7_VERSIONS[@]}" "${CENTOS8_VERSIONS[@]}" "${UBUNTU16_VERSIONS[@]}" "${UBUNTU18_VERSIONS[@]}" "${UBUNTU20_VERSIONS[@]}" "${UBUNTU22_VERSIONS[@]}")
     ALL_VERSIONS=($(echo "${ALL_VERSIONS[@]}" | tr ' ' '\n' | sort -rV | uniq -d | tr '\n' ' ')) # remove duplicates
 
     for version in ${ALL_VERSIONS[@]}; do
@@ -175,24 +201,46 @@ function find_common_versions() {
             add_supported_os_to_manifest_file $version "ubuntu-20.04" "Dockerfile.ubuntu20"
         fi
 
+        if ! contains "$version" ${UBUNTU22_VERSIONS[*]}; then
+            echo "Ubuntu 22 lacks version $version"
+            add_unsupported_os_to_preflight_file $version "ubuntu" "22.04"
+        else
+            add_supported_os_to_preflight_file $version "ubuntu" "22.04"
+            add_supported_os_to_manifest_file $version "ubuntu-22.04" "Dockerfile.ubuntu22"
+        fi
+
         VERSIONS+=("$version")
     done
 
     echo "Found ${#VERSIONS[*]} containerd versions >=1.3 available for all operating systems: ${VERSIONS[*]}"
 
-    VERSIONS+=("1.2.13")
-
     export GREATEST_VERSION="${VERSIONS[0]}"
+}
 
-    # Move 1.6.x to the back so it's not the latest
-    local V6=()
-    for v in ${VERSIONS[@]}; do
-        if [[ $v == 1\.6\.* ]]; then
-            VERSIONS=("${VERSIONS[@]/$v}")
-            V6+=("${v}")
-        fi
-    done
-    VERSIONS=("${VERSIONS[@]}" "${V6[@]}")
+function find_pause_image() {
+    # The Kubernetes airgap package only includes the default pause image specified by kubeadm for the
+    # version, so the correct pause image used by containerd must be included in its bundle.
+
+    local pause_image=
+    pause_image="$(docker run --rm -i ubuntu20 sh -c \
+        "apt-cache madison containerd.io | grep -F ""$version"" | sed 's/|//g' | awk '{ print \$2 }' | \
+        xargs -I{} apt-get install -y -qq containerd.io={} >/dev/null 2>&1 && \
+        containerd config default | grep sandbox_image | sed 's/[=\"]//g' | awk '{ print \$2 }'")"
+    if [ -n "$pause_image" ]; then
+        echo "$pause_image"
+        return
+    fi
+
+    # fallback
+    if echo "$version" | grep -qE "1\.3\."; then
+        echo "k8s.gcr.io/pause:3.1"
+    elif echo "$version" | grep -qE "1\.4\."; then
+        echo "k8s.gcr.io/pause:3.2"
+    elif echo "$version" | grep -qE "1\.5\."; then
+        echo "k8s.gcr.io/pause:3.5"
+    else
+        echo "k8s.gcr.io/pause:3.6"
+    fi
 }
 
 function generate_version() {
@@ -203,18 +251,7 @@ function generate_version() {
 
     copy_generated_files $version
 
-    # Containerd overrides the pod sandbox image with pause:3.1 for 1.3.x and pause:3.2 for 1.4+.
-    # The Kubernetes airgap package only includes the default pause image specified by kubeadm for the
-    # version, so the correct pause image used by containerd must be included in its bundle.
-    if echo "$version" | grep -qE "1\.3\."; then
-        echo "image pause k8s.gcr.io/pause:3.1" >> "../$version/Manifest"
-    elif echo "$version" | grep -qE "1\.4\."; then
-        echo "image pause k8s.gcr.io/pause:3.2" >> "../$version/Manifest"
-    elif echo "$version" | grep -qE "1\.5\."; then
-        echo "image pause k8s.gcr.io/pause:3.5" >> "../$version/Manifest"
-    else
-        echo "image pause k8s.gcr.io/pause:3.6" >> "../$version/Manifest"
-    fi
+    echo "image pause $(find_pause_image)" >> "../$version/Manifest"
 }
 
 function update_available_versions() {
@@ -222,7 +259,7 @@ function update_available_versions() {
     for version in ${VERSIONS[@]}; do
         v="${v}\"${version}\", "
     done
-    sed -i "/cron-containerd-update/c\  containerd: [${v}], \/\/ cron-containerd-update" ../../../web/src/installers/versions.js
+    sed -i "/cron-containerd-update/c\    ${v}\/\/ cron-containerd-update" ../../../web/src/installers/versions.js
 }
 
 function main() {

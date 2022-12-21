@@ -1,0 +1,5 @@
+FROM redhat/ubi8
+
+WORKDIR /src
+
+RUN yum install -y -q make curl

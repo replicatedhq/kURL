@@ -1,3 +1,5 @@
+# shellcheck disable=SC2148
+
 function openebs_pre_init() {
     if [ -z "$OPENEBS_NAMESPACE" ]; then
         OPENEBS_NAMESPACE=openebs
@@ -13,6 +15,7 @@ function openebs_pre_init() {
     export PREVIOUS_OPENEBS_VERSION="$(openebs_get_running_version)"
 
     openebs_bail_unsupported_upgrade
+    openebs_prompt_migrate_from_rook
 }
 
 function openebs() {
@@ -32,6 +35,101 @@ function openebs() {
     openebs_migrate_post_helm_resources
 
     openebs_apply_storageclasses
+
+    # if there is a validatingWebhookConfiguration, wait for the service to be ready
+    openebs_await_admissionserver
+
+    # migrate from Rook/Ceph storage if applicable
+    openebs_maybe_migrate_from_rook
+}
+
+# if rook-ceph is installed but is not specified in the kURL spec, migrate data from 
+# rook-ceph to OpenEBS local pv hostpath
+function openebs_maybe_migrate_from_rook() {
+    if [ -z "$ROOK_VERSION" ]; then
+        if kubectl get ns | grep -q rook-ceph; then
+            # show validation errors from pvmigrate
+            # if there are errors, openebs_maybe_rook_migration_checks() will bail
+            openebs_maybe_rook_migration_checks
+            rook_ceph_to_sc_migration "$OPENEBS_LOCALPV_STORAGE_CLASS" "1"
+            DID_MIGRATE_ROOK_PVCS=1 # used to automatically delete rook-ceph if object store data was also migrated
+        fi
+    fi
+}
+
+function openebs_maybe_rook_migration_checks() {
+
+    # get the list of StorageClasses that use rook-ceph
+    local rook_scs
+    local rook_default_sc
+    rook_scs=$(kubectl get storageclass | grep rook | grep -v '(default)' | awk '{ print $1}') # any non-default rook StorageClasses
+    rook_default_sc=$(kubectl get storageclass | grep rook | grep '(default)' | awk '{ print $1}') # any default rook StorageClasses
+
+    # Ensure openebs-localpv-provisioner deployment is ready
+    echo "awaiting openebs-localpv-provisioner deployment"
+    spinner_until 120 deployment_fully_updated openebs openebs-localpv-provisioner
+
+    echo "running Rook to OpenEBS migration checks ..."
+    local rook_scs_pvmigrate_dryrun_output
+    local rook_default_sc_pvmigrate_dryrun_output
+    for rook_sc in $rook_scs
+    do
+        # run validation checks for non default Rook storage classes
+        if ! rook_scs_pvmigrate_dryrun_output=$($BIN_PVMIGRATE --source-sc "$rook_sc" --dest-sc "$OPENEBS_LOCALPV_STORAGE_CLASS" --rsync-image "$KURL_UTIL_IMAGE" --preflight-validation-only) ; then
+            break
+        fi
+    done
+
+    if [ -n "$rook_default_sc" ] ; then
+        # run validation checks for Rook default storage class
+        rook_default_sc_pvmigrate_dryrun_output=$($BIN_PVMIGRATE --source-sc "$rook_default_sc" --dest-sc "$OPENEBS_LOCALPV_STORAGE_CLASS" --rsync-image "$KURL_UTIL_IMAGE" --preflight-validation-only || true)
+    fi
+
+    if [ -n "$rook_scs_pvmigrate_dryrun_output" ] || [ -n "$rook_default_sc_pvmigrate_dryrun_output" ] ; then
+        log "$rook_scs_pvmigrate_dryrun_output"
+        log "$rook_default_sc_pvmigrate_dryrun_output"
+        
+        bail "Cannot upgrade from Rook to OpenEBS due to previous error."
+    fi
+
+    echo "Rook to OpenEBS migration checks completed."
+
+}
+
+function openebs_prompt_migrate_from_rook() {
+    local ceph_disk_usage_total
+    local rook_ceph_exec_deploy=rook-ceph-operator
+
+    # skip on new install or when Rook is specified in the kURL spec
+    if [ -z "$CURRENT_KUBERNETES_VERSION" ] || [ -n "$ROOK_VERSION" ]; then
+        return 0
+    fi
+
+    # do not proceed if Rook is not installed
+    if ! kubectl get ns | grep -q rook-ceph; then
+        return 0
+    fi
+
+    if kubectl get deployment -n rook-ceph rook-ceph-tools &>/dev/null; then
+        rook_ceph_exec_deploy=rook-ceph-tools
+    fi
+    ceph_disk_usage_total=$(kubectl exec -n rook-ceph deployment/$rook_ceph_exec_deploy -- ceph df | grep TOTAL | awk '{ print $8$9 }')
+
+    printf "${YELLOW}"
+    printf "\n"
+    printf "    Detected Rook is running in the cluster. Data migration will be initiated to move data from rook-ceph to storage class %s.\n" "$OPENEBS_LOCALPV_STORAGE_CLASS"
+    printf "\n"
+    printf "    As part of this, all pods mounting PVCs will be stopped, taking down the application.\n"
+    printf "\n"
+    printf "    Copying the data currently stored within rook-ceph will require at least %s of free space across the cluster.\n" "$ceph_disk_usage_total"
+    printf "    It is recommended to take a snapshot or otherwise back up your data before proceeding.\n${NC}"
+    printf "\n"
+    printf "Would you like to continue? "
+
+    if ! confirmN; then
+        bail "Not migrating"
+    fi
+
 }
 
 function openebs_apply_crds() {
@@ -58,7 +156,7 @@ function openebs_apply_operator() {
 
     kubectl apply -k "$dst/"
 
-    logStep "Waiting for OpenEBS operator to apply CustomResourceDefinitions"
+    logStep "Waiting for OpenEBS CustomResourceDefinitions to be ready"
     spinner_until 120 kubernetes_resource_exists default crd blockdevices.openebs.io
 
     openebs_cleanup_kubesystem
@@ -84,15 +182,28 @@ function openebs_apply_storageclasses() {
         render_yaml_file_2 "$src/tmpl-localpv-storage-class.yaml" > "$dst/localpv-storage-class.yaml"
         insert_resources "$dst/kustomization.yaml" localpv-storage-class.yaml
 
-        if [ "$OPENEBS_LOCALPV_STORAGE_CLASS" = "default" ]; then
+        if openebs_should_be_default_storageclass "$OPENEBS_LOCALPV_STORAGE_CLASS" ; then
+            echo "OpenEBS LocalPV will be installed as the default storage class."
             render_yaml_file_2 "$src/tmpl-patch-localpv-default.yaml" > "$dst/patch-localpv-default.yaml"
             insert_patches_strategic_merge "$dst/kustomization.yaml" patch-localpv-default.yaml
+        else
+            logWarn "Existing default storage class that is not OpenEBS LocalPV detected."
+            logWarn "OpenEBS LocalPV will be installed as the non-default storage class."
         fi
 
         report_addon_success "openebs-localpv" "$OPENEBS_APP_VERSION"
     fi
 
     kubectl apply -k "$dst/"
+}
+
+function openebs_await_admissionserver() {
+    sleep 1
+    if kubectl get validatingWebhookConfiguration openebs-validation-webhook-cfg &>/dev/null ; then
+        logStep "Waiting for OpenEBS admission controller service to be ready"
+        spinner_until 120 kubernetes_service_healthy "$OPENEBS_NAMESPACE" admission-server-svc
+        logSuccess "OpenEBS admission controller service is ready"
+    fi
 }
 
 function openebs_join() {
@@ -147,6 +258,7 @@ function openebs_migrate_pre_helm_resources() {
     # cleanup admission webhook
     kubectl delete validatingWebhookConfiguration openebs-validation-webhook-cfg 2>/dev/null || true
     kubectl -n "$OPENEBS_NAMESPACE" delete deployment openebs-admission-server 2>/dev/null || true
+    kubectl -n "$OPENEBS_NAMESPACE" delete service admission-server-svc 2>/dev/null || true
 }
 
 function openebs_migrate_post_helm_resources() {
@@ -156,4 +268,40 @@ function openebs_migrate_post_helm_resources() {
     kubectl delete clusterrole openebs-maya-operator 2>/dev/null || true
     # name changed from openebs-maya-operator > openebs
     kubectl delete clusterrolebinding openebs-maya-operator 2>/dev/null || true
+}
+
+function openebs_should_be_default_storageclass() {
+    local storage_class_name="$1"
+    if openebs_is_default_storageclass "$storage_class_name" ; then
+        # if "$storage_class_name" is already the default
+        return 0
+    elif openebs_has_default_storageclass ; then
+        # if there is already a default storage class that is not "$storage_class_name"
+        return 1
+    elif [ "$storage_class_name" = "default" ]; then
+        # if "$storage_class_name" named "default", it should be the default
+        return 0
+    elif [ -n "$LONGHORN_VERSION" ]; then
+        # To maintain backwards compatibility with previous versions of kURL, only make OpenEBS the default
+        # if Longhorn is not installed or the storageclass is explicitly named "default"
+        return 1
+    else
+        # if there is no other storageclass, make "$storage_class_name" the default
+        return 0
+    fi
+}
+
+function openebs_is_default_storageclass() {
+    local storage_class_name="$1"
+    if [ "$(kubectl get sc "$storage_class_name" -o jsonpath='{.metadata.annotations.storageclass\.kubernetes\.io/is-default-class}' 2>/dev/null)" = "true" ]; then
+        return 0
+    fi
+    return 1
+}
+
+function openebs_has_default_storageclass() {
+    if kubectl get sc -o jsonpath='{.items[*].metadata.annotations.storageclass\.kubernetes\.io/is-default-class}' | grep -q "true" ; then
+        return 0
+    fi
+    return 1
 }

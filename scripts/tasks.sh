@@ -14,11 +14,12 @@ DIR=.
 . $DIR/scripts/common/host-packages.sh
 . $DIR/scripts/common/utilbinaries.sh
 . $DIR/scripts/common/rook.sh
+. $DIR/scripts/common/rook-upgrade.sh
 . $DIR/scripts/common/longhorn.sh
 . $DIR/scripts/common/reporting.sh
 . $DIR/scripts/distro/interface.sh
 . $DIR/scripts/distro/kubeadm/distro.sh
-. $DIR/scripts/distro/rke2/distro.sh
+. $DIR/scripts/common/addon.sh
 # Magic end
 
 K8S_DISTRO=
@@ -29,11 +30,6 @@ function tasks() {
     DOCKER_VERSION="$(get_docker_version)"
 
     K8S_DISTRO=kubeadm
-    if [ -d "/etc/rancher/rke2" ]; then
-        K8S_DISTRO=rke2
-    elif [ -d "/etc/rancher/k3s" ]; then
-        K8S_DISTRO=k3s
-    fi
 
     case "$1" in
         load-images|load_images)
@@ -72,6 +68,28 @@ function tasks() {
         longhorn-node-initilize|longhorn_node_initilize)
             install_host_dependencies_longhorn $@
             ;;
+        rook-10-to-14|rook_10_to_14)
+            pushd_install_directory
+            rook_upgrade_tasks_rook_upgrade "to-version=1.4"
+            popd_install_directory
+            ;;
+        rook-10-to-14-images|rook_10_to_14_images)
+            pushd_install_directory
+            rook_upgrade_tasks_load_images "from-version=1.0" "to-version=1.4"
+            popd_install_directory
+            ;;
+        rook-upgrade|rook_upgrade)
+            pushd_install_directory
+            shift # the first param is rook-upgrade|rook_upgrade
+            rook_upgrade_tasks_rook_upgrade "$@"
+            popd_install_directory
+            ;;
+        rook-upgrade-load-images|rook_upgrade_load_images)
+            pushd_install_directory
+            shift # the first param is rook-upgrade-load-images|rook_upgrade_load_images
+            rook_upgrade_tasks_load_images "$@"
+            popd_install_directory
+            ;;
         *)
             bail "Unknown task: $1"
             ;;
@@ -108,7 +126,6 @@ function load_all_images() {
             docker load < shared/kurl-util.tar
         fi
     else
-        # TODO(ethan): rke2 containerd.sock path is incorrect
         find addons/ packages/ -type f -wholename '*/images/*.tar.gz' | xargs -I {} bash -c "cat {} | gunzip | ctr -n=k8s.io images import -"
         if [ -f shared/kurl-util.tar ]; then
             ctr -n=k8s.io images import shared/kurl-util.tar
@@ -184,11 +201,6 @@ function reset() {
         printf "Resetting kubeadm\n"
         kubeadm_reset
     fi 
-
-    if commandExists "rke2"; then
-        printf "Resetting rke2\n"
-        rke2_reset
-    fi  
 
     printf "Removing kubernetes packages\n"
     case "$LSB_DIST" in
@@ -312,11 +324,15 @@ function join_token() {
 
     local service_cidr=$(kubectl -n kube-system get cm kurl-config -ojsonpath='{ .data.service_cidr }')
     local pod_cidr=$(kubectl -n kube-system get cm kurl-config -ojsonpath='{ .data.pod_cidr }')
+    local additional_no_proxy_addresses=$(kubectl -n kube-system get cm kurl-config -ojsonpath='{ .data.additional_no_proxy_addresses }')
     local kurl_install_directory=$(kubectl -n kube-system get cm kurl-config -ojsonpath='{ .data.kurl_install_directory }')
     local docker_registry_ip=$(kubectl -n kurl get service registry -o=jsonpath='{@.spec.clusterIP}' 2>/dev/null || echo "")
 
     local common_flags
     common_flags="${common_flags}$(get_docker_registry_ip_flag "${docker_registry_ip}")"
+    if [ -n "$additional_no_proxy_addresses" ]; then
+        common_flags="${common_flags}$(get_additional_no_proxy_addresses_flag "1" "${ADDITIONAL_NO_PROXY_ADDRESSES}")"
+    fi
     if [ -n "$service_cidr" ] && [ -n "$pod_cidr" ]; then
         common_flags="${common_flags}$(get_additional_no_proxy_addresses_flag "1" "${service_cidr},${pod_cidr}")"
     fi
@@ -559,6 +575,38 @@ function migrate_pvcs() {
     fi
     CEPH_DISK_USAGE_TOTAL=$(kubectl exec -n rook-ceph deployment/$ROOK_CEPH_EXEC_TARGET -- ceph df | grep TOTAL | awk '{ print $8$9 }')
 
+
+    local non_ceph_storage_class_detected
+    if kubectl get namespace longhorn-system &>/dev/null; then
+        non_ceph_storage_class_detected="longhorn"
+        longhorn_provisioner_is_healthy
+    elif kubectl get pods -A -l openebs.io/component-name=openebs-localpv-provisioner &>/dev/null; then
+        non_ceph_storage_class_detected=$(kubectl get storageclass | grep openebs | awk '{ print $1}')
+        openebs_provisioner_is_healthy
+    fi
+
+    # provide large warning that this will stop the app
+    printf "${YELLOW}"
+    printf "WARNING: \n"
+    printf "\n"
+    printf "    This command will attempt to move data from rook-ceph to %s.\n" "$non_ceph_storage_class_detected"
+    printf "\n"
+    printf "    As part of this, all pods mounting PVCs will be stopped, taking down the application.\n"
+    printf "\n"
+    printf "    Copying the data currently stored within rook-ceph will require at least %s of free space across the cluster.\n" "$CEPH_DISK_USAGE_TOTAL"
+    printf "    It is recommended to take a snapshot or otherwise back up your data before starting this process.\n${NC}"
+    printf "\n"
+    printf "Would you like to continue? "
+
+    if ! confirmN; then
+        printf "Not migrating\n"
+        exit 1
+    fi
+
+    rook_ceph_to_sc_migration "$non_ceph_storage_class_detected"
+}
+
+function longhorn_provisioner_is_healthy() {
     # check that longhorn is healthy
     LONGHORN_NODES_STATUS=$(kubectl get nodes.longhorn.io -n longhorn-system -o=jsonpath='{.items[*].status.conditions.Ready.status}')
     LONGHORN_NODES_SCHEDULABLE=$(kubectl get nodes.longhorn.io -n longhorn-system -o=jsonpath='{.items[*].status.conditions.Schedulable.status}')
@@ -574,26 +622,13 @@ function migrate_pvcs() {
             return 1
         fi
     fi
-
-    # provide large warning that this will stop the app
-    printf "${YELLOW}"
-    printf "WARNING: \n"
-    printf "\n"
-    printf "    This command will attempt to move data from rook-ceph to longhorn.\n"
-    printf "\n"
-    printf "    As part of this, all pods mounting PVCs will be stopped, taking down the application.\n"
-    printf "\n"
-    printf "    Copying the data currently stored within rook-ceph will require at least %s of free space across the cluster.\n" "$CEPH_DISK_USAGE_TOTAL"
-    printf "    It is recommended to take a snapshot or otherwise back up your data before starting this process.\n${NC}"
-    printf "\n"
-    printf "Would you like to continue? "
-
-    if ! confirmN; then
-        printf "Not migrating\n"
-        exit 1
+}
+function openebs_provisioner_is_healthy() {
+    # check OpenEBS localpv-provisioner is actually running and ready
+    if kubectl get pods -A -l openebs.io/component-name=openebs-localpv-provisioner --field-selector=status.phase=Running 2>/dev/null | grep '1/1' | grep -q 'Running' ; then
+        echo "The OpenEBS Local PV provisioner pod is not running and/or not ready"
+        return 1
     fi
-
-    rook_ceph_to_longhorn
 }
 
 function migrate_rgw_to_minio_task() {

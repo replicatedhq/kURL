@@ -17,6 +17,8 @@ function prometheus() {
 
     # Server-side apply is needed here because the CRDs are too large to keep in metadata
     # https://github.com/prometheus-community/helm-charts/issues/1500
+    # Also delete any existing last-applied-configuration annotations for pre-122 clusters
+    kubectl get crd | grep coreos.com | awk '{ print $1 }' | xargs -I {} kubectl patch crd {} --type=json -p='[{"op": "remove", "path": "/metadata/annotations/kubectl.kubernetes.io~1last-applied-configuration"}]' 2>/dev/null || true
     kubectl apply --server-side --force-conflicts -k "$crdsdst/"
     spinner_until -1 prometheus_crd_ready
 

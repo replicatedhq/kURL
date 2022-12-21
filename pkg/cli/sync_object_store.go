@@ -7,6 +7,8 @@ import (
 
 	"github.com/minio/minio-go"
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
+	"github.com/spf13/viper"
 )
 
 func newSyncObjectStoreCmd(cli CLI) *cobra.Command {
@@ -21,6 +23,21 @@ func newSyncObjectStoreCmd(cli CLI) *cobra.Command {
 	syncObjectStoreCmd := &cobra.Command{
 		Use:   "sync-object-store",
 		Short: "Copies buckets and objects from one object store to another",
+		PreRunE: func(cmd *cobra.Command, args []string) error {
+			v := viper.New()
+			v.SetEnvPrefix("KURL")
+			v.AutomaticEnv()
+			cmd.Flags().VisitAll(
+				func(f *pflag.Flag) {
+					if f.Changed || !v.IsSet(f.Name) {
+						return
+					}
+					value := fmt.Sprintf("%v", v.Get(f.Name))
+					_ = cmd.Flags().Set(f.Name, value)
+				},
+			)
+			return nil
+		},
 		Run: func(cmd *cobra.Command, args []string) {
 			src, err := minio.New(
 				srcHost,

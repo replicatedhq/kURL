@@ -3,7 +3,7 @@ package main
 import (
 	"testing"
 
-	kurlv1beta1 "github.com/replicatedhq/kurl/kurlkinds/pkg/apis/cluster/v1beta1"
+	kurlv1beta1 "github.com/replicatedhq/kurlkinds/pkg/apis/cluster/v1beta1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -43,16 +43,17 @@ func Test_parseBashFlags(t *testing.T) {
 						PreserveConfig: true,
 					},
 					Kubernetes: &kurlv1beta1.Kubernetes{
-						MasterAddress:       "1.1.1.1",
-						HACluster:           true,
-						ControlPlane:        true,
-						CisCompliance:       true,
-						KubeadmToken:        "token",
-						KubeadmTokenCAHash:  "hash",
-						LoadBalancerAddress: "1.1.1.1",
-						Version:             "1.18.1",
-						CertKey:             "secret",
-						ClusterName:         "kubernetes",
+						MasterAddress:               "1.1.1.1",
+						HACluster:                   true,
+						ControlPlane:                true,
+						CisCompliance:               true,
+						KubeadmToken:                "token",
+						KubeadmTokenCAHash:          "hash",
+						LoadBalancerAddress:         "1.1.1.1",
+						LoadBalancerUseFirstPrimary: true,
+						Version:                     "1.18.1",
+						CertKey:                     "secret",
+						ClusterName:                 "kubernetes",
 					},
 					Kurl: &kurlv1beta1.Kurl{
 						Airgap:         true,
@@ -86,6 +87,7 @@ func Test_parseBashFlags(t *testing.T) {
 				"kubernetes-version=1.18.1 " +
 				"installer-spec-file=in.yaml " +
 				"load-balancer-address=1.1.1.1 " +
+				"kubernetes-load-balancer-use-first-primary " +
 				"public-address=1.1.1.1 " +
 				"private-address=1.2.3.4 ",
 			wantError: false,

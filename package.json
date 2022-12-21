@@ -7,10 +7,8 @@
   "license": "MIT",
   "private": true,
   "dependencies": {
-    "gaze-run-interrupt": "^1.0.1"
-  },
-  "devDependencies": {
-    "aws-sdk": "^2.675.0",
-    "semver": "^7.3.2"
+    "aws-sdk": "^2.1240.0",
+    "gaze-run-interrupt": "^2.0.0",
+    "semver": "^7.3.8"
   }
 }

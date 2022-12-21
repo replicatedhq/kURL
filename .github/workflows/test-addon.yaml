@@ -1,0 +1,73 @@
+name: test-addon.yaml
+
+on:
+  workflow_call:
+    inputs:
+      addon:
+        description: Add-on directory name
+        required: true
+        type: string
+      version:
+        description: Add-on version directory name
+        required: true
+        type: string
+      prefix:
+        description: Prefix for s3 asset and ref. For identification.
+        type: string
+  workflow_dispatch:
+    inputs:
+      addon:
+        description: Add-on directory name
+        required: true
+        type: string
+      version:
+        description: Add-on version directory name
+        required: true
+        type: string
+      prefix:
+        description: Prefix for s3 asset and ref. For identification.
+        type: string
+
+env:
+  addon: ${{ inputs.addon }}
+  version: ${{ inputs.version }}
+  prefix: ${{ inputs.prefix }}
+
+jobs:
+  test-addon:
+    runs-on: ubuntu-20.04
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: add-on build
+        id: build
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_PROD_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_PROD_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: "us-east-1"
+          S3_BUCKET: "kurl-sh"
+        run: |
+          ./bin/build-addon-package.sh "${{ env.addon }}" "${{ env.version }}" \
+            "addons/${{ env.addon }}/${{ env.version }}" \
+            "${{ env.prefix }}"
+
+      - name: tgrun queue
+        id: queue
+        uses: ./.github/actions/addon-testgrid-tester
+        with:
+          addon: "${{ env.addon }}"
+          version: "${{ env.version }}"
+          package-url: "${{ steps.build.outputs.addon_package_url }}"
+          testgrid-spec-path: "addons/${{ env.addon }}/template/testgrid"
+          testgrid-run-prefix: "${{ env.prefix }}"
+          testgrid-api-token: "${{ secrets.TESTGRID_PROD_API_TOKEN }}"
+          staging: true
+
+      - name: Post TG URL
+        uses: mshick/add-pr-comment@v2
+        with:
+          message: ${{ steps.queue.outputs.message }}
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          message-id: addon-${{ env.addon }}-${{ env.version }}
+          allow-repeats: false

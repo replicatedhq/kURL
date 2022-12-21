@@ -1,0 +1,188 @@
+- name: basic containerd and weave
+  installerSpec:
+    kubernetes:
+      version: "1.25.x"
+    weave:
+      version: latest
+      isEncryptionDisabled: true
+    containerd:
+      version: "__testver__"
+      s3Override: "__testdist__"
+    openebs:
+      version: latest
+      isLocalPVEnabled: true
+      localPVStorageClassName: default
+    minio:
+      version: latest
+    ekco:
+      version: latest
+    kotsadm:
+      version: latest
+
+- name: "Upgrade Containerd from current to __testver__"
+  installerSpec:
+    kubernetes:
+      version: "1.25.x"
+    weave:
+      version: latest
+      isEncryptionDisabled: true
+    containerd:
+      version: latest
+    openebs:
+      version: latest
+      isLocalPVEnabled: true
+      localPVStorageClassName: default
+    minio:
+      version: latest
+    ekco:
+      version: latest
+    kotsadm:
+      version: latest
+  upgradeSpec:
+    kubernetes:
+      version: "1.25.x"
+    weave:
+      version: latest
+      isEncryptionDisabled: true
+    containerd:
+      version: "__testver__"
+      s3Override: "__testdist__"
+    openebs:
+      version: latest
+      isLocalPVEnabled: true
+      localPVStorageClassName: default
+    minio:
+      version: latest
+    ekco:
+      version: latest
+    kotsadm:
+      version: latest
+  postUpgradeScript: |
+    containerd --version | grep "__testver__"
+
+- name: Upgrade Containerd from oldest (1.5.x) to __testver__
+  installerSpec:
+    kubernetes:
+      version: "1.25.x"
+    weave:
+      version: latest
+      isEncryptionDisabled: true
+    containerd:
+      version: "1.5.11"
+    openebs:
+      version: latest
+      isLocalPVEnabled: true
+      localPVStorageClassName: default
+    minio:
+      version: latest
+    ekco:
+      version: latest
+    kotsadm:
+      version: latest
+  upgradeSpec:
+    kubernetes:
+      version: "1.25.x"
+    weave:
+      version: latest
+      isEncryptionDisabled: true
+    containerd:
+      version: "__testver__"
+      s3Override: "__testdist__"
+    openebs:
+      version: latest
+      isLocalPVEnabled: true
+      localPVStorageClassName: default
+    minio:
+      version: latest
+    ekco:
+      version: latest
+    kotsadm:
+      version: latest
+  postUpgradeScript: |
+    containerd --version | grep "__testver__"
+
+- name: "Migrate from Docker to Containerd"
+  installerSpec:
+    kubernetes:
+      version: 1.23.x
+    weave:
+      version: latest
+      isEncryptionDisabled: true
+    openebs:
+      version: latest
+      isLocalPVEnabled: true
+      localPVStorageClassName: default
+    minio:
+      version: latest
+    ekco:
+      version: latest
+    registry:
+      version: latest
+    kotsadm:
+      version: latest
+    docker:
+      version: latest
+  upgradeSpec:
+    kubernetes:
+      version: 1.24.x
+    weave:
+      version: latest
+      isEncryptionDisabled: true
+    openebs:
+      version: latest
+      isLocalPVEnabled: true
+      localPVStorageClassName: default
+    minio:
+      version: latest
+    ekco:
+      version: latest
+    registry:
+      version: latest
+    kotsadm:
+      version: latest
+    containerd:
+      version: "__testver__"
+      s3Override: "__testdist__"
+- name: "Migrate from Docker to Containerd airgap"
+  installerSpec:
+    kubernetes:
+      version: 1.23.x
+    weave:
+      version: latest
+      isEncryptionDisabled: true
+    openebs:
+      version: latest
+      isLocalPVEnabled: true
+      localPVStorageClassName: default
+    minio:
+      version: latest
+    ekco:
+      version: latest
+    registry:
+      version: latest
+    kotsadm:
+      version: latest
+    docker:
+      version: latest
+  upgradeSpec:
+    kubernetes:
+      version: 1.24.x
+    weave:
+      version: latest
+      isEncryptionDisabled: true
+    openebs:
+      version: latest
+      isLocalPVEnabled: true
+      localPVStorageClassName: default
+    minio:
+      version: latest
+    ekco:
+      version: latest
+    registry:
+      version: latest
+    kotsadm:
+      version: latest
+    containerd:
+      version: "__testver__"
+      s3Override: "__testdist__"
+  airgap: true

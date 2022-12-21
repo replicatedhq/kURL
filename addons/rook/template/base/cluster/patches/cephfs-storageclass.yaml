@@ -1,8 +1,0 @@
----
-apiVersion: storage.k8s.io/v1
-kind: StorageClass
-metadata:
-  name: rook-cephfs
-parameters:
-  fsName: rook-shared-fs
-  pool: rook-shared-fs-data0

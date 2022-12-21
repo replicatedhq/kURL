@@ -1,0 +1,46 @@
+name: cron-registry-update
+on:
+  schedule:
+  - cron: "0 4 * * 1,2,3,4,5" # “At 04:00 on Monday, Tuesday, Wednesday, Thursday, and Friday.”
+  workflow_dispatch: {}
+
+jobs:
+  build-pr-registry:
+    runs-on: ubuntu-20.04
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+
+    - name: Create Registry Update
+      id: update
+      working-directory: ./addons/registry/template
+      run: |
+        ./generate.sh
+
+    - name: Create Pull Request # creates a PR if there are differences
+      uses: peter-evans/create-pull-request@v4.2.3
+      id: cpr
+      with:
+        token: ${{ secrets.AUTOMATED_PR_GH_PAT }}
+        commit-message: Create new Registry version
+        title: 'Automated Registry version update ${{ steps.update.outputs.registry_version }}'
+        branch: automation/update-registry
+        delete-branch: true
+        labels: |
+          automated-pr
+          registry
+          type::chore
+          kurl::type::feature
+        draft: false
+        base: "main"
+        body: |
+          Automated changes by the [cron-registry-update](https://github.com/replicatedhq/kURL/blob/main/.github/workflows/update-registry.yaml) GitHub action
+          
+          ```release-note
+          Adds [Registry add-on](https://kurl.sh/docs/add-ons/registry) version ${{ steps.update.outputs.registry_version }}.
+          ```
+    - name: Check outputs
+      run: |
+        echo "Pull Request Number - ${{ steps.cpr.outputs.pull-request-number }}"
+        echo "Pull Request URL - ${{ steps.cpr.outputs.pull-request-url }}"

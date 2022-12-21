@@ -24,11 +24,11 @@ DIR=.
 . $DIR/scripts/common/proxy.sh
 . $DIR/scripts/common/reporting.sh
 . $DIR/scripts/common/rook.sh
+. $DIR/scripts/common/rook-upgrade.sh
 . $DIR/scripts/common/longhorn.sh
 . $DIR/scripts/common/yaml.sh
 . $DIR/scripts/distro/interface.sh
 . $DIR/scripts/distro/kubeadm/distro.sh
-. $DIR/scripts/distro/rke2/distro.sh
 # Magic end
 
 maybe_upgrade() {
@@ -85,8 +85,10 @@ maybe_upgrade() {
         logSuccess "Kubernetes node upgraded to $KUBERNETES_VERSION"
 
         rm -rf $HOME/.kube
+    fi
 
-        return
+    if commandExists ekco_cleanup_bootstrap_internal_lb; then
+        ekco_cleanup_bootstrap_internal_lb
     fi
 }
 
@@ -94,6 +96,11 @@ function outro() {
     printf "\n"
     printf "\t\t${GREEN}Upgrade${NC}\n"
     printf "\t\t${GREEN}  Complete ✔${NC}\n"
+    # we delete $HOME/.kube on k8s upgrade so we need to add it back
+    if [ "${MASTER:-0}" = "1" ]; then
+        printf "\n"
+        kubeconfig_setup_outro
+    fi
     printf "\n"
 }
 
@@ -116,10 +123,6 @@ function main() {
     download_util_binaries
     get_machine_id
     merge_yaml_specs
-    # Parse yaml into bash variables so we can get final kubernetes version for cases where we are upgrading 2 minor versions
-    # Must run this prior to applying bash flag overrides since kubernetes-version gets overwritten on CLI to enforce single step minor upgrades
-    parse_yaml_into_bash_variables
-    local finalK8sVersion=${KUBERNETES_VERSION}
     apply_bash_flag_overrides "$@"
     parse_yaml_into_bash_variables
     parse_kubernetes_target_version
@@ -138,28 +141,9 @@ function main() {
     ${K8S_DISTRO}_addon_for_each addon_join
     maybe_upgrade
     install_helm
+    uninstall_docker
     outro
     package_cleanup
-
-    local kubeletVersion=
-    kubeletVersion="$(kubelet_version)"
-
-    semverParse "$kubeletVersion"
-    local kubeletMinor="$minor"
-    local kubeletPatch="$patch"
-
-    semverParse "$finalK8sVersion"
-    local finalMinor="$minor"
-    local finalPatch="$patch"
-
-    if [ "$kubeletMinor" -eq "$finalMinor" ] && [ "$kubeletPatch" -eq "$finalPatch" ] && [ "$HA_CLUSTER" = "1" ]; then 
-    # Docker was being uninstalled on the first upgrade attempt which caused kubeadm to fail in a HA scenario.
-    # This was because kubeadm on the nodes being upgraded would see the dockershim.sock file on the node set as
-    # the load balancer, and would attempt to use docker on machines where it had already been uninstalled.
-        uninstall_docker
-    elif [ "$HA_CLUSTER" != "1" ]; then
-        uninstall_docker
-    fi
 
     popd_install_directory
 }

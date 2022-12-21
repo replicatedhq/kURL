@@ -14,7 +14,7 @@ jobs:
         name: Build image matrix
         run: |
           git fetch --tags
-          tag=$(git tag | grep '^v20' | sort | tail -1)
+          tag=$(git tag | grep '^v20' | grep -v 'v2022\.09\.04' | sort | tail -1)
           export KURL_UTIL_IMAGE=replicated/kur-util:${tag}
           export KURL_BIN_UTILS_FILE=kurl-bin-utils-${tag}.tar.gz
           OUTPUT=`bin/list-all-packages-actions-matrix.sh "${{ github.event.inputs.index }}"`
@@ -22,7 +22,7 @@ jobs:
 
   build-upload-packages:
     needs: build-matrix
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     strategy:
       matrix: ${{fromJSON(needs.build-matrix.outputs.matrix)}}
       fail-fast: false
@@ -30,7 +30,7 @@ jobs:
     steps:
       - uses: actions/setup-go@v3
         with:
-          go-version: 1.17
+          go-version: 1.19
 
       - uses: actions/checkout@v3
 
@@ -38,10 +38,11 @@ jobs:
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_PROD_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_PROD_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: "us-east-1"
           BATCH: ${{ matrix.batch }}
         run: |
           git fetch --tags
-          tag=$(git tag | grep '^v20' | sort | tail -1)
+          tag=$(git tag | grep '^v20' | grep -v 'v2022\.09\.04' | sort | tail -1)
           git checkout $tag
           export KURL_UTIL_IMAGE=replicated/kurl-util:$tag # required if this is the common package
 

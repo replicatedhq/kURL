@@ -1,0 +1,21 @@
+name: test-testgrid-results
+
+on:
+  schedule:
+    - cron: "0/15 * * * *"
+  workflow_dispatch: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test-addons:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/testgrid-checker
+        with:
+          PRIVATE_KEY: ${{ secrets.TESTGRID_CHECKER_GH_PRIVATE_KEY }}

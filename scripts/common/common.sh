@@ -8,18 +8,27 @@ NC='\033[0m' # No Color
 KUBEADM_CONF_DIR=/opt/replicated
 KUBEADM_CONF_FILE="$KUBEADM_CONF_DIR/kubeadm.conf"
 
-commandExists() {
+function commandExists() {
     command -v "$@" > /dev/null 2>&1
+}
+
+function get_dist_url() {
+    local url="$DIST_URL"
+    if [ -n "${KURL_VERSION}" ]; then
+        url="${DIST_URL}/${KURL_VERSION}"
+    fi
+    echo "$url"
 }
 
 # default s3 endpoint does not have AAAA records so IPv6 installs have to choose
 # an arbitrary regional dualstack endpoint. If S3 transfer acceleration is ever
 # enabled on the kurl-sh bucket the s3.accelerate.amazonaws.com endpoint can be
 # used for both IPv4 and IPv6.
-function get_dist_url() {
-    local url="$DIST_URL"
+# this is not required for get_dist_url as *.kurl.sh endpoints have IPv6 addresses.
+function get_dist_url_fallback() {
+    local url="$FALLBACK_URL"
     if [ -n "${KURL_VERSION}" ]; then
-        url="${DIST_URL}/${KURL_VERSION}"
+        url="${FALLBACK_URL}/${KURL_VERSION}"
     fi
 
     if [ "$IPV6_ONLY" = "1" ]; then
@@ -41,32 +50,69 @@ function package_download() {
     mkdir -p assets
     touch assets/Manifest
 
-    local etag="$(cat assets/Manifest | grep "${package}" | awk 'NR == 1 {print $2}')"
-    local checksum="$(cat assets/Manifest | grep "${package}" | awk 'NR == 1 {print $3}')"
+    local etag=
+    local checksum=
+    etag="$(grep -F "${package}" assets/Manifest | awk 'NR == 1 {print $2}')"
+    checksum="$(grep -F "${package}" assets/Manifest | awk 'NR == 1 {print $3}')"
 
     if [ -n "${etag}" ] && ! package_matches_checksum "${package}" "${checksum}" ; then
         etag=
     fi
 
-    local newetag="$(curl -IfsSL "$(get_dist_url)/${package}" | grep -i 'etag:' | sed -r 's/.*"(.*)".*/\1/')"
+    local package_url=
+    if [ -z "$url_override" ]; then
+        package_url="$(get_dist_url)/${package}"
+    else
+        package_url="${url_override}"
+    fi
+
+    local newetag=
+    newetag="$(curl -IfsSL "$package_url" | grep -i 'etag:' | sed -r 's/.*"(.*)".*/\1/')"
     if [ -n "${etag}" ] && [ "${etag}" = "${newetag}" ]; then
         echo "Package ${package} already exists, not downloading"
         return
     fi
 
-    sed -i "/^$(printf '%s' "${package}").*/d" assets/Manifest # remove from manifest
+    local filepath=
+    filepath="$(package_filepath "${package}")"
 
-    local filepath="$(package_filepath "${package}")"
+    sed -i "/^$(printf '%s' "${package}").*/d" assets/Manifest # remove from manifest
+    rm -f "${filepath}" # remove the file
 
     echo "Downloading package ${package}"
     if [ -z "$url_override" ]; then
-        curl -fL -o "${filepath}" "$(get_dist_url)/${package}"
+        if [ -z "$FALLBACK_URL" ]; then
+            package_download_url_with_retry "$package_url" "${filepath}"
+        else
+            package_download_url_with_retry "$package_url" "${filepath}" || package_download_url_with_retry "$(get_dist_url_fallback)/${package}" "${filepath}"
+        fi
     else
-        curl -fL -o "${filepath}" "${url_override}"
+        package_download_url_with_retry "${url_override}" "${filepath}"
     fi
 
     checksum="$(md5sum "${filepath}" | awk '{print $1}')"
     echo "${package} ${newetag} ${checksum}" >> assets/Manifest
+}
+
+function package_download_url_with_retry() {
+    local url="$1"
+    local filepath="$2"
+    local max_retries="${3:-10}"
+
+    local errcode=
+    local i=0
+    while [ $i -ne "$max_retries" ]; do
+        errcode=0
+        curl -fL -o "${filepath}" "${url}" || errcode="$?"
+        # 18 transfer closed with outstanding read data remaining
+        # 56 recv failure (connection reset by peer)
+        if [ "$errcode" -eq "18" ] || [ "$errcode" -eq "56" ]; then
+            i=$(($i+1))
+            continue
+        fi
+        return "$errcode"
+    done
+    return "$errcode"
 }
 
 function package_filepath() {
@@ -99,7 +145,7 @@ function package_cleanup() {
     rm -rf "${DIR}/packages"
 }
 
-insertOrReplaceJsonParam() {
+function insertOrReplaceJsonParam() {
     if ! [ -f "$1" ]; then
         # If settings file does not exist
         mkdir -p "$(dirname "$1")"
@@ -123,7 +169,7 @@ insertOrReplaceJsonParam() {
     fi
 }
 
-semverParse() {
+function semverParse() {
     major="${1%%.*}"
     minor="${1#$major.}"
     minor="${minor%%.*}"
@@ -132,7 +178,7 @@ semverParse() {
 }
 
 SEMVER_COMPARE_RESULT=
-semverCompare() {
+function semverCompare() {
     semverParse "$1"
     _a_major="${major:-0}"
     _a_minor="${minor:-0}"
@@ -168,31 +214,31 @@ semverCompare() {
     SEMVER_COMPARE_RESULT=0
 }
 
-log() {
+function log() {
     printf "%s\n" "$1" 1>&2
 }
 
-logSuccess() {
+function logSuccess() {
     printf "${GREEN}✔ $1${NC}\n" 1>&2
 }
 
-logStep() {
+function logStep() {
     printf "${BLUE}⚙  $1${NC}\n" 1>&2
 }
 
-logSubstep() {
+function logSubstep() {
     printf "\t${LIGHT_BLUE}- $1${NC}\n" 1>&2
 }
 
-logFail() {
+function logFail() {
     printf "${RED}$1${NC}\n" 1>&2
 }
 
-logWarn() {
+function logWarn() {
     printf "${YELLOW}$1${NC}\n" 1>&2
 }
 
-bail() {
+function bail() {
     logFail "$@"
     exit 1
 }
@@ -224,7 +270,7 @@ function has_default_namespace() {
 #  See kubeadm-init and kubeadm-join yaml files.
 #  This bit will ensure the labels are added for pre-existing cluster
 #  during a kurl upgrade.)
-labelNodes() {
+function labelNodes() {
     for NODE in $(kubectl get nodes --no-headers | awk '{print $1}');do
         kurl_label=$(kubectl describe nodes $NODE | grep "kurl.sh\/cluster=true") || true
         if [[ -z $kurl_label ]];then
@@ -233,7 +279,8 @@ labelNodes() {
     done
 }
 
-spinnerPodRunning() {
+# warning - this only waits for the pod to be running, not for it to be 1/1 or otherwise accepting connections
+function spinnerPodRunning() {
     namespace=$1
     podPrefix=$2
 
@@ -250,7 +297,7 @@ spinnerPodRunning() {
 }
 
 COMPARE_DOCKER_VERSIONS_RESULT=
-compareDockerVersions() {
+function compareDockerVersions() {
     # reset
     COMPARE_DOCKER_VERSIONS_RESULT=
     compareDockerVersionsIgnorePatch "$1" "$2"
@@ -273,7 +320,7 @@ compareDockerVersions() {
 }
 
 COMPARE_DOCKER_VERSIONS_RESULT=
-compareDockerVersionsIgnorePatch() {
+function compareDockerVersionsIgnorePatch() {
     # reset
     COMPARE_DOCKER_VERSIONS_RESULT=
     parseDockerVersion "$1"
@@ -305,7 +352,7 @@ DOCKER_VERSION_MAJOR=
 DOCKER_VERSION_MINOR=
 DOCKER_VERSION_PATCH=
 DOCKER_VERSION_RELEASE=
-parseDockerVersion() {
+function parseDockerVersion() {
     # reset
     DOCKER_VERSION_MAJOR=
     DOCKER_VERSION_MINOR=
@@ -323,15 +370,15 @@ parseDockerVersion() {
     DOCKER_VERSION_RELEASE=$2
 }
 
-exportKubeconfig() {
+function exportKubeconfig() {
     local kubeconfig
     kubeconfig="$(${K8S_DISTRO}_get_kubeconfig)"
 
-    # To meet KUBERNETES_CIS_COMPLIANCE, the ${kubeconfig} needs to be owned by root:root, 
-    # permissions were set to 444 so users other than root can have access to kubectl
+    # To meet KUBERNETES_CIS_COMPLIANCE, the ${kubeconfig} needs to be owned by root:root
+    # and permissions set to 600 so users other than root cannot have access to kubectl
     if [ "$KUBERNETES_CIS_COMPLIANCE" == "1" ]; then
         chown root:root ${kubeconfig}
-        chmod 444 ${kubeconfig}
+        chmod 400 ${kubeconfig}
     else
         current_user_sudo_group
         if [ -n "$FOUND_SUDO_GROUP" ]; then
@@ -341,7 +388,9 @@ exportKubeconfig() {
     fi
     
     if ! grep -q "kubectl completion bash" /etc/profile; then
-        echo "export KUBECONFIG=${kubeconfig}" >> /etc/profile
+        if [ "$KUBERNETES_CIS_COMPLIANCE" != "1" ]; then
+            echo "export KUBECONFIG=${kubeconfig}" >> /etc/profile
+        fi
         echo "if  type _init_completion >/dev/null 2>&1; then source <(kubectl completion bash); fi" >> /etc/profile
     fi
 }
@@ -462,7 +511,7 @@ function spinner_until() {
     local spinstr='|/-\'
 
     while ! $cmd $args; do
-        elapsed=$(($elapsed + $delay))
+        elapsed=$((elapsed + delay))
         if [ "$timeoutSeconds" -ge 0 ] && [ "$elapsed" -gt "$timeoutSeconds" ]; then
             return 1
         fi
@@ -474,9 +523,33 @@ function spinner_until() {
     done
 }
 
+function sleep_spinner() {
+    local sleepSeconds="${1:-0}"
+
+    local delay=1
+    local elapsed=0
+    local spinstr='|/-\'
+
+    while true ; do
+        elapsed=$((elapsed + delay))
+        if [ "$elapsed" -gt "$sleepSeconds" ]; then
+            return 0
+        fi
+        local temp=${spinstr#?}
+        printf " [%c]  " "$spinstr"
+        local spinstr=$temp${spinstr%"$temp"}
+        sleep $delay
+        printf "\b\b\b\b\b\b"
+    done
+}
+
 function get_common() {
     if [ "$AIRGAP" != "1" ] && [ -n "$DIST_URL" ]; then
-        curl -sSOL "$(get_dist_url)/common.tar.gz"
+        if [ -z "$FALLBACK_URL" ]; then
+            curl -sSOL "$(get_dist_url)/common.tar.gz"
+        else
+            curl -sSOL "$(get_dist_url)/common.tar.gz" || curl -sSOL "$(get_dist_url_fallback)/common.tar.gz"
+        fi
         tar xf common.tar.gz
         rm common.tar.gz
     fi
@@ -518,8 +591,8 @@ function current_user_sudo_group() {
 
 function kubeconfig_setup_outro() {
     current_user_sudo_group
-    # If opt-in to have KUBERNETES_CIS_COMPLIANCE FOUND_SUDO_GROUP is not required for kubectl access
-    if [ "$KUBERNETES_CIS_COMPLIANCE" == "1" ] || [ -n "$FOUND_SUDO_GROUP" ]; then
+    # If opt-in to have KUBERNETES_CIS_COMPLIANCE FOUND_SUDO_GROUP is required for kubectl access
+    if [ "$KUBERNETES_CIS_COMPLIANCE" != "1" ] && [ -n "$FOUND_SUDO_GROUP" ]; then
         printf "To access the cluster with kubectl, reload your shell:\n"
         printf "\n"
         printf "${GREEN}    bash -l${NC}\n"
@@ -556,11 +629,11 @@ function kubeconfig_setup_outro() {
     printf "You will likely need to use sudo to copy and chown "$(${K8S_DISTRO}_get_kubeconfig)".\n"
 }
 
-splitHostPort() {
+function splitHostPort() {
     oIFS="$IFS"; IFS=":" read -r HOST PORT <<< "$1"; IFS="$oIFS"
 }
 
-isValidIpv4() {
+function isValidIpv4() {
     if echo "$1" | grep -qs '^[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*$'; then
         return 0
     else
@@ -568,7 +641,7 @@ isValidIpv4() {
     fi
 }
 
-isValidIpv6() {
+function isValidIpv6() {
     if echo "$1" | grep -qs "^\([0-9a-fA-F]\{0,4\}:\)\{1,7\}[0-9a-fA-F]\{0,4\}$"; then
         return 0
     else
@@ -634,9 +707,6 @@ function maybe_read_kurl_config_from_cluster() {
     local kurl_install_directory_flag
     # we don't yet have KUBECONFIG when this is called from the top of install.sh
     kurl_install_directory_flag="$(KUBECONFIG="$(kubeadm_get_kubeconfig)" kubectl -n kube-system get cm kurl-config -ojsonpath='{ .data.kurl_install_directory }' 2>/dev/null || echo "")"
-    if [ -z "${kurl_install_directory_flag}" ]; then
-        kurl_install_directory_flag="$(KUBECONFIG="$(rke2_get_kubeconfig)" kubectl -n kube-system get cm kurl-config -ojsonpath='{ .data.kurl_install_directory }' 2>/dev/null || echo "")"
-    fi
     if [ -n "${kurl_install_directory_flag}" ]; then
         KURL_INSTALL_DIRECTORY_FLAG="${kurl_install_directory_flag}"
         KURL_INSTALL_DIRECTORY="$(realpath ${kurl_install_directory_flag})/kurl"
@@ -830,4 +900,99 @@ function build_installer_prefix() {
 
 function get_local_node_name() {
     hostname | tr '[:upper:]' '[:lower:]'
+}
+
+# this waits for a deployment to have all replicas up-to-date and available
+function deployment_fully_updated() {
+    local namespace=$1
+    local deployment=$2
+
+    local desiredReplicas
+    desiredReplicas=$(kubectl get deployment -n "$namespace" "$deployment" -o jsonpath='{.status.replicas}')
+
+    local availableReplicas
+    availableReplicas=$(kubectl get deployment -n "$namespace" "$deployment" -o jsonpath='{.status.availableReplicas}')
+
+    local readyReplicas
+    readyReplicas=$(kubectl get deployment -n "$namespace" "$deployment" -o jsonpath='{.status.readyReplicas}')
+
+    local updatedReplicas
+    updatedReplicas=$(kubectl get deployment -n "$namespace" "$deployment" -o jsonpath='{.status.updatedReplicas}')
+
+    if [ "$desiredReplicas" != "$availableReplicas" ] ; then
+        return 1
+    fi
+
+    if [ "$desiredReplicas" != "$readyReplicas" ] ; then
+        return 1
+    fi
+
+    if [ "$desiredReplicas" != "$updatedReplicas" ] ; then
+        return 1
+    fi
+
+    return 0
+}
+
+# this waits for a daemonset to have all replicas up-to-date and available
+function daemonset_fully_updated() {
+    local namespace=$1
+    local daemonset=$2
+
+    local desiredNumberScheduled
+    desiredNumberScheduled=$(kubectl get daemonset -n "$namespace" "$daemonset" -o jsonpath='{.status.desiredNumberScheduled}')
+
+    local currentNumberScheduled
+    currentNumberScheduled=$(kubectl get daemonset -n "$namespace" "$daemonset" -o jsonpath='{.status.currentNumberScheduled}')
+
+    local numberAvailable
+    numberAvailable=$(kubectl get daemonset -n "$namespace" "$daemonset" -o jsonpath='{.status.numberAvailable}')
+
+    local numberReady
+    numberReady=$(kubectl get daemonset -n "$namespace" "$daemonset" -o jsonpath='{.status.numberReady}')
+
+    local updatedNumberScheduled
+    updatedNumberScheduled=$(kubectl get daemonset -n "$namespace" "$daemonset" -o jsonpath='{.status.updatedNumberScheduled}')
+
+    if [ "$desiredNumberScheduled" != "$numberAvailable" ] ; then
+        return 1
+    fi
+
+    if [ "$desiredNumberScheduled" != "$currentNumberScheduled" ] ; then
+        return 1
+    fi
+
+    if [ "$desiredNumberScheduled" != "$numberAvailable" ] ; then
+        return 1
+    fi
+
+    if [ "$desiredNumberScheduled" != "$numberReady" ] ; then
+        return 1
+    fi
+
+    if [ "$desiredNumberScheduled" != "$updatedNumberScheduled" ] ; then
+        return 1
+    fi
+
+    return 0
+}
+
+# pods_gone_by_selector returns true if there are no pods matching the given selector
+function pods_gone_by_selector() {
+    local namespace=$1
+    local selector=$2
+    [ "$(pod_count_by_selector "$namespace" "$selector")" = "0" ]
+}
+
+# pod_count_by_selector returns the number of pods matching the given selector or -1 if the command fails
+function pod_count_by_selector() {
+    local namespace=$1
+    local selector=$2
+
+    local pods=
+    if ! pods="$(kubectl -n "$namespace" get pods --no-headers -l "$selector" 2>/dev/null)" ; then
+        echo -1
+    fi
+
+    echo -n "$pods" | wc -l
 }

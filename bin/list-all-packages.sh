@@ -20,11 +20,8 @@ function pkgs() {
         if [ "$version" = "template" ] || [ "$version" = "build-images" ]; then
             continue
         fi
-        # HACK: allow for conformance packages to be built for rke2 and k3s for versions we do not support of kubeadm.
-        if [ -f "$dir/Manifest" ]; then
-            echo "${name}-${version}.tar.gz ${dir}/"
-        fi
-        if [ "${name}" = "kubernetes" ] || [ "${name}" = "k-3-s" ] || [ "${name}" = "rke-2" ]; then
+        echo "${name}-${version}.tar.gz ${dir}/"
+        if [ "${name}" = "kubernetes" ]; then
             local minor="$(echo "${version}" | sed -E 's/^v?[0-9]+\.([0-9]+).[0-9]+.*$/\1/')"
             if [ "${minor}" -ge 17 ]; then
                 local conformance_version="$(echo "${version}" | sed -E 's/^v?([0-9]+\.[0-9]+.[0-9]+).*$/\1/')"
@@ -57,6 +54,7 @@ function list_other() {
     echo "docker-19.03.10.tar.gz bundles/"
     echo "docker-19.03.15.tar.gz bundles/"
     echo "docker-20.10.5.tar.gz bundles/"
+    echo "docker-20.10.17.tar.gz bundles/"
 }
 
 function list_all() {

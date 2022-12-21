@@ -1,12 +1,35 @@
-- installerSpec:
+- name: latest
+  installerSpec:
     kubernetes:
-      version: "latest"
+      version: "1.25.x"
+    containerd:
+      version: latest
     weave:
-      version: "latest"
-    rook:
-      version: "latest"
-    docker:
-      version: "latest"
+      version: "2.8.x"
+    openebs:
+      version: "3.3.0"
+      isLocalPVEnabled: true
+      localPVStorageClassName: default
+    ekco:
+      version: latest
     sonobuoy:
       version: "__testver__"
       s3Override: "__testdist__"
+- name: latest-airgap
+  installerSpec:
+    kubernetes:
+      version: "1.25.x"
+    containerd:
+      version: latest
+    weave:
+      version: "2.8.x"
+    openebs:
+      version: "3.3.0"
+      isLocalPVEnabled: true
+      localPVStorageClassName: default
+    ekco:
+      version: latest
+    sonobuoy:
+      version: "__testver__"
+      s3Override: "__testdist__"
+  airgap: true

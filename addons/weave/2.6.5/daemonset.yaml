@@ -35,8 +35,8 @@ spec:
             - name: CHECKPOINT_DISABLE
               value: "1"
             - name: EXEC_IMAGE
-              value: "kurlsh/weaveexec:2.6.5-45e04df-20220616"
-          image: kurlsh/weave-kube:2.6.5-45e04df-20220616
+              value: "weaveworks/weaveexec:2.6.5"
+          image: weaveworks/weave-kube:2.6.5
           livenessProbe:
             httpGet:
               host: 127.0.0.1
@@ -72,7 +72,7 @@ spec:
                 fieldRef:
                   apiVersion: v1
                   fieldPath: spec.nodeName
-          image: kurlsh/weave-npc:2.6.5-45e04df-20220616
+          image: weaveworks/weave-npc:2.6.5
           resources:
             requests:
               cpu: 50m
