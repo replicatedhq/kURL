@@ -17,6 +17,7 @@ require AWS_SECRET_ACCESS_KEY "${AWS_SECRET_ACCESS_KEY}"
 require AWS_REGION "${AWS_REGION}"
 require S3_BUCKET "${S3_BUCKET}"
 require VERSION_TAG "${VERSION_TAG}"
+require STAGING_RELEASE "${STAGING_RELEASE}"
 
 GITSHA="$(git rev-parse HEAD)"
 
@@ -98,18 +99,8 @@ function copy_package_dist() {
 }
 
 function copy_staging_release_to_dist() {
-    local version_commit=
-    local staging_release_dir=
-    version_commit="$(git rev-list "${VERSION_TAG}" -n 1 | xargs git rev-parse --short)"
-    staging_release_dir="$(aws s3 ls s3://"${S3_BUCKET}/${STAGING_PREFIX}/" | grep "${version_commit}" | awk '{print $2}')"
-
-    if [ -z "${staging_release_dir}" ]; then
-        echo "Could not find staging release for tag ${VERSION_TAG} (${version_commit})"
-        return 1
-    fi
-
-    echo "copying s3://${S3_BUCKET}/${STAGING_PREFIX}/${staging_release_dir%/} to s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${VERSION_TAG}"
-    retry 5 aws s3 cp --recursive "s3://${S3_BUCKET}/${STAGING_PREFIX}/${staging_release_dir%/}" "s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${VERSION_TAG}"
+    echo "copying s3://${S3_BUCKET}/${STAGING_PREFIX}/${STAGING_RELEASE_DIR} to s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${VERSION_TAG}"
+    retry 5 aws s3 cp --recursive "s3://${S3_BUCKET}/${STAGING_PREFIX}/${STAGING_RELEASE_DIR}" "s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${VERSION_TAG}"
 }
 
 function deploy() {

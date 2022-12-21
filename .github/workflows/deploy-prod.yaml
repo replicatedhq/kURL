@@ -17,10 +17,68 @@ jobs:
         export VERSION_TAG=$GITHUB_REF_NAME
         ./bin/verify-tag.sh "${VERSION_TAG}"
 
+  get-staging-release:
+    runs-on: ubuntu-20.04
+    needs:
+    - verify-tag
+    outputs:
+      staging_release: ${{ steps.get_staging_release.outputs.staging_release }}
+    steps:
+    - name: find corresponding staging release for tag
+      id: get_staging_release
+      run: |
+        version_commit="$(git rev-list "${GITHUB_REF_NAME}" -n 1 | xargs git rev-parse --short)"
+        staging_release_dir="$(aws s3 ls s3://"${S3_BUCKET}/${STAGING_PREFIX}/" | grep "${version_commit}" | awk '{print $2}')"
+        if [ -z "${staging_release_dir}" ]; then
+            echo "Could not find staging release for tag ${GITHUB_REF_NAME} (${version_commit})"
+            return 1
+        fi
+        echo "staging_release=${staging_release_dir%/}" >> $GITHUB_OUTPUT
+      env:
+        S3_BUCKET: kurl-sh
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_PROD_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_PROD_SECRET_ACCESS_KEY }}
+        AWS_REGION: "us-east-1"
+        STAGING_PREFIX: "staging"
+
+  verify-staging-release-testgrid-result:
+    runs-on: ubuntu-20.04
+    needs:
+    - verify-tag
+    - get-staging-release
+    steps:
+    - name: Verify testgrid run
+      run: |
+        curl -s "https://api.testgrid.kurl.sh/api/v1/runs?searchRef=${STAGING_RELEASE}" | jq -e '.runs[].failure_count == 0'
+      env:
+        STAGING_RELEASE: ${{ needs.get-staging-release.outputs.staging_release }}
+
+  copy-staging-release-to-prod:
+    runs-on: ubuntu-20.04
+    needs:
+     - verify-staging-release-testgrid-result
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+
+    - name: Copy Staging Release to Prod
+      run: |
+        export VERSION_TAG=$GITHUB_REF_NAME
+        . bin/upload-dist-versioned.sh
+        copy_staging_release_to_dist
+      env:
+        S3_BUCKET: kurl-sh
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_PROD_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_PROD_SECRET_ACCESS_KEY }}
+        AWS_REGION: "us-east-1"
+        STAGING_RELEASE: ${{ needs.get-staging-release.outputs.staging_release }}
+
   generate-kurl-release-notes-pr:
     runs-on: ubuntu-20.04
     needs:
     - verify-tag
+    - get-staging-release
     steps:
     - name: Checkout
       uses: actions/checkout@v2
@@ -52,29 +110,11 @@ jobs:
         docker tag replicated/kurl-util:${VERSION_TAG} replicated/kurl-util
         docker push replicated/kurl-util
 
-  copy-staging-release:
-    runs-on: ubuntu-20.04
-    steps:
-    - uses: actions/checkout@v3
-      with:
-        fetch-depth: 0
-
-    - name: find and copy staging release to prod
-      run: |
-        export VERSION_TAG=$GITHUB_REF_NAME
-
-        . bin/upload-dist-versioned.sh
-        copy_staging_release_to_dist
-      env:
-        S3_BUCKET: kurl-sh
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_PROD_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_PROD_SECRET_ACCESS_KEY }}
-        AWS_REGION: "us-east-1"
-
   github-release:
     runs-on: ubuntu-20.04
     needs:
     - kurl-util-image
+    - copy-staging-release-to-prod
     steps:
     - name: Checkout
       uses: actions/checkout@v3
@@ -157,7 +197,7 @@ jobs:
   set-current-version:
     runs-on: ubuntu-20.04
     needs:
-    - copy-staging-release
+    - copy-staging-release-to-prod
     steps:
     - name: Set VERSION file in s3
       run: |
