@@ -49,7 +49,20 @@ jobs:
     steps:
     - name: Verify testgrid run
       run: |
-        curl -s "https://api.testgrid.kurl.sh/api/v1/runs?searchRef=${STAGING_RELEASE}" | jq -e '.runs[].failure_count == 0'
+        testgrid_run_json=$(curl -s "https://api.testgrid.kurl.sh/api/v1/runs?searchRef=${STAGING_RELEASE}")
+        if [ -z "${testgrid_run_json}" ]; then
+          echo "Did not find testgrid run which contains ${STAGING_RELEASE} in its Ref"
+          return 1
+        fi
+
+        echo "Found testgrid run:"
+        echo ${testgrid_run_json} | jq
+
+        tg_run_id=$(echo "${testgrid_run_json}" | jq -r '.runs[].id')
+        if ! echo "${testgrid_run_json}" | jq -e '.runs[].failure_count == 0'; then
+          echo "Testgrid Run ${tg_run_id} has failures"
+          return 1
+        fi
       env:
         STAGING_RELEASE: ${{ needs.get-staging-release.outputs.staging_release }}
 
