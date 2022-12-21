@@ -137,6 +137,12 @@ function rook_upgrade() {
 
     rook_upgrade_prompt_missing_images "$from_version" "$to_version"
 
+    # delete the mutatingwebhookconfiguration and remove the rook-priority.kurl.sh label
+    # as the EKCO rook-priority.kurl.sh mutating webhook is no longer necessary passed Rook
+    # 1.0.4.
+    kubectl label namespace rook-ceph rook-priority.kurl.sh-
+    kubectl delete mutatingwebhookconfigurations rook-priority.kurl.sh --ignore-not-found
+
     if rook_upgrade_is_version_included "$from_version" "$to_version" "1.4" ; then
         addon_source "rookupgrade" "10to14"
         rookupgrade_10to14_upgrade "$from_version"
