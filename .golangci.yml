@@ -60,7 +60,7 @@ linters:
      - gosimple
      - govet
      - ineffassign
-#    - lll
+#    - lll (TODO: Fiz size of the lines, as a good practice we should not need to use scroll to read the code)
      - misspell
      - nakedret
      - revive
@@ -68,4 +68,4 @@ linters:
      - typecheck
 #    - unconvert TODO: check the 2 unnecessary conversions found to enable this one
      - unparam
-#    - unused
+     - unused
