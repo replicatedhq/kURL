@@ -20,7 +20,7 @@ spec:
     spec:
       initContainers:
       - name: restore
-        image: kurlsh/s3cmd:7f7dc75-20210331
+        image: kurlsh/s3cmd:20221219-ff60227
         imagePullPolicy: IfNotPresent
         command:
         - /restore.sh
@@ -48,7 +48,7 @@ spec:
               name: registry-s3-secret
       containers:
       - name: registry-backup
-        image: kurlsh/s3cmd:7f7dc75-20210331
+        image: kurlsh/s3cmd:20221219-ff60227
         imagePullPolicy: IfNotPresent
         command:
         - /bin/sh
