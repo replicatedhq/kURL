@@ -76,9 +76,10 @@ func (p *restoreKotsadmPlugin) Execute(input *velero.RestoreItemActionExecuteInp
 	var updatedObj interface{}
 
 	gvk := input.Item.GetObjectKind().GroupVersionKind()
+	const kotsadm = "kotsadm"
 	switch gvk.Kind {
 	case "Deployment":
-		if metadata.GetName() != "kotsadm" {
+		if metadata.GetName() != kotsadm {
 			return &velero.RestoreItemActionExecuteOutput{UpdatedItem: input.Item}, nil
 		}
 
@@ -91,7 +92,7 @@ func (p *restoreKotsadmPlugin) Execute(input *velero.RestoreItemActionExecuteInp
 		updatedObj = deployment
 
 	case "StatefulSet":
-		if metadata.GetName() != "kotsadm" {
+		if metadata.GetName() != kotsadm {
 			return &velero.RestoreItemActionExecuteOutput{UpdatedItem: input.Item}, nil
 		}
 
@@ -104,7 +105,7 @@ func (p *restoreKotsadmPlugin) Execute(input *velero.RestoreItemActionExecuteInp
 		updatedObj = statefulset
 
 	case "ReplicaSet":
-		if metadata.GetLabels()["app"] != "kotsadm" {
+		if metadata.GetLabels()["app"] != kotsadm {
 			return &velero.RestoreItemActionExecuteOutput{UpdatedItem: input.Item}, nil
 		}
 
@@ -117,7 +118,7 @@ func (p *restoreKotsadmPlugin) Execute(input *velero.RestoreItemActionExecuteInp
 		updatedObj = replicaset
 
 	case "Pod":
-		if metadata.GetLabels()["app"] != "kotsadm" {
+		if metadata.GetLabels()["app"] != kotsadm {
 			return &velero.RestoreItemActionExecuteOutput{UpdatedItem: input.Item}, nil
 		}
 

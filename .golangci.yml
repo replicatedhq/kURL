@@ -52,14 +52,13 @@ linters:
   enable:
 #    - dupl
 #    - errcheck
-#    - exportloopref
-#    - goconst
+     - exportloopref
+     - goconst
 #    - gocyclo
      - gofmt
      - goimports
-#    - gosec
 #    - gosimple
-#    - govet
+     - govet
 #    - ineffassign
 #    - lll
      - misspell
