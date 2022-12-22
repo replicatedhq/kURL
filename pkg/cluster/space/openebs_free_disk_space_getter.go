@@ -13,7 +13,6 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/replicatedhq/kurl/pkg/k8sutil"
-	"gopkg.in/yaml.v2"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -203,7 +202,7 @@ func (o *OpenEBSFreeDiskSpaceGetter) buildTmpPVC(node string) *corev1.Persistent
 // and then it takes longer to boostrap the job pod. this job also mounts the provided temp
 // pvc, this is done to make sure that the openebs has created the base path inside the node
 // (it only creates it when some kind of allocation already happened in the node).
-func (o *OpenEBSFreeDiskSpaceGetter) buildJob(ctx context.Context, node, basePath, tmpPVC string) *batchv1.Job {
+func (o *OpenEBSFreeDiskSpaceGetter) buildJob(_ context.Context, node, basePath, tmpPVC string) *batchv1.Job {
 	schedRules := &corev1.NodeSelector{
 		NodeSelectorTerms: []corev1.NodeSelectorTerm{
 			{

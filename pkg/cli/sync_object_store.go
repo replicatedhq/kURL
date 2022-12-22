@@ -5,13 +5,12 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/minio/minio-go"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 )
 
-func newSyncObjectStoreCmd(cli CLI) *cobra.Command {
+func newSyncObjectStoreCmd(_ CLI) *cobra.Command {
 	var srcHost string
 	var srcAccessKeyID string
 	var srcAccessKeySecret string

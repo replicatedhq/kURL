@@ -5,7 +5,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func newVersionCmd(cli CLI) *cobra.Command {
+func newVersionCmd(_ CLI) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "version",
 		Short: "Prints the kURL version",

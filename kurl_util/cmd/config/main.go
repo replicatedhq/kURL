@@ -238,7 +238,7 @@ func processFirewalldConfig(installer *kurlv1beta1.Installer, execCmds bool, gen
 	return nil
 }
 
-func processIptablesConfig(installer *kurlv1beta1.Installer, execCmds bool, generateScript bool) error {
+func processIptablesConfig(installer *kurlv1beta1.Installer, execCmds bool, _ bool) error {
 	if installer.Spec.IptablesConfig == nil {
 		return nil
 	}
