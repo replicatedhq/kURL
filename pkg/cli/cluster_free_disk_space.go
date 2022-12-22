@@ -150,7 +150,7 @@ func evaluateRookFreeSpace(ctx context.Context, kubeCli kubernetes.Interface, ro
 }
 
 // NewClusterCheckFreeDiskSpaceCmd returns a command that is capable of reporting back the amount of free space in the cluster for a provided storage class.
-func NewClusterCheckFreeDiskSpaceCmd(cli CLI) *cobra.Command {
+func NewClusterCheckFreeDiskSpaceCmd(_ CLI) *cobra.Command {
 	var forStorageClass, openEBSImage, openEBSNode, biggerThanString string
 	var biggerThanBytes int64
 	var clientSet kubernetes.Interface

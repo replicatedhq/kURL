@@ -10,7 +10,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 )
 
-func NewRookHasSufficientBlockDevicesCmd(cli CLI) *cobra.Command {
+func NewRookHasSufficientBlockDevicesCmd(_ CLI) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "has-sufficient-blockdevices",
 		Short: "Exits 0 if there are enough block devices in the cluster, 1 otherwise",

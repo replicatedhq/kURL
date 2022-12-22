@@ -9,7 +9,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 )
 
-func NewRookHealthCmd(cli CLI) *cobra.Command {
+func NewRookHealthCmd(_ CLI) *cobra.Command {
 	var ignoreChecks []string
 	cmd := &cobra.Command{
 		Use:   "health",

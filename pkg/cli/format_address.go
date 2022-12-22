@@ -7,7 +7,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func newFormatAddressCmd(cli CLI) *cobra.Command {
+func newFormatAddressCmd(_ CLI) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "format-address",
 		Short: "Adds brackets around ipv6 addresses",

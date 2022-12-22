@@ -12,7 +12,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 )
 
-func NewClusterNodesMissingImageCmd(cli CLI) *cobra.Command {
+func NewClusterNodesMissingImageCmd(_ CLI) *cobra.Command {
 	var excludeHost, excludeHostDeprecated string
 	var opts cluster.NodeImagesJobOptions
 
