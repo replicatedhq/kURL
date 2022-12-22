@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/briandowns/spinner"
-	"github.com/mattn/go-isatty"
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/kurl/pkg/installer"
 	"github.com/replicatedhq/kurl/pkg/preflight"
@@ -223,9 +222,8 @@ func newHostPreflightCmd(cli CLI) *cobra.Command {
 				case preflightIsWarn(results):
 					if v.GetBool("ignore-warnings") {
 						os.Exit(preflightsIgnoreWarningCode)
-					} else {
-						os.Exit(preflightsWarningCode)
 					}
+					os.Exit(preflightsWarningCode)
 				}
 				return nil
 			}
