@@ -1,4 +1,3 @@
-
 #!/bin/bash
 
 set -e
@@ -107,6 +106,7 @@ function outro() {
 K8S_DISTRO=kubeadm
 
 function main() {
+    logStep "Running upgrade with the argument(s): $@"
     export KUBECONFIG=/etc/kubernetes/admin.conf
     require_root_user
     # ensure /usr/local/bin/kubectl-plugin is in the path
@@ -148,4 +148,11 @@ function main() {
     popd_install_directory
 }
 
-main "$@"
+# tee logs into /var/log/kurl/upgrade-<date>.log and stdout
+mkdir -p /var/log/kurl
+LOGFILE="/var/log/kurl/upgrade-$(date +"%Y-%m-%dT%H-%M-%S").log"
+main "$@" 2>&1 | tee $LOGFILE
+# it is required to return the exit status of the script
+FINAL_RESULT="${PIPESTATUS[0]}"
+sed -i "/\b\(password\)\b/d" $LOGFILE > /dev/null 2>&1
+exit "$FINAL_RESULT"

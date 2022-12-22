@@ -24,6 +24,7 @@ DIR=.
 
 K8S_DISTRO=
 function tasks() {
+    logStep "Running tasks with the argument(s): $@"
     # ensure /usr/local/bin/kubectl-plugin is in the path
     path_add "/usr/local/bin"
 
@@ -717,4 +718,10 @@ function install_host_dependencies_longhorn() {
     longhorn_host_init_common "${DIR}/packages/host/longhorn"
 }
 
-tasks "$@"
+mkdir -p /var/log/kurl
+LOGFILE="/var/log/kurl/tasks-$(date +"%Y-%m-%dT%H-%M-%S").log"
+tasks "$@" 2>&1 | tee $LOGFILE
+# it is required to return the exit status of the script
+FINAL_RESULT="${PIPESTATUS[0]}"
+sed -i "/\b\(password\)\b/d" $LOGFILE > /dev/null 2>&1
+exit "$FINAL_RESULT"
