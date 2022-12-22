@@ -622,7 +622,7 @@ allow_remove_docker_new_install() {
      fi
 
      printf "\n${YELLOW}Docker already exists on this machine and Kubernetes is not yet installed.${NC} "
-     printf "\n${YELLOW}In order to avoid conflicts when installing containerd, it is recommended that Docker be removed.
+     printf "\n${YELLOW}In order to avoid conflicts when installing containerd, it is recommended that Docker be removed."
      printf "\n${YELLOW}Remove Docker?${NC} "
      if confirmY ; then
           uninstall_docker_new_installs_with_containerd
