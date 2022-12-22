@@ -50,23 +50,22 @@ linters-settings:
 linters:
   disable-all: true
   enable:
-#    - dupl
-#    - errcheck
+#    - dupl (TODO remove the code duplications to sort it out)
+#    - errcheck (TODO: Sort out f.Close() calls, we are not checking if they fails)
      - exportloopref
      - goconst
-#    - gocyclo
+#    - gocyclo (TODO: Sort out the func with high complexity)
      - gofmt
      - goimports
-#    - gosimple
+     - gosimple
      - govet
-#    - ineffassign
+     - ineffassign
 #    - lll
      - misspell
      - nakedret
-#    - prealloc
      - revive
-#    - staticcheck
-#    - typecheck
-#    - unconvert
-#    - unparam
+     - staticcheck
+     - typecheck
+#    - unconvert TODO: check the 2 unnecessary conversions found to enable this one
+     - unparam
 #    - unused

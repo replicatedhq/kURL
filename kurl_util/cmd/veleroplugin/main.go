@@ -52,6 +52,9 @@ func newRestorePlugin(logger logrus.FieldLogger) (interface{}, error) {
 	}, nil
 }
 
+// nolint:unparam
+// TODO: Check if we need return the error here because it will be nil always
+// (*restoreKotsadmPlugin).AppliesTo - result 1 (error) is always nil (unparam)
 func (p *restoreKotsadmPlugin) AppliesTo() (velero.ResourceSelector, error) {
 	return velero.ResourceSelector{
 		IncludedNamespaces: []string{"default"},
