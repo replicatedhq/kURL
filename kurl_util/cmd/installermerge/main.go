@@ -14,6 +14,7 @@ import (
 	"github.com/pkg/errors"
 	kurlversion "github.com/replicatedhq/kurl/pkg/version"
 	kurlscheme "github.com/replicatedhq/kurlkinds/client/kurlclientset/scheme"
+	"gopkg.in/yaml.v2"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/client-go/kubernetes/scheme"
 )

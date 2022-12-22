@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/briandowns/spinner"
+	"github.com/mattn/go-isatty"
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/kurl/pkg/installer"
 	"github.com/replicatedhq/kurl/pkg/preflight"

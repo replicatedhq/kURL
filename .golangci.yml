@@ -56,14 +56,14 @@ linters:
 #    - goconst
 #    - gocyclo
      - gofmt
-#    - goimports
+     - goimports
 #    - gosec
 #    - gosimple
 #    - govet
 #    - ineffassign
 #    - lll
      - misspell
-#    - nakedret
+     - nakedret
 #    - prealloc
      - revive
 #    - staticcheck
