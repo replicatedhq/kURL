@@ -74,7 +74,7 @@ func parseBashFlags(installer *kurlv1beta1.Installer, bashFlags string) error {
 		split := strings.Split(flag, "=")
 
 		if !checkIfFlagHasValue(len(split), split[0]) {
-			return errors.New(fmt.Sprintf("flag %s does not have a value", split[0]))
+			return fmt.Errorf("flag %s does not have a value", split[0])
 		}
 
 		switch split[0] {
@@ -275,7 +275,7 @@ func parseBashFlags(installer *kurlv1beta1.Installer, bashFlags string) error {
 			}
 			installer.Spec.Velero.ResticTimeout = split[1]
 		default:
-			return errors.New(fmt.Sprintf("string %s is not a bash flag", split[0]))
+			return fmt.Errorf("string %s is not a bash flag", split[0])
 		}
 	}
 

@@ -14,7 +14,6 @@ import (
 	"github.com/pkg/errors"
 	kurlversion "github.com/replicatedhq/kurl/pkg/version"
 	kurlscheme "github.com/replicatedhq/kurlkinds/client/kurlclientset/scheme"
-	"gopkg.in/yaml.v2"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/client-go/kubernetes/scheme"
 )
@@ -33,7 +32,7 @@ func getInstallerConfigFromYaml(yamlPath string) ([]byte, error) {
 	}
 
 	if containsNbsp(yamlData) {
-		return nil, errors.New(fmt.Sprintf("yaml file at %s has lines starting with non-breaking spaces, please convert these to normal spaces", yamlPath))
+		return nil, fmt.Errorf("yaml file at %s has lines starting with non-breaking spaces, please convert these to normal spaces", yamlPath)
 	}
 
 	decode := scheme.Codecs.UniversalDeserializer().Decode
