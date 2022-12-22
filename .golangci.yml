@@ -1,0 +1,71 @@
+run:
+  deadline: 5m
+  allow-parallel-runners: true
+
+issues:
+  # don't skip warning about doc comments
+  # don't exclude the default set of lint
+  exclude-use-default: false
+
+linters-settings:
+  govet:
+    enable=fieldalignment: true
+  revive:
+    rules:
+      # The following rules are recommended https://github.com/mgechev/revive#recommended-configuration
+      - name: blank-imports
+      - name: context-as-argument
+      - name: context-keys-type
+      - name: dot-imports
+      - name: error-return
+      - name: error-strings
+        disabled: true  # TODO: fix errors first
+      - name: error-naming
+      - name: exported
+        disabled: true  # TODO: Investigate if it should be enabled. Disabled for now due to many findings.
+      - name: if-return
+      - name: increment-decrement
+      - name: var-naming
+      - name: var-declaration
+      - name: package-comments
+      - name: range
+      - name: receiver-naming
+      - name: time-naming
+      - name: unexported-return
+      - name: indent-error-flow
+      - name: errorf
+      - name: empty-block
+      - name: superfluous-else
+      - name: unused-parameter
+      - name: unreachable-code
+      - name: redefines-builtin-id
+      #
+      # Rules in addition to the recommended configuration above.
+      #
+      - name: bool-literal-in-expr
+      - name: constant-logical-expr
+
+linters:
+  disable-all: true
+  enable:
+#    - dupl
+#    - errcheck
+#    - exportloopref
+#    - goconst
+#    - gocyclo
+     - gofmt
+#    - goimports
+#    - gosec
+#    - gosimple
+#    - govet
+#    - ineffassign
+#    - lll
+#    - misspell
+#    - nakedret
+#    - prealloc
+     - revive
+#    - staticcheck
+#    - typecheck
+#    - unconvert
+#    - unparam
+#    - unused
