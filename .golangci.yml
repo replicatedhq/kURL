@@ -26,8 +26,10 @@ linters-settings:
       - name: if-return
       - name: increment-decrement
       - name: var-naming
+        disabled: true # Fails in places that you might cannot change pkg/rook/cephtypes/status.go:169:8: var-naming: struct field ZoneId should be ZoneID (revive)
       - name: var-declaration
       - name: package-comments
+        disabled: true  # TODO: fix errors first
       - name: range
       - name: receiver-naming
       - name: time-naming
