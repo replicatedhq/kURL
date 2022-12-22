@@ -314,7 +314,7 @@ func (o *OpenEBSFreeDiskSpaceGetter) buildJob(_ context.Context, node, basePath,
 }
 
 // deleteTmpPVCs deletes the provided pvcs from the default namespace and waits until all their
-// backing pvs dissapear as well (this is mandatory so we don't leave any orphan pv as this would
+// backing pvs disappear as well (this is mandatory so we don't leave any orphan pv as this would
 // make the pvmigrate to fail). this function has a timeout of 5 minutes, after that an error is
 // returned.
 func (o *OpenEBSFreeDiskSpaceGetter) deleteTmpPVCs(pvcs []*corev1.PersistentVolumeClaim) error {

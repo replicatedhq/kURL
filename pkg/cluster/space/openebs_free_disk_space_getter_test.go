@@ -71,7 +71,7 @@ func Test_deleteTmpPVCs(t *testing.T) {
 			},
 		},
 		{
-			name:    "a pv refering to a different pvc should not crash",
+			name:    "a pv referring to a different pvc should not crash",
 			timeout: time.Second,
 			objs: []runtime.Object{
 				&corev1.PersistentVolumeClaim{
@@ -102,7 +102,7 @@ func Test_deleteTmpPVCs(t *testing.T) {
 			},
 		},
 		{
-			name:    "pv dissapear after a while should suceed",
+			name:    "pv disappear after a while should succeed",
 			timeout: 20 * time.Second,
 			objs: []runtime.Object{
 				&corev1.PersistentVolumeClaim{
