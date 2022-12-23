@@ -894,7 +894,7 @@
     kotsadm:
       version: latest
     velero:
-      version: 1.7.x
+      version: 1.9.x
     ekco:
       version: latest
   airgap: true
