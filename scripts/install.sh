@@ -557,6 +557,7 @@ function main() {
     kurl_init_config
     ${K8S_DISTRO}_addon_for_each addon_install
     maybe_cleanup_rook
+    maybe_cleanup_longhorn
     helmfile_sync
     kubeadm_post_init
     uninstall_docker
