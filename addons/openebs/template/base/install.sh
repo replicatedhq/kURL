@@ -41,6 +41,9 @@ function openebs() {
 
     # migrate from Rook/Ceph storage if applicable
     openebs_maybe_migrate_from_rook
+
+    # migrate from Longhorn storage if applicable
+    openebs_maybe_migrate_from_longhorn
 }
 
 # if rook-ceph is installed but is not specified in the kURL spec, migrate data from 
@@ -304,4 +307,53 @@ function openebs_has_default_storageclass() {
         return 0
     fi
     return 1
+}
+
+# if longhorn is installed but is not specified in the kURL spec, migrate data to OpenEBS local pv hostpath.
+function openebs_maybe_migrate_from_longhorn() {
+    if [ -z "$LONGHORN_VERSION" ]; then
+        if kubectl get ns | grep -q longhorn-system; then
+            # show validation errors from pvmigrate if there are errors, openebs_maybe_longhorn_migration_checks() will bail
+            openebs_maybe_longhorn_migration_checks
+
+            longhorn_to_sc_migration "$OPENEBS_LOCALPV_STORAGE_CLASS" "1"
+            DID_MIGRATE_LONGHORN_PVCS=1 # used to automatically delete longhorn if object store data was also migrated
+        fi
+    fi
+}
+
+function openebs_maybe_longhorn_migration_checks() {
+    # get the list of StorageClasses that use longhorn
+    local longhorn_scs
+    local longhorn_default_sc
+    longhorn_scs=$(kubectl get storageclass | grep longhorn | grep -v '(default)' | awk '{ print $1}') # any non-default longhorn StorageClasses
+    longhorn_default_sc=$(kubectl get storageclass | grep longhorn | grep '(default)' | awk '{ print $1}') # any default longhorn StorageClasses
+
+    # Ensure openebs-localpv-provisioner deployment is ready
+    echo "Awaiting openebs-localpv-provisioner deployment"
+    spinner_until 120 deployment_fully_updated openebs openebs-localpv-provisioner
+
+    echo "Running Longhorn to OpenEBS migration checks ..."
+    local longhorn_scs_pvmigrate_dryrun_output
+    local longhorn_default_sc_pvmigrate_dryrun_output
+    for longhorn_sc in $longhorn_scs
+    do
+        # run validation checks for non default Longhorn storage classes
+        if ! longhorn_scs_pvmigrate_dryrun_output=$($BIN_PVMIGRATE --source-sc "$longhorn_sc" --dest-sc "$OPENEBS_LOCALPV_STORAGE_CLASS" --rsync-image "$KURL_UTIL_IMAGE" --preflight-validation-only) ; then
+            break
+        fi
+    done
+
+    if [ -n "$longhorn_default_sc" ] ; then
+        # run validation checks for Rook default storage class
+        longhorn_default_sc_pvmigrate_dryrun_output=$($BIN_PVMIGRATE --source-sc "$longhorn_default_sc" --dest-sc "$OPENEBS_LOCALPV_STORAGE_CLASS" --rsync-image "$KURL_UTIL_IMAGE" --preflight-validation-only || true)
+    fi
+
+    if [ -n "$longhorn_scs_pvmigrate_dryrun_output" ] || [ -n "$longhorn_default_sc_pvmigrate_dryrun_output" ] ; then
+        log "$longhorn_scs_pvmigrate_dryrun_output"
+        log "$longhorn_default_sc_pvmigrate_dryrun_output"
+        bail "Cannot upgrade from Longhorn to OpenEBS due to previous error."
+    fi
+
+    echo "Longhorn to OpenEBS migration checks completed."
 }
