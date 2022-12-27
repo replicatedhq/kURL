@@ -149,12 +149,18 @@ function remove_longhorn() {
     # make sure there aren't any PVs using longhorn before deleting it
     echo "Waiting for Longhorn PVs to be removed"
     if ! spinner_until 60 longhorn_pvs_removed; then
-        printf "%b" "$RED"
-        printf "ERROR: \n"
-        printf "There are still PVs using Longhorn.\n"
-        printf "Remove these PVs before continuing.\n"
-        printf "%b" "$NC"
-        exit 1
+        # sometimes longhorn hangs and we need to restart kubelet to make it work again, we
+        # are going to give this approach a try here before bailing out.
+        printf "${YELLOW}Some Longhorn PVs are still online, trying to restart kubelet.\n${NC}"
+        systemctl restart kubelet
+        if ! spinner_until 60 longhorn_pvs_removed; then
+            printf "%b" "$RED"
+            printf "ERROR: \n"
+            printf "There are still PVs using Longhorn.\n"
+            printf "Remove these PVs before continuing.\n"
+            printf "%b" "$NC"
+            exit 1
+        fi
     fi
 
     # scale ekco to 0 replicas if it exists
