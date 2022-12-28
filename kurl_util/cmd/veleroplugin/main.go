@@ -12,6 +12,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/vmware-tanzu/velero/pkg/plugin/framework"
+	"github.com/vmware-tanzu/velero/pkg/plugin/framework/common"
 	"github.com/vmware-tanzu/velero/pkg/plugin/velero"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -144,7 +145,7 @@ func (p *restoreKotsadmPlugin) Execute(input *velero.RestoreItemActionExecuteInp
 
 func (p *restoreKotsadmPlugin) getPluginConfig() (map[string]string, error) {
 	opts := metav1.ListOptions{
-		LabelSelector: fmt.Sprintf("velero.io/plugin-config,%s=%s", name, framework.PluginKindRestoreItemAction),
+		LabelSelector: fmt.Sprintf("velero.io/plugin-config,%s=%s", name, common.PluginKindRestoreItemAction),
 	}
 	list, err := p.client.CoreV1().ConfigMaps(os.Getenv("VELERO_NAMESPACE")).List(context.TODO(), opts)
 	if err != nil {
