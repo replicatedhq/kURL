@@ -153,6 +153,7 @@ function remove_longhorn() {
         # are going to give this approach a try here before bailing out.
         printf "${YELLOW}Some Longhorn PVs are still online, trying to restart kubelet.\n${NC}"
         systemctl restart kubelet
+        echo "Waiting for Longhorn PVs to be removed"
         if ! spinner_until 60 longhorn_pvs_removed; then
             printf "%b" "$RED"
             printf "ERROR: \n"
