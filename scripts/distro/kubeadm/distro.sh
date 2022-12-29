@@ -194,6 +194,6 @@ EOF
 }
 
 function kubeadm_api_is_healthy() {
-    curl --globoff --noproxy "*" --fail --silent --insecure "https://$(kubernetes_api_address)/healthz" >/dev/null
+    curl --globoff --noproxy "*" --fail --silent --insecure "$(kubernetes_api_address)/healthz" >/dev/null
 }
     
