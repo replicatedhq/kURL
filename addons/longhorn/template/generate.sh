@@ -105,6 +105,12 @@ function add_as_latest() {
 
 function main() {
     get_latest_release_version
+    # The version 1.2.6 is lower than the latest added and it does not have
+    # all manifest which causes the script fail
+    if [ "${VERSION}" == "1.2.6" ]; then
+        echo "ignore version 1.2.6"
+        return
+    fi
 
     if [ -d "../${VERSION}" ]; then
         if [ $# -ge 1 ] && [ "$1" == "force" ]; then
