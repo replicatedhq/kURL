@@ -71,7 +71,7 @@ function rookupgrade_10to14_upgrade() {
         if [ "$SEMVER_COMPARE_RESULT" != "1" ]; then
             echo "Upgrading to Ceph 14.2.5"
 
-            kubectl -n rook-ceph patch CephCluster rook-ceph --type=merge -p '{"spec": {"cephVersion": {"image": "ceph/ceph:v14.2.5-20191210"}}}'
+            kubectl -n rook-ceph patch CephCluster rook-ceph --type=merge -p '{"spec": {"cephVersion": {"image": "ceph/ceph:v14.2.5-20201116"}}}'
             kubectl patch deployment -n rook-ceph csi-rbdplugin-provisioner -p '{"spec": {"template": {"spec":{"containers":[{"name":"csi-snapshotter","imagePullPolicy":"IfNotPresent"}]}}}}'
             "$DIR"/bin/kurl rook wait-for-ceph-version "14.2.5"
 
