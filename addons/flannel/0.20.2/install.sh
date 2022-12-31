@@ -88,7 +88,7 @@ function flannel_antrea_conflict() {
 }
 
 function flannel_is_single_node() {
-    nodecount=
+    local nodecount=
     nodecount=$(kubectl get nodes --no-headers | wc -l)
     if [ "$nodecount" -eq 1 ]; then
         return 0
@@ -152,6 +152,7 @@ function remove_weave() {
 
 function flannel_kubeadm() {
     # search for 'serviceSubnet', add podSubnet above it
+    local pod_cidr_range_line=
     pod_cidr_range_line="  podSubnet: ${POD_CIDR}"
     if grep 'podSubnet:' /opt/replicated/kubeadm.conf; then
         sed -i "s_  podSubnet:.*_${pod_cidr_range_line}_" /opt/replicated/kubeadm.conf
