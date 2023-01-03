@@ -11,7 +11,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 )
 
-func NewRookWaitForRookVersionCmd(cli CLI) *cobra.Command {
+func NewRookWaitForRookVersionCmd(_ CLI) *cobra.Command {
 	timeoutSeconds := 0
 	cmd := &cobra.Command{
 		Use:   "wait-for-rook-version VERSION",
@@ -46,7 +46,7 @@ func NewRookWaitForRookVersionCmd(cli CLI) *cobra.Command {
 	return cmd
 }
 
-func NewRookWaitForCephVersionCmd(cli CLI) *cobra.Command {
+func NewRookWaitForCephVersionCmd(_ CLI) *cobra.Command {
 	timeoutSeconds := 0
 	cmd := &cobra.Command{
 		Use:   "wait-for-ceph-version VERSION",

@@ -47,9 +47,9 @@ func setToolboxExecFunc(responses execResponses) {
 }
 
 // test function only, contains panics
-func runtimeFromDeploymentlistJson(deploymentListJson []byte) []runtime.Object {
+func runtimeFromDeploymentlistJSON(deploymentListJSON []byte) []runtime.Object {
 	deploymentList := appsv1.DeploymentList{}
-	err := json.Unmarshal(deploymentListJson, &deploymentList)
+	err := json.Unmarshal(deploymentListJSON, &deploymentList)
 	if err != nil {
 		panic(err) // this is only called for unit tests, not at runtime
 	}
@@ -73,7 +73,7 @@ func Test_runToolboxCommand(t *testing.T) {
 		{
 			name:      "no toolbox pod running",
 			command:   []string{"echo", "'hello world'"},
-			resources: runtimeFromPodlistJson(testfiles.HostpathPods),
+			resources: runtimeFromPodlistJSON(testfiles.HostpathPods),
 			responses: map[string]struct {
 				errcode        int
 				stdout, stderr string
@@ -84,7 +84,7 @@ func Test_runToolboxCommand(t *testing.T) {
 		{
 			name:      "example exec",
 			command:   []string{"echo", "'hello world'"},
-			resources: runtimeFromPodlistJson(testfiles.SixBlockDevicePods),
+			resources: runtimeFromPodlistJSON(testfiles.SixBlockDevicePods),
 			responses: map[string]struct {
 				errcode        int
 				stdout, stderr string
@@ -128,7 +128,7 @@ func Test_startToolbox(t *testing.T) {
 	}{
 		{
 			name:      "tools deployment exists and is already the correct scale",
-			resources: runtimeFromDeploymentlistJson(testfiles.Rook6OSDDeployments),
+			resources: runtimeFromDeploymentlistJSON(testfiles.Rook6OSDDeployments),
 		},
 		{
 			name:      "no operator deployment exists",
@@ -137,7 +137,7 @@ func Test_startToolbox(t *testing.T) {
 		},
 		{
 			name:      "tools deployment does not yet exist, but operator does",
-			resources: runtimeFromDeploymentlistJson(testfiles.RookHostpathDeployments),
+			resources: runtimeFromDeploymentlistJSON(testfiles.RookHostpathDeployments),
 			backgroundFunc: func(ctx context.Context, k kubernetes.Interface) {
 				// watch for the statefulset to be scaled down, and then delete the pod
 				for {

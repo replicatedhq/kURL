@@ -203,7 +203,7 @@ func (o *OpenEBSFreeDiskSpaceGetter) buildTmpPVC(node string) *corev1.Persistent
 // and then it takes longer to boostrap the job pod. this job also mounts the provided temp
 // pvc, this is done to make sure that the openebs has created the base path inside the node
 // (it only creates it when some kind of allocation already happened in the node).
-func (o *OpenEBSFreeDiskSpaceGetter) buildJob(ctx context.Context, node, basePath, tmpPVC string) *batchv1.Job {
+func (o *OpenEBSFreeDiskSpaceGetter) buildJob(_ context.Context, node, basePath, tmpPVC string) *batchv1.Job {
 	schedRules := &corev1.NodeSelector{
 		NodeSelectorTerms: []corev1.NodeSelectorTerm{
 			{
@@ -315,7 +315,7 @@ func (o *OpenEBSFreeDiskSpaceGetter) buildJob(ctx context.Context, node, basePat
 }
 
 // deleteTmpPVCs deletes the provided pvcs from the default namespace and waits until all their
-// backing pvs dissapear as well (this is mandatory so we don't leave any orphan pv as this would
+// backing pvs disappear as well (this is mandatory so we don't leave any orphan pv as this would
 // make the pvmigrate to fail). this function has a timeout of 5 minutes, after that an error is
 // returned.
 func (o *OpenEBSFreeDiskSpaceGetter) deleteTmpPVCs(pvcs []*corev1.PersistentVolumeClaim) error {

@@ -13,9 +13,9 @@ import (
 )
 
 // test function only, contains panics
-func runtimeFromPodlistJson(podListJson []byte) []runtime.Object {
+func runtimeFromPodlistJSON(podListJSON []byte) []runtime.Object {
 	podList := corev1.PodList{}
-	err := json.Unmarshal(podListJson, &podList)
+	err := json.Unmarshal(podListJSON, &podList)
 	if err != nil {
 		panic(err) // this is only called for unit tests, not at runtime
 	}
@@ -36,13 +36,13 @@ func Test_countRookOSDs(t *testing.T) {
 	}{
 		{
 			name:      "6 blockdevice osds on 3 nodes",
-			resources: runtimeFromPodlistJson(testfiles.SixBlockDevicePods),
+			resources: runtimeFromPodlistJSON(testfiles.SixBlockDevicePods),
 			hostpath:  0,
 			block:     3,
 		},
 		{
 			name:      "one hostpath osd",
-			resources: runtimeFromPodlistJson(testfiles.HostpathPods),
+			resources: runtimeFromPodlistJSON(testfiles.HostpathPods),
 			hostpath:  1,
 			block:     0,
 		},
@@ -68,7 +68,7 @@ func Test_getRookOSDs(t *testing.T) {
 	}{
 		{
 			name:      "6 blockdevice osds",
-			resources: runtimeFromPodlistJson(testfiles.SixBlockDevicePods),
+			resources: runtimeFromPodlistJSON(testfiles.SixBlockDevicePods),
 			rookOsds: []RookOSD{
 				{
 					Num:        3,
@@ -104,7 +104,7 @@ func Test_getRookOSDs(t *testing.T) {
 		},
 		{
 			name:      "one hostpath osd",
-			resources: runtimeFromPodlistJson(testfiles.HostpathPods),
+			resources: runtimeFromPodlistJSON(testfiles.HostpathPods),
 			rookOsds: []RookOSD{
 				{
 					Num:        0,

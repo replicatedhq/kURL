@@ -71,7 +71,8 @@ func Test_hasEnoughSpace(t *testing.T) {
 func TestNewOpenEBSChecker(t *testing.T) {
 	// test empty logger
 	_, err := NewOpenEBSDiskSpaceValidator(&rest.Config{}, nil, "image", "src", "dst")
-	if err == nil || err.Error() != "no logger provided" {
+	const msgNoLongerProvided = "no logger provided"
+	if err == nil || err.Error() != msgNoLongerProvided {
 		t.Errorf("expected failure creating object: %v", err)
 	}
 

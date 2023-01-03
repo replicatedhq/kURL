@@ -223,9 +223,8 @@ func newHostPreflightCmd(cli CLI) *cobra.Command {
 				case preflightIsWarn(results):
 					if v.GetBool("ignore-warnings") {
 						os.Exit(preflightsIgnoreWarningCode)
-					} else {
-						os.Exit(preflightsWarningCode)
 					}
+					os.Exit(preflightsWarningCode)
 				}
 				return nil
 			}

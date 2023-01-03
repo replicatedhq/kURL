@@ -33,7 +33,7 @@ func getInstallerConfigFromYaml(yamlPath string) ([]byte, error) {
 	}
 
 	if containsNbsp(yamlData) {
-		return nil, errors.New(fmt.Sprintf("yaml file at %s has lines starting with non-breaking spaces, please convert these to normal spaces", yamlPath))
+		return nil, fmt.Errorf("yaml file at %s has lines starting with non-breaking spaces, please convert these to normal spaces", yamlPath)
 	}
 
 	decode := scheme.Codecs.UniversalDeserializer().Decode

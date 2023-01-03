@@ -6,7 +6,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 )
 
-func NewHostpathToBlockCmd(cli CLI) *cobra.Command {
+func NewHostpathToBlockCmd(_ CLI) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "hostpath-to-block",
 		Short: "Migrates rook hostpath data to block device volumes, changing the rook cluster config if needed",

@@ -12,7 +12,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 )
 
-func NewRookWaitForHealthCmd(cli CLI) *cobra.Command {
+func NewRookWaitForHealthCmd(_ CLI) *cobra.Command {
 	var ignoreChecks []string
 	cmd := &cobra.Command{
 		Use:   "wait-for-health [TIMEOUT]",

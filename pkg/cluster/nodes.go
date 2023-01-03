@@ -180,7 +180,7 @@ func runNodeImagesJob(ctx context.Context, client kubernetes.Interface, logger *
 	return images, nil
 }
 
-func buildNodeImagesJob(ctx context.Context, jobNamespace string, jobImage string, node corev1.Node) *batchv1.Job {
+func buildNodeImagesJob(_ context.Context, jobNamespace string, jobImage string, node corev1.Node) *batchv1.Job {
 	if jobNamespace == "" {
 		jobNamespace = DefaultNodeImagesJobNamespace
 	}

@@ -49,10 +49,10 @@ func WaitForRookHealth(ctx context.Context, client kubernetes.Interface, ignoreC
 			isHealthy, healthMessage = isStatusHealthy(cephStatus, ignoreChecks)
 			if isHealthy {
 				return nil
-			} else {
-				// print a status message
-				spinLine(progressMessage(cephStatus))
 			}
+			// print a status message
+			spinLine(progressMessage(cephStatus))
+
 		}
 
 		select {
