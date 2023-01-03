@@ -34,6 +34,11 @@ function flannel() {
     flannel_render_config
 
     if flannel_weave_conflict; then
+        printf "${YELLOW}Would you like to migrate from Weave to FLannel?${NC}"
+        if ! confirmY ; then
+            bail "Not migrating from Weave to Flannel"
+        fi
+
         weave_to_flannel
     else
         kubectl -n kube-flannel apply -k "$dst/"
