@@ -34,7 +34,7 @@ function flannel() {
     flannel_render_config
 
     if flannel_weave_conflict; then
-        printf "${YELLOW}Would you like to migrate from Weave to FLannel?${NC}"
+        printf "${YELLOW}Would you like to migrate from Weave to Flannel?${NC}"
         if ! confirmY ; then
             bail "Not migrating from Weave to Flannel"
         fi
@@ -116,10 +116,10 @@ function weave_to_flannel() {
 
     sleep 60
     echo "RESTARTING KUBELET"
-    sudo systemctl stop kubelet
-    sudo iptables -t nat -F && sudo iptables -t mangle -F && sudo iptables -F && sudo iptables -X
-    sudo systemctl restart containerd
-    sudo systemctl start kubelet
+    systemctl stop kubelet
+    iptables -t nat -F && iptables -t mangle -F && iptables -F && iptables -X
+    systemctl restart containerd
+    systemctl start kubelet
 
     sleep 60
     echo "RESTARTING kube-system"
@@ -149,9 +149,9 @@ function remove_weave() {
     kubectl -n kube-system delete secret weave-passwd
 
     # all nodes
-    sudo rm -f /opt/cni/bin/weave-*
-    sudo rm -rf /etc/cni/net.d
-    sudo ip link delete weave
+    rm -f /opt/cni/bin/weave-*
+    rm -rf /etc/cni/net.d
+    ip link delete weave
 
 }
 
@@ -165,6 +165,6 @@ function flannel_kubeadm() {
         sed -i "/serviceSubnet/ s/.*/${pod_cidr_range_line}\n&/" /opt/replicated/kubeadm.conf
     fi
 
-    sudo kubeadm init phase upload-config kubeadm --config=/opt/replicated/kubeadm.conf
-    sudo kubeadm init phase control-plane controller-manager --config=/opt/replicated/kubeadm.conf
+    kubeadm init phase upload-config kubeadm --config=/opt/replicated/kubeadm.conf
+    kubeadm init phase control-plane controller-manager --config=/opt/replicated/kubeadm.conf
 }
