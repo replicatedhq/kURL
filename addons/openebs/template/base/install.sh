@@ -16,6 +16,7 @@ function openebs_pre_init() {
 
     openebs_bail_unsupported_upgrade
     openebs_prompt_migrate_from_rook
+    openebs_prompt_migrate_from_longhorn
 }
 
 function openebs() {
@@ -356,4 +357,31 @@ function openebs_maybe_longhorn_migration_checks() {
     fi
 
     logSuccess "Longhorn to OpenEBS migration checks completed."
+}
+
+# shows a prompt asking users for confirmation before starting to migrate data from Longhorn.
+function openebs_prompt_migrate_from_longhorn() {
+    # skip on new install or when Longhorn is specified in the kURL spec
+    if [ -z "$CURRENT_KUBERNETES_VERSION" ] || [ -n "$LONGHORN_VERSION" ]; then
+        return 0
+    fi
+
+    # do not proceed if Longhorn is not installed
+    if ! kubectl get ns | grep -q longhorn-system; then
+        return 0
+    fi
+
+    printf "${YELLOW}"
+    printf "\n"
+    printf "    Detected Longhorn is running in the cluster. Data migration will be initiated to move data from Longhorn to storage class %s.\n" "$OPENEBS_LOCALPV_STORAGE_CLASS"
+    printf "\n"
+    printf "    As part of this, all pods mounting PVCs will be stopped, taking down the application.\n"
+    printf "\n"
+    printf "    It is recommended to take a snapshot or otherwise back up your data before proceeding.\n${NC}"
+    printf "\n"
+    printf "Would you like to continue? "
+
+    if ! confirmN; then
+        bail "Not migrating"
+    fi
 }
