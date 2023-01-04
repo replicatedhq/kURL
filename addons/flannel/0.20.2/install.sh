@@ -105,37 +105,41 @@ function flannel_is_single_node() {
 function weave_to_flannel() {
     local dst="$DIR/kustomize/flannel"
 
-    echo "REMOVING WEAVE"
+    logStep "Removing Weave to install Flannel"
     remove_weave
 
-    echo "UPDATING KUBEADM FOR FLANNEL"
+    logStep "Updating kubeadm to use Flannel"
     flannel_kubeadm
 
-    echo "APPLYING FLANNEL"
+    logStep "Applying Flannel"
     kubectl -n kube-flannel apply -k "$dst/"
 
     sleep 60
-    echo "RESTARTING KUBELET"
+    logStep "Restarting kubelet"
     systemctl stop kubelet
     iptables -t nat -F && iptables -t mangle -F && iptables -F && iptables -X
     systemctl restart containerd
     systemctl start kubelet
 
     sleep 60
-    echo "RESTARTING kube-system"
+    logStep "Restarting pods in kube-system"
     kubectl -n kube-system delete pods --all
     kubectl -n kube-flannel delete pods --all
 
     sleep 60
-    echo "RESTARTING CSI"
+    logStep "Restarting CSI pods"
     kubectl -n longhorn-system delete pods --all || true
     kubectl -n rook-ceph delete pods --all || true
     kubectl -n openebs delete pods --all || true
 
     sleep 60
-    echo "RESTARTING ALL OTHER PODS"
-    for ns in $(kubectl get ns -o name | grep -Ev '(kube-system|longhorn-system|rook-ceph|openebs|kube-flannel)' | cut -f2 -d'/'); do kubectl delete pods -n "$ns" --all; done
+    logStep "Restarting all other pods"
+    local ns=
+    for ns in $(kubectl get ns -o name | grep -Ev '(kube-system|longhorn-system|rook-ceph|openebs|kube-flannel)' | cut -f2 -d'/'); do
+        kubectl delete pods -n "$ns" --all
+    done
     sleep 60
+    logSuccess "Migrated from Weave to Flannel"
 }
 
 function remove_weave() {
