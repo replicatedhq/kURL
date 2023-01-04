@@ -330,10 +330,10 @@ function openebs_maybe_longhorn_migration_checks() {
     longhorn_default_sc=$(kubectl get storageclass | grep longhorn | grep '(default)' | awk '{ print $1}') # any default longhorn StorageClasses
 
     # Ensure openebs-localpv-provisioner deployment is ready
-    echo "Awaiting openebs-localpv-provisioner deployment"
+    log "Awaiting openebs-localpv-provisioner deployment"
     spinner_until 120 deployment_fully_updated openebs openebs-localpv-provisioner
 
-    echo "Running Longhorn to OpenEBS migration checks ..."
+    log "Running Longhorn to OpenEBS migration checks ..."
     local longhorn_scs_pvmigrate_dryrun_output
     local longhorn_default_sc_pvmigrate_dryrun_output
     for longhorn_sc in $longhorn_scs
@@ -355,5 +355,5 @@ function openebs_maybe_longhorn_migration_checks() {
         bail "Cannot upgrade from Longhorn to OpenEBS due to previous error."
     fi
 
-    echo "Longhorn to OpenEBS migration checks completed."
+    logSuccess "Longhorn to OpenEBS migration checks completed."
 }
