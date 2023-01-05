@@ -79,6 +79,7 @@ jobs:
     needs:
     - verify-tag
     - get-staging-release
+    - copy-staging-release-to-prod
     steps:
     - name: Checkout
       uses: actions/checkout@v2
