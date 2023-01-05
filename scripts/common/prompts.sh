@@ -5,7 +5,7 @@
 function prompts_can_prompt() {
     # Need the TTY to accept input and stdout to display
     # Prompts when running the script through the terminal but not as a subshell
-    if [ -t 1 ] && [ -c /dev/tty ]; then
+    if [ -c /dev/tty ]; then
         return 0
     fi
     return 1
@@ -266,7 +266,7 @@ function prompt_airgap_preload_images() {
     fi
 
     local unattended_nodes_missing_images=0
- 
+
     while read -r node; do
         local nodeName=$(echo "$node" | awk '{ print $1 }')
         if [ "$nodeName" = "$(get_local_node_name)" ]; then

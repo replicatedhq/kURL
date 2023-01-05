@@ -501,6 +501,7 @@ function report_kubernetes_install() {
 K8S_DISTRO=kubeadm
 
 function main() {
+    logStep "Running install with the argument(s): $@"
     require_root_user
     # ensure /usr/local/bin/kubectl-plugin is in the path
     path_add "/usr/local/bin"
@@ -569,4 +570,11 @@ function main() {
     report_install_success
 }
 
-main "$@"
+# tee logs into /var/log/kurl/install-<date>.log and stdout
+mkdir -p /var/log/kurl
+LOGFILE="/var/log/kurl/install-$(date +"%Y-%m-%dT%H-%M-%S").log"
+main "$@" 2>&1 | tee $LOGFILE
+# it is required to return the exit status of the script
+FINAL_RESULT="${PIPESTATUS[0]}"
+sed -i "/\b\(password\)\b/d" $LOGFILE > /dev/null 2>&1
+exit "$FINAL_RESULT"
