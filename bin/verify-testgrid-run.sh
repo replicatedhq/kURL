@@ -20,9 +20,6 @@ function main() {
     bail "Did not find testgrid run for release ${STAGING_RELEASE}"
   fi
 
-  log "Found testgrid run:"
-  log "${testgrid_run_json}" | jq
-
   local run_id
   local success_count
   local failure_count
@@ -33,11 +30,15 @@ function main() {
   failure_count=$(echo "${testgrid_run_json}" | jq -r '.runs[].failure_count')
   total_runs=$(echo "${testgrid_run_json}" | jq -r '.runs[].total_runs')
 
+  log "Found Testgrid run: https://api.testgrid.kurl.sh/api/v1/run/${run_id}"
+  log "Testgrid run details:"
+  echo "${testgrid_run_json}" | jq
+
   # determine the number of test instances that are unsupported for the test run
-  skipped_test_count=$(curl -s "https://api.testgrid.kurl.sh/api/v1/run/${run_id}" | jq '.instances[].isUnsupported' | grep -c true)
+  skipped_test_count=$(curl -d {} -s "https://api.testgrid.kurl.sh/api/v1/run/${run_id}" | jq '.instances[].isUnsupported' | grep -c true)
 
   if [[ $((success_count + failure_count + skipped_test_count)) -ne ${total_runs} ]]; then
-    bail "Testgrid run https://testgrid.kurl.sh/run/${run_id} seems to have pending runs"
+    bail "Testgrid run ${run_id} seems to have pending runs"
   fi
 }
 
