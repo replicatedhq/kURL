@@ -31,7 +31,7 @@ jobs:
         staging_release_dir="$(aws s3 ls s3://"${S3_BUCKET}/${STAGING_PREFIX}/" | grep "${version_commit}" | awk '{print $2}')"
         if [ -z "${staging_release_dir}" ]; then
             echo "Could not find staging release for tag ${GITHUB_REF_NAME} (${version_commit})"
-            return 1
+            exit 1
         fi
         echo "staging_release=${staging_release_dir%/}" >> $GITHUB_OUTPUT
       env:
@@ -47,22 +47,9 @@ jobs:
     - verify-tag
     - get-staging-release
     steps:
-    - name: Verify testgrid run
+    - name: Verify Testgrid Run
       run: |
-        testgrid_run_json=$(curl -s "https://api.testgrid.kurl.sh/api/v1/runs?searchRef=${STAGING_RELEASE}")
-        if [ -z "${testgrid_run_json}" ]; then
-          echo "Did not find testgrid run which contains ${STAGING_RELEASE} in its Ref"
-          return 1
-        fi
-
-        echo "Found testgrid run:"
-        echo ${testgrid_run_json} | jq
-
-        tg_run_id=$(echo "${testgrid_run_json}" | jq -r '.runs[].id')
-        if ! echo "${testgrid_run_json}" | jq -e '.runs[].failure_count == 0'; then
-          echo "Testgrid Run ${tg_run_id} has failures"
-          return 1
-        fi
+        ./bin/verify-testgrid-run.sh
       env:
         STAGING_RELEASE: ${{ needs.get-staging-release.outputs.staging_release }}
 
