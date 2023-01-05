@@ -78,6 +78,7 @@ function flannel_health_check() {
 }
 
 function flannel_ready_spinner() {
+    echo "waiting for Flannel to become healthy"
     if ! spinner_until 180 flannel_health_check; then
         kubectl logs -n kube-flannel -l app=flannel --all-containers --tail 10
         bail "The Flannel add-on failed to deploy successfully."
@@ -113,20 +114,22 @@ function weave_to_flannel() {
 
     logStep "Applying Flannel"
     kubectl -n kube-flannel apply -k "$dst/"
+    echo "waiting for kube-flannel-ds to become healthy in kube-flannel"
+    spinner_until 240 daemonset_fully_updated "kube-flannel" "kube-flannel-ds"
 
-    sleep 60
     logStep "Restarting kubelet"
     systemctl stop kubelet
     iptables -t nat -F && iptables -t mangle -F && iptables -F && iptables -X
-    systemctl restart containerd
-    systemctl start kubelet
+    echo "waiting for containerd to restart"
+    restart_systemd_and_wait containerd
+    echo "waiting for kubelet to restart"
+    restart_systemd_and_wait kubelet
 
-    sleep 60
     logStep "Restarting pods in kube-system"
     kubectl -n kube-system delete pods --all
     kubectl -n kube-flannel delete pods --all
+    flannel_ready_spinner
 
-    sleep 60
     logStep "Restarting CSI pods"
     kubectl -n longhorn-system delete pods --all || true
     kubectl -n rook-ceph delete pods --all || true
@@ -138,6 +141,7 @@ function weave_to_flannel() {
     for ns in $(kubectl get ns -o name | grep -Ev '(kube-system|longhorn-system|rook-ceph|openebs|kube-flannel)' | cut -f2 -d'/'); do
         kubectl delete pods -n "$ns" --all
     done
+
     sleep 60
     logSuccess "Migrated from Weave to Flannel"
 }
