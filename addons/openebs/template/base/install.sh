@@ -371,16 +371,10 @@ function openebs_prompt_migrate_from_longhorn() {
         return 0
     fi
 
-    printf "${YELLOW}"
-    printf "\n"
-    printf "    Detected Longhorn is running in the cluster. Data migration will be initiated to move data from Longhorn to storage class %s.\n" "$OPENEBS_LOCALPV_STORAGE_CLASS"
-    printf "\n"
-    printf "    As part of this, all pods mounting PVCs will be stopped, taking down the application.\n"
-    printf "\n"
-    printf "    It is recommended to take a snapshot or otherwise back up your data before proceeding.\n${NC}"
-    printf "\n"
-    printf "Would you like to continue? "
-
+    logWarn "    Detected Longhorn is running in the cluster. Data migration will be initiated to move data from Longhorn to storage class $OPENEBS_LOCALPV_STORAGE_CLASS."
+    logWarn "    As part of this, all pods mounting PVCs will be stopped, taking down the application."
+    logWarn "    It is recommended to take a snapshot or otherwise back up your data before proceeding."
+    log "Would you like to continue? "
     if ! confirmN; then
         bail "Not migrating"
     fi
