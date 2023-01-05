@@ -34,7 +34,7 @@ function rook() {
     fi
 
 
-    if ! spinner_until 600 rook_ceph_version_deployed; then
+    if ! spinner_until 1200 rook_ceph_version_deployed; then
         rook_ceph_edit_version
     fi
 
