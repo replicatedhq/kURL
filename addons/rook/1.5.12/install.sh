@@ -201,7 +201,7 @@ function rook_cluster_deploy_upgrade() {
 
     echo "Awaiting rook-ceph operator"
 
-    if ! spinner_until 600 rook_version_deployed ; then
+    if ! spinner_until 1200 rook_version_deployed ; then
         local rook_versions=
         rook_versions="$(kubectl -n rook-ceph get deployment -l rook_cluster=rook-ceph -o jsonpath='{range .items[*]}{"rook-version="}{.metadata.labels.rook-version}{"\n"}{end}' | sort | uniq)"
         if [ -n "${rook_versions}" ] && [ "$(echo "${rook_versions}" | wc -l)" -gt "1" ]; then
@@ -219,7 +219,7 @@ function rook_cluster_deploy_upgrade() {
 
     kubectl -n rook-ceph patch cephcluster/rook-ceph --type='json' -p='[{"op": "replace", "path": "/spec/cephVersion/image", "value":"'"${ceph_image}"'"}]'
 
-    if ! spinner_until 600 rook_ceph_version_deployed "${ceph_version}" ; then
+    if ! spinner_until 1200 rook_ceph_version_deployed "${ceph_version}" ; then
         bail "New Ceph version failed to deploy"
     fi
 
