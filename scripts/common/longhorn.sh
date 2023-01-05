@@ -80,7 +80,7 @@ function longhorn_to_sc_migration() {
 
             kubectl -n monitoring patch prometheus k8s --type='json' --patch '[{"op": "replace", "path": "/spec/replicas", value: 0}]'
             log "Waiting for prometheus pods to be removed"
-            spinner_until 120 prometheus_pods_gone
+            spinner_until 300 prometheus_pods_gone
         fi
     fi
 
