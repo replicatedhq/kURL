@@ -14,7 +14,9 @@ function flannel_pre_init() {
     local dst="$DIR/kustomize/flannel"
 
     if flannel_weave_conflict ; then
-        bail "Migrations from Weave to Flannel are not supported"
+        if ! flannel_is_single_node; then
+            bail "Migrations from Weave to Flannel are not supported"
+        fi
     fi
     if flannel_antrea_conflict ; then
         bail "Migrations from Antrea to Flannel are not supported"
@@ -31,7 +33,16 @@ function flannel() {
 
     flannel_render_config
 
-    kubectl -n kube-flannel apply -k "$dst/"
+    if flannel_weave_conflict; then
+        printf "${YELLOW}Would you like to migrate from Weave to Flannel?${NC}"
+        if ! confirmY ; then
+            bail "Not migrating from Weave to Flannel"
+        fi
+
+        weave_to_flannel
+    else
+        kubectl -n kube-flannel apply -k "$dst/"
+    fi
 
     flannel_ready_spinner
     check_network
@@ -67,6 +78,7 @@ function flannel_health_check() {
 }
 
 function flannel_ready_spinner() {
+    echo "waiting for Flannel to become healthy"
     if ! spinner_until 180 flannel_health_check; then
         kubectl logs -n kube-flannel -l app=flannel --all-containers --tail 10
         bail "The Flannel add-on failed to deploy successfully."
@@ -79,4 +91,88 @@ function flannel_weave_conflict() {
 
 function flannel_antrea_conflict() {
     ls /etc/cni/net.d/*antrea* >/dev/null 2>&1
+}
+
+function flannel_is_single_node() {
+    local nodecount=
+    nodecount=$(kubectl get nodes --no-headers | wc -l)
+    if [ "$nodecount" -eq 1 ]; then
+        return 0
+    else
+        return 1
+    fi
+}
+
+function weave_to_flannel() {
+    local dst="$DIR/kustomize/flannel"
+
+    logStep "Removing Weave to install Flannel"
+    remove_weave
+
+    logStep "Updating kubeadm to use Flannel"
+    flannel_kubeadm
+
+    logStep "Applying Flannel"
+    kubectl -n kube-flannel apply -k "$dst/"
+    echo "waiting for kube-flannel-ds to become healthy in kube-flannel"
+    spinner_until 240 daemonset_fully_updated "kube-flannel" "kube-flannel-ds"
+
+    logStep "Restarting kubelet"
+    systemctl stop kubelet
+    iptables -t nat -F && iptables -t mangle -F && iptables -F && iptables -X
+    echo "waiting for containerd to restart"
+    restart_systemd_and_wait containerd
+    echo "waiting for kubelet to restart"
+    restart_systemd_and_wait kubelet
+
+    logStep "Restarting pods in kube-system"
+    kubectl -n kube-system delete pods --all
+    kubectl -n kube-flannel delete pods --all
+    flannel_ready_spinner
+
+    logStep "Restarting CSI pods"
+    kubectl -n longhorn-system delete pods --all || true
+    kubectl -n rook-ceph delete pods --all || true
+    kubectl -n openebs delete pods --all || true
+
+    sleep 60
+    logStep "Restarting all other pods"
+    local ns=
+    for ns in $(kubectl get ns -o name | grep -Ev '(kube-system|longhorn-system|rook-ceph|openebs|kube-flannel)' | cut -f2 -d'/'); do
+        kubectl delete pods -n "$ns" --all
+    done
+
+    sleep 60
+    logSuccess "Migrated from Weave to Flannel"
+}
+
+function remove_weave() {
+    # firstnode only
+    kubectl -n kube-system delete daemonset weave-net
+    kubectl -n kube-system delete rolebinding weave-net
+    kubectl -n kube-system delete role weave-net
+    kubectl delete clusterrolebinding weave-net
+    kubectl delete clusterrole weave-net
+    kubectl -n kube-system delete serviceaccount weave-net
+    kubectl -n kube-system delete secret weave-passwd
+
+    # all nodes
+    rm -f /opt/cni/bin/weave-*
+    rm -rf /etc/cni/net.d
+    ip link delete weave
+
+}
+
+function flannel_kubeadm() {
+    # search for 'serviceSubnet', add podSubnet above it
+    local pod_cidr_range_line=
+    pod_cidr_range_line="  podSubnet: ${POD_CIDR}"
+    if grep 'podSubnet:' /opt/replicated/kubeadm.conf; then
+        sed -i "s_  podSubnet:.*_${pod_cidr_range_line}_" /opt/replicated/kubeadm.conf
+    else
+        sed -i "/serviceSubnet/ s/.*/${pod_cidr_range_line}\n&/" /opt/replicated/kubeadm.conf
+    fi
+
+    kubeadm init phase upload-config kubeadm --config=/opt/replicated/kubeadm.conf
+    kubeadm init phase control-plane controller-manager --config=/opt/replicated/kubeadm.conf
 }

@@ -46,3 +46,39 @@
   numPrimaryNodes: 1
   numSecondaryNodes: 2
   airgap: true
+- name: "weave to flannel single node"
+  installerSpec:
+    kubernetes:
+      version: "1.25.x"
+    containerd:
+      version: "latest"
+    weave:
+      version: "latest"
+  upgradeSpec:
+    kubernetes:
+      version: "1.25.x"
+    containerd:
+      version: "latest"
+    flannel:
+      version: "__testver__"
+      s3Override: "__testdist__"
+- name: "weave to flannel single node, custom IP ranges"
+  installerSpec:
+    kubernetes:
+      version: "1.25.x"
+      serviceCIDR: 172.16.0.0/16
+    containerd:
+      version: "latest"
+    weave:
+      version: "latest"
+      podCIDR: 172.17.0.0/16
+  upgradeSpec:
+    kubernetes:
+      version: "1.25.x"
+      serviceCIDR: 172.16.0.0/16
+    containerd:
+      version: "latest"
+    flannel:
+      podCIDR: 172.17.0.0/16
+      version: "__testver__"
+      s3Override: "__testdist__"
