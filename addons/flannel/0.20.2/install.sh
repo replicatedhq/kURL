@@ -14,8 +14,8 @@ function flannel_pre_init() {
     local dst="$DIR/kustomize/flannel"
 
     if flannel_weave_conflict ; then
-        if ! flannel_is_single_node; then
-            bail "Migrations from Weave to Flannel are not supported"
+        if ! flannel_is_single_master; then
+            bail "Migrations from Weave to Flannel are not supported on HA installs"
         fi
     fi
     if flannel_antrea_conflict ; then
@@ -93,9 +93,9 @@ function flannel_antrea_conflict() {
     ls /etc/cni/net.d/*antrea* >/dev/null 2>&1
 }
 
-function flannel_is_single_node() {
+function flannel_is_single_master() {
     local nodecount=
-    nodecount=$(kubectl get nodes --no-headers | wc -l)
+    nodecount=$(kubectl get nodes --no-headers --selector='node-role.kubernetes.io/control-plane' | wc -l)
     if [ "$nodecount" -eq 1 ]; then
         return 0
     else
