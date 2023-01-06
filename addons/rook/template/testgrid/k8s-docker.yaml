@@ -346,7 +346,8 @@
   flags: "yes"
   installerSpec:
     kubernetes:
-      version: "1.25.x"
+      # Longhorn is not compatible with kubernetes 1.25+.
+      version: "1.24.x"
     weave:
       version: "latest"
     containerd:
