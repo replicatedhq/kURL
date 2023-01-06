@@ -758,6 +758,16 @@ function rook_prompt_migrate_from_longhorn() {
     logWarn "    Detected Longhorn is running in the cluster. Data migration will be initiated to move data from Longhorn to storage class $rook_storage_class."
     logWarn "    As part of this, all pods mounting PVCs will be stopped, taking down the application."
     logWarn "    It is recommended to take a snapshot or otherwise back up your data before proceeding."
+
+    semverParse "$KUBERNETES_VERSION"
+    if [ "$minor" -gt 24 ] ; then
+        logFail "    It appears that the Kubernetes version you are attempting to install ($KUBERNETES_VERSION) is incompatible with the version of Longhorn currently installed"
+        logFail "    on your cluster. As a result, it is not possible to migrate data from Longhorn to Rook. To successfully migrate data, please choose a Kubernetes"
+        logFail "    version that is compatible with the version of Longhorn running on your cluster (note: Longhorn is compatible with Kubernetes versions up to and"
+        logFail "    including 1.24)."
+        bail "Not migrating"
+    fi
+
     log "Would you like to continue? "
     if ! confirmN; then
         bail "Not migrating"
