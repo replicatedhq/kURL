@@ -37,6 +37,8 @@ function rook_pre_init() {
     if rook_should_fail_install; then
         bail "Rook ${ROOK_VERSION} will not be installed due to failed preflight checks."
     fi
+
+    rook_prompt_migrate_from_longhorn
 }
 
 function rook_post_init() {
@@ -738,4 +740,26 @@ function rook_maybe_longhorn_migration_checks() {
     fi
 
     echo "Longhorn to Rook migration checks completed."
+}
+
+# shows a prompt asking users for confirmation before starting to migrate data from Longhorn.
+function rook_prompt_migrate_from_longhorn() {
+    # skip on new install or when Longhorn is specified in the kURL spec
+    if [ -z "$CURRENT_KUBERNETES_VERSION" ] || [ -n "$LONGHORN_VERSION" ]; then
+        return 0
+    fi
+
+    # do not proceed if Longhorn is not installed
+    if ! kubectl get ns | grep -q longhorn-system; then
+        return 0
+    fi
+
+    local rook_storage_class="${STORAGE_CLASS:-default}"
+    logWarn "    Detected Longhorn is running in the cluster. Data migration will be initiated to move data from Longhorn to storage class $rook_storage_class."
+    logWarn "    As part of this, all pods mounting PVCs will be stopped, taking down the application."
+    logWarn "    It is recommended to take a snapshot or otherwise back up your data before proceeding."
+    log "Would you like to continue? "
+    if ! confirmN; then
+        bail "Not migrating"
+    fi
 }
