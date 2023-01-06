@@ -104,6 +104,9 @@ function rook() {
     if ! spinner_until 120 rook_rgw_is_healthy ; then
         bail "Failed to detect healthy rook-ceph object store"
     fi
+
+    # migrate from Longhorn storage if applicable
+    rook_maybe_migrate_from_longhorn
 }
 
 function rook_post_init() {
@@ -685,4 +688,53 @@ function rook_mds_daemons_oktostop() {
         fi
     done
     return 0
+}
+
+# if longhorn is installed but is not specified in the kURL spec, migrate data to Rook.
+function rook_maybe_migrate_from_longhorn() {
+    if [ -z "$LONGHORN_VERSION" ]; then
+        if kubectl get ns | grep -q longhorn-system; then
+            local rook_storage_class="${STORAGE_CLASS:-default}"
+
+            # show validation errors from pvmigrate if there are errors, rook_maybe_longhorn_migration_checks() will bail
+            rook_maybe_longhorn_migration_checks "$rook_storage_class"
+
+            longhorn_to_sc_migration "$rook_storage_class" "1"
+            DID_MIGRATE_LONGHORN_PVCS=1 # used to automatically delete longhorn if object store data was also migrated
+        fi
+    fi
+}
+
+function rook_maybe_longhorn_migration_checks() {
+    local rook_storage_class="$1"
+
+    # get the list of StorageClasses that use longhorn
+    local longhorn_scs
+    local longhorn_default_sc
+    longhorn_scs=$(kubectl get storageclass | grep longhorn | grep -v '(default)' | awk '{ print $1}') # any non-default longhorn StorageClasses
+    longhorn_default_sc=$(kubectl get storageclass | grep longhorn | grep '(default)' | awk '{ print $1}') # any default longhorn StorageClasses
+
+    echo "Running Longhorn to Rook migration checks ..."
+    local longhorn_scs_pvmigrate_dryrun_output
+    local longhorn_default_sc_pvmigrate_dryrun_output
+    for longhorn_sc in $longhorn_scs
+    do
+        # run validation checks for non default Longhorn storage classes
+        if ! longhorn_scs_pvmigrate_dryrun_output=$($BIN_PVMIGRATE --source-sc "$longhorn_sc" --dest-sc "$rook_storage_class" --rsync-image "$KURL_UTIL_IMAGE" --preflight-validation-only) ; then
+            break
+        fi
+    done
+
+    if [ -n "$longhorn_default_sc" ] ; then
+        # run validation checks for Rook default storage class
+        longhorn_default_sc_pvmigrate_dryrun_output=$($BIN_PVMIGRATE --source-sc "$longhorn_default_sc" --dest-sc "$rook_storage_class" --rsync-image "$KURL_UTIL_IMAGE" --preflight-validation-only || true)
+    fi
+
+    if [ -n "$longhorn_scs_pvmigrate_dryrun_output" ] || [ -n "$longhorn_default_sc_pvmigrate_dryrun_output" ] ; then
+        log "$longhorn_scs_pvmigrate_dryrun_output"
+        log "$longhorn_default_sc_pvmigrate_dryrun_output"
+        bail "Cannot upgrade from Longhorn to Rook due to previous error."
+    fi
+
+    echo "Longhorn to Rook migration checks completed."
 }
