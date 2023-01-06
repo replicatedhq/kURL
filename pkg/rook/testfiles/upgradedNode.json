@@ -374,7 +374,7 @@
           {
             "names": [
               "docker.io/ceph/ceph@sha256:8c86fc6acf47edb6c3e38777b72c3fea2bad5be18c7e88553673205b378d0121",
-              "docker.io/ceph/ceph:v14.2.5-20191210"
+              "docker.io/ceph/ceph:v14.2.5-20201116"
             ],
             "sizeBytes": 289364517
           },
