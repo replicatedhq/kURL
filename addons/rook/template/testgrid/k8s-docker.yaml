@@ -344,6 +344,7 @@
 
 - name: Rook migrate from Longhorn
   flags: "yes"
+  cpu: 6
   installerSpec:
     kubernetes:
       # Longhorn is not compatible with kubernetes 1.25+.
