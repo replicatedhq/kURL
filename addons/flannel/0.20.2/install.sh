@@ -13,11 +13,6 @@ function flannel_pre_init() {
     local src="$DIR/addons/flannel/$FLANNEL_VERSION"
     local dst="$DIR/kustomize/flannel"
 
-    if flannel_weave_conflict ; then
-        if ! flannel_is_single_master; then
-            bail "Migrations from Weave to Flannel are not supported on HA installs"
-        fi
-    fi
     if flannel_antrea_conflict ; then
         bail "Migrations from Antrea to Flannel are not supported"
     fi
@@ -114,6 +109,52 @@ function weave_to_flannel() {
 
     logStep "Applying Flannel"
     kubectl -n kube-flannel apply -k "$dst/"
+
+    # if there is more than one node, prompt to run on each primary/master node, and then on each worker/secondary node
+    local master_node_count=
+    master_node_count=$(kubectl get nodes --no-headers --selector='node-role.kubernetes.io/control-plane' | wc -l)
+    local master_node_names=
+    master_node_names=$(kubectl get nodes --no-headers --selector='node-role.kubernetes.io/control-plane' -o custom-columns=NAME:.metadata.name)
+    if [ "$master_node_count" -gt 1 ]; then
+        printf "${YELLOW}Moving primary nodes from Weave to Flannel requires removing certain weave files and restarting kubelet.${NC}\n"
+        printf "${YELLOW}Please run the following command on each of the listed primary nodes:${NC}\n"
+        printf "${master_node_names}\n" #TODO filter out current node
+
+        if [ "$AIRGAP" = "1" ]; then
+            printf "\n\t${GREEN}cat ./tasks.sh | sudo bash -s weave-to-flannel-primary${NC}\n\n"
+        else
+            local prefix=
+            prefix="$(build_installer_prefix "${INSTALLER_ID}" "${KURL_VERSION}" "${KURL_URL}" "${PROXY_ADDRESS}")"
+            printf "\n\t${GREEN}${prefix}tasks.sh | sudo bash -s weave-to-flannel-primary${NC}\n\n"
+        fi
+
+        printf "${YELLOW}Once this has been run on all nodes, press enter to continue.${NC}"
+        prompt
+        kubectl -n kube-flannel delete pods --all
+    fi
+
+    local worker_node_count=
+    worker_node_count=$(kubectl get nodes --no-headers --selector='!node-role.kubernetes.io/control-plane' | wc -l)
+    local worker_node_names=
+    worker_node_names=$(kubectl get nodes --no-headers --selector='!node-role.kubernetes.io/control-plane' -o custom-columns=NAME:.metadata.name)
+    if [ "$worker_node_count" -gt 1 ]; then
+        printf "${YELLOW}Moving from Weave to Flannel requires removing certain weave files and restarting kubelet.${NC}\n"
+        printf "${YELLOW}Please run the following command on each of the listed secondary nodes:${NC}\n"
+        printf "${worker_node_names}\n"
+
+        if [ "$AIRGAP" = "1" ]; then
+            printf "\n\t${GREEN}cat ./tasks.sh | sudo bash -s weave-to-flannel-secondary${NC}\n\n"
+        else
+            local prefix=
+            prefix="$(build_installer_prefix "${INSTALLER_ID}" "${KURL_VERSION}" "${KURL_URL}" "${PROXY_ADDRESS}")"
+            printf "\n\t${GREEN}${prefix}tasks.sh | sudo bash -s weave-to-flannel-secondary${NC}\n\n"
+        fi
+
+        printf "${YELLOW}Once this has been run on all nodes, press enter to continue.${NC}"
+        prompt
+        kubectl -n kube-flannel delete pods --all
+    fi
+
     echo "waiting for kube-flannel-ds to become healthy in kube-flannel"
     spinner_until 240 daemonset_fully_updated "kube-flannel" "kube-flannel-ds"
 

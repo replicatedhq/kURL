@@ -91,6 +91,12 @@ function tasks() {
             rook_upgrade_tasks_load_images "$@"
             popd_install_directory
             ;;
+        weave-to-flannel-primary|weave_to_flannel_primary)
+            weave_to_flannel_primary
+            ;;
+        weave-to-flannel-secondary|weave_to_flannel_secondary)
+            weave_to_flannel_secondary
+            ;;
         *)
             bail "Unknown task: $1"
             ;;
@@ -716,6 +722,32 @@ function install_host_dependencies_longhorn() {
     pushd_install_directory
 
     longhorn_host_init_common "${DIR}/packages/host/longhorn"
+}
+
+function weave_to_flannel_primary() {
+    require_root_user
+
+    # if /opt/replicated/kubeadm.conf does not exist, this is not a primary
+    if [ ! -f /opt/replicated/kubeadm.conf ]; then
+        bail "/opt/replicated/kubeadm.conf was not found"
+    fi
+
+    rm -f /opt/cni/bin/weave-*
+    rm -rf /etc/cni/net.d
+    ip link delete weave
+
+    # TODO regenerate `/opt/replicated/kubeadm.conf` to make sure it is a join config
+    kubeadm join phase control-plane-prepare control-plane --config=/opt/replicated/kubeadm.conf
+    systemctl restart kubelet containerd
+}
+
+function weave_to_flannel_secondary() {
+    require_root_user
+
+    rm -f /opt/cni/bin/weave-*
+    rm -rf /etc/cni/net.d
+    ip link delete weave
+    systemctl restart kubelet containerd
 }
 
 mkdir -p /var/log/kurl
