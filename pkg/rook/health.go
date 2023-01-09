@@ -80,6 +80,10 @@ func isStatusHealthy(status cephtypes.CephStatus, ignoreChecks []string) (bool, 
 		// ignore "pool(s) have non-power-of-two pg_num", as Ceph will continue to work and will not prevent upgrades
 		delete(status.Health.Checks, "POOL_PG_NUM_NOT_POWER_OF_TWO")
 
+		// ignore "mon is allowing insecure global_id reclaim", as Ceph will continue to work and will not prevent upgrades
+		// note that it is required to upgrade from 1.0.4-14.2.21 to 1.4.9
+		delete(status.Health.Checks, "AUTH_INSECURE_GLOBAL_ID_RECLAIM_ALLOWED")
+
 		for _, check := range ignoreChecks {
 			delete(status.Health.Checks, check)
 		}

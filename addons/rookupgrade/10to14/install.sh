@@ -13,6 +13,9 @@ function rookupgrade_10to14_upgrade() {
             bail "Failed to verify the updated cluster, Ceph is not healthy"
         fi
 
+        log "Setting mon auth_allow_insecure_global_id_reclaim true"
+        kubectl -n rook-ceph exec deploy/rook-ceph-operator -- ceph config set mon auth_allow_insecure_global_id_reclaim true
+
         log "Updating the Ceph mon count"
         # If mon count is less than actual count, update mon count to actual count. Otherwise
         # updating to the latest CRDs may reduce the mon count, as preferredCount has been removed
