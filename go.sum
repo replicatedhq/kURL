@@ -1460,8 +1460,8 @@ github.com/prometheus/tsdb v0.7.1/go.mod h1:qhTCs0VvXwvX/y3TZrWD7rabWM+ijKTux40T
 github.com/rboyer/safeio v0.2.1 h1:05xhhdRNAdS3apYm7JRjOqngf4xruaW959jmRxGDuSU=
 github.com/rcrowley/go-metrics v0.0.0-20181016184325-3113b8401b8a/go.mod h1:bCqnVzQkZxMG4s8nGwiZ5l3QUCyqpo9Y+/ZMZ9VjZe4=
 github.com/renier/xmlrpc v0.0.0-20170708154548-ce4a1a486c03 h1:Wdi9nwnhFNAlseAOekn6B5G/+GMtks9UKbvRU/CMM/o=
-github.com/replicatedhq/kurlkinds v1.0.8 h1:1HyAh7MScP93CQR1r6r5ujEuRXWMRIsxTf+KYl8N8F4=
-github.com/replicatedhq/kurlkinds v1.0.8/go.mod h1:El1ZyCyGLD/fxM0cbNCtMIozUUBC7BI0rMGdiDu6T2E=
+github.com/replicatedhq/kurlkinds v1.0.10 h1:V+ejtf1UU+NfjnQt68aJEEKxmm4bS7Fi5cfCi74yzIo=
+github.com/replicatedhq/kurlkinds v1.0.10/go.mod h1:xoSKk917a+BE3vDSgunKKiNSg4XwW4MXj5ka5+xHn2A=
 github.com/replicatedhq/pvmigrate v0.7.0 h1:5GEmYaw0P+9T76HyMlQ2xtKznafTBg++PSMCclpFjh4=
 github.com/replicatedhq/pvmigrate v0.7.0/go.mod h1:pSh7a3xQvpZijtfrZR8ol2t92xQw1d/aMMq1pFIiSu8=
 github.com/replicatedhq/termui/v3 v3.1.1-0.20200811145416-f40076d26851 h1:eRlNDHxGfVkPCRXbA4BfQJvt5DHjFiTtWy3R/t4djyY=
@@ -2412,8 +2412,8 @@ sigs.k8s.io/apiserver-network-proxy/konnectivity-client v0.0.7/go.mod h1:PHgbrJT
 sigs.k8s.io/apiserver-network-proxy/konnectivity-client v0.0.14/go.mod h1:LEScyzhFmoF5pso/YSeBstl57mOzx9xlU9n85RGrDQg=
 sigs.k8s.io/apiserver-network-proxy/konnectivity-client v0.0.15/go.mod h1:LEScyzhFmoF5pso/YSeBstl57mOzx9xlU9n85RGrDQg=
 sigs.k8s.io/controller-runtime v0.2.2/go.mod h1:9dyohw3ZtoXQuV1e766PHUn+cmrRCIcBh6XIMFNMZ+I=
-sigs.k8s.io/controller-runtime v0.14.0 h1:ju2xsov5Ara6FoQuddg+az+rAxsUsTYn2IYyEKCTyDc=
-sigs.k8s.io/controller-runtime v0.14.0/go.mod h1:GaRkrY8a7UZF0kqFFbUKG7n9ICiTY5T55P1RiE3UZlU=
+sigs.k8s.io/controller-runtime v0.14.1 h1:vThDes9pzg0Y+UbCPY3Wj34CGIYPgdmspPm2GIpxpzM=
+sigs.k8s.io/controller-runtime v0.14.1/go.mod h1:GaRkrY8a7UZF0kqFFbUKG7n9ICiTY5T55P1RiE3UZlU=
 sigs.k8s.io/controller-tools v0.11.1 h1:blfU7DbmXuACWHfpZR645KCq8cLOc6nfkipGSGnH+Wk=
 sigs.k8s.io/controller-tools v0.11.1/go.mod h1:dm4bN3Yp1ZP+hbbeSLF8zOEHsI1/bf15u3JNcgRv2TM=
 sigs.k8s.io/json v0.0.0-20211020170558-c049b76a60c6/go.mod h1:p4QtZmO4uMYipTQNzagwnNoseA6OxSUutVw05NhYDRs=
