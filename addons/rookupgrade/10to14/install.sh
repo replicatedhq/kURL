@@ -10,6 +10,9 @@ function rookupgrade_10to14_upgrade() {
         # this will start the rook toolbox if it doesn't already exist
         "$DIR"/bin/kurl rook wait-for-health
 
+        log "Setting mon auth_allow_insecure_global_id_reclaim true"
+        kubectl -n rook-ceph exec deploy/rook-ceph-operator -- ceph config set mon auth_allow_insecure_global_id_reclaim true
+
         # If mon count is less than actual count, update mon count to actual count. Otherwise
         # updating to the latest CRDs may reduce the mon count, as preferredCount has been removed
         # from the CRD in Rook 1.1.
