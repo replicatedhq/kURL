@@ -591,13 +591,6 @@ function current_user_sudo_group() {
 
 function kubeconfig_setup_outro() {
     current_user_sudo_group
-    # If opt-in to have KUBERNETES_CIS_COMPLIANCE FOUND_SUDO_GROUP is required for kubectl access
-    if [ "$KUBERNETES_CIS_COMPLIANCE" != "1" ] && [ -n "$FOUND_SUDO_GROUP" ]; then
-        printf "To access the cluster with kubectl, reload your shell:\n"
-        printf "\n"
-        printf "${GREEN}    bash -l${NC}\n"
-        return
-    fi
     local owner="$SUDO_UID"
     if [ -z "$owner" ]; then
         # not currently running via sudo
@@ -608,8 +601,7 @@ function kubeconfig_setup_outro() {
 
         if [ ! -f "$ownerdir/.kube/config" ]; then
             mkdir -p $ownerdir/.kube
-            cp "$(${K8S_DISTRO}_get_kubeconfig)" $ownerdir/.kube/config
-            chown -R $owner $ownerdir/.kube
+            copyKubeconfig
 
             printf "To access the cluster with kubectl, ensure the KUBECONFIG environment variable is unset:\n"
             printf "\n"
@@ -619,14 +611,24 @@ function kubeconfig_setup_outro() {
         fi
     fi
 
-    printf "To access the cluster with kubectl, copy kubeconfig to your home directory:\n"
+    copyKubeconfig
+
+    printf "To access the cluster with kubectl, ensure the KUBECONFIG environment variable is unset:\n"
     printf "\n"
-    printf "${GREEN}    cp "$(${K8S_DISTRO}_get_kubeconfig)" ~/.kube/config${NC}\n"
-    printf "${GREEN}    chown -R ${owner} ~/.kube${NC}\n"
     printf "${GREEN}    echo unset KUBECONFIG >> ~/.bash_profile${NC}\n"
     printf "${GREEN}    bash -l${NC}\n"
-    printf "\n"
+
     printf "You will likely need to use sudo to copy and chown "$(${K8S_DISTRO}_get_kubeconfig)".\n"
+}
+
+function copyKubeconfig() {
+    log "Copying the kubeconfig to your home directory, with the following steps:"
+    printf "\n"
+    printf "${GREEN}cp "$(${K8S_DISTRO}_get_kubeconfig)" ~/.kube/config${NC}\n"
+    cp "$(${K8S_DISTRO}_get_kubeconfig)" ~/.kube/config
+    printf "${GREEN}chown -R ${owner} ~/.kube${NC}\n"
+    chown -R "${owner}" ~/.kube
+    printf "\n"
 }
 
 function splitHostPort() {
@@ -996,3 +998,4 @@ function pod_count_by_selector() {
 
     echo -n "$pods" | wc -l
 }
+
