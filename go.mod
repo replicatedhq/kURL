@@ -20,7 +20,7 @@ require (
 	github.com/minio/minio-go v6.0.14+incompatible
 	github.com/pelletier/go-toml v1.9.5
 	github.com/pkg/errors v0.9.1
-	github.com/replicatedhq/kurlkinds v1.0.8
+	github.com/replicatedhq/kurlkinds v1.0.10
 	github.com/replicatedhq/pvmigrate v0.7.0
 	github.com/replicatedhq/troubleshoot v0.52.0
 	github.com/rook/rook v1.10.6
@@ -43,7 +43,7 @@ require (
 	k8s.io/client-go v0.26.0
 	k8s.io/code-generator v0.26.0
 	k8s.io/utils v0.0.0-20221128185143-99ec85e7a448
-	sigs.k8s.io/controller-runtime v0.14.0
+	sigs.k8s.io/controller-runtime v0.14.1
 	sigs.k8s.io/controller-tools v0.11.1
 	sigs.k8s.io/yaml v1.3.0
 )
