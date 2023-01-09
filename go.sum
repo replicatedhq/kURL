@@ -1466,8 +1466,8 @@ github.com/replicatedhq/pvmigrate v0.7.0 h1:5GEmYaw0P+9T76HyMlQ2xtKznafTBg++PSMC
 github.com/replicatedhq/pvmigrate v0.7.0/go.mod h1:pSh7a3xQvpZijtfrZR8ol2t92xQw1d/aMMq1pFIiSu8=
 github.com/replicatedhq/termui/v3 v3.1.1-0.20200811145416-f40076d26851 h1:eRlNDHxGfVkPCRXbA4BfQJvt5DHjFiTtWy3R/t4djyY=
 github.com/replicatedhq/termui/v3 v3.1.1-0.20200811145416-f40076d26851/go.mod h1:JDxG6+uubnk9/BZ2yUsyAJJwlptjrnmB2MPF5d2Xe/8=
-github.com/replicatedhq/troubleshoot v0.52.0 h1:qybTEiJSHc2dT1zpUIa6szHn0fC2RLYpImtcR9M7fnA=
-github.com/replicatedhq/troubleshoot v0.52.0/go.mod h1:3ISTzN3+KmssFBOZYJU+oeOnxP3vc+H5X+limlS0l7o=
+github.com/replicatedhq/troubleshoot v0.53.0 h1:OQkck+UrvpyuUUAb/3AKvwpubZmqXqoqCqAnElMJMqQ=
+github.com/replicatedhq/troubleshoot v0.53.0/go.mod h1:3ISTzN3+KmssFBOZYJU+oeOnxP3vc+H5X+limlS0l7o=
 github.com/rivo/uniseg v0.2.0 h1:S1pD9weZBuJdFmowNwbpi7BJ8TNftyUImj/0WQi72jY=
 github.com/rivo/uniseg v0.2.0/go.mod h1:J6wj4VEh+S6ZtnVlnTBMWIodfgj8LQOQFoIToxlJtxc=
 github.com/rogpeppe/fastuuid v0.0.0-20150106093220-6724a57986af/go.mod h1:XWv6SoW27p1b0cqNHllgS5HIMJraePCO15w5zCzIWYg=
