@@ -17,7 +17,6 @@ require AWS_SECRET_ACCESS_KEY "${AWS_SECRET_ACCESS_KEY}"
 require AWS_REGION "${AWS_REGION}"
 require S3_BUCKET "${S3_BUCKET}"
 require VERSION_TAG "${VERSION_TAG}"
-require STAGING_RELEASE "${STAGING_RELEASE}"
 
 GITSHA="$(git rev-parse HEAD)"
 
@@ -99,8 +98,10 @@ function copy_package_dist() {
 }
 
 function copy_staging_release_to_dist() {
+    require STAGING_RELEASE "${STAGING_RELEASE}"
     echo "copying s3://${S3_BUCKET}/${STAGING_PREFIX}/${STAGING_RELEASE} to s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${VERSION_TAG}"
-    retry 5 aws s3 cp --recursive "s3://${S3_BUCKET}/${STAGING_PREFIX}/${STAGING_RELEASE}" "s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${VERSION_TAG}"
+    # do not overwrite common and kurl-bin-utils tarball packages since they will already exist
+    retry 5 aws s3 cp --exclude "common.*" --exclude "kurl-bin-utils-*" --recursive "s3://${S3_BUCKET}/${STAGING_PREFIX}/${STAGING_RELEASE}" "s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${VERSION_TAG}"
 }
 
 function deploy() {
