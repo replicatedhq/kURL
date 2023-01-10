@@ -95,7 +95,7 @@ jobs:
     outputs:
       staging_release: ${{ steps.get_staging_release.outputs.staging_release }}
     steps:
-    - name: find corresponding staging release for tag
+    - name: find corresponding staging release for commit
       id: get_staging_release
       run: |
         version_commit="$(git rev-list "${GITHUB_REF_NAME}" -n 1 | xargs git rev-parse --short)"
