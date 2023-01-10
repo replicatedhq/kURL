@@ -18,6 +18,7 @@ func AddCommands(cmd *cobra.Command, cli CLI) {
 	rookCmd.AddCommand(NewRookWaitForRookVersionCmd(cli))
 	rookCmd.AddCommand(NewRookWaitForCephVersionCmd(cli))
 	rookCmd.AddCommand(NewRookHasSufficientBlockDevicesCmd(cli))
+	rookCmd.AddCommand(NewRookFlexvolumeToCSI(cli))
 	cmd.AddCommand(rookCmd)
 
 	clusterCmd := NewClusterCmd(cli)

@@ -5,6 +5,7 @@ function download_util_binaries() {
         tar xzf "$(package_filepath "${KURL_BIN_UTILS_FILE}")"
     fi
 
+    export BIN_KURL=$DIR/bin/kurl
     BIN_SYSTEM_CONFIG=$DIR/bin/config
     BIN_YAMLUTIL=$DIR/bin/yamlutil
     BIN_DOCKER_CONFIG=$DIR/bin/docker-config
@@ -13,6 +14,7 @@ function download_util_binaries() {
     BIN_YAMLTOBASH=$DIR/bin/yamltobash
     BIN_BASHTOYAML=$DIR/bin/bashmerge
     BIN_PVMIGRATE=$DIR/bin/pvmigrate
+    export BIN_ROOKPVMIGRATOR=$DIR/bin/rook-pv-migrator
 
     mkdir -p /tmp/kurl-bin-utils/scripts
     CONFIGURE_SELINUX_SCRIPT=/tmp/kurl-bin-utils/scripts/configure_selinux.sh

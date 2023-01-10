@@ -4,6 +4,8 @@ function rook_pre_init() {
     local current_version
     current_version="$(rook_version)"
 
+    rook_discover_storage_class_name
+
     export SKIP_ROOK_INSTALL
     if rook_should_skip_rook_install "$current_version" "$ROOK_VERSION" ; then
         SKIP_ROOK_INSTALL=1
@@ -47,6 +49,10 @@ function rook_post_init() {
         echo "Rook Post-init: Installing Prometheus ServiceMonitor and Ceph Grafana Dashboard"
         kubectl -n monitoring apply -k "$src/monitoring/"
     fi
+
+    if [ "$ROOK_DID_DISABLE_EKCO_OPERATOR" = "1" ]; then
+        rook_enable_ekco_operator
+    fi
 }
 
 ROOK_DID_DISABLE_EKCO_OPERATOR=0
@@ -67,6 +73,14 @@ function rook() {
     # Disallow the EKCO operator from updating Rook custom resources during a Rook upgrade
     rook_disable_ekco_operator
     ROOK_DID_DISABLE_EKCO_OPERATOR=1
+
+    # delete old clusterrolebinding
+    # see issue https://github.com/rook/rook/issues/6448
+    kubectl delete --ignore-not-found clusterrolebinding rook-ceph-system-psp-users
+
+    # removed flex driver in v1.8.0
+    # https://github.com/rook/rook/pull/8799
+    kubectl delete --ignore-not-found crd volumes.rook.io
 
     rook_operator_crds_deploy
     rook_operator_deploy
@@ -103,12 +117,6 @@ function rook() {
     echo "Awaiting rook-ceph object store health"
     if ! spinner_until 120 rook_rgw_is_healthy ; then
         bail "Failed to detect healthy rook-ceph object store"
-    fi
-}
-
-function rook_post_init() {
-    if [ "$ROOK_DID_DISABLE_EKCO_OPERATOR" = "1" ]; then
-        rook_enable_ekco_operator
     fi
 }
 
@@ -212,7 +220,7 @@ function rook_cluster_deploy() {
     insert_patches_strategic_merge "$dst/kustomization.yaml" patches/cluster.yaml
     render_yaml_file "$src/patches/tmpl-object.yaml" > "$dst/patches/object.yaml"
     insert_patches_strategic_merge "$dst/kustomization.yaml" patches/object.yaml
-    render_yaml_file "$src/patches/tmpl-rbd-storageclass.yaml" > "$dst/patches/rbd-storageclass.yaml"
+    render_yaml_file_2 "$src/patches/tmpl-rbd-storageclass.yaml" > "$dst/patches/rbd-storageclass.yaml"
     insert_patches_strategic_merge "$dst/kustomization.yaml" patches/rbd-storageclass.yaml
 
     # Don't redeploy cluster - ekco may have made changes based on num of nodes in cluster
@@ -303,7 +311,50 @@ function rook_cluster_deploy_upgrade() {
 
     kubectl -n rook-ceph delete --ignore-not-found priorityclass rook-critical
 
+    rook_cluster_deploy_upgrade_storageclass
+
     logSuccess "Rook-ceph cluster upgraded"
+}
+
+# rook_cluster_deploy_upgrade_storageclass will check if the previous storageclass is using the
+# flex volume provisioner (if this is an upgrade from 1.0.4) and will deploy a new storageclass
+# with the CSI provisioner.
+function rook_cluster_deploy_upgrade_storageclass() {
+    local src="$DIR/addons/rook/$ROOK_VERSION/cluster"
+    local dst="$DIR/kustomize/rook/cluster"
+
+    # check that the existing storage class is using the flex volume provisioner
+    if [ "$(kubectl get sc default -o jsonpath='{.provisioner}')" != "ceph.rook.io/block" ] ; then
+        return
+    fi
+
+    # patch the existing storage class to not be the default
+    kubectl patch storageclass default -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"false"}}}'
+
+    local src_sc=default
+    local dst_sc=distributed
+
+    # deploy a new storage class with the CSI provisioner
+    mkdir -p "$dst/rbd-storageclass/patches/"
+    echo "" > "$dst/rbd-storageclass/kustomization.yaml"
+    export STORAGE_CLASS="$dst_sc"
+    render_yaml_file_2 "$src/tmpl-rbd-storageclass.yaml" > "$dst/rbd-storageclass.yaml"
+    render_yaml_file_2 "$src/patches/tmpl-rbd-storageclass.yaml" > "$dst/patches/rbd-storageclass.yaml"
+    cp "$dst/rbd-storageclass.yaml" "$dst/rbd-storageclass/rbd-storageclass.yaml"
+    cp "$dst/patches/rbd-storageclass.yaml" "$dst/rbd-storageclass/patches/rbd-storageclass.yaml"
+    insert_resources "$dst/rbd-storageclass/kustomization.yaml" rbd-storageclass.yaml
+    insert_patches_strategic_merge "$dst/rbd-storageclass/kustomization.yaml" patches/rbd-storageclass.yaml
+    kubectl apply -k "$dst/rbd-storageclass/"
+
+    rook_migrate_flexvolumes_to_csi "$src_sc" "$dst_sc"
+}
+
+function rook_migrate_flexvolumes_to_csi() {
+    local src_sc="$1"
+    local dst_sc="$2"
+    logStep "Migrating Rook Flex volumes to CSI volumes"
+    "$BIN_ROOKPVMIGRATOR" --kubeconfig "$("${K8S_DISTRO}_get_kubeconfig")" --source-sc "$src_sc" --destination-sc "$dst_sc"
+    logSuccess "Rook Flex volumes to CSI volumes migrated successfully"
 }
 
 function rook_dashboard_ready_spinner() {
@@ -685,4 +736,15 @@ function rook_mds_daemons_oktostop() {
         fi
     done
     return 0
+}
+
+function rook_discover_storage_class_name() {
+    local rook_sc_name=
+    rook_sc_name="$(kubectl get sc -o custom-columns=':.metadata.name,:.provisioner' | grep -F 'rook-ceph.rbd.csi.ceph.com' | awk '{ print $1 }')"
+    if [ -z "$rook_sc_name" ]; then
+        rook_sc_name="$(kubectl get sc -o custom-columns=':.metadata.name,:.provisioner' | grep -F 'ceph.rook.io/block' | awk '{ print $1 }')"
+    fi
+    if [ -n "$rook_sc_name" ]; then
+        export STORAGE_CLASS="$rook_sc_name"
+    fi
 }

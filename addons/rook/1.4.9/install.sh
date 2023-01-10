@@ -171,7 +171,7 @@ function rook_cluster_deploy() {
     insert_patches_strategic_merge "$dst/kustomization.yaml" patches/cluster.yaml
     render_yaml_file "$src/patches/tmpl-object.yaml" > "$dst/patches/object.yaml"
     insert_patches_strategic_merge "$dst/kustomization.yaml" patches/object.yaml
-    render_yaml_file "$src/patches/tmpl-rbd-storageclass.yaml" > "$dst/patches/rbd-storageclass.yaml"
+    render_yaml_file_2 "$src/patches/tmpl-rbd-storageclass.yaml" > "$dst/patches/rbd-storageclass.yaml"
     insert_patches_strategic_merge "$dst/kustomization.yaml" patches/rbd-storageclass.yaml
     if [ "$KUBERNETES_TARGET_VERSION_MINOR" -lt "17" ]; then
         sed -i 's/system-cluster-critical/rook-critical/g' "$dst/patches/cluster.yaml" "$dst/patches/object.yaml" "$dst/patches/filesystem.yaml"

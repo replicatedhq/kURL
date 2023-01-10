@@ -47,7 +47,6 @@ function rookupgrade_10to14_upgrade() {
         fi
 
         log "Preparing migration"
-        "$DIR"/bin/kurl rook hostpath-to-block
 
         log "Waiting for Rook to be healthy"
         if ! $DIR/bin/kurl rook wait-for-health 300 ; then
@@ -56,6 +55,7 @@ function rookupgrade_10to14_upgrade() {
         fi
 
         log "Rescaling pgs per pool"
+
         # enabling autoscaling at this point doesn't scale down the number of PGs sufficiently in my testing - it will be enabled after installing 1.4.9
         local osd_pools=
         local non_osd_pools=
@@ -67,6 +67,9 @@ function rookupgrade_10to14_upgrade() {
         log "Waiting for pool pgs to scale down"
         rookupgrade_10to14_osd_pool_wait_for_pg_num "$osd_pools" 16
         rookupgrade_10to14_osd_pool_wait_for_pg_num "$non_osd_pools" 32
+        "$DIR"/bin/kurl rook wait-for-health
+
+        "$DIR"/bin/kurl rook hostpath-to-block
 
         logStep "Upgrading to Rook 1.1.9"
         if ! $DIR/bin/kurl rook wait-for-health 300 ; then

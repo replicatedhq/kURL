@@ -68,6 +68,14 @@ function rook() {
     rook_disable_ekco_operator
     ROOK_DID_DISABLE_EKCO_OPERATOR=1
 
+    # delete old clusterrolebinding
+    # see issue https://github.com/rook/rook/issues/6448
+    kubectl delete --ignore-not-found clusterrolebinding rook-ceph-system-psp-users
+
+    # removed flex driver in v1.8.0
+    # https://github.com/rook/rook/pull/8799
+    kubectl delete --ignore-not-found crd volumes.rook.io
+
     rook_operator_crds_deploy
     rook_operator_deploy
     rook_set_ceph_pool_replicas
@@ -212,7 +220,7 @@ function rook_cluster_deploy() {
     insert_patches_strategic_merge "$dst/kustomization.yaml" patches/cluster.yaml
     render_yaml_file "$src/patches/tmpl-object.yaml" > "$dst/patches/object.yaml"
     insert_patches_strategic_merge "$dst/kustomization.yaml" patches/object.yaml
-    render_yaml_file "$src/patches/tmpl-rbd-storageclass.yaml" > "$dst/patches/rbd-storageclass.yaml"
+    render_yaml_file_2 "$src/patches/tmpl-rbd-storageclass.yaml" > "$dst/patches/rbd-storageclass.yaml"
     insert_patches_strategic_merge "$dst/kustomization.yaml" patches/rbd-storageclass.yaml
 
     # Don't redeploy cluster - ekco may have made changes based on num of nodes in cluster
@@ -304,7 +312,40 @@ function rook_cluster_deploy_upgrade() {
 
     kubectl -n rook-ceph delete --ignore-not-found priorityclass rook-critical
 
+    rook_cluster_deploy_upgrade_maybe_storageclass
+
     logSuccess "Rook-ceph cluster upgraded"
+}
+
+# rook_cluster_deploy_upgrade_storageclass will check if the previous storageclass is using the
+# flex volume provisioner (if this is an upgrade from 1.0.4) and will deploy a new storageclass
+# with the CSI provisioner.
+function rook_cluster_deploy_upgrade_maybe_storageclass() {
+    local src="$DIR/addons/rook/$ROOK_VERSION/cluster"
+    local dst="$DIR/kustomize/rook/cluster"
+
+    # check that the existing storage class is using the flex volume provisioner
+    if [ "$(kubectl get sc default -o jsonpath='{.provisioner}')" != "ceph.rook.io/block" ] ; then
+        return
+    fi
+
+    # patch the existing storage class to not be the default
+    kubectl patch storageclass default -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"false"}}}'
+
+    # deploy a new storage class with the CSI provisioner
+    mkdir -p "$dst/rbd-storageclass/patches/"
+    echo "" > "$dst/rbd-storageclass/kustomization.yaml"
+    export STORAGE_CLASS="rook-ceph"
+    render_yaml_file_2 "$src/tmpl-rbd-storageclass.yaml" > "$dst/rbd-storageclass.yaml"
+    render_yaml_file_2 "$src/patches/tmpl-rbd-storageclass.yaml" > "$dst/patches/rbd-storageclass.yaml"
+    cp "$dst/rbd-storageclass.yaml" "$dst/rbd-storageclass/rbd-storageclass.yaml"
+    cp "$dst/patches/rbd-storageclass.yaml" "$dst/rbd-storageclass/patches/rbd-storageclass.yaml"
+    insert_resources "$dst/rbd-storageclass/kustomization.yaml" rbd-storageclass.yaml
+    insert_patches_strategic_merge "$dst/rbd-storageclass/kustomization.yaml" patches/rbd-storageclass.yaml
+
+    kubectl apply -k "$dst/rbd-storageclass/"
+
+    rook_migrate_flexvolumes_to_csi
 }
 
 function rook_dashboard_ready_spinner() {
@@ -686,4 +727,61 @@ function rook_mds_daemons_oktostop() {
         fi
     done
     return 0
+}
+
+function rook_migrate_flexvolumes_to_csi() {
+    logStep "Migrating Rook Flex volumes to CSI volumes"
+
+    "$DIR"/bin/rook-pv-migrator --kubeconfig "$("${K8S_DISTRO}_get_kubeconfig")" --source-sc default --destination-sc rook-ceph
+
+    local pv=
+    for pv in $(kubectl get pv -o jsonpath='{.items[?(@.spec.flexVolume.driver == "ceph.rook.io/rook-ceph")].metadata.name}') ; do
+        if [ "$(kubectl get pv "$pv" -o jsonpath='{.status.phase}')" != "Bound" ]; then
+            continue
+        fi
+        local pvc
+        local pvc_ns=
+        local pvc_sc=
+        pvc="$(kubectl get pv "$pv" -o jsonpath='{.spec.claimRef.name}')"
+        pvc_ns="$(kubectl get pv "$pv" -o jsonpath='{.spec.claimRef.namespace}')"
+        pvc_sc="$(kubectl get pv "$pv" -o jsonpath='{.spec.storageClassName}')"
+        local pod=
+        local controlled_by=
+        local previous_scale=
+        pod="$(kubectl -n "$pvc_ns" describe pvc "$pvc" | grep -i '^mounted by:' | awk '{ print $NF }')"
+        logSubstep "Migrating $pvc in namespace $pvc_ns to CSI"
+        if [ -n "$pod" ] && [ "$pod" != "<none>" ]; then
+            controlled_by="$(kubectl -n "$pvc_ns" describe pod "$pod" | grep -i '^controlled by:' | awk '{ print $NF }')"
+            previous_scale="$(kubectl -n "$pvc_ns" get "$controlled_by" -o jsonpath='{.spec.replicas}')"
+            if [ -z "$previous_scale" ]; then
+                previous_scale=1
+            fi
+            kubectl -n "$pvc_ns" annotate --overwrite "$controlled_by" kurl.sh/rook-pv-migrator-scale="$previous_scale"
+            kubectl -n "$pvc_ns" scale "$controlled_by" --replicas=0
+        fi
+        "$DIR"/bin/rook-pv-migrator --kubeconfig=/etc/kubernetes/admin.conf --pvc="$pvc" --pvc-ns="$pvc_ns" --destination-sc="$pvc_sc"
+        if [ -n "$controlled_by" ] && [ -n "$previous_scale" ]; then
+            kubectl -n "$pvc_ns" scale "$controlled_by" --replicas="$previous_scale"
+            kubectl -n "$pvc_ns" annotate --overwrite "$controlled_by" kurl.sh/rook-pv-migrator-scale-
+        fi
+    done
+
+    # scale back anything else that may have failed to migrate
+    local ns=
+    for ns in $(kubectl get ns -o jsonpath='{.items[*].metadata.name}') ; do
+        local line=
+        while read -r line ; do
+            if [ -z "$line" ]; then
+                continue
+            fi
+            local controlled_by=
+            local previous_scale=
+            controlled_by="$(echo "$line" | awk '{ print $1 "/" $2 }')"
+            prevoius_scale="$(echo "$line" | awk '{ print $3 }')"
+            kubectl -n "$ns" scale "$controlled_by" --replicas="$prevoius_scale"
+            kubectl -n "$ns" annotate --overwrite "$controlled_by" kurl.sh/rook-pv-migrator-scale-
+        done <<< "$(kubectl -n "$ns" get all -o custom-columns='KIND:.kind,NAME:.metadata.name,SCALE:.metadata.annotations.kurl\.sh/rook-pv-migrator-scale' --no-headers | grep -v '<none>')"
+    done
+
+    logSuccess "Rook Flex volumes to CSI volumes migrated successfully"
 }
