@@ -95,6 +95,8 @@ jobs:
     outputs:
       staging_release: ${{ steps.get_staging_release.outputs.staging_release }}
     steps:
+    - name: Checkout
+      uses: actions/checkout@v3
     - name: find corresponding staging release for commit
       id: get_staging_release
       run: |
@@ -115,7 +117,6 @@ jobs:
   verify-staging-release-testgrid-result:
     runs-on: ubuntu-20.04
     needs:
-    - verify-tag
     - get-staging-release
     steps:
     - name: Verify Testgrid Run
@@ -148,8 +149,6 @@ jobs:
   generate-kurl-release-notes-pr:
     runs-on: ubuntu-20.04
     needs:
-    - verify-tag
-    - get-staging-release
     - copy-staging-release-to-prod
     steps:
     - name: Checkout
