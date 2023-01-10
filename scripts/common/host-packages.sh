@@ -102,7 +102,7 @@ function _dpkg_apt_get_status_and_maybe_fix_broken_pkgs() {
         return
     fi
 
-    logWarn "Attempting to correct broken packages by running sudo apt-get install --fix-broken --no-remove --yes"
+    logWarn "Attempting to correct broken packages by running 'apt-get install --fix-broken --no-remove --yes'"
     # Let's use || true here for when be required to remove the packages we properly should the error message
     # with the steps to get it fix manually
     apt-get install --fix-broken --no-remove --yes || true
