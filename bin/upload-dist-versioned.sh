@@ -21,6 +21,7 @@ require VERSION_TAG "${VERSION_TAG}"
 GITSHA="$(git rev-parse HEAD)"
 
 PACKAGE_PREFIX="${PACKAGE_PREFIX:-dist}"
+STAGING_PREFIX="${STAGING_PREFIX:-staging}"
 
 function package_has_changes() {
     local key="$1"
@@ -94,6 +95,13 @@ function copy_package_dist() {
     echo "copying package ${package} to s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${VERSION_TAG}/ with metadata md5=\"${MD5}\",gitsha=\"${GITSHA}\""
     retry 5 aws s3api copy-object --copy-source "${S3_BUCKET}/${PACKAGE_PREFIX}/${package}" --bucket "${S3_BUCKET}" --key "${PACKAGE_PREFIX}/${VERSION_TAG}/${package}" \
         --metadata-directive REPLACE --metadata md5="${md5}",gitsha="${GITSHA}"
+}
+
+function copy_staging_release_to_dist() {
+    require STAGING_RELEASE "${STAGING_RELEASE}"
+    echo "copying s3://${S3_BUCKET}/${STAGING_PREFIX}/${STAGING_RELEASE} to s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${VERSION_TAG}"
+    # do not overwrite common and kurl-bin-utils tarball packages since they will already exist
+    retry 5 aws s3 cp --exclude "common.*" --exclude "kurl-bin-utils-*" --recursive "s3://${S3_BUCKET}/${STAGING_PREFIX}/${STAGING_RELEASE}" "s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${VERSION_TAG}"
 }
 
 function deploy() {
