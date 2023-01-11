@@ -5,27 +5,24 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"os"
 	"os/exec"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/pkg/errors"
+	"github.com/replicatedhq/kurl/pkg/k8sutil"
+	"github.com/replicatedhq/kurl/pkg/rook/static"
 	appsv1 "k8s.io/api/apps/v1"
-	autoscalingv1 "k8s.io/api/autoscaling/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
-	"k8s.io/client-go/tools/clientcmd"
 )
 
 const (
-	FlexvolumeVendor       = "ceph.rook.io"
-	FlexvolumeVendorLegacy = "rook.io"
-
-	DesiredScaleAnnotation = "kurl.sh/rook-flexvolume-to-csi-desired-scale"
+	desiredScaleAnnotation = "kurl.sh/rook-flexvolume-to-csi-desired-scale"
 )
 
 // FlexvolumeToCSIOpts are options for the FlexvolumeToCSI function
@@ -34,11 +31,6 @@ type FlexvolumeToCSIOpts struct {
 	SourceStorageClass string
 	// DestinationStorageClass is the name of the storage class to migrate to
 	DestinationStorageClass string
-	// PVMigratorBinPath is the path to the ceph/pv-migrator binary
-	PVMigratorBinPath string
-	// KubeconfigPath is the path to the kubeconfig file
-	// will use in cluster config if not provided
-	KubeconfigPath string
 }
 
 // Validate will validate options to the FlexvolumeToCSI function and return an error if any are
@@ -50,49 +42,36 @@ func (o FlexvolumeToCSIOpts) Validate() error {
 	if o.DestinationStorageClass == "" {
 		return errors.New("destination storage class is required")
 	}
-	if o.PVMigratorBinPath == "" {
-		return errors.New("pv migrator binary path is required")
-	}
-	_, err := os.Stat(o.PVMigratorBinPath)
-	if err != nil {
-		return errors.Wrap(err, "stat ceph/pv-migrator binary")
-	}
-	if o.KubeconfigPath != "" {
-		_, err = clientcmd.BuildConfigFromFlags("", o.KubeconfigPath)
-		if err != nil {
-			return errors.Wrap(err, "build kubeconfig from path")
-		}
-	} else {
-		_, err := rest.InClusterConfig()
-		if err != nil {
-			return errors.Wrap(err, "get in cluster config")
-		}
-	}
 	return nil
 }
 
 // FlexvolumeToCSI will migrate from a Rook Flex volumes storage class a Ceph-CSI volumes storage
 // class
-func FlexvolumeToCSI(ctx context.Context, client kubernetes.Interface, logger *log.Logger, opts FlexvolumeToCSIOpts) error {
+func FlexvolumeToCSI(ctx context.Context, clientset kubernetes.Interface, clientConfig *rest.Config, logger *log.Logger, opts FlexvolumeToCSIOpts) error {
 	err := opts.Validate()
 	if err != nil {
 		return err
 	}
 
+	_, err = exec.LookPath("kubectl")
+	if err != nil {
+		return errors.Wrap(err, "which kubectl")
+	}
+
 	logger.Printf("Scaling down statefulsets and deployments using storage class %s ...", opts.SourceStorageClass)
-	pvcs, err := listPVCsByStorageClass(ctx, client, opts.SourceStorageClass)
+	pvcs, err := listPVCsByStorageClass(ctx, clientset, opts.SourceStorageClass)
 	if err != nil {
 		return errors.Wrap(err, "list pvcs")
 	}
 
 	for _, pvc := range pvcs {
-		pods, err := listPodsMountingPVC(ctx, client, pvc.Namespace, pvc.Name)
+		pods, err := listPodsMountingPVC(ctx, clientset, pvc.Namespace, pvc.Name)
 		if err != nil {
 			return errors.Wrapf(err, "list pods mounting pvc %s/%s", pvc.Namespace, pvc.Name)
 		}
 		for _, pod := range pods {
 			logger.Printf("Scaling down pod %s/%s owner ...", pod.Namespace, pod.Name)
-			err := scaleDownPodOwner(ctx, client, pod)
+			err := scaleDownPodOwner(ctx, clientset, pod)
 			if err != nil {
 				return errors.Wrapf(err, "scale down pod %s/%s owner", pod.Namespace, pod.Name)
 			}
@@ -103,7 +82,7 @@ func FlexvolumeToCSI(ctx context.Context, client kubernetes.Interface, logger *l
 
 	logger.Printf("Running ceph/pv-migrator from %s to %s ...", opts.SourceStorageClass, opts.DestinationStorageClass)
 	// NOTE: this is a destructive migration and if it fails in the middle it will be hard to recover from
-	err = runBinPVMigrator(ctx, logger.Writer(), opts.PVMigratorBinPath, opts.SourceStorageClass, opts.DestinationStorageClass, opts.KubeconfigPath)
+	err = runBinPVMigrator(ctx, logger.Writer(), clientset, clientConfig, opts.SourceStorageClass, opts.DestinationStorageClass)
 	if err != nil {
 		return errors.Wrap(err, "run ceph/pv-migrator")
 	}
@@ -117,14 +96,14 @@ func FlexvolumeToCSI(ctx context.Context, client kubernetes.Interface, logger *l
 
 	for namespace := range pvcNamespaces {
 		logger.Printf("Scaling back statefulsets in namespace %s ...", namespace)
-		err := scaleBackStatefulSetsByNamespace(ctx, client, namespace)
+		err := scaleBackStatefulSetsByNamespace(ctx, clientset, namespace)
 		if err != nil {
 			return errors.Wrapf(err, "scale back statefulsets in namespace %s", namespace)
 		}
 		logger.Println("Scaled back statefulsets")
 
 		logger.Printf("Scaling back replicasets in namespace %s ...", namespace)
-		err = scaleBackReplicaSetsByNamespace(ctx, client, namespace)
+		err = scaleBackReplicaSetsByNamespace(ctx, clientset, namespace)
 		if err != nil {
 			return errors.Wrapf(err, "scale back replicasets in namespace %s", namespace)
 		}
@@ -135,28 +114,70 @@ func FlexvolumeToCSI(ctx context.Context, client kubernetes.Interface, logger *l
 	return nil
 }
 
-func runBinPVMigrator(ctx context.Context, w io.Writer, pvMigratorBinPath, sourceSC, destSC, kubeconfigPath string) error {
-	args := []string{
+func runBinPVMigrator(ctx context.Context, w io.Writer, clientset kubernetes.Interface, clientConfig *rest.Config, sourceSC, destSC string) error {
+	// NOTE: this deployment uses image rook/ceph:v1.7.11 and will only work for that specific Rook
+	// add-on version
+	out, err := k8sutil.KubectlApply(ctx, static.FlexMigrator)
+	if out != nil {
+		fmt.Fprintln(w, string(out))
+	}
+	if err != nil {
+		return errors.Wrap(err, "kubectl apply flex migrator")
+	}
+
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Minute)
+	defer cancel()
+
+	err = k8sutil.WaitForDeploymentReady(ctx, clientset, "rook-ceph", "rook-ceph-migrator")
+	if err != nil {
+		return errors.Wrap(err, "wait for rook-ceph-migrator deployment")
+	}
+
+	pods, err := k8sutil.ListPodsBySelector(ctx, clientset, "rook-ceph", "app=rook-ceph-migrator")
+	if err != nil {
+		return errors.Wrap(err, "list pods")
+	}
+	if len(pods.Items) == 0 {
+		return errors.New("no pods found for rook-ceph-migrator deployment")
+	}
+	pod := pods.Items[0]
+
+	if !k8sutil.IsPodReady(pod) {
+		return errors.New("rook-ceph-migrator pod is not ready")
+	}
+
+	command := []string{
+		"pv-migrator",
 		"--source-sc", sourceSC,
 		"--destination-sc", destSC,
 	}
-	if kubeconfigPath != "" {
-		args = append(args, "--kubeconfig", kubeconfigPath)
-	}
-	cmd := exec.CommandContext(ctx, pvMigratorBinPath, args...)
-	cmd.Stdout = w
-	cmd.Stderr = w
-	return cmd.Run()
-}
 
-func newAutoscalingv1Scale(replicas int32) *autoscalingv1.Scale {
-	return &autoscalingv1.Scale{Spec: autoscalingv1.ScaleSpec{Replicas: replicas}}
+	opts := k8sutil.ExecOptions{
+		CoreClient: clientset.CoreV1(),
+		Config:     clientConfig,
+		Command:    command,
+		StreamOptions: k8sutil.StreamOptions{
+			Namespace:     "rook-ceph",
+			PodName:       pod.Name,
+			ContainerName: "rook-ceph-migrator",
+			Out:           w,
+			Err:           w,
+		},
+	}
+	exitCode, err := k8sutil.ExecContainer(ctx, opts, nil)
+	if err != nil {
+		return errors.Wrap(err, "exec command in pod")
+	} else if exitCode != 0 {
+		return errors.Errorf("command returned non-zero exit code %d", exitCode)
+	}
+
+	return nil
 }
 
 func newDesiredScaleAnnotationPatch(replicas int32) []byte {
 	return []byte(fmt.Sprintf(
 		`[{"op": "replace", "path": "/metadata/annotations/%s", "value": "%d"}]`,
-		strings.Replace(DesiredScaleAnnotation, "/", "~1", -1),
+		strings.Replace(desiredScaleAnnotation, "/", "~1", -1),
 		replicas,
 	))
 }
@@ -164,7 +185,7 @@ func newDesiredScaleAnnotationPatch(replicas int32) []byte {
 func newRemoveDesiredScaleAnnotationPatch() []byte {
 	return []byte(fmt.Sprintf(
 		`[{"op": "remove", "path": "/metadata/annotations/%s"}]`,
-		strings.Replace(DesiredScaleAnnotation, "/", "~1", -1),
+		strings.Replace(desiredScaleAnnotation, "/", "~1", -1),
 	))
 }
 
@@ -175,27 +196,27 @@ func newSpecReplicasPatch(replicas int32) []byte {
 	))
 }
 
-func scaleDownPodOwner(ctx context.Context, client kubernetes.Interface, pod corev1.Pod) error {
+func scaleDownPodOwner(ctx context.Context, clientset kubernetes.Interface, pod corev1.Pod) error {
 	if len(pod.OwnerReferences) == 0 {
 		return errors.New("pod not owned by any object")
 	}
 	for _, ref := range pod.OwnerReferences {
 		switch ref.Kind {
 		case "StatefulSet":
-			obj, err := client.AppsV1().StatefulSets(pod.Namespace).Get(ctx, ref.Name, metav1.GetOptions{})
+			obj, err := clientset.AppsV1().StatefulSets(pod.Namespace).Get(ctx, ref.Name, metav1.GetOptions{})
 			if err != nil {
 				return errors.Wrapf(err, "get statefulset %s/%s", pod.Namespace, ref.Name)
 			}
-			err = scaleDownStatefulSet(ctx, client, *obj)
+			err = scaleDownStatefulSet(ctx, clientset, *obj)
 			if err != nil {
 				return errors.Wrapf(err, "scale down statefulset %s/%s", pod.Namespace, ref.Name)
 			}
 		case "ReplicaSet":
-			obj, err := client.AppsV1().ReplicaSets(pod.Namespace).Get(ctx, ref.Name, metav1.GetOptions{})
+			obj, err := clientset.AppsV1().ReplicaSets(pod.Namespace).Get(ctx, ref.Name, metav1.GetOptions{})
 			if err != nil {
 				return errors.Wrapf(err, "get replicaset %s/%s", pod.Namespace, ref.Name)
 			}
-			err = scaleDownReplicaSet(ctx, client, *obj)
+			err = scaleDownReplicaSet(ctx, clientset, *obj)
 			if err != nil {
 				return errors.Wrapf(err, "scale down replicaset %s/%s", pod.Namespace, ref.Name)
 			}
@@ -206,45 +227,45 @@ func scaleDownPodOwner(ctx context.Context, client kubernetes.Interface, pod cor
 	return nil
 }
 
-func scaleDownStatefulSet(ctx context.Context, client kubernetes.Interface, obj appsv1.StatefulSet) error {
+func scaleDownStatefulSet(ctx context.Context, clientset kubernetes.Interface, obj appsv1.StatefulSet) error {
 	replicas := int32(1)
 	if obj.Spec.Replicas != nil {
 		replicas = *obj.Spec.Replicas
 	}
-	_, err := client.AppsV1().StatefulSets(obj.GetNamespace()).Patch(ctx, obj.GetName(), types.JSONPatchType, newDesiredScaleAnnotationPatch(replicas), metav1.PatchOptions{})
+	_, err := clientset.AppsV1().StatefulSets(obj.GetNamespace()).Patch(ctx, obj.GetName(), types.JSONPatchType, newDesiredScaleAnnotationPatch(replicas), metav1.PatchOptions{})
 	if err != nil {
 		return errors.Wrap(err, "patch annotation")
 	}
-	_, err = client.AppsV1().StatefulSets(obj.GetNamespace()).Patch(ctx, obj.GetName(), types.JSONPatchType, newSpecReplicasPatch(0), metav1.PatchOptions{})
+	_, err = clientset.AppsV1().StatefulSets(obj.GetNamespace()).Patch(ctx, obj.GetName(), types.JSONPatchType, newSpecReplicasPatch(0), metav1.PatchOptions{})
 	if err != nil {
 		return errors.Wrap(err, "patch replicas")
 	}
 	return nil
 }
 
-func scaleDownReplicaSet(ctx context.Context, client kubernetes.Interface, obj appsv1.ReplicaSet) error {
+func scaleDownReplicaSet(ctx context.Context, clientset kubernetes.Interface, obj appsv1.ReplicaSet) error {
 	replicas := int32(1)
 	if obj.Spec.Replicas != nil {
 		replicas = *obj.Spec.Replicas
 	}
-	_, err := client.AppsV1().ReplicaSets(obj.GetNamespace()).Patch(ctx, obj.GetName(), types.JSONPatchType, newDesiredScaleAnnotationPatch(replicas), metav1.PatchOptions{})
+	_, err := clientset.AppsV1().ReplicaSets(obj.GetNamespace()).Patch(ctx, obj.GetName(), types.JSONPatchType, newDesiredScaleAnnotationPatch(replicas), metav1.PatchOptions{})
 	if err != nil {
 		return errors.Wrap(err, "patch annotation")
 	}
-	_, err = client.AppsV1().ReplicaSets(obj.GetNamespace()).Patch(ctx, obj.GetName(), types.JSONPatchType, newSpecReplicasPatch(0), metav1.PatchOptions{})
+	_, err = clientset.AppsV1().ReplicaSets(obj.GetNamespace()).Patch(ctx, obj.GetName(), types.JSONPatchType, newSpecReplicasPatch(0), metav1.PatchOptions{})
 	if err != nil {
 		return errors.Wrap(err, "patch replicas")
 	}
 	return nil
 }
 
-func scaleBackStatefulSetsByNamespace(ctx context.Context, client kubernetes.Interface, namespace string) error {
-	objs, err := client.AppsV1().StatefulSets(namespace).List(ctx, metav1.ListOptions{})
+func scaleBackStatefulSetsByNamespace(ctx context.Context, clientset kubernetes.Interface, namespace string) error {
+	objs, err := clientset.AppsV1().StatefulSets(namespace).List(ctx, metav1.ListOptions{})
 	if err != nil {
 		return errors.Wrap(err, "list statefulsets")
 	}
 	for _, obj := range objs.Items {
-		err := scaleBackStatefulSet(ctx, client, obj)
+		err := scaleBackStatefulSet(ctx, clientset, obj)
 		if err != nil {
 			return errors.Wrapf(err, "scale back statefulset %s/%s", obj.GetNamespace(), obj.GetName())
 		}
@@ -252,8 +273,8 @@ func scaleBackStatefulSetsByNamespace(ctx context.Context, client kubernetes.Int
 	return nil
 }
 
-func scaleBackStatefulSet(ctx context.Context, client kubernetes.Interface, obj appsv1.StatefulSet) error {
-	desiredScale, ok := obj.GetAnnotations()[DesiredScaleAnnotation]
+func scaleBackStatefulSet(ctx context.Context, clientset kubernetes.Interface, obj appsv1.StatefulSet) error {
+	desiredScale, ok := obj.GetAnnotations()[desiredScaleAnnotation]
 	if !ok {
 		return nil
 	}
@@ -261,24 +282,24 @@ func scaleBackStatefulSet(ctx context.Context, client kubernetes.Interface, obj 
 	if err != nil {
 		return errors.Wrapf(err, "parse desired scale annotation")
 	}
-	_, err = client.AppsV1().StatefulSets(obj.GetNamespace()).Patch(ctx, obj.GetName(), types.JSONPatchType, newSpecReplicasPatch(int32(replicas)), metav1.PatchOptions{})
+	_, err = clientset.AppsV1().StatefulSets(obj.GetNamespace()).Patch(ctx, obj.GetName(), types.JSONPatchType, newSpecReplicasPatch(int32(replicas)), metav1.PatchOptions{})
 	if err != nil {
 		return errors.Wrap(err, "patch replicas")
 	}
-	_, err = client.AppsV1().StatefulSets(obj.GetNamespace()).Patch(ctx, obj.GetName(), types.JSONPatchType, newRemoveDesiredScaleAnnotationPatch(), metav1.PatchOptions{})
+	_, err = clientset.AppsV1().StatefulSets(obj.GetNamespace()).Patch(ctx, obj.GetName(), types.JSONPatchType, newRemoveDesiredScaleAnnotationPatch(), metav1.PatchOptions{})
 	if err != nil {
 		return errors.Wrap(err, "patch annotation")
 	}
 	return nil
 }
 
-func scaleBackReplicaSetsByNamespace(ctx context.Context, client kubernetes.Interface, namespace string) error {
-	objs, err := client.AppsV1().ReplicaSets(namespace).List(ctx, metav1.ListOptions{})
+func scaleBackReplicaSetsByNamespace(ctx context.Context, clientset kubernetes.Interface, namespace string) error {
+	objs, err := clientset.AppsV1().ReplicaSets(namespace).List(ctx, metav1.ListOptions{})
 	if err != nil {
 		return errors.Wrap(err, "list replicasets")
 	}
 	for _, obj := range objs.Items {
-		err := scaleBackReplicaSet(ctx, client, obj)
+		err := scaleBackReplicaSet(ctx, clientset, obj)
 		if err != nil {
 			return errors.Wrapf(err, "scale back replicaset %s/%s", obj.GetNamespace(), obj.GetName())
 		}
@@ -286,8 +307,8 @@ func scaleBackReplicaSetsByNamespace(ctx context.Context, client kubernetes.Inte
 	return nil
 }
 
-func scaleBackReplicaSet(ctx context.Context, client kubernetes.Interface, obj appsv1.ReplicaSet) error {
-	desiredScale, ok := obj.GetAnnotations()[DesiredScaleAnnotation]
+func scaleBackReplicaSet(ctx context.Context, clientset kubernetes.Interface, obj appsv1.ReplicaSet) error {
+	desiredScale, ok := obj.GetAnnotations()[desiredScaleAnnotation]
 	if !ok {
 		return nil
 	}
@@ -295,25 +316,25 @@ func scaleBackReplicaSet(ctx context.Context, client kubernetes.Interface, obj a
 	if err != nil {
 		return errors.Wrapf(err, "parse desired scale annotation")
 	}
-	_, err = client.AppsV1().ReplicaSets(obj.GetNamespace()).Patch(ctx, obj.GetName(), types.JSONPatchType, newSpecReplicasPatch(int32(replicas)), metav1.PatchOptions{})
+	_, err = clientset.AppsV1().ReplicaSets(obj.GetNamespace()).Patch(ctx, obj.GetName(), types.JSONPatchType, newSpecReplicasPatch(int32(replicas)), metav1.PatchOptions{})
 	if err != nil {
 		return errors.Wrap(err, "patch replicas")
 	}
-	_, err = client.AppsV1().ReplicaSets(obj.GetNamespace()).Patch(ctx, obj.GetName(), types.JSONPatchType, newRemoveDesiredScaleAnnotationPatch(), metav1.PatchOptions{})
+	_, err = clientset.AppsV1().ReplicaSets(obj.GetNamespace()).Patch(ctx, obj.GetName(), types.JSONPatchType, newRemoveDesiredScaleAnnotationPatch(), metav1.PatchOptions{})
 	if err != nil {
 		return errors.Wrap(err, "patch annotation")
 	}
 	return nil
 }
 
-func listPVCsByStorageClass(ctx context.Context, client kubernetes.Interface, name string) ([]corev1.PersistentVolumeClaim, error) {
+func listPVCsByStorageClass(ctx context.Context, clientset kubernetes.Interface, name string) ([]corev1.PersistentVolumeClaim, error) {
 	res := []corev1.PersistentVolumeClaim{}
-	ns, err := client.CoreV1().Namespaces().List(ctx, metav1.ListOptions{})
+	ns, err := clientset.CoreV1().Namespaces().List(ctx, metav1.ListOptions{})
 	if err != nil {
 		return nil, errors.Wrap(err, "list namespaces")
 	}
 	for _, n := range ns.Items {
-		pvcs, err := client.CoreV1().PersistentVolumeClaims(n.Name).List(ctx, metav1.ListOptions{})
+		pvcs, err := clientset.CoreV1().PersistentVolumeClaims(n.Name).List(ctx, metav1.ListOptions{})
 		if err != nil {
 			return nil, errors.Wrapf(err, "list pvcs in namespace %s", n.Name)
 		}
@@ -326,17 +347,15 @@ func listPVCsByStorageClass(ctx context.Context, client kubernetes.Interface, na
 	return res, nil
 }
 
-func listPodsMountingPVC(ctx context.Context, client kubernetes.Interface, namespace, name string) ([]corev1.Pod, error) {
+func listPodsMountingPVC(ctx context.Context, clientset kubernetes.Interface, namespace, name string) ([]corev1.Pod, error) {
 	res := []corev1.Pod{}
-	pods, err := client.CoreV1().Pods(namespace).List(ctx, metav1.ListOptions{})
+	pods, err := clientset.CoreV1().Pods(namespace).List(ctx, metav1.ListOptions{})
 	if err != nil {
 		return nil, errors.Wrap(err, "list pods")
 	}
 	for _, pod := range pods.Items {
-		for _, volume := range pod.Spec.Volumes {
-			if volume.PersistentVolumeClaim != nil && volume.PersistentVolumeClaim.ClaimName == name {
-				res = append(res, pod)
-			}
+		if k8sutil.PodHasPVC(pod, namespace, name) {
+			res = append(res, pod)
 		}
 	}
 	return res, nil

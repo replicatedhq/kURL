@@ -352,14 +352,9 @@ function rook_cluster_deploy_upgrade_pvmigrator() {
     local src_sc="$1"
     local dst_sc="$2"
 
-    local kubeconfig=
-    kubeconfig="$("${K8S_DISTRO}_get_kubeconfig")"
-
     logStep "Migrating Rook Flex volumes to CSI volumes"
     ( set -x;
     "$BIN_KURL" rook flexvolume-to-csi \
-        --pv-migrator-bin-path "$BIN_ROOKPVMIGRATOR" \
-        --kubeconfig-path "$kubeconfig" \
         --source-sc "$src_sc" \
         --destination-sc "$dst_sc" )
     logSuccess "Rook Flex volumes to CSI volumes migrated successfully"

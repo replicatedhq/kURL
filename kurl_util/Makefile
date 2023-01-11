@@ -41,7 +41,7 @@ test:
 	go test ./cmd/...
 
 .PHONY: build
-build: bin/yamlutil bin/subnet bin/docker-config bin/config bin/installermerge bin/yamltobash bin/bashmerge bin/bcrypt bin/htpasswd bin/network bin/toml bin/veleroplugin bin/vendorflights bin/pvmigrate bin/rook-pv-migrator
+build: bin/yamlutil bin/subnet bin/docker-config bin/config bin/installermerge bin/yamltobash bin/bashmerge bin/bcrypt bin/htpasswd bin/network bin/toml bin/veleroplugin bin/vendorflights bin/pvmigrate
 
 bin/yamlutil: cmd/yamlutil/main.go
 	go build ${LDFLAGS} -o bin/yamlutil cmd/yamlutil/main.go
@@ -84,10 +84,6 @@ bin/vendorflights:
 
 bin/pvmigrate: cmd/pvmigrate/main.go
 	go build ${LDFLAGS} -o bin/pvmigrate cmd/pvmigrate/main.go
-
-bin/rook-pv-migrator:
-	curl -L -o bin/rook-pv-migrator https://github.com/ceph/persistent-volume-migrator/releases/download/v0.1.0/pv-migrator
-	chmod +x bin/rook-pv-migrator
 
 .PHONY: kurl-util-image
 kurl-util-image:
