@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     - name: Verify version tag
       run: |
@@ -51,7 +51,7 @@ jobs:
         export KURL_BIN_UTILS_FILE=kurl-bin-utils-${VERSION_TAG}.tar.gz
         export FILTER_GO_BINS_ONLY="1"
         OUTPUT=`bin/list-all-packages-actions-matrix.sh "${{ github.event.inputs.index }}"`
-        echo "::set-output name=matrix::$OUTPUT"
+        echo "$OUTPUT" >> $GITHUB_OUTPUT
 
   build-upload-packages:
     runs-on: ubuntu-20.04
@@ -101,7 +101,7 @@ jobs:
       id: get_staging_release
       run: |
         version_commit="$(git rev-list "${GITHUB_REF_NAME}" -n 1 | xargs git rev-parse --short)"
-        staging_release_dir="$(aws s3 ls s3://"${S3_BUCKET}/${STAGING_PREFIX}/" | grep "${version_commit}" | awk '{print $2}')"
+        staging_release_dir="$(aws s3 ls s3://"${S3_BUCKET}/${STAGING_PREFIX}/" | grep "${version_commit}" | awk '{print $4}')"
         if [ -z "${staging_release_dir}" ]; then
             echo "Could not find staging release for commit ${GITHUB_REF_NAME} (${version_commit})"
             exit 1
