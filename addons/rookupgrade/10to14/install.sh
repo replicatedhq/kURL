@@ -13,7 +13,7 @@ function rookupgrade_10to14_upgrade() {
             bail "Failed to verify the updated cluster, Ceph is not healthy"
         fi
 
-        # If the rock version installed is 1.0.4-14.2.21 then, we need to workaround
+        # If the rook version installed is 1.0.4-14.2.21 then, we need to workaround
         # the issue scenario: https://github.com/rook/rook/issues/11496
         semverCompare "$(current_ceph_version)" "14.2.21"
         if [ "$SEMVER_COMPARE_RESULT" != "-1" ]; then # greater than or equal to 14.2.21
