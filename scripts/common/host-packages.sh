@@ -102,13 +102,17 @@ function _dpkg_apt_get_status_and_maybe_fix_broken_pkgs() {
         return
     fi
 
-    logWarn "Attempting to correct broken packages by running sudo apt-get install --fix-broken --yes"
-    apt-get install --fix-broken --yes
+    logWarn "Attempting to correct broken packages by running 'apt-get install --fix-broken --no-remove --yes'"
+    # Let's use || true here for when be required to remove the packages we properly should the error message
+    # with the steps to get it fix manually
+    apt-get install --fix-broken --no-remove --yes || true
     if apt-get check status ; then
         logSuccess "Broken packages fixed successfully"
         return
     fi
-    bail "Unable to fix broken packages. It is required manual intervention. Run the command '$ apt-get check status' to get further information."
+    logFail "Unable to fix broken packages. Manual intervention is required."
+    logFail "Run the command 'apt-get check status' to get further information."
+    bail "You may able to fix it with 'sudo apt-get install --fix-broken', allowing the removal of packages."
 }
 
 function _dpkg_install_host_packages() {
