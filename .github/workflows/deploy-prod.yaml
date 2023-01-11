@@ -255,6 +255,7 @@ jobs:
   set-current-version:
     runs-on: ubuntu-20.04
     needs:
+    - build-upload-packages
     - copy-staging-release-to-prod
     steps:
     - name: Set VERSION file in s3
