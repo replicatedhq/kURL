@@ -123,11 +123,13 @@ function weave_to_flannel() {
     local hostnamevar
     hostnamevar=$(hostname)
     local master_node_names=
-    master_node_names=$(kubectl get nodes --no-headers --selector='node-role.kubernetes.io/control-plane' -o custom-columns=NAME:.metadata.name | grep -v "$hostnamevar")
-    if [ "$master_node_count" -gt 0 ]; then
+    master_node_names=$(kubectl get nodes --no-headers --selector='node-role.kubernetes.io/control-plane' -o custom-columns=NAME:.metadata.name)
+    if [ "$master_node_count" -gt 1 ]; then
+        local other_master_nodes=
+        other_master_nodes=$(echo "$master_node_names" | grep -v "$hostnamevar")
         printf "${YELLOW}Moving primary nodes from Weave to Flannel requires removing certain weave files and restarting kubelet.${NC}\n"
         printf "${YELLOW}Please run the following command on each of the listed primary nodes:${NC}\n\n"
-        printf "${master_node_names}\n"
+        printf "${other_master_nodes}\n"
 
         # generate the cert key once, as the hash changes each time upload-certs is called
         kubeadm init phase upload-certs --upload-certs 2>/dev/null > /tmp/kotsadm-cert-key
