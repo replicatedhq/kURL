@@ -112,7 +112,6 @@ function _dpkg_apt_get_status_and_maybe_fix_broken_pkgs() {
     fi
     logFail "Unable to fix broken packages. Manual intervention is required."
     logFail "Run the command 'apt-get check status' to get further information."
-    bail "You may able to fix it with 'sudo apt-get install --fix-broken', allowing the removal of packages."
 }
 
 function _dpkg_install_host_packages() {
