@@ -35,8 +35,8 @@ function flannel() {
     flannel_render_config
 
     if flannel_weave_conflict; then
-        printf "${YELLOW}Would you like to migrate from Weave to Flannel?${NC}"
-        printf "${YELLOW}This will require whole-cluster downtime during the transition process.${NC}"
+        printf "${YELLOW}Would you like to migrate from Weave to Flannel?${NC}\n"
+        printf "${YELLOW}This will require whole-cluster downtime during the transition process. ${NC}"
         if ! confirmY ; then
             bail "Not migrating from Weave to Flannel"
         fi
@@ -129,7 +129,7 @@ function weave_to_flannel() {
         printf "${YELLOW}Please run the following command on each of the listed primary nodes:${NC}\n\n"
         printf "${master_node_names}\n"
 
-        # generate the cert key once, as the hash changes each time
+        # generate the cert key once, as the hash changes each time upload-certs is called
         kubeadm init phase upload-certs --upload-certs 2>/dev/null > /tmp/kotsadm-cert-key
         local cert_key=
         cert_key=$(cat /tmp/kotsadm-cert-key | grep -v 'upload-certs' )

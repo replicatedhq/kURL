@@ -741,7 +741,7 @@ function weave_to_flannel_primary() {
         shift
     done
 
-    require_root_user
+    task_requires_root
 
     # if CERT_KEY was not provided, we cannot continue
     if [ -z "$CERT_KEY" ]; then
@@ -792,15 +792,27 @@ EOM
     kubeadm join phase control-plane-prepare control-plane --config=/tmp/kubeadm-join.conf
     systemctl restart kubelet containerd
     rm /tmp/kubeadm-join.conf
+
+    logStep "Successfully updated $(hostname) to use Flannel"
 }
 
 function weave_to_flannel_secondary() {
-    require_root_user
+    task_requires_root
 
     rm -f /opt/cni/bin/weave-*
     rm -rf /etc/cni/net.d
     ip link delete weave
     systemctl restart kubelet containerd
+
+    logStep "Successfully updated $(hostname) to use Flannel"
+}
+
+function task_requires_root() {
+    local user=
+    user="$(id -un 2>/dev/null || true)"
+    if [ "$user" != "root" ]; then
+        bail "Error: this task needs to be run as root."
+    fi
 }
 
 mkdir -p /var/log/kurl

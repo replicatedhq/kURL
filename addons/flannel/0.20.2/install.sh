@@ -35,8 +35,8 @@ function flannel() {
     flannel_render_config
 
     if flannel_weave_conflict; then
-        printf "${YELLOW}Would you like to migrate from Weave to Flannel?${NC}"
-        printf "${YELLOW}This will require whole-cluster downtime during the transition process.${NC}"
+        printf "${YELLOW}Would you like to migrate from Weave to Flannel?${NC}\n"
+        printf "${YELLOW}This will require whole-cluster downtime during the transition process. ${NC}"
         if ! confirmY ; then
             bail "Not migrating from Weave to Flannel"
         fi
