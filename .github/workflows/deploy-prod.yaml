@@ -75,7 +75,8 @@ jobs:
         echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
       shell: bash
 
-    - run: |
+    - name: build and upload packages
+      run: |
         export VERSION_TAG=$GITHUB_REF_NAME
         export KURL_UTIL_IMAGE=replicated/kurl-util:${VERSION_TAG}
         export KURL_BIN_UTILS_FILE=kurl-bin-utils-${VERSION_TAG}.tar.gz
@@ -141,6 +142,7 @@ jobs:
       run: |
         export VERSION_TAG=$GITHUB_REF_NAME
         export KURL_UTIL_IMAGE=replicated/kurl-util:${VERSION_TAG}
+        export KURL_BIN_UTILS_FILE=kurl-bin-utils-${VERSION_TAG}.tar.gz
         . bin/upload-dist-versioned.sh
         copy_staging_release_to_dist
       env:
