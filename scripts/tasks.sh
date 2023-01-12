@@ -92,7 +92,7 @@ function tasks() {
             popd_install_directory
             ;;
         weave-to-flannel-primary|weave_to_flannel_primary)
-            weave_to_flannel_primary
+            weave_to_flannel_primary "$@"
             ;;
         weave-to-flannel-secondary|weave_to_flannel_secondary)
             weave_to_flannel_secondary
@@ -725,20 +725,73 @@ function install_host_dependencies_longhorn() {
 }
 
 function weave_to_flannel_primary() {
+    shift
+    while [ "$1" != "" ]; do
+        _param="$(echo "$1" | cut -d= -f1)"
+        _value="$(echo "$1" | grep '=' | cut -d= -f2-)"
+        case $_param in
+            cert-key)
+                CERT_KEY="$_value"
+                ;;
+            *)
+                echo >&2 "Error: unknown parameter \"$_param\""
+                exit 1
+                ;;
+        esac
+        shift
+    done
+
     require_root_user
 
-    # if /opt/replicated/kubeadm.conf does not exist, this is not a primary
-    if [ ! -f /opt/replicated/kubeadm.conf ]; then
-        bail "/opt/replicated/kubeadm.conf was not found"
+    # if CERT_KEY was not provided, we cannot continue
+    if [ -z "$CERT_KEY" ]; then
+        bail "cert-key is required"
     fi
+
+    # get current node internal IP
+    local current_node_ip=
+    current_node_ip=$(kubectl get nodes -o wide | grep "$(hostname)" | awk '{print $6}' > /tmp/current_node_ip)
+
+    # get ca cert hash, bootstrap token and master address
+    local bootstrap_token=
+    bootstrap_token=$(kubeadm token generate)
+    kubeadm token create "$bootstrap_token" --print-join-command 2>/dev/null > /tmp/kubeadm-token
+    local kubeadm_ca_hash=
+    kubeadm_ca_hash=$(cat /tmp/kubeadm-token | grep -o 'sha256:[^ ]*')
+    local api_service_address=
+    api_service_address=$(cat /tmp/kubeadm-token | awk '{ print $3 }')
+    rm /tmp/kubeadm-token
+
+    cat > /tmp/kubeadm-join.conf <<- EOM
+apiVersion: kubeadm.k8s.io/v1beta2
+controlPlane:
+  certificateKey: $CERT_KEY
+  localAPIEndpoint:
+    advertiseAddress: $current_node_ip
+discovery:
+  bootstrapToken:
+    apiServerEndpoint: $api_service_address
+    caCertHashes:
+    - $kubeadm_ca_hash
+    token: $bootstrap_token
+kind: JoinConfiguration
+nodeRegistration:
+  criSocket: unix:///run/containerd/containerd.sock
+  kubeletExtraArgs:
+    container-runtime: remote
+    container-runtime-endpoint: unix:///run/containerd/containerd.sock
+    node-ip: $current_node_ip
+    node-labels: kurl.sh/cluster=true,
+  taints: []
+EOM
 
     rm -f /opt/cni/bin/weave-*
     rm -rf /etc/cni/net.d
     ip link delete weave
 
-    # TODO regenerate `/opt/replicated/kubeadm.conf` to make sure it is a join config
-    kubeadm join phase control-plane-prepare control-plane --config=/opt/replicated/kubeadm.conf
+    kubeadm join phase control-plane-prepare control-plane --config=/tmp/kubeadm-join.conf
     systemctl restart kubelet containerd
+    rm /tmp/kubeadm-join.conf
 }
 
 function weave_to_flannel_secondary() {

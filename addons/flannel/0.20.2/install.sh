@@ -13,6 +13,12 @@ function flannel_pre_init() {
     local src="$DIR/addons/flannel/$FLANNEL_VERSION"
     local dst="$DIR/kustomize/flannel"
 
+    if flannel_weave_conflict ; then
+        if [ -n "$DOCKER_VERSION" ]; then
+            bail "Migrations from Weave to Flannel are only supported with containerd"
+        fi
+    fi
+
     if flannel_antrea_conflict ; then
         bail "Migrations from Antrea to Flannel are not supported"
     fi
@@ -30,6 +36,7 @@ function flannel() {
 
     if flannel_weave_conflict; then
         printf "${YELLOW}Would you like to migrate from Weave to Flannel?${NC}"
+        printf "${YELLOW}This will require whole-cluster downtime during the transition process.${NC}"
         if ! confirmY ; then
             bail "Not migrating from Weave to Flannel"
         fi
@@ -119,15 +126,21 @@ function weave_to_flannel() {
     master_node_names=$(kubectl get nodes --no-headers --selector='node-role.kubernetes.io/control-plane' -o custom-columns=NAME:.metadata.name | grep -v "$hostnamevar")
     if [ "$master_node_count" -gt 0 ]; then
         printf "${YELLOW}Moving primary nodes from Weave to Flannel requires removing certain weave files and restarting kubelet.${NC}\n"
-        printf "${YELLOW}Please run the following command on each of the listed primary nodes:${NC}\n"
+        printf "${YELLOW}Please run the following command on each of the listed primary nodes:${NC}\n\n"
         printf "${master_node_names}\n"
 
+        # generate the cert key once, as the hash changes each time upload-certs is called
+        kubeadm init phase upload-certs --upload-certs 2>/dev/null > /tmp/kotsadm-cert-key
+        local cert_key=
+        cert_key=$(cat /tmp/kotsadm-cert-key | grep -v 'upload-certs' )
+        rm /tmp/kotsadm-cert-key
+
         if [ "$AIRGAP" = "1" ]; then
-            printf "\n\t${GREEN}cat ./tasks.sh | sudo bash -s weave-to-flannel-primary${NC}\n\n"
+            printf "\n\t${GREEN}cat ./tasks.sh | sudo bash -s weave-to-flannel-primary cert-key=${cert_key}${NC}\n\n"
         else
             local prefix=
             prefix="$(build_installer_prefix "${INSTALLER_ID}" "${KURL_VERSION}" "${KURL_URL}" "${PROXY_ADDRESS}")"
-            printf "\n\t${GREEN}${prefix}tasks.sh | sudo bash -s weave-to-flannel-primary${NC}\n\n"
+            printf "\n\t${GREEN}${prefix}tasks.sh | sudo bash -s weave-to-flannel-primary cert-key=${cert_key}${NC}\n\n"
         fi
 
         printf "${YELLOW}Once this has been run on all nodes, press enter to continue.${NC}"
