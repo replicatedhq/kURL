@@ -137,7 +137,7 @@ function weave_to_flannel() {
     worker_node_count=$(kubectl get nodes --no-headers --selector='!node-role.kubernetes.io/control-plane' | wc -l)
     local worker_node_names=
     worker_node_names=$(kubectl get nodes --no-headers --selector='!node-role.kubernetes.io/control-plane' -o custom-columns=NAME:.metadata.name)
-    if [ "$worker_node_count" -gt 1 ]; then
+    if [ "$worker_node_count" -gt 0 ]; then
         printf "${YELLOW}Moving from Weave to Flannel requires removing certain weave files and restarting kubelet.${NC}\n"
         printf "${YELLOW}Please run the following command on each of the listed secondary nodes:${NC}\n"
         printf "${worker_node_names}\n"
