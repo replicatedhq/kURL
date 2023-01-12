@@ -793,7 +793,7 @@ EOM
     systemctl restart kubelet containerd
     rm /tmp/kubeadm-join.conf
 
-    logStep "Successfully updated $(hostname) to use Flannel"
+    logSuccess "Successfully updated $(hostname) to use Flannel"
 }
 
 function weave_to_flannel_secondary() {
@@ -804,7 +804,7 @@ function weave_to_flannel_secondary() {
     ip link delete weave
     systemctl restart kubelet containerd
 
-    logStep "Successfully updated $(hostname) to use Flannel"
+    logSuccess "Successfully updated $(hostname) to use Flannel"
 }
 
 function task_requires_root() {
