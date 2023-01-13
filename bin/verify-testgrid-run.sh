@@ -46,13 +46,13 @@ function main() {
   failure_count=$(echo "${testgrid_run_json}" | jq -r '.runs[].failure_count')
   total_runs=$(echo "${testgrid_run_json}" | jq -r '.runs[].total_runs')
 
-  log "Found Testgrid run: https://testgrid.kurl.sh/run/${run_id}"
+  log "Found Testgrid run: https://api.testgrid.kurl.sh/api/v1/run/${run_id}"
   log "Testgrid run details:"
   echo "${testgrid_run_json}" | jq
 
   # determine the number of test instances that were unsupported and skipped for the test run
-  unsupported_count=$(curl -d {} -s "https://api.testgrid.kurl.sh/api/v1/run/${run_id}" | jq '.instances[].isUnsupported' | grep -c true || true)
-  skipped_count=$(curl -d {} -s "https://api.testgrid.kurl.sh/api/v1/run/${run_id}" | jq '.instances[].isSkipped' | grep -c true || true)
+  unsupported_count=$(curl -d {} -s "https://api.testgrid.kurl.sh/api/v1/run/${run_id}" | jq '.instances[].isUnsupported' | grep -c true)
+  skipped_count=$(curl -d {} -s "https://api.testgrid.kurl.sh/api/v1/run/${run_id}" | jq '.instances[].isSkipped' | grep -c true)
 
   if [[ $((success_count + failure_count + unsupported_count + skipped_count)) -ne ${total_runs} ]]; then
     bail "Testgrid run ${run_id} seems to have pending runs"
