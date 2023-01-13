@@ -119,12 +119,9 @@ jobs:
     needs:
     - get-staging-release
     steps:
-    - uses: actions/checkout@v3
-      with:
-        fetch-depth: 0
     - name: Verify Testgrid Run
       run: |
-        bin/verify-testgrid-run.sh
+        ./bin/verify-testgrid-run.sh
       env:
         STAGING_RELEASE: ${{ needs.get-staging-release.outputs.staging_release }}
 
