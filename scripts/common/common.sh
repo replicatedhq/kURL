@@ -598,6 +598,7 @@ function kubeconfig_setup_outro() {
     else
         # running via sudo - automatically create ~/.kube/config if it does not exist
         ownerdir=`eval echo "~$(id -un $owner)"`
+
         if [ ! -f "$ownerdir/.kube/config" ]; then
             mkdir -p $ownerdir/.kube
             cp "$(${K8S_DISTRO}_get_kubeconfig)" $ownerdir/.kube/config
@@ -611,14 +612,10 @@ function kubeconfig_setup_outro() {
         fi
     fi
 
-    printf "To access the cluster with kubectl, the kubeconfig will be copied to your home directory with the following commands:\n"
+    printf "To access the cluster with kubectl, copy kubeconfig to your home directory:\n"
     printf "\n"
     printf "${GREEN}    cp "$(${K8S_DISTRO}_get_kubeconfig)" ~/.kube/config${NC}\n"
     printf "${GREEN}    chown -R ${owner} ~/.kube${NC}\n"
-
-    cp "$(${K8S_DISTRO}_get_kubeconfig)" $ownerdir/.kube/config
-    chown -R $owner $ownerdir/.kube
-
     printf "${GREEN}    echo unset KUBECONFIG >> ~/.bash_profile${NC}\n"
     printf "${GREEN}    bash -l${NC}\n"
     printf "\n"
