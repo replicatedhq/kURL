@@ -58,7 +58,7 @@ jobs:
     needs:
     - build-go-bins-matrix
     strategy:
-      matrix: ${{fromJSON(needs.build-go-bins-matrix.outputs.matrix)}}
+      matrix: ${{fromJSON(needs.build-matrix.outputs.matrix)}}
       fail-fast: false
       max-parallel: 20
     steps:
