@@ -157,7 +157,7 @@ jobs:
   generate-kurl-release-notes-pr:
     runs-on: ubuntu-20.04
     needs:
-    - copy-staging-release-to-prod
+    - set-current-version
     steps:
     - name: Checkout
       uses: actions/checkout@v2
@@ -176,8 +176,7 @@ jobs:
   github-release:
     runs-on: ubuntu-20.04
     needs:
-    - kurl-util-image
-    - copy-staging-release-to-prod
+    - set-current-version
     steps:
     - name: Checkout
       uses: actions/checkout@v3
