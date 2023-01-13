@@ -4,8 +4,6 @@ function rook_pre_init() {
     local current_version
     current_version="$(rook_version)"
 
-    rook_discover_storage_class_name
-
     export SKIP_ROOK_INSTALL
     if rook_should_skip_rook_install "$current_version" "$ROOK_VERSION" ; then
         SKIP_ROOK_INSTALL=1
@@ -294,34 +292,39 @@ function rook_cluster_deploy_upgrade() {
 
 # rook_cluster_deploy_upgrade_flexvolumes_to_csi will check if the previous storageclass is using
 # the flex volume provisioner (if this is an upgrade from 1.0.4) and will deploy a new storageclass
-# with the CSI provisioner.
+# with the CSI provisioner following this guide:
+# https://rook.io/docs/rook/v1.7/flex-to-csi-migration.html
 function rook_cluster_deploy_upgrade_flexvolumes_to_csi() {
     local src="$DIR/addons/rook/$ROOK_VERSION/cluster"
     local dst="$DIR/kustomize/rook/cluster"
 
-    # check that the existing storage class is using the flex volume provisioner
-    if [ "$(kubectl get sc default -o jsonpath='{.provisioner}')" != "ceph.rook.io/block" ] ; then
-        return
+    local src_sc="${STORAGE_CLASS:-default}"
+    local tmp_sc=rook-ceph-tmp
+
+    # if the "default" storage class exists and it is still using the flex volume provisioner
+    if [ "$(kubectl get sc "$src_sc" --ignore-not-found -o jsonpath='{.provisioner}')" = "ceph.rook.io/block" ]; then
+        # patch the existing storage class to not be the default
+        kubectl patch storageclass "$src_sc" -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"false"}}}'
+
+        # deploy a new storage class with the CSI provisioner
+        rook_cluster_deploy_upgrade_create_storageclass "$tmp_sc"
+
+        # run the actual flex volumes to csi volumes migration
+        rook_cluster_deploy_upgrade_pvmigrator "$src_sc" "$tmp_sc"
+
+        kubectl delete sc "$src_sc"
     fi
 
-    # patch the existing storage class to not be the default
-    kubectl patch storageclass default -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"false"}}}'
+    # if there is still a temp storage class, it means we have not finished the migration
+    if kubectl get sc "$tmp_sc" >/dev/null 2>&1 ; then
+        # migrate a second time effectively renaming the temp storageclass back to "default"
+        rook_cluster_deploy_upgrade_create_storageclass "$src_sc"
+        rook_cluster_deploy_upgrade_pvmigrator "$tmp_sc" "$src_sc"
 
-    local src_sc=default
-    local dst_sc=distributed
-    # local tmp_sc=rook-ceph-tmp
-
-    # deploy a new storage class with the CSI provisioner
-    rook_cluster_deploy_upgrade_create_storageclass "$src_sc" "$dst_sc"
-
-    # run the actual flex volumes to csi volumes migration
-    rook_cluster_deploy_upgrade_pvmigrator "$src_sc" "$dst_sc"
-
-    kubectl delete sc "$src_sc"
-
-    # migrate a second time effectively renaming the storageclass to "default"
-    rook_cluster_deploy_upgrade_create_storageclass "$dst_sc" "$src_sc"
-    rook_cluster_deploy_upgrade_pvmigrator "$dst_sc" "$src_sc"
+        exit
+        # delete the temp storageclass
+        kubectl delete sc "$tmp_sc"
+    fi
 
     exit
 }
@@ -329,8 +332,7 @@ function rook_cluster_deploy_upgrade_flexvolumes_to_csi() {
 # rook_cluster_deploy_upgrade_create_storageclass will render the necessary resources and create a
 # storageclass
 function rook_cluster_deploy_upgrade_create_storageclass() {
-    local src_sc="$1"
-    local dst_sc="$2"
+    local dst_sc="$1"
 
     local kustomize_dir="$dst/rbd-storageclass-$dst_sc"
 
@@ -356,7 +358,9 @@ function rook_cluster_deploy_upgrade_pvmigrator() {
     ( set -x;
     "$BIN_KURL" rook flexvolume-to-csi \
         --source-sc "$src_sc" \
-        --destination-sc "$dst_sc" )
+        --destination-sc "$dst_sc" \
+        --pv-migrator-bin-path "$(realpath "$BIN_ROOK_PVMIGRATOR")" \
+        --ceph-migrator-image "rook/ceph:v$ROOK_VERSION" )
     logSuccess "Rook Flex volumes to CSI volumes migrated successfully"
 }
 
@@ -696,15 +700,4 @@ function rook_mds_daemons_oktostop() {
         fi
     done
     return 0
-}
-
-function rook_discover_storage_class_name() {
-    local rook_sc_name=
-    rook_sc_name="$(kubectl get sc -o custom-columns=':.metadata.name,:.provisioner' | grep -F 'rook-ceph.rbd.csi.ceph.com' | awk '{ print $1 }')"
-    if [ -z "$rook_sc_name" ]; then
-        rook_sc_name="$(kubectl get sc -o custom-columns=':.metadata.name,:.provisioner' | grep -F 'ceph.rook.io/block' | awk '{ print $1 }')"
-    fi
-    if [ -n "$rook_sc_name" ]; then
-        export STORAGE_CLASS="$rook_sc_name"
-    fi
 }

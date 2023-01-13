@@ -1,3 +1,4 @@
 /bin/
 *DS_Store
 /vendor/
+/.tmp/

@@ -22,7 +22,7 @@ func NewRookFlexvolumeToCSI(_ CLI) *cobra.Command {
 
 			logger := log.New(os.Stderr, "", 0)
 
-			err := rook.FlexvolumeToCSI(cmd.Context(), clientset, clientConfig, logger, opts)
+			err := rook.FlexvolumeToCSI(cmd.Context(), logger, clientset, clientConfig, opts)
 			return err
 		},
 		SilenceUsage: true,
@@ -32,6 +32,10 @@ func NewRookFlexvolumeToCSI(_ CLI) *cobra.Command {
 	cmd.MarkFlagRequired("source-sc")
 	cmd.Flags().StringVar(&opts.DestinationStorageClass, "destination-sc", "", "storage provider name to migrate to")
 	cmd.MarkFlagRequired("destination-sc")
+	cmd.Flags().StringVar(&opts.PVMigratorBinPath, "pv-migrator-bin-path", "", "path to the pv migrator binary")
+	cmd.MarkFlagRequired("pv-migrator-bin-path")
+	cmd.Flags().StringVar(&opts.CephMigratorImage, "ceph-migrator-image", "", "image for the pv migrator container")
+	cmd.MarkFlagRequired("ceph-migrator-image")
 
 	return cmd
 }

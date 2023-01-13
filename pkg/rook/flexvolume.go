@@ -3,7 +3,8 @@ package rook
 import (
 	"context"
 	"fmt"
-	"io"
+	"html/template"
+	"io/fs"
 	"log"
 	"os/exec"
 	"strconv"
@@ -12,16 +13,24 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/kurl/pkg/k8sutil"
-	"github.com/replicatedhq/kurl/pkg/rook/static"
+	"github.com/replicatedhq/kurl/pkg/rook/static/flexmigrator"
+	"github.com/ricardomaraschini/plumber"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/kustomize/kyaml/filesys"
 )
 
 const (
+	rookCephNamespace                       = "rook-ceph"
+	rookCephMigratorDeploymentName          = "rook-ceph-migrator"
+	rookCephMigratorPodContainerName        = "rook-ceph-migrator"
+	rookCephMigratorDeploymentLabelSelector = "app=rook-ceph-migrator"
+
 	desiredScaleAnnotation = "kurl.sh/rook-flexvolume-to-csi-desired-scale"
 )
 
@@ -31,6 +40,10 @@ type FlexvolumeToCSIOpts struct {
 	SourceStorageClass string
 	// DestinationStorageClass is the name of the storage class to migrate to
 	DestinationStorageClass string
+	// PVMigratorBinPath is the path to the ceph/pv-migrator binary
+	PVMigratorBinPath string
+	// CephMigratorImage is the image to use for the ceph/pv-migrator container
+	CephMigratorImage string
 }
 
 // Validate will validate options to the FlexvolumeToCSI function and return an error if any are
@@ -47,7 +60,7 @@ func (o FlexvolumeToCSIOpts) Validate() error {
 
 // FlexvolumeToCSI will migrate from a Rook Flex volumes storage class a Ceph-CSI volumes storage
 // class
-func FlexvolumeToCSI(ctx context.Context, clientset kubernetes.Interface, clientConfig *rest.Config, logger *log.Logger, opts FlexvolumeToCSIOpts) error {
+func FlexvolumeToCSI(ctx context.Context, logger *log.Logger, clientset kubernetes.Interface, clientConfig *rest.Config, opts FlexvolumeToCSIOpts) error {
 	err := opts.Validate()
 	if err != nil {
 		return err
@@ -82,7 +95,7 @@ func FlexvolumeToCSI(ctx context.Context, clientset kubernetes.Interface, client
 
 	logger.Printf("Running ceph/pv-migrator from %s to %s ...", opts.SourceStorageClass, opts.DestinationStorageClass)
 	// NOTE: this is a destructive migration and if it fails in the middle it will be hard to recover from
-	err = runBinPVMigrator(ctx, logger.Writer(), clientset, clientConfig, opts.SourceStorageClass, opts.DestinationStorageClass)
+	err = runBinPVMigrator(ctx, logger, clientset, clientConfig, opts)
 	if err != nil {
 		return errors.Wrap(err, "run ceph/pv-migrator")
 	}
@@ -114,26 +127,43 @@ func FlexvolumeToCSI(ctx context.Context, clientset kubernetes.Interface, client
 	return nil
 }
 
-func runBinPVMigrator(ctx context.Context, w io.Writer, clientset kubernetes.Interface, clientConfig *rest.Config, sourceSC, destSC string) error {
-	// NOTE: this deployment uses image rook/ceph:v1.7.11 and will only work for that specific Rook
-	// add-on version
-	out, err := k8sutil.KubectlApply(ctx, static.FlexMigrator)
-	if out != nil {
-		fmt.Fprintln(w, string(out))
+func runBinPVMigrator(ctx context.Context, logger *log.Logger, clientset kubernetes.Interface, clientConfig *rest.Config, opts FlexvolumeToCSIOpts) error {
+	cli, err := client.New(clientConfig, client.Options{})
+	if err != nil {
+		return errors.Wrap(err, "create kubernetes client")
 	}
+
+	options := []plumber.Option{
+		plumber.WithFSMutator(func(ctx context.Context, fs filesys.FileSystem) error {
+			return generateFlexMigratorPatch(fs, opts)
+		}),
+	}
+
+	logger.Println("Applying flex migrator ...")
+	err = k8sutil.KubectlApply(ctx, cli, flexmigrator.FS, "overlays/kurl", options...)
 	if err != nil {
 		return errors.Wrap(err, "kubectl apply flex migrator")
 	}
+	logger.Println("Applied flex migrator")
+
+	defer func() {
+		err := deleteBinPVMigratorResources(context.Background(), logger)
+		if err != nil {
+			logger.Printf("Failed to delete flex migrator resources: %v", err)
+		}
+	}()
 
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Minute)
 	defer cancel()
 
-	err = k8sutil.WaitForDeploymentReady(ctx, clientset, "rook-ceph", "rook-ceph-migrator")
+	logger.Println("Waiting for rook-ceph-migrator deployment to be ready ...")
+	err = k8sutil.WaitForDeploymentReady(ctx, clientset, rookCephNamespace, rookCephMigratorDeploymentName)
 	if err != nil {
 		return errors.Wrap(err, "wait for rook-ceph-migrator deployment")
 	}
+	logger.Println("Rook-ceph-migrator deployment is ready")
 
-	pods, err := k8sutil.ListPodsBySelector(ctx, clientset, "rook-ceph", "app=rook-ceph-migrator")
+	pods, err := k8sutil.ListPodsBySelector(ctx, clientset, rookCephNamespace, rookCephMigratorDeploymentLabelSelector)
 	if err != nil {
 		return errors.Wrap(err, "list pods")
 	}
@@ -142,35 +172,84 @@ func runBinPVMigrator(ctx context.Context, w io.Writer, clientset kubernetes.Int
 	}
 	pod := pods.Items[0]
 
-	if !k8sutil.IsPodReady(pod) {
-		return errors.New("rook-ceph-migrator pod is not ready")
+	logger.Printf("Waiting for %s/%s pod to be ready ...", pod.Namespace, pod.Name)
+	err = k8sutil.WaitForPodReady(ctx, clientset, pod.Namespace, pod.Name)
+	if err != nil {
+		return errors.Wrap(err, "wait for rook-ceph-migrator deployment")
 	}
+	logger.Printf("%s/%s pod is ready", pod.Namespace, pod.Name)
 
 	command := []string{
 		"pv-migrator",
-		"--source-sc", sourceSC,
-		"--destination-sc", destSC,
+		"--source-sc", opts.SourceStorageClass,
+		"--destination-sc", opts.DestinationStorageClass,
 	}
 
-	opts := k8sutil.ExecOptions{
+	execOpts := k8sutil.ExecOptions{
 		CoreClient: clientset.CoreV1(),
 		Config:     clientConfig,
 		Command:    command,
 		StreamOptions: k8sutil.StreamOptions{
-			Namespace:     "rook-ceph",
+			Namespace:     rookCephNamespace,
 			PodName:       pod.Name,
-			ContainerName: "rook-ceph-migrator",
-			Out:           w,
-			Err:           w,
+			ContainerName: rookCephMigratorPodContainerName,
+			Out:           logger.Writer(),
+			Err:           logger.Writer(),
 		},
 	}
-	exitCode, err := k8sutil.ExecContainer(ctx, opts, nil)
+
+	logger.Printf("Running command %q in %s/%s pod ...", command, pod.Namespace, pod.Name)
+	exitCode, err := k8sutil.ExecContainer(ctx, execOpts, nil)
 	if err != nil {
 		return errors.Wrap(err, "exec command in pod")
 	} else if exitCode != 0 {
 		return errors.Errorf("command returned non-zero exit code %d", exitCode)
 	}
+	logger.Println("Command pod completed successfully")
 
+	return nil
+}
+
+func deleteBinPVMigratorResources(ctx context.Context, logger *log.Logger) error {
+	logger.Println("Deleting flex migrator ...")
+	b, err := fs.ReadFile(flexmigrator.FS, "kustomize/base/flex-migrator.yaml")
+	if err != nil {
+		return errors.Wrap(err, "read flex migrator kustomize")
+	}
+	out, err := k8sutil.KubectlDelete(ctx, b, "--ignore-not-found=true")
+	if out != nil {
+		logger.Println((strings.TrimSpace(string(out))))
+	}
+	if err != nil {
+		return errors.Wrap(err, "kubectl delete flex migrator")
+	}
+	logger.Println("Deleted flex migrator")
+	return nil
+}
+
+func generateFlexMigratorPatch(fs filesys.FileSystem, opts FlexvolumeToCSIOpts) error {
+	file := "kustomize/overlays/kurl/flex-migrator.patch.yaml"
+	b, err := fs.ReadFile(file)
+	if err != nil {
+		return errors.Wrap(err, "read flex migrator patch")
+	}
+	data := map[string]string{
+		"PVMigratorBinPath":     opts.PVMigratorBinPath,
+		"RookCephMigratorImage": opts.CephMigratorImage,
+	}
+	tmpl, err := template.New("flex-migrator-patch").Parse(string(b))
+	if err != nil {
+		return errors.Wrap(err, "parse flex migrator patch")
+	}
+	f, err := fs.Open(file)
+	if err != nil {
+		return errors.Wrap(err, "open flex migrator patch")
+	}
+	defer f.Close()
+	err = tmpl.Execute(f, data)
+	if err != nil {
+		return errors.Wrap(err, "execute flex migrator patch")
+	}
 	return nil
 }
 

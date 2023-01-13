@@ -1,0 +1,20 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rook-ceph-migrator
+  namespace: rook-ceph
+spec:
+  template:
+    spec:
+      containers:
+        - name: rook-ceph-migrator
+          image: {{ .RookCephMigratorImage }}
+          volumeMounts:
+            - name: bin-pv-migrator
+              mountPath: /usr/local/bin/pv-migrator
+      volumes:
+        - name: bin-pv-migrator
+          hostPath:
+            path: {{ .PVMigratorBinPath }}
+            type: File

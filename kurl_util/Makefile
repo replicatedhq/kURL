@@ -41,7 +41,7 @@ test:
 	go test ./cmd/...
 
 .PHONY: build
-build: bin/yamlutil bin/subnet bin/docker-config bin/config bin/installermerge bin/yamltobash bin/bashmerge bin/bcrypt bin/htpasswd bin/network bin/toml bin/veleroplugin bin/vendorflights bin/pvmigrate
+build: bin/yamlutil bin/subnet bin/docker-config bin/config bin/installermerge bin/yamltobash bin/bashmerge bin/bcrypt bin/htpasswd bin/network bin/toml bin/veleroplugin bin/vendorflights bin/pvmigrate bin/rook-pv-migrator
 
 bin/yamlutil: cmd/yamlutil/main.go
 	go build ${LDFLAGS} -o bin/yamlutil cmd/yamlutil/main.go
@@ -84,6 +84,15 @@ bin/vendorflights:
 
 bin/pvmigrate: cmd/pvmigrate/main.go
 	go build ${LDFLAGS} -o bin/pvmigrate cmd/pvmigrate/main.go
+
+bin/rook-pv-migrator:
+	rm -rf .tmp/persistent-volume-migrator
+	mkdir -p .tmp/persistent-volume-migrator
+	cd .tmp/persistent-volume-migrator \
+		&& git clone -b csi-source-sc git@github.com:replicatedhq/persistent-volume-migrator.git . \
+		&& go build -o ../../bin/rook-pv-migrator
+	chmod +x ./bin/rook-pv-migrator
+	rm -rf .tmp/persistent-volume-migrator
 
 .PHONY: kurl-util-image
 kurl-util-image:

@@ -8,7 +8,7 @@ function rookupgrade_10to14_upgrade() {
     if [ "$(rook_upgrade_compare_rook_versions "$from_version" "1.1")" != "1" ]; then
         # this will start the rook toolbox if it doesn't already exist
         log "Waiting for rook to be healthy"
-        if ! $DIR/bin/kurl rook wait-for-health 300 ; then
+        if ! "$DIR"/bin/kurl rook wait-for-health 300 ; then
             kubectl -n rook-ceph exec deploy/rook-ceph-tools -- ceph status
             bail "Failed to verify the updated cluster, Ceph is not healthy"
         fi
@@ -39,7 +39,7 @@ function rookupgrade_10to14_upgrade() {
             if [ -n "$actual_mon_count" ] && [ "$mon_count" -lt "$actual_mon_count" ]; then
                 log "Updating mon count to match actual mon count $actual_mon_count"
                 kubectl -n rook-ceph patch cephcluster rook-ceph --type merge -p '{"spec":{"mon":{"count":'"$actual_mon_count"'}}}'
-                if ! $DIR/bin/kurl rook wait-for-health 300 ; then
+                if ! "$DIR"/bin/kurl rook wait-for-health 300 ; then
                     kubectl -n rook-ceph exec deploy/rook-ceph-tools -- ceph status
                     bail "Failed to verify the updated cluster, Ceph is not healthy"
                 fi
@@ -49,7 +49,7 @@ function rookupgrade_10to14_upgrade() {
         log "Preparing migration"
 
         log "Waiting for Rook to be healthy"
-        if ! $DIR/bin/kurl rook wait-for-health 300 ; then
+        if ! "$DIR"/bin/kurl rook wait-for-health 300 ; then
             kubectl -n rook-ceph exec deploy/rook-ceph-tools -- ceph status
             bail "Failed to verify the updated cluster, Ceph is not healthy"
         fi
@@ -67,12 +67,15 @@ function rookupgrade_10to14_upgrade() {
         log "Waiting for pool pgs to scale down"
         rookupgrade_10to14_osd_pool_wait_for_pg_num "$osd_pools" 16
         rookupgrade_10to14_osd_pool_wait_for_pg_num "$non_osd_pools" 32
-        "$DIR"/bin/kurl rook wait-for-health
+        if ! "$DIR"/bin/kurl rook wait-for-health 300 ; then
+            kubectl -n rook-ceph exec deploy/rook-ceph-tools -- ceph status
+            bail "Failed to verify the updated cluster, Ceph is not healthy"
+        fi
 
         "$DIR"/bin/kurl rook hostpath-to-block
 
         logStep "Upgrading to Rook 1.1.9"
-        if ! $DIR/bin/kurl rook wait-for-health 300 ; then
+        if ! "$DIR"/bin/kurl rook wait-for-health 300 ; then
             kubectl -n rook-ceph exec deploy/rook-ceph-tools -- ceph status
             bail "Failed to verify the updated cluster, Ceph is not healthy"
         fi
@@ -113,7 +116,7 @@ function rookupgrade_10to14_upgrade() {
                 bail "New Ceph version failed to deploy"
             fi
 
-            if ! $DIR/bin/kurl rook wait-for-health 300 ; then
+            if ! "$DIR"/bin/kurl rook wait-for-health 300 ; then
                 kubectl -n rook-ceph exec deploy/rook-ceph-tools -- ceph status
                 bail "Failed to verify the updated cluster, Ceph is not healthy"
             fi
@@ -126,7 +129,7 @@ function rookupgrade_10to14_upgrade() {
 
     if [ "$(rook_upgrade_compare_rook_versions "$from_version" "1.2")" != "1" ]; then
         logStep "Upgrading to Rook 1.2.7"
-        if ! $DIR/bin/kurl rook wait-for-health 300 ; then
+        if ! "$DIR"/bin/kurl rook wait-for-health 300 ; then
             kubectl -n rook-ceph exec deploy/rook-ceph-tools --ceph status
             bail "Failed to verify the updated cluster, Ceph is not healthy"
         fi
@@ -147,7 +150,7 @@ function rookupgrade_10to14_upgrade() {
         fi
 
         log "Rook 1.2.7 has been rolled out throughout the cluster"
-        if ! $DIR/bin/kurl rook wait-for-health 300 ; then
+        if ! "$DIR"/bin/kurl rook wait-for-health 300 ; then
             kubectl -n rook-ceph exec deploy/rook-ceph-tools -- ceph status
             bail "Failed to verify the updated cluster, Ceph is not healthy"
         fi
@@ -155,7 +158,7 @@ function rookupgrade_10to14_upgrade() {
         log "Upgrading CRDs to Rook 1.2"
         kubectl apply -f "$upgrade_files_path/upgrade-from-v1.1-crds.yaml"
 
-        if ! $DIR/bin/kurl rook wait-for-health 300 ; then
+        if ! "$DIR"/bin/kurl rook wait-for-health 300 ; then
             kubectl -n rook-ceph exec deploy/rook-ceph-tools -- ceph status
             bail "Failed to verify the updated cluster, Ceph is not healthy"
         fi
@@ -165,7 +168,7 @@ function rookupgrade_10to14_upgrade() {
 
     if [ "$(rook_upgrade_compare_rook_versions "$from_version" "1.3")" != "1" ]; then
         logStep "Upgrading to Rook 1.3.11"
-        if ! $DIR/bin/kurl rook wait-for-health 300 ; then
+        if ! "$DIR"/bin/kurl rook wait-for-health 300 ; then
             kubectl -n rook-ceph exec deploy/rook-ceph-tools -- ceph status
             bail "Failed to verify the updated cluster, Ceph is not healthy"
         fi
@@ -184,7 +187,7 @@ function rookupgrade_10to14_upgrade() {
         fi
 
         log "Rook 1.3.11 has been rolled out throughout the cluster"
-        if ! $DIR/bin/kurl rook wait-for-health 300 ; then
+        if ! "$DIR"/bin/kurl rook wait-for-health 300 ; then
             kubectl -n rook-ceph exec deploy/rook-ceph-tools -- ceph status
             bail "Failed to verify the updated cluster, Ceph is not healthy"
         fi
@@ -194,7 +197,7 @@ function rookupgrade_10to14_upgrade() {
 
     if [ "$(rook_upgrade_compare_rook_versions "$from_version" "1.4")" != "1" ]; then
         logStep "Upgrading to Rook 1.4.9"
-        if ! $DIR/bin/kurl rook wait-for-health 300 ; then
+        if ! "$DIR"/bin/kurl rook wait-for-health 300 ; then
             kubectl -n rook-ceph exec deploy/rook-ceph-tools -- ceph status
             bail "Failed to verify the updated cluster, Ceph is not healthy"
         fi
@@ -214,7 +217,7 @@ function rookupgrade_10to14_upgrade() {
         fi
 
         log "Rook 1.4.9 has been rolled out throughout the cluster"
-        if ! $DIR/bin/kurl rook wait-for-health 300 ; then
+        if ! "$DIR"/bin/kurl rook wait-for-health 300 ; then
             kubectl -n rook-ceph exec deploy/rook-ceph-tools -- ceph status
             bail "Failed to verify the updated cluster, Ceph is not healthy"
         fi
@@ -247,7 +250,7 @@ function rookupgrade_10to14_upgrade() {
             log "Current pg pool autoscaling status:"
             kubectl -n rook-ceph exec deploy/rook-ceph-tools -- ceph osd pool autoscale-status
 
-            if ! $DIR/bin/kurl rook wait-for-health 300 ; then
+            if ! "$DIR"/bin/kurl rook wait-for-health 300 ; then
                 kubectl -n rook-ceph exec deploy/rook-ceph-tools -- ceph status
                 bail "Failed to verify the updated cluster, Ceph is not healthy"
             fi
