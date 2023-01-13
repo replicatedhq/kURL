@@ -591,13 +591,6 @@ function current_user_sudo_group() {
 
 function kubeconfig_setup_outro() {
     current_user_sudo_group
-    # If opt-in to have KUBERNETES_CIS_COMPLIANCE FOUND_SUDO_GROUP is required for kubectl access
-    if [ "$KUBERNETES_CIS_COMPLIANCE" != "1" ] && [ -n "$FOUND_SUDO_GROUP" ]; then
-        printf "To access the cluster with kubectl, reload your shell:\n"
-        printf "\n"
-        printf "${GREEN}    bash -l${NC}\n"
-        return
-    fi
     local owner="$SUDO_UID"
     if [ -z "$owner" ]; then
         # not currently running via sudo
