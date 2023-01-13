@@ -54,10 +54,9 @@ function main() {
   unsupported_count=$(curl -d {} -s "https://api.testgrid.kurl.sh/api/v1/run/${run_id}" | jq '.instances[].isUnsupported' | grep -c true || true)
   skipped_count=$(curl -d {} -s "https://api.testgrid.kurl.sh/api/v1/run/${run_id}" | jq '.instances[].isSkipped' | grep -c true || true)
 
-  # TODO: Uncomment after release
-  # if [[ $((success_count + failure_count + unsupported_count + skipped_count)) -ne ${total_runs} ]]; then
-  #   bail "Testgrid run ${run_id} seems to have pending runs"
-  # fi
+  if [[ $((success_count + failure_count + unsupported_count + skipped_count)) -ne ${total_runs} ]]; then
+    bail "Testgrid run ${run_id} seems to have pending runs"
+  fi
 }
 
 main "$@"
