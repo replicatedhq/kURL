@@ -140,7 +140,6 @@ jobs:
     - name: Copy Staging Release to Prod
       run: |
         export VERSION_TAG=$GITHUB_REF_NAME
-        export KURL_UTIL_IMAGE=replicated/kurl-util:${VERSION_TAG}
         . bin/upload-dist-versioned.sh
         copy_staging_release_to_dist
       env:
