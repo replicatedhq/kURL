@@ -35,8 +35,8 @@ function flannel() {
     flannel_render_config
 
     if flannel_weave_conflict; then
-        printf "${YELLOW}Would you like to migrate from Weave to Flannel?${NC}\n"
-        printf "${YELLOW}This will require whole-cluster downtime during the transition process. ${NC}"
+        printf "${YELLOW}The migration from Weave to Flannel will require whole-cluster downtime.${NC}\n"
+        printf "${YELLOW}Would you like to continue? ${NC}"
         if ! confirmY ; then
             bail "Not migrating from Weave to Flannel"
         fi
@@ -93,16 +93,6 @@ function flannel_weave_conflict() {
 
 function flannel_antrea_conflict() {
     ls /etc/cni/net.d/*antrea* >/dev/null 2>&1
-}
-
-function flannel_is_single_master() {
-    local nodecount=
-    nodecount=$(kubectl get nodes --no-headers --selector='node-role.kubernetes.io/control-plane' | wc -l)
-    if [ "$nodecount" -eq 1 ]; then
-        return 0
-    else
-        return 1
-    fi
 }
 
 function weave_to_flannel() {
