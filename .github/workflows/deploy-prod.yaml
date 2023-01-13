@@ -132,7 +132,6 @@ jobs:
   copy-staging-release-to-prod:
     runs-on: ubuntu-20.04
     needs:
-     - get-staging-release
      - verify-staging-release-testgrid-result
     steps:
     - uses: actions/checkout@v3
