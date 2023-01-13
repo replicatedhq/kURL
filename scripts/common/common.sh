@@ -591,13 +591,6 @@ function current_user_sudo_group() {
 
 function kubeconfig_setup_outro() {
     current_user_sudo_group
-    # If opt-in to have KUBERNETES_CIS_COMPLIANCE FOUND_SUDO_GROUP is required for kubectl access
-    if [ "$KUBERNETES_CIS_COMPLIANCE" != "1" ] && [ -n "$FOUND_SUDO_GROUP" ]; then
-        printf "To access the cluster with kubectl, reload your shell:\n"
-        printf "\n"
-        printf "${GREEN}    bash -l${NC}\n"
-        return
-    fi
     local owner="$SUDO_UID"
     if [ -z "$owner" ]; then
         # not currently running via sudo
@@ -605,7 +598,6 @@ function kubeconfig_setup_outro() {
     else
         # running via sudo - automatically create ~/.kube/config if it does not exist
         ownerdir=`eval echo "~$(id -un $owner)"`
-
         if [ ! -f "$ownerdir/.kube/config" ]; then
             mkdir -p $ownerdir/.kube
             cp "$(${K8S_DISTRO}_get_kubeconfig)" $ownerdir/.kube/config
@@ -619,10 +611,14 @@ function kubeconfig_setup_outro() {
         fi
     fi
 
-    printf "To access the cluster with kubectl, copy kubeconfig to your home directory:\n"
+    printf "To access the cluster with kubectl, the kubeconfig will be copied to your home directory with the following commands:\n"
     printf "\n"
     printf "${GREEN}    cp "$(${K8S_DISTRO}_get_kubeconfig)" ~/.kube/config${NC}\n"
     printf "${GREEN}    chown -R ${owner} ~/.kube${NC}\n"
+
+    cp "$(${K8S_DISTRO}_get_kubeconfig)" $ownerdir/.kube/config
+    chown -R $owner $ownerdir/.kube
+
     printf "${GREEN}    echo unset KUBECONFIG >> ~/.bash_profile${NC}\n"
     printf "${GREEN}    bash -l${NC}\n"
     printf "\n"
