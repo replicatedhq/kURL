@@ -79,7 +79,7 @@ jobs:
         export VERSION_TAG=$GITHUB_REF_NAME
         export KURL_UTIL_IMAGE=replicated/kurl-util:${VERSION_TAG}
         export KURL_BIN_UTILS_FILE=kurl-bin-utils-${VERSION_TAG}.tar.gz
-        bin/upload-dist-versioned.sh "${{ matrix.batch }}"
+        bin/upload-dist-versioned.sh "${{ needs.build-go-bins-matrix.outputs.matrix.batch }}"
       env:
         S3_BUCKET: kurl-sh
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_PROD_ACCESS_KEY_ID }}
