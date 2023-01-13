@@ -49,14 +49,14 @@
 - name: "weave to flannel single node"
   installerSpec:
     kubernetes:
-      version: "1.25.x"
+      version: "1.26.x"
     containerd:
       version: "latest"
     weave:
       version: "latest"
   upgradeSpec:
     kubernetes:
-      version: "1.25.x"
+      version: "1.26.x"
     containerd:
       version: "latest"
     flannel:
