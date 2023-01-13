@@ -55,6 +55,15 @@ func (o FlexvolumeToCSIOpts) Validate() error {
 	if o.DestinationStorageClass == "" {
 		return errors.New("destination storage class is required")
 	}
+	if o.PVMigratorBinPath == "" {
+		return errors.New("pv migrator binary path is required")
+	}
+	if o.CephMigratorImage == "" {
+		return errors.New("ceph migrator image is required")
+	}
+	if _, err := exec.LookPath(o.PVMigratorBinPath); err != nil {
+		return errors.Wrapf(err, "which %s", o.PVMigratorBinPath)
+	}
 	return nil
 }
 
