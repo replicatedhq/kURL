@@ -101,7 +101,7 @@ jobs:
         version_commit="$(git rev-list "${GITHUB_REF_NAME}" -n 1 | xargs git rev-parse --short)"
         # Grab the release asset directory name in s3. Should look like this:
         # PRE v2023.01.03-0-1cee33ec/
-        staging_release_dir="$(aws s3 ls s3://"${S3_BUCKET}/${STAGING_PREFIX}/" | grep "${version_commit}[0-9a-f]*/" | awk '{print $2}')"
+        staging_release_dir="$(aws s3 ls s3://"${S3_BUCKET}/${STAGING_PREFIX}/" | grep "${version_commit}/" | awk '{print $2}')"
         if [ -z "${staging_release_dir}" ]; then
             echo "Could not find staging release for commit ${GITHUB_REF_NAME} (${version_commit})"
             exit 1
