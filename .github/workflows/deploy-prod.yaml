@@ -17,6 +17,24 @@ jobs:
         export VERSION_TAG=$GITHUB_REF_NAME
         ./bin/verify-tag.sh "${VERSION_TAG}"
 
+  generate-kurl-release-notes-pr:
+    runs-on: ubuntu-20.04
+    needs:
+    - verify-tag
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Generate kURL Release Notes PR
+      env:
+        GH_PAT: ${{ secrets.AUTOMATED_PR_GH_PAT }}
+      run: |
+        export VERSION_TAG=$GITHUB_REF_NAME
+        curl -H "Authorization: token $GH_PAT" \
+          -H 'Accept: application/json' \
+          -d "{\"event_type\": \"kubernetes-installer-release-notes\", \"client_payload\": {\"version\": \"${VERSION_TAG}\" }}" \
+          "https://api.github.com/repos/replicatedhq/replicated-docs/dispatches"
+
   kurl-util-image:
     runs-on: ubuntu-20.04
     needs:
@@ -34,7 +52,7 @@ jobs:
         docker tag replicated/kurl-util:${VERSION_TAG} replicated/kurl-util
         docker push replicated/kurl-util
 
-  build-go-bins-matrix:
+  build-matrix:
     runs-on: ubuntu-20.04
     needs:
     - kurl-util-image
@@ -49,14 +67,13 @@ jobs:
         export VERSION_TAG=$GITHUB_REF_NAME
         export KURL_UTIL_IMAGE=replicated/kurl-util:${VERSION_TAG}
         export KURL_BIN_UTILS_FILE=kurl-bin-utils-${VERSION_TAG}.tar.gz
-        export FILTER_GO_BINS_ONLY="1"
         OUTPUT=`bin/list-all-packages-actions-matrix.sh "${{ github.event.inputs.index }}"`
         echo "::set-output name=matrix::$OUTPUT"
 
   build-upload-packages:
     runs-on: ubuntu-20.04
     needs:
-    - build-go-bins-matrix
+    - build-matrix
     strategy:
       matrix: ${{fromJSON(needs.build-matrix.outputs.matrix)}}
       fail-fast: false
@@ -81,6 +98,7 @@ jobs:
         export VERSION_TAG=$GITHUB_REF_NAME
         export KURL_UTIL_IMAGE=replicated/kurl-util:${VERSION_TAG}
         export KURL_BIN_UTILS_FILE=kurl-bin-utils-${VERSION_TAG}.tar.gz
+
         bin/upload-dist-versioned.sh "${{ matrix.batch }}"
       env:
         S3_BUCKET: kurl-sh
@@ -88,89 +106,30 @@ jobs:
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_PROD_SECRET_ACCESS_KEY }}
         AWS_REGION: "us-east-1"
 
-  get-staging-release:
+  build-addons:
     runs-on: ubuntu-20.04
     needs:
-    - verify-tag
-    outputs:
-      staging_release: ${{ steps.get_staging_release.outputs.staging_release }}
-    steps:
-    - name: find corresponding staging release for commit
-      id: get_staging_release
-      run: |
-        version_commit="$(git rev-list "${GITHUB_REF_NAME}" -n 1 | xargs git rev-parse --short)"
-        staging_release_dir="$(aws s3 ls s3://"${S3_BUCKET}/${STAGING_PREFIX}/" | grep "${version_commit}" | awk '{print $2}')"
-        if [ -z "${staging_release_dir}" ]; then
-            echo "Could not find staging release for commit ${GITHUB_REF_NAME} (${version_commit})"
-            exit 1
-        fi
-        echo "staging_release=${staging_release_dir%/}" >> $GITHUB_OUTPUT
-      env:
-        S3_BUCKET: kurl-sh
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_PROD_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_PROD_SECRET_ACCESS_KEY }}
-        AWS_REGION: "us-east-1"
-        STAGING_PREFIX: "staging"
-
-  verify-staging-release-testgrid-result:
-    runs-on: ubuntu-20.04
-    needs:
-    - verify-tag
-    - get-staging-release
-    steps:
-    - name: Verify Testgrid Run
-      run: |
-        ./bin/verify-testgrid-run.sh
-      env:
-        STAGING_RELEASE: ${{ needs.get-staging-release.outputs.staging_release }}
-
-  copy-staging-release-to-prod:
-    runs-on: ubuntu-20.04
-    needs:
-     - verify-staging-release-testgrid-result
+    - kurl-util-image
     steps:
     - uses: actions/checkout@v3
+    - uses: actions/setup-node@v3
       with:
-        fetch-depth: 0
-
-    - name: Copy Staging Release to Prod
-      run: |
+        node-version: '14'
+    - run: npm install
+    - run: |
         export VERSION_TAG=$GITHUB_REF_NAME
-        . bin/upload-dist-versioned.sh
-        copy_staging_release_to_dist
+        make generate-addons
       env:
         S3_BUCKET: kurl-sh
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_PROD_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_PROD_SECRET_ACCESS_KEY }}
-        AWS_REGION: "us-east-1"
-        STAGING_RELEASE: ${{ needs.get-staging-release.outputs.staging_release }}
-
-  generate-kurl-release-notes-pr:
-    runs-on: ubuntu-20.04
-    needs:
-    - verify-tag
-    - get-staging-release
-    - copy-staging-release-to-prod
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v2
-
-    - name: Generate kURL Release Notes PR
-      env:
-        GH_PAT: ${{ secrets.AUTOMATED_PR_GH_PAT }}
-      run: |
-        export VERSION_TAG=$GITHUB_REF_NAME
-        curl -H "Authorization: token $GH_PAT" \
-          -H 'Accept: application/json' \
-          -d "{\"event_type\": \"kubernetes-installer-release-notes\", \"client_payload\": {\"version\": \"${VERSION_TAG}\" }}" \
-          "https://api.github.com/repos/replicatedhq/replicated-docs/dispatches"
-
+        AWS_DEFAULT_REGION: "us-east-1"
+        DIST_FOLDER: "dist"
 
   github-release:
     runs-on: ubuntu-20.04
     needs:
     - kurl-util-image
-    - copy-staging-release-to-prod
     steps:
     - name: Checkout
       uses: actions/checkout@v3
@@ -253,7 +212,8 @@ jobs:
   set-current-version:
     runs-on: ubuntu-20.04
     needs:
-    - copy-staging-release-to-prod
+    - build-addons
+    - build-upload-packages
     steps:
     - name: Set VERSION file in s3
       run: |

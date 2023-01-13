@@ -57,14 +57,6 @@ function list_other() {
     echo "docker-20.10.17.tar.gz bundles/"
 }
 
-function list_go_bins() {
-    echo "common.tar.gz"
-    echo "$KURL_BIN_UTILS_FILE"
-    if [ -n "$KURL_BIN_UTILS_FILE_LATEST" ]; then
-        echo "$KURL_BIN_UTILS_FILE_LATEST"
-    fi
-}
-
 function list_all() {
     list_other
     list_all_addons
