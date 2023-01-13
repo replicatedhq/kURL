@@ -110,7 +110,7 @@ func FlexvolumeToCSI(ctx context.Context, logger *log.Logger, clientset kubernet
 	}
 	logger.Println("Ran ceph/pv-migrator")
 
-	logger.Printf("Scaling back statefulsets and replicasets using storage class %s ...", opts.SourceStorageClass)
+	logger.Printf("Scaling back statefulsets and deployments using storage class %s ...", opts.SourceStorageClass)
 	pvcNamespaces := make(map[string]struct{})
 	for _, pvc := range pvcs {
 		pvcNamespaces[pvc.Namespace] = struct{}{}
@@ -124,14 +124,14 @@ func FlexvolumeToCSI(ctx context.Context, logger *log.Logger, clientset kubernet
 		}
 		logger.Println("Scaled back statefulsets")
 
-		logger.Printf("Scaling back replicasets in namespace %s ...", namespace)
-		err = scaleBackReplicaSetsByNamespace(ctx, clientset, namespace)
+		logger.Printf("Scaling back deployments in namespace %s ...", namespace)
+		err = scaleBackDeploymentsByNamespace(ctx, clientset, namespace)
 		if err != nil {
-			return errors.Wrapf(err, "scale back replicasets in namespace %s", namespace)
+			return errors.Wrapf(err, "scale back deployments in namespace %s", namespace)
 		}
-		logger.Println("Scaled back replicasets")
+		logger.Println("Scaled back deployments")
 	}
-	logger.Println("Scaled back statefulsets and replicasets")
+	logger.Println("Scaled back statefulsets and deployments")
 
 	return nil
 }
@@ -285,33 +285,45 @@ func newSpecReplicasPatch(replicas int32) []byte {
 }
 
 func scaleDownPodOwner(ctx context.Context, clientset kubernetes.Interface, pod corev1.Pod) error {
-	if len(pod.OwnerReferences) == 0 {
-		return errors.New("pod not owned by any object")
+	if len(pod.OwnerReferences) != 1 {
+		return fmt.Errorf("expected 1 owner for pod, found %d instead", len(pod.OwnerReferences))
 	}
-	for _, ref := range pod.OwnerReferences {
-		switch ref.Kind {
-		case "StatefulSet":
-			obj, err := clientset.AppsV1().StatefulSets(pod.Namespace).Get(ctx, ref.Name, metav1.GetOptions{})
-			if err != nil {
-				return errors.Wrapf(err, "get statefulset %s/%s", pod.Namespace, ref.Name)
-			}
-			err = scaleDownStatefulSet(ctx, clientset, *obj)
-			if err != nil {
-				return errors.Wrapf(err, "scale down statefulset %s/%s", pod.Namespace, ref.Name)
-			}
-		case "ReplicaSet":
-			obj, err := clientset.AppsV1().ReplicaSets(pod.Namespace).Get(ctx, ref.Name, metav1.GetOptions{})
-			if err != nil {
-				return errors.Wrapf(err, "get replicaset %s/%s", pod.Namespace, ref.Name)
-			}
-			err = scaleDownReplicaSet(ctx, clientset, *obj)
-			if err != nil {
-				return errors.Wrapf(err, "scale down replicaset %s/%s", pod.Namespace, ref.Name)
-			}
-		default:
-			return errors.Errorf("cannot scale down kind %s", ref.Kind)
+	ref := pod.OwnerReferences[0]
+
+	switch ref.Kind {
+	case "StatefulSet":
+		obj, err := clientset.AppsV1().StatefulSets(pod.Namespace).Get(ctx, ref.Name, metav1.GetOptions{})
+		if err != nil {
+			return errors.Wrapf(err, "get statefulset %s/%s", pod.Namespace, ref.Name)
 		}
+		err = scaleDownStatefulSet(ctx, clientset, *obj)
+		if err != nil {
+			return errors.Wrapf(err, "scale down statefulset %s/%s", pod.Namespace, ref.Name)
+		}
+	case "ReplicaSet":
+		obj, err := clientset.AppsV1().ReplicaSets(pod.Namespace).Get(ctx, ref.Name, metav1.GetOptions{})
+		if err != nil {
+			return errors.Wrapf(err, "get replicaset %s/%s", pod.Namespace, ref.Name)
+		}
+		if len(obj.OwnerReferences) != 1 {
+			return fmt.Errorf("expected 1 owner for replicaset %s, found %d instead", ref.Name, len(obj.OwnerReferences))
+		}
+		ref := obj.OwnerReferences[0]
+		if ref.Kind != "Deployment" {
+			return fmt.Errorf("expected owner for replicaset %s to be a deployment, found %s of kind %s instead", obj.Name, ref.Name, ref.Kind)
+		}
+		dep, err := clientset.AppsV1().Deployments(pod.Namespace).Get(ctx, ref.Name, metav1.GetOptions{})
+		if err != nil {
+			return errors.Wrapf(err, "get deployment %s/%s", pod.Namespace, ref.Name)
+		}
+		err = scaleDownDeployment(ctx, clientset, *dep)
+		if err != nil {
+			return errors.Wrapf(err, "scale down deployment %s/%s", pod.Namespace, ref.Name)
+		}
+	default:
+		return errors.Errorf("cannot scale down kind %s", ref.Kind)
 	}
+
 	return nil
 }
 
@@ -331,16 +343,16 @@ func scaleDownStatefulSet(ctx context.Context, clientset kubernetes.Interface, o
 	return nil
 }
 
-func scaleDownReplicaSet(ctx context.Context, clientset kubernetes.Interface, obj appsv1.ReplicaSet) error {
+func scaleDownDeployment(ctx context.Context, clientset kubernetes.Interface, obj appsv1.Deployment) error {
 	replicas := int32(1)
 	if obj.Spec.Replicas != nil {
 		replicas = *obj.Spec.Replicas
 	}
-	_, err := clientset.AppsV1().ReplicaSets(obj.GetNamespace()).Patch(ctx, obj.GetName(), types.JSONPatchType, newDesiredScaleAnnotationPatch(replicas), metav1.PatchOptions{})
+	_, err := clientset.AppsV1().Deployments(obj.GetNamespace()).Patch(ctx, obj.GetName(), types.JSONPatchType, newDesiredScaleAnnotationPatch(replicas), metav1.PatchOptions{})
 	if err != nil {
 		return errors.Wrap(err, "patch annotation")
 	}
-	_, err = clientset.AppsV1().ReplicaSets(obj.GetNamespace()).Patch(ctx, obj.GetName(), types.JSONPatchType, newSpecReplicasPatch(0), metav1.PatchOptions{})
+	_, err = clientset.AppsV1().Deployments(obj.GetNamespace()).Patch(ctx, obj.GetName(), types.JSONPatchType, newSpecReplicasPatch(0), metav1.PatchOptions{})
 	if err != nil {
 		return errors.Wrap(err, "patch replicas")
 	}
@@ -381,21 +393,21 @@ func scaleBackStatefulSet(ctx context.Context, clientset kubernetes.Interface, o
 	return nil
 }
 
-func scaleBackReplicaSetsByNamespace(ctx context.Context, clientset kubernetes.Interface, namespace string) error {
-	objs, err := clientset.AppsV1().ReplicaSets(namespace).List(ctx, metav1.ListOptions{})
+func scaleBackDeploymentsByNamespace(ctx context.Context, clientset kubernetes.Interface, namespace string) error {
+	objs, err := clientset.AppsV1().Deployments(namespace).List(ctx, metav1.ListOptions{})
 	if err != nil {
-		return errors.Wrap(err, "list replicasets")
+		return errors.Wrap(err, "list deployments")
 	}
 	for _, obj := range objs.Items {
-		err := scaleBackReplicaSet(ctx, clientset, obj)
+		err := scaleBackDeployment(ctx, clientset, obj)
 		if err != nil {
-			return errors.Wrapf(err, "scale back replicaset %s/%s", obj.GetNamespace(), obj.GetName())
+			return errors.Wrapf(err, "scale back deployment %s/%s", obj.GetNamespace(), obj.GetName())
 		}
 	}
 	return nil
 }
 
-func scaleBackReplicaSet(ctx context.Context, clientset kubernetes.Interface, obj appsv1.ReplicaSet) error {
+func scaleBackDeployment(ctx context.Context, clientset kubernetes.Interface, obj appsv1.Deployment) error {
 	desiredScale, ok := obj.GetAnnotations()[desiredScaleAnnotation]
 	if !ok {
 		return nil
@@ -404,11 +416,11 @@ func scaleBackReplicaSet(ctx context.Context, clientset kubernetes.Interface, ob
 	if err != nil {
 		return errors.Wrapf(err, "parse desired scale annotation")
 	}
-	_, err = clientset.AppsV1().ReplicaSets(obj.GetNamespace()).Patch(ctx, obj.GetName(), types.JSONPatchType, newSpecReplicasPatch(int32(replicas)), metav1.PatchOptions{})
+	_, err = clientset.AppsV1().Deployments(obj.GetNamespace()).Patch(ctx, obj.GetName(), types.JSONPatchType, newSpecReplicasPatch(int32(replicas)), metav1.PatchOptions{})
 	if err != nil {
 		return errors.Wrap(err, "patch replicas")
 	}
-	_, err = clientset.AppsV1().ReplicaSets(obj.GetNamespace()).Patch(ctx, obj.GetName(), types.JSONPatchType, newRemoveDesiredScaleAnnotationPatch(), metav1.PatchOptions{})
+	_, err = clientset.AppsV1().Deployments(obj.GetNamespace()).Patch(ctx, obj.GetName(), types.JSONPatchType, newRemoveDesiredScaleAnnotationPatch(), metav1.PatchOptions{})
 	if err != nil {
 		return errors.Wrap(err, "patch annotation")
 	}
