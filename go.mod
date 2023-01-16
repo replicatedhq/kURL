@@ -22,7 +22,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/replicatedhq/kurlkinds v1.0.10
 	github.com/replicatedhq/pvmigrate v0.7.0
-	github.com/replicatedhq/troubleshoot v0.53.0
+	github.com/replicatedhq/troubleshoot v0.54.0
 	github.com/rook/rook v1.10.6
 	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/afero v1.9.3
@@ -242,7 +242,7 @@ require (
 	gopkg.in/square/go-jose.v2 v2.6.0 // indirect
 	k8s.io/apiextensions-apiserver v0.26.0 // indirect
 	k8s.io/apiserver v0.26.0 // indirect
-	k8s.io/cli-runtime v0.25.4 // indirect
+	k8s.io/cli-runtime v0.26.0 // indirect
 	k8s.io/klog/v2 v2.80.1 // indirect
 	k8s.io/kube-openapi v0.0.0-20221207184640-f3cff1453715 // indirect
 	k8s.io/kubernetes v1.25.4 // indirect
