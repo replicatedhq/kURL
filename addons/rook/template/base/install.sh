@@ -361,9 +361,11 @@ function rook_cluster_deploy_upgrade_create_storageclass() {
 
     mkdir -p "$kustomize_dir/patches/"
     echo "" > "$kustomize_dir/kustomization.yaml" # clear the file
+    local o_storage_class="$STORAGE_CLASS"
     export STORAGE_CLASS="$dst_sc"
     render_yaml_file_2 "$src/tmpl-rbd-storageclass.yaml" > "$dst/rbd-storageclass.yaml"
     render_yaml_file_2 "$src/patches/tmpl-rbd-storageclass.yaml" > "$dst/patches/rbd-storageclass.yaml"
+    STORAGE_CLASS="$o_storage_class" # restore the original value
     cp "$dst/rbd-storageclass.yaml" "$kustomize_dir/rbd-storageclass.yaml"
     cp "$dst/patches/rbd-storageclass.yaml" "$kustomize_dir/patches/rbd-storageclass.yaml"
     insert_resources "$kustomize_dir/kustomization.yaml" rbd-storageclass.yaml
