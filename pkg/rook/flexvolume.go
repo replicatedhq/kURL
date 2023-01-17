@@ -67,8 +67,8 @@ func (o FlexvolumeToCSIOpts) Validate() error {
 	return nil
 }
 
-// FlexvolumeToCSI will migrate from a Rook Flex volumes storage class a Ceph-CSI volumes storage
-// class
+// FlexvolumeToCSI will migrate from a Rook Flex volumes storage class to a Ceph-CSI volumes
+// storage
 func FlexvolumeToCSI(ctx context.Context, logger *log.Logger, clientset kubernetes.Interface, clientConfig *rest.Config, opts FlexvolumeToCSIOpts) error {
 	err := opts.Validate()
 	if err != nil {
@@ -142,18 +142,10 @@ func runBinPVMigrator(ctx context.Context, logger *log.Logger, clientset kuberne
 		return errors.Wrap(err, "create kubernetes client")
 	}
 
-	options := []plumber.Option{
-		plumber.WithFSMutator(func(ctx context.Context, fs filesys.FileSystem) error {
-			return generateFlexMigratorPatch(fs, opts)
-		}),
-	}
-
-	logger.Println("Applying flex migrator ...")
-	err = k8sutil.KubectlApply(ctx, cli, flexmigrator.FS, "overlays/kurl", options...)
+	err = runFlexMigrator(ctx, logger, cli, opts)
 	if err != nil {
-		return errors.Wrap(err, "kubectl apply flex migrator")
+		return errors.Wrap(err, "run flex migrator")
 	}
-	logger.Println("Applied flex migrator")
 
 	defer func() {
 		err := deleteBinPVMigratorResources(context.Background(), logger)
@@ -215,6 +207,23 @@ func runBinPVMigrator(ctx context.Context, logger *log.Logger, clientset kuberne
 		return errors.Errorf("command returned non-zero exit code %d", exitCode)
 	}
 	logger.Println("Command pod completed successfully")
+
+	return nil
+}
+
+func runFlexMigrator(ctx context.Context, logger *log.Logger, cli client.Client, opts FlexvolumeToCSIOpts) error {
+	options := []plumber.Option{
+		plumber.WithFSMutator(func(ctx context.Context, fs filesys.FileSystem) error {
+			return generateFlexMigratorPatch(fs, opts)
+		}),
+	}
+
+	logger.Println("Applying flex migrator ...")
+	err := k8sutil.KubectlApply(ctx, cli, flexmigrator.FS, "overlays/kurl", options...)
+	if err != nil {
+		return errors.Wrap(err, "kubectl apply flex migrator")
+	}
+	logger.Println("Applied flex migrator")
 
 	return nil
 }
@@ -332,6 +341,10 @@ func scaleDownStatefulSet(ctx context.Context, clientset kubernetes.Interface, o
 	if obj.Spec.Replicas != nil {
 		replicas = *obj.Spec.Replicas
 	}
+	// check if the resource is already scaled down as it could have multiple replicas
+	if replicas == 0 {
+		return nil
+	}
 	_, err := clientset.AppsV1().StatefulSets(obj.GetNamespace()).Patch(ctx, obj.GetName(), types.JSONPatchType, newDesiredScaleAnnotationPatch(replicas), metav1.PatchOptions{})
 	if err != nil {
 		return errors.Wrap(err, "patch annotation")
@@ -347,6 +360,11 @@ func scaleDownDeployment(ctx context.Context, clientset kubernetes.Interface, ob
 	replicas := int32(1)
 	if obj.Spec.Replicas != nil {
 		replicas = *obj.Spec.Replicas
+	}
+	// check if the resource is already scaled down as it could have multiple replicas
+	// this is unlikely as deployments with multiple replicas are not likely to have mounted persistent volumes
+	if replicas == 0 {
+		return nil
 	}
 	_, err := clientset.AppsV1().Deployments(obj.GetNamespace()).Patch(ctx, obj.GetName(), types.JSONPatchType, newDesiredScaleAnnotationPatch(replicas), metav1.PatchOptions{})
 	if err != nil {

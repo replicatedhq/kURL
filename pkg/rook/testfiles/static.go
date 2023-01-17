@@ -72,3 +72,12 @@ var WaitForRookVersionOldVersions []byte
 
 //go:embed "waitForRookVersionNotReady.json"
 var WaitForRookVersionNotReady []byte
+
+//go:embed "scalePodOwnerDeploy.json"
+var ScalePodOwnerDeploy []byte
+
+//go:embed "scalePodOwnerSts.json"
+var ScalePodOwnerSts []byte
+
+//go:embed "listPVCsByStorageClass.json"
+var ListPVCsByStorageClass []byte
