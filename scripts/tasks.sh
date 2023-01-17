@@ -24,7 +24,7 @@ DIR=.
 
 K8S_DISTRO=
 function tasks() {
-    logStep "Running tasks with the argument(s): $@"
+    logStep "Running tasks with the argument(s): $*"
     # ensure /usr/local/bin/kubectl-plugin is in the path
     path_add "/usr/local/bin"
 
