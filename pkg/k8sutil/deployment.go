@@ -9,9 +9,9 @@ import (
 	"k8s.io/client-go/kubernetes"
 )
 
-// WaitForDeploymentReady polls every 5 seconds until either the provided deployment is ready or
-// the context is closed.
-func WaitForDeploymentReady(ctx context.Context, clientset kubernetes.Interface, namespace, name string) error {
+// WaitForDeploymentReady polls every 5 seconds until either the provided deployment is ready and
+// up-to-date or the context is closed.
+func WaitForDeploymentReady(ctx context.Context, clientset kubernetes.Interface, namespace, name string, desiredReplication int32) error {
 	for {
 		if err := ctx.Err(); err != nil {
 			return err
@@ -21,7 +21,7 @@ func WaitForDeploymentReady(ctx context.Context, clientset kubernetes.Interface,
 		if err != nil {
 			return err
 		}
-		if IsDeploymentReady(*dep) {
+		if IsDeploymentReady(*dep, desiredReplication) {
 			return nil
 		}
 
@@ -34,9 +34,10 @@ func WaitForDeploymentReady(ctx context.Context, clientset kubernetes.Interface,
 	}
 }
 
-// IsDeploymentReady returns true if the provided deployment is ready.
-func IsDeploymentReady(dep appsv1.Deployment) bool {
-	return dep.Status.Replicas == dep.Status.UpdatedReplicas &&
-		dep.Status.Replicas == dep.Status.AvailableReplicas &&
-		dep.Status.Replicas == dep.Status.ReadyReplicas
+// IsDeploymentReady returns true if the provided deployment is ready and up-to-date.
+func IsDeploymentReady(dep appsv1.Deployment, desiredReplication int32) bool {
+	return dep.Status.ObservedGeneration > 0 &&
+		desiredReplication == dep.Status.UpdatedReplicas &&
+		desiredReplication == dep.Status.AvailableReplicas &&
+		desiredReplication == dep.Status.ReadyReplicas
 }

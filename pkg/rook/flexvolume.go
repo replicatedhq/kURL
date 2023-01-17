@@ -14,7 +14,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/kurl/pkg/k8sutil"
 	"github.com/replicatedhq/kurl/pkg/rook/static/flexmigrator"
-	"github.com/ricardomaraschini/plumber"
+	"github.com/replicatedhq/plumber"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -173,7 +173,7 @@ func runBinPVMigrator(ctx context.Context, logger *log.Logger, clientset kuberne
 	defer cancel()
 
 	logger.Println("Waiting for rook-ceph-migrator deployment to be ready ...")
-	err = k8sutil.WaitForDeploymentReady(ctx, clientset, rookCephNamespace, rookCephMigratorDeploymentName)
+	err = k8sutil.WaitForDeploymentReady(ctx, clientset, rookCephNamespace, rookCephMigratorDeploymentName, 1)
 	if err != nil {
 		return errors.Wrap(err, "wait for rook-ceph-migrator deployment")
 	}

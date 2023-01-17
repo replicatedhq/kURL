@@ -6,7 +6,7 @@ import (
 	"embed"
 	"os/exec"
 
-	"github.com/ricardomaraschini/plumber"
+	"github.com/replicatedhq/plumber"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	kustomizetypes "sigs.k8s.io/kustomize/api/types"
 )
