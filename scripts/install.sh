@@ -501,7 +501,7 @@ function report_kubernetes_install() {
 K8S_DISTRO=kubeadm
 
 function main() {
-    logStep "Running install with the argument(s): $@"
+    logStep "Running install with the argument(s): $*"
     require_root_user
     # ensure /usr/local/bin/kubectl-plugin is in the path
     path_add "/usr/local/bin"

@@ -125,7 +125,7 @@ outro() {
 K8S_DISTRO=kubeadm
 
 function main() {
-    logStep "Running join with the argument(s): $@"
+    logStep "Running join with the argument(s): $*"
     export KUBECONFIG=/etc/kubernetes/admin.conf
     require_root_user
     # ensure /usr/local/bin/kubectl-plugin is in the path
