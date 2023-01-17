@@ -52,14 +52,14 @@ func Test_scaleDownPodOwnerDeployment(t *testing.T) {
 
 			pod, err := clientset.CoreV1().Pods(tt.namespace).Get(context.Background(), tt.podName, metav1.GetOptions{})
 			require.NoError(t, err)
-			err = scaleDownPodOwner(context.Background(), clientset, *pod)
+			err = scaleDownPodOwner(context.Background(), clientset, pod)
 			require.NoError(t, err)
 
 			obj, err = clientset.AppsV1().Deployments(tt.namespace).Get(context.Background(), tt.objName, metav1.GetOptions{})
 			require.NoError(t, err)
 			assert.Equal(t, int32(0), *obj.Spec.Replicas)
 
-			err = scaleBackDeployment(context.Background(), clientset, *obj)
+			err = scaleBackDeployment(context.Background(), clientset, obj)
 			require.NoError(t, err)
 
 			obj, err = clientset.AppsV1().Deployments(tt.namespace).Get(context.Background(), tt.objName, metav1.GetOptions{})
@@ -104,7 +104,7 @@ func Test_scaleDownPodOwnerStatefulSet(t *testing.T) {
 				pods = append(pods, pod)
 			}
 			for _, pod := range pods {
-				err = scaleDownPodOwner(context.Background(), clientset, *pod)
+				err = scaleDownPodOwner(context.Background(), clientset, pod)
 				require.NoError(t, err)
 			}
 
@@ -113,7 +113,7 @@ func Test_scaleDownPodOwnerStatefulSet(t *testing.T) {
 			assert.Equal(t, int32(0), *obj.Spec.Replicas)
 
 			fmt.Println(obj.ObjectMeta.Annotations)
-			err = scaleBackStatefulSet(context.Background(), clientset, *obj)
+			err = scaleBackStatefulSet(context.Background(), clientset, obj)
 			require.NoError(t, err)
 
 			obj, err = clientset.AppsV1().StatefulSets(tt.namespace).Get(context.Background(), tt.objName, metav1.GetOptions{})
@@ -168,6 +168,7 @@ func Test_runFlexMigrator(t *testing.T) {
 		{
 			name: "migrate flexvolume to csi",
 			opts: FlexvolumeToCSIOpts{
+				NodeName:          "node1",
 				PVMigratorBinPath: "/path/to/pv-migrator",
 				CephMigratorImage: "ceph/migrator:latest",
 			},
@@ -185,6 +186,7 @@ func Test_runFlexMigrator(t *testing.T) {
 			err = cli.Get(context.Background(), client.ObjectKey{Namespace: "rook-ceph", Name: "rook-ceph-migrator"}, obj)
 			require.NoError(t, err)
 
+			assert.Equal(t, tt.opts.NodeName, obj.Spec.Template.Spec.NodeName)
 			assert.Equal(t, tt.opts.PVMigratorBinPath, obj.Spec.Template.Spec.Volumes[0].HostPath.Path)
 			assert.Equal(t, tt.opts.CephMigratorImage, obj.Spec.Template.Spec.Containers[0].Image)
 			assert.Equal(t, "/usr/local/bin/pv-migrator", obj.Spec.Template.Spec.Containers[0].VolumeMounts[0].MountPath)

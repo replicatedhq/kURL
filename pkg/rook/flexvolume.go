@@ -40,6 +40,8 @@ type FlexvolumeToCSIOpts struct {
 	SourceStorageClass string
 	// DestinationStorageClass is the name of the storage class to migrate to
 	DestinationStorageClass string
+	// NodeName is the name of the node to run the migrator on on which this binary exists
+	NodeName string
 	// PVMigratorBinPath is the path to the ceph/pv-migrator binary
 	PVMigratorBinPath string
 	// CephMigratorImage is the image to use for the ceph/pv-migrator container
@@ -54,6 +56,9 @@ func (o FlexvolumeToCSIOpts) Validate() error {
 	}
 	if o.DestinationStorageClass == "" {
 		return errors.New("destination storage class is required")
+	}
+	if o.NodeName == "" {
+		return errors.New("node name is required")
 	}
 	if o.PVMigratorBinPath == "" {
 		return errors.New("pv migrator binary path is required")
@@ -262,6 +267,7 @@ func generateFlexMigratorPatch(fs filesys.FileSystem, opts FlexvolumeToCSIOpts) 
 		return errors.Wrap(err, "read flex migrator patch")
 	}
 	data := map[string]string{
+		"NodeName":              opts.NodeName,
 		"PVMigratorBinPath":     opts.PVMigratorBinPath,
 		"RookCephMigratorImage": opts.CephMigratorImage,
 	}

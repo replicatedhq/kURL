@@ -32,6 +32,8 @@ func NewRookFlexvolumeToCSI(_ CLI) *cobra.Command {
 	cmd.MarkFlagRequired("source-sc")
 	cmd.Flags().StringVar(&opts.DestinationStorageClass, "destination-sc", "", "storage class name to migrate to")
 	cmd.MarkFlagRequired("destination-sc")
+	cmd.Flags().StringVar(&opts.NodeName, "node", "", "the node on which to run the migration (the pv migrator binary must be present on this node)")
+	cmd.MarkFlagRequired("node")
 	cmd.Flags().StringVar(&opts.PVMigratorBinPath, "pv-migrator-bin-path", "", "path to the pv migrator binary")
 	cmd.MarkFlagRequired("pv-migrator-bin-path")
 	cmd.Flags().StringVar(&opts.CephMigratorImage, "ceph-migrator-image", "", "image for the pv migrator container")

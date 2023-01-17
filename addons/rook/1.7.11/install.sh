@@ -321,12 +321,9 @@ function rook_cluster_deploy_upgrade_flexvolumes_to_csi() {
         rook_cluster_deploy_upgrade_create_storageclass "$src_sc"
         rook_cluster_deploy_upgrade_pvmigrator "$tmp_sc" "$src_sc"
 
-        exit
         # delete the temp storageclass
         kubectl delete sc "$tmp_sc"
     fi
-
-    exit
 }
 
 # rook_cluster_deploy_upgrade_create_storageclass will render the necessary resources and create a
@@ -359,6 +356,7 @@ function rook_cluster_deploy_upgrade_pvmigrator() {
     "$BIN_KURL" rook flexvolume-to-csi \
         --source-sc "$src_sc" \
         --destination-sc "$dst_sc" \
+        --node-name "$(get_local_node_name)" \
         --pv-migrator-bin-path "$(realpath "$BIN_ROOK_PVMIGRATOR")" \
         --ceph-migrator-image "rook/ceph:v$ROOK_VERSION" )
     logSuccess "Rook Flex volumes to CSI volumes migrated successfully"

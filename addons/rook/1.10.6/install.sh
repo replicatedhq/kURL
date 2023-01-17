@@ -384,6 +384,7 @@ function rook_cluster_deploy_upgrade_pvmigrator() {
     "$BIN_KURL" rook flexvolume-to-csi \
         --source-sc "$src_sc" \
         --destination-sc "$dst_sc" \
+        --node-name "$(get_local_node_name)" \
         --pv-migrator-bin-path "$(realpath "$BIN_ROOK_PVMIGRATOR")" \
         --ceph-migrator-image "rook/ceph:v$ROOK_VERSION" )
     logSuccess "Rook Flex volumes to CSI volumes migrated successfully"
