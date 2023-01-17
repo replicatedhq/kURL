@@ -503,10 +503,6 @@ func listPodsMountingPVC(ctx context.Context, clientset kubernetes.Interface, na
 	}
 	for _, pod := range pods.Items {
 		if k8sutil.PodHasPVC(pod, namespace, name) {
-			ref := metav1.GetControllerOf(&pod)
-			if ref == nil {
-
-			}
 			res = append(res, pod)
 		}
 	}
