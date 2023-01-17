@@ -20,7 +20,7 @@ func NewRookFlexvolumeToCSI(_ CLI) *cobra.Command {
 			clientConfig := config.GetConfigOrDie()
 			clientset := kubernetes.NewForConfigOrDie(clientConfig)
 
-			logger := log.New(os.Stderr, "", 0)
+			logger := log.New(os.Stdout, "", 0)
 
 			err := rook.FlexvolumeToCSI(cmd.Context(), logger, clientset, clientConfig, opts)
 			return err
