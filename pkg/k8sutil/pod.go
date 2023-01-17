@@ -2,7 +2,6 @@ package k8sutil
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	corev1 "k8s.io/api/core/v1"
@@ -42,11 +41,11 @@ func WaitForPodReady(ctx context.Context, clientset kubernetes.Interface, namesp
 			return err
 		}
 
-		dep, err := clientset.CoreV1().Pods(namespace).Get(ctx, name, metav1.GetOptions{})
+		pod, err := clientset.CoreV1().Pods(namespace).Get(ctx, name, metav1.GetOptions{})
 		if err != nil {
 			return err
 		}
-		if IsPodReady(*dep) {
+		if IsPodReady(*pod) {
 			return nil
 		}
 
@@ -62,7 +61,6 @@ func WaitForPodReady(ctx context.Context, clientset kubernetes.Interface, namesp
 // IsPodReady returns true if provided pod is ready.
 func IsPodReady(pod corev1.Pod) bool {
 	for _, cond := range pod.Status.Conditions {
-		fmt.Println(cond.Type, cond.Status)
 		if cond.Type == corev1.PodReady && cond.Status == corev1.ConditionTrue {
 			return true
 		}

@@ -28,9 +28,9 @@ func NewRookFlexvolumeToCSI(_ CLI) *cobra.Command {
 		SilenceUsage: true,
 	}
 
-	cmd.Flags().StringVar(&opts.SourceStorageClass, "source-sc", "", "storage provider name to migrate from")
+	cmd.Flags().StringVar(&opts.SourceStorageClass, "source-sc", "", "storage class name to migrate from")
 	cmd.MarkFlagRequired("source-sc")
-	cmd.Flags().StringVar(&opts.DestinationStorageClass, "destination-sc", "", "storage provider name to migrate to")
+	cmd.Flags().StringVar(&opts.DestinationStorageClass, "destination-sc", "", "storage class name to migrate to")
 	cmd.MarkFlagRequired("destination-sc")
 	cmd.Flags().StringVar(&opts.PVMigratorBinPath, "pv-migrator-bin-path", "", "path to the pv migrator binary")
 	cmd.MarkFlagRequired("pv-migrator-bin-path")
