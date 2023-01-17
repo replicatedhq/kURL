@@ -86,19 +86,29 @@ func FlexvolumeToCSI(ctx context.Context, logger *log.Logger, clientset kubernet
 		return errors.Wrap(err, "list pvcs")
 	}
 
+	pods := []corev1.Pod{}
 	for _, pvc := range pvcs {
-		pods, err := listPodsMountingPVC(ctx, clientset, pvc.Namespace, pvc.Name)
+		pp, err := listPodsMountingPVC(ctx, clientset, pvc.Namespace, pvc.Name)
 		if err != nil {
 			return errors.Wrapf(err, "list pods mounting pvc %s/%s", pvc.Namespace, pvc.Name)
 		}
-		for _, pod := range pods {
-			logger.Printf("Scaling down pod %s/%s owner ...", pod.Namespace, pod.Name)
-			err := scaleDownPodOwner(ctx, clientset, pod)
+		for _, pod := range pp {
+			// do validation for all pods before scaling down
+			err := validatePodCanScale(&pod)
 			if err != nil {
-				return errors.Wrapf(err, "scale down pod %s/%s owner", pod.Namespace, pod.Name)
+				return errors.Wrapf(err, "validate pod %s/%s can scale", pod.Namespace, pod.Name)
 			}
-			logger.Println("Scaled down pod owner")
+			pods = append(pods, pod)
 		}
+	}
+
+	for _, pod := range pods {
+		logger.Printf("Scaling down pod %s/%s owner ...", pod.Namespace, pod.Name)
+		err := scaleDownPodOwner(ctx, clientset, &pod)
+		if err != nil {
+			return errors.Wrapf(err, "scale down pod %s/%s owner", pod.Namespace, pod.Name)
+		}
+		logger.Println("Scaled down pod owner")
 	}
 	logger.Println("Scaled down statefulsets and deployments")
 
@@ -293,11 +303,25 @@ func newSpecReplicasPatch(replicas int32) []byte {
 	))
 }
 
-func scaleDownPodOwner(ctx context.Context, clientset kubernetes.Interface, pod corev1.Pod) error {
-	if len(pod.OwnerReferences) != 1 {
-		return fmt.Errorf("expected 1 owner for pod, found %d instead", len(pod.OwnerReferences))
+func validatePodCanScale(pod *corev1.Pod) error {
+	ref := metav1.GetControllerOf(pod)
+	if ref == nil {
+		return fmt.Errorf("expected owner for pod %s, found none", pod.Name)
 	}
-	ref := pod.OwnerReferences[0]
+
+	switch ref.Kind {
+	case "StatefulSet", "Deployment":
+		return nil
+	default:
+		return fmt.Errorf("pod %s/%s has unsupported owner %s", pod.Namespace, pod.Name, ref.Kind)
+	}
+}
+
+func scaleDownPodOwner(ctx context.Context, clientset kubernetes.Interface, pod *corev1.Pod) error {
+	ref := metav1.GetControllerOf(pod)
+	if ref == nil {
+		return fmt.Errorf("expected owner for pod %s, found none", pod.Name)
+	}
 
 	switch ref.Kind {
 	case "StatefulSet":
@@ -305,7 +329,7 @@ func scaleDownPodOwner(ctx context.Context, clientset kubernetes.Interface, pod 
 		if err != nil {
 			return errors.Wrapf(err, "get statefulset %s/%s", pod.Namespace, ref.Name)
 		}
-		err = scaleDownStatefulSet(ctx, clientset, *obj)
+		err = scaleDownStatefulSet(ctx, clientset, obj)
 		if err != nil {
 			return errors.Wrapf(err, "scale down statefulset %s/%s", pod.Namespace, ref.Name)
 		}
@@ -314,10 +338,10 @@ func scaleDownPodOwner(ctx context.Context, clientset kubernetes.Interface, pod 
 		if err != nil {
 			return errors.Wrapf(err, "get replicaset %s/%s", pod.Namespace, ref.Name)
 		}
-		if len(obj.OwnerReferences) != 1 {
-			return fmt.Errorf("expected 1 owner for replicaset %s, found %d instead", ref.Name, len(obj.OwnerReferences))
+		ref := metav1.GetControllerOf(obj)
+		if ref == nil {
+			return fmt.Errorf("expected owner for replicaset %s, found none", obj.Name)
 		}
-		ref := obj.OwnerReferences[0]
 		if ref.Kind != "Deployment" {
 			return fmt.Errorf("expected owner for replicaset %s to be a deployment, found %s of kind %s instead", obj.Name, ref.Name, ref.Kind)
 		}
@@ -325,7 +349,7 @@ func scaleDownPodOwner(ctx context.Context, clientset kubernetes.Interface, pod 
 		if err != nil {
 			return errors.Wrapf(err, "get deployment %s/%s", pod.Namespace, ref.Name)
 		}
-		err = scaleDownDeployment(ctx, clientset, *dep)
+		err = scaleDownDeployment(ctx, clientset, dep)
 		if err != nil {
 			return errors.Wrapf(err, "scale down deployment %s/%s", pod.Namespace, ref.Name)
 		}
@@ -336,7 +360,7 @@ func scaleDownPodOwner(ctx context.Context, clientset kubernetes.Interface, pod 
 	return nil
 }
 
-func scaleDownStatefulSet(ctx context.Context, clientset kubernetes.Interface, obj appsv1.StatefulSet) error {
+func scaleDownStatefulSet(ctx context.Context, clientset kubernetes.Interface, obj *appsv1.StatefulSet) error {
 	replicas := int32(1)
 	if obj.Spec.Replicas != nil {
 		replicas = *obj.Spec.Replicas
@@ -356,7 +380,7 @@ func scaleDownStatefulSet(ctx context.Context, clientset kubernetes.Interface, o
 	return nil
 }
 
-func scaleDownDeployment(ctx context.Context, clientset kubernetes.Interface, obj appsv1.Deployment) error {
+func scaleDownDeployment(ctx context.Context, clientset kubernetes.Interface, obj *appsv1.Deployment) error {
 	replicas := int32(1)
 	if obj.Spec.Replicas != nil {
 		replicas = *obj.Spec.Replicas
@@ -383,7 +407,7 @@ func scaleBackStatefulSetsByNamespace(ctx context.Context, clientset kubernetes.
 		return errors.Wrap(err, "list statefulsets")
 	}
 	for _, obj := range objs.Items {
-		err := scaleBackStatefulSet(ctx, clientset, obj)
+		err := scaleBackStatefulSet(ctx, clientset, &obj)
 		if err != nil {
 			return errors.Wrapf(err, "scale back statefulset %s/%s", obj.GetNamespace(), obj.GetName())
 		}
@@ -391,7 +415,7 @@ func scaleBackStatefulSetsByNamespace(ctx context.Context, clientset kubernetes.
 	return nil
 }
 
-func scaleBackStatefulSet(ctx context.Context, clientset kubernetes.Interface, obj appsv1.StatefulSet) error {
+func scaleBackStatefulSet(ctx context.Context, clientset kubernetes.Interface, obj *appsv1.StatefulSet) error {
 	desiredScale, ok := obj.GetAnnotations()[desiredScaleAnnotation]
 	if !ok {
 		return nil
@@ -417,7 +441,7 @@ func scaleBackDeploymentsByNamespace(ctx context.Context, clientset kubernetes.I
 		return errors.Wrap(err, "list deployments")
 	}
 	for _, obj := range objs.Items {
-		err := scaleBackDeployment(ctx, clientset, obj)
+		err := scaleBackDeployment(ctx, clientset, &obj)
 		if err != nil {
 			return errors.Wrapf(err, "scale back deployment %s/%s", obj.GetNamespace(), obj.GetName())
 		}
@@ -425,7 +449,7 @@ func scaleBackDeploymentsByNamespace(ctx context.Context, clientset kubernetes.I
 	return nil
 }
 
-func scaleBackDeployment(ctx context.Context, clientset kubernetes.Interface, obj appsv1.Deployment) error {
+func scaleBackDeployment(ctx context.Context, clientset kubernetes.Interface, obj *appsv1.Deployment) error {
 	desiredScale, ok := obj.GetAnnotations()[desiredScaleAnnotation]
 	if !ok {
 		return nil
@@ -473,6 +497,10 @@ func listPodsMountingPVC(ctx context.Context, clientset kubernetes.Interface, na
 	}
 	for _, pod := range pods.Items {
 		if k8sutil.PodHasPVC(pod, namespace, name) {
+			ref := metav1.GetControllerOf(&pod)
+			if ref == nil {
+
+			}
 			res = append(res, pod)
 		}
 	}
