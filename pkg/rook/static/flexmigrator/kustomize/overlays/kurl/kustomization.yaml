@@ -1,0 +1,5 @@
+resources:
+- ../../base/
+
+patchesStrategicMerge:
+- flex-migrator.patch.yaml

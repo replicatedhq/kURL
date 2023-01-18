@@ -47,6 +47,10 @@ function rook() {
         return 0
     fi
 
+    # delete old clusterrolebinding
+    # see issue https://github.com/rook/rook/issues/6448
+    kubectl delete --ignore-not-found clusterrolebinding rook-ceph-system-psp-users
+
     rook_operator_crds_deploy
     rook_operator_deploy
     rook_set_ceph_pool_replicas
@@ -187,7 +191,7 @@ function rook_cluster_deploy() {
     insert_patches_strategic_merge "$dst/kustomization.yaml" patches/cluster.yaml
     render_yaml_file "$src/patches/tmpl-object.yaml" > "$dst/patches/object.yaml"
     insert_patches_strategic_merge "$dst/kustomization.yaml" patches/object.yaml
-    render_yaml_file "$src/patches/tmpl-rbd-storageclass.yaml" > "$dst/patches/rbd-storageclass.yaml"
+    render_yaml_file_2 "$src/patches/tmpl-rbd-storageclass.yaml" > "$dst/patches/rbd-storageclass.yaml"
     insert_patches_strategic_merge "$dst/kustomization.yaml" patches/rbd-storageclass.yaml
     if [ "$KUBERNETES_TARGET_VERSION_MINOR" -lt "17" ]; then
         sed -i 's/system-cluster-critical/rook-critical/g' "$dst/patches/cluster.yaml" "$dst/patches/object.yaml" "$dst/patches/filesystem.yaml"
@@ -226,6 +230,8 @@ function rook_cluster_deploy_upgrade() {
     if rook_ceph_version_deployed "${ceph_version}" ; then
         echo "Cluster rook-ceph up to date"
         rook_patch_insecure_clients
+
+        rook_cluster_deploy_upgrade_flexvolumes_to_csi
         return 0
     fi
 
@@ -279,7 +285,83 @@ function rook_cluster_deploy_upgrade() {
         bail "Failed to verify the updated cluster, Ceph is not healthy"
     fi
 
+    rook_cluster_deploy_upgrade_flexvolumes_to_csi
+
     logSuccess "Rook-ceph cluster upgraded"
+}
+
+# rook_cluster_deploy_upgrade_flexvolumes_to_csi will check if the previous storageclass is using
+# the flex volume provisioner (if this is an upgrade from 1.0.4) and will deploy a new storageclass
+# with the CSI provisioner following this guide:
+# https://rook.io/docs/rook/v1.7/flex-to-csi-migration.html
+function rook_cluster_deploy_upgrade_flexvolumes_to_csi() {
+    local src="$DIR/addons/rook/$ROOK_VERSION/cluster"
+    local dst="$DIR/kustomize/rook/cluster"
+
+    local src_sc="${STORAGE_CLASS:-default}"
+    local tmp_sc=rook-ceph-tmp
+
+    # if the "default" storage class exists and it is still using the flex volume provisioner
+    if [ "$(kubectl get sc "$src_sc" --ignore-not-found -o jsonpath='{.provisioner}')" = "ceph.rook.io/block" ]; then
+        # patch the existing storage class to not be the default
+        kubectl patch storageclass "$src_sc" -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"false"}}}'
+
+        # deploy a new storage class with the CSI provisioner
+        rook_cluster_deploy_upgrade_create_storageclass "$tmp_sc"
+
+        # run the actual flex volumes to csi volumes migration
+        rook_cluster_deploy_upgrade_pvmigrator "$src_sc" "$tmp_sc"
+
+        kubectl delete sc "$src_sc"
+    fi
+
+    # if there is still a temp storage class, it means we have not finished the migration
+    if kubectl get sc "$tmp_sc" >/dev/null 2>&1 ; then
+        # migrate a second time effectively renaming the temp storageclass back to "default"
+        rook_cluster_deploy_upgrade_create_storageclass "$src_sc"
+        rook_cluster_deploy_upgrade_pvmigrator "$tmp_sc" "$src_sc"
+
+        # delete the temp storageclass
+        kubectl delete sc "$tmp_sc"
+    fi
+}
+
+# rook_cluster_deploy_upgrade_create_storageclass will render the necessary resources and create a
+# storageclass
+function rook_cluster_deploy_upgrade_create_storageclass() {
+    local dst_sc="$1"
+
+    local kustomize_dir="$dst/rbd-storageclass-$dst_sc"
+
+    mkdir -p "$kustomize_dir/patches/"
+    echo "" > "$kustomize_dir/kustomization.yaml" # clear the file
+    local o_storage_class="$STORAGE_CLASS"
+    export STORAGE_CLASS="$dst_sc"
+    render_yaml_file_2 "$src/tmpl-rbd-storageclass.yaml" > "$dst/rbd-storageclass.yaml"
+    render_yaml_file_2 "$src/patches/tmpl-rbd-storageclass.yaml" > "$dst/patches/rbd-storageclass.yaml"
+    STORAGE_CLASS="$o_storage_class" # restore the original value
+    cp "$dst/rbd-storageclass.yaml" "$kustomize_dir/rbd-storageclass.yaml"
+    cp "$dst/patches/rbd-storageclass.yaml" "$kustomize_dir/patches/rbd-storageclass.yaml"
+    insert_resources "$kustomize_dir/kustomization.yaml" rbd-storageclass.yaml
+    insert_patches_strategic_merge "$kustomize_dir/kustomization.yaml" patches/rbd-storageclass.yaml
+    kubectl apply -k "$kustomize_dir/"
+}
+
+# rook_cluster_deploy_upgrade_pvmigrator will invoke the kurl rook flexvolume-to-csi command to run
+# the actual flex volumes to csi volumes migration
+function rook_cluster_deploy_upgrade_pvmigrator() {
+    local src_sc="$1"
+    local dst_sc="$2"
+
+    logStep "Migrating Rook Flex volumes to CSI volumes"
+    ( set -x;
+    "$BIN_KURL" rook flexvolume-to-csi \
+        --source-sc "$src_sc" \
+        --destination-sc "$dst_sc" \
+        --node "$(get_local_node_name)" \
+        --pv-migrator-bin-path "$(realpath "$BIN_ROOK_PVMIGRATOR")" \
+        --ceph-migrator-image "rook/ceph:v$ROOK_VERSION" )
+    logSuccess "Rook Flex volumes to CSI volumes migrated successfully"
 }
 
 function rook_dashboard_ready_spinner() {

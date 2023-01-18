@@ -123,7 +123,7 @@ func TestPodUsesPVC(t *testing.T) {
 		},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
-			result := HasPVC(tt.pod, tt.pvc)
+			result := PodHasPVC(tt.pod, tt.pvc.Namespace, tt.pvc.Name)
 			if result != tt.expected {
 				t.Errorf("expected %v, received %v", tt.expected, result)
 			}

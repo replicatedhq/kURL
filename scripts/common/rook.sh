@@ -93,7 +93,7 @@ function remove_rook_ceph() {
     # delete rook-ceph CRDs
     printf "Removing rook-ceph custom resources:\n"
     kubectl get crd | grep 'ceph.rook.io' | awk '{ print $1 }' | xargs -I'{}' kubectl delete crd '{}'
-    kubectl delete crd volumes.rook.io
+    kubectl delete --ignore-not-found crd volumes.rook.io
 
     # delete rook-ceph ns
     kubectl delete ns rook-ceph

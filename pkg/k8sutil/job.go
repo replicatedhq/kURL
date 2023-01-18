@@ -7,19 +7,11 @@ import (
 	"log"
 	"time"
 
-	"github.com/replicatedhq/kurl/pkg/version"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/client-go/kubernetes"
-)
-
-const (
-	// LabelKeyKurlshManaged is the metadata label key for kurl.sh managed resources
-	LabelKeyKurlshManaged = "kurl.sh/managed"
-	// LabelKeyKurlshVersion is the metadata label key for kurl.sh version
-	LabelKeyKurlshVersion = "kurl.sh/version"
 )
 
 // waitForJob waits for a job to finish. returns a boolean indicating if the job succeeded.
@@ -50,7 +42,7 @@ func waitForJob(ctx context.Context, cli kubernetes.Interface, job *batchv1.Job,
 // returns the job's pod logs (indexed by container name) and the state of each of the
 // containers (also indexed by container name).
 func RunJob(ctx context.Context, cli kubernetes.Interface, logger *log.Logger, job *batchv1.Job, timeout time.Duration) (map[string][]byte, map[string]corev1.ContainerState, error) {
-	job.ObjectMeta.Labels = appendKurlLabels(job.ObjectMeta.Labels)
+	job.ObjectMeta.Labels = AppendKurlLabels(job.ObjectMeta.Labels)
 	job, err := cli.BatchV1().Jobs(job.Namespace).Create(ctx, job, metav1.CreateOptions{})
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to create job: %w", err)
@@ -122,13 +114,4 @@ func RunJob(ctx context.Context, cli kubernetes.Interface, logger *log.Logger, j
 		return logs, lastContainerStatuses, fmt.Errorf("job failed to execute")
 	}
 	return logs, lastContainerStatuses, nil
-}
-
-func appendKurlLabels(labels map[string]string) map[string]string {
-	if labels == nil {
-		labels = map[string]string{}
-	}
-	labels[LabelKeyKurlshManaged] = "true"
-	labels[LabelKeyKurlshVersion] = version.Version()
-	return labels
 }

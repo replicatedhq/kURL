@@ -4,7 +4,7 @@ kind: StorageClass
 metadata:
   name: ${STORAGE_CLASS:-default}
   annotations:
-    storageclass.kubernetes.io/is-default-class: '"true"'
+    storageclass.kubernetes.io/is-default-class: "true"
 provisioner: ceph.rook.io/block
 parameters:
   pool: replicapool
