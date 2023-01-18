@@ -95,7 +95,7 @@ function tasks() {
             weave_to_flannel_primary "$@"
             ;;
         weave-to-flannel-secondary|weave_to_flannel_secondary)
-            weave_to_flannel_secondary
+            weave_to_flannel_secondary "$@"
             ;;
         *)
             bail "Unknown task: $1"
@@ -733,6 +733,9 @@ function weave_to_flannel_primary() {
             cert-key)
                 CERT_KEY="$_value"
                 ;;
+            airgap)
+                AIRGAP="1"
+                ;;
             *)
                 echo >&2 "Error: unknown parameter \"$_param\""
                 exit 1
@@ -742,6 +745,9 @@ function weave_to_flannel_primary() {
     done
 
     task_requires_root
+    if [ "$AIRGAP" == "1" ]; then
+        flannel_images_present
+    fi
 
     # if CERT_KEY was not provided, we cannot continue
     if [ -z "$CERT_KEY" ]; then
@@ -797,7 +803,26 @@ EOM
 }
 
 function weave_to_flannel_secondary() {
+    shift
+    while [ "$1" != "" ]; do
+        _param="$(echo "$1" | cut -d= -f1)"
+        _value="$(echo "$1" | grep '=' | cut -d= -f2-)"
+        case $_param in
+            airgap)
+                AIRGAP="1"
+                ;;
+            *)
+                echo >&2 "Error: unknown parameter \"$_param\""
+                exit 1
+                ;;
+        esac
+        shift
+    done
+
     task_requires_root
+    if [ "$AIRGAP" == "1" ]; then
+        flannel_images_present
+    fi
 
     rm -f /opt/cni/bin/weave-*
     rm -rf /etc/cni/net.d
@@ -812,6 +837,14 @@ function task_requires_root() {
     user="$(id -un 2>/dev/null || true)"
     if [ "$user" != "root" ]; then
         bail "Error: this task needs to be run as root."
+    fi
+}
+
+# check if containerd on the current node has the `docker.io/rancher/mirrored-flannelcni-flannel:v<version>` image
+function flannel_images_present() {
+    if ! ctr -n=k8s.io images ls | grep -q "docker.io/rancher/mirrored-flannelcni-flannel" ; then
+        logFail "Flannel images not present on $(hostname), please ensure the 'load-images' task has been run successfully"
+        exit 1
     fi
 }
 
