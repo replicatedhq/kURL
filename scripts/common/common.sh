@@ -860,8 +860,16 @@ function maybe() {
 }
 
 MACHINE_ID=
+KURL_INSTANCE_UUID=
 function get_machine_id() {
     MACHINE_ID="$(${DIR}/bin/kurl host protectedid || true)"
+    if [ -f /var/lib/kurl/uuid ]; then
+        KURL_INSTANCE_UUID="$(cat /var/lib/kurl/uuid)"
+    else
+        KURL_INSTANCE_UUID="$(uuidgen)"
+        mkdir -p /var/lib/kurl
+        echo "$KURL_INSTANCE_UUID" > /var/lib/kurl/uuid
+    fi
 }
 
 function kebab_to_camel() {
