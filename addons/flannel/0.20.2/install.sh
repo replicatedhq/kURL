@@ -132,7 +132,7 @@ function weave_to_flannel() {
         else
             local prefix=
             prefix="$(build_installer_prefix "${INSTALLER_ID}" "${KURL_VERSION}" "${KURL_URL}" "${PROXY_ADDRESS}")"
-            printf "\n\t${GREEN}${prefix}tasks.sh | sudo bash -s weave-to-flannel-primary cert-key=${cert_key}${NC}\n\n"
+            printf "\n\t${GREEN}${prefix}tasks.sh | sudo bash -s weave-to-flannel-primary airgap cert-key=${cert_key}${NC}\n\n"
         fi
 
         printf "${YELLOW}Once this has been run on all nodes, press enter to continue.${NC}"
@@ -146,7 +146,7 @@ function weave_to_flannel() {
     worker_node_names=$(kubectl get nodes --no-headers --selector='!node-role.kubernetes.io/control-plane' -o custom-columns=NAME:.metadata.name)
     if [ "$worker_node_count" -gt 0 ]; then
         printf "${YELLOW}Moving from Weave to Flannel requires removing certain weave files and restarting kubelet.${NC}\n"
-        printf "${YELLOW}Please run the following command on each of the listed secondary nodes:${NC}\n"
+        printf "${YELLOW}Please run the following command on each of the listed secondary nodes:${NC}\n\n"
         printf "${worker_node_names}\n"
 
         if [ "$AIRGAP" = "1" ]; then
@@ -154,7 +154,7 @@ function weave_to_flannel() {
         else
             local prefix=
             prefix="$(build_installer_prefix "${INSTALLER_ID}" "${KURL_VERSION}" "${KURL_URL}" "${PROXY_ADDRESS}")"
-            printf "\n\t${GREEN}${prefix}tasks.sh | sudo bash -s weave-to-flannel-secondary${NC}\n\n"
+            printf "\n\t${GREEN}${prefix}tasks.sh | sudo bash -s weave-to-flannel-secondary airgap${NC}\n\n"
         fi
 
         printf "${YELLOW}Once this has been run on all nodes, press enter to continue.${NC}"
@@ -185,6 +185,7 @@ function weave_to_flannel() {
 
     sleep 60
     logStep "Restarting all other pods"
+    echo "this may take several minutes"
     local ns=
     for ns in $(kubectl get ns -o name | grep -Ev '(kube-system|longhorn-system|rook-ceph|openebs|kube-flannel)' | cut -f2 -d'/'); do
         kubectl delete pods -n "$ns" --all
