@@ -341,3 +341,46 @@
 
     # Ensure Cephfs storage class is not applied
     ! kubectl get sc | grep rook-cephfs
+
+- name: Rook migrate from Longhorn
+  flags: "yes"
+  cpu: 6
+  installerSpec:
+    kubernetes:
+      # Longhorn is not compatible with kubernetes 1.25+.
+      version: "1.24.x"
+    weave:
+      version: "latest"
+    containerd:
+      version: "latest"
+    ekco:
+      version: "latest"
+    longhorn:
+      version: "latest"
+  upgradeSpec:
+    kubernetes:
+      version: "1.24.x"
+    weave:
+      version: "latest"
+    containerd:
+      version: "latest"
+    ekco:
+      version: "latest"
+    rook:
+      version: "__testver__"
+      s3Override: "__testdist__"
+      bypassUpgradeWarning: true
+  unsupportedOSIDs:
+    - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
+  postInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    # create a deployment using the longhorn storage class ("default" namespace).
+    create_deployment_with_mounted_volume "migration-test" "default" "/data"
+    # generate a random file and copies it to the pod deployed by the previously created deployment.
+    create_random_file_and_upload_to_deployment "migration-test" "default" "./test.data" "/data/test.data"
+  postUpgradeScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    # downloads the previously stored file and compares, expecting to see the same content.
+    download_file_from_deployment_and_compare "migration-test" "default" "./test.data" "/data/test.data"
+    # makes sure that the new pvc is being provisioned by rook.
+    pvc_uses_provisioner "migration-test" "default" "rook"

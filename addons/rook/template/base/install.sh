@@ -37,6 +37,8 @@ function rook_pre_init() {
     if rook_should_fail_install; then
         bail "Rook ${ROOK_VERSION} will not be installed due to failed preflight checks."
     fi
+
+    rook_prompt_migrate_from_longhorn
 }
 
 function rook_post_init() {
@@ -104,6 +106,9 @@ function rook() {
     if ! spinner_until 120 rook_rgw_is_healthy ; then
         bail "Failed to detect healthy rook-ceph object store"
     fi
+
+    # migrate from Longhorn storage if applicable
+    rook_maybe_migrate_from_longhorn
 }
 
 function rook_post_init() {
@@ -686,4 +691,89 @@ function rook_mds_daemons_oktostop() {
         fi
     done
     return 0
+}
+
+# if longhorn is installed but is not specified in the kURL spec, migrate data to Rook.
+function rook_maybe_migrate_from_longhorn() {
+    if [ -z "$LONGHORN_VERSION" ]; then
+        if kubectl get ns | grep -q longhorn-system; then
+            local rook_storage_class="${STORAGE_CLASS:-default}"
+
+            # show validation errors from pvmigrate if there are errors, rook_maybe_longhorn_migration_checks() will bail
+            rook_maybe_longhorn_migration_checks "$rook_storage_class"
+
+            longhorn_to_sc_migration "$rook_storage_class" "1"
+            DID_MIGRATE_LONGHORN_PVCS=1 # used to automatically delete longhorn if object store data was also migrated
+        fi
+    fi
+}
+
+function rook_maybe_longhorn_migration_checks() {
+    local rook_storage_class="$1"
+
+    # get the list of StorageClasses that use longhorn
+    local longhorn_scs
+    local longhorn_default_sc
+    longhorn_scs=$(kubectl get storageclass | grep longhorn | grep -v '(default)' | awk '{ print $1}') # any non-default longhorn StorageClasses
+    longhorn_default_sc=$(kubectl get storageclass | grep longhorn | grep '(default)' | awk '{ print $1}') # any default longhorn StorageClasses
+
+    echo "Running Longhorn to Rook migration checks ..."
+    local longhorn_scs_pvmigrate_dryrun_output
+    local longhorn_default_sc_pvmigrate_dryrun_output
+    for longhorn_sc in $longhorn_scs
+    do
+        # run validation checks for non default Longhorn storage classes
+        if longhorn_scs_pvmigrate_dryrun_output=$($BIN_PVMIGRATE --source-sc "$longhorn_sc" --dest-sc "$rook_storage_class" --rsync-image "$KURL_UTIL_IMAGE" --preflight-validation-only) ; then
+            longhorn_scs_pvmigrate_dryrun_output=""
+        else
+            break
+        fi
+    done
+
+    if [ -n "$longhorn_default_sc" ] ; then
+        # run validation checks for Rook default storage class
+        if longhorn_default_sc_pvmigrate_dryrun_output=$($BIN_PVMIGRATE --source-sc "$longhorn_default_sc" --dest-sc "$rook_storage_class" --rsync-image "$KURL_UTIL_IMAGE" --preflight-validation-only) ; then
+            longhorn_default_sc_pvmigrate_dryrun_output=""
+        fi
+    fi
+
+    if [ -n "$longhorn_scs_pvmigrate_dryrun_output" ] || [ -n "$longhorn_default_sc_pvmigrate_dryrun_output" ] ; then
+        log "$longhorn_scs_pvmigrate_dryrun_output"
+        log "$longhorn_default_sc_pvmigrate_dryrun_output"
+        bail "Cannot upgrade from Longhorn to Rook due to previous error."
+    fi
+
+    echo "Longhorn to Rook migration checks completed."
+}
+
+# shows a prompt asking users for confirmation before starting to migrate data from Longhorn.
+function rook_prompt_migrate_from_longhorn() {
+    # skip on new install or when Longhorn is specified in the kURL spec
+    if [ -z "$CURRENT_KUBERNETES_VERSION" ] || [ -n "$LONGHORN_VERSION" ]; then
+        return 0
+    fi
+
+    # do not proceed if Longhorn is not installed
+    if ! kubectl get ns | grep -q longhorn-system; then
+        return 0
+    fi
+
+    local rook_storage_class="${STORAGE_CLASS:-default}"
+    logWarn "    Detected Longhorn is running in the cluster. Data migration will be initiated to move data from Longhorn to storage class $rook_storage_class."
+    logWarn "    As part of this, all pods mounting PVCs will be stopped, taking down the application."
+    logWarn "    It is recommended to take a snapshot or otherwise back up your data before proceeding."
+
+    semverParse "$KUBERNETES_VERSION"
+    if [ "$minor" -gt 24 ] ; then
+        logFail "    It appears that the Kubernetes version you are attempting to install ($KUBERNETES_VERSION) is incompatible with the version of Longhorn currently installed"
+        logFail "    on your cluster. As a result, it is not possible to migrate data from Longhorn to Rook. To successfully migrate data, please choose a Kubernetes"
+        logFail "    version that is compatible with the version of Longhorn running on your cluster (note: Longhorn is compatible with Kubernetes versions up to and"
+        logFail "    including 1.24)."
+        bail "Not migrating"
+    fi
+
+    log "Would you like to continue? "
+    if ! confirmN; then
+        bail "Not migrating"
+    fi
 }
