@@ -732,7 +732,9 @@ function rook_maybe_longhorn_migration_checks() {
 
     if [ -n "$longhorn_default_sc" ] ; then
         # run validation checks for Rook default storage class
-        longhorn_default_sc_pvmigrate_dryrun_output=$($BIN_PVMIGRATE --source-sc "$longhorn_default_sc" --dest-sc "$rook_storage_class" --rsync-image "$KURL_UTIL_IMAGE" --preflight-validation-only || true)
+        if longhorn_default_sc_pvmigrate_dryrun_output=$($BIN_PVMIGRATE --source-sc "$longhorn_default_sc" --dest-sc "$rook_storage_class" --rsync-image "$KURL_UTIL_IMAGE" --preflight-validation-only) ; then
+            longhorn_default_sc_pvmigrate_dryrun_output=""
+        fi
     fi
 
     if [ -n "$longhorn_scs_pvmigrate_dryrun_output" ] || [ -n "$longhorn_default_sc_pvmigrate_dryrun_output" ] ; then
