@@ -254,6 +254,18 @@ func Test_parseBashFlags(t *testing.T) {
 				},
 			},
 		},
+		{
+			name:         "parse flag values with equals",
+			oldInstaller: &kurlv1beta1.Installer{},
+			bashFlags:    "kubeadm-token=token=with=equals=",
+			mergedInstaller: &kurlv1beta1.Installer{
+				Spec: kurlv1beta1.InstallerSpec{
+					Kubernetes: &kurlv1beta1.Kubernetes{
+						KubeadmToken: "token=with=equals=",
+					},
+				},
+			},
+		},
 	}
 
 	for _, test := range tests {

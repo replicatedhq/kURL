@@ -71,7 +71,7 @@ func parseBashFlags(installer *kurlv1beta1.Installer, bashFlags string) error {
 	s := strings.Split(strings.TrimSpace(bashFlags), " ")
 
 	for _, flag := range s {
-		split := strings.Split(flag, "=")
+		split := strings.SplitN(flag, "=", 2)
 
 		if !checkIfFlagHasValue(len(split), split[0]) {
 			return fmt.Errorf("flag %s does not have a value", split[0])
