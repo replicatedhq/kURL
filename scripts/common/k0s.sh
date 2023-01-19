@@ -31,6 +31,7 @@ function report_k0s_install() {
     k0s_wait_for_ready
     k0s_kubeconfig
 
+    wait_for_nodes
     # kurl should really use node-role.kubernetes.io/control-plane to identify control plane nodes
     kubectl label --overwrite node "$(get_local_node_name)" node-role.kubernetes.io/master=
 
@@ -61,6 +62,7 @@ function report_k0s_join_controller() {
     k0s_wait_for_ready
     k0s_kubeconfig
 
+    wait_for_nodes
     # kurl should really use node-role.kubernetes.io/control-plane to identify control plane nodes
     kubectl label --overwrite node "$(get_local_node_name)" node-role.kubernetes.io/master=
 
@@ -74,6 +76,7 @@ function report_k0s_join_worker() {
     local join_token="$1"
 
     K0S_VERSION="$KUBERNETES_VERSION"
+    [[ $K0S_VERSION == v* ]] || K0S_VERSION="v$K0S_VERSION" # add v prefix if missing
 
     logStep "K0s $K0S_VERSION"
 
@@ -173,6 +176,7 @@ function k0s_kubectl() {
         # TODO: make this better
         cat > /usr/local/bin/kubectl <<"EOF"
 #!/bin/sh
+set -e
 k0s kubectl "$@"
 EOF
         chmod +x /usr/local/bin/kubectl
@@ -185,7 +189,8 @@ function k0s_ctr() {
         # TODO: make this better
         cat > /usr/local/bin/ctr <<"EOF"
 #!/bin/sh
-# strips namespace flag from ctr
+set -e
+# strips namespace and address flags from ctr command
 next=0
 for arg do
   shift
