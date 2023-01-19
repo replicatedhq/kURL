@@ -3,8 +3,6 @@ package rook
 import (
 	"context"
 	"fmt"
-	"io"
-	"log"
 	"sort"
 	"testing"
 
@@ -177,9 +175,8 @@ func Test_runFlexMigrator(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			cli := fakeclient.NewClientBuilder().Build()
-			logger := log.New(io.Discard, "", 0)
 
-			err := runFlexMigrator(context.Background(), logger, cli, tt.opts)
+			err := runFlexMigrator(context.Background(), cli, tt.opts)
 			require.NoError(t, err)
 
 			obj := &appsv1.Deployment{}

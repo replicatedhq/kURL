@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"html/template"
+	"io"
 	"io/fs"
 	"log"
 	"os/exec"
@@ -85,6 +86,36 @@ func FlexvolumeToCSI(ctx context.Context, logger *log.Logger, clientset kubernet
 		return errors.Wrap(err, "which kubectl")
 	}
 
+	cli, err := client.New(clientConfig, client.Options{})
+	if err != nil {
+		return errors.Wrap(err, "create kubernetes controller-runtime client")
+	}
+
+	logger.Println("Running rook-ceph-migrator deployment ...")
+	err = runFlexMigrator(ctx, cli, opts)
+	if err != nil {
+		return errors.Wrap(err, "run flex migrator")
+	}
+	defer func() {
+		logger.Println("Deleting flex migrator ...")
+		out, err := deleteFlexMigrator(context.Background())
+		if err != nil {
+			logger.Printf("Failed to delete flex migrator resources: %v", err)
+			if out != "" {
+				logger.Printf("err: %s", out)
+			}
+		} else {
+			logger.Println("Deleted flex migrator")
+		}
+	}()
+
+	logger.Println("Waiting for rook-ceph-migrator deployment to be ready ...")
+	pod, err := waitForFlexMigratorPod(ctx, clientset)
+	if err != nil {
+		return errors.Wrap(err, "wait for flex migrator pod")
+	}
+	logger.Println("Rook-ceph-migrator deployment is ready")
+
 	logger.Printf("Scaling down statefulsets and deployments using storage class %s ...", opts.SourceStorageClass)
 	pvcs, err := listPVCsByStorageClass(ctx, clientset, opts.SourceStorageClass)
 	if err != nil {
@@ -119,7 +150,7 @@ func FlexvolumeToCSI(ctx context.Context, logger *log.Logger, clientset kubernet
 
 	logger.Printf("Running ceph/pv-migrator from %s to %s ...", opts.SourceStorageClass, opts.DestinationStorageClass)
 	// NOTE: this is a destructive migration and if it fails in the middle it will be hard to recover from
-	err = runBinPVMigrator(ctx, logger, clientset, clientConfig, opts)
+	err = runBinPVMigrator(ctx, logger.Writer(), clientset, clientConfig, pod, opts)
 	if err != nil {
 		return errors.Wrap(err, "run ceph/pv-migrator")
 	}
@@ -151,50 +182,7 @@ func FlexvolumeToCSI(ctx context.Context, logger *log.Logger, clientset kubernet
 	return nil
 }
 
-func runBinPVMigrator(ctx context.Context, logger *log.Logger, clientset kubernetes.Interface, clientConfig *rest.Config, opts FlexvolumeToCSIOpts) error {
-	cli, err := client.New(clientConfig, client.Options{})
-	if err != nil {
-		return errors.Wrap(err, "create kubernetes client")
-	}
-
-	err = runFlexMigrator(ctx, logger, cli, opts)
-	if err != nil {
-		return errors.Wrap(err, "run flex migrator")
-	}
-
-	defer func() {
-		err := deleteBinPVMigratorResources(context.Background(), logger)
-		if err != nil {
-			logger.Printf("Failed to delete flex migrator resources: %v", err)
-		}
-	}()
-
-	ctx, cancel := context.WithTimeout(ctx, 5*time.Minute)
-	defer cancel()
-
-	logger.Println("Waiting for rook-ceph-migrator deployment to be ready ...")
-	err = k8sutil.WaitForDeploymentReady(ctx, clientset, rookCephNamespace, rookCephMigratorDeploymentName, 1)
-	if err != nil {
-		return errors.Wrap(err, "wait for rook-ceph-migrator deployment")
-	}
-	logger.Println("Rook-ceph-migrator deployment is ready")
-
-	pods, err := k8sutil.ListPodsBySelector(ctx, clientset, rookCephNamespace, rookCephMigratorDeploymentLabelSelector)
-	if err != nil {
-		return errors.Wrap(err, "list pods")
-	}
-	if len(pods.Items) == 0 {
-		return errors.New("no pods found for rook-ceph-migrator deployment")
-	}
-	pod := pods.Items[0]
-
-	logger.Printf("Waiting for %s/%s pod to be ready ...", pod.Namespace, pod.Name)
-	err = k8sutil.WaitForPodReady(ctx, clientset, pod.Namespace, pod.Name)
-	if err != nil {
-		return errors.Wrap(err, "wait for rook-ceph-migrator deployment")
-	}
-	logger.Printf("%s/%s pod is ready", pod.Namespace, pod.Name)
-
+func runBinPVMigrator(ctx context.Context, w io.Writer, clientset kubernetes.Interface, clientConfig *rest.Config, pod *corev1.Pod, opts FlexvolumeToCSIOpts) error {
 	command := []string{
 		"pv-migrator",
 		"--source-sc", opts.SourceStorageClass,
@@ -209,55 +197,65 @@ func runBinPVMigrator(ctx context.Context, logger *log.Logger, clientset kuberne
 			Namespace:     rookCephNamespace,
 			PodName:       pod.Name,
 			ContainerName: rookCephMigratorPodContainerName,
-			Out:           logger.Writer(),
-			Err:           logger.Writer(),
+			Out:           w,
+			Err:           w,
 		},
 	}
 
-	logger.Printf("Running command %q in %s/%s pod ...", command, pod.Namespace, pod.Name)
 	exitCode, err := k8sutil.ExecContainer(ctx, execOpts, nil)
 	if err != nil {
 		return errors.Wrap(err, "exec command in pod")
 	} else if exitCode != 0 {
 		return errors.Errorf("command returned non-zero exit code %d", exitCode)
 	}
-	logger.Println("Command pod completed successfully")
 
 	return nil
 }
 
-func runFlexMigrator(ctx context.Context, logger *log.Logger, cli client.Client, opts FlexvolumeToCSIOpts) error {
+func runFlexMigrator(ctx context.Context, cli client.Client, opts FlexvolumeToCSIOpts) error {
 	options := []plumber.Option{
 		plumber.WithFSMutator(func(ctx context.Context, fs filesys.FileSystem) error {
 			return generateFlexMigratorPatch(fs, opts)
 		}),
 	}
 
-	logger.Println("Applying flex migrator ...")
 	err := k8sutil.KubectlApply(ctx, cli, flexmigrator.FS, "overlays/kurl", options...)
 	if err != nil {
 		return errors.Wrap(err, "kubectl apply flex migrator")
 	}
-	logger.Println("Applied flex migrator")
 
 	return nil
 }
 
-func deleteBinPVMigratorResources(ctx context.Context, logger *log.Logger) error {
-	logger.Println("Deleting flex migrator ...")
+func deleteFlexMigrator(ctx context.Context) (string, error) {
 	b, err := fs.ReadFile(flexmigrator.FS, "kustomize/base/flex-migrator.yaml")
 	if err != nil {
-		return errors.Wrap(err, "read flex migrator kustomize")
+		return "", errors.Wrap(err, "read flex migrator kustomize")
 	}
 	out, err := k8sutil.KubectlDelete(ctx, b, "--ignore-not-found=true")
-	if out != nil {
-		logger.Println((strings.TrimSpace(string(out))))
-	}
+	return strings.TrimSpace(string(out)), errors.Wrap(err, "kubectl delete flex migrator")
+}
+
+func waitForFlexMigratorPod(ctx context.Context, clientset kubernetes.Interface) (*corev1.Pod, error) {
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Minute)
+	defer cancel()
+
+	err := k8sutil.WaitForDeploymentReady(ctx, clientset, rookCephNamespace, rookCephMigratorDeploymentName, 1)
 	if err != nil {
-		return errors.Wrap(err, "kubectl delete flex migrator")
+		return nil, errors.Wrap(err, "wait for rook-ceph-migrator deployment")
 	}
-	logger.Println("Deleted flex migrator")
-	return nil
+
+	pods, err := k8sutil.ListPodsBySelector(ctx, clientset, rookCephNamespace, rookCephMigratorDeploymentLabelSelector)
+	if err != nil {
+		return nil, errors.Wrap(err, "list pods")
+	}
+	if len(pods.Items) == 0 {
+		return nil, errors.New("no pods found for rook-ceph-migrator deployment")
+	}
+	pod := pods.Items[0]
+
+	err = k8sutil.WaitForPodReady(ctx, clientset, pod.Namespace, pod.Name)
+	return &pod, errors.Wrap(err, "wait for rook-ceph-migrator pod")
 }
 
 func generateFlexMigratorPatch(fs filesys.FileSystem, opts FlexvolumeToCSIOpts) error {
