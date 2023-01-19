@@ -332,6 +332,9 @@ function rook_cluster_deploy_upgrade_flexvolumes_to_csi() {
     local src_sc="${STORAGE_CLASS:-default}"
     local tmp_sc=rook-ceph-tmp
 
+    local rook_did_scale_down_ekco=0
+    local rook_did_scale_down_prometheus=0
+
     # if the "default" storage class exists and it is still using the flex volume provisioner
     if [ "$(kubectl get sc "$src_sc" --ignore-not-found -o jsonpath='{.provisioner}')" = "ceph.rook.io/block" ]; then
         # patch the existing storage class to not be the default
@@ -339,6 +342,13 @@ function rook_cluster_deploy_upgrade_flexvolumes_to_csi() {
 
         # deploy a new storage class with the CSI provisioner
         rook_cluster_deploy_upgrade_create_storageclass "$tmp_sc"
+
+        if [ "$rook_did_scale_down_ekco" != "1" ]; then
+            rook_scale_down_ekco
+        fi
+        if [ "$rook_did_scale_down_prometheus" != "1" ]; then
+            rook_scale_down_prometheus
+        fi
 
         # run the actual flex volumes to csi volumes migration
         rook_cluster_deploy_upgrade_pvmigrator "$src_sc" "$tmp_sc"
@@ -350,10 +360,25 @@ function rook_cluster_deploy_upgrade_flexvolumes_to_csi() {
     if kubectl get sc "$tmp_sc" >/dev/null 2>&1 ; then
         # migrate a second time effectively renaming the temp storageclass back to "default"
         rook_cluster_deploy_upgrade_create_storageclass "$src_sc"
+
+        if [ "$rook_did_scale_down_ekco" != "1" ]; then
+            rook_scale_down_ekco
+        fi
+        if [ "$rook_did_scale_down_prometheus" != "1" ]; then
+            rook_scale_down_prometheus
+        fi
+
         rook_cluster_deploy_upgrade_pvmigrator "$tmp_sc" "$src_sc"
 
         # delete the temp storageclass
         kubectl delete sc "$tmp_sc"
+    fi
+
+    if [ "$rook_did_scale_down_ekco" = "1" ]; then
+        rook_scale_up_ekco
+    fi
+    if [ "$rook_did_scale_down_prometheus" = "1" ]; then
+        rook_scale_up_prometheus
     fi
 }
 
@@ -385,14 +410,69 @@ function rook_cluster_deploy_upgrade_pvmigrator() {
     local dst_sc="$2"
 
     logStep "Migrating Rook Flex volumes to CSI volumes"
+    local node_name=
+    node_name="$(get_local_node_name)"
+    local bin_path=
+    bin_path="$(realpath "$BIN_ROOK_PVMIGRATOR")"
+
     ( set -x;
     "$BIN_KURL" rook flexvolume-to-csi \
         --source-sc "$src_sc" \
         --destination-sc "$dst_sc" \
-        --node "$(get_local_node_name)" \
-        --pv-migrator-bin-path "$(realpath "$BIN_ROOK_PVMIGRATOR")" \
+        --node "$node_name" \
+        --pv-migrator-bin-path "$bin_path" \
         --ceph-migrator-image "rook/ceph:v$ROOK_VERSION" )
     logSuccess "Rook Flex volumes to CSI volumes migrated successfully"
+}
+
+# rook_scale_down_ekco will scale down ekco to 0 replicas
+function rook_scale_down_ekco() {
+    if ! kubernetes_resource_exists kurl deployment ekc-operator ; then
+        return
+    fi
+
+    if [ "$(kubectl -n kurl get deployments ekc-operator -o jsonpath='{.spec.replicas}')" = "0" ]; then
+        return
+    fi
+
+    kubectl -n kurl scale deployment ekc-operator --replicas=0
+    rook_did_scale_down_ekco=1 # local to caller
+    log "Waiting for ekco pods to be removed"
+    spinner_until 120 ekco_pods_gone
+}
+
+# rook_scale_up_ekco will scale up ekco to 1 replica
+function rook_scale_up_ekco() {
+    if ! kubernetes_resource_exists kurl deployment ekc-operator ; then
+        return
+    fi
+
+    kubectl -n kurl scale deployment ekc-operator --replicas=1
+}
+
+# rook_scale_down_prometheus will scale down prometheus to 0 replicas
+function rook_scale_down_prometheus() {
+    if ! kubernetes_resource_exists monitoring prometheus k8s ; then
+        return
+    fi
+
+    if [ "$(kubectl -n monitoring get prometheus k8s -o jsonpath='{.spec.replicas}')" = "0" ]; then
+        return
+    fi
+
+    kubectl -n monitoring patch prometheus k8s --type='json' --patch '[{"op": "replace", "path": "/spec/replicas", value: 0}]'
+    rook_did_scale_down_prometheus=1 # local to caller
+    log "Waiting for prometheus pods to be removed"
+    spinner_until 300 prometheus_pods_gone
+}
+
+# rook_scale_up_prometheus will scale up prometheus replicas to 2
+function rook_scale_up_prometheus() {
+    if ! kubernetes_resource_exists monitoring prometheus k8s ; then
+        return
+    fi
+
+    kubectl -n monitoring patch prometheus k8s --type='json' --patch '[{"op": "replace", "path": "/spec/replicas", value: 2}]'
 }
 
 function rook_dashboard_ready_spinner() {
