@@ -1,0 +1,5 @@
+resources:
+- k0s.yaml
+
+patchesStrategicMerge:
+- api-service-node-port-range.yaml

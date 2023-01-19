@@ -379,7 +379,7 @@ function join_token() {
         printf "\n"
         if [ "$HA_CLUSTER" = "1" ]; then
             printf "\n"
-            printf "To add ${GREEN}MASTER${NC} nodes to this installation, copy and unpack this bundle on your other nodes, and run the following:"
+            printf "To add ${GREEN}CONTROL PLANE${NC} nodes to this installation, copy and unpack this bundle on your other nodes, and run the following:"
             printf "\n"
             printf "\n"
             printf "${GREEN}    cat ./join.sh | sudo bash -s airgap kubernetes-master-address=${api_service_address} kubeadm-token=${bootstrap_token} kubeadm-token-ca-hash=${kubeadm_ca_hash} kubernetes-version=${kubernetes_version} cert-key=${cert_key} control-plane${common_flags}\n"
@@ -397,7 +397,7 @@ function join_token() {
         printf "\n"
         if [ "$HA_CLUSTER" = "1" ]; then
             printf "\n"
-            printf "To add ${GREEN}MASTER${NC} nodes to this installation, run the following script on your other nodes:"
+            printf "To add ${GREEN}CONTROL PLANE${NC} nodes to this installation, run the following script on your other nodes:"
             printf "\n"
             printf "${GREEN}    ${prefix}join.sh | sudo bash -s kubernetes-master-address=${api_service_address} kubeadm-token=${bootstrap_token} kubeadm-token-ca-hash=$kubeadm_ca_hash kubernetes-version=${kubernetes_version} cert-key=${cert_key} control-plane${common_flags}\n"
             printf "${NC}"

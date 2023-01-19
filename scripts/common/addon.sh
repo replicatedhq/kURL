@@ -115,7 +115,10 @@ function addon_join() {
     local name=$1
     local version=$2
 
-    addon_load "$name" "$version"
+    # not yet supported on k0s
+    if [ "$K8S_DISTRO" != "k0s" ]; then
+        addon_load "$name" "$version"
+    fi
 
     if commandExists ${name}_join; then
         logStep "Addon $name $version"

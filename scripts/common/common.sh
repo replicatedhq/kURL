@@ -174,7 +174,7 @@ function semverParse() {
     minor="${1#$major.}"
     minor="${minor%%.*}"
     patch="${1#$major.$minor.}"
-    patch="${patch%%[-.]*}"
+    patch="${patch%%[-+.]*}"
 }
 
 SEMVER_COMPARE_RESULT=
@@ -590,6 +590,10 @@ function current_user_sudo_group() {
 }
 
 function kubeconfig_setup_outro() {
+    "${K8S_DISTRO}_setup_outro"
+}
+
+function kubeadm_setup_outro() {
     current_user_sudo_group
     local owner="$SUDO_UID"
     if [ -z "$owner" ]; then
@@ -699,7 +703,7 @@ function maybe_read_kurl_config_from_cluster() {
 
     local kurl_install_directory_flag
     # we don't yet have KUBECONFIG when this is called from the top of install.sh
-    kurl_install_directory_flag="$(KUBECONFIG="$(kubeadm_get_kubeconfig)" kubectl -n kube-system get cm kurl-config -ojsonpath='{ .data.kurl_install_directory }' 2>/dev/null || echo "")"
+    kurl_install_directory_flag="$(KUBECONFIG="$("${K8S_DISTRO}_get_kubeconfig")" kubectl -n kube-system get cm kurl-config -ojsonpath='{ .data.kurl_install_directory }' 2>/dev/null || echo "")"
     if [ -n "${kurl_install_directory_flag}" ]; then
         KURL_INSTALL_DIRECTORY_FLAG="${kurl_install_directory_flag}"
         KURL_INSTALL_DIRECTORY="$(realpath ${kurl_install_directory_flag})/kurl"
@@ -790,17 +794,17 @@ function get_kurl_install_directory_flag() {
     if [ -z "${kurl_install_directory}" ] || [ "${kurl_install_directory}" = "/var/lib/kurl" ]; then
         return
     fi
-    echo " kurl-install-directory=$(echo "${kurl_install_directory}")"
+    echo " kurl-install-directory=${kurl_install_directory}"
 }
 
 function get_remotes_flags() {
     while read -r primary; do
-        printf " primary-host=$primary"
-    done < <(kubectl get nodes --no-headers --selector="node-role.kubernetes.io/master" -owide | awk '{ print $6 }')
+        printf " primary-host=%s" "$primary"
+    done < <(kubectl get nodes --no-headers --selector="node-role.kubernetes.io/master" -owide 2>/dev/null | awk '{ print $6 }')
 
     while read -r secondary; do
-        printf " secondary-host=$secondary"
-    done < <(kubectl get node --no-headers --selector='!node-role.kubernetes.io/master' -owide | awk '{ print $6 }')
+        printf " secondary-host=%s" "$secondary"
+    done < <(kubectl get node --no-headers --selector='!node-role.kubernetes.io/master' -owide 2>/dev/null | awk '{ print $6 }')
 }
 
 function get_ipv6_flag() {

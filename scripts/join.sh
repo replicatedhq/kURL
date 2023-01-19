@@ -27,6 +27,8 @@ DIR=.
 . $DIR/scripts/common/yaml.sh
 . $DIR/scripts/distro/interface.sh
 . $DIR/scripts/distro/kubeadm/distro.sh
+. $DIR/scripts/common/k0s.sh
+. $DIR/scripts/distro/k0s/distro.sh
 # Magic end
 
 function join() {
@@ -122,21 +124,8 @@ outro() {
     printf "\n"
 }
 
-K8S_DISTRO=kubeadm
-
-function main() {
-    logStep "Running join with the argument(s): $*"
+function main_join_kubeadm() {
     export KUBECONFIG=/etc/kubernetes/admin.conf
-    require_root_user
-    # ensure /usr/local/bin/kubectl-plugin is in the path
-    path_add "/usr/local/bin"
-    get_patch_yaml "$@"
-    maybe_read_kurl_config_from_cluster
-
-    if [ "$AIRGAP" = "1" ]; then
-        move_airgap_assets
-    fi
-    pushd_install_directory
 
     proxy_bootstrap
     download_util_binaries
@@ -154,20 +143,49 @@ function main() {
     journald_persistent
     configure_proxy
     configure_no_proxy
-    ${K8S_DISTRO}_addon_for_each addon_fetch
+    "${K8S_DISTRO}_addon_for_each" addon_fetch
     host_preflights "${MASTER:-0}" "1" "0"
     install_host_dependencies
     get_common
     setup_kubeadm_kustomize
     install_cri
     get_shared
-    ${K8S_DISTRO}_addon_for_each addon_join
+    "${K8S_DISTRO}_addon_for_each" addon_join
     helm_load
     kubernetes_host
     install_helm
     join
     outro
     package_cleanup
+}
+
+K8S_DISTRO=${K8S_DISTRO:-kubeadm}
+
+function main() {
+    logStep "Running join with the argument(s): $*"
+
+    require_root_user
+    # ensure /usr/local/bin/kubectl-plugin is in the path
+    path_add "/usr/local/bin"
+    get_patch_yaml "$@"
+    maybe_read_kurl_config_from_cluster
+
+    if [ "$AIRGAP" = "1" ]; then
+        move_airgap_assets
+    fi
+    pushd_install_directory
+
+    case "$K8S_DISTRO" in
+        kubeadm)
+            main_join_kubeadm "$@"
+            ;;
+        k0s)
+            main_join_k0s "$@"
+            ;;
+        *)
+            bail "Unknown kubernetes distro: $K8S_DISTRO"
+            ;;
+    esac
 
     popd_install_directory
 }

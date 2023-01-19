@@ -41,7 +41,7 @@ function parse_yaml_into_bash_variables() {
     rm $PARSED_YAML_SPEC
 }
 
-parse_kubernetes_target_version() {
+function parse_kubernetes_target_version() {
     semverParse "$KUBERNETES_VERSION"
     KUBERNETES_TARGET_VERSION_MAJOR="$major"
     KUBERNETES_TARGET_VERSION_MINOR="$minor"
@@ -112,6 +112,8 @@ function get_patch_yaml() {
             kubeadm-token)
                 ;;
             kubeadm-token-ca-hash)
+                ;;
+            join-token)
                 ;;
             kubernetes-load-balancer-use-first-primary)
                 ;;
@@ -192,6 +194,9 @@ function get_patch_yaml() {
                 ;;
             velero-restic-timeout)
                 VELERO_RESTIC_TIMEOUT="$_value"
+                ;;
+            experimental-k0s)
+                K8S_DISTRO=k0s
                 ;;
             *)
                 echo >&2 "Error: unknown parameter \"$_param\""

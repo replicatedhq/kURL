@@ -1,5 +1,12 @@
 
 function preflights() {
+    if ! "${K8S_DISTRO}_preflights" ; then
+        return 1
+    fi
+    return 0
+}
+
+function kubeadm_preflights() {
     require64Bit
     bailIfUnsupportedOS
     mustSwapoff

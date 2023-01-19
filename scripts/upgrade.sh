@@ -131,14 +131,14 @@ function main() {
     journald_persistent
     configure_proxy
     configure_no_proxy
-    ${K8S_DISTRO}_addon_for_each addon_fetch
+    "${K8S_DISTRO}_addon_for_each" addon_fetch
     host_preflights "${MASTER:-0}" "1" "1"
     install_host_dependencies
     get_common
     setup_kubeadm_kustomize
     install_cri
     get_shared
-    ${K8S_DISTRO}_addon_for_each addon_join
+    "${K8S_DISTRO}_addon_for_each" addon_join
     maybe_upgrade
     install_helm
     uninstall_docker

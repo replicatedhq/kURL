@@ -1,0 +1,12 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rook-ceph-operator
+spec:
+  template:
+    spec:
+      containers:
+        - name: rook-ceph-operator
+          env:
+          - name: ROOK_CSI_KUBELET_DIR_PATH
+            value: "/var/lib/k0s/kubelet"

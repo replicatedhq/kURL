@@ -10,6 +10,22 @@ testParseSemver()
     assertEquals "Patch not equal" "1" "$patch"
 }
 
+testParseSemverPrerelease()
+{
+    semverParse "2.29.1-alpha.1"
+    assertEquals "Major not equal" "2" "$major"
+    assertEquals "Minor not equal" "29" "$minor"
+    assertEquals "Patch not equal" "1" "$patch"
+}
+
+testParseSemverBuild()
+{
+    semverParse "2.29.1+k0s.0"
+    assertEquals "Major not equal" "2" "$major"
+    assertEquals "Minor not equal" "29" "$minor"
+    assertEquals "Patch not equal" "1" "$patch"
+}
+
 testCompareSemverEq()
 {
     semverCompare "2.29.1" "2.29.1"

@@ -163,6 +163,10 @@ function rook_operator_deploy() {
         insert_patches_strategic_merge "$dst/kustomization.yaml" patches/deployment-privileged.yaml
     fi
 
+    if [ "$K8S_DISTRO" = "k0s" ]; then
+        insert_patches_strategic_merge "$dst/kustomization.yaml" patches/k0s.yaml
+    fi
+
     if [ "$KUBERNETES_TARGET_VERSION_MINOR" -lt "17" ]; then
         bail "Kubernetes versions less than 1.17 unsupported"
     fi

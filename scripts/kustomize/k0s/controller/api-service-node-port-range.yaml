@@ -1,0 +1,8 @@
+apiVersion: k0s.k0sproject.io/v1beta1
+kind: ClusterConfig
+metadata:
+  name: k0s
+spec:
+  api:
+    extraArgs:
+      service-node-port-range: "80-60000"

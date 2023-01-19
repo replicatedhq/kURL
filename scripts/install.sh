@@ -30,6 +30,8 @@ DIR=.
 . $DIR/scripts/common/yaml.sh
 . $DIR/scripts/distro/interface.sh
 . $DIR/scripts/distro/kubeadm/distro.sh
+. $DIR/scripts/common/k0s.sh
+. $DIR/scripts/distro/k0s/distro.sh
 # Magic end
 
 function configure_coredns() {
@@ -442,21 +444,26 @@ function outro() {
         fi
     fi
 
+    local worker_join_flags=
+    local control_plane_join_flags=
+    worker_join_flags="$("${K8S_DISTRO}_join_flags_worker")"
+    control_plane_join_flags="$("${K8S_DISTRO}_join_flags_control_plane")"
+
     if [ "$AIRGAP" = "1" ]; then
         printf "\n"
         printf "To add worker nodes to this installation, copy and unpack this bundle on your other nodes, and run the following:"
         printf "\n"
         printf "\n"
-        printf "${GREEN}    cat ./join.sh | sudo bash -s airgap kubernetes-master-address=${API_SERVICE_ADDRESS} kubeadm-token=${BOOTSTRAP_TOKEN} kubeadm-token-ca-hash=${KUBEADM_TOKEN_CA_HASH} kubernetes-version=${KUBERNETES_VERSION}${common_flags}\n"
+        printf "${GREEN}    cat ./join.sh | sudo bash -s airgap${worker_join_flags}${common_flags}\n"
         printf "${NC}"
         printf "\n"
         printf "\n"
         if [ "$HA_CLUSTER" = "1" ]; then
             printf "\n"
-            printf "To add ${GREEN}MASTER${NC} nodes to this installation, copy and unpack this bundle on your other nodes, and run the following:"
+            printf "To add ${GREEN}CONTROL PLANE${NC} nodes to this installation, copy and unpack this bundle on your other nodes, and run the following:"
             printf "\n"
             printf "\n"
-            printf "${GREEN}    cat ./join.sh | sudo bash -s airgap kubernetes-master-address=${API_SERVICE_ADDRESS} kubeadm-token=${BOOTSTRAP_TOKEN} kubeadm-token-ca-hash=${KUBEADM_TOKEN_CA_HASH} kubernetes-version=${KUBERNETES_VERSION} cert-key=${CERT_KEY} control-plane${common_flags}\n"
+            printf "${GREEN}    cat ./join.sh | sudo bash -s airgap${control_plane_join_flags}${common_flags}\n"
             printf "${NC}"
             printf "\n"
             printf "\n"
@@ -465,15 +472,15 @@ function outro() {
         printf "\n"
         printf "To add worker nodes to this installation, run the following script on your other nodes:"
         printf "\n"
-        printf "${GREEN}    ${prefix}join.sh | sudo bash -s kubernetes-master-address=${API_SERVICE_ADDRESS} kubeadm-token=${BOOTSTRAP_TOKEN} kubeadm-token-ca-hash=${KUBEADM_TOKEN_CA_HASH} kubernetes-version=${KUBERNETES_VERSION}${common_flags}\n"
+        printf "${GREEN}    ${prefix}join.sh | sudo bash -s${worker_join_flags}${common_flags}\n"
         printf "${NC}"
         printf "\n"
         printf "\n"
         if [ "$HA_CLUSTER" = "1" ]; then
             printf "\n"
-            printf "To add ${GREEN}MASTER${NC} nodes to this installation, run the following script on your other nodes:"
+            printf "To add ${GREEN}CONTROL PLANE${NC} nodes to this installation, run the following script on your other nodes:"
             printf "\n"
-            printf "${GREEN}    ${prefix}join.sh | sudo bash -s kubernetes-master-address=${API_SERVICE_ADDRESS} kubeadm-token=${BOOTSTRAP_TOKEN} kubeadm-token-ca-hash=$KUBEADM_TOKEN_CA_HASH kubernetes-version=${KUBERNETES_VERSION} cert-key=${CERT_KEY} control-plane${common_flags}\n"
+            printf "${GREEN}    ${prefix}join.sh | sudo bash -s${control_plane_join_flags}${common_flags}\n"
             printf "${NC}"
             printf "\n"
             printf "\n"
@@ -481,10 +488,29 @@ function outro() {
     fi
 }
 
+function kubeadm_join_flags_control_plane() {
+    local join_flags=" control-plane"
+    join_flags="$join_flags kubernetes-version=$KUBERNETES_VERSION"
+    join_flags="$join_flags kubernetes-master-address=$API_SERVICE_ADDRESS"
+    join_flags="$join_flags kubeadm-token=$BOOTSTRAP_TOKEN"
+    join_flags="$join_flags kubeadm-token-ca-hash=$KUBEADM_TOKEN_CA_HASH"
+    join_flags="$join_flags cert-key=$CERT_KEY"
+    echo "$join_flags"
+}
+
+function kubeadm_join_flags_worker() {
+    local join_flags=""
+    join_flags="$join_flags kubernetes-version=$KUBERNETES_VERSION"
+    join_flags="$join_flags kubernetes-master-address=$API_SERVICE_ADDRESS"
+    join_flags="$join_flags kubeadm-token=$BOOTSTRAP_TOKEN"
+    join_flags="$join_flags kubeadm-token-ca-hash=$KUBEADM_TOKEN_CA_HASH"
+    echo "$join_flags"
+}
+
 function all_kubernetes_install() {
     kubernetes_host
     install_helm
-    ${K8S_DISTRO}_addon_for_each addon_load
+    "${K8S_DISTRO}_addon_for_each" addon_load
     helm_load
     init
     apply_installer_crd
@@ -498,21 +524,7 @@ function report_kubernetes_install() {
     report_addon_success "kubernetes" "$KUBERNETES_VERSION"
 }
 
-K8S_DISTRO=kubeadm
-
-function main() {
-    logStep "Running install with the argument(s): $*"
-    require_root_user
-    # ensure /usr/local/bin/kubectl-plugin is in the path
-    path_add "/usr/local/bin"
-    get_patch_yaml "$@"
-    maybe_read_kurl_config_from_cluster
-
-    if [ "$AIRGAP" = "1" ]; then
-        move_airgap_assets
-    fi
-    pushd_install_directory
-
+function main_install_kubeadm() {
     yaml_airgap
     proxy_bootstrap
     download_util_binaries
@@ -536,7 +548,7 @@ function main() {
     journald_persistent
     configure_proxy
     configure_no_proxy_preinstall
-    ${K8S_DISTRO}_addon_for_each addon_fetch
+    "${K8S_DISTRO}_addon_for_each" addon_fetch
     if [ -z "$CURRENT_KUBERNETES_VERSION" ]; then
         host_preflights "1" "0" "0"
     else
@@ -546,7 +558,7 @@ function main() {
     get_common
     setup_kubeadm_kustomize
     rook_upgrade_maybe_report_upgrade_rook
-    ${K8S_DISTRO}_addon_for_each addon_pre_init
+    "${K8S_DISTRO}_addon_for_each" addon_pre_init
     discover_pod_subnet
     discover_service_subnet
     configure_no_proxy
@@ -556,19 +568,48 @@ function main() {
     report_kubernetes_install
     export SUPPORT_BUNDLE_READY=1 # allow ctrl+c and ERR traps to collect support bundles now that k8s is installed
     kurl_init_config
-    ${K8S_DISTRO}_addon_for_each addon_install
+    "${K8S_DISTRO}_addon_for_each" addon_install
     maybe_cleanup_rook
     maybe_cleanup_longhorn
     helmfile_sync
     kubeadm_post_init
     uninstall_docker
-    ${K8S_DISTRO}_addon_for_each addon_post_init
+    "${K8S_DISTRO}_addon_for_each" addon_post_init
     outro
     package_cleanup
 
-    popd_install_directory
-
     report_install_success
+}
+
+K8S_DISTRO=${K8S_DISTRO:-kubeadm}
+
+function main() {
+    logStep "Running install with the argument(s): $*"
+
+    require_root_user
+    # ensure /usr/local/bin/kubectl-plugin is in the path
+    path_add "/usr/local/bin"
+    get_patch_yaml "$@"
+    maybe_read_kurl_config_from_cluster
+
+    if [ "$AIRGAP" = "1" ]; then
+        move_airgap_assets
+    fi
+    pushd_install_directory
+
+    case "$K8S_DISTRO" in
+        kubeadm)
+            main_install_kubeadm "$@"
+            ;;
+        k0s)
+            main_install_k0s "$@"
+            ;;
+        *)
+            bail "Unknown kubernetes distro: $K8S_DISTRO"
+            ;;
+    esac
+
+    popd_install_directory
 }
 
 # tee logs into /var/log/kurl/install-<date>.log and stdout

@@ -129,6 +129,8 @@ func parseBashFlags(installer *kurlv1beta1.Installer, bashFlags string) error {
 				return errors.Wrap(err, "invalid container-log-max-files value. must be an integer.")
 			}
 			installer.Spec.Kubernetes.ContainerLogMaxFiles = m
+		case "join-token":
+			fallthrough
 		case "kubeadm-token":
 			if installer.Spec.Kubernetes == nil {
 				installer.Spec.Kubernetes = &kurlv1beta1.Kubernetes{}
@@ -274,6 +276,8 @@ func parseBashFlags(installer *kurlv1beta1.Installer, bashFlags string) error {
 				installer.Spec.Velero = &kurlv1beta1.Velero{}
 			}
 			installer.Spec.Velero.ResticTimeout = split[1]
+		case "experimental-k0s":
+			// do nothing
 		default:
 			return fmt.Errorf("string %s is not a bash flag", split[0])
 		}
