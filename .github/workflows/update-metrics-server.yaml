@@ -1,0 +1,47 @@
+name: cron-metrics-server-update
+on:
+  schedule:
+  - cron: "0 4 * * 1,2,3,4,5" # “At 04:00 on Monday, Tuesday, Wednesday, Thursday, and Friday.”
+  workflow_dispatch: {}
+
+jobs:
+  build-pr-metrics-server:
+    runs-on: ubuntu-20.04
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+
+    - name: Create Metrics Server Update
+      id: update
+      working-directory: ./addons/metrics-server/template
+      run: |
+        ./generate.sh
+
+    - name: Create Pull Request # creates a PR if there are differences
+      uses: peter-evans/create-pull-request@v4.2.3
+      id: cpr
+      with:
+        token: ${{ secrets.AUTOMATED_PR_GH_PAT }}
+        commit-message: Create new Metrics Server version
+        title: 'Automated Metrics Server version update ${{ steps.update.outputs.metrics_server_version }}'
+        branch: automation/update-metrics-server
+        delete-branch: true
+        labels: |
+          automated-pr
+          metrics-server
+          type::chore
+          kurl::type::feature
+        draft: false
+        base: "main"
+        body: |
+          Automated changes by the [cron-metrics-server-update](https://github.com/replicatedhq/kURL/blob/main/.github/workflows/update-metrics-server.yaml) GitHub action
+          
+          ```release-note
+          Adds [Metrics Server add-on](https://kurl.sh/docs/add-ons/metrics-server) version ${{ steps.update.outputs.metrics_server_version }}.
+          ```
+
+    - name: Check outputs
+      run: |
+        echo "Pull Request Number - ${{ steps.cpr.outputs.pull-request-number }}"
+        echo "Pull Request URL - ${{ steps.cpr.outputs.pull-request-url }}"

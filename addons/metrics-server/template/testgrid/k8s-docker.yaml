@@ -1,4 +1,5 @@
-- installerSpec:
+- name: "fresh install"
+  installerSpec:
     kubernetes:
       version: "latest"
     weave:
@@ -10,3 +11,33 @@
     metricsServer:
       version: "__testver__"
       s3Override: "__testdist__"
+  postInstallScript: |
+    kubectl top pods -A
+    kubectl top nodes
+- name: "upgrade from latest"
+  installerSpec:
+    kubernetes:
+      version: "latest"
+    weave:
+      version: "latest"
+    rook:
+      version: "latest"
+    containerd:
+      version: "latest"
+    metricsServer:
+      version: "latest"
+  upgradeSpec:
+    kubernetes:
+      version: "latest"
+    weave:
+      version: "latest"
+    rook:
+      version: "latest"
+    containerd:
+      version: "latest"
+    metricsServer:
+      version: "__testver__"
+      s3Override: "__testdist__"
+  postUpgradeScript: |
+    kubectl top pods -A
+    kubectl top nodes
