@@ -604,15 +604,21 @@ function kubeconfig_setup_outro() {
             cp "$(${K8S_DISTRO}_get_kubeconfig)" $ownerdir/.kube/config
             chown -R $owner $ownerdir/.kube
 
-            printf "To access the cluster with kubectl, ensure the KUBECONFIG environment variable is unset:\n"
+            printf "To access the cluster with kubectl:\n"
+            printf "\n"
+            printf "${GREEN}    bash -l${NC}\n"
+            printf "Kurl uses "$(${K8S_DISTRO}_get_kubeconfig)", you might want to unset KUBECONFIG to use .kube/config:\n"
             printf "\n"
             printf "${GREEN}    echo unset KUBECONFIG >> ~/.bash_profile${NC}\n"
-            printf "${GREEN}    bash -l${NC}\n"
             return
         fi
     fi
 
-    printf "To access the cluster with kubectl, copy kubeconfig to your home directory:\n"
+    printf "To access the cluster with kubectl:\n"
+    printf "\n"
+    printf "${GREEN}    bash -l${NC}\n"
+    printf "\n"
+    printf "Kurl uses "$(${K8S_DISTRO}_get_kubeconfig)", you might want to copy kubeconfig to your home directory:\n"
     printf "\n"
     printf "${GREEN}    cp "$(${K8S_DISTRO}_get_kubeconfig)" ~/.kube/config${NC}\n"
     printf "${GREEN}    chown -R ${owner} ~/.kube${NC}\n"
