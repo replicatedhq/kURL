@@ -102,102 +102,25 @@ func newHostPreflightCmd(cli CLI) *cobra.Command {
 				// Check connection to kubelet on all remotes
 				for _, remote := range remotes {
 					remote = formatAddress(remote)
-					name := fmt.Sprintf("kubelet %s", remote)
-
-					preflightSpec.Spec.Collectors = append(preflightSpec.Spec.Collectors, &v1beta2.HostCollect{
-						TCPConnect: &v1beta2.TCPConnect{
-							HostCollectorMeta: v1beta2.HostCollectorMeta{
-								CollectorName: name,
-							},
-							Address: fmt.Sprintf("%s:10250", remote),
-							Timeout: "5s",
-						},
-					})
-
-					preflightSpec.Spec.Analyzers = append(preflightSpec.Spec.Analyzers, &v1beta2.HostAnalyze{
-						TCPConnect: &v1beta2.TCPConnectAnalyze{
-							AnalyzeMeta: v1beta2.AnalyzeMeta{
-								CheckName: fmt.Sprintf("kubelet %s:10250 TCP connection status", remote),
-							},
-							CollectorName: name,
-							Outcomes: []*v1beta2.Outcome{
-								{
-									Warn: &v1beta2.SingleOutcome{
-										When:    collect.NetworkStatusConnectionRefused,
-										Message: fmt.Sprintf("Connection to kubelet %s:10250 was refused", remote),
-									},
-								},
-								{
-									Warn: &v1beta2.SingleOutcome{
-										When:    collect.NetworkStatusConnectionTimeout,
-										Message: fmt.Sprintf("Timed out connecting to kubelet %s:10250", remote),
-									},
-								},
-								{
-									Warn: &v1beta2.SingleOutcome{
-										When:    collect.NetworkStatusErrorOther,
-										Message: fmt.Sprintf("Unexpected error connecting to kubelet %s:10250", remote),
-									},
-								},
-								{
-									Pass: &v1beta2.SingleOutcome{
-										When:    collect.NetworkStatusConnected,
-										Message: fmt.Sprintf("Successfully connected to kubelet %s:10250", remote),
-									},
-								},
-							},
-						},
-					})
+					preflightSpec.Spec.Collectors = append(preflightSpec.Spec.Collectors, tcpHostCollector("kubelet", remote, "10250"))
+					preflightSpec.Spec.Analyzers = append(preflightSpec.Spec.Analyzers, tcpHostAnalyzer("kubelet", remote, "10250"))
 				}
 				// Check connection to etcd on all primaries
 				for _, primary := range data.PrimaryHosts {
 					primary = formatAddress(primary)
-					name := fmt.Sprintf("etcd peer %s", primary)
+					preflightSpec.Spec.Collectors = append(preflightSpec.Spec.Collectors, tcpHostCollector("etcd peer", primary, "2379"))
+					preflightSpec.Spec.Collectors = append(preflightSpec.Spec.Collectors, tcpHostCollector("etcd peer", primary, "2380"))
+					preflightSpec.Spec.Analyzers = append(preflightSpec.Spec.Analyzers, tcpHostAnalyzer("etcd peer", primary, "2379"))
+					preflightSpec.Spec.Analyzers = append(preflightSpec.Spec.Analyzers, tcpHostAnalyzer("etcd peer", primary, "2380"))
+				}
+			}
 
-					preflightSpec.Spec.Collectors = append(preflightSpec.Spec.Collectors, &v1beta2.HostCollect{
-						TCPConnect: &v1beta2.TCPConnect{
-							HostCollectorMeta: v1beta2.HostCollectorMeta{
-								CollectorName: name,
-							},
-							Address: fmt.Sprintf("%s:2380", primary),
-							Timeout: "5s",
-						},
-					})
-
-					preflightSpec.Spec.Analyzers = append(preflightSpec.Spec.Analyzers, &v1beta2.HostAnalyze{
-						TCPConnect: &v1beta2.TCPConnectAnalyze{
-							AnalyzeMeta: v1beta2.AnalyzeMeta{
-								CheckName: fmt.Sprintf("etcd peer %s:2380 TCP connection status", primary),
-							},
-							CollectorName: name,
-							Outcomes: []*v1beta2.Outcome{
-								{
-									Warn: &v1beta2.SingleOutcome{
-										When:    collect.NetworkStatusConnectionRefused,
-										Message: fmt.Sprintf("Connection to etcd peer %s:2380 was refused", primary),
-									},
-								},
-								{
-									Warn: &v1beta2.SingleOutcome{
-										When:    collect.NetworkStatusConnectionTimeout,
-										Message: fmt.Sprintf("Timed out connecting to etcd peer %s:2380", primary),
-									},
-								},
-								{
-									Warn: &v1beta2.SingleOutcome{
-										When:    collect.NetworkStatusErrorOther,
-										Message: fmt.Sprintf("Unexpected error connecting to etcd peer %s:2380", primary),
-									},
-								},
-								{
-									Pass: &v1beta2.SingleOutcome{
-										When:    collect.NetworkStatusConnected,
-										Message: fmt.Sprintf("Successfully connected to etcd peer %s:2380", primary),
-									},
-								},
-							},
-						},
-					})
+			if data.IsJoin && !data.IsUpgrade {
+				// Check connection to api-server on all primaries
+				for _, primary := range data.PrimaryHosts {
+					primary = formatAddress(primary)
+					preflightSpec.Spec.Collectors = append(preflightSpec.Spec.Collectors, tcpHostCollector("api-server", primary, "6443"))
+					preflightSpec.Spec.Analyzers = append(preflightSpec.Spec.Analyzers, tcpHostAnalyzer("api-server", primary, "6443"))
 				}
 			}
 
@@ -256,6 +179,57 @@ func newHostPreflightCmd(cli CLI) *cobra.Command {
 	_ = cmd.MarkFlagFilename("spec", "yaml", "yml")
 
 	return cmd
+}
+
+func tcpHostCollector(service, address, port string) *v1beta2.HostCollect {
+	name := fmt.Sprintf("%s %s:%s", service, address, port)
+	return &v1beta2.HostCollect{
+		TCPConnect: &v1beta2.TCPConnect{
+			HostCollectorMeta: v1beta2.HostCollectorMeta{
+				CollectorName: name,
+			},
+			Address: fmt.Sprintf("%s:%s", address, port),
+			Timeout: "5s",
+		},
+	}
+}
+
+func tcpHostAnalyzer(service, address, port string) *v1beta2.HostAnalyze {
+	name := fmt.Sprintf("%s %s:%s", service, address, port)
+	return &v1beta2.HostAnalyze{
+		TCPConnect: &v1beta2.TCPConnectAnalyze{
+			AnalyzeMeta: v1beta2.AnalyzeMeta{
+				CheckName: fmt.Sprintf("%s %s:%s TCP connection status", service, address, port),
+			},
+			CollectorName: name,
+			Outcomes: []*v1beta2.Outcome{
+				{
+					Warn: &v1beta2.SingleOutcome{
+						When:    collect.NetworkStatusConnectionRefused,
+						Message: fmt.Sprintf("Connection to %s %s:%s was refused", service, address, port),
+					},
+				},
+				{
+					Warn: &v1beta2.SingleOutcome{
+						When:    collect.NetworkStatusConnectionTimeout,
+						Message: fmt.Sprintf("Timed out connecting to %s %s:%s", service, address, port),
+					},
+				},
+				{
+					Warn: &v1beta2.SingleOutcome{
+						When:    collect.NetworkStatusErrorOther,
+						Message: fmt.Sprintf("Unexpected error connecting to %s %s:%s", service, address, port),
+					},
+				},
+				{
+					Pass: &v1beta2.SingleOutcome{
+						When:    collect.NetworkStatusConnected,
+						Message: fmt.Sprintf("Successfully connected to %s %s:%s", service, address, port),
+					},
+				},
+			},
+		},
+	}
 }
 
 func decodePreflightSpec(raw string, data installer.TemplateData) (*troubleshootv1beta2.HostPreflight, error) {
