@@ -26,6 +26,11 @@ function flannel_pre_init() {
     flannel_init_pod_subnet
 }
 
+function flannel_join() {
+    logWarn "Flannel requires UDP port 8472 for communication between nodes."
+    logWarn "Failure to open this port will cause connection failures between containers on different nodes."
+}
+
 function flannel() {
     local src="$DIR/addons/flannel/$FLANNEL_VERSION"
     local dst="$DIR/kustomize/flannel"
@@ -35,8 +40,15 @@ function flannel() {
     flannel_render_config
 
     if flannel_weave_conflict; then
-        printf "${YELLOW}The migration from Weave to Flannel will require whole-cluster downtime.${NC}\n"
-        printf "${YELLOW}Would you like to continue? ${NC}"
+        local node_count
+        node_count="$(kubectl get nodes --no-headers 2>/dev/null | wc -l)"
+
+        printf "%bThe migration from Weave to Flannel will require whole-cluster downtime.%b\n" "$YELLOW" "$NC"
+        if [ "$node_count" -gt 1 ]; then
+            printf "%bFlannel requires UDP port 8472 for communication between nodes.%b\n" "$YELLOW" "$NC"
+            printf "%bPlease make sure this port is open prior to running this migration.%b\n" "$YELLOW" "$NC"
+        fi
+        printf "%bWould you like to continue? %b" "$YELLOW" "$NC"
         if ! confirmY ; then
             bail "Not migrating from Weave to Flannel"
         fi
