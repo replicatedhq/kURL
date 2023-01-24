@@ -84,6 +84,11 @@ func isStatusHealthy(status cephtypes.CephStatus, ignoreChecks []string) (bool, 
 		// note that it is required to upgrade from 1.0.4-14.2.21 to 1.4.9
 		delete(status.Health.Checks, "AUTH_INSECURE_GLOBAL_ID_RECLAIM_ALLOWED")
 
+		// By default, the following warning will be raised when more than 70% of the mon
+		// space be in usage. (df -h /var/lib/ceph/mon) This is not an error we need to stop upgrades for
+		// https://docs.ceph.com/en/quincy/rados/operations/health-checks/#mon-disk-low
+		delete(status.Health.Checks, "MON_DISK_LOW")
+
 		for _, check := range ignoreChecks {
 			delete(status.Health.Checks, check)
 		}
