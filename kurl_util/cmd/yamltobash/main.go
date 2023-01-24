@@ -298,6 +298,7 @@ func convertToBash(kurlValues map[string]interface{}, fieldsSet map[string]bool)
 		"Velero.Namespace":                                "VELERO_LOCAL_BUCKET",
 		"Velero.ResticRequiresPrivileged":                 "VELERO_RESTIC_REQUIRES_PRIVILEGED",
 		"Velero.ResticTimeout":                            "VELERO_RESTIC_TIMEOUT",
+		"Velero.ServerFlags":                              "VELERO_SERVER_FLAGS",
 		"Velero.S3Override":                               "VELERO_S3_OVERRIDE",
 		"Velero.Version":                                  "VELERO_VERSION",
 		"Weave.IsEncryptionDisabled":                      "ENCRYPT_NETWORK",

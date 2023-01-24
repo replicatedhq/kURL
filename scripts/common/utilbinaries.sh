@@ -193,6 +193,9 @@ function get_patch_yaml() {
             velero-restic-timeout)
                 VELERO_RESTIC_TIMEOUT="$_value"
                 ;;
+            velero-server-flags)
+                VELERO_SERVER_FLAGS="$_value"
+                ;;
             *)
                 echo >&2 "Error: unknown parameter \"$_param\""
                 exit 1

@@ -244,12 +244,33 @@ function velero_patch_args() {
     local src="$1"
     local dst="$2"
 
-    if [ "${VELERO_DISABLE_RESTIC}" = "1" ] || [ -z "${VELERO_RESTIC_TIMEOUT}" ]; then
-        return 0
+    # if the user has specified any additional velero server flags, add them to the velero deployment
+    if [ -n "$VELERO_SERVER_FLAGS" ]; then
+        # iterate over the flags in reverse order since they are prepended to the list of kustomize patches
+        IFS=',' read -ra flags <<< "$VELERO_SERVER_FLAGS"
+        for ((i=${#flags[@]}-1; i>=0; i--)); do
+            velero_insert_arg "${flags[i]}" "$dst/kustomization.yaml"
+        done
     fi
 
-    render_yaml_file "$src/velero-args-json-patch.yaml" > "$dst/velero-args-json-patch.yaml"
-    insert_patches_json_6902 "$dst/kustomization.yaml" velero-args-json-patch.yaml apps v1 Deployment velero ${VELERO_NAMESPACE}
+    # if the user has not disabled restic and specified a restic timeout, add it to the velero deployment
+    if [ "${VELERO_DISABLE_RESTIC}" != "1" ] && [ -n "$VELERO_RESTIC_TIMEOUT" ]; then
+        velero_insert_arg "--restic-timeout=$VELERO_RESTIC_TIMEOUT" "$dst/kustomization.yaml"
+    fi
+}
+
+function velero_insert_arg() {
+    local arg="$1"
+    local kustomization_file="$2"
+
+    local patch_file="velero-args-json-patch_$arg.yaml"
+    cat > "$dst/$patch_file" <<EOF
+- op: add
+  path: /spec/template/spec/containers/0/args/-
+  value: $arg
+EOF
+
+    insert_patches_json_6902 $kustomization_file $patch_file apps v1 Deployment velero ${VELERO_NAMESPACE}
 }
 
 function velero_binary() {
