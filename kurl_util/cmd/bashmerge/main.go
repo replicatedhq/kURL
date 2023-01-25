@@ -274,6 +274,13 @@ func parseBashFlags(installer *kurlv1beta1.Installer, bashFlags string) error {
 				installer.Spec.Velero = &kurlv1beta1.Velero{}
 			}
 			installer.Spec.Velero.ResticTimeout = split[1]
+		case "velero-server-flags":
+			// velero server flags may contain equals signs, so we need to rejoin the rest of the string if it was split
+			flags := strings.Split(strings.Join(split[1:], "="), ",")
+			if installer.Spec.Velero == nil {
+				installer.Spec.Velero = &kurlv1beta1.Velero{}
+			}
+			installer.Spec.Velero.ServerFlags = append(installer.Spec.Velero.ServerFlags, flags...)
 		default:
 			return fmt.Errorf("string %s is not a bash flag", split[0])
 		}
