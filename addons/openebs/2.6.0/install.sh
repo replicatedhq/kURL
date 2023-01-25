@@ -319,7 +319,7 @@ function openebs_spc_cspc_migration() {
 
 function openebs_cspc_upgrade() {
     # start upgrade process - see https://github.com/openebs/upgrade/blob/v2.6.0/docs/upgrade.md
-    kubectl delete csidriver cstor.csi.openebs.io || true
+    kubectl delete csidriver cstor.csi.openebs.io --ignore-not-found=true || true
 
     openebs_upgrade_pools
     return 0
