@@ -31,7 +31,7 @@ func Test_scaleDownReplicas(t *testing.T) {
 				Namespace: longhornNamespace,
 			},
 			Spec: lhv1b1.VolumeSpec{
-				NumberOfReplicas: 4,
+				NumberOfReplicas: 3,
 			},
 		},
 		&lhv1b1.Volume{
@@ -40,7 +40,7 @@ func Test_scaleDownReplicas(t *testing.T) {
 				Namespace: longhornNamespace,
 			},
 			Spec: lhv1b1.VolumeSpec{
-				NumberOfReplicas: 5,
+				NumberOfReplicas: 3,
 			},
 		},
 	}
@@ -48,7 +48,8 @@ func Test_scaleDownReplicas(t *testing.T) {
 	scheme := runtime.NewScheme()
 	lhv1b1.AddToScheme(scheme)
 	cli := fake.NewClientBuilder().WithScheme(scheme).WithObjects(volumes...).Build()
-	err := scaleDownReplicas(context.Background(), cli)
+	scaled, err := scaleDownReplicas(context.Background(), cli)
+	assert.True(t, scaled)
 	assert.NoError(t, err)
 
 	var gotVolumes lhv1b1.VolumeList
@@ -57,6 +58,7 @@ func Test_scaleDownReplicas(t *testing.T) {
 
 	for _, vol := range gotVolumes.Items {
 		assert.Equal(t, int(1), vol.Spec.NumberOfReplicas)
+		assert.Equal(t, "3", vol.Annotations[volumeReplicasAnnotation])
 	}
 }
 

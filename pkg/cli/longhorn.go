@@ -20,8 +20,9 @@ var (
 )
 
 const (
-	longhornNamespace       = "longhorn-system"
-	overProvisioningSetting = "storage-over-provisioning-percentage"
+	volumeReplicasAnnotation = "kurl.sh/volume-replica-count"
+	longhornNamespace        = "longhorn-system"
+	overProvisioningSetting  = "storage-over-provisioning-percentage"
 )
 
 func NewLonghornCmd(cli CLI) *cobra.Command {
@@ -33,6 +34,48 @@ func NewLonghornCmd(cli CLI) *cobra.Command {
 		},
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			return cli.GetViper().BindPFlags(cmd.Flags())
+		},
+	}
+}
+
+func NewLonghornRollbackMigrationReplicas(_ CLI) *cobra.Command {
+	return &cobra.Command{
+		Use:          "rollback-migration-replicas",
+		Short:        "Rollback Longhorn volume replicas to their original value.",
+		SilenceUsage: true,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			log.Print("Rolling back Longhorn volume replicas to their original value.")
+			cli, err := client.New(config.GetConfigOrDie(), client.Options{})
+			if err != nil {
+				return fmt.Errorf("error creating client: %s", err)
+			}
+			lhv1b1.AddToScheme(cli.Scheme())
+
+			var l1b1Volumes lhv1b1.VolumeList
+			if err := cli.List(cmd.Context(), &l1b1Volumes, client.InNamespace(longhornNamespace)); err != nil {
+				log.Fatalf("error listing longhorn volumes: %s", err)
+			}
+
+			for _, volume := range l1b1Volumes.Items {
+				if _, ok := volume.Annotations[volumeReplicasAnnotation]; !ok {
+					log.Printf("Volume %s has not been scaled down, skipping.", volume.Name)
+					continue
+				}
+
+				replicas, err := strconv.Atoi(volume.Annotations[volumeReplicasAnnotation])
+				if err != nil {
+					log.Fatalf("error parsing replica count for volume %s: %s", volume.Name, err)
+				}
+
+				log.Printf("Rolling back volume %s to %d replicas.", volume.Name, replicas)
+				delete(volume.Annotations, volumeReplicasAnnotation)
+				volume.Spec.NumberOfReplicas = replicas
+				if err := cli.Update(cmd.Context(), &volume); err != nil {
+					log.Fatalf("error rolling back volume %s replicas: %s", volume.Name, err)
+				}
+			}
+			log.Printf("Longhorn volumes have been rolled back to their original replica count.")
+			return nil
 		},
 	}
 }
@@ -50,12 +93,13 @@ func NewLonghornPrepareForMigration(_ CLI) *cobra.Command {
 			}
 			lhv1b1.AddToScheme(cli.Scheme())
 
+			var scaledDown bool
 			var nodes corev1.NodeList
 			if err := cli.List(cmd.Context(), &nodes); err != nil {
 				return fmt.Errorf("error listing kubernetes nodes: %s", err)
 			} else if len(nodes.Items) == 1 {
 				log.Print("Only one node found, scaling down the number of volume replicas to 1.")
-				if err := scaleDownReplicas(cmd.Context(), cli); err != nil {
+				if scaledDown, err = scaleDownReplicas(cmd.Context(), cli); err != nil {
 					return fmt.Errorf("error scaling down longhorn replicas: %s", err)
 				}
 			}
@@ -86,17 +130,25 @@ func NewLonghornPrepareForMigration(_ CLI) *cobra.Command {
 				return fmt.Errorf("error preparing longhorn for migration: unhealthy nodes")
 			}
 
+			if scaledDown {
+				log.Printf("Storage volumes have been scaled down to 1 replica for the migration.")
+				log.Printf("If necessary, you can scale them back up to the original value with:")
+				log.Printf("")
+				log.Printf("$ kurl longhorn rollback-migration-replicas")
+				log.Printf("")
+			}
 			log.Print("All Longhorn volumes and nodes are healthy, ready for migration.")
 			return nil
 		},
 	}
 }
 
-// scaleDownReplicas scales down the number of replicas for all volumes to 1.
-func scaleDownReplicas(ctx context.Context, cli client.Client) error {
+// scaleDownReplicas scales down the number of replicas for all volumes to 1. Returns a bool indicating if any
+// of the volumes were scaled down.
+func scaleDownReplicas(ctx context.Context, cli client.Client) (bool, error) {
 	var l1b1Volumes lhv1b1.VolumeList
 	if err := cli.List(ctx, &l1b1Volumes, client.InNamespace(longhornNamespace)); err != nil {
-		return fmt.Errorf("error listing longhorn volumes: %w", err)
+		return false, fmt.Errorf("error listing longhorn volumes: %w", err)
 	}
 
 	var volumesToScale []lhv1b1.Volume
@@ -109,23 +161,29 @@ func scaleDownReplicas(ctx context.Context, cli client.Client) error {
 	}
 
 	if len(volumesToScale) == 0 {
-		return nil
+		return false, nil
 	}
 
 	for _, volume := range volumesToScale {
-		volume.Spec.NumberOfReplicas = 1
 		log.Printf("Scaling down replicas for volume %s.", volume.Name)
+		if volume.Annotations == nil {
+			volume.Annotations = map[string]string{}
+		}
+		if _, ok := volume.Annotations[volumeReplicasAnnotation]; !ok {
+			volume.Annotations[volumeReplicasAnnotation] = strconv.Itoa(volume.Spec.NumberOfReplicas)
+		}
+		volume.Spec.NumberOfReplicas = 1
 		if err := cli.Update(ctx, &volume); err != nil {
-			return fmt.Errorf("error updating replicas for volume %s: %w", volume.Name, err)
+			return false, fmt.Errorf("error updating replicas for volume %s: %w", volume.Name, err)
 		}
 	}
 
 	log.Printf("Awaiting %v for replicas to scale down.", scaleDownReplicasWaitTime)
 	time.Sleep(scaleDownReplicasWaitTime)
-	return nil
+	return true, nil
 }
 
-// unreadyDisks returns a list of attached volumes that are not in a healthy state.
+// unhealthyVolumes returns a list of attached volumes that are not in a healthy state.
 func unhealthyVolumes(ctx context.Context, cli client.Client) ([]string, error) {
 	var volumes lhv1b1.VolumeList
 	if err := cli.List(ctx, &volumes, client.InNamespace(longhornNamespace)); err != nil {

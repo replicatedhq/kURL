@@ -23,6 +23,7 @@ func AddCommands(cmd *cobra.Command, cli CLI) {
 
 	longhornCmd := NewLonghornCmd(cli)
 	longhornCmd.AddCommand(NewLonghornPrepareForMigration(cli))
+	longhornCmd.AddCommand(NewLonghornRollbackMigrationReplicas(cli))
 	cmd.AddCommand(longhornCmd)
 
 	clusterCmd := NewClusterCmd(cli)
