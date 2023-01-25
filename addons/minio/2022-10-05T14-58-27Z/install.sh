@@ -153,7 +153,7 @@ function minio_object_store_output() {
 
 function minio_wait_for_health() {
     printf "awaiting minio deployment\n"
-    spinner_until 120 deployment_fully_updated minio minio
+    spinner_until 300 deployment_fully_updated minio minio
 
     MINIO_CLUSTER_IP=$(kubectl -n ${MINIO_NAMESPACE} get service minio | tail -n1 | awk '{ print $3}')
     printf "awaiting minio readiness\n"

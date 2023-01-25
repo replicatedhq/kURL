@@ -196,7 +196,7 @@ function minio_object_store_output() {
 
 function minio_wait_for_health() {
     printf "awaiting minio deployment\n"
-    spinner_until 120 deployment_fully_updated minio minio
+    spinner_until 300 deployment_fully_updated minio minio
 
     MINIO_CLUSTER_IP=$(kubectl -n ${MINIO_NAMESPACE} get service minio | tail -n1 | awk '{ print $3}')
     printf "awaiting minio readiness\n"
@@ -447,7 +447,7 @@ function minio_swap_fs_migration_hostpaths() {
 function minio_uses_fs_format() {
     # before running this we need to ensure that the minio deployment is fully deployed.
     printf "Awaiting for minio deployment to rollout\n"
-    if ! spinner_until 600 deployment_fully_updated minio "$MINIO_NAMESPACE"; then
+    if ! spinner_until 300 deployment_fully_updated minio "$MINIO_NAMESPACE"; then
         bail "Timeout awaiting for minio deployment"
     fi
 
