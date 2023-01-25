@@ -97,13 +97,6 @@ function copy_package_dist() {
         --metadata-directive REPLACE --metadata md5="${md5}",gitsha="${GITSHA}"
 }
 
-function copy_staging_release_to_dist() {
-    require STAGING_RELEASE "${STAGING_RELEASE}"
-    echo "copying s3://${S3_BUCKET}/${STAGING_PREFIX}/${STAGING_RELEASE} to s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${VERSION_TAG}"
-    # do not overwrite common and kurl-bin-utils tarball packages since they will already exist
-    retry 5 aws s3 cp --exclude "common.*" --exclude "kurl-bin-utils-*" --recursive "s3://${S3_BUCKET}/${STAGING_PREFIX}/${STAGING_RELEASE}" "s3://${S3_BUCKET}/${PACKAGE_PREFIX}/${VERSION_TAG}"
-}
-
 function deploy() {
     local package="$1"
     local path="$2"

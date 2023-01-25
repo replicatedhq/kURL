@@ -40,7 +40,7 @@ function retry {
     done
     return 0
 }
-# export the retry function so that the parallel jobs can use it
+# export the retry function so that the parallel command can use it
 export -f retry
 
 require AWS_ACCESS_KEY_ID "${AWS_ACCESS_KEY_ID}"
@@ -53,6 +53,8 @@ require VERSION_TAG "${VERSION_TAG}"
 PACKAGE_PREFIX="${PACKAGE_PREFIX:-dist}"
 STAGING_PREFIX="${STAGING_PREFIX:-staging}"
 JOBS_FILE="${JOBS_FILE:-/tmp/s3_cp_jobs.txt}"
+PARALLEL_JOBS="${PARALLEL_JOBS:-10}"
+
 function main() {
 
   # GNU parallel is required for this script to perform parallel s3 cp operations
@@ -66,6 +68,7 @@ function main() {
   fi
 
   # exclude common and kurl-bin-utils packages since they will be rebuilt during the prod release
+  # jq -rc '.[]' => get the raw string values
   # tail -n +2 => skip empty key in first line of output
   local packages=
   packages=$(aws s3api list-objects-v2 --bucket "${S3_BUCKET}" --prefix "${STAGING_PREFIX}/${STAGING_RELEASE}" --query 'Contents[].Key' | jq -rc '.[]' | tail -n +2 | grep -vE "/common.*" | grep -vE "/kurl-bin-utils-*")
@@ -90,7 +93,11 @@ function main() {
   # --wil-cite => don't display citation nag
   # --hatl now,fail=1 => running jobs will be killed immediately if any other job fails
   # --jobs 0 => will run as many jobs in parallel as possible (depends on number of cores)
-  parallel --will-cite --halt now,fail=1 --jobs 0 < "${JOBS_FILE}"
+  # --eta => show progress
+  parallel --will-cite --eta --halt now,fail=1 --jobs "${PARALLEL_JOBS}" < "${JOBS_FILE}"
+
+  # cleanup jobs files
+  rm "${JOBS_FILE}"
 }
 
 main "$@"

@@ -130,7 +130,7 @@ jobs:
         STAGING_RELEASE: ${{ needs.get-staging-release.outputs.staging_release }}
 
   copy-staging-release-to-prod:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     needs:
      - get-staging-release
      - verify-staging-release-testgrid-result
@@ -142,10 +142,7 @@ jobs:
     - name: Copy Staging Release to Prod
       run: |
         export VERSION_TAG=$GITHUB_REF_NAME
-        export KURL_UTIL_IMAGE=replicated/kurl-util:${VERSION_TAG}
-        export KURL_BIN_UTILS_FILE=kurl-bin-utils-${VERSION_TAG}.tar.gz
-        . bin/upload-dist-versioned.sh
-        copy_staging_release_to_dist
+        bin/copy-packages-s3-parallel.sh
       env:
         S3_BUCKET: kurl-sh
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_PROD_ACCESS_KEY_ID }}
