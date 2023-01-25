@@ -129,28 +129,61 @@ jobs:
       env:
         STAGING_RELEASE: ${{ needs.get-staging-release.outputs.staging_release }}
 
-  copy-staging-release-to-prod:
-    runs-on: ubuntu-20.04
+  build-stage-packages-matrix:
+    runs-on: ubuntu-22.04
     needs:
      - get-staging-release
      - verify-staging-release-testgrid-result
+    outputs:
+      package: ${{ steps.set-matrix.output.package }}
     steps:
     - uses: actions/checkout@v3
       with:
         fetch-depth: 0
-
-    - name: Copy Staging Release to Prod
+    - name: Build Package Matrix
+      id: set-matrix
       run: |
-        export VERSION_TAG=$GITHUB_REF_NAME
-        export KURL_UTIL_IMAGE=replicated/kurl-util:${VERSION_TAG}
-        export KURL_BIN_UTILS_FILE=kurl-bin-utils-${VERSION_TAG}.tar.gz
-        . bin/upload-dist-versioned.sh
-        copy_staging_release_to_dist
+        # Get list of packages associated with a staging release from s3:
+        # Exclude common and kurl-bin-utils packages => grep -vE "/common.*" | grep -vE "/kurl-bin-utils-*"
+        # Get raw strings NOT JSON encoded strings => jq -rc '.[]'
+        # Skip first line in output since its just the prefix and not a package name => tail -n +2
+        # Remove forward slash (/) from keys => awk '{print $NF}' FS=/
+        # Covnert to JSON array and remove all empty string elements => jq -R -s -c 'split("\n")|map(select(length > 0))'
+        PACKAGES_JSON_ARRAY=$(aws s3api list-objects-v2 --bucket "${S3_BUCKET}" --prefix "${STAGING_PREFIX}/${STAGING_RELEASE}" --query 'Contents[].Key' | jq -rc '.[]' | tail -n +2 | grep -vE "/common.*" | grep -vE "/kurl-bin-utils-*" | awk '{print $NF}' FS=/ | jq -R -s -c 'split("\n")|map(select(length > 0))')
+        echo "package=${PACKAGES_JSON_ARRAY}" >> $GITHUB_OUTPUT
       env:
         S3_BUCKET: kurl-sh
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_PROD_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_PROD_SECRET_ACCESS_KEY }}
         AWS_REGION: "us-east-1"
+        STAGING_PREFIX: "staging"
+        STAGING_RELEASE: ${{ needs.get-staging-release.outputs.staging_release }}
+
+  copy-stage-packages-to-prod:
+    runs-on: ubuntu-22.04
+    needs:
+     - get-staging-release
+     - build-stage-packages-matrix
+    strategy:
+      matrix: ${{ fromJSON(needs.build-stage-packages-matrix.outputs.package) }}
+      fail-fast: false
+      max-parallel: 20
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+    - name: Copy packages to Prod
+      run: |
+        VERSION_TAG=$GITHUB_REF_NAME
+        package_name="${{ matrix.package }}"
+        aws s3api copy-object --copy-source "${S3_BUCKET}/${STAGING_PREFIX}/${STAGING_RELEASE}/${package_name}" --bucket "${S3_BUCKET}" --key "${PACKAGE_PREFIX}/${VERSION_TAG}/${package_name}"
+      env:
+        S3_BUCKET: kurl-sh
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_PROD_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_PROD_SECRET_ACCESS_KEY }}
+        AWS_REGION: "us-east-1"
+        PACKAGE_PREFIX: "dist"
+        STAGING_PREFIX: "staging"
         STAGING_RELEASE: ${{ needs.get-staging-release.outputs.staging_release }}
 
   generate-kurl-release-notes-pr:
@@ -259,7 +292,7 @@ jobs:
     runs-on: ubuntu-20.04
     needs:
     - build-upload-packages
-    - copy-staging-release-to-prod
+    - copy-stage-packages-to-prod
     steps:
     - name: Set VERSION file in s3
       run: |
