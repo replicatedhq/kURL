@@ -661,8 +661,8 @@ test-shell: ## Run tests for code in shell. (Requires shUnit2 to be installed).
 	# TODO:
 	#   - find tests
 	#   - add to ci
+	./scripts/common/addon-test.sh
 	./scripts/common/common-test.sh
-	./scripts/common/docker-test.sh
 	./scripts/common/kubernetes-test.sh
 	./scripts/common/proxy-test.sh
 	./scripts/common/yaml-test.sh

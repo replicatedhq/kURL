@@ -18,6 +18,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/utils/pointer"
+	"k8s.io/utils/strings/slices"
 )
 
 const (
@@ -36,6 +37,8 @@ type NodeImagesJobOptions struct {
 	JobNamespace string
 	JobImage     string
 	Timeout      time.Duration
+	TargetNode   string
+	ExcludeNodes []string
 
 	nodeImagesJobRunner nodeImagesJobRunner
 }
@@ -62,6 +65,12 @@ func NodeImages(ctx context.Context, client kubernetes.Interface, logger *log.Lo
 
 	for _, n := range nodes.Items {
 		node := n
+		if opts.TargetNode != "" && node.Name != opts.TargetNode {
+			continue
+		}
+		if slices.Contains(opts.ExcludeNodes, node.Name) {
+			continue
+		}
 		thisNodeImages := map[string]struct{}{}
 		for _, image := range node.Status.Images {
 			for _, name := range image.Names {

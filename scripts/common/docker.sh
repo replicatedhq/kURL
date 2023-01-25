@@ -193,20 +193,6 @@ function docker_get_host_packages_online() {
     fi
 }
 
-function canonical_image_name() {
-    local image="$1"
-    if echo "$image" | grep -vq '/' ; then
-        image="library/$image"
-    fi
-    if echo "$image" | awk -F'/' '{print $1}' | grep -vq '\.' ; then
-        image="docker.io/$image"
-    fi
-    if echo "$image" | grep -vq ':' ; then
-        image="$image:latest"
-    fi
-    echo "$image"
-}
-
 # It will only uninstall docker if is a new installation
 # and the installer has containerd set to workaround the bug issue:
 # `dpkg: no, cannot proceed with removal of containerd ... docker.io

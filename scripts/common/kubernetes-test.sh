@@ -2,7 +2,7 @@
 
 set -e
 
-. ./scripts/common/docker.sh
+. ./scripts/common/common.sh
 . ./scripts/common/kubernetes.sh
 
 function test_kubernetes_node_has_image() {
