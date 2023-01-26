@@ -143,14 +143,10 @@ jobs:
     - name: Build Package Matrix
       id: set-matrix
       run: |
-        # Get list of packages associated with a staging release from s3:
-        # Exclude common and kurl-bin-utils packages => grep -vE "/common.*" | grep -vE "/kurl-bin-utils-*"
-        # Get raw strings NOT JSON encoded strings => jq -rc '.[]'
-        # Exclude directories => grep -vE "^${STAGING_PREFIX}/${STAGING_RELEASE}/$"
-        # Output the file name stripping the directory prefix => awk '{print $NF}' FS=/
-        # Covnert to JSON array and remove all empty string elements => jq -R -s -c 'split("\n")|map(select(length > 0))'
-        PACKAGES_JSON_ARRAY=$(aws s3api list-objects-v2 --bucket "${S3_BUCKET}" --prefix "${STAGING_PREFIX}/${STAGING_RELEASE}" --query 'Contents[].Key' | jq -rc '.[]' | grep -vE "^${STAGING_PREFIX}/${STAGING_RELEASE}/$" | grep -vE "/common.*" | grep -vE "/kurl-bin-utils-*" | awk '{print $NF}' FS=/ | jq -R -s -c 'split("\n")|map(select(length > 0))')
-        echo "package=${PACKAGES_JSON_ARRAY}" >> $GITHUB_OUTPUT
+        export LIST_FROM_STAGE_S3="1"
+        BATCH_S3_PACKAGES=$(./bin/list-all-packages-actions-matrix.sh)
+        echo "${BATCH_S3_PACKAGES}" | jq
+        echo "package=${BATCH_S3_PACKAGES}" >> $GITHUB_OUTPUT
       env:
         S3_BUCKET: kurl-sh
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_PROD_ACCESS_KEY_ID }}
@@ -175,8 +171,10 @@ jobs:
     - name: Copy packages to Prod
       run: |
         VERSION_TAG=$GITHUB_REF_NAME
-        package_name="${{ matrix.package }}"
-        aws s3api copy-object --copy-source "${S3_BUCKET}/${STAGING_PREFIX}/${STAGING_RELEASE}/${package_name}" --bucket "${S3_BUCKET}" --key "${PACKAGE_PREFIX}/${VERSION_TAG}/${package_name}"
+        batch="${{ matrix.batch }}"
+        for pkg in ${batch}; do
+          aws s3api copy-object --copy-source "${S3_BUCKET}/${STAGING_PREFIX}/${STAGING_RELEASE}/${pkg}" --bucket "${S3_BUCKET}" --key "${PACKAGE_PREFIX}/${VERSION_TAG}/${pkg}"
+        done
       env:
         S3_BUCKET: kurl-sh
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_PROD_ACCESS_KEY_ID }}
