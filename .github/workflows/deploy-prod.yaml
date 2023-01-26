@@ -146,10 +146,10 @@ jobs:
         # Get list of packages associated with a staging release from s3:
         # Exclude common and kurl-bin-utils packages => grep -vE "/common.*" | grep -vE "/kurl-bin-utils-*"
         # Get raw strings NOT JSON encoded strings => jq -rc '.[]'
-        # Skip first line in output since its just the prefix and not a package name => tail -n +2
+        # Exclude directories => grep -vE "^${STAGING_PREFIX}/${STAGING_RELEASE}/$"
         # Output the file name stripping the directory prefix => awk '{print $NF}' FS=/
         # Covnert to JSON array and remove all empty string elements => jq -R -s -c 'split("\n")|map(select(length > 0))'
-        PACKAGES_JSON_ARRAY=$(aws s3api list-objects-v2 --bucket "${S3_BUCKET}" --prefix "${STAGING_PREFIX}/${STAGING_RELEASE}" --query 'Contents[].Key' | jq -rc '.[]' | tail -n +2 | grep -vE "/common.*" | grep -vE "/kurl-bin-utils-*" | awk '{print $NF}' FS=/ | jq -R -s -c 'split("\n")|map(select(length > 0))')
+        PACKAGES_JSON_ARRAY=$(aws s3api list-objects-v2 --bucket "${S3_BUCKET}" --prefix "${STAGING_PREFIX}/${STAGING_RELEASE}" --query 'Contents[].Key' | jq -rc '.[]' | grep -vE "^${STAGING_PREFIX}/${STAGING_RELEASE}/$" | grep -vE "/common.*" | grep -vE "/kurl-bin-utils-*" | awk '{print $NF}' FS=/ | jq -R -s -c 'split("\n")|map(select(length > 0))')
         echo "package=${PACKAGES_JSON_ARRAY}" >> $GITHUB_OUTPUT
       env:
         S3_BUCKET: kurl-sh
