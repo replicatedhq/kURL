@@ -622,14 +622,22 @@ function list_all_required_images() {
 }
 
 function kubernetes_node_has_all_images() {
-    local nodeName="$1"
+    local node_name="$1"
 
+    local image_list=
     while read -r image; do
-        if ! kubernetes_node_has_image "$nodeName" "$image"; then
-            printf "\n${YELLOW}Node $nodeName missing image $image${NC}\n"
-            return 1
+        if ! kubernetes_node_has_image "$node_name" "$image"; then
+            image_list="$image_list $image"
         fi
     done < <(list_all_required_images)
+
+    image_list=$(echo "$image_list" | xargs) # strip leading and trailing whitespace
+
+    if [ -n "$image_list" ]; then
+        log ""
+        logWarn "Node $node_name missing image(s) $image_list"
+        return 1
+    fi
 }
 
 function kubernetes_node_has_image() {
