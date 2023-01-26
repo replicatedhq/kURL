@@ -433,6 +433,8 @@ function load_images() {
     else
         find "$1" -type f | xargs -I {} bash -c "cat {} | gunzip | ctr -a $(${K8S_DISTRO}_get_containerd_sock) -n=k8s.io images import -"
     fi
+
+    retag_gcr_images
 }
 
 # try a command every 2 seconds until it succeeds, up to 30 tries max; useful for kubectl commands
@@ -1002,4 +1004,21 @@ function pod_count_by_selector() {
     fi
 
     echo -n "$pods" | wc -l
+}
+
+# retag_gcr_images takes every k8s.gcr.io image and adds a registry.k8s.io alias if it does not already exist
+function retag_gcr_images() {
+    if [ -n "$DOCKER_VERSION" ]; then
+        local images=$(docker images --format '{{.Repository}}:{{.Tag}}' | grep k8s.gcr.io)
+        for image in $images; do
+            local new_image=$(echo "$image" | sed 's/k8s.gcr.io/registry.k8s.io/g')
+            docker tag "$image" "$new_image" 2>/dev/null || true
+        done
+    else
+        local images=$(ctr -n=k8s.io images list --quiet | grep k8s.gcr.io)
+        for image in $images; do
+            local new_image=$(echo "$image" | sed 's/k8s.gcr.io/registry.k8s.io/g')
+            ctr -n k8s.io images tag "$image" "$new_image" 2>/dev/null || true
+        done
+    fi
 }

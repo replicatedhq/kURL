@@ -139,6 +139,8 @@ function load_all_images() {
         fi
     fi
 
+    retag_gcr_images
+
     popd_install_directory
 }
 
