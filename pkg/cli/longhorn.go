@@ -9,6 +9,8 @@ import (
 
 	"github.com/spf13/cobra"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 
@@ -16,7 +18,7 @@ import (
 )
 
 var (
-	scaleDownReplicasWaitTime = time.Minute
+	scaleDownReplicasWaitTime = 2 * time.Minute
 )
 
 const (
@@ -53,7 +55,7 @@ func NewLonghornRollbackMigrationReplicas(_ CLI) *cobra.Command {
 
 			var l1b1Volumes lhv1b1.VolumeList
 			if err := cli.List(cmd.Context(), &l1b1Volumes, client.InNamespace(longhornNamespace)); err != nil {
-				log.Fatalf("error listing longhorn volumes: %s", err)
+				return fmt.Errorf("error listing longhorn volumes: %w", err)
 			}
 
 			for _, volume := range l1b1Volumes.Items {
@@ -64,14 +66,14 @@ func NewLonghornRollbackMigrationReplicas(_ CLI) *cobra.Command {
 
 				replicas, err := strconv.Atoi(volume.Annotations[volumeReplicasAnnotation])
 				if err != nil {
-					log.Fatalf("error parsing replica count for volume %s: %s", volume.Name, err)
+					return fmt.Errorf("error parsing replica count for volume %s: %w", volume.Name, err)
 				}
 
 				log.Printf("Rolling back volume %s to %d replicas.", volume.Name, replicas)
 				delete(volume.Annotations, volumeReplicasAnnotation)
 				volume.Spec.NumberOfReplicas = replicas
 				if err := cli.Update(cmd.Context(), &volume); err != nil {
-					log.Fatalf("error rolling back volume %s replicas: %s", volume.Name, err)
+					return fmt.Errorf("error rolling back volume %s replicas: %w", volume.Name, err)
 				}
 			}
 			log.Printf("Longhorn volumes have been rolled back to their original replica count.")
@@ -166,15 +168,28 @@ func scaleDownReplicas(ctx context.Context, cli client.Client) (bool, error) {
 
 	for _, volume := range volumesToScale {
 		log.Printf("Scaling down replicas for volume %s.", volume.Name)
-		if volume.Annotations == nil {
-			volume.Annotations = map[string]string{}
-		}
-		if _, ok := volume.Annotations[volumeReplicasAnnotation]; !ok {
-			volume.Annotations[volumeReplicasAnnotation] = strconv.Itoa(volume.Spec.NumberOfReplicas)
-		}
-		volume.Spec.NumberOfReplicas = 1
-		if err := cli.Update(ctx, &volume); err != nil {
-			return false, fmt.Errorf("error updating replicas for volume %s: %w", volume.Name, err)
+		for {
+			nsn := types.NamespacedName{Namespace: longhornNamespace, Name: volume.Name}
+			var updatedVolume lhv1b1.Volume
+			if err := cli.Get(ctx, nsn, &updatedVolume); err != nil {
+				return false, fmt.Errorf("error getting volume %s: %w", volume.Name, err)
+			}
+
+			if updatedVolume.Annotations == nil {
+				updatedVolume.Annotations = map[string]string{}
+			}
+			if _, ok := updatedVolume.Annotations[volumeReplicasAnnotation]; !ok {
+				updatedVolume.Annotations[volumeReplicasAnnotation] = strconv.Itoa(updatedVolume.Spec.NumberOfReplicas)
+			}
+			updatedVolume.Spec.NumberOfReplicas = 1
+			if err := cli.Update(ctx, &updatedVolume); err != nil {
+				if errors.IsConflict(err) {
+					time.Sleep(time.Second)
+					continue
+				}
+				return false, fmt.Errorf("error updating replicas for volume %s: %w", volume.Name, err)
+			}
+			break
 		}
 	}
 
