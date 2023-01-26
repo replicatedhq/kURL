@@ -64,6 +64,6 @@ The following example illustrates using [cosign](https://github.com/sigstore/cos
 not been tampered with.
 
 ```shell
-$ cosign verify-blob -key key.pub -signature kurl-sbom.tgz.sig kurl-sbom.tgz
+$ cosign verify-blob --key key.pub --signature kurl-sbom.tgz.sig kurl-sbom.tgz
 Verified OK
 ```
