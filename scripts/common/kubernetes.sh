@@ -604,76 +604,40 @@ function list_all_required_images() {
         find packages/docker/$DOCKER_VERSION -type f -name Manifest 2>/dev/null | xargs cat | grep -E '^image' | grep -v no_remote_load | awk '{ print $3 }'
     fi
 
-    if [ -n "$WEAVE_VERSION" ]; then
-        find addons/weave/$WEAVE_VERSION -type f -name Manifest 2>/dev/null | xargs cat | grep -E '^image' | grep -v no_remote_load | awk '{ print $3 }'
-    fi
-
-    if [ -n "$ROOK_VERSION" ]; then
-        find addons/rook/$ROOK_VERSION -type f -name Manifest 2>/dev/null | xargs cat | grep -E '^image' | grep -v no_remote_load | awk '{ print $3 }'
-    fi
-
-    if [ -n "$OPENEBS_VERSION" ]; then
-        find addons/openebs/$OPENEBS_VERSION -type f -name Manifest 2>/dev/null | xargs cat | grep -E '^image' | grep -v no_remote_load | awk '{ print $3 }'
-    fi
-
-    if [ -n "$LONGHORN_VERSION" ]; then
-        find addons/longhorn/$LONGHORN_VERSION -type f -name Manifest 2>/dev/null | xargs cat | grep -E '^image' | grep -v no_remote_load | awk '{ print $3 }'
-    fi
-
-    if [ -n "$MINIO_VERSION" ]; then
-        find addons/minio/$MINIO_VERSION -type f -name Manifest 2>/dev/null | xargs cat | grep -E '^image' | grep -v no_remote_load | awk '{ print $3 }'
-    fi
-
-    if [ -n "$CONTOUR_VERSION" ]; then
-        find addons/contour/$CONTOUR_VERSION -type f -name Manifest 2>/dev/null | xargs cat | grep -E '^image' | grep -v no_remote_load | awk '{ print $3 }'
-    fi
-
-    if [ -n "$REGISTRY_VERSION" ]; then
-        find addons/registry/$REGISTRY_VERSION -type f -name Manifest 2>/dev/null | xargs cat | grep -E '^image' | grep -v no_remote_load | awk '{ print $3 }'
-    fi
-
-    if [ -n "$PROMETHEUS_VERSION" ]; then
-        find addons/prometheus/$PROMETHEUS_VERSION -type f -name Manifest 2>/dev/null | xargs cat | grep -E '^image' | grep -v no_remote_load | awk '{ print $3 }'
-    fi
-
-    if [ -n "$KOTSADM_VERSION" ]; then
-        find addons/kotsadm/$KOTSADM_VERSION -type f -name Manifest 2>/dev/null | xargs cat | grep -E '^image' | grep -v no_remote_load | awk '{ print $3 }'
-    fi
-
-    if [ -n "$FLUENTD_VERSION" ]; then
-        find addons/fluentd/$FLUENTD_VERSION -type f -name Manifest 2>/dev/null | xargs cat | grep -E '^image' | grep -v no_remote_load | awk '{ print $3 }'
-    fi
-
-    if [ -n "$VELERO_VERSION" ]; then
-        find addons/velero/$VELERO_VERSION -type f -name Manifest 2>/dev/null | xargs cat | grep -E '^image' | grep -v no_remote_load | awk '{ print $3 }'
-    fi
-
-    if [ -n "$EKCO_VERSION" ]; then
-        find addons/ekco/$EKCO_VERSION -type f -name Manifest 2>/dev/null | xargs cat | grep -E '^image' | grep -v no_remote_load | awk '{ print $3 }'
-    fi
-
-    if [ -n "$CERT_MANAGER_VERSION" ]; then
-        find addons/cert-manager/$CERT_MANAGER_VERSION -type f -name Manifest 2>/dev/null | xargs cat | grep -E '^image' | grep -v no_remote_load | awk '{ print $3 }'
-    fi
-
-    if [ -n "$METRICS_SERVER_VERSION" ]; then
-        find addons/metrics-server/$METRICS_SERVER_VERSION -type f -name Manifest 2>/dev/null | xargs cat | grep -E '^image' | grep -v no_remote_load | awk '{ print $3 }'
-    fi
-
-    if [ -n "$SONOBUOY_VERSION" ]; then
-        find addons/sonobuoy/$SONOBUOY_VERSION -type f -name Manifest 2>/dev/null | xargs cat | grep -E '^image' | grep -v no_remote_load | awk '{ print $3 }'
-    fi
+    for dir in addons/*/ ; do
+        local addon=
+        addon=$(basename "$dir")
+        local varname="${addon^^}_VERSION"
+        varname="${varname//-/_}"
+        local addon_version="${!varname}"
+        if [ -z "$addon_version" ]; then
+            continue
+        fi
+        local manifest_file="addons/$addon/$addon_version/Manifest"
+        if [ ! -f "$manifest_file" ]; then
+            continue
+        fi
+        grep -E '^image' "$manifest_file" | grep -v no_remote_load | awk '{ print $3 }'
+    done
 }
 
 function kubernetes_node_has_all_images() {
-    local nodeName="$1"
+    local node_name="$1"
 
+    local image_list=
     while read -r image; do
-        if ! kubernetes_node_has_image "$nodeName" "$image"; then
-            printf "\n${YELLOW}Node $nodeName missing image $image${NC}\n"
-            return 1
+        if ! kubernetes_node_has_image "$node_name" "$image"; then
+            image_list="$image_list $image"
         fi
     done < <(list_all_required_images)
+
+    image_list=$(echo "$image_list" | xargs) # strip leading and trailing whitespace
+
+    if [ -n "$image_list" ]; then
+        log ""
+        logWarn "Node $node_name missing image(s) $image_list"
+        return 1
+    fi
 }
 
 function kubernetes_node_has_image() {
