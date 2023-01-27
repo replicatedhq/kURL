@@ -2,8 +2,8 @@
   installerSpec:
     kubernetes:
       version: "latest"
-    weave:
-      version: "latest"
+    flannel:
+      version: latest
     rook:
       version: "latest"
     containerd:
@@ -16,8 +16,8 @@
   installerSpec:
     kubernetes:
       version: "latest"
-    weave:
-      version: "latest"
+    flannel:
+      version: latest
     rook:
       version: "latest"
     containerd:
@@ -29,8 +29,8 @@
   installerSpec:
     kubernetes:
       version: "latest"
-    weave:
-      version: "latest"
+    flannel:
+      version: latest
     rook:
       version: "1.5.x"
     containerd:
@@ -45,8 +45,8 @@
   installerSpec:
     kubernetes:
       version: "latest"
-    weave:
-      version: "latest"
+    flannel:
+      version: latest
     longhorn:
       version: "latest"
     containerd:
@@ -59,7 +59,7 @@
   installerSpec:
     kubernetes:
       version: 1.20.x
-    weave:
+    flannel:
       version: latest
     rook:
       isBlockStorageEnabled: true
@@ -77,7 +77,7 @@
   upgradeSpec:
     kubernetes:
       version: 1.21.x
-    weave:
+    flannel:
       version: latest
     longhorn:
       version: latest

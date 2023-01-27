@@ -18,7 +18,7 @@
       version: latest
     longhorn:
       version: latest
-    weave:
+    flannel:
       version: latest
     minio:
       version: latest
@@ -93,8 +93,8 @@
       installerVersion: ""
     containerd:
       version: latest
-    weave:
-      version: 2.8.x
+    flannel:
+      version: latest
     contour:
       version: latest
     rook:
@@ -117,8 +117,8 @@
       installerVersion: ""
     containerd:
       version: 1.6.x
-    weave:
-      version: 2.8.x
+    flannel:
+      version: latest
     contour:
       version: latest
     rook:
@@ -173,8 +173,8 @@
       installerVersion: ""
     containerd:
       version: "latest"
-    weave:
-      version: "latest"
+    flannel:
+      version: latest
     ekco:
       version: "latest"
   postInstallScript: |
@@ -197,8 +197,8 @@
       installerVersion: ""
     containerd:
       version: "latest"
-    weave:
-      version: "latest"
+    flannel:
+      version: latest
   postInstallScript: |
     set -eo pipefail
     echo "validating kubelet config contains reserved resources"
@@ -248,8 +248,8 @@
       installerVersion: ""
     containerd:
       version: latest
-    weave:
-      version: 2.8.x
+    flannel:
+      version: latest
     contour:
       version: latest
     rook:
@@ -292,7 +292,7 @@
       version: 1.23.x
     kurl:
       installerVersion: ""
-    weave:
+    flannel:
       version: latest
     openebs:
       version: latest
@@ -309,7 +309,7 @@
       version: 1.25.x
     kurl:
       installerVersion: ""
-    weave:
+    flannel:
       version: latest
     openebs:
       version: latest

@@ -1,8 +1,8 @@
 - installerSpec:
     kubernetes:
       version: "latest"
-    weave:
-      version: "latest"
+    flannel:
+      version: latest
     containerd:
       version: "latest"
     contour:
@@ -10,8 +10,8 @@
   upgradeSpec:
     kubernetes:
       version: "latest"
-    weave:
-      version: "latest"
+    flannel:
+      version: latest
     containerd:
       version: "latest"
     contour:
@@ -41,8 +41,8 @@
 - installerSpec:
     kubernetes:
       version: "latest"
-    weave:
-      version: "latest"
+    flannel:
+      version: latest
     containerd:
       version: "latest"
     contour:

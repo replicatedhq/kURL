@@ -791,7 +791,7 @@
   installerSpec:
     kubernetes:
       version: 1.23.x
-    weave:
+    flannel:
       version: latest
     rook:
       version: 1.9.x
@@ -808,7 +808,7 @@
   upgradeSpec:
     kubernetes:
       version: 1.24.x
-    weave:
+    flannel:
       version: latest
     longhorn:
       version: latest
@@ -857,7 +857,7 @@
       version: 1.22.x
     containerd:
       version: 1.5.x
-    weave:
+    flannel:
       version: latest
     contour:
       version: 1.19.1
@@ -904,7 +904,7 @@
   installerSpec:
     kubernetes:
       version: 1.23.x
-    weave:
+    flannel:
       version: latest
     longhorn:
       version: latest
@@ -920,7 +920,7 @@
   upgradeSpec:
     kubernetes:
       version: 1.23.x
-    weave:
+    flannel:
       version: latest
     longhorn:
       version: latest
@@ -937,7 +937,7 @@
   installerSpec:
     kubernetes:
       version: 1.23.x
-    weave:
+    flannel:
       version: latest
     longhorn:
       version: latest
@@ -953,7 +953,7 @@
   upgradeSpec:
     kubernetes:
       version: 1.23.x
-    weave:
+    flannel:
       version: latest
     longhorn:
       version: latest
@@ -1000,7 +1000,7 @@
       version: 1.26.x
     containerd:
       version: latest
-    weave:
+    flannel:
       version: latest
     contour:
       version: 1.19.1
@@ -1051,7 +1051,7 @@
   installerSpec:
     kubernetes:
       version: 1.23.x
-    weave:
+    flannel:
       version: latest
     rook:
       version: 1.9.x
@@ -1068,7 +1068,7 @@
   upgradeSpec:
     kubernetes:
       version: 1.24.x
-    weave:
+    flannel:
       version: latest
     longhorn:
       version: latest
@@ -1090,7 +1090,7 @@
   installerSpec:
     kubernetes:
       version: 1.25.x
-    weave:
+    flannel:
       version: latest
     openebs:
       version: latest
@@ -1111,7 +1111,7 @@
   upgradeSpec:
     kubernetes:
       version: 1.26.x
-    weave:
+    flannel:
       version: latest
     openebs:
       version: latest
@@ -1134,7 +1134,7 @@
   installerSpec:
     kubernetes:
       version: 1.25.x
-    weave:
+    flannel:
       version: latest
     openebs:
       version: latest
@@ -1153,7 +1153,7 @@
   upgradeSpec:
     kubernetes:
       version: 1.26.x
-    weave:
+    flannel:
       version: latest
     openebs:
       version: latest
@@ -1171,7 +1171,7 @@
   installerSpec:
     kubernetes:
       version: 1.25.x
-    weave:
+    flannel:
       version: latest
     openebs:
       version: latest
@@ -1190,7 +1190,7 @@
   upgradeSpec:
     kubernetes:
       version: 1.26.x
-    weave:
+    flannel:
       version: latest
     openebs:
       version: latest
@@ -1259,8 +1259,8 @@
       version: 1.24.x
     containerd:
       version: latest
-    weave:
-      version: 2.8.x
+    flannel:
+      version: latest
     contour:
       version: latest
     rook:
@@ -1282,8 +1282,8 @@
       version: 1.26.x
     containerd:
       version: latest
-    weave:
-      version: 2.8.x
+    flannel:
+      version: latest
     openebs:
       version: latest
       isLocalPVEnabled: true
@@ -1303,8 +1303,8 @@
       version: "1.26.x"
     containerd:
       version: "latest"
-    weave:
-      version: "latest"
+    flannel:
+      version: latest
     openebs:
       version: latest
       isLocalPVEnabled: true
@@ -1337,8 +1337,8 @@
       cisCompliance: true
     containerd:
       version: "latest"
-    weave:
-      version: "latest"
+    flannel:
+      version: latest
     ekco:
       version: "latest"
   postInstallScript: |
@@ -1356,8 +1356,8 @@
       version: "1.23.x"
     containerd:
       version: "latest"
-    weave:
-      version: "latest"
+    flannel:
+      version: latest
     ekco:
       version: "latest"
   upgradeSpec:
@@ -1366,8 +1366,8 @@
       cisCompliance: true
     containerd:
       version: "latest"
-    weave:
-      version: "latest"
+    flannel:
+      version: latest
     ekco:
       version: "latest"
   postUpgradeScript: |
@@ -1384,8 +1384,8 @@
       systemReservedResources: '{ "cpu": "123m", "memory": "123Mi", "ephemeral-storage": "1.23Gi" }'
     containerd:
       version: "latest"
-    weave:
-      version: "latest"
+    flannel:
+      version: latest
   postInstallScript: |
     set -eo pipefail
     echo "validating kubelet config contains reserved resources"
@@ -1503,8 +1503,8 @@
       version: "1.26.x"
     containerd:
       version: latest
-    weave:
-      version: "2.6.5"
+    flannel:
+      version: latest
   postInstallScript: |
     echo "this is to test less command after installation" > test-less.txt
     less test-less.txt > /dev/null
@@ -1573,8 +1573,8 @@
       version: 1.19.x
     containerd:
       version: "latest"
-    weave:
-      version: "latest"
+    flannel:
+      version: latest
     rook:
       version: "1.0.4"
     ekco:
@@ -1588,8 +1588,8 @@
       version: 1.20.x
     containerd:
       version: "latest"
-    weave:
-      version: "latest"
+    flannel:
+      version: latest
     rook:
       version: "1.5.12"
     ekco:
@@ -1636,8 +1636,8 @@
       version: 1.19.x
     containerd:
       version: "latest"
-    weave:
-      version: "latest"
+    flannel:
+      version: latest
     rook:
       version: "1.0.4"
     ekco:
@@ -1651,8 +1651,8 @@
       version: 1.19.x
     containerd:
       version: "latest"
-    weave:
-      version: "latest"
+    flannel:
+      version: latest
     rook:
       version: "1.5.12"
     ekco:
@@ -1704,14 +1704,14 @@
   installerSpec:
     kubernetes:
       version: 1.25.x
-    weave:
+    flannel:
       version: latest
     containerd:
       version: 1.5.x
   upgradeSpec:
     kubernetes:
       version: 1.25.x
-    weave:
+    flannel:
       version: latest
     containerd:
       version: latest

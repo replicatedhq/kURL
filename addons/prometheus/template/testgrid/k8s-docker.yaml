@@ -2,8 +2,8 @@
   installerSpec:
     kubernetes:
       version: "1.25.x"
-    weave:
-      version: "latest"
+    flannel:
+      version: latest
     openebs:
       version: "3.3.0"
       isLocalPVEnabled: true
@@ -17,8 +17,8 @@
   installerSpec:
     kubernetes:
       version: "1.21.x"
-    weave:
-      version: "latest"
+    flannel:
+      version: latest
     rook:
       version: "1.7.x"
       isBlockStorageEnabled: true
@@ -29,8 +29,8 @@
   upgradeSpec:
     kubernetes:
       version: "1.21.x"
-    weave:
-      version: "latest"
+    flannel:
+      version: latest
     rook:
       version: "1.7.x"
       isBlockStorageEnabled: true
@@ -43,8 +43,8 @@
   installerSpec:
     kubernetes:
       version: "1.25.x"
-    weave:
-      version: "latest"
+    flannel:
+      version: latest
     openebs:
       version: "3.3.0"
       isLocalPVEnabled: true
@@ -56,8 +56,8 @@
   upgradeSpec:
     kubernetes:
       version: "1.25.x"
-    weave:
-      version: "latest"
+    flannel:
+      version: latest
     openebs:
       version: "3.3.0"
       isLocalPVEnabled: true
@@ -71,8 +71,8 @@
   installerSpec:
     kubernetes:
       version: "1.24.x"
-    weave:
-      version: "latest"
+    flannel:
+      version: latest
     longhorn:
       version: "latest"
     containerd:
@@ -84,8 +84,8 @@
   installerSpec:
     kubernetes:
       version: "1.24.x"
-    weave:
-      version: "latest"
+    flannel:
+      version: latest
     rook:
       version: "1.7.x"
       isBlockStorageEnabled: true

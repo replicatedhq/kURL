@@ -2,9 +2,8 @@
   installerSpec:
     kubernetes:
       version: "1.25.x"
-    weave:
+    flannel:
       version: latest
-      isEncryptionDisabled: true
     containerd:
       version: "__testver__"
       s3Override: "__testdist__"
@@ -23,9 +22,8 @@
   installerSpec:
     kubernetes:
       version: "1.25.x"
-    weave:
+    flannel:
       version: latest
-      isEncryptionDisabled: true
     containerd:
       version: latest
     openebs:
@@ -41,9 +39,8 @@
   upgradeSpec:
     kubernetes:
       version: "1.25.x"
-    weave:
+    flannel:
       version: latest
-      isEncryptionDisabled: true
     containerd:
       version: "__testver__"
       s3Override: "__testdist__"
@@ -64,9 +61,8 @@
   installerSpec:
     kubernetes:
       version: "1.25.x"
-    weave:
+    flannel:
       version: latest
-      isEncryptionDisabled: true
     containerd:
       version: "1.5.11"
     openebs:
@@ -82,9 +78,8 @@
   upgradeSpec:
     kubernetes:
       version: "1.25.x"
-    weave:
+    flannel:
       version: latest
-      isEncryptionDisabled: true
     containerd:
       version: "__testver__"
       s3Override: "__testdist__"
@@ -105,9 +100,8 @@
   installerSpec:
     kubernetes:
       version: 1.23.x
-    weave:
+    flannel:
       version: latest
-      isEncryptionDisabled: true
     openebs:
       version: latest
       isLocalPVEnabled: true
@@ -125,9 +119,8 @@
   upgradeSpec:
     kubernetes:
       version: 1.24.x
-    weave:
+    flannel:
       version: latest
-      isEncryptionDisabled: true
     openebs:
       version: latest
       isLocalPVEnabled: true
@@ -147,9 +140,8 @@
   installerSpec:
     kubernetes:
       version: 1.23.x
-    weave:
+    flannel:
       version: latest
-      isEncryptionDisabled: true
     openebs:
       version: latest
       isLocalPVEnabled: true
@@ -167,9 +159,8 @@
   upgradeSpec:
     kubernetes:
       version: 1.24.x
-    weave:
+    flannel:
       version: latest
-      isEncryptionDisabled: true
     openebs:
       version: latest
       isLocalPVEnabled: true
