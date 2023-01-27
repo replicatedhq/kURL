@@ -2,8 +2,8 @@
   installerSpec:
     kubernetes:
       version: "1.24.x"
-    weave:
-      version: "latest"
+    flannel:
+      version: latest
     containerd:
       version: "latest"
     minio:
@@ -60,8 +60,8 @@
   installerSpec:
     kubernetes:
       version: "1.24.x"
-    weave:
-      version: "latest"
+    flannel:
+      version: latest
     containerd:
       version: "latest"
     minio:
@@ -119,8 +119,8 @@
   installerSpec:
     kubernetes:
       version: "1.23.x"
-    weave:
-      version: "latest"
+    flannel:
+      version: latest
     containerd:
       version: "latest"
     minio:
@@ -134,8 +134,8 @@
   upgradeSpec:
     kubernetes:
       version: "1.24.x"
-    weave:
-      version: "latest"
+    flannel:
+      version: latest
     containerd:
       version: "latest"
     minio:
@@ -209,8 +209,8 @@
   installerSpec:
     kubernetes:
       version: "1.23.x"
-    weave:
-      version: "latest"
+    flannel:
+      version: latest
     containerd:
       version: "latest"
     minio:
@@ -224,8 +224,8 @@
   upgradeSpec:
     kubernetes:
       version: "1.24.x"
-    weave:
-      version: "latest"
+    flannel:
+      version: latest
     containerd:
       version: "latest"
     minio:
@@ -298,8 +298,8 @@
   installerSpec:
     kubernetes:
       version: "1.24.x"
-    weave:
-      version: "latest"
+    flannel:
+      version: latest
     containerd:
       version: "latest"
     minio:
@@ -349,8 +349,8 @@
     kubernetes:
       # Longhorn is not compatible with kubernetes 1.25+.
       version: "1.24.x"
-    weave:
-      version: "latest"
+    flannel:
+      version: latest
     containerd:
       version: "latest"
     ekco:
@@ -360,8 +360,8 @@
   upgradeSpec:
     kubernetes:
       version: "1.24.x"
-    weave:
-      version: "latest"
+    flannel:
+      version: latest
     containerd:
       version: "latest"
     ekco:

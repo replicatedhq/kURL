@@ -2,8 +2,8 @@
   installerSpec:
     kubernetes:
       version: "1.25.x"
-    weave:
-      version: "latest"
+    flannel:
+      version: latest
     containerd:
       version: "latest"
     minio:
@@ -26,8 +26,8 @@
   installerSpec:
     kubernetes:
       version: "1.21.x" # this is the latest version of k8s that supports openebs 2.6
-    weave:
-      version: "latest"
+    flannel:
+      version: latest
     containerd:
       version: "latest"
     minio:
@@ -40,8 +40,8 @@
   upgradeSpec:
     kubernetes:
       version: "1.22.x"
-    weave:
-      version: "latest"
+    flannel:
+      version: latest
     containerd:
       version: "latest"
     minio:
@@ -69,8 +69,8 @@
   installerSpec:
     kubernetes:
       version: "1.25.x"
-    weave:
-      version: "latest"
+    flannel:
+      version: latest
     containerd:
       version: "latest"
     minio:
@@ -93,8 +93,8 @@
   installerSpec:
     kubernetes:
       version: "1.21.x" # this is the latest version of k8s that supports openebs 1.12
-    weave:
-      version: "latest"
+    flannel:
+      version: latest
     docker:
       version: "latest"
     minio:
@@ -107,8 +107,8 @@
   upgradeSpec:
     kubernetes:
       version: "1.21.x"
-    weave:
-      version: "latest"
+    flannel:
+      version: latest
     docker:
       version: "latest"
     minio:
@@ -136,8 +136,8 @@
   installerSpec:
     kubernetes:
       version: "1.19.x" # this is the latest version of k8s that supports rook 1.0.4
-    weave:
-      version: "latest"
+    flannel:
+      version: latest
     docker:
       version: "latest"
     rook:
@@ -147,8 +147,8 @@
   upgradeSpec:
     kubernetes:
       version: "1.21.x"
-    weave:
-      version: "latest"
+    flannel:
+      version: latest
     docker:
       version: "latest"
     openebs:
@@ -221,8 +221,8 @@
   installerSpec:
     kubernetes:
       version: "1.25.x"
-    weave:
-      version: "latest"
+    flannel:
+      version: latest
     containerd:
       version: "latest"
     minio:
@@ -235,8 +235,8 @@
   upgradeSpec:
     kubernetes:
       version: "1.25.x"
-    weave:
-      version: "latest"
+    flannel:
+      version: latest
     containerd:
       version: "latest"
     minio:

@@ -3,8 +3,8 @@
   installerSpec:
     kubernetes:
       version: "latest"
-    weave:
-      version: "latest"
+    flannel:
+      version: latest
     openebs:
       isLocalPVEnabled: true
       localPVStorageClassName: default
@@ -25,8 +25,8 @@
   installerSpec:
     kubernetes:
       version: "latest"
-    weave:
-      version: "latest"
+    flannel:
+      version: latest
     containerd:
       version: "latest"
     kotsadm:
@@ -36,8 +36,8 @@
   upgradeSpec:
     kubernetes:
       version: "latest"
-    weave:
-      version: "latest"
+    flannel:
+      version: latest
     containerd:
       version: "latest"
     kotsadm:
@@ -61,8 +61,8 @@
   installerSpec:
     kubernetes:
       version: "latest"
-    weave:
-      version: "latest"
+    flannel:
+      version: latest
     longhorn:
       version: "latest"
     containerd:
@@ -81,8 +81,8 @@
   installerSpec:
     kubernetes:
       version: "latest"
-    weave:
-      version: "latest"
+    flannel:
+      version: latest
     containerd:
       version: "latest"
     minio:
@@ -100,8 +100,8 @@
   installerSpec:
     kubernetes:
       version: "latest"
-    weave:
-      version: "latest"
+    flannel:
+      version: latest
     longhorn:
       version: "latest"
     containerd:
@@ -111,8 +111,8 @@
   upgradeSpec:
     kubernetes:
       version: "latest"
-    weave:
-      version: "latest"
+    flannel:
+      version: latest
     longhorn:
       version: "latest"
     containerd:
@@ -137,8 +137,8 @@
   installerSpec:
     kubernetes:
       version: "latest"
-    weave:
-      version: "latest"
+    flannel:
+      version: latest
     longhorn:
       version: "latest"
     containerd:
@@ -148,8 +148,8 @@
   upgradeSpec:
     kubernetes:
       version: "latest"
-    weave:
-      version: "latest"
+    flannel:
+      version: latest
     longhorn:
       version: "latest"
     containerd:
@@ -173,8 +173,8 @@
   installerSpec:
     kubernetes:
       version: "latest"
-    weave:
-      version: "latest"
+    flannel:
+      version: latest
     openebs:
       version: "latest"
       isLocalPVEnabled: true
@@ -186,8 +186,8 @@
   upgradeSpec:
     kubernetes:
       version: "latest"
-    weave:
-      version: "latest"
+    flannel:
+      version: latest
     openebs:
       version: "latest"
       isLocalPVEnabled: true
@@ -212,8 +212,8 @@
   installerSpec:
     kubernetes:
       version: "latest"
-    weave:
-      version: "latest"
+    flannel:
+      version: latest
     openebs:
       version: "latest"
       isLocalPVEnabled: true
@@ -225,8 +225,8 @@
   upgradeSpec:
     kubernetes:
       version: "latest"
-    weave:
-      version: "latest"
+    flannel:
+      version: latest
     openebs:
       version: "latest"
       isLocalPVEnabled: true

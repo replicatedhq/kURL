@@ -4,7 +4,7 @@
       version: latest
     containerd:
       version: latest
-    weave:
+    flannel:
       version: latest
     contour:
       version: latest
@@ -18,7 +18,7 @@
       version: latest
     kotsadm:
       version: latest
-- name: longhorn
+- name: openebs
   installerSpec:
     contour:
       version: latest
@@ -27,14 +27,16 @@
     ekco:
       version: latest
     kubernetes:
-      version: 1.24.x
+      version: latest
     prometheus:
       version: latest
     registry:
       version: latest
-    longhorn:
+    openebs:
       version: latest
-    weave:
+      isLocalPVEnabled: true
+      localPVStorageClassName: default
+    flannel:
       version: latest
     minio:
       version: latest
