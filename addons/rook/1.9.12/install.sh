@@ -767,7 +767,7 @@ function rook_cephfilesystem_patch_singlenode() {
     fi
 
     local src="$DIR/addons/rook/$ROOK_VERSION/cluster"
-    rook_cephfilesystem_patch "$src/patches/filesystem-singlenode.yaml"
+    rook_cephfilesystem_patch "$src/cephfs/patches/filesystem-singlenode.yaml"
 }
 
 function rook_cephfilesystem_patch() {
