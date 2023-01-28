@@ -5,12 +5,18 @@ import (
 	"fmt"
 	"log"
 	"strconv"
+	"strings"
 	"time"
 
+	"github.com/replicatedhq/kurl/pkg/k8sutil"
 	"github.com/spf13/cobra"
+	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	storagev1 "k8s.io/api/storage/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/utils/pointer"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 
@@ -22,9 +28,10 @@ var (
 )
 
 const (
-	volumeReplicasAnnotation = "kurl.sh/volume-replica-count"
-	longhornNamespace        = "longhorn-system"
-	overProvisioningSetting  = "storage-over-provisioning-percentage"
+	volumeReplicasAnnotation     = "kurl.sh/volume-replica-count"
+	pvmigrateScaleDownAnnotation = "kurl.sh/pvcmigrate-scale"
+	longhornNamespace            = "longhorn-system"
+	overProvisioningSetting      = "storage-over-provisioning-percentage"
 )
 
 func NewLonghornCmd(cli CLI) *cobra.Command {
@@ -140,9 +147,233 @@ func NewLonghornPrepareForMigration(_ CLI) *cobra.Command {
 				log.Printf("")
 			}
 			log.Print("All Longhorn volumes and nodes are healthy, ready for migration.")
+
+			if err := scaleDownPodsUsingLonghorn(cmd.Context(), cli); err != nil {
+				return fmt.Errorf("error scaling down pods using longhorn volumes: %s", err)
+			}
 			return nil
 		},
 	}
+}
+
+// scaleDownPodsUsingLonghorn scales down all pods using Longhorn volumes.
+func scaleDownPodsUsingLonghorn(ctx context.Context, cli client.Client) error {
+	log.Printf("Scaling down pods using Longhorn volumes.")
+	objects, err := getObjectsUsingLonghorn(ctx, cli)
+	if err != nil {
+		return fmt.Errorf("error getting objects using longhorn: %w", err)
+	}
+	for _, obj := range objects {
+		switch obj := obj.(type) {
+		case *appsv1.Deployment:
+			if err := scaleDownDeployment(ctx, cli, obj); err != nil {
+				return fmt.Errorf("error scaling down deployment %s: %w", obj.Name, err)
+			}
+		case *appsv1.StatefulSet:
+			if err := scaleDownStatefulSet(ctx, cli, obj); err != nil {
+				return fmt.Errorf("error scaling down statefulset %s: %w", obj.Name, err)
+			}
+		default:
+			gvk := obj.GetObjectKind().GroupVersionKind()
+			return fmt.Errorf("pods controlled by a %s are not supported", gvk.Kind)
+		}
+	}
+	return nil
+}
+
+// scaleDownDeployment scales down a deployment to 0 replicas.
+func scaleDownDeployment(ctx context.Context, cli client.Client, dep *appsv1.Deployment) error {
+	log.Printf("Scaling down deployment %s/%s", dep.Namespace, dep.Name)
+	replicas := int32(1)
+	if dep.Spec.Replicas != nil {
+		replicas = *dep.Spec.Replicas
+	}
+	if dep.Annotations == nil {
+		dep.Annotations = map[string]string{}
+	}
+	if _, ok := dep.Annotations[pvmigrateScaleDownAnnotation]; !ok {
+		dep.Annotations[pvmigrateScaleDownAnnotation] = fmt.Sprintf("%d", replicas)
+	}
+	dep.Spec.Replicas = pointer.Int32(0)
+	log.Printf("scaling down deployment %s/%s", dep.Namespace, dep.Name)
+	if err := cli.Update(ctx, dep); err != nil {
+		return fmt.Errorf("error scaling down deployment %s/%s: %w", dep.Namespace, dep.Name, err)
+	}
+	return nil
+}
+
+// scaleDownStatefulSet scales down a statefulset to 0 replicas.
+func scaleDownStatefulSet(ctx context.Context, cli client.Client, sset *appsv1.StatefulSet) error {
+	log.Printf("Scaling down statefulset %s/%s", sset.Namespace, sset.Name)
+	replicas := int32(1)
+	if sset.Spec.Replicas != nil {
+		replicas = *sset.Spec.Replicas
+	}
+	if sset.Annotations == nil {
+		sset.Annotations = map[string]string{}
+	}
+	if _, ok := sset.Annotations[pvmigrateScaleDownAnnotation]; !ok {
+		sset.Annotations[pvmigrateScaleDownAnnotation] = fmt.Sprintf("%d", replicas)
+	}
+	sset.Spec.Replicas = pointer.Int32(0)
+	log.Printf("scaling down statefulset %s/%s", sset.Namespace, sset.Name)
+	if err := cli.Update(ctx, sset); err != nil {
+		return fmt.Errorf("failed to scale statefulset %s/%s: %w", sset.Namespace, sset.Name, err)
+	}
+	return nil
+}
+
+// getObjectsUsingLonghorn returns all objects that use Longhorn volumes. Only deployments, statefulsets,
+// and replicasets are supported (as those are the only types supported by pvmigrate).
+func getObjectsUsingLonghorn(ctx context.Context, cli client.Client) ([]client.Object, error) {
+	pods, err := getPodsUsingLonghorn(ctx, cli)
+	if err != nil {
+		return nil, fmt.Errorf("error getting pods using longhorn: %w", err)
+	}
+	seen := map[string]bool{}
+	var objects []client.Object
+	for _, pod := range pods {
+		if len(pod.OwnerReferences) == 0 {
+			return nil, fmt.Errorf(
+				"pod %s in %s did not have any owners!\nPlease delete it before retrying",
+				pod.Name, pod.Namespace,
+			)
+		}
+		for _, owner := range pod.OwnerReferences {
+			objIndex := fmt.Sprintf("%s/%s/%s", owner.Kind, pod.Namespace, owner.Name)
+			if _, ok := seen[objIndex]; ok {
+				continue
+			}
+			seen[objIndex] = true
+			obj, err := getOwnerObject(ctx, cli, pod.Namespace, owner)
+			if err != nil {
+				return nil, fmt.Errorf("error getting owner object for pod %s/%s: %w", pod.Namespace, pod.Name, err)
+			}
+			objects = append(objects, obj)
+		}
+	}
+	return objects, nil
+}
+
+// getOwnerObject returns the object referred by the provided owner reference. Only deployments, statefulsets,
+// and replicasets are supported (as those are the only types supported by pvmigrate).
+func getOwnerObject(ctx context.Context, cli client.Client, namespace string, owner metav1.OwnerReference) (client.Object, error) {
+	switch owner.Kind {
+	case "StatefulSet":
+		nsn := types.NamespacedName{Namespace: namespace, Name: owner.Name}
+		var sset appsv1.StatefulSet
+		if err := cli.Get(ctx, nsn, &sset); err != nil {
+			return nil, fmt.Errorf("error getting statefulset %s: %w", nsn, err)
+		}
+		return &sset, nil
+	case "ReplicaSet":
+		nsn := types.NamespacedName{Namespace: namespace, Name: owner.Name}
+		var rset appsv1.ReplicaSet
+		if err := cli.Get(ctx, nsn, &rset); err != nil {
+			return nil, fmt.Errorf("error getting replicaset %s: %w", nsn, err)
+		}
+		if len(rset.OwnerReferences) != 1 {
+			return nil, fmt.Errorf(
+				"expected 1 owner for replicaset %s in %s, found %d instead",
+				owner.Name, namespace, len(rset.OwnerReferences),
+			)
+		}
+		if rset.OwnerReferences[0].Kind != "Deployment" {
+			return nil, fmt.Errorf(
+				"expected replicaset %s in %s to have a deployment as owner, found %s instead",
+				owner.Name, namespace, rset.OwnerReferences[0].Kind,
+			)
+		}
+		nsn = types.NamespacedName{Namespace: namespace, Name: rset.OwnerReferences[0].Name}
+		var deployment appsv1.Deployment
+		if err := cli.Get(ctx, nsn, &deployment); err != nil {
+			return nil, fmt.Errorf("error getting deployment %s: %w", nsn, err)
+		}
+		return &deployment, nil
+	default:
+		return nil, fmt.Errorf(
+			"scaling pods controlled by a %s is not supported, please delete the pods controlled by "+
+				"%s in %s before retrying", owner.Kind, owner.Kind, namespace,
+		)
+	}
+}
+
+// getPodsUsingLonghorn returns all pods that mount Longhorn volumes.
+func getPodsUsingLonghorn(ctx context.Context, cli client.Client) ([]corev1.Pod, error) {
+	pvcs, err := getLonghornPersistenVolumeClaims(ctx, cli)
+	if err != nil {
+		return nil, fmt.Errorf("error getting longhorn persistent volume claims: %w", err)
+	}
+	var pods corev1.PodList
+	if err := cli.List(ctx, &pods); err != nil {
+		return nil, fmt.Errorf("error listing pods: %w", err)
+	}
+	var podsUsingLonghorn []corev1.Pod
+	for _, pvc := range pvcs {
+		for _, pod := range pods.Items {
+			if k8sutil.PodHasPVC(pod, pvc.Namespace, pvc.Name) {
+				podsUsingLonghorn = append(podsUsingLonghorn, pod)
+			}
+		}
+	}
+	return podsUsingLonghorn, nil
+}
+
+// getLonghornPersistenVolumeClaims returns all persistent volume claims that are claiming Longhorn volumes.
+func getLonghornPersistenVolumeClaims(ctx context.Context, cli client.Client) ([]corev1.PersistentVolumeClaim, error) {
+	pvs, err := getLonghornPersistenVolumes(ctx, cli)
+	if err != nil {
+		return nil, fmt.Errorf("error getting longhorn persistent volumes: %w", err)
+	}
+	var pvcs []corev1.PersistentVolumeClaim
+	for _, pv := range pvs {
+		if pv.Spec.ClaimRef == nil {
+			return nil, fmt.Errorf("pv %s does not have an associated pvc, resolve this before rerunning", pv.Name)
+		}
+		nsn := types.NamespacedName{Namespace: pv.Spec.ClaimRef.Namespace, Name: pv.Spec.ClaimRef.Name}
+		var pvc corev1.PersistentVolumeClaim
+		if err := cli.Get(ctx, nsn, &pvc); err != nil {
+			return nil, fmt.Errorf("error getting persistent volume claim %s: %w", nsn, err)
+		}
+		pvcs = append(pvcs, pvc)
+	}
+	return pvcs, nil
+}
+
+// getLonghornPersistenVolumes returns all persistent volumes that are backed by Longhorn.
+func getLonghornPersistenVolumes(ctx context.Context, cli client.Client) ([]corev1.PersistentVolume, error) {
+	storageClasses, err := getLonghornStorageClasses(ctx, cli)
+	if err != nil {
+		return nil, fmt.Errorf("error getting longhorn storage classes: %w", err)
+	}
+	var allPVs corev1.PersistentVolumeList
+	if err := cli.List(ctx, &allPVs); err != nil {
+		return nil, fmt.Errorf("error listing persistent volumes: %w", err)
+	}
+	var longhornPVs []corev1.PersistentVolume
+	for _, pv := range allPVs.Items {
+		for _, storageClass := range storageClasses {
+			if pv.Spec.StorageClassName == storageClass.Name {
+				longhornPVs = append(longhornPVs, pv)
+			}
+		}
+	}
+	return longhornPVs, nil
+}
+
+// getLonghornStorageClasses returns all storage classes that use the Longhorn provisioner.
+func getLonghornStorageClasses(ctx context.Context, cli client.Client) ([]storagev1.StorageClass, error) {
+	var storageClasses storagev1.StorageClassList
+	if err := cli.List(ctx, &storageClasses); err != nil {
+		return nil, fmt.Errorf("error listing storage classes: %w", err)
+	}
+	var longhornStorageClasses []storagev1.StorageClass
+	for _, storageClass := range storageClasses.Items {
+		if strings.Contains(storageClass.Provisioner, "longhorn") {
+			longhornStorageClasses = append(longhornStorageClasses, storageClass)
+		}
+	}
+	return longhornStorageClasses, nil
 }
 
 // scaleDownReplicas scales down the number of replicas for all volumes to 1. Returns a bool indicating if any
