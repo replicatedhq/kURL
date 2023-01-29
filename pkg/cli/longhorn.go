@@ -15,7 +15,9 @@ import (
 	storagev1 "k8s.io/api/storage/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/utils/pointer"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
@@ -24,7 +26,7 @@ import (
 )
 
 var (
-	scaleDownReplicasWaitTime = 2 * time.Minute
+	scaleDownReplicasWaitTime = 5 * time.Minute
 )
 
 const (
@@ -95,7 +97,7 @@ func NewLonghornPrepareForMigration(_ CLI) *cobra.Command {
 		Short:        "Prepares Longhorn for migration to a different storage provisioner.",
 		SilenceUsage: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			log.Print("Preparing Longhorn deployment for migration.")
+			log.Print("Preparing Longhorn for migration.")
 			cli, err := client.New(config.GetConfigOrDie(), client.Options{})
 			if err != nil {
 				return fmt.Errorf("error creating client: %s", err)
@@ -149,11 +151,70 @@ func NewLonghornPrepareForMigration(_ CLI) *cobra.Command {
 			log.Print("All Longhorn volumes and nodes are healthy, ready for migration.")
 
 			if err := scaleDownPodsUsingLonghorn(cmd.Context(), cli); err != nil {
+				if err := scaleUpPodsUsingLonghorn(context.Background(), cli); err != nil {
+					log.Printf("Error scaling up pods using Longhorn: %s", err)
+				}
 				return fmt.Errorf("error scaling down pods using longhorn volumes: %s", err)
 			}
 			return nil
 		},
 	}
+}
+
+// scaleUpPodsUsingLonghorn scales up any deployment or statefulset that has been previously
+// scaled down by scaleDownPodsUsingLonghorn. uses the default annotation used by pvmigrate.
+func scaleUpPodsUsingLonghorn(ctx context.Context, cli client.Client) error {
+	var objects []client.Object
+	var deps appsv1.DeploymentList
+	if err := cli.List(ctx, &deps); err != nil {
+		return fmt.Errorf("error listing longhorn deployments: %s", err)
+	}
+	for _, dep := range deps.Items {
+		if _, ok := dep.Annotations[pvmigrateScaleDownAnnotation]; !ok {
+			continue
+		}
+		replicas, err := strconv.Atoi(dep.Annotations[pvmigrateScaleDownAnnotation])
+		if err != nil {
+			return fmt.Errorf(
+				"error parsing replica count for deployment %s/%s: %s",
+				dep.Namespace, dep.Name, err,
+			)
+		}
+		dep.Spec.Replicas = pointer.Int32(int32(replicas))
+		delete(dep.Annotations, pvmigrateScaleDownAnnotation)
+		objects = append(objects, &dep)
+	}
+
+	var sts appsv1.StatefulSetList
+	if err := cli.List(ctx, &sts); err != nil {
+		return fmt.Errorf("error listing longhorn statefulsets: %s", err)
+	}
+	for _, st := range sts.Items {
+		if _, ok := st.Annotations[pvmigrateScaleDownAnnotation]; !ok {
+			continue
+		}
+		replicas, err := strconv.Atoi(st.Annotations[pvmigrateScaleDownAnnotation])
+		if err != nil {
+			return fmt.Errorf(
+				"error parsing replica count for statefulset %s/%s: %s",
+				st.Namespace, st.Name, err,
+			)
+		}
+		st.Spec.Replicas = pointer.Int32(int32(replicas))
+		delete(st.Annotations, pvmigrateScaleDownAnnotation)
+		objects = append(objects, &st)
+	}
+
+	for _, obj := range objects {
+		kind := strings.ToLower(fmt.Sprintf("%T", obj))
+		if err := cli.Update(ctx, obj); err != nil {
+			return fmt.Errorf(
+				"error scaling up %s %s/%s: %s",
+				kind, obj.GetNamespace(), obj.GetName(), err,
+			)
+		}
+	}
+	return nil
 }
 
 // scaleDownPodsUsingLonghorn scales down all pods using Longhorn volumes.
@@ -164,63 +225,69 @@ func scaleDownPodsUsingLonghorn(ctx context.Context, cli client.Client) error {
 		return fmt.Errorf("error getting objects using longhorn: %w", err)
 	}
 	for _, obj := range objects {
-		switch obj := obj.(type) {
-		case *appsv1.Deployment:
-			if err := scaleDownDeployment(ctx, cli, obj); err != nil {
-				return fmt.Errorf("error scaling down deployment %s: %w", obj.Name, err)
-			}
-		case *appsv1.StatefulSet:
-			if err := scaleDownStatefulSet(ctx, cli, obj); err != nil {
-				return fmt.Errorf("error scaling down statefulset %s: %w", obj.Name, err)
-			}
-		default:
-			gvk := obj.GetObjectKind().GroupVersionKind()
-			return fmt.Errorf("pods controlled by a %s are not supported", gvk.Kind)
+		if err := scaleDownObject(ctx, cli, obj); err != nil {
+			return err
 		}
 	}
 	return nil
 }
 
-// scaleDownDeployment scales down a deployment to 0 replicas.
-func scaleDownDeployment(ctx context.Context, cli client.Client, dep *appsv1.Deployment) error {
-	log.Printf("Scaling down deployment %s/%s", dep.Namespace, dep.Name)
-	replicas := int32(1)
-	if dep.Spec.Replicas != nil {
-		replicas = *dep.Spec.Replicas
-	}
-	if dep.Annotations == nil {
-		dep.Annotations = map[string]string{}
-	}
-	if _, ok := dep.Annotations[pvmigrateScaleDownAnnotation]; !ok {
-		dep.Annotations[pvmigrateScaleDownAnnotation] = fmt.Sprintf("%d", replicas)
-	}
-	dep.Spec.Replicas = pointer.Int32(0)
-	log.Printf("scaling down deployment %s/%s", dep.Namespace, dep.Name)
-	if err := cli.Update(ctx, dep); err != nil {
-		return fmt.Errorf("error scaling down deployment %s/%s: %w", dep.Namespace, dep.Name, err)
-	}
-	return nil
+// waitForPodsToBeScaledDown waits for all pods using matching the provided selector to dissapear in the provided
+// namespace.
+func waitForPodsToBeScaledDown(ctx context.Context, cli client.Client, ns string, sel labels.Selector) error {
+	return wait.PollImmediate(3*time.Second, 5*time.Minute, func() (bool, error) {
+		var pods corev1.PodList
+		opts := []client.ListOption{
+			client.InNamespace(ns),
+			client.MatchingLabelsSelector{Selector: sel},
+		}
+		if err := cli.List(ctx, &pods, opts...); err != nil {
+			return false, fmt.Errorf("error listing pods: %w", err)
+		}
+		if len(pods.Items) > 0 {
+			log.Printf("%d pods found, waiting for them to be scaled down.", len(pods.Items))
+			return false, nil
+		}
+		return true, nil
+	})
 }
 
-// scaleDownStatefulSet scales down a statefulset to 0 replicas.
-func scaleDownStatefulSet(ctx context.Context, cli client.Client, sset *appsv1.StatefulSet) error {
-	log.Printf("Scaling down statefulset %s/%s", sset.Namespace, sset.Name)
-	replicas := int32(1)
-	if sset.Spec.Replicas != nil {
-		replicas = *sset.Spec.Replicas
+// scaleDownObject scales down a deployment or a statefulset to 0 replicas.
+func scaleDownObject(ctx context.Context, cli client.Client, obj client.Object) error {
+	kind := strings.ToLower(obj.GetObjectKind().GroupVersionKind().Kind)
+	log.Printf("Scaling down %s %s/%s", kind, obj.GetNamespace(), obj.GetName())
+
+	selector := labels.NewSelector()
+	replicas := pointer.Int32Ptr(0)
+	switch concrete := obj.(type) {
+	case *appsv1.Deployment:
+		replicas = concrete.Spec.Replicas
+		concrete.Spec.Replicas = pointer.Int32Ptr(0)
+		selector = labels.SelectorFromSet(concrete.Spec.Selector.MatchLabels)
+	case *appsv1.StatefulSet:
+		replicas = concrete.Spec.Replicas
+		concrete.Spec.Replicas = pointer.Int32Ptr(0)
+		selector = labels.SelectorFromSet(concrete.Spec.Selector.MatchLabels)
+	default:
+		return fmt.Errorf("unsupported object type %T", obj)
 	}
-	if sset.Annotations == nil {
-		sset.Annotations = map[string]string{}
+
+	annotations := obj.GetAnnotations()
+	if annotations == nil {
+		annotations = map[string]string{}
 	}
-	if _, ok := sset.Annotations[pvmigrateScaleDownAnnotation]; !ok {
-		sset.Annotations[pvmigrateScaleDownAnnotation] = fmt.Sprintf("%d", replicas)
+	annotations[pvmigrateScaleDownAnnotation] = fmt.Sprintf("%d", *replicas)
+	obj.SetAnnotations(annotations)
+
+	if err := cli.Update(ctx, obj); err != nil {
+		return fmt.Errorf(
+			"error scaling down %s %s/%s: %w",
+			kind, obj.GetNamespace(), obj.GetName(), err,
+		)
 	}
-	sset.Spec.Replicas = pointer.Int32(0)
-	log.Printf("scaling down statefulset %s/%s", sset.Namespace, sset.Name)
-	if err := cli.Update(ctx, sset); err != nil {
-		return fmt.Errorf("failed to scale statefulset %s/%s: %w", sset.Namespace, sset.Name, err)
-	}
-	return nil
+
+	log.Printf("Waiting for pods to be scaled down...")
+	return waitForPodsToBeScaledDown(ctx, cli, obj.GetNamespace(), selector)
 }
 
 // getObjectsUsingLonghorn returns all objects that use Longhorn volumes. Only deployments, statefulsets,
