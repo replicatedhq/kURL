@@ -20,7 +20,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 
-	"github.com/fatih/color"
 	lhv1b1 "github.com/longhorn/longhorn-manager/k8s/pkg/apis/longhorn/v1beta1"
 	promv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	"github.com/spf13/cobra"
@@ -28,11 +27,12 @@ import (
 	"github.com/replicatedhq/kurl/pkg/k8sutil"
 )
 
-var (
-	scaleDownReplicasWaitTime = time.Minute
-)
+var scaleDownReplicasWaitTime = time.Minute
 
 const (
+	prometheusNamespace          = "monitoring"
+	prometheusName               = "k8s"
+	ekcoNamespace                = "kurl"
 	pvmigrateScaleDownAnnotation = "kurl.sh/pvcmigrate-scale"
 	longhornNamespace            = "longhorn-system"
 	overProvisioningSetting      = "storage-over-provisioning-percentage"
@@ -54,15 +54,16 @@ func NewLonghornCmd(cli CLI) *cobra.Command {
 func NewLonghornRollbackMigrationReplicas(_ CLI) *cobra.Command {
 	return &cobra.Command{
 		Use:          "rollback-migration-replicas",
-		Short:        "Rollback Longhorn volume replicas to their original value.",
+		Short:        "Rollback Longhorn Volumes, Deployments, and StetefulSet replicas to their original value.",
 		SilenceUsage: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			log.Print(color.GreenString("Rolling back Longhorn volume replicas to their original value."))
+			log.Print("Rolling back Longhorn volume replicas to their original value.")
 			cli, err := client.New(config.GetConfigOrDie(), client.Options{})
 			if err != nil {
 				return fmt.Errorf("error creating client: %s", err)
 			}
 			lhv1b1.AddToScheme(cli.Scheme())
+			promv1.AddToScheme(cli.Scheme())
 
 			var l1b1Volumes lhv1b1.VolumeList
 			if err := cli.List(cmd.Context(), &l1b1Volumes, client.InNamespace(longhornNamespace)); err != nil {
@@ -87,7 +88,7 @@ func NewLonghornRollbackMigrationReplicas(_ CLI) *cobra.Command {
 					return fmt.Errorf("error rolling back volume %s replicas: %w", volume.Name, err)
 				}
 			}
-			log.Print(color.GreenString("Longhorn volumes have been rolled back to their original replica count."))
+			log.Print("Longhorn volumes have been rolled back to their original replica count.")
 
 			if err := scaleUpPodsUsingLonghorn(context.Background(), cli); err != nil {
 				return fmt.Errorf("error scaling up pods using longhorn: %s", err)
@@ -103,7 +104,7 @@ func NewLonghornPrepareForMigration(_ CLI) *cobra.Command {
 		Short:        "Prepares Longhorn for migration to a different storage provisioner.",
 		SilenceUsage: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			log.Print(color.GreenString("Preparing Longhorn for migration to a different storage provisioner."))
+			log.Print("Preparing Longhorn for migration to a different storage provisioner.")
 			cli, err := client.New(config.GetConfigOrDie(), client.Options{})
 			if err != nil {
 				return fmt.Errorf("error creating client: %s", err)
@@ -116,7 +117,7 @@ func NewLonghornPrepareForMigration(_ CLI) *cobra.Command {
 			if err := cli.List(cmd.Context(), &nodes); err != nil {
 				return fmt.Errorf("error listing kubernetes nodes: %s", err)
 			} else if len(nodes.Items) == 1 {
-				log.Print(color.YellowString("Only one node found, scaling down the number of Longhorn volume replicas to 1."))
+				log.Print("Only one node found, scaling down the number of Longhorn volume replicas to 1.")
 				if scaledDown, err = scaleDownReplicas(cmd.Context(), cli); err != nil {
 					return fmt.Errorf("error scaling down longhorn replicas: %s", err)
 				}
@@ -128,7 +129,7 @@ func NewLonghornPrepareForMigration(_ CLI) *cobra.Command {
 			}
 
 			if len(unhealthy) > 0 {
-				log.Print(color.RedString("The following Longhorn volumes are unhealthy:"))
+				log.Print("The following Longhorn volumes are unhealthy:")
 				for _, vol := range unhealthy {
 					log.Printf(" - %s/%s", longhornNamespace, vol)
 				}
@@ -141,7 +142,7 @@ func NewLonghornPrepareForMigration(_ CLI) *cobra.Command {
 			}
 
 			if len(unhealthy) > 0 {
-				log.Print(color.RedString("The following Longhorn nodes are unhealthy:"))
+				log.Print("The following Longhorn nodes are unhealthy:")
 				for _, node := range unhealthy {
 					log.Printf(" - %s", node)
 				}
@@ -149,21 +150,18 @@ func NewLonghornPrepareForMigration(_ CLI) *cobra.Command {
 			}
 
 			if scaledDown {
-				log.Printf(color.YellowString("Storage volumes have been scaled down to 1 replica for the migration."))
-				log.Printf(color.YellowString("If necessary, you can scale them back up to the original value with:"))
+				log.Printf("Storage volumes have been scaled down to 1 replica for the migration.")
+				log.Printf("If necessary, you can scale them back up to the original value with:")
 				log.Printf("")
 				log.Printf("$ kurl longhorn rollback-migration-replicas")
 				log.Printf("")
 			}
-			log.Print(color.GreenString("All Longhorn volumes and nodes are healthy."))
+			log.Print("All Longhorn volumes and nodes are healthy.")
 
 			if err := scaleDownPodsUsingLonghorn(cmd.Context(), cli); err != nil {
-				if err := scaleUpPodsUsingLonghorn(context.Background(), cli); err != nil {
-					log.Print(color.RedString("Error scaling up pods using Longhorn: %s", err))
-				}
 				return fmt.Errorf("error scaling down pods using longhorn volumes: %s", err)
 			}
-			log.Print(color.GreenString("Environment is ready for the Longhorn migration."))
+			log.Print("Environment is ready for the Longhorn migration.")
 			return nil
 		},
 	}
@@ -175,8 +173,11 @@ func scaleUpPodsUsingLonghorn(ctx context.Context, cli client.Client) error {
 	if err := scaleEkco(ctx, cli, 1); err != nil {
 		return fmt.Errorf("error scaling ekco operator back up: %w", err)
 	}
+	if err := scalePrometheus(ctx, cli, 2); err != nil {
+		return fmt.Errorf("error scaling prometheus back up: %w", err)
+	}
 
-	log.Print(color.GreenString("Scaling up pods using Longhorn volumes."))
+	log.Print("Scaling up pods using Longhorn volumes.")
 	var deps appsv1.DeploymentList
 	if err := cli.List(ctx, &deps); err != nil {
 		return fmt.Errorf("error listing longhorn deployments: %s", err)
@@ -217,7 +218,7 @@ func scaleUpPodsUsingLonghorn(ctx context.Context, cli client.Client) error {
 		}
 	}
 
-	log.Print(color.GreenString("Pods using Longhorn volumes have been scaled up."))
+	log.Print("Pods using Longhorn volumes have been scaled up.")
 	return nil
 }
 
@@ -227,7 +228,7 @@ func scaleDownPodsUsingLonghorn(ctx context.Context, cli client.Client) error {
 	if err := scaleEkco(ctx, cli, 0); err != nil {
 		return fmt.Errorf("error scaling down ekco operator: %w", err)
 	}
-	if err := scaleDownPrometheus(ctx, cli); err != nil {
+	if err := scalePrometheus(ctx, cli, 0); err != nil {
 		return fmt.Errorf("error scaling down prometheus: %w", err)
 	}
 	objects, err := getObjectsUsingLonghorn(ctx, cli)
@@ -239,31 +240,54 @@ func scaleDownPodsUsingLonghorn(ctx context.Context, cli client.Client) error {
 			return err
 		}
 	}
-	log.Print(color.GreenString("Pods using Longhorn volumes have been scaled down."))
+	log.Print("Pods using Longhorn volumes have been scaled down.")
 	return nil
 }
 
-// scaleDownPrometheus scales down prometheus machinery so it does not interfere when we try to scale down
-// prometheus statefulset.
-func scaleDownPrometheus(ctx context.Context, cli client.Client) error {
-	nsn := types.NamespacedName{Namespace: "monitoring", Name: "k8s"}
-	var prometheus promv1.Prometheus
-	if err := cli.Get(ctx, nsn, &prometheus); err != nil {
-		if errors.IsNotFound(err) {
-			return nil
+// scalePrometheus scales dprometheus machinery.
+func scalePrometheus(ctx context.Context, cli client.Client, replicas int32) error {
+	return wait.PollImmediate(time.Second, 2*time.Minute, func() (bool, error) {
+		nsn := types.NamespacedName{Namespace: prometheusNamespace, Name: prometheusName}
+		var prometheus promv1.Prometheus
+		if err := cli.Get(ctx, nsn, &prometheus); err != nil {
+			if errors.IsNotFound(err) {
+				return true, nil
+			}
+			return false, fmt.Errorf("error getting prometheus: %w", err)
 		}
-		return fmt.Errorf("error getting prometheus: %w", err)
-	}
-	prometheus.Spec.Replicas = pointer.Int32(0)
-	if err := cli.Update(ctx, &prometheus); err != nil {
-		return fmt.Errorf("error scaling down prometheus: %w", err)
-	}
-	return nil
+		prometheus.Spec.Replicas = &replicas
+		if err := cli.Update(ctx, &prometheus); err != nil {
+			if errors.IsConflict(err) {
+				return false, nil
+			}
+			return false, fmt.Errorf("error scaling down prometheus: %w", err)
+		}
+
+		nsn = types.NamespacedName{Namespace: prometheusNamespace, Name: "prometheus-k8s"}
+		var st appsv1.StatefulSet
+		if err := cli.Get(ctx, nsn, &st); err != nil {
+			return false, fmt.Errorf("error getting prometheus statefulset: %w", err)
+		}
+
+		if st.Status.Replicas != replicas || st.Status.UpdatedReplicas != replicas {
+			return false, nil
+		}
+		if replicas != 0 {
+			return true, nil
+		}
+
+		log.Print("Waiting for prometheus StatefulSet to scale down.")
+		selector := labels.SelectorFromSet(st.Spec.Selector.MatchLabels)
+		if err := waitForPodsToBeScaledDown(ctx, cli, ekcoNamespace, selector); err != nil {
+			return false, fmt.Errorf("error waiting for prometheus to scale down: %w", err)
+		}
+		return true, nil
+	})
 }
 
 // scaleEkco scales ekco operator to the number of provided replicas.
 func scaleEkco(ctx context.Context, cli client.Client, replicas int32) error {
-	nsn := types.NamespacedName{Namespace: "kurl", Name: "ekc-operator"}
+	nsn := types.NamespacedName{Namespace: ekcoNamespace, Name: "ekc-operator"}
 	var dep appsv1.Deployment
 	if err := cli.Get(ctx, nsn, &dep); err != nil {
 		if errors.IsNotFound(err) {
@@ -278,9 +302,9 @@ func scaleEkco(ctx context.Context, cli client.Client, replicas int32) error {
 	if replicas != 0 {
 		return nil
 	}
-	log.Print(color.CyanString("Waiting for ekco operator to scale down."))
+	log.Print("Waiting for ekco operator to scale down.")
 	if err := waitForPodsToBeScaledDown(
-		ctx, cli, "kurl", labels.SelectorFromSet(dep.Spec.Selector.MatchLabels),
+		ctx, cli, ekcoNamespace, labels.SelectorFromSet(dep.Spec.Selector.MatchLabels),
 	); err != nil {
 		return fmt.Errorf("error waiting for ekco operator to scale down: %w", err)
 	}
@@ -311,7 +335,7 @@ func waitForPodsToBeScaledDown(ctx context.Context, cli client.Client, ns string
 // scaleDownObject scales down a deployment or a statefulset to 0 replicas.
 func scaleDownObject(ctx context.Context, cli client.Client, obj client.Object) error {
 	kind := strings.ToLower(fmt.Sprintf("%T", obj))
-	log.Printf(color.CyanString("Scaling down %s %s/%s", kind, obj.GetNamespace(), obj.GetName()))
+	log.Printf("Scaling down %s %s/%s", kind, obj.GetNamespace(), obj.GetName())
 
 	selector := labels.NewSelector()
 	replicas := pointer.Int32Ptr(0)
@@ -547,7 +571,7 @@ func scaleDownReplicas(ctx context.Context, cli client.Client) (bool, error) {
 		}
 	}
 
-	log.Print(color.CyanString("Waiting %v for Longhorn volume replicas to scale down.", scaleDownReplicasWaitTime))
+	log.Printf("Waiting %v for Longhorn volume replicas to scale down.", scaleDownReplicasWaitTime)
 	time.Sleep(scaleDownReplicasWaitTime)
 	return true, nil
 }
