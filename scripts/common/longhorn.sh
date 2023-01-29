@@ -195,3 +195,19 @@ function remove_longhorn() {
 
     logSuccess "Removed Longhorn successfully"
 }
+
+# longhorn_prepare_for_migration checks if longhorn is healthy and if it is, it will scale down the all pods mounting
+# longhorn volumes. if a failure happen during the preparation fase the migration won't be executed and the user will
+# receive a message to restore the cluster to its previous state.
+function longhorn_prepare_for_migration() {
+    if "$DIR"/bin/kurl longhorn prepare-for-migration; then
+        return 0
+    fi
+    logFail "Preparation for longhorn migration failed. Please review the preceding messages for further details."
+    logFail "During the preparation for Longhorn, some replicas may have been scaled down to 0. Would you like to"
+    logFail "restore the system to its original state?"
+    if confirmY; then
+        "$DIR"/bin/kurl longhorn rollback-migration-replicas
+    fi
+    return 1
+}
