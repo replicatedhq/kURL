@@ -704,6 +704,10 @@ sbom: sbom/assets/kurl-sbom.tgz
 	cosign sign-blob -key ./cosign.key sbom/assets/kurl-sbom.tgz > ./sbom/assets/kurl-sbom.tgz.sig
 	cosign public-key -key ./cosign.key -outfile ./sbom/assets/key.pub
 
+# To push a release for an specific commit you need to do it manually. Following an example to do a release for 1a4249df
+# git tag -a -m "Release v2023.01.30-0" v2023.01.30-0 1a4249df
+# git push origin v2023.01.30-0
+
 .PHONY: tag-and-release
 tag-and-release: ## Create tags and release
 	@./bin/tag-and-release.sh
