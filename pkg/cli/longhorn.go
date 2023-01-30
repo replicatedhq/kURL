@@ -27,12 +27,14 @@ import (
 	"github.com/replicatedhq/kurl/pkg/k8sutil"
 )
 
-var scaleDownReplicasWaitTime = time.Minute
+var scaleDownReplicasWaitTime = 5 * time.Minute
 
 const (
 	prometheusNamespace          = "monitoring"
 	prometheusName               = "k8s"
+	prometheusStatefulSetName    = "prometheus-k8s"
 	ekcoNamespace                = "kurl"
+	ekcoDeploymentName           = "ekc-operator"
 	pvmigrateScaleDownAnnotation = "kurl.sh/pvcmigrate-scale"
 	longhornNamespace            = "longhorn-system"
 	overProvisioningSetting      = "storage-over-provisioning-percentage"
@@ -263,7 +265,7 @@ func scalePrometheus(ctx context.Context, cli client.Client, replicas int32) err
 			return false, fmt.Errorf("error scaling down prometheus: %w", err)
 		}
 
-		nsn = types.NamespacedName{Namespace: prometheusNamespace, Name: "prometheus-k8s"}
+		nsn = types.NamespacedName{Namespace: prometheusNamespace, Name: prometheusStatefulSetName}
 		var st appsv1.StatefulSet
 		if err := cli.Get(ctx, nsn, &st); err != nil {
 			return false, fmt.Errorf("error getting prometheus statefulset: %w", err)
@@ -287,7 +289,7 @@ func scalePrometheus(ctx context.Context, cli client.Client, replicas int32) err
 
 // scaleEkco scales ekco operator to the number of provided replicas.
 func scaleEkco(ctx context.Context, cli client.Client, replicas int32) error {
-	nsn := types.NamespacedName{Namespace: ekcoNamespace, Name: "ekc-operator"}
+	nsn := types.NamespacedName{Namespace: ekcoNamespace, Name: ekcoDeploymentName}
 	var dep appsv1.Deployment
 	if err := cli.Get(ctx, nsn, &dep); err != nil {
 		if errors.IsNotFound(err) {
