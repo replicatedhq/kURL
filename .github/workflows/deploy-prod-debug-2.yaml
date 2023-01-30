@@ -1,4 +1,4 @@
-name: deploy-production-debug
+name: deploy-production-debug-2
 
 on:
   push:
@@ -15,6 +15,7 @@ jobs:
     - name: Verify version tag
       run: |
         echo "$GITHUB_REF_NAME"
+
   kurl-util-image:
     runs-on: ubuntu-20.04
     needs:
@@ -28,6 +29,7 @@ jobs:
     - run: |
         echo "Fake building kurl util image"
         sleep 60
+
   build-go-bins-matrix:
     runs-on: ubuntu-20.04
     needs:
@@ -36,6 +38,7 @@ jobs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
     - uses: actions/checkout@v3
+
     - id: set-matrix
       name: Build image matrix
       run: |
@@ -45,6 +48,7 @@ jobs:
         export FILTER_GO_BINS_ONLY="1"
         OUTPUT=`bin/list-all-packages-actions-matrix.sh "${{ github.event.inputs.index }}"`
         echo "matrix=$OUTPUT" >> $GITHUB_OUTPUT
+
   build-upload-packages:
     runs-on: ubuntu-20.04
     needs:
@@ -60,10 +64,16 @@ jobs:
     - uses: actions/setup-go@v3
       with:
         go-version: 1.19
+    - name: setup env
+      id: env
+      run: |
+        echo "GOPATH=$(go env GOPATH)" >> $GITHUB_ENV
+        echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
+      shell: bash
+
     - name: build and upload packages
       run: |
-        echo "Building and uploading ${{matrix.batch}}"
-        sleep 10
+        echo "Build and upload: ${{ matrix.batch }}"
       env:
         S3_BUCKET: kurl-sh
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_PROD_ACCESS_KEY_ID }}
@@ -145,8 +155,11 @@ jobs:
         fetch-depth: 0
     - name: Copy packages to Prod
       run: |
-        echo "${{needs.build-stage-packages-matrix.outputs.package}}"
-        echo "fromJSON=${{ fromJSON(needs.build-stage-packages-matrix.outputs.package) }}"
+        VERSION_TAG=$GITHUB_REF_NAME
+        batch="${{ matrix.batch }}"
+        for pkg in ${batch}; do
+          echo "aws s3 cp: ${pkg}"
+        done
       env:
         S3_BUCKET: kurl-sh
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_PROD_ACCESS_KEY_ID }}
@@ -155,3 +168,87 @@ jobs:
         PACKAGE_PREFIX: "dist"
         STAGING_PREFIX: "staging"
         STAGING_RELEASE: ${{ needs.get-staging-release.outputs.staging_release }}
+
+  generate-kurl-release-notes-pr:
+    runs-on: ubuntu-20.04
+    needs:
+    - set-current-version
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Generate kURL Release Notes PR
+      env:
+        GH_PAT: ${{ secrets.AUTOMATED_PR_GH_PAT }}
+      run: |
+        echo "Not generating kurl release note PR"
+
+  github-release:
+    runs-on: ubuntu-20.04
+    needs:
+    - set-current-version
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    # Node and Go are needed by the SBOM generator
+    - uses: actions/setup-node@v3
+      with:
+        node-version: '14'
+
+    - name: setup-go
+      uses: actions/setup-go@v3
+      with:
+        go-version: 1.19
+
+    - name: Get the version
+      id: get_tag
+      shell: bash
+      run: echo ::set-output name=GIT_TAG::${GITHUB_REF/refs\/tags\//}
+
+    - name: Generate Changelog
+      run: |
+        echo "NOT GENERATING CHANGELOG - THIS IS A TEST"
+
+  set-current-version:
+    runs-on: ubuntu-20.04
+    needs:
+    - build-upload-packages
+    - copy-stage-packages-to-prod
+    steps:
+    - name: Set VERSION file in s3
+      run: |
+        echo "VERSION_FILE=$GITHUB_REF_NAME"
+      env:
+        S3_BUCKET: kurl-sh
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_PROD_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_PROD_SECRET_ACCESS_KEY }}
+        AWS_DEFAULT_REGION: "us-east-1"
+        DIST_FOLDER: "dist"
+
+  testgrid-run:
+    runs-on: ubuntu-20.04
+    needs:
+    - set-current-version
+    steps:
+
+    - name: Sleep for 3 minutes
+      uses: juliangruber/sleep-action@v1
+      with:
+        time: "3m"
+
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Get the version
+      id: get_tag
+      shell: bash
+      run: echo ::set-output name=GIT_TAG::${GITHUB_REF/refs\/tags\//}
+
+    - name: Tgrun Queue
+      id: queue
+      env:
+        TESTGRID_API_TOKEN: ${{ secrets.TESTGRID_PROD_API_TOKEN }}
+        GIT_TAG: ${{ steps.get_tag.outputs.GIT_TAG }}
+      run: |
+        echo "NO EXECUTING TESTGRID BECAUSE THIS IS A TEST"
