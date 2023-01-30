@@ -133,6 +133,10 @@ jobs:
     needs:
      - get-staging-release
      - build-stage-packages-matrix
+    strategy:
+      matrix: ${{ fromJSON(needs.build-stage-packages-matrix.outputs.package) }}
+      fail-fast: false
+      max-parallel: 20
     steps:
     - uses: actions/checkout@v3
       with:
