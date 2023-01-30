@@ -6,8 +6,107 @@ on:
     - rafaelpolanco/sc-66950/fix-copy-stage-packages-to-prod-matrix
 
 jobs:
+  verify-tag:
+    runs-on: ubuntu-20.04
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Verify version tag
+      run: |
+        echo "$GITHUB_REF_NAME"
+  kurl-util-image:
+    runs-on: ubuntu-20.04
+    needs:
+    - verify-tag
+    steps:
+    - uses: actions/checkout@v3
+    - uses: docker/login-action@v2
+      with:
+        username: ${{ secrets.DOCKERHUB_USER }}
+        password: ${{ secrets.DOCKERHUB_PASSWORD }}
+    - run: |
+        echo "Fake building kurl util image"
+  build-go-bins-matrix:
+    runs-on: ubuntu-20.04
+    needs:
+    - kurl-util-image
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+    - uses: actions/checkout@v3
+    - id: set-matrix
+      name: Build image matrix
+      run: |
+        export VERSION_TAG=$GITHUB_REF_NAME
+        export KURL_UTIL_IMAGE=replicated/kurl-util:${VERSION_TAG}
+        export KURL_BIN_UTILS_FILE=kurl-bin-utils-${VERSION_TAG}.tar.gz
+        export FILTER_GO_BINS_ONLY="1"
+        OUTPUT=`bin/list-all-packages-actions-matrix.sh "${{ github.event.inputs.index }}"`
+        echo "matrix=$OUTPUT" >> $GITHUB_OUTPUT
+  build-upload-packages:
+    runs-on: ubuntu-20.04
+    needs:
+    - build-go-bins-matrix
+    strategy:
+      matrix: ${{fromJSON(needs.build-go-bins-matrix.outputs.matrix)}}
+      fail-fast: false
+      max-parallel: 20
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+    - uses: actions/setup-go@v3
+      with:
+        go-version: 1.19
+    - name: build and upload packages
+      run: |
+        echo "Building and uploading ${{matrix.batch}}"
+      env:
+        S3_BUCKET: kurl-sh
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_PROD_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_PROD_SECRET_ACCESS_KEY }}
+        AWS_REGION: "us-east-1"
+
+  get-staging-release:
+    runs-on: ubuntu-20.04
+    needs:
+    - verify-tag
+    outputs:
+      staging_release: ${{ steps.get_staging_release.outputs.staging_release }}
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+    - name: find corresponding staging release for commit
+      id: get_staging_release
+      run: |
+        echo "staging_release=v2023.01.23-0-1a4249df" >> $GITHUB_OUTPUT
+      env:
+        S3_BUCKET: kurl-sh
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_PROD_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_PROD_SECRET_ACCESS_KEY }}
+        AWS_REGION: "us-east-1"
+        STAGING_PREFIX: "staging"
+
+  verify-staging-release-testgrid-result:
+    runs-on: ubuntu-20.04
+    needs:
+    - get-staging-release
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+    - name: Verify Testgrid Run
+      run: |
+        echo "bin/verify-testgrid-run.sh"
+      env:
+        STAGING_RELEASE: ${{ needs.get-staging-release.outputs.staging_release }}
+
   build-stage-packages-matrix:
     runs-on: ubuntu-22.04
+    needs:
+     - get-staging-release
+     - verify-staging-release-testgrid-result
     outputs:
       package: ${{ steps.set-matrix.outputs.package }}
     steps:
@@ -27,11 +126,12 @@ jobs:
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_PROD_SECRET_ACCESS_KEY }}
         AWS_REGION: "us-east-1"
         STAGING_PREFIX: "staging"
-        STAGING_RELEASE: "v2023.01.23-0-1a4249df"
+        STAGING_RELEASE: ${{ needs.get-staging-release.outputs.staging_release }}
 
   copy-stage-packages-to-prod:
     runs-on: ubuntu-22.04
     needs:
+     - get-staging-release
      - build-stage-packages-matrix
     steps:
     - uses: actions/checkout@v3
@@ -40,7 +140,7 @@ jobs:
     - name: Copy packages to Prod
       run: |
         echo "${{needs.build-stage-packages-matrix.outputs.package}}"
-        echo "${{ fromJSON(needs.build-stage-packages-matrix.outputs.package) }}"
+        echo "fromJSON=${{ fromJSON(needs.build-stage-packages-matrix.outputs.package) }}"
       env:
         S3_BUCKET: kurl-sh
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_PROD_ACCESS_KEY_ID }}
@@ -48,4 +148,4 @@ jobs:
         AWS_REGION: "us-east-1"
         PACKAGE_PREFIX: "dist"
         STAGING_PREFIX: "staging"
-        STAGING_RELEASE: "v2023.01.23-0-1a4249df"
+        STAGING_RELEASE: ${{ needs.get-staging-release.outputs.staging_release }}
