@@ -135,7 +135,7 @@ jobs:
      - get-staging-release
      - verify-staging-release-testgrid-result
     outputs:
-      package: ${{ steps.set-matrix.output.package }}
+      package: ${{ steps.set-matrix.outputs.package }}
     steps:
     - uses: actions/checkout@v3
       with:
