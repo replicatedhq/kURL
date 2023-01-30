@@ -9,7 +9,7 @@ jobs:
   build-stage-packages-matrix:
     runs-on: ubuntu-22.04
     outputs:
-      package: ${{ steps.set-matrix.output.package }}
+      package: ${{ steps.set-matrix.outputs.package }}
     steps:
     - uses: actions/checkout@v3
       with:
