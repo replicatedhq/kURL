@@ -27,6 +27,7 @@ jobs:
         password: ${{ secrets.DOCKERHUB_PASSWORD }}
     - run: |
         echo "Fake building kurl util image"
+        sleep 60
   build-go-bins-matrix:
     runs-on: ubuntu-20.04
     needs:
@@ -62,6 +63,7 @@ jobs:
     - name: build and upload packages
       run: |
         echo "Building and uploading ${{matrix.batch}}"
+        sleep 10
       env:
         S3_BUCKET: kurl-sh
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_PROD_ACCESS_KEY_ID }}
