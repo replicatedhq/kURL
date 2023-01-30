@@ -313,7 +313,7 @@ func scaleEkco(ctx context.Context, cli client.Client, replicas int32) error {
 	return nil
 }
 
-// waitForPodsToBeScaledDown waits for all pods using matching the provided selector to dissapear in the provided
+// waitForPodsToBeScaledDown waits for all pods using matching the provided selector to disappear in the provided
 // namespace.
 func waitForPodsToBeScaledDown(ctx context.Context, cli client.Client, ns string, sel labels.Selector) error {
 	// return wait.PollImmediate(3*time.Second, 5*time.Minute, func() (bool, error) {
@@ -339,16 +339,16 @@ func scaleDownObject(ctx context.Context, cli client.Client, obj client.Object) 
 	kind := strings.ToLower(fmt.Sprintf("%T", obj))
 	log.Printf("Scaling down %s %s/%s", kind, obj.GetNamespace(), obj.GetName())
 
-	selector := labels.NewSelector()
-	replicas := pointer.Int32Ptr(0)
+	var selector labels.Selector
+	replicas := pointer.Int32(0)
 	switch concrete := obj.(type) {
 	case *appsv1.Deployment:
 		replicas = concrete.Spec.Replicas
-		concrete.Spec.Replicas = pointer.Int32Ptr(0)
+		concrete.Spec.Replicas = pointer.Int32(0)
 		selector = labels.SelectorFromSet(concrete.Spec.Selector.MatchLabels)
 	case *appsv1.StatefulSet:
 		replicas = concrete.Spec.Replicas
-		concrete.Spec.Replicas = pointer.Int32Ptr(0)
+		concrete.Spec.Replicas = pointer.Int32(0)
 		selector = labels.SelectorFromSet(concrete.Spec.Selector.MatchLabels)
 	default:
 		return fmt.Errorf("unsupported object type %T", obj)
