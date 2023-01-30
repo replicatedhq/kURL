@@ -340,7 +340,7 @@ func scaleDownObject(ctx context.Context, cli client.Client, obj client.Object) 
 	log.Printf("Scaling down %s %s/%s", kind, obj.GetNamespace(), obj.GetName())
 
 	var selector labels.Selector
-	replicas := pointer.Int32(0)
+	var replicas *int32
 	switch concrete := obj.(type) {
 	case *appsv1.Deployment:
 		replicas = concrete.Spec.Replicas
@@ -352,6 +352,10 @@ func scaleDownObject(ctx context.Context, cli client.Client, obj client.Object) 
 		selector = labels.SelectorFromSet(concrete.Spec.Selector.MatchLabels)
 	default:
 		return fmt.Errorf("unsupported object type %T", obj)
+	}
+
+	if replicas == nil {
+		replicas = pointer.Int32(0)
 	}
 
 	annotations := obj.GetAnnotations()
