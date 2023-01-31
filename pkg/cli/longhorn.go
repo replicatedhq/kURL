@@ -248,43 +248,41 @@ func scaleDownPodsUsingLonghorn(ctx context.Context, cli client.Client) error {
 
 // scalePrometheus scales dprometheus prometheus statefulsets to the number of provided replicas.
 func scalePrometheus(ctx context.Context, cli client.Client, replicas int32) error {
-	return wait.PollImmediate(time.Second, 5*time.Minute, func() (bool, error) {
-		nsn := types.NamespacedName{Namespace: prometheusNamespace, Name: prometheusName}
-		var prometheus promv1.Prometheus
-		if err := cli.Get(ctx, nsn, &prometheus); err != nil {
-			if errors.IsNotFound(err) {
-				return true, nil
-			}
-			return false, fmt.Errorf("error getting prometheus: %w", err)
+	nsn := types.NamespacedName{Namespace: prometheusNamespace, Name: prometheusName}
+	var prometheus promv1.Prometheus
+	if err := cli.Get(ctx, nsn, &prometheus); err != nil {
+		if errors.IsNotFound(err) {
+			return nil
 		}
-		prometheus.Spec.Replicas = &replicas
-		if err := cli.Update(ctx, &prometheus); err != nil {
-			if errors.IsConflict(err) {
-				return false, nil
-			}
-			return false, fmt.Errorf("error scaling prometheus: %w", err)
-		}
+		return fmt.Errorf("error getting prometheus: %w", err)
+	}
 
+	rawPatch := []byte(fmt.Sprintf(`{"spec":{"replicas":%d}}`, replicas))
+	if err := cli.Patch(ctx, &prometheus, client.RawPatch(types.MergePatchType, rawPatch)); err != nil {
+		return fmt.Errorf("error scaling prometheus: %w", err)
+	}
+
+	var st appsv1.StatefulSet
+	if err := wait.PollImmediate(3*time.Second, 5*time.Minute, func() (bool, error) {
 		nsn = types.NamespacedName{Namespace: prometheusNamespace, Name: prometheusStatefulSetName}
-		var st appsv1.StatefulSet
 		if err := cli.Get(ctx, nsn, &st); err != nil {
 			return false, fmt.Errorf("error getting prometheus statefulset: %w", err)
 		}
+		return st.Status.Replicas == replicas && st.Status.UpdatedReplicas == replicas, nil
+	}); err != nil {
+		return fmt.Errorf("error waiting for prometheus statefulset to scale: %w", err)
+	}
 
-		if st.Status.Replicas != replicas || st.Status.UpdatedReplicas != replicas {
-			return false, nil
-		}
-		if replicas != 0 {
-			return true, nil
-		}
+	if replicas != 0 {
+		return nil
+	}
 
-		log.Print("Waiting for prometheus StatefulSet to scale down.")
-		selector := labels.SelectorFromSet(st.Spec.Selector.MatchLabels)
-		if err := waitForPodsToBeScaledDown(ctx, cli, ekcoNamespace, selector); err != nil {
-			return false, fmt.Errorf("error waiting for prometheus to scale down: %w", err)
-		}
-		return true, nil
-	})
+	log.Print("Waiting for prometheus StatefulSet to scale down.")
+	selector := labels.SelectorFromSet(st.Spec.Selector.MatchLabels)
+	if err := waitForPodsToBeScaledDown(ctx, cli, ekcoNamespace, selector); err != nil {
+		return fmt.Errorf("error waiting for prometheus to scale down: %w", err)
+	}
+	return nil
 }
 
 // scaleEkco scales ekco operator to the number of provided replicas.
