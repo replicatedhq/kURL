@@ -101,7 +101,7 @@ function rookupgrade_10to14_upgrade() {
             if [ -n "${rook_versions}" ] && [ "$(echo "${rook_versions}" | wc -l)" -gt "1" ]; then
                 logWarn "Detected multiple Rook versions"
                 logWarn "${rook_versions}"
-                logWarn "Failed to verify the Rook upgrade, multiple Rook versions detected"
+                bail "Failed to verify the Rook upgrade, multiple Rook versions detected"
             fi
         fi
 
@@ -159,7 +159,7 @@ function rookupgrade_10to14_upgrade() {
             if [ -n "${rook_versions}" ] && [ "$(echo "${rook_versions}" | wc -l)" -gt "1" ]; then
                 logWarn "Detected multiple Rook versions"
                 logWarn "${rook_versions}"
-                logWarn "Failed to verify the Rook upgrade, multiple Rook versions detected"
+                bail "Failed to verify the Rook upgrade, multiple Rook versions detected"
             fi
         fi
 
@@ -203,7 +203,7 @@ function rookupgrade_10to14_upgrade() {
             if [ -n "${rook_versions}" ] && [ "$(echo "${rook_versions}" | wc -l)" -gt "1" ]; then
                 logWarn "Detected multiple Rook versions"
                 logWarn "${rook_versions}"
-                logWarn "Failed to verify the Rook upgrade, multiple Rook versions detected"
+                bail "Failed to verify the Rook upgrade, multiple Rook versions detected"
             fi
         fi
 
@@ -240,7 +240,7 @@ function rookupgrade_10to14_upgrade() {
             if [ -n "${rook_versions}" ] && [ "$(echo "${rook_versions}" | wc -l)" -gt "1" ]; then
                 logWarn "Detected multiple Rook versions"
                 logWarn "${rook_versions}"
-                logWarn "Failed to verify the Rook upgrade, multiple Rook versions detected"
+                bail "Failed to verify the Rook upgrade, multiple Rook versions detected"
             fi
         fi
 
