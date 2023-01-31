@@ -262,8 +262,16 @@ function rook_cluster_deploy_upgrade() {
     # 4. https://rook.io/docs/rook/v1.6/ceph-upgrade.html#4-wait-for-the-upgrade-to-complete
     echo "Awaiting rook-ceph operator"
     if ! "$DIR"/bin/kurl rook wait-for-rook-version "$ROOK_VERSION" --timeout=1200 ; then
-        logWarn "Rook version not yet rolled out"
+        logWarn "Timeout waiting for Rook version rolled out"
+        logStep "Checking Rook versions and replicas"
         kubectl -n rook-ceph get deployment -l rook_cluster=rook-ceph -o jsonpath='{range .items[*]}{.metadata.name}{"  \treq/upd/avl: "}{.spec.replicas}{"/"}{.status.updatedReplicas}{"/"}{.status.readyReplicas}{"  \trook-version="}{.metadata.labels.rook-version}{"\n"}{end}'
+        local rook_versions=
+        rook_versions="$(kubectl -n rook-ceph get deployment -l rook_cluster=rook-ceph -o jsonpath='{range .items[*]}{"rook-version="}{.metadata.labels.rook-version}{"\n"}{end}' | sort | uniq)"
+        if [ -n "${rook_versions}" ] && [ "$(echo "${rook_versions}" | wc -l)" -gt "1" ]; then
+            logWarn "Detected multiple Rook versions"
+            logWarn "${rook_versions}"
+            logWarn "Failed to verify the Rook upgrade, multiple Rook versions detected"
+        fi
     fi
 
     # 5. https://rook.io/docs/rook/v1.6/ceph-upgrade.html#5-verify-the-updated-cluster
