@@ -2,6 +2,7 @@ package cli
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"strconv"
@@ -175,7 +176,7 @@ func scaleUpPodsUsingLonghorn(ctx context.Context, cli client.Client) error {
 	if err := scaleEkco(ctx, cli, 1); err != nil {
 		return fmt.Errorf("error scaling ekco operator back up: %w", err)
 	}
-	if err := scalePrometheus(ctx, cli, 2); err != nil {
+	if err := scaleUpPrometheus(ctx, cli); err != nil {
 		return fmt.Errorf("error scaling prometheus back up: %w", err)
 	}
 
@@ -230,7 +231,7 @@ func scaleDownPodsUsingLonghorn(ctx context.Context, cli client.Client) error {
 	if err := scaleEkco(ctx, cli, 0); err != nil {
 		return fmt.Errorf("error scaling down ekco operator: %w", err)
 	}
-	if err := scalePrometheus(ctx, cli, 0); err != nil {
+	if err := scaleDownPrometheus(ctx, cli); err != nil {
 		return fmt.Errorf("error scaling down prometheus: %w", err)
 	}
 	objects, err := getObjectsUsingLonghorn(ctx, cli)
@@ -246,8 +247,8 @@ func scaleDownPodsUsingLonghorn(ctx context.Context, cli client.Client) error {
 	return nil
 }
 
-// scalePrometheus scales dprometheus prometheus statefulsets to the number of provided replicas.
-func scalePrometheus(ctx context.Context, cli client.Client, replicas int32) error {
+// scaleDownPrometheus scales down prometheus.
+func scaleDownPrometheus(ctx context.Context, cli client.Client) error {
 	nsn := types.NamespacedName{Namespace: prometheusNamespace, Name: prometheusName}
 	var prometheus promv1.Prometheus
 	if err := cli.Get(ctx, nsn, &prometheus); err != nil {
@@ -257,7 +258,27 @@ func scalePrometheus(ctx context.Context, cli client.Client, replicas int32) err
 		return fmt.Errorf("error getting prometheus: %w", err)
 	}
 
-	rawPatch := []byte(fmt.Sprintf(`{"spec":{"replicas":%d}}`, replicas))
+	patch := map[string]interface{}{
+		"spec": map[string]interface{}{
+			"replicas": 0,
+		},
+	}
+	if _, ok := prometheus.Annotations[pvmigrateScaleDownAnnotation]; !ok {
+		promReplicas := int32(0)
+		if prometheus.Spec.Replicas != nil {
+			promReplicas = *prometheus.Spec.Replicas
+		}
+		patch["metadata"] = map[string]interface{}{
+			"annotations": map[string]string{
+				pvmigrateScaleDownAnnotation: fmt.Sprintf("%d", promReplicas),
+			},
+		}
+	}
+
+	rawPatch, err := json.Marshal(patch)
+	if err != nil {
+		return fmt.Errorf("error creating prometheus patch: %w", err)
+	}
 	if err := cli.Patch(ctx, &prometheus, client.RawPatch(types.MergePatchType, rawPatch)); err != nil {
 		return fmt.Errorf("error scaling prometheus: %w", err)
 	}
@@ -268,19 +289,53 @@ func scalePrometheus(ctx context.Context, cli client.Client, replicas int32) err
 		if err := cli.Get(ctx, nsn, &st); err != nil {
 			return false, fmt.Errorf("error getting prometheus statefulset: %w", err)
 		}
-		return st.Status.Replicas == replicas && st.Status.UpdatedReplicas == replicas, nil
+		return st.Status.Replicas == 0 && st.Status.UpdatedReplicas == 0, nil
 	}); err != nil {
 		return fmt.Errorf("error waiting for prometheus statefulset to scale: %w", err)
-	}
-
-	if replicas != 0 {
-		return nil
 	}
 
 	log.Print("Waiting for prometheus StatefulSet to scale down.")
 	selector := labels.SelectorFromSet(st.Spec.Selector.MatchLabels)
 	if err := waitForPodsToBeScaledDown(ctx, cli, ekcoNamespace, selector); err != nil {
 		return fmt.Errorf("error waiting for prometheus to scale down: %w", err)
+	}
+	return nil
+}
+
+// scaleUpPrometheus scales up prometheus.
+func scaleUpPrometheus(ctx context.Context, cli client.Client) error {
+	nsn := types.NamespacedName{Namespace: prometheusNamespace, Name: prometheusName}
+	var prometheus promv1.Prometheus
+	if err := cli.Get(ctx, nsn, &prometheus); err != nil {
+		if errors.IsNotFound(err) {
+			return nil
+		}
+		return fmt.Errorf("error getting prometheus: %w", err)
+	}
+	replicasStr, ok := prometheus.Annotations[pvmigrateScaleDownAnnotation]
+	if !ok {
+		return fmt.Errorf("error reading original replicas from the prometheus annotation: not found")
+	}
+	origReplicas, err := strconv.Atoi(replicasStr)
+	if err != nil {
+		return fmt.Errorf("error converting replicas annotation to integer: %w", err)
+	}
+	patch := map[string]interface{}{
+		"metadata": map[string]interface{}{
+			"annotations": map[string]interface{}{
+				pvmigrateScaleDownAnnotation: nil,
+			},
+		},
+		"spec": map[string]interface{}{
+			"replicas": origReplicas,
+		},
+	}
+	rawPatch, err := json.Marshal(patch)
+	if err != nil {
+		return fmt.Errorf("error creating prometheus patch: %w", err)
+	}
+	if err := cli.Patch(ctx, &prometheus, client.RawPatch(types.MergePatchType, rawPatch)); err != nil {
+		return fmt.Errorf("error scaling prometheus: %w", err)
 	}
 	return nil
 }
