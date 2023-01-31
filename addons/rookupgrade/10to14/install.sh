@@ -101,8 +101,9 @@ function rookupgrade_10to14_upgrade() {
             if [ -n "${rook_versions}" ] && [ "$(echo "${rook_versions}" | wc -l)" -gt "1" ]; then
                 logWarn "Detected multiple Rook versions"
                 logWarn "${rook_versions}"
-                bail "Failed to verify the Rook upgrade, multiple Rook versions detected"
+                logWarn "Failed to verify the Rook upgrade, multiple Rook versions detected"
             fi
+            bail "Failed to verify the Rook upgrade"
         fi
 
         # todo make sure that the RGW isn't getting stuck
@@ -159,8 +160,9 @@ function rookupgrade_10to14_upgrade() {
             if [ -n "${rook_versions}" ] && [ "$(echo "${rook_versions}" | wc -l)" -gt "1" ]; then
                 logWarn "Detected multiple Rook versions"
                 logWarn "${rook_versions}"
-                bail "Failed to verify the Rook upgrade, multiple Rook versions detected"
+                logWarn "Failed to verify the Rook upgrade, multiple Rook versions detected"
             fi
+            bail "Failed to verify the Rook upgrade"
         fi
 
         log "Rook 1.2.7 has been rolled out throughout the cluster"
@@ -203,8 +205,9 @@ function rookupgrade_10to14_upgrade() {
             if [ -n "${rook_versions}" ] && [ "$(echo "${rook_versions}" | wc -l)" -gt "1" ]; then
                 logWarn "Detected multiple Rook versions"
                 logWarn "${rook_versions}"
-                bail "Failed to verify the Rook upgrade, multiple Rook versions detected"
+                logWarn "Failed to verify the Rook upgrade, multiple Rook versions detected"
             fi
+            bail "Failed to verify the Rook upgrade"
         fi
 
         log "Rook 1.3.11 has been rolled out throughout the cluster"
@@ -240,8 +243,10 @@ function rookupgrade_10to14_upgrade() {
             if [ -n "${rook_versions}" ] && [ "$(echo "${rook_versions}" | wc -l)" -gt "1" ]; then
                 logWarn "Detected multiple Rook versions"
                 logWarn "${rook_versions}"
-                bail "Failed to verify the Rook upgrade, multiple Rook versions detected"
+                logWarn "Failed to verify the Rook upgrade, multiple Rook versions detected"
             fi
+            bail "Failed to verify the Rook upgrade"
+
         fi
 
         log "Rook 1.4.9 has been rolled out throughout the cluster"
