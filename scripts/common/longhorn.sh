@@ -216,7 +216,7 @@ function longhorn_prepare_for_migration() {
     logFail "restore the system to its original state?"
     if confirmY; then
         log "Restoring Longhorn replicas to their original state"
-        longhorn_restore_replicas
+        longhorn_restore_migration_replicas
     fi
     return 1
 }
