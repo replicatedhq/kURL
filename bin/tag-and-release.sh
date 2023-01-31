@@ -1,5 +1,15 @@
 #!/bin/bash
 
+# This script generates a tag in the format, <YYYY>.<MM>.<DD>-0, and pushes the tag to origin in
+# order to trigger the deploy-prod workflow.
+# Note: This script is called from the makefile target 'tag-and-release'
+#
+# Usage:
+# Tag HEAD and push tag to remote: './tag-and-release.sh'
+# Tag a particular commit and push tag to remote: './tag-and-release.sh --commit-id=<GITHUB_SHA>'
+# Ignore dirty git tree: './tag-and-release.sh --commit-id=<GITHUB_SHA> --outdated'
+# Create a tag on non main branch: './tag-and-release.sh --commit-id=<GITHUB_SHA> --no-main'
+
 set -euo pipefail
 
 function log() {
