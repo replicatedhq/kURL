@@ -22,6 +22,10 @@ function parse_flags() {
                 outdated="1"
                 shift
                 ;;
+            --commit-id=*)
+                commit_id="${1#*=}"
+                shift
+                ;;
             *)
                 bail "Unknown flag $1"
                 ;;
@@ -82,6 +86,8 @@ function find_next_tag() {
 function main() {
     local no_main=0
     local outdated=0
+    local commit_id=
+    commit_id=$(git rev-parse --short HEAD)
     parse_flags "$@"
 
     git fetch -q
@@ -101,17 +107,17 @@ function main() {
     local tag=
     tag="$(find_next_tag "$previous_tag")"
 
-    echo "Tagging and releasing version $tag ($(git rev-parse --short HEAD)) with commits:"
+    echo "Tagging and releasing version $tag (${commit_id}) with commits:"
     echo ""
 
-    git log --pretty=oneline "$previous_tag"...HEAD
+    git log --pretty=oneline "$previous_tag"..."${commit_id}"
     echo ""
 
     local confirm=
     echo -n "Are you sure? [yes/N] " && read -r confirm && [ "${confirm:-N}" = "yes" ]
     echo ""
 
-    (set -x; git tag -a -m "Release $tag" "$tag" && git push origin "$tag")
+    (set -x; git tag -a -m "Release $tag" "$tag" "${commit_id}" && git push origin "$tag")
 }
 
 main "$@"
