@@ -1,3 +1,4 @@
+#!/bin/bash
 
 ADDONS_HAVE_HOST_COMPONENTS=0
 function addon_install() {
@@ -162,6 +163,121 @@ function addon_fetch_cache() {
     # rm $archiveName
 }
 
+# addon_fetch_airgap checks if the files are already present - if they are, use that
+# if they are not, prompt the user to provide them
+# if the user does not provide the files, bail
+function addon_fetch_airgap() {
+    local name=$1
+    local version=$2
+    local package_name="$name-$version.tar.gz"
+    local package_path=
+    package_path="$(package_filepath "$package_name")"
+
+    if [ -f "$package_path" ]; then
+        # the package already exists, no need to download it
+        printf "The package %s %s is already available locally.\n" "$name" "$version"
+    else
+        # prompt the user to give us the package
+        printf "The package %s %s is not available locally, and is required.\n" "$name" "$version"
+        printf "\nYou can download it with the following command:\n"
+        printf "\n${GREEN}    curl -LO %s${NC}\n\n" "$(get_dist_url)/$package_name"
+
+        addon_fetch_airgap_prompt_for_package "$package_name"
+    fi
+
+    printf "Unpacking %s %s...\n" "$name" "$version"
+    tar xf "$package_path"
+
+    addon_source "$name" "$version"
+}
+
+# addon_fetch_multiple_airgap checks if the files are already present - if they are, use that
+# if they are not, prompt the user to provide them as a single package
+# if the user does not provide the files, bail
+function addon_fetch_multiple_airgap() {
+    local addon_versions=( "$@" )
+    local missing_addon_versions=()
+    for addon_version in "${addon_versions[@]}"; do
+        local name=, version=
+        name=$(echo "$addon_version" | cut -d- -f1)
+        version=$(echo "$addon_version" | cut -d- -f2)
+        local package_name="$name-$version.tar.gz"
+        if [ -f "$(package_filepath "$package_name")" ]; then
+            # the package already exists, no need to download it
+            printf "The package %s %s is already available locally.\n" "$name" "$version"
+        else
+            # the package does not exist, add it to the list of missing packages
+            missing_addon_versions+=("$addon_version")
+        fi
+    done
+
+    if [ "${#missing_addon_versions[@]}" -gt 0 ]; then
+        local package_list=
+        package_list=$(printf ",%s" "${missing_addon_versions[@]}") # join with commas
+        package_list="${package_list:1}"
+        local package_name="$package_list.tar.gz"
+        local package_path=
+        package_path="$(package_filepath "$package_name")"
+
+        if [ -f "$package_path" ]; then
+            # the package already exists, no need to download it
+            printf "The package %s is already available locally.\n" "$package_name"
+        else
+            local bundle_url="$KURL_URL/bundle"
+            if [ -n "$KURL_VERSION" ]; then
+                bundle_url="$bundle_url/version/$KURL_VERSION"
+            fi
+            bundle_url="$bundle_url/$INSTALLER_ID/packages/$package_name"
+
+            printf "The following packages are not available locally, and are required:\n"
+            # prompt the user to give us the packages
+            for addon_version in "${missing_addon_versions[@]}"; do
+                printf "    %s\n" "$addon_version.tar.gz"
+            done
+            printf "\nYou can download them with the following command:\n"
+            printf "\n${GREEN}    curl -LO %s${NC}\n\n" "$bundle_url"
+
+            addon_fetch_airgap_prompt_for_package "$package_name"
+        fi
+
+        printf "Unpacking %s...\n" "$package_name"
+        if ! tar xf "$package_path" ; then
+            bail "Failed to unpack $package_name"
+        fi
+
+        # do not source the addon here as we are loading multiple addons that may conflict
+    fi
+}
+
+# addon_fetch_airgap_prompt_for_package prompts the user do download a package
+function addon_fetch_airgap_prompt_for_package() {
+    local package_name="$1"
+    local package_path=
+    package_path=$(package_filepath "$package_name")
+
+    if ! prompts_can_prompt; then
+        # we can't ask the user to give us the file because there are no prompts, but we can say where to put it for a future run
+        bail "Please move this file to $KURL_INSTALL_DIRECTORY/$package_path before rerunning the installer."
+    fi
+
+    printf "Please provide the path to the file on the server.\n"
+    printf "Absolute path to file: "
+    prompt
+    if [ -n "$PROMPT_RESULT" ]; then
+        local loaded_package_path="$PROMPT_RESULT"
+        if [ ! -f "$loaded_package_path" ]; then
+            bail "The file $loaded_package_path does not exist."
+        fi
+        mkdir -p "$(dirname "$package_path")"
+        log "Copying $loaded_package_path to $package_path"
+        cp "$loaded_package_path" "$package_path"
+    else
+        logFail "Package $package_name not provided."
+        logFail "You can provide the path to this file the next time the installer is run,"
+        bail "or move it to $KURL_INSTALL_DIRECTORY/$package_path to be detected automatically.\n"
+    fi
+}
+
 function addon_outro() {
     if [ -n "$PROXY_ADDRESS" ]; then
         ADDONS_HAVE_HOST_COMPONENTS=1
@@ -246,59 +362,6 @@ function addon_set_has_been_applied() {
     else
         kubectl patch configmaps -n kurl kurl-current-config --type merge -p "{\"data\":{\"addons-$name\":\"$current\"}}"
     fi
-}
-
-# check if the files are already present - if they are, use that
-# if they are not, prompt the user to provide them
-# if the user does not provide the files, return 1
-function addon_fetch_airgap() {
-    local name=$1
-    local version=$2
-    local package="$name-$version.tar.gz"
-    local package_path=
-    package_path="$(package_filepath "$package")"
-
-    if [ -f "$package_path" ]; then
-        # the package already exists, no need to download it
-        printf "The package %s %s is already available locally.\n" "$name" "$version"
-    else
-        # prompt the user to give us the package
-        printf "The package %s %s is not available locally, and is required.\n" "$name" "$version"
-        printf "You can download it from %s with the following command:\n" "$(get_dist_url)/${package}"
-        printf "\n${GREEN}    curl -LO %s${NC}\n\n" "$(get_dist_url)/${package}"
-
-        if ! prompts_can_prompt; then
-            # we can't ask the user to give us the file because there are no prompts, but we can say where to put it for a future run
-            printf "Please move this file to /var/lib/kurl/%s before rerunning the installer.\n" "$package_path"
-            return 1
-        fi
-
-        printf "If you have this file, please provide the path to the file on the server.\n"
-        printf "If you do not have the file, leave the prompt empty and this package will be skipped.\n"
-        printf "%s %s filepath: " "$name" "$version"
-        prompt
-        if [ -n "$PROMPT_RESULT" ]; then
-            local loadedPackagePath="$PROMPT_RESULT"
-            if [ ! -f "$loadedPackagePath" ]; then
-                logFail "The file $loadedPackagePath does not exist."
-                return 1
-            fi
-            mkdir -p "$(dirname "$package_path")"
-            cp "$loadedPackagePath" "$package_path"
-        else
-            printf "Skipping package %s %s\n" "$name" "$version"
-            printf "You can provide the path to this file the next time the installer is run,"
-            printf "or move it to %s to be detected automatically.\n" "$package_path"
-            return 1
-        fi
-    fi
-
-    printf "Unpacking %s %s...\n" "$name" "$version"
-    tar xf "$(package_filepath "${package}")"
-
-    addon_source "$name" "$version"
-
-    return 0
 }
 
 function addon_source() {

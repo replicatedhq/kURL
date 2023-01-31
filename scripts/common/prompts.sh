@@ -17,7 +17,11 @@ function prompt() {
     fi
 
     set +e
-    read PROMPT_RESULT < /dev/tty
+    if [ -z ${TEST_PROMPT_RESULT+x} ]; then
+        read PROMPT_RESULT < /dev/tty
+    else
+        PROMPT_RESULT="$TEST_PROMPT_RESULT"
+    fi
     set -e
 }
 
