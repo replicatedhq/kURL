@@ -286,13 +286,11 @@
       version: latest
     kotsadm:
       version: latest
-- name: "Airgap upgrade from k8s 1.23 to 1.25, and from Docker to Containerd"
+- name: "Migrate from Docker to Containerd and Kubernetes from 1.23 to 1.25 airgap"
   installerSpec:
     kubernetes:
       version: 1.23.x
-    kurl:
-      installerVersion: ""
-    flannel:
+    weave: # flannel has errors with dns and docker
       version: latest
     openebs:
       version: latest
@@ -301,15 +299,17 @@
     minio:
       version: latest
     ekco:
+      version: latest
+    registry:
+      version: latest
+    kotsadm:
       version: latest
     docker:
       version: latest
   upgradeSpec:
     kubernetes:
       version: 1.25.x
-    kurl:
-      installerVersion: ""
-    flannel:
+    weave: # flannel has errors with dns and docker
       version: latest
     openebs:
       version: latest
@@ -318,6 +318,10 @@
     minio:
       version: latest
     ekco:
+      version: latest
+    registry:
+      version: latest
+    kotsadm:
       version: latest
     containerd:
       version: latest

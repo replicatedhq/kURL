@@ -900,73 +900,111 @@
   airgap: true
   unsupportedOSIDs:
   - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
-- name: "Migrate from Docker to Containerd"
+- name: "Migrate from Docker to Containerd and Kubernetes from 1.23 to 1.25"
   installerSpec:
     kubernetes:
       version: 1.23.x
-    flannel:
+    weave: # flannel has errors with dns and docker
       version: latest
-    longhorn:
+    openebs:
       version: latest
-    registry:
+      isLocalPVEnabled: true
+      localPVStorageClassName: default
+    minio:
       version: latest
     ekco:
       version: latest
+    registry:
+      version: latest
     kotsadm:
       version: latest
-      disableS3: true
     docker:
       version: latest
   upgradeSpec:
     kubernetes:
-      version: 1.23.x
-    flannel:
+      version: 1.25.x
+    weave: # flannel has errors with dns and docker
       version: latest
-    longhorn:
+    openebs:
       version: latest
-    registry:
+      isLocalPVEnabled: true
+      localPVStorageClassName: default
+    minio:
       version: latest
     ekco:
       version: latest
+    registry:
+      version: latest
     kotsadm:
       version: latest
-      disableS3: true
     containerd:
       version: latest
-- name: "Migrate from Docker to Containerd airgap"
+  postInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    minio_object_store_info
+    validate_read_write_object_store rwtest testfile.txt
+    echo "Checking kubectl with kube/config"
+    echo "Kubeconfig was $KUBECONFIG"
+    unset KUBECONFIG
+    kubectl get namespaces
+  postUpgradeScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    minio_object_store_info
+    validate_testfile rwtest testfile.txt
+    validate_read_write_object_store postupgrade upgradefile.txt
+- name: "Migrate from Docker to Containerd and Kubernetes from 1.23 to 1.25 airgap"
   installerSpec:
     kubernetes:
       version: 1.23.x
-    flannel:
+    weave: # flannel has errors with dns and docker
       version: latest
-    longhorn:
+    openebs:
       version: latest
-    registry:
+      isLocalPVEnabled: true
+      localPVStorageClassName: default
+    minio:
       version: latest
     ekco:
       version: latest
+    registry:
+      version: latest
     kotsadm:
       version: latest
-      disableS3: true
     docker:
       version: latest
   upgradeSpec:
     kubernetes:
-      version: 1.23.x
-    flannel:
+      version: 1.25.x
+    weave: # flannel has errors with dns and docker
       version: latest
-    longhorn:
+    openebs:
       version: latest
-    registry:
+      isLocalPVEnabled: true
+      localPVStorageClassName: default
+    minio:
       version: latest
     ekco:
       version: latest
+    registry:
+      version: latest
     kotsadm:
       version: latest
-      disableS3: true
     containerd:
       version: latest
   airgap: true
+  postInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    minio_object_store_info
+    validate_read_write_object_store rwtest testfile.txt
+    echo "Checking kubectl with kube/config"
+    echo "Kubeconfig was $KUBECONFIG"
+    unset KUBECONFIG
+    kubectl get namespaces
+  postUpgradeScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    minio_object_store_info
+    validate_testfile rwtest testfile.txt
+    validate_read_write_object_store postupgrade upgradefile.txt
 - name: "K8s 1.24x Rook"
   cpu: 6
   installerSpec:
@@ -1712,45 +1750,6 @@
     kubernetes:
       version: 1.25.x
     flannel:
-      version: latest
-    containerd:
-      version: latest
-- name: "Migrate from Docker to Containerd and Kubernetes from 1.23 to 1.25"
-  installerSpec:
-    kubernetes:
-      version: 1.23.x
-    flannel:
-      version: latest
-    openebs:
-      version: latest
-      isLocalPVEnabled: true
-      localPVStorageClassName: default
-    minio:
-      version: latest
-    registry:
-      version: latest
-    ekco:
-      version: latest
-    kotsadm:
-      version: latest
-    docker:
-      version: latest
-  upgradeSpec:
-    kubernetes:
-      version: 1.25.x
-    flannel:
-      version: latest
-    openebs:
-      version: latest
-      isLocalPVEnabled: true
-      localPVStorageClassName: default
-    minio:
-      version: latest
-    registry:
-      version: latest
-    ekco:
-      version: latest
-    kotsadm:
       version: latest
     containerd:
       version: latest
