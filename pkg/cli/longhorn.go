@@ -93,7 +93,7 @@ func NewLonghornRollbackMigrationReplicas(_ CLI) *cobra.Command {
 			log.Print("Longhorn volumes have been rolled back to their original replica count.")
 
 			if err := scaleUpPodsUsingLonghorn(context.Background(), cli); err != nil {
-				return fmt.Errorf("error scaling up pods using longhorn: %s", err)
+				return fmt.Errorf("error scaling up pods using longhorn: %w", err)
 			}
 			return nil
 		},
