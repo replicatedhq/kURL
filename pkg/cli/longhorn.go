@@ -262,7 +262,7 @@ func scalePrometheus(ctx context.Context, cli client.Client, replicas int32) err
 			if errors.IsConflict(err) {
 				return false, nil
 			}
-			return false, fmt.Errorf("error scaling down prometheus: %w", err)
+			return false, fmt.Errorf("error scaling prometheus: %w", err)
 		}
 
 		nsn = types.NamespacedName{Namespace: prometheusNamespace, Name: prometheusStatefulSetName}
