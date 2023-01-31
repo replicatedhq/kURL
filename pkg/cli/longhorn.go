@@ -161,7 +161,7 @@ func NewLonghornPrepareForMigration(_ CLI) *cobra.Command {
 			log.Print("All Longhorn volumes and nodes are healthy.")
 
 			if err := scaleDownPodsUsingLonghorn(cmd.Context(), cli); err != nil {
-				return fmt.Errorf("error scaling down pods using longhorn volumes: %s", err)
+				return fmt.Errorf("error scaling down pods using longhorn volumes: %w", err)
 			}
 			log.Print("Environment is ready for the Longhorn migration.")
 			return nil
@@ -182,7 +182,7 @@ func scaleUpPodsUsingLonghorn(ctx context.Context, cli client.Client) error {
 	log.Print("Scaling up pods using Longhorn volumes.")
 	var deps appsv1.DeploymentList
 	if err := cli.List(ctx, &deps); err != nil {
-		return fmt.Errorf("error listing longhorn deployments: %s", err)
+		return fmt.Errorf("error listing longhorn deployments: %w", err)
 	}
 	for _, dep := range deps.Items {
 		if _, ok := dep.Annotations[pvmigrateScaleDownAnnotation]; !ok {
@@ -190,19 +190,19 @@ func scaleUpPodsUsingLonghorn(ctx context.Context, cli client.Client) error {
 		}
 		replicas, err := strconv.Atoi(dep.Annotations[pvmigrateScaleDownAnnotation])
 		if err != nil {
-			return fmt.Errorf("error parsing replica count for deployment %s/%s: %s", dep.Namespace, dep.Name, err)
+			return fmt.Errorf("error parsing replica count for deployment %s/%s: %w", dep.Namespace, dep.Name, err)
 		}
 		dep.Spec.Replicas = pointer.Int32(int32(replicas))
 		delete(dep.Annotations, pvmigrateScaleDownAnnotation)
 		log.Printf("Scaling up deployment %s/%s", dep.Namespace, dep.Name)
 		if err := cli.Update(ctx, &dep); err != nil {
-			return fmt.Errorf("error scaling up deployment %s/%s: %s", dep.Namespace, dep.Name, err)
+			return fmt.Errorf("error scaling up deployment %s/%s: %w", dep.Namespace, dep.Name, err)
 		}
 	}
 
 	var sts appsv1.StatefulSetList
 	if err := cli.List(ctx, &sts); err != nil {
-		return fmt.Errorf("error listing longhorn statefulsets: %s", err)
+		return fmt.Errorf("error listing longhorn statefulsets: %w", err)
 	}
 	for _, st := range sts.Items {
 		if _, ok := st.Annotations[pvmigrateScaleDownAnnotation]; !ok {
@@ -210,13 +210,13 @@ func scaleUpPodsUsingLonghorn(ctx context.Context, cli client.Client) error {
 		}
 		replicas, err := strconv.Atoi(st.Annotations[pvmigrateScaleDownAnnotation])
 		if err != nil {
-			return fmt.Errorf("error parsing replica count for statefulset %s/%s: %s", st.Namespace, st.Name, err)
+			return fmt.Errorf("error parsing replica count for statefulset %s/%s: %w", st.Namespace, st.Name, err)
 		}
 		st.Spec.Replicas = pointer.Int32(int32(replicas))
 		delete(st.Annotations, pvmigrateScaleDownAnnotation)
 		log.Printf("Scaling up statefulset %s/%s", st.Namespace, st.Name)
 		if err := cli.Update(ctx, &st); err != nil {
-			return fmt.Errorf("error scaling up statefulset %s/%s: %s", st.Namespace, st.Name, err)
+			return fmt.Errorf("error scaling up statefulset %s/%s: %w", st.Namespace, st.Name, err)
 		}
 	}
 
@@ -246,9 +246,9 @@ func scaleDownPodsUsingLonghorn(ctx context.Context, cli client.Client) error {
 	return nil
 }
 
-// scalePrometheus scales dprometheus machinery.
+// scalePrometheus scales dprometheus prometheus statefulsets to the number of provided replicas.
 func scalePrometheus(ctx context.Context, cli client.Client, replicas int32) error {
-	return wait.PollImmediate(time.Second, 2*time.Minute, func() (bool, error) {
+	return wait.PollImmediate(time.Second, 5*time.Minute, func() (bool, error) {
 		nsn := types.NamespacedName{Namespace: prometheusNamespace, Name: prometheusName}
 		var prometheus promv1.Prometheus
 		if err := cli.Get(ctx, nsn, &prometheus); err != nil {
@@ -316,8 +316,7 @@ func scaleEkco(ctx context.Context, cli client.Client, replicas int32) error {
 // waitForPodsToBeScaledDown waits for all pods using matching the provided selector to disappear in the provided
 // namespace.
 func waitForPodsToBeScaledDown(ctx context.Context, cli client.Client, ns string, sel labels.Selector) error {
-	// return wait.PollImmediate(3*time.Second, 5*time.Minute, func() (bool, error) {
-	return wait.PollImmediate(3*time.Second, 30*time.Second, func() (bool, error) {
+	return wait.PollImmediate(3*time.Second, 5*time.Minute, func() (bool, error) {
 		var pods corev1.PodList
 		opts := []client.ListOption{
 			client.InNamespace(ns),
@@ -383,27 +382,17 @@ func getObjectsUsingLonghorn(ctx context.Context, cli client.Client) ([]client.O
 	if err != nil {
 		return nil, fmt.Errorf("error getting pods using longhorn: %w", err)
 	}
-	seen := map[string]bool{}
 	var objects []client.Object
 	for _, pod := range pods {
-		if len(pod.OwnerReferences) == 0 {
-			return nil, fmt.Errorf(
-				"pod %s in %s did not have any owners!\nPlease delete it before retrying",
-				pod.Name, pod.Namespace,
-			)
+		ctrl := metav1.GetControllerOf(&pod)
+		if ctrl == nil {
+			return nil, fmt.Errorf("pod %s/%s has no owners and can't be migrated", pod.Name, pod.Namespace)
 		}
-		for _, owner := range pod.OwnerReferences {
-			objIndex := fmt.Sprintf("%s/%s/%s", owner.Kind, pod.Namespace, owner.Name)
-			if _, ok := seen[objIndex]; ok {
-				continue
-			}
-			seen[objIndex] = true
-			obj, err := getOwnerObject(ctx, cli, pod.Namespace, owner)
-			if err != nil {
-				return nil, fmt.Errorf("error getting owner object for pod %s/%s: %w", pod.Namespace, pod.Name, err)
-			}
-			objects = append(objects, obj)
+		obj, err := getOwnerObject(ctx, cli, pod.Namespace, *ctrl)
+		if err != nil {
+			return nil, fmt.Errorf("error getting owner object for pod %s/%s: %w", pod.Namespace, pod.Name, err)
 		}
+		objects = append(objects, obj)
 	}
 	return objects, nil
 }
@@ -425,19 +414,16 @@ func getOwnerObject(ctx context.Context, cli client.Client, namespace string, ow
 		if err := cli.Get(ctx, nsn, &rset); err != nil {
 			return nil, fmt.Errorf("error getting replicaset %s: %w", nsn, err)
 		}
-		if len(rset.OwnerReferences) != 1 {
-			return nil, fmt.Errorf(
-				"expected 1 owner for replicaset %s in %s, found %d instead",
-				owner.Name, namespace, len(rset.OwnerReferences),
-			)
-		}
-		if rset.OwnerReferences[0].Kind != "Deployment" {
+		ctrl := metav1.GetControllerOf(&rset)
+		if ctrl == nil {
+			return nil, fmt.Errorf("no owner found for replicaset %s/%s", owner.Name, namespace)
+		} else if ctrl.Kind != "Deployment" {
 			return nil, fmt.Errorf(
 				"expected replicaset %s in %s to have a deployment as owner, found %s instead",
-				owner.Name, namespace, rset.OwnerReferences[0].Kind,
+				owner.Name, namespace, ctrl.Kind,
 			)
 		}
-		nsn = types.NamespacedName{Namespace: namespace, Name: rset.OwnerReferences[0].Name}
+		nsn = types.NamespacedName{Namespace: namespace, Name: ctrl.Name}
 		var deployment appsv1.Deployment
 		if err := cli.Get(ctx, nsn, &deployment); err != nil {
 			return nil, fmt.Errorf("error getting deployment %s: %w", nsn, err)
