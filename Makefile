@@ -7,7 +7,7 @@ DATE = `date -u +"%Y-%m-%dT%H:%M:%SZ"`
 BUILDTAGS = netgo containers_image_ostree_stub exclude_graphdriver_devicemapper exclude_graphdriver_btrfs containers_image_openpgp
 BUILDFLAGS = -tags "$(BUILDTAGS)" -installsuffix netgo
 KURL_KINDS_VERSION := $(shell grep "github.com/replicatedhq/kurlkinds" go.mod | cut -d ' ' -f2)
-COMMIT_ID?=""
+COMMIT_ID?=
 
 
 GIT_TREE = $(shell git rev-parse --is-inside-work-tree 2>/dev/null)
