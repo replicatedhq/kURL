@@ -56,7 +56,7 @@ function longhorn_install_nfs_utils_if_missing_common() {
 # longhorn_run_pvmigrate calls pvmigrate to migrate longhorn data to a different storage class. if a failure happen
 # then rolls back the original number of volumes and replicas.
 function longhorn_run_pvmigrate() {
-    local longhorn_sc=$1
+    local longhornStorageClass=$1
     local destStorageClass=$2
     local didRunValidationChecks=$3
     local setDefaults=$4
@@ -73,7 +73,7 @@ function longhorn_run_pvmigrate() {
         setDefaultsFlag="--set-defaults"
     fi
 
-    if ! $BIN_PVMIGRATE --source-sc "$longhorn_sc" --dest-sc "$destStorageClass" --rsync-image "$KURL_UTIL_IMAGE" "$skipFreeSpaceCheckFlag" "$skipPreflightValidationFlag" "$setDefaultsFlag"; then
+    if ! $BIN_PVMIGRATE --source-sc "$longhornStorageClass" --dest-sc "$destStorageClass" --rsync-image "$KURL_UTIL_IMAGE" "$skipFreeSpaceCheckFlag" "$skipPreflightValidationFlag" "$setDefaultsFlag"; then
         longhorn_restore_migration_replicas
         return 1
     fi
@@ -111,19 +111,19 @@ function longhorn_to_sc_migration() {
         fi
     fi
 
-    longhorn_scs=$(kubectl get storageclass | grep longhorn | grep -v '(default)' | awk '{ print $1}') # any non-default longhorn StorageClasses
-    for longhorn_sc in $longhorn_scs
+    longhornStorageClasses=$(kubectl get storageclass | grep longhorn | grep -v '(default)' | awk '{ print $1}') # any non-default longhorn StorageClasses
+    for longhornStorageClass in $longhornStorageClasses
     do
-        if ! longhorn_run_pvmigrate "$longhorn_sc" "$destStorageClass" "$didRunValidationChecks" "0"; then
-            bail "Failed to migrate PVCs from $longhorn_sc to $destStorageClass"
+        if ! longhorn_run_pvmigrate "$longhornStorageClass" "$destStorageClass" "$didRunValidationChecks" "0"; then
+            bail "Failed to migrate PVCs from $longhornStorageClass to $destStorageClass"
         fi
     done
 
-    longhorn_default_sc=$(kubectl get storageclass | grep longhorn | grep '(default)' | awk '{ print $1}') # any default longhorn StorageClasses
-    for longhorn_sc in $longhorn_default_sc
+    longhornDefaultStorageClass=$(kubectl get storageclass | grep longhorn | grep '(default)' | awk '{ print $1}') # any default longhorn StorageClasses
+    for longhornStorageClass in $longhornDefaultStorageClass
     do
-        if ! longhorn_run_pvmigrate "$longhorn_sc" "$destStorageClass" "$didRunValidationChecks" "1"; then
-            bail "Failed to migrate PVCs from $longhorn_sc to $destStorageClass"
+        if ! longhorn_run_pvmigrate "$longhornStorageClass" "$destStorageClass" "$didRunValidationChecks" "1"; then
+            bail "Failed to migrate PVCs from $longhornStorageClass to $destStorageClass"
         fi
     done
 
