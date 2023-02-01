@@ -58,7 +58,7 @@ func Test_scaleDownReplicas(t *testing.T) {
 
 	for _, vol := range gotVolumes.Items {
 		assert.Equal(t, int(1), vol.Spec.NumberOfReplicas)
-		assert.Equal(t, "3", vol.Annotations[volumeReplicasAnnotation])
+		assert.Equal(t, "3", vol.Annotations[pvmigrateScaleDownAnnotation])
 	}
 }
 
