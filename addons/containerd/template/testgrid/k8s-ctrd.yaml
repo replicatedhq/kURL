@@ -96,11 +96,11 @@
   postUpgradeScript: |
     containerd --version | grep "__testver__"
 
-- name: "Migrate from Docker to Containerd"
+- name: "Migrate from Docker to Containerd and Kubernetes from 1.23 to 1.25"
   installerSpec:
     kubernetes:
       version: 1.23.x
-    flannel:
+    weave: # flannel has errors with dns and docker
       version: latest
     openebs:
       version: latest
@@ -118,8 +118,8 @@
       version: latest
   upgradeSpec:
     kubernetes:
-      version: 1.24.x
-    flannel:
+      version: 1.25.x
+    weave: # flannel has errors with dns and docker
       version: latest
     openebs:
       version: latest
@@ -136,11 +136,24 @@
     containerd:
       version: "__testver__"
       s3Override: "__testdist__"
-- name: "Migrate from Docker to Containerd airgap"
+  postInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    minio_object_store_info
+    validate_read_write_object_store rwtest testfile.txt
+    echo "Checking kubectl with kube/config"
+    echo "Kubeconfig was $KUBECONFIG"
+    unset KUBECONFIG
+    kubectl get namespaces
+  postUpgradeScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    minio_object_store_info
+    validate_testfile rwtest testfile.txt
+    validate_read_write_object_store postupgrade upgradefile.txt
+- name: "Migrate from Docker to Containerd and Kubernetes from 1.23 to 1.25 airgap"
   installerSpec:
     kubernetes:
       version: 1.23.x
-    flannel:
+    weave: # flannel has errors with dns and docker
       version: latest
     openebs:
       version: latest
@@ -158,8 +171,8 @@
       version: latest
   upgradeSpec:
     kubernetes:
-      version: 1.24.x
-    flannel:
+      version: 1.25.x
+    weave: # flannel has errors with dns and docker
       version: latest
     openebs:
       version: latest
@@ -177,3 +190,16 @@
       version: "__testver__"
       s3Override: "__testdist__"
   airgap: true
+  postInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    minio_object_store_info
+    validate_read_write_object_store rwtest testfile.txt
+    echo "Checking kubectl with kube/config"
+    echo "Kubeconfig was $KUBECONFIG"
+    unset KUBECONFIG
+    kubectl get namespaces
+  postUpgradeScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    minio_object_store_info
+    validate_testfile rwtest testfile.txt
+    validate_read_write_object_store postupgrade upgradefile.txt
