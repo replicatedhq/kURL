@@ -947,4 +947,15 @@ function rook_prompt_migrate_from_longhorn() {
     if ! confirmN; then
         bail "Not migrating"
     fi
+
+    local nodes=$(kubectl get nodes --no-headers | wc -l)
+    if [ "$nodes" -eq 1 ]; then
+        logFail "    ERROR: Your cluster has only one node, making Rook an unsuitable choice as a storage provisioner. You must install OpenEBS instead."
+        logFail "    Continuing with the Longhorn to Rook data migration under these conditions may result in unexpected errors potentially CAUSING DATA LOSS."
+        bail "Not migrating"
+    fi
+
+    if ! longhorn_prepare_for_migration; then
+        bail "Not migrating"
+    fi
 }
