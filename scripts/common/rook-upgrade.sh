@@ -232,16 +232,18 @@ function rook_upgrade_addon_fetch_and_load_airgap() {
     local from_version="$1"
     local to_version="$2"
 
-    local this_hostname=
-    this_hostname=$(hostname)
+    if rook_upgrade_has_all_addon_version_packages "$from_version" "$to_version" ; then
+        local this_hostname=
+        this_hostname=$(hostname)
 
-    local node_missing_images=
-    # shellcheck disable=SC2086
-    node_missing_images=$(rook_upgrade_nodes_missing_images "$from_version" "$to_version" "$this_hostname" "")
+        local node_missing_images=
+        # shellcheck disable=SC2086
+        node_missing_images=$(rook_upgrade_nodes_missing_images "$from_version" "$to_version" "$this_hostname" "")
 
-    if [ -z "$node_missing_images" ]; then
-        log "All images required for Rook $from_version to $to_version upgrade are present on this node"
-        return
+        if [ -z "$node_missing_images" ]; then
+            log "All images required for Rook $from_version to $to_version upgrade are present on this node"
+            return
+        fi
     fi
 
     logStep "Downloading images required for Rook $from_version to $to_version upgrade"
@@ -279,6 +281,33 @@ function rook_upgrade_addon_fetch_and_load_airgap() {
     fi
 
     logSuccess "Images loaded for Rook $from_version to $to_version upgrade"
+}
+
+# rook_upgrade_has_all_addon_version_packages will return 1 if any add-on versions are missing that
+# are necessary to perform the upgrade.
+function rook_upgrade_has_all_addon_version_packages() {
+    local from_version="$1"
+    local to_version="$2"
+
+    if rook_upgrade_is_version_included "$from_version" "$to_version" "1.4" ; then
+        if [ ! -f "addons/rookupgrade/10to14/Manifest" ]; then
+            return 1
+        fi
+    fi
+
+    if [ "$(rook_upgrade_compare_rook_versions "$to_version" "1.4")" = "1" ]; then
+        local step=
+        while read -r step; do
+            if [ -z "$step" ]; then
+                continue
+            fi
+            if [ ! -f "addons/rook/$step/Manifest" ]; then
+                return 1
+            fi
+        done <<< "$(rook_upgrade_step_versions "ROOK_STEP_VERSIONS[@]" "$(rook_upgrade_max_rook_version "1.4" "$from_version")" "$to_version")"
+    fi
+
+    return 0
 }
 
 # rook_upgrade_prompt_missing_images prompts the user to run the command to load the images on all
@@ -380,7 +409,6 @@ function rook_upgrade_list_rook_ceph_images_in_manifest_file() {
     local manifest_file="$1"
 
     local image_list=
-    # TODO: ask andrew l why only this image needs to be on remote nodes
     for image in $(grep "^image " "$manifest_file" | grep -F "rook/ceph" | awk '{print $3}' | tr '\n' ' ') ; do
         image_list=$image_list" $(canonical_image_name "$image")"
     done
