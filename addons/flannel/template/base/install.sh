@@ -13,10 +13,8 @@ function flannel_pre_init() {
     local src="$DIR/addons/flannel/$FLANNEL_VERSION"
     local dst="$DIR/kustomize/flannel"
 
-    if flannel_weave_conflict ; then
-        if [ -n "$DOCKER_VERSION" ]; then
-            bail "Migrations from Weave to Flannel are only supported with containerd"
-        fi
+    if [ -n "$DOCKER_VERSION" ]; then
+        bail "Flannel is not compatible with the Docker runtime, Containerd is required"
     fi
 
     if flannel_antrea_conflict ; then

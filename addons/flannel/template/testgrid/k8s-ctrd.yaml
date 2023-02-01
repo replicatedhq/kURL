@@ -82,3 +82,23 @@
       podCIDR: 172.17.0.0/16
       version: "__testver__"
       s3Override: "__testdist__"
+- name: "weave to flannel, docker to containerd, single node"
+  installerSpec:
+    kubernetes:
+      version: "1.23.x"
+    docker:
+      version: "latest"
+    weave:
+      version: "latest"
+    ekco:
+      version: "latest"
+  upgradeSpec:
+    kubernetes:
+      version: "1.23.x"
+    containerd:
+      version: "latest"
+    ekco:
+      version: "latest"
+    flannel:
+      version: "__testver__"
+      s3Override: "__testdist__"
