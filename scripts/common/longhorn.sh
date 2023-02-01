@@ -53,6 +53,33 @@ function longhorn_install_nfs_utils_if_missing_common() {
     fi
 }
 
+# longhorn_run_pvmigrate calls pvmigrate to migrate longhorn data to a different storage class. if a failure happen
+# then rolls back the original number of volumes and replicas.
+function longhorn_run_pvmigrate() {
+    local longhornStorageClass=$1
+    local destStorageClass=$2
+    local didRunValidationChecks=$3
+    local setDefaults=$4
+
+    local skipFreeSpaceCheckFlag=""
+    local skipPreflightValidationFlag=""
+    if [ "$didRunValidationChecks" == "1" ]; then
+        skipFreeSpaceCheckFlag="--skip-free-space-check"
+        skipPreflightValidationFlag="--skip-preflight-validation"
+    fi
+
+    local setDefaultsFlag=""
+    if [ "$setDefaults" == "1" ]; then
+        setDefaultsFlag="--set-defaults"
+    fi
+
+    if ! $BIN_PVMIGRATE --source-sc "$longhornStorageClass" --dest-sc "$destStorageClass" --rsync-image "$KURL_UTIL_IMAGE" "$skipFreeSpaceCheckFlag" "$skipPreflightValidationFlag" "$setDefaultsFlag"; then
+        longhorn_restore_migration_replicas
+        return 1
+    fi
+    return 0
+}
+
 # scale down prometheus, move all 'longhorn' PVCs to provided storage class, scale up prometheus
 # Supported storage class migrations from longhorn are: 'rook' and 'openebs'
 function longhorn_to_sc_migration() {
@@ -84,42 +111,23 @@ function longhorn_to_sc_migration() {
         fi
     fi
 
-    # get the list of StorageClasses that use Longhorn
-    longhorn_scs=$(kubectl get storageclass | grep longhorn | grep -v '(default)' | awk '{ print $1}') # any non-default longhorn StorageClasses
-    longhorn_default_sc=$(kubectl get storageclass | grep longhorn | grep '(default)' | awk '{ print $1}') # any default longhorn StorageClasses
-
-    for longhorn_sc in $longhorn_scs
+    longhornStorageClasses=$(kubectl get storageclass | grep longhorn | grep -v '(default)' | awk '{ print $1}') # any non-default longhorn StorageClasses
+    for longhornStorageClass in $longhornStorageClasses
     do
-        if [ "$didRunValidationChecks" == "1" ]; then
-            # run the migration w/o validation checks
-            $BIN_PVMIGRATE --source-sc "$longhorn_sc" --dest-sc "$destStorageClass" --rsync-image "$KURL_UTIL_IMAGE" --skip-free-space-check --skip-preflight-validation
-        else
-            # run the migration (without setting defaults)
-            $BIN_PVMIGRATE --source-sc "$longhorn_sc" --dest-sc "$destStorageClass" --rsync-image "$KURL_UTIL_IMAGE"
+        if ! longhorn_run_pvmigrate "$longhornStorageClass" "$destStorageClass" "$didRunValidationChecks" "0"; then
+            bail "Failed to migrate PVCs from $longhornStorageClass to $destStorageClass"
         fi
     done
 
-    for longhorn_sc in $longhorn_default_sc
+    longhornDefaultStorageClass=$(kubectl get storageclass | grep longhorn | grep '(default)' | awk '{ print $1}') # any default longhorn StorageClasses
+    for longhornStorageClass in $longhornDefaultStorageClass
     do
-        if [ "$didRunValidationChecks" == "1" ]; then
-            # run the migration w/o validation checks
-            $BIN_PVMIGRATE --source-sc "$longhorn_sc" --dest-sc "$destStorageClass" --rsync-image "$KURL_UTIL_IMAGE" --skip-free-space-check --skip-preflight-validation --set-defaults
-        else
-            # run the migration (setting defaults)
-            $BIN_PVMIGRATE --source-sc "$longhorn_sc" --dest-sc "$destStorageClass" --rsync-image "$KURL_UTIL_IMAGE" --set-defaults
+        if ! longhorn_run_pvmigrate "$longhornStorageClass" "$destStorageClass" "$didRunValidationChecks" "1"; then
+            bail "Failed to migrate PVCs from $longhornStorageClass to $destStorageClass"
         fi
     done
 
-    # reset prometheus (and ekco) scale
-    if kubectl get namespace monitoring &>/dev/null; then
-        if kubectl get prometheus -n monitoring k8s &>/dev/null; then
-            if kubernetes_resource_exists kurl deployment ekc-operator; then
-                kubectl -n kurl scale deploy ekc-operator --replicas=1
-            fi
-
-            kubectl patch prometheus -n monitoring  k8s --type='json' --patch '[{"op": "replace", "path": "/spec/replicas", value: 2}]'
-        fi
-    fi
+    longhorn_restore_migration_replicas
 
     # print success message
     logSuccess "Migration from longhorn to $scProvisioner completed successfully!"
@@ -194,4 +202,27 @@ function remove_longhorn() {
     fi
 
     logSuccess "Removed Longhorn successfully"
+}
+
+# longhorn_prepare_for_migration checks if longhorn is healthy and if it is, it will scale down the all pods mounting
+# longhorn volumes. if a failure happen during the preparation fase the migration won't be executed and the user will
+# receive a message to restore the cluster to its previous state.
+function longhorn_prepare_for_migration() {
+    if "$DIR"/bin/kurl longhorn prepare-for-migration; then
+        return 0
+    fi
+    logFail "Preparation for longhorn migration failed. Please review the preceding messages for further details."
+    logFail "During the preparation for Longhorn, some replicas may have been scaled down to 0. Would you like to"
+    logFail "restore the system to its original state?"
+    if confirmY; then
+        log "Restoring Longhorn replicas to their original state"
+        longhorn_restore_migration_replicas
+    fi
+    return 1
+}
+
+# longhorn_restore_migration_replicas scales up all longhorn volumes, deployment and statefulset replicas to their
+# original values.
+function longhorn_restore_migration_replicas() {
+    "$DIR"/bin/kurl longhorn rollback-migration-replicas
 }
