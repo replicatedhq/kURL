@@ -47,6 +47,8 @@ function addon_install() {
         ADDONS_HAVE_HOST_COMPONENTS=1
     fi
 
+    addon_update_used_images "$name" "$version"
+
     report_addon_success "$name" "$version"
 }
 
@@ -306,4 +308,50 @@ function addon_source() {
     local version=$2
     # shellcheck disable=SC1090
     . "$DIR/addons/$name/$version/install.sh"
+}
+
+# addon_update_used_images takes an addon name and version as parameters.
+# optionally, a third 'pathoverride' parameter can be passed to specify a path to the addon's images file.
+# it checks the kurl-current-images configmap for a match, and adds those images to kurl-old-images.
+# it then adds the new addon version's images to the kurl-current-images map and removes previous addon version's images.
+function addon_update_used_images() {
+    local name=$1
+    local version=$2
+    local pathoverride=$3
+
+    if ! kubectl get configmap -n kurl kurl-current-images; then
+        kubectl create configmap -n kurl kurl-current-images
+    fi
+    if ! kubectl get configmap -n kurl kurl-old-images; then
+        kubectl create configmap -n kurl kurl-old-images
+    fi
+
+    # update kurl-old-images configmap with images from the previous addon version
+    local prevAddonImages=
+    prevAddonImages=$(kubectl get configmap -n kurl kurl-current-images -o jsonpath="{.data.$name}")
+    if [ -n "$prevAddonImages" ]; then
+        local prevOldAddonImages=
+        prevOldAddonImages=$(kubectl get configmap -n kurl kurl-old-images -o jsonpath="{.data.$name}")
+        local combinedOldAddonImages=
+        if [ -n "$prevOldAddonImages" ]; then
+            combinedOldAddonImages="$prevOldAddonImages $prevAddonImages"
+        else
+            combinedOldAddonImages="$prevAddonImages"
+        fi
+
+        kubectl patch configmap -n kurl kurl-old-images --type merge -p "{\"data\":{\"$name\":\"$combinedOldAddonImages\"}}"
+    fi
+
+    # create a list of images from the addon manifest file
+    local manifestLocation=
+    if [ -n "$pathoverride" ]; then
+        manifestLocation="$pathoverride"
+    else
+        manifestLocation="$DIR/addons/$name/$version/Manifest"
+    fi
+
+    local addonImages=
+    addonImages=$(grep 'image' "$manifestLocation" | awk '{print $3}' | tr '\n' ' ')
+
+    kubectl patch configmap -n kurl kurl-current-images --type merge -p "{\"data\":{\"$name\":\"$addonImages\"}}"
 }
