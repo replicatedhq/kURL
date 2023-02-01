@@ -1046,12 +1046,12 @@
   unsupportedOSIDs:
   - ubuntu-2204 # containerd 1.4.x is not supported on ubuntu 22.04
   - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
-- name: "Upgrade to 1.24"
+- name: "Upgrade to 1.24, weave to flannel"
   cpu: 7
   installerSpec:
     kubernetes:
       version: 1.23.x
-    flannel:
+    weave:
       version: latest
     rook:
       version: 1.9.x

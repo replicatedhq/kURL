@@ -93,7 +93,7 @@
   installerSpec:
     kubernetes:
       version: "1.21.x" # this is the latest version of k8s that supports openebs 1.12
-    flannel:
+    weave:
       version: latest
     docker:
       version: "latest"
@@ -107,7 +107,7 @@
   upgradeSpec:
     kubernetes:
       version: "1.21.x"
-    flannel:
+    weave:
       version: latest
     docker:
       version: "latest"
@@ -138,7 +138,7 @@
       version: "1.19.x" # this is the latest version of k8s that supports rook 1.0.4
     flannel:
       version: latest
-    docker:
+    containerd:
       version: "latest"
     rook:
       version: "1.0.x"
@@ -149,7 +149,7 @@
       version: "1.21.x"
     flannel:
       version: latest
-    docker:
+    containerd:
       version: "latest"
     openebs:
       isLocalPVEnabled: true
