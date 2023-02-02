@@ -2,7 +2,6 @@
 
 set -euo pipefail
 
-VERSION=""
 function get_latest_release_version() {
     VERSION=$(helm show chart prometheus-community/kube-prometheus-stack | \
         grep -i "^appVersion" | \
@@ -22,11 +21,27 @@ function generate() {
     mkdir -p "../${VERSION}-${CHARTVERSION}/operator"
 
     # get a copy of the stack with CRDs
-    helm template replaceme prometheus-community/kube-prometheus-stack $capabilities --version "$CHARTVERSION" --values ./values.yaml -n monitoring --include-crds > "../$VERSION-$CHARTVERSION/crds/crds-all.yaml"
+    helm template replaceme prometheus-community/kube-prometheus-stack \
+        $capabilities \
+        --version "$CHARTVERSION" \
+        --values ./values.yaml \
+        -n monitoring \
+        --include-crds \
+        > "../$VERSION-$CHARTVERSION/crds/crds-all.yaml"
     # get a copy of the stack without CRDs
-    helm template replaceme prometheus-community/kube-prometheus-stack $capabilities --version "$CHARTVERSION" --values ./values.yaml -n monitoring > "../$VERSION-$CHARTVERSION/operator/default.yaml"
+    helm template replaceme prometheus-community/kube-prometheus-stack \
+        $capabilities \
+        --version "$CHARTVERSION" \
+        --values ./values.yaml \
+        -n monitoring \
+        > "../$VERSION-$CHARTVERSION/operator/default.yaml"
     # get the prometheus adapter
-    helm template replaceme prometheus-community/prometheus-adapter $capabilities -n monitoring --include-crds > "../$VERSION-$CHARTVERSION/operator/adapter.yaml"
+    helm template replaceme prometheus-community/prometheus-adapter \
+        $capabilities \
+        -n monitoring \
+        --set "prometheus.url=http://prometheus-k8s" \
+        --include-crds \
+        > "../$VERSION-$CHARTVERSION/operator/adapter.yaml"
 
     # remove non-CRD yaml from crds
     diff -U $(wc -l < "../$VERSION-$CHARTVERSION/crds/crds-all.yaml") "../$VERSION-$CHARTVERSION/crds/crds-all.yaml" "../$VERSION-$CHARTVERSION/operator/default.yaml" | sed '/^--- \.\.\//d' | sed -n 's/^-//p' > "../$VERSION-$CHARTVERSION/crds/crds.yaml" || true
@@ -67,15 +82,46 @@ function add_as_latest() {
     sed -i "/cron-prometheus-update/a\    \"${VERSION}-${CHARTVERSION}\"\," ../../../web/src/installers/versions.js
 }
 
+function parse_flags() {
+    for i in "$@"; do
+        case ${1} in
+            --force)
+                force_flag="1"
+                shift
+                ;;
+            --version=*)
+                version_flag="${i#*=}"
+                shift
+                ;;
+            *)
+                echo "Unknown flag $1"
+                exit 1
+                ;;
+        esac
+    done
+}
+
 function main() {
+    local force_flag=
+    local version_flag=
+
+    parse_flags "$@"
+
     # run the helm commands
     helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
     helm repo update
 
-    get_latest_release_version
+    local VERSION=
+    local CHARTVERSION=
+    if [ -n "$version_flag" ]; then
+        VERSION="$( echo "$version_flag" | cut -d'-' -f1 )"
+        CHARTVERSION="$( echo "$version_flag" | cut -d'-' -f2 )"
+    else
+        get_latest_release_version
+    fi
 
     if [ -d "../${VERSION}-${CHARTVERSION}" ]; then
-        if [ $# -ge 1 ] && [ "$1" == "force" ]; then
+        if [ "$force_flag" == "1" ]; then
             echo "forcibly updating existing version of prometheus"
             rm -rf "../${VERSION}-${CHARTVERSION}"
         else
