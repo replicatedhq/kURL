@@ -20,7 +20,7 @@
     flannel:
       version: latest
     rook:
-      version: "1.7.x"
+      version: "1.10.x"
       isBlockStorageEnabled: true
     containerd:
       version: "latest"
@@ -28,11 +28,11 @@
       version: "0.33.0"
   upgradeSpec:
     kubernetes:
-      version: "1.21.x"
+      version: "1.23.x"
     flannel:
       version: latest
     rook:
-      version: "1.7.x"
+      version: "1.10.x"
       isBlockStorageEnabled: true
     containerd:
       version: "latest"
