@@ -583,6 +583,13 @@ function host_preflights() {
                 ;;  
             2)
                 logWarn "Host preflights have warnings"
+                logWarn "It is highly recommended to sort out the warning conditions before proceeding."
+                logWarn "Be aware that continuing with preflight warnings can result in failures."
+                log ""
+                logWarn "Would you like to continue?"
+                if ! confirmY ; then
+                    bail "The installation will not continue"
+                fi
                 return 0
                 ;;
             1)
