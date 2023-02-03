@@ -8,6 +8,11 @@ import (
 	"github.com/vishvananda/netlink"
 )
 
+const (
+	defaultRouteIPv4 = "0.0.0.0/0"
+	defaultRouteIPv6 = "::/0"
+)
+
 func GetDefaultGatewayInterface() (*net.Interface, error) {
 	routes, err := netlink.RouteList(nil, syscall.AF_INET)
 	if err != nil {
@@ -15,7 +20,7 @@ func GetDefaultGatewayInterface() (*net.Interface, error) {
 	}
 
 	for _, route := range routes {
-		if route.Dst == nil || route.Dst.String() == "0.0.0.0/0" {
+		if route.Dst == nil || route.Dst.String() == defaultRouteIPv4 {
 			if route.LinkIndex <= 0 {
 				return nil, errors.New("found default route but could not determine interface")
 			}
@@ -33,7 +38,7 @@ func GetDefaultV6GatewayInterface() (*net.Interface, error) {
 	}
 
 	for _, route := range routes {
-		if route.Dst == nil || route.Dst.String() == "::/0" {
+		if route.Dst == nil || route.Dst.String() == defaultRouteIPv6 {
 			if route.LinkIndex <= 0 {
 				return nil, errors.New("found default v6 route but could not determine interface")
 			}
