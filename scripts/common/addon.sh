@@ -194,9 +194,11 @@ function addon_fetch_airgap() {
 # addon_fetch_multiple_airgap checks if the files are already present - if they are, use that
 # if they are not, prompt the user to provide them as a single package
 # if the user does not provide the files, bail
+# exports the package filepath for later cleanup
 function addon_fetch_multiple_airgap() {
     local addon_versions=( "$@" )
     local missing_addon_versions=()
+    export AIRGAP_MULTI_ADDON_PACKAGE_PATH=
     for addon_version in "${addon_versions[@]}"; do
         local name=, version=
         name=$(echo "$addon_version" | cut -d- -f1)
@@ -218,6 +220,7 @@ function addon_fetch_multiple_airgap() {
         local package_name="$package_list.tar.gz"
         local package_path=
         package_path="$(package_filepath "$package_name")"
+        AIRGAP_MULTI_ADDON_PACKAGE_PATH="$package_path"
 
         if [ -f "$package_path" ]; then
             # the package already exists, no need to download it

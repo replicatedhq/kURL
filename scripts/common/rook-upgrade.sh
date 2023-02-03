@@ -138,6 +138,10 @@ function rook_upgrade() {
     if rook_upgrade_is_version_included "$from_version" "$to_version" "1.4" ; then
         addon_source "rookupgrade" "10to14"
         rookupgrade_10to14_upgrade "$from_version"
+
+        # delete both the compressed and decompressed addon files to free up space
+        rm -f "$DIR/assets/rookupgrade-10to14.tar.gz"
+        rm -rf "$DIR/addons/rookupgrade/10to14"
     fi
 
     # if to_version is greater than 1.4, then continue with the upgrade
@@ -179,8 +183,20 @@ function rook_upgrade_do_rook_upgrade() {
         # NOTE: there is no way to know this is the correct rook version function
         rook # upgrade to the step version
         ROOK_VERSION="$old_rook_version"
+
+        # if this is not the last version in the loop, then delete the addon files to free up space
+        if ! [[ "$step" =~ $to_version ]]; then
+            rm -f "$DIR/assets/rook-$step.tar.gz"
+            rm -rf "$DIR/addons/rook/$step"
+        fi
+
         logSuccess "Upgraded to Rook $step successfully"
     done <<< "$(rook_upgrade_step_versions "ROOK_STEP_VERSIONS[@]" "$from_version" "$to_version")"
+
+    if [ -n "$AIRGAP_MULTI_ADDON_PACKAGE_PATH" ]; then
+        # delete the rook addon files to free up space
+        rm -f "$AIRGAP_MULTI_ADDON_PACKAGE_PATH"
+    fi
 }
 
 # rook_upgrade_addon_fetch_and_load will fetch all add-on versions from $from_version to $to_version.
