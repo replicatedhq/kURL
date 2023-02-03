@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"fmt"
 	"net"
 
 	"github.com/pkg/errors"
@@ -34,7 +35,7 @@ func newNetutilIfaceFromIPCommand(_ CLI) *cobra.Command {
 			}
 			iface, err := netutils.GetInterfaceByIPv6(ip)
 			if err == nil {
-				cmd.Println(iface.Name)
+				fmt.Fprintln(cmd.OutOrStdout(), iface.Name)
 				return nil
 			}
 			if ip.To4() != nil {
@@ -42,7 +43,7 @@ func newNetutilIfaceFromIPCommand(_ CLI) *cobra.Command {
 				if err != nil {
 					return err
 				}
-				cmd.Println(iface.Name)
+				fmt.Fprintln(cmd.OutOrStdout(), iface.Name)
 				return nil
 			}
 			return err
@@ -62,14 +63,14 @@ func newNetutilDefaultIfaceCommand(_ CLI) *cobra.Command {
 				if err != nil {
 					return err
 				}
-				cmd.Println(iface.Name)
+				fmt.Fprintln(cmd.OutOrStdout(), iface.Name)
 				return nil
 			}
 			iface, err := netutils.GetDefaultGatewayInterface()
 			if err != nil {
 				return err
 			}
-			cmd.Println(iface.Name)
+			fmt.Fprintln(cmd.OutOrStdout(), iface.Name)
 			return nil
 		},
 	}
