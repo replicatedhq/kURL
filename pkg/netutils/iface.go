@@ -13,6 +13,7 @@ const (
 	defaultRouteIPv6 = "::/0"
 )
 
+// GetDefaultGatewayInterface returns the name of the interface that has the default v4 gateway.
 func GetDefaultGatewayInterface() (*net.Interface, error) {
 	routes, err := netlink.RouteList(nil, syscall.AF_INET)
 	if err != nil {
@@ -31,6 +32,7 @@ func GetDefaultGatewayInterface() (*net.Interface, error) {
 	return nil, errors.New("unable to find default route")
 }
 
+// GetDefaultV6GatewayInterface returns the name of the interface that has the default v6 gateway.
 func GetDefaultV6GatewayInterface() (*net.Interface, error) {
 	routes, err := netlink.RouteList(nil, syscall.AF_INET6)
 	if err != nil {
@@ -49,6 +51,7 @@ func GetDefaultV6GatewayInterface() (*net.Interface, error) {
 	return nil, errors.New("unable to find default v6 route")
 }
 
+// GetInterfaceByIP returns the interface that has the given IPv4 address.
 func GetInterfaceByIP(ip net.IP) (*net.Interface, error) {
 	ifaces, err := net.Interfaces()
 	if err != nil {
@@ -65,6 +68,7 @@ func GetInterfaceByIP(ip net.IP) (*net.Interface, error) {
 	return nil, errors.New("no interface with given IP address found")
 }
 
+// GetInterfaceByIPv6 returns the interface that has the given IPv6 address.
 func GetInterfaceByIPv6(ip net.IP) (*net.Interface, error) {
 	ifaces, err := net.Interfaces()
 	if err != nil {
