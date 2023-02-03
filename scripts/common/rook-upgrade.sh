@@ -143,7 +143,7 @@ function rook_upgrade() {
         rookupgrade_10to14_upgrade "$from_version"
 
         # delete both the compressed and decompressed addon files to free up space
-        rm "$DIR/assets/rookupgrade-10to14.tar.gz"
+        rm -f "$DIR/assets/rookupgrade-10to14.tar.gz"
         rm -rf "$DIR/addons/rookupgrade/10to14"
     fi
 
@@ -191,7 +191,7 @@ function rook_upgrade_do_rook_upgrade() {
 
         # if this is not the last version in the loop, then delete the addon files to free up space
         if ! [[ "$step" =~ $to_version ]]; then
-            rm "$DIR/assets/rook-$step.tar.gz"
+            rm -f "$DIR/assets/rook-$step.tar.gz"
             rm -rf "$DIR/addons/rook/$step"
         fi
 
