@@ -283,20 +283,21 @@ function rookupgrade_10to14_upgrade() {
             rookupgrade_10to14_maybe_scale_pool_device_health_metrics
 
             if ! "$DIR"/bin/kurl rook wait-for-ceph-version "15.2.8-0" --timeout=1200 ; then
-                  logWarn "Timeout waiting for Ceph version 15.2.8-0 rolled out"
-                  logStep "Checking Ceph versions and replicas"
-                  kubectl -n rook-ceph get deployment -l rook_cluster=rook-ceph -o jsonpath='{range .items[*]}{.metadata.name}{"  \treq/upd/avl: "}{.spec.replicas}{"/"}{.status.updatedReplicas}{"/"}{.status.readyReplicas}{"  \tceph-version="}{.metadata.labels.ceph-version}{"\n"}{end}'
-                  local ceph_versions_found=
-                  ceph_versions_found="$(kubectl -n rook-ceph get deployment -l rook_cluster=rook-ceph -o jsonpath='{range .items[*]}{"ceph-version="}{.metadata.labels.ceph-version}{"\n"}{end}' | sort | uniq)"
-                  if [ -n "${ceph_versions_found}" ] && [ "$(echo "${ceph_versions_found}" | wc -l)" -gt "1" ]; then
-                      logWarn "Detected multiple Ceph versions"
-                      logWarn "${ceph_versions_found}"
-                      bail "Failed to verify the Ceph upgrade, multiple Ceph versions detected"
-                  fi
+                logWarn "Timeout waiting for Ceph version 15.2.8-0 rolled out"
+                logStep "Checking Ceph versions and replicas"
+                kubectl -n rook-ceph get deployment -l rook_cluster=rook-ceph -o jsonpath='{range .items[*]}{.metadata.name}{"  \treq/upd/avl: "}{.spec.replicas}{"/"}{.status.updatedReplicas}{"/"}{.status.readyReplicas}{"  \tceph-version="}{.metadata.labels.ceph-version}{"\n"}{end}'
+                local ceph_versions_found=
+                ceph_versions_found="$(kubectl -n rook-ceph get deployment -l rook_cluster=rook-ceph -o jsonpath='{range .items[*]}{"ceph-version="}{.metadata.labels.ceph-version}{"\n"}{end}' | sort | uniq)"
+                if [ -n "${ceph_versions_found}" ] && [ "$(echo "${ceph_versions_found}" | wc -l)" -gt "1" ]; then
+                    logWarn "Detected multiple Ceph versions"
+                    logWarn "${ceph_versions_found}"
+                    logWarn "Failed to verify the Ceph upgrade, multiple Ceph versions detected"
+                fi
 
-                  if [[ "$(echo "${ceph_versions_found}")" == *"15.2.8"* ]]; then
-                      bail "Ceph version found ${ceph_versions_found}. New Ceph version ${ceph_version} failed to deploy"
-                  fi
+                if [[ "$(echo "${ceph_versions_found}")" == *"15.2.8"* ]]; then
+                    logWarn "Ceph version found ${ceph_versions_found}. New Ceph version ${ceph_version} failed to deploy"
+                fi
+                bail "New Ceph version failed to deploy"
             fi
 
             log "Enabling pg pool autoscaling"
