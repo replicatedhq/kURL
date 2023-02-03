@@ -228,6 +228,15 @@ function rook_cluster_deploy_upgrade() {
         return 0
     fi
 
+    if kubernetes_resource_exists rook-ceph cephfilesystem rook-shared-fs ; then
+        # When upgrading we need both MDS pods and anti-affinity rules prevent them from co-scheduling on single-node installations
+        local ready_node_count
+        ready_node_count="$(kubectl get nodes --no-headers 2>/dev/null | grep -c ' Ready')"
+        if [ "$ready_node_count" -le "1" ]; then
+            rook_cephfilesystem_patch_singlenode
+        fi
+    fi
+
     # 4. https://rook.io/docs/rook/v1.6/ceph-upgrade.html#4-wait-for-the-upgrade-to-complete
     echo "Awaiting rook-ceph operator"
     if ! $DIR/bin/kurl rook wait-for-rook-version "$ROOK_VERSION" --timeout=1200 ; then
@@ -250,15 +259,6 @@ function rook_cluster_deploy_upgrade() {
     if ! $DIR/bin/kurl rook wait-for-health 600 ; then
         kubectl -n rook-ceph exec deploy/rook-ceph-tools -- ceph status
         bail "Refusing to update cluster rook-ceph, Ceph is not healthy"
-    fi
-
-    if kubernetes_resource_exists rook-ceph cephfilesystem rook-shared-fs ; then
-        # When upgrading we need both MDS pods and anti-affinity rules prevent them from co-scheduling on single-node installations
-        local ready_node_count
-        ready_node_count="$(kubectl get nodes --no-headers 2>/dev/null | grep -c ' Ready')"
-        if [ "$ready_node_count" -le "1" ]; then
-            rook_cephfilesystem_patch_singlenode
-        fi
     fi
 
     # https://rook.io/docs/rook/v1.6/ceph-upgrade.html#ceph-version-upgrades
@@ -578,13 +578,13 @@ function rook_cephfilesystem_patch() {
     fi
 
     echo "Awaiting Rook MDS deployments to roll out"
-    if ! spinner_until 300 rook_mds_deployments_updated "$mds_observedgeneration" ; then
+    if ! spinner_until 1200 rook_mds_deployments_updated "$mds_observedgeneration" ; then
         kubectl -n rook-ceph get deploy -l app=rook-ceph-mds
         bail "Refusing to update cluster rook-ceph, MDS deployments did not roll out"
     fi
 
     echo "Awaiting Rook MDS deployments up-to-date"
-    if ! spinner_until 300 rook_mds_deployments_uptodate ; then
+    if ! spinner_until 1200 rook_mds_deployments_uptodate ; then
         kubectl -n rook-ceph get deploy -l app=rook-ceph-mds
         bail "Refusing to update cluster rook-ceph, MDS deployments not up-to-date"
     fi
@@ -593,14 +593,14 @@ function rook_cephfilesystem_patch() {
     sleep 60
 
     echo "Awaiting Rook MDS daemons ok-to-stop"
-    if ! spinner_until 300 rook_mds_daemons_oktostop ; then
+    if ! spinner_until 1200 rook_mds_daemons_oktostop ; then
         kubectl -n rook-ceph exec deployment/rook-ceph-tools -- ceph mds ok-to-stop a
         kubectl -n rook-ceph exec deployment/rook-ceph-tools -- ceph mds ok-to-stop b
         bail "Refusing to update cluster rook-ceph, MDS daemons not ok-to-stop"
     fi
 
     echo "Awaiting Ceph healthy"
-    if ! $DIR/bin/kurl rook wait-for-health 120 ; then
+    if ! $DIR/bin/kurl rook wait-for-health 1200 ; then
         kubectl -n rook-ceph exec deploy/rook-ceph-tools -- ceph status
         bail "Refusing to update cluster rook-ceph, Ceph is not healthy"
     fi
