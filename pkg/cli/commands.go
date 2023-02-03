@@ -1,6 +1,8 @@
 package cli
 
-import "github.com/spf13/cobra"
+import (
+	"github.com/spf13/cobra"
+)
 
 // AddCommands adds version/host/objectstore/newformataddress commands to the cobra object
 func AddCommands(cmd *cobra.Command, cli CLI) {
@@ -30,6 +32,11 @@ func AddCommands(cmd *cobra.Command, cli CLI) {
 	clusterCmd.AddCommand(NewClusterNodesMissingImageCmd(cli))
 	clusterCmd.AddCommand(NewClusterCheckFreeDiskSpaceCmd(cli))
 	cmd.AddCommand(clusterCmd)
+
+	netutilCmd := newNetutilCommand(cli)
+	netutilCmd.AddCommand(newNetutilIfaceFromIPCommand(cli))
+	netutilCmd.AddCommand(newNetutilDefaultIfaceCommand(cli))
+	cmd.AddCommand(netutilCmd)
 
 	cmd.AddCommand(newSyncObjectStoreCmd(cli))
 
