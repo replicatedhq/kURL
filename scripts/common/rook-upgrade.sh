@@ -192,6 +192,11 @@ function rook_upgrade_do_rook_upgrade() {
 
         logSuccess "Upgraded to Rook $step successfully"
     done <<< "$(rook_upgrade_step_versions "ROOK_STEP_VERSIONS[@]" "$from_version" "$to_version")"
+
+    if [ -n "$AIRGAP_MULTI_ADDON_PACKAGE_PATH" ]; then
+        # delete the rook addon files to free up space
+        rm -f "$AIRGAP_MULTI_ADDON_PACKAGE_PATH"
+    fi
 }
 
 # rook_upgrade_addon_fetch_and_load will fetch all add-on versions from $from_version to $to_version.
