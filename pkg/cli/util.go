@@ -22,7 +22,7 @@ func newUtilCommand(cli CLI) *cobra.Command {
 	return cmd
 }
 
-func newUtilIfaceFromIPCommand(cli CLI) *cobra.Command {
+func newUtilIfaceFromIPCommand(_ CLI) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "iface-from-ip IP",
 		Short: "Gets the interface name for a given IP address",
@@ -51,7 +51,7 @@ func newUtilIfaceFromIPCommand(cli CLI) *cobra.Command {
 	return cmd
 }
 
-func newUtilDefaultIfaceCommand(cli CLI) *cobra.Command {
+func newUtilDefaultIfaceCommand(_ CLI) *cobra.Command {
 	ipv6 := false
 	cmd := &cobra.Command{
 		Use:   "default-gateway-iface",
