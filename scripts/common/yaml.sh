@@ -9,7 +9,12 @@ function render_yaml_file() {
 
 function render_yaml_file_2() {
     local file="$1"
-    local data=$(< "$file")
+    if [ ! -f "$file" ]; then
+        logFail "File $file does not exist"
+        return 1
+    fi
+    local data=
+    data=$(< "$file")
     local delimiter="__apply_shell_expansion_delimiter__"
     local command="cat <<$delimiter"$'\n'"$data"$'\n'"$delimiter"
     eval "$command"

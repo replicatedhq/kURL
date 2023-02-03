@@ -46,10 +46,23 @@ Release assets and changelog are available on the [GitHub Releases](https://gith
 Releases are created by a GitHub Workflow when a tag is pushed.
 The tag should follow the date format `vYYYY.MM.DD-#`.
 
-A new release can be tagged by running the following command:
+A new release, from HEAD, can be tagged by running the following command:
 
 ```shell
-$ make tag-and-release
+make tag-and-release
+```
+
+To tag and release a specific commit:
+
+```shell
+make COMMIT_ID=<GITHUB_SHA> tag-and-release
+```
+
+The `tag-and-release` Make task enforces the git tree to be clean and a tag to be created against
+the `main` branch. To override this behavior call the underlying script directly:
+
+```shell
+./bin/tag-and-release.sh --commit-id=<GITHUB_SHA> --no-main --outdated
 ```
 
 ## Software Bill of Materials

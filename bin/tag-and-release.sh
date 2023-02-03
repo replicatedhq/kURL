@@ -1,5 +1,15 @@
 #!/bin/bash
 
+# This script generates a tag in the format, <YYYY>.<MM>.<DD>-0, and pushes the tag to origin in
+# order to trigger the deploy-prod workflow.
+# Note: This script is called from the makefile target 'tag-and-release'
+#
+# Usage:
+# Tag HEAD and push tag to remote: './tag-and-release.sh'
+# Tag a particular commit and push tag to remote: './tag-and-release.sh --commit-id=<GITHUB_SHA>'
+# Ignore dirty git tree: './tag-and-release.sh --commit-id=<GITHUB_SHA> --outdated'
+# Create a tag on non main branch: './tag-and-release.sh --commit-id=<GITHUB_SHA> --no-main'
+
 set -euo pipefail
 
 function log() {
@@ -20,6 +30,10 @@ function parse_flags() {
                 ;;
             --outdated)
                 outdated="1"
+                shift
+                ;;
+            --commit-id=*)
+                commit_id="${1#*=}"
                 shift
                 ;;
             *)
@@ -82,6 +96,8 @@ function find_next_tag() {
 function main() {
     local no_main=0
     local outdated=0
+    local commit_id=
+    commit_id=$(git rev-parse --short HEAD)
     parse_flags "$@"
 
     git fetch -q
@@ -101,17 +117,17 @@ function main() {
     local tag=
     tag="$(find_next_tag "$previous_tag")"
 
-    echo "Tagging and releasing version $tag ($(git rev-parse --short HEAD)) with commits:"
+    echo "Tagging and releasing version $tag (${commit_id}) with commits:"
     echo ""
 
-    git log --pretty=oneline "$previous_tag"...HEAD
+    git log --pretty=oneline "$previous_tag"..."${commit_id}"
     echo ""
 
     local confirm=
     echo -n "Are you sure? [yes/N] " && read -r confirm && [ "${confirm:-N}" = "yes" ]
     echo ""
 
-    (set -x; git tag -a -m "Release $tag" "$tag" && git push origin "$tag")
+    (set -x; git tag -a -m "Release $tag" "$tag" "${commit_id}" && git push origin "$tag")
 }
 
 main "$@"

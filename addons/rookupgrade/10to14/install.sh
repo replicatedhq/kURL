@@ -93,9 +93,17 @@ function rookupgrade_10to14_upgrade() {
 
         log "Waiting for Rook 1.1.9 to rollout throughout the cluster, this may take some time"
         if ! "$DIR"/bin/kurl rook wait-for-rook-version "v1.1.9" --timeout=1200 ; then
-            logWarn "Detected multiple Rook versions"
+            logWarn "Timeout waiting for Rook version 1.1.9 rolled out"
+            logStep "Checking Rook versions and replicas"
             kubectl -n rook-ceph get deployment -l rook_cluster=rook-ceph -o jsonpath='{range .items[*]}{.metadata.name}{"  \treq/upd/avl: "}{.spec.replicas}{"/"}{.status.updatedReplicas}{"/"}{.status.readyReplicas}{"  \trook-version="}{.metadata.labels.rook-version}{"\n"}{end}'
-            bail "Failed to verify the Rook upgrade, multiple Rook versions detected"
+            local rook_versions=
+            rook_versions="$(kubectl -n rook-ceph get deployment -l rook_cluster=rook-ceph -o jsonpath='{range .items[*]}{"rook-version="}{.metadata.labels.rook-version}{"\n"}{end}' | sort | uniq)"
+            if [ -n "${rook_versions}" ] && [ "$(echo "${rook_versions}" | wc -l)" -gt "1" ]; then
+                logWarn "Detected multiple Rook versions"
+                logWarn "${rook_versions}"
+                logWarn "Failed to verify the Rook upgrade, multiple Rook versions detected"
+            fi
+            bail "Failed to verify the Rook upgrade"
         fi
 
         # todo make sure that the RGW isn't getting stuck
@@ -144,9 +152,17 @@ function rookupgrade_10to14_upgrade() {
 
         log "Waiting for Rook 1.2.7 to rollout throughout the cluster, this may take some time"
         if ! "$DIR"/bin/kurl rook wait-for-rook-version "v1.2.7" --timeout=1200 ; then
-            logWarn "Detected multiple Rook versions"
+            logWarn "Timeout waiting for Rook version 1.2.7 rolled out"
+            logStep "Checking Rook versions and replicas"
             kubectl -n rook-ceph get deployment -l rook_cluster=rook-ceph -o jsonpath='{range .items[*]}{.metadata.name}{"  \treq/upd/avl: "}{.spec.replicas}{"/"}{.status.updatedReplicas}{"/"}{.status.readyReplicas}{"  \trook-version="}{.metadata.labels.rook-version}{"\n"}{end}'
-            bail "Failed to verify the Rook upgrade, multiple Rook versions detected"
+            local rook_versions=
+            rook_versions="$(kubectl -n rook-ceph get deployment -l rook_cluster=rook-ceph -o jsonpath='{range .items[*]}{"rook-version="}{.metadata.labels.rook-version}{"\n"}{end}' | sort | uniq)"
+            if [ -n "${rook_versions}" ] && [ "$(echo "${rook_versions}" | wc -l)" -gt "1" ]; then
+                logWarn "Detected multiple Rook versions"
+                logWarn "${rook_versions}"
+                logWarn "Failed to verify the Rook upgrade, multiple Rook versions detected"
+            fi
+            bail "Failed to verify the Rook upgrade"
         fi
 
         log "Rook 1.2.7 has been rolled out throughout the cluster"
@@ -181,9 +197,17 @@ function rookupgrade_10to14_upgrade() {
 
         log "Waiting for Rook 1.3.11 to rollout throughout the cluster, this may take some time"
         if ! "$DIR"/bin/kurl rook wait-for-rook-version "v1.3.11" --timeout=1200 ; then
-            logWarn "Detected multiple Rook versions"
+            logWarn "Timeout waiting for Rook version 1.3.11 rolled out"
+            logStep "Checking Rook versions and replicas"
             kubectl -n rook-ceph get deployment -l rook_cluster=rook-ceph -o jsonpath='{range .items[*]}{.metadata.name}{"  \treq/upd/avl: "}{.spec.replicas}{"/"}{.status.updatedReplicas}{"/"}{.status.readyReplicas}{"  \trook-version="}{.metadata.labels.rook-version}{"\n"}{end}'
-            bail "Failed to verify the Rook upgrade, multiple Rook versions detected"
+            local rook_versions=
+            rook_versions="$(kubectl -n rook-ceph get deployment -l rook_cluster=rook-ceph -o jsonpath='{range .items[*]}{"rook-version="}{.metadata.labels.rook-version}{"\n"}{end}' | sort | uniq)"
+            if [ -n "${rook_versions}" ] && [ "$(echo "${rook_versions}" | wc -l)" -gt "1" ]; then
+                logWarn "Detected multiple Rook versions"
+                logWarn "${rook_versions}"
+                logWarn "Failed to verify the Rook upgrade, multiple Rook versions detected"
+            fi
+            bail "Failed to verify the Rook upgrade"
         fi
 
         log "Rook 1.3.11 has been rolled out throughout the cluster"
@@ -211,9 +235,18 @@ function rookupgrade_10to14_upgrade() {
 
         log "Waiting for Rook 1.4.9 to rollout throughout the cluster, this may take some time"
         if ! "$DIR"/bin/kurl rook wait-for-rook-version "v1.4.9" --timeout=1200 ; then
-            logWarn "Detected multiple Rook versions"
+            logWarn "Timeout waiting for Rook version 1.4.9 rolled out"
+            logStep "Checking Rook versions and replicas"
             kubectl -n rook-ceph get deployment -l rook_cluster=rook-ceph -o jsonpath='{range .items[*]}{.metadata.name}{"  \treq/upd/avl: "}{.spec.replicas}{"/"}{.status.updatedReplicas}{"/"}{.status.readyReplicas}{"  \trook-version="}{.metadata.labels.rook-version}{"\n"}{end}'
-            bail "Failed to verify the Rook upgrade, multiple Rook versions detected"
+            local rook_versions=
+            rook_versions="$(kubectl -n rook-ceph get deployment -l rook_cluster=rook-ceph -o jsonpath='{range .items[*]}{"rook-version="}{.metadata.labels.rook-version}{"\n"}{end}' | sort | uniq)"
+            if [ -n "${rook_versions}" ] && [ "$(echo "${rook_versions}" | wc -l)" -gt "1" ]; then
+                logWarn "Detected multiple Rook versions"
+                logWarn "${rook_versions}"
+                logWarn "Failed to verify the Rook upgrade, multiple Rook versions detected"
+            fi
+            bail "Failed to verify the Rook upgrade"
+
         fi
 
         log "Rook 1.4.9 has been rolled out throughout the cluster"

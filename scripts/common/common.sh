@@ -599,7 +599,7 @@ function kubeconfig_setup_outro() {
         owner="$USER"
     else
         # running via sudo - automatically create ~/.kube/config if it does not exist
-        ownerdir=`eval echo "~$(id -un $owner)"`
+        ownerdir=$(eval echo "~$(id -un "$owner")")
 
         if [ ! -f "$ownerdir/.kube/config" ]; then
             mkdir -p $ownerdir/.kube
@@ -1021,4 +1021,18 @@ function retag_gcr_images() {
             ctr -n k8s.io images tag "$image" "$new_image" 2>/dev/null || true
         done
     fi
+}
+
+function canonical_image_name() {
+    local image="$1"
+    if echo "$image" | grep -vq '/' ; then
+        image="library/$image"
+    fi
+    if echo "$image" | awk -F'/' '{print $1}' | grep -vq '\.' ; then
+        image="docker.io/$image"
+    fi
+    if echo "$image" | grep -vq ':' ; then
+        image="$image:latest"
+    fi
+    echo "$image"
 }

@@ -32,6 +32,10 @@ spec:
     assertEquals "preserves quotes" "$expects" "$(render_yaml_file_2 "./addons/velero/template/base/tmpl-velero-deployment-proxy.yaml")"
 }
 
+function test_render_yaml_file_2_file_not_found() {
+    assertEquals "file not found returns an error" "1" "$(render_yaml_file_2 "./blah" 2>/dev/null ; echo "$?")"
+}
+
 function test_insert_bases_kubectl_120() {
     local tmpdir=
     tmpdir="$(mktemp -d)"

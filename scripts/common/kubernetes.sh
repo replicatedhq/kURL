@@ -640,6 +640,21 @@ function kubernetes_node_has_all_images() {
     fi
 }
 
+# kubernetes_nodes_missing_images will return a list of nodes that are missing any of the images in
+# the provided list
+function kubernetes_nodes_missing_images() {
+    local images_list="$1"
+    local target_host="$2"
+    local exclude_hosts="$3"
+
+    if [ -z "$images_list" ]; then
+        return
+    fi
+
+    # shellcheck disable=SC2086
+    "$DIR"/bin/kurl cluster nodes-missing-images --image="$KURL_UTIL_IMAGE" --target-host="$target_host" --exclude-host="$exclude_hosts" $images_list
+}
+
 function kubernetes_node_has_image() {
     local node_name="$1"
     local image="$2"

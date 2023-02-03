@@ -13,8 +13,8 @@ import (
 )
 
 func NewClusterNodesMissingImageCmd(_ CLI) *cobra.Command {
-	var excludeHost, excludeHostDeprecated string
 	var opts cluster.NodeImagesJobOptions
+	var excludeHostDeprecated string
 
 	cmd := &cobra.Command{
 		Use:   "nodes-missing-images IMAGE...",
@@ -26,23 +26,13 @@ func NewClusterNodesMissingImageCmd(_ CLI) *cobra.Command {
 
 			logger := log.New(os.Stderr, "", 0)
 
-			if excludeHost == "" {
-				excludeHost = excludeHostDeprecated
+			if excludeHostDeprecated != "" {
+				opts.ExcludeNodes = append(opts.ExcludeNodes, excludeHostDeprecated)
 			}
 
 			nodesMissingImages, err := cluster.NodesMissingImages(cmd.Context(), clientSet, logger, args, opts)
 			if err != nil {
 				return fmt.Errorf("failed to determine what nodes were missing images: %w", err)
-			}
-
-			if excludeHost != "" {
-				for idx, item := range nodesMissingImages {
-					if item == excludeHost {
-						// exclude this index from nodesMissingImages
-						nodesMissingImages = append(nodesMissingImages[:idx], nodesMissingImages[idx+1:]...)
-						break
-					}
-				}
 			}
 
 			fmt.Fprintf(cmd.OutOrStdout(), "%s\n", strings.Join(nodesMissingImages, " "))
@@ -51,8 +41,9 @@ func NewClusterNodesMissingImageCmd(_ CLI) *cobra.Command {
 		SilenceUsage: true,
 	}
 
-	cmd.Flags().StringVar(&excludeHost, "exclude-host", "", "A hostname that will be excluded from the output")
-	cmd.Flags().StringVar(&excludeHostDeprecated, "exclude_host", "", "A hostname that will be excluded from the output")
+	cmd.Flags().StringVar(&opts.TargetNode, "target-host", "", "a hostname that will be targeted in the search")
+	cmd.Flags().StringSliceVar(&opts.ExcludeNodes, "exclude-host", nil, "a hostname or list of hostnames that will be excluded from the output")
+	cmd.Flags().StringVar(&excludeHostDeprecated, "exclude_host", "", "a hostname that will be excluded from the output")
 	_ = cmd.Flags().MarkDeprecated("exclude_host", "use --exclude-host instead")
 	cmd.Flags().StringVar(&opts.JobImage, "image", cluster.DefaultNodeImagesJobImage, "the image to use to list images - must have 'docker' CLI on the path")
 	cmd.Flags().StringVar(&opts.JobNamespace, "namespace", cluster.DefaultNodeImagesJobNamespace, "the namespace in which to run the discovery job")
