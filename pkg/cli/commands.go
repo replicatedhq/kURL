@@ -33,10 +33,10 @@ func AddCommands(cmd *cobra.Command, cli CLI) {
 	clusterCmd.AddCommand(NewClusterCheckFreeDiskSpaceCmd(cli))
 	cmd.AddCommand(clusterCmd)
 
-	utilCmd := newUtilCommand(cli)
-	utilCmd.AddCommand(newUtilIfaceFromIPCommand(cli))
-	utilCmd.AddCommand(newUtilDefaultIfaceCommand(cli))
-	cmd.AddCommand(utilCmd)
+	netutilCmd := newNetutilCommand(cli)
+	netutilCmd.AddCommand(newNetutilIfaceFromIPCommand(cli))
+	netutilCmd.AddCommand(newNetutilDefaultIfaceCommand(cli))
+	cmd.AddCommand(netutilCmd)
 
 	cmd.AddCommand(newSyncObjectStoreCmd(cli))
 
