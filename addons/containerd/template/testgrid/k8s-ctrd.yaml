@@ -57,7 +57,7 @@
   postUpgradeScript: |
     containerd --version | grep "__testver__"
 
-- name: Upgrade Containerd from oldest (1.5.x) to __testver__
+- name: Upgrade Containerd from 1.5.x to __testver__
   installerSpec:
     kubernetes:
       version: "1.25.x"
@@ -203,3 +203,59 @@
     minio_object_store_info
     validate_testfile rwtest testfile.txt
     validate_read_write_object_store postupgrade upgradefile.txt
+
+- name: Upgrade Containerd from 1.2.x to __testver__
+  installerSpec:
+    kubernetes:
+      version: "1.25.x"
+    flannel:
+      version: latest
+    containerd:
+      version: "1.2.x"
+    openebs:
+      version: latest
+      isLocalPVEnabled: true
+      localPVStorageClassName: default
+    minio:
+      version: latest
+    ekco:
+      version: latest
+    kotsadm:
+      version: latest
+  upgradeSpec:
+    kubernetes:
+      version: "1.25.x"
+    flannel:
+      version: latest
+    containerd:
+      version: "__testver__"
+      s3Override: "__testdist__"
+    openebs:
+      version: latest
+      isLocalPVEnabled: true
+      localPVStorageClassName: default
+    minio:
+      version: latest
+    ekco:
+      version: latest
+    kotsadm:
+      version: latest
+  postInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    minio_object_store_info
+    validate_read_write_object_store rwtest testfile.txt
+    echo "Checking kubectl with kube/config"
+    echo "Kubeconfig was $KUBECONFIG"
+    unset KUBECONFIG
+    kubectl get namespaces
+  postUpgradeScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    minio_object_store_info
+    validate_testfile rwtest testfile.txt
+    validate_read_write_object_store postupgrade upgradefile.txt
+    containerd --version | grep "__testver__"
+  unsupportedOSIDs:
+  - centos-74
+  - centos-79
+  - ol-79
+  - ubuntu-2204
