@@ -235,6 +235,15 @@ function rook_cluster_deploy_upgrade() {
         return 0
     fi
 
+    if kubernetes_resource_exists rook-ceph cephfilesystem rook-shared-fs ; then
+        # When upgrading we need both MDS pods and anti-affinity rules prevent them from co-scheduling on single-node installations
+        local ready_node_count
+        ready_node_count="$(kubectl get nodes --no-headers 2>/dev/null | grep -c ' Ready')"
+        if [ "$ready_node_count" -le "1" ]; then
+            rook_cephfilesystem_patch_singlenode
+        fi
+    fi
+
     # 4. https://rook.io/docs/rook/v1.6/ceph-upgrade.html#4-wait-for-the-upgrade-to-complete
     echo "Awaiting rook-ceph operator"
     if ! "$DIR"/bin/kurl rook wait-for-rook-version "$ROOK_VERSION" --timeout=1200 ; then
@@ -257,15 +266,6 @@ function rook_cluster_deploy_upgrade() {
     if ! $DIR/bin/kurl rook wait-for-health 600 ; then
         kubectl -n rook-ceph exec deploy/rook-ceph-tools -- ceph status
         bail "Refusing to update cluster rook-ceph, Ceph is not healthy"
-    fi
-
-    if kubernetes_resource_exists rook-ceph cephfilesystem rook-shared-fs ; then
-        # When upgrading we need both MDS pods and anti-affinity rules prevent them from co-scheduling on single-node installations
-        local ready_node_count
-        ready_node_count="$(kubectl get nodes --no-headers 2>/dev/null | grep -c ' Ready')"
-        if [ "$ready_node_count" -le "1" ]; then
-            rook_cephfilesystem_patch_singlenode
-        fi
     fi
 
     # https://rook.io/docs/rook/v1.6/ceph-upgrade.html#ceph-version-upgrades
