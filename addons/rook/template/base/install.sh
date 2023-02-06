@@ -869,11 +869,10 @@ function rook_maybe_migrate_from_longhorn() {
     if [ -z "$LONGHORN_VERSION" ]; then
         if kubectl get ns | grep -q longhorn-system; then
             local rook_storage_class="${STORAGE_CLASS:-default}"
-
             # show validation errors from pvmigrate if there are errors, rook_maybe_longhorn_migration_checks() will bail
             rook_maybe_longhorn_migration_checks "$rook_storage_class"
-
             longhorn_to_sc_migration "$rook_storage_class" "1"
+            migrate_minio_to_rgw
             DID_MIGRATE_LONGHORN_PVCS=1 # used to automatically delete longhorn if object store data was also migrated
         fi
     fi
