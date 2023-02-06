@@ -36,7 +36,7 @@ const (
 
 func newHostPreflightCmd(cli CLI) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:          "preflight [installer spec file|-]",
+		Use:          "preflight [INSTALLER SPEC FILE|-]",
 		Short:        "Runs kURL host preflight checks",
 		Example:      hostPreflightCmdExample,
 		SilenceUsage: true,
