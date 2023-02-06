@@ -388,4 +388,8 @@ function openebs_prompt_migrate_from_longhorn() {
     if ! confirmN; then
         bail "Not migrating"
     fi
+
+    if ! longhorn_prepare_for_migration; then
+        bail "Not migrating"
+    fi
 }
