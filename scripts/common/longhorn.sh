@@ -125,6 +125,7 @@ function longhorn_to_sc_migration() {
         if ! longhorn_run_pvmigrate "$longhornStorageClass" "$destStorageClass" "$didRunValidationChecks" "1"; then
             bail "Failed to migrate PVCs from $longhornStorageClass to $destStorageClass"
         fi
+        kubectl annotate storageclass "$longhornStorageClass" storageclass.kubernetes.io/is-default-class-
     done
 
     longhorn_restore_migration_replicas

@@ -247,8 +247,25 @@ func scaleDownPodsUsingLonghorn(ctx context.Context, cli client.Client) error {
 	return nil
 }
 
+func isPrometheusInstalled(ctx context.Context, cli client.Client) (bool, error) {
+	nsn := types.NamespacedName{Name: prometheusNamespace}
+	if err := cli.Get(ctx, nsn, &corev1.Namespace{}); err != nil {
+		if errors.IsNotFound(err) {
+			return false, nil
+		}
+		return false, fmt.Errorf("error getting prometheus namespace: %w", err)
+	}
+	return true, nil
+}
+
 // scaleDownPrometheus scales down prometheus.
 func scaleDownPrometheus(ctx context.Context, cli client.Client) error {
+	if installed, err := isPrometheusInstalled(ctx, cli); err != nil {
+		return fmt.Errorf("error scaling down prometheus: %w", err)
+	} else if !installed {
+		return nil
+	}
+
 	nsn := types.NamespacedName{Namespace: prometheusNamespace, Name: prometheusName}
 	var prometheus promv1.Prometheus
 	if err := cli.Get(ctx, nsn, &prometheus); err != nil {
@@ -304,6 +321,12 @@ func scaleDownPrometheus(ctx context.Context, cli client.Client) error {
 
 // scaleUpPrometheus scales up prometheus.
 func scaleUpPrometheus(ctx context.Context, cli client.Client) error {
+	if installed, err := isPrometheusInstalled(ctx, cli); err != nil {
+		return fmt.Errorf("error scaling down prometheus: %w", err)
+	} else if !installed {
+		return nil
+	}
+
 	nsn := types.NamespacedName{Namespace: prometheusNamespace, Name: prometheusName}
 	var prometheus promv1.Prometheus
 	if err := cli.Get(ctx, nsn, &prometheus); err != nil {
