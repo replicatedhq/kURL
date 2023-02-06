@@ -11,6 +11,28 @@ import (
 	"github.com/spf13/viper"
 )
 
+func newObjectStoreCmd(cli CLI) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "object-store",
+		Short: "Perform operations related to the object store within a kURL cluster",
+		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+			return cli.GetViper().BindPFlags(cmd.PersistentFlags())
+		},
+		PreRunE: func(cmd *cobra.Command, args []string) error {
+			return cli.GetViper().BindPFlags(cmd.Flags())
+		},
+	}
+	return cmd
+}
+
+func newSyncObjectStoreCmdDeprecated(cli CLI) *cobra.Command {
+	cmd := newSyncObjectStoreCmd(cli)
+	cmd.Use = "sync-object-store"
+	cmd.Deprecated = "use 'kurl object-store sync' instead"
+	cmd.Hidden = true
+	return cmd
+}
+
 func newSyncObjectStoreCmd(_ CLI) *cobra.Command {
 	var srcHost string
 	var srcAccessKeyID string
@@ -21,7 +43,7 @@ func newSyncObjectStoreCmd(_ CLI) *cobra.Command {
 	var dstAccessKeySecret string
 
 	syncObjectStoreCmd := &cobra.Command{
-		Use:   "sync-object-store",
+		Use:   "sync",
 		Short: "Copies buckets and objects from one object store to another",
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			v := viper.New()
