@@ -301,7 +301,7 @@ function kubernetes_api_address() {
             port="6443"
         fi
 
-        addr=$(${DIR}/bin/kurl format-address ${addr})
+        addr=$(${DIR}/bin/kurl netutil format-ip-address ${addr})
 
         echo "${addr}:${port}"
     fi

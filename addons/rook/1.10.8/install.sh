@@ -568,7 +568,7 @@ function rook_object_store_output() {
     export OBJECT_STORE_CLUSTER_HOST="http://rook-ceph-rgw-rook-ceph-store.rook-ceph"
     # same as OBJECT_STORE_CLUSTER_IP for IPv4, wrapped in brackets for IPv6
     export OBJECT_STORE_CLUSTER_IP_BRACKETED
-    OBJECT_STORE_CLUSTER_IP_BRACKETED=$("$DIR"/bin/kurl format-address "$OBJECT_STORE_CLUSTER_IP")
+    OBJECT_STORE_CLUSTER_IP_BRACKETED=$("$DIR"/bin/kurl netutil format-ip-address "$OBJECT_STORE_CLUSTER_IP")
 }
 
 # deprecated, use object_store_create_bucket

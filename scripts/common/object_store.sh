@@ -37,7 +37,7 @@ function _object_store_create_bucket() {
     local string="PUT\n\n\n${d}\n${acl}\n/$bucket"
     local sig=$(echo -en "${string}" | openssl sha1 -hmac "${OBJECT_STORE_SECRET_KEY}" -binary | base64)
 
-    local addr=$($DIR/bin/kurl format-address "$OBJECT_STORE_CLUSTER_IP")
+    local addr=$($DIR/bin/kurl netutil format-ip-address "$OBJECT_STORE_CLUSTER_IP")
     curl -fsSL -X PUT  \
         --globoff \
         --noproxy "*" \
@@ -55,7 +55,7 @@ function object_store_bucket_exists() {
     local string="HEAD\n\n\n${d}\n${acl}\n/$bucket"
     local sig=$(echo -en "${string}" | openssl sha1 -hmac "${OBJECT_STORE_SECRET_KEY}" -binary | base64)
 
-    local addr=$($DIR/bin/kurl format-address "$OBJECT_STORE_CLUSTER_IP")
+    local addr=$($DIR/bin/kurl netutil format-ip-address "$OBJECT_STORE_CLUSTER_IP")
     curl -fsSL -I \
         --globoff \
         --noproxy "*" \
@@ -93,7 +93,8 @@ spec:
     image: $KURL_UTIL_IMAGE
     command:
     - /usr/local/bin/kurl
-    - sync-object-store
+    - object-store
+    - sync
     - --source_host=$source_addr
     - --source_access_key_id=$source_access_key
     - --source_access_key_secret=$source_secret_key
@@ -156,7 +157,8 @@ spec:
     image: $KURL_UTIL_IMAGE
     command:
     - /usr/local/bin/kurl
-    - sync-object-store
+    - object-store
+    - sync
     - --source_host=$RGW_HOST
     - --source_access_key_id=$RGW_ACCESS_KEY_ID
     - --source_access_key_secret=$RGW_ACCESS_KEY_SECRET
@@ -202,7 +204,7 @@ EOF
         fi
     fi
 
-    local minioIP=$($DIR/bin/kurl format-address "$MINIO_CLUSTER_IP")
+    local minioIP=$($DIR/bin/kurl netutil format-ip-address "$MINIO_CLUSTER_IP")
     # Update registry to use minio
     if kubernetes_resource_exists kurl configmap registry-config; then
         echo "Updating registry to use minio"
