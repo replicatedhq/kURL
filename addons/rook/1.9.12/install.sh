@@ -338,7 +338,57 @@ function rook_cluster_deploy_upgrade() {
 
     rook_cluster_deploy_upgrade_flexvolumes_to_csi
 
-    logSuccess "Rook-ceph cluster upgraded"
+    verify_rook_updated_cluster
+}
+
+# Before to finish end report that the upgrade was done with success ensure that
+# only on rook version is found and the ceph status
+# https://rook.io/docs/rook/v1.9/ceph-upgrade.html#3-verify-the-updated-cluster
+function verify_rook_updated_cluster() {
+    logStep "Checking if Rook Upgrade is completed successfully"
+    echo "Verifying Rook Version Deployed"
+    if ! spinner_until 1200 rook_version_deployed ; then
+        logWarn "Timeout awaiting check Rook version deployed"
+        logStep "Rook versions and replicas"
+        kubectl -n rook-ceph get deployment -l rook_cluster=rook-ceph -o jsonpath='{range .items[*]}{.metadata.name}{"  \treq/upd/avl: "}{.spec.replicas}{"/"}{.status.updatedReplicas}{"/"}{.status.readyReplicas}{"  \trook-version="}{.metadata.labels.rook-version}{"\n"}{end}'
+        local rook_versions=
+        rook_versions="$(kubectl -n rook-ceph get deployment -l rook_cluster=rook-ceph -o jsonpath='{range .items[*]}{"rook-version="}{.metadata.labels.rook-version}{"\n"}{end}' | sort | uniq)"
+        if [ -n "${rook_versions}" ] && [ "$(echo "${rook_versions}" | wc -l)" -gt "1" ]; then
+            logWarn "Detected multiple Rook versions"
+            logWarn "${rook_versions}"
+            bail "Failed to verify the Rook upgrade, multiple Rook versions detected"
+        fi
+    fi
+
+    echo "Verifying Ceph Version ${ceph_version} Deployed"
+    if ! spinner_until 1200 rook_ceph_version_deployed "${ceph_version}" ; then
+        bail "New Ceph version ${ceph_version} failed to deploy"
+    fi
+
+    echo "Verifying Ceph Status"
+    if ! $DIR/bin/kurl rook wait-for-health 300 ; then
+        kubectl -n rook-ceph exec deploy/rook-ceph-tools -- ceph status
+        bail "Failed to verify the updated cluster, Ceph is not healthy"
+    fi
+
+    logSuccess "Rook-ceph cluster upgraded successfully"
+}
+
+# rook_version_deployed check that there is only one rook-version reported across the cluster
+function rook_version_deployed() {
+    # wait for our version to start reporting
+    if ! kubectl -n rook-ceph get deployment -l rook_cluster=rook-ceph -o jsonpath='{range .items[*]}{"rook-version="}{.metadata.labels.rook-version}{"\n"}{end}' | grep -q "${ROOK_VERSION}" ; then
+        return 1
+    fi
+    # wait for our version to be the only one reporting
+    if [ "$(kubectl -n rook-ceph get deployment -l rook_cluster=rook-ceph -o jsonpath='{range .items[*]}{"rook-version="}{.metadata.labels.rook-version}{"\n"}{end}' | sort | uniq | wc -l)" != "1" ]; then
+        return 1
+    fi
+    # sanity check
+    if ! kubectl -n rook-ceph get deployment -l rook_cluster=rook-ceph -o jsonpath='{range .items[*]}{"rook-version="}{.metadata.labels.rook-version}{"\n"}{end}' | grep -q "${ROOK_VERSION}" ; then
+        return 1
+    fi
+    return 0
 }
 
 # rook_cluster_deploy_upgrade_flexvolumes_to_csi will check if the previous storageclass is using
