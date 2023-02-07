@@ -59,7 +59,7 @@ function init() {
         addr="$LOAD_BALANCER_ADDRESS"
         port="$LOAD_BALANCER_PORT"
     fi
-    addr=$($DIR/bin/kurl format-address "$addr")
+    addr=$($DIR/bin/kurl netutil format-ip-address "$addr")
     API_SERVICE_ADDRESS="$addr:$port"
 
     local oldLoadBalancerAddress=$(kubernetes_load_balancer_address)
@@ -116,11 +116,11 @@ function init() {
             insert_patches_strategic_merge \
                 $kustomize_kubeadm_init/kustomization.yaml \
                 patch-cluster-config-cis-compliance.yaml
-	else
+	    else
             insert_patches_strategic_merge \
                 $kustomize_kubeadm_init/kustomization.yaml \
                 patch-cluster-config-cis-compliance-insecure-port.yaml
-	fi
+	    fi
     fi
 
     if [ "$KUBE_RESERVED" == "1" ]; then
@@ -234,7 +234,7 @@ function init() {
     kubectl uncordon "$node"
 
     if [ -n "$LOAD_BALANCER_ADDRESS" ]; then
-        addr=$($DIR/bin/kurl format-address "$PRIVATE_ADDRESS")
+        addr=$($DIR/bin/kurl netutil format-ip-address "$PRIVATE_ADDRESS")
         spinner_until 120 cert_has_san "$addr:6443" "$LOAD_BALANCER_ADDRESS"
     fi
 
