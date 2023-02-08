@@ -14,7 +14,6 @@ ARG KUBERNETES_VERSION
 RUN apt-get install -d -y tzdata \
 	kubelet=$(apt-cache madison kubeadm | grep ${KUBERNETES_VERSION}- | awk '{ print $3 }' | head -n 1) \
 	kubectl=$(apt-cache madison kubeadm | grep ${KUBERNETES_VERSION}- | awk '{ print $3 }' | head -n 1) \
-	kubernetes-cni \
 	git \
 	-oDebug::NoLocking=1 -o=dir::cache=/packages/
 

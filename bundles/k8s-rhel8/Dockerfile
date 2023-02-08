@@ -11,7 +11,6 @@ RUN yum install -y modulemd-tools
 RUN yumdownloader --installroot=/tmp/empty-directory --releasever=/ --resolve --destdir=/packages/archives -y \
 	kubelet-${KUBERNETES_VERSION} \
 	kubectl-${KUBERNETES_VERSION} \
-	kubernetes-cni \
 	git
 RUN createrepo_c /packages/archives
 RUN repo2module --module-name=kurl.local --module-stream=stable /packages/archives /tmp/modules.yaml
