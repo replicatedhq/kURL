@@ -65,6 +65,8 @@ function upgrade_kubernetes_local_master_patch() {
     local node="$(get_local_node_name)"
     local upgrading_kubernetes=true
 
+    logStep "Upgrading Kubernetes to version $k8sVersion"
+
     if [ "$AIRGAP" != "1" ] && [ -n "$DIST_URL" ]; then
         kubernetes_get_host_packages_online "$k8sVersion"
         kubernetes_get_conformance_packages_online "$k8sVersion"
@@ -77,7 +79,7 @@ function upgrade_kubernetes_local_master_patch() {
 
     upgrade_kubeadm "$k8sVersion"
 
-    kubeadm upgrade plan "v${k8sVersion}"
+    ( set -x; kubeadm upgrade plan "v${k8sVersion}" )
     printf "${YELLOW}Drain local node and apply upgrade? ${NC}"
     confirmY
     kubernetes_drain "$node"
@@ -86,7 +88,7 @@ function upgrade_kubernetes_local_master_patch() {
  
     spinner_kubernetes_api_stable
     # ignore-preflight-errors, do not fail on fail to pull images for airgap
-    kubeadm upgrade apply "v$k8sVersion" --yes --force --ignore-preflight-errors=all
+    ( set -x; kubeadm upgrade apply "v$k8sVersion" --yes --force --ignore-preflight-errors=all )
 
     kubernetes_install_host_packages "$k8sVersion"
     systemctl daemon-reload
@@ -97,6 +99,8 @@ function upgrade_kubernetes_local_master_patch() {
 
     spinner_until 120 kubernetes_node_has_version "$node" "$k8sVersion"
     spinner_until 120 kubernetes_all_nodes_ready
+
+    logSuccess "Kubernetes upgraded to version $k8sVersion"
 }
 
 function upgrade_kubeadm() {
@@ -171,6 +175,8 @@ function upgrade_kubernetes_local_master_minor() {
     local node="$(get_local_node_name)"
     local upgrading_kubernetes=true
 
+    logStep "Upgrading Kubernetes to version $k8sVersion"
+
     if [ "$AIRGAP" != "1" ] && [ -n "$DIST_URL" ]; then
         kubernetes_get_host_packages_online "$k8sVersion"
         kubernetes_get_conformance_packages_online "$k8sVersion"
@@ -183,7 +189,7 @@ function upgrade_kubernetes_local_master_minor() {
 
     upgrade_kubeadm "$k8sVersion"
 
-    kubeadm upgrade plan "v${k8sVersion}"
+    ( set -x; kubeadm upgrade plan "v${k8sVersion}" )
     printf "${YELLOW}Drain local node and apply upgrade? ${NC}"
     confirmY
     kubernetes_drain "$node"
@@ -192,7 +198,7 @@ function upgrade_kubernetes_local_master_minor() {
 
     spinner_kubernetes_api_stable
     # ignore-preflight-errors, do not fail on fail to pull images for airgap
-    kubeadm upgrade apply "v$k8sVersion" --yes --force --ignore-preflight-errors=all
+    ( set -x; kubeadm upgrade apply "v$k8sVersion" --yes --force --ignore-preflight-errors=all )
     upgrade_etcd_image_18 "$k8sVersion"
 
     kubernetes_install_host_packages "$k8sVersion"
@@ -207,6 +213,8 @@ function upgrade_kubernetes_local_master_minor() {
 
     spinner_until 120 kubernetes_node_has_version "$node" "$k8sVersion"
     spinner_until 120 kubernetes_all_nodes_ready
+
+    logSuccess "Kubernetes upgraded to version $k8sVersion"
 }
 
 function upgrade_kubernetes_remote_masters_minor() {
