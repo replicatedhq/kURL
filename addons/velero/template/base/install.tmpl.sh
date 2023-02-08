@@ -155,11 +155,6 @@ function velero_install() {
         --dry-run -o yaml > "$dst/velero.yaml" 
 
     rm -f velero-credentials
-
-    # remove restic resources since they've been replaced by node agent
-    kubectl delete daemonset -n "$VELERO_NAMESPACE" restic --ignore-not-found
-    kubectl delete secret -n "$VELERO_NAMESPACE" velero-restic-credentials --ignore-not-found
-    kubectl delete crd resticrepositories.velero.io --ignore-not-found
 }
 
 # This runs when re-applying the same version to a cluster
@@ -193,6 +188,11 @@ function velero_already_applied() {
     if [ -f "$dst/kustomization.yaml" ]; then
         kubectl apply -k "$dst"
     fi
+
+    # Remove restic resources since they've been replaced by node agent
+    kubectl delete daemonset -n "$VELERO_NAMESPACE" restic --ignore-not-found
+    kubectl delete secret -n "$VELERO_NAMESPACE" velero-restic-credentials --ignore-not-found
+    kubectl delete crd resticrepositories.velero.io --ignore-not-found
 
     # Bail if the migration fails, preventing the original object store from being deleted
     if velero_did_migrate_from_object_store; then
