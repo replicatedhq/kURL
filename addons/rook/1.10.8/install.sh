@@ -99,14 +99,10 @@ function rook() {
     fi
 
     if ! kubectl -n rook-ceph get pod -l app=rook-ceph-rgw -o jsonpath='{.items[0].status.phase}' 2>/dev/null | grep -q Running ; then
-        semverParse "$ROOK_VERSION"
-        # shellcheck disable=SC2154
-        local rook_major_minor_version="${major}.${minor}"
-
         printf "\n\n%bRook Ceph 1.4+ requires a secondary, unformatted block device attached to the host.%b\n" "$GREEN" "$NC"
         printf "%bIf you are stuck waiting at this step for more than two minutes, you are either missing the device or it is already formatted.%b\n" "$GREEN" "$NC"
         printf "\t%b * If it is missing, attach it now and it will be picked up; or CTRL+C, attach, and re-start the installer%b\n" "$GREEN" "$NC"
-        printf "\t%b * If the disk is attached, try wiping it using the recommended zap procedure: https://rook.io/docs/rook/v%s/ceph-teardown.html#zapping-devices%b\n\n" "$GREEN" "$rook_major_minor_version" "$NC"
+        printf "\t%b * If the disk is attached, try wiping it using the recommended zap procedure: https://rook.io/docs/rook/v1.10/Storage-Configuration/ceph-teardown/?h=zap#zapping-devices%b\n\n" "$GREEN" "$NC"
     fi
 
     printf "checking for attached secondary block device (awaiting rook-ceph RGW pod)\n"
@@ -338,7 +334,39 @@ function rook_cluster_deploy_upgrade() {
 
     rook_cluster_deploy_upgrade_flexvolumes_to_csi
 
-    logSuccess "Rook-ceph cluster upgraded"
+    logStep "Checking if the Rook-Ceph cluster upgrade completed successfully"
+    verify_rook_updated_cluster
+    logSuccess "Rook-Ceph cluster upgraded successfully"
+}
+
+# Before to finish end report that the upgrade was done with success ensure that
+# only on rook version is found and the ceph status
+# https://rook.io/docs/rook/v1.9/ceph-upgrade.html#3-verify-the-updated-cluster
+function verify_rook_updated_cluster() {
+    log "Verifying Rook Version Deployed"
+    if ! "$DIR"/bin/kurl rook wait-for-rook-version "$ROOK_VERSION" --timeout=1200 ; then
+        logWarn "Timeout awaiting Rook version"
+        log "Rook versions and replicas"
+        kubectl -n rook-ceph get deployment -l rook_cluster=rook-ceph -o jsonpath='{range .items[*]}{.metadata.name}{"  \treq/upd/avl: "}{.spec.replicas}{"/"}{.status.updatedReplicas}{"/"}{.status.readyReplicas}{"  \trook-version="}{.metadata.labels.rook-version}{"\n"}{end}'
+        local rook_versions=
+        rook_versions="$(kubectl -n rook-ceph get deployment -l rook_cluster=rook-ceph -o jsonpath='{range .items[*]}{"rook-version="}{.metadata.labels.rook-version}{"\n"}{end}' | sort | uniq)"
+        if [ -n "${rook_versions}" ] && [ "$(echo "${rook_versions}" | wc -l)" -gt "1" ]; then
+            logWarn "Detected multiple Rook versions"
+            logWarn "${rook_versions}"
+            bail "Failed to verify the Rook upgrade, multiple Rook versions detected"
+        fi
+    fi
+
+    log "Verifying Ceph version ${ceph_version} deployed"
+    if ! spinner_until 1200 rook_ceph_version_deployed "${ceph_version}" ; then
+        bail "New Ceph version ${ceph_version} failed to deploy"
+    fi
+
+    log "Verifying Ceph status"
+    if ! $DIR/bin/kurl rook wait-for-health 300 ; then
+        kubectl -n rook-ceph exec deploy/rook-ceph-tools -- ceph status
+        bail "Failed to verify the updated cluster, Ceph is not healthy"
+    fi
 }
 
 # rook_cluster_deploy_upgrade_flexvolumes_to_csi will check if the previous storageclass is using
@@ -568,7 +596,7 @@ function rook_object_store_output() {
     export OBJECT_STORE_CLUSTER_HOST="http://rook-ceph-rgw-rook-ceph-store.rook-ceph"
     # same as OBJECT_STORE_CLUSTER_IP for IPv4, wrapped in brackets for IPv6
     export OBJECT_STORE_CLUSTER_IP_BRACKETED
-    OBJECT_STORE_CLUSTER_IP_BRACKETED=$("$DIR"/bin/kurl format-address "$OBJECT_STORE_CLUSTER_IP")
+    OBJECT_STORE_CLUSTER_IP_BRACKETED=$("$DIR"/bin/kurl netutil format-ip-address "$OBJECT_STORE_CLUSTER_IP")
 }
 
 # deprecated, use object_store_create_bucket

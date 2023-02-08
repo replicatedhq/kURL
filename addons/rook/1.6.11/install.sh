@@ -289,16 +289,39 @@ function rook_cluster_deploy_upgrade() {
 
     rook_patch_insecure_clients
 
-    # https://rook.io/docs/rook/v1.6/ceph-upgrade.html#3-verify-the-updated-cluster
+    logStep "Checking if the Rook-Ceph cluster upgrade completed successfully"
+    verify_rook_updated_cluster
+    logSuccess "Rook-Ceph cluster upgraded successfully"
+}
 
-    echo "Awaiting Ceph healthy"
+# Before to finish end report that the upgrade was done with success ensure that
+# only on rook version is found and the ceph status
+# https://rook.io/docs/rook/v1.9/ceph-upgrade.html#3-verify-the-updated-cluster
+function verify_rook_updated_cluster() {
+    log "Verifying Rook Version Deployed"
+    if ! "$DIR"/bin/kurl rook wait-for-rook-version "$ROOK_VERSION" --timeout=1200 ; then
+        logWarn "Timeout awaiting Rook version"
+        log "Rook versions and replicas"
+        kubectl -n rook-ceph get deployment -l rook_cluster=rook-ceph -o jsonpath='{range .items[*]}{.metadata.name}{"  \treq/upd/avl: "}{.spec.replicas}{"/"}{.status.updatedReplicas}{"/"}{.status.readyReplicas}{"  \trook-version="}{.metadata.labels.rook-version}{"\n"}{end}'
+        local rook_versions=
+        rook_versions="$(kubectl -n rook-ceph get deployment -l rook_cluster=rook-ceph -o jsonpath='{range .items[*]}{"rook-version="}{.metadata.labels.rook-version}{"\n"}{end}' | sort | uniq)"
+        if [ -n "${rook_versions}" ] && [ "$(echo "${rook_versions}" | wc -l)" -gt "1" ]; then
+            logWarn "Detected multiple Rook versions"
+            logWarn "${rook_versions}"
+            bail "Failed to verify the Rook upgrade, multiple Rook versions detected"
+        fi
+    fi
 
+    log "Verifying Ceph version ${ceph_version} deployed"
+    if ! spinner_until 1200 rook_ceph_version_deployed "${ceph_version}" ; then
+        bail "New Ceph version ${ceph_version} failed to deploy"
+    fi
+
+    log "Verifying Ceph status"
     if ! $DIR/bin/kurl rook wait-for-health 300 ; then
         kubectl -n rook-ceph exec deploy/rook-ceph-tools -- ceph status
         bail "Failed to verify the updated cluster, Ceph is not healthy"
     fi
-
-    logSuccess "Rook-ceph cluster upgraded"
 }
 
 function rook_dashboard_ready_spinner() {

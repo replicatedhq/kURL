@@ -36,9 +36,13 @@ func AddCommands(cmd *cobra.Command, cli CLI) {
 	netutilCmd := newNetutilCommand(cli)
 	netutilCmd.AddCommand(newNetutilIfaceFromIPCommand(cli))
 	netutilCmd.AddCommand(newNetutilDefaultIfaceCommand(cli))
+	netutilCmd.AddCommand(newNetutilFormatIPAddressCmd(cli))
 	cmd.AddCommand(netutilCmd)
 
-	cmd.AddCommand(newSyncObjectStoreCmd(cli))
+	objectStoreCmd := newObjectStoreCmd(cli)
+	objectStoreCmd.AddCommand(newSyncObjectStoreCmd(cli))
+	cmd.AddCommand(objectStoreCmd)
 
-	cmd.AddCommand(newFormatAddressCmd(cli))
+	cmd.AddCommand(newSyncObjectStoreCmdDeprecated(cli))
+	cmd.AddCommand(newNetutilFormatIPAddressCmdDeprecated(cli))
 }
