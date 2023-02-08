@@ -7,7 +7,6 @@ RUN yum install -y createrepo
 RUN yumdownloader --installroot=/tmp/empty-directory --releasever=/ --resolve --destdir=/packages/archives -y \
 	kubelet-${KUBERNETES_VERSION} \
 	kubectl-${KUBERNETES_VERSION} \
-	kubernetes-cni \
 	git
 RUN createrepo /packages/archives
 
