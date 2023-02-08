@@ -253,6 +253,13 @@ function flannel_kubeadm() {
 }
 
 function flannel_already_applied() {
+    # We will remove the flannel pods to let it be re-created
+    # in order to workaround the issue scenario described in
+    # https://github.com/flannel-io/flannel/issues/1721
+    log "Deleting pods from kube-flannel namespace"
+    kubectl delete --all pods --namespace=kube-flannel
+    sleep 60
+
     flannel_ready_spinner
     check_network
 }
