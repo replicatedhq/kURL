@@ -1,13 +1,13 @@
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
-  name: restic
+  name: node-agent
   namespace: ${VELERO_NAMESPACE}
 spec:
   template:
     spec:
       containers:
-        - name: restic
+        - name: node-agent
           env:
           - name: HTTP_PROXY
             value: "${PROXY_ADDRESS}"

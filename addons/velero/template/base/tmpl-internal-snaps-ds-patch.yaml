@@ -2,13 +2,13 @@
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
-  name: restic
+  name: node-agent
   namespace: ${VELERO_NAMESPACE}
 spec:
   template:
     spec:
       containers:
-      - name: restic
+      - name: node-agent
         volumeMounts:
         - mountPath: /var/velero-local-volume-provider/velero-internal-snapshots
           name: velero-internal-snapshots

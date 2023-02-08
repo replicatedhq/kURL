@@ -37,7 +37,7 @@ function velero() {
 
     velero_install "$src" "$dst"
 
-    velero_patch_restic_privilege "$src" "$dst"
+    velero_patch_node_agent_privilege "$src" "$dst"
 
     velero_patch_args "$src" "$dst"
 
@@ -119,9 +119,9 @@ function velero_install() {
     # Pre-apply CRDs since kustomize reorders resources. Grep to strip out sailboat emoji.
     "$src"/assets/velero-v"${VELERO_VERSION}"-linux-amd64/velero install --crds-only | grep -v 'Velero is installed'
 
-    local resticArg="--use-restic"
+    local nodeAgentArgs="--use-node-agent --uploader-type=restic"
     if [ "$VELERO_DISABLE_RESTIC" = "1" ]; then
-        resticArg=""
+        nodeAgentArgs=""
     fi
 
     # detect if we need to use object store or pvc
@@ -146,7 +146,7 @@ function velero_install() {
     fi
 
     "$src"/assets/velero-v"${VELERO_VERSION}"-linux-amd64/velero install \
-        $resticArg \
+        $nodeAgentArgs \
         $bslArgs \
         $secretArgs \
         --namespace $VELERO_NAMESPACE \
@@ -155,6 +155,11 @@ function velero_install() {
         --dry-run -o yaml > "$dst/velero.yaml" 
 
     rm -f velero-credentials
+
+    # remove restic resources since they've been replaced by node agent
+    kubectl delete daemonset -n "$VELERO_NAMESPACE" restic --ignore-not-found
+    kubectl delete secret -n "$VELERO_NAMESPACE" velero-restic-credentials --ignore-not-found
+    kubectl delete crd resticrepositories.velero.io --ignore-not-found
 }
 
 # This runs when re-applying the same version to a cluster
@@ -172,7 +177,7 @@ function velero_already_applied() {
 
         velero_binary 
         velero_install "$src" "$dst"
-        velero_patch_restic_privilege "$src" "$dst"
+        velero_patch_node_agent_privilege "$src" "$dst"
         velero_patch_args "$src" "$dst"
         velero_kotsadm_restore_config "$src" "$dst"
         velero_patch_internal_pvc_snapshots "$src" "$dst"
@@ -226,7 +231,7 @@ aws_secret_access_key=$OBJECT_STORE_SECRET_KEY
 EOF
 }
 
-function velero_patch_restic_privilege() {
+function velero_patch_node_agent_privilege() {
     local src="$1"
     local dst="$2"
 
@@ -235,8 +240,8 @@ function velero_patch_restic_privilege() {
     fi
 
     if [ "${VELERO_RESTIC_REQUIRES_PRIVILEGED}" = "1" ]; then
-        render_yaml_file "$src/restic-daemonset-privileged.yaml" > "$dst/restic-daemonset-privileged.yaml"
-        insert_patches_strategic_merge "$dst/kustomization.yaml" restic-daemonset-privileged.yaml
+        render_yaml_file "$src/node-agent-daemonset-privileged.yaml" > "$dst/node-agent-daemonset-privileged.yaml"
+        insert_patches_strategic_merge "$dst/kustomization.yaml" node-agent-daemonset-privileged.yaml
     fi
 }
 
@@ -255,7 +260,7 @@ function velero_patch_args() {
 
     # if the user has not disabled restic and specified a restic timeout, add it to the velero deployment
     if [ "${VELERO_DISABLE_RESTIC}" != "1" ] && [ -n "$VELERO_RESTIC_TIMEOUT" ]; then
-        velero_insert_arg "--restic-timeout=$VELERO_RESTIC_TIMEOUT" "$dst/kustomization.yaml"
+        velero_insert_arg "--fs-backup-timeout=$VELERO_RESTIC_TIMEOUT" "$dst/kustomization.yaml"
     fi
 }
 
@@ -311,8 +316,8 @@ function velero_patch_http_proxy() {
     fi
 
     if [ -n "$PROXY_ADDRESS" ] && [ "$VELERO_DISABLE_RESTIC" != "1" ]; then
-        render_yaml_file_2 "$src/tmpl-restic-daemonset-proxy.yaml" > "$dst/restic-daemonset-proxy.yaml"
-        insert_patches_strategic_merge "$dst/kustomization.yaml" restic-daemonset-proxy.yaml
+        render_yaml_file_2 "$src/tmpl-node-agent-daemonset-proxy.yaml" > "$dst/node-agent-daemonset-proxy.yaml"
+        insert_patches_strategic_merge "$dst/kustomization.yaml" node-agent-daemonset-proxy.yaml
     fi
 }
 
@@ -414,7 +419,7 @@ function velero_migrate_from_object_store() {
     insert_resources "$dst/kustomization.yaml" s3-migration-bsl.yaml
 }
 
-# add patches for the velero and restic to the current kustomization file that setup the PVC setup like the 
+# add patches for the velero and node-agent to the current kustomization file that setup the PVC setup like the 
 # velero LVP plugin requires 
 function velero_patch_internal_pvc_snapshots() {
     local src="$1"
@@ -436,7 +441,7 @@ function velero_patch_internal_pvc_snapshots() {
     render_yaml_file "$src/tmpl-internal-snaps-deployment-patch.yaml" > "$dst/internal-snaps-deployment-patch.yaml"
     insert_patches_strategic_merge "$dst/kustomization.yaml" internal-snaps-deployment-patch.yaml
 
-    # add patch to add the pvc in the correct location for the restic daemonset
+    # add patch to add the pvc in the correct location for the node-agent daemonset
     render_yaml_file "$src/tmpl-internal-snaps-ds-patch.yaml" > "$dst/internal-snaps-ds-patch.yaml"
     insert_patches_strategic_merge "$dst/kustomization.yaml" internal-snaps-ds-patch.yaml
 
