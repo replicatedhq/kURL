@@ -1036,3 +1036,54 @@ function canonical_image_name() {
     fi
     echo "$image"
 }
+
+# wait_for_running_pods waits for pod(s) in a given namspace to transition to Running status
+function wait_for_running_pods() {
+    local namespace=$1
+    local pods_not_ready=0
+    local ns_pods=
+    local status=
+    local containers=
+
+    ns_pods=$(kubectl get pods -n "$namespace" -o jsonpath='{.items[*].metadata.name}')
+
+    if [ -z "$ns_pods" ]; then
+        log "No pods found in namespace $namespace."
+        return 0
+    fi
+
+    for pod in $ns_pods; do
+        status=$(kubectl get pod "$pod" -n "$namespace" -o jsonpath='{.status.phase}')
+
+        # ignore pods spawned by Jobs
+        if kubectl get pod "$pod" -n "$namespace" -o jsonpath='{.metadata.ownerReferences[*].kind}' | grep -q "Job"; then
+            continue
+        fi
+
+        if [ "$status" != "Running" ]; then
+            pods_not_ready=1
+            break
+        fi
+
+        containers=$(kubectl get pod "$pod" -n "$namespace" -o jsonpath="{.spec.containers[*].name}")
+        for container in $containers; do
+            container_status=$(kubectl get pod "$pod" -n "$namespace" -o jsonpath="{.status.containerStatuses[?(@.name==\"$container\")].ready}")
+
+            if [ "$container_status" != "true" ]; then
+                pods_not_ready=1
+                break
+            fi
+        done
+
+        if [ $pods_not_ready -ne 0 ]; then
+            break
+        fi
+    done
+
+    if [ $pods_not_ready -ne 0 ]; then
+       return 1
+    fi
+
+    log "All pods and their containers in namespace $namespace are in Running phase."
+    return 0
+}

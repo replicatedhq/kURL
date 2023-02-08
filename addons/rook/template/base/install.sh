@@ -53,6 +53,10 @@ function rook_post_init() {
     if [ "$ROOK_DID_DISABLE_EKCO_OPERATOR" = "1" ]; then
         rook_enable_ekco_operator
     fi
+
+    # wait for all pods in the rook-ceph namespace to rollout
+    log "Rook Post-init: Awaiting Rook rollout in rook-ceph namespace"
+    rook_maybe_wait_for_rollout
 }
 
 ROOK_DID_DISABLE_EKCO_OPERATOR=0
@@ -987,4 +991,15 @@ function rook_prompt_migrate_from_longhorn() {
     if ! confirmN; then
         bail "Not migrating"
     fi
+}
+
+# wait for all pods in rook-ceph namespace to transition to Running status
+function rook_maybe_wait_for_rollout() {
+
+    # allow the Rook operator to start its reconcile loop
+    sleep 5
+
+    log "Awaiting Rook pods to transition to Running"
+    spinner_until 120 wait_for_running_pods "rook-ceph"
+
 }
