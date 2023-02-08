@@ -5,10 +5,10 @@ export POD_CIDR_RANGE
 export POD_CIDR_IPV6
 export EXISTING_POD_CIDR
 
-export FLANNEL_ENABLE_IPV4=${FLANNEL_ENABLE_IPV4:-true}
-export FLANNEL_ENABLE_IPV6=${FLANNEL_ENABLE_IPV6:-false} # TODO: support ipv6
-export FLANNEL_BACKEND=${FLANNEL_BACKEND:-vxlan} # TODO: support encryption
-export FLANNEL_IFACE=${FLANNEL_IFACE:-}
+export FLANNEL_ENABLE_IPV4=true
+export FLANNEL_ENABLE_IPV6=false # TODO: support ipv6
+export FLANNEL_BACKEND=vxlan # TODO: support encryption
+export FLANNEL_IFACE=
 
 function flannel_pre_init() {
     local src="$DIR/addons/flannel/$FLANNEL_VERSION"
