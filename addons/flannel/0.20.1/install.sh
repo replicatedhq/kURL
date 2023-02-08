@@ -80,3 +80,8 @@ function flannel_weave_conflict() {
 function flannel_antrea_conflict() {
     ls /etc/cni/net.d/*antrea* >/dev/null 2>&1
 }
+
+function flannel_already_applied() {
+    flannel_ready_spinner
+    check_network
+}
