@@ -502,6 +502,7 @@ function discover_pod_subnet() {
     fi
     # detected from weave device
     if [ -n "$EXISTING_POD_CIDR" ]; then
+        echo "Using existing pod network ${EXISTING_POD_CIDR}"
         POD_CIDR="$EXISTING_POD_CIDR"
         return 0
     fi
@@ -570,7 +571,7 @@ function discover_service_subnet() {
     fi
 
     if [ -n "$EXISTING_SERVICE_CIDR" ]; then
-        echo "Using existing service cidr ${EXISTING_SERVICE_CIDR}"
+        echo "Using existing service network ${EXISTING_SERVICE_CIDR}"
         SERVICE_CIDR="$EXISTING_SERVICE_CIDR"
         return 0
     fi
