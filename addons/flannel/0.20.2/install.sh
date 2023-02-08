@@ -8,7 +8,6 @@ export EXISTING_POD_CIDR
 export FLANNEL_ENABLE_IPV4=true
 export FLANNEL_ENABLE_IPV6=false # TODO: support ipv6
 export FLANNEL_BACKEND=vxlan # TODO: support encryption
-export FLANNEL_IFACE=
 
 function flannel_pre_init() {
     local src="$DIR/addons/flannel/$FLANNEL_VERSION"
@@ -20,16 +19,6 @@ function flannel_pre_init() {
 
     if flannel_antrea_conflict ; then
         bail "Migrations from Antrea to Flannel are not supported"
-    fi
-
-    # TODO: support ipv6
-    local private_address_iface=
-    local default_gateway_iface=
-    private_address_iface=$("$BIN_KURL" netutil iface-from-ip "$PRIVATE_ADDRESS")
-    default_gateway_iface=$("$BIN_KURL" netutil default-gateway-iface)
-    # if the private address is on a different interface than the default gateway, use the private address interface
-    if [ -n "$private_address_iface" ] && [ "$private_address_iface" != "$default_gateway_iface" ]; then
-        FLANNEL_IFACE="$private_address_iface"
     fi
 
     flannel_init_pod_subnet
@@ -88,11 +77,6 @@ function flannel_render_config() {
     if [ "$FLANNEL_ENABLE_IPV6" = "true" ] && [ -n "$POD_CIDR_IPV6" ]; then
         render_yaml_file_2 "$src/template/ipv6.patch.tmpl.yaml" > "$dst/ipv6.patch.yaml"
         insert_patches_strategic_merge "$dst/kustomization.yaml" ipv6.patch.yaml
-    fi
-
-    if [ -n "$FLANNEL_IFACE" ]; then
-        render_yaml_file_2 "$src/template/iface.patch.tmpl.yaml" > "$dst/iface.patch.yaml"
-        insert_patches_json_6902 "$dst/kustomization.yaml" iface.patch.yaml apps v1 DaemonSet kube-flannel-ds kube-flannel
     fi
 }
 
