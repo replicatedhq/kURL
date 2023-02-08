@@ -201,11 +201,13 @@ EOF
     local newIP=$($DIR/bin/kurl format-address "$destination_addr")
     # Update registry to use new object store
     if kubernetes_resource_exists kurl configmap registry-config; then
-        echo "Updating registry to use minio"
-        kubectl -n kurl get configmap registry-config -ojsonpath='{ .data.config\.yml }' | sed "s/regionendpoint: http.*/regionendpoint: http:\/\/${newIP}/" > config.yml
+        echo "Updating registry to use $destination_host"
+        local temp_file=
+        temp_file=$(mktemp)
+        kubectl -n kurl get configmap registry-config -ojsonpath='{ .data.config\.yml }' | sed "s/regionendpoint: http.*/regionendpoint: http:\/\/${newIP}/" > "$temp_file"
         kubectl -n kurl delete configmap registry-config
-        kubectl -n kurl create configmap registry-config --from-file=config.yml=config.yml
-        rm config.yml
+        kubectl -n kurl create configmap registry-config --from-file=config.yml="$temp_file"
+        rm "$temp_file"
     fi
     if kubernetes_resource_exists kurl secret registry-s3-secret; then
         kubectl -n kurl patch secret registry-s3-secret -p "{\"stringData\":{\"access-key-id\":\"${destination_access_key}\",\"secret-access-key\":\"${destination_secret_key}\",\"object-store-cluster-ip\":\"${destination_addr}\",\"object-store-hostname\":\"http://${destination_host}\"}}"
@@ -217,7 +219,7 @@ EOF
     # Update velero to use new object store only if currently using object store since velero may have already been
     # updated to use an off-cluster object store.
     if kubernetes_resource_exists velero backupstoragelocation default; then
-        echo "Updating velero to use new object store"
+        echo "Updating velero to use new object store $destination_host"
         s3Url=$(kubectl -n velero get backupstoragelocation default -ojsonpath='{ .spec.config.s3Url }')
         if [ "$s3Url" = "http://${source_host}" ]; then
             kubectl -n velero patch backupstoragelocation default --type=merge -p "{\"spec\":{\"config\":{\"s3Url\":\"http://${destination_host}\",\"publicUrl\":\"http://${newIP}\"}}}"
@@ -228,19 +230,21 @@ EOF
                 kubectl -n velero patch resticrepositories "$resticrepo" --type=merge -p "{\"spec\":{\"resticIdentifier\":\"${newResticIdentifier}\"}}"
             done < <(kubectl -n velero get resticrepositories --selector=velero.io/storage-location=default --no-headers | awk '{ print $1 }')
         else
-            echo "default backupstoragelocation was not the source host, skipping"
+            echo "The Velero default backupstoragelocation was not $source_host, not updating to use $destination_host"
         fi
     fi
     if kubernetes_resource_exists velero secret cloud-credentials; then
         if kubectl -n velero get secret cloud-credentials -ojsonpath='{ .data.cloud }' | base64 -d | grep -q "$source_access_key"; then
-            kubectl -n velero get secret cloud-credentials -ojsonpath='{ .data.cloud }' | base64 -d > cloud
+            local temp_file=
+            temp_file=$(mktemp)
+            kubectl -n velero get secret cloud-credentials -ojsonpath='{ .data.cloud }' | base64 -d > "$temp_file"
             sed -i "s/aws_access_key_id=.*/aws_access_key_id=${destination_access_key}/" cloud
             sed -i "s/aws_secret_access_key=.*/aws_secret_access_key=${destination_secret_key}/" cloud
-            cloud=$(cat cloud | base64 -w 0)
+            cloud=$(cat "$temp_file" | base64 -w 0)
             kubectl -n velero patch secret cloud-credentials -p "{\"data\":{\"cloud\":\"${cloud}\"}}"
-            rm cloud
+            rm "$temp_file"
         else
-            echo "cloud-credentials secret were not for the source host, skipping"
+            echo "The Velero cloud-credentials secret did not contain credentials for $source_host, not updating to use $destination_host credentials"
         fi
     fi
     if kubernetes_resource_exists velero daemonset restic; then
@@ -282,7 +286,7 @@ function migrate_minio_to_rgw() {
         return 0
     fi
 
-    report_addon_start "minio-to-rook-ceph" "v1"
+    report_addon_start "minio-to-rook-ceph" "v1.1"
 
     MINIO_HOST="minio.${minio_ns}"
     MINIO_ACCESS_KEY_ID=$(kubectl -n ${minio_ns} get secret minio-credentials -ojsonpath='{ .data.MINIO_ACCESS_KEY }' | base64 --decode)
@@ -295,5 +299,5 @@ function migrate_minio_to_rgw() {
 
     migrate_between_object_stores "$MINIO_HOST" "$MINIO_ACCESS_KEY_ID" "$MINIO_ACCESS_KEY_SECRET" "$RGW_HOST" "$RGW_CLUSTER_IP" "$RGW_ACCESS_KEY_ID" "$RGW_ACCESS_KEY_SECRET"
 
-    report_addon_success "minio-to-rook-ceph" "v1"
+    report_addon_success "minio-to-rook-ceph" "v1.1"
 }
