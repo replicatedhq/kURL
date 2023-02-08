@@ -115,6 +115,9 @@ function kubernetes_install_host_packages() {
 
     if kubernetes_host_commands_ok "$k8sVersion"; then
         logSuccess "Kubernetes host packages already installed"
+
+        kubernetes_cis_chmod_kubelet_service_file
+
         # less command is broken if libtinfo.so.5 is missing in amazon linux 2
         if [ "$LSB_DIST" == "amzn" ] && [ "$AIRGAP" != "1" ] && ! file_exists "/usr/lib64/libtinfo.so.5"; then
             if [ -d "$DIR/packages/kubernetes/${k8sVersion}" ]; then
@@ -170,7 +173,7 @@ EOF
 
     mkdir -p /etc/systemd/system/kubelet.service.d
     cp -f "$DIR/tmp-kubeadm.conf" /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
-    chmod 640 /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
+    chmod 600 /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
 
     if [ "$CLUSTER_DNS" != "$DEFAULT_CLUSTER_DNS" ]; then
         sed -i "s/$DEFAULT_CLUSTER_DNS/$CLUSTER_DNS/g" /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
@@ -181,6 +184,14 @@ EOF
     systemctl enable kubelet && systemctl restart kubelet
 
     logSuccess "Kubernetes host packages installed"
+}
+
+# kubernetes_cis_chmod_kubelet_service_file fixes the following CIS benchmark test:
+# [FAIL] 4.1.1 Ensure that the kubelet service file permissions are set to 600 or more restrictive (Automated)
+function kubernetes_cis_chmod_kubelet_service_file() {
+    if [ -f /etc/systemd/system/kubelet.service.d/10-kubeadm.conf ]; then
+        chmod 600 /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
+    fi
 }
 
 kubernetes_host_commands_ok() {
