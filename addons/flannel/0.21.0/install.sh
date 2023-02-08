@@ -251,3 +251,8 @@ function flannel_kubeadm() {
     kubeadm init phase upload-config kubeadm --config=/opt/replicated/kubeadm.conf
     kubeadm init phase control-plane controller-manager --config=/opt/replicated/kubeadm.conf
 }
+
+function flannel_already_applied() {
+    flannel_ready_spinner
+    check_network
+}
