@@ -105,12 +105,15 @@ EOF
 
     echo "Waiting up to 5 minutes for sync-object-store pod to start in ${namespace} namespace"
     if ! spinner_until 300 kubernetes_pod_started sync-object-store "$namespace" ; then
-        printf "${RED}Failed to start object store migration pod within 2 minutes${NC}\n"
+        printf "${RED}Failed to start object store migration pod within 5 minutes${NC}\n"
         return 1
     fi
 
-    echo "Waiting up to 30 minutes for sync-object-store pod to complete"
-    spinner_until 1800 kubernetes_pod_completed sync-object-store "$namespace" || true
+    # The 5 minute spinner allows the pod to crash a few times waiting for the object store to be ready
+    # and then following the logs allows for an indefinite amount of time for the migration to
+    # complete in case there is a lot of data
+    echo "Waiting up to 5 minutes for sync-object-store pod to complete"
+    spinner_until 300 kubernetes_pod_completed sync-object-store "$namespace" || true
     kubectl logs -n "$namespace" -f sync-object-store || true
 
     if kubernetes_pod_succeeded sync-object-store "$namespace" ; then
@@ -139,53 +142,17 @@ function migrate_between_object_stores() {
 
     get_shared
 
-    kubectl delete pod sync-object-store --force --grace-period=0 &>/dev/null || true
-
-    cat <<EOF | kubectl apply -f -
-apiVersion: v1
-kind: Pod
-metadata:
-  name: sync-object-store
-  namespace: default
-spec:
-  restartPolicy: OnFailure
-  containers:
-  - name: sync-object-store
-    image: $KURL_UTIL_IMAGE
-    command:
-    - /usr/local/bin/kurl
-    - object-store
-    - sync
-    - --source_host=$source_host
-    - --source_access_key_id=$source_access_key
-    - --source_access_key_secret=$source_secret_key
-    - --dest_host=$destination_host
-    - --dest_access_key_id=$destination_access_key
-    - --dest_access_key_secret=$destination_secret_key
-EOF
-
-    echo "Waiting up to 2 minutes for sync-object-store pod to start"
-    if ! spinner_until 120 kubernetes_pod_started sync-object-store default; then
-        bail "sync-object-store pod failed to start within 2 minutes"
+    if ! migrate_object_store "default" "$source_host" "$source_access_key" "$source_secret_key" "$destination_host" "$destination_access_key" "$destination_secret_key" ; then
+        # even if the migration failed, we need to ensure ekco is running again
+        if kubernetes_resource_exists kurl deployment ekc-operator; then
+            kubectl -n kurl scale deploy ekc-operator --replicas=1
+        fi
+        bail "sync-object-store pod failed"
     fi
 
-    # The 5 minute spinner allows the pod to crash a few times waiting for minio to be ready
-    # and then following the logs allows for an indefinite amount of time for the migration to
-    # complete in case there is a lot of data
-    echo "Waiting up to 5 minutes for sync-object-store pod to complete"
-    spinner_until 300 kubernetes_pod_completed sync-object-store default || true
-    kubectl logs -f sync-object-store || true
-
-    # even if the migration failed, we should ensure ekco is running again
+    # ensure ekco is running again
     if kubernetes_resource_exists kurl deployment ekc-operator; then
         kubectl -n kurl scale deploy ekc-operator --replicas=1
-    fi
-
-    if kubernetes_pod_succeeded sync-object-store default; then
-        printf "\n${GREEN}Object store data synced successfully${NC}\n"
-        kubectl delete pod sync-object-store --force --grace-period=0 &> /dev/null
-    else
-        bail "sync-object-store pod failed"
     fi
 
     # Update kotsadm to use new object store
