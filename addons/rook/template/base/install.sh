@@ -997,7 +997,7 @@ function rook_prompt_migrate_from_longhorn() {
 function rook_maybe_wait_for_rollout() {
 
     # allow the Rook operator to start its reconcile loop
-    sleep 5
+    sleep 10
 
     log "Awaiting Rook pods to transition to Running"
     spinner_until 120 wait_for_running_pods "rook-ceph"
