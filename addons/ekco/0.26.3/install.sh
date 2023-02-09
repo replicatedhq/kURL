@@ -343,8 +343,8 @@ function ekco_bootstrap_internal_lb() {
             ekco generate-haproxy-config --primary-host="$backends" \
             > /etc/haproxy/haproxy.cfg
 
-        ctr -n k8s.io task kill -s SIGKILL bootstrap-lb &>/dev/null || true
-        ctr -n k8s.io containers delete bootstrap-lb &>/dev/null || true
+        ctr -n k8s.io task kill -s SIGKILL bootstrap-lb || true
+        ctr -n k8s.io containers delete bootstrap-lb || true
         ctr -n k8s.io run --rm \
             --mount "type=bind,src=/etc/haproxy,dst=/usr/local/etc/haproxy,options=rbind:ro" \
             --net-host \
