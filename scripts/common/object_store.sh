@@ -105,12 +105,15 @@ EOF
 
     echo "Waiting up to 5 minutes for sync-object-store pod to start in ${namespace} namespace"
     if ! spinner_until 300 kubernetes_pod_started sync-object-store "$namespace" ; then
-        printf "${RED}Failed to start object store migration pod within 2 minutes${NC}\n"
+        printf "${RED}Failed to start object store migration pod within 5 minutes${NC}\n"
         return 1
     fi
 
-    echo "Waiting up to 30 minutes for sync-object-store pod to complete"
-    spinner_until 1800 kubernetes_pod_completed sync-object-store "$namespace" || true
+    # The 5 minute spinner allows the pod to crash a few times waiting for the object store to be ready
+    # and then following the logs allows for an indefinite amount of time for the migration to
+    # complete in case there is a lot of data
+    echo "Waiting up to 5 minutes for sync-object-store pod to complete"
+    spinner_until 300 kubernetes_pod_completed sync-object-store "$namespace" || true
     kubectl logs -n "$namespace" -f sync-object-store || true
 
     if kubernetes_pod_succeeded sync-object-store "$namespace" ; then
@@ -122,8 +125,14 @@ EOF
     return 1
 }
 
-function migrate_rgw_to_minio() {
-    report_addon_start "rook-ceph-to-minio" "v1"
+function migrate_between_object_stores() {
+    local source_host=$1
+    local source_access_key=$2
+    local source_secret_key=$3
+    local destination_host=$4
+    local destination_addr=$5
+    local destination_access_key=$6
+    local destination_secret_key=$7
 
     if kubernetes_resource_exists kurl deployment ekc-operator; then
         kubectl -n kurl scale deploy ekc-operator --replicas=0
@@ -131,71 +140,25 @@ function migrate_rgw_to_minio() {
         spinner_until 120 ekco_pods_gone
     fi
 
-    RGW_HOST="rook-ceph-rgw-rook-ceph-store.rook-ceph"
-    RGW_ACCESS_KEY_ID=$(kubectl -n rook-ceph get secret rook-ceph-object-user-rook-ceph-store-kurl -o yaml | grep AccessKey | head -1 | awk '{print $2}' | base64 --decode)
-    RGW_ACCESS_KEY_SECRET=$(kubectl -n rook-ceph get secret rook-ceph-object-user-rook-ceph-store-kurl -o yaml | grep SecretKey | head -1 | awk '{print $2}' | base64 --decode)
-
-    MINIO_HOST="minio.${MINIO_NAMESPACE}"
-    MINIO_ACCESS_KEY_ID=$(kubectl -n ${MINIO_NAMESPACE} get secret minio-credentials -ojsonpath='{ .data.MINIO_ACCESS_KEY }' | base64 --decode)
-    MINIO_ACCESS_KEY_SECRET=$(kubectl -n ${MINIO_NAMESPACE} get secret minio-credentials -ojsonpath='{ .data.MINIO_SECRET_KEY }' | base64 --decode)
-    MINIO_CLUSTER_IP=$(kubectl -n ${MINIO_NAMESPACE} get service minio | tail -n1 | awk '{ print $3}')
-
     get_shared
 
-    kubectl delete pod sync-object-store --force --grace-period=0 &>/dev/null || true
-
-    cat <<EOF | kubectl apply -f -
-apiVersion: v1
-kind: Pod
-metadata:
-  name: sync-object-store
-  namespace: default
-spec:
-  restartPolicy: OnFailure
-  containers:
-  - name: sync-object-store
-    image: $KURL_UTIL_IMAGE
-    command:
-    - /usr/local/bin/kurl
-    - object-store
-    - sync
-    - --source_host=$RGW_HOST
-    - --source_access_key_id=$RGW_ACCESS_KEY_ID
-    - --source_access_key_secret=$RGW_ACCESS_KEY_SECRET
-    - --dest_host=$MINIO_HOST
-    - --dest_access_key_id=$MINIO_ACCESS_KEY_ID
-    - --dest_access_key_secret=$MINIO_ACCESS_KEY_SECRET
-EOF
-
-    echo "Waiting up to 2 minutes for sync-object-store pod to start"
-    if ! spinner_until 120 kubernetes_pod_started sync-object-store default; then
-        bail "sync-object-store pod failed to start within 2 minutes"
+    if ! migrate_object_store "default" "$source_host" "$source_access_key" "$source_secret_key" "$destination_host" "$destination_access_key" "$destination_secret_key" ; then
+        # even if the migration failed, we need to ensure ekco is running again
+        if kubernetes_resource_exists kurl deployment ekc-operator; then
+            kubectl -n kurl scale deploy ekc-operator --replicas=1
+        fi
+        bail "sync-object-store pod failed"
     fi
 
-
-    # The 5 minute spinner allows the pod to crash a few times waiting for minio to be ready
-    # and then following the logs allows for an indefinite amount of time for the migration to
-    # complete in case there is a lot of data
-    echo "Waiting up to 5 minutes for sync-object-store pod to complete"
-    spinner_until 300 kubernetes_pod_completed sync-object-store default || true
-    kubectl logs -f sync-object-store || true
-
-    # even if the migration failed, we should ensure ekco is running again
+    # ensure ekco is running again
     if kubernetes_resource_exists kurl deployment ekc-operator; then
         kubectl -n kurl scale deploy ekc-operator --replicas=1
     fi
 
-    if kubernetes_pod_succeeded sync-object-store default; then
-        printf "\n${GREEN}Object store data synced successfully${NC}\n"
-        kubectl delete pod sync-object-store --force --grace-period=0 &> /dev/null
-    else
-        bail "sync-object-store pod failed"
-    fi
-
-    # Update kotsadm to use minio
+    # Update kotsadm to use new object store
     if kubernetes_resource_exists default secret kotsadm-s3; then
-        echo "Updating kotsadm to use minio"
-        kubectl patch secret kotsadm-s3 -p "{\"stringData\":{\"access-key-id\":\"${MINIO_ACCESS_KEY_ID}\",\"secret-access-key\":\"${MINIO_ACCESS_KEY_SECRET}\",\"endpoint\":\"http://${MINIO_HOST}\",\"object-store-cluster-ip\":\"${MINIO_CLUSTER_IP}\"}}"
+        echo "Updating kotsadm to use $destination_host"
+        kubectl patch secret kotsadm-s3 -p "{\"stringData\":{\"access-key-id\":\"${destination_access_key}\",\"secret-access-key\":\"${destination_secret_key}\",\"endpoint\":\"http://${destination_host}\",\"object-store-cluster-ip\":\"${destination_addr}\"}}"
 
         if kubernetes_resource_exists default deployment kotsadm; then
             kubectl rollout restart deployment kotsadm
@@ -204,49 +167,53 @@ EOF
         fi
     fi
 
-    local minioIP=$($DIR/bin/kurl netutil format-ip-address "$MINIO_CLUSTER_IP")
-    # Update registry to use minio
+    local newIP=$($DIR/bin/kurl netutil format-ip-address "$destination_addr")
+    # Update registry to use new object store
     if kubernetes_resource_exists kurl configmap registry-config; then
-        echo "Updating registry to use minio"
-        kubectl -n kurl get configmap registry-config -ojsonpath='{ .data.config\.yml }' | sed "s/regionendpoint: http.*/regionendpoint: http:\/\/${minioIP}/" > config.yml
+        echo "Updating registry to use $destination_host"
+        local temp_file=
+        temp_file=$(mktemp)
+        kubectl -n kurl get configmap registry-config -ojsonpath='{ .data.config\.yml }' | sed "s/regionendpoint: http.*/regionendpoint: http:\/\/${newIP}/" > "$temp_file"
         kubectl -n kurl delete configmap registry-config
-        kubectl -n kurl create configmap registry-config --from-file=config.yml=config.yml
-        rm config.yml
+        kubectl -n kurl create configmap registry-config --from-file=config.yml="$temp_file"
+        rm "$temp_file"
     fi
     if kubernetes_resource_exists kurl secret registry-s3-secret; then
-        kubectl -n kurl patch secret registry-s3-secret -p "{\"stringData\":{\"access-key-id\":\"${MINIO_ACCESS_KEY_ID}\",\"secret-access-key\":\"${MINIO_ACCESS_KEY_SECRET}\",\"object-store-cluster-ip\":\"${MINIO_CLUSTER_IP}\",\"object-store-hostname\":\"http://${MINIO_HOST}\"}}"
+        kubectl -n kurl patch secret registry-s3-secret -p "{\"stringData\":{\"access-key-id\":\"${destination_access_key}\",\"secret-access-key\":\"${destination_secret_key}\",\"object-store-cluster-ip\":\"${destination_addr}\",\"object-store-hostname\":\"http://${destination_host}\"}}"
     fi
     if kubernetes_resource_exists kurl deployment registry; then
         kubectl -n kurl rollout restart deployment registry
     fi
 
-    # Update velero to use minio only if currently using RGW since velero may have already been
+    # Update velero to use new object store only if currently using object store since velero may have already been
     # updated to use an off-cluster object store.
     if kubernetes_resource_exists velero backupstoragelocation default; then
-        echo "Updating velero to use minio"
+        echo "Updating velero to use new object store $destination_host"
         s3Url=$(kubectl -n velero get backupstoragelocation default -ojsonpath='{ .spec.config.s3Url }')
-        if [ "$s3Url" = "http://${RGW_HOST}" ]; then
-            kubectl -n velero patch backupstoragelocation default --type=merge -p "{\"spec\":{\"config\":{\"s3Url\":\"http://${MINIO_HOST}\",\"publicUrl\":\"http://${minioIP}\"}}}"
+        if [ "$s3Url" = "http://${source_host}" ]; then
+            kubectl -n velero patch backupstoragelocation default --type=merge -p "{\"spec\":{\"config\":{\"s3Url\":\"http://${destination_host}\",\"publicUrl\":\"http://${newIP}\"}}}"
 
             while read -r resticrepo; do
                 oldResticIdentifier=$(kubectl -n velero get resticrepositories "$resticrepo" -ojsonpath="{ .spec.resticIdentifier }")
-                newResticIdentifier=$(echo "$oldResticIdentifier" | sed "s/${RGW_HOST}/${MINIO_HOST}/")
+                newResticIdentifier=$(echo "$oldResticIdentifier" | sed "s/${source_host}/${destination_host}/")
                 kubectl -n velero patch resticrepositories "$resticrepo" --type=merge -p "{\"spec\":{\"resticIdentifier\":\"${newResticIdentifier}\"}}"
             done < <(kubectl -n velero get resticrepositories --selector=velero.io/storage-location=default --no-headers | awk '{ print $1 }')
         else
-            echo "default backupstoragelocation was not rgw, skipping"
+            echo "The Velero default backupstoragelocation was not $source_host, not updating to use $destination_host"
         fi
     fi
     if kubernetes_resource_exists velero secret cloud-credentials; then
-        if kubectl -n velero get secret cloud-credentials -ojsonpath='{ .data.cloud }' | base64 -d | grep -q "$RGW_ACCESS_KEY_ID"; then
-            kubectl -n velero get secret cloud-credentials -ojsonpath='{ .data.cloud }' | base64 -d > cloud
-            sed -i "s/aws_access_key_id=.*/aws_access_key_id=${MINIO_ACCESS_KEY_ID}/" cloud
-            sed -i "s/aws_secret_access_key=.*/aws_secret_access_key=${MINIO_ACCESS_KEY_SECRET}/" cloud
-            cloud=$(cat cloud | base64 -w 0)
+        if kubectl -n velero get secret cloud-credentials -ojsonpath='{ .data.cloud }' | base64 -d | grep -q "$source_access_key"; then
+            local temp_file=
+            temp_file=$(mktemp)
+            kubectl -n velero get secret cloud-credentials -ojsonpath='{ .data.cloud }' | base64 -d > "$temp_file"
+            sed -i "s/aws_access_key_id=.*/aws_access_key_id=${destination_access_key}/" "$temp_file"
+            sed -i "s/aws_secret_access_key=.*/aws_secret_access_key=${destination_secret_key}/" "$temp_file"
+            cloud=$(cat "$temp_file" | base64 -w 0)
             kubectl -n velero patch secret cloud-credentials -p "{\"data\":{\"cloud\":\"${cloud}\"}}"
-            rm cloud
+            rm "$temp_file"
         else
-            echo "cloud-credentials secret were not for rgw, skipping"
+            echo "The Velero cloud-credentials secret did not contain credentials for $source_host, not updating to use $destination_host credentials"
         fi
     fi
     if kubernetes_resource_exists velero daemonset restic; then
@@ -257,5 +224,49 @@ EOF
     fi
 
     printf "\n${GREEN}Object store migration completed successfully${NC}\n"
-    report_addon_success "rook-ceph-to-minio" "v1"
+
+    return 0
+}
+
+function migrate_rgw_to_minio() {
+    report_addon_start "rook-ceph-to-minio" "v1.1"
+
+    RGW_HOST="rook-ceph-rgw-rook-ceph-store.rook-ceph"
+    RGW_ACCESS_KEY_ID=$(kubectl -n rook-ceph get secret rook-ceph-object-user-rook-ceph-store-kurl -o yaml | grep AccessKey | head -1 | awk '{print $2}' | base64 --decode)
+    RGW_ACCESS_KEY_SECRET=$(kubectl -n rook-ceph get secret rook-ceph-object-user-rook-ceph-store-kurl -o yaml | grep SecretKey | head -1 | awk '{print $2}' | base64 --decode)
+
+    MINIO_HOST="minio.${MINIO_NAMESPACE}"
+    MINIO_CLUSTER_IP=$(kubectl -n ${MINIO_NAMESPACE} get service minio | tail -n1 | awk '{ print $3}')
+    MINIO_ACCESS_KEY_ID=$(kubectl -n ${MINIO_NAMESPACE} get secret minio-credentials -ojsonpath='{ .data.MINIO_ACCESS_KEY }' | base64 --decode)
+    MINIO_ACCESS_KEY_SECRET=$(kubectl -n ${MINIO_NAMESPACE} get secret minio-credentials -ojsonpath='{ .data.MINIO_SECRET_KEY }' | base64 --decode)
+
+    migrate_between_object_stores "$RGW_HOST" "$RGW_ACCESS_KEY_ID" "$RGW_ACCESS_KEY_SECRET" "$MINIO_HOST" "$MINIO_CLUSTER_IP" "$MINIO_ACCESS_KEY_ID" "$MINIO_ACCESS_KEY_SECRET"
+
+    report_addon_success "rook-ceph-to-minio" "v1.1"
+}
+
+function migrate_minio_to_rgw() {
+    local minio_ns="$MINIO_NAMESPACE"
+    if [ -z "$minio_ns" ]; then
+        minio_ns=minio
+    fi
+
+    if ! kubernetes_resource_exists $minio_ns deployment minio; then
+        return 0
+    fi
+
+    report_addon_start "minio-to-rook-ceph" "v1.1"
+
+    MINIO_HOST="minio.${minio_ns}"
+    MINIO_ACCESS_KEY_ID=$(kubectl -n ${minio_ns} get secret minio-credentials -ojsonpath='{ .data.MINIO_ACCESS_KEY }' | base64 --decode)
+    MINIO_ACCESS_KEY_SECRET=$(kubectl -n ${minio_ns} get secret minio-credentials -ojsonpath='{ .data.MINIO_SECRET_KEY }' | base64 --decode)
+
+    RGW_HOST="rook-ceph-rgw-rook-ceph-store.rook-ceph"
+    RGW_CLUSTER_IP=$(kubectl -n rook-ceph get service rook-ceph-rgw-rook-ceph-store | tail -n1 | awk '{ print $3}')
+    RGW_ACCESS_KEY_ID=$(kubectl -n rook-ceph get secret rook-ceph-object-user-rook-ceph-store-kurl -o yaml | grep AccessKey | head -1 | awk '{print $2}' | base64 --decode)
+    RGW_ACCESS_KEY_SECRET=$(kubectl -n rook-ceph get secret rook-ceph-object-user-rook-ceph-store-kurl -o yaml | grep SecretKey | head -1 | awk '{print $2}' | base64 --decode)
+
+    migrate_between_object_stores "$MINIO_HOST" "$MINIO_ACCESS_KEY_ID" "$MINIO_ACCESS_KEY_SECRET" "$RGW_HOST" "$RGW_CLUSTER_IP" "$RGW_ACCESS_KEY_ID" "$RGW_ACCESS_KEY_SECRET"
+
+    report_addon_success "minio-to-rook-ceph" "v1.1"
 }
