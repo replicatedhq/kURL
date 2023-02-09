@@ -1,13 +1,13 @@
 apiVersion: apps/v1
-kind: DaemonSet
+kind: Deployment
 metadata:
-  name: restic
+  name: velero
   namespace: ${VELERO_NAMESPACE}
 spec:
   template:
     spec:
       containers:
-        - name: restic
+        - name: velero
           env:
           - name: HTTP_PROXY
             value: "${PROXY_ADDRESS}"

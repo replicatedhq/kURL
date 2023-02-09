@@ -1,0 +1,11 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: node-agent
+spec:
+  template:
+    spec:
+      containers:
+        - name: node-agent
+          securityContext:
+            privileged: true

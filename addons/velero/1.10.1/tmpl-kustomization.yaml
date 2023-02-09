@@ -1,0 +1,4 @@
+namespace: ${VELERO_NAMESPACE}
+
+resources:
+- velero.yaml
