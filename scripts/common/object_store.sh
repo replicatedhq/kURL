@@ -207,8 +207,8 @@ function migrate_between_object_stores() {
             local temp_file=
             temp_file=$(mktemp)
             kubectl -n velero get secret cloud-credentials -ojsonpath='{ .data.cloud }' | base64 -d > "$temp_file"
-            sed -i "s/aws_access_key_id=.*/aws_access_key_id=${destination_access_key}/" cloud
-            sed -i "s/aws_secret_access_key=.*/aws_secret_access_key=${destination_secret_key}/" cloud
+            sed -i "s/aws_access_key_id=.*/aws_access_key_id=${destination_access_key}/" "$temp_file"
+            sed -i "s/aws_secret_access_key=.*/aws_secret_access_key=${destination_secret_key}/" "$temp_file"
             cloud=$(cat "$temp_file" | base64 -w 0)
             kubectl -n velero patch secret cloud-credentials -p "{\"data\":{\"cloud\":\"${cloud}\"}}"
             rm "$temp_file"
