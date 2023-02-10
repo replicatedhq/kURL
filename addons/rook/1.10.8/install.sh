@@ -928,6 +928,7 @@ function rook_maybe_migrate_from_longhorn() {
             rook_maybe_longhorn_migration_checks "$rook_storage_class"
 
             longhorn_to_sc_migration "$rook_storage_class" "1"
+            migrate_minio_to_rgw
             DID_MIGRATE_LONGHORN_PVCS=1 # used to automatically delete longhorn if object store data was also migrated
         fi
     fi
@@ -999,6 +1000,17 @@ function rook_prompt_migrate_from_longhorn() {
 
     log "Would you like to continue? "
     if ! confirmN; then
+        bail "Not migrating"
+    fi
+
+    local nodes=$(kubectl get nodes --no-headers | wc -l)
+    if [ "$nodes" -eq 1 ]; then
+        logFail "    ERROR: Your cluster has only one node, making Rook an unsuitable choice as a storage provisioner. You must install OpenEBS instead."
+        logFail "    Continuing with the Longhorn to Rook data migration under these conditions may result in unexpected errors potentially CAUSING DATA LOSS."
+        bail "Not migrating"
+    fi
+
+    if ! longhorn_prepare_for_migration; then
         bail "Not migrating"
     fi
 }
