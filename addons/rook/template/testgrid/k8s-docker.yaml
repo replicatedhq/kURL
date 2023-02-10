@@ -51,7 +51,7 @@
         requests:
           storage: 1Gi
     EOF
-    sleep 10
+    sleep 240
     kubectl -n default get pvc default-pvc | grep Bound
     kubectl -n default get pvc cephfs-pvc | grep Bound
     kubectl -n default delete pvc cephfs-pvc default-pvc
