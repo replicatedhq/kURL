@@ -698,6 +698,8 @@ function rook_upgrade_tasks_load_images() {
     export KUBECONFIG=/etc/kubernetes/admin.conf
     download_util_binaries
 
+    rook_upgrade_storage_check "$from_version" "$to_version"
+
     if ! rook_upgrade_addon_fetch_and_load "$from_version" "$to_version" ; then
         bail "Failed to load images"
     fi
