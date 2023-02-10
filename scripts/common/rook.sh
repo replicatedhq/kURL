@@ -225,3 +225,17 @@ function current_ceph_version() {
     kubectl -n rook-ceph get deployment rook-ceph-mgr-a -o jsonpath='{.metadata.labels.ceph-version}' 2>/dev/null \
         | awk -F'-' '{ print $1 }'
 }
+
+function rook_cephcluster_ready() {
+    local ceph_cluster_phase=
+    local ceph_cluster_status=
+    ceph_cluster_phase=$(kubectl -n rook-ceph get cephcluster rook-ceph --template '{{.status.phase}}')
+    if [  "$ceph_cluster_phase" = "Ready"  ]; then
+        ceph_cluster_status=$(kubectl -n rook-ceph get cephcluster rook-ceph --template '{{.status.ceph.health}}')
+        if [ "$CEPH_POOL_REPLICAS" -gt 1 ] && [ "$ceph_cluster_status" = "HEALTH_WARN" ]; then
+            return 1
+        fi
+        log "Ceph Cluster is Ready"
+        return 0
+    fi
+}
