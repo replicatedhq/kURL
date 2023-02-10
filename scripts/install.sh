@@ -70,7 +70,8 @@ function init() {
         ekco_bootstrap_internal_lb
     fi
 
-    kustomize_kubeadm_init=./kustomize/kubeadm/init
+    local kustomize_kubeadm_init="$DIR/kustomize/kubeadm/init"
+
     CERT_KEY=
     CERT_KEY_EXPIRY=
     if [ "$HA_CLUSTER" = "1" ]; then
@@ -166,6 +167,8 @@ function init() {
 
         render_yaml_file $kustomize_kubeadm_init/patch-kubelet-container-log-max-files.tpl > $kustomize_kubeadm_init/patch-kubelet-container-log-max-files.yaml
     fi
+
+    kubernetes_configure_pause_image "$kustomize_kubeadm_init"
 
     # Add kubeadm init patches from addons.
     for patch in $(ls -1 ${kustomize_kubeadm_init}-patches/* 2>/dev/null || echo); do
@@ -551,6 +554,7 @@ function main() {
     discover_service_subnet
     configure_no_proxy
     install_cri
+    kubernetes_configure_pause_image_upgrade
     get_shared
     report_upgrade_kubernetes
     report_kubernetes_install

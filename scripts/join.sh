@@ -52,12 +52,16 @@ function join() {
         logStep "Join Kubernetes node"
     fi
 
-    kustomize_kubeadm_join=./kustomize/kubeadm/join
+    local kustomize_kubeadm_join="$DIR/kustomize/kubeadm/join"
+
     if [ "$MASTER" = "1" ]; then
         insert_patches_strategic_merge \
             $kustomize_kubeadm_join/kustomization.yaml \
             patch-control-plane.yaml
     fi
+
+    kubernetes_configure_pause_image "$kustomize_kubeadm_join"
+
     # Add kubeadm join patches from addons.
     for patch in $(ls -1 ${kustomize_kubeadm_join}-patches/* 2>/dev/null || echo); do
         patch_basename="$(basename $patch)"
