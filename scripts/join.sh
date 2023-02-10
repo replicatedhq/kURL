@@ -83,7 +83,7 @@ function join() {
     mkdir -p /var/log/apiserver
 
     set +e
-    (set -x; kubeadm join --config /opt/replicated/kubeadm.conf --ignore-preflight-errors=all)
+    (set -x; kubeadm join --config "$KUBEADM_CONF_FILE" --ignore-preflight-errors=all)
     _status=$?
     set -e
 

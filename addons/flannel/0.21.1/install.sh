@@ -242,14 +242,14 @@ function flannel_kubeadm() {
     # search for 'serviceSubnet', add podSubnet above it
     local pod_cidr_range_line=
     pod_cidr_range_line="  podSubnet: ${POD_CIDR}"
-    if grep 'podSubnet:' /opt/replicated/kubeadm.conf; then
-        sed -i "s_  podSubnet:.*_${pod_cidr_range_line}_" /opt/replicated/kubeadm.conf
+    if grep -q 'podSubnet:' "$KUBEADM_CONF_FILE" ; then
+        sed -i "s_  podSubnet:.*_${pod_cidr_range_line}_" "$KUBEADM_CONF_FILE"
     else
-        sed -i "/serviceSubnet/ s/.*/${pod_cidr_range_line}\n&/" /opt/replicated/kubeadm.conf
+        sed -i "/serviceSubnet/ s/.*/${pod_cidr_range_line}\n&/" "$KUBEADM_CONF_FILE"
     fi
 
-    kubeadm init phase upload-config kubeadm --config=/opt/replicated/kubeadm.conf
-    kubeadm init phase control-plane controller-manager --config=/opt/replicated/kubeadm.conf
+    kubeadm init phase upload-config kubeadm --config="$KUBEADM_CONF_FILE"
+    kubeadm init phase control-plane controller-manager --config="$KUBEADM_CONF_FILE"
 }
 
 function flannel_already_applied() {

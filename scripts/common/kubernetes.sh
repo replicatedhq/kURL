@@ -746,17 +746,17 @@ function kubernetes_pod_succeeded() {
 
 function kubernetes_is_current_cluster() {
     local api_service_address="$1"
-    if cat /etc/kubernetes/kubelet.conf 2>/dev/null | grep -q "${api_service_address}"; then
+    if grep -sq "${api_service_address}" /etc/kubernetes/kubelet.conf ; then
         return 0
     fi
-    if cat /opt/replicated/kubeadm.conf 2>/dev/null | grep -q "${api_service_address}"; then
+    if grep -sq "${api_service_address}" "$KUBEADM_CONF_FILE" ; then
         return 0
     fi
     return 1
 }
 
 function kubernetes_is_join_node() {
-    if cat /opt/replicated/kubeadm.conf 2>/dev/null | grep -q 'kind: JoinConfiguration'; then
+    if grep -sq 'kind: JoinConfiguration' "$KUBEADM_CONF_FILE" ; then
         return 0
     fi
     return 1
