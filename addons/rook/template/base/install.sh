@@ -57,6 +57,8 @@ function rook_post_init() {
     # wait for all pods in the rook-ceph namespace to rollout
     log "Rook Post-init: Awaiting Rook rollout in rook-ceph namespace"
     rook_maybe_wait_for_rollout
+
+    log "Rook Post-init: End"
 }
 
 ROOK_DID_DISABLE_EKCO_OPERATOR=0
@@ -1020,13 +1022,15 @@ function rook_prompt_migrate_from_longhorn() {
     fi
 }
 
-# wait for all pods in rook-ceph namespace to transition to Running status
+# wait for Rook deployment to be running and healthy
 function rook_maybe_wait_for_rollout() {
-
-    # allow the Rook operator to start its reconcile loop
-    sleep 10
-
     log "Awaiting Rook pods to transition to Running"
-    spinner_until 120 wait_for_running_pods "rook-ceph"
+    if ! spinner_until 120 wait_for_running_pods "rook-ceph"; then
+        logWarn "Rook-ceph rollout did not complete"
+    fi
 
+    log "Awaiting for Ceph Cluster to be Ready"
+    if ! spinner_until 120 rook_cephcluster_ready; then
+        logWarn "Ceph cluster is not ready"
+    fi
 }
