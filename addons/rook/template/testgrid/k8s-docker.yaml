@@ -357,6 +357,8 @@
       version: "latest"
     ekco:
       version: "latest"
+    registry:
+      version: "2.7.1"
     longhorn:
       version: "latest"
   upgradeSpec:
@@ -368,6 +370,8 @@
       version: "latest"
     ekco:
       version: "latest"
+    registry:
+      version: "2.8.1"
     rook:
       version: "__testver__"
       s3Override: "__testdist__"
