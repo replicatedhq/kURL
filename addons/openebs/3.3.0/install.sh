@@ -384,6 +384,12 @@ function openebs_prompt_migrate_from_longhorn() {
         bail "Not migrating"
     fi
 
+    if [ -z "$MINIO_VERSION" ] ; then
+        logFail "    You can only migrate from Longhorn to OpenEBS if you are specifying Minio as your Object Store."
+        logFail "    Please make sure you are including Minio in your kURL Installer spec and try again."
+        bail "Not migrating"
+    fi
+
     log "Would you like to continue? "
     if ! confirmN; then
         bail "Not migrating"
