@@ -624,7 +624,7 @@ lint: golangci-lint ## Run golangci-lint and vet linter
 
 .PHONY: lint-fix
 lint-fix: golangci-lint ## Run golangci-lint linter and perform small fixes
-	$(GOLANGCI_LINT) run --fix
+	$(GOLANGCI_LINT) --build-tags "${BUILDTAGS}" run --fix --timeout 5m ./cmd/... ./pkg/... ./kurl_util/...
 
 .PHONY: vet
 vet: ## Go vet the code
