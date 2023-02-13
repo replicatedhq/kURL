@@ -25,16 +25,15 @@ function report_install_start() {
     INSTALLATION_ID=$(< /dev/urandom tr -dc a-z0-9 | head -c16)
     local started=$(date -u +"%Y-%m-%dT%H:%M:%SZ") # rfc3339
 
-     # Determine if it is the first kurl install 
+     # Determine if it is the first kurl install
+     local is_upgrade="false"
      if kubernetes_resource_exists kube-system configmap kurl-config; then
-         curl -s --output /dev/null -H 'Content-Type: application/json' --max-time 5 \
-         -d "{\"started\": \"$started\", \"os\": \"$LSB_DIST $DIST_VERSION\", \"kernel_version\": \"$KERNEL_MAJOR.$KERNEL_MINOR\", \"kurl_url\": \"$KURL_URL\", \"installer_id\": \"$INSTALLER_ID\", \"testgrid_id\": \"$TESTGRID_ID\", \"machine_id\": \"$MACHINE_ID\", \"kurl_instance_uuid\": \"$KURL_INSTANCE_UUID\", \"is_upgrade\": true}" \
-         $REPLICATED_APP_URL/kurl_metrics/start_install/$INSTALLATION_ID || true
-     else
-         curl -s --output /dev/null -H 'Content-Type: application/json' --max-time 5 \
-         -d "{\"started\": \"$started\", \"os\": \"$LSB_DIST $DIST_VERSION\", \"kernel_version\": \"$KERNEL_MAJOR.$KERNEL_MINOR\", \"kurl_url\": \"$KURL_URL\", \"installer_id\": \"$INSTALLER_ID\", \"testgrid_id\": \"$TESTGRID_ID\", \"machine_id\": \"$MACHINE_ID\", \"kurl_instance_uuid\": \"$KURL_INSTANCE_UUID\", \"is_upgrade\": false}" \
-         $REPLICATED_APP_URL/kurl_metrics/start_install/$INSTALLATION_ID || true
+         local is_upgrade="true"
      fi
+
+     curl -s --output /dev/null -H 'Content-Type: application/json' --max-time 5 \
+        -d "{\"started\": \"$started\", \"os\": \"$LSB_DIST $DIST_VERSION\", \"kernel_version\": \"$KERNEL_MAJOR.$KERNEL_MINOR\", \"kurl_url\": \"$KURL_URL\", \"installer_id\": \"$INSTALLER_ID\", \"testgrid_id\": \"$TESTGRID_ID\", \"machine_id\": \"$MACHINE_ID\", \"kurl_instance_uuid\": \"$KURL_INSTANCE_UUID\", \"is_upgrade\": $is_upgrade}" \
+        $REPLICATED_APP_URL/kurl_metrics/start_install/$INSTALLATION_ID || true
 }
 
 function report_install_success() {
