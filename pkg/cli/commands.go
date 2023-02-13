@@ -11,6 +11,7 @@ func AddCommands(cmd *cobra.Command, cli CLI) {
 	hostCmd := newHostCmd(cli)
 	hostCmd.AddCommand(newHostProtectedidCmd(cli))
 	hostCmd.AddCommand(newHostPreflightCmd(cli))
+	hostCmd.AddCommand(newHostnameCmd(cli))
 	cmd.AddCommand(hostCmd)
 
 	rookCmd := NewRookCmd(cli)
