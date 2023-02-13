@@ -115,20 +115,20 @@ function rook_upgrade_storage_check() {
         container_directory="/var/lib/containerd"
     fi
 
-    # if $container_directory and /var/lib/kurl are on the same filesystem, we need to check that there is space for all of the files
-    if [ "$(df -P "$container_directory" | awk 'END{print $1}')" = "$(df -P /var/lib/kurl | awk 'END{print $1}')" ]; then
+    # if $container_directory and $DIR are on the same filesystem, we need to check that there is space for all of the files
+    if [ "$(df -P "$container_directory" | awk 'END{print $1}')" = "$(df -P $DIR | awk 'END{print $1}')" ]; then
         # in total, we need space for 5.5x the archive size, AND there must be 15% free space on the filesystem afterwards
         local total_required_size=
         total_required_size=$((archive_size * 11 / 2)) # 5.5x archive size, rounded to an integer
 
         local free_kb=
         local free_mb=
-        free_kb="$(df -P /var/lib/kurl | awk 'END{print $4}')"
+        free_kb="$(df -P $DIR | awk 'END{print $4}')"
         free_mb="$((free_kb / 1024))"
 
         local total_kb=
         local total_mb=
-        total_kb="$(df -P /var/lib/kurl | awk 'END{print $2}')"
+        total_kb="$(df -P $DIR | awk 'END{print $2}')"
         total_mb="$((total_kb / 1024))"
 
         local available_mb=
@@ -136,7 +136,7 @@ function rook_upgrade_storage_check() {
 
         if [ "$available_mb" -lt "$total_required_size" ]; then
             logWarn "Not enough disk space to upgrade Rook."
-            logWarn "You need at least $total_required_size MB of free space on the filesystem containing /var/lib/kurl and $container_directory - and to have 15%% free space after that to avoid image pruning."
+            logWarn "You need at least $total_required_size MB of free space on the filesystem containing $(pwd) and $container_directory - and to have 15%% free space after that to avoid image pruning."
             logWarn "Currently, only $available_mb MB of free space is available before reaching 85%% capacity."
             logWarn "If you have already loaded images or started this Rook upgrade, it is possible that less space will be required. Would you like to continue anyways?"
             if ! confirmN; then
@@ -149,12 +149,12 @@ function rook_upgrade_storage_check() {
 
         local kurl_free_kb=
         local kurl_free_mb=
-        kurl_free_kb="$(df -P /var/lib/kurl | awk 'END{print $4}')"
+        kurl_free_kb="$(df -P $DIR | awk 'END{print $4}')"
         kurl_free_mb="$((kurl_free_kb / 1024))"
 
         if [ "$kurl_free_mb" -lt "$kurl_dir_size" ]; then
             logWarn "Not enough disk space to upgrade Rook."
-            logWarn "You need at least $kurl_dir_size MB of free space on the filesystem containing /var/lib/kurl."
+            logWarn "You need at least $kurl_dir_size MB of free space on the filesystem containing $(pwd)."
             logWarn "Currently, only $kurl_free_mb MB of free space is available."
             logWarn "If you have already loaded images or started this Rook upgrade, it is possible that less space will be required. Would you like to continue anyways?"
             if ! confirmN; then
@@ -167,12 +167,12 @@ function rook_upgrade_storage_check() {
 
         local container_free_kb=
         local container_free_mb=
-        container_free_kb="$(df -P /var/lib/kurl | awk 'END{print $4}')"
+        container_free_kb="$(df -P $DIR | awk 'END{print $4}')"
         container_free_mb="$((container_free_kb / 1024))"
 
         local container_total_kb=
         local container_total_mb=
-        container_total_kb="$(df -P /var/lib/kurl | awk 'END{print $2}')"
+        container_total_kb="$(df -P $DIR | awk 'END{print $2}')"
         container_total_mb="$((container_total_kb / 1024))"
 
         local container_available_mb=
@@ -740,7 +740,7 @@ function rook_upgrade_tasks_require_param() {
 }
 
 # rook_upgrade_required_archive_size will determine the size of the archive that will be downloaded to upgrade between the supplied rook versions.
-# the amount of space required within /var/lib/kurl and /var/lib/containerd or /var/lib/docker can then be derived from this. (2x archive size in kurl, 3.5x in containerd/docker)
+# the amount of space required within $DIR and /var/lib/containerd or /var/lib/docker can then be derived from this. (2x archive size in kurl, 3.5x in containerd/docker)
 function rook_upgrade_required_archive_size() {
     local current_version="$1"
     local desired_version="$2"
