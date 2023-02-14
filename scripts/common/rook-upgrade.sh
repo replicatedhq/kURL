@@ -16,6 +16,11 @@ function rook_upgrade_maybe_report_upgrade_rook() {
     if ! rook_upgrade_prompt "$current_version" "$desired_version" ; then
         bail "Not upgrading Rook"
     fi
+
+    if ! rook_upgrade_storage_check "$current_version" "$desired_version" ; then
+        bail "Not upgrading Rook"
+    fi
+
     rook_upgrade_report_upgrade_rook "$current_version" "$desired_version"
 
     # shellcheck disable=SC1090
@@ -93,6 +98,96 @@ function rook_upgrade_prompt() {
     printf "Would you like to continue? "
 
     confirmN
+}
+
+# rook_upgrade_storage_check verifies that enough disk space exists for the rook upgrade to complete successfully.
+function rook_upgrade_storage_check() {
+    local current_version="$1"
+    local desired_version="$2"
+
+    local archive_size=
+    archive_size="$(rook_upgrade_required_archive_size "$current_version" "$desired_version")"
+
+    local container_directory=
+    if [ -n "$DOCKER_VERSION" ]; then
+        container_directory="/var/lib/docker"
+    else
+        container_directory="/var/lib/containerd"
+    fi
+
+    # if $container_directory and $DIR are on the same filesystem, we need to check that there is space for all of the files
+    if [ "$(df -P "$container_directory" | awk 'END{print $1}')" = "$(df -P $DIR | awk 'END{print $1}')" ]; then
+        # in total, we need space for 5.5x the archive size, AND there must be 15% free space on the filesystem afterwards
+        local total_required_size=
+        total_required_size=$((archive_size * 11 / 2)) # 5.5x archive size, rounded to an integer
+
+        local free_kb=
+        local free_mb=
+        free_kb="$(df -P $DIR | awk 'END{print $4}')"
+        free_mb="$((free_kb / 1024))"
+
+        local total_kb=
+        local total_mb=
+        total_kb="$(df -P $DIR | awk 'END{print $2}')"
+        total_mb="$((total_kb / 1024))"
+
+        local available_mb=
+        available_mb="$((free_mb - total_mb * 3 / 20))" # free space, excluding 15% of the total
+
+        if [ "$available_mb" -lt "$total_required_size" ]; then
+            logWarn "Not enough disk space to upgrade Rook."
+            logWarn "You need at least $total_required_size MB of free space on the filesystem containing $(pwd) and $container_directory - and to have 15%% free space after that to avoid image pruning."
+            logWarn "Currently, only $available_mb MB of free space is available before reaching 85%% capacity."
+            logWarn "If you have already loaded images or started this Rook upgrade, it is possible that less space will be required. Would you like to continue anyways?"
+            if ! confirmN; then
+                return 1
+            fi
+        fi
+    else
+        local kurl_dir_size=
+        kurl_dir_size=$((archive_size * 2))
+
+        local kurl_free_kb=
+        local kurl_free_mb=
+        kurl_free_kb="$(df -P $DIR | awk 'END{print $4}')"
+        kurl_free_mb="$((kurl_free_kb / 1024))"
+
+        if [ "$kurl_free_mb" -lt "$kurl_dir_size" ]; then
+            logWarn "Not enough disk space to upgrade Rook."
+            logWarn "You need at least $kurl_dir_size MB of free space on the filesystem containing $(pwd)."
+            logWarn "Currently, only $kurl_free_mb MB of free space is available."
+            logWarn "If you have already loaded images or started this Rook upgrade, it is possible that less space will be required. Would you like to continue anyways?"
+            if ! confirmN; then
+                return 1
+            fi
+        fi
+
+        local container_dir_size=
+        container_dir_size=$((archive_size * 7 / 2)) # 3.5x archive size, rounded to an integer
+
+        local container_free_kb=
+        local container_free_mb=
+        container_free_kb="$(df -P $DIR | awk 'END{print $4}')"
+        container_free_mb="$((container_free_kb / 1024))"
+
+        local container_total_kb=
+        local container_total_mb=
+        container_total_kb="$(df -P $DIR | awk 'END{print $2}')"
+        container_total_mb="$((container_total_kb / 1024))"
+
+        local container_available_mb=
+        container_available_mb="$((container_free_mb - container_total_mb * 3 / 20))" # free space, excluding 15% of the total
+
+        if [ "$container_available_mb" -lt "$container_dir_size" ]; then
+            logWarn "Not enough disk space to upgrade Rook."
+            logWarn "You need at least $container_dir_size MB of free space on the filesystem containing $container_directory - and to have 15%% free space after that to avoid image pruning."
+            logWarn "Currently, only $container_available_mb MB of free space is available before reaching 85%% capacity."
+            logWarn "If you have already loaded images or started this Rook upgrade, it is possible that less space will be required. Would you like to continue anyways?"
+            if ! confirmN; then
+                return 1
+            fi
+        fi
+    fi
 }
 
 # rook_upgrade_report_upgrade_rook reports the upgrade and starts the upgrade process.
@@ -603,6 +698,8 @@ function rook_upgrade_tasks_load_images() {
     export KUBECONFIG=/etc/kubernetes/admin.conf
     download_util_binaries
 
+    rook_upgrade_storage_check "$from_version" "$to_version"
+
     if ! rook_upgrade_addon_fetch_and_load "$from_version" "$to_version" ; then
         bail "Failed to load images"
     fi
@@ -640,4 +737,58 @@ function rook_upgrade_tasks_require_param() {
     if [ -z "$value" ]; then
         bail "Error: $param is required"
     fi
+}
+
+# rook_upgrade_required_archive_size will determine the size of the archive that will be downloaded to upgrade between the supplied rook versions.
+# the amount of space required within $DIR and /var/lib/containerd or /var/lib/docker can then be derived from this. (2x archive size in kurl, 3.5x in containerd/docker)
+function rook_upgrade_required_archive_size() {
+    local current_version="$1"
+    local desired_version="$2"
+
+    semverParse "$current_version"
+    # shellcheck disable=SC2154
+    local current_rook_version_major="$major"
+    # shellcheck disable=SC2154
+    local current_rook_version_minor="$minor"
+
+    semverParse "$desired_version"
+    local next_rook_version_major="$major"
+    local next_rook_version_minor="$minor"
+
+    # if the major versions are not '1', exit with an error
+    if [ "$current_rook_version_major" != "1" ] || [ "$next_rook_version_major" != "1" ]; then
+        bail "Rook major versions must be 1"
+    fi
+
+    local total_archive_size=0
+    if [ "$current_rook_version_minor" -lt 4 ] && [ "$next_rook_version_minor" -ge 4 ]; then
+        total_archive_size=$((total_archive_size + 3400)) # 3.4 GB for the 1.0 to 1.4 archive
+        total_archive_size=$((total_archive_size + 1300)) # 1.3 GB for the 1.4 archive
+    fi
+    if [ "$current_rook_version_minor" -lt 5 ] && [ "$next_rook_version_minor" -ge 5 ]; then
+        total_archive_size=$((total_archive_size + 1400)) # 1.4 GB for the 1.5 archive
+    fi
+    if [ "$current_rook_version_minor" -lt 6 ] && [ "$next_rook_version_minor" -ge 6 ]; then
+        total_archive_size=$((total_archive_size + 1400)) # 1.4 GB for the 1.6 archive
+    fi
+    if [ "$current_rook_version_minor" -lt 7 ] && [ "$next_rook_version_minor" -ge 7 ]; then
+        total_archive_size=$((total_archive_size + 1500)) # 1.5 GB for the 1.7 archive
+    fi
+    if [ "$current_rook_version_minor" -lt 8 ] && [ "$next_rook_version_minor" -ge 8 ]; then
+        total_archive_size=$((total_archive_size + 1700)) # 1.7 GB for the 1.8 archive
+    fi
+    if [ "$current_rook_version_minor" -lt 9 ] && [ "$next_rook_version_minor" -ge 9 ]; then
+        total_archive_size=$((total_archive_size + 1800)) # 1.8 GB for the 1.9 archive
+    fi
+    if [ "$current_rook_version_minor" -lt 10 ] && [ "$next_rook_version_minor" -ge 10 ]; then
+        total_archive_size=$((total_archive_size + 1800)) # 1.8 GB for the 1.10 archive
+    fi
+
+    # add 2gb for each version past 1.10
+    # TODO handle starting from a version past 1.10
+    if [ "$next_rook_version_minor" -gt 10 ]; then
+        total_archive_size=$((total_archive_size + 2000 * (next_rook_version_minor - 10)))
+    fi
+
+    echo "$total_archive_size"
 }

@@ -91,5 +91,12 @@ function test_rook_upgrade_rook_version_to_major_minor() {
     assertEquals "1.0.4-14.2.21 => 1.0" "1.0" "$(rook_upgrade_rook_version_to_major_minor "1.0.4-14.2.21")"
 }
 
+function test_rook_upgrade_required_disk_space() {
+    assertEquals "1.0 to 1.5" "6100" "$(rook_upgrade_required_archive_size "1.0" "1.5")"
+    assertEquals "1.0 to 1.10" "14300" "$(rook_upgrade_required_archive_size "1.0" "1.10")"
+    assertEquals "1.5 to 1.10" "8200" "$(rook_upgrade_required_archive_size "1.5" "1.10")"
+    assertEquals "1.0 to 1.15" "24300" "$(rook_upgrade_required_archive_size "1.0" "1.15")"
+}
+
 # shellcheck disable=SC1091
 . shunit2
