@@ -1044,6 +1044,7 @@ function wait_for_running_pods() {
     local ns_pods=
     local status=
     local containers=
+    local is_job_controller=0
 
     ns_pods=$(kubectl get pods -n "$namespace" -o jsonpath='{.items[*].metadata.name}')
 
@@ -1054,23 +1055,26 @@ function wait_for_running_pods() {
 
     for pod in $ns_pods; do
         status=$(kubectl get pod "$pod" -n "$namespace" -o jsonpath='{.status.phase}')
-
-        # ignore pods spawned by Jobs
+        
+        # determine if pod is manged by a Job
         if kubectl get pod "$pod" -n "$namespace" -o jsonpath='{.metadata.ownerReferences[*].kind}' | grep -q "Job"; then
-            continue
+            is_job_controller=1
         fi
 
-        if [ "$status" != "Running" ]; then
+        if [ "$status" != "Running" ] && [ "$status" != "Succeeded" ]; then
             pods_not_ready=1
+            log "  Pod, $pod, is not ready: $status"
             break
         fi
 
         containers=$(kubectl get pod "$pod" -n "$namespace" -o jsonpath="{.spec.containers[*].name}")
         for container in $containers; do
             container_status=$(kubectl get pod "$pod" -n "$namespace" -o jsonpath="{.status.containerStatuses[?(@.name==\"$container\")].ready}")
-
-            if [ "$container_status" != "true" ]; then
+            
+            # ignore container ready status for pods managed by the Job controller
+            if [ "$container_status" != "true" ] && [ $is_job_controller -eq 0 ]; then
                 pods_not_ready=1
+                log "  Container, $container ($pod), is not ready: $container_status"
                 break
             fi
         done

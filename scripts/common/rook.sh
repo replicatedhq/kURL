@@ -226,16 +226,14 @@ function current_ceph_version() {
         | awk -F'-' '{ print $1 }'
 }
 
-function rook_cephcluster_ready() {
-    local ceph_cluster_phase=
-    local ceph_cluster_status=
-    ceph_cluster_phase=$(kubectl -n rook-ceph get cephcluster rook-ceph --template '{{.status.phase}}')
-    if [  "$ceph_cluster_phase" = "Ready"  ]; then
-        ceph_cluster_status=$(kubectl -n rook-ceph get cephcluster rook-ceph --template '{{.status.ceph.health}}')
-        if [ "$CEPH_POOL_REPLICAS" -gt 1 ] && [ "$ceph_cluster_status" = "HEALTH_WARN" ]; then
-            return 1
-        fi
-        log "Ceph Cluster is Ready"
-        return 0
+function rook_operator_ready() {
+    local rook_status_phase=
+    local rook_status_msg=
+    rook_status_phase=$(kubectl -n rook-ceph get cephcluster rook-ceph --template '{{.status.phase}}')
+    rook_status_msg=$(kubectl -n rook-ceph get cephcluster rook-ceph --template '{{.status.message}}')
+    if [  "$rook_status_phase" != "Ready"  ]; then
+        log "Rook operator is not ready: $rook_status_msg"
+        return 1
     fi
+    return 0
 }
