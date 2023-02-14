@@ -966,6 +966,7 @@ function rook_maybe_longhorn_migration_checks() {
     if [ -n "$longhorn_scs_pvmigrate_dryrun_output" ] || [ -n "$longhorn_default_sc_pvmigrate_dryrun_output" ] ; then
         log "$longhorn_scs_pvmigrate_dryrun_output"
         log "$longhorn_default_sc_pvmigrate_dryrun_output"
+        longhorn_restore_migration_replicas
         bail "Cannot upgrade from Longhorn to Rook due to previous error."
     fi
 
