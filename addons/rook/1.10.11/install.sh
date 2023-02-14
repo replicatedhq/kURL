@@ -53,12 +53,6 @@ function rook_post_init() {
     if [ "$ROOK_DID_DISABLE_EKCO_OPERATOR" = "1" ]; then
         rook_enable_ekco_operator
     fi
-
-    # wait for all pods in the rook-ceph namespace to rollout
-    log "Rook Post-init: Awaiting Rook rollout in rook-ceph namespace"
-    rook_maybe_wait_for_rollout
-
-    log "Rook Post-init: End"
 }
 
 ROOK_DID_DISABLE_EKCO_OPERATOR=0
@@ -123,6 +117,10 @@ function rook() {
 
     # migrate from Longhorn storage if applicable
     rook_maybe_migrate_from_longhorn
+
+    # wait for all pods in the rook-ceph namespace to rollout
+    log "Awaiting Rook rollout in rook-ceph namespace"
+    rook_maybe_wait_for_rollout
 }
 
 function rook_join() {
@@ -997,13 +995,13 @@ function rook_prompt_migrate_from_longhorn() {
 
 # wait for Rook deployment pods to be running/completed
 function rook_maybe_wait_for_rollout() {
-    log "Awaiting Rook pods to transition to Running"
-    if ! spinner_until 120 wait_for_running_pods "rook-ceph"; then
-        logWarn "Rook-ceph rollout did not complete within the allotted time"
-    fi
-
     log "Awaiting Rook Operator to be Ready"
     if ! spinner_until 120 rook_operator_ready; then
         logWarn "Rook operator did not transition to 'Ready' phase within the allotted time"
+    fi
+
+    log "Awaiting Rook pods to transition to Running"
+    if ! spinner_until 120 wait_for_running_pods "rook-ceph"; then
+        logWarn "Rook-ceph rollout did not complete within the allotted time"
     fi
 }
