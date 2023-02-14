@@ -6,7 +6,6 @@ TESTGRID_ID=
 function report_install_start() {
     # report that the install started
     # this includes the install ID, time, kurl URL, and linux distribution name + version.
-    # TODO: HA status, server CPU count and memory size.
 
     if [ -f "/tmp/testgrid-id" ]; then
         TESTGRID_ID=$(cat /tmp/testgrid-id)
@@ -32,7 +31,20 @@ function report_install_start() {
      fi
 
      curl -s --output /dev/null -H 'Content-Type: application/json' --max-time 5 \
-        -d "{\"started\": \"$started\", \"os\": \"$LSB_DIST $DIST_VERSION\", \"kernel_version\": \"$KERNEL_MAJOR.$KERNEL_MINOR\", \"kurl_url\": \"$KURL_URL\", \"installer_id\": \"$INSTALLER_ID\", \"testgrid_id\": \"$TESTGRID_ID\", \"machine_id\": \"$MACHINE_ID\", \"kurl_instance_uuid\": \"$KURL_INSTANCE_UUID\", \"is_upgrade\": $is_upgrade}" \
+        -d "{\
+        \"started\": \"$started\", \
+        \"os\": \"$LSB_DIST $DIST_VERSION\", \
+        \"kernel_version\": \"$KERNEL_MAJOR.$KERNEL_MINOR\", \
+        \"kurl_url\": \"$KURL_URL\", \
+        \"installer_id\": \"$INSTALLER_ID\", \
+        \"testgrid_id\": \"$TESTGRID_ID\", \
+        \"machine_id\": \"$MACHINE_ID\", \
+        \"kurl_instance_uuid\": \"$KURL_INSTANCE_UUID\", \
+        \"is_upgrade\": $is_upgrade, \
+        \"is_ha_cluster\": \"$HA_CLUSTER\" \
+        \"num_processors\": \"$(nproc)\", \
+        \"memory_size_kb\": \"$(cat /proc/meminfo | grep MemTotal | awk '{print $2}')\" \
+        }" \
         $REPLICATED_APP_URL/kurl_metrics/start_install/$INSTALLATION_ID || true
 }
 
