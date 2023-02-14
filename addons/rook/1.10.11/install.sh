@@ -254,7 +254,7 @@ function rook_cluster_deploy_upgrade() {
     # 3. https://rook.io/docs/rook/v1.6/ceph-upgrade.html#3-update-the-rook-operator
     #    rook_operator_deploy
 
-    local ceph_image="__CEPH_IMAGE__"
+    local ceph_image="quay.io/ceph/ceph:v17.2.5"
     local ceph_version=
     ceph_version="$(echo "${ceph_image}" | awk 'BEGIN { FS=":v" } ; {print $2}')"
 
@@ -308,8 +308,8 @@ function rook_cluster_deploy_upgrade() {
 
     # https://rook.io/docs/rook/v1.6/ceph-upgrade.html#2-wait-for-the-daemon-pod-updates-to-complete
     if ! "$DIR"/bin/kurl rook wait-for-ceph-version "${ceph_version}-0" --timeout=1200 ; then
-        logWarn "Timeout waiting for Ceph version to be rolled out"
-        log "Checking Ceph versions and replicas"
+        logWarn "Timeout waiting for Ceph version rolled out"
+        logStep "Checking Ceph versions and replicas"
         kubectl -n rook-ceph get deployment -l rook_cluster=rook-ceph -o jsonpath='{range .items[*]}{.metadata.name}{"  \treq/upd/avl: "}{.spec.replicas}{"/"}{.status.updatedReplicas}{"/"}{.status.readyReplicas}{"  \tceph-version="}{.metadata.labels.ceph-version}{"\n"}{end}'
         local ceph_versions_found=
         ceph_versions_found="$(kubectl -n rook-ceph get deployment -l rook_cluster=rook-ceph -o jsonpath='{range .items[*]}{"ceph-version="}{.metadata.labels.ceph-version}{"\n"}{end}' | sort | uniq)"
@@ -363,21 +363,7 @@ function verify_rook_updated_cluster() {
     fi
 
     log "Verifying Ceph version ${ceph_version} deployed"
-    if ! "$DIR"/bin/kurl rook wait-for-ceph-version "${ceph_version}-0" --timeout=1200 ; then
-        logWarn "Timeout waiting for Ceph version to be rolled out"
-        log "Checking Ceph versions and replicas"
-        kubectl -n rook-ceph get deployment -l rook_cluster=rook-ceph -o jsonpath='{range .items[*]}{.metadata.name}{"  \treq/upd/avl: "}{.spec.replicas}{"/"}{.status.updatedReplicas}{"/"}{.status.readyReplicas}{"  \tceph-version="}{.metadata.labels.ceph-version}{"\n"}{end}'
-        local ceph_versions_found=
-        ceph_versions_found="$(kubectl -n rook-ceph get deployment -l rook_cluster=rook-ceph -o jsonpath='{range .items[*]}{"ceph-version="}{.metadata.labels.ceph-version}{"\n"}{end}' | sort | uniq)"
-        if [ -n "${ceph_versions_found}" ] && [ "$(echo "${ceph_versions_found}" | wc -l)" -gt "1" ]; then
-            logWarn "Detected multiple Ceph versions"
-            logWarn "${ceph_versions_found}"
-            bail "Failed to verify the Ceph upgrade, multiple Ceph versions detected"
-        fi
-
-        if [[ "$(echo "${ceph_versions_found}")" == *"${ceph_version}"* ]]; then
-            bail "Ceph version found ${ceph_versions_found}. New Ceph version ${ceph_version} failed to deploy"
-        fi
+    if ! spinner_until 1200 rook_ceph_version_deployed "${ceph_version}" ; then
         bail "New Ceph version ${ceph_version} failed to deploy"
     fi
 
@@ -934,7 +920,6 @@ function rook_maybe_migrate_from_longhorn() {
             rook_maybe_longhorn_migration_checks "$rook_storage_class"
 
             longhorn_to_sc_migration "$rook_storage_class" "1"
-            migrate_minio_to_rgw
             DID_MIGRATE_LONGHORN_PVCS=1 # used to automatically delete longhorn if object store data was also migrated
         fi
     fi
@@ -955,7 +940,7 @@ function rook_maybe_longhorn_migration_checks() {
     for longhorn_sc in $longhorn_scs
     do
         # run validation checks for non default Longhorn storage classes
-        if longhorn_scs_pvmigrate_dryrun_output=$($BIN_PVMIGRATE --source-sc "$longhorn_sc" --dest-sc "$rook_storage_class" --rsync-image "$KURL_UTIL_IMAGE" --preflight-validation-only 2>&1) ; then
+        if longhorn_scs_pvmigrate_dryrun_output=$($BIN_PVMIGRATE --source-sc "$longhorn_sc" --dest-sc "$rook_storage_class" --rsync-image "$KURL_UTIL_IMAGE" --preflight-validation-only) ; then
             longhorn_scs_pvmigrate_dryrun_output=""
         else
             break
@@ -964,7 +949,7 @@ function rook_maybe_longhorn_migration_checks() {
 
     if [ -n "$longhorn_default_sc" ] ; then
         # run validation checks for Rook default storage class
-        if longhorn_default_sc_pvmigrate_dryrun_output=$($BIN_PVMIGRATE --source-sc "$longhorn_default_sc" --dest-sc "$rook_storage_class" --rsync-image "$KURL_UTIL_IMAGE" --preflight-validation-only 2>&1) ; then
+        if longhorn_default_sc_pvmigrate_dryrun_output=$($BIN_PVMIGRATE --source-sc "$longhorn_default_sc" --dest-sc "$rook_storage_class" --rsync-image "$KURL_UTIL_IMAGE" --preflight-validation-only) ; then
             longhorn_default_sc_pvmigrate_dryrun_output=""
         fi
     fi
@@ -972,7 +957,6 @@ function rook_maybe_longhorn_migration_checks() {
     if [ -n "$longhorn_scs_pvmigrate_dryrun_output" ] || [ -n "$longhorn_default_sc_pvmigrate_dryrun_output" ] ; then
         log "$longhorn_scs_pvmigrate_dryrun_output"
         log "$longhorn_default_sc_pvmigrate_dryrun_output"
-        longhorn_restore_migration_replicas
         bail "Cannot upgrade from Longhorn to Rook due to previous error."
     fi
 
@@ -1007,17 +991,6 @@ function rook_prompt_migrate_from_longhorn() {
 
     log "Would you like to continue? "
     if ! confirmN; then
-        bail "Not migrating"
-    fi
-
-    local nodes=$(kubectl get nodes --no-headers | wc -l)
-    if [ "$nodes" -eq 1 ]; then
-        logFail "    ERROR: Your cluster has only one node, making Rook an unsuitable choice as a storage provisioner. You must install OpenEBS instead."
-        logFail "    Continuing with the Longhorn to Rook data migration under these conditions may result in unexpected errors potentially CAUSING DATA LOSS."
-        bail "Not migrating"
-    fi
-
-    if ! longhorn_prepare_for_migration; then
         bail "Not migrating"
     fi
 }
