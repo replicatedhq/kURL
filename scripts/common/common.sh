@@ -1045,6 +1045,7 @@ function check_for_running_pods() {
     local ns_pods=
     local status=
     local containers=
+    local is_job_controller=0
 
     ns_pods=$(kubectl get pods -n "$namespace" -o jsonpath='{.items[*].metadata.name}')
 
