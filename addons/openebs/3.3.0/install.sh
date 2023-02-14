@@ -92,7 +92,6 @@ function openebs_maybe_rook_migration_checks() {
     if [ -n "$rook_scs_pvmigrate_dryrun_output" ] || [ -n "$rook_default_sc_pvmigrate_dryrun_output" ] ; then
         log "$rook_scs_pvmigrate_dryrun_output"
         log "$rook_default_sc_pvmigrate_dryrun_output"
-
         bail "Cannot upgrade from Rook to OpenEBS due to previous error."
     fi
 
