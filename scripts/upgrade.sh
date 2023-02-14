@@ -139,6 +139,7 @@ function main() {
     get_shared
     ${K8S_DISTRO}_addon_for_each addon_join
     maybe_upgrade
+    kubernetes_configure_pause_image_upgrade
     install_helm
     uninstall_docker
     outro

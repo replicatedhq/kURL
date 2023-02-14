@@ -1,0 +1,7 @@
+apiVersion: kubeadm.k8s.io/v1beta2
+kind: InitConfiguration
+metadata:
+  name: kubeadm-init-configuration
+nodeRegistration:
+  kubeletExtraArgs:
+    pod-infra-container-image: $CONTAINERD_PAUSE_IMAGE

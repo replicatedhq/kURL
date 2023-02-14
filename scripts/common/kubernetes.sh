@@ -746,17 +746,17 @@ function kubernetes_pod_succeeded() {
 
 function kubernetes_is_current_cluster() {
     local api_service_address="$1"
-    if cat /etc/kubernetes/kubelet.conf 2>/dev/null | grep -q "${api_service_address}"; then
+    if grep -sq "${api_service_address}" /etc/kubernetes/kubelet.conf ; then
         return 0
     fi
-    if cat /opt/replicated/kubeadm.conf 2>/dev/null | grep -q "${api_service_address}"; then
+    if grep -sq "${api_service_address}" "$KUBEADM_CONF_FILE" ; then
         return 0
     fi
     return 1
 }
 
 function kubernetes_is_join_node() {
-    if cat /opt/replicated/kubeadm.conf 2>/dev/null | grep -q 'kind: JoinConfiguration'; then
+    if grep -sq 'kind: JoinConfiguration' "$KUBEADM_CONF_FILE" ; then
         return 0
     fi
     return 1
@@ -997,4 +997,66 @@ function kubernetes_version_minor() {
     local k8sVersion="$1"
     # shellcheck disable=SC2001
     echo "$k8sVersion" | sed 's/v\?[0-9]*\.\([0-9]*\)\.[0-9]*/\1/'
+}
+
+# kubernetes_configure_pause_image will make kubelet aware of the pause (sandbox) image used by
+# containerd. This will prevent the kubelet from garbage collecting the pause image.
+# This flag will be removed in kubernetes 1.27.
+# NOTE: this configures the kubelet to use the pause image used by containerd rather than the other
+# way around.
+function kubernetes_configure_pause_image() {
+    local dir="$1"
+    #shellcheck disable=SC2153
+    if [ "$KUBERNETES_TARGET_VERSION_MAJOR" != 1 ] || [ "$KUBERNETES_TARGET_VERSION_MINOR" -ge 27 ]; then
+        return
+    fi
+
+    local CONTAINERD_PAUSE_IMAGE=
+    #shellcheck disable=SC2034
+    CONTAINERD_PAUSE_IMAGE="$(kubernetes_containerd_pause_image)"
+    if [ -z "$CONTAINERD_PAUSE_IMAGE" ]; then
+        return
+    fi
+
+    insert_patches_strategic_merge "$dir/kustomization.yaml" "kubelet-args-pause-image.patch.yaml"
+    render_yaml_file_2 "$dir/kubelet-args-pause-image.patch.tmpl.yaml" > "$dir/kubelet-args-pause-image.patch.yaml"
+}
+
+KUBELET_FLAGS_FILE="/var/lib/kubelet/kubeadm-flags.env"
+
+# kubernetes_configure_pause_image_upgrade will check if the pause image used by containerd has
+# changed. If it has, it will update the kubelet flags to use the new pause image and restart the
+# kubelet.
+function kubernetes_configure_pause_image_upgrade() {
+    local CONTAINERD_PAUSE_IMAGE=
+    #shellcheck disable=SC2034
+    CONTAINERD_PAUSE_IMAGE="$(kubernetes_containerd_pause_image)"
+    if [ -z "$CONTAINERD_PAUSE_IMAGE" ]; then
+        return
+    fi
+
+    if [ ! -f "$KUBELET_FLAGS_FILE" ]; then
+        return
+    fi
+
+    local old_pause_image=
+    old_pause_image="$(grep -o '\--pod-infra-container-image=[^" ]*' "$KUBELET_FLAGS_FILE" | awk -F'=' '{ print $2 }')"
+
+    # if the pause image is not set this may be a version of kubelet that does not support the flag
+    if [ -z "$old_pause_image" ] || [ "$old_pause_image" = "$CONTAINERD_PAUSE_IMAGE" ]; then
+        return
+    fi
+
+    sed -i "s|$old_pause_image|$CONTAINERD_PAUSE_IMAGE|" "$KUBELET_FLAGS_FILE"
+
+    systemctl daemon-reload
+    systemctl restart kubelet
+}
+
+# kubernetes_containerd_pause_image will return the pause image used by containerd.
+function kubernetes_containerd_pause_image() {
+    if [ -z "$CONTAINERD_VERSION" ] || [ ! -f /etc/containerd/config.toml ] ; then
+        return
+    fi
+    grep sandbox_image /etc/containerd/config.toml | sed 's/[=\"]//g' | awk '{ print $2 }'
 }
