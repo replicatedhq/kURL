@@ -368,7 +368,7 @@ spec:
               when: "p99 < 10ms"
               message: "Write latency is ok (p99 target < 10ms, actual: {{ .P99 }})"
           - warn:
-              message: "Write latency is high. p99 target >= 10ms, actual:{{ .String }}"
+              message: "Write latency is high. p99 target < 10ms, actual:{{ .String }}"
     - time:
         checkName: "NTP Status"
         outcomes:
