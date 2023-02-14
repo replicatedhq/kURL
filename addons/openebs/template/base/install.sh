@@ -340,14 +340,18 @@ function openebs_maybe_longhorn_migration_checks() {
     for longhorn_sc in $longhorn_scs
     do
         # run validation checks for non default Longhorn storage classes
-        if ! longhorn_scs_pvmigrate_dryrun_output=$($BIN_PVMIGRATE --source-sc "$longhorn_sc" --dest-sc "$OPENEBS_LOCALPV_STORAGE_CLASS" --rsync-image "$KURL_UTIL_IMAGE" --preflight-validation-only) ; then
+        if longhorn_scs_pvmigrate_dryrun_output=$($BIN_PVMIGRATE --source-sc "$longhorn_sc" --dest-sc "$OPENEBS_LOCALPV_STORAGE_CLASS" --rsync-image "$KURL_UTIL_IMAGE" --preflight-validation-only 2>&1) ; then
+            longhorn_scs_pvmigrate_dryrun_output=""
+        else
             break
         fi
     done
 
     if [ -n "$longhorn_default_sc" ] ; then
-        # run validation checks for Rook default storage class
-        longhorn_default_sc_pvmigrate_dryrun_output=$($BIN_PVMIGRATE --source-sc "$longhorn_default_sc" --dest-sc "$OPENEBS_LOCALPV_STORAGE_CLASS" --rsync-image "$KURL_UTIL_IMAGE" --preflight-validation-only || true)
+        # run validation checks for Longhorn default storage class
+        if longhorn_default_sc_pvmigrate_dryrun_output=$($BIN_PVMIGRATE --source-sc "$longhorn_default_sc" --dest-sc "$OPENEBS_LOCALPV_STORAGE_CLASS" --rsync-image "$KURL_UTIL_IMAGE" --preflight-validation-only 2>&1) ; then
+            longhorn_default_sc_pvmigrate_dryrun_output=""
+        fi
     fi
 
     if [ -n "$longhorn_scs_pvmigrate_dryrun_output" ] || [ -n "$longhorn_default_sc_pvmigrate_dryrun_output" ] ; then
