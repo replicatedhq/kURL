@@ -1055,7 +1055,7 @@ function wait_for_running_pods() {
 
     for pod in $ns_pods; do
         status=$(kubectl get pod "$pod" -n "$namespace" -o jsonpath='{.status.phase}')
-        
+
         # determine if pod is manged by a Job
         if kubectl get pod "$pod" -n "$namespace" -o jsonpath='{.metadata.ownerReferences[*].kind}' | grep -q "Job"; then
             is_job_controller=1
@@ -1064,7 +1064,7 @@ function wait_for_running_pods() {
         if [ "$status" != "Running" ] && [ "$status" != "Succeeded" ]; then
             pods_not_ready=1
             log "  Pod, $pod, is not ready: $status"
-            break
+            return 1
         fi
 
         containers=$(kubectl get pod "$pod" -n "$namespace" -o jsonpath="{.spec.containers[*].name}")
@@ -1080,13 +1080,9 @@ function wait_for_running_pods() {
         done
 
         if [ $pods_not_ready -ne 0 ]; then
-            break
+            return 1
         fi
     done
-
-    if [ $pods_not_ready -ne 0 ]; then
-       return 1
-    fi
 
     log "All pods and their containers in namespace $namespace are in Running phase."
     return 0
