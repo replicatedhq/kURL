@@ -874,7 +874,7 @@ function get_machine_id() {
     if [ -f /var/lib/kurl/uuid ]; then
         KURL_INSTANCE_UUID="$(cat /var/lib/kurl/uuid)"
     else
-        KURL_INSTANCE_UUID="$(uuidgen)"
+        KURL_INSTANCE_UUID=$(< /dev/urandom tr -dc a-z0-9 | head -c32)
         mkdir -p /var/lib/kurl
         echo "$KURL_INSTANCE_UUID" > /var/lib/kurl/uuid
     fi
