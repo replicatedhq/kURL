@@ -129,7 +129,7 @@ function uninstall_docker() {
 
     # With the internal loadbalancer it may take a minute or two after starting kubelet before
     # kubectl commands work
-    local node=$(hostname | tr '[:upper:]' '[:lower:]')
+    local node=$($DIR/bin/kurl host hostname)
     try_5m kubectl uncordon "$node" --kubeconfig=/etc/kubernetes/kubelet.conf
 
 }

@@ -1,5 +1,7 @@
 #!/bin/bash
 
+KURL_INSTALL_DIRECTORY=/var/lib/kurl
+
 # On first install on additional nodes the node is not yet joined to the cluster
 if [ ! -e /etc/kubernetes/kubelet.conf ]; then
     exit 0
@@ -13,4 +15,4 @@ while [ "$(curl --noproxy "*" -sk $master/healthz)" != "ok" ]; do
         sleep 1
 done
 
-kubectl uncordon $(hostname | tr '[:upper:]' '[:lower:]')
+kubectl uncordon "$($KURL_INSTALL_DIRECTORY/bin/kurl host hostname)"

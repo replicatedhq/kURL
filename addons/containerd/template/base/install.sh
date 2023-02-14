@@ -183,7 +183,7 @@ function containerd_migrate_from_docker() {
         fi
     fi
 
-    local node=$(hostname | tr '[:upper:]' '[:lower:]')
+    local node=$($DIR/bin/kurl host hostname)
     kubectl "$kubeconfigFlag" cordon "$node" 
 
     local allPodUIDs=$(kubectl "$kubeconfigFlag" get pods --all-namespaces -ojsonpath='{ range .items[*]}{.metadata.name}{"\t"}{.metadata.uid}{"\t"}{.metadata.namespace}{"\n"}{end}')

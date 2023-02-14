@@ -161,6 +161,9 @@ dist/fluentd-%.tar.gz: build/addons
 	mkdir -p dist
 	tar cf - -C build addons/fluentd/$* | gzip > dist/fluentd-$*.tar.gz
 
+# NOTE: To test the install with ekco in the development enviroment
+# update the shutdown.sh and startup.sh script with your home directory (i.e. /home/<user>/kurl/)
+
 dist/ekco-%.tar.gz: build/addons
 	bin/save-manifest-assets.sh "ekco-$*" addons/ekco/$*/Manifest build/addons/ekco/$*
 	mkdir -p dist

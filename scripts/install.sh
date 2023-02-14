@@ -230,7 +230,7 @@ function init() {
     set +o pipefail
 
     # Node would be cordoned if migrated from docker to containerd
-    local node=$(hostname | tr '[:upper:]' '[:lower:]')
+    local node=$($DIR/bin/kurl host hostname)
     kubectl uncordon "$node"
 
     if [ -n "$LOAD_BALANCER_ADDRESS" ]; then
@@ -265,7 +265,7 @@ function init() {
 
     wait_for_nodes
 
-    local node=$(hostname | tr '[:upper:]' '[:lower:]')
+    local node=$($DIR/bin/kurl host hostname)
     kubectl label --overwrite node "$node" node-role.kubernetes.io/master=
 
     enable_rook_ceph_operator

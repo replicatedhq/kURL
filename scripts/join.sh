@@ -91,7 +91,7 @@ function join() {
     if [ "$MASTER" = "1" ]; then
         exportKubeconfig
 
-        local node=$(hostname | tr '[:upper:]' '[:lower:]')
+        local node=$($DIR/bin/kurl host hostname)
         kubectl label --overwrite node "$node" node-role.kubernetes.io/master=
 
         if [ "$KUBERNETES_CIS_COMPLIANCE" == "1" ]; then

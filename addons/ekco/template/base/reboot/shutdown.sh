@@ -1,8 +1,9 @@
 #!/bin/bash
 
 export KUBECONFIG=/etc/kubernetes/kubelet.conf
+KURL_INSTALL_DIRECTORY=/var/lib/kurl
 
-kubectl cordon "$(hostname | tr '[:upper:]' '[:lower:]')"
+kubectl cordon "$($KURL_INSTALL_DIRECTORY/bin/kurl host hostname)"
 
 allPodUIDs=$(kubectl get pods --all-namespaces -ojsonpath='{ range .items[*]}{.metadata.name}{"\t"}{.metadata.uid}{"\t"}{.metadata.namespace}{"\n"}{end}' )
 
@@ -31,7 +32,7 @@ while grep -q ':6789:/' /proc/mounts; do
 done
 
 # remove ceph-operator and mds pods from this node so they can continue to service the cluster
-thisHost=$(hostname | tr '[:upper:]' '[:lower:]')
+thisHost=$($KURL_INSTALL_DIRECTORY/bin/kurl host hostname)
 while read -r row; do
     podName=$(echo "$row" | awk '{ print $1 }')
     ns=$(echo "$row" | awk '{ print $2 }')
