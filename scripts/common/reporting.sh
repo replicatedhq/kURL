@@ -3,10 +3,10 @@ REPORTING_CONTEXT_INFO=""
 
 INSTALLATION_ID=
 TESTGRID_ID=
-KURL_CLUSTER_UUID=
 function report_install_start() {
     # report that the install started
     # this includes the install ID, time, kurl URL, and linux distribution name + version.
+    # TODO: HA status, server CPU count and memory size.
 
     if [ -f "/tmp/testgrid-id" ]; then
         TESTGRID_ID=$(cat /tmp/testgrid-id)
@@ -31,25 +31,8 @@ function report_install_start() {
          local is_upgrade="true"
      fi
 
-     # get the kurl_cluster_id
-     attempt_get_cluster_id
-
      curl -s --output /dev/null -H 'Content-Type: application/json' --max-time 5 \
-        -d "{\
-        \"started\": \"$started\", \
-        \"os\": \"$LSB_DIST $DIST_VERSION\", \
-        \"kernel_version\": \"$KERNEL_MAJOR.$KERNEL_MINOR\", \
-        \"kurl_url\": \"$KURL_URL\", \
-        \"installer_id\": \"$INSTALLER_ID\", \
-        \"testgrid_id\": \"$TESTGRID_ID\", \
-        \"machine_id\": \"$MACHINE_ID\", \
-        \"kurl_instance_uuid\": \"$KURL_INSTANCE_UUID\", \
-        \"is_upgrade\": $is_upgrade, \
-        \"is_ha_cluster\": \"$HA_CLUSTER\", \
-        \"num_processors\": \"$(nproc)\", \
-        \"memory_size_kb\": \"$(cat /proc/meminfo | grep MemTotal | awk '{print $2}')\", \
-        \"kurl_cluster_uuid\": \"$KURL_CLUSTER_UUID\" \
-        }" \
+        -d "{\"started\": \"$started\", \"os\": \"$LSB_DIST $DIST_VERSION\", \"kernel_version\": \"$KERNEL_MAJOR.$KERNEL_MINOR\", \"kurl_url\": \"$KURL_URL\", \"installer_id\": \"$INSTALLER_ID\", \"testgrid_id\": \"$TESTGRID_ID\", \"machine_id\": \"$MACHINE_ID\", \"kurl_instance_uuid\": \"$KURL_INSTANCE_UUID\", \"is_upgrade\": $is_upgrade}" \
         $REPLICATED_APP_URL/kurl_metrics/start_install/$INSTALLATION_ID || true
 }
 
@@ -179,7 +162,7 @@ function addon_install_fail_nobundle() {
     local completed=$(date -u +"%Y-%m-%dT%H:%M:%SZ") # rfc3339
 
     curl -s --output /dev/null -H 'Content-Type: application/json' --max-time 5 \
-        -d "{\"finished\": \"$completed\"}" \
+        -d "{\"finished\": \"$completed\", \"machine_id\": \"$MACHINE_ID\", \"kurl_uuid\": \"$KURL_UUID\"}" \
         $REPLICATED_APP_URL/kurl_metrics/fail_addon/$INSTALLATION_ID/$name || true
 
     return 1 # return error because the addon in question did too
@@ -263,28 +246,4 @@ function stacktrace {
         ((i++))
     done
     echo "$totalStack"
-}
-
-# if the kurl_cluster_uuid configmap exists, set the KURL_CLUSTER_UUID env var to the value in the configmap.
-# if it does not exist, make a new UUID for KURL_CLUSTER_UUID.
-function attempt_get_cluster_id() {
-    if ! kubernetes_resource_exists kurl configmap kurl_cluster_uuid; then
-        KURL_CLUSTER_UUID="$(uuidgen)"
-        return 0
-    fi
-
-    KURL_CLUSTER_UUID=$(kubectl get configmap -n kurl kurl_cluster_uuid -o jsonpath='{.data.kurl_cluster_uuid}')
-}
-
-# if the kurl_cluster_uuid configmap does not exist, create it using the KURL_CLUSTER_UUID env var
-function maybe_set_kurl_cluster_uuid() {
-    if [ -z "$KURL_CLUSTER_UUID" ]; then
-        return 0
-    fi
-
-    if kubernetes_resource_exists kurl configmap kurl_cluster_uuid; then
-        return 0
-    fi
-
-    kubectl create configmap -n kurl kurl_cluster_uuid --from-literal=kurl_cluster_uuid="$KURL_CLUSTER_UUID"
 }
