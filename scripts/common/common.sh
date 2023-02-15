@@ -1070,7 +1070,7 @@ function wait_for_running_pods() {
             container_status=$(kubectl get pod "$pod" -n "$namespace" -o jsonpath="{.status.containerStatuses[?(@.name==\"$container\")].ready}")
             
             # ignore container ready status for pods managed by the Job controller
-            if [ "$container_status" != "true" ] && [ $is_job_controller -eq 0 ]; then
+            if [ "$container_status" != "true" ] && [ "$is_job_controller" = "0" ]; then
                 log "  Container, $container ($pod), is not ready: $container_status"
                 return 1
             fi
