@@ -1082,6 +1082,6 @@ function wait_for_running_pods() {
         done
     done
 
-    log "All pods and their containers in namespace $namespace are in Running phase."
+    log "All pods and their containers in namespace $namespace are running."
     return 0
 }
