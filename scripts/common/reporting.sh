@@ -269,7 +269,7 @@ function stacktrace {
 # if it does not exist, make a new UUID for KURL_CLUSTER_UUID.
 function attempt_get_cluster_id() {
     if ! kubernetes_resource_exists kurl configmap kurl_cluster_uuid; then
-        KURL_CLUSTER_UUID=$(< /dev/urandom tr -dc a-z0-9 | head -c32)
+        KURL_CLUSTER_UUID="$(uuidgen)"
         return 0
     fi
 
