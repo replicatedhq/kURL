@@ -1060,6 +1060,11 @@ function wait_for_running_pods() {
             is_job_controller=1
         fi
 
+        # ignore pods that have been Evicted
+        if [ "$status" == "Failed" ] && [[ $(kubectl get pod "$pod" -n "$namespace" -o jsonpath='{.status.reason}') == "Evicted" ]]; then
+            continue
+        fi
+
         if [ "$status" != "Running" ] && [ "$status" != "Succeeded" ]; then
             log "  Pod, $pod, is not ready: $status"
             return 1
