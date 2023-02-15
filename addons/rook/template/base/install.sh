@@ -928,6 +928,7 @@ function rook_maybe_migrate_from_longhorn() {
             rook_maybe_longhorn_migration_checks "$rook_storage_class"
 
             longhorn_to_sc_migration "$rook_storage_class" "1"
+            migrate_minio_to_rgw
             DID_MIGRATE_LONGHORN_PVCS=1 # used to automatically delete longhorn if object store data was also migrated
         fi
     fi
@@ -948,7 +949,7 @@ function rook_maybe_longhorn_migration_checks() {
     for longhorn_sc in $longhorn_scs
     do
         # run validation checks for non default Longhorn storage classes
-        if longhorn_scs_pvmigrate_dryrun_output=$($BIN_PVMIGRATE --source-sc "$longhorn_sc" --dest-sc "$rook_storage_class" --rsync-image "$KURL_UTIL_IMAGE" --preflight-validation-only) ; then
+        if longhorn_scs_pvmigrate_dryrun_output=$($BIN_PVMIGRATE --source-sc "$longhorn_sc" --dest-sc "$rook_storage_class" --rsync-image "$KURL_UTIL_IMAGE" --preflight-validation-only 2>&1) ; then
             longhorn_scs_pvmigrate_dryrun_output=""
         else
             break
@@ -957,7 +958,7 @@ function rook_maybe_longhorn_migration_checks() {
 
     if [ -n "$longhorn_default_sc" ] ; then
         # run validation checks for Rook default storage class
-        if longhorn_default_sc_pvmigrate_dryrun_output=$($BIN_PVMIGRATE --source-sc "$longhorn_default_sc" --dest-sc "$rook_storage_class" --rsync-image "$KURL_UTIL_IMAGE" --preflight-validation-only) ; then
+        if longhorn_default_sc_pvmigrate_dryrun_output=$($BIN_PVMIGRATE --source-sc "$longhorn_default_sc" --dest-sc "$rook_storage_class" --rsync-image "$KURL_UTIL_IMAGE" --preflight-validation-only 2>&1) ; then
             longhorn_default_sc_pvmigrate_dryrun_output=""
         fi
     fi
@@ -965,6 +966,7 @@ function rook_maybe_longhorn_migration_checks() {
     if [ -n "$longhorn_scs_pvmigrate_dryrun_output" ] || [ -n "$longhorn_default_sc_pvmigrate_dryrun_output" ] ; then
         log "$longhorn_scs_pvmigrate_dryrun_output"
         log "$longhorn_default_sc_pvmigrate_dryrun_output"
+        longhorn_restore_migration_replicas
         bail "Cannot upgrade from Longhorn to Rook due to previous error."
     fi
 
@@ -999,6 +1001,17 @@ function rook_prompt_migrate_from_longhorn() {
 
     log "Would you like to continue? "
     if ! confirmN; then
+        bail "Not migrating"
+    fi
+
+    local nodes=$(kubectl get nodes --no-headers | wc -l)
+    if [ "$nodes" -eq 1 ]; then
+        logFail "    ERROR: Your cluster has only one node, making Rook an unsuitable choice as a storage provisioner. You must install OpenEBS instead."
+        logFail "    Continuing with the Longhorn to Rook data migration under these conditions may result in unexpected errors potentially CAUSING DATA LOSS."
+        bail "Not migrating"
+    fi
+
+    if ! longhorn_prepare_for_migration; then
         bail "Not migrating"
     fi
 }

@@ -92,7 +92,6 @@ function openebs_maybe_rook_migration_checks() {
     if [ -n "$rook_scs_pvmigrate_dryrun_output" ] || [ -n "$rook_default_sc_pvmigrate_dryrun_output" ] ; then
         log "$rook_scs_pvmigrate_dryrun_output"
         log "$rook_default_sc_pvmigrate_dryrun_output"
-        
         bail "Cannot upgrade from Rook to OpenEBS due to previous error."
     fi
 
@@ -340,19 +339,24 @@ function openebs_maybe_longhorn_migration_checks() {
     for longhorn_sc in $longhorn_scs
     do
         # run validation checks for non default Longhorn storage classes
-        if ! longhorn_scs_pvmigrate_dryrun_output=$($BIN_PVMIGRATE --source-sc "$longhorn_sc" --dest-sc "$OPENEBS_LOCALPV_STORAGE_CLASS" --rsync-image "$KURL_UTIL_IMAGE" --preflight-validation-only) ; then
+        if longhorn_scs_pvmigrate_dryrun_output=$($BIN_PVMIGRATE --source-sc "$longhorn_sc" --dest-sc "$OPENEBS_LOCALPV_STORAGE_CLASS" --rsync-image "$KURL_UTIL_IMAGE" --preflight-validation-only 2>&1) ; then
+            longhorn_scs_pvmigrate_dryrun_output=""
+        else
             break
         fi
     done
 
     if [ -n "$longhorn_default_sc" ] ; then
-        # run validation checks for Rook default storage class
-        longhorn_default_sc_pvmigrate_dryrun_output=$($BIN_PVMIGRATE --source-sc "$longhorn_default_sc" --dest-sc "$OPENEBS_LOCALPV_STORAGE_CLASS" --rsync-image "$KURL_UTIL_IMAGE" --preflight-validation-only || true)
+        # run validation checks for Longhorn default storage class
+        if longhorn_default_sc_pvmigrate_dryrun_output=$($BIN_PVMIGRATE --source-sc "$longhorn_default_sc" --dest-sc "$OPENEBS_LOCALPV_STORAGE_CLASS" --rsync-image "$KURL_UTIL_IMAGE" --preflight-validation-only 2>&1) ; then
+            longhorn_default_sc_pvmigrate_dryrun_output=""
+        fi
     fi
 
     if [ -n "$longhorn_scs_pvmigrate_dryrun_output" ] || [ -n "$longhorn_default_sc_pvmigrate_dryrun_output" ] ; then
         log "$longhorn_scs_pvmigrate_dryrun_output"
         log "$longhorn_default_sc_pvmigrate_dryrun_output"
+        longhorn_restore_migration_replicas
         bail "Cannot upgrade from Longhorn to OpenEBS due to previous error."
     fi
 
@@ -386,6 +390,10 @@ function openebs_prompt_migrate_from_longhorn() {
 
     log "Would you like to continue? "
     if ! confirmN; then
+        bail "Not migrating"
+    fi
+
+    if ! longhorn_prepare_for_migration; then
         bail "Not migrating"
     fi
 }
