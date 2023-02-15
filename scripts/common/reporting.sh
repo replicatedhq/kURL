@@ -282,7 +282,7 @@ function maybe_set_kurl_cluster_uuid() {
         return 0
     fi
 
-    if kubernetes_resource_exists kurl configmap kurl_cluster_uuid; then
+    if kubernetes_resource_exists kurl configmap kurl-cluster-uuid; then
         return 0
     fi
 
