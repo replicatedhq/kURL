@@ -268,12 +268,12 @@ function stacktrace {
 # if the kurl_cluster_uuid configmap exists, set the KURL_CLUSTER_UUID env var to the value in the configmap.
 # if it does not exist, make a new UUID for KURL_CLUSTER_UUID.
 function attempt_get_cluster_id() {
-    if ! kubernetes_resource_exists kurl configmap kurl_cluster_uuid; then
+    if ! kubernetes_resource_exists kurl configmap kurl-cluster-uuid; then
         KURL_CLUSTER_UUID=$(< /dev/urandom tr -dc a-z0-9 | head -c32)
         return 0
     fi
 
-    KURL_CLUSTER_UUID=$(kubectl get configmap -n kurl kurl_cluster_uuid -o jsonpath='{.data.kurl_cluster_uuid}')
+    KURL_CLUSTER_UUID=$(kubectl get configmap -n kurl kurl-cluster-uuid -o jsonpath='{.data.kurl_cluster_uuid}')
 }
 
 # if the kurl_cluster_uuid configmap does not exist, create it using the KURL_CLUSTER_UUID env var
@@ -286,5 +286,5 @@ function maybe_set_kurl_cluster_uuid() {
         return 0
     fi
 
-    kubectl create configmap -n kurl kurl_cluster_uuid --from-literal=kurl_cluster_uuid="$KURL_CLUSTER_UUID"
+    kubectl create configmap -n kurl kurl-cluster-uuid --from-literal=kurl_cluster_uuid="$KURL_CLUSTER_UUID"
 }
