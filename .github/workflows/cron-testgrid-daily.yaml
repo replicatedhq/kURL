@@ -4,24 +4,10 @@ on:
   - cron: "0 1 * * 1,2,3,4,5" # “At 01:00 on Monday, Tuesday, Wednesday, Thursday, and Friday.”
   workflow_dispatch: {}
 
-jobs:
-  get-tag:
-    runs-on: ubuntu-20.04
-    outputs:
-      version_tag: ${{ steps.set-tag.outputs.version_tag }}
-    steps:
-    - uses: actions/checkout@v3
-    - id: set-tag
-      run: |
-        git fetch --tags -f
-        export VERSION_TAG=$(git tag | grep '^v20' | sort | tail -1)-$(git rev-parse --short HEAD)
-        echo "::set-output name=version_tag::${VERSION_TAG}"
-        
+jobs:   
   testgrid-daily:
     if: ${{ github.repository_owner == 'replicatedhq' }}
     runs-on: ubuntu-latest
-    needs:
-        - get-tag
     steps:
     - name: Checkout
       uses: actions/checkout@v3
@@ -32,9 +18,8 @@ jobs:
     - name: testgrid-queue-staging
       env:
         TESTGRID_API_TOKEN: ${{ secrets.TESTGRID_PROD_API_TOKEN }}
-        VERSION_TAG: ${{ needs.get-tag.outputs.version_tag }}
       run: |
-        REF="STAGING-daily-${VERSION_TAG}-$(date --utc +%FT%TZ)"
+        REF="STAGING-daily-$(git rev-parse --short HEAD)-$(date --utc +%FT%TZ)"
         docker run --rm -e TESTGRID_API_TOKEN -v `pwd`:/wrk -w /wrk \
           replicated/tgrun:latest queue --staging \
             --ref "${REF}" \
