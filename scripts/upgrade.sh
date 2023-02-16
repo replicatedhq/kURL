@@ -110,6 +110,7 @@ function main() {
     require_root_user
     # ensure /usr/local/bin/kubectl-plugin is in the path
     path_add "/usr/local/bin"
+    kubernetes_init_hostname
     get_patch_yaml "$@"
     maybe_read_kurl_config_from_cluster
 

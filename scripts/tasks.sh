@@ -28,6 +28,8 @@ function tasks() {
     # ensure /usr/local/bin/kubectl-plugin is in the path
     path_add "/usr/local/bin"
 
+    kubernetes_init_hostname
+
     DOCKER_VERSION="$(get_docker_version)"
 
     K8S_DISTRO=kubeadm
@@ -758,7 +760,7 @@ function weave_to_flannel_primary() {
 
     # get current node internal IP
     local current_node_ip=
-    current_node_ip=$(kubectl get nodes -o wide | grep "$(hostname)" | awk '{print $6}' > /tmp/current_node_ip)
+    current_node_ip=$(kubectl get nodes -o wide | grep "$(get_local_node_name)" | awk '{print $6}' > /tmp/current_node_ip)
 
     # get ca cert hash, bootstrap token and master address
     local bootstrap_token=
@@ -801,7 +803,7 @@ EOM
     systemctl restart kubelet containerd
     rm /tmp/kubeadm-join.conf
 
-    logSuccess "Successfully updated $(hostname) to use Flannel"
+    logSuccess "Successfully updated $(get_local_node_name) to use Flannel"
 }
 
 function weave_to_flannel_secondary() {
@@ -831,7 +833,7 @@ function weave_to_flannel_secondary() {
     ip link delete weave
     systemctl restart kubelet containerd
 
-    logSuccess "Successfully updated $(hostname) to use Flannel"
+    logSuccess "Successfully updated $(get_local_node_name) to use Flannel"
 }
 
 function task_requires_root() {
@@ -845,7 +847,7 @@ function task_requires_root() {
 # check if containerd on the current node has the `docker.io/rancher/mirrored-flannelcni-flannel:v<version>` image
 function flannel_images_present() {
     if ! ctr -n=k8s.io images ls | grep -q "docker.io/rancher/mirrored-flannelcni-flannel" ; then
-        logFail "Flannel images not present on $(hostname), please ensure the 'load-images' task has been run successfully"
+        logFail "Flannel images not present on $(get_local_node_name), please ensure the 'load-images' task has been run successfully"
         exit 1
     fi
 }

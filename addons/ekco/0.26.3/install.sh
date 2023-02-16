@@ -386,7 +386,7 @@ function ekco_handle_load_balancer_address_change_kubeconfigs() {
     # in the pod to completion. Therefore the command output has to be redirected to a file in the
     # pod and then we have to poll that file to determine when the command is finished and if it was
     # successful
-    exclude=$(hostname | tr '[:upper:]' '[:lower:]')
+    exclude=$(get_local_node_name)
     if [ "$EKCO_ENABLE_INTERNAL_LOAD_BALANCER" = "1" ]; then
         kubectl -n kurl exec deploy/ekc-operator -- /bin/bash -c "ekco change-load-balancer --exclude=${exclude} --internal --server=https://localhost:6444 &>/tmp/change-lb-log"
     else
