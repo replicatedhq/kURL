@@ -191,7 +191,7 @@ function remove_longhorn() {
     kubectl get crd | grep 'longhorn' | awk '{ print $1 }' | xargs -I'{}' kubectl delete crd '{}'
 
     # delete longhorn ns
-    kubectl delete ns longhorn-system
+    kubectl delete ns longhorn-system --wait=false
 
     # delete longhorn storageclass(es)
     log "Removing Longhorn StorageClasses"
