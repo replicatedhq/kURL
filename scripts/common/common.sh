@@ -1037,8 +1037,9 @@ function canonical_image_name() {
     echo "$image"
 }
 
-# wait_for_running_pods waits for pod(s) in a given namspace to transition to Running status
-function wait_for_running_pods() {
+# check_for_running_pods scans for pod(s) in a namespace and checks whether their status is running/completed
+# note: Evicted pods are exempt from this check
+function check_for_running_pods() {
     local namespace=$1
     local is_job_controller=0
     local ns_pods=
@@ -1048,7 +1049,6 @@ function wait_for_running_pods() {
     ns_pods=$(kubectl get pods -n "$namespace" -o jsonpath='{.items[*].metadata.name}')
 
     if [ -z "$ns_pods" ]; then
-        log "No pods found in namespace $namespace."
         return 0
     fi
 
@@ -1066,7 +1066,6 @@ function wait_for_running_pods() {
         fi
 
         if [ "$status" != "Running" ] && [ "$status" != "Succeeded" ]; then
-            log "  Pod, $pod, is not ready: $status"
             return 1
         fi
 
@@ -1076,12 +1075,10 @@ function wait_for_running_pods() {
             
             # ignore container ready status for pods managed by the Job controller
             if [ "$container_status" != "true" ] && [ "$is_job_controller" = "0" ]; then
-                log "  Container, $container ($pod), is not ready: $container_status"
                 return 1
             fi
         done
     done
 
-    log "All pods and their containers in namespace $namespace are running."
     return 0
 }
