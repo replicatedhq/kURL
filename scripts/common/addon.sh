@@ -204,9 +204,16 @@ function addon_fetch_multiple_airgap() {
         name=$(echo "$addon_version" | cut -d- -f1)
         version=$(echo "$addon_version" | cut -d- -f2)
         local package_name="$name-$version.tar.gz"
-        if [ -f "$(package_filepath "$package_name")" ]; then
+        local package_path=
+        package_path="$(package_filepath "$package_name")"
+        if [ -f "$package_path" ]; then
             # the package already exists, no need to download it
             printf "The package %s %s is already available locally.\n" "$name" "$version"
+
+            printf "Unpacking %s...\n" "$package_name"
+            if ! tar xf "$package_path" ; then
+                bail "Failed to unpack $package_name"
+            fi
         else
             # the package does not exist, add it to the list of missing packages
             missing_addon_versions+=("$addon_version")
