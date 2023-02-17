@@ -187,6 +187,7 @@ function addon_install_fail_nobundle() {
 
 function collect_support_bundle() {
     trap - SIGINT # reset SIGINT handler to default - someone should be able to ctrl+c the support bundle collector
+    return 0 # disabled for now
 
     # if someone has set ASSUME_YES, we shouldn't automatically upload a support bundle
     if [ "$ASSUME_YES" = "1" ]; then
