@@ -1473,8 +1473,8 @@ github.com/replicatedhq/kurlkinds v1.1.0 h1:xzqtZcBfjPIP99f8aPKQzZ/PBWuEpZoevNYu
 github.com/replicatedhq/kurlkinds v1.1.0/go.mod h1:eTF6fsBbZtpVx1s7UqMZ7neeDp6C3MuVd93CA5sgZW4=
 github.com/replicatedhq/plumber v1.16.0 h1:PEFbLBJwlAyzrzwl7Cwf4mrV2opUhiaYWQeQ/uZ6Ztg=
 github.com/replicatedhq/plumber v1.16.0/go.mod h1:uKAxJWp60+FNtfm3T5rEPzp9SA2+9icY++KHatQGpy0=
-github.com/replicatedhq/pvmigrate v0.7.0 h1:5GEmYaw0P+9T76HyMlQ2xtKznafTBg++PSMCclpFjh4=
-github.com/replicatedhq/pvmigrate v0.7.0/go.mod h1:pSh7a3xQvpZijtfrZR8ol2t92xQw1d/aMMq1pFIiSu8=
+github.com/replicatedhq/pvmigrate v0.8.0 h1:4as4DodN/fVQwNAatMMRNHVxp+jEpgNCFUCd+eHN6cQ=
+github.com/replicatedhq/pvmigrate v0.8.0/go.mod h1:Ec4awBumbHR08QEizv03YMMMwE/WSsSHBfPaBHhJOY4=
 github.com/replicatedhq/termui/v3 v3.1.1-0.20200811145416-f40076d26851 h1:eRlNDHxGfVkPCRXbA4BfQJvt5DHjFiTtWy3R/t4djyY=
 github.com/replicatedhq/termui/v3 v3.1.1-0.20200811145416-f40076d26851/go.mod h1:JDxG6+uubnk9/BZ2yUsyAJJwlptjrnmB2MPF5d2Xe/8=
 github.com/replicatedhq/troubleshoot v0.57.1 h1:JMRHdKsnl9kV68r7IzAHUL5BGMXbQJ1rSG/mtzVGhUk=
