@@ -22,10 +22,10 @@ The apple-supplied `sed` does not support in-place replace, and OSX does not com
 
 ### Testing released versions
 
-*For packages that have already been released, you can save time by running `curl -L https://k8s.kurl.sh/dist/kubernetes-1.25.5.tar.gz | tar -xzv -C kurl -f -` and `curl -L https://k8s.kurl.sh/dist/containerd-1.6.14.tar.gz | tar -xzv -C kurl -f -` on the test server.*  <br />
+*For packages that have already been released, you can save time by running `curl -L https://s3-staging.kurl.sh/staging/kubernetes-1.26.1.tar.gz | tar -xzv -C kurl -f -` and `curl -L https://s3-staging.kurl.sh/staging/containerd-1.6.16.tar.gz | tar -xzv -C kurl -f -` on the test server.*  <br />
 
 - 📌 _Ensure that you have a_ **kurl** _directory already created (`mkdir kurl`) from wherever you run the aforementioned commands.
-- 📌 *For centos/rhel hosts, `openssl` packages are required. Run `make dist/host-openssl.tar.gz && tar xzvf dist/host-openssl.tar.gz` or to download already built packages `curl -L https://k8s.kurl.sh/dist/host-openssl.tar.gz  | tar -xzv -C kurl -f -`*<br />
+- 📌 *For centos/rhel hosts, `openssl` packages are required. Run `make dist/host-openssl.tar.gz && tar xzvf dist/host-openssl.tar.gz` or to download already built packages `curl -L https://k8s.kurl.sh/staging/host-openssl.tar.gz  | tar -xzv -C kurl -f -`*<br />
 - 📌 *In general, when testing local changes to an add-on, you'll need to install the host package(s) required for the particular add-on you're testing. E.g. if you want to install longhorn-1.2.4 with your local changes then you'll need to install the [required host packages](https://github.com/replicatedhq/kURL/blob/main/addons/longhorn/1.2.4/Manifest#L1-L4) prior to running the kURL installer.*
 
 ### Testing kURL using Remote Server
