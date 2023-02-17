@@ -319,7 +319,7 @@ function ekco_bootstrap_internal_lb() {
 
         ctr -n k8s.io task kill -s SIGKILL bootstrap-lb &>/dev/null || true
         ctr -n k8s.io containers delete bootstrap-lb &>/dev/null || true
-        ctr -n k8s.io run --rm \
+        ctr -n k8s.io run \
             --mount "type=bind,src=/etc/haproxy,dst=/usr/local/etc/haproxy,options=rbind:ro" \
             --net-host \
             --detach \
