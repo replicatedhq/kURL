@@ -1360,7 +1360,7 @@
       version: latest
     ekco:
       version: latest
-  flags: "labels=disktype=ssd,gpu=enabled exclude-builtin-host-preflights ha" # TODO: add more flags here
+  flags: "labels=disktype=ssd,gpu=enabled exclude-builtin-host-preflights ekco-enable-internal-load-balancer" # TODO: add more flags here
 - name: ekco-podimageoverrides
   installerSpec:
     kubernetes:

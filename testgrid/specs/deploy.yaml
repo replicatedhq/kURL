@@ -166,7 +166,7 @@
       version: latest
     ekco:
       version: latest
-  flags: "ha"
+  flags: "ekco-enable-internal-load-balancer"
 - name: k8s124x_cis_benchmarks_checks
   installerSpec:
     kubernetes:
