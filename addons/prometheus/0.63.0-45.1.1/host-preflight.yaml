@@ -1,0 +1,34 @@
+apiVersion: troubleshoot.sh/v1beta2
+kind: HostPreflight
+metadata:
+  name: prometheus
+spec:
+  collectors:
+    - tcpPortStatus:
+        collectorName: "Node Exporter Metrics Server TCP Port Status"
+        port: 9100
+        exclude: '{{kurl .IsUpgrade }}'
+
+  analyzers:
+    - tcpPortStatus:
+        checkName: "Node Exporter Metrics Server TCP Port Status"
+        collectorName: "Node Exporter Metrics Server TCP Port Status"
+        exclude: '{{kurl .IsUpgrade }}'
+        outcomes:
+          - fail:
+              when: "connection-refused"
+              message: Connection to port 9100 was refused. This is likely to be a routing problem since this preflight configures a test server to listen on this port.
+          - warn:
+              when: "address-in-use"
+              message: Another process was already listening on port 9100.
+          - fail:
+              when: "connection-timeout"
+              message: Timed out connecting to port 9100. Check your firewall.
+          - fail:
+              when: "error"
+              message: Unexpected port status
+          - pass:
+              when: "connected"
+              message: Port 9100 is available
+          - warn:
+              message: Unexpected port status
