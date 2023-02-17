@@ -1,5 +1,6 @@
 # shellcheck disable=SC2148
 
+# testing
 function openebs_pre_init() {
     if [ -z "$OPENEBS_NAMESPACE" ]; then
         OPENEBS_NAMESPACE=openebs
