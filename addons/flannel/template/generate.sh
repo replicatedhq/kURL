@@ -10,8 +10,12 @@ function generate() {
     cp -r ./base/* "$dir"
 
     download_yaml
-
+    replace_flannel_image_with_version
     find_images_in_yaml
+}
+
+function replace_flannel_image_with_version() {
+    sed -E -i "s/docker\.io\/flannel\/flannel:.*/docker\.io\/flannel\/flannel:v$version/g" "$dir/yaml/kube-flannel.yml"
 }
 
 function download_yaml() {
