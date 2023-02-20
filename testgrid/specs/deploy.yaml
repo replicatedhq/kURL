@@ -164,6 +164,9 @@
       version: 1.26.x
     flannel:
       version: latest
+    ekco:
+      version: latest
+      enableInternalLoadBalancer: true
 - name: k8s124x_cis_benchmarks_checks
   installerSpec:
     kubernetes:

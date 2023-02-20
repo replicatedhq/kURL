@@ -1067,11 +1067,11 @@
     flannel:
       version: latest
     contour:
-      version: 1.19.1
+      version: latest
     rook:
-      version: 1.9.x
+      version: 1.10.x
     registry:
-      version: 2.7.1
+      version: latest
     prometheus:
       version: latest
     kotsadm:
@@ -1081,6 +1081,7 @@
       version: latest
     ekco:
       version: latest
+      enableInternalLoadBalancer: true
   unsupportedOSIDs:
   - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
 - name: "K8s 1.24x Airgap"

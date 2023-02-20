@@ -1,7 +1,7 @@
-- name: basic containerd and weave
+- name: basic containerd and flannel, internal LB
   installerSpec:
     kubernetes:
-      version: "1.25.x"
+      version: "1.26.x"
     flannel:
       version: latest
     containerd:
@@ -15,6 +15,7 @@
       version: latest
     ekco:
       version: latest
+      enableInternalLoadBalancer: true
     kotsadm:
       version: latest
 
