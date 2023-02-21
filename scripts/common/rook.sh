@@ -198,10 +198,27 @@ function rook_ceph_to_sc_migration() {
 # if PVCs and object store data have both been migrated from rook-ceph and rook-ceph is no longer specified in the kURL spec, remove rook-ceph
 function maybe_cleanup_rook() {
     if [ -z "$ROOK_VERSION" ]; then
-        if [ "$DID_MIGRATE_ROOK_PVCS" == "1" ] && [ "$DID_MIGRATE_ROOK_OBJECT_STORE" == "1" ]; then
-            report_addon_start "rook-ceph-removal" "v1"
-            remove_rook_ceph
-            report_addon_success "rook-ceph-removal" "v1"
+        if [ -n "$MINIO_VERSION" ]; then
+            if [ "$DID_MIGRATE_ROOK_PVCS" == "1" ] && [ "$DID_MIGRATE_ROOK_OBJECT_STORE" -ne "1" ]; then
+                logWarn "PVCs were migrate but not rook object store. Therefore, rook can not be removed"
+            fi
+            if [ "$DID_MIGRATE_ROOK_PVCS" -ne "1" ] && [ "$DID_MIGRATE_ROOK_OBJECT_STORE" == "1" ]; then
+                logWarn "Rook object store was successfully migrate but not PVCs. Therefore, rook can not be removed"
+            fi
+            if [ "$DID_MIGRATE_ROOK_PVCS" == "1" ] && [ "$DID_MIGRATE_ROOK_OBJECT_STORE" == "1" ]; then
+               logStep "Removing Rook"
+               report_addon_start "rook-ceph-removal" "v1"
+               remove_rook_ceph
+               report_addon_success "rook-ceph-removal" "v1"
+            fi
+        fi
+        if [ -z "$MINIO_VERSION" ]; then
+            if [ "$DID_MIGRATE_ROOK_PVCS" == "1" ]; then
+                logStep "Removing Rook"
+                report_addon_start "rook-ceph-removal" "v1"
+                remove_rook_ceph
+                report_addon_success "rook-ceph-removal" "v1"
+            fi
         fi
     fi
 }
