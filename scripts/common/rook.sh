@@ -64,34 +64,33 @@ function remove_rook_ceph() {
     # make sure there aren't any PVs using rook before deleting it
     all_pv_drivers="$(kubectl get pv -o=jsonpath='{.items[*].spec.csi.driver}')"
     if echo "$all_pv_drivers" | grep "rook" &>/dev/null ; then
-        # do stuff
-        printf "%b" "$RED"
-        printf "ERROR: \n"
-        printf "There are still PVs using rook-ceph.\n"
-        printf "Remove these PVs before continuing.\n"
-        printf "%b" "$NC"
-        exit 1
+        logFail "There are still PVs using rook-ceph"
+        bail "Remove these PVs before continuing"
     fi
 
     # scale ekco to 0 replicas if it exists
     if kubernetes_resource_exists kurl deployment ekc-operator; then
         kubectl -n kurl scale deploy ekc-operator --replicas=0
-        echo "Waiting for ekco pods to be removed"
-        spinner_until 120 ekco_pods_gone
+        log "Waiting for ekco pods to be removed"
+        if ! spinner_until 120 ekco_pods_gone; then
+            logWarn "Unable to scale down ecko"
+        fi
     fi
 
     # remove all rook-ceph CR objects
-    printf "Removing rook-ceph custom resource objects - this may take some time:\n"
+    log "Removing rook-ceph custom resource objects - this may take some time:"
     kubectl delete cephcluster -n rook-ceph rook-ceph # deleting this first frees up resources
     kubectl get crd | grep 'ceph.rook.io' | awk '{ print $1 }' | xargs -I'{}' kubectl -n rook-ceph delete '{}' --all
     kubectl delete volumes.rook.io --all
 
     # wait for rook-ceph-osd pods to disappear
     echo "Waiting for rook-ceph OSD pods to be removed"
-    spinner_until 120 rook_ceph_osd_pods_gone
+    if ! spinner_until 120 rook_ceph_osd_pods_gone; then
+        logWarn "Unable to verify that OSC pods were removed"
+    fi
 
     # delete rook-ceph CRDs
-    printf "Removing rook-ceph custom resources:\n"
+    log "Removing rook-ceph custom resources:"
     kubectl get crd | grep 'ceph.rook.io' | awk '{ print $1 }' | xargs -I'{}' kubectl delete crd '{}'
     kubectl delete --ignore-not-found crd volumes.rook.io
 
@@ -99,7 +98,7 @@ function remove_rook_ceph() {
     kubectl delete ns rook-ceph
 
     # delete rook-ceph storageclass(es)
-    printf "Removing rook-ceph StorageClasses"
+    log "Removing rook-ceph StorageClasses"
     kubectl get storageclass | grep rook | awk '{ print $1 }' | xargs -I'{}' kubectl delete storageclass '{}'
 
     # scale ekco back to 1 replicas if it exists
@@ -111,8 +110,8 @@ function remove_rook_ceph() {
     fi
 
     # print success message
-    printf "%bRemoved rook-ceph successfully!\n%b" "$GREEN" "$NC"
-    printf "Data within /var/lib/rook, /opt/replicated/rook and any bound disks has not been freed.\n"
+    logSucess "Removed rook-ceph successfully!"
+    logWarn "Data within /var/lib/rook, /opt/replicated/rook and any bound disks has not been freed."
 }
 
 # scale down prometheus, move all 'rook-ceph' PVCs to provided storage class, scale up prometheus
@@ -197,29 +196,39 @@ function rook_ceph_to_sc_migration() {
 
 # if PVCs and object store data have both been migrated from rook-ceph and rook-ceph is no longer specified in the kURL spec, remove rook-ceph
 function maybe_cleanup_rook() {
-    if [ -z "$ROOK_VERSION" ]; then
+    if [ -z "$ROOK_VERSION" ] && [ "$DID_MIGRATED_FROM_ROOK" == "1" ]; then
+        logStep "Removing Rook"
         if [ -n "$MINIO_VERSION" ]; then
-            if [ "$DID_MIGRATE_ROOK_PVCS" == "1" ] && [ "$DID_MIGRATE_ROOK_OBJECT_STORE" -ne "1" ]; then
-                logWarn "PVCs were migrate but not rook object store. Therefore, rook can not be removed"
+            if [ "$DID_MIGRATE_ROOK_OBJECT_STORE" -ne "1" ]; then
+                logWarn "Unable to removed Rook. Rook Object Store were not successfully migrated"
+                return
             fi
-            if [ "$DID_MIGRATE_ROOK_PVCS" -ne "1" ] && [ "$DID_MIGRATE_ROOK_OBJECT_STORE" == "1" ]; then
-                logWarn "Rook object store was successfully migrate but not PVCs. Therefore, rook can not be removed"
+            if [ "$DID_MIGRATE_ROOK_PVCS" -ne "1" ]; then
+                logWarn "Unable to removed Rook. PVC(s) were not successfully migrated"
+                return
             fi
-            if [ "$DID_MIGRATE_ROOK_PVCS" == "1" ] && [ "$DID_MIGRATE_ROOK_OBJECT_STORE" == "1" ]; then
-               logStep "Removing Rook"
-               report_addon_start "rook-ceph-removal" "v1"
-               remove_rook_ceph
-               report_addon_success "rook-ceph-removal" "v1"
+            report_addon_start "rook-ceph-removal" "v1"
+            if ! spinner_until 300 remove_rook_ceph; then
+                logWarn "Timeout trying to delete Rook."
+                logWarn "Please, verify if PVCs and Object Store data was properly migrate prior remove Rook manually"
+                logWarn "To know how to clean up Rook see: https://rook.io/docs/rook/v1.10/Getting-Started/ceph-teardown/"
             fi
+            report_addon_success "rook-ceph-removal" "v1"
+            return
         fi
-        if [ -z "$MINIO_VERSION" ]; then
-            if [ "$DID_MIGRATE_ROOK_PVCS" == "1" ]; then
-                logStep "Removing Rook"
-                report_addon_start "rook-ceph-removal" "v1"
-                remove_rook_ceph
-                report_addon_success "rook-ceph-removal" "v1"
+        if [ -z "$MINIO_VERSION" ] && [ "$DID_MIGRATE_ROOK_PVCS" == "1" ]; then
+            report_addon_start "rook-ceph-removal" "v1"
+            if ! spinner_until 300 remove_rook_ceph; then
+                logWarn "Timeout trying to delete Rook."
+                logWarn "Please, verify if PVCs and Object Store data was properly migrate prior remove Rook manually"
+                logWarn "To know how to clean up Rook see: https://rook.io/docs/rook/v1.10/Getting-Started/ceph-teardown/"
             fi
+            report_addon_success "rook-ceph-removal" "v1"
+            return
         fi
+        logWarn "PVC(s) were not successfully migrate. Unable to removed Rook"
+        logWarn "Please, verify if PVCs and Object Store data was properly migrate prior remove Rook manually"
+        logWarn "To know how to clean up Rook see: https://rook.io/docs/rook/v1.10/Getting-Started/ceph-teardown/"
     fi
 }
 

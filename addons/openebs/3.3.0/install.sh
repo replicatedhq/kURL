@@ -132,6 +132,7 @@ function openebs_prompt_migrate_from_rook() {
     if ! confirmN; then
         bail "Not migrating"
     fi
+    export DID_MIGRATED_FROM_ROOK=1
 
 }
 
