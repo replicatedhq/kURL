@@ -1029,7 +1029,7 @@ function rook_maybe_wait_for_rollout() {
     fi
 
     log "Awaiting Rook pods to transition to Running"
-    if ! spinner_until 120 wait_for_running_pods "rook-ceph"; then
+    if ! spinner_until 120 check_for_running_pods "rook-ceph"; then
         logWarn "Rook-ceph rollout did not complete within the allotted time"
     fi
 }
