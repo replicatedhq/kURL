@@ -1036,3 +1036,49 @@ function canonical_image_name() {
     fi
     echo "$image"
 }
+
+# check_for_running_pods scans for pod(s) in a namespace and checks whether their status is running/completed
+# note: Evicted pods are exempt from this check
+function check_for_running_pods() {
+    local namespace=$1
+    local is_job_controller=0
+    local ns_pods=
+    local status=
+    local containers=
+
+    ns_pods=$(kubectl get pods -n "$namespace" -o jsonpath='{.items[*].metadata.name}')
+
+    if [ -z "$ns_pods" ]; then
+        return 0
+    fi
+
+    for pod in $ns_pods; do
+        status=$(kubectl get pod "$pod" -n "$namespace" -o jsonpath='{.status.phase}')
+
+        # determine if pod is manged by a Job
+        if kubectl get pod "$pod" -n "$namespace" -o jsonpath='{.metadata.ownerReferences[*].kind}' | grep -q "Job"; then
+            is_job_controller=1
+        fi
+
+        # ignore pods that have been Evicted
+        if [ "$status" == "Failed" ] && [[ $(kubectl get pod "$pod" -n "$namespace" -o jsonpath='{.status.reason}') == "Evicted" ]]; then
+            continue
+        fi
+
+        if [ "$status" != "Running" ] && [ "$status" != "Succeeded" ]; then
+            return 1
+        fi
+
+        containers=$(kubectl get pod "$pod" -n "$namespace" -o jsonpath="{.spec.containers[*].name}")
+        for container in $containers; do
+            container_status=$(kubectl get pod "$pod" -n "$namespace" -o jsonpath="{.status.containerStatuses[?(@.name==\"$container\")].ready}")
+            
+            # ignore container ready status for pods managed by the Job controller
+            if [ "$container_status" != "true" ] && [ "$is_job_controller" = "0" ]; then
+                return 1
+            fi
+        done
+    done
+
+    return 0
+}

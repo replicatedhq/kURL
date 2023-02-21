@@ -225,3 +225,15 @@ function current_ceph_version() {
     kubectl -n rook-ceph get deployment rook-ceph-mgr-a -o jsonpath='{.metadata.labels.ceph-version}' 2>/dev/null \
         | awk -F'-' '{ print $1 }'
 }
+
+function rook_operator_ready() {
+    local rook_status_phase=
+    local rook_status_msg=
+    rook_status_phase=$(kubectl -n rook-ceph get cephcluster rook-ceph --template '{{.status.phase}}')
+    rook_status_msg=$(kubectl -n rook-ceph get cephcluster rook-ceph --template '{{.status.message}}')
+    if [  "$rook_status_phase" != "Ready"  ]; then
+        log "Rook operator is not ready: $rook_status_msg"
+        return 1
+    fi
+    return 0
+}
