@@ -2,7 +2,6 @@
 
 set -euo pipefail
 
-VERSION=
 function get_latest_version() {
     VERSION=$(curl -s https://api.github.com/repos/distribution/distribution/releases/latest | \
         grep '"tag_name":' | \
@@ -10,8 +9,7 @@ function get_latest_version() {
         sed 's/v//')
 }
 
-S3CMD_TAG=
-function s3cmd_get_tag() {
+function get_s3cmd_tag() {
     S3CMD_TAG="$(. ../../../bin/s3cmd-get-latest-tag.sh)"
 }
 
@@ -36,24 +34,26 @@ function add_as_latest() {
     fi
 }
 
+VERSION=""
+S3CMD_TAG=""
 function main() {
     get_latest_version
+    get_s3cmd_tag
 
+    echo "Found Registry version ${VERSION}"
+    echo "Found kurlsh/s3cmd tag ${S3CMD_TAG}"
+
+    local IS_NEW_VERSION=1
     if [ -d "../${VERSION}" ]; then
-        if [ $# -ge 1 ] && [ "$1" == "force" ]; then
-            echo "forcibly updating existing version of registry"
-            rm -rf "../${VERSION}"
-        else
-            echo "not updating existing version of registry"
-            return
-        fi
-    else
-        add_as_latest
+        rm -rf "../${VERSION}"
+        IS_NEW_VERSION=0
     fi
 
-    s3cmd_get_tag
-
     generate
+
+    if [ "$IS_NEW_VERSION" == "1" ] ; then
+        add_as_latest
+    fi
 
     echo "::set-output name=registry_version::$VERSION"
 }
