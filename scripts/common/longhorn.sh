@@ -102,7 +102,10 @@ function longhorn_to_sc_migration() {
             if kubernetes_resource_exists kurl deployment ekc-operator; then
                 kubectl -n kurl scale deploy ekc-operator --replicas=0
                 log "Waiting for ekco pods to be removed"
-                spinner_until 120 ekco_pods_gone
+                if ! spinner_until 120 ekco_pods_gone; then
+                     logFail "Unable to scale down ekco operator"
+                     return 1
+                fi
             fi
 
             kubectl -n monitoring patch prometheus k8s --type='json' --patch '[{"op": "replace", "path": "/spec/replicas", value: 0}]'
@@ -175,7 +178,9 @@ function remove_longhorn() {
     if kubernetes_resource_exists kurl deployment ekc-operator; then
         kubectl -n kurl scale deploy ekc-operator --replicas=0
         log "Waiting for ekco pods to be removed"
-        spinner_until 120 ekco_pods_gone
+        if ! spinner_until 120 ekco_pods_gone; then
+           logWarn "Unable to scale down ekco operator"
+        fi
     fi
 
     # remove longhorn volumes first so the operator can correctly delete them.

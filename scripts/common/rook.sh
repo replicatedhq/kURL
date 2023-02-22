@@ -45,10 +45,13 @@ function ekco_pods_gone() {
 # rook_disable_ekco_operator disables the ekco operator if it exists.
 function rook_disable_ekco_operator() {
     if kubernetes_resource_exists kurl deployment ekc-operator ; then
-        echo "Scaling down EKCO deployment to 0 replicas"
+        log "Scaling down EKCO deployment to 0 replicas"
         kubernetes_scale_down kurl deployment ekc-operator
-        echo "Waiting for ekco pods to be removed"
-        spinner_until 120 ekco_pods_gone
+        log "Waiting for ekco pods to be removed"
+        if ! spinner_until 120 ekco_pods_gone; then
+             logFail "Unable to scale down ekco operator"
+             return 1
+        fi
     fi
 }
 
@@ -76,8 +79,11 @@ function remove_rook_ceph() {
     # scale ekco to 0 replicas if it exists
     if kubernetes_resource_exists kurl deployment ekc-operator; then
         kubectl -n kurl scale deploy ekc-operator --replicas=0
-        echo "Waiting for ekco pods to be removed"
-        spinner_until 120 ekco_pods_gone
+        log "Waiting for ekco pods to be removed"
+        if ! spinner_until 120 ekco_pods_gone; then
+             logFail "Unable to scale down ekco operator"
+             return 1
+        fi
     fi
 
     # remove all rook-ceph CR objects
@@ -143,8 +149,11 @@ function rook_ceph_to_sc_migration() {
             # before scaling down prometheus, scale down ekco as it will otherwise restore the prometheus scale
             if kubernetes_resource_exists kurl deployment ekc-operator; then
                 kubectl -n kurl scale deploy ekc-operator --replicas=0
-                echo "Waiting for ekco pods to be removed"
-                spinner_until 120 ekco_pods_gone
+                log "Waiting for ekco pods to be removed"
+                if ! spinner_until 120 ekco_pods_gone; then
+                     logFail "Unable to scale down ekco operator"
+                     return 1
+                fi
             fi
 
             kubectl -n monitoring patch prometheus k8s --type='json' --patch '[{"op": "replace", "path": "/spec/replicas", value: 0}]'
