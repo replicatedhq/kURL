@@ -1690,7 +1690,7 @@
     echo $operatorVersion | grep 1.5.12
 
     k8sVersion=$(kubectl get nodes -o jsonpath='{.items[0].status.nodeInfo.kubeletVersion}')
-    echo $k8sVersion | grep 1.19
+    echo $k8sVersion | grep 1.20
     echo "Checking kubectl with kube/config"
     echo "Kubeconfig was $KUBECONFIG"
     unset KUBECONFIG
