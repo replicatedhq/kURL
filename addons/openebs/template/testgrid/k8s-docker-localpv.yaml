@@ -175,7 +175,7 @@
   flags: "yes"
   installerSpec:
     kubernetes:
-      version: "1.24.x" # this is the latest version of k8s that supports rook 1.0.4
+      version: "1.24.x" 
     flannel:
       version: latest
     containerd:
