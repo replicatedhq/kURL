@@ -1782,7 +1782,7 @@
       version: latest
     containerd:
       version: latest
-- name: Migrate from Rook to OpenEBS with localpv migrate
+- name: Migrate from Rook 1.10.x to OpenEBS 3.4.0 with localpv migrate
   flags: "yes"
   installerSpec:
     kubernetes:
