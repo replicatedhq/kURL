@@ -66,6 +66,7 @@ function main() {
     done
 
     # remove ceph-operator and mds pods from this node so they can continue to service the cluster
+    thisHost=$(get_local_node_name)
     while read -r row; do
         podName=$(echo "$row" | awk '{ print $1 }')
         ns=$(echo "$row" | awk '{ print $2 }')
@@ -76,7 +77,7 @@ function main() {
         if echo "$podName" | grep -q "rook-ceph-mds-rook-shared-fs"; then
             kubectl -n "$ns" delete pod "$podName"
         fi
-    done < <(kubectl get pods --all-namespaces -ojsonpath='{ range .items[*]}{.metadata.name}{"\t"}{.metadata.namespace}{"\t"}{.spec.nodeName}{"\n"}{end}' | grep -E "${HOSTNAME}$")
+    done < <(kubectl get pods --all-namespaces -ojsonpath='{ range .items[*]}{.metadata.name}{"\t"}{.metadata.namespace}{"\t"}{.spec.nodeName}{"\n"}{end}' | grep -E "${thisHost}$")
 }
 
 main "$@"
