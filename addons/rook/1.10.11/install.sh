@@ -1021,12 +1021,61 @@ function rook_prompt_migrate_from_longhorn() {
     fi
 }
 
+function rook_ceph_cluster_ready_spinner() {
+    log "Awaiting CephCluster CR to report Ready"
+    local delay="$1"
+    local duration="$2"
+    local ready_threshold=5
+    local successful_ready_status_count=0
+    local spinstr='|/-\'
+    local start_time=
+    local end_time=
+
+    # defaults
+    if [ -z "$delay" ]; then
+        delay=5
+    fi
+    if [ -z "$duration" ]; then
+        duration=300
+    fi
+
+    start_time=$(date +%s)
+    end_time=$((start_time+duration))
+    while [ "$(date +%s)" -lt $end_time ]
+    do
+        local temp=${spinstr#?}
+        local spinstr=$temp${spinstr%"$temp"}
+        local ceph_status_phase=
+        local ceph_status_msg=
+        ceph_status_phase=$(kubectl -n rook-ceph get cephcluster rook-ceph -o jsonpath='{.status.phase}')
+        ceph_status_msg=$(kubectl -n rook-ceph get cephcluster rook-ceph -o jsonpath='{.status.message}')
+        if [[ "$ceph_status_phase" == "Ready" ]]; then
+            log "  Current CephCluster status is: $ceph_status_phase"
+            successful_ready_status_count=$((successful_ready_status_count+1))
+            if [ $successful_ready_status_count -eq $ready_threshold ]; then
+                log "CephCluster is ready"
+                return 0
+            fi
+        else
+            log "  Current CephCluster status is $ceph_status_phase: $ceph_status_msg"
+            successful_ready_status_count=0
+        fi
+
+        # simulate a spinner
+        printf " [%c]  " "$spinstr"
+        printf "\b\b\b\b\b\b"
+        sleep "$delay"
+    done
+    logWarn "Rook CephCluster is not ready"
+}
+
+
 # wait for Rook deployment pods to be running/completed
 function rook_maybe_wait_for_rollout() {
-    log "Awaiting Rook Operator to be Ready"
-    if ! spinner_until 120 rook_operator_ready; then
-        logWarn "Rook operator did not transition to 'Ready' phase within the allotted time"
-    fi
+    # wait for Rook CephCluster CR to report Ready
+    # probe set to 10s
+    # timeout set to 300s (5mins)
+    rook_ceph_cluster_ready_spinner 10 300
 
     log "Awaiting Rook pods to transition to Running"
     if ! spinner_until 120 check_for_running_pods "rook-ceph"; then
