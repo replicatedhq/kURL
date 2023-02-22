@@ -131,7 +131,7 @@
     validate_testfile rwtest testfile.txt
     validate_read_write_object_store postupgrade upgradefile.txt
 
-- name: localpv migrate from rook
+- name: localpv migrate from rook old versions
   flags: "yes"
   installerSpec:
     kubernetes:
@@ -170,6 +170,55 @@
     minio_object_store_info
     validate_testfile rwtest testfile.txt
     validate_read_write_object_store postupgrade upgradefile.txt
+
+- name: localpv migrate from rook latest versions
+  flags: "yes"
+  installerSpec:
+    kubernetes:
+      version: "1.24.x" # this is the latest version of k8s that supports rook 1.0.4
+    flannel:
+      version: latest
+    containerd:
+      version: "latest"
+    rook:
+      version: "1.10.x"
+    kotsadm:
+      version: "latest"
+  upgradeSpec:
+    kubernetes:
+      version: "1.26.x"
+    flannel:
+      version: latest
+    containerd:
+      version: "latest"
+    openebs:
+      isLocalPVEnabled: true
+      localPVStorageClassName: openebs
+      namespace: openebs
+      version: "__testver__"
+      s3Override: "__testdist__"
+    minio:
+      version: "latest"
+    kotsadm:
+      version: "latest"
+  unsupportedOSIDs:
+    - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
+  postInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rook_ceph_object_store_info
+    validate_read_write_object_store rwtest testfile.txt
+  postUpgradeScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    minio_object_store_info
+    validate_testfile rwtest testfile.txt
+    validate_read_write_object_store postupgrade upgradefile.txt    
+    echo "Verify if rook-ceph namespace was removed after upgrade"
+    if kubectl get namespace/rook-ceph ; then
+       echo "Namespace rook-ceph was not removed"
+       exit 1 
+    else
+       echo "Namespace rook-ceph was removed"
+    fi
 
 - name: localpv migrate from longhorn
   flags: "yes"
