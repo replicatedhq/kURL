@@ -171,7 +171,7 @@
     validate_testfile rwtest testfile.txt
     validate_read_write_object_store postupgrade upgradefile.txt
 
-- name: localpv migrate from rook latest versions
+- name: localpv migrate from rook 1.10.x and from k8s 1.24.x
   flags: "yes"
   installerSpec:
     kubernetes:
