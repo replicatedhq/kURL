@@ -344,12 +344,9 @@ function rook_upgrade_addon_fetch_and_load_airgap() {
     local to_version="$2"
 
     if rook_upgrade_has_all_addon_version_packages "$from_version" "$to_version" ; then
-        local this_hostname=
-        this_hostname=$(hostname)
-
         local node_missing_images=
         # shellcheck disable=SC2086
-        node_missing_images=$(rook_upgrade_nodes_missing_images "$from_version" "$to_version" "$this_hostname" "")
+        node_missing_images=$(rook_upgrade_nodes_missing_images "$from_version" "$to_version" "$(get_local_node_name)" "")
 
         if [ -z "$node_missing_images" ]; then
             log "All images required for Rook $from_version to $to_version upgrade are present on this node"
@@ -427,12 +424,9 @@ function rook_upgrade_prompt_missing_images() {
     local from_version="$1"
     local to_version="$2"
 
-    local this_hostname=
-    this_hostname=$(hostname)
-
     local node_missing_images=
     # shellcheck disable=SC2086
-    node_missing_images=$(rook_upgrade_nodes_missing_images "$from_version" "$to_version" "" "$this_hostname")
+    node_missing_images=$(rook_upgrade_nodes_missing_images "$from_version" "$to_version" "" "$(get_local_node_name)")
 
     if [ -z "$node_missing_images" ]; then
         return

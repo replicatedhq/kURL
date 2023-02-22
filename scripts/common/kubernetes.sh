@@ -1024,6 +1024,33 @@ function kubernetes_configure_pause_image() {
 
 KUBELET_FLAGS_FILE="/var/lib/kubelet/kubeadm-flags.env"
 
+# KURL_HOSTNAME_OVERRIDE can be used to override the node name used by kURL
+KURL_HOSTNAME_OVERRIDE=${KURL_HOSTNAME_OVERRIDE:-}
+
+# kubernetes_init_hostname sets the HOSTNAME variable to equal the hostname binary output. If
+# KURL_HOSTNAME_OVERRIDE is set, it will be used instead. Otherwise, if the kubelet flags file
+# contains a --hostname-override flag, it will be used instead.
+function kubernetes_init_hostname() {
+    export HOSTNAME
+    if [ -n "$KURL_HOSTNAME_OVERRIDE" ]; then
+        HOSTNAME="$KURL_HOSTNAME_OVERRIDE"
+    fi
+    local hostname_override=
+    hostname_override="$(kubernetes_get_kubelet_hostname_override)"
+    if [ -n "$hostname_override" ] ; then
+        HOSTNAME="$hostname_override"
+    fi
+    HOSTNAME="$(hostname | tr '[:upper:]' '[:lower:]')"
+}
+
+# kubernetes_get_kubelet_hostname_override returns the value of the --hostname-override flag in the
+# kubelet env flags file.
+function kubernetes_get_kubelet_hostname_override() {
+    if [ -f "$KUBELET_FLAGS_FILE" ]; then
+        grep -o '\--hostname-override=[^" ]*' "$KUBELET_FLAGS_FILE" | awk -F'=' '{ print $2 }'
+    fi
+}
+
 # kubernetes_configure_pause_image_upgrade will check if the pause image used by containerd has
 # changed. If it has, it will update the kubelet flags to use the new pause image and restart the
 # kubelet.

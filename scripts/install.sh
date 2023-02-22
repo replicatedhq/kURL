@@ -72,6 +72,17 @@ function init() {
 
     local kustomize_kubeadm_init="$DIR/kustomize/kubeadm/init"
 
+    local NODE_HOSTNAME=
+    NODE_HOSTNAME=$(get_local_node_name)
+    # if the hostname is overridden, patch the kubeadm config to use the overridden hostname
+    if [ "$NODE_HOSTNAME" != "$(hostname | tr '[:upper:]' '[:lower:]')" ]; then
+        render_yaml_file_2 "$kustomize_kubeadm_init/kubeadm-init-hostname.patch.tmpl.yaml" \
+            > "$kustomize_kubeadm_init/kubeadm-init-hostname.patch.yaml"
+        insert_patches_strategic_merge \
+            $kustomize_kubeadm_init/kustomization.yaml \
+            kubeadm-init-hostname.patch.yaml
+    fi
+
     CERT_KEY=
     CERT_KEY_EXPIRY=
     if [ "$HA_CLUSTER" = "1" ]; then
@@ -233,8 +244,7 @@ function init() {
     set +o pipefail
 
     # Node would be cordoned if migrated from docker to containerd
-    local node=$(hostname | tr '[:upper:]' '[:lower:]')
-    kubectl uncordon "$node"
+    kubectl uncordon "$(get_local_node_name)"
 
     if [ -n "$LOAD_BALANCER_ADDRESS" ]; then
         addr=$($DIR/bin/kurl netutil format-ip-address "$PRIVATE_ADDRESS")
@@ -268,8 +278,7 @@ function init() {
 
     wait_for_nodes
 
-    local node=$(hostname | tr '[:upper:]' '[:lower:]')
-    kubectl label --overwrite node "$node" node-role.kubernetes.io/master=
+    kubectl label --overwrite node "$(get_local_node_name)" node-role.kubernetes.io/master=
 
     enable_rook_ceph_operator
 
@@ -508,6 +517,7 @@ function main() {
     require_root_user
     # ensure /usr/local/bin/kubectl-plugin is in the path
     path_add "/usr/local/bin"
+    kubernetes_init_hostname
     get_patch_yaml "$@"
     maybe_read_kurl_config_from_cluster
 

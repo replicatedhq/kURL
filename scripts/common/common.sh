@@ -907,8 +907,9 @@ function build_installer_prefix() {
     fi
 }
 
+# get_local_node_name returns the name of the current node.
 function get_local_node_name() {
-    hostname | tr '[:upper:]' '[:lower:]'
+    echo "$HOSTNAME"
 }
 
 # this waits for a deployment to have all replicas up-to-date and available
