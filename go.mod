@@ -28,7 +28,7 @@ require (
 	github.com/replicatedhq/troubleshoot v0.57.1
 	github.com/rook/rook v1.10.6
 	github.com/sirupsen/logrus v1.9.0
-	github.com/spf13/afero v1.9.3
+	github.com/spf13/afero v1.9.4
 	github.com/spf13/cobra v1.6.1
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.15.0
