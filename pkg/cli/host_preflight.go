@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/briandowns/spinner"
-	"github.com/mattn/go-isatty"
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/kurl/pkg/installer"
 	"github.com/replicatedhq/kurl/pkg/preflight"
@@ -300,11 +299,11 @@ func printPreflightResults(w io.Writer, results []*analyze.AnalyzeResult) {
 func printPreflightResult(w io.Writer, result *analyze.AnalyzeResult) {
 	switch {
 	case result.IsPass:
-		fmt.Fprintln(w, green("[PASS]"), fmt.Sprintf("%s: %s", result.Title, result.Message))
+		fmt.Println(w, green("[PASS]"), fmt.Sprintf("%s: %s", result.Title, result.Message))
 	case result.IsWarn:
-		fmt.Fprintln(w, yellow("[WARN]"), fmt.Sprintf("%s: %s", result.Title, result.Message))
+		fmt.Println(w, yellow("[WARN]"), fmt.Sprintf("%s: %s", result.Title, result.Message))
 	case result.IsFail:
-		fmt.Fprintln(w, red("[FAIL]"), fmt.Sprintf("%s: %s", result.Title, result.Message))
+		fmt.Println(w, red("[FAIL]"), fmt.Sprintf("%s: %s", result.Title, result.Message))
 	}
 }
 
