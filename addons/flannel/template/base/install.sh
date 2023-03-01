@@ -161,11 +161,11 @@ function weave_to_flannel() {
         rm /tmp/kotsadm-cert-key
 
         if [ "$AIRGAP" = "1" ]; then
-            printf "\n\t${GREEN}cat ./tasks.sh | sudo bash -s weave-to-flannel-primary cert-key=${cert_key}${NC}\n\n"
+            printf "\n\t${GREEN}cat ./tasks.sh | sudo bash -s weave-to-flannel-primary airgap cert-key=${cert_key}${NC}\n\n"
         else
             local prefix=
             prefix="$(build_installer_prefix "${INSTALLER_ID}" "${KURL_VERSION}" "${KURL_URL}" "${PROXY_ADDRESS}")"
-            printf "\n\t${GREEN}${prefix}tasks.sh | sudo bash -s weave-to-flannel-primary airgap cert-key=${cert_key}${NC}\n\n"
+            printf "\n\t${GREEN}${prefix}tasks.sh | sudo bash -s weave-to-flannel-primary cert-key=${cert_key}${NC}\n\n"
         fi
 
         printf "${YELLOW}Once this has been run on all nodes, press enter to continue.${NC}"
