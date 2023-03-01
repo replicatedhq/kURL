@@ -24,7 +24,7 @@ spec:
           when: "{{kurl if (and .Installer.Spec.Rook.Version .Installer.Spec.Rook.BlockDeviceFilter) }}{{kurl .Installer.Spec.Rook.BlockDeviceFilter }}{{kurl else }}.*{{kurl end }} > 1"
           message: Multiple available block devices
       - fail:
-          message: No available block devices
+          message: "No available block devices unformatted and dedicated to be use by Rook only were found attached to each node in the cluster. For further information see: https://kurl.sh/docs/add-ons/rook#block-storage"
   - tcpPortStatus:
       checkName: "Pod csi-rbdplugin Host Port Status"
       collectorName: "Pod csi-rbdplugin Host Port"
