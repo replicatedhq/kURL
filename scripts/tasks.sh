@@ -729,6 +729,8 @@ function install_host_dependencies_longhorn() {
 }
 
 function weave_to_flannel_primary() {
+    export KUBECONFIG=/etc/kubernetes/admin.conf
+
     shift
     while [ "$1" != "" ]; do
         _param="$(echo "$1" | cut -d= -f1)"
