@@ -499,7 +499,10 @@ function rook_scale_down_ekco() {
     kubectl -n kurl scale deployment ekc-operator --replicas=0
     rook_did_scale_down_ekco=1 # local to caller
     log "Waiting for ekco pods to be removed"
-    spinner_until 120 ekco_pods_gone
+    if ! spinner_until 120 ekco_pods_gone; then
+        logFail "Unable to scale down ekco operator"
+        return 1
+    fi
 }
 
 # rook_scale_up_ekco will scale up ekco to 1 replica

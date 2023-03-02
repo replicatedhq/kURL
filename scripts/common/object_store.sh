@@ -136,8 +136,11 @@ function migrate_between_object_stores() {
 
     if kubernetes_resource_exists kurl deployment ekc-operator; then
         kubectl -n kurl scale deploy ekc-operator --replicas=0
-        echo "Waiting for ekco pods to be removed"
-        spinner_until 120 ekco_pods_gone
+        log "Waiting for ekco pods to be removed"
+        if ! spinner_until 120 ekco_pods_gone; then
+             logFail "Unable to scale down ekco operator"
+             return 1
+        fi
     fi
 
     get_shared
