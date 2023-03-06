@@ -210,23 +210,28 @@ function reset() {
 
     if commandExists "kubeadm"; then
         printf "Resetting kubeadm\n"
-        kubeadm_reset
+        kubeadm_reset || true
     fi 
 
     printf "Removing kubernetes packages\n"
     case "$LSB_DIST" in
         ubuntu)
-            apt remove -y kubernetes-cni kubelet kubectl
+            apt remove -y kubernetes-cni kubelet kubectl || true
         ;;
 
         centos|rhel|amzn|ol)
-            yum remove -y kubernetes-cni kubelet kubectl
+            yum remove -y kubernetes-cni kubelet kubectl || true
         ;;
 
         *)
-            echo "Could not uninstall kuberentes host packages on ${LSB_DIST} ${DIST_MAJOR}"
+            echo "Could not uninstall kubernetes host packages on ${LSB_DIST} ${DIST_MAJOR}"
         ;;
     esac
+
+    printf "Potentially cleaning up kubelet service\n"
+    systemctl unmask kubelet || true
+    systemctl stop kubelet || true
+    systemctl disable kubelet || true
 
     printf "Removing host files\n"
     rm -rf /etc/cni
@@ -242,6 +247,10 @@ function reset() {
     rm -rf /var/lib/weave
     rm -rf /var/lib/longhorn
     rm -rf /etc/haproxy
+    rm -rf /var/lib/kurl
+
+    printf "Killing haproxy\n"
+    pkill haproxy || true
 
     printf "Reset script completed\n"
 }
