@@ -692,6 +692,11 @@ function install_host_dependencies_openssl() {
         return
     fi
 
+    if is_rhel_9_variant ; then
+        yum_ensure_host_package openssl
+        return
+    fi
+
     if [ "$AIRGAP" != "1" ] && [ -n "$DIST_URL" ]; then
         local package="host-openssl.tar.gz"
         package_download "${package}"

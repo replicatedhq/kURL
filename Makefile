@@ -239,6 +239,7 @@ dist/kubernetes-%.tar.gz:
 	${MAKE} build/packages/kubernetes/$*/rhel-7
 	${MAKE} build/packages/kubernetes/$*/rhel-7-force
 	${MAKE} build/packages/kubernetes/$*/rhel-8
+	${MAKE} build/packages/kubernetes/$*/rhel-9
 	cp packages/kubernetes/$*/Manifest build/packages/kubernetes/$*/
 	mkdir -p dist
 	tar cf - -C build packages/kubernetes/$* | gzip > dist/kubernetes-$*.tar.gz
@@ -565,6 +566,20 @@ build/packages/kubernetes/%/rhel-8:
 	find build/packages/kubernetes/$*/rhel-8 | grep kubectl | grep -v kubectl-$* | xargs rm -vf
 	docker rm k8s-rhel8-$*
 
+build/packages/kubernetes/%/rhel-9:
+	docker build \
+		--build-arg KUBERNETES_VERSION=$* \
+		-t kurl/rhel-9-k8s:$* \
+		-f bundles/k8s-rhel9/Dockerfile \
+		bundles/k8s-rhel9
+	-docker rm -f k8s-rhel9-$* 2>/dev/null
+	docker create --name k8s-rhel9-$* kurl/rhel-9-k8s:$*
+	mkdir -p build/packages/kubernetes/$*/rhel-9
+	docker cp k8s-rhel9-$*:/packages/archives/. build/packages/kubernetes/$*/rhel-9/
+	find build/packages/kubernetes/$*/rhel-9 | grep kubelet | grep -v kubelet-$* | xargs rm -vf
+	find build/packages/kubernetes/$*/rhel-9 | grep kubectl | grep -v kubectl-$* | xargs rm -vf
+	docker rm k8s-rhel9-$*
+
 build/templates: build/templates/install.tmpl build/templates/join.tmpl build/templates/upgrade.tmpl build/templates/tasks.tmpl
 
 .PHONY: build/bin ## Build kurl binary
@@ -647,10 +662,12 @@ test: lint vet ## Check the code with linters and vet
 docker-test-shell: ## Run tests for code in shell but containerized. (Used in build-test github action)
 	docker build -t kurl-test-shell-rhel-7 -f hack/test-shell/Dockerfile.rhel-7 hack/test-shell
 	docker build -t kurl-test-shell-rhel-8 -f hack/test-shell/Dockerfile.rhel-8 hack/test-shell
+	docker build -t kurl-test-shell-rhel-9 -f hack/test-shell/Dockerfile.rhel-9 hack/test-shell
 	docker build -t kurl-test-shell-ubuntu-20.04 -f hack/test-shell/Dockerfile.ubuntu-20.04 hack/test-shell
 	docker build -t kurl-test-shell-ubuntu-22.04 -f hack/test-shell/Dockerfile.ubuntu-22.04 hack/test-shell
 	docker run -i --rm -v `pwd`:/src kurl-test-shell-rhel-7 make /usr/local/bin/shunit2 test-shell
 	docker run -i --rm -v `pwd`:/src kurl-test-shell-rhel-8 make /usr/local/bin/shunit2 test-shell
+	docker run -i --rm -v `pwd`:/src kurl-test-shell-rhel-9 make /usr/local/bin/shunit2 test-shell
 	docker run -i --rm -v `pwd`:/src kurl-test-shell-ubuntu-20.04 make /usr/local/bin/shunit2 test-shell
 	docker run -i --rm -v `pwd`:/src kurl-test-shell-ubuntu-22.04 make /usr/local/bin/shunit2 test-shell
 

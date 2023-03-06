@@ -20,12 +20,12 @@ function velero_pre_init() {
     if [ -z "$ROOK_VERSION" ] && [ -z "$LONGHORN_VERSION" ] && [ "$KOTSADM_DISABLE_S3" == 1 ]; then
         bail "Only Rook and Longhorn are supported for Velero Internal backup storage."
     fi
+
+    velero_host_init
 }
 
 # runs on first install, and on version upgrades only
 function velero() {
-    velero_host_init
-
     local src="$DIR/addons/velero/$VELERO_VERSION"
     local dst="$DIR/kustomize/velero"
 
@@ -97,8 +97,12 @@ function velero_install_nfs_utils_if_missing() {
                 dpkg_install_host_archives "$src" nfs-common
                 ;;
 
-            centos|rhel|amzn|ol)
-                yum_install_host_archives "$src" nfs-utils
+            centos|rhel|ol|rocky|amzn)
+                if is_rhel_9_variant ; then
+                    yum_ensure_host_package nfs-utils
+                else
+                    yum_install_host_archives "$src" nfs-utils
+                fi
                 ;;
         esac
     fi

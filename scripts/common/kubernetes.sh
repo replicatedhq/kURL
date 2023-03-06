@@ -34,7 +34,12 @@ function kubernetes_load_ipvs_modules() {
         return
     fi
 
-    if [ "$KERNEL_MAJOR" -gt "4" ] || ([ "$KERNEL_MAJOR" -eq "4" ] && [ "$KERNEL_MINOR" -ge "19" ]) || ( ( [ "$LSB_DIST" = "ol" ] || [ "$LSB_DIST" = "rhel" ] || [ "$LSB_DIST" = "centos" ]) && ( [ "$DIST_VERSION_MAJOR" = "8" ] || [ "$DIST_VERSION_MINOR"  -gt "2" ] ) ); then
+    if [ "$KERNEL_MAJOR" -gt "4" ] || \
+        { [ "$KERNEL_MAJOR" -eq "4" ] && [ "$KERNEL_MINOR" -ge "19" ]; } || \
+        {
+            { [ "$LSB_DIST" = "ol" ] || [ "$LSB_DIST" = "rhel" ] || [ "$LSB_DIST" = "centos" ] || [ "$LSB_DIST" = "rocky" ]; } && \
+            { [ "$DIST_VERSION_MAJOR" = "8" ] || [ "$DIST_VERSION_MAJOR" = "9" ] || [ "$DIST_VERSION_MINOR"  -gt "2" ]; }; \
+        }; then
         modprobe nf_conntrack
     else
         modprobe nf_conntrack_ipv4
@@ -152,7 +157,7 @@ EOF
             sed "s:__ENV_LOCATION__:default:g" -i "$DIR/tmp-kubeadm.conf"
             ;;
 
-        centos|rhel|amzn|ol)
+        centos|rhel|ol|rocky|amzn)
             sed "s:__ENV_LOCATION__:sysconfig:g" -i "$DIR/tmp-kubeadm.conf"
             ;;
 

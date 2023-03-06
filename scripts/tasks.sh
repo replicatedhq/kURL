@@ -217,15 +217,15 @@ function reset() {
     case "$LSB_DIST" in
         ubuntu)
             apt remove -y kubernetes-cni kubelet kubectl || true
-        ;;
+            ;;
 
-        centos|rhel|amzn|ol)
+        centos|rhel|ol|rocky|amzn)
             yum remove -y kubernetes-cni kubelet kubectl || true
-        ;;
+            ;;
 
         *)
             echo "Could not uninstall kubernetes host packages on ${LSB_DIST} ${DIST_MAJOR}"
-        ;;
+            ;;
     esac
 
     printf "Potentially cleaning up kubelet service\n"

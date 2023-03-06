@@ -29,6 +29,8 @@ function longhorn_pre_init() {
         fi
         SKIP_LONGHORN_INSTALL=1
     fi
+
+    longhorn_host_init_common "$DIR/addons/longhorn/$LONGHORN_VERSION"
 }
 
 function longhorn() {
@@ -56,8 +58,6 @@ function longhorn() {
     render_yaml_file_2 "$src/template/storageclass.yaml" > "$dst/yaml/storageclass.yaml"
 
     longhorn_check_mount_propagation "$src" "$dst"
-
-    longhorn_host_init_common "$DIR/addons/longhorn/$LONGHORN_VERSION"
 
     render_yaml_file_2 "$src/template/patch-ui-service.yaml" > "$dst/yaml/patch-ui-service.yaml"
     render_yaml_file_2 "$src/template/patch-ui-deployment.yaml" > "$dst/yaml/patch-ui-deployment.yaml"

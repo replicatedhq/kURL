@@ -2,3 +2,6 @@ apt collectd
 yum collectd
 yum collectd-rrdtool
 yum8 collectd-disk
+yum9 collectd
+yum9 collectd-rrdtool
+yum9 collectd-disk

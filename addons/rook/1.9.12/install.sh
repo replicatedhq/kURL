@@ -37,6 +37,8 @@ function rook_pre_init() {
     if rook_should_fail_install; then
         bail "Rook ${ROOK_VERSION} will not be installed due to failed preflight checks."
     fi
+
+    rook_lvm2
 }
 
 function rook_post_init() {
@@ -56,8 +58,6 @@ function rook_post_init() {
 ROOK_DID_DISABLE_EKCO_OPERATOR=0
 function rook() {
     local src="${DIR}/addons/rook/${ROOK_VERSION}"
-
-    rook_lvm2
 
     if [ "$SKIP_ROOK_INSTALL" = "1" ]; then
         local version
@@ -662,7 +662,11 @@ function rook_lvm2() {
         return
     fi
 
-    install_host_archives "$src" lvm2
+    if is_rhel_9_variant; then
+        yum_ensure_host_package lvm2
+    else
+        install_host_archives "$src" lvm2
+    fi
 }
 
 function rook_patch_insecure_clients {

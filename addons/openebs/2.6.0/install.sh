@@ -11,6 +11,10 @@ function openebs_pre_init() {
     if [ -z "$OPENEBS_CSTOR_TARGET_REPLICATION" ]; then
         OPENEBS_CSTOR_TARGET_REPLICATION="3"
     fi
+
+    if [ "$OPENEBS_CSTOR" = "1" ]; then
+        openebs_iscsi
+    fi
 }
 
 function openebs() {
@@ -26,8 +30,6 @@ function openebs() {
 
     if [ "$OPENEBS_CSTOR" = "1" ]; then
         report_addon_start "openebs-cstor" "2.6.0"
-
-        openebs_iscsi
 
         kubectl apply -k "$dst/"
         openebs_cspc_upgrade # upgrade the CSPC pools
@@ -137,8 +139,12 @@ function openebs_iscsi() {
                 dpkg_install_host_archives "$src" open-iscsi
                 ;;
 
-            centos|rhel|amzn|ol)
-                yum_install_host_archives "$src" iscsi-initiator-utils
+            centos|rhel|ol|rocky|amzn)
+                if is_rhel_9_variant ; then
+                    yum_ensure_host_package iscsi-initiator-utils
+                else
+                    yum_install_host_archives "$src" iscsi-initiator-utils
+                fi
                 ;;
         esac
     fi

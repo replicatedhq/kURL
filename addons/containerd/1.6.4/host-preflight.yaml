@@ -14,6 +14,18 @@ spec:
           - pass:
               when: "centos = 8"
               message: "containerd addon supports centos 8"
+          - pass:
+              when: "centos = 9"
+              message: "containerd addon supports centos 9"
+          - pass:
+              when: "rhel = 9"
+              message: "containerd addon supports rhel 9"
+          - pass:
+              when: "ol = 9"
+              message: "containerd addon supports ol 9"
+          - pass:
+              when: "rocky = 9"
+              message: "containerd addon supports rocky 9"
           - fail:
               when: "ubuntu = 16.04"
               message: "containerd addon does not support ubuntu 16.04"

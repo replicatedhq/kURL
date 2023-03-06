@@ -16,6 +16,7 @@ function preflights() {
     bail_when_no_object_store_and_s3_enabled
     bail_if_unsupported_openebs_to_rook_version
     bail_if_kurl_version_is_lower_than_previous_config
+    preflights_require_host_packages
     return 0
 }
 
@@ -52,13 +53,15 @@ function bailIfUnsupportedOS() {
             ;;
         ubuntu18.04|ubuntu20.04|ubuntu22.04)
             ;;
-        rhel7.4|rhel7.5|rhel7.6|rhel7.7|rhel7.8|rhel7.9|rhel8.0|rhel8.1|rhel8.2|rhel8.3|rhel8.4|rhel8.5|rhel8.6|rhel8.7)
+        rhel7.4|rhel7.5|rhel7.6|rhel7.7|rhel7.8|rhel7.9|rhel8.0|rhel8.1|rhel8.2|rhel8.3|rhel8.4|rhel8.5|rhel8.6|rhel8.7|rhel9.0|rhel9.1)
+            ;;
+        rocky9.0|rocky9.1)
             ;;
         centos7.4|centos7.5|centos7.6|centos7.7|centos7.8|centos7.9|centos8|centos8.0|centos8.1|centos8.2|centos8.3|centos8.4)
             ;;
         amzn2)
             ;;
-        ol7.4|ol7.5|ol7.6|ol7.7|ol7.8|ol7.9|ol8.0|ol8.1|ol8.2|ol8.3|ol8.4|ol8.5|ol8.6|ol8.7)
+        ol7.4|ol7.5|ol7.6|ol7.7|ol7.8|ol7.9|ol8.0|ol8.1|ol8.2|ol8.3|ol8.4|ol8.5|ol8.6|ol8.7|ol9.0|ol9.1)
             ;;
         *)
             bail "Kubernetes install is not supported on ${LSB_DIST} ${DIST_VERSION}. The list of supported operating systems can be viewed at https://kurl.sh/docs/install-with-kurl/system-requirements."
@@ -159,7 +162,7 @@ function prompt_if_docker_unsupported_os() {
     fi
 
     printf "${YELLOW}Continue? ${NC}" 1>&2
-    if ! confirmY ; then
+    if ! confirmN ; then
         exit 1
     fi
 }
@@ -294,6 +297,10 @@ function cri_preflights() {
 }
 
 function require_cri() {
+    if is_rhel_9_variant && [ -z "$CONTAINERD_VERSION" ]; then
+        bail "Containerd is required"
+    fi
+
     if commandExists docker ; then
         SKIP_DOCKER_INSTALL=1
         return 0
@@ -484,6 +491,9 @@ systemPackages:
       system_packages_collector=$("${DIR}"/bin/yamlutil -a -yc "$system_packages_collector" -yp systemPackages_centos8[] -v "$pkg")
       system_packages_collector=$("${DIR}"/bin/yamlutil -a -yc "$system_packages_collector" -yp systemPackages_rhel8[] -v "$pkg")
       system_packages_collector=$("${DIR}"/bin/yamlutil -a -yc "$system_packages_collector" -yp systemPackages_ol8[] -v "$pkg")
+      system_packages_collector=$("${DIR}"/bin/yamlutil -a -yc "$system_packages_collector" -yp systemPackages_centos9[] -v "$pkg")
+      system_packages_collector=$("${DIR}"/bin/yamlutil -a -yc "$system_packages_collector" -yp systemPackages_rhel9[] -v "$pkg")
+      system_packages_collector=$("${DIR}"/bin/yamlutil -a -yc "$system_packages_collector" -yp systemPackages_ol9[] -v "$pkg")
   done
 
   for pkg in "${pkgs_ol[@]}"

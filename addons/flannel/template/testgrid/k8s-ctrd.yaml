@@ -102,3 +102,7 @@
     flannel:
       version: "__testver__"
       s3Override: "__testdist__"
+  unsupportedOSIDs:
+  - rhel-9 # docker is not supported on rhel 9 variants
+  - centos-9 # docker is not supported on rhel 9 variants
+  - ol-9 # docker is not supported on rhel 9 variants

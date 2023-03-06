@@ -18,6 +18,8 @@ function longhorn_pre_init() {
     if [ -z "$LONGHORN_STORAGE_OVER_PROVISIONING_PERCENTAGE" ]; then
         LONGHORN_STORAGE_OVER_PROVISIONING_PERCENTAGE="200"
     fi
+
+    longhorn_host_init_common "$DIR/addons/longhorn/$LONGHORN_VERSION"
 }
 
 function longhorn() {
@@ -40,9 +42,6 @@ function longhorn() {
     fi
 
     check_mount_propagation $src
-
-    longhorn_host_init_common "$DIR/addons/longhorn/$LONGHORN_VERSION"
-
 
     render_yaml_file "$src/tmpl-ui-service.yaml" > "$dst/ui-service.yaml"
     render_yaml_file "$src/tmpl-ui-deployment.yaml" > "$dst/ui-deployment.yaml"

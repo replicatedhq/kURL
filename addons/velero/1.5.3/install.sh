@@ -6,11 +6,11 @@ function velero_pre_init() {
     if [ -z "$VELERO_LOCAL_BUCKET" ]; then
         VELERO_LOCAL_BUCKET=velero
     fi
+
+    velero_host_init
 }
 
 function velero() {
-    velero_host_init
-
     local src="$DIR/addons/velero/$VELERO_VERSION"
     local dst="$DIR/kustomize/velero"
 
@@ -53,8 +53,12 @@ function velero_install_nfs_utils_if_missing() {
                 dpkg_install_host_archives "$src" nfs-common
                 ;;
 
-            centos|rhel|amzn|ol)
-                yum_install_host_archives "$src" nfs-utils
+            centos|rhel|ol|rocky|amzn)
+                if is_rhel_9_variant ; then
+                    yum_ensure_host_package nfs-utils
+                else
+                    yum_install_host_archives "$src" nfs-utils
+                fi
                 ;;
         esac
     fi

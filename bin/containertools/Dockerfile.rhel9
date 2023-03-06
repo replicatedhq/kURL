@@ -1,0 +1,8 @@
+FROM rockylinux:9
+
+ARG PACKAGES
+
+RUN echo -e "fastestmirror=1\nmax_parallel_downloads=8" >> /etc/dnf/dnf.conf
+RUN yum install -y yum-utils createrepo modulemd-tools epel-release
+
+RUN [ -z "$PACKAGES" ] || yum install -y $PACKAGES
