@@ -620,11 +620,11 @@ golangci-lint:
 
 .PHONY: lint
 lint: golangci-lint ## Run golangci-lint and vet linter
-	$(GOLANGCI_LINT) --build-tags "${BUILDTAGS}" run --timeout 5m ./cmd/... ./pkg/... ./kurl_util/...
+	$(GOLANGCI_LINT) --build-tags "${BUILDTAGS}" run --timeout 10m ./cmd/... ./pkg/... ./kurl_util/...
 
 .PHONY: lint-fix
 lint-fix: golangci-lint ## Run golangci-lint linter and perform small fixes
-	$(GOLANGCI_LINT) --build-tags "${BUILDTAGS}" run --fix --timeout 5m ./cmd/... ./pkg/... ./kurl_util/...
+	$(GOLANGCI_LINT) --build-tags "${BUILDTAGS}" run --fix --timeout 10m ./cmd/... ./pkg/... ./kurl_util/...
 
 .PHONY: vet
 vet: ## Go vet the code

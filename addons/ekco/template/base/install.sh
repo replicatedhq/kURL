@@ -264,7 +264,7 @@ function ekco_bootstrap_internal_lb() {
     # which will cause the load balancer to restart.
     local already_bootstrapped=0
     local last_modified=
-    if curl -skf https://localhost:6444/healthz >/dev/null ; then
+    if curl -skf https://localhost:6444/healthz >/dev/null && [ -f /etc/kubernetes/manifests/haproxy.yaml ] ; then
         already_bootstrapped=1
         last_modified="$(stat -c %Y /etc/kubernetes/manifests/haproxy.yaml)"
     fi
