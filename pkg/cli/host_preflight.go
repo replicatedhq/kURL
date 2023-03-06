@@ -137,7 +137,7 @@ func newHostPreflightCmd(cli CLI) *cobra.Command {
 				return errors.Wrap(err, "run host preflight")
 			}
 
-			printPreflightResults(results)
+			printPreflightResults(cmd.OutOrStdout(), results)
 
 			if v.GetBool("use-exit-codes") {
 				switch {
@@ -291,20 +291,20 @@ func retrieveInstallerSpecDataFromArg(fs afero.Fs, stdin io.Reader, arg string) 
 	return data, errors.Wrapf(err, "read from file %s", arg)
 }
 
-func printPreflightResults(results []*analyze.AnalyzeResult) {
+func printPreflightResults(w io.Writer, results []*analyze.AnalyzeResult) {
 	for _, result := range results {
-		printPreflightResult(result)
+		printPreflightResult(w, result)
 	}
 }
 
-func printPreflightResult(result *analyze.AnalyzeResult) {
+func printPreflightResult(w io.Writer, result *analyze.AnalyzeResult) {
 	switch {
 	case result.IsPass:
-		fmt.Println(OutputPassGreen(), fmt.Sprintf("%s: %s", result.Title, result.Message))
+		fmt.Fprintln(w, OutputPassGreen(), fmt.Sprintf("%s: %s", result.Title, result.Message))
 	case result.IsWarn:
-		fmt.Println(OutputWarnYellow(), fmt.Sprintf("%s: %s", result.Title, result.Message))
+		fmt.Fprintln(w, OutputWarnYellow(), fmt.Sprintf("%s: %s", result.Title, result.Message))
 	case result.IsFail:
-		fmt.Println(OutputFailRed(), fmt.Sprintf("%s: %s", result.Title, result.Message))
+		fmt.Fprintln(w, OutputFailRed(), fmt.Sprintf("%s: %s", result.Title, result.Message))
 	}
 }
 

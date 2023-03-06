@@ -45,7 +45,7 @@ func TestNewHostPreflightCmd(t *testing.T) {
 					IsPass:  true,
 				},
 			},
-			stdout: green("[PASS]") + " Number of CPUs: At least 4 CPU cores are required\n",
+			stdout: OutputPassGreen() + " Number of CPUs: At least 4 CPU cores are required\n",
 			stderr: "",
 		},
 		{
@@ -59,7 +59,7 @@ func TestNewHostPreflightCmd(t *testing.T) {
 				},
 			},
 			isWarn:  true,
-			stdout:  yellow("[WARN]") + " Number of CPUs: At least 4 CPU cores are required\n",
+			stdout:  OutputWarnYellow() + " Number of CPUs: At least 4 CPU cores are required\n",
 			stderr:  "Error: host preflights have warnings\n",
 			wantErr: true,
 		},
@@ -75,8 +75,8 @@ func TestNewHostPreflightCmd(t *testing.T) {
 			},
 			isWarn:         true,
 			ignoreWarnings: true,
-			stdout:         yellow("[WARN]") + " Number of CPUs: At least 4 CPU cores are required\n",
-			stderr:         "",
+			stdout:         OutputWarnYellow() + " Number of CPUs: At least 4 CPU cores are required\n",
+			stderr:         "Warnings ignored by CLI flag \"ignore-warnings\"\n",
 		},
 		{
 			name:          "fail",
@@ -89,7 +89,7 @@ func TestNewHostPreflightCmd(t *testing.T) {
 				},
 			},
 			isFail: true,
-			stdout: red("[FAIL]") + " Number of CPUs: At least 4 CPU cores are required\n",
+			stdout: OutputFailRed() + " Number of CPUs: At least 4 CPU cores are required\n",
 			stderr: "Error: host preflights have failures\n",
 		},
 	}
