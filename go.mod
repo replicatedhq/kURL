@@ -10,7 +10,6 @@ require (
 	github.com/chzyer/readline v1.5.1
 	github.com/denisbrodbeck/machineid v1.0.1
 	github.com/docker/distribution v2.8.1+incompatible
-	github.com/fatih/color v1.14.1
 	github.com/foomo/htpasswd v0.0.0-20200116085101-e3a90e78da9c
 	github.com/golang/mock v1.6.0
 	github.com/google/go-cmp v0.5.9
@@ -99,6 +98,7 @@ require (
 	github.com/emicklei/go-restful/v3 v3.10.1 // indirect
 	github.com/evanphx/json-patch v5.6.0+incompatible // indirect
 	github.com/evanphx/json-patch/v5 v5.6.0 // indirect
+	github.com/fatih/color v1.14.1 // indirect
 	github.com/felixge/httpsnoop v1.0.3 // indirect
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
 	github.com/ghodss/yaml v1.0.1-0.20190212211648-25d852aebe32 // indirect
@@ -319,6 +319,7 @@ replace (
 	k8s.io/controller-manager => k8s.io/controller-manager v0.26.1
 	k8s.io/cri-api => k8s.io/cri-api v0.26.1
 	k8s.io/csi-translation-lib => k8s.io/csi-translation-lib v0.26.1
+	k8s.io/dynamic-resource-allocation => k8s.io/dynamic-resource-allocation v0.26.1
 	k8s.io/kube-aggregator => k8s.io/kube-aggregator v0.26.1
 	k8s.io/kube-controller-manager => k8s.io/kube-controller-manager v0.26.1
 	k8s.io/kube-proxy => k8s.io/kube-proxy v0.26.1

@@ -300,11 +300,11 @@ func printPreflightResults(w io.Writer, results []*analyze.AnalyzeResult) {
 func printPreflightResult(w io.Writer, result *analyze.AnalyzeResult) {
 	switch {
 	case result.IsPass:
-		fmt.Fprintln(w, green("[PASS]"), fmt.Sprintf("%s: %s", result.Title, result.Message))
+		fmt.Fprintln(w, OutputPassGreen(), fmt.Sprintf("%s: %s", result.Title, result.Message))
 	case result.IsWarn:
-		fmt.Fprintln(w, yellow("[WARN]"), fmt.Sprintf("%s: %s", result.Title, result.Message))
+		fmt.Fprintln(w, OutputWarnYellow(), fmt.Sprintf("%s: %s", result.Title, result.Message))
 	case result.IsFail:
-		fmt.Fprintln(w, red("[FAIL]"), fmt.Sprintf("%s: %s", result.Title, result.Message))
+		fmt.Fprintln(w, OutputFailRed(), fmt.Sprintf("%s: %s", result.Title, result.Message))
 	}
 }
 

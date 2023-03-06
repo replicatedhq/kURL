@@ -1,11 +1,27 @@
 package cli
 
-import (
-	"github.com/fatih/color"
-)
+var Reset = "\033[0m"
+var Red = "\033[31m"
+var Green = "\033[32m"
+var Yellow = "\033[33m"
+var Blue = "\033[34m"
 
-var (
-	green  = color.New(color.FgGreen).SprintFunc()
-	yellow = color.New(color.FgYellow).SprintFunc()
-	red    = color.New(color.FgRed).SprintFunc()
-)
+// OutputPassGreen return [PASS] to be outputted in green
+func OutputPassGreen() string {
+	return Green + "[PASS]" + Reset
+}
+
+// OutputWarnYellow return [Warn] to be outputted in yellow
+func OutputWarnYellow() string {
+	return Yellow + "[WARN]" + Reset
+}
+
+// OutputFailRed return [Fail] to be outputted in red
+func OutputFailRed() string {
+	return Yellow + "[FAIL]" + Reset
+}
+
+// OutputInfoBlue return [Info] to be outputted in blue
+func OutputInfoBlue() string {
+	return Blue + "[INFO]" + Reset
+}
