@@ -115,6 +115,7 @@ EOF
     log "Waiting up to 10 minutes for sync-object-store pod to complete"
     if ! spinner_until 600 kubernetes_pod_started sync-object-store "$namespace" ; then
         logWarn "Timeout faced waiting for start object store migration pod within 10 minutes"
+        kubectl logs -n "$namespace" sync-object-store || true
     fi
     kubectl logs -n "$namespace" sync-object-store || true
 
