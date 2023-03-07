@@ -117,7 +117,6 @@ EOF
         logWarn "Timeout faced waiting for start object store migration pod within 10 minutes"
         kubectl logs -n "$namespace" sync-object-store || true
     fi
-    kubectl logs -n "$namespace" sync-object-store || true
 
     if kubernetes_pod_succeeded sync-object-store "$namespace" ; then
         logSuccess "Object store data synced successfully"
