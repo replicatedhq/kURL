@@ -151,7 +151,6 @@ function migrate_between_object_stores() {
         if kubernetes_resource_exists kurl deployment ekc-operator; then
             kubectl -n kurl scale deploy ekc-operator --replicas=1
         fi
-        kubectl logs -n "default" sync-object-store || true
         bail "sync-object-store pod failed"
     fi
 
