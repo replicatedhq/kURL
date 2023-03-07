@@ -116,7 +116,7 @@ EOF
     if ! spinner_until 600 kubernetes_pod_started sync-object-store "$namespace" ; then
         logWarn "Timeout faced waiting for start object store migration pod within 10 minutes"
     fi
-    kubectl logs -n "$namespace" -f sync-object-store || true
+    kubectl logs -n "$namespace" sync-object-store || true
 
     if kubernetes_pod_succeeded sync-object-store "$namespace" ; then
         logSuccess "Object store data synced successfully"
@@ -152,7 +152,7 @@ function migrate_between_object_stores() {
         if kubernetes_resource_exists kurl deployment ekc-operator; then
             kubectl -n kurl scale deploy ekc-operator --replicas=1
         fi
-        kubectl logs -n "default" -f sync-object-store || true
+        kubectl logs -n "default" sync-object-store || true
         bail "sync-object-store pod failed"
     fi
 
