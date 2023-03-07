@@ -644,6 +644,7 @@ allow_migrate_from_rook_to_openebs() {
     if [ -z "$ROOK_VERSION" ] && [ -n "$OPENEBS_VERSION" ]; then
         if kubectl get ns | grep -q rook-ceph; then
             if  [ "$(echo "$OPENEBS_VERSION}" | wc -l)" -le "3" ] || [ "$OPENEBS_VERSION" == "3.2.0"]; then
+                  logFail "The OpenEBS version $OPENEBS_VERSION cannot be installed"
                   bail "OpenEBS versions <= 3.2.0 does not support migration from Rook"
             fi
         fi
