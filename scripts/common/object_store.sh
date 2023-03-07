@@ -103,9 +103,9 @@ spec:
     - --dest_access_key_secret=$destination_secret_key
 EOF
 
-    log "Waiting up to 10 minutes for sync-object-store pod to start in ${namespace} namespace"
-    if ! spinner_until 600 kubernetes_pod_started sync-object-store "$namespace" ; then
-        logFail "Failed to start object store migration pod within 10 minutes"
+    log "Waiting up to 5 minutes for sync-object-store pod to start in ${namespace} namespace"
+    if ! spinner_until 300 kubernetes_pod_started sync-object-store "$namespace" ; then
+        logFail "Failed to start object store migration pod within 5 minutes"
         return 1
     fi
 
