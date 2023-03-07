@@ -18,7 +18,7 @@ func OutputWarnYellow() string {
 
 // OutputFailRed return [Fail] to be outputted in red
 func OutputFailRed() string {
-	return Yellow + "[FAIL]" + Reset
+	return Red + "[FAIL]" + Reset
 }
 
 // OutputInfoBlue return [Info] to be outputted in blue
