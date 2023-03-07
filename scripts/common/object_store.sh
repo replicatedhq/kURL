@@ -103,21 +103,23 @@ spec:
     - --dest_access_key_secret=$destination_secret_key
 EOF
 
-    echo "Waiting up to 5 minutes for sync-object-store pod to start in ${namespace} namespace"
+    log "Waiting up to 5 minutes for sync-object-store pod to start in ${namespace} namespace"
     if ! spinner_until 300 kubernetes_pod_started sync-object-store "$namespace" ; then
-        printf "${RED}Failed to start object store migration pod within 5 minutes${NC}\n"
+        logFail "Failed to start object store migration pod within 5 minutes"
         return 1
     fi
 
-    # The 5 minute spinner allows the pod to crash a few times waiting for the object store to be ready
+    # The 10 minute spinner allows the pod to crash a few times waiting for the object store to be ready
     # and then following the logs allows for an indefinite amount of time for the migration to
     # complete in case there is a lot of data
-    echo "Waiting up to 5 minutes for sync-object-store pod to complete"
-    spinner_until 300 kubernetes_pod_completed sync-object-store "$namespace" || true
+    log "Waiting up to 10 minutes for sync-object-store pod to complete"
+    if ! spinner_until 600 kubernetes_pod_completed sync-object-store "$namespace" ; then
+        logWarn "Timeout faced waiting for start object store migration pod within 10 minutes"
+    fi
+    # this command intentionally tails the logs until the pod completes to get the full logs
     kubectl logs -n "$namespace" -f sync-object-store || true
-
     if kubernetes_pod_succeeded sync-object-store "$namespace" ; then
-        printf "\n${GREEN}Object store data synced successfully${NC}\n"
+        logSuccess "Object store data synced successfully"
         kubectl delete pod sync-object-store -n "$namespace" --force --grace-period=0 &> /dev/null
         return 0
     fi
