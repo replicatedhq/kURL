@@ -13,6 +13,7 @@ function preflights() {
     kotsadm_prerelease
     host_nameservers_reachable
     allow_remove_docker_new_install
+    allow_migrate_from_rook_to_openebs
     return 0
 }
 
@@ -637,4 +638,14 @@ allow_remove_docker_new_install() {
           logWarn "\nThe installation will continue, however, if this script fails due to package"
           logWarn "conflicts, please uninstall Docker and re-run the install script."
      fi
+}
+
+allow_migrate_from_rook_to_openebs() {
+    if [ -z "$ROOK_VERSION" ] && [ -n "$OPENEBS_VERSION" ]; then
+        if kubectl get ns | grep -q rook-ceph; then
+            if  [ "$(echo "$OPENEBS_VERSION}" | wc -l)" -le "3" ] || [ "$OPENEBS_VERSION" == "3.2.0"]; then
+                  bail "OpenEBS versions <= 3.2.0 does not support migration from Rook"
+            fi
+        fi
+    fi
 }
