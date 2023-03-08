@@ -640,7 +640,9 @@ allow_remove_docker_new_install() {
      fi
 }
 
-allow_migrate_from_rook_to_openebs() {
+# bail_if_unsupported_openebs_to_rook_version will bail if the rook is being removed in favor of
+# openebs and the openebs version does not support migrations from rook.
+function bail_if_unsupported_openebs_to_rook_version() {
     if [ -z "$ROOK_VERSION" ] && [ -n "$OPENEBS_VERSION" ]; then
         if commandExists kubectl; then
             if kubectl get ns | grep -q rook-ceph; then
