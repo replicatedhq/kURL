@@ -784,7 +784,7 @@ function kubeadm_cluster_status() {
 }
 
 function check_network() {
-	  logStep "Checking cluster networking"
+    logStep "Checking cluster networking"
 
     if [ -n "$WEAVE_VERSION" ]; then
         log "Checking if weave-net binary can be found in the path /opt/cni/bin/"
