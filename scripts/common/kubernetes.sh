@@ -784,7 +784,15 @@ function kubeadm_cluster_status() {
 }
 
 function check_network() {
-	logStep "Checking cluster networking"
+	  logStep "Checking cluster networking"
+
+    if [ -n "$WEAVE_VERSION" ]; then
+        log "Checking if weave-net binary can be found in the path /opt/cni/bin/"
+        if ! ls -la /opt/cni/bin/ | grep weave-net; then
+            logWarn "Unable to find weave-net binary. Deleting weave-net pod"
+            kubectl delete pods --selector=name=weave-net -n kube-system --ignore-not-found=true
+        fi
+    fi
 
     if ! kubernetes_any_node_ready; then
         echo "Waiting for node to report Ready"
