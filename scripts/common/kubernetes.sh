@@ -789,7 +789,7 @@ function check_network() {
     if [ -n "$WEAVE_VERSION" ]; then
         log "Checking if weave-net binary can be found in the path /opt/cni/bin/"
         if ! ls -la /opt/cni/bin/ | grep weave-net; then
-            logWarn "Unable to find weave-net binary. Deleting weave-net pod"
+            logWarn "Unable to find weave-net binary, deleting weave-net pod so that the binary will be recreated"
             kubectl delete pods --selector=name=weave-net -n kube-system --ignore-not-found=true
         fi
     fi
