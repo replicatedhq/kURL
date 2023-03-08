@@ -13,7 +13,7 @@ function preflights() {
     kotsadm_prerelease
     host_nameservers_reachable
     allow_remove_docker_new_install
-    allow_migrate_from_rook_to_openebs
+    bail_if_unsupported_openebs_to_rook_version
     return 0
 }
 
