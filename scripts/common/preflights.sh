@@ -647,8 +647,8 @@ allow_migrate_from_rook_to_openebs() {
                 semverParse "$OPENEBS_VERSION"
                 # if $OPENEBS_VERSION is less than 3.3.0
                 if [ "$major" -lt "3" ] || { [ "$major" = "3" ] && [ "$minor" -lt "3" ] ; }; then
-                   logFail "The OpenEBS version $OPENEBS_VERSION cannot be installed"
-                   bail "OpenEBS versions <= 3.2.0 does not support migration from Rook"
+                   logFail "The OpenEBS version $OPENEBS_VERSION cannot be installed."
+                   bail "OpenEBS versions less than 3.3.0 do not support migrations from Rook"
                 fi
             fi
         fi
