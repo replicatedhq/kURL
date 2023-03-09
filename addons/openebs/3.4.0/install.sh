@@ -273,6 +273,7 @@ function openebs_migrate_post_helm_resources() {
     kubectl delete clusterrolebinding openebs-maya-operator 2>/dev/null || true
 }
 
+
 function openebs_should_be_default_storageclass() {
     local storage_class_name="$1"
     if openebs_is_default_storageclass "$storage_class_name" ; then
