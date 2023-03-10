@@ -914,20 +914,31 @@ function get_local_node_name() {
 
 # this waits for a deployment to have all replicas up-to-date and available
 function deployment_fully_updated() {
+    x_fully_updated "$1" deployment "$2"
+}
+
+# this waits for a statefulset to have all replicas up-to-date and available
+function statefulset_fully_updated() {
+    x_fully_updated "$1" statefulset "$2"
+}
+
+# this waits for a resource type (deployment or statefulset) to have all replicas up-to-date and available
+function x_fully_updated() {
     local namespace=$1
-    local deployment=$2
+    local resourcetype=$2
+    local name=$3
 
     local desiredReplicas
-    desiredReplicas=$(kubectl get deployment -n "$namespace" "$deployment" -o jsonpath='{.status.replicas}')
+    desiredReplicas=$(kubectl get $resourcetype -n "$namespace" "$name" -o jsonpath='{.status.replicas}')
 
     local availableReplicas
-    availableReplicas=$(kubectl get deployment -n "$namespace" "$deployment" -o jsonpath='{.status.availableReplicas}')
+    availableReplicas=$(kubectl get $resourcetype -n "$namespace" "$name" -o jsonpath='{.status.availableReplicas}')
 
     local readyReplicas
-    readyReplicas=$(kubectl get deployment -n "$namespace" "$deployment" -o jsonpath='{.status.readyReplicas}')
+    readyReplicas=$(kubectl get $resourcetype -n "$namespace" "$name" -o jsonpath='{.status.readyReplicas}')
 
     local updatedReplicas
-    updatedReplicas=$(kubectl get deployment -n "$namespace" "$deployment" -o jsonpath='{.status.updatedReplicas}')
+    updatedReplicas=$(kubectl get $resourcetype -n "$namespace" "$name" -o jsonpath='{.status.updatedReplicas}')
 
     if [ "$desiredReplicas" != "$availableReplicas" ] ; then
         return 1
