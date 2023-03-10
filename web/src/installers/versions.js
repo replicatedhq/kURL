@@ -180,6 +180,7 @@ module.exports.InstallerVersions = {
   ],
   prometheus: [
     // cron-prometheus-update
+    "0.63.0-45.7.1",
     "0.63.0-45.5.0",
     "0.63.0-45.4.0",
     "0.63.0-45.3.0",
