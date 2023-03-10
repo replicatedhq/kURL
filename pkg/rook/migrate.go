@@ -135,7 +135,7 @@ func patchCephcluster(ctx context.Context, cephClient *cephv1.CephV1Client) erro
 
 	_, err = cephClient.CephClusters("rook-ceph").Patch(ctx, "rook-ceph", types.JSONPatchType, []byte(disableDirectories), metav1.PatchOptions{})
 	if err != nil {
-		out("Got error %q when disabling hostpath storage, but continuing anyways")
+		out(fmt.Sprintf("Got error %q when disabling hostpath storage, but continuing anyways", err))
 	}
 
 	return nil
