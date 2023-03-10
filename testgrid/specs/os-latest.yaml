@@ -29,10 +29,10 @@
     curl -L -o centos2ol.sh https://raw.githubusercontent.com/oracle/centos2ol/main/centos2ol.sh
     chmod +x centos2ol.sh
     bash centos2ol.sh -r
-- id: rhel-9
-  name: RHEL
-  version: "9.x"
-  vmimageuri: https://download.rockylinux.org/pub/rocky/9/images/x86_64/Rocky-9-GenericCloud-Base.latest.x86_64.qcow2
+- id: rocky-91
+  name: Rocky Linux
+  version: "9.1"
+  vmimageuri: https://download.rockylinux.org/pub/rocky/9/images/x86_64/rocky-91-GenericCloud-Base-9.1-20230215.0.x86_64.qcow2
 - id: ubuntu-2004
   name: Ubuntu
   version: "20.04"

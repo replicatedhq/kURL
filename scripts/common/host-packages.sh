@@ -337,7 +337,7 @@ function is_rhel_9_variant() {
 function yum_ensure_host_package() {
     local package="$1"
 
-    if ! yum list installed "$package" >/dev/null 2>&1 ; then
+    if ! yum_is_host_package_installed "$package" ; then
         logStep "Installing host package $package"
         if ! yum install -y "$package" ; then
             logFail "Failed to install host package $package."
@@ -397,6 +397,13 @@ function preflights_require_host_packages() {
     else
         logSuccess "Required host packages are installed or available"
     fi
+}
+
+# yum_is_host_package_installed returns 0 if the package is installed on the host
+function yum_is_host_package_installed() {
+    local package="$1"
+
+    yum list installed "$package" >/dev/null 2>&1
 }
 
 # yum_is_host_package_installed_or_available returns 0 if the package is installed or available

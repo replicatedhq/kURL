@@ -166,19 +166,27 @@ function find_common_versions() {
 
         if ! contains "$version" ${CENTOS7_VERSIONS[*]}; then
             echo "CentOS 7 lacks version $version"
-            add_unsupported_os_to_preflight_file $version "centos" "7"
+            add_unsupported_os_to_preflight_file "$version" "centos" "7"
+            add_unsupported_os_to_preflight_file "$version" "rhel" "7"
+            add_unsupported_os_to_preflight_file "$version" "ol" "7"
         else
-            add_supported_os_to_preflight_file $version "centos" "7"
-            add_supported_os_to_manifest_file $version "rhel-7" "Dockerfile.centos7"
-            add_supported_os_to_manifest_file $version "rhel-7-force" "Dockerfile.centos7-force"
+            add_supported_os_to_preflight_file "$version" "centos" "7"
+            add_supported_os_to_preflight_file "$version" "rhel" "7"
+            add_supported_os_to_preflight_file "$version" "ol" "7"
+            add_supported_os_to_manifest_file "$version" "rhel-7" "Dockerfile.centos7"
+            add_supported_os_to_manifest_file "$version" "rhel-7-force" "Dockerfile.centos7-force"
         fi
 
         if ! contains "$version" ${CENTOS8_VERSIONS[*]}; then
             echo "CentOS 8 lacks version $version"
-            add_unsupported_os_to_preflight_file $version "centos" "8"
+            add_unsupported_os_to_preflight_file "$version" "centos" "8"
+            add_unsupported_os_to_preflight_file "$version" "rhel" "8"
+            add_unsupported_os_to_preflight_file "$version" "ol" "8"
         else
-            add_supported_os_to_preflight_file $version "centos" "8"
-            add_supported_os_to_manifest_file $version "rhel-8" "Dockerfile.centos8"
+            add_supported_os_to_preflight_file "$version" "centos" "8"
+            add_supported_os_to_preflight_file "$version" "rhel" "8"
+            add_supported_os_to_preflight_file "$version" "ol" "8"
+            add_supported_os_to_manifest_file "$version" "rhel-8" "Dockerfile.centos8"
         fi
 
         if ! contains "$version" ${RHEL9_VERSIONS[*]}; then

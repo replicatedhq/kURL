@@ -91,12 +91,12 @@ function conatinerd_host_init() {
 function containerd_install_libzstd_if_missing() {
     local src="$DIR/addons/containerd/$CONTAINERD_VERSION"
 
-    if yum list installed libzstd >/dev/null 2>&1 ; then
-        return
-    fi
-
     case "$LSB_DIST" in
         centos|rhel|ol|rocky|amzn)
+            if yum_is_host_package_installed libzstd ; then
+                return
+            fi
+
             if is_rhel_9_variant ; then
                 yum_ensure_host_package libzstd
             else

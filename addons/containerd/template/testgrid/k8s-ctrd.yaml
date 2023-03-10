@@ -73,9 +73,8 @@
     validate_testfile rwtest testfile.txt
     validate_read_write_object_store postupgrade upgradefile.txt
   unsupportedOSIDs:
-  - rhel-9 # docker is not supported on rhel 9 variants
-  - centos-9 # docker is not supported on rhel 9 variants
-  - ol-9 # docker is not supported on rhel 9 variants
+  - rocky-91 # docker is not supported on rhel 9 variants
+  - ol-91 # docker is not supported on rhel 9 variants
 - name: "Migrate from Docker to Containerd and Kubernetes from 1.23 to 1.25 airgap"
   installerSpec:
     kubernetes:
@@ -131,9 +130,8 @@
     validate_testfile rwtest testfile.txt
     validate_read_write_object_store postupgrade upgradefile.txt
   unsupportedOSIDs:
-  - rhel-9 # docker is not supported on rhel 9 variants
-  - centos-9 # docker is not supported on rhel 9 variants
-  - ol-9 # docker is not supported on rhel 9 variants
+  - rocky-91 # docker is not supported on rhel 9 variants
+  - ol-91 # docker is not supported on rhel 9 variants
 
 - name: Upgrade Containerd from 1.2.x to __testver__
   installerSpec:
@@ -190,9 +188,8 @@
   - centos-79
   - ol-79
   - ubuntu-2204
-  - rhel-9 # containerd < 1.6 is not supported on rhel 9 variants
-  - centos-9 # containerd < 1.6 is not supported on rhel 9 variants
-  - ol-9 # containerd < 1.6 is not supported on rhel 9 variants
+  - rocky-91 # containerd < 1.6 is not supported on rhel 9 variants
+  - ol-91 # containerd < 1.6 is not supported on rhel 9 variants
 
 - name: Upgrade Containerd from 1.5.x to __testver__
   installerSpec:
@@ -233,9 +230,8 @@
   postUpgradeScript: |
     containerd --version | grep "__testver__"
   unsupportedOSIDs:
-  - rhel-9 # containerd < 1.6 is not supported on rhel 9 variants
-  - centos-9 # containerd < 1.6 is not supported on rhel 9 variants
-  - ol-9 # containerd < 1.6 is not supported on rhel 9 variants
+  - rocky-91 # containerd < 1.6 is not supported on rhel 9 variants
+  - ol-91 # containerd < 1.6 is not supported on rhel 9 variants
 
 - name: "Upgrade Containerd from current to __testver__"
   installerSpec:
