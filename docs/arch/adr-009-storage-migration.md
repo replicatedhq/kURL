@@ -45,7 +45,13 @@ Using the "scaling" storageclass directly (instead of merely using the default s
 
 YET TO BE DECIDED:
 1. Should the migration be triggered immediately upon adding a third node, or should it be triggered by the user? It can involve application downtime!
+   1. Allow the user to trigger the migration with a 'tasks.sh migrate-storage' command.
+   2. Provide a prompt in kotsadm that will trigger the migration.
+   3. Trigger the migration automatically when the third node is added.
 2. What to do with object storage. (should data be migrated from MinIO to Rook, and MinIO deleted?)
+   1. Migrate data from MinIO to Rook, and delete MinIO.
+   2. Keep MinIO running, and use it for object storage. Disable (or otherwise do not use) Rook's object storage.
+   3. Forbid the use of MinIO in automatic migration configs.
 
 ## Status
 
