@@ -56,7 +56,8 @@ function openebs_maybe_migrate_from_rook() {
             # if there are errors, openebs_maybe_rook_migration_checks() will bail
             openebs_maybe_rook_migration_checks
             rook_ceph_to_sc_migration "$OPENEBS_LOCALPV_STORAGE_CLASS" "1"
-            DID_MIGRATE_ROOK_PVCS=1 # used to automatically delete rook-ceph if object store data was also migrated
+            # used to automatically delete rook-ceph if object store data was also migrated
+            add_rook_pvc_migration_status
         fi
     fi
 }
