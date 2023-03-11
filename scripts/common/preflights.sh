@@ -629,7 +629,7 @@ function host_preflights_mkresults() {
 # Uninstall Docker when containerd is selected to be installed and it is a new install
 # So that, is possible to avoid conflicts
 allow_remove_docker_new_install() {
-     # If docker is not installed OR if conatinerd is not in the spec
+     # If docker is not installed OR if containerd is not in the spec
      # then, the docker should not be uninstalled
      if ! commandExists docker || [ -z "$CONTAINERD_VERSION" ]; then
           return

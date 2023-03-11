@@ -11,7 +11,7 @@ function containerd_pre_init() {
         cp "$src/kubeadm-init-config-v1beta2.yaml" "$DIR/kustomize/kubeadm/init-patches/containerd-kubeadm-init-config-v1beta2.yml"
     fi
 
-    conatinerd_host_init
+    containerd_host_init
 }
 
 function containerd_join() {
@@ -22,7 +22,7 @@ function containerd_join() {
         cp "$src/kubeadm-join-config-v1beta2.yaml" "$DIR/kustomize/kubeadm/join-patches/containerd-kubeadm-join-config-v1beta2.yml"
     fi
 
-    conatinerd_host_init
+    containerd_host_init
 }
 
 function containerd_install() {
@@ -84,7 +84,7 @@ function containerd_install() {
     fi
 }
 
-function conatinerd_host_init() {
+function containerd_host_init() {
     containerd_install_libzstd_if_missing
 }
 

@@ -200,7 +200,7 @@ function docker_get_host_packages_online() {
 # https://bugs.launchpad.net/ubuntu/+source/docker.io/+bug/1939140
 function uninstall_docker_new_installs_with_containerd() {
 
-     # If docker is not installed OR if conatinerd is not in the spec
+     # If docker is not installed OR if containerd is not in the spec
      # then, the docker should not be uninstalled
      if ! commandExists docker || [ -z "$CONTAINERD_VERSION" ]; then
           return
