@@ -25,7 +25,7 @@
   - ubuntu-2004 # docker 19.03.4 is not available on ubuntu 20.04
   - ubuntu-2204 # docker 19.x is not available on ubuntu 22.04
   - rocky-91 # docker is not supported on rhel 9 variants
-  - ol-91 # docker is not supported on rhel 9 variants
+  - ol-9 # docker is not supported on rhel 9 variants
 - name: k8s119x
   installerSpec:
     kubernetes:
@@ -51,7 +51,7 @@
   unsupportedOSIDs:
   - ubuntu-2204 # docker 19.x is not available on ubuntu 22.04
   - rocky-91 # docker is not supported on rhel 9 variants
-  - ol-91 # docker is not supported on rhel 9 variants
+  - ol-9 # docker is not supported on rhel 9 variants
 - name: k8s119_containerd149
   installerSpec:
     kubernetes:
@@ -77,7 +77,7 @@
   unsupportedOSIDs:
   - ubuntu-2204 # containerd 1.4.x is not available on ubuntu 22.04
   - rocky-91 # containerd < 1.6 is not supported on rhel 9 variants
-  - ol-91 # containerd < 1.6 is not supported on rhel 9 variants
+  - ol-9 # containerd < 1.6 is not supported on rhel 9 variants
 - name: k8s120x_openebs_minio
   installerSpec:
     kubernetes:
@@ -115,7 +115,7 @@
   - centos-84
   - ol-84
   - rocky-91 # docker is not supported on rhel 9 variants
-  - ol-91 # docker is not supported on rhel 9 variants
+  - ol-9 # docker is not supported on rhel 9 variants
 - name: k8s120x_docker
   installerSpec:
     kubernetes:
@@ -143,7 +143,7 @@
   unsupportedOSIDs:
   - ubuntu-2204 # docker 19.x is not available on ubuntu 22.04
   - rocky-91 # docker is not supported on rhel 9 variants
-  - ol-91 # docker is not supported on rhel 9 variants
+  - ol-9 # docker is not supported on rhel 9 variants
 - name: k8s121x_containerd
   installerSpec:
     kubernetes:
@@ -173,7 +173,7 @@
   unsupportedOSIDs:
   - ubuntu-2204 # containerd 1.4.x is not available on ubuntu 22.04
   - rocky-91 # containerd < 1.6 is not supported on rhel 9 variants
-  - ol-91 # containerd < 1.6 is not supported on rhel 9 variants
+  - ol-9 # containerd < 1.6 is not supported on rhel 9 variants
 - name: k8s119x-airgap
   installerSpec:
     kubernetes:
@@ -200,7 +200,7 @@
   unsupportedOSIDs:
   - ubuntu-2204 # docker 19.x is not available on ubuntu 22.04
   - rocky-91 # docker is not supported on rhel 9 variants
-  - ol-91 # docker is not supported on rhel 9 variants
+  - ol-9 # docker is not supported on rhel 9 variants
 - name: k8s1184_1202
   installerSpec:
     kubernetes:
@@ -223,7 +223,7 @@
   unsupportedOSIDs:
   - ubuntu-2204 # docker 20.10.5 is not available on ubuntu 22.04
   - rocky-91 # docker is not supported on rhel 9 variants
-  - ol-91 # docker is not supported on rhel 9 variants
+  - ol-9 # docker is not supported on rhel 9 variants
 - name: k8s1184_1202_containerd
   installerSpec:
     kubernetes:
@@ -246,7 +246,7 @@
   unsupportedOSIDs:
   - ubuntu-2204 # containerd 1.4.x is not supported on ubuntu 22.04
   - rocky-91 # containerd < 1.6 is not supported on rhel 9 variants
-  - ol-91 # containerd < 1.6 is not supported on rhel 9 variants
+  - ol-9 # containerd < 1.6 is not supported on rhel 9 variants
 - name: k8s119x_containerd148
   installerSpec:
     kubernetes:
@@ -272,7 +272,7 @@
   unsupportedOSIDs:
   - ubuntu-2204 # containerd 1.4.x is not supported on ubuntu 22.04
   - rocky-91 # containerd < 1.6 is not supported on rhel 9 variants
-  - ol-91 # containerd < 1.6 is not supported on rhel 9 variants
+  - ol-9 # containerd < 1.6 is not supported on rhel 9 variants
 - name: k8s119x_containerd139
   installerSpec:
     kubernetes:
@@ -298,7 +298,7 @@
   unsupportedOSIDs:
   - ubuntu-2204 # containerd 1.4.x is not supported on ubuntu 22.04
   - rocky-91 # containerd < 1.6 is not supported on rhel 9 variants
-  - ol-91 # containerd < 1.6 is not supported on rhel 9 variants
+  - ol-9 # containerd < 1.6 is not supported on rhel 9 variants
 - name: k8s119
   installerSpec:
     kubernetes:
@@ -324,7 +324,7 @@
   unsupportedOSIDs:
   - ubuntu-2204 # docker 19.x is not available on ubuntu 22.04
   - rocky-91 # docker is not supported on rhel 9 variants
-  - ol-91 # docker is not supported on rhel 9 variants
+  - ol-9 # docker is not supported on rhel 9 variants
 - name: k8s119-airgap
   installerSpec:
     kubernetes:
@@ -351,7 +351,7 @@
   unsupportedOSIDs:
   - ubuntu-2204 # docker 19.x is not available on ubuntu 22.04
   - rocky-91 # docker is not supported on rhel 9 variants
-  - ol-91 # docker is not supported on rhel 9 variants
+  - ol-9 # docker is not supported on rhel 9 variants
 - name: k8s119_containerd1412
   installerSpec:
     kubernetes:
@@ -377,7 +377,7 @@
   unsupportedOSIDs:
   - ubuntu-2204 # containerd 1.4.x is not supported on ubuntu 22.04
   - rocky-91 # containerd < 1.6 is not supported on rhel 9 variants
-  - ol-91 # containerd < 1.6 is not supported on rhel 9 variants
+  - ol-9 # containerd < 1.6 is not supported on rhel 9 variants
 - name: k8s119_containerd146-airgap
   installerSpec:
     kubernetes:
@@ -404,7 +404,7 @@
   unsupportedOSIDs:
   - ubuntu-2204 # containerd 1.4.x is not supported on ubuntu 22.04
   - rocky-91 # containerd < 1.6 is not supported on rhel 9 variants
-  - ol-91 # containerd < 1.6 is not supported on rhel 9 variants
+  - ol-9 # containerd < 1.6 is not supported on rhel 9 variants
 - name: k8s119_containerd_rook_block
   cpu: 6
   installerSpec:
@@ -433,7 +433,7 @@
   - ubuntu-2204 # containerd 1.4.x is not supported on ubuntu 22.04
   - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
   - rocky-91 # containerd < 1.6 is not supported on rhel 9 variants
-  - ol-91 # containerd < 1.6 is not supported on rhel 9 variants
+  - ol-9 # containerd < 1.6 is not supported on rhel 9 variants
 - name: k8s119_ctrd_longhorn
   installerSpec:
     kubernetes:
@@ -464,7 +464,7 @@
   unsupportedOSIDs:
   - ubuntu-2204 # containerd 1.4.x is not supported on ubuntu 22.04
   - rocky-91 # containerd < 1.6 is not supported on rhel 9 variants
-  - ol-91 # containerd < 1.6 is not supported on rhel 9 variants
+  - ol-9 # containerd < 1.6 is not supported on rhel 9 variants
 - name: k8s119_ctrd_longhorn-airgap
   installerSpec:
     kubernetes:
@@ -496,7 +496,7 @@
   unsupportedOSIDs:
   - ubuntu-2204 # containerd 1.4.x is not supported on ubuntu 22.04
   - rocky-91 # containerd < 1.6 is not supported on rhel 9 variants
-  - ol-91 # containerd < 1.6 is not supported on rhel 9 variants
+  - ol-9 # containerd < 1.6 is not supported on rhel 9 variants
 - name: k8s119_helm
   installerSpec:
     kubernetes:
@@ -553,7 +553,7 @@
   unsupportedOSIDs:
   - ubuntu-2204 # containerd 1.4.x is not supported on ubuntu 22.04
   - rocky-91 # containerd < 1.6 is not supported on rhel 9 variants
-  - ol-91 # containerd < 1.6 is not supported on rhel 9 variants
+  - ol-9 # containerd < 1.6 is not supported on rhel 9 variants
 - name: k8s120_minimal_containerd1411
   installerSpec:
     kubernetes:
@@ -569,7 +569,7 @@
   unsupportedOSIDs:
   - ubuntu-2204 # containerd 1.4.x is not supported on ubuntu 22.04
   - rocky-91 # containerd < 1.6 is not supported on rhel 9 variants
-  - ol-91 # containerd < 1.6 is not supported on rhel 9 variants
+  - ol-9 # containerd < 1.6 is not supported on rhel 9 variants
 - name: k8s119_nameserver_collectd_rook_block
   installerSpec:
     kubernetes:
@@ -594,7 +594,7 @@
   - ubuntu-2204 # docker 19.x and collectd-v5 are not supported on ubuntu 22.04
   - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
   - rocky-91 # docker is not supported on rhel 9 variants
-  - ol-91 # docker is not supported on rhel 9 variants
+  - ol-9 # docker is not supported on rhel 9 variants
 - name: k8s119_selinux
   installerSpec:
     kubernetes:
@@ -617,7 +617,7 @@
   unsupportedOSIDs:
   - ubuntu-2204 # docker 19.x is not supported on ubuntu 22.04
   - rocky-91 # docker is not supported on rhel 9 variants
-  - ol-91 # docker is not supported on rhel 9 variants
+  - ol-9 # docker is not supported on rhel 9 variants
 - name: k8s120
   installerSpec:
     kubernetes:
@@ -645,7 +645,7 @@
   unsupportedOSIDs:
   - ubuntu-2204 # containerd 1.4.x is not supported on ubuntu 22.04
   - rocky-91 # containerd < 1.6 is not supported on rhel 9 variants
-  - ol-91 # containerd < 1.6 is not supported on rhel 9 variants
+  - ol-9 # containerd < 1.6 is not supported on rhel 9 variants
 - name: k8s120-airgap
   installerSpec:
     kubernetes:
@@ -674,7 +674,7 @@
   unsupportedOSIDs:
   - ubuntu-2204 # containerd 1.4.x is not supported on ubuntu 22.04
   - rocky-91 # containerd < 1.6 is not supported on rhel 9 variants
-  - ol-91 # containerd < 1.6 is not supported on rhel 9 variants
+  - ol-9 # containerd < 1.6 is not supported on rhel 9 variants
 - name: k8s24x_rook_upgrade_17x_110x
   flags: "yes"
   cpu: 6
@@ -738,7 +738,7 @@
   unsupportedOSIDs:
   - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
   - rocky-91 # docker is not supported on rhel 9 variants
-  - ol-91 # docker is not supported on rhel 9 variants
+  - ol-9 # docker is not supported on rhel 9 variants
 - name: k8s121
   installerSpec:
     kubernetes:
@@ -762,7 +762,7 @@
       version: latest
   unsupportedOSIDs:
   - rocky-91 # docker is not supported on rhel 9 variants
-  - ol-91 # docker is not supported on rhel 9 variants
+  - ol-9 # docker is not supported on rhel 9 variants
 - name: k8s121-airgap
   installerSpec:
     kubernetes:
@@ -787,7 +787,7 @@
   airgap: true
   unsupportedOSIDs:
   - rocky-91 # docker is not supported on rhel 9 variants
-  - ol-91 # docker is not supported on rhel 9 variants
+  - ol-9 # docker is not supported on rhel 9 variants
 - name: k8s1210_openebs260_minio
   installerSpec:
     kubernetes:
@@ -814,7 +814,7 @@
       version: 0.10.1
   unsupportedOSIDs:
   - rocky-91 # docker is not supported on rhel 9 variants
-  - ol-91 # docker is not supported on rhel 9 variants
+  - ol-9 # docker is not supported on rhel 9 variants
 - name: k8s1210_openebs260_minio-airgap
   installerSpec:
     kubernetes:
@@ -845,7 +845,46 @@
   - centos-9 # docker is not supported on rhel 9 variants
   - ol-9 # docker is not supported on rhel 9 variants
   - rocky-91 # docker is not supported on rhel 9 variants
+<<<<<<< HEAD
   - ol-91 # docker is not supported on rhel 9 variants
+=======
+  - ol-9 # docker is not supported on rhel 9 variants
+- name: k8s1205_rook_to_longhorn
+  cpu: 6
+  installerSpec:
+    kubernetes:
+      version: 1.20.x
+    weave:
+      version: 2.8.1
+    rook:
+      isBlockStorageEnabled: true
+      version: 1.4.3
+    kotsadm:
+      version: 1.38.0
+    containerd:
+      version: 1.4.6
+    ekco:
+      version: latest
+  upgradeSpec:
+    kubernetes:
+      version: 1.20.x
+    weave:
+      version: 2.8.1
+    longhorn:
+      version: 1.1.2
+    minio:
+      version: latest
+    kotsadm:
+      version: 1.38.0
+    containerd:
+      version: 1.4.6
+    ekco:
+      version: latest
+  unsupportedOSIDs:
+  - ubuntu-2204 # containerd 1.4.x is not supported on ubuntu 22.04
+  - rocky-91 # containerd < 1.6 is not supported on rhel 9 variants
+  - ol-9 # containerd < 1.6 is not supported on rhel 9 variants
+>>>>>>> ol9
 - name: remove_all_object_storage
   cpu: 7
   installerSpec:
@@ -935,7 +974,7 @@
   unsupportedOSIDs:
   - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
   - rocky-91 # containerd < 1.6 is not supported on rhel 9 variants
-  - ol-91 # containerd < 1.6 is not supported on rhel 9 variants
+  - ol-9 # containerd < 1.6 is not supported on rhel 9 variants
 - name: "K8s 1.22x Airgap"
   cpu: 6
   installerSpec:
@@ -1016,7 +1055,7 @@
     validate_read_write_object_store postupgrade upgradefile.txt
   unsupportedOSIDs:
   - rocky-91 # docker is not supported on rhel 9 variants
-  - ol-91 # docker is not supported on rhel 9 variants
+  - ol-9 # docker is not supported on rhel 9 variants
 - name: "Migrate from Docker to Containerd and Kubernetes from 1.23 to 1.25 airgap"
   installerSpec:
     kubernetes:
@@ -1072,7 +1111,7 @@
     validate_read_write_object_store postupgrade upgradefile.txt
   unsupportedOSIDs:
   - rocky-91 # docker is not supported on rhel 9 variants
-  - ol-91 # docker is not supported on rhel 9 variants
+  - ol-9 # docker is not supported on rhel 9 variants
 - name: "K8s 1.24x Rook"
   cpu: 6
   installerSpec:
@@ -1100,7 +1139,7 @@
   - ubuntu-2204 # containerd 1.4.x is not supported on ubuntu 22.04
   - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
   - rocky-91 # containerd < 1.6 is not supported on rhel 9 variants
-  - ol-91 # containerd < 1.6 is not supported on rhel 9 variants
+  - ol-9 # containerd < 1.6 is not supported on rhel 9 variants
 - name: "K8s 1.26x Rook, disableS3"
   cpu: 6
   installerSpec:
@@ -1156,7 +1195,7 @@
   - ubuntu-2204 # containerd 1.4.x is not supported on ubuntu 22.04
   - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
   - rocky-91 # containerd < 1.6 is not supported on rhel 9 variants
-  - ol-91 # containerd < 1.6 is not supported on rhel 9 variants
+  - ol-9 # containerd < 1.6 is not supported on rhel 9 variants
 - name: "Upgrade to 1.24, weave to flannel"
   cpu: 7
   installerSpec:
@@ -1197,7 +1236,7 @@
   unsupportedOSIDs:
   - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
   - rocky-91 # docker is not supported on rhel 9 variants
-  - ol-91 # docker is not supported on rhel 9 variants
+  - ol-9 # docker is not supported on rhel 9 variants
 - name: "Upgrade to 1.26 airgap"
   cpu: 6
   installerSpec:

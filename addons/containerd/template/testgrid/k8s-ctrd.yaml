@@ -74,7 +74,7 @@
     validate_read_write_object_store postupgrade upgradefile.txt
   unsupportedOSIDs:
   - rocky-91 # docker is not supported on rhel 9 variants
-  - ol-91 # docker is not supported on rhel 9 variants
+  - ol-9 # docker is not supported on rhel 9 variants
 - name: "Migrate from Docker to Containerd and Kubernetes from 1.23 to 1.25 airgap"
   installerSpec:
     kubernetes:
@@ -131,7 +131,7 @@
     validate_read_write_object_store postupgrade upgradefile.txt
   unsupportedOSIDs:
   - rocky-91 # docker is not supported on rhel 9 variants
-  - ol-91 # docker is not supported on rhel 9 variants
+  - ol-9 # docker is not supported on rhel 9 variants
 
 - name: Upgrade Containerd from 1.2.x to __testver__
   installerSpec:
@@ -189,7 +189,7 @@
   - ol-79
   - ubuntu-2204
   - rocky-91 # containerd < 1.6 is not supported on rhel 9 variants
-  - ol-91 # containerd < 1.6 is not supported on rhel 9 variants
+  - ol-9 # containerd < 1.6 is not supported on rhel 9 variants
 
 - name: Upgrade Containerd from 1.5.x to __testver__
   installerSpec:
@@ -231,7 +231,7 @@
     containerd --version | grep "__testver__"
   unsupportedOSIDs:
   - rocky-91 # containerd < 1.6 is not supported on rhel 9 variants
-  - ol-91 # containerd < 1.6 is not supported on rhel 9 variants
+  - ol-9 # containerd < 1.6 is not supported on rhel 9 variants
 
 - name: "Upgrade Containerd from current to __testver__"
   installerSpec:
