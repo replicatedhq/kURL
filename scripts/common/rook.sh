@@ -204,13 +204,39 @@ function rook_ceph_to_sc_migration() {
     report_addon_success "rook-ceph-to-$scProvisioner-migration" "v2"
 }
 
-# if PVCs and object store data have both been migrated from rook-ceph and rook-ceph is no longer specified in the kURL spec, remove rook-ceph
 function maybe_cleanup_rook() {
     if [ -z "$ROOK_VERSION" ]; then
+
+        if kubectl get ns | grep -q rook-ceph; then
+            logStep "Removing Rook ..."
+        fi
+
         if [ "$DID_MIGRATE_ROOK_PVCS" == "1" ] && [ "$DID_MIGRATE_ROOK_OBJECT_STORE" == "1" ]; then
             report_addon_start "rook-ceph-removal" "v1"
             remove_rook_ceph
             report_addon_success "rook-ceph-removal" "v1"
+            return
+        fi
+
+        # If upgrade from Rook to OpenEBS without Minio we cannot remove Rook because
+        # we do not know if the solution uses or not ObjectStore and if someone data will not be lost
+        if [ "$DID_MIGRATE_ROOK_PVCS" == "1" ] && [ -z "$MINIO_VERSION" ]; then
+            if [ -z "$DID_MIGRATE_ROOK_OBJECT_STORE" ] || [ "$DID_MIGRATE_ROOK_OBJECT_STORE" != "1" ]; then
+                logWarn "The PVC(s) were migrated but this install does not specified a Minio version."
+                logWarn "If you are migration from Rook to OpenEBS without select an Minio version then the installer cannot programmatically remove Rook."
+                logWarn "You can manually perform this operation with the remove_rook_ceph task, i.e.:"
+                logWarn "curl <installer>/task.sh | sudo bash -s remove_rook_ceph (i.e. curl https://kurl.sh/latest/tasks.sh | sudo bash -s remove_rook_ceph)"
+                logWarn "However, please only manually remove Rook from the host after you ensure that the migration was successful to prevent the possibility of data loss."
+            fi
+        fi
+
+        logWarn "Unable to remove Rook."
+        if [ "$DID_MIGRATE_ROOK_PVCS" != "1" ]; then
+           logWarn "Storage class migration did not succeed"
+        fi
+        
+        if [ -n "$MINIO_VERSION" ] && [ "$DID_MIGRATE_ROOK_OBJECT_STORE" != "1" ]; then
+           logWarn "Object Store migration did not succeed"
         fi
     fi
 }
