@@ -4,7 +4,7 @@ name: test-addon-pr.yaml
 on:
   pull_request:
     branches:
-      - mainadsf
+      - main
     paths:
       - 'addons/**'
 
