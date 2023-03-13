@@ -49,9 +49,9 @@ YET TO BE DECIDED:
    2. Provide a prompt in kotsadm that will trigger the migration.
    3. Trigger the migration automatically when the third node is added.
 2. What to do with object storage. (should data be migrated from MinIO to Rook, and MinIO deleted?)
-   1. Migrate data from MinIO to Rook, and delete MinIO.
-   2. Keep MinIO running, and use it for object storage. Disable (or otherwise do not use) Rook's object storage.
-   3. Forbid the use of MinIO in automatic migration configs.
+   1. Migrate data from MinIO to Rook, and delete MinIO. This requires some downtime to move between the object stores, and might interact poorly with any user applications that used the kurl object store.
+   2. Keep MinIO running, and use it for object storage. Disable (or otherwise do not use) Rook's object storage. This is easy to do, but rook will likely have better performance.
+   3. Forbid the use of MinIO in automatic migration configs. This would require migrating the registry from non-object-store (and thus non-ha) to object-store.
 
 ## Status
 
