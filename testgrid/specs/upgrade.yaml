@@ -765,12 +765,6 @@
       version: latest
   unsupportedOSIDs:
   - ubuntu-2204 # docker 20.10.5 is not available on ubuntu 22.04
-
-
-
-
-
-
 # from this point on we have tests that validate we can migrate between different storage
 # provisioners.
 - name: Migrate from Rook 1.0.4 to OpenEBS + Minio 
