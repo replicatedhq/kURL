@@ -855,9 +855,9 @@ function task_requires_root() {
     fi
 }
 
-# check if containerd on the current node has the `docker.io/rancher/mirrored-flannelcni-flannel:v<version>` image
+# check if containerd on the current node has the `docker.io/flannel/flannel` image
 function flannel_images_present() {
-    if ! ctr -n=k8s.io images ls | grep -q "docker.io/rancher/mirrored-flannelcni-flannel" ; then
+    if ! ctr -n=k8s.io images ls | grep -Eq "docker\.io/flannel/flannel|docker\.io/rancher/mirrored-flannelcni-flannel" ; then
         logFail "Flannel images not present on $(get_local_node_name), please ensure the 'load-images' task has been run successfully"
         exit 1
     fi
