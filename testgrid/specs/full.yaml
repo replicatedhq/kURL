@@ -187,6 +187,48 @@
   airgap: true
   unsupportedOSIDs:
   - ubuntu-2204 # docker 19.x is not available on ubuntu 22.04
+- name: k8s1184_1202
+  installerSpec:
+    kubernetes:
+      version: 1.18.4
+    docker:
+      version: 20.10.5
+    weave:
+      version: 2.6.5
+    contour:
+      version: 1.0.1
+  upgradeSpec:
+    kubernetes:
+      version: 1.20.2
+    docker:
+      version: 20.10.5
+    weave:
+      version: 2.8.1
+    contour:
+      version: latest
+  unsupportedOSIDs:
+  - ubuntu-2204 # docker 20.10.5 is not available on ubuntu 22.04
+- name: k8s1184_1202_containerd
+  installerSpec:
+    kubernetes:
+      version: 1.18.4
+    weave:
+      version: 2.6.5
+    contour:
+      version: 1.0.1
+    containerd:
+      version: 1.4.6
+  upgradeSpec:
+    kubernetes:
+      version: 1.20.2
+    weave:
+      version: 2.6.5
+    contour:
+      version: latest
+    containerd:
+      version: 1.6.x
+  unsupportedOSIDs:
+  - ubuntu-2204 # containerd 1.4.x is not supported on ubuntu 22.04
 - name: k8s119x_containerd148
   installerSpec:
     kubernetes:
@@ -419,6 +461,61 @@
   airgap: true
   unsupportedOSIDs:
   - ubuntu-2204 # containerd 1.4.x is not supported on ubuntu 22.04
+- name: k8s119_helm
+  installerSpec:
+    kubernetes:
+      version: latest
+    weave:
+      version: latest
+    containerd:
+      version: 1.4.6
+    helm:
+      helmfileSpec: |-
+        repositories:
+        - name: nginx-stable
+          url: https://helm.nginx.com/stable
+        releases:
+        - name: nginx-ingress
+          chart: nginx-stable/nginx-ingress
+          version: ~0.8.0
+          values:
+          - controller:
+              image:
+                tag: 1.9.1
+              service:
+                type: NodePort
+                httpPort:
+                  nodePort: 30080
+                httpsPort:
+                  nodePort: 30443
+  upgradeSpec:
+    kubernetes:
+      version: latest
+    weave:
+      version: latest
+    containerd:
+      version: 1.5.11
+    helm:
+      helmfileSpec: |-
+        repositories:
+        - name: nginx-stable
+          url: https://helm.nginx.com/stable
+        releases:
+        - name: nginx-ingress
+          chart: nginx-stable/nginx-ingress
+          version: ~0.8.0
+          values:
+          - controller:
+              image:
+                tag: 1.10.0
+              service:
+                type: NodePort
+                httpPort:
+                  nodePort: 30080
+                httpsPort:
+                  nodePort: 30443
+  unsupportedOSIDs:
+  - ubuntu-2204 # containerd 1.4.x is not supported on ubuntu 22.04
 - name: k8s120_minimal_containerd1411
   installerSpec:
     kubernetes:
@@ -530,6 +627,68 @@
   airgap: true
   unsupportedOSIDs:
   - ubuntu-2204 # containerd 1.4.x is not supported on ubuntu 22.04
+- name: k8s24x_rook_upgrade_17x_110x
+  flags: "yes"
+  cpu: 6
+  installerSpec:
+    kubernetes:
+      version: 1.24.x
+    weave:
+      version: 2.8.1
+    rook:
+      isBlockStorageEnabled: true
+      version: 1.7.x
+    kotsadm:
+      version: 1.93.x
+    containerd:
+      version: 1.6.x
+    ekco:
+      version: latest
+  upgradeSpec:
+    kubernetes:
+      version: 1.26.x
+    weave:
+      version: 2.8.1
+    rook:
+      bypassUpgradeWarning: true
+      version: 1.10.x
+    kotsadm:
+      version: 1.93.x
+    containerd:
+      version: 1.6.x
+    ekco:
+      version: latest
+  unsupportedOSIDs:
+    - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
+- name: k8s19x_rook_upgrade_143_18x_docker
+  flags: "yes"
+  cpu: 6
+  installerSpec:
+    kubernetes:
+      version: 1.19.x
+    weave:
+      version: 2.8.1
+    rook:
+      isBlockStorageEnabled: true
+      version: 1.4.3
+    docker:
+      version: 20.10.17
+    ekco:
+      version: latest
+  upgradeSpec:
+    kubernetes:
+      version: 1.21.x
+    weave:
+      version: 2.8.1
+    rook:
+      bypassUpgradeWarning: true
+      version: 1.8.x
+    docker:
+      version: 20.10.17
+    ekco:
+      version: latest
+  unsupportedOSIDs:
+    - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
 - name: k8s121
   installerSpec:
     kubernetes:
@@ -622,6 +781,45 @@
     ekco:
       version: 0.10.1
   airgap: true
+- name: remove_all_object_storage
+  cpu: 7
+  installerSpec:
+    kubernetes:
+      version: 1.23.x
+    flannel:
+      version: latest
+    rook:
+      version: 1.9.x
+    registry:
+      version: latest
+    kotsadm:
+      version: latest
+    containerd:
+      version: latest
+    velero:
+      version: 1.8.x
+    ekco:
+      version: latest
+  upgradeSpec:
+    kubernetes:
+      version: 1.24.x
+    flannel:
+      version: latest
+    longhorn:
+      version: latest
+    registry:
+      version: latest
+    kotsadm:
+      version: latest
+      disableS3: true
+    containerd:
+      version: latest
+    velero:
+      version: 1.9.x
+    ekco:
+      version: latest
+  unsupportedOSIDs:
+  - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
 - name: "K8s 1.22x Rook"
   cpu: 6
   installerSpec:
@@ -697,6 +895,111 @@
   airgap: true
   unsupportedOSIDs:
   - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
+- name: "Migrate from Docker to Containerd and Kubernetes from 1.23 to 1.25"
+  installerSpec:
+    kubernetes:
+      version: 1.23.x
+    weave: # flannel has errors with dns and docker
+      version: latest
+    openebs:
+      version: latest
+      isLocalPVEnabled: true
+      localPVStorageClassName: default
+    minio:
+      version: latest
+    ekco:
+      version: latest
+    registry:
+      version: latest
+    kotsadm:
+      version: latest
+    docker:
+      version: latest
+  upgradeSpec:
+    kubernetes:
+      version: 1.25.x
+    weave: # flannel has errors with dns and docker
+      version: latest
+    openebs:
+      version: latest
+      isLocalPVEnabled: true
+      localPVStorageClassName: default
+    minio:
+      version: latest
+    ekco:
+      version: latest
+    registry:
+      version: latest
+    kotsadm:
+      version: latest
+    containerd:
+      version: latest
+  postInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    minio_object_store_info
+    validate_read_write_object_store rwtest testfile.txt
+    echo "Checking kubectl with kube/config"
+    echo "Kubeconfig was $KUBECONFIG"
+    unset KUBECONFIG
+    kubectl get namespaces
+  postUpgradeScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    minio_object_store_info
+    validate_testfile rwtest testfile.txt
+    validate_read_write_object_store postupgrade upgradefile.txt
+- name: "Migrate from Docker to Containerd and Kubernetes from 1.23 to 1.25 airgap"
+  installerSpec:
+    kubernetes:
+      version: 1.23.x
+    weave: # flannel has errors with dns and docker
+      version: latest
+    openebs:
+      version: latest
+      isLocalPVEnabled: true
+      localPVStorageClassName: default
+    minio:
+      version: latest
+    ekco:
+      version: latest
+    registry:
+      version: latest
+    kotsadm:
+      version: latest
+    docker:
+      version: latest
+  upgradeSpec:
+    kubernetes:
+      version: 1.25.x
+    weave: # flannel has errors with dns and docker
+      version: latest
+    openebs:
+      version: latest
+      isLocalPVEnabled: true
+      localPVStorageClassName: default
+    minio:
+      version: latest
+    ekco:
+      version: latest
+    registry:
+      version: latest
+    kotsadm:
+      version: latest
+    containerd:
+      version: latest
+  airgap: true
+  postInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    minio_object_store_info
+    validate_read_write_object_store rwtest testfile.txt
+    echo "Checking kubectl with kube/config"
+    echo "Kubeconfig was $KUBECONFIG"
+    unset KUBECONFIG
+    kubectl get namespaces
+  postUpgradeScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    minio_object_store_info
+    validate_testfile rwtest testfile.txt
+    validate_read_write_object_store postupgrade upgradefile.txt
 - name: "K8s 1.24x Rook"
   cpu: 6
   installerSpec:
@@ -777,6 +1080,167 @@
   unsupportedOSIDs:
   - ubuntu-2204 # containerd 1.4.x is not supported on ubuntu 22.04
   - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
+- name: "Upgrade to 1.24, weave to flannel"
+  cpu: 7
+  installerSpec:
+    kubernetes:
+      version: 1.23.x
+    weave:
+      version: latest
+    rook:
+      version: 1.9.x
+    registry:
+      version: latest
+    kotsadm:
+      version: latest
+    docker:
+      version: 20.10.x
+    velero:
+      version: 1.8.x
+    ekco:
+      version: latest
+  upgradeSpec:
+    kubernetes:
+      version: 1.24.x
+    flannel:
+      version: latest
+    longhorn:
+      version: latest
+    registry:
+      version: latest
+    kotsadm:
+      version: latest
+      disableS3: true
+    containerd:
+      version: latest
+    velero:
+      version: 1.9.x
+    ekco:
+      version: latest
+  unsupportedOSIDs:
+  - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
+- name: "Upgrade to 1.26 airgap"
+  cpu: 6
+  installerSpec:
+    kubernetes:
+      version: 1.25.x
+    flannel:
+      version: latest
+    openebs:
+      version: latest
+      isLocalPVEnabled: true
+      localPVStorageClassName: default
+    minio:
+      version: latest
+    registry:
+      version: latest
+    kotsadm:
+      version: latest
+    containerd:
+      version: latest
+    velero:
+      version: 1.8.x
+    ekco:
+      version: latest
+  upgradeSpec:
+    kubernetes:
+      version: 1.26.x
+    flannel:
+      version: latest
+    openebs:
+      version: latest
+      isLocalPVEnabled: true
+      localPVStorageClassName: default
+    minio:
+      version: latest
+    registry:
+      version: latest
+    kotsadm:
+      version: latest
+    containerd:
+      version: latest
+    velero:
+      version: 1.9.x
+    ekco:
+      version: latest
+  airgap: true
+- name: "Upgrade to 1.26 minimal"
+  installerSpec:
+    kubernetes:
+      version: 1.25.x
+    flannel:
+      version: latest
+    openebs:
+      version: latest
+      isLocalPVEnabled: true
+      localPVStorageClassName: default
+    minio:
+      version: latest
+    registry:
+      version: latest
+    kotsadm:
+      version: latest
+    containerd:
+      version: latest
+    ekco:
+      version: latest
+  upgradeSpec:
+    kubernetes:
+      version: 1.26.x
+    flannel:
+      version: latest
+    openebs:
+      version: latest
+      isLocalPVEnabled: true
+      localPVStorageClassName: default
+    registry:
+      version: latest
+    kotsadm:
+      version: latest
+    containerd:
+      version: latest
+    ekco:
+      version: latest
+- name: "Upgrade to 1.26 minimal airgap"
+  installerSpec:
+    kubernetes:
+      version: 1.25.x
+    flannel:
+      version: latest
+    openebs:
+      version: latest
+      isLocalPVEnabled: true
+      localPVStorageClassName: default
+    minio:
+      version: latest
+    registry:
+      version: latest
+    kotsadm:
+      version: latest
+    containerd:
+      version: latest
+    ekco:
+      version: latest
+  upgradeSpec:
+    kubernetes:
+      version: 1.26.x
+    flannel:
+      version: latest
+    openebs:
+      version: latest
+      isLocalPVEnabled: true
+      localPVStorageClassName: default
+    minio:
+      version: latest
+    registry:
+      version: latest
+    kotsadm:
+      version: latest
+    containerd:
+      version: latest
+    ekco:
+      version: latest
+  airgap: true
 - name: k8s121-with-flags
   installerSpec:
     kubernetes:
@@ -920,6 +1384,31 @@
     echo "Kubeconfig was $KUBECONFIG"
     unset KUBECONFIG
     kubectl get namespaces
+- name: k8s123x_124x_upgrade_cis_benchmarks_checks
+  installerSpec:
+    kubernetes:
+      version: "1.23.x"
+    containerd:
+      version: "latest"
+    flannel:
+      version: latest
+    ekco:
+      version: "latest"
+  upgradeSpec:
+    kubernetes:
+      version: "1.24.x"
+      cisCompliance: true
+    containerd:
+      version: "latest"
+    flannel:
+      version: latest
+    ekco:
+      version: "latest"
+  postUpgradeScript: |
+    echo "running  CIS Kubernetes Benchmark Checks"
+    kube_bench_version="$(curl -s https://api.github.com/repos/aquasecurity/kube-bench/releases/latest | grep '"tag_name":' | sed -E 's/.*"v([^"]+)".*/\1/')"
+    curl -L https://github.com/aquasecurity/kube-bench/releases/download/v${kube_bench_version}/kube-bench_${kube_bench_version}_linux_amd64.tar.gz | tar -xz
+    ./kube-bench --config-dir=`pwd`/cfg --config=`pwd`/cfg/config.yaml --exit-code=1
 - name: k8s126x_reserved_resources
   installerSpec:
     kubernetes:
@@ -946,6 +1435,102 @@
     echo "Kubeconfig was $KUBECONFIG"
     unset KUBECONFIG
     kubectl get namespaces
+- name: "Cust1 Upgrade - no HA"
+  installerSpec:
+    kubernetes:
+      version: "1.19.x"
+    docker:
+      version: "19.03.10"
+      daemonConfig: |
+        {
+          "exec-opts": ["native.cgroupdriver=systemd"],
+          "log-opts": {
+              "max-size": "100m",
+              "max-file": "3"
+              }
+        }
+    weave:
+      version: "2.6.5"
+    rook:
+      version: "1.0.4"
+    contour:
+      version: "1.7.0"
+      tlsMinimumProtocolVersion: "1.2"
+    registry:
+      version: "2.7.1"
+    prometheus:
+      version: "0.49.0-17.1.3"
+    velero:
+      version: "1.6.0"
+    kotsadm:
+      version: "1.57.0"
+    goldpinger:
+      version: "3.2.0-4.1.1"
+    openebs:
+      version: "1.6.0"
+      namespace: "openebs"
+      isLocalPVEnabled: true
+      localPVStorageClassName: openebs
+      isCstorEnabled: false
+    ekco:
+      version: "0.10.2"
+      nodeUnreachableToleration: 5m
+      minReadyMasterNodeCount: 2
+      minReadyWorkerNodeCount: 0
+      rookShouldUseAllNodes: false
+      rookShouldDisableReconcileMDSPlacement: false
+      rookShouldDisableReconcileCephCSIResources: false
+      shouldDisableRebootServices: false
+      shouldDisableClearNodes: false
+      shouldEnablePurgeNodes: false
+      shouldDisableRestartFailedEnvoyPods: false
+      envoyPodsNotReadyDuration: "5m"
+  upgradeSpec:
+    kubernetes:
+      version: "1.21.9"
+      containerLogMaxFiles: 5
+      containerLogMaxSize: 5Mi
+    containerd:
+      version: "1.4.6"
+    weave:
+      version: "2.6.5"
+    longhorn:
+      version: "1.1.2"
+    minio:
+      version: "2020-01-25T02-50-51Z"
+    contour:
+      version: "1.7.0"
+    registry:
+      version: "2.7.1"
+    prometheus:
+      version: "0.49.0-17.1.3"
+    velero:
+      version: "1.6.0"
+    kotsadm:
+      version: "1.57.0"
+    goldpinger:
+      version: "3.2.0-4.1.1"
+    openebs:
+      version: "1.12.0"
+      namespace: openebs
+      isLocalPVEnabled: true
+      localPVStorageClassName: openebs
+      isCstorEnabled: false
+    ekco:
+      version: "0.16.0"
+      nodeUnreachableToleration: 5m
+      minReadyMasterNodeCount: 2
+      minReadyWorkerNodeCount: 0
+      rookShouldUseAllNodes: false
+      rookShouldDisableReconcileMDSPlacement: false
+      rookShouldDisableReconcileCephCSIResources: false
+      shouldDisableRebootServices: false
+      shouldDisableClearNodes: false
+      shouldEnablePurgeNodes: false
+      shouldDisableRestartFailedEnvoyPods: false
+      envoyPodsNotReadyDuration: "5m"
+  unsupportedOSIDs:
+  - ubuntu-2204 # containerd 1.4.x is not supported on ubuntu 22.04
 - name: less_command
   installerSpec:
     kubernetes:
@@ -1164,55 +1749,3 @@
       version: latest
     containerd:
       version: latest
-- name: Migrate from Rook 1.10.x to OpenEBS 3.4.0 with localpv migrate
-  flags: "yes"
-  installerSpec:
-    kubernetes:
-      version: "1.24.x"
-    flannel:
-      version: latest
-    containerd:
-      version: "latest"
-    rook:
-      version: "1.10.x"
-    kotsadm:
-      version: "latest"
-  upgradeSpec:
-    kubernetes:
-      version: "1.26.x"
-    flannel:
-      version: latest
-    containerd:
-      version: "latest"
-    openebs:
-      isLocalPVEnabled: true
-      localPVStorageClassName: openebs
-      namespace: openebs
-      "version": "3.4.0"
-    minio:
-      version: "latest"
-    kotsadm:
-      version: "latest"
-  unsupportedOSIDs:
-    - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
-  postInstallScript: |
-    source /opt/kurl-testgrid/testhelpers.sh
-    rook_ceph_object_store_info
-    validate_read_write_object_store rwtest testfile.txt
-  postUpgradeScript: |
-    source /opt/kurl-testgrid/testhelpers.sh
-    minio_object_store_info
-    validate_testfile rwtest testfile.txt
-    validate_read_write_object_store postupgrade upgradefile.txt    
-    echo "Verify if rook-ceph namespace was removed after upgrade"
-    if kubectl get namespace/rook-ceph ; then
-       echo "Namespace rook-ceph was not removed"
-       exit 1 
-    else
-       echo "Namespace rook-ceph was removed"
-    fi
-    echo "Verify if Rook data was removed"
-    if [ -d "/var/lib/rook" ] || [ -d "/opt/replicated/rook" ]; then
-        echo "Data within /var/lib/rook, /opt/replicated/rook and any bound disks has not been freed."
-        exit 1 
-    fi

@@ -1,0 +1,721 @@
+- name: Migrate from Rook 1.0.4 to OpenEBS + Minio
+  flags: "yes"
+  installerSpec:
+    kubernetes:
+      version: 1.19.x
+    containerd:
+      version: 1.6.x
+    flannel:
+      version: 0.21.x
+    registry:
+      version: 2.8.x
+    kotsadm:
+      version: latest
+    ekco:
+      version: latest
+    rook:
+      version: 1.0.4
+  upgradeSpec:
+    kubernetes:
+      version: 1.19.x
+    containerd:
+      version: 1.6.x
+    flannel:
+      version: 0.21.x
+    registry:
+      version: 2.8.x
+    kotsadm:
+      version: latest
+    ekco:
+      version: latest
+    openebs:
+      version: 3.4.x
+      isLocalPVEnabled: true
+      localPVStorageClassName: local
+    minio:
+      version: latest
+  postInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    create_deployment_with_mounted_volume "migration-test" "default" "/data"
+    create_random_file_and_upload_to_deployment "migration-test" "default" "./test.data" "/data/test.data"
+    test_push_image_to_registry
+  postUpgradeScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    sleep 120
+    download_file_from_deployment_and_compare "migration-test" "default" "./test.data" "/data/test.data"
+    pvc_uses_provisioner "migration-test" "default" "rook"
+    test_pull_image_from_registry
+- name: Migrate from Rook 1.4.x to OpenEBS + Minio
+  flags: "yes"
+  installerSpec:
+    kubernetes:
+      version: 1.21.x
+    containerd:
+      version: 1.6.x
+    flannel:
+      version: 0.21.x
+    registry:
+      version: 2.8.x
+    kotsadm:
+      version: latest
+    ekco:
+      version: latest
+    rook:
+      version: 1.4.x
+  upgradeSpec:
+    kubernetes:
+      version: 1.21.x
+    containerd:
+      version: 1.6.x
+    flannel:
+      version: 0.21.x
+    registry:
+      version: 2.8.x
+    kotsadm:
+      version: latest
+    ekco:
+      version: latest
+    openebs:
+      version: 3.4.x
+      isLocalPVEnabled: true
+      localPVStorageClassName: local
+    minio:
+      version: latest
+  postInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    create_deployment_with_mounted_volume "migration-test" "default" "/data"
+    create_random_file_and_upload_to_deployment "migration-test" "default" "./test.data" "/data/test.data"
+    test_push_image_to_registry
+  postUpgradeScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    sleep 120
+    download_file_from_deployment_and_compare "migration-test" "default" "./test.data" "/data/test.data"
+    pvc_uses_provisioner "migration-test" "default" "rook"
+    test_pull_image_from_registry
+- name: Migrate from Longhorn (S3 disabled) to OpenEBS + Minio
+  flags: "yes"
+  installerSpec:
+    kubernetes:
+      version: 1.24.x
+    containerd:
+      version: 1.6.x
+    flannel:
+      version: 0.21.x
+    registry:
+      version: 2.8.x
+    kotsadm:
+      version: latest
+      disableS3: true
+    ekco:
+      version: latest
+    longhorn:
+      version: 1.3.x
+  upgradeSpec:
+    kubernetes:
+      version: 1.24.x
+    containerd:
+      version: 1.6.x
+    flannel:
+      version: 0.21.x
+    registry:
+      version: 2.8.x
+    kotsadm:
+      version: latest
+    ekco:
+      version: latest
+    openebs:
+      version: 3.4.x
+      isLocalPVEnabled: true
+      localPVStorageClassName: local
+    minio:
+      version: latest
+  postInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    create_deployment_with_mounted_volume "migration-test" "default" "/data"
+    create_random_file_and_upload_to_deployment "migration-test" "default" "./test.data" "/data/test.data"
+    test_push_image_to_registry
+  postUpgradeScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    sleep 120
+    download_file_from_deployment_and_compare "migration-test" "default" "./test.data" "/data/test.data"
+    pvc_uses_provisioner "migration-test" "default" "rook"
+    test_pull_image_from_registry
+- name: Migrate from Longhorn + Minio to OpenEBS + Minio
+  flags: "yes"
+  installerSpec:
+    kubernetes:
+      version: 1.24.x
+    containerd:
+      version: 1.6.x
+    flannel:
+      version: 0.21.x
+    registry:
+      version: 2.8.x
+    kotsadm:
+      version: latest
+    ekco:
+      version: latest
+    longhorn:
+      version: 1.3.x
+    minio:
+      version: latest
+  upgradeSpec:
+    kubernetes:
+      version: 1.24.x
+    containerd:
+      version: 1.6.x
+    flannel:
+      version: 0.21.x
+    registry:
+      version: 2.8.x
+    kotsadm:
+      version: latest
+    ekco:
+      version: latest
+    openebs:
+      version: 3.4.x
+      isLocalPVEnabled: true
+      localPVStorageClassName: local
+    minio:
+      version: latest
+  postInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    create_deployment_with_mounted_volume "migration-test" "default" "/data"
+    create_random_file_and_upload_to_deployment "migration-test" "default" "./test.data" "/data/test.data"
+    test_push_image_to_registry
+  postUpgradeScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    sleep 120
+    download_file_from_deployment_and_compare "migration-test" "default" "./test.data" "/data/test.data"
+    pvc_uses_provisioner "migration-test" "default" "rook"
+    test_pull_image_from_registry
+- name: Migrate from Rook 1.0.4 to OpenEBS (S3 disabled)
+  flags: "yes"
+  installerSpec:
+    kubernetes:
+      version: 1.19.x
+    containerd:
+      version: 1.6.x
+    flannel:
+      version: 0.21.x
+    registry:
+      version: 2.8.x
+    kotsadm:
+      version: latest
+    ekco:
+      version: latest
+    rook:
+      version: 1.0.4
+  upgradeSpec:
+    kubernetes:
+      version: 1.19.x
+    containerd:
+      version: 1.6.x
+    flannel:
+      version: 0.21.x
+    registry:
+      version: 2.8.x
+    kotsadm:
+      version: latest
+      disableS3: true
+    ekco:
+      version: latest
+    openebs:
+      version: 3.4.x
+      isLocalPVEnabled: true
+      localPVStorageClassName: local
+  postInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    create_deployment_with_mounted_volume "migration-test" "default" "/data"
+    create_random_file_and_upload_to_deployment "migration-test" "default" "./test.data" "/data/test.data"
+    test_push_image_to_registry
+  postUpgradeScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    sleep 120
+    download_file_from_deployment_and_compare "migration-test" "default" "./test.data" "/data/test.data"
+    pvc_uses_provisioner "migration-test" "default" "rook"
+    test_pull_image_from_registry
+- name: Migrate from Rook 1.4.x to OpenEBS (S3 disabled)
+  flags: "yes"
+  installerSpec:
+    kubernetes:
+      version: 1.21.x
+    containerd:
+      version: 1.6.x
+    flannel:
+      version: 0.21.x
+    registry:
+      version: 2.8.x
+    kotsadm:
+      version: latest
+    ekco:
+      version: latest
+    rook:
+      version: 1.4.x
+  upgradeSpec:
+    kubernetes:
+      version: 1.21.x
+    containerd:
+      version: 1.6.x
+    flannel:
+      version: 0.21.x
+    registry:
+      version: 2.8.x
+    kotsadm:
+      version: latest
+      disableS3: true
+    ekco:
+      version: latest
+    openebs:
+      version: 3.4.x
+      isLocalPVEnabled: true
+      localPVStorageClassName: local
+  postInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    create_deployment_with_mounted_volume "migration-test" "default" "/data"
+    create_random_file_and_upload_to_deployment "migration-test" "default" "./test.data" "/data/test.data"
+    test_push_image_to_registry
+  postUpgradeScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    sleep 120
+    download_file_from_deployment_and_compare "migration-test" "default" "./test.data" "/data/test.data"
+    pvc_uses_provisioner "migration-test" "default" "rook"
+    test_pull_image_from_registry
+- name: Migrate from Longhorn (S3 disabled) to OpenEBS (S3 disabled)
+  flags: "yes"
+  installerSpec:
+    kubernetes:
+      version: 1.24.x
+    containerd:
+      version: 1.6.x
+    flannel:
+      version: 0.21.x
+    registry:
+      version: 2.8.x
+    kotsadm:
+      version: latest
+      disableS3: true
+    ekco:
+      version: latest
+    longhorn:
+      version: 1.3.x
+  upgradeSpec:
+    kubernetes:
+      version: 1.24.x
+    containerd:
+      version: 1.6.x
+    flannel:
+      version: 0.21.x
+    registry:
+      version: 2.8.x
+    kotsadm:
+      version: latest
+      disableS3: true
+    ekco:
+      version: latest
+    openebs:
+      version: 3.4.x
+      isLocalPVEnabled: true
+      localPVStorageClassName: local
+  postInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    create_deployment_with_mounted_volume "migration-test" "default" "/data"
+    create_random_file_and_upload_to_deployment "migration-test" "default" "./test.data" "/data/test.data"
+    test_push_image_to_registry
+  postUpgradeScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    sleep 120
+    download_file_from_deployment_and_compare "migration-test" "default" "./test.data" "/data/test.data"
+    pvc_uses_provisioner "migration-test" "default" "rook"
+    test_pull_image_from_registry
+- name: Migrate from Longhorn + Minio to OpenEBS (S3 disabled)
+  flags: "yes"
+  installerSpec:
+    kubernetes:
+      version: 1.24.x
+    containerd:
+      version: 1.6.x
+    flannel:
+      version: 0.21.x
+    registry:
+      version: 2.8.x
+    kotsadm:
+      version: latest
+    ekco:
+      version: latest
+    longhorn:
+      version: 1.3.x
+    minio:
+      version: latest
+  upgradeSpec:
+    kubernetes:
+      version: 1.24.x
+    containerd:
+      version: 1.6.x
+    flannel:
+      version: 0.21.x
+    registry:
+      version: 2.8.x
+    kotsadm:
+      version: latest
+      disableS3: true
+    ekco:
+      version: latest
+    openebs:
+      version: 3.4.x
+      isLocalPVEnabled: true
+      localPVStorageClassName: local
+  postInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    create_deployment_with_mounted_volume "migration-test" "default" "/data"
+    create_random_file_and_upload_to_deployment "migration-test" "default" "./test.data" "/data/test.data"
+    test_push_image_to_registry
+  postUpgradeScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    sleep 120
+    download_file_from_deployment_and_compare "migration-test" "default" "./test.data" "/data/test.data"
+    pvc_uses_provisioner "migration-test" "default" "rook"
+    test_pull_image_from_registry
+- name: Migrate from OpenEBS + Minio to OpenEBS (S3 disabled)
+  flags: "yes"
+  installerSpec:
+    kubernetes:
+      version: 1.26.x
+    containerd:
+      version: 1.6.x
+    flannel:
+      version: 0.21.x
+    registry:
+      version: 2.8.x
+    kotsadm:
+      version: latest
+    ekco:
+      version: latest
+    openebs:
+      version: 3.4.x
+      isLocalPVEnabled: true
+      localPVStorageClassName: local
+    minio:
+      version: latest
+  upgradeSpec:
+    kubernetes:
+      version: 1.26.x
+    containerd:
+      version: 1.6.x
+    flannel:
+      version: 0.21.x
+    registry:
+      version: 2.8.x
+    kotsadm:
+      version: latest
+      disableS3: true
+    ekco:
+      version: latest
+    openebs:
+      version: 3.4.x
+      isLocalPVEnabled: true
+      localPVStorageClassName: local
+  postInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    create_deployment_with_mounted_volume "migration-test" "default" "/data"
+    create_random_file_and_upload_to_deployment "migration-test" "default" "./test.data" "/data/test.data"
+    test_push_image_to_registry
+  postUpgradeScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    sleep 120
+    download_file_from_deployment_and_compare "migration-test" "default" "./test.data" "/data/test.data"
+    pvc_uses_provisioner "migration-test" "default" "rook"
+    test_pull_image_from_registry
+- name: Migrate from Rook 1.0.4 to Rook 1.4+
+  flags: "yes"
+  cpu: 6
+  numPrimaryNodes: 1
+  numSecondaryNodes: 2
+  installerSpec:
+    kubernetes:
+      version: 1.19.x
+    containerd:
+      version: 1.6.x
+    flannel:
+      version: 0.21.x
+    registry:
+      version: 2.8.x
+    kotsadm:
+      version: latest
+    ekco:
+      version: latest
+    rook:
+      version: 1.0.4
+  upgradeSpec:
+    kubernetes:
+      version: 1.19.x
+    containerd:
+      version: 1.6.x
+    flannel:
+      version: 0.21.x
+    registry:
+      version: 2.8.x
+    kotsadm:
+      version: latest
+    ekco:
+      version: latest
+    rook:
+      version: 1.4.x
+  postInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    create_deployment_with_mounted_volume "migration-test" "default" "/data"
+    create_random_file_and_upload_to_deployment "migration-test" "default" "./test.data" "/data/test.data"
+    test_push_image_to_registry
+  postUpgradeScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    sleep 120
+    download_file_from_deployment_and_compare "migration-test" "default" "./test.data" "/data/test.data"
+    pvc_uses_provisioner "migration-test" "default" "rook"
+    test_pull_image_from_registry
+- name: Migrate from Longhorn + Minio to Rook 1.4+
+  flags: "yes"
+  cpu: 6
+  numPrimaryNodes: 1
+  numSecondaryNodes: 2
+  installerSpec:
+    kubernetes:
+      version: 1.21.x
+    containerd:
+      version: 1.6.x
+    flannel:
+      version: 0.21.x
+    registry:
+      version: 2.8.x
+    kotsadm:
+      version: latest
+    ekco:
+      version: latest
+    longhorn:
+      version: 1.3.x
+    minio:
+      version: latest
+  upgradeSpec:
+    kubernetes:
+      version: 1.21.x
+    containerd:
+      version: 1.6.x
+    flannel:
+      version: 0.21.x
+    registry:
+      version: 2.8.x
+    kotsadm:
+      version: latest
+    ekco:
+      version: latest
+    rook:
+      version: 1.4.x
+  postInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    create_deployment_with_mounted_volume "migration-test" "default" "/data"
+    create_random_file_and_upload_to_deployment "migration-test" "default" "./test.data" "/data/test.data"
+    test_push_image_to_registry
+  postUpgradeScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    sleep 120
+    download_file_from_deployment_and_compare "migration-test" "default" "./test.data" "/data/test.data"
+    pvc_uses_provisioner "migration-test" "default" "rook"
+    test_pull_image_from_registry
+- name: Migrate from Rook 1.0.4 to OpenEBS + Minio
+  flags: "yes"
+  cpu: 6
+  numPrimaryNodes: 1
+  numSecondaryNodes: 2
+  installerSpec:
+    kubernetes:
+      version: 1.19.x
+    containerd:
+      version: 1.6.x
+    flannel:
+      version: 0.21.x
+    registry:
+      version: 2.8.x
+    kotsadm:
+      version: latest
+    ekco:
+      version: latest
+    rook:
+      version: 1.0.4
+  upgradeSpec:
+    kubernetes:
+      version: 1.19.x
+    containerd:
+      version: 1.6.x
+    flannel:
+      version: 0.21.x
+    registry:
+      version: 2.8.x
+    kotsadm:
+      version: latest
+    ekco:
+      version: latest
+    openebs:
+      version: 3.4.x
+      isLocalPVEnabled: true
+      localPVStorageClassName: local
+    minio:
+      version: latest
+  postInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    create_deployment_with_mounted_volume "migration-test" "default" "/data"
+    create_random_file_and_upload_to_deployment "migration-test" "default" "./test.data" "/data/test.data"
+    test_push_image_to_registry
+  postUpgradeScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    sleep 120
+    download_file_from_deployment_and_compare "migration-test" "default" "./test.data" "/data/test.data"
+    pvc_uses_provisioner "migration-test" "default" "rook"
+    test_pull_image_from_registry
+- name: Migrate from Rook 1.4.x to OpenEBS + Minio
+  flags: "yes"
+  cpu: 6
+  numPrimaryNodes: 1
+  numSecondaryNodes: 2
+  installerSpec:
+    kubernetes:
+      version: 1.21.x
+    containerd:
+      version: 1.6.x
+    flannel:
+      version: 0.21.x
+    registry:
+      version: 2.8.x
+    kotsadm:
+      version: latest
+    ekco:
+      version: latest
+    rook:
+      version: 1.4.x
+  upgradeSpec:
+    kubernetes:
+      version: 1.21.x
+    containerd:
+      version: 1.6.x
+    flannel:
+      version: 0.21.x
+    registry:
+      version: 2.8.x
+    kotsadm:
+      version: latest
+    ekco:
+      version: latest
+    openebs:
+      version: 3.4.x
+      isLocalPVEnabled: true
+      localPVStorageClassName: local
+    minio:
+      version: latest
+  postInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    create_deployment_with_mounted_volume "migration-test" "default" "/data"
+    create_random_file_and_upload_to_deployment "migration-test" "default" "./test.data" "/data/test.data"
+    test_push_image_to_registry
+  postUpgradeScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    sleep 120
+    download_file_from_deployment_and_compare "migration-test" "default" "./test.data" "/data/test.data"
+    pvc_uses_provisioner "migration-test" "default" "rook"
+    test_pull_image_from_registry
+- name: Migrate from Longhorn + Minio to OpenEBS + Minio
+  flags: "yes"
+  cpu: 6
+  numPrimaryNodes: 1
+  numSecondaryNodes: 2
+  installerSpec:
+    kubernetes:
+      version: 1.19.x
+    containerd:
+      version: 1.6.x
+    flannel:
+      version: 0.21.x
+    registry:
+      version: 2.8.x
+    kotsadm:
+      version: latest
+    ekco:
+      version: latest
+    longhorn:
+      version: 1.3.x
+    minio:
+      version: latest
+  upgradeSpec:
+    kubernetes:
+      version: 1.19.x
+    containerd:
+      version: 1.6.x
+    flannel:
+      version: 0.21.x
+    registry:
+      version: 2.8.x
+    kotsadm:
+      version: latest
+    ekco:
+      version: latest
+    openebs:
+      version: 3.4.x
+      isLocalPVEnabled: true
+      localPVStorageClassName: local
+    minio:
+      version: latest
+  postInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    create_deployment_with_mounted_volume "migration-test" "default" "/data"
+    create_random_file_and_upload_to_deployment "migration-test" "default" "./test.data" "/data/test.data"
+    test_push_image_to_registry
+  postUpgradeScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    sleep 120
+    download_file_from_deployment_and_compare "migration-test" "default" "./test.data" "/data/test.data"
+    pvc_uses_provisioner "migration-test" "default" "rook"
+    test_pull_image_from_registry
+- name: Migrate from Rook 1.10.x to OpenEBS 3.4.0 with localpv migrate
+  flags: "yes"
+  installerSpec:
+    kubernetes:
+      version: "1.24.x"
+    flannel:
+      version: latest
+    containerd:
+      version: "latest"
+    rook:
+      version: "1.10.x"
+    kotsadm:
+      version: "latest"
+  upgradeSpec:
+    kubernetes:
+      version: "1.26.x"
+    flannel:
+      version: latest
+    containerd:
+      version: "latest"
+    openebs:
+      isLocalPVEnabled: true
+      localPVStorageClassName: openebs
+      namespace: openebs
+      "version": "3.4.0"
+    minio:
+      version: "latest"
+    kotsadm:
+      version: "latest"
+  unsupportedOSIDs:
+    - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
+  postInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rook_ceph_object_store_info
+    validate_read_write_object_store rwtest testfile.txt
+  postUpgradeScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    minio_object_store_info
+    validate_testfile rwtest testfile.txt
+    validate_read_write_object_store postupgrade upgradefile.txt
+    echo "Verify if rook-ceph namespace was removed after upgrade"
+    if kubectl get namespace/rook-ceph ; then
+       echo "Namespace rook-ceph was not removed"
+       exit 1
+    else
+       echo "Namespace rook-ceph was removed"
+    fi

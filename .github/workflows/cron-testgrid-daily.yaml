@@ -27,7 +27,7 @@ jobs:
             --os-spec ./testgrid/specs/os-firstlast.yaml \
             --priority -1
 
-  testgrid-daily-upgrade:
+  testgrid-daily-storage-migration:
     if: ${{ github.repository_owner == 'replicatedhq' }}
     runs-on: ubuntu-latest
     steps:
@@ -41,10 +41,10 @@ jobs:
       env:
         TESTGRID_API_TOKEN: ${{ secrets.TESTGRID_PROD_API_TOKEN }}
       run: |
-        REF="STAGING-daily-upgrade-$(git rev-parse --short HEAD)-$(date --utc +%FT%TZ)"
+        REF="STAGING-daily-storage-migration-$(git rev-parse --short HEAD)-$(date --utc +%FT%TZ)"
         docker run --rm -e TESTGRID_API_TOKEN -v `pwd`:/wrk -w /wrk \
           replicated/tgrun:latest queue --staging \
             --ref "${REF}" \
-            --spec ./testgrid/specs/upgrade.yaml \
+            --spec ./testgrid/specs/storage-migration.yaml \
             --os-spec ./testgrid/specs/os-firstlast.yaml \
             --priority -1
