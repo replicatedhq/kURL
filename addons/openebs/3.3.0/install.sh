@@ -65,7 +65,7 @@ function openebs_maybe_rook_migration_checks() {
     logStep "Running Rook to OpenEBS migration checks ..."
 
     if ! rook_is_healthy_to_upgrade; then
-        bail "Cannot upgrade from Rook to OpenEBS due it is unhealthy."
+        bail "Cannot upgrade from Rook to OpenEBS. Rook Ceph is unhealthy."
     fi
 
     # get the list of StorageClasses that use rook-ceph
