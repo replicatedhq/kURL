@@ -234,7 +234,7 @@ function migrate_between_object_stores() {
 }
 
 function migrate_rgw_to_minio_checks() {
-    logStep "Running Object Store from Rook to Minio migration checks ..."
+    logStep "Running Rook Ceph Object Store to Minio migration checks ..."
 
     if ! rook_is_healthy_to_upgrade; then
         bail "Cannot upgrade from Rook Ceph ObjectStore to Minio. Rook Ceph is unhealthy."
