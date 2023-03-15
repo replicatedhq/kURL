@@ -779,8 +779,8 @@
             \"max-file\": \"3\"
           }
         }
-    flannel:
-      version: 0.21.x
+    weave:
+      version: 2.6.5
     registry:
       version: 2.8.x
     kotsadm:
@@ -802,8 +802,8 @@
             \"max-file\": \"3\"
           }
         }
-    flannel:
-      version: 0.21.x
+    weave:
+      version: 2.6.5-20221025
     registry:
       version: 2.8.x
     kotsadm:
