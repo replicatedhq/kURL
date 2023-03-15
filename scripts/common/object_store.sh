@@ -246,7 +246,7 @@ function migrate_rgw_to_minio_checks() {
         bail "Cannot upgrade from Rook ObjectStore to Minio due it is unhealthy."
     fi
 
-    logSuccess "Object Store from Rook to Minio migration checks completed."
+    logSuccess "Rook Ceph Object Store to Minio migration checks completed successfully."
 }
 
 function rook_rgw_is_healthy() {
