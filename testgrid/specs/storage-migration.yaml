@@ -1,5 +1,5 @@
 - name: Migrate from Rook 1.0.4 to OpenEBS + Minio
-  flags: "yes"
+  flags: yes
   installerSpec:
     kubernetes:
       version: 1.19.x
@@ -49,11 +49,11 @@
       echo Rook namespace found after the upgrade.
       exit 1
     fi
-- name: Migrate from Rook 1.4.x to OpenEBS + Minio
-  flags: "yes"
+- name: Migrate from Rook 1.10.x to OpenEBS + Minio
+  flags: yes
   installerSpec:
     kubernetes:
-      version: 1.21.x
+      version: 1.26.x
     containerd:
       version: 1.6.x
     flannel:
@@ -65,10 +65,10 @@
     ekco:
       version: latest
     rook:
-      version: 1.4.x
+      version: 1.10.x
   upgradeSpec:
     kubernetes:
-      version: 1.21.x
+      version: 1.26.x
     containerd:
       version: 1.6.x
     flannel:
@@ -101,7 +101,7 @@
       exit 1
     fi
 - name: Migrate from Longhorn (S3 disabled) to OpenEBS + Minio
-  flags: "yes"
+  flags: yes
   installerSpec:
     kubernetes:
       version: 1.24.x
@@ -153,7 +153,7 @@
       exit 1
     fi
 - name: Migrate from Longhorn + Minio to OpenEBS + Minio
-  flags: "yes"
+  flags: yes
   installerSpec:
     kubernetes:
       version: 1.24.x
@@ -206,7 +206,7 @@
       exit 1
     fi
 - name: Migrate from Rook 1.0.4 to OpenEBS (S3 disabled)
-  flags: "yes"
+  flags: yes
   installerSpec:
     kubernetes:
       version: 1.19.x
@@ -255,11 +255,11 @@
       echo Rook namespace found after the upgrade.
       exit 1
     fi
-- name: Migrate from Rook 1.4.x to OpenEBS (S3 disabled)
-  flags: "yes"
+- name: Migrate from Rook 1.10.x to OpenEBS (S3 disabled)
+  flags: yes
   installerSpec:
     kubernetes:
-      version: 1.21.x
+      version: 1.26.x
     containerd:
       version: 1.6.x
     flannel:
@@ -271,10 +271,10 @@
     ekco:
       version: latest
     rook:
-      version: 1.4.x
+      version: 1.10.x
   upgradeSpec:
     kubernetes:
-      version: 1.21.x
+      version: 1.26.x
     containerd:
       version: 1.6.x
     flannel:
@@ -306,7 +306,7 @@
       exit 1
     fi
 - name: Migrate from Longhorn (S3 disabled) to OpenEBS (S3 disabled)
-  flags: "yes"
+  flags: yes
   installerSpec:
     kubernetes:
       version: 1.24.x
@@ -357,7 +357,7 @@
       exit 1
     fi
 - name: Migrate from Longhorn + Minio to OpenEBS (S3 disabled)
-  flags: "yes"
+  flags: yes
   installerSpec:
     kubernetes:
       version: 1.24.x
@@ -409,7 +409,7 @@
       exit 1
     fi
 - name: Migrate from OpenEBS + Minio to OpenEBS (S3 disabled)
-  flags: "yes"
+  flags: yes
   installerSpec:
     kubernetes:
       version: 1.26.x
@@ -458,8 +458,8 @@
     download_file_from_deployment_and_compare "migration-test" "default" "./test.data" "/data/test.data"
     pvc_uses_provisioner "migration-test" "default" "rook"
     test_pull_image_from_registry
-- name: Migrate from Rook 1.0.4 to Rook 1.4+
-  flags: "yes"
+- name: Migrate from Rook 1.0.4 to Rook 1.10.x
+  flags: yes
   cpu: 6
   numPrimaryNodes: 1
   numSecondaryNodes: 2
@@ -492,7 +492,7 @@
     ekco:
       version: latest
     rook:
-      version: 1.4.x
+      version: 1.10.x
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     create_deployment_with_mounted_volume "migration-test" "default" "/data"
@@ -504,8 +504,8 @@
     download_file_from_deployment_and_compare "migration-test" "default" "./test.data" "/data/test.data"
     pvc_uses_provisioner "migration-test" "default" "rook"
     test_pull_image_from_registry
-- name: Migrate from Longhorn + Minio to Rook 1.4+
-  flags: "yes"
+- name: Migrate from Longhorn + Minio to Rook 1.10.x
+  flags: yes
   cpu: 6
   numPrimaryNodes: 1
   numSecondaryNodes: 2
@@ -540,7 +540,7 @@
     ekco:
       version: latest
     rook:
-      version: 1.4.x
+      version: 1.10.x
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     create_deployment_with_mounted_volume "migration-test" "default" "/data"
@@ -557,7 +557,7 @@
       exit 1
     fi
 - name: Migrate from Rook 1.0.4 to OpenEBS + Minio
-  flags: "yes"
+  flags: yes
   cpu: 6
   numPrimaryNodes: 1
   numSecondaryNodes: 2
@@ -610,14 +610,14 @@
       echo Rook namespace found after the upgrade.
       exit 1
     fi
-- name: Migrate from Rook 1.4.x to OpenEBS + Minio
-  flags: "yes"
+- name: Migrate from Rook 1.10.x to OpenEBS + Minio
+  flags: yes
   cpu: 6
   numPrimaryNodes: 1
   numSecondaryNodes: 2
   installerSpec:
     kubernetes:
-      version: 1.21.x
+      version: 1.26.x
     containerd:
       version: 1.6.x
     flannel:
@@ -629,10 +629,10 @@
     ekco:
       version: latest
     rook:
-      version: 1.4.x
+      version: 1.10.x
   upgradeSpec:
     kubernetes:
-      version: 1.21.x
+      version: 1.26.x
     containerd:
       version: 1.6.x
     flannel:
@@ -665,7 +665,7 @@
       exit 1
     fi
 - name: Migrate from Longhorn + Minio to OpenEBS + Minio
-  flags: "yes"
+  flags: yes
   cpu: 6
   numPrimaryNodes: 1
   numSecondaryNodes: 2
@@ -721,34 +721,34 @@
       exit 1
     fi
 - name: Migrate from Rook 1.10.x to OpenEBS 3.4.0 with localpv migrate
-  flags: "yes"
+  flags: yes
   installerSpec:
     kubernetes:
-      version: "1.24.x"
+      version: 1.24.x
     flannel:
       version: latest
     containerd:
-      version: "latest"
+      version: latest
     rook:
-      version: "1.10.x"
+      version: 1.10.x
     kotsadm:
-      version: "latest"
+      version: latest
   upgradeSpec:
     kubernetes:
-      version: "1.26.x"
+      version: 1.26.x
     flannel:
       version: latest
     containerd:
-      version: "latest"
+      version: latest
     openebs:
       isLocalPVEnabled: true
       localPVStorageClassName: openebs
       namespace: openebs
-      "version": "3.4.0"
+      version: 3.4.0
     minio:
-      version: "latest"
+      version: latest
     kotsadm:
-      version: "latest"
+      version: latest
   unsupportedOSIDs:
     - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
   postInstallScript: |
@@ -760,7 +760,6 @@
     minio_object_store_info
     validate_testfile rwtest testfile.txt
     validate_read_write_object_store postupgrade upgradefile.txt
-    echo "Verify if rook-ceph namespace was removed after upgrade"
     if kubectl get namespace/rook-ceph ; then
       echo Rook namespace found after the upgrade.
       exit 1
