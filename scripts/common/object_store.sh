@@ -243,7 +243,7 @@ function migrate_rgw_to_minio_checks() {
     log "Wating for Rook Ceph Object Store health ..."
     if ! spinner_until 300 rook_rgw_is_healthy ; then
         logFail "Failed to detect healthy Rook Ceph Object Store"
-        bail "Cannot upgrade from Rook ObjectStore to Minio due it is unhealthy."
+        bail "Cannot upgrade from Rook Ceph Object Store to Minio. Rook Ceph is unhealthy."
     fi
 
     logSuccess "Rook Ceph Object Store to Minio migration checks completed successfully."
