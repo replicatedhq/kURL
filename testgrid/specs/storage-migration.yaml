@@ -43,7 +43,7 @@
     source /opt/kurl-testgrid/testhelpers.sh
     sleep 120
     download_file_from_deployment_and_compare "migration-test" "default" "./test.data" "/data/test.data"
-    pvc_uses_provisioner "migration-test" "default" "rook"
+    pvc_uses_provisioner "migration-test" "default" "openebs"
     test_pull_image_from_registry
     if kubectl get namespace/rook-ceph ; then
       echo Rook namespace found after the upgrade.
@@ -94,7 +94,7 @@
     source /opt/kurl-testgrid/testhelpers.sh
     sleep 120
     download_file_from_deployment_and_compare "migration-test" "default" "./test.data" "/data/test.data"
-    pvc_uses_provisioner "migration-test" "default" "rook"
+    pvc_uses_provisioner "migration-test" "default" "openebs"
     test_pull_image_from_registry
     if kubectl get namespace/rook-ceph ; then
       echo Rook namespace found after the upgrade.
@@ -146,7 +146,7 @@
     source /opt/kurl-testgrid/testhelpers.sh
     sleep 120
     download_file_from_deployment_and_compare "migration-test" "default" "./test.data" "/data/test.data"
-    pvc_uses_provisioner "migration-test" "default" "rook"
+    pvc_uses_provisioner "migration-test" "default" "openebs"
     test_pull_image_from_registry
     if kubectl get namespace/longhorn-system ; then
       echo Longhorn namespace found after the upgrade.
@@ -199,7 +199,7 @@
     source /opt/kurl-testgrid/testhelpers.sh
     sleep 120
     download_file_from_deployment_and_compare "migration-test" "default" "./test.data" "/data/test.data"
-    pvc_uses_provisioner "migration-test" "default" "rook"
+    pvc_uses_provisioner "migration-test" "default" "openebs"
     test_pull_image_from_registry
     if kubectl get namespace/longhorn-system ; then
       echo Longhorn namespace found after the upgrade.
@@ -249,7 +249,7 @@
     source /opt/kurl-testgrid/testhelpers.sh
     sleep 120
     download_file_from_deployment_and_compare "migration-test" "default" "./test.data" "/data/test.data"
-    pvc_uses_provisioner "migration-test" "default" "rook"
+    pvc_uses_provisioner "migration-test" "default" "openebs"
     test_pull_image_from_registry
     if kubectl get namespace/rook-ceph ; then
       echo Rook namespace found after the upgrade.
@@ -299,7 +299,7 @@
     source /opt/kurl-testgrid/testhelpers.sh
     sleep 120
     download_file_from_deployment_and_compare "migration-test" "default" "./test.data" "/data/test.data"
-    pvc_uses_provisioner "migration-test" "default" "rook"
+    pvc_uses_provisioner "migration-test" "default" "openebs"
     test_pull_image_from_registry
     if kubectl get namespace/rook-ceph ; then
       echo Rook namespace found after the upgrade.
@@ -350,7 +350,7 @@
     source /opt/kurl-testgrid/testhelpers.sh
     sleep 120
     download_file_from_deployment_and_compare "migration-test" "default" "./test.data" "/data/test.data"
-    pvc_uses_provisioner "migration-test" "default" "rook"
+    pvc_uses_provisioner "migration-test" "default" "openebs"
     test_pull_image_from_registry
     if kubectl get namespace/longhorn-system ; then
       echo Longhorn namespace found after the upgrade.
@@ -402,7 +402,7 @@
     source /opt/kurl-testgrid/testhelpers.sh
     sleep 120
     download_file_from_deployment_and_compare "migration-test" "default" "./test.data" "/data/test.data"
-    pvc_uses_provisioner "migration-test" "default" "rook"
+    pvc_uses_provisioner "migration-test" "default" "openebs"
     test_pull_image_from_registry
     if kubectl get namespace/longhorn-system ; then
       echo Longhorn namespace found after the upgrade.
@@ -456,7 +456,7 @@
     source /opt/kurl-testgrid/testhelpers.sh
     sleep 120
     download_file_from_deployment_and_compare "migration-test" "default" "./test.data" "/data/test.data"
-    pvc_uses_provisioner "migration-test" "default" "rook"
+    pvc_uses_provisioner "migration-test" "default" "openebs"
     test_pull_image_from_registry
 - name: Migrate from Rook 1.0.4 to Rook 1.10.x
   flags: yes
@@ -604,7 +604,7 @@
     source /opt/kurl-testgrid/testhelpers.sh
     sleep 120
     download_file_from_deployment_and_compare "migration-test" "default" "./test.data" "/data/test.data"
-    pvc_uses_provisioner "migration-test" "default" "rook"
+    pvc_uses_provisioner "migration-test" "default" "openebs"
     test_pull_image_from_registry
     if kubectl get namespace/rook-ceph ; then
       echo Rook namespace found after the upgrade.
@@ -658,7 +658,7 @@
     source /opt/kurl-testgrid/testhelpers.sh
     sleep 120
     download_file_from_deployment_and_compare "migration-test" "default" "./test.data" "/data/test.data"
-    pvc_uses_provisioner "migration-test" "default" "rook"
+    pvc_uses_provisioner "migration-test" "default" "openebs"
     test_pull_image_from_registry
     if kubectl get namespace/rook-ceph ; then
       echo Rook namespace found after the upgrade.
@@ -714,7 +714,7 @@
     source /opt/kurl-testgrid/testhelpers.sh
     sleep 120
     download_file_from_deployment_and_compare "migration-test" "default" "./test.data" "/data/test.data"
-    pvc_uses_provisioner "migration-test" "default" "rook"
+    pvc_uses_provisioner "migration-test" "default" "openebs"
     test_pull_image_from_registry
     if kubectl get namespace/longhorn-system ; then
       echo Longhorn namespace found after the upgrade.
@@ -825,7 +825,7 @@
     source /opt/kurl-testgrid/testhelpers.sh
     sleep 120
     download_file_from_deployment_and_compare "migration-test" "default" "./test.data" "/data/test.data"
-    pvc_uses_provisioner "migration-test" "default" "rook"
+    pvc_uses_provisioner "migration-test" "default" "openebs"
     test_pull_image_from_registry
     if kubectl get namespace/rook-ceph ; then
       echo Rook namespace found after the upgrade.
