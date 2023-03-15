@@ -251,7 +251,7 @@ function rook_is_healthy_to_upgrade() {
     log "Awaiting to check if rook-ceph ceph is health"
     if ! $DIR/bin/kurl rook wait-for-health 600 ; then
         kubectl -n rook-ceph exec deploy/rook-ceph-tools -- ceph status
-        logFail "Failed to detect Rook Ceph is not healthy"
+        logFail "Rook Ceph is unhealthy"
         return 1
     fi
 
