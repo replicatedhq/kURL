@@ -249,6 +249,10 @@ function migrate_rgw_to_minio_checks() {
     logSuccess "Object Store from Rook to Minio migration checks completed."
 }
 
+function rook_rgw_is_healthy() {
+    curl --globoff --noproxy "*" --fail --silent --insecure "http://${OBJECT_STORE_CLUSTER_IP_BRACKETED}" > /dev/null
+}
+
 function migrate_rgw_to_minio() {
     report_addon_start "rook-ceph-to-minio" "v1.1"
 
