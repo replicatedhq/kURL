@@ -260,7 +260,7 @@ function rook_is_healthy_to_upgrade() {
     local rook_versions=
     rook_versions="$(kubectl -n rook-ceph get deployment -l rook_cluster=rook-ceph -o jsonpath='{range .items[*]}{"rook-version="}{.metadata.labels.rook-version}{"\n"}{end}' | sort | uniq)"
     if [ -n "${rook_versions}" ] && [ "$(echo "${rook_versions}" | wc -l)" -gt "1" ]; then
-        logFail "Detected multiple Ceph versions detected"
+        logFail "Multiple Rook versions detected"
         logFail "${rook_versions}"
         return 1
     fi
