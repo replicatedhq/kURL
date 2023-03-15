@@ -236,7 +236,7 @@ function migrate_between_object_stores() {
 function migrate_rgw_to_minio_checks() {
     logStep "Running Object Store from Rook to Minio migration checks ..."
 
-    if rook_is_health_to_upgrade; then
+    if ! rook_is_health_to_upgrade; then
         bail "Cannot upgrade from Rook ObjectStore to Minio due it is unhealthy."
     fi
 
