@@ -233,8 +233,26 @@ function migrate_between_object_stores() {
     return 0
 }
 
+function migrate_rgw_to_minio_checks() {
+    logStep "Running Object Store from Rook to Minio migration checks ..."
+
+    if rook_is_health_to_upgrade; then
+        bail "Cannot upgrade from Rook ObjectStore to Minio due it is unhealthy."
+    fi
+
+    log "Awaiting to check if rook-ceph object store is health"
+    if ! spinner_until 300 rook_rgw_is_healthy ; then
+        logFail "Failed to detect healthy rook-ceph object store"
+        bail "Cannot upgrade from Rook ObjectStore to Minio due it is unhealthy."
+    fi
+
+    logSuccess "Object Store from Rook to Minio migration checks completed."
+}
+
 function migrate_rgw_to_minio() {
     report_addon_start "rook-ceph-to-minio" "v1.1"
+
+    migrate_rgw_to_minio_checks
 
     RGW_HOST="rook-ceph-rgw-rook-ceph-store.rook-ceph"
     RGW_ACCESS_KEY_ID=$(kubectl -n rook-ceph get secret rook-ceph-object-user-rook-ceph-store-kurl -o yaml | grep AccessKey | head -1 | awk '{print $2}' | base64 --decode)
