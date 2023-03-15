@@ -99,7 +99,7 @@ function openebs_maybe_rook_migration_checks() {
         bail "Cannot upgrade from Rook to OpenEBS due to previous error."
     fi
 
-    logSuccess "Rook to OpenEBS migration checks completed."
+    logSuccess "Rook to OpenEBS migration checks completed successfully."
 }
 
 function openebs_prompt_migrate_from_rook() {
