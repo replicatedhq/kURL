@@ -250,6 +250,12 @@ function migrate_rgw_to_minio_checks() {
 }
 
 function rook_rgw_is_healthy() {
+    export OBJECT_STORE_CLUSTER_IP
+    OBJECT_STORE_CLUSTER_IP=$(kubectl -n rook-ceph get service rook-ceph-rgw-rook-ceph-store | tail -n1 | awk '{ print $3}')
+    export OBJECT_STORE_CLUSTER_HOST="http://rook-ceph-rgw-rook-ceph-store.rook-ceph"
+    # same as OBJECT_STORE_CLUSTER_IP for IPv4, wrapped in brackets for IPv6
+    export OBJECT_STORE_CLUSTER_IP_BRACKETED
+    OBJECT_STORE_CLUSTER_IP_BRACKETED=$("$DIR"/bin/kurl netutil format-ip-address "$OBJECT_STORE_CLUSTER_IP")
     curl --globoff --noproxy "*" --fail --silent --insecure "http://${OBJECT_STORE_CLUSTER_IP_BRACKETED}" > /dev/null
 }
 
