@@ -154,7 +154,7 @@ function maybe_cleanup_longhorn() {
         fi
 
         logWarn ""
-        logWarn "ATTENTION: Unable to remove Longhorn."
+        logFail "Unable to remove Longhorn."
         if [ "$DID_MIGRATE_LONGHORN_PVCS" != "1" ]; then
             logFail "Storage class migration did not succeed"
         fi
