@@ -145,7 +145,7 @@ function maybe_cleanup_longhorn() {
         if ! kubectl get ns | grep -q longhorn-system; then
             return
         fi 
-            logStep "Removing Longhorn"
+        logStep "Removing Longhorn"
         if [ "$DID_MIGRATE_LONGHORN_PVCS" == "1" ]; then
             report_addon_start "longhorn-removal" "v1"
             remove_longhorn
