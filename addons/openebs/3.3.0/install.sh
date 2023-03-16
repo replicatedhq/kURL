@@ -62,6 +62,11 @@ function openebs_maybe_migrate_from_rook() {
 }
 
 function openebs_maybe_rook_migration_checks() {
+    logStep "Running Rook to OpenEBS migration checks ..."
+
+    if ! rook_is_healthy_to_upgrade; then
+        bail "Cannot upgrade from Rook to OpenEBS. Rook Ceph is unhealthy."
+    fi
 
     # get the list of StorageClasses that use rook-ceph
     local rook_scs
@@ -70,10 +75,9 @@ function openebs_maybe_rook_migration_checks() {
     rook_default_sc=$(kubectl get storageclass | grep rook | grep '(default)' | awk '{ print $1}') # any default rook StorageClasses
 
     # Ensure openebs-localpv-provisioner deployment is ready
-    echo "awaiting openebs-localpv-provisioner deployment"
+    log "awaiting openebs-localpv-provisioner deployment"
     spinner_until 120 deployment_fully_updated openebs openebs-localpv-provisioner
 
-    echo "running Rook to OpenEBS migration checks ..."
     local rook_scs_pvmigrate_dryrun_output
     local rook_default_sc_pvmigrate_dryrun_output
     for rook_sc in $rook_scs
@@ -95,8 +99,7 @@ function openebs_maybe_rook_migration_checks() {
         bail "Cannot upgrade from Rook to OpenEBS due to previous error."
     fi
 
-    echo "Rook to OpenEBS migration checks completed."
-
+    logSuccess "Rook to OpenEBS migration checks completed successfully."
 }
 
 function openebs_prompt_migrate_from_rook() {

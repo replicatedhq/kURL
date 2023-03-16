@@ -233,8 +233,36 @@ function migrate_between_object_stores() {
     return 0
 }
 
+function migrate_rgw_to_minio_checks() {
+    logStep "Running Rook Ceph Object Store to Minio migration checks ..."
+
+    if ! rook_is_healthy_to_upgrade; then
+        bail "Cannot upgrade from Rook Ceph Object Store to Minio. Rook Ceph is unhealthy."
+    fi
+
+    log "Wating for Rook Ceph Object Store health ..."
+    if ! spinner_until 300 rook_rgw_is_healthy ; then
+        logFail "Failed to detect healthy Rook Ceph Object Store"
+        bail "Cannot upgrade from Rook Ceph Object Store to Minio. Rook Ceph is unhealthy."
+    fi
+
+    logSuccess "Rook Ceph Object Store to Minio migration checks completed successfully."
+}
+
+function rook_rgw_is_healthy() {
+    export OBJECT_STORE_CLUSTER_IP
+    OBJECT_STORE_CLUSTER_IP=$(kubectl -n rook-ceph get service rook-ceph-rgw-rook-ceph-store | tail -n1 | awk '{ print $3}')
+    export OBJECT_STORE_CLUSTER_HOST="http://rook-ceph-rgw-rook-ceph-store.rook-ceph"
+    # same as OBJECT_STORE_CLUSTER_IP for IPv4, wrapped in brackets for IPv6
+    export OBJECT_STORE_CLUSTER_IP_BRACKETED
+    OBJECT_STORE_CLUSTER_IP_BRACKETED=$("$BIN_KURL" netutil format-ip-address "$OBJECT_STORE_CLUSTER_IP")
+    curl --globoff --noproxy "*" --fail --silent --insecure "http://${OBJECT_STORE_CLUSTER_IP_BRACKETED}" > /dev/null
+}
+
 function migrate_rgw_to_minio() {
     report_addon_start "rook-ceph-to-minio" "v1.1"
+
+    migrate_rgw_to_minio_checks
 
     RGW_HOST="rook-ceph-rgw-rook-ceph-store.rook-ceph"
     RGW_ACCESS_KEY_ID=$(kubectl -n rook-ceph get secret rook-ceph-object-user-rook-ceph-store-kurl -o yaml | grep AccessKey | head -1 | awk '{print $2}' | base64 --decode)
