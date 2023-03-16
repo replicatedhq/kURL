@@ -235,14 +235,14 @@ function maybe_cleanup_rook() {
                 logWarn "the migration was successful to prevent the possibility of data loss."
             fi
         fi
-
-        logWarn "Unable to remove Rook."
+        logWarn ""
+        logWarn "ATTENTION: Unable to remove Rook."
         if [ "$DID_MIGRATE_ROOK_PVCS" != "1" ]; then
-           logWarn "Storage class migration did not succeed"
+           logFail "Storage class migration did not succeed"
         fi
         
         if [ -n "$MINIO_VERSION" ] && [ "$DID_MIGRATE_ROOK_OBJECT_STORE" != "1" ]; then
-           logWarn "Object Store migration did not succeed"
+           logFail "Object Store migration did not succeed"
         fi
     fi
 }
