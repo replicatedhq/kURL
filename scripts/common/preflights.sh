@@ -657,3 +657,20 @@ function bail_if_unsupported_openebs_to_rook_version() {
     fi
 }
 
+function bail_when_requires_minio_with_openebs() {
+    if [ -z "$MINIO_VERSION" ] && [ -n "$OPENEBS_VERSION" ]; then
+        if [ -n "$KOTS_VERSION" ] && [[ -z "$KOTSADM_DISABLE_S3" || "$KOTSADM_DISABLE_S3" != "1" ]];then
+             logFail "The OpenEBS version $OPENEBS_VERSION cannot be installed with kOTS version $KOTS_VERSION"
+             bail "OpenEBS and kOTS with s3 enabled requires MinIO"
+        fi
+        if [ -n "$REGISTRY_VERSION" ];then
+             logFail "The OpenEBS version $OPENEBS_VERSION cannot be installed with kOTS version $REGISTRY_VERSION"
+             bail "OpenEBS and Registry requires MinIO. Please, ensure that your installer also provides MinIO"
+        fi
+        if [ -n "$VALERO_VERSION" ];then
+             logFail "The OpenEBS version $OPENEBS_VERSION cannot be installed with kOTS version $VALERO_VERSION"
+             bail "OpenEBS and Registry requires Valero. Please, ensure that your installer also provides MinIO"
+        fi
+    fi
+}
+
