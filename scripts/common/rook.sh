@@ -231,6 +231,8 @@ function maybe_cleanup_rook() {
                 logWarn "$ curl <installer>/task.sh | sudo bash -s remove_rook_ceph, i.e.:"
                 logWarn ""
                 logWarn "curl https://kurl.sh/latest/tasks.sh | sudo bash -s remove_rook_ceph"
+                # We should not return error
+                return
             fi
         fi
         logFail "Unable to remove Rook."
