@@ -223,10 +223,16 @@ function maybe_cleanup_rook() {
         if [ "$DID_MIGRATE_ROOK_PVCS" == "1" ] && [ -z "$MINIO_VERSION" ]; then
             if [ -z "$DID_MIGRATE_ROOK_OBJECT_STORE" ] || [ "$DID_MIGRATE_ROOK_OBJECT_STORE" != "1" ]; then
                 logWarn "The PVC(s) were migrated but this install does not specified a Minio version."
-                logWarn "If you are migration from Rook to OpenEBS without select an Minio version then the installer cannot programmatically remove Rook."
-                logWarn "You can manually perform this operation with the remove_rook_ceph task, i.e.:"
-                logWarn "curl <installer>/task.sh | sudo bash -s remove_rook_ceph (i.e. curl https://kurl.sh/latest/tasks.sh | sudo bash -s remove_rook_ceph)"
-                logWarn "However, please only manually remove Rook from the host after you ensure that the migration was successful to prevent the possibility of data loss."
+                logWarn "If you are migration from Rook to OpenEBS without select an Minio version then"
+                logWarn "the installer cannot programmatically remove Rook."
+                logWarn ""
+                logWarn "You can manually perform this operation by running the remove_rook_ceph task:"
+                logWarn "$ curl <installer>/task.sh | sudo bash -s remove_rook_ceph, i.e.:"
+                logWarn ""
+                logWarn "curl https://kurl.sh/latest/tasks.sh | sudo bash -s remove_rook_ceph"
+                logWarn ""
+                logWarn "However, please only manually remove Rook from the host after you ensure that"
+                logWarn "the migration was successful to prevent the possibility of data loss."
             fi
         fi
 
