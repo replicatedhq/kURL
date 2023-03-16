@@ -211,7 +211,7 @@ function maybe_cleanup_rook() {
         if ! kubectl get ns | grep -q rook-ceph; then
             return
         fi
-        logStep "Removing Rook ..."
+        logStep "Removing Rook"
 
         if [ "$DID_MIGRATE_ROOK_PVCS" == "1" ] && [ "$DID_MIGRATE_ROOK_OBJECT_STORE" == "1" ]; then
             report_addon_start "rook-ceph-removal" "v1"
