@@ -238,7 +238,7 @@ function maybe_cleanup_rook() {
             fi
         fi
         logWarn ""
-        logWarn "ATTENTION: Unable to remove Rook."
+        logFail "Unable to remove Rook."
         if [ "$DID_MIGRATE_ROOK_PVCS" != "1" ]; then
            logFail "Storage class migration did not succeed"
         fi
