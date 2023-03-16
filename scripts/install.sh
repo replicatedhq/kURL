@@ -365,6 +365,7 @@ function kubernetes_maybe_generate_bootstrap_token() {
 }
 
 function kurl_config() {
+    logStep "Configuring the installer ..."
     if kubernetes_resource_exists kube-system configmap kurl-config; then
         kubectl -n kube-system delete configmap kurl-config
     fi
