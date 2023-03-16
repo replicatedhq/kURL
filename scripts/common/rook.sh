@@ -233,7 +233,6 @@ function maybe_cleanup_rook() {
                 logWarn "curl https://kurl.sh/latest/tasks.sh | sudo bash -s remove_rook_ceph"
             fi
         fi
-        logWarn ""
         logFail "Unable to remove Rook."
         if [ "$DID_MIGRATE_ROOK_PVCS" != "1" ]; then
            logFail "Storage class migration did not succeed"
