@@ -207,9 +207,11 @@ function rook_ceph_to_sc_migration() {
 function maybe_cleanup_rook() {
     if [ -z "$ROOK_VERSION" ]; then
 
-        if kubectl get ns | grep -q rook-ceph; then
-            logStep "Removing Rook ..."
+        # Just continue if Rook is installed. 
+        if ! kubectl get ns | grep -q rook-ceph; then
+            return
         fi
+        logStep "Removing Rook ..."
 
         if [ "$DID_MIGRATE_ROOK_PVCS" == "1" ] && [ "$DID_MIGRATE_ROOK_OBJECT_STORE" == "1" ]; then
             report_addon_start "rook-ceph-removal" "v1"
