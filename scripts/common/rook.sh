@@ -277,3 +277,33 @@ function add_rook_store_object_migration_status() {
     fi
     kubectl patch configmap kurl-migration-from-rook -n kurl --type merge -p '{"data":{"DID_MIGRATE_ROOK_OBJECT_STORE":"1"}}'
 }
+
+function rook_is_healthy_to_upgrade() {
+    log "Awaiting Rook Ceph health ..."
+    if ! $DIR/bin/kurl rook wait-for-health 600 ; then
+        kubectl -n rook-ceph exec deploy/rook-ceph-tools -- ceph status
+        logFail "Rook Ceph is unhealthy"
+        return 1
+    fi
+
+    log "Checking Rook Ceph versions and replicas"
+    kubectl -n rook-ceph get deployment -l rook_cluster=rook-ceph -o jsonpath='{range .items[*]}{.metadata.name}{"  \treq/upd/avl: "}{.spec.replicas}{"/"}{.status.updatedReplicas}{"/"}{.status.readyReplicas}{"  \trook-version="}{.metadata.labels.rook-version}{"\n"}{end}'
+    local rook_versions=
+    rook_versions="$(kubectl -n rook-ceph get deployment -l rook_cluster=rook-ceph -o jsonpath='{range .items[*]}{"rook-version="}{.metadata.labels.rook-version}{"\n"}{end}' | sort | uniq)"
+    if [ -n "${rook_versions}" ] && [ "$(echo "${rook_versions}" | wc -l)" -gt "1" ]; then
+        logFail "Multiple Rook versions detected"
+        logFail "${rook_versions}"
+        return 1
+    fi
+
+    log "Checking Ceph versions and replicas"
+    kubectl -n rook-ceph get deployment -l rook_cluster=rook-ceph -o jsonpath='{range .items[*]}{.metadata.name}{"  \treq/upd/avl: "}{.spec.replicas}{"/"}{.status.updatedReplicas}{"/"}{.status.readyReplicas}{"  \tceph-version="}{.metadata.labels.ceph-version}{"\n"}{end}'
+    local ceph_versions_found=
+    ceph_versions_found="$(kubectl -n rook-ceph get deployment -l rook_cluster=rook-ceph -o jsonpath='{range .items[*]}{"ceph-version="}{.metadata.labels.ceph-version}{"\n"}{end}' | sort | uniq)"
+    if [ -n "${ceph_versions_found}" ] && [ "$(echo "${ceph_versions_found}" | wc -l)" -gt "1" ]; then
+        logFail "Multiple Ceph versions detected"
+        logFail "${ceph_versions_found}"
+        return 1
+    fi
+    return 0
+}
