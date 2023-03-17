@@ -107,7 +107,7 @@ function ekco_already_applied() {
     local dst="$DIR/kustomize/ekco"
 
     # if rook-ceph has been removed, ekco should be redeployed to not attempt to manage it
-    DID_MIGRATE_ROOK_PVCS=$(kubectl -n kurl get configmap kurl-migration-from-rook -o yaml | grep DID_MIGRATE_ROOK_PVCS | head -1 | awk '{print $2}' | sed 's/\"//g')
+    DID_MIGRATE_ROOK_PVCS=$(kubectl -n kurl get configmap kurl-migration-from-rook -o jsonpath='{ .data.DID_MIGRATE_ROOK_PVCS }')
     if [ "$DID_MIGRATE_ROOK_PVCS" == "1" ]; then
         ekco_create_deployment "$src" "$dst"
     fi
