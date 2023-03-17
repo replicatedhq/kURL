@@ -141,10 +141,21 @@ function longhorn_to_sc_migration() {
 # if PVCs and object store data have both been migrated from longhorn and longhorn is no longer specified in the kURL spec, remove longhorn
 function maybe_cleanup_longhorn() {
     if [ -z "$LONGHORN_VERSION" ]; then
+        # Just continue if longhorn is installed. 
+        if ! kubectl get ns | grep -q longhorn-system; then
+            return
+        fi 
+        logStep "Removing Longhorn"
         if [ "$DID_MIGRATE_LONGHORN_PVCS" == "1" ]; then
             report_addon_start "longhorn-removal" "v1"
             remove_longhorn
             report_addon_success "longhorn-removal" "v1"
+            return
+        fi
+
+        logFail "Unable to remove Longhorn."
+        if [ "$DID_MIGRATE_LONGHORN_PVCS" != "1" ]; then
+            logFail "Storage class migration did not succeed"
         fi
     fi
 }
