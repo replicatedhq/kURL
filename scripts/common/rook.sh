@@ -204,6 +204,7 @@ function rook_ceph_to_sc_migration() {
     report_addon_success "rook-ceph-to-$scProvisioner-migration" "v2"
 }
 
+# if PVCs and object store data have both been migrated from rook-ceph and rook-ceph is no longer specified in the kURL spec, remove rook-ceph
 function maybe_cleanup_rook() {
     if [ -z "$ROOK_VERSION" ]; then
 
