@@ -224,7 +224,6 @@ function maybe_cleanup_rook() {
         # we do not know if the solution uses or not ObjectStore and if someone data will not be lost
         if [ "$DID_MIGRATE_ROOK_PVCS" == "1" ] && [ -z "$MINIO_VERSION" ]; then
             if [ -z "$DID_MIGRATE_ROOK_OBJECT_STORE" ] || [ "$DID_MIGRATE_ROOK_OBJECT_STORE" != "1" ]; then
-                logWarn "Unable to remove Rook."  
                 logWarn "PVC(s) were migrated from Rook but Object Store data was not, as no MinIO version was specified."
                 logWarn "Rook will not be automatically removed without migrating Object Store data."
                 logWarn ""
@@ -232,8 +231,6 @@ function maybe_cleanup_rook() {
                 logWarn "$ curl <installer>/task.sh | sudo bash -s remove_rook_ceph, i.e.:"
                 logWarn ""
                 logWarn "curl https://kurl.sh/latest/tasks.sh | sudo bash -s remove_rook_ceph"
-                # We should not return error
-                return
             fi
         fi
         logFail "Unable to remove Rook."
