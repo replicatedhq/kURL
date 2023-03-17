@@ -207,24 +207,14 @@ function rook_ceph_to_sc_migration() {
 # if PVCs and object store data have both been migrated from rook-ceph and rook-ceph is no longer specified in the kURL spec, remove rook-ceph
 function maybe_cleanup_rook() {
     if [ -z "$ROOK_VERSION" ]; then
-        if ! kubectl get ns | grep -q rook-ceph; then
-           return
-        fi
-        logStep "Removing Rook"
-        ```suggestion
         DID_MIGRATE_ROOK_PVCS=$(kubectl -n kurl get configmap kurl-migration-from-rook -o jsonpath='{ .data.DID_MIGRATE_ROOK_PVCS }')
         DID_MIGRATE_ROOK_OBJECT_STORE=$(kubectl -n kurl get configmap kurl-migration-from-rook -o jsonpath='{ .data.DID_MIGRATE_ROOK_OBJECT_STORE }')
         if [ "$DID_MIGRATE_ROOK_PVCS" == "1" ] && [ "$DID_MIGRATE_ROOK_OBJECT_STORE" == "1" ]; then
             report_addon_start "rook-ceph-removal" "v1"
-            kubectl patch configmap kurl-migration-from-rook -n kurl --type merge -p '{"data":{"DID_MIGRATE_ROOK_OBJECT_STORE":"completed"}}'
-            kubectl patch configmap kurl-migration-from-rook -n kurl --type merge -p '{"data":{"DID_MIGRATE_ROOK_PVCS":"completed"}}'
             remove_rook_ceph
-            kubectl patch configmap kurl-migration-from-rook -n kurl --type merge -p '{"data":{"DID_REMOVE_ROOK":"completed"}}'
+            kubectl delete configmap kurl-migration-from-rook -n kurl
             report_addon_success "rook-ceph-removal" "v1"
-            logSuccess "Rook removed from cluster"
-            return
         fi
-        logWarn "Unable to remove Rook."
     fi
 }
 
