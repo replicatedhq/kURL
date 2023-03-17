@@ -1564,6 +1564,18 @@
       envoyPodsNotReadyDuration: "5m"
   unsupportedOSIDs:
   - ubuntu-2204 # containerd 1.4.x is not supported on ubuntu 22.04
+  postUpgradeScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    minio_object_store_info
+    validate_testfile rwtest testfile.txt
+    validate_read_write_object_store postupgrade upgradefile.txt    
+    echo "Verify if rook-ceph namespace was removed after upgrade"
+    if kubectl get namespace/rook-ceph ; then
+       echo "Namespace rook-ceph was not removed"
+       exit 1 
+    else
+       echo "Namespace rook-ceph was removed"
+    fi
 - name: less_command
   installerSpec:
     kubernetes:
