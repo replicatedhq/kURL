@@ -14,6 +14,7 @@ function preflights() {
     host_nameservers_reachable
     allow_remove_docker_new_install
     bail_if_unsupported_openebs_to_rook_version
+    bail_if_kurl_version_is_lower_than_previous_config
     return 0
 }
 
@@ -657,3 +658,22 @@ function bail_if_unsupported_openebs_to_rook_version() {
     fi
 }
 
+# not allow run the installer/upgrade when kurl version is lower than the previous applied before
+function bail_if_kurl_version_is_lower_than_previous_config() {
+    if commandExists kubectl; then
+       local previous_kurl_version
+       previous_kurl_version="$(kurl_get_current_version)"
+       if [ -z "$previous_kurl_version" ]; then
+               previous_kurl_version="$(kurl_get_current_version)"
+       fi
+
+       semverCompare $(echo "$KURL_VERSION" | sed 's/v//g') "$(echo "$previous_kurl_version" | sed 's/v//g')"
+       if [ "$SEMVER_COMPARE_RESULT"  = "-1" ]; then # greater than or equal to 14.2.21
+           logFail "This host was previously installed using the kURL release version $previous_kurl_version"
+           logFail "which is greater than the current version $KURL_VERSION."
+           bail "Please use a kURL release version which is equal to or greater than the version used previously."
+       fi
+       log "Previous kURL version used to install or update the cluster is $previous_kurl_version"
+       log "and the current kURL version used is $KURL_VERSION"
+    fi
+}
