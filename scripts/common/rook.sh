@@ -211,8 +211,9 @@ function maybe_cleanup_rook() {
            return
         fi
         logStep "Removing Rook"
-        DID_MIGRATE_ROOK_PVCS=$(kubectl -n kurl get configmap kurl-migration-from-rook -o yaml | grep DID_MIGRATE_ROOK_PVCS | head -1 | awk '{print $2}' | sed 's/\"//g')
-        DID_MIGRATE_ROOK_OBJECT_STORE=$(kubectl -n kurl get configmap kurl-migration-from-rook -o yaml | grep DID_MIGRATE_ROOK_OBJECT_STORE | head -1 | awk '{print $2}' | sed 's/\"//g')
+        ```suggestion
+        DID_MIGRATE_ROOK_PVCS=$(kubectl -n kurl get configmap kurl-migration-from-rook -o jsonpath='{ .data.DID_MIGRATE_ROOK_PVCS }')
+        DID_MIGRATE_ROOK_OBJECT_STORE=$(kubectl -n kurl get configmap kurl-migration-from-rook -o jsonpath='{ .data.DID_MIGRATE_ROOK_OBJECT_STORE }')
         if [ "$DID_MIGRATE_ROOK_PVCS" == "1" ] && [ "$DID_MIGRATE_ROOK_OBJECT_STORE" == "1" ]; then
             report_addon_start "rook-ceph-removal" "v1"
             kubectl patch configmap kurl-migration-from-rook -n kurl --type merge -p '{"data":{"DID_MIGRATE_ROOK_OBJECT_STORE":"completed"}}'
