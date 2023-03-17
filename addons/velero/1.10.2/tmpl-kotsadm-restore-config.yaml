@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kotsadm-restore-config
+  namespace: ${VELERO_NAMESPACE}
+  labels:
+    velero.io/plugin-config: \"\"
+    kurl.sh/restore-kotsadm-plugin: RestoreItemAction
+data:
+  HTTP_PROXY: ${PROXY_ADDRESS:-'""'}
+  HTTPS_PROXY: ${PROXY_ADDRESS:-'""'}
+  NO_PROXY: ${NO_PROXY_ADDRESSES:-'""'}
+  hostCAPath: ${KOTSADM_TRUSTED_CERT_MOUNT:-'""'}
