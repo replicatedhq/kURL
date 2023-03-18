@@ -67,58 +67,76 @@ function remove_rook_ceph() {
     # make sure there aren't any PVs using rook before deleting it
     all_pv_drivers="$(kubectl get pv -o=jsonpath='{.items[*].spec.csi.driver}')"
     if echo "$all_pv_drivers" | grep "rook" &>/dev/null ; then
-        # do stuff
-        printf "%b" "$RED"
-        printf "ERROR: \n"
-        printf "There are still PVs using rook-ceph.\n"
-        printf "Remove these PVs before continuing.\n"
-        printf "%b" "$NC"
-        exit 1
+        logFail "There are still PVs using rook-ceph."
+        logFail "Remove these PV(s) before continuing:"
+        logFail "$all_pv_drivers"
+        return 1
     fi
 
     # scale ekco to 0 replicas if it exists
     if kubernetes_resource_exists kurl deployment ekc-operator; then
         kubectl -n kurl scale deploy ekc-operator --replicas=0
         log "Waiting for ekco pods to be removed"
-        if ! spinner_until 120 ekco_pods_gone; then
-             logFail "Unable to scale down ekco operator"
-             return 1
+        if ! spinner_until 300 ekco_pods_gone; then
+             logWarn "Unable to scale down ekco operator"
+             logWarn "The script will continue to try remove Rook"
         fi
     fi
 
     # remove all rook-ceph CR objects
-    printf "Removing rook-ceph custom resource objects - this may take some time:\n"
-    kubectl delete cephcluster -n rook-ceph rook-ceph # deleting this first frees up resources
-    kubectl get crd | grep 'ceph.rook.io' | awk '{ print $1 }' | xargs -I'{}' kubectl -n rook-ceph delete '{}' --all
-    kubectl delete volumes.rook.io --all
+    log "Removing rook-ceph custom resource objects - this may take some time:\n"
+    if ! kubectl delete cephcluster -n rook-ceph rook-ceph --timeout=60s; then
+        logWarn "Unable deleting rook-ceph this first frees up resources"
+    fi
 
-    # wait for rook-ceph-osd pods to disappear
-    echo "Waiting for rook-ceph OSD pods to be removed"
-    spinner_until 120 rook_ceph_osd_pods_gone
+    log "Waiting delete CRDs"
+    if ! kubectl get crd | grep 'ceph.rook.io' | awk '{ print $1 }' | xargs -I'{}' kubectl -n rook-ceph delete '{}' --all --timeout=60s; then
+        logWarn "Unable deleting rook-ceph CRDs"
+    fi
 
-    # delete rook-ceph CRDs
-    printf "Removing rook-ceph custom resources:\n"
-    kubectl get crd | grep 'ceph.rook.io' | awk '{ print $1 }' | xargs -I'{}' kubectl delete crd '{}'
-    kubectl delete --ignore-not-found crd volumes.rook.io
+    log "Waiting delete volumes"
+    if ! kubectl delete volumes.rook.io --all --timeout=60s; then
+        logWarn "Unable deleting rook-ceph volumes"
+    fi
 
-    # delete rook-ceph ns
-    kubectl delete ns rook-ceph
+    log "Waiting for rook-ceph OSD pods to be removed"
+    if ! spinner_until 120 rook_ceph_osd_pods_gone; then
+        logWarn "Unable deleting rook-ceph OSD pods"
+    fi
 
-    # delete rook-ceph storageclass(es)
-    printf "Removing rook-ceph StorageClasses"
-    kubectl get storageclass | grep rook | awk '{ print $1 }' | xargs -I'{}' kubectl delete storageclass '{}'
+    log "Removing rook-ceph custom resources"
+    if ! kubectl get crd | grep 'ceph.rook.io' | awk '{ print $1 }' | xargs -I'{}' kubectl delete crd '{}' --timeout=60s; then
+        logWarn "Unable deleting rook-ceph custom resources"
+    fi
+
+    log "Removing rook-ceph custom resources volumes"
+    if ! kubectl delete --ignore-not-found crd volumes.rook.io --timeout=60s; then
+        logWarn "Unable delete rook-ceph custom resources volumes"
+    fi
+
+    log "Removing rook-ceph StorageClasses"
+    if ! kubectl get storageclass | grep rook | awk '{ print $1 }' | xargs -I'{}' kubectl delete storageclass '{}' --timeout=60s; then
+        logFail "Unable delete rook-ceph StorageClasses"
+        return 1
+    fi
+
+    log "Removing rook-ceph namespace"
+    if ! kubectl delete ns rook-ceph --timeout=120s; then
+        logFail "Unable delete rook-ceph custom resources volumes"
+        return 1
+    fi
 
     # scale ekco back to 1 replicas if it exists
     if kubernetes_resource_exists kurl deployment ekc-operator; then
         kubectl -n kurl get configmap ekco-config -o yaml | \
             sed --expression='s/maintain_rook_storage_nodes:[ ]*true/maintain_rook_storage_nodes: false/g' | \
-            kubectl -n kurl apply -f - 
+            kubectl -n kurl apply -f -
         kubectl -n kurl scale deploy ekc-operator --replicas=1
     fi
 
     # print success message
-    printf "%bRemoved rook-ceph successfully!\n%b" "$GREEN" "$NC"
-    printf "Data within /var/lib/rook, /opt/replicated/rook and any bound disks has not been freed.\n"
+    logSuccess "Removed rook-ceph successfully!"
+    logWarn  "Data within /var/lib/rook, /opt/replicated/rook and any bound disks has not been freed."
 }
 
 # scale down prometheus, move all 'rook-ceph' PVCs to provided storage class, scale up prometheus
@@ -216,7 +234,10 @@ function maybe_cleanup_rook() {
 
         if [ "$DID_MIGRATE_ROOK_PVCS" == "1" ] && [ "$DID_MIGRATE_ROOK_OBJECT_STORE" == "1" ]; then
             report_addon_start "rook-ceph-removal" "v1"
-            remove_rook_ceph
+            if ! remove_rook_ceph; then
+                logFail "Unable to remove Rook."
+                return
+            fi
             report_addon_success "rook-ceph-removal" "v1"
             return
         fi
