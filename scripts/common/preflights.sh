@@ -669,7 +669,7 @@ function bail_when_no_object_store_and_s3_enabled() {
              bail "Please, ensure that your installer also provides an object store with either the MinIO or Rook add-on."
         fi
         if [ -n "$REGISTRY_VERSION" ];then
-             bail "OpenEBS and Registry for HA installs requires MinIO. Please, ensure that your installer also provides MinIO"
+             bail "OpenEBS and Registry requires MinIO. Please, ensure that your installer also provides MinIO"
         fi
     fi
 }
