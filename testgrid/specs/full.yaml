@@ -1468,7 +1468,7 @@
     echo "Kubeconfig was $KUBECONFIG"
     unset KUBECONFIG
     kubectl get namespaces
-- name: "Cust1 Upgrade - no HA"
+- name: "Upgrade from Rook+OpenEBS to OpenEBS - k8s 1.19.x to 1.21.x with Docker"
   installerSpec:
     kubernetes:
       version: "1.19.x"
@@ -1520,7 +1520,7 @@
       envoyPodsNotReadyDuration: "5m"
   upgradeSpec:
     kubernetes:
-      version: "1.21.9"
+      version: "1.21.x"
       containerLogMaxFiles: 5
       containerLogMaxSize: 5Mi
     containerd:
@@ -1540,11 +1540,11 @@
     velero:
       version: "1.6.0"
     kotsadm:
-      version: "1.57.0"
+      version: "1.90.0"
     goldpinger:
       version: "3.2.0-4.1.1"
     openebs:
-      version: "1.12.0"
+      version: "3.3.0"
       namespace: openebs
       isLocalPVEnabled: true
       localPVStorageClassName: openebs
@@ -1564,6 +1564,18 @@
       envoyPodsNotReadyDuration: "5m"
   unsupportedOSIDs:
   - ubuntu-2204 # containerd 1.4.x is not supported on ubuntu 22.04
+  postUpgradeScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    minio_object_store_info
+    validate_testfile rwtest testfile.txt
+    validate_read_write_object_store postupgrade upgradefile.txt    
+    echo "Verify if rook-ceph namespace was removed after upgrade"
+    if kubectl get namespace/rook-ceph ; then
+       echo "Namespace rook-ceph was not removed"
+       exit 1 
+    else
+       echo "Namespace rook-ceph was removed"
+    fi
 - name: less_command
   installerSpec:
     kubernetes:
