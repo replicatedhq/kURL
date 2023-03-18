@@ -13,7 +13,7 @@ function preflights() {
     kotsadm_prerelease
     host_nameservers_reachable
     allow_remove_docker_new_install
-    bail_if_unsupported_openebs_to_rook_version
+    bail_when_no_object_store_and_s3_enabled
     return 0
 }
 
@@ -657,20 +657,19 @@ function bail_if_unsupported_openebs_to_rook_version() {
     fi
 }
 
-function bail_when_requires_minio_with_openebs() {
-    if [ -z "$MINIO_VERSION" ] && [ -n "$OPENEBS_VERSION" ]; then
-        if [ -n "$KOTS_VERSION" ] && [[ -z "$KOTSADM_DISABLE_S3" || "$KOTSADM_DISABLE_S3" != "1" ]];then
-             logFail "The OpenEBS version $OPENEBS_VERSION cannot be installed with kOTS version $KOTS_VERSION"
-             bail "OpenEBS and kOTS with s3 enabled requires MinIO"
+# bail_when_no_object_store_and_s3_enabled will bail if Minio and Rook are not present and kotsadm.s3Disabled is false.
+function bail_when_no_object_store_and_s3_enabled() {
+    if [[ -z "$MINIO_VERSION" || -z "$ROOK_VERSION" ]] && [ -n "$OPENEBS_VERSION" ]; then
+        if [ -n "$KOTSADM_VERSION" ] && [ "$KOTSADM_DISABLE_S3" != "1" ]; then
+             logFail "KOTS with s3 enabled requires an object store."
+             bail "Please, ensure that your installer also provides an object store with either the MinIO or Rook add-on."
         fi
-        if [ -n "$REGISTRY_VERSION" ];then
-             logFail "The OpenEBS version $OPENEBS_VERSION cannot be installed with kOTS version $REGISTRY_VERSION"
-             bail "OpenEBS and Registry requires MinIO. Please, ensure that your installer also provides MinIO"
+        if [ -n "$VELERO_VERSION" ] && [ "$KOTSADM_DISABLE_S3" != 1 ]; then
+             logFail "Velero requires an object store."
+             bail "Please, ensure that your installer also provides an object store with either the MinIO or Rook add-on."
         fi
-        if [ -n "$VALERO_VERSION" ];then
-             logFail "The OpenEBS version $OPENEBS_VERSION cannot be installed with kOTS version $VALERO_VERSION"
-             bail "OpenEBS and Registry requires Valero. Please, ensure that your installer also provides MinIO"
+        if [ -n "$REGISTRY_VERSION" ]  && [ "$HA_CLUSTER" = "1" ];then
+             bail "OpenEBS and Registry for HA installs requires MinIO. Please, ensure that your installer also provides MinIO"
         fi
     fi
 }
-
