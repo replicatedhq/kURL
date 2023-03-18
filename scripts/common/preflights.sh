@@ -659,7 +659,7 @@ function bail_if_unsupported_openebs_to_rook_version() {
 
 # bail_when_no_object_store_and_s3_enabled will bail if Minio and Rook are not present and kotsadm.s3Disabled is false.
 function bail_when_no_object_store_and_s3_enabled() {
-    if [[ -z "$MINIO_VERSION" || -z "$ROOK_VERSION" ]] && [ -n "$OPENEBS_VERSION" ]; then
+    if [[ -z "$MINIO_VERSION" && -z "$ROOK_VERSION" ]] && [ -n "$OPENEBS_VERSION" ]; then
         if [ -n "$KOTSADM_VERSION" ] && [ "$KOTSADM_DISABLE_S3" != "1" ]; then
              logFail "KOTS with s3 enabled requires an object store."
              bail "Please, ensure that your installer also provides an object store with either the MinIO or Rook add-on."
