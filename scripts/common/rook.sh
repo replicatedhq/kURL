@@ -207,13 +207,44 @@ function rook_ceph_to_sc_migration() {
 # if PVCs and object store data have both been migrated from rook-ceph and rook-ceph is no longer specified in the kURL spec, remove rook-ceph
 function maybe_cleanup_rook() {
     if [ -z "$ROOK_VERSION" ]; then
+
+        # Just continue if Rook is installed. 
+        if ! kubectl get ns | grep -q rook-ceph; then
+            return
+        fi
+        logStep "Removing Rook"
+
         DID_MIGRATE_ROOK_PVCS=$(kubectl -n kurl get configmap kurl-migration-from-rook -o jsonpath='{ .data.DID_MIGRATE_ROOK_PVCS }')
         DID_MIGRATE_ROOK_OBJECT_STORE=$(kubectl -n kurl get configmap kurl-migration-from-rook -o jsonpath='{ .data.DID_MIGRATE_ROOK_OBJECT_STORE }')
         if [ "$DID_MIGRATE_ROOK_PVCS" == "1" ] && [ "$DID_MIGRATE_ROOK_OBJECT_STORE" == "1" ]; then
             report_addon_start "rook-ceph-removal" "v1"
             remove_rook_ceph
-            kubectl delete configmap kurl-migration-from-rook -n kurl
+            kubectl delete configmap kurl-migration-from-rook -n kurl 
             report_addon_success "rook-ceph-removal" "v1"
+            return
+        fi
+
+        # If upgrade from Rook to OpenEBS without Minio we cannot remove Rook because
+        # we do not know if the solution uses or not ObjectStore and if someone data will not be lost
+        if [ "$DID_MIGRATE_ROOK_PVCS" == "1" ] && [ -z "$MINIO_VERSION" ]; then
+            if [ -z "$DID_MIGRATE_ROOK_OBJECT_STORE" ] || [ "$DID_MIGRATE_ROOK_OBJECT_STORE" != "1" ]; then
+                logWarn "PVC(s) were migrated from Rook but Object Store data was not, as no MinIO version was specified."
+                logWarn "Rook will not be automatically removed without migrating Object Store data."
+                logWarn ""
+                logWarn "If you are sure that Object Store data is not used, you can manually perform this operation"
+                logWarn "by running the remove_rook_ceph task:"                
+                logWarn "$ curl <installer>/task.sh | sudo bash -s remove_rook_ceph, i.e.:"
+                logWarn ""
+                logWarn "curl https://kurl.sh/latest/tasks.sh | sudo bash -s remove_rook_ceph"
+            fi
+        fi
+        logFail "Unable to remove Rook."
+        if [ "$DID_MIGRATE_ROOK_PVCS" != "1" ]; then
+           logFail "Storage class migration did not succeed"
+        fi
+        
+        if [ -n "$MINIO_VERSION" ] && [ "$DID_MIGRATE_ROOK_OBJECT_STORE" != "1" ]; then
+           logFail "Object Store migration did not succeed"
         fi
     fi
 }
