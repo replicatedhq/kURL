@@ -123,7 +123,7 @@ function remove_rook_ceph() {
 
     log "Removing rook-ceph Storage Classes"
     if ! kubectl get storageclass | grep rook | awk '{ print $1 }' | xargs -I'{}' kubectl delete storageclass '{}' --timeout=60s; then
-        logFail "Unable delete rook-ceph StorageClasses"
+        logFail "Unable to delete rook-ceph StorageClasses"
         return 1
     fi
     
