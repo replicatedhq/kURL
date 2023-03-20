@@ -68,8 +68,7 @@ function remove_rook_ceph() {
     all_pv_drivers="$(kubectl get pv -o=jsonpath='{.items[*].spec.csi.driver}')"
     if echo "$all_pv_drivers" | grep "rook" &>/dev/null ; then
         logFail "There are still PVs using rook-ceph."
-        logFail "Remove these PV(s) before continuing:"
-        echo $(echo "$all_pv_drivers" | grep "rook")
+        logFail "Remove these PV(s) before continuing."
         return 1
     fi
 
