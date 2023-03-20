@@ -669,8 +669,7 @@ function bail_if_kurl_version_is_lower_than_previous_config() {
 
        semverCompare $(echo "$KURL_VERSION" | sed 's/v//g') "$(echo "$previous_kurl_version" | sed 's/v//g')"
        if [ "$SEMVER_COMPARE_RESULT"  = "-1" ]; then # greater than or equal to 14.2.21
-           logFail "This host was previously installed using the kURL release version $previous_kurl_version"
-           logFail "which is greater than the current version $KURL_VERSION."
+           logFail "The current kURL release version $KURL_VERSION is less than the previously installed version $previous_kurl_version."
            bail "Please use a kURL release version which is equal to or greater than the version used previously."
        fi
        log "Previous kURL version used to install or update the cluster is $previous_kurl_version"
