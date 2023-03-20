@@ -85,6 +85,10 @@ function remove_rook_ceph() {
 
     # remove all rook-ceph CR objects
     log "Removing rook-ceph custom resource objects - this may take some time:\n"
+
+    log "Allow RookCeph delete the data"
+    kubectl -n rook-ceph patch cephcluster rook-ceph --type merge -p '{"spec":{"cleanupPolicy":{"confirmation":"yes-really-destroy-data"}}}'
+
     if ! kubectl delete cephcluster -n rook-ceph rook-ceph --timeout=60s; then
         logWarn "Unable deleting rook-ceph this first frees up resources"
     fi
@@ -106,7 +110,15 @@ function remove_rook_ceph() {
 
     log "Removing rook-ceph custom resources"
     if ! kubectl get crd | grep 'ceph.rook.io' | awk '{ print $1 }' | xargs -I'{}' kubectl delete crd '{}' --timeout=60s; then
-        logWarn "Unable deleting rook-ceph custom resources"
+        log "Unable to remove custom resources with finalizers."
+        log "Removing finalizers prior try again"
+        for CRD in $(kubectl get crd -n rook-ceph | awk '/ceph.rook.io/ {print $1}'); do
+            kubectl get -n rook-ceph "$CRD" -o name | \
+            xargs -I {} kubectl patch -n rook-ceph {} --type merge -p '{"metadata":{"finalizers": []}}'
+        done
+        if ! kubectl get crd | grep 'ceph.rook.io' | awk '{ print $1 }' | xargs -I'{}' kubectl delete crd '{}' --timeout=60s; then
+            logWarn "Unable deleting rook-ceph custom resources"
+        fi
     fi
 
     log "Removing rook-ceph custom resources volumes"
@@ -114,15 +126,23 @@ function remove_rook_ceph() {
         logWarn "Unable delete rook-ceph custom resources volumes"
     fi
 
-    log "Removing rook-ceph StorageClasses"
-    if ! kubectl get storageclass | grep rook | awk '{ print $1 }' | xargs -I'{}' kubectl delete storageclass '{}' --timeout=60s; then
-        logFail "Unable delete rook-ceph StorageClasses"
+    log "Removing critical finalizers"
+    kubectl -n rook-ceph patch configmap rook-ceph-mon-endpoints --type merge -p '{"metadata":{"finalizers": []}}' || true
+    kubectl -n rook-ceph patch secrets rook-ceph-mon --type merge -p '{"metadata":{"finalizers": []}}' || true
+
+    log "Removing rook-ceph namespace"
+    if ! kubectl delete ns rook-ceph --timeout=60s; then
+        log "Unable to delete the namespace. Deleting resources that are holding the namespace get deleted"
+        logFail "Unable delete rook-ceph custom resources volumes."
+        logFail "Check the resources which are holding the namespace get deleted"
+        kubectl api-resources --verbs=list --namespaced -o name \
+                  | xargs -n 1 kubectl get --show-kind --ignore-not-found -n rook-ceph
         return 1
     fi
 
-    log "Removing rook-ceph namespace"
-    if ! kubectl delete ns rook-ceph --timeout=120s; then
-        logFail "Unable delete rook-ceph custom resources volumes"
+    log "Removing rook-ceph StorageClasses"
+    if ! kubectl get storageclass | grep rook | awk '{ print $1 }' | xargs -I'{}' kubectl delete storageclass '{}' --timeout=60s; then
+        logFail "Unable delete rook-ceph StorageClasses"
         return 1
     fi
 
@@ -134,9 +154,15 @@ function remove_rook_ceph() {
         kubectl -n kurl scale deploy ekc-operator --replicas=1
     fi
 
+    rm -rf /var/lib/rook || true
+    rm -rf /opt/replicated/rook || true
+
+    if [ -d "/var/lib/rook" ] || [ -d "/opt/replicated/rook" ]; then
+        logWarn  "Data within /var/lib/rook, /opt/replicated/rook and any bound disks has not been freed."
+    fi
+
     # print success message
     logSuccess "Removed rook-ceph successfully!"
-    logWarn  "Data within /var/lib/rook, /opt/replicated/rook and any bound disks has not been freed."
 }
 
 # scale down prometheus, move all 'rook-ceph' PVCs to provided storage class, scale up prometheus
