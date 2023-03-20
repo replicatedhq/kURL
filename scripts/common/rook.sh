@@ -301,6 +301,8 @@ function rook_is_healthy_to_upgrade() {
     local ceph_versions_found=
     ceph_versions_found="$(kubectl -n rook-ceph get deployment -l rook_cluster=rook-ceph -o jsonpath='{range .items[*]}{"ceph-version="}{.metadata.labels.ceph-version}{"\n"}{end}' | sort | uniq)"
     if [ -n "${ceph_versions_found}" ] && [ "$(echo "${ceph_versions_found}" | wc -l)" -gt "1" ]; then
+        # It is required because an Rook Ceph bug which was sorted out with the release 1.4.8
+        # More info: https://github.com/rook/rook/pull/6610
         if [ "$(echo "${ceph_versions_found}" | wc -l)" == "2" ] && [ "$(echo "${ceph_versions_found}" | grep "0.0.0-0")" ]; then
             log "Found two ceph versions but one of them is 0.0.0-0 which will be ignored"
             echo "${ceph_versions_found}"
