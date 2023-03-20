@@ -67,13 +67,9 @@ function remove_rook_ceph() {
     # make sure there aren't any PVs using rook before deleting it
     all_pv_drivers="$(kubectl get pv -o=jsonpath='{.items[*].spec.csi.driver}')"
     if echo "$all_pv_drivers" | grep "rook" &>/dev/null ; then
-        # do stuff
-        printf "%b" "$RED"
-        printf "ERROR: \n"
-        printf "There are still PVs using rook-ceph.\n"
-        printf "Remove these PVs before continuing.\n"
-        printf "%b" "$NC"
-        exit 1
+        logFail "There are still PVs using rook-ceph."
+        logFail "Remove these PV(s) before continuing."
+        return 1
     fi
 
     # scale ekco to 0 replicas if it exists
@@ -85,40 +81,61 @@ function remove_rook_ceph() {
              return 1
         fi
     fi
-
+    log "Removing rook-ceph Storage Classes"
+    if ! kubectl get storageclass | grep rook | awk '{ print $1 }' | xargs -I'{}' kubectl delete storageclass '{}' --timeout=60s; then
+        logFail "Unable to delete rook-ceph StorageClasses"
+        return 1
+    fi
     # remove all rook-ceph CR objects
-    printf "Removing rook-ceph custom resource objects - this may take some time:\n"
-    kubectl delete cephcluster -n rook-ceph rook-ceph # deleting this first frees up resources
-    kubectl get crd | grep 'ceph.rook.io' | awk '{ print $1 }' | xargs -I'{}' kubectl -n rook-ceph delete '{}' --all
-    kubectl delete volumes.rook.io --all
+    log "Removing rook-ceph custom resource objects - this may take some time:\n"
+    if ! kubectl delete cephcluster -n rook-ceph rook-ceph --timeout=300s; then
+        logFail "Unable to delete the rook-ceph CephCluster resource"
+        return 1
+    fi
 
-    # wait for rook-ceph-osd pods to disappear
-    echo "Waiting for rook-ceph OSD pods to be removed"
-    spinner_until 120 rook_ceph_osd_pods_gone
+    log "Removing rook-ceph custom resources"
+    if ! kubectl get crd | grep 'ceph.rook.io' | awk '{ print $1 }' | xargs -I'{}' kubectl -n rook-ceph delete '{}' --all --timeout=60s; then
+        logWarn "Unable to delete the rook-ceph custom resources"
+    fi
 
-    # delete rook-ceph CRDs
-    printf "Removing rook-ceph custom resources:\n"
-    kubectl get crd | grep 'ceph.rook.io' | awk '{ print $1 }' | xargs -I'{}' kubectl delete crd '{}'
-    kubectl delete --ignore-not-found crd volumes.rook.io
+    log "Removing rook-ceph Volume resources"
+    if ! kubectl delete volumes.rook.io --all --timeout=60s; then
+        logWarn "Unable to delete rook-ceph Volume resources"
+    fi
 
-    # delete rook-ceph ns
-    kubectl delete ns rook-ceph
+    log "Waiting for rook-ceph OSD pods to be removed"
+    if ! spinner_until 120 rook_ceph_osd_pods_gone; then
+        logWarn "rook-ceph OSD pods were not deleted"
+    fi
 
-    # delete rook-ceph storageclass(es)
-    printf "Removing rook-ceph StorageClasses"
-    kubectl get storageclass | grep rook | awk '{ print $1 }' | xargs -I'{}' kubectl delete storageclass '{}'
+    log "Removing rook-ceph CRDs"
+    if ! kubectl get crd | grep 'ceph.rook.io' | awk '{ print $1 }' | xargs -I'{}' kubectl delete crd '{}' --timeout=60s; then
+        logWarn "Unable to delete rook-ceph CRDs"
+    fi
 
+    log "Removing rook-ceph volumes custom resource"
+    if ! kubectl delete --ignore-not-found crd volumes.rook.io --timeout=60s; then
+        logWarn "Unable delete rook-ceph volumes custom resource"
+    fi
+
+    log "Removing the rook-ceph Namespace"
+    if ! kubectl delete ns rook-ceph --timeout=60s; then
+        logFail "Unable to delete the rook-ceph Namespace"
+        return 1
+    fi
+
+    
     # scale ekco back to 1 replicas if it exists
     if kubernetes_resource_exists kurl deployment ekc-operator; then
         kubectl -n kurl get configmap ekco-config -o yaml | \
             sed --expression='s/maintain_rook_storage_nodes:[ ]*true/maintain_rook_storage_nodes: false/g' | \
-            kubectl -n kurl apply -f - 
+            kubectl -n kurl apply -f -
         kubectl -n kurl scale deploy ekc-operator --replicas=1
     fi
 
     # print success message
-    printf "%bRemoved rook-ceph successfully!\n%b" "$GREEN" "$NC"
-    printf "Data within /var/lib/rook, /opt/replicated/rook and any bound disks has not been freed.\n"
+    logSuccess "Removed rook-ceph successfully!"
+    logWarn "Data within /var/lib/rook, /opt/replicated/rook and any bound disks has not been freed."
 }
 
 # scale down prometheus, move all 'rook-ceph' PVCs to provided storage class, scale up prometheus
