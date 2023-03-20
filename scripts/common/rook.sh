@@ -81,11 +81,17 @@ function remove_rook_ceph() {
              return 1
         fi
     fi
+
     log "Removing rook-ceph Storage Classes"
     if ! kubectl get storageclass | grep rook | awk '{ print $1 }' | xargs -I'{}' kubectl delete storageclass '{}' --timeout=60s; then
         logFail "Unable to delete rook-ceph StorageClasses"
         return 1
     fi
+
+    # More info: https://rook.io/docs/rook/v1.10/Getting-Started/ceph-teardown/#delete-the-cephcluster-crd
+    log "Patch Ceph cluster to allow deletion"
+    kubectl -n rook-ceph patch cephcluster rook-ceph --type merge -p '{"spec":{"cleanupPolicy":{"confirmation":"yes-really-destroy-data"}}}'
+
     # remove all rook-ceph CR objects
     log "Removing rook-ceph custom resource objects - this may take some time:\n"
     if ! kubectl delete cephcluster -n rook-ceph rook-ceph --timeout=300s; then
@@ -135,9 +141,15 @@ function remove_rook_ceph() {
         kubectl -n kurl scale deploy ekc-operator --replicas=1
     fi
 
+    rm -rf /var/lib/rook || true
+    rm -rf /opt/replicated/rook || true
+
+    if [ -d "/var/lib/rook" ] || [ -d "/opt/replicated/rook" ]; then
+        logWarn  "Data within /var/lib/rook, /opt/replicated/rook and any bound disks has not been freed."
+    fi
+
     # print success message
     logSuccess "Removed rook-ceph successfully!"
-    logWarn "Data within /var/lib/rook, /opt/replicated/rook and any bound disks has not been freed."
 }
 
 # scale down prometheus, move all 'rook-ceph' PVCs to provided storage class, scale up prometheus
