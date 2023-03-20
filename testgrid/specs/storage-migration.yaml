@@ -876,6 +876,7 @@
     pvc_uses_provisioner "migration-test" "default" "openebs"
     test_pull_image_from_registry
 - name: Migrate from Rook+OpenEBS to OpenEBS (Kubernetes 1.19.x to 1.21.x, Docker to Containerd)
+  flags: yes
   installerSpec:
     kubernetes:
       version: 1.19.x
