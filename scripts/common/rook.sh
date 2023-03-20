@@ -102,7 +102,7 @@ function remove_rook_ceph() {
 
     log "Removing rook-ceph OSD pods"
     if ! spinner_until 120 rook_ceph_osd_pods_gone; then
-        logWarn "Unable to delete rook-ceph OSD pods"
+        logWarn "rook-ceph OSD pods were not deleted"
     fi
 
     log "Removing rook-ceph CRDs"
