@@ -95,7 +95,7 @@ function remove_rook_ceph() {
         logWarn "Unable to delete the rook-ceph custom resources"
     fi
 
-    log "Waiting for rook-ceph Volume resources to be removed"
+    log "Removing rook-ceph Volume resources"
     if ! kubectl delete volumes.rook.io --all --timeout=60s; then
         logWarn "Unable to delete Rook Volume resources"
     fi
