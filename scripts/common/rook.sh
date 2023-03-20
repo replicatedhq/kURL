@@ -121,9 +121,11 @@ function remove_rook_ceph() {
     log "Removing the rook-ceph Namespace"
     if ! kubectl delete ns rook-ceph --timeout=60s; then
         logFail "Unable to delete the rook-ceph Namespace"
+        logFail "Check the resources which are holding the namespace get deleted"
+        kubectl api-resources --verbs=list --namespaced -o name \
+                          | xargs -n 1 kubectl get --show-kind --ignore-not-found -n rook-ceph
         return 1
     fi
-
     
     # scale ekco back to 1 replicas if it exists
     if kubernetes_resource_exists kurl deployment ekc-operator; then
