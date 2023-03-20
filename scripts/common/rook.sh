@@ -115,7 +115,7 @@ function remove_rook_ceph() {
         logWarn "Unable delete rook-ceph custom resources volumes"
     fi
 
-    log "Removing rook-ceph namespace"
+    log "Removing the rook-ceph Namespace"
     if ! kubectl delete ns rook-ceph --timeout=60s; then
         logFail "Unable delete rook-ceph custom resources volumes"
         return 1
