@@ -97,7 +97,7 @@ function remove_rook_ceph() {
 
     log "Removing rook-ceph Volume resources"
     if ! kubectl delete volumes.rook.io --all --timeout=60s; then
-        logWarn "Unable to delete Rook Volume resources"
+        logWarn "Unable to delete rook-ceph Volume resources"
     fi
 
     log "Waiting for Rook Ceph OSD pods to be removed"
