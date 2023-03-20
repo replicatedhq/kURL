@@ -25,3 +25,8 @@ function kurl_set_current_version() {
 function kurl_get_current_version() {
     kubectl get configmap -n kurl kurl-current-config -o jsonpath="{.data.kurl-version}"
 }
+
+function kurl_get_last_version() {
+    kubectl get configmap -n kurl kurl-last-config -o jsonpath="{.data.kurl-version}"
+}
+
