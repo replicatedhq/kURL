@@ -67,13 +67,9 @@ function remove_rook_ceph() {
     # make sure there aren't any PVs using rook before deleting it
     all_pv_drivers="$(kubectl get pv -o=jsonpath='{.items[*].spec.csi.driver}')"
     if echo "$all_pv_drivers" | grep "rook" &>/dev/null ; then
-        # do stuff
-        printf "%b" "$RED"
-        printf "ERROR: \n"
-        printf "There are still PVs using rook-ceph.\n"
-        printf "Remove these PVs before continuing.\n"
-        printf "%b" "$NC"
-        exit 1
+        logFail "There are still PVs using rook-ceph."
+        logFail "Remove these PV(s) before continuing."
+        return 1
     fi
 
     # scale ekco to 0 replicas if it exists
@@ -86,39 +82,74 @@ function remove_rook_ceph() {
         fi
     fi
 
+    log "Removing rook-ceph Storage Classes"
+    if ! kubectl get storageclass | grep rook | awk '{ print $1 }' | xargs -I'{}' kubectl delete storageclass '{}' --timeout=60s; then
+        logFail "Unable to delete rook-ceph StorageClasses"
+        return 1
+    fi
+
+    # More info: https://rook.io/docs/rook/v1.10/Getting-Started/ceph-teardown/#delete-the-cephcluster-crd
+    log "Patch Ceph cluster to allow deletion"
+    kubectl -n rook-ceph patch cephcluster rook-ceph --type merge -p '{"spec":{"cleanupPolicy":{"confirmation":"yes-really-destroy-data"}}}'
+
     # remove all rook-ceph CR objects
-    printf "Removing rook-ceph custom resource objects - this may take some time:\n"
-    kubectl delete cephcluster -n rook-ceph rook-ceph # deleting this first frees up resources
-    kubectl get crd | grep 'ceph.rook.io' | awk '{ print $1 }' | xargs -I'{}' kubectl -n rook-ceph delete '{}' --all
-    kubectl delete volumes.rook.io --all
+    log "Removing rook-ceph custom resource objects - this may take some time:\n"
+    if ! kubectl delete cephcluster -n rook-ceph rook-ceph --timeout=300s; then
+        logFail "Unable to delete the rook-ceph CephCluster resource"
+        return 1
+    fi
 
-    # wait for rook-ceph-osd pods to disappear
-    echo "Waiting for rook-ceph OSD pods to be removed"
-    spinner_until 120 rook_ceph_osd_pods_gone
+    log "Removing rook-ceph custom resources"
+    if ! kubectl get crd | grep 'ceph.rook.io' | awk '{ print $1 }' | xargs -I'{}' kubectl -n rook-ceph delete '{}' --all --timeout=60s; then
+        logWarn "Unable to delete the rook-ceph custom resources"
+    fi
 
-    # delete rook-ceph CRDs
-    printf "Removing rook-ceph custom resources:\n"
-    kubectl get crd | grep 'ceph.rook.io' | awk '{ print $1 }' | xargs -I'{}' kubectl delete crd '{}'
-    kubectl delete --ignore-not-found crd volumes.rook.io
+    log "Removing rook-ceph Volume resources"
+    if ! kubectl delete volumes.rook.io --all --timeout=60s; then
+        logWarn "Unable to delete rook-ceph Volume resources"
+    fi
 
-    # delete rook-ceph ns
-    kubectl delete ns rook-ceph
+    log "Waiting for rook-ceph OSD pods to be removed"
+    if ! spinner_until 120 rook_ceph_osd_pods_gone; then
+        logWarn "rook-ceph OSD pods were not deleted"
+    fi
 
-    # delete rook-ceph storageclass(es)
-    printf "Removing rook-ceph StorageClasses"
-    kubectl get storageclass | grep rook | awk '{ print $1 }' | xargs -I'{}' kubectl delete storageclass '{}'
+    log "Removing rook-ceph CRDs"
+    if ! kubectl get crd | grep 'ceph.rook.io' | awk '{ print $1 }' | xargs -I'{}' kubectl delete crd '{}' --timeout=60s; then
+        logWarn "Unable to delete rook-ceph CRDs"
+    fi
 
+    log "Removing rook-ceph volumes custom resource"
+    if ! kubectl delete --ignore-not-found crd volumes.rook.io --timeout=60s; then
+        logWarn "Unable delete rook-ceph volumes custom resource"
+    fi
+
+    log "Removing the rook-ceph Namespace"
+    if ! kubectl delete ns rook-ceph --timeout=60s; then
+        logFail "Unable to delete the rook-ceph Namespace"
+        logFail "These resources are preventing the namespace's deletion:"
+        kubectl api-resources --verbs=list --namespaced -o name \
+                          | xargs -n 1 kubectl get --show-kind --ignore-not-found -n rook-ceph
+        return 1
+    fi
+    
     # scale ekco back to 1 replicas if it exists
     if kubernetes_resource_exists kurl deployment ekc-operator; then
         kubectl -n kurl get configmap ekco-config -o yaml | \
             sed --expression='s/maintain_rook_storage_nodes:[ ]*true/maintain_rook_storage_nodes: false/g' | \
-            kubectl -n kurl apply -f - 
+            kubectl -n kurl apply -f -
         kubectl -n kurl scale deploy ekc-operator --replicas=1
     fi
 
+    rm -rf /var/lib/rook || true
+    rm -rf /opt/replicated/rook || true
+
+    if [ -d "/var/lib/rook" ] || [ -d "/opt/replicated/rook" ]; then
+        logWarn  "Data within /var/lib/rook, /opt/replicated/rook and any bound disks has not been freed."
+    fi
+
     # print success message
-    printf "%bRemoved rook-ceph successfully!\n%b" "$GREEN" "$NC"
-    printf "Data within /var/lib/rook, /opt/replicated/rook and any bound disks has not been freed.\n"
+    logSuccess "Removed rook-ceph successfully!"
 }
 
 # scale down prometheus, move all 'rook-ceph' PVCs to provided storage class, scale up prometheus
@@ -207,10 +238,45 @@ function rook_ceph_to_sc_migration() {
 # if PVCs and object store data have both been migrated from rook-ceph and rook-ceph is no longer specified in the kURL spec, remove rook-ceph
 function maybe_cleanup_rook() {
     if [ -z "$ROOK_VERSION" ]; then
+
+        # Just continue if Rook is installed. 
+        if ! kubectl get ns | grep -q rook-ceph; then
+            return
+        fi
+        logStep "Removing Rook"
+
         if [ "$DID_MIGRATE_ROOK_PVCS" == "1" ] && [ "$DID_MIGRATE_ROOK_OBJECT_STORE" == "1" ]; then
             report_addon_start "rook-ceph-removal" "v1"
-            remove_rook_ceph
+            if ! remove_rook_ceph; then
+                logFail "Unable to remove Rook."
+                report_addon_fail "rook-ceph-removal" "v1"
+                return
+            fi
             report_addon_success "rook-ceph-removal" "v1"
+            return
+        fi
+
+        # If upgrade from Rook to OpenEBS without Minio we cannot remove Rook because
+        # we do not know if the solution uses or not ObjectStore and if someone data will not be lost
+        if [ "$DID_MIGRATE_ROOK_PVCS" == "1" ] && [ -z "$MINIO_VERSION" ]; then
+            if [ -z "$DID_MIGRATE_ROOK_OBJECT_STORE" ] || [ "$DID_MIGRATE_ROOK_OBJECT_STORE" != "1" ]; then
+                logWarn "PVC(s) were migrated from Rook but Object Store data was not, as no MinIO version was specified."
+                logWarn "Rook will not be automatically removed without migrating Object Store data."
+                logWarn ""
+                logWarn "If you are sure that Object Store data is not used, you can manually perform this operation"
+                logWarn "by running the remove_rook_ceph task:"                
+                logWarn "$ curl <installer>/task.sh | sudo bash -s remove_rook_ceph, i.e.:"
+                logWarn ""
+                logWarn "curl https://kurl.sh/latest/tasks.sh | sudo bash -s remove_rook_ceph"
+            fi
+        fi
+        logFail "Unable to remove Rook."
+        if [ "$DID_MIGRATE_ROOK_PVCS" != "1" ]; then
+           logFail "Storage class migration did not succeed"
+        fi
+        
+        if [ -n "$MINIO_VERSION" ] && [ "$DID_MIGRATE_ROOK_OBJECT_STORE" != "1" ]; then
+           logFail "Object Store migration did not succeed"
         fi
     fi
 }
@@ -270,9 +336,16 @@ function rook_is_healthy_to_upgrade() {
     local ceph_versions_found=
     ceph_versions_found="$(kubectl -n rook-ceph get deployment -l rook_cluster=rook-ceph -o jsonpath='{range .items[*]}{"ceph-version="}{.metadata.labels.ceph-version}{"\n"}{end}' | sort | uniq)"
     if [ -n "${ceph_versions_found}" ] && [ "$(echo "${ceph_versions_found}" | wc -l)" -gt "1" ]; then
-        logFail "Multiple Ceph versions detected"
-        logFail "${ceph_versions_found}"
-        return 1
+        # It is required because an Rook Ceph bug which was sorted out with the release 1.4.8
+        # More info: https://github.com/rook/rook/pull/6610
+        if [ "$(echo "${ceph_versions_found}" | wc -l)" == "2" ] && [ "$(echo "${ceph_versions_found}" | grep "0.0.0-0")" ]; then
+            log "Found two ceph versions but one of them is 0.0.0-0 which will be ignored"
+            echo "${ceph_versions_found}"
+        else
+            logFail "Multiple Ceph versions detected"
+            logFail "${ceph_versions_found}"
+            return 1
+        fi
     fi
     return 0
 }

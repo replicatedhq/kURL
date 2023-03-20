@@ -15,7 +15,7 @@ require (
 	github.com/google/go-cmp v0.5.9
 	github.com/google/uuid v1.3.0
 	github.com/itchyny/gojq v0.12.12
-	github.com/longhorn/longhorn-manager v1.4.0
+	github.com/longhorn/longhorn-manager v1.4.1
 	github.com/mattn/go-isatty v0.0.17
 	github.com/minio/minio-go v6.0.14+incompatible
 	github.com/pelletier/go-toml v1.9.5
@@ -24,7 +24,7 @@ require (
 	github.com/replicatedhq/kurlkinds v1.2.0
 	github.com/replicatedhq/plumber v1.16.0
 	github.com/replicatedhq/pvmigrate v0.8.0
-	github.com/replicatedhq/troubleshoot v0.57.1
+	github.com/replicatedhq/troubleshoot v0.59.0
 	github.com/rook/rook v1.10.11
 	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/afero v1.9.5
@@ -33,7 +33,7 @@ require (
 	github.com/spf13/viper v1.15.0
 	github.com/stretchr/testify v1.8.2
 	github.com/vishvananda/netlink v1.2.1-beta.2
-	github.com/vmware-tanzu/velero v1.10.1
+	github.com/vmware-tanzu/velero v1.10.2
 	golang.org/x/crypto v0.7.0
 	golang.org/x/lint v0.0.0-20210508222113-6edffad5e616
 	golang.org/x/sync v0.1.0
@@ -248,6 +248,7 @@ require (
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/square/go-jose.v2 v2.6.0 // indirect
+	gotest.tools/v3 v3.4.0 // indirect
 	k8s.io/apiextensions-apiserver v0.26.2 // indirect
 	k8s.io/apiserver v0.26.2 // indirect
 	k8s.io/cli-runtime v0.26.2 // indirect
