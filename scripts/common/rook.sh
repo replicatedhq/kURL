@@ -85,7 +85,7 @@ function remove_rook_ceph() {
 
     # remove all rook-ceph CR objects
     log "Removing rook-ceph custom resource objects - this may take some time:\n"
-    if ! kubectl delete cephcluster -n rook-ceph rook-ceph --timeout=60s; then
+    if ! kubectl delete cephcluster -n rook-ceph rook-ceph --timeout=300s; then
         logFail "Unable to delete the rook-ceph CephCluster resource"
         return 1
     fi
