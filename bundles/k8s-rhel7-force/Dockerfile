@@ -1,4 +1,4 @@
-FROM amazonlinux
+FROM amazonlinux:2
 ARG KUBERNETES_VERSION
 COPY ./kubernetes.repo /etc/yum.repos.d/kubernetes.repo
 RUN mkdir -p /packages/archives
