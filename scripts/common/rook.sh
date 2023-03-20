@@ -86,6 +86,10 @@ function remove_rook_ceph() {
         fi
     fi
 
+    # More info: https://rook.io/docs/rook/v1.10/Getting-Started/ceph-teardown/#delete-the-cephcluster-crd
+    log "Allow RookCeph delete the data"
+    kubectl -n rook-ceph patch cephcluster rook-ceph --type merge -p '{"spec":{"cleanupPolicy":{"confirmation":"yes-really-destroy-data"}}}'
+
     # remove all rook-ceph CR objects
     printf "Removing rook-ceph custom resource objects - this may take some time:\n"
     kubectl delete cephcluster -n rook-ceph rook-ceph # deleting this first frees up resources
@@ -114,6 +118,13 @@ function remove_rook_ceph() {
             sed --expression='s/maintain_rook_storage_nodes:[ ]*true/maintain_rook_storage_nodes: false/g' | \
             kubectl -n kurl apply -f - 
         kubectl -n kurl scale deploy ekc-operator --replicas=1
+    fi
+
+    rm -rf /var/lib/rook || true
+    rm -rf /opt/replicated/rook || true
+
+    if [ -d "/var/lib/rook" ] || [ -d "/opt/replicated/rook" ]; then
+        logWarn  "Data within /var/lib/rook, /opt/replicated/rook and any bound disks has not been freed."
     fi
 
     # print success message
