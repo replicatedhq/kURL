@@ -218,6 +218,7 @@ function maybe_cleanup_rook() {
             report_addon_start "rook-ceph-removal" "v1"
             if ! remove_rook_ceph; then
                 logFail "Unable to remove Rook."
+                report_addon_fail "rook-ceph-removal" "v1"
                 return
             fi
             report_addon_success "rook-ceph-removal" "v1"

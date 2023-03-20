@@ -118,6 +118,23 @@ function report_addon_success() {
         $REPLICATED_APP_URL/kurl_metrics/finish_addon/$INSTALLATION_ID/$name || true
 }
 
+function report_addon_fail() {
+    # report that an addon installed successfully
+    local name=$1
+    local version=$2
+
+    # if INSTALLATION_ID is empty reporting is disabled
+    if [ -z "$INSTALLATION_ID" ]; then
+        return 0
+    fi
+
+    local completed=$(date -u +"%Y-%m-%dT%H:%M:%SZ") # rfc3339
+
+    curl -s --output /dev/null -H 'Content-Type: application/json' --max-time 5 \
+        -d "{\"finished\": \"$completed\"}" \
+        $REPLICATED_APP_URL/kurl_metrics/fail_addon/$INSTALLATION_ID/$name || true
+}
+
 function ctrl_c() {
     trap - SIGINT # reset SIGINT handler to default - someone should be able to ctrl+c the support bundle collector
     read line file <<<$(caller)
