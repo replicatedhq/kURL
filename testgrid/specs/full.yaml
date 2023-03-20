@@ -1469,6 +1469,7 @@
     unset KUBECONFIG
     kubectl get namespaces
 - name: "Upgrade from Rook+OpenEBS to OpenEBS - k8s 1.19.x to 1.21.x with Docker"
+  flags: "yes"
   installerSpec:
     kubernetes:
       version: "1.19.x"
