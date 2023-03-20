@@ -114,18 +114,18 @@ function remove_rook_ceph() {
         logWarn "Unable delete rook-ceph custom resources volumes"
     fi
 
-    log "Removing rook-ceph StorageClasses"
-    if ! kubectl get storageclass | grep rook | awk '{ print $1 }' | xargs -I'{}' kubectl delete storageclass '{}' --timeout=60s; then
-        logFail "Unable delete rook-ceph StorageClasses"
-        return 1
-    fi
-
     log "Removing rook-ceph namespace"
     if ! kubectl delete ns rook-ceph --timeout=60s; then
         logFail "Unable delete rook-ceph custom resources volumes"
         return 1
     fi
 
+    log "Removing rook-ceph StorageClasses"
+    if ! kubectl get storageclass | grep rook | awk '{ print $1 }' | xargs -I'{}' kubectl delete storageclass '{}' --timeout=60s; then
+        logFail "Unable delete rook-ceph StorageClasses"
+        return 1
+    fi
+    
     # scale ekco back to 1 replicas if it exists
     if kubernetes_resource_exists kurl deployment ekc-operator; then
         kubectl -n kurl get configmap ekco-config -o yaml | \
