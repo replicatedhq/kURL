@@ -233,7 +233,11 @@ function maybe_cleanup_rook() {
 
         if [ "$DID_MIGRATE_ROOK_PVCS" == "1" ] && [ "$DID_MIGRATE_ROOK_OBJECT_STORE" == "1" ]; then
             report_addon_start "rook-ceph-removal" "v1"
-            remove_rook_ceph
+            if ! remove_rook_ceph; then
+                logFail "Unable to remove Rook."
+                report_addon_fail "rook-ceph-removal" "v1"
+                return
+            fi
             report_addon_success "rook-ceph-removal" "v1"
             return
         fi
