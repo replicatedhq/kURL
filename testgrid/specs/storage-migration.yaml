@@ -51,6 +51,10 @@
       echo Rook namespace found after the upgrade.
       exit 1
     fi
+    if [ -d "/var/lib/rook" ] || [ -d "/opt/replicated/rook" ]; then
+       echo  Rook Data directories not removed.
+       exit 1
+    fi
 - name: Migrate from Rook 1.10.x to OpenEBS + Minio
   flags: yes
   installerSpec:
@@ -258,6 +262,10 @@
     if kubectl get namespace/rook-ceph ; then
       echo Rook namespace found after the upgrade.
       exit 1
+    fi
+    if [ -d "/var/lib/rook" ] || [ -d "/opt/replicated/rook" ]; then
+       echo  Rook Data directories not removed.
+       exit 1
     fi
 - name: Migrate from Rook 1.10.x to OpenEBS (S3 disabled)
   flags: yes
@@ -518,6 +526,10 @@
     pvc_uses_provisioner "migration-test" "default" "rook"
     test_pull_image_from_registry
     check_and_customize_kurl_integration_test_application
+    if [ -d "/var/lib/rook" ] || [ -d "/opt/replicated/rook" ]; then
+       echo  Rook Data directories not removed.
+       exit 1
+    fi
 - name: Migrate from Longhorn + Minio to Rook 1.10.x
   flags: yes
   cpu: 6
@@ -627,6 +639,10 @@
     if kubectl get namespace/rook-ceph ; then
       echo Rook namespace found after the upgrade.
       exit 1
+    fi
+    if [ -d "/var/lib/rook" ] || [ -d "/opt/replicated/rook" ]; then
+       echo  Rook Data directories not removed.
+       exit 1
     fi
 - name: Migrate from Rook 1.10.x to OpenEBS + Minio
   flags: yes
@@ -857,6 +873,10 @@
       echo Rook namespace found after the upgrade.
       exit 1
     fi
+    if [ -d "/var/lib/rook" ] || [ -d "/opt/replicated/rook" ]; then
+       echo  Rook Data directories not removed.
+       exit 1
+    fi
 - name: Migrate from OpenEBS (S3 disabled) to OpenEBS + Minio
   flags: yes
   installerSpec:
@@ -1015,4 +1035,8 @@
     if kubectl get namespace/rook-ceph ; then
       echo Rook namespace found after the upgrade.
       exit 1
+    fi
+    if [ -d "/var/lib/rook" ] || [ -d "/opt/replicated/rook" ]; then
+       echo  Rook Data directories not removed.
+       exit 1
     fi
