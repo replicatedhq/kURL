@@ -662,7 +662,7 @@ function bail_when_no_object_store_and_s3_enabled() {
     if [[ -z "$MINIO_VERSION" && -z "$ROOK_VERSION" ]] && [ -n "$OPENEBS_VERSION" ]; then
         if [ -n "$KOTSADM_VERSION" ] && [ "$KOTSADM_DISABLE_S3" != "1" ]; then
              logFail "KOTS with s3 enabled requires an object store."
-             bail "Please, ensure that your installer also provides an object store with either the MinIO or Rook add-on."
+             bail "Please ensure that your installer also provides an object store with either the MinIO or Rook add-on."
         fi
         if [ -n "$VELERO_VERSION" ] && [ "$HA_CLUSTER" = "1" ] ; then
              logFail "Velero with KOTS s3 enabled requires an object store."
