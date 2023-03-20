@@ -136,7 +136,7 @@ function remove_rook_ceph() {
 
     # print success message
     logSuccess "Removed rook-ceph successfully!"
-    logWarn  "Data within /var/lib/rook, /opt/replicated/rook and any bound disks has not been freed."
+    logWarn "Data within /var/lib/rook, /opt/replicated/rook and any bound disks has not been freed."
 }
 
 # scale down prometheus, move all 'rook-ceph' PVCs to provided storage class, scale up prometheus
