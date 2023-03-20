@@ -69,7 +69,7 @@ function remove_rook_ceph() {
     if echo "$all_pv_drivers" | grep "rook" &>/dev/null ; then
         logFail "There are still PVs using rook-ceph."
         logFail "Remove these PV(s) before continuing:"
-        logFail "$all_pv_drivers"
+       echo $(echo "$all_pv_drivers" | grep "rook")
         return 1
     fi
 
