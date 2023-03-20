@@ -107,7 +107,7 @@ function remove_rook_ceph() {
 
     log "Removing rook-ceph CRDs"
     if ! kubectl get crd | grep 'ceph.rook.io' | awk '{ print $1 }' | xargs -I'{}' kubectl delete crd '{}' --timeout=60s; then
-        logWarn "Unable deleting rook-ceph custom resources"
+        logWarn "Unable to delete rook-ceph CRDs"
     fi
 
     log "Removing rook-ceph custom resources volumes"
