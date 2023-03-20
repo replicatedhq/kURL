@@ -252,7 +252,7 @@ function maybe_cleanup_rook() {
                 report_addon_fail "rook-ceph-removal" "v1"
                 return
             fi
-            report_addon_success "rook-ceph-removal" "v1"
+            report_addon_success "rook-ceph-removal" "v1.1"
             return
         fi
 
