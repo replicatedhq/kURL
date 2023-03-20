@@ -39,12 +39,14 @@
     create_deployment_with_mounted_volume "migration-test" "default" "/data" "registry:2.8.1"
     create_random_file_and_upload_to_deployment "migration-test" "default" "./test.data" "/data/test.data"
     test_push_image_to_registry
+    install_and_customize_kurl_integration_test_application
   postUpgradeScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     sleep 120
     download_file_from_deployment_and_compare "migration-test" "default" "./test.data" "/data/test.data"
     pvc_uses_provisioner "migration-test" "default" "openebs"
     test_pull_image_from_registry
+    check_and_customize_kurl_integration_test_application
     if kubectl get namespace/rook-ceph ; then
       echo Rook namespace found after the upgrade.
       exit 1
@@ -90,12 +92,14 @@
     create_deployment_with_mounted_volume "migration-test" "default" "/data" "registry:2.8.1"
     create_random_file_and_upload_to_deployment "migration-test" "default" "./test.data" "/data/test.data"
     test_push_image_to_registry
+    install_and_customize_kurl_integration_test_application
   postUpgradeScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     sleep 120
     download_file_from_deployment_and_compare "migration-test" "default" "./test.data" "/data/test.data"
     pvc_uses_provisioner "migration-test" "default" "openebs"
     test_pull_image_from_registry
+    check_and_customize_kurl_integration_test_application
     if kubectl get namespace/rook-ceph ; then
       echo Rook namespace found after the upgrade.
       exit 1
@@ -137,11 +141,13 @@
     source /opt/kurl-testgrid/testhelpers.sh
     create_deployment_with_mounted_volume "migration-test" "default" "/data" "registry:2.8.1"
     create_random_file_and_upload_to_deployment "migration-test" "default" "./test.data" "/data/test.data"
+    install_and_customize_kurl_integration_test_application
   postUpgradeScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     sleep 120
     download_file_from_deployment_and_compare "migration-test" "default" "./test.data" "/data/test.data"
     pvc_uses_provisioner "migration-test" "default" "openebs"
+    check_and_customize_kurl_integration_test_application
     if kubectl get namespace/longhorn-system ; then
       echo Longhorn namespace found after the upgrade.
       exit 1
@@ -189,12 +195,14 @@
     create_deployment_with_mounted_volume "migration-test" "default" "/data" "registry:2.8.1"
     create_random_file_and_upload_to_deployment "migration-test" "default" "./test.data" "/data/test.data"
     test_push_image_to_registry
+    install_and_customize_kurl_integration_test_application
   postUpgradeScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     sleep 120
     download_file_from_deployment_and_compare "migration-test" "default" "./test.data" "/data/test.data"
     pvc_uses_provisioner "migration-test" "default" "openebs"
     test_pull_image_from_registry
+    check_and_customize_kurl_integration_test_application
     if kubectl get namespace/longhorn-system ; then
       echo Longhorn namespace found after the upgrade.
       exit 1
@@ -239,12 +247,14 @@
     create_deployment_with_mounted_volume "migration-test" "default" "/data" "registry:2.8.1"
     create_random_file_and_upload_to_deployment "migration-test" "default" "./test.data" "/data/test.data"
     test_push_image_to_registry
+    install_and_customize_kurl_integration_test_application
   postUpgradeScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     sleep 120
     download_file_from_deployment_and_compare "migration-test" "default" "./test.data" "/data/test.data"
     pvc_uses_provisioner "migration-test" "default" "openebs"
     test_pull_image_from_registry
+    check_and_customize_kurl_integration_test_application
     if kubectl get namespace/rook-ceph ; then
       echo Rook namespace found after the upgrade.
       exit 1
@@ -289,12 +299,14 @@
     create_deployment_with_mounted_volume "migration-test" "default" "/data" "registry:2.8.1"
     create_random_file_and_upload_to_deployment "migration-test" "default" "./test.data" "/data/test.data"
     test_push_image_to_registry
+    install_and_customize_kurl_integration_test_application
   postUpgradeScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     sleep 120
     download_file_from_deployment_and_compare "migration-test" "default" "./test.data" "/data/test.data"
     pvc_uses_provisioner "migration-test" "default" "openebs"
     test_pull_image_from_registry
+    check_and_customize_kurl_integration_test_application
     if kubectl get namespace/rook-ceph ; then
       echo Rook namespace found after the upgrade.
       exit 1
@@ -340,12 +352,14 @@
     create_deployment_with_mounted_volume "migration-test" "default" "/data" "registry:2.8.1"
     create_random_file_and_upload_to_deployment "migration-test" "default" "./test.data" "/data/test.data"
     test_push_image_to_registry
+    install_and_customize_kurl_integration_test_application
   postUpgradeScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     sleep 120
     download_file_from_deployment_and_compare "migration-test" "default" "./test.data" "/data/test.data"
     pvc_uses_provisioner "migration-test" "default" "openebs"
     test_pull_image_from_registry
+    check_and_customize_kurl_integration_test_application
     if kubectl get namespace/longhorn-system ; then
       echo Longhorn namespace found after the upgrade.
       exit 1
@@ -392,12 +406,14 @@
     create_deployment_with_mounted_volume "migration-test" "default" "/data" "registry:2.8.1"
     create_random_file_and_upload_to_deployment "migration-test" "default" "./test.data" "/data/test.data"
     test_push_image_to_registry
+    install_and_customize_kurl_integration_test_application
   postUpgradeScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     sleep 120
     download_file_from_deployment_and_compare "migration-test" "default" "./test.data" "/data/test.data"
     pvc_uses_provisioner "migration-test" "default" "openebs"
     test_pull_image_from_registry
+    check_and_customize_kurl_integration_test_application
     if kubectl get namespace/longhorn-system ; then
       echo Longhorn namespace found after the upgrade.
       exit 1
@@ -446,12 +462,14 @@
     create_deployment_with_mounted_volume "migration-test" "default" "/data" "registry:2.8.1"
     create_random_file_and_upload_to_deployment "migration-test" "default" "./test.data" "/data/test.data"
     test_push_image_to_registry
+    install_and_customize_kurl_integration_test_application
   postUpgradeScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     sleep 120
     download_file_from_deployment_and_compare "migration-test" "default" "./test.data" "/data/test.data"
     pvc_uses_provisioner "migration-test" "default" "openebs"
     test_pull_image_from_registry
+    check_and_customize_kurl_integration_test_application
 - name: Migrate from Rook 1.0.4 to Rook 1.10.x
   flags: yes
   cpu: 6
@@ -492,12 +510,14 @@
     create_deployment_with_mounted_volume "migration-test" "default" "/data" "registry:2.8.1"
     create_random_file_and_upload_to_deployment "migration-test" "default" "./test.data" "/data/test.data"
     test_push_image_to_registry
+    install_and_customize_kurl_integration_test_application
   postUpgradeScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     sleep 120
     download_file_from_deployment_and_compare "migration-test" "default" "./test.data" "/data/test.data"
     pvc_uses_provisioner "migration-test" "default" "rook"
     test_pull_image_from_registry
+    check_and_customize_kurl_integration_test_application
 - name: Migrate from Longhorn + Minio to Rook 1.10.x
   flags: yes
   cpu: 6
@@ -540,12 +560,14 @@
     create_deployment_with_mounted_volume "migration-test" "default" "/data" "registry:2.8.1"
     create_random_file_and_upload_to_deployment "migration-test" "default" "./test.data" "/data/test.data"
     test_push_image_to_registry
+    install_and_customize_kurl_integration_test_application
   postUpgradeScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     sleep 120
     download_file_from_deployment_and_compare "migration-test" "default" "./test.data" "/data/test.data"
     pvc_uses_provisioner "migration-test" "default" "rook"
     test_pull_image_from_registry
+    check_and_customize_kurl_integration_test_application
     if kubectl get namespace/longhorn-system ; then
       echo Longhorn namespace found after the upgrade.
       exit 1
@@ -594,12 +616,14 @@
     create_deployment_with_mounted_volume "migration-test" "default" "/data" "registry:2.8.1"
     create_random_file_and_upload_to_deployment "migration-test" "default" "./test.data" "/data/test.data"
     test_push_image_to_registry
+    install_and_customize_kurl_integration_test_application
   postUpgradeScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     sleep 120
     download_file_from_deployment_and_compare "migration-test" "default" "./test.data" "/data/test.data"
     pvc_uses_provisioner "migration-test" "default" "openebs"
     test_pull_image_from_registry
+    check_and_customize_kurl_integration_test_application
     if kubectl get namespace/rook-ceph ; then
       echo Rook namespace found after the upgrade.
       exit 1
@@ -648,12 +672,14 @@
     create_deployment_with_mounted_volume "migration-test" "default" "/data" "registry:2.8.1"
     create_random_file_and_upload_to_deployment "migration-test" "default" "./test.data" "/data/test.data"
     test_push_image_to_registry
+    install_and_customize_kurl_integration_test_application
   postUpgradeScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     sleep 120
     download_file_from_deployment_and_compare "migration-test" "default" "./test.data" "/data/test.data"
     pvc_uses_provisioner "migration-test" "default" "openebs"
     test_pull_image_from_registry
+    check_and_customize_kurl_integration_test_application
     if kubectl get namespace/rook-ceph ; then
       echo Rook namespace found after the upgrade.
       exit 1
@@ -704,12 +730,14 @@
     create_deployment_with_mounted_volume "migration-test" "default" "/data" "registry:2.8.1"
     create_random_file_and_upload_to_deployment "migration-test" "default" "./test.data" "/data/test.data"
     test_push_image_to_registry
+    install_and_customize_kurl_integration_test_application
   postUpgradeScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     sleep 120
     download_file_from_deployment_and_compare "migration-test" "default" "./test.data" "/data/test.data"
     pvc_uses_provisioner "migration-test" "default" "openebs"
     test_pull_image_from_registry
+    check_and_customize_kurl_integration_test_application
     if kubectl get namespace/longhorn-system ; then
       echo Longhorn namespace found after the upgrade.
       exit 1
@@ -749,11 +777,13 @@
     source /opt/kurl-testgrid/testhelpers.sh
     rook_ceph_object_store_info
     validate_read_write_object_store rwtest testfile.txt
+    install_and_customize_kurl_integration_test_application
   postUpgradeScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     minio_object_store_info
     validate_testfile rwtest testfile.txt
     validate_read_write_object_store postupgrade upgradefile.txt
+    check_and_customize_kurl_integration_test_application
     if kubectl get namespace/rook-ceph ; then
       echo Rook namespace found after the upgrade.
       exit 1
@@ -815,12 +845,14 @@
     create_deployment_with_mounted_volume "migration-test" "default" "/data" "registry:2.8.1"
     create_random_file_and_upload_to_deployment "migration-test" "default" "./test.data" "/data/test.data"
     test_push_image_to_registry
+    install_and_customize_kurl_integration_test_application
   postUpgradeScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     sleep 120
     download_file_from_deployment_and_compare "migration-test" "default" "./test.data" "/data/test.data"
     pvc_uses_provisioner "migration-test" "default" "openebs"
     test_pull_image_from_registry
+    check_and_customize_kurl_integration_test_application
     if kubectl get namespace/rook-ceph ; then
       echo Rook namespace found after the upgrade.
       exit 1
@@ -869,12 +901,14 @@
     create_deployment_with_mounted_volume "migration-test" "default" "/data" "registry:2.8.1"
     create_random_file_and_upload_to_deployment "migration-test" "default" "./test.data" "/data/test.data"
     test_push_image_to_registry
+    install_and_customize_kurl_integration_test_application
   postUpgradeScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     sleep 120
     download_file_from_deployment_and_compare "migration-test" "default" "./test.data" "/data/test.data"
     pvc_uses_provisioner "migration-test" "default" "openebs"
     test_pull_image_from_registry
+    check_and_customize_kurl_integration_test_application
 - name: Migrate from Rook+OpenEBS to OpenEBS (Kubernetes 1.19.x to 1.21.x, Docker to Containerd)
   flags: yes
   installerSpec:
@@ -977,6 +1011,7 @@
     minio_object_store_info
     validate_testfile rwtest testfile.txt
     validate_read_write_object_store postupgrade upgradefile.txt
+    check_and_customize_kurl_integration_test_application
     if kubectl get namespace/rook-ceph ; then
       echo Rook namespace found after the upgrade.
       exit 1
