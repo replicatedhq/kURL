@@ -99,7 +99,7 @@ function remove_rook_ceph() {
         logWarn "Unable to delete Rook Volume resources"
     fi
 
-    log "Waiting for rook-ceph OSD pods to be removed"
+    log "Waiting for Rook Ceph OSD pods to be removed"
     if ! spinner_until 120 rook_ceph_osd_pods_gone; then
         logWarn "Unable to remove Rook Ceph OSD pods"
     fi
