@@ -665,7 +665,7 @@ function bail_when_no_object_store_and_s3_enabled() {
              bail "Please, ensure that your installer also provides an object store with either the MinIO or Rook add-on."
         fi
         if [ -n "$VELERO_VERSION" ] && [ "$HA_CLUSTER" = "1" ] ; then
-             logFail "Velero within Multi Cluster (HA) requires an object store."
+             logFail "Velero with KOTS s3 enabled requires an object store."
              bail "Please, ensure that your installer also provides an object store with either the MinIO or Rook add-on."
         fi
         if [ -n "$REGISTRY_VERSION" ];then
