@@ -82,7 +82,11 @@ function remove_rook_ceph() {
              return 1
         fi
     fi
-
+    log "Removing rook-ceph Storage Classes"
+    if ! kubectl get storageclass | grep rook | awk '{ print $1 }' | xargs -I'{}' kubectl delete storageclass '{}' --timeout=60s; then
+        logFail "Unable to delete rook-ceph StorageClasses"
+        return 1
+    fi
     # remove all rook-ceph CR objects
     log "Removing rook-ceph custom resource objects - this may take some time:\n"
     if ! kubectl delete cephcluster -n rook-ceph rook-ceph --timeout=300s; then
