@@ -78,8 +78,8 @@ function remove_rook_ceph() {
         kubectl -n kurl scale deploy ekc-operator --replicas=0
         log "Waiting for ekco pods to be removed"
         if ! spinner_until 300 ekco_pods_gone; then
-             logWarn "Unable to scale down ekco operator"
-             logWarn "The script will continue to try remove Rook"
+             logFail "Unable to scale down ekco operator"
+             return 1
         fi
     fi
 
