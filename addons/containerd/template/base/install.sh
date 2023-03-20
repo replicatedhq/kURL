@@ -11,7 +11,11 @@ function containerd_pre_init() {
         cp "$src/kubeadm-init-config-v1beta2.yaml" "$DIR/kustomize/kubeadm/init-patches/containerd-kubeadm-init-config-v1beta2.yml"
     fi
 
-    containerd_host_init
+    # preserve containerd config
+    if addon_has_been_applied "containerd"; then
+        CONTAINERD_PRESERVE_CONFIG=1
+        log "Preserving containerd $CONTAINERD_VERSION config"
+    fi
 }
 
 function containerd_join() {
@@ -34,7 +38,18 @@ function containerd_install() {
 
     containerd_migrate_from_docker
 
-    install_host_packages "$src" containerd.io
+    # only install if package is not present
+    if [ "$CONTAINERD_PRESERVE_CONFIG" = "1" ]; then
+        log "Skipping host package installation for containerd: $CONTAINERD_VERSION already intalled"
+    else
+        install_host_packages "$src" containerd.io
+    fi
+
+    case "$LSB_DIST" in
+        centos|rhel|amzn|ol)
+            yum_install_host_archives "$src" libzstd
+            ;;
+    esac
 
     chmod +x ${DIR}/addons/containerd/${CONTAINERD_VERSION}/assets/runc
     # If the runc binary is executing the cp command will fail with "text file busy" error.
