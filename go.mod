@@ -24,7 +24,7 @@ require (
 	github.com/replicatedhq/kurlkinds v1.2.0
 	github.com/replicatedhq/plumber v1.16.0
 	github.com/replicatedhq/pvmigrate v0.8.0
-	github.com/replicatedhq/troubleshoot v0.57.1
+	github.com/replicatedhq/troubleshoot v0.59.0
 	github.com/rook/rook v1.10.11
 	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/afero v1.9.5
