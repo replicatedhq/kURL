@@ -89,7 +89,7 @@ function remove_rook_ceph() {
     fi
 
     # More info: https://rook.io/docs/rook/v1.10/Getting-Started/ceph-teardown/#delete-the-cephcluster-crd
-    log "Allow RookCeph delete the data"
+    log "Patch Ceph cluster to allow deletion"
     kubectl -n rook-ceph patch cephcluster rook-ceph --type merge -p '{"spec":{"cleanupPolicy":{"confirmation":"yes-really-destroy-data"}}}'
 
     # remove all rook-ceph CR objects
