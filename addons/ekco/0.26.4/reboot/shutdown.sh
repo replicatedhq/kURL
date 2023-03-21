@@ -39,23 +39,23 @@ function main() {
 
     kubectl cordon "$(get_local_node_name)"
 
-    allPodUIDs=$(kubectl get pods --all-namespaces -ojsonpath='{ range .items[*]}{.metadata.name}{"\t"}{.metadata.uid}{"\t"}{.metadata.namespace}{"\n"}{end}' )
+    nodePodNames=$(kubectl get pods --all-namespaces --field-selector spec.nodeName="$HOSTNAME" -ojsonpath='{ range .items[*]}{.metadata.name}{"\t"}{.metadata.namespace}{"\n"}{end}' )
+    while read -r pod; do
+        if [ -z "$pod" ]; then
+            continue
+        fi
 
-    # delete local pods with PVCs
-    while read -r dev; do
-        uid=$(echo "$dev" | grep -Eo "pods\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}" | sed 's/pods\///')
-        pod=$(echo "${allPodUIDs[*]}" | grep "$uid")
-        kubectl delete pod "$(echo "$pod" | awk '{ print $1 }')" --namespace="$(echo "$pod" | awk '{ print $3 }')" --wait=false
-    done < <(lsblk | grep "\/var\/lib\/kubelet\/pods\/.*\/pvc-")
+        # skip pods in kube-system, rook-ceph, openebs, and longhorn-system namespaces
+        ns=$(echo "$pod" | awk '{ print $2 }')
+        if [ "$ns" == "kube-system" ] || [ "$ns" == "rook-ceph" ] || [ "$ns" == "openebs" ] || [ "$ns" == "longhorn-system" ]; then
+            continue
+        fi
 
-    # delete local pods using the Ceph filesystem
-    while read -r uid; do
-        pod=$(kubectl get pods --all-namespaces -ojsonpath='{ range .items[*]}{.metadata.name}{"\t"}{.metadata.uid}{"\t"}{.metadata.namespace}{"\n"}{end}' | grep "$uid" )
-        kubectl delete pod "$(echo "$pod" | awk '{ print $1 }')" --namespace="$(echo "$pod" | awk '{ print $3 }')" --wait=false
-    done < <(grep ':6789:/' /proc/mounts | grep -v globalmount | awk '{ print $2 }' | awk -F '/' '{ print $6 }')
+        kubectl delete pod "$(echo "$pod" | awk '{ print $1 }')" --namespace="$(echo "$pod" | awk '{ print $2 }')" --wait=false
+    done < <(echo "$nodePodNames")
 
     # while there are still pods with PVCs mounted
-    while [ -n "$(lsblk | grep "\/var\/lib\/kubelet\/pods\/.*\/pvc-")" ]; do
+    while lsblk | grep -q "\/var\/lib\/kubelet\/pods\/.*\/pvc-"; do
         echo "Waiting for pods to unmount PVCs"
         sleep 1
     done
