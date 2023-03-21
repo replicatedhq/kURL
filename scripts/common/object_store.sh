@@ -241,7 +241,7 @@ function migrate_rgw_to_minio_checks() {
     fi
 
     log "Wating for Rook Ceph Object Store health ..."
-    if ! spinner_until 300 rook_rgw_is_healthy ; then
+    if ! spinner_until 300 rook_rgw_check_if_is_healthy ; then
         logFail "Failed to detect healthy Rook Ceph Object Store"
         bail "Cannot upgrade from Rook Ceph Object Store to Minio. Rook Ceph is unhealthy."
     fi
@@ -249,14 +249,9 @@ function migrate_rgw_to_minio_checks() {
     logSuccess "Rook Ceph Object Store to Minio migration checks completed successfully."
 }
 
-function rook_rgw_is_healthy() {
-    export OBJECT_STORE_CLUSTER_IP
-    OBJECT_STORE_CLUSTER_IP=$(kubectl -n rook-ceph get service rook-ceph-rgw-rook-ceph-store | tail -n1 | awk '{ print $3}')
-    export OBJECT_STORE_CLUSTER_HOST="http://rook-ceph-rgw-rook-ceph-store.rook-ceph"
-    # same as OBJECT_STORE_CLUSTER_IP for IPv4, wrapped in brackets for IPv6
-    export OBJECT_STORE_CLUSTER_IP_BRACKETED
-    OBJECT_STORE_CLUSTER_IP_BRACKETED=$("$BIN_KURL" netutil format-ip-address "$OBJECT_STORE_CLUSTER_IP")
-    curl --globoff --noproxy "*" --fail --silent --insecure "http://${OBJECT_STORE_CLUSTER_IP_BRACKETED}" > /dev/null
+function rook_rgw_check_if_is_healthy() {
+    local IP=$(kubectl -n rook-ceph get service rook-ceph-rgw-rook-ceph-store | tail -n1 | awk '{ print $3}')
+    curl --globoff --noproxy "*" --fail --silent --insecure "http://${IP}" > /dev/null
 }
 
 function migrate_rgw_to_minio() {
