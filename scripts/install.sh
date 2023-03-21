@@ -236,7 +236,7 @@ function init() {
     mkdir -p /var/log/apiserver
 
     set -o pipefail
-    kubeadm init \
+    cmd_retry 3 kubeadm init \
         --ignore-preflight-errors=all \
         --config $KUBEADM_CONF_FILE \
         $UPLOAD_CERTS \

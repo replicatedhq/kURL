@@ -1094,3 +1094,25 @@ function check_for_running_pods() {
 
     return 0
 }
+
+# retry a command if it fails up to $1 number of times
+# Usage: cmd_retry 3 curl --globoff --noproxy "*" --fail --silent --insecure https://10.128.0.25:6443/healthz
+function cmd_retry() {
+    local retries=$1
+    shift
+
+    local count=0
+    until "$@"; do
+        exit=$?
+        wait=$((2 ** $count))
+        count=$(($count + 1))
+        if [ $count -lt $retries ]; then
+            echo "Retry $count/$retries exited $exit, retrying in $wait seconds..."
+            sleep $wait
+        else
+            echo "Retry $count/$retries exited $exit, no more retries left."
+            return $exit
+        fi
+    done
+    return 0
+}
