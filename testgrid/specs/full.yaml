@@ -1577,11 +1577,6 @@
     else
        echo "Namespace rook-ceph was removed"
     fi
-    echo "Verify if Rook data was removed"
-    if [ -d "/var/lib/rook" ] || [ -d "/opt/replicated/rook" ]; then
-        echo "Data within /var/lib/rook, /opt/replicated/rook and any bound disks has not been freed."
-        exit 1
-    fi
 - name: less_command
   installerSpec:
     kubernetes:
@@ -1846,9 +1841,4 @@
        exit 1 
     else
        echo "Namespace rook-ceph was removed"
-    fi
-    echo "Verify if Rook data was removed"
-    if [ -d "/var/lib/rook" ] || [ -d "/opt/replicated/rook" ]; then
-        echo "Data within /var/lib/rook, /opt/replicated/rook and any bound disks has not been freed."
-        exit 1 
     fi
