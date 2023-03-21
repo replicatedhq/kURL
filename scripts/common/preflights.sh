@@ -13,6 +13,7 @@ function preflights() {
     kotsadm_prerelease
     host_nameservers_reachable
     allow_remove_docker_new_install
+    bail_when_no_object_store_and_s3_enabled
     bail_if_unsupported_openebs_to_rook_version
     bail_if_kurl_version_is_lower_than_previous_config
     return 0
@@ -658,6 +659,20 @@ function bail_if_unsupported_openebs_to_rook_version() {
     fi
 }
 
+# bail_when_no_object_store_and_s3_enabled will bail if Minio and Rook are not present and kotsadm.s3Disabled is false.
+function bail_when_no_object_store_and_s3_enabled() {
+    if [ -z "$MINIO_VERSION" ] && [ -z "$ROOK_VERSION" ]; then
+        if [ -n "$KOTSADM_VERSION" ] && [ "$KOTSADM_DISABLE_S3" != "1" ]; then
+             logFail "KOTS with s3 enabled requires an object store."
+             bail "Please ensure that your installer also provides an object store with either the MinIO or Rook add-on."
+        fi
+        if [ -n "$VELERO_VERSION" ] && [ "$KOTSADM_DISABLE_S3" != "1" ]; then
+             logFail "Velero with KOTS s3 enabled requires an object store."
+             bail "Please, ensure that your installer also provides an object store with either the MinIO or Rook add-on."
+        fi
+    fi
+}
+
 # not allow run the installer/upgrade when kurl version is lower than the previous applied before
 function bail_if_kurl_version_is_lower_than_previous_config() {
     if commandExists kubectl; then
@@ -674,5 +689,6 @@ function bail_if_kurl_version_is_lower_than_previous_config() {
        fi
        log "Previous kURL version used to install or update the cluster is $previous_kurl_version"
        log "and the current kURL version used is $KURL_VERSION"
+
     fi
 }
