@@ -108,6 +108,10 @@
       echo Rook namespace found after the upgrade.
       exit 1
     fi
+    if [ -d "/var/lib/rook" ] || [ -d "/opt/replicated/rook" ]; then
+       echo  Rook Data directories not removed.
+       exit 1
+    fi
 - name: Migrate from Longhorn (S3 disabled) to OpenEBS + Minio
   flags: yes
   installerSpec:
@@ -318,6 +322,10 @@
     if kubectl get namespace/rook-ceph ; then
       echo Rook namespace found after the upgrade.
       exit 1
+    fi
+    if [ -d "/var/lib/rook" ] || [ -d "/opt/replicated/rook" ]; then
+       echo  Rook Data directories not removed.
+       exit 1
     fi
 - name: Migrate from Longhorn (S3 disabled) to OpenEBS (S3 disabled)
   flags: yes
@@ -699,6 +707,10 @@
     if kubectl get namespace/rook-ceph ; then
       echo Rook namespace found after the upgrade.
       exit 1
+    fi
+    if [ -d "/var/lib/rook" ] || [ -d "/opt/replicated/rook" ]; then
+       echo  Rook Data directories not removed.
+       exit 1
     fi
 - name: Migrate from Longhorn + Minio to OpenEBS + Minio
   flags: yes
