@@ -841,8 +841,6 @@
       version: 0.10.1
   airgap: true
   unsupportedOSIDs:
-  - rhel-9 # docker is not supported on rhel 9 variants
-  - centos-9 # docker is not supported on rhel 9 variants
   - ol-9 # docker is not supported on rhel 9 variants
   - rocky-91 # docker is not supported on rhel 9 variants
 - name: remove_all_object_storage
@@ -1732,7 +1730,5 @@
     containerd:
       version: latest
   unsupportedOSIDs:
-  - rhel-9 # containerd < 1.6 is not supported on rhel 9 variants
-  - centos-9 # containerd < 1.6 is not supported on rhel 9 variants
   - ol-9 # containerd < 1.6 is not supported on rhel 9 variants
   - rocky-91 # containerd < 1.6 is not supported on rhel 9 variants
