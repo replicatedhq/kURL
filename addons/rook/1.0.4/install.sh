@@ -3,11 +3,11 @@ function rook_pre_init() {
     if [ "$KUBERNETES_TARGET_VERSION_MINOR" -ge 20 ]; then
         bail "Rook 1.0.4 is not compatible with Kubernetes 1.20+"
     fi
+
+    rook_lvm2
 }
 
 function rook() {
-    rook_lvm2
-
     rook_operator_deploy
     rook_set_ceph_pool_replicas
     rook_ready_spinner # creating the cluster before the operator is ready fails
@@ -191,5 +191,9 @@ function rook_lvm2() {
         return
     fi
 
-    install_host_archives "$src" lvm2
+    if is_rhel_9_variant; then
+        yum_ensure_host_package lvm2
+    else
+        install_host_archives "$src" lvm2
+    fi
 }

@@ -893,6 +893,9 @@
        echo  Rook Data directories not removed.
        exit 1
     fi
+  unsupportedOSIDs:
+  - ol-9 # docker is not supported on rhel 9 variants
+  - rocky-91 # docker is not supported on rhel 9 variants
 - name: Migrate from OpenEBS (S3 disabled) to OpenEBS + Minio
   flags: yes
   installerSpec:
@@ -1056,3 +1059,6 @@
        echo  Rook Data directories not removed.
        exit 1
     fi
+  unsupportedOSIDs:
+  - ol-9 # docker is not supported on rhel 9 variants
+  - rocky-91 # docker is not supported on rhel 9 variants

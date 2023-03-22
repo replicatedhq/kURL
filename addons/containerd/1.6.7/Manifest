@@ -3,6 +3,7 @@ asset runc https://github.com/opencontainers/runc/releases/download/v1.1.4/runc.
 dockerout rhel-7 addons/containerd/template/Dockerfile.centos7 1.6.7
 dockerout rhel-7-force addons/containerd/template/Dockerfile.centos7-force 1.6.7
 dockerout rhel-8 addons/containerd/template/Dockerfile.centos8 1.6.7
+dockerout rhel-9 addons/containerd/template/Dockerfile.rhel9 1.6.7
 dockerout ubuntu-18.04 addons/containerd/template/Dockerfile.ubuntu18 1.6.7
 dockerout ubuntu-20.04 addons/containerd/template/Dockerfile.ubuntu20 1.6.7
 dockerout ubuntu-22.04 addons/containerd/template/Dockerfile.ubuntu22 1.6.7

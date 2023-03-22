@@ -35,7 +35,9 @@
     weave:
       version: latest
   unsupportedOSIDs:
-    - ubuntu-2204 # docker 19.x is not available on ubuntu 22.04
+  - ubuntu-2204 # docker 19.x is not available on ubuntu 22.04
+  - rocky-91 # docker is not supported on rhel 9 variants
+  - ol-9 # docker is not supported on rhel 9 variants
 - name: k8s121
   installerSpec:
     kubernetes:
@@ -342,3 +344,6 @@
     minio_object_store_info
     validate_testfile rwtest testfile.txt
     validate_read_write_object_store postupgrade upgradefile.txt
+  unsupportedOSIDs:
+  - rocky-91 # docker is not supported on rhel 9 variants
+  - ol-9 # docker is not supported on rhel 9 variants

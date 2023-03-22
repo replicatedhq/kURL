@@ -12,8 +12,8 @@ function collectd() {
                 dpkg_install_host_archives "$src" collectd
                 ;;
 
-            centos|rhel|amzn|ol)
-                if [[ "$DIST_VERSION" =~ ^8 ]]; then
+            centos|rhel|ol|rocky|amzn)
+                if [ "$DIST_VERSION_MAJOR" = "8" ] || [ "$DIST_VERSION_MAJOR" = "9" ]; then
                     yum_install_host_archives "$src" collectd collectd-rrdtool collectd-disk
                 else
                     yum_install_host_archives "$src" collectd collectd-rrdtool
@@ -45,7 +45,7 @@ function collectd_config() {
     ubuntu)
         local conf_path="/etc/collectd"
         ;;
-    centos|rhel|amzn|ol)
+    centos|rhel|ol|rocky|amzn)
         local conf_path="/etc"
         mkdir -p /var/lib/collectd/rrd > /dev/null 2>&1
         ;;

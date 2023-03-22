@@ -13,11 +13,11 @@ function rook_pre_init() {
             SKIP_KUBERNETES_HOST=1
         fi
     fi
+
+    rook_lvm2
 }
 
 function rook() {
-    rook_lvm2
-
     if [ -n "$SKIP_ROOK_INSTALL" ]; then
         local version=$(rook_version)
         printf "Rook $version is already installed, will not upgrade to 1.4.3\n"
@@ -228,5 +228,9 @@ function rook_lvm2() {
         return
     fi
 
-    install_host_archives "$src" lvm2
+    if is_rhel_9_variant; then
+        yum_ensure_host_package lvm2
+    else
+        install_host_archives "$src" lvm2
+    fi
 }

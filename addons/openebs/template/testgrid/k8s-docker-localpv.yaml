@@ -130,6 +130,9 @@
     minio_object_store_info
     validate_testfile rwtest testfile.txt
     validate_read_write_object_store postupgrade upgradefile.txt
+  unsupportedOSIDs:
+  - rocky-91 # docker is not supported on rhel 9 variants
+  - ol-9 # docker is not supported on rhel 9 variants
 
 - name: localpv migrate from Rook 1.0.4 with old versions
   flags: "yes"

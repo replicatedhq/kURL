@@ -51,12 +51,12 @@ function rook_pre_init() {
             fi
         fi
     fi
+
+    rook_lvm2
 }
 
 function rook() {
     local src="${DIR}/addons/rook/${ROOK_VERSION}"
-
-    rook_lvm2
 
     if [ -n "$SKIP_ROOK_INSTALL" ]; then
         local version
@@ -379,7 +379,11 @@ function rook_lvm2() {
         return
     fi
 
-    install_host_archives "$src" lvm2
+    if is_rhel_9_variant; then
+        yum_ensure_host_package lvm2
+    else
+        install_host_archives "$src" lvm2
+    fi
 }
 
 function rook_patch_insecure_clients {

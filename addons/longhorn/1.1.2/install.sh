@@ -7,6 +7,8 @@ function longhorn_pre_init() {
     if [ -z "$LONGHORN_UI_REPLICA_COUNT" ]; then
         LONGHORN_UI_REPLICA_COUNT="0"
     fi
+
+    longhorn_host_init
 }
 
 function longhorn() {
@@ -29,9 +31,6 @@ function longhorn() {
     fi
 
     check_mount_propagation $src
-
-    longhorn_host_init
-
 
     render_yaml_file "$src/tmpl-ui-service.yaml" > "$dst/ui-service.yaml"
     render_yaml_file "$src/tmpl-ui-deployment.yaml" > "$dst/ui-deployment.yaml"
@@ -112,8 +111,12 @@ function longhorn_install_iscsi_if_missing() {
                 dpkg_install_host_archives "$src" open-iscsi
                 ;;
 
-            centos|rhel|amzn|ol)
-                yum_install_host_archives "$src" iscsi-initiator-utils
+            centos|rhel|ol|rocky|amzn)
+                if is_rhel_9_variant ; then
+                    yum_ensure_host_package iscsi-initiator-utils
+                else
+                    yum_install_host_archives "$src" iscsi-initiator-utils
+                fi
                 ;;
         esac
     fi
@@ -136,8 +139,12 @@ function longhorn_install_nfs_utils_if_missing() {
                 dpkg_install_host_archives "$src" nfs-common
                 ;;
 
-            centos|rhel|amzn|ol)
-                yum_install_host_archives "$src" nfs-utils
+            centos|rhel|ol|rocky|amzn)
+                if is_rhel_9_variant ; then
+                    yum_ensure_host_package nfs-utils
+                else
+                    yum_install_host_archives "$src" nfs-utils
+                fi
                 ;;
         esac
     fi

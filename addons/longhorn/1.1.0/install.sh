@@ -5,6 +5,8 @@ function longhorn_pre_init() {
     if [ -z "$LONGHORN_UI_REPLICA_COUNT" ]; then
         LONGHORN_UI_REPLICA_COUNT="0"
     fi
+
+    longhorn_host_init
 }
 
 function longhorn() {
@@ -20,8 +22,6 @@ function longhorn() {
         cp "$src/storageclass-default-configmap.yaml" "$dst/storageclass-configmap.yaml"
     fi
 
-    longhorn_host_init
-
     cp "$src/kustomization.yaml" "$dst/"
     cp "$src/crds.yaml" "$dst/"
     cp "$src/driver.yaml" "$dst/"
@@ -35,7 +35,6 @@ function longhorn() {
         cp "$src/priority-class.yaml" "$dst/"
         insert_resources "$dst/kustomization.yaml" priority-class.yaml
     fi
-    
 
     render_yaml_file "$src/tmpl-ui-service.yaml" > "$dst/ui-service.yaml"
     render_yaml_file "$src/tmpl-ui-deployment.yaml" > "$dst/ui-deployment.yaml"
@@ -95,8 +94,12 @@ function longhorn_install_iscsi_if_missing() {
                 dpkg_install_host_archives "$src" open-iscsi
                 ;;
 
-            centos|rhel|amzn|ol)
-                yum_install_host_archives "$src" iscsi-initiator-utils
+            centos|rhel|ol|rocky|amzn)
+                if is_rhel_9_variant ; then
+                    yum_ensure_host_package iscsi-initiator-utils
+                else
+                    yum_install_host_archives "$src" iscsi-initiator-utils
+                fi
                 ;;
         esac
     fi
@@ -119,8 +122,12 @@ function longhorn_install_nfs_utils_if_missing() {
                 dpkg_install_host_archives "$src" nfs-common
                 ;;
 
-            centos|rhel|amzn|ol)
-                yum_install_host_archives "$src" nfs-utils
+            centos|rhel|ol|rocky|amzn)
+                if is_rhel_9_variant ; then
+                    yum_ensure_host_package nfs-utils
+                else
+                    yum_install_host_archives "$src" nfs-utils
+                fi
                 ;;
         esac
     fi
