@@ -652,7 +652,7 @@
        echo  Rook Data directories not removed.
        exit 1
     fi
-- name: Migrate from Rook 1.10.x to OpenEBS + Minio
+- name: Migrate from Rook 1.10.x to OpenEBS + Minio (multi-node)
   flags: yes
   cpu: 6
   numPrimaryNodes: 1
