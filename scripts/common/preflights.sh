@@ -16,7 +16,6 @@ function preflights() {
     bail_when_no_object_store_and_s3_enabled
     bail_if_unsupported_openebs_to_rook_version
     bail_if_kurl_version_is_lower_than_previous_config
-    preflights_require_host_packages
     return 0
 }
 
