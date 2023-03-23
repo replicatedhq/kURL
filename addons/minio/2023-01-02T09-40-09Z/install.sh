@@ -234,6 +234,12 @@ function minio_migrate_from_rgw() {
 
     minio_wait_for_health
 
+    DID_MIGRATE_ROOK_OBJECT_STORE=$(kubectl -n kurl get configmap kurl-migration-from-rook -o jsonpath='{ .data.DID_MIGRATE_ROOK_OBJECT_STORE }')
+    if [ "$DID_MIGRATE_ROOK_OBJECT_STORE" == "1" ]; then
+        logWarn "Object store is set as migrated previously. Not migrating object store again."
+        return
+    fi
+
     migrate_rgw_to_minio
     add_rook_store_object_migration_status
 }
