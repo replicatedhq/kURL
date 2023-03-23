@@ -1,4 +1,4 @@
-DID_MIGRATE_ROOK_OBJECT_STORE=
+
 
 function minio_pre_init() {
     if [ -z "$MINIO_NAMESPACE" ]; then
