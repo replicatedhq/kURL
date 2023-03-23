@@ -1,4 +1,4 @@
-DID_MIGRATE_ROOK_PVCS=
+
 
 function longhorn_pre_init() {
     if [ -z "$LONGHORN_UI_BIND_PORT" ]; then

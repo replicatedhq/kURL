@@ -1,7 +1,5 @@
 # shellcheck disable=SC2148
 
-DID_MIGRATE_ROOK_PVCS=
-
 function longhorn_pre_init() {
     local re='^[0-9]+$'
 

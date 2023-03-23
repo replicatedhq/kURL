@@ -1,7 +1,6 @@
 # shellcheck disable=SC2148
 
 export SKIP_LONGHORN_INSTALL
-export DID_MIGRATE_ROOK_PVCS
 export LONGHORN_IS_DEFAULT_STORAGECLASS
 
 function longhorn_pre_init() {
