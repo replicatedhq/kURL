@@ -94,9 +94,8 @@ function flannel_already_applied() {
     # in order to workaround the issue scenario described in
     # https://github.com/flannel-io/flannel/issues/1721
     if [ "$KUBERNETES_UPGRADE" == "1" ]; then
-       log "Deleting pods from kube-flannel namespace"
-       kubectl delete --all pods --namespace=kube-flannel
-       sleep 60
+       log "Restarting kube-flannel pods"
+       kubectl rollout restart --namespace=kube-flannel daemonset/kube-flannel-ds
     fi
 
     flannel_ready_spinner
