@@ -191,7 +191,7 @@ function minio_migrate_from_rgw() {
     minio_wait_for_health
 
     migrate_rgw_to_minio
-    export DID_MIGRATE_ROOK_OBJECT_STORE="1"
+    add_rook_store_object_migration_status
 }
 
 function allow_pvc_resize() {

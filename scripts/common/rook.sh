@@ -245,6 +245,9 @@ function maybe_cleanup_rook() {
         fi
         logStep "Removing Rook"
 
+        DID_MIGRATE_ROOK_PVCS=$(kubectl -n kurl get configmap kurl-migration-from-rook -o jsonpath='{ .data.DID_MIGRATE_ROOK_PVCS }')
+        DID_MIGRATE_ROOK_OBJECT_STORE=$(kubectl -n kurl get configmap kurl-migration-from-rook -o jsonpath='{ .data.DID_MIGRATE_ROOK_OBJECT_STORE }')
+
         if [ "$DID_MIGRATE_ROOK_PVCS" == "1" ] && [ "$DID_MIGRATE_ROOK_OBJECT_STORE" == "1" ]; then
             report_addon_start "rook-ceph-removal" "v1.1"
             if ! remove_rook_ceph; then
@@ -252,6 +255,7 @@ function maybe_cleanup_rook() {
                 report_addon_fail "rook-ceph-removal" "v1.1"
                 return
             fi
+            kubectl delete configmap kurl-migration-from-rook -n kurl
             report_addon_success "rook-ceph-removal" "v1.1"
             return
         fi
@@ -348,4 +352,24 @@ function rook_is_healthy_to_upgrade() {
         fi
     fi
     return 0
+}
+
+# Check if the kurl-migration-from-rook exists then, if not creates it
+# To add DID_MIGRATE_ROOK_PVCS = "1" in order to track that the PVCs were migrated
+function add_rook_pvc_migration_status() {
+    if ! kubectl -n kurl get configmap kurl-migration-status; then
+       kubectl create configmap kurl-migration-from-rook -n kurl
+    fi
+    kubectl patch configmap kurl-migration-from-rook -n kurl --type merge -p '{"data":{"DID_MIGRATE_ROOK_PVCS":"1"}}'
+    export DID_MIGRATE_ROOK_PVCS=1
+}
+
+# Check if the kurl-migration-from-rook exists then, if not creates it
+# To add DID_MIGRATE_ROOK_PVCS = "1" in order to track that the PVCs were migrated
+function add_rook_store_object_migration_status() {
+    if ! kubectl -n kurl get configmap kurl-migration-status; then
+       kubectl create configmap kurl-migration-from-rook -n kurl
+    fi
+    kubectl patch configmap kurl-migration-from-rook -n kurl --type merge -p '{"data":{"DID_MIGRATE_ROOK_OBJECT_STORE":"1"}}'
+    export DID_MIGRATE_ROOK_OBJECT_STORE=1
 }
