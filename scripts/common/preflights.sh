@@ -660,8 +660,14 @@ function bail_if_unsupported_openebs_to_rook_version() {
                 semverParse "$OPENEBS_VERSION"
                 # if $OPENEBS_VERSION is less than 3.3.0
                 if [ "$major" -lt "3" ] || { [ "$major" = "3" ] && [ "$minor" -lt "3" ] ; }; then
-                   logFail "The OpenEBS version $OPENEBS_VERSION cannot be installed."
-                   bail "OpenEBS versions less than 3.3.0 do not support migrations from Rook"
+                    logFail "The OpenEBS version $OPENEBS_VERSION cannot be installed."
+                    bail "OpenEBS versions less than 3.3.0 do not support migrations from Rook"
+                fi
+
+                # registry + openebs without rook requires minio
+                if [ -n "$REGISTRY_VERSION" ] && [ -z "$MINIO_VERSION" ]; then
+                    logFail "Migration from Rook with Registry required an object store."
+                    bail "Please ensure that your installer also provides an object store with MinIO add-on."
                 fi
             fi
         fi
