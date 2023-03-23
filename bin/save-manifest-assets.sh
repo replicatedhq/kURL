@@ -11,7 +11,6 @@ if ! test -f "$MANIFEST_PATH"; then
     exit 1
 fi
 
-rm -rf "$OUT_DIR"
 mkdir -p "$OUT_DIR"
 
 function build_rhel_7() {
@@ -199,6 +198,7 @@ function build_deps_rhel_9() {
     fi
 
     if [ ! -f "$outdir/Deps" ]; then
+        rm -rf "$outdir"
         return
     fi
 
