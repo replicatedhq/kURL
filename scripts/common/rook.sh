@@ -361,7 +361,6 @@ function add_rook_pvc_migration_status() {
        kubectl create configmap kurl-migration-from-rook -n kurl
     fi
     kubectl patch configmap kurl-migration-from-rook -n kurl --type merge -p '{"data":{"DID_MIGRATE_ROOK_PVCS":"1"}}'
-    export DID_MIGRATE_ROOK_PVCS=1
 }
 
 # Check if the kurl-migration-from-rook exists then, if not creates it
@@ -371,5 +370,4 @@ function add_rook_store_object_migration_status() {
        kubectl create configmap kurl-migration-from-rook -n kurl
     fi
     kubectl patch configmap kurl-migration-from-rook -n kurl --type merge -p '{"data":{"DID_MIGRATE_ROOK_OBJECT_STORE":"1"}}'
-    export DID_MIGRATE_ROOK_OBJECT_STORE=1
 }
