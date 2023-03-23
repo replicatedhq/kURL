@@ -98,10 +98,12 @@ function uninstall_docker() {
     if [ "$(docker ps -aq | wc -l)" != "0" ] ; then
         docker ps -aq | xargs docker rm -f || true
     fi
+
     # The rm -rf /var/lib/docker command below may fail with device busy error, so remove as much
     # data as possible now
-    docker system prune --all --volumes --force
-
+    if systemctl is-active --quiet docker; then
+        docker system prune --all --volumes --force
+    fi
     systemctl disable docker.service --now
 
     case "$LSB_DIST" in
