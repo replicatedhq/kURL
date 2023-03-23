@@ -118,9 +118,14 @@ function createrepo_rhel_8() {
     sudo chown -R $UID "$outdir"
 }
 
+function image_name_suffix() {
+    echo "$PACKAGE_NAME" | tr '[:upper:]' '[:lower:]'
+}
+
 function build_image_rhel_9() {
     local packages=("$@")
-    docker build -t "rhel-9-$PACKAGE_NAME" -f bin/containertools/Dockerfile.rhel9 --build-arg PACKAGES="${packages[*]}" ./bin
+
+    docker build -t "rhel-9-$(image_name_suffix)" -f bin/containertools/Dockerfile.rhel9 --build-arg PACKAGES="${packages[*]}" ./bin
 }
 
 function build_rhel_9() {
@@ -135,7 +140,7 @@ function build_rhel_9() {
     docker run \
         --name "rhel-9-$PACKAGE_NAME" \
         -v "$PWD/bin/containertools":/opt/containertools \
-        "rhel-9-$PACKAGE_NAME" \
+        "rhel-9-$(image_name_suffix)" \
         bash /opt/containertools/yumdownloader.sh "${packages[*]}"
     sudo docker cp "rhel-9-$PACKAGE_NAME":/packages/archives "$outdir"
     sudo chown -R $UID "$outdir"
@@ -150,7 +155,7 @@ function createrepo_rhel_9() {
         --name "rhel-9-createrepo-$PACKAGE_NAME" \
         -v "$outdir/archives":/packages/archives \
         -v "$PWD/bin/containertools":/opt/containertools \
-        "rhel-9-$PACKAGE_NAME" \
+        "rhel-9-$(image_name_suffix)" \
         /opt/containertools/createrepo.sh
     sudo docker cp "rhel-9-createrepo-$PACKAGE_NAME":/packages/archives "$outdir"
     sudo chown -R $UID "$outdir"
@@ -180,7 +185,7 @@ function build_deps_rhel_9() {
             --name "rhel-9-subdeps-$PACKAGE_NAME" \
             -v "$outdir/archives":/packages/archives \
             -v "$PWD/bin/containertools":/opt/containertools \
-            "rhel-9-$PACKAGE_NAME" \
+            "rhel-9-$(image_name_suffix)" \
             /opt/containertools/builddeps.sh \
             >> "$outdir/Deps"
     fi
@@ -192,7 +197,7 @@ function build_deps_rhel_9() {
             --name "rhel-9-subdeps-$PACKAGE_NAME" \
             -v "$outdir":/packages/archives \
             -v "$PWD/bin/containertools":/opt/containertools \
-            "rhel-9-$PACKAGE_NAME" \
+            "rhel-9-$(image_name_suffix)" \
             /opt/containertools/builddeps.sh \
             >> "$outdir/Deps"
     fi
