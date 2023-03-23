@@ -32,8 +32,6 @@ function flannel() {
     flannel_render_config
 
     kubectl -n kube-flannel apply -k "$dst/"
-
-    flannel_ready_spinner
     
     # We will remove the flannel pods to let it be re-created
     # in order to workaround the issue scenario described in
@@ -43,6 +41,7 @@ function flannel() {
        kubectl delete --all pods --namespace=kube-flannel
     fi
 
+    flannel_ready_spinner
     check_network
 }
 
