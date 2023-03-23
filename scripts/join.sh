@@ -170,6 +170,8 @@ function main() {
     configure_proxy
     configure_no_proxy
     ${K8S_DISTRO}_addon_for_each addon_fetch
+    kubernetes_get_packages
+    preflights_require_host_packages
     host_preflights "${MASTER:-0}" "1" "0"
     install_host_dependencies
     get_common

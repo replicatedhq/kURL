@@ -67,11 +67,6 @@ function upgrade_kubernetes_local_master_patch() {
 
     logStep "Upgrading Kubernetes to version $k8sVersion"
 
-    if [ "$AIRGAP" != "1" ] && [ -n "$DIST_URL" ]; then
-        kubernetes_get_host_packages_online "$k8sVersion"
-        kubernetes_get_conformance_packages_online "$k8sVersion"
-    fi
-
     load_images "$DIR/packages/kubernetes/$k8sVersion/images"
     if [ -n "$SONOBUOY_VERSION" ] && [ -d "$DIR/packages/kubernetes-conformance/$k8sVersion/images" ]; then
         load_images "$DIR/packages/kubernetes-conformance/$k8sVersion/images"
@@ -176,11 +171,6 @@ function upgrade_kubernetes_local_master_minor() {
     local upgrading_kubernetes=true
 
     logStep "Upgrading Kubernetes to version $k8sVersion"
-
-    if [ "$AIRGAP" != "1" ] && [ -n "$DIST_URL" ]; then
-        kubernetes_get_host_packages_online "$k8sVersion"
-        kubernetes_get_conformance_packages_online "$k8sVersion"
-    fi
 
     load_images "$DIR/packages/kubernetes/$k8sVersion/images"
     if [ -n "$SONOBUOY_VERSION" ] && [ -d "$DIR/packages/kubernetes-conformance/$k8sVersion/images" ]; then

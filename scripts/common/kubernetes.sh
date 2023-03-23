@@ -11,14 +11,6 @@ function kubernetes_host() {
 
     kubernetes_install_host_packages "$KUBERNETES_VERSION"
 
-    # For online always download the kubernetes.tar.gz bundle.
-    # Regardless if host packages are already installed, we always inspect for newer versions
-    # and/or re-install any missing or corrupted packages.
-    if [ "$KUBERNETES_DID_GET_HOST_PACKAGES_ONLINE" != "1" ] && [ "$AIRGAP" != "1" ] && [ -n "$DIST_URL" ]; then
-        kubernetes_get_host_packages_online "$KUBERNETES_VERSION"
-        kubernetes_get_conformance_packages_online "$KUBERNETES_VERSION"
-    fi
-
     load_images "$DIR/packages/kubernetes/$KUBERNETES_VERSION/images"
     if [ -n "$SONOBUOY_VERSION" ] && [ -d "$DIR/packages/kubernetes-conformance/$KUBERNETES_VERSION/images" ]; then
         load_images "$DIR/packages/kubernetes-conformance/$KUBERNETES_VERSION/images"
@@ -27,6 +19,13 @@ function kubernetes_host() {
     install_plugins
 
     install_kustomize
+}
+
+function kubernetes_get_packages() {
+    if [ "$AIRGAP" != "1" ] && [ -n "$DIST_URL" ]; then
+        kubernetes_get_host_packages_online "$KUBERNETES_VERSION"
+        kubernetes_get_conformance_packages_online "$KUBERNETES_VERSION"
+    fi
 }
 
 function kubernetes_load_ipvs_modules() {
@@ -131,11 +130,6 @@ function kubernetes_install_host_packages() {
         fi
         
         return
-    fi
-
-    if [ "$AIRGAP" != "1" ] && [ -n "$DIST_URL" ]; then
-        kubernetes_get_host_packages_online "$k8sVersion"
-        kubernetes_get_conformance_packages_online "$k8sVersion"
     fi
 
     cat > "$DIR/tmp-kubeadm.conf" <<EOF

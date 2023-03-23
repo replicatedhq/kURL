@@ -365,6 +365,11 @@ function preflights_require_host_packages() {
     for dir in addons/*/ packages/*/ ; do
         local addon=
         addon=$(basename "$dir")
+        if [ "$addon" = "*" ]; then
+            # the directory is empty. this is likely a bug
+            logWarn "No add-ons found in $(dirname "$dir")"
+            continue
+        fi
         local varname="${addon^^}_VERSION"
         varname="${varname//-/_}"
         local addon_version="${!varname}"

@@ -53,9 +53,6 @@ maybe_upgrade() {
     if [ "$kubeletMinor" -lt "$KUBERNETES_TARGET_VERSION_MINOR" ] || ([ "$kubeletMinor" -eq "$KUBERNETES_TARGET_VERSION_MINOR" ] && [ "$kubeletPatch" -lt "$KUBERNETES_TARGET_VERSION_PATCH" ]); then
         logStep "Kubernetes version v$kubeletVersion detected, upgrading node to version v$KUBERNETES_VERSION"
 
-        if [ "$AIRGAP" != "1" ] && [ -n "$DIST_URL" ]; then
-            kubernetes_get_host_packages_online "$KUBERNETES_VERSION"
-        fi
         upgrade_kubeadm "$KUBERNETES_VERSION"
 
         ( set -x; kubeadm upgrade node )
@@ -132,6 +129,8 @@ function main() {
     configure_proxy
     configure_no_proxy
     ${K8S_DISTRO}_addon_for_each addon_fetch
+    kubernetes_get_packages
+    preflights_require_host_packages
     host_preflights "${MASTER:-0}" "1" "1"
     install_host_dependencies
     get_common
