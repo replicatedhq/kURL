@@ -304,9 +304,12 @@ while read -r line || [ -n "$line" ]; do
             if echo "$asset" | grep -q '^https://' ; then
                 curl -fL -o "$OUT_DIR/assets/$filename" "$asset"
             else
-                # asset is relative to the manifest file
-                manifest_dir="$(dirname "$MANIFEST_PATH")"
-                cp "$(realpath "$manifest_dir/$asset")" "$OUT_DIR/assets/$filename"
+                if [[ "$asset" != /* ]]; then
+                    # asset is relative to the manifest file
+                    manifest_dir="$(dirname "$MANIFEST_PATH")"
+                    asset="$(realpath "$manifest_dir/$asset")"
+                fi
+                cp "$asset" "$OUT_DIR/assets/$filename"
             fi
             ;;
 
