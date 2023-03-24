@@ -299,11 +299,14 @@ while read -r line || [ -n "$line" ]; do
             mkdir -p "$OUT_DIR/assets"
             filename=$(echo "$line" | awk '{ print $2 }')
             asset=$(echo "$line" | awk '{ print $3 }')
+
             # we support both http and local assets
             if echo "$asset" | grep -q '^https://' ; then
                 curl -fL -o "$OUT_DIR/assets/$filename" "$asset"
             else
-                cp "$asset" "$OUT_DIR/assets/$filename"
+                # asset is relative to the manifest file
+                manifest_dir="$(dirname "$MANIFEST_PATH")"
+                cp "$(realpath "$manifest_dir/$asset")" "$OUT_DIR/assets/$filename"
             fi
             ;;
 
