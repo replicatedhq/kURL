@@ -20,6 +20,7 @@
       version: latest
 
 - name: "Migrate from Docker to Containerd and Kubernetes from 1.23 to 1.25"
+  flags: "yes"
   installerSpec:
     kubernetes:
       version: 1.23.x
@@ -76,6 +77,7 @@
   - rocky-91 # docker is not supported on rhel 9 variants
   - ol-9 # docker is not supported on rhel 9 variants
 - name: "Migrate from Docker to Containerd and Kubernetes from 1.23 to 1.25 airgap"
+  flags: "yes"
   installerSpec:
     kubernetes:
       version: 1.23.x

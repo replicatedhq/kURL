@@ -1,4 +1,5 @@
 - name: k8s121x_docker19034
+  flags: "yes"
   installerSpec:
     kubernetes:
       version: 1.21.x
@@ -27,6 +28,7 @@
   - rocky-91 # docker is not supported on rhel 9 variants
   - ol-9 # docker is not supported on rhel 9 variants
 - name: k8s119x
+  flags: "yes"
   installerSpec:
     kubernetes:
       version: 1.19.x
@@ -79,6 +81,7 @@
   - rocky-91 # containerd < 1.6 is not supported on rhel 9 variants
   - ol-9 # containerd < 1.6 is not supported on rhel 9 variants
 - name: k8s120x_openebs_minio
+  flags: "yes"
   installerSpec:
     kubernetes:
       version: 1.17.13
@@ -109,14 +112,10 @@
     ekco:
       version: 0.6.0
   unsupportedOSIDs:
-  - centos-81
-  - centos-82
-  - centos-83
-  - centos-84
-  - ol-84
   - rocky-91 # docker is not supported on rhel 9 variants
   - ol-9 # docker is not supported on rhel 9 variants
 - name: k8s120x_docker
+  flags: "yes"
   installerSpec:
     kubernetes:
       version: 1.20.x
@@ -175,6 +174,7 @@
   - rocky-91 # containerd < 1.6 is not supported on rhel 9 variants
   - ol-9 # containerd < 1.6 is not supported on rhel 9 variants
 - name: k8s119x-airgap
+  flags: "yes"
   installerSpec:
     kubernetes:
       version: 1.19.x
@@ -202,6 +202,7 @@
   - rocky-91 # docker is not supported on rhel 9 variants
   - ol-9 # docker is not supported on rhel 9 variants
 - name: k8s1184_1202
+  flags: "yes"
   installerSpec:
     kubernetes:
       version: 1.18.4
@@ -300,6 +301,7 @@
   - rocky-91 # containerd < 1.6 is not supported on rhel 9 variants
   - ol-9 # containerd < 1.6 is not supported on rhel 9 variants
 - name: k8s119
+  flags: "yes"
   installerSpec:
     kubernetes:
       version: 1.19.x
@@ -326,6 +328,7 @@
   - rocky-91 # docker is not supported on rhel 9 variants
   - ol-9 # docker is not supported on rhel 9 variants
 - name: k8s119-airgap
+  flags: "yes"
   installerSpec:
     kubernetes:
       version: 1.19.x
@@ -571,6 +574,7 @@
   - rocky-91 # containerd < 1.6 is not supported on rhel 9 variants
   - ol-9 # containerd < 1.6 is not supported on rhel 9 variants
 - name: k8s119_nameserver_collectd_rook_block
+  flags: "yes"
   installerSpec:
     kubernetes:
       version: 1.19.3
@@ -596,6 +600,7 @@
   - rocky-91 # docker is not supported on rhel 9 variants
   - ol-9 # docker is not supported on rhel 9 variants
 - name: k8s119_selinux
+  flags: "yes"
   installerSpec:
     kubernetes:
       version: 1.19.3
@@ -740,6 +745,7 @@
   - rocky-91 # docker is not supported on rhel 9 variants
   - ol-9 # docker is not supported on rhel 9 variants
 - name: k8s121
+  flags: "yes"
   installerSpec:
     kubernetes:
       version: 1.21.x
@@ -764,6 +770,7 @@
   - rocky-91 # docker is not supported on rhel 9 variants
   - ol-9 # docker is not supported on rhel 9 variants
 - name: k8s121-airgap
+  flags: "yes"
   installerSpec:
     kubernetes:
       version: 1.21.x
@@ -789,6 +796,7 @@
   - rocky-91 # docker is not supported on rhel 9 variants
   - ol-9 # docker is not supported on rhel 9 variants
 - name: k8s1210_openebs260_minio
+  flags: "yes"
   installerSpec:
     kubernetes:
       version: 1.20.5
@@ -816,6 +824,7 @@
   - rocky-91 # docker is not supported on rhel 9 variants
   - ol-9 # docker is not supported on rhel 9 variants
 - name: k8s1210_openebs260_minio-airgap
+  flags: "yes"
   installerSpec:
     kubernetes:
       version: 1.20.5
@@ -841,8 +850,8 @@
       version: 0.10.1
   airgap: true
   unsupportedOSIDs:
-  - ol-9 # docker is not supported on rhel 9 variants
   - rocky-91 # docker is not supported on rhel 9 variants
+  - ol-9 # docker is not supported on rhel 9 variants
 - name: remove_all_object_storage
   cpu: 7
   installerSpec:
@@ -960,6 +969,7 @@
   unsupportedOSIDs:
   - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
 - name: "Migrate from Docker to Containerd and Kubernetes from 1.23 to 1.25"
+  flags: "yes"
   installerSpec:
     kubernetes:
       version: 1.23.x
@@ -1015,6 +1025,7 @@
   - rocky-91 # docker is not supported on rhel 9 variants
   - ol-9 # docker is not supported on rhel 9 variants
 - name: "Migrate from Docker to Containerd and Kubernetes from 1.23 to 1.25 airgap"
+  flags: "yes"
   installerSpec:
     kubernetes:
       version: 1.23.x
@@ -1155,6 +1166,7 @@
   - rocky-91 # containerd < 1.6 is not supported on rhel 9 variants
   - ol-9 # containerd < 1.6 is not supported on rhel 9 variants
 - name: "Upgrade to 1.24, weave to flannel"
+  flags: "yes"
   cpu: 7
   installerSpec:
     kubernetes:
