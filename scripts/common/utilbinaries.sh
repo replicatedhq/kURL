@@ -177,7 +177,6 @@ function get_patch_yaml() {
                 ;;
             # deprecated flag
             force-reapply-addons)
-                FORCE_REAPPLY_ADDONS=1
                 logWarn "WARN: 'force-reapply-addon' option is deprecated"
                 ;;
             skip-system-package-install)

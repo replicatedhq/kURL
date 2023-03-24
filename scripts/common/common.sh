@@ -768,13 +768,6 @@ function get_docker_registry_ip_flag() {
     echo " docker-registry-ip=${docker_registry_ip}"
 }
 
-function get_force_reapply_addons_flag() {
-    if [ "${FORCE_REAPPLY_ADDONS}" != "1" ]; then
-        return
-    fi
-    echo " force-reapply-addons"
-}
-
 function get_skip_system_package_install_flag() {
     if [ "${SKIP_SYSTEM_PACKAGE_INSTALL}" != "1" ]; then
         return
