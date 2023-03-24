@@ -13,5 +13,9 @@ inputs:
 runs:
   using: composite
   steps:
-    - run: ${{ github.action_path }}/../../../bin/save-manifest-assets.sh ${{ inputs.package-name }} ${{ inputs.manifest-path }} ${{ inputs.output-path }}
+    - run: |
+        manifest_path=$(realpath ${{ inputs.manifest-path }})
+        output_path=$(realpath ${{ inputs.output-path }})
+        cd ${{ github.action_path }}/../../../
+        ./bin/save-manifest-assets.sh ${{ inputs.package-name }} "$manifest_path" "$output_path"
       shell: bash
