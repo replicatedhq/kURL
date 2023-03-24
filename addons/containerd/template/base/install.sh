@@ -11,10 +11,8 @@ function containerd_pre_init() {
         cp "$src/kubeadm-init-config-v1beta2.yaml" "$DIR/kustomize/kubeadm/init-patches/containerd-kubeadm-init-config-v1beta2.yml"
     fi
 
-    # preserve containerd config
-    if addon_has_been_applied "containerd"; then
-        CONTAINERD_PRESERVE_CONFIG=1
-        log "Preserving containerd $CONTAINERD_VERSION config"
+    if containerd_is_installed ; then
+        SKIP_CONTAINERD_INSTALL=1
     fi
 }
 
@@ -39,7 +37,7 @@ function containerd_install() {
     containerd_migrate_from_docker
 
     # only install if package is not present
-    if [ "$CONTAINERD_PRESERVE_CONFIG" = "1" ]; then
+    if [ "$SKIP_CONTAINERD_INSTALL" = "1" ]; then
         log "Skipping host package installation for containerd: $CONTAINERD_VERSION already intalled"
     else
         install_host_packages "$src" containerd.io
@@ -126,24 +124,31 @@ function containerd_configure() {
         echo "Skipping containerd configuration"
         return
     fi
-    mkdir -p /etc/containerd
-    containerd config default > /etc/containerd/config.toml
 
-    sed -i '/systemd_cgroup/d' /etc/containerd/config.toml
-    sed -i '/containerd.runtimes.runc.options/d' /etc/containerd/config.toml
-    sed -i 's/level = ""/level = "warn"/' /etc/containerd/config.toml
-    cat >> /etc/containerd/config.toml <<EOF
+    if [ "$CONTAINERD_ALREADY_INSTALLED" = "1" ]; then
+        log "Skipping default containerd configuration: $CONTAINERD_VERSION already intalled"
+    else
+        mkdir -p /etc/containerd
+        containerd config default > /etc/containerd/config.toml
+
+        sed -i '/systemd_cgroup/d' /etc/containerd/config.toml
+        sed -i '/containerd.runtimes.runc.options/d' /etc/containerd/config.toml
+        sed -i 's/level = ""/level = "warn"/' /etc/containerd/config.toml
+        cat >> /etc/containerd/config.toml <<EOF
 [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc.options]
-  SystemdCgroup = true
+SystemdCgroup = true
 EOF
+        CONTAINERD_NEEDS_RESTART=1
+    fi
 
 	if [ -n "$CONTAINERD_TOML_CONFIG" ]; then
+        log "Applying user provided Containerd config"
         local tmp=$(mktemp)
         echo "$CONTAINERD_TOML_CONFIG" > "$tmp"
         "$DIR/bin/toml" -basefile=/etc/containerd/config.toml -patchfile="$tmp"
-    fi
 
-    CONTAINERD_NEEDS_RESTART=1
+        CONTAINERD_NEEDS_RESTART=1
+    fi
 }
 
 function containerd_configure_ctl() {
@@ -308,6 +313,23 @@ function containerd_migrate_images_from_docker() {
     _containerd_migrate_images_from_docker "$tmpdir" || errcode="$?"
     rm -rf "$tmpdir"
     return "$errcode"
+}
+
+function containerd_current_version() {
+    if commandExists containerd; then
+        containerd --version | awk '{print $3}'
+    fi
+}
+
+function containerd_is_installed() {
+    local current_version
+    current_version="$(containerd_current_version)"
+
+    if [ "$current_version" = "$CONTAINERD_VERSION" ]; then
+        return 0
+    fi
+
+    return 1
 }
 
 function _containerd_migrate_images_from_docker() {
