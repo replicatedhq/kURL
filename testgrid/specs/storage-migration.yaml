@@ -263,8 +263,8 @@
     pvc_uses_provisioner "migration-test" "default" "openebs"
     test_pull_image_from_registry
     check_and_customize_kurl_integration_test_application
-    if kubectl get namespace/rook-ceph ; then
-      echo Rook namespace found after the upgrade.
+    if ! kubectl get namespace/rook-ceph ; then
+      echo Rook namespace should NOT be removed after the upgrade. MinIO is NOT selected
       exit 1
     fi
     if [ -d "/var/lib/rook" ] || [ -d "/opt/replicated/rook" ]; then
@@ -319,8 +319,8 @@
     pvc_uses_provisioner "migration-test" "default" "openebs"
     test_pull_image_from_registry
     check_and_customize_kurl_integration_test_application
-    if kubectl get namespace/rook-ceph ; then
-      echo Rook namespace found after the upgrade.
+    if ! kubectl get namespace/rook-ceph ; then
+      echo Rook namespace should NOT be removed after the upgrade. MinIO is NOT selected
       exit 1
     fi
     if [ -d "/var/lib/rook" ] || [ -d "/opt/replicated/rook" ]; then
