@@ -175,9 +175,6 @@ function get_patch_yaml() {
                     SECONDARY_HOST="$SECONDARY_HOST,$_value"
                 fi
                 ;;
-            force-reapply-addons)
-                FORCE_REAPPLY_ADDONS=1
-                ;;
             skip-system-package-install)
                 SKIP_SYSTEM_PACKAGE_INSTALL=1
                 ;;
