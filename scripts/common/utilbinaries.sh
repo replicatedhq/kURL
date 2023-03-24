@@ -140,9 +140,9 @@ function get_patch_yaml() {
                 ;;
             host-preflight-enforce-warnings)
                 ;;
-            enforce-host-packages) # possibly add this to the spec
+            dismiss-host-packages-preflight) # possibly add this to the spec
                 # shellcheck disable=SC2034
-                KURL_ENFORCE_HOST_PACKAGES=1
+                KURL_DISMISS_HOST_PACKAGES_PREFLIGHT=1
                 ;;
             preserve-docker-config)
                 ;;

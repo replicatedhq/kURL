@@ -401,13 +401,8 @@ function preflights_require_host_packages() {
     if [ "$fail" = "1" ]; then
         echo ""
         log "Host packages are missing. Please install them and re-run the install script."
-        # bail immediately rather than prompting to continue
-        # used by testgrid to ensure that all required packages are installed
-        if [ "$KURL_ENFORCE_HOST_PACKAGES" = "1" ]; then
-            exit 1
-        fi
-        printf "Continue anyway? "
-        if ! confirmN ; then
+        if [ "$KURL_DISMISS_HOST_PACKAGES_PREFLIGHT" != "1" ]; then
+            log "Run the script again with flag \"dismiss-host-packages-preflight\" to continue."
             exit 1
         fi
     else
