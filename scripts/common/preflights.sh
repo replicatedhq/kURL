@@ -16,7 +16,21 @@ function preflights() {
     bail_when_no_object_store_and_s3_enabled
     bail_if_unsupported_openebs_to_rook_version
     bail_if_kurl_version_is_lower_than_previous_config
+    warn_if_kubectl_is_installed_without_kurl
     return 0
+}
+
+function warn_if_kubectl_is_installed_without_kurl() {
+     if commandExists kubectl && ! ls /etc/kubernetes/admin.conf 2>/dev/null; then
+         logWarn "kubectl was found but was not possible to locate /etc/kubernetes/admin.conf"
+         logWarn "Please, ensure that you have not installed Kubernetes without use this installer and kubectl"
+         logWarn "Be aware that continuing with this condition can result in failures."
+         log ""
+         logWarn "Would you like to continue?"
+         if ! confirmY ; then
+             bail "The installation will not continue"
+         fi
+     fi
 }
 
 function join_preflights() {
