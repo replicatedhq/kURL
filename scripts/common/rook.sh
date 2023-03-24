@@ -64,6 +64,7 @@ function rook_enable_ekco_operator() {
 }
 
 function remove_rook_ceph() {
+    # For further information see: https://github.com/rook/rook/blob/v1.11.2/Documentation/Storage-Configuration/ceph-teardown.md
     # make sure there aren't any PVs using rook before deleting it
     all_pv_drivers="$(kubectl get pv -o=jsonpath='{.items[*].spec.csi.driver}')"
     if echo "$all_pv_drivers" | grep "rook" &>/dev/null ; then
@@ -82,21 +83,47 @@ function remove_rook_ceph() {
         fi
     fi
 
+    log "Removing rook-ceph pool"
+    if ! kubectl delete -n rook-ceph cephblockpool replicapool --timeout=60s; then
+        logWarn "Unable to delete rook-ceph pool"
+    fi
+
     log "Removing rook-ceph Storage Classes"
     if ! kubectl get storageclass | grep rook | awk '{ print $1 }' | xargs -I'{}' kubectl delete storageclass '{}' --timeout=60s; then
         logFail "Unable to delete rook-ceph StorageClasses"
         return 1
     fi
 
-    # More info: https://rook.io/docs/rook/v1.10/Getting-Started/ceph-teardown/#delete-the-cephcluster-crd
+    # More info: https://github.com/rook/rook/blob/v1.10.12/Documentation/CRDs/Cluster/ceph-cluster-crd.md#cleanup-policy
     log "Patch Ceph cluster to allow deletion"
     kubectl -n rook-ceph patch cephcluster rook-ceph --type merge -p '{"spec":{"cleanupPolicy":{"confirmation":"yes-really-destroy-data"}}}'
 
     # remove all rook-ceph CR objects
     log "Removing rook-ceph custom resource objects - this may take some time:\n"
-    if ! kubectl delete cephcluster -n rook-ceph rook-ceph --timeout=300s; then
-        logFail "Unable to delete the rook-ceph CephCluster resource"
-        return 1
+    if ! kubectl delete cephcluster -n rook-ceph rook-ceph --timeout=180s; then
+        # More info: https://github.com/rook/rook/blob/v1.10.12/Documentation/Storage-Configuration/ceph-teardown.md#removing-the-cluster-crd-finalizer
+        logWarn "Timeout of 3 minutes faced deleting the rook-ceph CephCluster resource. Removing finalizers."
+        kubectl -n rook-ceph patch configmap rook-ceph-mon-endpoints --type merge -p '{"metadata":{"finalizers": []}}'
+        kubectl -n rook-ceph patch secrets rook-ceph-mon --type merge -p '{"metadata":{"finalizers": []}}'
+        if ! kubectl delete cephcluster -n rook-ceph rook-ceph --timeout=120s; then
+            logWarn "Timeout of 2 minutes faced deleting the rook-ceph CephCluster resource after finalizers have be removed."
+            logWarn "Forcing by removing all finalizers"
+            local crd
+            for crd in $(kubectl get crd -n rook-ceph | awk '/ceph.rook.io/ {print $1}') ; do
+                kubectl get -n rook-ceph "$crd" -o name | \
+                xargs -I {} kubectl patch -n rook-ceph {} --type merge -p '{"metadata":{"finalizers": []}}'
+            done
+            # After remove the finalizers the resources might get deleted without the need to try again
+            sleep 20s
+            if kubectl get cephcluster -n rook-ceph rook-ceph >/dev/null 2>&1; then
+                if ! kubectl delete cephcluster -n rook-ceph rook-ceph --timeout=60s; then
+                    logFail "Unable to delete the rook-ceph CephCluster resource"
+                    return 1
+                fi
+            else
+                log "The rook-ceph CephCluster resource was deleted"
+            fi
+        fi
     fi
 
     log "Removing rook-ceph custom resources"
