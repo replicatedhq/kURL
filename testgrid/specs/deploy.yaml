@@ -36,6 +36,8 @@
       version: latest
   unsupportedOSIDs:
   - ubuntu-2204 # docker 19.x is not available on ubuntu 22.04
+  - centos-84 # docker is not supported on rhel 8 variants
+  - ol-8x # docker is not supported on rhel 8 variants
   - rocky-91 # docker is not supported on rhel 9 variants
   - ol-9 # docker is not supported on rhel 9 variants
 - name: k8s121
@@ -87,6 +89,13 @@
   airgap: true
   unsupportedOSIDs:
     - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
+  preInstallScript: |
+    . /etc/os-release
+    case "$ID$VERSION_ID" in
+    centos9*|rhel9*|ol9*|rocky9*)
+      yum install -y lvm2 conntrack-tools socat
+      ;;
+    esac
 - name: k8s122
   installerSpec:
     kubernetes:
@@ -136,6 +145,13 @@
   airgap: true
   unsupportedOSIDs:
     - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
+  preInstallScript: |
+    . /etc/os-release
+    case "$ID$VERSION_ID" in
+    centos9*|rhel9*|ol9*|rocky9*)
+      yum install -y lvm2 conntrack-tools socat
+      ;;
+    esac
 - name: minimal-124
   installerSpec:
     containerd:
@@ -270,6 +286,13 @@
   airgap: true
   unsupportedOSIDs:
     - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
+  preInstallScript: |
+    . /etc/os-release
+    case "$ID$VERSION_ID" in
+    centos9*|rhel9*|ol9*|rocky9*)
+      yum install -y lvm2 conntrack-tools socat
+      ;;
+    esac
 - name: "k8s_126x airgap"
   airgap: true
   installerSpec:
@@ -291,6 +314,13 @@
       version: latest
     kotsadm:
       version: latest
+  preInstallScript: |
+    . /etc/os-release
+    case "$ID$VERSION_ID" in
+    centos9*|rhel9*|ol9*|rocky9*)
+      yum install -y lvm2 conntrack-tools socat
+      ;;
+    esac
 - name: "Migrate from Docker to Containerd and Kubernetes from 1.23 to 1.25 airgap"
   installerSpec:
     kubernetes:
