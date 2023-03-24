@@ -1,7 +1,7 @@
 - id: amzn-20
   name: Amazon Linux
   version: "2.0"
-  vmimageuri: https://cdn.amazonlinux.com/os-images/2.0.20220606.1/kvm/amzn2-kvm-2.0.20220606.1-x86_64.xfs.gpt.qcow2
+  vmimageuri: https://cdn.amazonlinux.com/os-images/2.0.20220912.1/kvm/amzn2-kvm-2.0.20220912.1-x86_64.xfs.gpt.qcow2
   preinit: ""
 - id: centos-79
   name: CentOS
