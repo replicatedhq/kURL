@@ -20,6 +20,7 @@
       version: latest
 
 - name: "Migrate from Docker to Containerd and Kubernetes from 1.23 to 1.25"
+  flags: "yes"
   installerSpec:
     kubernetes:
       version: 1.23.x
@@ -73,11 +74,10 @@
     validate_testfile rwtest testfile.txt
     validate_read_write_object_store postupgrade upgradefile.txt
   unsupportedOSIDs:
-  - centos-84 # docker is not supported on rhel 8 variants
-  - ol-8x # docker is not supported on rhel 8 variants
   - rocky-91 # docker is not supported on rhel 9 variants
   - ol-9 # docker is not supported on rhel 9 variants
 - name: "Migrate from Docker to Containerd and Kubernetes from 1.23 to 1.25 airgap"
+  flags: "yes"
   installerSpec:
     kubernetes:
       version: 1.23.x
@@ -132,8 +132,6 @@
     validate_testfile rwtest testfile.txt
     validate_read_write_object_store postupgrade upgradefile.txt
   unsupportedOSIDs:
-  - centos-84 # docker is not supported on rhel 8 variants
-  - ol-8x # docker is not supported on rhel 8 variants
   - rocky-91 # docker is not supported on rhel 9 variants
   - ol-9 # docker is not supported on rhel 9 variants
 

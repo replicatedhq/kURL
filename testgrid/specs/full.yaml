@@ -1,4 +1,5 @@
 - name: k8s121x_docker19034
+  flags: "yes"
   installerSpec:
     kubernetes:
       version: 1.21.x
@@ -24,14 +25,10 @@
   unsupportedOSIDs:
   - ubuntu-2004 # docker 19.03.4 is not available on ubuntu 20.04
   - ubuntu-2204 # docker 19.x is not available on ubuntu 22.04
-  - centos-81 # docker is not supported on rhel 8 variants
-  - centos-82 # docker is not supported on rhel 8 variants
-  - centos-83 # docker is not supported on rhel 8 variants
-  - centos-84 # docker is not supported on rhel 8 variants
-  - ol-8x # docker is not supported on rhel 8 variants
   - rocky-91 # docker is not supported on rhel 9 variants
   - ol-9 # docker is not supported on rhel 9 variants
 - name: k8s119x
+  flags: "yes"
   installerSpec:
     kubernetes:
       version: 1.19.x
@@ -55,11 +52,6 @@
       version: 0.6.0
   unsupportedOSIDs:
   - ubuntu-2204 # docker 19.x is not available on ubuntu 22.04
-  - centos-81 # docker is not supported on rhel 8 variants
-  - centos-82 # docker is not supported on rhel 8 variants
-  - centos-83 # docker is not supported on rhel 8 variants
-  - centos-84 # docker is not supported on rhel 8 variants
-  - ol-8x # docker is not supported on rhel 8 variants
   - rocky-91 # docker is not supported on rhel 9 variants
   - ol-9 # docker is not supported on rhel 9 variants
 - name: k8s119_containerd149
@@ -89,6 +81,7 @@
   - rocky-91 # containerd < 1.6 is not supported on rhel 9 variants
   - ol-9 # containerd < 1.6 is not supported on rhel 9 variants
 - name: k8s120x_openebs_minio
+  flags: "yes"
   installerSpec:
     kubernetes:
       version: 1.17.13
@@ -119,14 +112,10 @@
     ekco:
       version: 0.6.0
   unsupportedOSIDs:
-  - centos-81 # docker is not supported on rhel 8 variants
-  - centos-82 # docker is not supported on rhel 8 variants
-  - centos-83 # docker is not supported on rhel 8 variants
-  - centos-84 # docker is not supported on rhel 8 variants
-  - ol-8x # docker is not supported on rhel 8 variants
   - rocky-91 # docker is not supported on rhel 9 variants
   - ol-9 # docker is not supported on rhel 9 variants
 - name: k8s120x_docker
+  flags: "yes"
   installerSpec:
     kubernetes:
       version: 1.20.x
@@ -152,11 +141,6 @@
       version: latest
   unsupportedOSIDs:
   - ubuntu-2204 # docker 19.x is not available on ubuntu 22.04
-  - centos-81 # docker is not supported on rhel 8 variants
-  - centos-82 # docker is not supported on rhel 8 variants
-  - centos-83 # docker is not supported on rhel 8 variants
-  - centos-84 # docker is not supported on rhel 8 variants
-  - ol-8x # docker is not supported on rhel 8 variants
   - rocky-91 # docker is not supported on rhel 9 variants
   - ol-9 # docker is not supported on rhel 9 variants
 - name: k8s121x_containerd
@@ -190,6 +174,7 @@
   - rocky-91 # containerd < 1.6 is not supported on rhel 9 variants
   - ol-9 # containerd < 1.6 is not supported on rhel 9 variants
 - name: k8s119x-airgap
+  flags: "yes"
   installerSpec:
     kubernetes:
       version: 1.19.x
@@ -214,14 +199,10 @@
   airgap: true
   unsupportedOSIDs:
   - ubuntu-2204 # docker 19.x is not available on ubuntu 22.04
-  - centos-81 # docker is not supported on rhel 8 variants
-  - centos-82 # docker is not supported on rhel 8 variants
-  - centos-83 # docker is not supported on rhel 8 variants
-  - centos-84 # docker is not supported on rhel 8 variants
-  - ol-8x # docker is not supported on rhel 8 variants
   - rocky-91 # docker is not supported on rhel 9 variants
   - ol-9 # docker is not supported on rhel 9 variants
 - name: k8s1184_1202
+  flags: "yes"
   installerSpec:
     kubernetes:
       version: 1.18.4
@@ -242,11 +223,6 @@
       version: latest
   unsupportedOSIDs:
   - ubuntu-2204 # docker 20.10.5 is not available on ubuntu 22.04
-  - centos-81 # docker is not supported on rhel 8 variants
-  - centos-82 # docker is not supported on rhel 8 variants
-  - centos-83 # docker is not supported on rhel 8 variants
-  - centos-84 # docker is not supported on rhel 8 variants
-  - ol-8x # docker is not supported on rhel 8 variants
   - rocky-91 # docker is not supported on rhel 9 variants
   - ol-9 # docker is not supported on rhel 9 variants
 - name: k8s1184_1202_containerd
@@ -325,6 +301,7 @@
   - rocky-91 # containerd < 1.6 is not supported on rhel 9 variants
   - ol-9 # containerd < 1.6 is not supported on rhel 9 variants
 - name: k8s119
+  flags: "yes"
   installerSpec:
     kubernetes:
       version: 1.19.x
@@ -348,14 +325,10 @@
       version: 0.6.0
   unsupportedOSIDs:
   - ubuntu-2204 # docker 19.x is not available on ubuntu 22.04
-  - centos-81 # docker is not supported on rhel 8 variants
-  - centos-82 # docker is not supported on rhel 8 variants
-  - centos-83 # docker is not supported on rhel 8 variants
-  - centos-84 # docker is not supported on rhel 8 variants
-  - ol-8x # docker is not supported on rhel 8 variants
   - rocky-91 # docker is not supported on rhel 9 variants
   - ol-9 # docker is not supported on rhel 9 variants
 - name: k8s119-airgap
+  flags: "yes"
   installerSpec:
     kubernetes:
       version: 1.19.x
@@ -380,11 +353,6 @@
   airgap: true
   unsupportedOSIDs:
   - ubuntu-2204 # docker 19.x is not available on ubuntu 22.04
-  - centos-81 # docker is not supported on rhel 8 variants
-  - centos-82 # docker is not supported on rhel 8 variants
-  - centos-83 # docker is not supported on rhel 8 variants
-  - centos-84 # docker is not supported on rhel 8 variants
-  - ol-8x # docker is not supported on rhel 8 variants
   - rocky-91 # docker is not supported on rhel 9 variants
   - ol-9 # docker is not supported on rhel 9 variants
 - name: k8s119_containerd1412
@@ -606,6 +574,7 @@
   - rocky-91 # containerd < 1.6 is not supported on rhel 9 variants
   - ol-9 # containerd < 1.6 is not supported on rhel 9 variants
 - name: k8s119_nameserver_collectd_rook_block
+  flags: "yes"
   installerSpec:
     kubernetes:
       version: 1.19.3
@@ -628,14 +597,10 @@
   unsupportedOSIDs:
   - ubuntu-2204 # docker 19.x and collectd-v5 are not supported on ubuntu 22.04
   - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
-  - centos-81 # docker is not supported on rhel 8 variants
-  - centos-82 # docker is not supported on rhel 8 variants
-  - centos-83 # docker is not supported on rhel 8 variants
-  - centos-84 # docker is not supported on rhel 8 variants
-  - ol-8x # docker is not supported on rhel 8 variants
   - rocky-91 # docker is not supported on rhel 9 variants
   - ol-9 # docker is not supported on rhel 9 variants
 - name: k8s119_selinux
+  flags: "yes"
   installerSpec:
     kubernetes:
       version: 1.19.3
@@ -656,11 +621,6 @@
       type: targeted
   unsupportedOSIDs:
   - ubuntu-2204 # docker 19.x is not supported on ubuntu 22.04
-  - centos-81 # docker is not supported on rhel 8 variants
-  - centos-82 # docker is not supported on rhel 8 variants
-  - centos-83 # docker is not supported on rhel 8 variants
-  - centos-84 # docker is not supported on rhel 8 variants
-  - ol-8x # docker is not supported on rhel 8 variants
   - rocky-91 # docker is not supported on rhel 9 variants
   - ol-9 # docker is not supported on rhel 9 variants
 - name: k8s120
@@ -782,14 +742,10 @@
       version: latest
   unsupportedOSIDs:
   - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
-  - centos-81 # docker is not supported on rhel 8 variants
-  - centos-82 # docker is not supported on rhel 8 variants
-  - centos-83 # docker is not supported on rhel 8 variants
-  - centos-84 # docker is not supported on rhel 8 variants
-  - ol-8x # docker is not supported on rhel 8 variants
   - rocky-91 # docker is not supported on rhel 9 variants
   - ol-9 # docker is not supported on rhel 9 variants
 - name: k8s121
+  flags: "yes"
   installerSpec:
     kubernetes:
       version: 1.21.x
@@ -811,14 +767,10 @@
     ekco:
       version: latest
   unsupportedOSIDs:
-  - centos-81 # docker is not supported on rhel 8 variants
-  - centos-82 # docker is not supported on rhel 8 variants
-  - centos-83 # docker is not supported on rhel 8 variants
-  - centos-84 # docker is not supported on rhel 8 variants
-  - ol-8x # docker is not supported on rhel 8 variants
   - rocky-91 # docker is not supported on rhel 9 variants
   - ol-9 # docker is not supported on rhel 9 variants
 - name: k8s121-airgap
+  flags: "yes"
   installerSpec:
     kubernetes:
       version: 1.21.x
@@ -841,14 +793,10 @@
       version: latest
   airgap: true
   unsupportedOSIDs:
-  - centos-81 # docker is not supported on rhel 8 variants
-  - centos-82 # docker is not supported on rhel 8 variants
-  - centos-83 # docker is not supported on rhel 8 variants
-  - centos-84 # docker is not supported on rhel 8 variants
-  - ol-8x # docker is not supported on rhel 8 variants
   - rocky-91 # docker is not supported on rhel 9 variants
   - ol-9 # docker is not supported on rhel 9 variants
 - name: k8s1210_openebs260_minio
+  flags: "yes"
   installerSpec:
     kubernetes:
       version: 1.20.5
@@ -873,14 +821,10 @@
     ekco:
       version: 0.10.1
   unsupportedOSIDs:
-  - centos-81 # docker is not supported on rhel 8 variants
-  - centos-82 # docker is not supported on rhel 8 variants
-  - centos-83 # docker is not supported on rhel 8 variants
-  - centos-84 # docker is not supported on rhel 8 variants
-  - ol-8x # docker is not supported on rhel 8 variants
   - rocky-91 # docker is not supported on rhel 9 variants
   - ol-9 # docker is not supported on rhel 9 variants
 - name: k8s1210_openebs260_minio-airgap
+  flags: "yes"
   installerSpec:
     kubernetes:
       version: 1.20.5
@@ -906,11 +850,6 @@
       version: 0.10.1
   airgap: true
   unsupportedOSIDs:
-  - centos-81 # docker is not supported on rhel 8 variants
-  - centos-82 # docker is not supported on rhel 8 variants
-  - centos-83 # docker is not supported on rhel 8 variants
-  - centos-84 # docker is not supported on rhel 8 variants
-  - ol-8x # docker is not supported on rhel 8 variants
   - rocky-91 # docker is not supported on rhel 9 variants
   - ol-9 # docker is not supported on rhel 9 variants
 - name: remove_all_object_storage
@@ -1030,6 +969,7 @@
   unsupportedOSIDs:
   - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
 - name: "Migrate from Docker to Containerd and Kubernetes from 1.23 to 1.25"
+  flags: "yes"
   installerSpec:
     kubernetes:
       version: 1.23.x
@@ -1082,14 +1022,10 @@
     validate_testfile rwtest testfile.txt
     validate_read_write_object_store postupgrade upgradefile.txt
   unsupportedOSIDs:
-  - centos-81 # docker is not supported on rhel 8 variants
-  - centos-82 # docker is not supported on rhel 8 variants
-  - centos-83 # docker is not supported on rhel 8 variants
-  - centos-84 # docker is not supported on rhel 8 variants
-  - ol-8x # docker is not supported on rhel 8 variants
   - rocky-91 # docker is not supported on rhel 9 variants
   - ol-9 # docker is not supported on rhel 9 variants
 - name: "Migrate from Docker to Containerd and Kubernetes from 1.23 to 1.25 airgap"
+  flags: "yes"
   installerSpec:
     kubernetes:
       version: 1.23.x
@@ -1143,11 +1079,6 @@
     validate_testfile rwtest testfile.txt
     validate_read_write_object_store postupgrade upgradefile.txt
   unsupportedOSIDs:
-  - centos-81 # docker is not supported on rhel 8 variants
-  - centos-82 # docker is not supported on rhel 8 variants
-  - centos-83 # docker is not supported on rhel 8 variants
-  - centos-84 # docker is not supported on rhel 8 variants
-  - ol-8x # docker is not supported on rhel 8 variants
   - rocky-91 # docker is not supported on rhel 9 variants
   - ol-9 # docker is not supported on rhel 9 variants
 - name: "K8s 1.24x Rook"
@@ -1235,6 +1166,7 @@
   - rocky-91 # containerd < 1.6 is not supported on rhel 9 variants
   - ol-9 # containerd < 1.6 is not supported on rhel 9 variants
 - name: "Upgrade to 1.24, weave to flannel"
+  flags: "yes"
   cpu: 7
   installerSpec:
     kubernetes:
@@ -1273,11 +1205,6 @@
       version: latest
   unsupportedOSIDs:
   - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
-  - centos-81 # docker is not supported on rhel 8 variants
-  - centos-82 # docker is not supported on rhel 8 variants
-  - centos-83 # docker is not supported on rhel 8 variants
-  - centos-84 # docker is not supported on rhel 8 variants
-  - ol-8x # docker is not supported on rhel 8 variants
   - rocky-91 # docker is not supported on rhel 9 variants
   - ol-9 # docker is not supported on rhel 9 variants
 - name: "Upgrade to 1.26 airgap"

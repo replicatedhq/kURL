@@ -1,5 +1,5 @@
 - name: Migrate from Rook 1.0.4 to OpenEBS + Minio
-  flags: yes
+  flags: "yes"
   installerSpec:
     kubernetes:
       version: 1.19.x
@@ -56,7 +56,7 @@
        exit 1
     fi
 - name: Migrate from Rook 1.10.x to OpenEBS + Minio
-  flags: yes
+  flags: "yes"
   installerSpec:
     kubernetes:
       version: 1.26.x
@@ -113,7 +113,7 @@
        exit 1
     fi
 - name: Migrate from Longhorn (S3 disabled) to OpenEBS + Minio
-  flags: yes
+  flags: "yes"
   installerSpec:
     kubernetes:
       version: 1.24.x
@@ -161,7 +161,7 @@
       exit 1
     fi
 - name: Migrate from Longhorn + Minio to OpenEBS + Minio
-  flags: yes
+  flags: "yes"
   installerSpec:
     kubernetes:
       version: 1.24.x
@@ -216,7 +216,7 @@
       exit 1
     fi
 - name: Migrate from Rook 1.0.4 to OpenEBS (S3 disabled)
-  flags: yes
+  flags: "yes"
   installerSpec:
     kubernetes:
       version: 1.19.x
@@ -272,7 +272,7 @@
        exit 1
     fi
 - name: Migrate from Rook 1.10.x to OpenEBS (S3 disabled)
-  flags: yes
+  flags: "yes"
   installerSpec:
     kubernetes:
       version: 1.26.x
@@ -328,7 +328,7 @@
        exit 1
     fi
 - name: Migrate from Longhorn (S3 disabled) to OpenEBS (S3 disabled)
-  flags: yes
+  flags: "yes"
   installerSpec:
     kubernetes:
       version: 1.24.x
@@ -381,7 +381,7 @@
       exit 1
     fi
 - name: Migrate from Longhorn + Minio to OpenEBS (S3 disabled)
-  flags: yes
+  flags: "yes"
   installerSpec:
     kubernetes:
       version: 1.24.x
@@ -435,7 +435,7 @@
       exit 1
     fi
 - name: Migrate from OpenEBS + Minio to OpenEBS (S3 disabled)
-  flags: yes
+  flags: "yes"
   installerSpec:
     kubernetes:
       version: 1.26.x
@@ -487,7 +487,7 @@
     test_pull_image_from_registry
     check_and_customize_kurl_integration_test_application
 - name: Migrate from Rook 1.0.4 to Rook 1.10.x
-  flags: yes
+  flags: "yes"
   cpu: 6
   numPrimaryNodes: 1
   numSecondaryNodes: 2
@@ -539,7 +539,7 @@
        exit 1
     fi
 - name: Migrate from Longhorn + Minio to Rook 1.10.x
-  flags: yes
+  flags: "yes"
   cpu: 6
   numPrimaryNodes: 1
   numSecondaryNodes: 2
@@ -593,7 +593,7 @@
       exit 1
     fi
 - name: Migrate from Rook 1.0.4 to OpenEBS + Minio (multi-node)
-  flags: yes
+  flags: "yes"
   cpu: 6
   numPrimaryNodes: 1
   numSecondaryNodes: 2
@@ -653,7 +653,7 @@
        exit 1
     fi
 - name: Migrate from Rook 1.10.x to OpenEBS + Minio (multi-node)
-  flags: yes
+  flags: "yes"
   cpu: 6
   numPrimaryNodes: 1
   numSecondaryNodes: 2
@@ -713,7 +713,7 @@
        exit 1
     fi
 - name: Migrate from Longhorn + Minio to OpenEBS + Minio
-  flags: yes
+  flags: "yes"
   cpu: 6
   numPrimaryNodes: 1
   numSecondaryNodes: 2
@@ -771,7 +771,7 @@
       exit 1
     fi
 - name: Migrate from Rook 1.10.x to OpenEBS 3.4.0 with localpv migrate
-  flags: yes
+  flags: "yes"
   installerSpec:
     kubernetes:
       version: 1.24.x
@@ -821,7 +821,7 @@
        exit 1
     fi
 - name: Migrate from Rook 1.0.4 to OpenEBS + Minio (Docker config)
-  flags: yes
+  flags: "yes"
   installerSpec:
     kubernetes:
       version: 1.19.x
@@ -894,12 +894,10 @@
        exit 1
     fi
   unsupportedOSIDs:
-  - centos-84 # docker is not supported on rhel 8 variants
-  - ol-8x # docker is not supported on rhel 8 variants
   - ol-9 # docker is not supported on rhel 9 variants
   - rocky-91 # docker is not supported on rhel 9 variants
 - name: Migrate from OpenEBS (S3 disabled) to OpenEBS + Minio
-  flags: yes
+  flags: "yes"
   installerSpec:
     kubernetes:
       version: 1.26.x
@@ -951,7 +949,7 @@
     test_pull_image_from_registry
     check_and_customize_kurl_integration_test_application
 - name: Migrate from Rook+OpenEBS to OpenEBS (Kubernetes 1.19.x to 1.21.x, Docker to Containerd)
-  flags: yes
+  flags: "yes"
   installerSpec:
     kubernetes:
       version: 1.19.x
@@ -1062,7 +1060,5 @@
        exit 1
     fi
   unsupportedOSIDs:
-  - centos-84 # docker is not supported on rhel 8 variants
-  - ol-8x # docker is not supported on rhel 8 variants
   - ol-9 # docker is not supported on rhel 9 variants
   - rocky-91 # docker is not supported on rhel 9 variants

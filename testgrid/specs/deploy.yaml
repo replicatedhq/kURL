@@ -25,6 +25,7 @@
     kotsadm:
       version: latest
 - name: k8s119-minimal
+  flags: "yes"
   installerSpec:
     kubernetes:
       version: 1.19.x
@@ -36,8 +37,6 @@
       version: latest
   unsupportedOSIDs:
   - ubuntu-2204 # docker 19.x is not available on ubuntu 22.04
-  - centos-84 # docker is not supported on rhel 8 variants
-  - ol-8x # docker is not supported on rhel 8 variants
   - rocky-91 # docker is not supported on rhel 9 variants
   - ol-9 # docker is not supported on rhel 9 variants
 - name: k8s121
@@ -322,6 +321,7 @@
       ;;
     esac
 - name: "Migrate from Docker to Containerd and Kubernetes from 1.23 to 1.25 airgap"
+  flags: "yes"
   installerSpec:
     kubernetes:
       version: 1.23.x
@@ -375,7 +375,5 @@
     validate_testfile rwtest testfile.txt
     validate_read_write_object_store postupgrade upgradefile.txt
   unsupportedOSIDs:
-  - centos-84 # docker is not supported on rhel 8 variants
-  - ol-8x # docker is not supported on rhel 8 variants
   - rocky-91 # docker is not supported on rhel 9 variants
   - ol-9 # docker is not supported on rhel 9 variants
