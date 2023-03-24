@@ -67,6 +67,9 @@ var UpgradedNodeLess50Images []byte
 //go:embed "waitForRookVersionAllReady.json"
 var WaitForRookVersionAllReady []byte
 
+//go:embed "waitForRookVersionAllReady.json"
+var WaitForRookVersionAllReadyWithEmptyVersion []byte
+
 //go:embed "waitForRookVersionOldVersions.json"
 var WaitForRookVersionOldVersions []byte
 

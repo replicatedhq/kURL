@@ -126,9 +126,14 @@ function rookupgrade_10to14_upgrade() {
                 ceph_versions_found="$(kubectl -n rook-ceph get deployment -l rook_cluster=rook-ceph -o jsonpath='{range .items[*]}{"ceph-version="}{.metadata.labels.ceph-version}{"\n"}{end}' | sort | uniq)"
                 # Fail when more than one version is found
                 if [ -n "${ceph_versions_found}" ] && [ "$(echo "${ceph_versions_found}" | wc -l)" -gt "1" ]; then
-                    logWarn "Detected multiple Ceph versions"
-                    logWarn "${ceph_versions_found}"
-                    logWarn "Failed to verify the Ceph upgrade, multiple Ceph versions detected"
+                    if [ "$(echo "${ceph_versions_found}" | wc -l)" == "2" ] && [ "$(echo "${ceph_versions_found}" | grep "0.0.0-0")" ]; then
+                        log "Found two ceph versions but one of them is 0.0.0-0 which will be ignored"
+                        echo "${ceph_versions_found}"
+                    else
+                        logWarn "Detected multiple Ceph versions"
+                        logWarn "${ceph_versions_found}"
+                        logWarn "Failed to verify the Ceph upgrade, multiple Ceph versions detected"
+                    fi
                 fi
 
                 if [[ "$(echo "${ceph_versions_found}")" == *"${ceph_version}"* ]]; then
@@ -289,9 +294,14 @@ function rookupgrade_10to14_upgrade() {
                 local ceph_versions_found=
                 ceph_versions_found="$(kubectl -n rook-ceph get deployment -l rook_cluster=rook-ceph -o jsonpath='{range .items[*]}{"ceph-version="}{.metadata.labels.ceph-version}{"\n"}{end}' | sort | uniq)"
                 if [ -n "${ceph_versions_found}" ] && [ "$(echo "${ceph_versions_found}" | wc -l)" -gt "1" ]; then
-                    logWarn "Detected multiple Ceph versions"
-                    logWarn "${ceph_versions_found}"
-                    logWarn "Failed to verify the Ceph upgrade, multiple Ceph versions detected"
+                    if [ "$(echo "${ceph_versions_found}" | wc -l)" == "2" ] && [ "$(echo "${ceph_versions_found}" | grep "0.0.0-0")" ]; then
+                        log "Found two ceph versions but one of them is 0.0.0-0 which will be ignored"
+                        echo "${ceph_versions_found}"
+                    else
+                        logWarn "Detected multiple Ceph versions"
+                        logWarn "${ceph_versions_found}"
+                        logWarn "Failed to verify the Ceph upgrade, multiple Ceph versions detected"
+                    fi
                 fi
 
                 if [[ "$(echo "${ceph_versions_found}")" == *"15.2.8"* ]]; then
