@@ -360,6 +360,7 @@ function preflights_require_host_packages() {
     local distro=rhel-9
 
     local fail=0
+    local did_clean_metadata=0
 
     local dir=
     for dir in addons/*/ packages/*/ ; do
@@ -382,6 +383,11 @@ function preflights_require_host_packages() {
         fi
         local dep=
         while read -r dep ; do
+            if [ "$did_clean_metadata" != "1" ]; then
+                # clean metadata to ensure we can still resolve dependencies
+                yum clean metadata || true
+                did_clean_metadata=1
+            fi
             if ! yum_is_host_package_installed_or_available "$dep" ; then
                 if [ "$fail" = "0" ]; then
                     echo ""
@@ -395,6 +401,11 @@ function preflights_require_host_packages() {
     if [ "$fail" = "1" ]; then
         echo ""
         log "Host packages are missing. Please install them and re-run the install script."
+        # bail immediately rather than prompting to continue
+        # used by testgrid to ensure that all required packages are installed
+        if [ "$KURL_ENFORCE_HOST_PACKAGES" = "1" ]; then
+            exit 1
+        fi
         printf "Continue anyway? "
         if ! confirmN ; then
             exit 1
