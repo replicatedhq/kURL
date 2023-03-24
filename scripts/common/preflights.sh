@@ -692,12 +692,12 @@ function bail_when_no_object_store_and_s3_enabled() {
 function bail_if_kurl_version_is_lower_than_previous_config() {
     if commandExists kubectl; then
        local previous_kurl_version
-       previous_kurl_version="$(kurl_get_current_version)"
+       previous_kurl_version="$(kurl_get_current_version || true)"
        if [ -z "$previous_kurl_version" ]; then
-           previous_kurl_version="$(kurl_get_last_version)"
+           previous_kurl_version="$(kurl_get_last_version || true)"
        fi
        if [ -z "$previous_kurl_version" ]; then
-           logWarn "Unable to obtain the version of the previous installer used"
+           logWarn "Found kubectl installed. However, was not possible to find the previous kURL version used"
            return
        fi
        semverCompare $(echo "$KURL_VERSION" | sed 's/v//g') "$(echo "$previous_kurl_version" | sed 's/v//g')"
