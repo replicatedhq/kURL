@@ -9,6 +9,8 @@ function generate() {
 
     cp -r ./base/* "$dir"
 
+    sed -i "s/__METRICS_VERSION__/$version/g" "$dir/install.sh"
+
     download_yaml
 
     find_images_in_yaml
