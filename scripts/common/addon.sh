@@ -27,6 +27,7 @@ function addon_install() {
     else
         $name
     fi
+    export REPORTING_CONTEXT_INFO=""
 
     addon_set_has_been_applied $name
 
