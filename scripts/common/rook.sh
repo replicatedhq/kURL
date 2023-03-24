@@ -357,7 +357,7 @@ function rook_is_healthy_to_upgrade() {
 # Check if the kurl-migration-from-rook exists then, if not creates it
 # To add DID_MIGRATE_ROOK_PVCS = "1" in order to track that the PVCs were migrated
 function add_rook_pvc_migration_status() {
-    if ! kubectl -n kurl get configmap kurl-migration-status; then
+    if ! kubectl -n kurl get configmap kurl-migration-from-rook; then
        kubectl create configmap kurl-migration-from-rook -n kurl
     fi
     kubectl patch configmap kurl-migration-from-rook -n kurl --type merge -p '{"data":{"DID_MIGRATE_ROOK_PVCS":"1"}}'
@@ -367,7 +367,7 @@ function add_rook_pvc_migration_status() {
 # Check if the kurl-migration-from-rook exists then, if not creates it
 # To add DID_MIGRATE_ROOK_PVCS = "1" in order to track that the PVCs were migrated
 function add_rook_store_object_migration_status() {
-    if ! kubectl -n kurl get configmap kurl-migration-status; then
+    if ! kubectl -n kurl get configmap kurl-migration-from-rook; then
        kubectl create configmap kurl-migration-from-rook -n kurl
     fi
     kubectl patch configmap kurl-migration-from-rook -n kurl --type merge -p '{"data":{"DID_MIGRATE_ROOK_OBJECT_STORE":"1"}}'
