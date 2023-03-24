@@ -55,6 +55,10 @@ func hasRookOrCephVersion(deployments *appsv1.DeploymentList, desiredVersion str
 	for _, dep := range deployments.Items {
 		rookVer := normalizeRookVersion(dep.Labels[labelKey])
 		if rookVer != desiredVersion {
+			if strings.Contains(rookVer, "0.0.0") || len(rookVer) == 0 {
+				// Ignore this scenario because Rook versions < 1.4.8 has a bug where the version is not set.
+				continue
+			}
 			_, ok := oldVersions[rookVer]
 			if !ok {
 				oldVersions[rookVer] = []string{dep.Name}
