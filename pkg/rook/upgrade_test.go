@@ -93,6 +93,15 @@ func Test_hasRookOrCephVersion(t *testing.T) {
 			wantOk:       false,
 			wantMessages: []string{"deployments rook-ceph-mds-rook-shared-fs-a, rook-ceph-mds-rook-shared-fs-b not ready"},
 		},
+		{
+			name:           "with ceph version empty",
+			deploymentList: deploymentListFromDeploymentsJson(testfiles.WaitForRookVersionAllReadyWithEmptyVersion),
+			args: args{
+				desiredVersion: "16.2.9-0",
+				labelKey:       "ceph-version",
+			},
+			wantOk: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
