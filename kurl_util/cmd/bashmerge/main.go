@@ -209,7 +209,7 @@ func parseBashFlags(installer *kurlv1beta1.Installer, bashFlags string) error {
 				installer.Spec.Kurl = &kurlv1beta1.Kurl{}
 			}
 			installer.Spec.Kurl.HostPreflightEnforceWarnings = true
-		case "enforce-host-packages": // possibly add this to the spec
+		case "dismiss-host-packages-preflight": // possibly add this to the spec
 			continue
 		case "preserve-docker-config":
 			if installer.Spec.Docker == nil {
