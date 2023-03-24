@@ -264,7 +264,7 @@ func parseBashFlags(installer *kurlv1beta1.Installer, bashFlags string) error {
 			continue
 		case "secondary-host":
 			continue
-		case "force-reapply-addons":
+		case "force-reapply-addons": // no longer supported
 			continue
 		case "ipv6":
 			if installer.Spec.Kurl == nil {

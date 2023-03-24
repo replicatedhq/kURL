@@ -15,29 +15,19 @@ function addon_install() {
 
     rm -rf $DIR/kustomize/$name
     mkdir -p $DIR/kustomize/$name
+    
+    export REPORTING_CONTEXT_INFO="addon $name $version"
 
-    # if the addon has already been applied and addons are not being forcibly reapplied
-    if addon_has_been_applied $name && [ -z "$FORCE_REAPPLY_ADDONS" ]; then
-        export REPORTING_CONTEXT_INFO="addon already applied $name $version"
-        # shellcheck disable=SC1090
-        addon_source "$name" "$version"
+    # shellcheck disable=SC1090
+    addon_source "$name" "$version"
 
-        if commandExists ${name}_already_applied; then
-            ${name}_already_applied
-        fi
-        export REPORTING_CONTEXT_INFO=""
+    # containerd is a special case because there is also a binary named containerd on the host
+    if [ "$name" = "containerd" ]; then
+        containerd_install
     else
-        export REPORTING_CONTEXT_INFO="addon $name $version"
-        # shellcheck disable=SC1090
-        addon_source "$name" "$version"
-        # containerd is a special case because there is also a binary named containerd on the host
-        if [ "$name" = "containerd" ]; then
-            containerd_install
-        else
-            $name
-        fi
-        export REPORTING_CONTEXT_INFO=""
+        $name
     fi
+    export REPORTING_CONTEXT_INFO=""
 
     addon_set_has_been_applied $name
 
@@ -301,7 +291,6 @@ function addon_outro() {
         fi
         common_flags="${common_flags}$(get_additional_no_proxy_addresses_flag "${PROXY_ADDRESS}" "${SERVICE_CIDR},${POD_CIDR}")"
         common_flags="${common_flags}$(get_kurl_install_directory_flag "${KURL_INSTALL_DIRECTORY_FLAG}")"
-        common_flags="${common_flags}$(get_force_reapply_addons_flag)"
         common_flags="${common_flags}$(get_skip_system_package_install_flag)"
         common_flags="${common_flags}$(get_exclude_builtin_host_preflights_flag)"
         common_flags="${common_flags}$(get_remotes_flags)"
