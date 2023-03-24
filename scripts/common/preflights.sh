@@ -690,20 +690,21 @@ function bail_when_no_object_store_and_s3_enabled() {
 
 # not allow run the installer/upgrade when kurl version is lower than the previous applied before
 function bail_if_kurl_version_is_lower_than_previous_config() {
-    if commandExists kubectl; then
-       local previous_kurl_version
-       previous_kurl_version="$(kurl_get_current_version)"
-       if [ -z "$previous_kurl_version" ]; then
-               previous_kurl_version="$(kurl_get_last_version)"
-       fi
-
-       semverCompare $(echo "$KURL_VERSION" | sed 's/v//g') "$(echo "$previous_kurl_version" | sed 's/v//g')"
-       if [ "$SEMVER_COMPARE_RESULT"  = "-1" ]; then # greater than or equal to 14.2.21
-           logFail "The current kURL release version $KURL_VERSION is less than the previously installed version $previous_kurl_version."
-           bail "Please use a kURL release version which is equal to or greater than the version used previously."
-       fi
-       log "Previous kURL version used to install or update the cluster is $previous_kurl_version"
-       log "and the current kURL version used is $KURL_VERSION"
-
+    local previous_kurl_version=
+    # do not fail the script if k8s is not installed or the cluster is down
+    previous_kurl_version="$(kurl_get_current_version 2>/dev/null || true)"
+    if [ -z "$previous_kurl_version" ]; then
+        previous_kurl_version="$(kurl_get_last_version 2>/dev/null || true)"
     fi
+    if [ -z "$previous_kurl_version" ]; then
+        return
+    fi
+
+    semverCompare "$(echo "$KURL_VERSION" | sed 's/v//g')" "$(echo "$previous_kurl_version" | sed 's/v//g')"
+    if [ "$SEMVER_COMPARE_RESULT"  = "-1" ]; then # greater than or equal to 14.2.21
+        logFail "The current kURL release version $KURL_VERSION is less than the previously installed version $previous_kurl_version."
+        bail "Please use a kURL release version which is equal to or greater than the version used previously."
+    fi
+    log "Previous kURL version used to install or update the cluster is $previous_kurl_version"
+    log "and the current kURL version used is $KURL_VERSION"
 }
