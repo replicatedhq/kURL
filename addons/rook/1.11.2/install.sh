@@ -141,14 +141,10 @@ function rook_operator_crds_deploy() {
     mkdir -p "${dst}"
     cp "$src/crds.yaml" "$dst/crds.yaml"
 
-    # https://rook.io/docs/rook/v1.6/ceph-upgrade.html#1-update-common-resources-and-crds
-    # NOTE: If your Rook-Ceph cluster was initially installed with rook v1.4 or lower, the above
-    # command will return errors due to updates from Kubernetes’ v1beta1 Custom Resource
-    # Definitions. The error will contain text similar to ... spec.preserveUnknownFields: Invalid
-    # value....
-    if ! kubectl apply -f "$dst/crds.yaml" 2>/dev/null ; then
-        kubectl replace --save-config -f "$dst/crds.yaml"
-        kubectl apply -f "$dst/crds.yaml"
+    # replace the CRDs if they already exist otherwise create them
+    # replace or create rather than apply to avoid the error "metadata.annotations: Too long"
+    if ! kubectl replace -f "$dst/crds.yaml" 2>/dev/null ; then
+        kubectl create -f "$dst/crds.yaml"
     fi
 }
 
