@@ -1,5 +1,5 @@
 metrics-server() {
-  local src="$DIR/addons/metrics-server/0.6.2"
+  local src="$DIR/addons/metrics-server/__METRICS_VERSION__"
   local dst="$DIR/kustomize/metrics-server"
 
   cp "$src/components.yaml" "$dst"
