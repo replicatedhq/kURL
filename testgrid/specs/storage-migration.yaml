@@ -894,6 +894,8 @@
        exit 1
     fi
   unsupportedOSIDs:
+  - centos-84 # docker is not supported on rhel 8 variants
+  - ol-8x # docker is not supported on rhel 8 variants
   - ol-9 # docker is not supported on rhel 9 variants
   - rocky-91 # docker is not supported on rhel 9 variants
 - name: Migrate from OpenEBS (S3 disabled) to OpenEBS + Minio
@@ -1060,5 +1062,7 @@
        exit 1
     fi
   unsupportedOSIDs:
+  - centos-84 # docker is not supported on rhel 8 variants
+  - ol-8x # docker is not supported on rhel 8 variants
   - ol-9 # docker is not supported on rhel 9 variants
   - rocky-91 # docker is not supported on rhel 9 variants
