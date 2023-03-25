@@ -1,7 +1,7 @@
 - name: Rook minimal airgap
   installerSpec:
     kubernetes:
-      version: "1.24.x"
+      version: "1.26.x"
     flannel:
       version: latest
     containerd:
@@ -18,6 +18,13 @@
   airgap: true
   unsupportedOSIDs:
     - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
+  preInstallScript: |
+    . /etc/os-release
+    case "$ID$VERSION_ID" in
+    centos9*|rhel9*|ol9*|rocky9*)
+      yum install -y lvm2 conntrack-tools socat
+      ;;
+    esac
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     rook_ceph_object_store_info
@@ -59,7 +66,7 @@
 - name: Rook minimal
   installerSpec:
     kubernetes:
-      version: "1.24.x"
+      version: "1.26.x"
     flannel:
       version: latest
     containerd:
@@ -114,11 +121,11 @@
     kubectl -n default delete pvc cephfs-pvc default-pvc
 
 # upgrade two versions
-- name: Upgrade from 1.8.10
+- name: Upgrade from 1.9.11
   flags: "yes"
   installerSpec:
     kubernetes:
-      version: "1.23.x"
+      version: "1.25.x"
     flannel:
       version: latest
     containerd:
@@ -130,10 +137,10 @@
     ekco:
       version: "latest"
     rook:
-      version: "1.8.10"
+      version: "1.9.12"
   upgradeSpec:
     kubernetes:
-      version: "1.24.x"
+      version: "1.26.x"
     flannel:
       version: latest
     containerd:
@@ -204,11 +211,11 @@
     kubectl -n default get pvc cephfs-pvc | grep Bound
     kubectl -n default delete pvc cephfs-pvc default-pvc
 
-- name: Upgrade from 1.9.12
+- name: Upgrade from 1.10.11
   flags: "yes"
   installerSpec:
     kubernetes:
-      version: "1.23.x"
+      version: "1.25.x"
     flannel:
       version: latest
     containerd:
@@ -220,10 +227,10 @@
     ekco:
       version: "latest"
     rook:
-      version: "1.9.12"
+      version: "1.10.11"
   upgradeSpec:
     kubernetes:
-      version: "1.24.x"
+      version: "1.26.x"
     flannel:
       version: latest
     containerd:
@@ -297,7 +304,7 @@
 - name: Disable shared filesystem
   installerSpec:
     kubernetes:
-      version: "1.24.x"
+      version: "1.26.x"
     flannel:
       version: latest
     containerd:

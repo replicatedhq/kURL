@@ -249,7 +249,7 @@ function rook_cluster_deploy_upgrade() {
     # 3. https://rook.io/docs/rook/v1.6/ceph-upgrade.html#3-update-the-rook-operator
     #    rook_operator_deploy
 
-    local ceph_image="__CEPH_IMAGE__"
+    local ceph_image="quay.io/ceph/ceph:v17.2.5"
     local ceph_version=
     ceph_version="$(echo "${ceph_image}" | awk 'BEGIN { FS=":v" } ; {print $2}')"
 
