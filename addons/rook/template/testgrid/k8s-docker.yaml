@@ -18,6 +18,13 @@
   airgap: true
   unsupportedOSIDs:
     - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
+  preInstallScript: |
+    . /etc/os-release
+    case "$ID$VERSION_ID" in
+    centos9*|rhel9*|ol9*|rocky9*)
+      yum install -y lvm2 conntrack-tools socat
+      ;;
+    esac
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     rook_ceph_object_store_info
