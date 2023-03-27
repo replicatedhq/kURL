@@ -276,8 +276,10 @@ function maybe_cleanup_rook() {
         fi
         logStep "Removing Rook"
 
-        DID_MIGRATE_ROOK_PVCS=$(kubectl -n kurl get configmap kurl-migration-from-rook -o jsonpath='{ .data.DID_MIGRATE_ROOK_PVCS }')
-        DID_MIGRATE_ROOK_OBJECT_STORE=$(kubectl -n kurl get configmap kurl-migration-from-rook -o jsonpath='{ .data.DID_MIGRATE_ROOK_OBJECT_STORE }')
+        export DID_MIGRATE_ROOK_PVCS=0
+        export DID_MIGRATE_ROOK_OBJECT_STORE=0
+        DID_MIGRATE_ROOK_PVCS=$(kubectl -n kurl get --ignore-not-found configmap kurl-migration-from-rook -o jsonpath='{ .data.DID_MIGRATE_ROOK_PVCS }')
+        DID_MIGRATE_ROOK_OBJECT_STORE=$(kubectl -n kurl get --ignore-not-found configmap kurl-migration-from-rook -o jsonpath='{ .data.DID_MIGRATE_ROOK_OBJECT_STORE }')
 
         if [ "$DID_MIGRATE_ROOK_PVCS" == "1" ] && [ "$DID_MIGRATE_ROOK_OBJECT_STORE" == "1" ]; then
             report_addon_start "rook-ceph-removal" "v1.1"
@@ -299,7 +301,7 @@ function maybe_cleanup_rook() {
                 logWarn "Rook will not be automatically removed without migrating Object Store data."
                 logWarn ""
                 logWarn "If you are sure that Object Store data is not used, you can manually perform this operation"
-                logWarn "by running the remove_rook_ceph task:"                
+                logWarn "by running the remove_rook_ceph task:"
                 logWarn "$ curl <installer>/task.sh | sudo bash -s remove_rook_ceph, i.e.:"
                 logWarn ""
                 logWarn "curl https://kurl.sh/latest/tasks.sh | sudo bash -s remove_rook_ceph"
@@ -309,7 +311,7 @@ function maybe_cleanup_rook() {
         if [ "$DID_MIGRATE_ROOK_PVCS" != "1" ]; then
            logFail "Storage class migration did not succeed"
         fi
-        
+
         if [ -n "$MINIO_VERSION" ] && [ "$DID_MIGRATE_ROOK_OBJECT_STORE" != "1" ]; then
            logFail "Object Store migration did not succeed"
         fi
