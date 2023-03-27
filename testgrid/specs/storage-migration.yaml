@@ -224,8 +224,6 @@
       version: 1.6.x
     flannel:
       version: 0.21.x
-    registry:
-      version: 2.8.1
     kotsadm:
       version: latest
     ekco:
@@ -250,9 +248,7 @@
       localPVStorageClassName: local
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
-    create_deployment_with_mounted_volume "migration-test" "default" "/data" "registry:2.8.1"
     create_random_file_and_upload_to_deployment "migration-test" "default" "./test.data" "/data/test.data"
-    test_push_image_to_registry
     install_and_customize_kurl_integration_test_application
   postUpgradeScript: |
     source /opt/kurl-testgrid/testhelpers.sh
@@ -278,8 +274,6 @@
       version: 1.6.x
     flannel:
       version: 0.21.x
-    registry:
-      version: 2.8.1
     kotsadm:
       version: latest
     ekco:
@@ -304,9 +298,7 @@
       localPVStorageClassName: local
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
-    create_deployment_with_mounted_volume "migration-test" "default" "/data" "registry:2.8.1"
     create_random_file_and_upload_to_deployment "migration-test" "default" "./test.data" "/data/test.data"
-    test_push_image_to_registry
     install_and_customize_kurl_integration_test_application
   postUpgradeScript: |
     source /opt/kurl-testgrid/testhelpers.sh
@@ -332,8 +324,6 @@
       version: 1.6.x
     flannel:
       version: 0.21.x
-    registry:
-      version: 2.8.1
     kotsadm:
       version: latest
       disableS3: true
@@ -359,9 +349,7 @@
       localPVStorageClassName: local
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
-    create_deployment_with_mounted_volume "migration-test" "default" "/data" "registry:2.8.1"
     create_random_file_and_upload_to_deployment "migration-test" "default" "./test.data" "/data/test.data"
-    test_push_image_to_registry
     install_and_customize_kurl_integration_test_application
   postUpgradeScript: |
     source /opt/kurl-testgrid/testhelpers.sh
@@ -383,8 +371,6 @@
       version: 1.6.x
     flannel:
       version: 0.21.x
-    registry:
-      version: 2.8.1
     kotsadm:
       version: latest
     ekco:
@@ -411,9 +397,7 @@
       localPVStorageClassName: local
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
-    create_deployment_with_mounted_volume "migration-test" "default" "/data" "registry:2.8.1"
     create_random_file_and_upload_to_deployment "migration-test" "default" "./test.data" "/data/test.data"
-    test_push_image_to_registry
     install_and_customize_kurl_integration_test_application
   postUpgradeScript: |
     source /opt/kurl-testgrid/testhelpers.sh
@@ -435,8 +419,6 @@
       version: 1.6.x
     flannel:
       version: 0.21.x
-    registry:
-      version: 2.8.1
     kotsadm:
       version: latest
     ekco:
@@ -465,9 +447,7 @@
       localPVStorageClassName: local
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
-    create_deployment_with_mounted_volume "migration-test" "default" "/data" "registry:2.8.1"
     create_random_file_and_upload_to_deployment "migration-test" "default" "./test.data" "/data/test.data"
-    test_push_image_to_registry
     install_and_customize_kurl_integration_test_application
   postUpgradeScript: |
     source /opt/kurl-testgrid/testhelpers.sh
