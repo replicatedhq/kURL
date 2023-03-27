@@ -665,8 +665,8 @@ function bail_if_unsupported_openebs_to_rook_version() {
                 fi
 
                 # registry + openebs without rook requires minio
-                if [ -n "$REGISTRY_VERSION" ] && [ -z "$MINIO_VERSION" ]; then
-                    logFail "Migration from Rook with Registry required an object store."
+                if [ -n "$REGISTRY_VERSION" ] && [ -z "$MINIO_VERSION" ] &&  [ -n "$KOTSADM_VERSION" ] && [ "$KOTSADM_DISABLE_S3" != "1" ]; then
+                    logFail "Migration from Rook with Registry when KOTS has s3 enabled requires an object store."
                     bail "Please ensure that your installer also provides an object store with MinIO add-on."
                 fi
             fi
