@@ -234,8 +234,9 @@ function minio_migrate_from_rgw() {
 
     minio_wait_for_health
 
+    log "Check if object store was migrated previously"
     export DID_MIGRATE_ROOK_OBJECT_STORE=0
-    DID_MIGRATE_ROOK_OBJECT_STORE=$(kubectl -n kurl get configmap kurl-migration-from-rook -o jsonpath='{ .data.DID_MIGRATE_ROOK_OBJECT_STORE }')
+    DID_MIGRATE_ROOK_OBJECT_STORE=$(kubectl -n kurl get --ignore-not-found configmap kurl-migration-from-rook -o jsonpath='{ .data.DID_MIGRATE_ROOK_OBJECT_STORE }')
     if [ "$DID_MIGRATE_ROOK_OBJECT_STORE" == "1" ]; then
         logWarn "Object store is set as migrated previously. Not migrating object store again."
         return
