@@ -251,32 +251,39 @@ function _yum_install_host_packages_el9() {
     logStep "Installing host packages ${packages[*]}"
 
     local fullpath=
-    fullpath="$(_yum_get_host_packages_path "${dir}" "${dir_prefix}")"
-    if ! test -n "$(shopt -s nullglob; echo "${fullpath}"/*.rpm)" ; then
+    fullpath="$(_yum_get_host_packages_path "$dir" "$dir_prefix")"
+    if ! test -n "$(shopt -s nullglob; echo "$fullpath"/*.rpm)" ; then
         echo "Will not install host packages ${packages[*]}, no packages found."
         return 0
     fi
-    cat > /etc/yum.repos.d/kurl.local.repo <<EOF
-[kurl.local]
-name=kURL Local Repo
-baseurl=file://${fullpath}
+
+    local repoprefix=
+    repoprefix="$(echo "${dir%"/"}" | awk -F'/' '{ print $(NF-1) "-" $NF }')"
+    if [ -n "$dir_prefix" ]; then
+        repoprefix="$repoprefix.${dir_prefix/#"/"}"
+    fi
+
+    local reponame="$repoprefix.kurl.local"
+    local repopath="/var/lib/kurl.repos/$repoprefix"
+
+    mkdir -p "/var/lib/kurl.repos"
+    rm -rf "$repopath"
+    cp -r "$fullpath" "$repopath"
+
+    cat > "/etc/yum.repos.d/$reponame.repo" <<EOF
+[$reponame]
+name=kURL $repoprefix Local Repo
+baseurl=file://$repopath
 enabled=1
 gpgcheck=0
 repo_gpgcheck=0
-metadata_expire=1m
 EOF
-    # We always use the same repo and we are kinda abusing yum here so we have to clear the cache.
-    yum clean expire-cache --disablerepo=* --enablerepo=kurl.local
 
     if [[ "${packages[*]}" == *"containerd.io"* ]] ; then
         yum install --allowerasing -y "${packages[@]}"
     else
         yum install -y "${packages[@]}"
     fi
-    yum clean expire-cache --disablerepo=* --enablerepo=kurl.local
-    rm /etc/yum.repos.d/kurl.local.repo
-
-    reset_dnf_module_kurl_local
 
     logSuccess "Host packages ${packages[*]} installed"
 }
@@ -360,7 +367,6 @@ function preflights_require_host_packages() {
     local distro=rhel-9
 
     local fail=0
-    local did_clean_metadata=0
 
     local dir=
     for dir in addons/*/ packages/*/ ; do
@@ -383,11 +389,6 @@ function preflights_require_host_packages() {
         fi
         local dep=
         while read -r dep ; do
-            if [ "$did_clean_metadata" != "1" ]; then
-                # clean metadata to ensure we can still resolve dependencies
-                yum clean metadata || true
-                did_clean_metadata=1
-            fi
             if ! yum_is_host_package_installed_or_available "$dep" ; then
                 if [ "$fail" = "0" ]; then
                     echo ""
