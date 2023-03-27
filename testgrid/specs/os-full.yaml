@@ -54,18 +54,18 @@
     curl -L -o centos2ol.sh https://raw.githubusercontent.com/oracle/centos2ol/main/centos2ol.sh
     chmod +x centos2ol.sh
     bash centos2ol.sh -r
-- id: rocky-91
-  name: Rocky Linux
-  version: "9.1"
-  vmimageuri: https://download.rockylinux.org/pub/rocky/9/images/x86_64/Rocky-9-GenericCloud-Base-9.1-20230215.0.x86_64.qcow2
-- id: ol-9
-  name: Oracle Linux
-  version: "9.x"
-  vmimageuri: https://cloud.centos.org/centos/9-stream/x86_64/images/CentOS-Stream-GenericCloud-9-20230227.0.x86_64.qcow2
-  preinit: |
-    curl -L -o centos2ol.sh https://raw.githubusercontent.com/oracle/centos2ol/main/centos2ol.sh
-    chmod +x centos2ol.sh
-    bash centos2ol.sh -r
+# - id: rocky-91
+#   name: Rocky Linux
+#   version: "9.1"
+#   vmimageuri: https://download.rockylinux.org/pub/rocky/9/images/x86_64/Rocky-9-GenericCloud-Base-9.1-20230215.0.x86_64.qcow2
+# - id: ol-9
+#   name: Oracle Linux
+#   version: "9.x"
+#   vmimageuri: https://cloud.centos.org/centos/9-stream/x86_64/images/CentOS-Stream-GenericCloud-9-20230227.0.x86_64.qcow2
+#   preinit: |
+#     curl -L -o centos2ol.sh https://raw.githubusercontent.com/oracle/centos2ol/main/centos2ol.sh
+#     chmod +x centos2ol.sh
+#     bash centos2ol.sh -r
 - id: ubuntu-1804
   name: Ubuntu
   version: "18.04"
