@@ -22,7 +22,11 @@
     . /etc/os-release
     case "$ID$VERSION_ID" in
     centos9*|rhel9*|ol9*|rocky9*)
+      # install required host packages
       yum install -y lvm2 conntrack-tools socat
+      # disable yum repos
+      find /etc/yum.repos.d/ -maxdepth 1 -name '*.repo' -exec mv "{}" "{}.bak" \;
+      yum clean metadata
       ;;
     esac
   postInstallScript: |
