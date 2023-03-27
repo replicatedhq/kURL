@@ -25,6 +25,11 @@ function kubernetes_get_packages() {
     if [ "$AIRGAP" != "1" ] && [ -n "$DIST_URL" ]; then
         kubernetes_get_host_packages_online "$KUBERNETES_VERSION"
         kubernetes_get_conformance_packages_online "$KUBERNETES_VERSION"
+
+        # if we are upgrading two kubernetes versions at once
+        if [ -n "$STEP_VERSION" ]; then
+            kubernetes_get_host_packages_online "$STEP_VERSION"
+        fi
     fi
 }
 
