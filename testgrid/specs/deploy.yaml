@@ -89,16 +89,7 @@
   unsupportedOSIDs:
     - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
   preInstallScript: |
-    . /etc/os-release
-    case "$ID$VERSION_ID" in
-    centos9*|rhel9*|ol9*|rocky9*)
-      # install required host packages
-      yum install -y lvm2 conntrack-tools socat
-      # disable yum repos
-      find /etc/yum.repos.d/ -maxdepth 1 -name '*.repo' -exec mv "{}" "{}.bak" \;
-      yum clean metadata
-      ;;
-    esac
+    rhel_9_install_host_packages lvm2 conntrack-tools socat
 - name: k8s122
   installerSpec:
     kubernetes:
@@ -149,16 +140,7 @@
   unsupportedOSIDs:
     - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
   preInstallScript: |
-    . /etc/os-release
-    case "$ID$VERSION_ID" in
-    centos9*|rhel9*|ol9*|rocky9*)
-      # install required host packages
-      yum install -y lvm2 conntrack-tools socat
-      # disable yum repos
-      find /etc/yum.repos.d/ -maxdepth 1 -name '*.repo' -exec mv "{}" "{}.bak" \;
-      yum clean metadata
-      ;;
-    esac
+    rhel_9_install_host_packages lvm2 conntrack-tools socat
 - name: minimal-124
   installerSpec:
     containerd:
@@ -294,16 +276,7 @@
   unsupportedOSIDs:
     - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
   preInstallScript: |
-    . /etc/os-release
-    case "$ID$VERSION_ID" in
-    centos9*|rhel9*|ol9*|rocky9*)
-      # install required host packages
-      yum install -y lvm2 conntrack-tools socat
-      # disable yum repos
-      find /etc/yum.repos.d/ -maxdepth 1 -name '*.repo' -exec mv "{}" "{}.bak" \;
-      yum clean metadata
-      ;;
-    esac
+    rhel_9_install_host_packages lvm2 conntrack-tools socat
 - name: "k8s_126x airgap"
   airgap: true
   installerSpec:
@@ -326,16 +299,7 @@
     kotsadm:
       version: latest
   preInstallScript: |
-    . /etc/os-release
-    case "$ID$VERSION_ID" in
-    centos9*|rhel9*|ol9*|rocky9*)
-      # install required host packages
-      yum install -y lvm2 conntrack-tools socat
-      # disable yum repos
-      find /etc/yum.repos.d/ -maxdepth 1 -name '*.repo' -exec mv "{}" "{}.bak" \;
-      yum clean metadata
-      ;;
-    esac
+    rhel_9_install_host_packages lvm2 conntrack-tools socat
 - name: "Migrate from Docker to Containerd and Kubernetes from 1.23 to 1.25 airgap"
   flags: "yes"
   installerSpec:
