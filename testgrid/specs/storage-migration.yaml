@@ -330,8 +330,6 @@
       version: 1.6.x
     flannel:
       version: 0.21.x
-    registry:
-      version: 2.8.1
     kotsadm:
       version: latest
       disableS3: true
@@ -346,8 +344,6 @@
       version: 1.6.x
     flannel:
       version: 0.21.x
-    registry:
-      version: 2.8.1
     kotsadm:
       version: latest
       disableS3: true
