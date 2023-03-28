@@ -274,6 +274,8 @@
       version: 1.6.x
     flannel:
       version: 0.21.x
+    registry:
+      version: 2.8.1
     kotsadm:
       version: latest
     ekco:
@@ -287,6 +289,8 @@
       version: 1.6.x
     flannel:
       version: 0.21.x
+    registry:
+      version: 2.8.1
     kotsadm:
       version: latest
       disableS3: true
@@ -298,7 +302,9 @@
       localPVStorageClassName: local
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
+    create_deployment_with_mounted_volume "migration-test" "default" "/data" "registry:2.8.1"
     create_random_file_and_upload_to_deployment "migration-test" "default" "./test.data" "/data/test.data"
+    test_push_image_to_registry
     install_and_customize_kurl_integration_test_application
   postUpgradeScript: |
     source /opt/kurl-testgrid/testhelpers.sh
@@ -324,6 +330,8 @@
       version: 1.6.x
     flannel:
       version: 0.21.x
+    registry:
+      version: 2.8.1
     kotsadm:
       version: latest
       disableS3: true
@@ -338,6 +346,8 @@
       version: 1.6.x
     flannel:
       version: 0.21.x
+    registry:
+      version: 2.8.1
     kotsadm:
       version: latest
       disableS3: true
@@ -371,6 +381,8 @@
       version: 1.6.x
     flannel:
       version: 0.21.x
+    registry:
+      version: 2.8.1
     kotsadm:
       version: latest
     ekco:
@@ -386,6 +398,8 @@
       version: 1.6.x
     flannel:
       version: 0.21.x
+    registry:
+      version: 2.8.1
     kotsadm:
       version: latest
       disableS3: true
@@ -397,7 +411,9 @@
       localPVStorageClassName: local
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
+    create_deployment_with_mounted_volume "migration-test" "default" "/data" "registry:2.8.1"
     create_random_file_and_upload_to_deployment "migration-test" "default" "./test.data" "/data/test.data"
+    test_push_image_to_registry
     install_and_customize_kurl_integration_test_application
   postUpgradeScript: |
     source /opt/kurl-testgrid/testhelpers.sh
@@ -419,6 +435,8 @@
       version: 1.6.x
     flannel:
       version: 0.21.x
+    registry:
+      version: 2.8.1
     kotsadm:
       version: latest
     ekco:
@@ -436,6 +454,8 @@
       version: 1.6.x
     flannel:
       version: 0.21.x
+    registry:
+      version: 2.8.1
     kotsadm:
       version: latest
       disableS3: true
@@ -447,7 +467,9 @@
       localPVStorageClassName: local
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
+    create_deployment_with_mounted_volume "migration-test" "default" "/data" "registry:2.8.1"
     create_random_file_and_upload_to_deployment "migration-test" "default" "./test.data" "/data/test.data"
+    test_push_image_to_registry
     install_and_customize_kurl_integration_test_application
   postUpgradeScript: |
     source /opt/kurl-testgrid/testhelpers.sh
@@ -864,8 +886,8 @@
        exit 1
     fi
   unsupportedOSIDs:
-  - ol-9 # docker is not supported on rhel 9 variants
-  - rocky-91 # docker is not supported on rhel 9 variants
+    - ol-9 # docker is not supported on rhel 9 variants
+    - rocky-91 # docker is not supported on rhel 9 variants
 - name: Migrate from OpenEBS (S3 disabled) to OpenEBS + Minio
   flags: "yes"
   installerSpec:
@@ -1014,7 +1036,7 @@
       shouldDisableRestartFailedEnvoyPods: false
       envoyPodsNotReadyDuration: 5m
   unsupportedOSIDs:
-  - ubuntu-2204 # containerd 1.4.x is not supported on ubuntu 22.04
+    - ubuntu-2204 # containerd 1.4.x is not supported on ubuntu 22.04
   postUpgradeScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     minio_object_store_info
@@ -1030,5 +1052,5 @@
        exit 1
     fi
   unsupportedOSIDs:
-  - ol-9 # docker is not supported on rhel 9 variants
-  - rocky-91 # docker is not supported on rhel 9 variants
+    - ol-9 # docker is not supported on rhel 9 variants
+    - rocky-91 # docker is not supported on rhel 9 variants
