@@ -39,17 +39,17 @@ When the third node is added, a Ceph cluster will be created by the EKCO operato
 When that Ceph cluster becomes healthy (with at least 3 replicas), the "distributed" storageclass will be created using rook-ceph.
 However, a migration will not begin until one of three things occurs:
 
-1. The user approves the migration in kotsadm
+1. The user approves the migration in KOTS
 2. The user runs `install.sh` on a primary node, and accepts a prompt to migrate storage
 3. The user runs the `migrate-multinode-storage` command in `tasks.sh` from a primary node
 
 The migration process will NOT be triggered automatically.
-While the migration process is available to be triggered, a banner will be shown in Kotsadm indicating that the migration is available, and that the cluster is currently in an undesirable state.
+While the migration process is available to be triggered, a banner will be shown in the KOTS browser UI indicating that the migration is available, and that the cluster is currently in an undesirable state.
 
 The migration process will be as follows:
 A trigger configmap will be created in the `kurl` namespace, to be observed by EKCO, prompting it to carry out the following steps.
-If MinIO is present, Kotsadm will be scaled down, and the existing `sync-object-store` command will be used to migrate data from MinIO to Rook.
-Kotsadm, Registry, and Velero will then be updated to use the Rook object store, and Kotsadm scaled back up.
+If MinIO is present, KOTS will be scaled down, and the existing `sync-object-store` Go command will be used to migrate data from MinIO to Rook.
+KOTS, Registry, and Velero will then be updated to use the Rook object store, and KOTS scaled back up.
 After MinIO data is migrated and its consumers updated, the MinIO statefulset and namespace will be deleted.
 `pvmigrate` will then be used to migrate all data from the "scaling" storageclass to the "distributed" storageclass, and the default storageclass will be changed to "distributed".
 This process does involve downtime, caused by stopping pods using "scaling" storage, and is why we require the migration to be manually initiated.
@@ -68,7 +68,7 @@ Vendors will be able to specify a single spec for single and multi-node installs
 There will be short application downtime migrating between the two storage systems.
 This could be mitigated by changing pvmigrate to not stop all pods at once, but it is as yet unknown how this would be accomplished.
 
-Vendor applications will not be able to use the kurl-provided object store with this configuration, as this object store will change endpoints during the migration process.
+Vendor applications will not be able to use the kurl-provided object store with this configuration, as this object store will change endpoints during the migration process and not preserve user credentials.
 It is believed this will not impact any vendors.
 
 Clusters may run with 3+ nodes and not use Rook for some time if the user does not approve the migration.
