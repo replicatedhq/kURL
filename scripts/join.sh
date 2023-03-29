@@ -178,6 +178,7 @@ function main() {
     setup_kubeadm_kustomize
     install_cri
     get_shared
+    kubernetes_pre_init
     ${K8S_DISTRO}_addon_for_each addon_join
     helm_load
     kubernetes_host
