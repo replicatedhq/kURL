@@ -81,18 +81,18 @@ spec:
         backgroundReadIOPSJobs: 1
     - certificate:
         collectorName: "Kubernetes API key pair certificate"
-        exclude: '{{kurl and .IsPrimary | not }}'
+        exclude: '{{kurl or (not .IsPrimary) (not .IsUpgrade) }}'
         certificatePath: /etc/kubernetes/pki/apiserver.crt
         keyPath: /etc/kubernetes/pki/apiserver.key
     - certificate:
         collectorName: "Kubernetes ETCD key pair certificate"
-        exclude: '{{kurl and .IsPrimary | not }}'
+        exclude: '{{kurl or (not .IsPrimary) (not .IsUpgrade) }}'
         certificatePath: /etc/kubernetes/pki/etcd/server.crt
         keyPath: /etc/kubernetes/pki/etcd/server.key
   analyzers:
     - certificate:
         collectorName: "Kubernetes API key pair certificate"
-        exclude: '{{kurl and .IsPrimary | not }}'
+        exclude: '{{kurl or (not .IsPrimary) (not .IsUpgrade) }}'
         outcomes:
           - fail:
               when: "key-pair-missing"
@@ -114,7 +114,7 @@ spec:
               message: Kubernetes API key pair certificate is valid
     - certificate:
         collectorName: "Kubernetes ETCD key pair certificate"
-        exclude: '{{kurl and .IsPrimary | not }}'
+        exclude: '{{kurl or (not .IsPrimary) (not .IsUpgrade) }}'
         outcomes:
           - fail:
               when: "key-pair-missing"
