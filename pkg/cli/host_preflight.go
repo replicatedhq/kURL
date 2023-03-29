@@ -69,100 +69,167 @@ func newHostPreflightCmd(cli CLI) *cobra.Command {
 				IsUpgrade:      v.GetBool("is-upgrade"),
 				PrimaryHosts:   v.GetStringSlice("primary-host"),
 				SecondaryHosts: v.GetStringSlice("secondary-host"),
+				IsCluster:      v.GetBool("is-cluster"),
 				RemoteHosts:    remotes,
 			}
 
-			preflightSpec := &troubleshootv1beta2.HostPreflight{}
+			if !data.IsCluster {
+				preflightSpec := &troubleshootv1beta2.HostPreflight{}
 
-			if !v.GetBool("exclude-builtin") {
-				builtin := preflight.Builtin()
+				if !v.GetBool("exclude-builtin") {
+					builtin := preflight.Builtin()
+					s, err := decodeHostPreflightSpec(builtin, data)
+					if err != nil {
+						return errors.Wrap(err, "builtin")
+					}
+					preflightSpec = s
+				}
+
+				for _, filename := range v.GetStringSlice("spec") {
+					spec, err := os.ReadFile(filename)
+					if err != nil {
+						return errors.Wrapf(err, "read spec file %s", filename)
+					}
+
+					decoded, err := decodeHostPreflightSpec(string(spec), data)
+					if err != nil {
+						return errors.Wrap(err, filename)
+					}
+
+					preflightSpec.Spec.Collectors = append(preflightSpec.Spec.Collectors, decoded.Spec.Collectors...)
+					preflightSpec.Spec.Analyzers = append(preflightSpec.Spec.Analyzers, decoded.Spec.Analyzers...)
+				}
+
+				if data.IsJoin && data.IsPrimary && !data.IsUpgrade {
+					// Check connection to kubelet on all remotes
+					for _, remote := range remotes {
+						remote = formatAddress(remote)
+						preflightSpec.Spec.Collectors = append(preflightSpec.Spec.Collectors, tcpHostCollector("kubelet", remote, "10250"))
+						preflightSpec.Spec.Analyzers = append(preflightSpec.Spec.Analyzers, tcpHostAnalyzer("kubelet", remote, "10250"))
+					}
+					// Check connection to etcd on all primaries
+					for _, primary := range data.PrimaryHosts {
+						primary = formatAddress(primary)
+						preflightSpec.Spec.Collectors = append(preflightSpec.Spec.Collectors, tcpHostCollector("etcd peer", primary, "2379"))
+						preflightSpec.Spec.Collectors = append(preflightSpec.Spec.Collectors, tcpHostCollector("etcd peer", primary, "2380"))
+						preflightSpec.Spec.Analyzers = append(preflightSpec.Spec.Analyzers, tcpHostAnalyzer("etcd peer", primary, "2379"))
+						preflightSpec.Spec.Analyzers = append(preflightSpec.Spec.Analyzers, tcpHostAnalyzer("etcd peer", primary, "2380"))
+					}
+				}
+
+				if data.IsJoin && !data.IsUpgrade {
+					// Check connection to api-server on all primaries
+					for _, primary := range data.PrimaryHosts {
+						primary = formatAddress(primary)
+						preflightSpec.Spec.Collectors = append(preflightSpec.Spec.Collectors, tcpHostCollector("api-server", primary, "6443"))
+						preflightSpec.Spec.Analyzers = append(preflightSpec.Spec.Analyzers, tcpHostAnalyzer("api-server", primary, "6443"))
+					}
+				}
+
+				progressChan := make(chan interface{})
+				progressContext, progressCancel := context.WithCancel(cmd.Context())
+				isTerminal := isatty.IsTerminal(os.Stderr.Fd())
+				go writeProgress(cmd.ErrOrStderr(), progressChan, progressCancel, isTerminal)
+
+				results, err := cli.GetHostPreflightRunner().RunHostPreflights(cmd.Context(), preflightSpec, progressChan)
+				close(progressChan)
+				<-progressContext.Done()
+
+				if err != nil {
+					return errors.Wrap(err, "run host preflight")
+				}
+
+				printPreflightResults(cmd.OutOrStdout(), results)
+
+				if v.GetBool("use-exit-codes") {
+					switch {
+					case preflightIsFail(results):
+						os.Exit(preflightsErrorCode)
+					case preflightIsWarn(results):
+						if v.GetBool("ignore-warnings") {
+							os.Exit(preflightsIgnoreWarningCode)
+						}
+						os.Exit(preflightsWarningCode)
+					}
+					return nil
+				}
+
+				switch {
+				case preflightIsFail(results):
+					return errors.New("host preflights have failures")
+				case preflightIsWarn(results):
+					if v.GetBool("ignore-warnings") {
+						fmt.Fprintln(cmd.ErrOrStderr(), "Warnings ignored by CLI flag \"ignore-warnings\"")
+					} else {
+						return ErrWarn
+					}
+				}
+				return nil
+			} else {
+				preflightSpec := &troubleshootv1beta2.Preflight{}
+
+				builtin := preflight.BuiltinCluster()
 				s, err := decodePreflightSpec(builtin, data)
 				if err != nil {
 					return errors.Wrap(err, "builtin")
 				}
 				preflightSpec = s
-			}
 
-			for _, filename := range v.GetStringSlice("spec") {
-				spec, err := os.ReadFile(filename)
+				for _, filename := range v.GetStringSlice("spec") {
+					spec, err := os.ReadFile(filename)
+					if err != nil {
+						return errors.Wrapf(err, "read spec file %s", filename)
+					}
+
+					decoded, err := decodePreflightSpec(string(spec), data)
+					if err != nil {
+						return errors.Wrap(err, filename)
+					}
+
+					preflightSpec.Spec.Collectors = append(preflightSpec.Spec.Collectors, decoded.Spec.Collectors...)
+					preflightSpec.Spec.Analyzers = append(preflightSpec.Spec.Analyzers, decoded.Spec.Analyzers...)
+				}
+
+				progressChan := make(chan interface{})
+				progressContext, progressCancel := context.WithCancel(cmd.Context())
+				isTerminal := isatty.IsTerminal(os.Stderr.Fd())
+				go writeProgress(cmd.ErrOrStderr(), progressChan, progressCancel, isTerminal)
+
+				results, err := cli.GetPreflightRunner().RunPreflight(cmd.Context(), preflightSpec, progressChan)
+				close(progressChan)
+				<-progressContext.Done()
+
 				if err != nil {
-					return errors.Wrapf(err, "read spec file %s", filename)
+					return errors.Wrap(err, "run preflight")
 				}
 
-				decoded, err := decodePreflightSpec(string(spec), data)
-				if err != nil {
-					return errors.Wrap(err, filename)
+				printPreflightResults(cmd.OutOrStdout(), results)
+
+				if v.GetBool("use-exit-codes") {
+					switch {
+					case preflightIsFail(results):
+						os.Exit(preflightsErrorCode)
+					case preflightIsWarn(results):
+						if v.GetBool("ignore-warnings") {
+							os.Exit(preflightsIgnoreWarningCode)
+						}
+						os.Exit(preflightsWarningCode)
+					}
+					return nil
 				}
 
-				preflightSpec.Spec.Collectors = append(preflightSpec.Spec.Collectors, decoded.Spec.Collectors...)
-				preflightSpec.Spec.Analyzers = append(preflightSpec.Spec.Analyzers, decoded.Spec.Analyzers...)
-			}
-
-			if data.IsJoin && data.IsPrimary && !data.IsUpgrade {
-				// Check connection to kubelet on all remotes
-				for _, remote := range remotes {
-					remote = formatAddress(remote)
-					preflightSpec.Spec.Collectors = append(preflightSpec.Spec.Collectors, tcpHostCollector("kubelet", remote, "10250"))
-					preflightSpec.Spec.Analyzers = append(preflightSpec.Spec.Analyzers, tcpHostAnalyzer("kubelet", remote, "10250"))
-				}
-				// Check connection to etcd on all primaries
-				for _, primary := range data.PrimaryHosts {
-					primary = formatAddress(primary)
-					preflightSpec.Spec.Collectors = append(preflightSpec.Spec.Collectors, tcpHostCollector("etcd peer", primary, "2379"))
-					preflightSpec.Spec.Collectors = append(preflightSpec.Spec.Collectors, tcpHostCollector("etcd peer", primary, "2380"))
-					preflightSpec.Spec.Analyzers = append(preflightSpec.Spec.Analyzers, tcpHostAnalyzer("etcd peer", primary, "2379"))
-					preflightSpec.Spec.Analyzers = append(preflightSpec.Spec.Analyzers, tcpHostAnalyzer("etcd peer", primary, "2380"))
-				}
-			}
-
-			if data.IsJoin && !data.IsUpgrade {
-				// Check connection to api-server on all primaries
-				for _, primary := range data.PrimaryHosts {
-					primary = formatAddress(primary)
-					preflightSpec.Spec.Collectors = append(preflightSpec.Spec.Collectors, tcpHostCollector("api-server", primary, "6443"))
-					preflightSpec.Spec.Analyzers = append(preflightSpec.Spec.Analyzers, tcpHostAnalyzer("api-server", primary, "6443"))
-				}
-			}
-
-			progressChan := make(chan interface{})
-			progressContext, progressCancel := context.WithCancel(cmd.Context())
-			isTerminal := isatty.IsTerminal(os.Stderr.Fd())
-			go writeProgress(cmd.ErrOrStderr(), progressChan, progressCancel, isTerminal)
-
-			results, err := cli.GetPreflightRunner().Run(cmd.Context(), preflightSpec, progressChan)
-			close(progressChan)
-			<-progressContext.Done()
-
-			if err != nil {
-				return errors.Wrap(err, "run host preflight")
-			}
-
-			printPreflightResults(cmd.OutOrStdout(), results)
-
-			if v.GetBool("use-exit-codes") {
 				switch {
 				case preflightIsFail(results):
-					os.Exit(preflightsErrorCode)
+					return errors.New("host preflights have failures")
 				case preflightIsWarn(results):
 					if v.GetBool("ignore-warnings") {
-						os.Exit(preflightsIgnoreWarningCode)
+						fmt.Fprintln(cmd.ErrOrStderr(), "Warnings ignored by CLI flag \"ignore-warnings\"")
+					} else {
+						return ErrWarn
 					}
-					os.Exit(preflightsWarningCode)
 				}
 				return nil
 			}
-
-			switch {
-			case preflightIsFail(results):
-				return errors.New("host preflights have failures")
-			case preflightIsWarn(results):
-				if v.GetBool("ignore-warnings") {
-					fmt.Fprintln(cmd.ErrOrStderr(), "Warnings ignored by CLI flag \"ignore-warnings\"")
-				} else {
-					return ErrWarn
-				}
-			}
-			return nil
 		},
 	}
 
@@ -232,7 +299,17 @@ func tcpHostAnalyzer(service, address, port string) *v1beta2.HostAnalyze {
 	}
 }
 
-func decodePreflightSpec(raw string, data installer.TemplateData) (*troubleshootv1beta2.HostPreflight, error) {
+func decodeHostPreflightSpec(raw string, data installer.TemplateData) (*troubleshootv1beta2.HostPreflight, error) {
+	spec, err := installer.ExecuteTemplate("installerSpec", raw, data)
+	if err != nil {
+		return nil, errors.Wrapf(err, "execute installer template")
+	}
+
+	decoded, err := preflight.HostDecode(spec)
+	return decoded, errors.Wrap(err, "decode spec")
+}
+
+func decodePreflightSpec(raw string, data installer.TemplateData) (*troubleshootv1beta2.Preflight, error) {
 	spec, err := installer.ExecuteTemplate("installerSpec", raw, data)
 	if err != nil {
 		return nil, errors.Wrapf(err, "execute installer template")

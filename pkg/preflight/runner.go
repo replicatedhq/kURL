@@ -8,16 +8,32 @@ import (
 	troubleshootv1beta2 "github.com/replicatedhq/troubleshoot/pkg/apis/troubleshoot/v1beta2"
 )
 
-var _ Runner = new(PreflightRunner)
+var _ RunnerHost = new(RunnerHostPreflight)
+var _ Runner = new(RunnerPreflight)
+
+type RunnerHost interface {
+	RunHostPreflights(ctx context.Context, spec *troubleshootv1beta2.HostPreflight, progressChan chan interface{}) ([]*analyze.AnalyzeResult, error)
+}
 
 type Runner interface {
-	Run(ctx context.Context, spec *troubleshootv1beta2.HostPreflight, progressChan chan interface{}) ([]*analyze.AnalyzeResult, error)
+	RunPreflight(ctx context.Context, spec *troubleshootv1beta2.Preflight, progressChan chan interface{}) ([]*analyze.AnalyzeResult, error)
 }
 
-type PreflightRunner struct {
+type RunnerHostPreflight struct {
 }
 
-func (r *PreflightRunner) Run(ctx context.Context, spec *troubleshootv1beta2.HostPreflight, progressChan chan interface{}) ([]*analyze.AnalyzeResult, error) {
+type RunnerPreflight struct {
+}
+
+func (r *RunnerHostPreflight) RunHostPreflights(ctx context.Context, spec *troubleshootv1beta2.HostPreflight, progressChan chan interface{}) ([]*analyze.AnalyzeResult, error) {
+	collectResults, err := CollectHostResults(ctx, spec, progressChan)
+	if err != nil {
+		return nil, errors.Wrap(err, "collect results")
+	}
+	return collectResults.Analyze(), nil
+}
+
+func (r *RunnerPreflight) RunPreflight(ctx context.Context, spec *troubleshootv1beta2.Preflight, progressChan chan interface{}) ([]*analyze.AnalyzeResult, error) {
 	collectResults, err := CollectResults(ctx, spec, progressChan)
 	if err != nil {
 		return nil, errors.Wrap(err, "collect results")

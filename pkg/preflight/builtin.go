@@ -11,3 +11,11 @@ var builtin string
 func Builtin() string {
 	return builtin
 }
+
+//go:embed assets/preflights.yaml
+var builtinCluster string
+
+// Builtin returns the default set of kURL host preflights
+func BuiltinCluster() string {
+	return builtinCluster
+}

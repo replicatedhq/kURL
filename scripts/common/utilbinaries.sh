@@ -22,6 +22,7 @@ function download_util_binaries() {
     CONFIGURE_IPTABLES_SCRIPT=/tmp/kurl-bin-utils/scripts/configure_iptables.sh
 
     mkdir -p /tmp/kurl-bin-utils/specs
+    YAML_SPEC=/tmp/kurl-bin-utils/specs/preflights.yaml
     MERGED_YAML_SPEC=/tmp/kurl-bin-utils/specs/merged.yaml
     VENDOR_PREFLIGHT_SPEC=/tmp/kurl-bin-utils/specs/vendor-preflight.yaml
 

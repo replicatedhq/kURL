@@ -54,7 +54,7 @@ func (mr *MockCLIMockRecorder) GetFS() *gomock.Call {
 // GetPreflightRunner mocks base method.
 func (m *MockCLI) GetPreflightRunner() preflight.Runner {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetPreflightRunner")
+	ret := m.ctrl.Call(m, "GetHostPreflightRunner")
 	ret0, _ := ret[0].(preflight.Runner)
 	return ret0
 }
@@ -62,7 +62,7 @@ func (m *MockCLI) GetPreflightRunner() preflight.Runner {
 // GetPreflightRunner indicates an expected call of GetPreflightRunner.
 func (mr *MockCLIMockRecorder) GetPreflightRunner() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPreflightRunner", reflect.TypeOf((*MockCLI)(nil).GetPreflightRunner))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetHostPreflightRunner", reflect.TypeOf((*MockCLI)(nil).GetPreflightRunner))
 }
 
 // GetReadline mocks base method.

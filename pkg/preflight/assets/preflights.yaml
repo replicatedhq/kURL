@@ -1,0 +1,38 @@
+# https://kurl.sh/docs/install-with-kurl/system-requirements
+apiVersion: troubleshoot.sh/v1beta2
+kind: Preflight
+metadata:
+  name: kurl-builtin
+spec:
+  collectors:
+    - clusterInfo: {}
+    - clusterResources: {}
+  analyzers:
+    - clusterPodStatuses:
+        outcomes:
+          - fail:
+              when: "!= Healthy"
+              message: "Status: {{ .Status.Reason }}"
+    - statefulsetStatus: { }
+    - deploymentStatus: { }
+    - jobStatus: { }
+    - replicasetStatus: { }
+    - nodeResources:
+        checkName: Node status check
+        outcomes:
+          - fail:
+              when: "nodeCondition(Ready) == False"
+              message: "Not all nodes are online."
+          - fail:
+              when: "nodeCondition(Ready) == Unknown"
+              message: "Not all nodes are online."
+          - pass:
+              message: "All nodes are online."
+    - clusterPodStatuses:
+        checkName: contour pods unhealthy
+        namespaces:
+          - projectcontour
+        outcomes:
+          - fail:
+              when: "!= Healthy" # Catch all unhealthy pods. A pod is considered healthy if it has a status of Completed, or Running and all of its containers are ready.
+              message: A Contour pod, {{ .Name }}, is unhealthy with a status of {{ .Status.Reason }}. Restarting the pod may fix the issue.

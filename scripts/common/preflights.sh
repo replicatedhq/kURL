@@ -612,6 +612,82 @@ function host_preflights() {
     logStep "Host preflights success"
 }
 
+IN_CLUSTER_PREFLIGHTS_RESULTS_OUTPUT_DIR="in-cluster-preflights"
+function cluster_preflights() {
+    local is_primary="$1"
+    local is_join="$2"
+    local is_upgrade="$3"
+
+    local opts=
+
+    local out_file=
+    out_file="${DIR}/${IN_CLUSTER_PREFLIGHTS_RESULTS_OUTPUT_DIR}/results-$(date +%s).txt"
+
+    mkdir -p "${DIR}/${IN_CLUSTER_PREFLIGHTS_RESULTS_OUTPUT_DIR}"
+
+    if [ ! "${HOST_PREFLIGHT_ENFORCE_WARNINGS}" = "1" ] ; then
+        opts="${opts} --ignore-warnings"
+    fi
+    if [ "${is_primary}" != "1" ]; then
+        opts="${opts} --is-primary=false"
+    fi
+    if [ "${is_join}" = "1" ]; then
+        opts="${opts} --is-join"
+    fi
+    if [ "${is_upgrade}" = "1" ]; then
+        opts="${opts} --is-upgrade"
+    fi
+
+    opts="${opts} --is-cluster"
+
+    if [ "$EXCLUDE_BUILTIN_HOST_PREFLIGHTS" == "1" ]; then
+        opts="${opts} --exclude-builtin"
+    fi
+
+    if [ -n "$PRIMARY_HOST" ]; then
+        opts="${opts} --primary-host=${PRIMARY_HOST}"
+    fi
+    if [ -n "$SECONDARY_HOST" ]; then
+        opts="${opts} --secondary-host=${SECONDARY_HOST}"
+    fi
+
+    logStep "Running in cluster preflights"
+    if [ "${HOST_PREFLIGHT_IGNORE}" = "1" ]; then
+        "${DIR}"/bin/kurl host preflight "${YAML_SPEC}" ${opts} | tee "${out_file}"
+        host_preflights_mkresults "${out_file}" "${opts}"
+
+        # TODO: report preflight fail
+    else
+        set +e
+        "${DIR}"/bin/kurl host preflight "$YAML_SPEC}" ${opts} | tee "${out_file}"
+        local kurl_exit_code="${PIPESTATUS[0]}"
+        set -e
+
+        in_cluster_preflights_mkresults "${out_file}" "${opts}"
+
+        case $kurl_exit_code in
+            3)
+                bail "In cluster preflights have warnings that block the installation."
+                ;;
+            2)
+                logWarn "In cluster preflights have warnings"
+                logWarn "It is highly recommended to sort out the warning conditions before proceeding."
+                logWarn "Be aware that continuing with preflight warnings can result in failures."
+                log ""
+                logWarn "Would you like to continue?"
+                if ! confirmY ; then
+                    bail "The installation will not continue"
+                fi
+                return 0
+                ;;
+            1)
+                bail "In cluster preflights have failures that block the installation."
+                ;;
+        esac
+    fi
+    logStep "In cluster preflights success"
+}
+
 # host_preflights_mkresults will append cli data to preflight results file
 function host_preflights_mkresults() {
     local out_file="$1"
@@ -622,6 +698,18 @@ function host_preflights_mkresults() {
     tmp_file="$(mktemp)"
     echo -e "[version]\n${kurl_version}\n\n[options]\n${opts}\n\n[results]" | cat - "${out_file}" > "${tmp_file}" && mv "${tmp_file}" "${out_file}"
     chmod -R +r "${DIR}/${HOST_PREFLIGHTS_RESULTS_OUTPUT_DIR}/" # make sure the file is readable by kots support bundle
+    rm -f "${tmp_file}"
+}
+
+function in_cluster_preflights_mkresults() {
+    local out_file="$1"
+    local opts="$2"
+    local kurl_version=
+    kurl_version="$(./bin/kurl version | grep version= | awk 'BEGIN { FS="=" }; { print $2 }')"
+    local tmp_file=
+    tmp_file="$(mktemp)"
+    echo -e "[version]\n${kurl_version}\n\n[options]\n${opts}\n\n[results]" | cat - "${out_file}" > "${tmp_file}" && mv "${tmp_file}" "${out_file}"
+    chmod -R +r "${DIR}/${IN_CLUSTER_PREFLIGHTS_RESULTS_OUTPUT_DIR}/" # make sure the file is readable by kots support bundle
     rm -f "${tmp_file}"
 }
 

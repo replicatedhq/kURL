@@ -16,6 +16,7 @@ type TemplateData struct {
 	IsPrimary      bool
 	IsJoin         bool
 	IsUpgrade      bool
+	IsCluster      bool
 	PrimaryHosts   []string
 	SecondaryHosts []string
 	RemoteHosts    []string

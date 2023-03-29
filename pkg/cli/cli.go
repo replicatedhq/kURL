@@ -13,14 +13,16 @@ type CLI interface {
 	GetViper() *viper.Viper
 	GetFS() afero.Fs
 	GetReadline() *readline.Instance
+	GetHostPreflightRunner() preflight.RunnerHost
 	GetPreflightRunner() preflight.Runner
 }
 
 // KurlCLI is the real implementation of the kurl CLI
 type KurlCLI struct {
-	fs              afero.Fs
-	readline        *readline.Instance
-	preflightRunner *preflight.PreflightRunner
+	fs                     afero.Fs
+	readline               *readline.Instance
+	preflightClusterRunner *preflight.RunnerPreflight
+	preflightHostRunner    *preflight.RunnerHostPreflight
 }
 
 // GetViper returns the global viper instance
@@ -38,9 +40,14 @@ func (cli *KurlCLI) GetReadline() *readline.Instance {
 	return cli.readline
 }
 
-// GetPreflightRunner returns the runner for preflight checks
+// GetHostPreflightRunner returns the runner for preflight checks
+func (cli *KurlCLI) GetHostPreflightRunner() preflight.RunnerHost {
+	return cli.preflightHostRunner
+}
+
+// GetHostPreflightRunner returns the runner for preflight checks
 func (cli *KurlCLI) GetPreflightRunner() preflight.Runner {
-	return cli.preflightRunner
+	return cli.preflightClusterRunner
 }
 
 // NewKurlCLI builds a real kurl CLI object
@@ -50,8 +57,9 @@ func NewKurlCLI() (*KurlCLI, error) {
 		return nil, errors.Wrap(err, "new readline")
 	}
 	return &KurlCLI{
-		fs:              afero.NewOsFs(),
-		readline:        rl,
-		preflightRunner: new(preflight.PreflightRunner),
+		fs:                     afero.NewOsFs(),
+		readline:               rl,
+		preflightHostRunner:    new(preflight.RunnerHostPreflight),
+		preflightClusterRunner: new(preflight.RunnerPreflight),
 	}, nil
 }
