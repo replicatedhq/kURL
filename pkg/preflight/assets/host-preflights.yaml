@@ -96,7 +96,7 @@ spec:
               message: Unable to curl https://localhost:6443/healthz. Please, run `curl -k https://localhost:6443/healthz` to check further information.
           - pass:
               when: "statusCode == 200"
-              message: curl -k https://localhost:6443/healthz returned HTTP CODE response 200.
+              message: OK HTTP status response from Kubernetes API at https://localhost:6443/healthz
           - warn:
               message: "Unexpected response. HTTP CODE response is not 200. Please, run `curl -ki https://localhost:6443/healthz` to check further information."
     - cpu:
