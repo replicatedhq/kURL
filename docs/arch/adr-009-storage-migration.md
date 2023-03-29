@@ -37,6 +37,16 @@ The default storage class will be "scaling", and both storage classes will be ba
 
 When the third node is added, a Ceph cluster will be created by the EKCO operator.
 When that Ceph cluster becomes healthy (with at least 3 replicas), the "distributed" storageclass will be created using rook-ceph.
+However, a migration will not begin until one of three things occurs:
+
+1. The user approves the migration in kotsadm
+2. The user runs `install.sh` on a primary node, and accepts a prompt to migrate storage
+3. The user runs the `migrate-multinode-storage` command in `tasks.sh` from a primary node
+
+The migration process will NOT be triggered automatically.
+
+The migration process will be as follows:
+A trigger configmap will be created in the `kurl` namespace, to be observed by EKCO, prompting it to carry out the following steps.
 If MinIO is present, Kotsadm will be scaled down, and the existing `sync-object-store` command will be used to migrate data from MinIO to Rook.
 Kotsadm, Registry, and Velero will then be updated to use the Rook object store, and Kotsadm scaled back up.
 After MinIO data is migrated and its consumers updated, the MinIO statefulset and namespace will be deleted.
@@ -45,12 +55,6 @@ This process does involve stopping pods using "scaling" storage.
 
 In this way, applications can specifically request storage that will always be local to a node (with the "local" storageclass), or storage that will be distributed across the cluster (with the "distributed" storageclass).
 Using the "scaling" storageclass directly (instead of merely using the default storageclass) would be an application linting error.
-
-YET TO BE DECIDED:
-1. Should the migration be triggered immediately upon adding a third node, or should it be triggered by the user? It can involve application downtime!
-   1. Allow the user to trigger the migration with a 'tasks.sh migrate-storage' command.
-   2. Provide a prompt in kotsadm that will trigger the migration.
-   3. Trigger the migration automatically when the third node is added.
 
 ## Status
 
@@ -65,3 +69,5 @@ This could be mitigated by changing pvmigrate to not stop all pods at once, but 
 
 Vendor applications will not be able to use the kurl-provided object store with this configuration, as this object store will change endpoints during the migration process.
 It is believed this will not impact any vendors.
+
+Clusters may run with 3+ nodes and not use Rook for some time if the user does not approve the migration.
