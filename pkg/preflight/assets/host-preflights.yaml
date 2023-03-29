@@ -17,6 +17,18 @@ spec:
         collectorName: "Ephemeral Disk Usage /var/lib/docker"
         path: /var/lib/docker
         exclude: '{{kurl not .Installer.Spec.Docker.Version}}'
+    - diskUsage:
+        collectorName: "Ephemeral Disk Usage /var/lib/containerd"
+        path: /var/lib/containerd
+        exclude: '{{kurl not .Installer.Spec.Containerd.Version}}'
+    - diskUsage:
+        collectorName: "Ephemeral Disk Usage /var/lib/rook"
+        path: /var/lib/rook
+        exclude: '{{kurl not .Installer.Spec.Rook.Version}}'
+    - diskUsage:
+        collectorName: "Ephemeral Disk Usage /var/openebs"
+        path: /var/openebs
+        exclude: '{{kurl not .Installer.Spec.OpenEBS.Version}}'
     - tcpLoadBalancer:
         collectorName: "Kubernetes API Server Load Balancer"
         port: 6443
@@ -140,6 +152,45 @@ spec:
               message: The disk containing directory /var/lib/docker has less than 10Gi of disk space available
           - pass:
               message: The disk containing directory /var/lib/docker has at least 30Gi of total space, has at least 10Gi of disk space available, and is less than 60% full.
+    - diskUsage:
+        checkName: "Ephemeral Disk Usage /var/lib/containerd"
+        collectorName: "Ephemeral Disk Usage /var/lib/containerd"
+        exclude: '{{kurl not .Installer.Spec.Containerd.Version}}'
+        outcomes:
+          - warn:
+              when: "used/total > 80%"
+              message: The disk containing directory /var/lib/containerd is more than 80% full
+          - warn:
+              when: "available < 10Gi"
+              message: The disk containing directory /var/lib/containerd has less than 10Gi of disk space available
+          - pass:
+              message: The disk containing directory /var/lib/containerd has sufficient space
+    - diskUsage:
+        checkName: "Ephemeral Disk Usage /var/lib/rook"
+        collectorName: "Ephemeral Disk Usage /var/lib/rook"
+        exclude: '{{kurl not .Installer.Spec.Containerd.Version}}'
+        outcomes:
+          - warn:
+              when: "used/total > 80%"
+              message: The disk containing directory /var/lib/rook is more than 80% full
+          - warn:
+              when: "available < 10Gi"
+              message: The disk containing directory /var/lib/rook has less than 10Gi of disk space available
+          - pass:
+              message: The disk containing directory /var/lib/rook has sufficient space
+    - diskUsage:
+        checkName: "Ephemeral Disk Usage /var/openebs"
+        collectorName: "Ephemeral Disk Usage /var/openebs"
+        exclude: '{{kurl not .Installer.Spec.OpenEBS.Version}}'
+        outcomes:
+          - warn:
+              when: "used/total > 80%"
+              message: The disk containing directory /var/openebs is more than 80% full
+          - warn:
+              when: "available < 10Gi"
+              message: The disk containing directory /var/openebs has less than 10Gi of disk space available
+          - pass:
+              message: The disk containing directory /var/openebs has sufficient space
     - tcpLoadBalancer:
         checkName: "Kubernetes API Server Load Balancer"
         collectorName: "Kubernetes API Server Load Balancer"
@@ -372,21 +423,21 @@ spec:
     - time:
         checkName: "NTP Status"
         outcomes:
-            - fail:
-                when: "ntp == unsynchronized+inactive"
-                message: "System clock is not synchronized"
-            - warn:
-                when: "ntp == unsynchronized+active"
-                message: System clock not yet synchronized
-            - pass:
-                when: "ntp == synchronized+active"
-                message: "System clock is synchronized"
-            - warn:
-                when: "timezone != UTC"
-                message: "Non UTC timezone can interfere with system function"
-            - pass:
-                when: "timezone == UTC"
-                message: "Timezone is set to UTC"
+          - fail:
+              when: "ntp == unsynchronized+inactive"
+              message: "System clock is not synchronized"
+          - warn:
+              when: "ntp == unsynchronized+active"
+              message: System clock not yet synchronized
+          - pass:
+              when: "ntp == synchronized+active"
+              message: "System clock is synchronized"
+          - warn:
+              when: "timezone != UTC"
+              message: "Non UTC timezone can interfere with system function"
+          - pass:
+              when: "timezone == UTC"
+              message: "Timezone is set to UTC"
     - hostOS:
         checkName: "Collectd Support"
         exclude: '{{kurl not .Installer.Spec.Collectd.Version}}'
