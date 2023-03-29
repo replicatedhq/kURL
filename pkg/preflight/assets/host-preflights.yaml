@@ -88,7 +88,7 @@ spec:
   analyzers:
     - http:
         checkName: "Kubernetes API healthz endpoint"
-        exclude: '{{kurl and .IsPrimary | not }}'
+        exclude: '{{kurl or (not .IsPrimary) (not .IsUpgrade) }}'
         collectorName: "Kubernetes API healthz endpoint"
         outcomes:
           - warn:
