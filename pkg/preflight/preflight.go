@@ -79,7 +79,7 @@ func CollectHostResults(_ context.Context, spec *troubleshootv1beta2.HostPreflig
 }
 
 // CollectResults collects host preflights, and returns the CollectResult
-func CollectResults(_ context.Context, spec *troubleshootv1beta2.Preflight, progressChan chan interface{}) (preflight.CollectResult, error) {
+func CollectResults(spec *troubleshootv1beta2.Preflight, progressChan chan interface{}) (preflight.CollectResult, error) {
 	collectOpts := preflight.CollectOpts{
 		ProgressChan: progressChan,
 	}
