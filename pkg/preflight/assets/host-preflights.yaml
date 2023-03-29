@@ -91,8 +91,26 @@ spec:
         backgroundWriteIOPSJobs: 6
         backgroundReadIOPS: 50
         backgroundReadIOPSJobs: 1
-
+    - http:
+        collectorName: "Kubernetes API Health"
+        exclude: '{{kurl or (not .IsPrimary) (not .IsUpgrade) }}'
+        get:
+          url: https://localhost:6443/healthz
+          insecureSkipVerify: true
   analyzers:
+    - http:
+        checkName: "Kubernetes API Health"
+        exclude: '{{kurl or (not .IsPrimary) (not .IsUpgrade) }}'
+        collectorName: "Kubernetes API Health"
+        outcomes:
+          - warn:
+              when: "error"
+              message: Error connecting to Kubernetes API at https://localhost:6443/healthz
+          - pass:
+              when: "statusCode == 200"
+              message: OK HTTP status response from Kubernetes API at https://localhost:6443/healthz
+          - warn:
+              message: Unexpected status code response from Kubernetes API at https://localhost:6443/healthz
     - cpu:
         checkName: "Number of CPUs"
         outcomes:
@@ -171,7 +189,7 @@ spec:
               message: The disk containing directory /var/lib/containerd has less than 10Gi of disk space available
           - pass:
               message: The disk containing directory /var/lib/containerd has at least 30Gi of total space, has at least 10Gi of disk space available, and is less than 60% full.
-   - diskUsage:
+    - diskUsage:
         checkName: "Ephemeral Disk Usage /var/lib/rook"
         collectorName: "Ephemeral Disk Usage /var/lib/rook"
         exclude: '{{kurl not .Installer.Spec.Containerd.Version}}'
