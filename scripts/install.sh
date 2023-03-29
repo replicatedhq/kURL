@@ -83,6 +83,14 @@ function init() {
             kubeadm-init-hostname.patch.yaml
     fi
 
+    local KUBE_PROXY_MODE=${KUBE_PROXY_MODE:-}
+    if [ -z "$KUBE_PROXY_MODE" ]; then
+        KUBE_PROXY_MODE="$(kubernetes_get_kube_proxy_mode)"
+    fi
+    log "Using kube-proxy mode: $KUBE_PROXY_MODE"
+    render_yaml_file_2 "$kustomize_kubeadm_init/kubeproxy-config-v1alpha1.tmpl.yml" \
+        > "$kustomize_kubeadm_init/kubeproxy-config-v1alpha1.yml"
+
     CERT_KEY=
     CERT_KEY_EXPIRY=
     if [ "$HA_CLUSTER" = "1" ]; then
