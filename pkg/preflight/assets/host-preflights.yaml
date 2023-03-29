@@ -81,7 +81,7 @@ spec:
         backgroundReadIOPSJobs: 1
     - http:
         collectorName: "Kubernetes API healthz endpoint"
-        exclude: '{{kurl and .IsPrimary | not }}'
+        exclude: '{{kurl or (not .IsPrimary) (not .IsUpgrade) }}'
         get:
           url: https://localhost:6443/healthz
           insecureSkipVerify: true
