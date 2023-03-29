@@ -86,7 +86,7 @@ function kubernetes_ipvs_modules_available() {
     if modinfo ip_vs &>/dev/null && \
         modinfo ip_vs_rr &>/dev/null && \
         modinfo ip_vs_wrr &>/dev/null && \
-        modinfo ip_vssdf_sh &>/dev/null ; then
+        modinfo ip_vs_sh &>/dev/null ; then
         return 0
     fi
     return 1
