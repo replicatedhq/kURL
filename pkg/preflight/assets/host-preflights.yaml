@@ -87,9 +87,9 @@ spec:
           insecureSkipVerify: true
   analyzers:
     - http:
-        checkName: "Kubernetes API healthz endpoint"
+        checkName: "Kubernetes API Health"
         exclude: '{{kurl or (not .IsPrimary) (not .IsUpgrade) }}'
-        collectorName: "Kubernetes API healthz endpoint"
+        collectorName: "Kubernetes API Health"
         outcomes:
           - warn:
               when: "error"
