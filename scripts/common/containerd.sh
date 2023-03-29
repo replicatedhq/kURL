@@ -73,6 +73,11 @@ function containerd_upgrade_is_possible() {
         bail "Upgrade between containerd major versions is not supported by this installer."
     fi
 
+    semverCompare "$from_version" "$to_version"
+    if [ "$SEMVER_COMPARE_RESULT"  = "1" ]; then
+        bail "Downgrading containerd (from v$from_version to v$to_version) is not supported."
+    fi
+
     semverParse "$from_version"
     local current_minor
     current_minor="$minor"
@@ -80,11 +85,6 @@ function containerd_upgrade_is_possible() {
     semverParse "$to_version"
     local installing_minor
     installing_minor="$minor"
-
-    semverCompare "$from_version" "$to_version"
-    if [ "$SEMVER_COMPARE_RESULT"  = "1" ]; then
-        bail "Downgrading containerd (from v$from_version to v$to_version) is not supported."
-    fi
 
     if [ "$installing_minor" -gt "$((current_minor + 2))" ]; then
         logFail "Cannot upgrade containerd from v$from_version to v$to_version"
