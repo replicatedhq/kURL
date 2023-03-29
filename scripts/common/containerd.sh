@@ -81,7 +81,8 @@ function containerd_upgrade_is_possible() {
     local installing_minor
     installing_minor="$minor"
 
-    if [ "$installing_minor" -lt "$current_minor" ]; then
+    semverCompare "$from_version" "$to_version"
+    if [ "$SEMVER_COMPARE_RESULT"  = "1" ]; then
         bail "Downgrading containerd (from v$from_version to v$to_version) is not supported."
     fi
 
