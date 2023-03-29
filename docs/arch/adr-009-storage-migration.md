@@ -44,6 +44,7 @@ However, a migration will not begin until one of three things occurs:
 3. The user runs the `migrate-multinode-storage` command in `tasks.sh` from a primary node
 
 The migration process will NOT be triggered automatically.
+While the migration process is available to be triggered, a banner will be shown in Kotsadm indicating that the migration is available, and that the cluster is currently in an undesirable state.
 
 The migration process will be as follows:
 A trigger configmap will be created in the `kurl` namespace, to be observed by EKCO, prompting it to carry out the following steps.
@@ -51,7 +52,7 @@ If MinIO is present, Kotsadm will be scaled down, and the existing `sync-object-
 Kotsadm, Registry, and Velero will then be updated to use the Rook object store, and Kotsadm scaled back up.
 After MinIO data is migrated and its consumers updated, the MinIO statefulset and namespace will be deleted.
 `pvmigrate` will then be used to migrate all data from the "scaling" storageclass to the "distributed" storageclass, and the default storageclass will be changed to "distributed".
-This process does involve stopping pods using "scaling" storage.
+This process does involve downtime, caused by stopping pods using "scaling" storage, and is why we require the migration to be manually initiated.
 
 In this way, applications can specifically request storage that will always be local to a node (with the "local" storageclass), or storage that will be distributed across the cluster (with the "distributed" storageclass).
 Using the "scaling" storageclass directly (instead of merely using the default storageclass) would be an application linting error.
