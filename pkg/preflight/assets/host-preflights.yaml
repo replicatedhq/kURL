@@ -79,8 +79,61 @@ spec:
         backgroundWriteIOPSJobs: 6
         backgroundReadIOPS: 50
         backgroundReadIOPSJobs: 1
-
+    - certificate:
+        collectorName: "Kubernetes API key pair certificate"
+        exclude: '{{kurl and .IsPrimary | not }}'
+        certificatePath: /etc/kubernetes/pki/apiserver.crt
+        keyPath: /etc/kubernetes/pki/apiserver.key
+    - certificate:
+        collectorName: "Kubernetes ETCD key pair certificate"
+        exclude: '{{kurl and .IsPrimary | not }}'
+        certificatePath: /etc/kubernetes/pki/etcd/server.crt
+        keyPath: /etc/kubernetes/pki/etcd/server.key
   analyzers:
+    - certificate:
+        collectorName: "Kubernetes API key pair certificate"
+        exclude: '{{kurl and .IsPrimary | not }}'
+        outcomes:
+          - fail:
+              when: "key-pair-missing"
+              message: Kubernetes API key pair certificate not found in /etc/kubernetes/pki/apiserver.*
+          - fail:
+              when: "key-pair-switched"
+              message: Kubernetes API key pair certificate and key pair are switched
+          - fail:
+              when: "key-pair-encrypted"
+              message: Kubernetes API key pair certificate private key is encrypted
+          - fail:
+              when: "key-pair-mismatch"
+              message: Kubernetes API key pair certificate and key do not match
+          - fail:
+              when: "key-pair-invalid"
+              message: Kubernetes API key pair certificate is invalid
+          - pass:
+              when: "key-pair-valid"
+              message: Kubernetes API key pair certificate is valid
+    - certificate:
+        collectorName: "Kubernetes ETCD key pair certificate"
+        exclude: '{{kurl and .IsPrimary | not }}'
+        outcomes:
+          - fail:
+              when: "key-pair-missing"
+              message: Kubernetes ETCD key pair certificate not found in /etc/kubernetes/pki/etcd/server.*
+          - fail:
+              when: "key-pair-switched"
+              message: Kubernetes ETCD certificate and key pair are switched
+          - fail:
+              when: "key-pair-encrypted"
+              message: Kubernetes ETCD certificate private key is encrypted
+          - fail:
+              when: "key-pair-mismatch"
+              message: Kubernetes ETCD certificate and key do not match
+          - fail:
+              when: "key-pair-invalid"
+              message: Kubernetes ETCD key pair certificate is invalid
+          - pass:
+              when: "key-pair-valid"
+              message: Kubernetes ETCD key pair certificate is valid
     - cpu:
         checkName: "Number of CPUs"
         outcomes:
@@ -372,21 +425,21 @@ spec:
     - time:
         checkName: "NTP Status"
         outcomes:
-            - fail:
-                when: "ntp == unsynchronized+inactive"
-                message: "System clock is not synchronized"
-            - warn:
-                when: "ntp == unsynchronized+active"
-                message: System clock not yet synchronized
-            - pass:
-                when: "ntp == synchronized+active"
-                message: "System clock is synchronized"
-            - warn:
-                when: "timezone != UTC"
-                message: "Non UTC timezone can interfere with system function"
-            - pass:
-                when: "timezone == UTC"
-                message: "Timezone is set to UTC"
+          - fail:
+              when: "ntp == unsynchronized+inactive"
+              message: "System clock is not synchronized"
+          - warn:
+              when: "ntp == unsynchronized+active"
+              message: System clock not yet synchronized
+          - pass:
+              when: "ntp == synchronized+active"
+              message: "System clock is synchronized"
+          - warn:
+              when: "timezone != UTC"
+              message: "Non UTC timezone can interfere with system function"
+          - pass:
+              when: "timezone == UTC"
+              message: "Timezone is set to UTC"
     - hostOS:
         checkName: "Collectd Support"
         exclude: '{{kurl not .Installer.Spec.Collectd.Version}}'
