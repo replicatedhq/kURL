@@ -9,20 +9,20 @@ import (
 )
 
 var _ RunnerHost = new(RunnerHostPreflight)
-var _ Runner = new(RunnerPreflight)
+var _ RunnerCluster = new(RunnerClusterPreflight)
 
 type RunnerHost interface {
 	RunHostPreflights(ctx context.Context, spec *troubleshootv1beta2.HostPreflight, progressChan chan interface{}) ([]*analyze.AnalyzeResult, error)
 }
 
-type Runner interface {
-	RunPreflight(ctx context.Context, spec *troubleshootv1beta2.Preflight, progressChan chan interface{}) ([]*analyze.AnalyzeResult, error)
+type RunnerCluster interface {
+	RunClusterPreflight(ctx context.Context, spec *troubleshootv1beta2.Preflight, progressChan chan interface{}) ([]*analyze.AnalyzeResult, error)
 }
 
 type RunnerHostPreflight struct {
 }
 
-type RunnerPreflight struct {
+type RunnerClusterPreflight struct {
 }
 
 func (r *RunnerHostPreflight) RunHostPreflights(ctx context.Context, spec *troubleshootv1beta2.HostPreflight, progressChan chan interface{}) ([]*analyze.AnalyzeResult, error) {
@@ -33,7 +33,7 @@ func (r *RunnerHostPreflight) RunHostPreflights(ctx context.Context, spec *troub
 	return collectResults.Analyze(), nil
 }
 
-func (r *RunnerPreflight) RunPreflight(ctx context.Context, spec *troubleshootv1beta2.Preflight, progressChan chan interface{}) ([]*analyze.AnalyzeResult, error) {
+func (r *RunnerClusterPreflight) RunClusterPreflight(ctx context.Context, spec *troubleshootv1beta2.Preflight, progressChan chan interface{}) ([]*analyze.AnalyzeResult, error) {
 	collectResults, err := CollectResults(ctx, spec, progressChan)
 	if err != nil {
 		return nil, errors.Wrap(err, "collect results")

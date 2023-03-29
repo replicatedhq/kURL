@@ -14,14 +14,14 @@ type CLI interface {
 	GetFS() afero.Fs
 	GetReadline() *readline.Instance
 	GetHostPreflightRunner() preflight.RunnerHost
-	GetPreflightRunner() preflight.Runner
+	GetClusterPreflightRunner() preflight.RunnerCluster
 }
 
 // KurlCLI is the real implementation of the kurl CLI
 type KurlCLI struct {
 	fs                     afero.Fs
 	readline               *readline.Instance
-	preflightClusterRunner *preflight.RunnerPreflight
+	preflightClusterRunner *preflight.RunnerClusterPreflight
 	preflightHostRunner    *preflight.RunnerHostPreflight
 }
 
@@ -45,8 +45,8 @@ func (cli *KurlCLI) GetHostPreflightRunner() preflight.RunnerHost {
 	return cli.preflightHostRunner
 }
 
-// GetHostPreflightRunner returns the runner for preflight checks
-func (cli *KurlCLI) GetPreflightRunner() preflight.Runner {
+// GetClusterPreflightRunner returns the runner for preflight checks
+func (cli *KurlCLI) GetClusterPreflightRunner() preflight.RunnerCluster {
 	return cli.preflightClusterRunner
 }
 
@@ -60,6 +60,6 @@ func NewKurlCLI() (*KurlCLI, error) {
 		fs:                     afero.NewOsFs(),
 		readline:               rl,
 		preflightHostRunner:    new(preflight.RunnerHostPreflight),
-		preflightClusterRunner: new(preflight.RunnerPreflight),
+		preflightClusterRunner: new(preflight.RunnerClusterPreflight),
 	}, nil
 }
