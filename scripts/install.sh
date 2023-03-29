@@ -28,9 +28,9 @@ DIR=.
 . $DIR/scripts/common/upgrade.sh
 . $DIR/scripts/common/utilbinaries.sh
 . $DIR/scripts/common/yaml.sh
-. $DIR/scripts/common/containerd.sh
 . $DIR/scripts/distro/interface.sh
 . $DIR/scripts/distro/kubeadm/distro.sh
+. $DIR/scripts/common/containerd.sh
 # Magic end
 
 function configure_coredns() {

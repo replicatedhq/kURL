@@ -27,6 +27,7 @@ function containerd_migration_steps() {
     local install_minor
     semverParse "$to_version"
     install_minor="$minor"
+    install_major="$major"
 
     local steps=()
     while [ "$current_minor" -lt "$install_minor" ]; do
@@ -34,7 +35,7 @@ function containerd_migration_steps() {
         if [ "$max_patch" = "0" ]; then
             bail "error: could not find patch for containerd minor version v$current_major.$current_minor"
         fi
-        steps+=("1.$current_minor.$max_patch")
+        steps+=("$install_major.$current_minor.$max_patch")
         current_minor=$((current_minor + 1))
     done
     steps+=("$to_version")
@@ -86,8 +87,8 @@ function containerd_upgrade_is_possible() {
 
     if [ "$installing_minor" -gt "$((current_minor + 2))" ]; then
         logFail "Cannot upgrade containerd from v$from_version to v$to_version"
-        logFail "This installer supports only upgrades between two minor versions."
-        bail "Please select an older containerd version first."
+        logFail "This installer supports only containerd upgrades spanning two minor versions."
+        bail "Please consider upgrading to an older containerd version first."
     fi
 }
 
