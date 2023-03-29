@@ -638,7 +638,7 @@ function cluster_preflights() {
         opts="${opts} --is-upgrade"
     fi
 
-    opts="${opts} --is-cluster"
+    opts="${opts} --is-cluster=true"
 
     if [ "$EXCLUDE_BUILTIN_HOST_PREFLIGHTS" == "1" ]; then
         opts="${opts} --exclude-builtin"
@@ -659,7 +659,7 @@ function cluster_preflights() {
         # TODO: report preflight fail
     else
         set +e
-        "${DIR}"/bin/kurl host preflight "$YAML_SPEC}" ${opts} | tee "${out_file}"
+        "${DIR}"/bin/kurl host preflight "${YAML_SPEC}" ${opts} | tee "${out_file}"
         local kurl_exit_code="${PIPESTATUS[0]}"
         set -e
 

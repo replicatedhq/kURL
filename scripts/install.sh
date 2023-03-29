@@ -545,13 +545,13 @@ function main() {
     report_install_start
     trap ctrl_c SIGINT # trap ctrl+c (SIGINT) and handle it by reporting that the user exited intentionally (along with the line/version/etc)
     trap trap_report_error ERR # trap errors and handle it by reporting the error line and parent function
-    preflights
+#    preflights
     common_prompts
     journald_persistent
     configure_proxy
     configure_no_proxy_preinstall
-    ${K8S_DISTRO}_addon_for_each addon_fetch
-    kubernetes_get_packages
+#    ${K8S_DISTRO}_addon_for_each addon_fetch
+#    kubernetes_get_packages
     preflights_require_host_packages
     if [ -z "$CURRENT_KUBERNETES_VERSION" ]; then
         host_preflights "1" "0" "0"
