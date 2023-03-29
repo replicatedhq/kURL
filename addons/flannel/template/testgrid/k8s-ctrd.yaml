@@ -46,6 +46,9 @@
   numPrimaryNodes: 1
   numSecondaryNodes: 2
   airgap: true
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages lvm2 conntrack-tools socat container-selinux git
 - name: "weave to flannel single node"
   installerSpec:
     kubernetes:

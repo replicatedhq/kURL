@@ -966,6 +966,9 @@
     ekco:
       version: latest
   airgap: true
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages lvm2 conntrack-tools socat container-selinux git
   unsupportedOSIDs:
   - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
 - name: "Migrate from Docker to Containerd and Kubernetes from 1.23 to 1.25"
@@ -1252,6 +1255,9 @@
     ekco:
       version: latest
   airgap: true
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages lvm2 conntrack-tools socat container-selinux git
 - name: "Upgrade to 1.26 minimal"
   installerSpec:
     kubernetes:
@@ -1329,6 +1335,9 @@
     ekco:
       version: latest
   airgap: true
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages lvm2 conntrack-tools socat container-selinux git
 - name: k8s121-with-flags
   installerSpec:
     kubernetes:
@@ -1688,6 +1697,9 @@
     minio:
       version: "latest"
   preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages lvm2 conntrack-tools socat container-selinux git
+
     # download the file that the airgap upgrade requires, and place it in the correct location
     curl -LO https://s3-staging.kurl.sh/staging/rookupgrade-10to14.tar.gz
     curl -LO https://s3-staging.kurl.sh/staging/rook-1.4.9.tar.gz
