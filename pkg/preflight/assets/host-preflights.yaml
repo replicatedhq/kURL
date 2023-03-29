@@ -93,7 +93,7 @@ spec:
         outcomes:
           - warn:
               when: "error"
-              message: Unable to curl https://localhost:6443/healthz. Please, run `curl -k https://localhost:6443/healthz` to check further information.
+              message: Error connecting to Kubernetes API at https://localhost:6443/healthz
           - pass:
               when: "statusCode == 200"
               message: OK HTTP status response from Kubernetes API at https://localhost:6443/healthz
