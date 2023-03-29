@@ -35,9 +35,12 @@ spec:
 When installed on a single node, two storageclasses will be available - "scaling" and "local". 
 The default storage class will be "scaling", and both storage classes will be backed by openebs localpv.
 
-When the third node is added, a ceph cluster will be created by the EKCO operator.
-When that ceph cluster becomes healthy (with at least 3 replicas), the "distributed" storageclass will be created using rook-ceph.
-pvmigrate will then be used to migrate all data from the "scaling" storageclass to the "distributed" storageclass, and the default storageclass will be changed to "distributed".
+When the third node is added, a Ceph cluster will be created by the EKCO operator.
+When that Ceph cluster becomes healthy (with at least 3 replicas), the "distributed" storageclass will be created using rook-ceph.
+If MinIO is present, Kotsadm will be scaled down, and the existing `sync-object-store` command will be used to migrate data from MinIO to Rook.
+Kotsadm, Registry, and Velero will then be updated to use the Rook object store, and Kotsadm scaled back up.
+After MinIO data is migrated and its consumers updated, the MinIO statefulset and namespace will be deleted.
+`pvmigrate` will then be used to migrate all data from the "scaling" storageclass to the "distributed" storageclass, and the default storageclass will be changed to "distributed".
 This process does involve stopping pods using "scaling" storage.
 
 In this way, applications can specifically request storage that will always be local to a node (with the "local" storageclass), or storage that will be distributed across the cluster (with the "distributed" storageclass).
@@ -48,10 +51,6 @@ YET TO BE DECIDED:
    1. Allow the user to trigger the migration with a 'tasks.sh migrate-storage' command.
    2. Provide a prompt in kotsadm that will trigger the migration.
    3. Trigger the migration automatically when the third node is added.
-2. What to do with object storage. (should data be migrated from MinIO to Rook, and MinIO deleted?)
-   1. Migrate data from MinIO to Rook, and delete MinIO. This requires some downtime to move between the object stores, and might interact poorly with any user applications that used the kurl object store.
-   2. Keep MinIO running, and use it for object storage. Disable (or otherwise do not use) Rook's object storage. This is easy to do, but rook will likely have better performance.
-   3. Forbid the use of MinIO in automatic migration configs. This would require migrating the registry from non-object-store (and thus non-ha) to object-store.
 
 ## Status
 
@@ -59,3 +58,10 @@ Proposed
 
 ## Consequences
 
+Vendors will be able to specify a single spec for single and multi-node installs, with a smooth migration path between the two.
+
+There will be short application downtime migrating between the two storage systems.
+This could be mitigated by changing pvmigrate to not stop all pods at once, but it is as yet unknown how this would be accomplished.
+
+Vendor applications will not be able to use the kurl-provided object store with this configuration, as this object store will change endpoints during the migration process.
+It is believed this will not impact any vendors.
