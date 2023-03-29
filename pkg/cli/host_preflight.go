@@ -191,8 +191,8 @@ func newHostPreflightCmd(cli CLI) *cobra.Command {
 
 func newPreflightCmd(cli CLI) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:          "preflight [INSTALLER SPEC FILE|-]",
-		Short:        "Runs kURL preflight checks",
+		Use:          "preflight-incluster [INSTALLER SPEC FILE|-]",
+		Short:        "Runs kURL incluster preflight checks",
 		Example:      preflightCmdExample,
 		SilenceUsage: true,
 		Args:         cobra.ExactArgs(1),
