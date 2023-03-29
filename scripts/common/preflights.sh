@@ -656,7 +656,7 @@ allow_remove_docker_new_install() {
 function bail_if_unsupported_openebs_to_rook_version() {
     if [ -z "$ROOK_VERSION" ] && [ -n "$OPENEBS_VERSION" ]; then
         if commandExists kubectl; then
-            if kubectl get ns | grep -q rook-ceph; then
+            if kubectl get ns 2>/dev/null | grep -q rook-ceph; then
                 semverParse "$OPENEBS_VERSION"
                 # if $OPENEBS_VERSION is less than 3.3.0
                 if [ "$major" -lt "3" ] || { [ "$major" = "3" ] && [ "$minor" -lt "3" ] ; }; then
