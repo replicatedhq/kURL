@@ -15,4 +15,6 @@ RUN /opt/containertools/builddeps.sh > /packages/archives/Deps \
 	&& sort /packages/archives/Deps | uniq | grep -v '^[[:space:]]*$' > /packages/archives/Deps.tmp \
 	&& mv /packages/archives/Deps.tmp /packages/archives/Deps
 
+RUN echo "git" >> /packages/archives/Deps
+
 CMD cp -r /packages/archives/* /out/
