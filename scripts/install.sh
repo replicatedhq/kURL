@@ -555,8 +555,10 @@ function main() {
     preflights_require_host_packages
     if [ -z "$CURRENT_KUBERNETES_VERSION" ]; then
         host_preflights "1" "0" "0"
+        cluster_preflights "1" "0" "0"
     else
         host_preflights "1" "0" "1"
+        cluster_preflights "1" "0" "1"
     fi
     install_host_dependencies
     get_common

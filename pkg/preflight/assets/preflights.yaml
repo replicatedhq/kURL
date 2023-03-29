@@ -2,7 +2,7 @@
 apiVersion: troubleshoot.sh/v1beta2
 kind: Preflight
 metadata:
-  name: kurl-builtin
+  name: kurl-builtin-incluster
 spec:
   collectors:
     - clusterInfo: {}
