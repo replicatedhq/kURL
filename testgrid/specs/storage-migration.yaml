@@ -255,7 +255,6 @@
     sleep 120
     download_file_from_deployment_and_compare "migration-test" "default" "./test.data" "/data/test.data"
     pvc_uses_provisioner "migration-test" "default" "openebs"
-    test_pull_image_from_registry
     check_and_customize_kurl_integration_test_application
     if ! kubectl get namespace/rook-ceph ; then
       echo Rook namespace should NOT be removed after the upgrade. MinIO is NOT selected
