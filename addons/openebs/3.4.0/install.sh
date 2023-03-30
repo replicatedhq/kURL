@@ -69,6 +69,12 @@ function openebs_maybe_rook_migration_checks() {
         bail "Cannot upgrade from Rook to OpenEBS. Rook Ceph is unhealthy."
     fi
 
+    log "Awaiting 2 minutes to check OpenEBS Pod(s) are Running"
+    if ! spinner_until 120 check_for_running_pods "$OPENEBS_NAMESPACE"; then
+        logFail "OpenEBS has unhealthy Pod(s). Check the namespace $OPENEBS_NAMESPACE "
+        bail "Cannot upgrade from Rook to OpenEBS. OpenEBS is unhealthy."
+    fi
+
     # get the list of StorageClasses that use rook-ceph
     local rook_scs
     local rook_default_sc

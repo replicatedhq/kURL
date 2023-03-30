@@ -351,6 +351,12 @@ function rook_operator_ready() {
 }
 
 function rook_is_healthy_to_upgrade() {
+    log "Awaiting 2 minutes to check Rook Ceph Pod(s) are Running"
+    if ! spinner_until 120 check_for_running_pods "rook-ceph"; then
+        logFail "Rook Ceph has unhealthy Pod(s)"
+        return 1
+    fi
+
     log "Awaiting Rook Ceph health ..."
     if ! $DIR/bin/kurl rook wait-for-health 600 ; then
         kubectl -n rook-ceph exec deploy/rook-ceph-tools -- ceph status
