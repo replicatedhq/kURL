@@ -23,7 +23,7 @@ require (
 	github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring v0.63.0
 	github.com/replicatedhq/kurlkinds v1.3.0
 	github.com/replicatedhq/plumber v1.16.0
-	github.com/replicatedhq/pvmigrate v0.8.0
+	github.com/replicatedhq/pvmigrate v0.9.0
 	github.com/replicatedhq/troubleshoot v0.59.0
 	github.com/rook/rook v1.10.11
 	github.com/sirupsen/logrus v1.9.0
@@ -44,9 +44,9 @@ require (
 	k8s.io/api v0.26.3
 	k8s.io/apimachinery v0.26.3
 	k8s.io/client-go v0.26.3
-	k8s.io/code-generator v0.26.2
+	k8s.io/code-generator v0.26.3
 	k8s.io/utils v0.0.0-20230220204549-a5ecb0141aa5
-	sigs.k8s.io/controller-runtime v0.14.5
+	sigs.k8s.io/controller-runtime v0.14.6
 	sigs.k8s.io/controller-tools v0.11.3
 	sigs.k8s.io/kustomize/api v0.12.1
 	sigs.k8s.io/kustomize/kyaml v0.13.9
@@ -193,7 +193,7 @@ require (
 	github.com/oklog/run v1.1.0 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.1.0-rc2 // indirect
-	github.com/opencontainers/runc v1.1.4 // indirect
+	github.com/opencontainers/runc v1.1.5 // indirect
 	github.com/opencontainers/runtime-spec v1.1.0-rc.1 // indirect
 	github.com/opencontainers/selinux v1.11.0 // indirect
 	github.com/openshift/api v0.0.0-20210105115604-44119421ec6b // indirect
@@ -224,6 +224,7 @@ require (
 	github.com/ulikunitz/xz v0.5.11 // indirect
 	github.com/vbatts/tar-split v0.11.2 // indirect
 	github.com/vishvananda/netns v0.0.4 // indirect
+	github.com/vmware/govmomi v0.20.3 // indirect
 	github.com/xlab/treeprint v1.1.0 // indirect
 	github.com/yusufpapurcu/wmi v1.2.2 // indirect
 	go.opencensus.io v0.24.0 // indirect
@@ -250,11 +251,10 @@ require (
 	gopkg.in/square/go-jose.v2 v2.6.0 // indirect
 	gotest.tools/v3 v3.4.0 // indirect
 	k8s.io/apiextensions-apiserver v0.26.3 // indirect
-	k8s.io/apiserver v0.26.2 // indirect
+	k8s.io/apiserver v0.26.3 // indirect
 	k8s.io/cli-runtime v0.26.2 // indirect
 	k8s.io/klog/v2 v2.90.1 // indirect
 	k8s.io/kube-openapi v0.0.0-20230303024457-afdc3dddf62d // indirect
-	k8s.io/kubernetes v1.26.2 // indirect
 	oras.land/oras-go v1.2.2 // indirect
 	periph.io/x/host/v3 v3.8.0 // indirect
 	sigs.k8s.io/json v0.0.0-20221116044647-bc3834ca7abd // indirect
@@ -298,35 +298,4 @@ exclude (
 	k8s.io/client-go v8.0.0+incompatible
 	k8s.io/client-go v9.0.0+incompatible
 	k8s.io/client-go v9.0.0-invalid+incompatible
-)
-
-// Required to workround unknown revision
-// More info: https://github.com/kubernetes/kubernetes/issues/79384#issuecomment-505627280
-replace (
-	k8s.io/api => k8s.io/api v0.26.2
-	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.26.2
-	k8s.io/apimachinery => k8s.io/apimachinery v0.26.2
-	k8s.io/apiserver => k8s.io/apiserver v0.26.2
-	k8s.io/cli-runtime => k8s.io/cli-runtime v0.26.2
-	k8s.io/client-go => k8s.io/client-go v0.26.2
-	k8s.io/cloud-provider => k8s.io/cloud-provider v0.26.2
-	k8s.io/cluster-bootstrap => k8s.io/cluster-bootstrap v0.26.2
-	k8s.io/code-generator => k8s.io/code-generator v0.26.2
-	k8s.io/component-base => k8s.io/component-base v0.26.2
-	k8s.io/component-helpers => k8s.io/component-helpers v0.26.2
-	k8s.io/controller-manager => k8s.io/controller-manager v0.26.2
-	k8s.io/cri-api => k8s.io/cri-api v0.26.2
-	k8s.io/csi-translation-lib => k8s.io/csi-translation-lib v0.26.2
-	k8s.io/dynamic-resource-allocation => k8s.io/dynamic-resource-allocation v0.26.2
-	k8s.io/kube-aggregator => k8s.io/kube-aggregator v0.26.2
-	k8s.io/kube-controller-manager => k8s.io/kube-controller-manager v0.26.2
-	k8s.io/kube-proxy => k8s.io/kube-proxy v0.26.2
-	k8s.io/kube-scheduler => k8s.io/kube-scheduler v0.26.2
-	k8s.io/kubectl => k8s.io/kubectl v0.26.2
-	k8s.io/kubelet => k8s.io/kubelet v0.26.2
-	k8s.io/legacy-cloud-providers => k8s.io/legacy-cloud-providers v0.26.2
-	k8s.io/metrics => k8s.io/metrics v0.26.2
-	k8s.io/mount-utils => k8s.io/mount-utils v0.26.2
-	k8s.io/pod-security-admission => k8s.io/pod-security-admission v0.26.2
-	k8s.io/sample-apiserver => k8s.io/sample-apiserver v0.26.2
 )

@@ -1,9 +1,20 @@
+#!/bin/bash
+
+function kubernetes_pre_init() {
+    if is_rhel_9_variant ; then
+        # git is packaged in the bundle and installed in other oses by
+        # kubernetes_install_host_packages
+        yum_ensure_host_package git
+    fi
+}
 
 function kubernetes_host() {
     kubernetes_load_modules
     kubernetes_load_ipv4_modules
     kubernetes_load_ipv6_modules
-    kubernetes_load_ipvs_modules
+    if kubernetes_ipvs_modules_available ; then
+        kubernetes_load_ipvs_modules
+    fi
 
     if [ "$SKIP_KUBERNETES_HOST" = "1" ]; then
         return 0
@@ -38,6 +49,8 @@ function kubernetes_load_ipvs_modules() {
         return
     fi
 
+    echo "Adding kernel modules nf_conntrack_ipv4, ip_vs, ip_vs_rr, ip_vs_wrr, and ip_vs_sh"
+
     if [ "$KERNEL_MAJOR" -gt "4" ] || \
         { [ "$KERNEL_MAJOR" -eq "4" ] && [ "$KERNEL_MINOR" -ge "19" ]; } || \
         {
@@ -45,24 +58,62 @@ function kubernetes_load_ipvs_modules() {
             { [ "$DIST_VERSION_MAJOR" = "8" ] || [ "$DIST_VERSION_MAJOR" = "9" ] || [ "$DIST_VERSION_MINOR"  -gt "2" ]; }; \
         }; then
         modprobe nf_conntrack
+        echo "nf_conntrack" > /etc/modules-load.d/99-replicated-ipvs.conf
     else
         modprobe nf_conntrack_ipv4
+        echo "nf_conntrack_ipv4" > /etc/modules-load.d/99-replicated-ipvs.conf
     fi
 
     rm -f /etc/modules-load.d/replicated-ipvs.conf
 
-    echo "Adding kernel modules ip_vs, ip_vs_rr, ip_vs_wrr, and ip_vs_sh"
     modprobe ip_vs
     modprobe ip_vs_rr
     modprobe ip_vs_wrr
     modprobe ip_vs_sh
 
-    echo "nf_conntrack_ipv4" > /etc/modules-load.d/99-replicated-ipvs.conf
     # shellcheck disable=SC2129
     echo "ip_vs" >> /etc/modules-load.d/99-replicated-ipvs.conf
     echo "ip_vs_rr" >> /etc/modules-load.d/99-replicated-ipvs.conf
     echo "ip_vs_wrr" >> /etc/modules-load.d/99-replicated-ipvs.conf
     echo "ip_vs_sh" >> /etc/modules-load.d/99-replicated-ipvs.conf
+}
+
+# kubernetes_ipvs_modules_available returns 0 if the ipvs modules are available
+function kubernetes_ipvs_modules_available() {
+    if ! modinfo nf_conntrack &>/dev/null || modinfo nf_conntrack_ipv4 &>/dev/null ; then
+        return 1
+    fi
+    if modinfo ip_vs &>/dev/null && \
+        modinfo ip_vs_rr &>/dev/null && \
+        modinfo ip_vs_wrr &>/dev/null && \
+        modinfo ip_vs_sh &>/dev/null ; then
+        return 0
+    fi
+    return 1
+}
+
+# kubernetes_iptables_mode_enabled returns 0 if kube-proxy is configured to use iptables
+function kubernetes_iptables_mode_enabled() {
+    kubectl -n kube-system get cm kube-proxy -o jsonpath='{.data.config\.conf}' 2>/dev/null | grep -q 'mode: iptables' || \
+        grep -qs 'mode: iptables' "$DIR/kustomize/kubeadm/init/kubeproxy-config-v1alpha1.yml"
+}
+
+# kubernetes_iptables_mode_enabled returns 0 if kube-proxy is configured to use ipvs
+function kubernetes_ipvs_mode_enabled() {
+    kubectl -n kube-system get cm kube-proxy -o jsonpath='{.data.config\.conf}' 2>/dev/null | grep -q 'mode: ipvs' || \
+        grep -qs 'mode: ipvs' "$DIR/kustomize/kubeadm/init/kubeproxy-config-v1alpha1.yml"
+}
+
+# kubernetes_get_kube_proxy_mode will return ipvs mode if it is enabled or if the ipvs modules are
+# available, otherwise iptables
+function kubernetes_get_kube_proxy_mode() {
+    if kubernetes_iptables_mode_enabled ; then
+        echo "iptables"
+    elif kubernetes_ipvs_mode_enabled || kubernetes_ipvs_modules_available ; then
+        echo "ipvs"
+    else
+        echo "iptables"
+    fi
 }
 
 function kubernetes_load_modules() {
@@ -165,7 +216,12 @@ EOF
         ;;
     esac
 
-    install_host_packages "${DIR}/packages/kubernetes/${k8sVersion}" "kubelet-${k8sVersion}" "kubectl-${k8sVersion}" git
+    if is_rhel_9_variant ; then
+        # ensure git in kubernetes_pre_init
+        install_host_packages "${DIR}/packages/kubernetes/${k8sVersion}" "kubelet-${k8sVersion}" "kubectl-${k8sVersion}"
+    else
+        install_host_packages "${DIR}/packages/kubernetes/${k8sVersion}" "kubelet-${k8sVersion}" "kubectl-${k8sVersion}" git
+    fi
 
     # Update crictl: https://listman.redhat.com/archives/rhsa-announce/2019-October/msg00038.html 
     tar -C /usr/bin -xzf "$DIR/packages/kubernetes/${k8sVersion}/assets/crictl-linux-amd64.tar.gz"

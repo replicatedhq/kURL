@@ -89,6 +89,12 @@ spec:
         exclude: '{{kurl or (not .IsPrimary) (not .IsUpgrade) }}'
         certificatePath: /etc/kubernetes/pki/etcd/server.crt
         keyPath: /etc/kubernetes/pki/etcd/server.key
+    - http:
+        collectorName: "Kubernetes API Health"
+        exclude: '{{kurl or (not .IsPrimary) (not .IsUpgrade) }}'
+        get:
+          url: https://localhost:6443/healthz
+          insecureSkipVerify: true      
   analyzers:
     - certificate:
         collectorName: "Kubernetes API key pair certificate"
@@ -134,6 +140,19 @@ spec:
           - pass:
               when: "key-pair-valid"
               message: Kubernetes ETCD key pair certificate is valid
+    - http:
+        checkName: "Kubernetes API Health"
+        exclude: '{{kurl or (not .IsPrimary) (not .IsUpgrade) }}'
+        collectorName: "Kubernetes API Health"
+        outcomes:
+          - warn:
+              when: "error"
+              message: Error connecting to Kubernetes API at https://localhost:6443/healthz
+          - pass:
+              when: "statusCode == 200"
+              message: OK HTTP status response from Kubernetes API at https://localhost:6443/healthz
+          - warn:
+              message: Unexpected status code response from Kubernetes API at https://localhost:6443/healthz
     - cpu:
         checkName: "Number of CPUs"
         outcomes:

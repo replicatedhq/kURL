@@ -137,6 +137,7 @@ function main() {
     setup_kubeadm_kustomize
     install_cri
     get_shared
+    kubernetes_pre_init
     ${K8S_DISTRO}_addon_for_each addon_join
     maybe_upgrade
     kubernetes_configure_pause_image_upgrade

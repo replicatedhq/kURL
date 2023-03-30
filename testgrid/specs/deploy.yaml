@@ -38,7 +38,7 @@
   unsupportedOSIDs:
   - ubuntu-2204 # docker 19.x is not available on ubuntu 22.04
   - rocky-91 # docker is not supported on rhel 9 variants
-  - ol-9 # docker is not supported on rhel 9 variants
+  - ol-91 # docker is not supported on rhel 9 variants
 - name: k8s121
   installerSpec:
     kubernetes:
@@ -90,7 +90,7 @@
     - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
-    rhel_9_install_host_packages lvm2 conntrack-tools socat
+    rhel_9_install_host_packages lvm2 conntrack-tools socat container-selinux git
 - name: k8s122
   installerSpec:
     kubernetes:
@@ -142,7 +142,7 @@
     - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
-    rhel_9_install_host_packages lvm2 conntrack-tools socat
+    rhel_9_install_host_packages lvm2 conntrack-tools socat container-selinux git
 - name: minimal-124
   installerSpec:
     containerd:
@@ -279,7 +279,7 @@
     - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
-    rhel_9_install_host_packages lvm2 conntrack-tools socat
+    rhel_9_install_host_packages lvm2 conntrack-tools socat container-selinux git
 - name: "k8s_126x airgap"
   airgap: true
   installerSpec:
@@ -303,7 +303,7 @@
       version: latest
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
-    rhel_9_install_host_packages lvm2 conntrack-tools socat
+    rhel_9_install_host_packages lvm2 conntrack-tools socat container-selinux git
 - name: "Migrate from Docker to Containerd and Kubernetes from 1.23 to 1.25 airgap"
   flags: "yes"
   installerSpec:
@@ -360,4 +360,4 @@
     validate_read_write_object_store postupgrade upgradefile.txt
   unsupportedOSIDs:
   - rocky-91 # docker is not supported on rhel 9 variants
-  - ol-9 # docker is not supported on rhel 9 variants
+  - ol-91 # docker is not supported on rhel 9 variants

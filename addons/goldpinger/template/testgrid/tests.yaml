@@ -101,6 +101,9 @@
     goldpinger:
       version: "__testver__"
       s3Override: "__testdist__"
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages lvm2 conntrack-tools socat container-selinux git
   postInstallScript: |
     # find the goldpinger endpoint
     export GP_ENDPOINT=$(kubectl get endpoints -n kurl goldpinger | grep -v NAME | awk '{ print $2 }')
