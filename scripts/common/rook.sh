@@ -83,12 +83,12 @@ function remove_rook_ceph() {
         fi
     fi
 
-    log "Removing rook-ceph pool"
+    log "Waiting up to 1 minute to remove rook-ceph pool"
     if ! kubectl delete -n rook-ceph cephblockpool replicapool --timeout=60s; then
         logWarn "Unable to delete rook-ceph pool"
     fi
 
-    log "Removing rook-ceph Storage Classes"
+    log "Waiting up to 1 minute to remove rook-ceph Storage Classes"
     if ! kubectl get storageclass | grep rook | awk '{ print $1 }' | xargs -I'{}' kubectl delete storageclass '{}' --timeout=60s; then
         logFail "Unable to delete rook-ceph StorageClasses"
         return 1
@@ -99,12 +99,15 @@ function remove_rook_ceph() {
     kubectl -n rook-ceph patch cephcluster rook-ceph --type merge -p '{"spec":{"cleanupPolicy":{"confirmation":"yes-really-destroy-data"}}}'
 
     # remove all rook-ceph CR objects
-    log "Removing rook-ceph custom resource objects - this may take some time:\n"
+    log "Removing rook-ceph custom resource objects - this may take some time:"
+    log "Waiting up to 3 minutes to remove rook-ceph CephCluster resource"
     if ! kubectl delete cephcluster -n rook-ceph rook-ceph --timeout=180s; then
         # More info: https://github.com/rook/rook/blob/v1.10.12/Documentation/Storage-Configuration/ceph-teardown.md#removing-the-cluster-crd-finalizer
-        logWarn "Timeout of 3 minutes faced deleting the rook-ceph CephCluster resource. Removing finalizers."
+        logWarn "Timeout of 3 minutes faced deleting the rook-ceph CephCluster resource"
+        logWarn "Removing critical finalizers"
         kubectl -n rook-ceph patch configmap rook-ceph-mon-endpoints --type merge -p '{"metadata":{"finalizers": []}}'
         kubectl -n rook-ceph patch secrets rook-ceph-mon --type merge -p '{"metadata":{"finalizers": []}}'
+        log "Waiting up to 2 minutes to remove rook-ceph CephCluster resource after remove critical finalizers"
         if ! kubectl delete cephcluster -n rook-ceph rook-ceph --timeout=120s; then
             logWarn "Timeout of 2 minutes faced deleting the rook-ceph CephCluster resource after finalizers have be removed."
             logWarn "Forcing by removing all finalizers"
@@ -116,6 +119,7 @@ function remove_rook_ceph() {
             # After remove the finalizers the resources might get deleted without the need to try again
             sleep 20s
             if kubectl get cephcluster -n rook-ceph rook-ceph >/dev/null 2>&1; then
+                log "Waiting up to 1 minute to remove rook-ceph CephCluster resource"
                 if ! kubectl delete cephcluster -n rook-ceph rook-ceph --timeout=60s; then
                     logFail "Unable to delete the rook-ceph CephCluster resource"
                     return 1
@@ -272,8 +276,10 @@ function maybe_cleanup_rook() {
         fi
         logStep "Removing Rook"
 
-        DID_MIGRATE_ROOK_PVCS=$(kubectl -n kurl get configmap kurl-migration-from-rook -o jsonpath='{ .data.DID_MIGRATE_ROOK_PVCS }')
-        DID_MIGRATE_ROOK_OBJECT_STORE=$(kubectl -n kurl get configmap kurl-migration-from-rook -o jsonpath='{ .data.DID_MIGRATE_ROOK_OBJECT_STORE }')
+        export DID_MIGRATE_ROOK_PVCS=0
+        export DID_MIGRATE_ROOK_OBJECT_STORE=0
+        DID_MIGRATE_ROOK_PVCS=$(kubectl -n kurl get --ignore-not-found configmap kurl-migration-from-rook -o jsonpath='{ .data.DID_MIGRATE_ROOK_PVCS }')
+        DID_MIGRATE_ROOK_OBJECT_STORE=$(kubectl -n kurl get --ignore-not-found configmap kurl-migration-from-rook -o jsonpath='{ .data.DID_MIGRATE_ROOK_OBJECT_STORE }')
 
         if [ "$DID_MIGRATE_ROOK_PVCS" == "1" ] && [ "$DID_MIGRATE_ROOK_OBJECT_STORE" == "1" ]; then
             report_addon_start "rook-ceph-removal" "v1.1"
@@ -295,7 +301,7 @@ function maybe_cleanup_rook() {
                 logWarn "Rook will not be automatically removed without migrating Object Store data."
                 logWarn ""
                 logWarn "If you are sure that Object Store data is not used, you can manually perform this operation"
-                logWarn "by running the remove_rook_ceph task:"                
+                logWarn "by running the remove_rook_ceph task:"
                 logWarn "$ curl <installer>/task.sh | sudo bash -s remove_rook_ceph, i.e.:"
                 logWarn ""
                 logWarn "curl https://kurl.sh/latest/tasks.sh | sudo bash -s remove_rook_ceph"
@@ -305,7 +311,7 @@ function maybe_cleanup_rook() {
         if [ "$DID_MIGRATE_ROOK_PVCS" != "1" ]; then
            logFail "Storage class migration did not succeed"
         fi
-        
+
         if [ -n "$MINIO_VERSION" ] && [ "$DID_MIGRATE_ROOK_OBJECT_STORE" != "1" ]; then
            logFail "Object Store migration did not succeed"
         fi

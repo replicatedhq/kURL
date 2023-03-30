@@ -1,3 +1,12 @@
+#!/bin/bash
+
+function kubernetes_pre_init() {
+    if is_rhel_9_variant ; then
+        # git is packaged in the bundle and installed in other oses by
+        # kubernetes_install_host_packages
+        yum_ensure_host_package git
+    fi
+}
 
 function kubernetes_host() {
     kubernetes_load_modules
@@ -25,6 +34,11 @@ function kubernetes_get_packages() {
     if [ "$AIRGAP" != "1" ] && [ -n "$DIST_URL" ]; then
         kubernetes_get_host_packages_online "$KUBERNETES_VERSION"
         kubernetes_get_conformance_packages_online "$KUBERNETES_VERSION"
+
+        # if we are upgrading two kubernetes versions at once
+        if [ -n "$STEP_VERSION" ]; then
+            kubernetes_get_host_packages_online "$STEP_VERSION"
+        fi
     fi
 }
 
@@ -160,7 +174,12 @@ EOF
         ;;
     esac
 
-    install_host_packages "${DIR}/packages/kubernetes/${k8sVersion}" "kubelet-${k8sVersion}" "kubectl-${k8sVersion}" git
+    if is_rhel_9_variant ; then
+        # ensure git in kubernetes_pre_init
+        install_host_packages "${DIR}/packages/kubernetes/${k8sVersion}" "kubelet-${k8sVersion}" "kubectl-${k8sVersion}"
+    else
+        install_host_packages "${DIR}/packages/kubernetes/${k8sVersion}" "kubelet-${k8sVersion}" "kubectl-${k8sVersion}" git
+    fi
 
     # Update crictl: https://listman.redhat.com/archives/rhsa-announce/2019-October/msg00038.html 
     tar -C /usr/bin -xzf "$DIR/packages/kubernetes/${k8sVersion}/assets/crictl-linux-amd64.tar.gz"

@@ -83,6 +83,9 @@
       namespace: openebs
       version: "__testver__"
       s3Override: "__testdist__"
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages lvm2 conntrack-tools socat container-selinux git
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     minio_object_store_info
@@ -132,7 +135,7 @@
     validate_read_write_object_store postupgrade upgradefile.txt
   unsupportedOSIDs:
   - rocky-91 # docker is not supported on rhel 9 variants
-  - ol-9 # docker is not supported on rhel 9 variants
+  - ol-91 # docker is not supported on rhel 9 variants
 
 - name: localpv migrate from Rook 1.0.4 with old versions
   flags: "yes"

@@ -46,5 +46,5 @@ jobs:
           replicated/tgrun:latest queue --staging \
             --ref "${REF}" \
             --spec ./testgrid/specs/storage-migration.yaml \
-            --os-spec ./testgrid/specs/os-firstlast.yaml \
-            --priority -1
+            --os-spec ./testgrid/specs/os-latest.yaml \
+            --priority -2

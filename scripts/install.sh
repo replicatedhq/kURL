@@ -562,6 +562,7 @@ function main() {
     get_common
     setup_kubeadm_kustomize
     rook_upgrade_maybe_report_upgrade_rook
+    kubernetes_pre_init
     ${K8S_DISTRO}_addon_for_each addon_pre_init
     discover_pod_subnet
     discover_service_subnet

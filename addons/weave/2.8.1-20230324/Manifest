@@ -1,0 +1,3 @@
+image weave-kube kurlsh/weave-kube:2.8.1-20230324-bcf96d2
+image weave-npc kurlsh/weave-npc:2.8.1-20230324-bcf96d2
+image weaveexec kurlsh/weaveexec:2.8.1-20230324-bcf96d2

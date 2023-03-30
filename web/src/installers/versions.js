@@ -114,6 +114,7 @@ module.exports.InstallerVersions = {
   ],
   weave: [
     // cron-weave-update-265
+    "2.8.1-20230324",
     "2.8.1-20230222",
     "2.6.5-20230222",
     "2.6.5-20221122",
@@ -126,6 +127,7 @@ module.exports.InstallerVersions = {
     "2.6.4",
     "2.5.2",
     // cron-weave-update
+    "2.8.1-20230324",
     "2.8.1-20230222",
     "2.8.1-20230130",
     "2.8.1-20221122",
@@ -149,6 +151,7 @@ module.exports.InstallerVersions = {
   ],
   flannel: [
     // cron-flannel-update
+    "0.21.4",
     "0.21.3",
     "0.21.2",
     "0.21.1",
@@ -160,6 +163,7 @@ module.exports.InstallerVersions = {
   rook: [
     "1.0.4",
     // cron-rook-update
+    "1.11.2",
     "1.10.11",
     "1.10.8",
     "1.10.6",
@@ -183,6 +187,8 @@ module.exports.InstallerVersions = {
   ],
   prometheus: [
     // cron-prometheus-update
+    "0.63.0-45.8.1",
+    "0.63.0-45.8.0",
     "0.63.0-45.7.1",
     "0.63.0-45.5.0",
     "0.63.0-45.4.0",
@@ -434,6 +440,7 @@ module.exports.InstallerVersions = {
   ],
   minio: [
     // cron-minio-update
+    "2023-03-24T21-41-23Z",
     "2023-03-20T20-16-18Z",
     "2023-03-13T19-46-17Z",
     "2023-03-09T23-16-13Z",
@@ -526,6 +533,7 @@ module.exports.InstallerVersions = {
   ],
   metricsServer: [
     // cron-metrics-server-update
+    "0.6.3",
     "0.6.2",
     "0.3.7",
     "0.4.1",

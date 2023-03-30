@@ -217,6 +217,10 @@ function rook_upgrade() {
 
     rook_disable_ekco_operator
 
+    # when invoked in a subprocess the failure of this function will not cause the script to exit
+    # sanity check that the rook version is valid
+    rook_upgrade_step_versions "ROOK_STEP_VERSIONS[@]" "$from_version" "$to_version" 1>/dev/null
+
     logStep "Upgrading Rook from $from_version.x to $to_version.x"
     rook_upgrade_print_list_of_minor_upgrades "$from_version" "$to_version"
     echo "This may take some time."
