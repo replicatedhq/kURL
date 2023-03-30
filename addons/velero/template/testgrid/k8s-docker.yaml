@@ -90,6 +90,8 @@
       version: latest
       isLocalPVEnabled: true
       localPVStorageClassName: default
+    minio: 
+        version: latest
     registry:
       version: latest
     kotsadm:
