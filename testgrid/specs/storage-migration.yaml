@@ -1010,7 +1010,7 @@
       shouldDisableRestartFailedEnvoyPods: false
       envoyPodsNotReadyDuration: 5m
   unsupportedOSIDs:
-    - ubuntu-2204 # containerd 1.4.x is not supported on ubuntu 22.04
+  - ubuntu-2204 # containerd 1.4.x is not supported on ubuntu 22.04
   postUpgradeScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     minio_object_store_info
