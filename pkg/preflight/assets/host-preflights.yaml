@@ -94,7 +94,7 @@ spec:
         exclude: '{{kurl or (not .IsPrimary) (not .IsUpgrade) }}'
         get:
           url: https://localhost:6443/healthz
-          insecureSkipVerify: true      
+          insecureSkipVerify: true
   analyzers:
     - certificate:
         collectorName: "Kubernetes API key pair certificate"
