@@ -192,7 +192,7 @@ spec:
     - diskUsage:
         checkName: "Ephemeral Disk Usage /var/lib/rook"
         collectorName: "Ephemeral Disk Usage /var/lib/rook"
-        exclude: '{{kurl not .Installer.Spec.Containerd.Version}}'
+        exclude: '{{kurl not .Installer.Spec.Rook.Version}}'
         outcomes:
           - fail:
               when: "used/total > 80%"
