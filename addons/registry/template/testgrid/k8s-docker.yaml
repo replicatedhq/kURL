@@ -258,6 +258,9 @@
     registry:
       version: "__testver__"
       s3Override: "__testdist__"
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rhel_9_install_host_packages lvm2 conntrack-tools socat container-selinux git
   postInstallScript: |
 
     # wait for the pod to be ready
