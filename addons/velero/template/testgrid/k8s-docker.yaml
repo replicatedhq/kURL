@@ -57,6 +57,8 @@
     velero:
       version: "__testver__"
       s3Override: "__testdist__"
+    minio:
+      version: "latest"
 - name: "Velero Remove Object Storage"
   cpu: 6
   installerSpec:
