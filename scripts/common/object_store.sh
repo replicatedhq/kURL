@@ -246,6 +246,12 @@ function migrate_rgw_to_minio_checks() {
         bail "Cannot upgrade from Rook Ceph Object Store to Minio. Rook Ceph is unhealthy."
     fi
 
+    log "Awaiting 2 minutes to check MinIO Pod(s) are Running"
+    if ! spinner_until 120 check_for_running_pods "$MINIO_NAMESPACE"; then
+        logFail "MinIO has unhealthy Pod(s). Check the namespace $MINIO_NAMESPACE "
+        bail "Cannot upgrade from Rook to MinIO. MinIO is unhealthy."
+    fi
+
     logSuccess "Rook Ceph Object Store to Minio migration checks completed successfully."
 }
 
