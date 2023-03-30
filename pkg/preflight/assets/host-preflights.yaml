@@ -17,6 +17,18 @@ spec:
         collectorName: "Ephemeral Disk Usage /var/lib/docker"
         path: /var/lib/docker
         exclude: '{{kurl not .Installer.Spec.Docker.Version}}'
+    - diskUsage:
+        collectorName: "Ephemeral Disk Usage /var/lib/containerd"
+        path: /var/lib/containerd
+        exclude: '{{kurl not .Installer.Spec.Containerd.Version}}'
+    - diskUsage:
+        collectorName: "Ephemeral Disk Usage /var/lib/rook"
+        path: /var/lib/rook
+        exclude: '{{kurl not .Installer.Spec.Rook.Version}}'
+    - diskUsage:
+        collectorName: "Ephemeral Disk Usage /var/openebs"
+        path: /var/openebs
+        exclude: '{{kurl not .Installer.Spec.OpenEBS.Version}}'
     - tcpLoadBalancer:
         collectorName: "Kubernetes API Server Load Balancer"
         port: 6443
@@ -158,6 +170,51 @@ spec:
               message: The disk containing directory /var/lib/docker has less than 10Gi of disk space available
           - pass:
               message: The disk containing directory /var/lib/docker has at least 30Gi of total space, has at least 10Gi of disk space available, and is less than 60% full.
+    - diskUsage:
+        checkName: "Ephemeral Disk Usage /var/lib/containerd"
+        collectorName: "Ephemeral Disk Usage /var/lib/containerd"
+        exclude: '{{kurl not .Installer.Spec.Containerd.Version}}'
+        outcomes:
+          - fail:
+              when: "total < 30Gi"
+              message: The disk containing directory /var/lib/containerd has less than 30Gi of total space
+          - fail:
+              when: "used/total > 80%"
+              message: The disk containing directory /var/lib/containerd is more than 80% full
+          - warn:
+              when: "used/total > 60%"
+              message: The disk containing directory /var/lib/containerd is more than 60% full
+          - warn:
+              when: "available < 10Gi"
+              message: The disk containing directory /var/lib/containerd has less than 10Gi of disk space available
+          - pass:
+              message: The disk containing directory /var/lib/containerd has at least 30Gi of total space, has at least 10Gi of disk space available, and is less than 60% full.
+    - diskUsage:
+        checkName: "Ephemeral Disk Usage /var/lib/rook"
+        collectorName: "Ephemeral Disk Usage /var/lib/rook"
+        exclude: '{{kurl not .Installer.Spec.Containerd.Version}}'
+        outcomes:
+          - fail:
+              when: "used/total > 80%"
+              message: The disk containing directory /var/lib/rook is more than 80% full
+          - fail:
+              when: "available < 10Gi"
+              message: The disk containing directory /var/lib/rook has less than 10Gi of disk space available
+          - pass:
+              message: The disk containing directory /var/lib/rook has sufficient space
+    - diskUsage:
+        checkName: "Ephemeral Disk Usage /var/openebs"
+        collectorName: "Ephemeral Disk Usage /var/openebs"
+        exclude: '{{kurl not .Installer.Spec.OpenEBS.Version}}'
+        outcomes:
+          - warn:
+              when: "used/total > 80%"
+              message: The disk containing directory /var/openebs is more than 80% full
+          - warn:
+              when: "available < 10Gi"
+              message: The disk containing directory /var/openebs has less than 10Gi of disk space available
+          - pass:
+              message: The disk containing directory /var/openebs has sufficient space
     - tcpLoadBalancer:
         checkName: "Kubernetes API Server Load Balancer"
         collectorName: "Kubernetes API Server Load Balancer"
