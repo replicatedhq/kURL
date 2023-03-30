@@ -28,6 +28,13 @@ const hostPreflightCmdExample = `
   # Installer spec from STDIN
   $ kubectl get installer 6abe39c -oyaml | kurl host preflight -`
 
+const preflightCmdExample = `
+  # Installer spec from file
+  $ kurl cluster preflight spec.yaml
+
+  # Installer spec from STDIN
+  $ kubectl get installer 6abe39c -oyaml | kurl cluster preflight -`
+
 const (
 	preflightsWarningCode       = 3
 	preflightsIgnoreWarningCode = 2
@@ -76,7 +83,7 @@ func newHostPreflightCmd(cli CLI) *cobra.Command {
 
 			if !v.GetBool("exclude-builtin") {
 				builtin := preflight.Builtin()
-				s, err := decodePreflightSpec(builtin, data)
+				s, err := decodeHostPreflightSpec(builtin, data)
 				if err != nil {
 					return errors.Wrap(err, "builtin")
 				}
@@ -89,7 +96,7 @@ func newHostPreflightCmd(cli CLI) *cobra.Command {
 					return errors.Wrapf(err, "read spec file %s", filename)
 				}
 
-				decoded, err := decodePreflightSpec(string(spec), data)
+				decoded, err := decodeHostPreflightSpec(string(spec), data)
 				if err != nil {
 					return errors.Wrap(err, filename)
 				}
@@ -129,7 +136,7 @@ func newHostPreflightCmd(cli CLI) *cobra.Command {
 			isTerminal := isatty.IsTerminal(os.Stderr.Fd())
 			go writeProgress(cmd.ErrOrStderr(), progressChan, progressCancel, isTerminal)
 
-			results, err := cli.GetPreflightRunner().Run(cmd.Context(), preflightSpec, progressChan)
+			results, err := cli.GetHostPreflightRunner().RunHostPreflights(cmd.Context(), preflightSpec, progressChan)
 			close(progressChan)
 			<-progressContext.Done()
 
@@ -163,6 +170,7 @@ func newHostPreflightCmd(cli CLI) *cobra.Command {
 				}
 			}
 			return nil
+
 		},
 	}
 
@@ -175,7 +183,126 @@ func newHostPreflightCmd(cli CLI) *cobra.Command {
 	cmd.Flags().StringSlice("primary-host", nil, "host or IP of a control plane node running a Kubernetes API server and etcd peer")
 	cmd.Flags().StringSlice("secondary-host", nil, "host or IP of a secondary node running kubelet")
 	cmd.Flags().StringSlice("spec", nil, "host preflight specs")
-	// cmd.MarkFlagRequired("spec")
+	_ = cmd.MarkFlagFilename("spec", "yaml", "yml")
+
+	return cmd
+}
+
+func newPreflightCmd(cli CLI) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:          "preflight [INSTALLER SPEC FILE|-]",
+		Short:        "Runs kURL preflight checks",
+		Example:      preflightCmdExample,
+		SilenceUsage: true,
+		Args:         cobra.ExactArgs(1),
+		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+			return cli.GetViper().BindPFlags(cmd.PersistentFlags())
+		},
+		PreRunE: func(cmd *cobra.Command, args []string) error {
+			return cli.GetViper().BindPFlags(cmd.Flags())
+		},
+		RunE: func(cmd *cobra.Command, args []string) error {
+			v := cli.GetViper()
+
+			installerSpecData, err := retrieveInstallerSpecDataFromArg(cli.GetFS(), cmd.InOrStdin(), args[0])
+			if err != nil {
+				return errors.Wrap(err, "retrieve installer spec from arg")
+			}
+
+			installerSpec, err := installer.DecodeSpec(installerSpecData)
+			if err != nil {
+				return errors.Wrap(err, "decode installer spec")
+			}
+
+			remotes := append([]string{}, v.GetStringSlice("primary-host")...)
+			remotes = append(remotes, v.GetStringSlice("secondary-host")...)
+			data := installer.TemplateData{
+				Installer:      *installerSpec,
+				IsPrimary:      v.GetBool("is-primary"),
+				IsJoin:         v.GetBool("is-join"),
+				IsUpgrade:      v.GetBool("is-upgrade"),
+				PrimaryHosts:   v.GetStringSlice("primary-host"),
+				SecondaryHosts: v.GetStringSlice("secondary-host"),
+				RemoteHosts:    remotes,
+			}
+
+			preflightSpec := &troubleshootv1beta2.Preflight{}
+
+			if !v.GetBool("exclude-builtin") {
+				builtin := preflight.BuiltinCluster()
+				s, err := decodeClusterPreflightSpec(builtin, data)
+				if err != nil {
+					return errors.Wrap(err, "builtin")
+				}
+				preflightSpec = s
+			}
+
+			for _, filename := range v.GetStringSlice("spec") {
+				spec, err := os.ReadFile(filename)
+				if err != nil {
+					return errors.Wrapf(err, "read spec file %s", filename)
+				}
+
+				decoded, err := decodeClusterPreflightSpec(string(spec), data)
+				if err != nil {
+					return errors.Wrap(err, filename)
+				}
+
+				preflightSpec.Spec.Collectors = append(preflightSpec.Spec.Collectors, decoded.Spec.Collectors...)
+				preflightSpec.Spec.Analyzers = append(preflightSpec.Spec.Analyzers, decoded.Spec.Analyzers...)
+			}
+
+			progressChan := make(chan interface{})
+			progressContext, progressCancel := context.WithCancel(cmd.Context())
+			isTerminal := isatty.IsTerminal(os.Stderr.Fd())
+			go writeProgress(cmd.ErrOrStderr(), progressChan, progressCancel, isTerminal)
+
+			results, err := cli.GetClusterPreflightRunner().RunClusterPreflight(preflightSpec, progressChan)
+			close(progressChan)
+			<-progressContext.Done()
+
+			if err != nil {
+				return errors.Wrap(err, "run preflight")
+			}
+
+			printPreflightResults(cmd.OutOrStdout(), results)
+
+			if v.GetBool("use-exit-codes") {
+				switch {
+				case preflightIsFail(results):
+					os.Exit(preflightsErrorCode)
+				case preflightIsWarn(results):
+					if v.GetBool("ignore-warnings") {
+						os.Exit(preflightsIgnoreWarningCode)
+					}
+					os.Exit(preflightsWarningCode)
+				}
+				return nil
+			}
+
+			switch {
+			case preflightIsFail(results):
+				return errors.New("preflights have failures")
+			case preflightIsWarn(results):
+				if v.GetBool("ignore-warnings") {
+					fmt.Fprintln(cmd.ErrOrStderr(), "Warnings ignored by CLI flag \"ignore-warnings\"")
+				} else {
+					return ErrWarn
+				}
+			}
+			return nil
+		},
+	}
+
+	cmd.Flags().Bool("ignore-warnings", false, "ignore preflight warnings")
+	cmd.Flags().Bool("is-join", false, "set to true if this node is joining an existing cluster (non-primary implies join)")
+	cmd.Flags().Bool("is-primary", true, "set to true if this node is a primary")
+	cmd.Flags().Bool("is-upgrade", false, "set to true if this is an upgrade")
+	cmd.Flags().Bool("exclude-builtin", false, "set to true to exclude builtin preflights")
+	cmd.Flags().Bool("use-exit-codes", true, "set to false to return an error instead of an exit code")
+	cmd.Flags().StringSlice("primary-host", nil, "host or IP of a control plane node running a Kubernetes API server and etcd peer")
+	cmd.Flags().StringSlice("secondary-host", nil, "host or IP of a secondary node running kubelet")
+	cmd.Flags().StringSlice("spec", nil, "preflight specs")
 	_ = cmd.MarkFlagFilename("spec", "yaml", "yml")
 
 	return cmd
@@ -232,14 +359,24 @@ func tcpHostAnalyzer(service, address, port string) *v1beta2.HostAnalyze {
 	}
 }
 
-func decodePreflightSpec(raw string, data installer.TemplateData) (*troubleshootv1beta2.HostPreflight, error) {
+func decodeHostPreflightSpec(raw string, data installer.TemplateData) (*troubleshootv1beta2.HostPreflight, error) {
+	spec, err := installer.ExecuteTemplate("installerSpec", raw, data)
+	if err != nil {
+		return nil, errors.Wrapf(err, "execute installer template")
+	}
+
+	decoded, err := preflight.HostDecode(spec)
+	return decoded, errors.Wrap(err, "decode HostPreflight spec")
+}
+
+func decodeClusterPreflightSpec(raw string, data installer.TemplateData) (*troubleshootv1beta2.Preflight, error) {
 	spec, err := installer.ExecuteTemplate("installerSpec", raw, data)
 	if err != nil {
 		return nil, errors.Wrapf(err, "execute installer template")
 	}
 
 	decoded, err := preflight.Decode(spec)
-	return decoded, errors.Wrap(err, "decode spec")
+	return decoded, errors.Wrap(err, "decode Preflight spec")
 }
 
 var collectorStartRegexp = regexp.MustCompile(`^\[.+\] Running collector\.\.\.$`)

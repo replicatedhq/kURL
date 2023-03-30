@@ -37,6 +37,20 @@ func (m *MockCLI) EXPECT() *MockCLIMockRecorder {
 	return m.recorder
 }
 
+// GetClusterPreflightRunner mocks base method.
+func (m *MockCLI) GetClusterPreflightRunner() preflight.RunnerCluster {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetClusterPreflightRunner")
+	ret0, _ := ret[0].(preflight.RunnerCluster)
+	return ret0
+}
+
+// GetClusterPreflightRunner indicates an expected call of GetClusterPreflightRunner.
+func (mr *MockCLIMockRecorder) GetClusterPreflightRunner() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetClusterPreflightRunner", reflect.TypeOf((*MockCLI)(nil).GetClusterPreflightRunner))
+}
+
 // GetFS mocks base method.
 func (m *MockCLI) GetFS() afero.Fs {
 	m.ctrl.T.Helper()
@@ -51,18 +65,18 @@ func (mr *MockCLIMockRecorder) GetFS() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFS", reflect.TypeOf((*MockCLI)(nil).GetFS))
 }
 
-// GetPreflightRunner mocks base method.
-func (m *MockCLI) GetPreflightRunner() preflight.Runner {
+// GetHostPreflightRunner mocks base method.
+func (m *MockCLI) GetHostPreflightRunner() preflight.RunnerHost {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetPreflightRunner")
-	ret0, _ := ret[0].(preflight.Runner)
+	ret := m.ctrl.Call(m, "GetHostPreflightRunner")
+	ret0, _ := ret[0].(preflight.RunnerHost)
 	return ret0
 }
 
-// GetPreflightRunner indicates an expected call of GetPreflightRunner.
-func (mr *MockCLIMockRecorder) GetPreflightRunner() *gomock.Call {
+// GetHostPreflightRunner indicates an expected call of GetHostPreflightRunner.
+func (mr *MockCLIMockRecorder) GetHostPreflightRunner() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPreflightRunner", reflect.TypeOf((*MockCLI)(nil).GetPreflightRunner))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetHostPreflightRunner", reflect.TypeOf((*MockCLI)(nil).GetHostPreflightRunner))
 }
 
 // GetReadline mocks base method.
