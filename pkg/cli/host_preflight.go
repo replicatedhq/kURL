@@ -30,10 +30,10 @@ const hostPreflightCmdExample = `
 
 const preflightCmdExample = `
   # Installer spec from file
-  $ kurl preflight spec.yaml
+  $ kurl cluster preflight spec.yaml
 
   # Installer spec from STDIN
-  $ kubectl get installer 6abe39c -oyaml | kurl preflight -`
+  $ kubectl get installer 6abe39c -oyaml | kurl cluster preflight -`
 
 const (
 	preflightsWarningCode       = 3

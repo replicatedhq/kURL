@@ -655,12 +655,12 @@ function cluster_preflights() {
 
 
     if [ "${HOST_PREFLIGHT_IGNORE}" = "1" ]; then
-        "${DIR}"/bin/kurl preflight "${MERGED_YAML_SPEC}" ${opts} | tee "${out_file}"
+        "${DIR}"/bin/kurl cluster preflight "${MERGED_YAML_SPEC}" ${opts} | tee "${out_file}"
         host_preflights_mkresults "${out_file}" "${opts}"
         # TODO: report preflight fail
     else
         set +e
-        "${DIR}"/bin/kurl preflight "${MERGED_YAML_SPEC}" ${opts} | tee "${out_file}"
+        "${DIR}"/bin/kurl cluster preflight "${MERGED_YAML_SPEC}" ${opts} | tee "${out_file}"
         local kurl_exit_code="${PIPESTATUS[0]}"
         set -e
 

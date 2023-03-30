@@ -12,9 +12,7 @@ func AddCommands(cmd *cobra.Command, cli CLI) {
 	hostCmd.AddCommand(newHostProtectedidCmd(cli))
 	hostCmd.AddCommand(newHostPreflightCmd(cli))
 	hostCmd.AddCommand(newHostnameCmd(cli))
-
 	cmd.AddCommand(hostCmd)
-	cmd.AddCommand(newPreflightCmd(cli))
 
 	rookCmd := NewRookCmd(cli)
 	rookCmd.AddCommand(NewHostpathToBlockCmd(cli))
@@ -34,6 +32,7 @@ func AddCommands(cmd *cobra.Command, cli CLI) {
 	clusterCmd := NewClusterCmd(cli)
 	clusterCmd.AddCommand(NewClusterNodesMissingImageCmd(cli))
 	clusterCmd.AddCommand(NewClusterCheckFreeDiskSpaceCmd(cli))
+	clusterCmd.AddCommand(newPreflightCmd(cli))
 	cmd.AddCommand(clusterCmd)
 
 	netutilCmd := newNetutilCommand(cli)
