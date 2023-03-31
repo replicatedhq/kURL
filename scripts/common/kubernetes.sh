@@ -813,8 +813,8 @@ function check_network() {
     fi
 
     if ! kubernetes_any_node_ready; then
-        echo "Waiting for node to report Ready"
-        spinner_until 300 kubernetes_any_node_ready
+        echo "Waiting up to 10 minutes for node to report Ready"
+        spinner_until 600 kubernetes_any_node_ready
     fi
 
     kubectl delete pods kurlnet-client kurlnet-server --force --grace-period=0 &>/dev/null || true
@@ -915,6 +915,8 @@ function kubernetes_any_node_ready() {
     if kubectl get nodes --no-headers 2>/dev/null | awk '{ print $2 }' | grep -v 'NotReady' | grep -q 'Ready' ; then
         return 0
     fi
+    # Output the nodes for we know more about the problem
+    kubectl get nodes
     return 1
 }
 
