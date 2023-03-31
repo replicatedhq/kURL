@@ -943,6 +943,18 @@ function rook_maybe_migrate_from_longhorn() {
 }
 
 function rook_maybe_longhorn_migration_checks() {
+    echo "Running Longhorn to Rook migration checks ..."
+
+    if ! rook_is_healthy_to_upgrade; then
+        bail "Cannot upgrade from Rook to OpenEBS. Rook Ceph is unhealthy."
+    fi
+
+    log "Awaiting 2 minutes to check Longhorn Pod(s) are Running"
+    if ! spinner_until 120 check_for_running_pods longhorn-system; then
+        logFail "Longhorn has unhealthy Pod(s). Check the namespace longhorn-system"
+        bail "Cannot upgrade from Longhorn to OpenEBS. Longhorn is unhealthy."
+    fi
+
     local rook_storage_class="$1"
 
     # get the list of StorageClasses that use longhorn
@@ -951,7 +963,7 @@ function rook_maybe_longhorn_migration_checks() {
     longhorn_scs=$(kubectl get storageclass | grep longhorn | grep -v '(default)' | awk '{ print $1}') # any non-default longhorn StorageClasses
     longhorn_default_sc=$(kubectl get storageclass | grep longhorn | grep '(default)' | awk '{ print $1}') # any default longhorn StorageClasses
 
-    echo "Running Longhorn to Rook migration checks ..."
+
     local longhorn_scs_pvmigrate_dryrun_output
     local longhorn_default_sc_pvmigrate_dryrun_output
     for longhorn_sc in $longhorn_scs
