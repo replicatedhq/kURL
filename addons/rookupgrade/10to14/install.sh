@@ -7,7 +7,7 @@ function rookupgrade_10to14_upgrade() {
     # if it is less than or equal we re-apply in cause of a failure mid upgrade
     if [ "$(common_upgrade_compare_versions "$from_version" "1.1")" != "1" ]; then
 
-        log "Awaiting up 5 minutes to check Rook Ceph Pod(s) are Running"
+        log "Awaiting up to 5 minutes to check Rook Ceph Pod(s) are Running"
         if ! spinner_until 300 check_for_running_pods "rook-ceph"; then
             logWarn "Rook Ceph has unhealthy Pod(s)"
         fi
@@ -97,7 +97,7 @@ function rookupgrade_10to14_upgrade() {
         kubectl -n rook-ceph set image deploy/rook-ceph-operator rook-ceph-operator=rook/ceph:v1.1.9
         kubectl -n rook-ceph set image deploy/rook-ceph-tools rook-ceph-tools=rook/ceph:v1.1.9
 
-        log "Awaiting up 5 minutes to check Rook Ceph Pod(s) are Running"
+        log "Awaiting up to 5 minutes to check Rook Ceph Pod(s) are Running"
         if ! spinner_until 300 check_for_running_pods "rook-ceph"; then
             logWarn "Rook Ceph has unhealthy Pod(s)"
         fi
@@ -130,7 +130,7 @@ function rookupgrade_10to14_upgrade() {
             kubectl -n rook-ceph patch CephCluster rook-ceph --type=merge -p '{"spec": {"cephVersion": {"image": "ceph/ceph:v14.2.5-20201116"}}}'
             kubectl patch deployment -n rook-ceph csi-rbdplugin-provisioner -p '{"spec": {"template": {"spec":{"containers":[{"name":"csi-snapshotter","imagePullPolicy":"IfNotPresent"}]}}}}'
 
-            log "Awaiting up 5 minutes to check Rook Ceph Pod(s) are Running"
+            log "Awaiting up to 5 minutes to check Rook Ceph Pod(s) are Running"
             if ! spinner_until 300 check_for_running_pods "rook-ceph"; then
                 logWarn "Rook Ceph has unhealthy Pod(s)"
             fi
@@ -185,7 +185,7 @@ function rookupgrade_10to14_upgrade() {
         kubectl -n rook-ceph set image deploy/rook-ceph-operator rook-ceph-operator=rook/ceph:v1.2.7
         kubectl -n rook-ceph set image deploy/rook-ceph-tools rook-ceph-tools=rook/ceph:v1.2.7
 
-        log "Awaiting up 5 minutes to check Rook Ceph Pod(s) are Running"
+        log "Awaiting up to 5 minutes to check Rook Ceph Pod(s) are Running"
         if ! spinner_until 300 check_for_running_pods "rook-ceph"; then
             logWarn "Rook Ceph has unhealthy Pod(s)"
         fi
@@ -235,7 +235,7 @@ function rookupgrade_10to14_upgrade() {
         kubectl -n rook-ceph set image deploy/rook-ceph-operator rook-ceph-operator=rook/ceph:v1.3.11
         kubectl -n rook-ceph set image deploy/rook-ceph-tools rook-ceph-tools=rook/ceph:v1.3.11
 
-        log "Awaiting up 5 minutes to check Rook Ceph Pod(s) are Running"
+        log "Awaiting up to 5 minutes to check Rook Ceph Pod(s) are Running"
         if ! spinner_until 300 check_for_running_pods "rook-ceph"; then
             logWarn "Rook Ceph has unhealthy Pod(s)"
         fi
@@ -278,7 +278,7 @@ function rookupgrade_10to14_upgrade() {
         kubectl -n rook-ceph set image deploy/rook-ceph-operator rook-ceph-operator=rook/ceph:v1.4.9
         kubectl apply -f "$upgrade_files_path/rook-ceph-tools-14.yaml"
 
-        log "Awaiting up 5 minutes to check Rook Ceph Pod(s) are Running"
+        log "Awaiting up to 5 minutes to check Rook Ceph Pod(s) are Running"
         if ! spinner_until 300 check_for_running_pods "rook-ceph"; then
             logWarn "Rook Ceph has unhealthy Pod(s)"
         fi
@@ -319,7 +319,7 @@ function rookupgrade_10to14_upgrade() {
             fi
             rookupgrade_10to14_maybe_scale_pool_device_health_metrics
 
-            log "Awaiting up 5 minutes to check Rook Ceph Pod(s) are Running"
+            log "Awaiting up to 5 minutes to check Rook Ceph Pod(s) are Running"
             if ! spinner_until 300 check_for_running_pods "rook-ceph"; then
                 logWarn "Rook Ceph has unhealthy Pod(s)"
             fi
