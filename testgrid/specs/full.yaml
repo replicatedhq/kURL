@@ -1295,6 +1295,8 @@
       version: latest
     ekco:
       version: latest
+    minio:
+      version: latest
 - name: "Upgrade to 1.26 minimal airgap"
   installerSpec:
     kubernetes:
