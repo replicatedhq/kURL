@@ -6,9 +6,79 @@ metadata:
 spec:
   collectors:
     - clusterResources: {}
+    - clusterInfo: {}
+    - ceph: {}
+    - run:
+        collectorName: journalctl-kubelet
+        exclude: '{{kurl or (not .IsPrimary) (not .IsUpgrade) }}'
+        command: ["journalctl"]
+        image: busybox:1
+        args: ["-u", "kubelet", "--no-pager", "-S", "7 days ago"]
+    - run:
+        collectorName: k8s-api-health
+        exclude: '{{kurl or (not .IsPrimary) (not .IsUpgrade) }}'
+        command: ["curl"]
+        image: busybox:1
+        args: [ "-k", "https://localhost:6443/healthz?verbose" ]
+    - run:
+        collectorName: k8s-etcd-api-health
+        exclude: '{{kurl or (not .IsPrimary) (not .IsUpgrade) }}'
+        command: ["curl"]
+        image: busybox:1
+        args: [ "-ki", "https://localhost:2379/health", "--cert", "/etc/kubernetes/pki/etcd/healthcheck-client.crt", "--key", "/etc/kubernetes/pki/etcd/healthcheck-client.key" ]
+    - logs:
+        collectorName: "Rook Ceph Kots logs"
+        exclude: '{{kurl or (not .IsPrimary) (not .IsUpgrade) (not .Installer.Spec.Rook.Version) (not .Installer.Spec.Kotsadm.Version)}}'
+        namespace: rook-ceph
+        name: kots/rook
+    - logs:
+        collectorName: "Rook Ceph Kots logs"
+        exclude: '{{kurl or (not .IsPrimary) (not .IsUpgrade) (not .Installer.Spec.Rook.Version) (not .Installer.Spec.Kotsadm.Version)}}'
+        namespace: rook-ceph
+        name: kots/rook
+    - logs:
+        collectorName: "Registry Kots logs"
+        exclude: '{{kurl or (not .IsPrimary) (not .IsUpgrade) (not .Installer.Spec.Minio.Version) (not .Installer.Spec.Registry.Version)}}'
+        name: kots/kurl
+        selector:
+          - app=registry
+        namespace: kurl
+    - exec:
+        args:
+          - "http://goldpinger.kurl.svc.cluster.local:80/check_all"
+        collectorName: "Kots Goldpinger logs"
+        command:
+          - curl
+        containerName: kotsadm
+        name: kots/goldpinger
+        selector:
+          - app=kotsadm
+        timeout: 60s
+        exclude: '{{kurl or (not .IsPrimary) (not .IsUpgrade) (not .Installer.Spec.Minio.Version) (not .Installer.Spec.Registry.Version)}}'
+    - exec:
+        collectorName: "Kots weave-report"
+        exclude: '{{kurl or (not .IsPrimary) (not .IsUpgrade) (not .Installer.Spec.Weave.Version) (not .Installer.Spec.Kotsadm.Version)}}'
+        command:
+          - /home/weave/weave
+        args:
+          - --local
+          - report
+        containerName: weave
+        name: kots/kurl/weave
+        namespace: kube-system
+        selector:
+          - name=weave-net
+        timeout: 10s
+    - logs:
+        collectorName: "Kots weave-net"
+        exclude: '{{kurl or (not .IsPrimary) (not .IsUpgrade) (not .Installer.Spec.Weave.Version) (not .Installer.Spec.Kotsadm.Version)}}'
+        selector:
+          - name=weave-net
+        namespace: kube-system
+        name: kots/kurl/weave
   analyzers:
     - nodeResources:
-        checkName: Node status check
+        checkName: "Node status check"
         exclude: '{{kurl or (not .IsPrimary) (not .IsUpgrade) }}'
         outcomes:
           - fail:
@@ -19,3 +89,163 @@ spec:
               message: "Not all nodes are online."
           - pass:
               message: "All nodes are online."
+    - clusterPodStatuses:
+        checkName: "Check Pod(s) Healthy"
+        exclude: '{{kurl or (not .IsPrimary) (not .IsUpgrade)}}'
+        outcomes:
+          - warn:
+              when: "!= Healthy" # Catch all unhealthy pods. A pod is considered healthy if it has a status of Completed, or Running and all of its containers are ready.
+              message: "A Pod, {{ .Name }}, is unhealthy with a status of: {{ .Status.Reason }}. Restarting the pod may fix the issue."
+    - clusterPodStatuses:
+        checkName: "Check Kurl Pod(s) unhealthy"
+        exclude: '{{kurl or (not .IsPrimary) (not .IsUpgrade)}}'
+        namespaces:
+          - kurl
+        outcomes:
+          - fail:
+              when: "!= Healthy" # Catch all unhealthy pods. A pod is considered healthy if it has a status of Completed, or Running and all of its containers are ready.
+              message: "A Kurl pod, {{ .Name }}, is unhealthy with a status of {{ .Status.Reason }}. Restarting the pod may fix the issue."
+    - textAnalyze:
+        checkName: "Check Weave Kots Status"
+        exclude: '{{kurl or (not .IsPrimary) (not .IsUpgrade) (not .Installer.Spec.Weave.Version) (not .Installer.Spec.Kotsadm.Version)}}'
+        ignoreIfNoFiles: true
+        fileName: kots/kurl/weave/kube-system/weave-net-*/weave-status-stdout.txt
+        outcomes:
+          - fail:
+              message: Weave is not ready
+          - pass:
+              message: Weave is ready
+        regex: 'Status: ready'
+    - textAnalyze:
+        checkName: "Check Weave Kots Report"
+        exclude: '{{kurl or (not .IsPrimary) (not .IsUpgrade) (not .Installer.Spec.Weave.Version) (not .Installer.Spec.Kotsadm.Version)}}'
+        ignoreIfNoFiles: true
+        fileName: kots/kurl/weave/kube-system/weave-net-*/weave-report-stdout.txt
+        outcomes:
+          - fail:
+              message: Weave is not ready
+          - pass:
+              message: Weave is ready
+        regex: '"Ready": true'
+    - textAnalyze:
+        checkName: "Check Weave Kots IP Allocation"
+        exclude: '{{kurl or (not .IsPrimary) (not .IsUpgrade) (not .Installer.Spec.Weave.Version) (not .Installer.Spec.Kotsadm.Version)}}'
+        ignoreIfNoFiles: true
+        fileName: kots/kurl/weave/kube-system/weave-net-*/weave-report-stdout.txt
+        outcomes:
+          - fail:
+              message: IP Allocation issues detected. Please run `rm /var/lib/weave/weave-netdata.db && reboot` on each node to resolve this.
+          - pass:
+              message: Weave is ready, there are no IP allocation issues.
+        regex: '"IP Allocation was seeded by different peers": false'
+    - textAnalyze:
+        checkName: "Check Kost Goldpinger Networking"
+        exclude: '{{kurl or (not .IsPrimary) (not .IsUpgrade) (not .Installer.Spec.Goldpinger.Version) (not .Installer.Spec.Kotsadm.Version)}}'
+        ignoreIfNoFiles: true
+        fileName: kots/goldpinger/*/kotsadm-*/goldpinger-statistics-stdout.txt
+        outcomes:
+          - fail:
+              when: "OK = false"
+              message: Some nodes have pod communication issues
+          - pass:
+              message: Goldpinger can communicate properly
+        regexGroups: '"OK": ?(?P<OK>\w+)'
+    - textAnalyze:
+        checkName: "Check Hostname"
+        file: run/journalctl-kubelet/journalctl-kubelet.logs
+        exclude: '{{kurl or (not .IsPrimary) (not .IsUpgrade)}}'
+        regex: ".*can only access node lease with the same name as the requesting node.*"
+        outcomes:
+          - fail:
+              when: "true"
+              message: "Possible hostname change. Verify that the current hostname matches what's expected by the k8s control plane"
+          - pass:
+              when: "false"
+              message: "No signs of hostname changes found"
+    - textAnalyze:
+        checkName: "Check for CNI 'not ready' messages"
+        file: run/journalctl-kubelet/journalctl-kubelet.logs
+        exclude: '{{kurl or (not .IsPrimary) (not .IsUpgrade)}}'
+        regex: "Container runtime network not ready.*cni plugin not initialized"
+        outcomes:
+          - pass:
+              when: "false"
+              message: "CNI is initialized"
+          - fail:
+              when: "true"
+              message: "CNI plugin not initialized: there may be a problem with the CNI configuration on the host, check /etc/cni/net.d/*.conflist against a known good configuration"
+    - textAnalyze:
+        checkName: "Kubernetes API health"
+        file: run/k8s-api-health/k8s-api-health.logs
+        exclude: '{{kurl or (not .IsPrimary) (not .IsUpgrade)}}'
+        regex: ".*healthz check passed*"
+        outcomes:
+          - fail:
+              when: "false"
+              message: "Kubernetes API health check did not pass. One or more components are not working."
+          - pass:
+              when: "true"
+              message: "Kubernetes API health check passed"
+    - textAnalyze:
+        checkName: "Kubernetes ETCD API health"
+        file: run/k8s-etcd-api-health/k8s-etcd-api-health
+        exclude: '{{kurl or (not .IsPrimary) (not .IsUpgrade)}}'
+        regex: ".*etcd ok*"
+        outcomes:
+          - fail:
+              when: "false"
+              message: "ETCD is unhealthy"
+          - pass:
+              when: "true"
+              message: "ETCD healthz check using Kubernetes API is OK"
+    - textAnalyze:
+        checkName: "Kubernetes ETCD API status"
+        file: run/k8s-etcd-api-health/k8s-etcd-api-health
+        exclude: '{{kurl or (not .IsPrimary) (not .IsUpgrade)}}'
+        regex: ".*\"health\":\"true\"*"
+        outcomes:
+          - fail:
+              when: "false"
+              message: "ETCD status returned: unhealthy"
+          - pass:
+              when: "true"
+              message: "ETCD status returned: healthy"
+    - textAnalyze:
+        checkName: "Check Minio Disk space"
+        exclude: '{{kurl or (not .IsPrimary) (not .IsUpgrade) (not .Installer.Spec.Minio.Version) (not .Installer.Spec.Registry.Version)}}'
+        ignoreIfNoFiles: true
+        collectorName: "Registry Kots logs"
+        regex: '.*XMinioStorageFull: Storage backend has reached its minimum free disk threshold.*'
+        outcomes:
+          - fail:
+              when: "true"
+              message: "Minio Disk Full"
+          - pass:
+              when: "false"
+              message: "Minio Disk Ok"
+    - textAnalyze:
+        checkName: "Check Known issue with Rook < 1.4"
+        exclude: '{{kurl or (not .IsPrimary) (not .IsUpgrade) (not .Installer.Spec.Rook.Version)}}'
+        ignoreIfNoFiles: true
+        fileName: /ceph/status.json
+        regex: '\"ceph_release\": \"nautilus\"|\"status\": \"HEALTH_WARN\"'
+        outcomes:
+          - fail:
+              when: "true"
+              message: "If you have been removing and adding nodes then, you might want ensure that you are not facing the scenario described in the community topic: https://community.replicated.com/t/1099"
+          - pass:
+              when: "false"
+              message: "You are not using a Rook versions < 1.4 and/or your Ceph status is OK"
+    - textAnalyze:
+        checkName: "Rook rbd filesystem consistency"
+        exclude: '{{kurl or (not .IsPrimary) (not .IsUpgrade) (not .Installer.Spec.Rook.Version) (not .Installer.Spec.Kotsadm.Version)}}'
+        ignoreIfNoFiles: true
+        fileName: /kots/rook/rook-ceph-agent-*.log
+        regex: 'UNEXPECTED INCONSISTENCY; RUN fsck MANUALLY.'
+        outcomes:
+          - fail:
+              when: "true"
+              message: "One or more rook rbd(s) were detected to have filesystem inconsistencies and require manual intervention"
+          - pass:
+              when: "false"
+              message: "Rook filesystem consistency ok"
