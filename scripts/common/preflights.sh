@@ -15,8 +15,19 @@ function preflights() {
     allow_remove_docker_new_install
     bail_when_no_object_store_and_s3_enabled
     bail_if_unsupported_openebs_to_rook_version
+    bail_if_kurl_pods_are_unhealthy
     bail_if_kurl_version_is_lower_than_previous_config
     return 0
+}
+
+# if kurl pods like ekco not be running then we should bail
+function bail_if_kurl_pods_are_unhealthy() {
+    if commandExists kubectl; then
+      log "Awaiting 2 minutes to check Kulr Pod(s) are Running"
+      if ! spinner_until 120 check_for_running_pods kurl; then
+          bail "Kurl has unhealthy Pod(s). Check the namespace kurl. Restarting the pod may fix the issue."
+      fi
+    fi
 }
 
 function join_preflights() {
