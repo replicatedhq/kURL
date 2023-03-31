@@ -333,6 +333,20 @@ function openebs_maybe_migrate_from_longhorn() {
 }
 
 function openebs_maybe_longhorn_migration_checks() {
+    logStep "Running Longhorn to OpenEBS migration checks"
+
+    log "Awaiting 2 minutes to check OpenEBS Pod(s) are Running"
+    if ! spinner_until 120 check_for_running_pods "$OPENEBS_NAMESPACE"; then
+        logFail "OpenEBS has unhealthy Pod(s). Check the namespace $OPENEBS_NAMESPACE "
+        bail "Cannot upgrade from Rook to OpenEBS. OpenEBS is unhealthy."
+    fi
+
+    log "Awaiting 2 minutes to check Longhorn Pod(s) are Running"
+    if ! spinner_until 120 check_for_running_pods longhorn-system; then
+        logFail "Longhorn has unhealthy Pod(s). Check the namespace longhorn-system"
+        bail "Cannot upgrade from Longhorn to OpenEBS. Longhorn is unhealthy."
+    fi
+
     # get the list of StorageClasses that use longhorn
     local longhorn_scs
     local longhorn_default_sc
@@ -343,7 +357,6 @@ function openebs_maybe_longhorn_migration_checks() {
     log "Awaiting openebs-localpv-provisioner deployment"
     spinner_until 120 deployment_fully_updated openebs openebs-localpv-provisioner
 
-    log "Running Longhorn to OpenEBS migration checks ..."
     local longhorn_scs_pvmigrate_dryrun_output
     local longhorn_default_sc_pvmigrate_dryrun_output
     for longhorn_sc in $longhorn_scs
