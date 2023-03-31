@@ -14,8 +14,9 @@ function preflights() {
     host_nameservers_reachable
     allow_remove_docker_new_install
     bail_when_no_object_store_and_s3_enabled
-    bail_if_unsupported_openebs_to_rook_version
     bail_if_kurl_pods_are_unhealthy
+    bail_if_unsupported_migration_from_rook_to_openebs
+    bail_if_unsupported_migration_from_longhorn_to_openebs
     bail_if_kurl_version_is_lower_than_previous_config
     return 0
 }
@@ -751,9 +752,9 @@ allow_remove_docker_new_install() {
      fi
 }
 
-# bail_if_unsupported_openebs_to_rook_version will bail if the rook is being removed in favor of
+# bail_if_unsupported_migration_from_rook_to_openebs will bail if the rook is being removed in favor of
 # openebs and the openebs version does not support migrations from rook.
-function bail_if_unsupported_openebs_to_rook_version() {
+function bail_if_unsupported_migration_from_rook_to_openebs() {
     if [ -z "$ROOK_VERSION" ] && [ -n "$OPENEBS_VERSION" ]; then
         if commandExists kubectl; then
             if kubectl get ns 2>/dev/null | grep -q rook-ceph; then
@@ -767,6 +768,28 @@ function bail_if_unsupported_openebs_to_rook_version() {
                 # registry + openebs without rook requires minio
                 if [ -n "$REGISTRY_VERSION" ] && [ -z "$MINIO_VERSION" ]; then
                     logFail "Migration from Rook with Registry required an object store."
+                    bail "Please ensure that your installer also provides an object store with MinIO add-on."
+                fi
+            fi
+        fi
+    fi
+}
+
+# bail_if_unsupported_migration_from_longhorn_to_openebs will bail if the longhorn is being removed in favor of
+# openebs and the openebs version does not support migrations
+function bail_if_unsupported_migration_from_longhorn_to_openebs() {
+    if [ -z "$LONGHORN_VERSION" ] && [ -n "$OPENEBS_VERSION" ]; then
+        if commandExists kubectl; then
+            if kubectl get ns 2>/dev/null | grep -q longhorn-system; then
+                semverParse "$OPENEBS_VERSION"
+                # if $OPENEBS_VERSION is less than 3.3.0
+                if [ "$major" -lt "3" ] || { [ "$major" = "3" ] && [ "$minor" -lt "3" ] ; }; then
+                    logFail "The OpenEBS version $OPENEBS_VERSION cannot be installed."
+                    bail "OpenEBS versions less than 3.3.0 do not support migrations from Longhorn"
+                fi
+                # registry + openebs without rook requires minio
+                if [ -n "$REGISTRY_VERSION" ] && [ -z "$MINIO_VERSION" ]; then
+                    logFail "Migration from Longhorn with Registry required an object store."
                     bail "Please ensure that your installer also provides an object store with MinIO add-on."
                 fi
             fi
