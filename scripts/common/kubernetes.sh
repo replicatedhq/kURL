@@ -813,7 +813,7 @@ function check_network() {
     fi
 
     if ! kubernetes_any_node_ready; then
-        echo "Waiting up 10 minutes for node to report Ready"
+        echo "Waiting up to 10 minutes for node to report Ready"
         spinner_until 600 kubernetes_any_node_ready
     fi
 
