@@ -789,8 +789,10 @@ function bail_if_unsupported_migration_from_longhorn_to_openebs() {
                 fi
                 # registry + openebs without rook requires minio
                 if [ -n "$REGISTRY_VERSION" ] && [ -z "$MINIO_VERSION" ]; then
-                    logFail "Migration from Longhorn with Registry requires an object store."
-                    bail "Please ensure that your installer also provides an object store with MinIO add-on."
+                    if kubectl get ns | grep -q minio; then
+                        logFail "Migration from Longhorn with Registry requires an object store."
+                        bail "Please ensure that your installer also provides an object store with MinIO add-on."
+                    fi
                 fi
             fi
         fi
