@@ -74,13 +74,16 @@ function containerd_install() {
 
     load_images $src/images
 
-    if systemctl list-unit-files | grep -v disabled | grep -q kubelet.service; then
-        systemctl start kubelet
-        # If using the internal load balancer the Kubernetes API server will be unavailable until
-        # kubelet starts the HAProxy static pod. This check ensures the Kubernetes API server
-        # is available before proceeeding.
-        # "nodes.v1." is needed becasue addons can have a CRD names "nodes", like nodes.longhorn.io
-        try_5m kubectl --kubeconfig=/etc/kubernetes/kubelet.conf get nodes.v1.
+    if systemctl list-unit-files | grep -v disabled | grep -q kubelet.service ; then
+        # do not try to start and wait for the kubelet if it is not yet configured
+        if [ -f /etc/kubernetes/kubelet.conf ]; then
+            systemctl start kubelet
+            # If using the internal load balancer the Kubernetes API server will be unavailable until
+            # kubelet starts the HAProxy static pod. This check ensures the Kubernetes API server
+            # is available before proceeeding.
+            # "nodes.v1." is needed becasue addons can have a CRD names "nodes", like nodes.longhorn.io
+            try_5m kubectl --kubeconfig=/etc/kubernetes/kubelet.conf get nodes.v1.
+        fi
     fi
 }
 
