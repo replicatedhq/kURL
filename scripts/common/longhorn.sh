@@ -104,10 +104,12 @@ function longhorn_to_sc_migration() {
     report_addon_start "longhorn-to-${scProvisioner}-migration" "v1"
 
     # set prometheus scale if it exists
+    local ekcoScaledDown=0
     if kubectl get namespace monitoring &>/dev/null; then
         if kubectl -n monitoring get prometheus k8s &>/dev/null; then
             # before scaling down prometheus, scale down ekco as it will otherwise restore the prometheus scale
             if kubernetes_resource_exists kurl deployment ekc-operator; then
+                ekcoScaledDown=1
                 kubectl -n kurl scale deploy ekc-operator --replicas=0
                 log "Waiting for ekco pods to be removed"
                 if ! spinner_until 120 ekco_pods_gone; then
@@ -119,6 +121,20 @@ function longhorn_to_sc_migration() {
             kubectl -n monitoring patch prometheus k8s --type='json' --patch '[{"op": "replace", "path": "/spec/replicas", value: 0}]'
             log "Waiting for prometheus pods to be removed"
             spinner_until 300 prometheus_pods_gone
+        fi
+    fi
+
+    # scale down ekco if kotsadm is using rqlite.
+    if kubernetes_resource_exists default statefulset kotsadm-rqlite ; then
+        if [ "$ekcoScaledDown" = "0" ]; then
+            if kubernetes_resource_exists kurl deployment ekc-operator; then
+                kubectl -n kurl scale deploy ekc-operator --replicas=0
+                log "Waiting for ekco pods to be removed"
+                if ! spinner_until 120 ekco_pods_gone; then
+                    logFail "Unable to scale down ekco operator"
+                    return 1
+                fi
+            fi
         fi
     fi
 
