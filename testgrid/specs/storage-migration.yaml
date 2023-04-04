@@ -874,7 +874,6 @@
        exit 1
     fi
   unsupportedOSIDs:
-  - ol-91 # docker is not supported on rhel 9 variants
   - rocky-91 # docker is not supported on rhel 9 variants
   - ubuntu-2204 # Docker versions < 20.10.17 not supported on ubuntu 22.04
 - name: Migrate from OpenEBS (S3 disabled) to OpenEBS + Minio
@@ -1026,7 +1025,6 @@
       envoyPodsNotReadyDuration: 5m
   unsupportedOSIDs:
   - ubuntu-2204 # containerd 1.4.x is not supported on ubuntu 22.04
-  - ol-91 # docker is not supported on rhel 9 variants
   - rocky-91 # docker is not supported on rhel 9 variants
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
