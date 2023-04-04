@@ -107,4 +107,3 @@
       s3Override: "__testdist__"
   unsupportedOSIDs:
   - rocky-91 # docker is not supported on rhel 9 variants
-  - ol-91 # docker is not supported on rhel 9 variants
