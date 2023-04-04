@@ -127,13 +127,13 @@ UNSUPPORTED_CONTAINERD_MINORS="01234"
 
 VERSIONS=()
 function find_common_versions() {
-    docker build --pull -t centos7 -f Dockerfile.centos7 .
-    docker build --pull -t centos8 -f Dockerfile.centos8 .
-    docker build --pull -t rhel9 -f Dockerfile.rhel9 .
-    docker build --pull -t ubuntu16 -f Dockerfile.ubuntu16 .
-    docker build --pull -t ubuntu18 -f Dockerfile.ubuntu18 .
-    docker build --pull -t ubuntu20 -f Dockerfile.ubuntu20 .
-    docker build --pull -t ubuntu22 -f Dockerfile.ubuntu22 .
+    docker build --no-cache --pull -t centos7 -f Dockerfile.centos7 .
+    docker build --no-cache --pull -t centos8 -f Dockerfile.centos8 .
+    docker build --no-cache --pull -t rhel9 -f Dockerfile.rhel9 .
+    docker build --no-cache --pull -t ubuntu16 -f Dockerfile.ubuntu16 .
+    docker build --no-cache --pull -t ubuntu18 -f Dockerfile.ubuntu18 .
+    docker build --no-cache --pull -t ubuntu20 -f Dockerfile.ubuntu20 .
+    docker build --no-cache --pull -t ubuntu22 -f Dockerfile.ubuntu22 .
 
     CENTOS7_VERSIONS=($(docker run --rm -i centos7 yum list --showduplicates containerd.io | grep -Eo '1\.[[:digit:]]+\.[[:digit:]]+' | grep -vE '1\.['"$UNSUPPORTED_CONTAINERD_MINORS"']\.' | sort -rV | uniq))
     echo "Found ${#CENTOS7_VERSIONS[*]} containerd versions for CentOS 7: ${CENTOS7_VERSIONS[*]}"
@@ -198,9 +198,11 @@ function find_common_versions() {
         else
             add_supported_os_to_preflight_file "$version" "centos" "9"
             add_supported_os_to_preflight_file "$version" "rhel" "9"
-            add_supported_os_to_preflight_file "$version" "ol" "9"
             add_supported_os_to_preflight_file "$version" "rocky" "9"
             add_supported_os_to_manifest_file "$version" "rhel-9" "Dockerfile.rhel9"
+
+            # exclude Oracle Linux 9 (OL 9) until we officially support it
+            add_unsupported_os_to_preflight_file "$version" "ol" "9"
         fi
 
         if ! contains "$version" ${UBUNTU16_VERSIONS[*]}; then

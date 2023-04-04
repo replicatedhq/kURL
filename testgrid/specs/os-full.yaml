@@ -58,12 +58,6 @@
   name: Rocky Linux
   version: "9.1"
   vmimageuri: https://download.rockylinux.org/pub/rocky/9/images/x86_64/Rocky-9-GenericCloud-Base-9.1-20230215.0.x86_64.qcow2
-- id: ol-91
-  name: Oracle Linux
-  version: "9.1"
-  vmimageuri: https://yum.oracle.com/templates/OracleLinux/OL9/u1/x86_64/OL9U1_x86_64-kvm-b158.qcow
-  preinit: |
-    yum install -y tar
 - id: ubuntu-1804
   name: Ubuntu
   version: "18.04"
