@@ -77,7 +77,7 @@
   unsupportedOSIDs:
   - ubuntu-2204 # containerd 1.4.x is not available on ubuntu 22.04
   - rocky-91 # containerd < 1.6 is not supported on rhel 9 variants
-- name: k8s120x_openebs_minio
+- name: k8s117x_openebs_minio
   flags: "yes"
   installerSpec:
     kubernetes:
@@ -85,7 +85,7 @@
     docker:
       version: latest
     weave:
-      version: 2.5.2
+      version: 2.6.5
     contour:
       version: 1.0.1
     registry:
