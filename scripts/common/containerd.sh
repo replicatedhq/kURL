@@ -1,15 +1,17 @@
 # containerd_patch_for_minor_version returns the maximum patch version for the given minor version. uses
-# $CONTAINERD_STEP_VERSIONS to determine the max patch. if the minor version is not found, returns 0.
+# $CONTAINERD_STEP_VERSIONS to determine the max patch. if the minor version is not found, returns an
+# empty string.
 function containerd_patch_for_minor_version() {
-    local for_minor=$1
+    local for_major=$1
+    local for_minor=$2
     for i in "${CONTAINERD_STEP_VERSIONS[@]}"; do
         semverParse "$i"
-        if [ "$minor" == "$for_minor" ]; then
+        if [ "$major" == "$for_major" ] && [ "$minor" == "$for_minor" ]; then
             echo "$patch"
             return 0
         fi
     done
-    echo "0"
+    echo ""
 }
 
 # containerd_migration_steps returns an array with all steps necessary to migrate from the current containerd
@@ -31,8 +33,8 @@ function containerd_migration_steps() {
 
     local steps=()
     while [ "$current_minor" -lt "$install_minor" ]; do
-        max_patch=$(containerd_patch_for_minor_version "$current_minor")
-        if [ "$max_patch" = "0" ]; then
+        max_patch=$(containerd_patch_for_minor_version "$current_major" "$current_minor")
+        if [ -z "$max_patch" ]; then
             bail "error: could not find patch for containerd minor version v$current_major.$current_minor"
         fi
         steps+=("$install_major.$current_minor.$max_patch")

@@ -434,6 +434,10 @@ function report_install_containerd() {
     containerd_evaluate_upgrade "$current_containerd_version" "$CONTAINERD_VERSION"
     for version in "${CONTAINERD_INSTALL_VERSIONS[@]}"; do
         logStep "Moving containerd to version v$version."
+        if [ "$version" != "$CONTAINERD_VERSION" ] && [ "$AIRGAP" != "1" ] ; then
+            log "Downloading containerd v$version."
+            addon_fetch "containerd" "$version"
+        fi
         addon_install "containerd" "$version"
     done
 }
