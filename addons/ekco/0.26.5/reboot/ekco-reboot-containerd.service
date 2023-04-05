@@ -1,0 +1,12 @@
+[Unit]
+After=kubelet.service
+After=containerd.service
+
+[Service]
+ExecStart=/opt/ekco/startup.sh
+ExecStop=/opt/ekco/shutdown.sh
+Type=oneshot
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
