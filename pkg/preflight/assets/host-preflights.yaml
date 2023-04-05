@@ -36,6 +36,13 @@ spec:
         timeout: 3m
         # ha and is first master (primary and not join) and not is upgrade
         exclude: '{{kurl and .Installer.Spec.Kubernetes.Version .Installer.Spec.Kubernetes.LoadBalancerAddress .IsPrimary (not .IsJoin) (not .IsUpgrade) | not }}'
+    - http:
+        collectorName: "Kubernetes API Server Load Balancer Upgrade"
+        get:
+          url: https://{{kurl .Installer.Spec.Kubernetes.LoadBalancerAddress | trimSuffix "/" }}/healthz
+          insecureSkipVerify: true
+        # ha and is first master (primary and not join) and is upgrade (the load balancer backend should already be available)
+        exclude: '{{kurl and .Installer.Spec.Kubernetes.Version .Installer.Spec.Kubernetes.LoadBalancerAddress .IsPrimary .IsUpgrade (not .IsJoin) | not }}'
     - tcpPortStatus:
         collectorName: "Kubernetes API TCP Port Status"
         port: 6443
@@ -295,6 +302,19 @@ spec:
               message: Successfully connected to {{kurl .Installer.Spec.Kubernetes.LoadBalancerAddress }} via load balancer
           - warn:
               message: Unexpected port status
+    - http:
+        checkName: "Kubernetes API Server Load Balancer Upgrade"
+        collectorName: "Kubernetes API Server Load Balancer Upgrade"
+        exclude: '{{kurl and .Installer.Spec.Kubernetes.Version .Installer.Spec.Kubernetes.LoadBalancerAddress .IsPrimary .IsUpgrade (not .IsJoin) | not }}'
+        outcomes:
+          - fail:
+              when: "error"
+              message: Error connecting to load balancer at https://{{kurl .Installer.Spec.Kubernetes.LoadBalancerAddress }}/healthz
+          - pass:
+              when: "statusCode == 200"
+              message: OK HTTP status response from load balancer at https://{{kurl .Installer.Spec.Kubernetes.LoadBalancerAddress }}/healthz
+          - fail:
+              message: Unexpected status code response from load balancer at https://{{kurl .Installer.Spec.Kubernetes.LoadBalancerAddress }}/healthz
     - tcpPortStatus:
         checkName: "Kubernetes API TCP Port Status"
         collectorName: "Kubernetes API TCP Port Status"
