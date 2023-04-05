@@ -1,0 +1,33 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: kurl
+  name: ekco-rotate-certs
+rules:
+- apiGroups: [""]
+  resources:
+  - pods
+  - pods/log
+  - configmaps
+  - secrets
+  verbs:
+  - get
+  - list
+  - delete
+  - create
+  - update
+  - deletecollection
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: ekco-rotate-certs
+  namespace: kurl
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: ekco-rotate-certs
+subjects:
+  - kind: ServiceAccount
+    name: ekco
+    namespace: kurl
