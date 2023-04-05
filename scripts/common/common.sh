@@ -424,7 +424,18 @@ function report_install_docker() {
 }
 
 function report_install_containerd() {
-    addon_install "containerd" "$CONTAINERD_VERSION"
+    if [ -z "$CURRENT_KUBERNETES_VERSION" ] || [ ! -f "/usr/bin/containerd" ]; then
+        addon_install "containerd" "$CONTAINERD_VERSION"
+        return 0
+    fi
+
+    local current_containerd_version
+    current_containerd_version=$(/usr/bin/containerd --version | cut -d " " -f3 | tr -d 'v')
+    containerd_evaluate_upgrade "$current_containerd_version" "$CONTAINERD_VERSION"
+    for version in "${CONTAINERD_INSTALL_VERSIONS[@]}"; do
+        logStep "Moving containerd to version v$version."
+        addon_install "containerd" "$version"
+    done
 }
 
 function load_images() {
