@@ -16,7 +16,8 @@ function containerd_patch_for_minor_version() {
 
 # containerd_node_is_using_docker returns 0 if the current node is using docker as the container runtime.
 function containerd_node_is_using_docker() {
-    local node=$(hostname | tr '[:upper:]' '[:lower:]')
+    local node
+    node="$(get_local_node_name)"
     kubectl get node "$node" -ojsonpath='{.metadata.annotations.kubeadm\.alpha\.kubernetes\.io/cri-socket}' | grep -q "dockershim.sock"
 }
 
