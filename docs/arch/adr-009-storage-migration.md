@@ -17,7 +17,6 @@ Provide a migration path from OpenEBS to OpenEBS + Rook, triggered by the presen
 
 A new field, `rook.minimumNodeCount`, will be added to the rook config.
 When set to a value of 2 or more (requires openebs localpv to be present), the rook operator will be installed on single node installs, but no ceph cluster will be created.
-When unset or set to a value of 1, the Rook storage class will function as at does today, backed by Rook-Ceph.
 
 An example spec is provided below:
 
@@ -25,13 +24,15 @@ An example spec is provided below:
 spec:
   rook:
     version: "1.10.x"
-    storageClassName: "scaling"
+    storageClassName: "distributed"
     minimumNodeCount: 3
   openebs:
     version: "3.4.x"
     isLocalPVEnabled: true
     localPVStorageClassName: "local"
 ```
+
+When `rook.minimumNodeCount` is unset or set to a value of 1, the Rook add-on will function as at does today, with a single storageclass - "distributed".
 
 When configured with `rook.minimumNodeCount >= 2` and installed on a single node, two storageclasses will be available - "scaling" and "local". 
 The default storage class will be "scaling", and both storage classes will be backed by openebs localpv.
