@@ -424,11 +424,27 @@ function report_install_docker() {
 }
 
 function report_install_containerd() {
-    if [ -z "$CURRENT_KUBERNETES_VERSION" ] || [ ! -f "/usr/bin/containerd" ]; then
+    # if we haven't installed kubernetes yet we don't need to wory about containerd upgrades.
+    if [ -z "$CURRENT_KUBERNETES_VERSION" ] ; then
         addon_install "containerd" "$CONTAINERD_VERSION"
         return 0
     fi
 
+    # if the node we are running this script is leveraging docker we also don't need to worry
+    # about the version of containerd we are installing, it won't be an upgrade anyways.
+    if containerd_node_is_using_docker ; then
+        addon_install "containerd" "$CONTAINERD_VERSION"
+        return 0
+    fi
+
+    # if we can't find containerd in the local filesystem then we can also install regardless
+    # of version.
+    if [ ! -f "/usr/bin/containerd" ]; then
+        addon_install "containerd" "$CONTAINERD_VERSION"
+        return 0
+    fi
+
+    # from now on we are migrating from one containerd version to another, restrictions apply.
     local current_containerd_version
     current_containerd_version=$(/usr/bin/containerd --version | cut -d " " -f3 | tr -d 'v')
     containerd_evaluate_upgrade "$current_containerd_version" "$CONTAINERD_VERSION"

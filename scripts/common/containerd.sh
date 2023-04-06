@@ -14,6 +14,12 @@ function containerd_patch_for_minor_version() {
     echo ""
 }
 
+# containerd_node_is_using_docker returns 0 if the current node is using docker as the container runtime.
+function containerd_node_is_using_docker() {
+    local node=$(hostname | tr '[:upper:]' '[:lower:]')
+    kubectl get node "$node" -ojsonpath='{.metadata.annotations.kubeadm\.alpha\.kubernetes\.io/cri-socket}' | grep -q "dockershim.sock"
+}
+
 # containerd_migration_steps returns an array with all steps necessary to migrate from the current containerd
 # version to the desired version.
 function containerd_migration_steps() {
