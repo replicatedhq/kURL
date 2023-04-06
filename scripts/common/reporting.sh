@@ -283,18 +283,30 @@ function stacktrace {
     echo "$totalStack"
 }
 
-# if the kurl_cluster_uuid configmap exists, set the KURL_CLUSTER_UUID env var to the value in the configmap.
-# if it does not exist, make a new UUID for KURL_CLUSTER_UUID.
+# attempt_get_cluster_id will get the cluster uuid from the kurl_cluster_uuid configmap and set the
+# KURL_CLUSTER_UUID env var. If it does not exist or the cluster is down, check the disk to see if
+# it is persisted there, otherwise make a new UUID for KURL_CLUSTER_UUID and save to disk.
 function attempt_get_cluster_id() {
-    if ! kubernetes_resource_exists kurl configmap kurl-cluster-uuid; then
-        KURL_CLUSTER_UUID=$(< /dev/urandom tr -dc a-z0-9 | head -c32)
-        return 0
+    if ! kubernetes_resource_exists kurl configmap kurl-cluster-uuid ; then
+        # If the cluster is down, check to see if this is an etcd member and the cluster uuid is
+        # persisted to disk.
+        if [ -d /var/lib/etcd/member ] && [ -f /var/lib/kurl/clusteruuid ]; then
+            KURL_CLUSTER_UUID=$(cat /var/lib/kurl/clusteruuid)
+        else
+            KURL_CLUSTER_UUID=$(< /dev/urandom tr -dc a-z0-9 | head -c32)
+        fi
+    else
+        KURL_CLUSTER_UUID=$(kubectl get configmap -n kurl kurl-cluster-uuid -o jsonpath='{.data.kurl_cluster_uuid}')
     fi
 
-    KURL_CLUSTER_UUID=$(kubectl get configmap -n kurl kurl-cluster-uuid -o jsonpath='{.data.kurl_cluster_uuid}')
+    # Persist the cluster uuid to disk in case the cluster is down.
+    # The tasks.sh reset command will remove the /var/lib/kurl directory and the cluster uuid will
+    # be regenerated if reset.
+    echo "$KURL_CLUSTER_UUID" > /var/lib/kurl/clusteruuid
 }
 
-# if the kurl_cluster_uuid configmap does not exist, create it using the KURL_CLUSTER_UUID env var
+# maybe_set_kurl_cluster_uuid will create the kurl_cluster_uuid configmap using the
+# KURL_CLUSTER_UUID env var if it does not already exist.
 function maybe_set_kurl_cluster_uuid() {
     if [ -z "$KURL_CLUSTER_UUID" ]; then
         return 0

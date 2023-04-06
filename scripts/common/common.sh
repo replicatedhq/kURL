@@ -900,12 +900,18 @@ MACHINE_ID=
 KURL_INSTANCE_UUID=
 function get_machine_id() {
     MACHINE_ID="$(${DIR}/bin/kurl host protectedid || true)"
-    if [ -f /var/lib/kurl/uuid ]; then
-        KURL_INSTANCE_UUID="$(cat /var/lib/kurl/uuid)"
+    if [ -f /etc/kurl/uuid ]; then
+        KURL_INSTANCE_UUID="$(cat /etc/kurl/uuid)"
     else
-        KURL_INSTANCE_UUID=$(< /dev/urandom tr -dc a-z0-9 | head -c32)
-        mkdir -p /var/lib/kurl
-        echo "$KURL_INSTANCE_UUID" > /var/lib/kurl/uuid
+        if [ -f /var/lib/kurl/uuid ]; then
+            KURL_INSTANCE_UUID="$(cat /var/lib/kurl/uuid)"
+            rm -f /var/lib/kurl/uuid
+        else
+            KURL_INSTANCE_UUID=$(< /dev/urandom tr -dc a-z0-9 | head -c32)
+        fi
+        # use /etc/kurl to persist the instance id "machine id" across cluster reset
+        mkdir -p /etc/kurl
+        echo "$KURL_INSTANCE_UUID" > /etc/kurl/uuid
     fi
 }
 
