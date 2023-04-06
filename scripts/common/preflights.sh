@@ -24,7 +24,7 @@ function preflights() {
 # if kurl pods like ekco not be running then we should bail
 function bail_if_kurl_pods_are_unhealthy() {
     if commandExists kubectl; then
-      log "Awaiting 2 minutes to check Kulr Pod(s) are Running"
+      log "Awaiting 2 minutes to check kURL Pod(s) are Running"
       if ! spinner_until 120 check_for_running_pods kurl; then
           bail "Kurl has unhealthy Pod(s). Check the namespace kurl. Restarting the pod may fix the issue."
       fi
@@ -767,7 +767,7 @@ function bail_if_unsupported_migration_from_rook_to_openebs() {
 
                 # registry + openebs without rook requires minio
                 if [ -n "$REGISTRY_VERSION" ] && [ -z "$MINIO_VERSION" ]; then
-                    logFail "Migration from Rook with Registry required an object store."
+                    logFail "Migration from Rook with Registry requires an object store."
                     bail "Please ensure that your installer also provides an object store with MinIO add-on."
                 fi
             fi
