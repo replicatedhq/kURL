@@ -44,19 +44,23 @@
     velero:
       version: "__testver__"
       s3Override: "__testdist__"
-- name: "Velero Longhorn only"
+- name: "Velero OpenEBS only"
   installerSpec:
     kubernetes:
       version: "latest"
     flannel:
       version: latest
-    longhorn:
-      version: "latest"
+    openebs:
+      version: latest
+      isLocalPVEnabled: true
+      localPVStorageClassName: default
     containerd:
       version: "latest"
     velero:
       version: "__testver__"
       s3Override: "__testdist__"
+    minio:
+      version: "latest"
 - name: "Velero Remove Object Storage"
   cpu: 6
   installerSpec:
