@@ -1134,7 +1134,7 @@
   - ubuntu-2204 # containerd 1.4.x is not supported on ubuntu 22.04
   - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
   - rocky-91 # containerd < 1.6 is not supported on rhel 9 variants
-- name: "Upgrade to 1.24, weave to flannel"
+- name: "Upgrade to 1.24, disable s3, weave to flannel"
   flags: "yes"
   cpu: 7
   installerSpec:
@@ -1144,14 +1144,10 @@
       version: latest
     rook:
       version: 1.9.x
-    registry:
-      version: latest
     kotsadm:
       version: latest
     docker:
       version: 20.10.x
-    velero:
-      version: 1.8.x
     ekco:
       version: latest
   upgradeSpec:
@@ -1159,17 +1155,15 @@
       version: 1.24.x
     flannel:
       version: latest
-    longhorn:
+    openebs:
       version: latest
-    registry:
-      version: latest
+      isLocalPVEnabled: true
+      localPVStorageClassName: local
     kotsadm:
       version: latest
       disableS3: true
     containerd:
       version: latest
-    velero:
-      version: 1.9.x
     ekco:
       version: latest
   unsupportedOSIDs:
