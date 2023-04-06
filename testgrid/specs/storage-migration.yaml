@@ -928,8 +928,10 @@
     pvc_uses_provisioner "migration-test" "default" "openebs"
     test_pull_image_from_registry
     check_and_customize_kurl_integration_test_application
-- name: Migrate from Rook+OpenEBS to OpenEBS (Kubernetes 1.19.x to 1.21.x, Docker to Containerd)
+
+- name: Cust 1 - Migrate from Rook+OpenEBS to Longhorn+OpenEBS (Kubernetes 1.19.x to 1.21.x, Docker to Containerd)
   flags: "yes"
+  installerApiEndpoint: https://kurl.sh
   installerSpec:
     kubernetes:
       version: 1.19.x
@@ -1045,3 +1047,306 @@
        echo  Rook Data directories not removed.
        exit 1
     fi
+
+- name: Cust 1 - Migrate from Rook+OpenEBS 1.6.0 to OpenEBS 3.3.0 (Kubernetes 1.19.x to 1.21.x)
+  flags: "yes"
+  installerApiEndpoint: https://kurl.sh
+  installerSpec:
+    kurl:
+      installerVersion: "v2022.08.23-0"
+    kubernetes:
+      version: "1.19.3"
+    docker:
+      version: "19.03.10"
+      daemonConfig: |
+        {
+          "exec-opts": ["native.cgroupdriver=systemd"],
+          "log-opts": {
+              "max-size": "100m",
+              "max-file": "3"
+              }
+        }
+    weave:
+      version: "2.6.5"
+    rook:
+      version: "1.0.4"
+    contour:
+      version: "1.22.0"
+      tlsMinimumProtocolVersion: "1.2"
+    registry:
+      version: "2.7.1"
+    prometheus:
+      version: "0.58.0-39.4.0"
+    velero:
+      version: "1.9.0"
+    kotsadm:
+      version: "1.57.0"
+    goldpinger:
+      version: "3.2.0-4.1.1"
+    openebs:
+      version: "1.6.0"
+      namespace: "openebs"
+      isLocalPVEnabled: true
+      localPVStorageClassName: openebs
+      isCstorEnabled: false
+    ekco:
+      version: "0.16.0"
+      nodeUnreachableToleration: 5m
+      minReadyMasterNodeCount: 2
+      minReadyWorkerNodeCount: 0
+      rookShouldUseAllNodes: false
+      shouldDisableRebootServices: false
+      shouldDisableClearNodes: false
+      shouldEnablePurgeNodes: false
+  upgradeSpec:
+    contour:
+      tlsMinimumProtocolVersion: '1.2'
+      version: 1.23.0
+    docker:
+      daemonConfig: |
+        {
+          "exec-opts": ["native.cgroupdriver=systemd"],
+          "log-opts": {
+            "max-size": "100m",
+            "max-file": "3"
+          }
+        }
+      version: 19.03.10
+    ekco:
+      minReadyMasterNodeCount: 2
+      minReadyWorkerNodeCount: 0
+      nodeUnreachableToleration: 5m
+      shouldDisableClearNodes: false
+      shouldDisableRebootServices: false
+      shouldEnablePurgeNodes: false
+      version: 0.25.0
+    goldpinger:
+      version: 3.7.0-5.5.0
+    kotsadm:
+      version: 1.90.0
+    kubernetes:
+      version: 1.21.14
+    minio:
+      version: 2022-10-20T00-55-09Z
+    openebs:
+      isCstorEnabled: false
+      isLocalPVEnabled: true
+      localPVStorageClassName: openebs
+      namespace: openebs
+      version: 3.3.0
+    registry:
+      version: 2.8.1
+    velero:
+      version: 1.9.2
+      resticTimeout: 24h0m0s
+    weave:
+      version: 2.6.5-20221025
+  unsupportedOSIDs:
+  - ubuntu-2204 # docker 19.03.4 is not supported on ubuntu 22.04
+  - rocky-91 # docker is not supported on rhel 9 variants
+  postInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rook_ceph_object_store_info
+    validate_read_write_object_store rwtest testfile.txt
+    install_and_customize_kurl_integration_test_application
+  postUpgradeScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    minio_object_store_info
+    validate_testfile rwtest testfile.txt
+    validate_read_write_object_store postupgrade upgradefile.txt
+    check_and_customize_kurl_integration_test_application
+    if kubectl get namespace/rook-ceph ; then
+      echo Rook namespace found after the upgrade.
+      exit 1
+    fi
+    if [ -d "/var/lib/rook" ] || [ -d "/opt/replicated/rook" ]; then
+       echo  Rook Data directories not removed.
+       exit 1
+    fi
+
+- name: Cust 1 - Migrate from Weave to Flannel (Kubernetes 1.21.x to 1.23.x, Docker to Containerd)
+  flags: "yes"
+  installerApiEndpoint: https://kurl.sh
+  installerSpec:
+    contour:
+      tlsMinimumProtocolVersion: '1.2'
+      version: 1.23.0
+    docker:
+      daemonConfig: |
+        {
+          "exec-opts": ["native.cgroupdriver=systemd"],
+          "log-opts": {
+            "max-size": "100m",
+            "max-file": "3"
+          }
+        }
+      version: 19.03.10
+    ekco:
+      minReadyMasterNodeCount: 2
+      minReadyWorkerNodeCount: 0
+      nodeUnreachableToleration: 5m
+      shouldDisableClearNodes: false
+      shouldDisableRebootServices: false
+      shouldEnablePurgeNodes: false
+      version: 0.25.0
+    goldpinger:
+      version: 3.7.0-5.5.0
+    kotsadm:
+      version: 1.90.0
+    kubernetes:
+      version: 1.21.14
+    kurl:
+      installerVersion: "v2022.11.10-1"
+    minio:
+      version: 2022-10-20T00-55-09Z
+    openebs:
+      isCstorEnabled: false
+      isLocalPVEnabled: true
+      localPVStorageClassName: openebs
+      namespace: openebs
+      version: 3.3.0
+    registry:
+      version: 2.8.1
+    velero:
+      version: 1.9.2
+      resticTimeout: 24h0m0s
+    weave:
+      version: 2.6.5-20221025
+  upgradeSpec:
+    containerd:
+      version: 1.6.x # (replicated) changed to .x version
+    contour:
+      tlsMinimumProtocolVersion: '1.2'
+      version: 1.23.2
+    ekco:
+      minReadyMasterNodeCount: 2
+      minReadyWorkerNodeCount: 0
+      nodeUnreachableToleration: 5m
+      shouldDisableClearNodes: false
+      shouldDisableRebootServices: false
+      shouldEnablePurgeNodes: false
+      version: latest # (replicated) changed to latest version
+    goldpinger:
+      version: 3.7.0-5.5.0
+    kotsadm:
+      version: 1.93.0
+    kubernetes:
+      version: 1.23.x # (replicated) changed to .x version
+    minio:
+      version: "2023-01-20T02-05-44Z"
+    openebs:
+      isCstorEnabled: false
+      isLocalPVEnabled: true
+      localPVStorageClassName: openebs
+      namespace: openebs
+      version: 3.3.0
+    registry:
+      version: 2.8.1
+    velero:
+      version: 1.9.5
+      resticTimeout: 24h0m0s
+    flannel:
+      version: "0.21.x" # (replicated) changed to .x version
+  unsupportedOSIDs:
+  - ubuntu-2204 # docker 19.03.10 is not supported on ubuntu 22.04
+  - rocky-91 # docker is not supported on rhel 9 variants
+  postInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    minio_object_store_info
+    validate_read_write_object_store rwtest testfile.txt
+    install_and_customize_kurl_integration_test_application
+  postUpgradeScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    minio_object_store_info
+    validate_testfile rwtest testfile.txt
+    validate_read_write_object_store postupgrade upgradefile.txt
+    check_and_customize_kurl_integration_test_application
+
+- name: Cust 1 - Upgrade from Kubernetes 1.23.x to 1.25.x
+  flags: "yes"
+  installerApiEndpoint: https://kurl.sh
+  installerSpec:
+    containerd:
+      version: 1.6.15
+    contour:
+      tlsMinimumProtocolVersion: '1.2'
+      version: 1.23.2
+    ekco:
+      minReadyMasterNodeCount: 2
+      minReadyWorkerNodeCount: 0
+      nodeUnreachableToleration: 5m
+      shouldDisableClearNodes: false
+      shouldDisableRebootServices: false
+      shouldEnablePurgeNodes: false
+      version: 0.26.2
+    goldpinger:
+      version: 3.7.0-5.5.0
+    kotsadm:
+      version: 1.93.0
+    kubernetes:
+      version: 1.23.15
+    kurl:
+      installerVersion: "v2023.02.23-0"
+    minio:
+      version: "2023-01-20T02-05-44Z"
+    openebs:
+      isCstorEnabled: false
+      isLocalPVEnabled: true
+      localPVStorageClassName: openebs
+      namespace: openebs
+      version: 3.3.0
+    registry:
+      version: 2.8.1
+    velero:
+      version: 1.9.5
+      resticTimeout: 24h0m0s
+    flannel:
+      version: "0.21.2"
+  upgradeSpec:
+    containerd:
+      version: 1.6.x # (replicated) changed to .x version
+    contour:
+      tlsMinimumProtocolVersion: '1.2'
+      version: 1.24.2
+    ekco:
+      minReadyMasterNodeCount: 2
+      minReadyWorkerNodeCount: 0
+      nodeUnreachableToleration: 5m
+      shouldDisableClearNodes: false
+      shouldDisableRebootServices: false
+      shouldEnablePurgeNodes: false
+      version: latest # (replicated) changed to latest version
+    goldpinger:
+      version: 3.7.0-5.6.0
+    kotsadm:
+      version: 1.96.1
+    kubernetes:
+      version: 1.25.x # (replicated) changed to .x version
+    minio:
+      version: "2023-03-13T19-46-17Z"
+    openebs:
+      isCstorEnabled: false
+      isLocalPVEnabled: true
+      localPVStorageClassName: openebs
+      namespace: openebs
+      version: 3.5.0
+    registry:
+      version: 2.8.1
+    velero:
+      version: 1.10.2
+      resticTimeout: 24h0m0s
+    flannel:
+      version: 0.21.x # (replicated) changed to .x version
+  unsupportedOSIDs:
+  - rocky-91 # rocky 9.1 is unsupported on kurl version v2023.02.23-0
+  postInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    minio_object_store_info
+    validate_read_write_object_store rwtest testfile.txt
+    install_and_customize_kurl_integration_test_application
+  postUpgradeScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    minio_object_store_info
+    validate_testfile rwtest testfile.txt
+    validate_read_write_object_store postupgrade upgradefile.txt
+    check_and_customize_kurl_integration_test_application
