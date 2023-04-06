@@ -86,12 +86,8 @@
       version: 1.21.x
     flannel:
       version: latest
-    openebs:
+    longhorn:
       version: latest
-      isLocalPVEnabled: true
-      localPVStorageClassName: default
-    minio: 
-        version: latest
     registry:
       version: latest
     kotsadm:
