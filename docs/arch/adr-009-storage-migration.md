@@ -33,7 +33,7 @@ spec:
     localPVStorageClassName: "local"
 ```
 
-When configured with `rook.minimumNodeCount >= 21` and installed on a single node, two storageclasses will be available - "scaling" and "local". 
+When configured with `rook.minimumNodeCount >= 2` and installed on a single node, two storageclasses will be available - "scaling" and "local". 
 The default storage class will be "scaling", and both storage classes will be backed by openebs localpv.
 
 When the third node is added, a Ceph cluster will be created by the EKCO operator.
