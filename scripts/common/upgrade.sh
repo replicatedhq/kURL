@@ -325,7 +325,7 @@ function upgrade_maybe_remove_kubeadm_network_plugin_flag() {
 function upgrade_delete_node_flannel() {
     local node="$1"
 
-    if kubectl get ns kube-flannel 2>/dev/null; then
+    if kubectl get ns 2>/dev/null | grep -q kube-flannel; then
         kubectl delete pod -n kube-flannel --field-selector="spec.nodeName=$node"
     fi
 }
