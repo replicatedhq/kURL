@@ -91,6 +91,7 @@ function upgrade_kubernetes_local_master_patch() {
 
     spinner_kubernetes_api_stable
     kubectl uncordon "$node"
+    upgrade_delete_node_flannel "$node"
 
     spinner_until 120 kubernetes_node_has_version "$node" "$k8sVersion"
     spinner_until 120 kubernetes_all_nodes_ready
@@ -163,6 +164,7 @@ function upgrade_kubernetes_remote_node_patch() {
     logSuccess "Kubernetes $KUBERNETES_VERSION detected on $nodeName"
 
     kubectl uncordon "$nodeName"
+    upgrade_delete_node_flannel "$nodeName"
 }
 
 function upgrade_kubernetes_local_master_minor() {
@@ -197,6 +199,7 @@ function upgrade_kubernetes_local_master_minor() {
 
     spinner_kubernetes_api_stable
     kubectl uncordon "$node"
+    upgrade_delete_node_flannel "$node"
 
     # force deleting the cache because the api server will use the stale API versions after kubeadm upgrade
     rm -rf $HOME/.kube
@@ -272,6 +275,7 @@ function upgrade_kubernetes_remote_node_minor() {
     logSuccess "Kubernetes $targetK8sVersion detected on $nodeName"
 
     kubectl uncordon "$nodeName"
+    upgrade_delete_node_flannel "$nodeName"
     spinner_until 120 kubernetes_all_nodes_ready
 }
 
@@ -314,4 +318,14 @@ function upgrade_maybe_remove_kubeadm_network_plugin_flag() {
         return
     fi
     sed -i 's/ \?--network-plugin \?[^ "]*//' /var/lib/kubelet/kubeadm-flags.env
+}
+
+# delete the flannel pod on the node so that CNI plugin binaries are recreated
+# workaround for https://github.com/kubernetes/kubernetes/issues/115629
+function upgrade_delete_node_flannel() {
+    local node="$1"
+
+    if kubectl get ns kube-flannel 2>/dev/null; then
+        kubectl delete pod -n kube-flannel --field-selector="spec.nodeName=$node"
+    fi
 }
