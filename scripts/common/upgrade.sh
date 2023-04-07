@@ -325,6 +325,6 @@ function delete_node_flannel() {
     local node="$1"
 
     if kubectl get ns kube-flannel 2>/dev/null; then
-        kubectl get pod -n kube-flannel -o name --field-selector="spec.nodeName=$node" | xargs -I {} kubectl delete -n kube-flannel {}
+        kubectl delete pod -n kube-flannel --field-selector="spec.nodeName=$node"
     fi
 }
