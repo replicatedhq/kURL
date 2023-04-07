@@ -1,4 +1,5 @@
 
+# preflights are run on all nodes for init.sh, join.sh, and upgrade.sh
 function preflights() {
     require64Bit
     bailIfUnsupportedOS
@@ -10,9 +11,14 @@ function preflights() {
     must_disable_selinux
     apply_iptables_config
     cri_preflights
-    kotsadm_prerelease
     host_nameservers_reachable
     allow_remove_docker_new_install
+    return 0
+}
+
+# init_preflights are only run on the first node init.sh
+function init_preflights() {
+    kotsadm_prerelease
     bail_when_no_object_store_and_s3_enabled
     bail_if_kurl_pods_are_unhealthy
     bail_if_unsupported_migration_from_rook_to_openebs
@@ -638,7 +644,7 @@ function cluster_preflights() {
         return
     fi
 
-    logStep "Running on cluster Preflights"
+    logStep "Running in cluster Preflights"
     mkdir -p "${DIR}/${IN_CLUSTER_PREFLIGHTS_RESULTS_OUTPUT_DIR}"
 
     if [ ! "${HOST_PREFLIGHT_ENFORCE_WARNINGS}" = "1" ] ; then
