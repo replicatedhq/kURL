@@ -133,7 +133,6 @@ function main() {
     kubernetes_get_packages
     preflights_require_host_packages
     host_preflights "${MASTER:-0}" "1" "1"
-    cluster_preflights "${MASTER:-0}" "1" "1"
     install_host_dependencies
     get_common
     setup_kubeadm_kustomize
