@@ -32,7 +32,6 @@ func AddCommands(cmd *cobra.Command, cli CLI) {
 	clusterCmd := NewClusterCmd(cli)
 	clusterCmd.AddCommand(NewClusterNodesMissingImageCmd(cli))
 	clusterCmd.AddCommand(NewClusterCheckFreeDiskSpaceCmd(cli))
-	clusterCmd.AddCommand(newPreflightCmd(cli))
 	cmd.AddCommand(clusterCmd)
 
 	netutilCmd := newNetutilCommand(cli)

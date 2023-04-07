@@ -13,78 +13,40 @@ import (
 	v1beta2 "github.com/replicatedhq/troubleshoot/pkg/apis/troubleshoot/v1beta2"
 )
 
-// MockRunnerHost is a mock of RunnerHost interface.
-type MockRunnerHost struct {
+// MockRunner is a mock of Runner interface.
+type MockRunner struct {
 	ctrl     *gomock.Controller
-	recorder *MockRunnerHostMockRecorder
+	recorder *MockRunnerMockRecorder
 }
 
-// MockRunnerHostMockRecorder is the mock recorder for MockRunnerHost.
-type MockRunnerHostMockRecorder struct {
-	mock *MockRunnerHost
+// MockRunnerMockRecorder is the mock recorder for MockRunner.
+type MockRunnerMockRecorder struct {
+	mock *MockRunner
 }
 
-// NewMockRunnerHost creates a new mock instance.
-func NewMockRunnerHost(ctrl *gomock.Controller) *MockRunnerHost {
-	mock := &MockRunnerHost{ctrl: ctrl}
-	mock.recorder = &MockRunnerHostMockRecorder{mock}
+// NewMockRunner creates a new mock instance.
+func NewMockRunner(ctrl *gomock.Controller) *MockRunner {
+	mock := &MockRunner{ctrl: ctrl}
+	mock.recorder = &MockRunnerMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockRunnerHost) EXPECT() *MockRunnerHostMockRecorder {
+func (m *MockRunner) EXPECT() *MockRunnerMockRecorder {
 	return m.recorder
 }
 
-// RunHostPreflights mocks base method.
-func (m *MockRunnerHost) RunHostPreflights(ctx context.Context, spec *v1beta2.HostPreflight, progressChan chan interface{}) ([]*analyzer.AnalyzeResult, error) {
+// Run mocks base method.
+func (m *MockRunner) Run(ctx context.Context, spec *v1beta2.HostPreflight, progressChan chan interface{}) ([]*analyzer.AnalyzeResult, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "RunHostPreflights", ctx, spec, progressChan)
+	ret := m.ctrl.Call(m, "Run", ctx, spec, progressChan)
 	ret0, _ := ret[0].([]*analyzer.AnalyzeResult)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// RunHostPreflights indicates an expected call of RunHostPreflights.
-func (mr *MockRunnerHostMockRecorder) RunHostPreflights(ctx, spec, progressChan interface{}) *gomock.Call {
+// Run indicates an expected call of Run.
+func (mr *MockRunnerMockRecorder) Run(ctx, spec, progressChan interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RunHostPreflights", reflect.TypeOf((*MockRunnerHost)(nil).RunHostPreflights), ctx, spec, progressChan)
-}
-
-// MockRunnerCluster is a mock of RunnerCluster interface.
-type MockRunnerCluster struct {
-	ctrl     *gomock.Controller
-	recorder *MockRunnerClusterMockRecorder
-}
-
-// MockRunnerClusterMockRecorder is the mock recorder for MockRunnerCluster.
-type MockRunnerClusterMockRecorder struct {
-	mock *MockRunnerCluster
-}
-
-// NewMockRunnerCluster creates a new mock instance.
-func NewMockRunnerCluster(ctrl *gomock.Controller) *MockRunnerCluster {
-	mock := &MockRunnerCluster{ctrl: ctrl}
-	mock.recorder = &MockRunnerClusterMockRecorder{mock}
-	return mock
-}
-
-// EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockRunnerCluster) EXPECT() *MockRunnerClusterMockRecorder {
-	return m.recorder
-}
-
-// RunClusterPreflight mocks base method.
-func (m *MockRunnerCluster) RunClusterPreflight(spec *v1beta2.Preflight, progressChan chan interface{}) ([]*analyzer.AnalyzeResult, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "RunClusterPreflight", spec, progressChan)
-	ret0, _ := ret[0].([]*analyzer.AnalyzeResult)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// RunClusterPreflight indicates an expected call of RunClusterPreflight.
-func (mr *MockRunnerClusterMockRecorder) RunClusterPreflight(spec, progressChan interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RunClusterPreflight", reflect.TypeOf((*MockRunnerCluster)(nil).RunClusterPreflight), spec, progressChan)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Run", reflect.TypeOf((*MockRunner)(nil).Run), ctx, spec, progressChan)
 }
