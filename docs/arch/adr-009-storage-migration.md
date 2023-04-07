@@ -79,7 +79,7 @@ Once a migration is in progress, the current status and logs will be available a
 
 ## Status
 
-Proposed
+Accepted
 
 ## Consequences
 
