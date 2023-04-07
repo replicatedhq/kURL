@@ -1,6 +1,0 @@
-namespace: kurl
-
-resources:
-- namespace.yaml
-- rbac.yaml
-- deployment.yaml

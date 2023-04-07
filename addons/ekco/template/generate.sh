@@ -39,10 +39,8 @@ function generate() {
     sed -i "s/__HAPROXY_VERSION__/$haproxy_version/g" "$dir/install.sh"
 }
 
-function add_as_latest() {
-    if ! sed '0,/cron-ekco-update/d' ../../../web/src/installers/versions.js | sed '/\],/,$d' | grep -q "${VERSION}" ; then
-        sed -i "/cron-ekco-update/a\    \"${VERSION}\"\," ../../../web/src/installers/versions.js
-    fi
+function add_as_only_version() {
+    sed -i "/cron-ekco-update/c\    \"${VERSION}\", \/\/ cron-ekco-update" ../../../web/src/installers/versions.js
 }
 
 function parse_flags() {
@@ -64,6 +62,16 @@ function parse_flags() {
     done
 }
 
+function remove_previous_versions() {
+    local previous_versions=
+    previous_versions="$(ls .. | grep '0.')"
+    echo "removing previous versions $previous_versions"
+    for version in $previous_versions; do
+        rm -rf "../$version"
+    done
+    echo "removed previous ekco versions"
+}
+
 function main() {
     local force_flag=
     local version_flag=
@@ -75,19 +83,11 @@ function main() {
         VERSION="$(get_latest_version)"
     fi
 
-    if [ -d "../$VERSION" ]; then
-        if [ "$force_flag" == "1" ]; then
-            echo "forcibly updating existing version of EKCO"
-            rm -rf "../${VERSION}"
-        else
-            echo "not updating existing version of EKCO"
-            return
-        fi
-    fi
+    remove_previous_versions
 
     generate
 
-    add_as_latest
+    add_as_only_version
 
     echo "::set-output name=ekco_version::$VERSION"
 }
