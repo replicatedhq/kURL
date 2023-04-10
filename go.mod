@@ -28,7 +28,7 @@ require (
 	github.com/rook/rook v1.11.2
 	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/afero v1.9.5
-	github.com/spf13/cobra v1.6.1
+	github.com/spf13/cobra v1.7.0
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.15.0
 	github.com/stretchr/testify v1.8.2
