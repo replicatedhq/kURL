@@ -1,0 +1,13 @@
+yum lvm2
+yumol lvm2
+apt lvm2
+
+image rook-ceph rook/ceph:v1.11.3
+image ceph-ceph quay.io/ceph/ceph:v17.2.5
+image cephcsi-cephcsi quay.io/cephcsi/cephcsi:v3.8.0
+image sig-storage-csi-node-driver-registrar registry.k8s.io/sig-storage/csi-node-driver-registrar:v2.7.0
+image sig-storage-csi-resizer registry.k8s.io/sig-storage/csi-resizer:v1.7.0
+image sig-storage-csi-provisioner registry.k8s.io/sig-storage/csi-provisioner:v3.4.0
+image sig-storage-csi-snapshotter registry.k8s.io/sig-storage/csi-snapshotter:v6.2.1
+image sig-storage-csi-attacher registry.k8s.io/sig-storage/csi-attacher:v4.1.0
+image csiaddons-k8s-sidecar quay.io/csiaddons/k8s-sidecar:v0.5.0
