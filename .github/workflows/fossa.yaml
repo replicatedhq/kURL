@@ -7,7 +7,7 @@ on:
     paths:
       - go.sum
       - package-lock.json
-      
+
   push:
     branches:
       - main
@@ -15,6 +15,7 @@ on:
 jobs:
   fossa-scan-pr:
     runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
     steps:
       - uses: actions/checkout@v3
         with:
@@ -31,6 +32,7 @@ jobs:
 
   fossa-scan-merge:
     runs-on: ubuntu-latest
+    if: github.event_name == 'push'
     steps:
       - uses: actions/checkout@v3
         with:
