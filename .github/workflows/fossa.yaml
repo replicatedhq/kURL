@@ -4,6 +4,10 @@ on:
   pull_request_target: # this is safe as these scans do not execute provided code
     branches:
       - main
+    paths:
+      - go.sum
+      - package-lock.json
+      
   push:
     branches:
       - main
