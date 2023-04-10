@@ -8,7 +8,6 @@ on:
     branches:
       - main
 
-
 jobs:
   fossa-scan-pr:
     runs-on: ubuntu-latest
@@ -25,10 +24,15 @@ jobs:
           diff: true
           diff-ref: ${{ github.event.pull_request.base.sha }}
           debug: true
+
   fossa-scan-merge:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+        with:
+          depth: 2
+      - id: previous
+        run: echo "sha=$(git rev-parse HEAD~1)" >> "${GITHUB_OUTPUT}"
       - name: "Install FOSSA" 
         uses: replicatedhq/action-fossa/install@main
       - name: "Run FOSSA Scan"
@@ -36,5 +40,5 @@ jobs:
         with:
           api-key: ${{ secrets.FOSSA_API_KEY }}
           diff: true
-          diff-ref: HEAD~1
+          diff-ref: ${{ steps.previous.outputs.sha }}
           debug: true
