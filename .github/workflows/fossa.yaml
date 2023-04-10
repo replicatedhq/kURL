@@ -1,0 +1,40 @@
+name: FOSSA license scan
+
+on:
+  pull_request_target: # this is safe as these scans do not execute provided code
+    branches:
+      - main
+  push:
+    branches:
+      - main
+
+
+jobs:
+  fossa-scan-pr:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: refs/pull/${{ github.event.number }}/merge
+      - name: "Install FOSSA" 
+        uses: replicatedhq/action-fossa/install@main
+      - name: "Run FOSSA Scan"
+        uses: replicatedhq/action-fossa/scan@main
+        with:
+          api-key: ${{ secrets.FOSSA_API_KEY }}
+          diff: true
+          diff-ref: ${{ github.event.pull_request.base.sha }}
+          debug: true
+  fossa-scan-merge:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: "Install FOSSA" 
+        uses: replicatedhq/action-fossa/install@main
+      - name: "Run FOSSA Scan"
+        uses: replicatedhq/action-fossa/scan@main
+        with:
+          api-key: ${{ secrets.FOSSA_API_KEY }}
+          diff: true
+          diff-ref: HEAD~1
+          debug: true

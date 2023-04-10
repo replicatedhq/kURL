@@ -2,3 +2,11 @@ version: 3
 
 project:
   id: github.com/replicatedhq/kurl
+
+targets:
+  only:
+    - type: gomod
+      path: .
+    - type: npm
+      path: .
+
