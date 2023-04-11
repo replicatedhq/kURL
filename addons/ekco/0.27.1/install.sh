@@ -71,6 +71,8 @@ function ekco() {
     local src="$DIR/addons/ekco/$EKCO_VERSION"
     local dst="$DIR/kustomize/ekco"
 
+    ekco_dynamicstorage
+
     ekco_create_deployment "$src" "$dst"
 
     if [ "$EKCO_SHOULD_INSTALL_REBOOT_SERVICE" = "1" ]; then
@@ -497,4 +499,15 @@ function ekco_load_images() {
 function ekco_generate_config_hash() {
     local dst="$1"
     md5sum "$dst/configmap.yaml" | awk '{ print $1 }'
+}
+
+function ekco_dynamicstorage() {
+    if [ "$ROOK_MINIMUM_NODE_COUNT" -gt "1" ]; then
+        # check if the rook storageclass name exists - if it does we've already migrated and should not recreate/update 'scaling'
+        # yes the env var for rook's storage class name is "STORAGE_CLASS" - this is not a typo
+        if kubectl get storageclasses.storage.k8s.io "$STORAGE_CLASS" >/dev/null 2>&1; then
+            return 0
+        fi
+        kubectl apply -f "$src/storageclass-scaling.yaml"
+    fi
 }

@@ -17,7 +17,6 @@ import (
 	kurlv1beta1 "github.com/replicatedhq/kurlkinds/pkg/apis/cluster/v1beta1"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
-	"gopkg.in/yaml.v2"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/client-go/kubernetes/scheme"
 )
@@ -286,6 +285,7 @@ func convertToBash(kurlValues map[string]interface{}, fieldsSet map[string]bool)
 		"Rook.IsBlockStorageEnabled":                      "ROOK_BLOCK_STORAGE_ENABLED",
 		"Rook.IsSharedFilesystemDisabled":                 "ROOK_SHARED_FILESYSTEM_DISABLED",
 		"Rook.Nodes":                                      "ROOK_NODES",
+		"Rook.MinimumNodeCount":                           "ROOK_MINIMUM_NODE_COUNT",
 		"Rook.S3Override":                                 "ROOK_S3_OVERRIDE",
 		"Rook.StorageClassName":                           "STORAGE_CLASS",
 		"Rook.MinimumNodeCount":                           "ROOK_MINIMUM_NODE_COUNT",
