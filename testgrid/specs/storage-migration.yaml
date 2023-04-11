@@ -1233,7 +1233,7 @@
     goldpinger:
       version: 3.7.0-5.5.0
     kotsadm:
-      version: 1.93.0
+      version: 1.96.3
     kubernetes:
       version: 1.23.x # (replicated) changed to .x version
     minio:
@@ -1287,7 +1287,7 @@
     goldpinger:
       version: 3.7.0-5.5.0
     kotsadm:
-      version: 1.93.0
+      version: 1.96.3
     kubernetes:
       version: 1.23.15
     kurl:
