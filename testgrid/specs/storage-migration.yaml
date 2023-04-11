@@ -1144,6 +1144,7 @@
     weave:
       version: 2.6.5-20221025
   unsupportedOSIDs:
+  - ol-8x # The kURL version used in this test, v2022.08.23-0, does not support OL-8.7
   - ubuntu-2204 # docker 19.03.4 is not supported on ubuntu 22.04
   - rocky-91 # docker is not supported on rhel 9 variants
   postInstallScript: |
