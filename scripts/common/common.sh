@@ -42,7 +42,7 @@ function package_download() {
     local package="$1"
     local url_override="$2"
 
-    if [ -z "${DIST_URL}" ]; then
+    if [ -z "$url_override" ] && [ -z "${DIST_URL}" ]; then
         logWarn "DIST_URL not set, will not download $1"
         return
     fi
