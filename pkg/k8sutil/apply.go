@@ -6,7 +6,7 @@ import (
 	"embed"
 	"os/exec"
 
-	"github.com/replicatedhq/plumber"
+	"github.com/replicatedhq/plumber/v2"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	kustomizetypes "sigs.k8s.io/kustomize/api/types"
 )
@@ -21,7 +21,7 @@ func KubectlApply(ctx context.Context, cli client.Client, resources embed.FS, ov
 		),
 	}, opts...)
 
-	err := plumber.NewRenderer(cli, resources, options...).Render(
+	err := plumber.NewRenderer(cli, resources, options...).Apply(
 		ctx, overlay,
 	)
 	return err
