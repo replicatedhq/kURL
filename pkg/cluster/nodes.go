@@ -116,7 +116,7 @@ func NodeImages(ctx context.Context, client kubernetes.Interface, logger *log.Lo
 
 // NodesMissingImages returns the list of nodes missing any one of the images in the provided list
 func NodesMissingImages(ctx context.Context, client kubernetes.Interface, logger *log.Logger, images []string, nodeImagesOpts NodeImagesJobOptions) ([]string, error) {
-	refs := []reference.Reference{}
+	refs := []reference.Named{}
 	for _, image := range images {
 		ref, err := reference.ParseDockerRef(image)
 		if err != nil {
@@ -146,6 +146,41 @@ func NodesMissingImages(ctx context.Context, client kubernetes.Interface, logger
 	}
 
 	return missingNodesList, nil
+}
+
+// NodeListMissingImages returns the list of images missing from the provided list on the given node
+func NodeListMissingImages(ctx context.Context, client kubernetes.Interface, logger *log.Logger, node string, images []string, nodeImagesOpts NodeImagesJobOptions) ([]string, error) {
+	nodeImagesOpts.TargetNode = node
+
+	refs := []reference.Named{}
+	imageNames := map[reference.Named]string{}
+	for _, image := range images {
+		ref, err := reference.ParseDockerRef(image)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse image %q: %w", image, err)
+		}
+		refs = append(refs, ref)
+		imageNames[ref] = image
+	}
+
+	nodesImages, err := NodeImages(ctx, client, logger, nodeImagesOpts)
+	if err != nil {
+		return nil, fmt.Errorf("failed to find node images: %w", err)
+	}
+
+	missingImages := []string{}
+	nodeImages, ok := nodesImages[node]
+	if !ok {
+		return nil, fmt.Errorf("node %q not found", node)
+	}
+	for _, ref := range refs {
+		_, foundImage := nodeImages[ref.String()]
+		if !foundImage {
+			missingImages = append(missingImages, imageNames[ref])
+		}
+	}
+
+	return missingImages, nil
 }
 
 func runNodeImagesJob(ctx context.Context, client kubernetes.Interface, logger *log.Logger, node corev1.Node, opts NodeImagesJobOptions) ([]corev1.ContainerImage, error) {

@@ -615,12 +615,6 @@ function discover_service_subnet() {
     bail "Failed to find available subnet for service network. Use the service-cidr flag to set a service network"
 }
 
-function kubernetes_node_images() {
-    local nodeName="$1"
-
-    kubectl get node "$nodeName" -ojsonpath="{range .status.images[*]}{ range .names[*] }{ @ }{'\n'}{ end }{ end }"
-}
-
 function list_all_required_images() {
     echo "$KURL_UTIL_IMAGE"
 
@@ -655,13 +649,8 @@ function kubernetes_node_has_all_images() {
     local node_name="$1"
 
     local image_list=
-    while read -r image; do
-        if ! kubernetes_node_has_image "$node_name" "$image"; then
-            image_list="$image_list $image"
-        fi
-    done < <(list_all_required_images)
-
-    image_list=$(echo "$image_list" | xargs) # strip leading and trailing whitespace
+    image_list="$(kubernetes_node_list_missing_images "$(list_all_required_images | paste -sd " " -)" "$node_name")"
+    image_list="$(echo "$image_list" | xargs)" # trim whitespace
 
     if [ -n "$image_list" ]; then
         log ""
@@ -685,17 +674,18 @@ function kubernetes_nodes_missing_images() {
     "$DIR"/bin/kurl cluster nodes-missing-images --image="$KURL_UTIL_IMAGE" --target-host="$target_host" --exclude-host="$exclude_hosts" $images_list
 }
 
-function kubernetes_node_has_image() {
-    local node_name="$1"
-    local image="$2"
+# kubernetes_nodes_missing_images will return a list of nodes that are missing any of the images in
+# the provided list
+function kubernetes_node_list_missing_images() {
+    local images_list="$1"
+    local target_host="$2"
 
-    while read -r node_image; do
-        if [ "$(canonical_image_name "$node_image")" = "$(canonical_image_name "$image")" ]; then
-            return 0
-        fi
-    done < <(kubernetes_node_images "$node_name")
+    if [ -z "$images_list" ]; then
+        return
+    fi
 
-    return 1
+    # shellcheck disable=SC2086
+    "$DIR"/bin/kurl cluster node-list-missing-images --image="$KURL_UTIL_IMAGE" --target-host="$target_host" $images_list
 }
 
 KUBERNETES_REMOTE_PRIMARIES=()

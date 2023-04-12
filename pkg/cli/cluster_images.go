@@ -51,3 +51,42 @@ func NewClusterNodesMissingImageCmd(_ CLI) *cobra.Command {
 
 	return cmd
 }
+
+func NewClusterNodeListMissingImageCmd(_ CLI) *cobra.Command {
+	var targetNode string
+	var opts cluster.NodeImagesJobOptions
+	var excludeHostDeprecated string
+
+	cmd := &cobra.Command{
+		Use:   "node-list-missing-images IMAGE [IMAGE...]",
+		Short: "Lists missing images from the provided image(s) for a given node.",
+		Args:  cobra.MinimumNArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			k8sConfig := config.GetConfigOrDie()
+			clientSet := kubernetes.NewForConfigOrDie(k8sConfig)
+
+			logger := log.New(os.Stderr, "", 0)
+
+			if excludeHostDeprecated != "" {
+				opts.ExcludeNodes = append(opts.ExcludeNodes, excludeHostDeprecated)
+			}
+
+			nodeMissingImages, err := cluster.NodeListMissingImages(cmd.Context(), clientSet, logger, targetNode, args, opts)
+			if err != nil {
+				return fmt.Errorf("failed to determine what images were missing from node %s images: %w", targetNode, err)
+			}
+
+			fmt.Fprintf(cmd.OutOrStdout(), "%s\n", strings.Join(nodeMissingImages, " "))
+			return nil
+		},
+		SilenceUsage: true,
+	}
+
+	cmd.Flags().StringVar(&targetNode, "target-host", "", "a hostname that will be targeted in the search")
+	cmd.MarkFlagRequired("target-host")
+	cmd.Flags().StringVar(&opts.JobImage, "image", cluster.DefaultNodeImagesJobImage, "the image to use to list images - must have 'docker' CLI on the path")
+	cmd.Flags().StringVar(&opts.JobNamespace, "namespace", cluster.DefaultNodeImagesJobNamespace, "the namespace in which to run the discovery job")
+	cmd.Flags().DurationVar(&opts.Timeout, "timeout", cluster.DefaultNodeImagesJobTimeout, "the timeout for the discovery job")
+
+	return cmd
+}

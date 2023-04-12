@@ -106,3 +106,59 @@ func TestNodesMissingImages(t *testing.T) {
 		})
 	}
 }
+
+func TestNodeListMissingImages(t *testing.T) {
+	tests := []struct {
+		name           string
+		resources      []runtime.Object
+		node           string
+		images         []string
+		nodeImagesOpts NodeImagesJobOptions
+		wantImages     []string
+		wantErr        bool
+	}{
+		{
+			name:       "an image that does not exist should return",
+			resources:  runtimeFromNodesJSON(testfiles.UpgradedNodeLess50Images),
+			node:       "laverya-rook-kubernetes-upgrade",
+			images:     []string{"doesnotexist", "k8s.gcr.io/kube-scheduler:v1.20.15", "registry.k8s.io/kube-state-metrics/kube-state-metrics:v2.5.0", "doesnotexist2"},
+			wantImages: []string{"doesnotexist", "doesnotexist2"},
+		},
+		{
+			name:       "no missing images should return empty",
+			resources:  runtimeFromNodesJSON(testfiles.UpgradedNodeLess50Images),
+			node:       "laverya-rook-kubernetes-upgrade",
+			images:     []string{"k8s.gcr.io/kube-scheduler:v1.20.15", "registry.k8s.io/kube-state-metrics/kube-state-metrics:v2.5.0"},
+			wantImages: []string{},
+		},
+		{
+			name:       "only missing images should return",
+			resources:  runtimeFromNodesJSON(testfiles.UpgradedNodeLess50Images),
+			node:       "laverya-rook-kubernetes-upgrade",
+			images:     []string{"doesnotexist", "doesnotexist2"},
+			wantImages: []string{"doesnotexist", "doesnotexist2"},
+		},
+		{
+			name:      "a missing node should return an error",
+			resources: runtimeFromNodesJSON(testfiles.UpgradedNodeLess50Images),
+			node:      "doesnotexist",
+			images:    []string{"doesnotexist", "k8s.gcr.io/kube-scheduler:v1.20.15", "registry.k8s.io/kube-state-metrics/kube-state-metrics:v2.5.0", "doesnotexist2"},
+			wantErr:   true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			req := require.New(t)
+			clientset := fake.NewSimpleClientset(tt.resources...)
+			logger := log.New(io.Discard, "", 0)
+
+			gotImages, err := NodeListMissingImages(context.Background(), clientset, logger, tt.node, tt.images, tt.nodeImagesOpts)
+			if tt.wantErr {
+				req.Error(err)
+				return
+			}
+			req.NoError(err)
+			req.ElementsMatch(tt.wantImages, gotImages)
+		})
+	}
+}
