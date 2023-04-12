@@ -22,7 +22,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring v0.64.0
 	github.com/replicatedhq/kurlkinds v1.3.0
-	github.com/replicatedhq/plumber v1.16.0
+	github.com/replicatedhq/plumber/v2 v2.0.0
 	github.com/replicatedhq/pvmigrate v0.9.0
 	github.com/replicatedhq/troubleshoot v0.59.0
 	github.com/rook/rook v1.11.2
