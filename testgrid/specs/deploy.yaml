@@ -175,6 +175,19 @@
     ekco:
       version: latest
       enableInternalLoadBalancer: true
+- name: minimal-127
+  installerSpec:
+    containerd:
+      version: latest
+    kurl:
+      installerVersion: ""
+    kubernetes:
+      version: 1.27.x
+    flannel:
+      version: latest
+    ekco:
+      version: latest
+      enableInternalLoadBalancer: true
 - name: k8s124x_cis_benchmarks_checks
   installerSpec:
     kubernetes:
