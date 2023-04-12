@@ -142,8 +142,6 @@ function upgrade_kubernetes_remote_node_patch() {
     confirmY
     kubernetes_drain "$nodeName"
 
-    maybe_patch_node_cri_socket_annotation "$nodeName"
-
     local common_flags
     common_flags="${common_flags}$(get_docker_registry_ip_flag "${DOCKER_REGISTRY_IP}")"
     common_flags="${common_flags}$(get_additional_no_proxy_addresses_flag "${NO_PROXY_ADDRESSES}" "${NO_PROXY_ADDRESSES}")"
@@ -249,8 +247,6 @@ function upgrade_kubernetes_remote_node_minor() {
     printf "\n${YELLOW}Drain node $nodeName to prepare for upgrade? ${NC}"
     confirmY
     kubernetes_drain "$nodeName"
-
-    maybe_patch_node_cri_socket_annotation "$nodeName"
 
     local common_flags
     common_flags="${common_flags}$(get_docker_registry_ip_flag "${DOCKER_REGISTRY_IP}")"
