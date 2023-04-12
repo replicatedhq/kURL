@@ -649,7 +649,7 @@ function kubernetes_node_has_all_images() {
     local node_name="$1"
 
     local image_list=
-    image_list="$(kubernetes_node_list_missing_images "$(list_all_required_images | paste -sd " " -)" "$node_name")"
+    image_list="$(kubernetes_node_list_missing_images "$(list_all_required_images)" "$node_name")"
     image_list="$(echo "$image_list" | xargs)" # trim whitespace
 
     if [ -n "$image_list" ]; then
