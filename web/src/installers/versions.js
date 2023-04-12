@@ -114,6 +114,7 @@ module.exports.InstallerVersions = {
   ],
   weave: [
     // cron-weave-update-265
+    "2.8.1-20230406",
     "2.8.1-20230324",
     "2.8.1-20230222",
     "2.6.5-20230222",
@@ -127,6 +128,7 @@ module.exports.InstallerVersions = {
     "2.6.4",
     "2.5.2",
     // cron-weave-update
+    "2.8.1-20230406",
     "2.8.1-20230324",
     "2.8.1-20230222",
     "2.8.1-20230130",
