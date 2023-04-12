@@ -1897,3 +1897,20 @@
     minio_object_store_info
     validate_testfile rwtest testfile.txt
     validate_read_write_object_store postupgrade upgradefile.txt
+- name: custom-kurl-install-directory
+  installerSpec:
+    kubernetes:
+      version: 1.26.x
+    containerd:
+      version: latest
+    flannel:
+      version: latest
+    openebs:
+      version: latest
+      isLocalPVEnabled: true
+      localPVStorageClassName: local
+    ekco:
+      version: latest
+  flags: "kurl-install-directory=/custom"
+  preInstallScript: |
+    touch /var/lib/kurl
