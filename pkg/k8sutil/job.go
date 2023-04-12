@@ -14,8 +14,8 @@ import (
 	"k8s.io/client-go/kubernetes"
 )
 
-// waitForJob waits for a job to finish. returns a boolean indicating if the job succeeded.
-func waitForJob(ctx context.Context, cli kubernetes.Interface, job *batchv1.Job, timeout time.Duration) (bool, error) {
+// WaitForJob waits for a job to finish. returns a boolean indicating if the job succeeded.
+func WaitForJob(ctx context.Context, cli kubernetes.Interface, job *batchv1.Job, timeout time.Duration) (bool, error) {
 	var endAt = time.Now().Add(timeout)
 	for {
 		gotJob, err := cli.BatchV1().Jobs(job.Namespace).Get(ctx, job.Name, metav1.GetOptions{})
@@ -59,7 +59,7 @@ func RunJob(ctx context.Context, cli kubernetes.Interface, logger *log.Logger, j
 		}
 	}()
 
-	jobSucceeded, err := waitForJob(ctx, cli, job, timeout)
+	jobSucceeded, err := WaitForJob(ctx, cli, job, timeout)
 	if err != nil {
 		return nil, nil, err
 	}
