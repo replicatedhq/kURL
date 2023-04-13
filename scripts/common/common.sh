@@ -903,9 +903,9 @@ function get_machine_id() {
     if [ -f /etc/kurl/uuid ]; then
         KURL_INSTANCE_UUID="$(cat /etc/kurl/uuid)"
     else
-        if [ -f /var/lib/kurl/uuid ]; then
-            KURL_INSTANCE_UUID="$(cat /var/lib/kurl/uuid)"
-            rm -f /var/lib/kurl/uuid
+        if [ -f "${KURL_INSTALL_DIRECTORY}/uuid" ]; then
+            KURL_INSTANCE_UUID="$(cat ${KURL_INSTALL_DIRECTORY}/uuid)"
+            rm -f "${KURL_INSTALL_DIRECTORY}/uuid"
         else
             KURL_INSTANCE_UUID=$(< /dev/urandom tr -dc a-z0-9 | head -c32)
         fi

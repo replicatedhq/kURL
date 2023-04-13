@@ -204,6 +204,9 @@ function reset() {
 
     discover
 
+    # set KURL_INSTALL_DIRECTORY
+    maybe_read_kurl_config_from_cluster
+
     if [ -f /opt/ekco/shutdown.sh ]; then
         bash /opt/ekco/shutdown.sh
     fi
@@ -247,7 +250,7 @@ function reset() {
     rm -rf /var/lib/weave
     rm -rf /var/lib/longhorn
     rm -rf /etc/haproxy
-    rm -rf /var/lib/kurl
+    rm -rf "${KURL_INSTALL_DIRECTORY}"
 
     printf "Killing haproxy\n"
     pkill haproxy || true
