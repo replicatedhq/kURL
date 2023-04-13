@@ -43,6 +43,7 @@ require (
 	gotest.tools v2.2.0+incompatible
 	k8s.io/api v0.26.3
 	k8s.io/apimachinery v0.26.3
+	k8s.io/cli-runtime v0.26.2
 	k8s.io/client-go v0.26.3
 	k8s.io/code-generator v0.26.3
 	k8s.io/utils v0.0.0-20230313181309-38a27ef9d749
@@ -250,7 +251,6 @@ require (
 	gopkg.in/square/go-jose.v2 v2.6.0 // indirect
 	k8s.io/apiextensions-apiserver v0.26.3 // indirect
 	k8s.io/apiserver v0.26.3 // indirect
-	k8s.io/cli-runtime v0.26.2 // indirect
 	k8s.io/klog/v2 v2.90.1 // indirect
 	k8s.io/kube-openapi v0.0.0-20230217203603-ff9a8e8fa21d // indirect
 	oras.land/oras-go v1.2.2 // indirect

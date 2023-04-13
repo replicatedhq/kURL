@@ -10,12 +10,13 @@ import (
 	"os/signal"
 	"strings"
 	"syscall"
-	"text/tabwriter"
 	"time"
 
 	appsv1 "k8s.io/api/apps/v1"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/cli-runtime/pkg/printers"
 	"k8s.io/client-go/kubernetes"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
@@ -100,10 +101,10 @@ func newNetutilNodesConnectivity(_ CLI) *cobra.Command {
 				ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
 				defer cancel()
 				if err := deleteListeners(ctx, opts); err != nil {
-					log.Printf("Failed to delete daemonset listeners overlay: %v", err)
+					log.Printf("Failed to delete DaemonSet listeners overlay: %s", err)
 				}
 				if err := deletePinger(ctx, opts); err != nil {
-					log.Printf("Failed to delete pinger job: %v", err)
+					log.Printf("Failed to delete pinger job: %s", err)
 				}
 			}
 
@@ -136,43 +137,46 @@ func newNetutilNodesConnectivity(_ CLI) *cobra.Command {
 
 // printDaemonsetStatus prints the status of the daemonset. this function also prints the pod statuses.
 func printDaemonsetStatus(ctx context.Context, opts nodeConnectivityOptions, ds *appsv1.DaemonSet) {
-	var gotDS appsv1.DaemonSet
-	if err := opts.cli.Get(ctx, client.ObjectKeyFromObject(ds), &gotDS); err != nil {
-		log.Printf("Failed to get daemonset %s: %v", ds.Name, err)
-		return
-	}
-	pods, err := k8sutil.ListPodsBySelector(ctx, opts.cliset, opts.namespace, listenersSelector)
-	if err != nil {
-		log.Printf("Failed to list daemonset pods: %v", err)
-		return
-	}
 	log.Printf("DaemonSet failed to deploy, that can possibly mean that port %d (%s) is in use.", opts.port, opts.proto)
-	status := gotDS.Status
-	log.Printf("DaemonSet status reports:")
-	log.Printf("Scheduled: %d, Available: %d, Ready: %d", status.CurrentNumberScheduled, status.NumberAvailable, status.NumberReady)
-	log.Printf("")
-	stream := bytes.NewBuffer(nil)
-	tab := tabwriter.NewWriter(stream, 20, 8, 1, ' ', 0)
-	fmt.Fprintln(tab, "POD\tNODE\tCONDITIONTYPE\tCONDITIONSTATUS\tREASON\tMESSAGE")
-	for _, pd := range pods.Items {
-		for _, cd := range pd.Status.Conditions {
-			cols := []string{pd.Name, pd.Spec.NodeName, string(cd.Type), string(cd.Status), cd.Reason, cd.Message}
-			fmt.Fprintf(tab, "%s\n", strings.Join(cols, "\t"))
-		}
+	buffer := bytes.NewBuffer([]byte("\n"))
+	table := &metav1.Table{}
+	request := opts.cliset.AppsV1().RESTClient().Get().
+		Resource("daemonsets").
+		Namespace(opts.namespace).
+		Name(ds.Name).
+		SetHeader("Accept", "application/json;as=Table;v=v1beta1;g=meta.k8s.io")
+	if err := request.Do(ctx).Into(table); err != nil {
+		log.Printf("Failed to get DaemonSet: %s", err)
+		return
 	}
-	tab.Flush()
-	scanner := bufio.NewScanner(stream)
+	printer := printers.NewTablePrinter(printers.PrintOptions{})
+	printer.PrintObj(table, buffer)
+	request = opts.cliset.CoreV1().RESTClient().Get().
+		Resource("pods").
+		Namespace(opts.namespace).
+		Param("labelSelector", listenersSelector).
+		Param("limit", "500").
+		SetHeader("Accept", "application/json;as=Table;v=v1beta1;g=meta.k8s.io")
+	if err := request.Do(ctx).Into(table); err != nil {
+		log.Printf("Failed to list DaemonSet pods: %s", err)
+		return
+	}
+	printer = printers.NewTablePrinter(printers.PrintOptions{Wide: true, WithKind: true})
+	buffer.WriteString("\n")
+	printer.PrintObj(table, buffer)
+	scanner := bufio.NewScanner(buffer)
 	scanner.Split(bufio.ScanLines)
 	for scanner.Scan() {
 		log.Print(scanner.Text())
 	}
+	log.Print("")
 }
 
 // deployListenersDaemonset deploys a daemonset that will run a pod that listens for udp or tcp packets,
 // on port 9999. a service is created to expose the daemonset pods, this service is of type nodeport and
 // binds to nodeConnectivityOptions.port port.
 func deployListenersDaemonset(ctx context.Context, opts nodeConnectivityOptions) error {
-	log.Printf("Deploying node connectivity listeners daemonset.")
+	log.Print("Deploying node connectivity listeners DaemonSet.")
 	options := []plumber.Option{
 		plumber.WithKustomizeMutator(kustomizeMutator(opts)),
 		plumber.WithObjectMutator(func(ctx context.Context, obj client.Object) error {
@@ -193,7 +197,7 @@ func deployListenersDaemonset(ctx context.Context, opts nodeConnectivityOptions)
 				err := k8sutil.WaitForDaemonsetRollout(ctx, opts.cliset, ds, time.Minute)
 				if err != nil {
 					printDaemonsetStatus(ctx, opts, ds)
-					return fmt.Errorf("failed to wait for daemonset rollout: %w", err)
+					return fmt.Errorf("failed to wait for DaemonSet rollout: %w", err)
 				}
 			}
 			return nil
@@ -204,7 +208,7 @@ func deployListenersDaemonset(ctx context.Context, opts nodeConnectivityOptions)
 	if err := renderer.Apply(ctx, overlay); err != nil {
 		return fmt.Errorf("failed to create listeners daemonset: %w", err)
 	}
-	log.Print("Listeners daemonset deployed successfully.")
+	log.Print("Listeners DaemonSet deployed successfully.")
 	return nil
 }
 
@@ -366,7 +370,7 @@ func connectToNodeFromPods(ctx context.Context, opts nodeConnectivityOptions, no
 			}
 
 			if success {
-				log.Printf("Success, packet received.")
+				log.Print("Success, packet received.")
 				break
 			}
 			retrying := "retrying."
@@ -379,9 +383,9 @@ func connectToNodeFromPods(ctx context.Context, opts nodeConnectivityOptions, no
 		if success {
 			continue
 		}
-		log.Printf("")
+		log.Print("")
 		log.Printf("Attempt to connect from %s to %s on %d (%s) failed.", src, dst, opts.port, opts.proto)
-		log.Printf("Please verify if the active network policies are not blocking the connection.")
+		log.Print("Please verify if the active network policies are not blocking the connection.")
 		return fmt.Errorf("failed to connect from %s to %s", src, dst)
 	}
 	return nil
