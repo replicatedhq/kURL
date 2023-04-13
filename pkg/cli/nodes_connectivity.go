@@ -156,7 +156,7 @@ func printDaemonsetStatus(ctx context.Context, opts nodeConnectivityOptions, ds 
 		Namespace(opts.namespace).
 		Param("labelSelector", listenersSelector).
 		Param("limit", "500").
-		SetHeader("Accept", "application/json;as=Table;v=v1beta1;g=meta.k8s.io")
+		SetHeader("Accept", "application/json;as=Table;v=v1;g=meta.k8s.io")
 	if err := request.Do(ctx).Into(table); err != nil {
 		log.Printf("Failed to list DaemonSet pods: %s", err)
 		return
