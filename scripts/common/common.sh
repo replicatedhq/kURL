@@ -1158,10 +1158,11 @@ function cmd_retry() {
 }
 
 # common_upgrade_step_versions returns a list of upgrade steps that need to be performed, based on
-# the supplied step versions, for use by other functions.
+# the supplied space-delimited set of step versions, for use by other functions.
 # e.g. "1.5.12\n1.6.11\n1.7.11"
 function common_upgrade_step_versions() {
-    declare -a _step_versions=("${!1}")
+    local step_versions=
+    read -ra step_versions <<< "$1"
     local from_version=$2
     local to_version=$3
 
@@ -1177,13 +1178,13 @@ function common_upgrade_step_versions() {
     first_minor=$((first_minor + 1)) # exclusive of from_version
     last_minor=$(common_upgrade_major_minor_to_minor "$to_version")
 
-    if [ "${#_step_versions[@]}" -le "$last_minor" ]; then
+    if [ "${#step_versions[@]}" -le "$last_minor" ]; then
         bail "Upgrade from $from_version to $to_version is not supported."
     fi
 
     local step=
     for (( step=first_minor ; step<=last_minor ; step++ )); do
-        echo "${_step_versions[$step]}"
+        echo "${step_versions[$step]}"
     done
 }
 

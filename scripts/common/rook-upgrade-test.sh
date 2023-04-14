@@ -34,12 +34,12 @@ function test_rook_upgrade_step_versions() {
     }
     # shellcheck disable=SC2034
     local step_versions=(1.0.4-14.2.21 0.0.0 0.0.0 0.0.0 1.4.9 1.5.12 1.6.11 1.7.11 1.8.10 1.9.12 1.10.11 1.11.2)
-    assertEquals "6 to 6" "1.6.11" "$(rook_upgrade_step_versions "step_versions[@]" "1.6" "1.6")"
-    assertEquals "6 to 9" "$(echo -e "1.6.11\n1.7.11\n1.8.10\n1.9.12")" "$(rook_upgrade_step_versions "step_versions[@]" "1.6" "1.9")"
-    assertEquals "0 to 2" "$(echo -e "1.0.4-14.2.21\n0.0.0\n0.0.0")" "$(rook_upgrade_step_versions "step_versions[@]" "1.0" "1.2")"
-    assertEquals "9 to 11" "$(echo -e "1.9.12\n1.10.11\n1.11.2")" "$(rook_upgrade_step_versions "step_versions[@]" "1.9" "1.11")"
-    assertEquals "9 to 15" "1" "$(trap "echo_exit_code" EXIT; rook_upgrade_step_versions "step_versions[@]" "1.9" "1.15"; trap '' EXIT)"
-    assertEquals "6 to 4" "" "$(rook_upgrade_step_versions "step_versions[@]" "1.6" "1.4")"
+    assertEquals "6 to 6" "1.6.11" "$(rook_upgrade_step_versions "${step_versions[*]}" "1.6" "1.6")"
+    assertEquals "6 to 9" "$(echo -e "1.6.11\n1.7.11\n1.8.10\n1.9.12")" "$(rook_upgrade_step_versions "${step_versions[*]}" "1.6" "1.9")"
+    assertEquals "0 to 2" "$(echo -e "1.0.4-14.2.21\n0.0.0\n0.0.0")" "$(rook_upgrade_step_versions "${step_versions[*]}" "1.0" "1.2")"
+    assertEquals "9 to 11" "$(echo -e "1.9.12\n1.10.11\n1.11.2")" "$(rook_upgrade_step_versions "${step_versions[*]}" "1.9" "1.11")"
+    assertEquals "9 to 15" "1" "$(trap "echo_exit_code" EXIT; rook_upgrade_step_versions "${step_versions[*]}" "1.9" "1.15"; trap '' EXIT)"
+    assertEquals "6 to 4" "" "$(rook_upgrade_step_versions "${step_versions[*]}" "1.6" "1.4")"
 }
 
 function test_rook_upgrade_required_disk_space() {

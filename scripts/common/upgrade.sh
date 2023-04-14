@@ -82,7 +82,7 @@ function kubernetes_upgrade() {
 
     # when invoked in a subprocess the failure of this function will not cause the script to exit
     # sanity check that the version is valid
-    common_upgrade_step_versions "STEP_VERSIONS[@]" "$from_version" "$to_version" 1>/dev/null
+    common_upgrade_step_versions "${STEP_VERSIONS[*]}" "$from_version" "$to_version" 1>/dev/null
 
     logStep "Upgrading Kubernetes from $from_version.x to $to_version.x"
     common_upgrade_print_list_of_minor_upgrades "$from_version" "$to_version"
@@ -131,7 +131,7 @@ function kubernetes_upgrade_do_kubernetes_upgrade() {
         fi
 
         logSuccess "Cluster upgraded to Kubernetes version $step successfully"
-    done <<< "$(common_upgrade_step_versions "STEP_VERSIONS[@]" "$from_version" "$to_version")"
+    done <<< "$(common_upgrade_step_versions "${STEP_VERSIONS[*]}" "$from_version" "$to_version")"
 
     if [ -n "$AIRGAP_MULTI_ADDON_PACKAGE_PATH" ]; then
         # delete the airgap package files to free up space
@@ -192,7 +192,7 @@ function kubernetes_upgrade_required_archive_size() {
             continue
         fi
         total_archive_size=$((total_archive_size + "$bundle_size_upper_bounds"))
-    done <<< "$(common_upgrade_step_versions "STEP_VERSIONS[@]" "$from_version" "$to_version")"
+    done <<< "$(common_upgrade_step_versions "${STEP_VERSIONS[*]}" "$from_version" "$to_version")"
 
     echo "$total_archive_size"
 }
@@ -222,7 +222,7 @@ function kubernetes_upgrade_addon_fetch_online() {
             continue
         fi
         kubernetes_upgrade_addon_fetch_online_step "kubernetes" "$step"
-    done <<< "$(common_upgrade_step_versions "STEP_VERSIONS[@]" "$from_version" "$to_version")"
+    done <<< "$(common_upgrade_step_versions "${STEP_VERSIONS[*]}" "$from_version" "$to_version")"
 
     logSuccess "Images loaded for Kubernetes $from_version to $to_version upgrade"
 }
@@ -261,7 +261,7 @@ function kubernetes_upgrade_addon_fetch_airgap() {
             continue
         fi
         addon_versions+=( "kubernetes-$step" )
-    done <<< "$(common_upgrade_step_versions "STEP_VERSIONS[@]" "$from_version" "$to_version")"
+    done <<< "$(common_upgrade_step_versions "${STEP_VERSIONS[*]}" "$from_version" "$to_version")"
 
     addon_fetch_multiple_airgap "${addon_versions[@]}"
 
@@ -282,7 +282,7 @@ function kubernetes_upgrade_has_all_addon_version_packages() {
         if [ ! -f "packages/kubernetes/$step/Manifest" ]; then
             return 1
         fi
-    done <<< "$(common_upgrade_step_versions "STEP_VERSIONS[@]" "$from_version" "$to_version")"
+    done <<< "$(common_upgrade_step_versions "${STEP_VERSIONS[*]}" "$from_version" "$to_version")"
 
     return 0
 }
@@ -334,7 +334,7 @@ function kubernetes_upgrade_images_list() {
             "$images_list" \
             "$(common_list_images_in_manifest_file "packages/kubernetes/$step/Manifest")" \
         )"
-    done <<< "$(common_upgrade_step_versions "STEP_VERSIONS[@]" "$from_version" "$to_version")"
+    done <<< "$(common_upgrade_step_versions "${STEP_VERSIONS[*]}" "$from_version" "$to_version")"
 
     echo "$images_list"
 }

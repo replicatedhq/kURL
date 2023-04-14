@@ -141,7 +141,7 @@ function rook_upgrade() {
 
     # when invoked in a subprocess the failure of this function will not cause the script to exit
     # sanity check that the rook version is valid
-    rook_upgrade_step_versions "ROOK_STEP_VERSIONS[@]" "$from_version" "$to_version" 1>/dev/null
+    rook_upgrade_step_versions "${ROOK_STEP_VERSIONS[*]}" "$from_version" "$to_version" 1>/dev/null
 
     logStep "Upgrading Rook from $from_version.x to $to_version.x"
     common_upgrade_print_list_of_minor_upgrades "$from_version" "$to_version"
@@ -212,7 +212,7 @@ function rook_upgrade_do_rook_upgrade() {
         fi
 
         logSuccess "Upgraded to Rook $step successfully"
-    done <<< "$(rook_upgrade_step_versions "ROOK_STEP_VERSIONS[@]" "$from_version" "$to_version")"
+    done <<< "$(rook_upgrade_step_versions "${ROOK_STEP_VERSIONS[*]}" "$from_version" "$to_version")"
 
     if [ -n "$AIRGAP_MULTI_ADDON_PACKAGE_PATH" ]; then
         # delete the airgap package files to free up space
@@ -248,7 +248,7 @@ function rook_upgrade_addon_fetch_and_load_online() {
                 continue
             fi
             rook_upgrade_addon_fetch_and_load_online_step "rook" "$step"
-        done <<< "$(rook_upgrade_step_versions "ROOK_STEP_VERSIONS[@]" "$(common_upgrade_max_version "1.4" "$from_version")" "$to_version")"
+        done <<< "$(rook_upgrade_step_versions "${ROOK_STEP_VERSIONS[*]}" "$(common_upgrade_max_version "1.4" "$from_version")" "$to_version")"
     fi
 
     logSuccess "Images loaded for Rook $from_version to $to_version upgrade"
@@ -295,7 +295,7 @@ function rook_upgrade_addon_fetch_and_load_airgap() {
                 continue
             fi
             addon_versions+=( "rook-$step" )
-        done <<< "$(rook_upgrade_step_versions "ROOK_STEP_VERSIONS[@]" "$(common_upgrade_max_version "1.4" "$from_version")" "$to_version")"
+        done <<< "$(rook_upgrade_step_versions "${ROOK_STEP_VERSIONS[*]}" "$(common_upgrade_max_version "1.4" "$from_version")" "$to_version")"
     fi
 
     addon_fetch_multiple_airgap "${addon_versions[@]}"
@@ -311,7 +311,7 @@ function rook_upgrade_addon_fetch_and_load_airgap() {
                 continue
             fi
             addon_load "rook" "$step"
-        done <<< "$(rook_upgrade_step_versions "ROOK_STEP_VERSIONS[@]" "$(common_upgrade_max_version "1.4" "$from_version")" "$to_version")"
+        done <<< "$(rook_upgrade_step_versions "${ROOK_STEP_VERSIONS[*]}" "$(common_upgrade_max_version "1.4" "$from_version")" "$to_version")"
     fi
 
     logSuccess "Images loaded for Rook $from_version to $to_version upgrade"
@@ -338,7 +338,7 @@ function rook_upgrade_has_all_addon_version_packages() {
             if [ ! -f "addons/rook/$step/Manifest" ]; then
                 return 1
             fi
-        done <<< "$(rook_upgrade_step_versions "ROOK_STEP_VERSIONS[@]" "$(common_upgrade_max_version "1.4" "$from_version")" "$to_version")"
+        done <<< "$(rook_upgrade_step_versions "${ROOK_STEP_VERSIONS[*]}" "$(common_upgrade_max_version "1.4" "$from_version")" "$to_version")"
     fi
 
     return 0
@@ -396,7 +396,7 @@ function rook_upgrade_images_list() {
                 "$images_list" \
                 "$(rook_upgrade_list_rook_ceph_images_in_manifest_file "addons/rook/$step/Manifest")" \
             )"
-        done <<< "$(rook_upgrade_step_versions "ROOK_STEP_VERSIONS[@]" "$(common_upgrade_max_version "1.4" "$from_version")" "$to_version")"
+        done <<< "$(rook_upgrade_step_versions "${ROOK_STEP_VERSIONS[*]}" "$(common_upgrade_max_version "1.4" "$from_version")" "$to_version")"
     fi
 
     echo "$images_list"
@@ -415,10 +415,11 @@ function rook_upgrade_list_rook_ceph_images_in_manifest_file() {
 }
 
 # rook_upgrade_step_versions returns a list of upgrade steps that need to be performed, based on
-# $ROOK_STEP_VERSIONS, for use by other functions. This list is inclusive of the from_version.
-# e.g. "1.5.12\n1.6.11\n1.7.11"
+# the supplied space-delimited set of step versions, for use by other functions. This list is
+# inclusive of the from_version. e.g. "1.5.12\n1.6.11\n1.7.11"
 function rook_upgrade_step_versions() {
-    declare -a _step_versions=("${!1}")
+    local step_versions=
+    read -ra step_versions <<< "$1"
     local from_version=$2
     local to_version=$3
 
@@ -433,13 +434,13 @@ function rook_upgrade_step_versions() {
     first_minor=$(common_upgrade_major_minor_to_minor "$from_version")
     last_minor=$(common_upgrade_major_minor_to_minor "$to_version")
 
-    if [ "${#_step_versions[@]}" -le "$last_minor" ]; then
+    if [ "${#step_versions[@]}" -le "$last_minor" ]; then
         bail "Upgrade from $from_version to $to_version is not supported."
     fi
 
     local step=
     for (( step=first_minor ; step<=last_minor ; step++ )); do
-        echo "${_step_versions[$step]}"
+        echo "${step_versions[$step]}"
     done
 }
 
