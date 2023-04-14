@@ -836,13 +836,15 @@ function get_kurl_install_directory_flag() {
 }
 
 function get_remotes_flags() {
+    local control_plane_label=
+    control_plane_label="$(kubernetes_get_control_plane_label)"
     while read -r primary; do
         printf " primary-host=$primary"
-    done < <(kubectl get nodes --no-headers --selector="node-role.kubernetes.io/master" -owide | awk '{ print $6 }')
+    done < <(kubectl get nodes --no-headers --selector="$control_plane_label" -owide | awk '{ print $6 }')
 
     while read -r secondary; do
         printf " secondary-host=$secondary"
-    done < <(kubectl get node --no-headers --selector='!node-role.kubernetes.io/master' -owide | awk '{ print $6 }')
+    done < <(kubectl get node --no-headers --selector='!'"$control_plane_label" -owide | awk '{ print $6 }')
 }
 
 function get_ipv6_flag() {

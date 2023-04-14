@@ -133,6 +133,9 @@ function kubernetes_upgrade_do_kubernetes_upgrade() {
             rm -rf "$DIR/packages/kubernetes/$step"
         fi
 
+        # workaround as some code relies on this legacy label
+        kubectl label --overwrite node --selector="node-role.kubernetes.io/control-plane" node-role.kubernetes.io/master=
+
         logSuccess "Cluster upgraded to Kubernetes version $step successfully"
     done <<< "$(common_upgrade_step_versions "${STEP_VERSIONS[*]}" "$from_version" "$to_version")"
 

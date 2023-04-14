@@ -281,15 +281,23 @@ function kubernetes_get_conformance_packages_online() {
 }
 
 function kubernetes_masters() {
-    kubectl get nodes --no-headers --selector="node-role.kubernetes.io/master" 2>/dev/null
+    kubectl get node --no-headers --selector="$(kubernetes_get_control_plane_label)" 2>/dev/null
 }
 
 function kubernetes_remote_masters() {
-    kubectl get nodes --no-headers --selector="node-role.kubernetes.io/master,kubernetes.io/hostname!=$(get_local_node_name)" 2>/dev/null
+    kubectl get nodes --no-headers --selector="$(kubernetes_get_control_plane_label),kubernetes.io/hostname!=$(get_local_node_name)" 2>/dev/null
 }
 
 function kubernetes_workers() {
-    kubectl get node --no-headers --selector='!node-role.kubernetes.io/master' 2>/dev/null
+    kubectl get node --no-headers --selector='!'"$(kubernetes_get_control_plane_label)" 2>/dev/null
+}
+
+function kubernetes_get_control_plane_label() {
+    if kubectl get nodes --show-labels 2>/dev/null | grep -qF "node-role.kubernetes.io/master" ; then
+        echo "node-role.kubernetes.io/master"
+    else
+        echo "node-role.kubernetes.io/control-plane"
+    fi
 }
 
 # exit 0 if there are any remote workers or masters

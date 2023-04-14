@@ -279,6 +279,7 @@ function init() {
 
     wait_for_nodes
 
+    # workaround as some code relies on this legacy label
     kubectl label --overwrite node "$(get_local_node_name)" node-role.kubernetes.io/master=
 
     enable_rook_ceph_operator
