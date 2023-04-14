@@ -33,6 +33,45 @@ function flannel_pre_init() {
     fi
 
     flannel_init_pod_subnet
+
+    if ! flannel_weave_conflict; then
+        return 0
+    fi
+
+    # the code below deals with weave to flannel migration and is not needed for new installs.
+    logWarn "The migration from Weave to Flannel will require whole-cluster downtime."
+    logWarn "Would you like to continue?"
+    if ! confirmY ; then
+        bail "Not migrating from Weave to Flannel"
+    fi
+
+    local node_count
+    node_count="$(kubectl get nodes --no-headers 2>/dev/null | wc -l)"
+    if [ "$node_count" = "1" ]; then
+        return 0
+    fi
+
+    local kurl_util_image
+    kurl_util_image=$(crictl images 2>/dev/null | grep replicated/kurl-util | sort | tail -1 | awk '//{printf "%s:%s\n",$1,$2;}')
+    if [ -z "$kurl_util_image" ]; then
+        if [ "$AIRGAP" = "1" ]; then
+            logFail "Your airgap installation misses replicated/kurl-util image, please contact support."
+            bail "Not migrating from Weave to Flannel"
+        fi
+        # at this point we haven't found the kurl-util image in the local store, but as this is
+        # not an airgap installation we can still try to pull it.
+        kurl_util_image="replicated/kurl-util:latest"
+        if [ -n "$KURL_VERSION" ]; then
+            kurl_util_image="replicated/kurl-util:$KURL_VERSION"
+        fi
+    fi
+
+    log "Verifying if all nodes can communicate with each other through port 8472/UDP."
+    if ! "$DIR"/bin/kurl netutil nodes-connectivity --port 8472 --image "$kurl_util_image" --proto udp; then
+        logFail "Flannel requires UDP port 8472 for communication between nodes."
+        logFail "Please make sure this port is open prior to running this upgrade."
+        bail "Not migrating from Weave to Flannel"
+    fi
 }
 
 function flannel_join() {
@@ -49,19 +88,6 @@ function flannel() {
     flannel_render_config
 
     if flannel_weave_conflict; then
-        local node_count
-        node_count="$(kubectl get nodes --no-headers 2>/dev/null | wc -l)"
-
-        printf "%bThe migration from Weave to Flannel will require whole-cluster downtime.%b\n" "$YELLOW" "$NC"
-        if [ "$node_count" -gt 1 ]; then
-            printf "%bFlannel requires UDP port 8472 for communication between nodes.%b\n" "$YELLOW" "$NC"
-            printf "%bPlease make sure this port is open prior to running this migration.%b\n" "$YELLOW" "$NC"
-        fi
-        printf "%bWould you like to continue? %b" "$YELLOW" "$NC"
-        if ! confirmY ; then
-            bail "Not migrating from Weave to Flannel"
-        fi
-
         weave_to_flannel
     else
         kubectl -n kube-flannel apply -k "$dst/"
