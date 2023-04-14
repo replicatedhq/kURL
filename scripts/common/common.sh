@@ -898,9 +898,9 @@ function job_is_completed() {
 
 function maybe() {
     local cmd="$1"
-    local args=${@:2}
+    local args=( "${@:2}" )
 
-    $cmd $args 2>/dev/null || true
+    $cmd "${args[@]}" 2>/dev/null || true
 }
 
 MACHINE_ID=

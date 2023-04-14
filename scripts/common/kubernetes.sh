@@ -281,19 +281,19 @@ function kubernetes_get_conformance_packages_online() {
 }
 
 function kubernetes_masters() {
-    kubectl get node --no-headers --selector="$(kubernetes_get_control_plane_label)" 2>/dev/null
+    kubectl get nodes --no-headers --selector="$(kubernetes_get_control_plane_label)"
 }
 
 function kubernetes_remote_masters() {
-    kubectl get nodes --no-headers --selector="$(kubernetes_get_control_plane_label),kubernetes.io/hostname!=$(get_local_node_name)" 2>/dev/null
+    kubectl get nodes --ignore-not-found --no-headers --selector="$(kubernetes_get_control_plane_label),kubernetes.io/hostname!=$(get_local_node_name)"
 }
 
 function kubernetes_workers() {
-    kubectl get node --no-headers --selector='!'"$(kubernetes_get_control_plane_label)" 2>/dev/null
+    kubectl get nodes --ignore-not-found --no-headers --selector='!'"$(kubernetes_get_control_plane_label)"
 }
 
 function kubernetes_get_control_plane_label() {
-    if kubectl get nodes --show-labels 2>/dev/null | grep -qF "node-role.kubernetes.io/master" ; then
+    if kubectl get nodes --show-labels | grep -qF "node-role.kubernetes.io/master" ; then
         echo "node-role.kubernetes.io/master"
     else
         echo "node-role.kubernetes.io/control-plane"
@@ -307,7 +307,7 @@ function kubernetes_has_remotes() {
         return 1
     fi
 
-    local count=$(kubectl get nodes --no-headers --selector="kubernetes.io/hostname!=$(get_local_node_name)" 2>/dev/null | wc -l)
+    local count=$(kubectl get nodes --ignore-not-found --no-headers --selector="kubernetes.io/hostname!=$(get_local_node_name)" | wc -l)
     if [ "$count" -gt "0" ]; then
         return 0
     fi

@@ -326,7 +326,7 @@ function apply_iptables_config() {
 
 function is_ha() {
     local master_count=
-    master_count="$(kubernetes_masters | wc -l)"
+    master_count="$(maybe kubernetes_masters | wc -l)"
     if [ "$master_count" -gt 1 ]; then
         HA_CLUSTER=1
     fi
