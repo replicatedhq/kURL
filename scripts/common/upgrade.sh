@@ -167,7 +167,7 @@ function kubernetes_upgrade_storage_check() {
 
     # 2x archive size for extracted files
     # 3.5x archive size for container images
-    common_upgrade_storage_check "$archive_size" 20 $((70/2)) "Kubernetes"
+    common_upgrade_storage_check "$archive_size" 2 $((7/2)) "Kubernetes"
 }
 
 # kubernetes_upgrade_required_archive_size will determine the approximate size of the archive that
