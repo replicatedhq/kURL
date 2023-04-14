@@ -790,8 +790,8 @@ function move_airgap_assets() {
     # Move all assets except the scripts into the $KURL_INSTALL_DIRECTORY to emulate the online install experience.
     if [ "$(ls -A "${cwd}"/kurl)" ]; then
         for file in "${cwd}"/kurl/*; do
-            rm -rf "$KURL_INSTALL_DIRECTORY/$(basename "$file")"
-            mv "${file}" "$KURL_INSTALL_DIRECTORY/"
+            rm -rf "${KURL_INSTALL_DIRECTORY}/$(basename ${file})"
+            mv "${file}" "${KURL_INSTALL_DIRECTORY}/"
         done
     fi
 }
@@ -1182,7 +1182,7 @@ function common_upgrade_step_versions() {
     fi
 
     local step=
-    for (( step="$first_minor" ; step<=last_minor ; step++ )); do
+    for (( step=first_minor ; step<=last_minor ; step++ )); do
         echo "${_step_versions[$step]}"
     done
 }

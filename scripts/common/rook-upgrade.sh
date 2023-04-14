@@ -459,7 +459,7 @@ function rook_upgrade_step_versions() {
     fi
 
     local step=
-    for (( step="$first_minor" ; step<=last_minor ; step++ )); do
+    for (( step=first_minor ; step<=last_minor ; step++ )); do
         echo "${_step_versions[$step]}"
     done
 }
