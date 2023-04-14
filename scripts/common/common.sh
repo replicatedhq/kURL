@@ -1311,10 +1311,13 @@ function common_upgrade_merge_images_list() {
     echo "$images_list" | tr " " "\n" | sort | uniq | tr "\n" " " | xargs
 }
 
-# common_upgrade_storage_check verifies that enough disk space exists based on the desired size.
+# common_upgrade_storage_check verifies that enough disk space exists based on the archive size and
+# multipliers.
 function common_upgrade_storage_check() {
     local archive_size="$1"
-    local upgrade_name="$2"
+    local multiplier_files="$2"
+    local multiplier_images="$3"
+    local upgrade_name="$4"
 
     local container_directory=
     if [ -n "$DOCKER_VERSION" ]; then
@@ -1325,9 +1328,9 @@ function common_upgrade_storage_check() {
 
     # if $container_directory and $KURL_INSTALL_DIRECTORY are on the same filesystem, we need to check that there is space for all of the files
     if [ "$(df -P "$container_directory" | awk 'END{print $1}')" = "$(df -P "$KURL_INSTALL_DIRECTORY" | awk 'END{print $1}')" ]; then
-        # in total, we need space for 5.5x the archive size, AND there must be 15% free space on the filesystem afterwards
         local total_required_size=
-        total_required_size=$((archive_size * 11 / 2)) # 5.5x archive size, rounded to an integer
+        local total_multiplier=$((multiplier_files + multiplier_images))
+        total_required_size=$((archive_size * total_multiplier))
 
         local free_kb=
         local free_mb=
@@ -1344,7 +1347,7 @@ function common_upgrade_storage_check() {
 
         if [ "$available_mb" -lt "$total_required_size" ]; then
             logWarn "Not enough disk space to upgrade $upgrade_name."
-            logWarn "You need at least $total_required_size MB of free space on the filesystem containing $(pwd) and $container_directory - and to have 15%% free space after that to avoid image pruning."
+            logWarn "You need at least $total_required_size MB of free space on the filesystem containing $KURL_INSTALL_DIRECTORY and $container_directory - and to have 15%% free space after that to avoid image pruning."
             logWarn "Currently, only $available_mb MB of free space is available before reaching 85%% capacity."
             logWarn "If you have already loaded images or started this $upgrade_name upgrade, it is possible that less space will be required. Would you like to continue anyways?"
             if ! confirmN; then
@@ -1353,7 +1356,7 @@ function common_upgrade_storage_check() {
         fi
     else
         local kurl_dir_size=
-        kurl_dir_size=$((archive_size * 2))
+        kurl_dir_size=$((archive_size * multiplier_files))
 
         local kurl_free_kb=
         local kurl_free_mb=
@@ -1362,7 +1365,7 @@ function common_upgrade_storage_check() {
 
         if [ "$kurl_free_mb" -lt "$kurl_dir_size" ]; then
             logWarn "Not enough disk space to upgrade $upgrade_name."
-            logWarn "You need at least $kurl_dir_size MB of free space on the filesystem containing $(pwd)."
+            logWarn "You need at least $kurl_dir_size MB of free space on the filesystem containing $KURL_INSTALL_DIRECTORY."
             logWarn "Currently, only $kurl_free_mb MB of free space is available."
             logWarn "If you have already loaded images or started this $upgrade_name upgrade, it is possible that less space will be required. Would you like to continue anyways?"
             if ! confirmN; then
@@ -1371,7 +1374,7 @@ function common_upgrade_storage_check() {
         fi
 
         local container_dir_size=
-        container_dir_size=$((archive_size * 7 / 2)) # 3.5x archive size, rounded to an integer
+        container_dir_size=$((archive_size * multiplier_images))
 
         local container_free_kb=
         local container_free_mb=
