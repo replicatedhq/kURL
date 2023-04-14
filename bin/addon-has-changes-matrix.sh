@@ -82,6 +82,7 @@ function main() {
     echo "::set-output name=addons::{\"include\":[$(join_array_by ',' "${ADDONS_AVAILBLE[@]}")]}"
   else
     echo "No changed addons detected, addon is currently in the ADDON_DENY_LIST, or addon does not have a TestGrid template."
+    echo "::set-output name=addons::{\"include\":[]}"
   fi
 }
 
