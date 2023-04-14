@@ -28,16 +28,15 @@ import (
 	"github.com/replicatedhq/kurl/pkg/static/nodes_connectivity"
 )
 
-var usageExamples = `
+const (
+	listenersSelector = "name=nodes-connectivity-listener"
+	pingerSelector    = "name=nodes-connectivity-pinger"
+	usageExamples     = `
 # Test if all nodes can reach all other nodes using tcp in port 6472.
 kurl netutil nodes-connectivity --port 6472 --proto tcp
 # Test if all nodes can reach all other nodes using udp in port 7788.
 kurl netutil nodes-connectivity --port 7788 --proto udp
 `
-
-const (
-	listenersSelector = "name=nodes-connectivity-listener"
-	pingerSelector    = "name=nodes-connectivity-pinger"
 )
 
 type logLine struct {
@@ -68,13 +67,8 @@ func newNetutilNodesConnectivity(_ CLI) *cobra.Command {
 				return fmt.Errorf("--port flag is required.")
 			}
 			opts.proto = strings.ToUpper(opts.proto)
-			proto := corev1.Protocol(opts.proto)
-			if proto != corev1.ProtocolTCP && proto != corev1.ProtocolUDP {
+			if proto := corev1.Protocol(opts.proto); proto != corev1.ProtocolTCP && proto != corev1.ProtocolUDP {
 				return fmt.Errorf("--protocol must be either tcp or udp.")
-			}
-			opts.wait = time.Second
-			if corev1.Protocol(opts.proto) == corev1.ProtocolUDP {
-				opts.wait = 5 * time.Second
 			}
 			// now that all input args have been validated we can silence the usage print upon error.
 			cmd.SilenceUsage = true
@@ -86,13 +80,20 @@ func newNetutilNodesConnectivity(_ CLI) *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("failed to create kubernetes client: %w", err)
 			}
-			opts.cli = cli
 			cliset, err := kubernetes.NewForConfig(config.GetConfigOrDie())
 			if err != nil {
 				return fmt.Errorf("failed to create kubernetes client set: %s", err)
 			}
+			opts.cli = cli
 			opts.cliset = cliset
 			opts.printf = cmd.Printf
+			opts.wait = time.Second
+			if corev1.Protocol(opts.proto) == corev1.ProtocolUDP {
+				opts.wait = 5 * time.Second
+			}
+			if corev1.Protocol(opts.proto) == corev1.ProtocolTCP {
+				opts.attempts = 1
+			}
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -169,9 +170,8 @@ func printDaemonsetStatus(ctx context.Context, opts nodeConnectivityOptions, ds 
 	opts.printf("\n")
 }
 
-// deployListenersDaemonset deploys a daemonset that will run a pod that listens for udp or tcp packets,
-// on port 9999. a service is created to expose the daemonset pods, this service is of type nodeport and
-// binds to nodeConnectivityOptions.port port.
+// deployListenersDaemonset deploys a daemonset that will run a pod that listens for udp or tcp packets using the node's
+// network. port and protocol are read from the nodeConnectivityOptions.
 func deployListenersDaemonset(ctx context.Context, opts nodeConnectivityOptions) error {
 	opts.printf("Deploying node connectivity listeners DaemonSet.\n")
 	options := []plumber.Option{
@@ -209,6 +209,8 @@ func deployListenersDaemonset(ctx context.Context, opts nodeConnectivityOptions)
 	return nil
 }
 
+// attachToListenersPods attaches to all provided pod logs. returns a channel from where printed messages (or errors) can
+// be read.
 func attachToListenersPods(ctx context.Context, opts nodeConnectivityOptions, pods []corev1.Pod) <-chan logLine {
 	var out = make(chan logLine)
 	for _, pod := range pods {
@@ -252,7 +254,6 @@ func deletePinger(ctx context.Context, opts nodeConnectivityOptions) error {
 	if err := renderer.Delete(ctx, "pinger"); err != nil {
 		return fmt.Errorf("failed to delete pinger job: %w", err)
 	}
-	// XXX unfortunately we have to remove all pods manually.
 	pods, err := k8sutil.ListPodsBySelector(ctx, opts.cliset, opts.namespace, pingerSelector)
 	if err != nil {
 		return fmt.Errorf("failed to get pinger pods: %w", err)
@@ -265,9 +266,11 @@ func deletePinger(ctx context.Context, opts nodeConnectivityOptions) error {
 	return nil
 }
 
-// connectNodeFromNode creates a job that inherit the provided pod affinity and tolerations. this attempts to send an uuid
-// through a network connection to the target ip and configured port/protocol. returns the sent uuid.
-func connectNodeFromNode(ctx context.Context, opts nodeConnectivityOptions, model corev1.Pod, targetIP string) (string, error) {
+// runPinger creates a job that inherit the provided pod affinity and tolerations. the job then attempts to send an
+// uuid (as string) through a network connection to the target ip and configured port/protocol. returns the sent uuid.
+// this function returns when the job has been finished. XXX this could also have been implemented by spawning a new
+// command inside the provided pod (instead of creating a new job).
+func runPinger(ctx context.Context, opts nodeConnectivityOptions, model corev1.Pod, targetIP string) (string, error) {
 	id := uuid.New().String()
 	options := []plumber.Option{
 		plumber.WithKustomizeMutator(kustomizeMutator(opts)),
@@ -302,6 +305,9 @@ func connectNodeFromNode(ctx context.Context, opts nodeConnectivityOptions, mode
 	if err := renderer.Apply(ctx, "pinger"); err != nil {
 		return "", fmt.Errorf("failed to apply pinger job: %w", err)
 	}
+	if err := deletePinger(ctx, opts); err != nil {
+		return "", fmt.Errorf("failed to delete pinger job: %w", err)
+	}
 	return id, nil
 }
 
@@ -324,6 +330,17 @@ func testNodesConnectivity(ctx context.Context, opts nodeConnectivityOptions) er
 	return nil
 }
 
+func readLogLine(ctx context.Context, opts nodeConnectivityOptions, receiver <-chan logLine) (string, error) {
+	select {
+	case line := <-receiver:
+		return line.message, line.err
+	case <-ctx.Done():
+		return "", fmt.Errorf("failed while waiting for logs: %w", ctx.Err())
+	case <-time.After(opts.wait):
+		return "", nil
+	}
+}
+
 // connectToNodeFromPods connects to the provided node by spawning pods in all other nodes and verifying they can reach
 // the destination ip address and port.
 func connectToNodeFromPods(ctx context.Context, opts nodeConnectivityOptions, node corev1.Node, receiver <-chan logLine) error {
@@ -335,48 +352,28 @@ func connectToNodeFromPods(ctx context.Context, opts nodeConnectivityOptions, no
 	if err != nil {
 		return fmt.Errorf("failed to determine node %s ip: %w", node.Name, err)
 	}
-	attempts := opts.attempts
-	if corev1.Protocol(opts.proto) == corev1.ProtocolTCP {
-		attempts = 1
-	}
 	for _, pod := range pods.Items {
 		src, dst := pod.Spec.NodeName, node.Name
 		if src == dst {
 			continue
 		}
 		var success bool
-		for i := 1; i <= attempts; i++ {
-			opts.printf("Testing connection from %s to %s (%d/%d)\n", src, dst, i, attempts)
-			id, err := connectNodeFromNode(ctx, opts, pod, dstIP)
+		for i := 1; i <= opts.attempts; i++ {
+			opts.printf("Testing connection from %s to %s (%d/%d)\n", src, dst, i, opts.attempts)
+			id, err := runPinger(ctx, opts, pod, dstIP)
 			if err != nil {
 				return fmt.Errorf("failed to connect node %s from node %s: %v", src, dst, err)
 			}
-
-			if err := deletePinger(ctx, opts); err != nil {
-				return fmt.Errorf("failed to delete pinger job: %w", err)
+			line, err := readLogLine(ctx, opts, receiver)
+			if err != nil {
+				return fmt.Errorf("failed to read log line: %w", err)
 			}
-
-			select {
-			case line := <-receiver:
-				if line.err == nil {
-					success = line.message == id
-					break
-				}
-				return fmt.Errorf("failed to read listener pod output: %w", line.err)
-			case <-time.After(opts.wait):
-			}
-
-			if success {
+			if success = line == id; success {
 				opts.printf("Success, packet received.\n")
 				break
 			}
-			retrying := "retrying."
-			if i == attempts {
-				retrying = "giving up."
-			}
-			opts.printf("Failed to connect from %s to %s, %s\n", src, dst, retrying)
+			opts.printf("Failed to connect from %s to %s, %s\n", src, dst)
 		}
-
 		if success {
 			continue
 		}
