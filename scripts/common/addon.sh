@@ -246,6 +246,7 @@ function addon_fetch_multiple_airgap() {
         fi
 
         # do not source the addon here as we are loading multiple addons that may conflict
+        # also the kubernetes "addon" uses this function but is not an addon
     fi
 }
 

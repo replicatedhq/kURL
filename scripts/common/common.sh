@@ -42,6 +42,10 @@ function package_download() {
     local package="$1"
     local url_override="$2"
 
+    if [ -z "$package" ]; then
+        bail "package_download called with no package name"
+    fi
+
     if [ -z "$url_override" ] && [ -z "${DIST_URL}" ]; then
         logWarn "DIST_URL not set, will not download $1"
         return
@@ -737,16 +741,15 @@ function install_host_dependencies_openssl() {
 }
 
 function maybe_read_kurl_config_from_cluster() {
-    if [ -n "${KURL_INSTALL_DIRECTORY_FLAG}" ]; then
-        return
-    fi
-
-    local kurl_install_directory_flag
-    # we don't yet have KUBECONFIG when this is called from the top of install.sh
-    kurl_install_directory_flag="$(KUBECONFIG="$(kubeadm_get_kubeconfig)" kubectl -n kube-system get cm kurl-config -ojsonpath='{ .data.kurl_install_directory }' 2>/dev/null || echo "")"
-    if [ -n "${kurl_install_directory_flag}" ]; then
-        KURL_INSTALL_DIRECTORY_FLAG="${kurl_install_directory_flag}"
-        KURL_INSTALL_DIRECTORY="$(realpath ${kurl_install_directory_flag})/kurl"
+    # if KURL_INSTALL_DIRECTORY_FLAG is set, use the value from the flag
+    if [ -z "$KURL_INSTALL_DIRECTORY_FLAG" ]; then
+        local kurl_install_directory_flag
+        # we don't yet have KUBECONFIG when this is called from the top of install.sh
+        kurl_install_directory_flag="$(KUBECONFIG="$(kubeadm_get_kubeconfig)" kubectl -n kube-system get cm kurl-config -ojsonpath='{ .data.kurl_install_directory }' 2>/dev/null || echo "")"
+        if [ -n "$kurl_install_directory_flag" ]; then
+            KURL_INSTALL_DIRECTORY_FLAG="$kurl_install_directory_flag"
+            KURL_INSTALL_DIRECTORY="$(realpath "$kurl_install_directory_flag")/kurl"
+        fi
     fi
 
     # this function currently only sets KURL_INSTALL_DIRECTORY
@@ -755,6 +758,8 @@ function maybe_read_kurl_config_from_cluster() {
 
 KURL_INSTALL_DIRECTORY=/var/lib/kurl
 function pushd_install_directory() {
+    KURL_INSTALL_DIRECTORY="$(realpath "$KURL_INSTALL_DIRECTORY")"
+
     local tmpfile
     tmpfile="${KURL_INSTALL_DIRECTORY}/tmpfile"
     if ! mkdir -p "${KURL_INSTALL_DIRECTORY}" || ! touch "${tmpfile}" ; then
@@ -785,8 +790,8 @@ function move_airgap_assets() {
     # Move all assets except the scripts into the $KURL_INSTALL_DIRECTORY to emulate the online install experience.
     if [ "$(ls -A "${cwd}"/kurl)" ]; then
         for file in "${cwd}"/kurl/*; do
-            rm -rf "${KURL_INSTALL_DIRECTORY}/$(basename ${file})"
-            mv "${file}" "${KURL_INSTALL_DIRECTORY}/"
+            rm -rf "$KURL_INSTALL_DIRECTORY/$(basename "$file")"
+            mv "${file}" "$KURL_INSTALL_DIRECTORY/"
         done
     fi
 }
@@ -1150,4 +1155,275 @@ function cmd_retry() {
         fi
     done
     return 0
+}
+
+# common_upgrade_step_versions returns a list of upgrade steps that need to be performed, based on
+# the supplied step versions, for use by other functions.
+# e.g. "1.5.12\n1.6.11\n1.7.11"
+function common_upgrade_step_versions() {
+    declare -a _step_versions=("${!1}")
+    local from_version=$2
+    local to_version=$3
+
+    # check that both are major version 1
+    if  [ "$(common_upgrade_major_minor_to_major "$from_version")" != "1" ] || \
+        [ "$(common_upgrade_major_minor_to_major "$to_version")" != "1" ] ; then
+        bail "Upgrade from $from_version to $to_version is not supported."
+    fi
+
+    local first_minor=
+    local last_minor=
+    first_minor=$(common_upgrade_major_minor_to_minor "$from_version")
+    first_minor=$((first_minor + 1)) # exclusive of from_version
+    last_minor=$(common_upgrade_major_minor_to_minor "$to_version")
+
+    if [ "${#_step_versions[@]}" -le "$last_minor" ]; then
+        bail "Upgrade from $from_version to $to_version is not supported."
+    fi
+
+    local step=
+    for (( step="$first_minor" ; step<=last_minor ; step++ )); do
+        echo "${_step_versions[$step]}"
+    done
+}
+
+# common_upgrade_compare_versions prints 0 if the versions are equal, 1 if the first is greater,
+# and -1 if the second is greater.
+function common_upgrade_compare_versions() {
+    local a="$1"
+    local b="$2"
+
+    local a_major=
+    local b_major=
+    a_major=$(common_upgrade_major_minor_to_major "$a")
+    b_major=$(common_upgrade_major_minor_to_major "$b")
+
+    if [ "$a_major" -lt "$b_major" ]; then
+        echo "-1"
+        return
+    elif [ "$a_major" -gt "$b_major" ]; then
+        echo "1"
+        return
+    fi
+
+    local a_minor=
+    local b_minor=
+    a_minor=$(common_upgrade_major_minor_to_minor "$a")
+    b_minor=$(common_upgrade_major_minor_to_minor "$b")
+
+    if [ "$a_minor" -lt "$b_minor" ]; then
+        echo "-1"
+        return
+    elif [ "$a_minor" -gt "$b_minor" ]; then
+        echo "1"
+        return
+    fi
+
+    echo "0"
+}
+
+# common_upgrade_is_version_included returns 0 if the version is included in the range.
+function common_upgrade_is_version_included() {
+    local from_version="$1"
+    local to_version="$2"
+    local current_version="$3"
+    # if current_version is greater than from_version and current_version is less than or equal to to_version
+    [ "$(common_upgrade_compare_versions "$current_version" "$from_version")" = "1" ] && \
+    [ "$(common_upgrade_compare_versions "$current_version" "$to_version")" != "1" ]
+}
+
+# common_upgrade_max_version will return the greater of the two versions.
+function common_upgrade_max_version() {
+    local a="$1"
+    local b="$2"
+    if [ "$(common_upgrade_compare_versions "$a" "$b")" = "1" ]; then
+        echo "$a"
+    else
+        echo "$b"
+    fi
+}
+
+# common_upgrade_print_list_of_minor_upgrades prints message of minor versions that will be
+# upgraded. e.g. "1.0.x to 1.1, 1.1 to 1.2, 1.2 to 1.3, and 1.3 to 1.4"
+function common_upgrade_print_list_of_minor_upgrades() {
+    local from_version="$1"
+    local to_version="$2"
+
+    printf "This involves upgrading from "
+    local first_minor=
+    local last_minor=
+    first_minor=$(common_upgrade_major_minor_to_minor "$from_version")
+    last_minor=$(common_upgrade_major_minor_to_minor "$to_version")
+
+    local minor=
+    for (( minor=first_minor ; minor<last_minor ; minor++ )); do
+        if [ "$minor" -gt "$first_minor" ]; then
+            printf ", "
+            if [ "$((minor + 1))" -eq "$last_minor" ]; then
+                printf "and "
+            fi
+            printf "1.%s to 1.%s" "$minor" "$((minor + 1))"
+        else
+            printf "1.%s.x to 1.%s" "$minor" "$((minor + 1))"
+        fi
+    done
+    printf ".\n"
+}
+
+# common_upgrade_major_minor_to_major returns the major version of a major.minor version.
+function common_upgrade_major_minor_to_major() {
+    echo "$1" | cut -d. -f1
+}
+
+# common_upgrade_major_minor_to_minor returns the minor version of a major.minor version.
+function common_upgrade_major_minor_to_minor() {
+    echo "$1" | cut -d. -f2
+}
+
+# common_upgrade_version_to_major_minor returns the major.minor version of a semver version.
+function common_upgrade_version_to_major_minor() {
+    echo "$1" | cut -d. -f1,2
+}
+
+# common_list_images_in_manifest_file will list images in the given manifest file.
+function common_list_images_in_manifest_file() {
+    local manifest_file="$1"
+
+    local image_list=
+    for image in $(grep "^image " "$manifest_file" | awk '{print $3}' | tr '\n' ' ') ; do
+        image_list=$image_list" $(canonical_image_name "$image")"
+    done
+    echo "$image_list" | xargs # trim whitespace
+}
+
+# common_upgrade_merge_images_list will merge each list of images from the arguments into a single
+# list and deduplicate the list.
+function common_upgrade_merge_images_list() {
+    local images_list=
+    while [ "$1" != "" ]; do
+        images_list="$images_list $1"
+        shift
+    done
+    echo "$images_list" | tr " " "\n" | sort | uniq | tr "\n" " " | xargs
+}
+
+# common_upgrade_storage_check verifies that enough disk space exists based on the desired size.
+function common_upgrade_storage_check() {
+    local archive_size="$1"
+    local upgrade_name="$2"
+
+    local container_directory=
+    if [ -n "$DOCKER_VERSION" ]; then
+        container_directory="/var/lib/docker"
+    else
+        container_directory="/var/lib/containerd"
+    fi
+
+    # if $container_directory and $KURL_INSTALL_DIRECTORY are on the same filesystem, we need to check that there is space for all of the files
+    if [ "$(df -P "$container_directory" | awk 'END{print $1}')" = "$(df -P "$KURL_INSTALL_DIRECTORY" | awk 'END{print $1}')" ]; then
+        # in total, we need space for 5.5x the archive size, AND there must be 15% free space on the filesystem afterwards
+        local total_required_size=
+        total_required_size=$((archive_size * 11 / 2)) # 5.5x archive size, rounded to an integer
+
+        local free_kb=
+        local free_mb=
+        free_kb="$(df -P "$KURL_INSTALL_DIRECTORY" | awk 'END{print $4}')"
+        free_mb="$((free_kb / 1024))"
+
+        local total_kb=
+        local total_mb=
+        total_kb="$(df -P "$KURL_INSTALL_DIRECTORY" | awk 'END{print $2}')"
+        total_mb="$((total_kb / 1024))"
+
+        local available_mb=
+        available_mb="$((free_mb - total_mb * 3 / 20))" # free space, excluding 15% of the total
+
+        if [ "$available_mb" -lt "$total_required_size" ]; then
+            logWarn "Not enough disk space to upgrade $upgrade_name."
+            logWarn "You need at least $total_required_size MB of free space on the filesystem containing $(pwd) and $container_directory - and to have 15%% free space after that to avoid image pruning."
+            logWarn "Currently, only $available_mb MB of free space is available before reaching 85%% capacity."
+            logWarn "If you have already loaded images or started this $upgrade_name upgrade, it is possible that less space will be required. Would you like to continue anyways?"
+            if ! confirmN; then
+                return 1
+            fi
+        fi
+    else
+        local kurl_dir_size=
+        kurl_dir_size=$((archive_size * 2))
+
+        local kurl_free_kb=
+        local kurl_free_mb=
+        kurl_free_kb="$(df -P "$KURL_INSTALL_DIRECTORY" | awk 'END{print $4}')"
+        kurl_free_mb="$((kurl_free_kb / 1024))"
+
+        if [ "$kurl_free_mb" -lt "$kurl_dir_size" ]; then
+            logWarn "Not enough disk space to upgrade $upgrade_name."
+            logWarn "You need at least $kurl_dir_size MB of free space on the filesystem containing $(pwd)."
+            logWarn "Currently, only $kurl_free_mb MB of free space is available."
+            logWarn "If you have already loaded images or started this $upgrade_name upgrade, it is possible that less space will be required. Would you like to continue anyways?"
+            if ! confirmN; then
+                return 1
+            fi
+        fi
+
+        local container_dir_size=
+        container_dir_size=$((archive_size * 7 / 2)) # 3.5x archive size, rounded to an integer
+
+        local container_free_kb=
+        local container_free_mb=
+        container_free_kb="$(df -P "$KURL_INSTALL_DIRECTORY" | awk 'END{print $4}')"
+        container_free_mb="$((container_free_kb / 1024))"
+
+        local container_total_kb=
+        local container_total_mb=
+        container_total_kb="$(df -P "$KURL_INSTALL_DIRECTORY" | awk 'END{print $2}')"
+        container_total_mb="$((container_total_kb / 1024))"
+
+        local container_available_mb=
+        container_available_mb="$((container_free_mb - container_total_mb * 3 / 20))" # free space, excluding 15% of the total
+
+        if [ "$container_available_mb" -lt "$container_dir_size" ]; then
+            logWarn "Not enough disk space to upgrade $upgrade_name."
+            logWarn "You need at least $container_dir_size MB of free space on the filesystem containing $container_directory - and to have 15%% free space after that to avoid image pruning."
+            logWarn "Currently, only $container_available_mb MB of free space is available before reaching 85%% capacity."
+            logWarn "If you have already loaded images or started this $upgrade_name upgrade, it is possible that less space will be required. Would you like to continue anyways?"
+            if ! confirmN; then
+                return 1
+            fi
+        fi
+    fi
+}
+
+# common_task_require_param requires that the given parameter is set or bails.
+function common_task_require_param() {
+    local param="$1"
+    local value="$2"
+    if [ -z "$value" ]; then
+        bail "Error: $param is required"
+    fi
+}
+
+# common_upgrade_tasks_params parses the parameters for the rook upgrade tasks.
+function common_upgrade_tasks_params() {
+    while [ "$1" != "" ]; do
+        local _param=
+        local _value=
+        _param="$(echo "$1" | cut -d= -f1)"
+        _value="$(echo "$1" | grep '=' | cut -d= -f2-)"
+        case $_param in
+            from-version)
+                from_version="$_value"
+                ;;
+            to-version)
+                to_version="$_value"
+                ;;
+            airgap)
+                airgap="1"
+                ;;
+            *)
+                bail "Error: unknown parameter \"$_param\""
+                ;;
+        esac
+        shift
+    done
 }

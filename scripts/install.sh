@@ -548,6 +548,7 @@ function main() {
     trap trap_report_error ERR # trap errors and handle it by reporting the error line and parent function
     preflights
     init_preflights
+    kubernetes_upgrade_preflight
     common_prompts
     journald_persistent
     configure_proxy
