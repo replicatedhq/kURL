@@ -381,7 +381,7 @@ function upgrade_kubeadm() {
 }
 
 function upgrade_kubernetes_local_master() {
-    local targetK8sVersion="$2"
+    local targetK8sVersion="$1"
     local nodeName=
     nodeName="$(get_local_node_name)"
     # shellcheck disable=SC2034
