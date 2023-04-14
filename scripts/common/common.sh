@@ -1166,10 +1166,13 @@ function common_upgrade_step_versions() {
     local from_version=$2
     local to_version=$3
 
-    # check that both are major version 1
-    if  [ "$(common_upgrade_major_minor_to_major "$from_version")" != "1" ] || \
-        [ "$(common_upgrade_major_minor_to_major "$to_version")" != "1" ] ; then
-        bail "Upgrade from $from_version to $to_version is not supported."
+    # check that major versions are the same
+    local first_major=
+    first_major=$(common_upgrade_major_minor_to_major "$from_version")
+    local last_major=
+    last_major=$(common_upgrade_major_minor_to_major "$to_version")
+    if [ "$first_major" != "$last_major" ]; then
+        bail "Upgrade accross major version from $from_version to $to_version is not supported."
     fi
 
     local first_minor=

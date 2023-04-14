@@ -49,7 +49,8 @@ function test_common_upgrade_step_versions() {
     assertEquals "6 to 9" "$(echo -e "1.7.11\n1.8.10\n1.9.12")" "$(common_upgrade_step_versions "${step_versions[*]}" "1.6" "1.9")"
     assertEquals "0 to 2" "$(echo -e "0.0.0\n0.0.0")" "$(common_upgrade_step_versions "${step_versions[*]}" "1.0" "1.2")"
     assertEquals "9 to 11" "$(echo -e "1.10.11\n1.11.2")" "$(common_upgrade_step_versions "${step_versions[*]}" "1.9" "1.11")"
-    assertEquals "9 to 15" "1" "$(trap "echo_exit_code" EXIT; common_upgrade_step_versions "${step_versions[*]}" "1.9" "1.15"; trap '' EXIT)"
+    assertEquals "error out of bounds" "1" "$(trap "echo_exit_code" EXIT; common_upgrade_step_versions "${step_versions[*]}" "1.9" "1.15"; trap '' EXIT)"
+    assertEquals "error major versions" "1" "$(trap "echo_exit_code" EXIT; common_upgrade_step_versions "${step_versions[*]}" "1.1" "2.1"; trap '' EXIT)"
     assertEquals "6 to 4" "" "$(common_upgrade_step_versions "${step_versions[*]}" "1.6" "1.4")"
 }
 
