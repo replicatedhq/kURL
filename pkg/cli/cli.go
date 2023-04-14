@@ -1,6 +1,10 @@
 package cli
 
 import (
+	"io"
+	"log"
+	"os"
+
 	"github.com/chzyer/readline"
 	"github.com/pkg/errors"
 	"github.com/replicatedhq/kurl/pkg/preflight"
@@ -15,6 +19,10 @@ type CLI interface {
 	GetReadline() *readline.Instance
 	GetHostPreflightRunner() preflight.RunnerHost
 	GetClusterPreflightRunner() preflight.RunnerCluster
+	Stdout() io.Writer
+	Stderr() io.Writer
+	Logger() *log.Logger
+	DebugLogger() *log.Logger
 }
 
 // KurlCLI is the real implementation of the kurl CLI
@@ -23,6 +31,24 @@ type KurlCLI struct {
 	readline               *readline.Instance
 	preflightClusterRunner *preflight.RunnerClusterPreflight
 	preflightHostRunner    *preflight.RunnerHostPreflight
+	stdout                 io.Writer
+	stderr                 io.Writer
+}
+
+// NewKurlCLI builds a real kurl CLI object
+func NewKurlCLI() (*KurlCLI, error) {
+	rl, err := readline.New("")
+	if err != nil {
+		return nil, errors.Wrap(err, "new readline")
+	}
+	return &KurlCLI{
+		fs:                     afero.NewOsFs(),
+		readline:               rl,
+		preflightHostRunner:    new(preflight.RunnerHostPreflight),
+		preflightClusterRunner: new(preflight.RunnerClusterPreflight),
+		stdout:                 os.Stdout,
+		stderr:                 os.Stderr,
+	}, nil
 }
 
 // GetViper returns the global viper instance
@@ -50,16 +76,42 @@ func (cli *KurlCLI) GetClusterPreflightRunner() preflight.RunnerCluster {
 	return cli.preflightClusterRunner
 }
 
-// NewKurlCLI builds a real kurl CLI object
-func NewKurlCLI() (*KurlCLI, error) {
-	rl, err := readline.New("")
-	if err != nil {
-		return nil, errors.Wrap(err, "new readline")
+// Stdout returns the writer that writes to stdout unless it's been overridden
+func (cli *KurlCLI) Stdout() io.Writer {
+	return cli.stdout
+}
+
+// SetStdout overrides the writer that writes to stdout
+func (cli *KurlCLI) SetStdout(w io.Writer) {
+	cli.stdout = w
+}
+
+// Stderr returns the writer that writes to stderr unless it's been overridden
+func (cli *KurlCLI) Stderr() io.Writer {
+	return cli.stderr
+}
+
+// SetStderr overrides the writer that writes to stderr
+func (cli *KurlCLI) SetStderr(w io.Writer) {
+	cli.stdout = w
+}
+
+const (
+	logDebugFlag   = "debug"
+	logDebugPrefix = "DEBUG: "
+)
+
+// Logger returns the logger that should be used for standard log output.
+// Logger logs to stderr.
+func (cli *KurlCLI) Logger() *log.Logger {
+	return log.New(cli.stderr, "", log.LstdFlags)
+}
+
+// DebugLogger returns the logger that should be used for debug level output.
+// DebugLogger logs to stderr.
+func (cli *KurlCLI) DebugLogger() *log.Logger {
+	if cli.GetViper().GetBool(logDebugFlag) {
+		return log.New(cli.stderr, logDebugPrefix, log.LstdFlags)
 	}
-	return &KurlCLI{
-		fs:                     afero.NewOsFs(),
-		readline:               rl,
-		preflightHostRunner:    new(preflight.RunnerHostPreflight),
-		preflightClusterRunner: new(preflight.RunnerClusterPreflight),
-	}, nil
+	return log.New(io.Discard, "", 0)
 }

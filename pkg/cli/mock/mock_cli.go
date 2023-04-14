@@ -5,6 +5,8 @@
 package mock_cli
 
 import (
+	io "io"
+	log "log"
 	reflect "reflect"
 
 	readline "github.com/chzyer/readline"
@@ -35,6 +37,20 @@ func NewMockCLI(ctrl *gomock.Controller) *MockCLI {
 // EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockCLI) EXPECT() *MockCLIMockRecorder {
 	return m.recorder
+}
+
+// DebugLogger mocks base method.
+func (m *MockCLI) DebugLogger() *log.Logger {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DebugLogger")
+	ret0, _ := ret[0].(*log.Logger)
+	return ret0
+}
+
+// DebugLogger indicates an expected call of DebugLogger.
+func (mr *MockCLIMockRecorder) DebugLogger() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DebugLogger", reflect.TypeOf((*MockCLI)(nil).DebugLogger))
 }
 
 // GetClusterPreflightRunner mocks base method.
@@ -105,4 +121,46 @@ func (m *MockCLI) GetViper() *viper.Viper {
 func (mr *MockCLIMockRecorder) GetViper() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetViper", reflect.TypeOf((*MockCLI)(nil).GetViper))
+}
+
+// Logger mocks base method.
+func (m *MockCLI) Logger() *log.Logger {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Logger")
+	ret0, _ := ret[0].(*log.Logger)
+	return ret0
+}
+
+// Logger indicates an expected call of Logger.
+func (mr *MockCLIMockRecorder) Logger() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Logger", reflect.TypeOf((*MockCLI)(nil).Logger))
+}
+
+// Stderr mocks base method.
+func (m *MockCLI) Stderr() io.Writer {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Stderr")
+	ret0, _ := ret[0].(io.Writer)
+	return ret0
+}
+
+// Stderr indicates an expected call of Stderr.
+func (mr *MockCLIMockRecorder) Stderr() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Stderr", reflect.TypeOf((*MockCLI)(nil).Stderr))
+}
+
+// Stdout mocks base method.
+func (m *MockCLI) Stdout() io.Writer {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Stdout")
+	ret0, _ := ret[0].(io.Writer)
+	return ret0
+}
+
+// Stdout indicates an expected call of Stdout.
+func (mr *MockCLIMockRecorder) Stdout() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Stdout", reflect.TypeOf((*MockCLI)(nil).Stdout))
 }
