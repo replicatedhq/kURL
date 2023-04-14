@@ -1427,3 +1427,36 @@ function common_upgrade_tasks_params() {
         shift
     done
 }
+
+# common_prompt_missing_images prompts the user to run the command to load the images on the given
+# remote nodes before proceeding.
+function common_prompt_task_missing_images() {
+    local nodes="$1"
+    local from_version="$2"
+    local to_version="$3"
+    local upgrade_name="$4"
+    local task="$5"
+
+    if [ -z "$nodes" ]; then
+        return
+    fi
+
+    local prefix=
+    if [ "$AIRGAP" = "1" ]; then
+        prefix="cat ./"
+    else
+        prefix="$(build_installer_prefix "$INSTALLER_ID" "$KURL_VERSION" "$KURL_URL" "$PROXY_ADDRESS")"
+    fi
+
+    local airgap_flag=
+    if [ "$AIRGAP" = "1" ]; then
+        airgap_flag="airgap"
+    fi
+
+    printf "The nodes %s appear to be missing images required for the %s upgrade from %s to %s.\n" "$nodes" "$upgrade_name" "$from_version" "$to_version"
+    printf "Please run the following on each of these nodes before continuing:\n"
+    printf "\n\t%b%stasks.sh | sudo bash -s %s from-version=%s to-version=%s %s %b\n\n" \
+        "$GREEN" "$prefix" "$task" "$from_version" "$to_version" "$airgap_flag" "$NC"
+    printf "Are you ready to continue? "
+    confirmY
+}

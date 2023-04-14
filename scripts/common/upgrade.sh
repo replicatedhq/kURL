@@ -297,28 +297,7 @@ function kubernetes_upgrade_prompt_missing_images() {
     # shellcheck disable=SC2086
     node_missing_images=$(kubernetes_upgrade_nodes_missing_images "$from_version" "$to_version" "" "$(get_local_node_name)")
 
-    if [ -z "$node_missing_images" ]; then
-        return
-    fi
-
-    local prefix=
-    if [ "$AIRGAP" = "1" ]; then
-        prefix="cat ./"
-    else
-        prefix="$(build_installer_prefix "$INSTALLER_ID" "$KURL_VERSION" "$KURL_URL" "$PROXY_ADDRESS")"
-    fi
-
-    local airgap_flag=
-    if [ "$AIRGAP" = "1" ]; then
-        airgap_flag="airgap"
-    fi
-
-    printf "The nodes %s appear to be missing images required for the Kubernetes %s to %s migration.\n" "$node_missing_images" "$from_version" "$to_version"
-    printf "Please run the following on each of these nodes before continuing:\n"
-    printf "\n\t%b%stasks.sh | sudo bash -s kubernetes-upgrade-load-images from-version=%s to-version=%s %s %b\n\n" \
-        "$GREEN" "$prefix" "$from_version" "$to_version" "$airgap_flag" "$NC"
-    printf "Are you ready to continue? "
-    confirmY
+    common_prompt_task_missing_images "$node_missing_images" "$from_version" "$to_version" "Kubernetes" "kubernetes-upgrade-load-images"
 }
 
 # kubernetes_upgrade_nodes_missing_images will print a list of nodes that are missing images for
