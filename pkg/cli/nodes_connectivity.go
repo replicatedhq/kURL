@@ -5,8 +5,6 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"log"
-	"os"
 	"os/signal"
 	"strings"
 	"syscall"
@@ -48,6 +46,7 @@ type logLine struct {
 }
 
 type nodeConnectivityOptions struct {
+	printf    func(string, ...interface{})
 	namespace string
 	proto     string
 	attempts  int
@@ -64,10 +63,7 @@ func newNetutilNodesConnectivity(_ CLI) *cobra.Command {
 		Use:     "nodes-connectivity",
 		Short:   "Tests if all nodes can reach all other nodes using the provided protocol in the provided port",
 		Example: usageExamples,
-		RunE: func(cmd *cobra.Command, args []string) error {
-			ctx, cancel := signal.NotifyContext(cmd.Context(), syscall.SIGTERM, syscall.SIGINT)
-			defer cancel()
-
+		PreRunE: func(cmd *cobra.Command, args []string) error {
 			if opts.port == 0 {
 				return fmt.Errorf("--port flag is required.")
 			}
@@ -80,50 +76,51 @@ func newNetutilNodesConnectivity(_ CLI) *cobra.Command {
 			if corev1.Protocol(opts.proto) == corev1.ProtocolUDP {
 				opts.wait = 5 * time.Second
 			}
-
-			cli, err := client.New(config.GetConfigOrDie(), client.Options{})
+			// now that all input args have been validated we can silence the usage print upon error.
+			cmd.SilenceUsage = true
+			cfg, err := config.GetConfig()
+			if err != nil {
+				return fmt.Errorf("failed to get kubernetes config: %w", err)
+			}
+			cli, err := client.New(cfg, client.Options{})
 			if err != nil {
 				return fmt.Errorf("failed to create kubernetes client: %w", err)
 			}
 			opts.cli = cli
-
-			// XXX controller-runtime kubernetes client does not have access to subresources that span beneath
-			// crud objects (e.g. pod logs). we have to create a kubernetes clientset, and that is why we can't
-			// have nice things.
 			cliset, err := kubernetes.NewForConfig(config.GetConfigOrDie())
 			if err != nil {
-				log.Printf("Failed to create kubernetes client set: %s", err)
-				os.Exit(1)
+				return fmt.Errorf("failed to create kubernetes client set: %s", err)
 			}
 			opts.cliset = cliset
+			opts.printf = cmd.Printf
+			return nil
+		},
+		RunE: func(cmd *cobra.Command, args []string) error {
+			ctx, cancel := signal.NotifyContext(cmd.Context(), syscall.SIGTERM, syscall.SIGINT)
+			defer cancel()
 
-			cleanup := func() {
+			defer func() {
 				ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
 				defer cancel()
 				if err := deleteListeners(ctx, opts); err != nil {
-					log.Printf("Failed to delete DaemonSet listeners overlay: %s", err)
+					opts.printf("Failed to delete DaemonSet listeners overlay: %s\n", err)
 				}
 				if err := deletePinger(ctx, opts); err != nil {
-					log.Printf("Failed to delete pinger job: %s", err)
+					opts.printf("Failed to delete pinger job: %s\n", err)
 				}
-			}
+			}()
 
-			log.Printf("Testing intra nodes connectivity using port %d/%s.", opts.port, opts.proto)
-			log.Printf("Connection between all nodes will be attempted, this can take a while.")
+			opts.printf("Testing intra nodes connectivity using port %d/%s.\n", opts.port, opts.proto)
+			opts.printf("Connection between all nodes will be attempted, this can take a while.\n")
 			if err := deployListenersDaemonset(ctx, opts); err != nil {
-				cleanup()
-				log.Printf("Failed to deploy listeners: %s", err)
-				os.Exit(1)
+				return fmt.Errorf("Failed to deploy listeners: %w", err)
 			}
 
 			if err := testNodesConnectivity(ctx, opts); err != nil {
-				cleanup()
-				log.Printf("Failed to test nodes connectivity: %s", err)
-				os.Exit(1)
+				return fmt.Errorf("Failed to test nodes connectivity: %w", err)
 			}
 
-			cleanup()
-			log.Printf("All nodes can reach all nodes using %s protocol in port %d.", opts.proto, opts.port)
+			opts.printf("All nodes can reach all nodes using %s protocol in port %d.\n", opts.proto, opts.port)
 			return nil
 		},
 	}
@@ -137,7 +134,7 @@ func newNetutilNodesConnectivity(_ CLI) *cobra.Command {
 
 // printDaemonsetStatus prints the status of the daemonset. this function also prints the pod statuses.
 func printDaemonsetStatus(ctx context.Context, opts nodeConnectivityOptions, ds *appsv1.DaemonSet) {
-	log.Printf("DaemonSet failed to deploy, that can possibly mean that port %d (%s) is in use.", opts.port, opts.proto)
+	opts.printf("DaemonSet failed to deploy, that can possibly mean that port %d (%s) is in use.\n", opts.port, opts.proto)
 	buffer := bytes.NewBuffer([]byte("\n"))
 	table := &metav1.Table{}
 	request := opts.cliset.AppsV1().RESTClient().Get().
@@ -146,7 +143,7 @@ func printDaemonsetStatus(ctx context.Context, opts nodeConnectivityOptions, ds 
 		Name(ds.Name).
 		SetHeader("Accept", "application/json;as=Table;v=v1beta1;g=meta.k8s.io")
 	if err := request.Do(ctx).Into(table); err != nil {
-		log.Printf("Failed to get DaemonSet: %s", err)
+		opts.printf("Failed to get DaemonSet: %s\n", err)
 		return
 	}
 	printer := printers.NewTablePrinter(printers.PrintOptions{})
@@ -158,7 +155,7 @@ func printDaemonsetStatus(ctx context.Context, opts nodeConnectivityOptions, ds 
 		Param("limit", "500").
 		SetHeader("Accept", "application/json;as=Table;v=v1;g=meta.k8s.io")
 	if err := request.Do(ctx).Into(table); err != nil {
-		log.Printf("Failed to list DaemonSet pods: %s", err)
+		opts.printf("Failed to list DaemonSet pods: %s\n", err)
 		return
 	}
 	printer = printers.NewTablePrinter(printers.PrintOptions{Wide: true, WithKind: true})
@@ -167,16 +164,16 @@ func printDaemonsetStatus(ctx context.Context, opts nodeConnectivityOptions, ds 
 	scanner := bufio.NewScanner(buffer)
 	scanner.Split(bufio.ScanLines)
 	for scanner.Scan() {
-		log.Print(scanner.Text())
+		opts.printf("%s\n", scanner.Text())
 	}
-	log.Print("")
+	opts.printf("\n")
 }
 
 // deployListenersDaemonset deploys a daemonset that will run a pod that listens for udp or tcp packets,
 // on port 9999. a service is created to expose the daemonset pods, this service is of type nodeport and
 // binds to nodeConnectivityOptions.port port.
 func deployListenersDaemonset(ctx context.Context, opts nodeConnectivityOptions) error {
-	log.Print("Deploying node connectivity listeners DaemonSet.")
+	opts.printf("Deploying node connectivity listeners DaemonSet.\n")
 	options := []plumber.Option{
 		plumber.WithKustomizeMutator(kustomizeMutator(opts)),
 		plumber.WithObjectMutator(func(ctx context.Context, obj client.Object) error {
@@ -208,7 +205,7 @@ func deployListenersDaemonset(ctx context.Context, opts nodeConnectivityOptions)
 	if err := renderer.Apply(ctx, overlay); err != nil {
 		return fmt.Errorf("failed to create listeners daemonset: %w", err)
 	}
-	log.Print("Listeners DaemonSet deployed successfully.")
+	opts.printf("Listeners DaemonSet deployed successfully.\n")
 	return nil
 }
 
@@ -321,7 +318,7 @@ func testNodesConnectivity(ctx context.Context, opts nodeConnectivityOptions) er
 	}
 	for _, node := range nodes.Items {
 		if err := connectToNodeFromPods(ctx, opts, node, receiver); err != nil {
-			return err
+			return fmt.Errorf("node %s: %w", node.Name, err)
 		}
 	}
 	return nil
@@ -343,13 +340,13 @@ func connectToNodeFromPods(ctx context.Context, opts nodeConnectivityOptions, no
 		attempts = 1
 	}
 	for _, pod := range pods.Items {
-		if pod.Spec.NodeName == node.Name {
+		src, dst := pod.Spec.NodeName, node.Name
+		if src == dst {
 			continue
 		}
 		var success bool
-		src, dst := pod.Spec.NodeName, node.Name
 		for i := 1; i <= attempts; i++ {
-			log.Printf("Testing connection from %s to %s (%d/%d)", src, dst, i, attempts)
+			opts.printf("Testing connection from %s to %s (%d/%d)\n", src, dst, i, attempts)
 			id, err := connectNodeFromNode(ctx, opts, pod, dstIP)
 			if err != nil {
 				return fmt.Errorf("failed to connect node %s from node %s: %v", src, dst, err)
@@ -370,22 +367,22 @@ func connectToNodeFromPods(ctx context.Context, opts nodeConnectivityOptions, no
 			}
 
 			if success {
-				log.Print("Success, packet received.")
+				opts.printf("Success, packet received.\n")
 				break
 			}
 			retrying := "retrying."
 			if i == attempts {
 				retrying = "giving up."
 			}
-			log.Printf("Failed to connect from %s to %s, %s", src, dst, retrying)
+			opts.printf("Failed to connect from %s to %s, %s\n", src, dst, retrying)
 		}
 
 		if success {
 			continue
 		}
-		log.Print("")
-		log.Printf("Attempt to connect from %s to %s on %d (%s) failed.", src, dst, opts.port, opts.proto)
-		log.Print("Please verify if the active network policies are not blocking the connection.")
+		opts.printf("\n")
+		opts.printf("Attempt to connect from %s to %s on %d (%s) failed.\n", src, dst, opts.port, opts.proto)
+		opts.printf("Please verify if the active network policies are not blocking the connection.\n")
 		return fmt.Errorf("failed to connect from %s to %s", src, dst)
 	}
 	return nil
