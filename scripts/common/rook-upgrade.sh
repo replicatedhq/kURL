@@ -109,9 +109,9 @@ function rook_upgrade_storage_check() {
     local archive_size=
     archive_size="$(rook_upgrade_required_archive_size "$current_version" "$desired_version")"
 
-    # 2x archive size for extracted files
-    # 3.5x archive size for container images
-    common_upgrade_storage_check "$archive_size" 2 $((7/2)) "Rook"
+    # 2.5x archive size for extracted files
+    # 1x archive size for container images
+    common_upgrade_storage_check "$archive_size" $((5/2)) 1 "Rook"
 }
 
 # rook_upgrade_report_upgrade_rook reports the upgrade and starts the upgrade process.
