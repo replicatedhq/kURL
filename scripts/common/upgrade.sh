@@ -153,7 +153,7 @@ function kubernetes_upgrade_prompt() {
     logWarn "Upgrading Kubernetes will take some time."
     printf "Would you like to continue? "
 
-    confirmN
+    confirmY
 }
 
 # kubernetes_upgrade_storage_check verifies that enough disk space exists for the kubernetes
