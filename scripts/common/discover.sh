@@ -125,14 +125,11 @@ detectLsbDist() {
 export CURRENT_KUBERNETES_VERSION=
 
 export KUBERNETES_UPGRADE=0
-export KUBERNETES_UPGRADE_LOCAL_PRIMARY=0
-export KUBERNETES_UPGRADE_REMOTE_PRIMARIES=0
-export KUBERNETES_UPGRADE_SECONDARIES=0
 
 function discoverCurrentKubernetesVersion() {
     local fullCluster="$1"
 
-    CURRENT_KUBERNETES_VERSION=$(grep -s ' image: ' /etc/kubernetes/manifests/kube-apiserver.yaml | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' || true)
+    CURRENT_KUBERNETES_VERSION=$(maybe discover_local_kuberentes_version)
 
     if [ -z "$CURRENT_KUBERNETES_VERSION" ]; then
         # This is a new install and no upgrades are required
@@ -149,7 +146,6 @@ function discoverCurrentKubernetesVersion() {
 
     semverCompare "$CURRENT_KUBERNETES_VERSION" "$KUBERNETES_VERSION"
     if [ "$SEMVER_COMPARE_RESULT" = "-1" ]; then
-        KUBERNETES_UPGRADE_LOCAL_PRIMARY=1
         KUBERNETES_UPGRADE=1
     elif [ "$SEMVER_COMPARE_RESULT" = "1" ]; then
         bail "The current Kubernetes version $CURRENT_KUBERNETES_VERSION is greater than target version $KUBERNETES_VERSION"
@@ -159,7 +155,6 @@ function discoverCurrentKubernetesVersion() {
     for node in "${!KUBERNETES_REMOTE_PRIMARIES[@]}"; do
         semverCompare "${KUBERNETES_REMOTE_PRIMARY_VERSIONS[$node]}" "$KUBERNETES_VERSION"
         if [ "$SEMVER_COMPARE_RESULT" = "-1" ]; then
-            KUBERNETES_UPGRADE_REMOTE_PRIMARIES=1
             KUBERNETES_UPGRADE=1
         elif [ "$SEMVER_COMPARE_RESULT" = "1" ]; then
             bail "The current Kubernetes version $CURRENT_KUBERNETES_VERSION is greater than target version $KUBERNETES_VERSION on remote primary $node"
@@ -170,12 +165,15 @@ function discoverCurrentKubernetesVersion() {
     for node in "${!KUBERNETES_SECONDARIES[@]}"; do
         semverCompare "${KUBERNETES_SECONDARY_VERSIONS[$node]}" "$KUBERNETES_VERSION"
         if [ "$SEMVER_COMPARE_RESULT" = "-1" ]; then
-            KUBERNETES_UPGRADE_SECONDARIES=1
             KUBERNETES_UPGRADE=1
         elif [ "$SEMVER_COMPARE_RESULT" = "1" ]; then
             bail "The current Kubernetes version $CURRENT_KUBERNETES_VERSION is greater than target version $KUBERNETES_VERSION on remote worker $node"
         fi
     done
+}
+
+function discover_local_kuberentes_version() {
+    grep -s ' image: ' /etc/kubernetes/manifests/kube-apiserver.yaml | grep -oE '[0-9]+\.[0-9]+\.[0-9]+'
 }
 
 function get_docker_version() {

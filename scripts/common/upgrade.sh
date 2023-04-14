@@ -50,6 +50,15 @@ function kubernetes_upgrade_discover_min_kubernetes_version() {
         fi
     done
 
+    # Check for upgrades required on secondaries
+    for i in "${!KUBERNETES_SECONDARIES[@]}" ; do
+        semverParse "${KUBERNETES_SECONDARY_VERSIONS[$i]}"
+        if [ "$minor" -lt "$min_minor" ] || { [ "$minor" -eq "$min_minor" ] && [ "$patch" -lt "$min_patch" ]; }; then
+            min_minor="$minor"
+            min_patch="$patch"
+        fi
+    done
+
     echo "1.$min_minor.$min_patch"
 }
 
@@ -113,16 +122,10 @@ function kubernetes_upgrade_do_kubernetes_upgrade() {
             bail "Kubernetes version $step not found"
         fi
         logStep "Upgrading cluster to Kubernetes version $step"
-        
-        if [ "$KUBERNETES_UPGRADE_LOCAL_PRIMARY" == "1" ]; then
-            upgrade_kubernetes_local_master "$step"
-        fi
-        if [ "$KUBERNETES_UPGRADE_REMOTE_PRIMARIES" == "1" ]; then
-            upgrade_kubernetes_remote_masters "$step"
-        fi
-        if [ "$KUBERNETES_UPGRADE_SECONDARIES" == "1" ]; then
-            upgrade_kubernetes_workers "$step"
-        fi
+
+        upgrade_kubernetes_local_master "$step"
+        upgrade_kubernetes_remote_masters "$step"
+        upgrade_kubernetes_workers "$step"
 
         # if this is not the last version in the loop, then delete the addon files to free up space
         if ! [[ "$step" =~ $to_version ]]; then
@@ -378,45 +381,58 @@ function upgrade_kubeadm() {
 }
 
 function upgrade_kubernetes_local_master() {
-    local k8sVersion="$1"
-    local node=
-    node="$(get_local_node_name)"
+    local targetK8sVersion="$2"
+    local nodeName=
+    nodeName="$(get_local_node_name)"
     # shellcheck disable=SC2034
     local upgrading_kubernetes=true
 
-    logStep "Upgrading local node to Kubernetes version $k8sVersion"
+    local nodeVersion=
+    nodeVersion="$(kubectl get node --no-headers "$nodeName" 2>/dev/null | awk '{ print $5 }' | sed 's/v//')"
+    if [ -z "$nodeVersion" ]; then
+        nodeVersion="$(discover_local_kuberentes_version)"
+    fi
 
-    kubernetes_load_images "$k8sVersion"
+    # check if the node is already at the target version
+    semverCompare "$nodeVersion" "$targetK8sVersion"
+    if [ "$SEMVER_COMPARE_RESULT" -ge "0" ]; then
+        log "Node $nodeName is already at Kubernetes version $targetK8sVersion"
+        return 0
+    fi
 
-    upgrade_kubeadm "$k8sVersion"
+    logStep "Upgrading local node to Kubernetes version $targetK8sVersion"
 
-    ( set -x; kubeadm upgrade plan "v${k8sVersion}" )
+    kubernetes_load_images "$targetK8sVersion"
+
+    upgrade_kubeadm "$targetK8sVersion"
+
+    ( set -x; kubeadm upgrade plan "v${targetK8sVersion}" )
     printf "%bDrain local node and apply upgrade? %b" "$YELLOW" "$NC"
     confirmY
-    kubernetes_drain "$node"
+    kubernetes_drain "$nodeName"
 
-    maybe_patch_node_cri_socket_annotation "$node"
+    maybe_patch_node_cri_socket_annotation "$nodeName"
 
     spinner_kubernetes_api_stable
     # ignore-preflight-errors, do not fail on fail to pull images for airgap
-    ( set -x; kubeadm upgrade apply "v$k8sVersion" --yes --force --ignore-preflight-errors=all )
-    upgrade_etcd_image_18 "$k8sVersion"
+    ( set -x; kubeadm upgrade apply "v$targetK8sVersion" --yes --force --ignore-preflight-errors=all )
+    upgrade_etcd_image_18 "$targetK8sVersion"
 
-    kubernetes_install_host_packages "$k8sVersion"
+    kubernetes_install_host_packages "$targetK8sVersion"
     systemctl daemon-reload
     systemctl restart kubelet
 
     spinner_kubernetes_api_stable
-    kubectl uncordon "$node"
-    upgrade_delete_node_flannel "$node"
+    kubectl uncordon "$nodeName"
+    upgrade_delete_node_flannel "$nodeName"
 
     # force deleting the cache because the api server will use the stale API versions after kubeadm upgrade
     rm -rf "$HOME/.kube"
 
-    spinner_until 120 kubernetes_node_has_version "$node" "$k8sVersion"
+    spinner_until 120 kubernetes_node_has_version "$nodeName" "$targetK8sVersion"
     spinner_until 120 kubernetes_all_nodes_ready
 
-    logSuccess "Local node upgraded to Kubernetes version $k8sVersion"
+    logSuccess "Local node upgraded to Kubernetes version $targetK8sVersion"
 }
 
 function upgrade_kubernetes_remote_masters() {
@@ -451,16 +467,11 @@ function upgrade_kubernetes_remote_node() {
     nodeName=$(echo "$node" | awk '{ print $1 }')
     local nodeVersion=
     nodeVersion="$(echo "$node" | awk '{ print $5 }' | sed 's/v//' )"
-    semverParse "$nodeVersion"
-    local nodeMinor="$minor"
-    local nodePatch="$patch"
-
-    semverParse "$targetK8sVersion"
-    local targetMinor="$minor"
-    local targetPatch="$patch"
 
     # check if the node is already at the target version
-    if [ "$nodeMinor" -gt "$targetMinor" ] || { [ "$nodeMinor" -eq "$targetMinor" ] && [ "$nodePatch" -ge "$targetPatch" ]; }; then
+    semverCompare "$nodeVersion" "$targetK8sVersion"
+    if [ "$SEMVER_COMPARE_RESULT" -ge "0" ]; then
+        log "Node $nodeName is already at Kubernetes version $targetK8sVersion"
         return 0
     fi
 
