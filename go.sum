@@ -2004,8 +2004,8 @@ github.com/renier/xmlrpc v0.0.0-20170708154548-ce4a1a486c03 h1:Wdi9nwnhFNAlseAOe
 github.com/renier/xmlrpc v0.0.0-20170708154548-ce4a1a486c03/go.mod h1:gRAiPF5C5Nd0eyyRdqIu9qTiFSoZzpTq727b5B8fkkU=
 github.com/replicatedhq/kurlkinds v1.3.0 h1:kVdWMJOAB3LMIcMt0TxQWN7fm/ck1ZzqoA/MCwJ9tCo=
 github.com/replicatedhq/kurlkinds v1.3.0/go.mod h1:9Pw0nQLzOoGbjj6Q9FnmSgY128btPjFlP5VOm5YsjUQ=
-github.com/replicatedhq/plumber v1.16.0 h1:PEFbLBJwlAyzrzwl7Cwf4mrV2opUhiaYWQeQ/uZ6Ztg=
-github.com/replicatedhq/plumber v1.16.0/go.mod h1:uKAxJWp60+FNtfm3T5rEPzp9SA2+9icY++KHatQGpy0=
+github.com/replicatedhq/plumber/v2 v2.2.0 h1:vjG8hZKO7tvLdPzWFqLBmjfpNtpSXhWrOmYdwTNdQR0=
+github.com/replicatedhq/plumber/v2 v2.2.0/go.mod h1:seRCMUymCb8PPFw+pH1OefvKVSi5EgSo4HEMYpCW6Io=
 github.com/replicatedhq/pvmigrate v0.9.0 h1:p9+Y4RonMAxs1RoDv6ngZnKq9ACNQrGqGa57WnzcyI0=
 github.com/replicatedhq/pvmigrate v0.9.0/go.mod h1:RYs9n/dvb2x5hS4ULKxcnUMTlS2lcmK550chaif+ARE=
 github.com/replicatedhq/termui/v3 v3.1.1-0.20200811145416-f40076d26851 h1:eRlNDHxGfVkPCRXbA4BfQJvt5DHjFiTtWy3R/t4djyY=
@@ -3270,8 +3270,8 @@ k8s.io/kube-openapi v0.0.0-20201113171705-d219536bb9fd/go.mod h1:WOJ3KddDSol4tAG
 k8s.io/kube-openapi v0.0.0-20210421082810-95288971da7e/go.mod h1:vHXdDvt9+2spS2Rx9ql3I8tycm3H9FDfdUoIuKCefvw=
 k8s.io/kube-openapi v0.0.0-20211115234752-e816edb12b65/go.mod h1:sX9MT8g7NVZM5lVL/j8QyCCJe8YSMW30QvGZWaCIDIk=
 k8s.io/kube-openapi v0.0.0-20221012153701-172d655c2280/go.mod h1:+Axhij7bCpeqhklhUTe3xmOn6bWxolyZEeyaFpjGtl4=
-k8s.io/kube-openapi v0.0.0-20230202010329-39b3636cbaa3 h1:vV3ZKAUX0nMjTflyfVea98dTfROpIxDaEsQws0FT2Ts=
-k8s.io/kube-openapi v0.0.0-20230202010329-39b3636cbaa3/go.mod h1:/BYxry62FuDzmI+i9B+X2pqfySRmSOW2ARmj5Zbqhj0=
+k8s.io/kube-openapi v0.0.0-20230217203603-ff9a8e8fa21d h1:oFDpQ7FfzinCtrFOl4izwOWsdTprlS2A9IXBENMW0UA=
+k8s.io/kube-openapi v0.0.0-20230217203603-ff9a8e8fa21d/go.mod h1:/BYxry62FuDzmI+i9B+X2pqfySRmSOW2ARmj5Zbqhj0=
 k8s.io/kubernetes v1.13.0/go.mod h1:ocZa8+6APFNC2tX1DZASIbocyYT5jHzqFVsY5aoB7Jk=
 k8s.io/utils v0.0.0-20190506122338-8fab8cb257d5/go.mod h1:sZAwmy6armz5eXlNoLmJcl4F1QuKu7sr+mFQ0byX7Ew=
 k8s.io/utils v0.0.0-20200324210504-a9aa75ae1b89/go.mod h1:sZAwmy6armz5eXlNoLmJcl4F1QuKu7sr+mFQ0byX7Ew=

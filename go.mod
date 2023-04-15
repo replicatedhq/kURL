@@ -22,7 +22,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring v0.64.0
 	github.com/replicatedhq/kurlkinds v1.3.0
-	github.com/replicatedhq/plumber v1.16.0
+	github.com/replicatedhq/plumber/v2 v2.2.0
 	github.com/replicatedhq/pvmigrate v0.9.0
 	github.com/replicatedhq/troubleshoot v0.59.0
 	github.com/rook/rook v1.11.2
@@ -43,6 +43,7 @@ require (
 	gotest.tools v2.2.0+incompatible
 	k8s.io/api v0.26.3
 	k8s.io/apimachinery v0.26.3
+	k8s.io/cli-runtime v0.26.2
 	k8s.io/client-go v0.26.3
 	k8s.io/code-generator v0.26.3
 	k8s.io/utils v0.0.0-20230313181309-38a27ef9d749
@@ -250,9 +251,8 @@ require (
 	gopkg.in/square/go-jose.v2 v2.6.0 // indirect
 	k8s.io/apiextensions-apiserver v0.26.3 // indirect
 	k8s.io/apiserver v0.26.3 // indirect
-	k8s.io/cli-runtime v0.26.2 // indirect
 	k8s.io/klog/v2 v2.90.1 // indirect
-	k8s.io/kube-openapi v0.0.0-20230202010329-39b3636cbaa3 // indirect
+	k8s.io/kube-openapi v0.0.0-20230217203603-ff9a8e8fa21d // indirect
 	oras.land/oras-go v1.2.2 // indirect
 	periph.io/x/host/v3 v3.8.0 // indirect
 	sigs.k8s.io/json v0.0.0-20221116044647-bc3834ca7abd // indirect
