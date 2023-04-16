@@ -706,7 +706,7 @@
       version: latest
   upgradeSpec:
     kubernetes:
-      version: 1.21.x
+      version: 1.22.x
     weave:
       version: 2.8.1
     rook:
@@ -941,7 +941,7 @@
     rhel_9_install_host_packages lvm2 conntrack-tools socat container-selinux git
   unsupportedOSIDs:
   - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
-- name: "Migrate from Docker to Containerd and Kubernetes from 1.23 to 1.25"
+- name: "Migrate from Docker to Containerd and Kubernetes from 1.23 to 1.26"
   flags: "yes"
   installerSpec:
     kubernetes:
@@ -964,7 +964,7 @@
       version: latest
   upgradeSpec:
     kubernetes:
-      version: 1.25.x
+      version: 1.26.x
     weave: # flannel has errors with dns and docker
       version: latest
     openebs:
@@ -996,7 +996,7 @@
     validate_read_write_object_store postupgrade upgradefile.txt
   unsupportedOSIDs:
   - rocky-91 # docker is not supported on rhel 9 variants
-- name: "Migrate from Docker to Containerd and Kubernetes from 1.23 to 1.25 airgap"
+- name: "Migrate from Docker to Containerd and Kubernetes from 1.23 to 1.26 airgap"
   flags: "yes"
   installerSpec:
     kubernetes:
@@ -1019,7 +1019,7 @@
       version: latest
   upgradeSpec:
     kubernetes:
-      version: 1.25.x
+      version: 1.26.x
     weave: # flannel has errors with dns and docker
       version: latest
     openebs:
@@ -1037,6 +1037,10 @@
     containerd:
       version: latest
   airgap: true
+  preinstallScript: |
+    mkdir -p /var/lib/kurl
+    # TODO: get stage
+    curl -fL -o /var/lib/kurl https://staging.kurl.sh/bundle/latest/packages/kubernetes-1.25.8,kubernetes-1.26.3.tar.gz
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     minio_object_store_info
