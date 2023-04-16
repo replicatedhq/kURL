@@ -279,6 +279,7 @@ function init() {
 
     wait_for_nodes
 
+    # workaround as some code relies on this legacy label
     kubectl label --overwrite node "$(get_local_node_name)" node-role.kubernetes.io/master=
 
     enable_rook_ceph_operator
@@ -548,6 +549,7 @@ function main() {
     trap trap_report_error ERR # trap errors and handle it by reporting the error line and parent function
     preflights
     init_preflights
+    kubernetes_upgrade_preflight
     common_prompts
     journald_persistent
     configure_proxy

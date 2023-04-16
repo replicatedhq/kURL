@@ -107,6 +107,7 @@ function join() {
     if [ "$MASTER" = "1" ]; then
         exportKubeconfig
 
+        # workaround as some code relies on this legacy label
         kubectl label --overwrite node "$(get_local_node_name)" node-role.kubernetes.io/master=
 
         if [ "$KUBERNETES_CIS_COMPLIANCE" == "1" ]; then

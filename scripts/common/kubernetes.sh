@@ -20,25 +20,25 @@ function kubernetes_host() {
 
     kubernetes_install_host_packages "$KUBERNETES_VERSION"
 
-    load_images "$DIR/packages/kubernetes/$KUBERNETES_VERSION/images"
-    if [ -n "$SONOBUOY_VERSION" ] && [ -d "$DIR/packages/kubernetes-conformance/$KUBERNETES_VERSION/images" ]; then
-        load_images "$DIR/packages/kubernetes-conformance/$KUBERNETES_VERSION/images"
-    fi
+    kubernetes_load_images "$KUBERNETES_VERSION"
 
     install_plugins
 
     install_kustomize
 }
 
+function kubernetes_load_images() {
+    local version="$1"
+    load_images "$DIR/packages/kubernetes/$version/images"
+    if [ -n "$SONOBUOY_VERSION" ] && [ -d "$DIR/packages/kubernetes-conformance/$version/images" ]; then
+        load_images "$DIR/packages/kubernetes-conformance/$version/images"
+    fi
+}
+
 function kubernetes_get_packages() {
     if [ "$AIRGAP" != "1" ] && [ -n "$DIST_URL" ]; then
         kubernetes_get_host_packages_online "$KUBERNETES_VERSION"
         kubernetes_get_conformance_packages_online "$KUBERNETES_VERSION"
-
-        # if we are upgrading two kubernetes versions at once
-        if [ -n "$STEP_VERSION" ]; then
-            kubernetes_get_host_packages_online "$STEP_VERSION"
-        fi
     fi
 }
 
@@ -245,7 +245,6 @@ kubernetes_host_commands_ok() {
     kubelet --version | grep -q "$k8sVersion"
 }
 
-KUBERNETES_DID_GET_HOST_PACKAGES_ONLINE=
 function kubernetes_get_host_packages_online() {
     local k8sVersion="$1"
 
@@ -256,8 +255,6 @@ function kubernetes_get_host_packages_online() {
         package_download "${package}"
         tar xf "$(package_filepath "${package}")"
         # rm "${package}"
-
-        KUBERNETES_DID_GET_HOST_PACKAGES_ONLINE=1
     fi
 }
 
@@ -284,15 +281,23 @@ function kubernetes_get_conformance_packages_online() {
 }
 
 function kubernetes_masters() {
-    kubectl get nodes --no-headers --selector="node-role.kubernetes.io/master" 2>/dev/null
+    kubectl get nodes --no-headers --selector="$(kubernetes_get_control_plane_label)"
 }
 
 function kubernetes_remote_masters() {
-    kubectl get nodes --no-headers --selector="node-role.kubernetes.io/master,kubernetes.io/hostname!=$(get_local_node_name)" 2>/dev/null
+    kubectl get nodes --ignore-not-found --no-headers --selector="$(kubernetes_get_control_plane_label),kubernetes.io/hostname!=$(get_local_node_name)"
 }
 
 function kubernetes_workers() {
-    kubectl get node --no-headers --selector='!node-role.kubernetes.io/master' 2>/dev/null
+    kubectl get nodes --ignore-not-found --no-headers --selector='!'"$(kubernetes_get_control_plane_label)"
+}
+
+function kubernetes_get_control_plane_label() {
+    if kubectl get nodes --show-labels | grep -qF "node-role.kubernetes.io/master" ; then
+        echo "node-role.kubernetes.io/master"
+    else
+        echo "node-role.kubernetes.io/control-plane"
+    fi
 }
 
 # exit 0 if there are any remote workers or masters
@@ -302,7 +307,7 @@ function kubernetes_has_remotes() {
         return 1
     fi
 
-    local count=$(kubectl get nodes --no-headers --selector="kubernetes.io/hostname!=$(get_local_node_name)" 2>/dev/null | wc -l)
+    local count=$(kubectl get nodes --ignore-not-found --no-headers --selector="kubernetes.io/hostname!=$(get_local_node_name)" | wc -l)
     if [ "$count" -gt "0" ]; then
         return 0
     fi
@@ -626,10 +631,6 @@ function list_all_required_images() {
 
     find packages/kubernetes/$KUBERNETES_VERSION -type f -name Manifest 2>/dev/null | xargs cat | grep -E '^image' | grep -v no_remote_load | awk '{ print $3 }'
 
-    if [ -n "$STEP_VERSION" ]; then
-        find packages/kubernetes/$STEP_VERSION -type f -name Manifest 2>/dev/null | xargs cat | grep -E '^image' | grep -v no_remote_load | awk '{ print $3 }'
-    fi
-
     if [ -n "$DOCKER_VERSION" ]; then
         find packages/docker/$DOCKER_VERSION -type f -name Manifest 2>/dev/null | xargs cat | grep -E '^image' | grep -v no_remote_load | awk '{ print $3 }'
     fi
@@ -701,24 +702,30 @@ function kubernetes_node_has_image() {
 KUBERNETES_REMOTE_PRIMARIES=()
 KUBERNETES_REMOTE_PRIMARY_VERSIONS=()
 function kubernetes_get_remote_primaries() {
-    while read -r primary; do
-        local name=$(echo $primary | awk '{ print $1 }')
-        local version="$(try_1m kubernetes_node_kubelet_version $name)"
+    local primary=
+    while read -r primary ; do
+        local name=
+        name=$(echo "$primary" | awk '{ print $1 }')
+        local version=
+        version="$(try_1m kubernetes_node_kubelet_version "$name")"
 
-        KUBERNETES_REMOTE_PRIMARIES+=( $name )
-        KUBERNETES_REMOTE_PRIMARY_VERSIONS+=( $version )
+        KUBERNETES_REMOTE_PRIMARIES+=( "$name" )
+        KUBERNETES_REMOTE_PRIMARY_VERSIONS+=( "${version#v}" ) # strip leading v
     done < <(kubernetes_remote_masters)
 }
 
 KUBERNETES_SECONDARIES=()
 KUBERNETES_SECONDARY_VERSIONS=()
 function kubernetes_get_secondaries() {
-    while read -r secondary; do
-        local name=$(echo $secondary | awk '{ print $1 }')
-        local version="$(try_1m kubernetes_node_kubelet_version $name)"
+    local secondary=
+    while read -r secondary ; do
+        local name=
+        name=$(echo "$secondary" | awk '{ print $1 }')
+        local version=
+        version="$(try_1m kubernetes_node_kubelet_version "$name")"
 
-        KUBERNETES_SECONDARIES+=( $name )
-        KUBERNETES_SECONDARY_VERSIONS+=( $version )
+        KUBERNETES_SECONDARIES+=( "$name" )
+        KUBERNETES_SECONDARY_VERSIONS+=( "${version#v}" ) # strip leading v
     done < <(kubernetes_workers)
 }
 

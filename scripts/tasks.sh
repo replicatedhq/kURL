@@ -16,6 +16,7 @@ DIR=.
 . $DIR/scripts/common/rook.sh
 . $DIR/scripts/common/rook-upgrade.sh
 . $DIR/scripts/common/longhorn.sh
+. $DIR/scripts/common/upgrade.sh
 . $DIR/scripts/common/reporting.sh
 . $DIR/scripts/distro/interface.sh
 . $DIR/scripts/distro/kubeadm/distro.sh
@@ -91,6 +92,12 @@ function tasks() {
             pushd_install_directory
             shift # the first param is rook-upgrade-load-images|rook_upgrade_load_images
             rook_upgrade_tasks_load_images "$@"
+            popd_install_directory
+            ;;
+        kubernetes-upgrade-load-images|kubernetes_upgrade_load_images)
+            pushd_install_directory
+            shift # the first param is kubernetes-upgrade-load-images|kubernetes_upgrade_load_images
+            kubernetes_upgrade_tasks_load_images "$@"
             popd_install_directory
             ;;
         weave-to-flannel-primary|weave_to_flannel_primary)

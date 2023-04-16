@@ -5,7 +5,7 @@ function rookupgrade_10to14_upgrade() {
     local upgrade_files_path="$DIR/addons/rookupgrade/10to14"
 
     # if it is less than or equal we re-apply in cause of a failure mid upgrade
-    if [ "$(rook_upgrade_compare_rook_versions "$from_version" "1.1")" != "1" ]; then
+    if [ "$(common_upgrade_compare_versions "$from_version" "1.1")" != "1" ]; then
         # this will start the rook toolbox if it doesn't already exist
         log "Waiting for rook to be healthy"
         if ! "$DIR"/bin/kurl rook wait-for-health 300 ; then
@@ -153,7 +153,7 @@ function rookupgrade_10to14_upgrade() {
         logSuccess "Upgraded to Rook 1.1.9 successfully"
     fi
 
-    if [ "$(rook_upgrade_compare_rook_versions "$from_version" "1.2")" != "1" ]; then
+    if [ "$(common_upgrade_compare_versions "$from_version" "1.2")" != "1" ]; then
         logStep "Upgrading to Rook 1.2.7"
         if ! "$DIR"/bin/kurl rook wait-for-health 300 ; then
             kubectl -n rook-ceph exec deploy/rook-ceph-tools --ceph status
@@ -200,7 +200,7 @@ function rookupgrade_10to14_upgrade() {
         logSuccess "Upgraded to Rook 1.2.7 successfully"
     fi
 
-    if [ "$(rook_upgrade_compare_rook_versions "$from_version" "1.3")" != "1" ]; then
+    if [ "$(common_upgrade_compare_versions "$from_version" "1.3")" != "1" ]; then
         logStep "Upgrading to Rook 1.3.11"
         if ! "$DIR"/bin/kurl rook wait-for-health 300 ; then
             kubectl -n rook-ceph exec deploy/rook-ceph-tools -- ceph status
@@ -237,7 +237,7 @@ function rookupgrade_10to14_upgrade() {
         logSuccess "Upgraded to Rook 1.3.11 successfully"
     fi
 
-    if [ "$(rook_upgrade_compare_rook_versions "$from_version" "1.4")" != "1" ]; then
+    if [ "$(common_upgrade_compare_versions "$from_version" "1.4")" != "1" ]; then
         logStep "Upgrading to Rook 1.4.9"
         if ! "$DIR"/bin/kurl rook wait-for-health 300 ; then
             kubectl -n rook-ceph exec deploy/rook-ceph-tools -- ceph status
