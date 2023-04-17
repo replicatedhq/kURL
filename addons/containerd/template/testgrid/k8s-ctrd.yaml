@@ -117,6 +117,10 @@
       version: "__testver__"
       s3Override: "__testdist__"
   airgap: true
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    mkdir -p /var/lib/kurl/assets
+    ( cd /var/lib/kurl/assets && curl -fLO "$(kuberentes_upgrade_bundle_url "$KURL_URL" "$KURL_UPGRADE_URL")" )
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     minio_object_store_info
