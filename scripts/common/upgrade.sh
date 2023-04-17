@@ -3,14 +3,14 @@
 # kubernetes_upgrade_preflight checks if kubernetes should be upgraded, and if so prompts the user
 # to confirm the upgrade.
 function kubernetes_upgrade_preflight() {
-    local current_version=
-    current_version="$(kubernetes_upgrade_discover_min_kubernetes_version)"
     local desired_version="$KUBERNETES_VERSION"
 
-    if ! kubernetes_upgrade_should_upgrade_kubernetes "$current_version" "$desired_version" ; then
-        enable_rook_ceph_operator
+    if ! kubernetes_upgrade_should_upgrade_kubernetes ; then
         return
     fi
+
+    local current_version=
+    current_version="$(kubernetes_upgrade_discover_min_kubernetes_version)"
 
     if ! kubernetes_upgrade_prompt "$current_version" "$desired_version" ; then
         bail "Not upgrading Kubernetes"
@@ -24,9 +24,15 @@ function kubernetes_upgrade_preflight() {
 
 # report_upgrade_kubernetes starts the kubernetes upgrade process.
 function report_upgrade_kubernetes() {
+    local desired_version="$KUBERNETES_VERSION"
+
+    if ! kubernetes_upgrade_should_upgrade_kubernetes ; then
+        enable_rook_ceph_operator
+        return
+    fi
+
     local current_version=
     current_version="$(kubernetes_upgrade_discover_min_kubernetes_version)"
-    local desired_version="$KUBERNETES_VERSION"
 
     kubernetes_upgrade_report_upgrade_kubernetes "$current_version" "$desired_version"
 }
@@ -34,6 +40,10 @@ function report_upgrade_kubernetes() {
 # kubernetes_upgrade_discover_min_kubernetes_version will return the lowest kubernetes version on
 # the cluster.
 function kubernetes_upgrade_discover_min_kubernetes_version() {
+    if [ -z "$CURRENT_KUBERNETES_VERSION" ]; then
+        return
+    fi
+
     # These versions are for the local primary
     semverParse "$CURRENT_KUBERNETES_VERSION"
     # shellcheck disable=SC2154
