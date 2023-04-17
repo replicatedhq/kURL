@@ -8,13 +8,6 @@ WEAVE_KUBE_IMAGE_PATCH_VERSION=
 WEAVE_NPC_IMAGE_PATCH_VERSION=
 WEAVE_EXEC_IMAGE_PATCH_VERSION=
 
-function get_latest_version() {
-    VERSION=$(curl -s https://api.github.com/repos/weaveworks/weave/releases/latest | \
-        grep '"name":' | \
-        grep -Eo "[0-9]+\.[0-9]+\.[0-9]+" | \
-        head -1)
-}
-
 function get_images_patch_version() {
     local image="$1"
     docker run quay.io/skopeo/stable --override-os linux \
@@ -40,8 +33,8 @@ function add_as_latest() {
             sed -i "/cron-weave-update-265/a\    \"${ADDON_VERSION}\"\," ../../../web/src/installers/versions.js
         fi
     else
-        if ! sed '0,/cron-weave-update/d' ../../../web/src/installers/versions.js | sed '/\],/,$d' | grep -Fq "${ADDON_VERSION}" ; then
-            sed -i "/cron-weave-update/a\    \"${ADDON_VERSION}\"\," ../../../web/src/installers/versions.js
+        if ! sed '0,/cron-weave-update-281/d' ../../../web/src/installers/versions.js | sed '/\],/,$d' | grep -Fq "${ADDON_VERSION}" ; then
+            sed -i "/cron-weave-update-281/a\    \"${ADDON_VERSION}\"\," ../../../web/src/installers/versions.js
         fi
     fi
 }
@@ -77,7 +70,12 @@ function generate() {
 function main() {
     VERSION=${1-}
     if [ -z "$VERSION" ]; then
-        get_latest_version
+        VERSION=2.8.1
+    fi
+    if [ "$VERSION" != "2.6.5" ] && [ "$VERSION" != "2.8.1" ]; then
+        echo "Weave versions 2.6.5 and 2.8.1 are supported"
+        echo "Unsupported weave version: $VERSION"
+        exit 1
     fi
 
     WEAVE_KUBE_IMAGE_PATCH_VERSION="$(get_images_patch_version "kurlsh/weave-kube")"
@@ -96,7 +94,8 @@ function main() {
 
     add_as_latest
 
-    echo "::set-output name=weave::$ADDON_VERSION"
+    echo "::set-output name=weave_version::$ADDON_VERSION"
+    echo "::set-output name=weave_major_minor_version::$(echo "$ADDON_VERSION" | awk -F'.' '{ print $1 "." $2 }')"
 }
 
 main "$@"
