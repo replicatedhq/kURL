@@ -32,7 +32,7 @@ jobs:
         token: ${{ secrets.AUTOMATED_PR_GH_PAT }}
         commit-message: Create new Weave version
         title: 'Automated Weave version update ${{ steps.update.outputs.weave_version }}'
-        branch: automation/update-weave
+        branch: automation/update-weave-${{ steps.update.outputs.weave_major_minor_version }}
         delete-branch: true
         labels: |
           automated-pr
