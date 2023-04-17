@@ -316,7 +316,7 @@
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     rhel_9_install_host_packages lvm2 conntrack-tools socat container-selinux git
-- name: "Migrate from Docker to Containerd and Kubernetes from 1.23 to 1.25 airgap"
+- name: "Migrate from Docker to Containerd and Kubernetes from 1.23 to 1.26 airgap"
   flags: "yes"
   installerSpec:
     kubernetes:
@@ -339,7 +339,7 @@
       version: latest
   upgradeSpec:
     kubernetes:
-      version: 1.25.x
+      version: 1.26.x
     weave: # flannel has errors with dns and docker
       version: latest
     openebs:
@@ -357,6 +357,10 @@
     containerd:
       version: latest
   airgap: true
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    mkdir -p /var/lib/kurl/assets
+    ( cd /var/lib/kurl/assets && curl -fLO "$(kuberentes_upgrade_bundle_url "$KURL_URL" "$KURL_UPGRADE_URL")" )
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     minio_object_store_info
