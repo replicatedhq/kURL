@@ -1037,10 +1037,10 @@
     containerd:
       version: latest
   airgap: true
-  preinstallScript: |
-    mkdir -p /var/lib/kurl
-    # TODO: get stage
-    curl -fL -o /var/lib/kurl https://staging.kurl.sh/bundle/latest/packages/kubernetes-1.25.8,kubernetes-1.26.3.tar.gz
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    mkdir -p /var/lib/kurl/assets
+    ( cd /var/lib/kurl/assets && curl -fLO "$(kuberentes_upgrade_bundle_url "$KURL_URL" "$KURL_UPGRADE_URL")" )
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     minio_object_store_info
