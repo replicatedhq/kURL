@@ -34,17 +34,19 @@ function flannel_pre_init() {
 
     flannel_init_pod_subnet
 
-    if ! flannel_weave_conflict; then
-        return 0
+    if flannel_weave_conflict; then
+        logWarn "The migration from Weave to Flannel will require whole-cluster downtime."
+        logWarn "Would you like to continue?"
+        if ! confirmY ; then
+            bail "Not migrating from Weave to Flannel"
+        fi
+        flannel_check_nodes_connectivity
     fi
+}
 
-    # the code below deals with weave to flannel migration and is not needed for new installs.
-    logWarn "The migration from Weave to Flannel will require whole-cluster downtime."
-    logWarn "Would you like to continue?"
-    if ! confirmY ; then
-        bail "Not migrating from Weave to Flannel"
-    fi
-
+# flannel_check_nodes_connectivity verifies that all nodes in the cluster can reach each other through
+# port 8472/UDP (this communication is a flannel requirement).
+function flannel_check_nodes_connectivity() {
     local node_count
     node_count="$(kubectl get nodes --no-headers 2>/dev/null | wc -l)"
     if [ "$node_count" = "1" ]; then
