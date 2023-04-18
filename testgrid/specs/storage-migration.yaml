@@ -931,7 +931,7 @@
 
 - name: Cust 1 - Migrate from Rook+OpenEBS to Longhorn+OpenEBS (Kubernetes 1.19.x to 1.21.x, Docker to Containerd)
   flags: "yes"
-  arigap: true
+  airgap: true
   installerApiEndpoint: https://kurl.sh
   installerSpec:
     kubernetes:
