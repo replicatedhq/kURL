@@ -284,6 +284,7 @@ func convertToBash(kurlValues map[string]interface{}, fieldsSet map[string]bool)
 		"Rook.IsSharedFilesystemDisabled":                 "ROOK_SHARED_FILESYSTEM_DISABLED",
 		"Rook.S3Override":                                 "ROOK_S3_OVERRIDE",
 		"Rook.StorageClassName":                           "STORAGE_CLASS",
+		"Rook.MinimumNodeCount":                           "ROOK_MINIMUM_NODE_COUNT",
 		"Rook.Version":                                    "ROOK_VERSION",
 		"SelinuxConfig.DisableSelinux":                    "DISABLE_SELINUX",
 		"SelinuxConfig.PreserveConfig":                    "PRESERVE_SELINUX_CONFIG",
