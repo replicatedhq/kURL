@@ -301,9 +301,9 @@ func scaleDownPrometheus(ctx context.Context, cli client.Client) error {
 	}
 
 	var st appsv1.StatefulSet
-	if err := wait.PollImmediate(3*time.Second, 5*time.Minute, func() (bool, error) {
+	if err := wait.PollUntilContextTimeout(ctx, 3*time.Second, 5*time.Minute, true, func(ctx2 context.Context) (bool, error) {
 		nsn = types.NamespacedName{Namespace: prometheusNamespace, Name: prometheusStatefulSetName}
-		if err := cli.Get(ctx, nsn, &st); err != nil {
+		if err := cli.Get(ctx2, nsn, &st); err != nil {
 			return false, fmt.Errorf("error getting prometheus statefulset: %w", err)
 		}
 		return st.Status.Replicas == 0 && st.Status.UpdatedReplicas == 0, nil
@@ -392,13 +392,13 @@ func scaleEkco(ctx context.Context, cli client.Client, replicas int32) error {
 // waitForPodsToBeScaledDown waits for all pods using matching the provided selector to disappear in the provided
 // namespace.
 func waitForPodsToBeScaledDown(ctx context.Context, cli client.Client, ns string, sel labels.Selector) error {
-	return wait.PollImmediate(3*time.Second, 5*time.Minute, func() (bool, error) {
+	return wait.PollUntilContextTimeout(ctx, 3*time.Second, 5*time.Minute, true, func(ctx2 context.Context) (bool, error) {
 		var pods corev1.PodList
 		opts := []client.ListOption{
 			client.InNamespace(ns),
 			client.MatchingLabelsSelector{Selector: sel},
 		}
-		if err := cli.List(ctx, &pods, opts...); err != nil {
+		if err := cli.List(ctx2, &pods, opts...); err != nil {
 			return false, fmt.Errorf("error listing pods: %w", err)
 		}
 		if len(pods.Items) > 0 {
