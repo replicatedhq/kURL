@@ -1166,7 +1166,10 @@ function common_upgrade_step_versions() {
     local step_versions=
     read -ra step_versions <<< "$1"
     local from_version=$2
-    local to_version=$3
+    local desired_version=$3
+
+    local to_version=
+    to_version=$(common_upgrade_version_to_major_minor "$desired_version")
 
     # check that major versions are the same
     local first_major=
@@ -1187,10 +1190,22 @@ function common_upgrade_step_versions() {
         bail "Upgrade from $from_version to $to_version is not supported."
     fi
 
+    # if there are no steps to perform, return
+    if [ "$first_minor" -gt "$last_minor" ]; then
+        return
+    fi
+
+    if [ "$desired_version" != "$to_version" ]; then
+        last_minor=$((last_minor - 1)) # last version is the desired version
+    fi
+
     local step=
     for (( step=first_minor ; step<=last_minor ; step++ )); do
         echo "${step_versions[$step]}"
     done
+    if [ "$desired_version" != "$to_version" ]; then
+        echo "$desired_version"
+    fi
 }
 
 # common_upgrade_compare_versions prints 0 if the versions are equal, 1 if the first is greater,
@@ -1268,10 +1283,8 @@ function common_upgrade_print_list_of_minor_upgrades() {
             if [ "$((minor + 1))" -eq "$last_minor" ]; then
                 printf "and "
             fi
-            printf "1.%s to 1.%s" "$minor" "$((minor + 1))"
-        else
-            printf "1.%s.x to 1.%s" "$minor" "$((minor + 1))"
         fi
+        printf "1.%s to 1.%s" "$minor" "$((minor + 1))"
     done
     printf ".\n"
 }
@@ -1289,6 +1302,18 @@ function common_upgrade_major_minor_to_minor() {
 # common_upgrade_version_to_major_minor returns the major.minor version of a semver version.
 function common_upgrade_version_to_major_minor() {
     echo "$1" | cut -d. -f1,2
+}
+
+# common_upgrade_major_minor_less_one returns the major.minor version less one minor.
+function common_upgrade_major_minor_less_one() {
+    local major=
+    major="$(common_upgrade_major_minor_to_major "$1")"
+    local minor=
+    minor="$(common_upgrade_major_minor_to_minor "$1")"
+    if [ "$minor" != "0" ]; then
+        minor="$((minor - 1))"
+    fi
+    echo "$major.$minor"
 }
 
 # common_list_images_in_manifest_file will list images in the given manifest file.
@@ -1437,9 +1462,9 @@ function common_upgrade_tasks_params() {
     done
 }
 
-# common_prompt_missing_images prompts the user to run the command to load the images on the given
+# common_prompt_missing_assets prompts the user to run the command to load the assets on the given
 # remote nodes before proceeding.
-function common_prompt_task_missing_images() {
+function common_prompt_task_missing_assets() {
     local nodes="$1"
     local from_version="$2"
     local to_version="$3"
@@ -1462,7 +1487,8 @@ function common_prompt_task_missing_images() {
         airgap_flag="airgap"
     fi
 
-    printf "The nodes %s appear to be missing images required for the %s upgrade from %s to %s.\n" "$nodes" "$upgrade_name" "$from_version" "$to_version"
+    printf "The node(s) %s appear to be missing assets required for the %s upgrade from %s to %s.\n" \
+        "$(echo "$nodes" | tr '\n' ' ' | xargs)" "$upgrade_name" "$from_version" "$to_version"
     printf "Please run the following on each of these nodes before continuing:\n"
     printf "\n\t%b%stasks.sh | sudo bash -s %s from-version=%s to-version=%s %s %b\n\n" \
         "$GREEN" "$prefix" "$task" "$from_version" "$to_version" "$airgap_flag" "$NC"

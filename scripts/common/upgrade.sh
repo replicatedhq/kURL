@@ -80,51 +80,48 @@ function kubernetes_upgrade_report_upgrade_kubernetes() {
     local from_version=
     from_version="$(common_upgrade_version_to_major_minor "$current_version")"
 
-    local to_version=
-    to_version="$(common_upgrade_version_to_major_minor "$desired_version")"
-
     local kubernetes_upgrade_version="v1.0.0" # if you change this code, change the version
-    report_addon_start "kubernetes_upgrade_${from_version}_to_${to_version}" "$kubernetes_upgrade_version"
-    export REPORTING_CONTEXT_INFO="kubernetes_upgrade_${from_version}_to_${to_version} $kubernetes_upgrade_version"
-    kubernetes_upgrade "$from_version" "$to_version"
+    report_addon_start "kubernetes_upgrade_${from_version}_to_${desired_version}" "$kubernetes_upgrade_version"
+    export REPORTING_CONTEXT_INFO="kubernetes_upgrade_${from_version}_to_${desired_version} $kubernetes_upgrade_version"
+    kubernetes_upgrade "$current_version" "$desired_version"
     export REPORTING_CONTEXT_INFO=""
-    report_addon_success "kubernetes_upgrade_${from_version}_to_${to_version}" "$kubernetes_upgrade_version"
+    report_addon_success "kubernetes_upgrade_${from_version}_to_${desired_version}" "$kubernetes_upgrade_version"
 }
 
 # kubernetes_upgrade upgrades will fetch the add-on and load the images for the upgrade and finally
 # run the upgrade script.
 function kubernetes_upgrade() {
-    local from_version="$1"
-    local to_version="$2"
+    local current_version="$1"
+    local desired_version="$2"
 
     disable_rook_ceph_operator
 
     # when invoked in a subprocess the failure of this function will not cause the script to exit
     # sanity check that the version is valid
-    common_upgrade_step_versions "${STEP_VERSIONS[*]}" "$from_version" "$to_version" 1>/dev/null
+    common_upgrade_step_versions "${STEP_VERSIONS[*]}" "$current_version" "$desired_version" 1>/dev/null
 
-    logStep "Upgrading Kubernetes from $from_version.x to $to_version.x"
-    common_upgrade_print_list_of_minor_upgrades "$from_version" "$to_version"
+    logStep "Upgrading Kubernetes from $current_version to $desired_version"
+    common_upgrade_print_list_of_minor_upgrades "$current_version" "$desired_version"
     echo "This may take some time."
-    kubernetes_upgrade_addon_fetch "$from_version" "$to_version"
+    kubernetes_upgrade_addon_fetch "$current_version" "$desired_version"
 
-    kubernetes_upgrade_prompt_missing_images "$from_version" "$to_version"
+    kubernetes_upgrade_prompt_missing_assets "$current_version" "$desired_version"
 
-    kubernetes_upgrade_do_kubernetes_upgrade "$from_version" "$to_version"
+    kubernetes_upgrade_do_kubernetes_upgrade "$current_version" "$desired_version"
 
     enable_rook_ceph_operator
 
-    logSuccess "Successfully upgraded Kubernetes from $from_version.x to $to_version.x"
+    logSuccess "Successfully upgraded Kubernetes from $current_version to $desired_version"
 }
 
-# kubernetes_upgrade_do_kubernetes_upgrade will step through each minor version upgrade from $from_version to
-# $to_version
+# kubernetes_upgrade_do_kubernetes_upgrade will step through each minor version upgrade from
+# $current_version to $desired_version
 function kubernetes_upgrade_do_kubernetes_upgrade() {
-    local from_version="$1"
-    local to_version="$2"
+    local current_version="$1"
+    local desired_version="$2"
 
     local step=
-    while read -r step; do
+    while read -r step ; do
         if [ -z "$step" ] || [ "$step" = "0.0.0" ]; then
             continue
         fi
@@ -138,7 +135,7 @@ function kubernetes_upgrade_do_kubernetes_upgrade() {
         upgrade_kubernetes_workers "$step"
 
         # if this is not the last version in the loop, then delete the addon files to free up space
-        if ! [[ "$step" =~ $to_version ]]; then
+        if [ "$step" != "$desired_version" ]; then
             rm -f "$DIR/assets/kubernetes-$step.tar.gz"
             rm -rf "$DIR/packages/kubernetes/$step"
         fi
@@ -147,7 +144,7 @@ function kubernetes_upgrade_do_kubernetes_upgrade() {
         kubectl label --overwrite node --selector="node-role.kubernetes.io/control-plane" node-role.kubernetes.io/master=
 
         logSuccess "Cluster upgraded to Kubernetes version $step successfully"
-    done <<< "$(common_upgrade_step_versions "${STEP_VERSIONS[*]}" "$from_version" "$to_version")"
+    done <<< "$(common_upgrade_step_versions "${STEP_VERSIONS[*]}" "$current_version" "$desired_version")"
 
     if [ -n "$AIRGAP_MULTI_ADDON_PACKAGE_PATH" ]; then
         # delete the airgap package files to free up space
@@ -197,27 +194,20 @@ function kubernetes_upgrade_required_archive_size() {
     # 934.8 MB is the size of the kubernetes-1.26.3.tar.gz archive which is the largest archive
     local bundle_size_upper_bounds=935
 
-    local from_version=
-    from_version="$(common_upgrade_version_to_major_minor "$current_version")"
-
-    local to_version=
-    to_version="$(common_upgrade_version_to_major_minor "$desired_version")"
-
     local total_archive_size=0
     local step=
-    while read -r step; do
+    while read -r step ; do
         if [ -z "$step" ] || [ "$step" = "0.0.0" ]; then
             continue
         fi
         total_archive_size=$((total_archive_size + "$bundle_size_upper_bounds"))
-    done <<< "$(common_upgrade_step_versions "${STEP_VERSIONS[*]}" "$from_version" "$to_version")"
+    done <<< "$(common_upgrade_step_versions "${STEP_VERSIONS[*]}" "$current_version" "$desired_version")"
 
     echo "$total_archive_size"
 }
 
-# kubernetes_upgrade_addon_fetch will fetch all add-on versions from $from_version to $to_version.
-# NOTE: This will fetch packages from the lowest version on all nodes. This could be optimized to
-# only load images needed for the upgrade on each node.
+# kubernetes_upgrade_addon_fetch will fetch all add-on versions from $current_version to
+# $desired_version.
 function kubernetes_upgrade_addon_fetch() {
     if [ "$AIRGAP" = "1" ]; then
         kubernetes_upgrade_addon_fetch_airgap "$@"
@@ -227,22 +217,22 @@ function kubernetes_upgrade_addon_fetch() {
 }
 
 # kubernetes_upgrade_addon_fetch_online will fetch all add-on versions, one at a time, from
-# $from_version to $to_version.
+# $current_version to $desired_version.
 function kubernetes_upgrade_addon_fetch_online() {
-    local from_version="$1"
-    local to_version="$2"
+    local current_version="$1"
+    local desired_version="$2"
 
-    logStep "Downloading images required for Kubernetes $from_version to $to_version upgrade"
+    logStep "Downloading assets required for Kubernetes $current_version to $desired_version upgrade"
 
     local step=
-    while read -r step; do
+    while read -r step ; do
         if [ -z "$step" ] || [ "$step" = "0.0.0" ]; then
             continue
         fi
         kubernetes_upgrade_addon_fetch_online_step "kubernetes" "$step"
-    done <<< "$(common_upgrade_step_versions "${STEP_VERSIONS[*]}" "$from_version" "$to_version")"
+    done <<< "$(common_upgrade_step_versions "${STEP_VERSIONS[*]}" "$current_version" "$desired_version")"
 
-    logSuccess "Images loaded for Kubernetes $from_version to $to_version upgrade"
+    logSuccess "Assets loaded for Kubernetes $current_version to $desired_version upgrade"
 }
 
 # kubernetes_upgrade_addon_fetch_online_step will fetch an individual add-on version.
@@ -253,81 +243,97 @@ function kubernetes_upgrade_addon_fetch_online_step() {
 }
 
 # kubernetes_upgrade_addon_fetch_airgap will prompt the user to fetch all add-on versions from
-# $from_version to $to_version.
+# $current_version to $desired_version.
 function kubernetes_upgrade_addon_fetch_airgap() {
-    local from_version="$1"
-    local to_version="$2"
+    local current_version="$1"
+    local desired_version="$2"
 
-    if kubernetes_upgrade_has_all_addon_version_packages "$from_version" "$to_version" ; then
+     # the last version already included in the airgap bundle
+    local version_less_one=
+    version_less_one="$(common_upgrade_major_minor_less_one "$desired_version")"
+
+    if kubernetes_upgrade_has_all_addon_version_packages "$current_version" "$version_less_one" ; then
         local node_missing_images=
         # shellcheck disable=SC2086
-        node_missing_images=$(kubernetes_upgrade_nodes_missing_images "$from_version" "$to_version" "$(get_local_node_name)" "")
+        node_missing_images=$(kubernetes_upgrade_nodes_missing_images "$current_version" "$version_less_one" "$(get_local_node_name)" "")
 
         if [ -z "$node_missing_images" ]; then
-            log "All images required for Kubernetes $from_version to $to_version upgrade are present on this node"
+            log "All assets required for Kubernetes $current_version to $desired_version upgrade are present on this node"
             return
         fi
     fi
 
-    logStep "Downloading images required for Kubernetes $from_version to $to_version upgrade"
+    logStep "Downloading assets required for Kubernetes $current_version to $desired_version upgrade"
 
     local addon_versions=()
 
     local step=
-    while read -r step; do
+    while read -r step ; do
         if [ -z "$step" ] || [ "$step" = "0.0.0" ]; then
             continue
         fi
         addon_versions+=( "kubernetes-$step" )
-    done <<< "$(common_upgrade_step_versions "${STEP_VERSIONS[*]}" "$from_version" "$to_version")"
+    done <<< "$(common_upgrade_step_versions "${STEP_VERSIONS[*]}" "$current_version" "$version_less_one")"
 
     addon_fetch_multiple_airgap "${addon_versions[@]}"
 
-    logSuccess "Images loaded for Kubernetes $from_version to $to_version upgrade"
+    logSuccess "Assets loaded for Kubernetes $current_version to $desired_version upgrade"
 }
 
 # kubernetes_upgrade_has_all_addon_version_packages will return 1 if any add-on versions are
 # missing that are necessary to perform the upgrade.
 function kubernetes_upgrade_has_all_addon_version_packages() {
-    local from_version="$1"
-    local to_version="$2"
+    local current_version="$1"
+    local desired_version="$2"
 
     local step=
-    while read -r step; do
+    while read -r step ; do
         if [ -z "$step" ] || [ "$step" = "0.0.0" ]; then
             continue
         fi
         if [ ! -f "packages/kubernetes/$step/Manifest" ]; then
             return 1
         fi
-    done <<< "$(common_upgrade_step_versions "${STEP_VERSIONS[*]}" "$from_version" "$to_version")"
+    done <<< "$(common_upgrade_step_versions "${STEP_VERSIONS[*]}" "$current_version" "$desired_version")"
 
     return 0
 }
 
-# kubernetes_upgrade_prompt_missing_images prompts the user to run the command to load the images on all
-# remote nodes before proceeding.
-function kubernetes_upgrade_prompt_missing_images() {
-    local from_version="$1"
-    local to_version="$2"
+# kubernetes_upgrade_prompt_missing_assets prompts the user to run the command to load assets on
+# all remote nodes before proceeding.
+function kubernetes_upgrade_prompt_missing_assets() {
+    local current_version="$1"
+    local desired_version="$2"
 
-    local node_missing_images=
-    # shellcheck disable=SC2086
-    node_missing_images=$(kubernetes_upgrade_nodes_missing_images "$from_version" "$to_version" "" "$(get_local_node_name)")
+    # online installs will load assets as part of the upgrade.sh script
+    if [ "$AIRGAP" != "1" ]; then
+        return
+    fi
 
-    common_prompt_task_missing_images "$node_missing_images" "$from_version" "$to_version" "Kubernetes" "kubernetes-upgrade-load-images"
+    # if we are only upgrading one minor version, then we don't need to prompt for assets as they
+    # are part of the airgap bundle
+    local version_less_one=
+    version_less_one="$(common_upgrade_major_minor_less_one "$desired_version")"
+    if [ "$(common_upgrade_compare_versions "$current_version" "$version_less_one")" -ge "0" ]; then
+        return
+    fi
+
+    # always prompt on all nodes because assets are not only images
+    common_prompt_task_missing_assets \
+        "$(kubernetes_remote_nodes | awk '{ print $1 }')" \
+        "$current_version" "$desired_version" "Kubernetes" "kubernetes-upgrade-load-assets"
 }
 
 # kubernetes_upgrade_nodes_missing_images will print a list of nodes that are missing images for
 # the given kubernetes versions.
 function kubernetes_upgrade_nodes_missing_images() {
-    local from_version="$1"
-    local to_version="$2"
+    local current_version="$1"
+    local desired_version="$2"
     local target_host="$3"
     local exclude_hosts="$4"
 
     local images_list=
-    images_list="$(kubernetes_upgrade_images_list "$from_version" "$to_version")"
+    images_list="$(kubernetes_upgrade_images_list "$current_version" "$desired_version")"
 
     if [ -z "$images_list" ]; then
         return
@@ -338,13 +344,13 @@ function kubernetes_upgrade_nodes_missing_images() {
 
 # kubernetes_upgrade_images_list will print a list of images for the given kubernetes versions.
 function kubernetes_upgrade_images_list() {
-    local from_version="$1"
-    local to_version="$2"
+    local current_version="$1"
+    local desired_version="$2"
 
     local images_list=
 
     local step=
-    while read -r step; do
+    while read -r step ; do
         if [ -z "$step" ] || [ "$step" = "0.0.0" ]; then
             continue
         fi
@@ -352,14 +358,14 @@ function kubernetes_upgrade_images_list() {
             "$images_list" \
             "$(common_list_images_in_manifest_file "packages/kubernetes/$step/Manifest")" \
         )"
-    done <<< "$(common_upgrade_step_versions "${STEP_VERSIONS[*]}" "$from_version" "$to_version")"
+    done <<< "$(common_upgrade_step_versions "${STEP_VERSIONS[*]}" "$current_version" "$desired_version")"
 
     echo "$images_list"
 }
 
-# kubernetes_upgrade_tasks_load_images is called from tasks.sh to load images on remote notes for the
+# kubernetes_upgrade_tasks_load_assets is called from tasks.sh to load assets on remote notes for the
 # kubernetes upgrade.
-function kubernetes_upgrade_tasks_load_images() {
+function kubernetes_upgrade_tasks_load_assets() {
     local from_version=
     local to_version=
     local airgap=
@@ -380,7 +386,7 @@ function kubernetes_upgrade_tasks_load_images() {
     fi
 
     if ! kubernetes_upgrade_addon_fetch "$from_version" "$to_version" ; then
-        bail "Failed to load images"
+        bail "Failed to load assets"
     fi
 }
 
@@ -403,7 +409,7 @@ function upgrade_kubernetes_local_master() {
     local nodeVersion=
     nodeVersion="$(kubectl get node --no-headers "$nodeName" 2>/dev/null | awk '{ print $5 }' | sed 's/v//')"
     if [ -z "$nodeVersion" ]; then
-        nodeVersion="$(discover_local_kuberentes_version)"
+        nodeVersion="$(discover_local_kubernetes_version)"
     fi
 
     # check if the node is already at the target version

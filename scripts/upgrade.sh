@@ -131,6 +131,7 @@ function main() {
     configure_no_proxy
     ${K8S_DISTRO}_addon_for_each addon_fetch
     kubernetes_get_packages
+    kubernetes_maybe_get_packages_airgap # this is necesssary for step versions for multi-k8s upgrades
     preflights_require_host_packages
     host_preflights "${MASTER:-0}" "1" "1"
     install_host_dependencies

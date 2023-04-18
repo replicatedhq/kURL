@@ -94,10 +94,10 @@ function tasks() {
             rook_upgrade_tasks_load_images "$@"
             popd_install_directory
             ;;
-        kubernetes-upgrade-load-images|kubernetes_upgrade_load_images)
+        kubernetes-upgrade-load-assets|kubernetes_upgrade_load_assets)
             pushd_install_directory
-            shift # the first param is kubernetes-upgrade-load-images|kubernetes_upgrade_load_images
-            kubernetes_upgrade_tasks_load_images "$@"
+            shift # the first param is kubernetes-upgrade-load-assets|kubernetes_upgrade_load_assets
+            kubernetes_upgrade_tasks_load_assets "$@"
             popd_install_directory
             ;;
         weave-to-flannel-primary|weave_to_flannel_primary)

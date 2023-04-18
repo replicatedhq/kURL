@@ -52,19 +52,23 @@ function test_common_upgrade_step_versions() {
     assertEquals "error out of bounds" "1" "$(trap "echo_exit_code" EXIT; common_upgrade_step_versions "${step_versions[*]}" "1.9" "1.15"; trap '' EXIT)"
     assertEquals "error major versions" "1" "$(trap "echo_exit_code" EXIT; common_upgrade_step_versions "${step_versions[*]}" "1.1" "2.1"; trap '' EXIT)"
     assertEquals "6 to 4" "" "$(common_upgrade_step_versions "${step_versions[*]}" "1.6" "1.4")"
+    assertEquals "9 to 10" "$(echo -e "1.10.11")" "$(common_upgrade_step_versions "${step_versions[*]}" "1.9" "1.10")"
+    assertEquals "1.9.3 to 1.10.9" "$(echo -e "1.10.9")" "$(common_upgrade_step_versions "${step_versions[*]}" "1.9" "1.10.9")"
+    assertEquals "1.9.3 to 1.11.1" "$(echo -e "1.10.11\n1.11.1")" "$(common_upgrade_step_versions "${step_versions[*]}" "1.9.3" "1.11.1")"
+    assertEquals "1.9.3 to 1.11.3" "$(echo -e "1.10.11\n1.11.3")" "$(common_upgrade_step_versions "${step_versions[*]}" "1.9.3" "1.11.3")"
 }
 
 function test_common_upgrade_major_minor_to_major() {
     assertEquals "1.0 to 1" "1" "$(common_upgrade_major_minor_to_major "1.0")"
     assertEquals "1.2 to 1" "1" "$(common_upgrade_major_minor_to_major "1.2")"
-    assertEquals "1.2.3 to 1" "1" "$(common_upgrade_major_minor_to_major "1.2")"
+    assertEquals "1.2.3 to 1" "1" "$(common_upgrade_major_minor_to_major "1.2.3")"
     assertEquals "12.2 to 12" "12" "$(common_upgrade_major_minor_to_major "12.2")"
 }
 
 function test_common_upgrade_major_minor_to_minor() {
     assertEquals "1.0 to 0" "0" "$(common_upgrade_major_minor_to_minor "1.0")"
     assertEquals "1.2 to 2" "2" "$(common_upgrade_major_minor_to_minor "1.2")"
-    assertEquals "1.2.3 to 2" "2" "$(common_upgrade_major_minor_to_minor "1.2")"
+    assertEquals "1.2.3 to 2" "2" "$(common_upgrade_major_minor_to_minor "1.2.3")"
     assertEquals "12.2 to 2" "2" "$(common_upgrade_major_minor_to_minor "12.2")"
 }
 
@@ -73,16 +77,31 @@ function test_common_upgrade_version_to_major_minor() {
     assertEquals "1.0.4-14.2.21 => 1.0" "1.0" "$(common_upgrade_version_to_major_minor "1.0.4-14.2.21")"
 }
 
+function test_common_upgrade_major_minor_less_one() {
+    assertEquals "1.9 => 1.8" "1.8" "$(common_upgrade_major_minor_less_one "1.9")"
+    assertEquals "1.9.4 => 1.8" "1.8" "$(common_upgrade_major_minor_less_one "1.9.4")"
+    assertEquals "1.0 => 1.0" "1.0" "$(common_upgrade_major_minor_less_one "1.0")"
+    assertEquals "1.0.4 => 1.0" "1.0" "$(common_upgrade_major_minor_less_one "1.0.4")"
+}
+
 function test_common_upgrade_compare_versions() {
     assertEquals "1.4 is greater than 1.0" "1" "$(common_upgrade_compare_versions "1.4" "1.0")"
     assertEquals "1.0 is less than 1.4" "-1" "$(common_upgrade_compare_versions "1.0" "1.4")"
     assertEquals "1.0 is equal to 1.0" "0" "$(common_upgrade_compare_versions "1.0" "1.0")"
+    assertEquals "1.0.1 is equal to 1.0" "0" "$(common_upgrade_compare_versions "1.0.1" "1.0")"
+    assertEquals "1.0.0 is equal to 1.0.1" "0" "$(common_upgrade_compare_versions "1.0.0" "1.0.1")"
+    assertEquals "1.0.1 is equal to 1.0.0" "0" "$(common_upgrade_compare_versions "1.0.1" "1.0.0")"
+    assertEquals "1.0 is equal to 1.0.1" "0" "$(common_upgrade_compare_versions "1.0" "1.0.1")"
     assertEquals "2.1 is greater than 1.2" "1" "$(common_upgrade_compare_versions "2.1" "1.2")"
     assertEquals "1.2 is less than 2.1" "-1" "$(common_upgrade_compare_versions "1.2" "2.1")"
 }
 
 function test_common_upgrade_max_version() {
     assertEquals "1.0 or 1.1 should be 1.1" "1.1" "$(common_upgrade_max_version "1.0" "1.1")"
+    assertEquals "1.0.1 or 1.1 should be 1.1" "1.1" "$(common_upgrade_max_version "1.0.1" "1.1")"
+    assertEquals "1.0 or 1.1.1 should be 1.1.1" "1.1.1" "$(common_upgrade_max_version "1.0" "1.1.1")"
+    assertEquals "1.0.1 or 1.1.0 should be 1.1.0" "1.1.0" "$(common_upgrade_max_version "1.0.1" "1.1.0")"
+    assertEquals "1.0.0 or 1.1.1 should be 1.1.1" "1.1.1" "$(common_upgrade_max_version "1.0.0" "1.1.1")"
     assertEquals "1.1 or 1.0 should be 1.1" "1.1" "$(common_upgrade_max_version "1.1" "1.0")"
     assertEquals "1.0 or 2.0 should be 2.0" "2.0" "$(common_upgrade_max_version "1.0" "2.0")"
     assertEquals "1.0 or 1.0 should be 1.0" "1.0" "$(common_upgrade_max_version "1.0" "1.0")"
@@ -91,13 +110,19 @@ function test_common_upgrade_max_version() {
 function test_common_upgrade_is_version_included() {
     assertEquals "1.0 is included in 1.0 to 1.4" "1" "$(common_upgrade_is_version_included "1.0" "1.4" "1.0"; echo $?)"
     assertEquals "1.1 is included in 1.0 to 1.4" "0" "$(common_upgrade_is_version_included "1.0" "1.4" "1.1"; echo $?)"
+    assertEquals "1.1 is included in 1.0.1 to 1.4.1" "0" "$(common_upgrade_is_version_included "1.0.1" "1.4.1" "1.1"; echo $?)"
+    assertEquals "1.1.0 is included in 1.0.1 to 1.4.1" "0" "$(common_upgrade_is_version_included "1.0.1" "1.4.1" "1.1.0"; echo $?)"
     assertEquals "1.4 is included in 1.0 to 1.4" "0" "$(common_upgrade_is_version_included "1.0" "1.4" "1.4"; echo $?)"
+    assertEquals "1.4 is included in 1.0 to 1.4.1" "0" "$(common_upgrade_is_version_included "1.0" "1.4.1" "1.4"; echo $?)"
+    assertEquals "1.4.1 is included in 1.0 to 1.4" "0" "$(common_upgrade_is_version_included "1.0" "1.4" "1.4.1"; echo $?)"
     assertEquals "1.5 is included in 1.0 to 1.4" "1" "$(common_upgrade_is_version_included "1.0" "1.4" "1.5"; echo $?)"
 }
 
 function test_common_upgrade_print_list_of_minor_upgrades() {
-    assertEquals "10 to 11" "This involves upgrading from 1.0.x to 1.1." "$(common_upgrade_print_list_of_minor_upgrades "1.0" "1.1")"
-    assertEquals "10 to 14" "This involves upgrading from 1.0.x to 1.1, 1.1 to 1.2, 1.2 to 1.3, and 1.3 to 1.4." "$(common_upgrade_print_list_of_minor_upgrades "1.0" "1.4")"
+    assertEquals "10 to 11" "This involves upgrading from 1.0 to 1.1." "$(common_upgrade_print_list_of_minor_upgrades "1.0" "1.1")"
+    assertEquals "10 to 14" "This involves upgrading from 1.0 to 1.1, 1.1 to 1.2, 1.2 to 1.3, and 1.3 to 1.4." "$(common_upgrade_print_list_of_minor_upgrades "1.0" "1.4")"
+    assertEquals "10 to 141" "This involves upgrading from 1.0 to 1.1, 1.1 to 1.2, 1.2 to 1.3, and 1.3 to 1.4." "$(common_upgrade_print_list_of_minor_upgrades "1.0" "1.4.1")"
+    assertEquals "101 to 141" "This involves upgrading from 1.0 to 1.1, 1.1 to 1.2, 1.2 to 1.3, and 1.3 to 1.4." "$(common_upgrade_print_list_of_minor_upgrades "1.0.1" "1.4.1")"
 }
 
 function test_common_list_images_in_manifest_file() {
