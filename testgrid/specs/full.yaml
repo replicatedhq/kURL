@@ -1918,3 +1918,67 @@
   flags: "kurl-install-directory=/custom"
   preInstallScript: |
     touch /var/lib/kurl
+- name: "Upgrade Kubernetes from 1.19 to 1.26"
+  flags: "yes"
+  installerSpec:
+    kubernetes:
+      version: 1.19.x
+    containerd:
+      version: latest
+    flannel:
+      version: latest
+    ekco:
+      version: latest
+  upgradeSpec:
+    kubernetes:
+      version: 1.26.x
+    containerd:
+      version: latest
+    flannel:
+      version: latest
+    ekco:
+      version: latest
+  postUpgradeScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+
+    k8sVersion=$(kubectl get nodes -o jsonpath='{.items[0].status.nodeInfo.kubeletVersion}')
+    echo $k8sVersion | grep 1.26
+- name: "Upgrade Kubernetes from 1.19 to 1.24, Rook from 1.0.4 to 1.5.12"
+  flags: "yes"
+  installerSpec:
+    kubernetes:
+      version: 1.19.x
+    containerd:
+      version: latest
+    flannel:
+      version: latest
+    ekco:
+      version: latest
+    rook:
+      version: "1.0.4"
+  upgradeSpec:
+    kubernetes:
+      version: 1.24.x
+    containerd:
+      version: latest
+    flannel:
+      version: latest
+    ekco:
+      version: latest
+    rook:
+      version: "1.5.12"
+  postInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rook_ceph_object_store_info
+    validate_read_write_object_store rwtest testfile.txt
+  postUpgradeScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rook_ceph_object_store_info
+    validate_testfile rwtest testfile.txt
+    validate_read_write_object_store postupgrade upgradefile.txt
+
+    k8sVersion=$(kubectl get nodes -o jsonpath='{.items[0].status.nodeInfo.kubeletVersion}')
+    echo $k8sVersion | grep 1.26
+
+    operatorVersion=$(kubectl get deployment -n rook-ceph rook-ceph-operator -o jsonpath='{.spec.template.spec.containers[0].image}')
+    echo $operatorVersion | grep 1.5.12
