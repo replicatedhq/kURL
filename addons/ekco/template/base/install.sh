@@ -154,6 +154,8 @@ function ekco_maybe_remove_rook_priority_class_label() {
 function ekco_install_reboot_service() {
     local src="$1"
 
+    echo "Installing ekco reboot service"
+
     mkdir -p /opt/ekco
     cp "$src/reboot/startup.sh" /opt/ekco/startup.sh
     cp "$src/reboot/shutdown.sh" /opt/ekco/shutdown.sh
@@ -167,14 +169,23 @@ function ekco_install_reboot_service() {
 
     systemctl daemon-reload
     systemctl enable ekco-reboot.service
-    systemctl start ekco-reboot.service
+    if ! timeout 30s systemctl start ekco-reboot.service; then
+        echo "Failed to start ekco-reboot.service within 30s, restarting it"
+        systemctl restart ekco-reboot.service
+    fi
+
+    echo "ekco reboot service installed"
 }
 
 function ekco_install_purge_node_command() {
     local src="$1"
 
+    echo "Installing ekco purge node command"
+
     cp "$src/ekco-purge-node.sh" /usr/local/bin/ekco-purge-node
     chmod u+x /usr/local/bin/ekco-purge-node
+
+    echo "ekco purge node command installed"
 }
 
 function ekco_handle_load_balancer_address_change_pre_init() {
@@ -458,9 +469,13 @@ function ekco_load_images() {
         return 0
     fi
 
+    echo "Loading ekco image overrides"
+
     if [ -n "$DOCKER_VERSION" ]; then
         find "$DIR/image-overrides" -type f | xargs -I {} bash -c "docker load < {}"
     else
         find "$DIR/image-overrides" -type f | xargs -I {} bash -c "cat {} | ctr -a $(${K8S_DISTRO}_get_containerd_sock) -n=k8s.io images import -"
     fi
+
+    echo "ekco image overrides loaded"
 }
