@@ -1,0 +1,3 @@
+image weave-kube kurlsh/weave-kube:2.6.5-20230417-4a9fe55
+image weave-npc kurlsh/weave-npc:2.6.5-20230417-4a9fe55
+image weaveexec kurlsh/weaveexec:2.6.5-20230417-4a9fe55
