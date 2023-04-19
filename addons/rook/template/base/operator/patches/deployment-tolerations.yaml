@@ -8,16 +8,28 @@ spec:
       tolerations:
         - key: node-role.kubernetes.io/master
           operator: Exists
+        - key: node-role.kubernetes.io/control-plane
+          operator: Exists
       containers:
         - name: rook-ceph-operator
           env:
             - name: DISCOVER_TOLERATION_KEY
-              value: node-role.kubernetes.io/master
+              value: node-role.kubernetes.io/control-plane
+            - name: DISCOVER_TOLERATIONS
+              value: |
+                - key: node-role.kubernetes.io/master
+                  operator: Exists
+                - key: node-role.kubernetes.io/control-plane
+                  operator: Exists
             - name: CSI_PROVISIONER_TOLERATIONS
               value: |
                 - key: node-role.kubernetes.io/master
                   operator: Exists
+                - key: node-role.kubernetes.io/control-plane
+                  operator: Exists
             - name: CSI_PLUGIN_TOLERATIONS
               value: |
                 - key: node-role.kubernetes.io/master
+                  operator: Exists
+                - key: node-role.kubernetes.io/control-plane
                   operator: Exists
