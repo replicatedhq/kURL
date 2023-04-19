@@ -189,6 +189,23 @@ function generate_admin_user() {
 function reset() {
     set +e
 
+    shift # the first param is reset
+    while [ "$1" != "" ]; do
+        _param="$(echo "$1" | cut -d= -f1)"
+        _value="$(echo "$1" | grep '=' | cut -d= -f2-)"
+        case $_param in
+            kurl-install-directory)
+                if [ -n "$_value" ]; then
+                    KURL_INSTALL_DIRECTORY_FLAG="$_value"
+                    KURL_INSTALL_DIRECTORY="$(realpath "$_value")/kurl"
+                fi
+                ;;
+        esac
+        shift
+    done
+
+    maybe_read_kurl_config_from_cluster # sets KURL_INSTALL_DIRECTORY
+
     if [ "$FORCE_RESET" != 1 ]; then
         printf "${YELLOW}"
         printf "WARNING: \n"
@@ -257,7 +274,8 @@ function reset() {
     rm -rf /var/lib/weave
     rm -rf /var/lib/longhorn
     rm -rf /etc/haproxy
-    rm -rf "${KURL_INSTALL_DIRECTORY}"
+    rm -rf "$KURL_INSTALL_DIRECTORY"
+    rm -rf "$KURL_INSTALL_DIRECTORY.repos"
 
     printf "Killing haproxy\n"
     pkill haproxy || true
