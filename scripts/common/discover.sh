@@ -129,7 +129,7 @@ export KUBERNETES_UPGRADE=0
 function discoverCurrentKubernetesVersion() {
     local fullCluster="$1"
 
-    CURRENT_KUBERNETES_VERSION=$(maybe discover_local_kuberentes_version)
+    CURRENT_KUBERNETES_VERSION=$(maybe discover_local_kubernetes_version)
 
     if [ -z "$CURRENT_KUBERNETES_VERSION" ]; then
         # This is a new install and no upgrades are required
@@ -172,7 +172,7 @@ function discoverCurrentKubernetesVersion() {
     done
 }
 
-function discover_local_kuberentes_version() {
+function discover_local_kubernetes_version() {
     grep -s ' image: ' /etc/kubernetes/manifests/kube-apiserver.yaml | grep -oE '[0-9]+\.[0-9]+\.[0-9]+'
 }
 

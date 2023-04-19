@@ -356,7 +356,7 @@ function rook_upgrade_prompt_missing_images() {
     # shellcheck disable=SC2086
     node_missing_images=$(rook_upgrade_nodes_missing_images "$from_version" "$to_version" "" "$(get_local_node_name)")
 
-    common_prompt_task_missing_images "$node_missing_images" "$from_version" "$to_version" "Rook" "rook-upgrade-load-images"
+    common_prompt_task_missing_assets "$node_missing_images" "$from_version" "$to_version" "Rook" "rook-upgrade-load-images"
 }
 
 # rook_upgrade_nodes_missing_images will print a list of nodes that are missing images for the

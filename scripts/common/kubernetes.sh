@@ -42,6 +42,17 @@ function kubernetes_get_packages() {
     fi
 }
 
+# kubernetes_maybe_get_packages_airgap downloads kubernetes packages if they are not already present
+function kubernetes_maybe_get_packages_airgap() {
+    if [ "$AIRGAP" != "1" ]; then
+        return
+    fi
+    if [ -d "$DIR/packages/kubernetes/$KUBERNETES_VERSION/assets" ]; then
+        return
+    fi
+    addon_fetch_airgap "kubernetes" "$KUBERNETES_VERSION"
+}
+
 function kubernetes_load_ipvs_modules() {
     if lsmod | grep -q ip_vs ; then
         return
@@ -282,6 +293,10 @@ function kubernetes_get_conformance_packages_online() {
 
 function kubernetes_masters() {
     kubectl get nodes --no-headers --selector="$(kubernetes_get_control_plane_label)"
+}
+
+function kubernetes_remote_nodes() {
+    kubectl get nodes --ignore-not-found --no-headers --selector="kubernetes.io/hostname!=$(get_local_node_name)"
 }
 
 function kubernetes_remote_masters() {
