@@ -125,7 +125,7 @@ function kubernetes_upgrade_do_kubernetes_upgrade() {
         if [ -z "$step" ] || [ "$step" = "0.0.0" ]; then
             continue
         fi
-        if [ ! -d "$DIR/packages/kubernetes/$step" ] ; then
+        if [ ! -d "$DIR/packages/kubernetes/$step/assets" ] ; then
             bail "Kubernetes version $step not found"
         fi
         logStep "Upgrading cluster to Kubernetes version $step"

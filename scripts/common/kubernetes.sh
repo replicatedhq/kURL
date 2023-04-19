@@ -29,10 +29,19 @@ function kubernetes_host() {
 
 function kubernetes_load_images() {
     local version="$1"
+
+    local varname="KUBERNETES_IMAGES_LOADED_${version//./_}"
+    if [ "${!varname:-}" = "1" ]; then
+        # images already loaded for this version
+        return 0
+    fi
+
     load_images "$DIR/packages/kubernetes/$version/images"
     if [ -n "$SONOBUOY_VERSION" ] && [ -d "$DIR/packages/kubernetes-conformance/$version/images" ]; then
         load_images "$DIR/packages/kubernetes-conformance/$version/images"
     fi
+
+    declare -g "$varname"=1
 }
 
 function kubernetes_get_packages() {
@@ -149,7 +158,7 @@ function kubernetes_install_host_packages() {
 
         # less command is broken if libtinfo.so.5 is missing in amazon linux 2
         if [ "$LSB_DIST" == "amzn" ] && [ "$AIRGAP" != "1" ] && ! file_exists "/usr/lib64/libtinfo.so.5"; then
-            if [ -d "$DIR/packages/kubernetes/${k8sVersion}" ]; then
+            if [ -d "$DIR/packages/kubernetes/${k8sVersion}/assets" ]; then
                 install_host_packages "${DIR}/packages/kubernetes/${k8sVersion}" ncurses-compat-libs
             fi
         fi

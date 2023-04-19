@@ -54,6 +54,8 @@ maybe_upgrade() {
     if [ "$kubeletMinor" -lt "$KUBERNETES_TARGET_VERSION_MINOR" ] || ([ "$kubeletMinor" -eq "$KUBERNETES_TARGET_VERSION_MINOR" ] && [ "$kubeletPatch" -lt "$KUBERNETES_TARGET_VERSION_PATCH" ]); then
         logStep "Kubernetes version v$kubeletVersion detected, upgrading node to version v$KUBERNETES_VERSION"
 
+        kubernetes_load_images "$KUBERNETES_VERSION"
+
         upgrade_kubeadm "$KUBERNETES_VERSION"
 
         ( set -x; kubeadm upgrade node )
