@@ -83,7 +83,7 @@ function ekco() {
     # installed they will get their overridden image
     if [ -n "$EKCO_POD_IMAGE_OVERRIDES" ]; then
         ekco_load_images
-        echo "Waiting up to 5 minutes for pod-image-overrides mutating webhook config to be created"
+        log "Waiting up to 5 minutes for pod-image-overrides mutating webhook config to be created"
         if ! spinner_until 300 kubernetes_resource_exists kurl mutatingwebhookconfigurations pod-image-overrides.kurl.sh; then
             bail "EKCO failed to deploy the pod-image-overrides.kurl.sh mutating webhook configuration"
         fi
@@ -135,7 +135,7 @@ function ekco_maybe_scaleup_operator() {
     ekcoReplicas=$(kubectl -n kurl get deployment ekc-operator -o jsonpath='{.spec.replicas}')
 
     if [ -z "$ekcoReplicas" ] || [ "$ekcoReplicas" -eq 0 ]; then
-        echo "Scaling up EKCO operator deployment"
+        log "Scaling up EKCO operator deployment"
         kubectl -n kurl scale deploy ekc-operator --replicas=1
     fi
 }
@@ -154,6 +154,8 @@ function ekco_maybe_remove_rook_priority_class_label() {
 function ekco_install_reboot_service() {
     local src="$1"
 
+    logStep "Installing ekco reboot service"
+
     mkdir -p /opt/ekco
     cp "$src/reboot/startup.sh" /opt/ekco/startup.sh
     cp "$src/reboot/shutdown.sh" /opt/ekco/shutdown.sh
@@ -167,14 +169,23 @@ function ekco_install_reboot_service() {
 
     systemctl daemon-reload
     systemctl enable ekco-reboot.service
-    systemctl start ekco-reboot.service
+    if ! timeout 30s systemctl start ekco-reboot.service; then
+        log "Failed to start ekco-reboot.service within 30s, restarting it"
+        systemctl restart ekco-reboot.service
+    fi
+
+    logSuccess "ekco reboot service installed"
 }
 
 function ekco_install_purge_node_command() {
     local src="$1"
 
+    logStep "Installing ekco purge node command"
+
     cp "$src/ekco-purge-node.sh" /usr/local/bin/ekco-purge-node
     chmod u+x /usr/local/bin/ekco-purge-node
+
+    logSuccess "ekco purge node command installed"
 }
 
 function ekco_handle_load_balancer_address_change_pre_init() {
@@ -194,7 +205,7 @@ function ekco_handle_load_balancer_address_change_pre_init() {
     local ARG=--add-alt-names=$newLoadBalancerHost
 
     for NODE in "${KUBERNETES_REMOTE_PRIMARIES[@]}"; do
-        echo "Adding new load balancer $newLoadBalancerHost to API server certificate on node $NODE"
+        logStep "Adding new load balancer $newLoadBalancerHost to API server certificate on node $NODE"
         local podName=regen-cert-$NODE
         kubectl delete pod $podName --force --grace-period=0 2>/dev/null || true
         render_yaml_file "$DIR/addons/ekco/$EKCO_VERSION/regen-cert-pod.yaml" | kubectl apply -f -
@@ -211,7 +222,7 @@ function ekco_handle_load_balancer_address_change_pre_init() {
     # Wait for the servers to pick up the new certs
     for NODE in "${KUBERNETES_REMOTE_PRIMARIES[@]}"; do
         local nodeIP=$(kubectl get node $NODE -owide  --no-headers | awk '{ print $6 }')
-        echo "Waiting for $NODE to begin serving certificate signed for $newLoadBalancerHost"
+        log "Waiting for $NODE to begin serving certificate signed for $newLoadBalancerHost"
         local addr=$($DIR/bin/kurl format-address $nodeIP)
         if ! spinner_until 120 cert_has_san "$addr:6443" "$newLoadBalancerHost"; then
             printf "${YELLOW}$NODE is not serving certificate signed for $newLoadBalancerHost${NC}\n"
@@ -236,7 +247,7 @@ function ekco_handle_load_balancer_address_change_post_init() {
     local ARG=--drop-alt-names=$oldLoadBalancerHost
 
     for NODE in "${KUBERNETES_REMOTE_PRIMARIES[@]}"; do
-        echo "Removing old load balancer address $oldLoadBalancerHost from API server certificate on node $NODE"
+        logStep "Removing old load balancer address $oldLoadBalancerHost from API server certificate on node $NODE"
         local podName=regen-cert-$NODE
         kubectl delete pod $podName --force --grace-period=0 2>/dev/null || true
         render_yaml_file "$DIR/addons/ekco/$EKCO_VERSION/regen-cert-pod.yaml" | kubectl apply -f -
@@ -269,7 +280,7 @@ function ekco_bootstrap_internal_lb() {
         last_modified="$(stat -c %Y /etc/kubernetes/manifests/haproxy.yaml)"
     fi
 
-    echo "Updating the Kubernetes apiserver load balancer"
+    logStep "Updating the Kubernetes apiserver load balancer"
 
     # Always regenerate the manifests to account for updates.
     # Note: this could cause downtime when kublet syncs the manifests for a new haproxy version
@@ -298,7 +309,7 @@ function ekco_bootstrap_internal_lb() {
     fi
 
     if [ "$already_bootstrapped" = "1" ]; then
-        echo "Waiting for the Kubernetes apiserver load balancer to restart"
+        log "Waiting for the Kubernetes apiserver load balancer to restart"
         if [ "$last_modified" != "$(stat -c %Y /etc/kubernetes/manifests/haproxy.yaml)" ]; then
             sleep_spinner 60 # allow time for the kubelet to detect the manifest change
         fi
@@ -393,7 +404,7 @@ function ekco_handle_load_balancer_address_change_kubeconfigs() {
         kubectl -n kurl exec deploy/ekc-operator -- /bin/bash -c "ekco change-load-balancer --exclude=${exclude} --server=https://${API_SERVICE_ADDRESS} &>/tmp/change-lb-log"
     fi
 
-    echo "Waiting up to 10 minutes for kubeconfigs on remote nodes to begin using new load balancer address"
+    log "Waiting up to 10 minutes for kubeconfigs on remote nodes to begin using new load balancer address"
     spinner_until 600 ekco_change_lb_completed
 
     logs=$(kubectl -n kurl exec -i deploy/ekc-operator -- cat /tmp/change-lb-log)
@@ -458,9 +469,13 @@ function ekco_load_images() {
         return 0
     fi
 
+    logStep "Loading ekco image overrides"
+
     if [ -n "$DOCKER_VERSION" ]; then
         find "$DIR/image-overrides" -type f | xargs -I {} bash -c "docker load < {}"
     else
         find "$DIR/image-overrides" -type f | xargs -I {} bash -c "cat {} | ctr -a $(${K8S_DISTRO}_get_containerd_sock) -n=k8s.io images import -"
     fi
+
+    logSuccess "ekco image overrides loaded"
 }
