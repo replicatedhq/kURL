@@ -706,7 +706,7 @@
       version: latest
   upgradeSpec:
     kubernetes:
-      version: 1.21.x
+      version: 1.22.x
     weave:
       version: 2.8.1
     rook:
@@ -941,7 +941,7 @@
     rhel_9_install_host_packages lvm2 conntrack-tools socat container-selinux git
   unsupportedOSIDs:
   - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
-- name: "Migrate from Docker to Containerd and Kubernetes from 1.23 to 1.25"
+- name: "Migrate from Docker to Containerd and Kubernetes from 1.23 to 1.26"
   flags: "yes"
   installerSpec:
     kubernetes:
@@ -964,7 +964,7 @@
       version: latest
   upgradeSpec:
     kubernetes:
-      version: 1.25.x
+      version: 1.26.x
     weave: # flannel has errors with dns and docker
       version: latest
     openebs:
@@ -996,7 +996,7 @@
     validate_read_write_object_store postupgrade upgradefile.txt
   unsupportedOSIDs:
   - rocky-91 # docker is not supported on rhel 9 variants
-- name: "Migrate from Docker to Containerd and Kubernetes from 1.23 to 1.25 airgap"
+- name: "Migrate from Docker to Containerd and Kubernetes from 1.23 to 1.26 airgap"
   flags: "yes"
   installerSpec:
     kubernetes:
@@ -1019,7 +1019,7 @@
       version: latest
   upgradeSpec:
     kubernetes:
-      version: 1.25.x
+      version: 1.26.x
     weave: # flannel has errors with dns and docker
       version: latest
     openebs:
@@ -1037,6 +1037,10 @@
     containerd:
       version: latest
   airgap: true
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    mkdir -p /var/lib/kurl/assets
+    ( cd /var/lib/kurl/assets && curl -fLO "$(kubernetes_upgrade_bundle_url "$KURL_URL" "$KURL_UPGRADE_URL")" )
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     minio_object_store_info
@@ -1914,3 +1918,67 @@
   flags: "kurl-install-directory=/custom"
   preInstallScript: |
     touch /var/lib/kurl
+- name: "Upgrade Kubernetes from 1.19 to 1.26"
+  flags: "yes"
+  installerSpec:
+    kubernetes:
+      version: 1.19.x
+    containerd:
+      version: latest
+    flannel:
+      version: latest
+    ekco:
+      version: latest
+  upgradeSpec:
+    kubernetes:
+      version: 1.26.x
+    containerd:
+      version: latest
+    flannel:
+      version: latest
+    ekco:
+      version: latest
+  postUpgradeScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+
+    k8sVersion=$(kubectl get nodes -o jsonpath='{.items[0].status.nodeInfo.kubeletVersion}')
+    echo $k8sVersion | grep 1.26
+- name: "Upgrade Kubernetes from 1.19 to 1.24, Rook from 1.0.4 to 1.5.12"
+  flags: "yes"
+  installerSpec:
+    kubernetes:
+      version: 1.19.x
+    containerd:
+      version: latest
+    flannel:
+      version: latest
+    ekco:
+      version: latest
+    rook:
+      version: "1.0.4"
+  upgradeSpec:
+    kubernetes:
+      version: 1.24.x
+    containerd:
+      version: latest
+    flannel:
+      version: latest
+    ekco:
+      version: latest
+    rook:
+      version: "1.5.12"
+  postInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rook_ceph_object_store_info
+    validate_read_write_object_store rwtest testfile.txt
+  postUpgradeScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    rook_ceph_object_store_info
+    validate_testfile rwtest testfile.txt
+    validate_read_write_object_store postupgrade upgradefile.txt
+
+    k8sVersion=$(kubectl get nodes -o jsonpath='{.items[0].status.nodeInfo.kubeletVersion}')
+    echo $k8sVersion | grep 1.26
+
+    operatorVersion=$(kubectl get deployment -n rook-ceph rook-ceph-operator -o jsonpath='{.spec.template.spec.containers[0].image}')
+    echo $operatorVersion | grep 1.5.12

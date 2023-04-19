@@ -6,7 +6,6 @@ on:
     - main
     paths:
     - '**'
-    - '!testgrid/**'
     - '!docs/**'
     - '!CONTRIBUTING.md'
     - '!README.md'
