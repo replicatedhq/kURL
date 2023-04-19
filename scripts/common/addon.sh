@@ -167,18 +167,24 @@ function addon_fetch_airgap() {
         # the package already exists, no need to download it
         printf "The package %s %s is already available locally.\n" "$name" "$version"
     else
-        # prompt the user to give us the package
-        printf "The package %s %s is not available locally, and is required.\n" "$name" "$version"
-        printf "\nYou can download it with the following command:\n"
-        printf "\n${GREEN}    curl -LO %s${NC}\n\n" "$(get_dist_url)/$package_name"
+        package_path="$(find assets/*"$name-$version"*.tar.gz 2>/dev/null | head -n 1)"
+        if [ -n "$package_path" ]; then
+            # the package already exists, no need to download it
+            printf "The package %s is already available locally.\n" "$(basename "$package_path")"
+        else
+            # prompt the user to give us the package
+            printf "The package %s %s is not available locally, and is required.\n" "$name" "$version"
+            printf "\nYou can download it with the following command:\n"
+            printf "\n${GREEN}    curl -LO %s${NC}\n\n" "$(get_dist_url)/$package_name"
 
-        addon_fetch_airgap_prompt_for_package "$package_name"
+            addon_fetch_airgap_prompt_for_package "$package_name"
+        fi
     fi
 
     printf "Unpacking %s %s...\n" "$name" "$version"
     tar xf "$package_path"
 
-    addon_source "$name" "$version"
+    # do not source the addon here as the kubernetes "addon" uses this function but is not an addon
 }
 
 # addon_fetch_multiple_airgap checks if the files are already present - if they are, use that
