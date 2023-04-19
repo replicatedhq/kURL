@@ -11,7 +11,7 @@ You can check [system requirements](https://kurl.sh/docs/install-with-kurl/syste
 ## Pre-requirements
 
 - npm _(i.e. for mac os: `brew install npm`)_
-- [Golang](https://go.dev/doc/install) >= 1.19+
+- [Golang](https://go.dev/doc/install) >= 1.20+
 - Docker
 
 **If your local environment is OSX:** ensure that you install `gnu-sed` and `md5sha1sum` to be able to run the scripts.
