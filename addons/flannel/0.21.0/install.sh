@@ -53,22 +53,18 @@ function flannel_check_nodes_connectivity() {
         return 0
     fi
 
-    local kurl_util_image
-    kurl_util_image=$(crictl images 2>/dev/null | grep replicated/kurl-util | sort | tail -1 | awk '//{printf "%s:%s\n",$1,$2;}')
-    if [ -z "$kurl_util_image" ]; then
-        if [ "$AIRGAP" = "1" ]; then
-            logFail "Your airgap installation misses replicated/kurl-util image, please contact support."
-            bail "Not migrating from Weave to Flannel"
-        fi
-        # at this point we haven't found the kurl-util image in the local store, but as this is
-        # not an airgap installation we can still try to pull it.
-        kurl_util_image="replicated/kurl-util:latest"
-        if [ -n "$KURL_VERSION" ]; then
-            kurl_util_image="replicated/kurl-util:$KURL_VERSION"
+    # if we are in an airgap environment we need to load the kurl-util image locally. this
+    # image has already been loaded in all remote nodes after the common_prompts function.
+    if [ "$AIRGAP" = "1" ] && [ -f shared/kurl-util.tar ]; then
+        if node_is_using_docker ; then
+            docker load < shared/kurl-util.tar
+        else
+            ctr -a "$(${K8S_DISTRO}_get_containerd_sock)" -n=k8s.io images import shared/kurl-util.tar
         fi
     fi
 
     log "Verifying if all nodes can communicate with each other through port 8472/UDP."
+    local kurl_util_image="replicatedhq/kurl-util:$KURL_VERSION"
     if ! "$DIR"/bin/kurl netutil nodes-connectivity --port 8472 --image "$kurl_util_image" --proto udp; then
         logFail "Flannel requires UDP port 8472 for communication between nodes."
         logFail "Please make sure this port is open prior to running this upgrade."
