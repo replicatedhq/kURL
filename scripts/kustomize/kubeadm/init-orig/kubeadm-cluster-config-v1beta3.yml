@@ -1,0 +1,43 @@
+---
+apiVersion: kubeadm.k8s.io/v1beta3
+kind: ClusterConfiguration
+metadata:
+  name: kubeadm-cluster-configuration
+kubernetesVersion: v$KUBERNETES_VERSION
+certificatesDir: /etc/kubernetes/pki
+clusterName: $KUBERNETES_CLUSTER_NAME
+controllerManager: 
+  extraArgs:
+    profiling: '"false"' 
+etcd:
+  local:
+    dataDir: /var/lib/etcd
+    extraArgs:
+      cipher-suites: TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+networking:
+  serviceSubnet: $SERVICE_CIDR
+apiServer:
+  extraArgs:
+    service-node-port-range: "80-60000"
+    tls-cipher-suites: TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+    profiling: '"false"'
+    audit-log-path: /auditlog/k8s-audit.log
+    audit-policy-file: /etc/kubernetes/audit.yaml
+    audit-log-maxage: '"30"'
+    audit-log-maxsize: '"100"'
+    audit-log-maxbackup: '"10"'
+  extraVolumes:
+    - name: audit
+      hostPath: /etc/kubernetes/audit.yaml
+      mountPath: /etc/kubernetes/audit.yaml
+      readOnly: true
+      pathType: File
+    - name: auditlog
+      hostPath: /var/log/apiserver
+      mountPath: /auditlog
+      pathType: Directory
+  certSANs:
+  - "$PRIVATE_ADDRESS"
+scheduler:
+  extraArgs:
+    profiling: '"false"'

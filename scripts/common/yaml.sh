@@ -100,19 +100,53 @@ twospace_ path: $patch_file"       "$kustomization_file"
 }
 
 function setup_kubeadm_kustomize() {
+    local rsync_exclude=
+    local kubeadm_conf_api=
+    local kubeadm_cluster_config_v1beta2_file="kubeadm-cluster-config-v1beta2.yml"
+    local kubeadm_cluster_config_v1beta3_file="kubeadm-cluster-config-v1beta3.yml"
+    local kubeadm_init_config_v1beta2_file="kubeadm-init-config-v1beta2.yml"
+    local kubeadm_init_config_v1beta3_file="kubeadm-init-config-v1beta3.yml"
+    local kubeadm_join_config_v1beta2_file="kubeadm-join-config-v1beta2.yml"
+    local kubeadm_join_config_v1beta3_file="kubeadm-join-config-v1beta3.yml"
+    local kubeadm_init_src="$DIR/kustomize/kubeadm/init-orig"
+    local kubeadm_join_src="$DIR/kustomize/kubeadm/join-orig"
+    local kubeadm_init_dst="$DIR/kustomize/kubeadm/init"
+    local kubeadm_join_dst="$DIR/kustomize/kubeadm/join"
+    kubeadm_conf_api=$(kubeadm_conf_api_version)
+
+    # Kubernete 1.22+ will use kubeadm/v1beta3 API
+    # See: https://kubernetes.io/blog/2021/08/04/kubernetes-1-22-release-announcement/#more-secure-control-plane-with-kubeadm
+    if [ "$KUBERNETES_TARGET_VERSION_MINOR" -ge "22" ]; then
+        # only include kubeadm/v1beta3 resources
+        rsync_exclude="--exclude='$kubeadm_cluster_config_v1beta2_file' --exclude='$kubeadm_init_config_v1beta2_file' --exclude='$kubeadm_join_config_v1beta2_file'"
+        insert_resources "$kubeadm_init_src/kustomization.yaml" "$kubeadm_cluster_config_v1beta3_file"
+        insert_resources "$kubeadm_init_src/kustomization.yaml" "$kubeadm_init_config_v1beta3_file"
+        insert_resources "$kubeadm_join_src/kustomization.yaml" "$kubeadm_join_config_v1beta3_file"
+    else
+        # only include kubeadm/v1beta2 resources
+        rsync_exclude="--exclude='$kubeadm_cluster_config_v1beta3_file' --exclude='$kubeadm_init_config_v1beta3_file' --exclude='$kubeadm_join_config_v1beta3_file'"
+        insert_resources "$kubeadm_init_src/kustomization.yaml" "$kubeadm_cluster_config_v1beta2_file"
+        insert_resources "$kubeadm_init_src/kustomization.yaml" "$kubeadm_init_config_v1beta2_file"
+        insert_resources "$kubeadm_join_src/kustomization.yaml" "$kubeadm_join_config_v1beta2_file"
+    fi
+
     # Clean up the source directories for the kubeadm kustomize resources and
     # patches.
-    rm -rf $DIR/kustomize/kubeadm/init
-    cp -rf $DIR/kustomize/kubeadm/init-orig $DIR/kustomize/kubeadm/init
-    rm -rf $DIR/kustomize/kubeadm/join
-    cp -rf $DIR/kustomize/kubeadm/join-orig $DIR/kustomize/kubeadm/join
-    rm -rf $DIR/kustomize/kubeadm/init-patches
-    mkdir -p $DIR/kustomize/kubeadm/init-patches
-    rm -rf $DIR/kustomize/kubeadm/join-patches
-    mkdir -p $DIR/kustomize/kubeadm/join-patches
+    rm -rf "$DIR/kustomize/kubeadm/init"
+    rm -rf "$DIR/kustomize/kubeadm/join"
+    rm -rf "$DIR/kustomize/kubeadm/init-patches"
+    rm -rf "$DIR/kustomize/kubeadm/join-patches"
+
+    # copy kubeadm kustomize resources
+    rsync -avr "$rsync_exclude $kubeadm_init_src $kubeadm_init_dst"
+    rsync -avr "$rsync_exclude $kubeadm_join_src $kubeadm_join_dst" 
+    
+    # create kubeadm kustomize patches directories
+    mkdir -p "$DIR/kustomize/kubeadm/init-patches"
+    mkdir -p "$DIR/kustomize/kubeadm/join-patches"
 
     if [ -n "$USE_STANDARD_PORT_RANGE" ]; then
-        sed -i 's/80-60000/30000-32767/g'  $DIR/kustomize/kubeadm/init/kubeadm-cluster-config-v1beta2.yml
+        sed -i 's/80-60000/30000-32767/g'  "$DIR/kustomize/kubeadm/init/kubeadm-cluster-config-$kubeadm_conf_api.yml"
     fi
 }
 

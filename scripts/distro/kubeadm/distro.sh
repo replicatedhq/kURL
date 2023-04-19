@@ -196,4 +196,25 @@ EOF
 function kubeadm_api_is_healthy() {
     curl --globoff --noproxy "*" --fail --silent --insecure "https://$(kubernetes_api_address)/healthz" >/dev/null
 }
+
+function kubeadm_conf_api_version() {
+    
+    # Get version from runtime
+    if [ -n "$KUBERNETES_TARGET_VERSION_MINOR" ]; then
+        if [ "$KUBERNETES_TARGET_VERSION_MINOR" -ge "22" ]; then
+            echo "v1beta3"
+        else
+            echo "v1beta2"
+        fi 
+    else # get version from the cluster
+        semverParse "$(kubeadm version --output=short | sed 's/v//')"
+        # shellcheck disable=SC2154
+        local kube_current_version_minor="$minor"
+        if [ "$kube_current_version_minor" -ge "22" ]; then
+            echo "v1beta3"
+        else
+            echo "v1beta2"
+        fi
+    fi
+}
     
