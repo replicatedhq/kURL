@@ -1,5 +1,7 @@
 
 
+# Just to test it out
+
 function rook_pre_init() {
     if [ "$KUBERNETES_TARGET_VERSION_MINOR" -ge 20 ]; then
         bail "Rook ${ROOK_VERSION} is not compatible with Kubernetes 1.20+"
