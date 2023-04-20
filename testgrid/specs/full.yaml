@@ -1918,6 +1918,7 @@
   flags: "kurl-install-directory=/custom"
   preInstallScript: |
     touch /var/lib/kurl
+    mkdir -p /custom
 - name: "Upgrade Kubernetes from 1.19 to 1.26"
   flags: "yes"
   installerSpec:
