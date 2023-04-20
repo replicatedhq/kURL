@@ -1979,7 +1979,7 @@
     validate_read_write_object_store postupgrade upgradefile.txt
 
     k8sVersion=$(kubectl get nodes -o jsonpath='{.items[0].status.nodeInfo.kubeletVersion}')
-    echo $k8sVersion | grep 1.26
+    echo $k8sVersion | grep 1.24
 
     operatorVersion=$(kubectl get deployment -n rook-ceph rook-ceph-operator -o jsonpath='{.spec.template.spec.containers[0].image}')
     echo $operatorVersion | grep 1.5.12
