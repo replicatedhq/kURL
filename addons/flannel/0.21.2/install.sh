@@ -64,8 +64,7 @@ function flannel_check_nodes_connectivity() {
     fi
 
     log "Verifying if all nodes can communicate with each other through port 8472/UDP."
-    local kurl_util_image="replicatedhq/kurl-util:$KURL_VERSION"
-    if ! "$DIR"/bin/kurl netutil nodes-connectivity --port 8472 --image "$kurl_util_image" --proto udp; then
+    if ! "$DIR"/bin/kurl netutil nodes-connectivity --port 8472 --image "$KURL_UTIL_IMAGE" --proto udp; then
         logFail "Flannel requires UDP port 8472 for communication between nodes."
         logFail "Please make sure this port is open prior to running this upgrade."
         bail "Not migrating from Weave to Flannel"
