@@ -1,7 +1,7 @@
-apiVersion: kubeadm.k8s.io/v1beta2
-kind: JoinConfiguration
+apiVersion: kubeadm.k8s.io/$(kubeadm_conf_api_version)
+kind: InitConfiguration
 metadata:
-  name: kubeadm-join-configuration
+  name: kubeadm-init-configuration
 nodeRegistration:
   criSocket: unix:///run/containerd/containerd.sock
   kubeletExtraArgs:

@@ -8,7 +8,7 @@ function containerd_pre_init() {
 
     # Explicitly configure kubelet to use containerd instead of detecting dockershim socket
     if [ -d "$DIR/kustomize/kubeadm/init-patches" ]; then
-        cp "$src/kubeadm-init-config-v1beta2.yaml" "$DIR/kustomize/kubeadm/init-patches/containerd-kubeadm-init-config-v1beta2.yml"
+        cp "$src/kubeadm-init-config.yaml" "$DIR/kustomize/kubeadm/init-patches/containerd-kubeadm-init-config.yml"
     fi
 
     containerd_host_init
@@ -19,7 +19,7 @@ function containerd_join() {
 
     # Explicitly configure kubelet to use containerd instead of detecting dockershim socket
     if [ -d "$DIR/kustomize/kubeadm/join-patches" ]; then
-        cp "$src/kubeadm-join-config-v1beta2.yaml" "$DIR/kustomize/kubeadm/join-patches/containerd-kubeadm-join-config-v1beta2.yml"
+        cp "$src/kubeadm-join-config.yaml" "$DIR/kustomize/kubeadm/join-patches/containerd-kubeadm-join-config.yml"
     fi
 
     containerd_host_init

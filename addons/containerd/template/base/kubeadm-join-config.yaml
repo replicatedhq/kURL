@@ -1,0 +1,9 @@
+apiVersion: kubeadm.k8s.io/$(kubeadm_conf_api_version)
+kind: JoinConfiguration
+metadata:
+  name: kubeadm-join-configuration
+nodeRegistration:
+  criSocket: unix:///run/containerd/containerd.sock
+  kubeletExtraArgs:
+    container-runtime: remote
+    container-runtime-endpoint: unix:///run/containerd/containerd.sock
