@@ -118,13 +118,13 @@ function setup_kubeadm_kustomize() {
     # See: https://kubernetes.io/blog/2021/08/04/kubernetes-1-22-release-announcement/#more-secure-control-plane-with-kubeadm
     if [ "$KUBERNETES_TARGET_VERSION_MINOR" -ge "22" ]; then
         # only include kubeadm/v1beta3 resources
-        rsync_exclude="--exclude='$kubeadm_cluster_config_v1beta2_file' --exclude='$kubeadm_init_config_v1beta2_file' --exclude='$kubeadm_join_config_v1beta2_file'"
+        rsync_exclude="--exclude=$kubeadm_cluster_config_v1beta2_file --exclude=$kubeadm_init_config_v1beta2_file --exclude=$kubeadm_join_config_v1beta2_file"
         insert_resources "$kubeadm_init_src/kustomization.yaml" "$kubeadm_cluster_config_v1beta3_file"
         insert_resources "$kubeadm_init_src/kustomization.yaml" "$kubeadm_init_config_v1beta3_file"
         insert_resources "$kubeadm_join_src/kustomization.yaml" "$kubeadm_join_config_v1beta3_file"
     else
         # only include kubeadm/v1beta2 resources
-        rsync_exclude="--exclude='$kubeadm_cluster_config_v1beta3_file' --exclude='$kubeadm_init_config_v1beta3_file' --exclude='$kubeadm_join_config_v1beta3_file'"
+        rsync_exclude="--exclude=$kubeadm_cluster_config_v1beta3_file --exclude=$kubeadm_init_config_v1beta3_file --exclude=$kubeadm_join_config_v1beta3_file"
         insert_resources "$kubeadm_init_src/kustomization.yaml" "$kubeadm_cluster_config_v1beta2_file"
         insert_resources "$kubeadm_init_src/kustomization.yaml" "$kubeadm_init_config_v1beta2_file"
         insert_resources "$kubeadm_join_src/kustomization.yaml" "$kubeadm_join_config_v1beta2_file"
@@ -138,8 +138,8 @@ function setup_kubeadm_kustomize() {
     rm -rf "$DIR/kustomize/kubeadm/join-patches"
 
     # copy kubeadm kustomize resources
-    rsync -avr "$rsync_exclude $kubeadm_init_src $kubeadm_init_dst"
-    rsync -avr "$rsync_exclude $kubeadm_join_src $kubeadm_join_dst" 
+    eval rsync -avr "$rsync_exclude" "$kubeadm_init_src/" "$kubeadm_init_dst"
+    eval rsync -avr "$rsync_exclude" "$kubeadm_join_src/" "$kubeadm_join_dst" 
     
     # create kubeadm kustomize patches directories
     mkdir -p "$DIR/kustomize/kubeadm/init-patches"
