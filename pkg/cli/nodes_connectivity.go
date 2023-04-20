@@ -13,7 +13,9 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/cli-runtime/pkg/printers"
 	"k8s.io/client-go/kubernetes"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -252,6 +254,16 @@ func deletePinger(ctx context.Context, opts nodeConnectivityOptions) error {
 	opt := plumber.WithKustomizeMutator(kustomizeMutator(opts))
 	renderer := plumber.NewRenderer(opts.cli, nodes_connectivity.Static, opt)
 	if err := renderer.Delete(ctx, "pinger"); err != nil {
+		return fmt.Errorf("failed to delete pinger job: %w", err)
+	}
+	delctx, cancel := context.WithTimeout(ctx, 2*time.Minute)
+	defer cancel()
+	jobDeleted := func() (bool, error) {
+		key := client.ObjectKey{Namespace: opts.namespace, Name: "nodes-connectivity-pinger"}
+		err := opts.cli.Get(ctx, key, &batchv1.Job{})
+		return errors.IsNotFound(err), nil
+	}
+	if err := wait.PollUntil(time.Second, jobDeleted, delctx.Done()); err != nil {
 		return fmt.Errorf("failed to delete pinger job: %w", err)
 	}
 	pods, err := k8sutil.ListPodsBySelector(ctx, opts.cliset, opts.namespace, pingerSelector)
