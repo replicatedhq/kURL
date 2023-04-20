@@ -1,4 +1,4 @@
-FROM golang:1.19 AS build
+FROM golang:1.20 AS build
 
 WORKDIR /go/src/github.com/replicatedhq/kurl
 COPY kurl_util kurl_util
