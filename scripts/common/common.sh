@@ -758,17 +758,26 @@ function maybe_read_kurl_config_from_cluster() {
 
 KURL_INSTALL_DIRECTORY=/var/lib/kurl
 function pushd_install_directory() {
+    local dir=
+    dir="$(dirname "$KURL_INSTALL_DIRECTORY")"
+    if [ ! -e "$dir" ] ; then
+        bail "kURL installation directory $dir does not exist."
+    fi
+    if [ ! -d "$dir" ] ; then
+        bail "kURL installation directory $dir is not a directory."
+    fi
+
     KURL_INSTALL_DIRECTORY="$(realpath "$KURL_INSTALL_DIRECTORY")"
 
-    local tmpfile
-    tmpfile="${KURL_INSTALL_DIRECTORY}/tmpfile"
-    if ! mkdir -p "${KURL_INSTALL_DIRECTORY}" || ! touch "${tmpfile}" ; then
-        bail "Directory ${KURL_INSTALL_DIRECTORY} is not writeable by this script.
+    local tmpfile=
+    tmpfile="$KURL_INSTALL_DIRECTORY/tmpfile"
+    if ! mkdir -p "$KURL_INSTALL_DIRECTORY" || ! touch "$tmpfile" ; then
+        bail "Directory $KURL_INSTALL_DIRECTORY is not writeable by this script.
 Please either change the directory permissions or override the
 installation directory with the flag \"kurl-install-directory\"."
     fi
-    rm "${tmpfile}"
-    pushd "${KURL_INSTALL_DIRECTORY}" 1>/dev/null
+    rm "$tmpfile"
+    pushd "$KURL_INSTALL_DIRECTORY" 1>/dev/null
 }
 
 function popd_install_directory() {
