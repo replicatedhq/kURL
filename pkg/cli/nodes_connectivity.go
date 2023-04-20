@@ -258,12 +258,12 @@ func deletePinger(ctx context.Context, opts nodeConnectivityOptions) error {
 	}
 	delctx, cancel := context.WithTimeout(ctx, 2*time.Minute)
 	defer cancel()
-	jobDeleted := func() (bool, error) {
+	jobDeleted := func(ctx context.Context) (bool, error) {
 		key := client.ObjectKey{Namespace: opts.namespace, Name: "nodes-connectivity-pinger"}
 		err := opts.cli.Get(ctx, key, &batchv1.Job{})
 		return errors.IsNotFound(err), nil
 	}
-	if err := wait.PollUntil(time.Second, jobDeleted, delctx.Done()); err != nil {
+	if err := wait.PollUntilContextCancel(delctx, time.Second, true, jobDeleted); err != nil {
 		return fmt.Errorf("failed to delete pinger job: %w", err)
 	}
 	pods, err := k8sutil.ListPodsBySelector(ctx, opts.cliset, opts.namespace, pingerSelector)
