@@ -436,7 +436,7 @@ function report_install_containerd() {
 
     # if the node we are running this script is leveraging docker we also don't need to worry
     # about the version of containerd we are installing, it won't be an upgrade anyways.
-    if containerd_node_is_using_docker ; then
+    if node_is_using_docker ; then
         addon_install "containerd" "$CONTAINERD_VERSION"
         return 0
     fi
@@ -1503,4 +1503,11 @@ function common_prompt_task_missing_assets() {
         "$GREEN" "$prefix" "$task" "$from_version" "$to_version" "$airgap_flag" "$NC"
     printf "Are you ready to continue? "
     confirmY
+}
+
+# node_is_using_docker returns 0 if the current node is using docker as the container runtime.
+function node_is_using_docker() {
+    local node
+    node="$(get_local_node_name)"
+    kubectl get node "$node" -ojsonpath='{.metadata.annotations.kubeadm\.alpha\.kubernetes\.io/cri-socket}' | grep -q "dockershim.sock"
 }
