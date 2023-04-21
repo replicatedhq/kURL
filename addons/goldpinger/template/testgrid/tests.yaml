@@ -4,11 +4,7 @@
       version: "latest"
     weave:
       version: "latest"
-    longhorn:
-      version: "latest"
     containerd:
-      version: "latest"
-    prometheus:
       version: "latest"
     goldpinger:
       version: "__testver__"
@@ -25,7 +21,7 @@
   installerSpec:
     kubernetes:
       version: "latest"
-    weave:
+    flannel:
       version: "latest"
     containerd:
       version: "latest"
@@ -34,13 +30,9 @@
   upgradeSpec:
     kubernetes:
       version: "latest"
-    weave:
-      version: "latest"
-    longhorn:
+    flannel:
       version: "latest"
     containerd:
-      version: "latest"
-    prometheus:
       version: "latest"
     goldpinger:
       version: "__testver__"
@@ -68,11 +60,7 @@
       version: "latest"
     weave:
       version: "latest"
-    longhorn:
-      version: "latest"
     containerd:
-      version: "latest"
-    prometheus:
       version: "latest"
     goldpinger:
       version: "__testver__"
@@ -90,13 +78,9 @@
   installerSpec:
     kubernetes:
       version: "latest"
-    weave:
-      version: "latest"
-    longhorn:
+    flannel:
       version: "latest"
     containerd:
-      version: "latest"
-    prometheus:
       version: "latest"
     goldpinger:
       version: "__testver__"
