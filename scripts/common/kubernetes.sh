@@ -1057,10 +1057,6 @@ function kubernetes_configure_pause_image() {
 
     insert_patches_strategic_merge "$dir/kustomization.yaml" "kubelet-args-pause-image.patch.yaml"
     render_yaml_file_2 "$dir/kubelet-args-pause-image.patch.tmpl.yaml" > "$dir/kubelet-args-pause-image.patch.yaml"
-
-    # HACK: Need '$(kubeadm_conf_api_version)' to be evaluated after kustomize
-    # shellcheck disable=SC2016
-    sed -i 's/v1beta.*/$(kubeadm_conf_api_version)/' "$dir/kubelet-args-pause-image.patch.yaml"
 }
 
 KUBELET_FLAGS_FILE="/var/lib/kubelet/kubeadm-flags.env"

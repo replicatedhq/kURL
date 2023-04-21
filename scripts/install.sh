@@ -191,6 +191,13 @@ function init() {
             $patch_basename
     done
     mkdir -p "$KUBEADM_CONF_DIR"
+
+    # HACK: Add '$(kubeadm_conf_api_version)' template to kubeadm init patches from addons
+    # before generating kubernetes resources.
+    # shellcheck disable=SC2016
+    find "$kustomize_kubeadm_init" -type f -exec sed -i 's|kubeadm.k8s.io/v1beta.*|kubeadm.k8s.io/$(kubeadm_conf_api_version)|' {} \;
+
+    # Generate kubeadm config
     kubectl kustomize $kustomize_kubeadm_init > $KUBEADM_CONF_DIR/kubeadm-init-raw.yaml
     render_yaml_file $KUBEADM_CONF_DIR/kubeadm-init-raw.yaml > $KUBEADM_CONF_FILE
 
