@@ -526,6 +526,7 @@ module.exports.InstallerVersions = {
   ],
   goldpinger: [
     // cron-goldpinger-update
+    "3.7.0-6.0.1",
     "3.7.0-5.6.0",
     "3.7.0-5.5.0",
     "3.6.1-5.4.2",
