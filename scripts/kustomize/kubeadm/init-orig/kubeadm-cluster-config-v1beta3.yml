@@ -9,9 +9,6 @@ clusterName: $KUBERNETES_CLUSTER_NAME
 controllerManager: 
   extraArgs:
     profiling: '"false"' 
-useHyperKubeImage: false
-dns:
-  type: CoreDNS
 etcd:
   local:
     dataDir: /var/lib/etcd

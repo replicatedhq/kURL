@@ -812,7 +812,7 @@ function weave_to_flannel_primary() {
     rm /tmp/kubeadm-token
 
     cat > /tmp/kubeadm-join.conf <<- EOM
-apiVersion: kubeadm.k8s.io/v1beta2
+apiVersion: kubeadm.k8s.io/$(kubeadm_conf_api_version)
 controlPlane:
   certificateKey: $CERT_KEY
   localAPIEndpoint:

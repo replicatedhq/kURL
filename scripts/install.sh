@@ -185,14 +185,20 @@ function init() {
     # Add kubeadm init patches from addons.
     for patch in $(ls -1 ${kustomize_kubeadm_init}-patches/* 2>/dev/null || echo); do
         patch_basename="$(basename $patch)"
-        cp $patch $kustomize_kubeadm_init/$patch_basename
+        cp "$patch" "$kustomize_kubeadm_init/$patch_basename"
+        
+        # Templatize the api version for kubeadm patches
+        # shellcheck disable=SC2016
+        sed -i 's|kubeadm.k8s.io/v1beta.*|kubeadm.k8s.io/$(kubeadm_conf_api_version)|' "$kustomize_kubeadm_init/$patch_basename"
         insert_patches_strategic_merge \
             $kustomize_kubeadm_init/kustomization.yaml \
-            $patch_basename
+            "$patch_basename"
     done
     mkdir -p "$KUBEADM_CONF_DIR"
-    kubectl kustomize $kustomize_kubeadm_init > $KUBEADM_CONF_DIR/kubeadm-init-raw.yaml
-    render_yaml_file $KUBEADM_CONF_DIR/kubeadm-init-raw.yaml > $KUBEADM_CONF_FILE
+
+    # Generate kubeadm config
+    kubectl kustomize $kustomize_kubeadm_init > "$KUBEADM_CONF_DIR/kubeadm-init-raw.yaml"
+    render_yaml_file "$KUBEADM_CONF_DIR/kubeadm-init-raw.yaml" > "$KUBEADM_CONF_FILE"
 
     # kustomize requires assests have a metadata field while kubeadm config will reject yaml containing it
     # this uses a go binary found in kurl/cmd/yamlutil to strip the metadata field from the yaml

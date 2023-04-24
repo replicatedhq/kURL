@@ -77,14 +77,20 @@ function join() {
     # Add kubeadm join patches from addons.
     for patch in $(ls -1 ${kustomize_kubeadm_join}-patches/* 2>/dev/null || echo); do
         patch_basename="$(basename $patch)"
-        cp $patch $kustomize_kubeadm_join/$patch_basename
+        cp "$patch" "$kustomize_kubeadm_join/$patch_basename"
+
+        # Templatize the api version for kubeadm patches
+        # shellcheck disable=SC2016
+        sed -i 's|kubeadm.k8s.io/v1beta.*|kubeadm.k8s.io/$(kubeadm_conf_api_version)|' "$kustomize_kubeadm_join/$patch_basename"
         insert_patches_strategic_merge \
             $kustomize_kubeadm_join/kustomization.yaml \
-            $patch_basename
+            "$patch_basename"
     done
     mkdir -p "$KUBEADM_CONF_DIR"
-    kubectl kustomize $kustomize_kubeadm_join > $KUBEADM_CONF_DIR/kubeadm-join-raw.yaml
-    render_yaml_file $KUBEADM_CONF_DIR/kubeadm-join-raw.yaml > $KUBEADM_CONF_FILE
+
+    # Generate kubeadm config
+    kubectl kustomize $kustomize_kubeadm_join > "$KUBEADM_CONF_DIR/kubeadm-join-raw.yaml"
+    render_yaml_file "$KUBEADM_CONF_DIR/kubeadm-join-raw.yaml" > "$KUBEADM_CONF_FILE"
 
     cp $KUBEADM_CONF_FILE $KUBEADM_CONF_DIR/kubeadm_conf_copy_in
     $DIR/bin/yamlutil -r -fp $KUBEADM_CONF_DIR/kubeadm_conf_copy_in -yp metadata
