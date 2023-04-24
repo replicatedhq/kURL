@@ -135,6 +135,7 @@ function setup_kubeadm_kustomize() {
     copy_kustomize_kubeadm_resources "$kubeadm_join_src" "$kubeadm_join_dst" "${kubeadm_exclude[@]}"
 
     # tell kustomize which resources to generate
+    # NOTE: 'eval' is used so that variables embedded within variables can be rendered correctly in the shell
     eval insert_resources "$kubeadm_init_dst/kustomization.yaml" "\$kubeadm_cluster_config_${kubeadm_conf_api}_file"
     eval insert_resources "$kubeadm_init_dst/kustomization.yaml" "\$kubeadm_init_config_${kubeadm_conf_api}_file"
     eval insert_resources "$kubeadm_join_dst/kustomization.yaml" "\$kubeadm_join_config_${kubeadm_conf_api}_file"

@@ -199,8 +199,8 @@ function kubeadm_api_is_healthy() {
 
 function kubeadm_conf_api_version() {
     
-    # Get version from runtime
-    # Enforce the use of kubeadm.k8s.io/v1beta api version beginning with Kubernetes 1.26+
+    # Get kubeadm api version from the runtime
+    # Enforce the use of kubeadm.k8s.io/v1beta3 api version beginning with Kubernetes 1.26+
     local kubeadm_v1beta3_min_version=
     kubeadm_v1beta3_min_version="26"
     if [ -n "$KUBERNETES_TARGET_VERSION_MINOR" ]; then
@@ -209,7 +209,11 @@ function kubeadm_conf_api_version() {
         else
             echo "v1beta2"
         fi 
-    else # get version from the cluster
+    else
+        # ################################ NOTE ########################################## #
+        # get the version from an existing cluster when the installer is not run           #
+        # i.e. this is meant to handle cases where kubeadm config is patched from tasks.sh #
+
         semverParse "$(kubeadm version --output=short | sed 's/v//')"
         # shellcheck disable=SC2154
         local kube_current_version_minor="$minor"
