@@ -78,7 +78,7 @@
     containerd:
       version: latest
     velero:
-      version: 1.6.x
+      version: 1.9.x
     ekco:
       version: "latest"
   upgradeSpec:
