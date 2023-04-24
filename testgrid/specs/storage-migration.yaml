@@ -923,7 +923,6 @@
 
 - name: Cust 1 - Migrate from Rook+OpenEBS to Longhorn+OpenEBS (Kubernetes 1.19.x to 1.21.x, Docker to Containerd)
   flags: "yes"
-  airgap: true
   installerApiEndpoint: https://kurl.sh
   installerSpec:
     kubernetes:
@@ -1043,7 +1042,6 @@
 
 - name: Cust 1 - Migrate from Rook+OpenEBS 1.6.0 to OpenEBS 3.3.0 (Kubernetes 1.19.x to 1.21.x)
   flags: "yes"
-  airgap: true
   installerApiEndpoint: https://kurl.sh
   installerSpec:
     kurl:
@@ -1161,7 +1159,6 @@
 
 - name: Cust 1 - Migrate from Weave to Flannel (Kubernetes 1.21.x to 1.23.x, Docker to Containerd)
   flags: "yes"
-  airgap: true
   installerApiEndpoint: https://kurl.sh
   installerSpec:
     contour:
@@ -1260,7 +1257,6 @@
 
 - name: Cust 1 - Upgrade from Kubernetes 1.23.x to 1.25.x
   flags: "yes"
-  airgap: true
   installerApiEndpoint: https://kurl.sh
   installerSpec:
     containerd:
