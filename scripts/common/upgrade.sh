@@ -200,7 +200,7 @@ function kubernetes_upgrade_required_archive_size() {
         if [ -z "$step" ] || [ "$step" = "0.0.0" ]; then
             continue
         fi
-        total_archive_size=$((total_archive_size + "$bundle_size_upper_bounds"))
+        total_archive_size=$((total_archive_size + bundle_size_upper_bounds))
     done <<< "$(common_upgrade_step_versions "${STEP_VERSIONS[*]}" "$current_version" "$desired_version")"
 
     echo "$total_archive_size"
