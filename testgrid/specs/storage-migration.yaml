@@ -1021,6 +1021,10 @@
   unsupportedOSIDs:
   - ubuntu-2204 # containerd 1.4.x is not supported on ubuntu 22.04
   - rocky-91 # docker is not supported on rhel 9 variants
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    mkdir -p /var/lib/kurl/assets
+    ( cd /var/lib/kurl/assets && curl -fLO "$(kubernetes_upgrade_bundle_url "$KURL_URL" "$KURL_UPGRADE_URL")" )
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     rook_ceph_object_store_info
@@ -1139,6 +1143,10 @@
   - ol-8x # The kURL version used in this test, v2022.08.23-0, does not support OL-8.7
   - ubuntu-2204 # docker 19.03.4 is not supported on ubuntu 22.04
   - rocky-91 # docker is not supported on rhel 9 variants
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    mkdir -p /var/lib/kurl/assets
+    ( cd /var/lib/kurl/assets && curl -fLO "$(kubernetes_upgrade_bundle_url "$KURL_URL" "$KURL_UPGRADE_URL")" )
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     rook_ceph_object_store_info
@@ -1244,8 +1252,13 @@
     flannel:
       version: "0.21.x" # (replicated) changed to .x version
   unsupportedOSIDs:
+  - ol-8x # The kURL version used in this test, v2022.11.10-1, does not support OL-8.7
   - ubuntu-2204 # docker 19.03.10 is not supported on ubuntu 22.04
   - rocky-91 # docker is not supported on rhel 9 variants
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    mkdir -p /var/lib/kurl/assets
+    ( cd /var/lib/kurl/assets && curl -fLO "$(kubernetes_upgrade_bundle_url "$KURL_URL" "$KURL_UPGRADE_URL")" )
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     minio_object_store_info
@@ -1336,6 +1349,10 @@
       version: 0.21.x # (replicated) changed to .x version
   unsupportedOSIDs:
   - rocky-91 # rocky 9.1 is unsupported on kurl version v2023.02.23-0
+  preInstallScript: |
+    source /opt/kurl-testgrid/testhelpers.sh
+    mkdir -p /var/lib/kurl/assets
+    ( cd /var/lib/kurl/assets && curl -fLO "$(kubernetes_upgrade_bundle_url "$KURL_URL" "$KURL_UPGRADE_URL")" )
   postInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     minio_object_store_info
