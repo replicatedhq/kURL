@@ -64,7 +64,10 @@ function velero() {
     # Bail if the migrationn fails, preventing the original object store from being deleted
     if velero_did_migrate_from_object_store; then
         logWarn "Velero will migrate from object store to pvc"
-        try_5m velero_pvc_migrated
+        if ! try_5m velero_pvc_migrated ; then
+            velero_pvc_migrated_debug_info
+            bail "Velero migration failed"
+        fi
         logSuccess "Velero migration complete"
     fi
 
