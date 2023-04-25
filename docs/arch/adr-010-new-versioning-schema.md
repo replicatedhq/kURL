@@ -104,30 +104,6 @@ Based on the above-mentioned scenarios, the following table outlines various upg
 
 _Downgrades are strictly prohibited under any circumstances. Once a cluster is upgraded to a newer version in a specific Channel, there is no going back to a previous version. This is to maintain consistency and avoid any potential issues that may arise from incompatible configurations or data._
 
-### Additional Details
-
-#### Allowing for some degree of customisation
-Our aim is to maintain a level of opinionated approach towards the technology we offer, while also allowing a certain level of customisation for our customers. We believe that the customers should have the freedom to decide what they want to install on their clusters, and this includes factors such as having or not having an object storage API for example. In order to facilitate this, we plan to abstract such complex concepts into simpler and easier-to-understand terms.
-
-Let's exemplify: to make an Object Storage API available inside the cluster, customers can choose to install the "Minio" add-on. The details about which tool provides the Object Storage API inside kURL are not crucial for the users. What matters to them is having an ObjectStorageAPI available on their cluster. With this in mind, users can easily achieve their desired installation by using the following Installer:
-
-```yaml
-apiVersion: "cluster.kurl.sh/v1"
-kind: "Installer"
-metadata:
-  name: "cluster"
-spec:
-  channel:  "1.27"
-  version:  "1.8.0"
-  objectStorage:
-    enabled: true
-    credentialsSecrets:
-    - namespace: "default"
-      name: "object-storage"
-```
-Expanding on the previous statement, the reason why the configuration would deploy Minio in the cluster is because it has been selected as the official Object Storage API provider for kURL. The `credentialsSecrets` property allows the user to specify where they expect to see the credentials required to access this Object Storage API. However, it is important to note that this is only an example and each individual configuration and selected add-ons will require further discussion and customisation.
-  
-
 ## Status
 
 Proposed
@@ -137,9 +113,7 @@ Proposed
 1. In order to plan the migration path from the current kURL version to the new one, we must determine the necessary versions that the customer must be running to transition to the first version in the initial channel.
 2. The vendor portal will need to be modified to accommodate this new arrangement.
 3. An API must be designed and developed in order to provide information about the current Channels and Versions available.
-4. All non-essential add-ons would need to be manually enabled by the user. Non-essential add-ons being anything other than Kubernetes, CNI and CSI.
-5. Not all knobs in all add-ons will be available for the customer to tweak.
-6. We will have more control on what is supported by the cluster, this hugely simplifies the infrastructure and allow us for better testing and stability.
+6. We will have more control on what is installed in the cluster, this hugely simplifies the infrastructure and allow us for better testing and stability.
 7. Users may be forced to to execute multiple step upgrades (_current version_ > _latest version in the Channel_ > _new Channel_), we might want to automate this.
 8. kurl.sh will need to be redesigned/reimplemented.
 9. _Testgrid_ will need to be reimplemented or replaced by something else.
