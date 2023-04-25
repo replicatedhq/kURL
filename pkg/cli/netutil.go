@@ -23,7 +23,7 @@ func newNetutilCommand(cli CLI) *cobra.Command {
 	return cmd
 }
 
-func newNetutilIfaceFromIPCommand(_ CLI) *cobra.Command {
+func newNetutilIfaceFromIPCommand(cli CLI) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "iface-from-ip IP",
 		Short: "Gets the interface name for a given IP address",
@@ -35,7 +35,7 @@ func newNetutilIfaceFromIPCommand(_ CLI) *cobra.Command {
 			}
 			iface, err := netutils.GetInterfaceByIPv6(ip)
 			if err == nil {
-				fmt.Fprintln(cmd.OutOrStdout(), iface.Name)
+				fmt.Fprintln(cli.Stdout(), iface.Name)
 				return nil
 			}
 			if ip.To4() != nil {
@@ -43,7 +43,7 @@ func newNetutilIfaceFromIPCommand(_ CLI) *cobra.Command {
 				if err != nil {
 					return err
 				}
-				fmt.Fprintln(cmd.OutOrStdout(), iface.Name)
+				fmt.Fprintln(cli.Stdout(), iface.Name)
 				return nil
 			}
 			return err
@@ -52,7 +52,7 @@ func newNetutilIfaceFromIPCommand(_ CLI) *cobra.Command {
 	return cmd
 }
 
-func newNetutilDefaultIfaceCommand(_ CLI) *cobra.Command {
+func newNetutilDefaultIfaceCommand(cli CLI) *cobra.Command {
 	ipv6 := false
 	cmd := &cobra.Command{
 		Use:   "default-gateway-iface",
@@ -63,17 +63,18 @@ func newNetutilDefaultIfaceCommand(_ CLI) *cobra.Command {
 				if err != nil {
 					return err
 				}
-				fmt.Fprintln(cmd.OutOrStdout(), iface.Name)
+				fmt.Fprintln(cli.Stdout(), iface.Name)
 				return nil
 			}
 			iface, err := netutils.GetDefaultGatewayInterface()
 			if err != nil {
 				return err
 			}
-			fmt.Fprintln(cmd.OutOrStdout(), iface.Name)
+			fmt.Fprintln(cli.Stdout(), iface.Name)
 			return nil
 		},
 	}
+
 	cmd.Flags().BoolVar(&ipv6, "ipv6", false, "Get the default IPv6 interface")
 	return cmd
 }

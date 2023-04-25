@@ -2,6 +2,8 @@ package cli
 
 import (
 	"context"
+	"io"
+	"log"
 	"testing"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -14,6 +16,8 @@ import (
 )
 
 func Test_scaleDownReplicas(t *testing.T) {
+	discardLogger := log.New(io.Discard, "", 0)
+
 	scaleDownReplicasWaitTime = 0
 	volumes := []client.Object{
 		&lhv1b1.Volume{
@@ -48,7 +52,7 @@ func Test_scaleDownReplicas(t *testing.T) {
 	scheme := runtime.NewScheme()
 	lhv1b1.AddToScheme(scheme)
 	cli := fake.NewClientBuilder().WithScheme(scheme).WithObjects(volumes...).Build()
-	scaled, err := scaleDownReplicas(context.Background(), cli)
+	scaled, err := scaleDownReplicas(context.Background(), discardLogger, cli)
 	assert.True(t, scaled)
 	assert.NoError(t, err)
 
@@ -63,6 +67,8 @@ func Test_scaleDownReplicas(t *testing.T) {
 }
 
 func Test_unhealthyVolumes(t *testing.T) {
+	discardLogger := log.New(io.Discard, "", 0)
+
 	for _, tt := range []struct {
 		name     string
 		expected []string
@@ -192,7 +198,7 @@ func Test_unhealthyVolumes(t *testing.T) {
 			scheme := runtime.NewScheme()
 			lhv1b1.AddToScheme(scheme)
 			cli := fake.NewClientBuilder().WithScheme(scheme).WithObjects(tt.objects...).Build()
-			result, err := unhealthyVolumes(context.Background(), cli)
+			result, err := unhealthyVolumes(context.Background(), discardLogger, cli)
 			assert.NoError(t, err)
 			assert.Equal(t, tt.expected, result)
 		})
@@ -200,6 +206,8 @@ func Test_unhealthyVolumes(t *testing.T) {
 }
 
 func Test_unhealthyNodes(t *testing.T) {
+	discardLogger := log.New(io.Discard, "", 0)
+
 	for _, tt := range []struct {
 		name     string
 		expected []string
@@ -477,7 +485,7 @@ func Test_unhealthyNodes(t *testing.T) {
 			scheme := runtime.NewScheme()
 			lhv1b1.AddToScheme(scheme)
 			cli := fake.NewClientBuilder().WithScheme(scheme).WithObjects(tt.objects...).Build()
-			result, err := unhealthyNodes(context.Background(), cli)
+			result, err := unhealthyNodes(context.Background(), discardLogger, cli)
 			assert.NoError(t, err)
 			assert.Equal(t, tt.expected, result)
 		})
