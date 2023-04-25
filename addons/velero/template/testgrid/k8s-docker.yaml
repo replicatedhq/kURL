@@ -62,7 +62,7 @@
     minio:
       version: "latest"
 - name: "Velero Remove Object Storage"
-  cpu: 7
+  cpu: 8
   installerSpec:
     kubernetes:
       version: 1.23.x
