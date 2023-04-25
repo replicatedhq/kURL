@@ -175,19 +175,19 @@
     ekco:
       version: latest
       enableInternalLoadBalancer: true
-#- name: minimal-127
-#  installerSpec:
-#    containerd:
-#      version: latest
-#    kurl:
-#      installerVersion: ""
-#    kubernetes:
-#      version: 1.27.x
-#    flannel:
-#      version: latest
-#    ekco:
-#      version: latest
-#      enableInternalLoadBalancer: true
+- name: minimal-127
+  installerSpec:
+    containerd:
+      version: latest
+    kurl:
+      installerVersion: ""
+    kubernetes:
+      version: 1.27.x
+    flannel:
+      version: latest
+    ekco:
+      version: latest
+      enableInternalLoadBalancer: true
 - name: k8s124x_cis_benchmarks_checks
   installerSpec:
     kubernetes:
@@ -210,10 +210,10 @@
     echo "Kubeconfig was $KUBECONFIG"
     unset KUBECONFIG
     kubectl get namespaces
-- name: k8s126x_reserved_resources
+- name: k8s127x_reserved_resources
   installerSpec:
     kubernetes:
-      version: "1.26.x"
+      version: "1.27.x"
       kubeReserved: true
       evictionThresholdResources: '{"memory.available":  "234Mi", "nodefs.available": "11%", "nodefs.inodesFree": "6%"}'
       systemReservedResources: '{ "cpu": "123m", "memory": "123Mi", "ephemeral-storage": "1.23Gi" }'
@@ -238,10 +238,10 @@
     echo "Kubeconfig was $KUBECONFIG"
     unset KUBECONFIG
     kubectl get namespaces
-- name: k8s126-openebs
+- name: k8s127-openebs
   installerSpec:
     kubernetes:
-      version: 1.26.x
+      version: 1.27.x
     kurl:
       installerVersion: ""
     containerd:
@@ -292,11 +292,11 @@
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     rhel_9_install_host_packages lvm2 conntrack-tools socat container-selinux git
-- name: "k8s_126x airgap"
+- name: "k8s_127x airgap"
   airgap: true
   installerSpec:
     kubernetes:
-      version: 1.26.x
+      version: 1.27.x
     kurl:
       installerVersion: ""
     flannel:

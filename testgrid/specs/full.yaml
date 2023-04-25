@@ -675,7 +675,7 @@
       version: latest
   upgradeSpec:
     kubernetes:
-      version: 1.26.x
+      version: 1.27.x
     weave:
       version: 2.8.1
     rook:
@@ -941,7 +941,7 @@
     rhel_9_install_host_packages lvm2 conntrack-tools socat container-selinux git
   unsupportedOSIDs:
   - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
-- name: "Migrate from Docker to Containerd and Kubernetes from 1.23 to 1.26"
+- name: "Migrate from Docker to Containerd and Kubernetes from 1.23 to 1.27"
   flags: "yes"
   installerSpec:
     kubernetes:
@@ -964,7 +964,7 @@
       version: latest
   upgradeSpec:
     kubernetes:
-      version: 1.26.x
+      version: 1.27.x
     weave: # flannel has errors with dns and docker
       version: latest
     openebs:
@@ -996,7 +996,7 @@
     validate_read_write_object_store postupgrade upgradefile.txt
   unsupportedOSIDs:
   - rocky-91 # docker is not supported on rhel 9 variants
-- name: "Migrate from Docker to Containerd and Kubernetes from 1.23 to 1.26 airgap"
+- name: "Migrate from Docker to Containerd and Kubernetes from 1.23 to 1.27 airgap"
   flags: "yes"
   installerSpec:
     kubernetes:
@@ -1019,7 +1019,7 @@
       version: latest
   upgradeSpec:
     kubernetes:
-      version: 1.26.x
+      version: 1.27.x
     weave: # flannel has errors with dns and docker
       version: latest
     openebs:
@@ -1083,11 +1083,11 @@
   - ubuntu-2204 # containerd 1.4.x is not supported on ubuntu 22.04
   - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
   - rocky-91 # containerd < 1.6 is not supported on rhel 9 variants
-- name: "K8s 1.26x Rook, disableS3"
+- name: "K8s 1.27x Rook, disableS3"
   cpu: 6
   installerSpec:
     kubernetes:
-      version: 1.26.x
+      version: 1.27.x
     containerd:
       version: latest
     flannel:
@@ -1173,11 +1173,11 @@
   unsupportedOSIDs:
   - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
   - rocky-91 # docker is not supported on rhel 9 variants
-- name: "Upgrade to 1.26 airgap"
+- name: "Upgrade to 1.27 airgap"
   cpu: 6
   installerSpec:
     kubernetes:
-      version: 1.25.x
+      version: 1.26.x
     flannel:
       version: latest
     openebs:
@@ -1198,7 +1198,7 @@
       version: latest
   upgradeSpec:
     kubernetes:
-      version: 1.26.x
+      version: 1.27.x
     flannel:
       version: latest
     openebs:
@@ -1221,10 +1221,10 @@
   preInstallScript: |
     source /opt/kurl-testgrid/testhelpers.sh
     rhel_9_install_host_packages lvm2 conntrack-tools socat container-selinux git
-- name: "Upgrade to 1.26 minimal"
+- name: "Upgrade to 1.27 minimal"
   installerSpec:
     kubernetes:
-      version: 1.25.x
+      version: 1.26.x
     flannel:
       version: latest
     openebs:
@@ -1243,7 +1243,7 @@
       version: latest
   upgradeSpec:
     kubernetes:
-      version: 1.26.x
+      version: 1.27.x
     flannel:
       version: latest
     openebs:
@@ -1260,10 +1260,10 @@
       version: latest
     minio:
       version: latest
-- name: "Upgrade to 1.26 minimal airgap"
+- name: "Upgrade to 1.27 minimal airgap"
   installerSpec:
     kubernetes:
-      version: 1.25.x
+      version: 1.26.x
     flannel:
       version: latest
     openebs:
@@ -1282,7 +1282,7 @@
       version: latest
   upgradeSpec:
     kubernetes:
-      version: 1.26.x
+      version: 1.27.x
     flannel:
       version: latest
     openebs:
@@ -1372,10 +1372,10 @@
   flags: "labels=disktype=ssd,gpu=enabled"
   unsupportedOSIDs:
   - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
-- name: k8s126-all-the-flags
+- name: k8s127-all-the-flags
   installerSpec:
     kubernetes:
-      version: 1.26.x
+      version: 1.27.x
     containerd:
       version: latest
     flannel:
@@ -1396,7 +1396,7 @@
 - name: ekco-podimageoverrides
   installerSpec:
     kubernetes:
-      version: "1.26.x"
+      version: "1.27.x"
     containerd:
       version: "latest"
     flannel:
@@ -1471,10 +1471,10 @@
     kube_bench_version="$(curl -s https://api.github.com/repos/aquasecurity/kube-bench/releases/latest | grep '"tag_name":' | sed -E 's/.*"v([^"]+)".*/\1/')"
     curl -L https://github.com/aquasecurity/kube-bench/releases/download/v${kube_bench_version}/kube-bench_${kube_bench_version}_linux_amd64.tar.gz | tar -xz
     ./kube-bench --config-dir=`pwd`/cfg --config=`pwd`/cfg/config.yaml --exit-code=1
-- name: k8s126x_reserved_resources
+- name: k8s127x_reserved_resources
   installerSpec:
     kubernetes:
-      version: "1.26.x"
+      version: "1.27.x"
       kubeReserved: true
       evictionThresholdResources: '{"memory.available":  "234Mi", "nodefs.available": "11%", "nodefs.inodesFree": "6%"}'
       systemReservedResources: '{ "cpu": "123m", "memory": "123Mi", "ephemeral-storage": "1.23Gi" }'
@@ -1500,7 +1500,7 @@
 - name: less_command
   installerSpec:
     kubernetes:
-      version: "1.26.x"
+      version: "1.27.x"
     containerd:
       version: latest
     flannel:
@@ -1515,7 +1515,7 @@
 - name: "weave latest multinode"
   installerSpec:
     kubernetes:
-      version: "1.26.x"
+      version: "1.27.x"
     weave:
       version: "latest"
     containerd:
@@ -1527,7 +1527,7 @@
 - name: "flannel latest multinode"
   installerSpec:
     kubernetes:
-      version: "1.26.x"
+      version: "1.27.x"
     flannel:
       version: "latest"
     containerd:
@@ -1862,7 +1862,7 @@
     minio_object_store_info
     validate_testfile rwtest testfile.txt
     validate_read_write_object_store postupgrade upgradefile.txt
-- name: "containerd upgrade from 1.4.x to 1.6.x (kubernetes 1.24.x to 1.26.x)"
+- name: "containerd upgrade from 1.4.x to 1.6.x (kubernetes 1.24.x to 1.27.x)"
   installerSpec:
     kubernetes:
       version: 1.24.x
@@ -1878,7 +1878,7 @@
       version: latest
   upgradeSpec:
     kubernetes:
-      version: 1.26.x
+      version: 1.27.x
     flannel:
       version: latest
     containerd:
@@ -1904,7 +1904,7 @@
 - name: custom-kurl-install-directory
   installerSpec:
     kubernetes:
-      version: 1.26.x
+      version: 1.27.x
     containerd:
       version: latest
     flannel:
@@ -1919,7 +1919,7 @@
   preInstallScript: |
     touch /var/lib/kurl
     mkdir -p /custom
-- name: "Upgrade Kubernetes from 1.19 to 1.26"
+- name: "Upgrade Kubernetes from 1.19 to 1.27"
   flags: "yes"
   installerSpec:
     kubernetes:
@@ -1932,7 +1932,7 @@
       version: latest
   upgradeSpec:
     kubernetes:
-      version: 1.26.x
+      version: 1.27.x
     containerd:
       version: latest
     flannel:
@@ -1943,7 +1943,7 @@
     source /opt/kurl-testgrid/testhelpers.sh
 
     k8sVersion=$(kubectl get nodes -o jsonpath='{.items[0].status.nodeInfo.kubeletVersion}')
-    echo $k8sVersion | grep 1.26
+    echo $k8sVersion | grep 1.27
 - name: "Upgrade Kubernetes from 1.19 to 1.24, Rook from 1.0.4 to 1.5.12"
   flags: "yes"
   installerSpec:
