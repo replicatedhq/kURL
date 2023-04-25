@@ -93,7 +93,7 @@ func (cli *KurlCLI) Stderr() io.Writer {
 
 // SetStderr overrides the writer that writes to stderr
 func (cli *KurlCLI) SetStderr(w io.Writer) {
-	cli.stdout = w
+	cli.stderr = w
 }
 
 const (
