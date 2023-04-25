@@ -11,13 +11,13 @@ Under the new versioning scheme, our offering will be organised into Channels th
 
 Consequently, we can initiate the design of our new kURL installation YAML in the following manner:
 
-```yaml=
+```yaml
 apiVersion: "cluster.kurl.sh/v1"
 kind: "Installer"
 metadata:
-	name: "cluster"
+  name: "cluster"
 spec:
-	channel:  "1.27”
+  channel:  "1.27”
 ```
 
 With the Channel (Kubernetes) now established as the basis for our delivery model, we can enable users to select a Version within this channel, which will allow them to access a specific set of Kubernetes-related features and functionalities (add-ons) that have been thoroughly tested and vetted by our team. This Version serves to abstract each individual add-on version into our own standardised version, ensuring that users can reliably and confidently utilise our offering without worrying about compatibility or interoperability issues.
@@ -28,10 +28,10 @@ We will establish the practice of starting each Channel with a version v1.0.0 th
 apiVersion: "cluster.kurl.sh/v1"
 kind: "Installer"
 metadata:
-	name: "cluster"
+  name: "cluster"
 spec:
-	channel:  "1.27"
-	version:  "1.0.0"
+  channel:  "1.27"
+  version:  "1.0.0"
 ```
 While we will delve into the specifics of what the new kURL Version inside a Channel entails in more detail shortly, for the sake of simplicity, bear in mind that this Version essentially groups together a list of add-ons that are compatible with a given Kubernetes version. As such, users can easily upgrade to a newer version within the same Channel by updating the YAML version field and running the installer accordingly. For instance, the following example illustrates how to update the cluster to kURL version v1.8.0 within 1.27 Channel:
 
@@ -39,10 +39,10 @@ While we will delve into the specifics of what the new kURL Version inside a Cha
 apiVersion: "cluster.kurl.sh/v1"
 kind: "Installer"
 metadata:
-	name: "cluster"
+  name: "cluster"
 spec:
-	channel:  "1.27"
-	version:  "1.8.0"
+  channel:  "1.27"
+  version:  "1.8.0"
 ```
 As we've designed it, users are free to skip as many versions as they wish within a given Channel without any restrictions. This means that they can easily move between kURL versions within the same Channel at their own pace, depending on their individual needs and preferences, without any limitations or requirements.
 
@@ -115,15 +115,15 @@ Let's exemplify: to make an Object Storage API available inside the cluster, cus
 apiVersion: "cluster.kurl.sh/v1"
 kind: "Installer"
 metadata:
-	name: "cluster"
+  name: "cluster"
 spec:
-	channel:  "1.27"
-	version:  "1.8.0"
-	objectStorage:
-		enabled: true
-		credentialsSecrets:
-		- namespace: "default"
-		  name: "object-storage"
+  channel:  "1.27"
+  version:  "1.8.0"
+  objectStorage:
+    enabled: true
+    credentialsSecrets:
+    - namespace: "default"
+      name: "object-storage"
 ```
 Expanding on the previous statement, the reason why the configuration would deploy Minio in the cluster is because it has been selected as the official Object Storage API provider for kURL. The `credentialsSecrets` property allows the user to specify where they expect to see the credentials required to access this Object Storage API. However, it is important to note that this is only an example and each individual configuration and selected add-ons will require further discussion and customisation.
   
