@@ -285,7 +285,7 @@ function migrate_minio_to_rgw() {
         minio_ns=minio
     fi
 
-    if ! kubernetes_resource_exists $minio_ns deployment minio; then
+    if ! kubernetes_resource_exists $minio_ns deployment minio && ! kubernetes_resource_exists $minio_ns statefulset ha-minio; then
         return 0
     fi
 
