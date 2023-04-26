@@ -1,4 +1,4 @@
-# ADR 10: kURL new versioning scheme
+# ADR 10: New kURL Versioning Scheme
 
 ## Context
 Based on our prior experience, offering customers the ability to select various add-on versions provides them with significant flexibility, but it also creates numerous challenges. Presently, we're struggling to ensure that each customer's chosen add-ons are compatible with one another and that migration paths are available for all potential combinations. Moreover our user feedback indicates that stability and predictability are their top priorities, rather than the specific technologies they are running behind the scenes.
