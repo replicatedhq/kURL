@@ -82,7 +82,9 @@ function flannel() {
 
     cp "$src"/yaml/* "$dst/"
 
-    flannel_maybe_use_kustomize_v5
+    # Kubernetes 1.27 uses kustomize v5 which dropped support for old, legacy style patches
+    # See: https://github.com/kubernetes/kubernetes/blob/master/CHANGELOG/CHANGELOG-1.27.md#changelog-since-v1270
+    kubernetes_kustomize_config_migrate "$dst"
 
     flannel_render_config
 
@@ -113,15 +115,6 @@ function flannel_init_pod_subnet() {
     if commandExists kubectl; then
         EXISTING_POD_CIDR=$(kubectl -n kube-system get cm kubeadm-config -oyaml 2>/dev/null | grep podSubnet | awk '{ print $NF }')
     fi
-}
-
-function flannel_maybe_use_kustomize_v5() {
-    if [ "$KUBERNETES_TARGET_VERSION_MINOR" -ge "27" ]; then
-        rm "$dst/kustomization.yaml"
-        mv "$dst/kustomization-v5.yaml" "$dst/kustomization.yaml"
-        return
-    fi
-    rm "$dst/kustomization-v5.yaml"
 }
 
 function flannel_render_config() {

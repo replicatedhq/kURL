@@ -1152,3 +1152,11 @@ function kubernetes_containerd_pause_image() {
     fi
     grep sandbox_image /etc/containerd/config.toml | sed 's/[=\"]//g' | awk '{ print $2 }'
 }
+
+# kubernetes_kustomize_config_migrate fixes missing and deprecated fields in kustomization file
+function kubernetes_kustomize_config_migrate() {
+    local kustomize_dir=$1
+    if [ "$KUBERNETES_TARGET_VERSION_MINOR" -ge "27" ]; then
+       ( cd "$kustomize_dir" && kustomize edit fix )
+    fi
+}
