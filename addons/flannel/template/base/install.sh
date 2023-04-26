@@ -119,7 +119,9 @@ function flannel_maybe_use_kustomize_v5() {
     if [ "$KUBERNETES_TARGET_VERSION_MINOR" -ge "27" ]; then
         rm "$dst/kustomization.yaml"
         mv "$dst/kustomization-v5.yaml" "$dst/kustomization.yaml"
+        return
     fi
+    rm "$dst/kustomization-v5.yaml"
 }
 
 function flannel_render_config() {
