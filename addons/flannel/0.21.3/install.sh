@@ -82,6 +82,8 @@ function flannel() {
 
     cp "$src"/yaml/* "$dst/"
 
+    flannel_maybe_use_kustomize_v5
+
     flannel_render_config
 
     if flannel_weave_conflict; then
@@ -110,6 +112,13 @@ function flannel_init_pod_subnet() {
 
     if commandExists kubectl; then
         EXISTING_POD_CIDR=$(kubectl -n kube-system get cm kubeadm-config -oyaml 2>/dev/null | grep podSubnet | awk '{ print $NF }')
+    fi
+}
+
+function flannel_maybe_use_kustomize_v5() {
+    if [ "$KUBERNETES_TARGET_VERSION_MINOR" -ge "27" ]; then
+        rm "$dst/kustomization.yaml"
+        mv "$dst/kustomization-v5.yaml" "$dst/kustomization.yaml"
     fi
 }
 
