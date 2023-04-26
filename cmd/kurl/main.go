@@ -17,8 +17,6 @@ func main() {
 	}
 
 	cmd := cli.NewKurlCmd(kurlCLI)
-	cmd.SetOut(kurlCLI.Stdout())
-	cmd.SetErr(kurlCLI.Stderr())
 
 	err = cmd.ExecuteContext(ctx)
 	if err != nil {
