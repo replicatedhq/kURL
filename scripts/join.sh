@@ -79,9 +79,7 @@ function join() {
         patch_basename="$(basename $patch)"
         cp "$patch" "$kustomize_kubeadm_join/$patch_basename"
 
-        # Templatize the api version for kubeadm patches
-        # shellcheck disable=SC2016
-        sed -i 's|kubeadm.k8s.io/v1beta.*|kubeadm.k8s.io/$(kubeadm_conf_api_version)|' "$kustomize_kubeadm_join/$patch_basename"
+        kubeadm_customize_config "$kustomize_kubeadm_join/$patch_basename"
         insert_patches_strategic_merge \
             $kustomize_kubeadm_join/kustomization.yaml \
             "$patch_basename"

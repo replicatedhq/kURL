@@ -82,6 +82,10 @@ function flannel() {
 
     cp "$src"/yaml/* "$dst/"
 
+    # Kubernetes 1.27 uses kustomize v5 which dropped support for old, legacy style patches
+    # See: https://github.com/kubernetes/kubernetes/blob/master/CHANGELOG/CHANGELOG-1.27.md#changelog-since-v1270
+    kubernetes_kustomize_config_migrate "$dst"
+
     flannel_render_config
 
     if flannel_weave_conflict; then
@@ -167,13 +171,11 @@ function weave_to_flannel() {
     # if there is more than one node, prompt to run on each primary/master node, and then on each worker/secondary node
     local master_node_count=
     master_node_count=$(kubectl get nodes --no-headers --selector='node-role.kubernetes.io/control-plane' | wc -l)
-    local hostnamevar
-    hostnamevar=$(hostname)
     local master_node_names=
     master_node_names=$(kubectl get nodes --no-headers --selector='node-role.kubernetes.io/control-plane' -o custom-columns=NAME:.metadata.name)
     if [ "$master_node_count" -gt 1 ]; then
         local other_master_nodes=
-        other_master_nodes=$(echo "$master_node_names" | grep -v "$hostnamevar")
+        other_master_nodes=$(echo "$master_node_names" | grep -v "$(get_local_node_name)")
         printf "${YELLOW}Moving primary nodes from Weave to Flannel requires removing certain weave files and restarting kubelet.${NC}\n"
         printf "${YELLOW}Please run the following command on each of the listed primary nodes:${NC}\n\n"
         printf "${other_master_nodes}\n"

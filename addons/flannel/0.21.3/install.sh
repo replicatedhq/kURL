@@ -82,6 +82,10 @@ function flannel() {
 
     cp "$src"/yaml/* "$dst/"
 
+    # Kubernetes 1.27 uses kustomize v5 which dropped support for old, legacy style patches
+    # See: https://github.com/kubernetes/kubernetes/blob/master/CHANGELOG/CHANGELOG-1.27.md#changelog-since-v1270
+    kubernetes_kustomize_config_migrate "$dst"
+
     flannel_render_config
 
     if flannel_weave_conflict; then

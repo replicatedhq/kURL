@@ -224,4 +224,20 @@ function kubeadm_conf_api_version() {
         fi
     fi
 }
+
+# kubeadm_customize_config mutates a kubeadm configuration file for Kubernetes compatibility purposes
+function kubeadm_customize_config() {
+    local kubeadm_patch_config=$1
+
+    # Templatize the api version for kubeadm patches
+    # shellcheck disable=SC2016
+    sed -i 's|kubeadm.k8s.io/v1beta.*|kubeadm.k8s.io/$(kubeadm_conf_api_version)|' "$kubeadm_patch_config"
+
+    # Kubernetes 1.24 deprecated the '--container-runtime' kubelet argument in 1.24 and removed it in 1.27
+    # See: https://kubernetes.io/blog/2023/03/17/upcoming-changes-in-kubernetes-v1-27/#removal-of-container-runtime-command-line-argument
+    if [ "$KUBERNETES_TARGET_VERSION_MINOR" -ge "24" ]; then
+        # remove kubeletExtraArgs.container-runtime from the containerd kubeadm addon patch
+        sed -i '/container-runtime:/d' "$kubeadm_patch_config"
+    fi
+}
     
