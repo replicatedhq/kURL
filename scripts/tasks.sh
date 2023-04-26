@@ -82,12 +82,6 @@ function tasks() {
             rook_upgrade_tasks_load_images "from-version=1.0" "to-version=1.4"
             popd_install_directory
             ;;
-        rook-upgrade|rook_upgrade)
-            pushd_install_directory
-            shift # the first param is rook-upgrade|rook_upgrade
-            rook_upgrade_tasks_rook_upgrade "$@"
-            popd_install_directory
-            ;;
         rook-upgrade-load-images|rook_upgrade_load_images)
             pushd_install_directory
             shift # the first param is rook-upgrade-load-images|rook_upgrade_load_images
