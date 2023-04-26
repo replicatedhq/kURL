@@ -4,7 +4,7 @@
 Based on our prior experience, offering customers the ability to select various add-on versions provides them with significant flexibility, but it also creates numerous challenges. Presently, we're struggling to ensure that each customer's chosen add-ons are compatible with one another and that migration paths are available for all potential combinations. Moreover our user feedback indicates that stability and predictability are their top priorities, rather than the specific technologies they are running behind the scenes.
 
 ## Decision
-Based on users feedback and the struggling we are facing to maintain kURL upgrades predictability, we have decided to adopt a more opinionated approach to delivering our Kubernetes distribution. This will involve implementing a well-designed versioning scheme, which is outlined in detail in this Architecture Decision Record.
+Based on users feedback and the challenges we are facing to maintain kURL upgrades predictable, we have decided to adopt a more opinionated approach to delivering our Kubernetes distribution. This will involve implementing a well-designed versioning scheme, which is outlined in detail in this Architecture Decision Record.
 
 ## Solution
 Under the new versioning scheme, our offering will be organised into Channels that correspond to specific Kubernetes minor versions. As of now, we will begin with a single channel named v1.27, which serves as our official offering for Kubernetes versions v1.27.x. Put simply, users who wish to install or keep their installations on Kubernetes v1.27 will remain on this Channel.
