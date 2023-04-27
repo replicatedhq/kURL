@@ -40,6 +40,9 @@ function test_rook_upgrade_step_versions() {
     assertEquals "9 to 11" "$(echo -e "1.9.12\n1.10.11\n1.11.2")" "$(rook_upgrade_step_versions "${step_versions[*]}" "1.9" "1.11")"
     assertEquals "error out of bounds" "1" "$(trap "echo_exit_code" EXIT; rook_upgrade_step_versions "${step_versions[*]}" "1.9" "1.15"; trap '' EXIT)"
     assertEquals "6 to 4" "" "$(rook_upgrade_step_versions "${step_versions[*]}" "1.6" "1.4")"
+    assertEquals "1.9.3 to 1.10.9" "$(echo -e "1.9.12\n1.10.9")" "$(rook_upgrade_step_versions "${step_versions[*]}" "1.9.3" "1.10.9")"
+    assertEquals "1.9.3 to 1.11.1" "$(echo -e "1.9.12\n1.10.11\n1.11.1")" "$(rook_upgrade_step_versions "${step_versions[*]}" "1.9.3" "1.11.1")"
+    assertEquals "1.9.3 to 1.11.3" "$(echo -e "1.9.12\n1.10.11\n1.11.3")" "$(rook_upgrade_step_versions "${step_versions[*]}" "1.9.3" "1.11.3")"
 }
 
 function test_rook_upgrade_required_disk_space() {
