@@ -100,3 +100,5 @@
       s3Override: "__testdist__"
     ekco:
       version: "latest"
+  unsupportedOSIDs:
+    - centos-74 # Rook 1.8+ not supported on 3.10.0-693.el7.x86_64 kernel
