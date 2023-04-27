@@ -443,6 +443,7 @@ module.exports.InstallerVersions = {
   ],
   openebs: [
     // cron-openebs-update-3
+    "3.6.0",
     "3.5.0",
     "3.4.0",
     "3.3.0",
