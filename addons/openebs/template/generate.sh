@@ -23,6 +23,8 @@ function generate() {
         --set defaultStorageConfig.enabled=false \
         --set localprovisioner.enableDeviceClass=false \
         --set localprovisioner.enableHostpathClass=false \
+        --set ndm.enabled=false \
+        --set ndmOperator.enabled=false \
         > "$tmpdir/openebs.tmpl.yaml"
 
     $ksplit_path crdsplit "$tmpdir/"
