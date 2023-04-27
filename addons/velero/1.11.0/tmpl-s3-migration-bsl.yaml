@@ -1,0 +1,12 @@
+apiVersion: velero.io/v1
+kind: BackupStorageLocation
+metadata:
+  name: default
+spec:
+  provider: replicated.com/pvc
+  objectStorage:
+    bucket: velero-internal-snapshots
+  config:
+    storageClassName: longhorn
+    storageSize: ${VELERO_PVC_SIZE}
+    resticRepoPrefix: /var/velero-local-volume-provider/velero-internal-snapshots/restic
