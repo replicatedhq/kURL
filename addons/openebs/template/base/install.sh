@@ -45,6 +45,9 @@ function openebs() {
 
     # migrate from Longhorn storage if applicable
     openebs_maybe_migrate_from_longhorn
+
+    # remove NDM pods if applicable
+    openebs_cleanup_ndm
 }
 
 # if rook-ceph is installed but is not specified in the kURL spec, migrate data from 
@@ -419,4 +422,10 @@ function openebs_prompt_migrate_from_longhorn() {
     if ! longhorn_prepare_for_migration; then
         bail "Not migrating"
     fi
+}
+
+function openebs_cleanup_ndm() {
+    kubectl delete --ignore-not-found configmap -n "$OPENEBS_NAMESPACE" openebs-ndm-config
+    kubectl delete --ignore-not-found daemonset -n "$OPENEBS_NAMESPACE" openebs-ndm
+    kubectl delete --ignore-not-found deployment -n "$OPENEBS_NAMESPACE" openebs-ndm-operator
 }
