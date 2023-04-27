@@ -268,10 +268,6 @@ function rook_upgrade_addon_fetch_and_load_airgap() {
     local current_version="$1"
     local desired_version="$2"
 
-     # the last version already included in the airgap bundle
-    local version_less_one=
-    version_less_one="$(common_upgrade_major_minor_less_one "$desired_version")"
-
     if rook_upgrade_has_all_addon_version_packages "$current_version" "$desired_version" ; then
         local node_missing_images=
         # shellcheck disable=SC2086
@@ -291,14 +287,18 @@ function rook_upgrade_addon_fetch_and_load_airgap() {
         addon_versions+=( "rookupgrade-10to14" )
     fi
 
-    if [ "$(common_upgrade_compare_versions "$version_less_one" "1.4")" = "1" ]; then
+    if [ "$(common_upgrade_compare_versions "$desired_version" "1.4")" = "1" ]; then
         local step=
         while read -r step; do
             if [ -z "$step" ] || [ "$step" = "0.0.0" ]; then
                 continue
             fi
+            # the last version already included in the airgap bundle
+            if [ "$step" = "$desired_version" ]; then
+                continue
+            fi
             addon_versions+=( "rook-$step" )
-        done <<< "$(rook_upgrade_step_versions "${ROOK_STEP_VERSIONS[*]}" "$(common_upgrade_max_version "1.4" "$current_version")" "$version_less_one")"
+        done <<< "$(rook_upgrade_step_versions "${ROOK_STEP_VERSIONS[*]}" "$(common_upgrade_max_version "1.4" "$current_version")" "$desired_version")"
     fi
 
     addon_fetch_multiple_airgap "${addon_versions[@]}"
@@ -307,14 +307,18 @@ function rook_upgrade_addon_fetch_and_load_airgap() {
         addon_load "rookupgrade" "10to14"
     fi
 
-    if [ "$(common_upgrade_compare_versions "$version_less_one" "1.4")" = "1" ]; then
+    if [ "$(common_upgrade_compare_versions "$desired_version" "1.4")" = "1" ]; then
         local step=
         while read -r step; do
             if [ -z "$step" ] || [ "$step" = "0.0.0" ]; then
                 continue
             fi
+            # the last version already included in the airgap bundle
+            if [ "$step" = "$desired_version" ]; then
+                continue
+            fi
             addon_load "rook" "$step"
-        done <<< "$(rook_upgrade_step_versions "${ROOK_STEP_VERSIONS[*]}" "$(common_upgrade_max_version "1.4" "$current_version")" "$version_less_one")"
+        done <<< "$(rook_upgrade_step_versions "${ROOK_STEP_VERSIONS[*]}" "$(common_upgrade_max_version "1.4" "$current_version")" "$desired_version")"
     fi
 
     logSuccess "Images loaded for Rook $current_version to $desired_version upgrade"
@@ -326,17 +330,13 @@ function rook_upgrade_has_all_addon_version_packages() {
     local current_version="$1"
     local desired_version="$2"
 
-     # the last version already included in the airgap bundle
-    local version_less_one=
-    version_less_one="$(common_upgrade_major_minor_less_one "$desired_version")"
-
     if common_upgrade_is_version_included "$current_version" "$desired_version" "1.4" ; then
         if [ ! -f "addons/rookupgrade/10to14/Manifest" ]; then
             return 1
         fi
     fi
 
-    if [ "$(common_upgrade_compare_versions "$version_less_one" "1.4")" = "1" ]; then
+    if [ "$(common_upgrade_compare_versions "$desired_version" "1.4")" = "1" ]; then
         local step=
         while read -r step; do
             if [ -z "$step" ] || [ "$step" = "0.0.0" ]; then
@@ -345,7 +345,7 @@ function rook_upgrade_has_all_addon_version_packages() {
             if [ ! -f "addons/rook/$step/Manifest" ]; then
                 return 1
             fi
-        done <<< "$(rook_upgrade_step_versions "${ROOK_STEP_VERSIONS[*]}" "$(common_upgrade_max_version "1.4" "$current_version")" "$version_less_one")"
+        done <<< "$(rook_upgrade_step_versions "${ROOK_STEP_VERSIONS[*]}" "$(common_upgrade_max_version "1.4" "$current_version")" "$desired_version")"
     fi
 
     return 0
@@ -387,27 +387,27 @@ function rook_upgrade_images_list() {
     local current_version="$1"
     local desired_version="$2"
 
-     # the last version already included in the airgap bundle
-    local version_less_one=
-    version_less_one="$(common_upgrade_major_minor_less_one "$desired_version")"
-
     local images_list=
 
     if common_upgrade_is_version_included "$current_version" "$desired_version" "1.4" ; then
         images_list="$(rook_upgrade_list_rook_ceph_images_in_manifest_file "addons/rookupgrade/10to14/Manifest")"
     fi
 
-    if [ "$(common_upgrade_compare_versions "$version_less_one" "1.4")" = "1" ]; then
+    if [ "$(common_upgrade_compare_versions "$desired_version" "1.4")" = "1" ]; then
         local step=
         while read -r step; do
             if [ -z "$step" ] || [ "$step" = "0.0.0" ]; then
+                continue
+            fi
+            # the last version already included in the airgap bundle
+            if [ "$step" = "$desired_version" ]; then
                 continue
             fi
             images_list="$(common_upgrade_merge_images_list \
                 "$images_list" \
                 "$(rook_upgrade_list_rook_ceph_images_in_manifest_file "addons/rook/$step/Manifest")" \
             )"
-        done <<< "$(rook_upgrade_step_versions "${ROOK_STEP_VERSIONS[*]}" "$(common_upgrade_max_version "1.4" "$current_version")" "$version_less_one")"
+        done <<< "$(rook_upgrade_step_versions "${ROOK_STEP_VERSIONS[*]}" "$(common_upgrade_max_version "1.4" "$current_version")" "$desired_version")"
     fi
 
     echo "$images_list"
